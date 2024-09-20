@@ -295,6 +295,7 @@ set(SRC
   engines/overlay/overlay_next_bounds.hh
   engines/overlay/overlay_next_camera.hh
   engines/overlay/overlay_next_curve.hh
+  engines/overlay/overlay_next_edit_text.hh
   engines/overlay/overlay_next_empty.hh
   engines/overlay/overlay_next_facing.hh
   engines/overlay/overlay_next_fade.hh
@@ -309,7 +310,11 @@ set(SRC
   engines/overlay/overlay_next_lightprobe.hh
   engines/overlay/overlay_next_mesh.hh
   engines/overlay/overlay_next_metaball.hh
+  engines/overlay/overlay_next_mode_transfer.hh
+  engines/overlay/overlay_next_motion_path.hh
+  engines/overlay/overlay_next_origin.hh
   engines/overlay/overlay_next_outline.hh
+  engines/overlay/overlay_next_paint.hh
   engines/overlay/overlay_next_particle.hh
   engines/overlay/overlay_next_prepass.hh
   engines/overlay/overlay_next_private.hh
@@ -734,6 +739,7 @@ set(GLSL_SRC
   engines/overlay/shaders/overlay_image_vert.glsl
   engines/overlay/shaders/overlay_motion_path_line_frag.glsl
   engines/overlay/shaders/overlay_motion_path_line_geom.glsl
+  engines/overlay/shaders/overlay_motion_path_line_next_vert.glsl
   engines/overlay/shaders/overlay_motion_path_line_vert.glsl
   engines/overlay/shaders/overlay_motion_path_line_vert_no_geom.glsl
   engines/overlay/shaders/overlay_motion_path_point_vert.glsl
@@ -746,6 +752,7 @@ set(GLSL_SRC
   engines/overlay/shaders/overlay_outline_prepass_pointcloud_vert.glsl
   engines/overlay/shaders/overlay_outline_prepass_vert.glsl
   engines/overlay/shaders/overlay_outline_prepass_vert_no_geom.glsl
+  engines/overlay/shaders/overlay_outline_prepass_wire_vert.glsl
   engines/overlay/shaders/overlay_paint_face_vert.glsl
   engines/overlay/shaders/overlay_paint_point_vert.glsl
   engines/overlay/shaders/overlay_paint_texture_frag.glsl
@@ -888,7 +895,7 @@ endif()
 if(WITH_TBB)
   if(WIN32)
     # TBB includes Windows.h which will define min/max macros
-    # that will collide with the stl versions.
+    # that will collide with the STL versions.
     add_definitions(-DNOMINMAX)
   endif()
 endif()

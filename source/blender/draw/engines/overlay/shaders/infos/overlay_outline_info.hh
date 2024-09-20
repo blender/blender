@@ -55,6 +55,18 @@ GPU_SHADER_CREATE_INFO(overlay_outline_prepass_wire)
     .vertex_source("overlay_outline_prepass_vert.glsl")
     .geometry_source("overlay_outline_prepass_geom.glsl");
 
+GPU_SHADER_CREATE_INFO(overlay_outline_prepass_wire_next)
+    .do_static_compilation(true)
+    .additional_info("overlay_outline_prepass",
+                     "draw_view",
+                     "draw_mesh_new",
+                     "draw_object_infos_new",
+                     "draw_resource_handle_new",
+                     "gpu_index_load")
+    .storage_buf(0, Qualifier::READ, "float", "pos[]", Frequency::GEOMETRY)
+    .push_constant(Type::IVEC2, "gpu_attr_0")
+    .vertex_source("overlay_outline_prepass_wire_vert.glsl");
+
 GPU_SHADER_CREATE_INFO(overlay_outline_prepass_wire_no_geom)
     .metal_backend_only(true)
     .do_static_compilation(true)

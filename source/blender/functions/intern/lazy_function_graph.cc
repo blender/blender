@@ -10,8 +10,9 @@
 
 namespace blender::fn::lazy_function {
 
-Graph::Graph()
+Graph::Graph(const StringRef name)
 {
+  name_ = allocator_.copy_string(name);
   graph_input_node_ = allocator_.construct<InterfaceNode>().release();
   graph_output_node_ = allocator_.construct<InterfaceNode>().release();
   nodes_.append(graph_input_node_);

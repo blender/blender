@@ -68,13 +68,6 @@ class DrawCache : public bke::pbvh::DrawCache {
  public:
   virtual ~DrawCache() = default;
   /**
-   * Tag all attribute values dirty for the selected nodes.
-   * \todo It is inefficient to tag all attributes dirty when only one has changed. It would be
-   *   more efficient for sculpt mode operations to tag the specific attribute that they're
-   *   modifying.
-   */
-  virtual void tag_all_attributes_dirty(const IndexMask &node_mask) = 0;
-  /**
    * Recalculate and copy data as necessary to prepare batches for drawing triangles for a
    * specific combination of attributes.
    */

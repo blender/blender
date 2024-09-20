@@ -1,0 +1,186 @@
+diff --git a/Android.mk b/Android.mk
+index 80c61b08..4cc2911a 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -27,6 +27,7 @@ SPVTOOLS_SRC_FILES := \
+ 		source/table.cpp \
+ 		source/text.cpp \
+ 		source/text_handler.cpp \
++		source/to_string.cpp \
+ 		source/util/bit_vector.cpp \
+ 		source/util/parse_number.cpp \
+ 		source/util/string_utils.cpp \
+diff --git a/BUILD.gn b/BUILD.gn
+index b7e20b34..e4b776b4 100644
+--- a/BUILD.gn
++++ b/BUILD.gn
+@@ -456,6 +456,8 @@ static_library("spvtools") {
+     "source/text.h",
+     "source/text_handler.cpp",
+     "source/text_handler.h",
++    "source/to_string.cpp",
++    "source/to_string.h",
+     "source/util/bit_vector.cpp",
+     "source/util/bit_vector.h",
+     "source/util/bitutils.h",
+diff --git a/source/CMakeLists.txt b/source/CMakeLists.txt
+index 668579ac..ae59eaef 100644
+--- a/source/CMakeLists.txt
++++ b/source/CMakeLists.txt
+@@ -262,6 +262,7 @@ set(SPIRV_SOURCES
+   ${CMAKE_CURRENT_SOURCE_DIR}/table.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/text.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/text_handler.h
++  ${CMAKE_CURRENT_SOURCE_DIR}/to_string.cpp
+   ${CMAKE_CURRENT_SOURCE_DIR}/val/validate.h
+ 
+   ${CMAKE_CURRENT_SOURCE_DIR}/util/bit_vector.cpp
+diff --git a/source/name_mapper.cpp b/source/name_mapper.cpp
+index 3b31d33a..c7ca08d0 100644
+--- a/source/name_mapper.cpp
++++ b/source/name_mapper.cpp
+@@ -25,24 +25,14 @@
+ #include "source/binary.h"
+ #include "source/latest_version_spirv_header.h"
+ #include "source/parsed_operand.h"
++#include "source/to_string.h"
+ #include "spirv-tools/libspirv.h"
+ 
+ namespace spvtools {
+-namespace {
+-
+-// Converts a uint32_t to its string decimal representation.
+-std::string to_string(uint32_t id) {
+-  // Use stringstream, since some versions of Android compilers lack
+-  // std::to_string.
+-  std::stringstream os;
+-  os << id;
+-  return os.str();
++NameMapper GetTrivialNameMapper() {
++  return [](uint32_t i) { return spvtools::to_string(i); };
+ }
+ 
+-}  // anonymous namespace
+-
+-NameMapper GetTrivialNameMapper() { return to_string; }
+-
+ FriendlyNameMapper::FriendlyNameMapper(const spv_const_context context,
+                                        const uint32_t* code,
+                                        const size_t wordCount)
+diff --git a/source/opt/instrument_pass.cpp b/source/opt/instrument_pass.cpp
+index d143d595..c759e0b3 100644
+--- a/source/opt/instrument_pass.cpp
++++ b/source/opt/instrument_pass.cpp
+@@ -18,6 +18,7 @@
+ 
+ #include "source/cfa.h"
+ #include "source/spirv_constant.h"
++#include "source/to_string.h"
+ 
+ namespace {
+ 
+@@ -839,7 +840,7 @@ uint32_t InstrumentPass::GetStreamWriteFunctionId(uint32_t stage_idx,
+     context()->AddFunction(std::move(output_func));
+ 
+     std::string name("stream_write_");
+-    name += std::to_string(param_cnt);
++    name += spvtools::to_string(param_cnt);
+ 
+     context()->AddDebug2Inst(
+         NewGlobalName(param2output_func_id_[param_cnt], name));
+@@ -925,7 +926,7 @@ uint32_t InstrumentPass::GetDirectReadFunctionId(uint32_t param_cnt) {
+   context()->AddFunction(std::move(input_func));
+ 
+   std::string name("direct_read_");
+-  name += std::to_string(param_cnt);
++  name += spvtools::to_string(param_cnt);
+   context()->AddDebug2Inst(NewGlobalName(func_id, name));
+ 
+   param2input_func_id_[param_cnt] = func_id;
+diff --git a/source/to_string.cpp b/source/to_string.cpp
+new file mode 100644
+index 00000000..18f144b1
+--- /dev/null
++++ b/source/to_string.cpp
+@@ -0,0 +1,44 @@
++// Copyright (c) 2024 Google LLC
++//
++// Licensed under the Apache License, Version 2.0 (the "License");
++// you may not use this file except in compliance with the License.
++// You may obtain a copy of the License at
++//
++//     http://www.apache.org/licenses/LICENSE-2.0
++//
++// Unless required by applicable law or agreed to in writing, software
++// distributed under the License is distributed on an "AS IS" BASIS,
++// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++// See the License for the specific language governing permissions and
++// limitations under the License.
++
++#include "source/to_string.h"
++
++#include <cassert>
++
++namespace spvtools {
++
++std::string to_string(uint32_t n) {
++  // This implementation avoids using standard library features that access
++  // the locale.  Using the locale requires taking a mutex which causes
++  // annoying serialization.
++
++  constexpr int max_digits = 10;  // max uint has 10 digits
++  // Contains the resulting digits, with least significant digit in the last
++  // entry.
++  char buf[max_digits];
++  int write_index = max_digits - 1;
++  if (n == 0) {
++    buf[write_index] = '0';
++  } else {
++    while (n > 0) {
++      int units = n % 10;
++      buf[write_index--] = "0123456789"[units];
++      n = (n - units) / 10;
++    }
++    write_index++;
++  }
++  assert(write_index >= 0);
++  return std::string(buf + write_index, max_digits - write_index);
++}
++}  // namespace spvtools
+\ No newline at end of file
+diff --git a/source/to_string.h b/source/to_string.h
+new file mode 100644
+index 00000000..31a859e6
+--- /dev/null
++++ b/source/to_string.h
+@@ -0,0 +1,29 @@
++// Copyright (c) 2024 Google LLC
++//
++// Licensed under the Apache License, Version 2.0 (the "License");
++// you may not use this file except in compliance with the License.
++// You may obtain a copy of the License at
++//
++//     http://www.apache.org/licenses/LICENSE-2.0
++//
++// Unless required by applicable law or agreed to in writing, software
++// distributed under the License is distributed on an "AS IS" BASIS,
++// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++// See the License for the specific language governing permissions and
++// limitations under the License.
++
++#ifndef SOURCE_TO_STRING_H_
++#define SOURCE_TO_STRING_H_
++
++#include <cstdint>
++#include <string>
++
++namespace spvtools {
++
++// Returns the decimal representation of a number as a string,
++// without using the locale.
++std::string to_string(uint32_t n);
++
++}  // namespace spvtools
++
++#endif  // SOURCE_TO_STRING_H_
+\ No newline at end of file

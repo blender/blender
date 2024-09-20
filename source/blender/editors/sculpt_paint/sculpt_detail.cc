@@ -97,6 +97,7 @@ static bool sculpt_and_dynamic_topology_poll(bContext *C)
 
 static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
 {
+  const Scene &scene = *CTX_data_scene(C);
   const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   Object &ob = *CTX_data_active_object(C);
@@ -131,7 +132,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
                              (sd->constant_detail * mat4_to_scale(ob.object_to_world().ptr()));
   const float min_edge_len = max_edge_len * detail_size::EDGE_LENGTH_MIN_FACTOR;
 
-  undo::push_begin(ob, op);
+  undo::push_begin(scene, ob, op);
   undo::push_node(depsgraph, ob, nullptr, undo::Type::Position);
 
   const double start_time = BLI_time_now_seconds();
@@ -205,6 +206,7 @@ static void sample_detail_voxel(bContext *C, ViewContext *vc, const int mval[2])
   const Span<float3> positions = bke::pbvh::vert_positions_eval(*depsgraph, ob);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
 
@@ -221,7 +223,7 @@ static void sample_detail_voxel(bContext *C, ViewContext *vc, const int mval[2])
   float edge_length = 0.0f;
   Vector<int> neighbors;
   for (const int neighbor : vert_neighbors_get_mesh(
-           active_vert, faces, corner_verts, ss.vert_to_face_map, hide_poly, neighbors))
+           faces, corner_verts, vert_to_face_map, hide_poly, active_vert, neighbors))
   {
     edge_length += math::distance(active_vert_position, positions[neighbor]);
   }

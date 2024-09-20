@@ -61,7 +61,7 @@
 
 #undef DNA_GENFILE_VERSIONING_MACROS
 
-#include "BKE_animsys.h"
+#include "BKE_anim_data.hh"
 #include "BKE_blender.hh"
 #include "BKE_collection.hh"
 #include "BKE_colortools.hh"
@@ -579,13 +579,6 @@ static void do_version_bbone_scale_fcurve_fix(ListBase *curves, FCurve *fcu)
   }
 }
 
-static void do_version_bbone_scale_animdata_cb(ID * /*id*/, AnimData *adt, void * /*wrapper_data*/)
-{
-  LISTBASE_FOREACH_MUTABLE (FCurve *, fcu, &adt->drivers) {
-    do_version_bbone_scale_fcurve_fix(&adt->drivers, fcu);
-  }
-}
-
 static void do_version_constraints_maintain_volume_mode_uniform(ListBase *lb)
 {
   LISTBASE_FOREACH (bConstraint *, con, lb) {
@@ -999,16 +992,6 @@ static void do_version_curvemapping_walker(Main *bmain, void (*callback)(CurveMa
       }
     }
   }
-}
-
-static void do_version_fcurve_hide_viewport_fix(ID * /*id*/, FCurve *fcu, void * /*user_data*/)
-{
-  if (fcu->rna_path == nullptr || !STREQ(fcu->rna_path, "hide")) {
-    return;
-  }
-
-  MEM_freeN(fcu->rna_path);
-  fcu->rna_path = BLI_strdupn("hide_viewport", 13);
 }
 
 static void displacement_node_insert(bNodeTree *ntree)
@@ -1688,15 +1671,6 @@ static void update_noise_node_dimensions(bNodeTree *ntree)
   }
 }
 
-/* This structure is only used to pass data to
- * update_mapping_node_fcurve_rna_path_callback.
- */
-struct MappingNodeFCurveCallbackData {
-  char *nodePath;
-  bNode *minimumNode;
-  bNode *maximumNode;
-};
-
 /* This callback function is used by update_mapping_node_inputs_and_properties.
  * It is executed on every fcurve in the nodetree id updating its RNA paths. The
  * paths needs to be updated because the node properties became inputs.
@@ -1711,10 +1685,12 @@ struct MappingNodeFCurveCallbackData {
  * update if the rna path starts with the rna path of the mapping node and
  * doesn't end with "default_value", that is, not the Vector input.
  */
-static void update_mapping_node_fcurve_rna_path_callback(ID * /*id*/, FCurve *fcurve, void *_data)
+static void update_mapping_node_fcurve_rna_path_callback(FCurve *fcurve,
+                                                         const char *nodePath,
+                                                         const bNode *minimumNode,
+                                                         const bNode *maximumNode)
 {
-  MappingNodeFCurveCallbackData *data = (MappingNodeFCurveCallbackData *)_data;
-  if (!STRPREFIX(fcurve->rna_path, data->nodePath) ||
+  if (!STRPREFIX(fcurve->rna_path, nodePath) ||
       BLI_str_endswith(fcurve->rna_path, "default_value"))
   {
     return;
@@ -1722,22 +1698,22 @@ static void update_mapping_node_fcurve_rna_path_callback(ID * /*id*/, FCurve *fc
   char *old_fcurve_rna_path = fcurve->rna_path;
 
   if (BLI_str_endswith(old_fcurve_rna_path, "translation")) {
-    fcurve->rna_path = BLI_sprintfN("%s.%s", data->nodePath, "inputs[1].default_value");
+    fcurve->rna_path = BLI_sprintfN("%s.%s", nodePath, "inputs[1].default_value");
   }
   else if (BLI_str_endswith(old_fcurve_rna_path, "rotation")) {
-    fcurve->rna_path = BLI_sprintfN("%s.%s", data->nodePath, "inputs[2].default_value");
+    fcurve->rna_path = BLI_sprintfN("%s.%s", nodePath, "inputs[2].default_value");
   }
   else if (BLI_str_endswith(old_fcurve_rna_path, "scale")) {
-    fcurve->rna_path = BLI_sprintfN("%s.%s", data->nodePath, "inputs[3].default_value");
+    fcurve->rna_path = BLI_sprintfN("%s.%s", nodePath, "inputs[3].default_value");
   }
-  else if (data->minimumNode && BLI_str_endswith(old_fcurve_rna_path, "max")) {
-    char node_name_esc[sizeof(data->minimumNode->name) * 2];
-    BLI_str_escape(node_name_esc, data->minimumNode->name, sizeof(node_name_esc));
+  else if (minimumNode && BLI_str_endswith(old_fcurve_rna_path, "max")) {
+    char node_name_esc[sizeof(minimumNode->name) * 2];
+    BLI_str_escape(node_name_esc, minimumNode->name, sizeof(node_name_esc));
     fcurve->rna_path = BLI_sprintfN("nodes[\"%s\"].%s", node_name_esc, "inputs[1].default_value");
   }
-  else if (data->maximumNode && BLI_str_endswith(old_fcurve_rna_path, "min")) {
-    char node_name_esc[sizeof(data->maximumNode->name) * 2];
-    BLI_str_escape(node_name_esc, data->maximumNode->name, sizeof(node_name_esc));
+  else if (maximumNode && BLI_str_endswith(old_fcurve_rna_path, "min")) {
+    char node_name_esc[sizeof(maximumNode->name) * 2];
+    BLI_str_escape(node_name_esc, maximumNode->name, sizeof(node_name_esc));
     fcurve->rna_path = BLI_sprintfN("nodes[\"%s\"].%s", node_name_esc, "inputs[1].default_value");
   }
 
@@ -1861,8 +1837,9 @@ static void update_mapping_node_inputs_and_properties(bNodeTree *ntree)
       BLI_str_escape(node_name_esc, node->name, sizeof(node_name_esc));
 
       char *nodePath = BLI_sprintfN("nodes[\"%s\"]", node_name_esc);
-      MappingNodeFCurveCallbackData data = {nodePath, minimumNode, maximumNode};
-      BKE_fcurves_id_cb(&ntree->id, update_mapping_node_fcurve_rna_path_callback, &data);
+      BKE_fcurves_id_cb(&ntree->id, [&](ID * /*id*/, FCurve *fcu) {
+        update_mapping_node_fcurve_rna_path_callback(fcu, nodePath, minimumNode, maximumNode);
+      });
       MEM_freeN(nodePath);
     }
   }
@@ -2943,7 +2920,14 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
     /* During development of Blender 2.80 the "Object.hide" property was
      * removed, and reintroduced in 5e968a996a53 as "Object.hide_viewport". */
     LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-      BKE_fcurves_id_cb(&ob->id, do_version_fcurve_hide_viewport_fix, nullptr);
+      BKE_fcurves_id_cb(&ob->id, [&](ID * /*id*/, FCurve *fcu) {
+        if (fcu->rna_path == nullptr || !STREQ(fcu->rna_path, "hide")) {
+          return;
+        }
+
+        MEM_freeN(fcu->rna_path);
+        fcu->rna_path = BLI_strdupn("hide_viewport", 13);
+      });
     }
 
     /* Reset all grease pencil brushes. */
@@ -5221,7 +5205,11 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
         }
       }
 
-      BKE_animdata_main_cb(bmain, do_version_bbone_scale_animdata_cb, nullptr);
+      BKE_animdata_main_cb(bmain, [](ID * /*id*/, AnimData *adt) {
+        LISTBASE_FOREACH_MUTABLE (FCurve *, fcu, &adt->drivers) {
+          do_version_bbone_scale_fcurve_fix(&adt->drivers, fcu);
+        }
+      });
     }
 
     LISTBASE_FOREACH (Scene *, sce, &bmain->scenes) {

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'd52d70324d18')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2024-09-02 14:03+0000\n"
+"POT-Creation-Date: 2024-09-16 11:03+0000\n"
 "PO-Revision-Date: 2024-04-15 06:56+0000\n"
 "Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -11719,10 +11719,6 @@ msgid "Clone Image"
 msgstr "Imagem para clonar"
 
 
-msgid "Image for clone tool"
-msgstr "Imagem para a ferramenta de clonagem."
-
-
 msgid "Clone Offset"
 msgstr "Deslocamento para clone"
 
@@ -21523,20 +21519,48 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
+msgid "Names"
+msgstr "Nomes"
+
+
 msgid "Show/Hide"
 msgstr "Mostrar ou ocultar"
+
+
+msgid "Apply"
+msgstr "Aplicar"
+
+
+msgid "Toggle Bone Options"
+msgstr "Alternar opções de ossos"
+
+
+msgid "Enable Bone Options"
+msgstr "Habilitar opções de ossos"
+
+
+msgid "Disable Bone Options"
+msgstr "Desabilitar as opções de ossos"
+
+
+msgid "Mesh Select Mode"
+msgstr "Modo de seleção de malhas"
+
+
+msgid "Face Data"
+msgstr "Dados das faces"
 
 
 msgid "Clean Up"
 msgstr "Limpeza"
 
 
+msgid "Merge"
+msgstr "Fundir"
+
+
 msgid "Special Characters"
 msgstr "Caracteres especiais"
-
-
-msgid "Names"
-msgstr "Nomes"
 
 
 msgid "Bone Roll"
@@ -21619,10 +21643,6 @@ msgid "Rigid Body"
 msgstr "Corpo rígido"
 
 
-msgid "Apply"
-msgstr "Aplicar"
-
-
 msgid "Track"
 msgstr "Rastrear"
 
@@ -21657,30 +21677,6 @@ msgstr "Entre as continuidades"
 
 msgid "Propagate"
 msgstr "Propagar"
-
-
-msgid "Toggle Bone Options"
-msgstr "Alternar opções de ossos"
-
-
-msgid "Enable Bone Options"
-msgstr "Habilitar opções de ossos"
-
-
-msgid "Disable Bone Options"
-msgstr "Desabilitar as opções de ossos"
-
-
-msgid "Mesh Select Mode"
-msgstr "Modo de seleção de malhas"
-
-
-msgid "Face Data"
-msgstr "Dados das faces"
-
-
-msgid "Merge"
-msgstr "Fundir"
 
 
 msgid "Basic"
@@ -22828,6 +22824,10 @@ msgstr "Limita a largura para evitar sobreposições."
 
 msgid "Vertex group name"
 msgstr "Nome do grupo de vértices."
+
+
+msgid "Vertex Weight"
+msgstr "Peso de vértices"
 
 
 msgid "Bevel amount"
@@ -29448,10 +29448,6 @@ msgstr "O atributo de vértices para usar para as cores."
 
 msgid "Vertex color layer"
 msgstr "Camada de cores de vértices"
-
-
-msgid "Vertex Weight"
-msgstr "Peso de vértices"
 
 
 msgid "Vertex group weight"
@@ -37773,6 +37769,11 @@ msgstr "Modo de seleção"
 
 
 msgctxt "Operator"
+msgid "Normalize All Vertex Groups"
+msgstr "Normalizar todos os grupos de vértices"
+
+
+msgctxt "Operator"
 msgid "Add Render Slot"
 msgstr "Adicionar Compartimento de Renderização"
 
@@ -43439,11 +43440,6 @@ msgstr "Normaliza os pesos do grupo de vértices ativo, de maneira que os valore
 
 
 msgctxt "Operator"
-msgid "Normalize All Vertex Groups"
-msgstr "Normalizar todos os grupos de vértices"
-
-
-msgctxt "Operator"
 msgid "Quantize Vertex Weights"
 msgstr "Quantificar pesos de vértices"
 
@@ -46520,10 +46516,6 @@ msgid "Change Effect Input"
 msgstr "Alterar as entradas de efeito"
 
 
-msgid "The effect inputs to swap"
-msgstr "As entradas de efeito para trocar."
-
-
 msgctxt "Operator"
 msgid "Change Effect Type"
 msgstr "Alterar os tipos de efeito"
@@ -47163,10 +47155,6 @@ msgstr "Troca as posições de duas faixas selecionadas no editor de sequências
 msgctxt "Operator"
 msgid "Swap Inputs"
 msgstr "Trocar entradas"
-
-
-msgid "Swap the first two inputs for the effect strip"
-msgstr "Troca as duas primeiras entradas pela faixa de efeito."
 
 
 msgctxt "Operator"
@@ -51759,8 +51747,8 @@ msgstr "Amostrar Pesos"
 
 
 msgctxt "Operator"
-msgid "Cutter"
-msgstr "Obturador"
+msgid "Trim"
+msgstr "Aparar"
 
 
 msgctxt "Operator"
@@ -51791,6 +51779,11 @@ msgstr "Caixa"
 msgctxt "Operator"
 msgid "Circle"
 msgstr "Círculo"
+
+
+msgctxt "Operator"
+msgid "Cutter"
+msgstr "Obturador"
 
 
 msgctxt "Operator"
@@ -62611,11 +62604,6 @@ msgstr "Clipes - Tabela de animação"
 
 
 msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Edit Mode"
-msgstr "Modo de edição de traço(s) de lápis de cera"
-
-
-msgctxt "WindowManager"
 msgid "Mask Editing"
 msgstr "Edição de máscara"
 
@@ -64115,11 +64103,6 @@ msgstr "Ligados"
 msgctxt "Operator"
 msgid "Shortest Path"
 msgstr "Caminho mais curto"
-
-
-msgctxt "Image"
-msgid "New"
-msgstr "Novo(a)"
 
 
 msgctxt "Operator"
@@ -65679,11 +65662,6 @@ msgstr "Fixo"
 msgctxt "Operator"
 msgid "Adaptive"
 msgstr "Adaptativo"
-
-
-msgctxt "Operator"
-msgid "Trim"
-msgstr "Aparar"
 
 
 msgctxt "Operator"
@@ -67819,6 +67797,11 @@ msgstr "Novo(a)"
 
 
 msgctxt "GPencil"
+msgid "New"
+msgstr "Novo(a)"
+
+
+msgctxt "Image"
 msgid "New"
 msgstr "Novo(a)"
 
@@ -70022,10 +70005,6 @@ msgid "Cannot apply effects to audio sequence strips"
 msgstr "Não é possível aplicar efeitos para as faixas de sequência de áudio."
 
 
-msgid "Cannot apply effect to more than 3 sequence strips"
-msgstr "Não é possível aplicar efeitos em mais de 3 faixas de sequência."
-
-
 msgid "At least one selected sequence strip is needed"
 msgstr "Pelo menos uma faixa de sequência selecionada é necessária."
 
@@ -71241,20 +71220,12 @@ msgid "Sequences.new_effect: effect takes 2 input sequences"
 msgstr "Sequences.new_effect: São necessárias duas sequências de entrada para o efeito"
 
 
-msgid "Sequences.new_effect: effect takes 3 input sequences"
-msgstr "Sequences.new_effect: São necessárias três sequências de entrada para o efeito"
-
-
 msgid "SequenceElements.pop: cannot pop the last element"
 msgstr "SequenceElements.pop: Não foi possível retornar o último elemento"
 
 
 msgid "SequenceElements.pop: index out of range"
 msgstr "SequenceElements.pop:: Índice fora do escopo"
-
-
-msgid "Sequences.new_effect: effect expects more than 3 inputs (%d, should never happen!)"
-msgstr "Erro ao adicionar um novo efeito para as sequências. O efeito necessita de mais de três entradas (Há apenas %d, e isso jamais deve ocorrer !)."
 
 
 msgid "Sequence '%s' not in scene '%s'"
@@ -71496,10 +71467,6 @@ msgstr "Vincos de arestas"
 
 msgid "Rotate islands for best fit"
 msgstr "Rotaciona as ilhas para um melhor ajuste."
-
-
-msgid "{} node"
-msgstr "{} nó"
 
 
 msgid "Shader Editor"

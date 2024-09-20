@@ -344,7 +344,7 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
         msgctxt = bl_rna.translation_context or default_context
 
         if bl_rna.name and (bl_rna.name != bl_rna.identifier or
-                            (msgctxt != default_context and not hasattr(bl_rna, "bl_label"))):
+                            (msgctxt != default_context and not hasattr(cls, "bl_label"))):
             process_msg(msgs, msgctxt, bl_rna.name, msgsrc, reports, check_ctxt_rna, settings)
 
         if bl_rna.description:

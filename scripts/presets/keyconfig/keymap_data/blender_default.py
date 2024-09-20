@@ -4612,6 +4612,7 @@ def km_grease_pencil_paint_mode(params):
         op_tool_optional(
             ("grease_pencil.interpolate", {"type": 'E', "value": 'PRESS', "ctrl": True}, None),
             (op_tool_cycle, "builtin.interpolate"), params),
+        ("grease_pencil.interpolate_sequence", {"type": 'E', "value": 'PRESS', "shift": True, "ctrl": True}, None),
 
         op_asset_shelf_popup(
             "VIEW3D_AST_brush_gpencil_paint",
@@ -4751,6 +4752,7 @@ def km_grease_pencil_edit_mode(params):
         op_tool_optional(
             ("grease_pencil.interpolate", {"type": 'E', "value": 'PRESS', "ctrl": True}, None),
             (op_tool_cycle, "builtin.interpolate"), params),
+        ("grease_pencil.interpolate_sequence", {"type": 'E', "value": 'PRESS', "shift": True, "ctrl": True}, None),
     ])
 
     return keymap
@@ -4863,6 +4865,8 @@ def km_grease_pencil_vertex_paint(params):
          {"properties": [("scalar", 1.0 / 0.9)]}),
         # Radial controls
         *_template_paint_radial_control("gpencil_vertex_paint"),
+        # Context menu
+        *_template_items_context_panel("VIEW3D_PT_greasepencil_vertex_paint_context_menu", params.context_menu_event),
     ])
 
     return keymap
@@ -8638,12 +8642,12 @@ def km_3d_view_tool_paint_gpencil_cutter(params):
     )
 
 
-def km_3d_view_tool_paint_grease_pencil_cutter(params):
+def km_3d_view_tool_paint_grease_pencil_trim(params):
     return (
-        "3D View Tool: Paint Grease Pencil, Cutter",
+        "3D View Tool: Paint Grease Pencil, Trim",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
-            ("grease_pencil.stroke_cutter", {"type": params.tool_mouse, "value": 'PRESS'}, None),
+            ("grease_pencil.stroke_trim", {"type": params.tool_mouse, "value": 'PRESS'}, None),
         ]},
     )
 
@@ -9377,7 +9381,7 @@ def generate_keymaps(params=None):
           for fallback in (False, True)),
         *(km_sequencer_editor_tool_generic_select_box_preview(params, fallback=fallback)
           for fallback in (False, True)),
-        km_3d_view_tool_paint_grease_pencil_cutter(params),
+        km_3d_view_tool_paint_grease_pencil_trim(params),
         km_sequencer_editor_tool_generic_cursor(params),
         km_sequencer_editor_tool_blade(params),
         km_sequencer_editor_tool_sample(params),

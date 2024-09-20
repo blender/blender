@@ -52,6 +52,7 @@ static SpaceLink *text_create(const ScrArea * /*area*/, const Scene * /*scene*/)
   stext->margin_column = 80;
   stext->showsyntax = true;
   stext->showlinenrs = true;
+  stext->flags |= ST_FIND_WRAP;
 
   stext->runtime = MEM_new<SpaceText_Runtime>(__func__);
 

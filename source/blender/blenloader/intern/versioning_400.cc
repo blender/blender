@@ -808,7 +808,7 @@ static void version_nla_tweakmode_incomplete(Main *bmain)
 
     /* Not enough info in the blend file to reliably stay in tweak mode. This is the most important
      * part of this versioning code, as it prevents future nullptr access. */
-    BKE_nla_tweakmode_exit(adt);
+    BKE_nla_tweakmode_exit({*id, *adt});
   }
   FOREACH_MAIN_ID_END;
 

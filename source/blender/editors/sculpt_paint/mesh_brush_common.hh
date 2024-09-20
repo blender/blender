@@ -127,15 +127,6 @@ void scatter_data_grids(const SubdivCCG &subdiv_ccg,
 template<typename T>
 void scatter_data_bmesh(Span<T> node_data, const Set<BMVert *, 0> &verts, MutableSpan<T> dst);
 
-/**
- * Note on the various positions arrays:
- * - positions_orig: Positions owned by the original mesh. Not the same as `positions_eval` if
- *   there are deform modifiers.
- * - positions_eval: Positions after procedural deformation, used to build the
- * blender::bke::pbvh::Tree. Translations are built for these values, then applied to
- * `positions_orig`.
- */
-
 /** Fill the output array with all positions in the geometry referenced by the indices. */
 inline MutableSpan<float3> gather_grids_positions(const SubdivCCG &subdiv_ccg,
                                                   const Span<int> grids,
@@ -289,80 +280,6 @@ void calc_brush_texture_factors(const SculptSession &ss,
                                 Span<float3> positions,
                                 MutableSpan<float> factors);
 
-namespace auto_mask {
-
-/**
- * Calculate all auto-masking influence on each vertex.
- */
-void calc_vert_factors(const Depsgraph &depsgraph,
-                       const Object &object,
-                       const Cache &cache,
-                       const bke::pbvh::MeshNode &node,
-                       Span<int> verts,
-                       MutableSpan<float> factors);
-inline void calc_vert_factors(const Depsgraph &depsgraph,
-                              const Object &object,
-                              const Cache *cache,
-                              const bke::pbvh::MeshNode &node,
-                              Span<int> verts,
-                              MutableSpan<float> factors)
-{
-  if (cache == nullptr) {
-    return;
-  }
-  calc_vert_factors(depsgraph, object, *cache, node, verts, factors);
-}
-void calc_grids_factors(const Depsgraph &depsgraph,
-                        const Object &object,
-                        const Cache &cache,
-                        const bke::pbvh::GridsNode &node,
-                        Span<int> grids,
-                        MutableSpan<float> factors);
-inline void calc_grids_factors(const Depsgraph &depsgraph,
-                               const Object &object,
-                               const Cache *cache,
-                               const bke::pbvh::GridsNode &node,
-                               Span<int> grids,
-                               MutableSpan<float> factors)
-{
-  if (cache == nullptr) {
-    return;
-  }
-  calc_grids_factors(depsgraph, object, *cache, node, grids, factors);
-}
-void calc_vert_factors(const Depsgraph &depsgraph,
-                       const Object &object,
-                       const Cache &cache,
-                       const bke::pbvh::BMeshNode &node,
-                       const Set<BMVert *, 0> &verts,
-                       MutableSpan<float> factors);
-inline void calc_vert_factors(const Depsgraph &depsgraph,
-                              const Object &object,
-                              const Cache *cache,
-                              const bke::pbvh::BMeshNode &node,
-                              const Set<BMVert *, 0> &verts,
-                              MutableSpan<float> factors)
-{
-  if (cache == nullptr) {
-    return;
-  }
-  calc_vert_factors(depsgraph, object, *cache, node, verts, factors);
-}
-
-/**
- * Calculate all auto-masking influence on each face.
- */
-void calc_face_factors(const Depsgraph &depsgraph,
-                       const Object &object,
-                       OffsetIndices<int> faces,
-                       Span<int> corner_verts,
-                       const Cache &cache,
-                       const bke::pbvh::MeshNode &node,
-                       Span<int> face_indices,
-                       MutableSpan<float> factors);
-
-}  // namespace auto_mask
-
 /**
  * Many brushes end up calculating translations from the original positions. Instead of applying
  * these directly to the modified values, it's helpful to process them separately to easily
@@ -422,19 +339,6 @@ void update_shape_keys(Object &object,
                        Span<int> verts,
                        Span<float3> translations,
                        Span<float3> positions_orig);
-
-/**
- * Write the new translated positions to the original mesh, taking into account inverse
- * deformation from modifiers, axis locking, and clipping. Flush the deformation to shape keys as
- * well.
- */
-void write_translations(const Depsgraph &depsgraph,
-                        const Sculpt &sd,
-                        Object &object,
-                        Span<float3> positions_eval,
-                        Span<int> verts,
-                        MutableSpan<float3> translations,
-                        MutableSpan<float3> positions_orig);
 
 /**
  * Creates OffsetIndices based on each node's unique vertex count, allowing for easy slicing of a

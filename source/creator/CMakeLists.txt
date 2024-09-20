@@ -82,7 +82,7 @@ if(WITH_TBB)
 endif()
 
 if(WIN32)
-  # Windows.h will define min/max macros that will collide with the stl versions.
+  # Windows.h will define min/max macros that will collide with the STL versions.
   add_definitions(-DNOMINMAX)
 endif()
 
@@ -113,10 +113,6 @@ if(WITH_HEADLESS)
 endif()
 
 if(WITH_SDL)
-  if(WITH_SDL_DYNLOAD)
-    list(APPEND INC ../../extern/sdlew/include)
-    add_definitions(-DWITH_SDL_DYNLOAD)
-  endif()
   add_definitions(-DWITH_SDL)
 endif()
 
@@ -421,8 +417,8 @@ elseif(APPLE)
       set(TARGETDIR_VER "./bpy/${BLENDER_VERSION}")
       set(TARGETDIR_LIB "./bpy/lib")
     else()
-      # Paths defined in terms of site-packages since the site-packages
-      # directory can be a symlink (brew for example).
+      # Paths defined in terms of `site-packages` since the `site-packages`
+      # directory can be a symbolic-link (brew for example).
       set(TARGETDIR_BPY ${PYTHON_SITE_PACKAGES}/bpy)
       set(TARGETDIR_VER ${PYTHON_SITE_PACKAGES}/bpy/${BLENDER_VERSION})
       set(TARGETDIR_LIB ${PYTHON_SITE_PACKAGES}/bpy/lib)
@@ -744,7 +740,7 @@ if(UNIX AND NOT APPLE)
       )
 
       # Remove from old location, so existing builds don't start with software
-      # OpenGL now that the lib/ folder is used for other libraries.
+      # OpenGL now that the `./lib/` directory is used for other libraries.
       install(
         CODE "\
 file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGL.so)\n
@@ -799,7 +795,7 @@ file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so.0.0.0)\n
     )
 
     if(DEFINED LIBDIR)
-      # Precompiled libraries, copy over complete lib directory.
+      # Pre-compiled libraries, copy over complete lib directory.
       install_dir(
         ${PYTHON_LIBPATH}
         ${TARGETDIR_VER}/python
@@ -813,7 +809,8 @@ file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so.0.0.0)\n
 
       # On some platforms (like openSUSE) Python is linked to be used from `lib64` directory.
       # determine this from Python's libraries path.
-      # Ugh, its possible `lib64` is just a symlink to 'lib' which causes incorrect use of `lib64`.
+      # Ugh, its possible `lib64` is just a symbolic-link to `lib`
+      # which causes incorrect use of `lib64`.
       get_filename_component(_pypath_real ${PYTHON_LIBPATH} REALPATH)
       if(${_pypath_real} MATCHES "lib64$")
         set(_target_LIB "lib64")
@@ -886,7 +883,7 @@ file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so.0.0.0)\n
 
       if(WITH_USD)
         # Install to the same directory as the source, so debian-like
-        # distros are happy with their policy.
+        # distributions are happy with their policy.
         set(_suffix "site-packages")
         if(0) # TODO: `PYTHON_USD_PATH` isn't defined anywhere.
           if(${PYTHON_USD_PATH} MATCHES "dist-packages")
@@ -1023,7 +1020,7 @@ elseif(WIN32)
       ALL
     )
   endif()
-  # 4.1 fftw libs need to be installed, in 4.2 fftw got turned into a static lib
+  # 4.1 FFTW libs need to be installed, in 4.2 FFTW got turned into a static lib
   # and the files below no longer exist.
   if(EXISTS ${LIBDIR}/fftw3/lib/fftw3.dll)
     windows_install_shared_manifest(
@@ -1034,7 +1031,7 @@ elseif(WIN32)
     )
   endif()
   if(MSVC_ASAN)
-    # The ASAN DLL's can be found in the same folder as the compiler,
+    # The ASAN DLL's can be found in the same directory as the compiler,
     # this is the easiest way to find these.
     string(
       REPLACE "cl.exe" "clang_rt.asan_dynamic-x86_64.dll"
@@ -1120,8 +1117,8 @@ elseif(WIN32)
   )
 
   if(WITH_WINDOWS_RELEASE_PDB)
-    # Skip install of stripped pdb if compiling with clang since there doesn't seem
-    # to be a pdbstripped version for clang-cl
+    # Skip install of stripped PDB if compiling with clang since there doesn't seem
+    # to be a PDB-stripped version for `clang-cl`.
     if(WITH_WINDOWS_RELEASE_STRIPPED_PDB AND NOT MSVC_CLANG)
       # Icky hack for older CMAKE from https://stackoverflow.com/a/21198501
       # `$<CONFIG>` will work in newer CMAKE but the version currently (3.12)
@@ -1302,9 +1299,8 @@ elseif(WIN32)
         )
       endif()
 
-      # This will not exist for 3.4 and earlier lib folders
-      # to ease the transition, support both 3.4 and 3.5 lib
-      # folders.
+      # This will not exist for 3.4 and earlier `./lib` directory
+      # to ease the transition, support both 3.4 and 3.5 `./lib` directories.
       if(EXISTS ${USD_LIBRARY_DIR}/python/)
         install(
           DIRECTORY ${USD_LIBRARY_DIR}/python/
@@ -1326,9 +1322,8 @@ elseif(WIN32)
         )
       endif()
 
-      # This will not exist for 3.4 and earlier lib folders
-      # to ease the transition, support both 3.4 and 3.5 lib
-      # folders.
+      # This will not exist for 3.4 and earlier `./lib` directories
+      # to ease the transition, support both 3.4 and 3.5 `./lib` directories.
       if(EXISTS ${LIBDIR}/openvdb/python/pyopenvdb_d.pyd)
         install(
           FILES ${LIBDIR}/openvdb/python/pyopenvdb_d.pyd
@@ -1342,7 +1337,7 @@ elseif(WIN32)
         )
       endif()
 
-      # this will exist for 4.1 lib folders
+      # This will exist for 4.1 `./lib` directories.
       if(CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
         set(_openvdb_arch arm64)
       else()
@@ -1802,11 +1797,11 @@ if(WITH_USD)
   absolute_include_dirs(../blender/io/usd)
 endif()
 
-# Always install USD shared library and datafiles regardless if Blender
+# Always install USD shared library and `datafiles` regardless if Blender
 # itself uses them, the bundled Python module still needs it.
 if((DEFINED LIBDIR) AND TARGETDIR_LIB)
-  # On windows the usd library sits in ./blender.shared copy the files
-  # relative to the location of the USD dll, if the dll does not exist
+  # On windows the USD library sits in `./blender.shared` copy the files
+  # relative to the location of the USD DLL, if the DLL does not exist
   # assume we are linking against the static 3.5 lib.
   if(WITH_USD)
     if(WIN32 AND
@@ -1848,8 +1843,8 @@ if((DEFINED LIBDIR) AND TARGETDIR_LIB)
     endif()
   endif()
   if(WIN32)
-    # If this file exists we are building against a 3.5 22.03 library folder
-    # that needs these dll's installed.
+    # If this file exists we are building against a 3.5 22.03 library directory
+    # that needs these DLL's installed.
     if(EXISTS ${LIBDIR}/usd/lib/usd_usd_ms.dll)
       windows_install_shared_manifest(FILES
         ${LIBDIR}/usd/lib/usd_usd_ms.dll
@@ -1860,8 +1855,8 @@ if((DEFINED LIBDIR) AND TARGETDIR_LIB)
         DEBUG
       )
     endif()
-    # If this file exists we are building against a 3.5 22.11 library folder
-    # that needs these dll's installed.
+    # If this file exists we are building against a 3.5 22.11 library directory
+    # that needs these DLL's installed.
     if(EXISTS ${LIBDIR}/usd/lib/usd_ms.dll)
       windows_install_shared_manifest(FILES
         ${LIBDIR}/usd/lib/usd_ms.dll

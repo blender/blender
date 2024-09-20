@@ -198,7 +198,7 @@ class Layer;
   void set_selected(bool selected); \
   bool use_onion_skinning() const; \
   bool use_masks() const; \
-  bool use_locked_material() const; \
+  bool ignore_locked_materials() const; \
   bool is_child_of(const LayerGroup &group) const;
 
 /* Implements the forwarding of the methods defined by #TREENODE_COMMON_METHODS. */
@@ -247,9 +247,9 @@ class Layer;
   { \
     return this->as_node().use_masks(); \
   } \
-  inline bool class_name::use_locked_material() const \
+  inline bool class_name::ignore_locked_materials() const \
   { \
-    return this->as_node().use_locked_material(); \
+    return this->as_node().ignore_locked_materials(); \
   } \
   inline bool class_name::is_child_of(const LayerGroup &group) const \
   { \
@@ -802,9 +802,9 @@ inline bool TreeNode::use_masks() const
   return ((this->flag & GP_LAYER_TREE_NODE_HIDE_MASKS) == 0) &&
          (!this->parent_group() || this->parent_group()->as_node().use_masks());
 }
-inline bool TreeNode::use_locked_material() const
+inline bool TreeNode::ignore_locked_materials() const
 {
-  return (this->flag & GP_LAYER_TREE_NODE_USE_LOCKED_MATERIAL) != 0;
+  return (this->flag & GP_LAYER_TREE_NODE_IGNORE_LOCKED_MATERIALS) != 0;
 }
 inline bool TreeNode::is_child_of(const LayerGroup &group) const
 {
@@ -1044,6 +1044,34 @@ void BKE_grease_pencil_nomain_to_grease_pencil(GreasePencil *grease_pencil_src,
 void BKE_grease_pencil_data_update(Depsgraph *depsgraph, Scene *scene, Object *object);
 void BKE_grease_pencil_duplicate_drawing_array(const GreasePencil *grease_pencil_src,
                                                GreasePencil *grease_pencil_dst);
+
+struct GreasePencilPointCoordinates {
+  /* This is used when doing "move only origin" in object_data_transform.cc.
+   * radius is needs to be stored here as it is tied to object scale. */
+  float co[3];
+  float radius;
+};
+
+/**
+ * \note Used for "move only origins" in object_data_transform.cc.
+ */
+int BKE_grease_pencil_stroke_point_count(const GreasePencil &grease_pencil);
+/**
+ * \note Used for "move only origins" in object_data_transform.cc.
+ */
+void BKE_grease_pencil_point_coords_get(const GreasePencil &grease_pencil,
+                                        GreasePencilPointCoordinates *elem_data);
+/**
+ * \note Used for "move only origins" in object_data_transform.cc.
+ */
+void BKE_grease_pencil_point_coords_apply(GreasePencil &grease_pencil,
+                                          GreasePencilPointCoordinates *elem_data);
+/**
+ * \note Used for "move only origins" in object_data_transform.cc.
+ */
+void BKE_grease_pencil_point_coords_apply_with_mat4(GreasePencil &grease_pencil,
+                                                    GreasePencilPointCoordinates *elem_data,
+                                                    const blender::float4x4 &mat);
 
 int BKE_grease_pencil_object_material_index_get_by_name(Object *ob, const char *name);
 Material *BKE_grease_pencil_object_material_new(Main *bmain,

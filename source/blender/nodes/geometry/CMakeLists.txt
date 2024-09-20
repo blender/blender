@@ -293,7 +293,7 @@ endif()
 if(WITH_TBB)
   if(WIN32)
     # TBB includes Windows.h which will define min/max macros
-    # that will collide with the stl versions.
+    # that will collide with the STL versions.
     add_definitions(-DNOMINMAX)
   endif()
 endif()
@@ -339,8 +339,8 @@ list(APPEND LIB
   bf_nodes_geometry_generated
 )
 
-# If compiling with msvc clang we need to add the D_LIBCPP_VERSION define
-# so we don't run into tbb errors when compiling with lib
+# If compiling with MSVC clang we need to add the `D_LIBCPP_VERSION` define
+# so we don't run into TBB errors when compiling with lib.
 if(WITH_TBB AND MSVC_CLANG)
   string(APPEND CMAKE_CXX_FLAGS " /D_LIBCPP_VERSION")
 endif()

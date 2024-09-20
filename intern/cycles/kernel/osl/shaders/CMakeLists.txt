@@ -111,7 +111,7 @@ set(SRC_OSL
 )
 
 # The headers that OSL ships differs per release so we can not
-# hardcode this.
+# hard-code this.
 file(GLOB SRC_OSL_HEADER_DIST ${OSL_SHADER_DIR}/*.h)
 
 set(SRC_OSL_HEADERS

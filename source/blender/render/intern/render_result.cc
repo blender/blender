@@ -768,7 +768,7 @@ void render_result_views_new(RenderResult *rr, const RenderData *rd)
   }
 
   /* we always need at least one view */
-  if (BLI_listbase_count_at_most(&rr->views, 1) == 0) {
+  if (BLI_listbase_is_empty(&rr->views)) {
     render_result_view_new(rr, "");
   }
 }

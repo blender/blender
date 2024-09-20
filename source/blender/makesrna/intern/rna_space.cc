@@ -2308,7 +2308,7 @@ static void rna_SpaceDopeSheetEditor_action_update(bContext *C, PointerRNA *ptr)
   }
 
   /* Exit editmode first - we cannot change actions while in tweak-mode. */
-  BKE_nla_tweakmode_exit(adt);
+  BKE_nla_tweakmode_exit({*id, *adt});
 
   /* To prevent data loss (i.e. if users flip between actions using the Browse menu),
    * stash this action if nothing else uses it.
@@ -2324,7 +2324,7 @@ static void rna_SpaceDopeSheetEditor_action_update(bContext *C, PointerRNA *ptr)
      *      and the user then uses the browse menu to get back to this action,
      *      assigning it as the active action (i.e. the stash strip gets out of sync)
      */
-    BKE_nla_action_stash(adt, ID_IS_OVERRIDE_LIBRARY(id));
+    BKE_nla_action_stash({*id, *adt}, ID_IS_OVERRIDE_LIBRARY(id));
   }
 
   BKE_animdata_set_action(nullptr, id, saction->action);

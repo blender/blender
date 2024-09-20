@@ -21,13 +21,15 @@
 #  include "GHOST_ContextVK.hh"
 #endif
 
-#include <Cocoa/Cocoa.h>
-#include <Metal/Metal.h>
-#include <QuartzCore/QuartzCore.h>
+#import <Cocoa/Cocoa.h>
+#import <Metal/Metal.h>
+#import <QuartzCore/QuartzCore.h>
 
 #include <sys/sysctl.h>
 
-#pragma mark Blender window delegate object
+/* --------------------------------------------------------------------
+ * Blender window delegate object.
+ */
 
 @interface BlenderWindowDelegate : NSObject <NSWindowDelegate>
 
@@ -234,7 +236,7 @@
 
 - (NSDragOperation)draggingUpdated:(id<NSDraggingInfo>)sender
 {
-  NSPoint mouseLocation = [sender draggingLocation];
+  const NSPoint mouseLocation = [sender draggingLocation];
 
   m_systemCocoa->handleDraggingEvent(GHOST_kEventDraggingUpdated,
                                      m_draggedObjectType,
@@ -254,10 +256,10 @@
 
 - (BOOL)prepareForDragOperation:(id<NSDraggingInfo>)sender
 {
-  if (m_windowCocoa->canAcceptDragOperation())
+  if (m_windowCocoa->canAcceptDragOperation()) {
     return YES;
-  else
-    return NO;
+  }
+  return NO;
 }
 
 - (BOOL)performDragOperation:(id<NSDraggingInfo>)sender
@@ -315,7 +317,9 @@
 #undef COCOA_VIEW_CLASS
 #undef COCOA_VIEW_BASE_CLASS
 
-#pragma mark initialization / finalization
+/* --------------------------------------------------------------------
+ * Initialization / Finalization.
+ */
 
 GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
                                      const char *title,
@@ -334,7 +338,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
       m_metalView(nil),
       m_metalLayer(nil),
       m_systemCocoa(systemCocoa),
-      m_customCursor(0),
+      m_customCursor(nullptr),
       m_immediateDraw(false),
       m_debug_context(is_debug),
       m_is_dialog(is_dialog)
@@ -503,6 +507,10 @@ GHOST_WindowCocoa::~GHOST_WindowCocoa()
   }
 }
 
+/* --------------------------------------------------------------------
+ * Accessors.
+ */
+
 bool GHOST_WindowCocoa::getValid() const
 {
   NSView *view = (m_openGLView) ? m_openGLView : m_metalView;
@@ -569,7 +577,6 @@ void GHOST_WindowCocoa::getWindowBounds(GHOST_Rect &bounds) const
 
   @autoreleasepool {
     const NSRect screenSize = m_window.screen.visibleFrame;
-
     const NSRect rect = m_window.frame;
 
     bounds.m_b = screenSize.size.height - (rect.origin.y - screenSize.origin.y);
@@ -608,7 +615,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setClientWidth(uint32_t width)
     GHOST_Rect cBnds;
     getClientBounds(cBnds);
 
-    if (((uint32_t)cBnds.getWidth()) != width) {
+    if ((uint32_t(cBnds.getWidth())) != width) {
       const NSSize size = {(CGFloat)width, (CGFloat)cBnds.getHeight()};
       [m_window setContentSize:size];
     }
@@ -624,7 +631,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setClientHeight(uint32_t height)
     GHOST_Rect cBnds;
     getClientBounds(cBnds);
 
-    if (((uint32_t)cBnds.getHeight()) != height) {
+    if ((uint32_t(cBnds.getHeight())) != height) {
       const NSSize size = {(CGFloat)cBnds.getWidth(), (CGFloat)height};
       [m_window setContentSize:size];
     }
@@ -637,9 +644,9 @@ GHOST_TSuccess GHOST_WindowCocoa::setClientSize(uint32_t width, uint32_t height)
   GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::setClientSize(): window invalid");
 
   @autoreleasepool {
-    GHOST_Rect cBnds, wBnds;
+    GHOST_Rect cBnds;
     getClientBounds(cBnds);
-    if ((((uint32_t)cBnds.getWidth()) != width) || (((uint32_t)cBnds.getHeight()) != height)) {
+    if (((uint32_t(cBnds.getWidth())) != width) || ((uint32_t(cBnds.getHeight())) != height)) {
       const NSSize size = {(CGFloat)width, (CGFloat)height};
       [m_window setContentSize:size];
     }
@@ -738,7 +745,7 @@ NSScreen *GHOST_WindowCocoa::getScreen()
 }
 
 /* called for event, when window leaves monitor to another */
-void GHOST_WindowCocoa::setNativePixelSize(void)
+void GHOST_WindowCocoa::setNativePixelSize()
 {
   NSView *view = (m_openGLView) ? m_openGLView : m_metalView;
   const NSRect backingBounds = [view convertRectToBacking:[view bounds]];
@@ -746,7 +753,7 @@ void GHOST_WindowCocoa::setNativePixelSize(void)
   GHOST_Rect rect;
   getClientBounds(rect);
 
-  m_nativePixelSize = (float)backingBounds.size.width / (float)rect.getWidth();
+  m_nativePixelSize = float(backingBounds.size.width) / float(rect.getWidth());
 }
 
 /**
@@ -770,7 +777,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
         break;
 
       case GHOST_kWindowStateFullScreen: {
-        NSUInteger masks = m_window.styleMask;
+        const NSUInteger masks = m_window.styleMask;
 
         if (!(masks & NSWindowStyleMaskFullScreen)) {
           [m_window toggleFullScreen:nil];
@@ -780,7 +787,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
       case GHOST_kWindowStateNormal:
       default:
         @autoreleasepool {
-          NSUInteger masks = m_window.styleMask;
+          const NSUInteger masks = m_window.styleMask;
 
           if (masks & NSWindowStyleMaskFullScreen) {
             /* Lion style full-screen. */
@@ -831,7 +838,9 @@ GHOST_TSuccess GHOST_WindowCocoa::setOrder(GHOST_TWindowOrder order)
   return GHOST_kSuccess;
 }
 
-#pragma mark Drawing context
+/* --------------------------------------------------------------------
+ * Drawing context.
+ */
 
 GHOST_Context *GHOST_WindowCocoa::newDrawingContext(GHOST_TDrawingContextType type)
 {
@@ -865,7 +874,9 @@ GHOST_Context *GHOST_WindowCocoa::newDrawingContext(GHOST_TDrawingContextType ty
   }
 }
 
-#pragma mark invalidate
+/* --------------------------------------------------------------------
+ * Invalidate.
+ */
 
 GHOST_TSuccess GHOST_WindowCocoa::invalidate()
 {
@@ -878,7 +889,9 @@ GHOST_TSuccess GHOST_WindowCocoa::invalidate()
   return GHOST_kSuccess;
 }
 
-#pragma mark Progress bar
+/* --------------------------------------------------------------------
+ * Progress bar.
+ */
 
 GHOST_TSuccess GHOST_WindowCocoa::setProgressBar(float progress)
 {
@@ -940,14 +953,16 @@ GHOST_TSuccess GHOST_WindowCocoa::endProgressBar()
   return GHOST_kSuccess;
 }
 
-#pragma mark Cursor handling
+/* --------------------------------------------------------------------
+ * Cursor handling.
+ */
 
 static NSCursor *getImageCursor(GHOST_TStandardCursor shape, NSString *name, NSPoint hotspot)
 {
-  static NSCursor *cursors[(int)GHOST_kStandardCursorNumCursors] = {0};
-  static bool loaded[(int)GHOST_kStandardCursorNumCursors] = {false};
+  static NSCursor *cursors[GHOST_kStandardCursorNumCursors] = {nullptr};
+  static bool loaded[GHOST_kStandardCursorNumCursors] = {false};
 
-  const int index = (int)shape;
+  const int index = int(shape);
   if (!loaded[index]) {
     /* Load image from file in application Resources folder. */
     @autoreleasepool {

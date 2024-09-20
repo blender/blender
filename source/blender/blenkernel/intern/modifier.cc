@@ -647,24 +647,34 @@ ModifierData *BKE_modifiers_get_virtual_modifierlist(const Object *ob,
 Object *BKE_modifiers_is_deformed_by_armature(Object *ob)
 {
   VirtualModifierData virtual_modifier_data;
-  ArmatureModifierData *amd = nullptr;
   ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data);
 
+  Object *armature = nullptr;
   /* return the first selected armature, this lets us use multiple armatures */
-  for (; md; md = md->next) {
-    if (md->type == eModifierType_Armature) {
-      amd = (ArmatureModifierData *)md;
-      if (amd->object && (amd->object->base_flag & BASE_SELECTED)) {
-        return amd->object;
+  if (ob->type == OB_GREASE_PENCIL) {
+    for (; md; md = md->next) {
+      if (md->type == eModifierType_GreasePencilArmature) {
+        auto *amd = reinterpret_cast<GreasePencilArmatureModifierData *>(md);
+        armature = amd->object;
+        if (armature && (armature->base_flag & BASE_SELECTED)) {
+          return armature;
+        }
+      }
+    }
+  }
+  else {
+    for (; md; md = md->next) {
+      if (md->type == eModifierType_Armature) {
+        auto *amd = reinterpret_cast<ArmatureModifierData *>(md);
+        armature = amd->object;
+        if (armature && (armature->base_flag & BASE_SELECTED)) {
+          return armature;
+        }
       }
     }
   }
   /* If we're still here then return the last armature. */
-  if (amd) {
-    return amd->object;
-  }
-
-  return nullptr;
+  return armature;
 }
 
 Object *BKE_modifiers_is_deformed_by_meshdeform(Object *ob)

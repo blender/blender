@@ -233,6 +233,9 @@ bool NodeDeclaration::is_valid() const
         panel_states.push({panel_decl->num_child_decls});
       }
     }
+    else if (dynamic_cast<const SeparatorDeclaration *>(item_decl.get())) {
+      /* Nothing to check. */
+    }
     else {
       BLI_assert_unreachable();
       return false;
@@ -280,6 +283,9 @@ bool NodeDeclaration::matches(const bNode &node) const
       }
       ++current_panel;
     }
+    else if (dynamic_cast<const SeparatorDeclaration *>(item_decl.get())) {
+      /* Separators are ignored here because they don't have corresponding data in DNA. */
+    }
     else {
       /* Unknown item type. */
       BLI_assert_unreachable();
@@ -311,7 +317,7 @@ void SocketDeclaration::set_common_flags(bNodeSocket &socket) const
   SET_FLAG_FROM_TEST(socket.flag, hide_label, SOCK_HIDE_LABEL);
   SET_FLAG_FROM_TEST(socket.flag, is_multi_input, SOCK_MULTI_INPUT);
   SET_FLAG_FROM_TEST(socket.flag, no_mute_links, SOCK_NO_INTERNAL_LINK);
-  SET_FLAG_FROM_TEST(socket.flag, is_unavailable, SOCK_UNAVAIL);
+  SET_FLAG_FROM_TEST(socket.flag, !is_available, SOCK_UNAVAIL);
 }
 
 bool SocketDeclaration::matches_common_data(const bNodeSocket &socket) const
@@ -337,7 +343,7 @@ bool SocketDeclaration::matches_common_data(const bNodeSocket &socket) const
   if (((socket.flag & SOCK_NO_INTERNAL_LINK) != 0) != this->no_mute_links) {
     return false;
   }
-  if (((socket.flag & SOCK_UNAVAIL) != 0) != this->is_unavailable) {
+  if (((socket.flag & SOCK_UNAVAIL) != 0) != !this->is_available) {
     return false;
   }
   return true;
@@ -515,6 +521,11 @@ BaseSocketDeclarationBuilder &NodeDeclarationBuilder::add_output(const eCustomDa
   return this->add_output(*bke::custom_data_type_to_socket_type(data_type), name, identifier);
 }
 
+void NodeDeclarationBuilder::add_separator()
+{
+  declaration_.items.append(std::make_unique<SeparatorDeclaration>());
+}
+
 BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::supports_field()
 {
   BLI_assert(this->is_input());
@@ -613,9 +624,9 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::no_muted_links(bool 
   return *this;
 }
 
-BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::unavailable(bool value)
+BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::available(bool value)
 {
-  decl_base_->is_unavailable = value;
+  decl_base_->is_available = value;
   return *this;
 }
 

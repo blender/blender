@@ -115,6 +115,8 @@ void Instance::begin_sync()
   resources.begin_sync();
 
   background.begin_sync(resources, state);
+  motion_paths.begin_sync(resources, state);
+  origins.begin_sync(state);
   outline.begin_sync(resources, state);
 
   auto begin_sync_layer = [&](OverlayLayer &layer) {
@@ -122,17 +124,21 @@ void Instance::begin_sync()
     layer.bounds.begin_sync();
     layer.cameras.begin_sync(resources, state, view);
     layer.curves.begin_sync(resources, state, view);
+    layer.edit_text.begin_sync(state);
     layer.empties.begin_sync(resources, state, view);
     layer.facing.begin_sync(resources, state);
     layer.fade.begin_sync(resources, state);
     layer.force_fields.begin_sync();
     layer.fluids.begin_sync(resources, state);
+    layer.grease_pencil.begin_sync(resources, state, view);
     layer.lattices.begin_sync(resources, state);
     layer.lights.begin_sync();
     layer.light_probes.begin_sync(resources, state);
     layer.metaballs.begin_sync();
     layer.meshes.begin_sync(resources, state, view);
     layer.mesh_uvs.begin_sync(resources, state);
+    layer.mode_transfer.begin_sync(resources, state);
+    layer.paints.begin_sync(resources, state);
     layer.particles.begin_sync(resources, state);
     layer.prepass.begin_sync(resources, state);
     layer.relations.begin_sync(resources, state);
@@ -154,18 +160,49 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
   const bool in_edit_mode = object_is_edit_mode(ob_ref.object);
   const bool in_paint_mode = object_is_paint_mode(ob_ref.object);
   const bool in_sculpt_mode = object_is_sculpt_mode(ob_ref);
+  const bool in_particle_edit_mode = object_is_particle_edit_mode(ob_ref);
   const bool in_edit_paint_mode = object_is_edit_paint_mode(
       ob_ref, in_edit_mode, in_paint_mode, in_sculpt_mode);
-  const bool needs_prepass = !state.xray_enabled; /* TODO */
+  const bool needs_prepass = object_needs_prepass(ob_ref, in_paint_mode);
 
   OverlayLayer &layer = object_is_in_front(ob_ref.object, state) ? infront : regular;
+
+  layer.mode_transfer.object_sync(manager, ob_ref, state);
 
   if (needs_prepass) {
     layer.prepass.object_sync(manager, ob_ref, resources, state);
   }
 
+  if (in_particle_edit_mode) {
+    layer.particles.edit_object_sync(manager, ob_ref, resources, state);
+  }
+
+  if (in_paint_mode) {
+    switch (ob_ref.object->type) {
+      case OB_MESH:
+        /* TODO(fclem): Make it part of a #Meshes. */
+        layer.paints.object_sync(manager, ob_ref, state);
+        break;
+      case OB_GREASE_PENCIL:
+        layer.grease_pencil.paint_object_sync(manager, ob_ref, state, resources);
+        break;
+      default:
+        break;
+    }
+  }
+
   if (in_sculpt_mode) {
-    layer.sculpts.object_sync(manager, ob_ref, state);
+    switch (ob_ref.object->type) {
+      case OB_MESH:
+        /* TODO(fclem): Make it part of a #Meshes. */
+        layer.sculpts.object_sync(manager, ob_ref, state);
+        break;
+      case OB_GREASE_PENCIL:
+        layer.grease_pencil.sculpt_object_sync(manager, ob_ref, state, resources);
+        break;
+      default:
+        break;
+    }
   }
 
   if (in_edit_mode && !state.hide_overlays) {
@@ -193,12 +230,16 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
         layer.metaballs.edit_object_sync(ob_ref, resources);
         break;
       case OB_FONT:
+        layer.edit_text.edit_object_sync(ob_ref, resources);
+        break;
+      case OB_GREASE_PENCIL:
+        layer.grease_pencil.edit_object_sync(manager, ob_ref, state, resources);
         break;
     }
   }
 
   if (state.is_wireframe_mode || !state.hide_overlays) {
-    layer.wireframe.object_sync(manager, ob_ref, resources, in_edit_paint_mode);
+    layer.wireframe.object_sync(manager, ob_ref, state, resources, in_edit_paint_mode);
   }
 
   if (!state.hide_overlays) {
@@ -230,7 +271,8 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
           layer.metaballs.object_sync(ob_ref, resources, state);
         }
         break;
-      case OB_GPENCIL_LEGACY:
+      case OB_GREASE_PENCIL:
+        layer.grease_pencil.object_sync(ob_ref, resources, state);
         break;
       case OB_SPEAKER:
         layer.speakers.object_sync(ob_ref, resources, state);
@@ -244,6 +286,9 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
     layer.particles.object_sync(manager, ob_ref, resources, state);
     layer.relations.object_sync(ob_ref, resources, state);
 
+    motion_paths.object_sync(ob_ref, resources, state);
+    origins.object_sync(ob_ref, resources, state);
+
     if (object_is_selected(ob_ref) && !in_edit_paint_mode) {
       outline.object_sync(manager, ob_ref, state);
     }
@@ -252,12 +297,14 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
 
 void Instance::end_sync()
 {
+  origins.end_sync(resources, state);
   resources.end_sync();
 
   auto end_sync_layer = [&](OverlayLayer &layer) {
     layer.armatures.end_sync(resources, shapes, state);
     layer.bounds.end_sync(resources, shapes, state);
     layer.cameras.end_sync(resources, shapes, state);
+    layer.edit_text.end_sync(resources, shapes, state);
     layer.empties.end_sync(resources, shapes, state);
     layer.force_fields.end_sync(resources, shapes, state);
     layer.lights.end_sync(resources, shapes, state);
@@ -406,6 +453,10 @@ void Instance::draw(Manager &manager)
   auto overlay_fb_draw = [&](OverlayLayer &layer, Framebuffer &framebuffer) {
     layer.facing.draw(framebuffer, manager, view);
     layer.fade.draw(framebuffer, manager, view);
+    layer.mode_transfer.draw(framebuffer, manager, view);
+    layer.edit_text.draw(framebuffer, manager, view);
+    layer.paints.draw(framebuffer, manager, view);
+    layer.particles.draw_no_line(framebuffer, manager, view);
   };
 
   auto draw_layer = [&](OverlayLayer &layer, Framebuffer &framebuffer) {
@@ -424,6 +475,7 @@ void Instance::draw(Manager &manager)
     layer.particles.draw(framebuffer, manager, view);
     layer.armatures.draw(framebuffer, manager, view);
     layer.sculpts.draw(framebuffer, manager, view);
+    layer.grease_pencil.draw(framebuffer, manager, view);
     layer.meshes.draw(framebuffer, manager, view);
     layer.mesh_uvs.draw(framebuffer, manager, view);
   };
@@ -432,6 +484,7 @@ void Instance::draw(Manager &manager)
     layer.light_probes.draw_color_only(framebuffer, manager, view);
     layer.meshes.draw_color_only(framebuffer, manager, view);
     layer.curves.draw_color_only(framebuffer, manager, view);
+    layer.grease_pencil.draw_color_only(framebuffer, manager, view);
   };
 
   overlay_fb_draw(regular, resources.overlay_fb);
@@ -440,6 +493,7 @@ void Instance::draw(Manager &manager)
   overlay_fb_draw(infront, resources.overlay_in_front_fb);
   draw_layer(infront, resources.overlay_line_in_front_fb);
 
+  motion_paths.draw_color_only(resources.overlay_color_only_fb, manager, view);
   xray_fade.draw(resources.overlay_color_only_fb, manager, view);
   grid.draw(resources.overlay_color_only_fb, manager, view);
 
@@ -449,6 +503,8 @@ void Instance::draw(Manager &manager)
   infront.empties.draw_in_front_images(resources.overlay_color_only_fb, manager, view);
   regular.cameras.draw_in_front(resources.overlay_color_only_fb, manager, view);
   infront.cameras.draw_in_front(resources.overlay_color_only_fb, manager, view);
+
+  origins.draw(resources.overlay_color_only_fb, manager, view);
 
   background.draw(resources.overlay_output_fb, manager, view);
   anti_aliasing.draw(resources.overlay_output_fb, manager, view);
@@ -477,7 +533,7 @@ bool Instance::object_is_selected(const ObjectRef &ob_ref)
 
 bool Instance::object_is_paint_mode(const Object *object)
 {
-  if (object->type == OB_GREASE_PENCIL && (state.object_mode & OB_MODE_WEIGHT_GPENCIL_LEGACY)) {
+  if (object->type == OB_GREASE_PENCIL && (state.object_mode & OB_MODE_ALL_PAINT_GPENCIL)) {
     return true;
   }
   return state.active_base && (object == state.active_base->object) &&
@@ -504,6 +560,11 @@ bool Instance::object_is_sculpt_mode(const ObjectRef &ob_ref)
   return false;
 }
 
+bool Instance::object_is_particle_edit_mode(const ObjectRef &ob_ref)
+{
+  return (ob_ref.object->mode == OB_MODE_PARTICLE_EDIT) && (state.ctx_mode == CTX_MODE_PARTICLE);
+}
+
 bool Instance::object_is_sculpt_mode(const Object *object)
 {
   if (object->sculpt && (object->sculpt->mode_type == OB_MODE_SCULPT)) {
@@ -520,9 +581,9 @@ bool Instance::object_is_edit_paint_mode(const ObjectRef &ob_ref,
   bool in_edit_paint_mode = in_edit_mode || in_paint_mode || in_sculpt_mode;
   if (ob_ref.object->base_flag & BASE_FROM_DUPLI) {
     /* Disable outlines for objects instanced by an object in sculpt, paint or edit mode. */
-    in_edit_paint_mode |= object_is_edit_mode(ob_ref.dupli_parent) ||
-                          object_is_sculpt_mode(ob_ref.dupli_parent) ||
-                          object_is_paint_mode(ob_ref.dupli_parent);
+    in_edit_paint_mode |= ob_ref.dupli_parent && (object_is_edit_mode(ob_ref.dupli_parent) ||
+                                                  object_is_sculpt_mode(ob_ref.dupli_parent) ||
+                                                  object_is_paint_mode(ob_ref.dupli_parent));
   }
   return in_edit_paint_mode;
 }
@@ -550,6 +611,8 @@ bool Instance::object_is_edit_mode(const Object *object)
         return state.ctx_mode == CTX_MODE_EDIT_CURVES;
       case OB_POINTCLOUD:
         return state.ctx_mode == CTX_MODE_EDIT_POINT_CLOUD;
+      case OB_GREASE_PENCIL:
+        return state.ctx_mode == CTX_MODE_EDIT_GREASE_PENCIL;
       case OB_VOLUME:
         /* No edit mode yet. */
         return false;
@@ -566,6 +629,7 @@ bool Instance::object_is_in_front(const Object *object, const State &state)
              (state.do_pose_xray && Armatures::is_pose_mode(object, state));
     case OB_MESH:
     case OB_CURVES_LEGACY:
+    case OB_GREASE_PENCIL:
     case OB_SURF:
     case OB_LATTICE:
     case OB_MBALL:
@@ -575,6 +639,63 @@ bool Instance::object_is_in_front(const Object *object, const State &state)
     case OB_VOLUME:
       return state.use_in_front && (object->dtx & OB_DRAW_IN_FRONT);
   }
+  return false;
+}
+
+bool Instance::object_needs_prepass(const ObjectRef &ob_ref, bool in_paint_mode)
+{
+  if (in_paint_mode) {
+    /* Allow paint overlays to draw with depth equal test. */
+    return object_is_rendered_transparent(ob_ref.object, state);
+  }
+
+  if (!state.xray_enabled || (selection_type_ != SelectionType::DISABLED)) {
+    return ob_ref.object->dt >= OB_SOLID;
+  }
+
+  return false;
+}
+
+bool Instance::object_is_rendered_transparent(const Object *object, const State &state)
+{
+  if (state.v3d == nullptr) {
+    return false;
+  }
+
+  if (state.xray_enabled) {
+    return true;
+  }
+
+  if (ELEM(object->dt, OB_WIRE, OB_BOUNDBOX)) {
+    return true;
+  }
+
+  const View3DShading &shading = state.v3d->shading;
+
+  if (shading.type == OB_WIRE) {
+    return true;
+  }
+
+  if (shading.type > OB_SOLID) {
+    return false;
+  }
+
+  if (shading.color_type == V3D_SHADING_OBJECT_COLOR) {
+    return object->color[3] < 1.0f;
+  }
+
+  if (shading.color_type == V3D_SHADING_MATERIAL_COLOR) {
+    if (object->type == OB_MESH) {
+      Mesh *mesh = static_cast<Mesh *>(object->data);
+      for (int i = 0; i < mesh->totcol; i++) {
+        Material *mat = BKE_object_material_get_eval(const_cast<Object *>(object), i + 1);
+        if (mat && mat->a < 1.0f) {
+          return true;
+        }
+      }
+    }
+  }
+
   return false;
 }
 

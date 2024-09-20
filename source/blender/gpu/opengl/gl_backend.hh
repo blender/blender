@@ -17,6 +17,7 @@
 #endif
 
 #include "gl_batch.hh"
+#include "gl_compilation_subprocess.hh"
 #include "gl_compute.hh"
 #include "gl_context.hh"
 #include "gl_drawlist.hh"
@@ -163,6 +164,13 @@ class GLBackend : public GPUBackend {
     glDispatchComputeIndirect((GLintptr)0);
     /* Unbind. */
     glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, 0);
+  }
+
+  void shader_cache_dir_clear_old() override
+  {
+#if BLI_SUBPROCESS_SUPPORT
+    GL_shader_cache_dir_clear_old();
+#endif
   }
 
   /* Render Frame Coordination */

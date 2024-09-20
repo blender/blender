@@ -71,15 +71,14 @@ void wmPartialViewport(rcti *drawrct, const rcti *winrct, const rcti *partialrct
   GPU_matrix_identity_set();
 }
 
-void wmWindowViewport(wmWindow *win)
+void wmWindowViewport(const wmWindow *win)
 {
-  int width = WM_window_native_pixel_x(win);
-  int height = WM_window_native_pixel_y(win);
+  const blender::int2 win_size = WM_window_native_pixel_size(win);
 
-  GPU_viewport(0, 0, width, height);
-  GPU_scissor(0, 0, width, height);
+  GPU_viewport(0, 0, win_size[0], win_size[1]);
+  GPU_scissor(0, 0, win_size[0], win_size[1]);
 
-  wmOrtho2_pixelspace(width, height);
+  wmOrtho2_pixelspace(win_size[0], win_size[1]);
   GPU_matrix_identity_set();
 }
 

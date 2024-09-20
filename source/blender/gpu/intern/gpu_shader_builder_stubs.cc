@@ -13,6 +13,7 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
+#include "BKE_appdir.hh"
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_global.hh"
@@ -36,6 +37,8 @@
 Global G;
 UserDef U;
 
+char build_hash[16] = {'\0'};
+
 /* -------------------------------------------------------------------- */
 /** \name Stubs of BLI_imbuf_types.h
  * \{ */
@@ -52,6 +55,17 @@ struct ImBuf *IMB_allocImBuf(unsigned int /*x*/,
 {
   BLI_assert_unreachable();
   return nullptr;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Stubs of BLI_appdir.h
+ * \{ */
+
+bool BKE_appdir_folder_caches(char * /*path*/, size_t /*path_maxncpy*/)
+{
+  return false;
 }
 
 /** \} */

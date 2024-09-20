@@ -138,16 +138,26 @@ BLOCKLIST_GPU = [
 
 class CyclesReport(render_report.Report):
     def __init__(self, title, output_dir, oiiotool, device=None, blocklist=[], osl=False):
-        super().__init__(title, output_dir, oiiotool, device=device, blocklist=blocklist)
+        # Split device name in format "<device_type>[-<RT>]" into individual
+        # tokens, setting the RT suffix to an empty string if its not specified.
+        device, suffix = (device.split("-") + [""])[:2]
+        self.use_hwrt = (suffix == "RT")
+
+        super().__init__(title, output_dir, oiiotool, device, blocklist)
+
+        if self.use_hwrt:
+            self.title = self.title + " RT"
+            self.output_dir = self.output_dir + "_rt"
+
         self.osl = osl
-        if osl:
+        if self.osl:
             self.title += " OSL"
 
     def _get_render_arguments(self, arguments_cb, filepath, base_output_filepath):
-        return arguments_cb(filepath, base_output_filepath, self.osl)
+        return arguments_cb(filepath, base_output_filepath, self.use_hwrt, self.osl)
 
 
-def get_arguments(filepath, output_filepath, osl=False):
+def get_arguments(filepath, output_filepath, use_hwrt=False, osl=False):
     dirname = os.path.dirname(filepath)
     basedir = os.path.dirname(dirname)
     subject = os.path.basename(dirname)
@@ -173,6 +183,17 @@ def get_arguments(filepath, output_filepath, osl=False):
     spp_multiplier = os.getenv('CYCLESTEST_SPP_MULTIPLIER')
     if spp_multiplier:
         args.extend(["--python-expr", f"import bpy; bpy.context.scene.cycles.samples *= {spp_multiplier}"])
+
+    cycles_pref = "bpy.context.preferences.addons['cycles'].preferences"
+    use_hwrt_bool_value = "True" if use_hwrt else "False"
+    use_hwrt_on_off_value = "'ON'" if use_hwrt else "'OFF'"
+    args.extend([
+        "--python-expr",
+        (f"import bpy;"
+         f"{cycles_pref}.use_hiprt = {use_hwrt_bool_value};"
+         f"{cycles_pref}.use_oneapirt = {use_hwrt_bool_value};"
+         f"{cycles_pref}.metalrt = {use_hwrt_on_off_value}")
+    ])
 
     if osl:
         args.extend(["--python-expr", "import bpy; bpy.context.scene.cycles.shading_system = True"])

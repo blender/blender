@@ -271,7 +271,7 @@ static int render_border_exec(bContext *C, wmOperator *op)
   /* calculate range */
 
   if (rv3d->persp == RV3D_CAMOB) {
-    Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+    const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     ED_view3d_calc_camera_border(scene, depsgraph, region, v3d, rv3d, &vb, false);
   }
   else {

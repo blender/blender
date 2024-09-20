@@ -16,13 +16,14 @@
 #include "BKE_fcurve.hh"
 
 #include "ANIM_action.hh"
+#include "ANIM_action_legacy.hh"
 #include "ANIM_fcurve.hh"
 
 namespace blender::animrig {
 
 void action_deselect_keys(Action &action)
 {
-  for (FCurve *fcu : fcurves_all(action)) {
+  for (FCurve *fcu : legacy::fcurves_all(&action)) {
     BKE_fcurve_deselect_all_keys(*fcu);
   }
 }

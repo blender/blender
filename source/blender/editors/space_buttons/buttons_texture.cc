@@ -515,7 +515,12 @@ static void template_texture_user_menu(bContext *C, uiLayout *layout, void * /*a
                            0.0,
                            0.0,
                            "");
-    UI_but_funcN_set(but, template_texture_select, MEM_dupallocN(user), nullptr);
+    UI_but_funcN_set(but,
+                     template_texture_select,
+                     MEM_new<ButsTextureUser>("ButsTextureUser", *user),
+                     nullptr,
+                     but_func_argN_free<ButsTextureUser>,
+                     but_func_argN_copy<ButsTextureUser>);
 
     last_category = user->category;
   }

@@ -10,8 +10,6 @@
 
 /* We do not support multiple monitors at the moment. */
 
-GHOST_DisplayManagerCocoa::GHOST_DisplayManagerCocoa(void) {}
-
 GHOST_TSuccess GHOST_DisplayManagerCocoa::getNumDisplays(uint8_t &numDisplays) const
 {
   @autoreleasepool {
@@ -36,16 +34,19 @@ GHOST_TSuccess GHOST_DisplayManagerCocoa::getDisplaySetting(uint8_t display,
   @autoreleasepool {
     NSScreen *askedDisplay;
 
-    if (display == kMainDisplay) /* Screen #0 may not be the main one. */
+    if (display == kMainDisplay) {
+      /* Screen #0 may not be the main one. */
       askedDisplay = [NSScreen mainScreen];
-    else
+    }
+    else {
       askedDisplay = [[NSScreen screens] objectAtIndex:display];
+    }
 
     if (askedDisplay == nil) {
       return GHOST_kFailure;
     }
 
-    NSRect frame = askedDisplay.visibleFrame;
+    const NSRect frame = askedDisplay.visibleFrame;
     setting.xPixels = frame.size.width;
     setting.yPixels = frame.size.height;
 
@@ -75,16 +76,19 @@ GHOST_TSuccess GHOST_DisplayManagerCocoa::getCurrentDisplaySetting(
   @autoreleasepool {
     NSScreen *askedDisplay;
 
-    if (display == kMainDisplay) /* Screen #0 may not be the main one. */
+    if (display == kMainDisplay) {
+      /* Screen #0 may not be the main one. */
       askedDisplay = [NSScreen mainScreen];
-    else
+    }
+    else {
       askedDisplay = [[NSScreen screens] objectAtIndex:display];
+    }
 
     if (askedDisplay == nil) {
       return GHOST_kFailure;
     }
 
-    NSRect frame = askedDisplay.visibleFrame;
+    const NSRect frame = askedDisplay.visibleFrame;
     setting.xPixels = frame.size.width;
     setting.yPixels = frame.size.height;
 
@@ -123,10 +127,10 @@ GHOST_TSuccess GHOST_DisplayManagerCocoa::setCurrentDisplaySetting(
 #if 0
   CFDictionaryRef displayModeValues = ::CGDisplayBestModeForParametersAndRefreshRate(
       m_displayIDs[display],
-      (size_t)setting.bpp,
-      (size_t)setting.xPixels,
-      (size_t)setting.yPixels,
-      (CGRefreshRate)setting.frequency,
+      size_t(setting.bpp),
+      size_t(setting.xPixels),
+      size_t(setting.yPixels),
+      CGRefreshRate(setting.frequency),
       nullptr);
 #endif
 

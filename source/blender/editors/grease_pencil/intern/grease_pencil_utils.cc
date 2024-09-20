@@ -119,8 +119,9 @@ DrawingPlacement::DrawingPlacement(const Scene &scene,
                                    const View3D &view3d,
                                    const Object &eval_object,
                                    const bke::greasepencil::Layer *layer,
-                                   const ReprojectMode reproject_mode)
-    : region_(&region), view3d_(&view3d)
+                                   const ReprojectMode reproject_mode,
+                                   const float surface_offset)
+    : region_(&region), view3d_(&view3d), surface_offset_(surface_offset)
 {
   layer_space_to_world_space_ = (layer != nullptr) ? layer->to_world_space(eval_object) :
                                                      eval_object.object_to_world();
@@ -170,11 +171,14 @@ DrawingPlacement::DrawingPlacement(const Scene &scene,
       surface_offset_ = 0.0f;
       placement_loc_ = layer_space_to_world_space_.location();
       break;
-    /* TODO: Implement ReprojectMode::Surface for reproject operator */
+    case ReprojectMode::Surface:
+      depth_ = DrawingPlacementDepth::Surface;
+      placement_loc_ = layer_space_to_world_space_.location();
+      break;
     default:
       depth_ = DrawingPlacementDepth::ObjectOrigin;
       surface_offset_ = 0.0f;
-      placement_loc_ = float3(0.0f);
+      placement_loc_ = layer_space_to_world_space_.location();
       break;
   }
 
@@ -741,7 +745,7 @@ Array<Vector<MutableDrawingInfo>> retrieve_editable_drawings_grouped_per_frame(
 
     /* Add drawing at current frame. */
     Drawing *current_drawing = grease_pencil.get_drawing_at(layer, current_frame);
-    if (!added_drawings.contains(current_drawing)) {
+    if (current_drawing != nullptr && !added_drawings.contains(current_drawing)) {
       const int frame_group = selected_frames.index_of(current_frame);
       drawings_grouped_per_frame[frame_group].append(
           {*current_drawing, layer_i, current_frame, falloff_per_selected_frame[frame_group]});
@@ -900,9 +904,17 @@ IndexMask retrieve_editable_strokes(Object &object,
 {
   using namespace blender;
   const bke::CurvesGeometry &curves = drawing.strokes();
-  const IndexRange curves_range = drawing.strokes().curves_range();
+  const IndexRange curves_range = curves.curves_range();
 
   if (object.totcol == 0) {
+    return IndexMask(curves_range);
+  }
+
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+  const bke::greasepencil::Layer &layer = *grease_pencil.layers()[layer_index];
+
+  /* If we're not using material locking, the entire curves range is editable. */
+  if (layer.ignore_locked_materials()) {
     return IndexMask(curves_range);
   }
 
@@ -913,9 +925,6 @@ IndexMask retrieve_editable_strokes(Object &object,
   }
 
   const bke::AttributeAccessor attributes = curves.attributes();
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
-  const bke::greasepencil::Layer &layer = *grease_pencil.layers()[layer_index];
-
   const VArray<int> materials = *attributes.lookup<int>("material_index", bke::AttrDomain::Curve);
   if (!materials) {
     /* If the attribute does not exist then the default is the first material. */
@@ -927,10 +936,7 @@ IndexMask retrieve_editable_strokes(Object &object,
   /* Get all the strokes that have their material unlocked. */
   return IndexMask::from_predicate(
       curves_range, GrainSize(4096), memory, [&](const int64_t curve_i) {
-        const int material_index = materials[curve_i];
-        /* The stroke is editable if the material is editable. If the material is not editable,
-         * then the stroke is only editable if the layer disables the locked material option. */
-        return editable_material_indices.contains(material_index) || layer.use_locked_material();
+        return editable_material_indices.contains(materials[curve_i]);
       });
 }
 
@@ -940,42 +946,31 @@ IndexMask retrieve_editable_fill_strokes(Object &object,
                                          IndexMaskMemory &memory)
 {
   using namespace blender;
-  const bke::CurvesGeometry &curves = drawing.strokes();
-  const IndexRange curves_range = drawing.strokes().curves_range();
-
-  if (object.totcol == 0) {
-    return IndexMask(curves_range);
-  }
-
-  /* Get all the editable material indices */
-  const VectorSet<int> editable_material_indices = get_editable_material_indices(object);
-  if (editable_material_indices.is_empty()) {
+  const IndexMask editable_strokes = retrieve_editable_strokes(
+      object, drawing, layer_index, memory);
+  if (editable_strokes.is_empty()) {
     return {};
   }
 
-  const bke::AttributeAccessor attributes = curves.attributes();
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
-  const bke::greasepencil::Layer &layer = *grease_pencil.layers()[layer_index];
-  const VectorSet<int> fill_material_indices = get_fill_material_indices(object);
+  const bke::CurvesGeometry &curves = drawing.strokes();
+  const IndexRange curves_range = curves.curves_range();
 
+  const bke::AttributeAccessor attributes = curves.attributes();
   const VArray<int> materials = *attributes.lookup<int>("material_index", bke::AttrDomain::Curve);
+  const VectorSet<int> fill_material_indices = get_fill_material_indices(object);
   if (!materials) {
     /* If the attribute does not exist then the default is the first material. */
-    if (editable_material_indices.contains(0)) {
+    if (editable_strokes.contains(0) && fill_material_indices.contains(0)) {
       return curves_range;
     }
     return {};
   }
-  /* Get all the strokes that have their material unlocked. */
-  return IndexMask::from_predicate(
+  const IndexMask fill_strokes = IndexMask::from_predicate(
       curves_range, GrainSize(4096), memory, [&](const int64_t curve_i) {
         const int material_index = materials[curve_i];
-        /* The stroke is editable if the material is editable. If the material is not editable,
-         * then the stroke is only editable if the layer disables the locked material option. */
-        return (editable_material_indices.contains(material_index) ||
-                layer.use_locked_material()) &&
-               fill_material_indices.contains(material_index);
+        return fill_material_indices.contains(material_index);
       });
+  return IndexMask::from_intersection(editable_strokes, fill_strokes, memory);
 }
 
 IndexMask retrieve_editable_strokes_by_material(Object &object,
@@ -1020,9 +1015,17 @@ IndexMask retrieve_editable_points(Object &object,
                                    IndexMaskMemory &memory)
 {
   const bke::CurvesGeometry &curves = drawing.strokes();
-  const IndexRange points_range = drawing.strokes().points_range();
+  const IndexRange points_range = curves.points_range();
 
   if (object.totcol == 0) {
+    return IndexMask(points_range);
+  }
+
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+  const bke::greasepencil::Layer &layer = *grease_pencil.layers()[layer_index];
+
+  /* If we're not using material locking, the entire points range is editable. */
+  if (layer.ignore_locked_materials()) {
     return IndexMask(points_range);
   }
 
@@ -1032,11 +1035,8 @@ IndexMask retrieve_editable_points(Object &object,
     return {};
   }
 
-  const bke::AttributeAccessor attributes = curves.attributes();
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
-  const bke::greasepencil::Layer &layer = *grease_pencil.layers()[layer_index];
-
   /* Propagate the material index to the points. */
+  const bke::AttributeAccessor attributes = curves.attributes();
   const VArray<int> materials = *attributes.lookup<int>("material_index", bke::AttrDomain::Point);
   if (!materials) {
     /* If the attribute does not exist then the default is the first material. */
@@ -1048,10 +1048,7 @@ IndexMask retrieve_editable_points(Object &object,
   /* Get all the points that are part of a stroke with an unlocked material. */
   return IndexMask::from_predicate(
       points_range, GrainSize(4096), memory, [&](const int64_t point_i) {
-        const int material_index = materials[point_i];
-        /* The stroke is editable if the material is editable. If the material is not editable,
-         * then the stroke is only editable if the layer disables the locked material option. */
-        return editable_material_indices.contains(material_index) || layer.use_locked_material();
+        return editable_material_indices.contains(materials[point_i]);
       });
 }
 

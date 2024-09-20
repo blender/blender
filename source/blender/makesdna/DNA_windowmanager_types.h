@@ -308,7 +308,7 @@ typedef struct wmWindow {
    * \note Loading a window typically uses the size & position saved in the blend-file,
    * there is an exception for startup files which works as follows:
    * Setting the window size to zero before `ghostwin` has been set has a special meaning,
-   * it causes the window size to be initialized to `wm_init_state.size_x` (& `size_y`).
+   * it causes the window size to be initialized to `wm_init_state.size`.
    * These default to the main screen size but can be overridden by the `--window-geometry`
    * command line argument.
    */

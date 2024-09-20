@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'd52d70324d18')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-02 14:03+0000\n"
+"POT-Creation-Date: 2024-09-16 11:03+0000\n"
 "PO-Revision-Date: 2024-04-29 13:36+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -13805,20 +13805,36 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
+msgid "Names"
+msgstr "Názvy"
+
+
 msgid "Show/Hide"
 msgstr "Zobrazit/skrýt"
+
+
+msgid "Apply"
+msgstr "Použít"
+
+
+msgid "Mesh Select Mode"
+msgstr "Síťový mód výběru"
+
+
+msgid "Face Data"
+msgstr "Data Ploch"
 
 
 msgid "Clean Up"
 msgstr "Vyčistit"
 
 
+msgid "Merge"
+msgstr "Sloučit"
+
+
 msgid "Special Characters"
 msgstr "Speciální Znaky"
-
-
-msgid "Names"
-msgstr "Názvy"
 
 
 msgid "Bone Roll"
@@ -13873,10 +13889,6 @@ msgid "Rigid Body"
 msgstr "Tuhé Těleso"
 
 
-msgid "Apply"
-msgstr "Použít"
-
-
 msgid "Track"
 msgstr "Sledování"
 
@@ -13899,18 +13911,6 @@ msgstr "Vyčistit transformaci"
 
 msgid "Propagate"
 msgstr "Vložit"
-
-
-msgid "Mesh Select Mode"
-msgstr "Síťový mód výběru"
-
-
-msgid "Face Data"
-msgstr "Data Ploch"
-
-
-msgid "Merge"
-msgstr "Sloučit"
 
 
 msgid "Basic"
@@ -14702,6 +14702,10 @@ msgstr "Superelipsa"
 
 msgid "Vertex group name"
 msgstr "Skupina vertexů"
+
+
+msgid "Vertex Weight"
+msgstr "Nastavit váhu"
 
 
 msgid "Bevel amount"
@@ -18208,10 +18212,6 @@ msgstr "Rozlišení použité texturou, která drží bodovou hustotu"
 
 msgid "Vertex attribute to use for color"
 msgstr "Atribut vrcholu, který se má použít pro barvu"
-
-
-msgid "Vertex Weight"
-msgstr "Nastavit váhu"
 
 
 msgid "Sky Texture"
@@ -23218,6 +23218,11 @@ msgstr "Seskupený objekt"
 
 
 msgctxt "Operator"
+msgid "Normalize All Vertex Groups"
+msgstr "Skupina vertexů"
+
+
+msgctxt "Operator"
 msgid "Add Render Slot"
 msgstr "Přidat Slot pro Vykreslení"
 
@@ -26942,11 +26947,6 @@ msgstr "Odstranit skupinu vertexů"
 
 
 msgctxt "Operator"
-msgid "Normalize All Vertex Groups"
-msgstr "Skupina vertexů"
-
-
-msgctxt "Operator"
 msgid "Remove Vertex Group"
 msgstr "Odstranit Skupinu Vertexů"
 
@@ -28802,10 +28802,6 @@ msgid "Change Effect Input"
 msgstr "Změnit Vstup Efektu"
 
 
-msgid "The effect inputs to swap"
-msgstr "Jméno skriptu"
-
-
 msgctxt "Operator"
 msgid "Change Effect Type"
 msgstr "Změnit Typ Efektu"
@@ -29241,10 +29237,6 @@ msgstr "Jméno skriptu"
 msgctxt "Operator"
 msgid "Swap Inputs"
 msgstr "Vstupy"
-
-
-msgid "Swap the first two inputs for the effect strip"
-msgstr "Odstranit označené značky"
 
 
 msgctxt "Operator"
@@ -32589,8 +32581,8 @@ msgstr "Přechod"
 
 
 msgctxt "Operator"
-msgid "Cutter"
-msgstr "Řezačka"
+msgid "Trim"
+msgstr "Oříznout"
 
 
 msgctxt "Operator"
@@ -32611,6 +32603,11 @@ msgstr "Box"
 msgctxt "Operator"
 msgid "Circle"
 msgstr "Kruh"
+
+
+msgctxt "Operator"
+msgid "Cutter"
+msgstr "Řezačka"
 
 
 msgid "Particle Tool"
@@ -40426,11 +40423,6 @@ msgid "Shortest Path"
 msgstr "Nejkratší cesta"
 
 
-msgctxt "Image"
-msgid "New"
-msgstr "Nový"
-
-
 msgctxt "Operator"
 msgid "Save All Images"
 msgstr "Uložit všechny obrázky"
@@ -41863,11 +41855,6 @@ msgstr "Adaptivní"
 
 
 msgctxt "Operator"
-msgid "Trim"
-msgstr "Oříznout"
-
-
-msgctxt "Operator"
 msgid "Set as Active Material"
 msgstr "Nastavit jako Aktivní materiál"
 
@@ -43230,6 +43217,11 @@ msgid "New"
 msgstr "Nový"
 
 
+msgctxt "Image"
+msgid "New"
+msgstr "Nový"
+
+
 msgctxt "Lattice"
 msgid "New"
 msgstr "Nový"
@@ -44363,10 +44355,6 @@ msgstr "Odstranit označené značky"
 
 
 msgid "Cannot apply effects to audio sequence strips"
-msgstr "První frame animace"
-
-
-msgid "Cannot apply effect to more than 3 sequence strips"
 msgstr "První frame animace"
 
 

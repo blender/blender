@@ -339,6 +339,23 @@ static inline float *image_get_float_pixels_for_frame(BL::Image &image, int fram
   return BKE_image_get_float_pixels_for_frame(image.ptr.data, frame, tile);
 }
 
+static inline bool image_is_builtin(BL::Image &ima, BL::RenderEngine &engine)
+{
+  const BL::Image::source_enum image_source = ima.source();
+  if (image_source == BL::Image::source_TILED) {
+    /* If any tile is marked as generated, then treat the entire Image as built-in. */
+    for (BL::UDIMTile &tile : ima.tiles) {
+      if (tile.is_generated_tile()) {
+        return true;
+      }
+    }
+  }
+
+  return ima.packed_file() || image_source == BL::Image::source_GENERATED ||
+         image_source == BL::Image::source_MOVIE ||
+         (engine.is_preview() && image_source != BL::Image::source_SEQUENCE);
+}
+
 static inline void render_add_metadata(BL::RenderResult &b_rr, string name, string value)
 {
   b_rr.stamp_data_add_field(name.c_str(), value.c_str());

@@ -43,6 +43,7 @@
 
 #include "ED_anim_api.hh"
 #include "ED_curves.hh"
+#include "ED_grease_pencil.hh"
 #include "ED_keyframing.hh"
 #include "ED_object.hh"
 #include "ED_screen.hh"
@@ -1007,7 +1008,7 @@ static std::optional<blender::Bounds<blender::float3>> bounds_min_max_with_trans
   return threading::parallel_reduce(
       mask.index_range(),
       1024,
-      Bounds<float3>(math::transform_point(transform, positions.first())),
+      Bounds<float3>(math::transform_point(transform, positions[mask.first()])),
       [&](const IndexRange range, Bounds<float3> init) {
         mask.slice(range).foreach_index([&](const int i) {
           math::min_max(math::transform_point(transform, positions[i]), init.min, init.max);
@@ -1017,7 +1018,7 @@ static std::optional<blender::Bounds<blender::float3>> bounds_min_max_with_trans
       [](const Bounds<float3> &a, const Bounds<float3> &b) { return bounds::merge(a, b); });
 }
 
-bool ED_view3d_minmax_verts(Object *obedit, float r_min[3], float r_max[3])
+bool ED_view3d_minmax_verts(const Scene *scene, Object *obedit, float r_min[3], float r_max[3])
 {
   using namespace blender;
   using namespace blender::ed;
@@ -1058,6 +1059,46 @@ bool ED_view3d_minmax_verts(Object *obedit, float r_min[3], float r_max[3])
     if (curves_bounds) {
       minmax_v3v3_v3(r_min, r_max, curves_bounds->min);
       minmax_v3v3_v3(r_min, r_max, curves_bounds->max);
+      return true;
+    }
+    return false;
+  }
+  if (obedit->type == OB_GREASE_PENCIL) {
+    Object &ob_orig = *DEG_get_original_object(obedit);
+    GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob_orig.data);
+
+    std::optional<Bounds<float3>> grease_pencil_bounds = std::nullopt;
+
+    const Vector<greasepencil::MutableDrawingInfo> drawings =
+        greasepencil::retrieve_editable_drawings(*scene, grease_pencil);
+    for (const greasepencil::MutableDrawingInfo info : drawings) {
+      const bke::CurvesGeometry &curves = info.drawing.strokes();
+      if (curves.points_num() == 0) {
+        continue;
+      }
+
+      IndexMaskMemory memory;
+      const IndexMask points = greasepencil::retrieve_editable_and_selected_points(
+          ob_orig, info.drawing, info.layer_index, memory);
+      if (points.is_empty()) {
+        continue;
+      }
+
+      const bke::crazyspace::GeometryDeformation deformation =
+          bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
+              obedit, ob_orig, info.layer_index, info.frame_number);
+
+      const bke::greasepencil::Layer &layer = *grease_pencil.layer(info.layer_index);
+      const float4x4 layer_to_world = layer.to_world_space(*obedit);
+
+      grease_pencil_bounds = bounds::merge(
+          grease_pencil_bounds,
+          bounds_min_max_with_transform(layer_to_world, deformation.positions, points));
+    }
+
+    if (grease_pencil_bounds) {
+      minmax_v3v3_v3(r_min, r_max, grease_pencil_bounds->min);
+      minmax_v3v3_v3(r_min, r_max, grease_pencil_bounds->max);
       return true;
     }
     return false;

@@ -16,6 +16,7 @@
 #include "BLI_task.hh"
 
 #include "editors/sculpt_paint/mesh_brush_common.hh"
+#include "editors/sculpt_paint/sculpt_automask.hh"
 #include "editors/sculpt_paint/sculpt_intern.hh"
 #include "editors/sculpt_paint/sculpt_smooth.hh"
 
@@ -127,9 +128,12 @@ void do_bmesh_topology_rake_brush(const Depsgraph &depsgraph,
       node_mask.slice(range).foreach_index([&](const int i) {
         calc_bmesh(
             depsgraph, sd, object, brush, direction, factor * ss.cache->pressure, nodes[i], tls);
+        bke::pbvh::update_node_bounds_bmesh(nodes[i]);
       });
     });
   }
+  pbvh.tag_positions_changed(node_mask);
+  bke::pbvh::flush_bounds_to_parents(pbvh);
 }
 
 }  // namespace blender::ed::sculpt_paint

@@ -53,16 +53,7 @@ static void node_layout(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
-  uiTemplateID(layout,
-               C,
-               ptr,
-               "font",
-               nullptr,
-               "FONT_OT_open",
-               "FONT_OT_unlink",
-               UI_TEMPLATE_ID_FILTER_ALL,
-               false,
-               nullptr);
+  uiTemplateID(layout, C, ptr, "font", nullptr, "FONT_OT_open", "FONT_OT_unlink");
   uiItemR(layout, ptr, "overflow", UI_ITEM_NONE, "", ICON_NONE);
   uiItemR(layout, ptr, "align_x", UI_ITEM_NONE, "", ICON_NONE);
   uiItemR(layout, ptr, "align_y", UI_ITEM_NONE, "", ICON_NONE);

@@ -164,7 +164,7 @@ class LightProbes {
         matrix.z_axis() = float3(0);
         call_buffers_.cube_buf.append(data, select_id);
 
-        matrix.view<3, 3>() = math::normalize(float4x4(ob->object_to_world().ptr()).view<3, 3>());
+        matrix.view<3, 3>() = math::normalize(float3x3(ob->object_to_world().view<3, 3>()));
         draw_size = ob->empty_drawsize;
         call_buffers_.single_arrow_buf.append(data, select_id);
         break;

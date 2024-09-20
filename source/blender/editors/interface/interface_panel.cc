@@ -1375,7 +1375,9 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
   const uiFontStyle *fstyle = &style->widget;
   const int fontid = fstyle->uifont_id;
   float fstyle_points = fstyle->points;
-  const float aspect = ((uiBlock *)region->uiblocks.first)->aspect;
+  const float aspect = BLI_listbase_is_empty(&region->uiblocks) ?
+                           1.0f :
+                           ((uiBlock *)region->uiblocks.first)->aspect;
   const float zoom = 1.0f / aspect;
   const int px = U.pixelsize;
   const int category_tabs_width = round_fl_to_int(UI_PANEL_CATEGORY_MARGIN_WIDTH * zoom);

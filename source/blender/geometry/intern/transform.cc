@@ -90,9 +90,10 @@ static void translate_greasepencil(GreasePencil &grease_pencil, const float3 tra
 {
   using namespace blender::bke::greasepencil;
   for (const int layer_index : grease_pencil.layers().index_range()) {
-    if (Drawing *drawing = grease_pencil.get_eval_drawing(*grease_pencil.layer(layer_index))) {
-      drawing->strokes_for_write().translate(translation);
-    }
+    Layer &layer = *grease_pencil.layer(layer_index);
+    float4x4 local_transform = layer.local_transform();
+    local_transform.location() += translation;
+    layer.set_local_transform(local_transform);
   }
 }
 
@@ -100,9 +101,10 @@ static void transform_greasepencil(GreasePencil &grease_pencil, const float4x4 &
 {
   using namespace blender::bke::greasepencil;
   for (const int layer_index : grease_pencil.layers().index_range()) {
-    if (Drawing *drawing = grease_pencil.get_eval_drawing(*grease_pencil.layer(layer_index))) {
-      drawing->strokes_for_write().transform(transform);
-    }
+    Layer &layer = *grease_pencil.layer(layer_index);
+    float4x4 local_transform = layer.local_transform();
+    local_transform = transform * local_transform;
+    layer.set_local_transform(local_transform);
   }
 }
 

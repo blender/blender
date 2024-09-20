@@ -182,6 +182,7 @@ static void blo_update_defaults_screen(bScreen *screen,
       SpaceText *stext = static_cast<SpaceText *>(area->spacedata.first);
       stext->showsyntax = true;
       stext->showlinenrs = true;
+      stext->flags |= ST_FIND_WRAP;
     }
     else if (area->spacetype == SPACE_VIEW3D) {
       View3D *v3d = static_cast<View3D *>(area->spacedata.first);
@@ -544,7 +545,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
         if (layout->screen) {
           bScreen *screen = layout->screen;
           if (!STREQ(screen->id.name + 2, workspace->id.name + 2)) {
-            BKE_libblock_rename(bmain, &screen->id, workspace->id.name + 2);
+            BKE_libblock_rename(*bmain, screen->id, workspace->id.name + 2);
           }
         }
 

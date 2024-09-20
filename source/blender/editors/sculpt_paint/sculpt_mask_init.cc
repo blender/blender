@@ -69,12 +69,12 @@ void write_mask_mesh(const Depsgraph &depsgraph,
   MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
   threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
     Vector<int> &index_data = all_index_data.local();
-    for (const int i : range) {
+    node_mask.slice(range).foreach_index(GrainSize(1), [&](const int i) {
       write_fn(mask.span, hide::node_visible_verts(nodes[i], hide_vert, index_data));
-      BKE_pbvh_node_mark_redraw(nodes[i]);
       bke::pbvh::node_update_mask_mesh(mask.span, nodes[i]);
-    }
+    });
   });
+  pbvh.tag_masks_changed(node_mask);
   mask.finish();
 }
 
@@ -103,10 +103,10 @@ static void init_mask_grids(
     for (const int grid : nodes[i].grids()) {
       write_fn(grid_hidden, grid, masks.slice(bke::ccg::grid_range(key, grid)));
     }
-    BKE_pbvh_node_mark_update_mask(nodes[i]);
+    bke::pbvh::node_update_mask_grids(key, masks, nodes[i]);
   });
+  pbvh.tag_masks_changed(node_mask);
   BKE_subdiv_ccg_average_grids(subdiv_ccg);
-  bke::pbvh::update_mask(object, pbvh);
 }
 
 static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
@@ -116,6 +116,7 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
   if (!BKE_base_is_visible(v3d, base)) {
     return OPERATOR_CANCELLED;
   }
+  const Scene &scene = *CTX_data_scene(C);
   Object &ob = *CTX_data_active_object(C);
   SculptSession &ss = *ob.sculpt;
   Depsgraph &depsgraph = *CTX_data_ensure_evaluated_depsgraph(C);
@@ -129,7 +130,7 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  undo::push_begin(ob, op);
+  undo::push_begin(scene, ob, op);
 
   const InitMode mode = InitMode(RNA_enum_get(op->ptr, "mode"));
   const int seed = BLI_time_now_seconds();
@@ -144,14 +145,21 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
             }
           });
           break;
-        case InitMode::FaceSet:
+        case InitMode::FaceSet: {
+          const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+          const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
+          const bke::AttributeAccessor attributes = mesh.attributes();
+          const VArraySpan face_sets = *attributes.lookup_or_default<int>(
+              ".sculpt_face_set", bke::AttrDomain::Face, 1);
+
           write_mask_mesh(depsgraph, ob, node_mask, [&](MutableSpan<float> mask, Span<int> verts) {
             for (const int vert : verts) {
-              const int face_set = face_set::vert_face_set_get(ob, PBVHVertRef{vert});
+              const int face_set = face_set::vert_face_set_get(vert_to_face_map, face_sets, vert);
               mask[vert] = BLI_hash_int_01(face_set + seed);
             }
           });
           break;
+        }
         case InitMode::Island:
           islands::ensure_cache(ob);
           write_mask_mesh(depsgraph, ob, node_mask, [&](MutableSpan<float> mask, Span<int> verts) {
@@ -255,9 +263,9 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
               break;
           }
         }
-        BKE_pbvh_node_mark_update_mask(nodes[i]);
+        bke::pbvh::node_update_mask_bmesh(offset, nodes[i]);
       });
-      bke::pbvh::update_mask(ob, pbvh);
+      pbvh.tag_masks_changed(node_mask);
       break;
     }
   }

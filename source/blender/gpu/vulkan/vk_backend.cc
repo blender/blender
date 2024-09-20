@@ -10,6 +10,8 @@
 
 #include "GHOST_C-api.h"
 
+#include "BLI_threads.h"
+
 #include "CLG_log.h"
 
 #include "gpu_capabilities_private.hh"
@@ -122,9 +124,6 @@ bool VKBackend::is_supported()
     if (dynamic_rendering.dynamicRendering == VK_FALSE) {
       missing_capabilities.append("dynamic rendering");
     }
-    if (dynamic_rendering_unused_attachments.dynamicRenderingUnusedAttachments == VK_FALSE) {
-      missing_capabilities.append("dynamic rendering unused attachments");
-    }
 
     /* Check device extensions. */
     uint32_t vk_extension_count;
@@ -150,12 +149,6 @@ bool VKBackend::is_supported()
     }
     if (!extensions.contains(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME)) {
       missing_capabilities.append(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
-    }
-    /* VK_EXT_dynamic_rendering_unused_attachments is not supported by renderdoc. */
-    if (!bool(G.debug & G_DEBUG_GPU) &&
-        !extensions.contains(VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME))
-    {
-      missing_capabilities.append(VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME);
     }
 
     /* Report result. */
@@ -430,11 +423,6 @@ void VKBackend::render_end()
 
 void VKBackend::render_step() {}
 
-shaderc::Compiler &VKBackend::get_shaderc_compiler()
-{
-  return shaderc_compiler_;
-}
-
 void VKBackend::capabilities_init(VKDevice &device)
 {
   const VkPhysicalDeviceProperties &properties = device.physical_device_properties_get();
@@ -472,6 +460,7 @@ void VKBackend::capabilities_init(VKDevice &device)
   GCaps.max_compute_shader_storage_blocks = limits.maxPerStageDescriptorStorageBuffers;
   GCaps.max_storage_buffer_size = size_t(limits.maxStorageBufferRange);
 
+  GCaps.max_parallel_compilations = BLI_system_thread_count();
   GCaps.mem_stats_support = true;
 
   detect_workarounds(device);

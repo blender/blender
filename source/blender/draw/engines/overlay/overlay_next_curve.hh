@@ -34,8 +34,6 @@ class Curves {
   PassSimple::Sub *edit_legacy_curve_points_ = nullptr;
   PassSimple::Sub *edit_legacy_curve_handles_ = nullptr;
 
-  bool xray_enabled = false;
-
   /* TODO(fclem): This is quite wasteful and expensive, prefer in shader Z modification like the
    * retopology offset. */
   View view_edit_cage = {"view_edit_cage"};
@@ -53,7 +51,6 @@ class Curves {
     }
 
     view_dist = state.view_dist_get(view.winmat());
-    xray_enabled = state.xray_enabled;
 
     {
       auto &pass = edit_curves_ps_;
@@ -65,6 +62,7 @@ class Curves {
                       state.clipping_plane_count);
         sub.shader_set(res.shaders.curve_edit_points.get());
         sub.bind_ubo("globalsBlock", &res.globals_buf);
+        sub.bind_texture("weightTex", &res.weight_ramp_tx);
         sub.push_constant("useWeight", false);
         sub.push_constant("useGreasePencil", false);
         edit_curves_points_ = &sub;
@@ -76,6 +74,7 @@ class Curves {
                       state.clipping_plane_count);
         sub.shader_set(res.shaders.curve_edit_line.get());
         sub.bind_ubo("globalsBlock", &res.globals_buf);
+        sub.bind_texture("weightTex", &res.weight_ramp_tx);
         sub.push_constant("useWeight", false);
         sub.push_constant("useGreasePencil", false);
         edit_curves_lines_ = &sub;
@@ -146,8 +145,6 @@ class Curves {
       return;
     }
 
-    ResourceHandle res_handle = manager.resource_handle(ob_ref);
-
     Object *ob = ob_ref.object;
     ::Curves &curves = *static_cast<::Curves *>(ob->data);
     const bool show_points = bke::AttrDomain(curves.selection_domain) == bke::AttrDomain::Point;
@@ -156,17 +153,16 @@ class Curves {
 
     if (show_points) {
       gpu::Batch *geom = DRW_curves_batch_cache_get_edit_points(&curves);
-      edit_curves_points_->draw(geom, res_handle);
+      edit_curves_points_->draw(geom, manager.unique_handle(ob_ref));
     }
     {
       gpu::Batch *geom = DRW_curves_batch_cache_get_edit_curves_handles(&curves);
       edit_curves_handles_->bind_ubo("curvesInfoBlock", ubo_storage);
-      edit_curves_handles_->draw(geom, res_handle);
+      edit_curves_handles_->draw(geom, manager.unique_handle(ob_ref));
     }
     {
       gpu::Batch *geom = DRW_curves_batch_cache_get_edit_curves_lines(&curves);
-      edit_curves_lines_->bind_ubo("curvesInfoBlock", ubo_storage);
-      edit_curves_lines_->draw(geom, res_handle);
+      edit_curves_lines_->draw(geom, manager.unique_handle(ob_ref));
     }
   }
 
@@ -177,7 +173,7 @@ class Curves {
       return;
     }
 
-    ResourceHandle res_handle = manager.resource_handle(ob_ref);
+    ResourceHandle res_handle = manager.unique_handle(ob_ref);
 
     Object *ob = ob_ref.object;
     ::Curve &curve = *static_cast<::Curve *>(ob->data);

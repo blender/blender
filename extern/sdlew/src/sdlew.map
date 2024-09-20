@@ -1,7 +1,0 @@
-{
-global:
-	*;
-local:
-	*SDL*;
-};
-

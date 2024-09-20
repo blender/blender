@@ -736,8 +736,34 @@ typedef struct NlaStrip {
 
   /** 'Child' strips (used for 'meta' strips). */
   ListBase strips;
-  /** Action that is referenced by this strip (strip is 'user' of the action). */
+  /**
+   * Action that is referenced by this strip (strip is 'user' of the action).
+   *
+   * \note Most code should not write to this field directly, but use functions from
+   * `blender::animrig::nla` instead, see ANIM_nla.hh.
+   */
   bAction *act;
+
+  /**
+   * Slot Handle to determine which animation data to look at in `act`.
+   *
+   * An NLA strip is limited to using a single slot in the Action.
+   *
+   * \note Most code should not write to this field directly, but use functions from
+   * `blender::animrig::nla` instead, see ANIM_nla.hh.
+   */
+  int32_t action_slot_handle;
+  /**
+   * Slot name, primarily used for mapping to the right slot when assigning
+   * another Action. Should be the same type as #ActionSlot::name.
+   *
+   * \see #ActionSlot::name
+   *
+   * \note Most code should not write to this field directly, but use functions from
+   * `blender::animrig::nla` instead, see ANIM_nla.hh.
+   */
+  char action_slot_name[66]; /* MAX_ID_NAME */
+  char _pad0[2];
 
   /** F-Curves for controlling this strip's influence and timing */ /* TODO: move out? */
   ListBase fcurves;
@@ -786,6 +812,12 @@ typedef struct NlaStrip {
 
   void *_pad3;
 } NlaStrip;
+
+#ifdef __cplusplus
+/* Some static assertions that things that should have the same type actually do. */
+static_assert(
+    std::is_same_v<decltype(ActionSlot::handle), decltype(NlaStrip::action_slot_handle)>);
+#endif
 
 /* NLA Strip Blending Mode */
 typedef enum eNlaStrip_Blend_Mode {
@@ -1116,10 +1148,14 @@ typedef struct AnimData {
   bAction *action;
 
   /**
-   * Identifier for which ActionSlot of the above Animation is actually animating this
+   * Identifier for which ActionSlot of the above Action is actually animating this
    * data-block.
    *
    * Do not set this directly, use one of the assignment functions in ANIM_action.hh instead.
+   *
+   * This can be set to `blender::animrig::Slot::unassigned` when no slot is assigned. Note that
+   * this field being set to any other value does NOT guarantee that there is a slot with that
+   * handle, as it might have been deleted from the Action.
    */
   int32_t slot_handle;
   /**
@@ -1132,10 +1168,13 @@ typedef struct AnimData {
   uint8_t _pad0[2];
 
   /**
-   * Temp-storage for the 'real' active action (i.e. the one used before the tweaking-action
-   * took over to be edited in the Animation Editors)
+   * Temp-storage for the 'real' active action + slot (i.e. the ones used before
+   * NLA Tweak mode took over the Action to be edited in the Animation Editors).
    */
   bAction *tmpact;
+  int32_t tmp_slot_handle;
+  char tmp_slot_name[66]; /* MAX_ID_NAME */
+  uint8_t _pad1[2];
 
   /* nla-tracks */
   ListBase nla_tracks;
@@ -1174,7 +1213,7 @@ typedef struct AnimData {
   /** Influence for active action. */
   float act_influence;
 
-  uint8_t _pad1[4];
+  uint8_t _pad2[4];
 } AnimData;
 
 #ifdef __cplusplus

@@ -2337,8 +2337,8 @@ static void rna_def_material_slot(BlenderRNA *brna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem link_items[] = {
-      {1, "OBJECT", 0, "Object", ""},
-      {0, "DATA", 0, "Data", ""},
+      {1, "OBJECT", ICON_OBJECT_DATAMODE, "Object", ""},
+      {0, "DATA", ICON_MESH_DATA, "Data", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 

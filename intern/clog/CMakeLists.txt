@@ -21,7 +21,7 @@ set(LIB
   PRIVATE bf::intern::atomic
 )
 
-# Disabled for makesdna/makesrna.
+# Disabled for `makesdna` & `makesrna`.
 add_definitions(-DWITH_CLOG_PTHREADS)
 
 blender_add_lib(bf_intern_clog "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

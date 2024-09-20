@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'd52d70324d18')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-02 14:03+0000\n"
+"POT-Creation-Date: 2024-09-16 11:03+0000\n"
 "PO-Revision-Date: 2024-07-26 18:34+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -15148,6 +15148,14 @@ msgid "Names"
 msgstr "Nama"
 
 
+msgid "Apply"
+msgstr "Tetapkan"
+
+
+msgid "Merge"
+msgstr "Menggabungkan"
+
+
 msgid "Assign Material"
 msgstr "Tugaskan Bahan"
 
@@ -15172,10 +15180,6 @@ msgid "Add Image"
 msgstr "Tambah Gambar"
 
 
-msgid "Apply"
-msgstr "Tetapkan"
-
-
 msgid "Track"
 msgstr "Lacak"
 
@@ -15186,10 +15190,6 @@ msgstr "Aset"
 
 msgid "Hooks"
 msgstr "Kait"
-
-
-msgid "Merge"
-msgstr "Menggabungkan"
 
 
 msgctxt "MovieClip"
@@ -25892,8 +25892,8 @@ msgstr "Gradien"
 
 
 msgctxt "Operator"
-msgid "Cutter"
-msgstr "Pemotong"
+msgid "Trim"
+msgstr "Potong"
 
 
 msgctxt "Operator"
@@ -25904,6 +25904,11 @@ msgstr "Garis"
 msgctxt "Operator"
 msgid "Curve"
 msgstr "Kurva"
+
+
+msgctxt "Operator"
+msgid "Cutter"
+msgstr "Pemotong"
 
 
 msgid "Particle Instance Object Weight"
@@ -27629,131 +27634,6 @@ msgstr "Editor Dopesheet Klip"
 
 
 msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Curve Edit Mode"
-msgstr "Mode Edit Kurva Garis Luar Pensil Grease"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Edit Mode"
-msgstr "Mode Edit Garis Luar Pensil Grease"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Paint (Draw brush)"
-msgstr "Cat Garis Luar Pensil Grease (Gambar kuas)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Paint (Fill)"
-msgstr "Cat Garis Luar Pensil Grease (Isi)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Paint (Erase)"
-msgstr "Cat Garis Luar Pensil Grease (Hapus)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Paint (Tint)"
-msgstr "Cat Sapuan Pensil Grease (Halus)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Paint Mode"
-msgstr "Mode Cat Garis Luar Pensil Grease"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt Mode"
-msgstr "Mode Pahat Garis Luar Pensil Grease"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt (Smooth)"
-msgstr "Pahat Garis Luar Pensil Grease (Kehalusan)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt (Thickness)"
-msgstr "Pahat Garis Luar Pensil Grease (Ketebalan)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt (Strength)"
-msgstr "Pahat Garis Luar Pensil Grease (Kekuatan)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt (Grab)"
-msgstr "Pahat Garis Luar Pensil Grease (Ambil)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt (Push)"
-msgstr "Pahat Garis Luar Pensil Grease (Dorong)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt (Twist)"
-msgstr "Pahat Garis Luar Pensil Grease (Pelintir)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt (Pinch)"
-msgstr "Pahat Garis Luar Pensil Grease (Cubit)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt (Randomize)"
-msgstr "Pahat Garis Luar Pensil Grease (Mengacak)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Weight Mode"
-msgstr "Mode Berat Garis Luar Pensil Grease"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Weight (Draw)"
-msgstr "Berat Garis Luar Pensil Grease (Gambar)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Weight (Blur)"
-msgstr "Berat Garis Luar Pensil Grease (Buram)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Vertex Mode"
-msgstr "Mode Vertex Garis Luar Pensil Grease"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Vertex (Draw)"
-msgstr "Vertex Garis Luar Pensil Grease (Gambar)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Vertex (Blur)"
-msgstr "Vertex Garis Luar Pensil Grease (Buram)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Vertex (Average)"
-msgstr "Vertex Garis Luar Pensil Grease (Rata-rata)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Vertex (Smear)"
-msgstr "Vertex Garis Luar Pensil Grease (Smear)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Vertex (Replace)"
-msgstr "Vertex Garis Luar Pensil Grease (Menggantikan)"
-
-
-msgctxt "WindowManager"
 msgid "Mask Editing"
 msgstr "Edting Masker"
 
@@ -29422,11 +29302,6 @@ msgid "Shortest Path"
 msgstr "Jalur Terdekat"
 
 
-msgctxt "Image"
-msgid "New"
-msgstr "Baru"
-
-
 msgctxt "Operator"
 msgid "Save All Images"
 msgstr "Simpan Semua Gambar"
@@ -30321,11 +30196,6 @@ msgstr "Rotasi..."
 
 
 msgctxt "Operator"
-msgid "Trim"
-msgstr "Potong"
-
-
-msgctxt "Operator"
 msgid "Set as Active Material"
 msgstr "Set sebagai Material Aktif"
 
@@ -30963,6 +30833,11 @@ msgstr "Baru"
 
 
 msgctxt "GPencil"
+msgid "New"
+msgstr "Baru"
+
+
+msgctxt "Image"
 msgid "New"
 msgstr "Baru"
 

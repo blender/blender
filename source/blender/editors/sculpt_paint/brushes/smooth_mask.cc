@@ -16,6 +16,7 @@
 #include "editors/sculpt_paint/mesh_brush_common.hh"
 #include "editors/sculpt_paint/paint_intern.hh"
 #include "editors/sculpt_paint/paint_mask.hh"
+#include "editors/sculpt_paint/sculpt_automask.hh"
 #include "editors/sculpt_paint/sculpt_boundary.hh"
 #include "editors/sculpt_paint/sculpt_intern.hh"
 #include "editors/sculpt_paint/sculpt_smooth.hh"
@@ -122,12 +123,12 @@ static void do_smooth_brush_mesh(const Depsgraph &depsgraph,
                                  const IndexMask &node_mask,
                                  const float brush_strength)
 {
-  const SculptSession &ss = *object.sculpt;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
 
@@ -152,7 +153,7 @@ static void do_smooth_brush_mesh(const Depsgraph &depsgraph,
       LocalData &tls = all_tls.local();
       calc_smooth_masks_faces(faces,
                               corner_verts,
-                              ss.vert_to_face_map,
+                              vert_to_face_map,
                               hide_poly,
                               nodes[i].verts(),
                               mask.span.as_span(),
@@ -174,6 +175,8 @@ static void do_smooth_brush_mesh(const Depsgraph &depsgraph,
                         mask.span);
     });
   }
+  bke::pbvh::update_mask_mesh(mesh, node_mask, pbvh);
+  pbvh.tag_masks_changed(node_mask);
   mask.finish();
 }
 
@@ -308,6 +311,8 @@ void do_smooth_mask_brush(const Depsgraph &depsgraph,
               [&](const int i) { calc_grids(depsgraph, object, brush, strength, nodes[i], tls); });
         });
       }
+      bke::pbvh::update_mask_grids(*ss.subdiv_ccg, node_mask, pbvh);
+      pbvh.tag_masks_changed(node_mask);
       break;
     }
     case bke::pbvh::Type::BMesh: {
@@ -325,8 +330,11 @@ void do_smooth_mask_brush(const Depsgraph &depsgraph,
           });
         });
       }
+      bke::pbvh::update_mask_bmesh(*ss.bm, node_mask, pbvh);
+      pbvh.tag_masks_changed(node_mask);
       break;
     }
   }
 }
+
 }  // namespace blender::ed::sculpt_paint

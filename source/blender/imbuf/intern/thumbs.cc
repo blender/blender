@@ -396,7 +396,7 @@ static ImBuf *thumb_create_ex(const char *file_path,
         if (anim != nullptr) {
           img = IMB_anim_absolute(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
           if (img == nullptr) {
-            printf("not an anim; %s\n", file_path);
+            // printf("not an anim; %s\n", file_path);
           }
           else {
             IMB_freeImBuf(img);

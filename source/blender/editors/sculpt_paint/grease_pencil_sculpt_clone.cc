@@ -61,7 +61,10 @@ void CloneOperation::on_stroke_begin(const bContext &C, const InputSample &start
             pasted_curves);
         const IndexRange pasted_points = IndexRange::from_begin_size(
             pasted_points_by_curve[0].start(),
-            pasted_points_by_curve.total_size() - pasted_points_by_curve[0].start());
+            pasted_points_by_curve.total_size());
+        if (pasted_points.is_empty()) {
+          return false;
+        }
 
         Array<float2> view_positions = calculate_view_positions(params, pasted_points);
         const float2 center = arithmetic_mean(

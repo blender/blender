@@ -12,9 +12,10 @@
 
 #include "DNA_mesh_types.h"
 
+#include "BLI_function_ref.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
-#include "BLI_task.h"
+#include "BLI_task.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_customdata.hh"
@@ -309,22 +310,6 @@ static void base_surface_grids_write(const MultiresReshapeSmoothContext *reshape
 /** \name Evaluation of subdivision surface at a reshape level
  * \{ */
 
-using ForeachTopLevelGridCoordCallback =
-    void (*)(const MultiresReshapeSmoothContext *reshape_smooth_context,
-             const PTexCoord *ptex_coord,
-             const GridCoord *grid_coord,
-             void *userdata_v);
-
-struct ForeachHighLevelCoordTaskData {
-  const MultiresReshapeSmoothContext *reshape_smooth_context;
-
-  int inner_grid_size;
-  float inner_grid_size_1_inv;
-
-  ForeachTopLevelGridCoordCallback callback;
-  void *callback_userdata_v;
-};
-
 /* Find grid index which given face was created for. */
 static int get_face_grid_index(const MultiresReshapeSmoothContext *reshape_smooth_context,
                                const Face *face)
@@ -405,59 +390,42 @@ static void interpolate_grid_coord(GridCoord *result,
   result->v = lerp(u, v03, v12);
 }
 
-static void foreach_toplevel_grid_coord_task(void *__restrict userdata_v,
-                                             const int face_index,
-                                             const TaskParallelTLS *__restrict /*tls*/)
+static void foreach_toplevel_grid_coord(
+    const MultiresReshapeSmoothContext *reshape_smooth_context,
+    blender::FunctionRef<void(const PTexCoord *, const GridCoord *)> callback)
 {
-  ForeachHighLevelCoordTaskData *data = static_cast<ForeachHighLevelCoordTaskData *>(userdata_v);
-
-  const MultiresReshapeSmoothContext *reshape_smooth_context = data->reshape_smooth_context;
-  const int inner_grid_size = data->inner_grid_size;
-  const float inner_grid_size_1_inv = data->inner_grid_size_1_inv;
-
-  const Face *face = &reshape_smooth_context->geometry.faces[face_index];
-  const GridCoord *face_grid_coords[4];
-  grid_coords_from_face_verts(reshape_smooth_context, face, face_grid_coords);
-
-  for (int y = 0; y < inner_grid_size; ++y) {
-    const float ptex_v = float(y) * inner_grid_size_1_inv;
-    for (int x = 0; x < inner_grid_size; ++x) {
-      const float ptex_u = float(x) * inner_grid_size_1_inv;
-
-      PTexCoord ptex_coord;
-      ptex_coord.ptex_face_index = face_index;
-      ptex_coord.u = ptex_u;
-      ptex_coord.v = ptex_v;
-
-      GridCoord grid_coord;
-      interpolate_grid_coord(&grid_coord, face_grid_coords, ptex_u, ptex_v);
-
-      data->callback(reshape_smooth_context, &ptex_coord, &grid_coord, data->callback_userdata_v);
-    }
-  }
-}
-
-static void foreach_toplevel_grid_coord(const MultiresReshapeSmoothContext *reshape_smooth_context,
-                                        ForeachTopLevelGridCoordCallback callback,
-                                        void *callback_userdata_v)
-{
+  using namespace blender;
   const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
   const int level_difference = (reshape_context->top.level - reshape_context->reshape.level);
 
-  ForeachHighLevelCoordTaskData data;
-  data.reshape_smooth_context = reshape_smooth_context;
-  data.inner_grid_size = (1 << level_difference) + 1;
-  data.inner_grid_size_1_inv = 1.0f / float(data.inner_grid_size - 1);
-  data.callback = callback;
-  data.callback_userdata_v = callback_userdata_v;
-
-  TaskParallelSettings parallel_range_settings;
-  BLI_parallel_range_settings_defaults(&parallel_range_settings);
-  parallel_range_settings.min_iter_per_thread = 1;
+  const int inner_grid_size = (1 << level_difference) + 1;
+  const float inner_grid_size_1_inv = 1.0f / float(inner_grid_size - 1);
 
   const int num_faces = reshape_smooth_context->geometry.num_faces;
-  BLI_task_parallel_range(
-      0, num_faces, &data, foreach_toplevel_grid_coord_task, &parallel_range_settings);
+  threading::parallel_for(IndexRange(num_faces), 1, [&](const IndexRange range) {
+    for (const int face_index : range) {
+      const Face *face = &reshape_smooth_context->geometry.faces[face_index];
+      const GridCoord *face_grid_coords[4];
+      grid_coords_from_face_verts(reshape_smooth_context, face, face_grid_coords);
+
+      for (int y = 0; y < inner_grid_size; ++y) {
+        const float ptex_v = float(y) * inner_grid_size_1_inv;
+        for (int x = 0; x < inner_grid_size; ++x) {
+          const float ptex_u = float(x) * inner_grid_size_1_inv;
+
+          PTexCoord ptex_coord;
+          ptex_coord.ptex_face_index = face_index;
+          ptex_coord.u = ptex_u;
+          ptex_coord.v = ptex_v;
+
+          GridCoord grid_coord;
+          interpolate_grid_coord(&grid_coord, face_grid_coords, ptex_u, ptex_v);
+
+          callback(&ptex_coord, &grid_coord);
+        }
+      }
+    }
+  });
 }
 
 /** \} */
@@ -1293,18 +1261,6 @@ static void linear_grid_element_delta_interpolate(
   linear_grid_element_interpolate(result, corner_elements, weights);
 }
 
-static void evaluate_linear_delta_grids_callback(
-    const MultiresReshapeSmoothContext *reshape_smooth_context,
-    const PTexCoord * /*ptex_coord*/,
-    const GridCoord *grid_coord,
-    void * /*userdata_v*/)
-{
-  LinearGridElement *linear_delta_element = linear_grid_element_get(
-      &reshape_smooth_context->linear_delta_grids, grid_coord);
-
-  linear_grid_element_delta_interpolate(reshape_smooth_context, grid_coord, linear_delta_element);
-}
-
 static void evaluate_linear_delta_grids(MultiresReshapeSmoothContext *reshape_smooth_context)
 {
   const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
@@ -1313,8 +1269,14 @@ static void evaluate_linear_delta_grids(MultiresReshapeSmoothContext *reshape_sm
 
   linear_grids_allocate(&reshape_smooth_context->linear_delta_grids, num_grids, top_level);
 
-  foreach_toplevel_grid_coord(
-      reshape_smooth_context, evaluate_linear_delta_grids_callback, nullptr);
+  foreach_toplevel_grid_coord(reshape_smooth_context,
+                              [&](const PTexCoord * /*ptex_coord*/, const GridCoord *grid_coord) {
+                                LinearGridElement *linear_delta_element = linear_grid_element_get(
+                                    &reshape_smooth_context->linear_delta_grids, grid_coord);
+
+                                linear_grid_element_delta_interpolate(
+                                    reshape_smooth_context, grid_coord, linear_delta_element);
+                              });
 }
 
 static void propagate_linear_data_delta(const MultiresReshapeSmoothContext *reshape_smooth_context,
@@ -1341,24 +1303,17 @@ static void propagate_linear_data_delta(const MultiresReshapeSmoothContext *resh
 /** \name Evaluation of base surface
  * \{ */
 
-static void evaluate_base_surface_grids_callback(
-    const MultiresReshapeSmoothContext *reshape_smooth_context,
-    const PTexCoord *ptex_coord,
-    const GridCoord *grid_coord,
-    void * /*userdata_v*/)
-{
-  float limit_P[3];
-  float tangent_matrix[3][3];
-  reshape_subdiv_evaluate_limit_at_grid(
-      reshape_smooth_context, ptex_coord, grid_coord, limit_P, tangent_matrix);
-
-  base_surface_grids_write(reshape_smooth_context, grid_coord, limit_P, tangent_matrix);
-}
-
 static void evaluate_base_surface_grids(const MultiresReshapeSmoothContext *reshape_smooth_context)
 {
   foreach_toplevel_grid_coord(
-      reshape_smooth_context, evaluate_base_surface_grids_callback, nullptr);
+      reshape_smooth_context, [&](const PTexCoord *ptex_coord, const GridCoord *grid_coord) {
+        float limit_P[3];
+        float tangent_matrix[3][3];
+        reshape_subdiv_evaluate_limit_at_grid(
+            reshape_smooth_context, ptex_coord, grid_coord, limit_P, tangent_matrix);
+
+        base_surface_grids_write(reshape_smooth_context, grid_coord, limit_P, tangent_matrix);
+      });
 }
 
 /** \} */
@@ -1394,91 +1349,77 @@ static void evaluate_final_original_point(
   add_v3_v3v3(r_orig_final_P, base_mesh_limit_P, orig_displacement);
 }
 
-static void evaluate_higher_grid_positions_with_details_callback(
-    const MultiresReshapeSmoothContext *reshape_smooth_context,
-    const PTexCoord *ptex_coord,
-    const GridCoord *grid_coord,
-    void * /*userdata_v*/)
-{
-  const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
-
-  /* Position of the original vertex at top level. */
-  float orig_final_P[3];
-  evaluate_final_original_point(reshape_smooth_context, grid_coord, orig_final_P);
-
-  /* Original surface point on sculpt level (sculpt level before edits in sculpt mode). */
-  const SurfacePoint *orig_sculpt_point = base_surface_grids_read(reshape_smooth_context,
-                                                                  grid_coord);
-
-  /* Difference between original top level and original sculpt level in object space. */
-  float original_detail_delta[3];
-  sub_v3_v3v3(original_detail_delta, orig_final_P, orig_sculpt_point->P);
-
-  /* Difference between original top level and original sculpt level in tangent space of original
-   * sculpt level. */
-  float original_detail_delta_tangent[3];
-  float original_sculpt_tangent_matrix_inv[3][3];
-  invert_m3_m3(original_sculpt_tangent_matrix_inv, orig_sculpt_point->tangent_matrix);
-  mul_v3_m3v3(
-      original_detail_delta_tangent, original_sculpt_tangent_matrix_inv, original_detail_delta);
-
-  /* Limit surface of smoothed (subdivided) edited sculpt level. */
-  float smooth_limit_P[3];
-  float smooth_tangent_matrix[3][3];
-  reshape_subdiv_evaluate_limit_at_grid(
-      reshape_smooth_context, ptex_coord, grid_coord, smooth_limit_P, smooth_tangent_matrix);
-
-  /* Add original detail to the smoothed surface. */
-  float smooth_delta[3];
-  mul_v3_m3v3(smooth_delta, smooth_tangent_matrix, original_detail_delta_tangent);
-
-  /* Grid element of the result.
-   *
-   * NOTE: Displacement is storing object space coordinate. */
-  ReshapeGridElement grid_element = multires_reshape_grid_element_for_grid_coord(reshape_context,
-                                                                                 grid_coord);
-
-  add_v3_v3v3(grid_element.displacement, smooth_limit_P, smooth_delta);
-
-  /* Propagate non-coordinate data. */
-  propagate_linear_data_delta(reshape_smooth_context, &grid_element, grid_coord);
-}
-
 static void evaluate_higher_grid_positions_with_details(
     const MultiresReshapeSmoothContext *reshape_smooth_context)
 {
-  foreach_toplevel_grid_coord(
-      reshape_smooth_context, evaluate_higher_grid_positions_with_details_callback, nullptr);
-}
-
-static void evaluate_higher_grid_positions_callback(
-    const MultiresReshapeSmoothContext *reshape_smooth_context,
-    const PTexCoord *ptex_coord,
-    const GridCoord *grid_coord,
-    void * /*userdata_v*/)
-{
   const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
-  blender::bke::subdiv::Subdiv *reshape_subdiv = reshape_smooth_context->reshape_subdiv;
+  foreach_toplevel_grid_coord(
+      reshape_smooth_context, [&](const PTexCoord *ptex_coord, const GridCoord *grid_coord) {
+        /* Position of the original vertex at top level. */
+        float orig_final_P[3];
+        evaluate_final_original_point(reshape_smooth_context, grid_coord, orig_final_P);
 
-  ReshapeGridElement grid_element = multires_reshape_grid_element_for_grid_coord(reshape_context,
-                                                                                 grid_coord);
+        /* Original surface point on sculpt level (sculpt level before edits in sculpt mode). */
+        const SurfacePoint *orig_sculpt_point = base_surface_grids_read(reshape_smooth_context,
+                                                                        grid_coord);
 
-  /* Surface. */
-  float P[3];
-  blender::bke::subdiv::eval_limit_point(
-      reshape_subdiv, ptex_coord->ptex_face_index, ptex_coord->u, ptex_coord->v, P);
+        /* Difference between original top level and original sculpt level in object space. */
+        float original_detail_delta[3];
+        sub_v3_v3v3(original_detail_delta, orig_final_P, orig_sculpt_point->P);
 
-  copy_v3_v3(grid_element.displacement, P);
+        /* Difference between original top level and original sculpt level in tangent space of
+         * original sculpt level. */
+        float original_detail_delta_tangent[3];
+        float original_sculpt_tangent_matrix_inv[3][3];
+        invert_m3_m3(original_sculpt_tangent_matrix_inv, orig_sculpt_point->tangent_matrix);
+        mul_v3_m3v3(original_detail_delta_tangent,
+                    original_sculpt_tangent_matrix_inv,
+                    original_detail_delta);
 
-  /* Propagate non-coordinate data. */
-  propagate_linear_data_delta(reshape_smooth_context, &grid_element, grid_coord);
+        /* Limit surface of smoothed (subdivided) edited sculpt level. */
+        float smooth_limit_P[3];
+        float smooth_tangent_matrix[3][3];
+        reshape_subdiv_evaluate_limit_at_grid(
+            reshape_smooth_context, ptex_coord, grid_coord, smooth_limit_P, smooth_tangent_matrix);
+
+        /* Add original detail to the smoothed surface. */
+        float smooth_delta[3];
+        mul_v3_m3v3(smooth_delta, smooth_tangent_matrix, original_detail_delta_tangent);
+
+        /* Grid element of the result.
+         *
+         * NOTE: Displacement is storing object space coordinate. */
+        ReshapeGridElement grid_element = multires_reshape_grid_element_for_grid_coord(
+            reshape_context, grid_coord);
+
+        add_v3_v3v3(grid_element.displacement, smooth_limit_P, smooth_delta);
+
+        /* Propagate non-coordinate data. */
+        propagate_linear_data_delta(reshape_smooth_context, &grid_element, grid_coord);
+      });
 }
 
 static void evaluate_higher_grid_positions(
     const MultiresReshapeSmoothContext *reshape_smooth_context)
 {
+  const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
   foreach_toplevel_grid_coord(
-      reshape_smooth_context, evaluate_higher_grid_positions_callback, nullptr);
+      reshape_smooth_context, [&](const PTexCoord *ptex_coord, const GridCoord *grid_coord) {
+        blender::bke::subdiv::Subdiv *reshape_subdiv = reshape_smooth_context->reshape_subdiv;
+
+        ReshapeGridElement grid_element = multires_reshape_grid_element_for_grid_coord(
+            reshape_context, grid_coord);
+
+        /* Surface. */
+        float P[3];
+        blender::bke::subdiv::eval_limit_point(
+            reshape_subdiv, ptex_coord->ptex_face_index, ptex_coord->u, ptex_coord->v, P);
+
+        copy_v3_v3(grid_element.displacement, P);
+
+        /* Propagate non-coordinate data. */
+        propagate_linear_data_delta(reshape_smooth_context, &grid_element, grid_coord);
+      });
 }
 
 /** \} */

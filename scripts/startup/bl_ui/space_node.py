@@ -200,7 +200,8 @@ class NODE_HT_header(Header):
         if is_compositor:
             layout.prop(snode, "pin", text="", emboss=False)
 
-        layout.operator("node.tree_path_parent", text="", icon='FILE_PARENT')
+        if len(snode.path) > 1:
+            layout.operator("node.tree_path_parent", text="", icon='FILE_PARENT')
 
         # Backdrop
         if is_compositor:
@@ -208,7 +209,7 @@ class NODE_HT_header(Header):
             row.prop(snode, "show_backdrop", toggle=True)
             sub = row.row(align=True)
             sub.active = snode.show_backdrop
-            sub.prop(snode, "backdrop_channels", icon_only=True, text="", expand=True)
+            sub.prop(snode, "backdrop_channels", icon_only=True, text="")
 
         # Snap
         row = layout.row(align=True)

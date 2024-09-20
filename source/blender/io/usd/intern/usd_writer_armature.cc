@@ -71,7 +71,7 @@ static void initialize(const Object *obj,
       return;
     }
 
-    /* Store Blender bone lengths to facilitate better roundtripping. */
+    /* Store Blender bone lengths to facilitate better round-tripping. */
     bone_lengths.push_back(bone->length);
 
     joints.push_back(build_usd_joint_path(bone, allow_unicode));

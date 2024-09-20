@@ -832,9 +832,7 @@ static ShaderNode *add_node(Scene *scene,
       /* builtin images will use callback-based reading because
        * they could only be loaded correct from blender side
        */
-      bool is_builtin = b_image.packed_file() || b_image_source == BL::Image::source_GENERATED ||
-                        b_image_source == BL::Image::source_MOVIE ||
-                        (b_engine.is_preview() && b_image_source != BL::Image::source_SEQUENCE);
+      const bool is_builtin = image_is_builtin(b_image, b_engine);
 
       if (is_builtin) {
         /* for builtin images we're using image datablock name to find an image to
@@ -887,9 +885,7 @@ static ShaderNode *add_node(Scene *scene,
       env->set_animated(is_image_animated(b_image_source, b_image_user));
       env->set_alpha_type(get_image_alpha_type(b_image));
 
-      bool is_builtin = b_image.packed_file() || b_image_source == BL::Image::source_GENERATED ||
-                        b_image_source == BL::Image::source_MOVIE ||
-                        (b_engine.is_preview() && b_image_source != BL::Image::source_SEQUENCE);
+      const bool is_builtin = image_is_builtin(b_image, b_engine);
 
       if (is_builtin) {
         int scene_frame = b_scene.frame_current();

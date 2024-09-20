@@ -250,14 +250,23 @@ static bool rna_DepsgraphUpdate_is_updated_geometry_get(PointerRNA *ptr)
 
 /* **************** Depsgraph **************** */
 
-static void rna_Depsgraph_debug_relations_graphviz(Depsgraph *depsgraph, const char *filepath)
+static void rna_Depsgraph_debug_relations_graphviz(Depsgraph *depsgraph,
+                                                   const char *filepath,
+                                                   const char **r_str,
+                                                   int *r_len)
 {
-  FILE *f = fopen(filepath, "w");
-  if (f == nullptr) {
-    return;
+  const std::string dot_str = DEG_debug_graph_to_dot(*depsgraph, "Depsgraph");
+  *r_len = dot_str.size();
+  *r_str = BLI_strdup(dot_str.c_str());
+
+  if (filepath) {
+    FILE *f = fopen(filepath, "w");
+    if (f == nullptr) {
+      return;
+    }
+    fprintf(f, "%s", dot_str.c_str());
+    fclose(f);
   }
-  DEG_debug_relations_graphviz(depsgraph, f, "Depsgraph");
-  fclose(f);
 }
 
 static void rna_Depsgraph_debug_stats_gnuplot(Depsgraph *depsgraph,
@@ -700,9 +709,16 @@ static void rna_def_depsgraph(BlenderRNA *brna)
 
   func = RNA_def_function(
       srna, "debug_relations_graphviz", "rna_Depsgraph_debug_relations_graphviz");
-  parm = RNA_def_string_file_path(
-      func, "filepath", nullptr, FILE_MAX, "File Name", "Output path for the graphviz debug file");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  parm = RNA_def_string_file_path(func,
+                                  "filepath",
+                                  nullptr,
+                                  FILE_MAX,
+                                  "File Name",
+                                  "Optional output path for the graphviz debug file");
+  parm = RNA_def_string(func, "dot_graph", nullptr, INT32_MAX, "Dot Graph", "Graph in dot format");
+  RNA_def_parameter_flags(parm, PROP_DYNAMIC, ParameterFlag(0));
+  RNA_def_parameter_clear_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
+  RNA_def_function_output(func, parm);
 
   func = RNA_def_function(srna, "debug_stats_gnuplot", "rna_Depsgraph_debug_stats_gnuplot");
   parm = RNA_def_string_file_path(

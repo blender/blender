@@ -57,7 +57,8 @@ bool wayland_dynload_client_init(const bool verbose)
 
 #define WAYLAND_DYNLOAD_FN(symbol) \
   if (!(wayland_dynload_client.symbol = dynamic_library_find_with_error( \
-            lib, #symbol, paths[path_found], verbose))) { \
+            lib, #symbol, paths[path_found], verbose))) \
+  { \
     return false; \
   }
 #include "wayland_dynload_client.h"

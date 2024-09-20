@@ -220,6 +220,22 @@ GPU_SHADER_CREATE_INFO(overlay_motion_path_line_no_geom)
     .fragment_source("overlay_motion_path_line_frag.glsl")
     .additional_info("draw_view", "draw_globals");
 
+GPU_SHADER_CREATE_INFO(overlay_motion_path_line_next)
+    .do_static_compilation(true)
+    .storage_buf(0, Qualifier::READ, "float", "pos[]", Frequency::GEOMETRY)
+    .push_constant(Type::IVEC2, "gpu_attr_0")
+    .push_constant(Type::IVEC4, "mpathLineSettings")
+    .push_constant(Type::BOOL, "selected")
+    .push_constant(Type::VEC3, "customColorPre")
+    .push_constant(Type::VEC3, "customColorPost")
+    .push_constant(Type::INT, "lineThickness") /* In pixels. */
+    .push_constant(Type::MAT4, "camera_space_matrix")
+    .vertex_out(overlay_motion_path_line_iface)
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .vertex_source("overlay_motion_path_line_next_vert.glsl")
+    .fragment_source("overlay_motion_path_line_frag.glsl")
+    .additional_info("draw_view", "gpu_index_load", "draw_globals");
+
 GPU_SHADER_CREATE_INFO(overlay_motion_path_line_clipped)
     .do_static_compilation(true)
     .additional_info("overlay_motion_path_line", "drw_clipped");
@@ -235,7 +251,7 @@ GPU_SHADER_CREATE_INFO(overlay_motion_path_point)
     .do_static_compilation(true)
     .typedef_source("overlay_shader_shared.h")
     .vertex_in(0, Type::VEC3, "pos")
-    .vertex_in(1, Type::UINT, "flag")
+    .vertex_in(1, Type::INT, "flag")
     .push_constant(Type::IVEC4, "mpathPointSettings")
     .push_constant(Type::BOOL, "showKeyFrames")
     .push_constant(Type::VEC3, "customColorPre")

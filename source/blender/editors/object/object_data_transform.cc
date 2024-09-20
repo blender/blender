@@ -32,6 +32,7 @@
 #include "BKE_curve.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_gpencil_geom_legacy.h"
+#include "BKE_grease_pencil.hh"
 #include "BKE_key.hh"
 #include "BKE_lattice.hh"
 #include "BKE_mball.hh"
@@ -302,6 +303,11 @@ struct XFormObjectData_GPencil {
   GPencilPointCoordinates elem_array[0];
 };
 
+struct XFormObjectData_GreasePencil {
+  XFormObjectData base;
+  GreasePencilPointCoordinates elem_array[0];
+};
+
 XFormObjectData *data_xform_create_ex(ID *id, bool is_edit_mode)
 {
   XFormObjectData *xod_base = nullptr;
@@ -474,6 +480,17 @@ XFormObjectData *data_xform_create_ex(ID *id, bool is_edit_mode)
       xod_base = &xod->base;
       break;
     }
+    case ID_GP: {
+      GreasePencil *grease_pencil = (GreasePencil *)id;
+      const int elem_array_len = BKE_grease_pencil_stroke_point_count(*grease_pencil);
+      XFormObjectData_GreasePencil *xod = static_cast<XFormObjectData_GreasePencil *>(
+          MEM_mallocN(sizeof(*xod) + (sizeof(*xod->elem_array) * elem_array_len), __func__));
+      memset(xod, 0x0, sizeof(*xod));
+
+      BKE_grease_pencil_point_coords_get(*grease_pencil, xod->elem_array);
+      xod_base = &xod->base;
+      break;
+    }
     default: {
       break;
     }
@@ -638,6 +655,13 @@ void data_xform_by_mat4(XFormObjectData *xod_base, const float mat[4][4])
       BKE_gpencil_point_coords_apply_with_mat4(gpd, xod->elem_array, mat);
       break;
     }
+    case ID_GP: {
+      GreasePencil *grease_pencil = (GreasePencil *)xod_base->id;
+      XFormObjectData_GreasePencil *xod = (XFormObjectData_GreasePencil *)xod_base;
+      BKE_grease_pencil_point_coords_apply_with_mat4(
+          *grease_pencil, xod->elem_array, float4x4(mat));
+      break;
+    }
     default: {
       break;
     }
@@ -739,6 +763,12 @@ void data_xform_restore(XFormObjectData *xod_base)
       BKE_gpencil_point_coords_apply(gpd, xod->elem_array);
       break;
     }
+    case ID_GP: {
+      GreasePencil *grease_pencil = (GreasePencil *)xod_base->id;
+      XFormObjectData_GreasePencil *xod = (XFormObjectData_GreasePencil *)xod_base;
+      BKE_grease_pencil_point_coords_apply(*grease_pencil, xod->elem_array);
+      break;
+    }
     default: {
       break;
     }
@@ -789,6 +819,12 @@ void data_xform_tag_update(XFormObjectData *xod_base)
       /* Generic update. */
       bGPdata *gpd = (bGPdata *)xod_base->id;
       DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
+      break;
+    }
+    case ID_GP: {
+      /* Generic update. */
+      GreasePencil *grease_pencil = (GreasePencil *)xod_base->id;
+      DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
       break;
     }
 

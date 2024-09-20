@@ -29,6 +29,11 @@
 
 #include "ED_object.hh"
 
+#ifdef WITH_ANIM_BAKLAVA
+#  include "ANIM_action.hh"
+#  include "rna_action_tools.hh"
+#endif
+
 /* Please keep the names in sync with `constraint.cc`. */
 const EnumPropertyItem rna_enum_constraint_type_items[] = {
     RNA_ENUM_ITEM_HEADING(N_("Motion Tracking"), nullptr),
@@ -706,6 +711,49 @@ static void rna_ActionConstraint_minmax_range(
     *max = 1000.0f;
   }
 }
+
+#  ifdef WITH_ANIM_BAKLAVA
+static void rna_ActionConstraint_action_slot_handle_set(
+    PointerRNA *ptr, const blender::animrig::slot_handle_t new_slot_handle)
+{
+  bConstraint *con = (bConstraint *)ptr->data;
+  bActionConstraint *acon = (bActionConstraint *)con->data;
+
+  rna_generic_action_slot_handle_set(new_slot_handle,
+                                     *ptr->owner_id,
+                                     acon->act,
+                                     acon->action_slot_handle,
+                                     acon->action_slot_name);
+}
+
+static PointerRNA rna_ActionConstraint_action_slot_get(PointerRNA *ptr)
+{
+  bConstraint *con = (bConstraint *)ptr->data;
+  bActionConstraint *acon = (bActionConstraint *)con->data;
+
+  return rna_generic_action_slot_get(acon->act, acon->action_slot_handle);
+}
+
+static void rna_ActionConstraint_action_slot_set(PointerRNA *ptr,
+                                                 PointerRNA value,
+                                                 ReportList *reports)
+{
+  bConstraint *con = (bConstraint *)ptr->data;
+  bActionConstraint *acon = (bActionConstraint *)con->data;
+
+  rna_generic_action_slot_set(
+      value, *ptr->owner_id, acon->act, acon->action_slot_handle, acon->action_slot_name, reports);
+}
+
+static void rna_iterator_ActionConstraint_action_slots_begin(CollectionPropertyIterator *iter,
+                                                             PointerRNA *ptr)
+{
+  bConstraint *con = (bConstraint *)ptr->data;
+  bActionConstraint *acon = (bActionConstraint *)con->data;
+
+  rna_iterator_generic_action_slots_begin(iter, acon->act);
+}
+#  endif /* WITH_ANIM_BAKLAVA */
 
 static int rna_SplineIKConstraint_joint_bindings_get_length(const PointerRNA *ptr,
                                                             int length[RNA_MAX_ARRAY_DIMENSION])
@@ -1858,6 +1906,71 @@ static void rna_def_constraint_action(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Action", "The constraining action");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
+
+#  ifdef WITH_ANIM_BAKLAVA
+  /* This property is not necessary for the Python API (that is better off using
+   * slot references/pointers directly), but it is needed for library overrides
+   * to work. */
+  prop = RNA_def_property(srna, "action_slot_handle", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, nullptr, "action_slot_handle");
+  RNA_def_property_int_funcs(
+      prop, nullptr, "rna_ActionConstraint_action_slot_handle_set", nullptr);
+  RNA_def_property_ui_text(prop,
+                           "Action Slot Handle",
+                           "A number that identifies which sub-set of the Action is considered "
+                           "to be for this Action Constraint");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_update(prop, NC_ANIMATION | ND_NLA_ACTCHANGE, "rna_Constraint_update");
+
+  prop = RNA_def_property(srna, "action_slot_name", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, nullptr, "action_slot_name");
+  RNA_def_property_ui_text(
+      prop,
+      "Action Slot Name",
+      "The name of the action slot. The slot identifies which sub-set of the Action "
+      "is considered to be for this constraint, and its name is used to find the right slot "
+      "when assigning an Action.");
+
+  prop = RNA_def_property(srna, "action_slot", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "ActionSlot");
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(
+      prop,
+      "Action Slot",
+      "The slot identifies which sub-set of the Action is considered to be for this "
+      "strip, and its name is used to find the right slot when assigning another Action");
+  RNA_def_property_pointer_funcs(prop,
+                                 "rna_ActionConstraint_action_slot_get",
+                                 "rna_ActionConstraint_action_slot_set",
+                                 nullptr,
+                                 nullptr);
+  RNA_def_property_update(prop, NC_ANIMATION | ND_NLA_ACTCHANGE, "rna_Constraint_update");
+  /* `strip.action_slot` is exposed to RNA as a pointer for things like the action slot selector in
+   * the GUI. The ground truth of the assigned slot, however, is `action_slot_handle` declared
+   * above. That property is used for library override operations, and this pointer property should
+   * just be ignored.
+   *
+   * This needs PROPOVERRIDE_IGNORE; PROPOVERRIDE_NO_COMPARISON is not suitable here. This property
+   * should act as if it is an overridable property (as from the user's perspective, it is), but an
+   * override operation should not be created for it. It will be created for `action_slot_handle`,
+   * and that's enough. */
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
+
+  prop = RNA_def_property(srna, "action_slots", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "ActionSlot");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_iterator_ActionConstraint_action_slots_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_dereference_get",
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr);
+  RNA_def_property_ui_text(
+      prop, "Action Slots", "The list of action slots suitable for this NLA strip");
+#  endif /* WITH_ANIM_BAKLAVA */
 
   prop = RNA_def_property(srna, "use_bone_object_action", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", ACTCON_BONE_USE_OBJECT_ACTION);

@@ -825,7 +825,7 @@ bke::CurvesGeometry create_curves_outline(const bke::greasepencil::Drawing &draw
   return dst_curves;
 }
 
-namespace cutter {
+namespace trim {
 
 enum Side : uint8_t { Start = 0, End = 1 };
 enum Distance : uint8_t { Min = 0, Max = 1 };
@@ -850,8 +850,8 @@ struct Segment {
    * in a CurvesGeometry. */
   int point_range[2];
 
-  /* The normalized distance where the cutter segment is intersected by another curve.
-   * For the outer ends of the cutter segment the intersection distance is given between:
+  /* The normalized distance where the trim segment is intersected by another curve.
+   * For the outer ends of the trim segment the intersection distance is given between:
    * - [start point - 1] and [start point]
    * - [end point] and [end point + 1]
    */
@@ -864,14 +864,14 @@ struct Segment {
 
 /**
  * Structure describing:
- * - A collection of cutter segments.
+ * - A collection of trim segments.
  */
 struct Segments {
-  /* Collection of cutter segments: parts of curves between other curves, to be removed from the
+  /* Collection of trim segments: parts of curves between other curves, to be removed from the
    * geometry. */
   Vector<Segment> segments;
 
-  /* Create an initial cutter segment with a point range of one point. */
+  /* Create an initial trim segment with a point range of one point. */
   Segment *create_segment(const int curve, const int point)
   {
     Segment segment{};
@@ -884,7 +884,7 @@ struct Segments {
     return &this->segments.last();
   }
 
-  /* Merge cutter segments that are next to each other. */
+  /* Merge trim segments that are next to each other. */
   void merge_adjacent_segments()
   {
     Vector<Segment> merged_segments;
@@ -1072,15 +1072,15 @@ static void get_intersections_of_curve_with_curves(const int src_curve,
 }
 
 /**
- * Expand a cutter segment by walking along the curve in forward or backward direction.
- * A cutter segments ends at an intersection with another curve, or at the outer end of the curve.
+ * Expand a trim segment by walking along the curve in forward or backward direction.
+ * A trim segments ends at an intersection with another curve, or at the outer end of the curve.
  */
-static void expand_cutter_segment_direction(Segment &segment,
-                                            const int direction,
-                                            const bke::CurvesGeometry &src,
-                                            const Span<bool> is_intersected_after_point,
-                                            const Span<float2> intersection_distance,
-                                            MutableSpan<bool> point_is_in_segment)
+static void expand_trim_segment_direction(Segment &segment,
+                                          const int direction,
+                                          const bke::CurvesGeometry &src,
+                                          const Span<bool> is_intersected_after_point,
+                                          const Span<float2> intersection_distance,
+                                          MutableSpan<bool> point_is_in_segment)
 {
   const OffsetIndices<int> points_by_curve = src.points_by_curve();
   const int point_first = points_by_curve[segment.curve].first();
@@ -1149,22 +1149,22 @@ static void expand_cutter_segment_direction(Segment &segment,
 }
 
 /**
- * Expand a cutter segment of one point by walking along the curve in both directions.
+ * Expand a trim segment of one point by walking along the curve in both directions.
  */
-static void expand_cutter_segment(Segment &segment,
-                                  const bke::CurvesGeometry &src,
-                                  const Span<bool> is_intersected_after_point,
-                                  const Span<float2> intersection_distance,
-                                  MutableSpan<bool> point_is_in_segment)
+static void expand_trim_segment(Segment &segment,
+                                const bke::CurvesGeometry &src,
+                                const Span<bool> is_intersected_after_point,
+                                const Span<float2> intersection_distance,
+                                MutableSpan<bool> point_is_in_segment)
 {
   const int8_t directions[2] = {-1, 1};
   for (const int8_t direction : directions) {
-    expand_cutter_segment_direction(segment,
-                                    direction,
-                                    src,
-                                    is_intersected_after_point,
-                                    intersection_distance,
-                                    point_is_in_segment);
+    expand_trim_segment_direction(segment,
+                                  direction,
+                                  src,
+                                  is_intersected_after_point,
+                                  intersection_distance,
+                                  point_is_in_segment);
   }
 }
 
@@ -1190,28 +1190,28 @@ bke::CurvesGeometry trim_curve_segments(const bke::CurvesGeometry &src,
                                            intersection_distance);
   });
 
-  /* Expand the selected curve points to cutter segments (the part of the curve between two
+  /* Expand the selected curve points to trim segments (the part of the curve between two
    * intersections). */
   const VArray<bool> is_cyclic = src.cyclic();
   Array<bool> point_is_in_segment(src_points_num, false);
-  threading::EnumerableThreadSpecific<Segments> cutter_segments_by_thread;
+  threading::EnumerableThreadSpecific<Segments> trim_segments_by_thread;
   curve_selection.foreach_index(GrainSize(32), [&](const int curve_i, const int pos) {
-    Segments &thread_segments = cutter_segments_by_thread.local();
+    Segments &thread_segments = trim_segments_by_thread.local();
     for (const int selected_point : selected_points_in_curves[pos]) {
-      /* Skip point when it is already part of a cutter segment. */
+      /* Skip point when it is already part of a trim segment. */
       if (point_is_in_segment[selected_point]) {
         continue;
       }
 
-      /* Create new cutter segment. */
+      /* Create new trim segment. */
       Segment *segment = thread_segments.create_segment(curve_i, selected_point);
 
-      /* Expand the cutter segment in both directions until an intersection is found or the
+      /* Expand the trim segment in both directions until an intersection is found or the
        * end of the curve is reached. */
-      expand_cutter_segment(
+      expand_trim_segment(
           *segment, src, is_intersected_after_point, intersection_distance, point_is_in_segment);
 
-      /* When the end of a curve is reached and the curve is cyclic, we add an extra cutter
+      /* When the end of a curve is reached and the curve is cyclic, we add an extra trim
        * segment for the cyclic second part. */
       if (is_cyclic[curve_i] &&
           (!segment->is_intersected[Side::Start] || !segment->is_intersected[Side::End]) &&
@@ -1223,28 +1223,28 @@ bke::CurvesGeometry trim_curve_segments(const bke::CurvesGeometry &src,
         segment = thread_segments.create_segment(curve_i, cyclic_outer_point);
 
         /* Expand this second segment. */
-        expand_cutter_segment(
+        expand_trim_segment(
             *segment, src, is_intersected_after_point, intersection_distance, point_is_in_segment);
       }
     }
   });
-  Segments cutter_segments;
-  for (Segments &thread_segments : cutter_segments_by_thread) {
-    cutter_segments.segments.extend(thread_segments.segments);
+  Segments trim_segments;
+  for (Segments &thread_segments : trim_segments_by_thread) {
+    trim_segments.segments.extend(thread_segments.segments);
   }
 
-  /* Abort when no cutter segments are found in the lasso area. */
+  /* Abort when no trim segments are found in the lasso area. */
   bke::CurvesGeometry dst;
-  if (cutter_segments.segments.is_empty()) {
+  if (trim_segments.segments.is_empty()) {
     return dst;
   }
 
-  /* Merge adjacent cutter segments. E.g. two point ranges of 0-10 and 11-20 will be merged
+  /* Merge adjacent trim segments. E.g. two point ranges of 0-10 and 11-20 will be merged
    * to one range of 0-20. */
-  cutter_segments.merge_adjacent_segments();
+  trim_segments.merge_adjacent_segments();
 
   /* Create the point transfer data, for converting the source geometry into the new geometry.
-   * First, add all curve points not affected by the cutter tool. */
+   * First, add all curve points not affected by the trim tool. */
   Array<Vector<PointTransferData>> src_to_dst_points(src_points_num);
   for (const int src_curve : src.curves_range()) {
     const IndexRange src_points = src_points_by_curve[src_curve];
@@ -1253,19 +1253,19 @@ bke::CurvesGeometry trim_curve_segments(const bke::CurvesGeometry &src,
       const int src_next_point = (src_point == src_points.last()) ? src_points.first() :
                                                                     (src_point + 1);
 
-      /* Add the source point only if it does not lie inside a cutter segment. */
+      /* Add the source point only if it does not lie inside a trim segment. */
       if (!point_is_in_segment[src_point]) {
         dst_points.append({src_point, src_next_point, 0.0f, true, false});
       }
     }
   }
 
-  /* Add new curve points at the intersection points of the cutter segments.
+  /* Add new curve points at the intersection points of the trim segments.
    *
    *                               a                 b
    *  source curve    o--------o---*---o--------o----*---o--------o
    *                               ^                 ^
-   *  cutter segment               |-----------------|
+   *  trim segment                 |-----------------|
    *
    *  o = existing curve point
    *  * = newly created curve point
@@ -1278,33 +1278,33 @@ bke::CurvesGeometry trim_curve_segments(const bke::CurvesGeometry &src,
    * We avoid inserting a new point very close to the adjacent one, because that's just adding
    * clutter to the geometry.
    */
-  for (const Segment &cutter_segment : cutter_segments.segments) {
-    /* Intersection at cutter segment start. */
-    if (cutter_segment.is_intersected[Side::Start] &&
-        cutter_segment.intersection_distance[Side::Start] > DISTANCE_FACTOR_THRESHOLD)
+  for (const Segment &trim_segment : trim_segments.segments) {
+    /* Intersection at trim segment start. */
+    if (trim_segment.is_intersected[Side::Start] &&
+        trim_segment.intersection_distance[Side::Start] > DISTANCE_FACTOR_THRESHOLD)
     {
-      const int src_point = cutter_segment.point_range[Side::Start] - 1;
+      const int src_point = trim_segment.point_range[Side::Start] - 1;
       Vector<PointTransferData> &dst_points = src_to_dst_points[src_point];
       dst_points.append({src_point,
                          src_point + 1,
-                         cutter_segment.intersection_distance[Side::Start],
+                         trim_segment.intersection_distance[Side::Start],
                          false,
                          false});
     }
-    /* Intersection at cutter segment end. */
-    if (cutter_segment.is_intersected[Side::End]) {
-      const int src_point = cutter_segment.point_range[Side::End];
-      if (cutter_segment.intersection_distance[Side::End] < (1.0f - DISTANCE_FACTOR_THRESHOLD)) {
+    /* Intersection at trim segment end. */
+    if (trim_segment.is_intersected[Side::End]) {
+      const int src_point = trim_segment.point_range[Side::End];
+      if (trim_segment.intersection_distance[Side::End] < (1.0f - DISTANCE_FACTOR_THRESHOLD)) {
         Vector<PointTransferData> &dst_points = src_to_dst_points[src_point];
         dst_points.append({src_point,
                            src_point + 1,
-                           cutter_segment.intersection_distance[Side::End],
+                           trim_segment.intersection_distance[Side::End],
                            false,
                            true});
       }
       else {
         /* Mark the 'is_cut' flag on the next point, because a new curve is starting here after
-         * the removed cutter segment. */
+         * the removed trim segment. */
         Vector<PointTransferData> &dst_points = src_to_dst_points[src_point + 1];
         for (PointTransferData &dst_point : dst_points) {
           if (dst_point.is_src_point) {
@@ -1321,7 +1321,7 @@ bke::CurvesGeometry trim_curve_segments(const bke::CurvesGeometry &src,
   return dst;
 }
 
-}  // namespace cutter
+}  // namespace trim
 
 Curves2DBVHTree build_curves_2d_bvh_from_visible(const ViewContext &vc,
                                                  const Object &object,

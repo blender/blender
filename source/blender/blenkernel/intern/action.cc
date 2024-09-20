@@ -159,10 +159,18 @@ static void action_copy_data(Main * /*bmain*/,
   action_dst.slot_array_num = action_src.slot_array_num;
   action_dst.last_slot_handle = action_src.last_slot_handle;
 
-  /* Layers. */
+  /* Layers, and (recursively) Strips. */
   action_dst.layer_array = MEM_cnew_array<ActionLayer *>(action_src.layer_array_num, __func__);
   for (int i : action_src.layers().index_range()) {
-    action_dst.layer_array[i] = MEM_new<animrig::Layer>(__func__, *action_src.layer(i));
+    action_dst.layer_array[i] = action_src.layer(i)->duplicate_with_shallow_strip_copies(__func__);
+  }
+
+  /* Strip data. */
+  action_dst.strip_keyframe_data_array = MEM_cnew_array<ActionStripKeyframeData *>(
+      action_src.strip_keyframe_data_array_num, __func__);
+  for (int i : action_src.strip_keyframe_data().index_range()) {
+    action_dst.strip_keyframe_data_array[i] = MEM_new<animrig::StripKeyframeData>(
+        __func__, *action_src.strip_keyframe_data()[i]);
   }
 
   /* Slots. */
@@ -183,6 +191,13 @@ static void action_copy_data(Main * /*bmain*/,
 static void action_free_data(ID *id)
 {
   animrig::Action &action = reinterpret_cast<bAction *>(id)->wrap();
+
+  /* Free keyframe data. */
+  for (animrig::StripKeyframeData *keyframe_data : action.strip_keyframe_data()) {
+    MEM_delete(keyframe_data);
+  }
+  MEM_SAFE_FREE(action.strip_keyframe_data_array);
+  action.strip_keyframe_data_array_num = 0;
 
   /* Free layers. */
   for (animrig::Layer *layer : action.layers()) {
@@ -296,7 +311,7 @@ static void write_channelbag(BlendWriter *writer, animrig::ChannelBag &channelba
 
   Span<bActionGroup *> groups = channelbag.channel_groups();
   BLO_write_pointer_array(writer, groups.size(), groups.data());
-  for (bActionGroup *group : groups) {
+  for (const bActionGroup *group : groups) {
     BLO_write_struct(writer, bActionGroup, group);
   }
 
@@ -308,15 +323,27 @@ static void write_channelbag(BlendWriter *writer, animrig::ChannelBag &channelba
   }
 }
 
-static void write_keyframe_strip(BlendWriter *writer, animrig::KeyframeStrip &key_strip)
+static void write_strip_keyframe_data(BlendWriter *writer,
+                                      animrig::StripKeyframeData &strip_keyframe_data)
 {
-  BLO_write_struct(writer, KeyframeActionStrip, &key_strip);
+  BLO_write_struct(writer, ActionStripKeyframeData, &strip_keyframe_data);
 
-  auto channelbags = key_strip.channelbags();
+  auto channelbags = strip_keyframe_data.channelbags();
   BLO_write_pointer_array(writer, channelbags.size(), channelbags.data());
 
   for (animrig::ChannelBag *channelbag : channelbags) {
     write_channelbag(writer, *channelbag);
+  }
+}
+
+static void write_strip_keyframe_data_array(
+    BlendWriter *writer, Span<animrig::StripKeyframeData *> strip_keyframe_data_array)
+{
+  BLO_write_pointer_array(
+      writer, strip_keyframe_data_array.size(), strip_keyframe_data_array.data());
+
+  for (animrig::StripKeyframeData *keyframe_data : strip_keyframe_data_array) {
+    write_strip_keyframe_data(writer, *keyframe_data);
   }
 }
 
@@ -325,12 +352,7 @@ static void write_strips(BlendWriter *writer, Span<animrig::Strip *> strips)
   BLO_write_pointer_array(writer, strips.size(), strips.data());
 
   for (animrig::Strip *strip : strips) {
-    switch (strip->type()) {
-      case animrig::Strip::Type::Keyframe: {
-        auto &key_strip = strip->as<animrig::KeyframeStrip>();
-        write_keyframe_strip(writer, key_strip);
-      }
-    }
+    BLO_write_struct(writer, ActionStrip, strip);
   }
 }
 
@@ -512,6 +534,7 @@ static void action_blend_write(BlendWriter *writer, ID *id, const void *id_addre
 
 #ifdef WITH_ANIM_BAKLAVA
   /* Write layered Action data. */
+  write_strip_keyframe_data_array(writer, action.strip_keyframe_data());
   write_layers(writer, action.layers());
   write_slots(writer, action.slots());
 
@@ -577,15 +600,30 @@ static void read_channelbag(BlendDataReader *reader, animrig::ChannelBag &channe
   }
 }
 
-static void read_keyframe_strip(BlendDataReader *reader, animrig::KeyframeStrip &strip)
+static void read_strip_keyframe_data(BlendDataReader *reader,
+                                     animrig::StripKeyframeData &strip_keyframe_data)
 {
-  BLO_read_pointer_array(
-      reader, strip.channelbag_array_num, reinterpret_cast<void **>(&strip.channelbag_array));
+  BLO_read_pointer_array(reader,
+                         strip_keyframe_data.channelbag_array_num,
+                         reinterpret_cast<void **>(&strip_keyframe_data.channelbag_array));
 
-  for (int i = 0; i < strip.channelbag_array_num; i++) {
-    BLO_read_struct(reader, ActionChannelBag, &strip.channelbag_array[i]);
-    ActionChannelBag *channelbag = strip.channelbag_array[i];
+  for (int i = 0; i < strip_keyframe_data.channelbag_array_num; i++) {
+    BLO_read_struct(reader, ActionChannelBag, &strip_keyframe_data.channelbag_array[i]);
+    ActionChannelBag *channelbag = strip_keyframe_data.channelbag_array[i];
     read_channelbag(reader, channelbag->wrap());
+  }
+}
+
+static void read_strip_keyframe_data_array(BlendDataReader *reader, animrig::Action &action)
+{
+  BLO_read_pointer_array(reader,
+                         action.strip_keyframe_data_array_num,
+                         reinterpret_cast<void **>(&action.strip_keyframe_data_array));
+
+  for (int i = 0; i < action.strip_keyframe_data_array_num; i++) {
+    BLO_read_struct(reader, ActionStripKeyframeData, &action.strip_keyframe_data_array[i]);
+    ActionStripKeyframeData *keyframe_data = action.strip_keyframe_data_array[i];
+    read_strip_keyframe_data(reader, keyframe_data->wrap());
   }
 }
 
@@ -602,13 +640,17 @@ static void read_layers(BlendDataReader *reader, animrig::Action &action)
         reader, layer->strip_array_num, reinterpret_cast<void **>(&layer->strip_array));
     for (int strip_idx = 0; strip_idx < layer->strip_array_num; strip_idx++) {
       BLO_read_struct(reader, ActionStrip, &layer->strip_array[strip_idx]);
-      ActionStrip *dna_strip = layer->strip_array[strip_idx];
-      animrig::Strip &strip = dna_strip->wrap();
 
-      switch (strip.type()) {
-        case animrig::Strip::Type::Keyframe: {
-          read_keyframe_strip(reader, strip.as<animrig::KeyframeStrip>());
-        }
+      /* This if statement and the code in it is only for a transitional period
+       * while we land #126559 and for a while after, to prevent crashes for
+       * people that were already playing with slotted actions and have some
+       * blend files written with them. This code can be removed after a while.
+       * At the very least, if you're reading this and slotted actions are
+       * already in an official release of Blender then this code is no longer
+       * relevant and can be deleted. */
+      if (layer->strip_array[strip_idx] == nullptr) {
+        layer->strip_array[strip_idx] = &animrig::Strip::create(action,
+                                                                animrig::Strip::Type::Keyframe);
       }
     }
   }
@@ -631,6 +673,7 @@ static void action_blend_read_data(BlendDataReader *reader, ID *id)
   animrig::Action &action = reinterpret_cast<bAction *>(id)->wrap();
 
 #ifdef WITH_ANIM_BAKLAVA
+  read_strip_keyframe_data_array(reader, action);
   read_layers(reader, action);
   read_slots(reader, action);
 #else
@@ -641,6 +684,8 @@ static void action_blend_read_data(BlendDataReader *reader, ID *id)
   action.layer_array_num = 0;
   action.slot_array = nullptr;
   action.slot_array_num = 0;
+  action.strip_keyframe_data_array = nullptr;
+  action.strip_keyframe_data_array_num = 0;
 #endif /* WITH_ANIM_BAKLAVA */
 
   if (action.is_action_layered()) {
@@ -685,7 +730,7 @@ static void action_blend_read_data(BlendDataReader *reader, ID *id)
 static IDProperty *action_asset_type_property(const bAction *action)
 {
   using namespace blender;
-  const bool is_single_frame = BKE_action_has_single_frame(action);
+  const bool is_single_frame = action && action->wrap().has_single_frame();
   return bke::idprop::create("is_single_frame", int(is_single_frame)).release();
 }
 
@@ -1767,183 +1812,6 @@ void BKE_pose_remove_group_index(bPose *pose, const int index)
   }
 }
 
-/* ************** F-Curve Utilities for Actions ****************** */
-
-bool BKE_action_has_motion(const bAction *act)
-{
-  /* return on the first F-Curve that has some keyframes/samples defined */
-  if (act) {
-    LISTBASE_FOREACH (FCurve *, fcu, &act->curves) {
-      if (fcu->totvert) {
-        return true;
-      }
-    }
-  }
-
-  /* nothing found */
-  return false;
-}
-
-bool BKE_action_has_single_frame(const bAction *act)
-{
-  if (act == nullptr || BLI_listbase_is_empty(&act->curves)) {
-    return false;
-  }
-
-  bool found_key = false;
-  float found_key_frame = 0.0f;
-
-  LISTBASE_FOREACH (FCurve *, fcu, &act->curves) {
-    switch (fcu->totvert) {
-      case 0:
-        /* No keys, so impossible to come to a conclusion on this curve alone. */
-        continue;
-      case 1:
-        /* Single key, which is the complex case, so handle below. */
-        break;
-      default:
-        /* Multiple keys, so there is animation. */
-        return false;
-    }
-
-    const float this_key_frame = fcu->bezt != nullptr ? fcu->bezt[0].vec[1][0] :
-                                                        fcu->fpt[0].vec[0];
-    if (!found_key) {
-      found_key = true;
-      found_key_frame = this_key_frame;
-      continue;
-    }
-
-    /* The graph editor rounds to 1/1000th of a frame, so it's not necessary to be really precise
-     * with these comparisons. */
-    if (!compare_ff(found_key_frame, this_key_frame, 0.001f)) {
-      /* This key differs from the already-found key, so this Action represents animation. */
-      return false;
-    }
-  }
-
-  /* There is only a single frame if we found at least one key. */
-  return found_key;
-}
-
-void BKE_action_frame_range_calc(const bAction *act,
-                                 const bool include_modifiers,
-                                 float *r_start,
-                                 float *r_end)
-{
-  if (!act) {
-    *r_start = 0.0f;
-    *r_end = 0.0f;
-    return;
-  }
-
-  float min = 999999999.0f, max = -999999999.0f;
-  bool foundvert = false, foundmod = false;
-
-#ifdef WITH_ANIM_BAKLAVA
-  const blender::animrig::Action &action = act->wrap();
-  for (const FCurve *fcu : fcurves_all(action)) {
-#else
-  LISTBASE_FOREACH (const FCurve *, fcu, &act->curves) {
-#endif /* WITH_ANIM_BAKLAVA */
-    /* if curve has keyframes, consider them first */
-    if (fcu->totvert) {
-      float nmin, nmax;
-
-      /* get extents for this curve
-       * - no "selected only", since this is often used in the backend
-       * - no "minimum length" (we will apply this later), otherwise
-       *   single-keyframe curves will increase the overall length by
-       *   a phantom frame (#50354)
-       */
-      BKE_fcurve_calc_range(fcu, &nmin, &nmax, false);
-
-      /* compare to the running tally */
-      min = min_ff(min, nmin);
-      max = max_ff(max, nmax);
-
-      foundvert = true;
-    }
-
-    /* if include_modifiers is enabled, need to consider modifiers too
-     * - only really care about the last modifier
-     */
-    if ((include_modifiers) && (fcu->modifiers.last)) {
-      FModifier *fcm = static_cast<FModifier *>(fcu->modifiers.last);
-
-      /* only use the maximum sensible limits of the modifiers if they are more extreme */
-      switch (fcm->type) {
-        case FMODIFIER_TYPE_LIMITS: /* Limits F-Modifier */
-        {
-          FMod_Limits *fmd = (FMod_Limits *)fcm->data;
-
-          if (fmd->flag & FCM_LIMIT_XMIN) {
-            min = min_ff(min, fmd->rect.xmin);
-          }
-          if (fmd->flag & FCM_LIMIT_XMAX) {
-            max = max_ff(max, fmd->rect.xmax);
-          }
-          break;
-        }
-        case FMODIFIER_TYPE_CYCLES: /* Cycles F-Modifier */
-        {
-          FMod_Cycles *fmd = (FMod_Cycles *)fcm->data;
-
-          if (fmd->before_mode != FCM_EXTRAPOLATE_NONE) {
-            min = MINAFRAMEF;
-          }
-          if (fmd->after_mode != FCM_EXTRAPOLATE_NONE) {
-            max = MAXFRAMEF;
-          }
-          break;
-        }
-          /* TODO: function modifier may need some special limits */
-
-        default: /* all other standard modifiers are on the infinite range... */
-          min = MINAFRAMEF;
-          max = MAXFRAMEF;
-          break;
-      }
-
-      foundmod = true;
-    }
-
-    /* This block is here just so that editors/IDEs do not get confused about the two opening curly
-     * braces in the `#ifdef WITH_ANIM_BAKLAVA` block above, but one closing curly brace here. */
-#ifdef WITH_ANIM_BAKLAVA
-  }
-#else
-  }
-#endif /* WITH_ANIM_BAKLAVA */
-
-  if (foundvert || foundmod) {
-    *r_start = max_ff(min, MINAFRAMEF);
-    *r_end = min_ff(max, MAXFRAMEF);
-  }
-  else {
-    *r_start = 0.0f;
-    *r_end = 0.0f;
-  }
-}
-
-void BKE_action_frame_range_get(const bAction *act, float *r_start, float *r_end)
-{
-  if (act && (act->flag & ACT_FRAME_RANGE)) {
-    *r_start = act->frame_start;
-    *r_end = act->frame_end;
-  }
-  else {
-    BKE_action_frame_range_calc(act, false, r_start, r_end);
-  }
-
-  BLI_assert(*r_start <= *r_end);
-}
-
-bool BKE_action_is_cyclic(const bAction *act)
-{
-  return act && (act->flag & ACT_FRAME_RANGE) && (act->flag & ACT_CYCLIC);
-}
-
 /* ************** Pose Management Tools ****************** */
 
 void BKE_pose_rest(bPose *pose, bool selected_bones_only)
@@ -2044,10 +1912,25 @@ void what_does_obaction(Object *ob,
                         Object *workob,
                         bPose *pose,
                         bAction *act,
+                        const int32_t action_slot_handle,
                         char groupname[],
                         const AnimationEvalContext *anim_eval_context)
 {
-  bActionGroup *agrp = BKE_action_group_find_name(act, groupname);
+  using namespace blender::animrig;
+  BLI_assert(act);
+
+  bActionGroup *agrp = nullptr;
+  if (groupname && groupname[0]) {
+    /* Find the named channel group. */
+    Action &action = act->wrap();
+    if (action.is_action_layered()) {
+      ChannelBag *cbag = channelbag_for_action_slot(action, action_slot_handle);
+      agrp = cbag ? cbag->channel_group_find(groupname) : nullptr;
+    }
+    else {
+      agrp = BKE_action_group_find_name(act, groupname);
+    }
+  }
 
   /* clear workob */
   blender::bke::ObjectRuntime workob_runtime;
@@ -2111,6 +1994,7 @@ void what_does_obaction(Object *ob,
     workob->adt = &adt;
 
     adt.action = act;
+    adt.slot_handle = action_slot_handle;
     BKE_animdata_action_ensure_idroot(&workob->id, act);
 
     /* execute effects of Action on to workob (or its PoseChannels) */

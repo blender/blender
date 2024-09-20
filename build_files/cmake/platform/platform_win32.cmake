@@ -88,8 +88,8 @@ add_definitions(-DWIN32)
 add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
 add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 
-# needed for some MSVC installations
-# 4099 : PDB 'filename' was not found with 'object/library'
+# Needed for some MSVC installations, example warning:
+# `4099 : PDB {filename} was not found with {object/library}`.
 string(APPEND CMAKE_EXE_LINKER_FLAGS " /SAFESEH:NO /ignore:4099")
 string(APPEND CMAKE_SHARED_LINKER_FLAGS " /SAFESEH:NO /ignore:4099")
 string(APPEND CMAKE_MODULE_LINKER_FLAGS " /SAFESEH:NO /ignore:4099")
@@ -304,7 +304,6 @@ endif()
 if(NOT DEFINED LIBDIR)
   # Setup 64bit and 64bit windows systems
   if(CMAKE_CL_64)
-    message(STATUS "64 bit compiler detected.")
     if(CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
       set(LIBDIR_BASE "windows_arm64")
     else()

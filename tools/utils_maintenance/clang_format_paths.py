@@ -56,26 +56,7 @@ def compute_paths(paths: List[str], use_default_paths: bool) -> List[str]:
     # Optionally pass in files to operate on.
     if use_default_paths:
         paths = [
-            "intern/atomic",
-            "intern/audaspace",
-            "intern/clog",
-            "intern/cycles",
-            "intern/dualcon",
-            "intern/eigen",
-            "intern/ffmpeg",
-            "intern/ghost",
-            "intern/glew-mx",
-            "intern/guardedalloc",
-            "intern/iksolver",
-            "intern/libmv",
-            "intern/locale",
-            "intern/memutil",
-            "intern/mikktspace",
-            "intern/opencolorio",
-            "intern/opensubdiv",
-            "intern/openvdb",
-            "intern/rigidbody",
-            "intern/utfconv",
+            "intern",
             "source",
             "tests/gtests",
         ]

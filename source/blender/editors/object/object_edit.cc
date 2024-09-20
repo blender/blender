@@ -936,7 +936,8 @@ static int editmode_toggle_exec(bContext *C, wmOperator *op)
 
   if (!is_mode_set) {
     editmode_enter_ex(bmain, scene, obact, 0);
-    if (obact->mode & mode_flag) {
+    /* Grease Pencil does not support multi-object editing. */
+    if ((obact->type != OB_GREASE_PENCIL) && ((obact->mode & mode_flag) != 0)) {
       FOREACH_SELECTED_OBJECT_BEGIN (view_layer, v3d, ob) {
         if ((ob != obact) && (ob->type == obact->type)) {
           editmode_enter_ex(bmain, scene, ob, EM_NO_CONTEXT);
@@ -1680,7 +1681,8 @@ static bool shade_poll(bContext *C)
   if (obact != nullptr) {
     /* Doesn't handle edit-data, sculpt dynamic-topology, or their undo systems. */
     if (obact->mode & (OB_MODE_EDIT | OB_MODE_SCULPT) || obact->data == nullptr ||
-        ID_IS_OVERRIDE_LIBRARY(obact) || ID_IS_OVERRIDE_LIBRARY(obact->data))
+        !ID_IS_EDITABLE(obact) || !ID_IS_EDITABLE(obact->data) || ID_IS_OVERRIDE_LIBRARY(obact) ||
+        ID_IS_OVERRIDE_LIBRARY(obact->data))
     {
       return false;
     }

@@ -118,6 +118,9 @@ PACKAGES_FOR_LIBS=(
     # Required by: `external_mesa`.
     python3-mako
 
+    # Required by: `external_igc`.
+    python3-pyyaml
+
     # Required by: `external_mesa`.
     expat-devel
 

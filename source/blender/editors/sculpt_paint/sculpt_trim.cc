@@ -508,6 +508,7 @@ static void generate_geometry(gesture::GestureData &gesture_data)
 
 static void gesture_begin(bContext &C, wmOperator &op, gesture::GestureData &gesture_data)
 {
+  const Scene &scene = *CTX_data_scene(&C);
   Object *object = gesture_data.vc.obact;
   SculptSession &ss = *object->sculpt;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(*object);
@@ -524,7 +525,7 @@ static void gesture_begin(bContext &C, wmOperator &op, gesture::GestureData &ges
   generate_geometry(gesture_data);
   islands::invalidate(ss);
   BKE_sculpt_update_object_for_edit(depsgraph, gesture_data.vc.obact, false);
-  undo::geometry_begin(*gesture_data.vc.obact, &op);
+  undo::geometry_begin(scene, *gesture_data.vc.obact, &op);
 }
 
 static int bm_face_isect_pair(BMFace *f, void * /*user_data*/)
@@ -760,7 +761,6 @@ static void report_invalid_mode(const blender::bke::pbvh::Type pbvh_type, Report
 static bool can_exec(const bContext &C, ReportList &reports)
 {
   const Object &object = *CTX_data_active_object(&C);
-  const SculptSession &ss = *object.sculpt;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   if (pbvh.type() != bke::pbvh::Type::Mesh) {
     /* Not supported in Multires and Dyntopo. */
@@ -768,7 +768,7 @@ static bool can_exec(const bContext &C, ReportList &reports)
     return false;
   }
 
-  if (ss.totvert == 0) {
+  if (static_cast<const Mesh *>(object.data)->faces_num == 0) {
     /* No geometry to trim or to detect a valid position for the trimming shape. */
     return false;
   }

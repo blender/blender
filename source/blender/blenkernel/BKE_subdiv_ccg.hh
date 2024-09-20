@@ -342,14 +342,18 @@ inline IndexRange grid_range(const int grid_area, const int grid)
 }
 inline IndexRange grid_range(const CCGKey &key, const int grid)
 {
-  return IndexRange(grid * key.grid_area, key.grid_area);
+  return grid_range(key.grid_area, grid);
 }
 
 /** Find the range of vertices in the entire geometry that are part of a single face. */
-inline IndexRange face_range(const OffsetIndices<int> faces, const CCGKey &key, const int face)
+inline IndexRange face_range(const OffsetIndices<int> faces, const int grid_area, const int face)
 {
   const IndexRange corners = faces[face];
-  return IndexRange(corners.start() * key.grid_area, corners.size() * key.grid_area);
+  return IndexRange(corners.start() * grid_area, corners.size() * grid_area);
+}
+inline IndexRange face_range(const OffsetIndices<int> faces, const CCGKey &key, const int face)
+{
+  return face_range(faces, key.grid_area, face);
 }
 
 /** Find the vertex index in the entire geometry at a specific coordinate in a specific grid. */

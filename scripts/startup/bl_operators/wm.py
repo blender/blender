@@ -2727,7 +2727,7 @@ class WM_OT_batch_rename(Operator):
         return tuple(set([
             id for id_base in context.selected_ids
             if isinstance(id := id_base.data if isinstance(id_base, Object) else id_base, ty)
-            if id.is_editabe
+            if id.is_editable
         ]))
 
     @staticmethod

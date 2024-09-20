@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'd52d70324d18')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-02 14:03+0000\n"
+"POT-Creation-Date: 2024-09-16 11:03+0000\n"
 "PO-Revision-Date: 2024-07-05 18:56+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -16090,10 +16090,6 @@ msgid "Clone Image"
 msgstr "Picha ya Clone"
 
 
-msgid "Image for clone tool"
-msgstr "Picha ya chombo cha clone"
-
-
 msgid "Soft Body Plasticity"
 msgstr "Plastiki ya Mwili laini"
 
@@ -16701,10 +16697,6 @@ msgstr "Geuza urekebishaji wa shinikizo katika ugumu"
 
 msgid "Invert to Scrape or Fill"
 msgstr "Geuza kwa Scrape au Jaza"
-
-
-msgid "Use Scrape or Fill tool when inverting this brush instead of inverting its displacement direction"
-msgstr "Tumia Zana ya Scrape au Jaza unapogeuza brashi hii badala ya kugeuza mwelekeo wake wa kuhama."
 
 
 msgid "Invert Pressure for Wet Mix"
@@ -29153,12 +29145,24 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
+msgid "Bone Collections"
+msgstr "Mikusanyo ya Mifupa"
+
+
 msgid "Show/Hide"
 msgstr "Onyesha/Ficha"
 
 
+msgid "Apply"
+msgstr "Tumia"
+
+
 msgid "Clean Up"
 msgstr "Safisha"
+
+
+msgid "Merge"
+msgstr "Unganisha"
 
 
 msgid "Pivot Point"
@@ -29181,20 +29185,8 @@ msgid "Select Linked"
 msgstr "Chagua Imeunganishwa"
 
 
-msgid "Apply"
-msgstr "Tumia"
-
-
 msgid "Asset"
 msgstr "Mali"
-
-
-msgid "Bone Collections"
-msgstr "Mikusanyo ya Mifupa"
-
-
-msgid "Merge"
-msgstr "Unganisha"
 
 
 msgid "Keyframe Insert Pie"
@@ -31122,6 +31114,10 @@ msgstr "Bana upana ili kuzuia mwingiliano"
 
 msgid "Vertex group name"
 msgstr "Jina la kikundi cha Vertex"
+
+
+msgid "Vertex Weight"
+msgstr "Uzito wa Vertex"
 
 
 msgid "Vertex Mesh Method"
@@ -43333,10 +43329,6 @@ msgstr "Sifa ya Vertex ya kutumia kwa rangi"
 
 msgid "Vertex color layer"
 msgstr "Safu ya rangi ya Vertex"
-
-
-msgid "Vertex Weight"
-msgstr "Uzito wa Vertex"
 
 
 msgid "Vertex group weight"
@@ -57432,6 +57424,11 @@ msgstr "Mgawanyiko wa Kiharusi"
 
 
 msgctxt "Operator"
+msgid "Normalize All Vertex Groups"
+msgstr "Rekebisha Vikundi Vyote vya Kipeo"
+
+
+msgctxt "Operator"
 msgid "Add Render Slot"
 msgstr "Ongeza Akitoa Slot"
 
@@ -65559,11 +65556,6 @@ msgstr "Rekebisha uzani wa kikundi cha kipeo kinachotumika, ili kile cha juu zai
 
 
 msgctxt "Operator"
-msgid "Normalize All Vertex Groups"
-msgstr "Rekebisha Vikundi Vyote vya Kipeo"
-
-
-msgctxt "Operator"
 msgid "Quantize Vertex Weights"
 msgstr "Kupima Uzito wa Kipeo"
 
@@ -70460,10 +70452,6 @@ msgid "Change Effect Input"
 msgstr "Badilisha Ingizo la Athari"
 
 
-msgid "The effect inputs to swap"
-msgstr "Athari za pembejeo za kubadilishana"
-
-
 msgctxt "Operator"
 msgid "Change Effect Type"
 msgstr "Badilisha Aina ya Athari"
@@ -71650,10 +71638,6 @@ msgstr "Badilisha vipande 2 vya mpangilio"
 msgctxt "Operator"
 msgid "Swap Inputs"
 msgstr "Badili Ingizo"
-
-
-msgid "Swap the first two inputs for the effect strip"
-msgstr "Badilisha ingizo mbili za kwanza kwa ukanda wa athari"
 
 
 msgctxt "Operator"
@@ -78367,8 +78351,8 @@ msgstr "Sampuli ya Kikundi cha Vertex"
 
 
 msgctxt "Operator"
-msgid "Cutter"
-msgstr "Mkataji"
+msgid "Trim"
+msgstr "Punguza"
 
 
 msgctxt "Operator"
@@ -78394,6 +78378,11 @@ msgstr "Sanduku"
 msgctxt "Operator"
 msgid "Circle"
 msgstr "Mduara"
+
+
+msgctxt "Operator"
+msgid "Cutter"
+msgstr "Mkataji"
 
 
 msgid "Expand or contract the radius of the selected points"
@@ -80104,10 +80093,6 @@ msgstr "Sifa za majaribio"
 
 msgid "Overlay Next"
 msgstr "Wekelea Inayofuata"
-
-
-msgid "Enable the new Overlay codebase, requires restart"
-msgstr "Washa msingi mpya wa Uwekeleaji, unahitaji kuwasha upya"
 
 
 msgid "No Override Auto Resync"
@@ -98344,146 +98329,6 @@ msgstr "Mhariri wa karatasi ya klipu"
 
 
 msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Curve Edit Mode"
-msgstr "Njia ya Kuhariri ya Kiharusi cha Penseli ya Grisi"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Edit Mode"
-msgstr "Njia ya Kuhariri ya Penseli ya Grisi"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Paint (Draw brush)"
-msgstr "Paka Rangi ya Kiharusi cha Penseli (Chora brashi)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Paint (Fill)"
-msgstr "Rangi ya Kiharusi cha Penseli ya Mafuta (Jaza)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Paint (Erase)"
-msgstr "Rangi ya Kiharusi cha Penseli ya Grisi (Futa)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Paint (Tint)"
-msgstr "Rangi ya Kiharusi cha Penseli ya Grisi (Tint)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Paint Mode"
-msgstr "Njia ya Kupaka Rangi ya Kiharusi cha Penseli"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt Mode"
-msgstr "Njia ya Uchongaji wa Kiharusi cha Penseli ya Mafuta"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt (Smooth)"
-msgstr "Mchoro wa Kiharusi cha Penseli ya Mafuta (Laini)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt (Thickness)"
-msgstr "Mchoro wa Kiharusi cha Penseli ya Mafuta (Unene)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt (Strength)"
-msgstr "Mchoro wa Kiharusi cha Penseli ya Mafuta (Nguvu)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt (Grab)"
-msgstr "Mchoro wa Kiharusi cha Penseli ya Mafuta (Chukua)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt (Push)"
-msgstr "Mchongaji wa Kiharusi cha Penseli ya Mafuta (Push)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt (Twist)"
-msgstr "Mchoro wa Kiharusi cha Penseli ya Mafuta (Twist)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt (Pinch)"
-msgstr "Mchoro wa Kiharusi cha Penseli ya Mafuta (Bana)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt (Randomize)"
-msgstr "Mchoro wa Kiharusi cha Penseli ya Grisi (Nasibu)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt (Clone)"
-msgstr "Mchoro wa Kiharusi cha Penseli ya Mafuta (Clone)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Weight Mode"
-msgstr "Njia ya Uzito wa Kiharusi cha Penseli ya Grisi"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Weight (Draw)"
-msgstr "Uzito wa Kiharusi cha Penseli ya Grisi (Chora)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Weight (Blur)"
-msgstr "Uzito wa Kiharusi cha Penseli ya Grisi (Ukungu)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Weight (Average)"
-msgstr "Uzito wa Kiharusi cha Penseli ya Grisi (Wastani)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Weight (Smear)"
-msgstr "Uzito wa Kiharusi cha Penseli ya Grisi (Smear)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Vertex Mode"
-msgstr "Njia ya Kipeo cha Penseli ya Grisi"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Vertex (Draw)"
-msgstr "Kipeo cha Kiharusi cha Penseli ya Grisi (Chora)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Vertex (Blur)"
-msgstr "Kipeo cha Kiharusi cha Penseli ya Grisi (Ukungu)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Vertex (Average)"
-msgstr "Kipeo cha Kiharusi cha Penseli ya Grisi (Wastani)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Vertex (Smear)"
-msgstr "Kipeo cha Kiharusi cha Penseli ya Grisi (Smear)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Vertex (Replace)"
-msgstr "Kipeo cha Kiharusi cha Penseli ya Grisi (Badilisha)"
-
-
-msgctxt "WindowManager"
 msgid "Mask Editing"
 msgstr "Uhariri wa Mask"
 
@@ -102941,11 +102786,6 @@ msgid "Shortest Path"
 msgstr "Njia Fupi"
 
 
-msgctxt "Image"
-msgid "New"
-msgstr "Mpya"
-
-
 msgctxt "Operator"
 msgid "Save All Images"
 msgstr "Hifadhi Picha Zote"
@@ -103944,11 +103784,6 @@ msgstr "Futa Ukanda"
 
 msgid "Invalid id"
 msgstr "Kitambulisho batili"
-
-
-msgctxt "Text"
-msgid "Wrap"
-msgstr "Funga"
 
 
 msgctxt "Text"
@@ -105238,11 +105073,6 @@ msgstr "Imerekebishwa"
 msgctxt "Operator"
 msgid "Adaptive"
 msgstr "Kubadilika"
-
-
-msgctxt "Operator"
-msgid "Trim"
-msgstr "Punguza"
 
 
 msgctxt "Operator"
@@ -106828,10 +106658,6 @@ msgid "\"{}\" attribute from geometry"
 msgstr "\"{}\" sifa kutoka jiometri"
 
 
-msgid "\"{}\" from {}"
-msgstr "\"{}\" kutoka kwa {}"
-
-
 msgid "GP_Layer"
 msgstr "Tabaka_la_GP"
 
@@ -108213,16 +108039,8 @@ msgid "Bone collection with index %d not found on Armature %s"
 msgstr "Mkusanyiko wa mifupa yenye index %d haipatikani kwenye Armature %s"
 
 
-msgid "Bone collection %s is not editable, maybe add an override on the armature?"
-msgstr "Mkusanyiko wa mifupa %s hauwezi kuhaririwa, labda uongeze ubatilishaji wa silaha?"
-
-
 msgid "No object found to operate on"
 msgstr "Hakuna kitu kilichopatikana kufanyia kazi"
-
-
-msgid "Cannot add bone collections to a linked Armature without an override"
-msgstr "Haiwezi kuongeza mikusanyo ya mifupa kwenye Armature iliyounganishwa bila kubatilisha"
 
 
 msgid "Armature has no active bone collection, select one first"
@@ -109996,6 +109814,11 @@ msgstr "Mpya"
 
 
 msgctxt "GPencil"
+msgid "New"
+msgstr "Mpya"
+
+
+msgctxt "Image"
 msgid "New"
 msgstr "Mpya"
 
@@ -114343,10 +114166,6 @@ msgid "Cannot apply effects to audio sequence strips"
 msgstr "Haiwezi kutumia madoido kwa vipande vya mfuatano wa sauti"
 
 
-msgid "Cannot apply effect to more than 3 sequence strips"
-msgstr "Haiwezi kutumia athari kwa zaidi ya vipande 3 vya mfuatano"
-
-
 msgid "At least one selected sequence strip is needed"
 msgstr "Angalau mstari mmoja wa mfuatano uliochaguliwa unahitajika"
 
@@ -117021,20 +116840,12 @@ msgid "Sequences.new_effect: effect takes 2 input sequences"
 msgstr "Sequences.new_effect: athari inachukua mifuatano 2 ya ingizo"
 
 
-msgid "Sequences.new_effect: effect takes 3 input sequences"
-msgstr "Sequences.new_effect: athari inachukua mifuatano 3 ya ingizo"
-
-
 msgid "SequenceElements.pop: cannot pop the last element"
 msgstr "SequenceElements.pop: haiwezi kuibua kipengele cha mwisho"
 
 
 msgid "SequenceElements.pop: index out of range"
 msgstr "SequenceElements.pop: index nje ya masafa"
-
-
-msgid "Sequences.new_effect: effect expects more than 3 inputs (%d, should never happen!)"
-msgstr "Sequences.new_effect: athari inatarajia zaidi ya pembejeo 3 (%d, haipaswi kamwe kutokea!)"
 
 
 msgid "Sequence '%s' not in scene '%s'"
@@ -119756,8 +119567,8 @@ msgid "Number of voxels in the Z axis"
 msgstr "Idadi ya vokseli katika mhimili wa Z"
 
 
-msgid "{} node"
-msgstr "{} nodi"
+msgid "\"{}\" from {}"
+msgstr "\"{}\" kutoka kwa {}"
 
 
 msgid "Group '{}' ({})"
@@ -120485,14 +120296,6 @@ msgstr "'dirisha' halipo katika muktadha"
 
 msgid "Trusted Source [Untrusted Path]"
 msgstr "Chanzo Kinachoaminika [Njia Isiyoaminika]"
-
-
-msgid "Remove all items from the recent files list"
-msgstr "Ondoa vipengee vyote kwenye orodha ya faili za hivi majuzi"
-
-
-msgid "Remove All"
-msgstr "Ondoa Zote"
 
 
 msgid "Allow Execution"

@@ -317,7 +317,7 @@ static void sculpt_color_presmooth_init(const Mesh &mesh, Object &object)
   const IndexMask &node_mask = ss.filter_cache->node_mask;
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
-  const GroupedSpan<int> vert_to_face_map = ss.vert_to_face_map;
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const bke::GAttributeReader color_attribute = active_color_attribute(mesh);
   const GVArraySpan colors = *color_attribute;
 
@@ -385,7 +385,7 @@ static void sculpt_color_filter_apply(bContext *C, wmOperator *op, Object &ob)
 
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
-  const GroupedSpan<int> vert_to_face_map = ss.vert_to_face_map;
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   bke::GSpanAttributeWriter color_attribute = active_color_attribute_for_write(mesh);
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
@@ -403,9 +403,9 @@ static void sculpt_color_filter_apply(bContext *C, wmOperator *op, Object &ob)
                         nodes[i],
                         tls,
                         color_attribute);
-      BKE_pbvh_node_mark_update_color(nodes[i]);
     });
   });
+  pbvh.tag_attribute_changed(node_mask, mesh.active_color_attribute);
   color_attribute.finish();
   flush_update_step(C, UpdateType::Color);
 }
@@ -445,6 +445,7 @@ static int sculpt_color_filter_modal(bContext *C, wmOperator *op, const wmEvent 
 
 static int sculpt_color_filter_init(bContext *C, wmOperator *op)
 {
+  const Scene &scene = *CTX_data_scene(C);
   Object &ob = *CTX_data_active_object(C);
   const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
   SculptSession &ss = *ob.sculpt;
@@ -461,9 +462,6 @@ static int sculpt_color_filter_init(bContext *C, wmOperator *op)
 
   const bool use_automasking = auto_mask::is_enabled(sd, ob, nullptr);
   if (use_automasking) {
-    /* Increment stroke id for auto-masking system. */
-    SCULPT_stroke_id_next(ob);
-
     if (v3d) {
       /* Update the active face set manually as the paint cursor is not enabled when using the Mesh
        * Filter Tool. */
@@ -477,7 +475,7 @@ static int sculpt_color_filter_init(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  undo::push_begin(ob, op);
+  undo::push_begin(scene, ob, op);
   BKE_sculpt_color_layer_create_if_needed(&ob);
 
   /* CTX_data_ensure_evaluated_depsgraph should be used at the end to include the updates of

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'd52d70324d18')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-02 14:03+0000\n"
+"POT-Creation-Date: 2024-09-16 11:03+0000\n"
 "PO-Revision-Date: 2024-04-29 13:31+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -700,16 +700,20 @@ msgid "Click"
 msgstr "Клик"
 
 
+msgid "Apply"
+msgstr "Прилагане"
+
+
+msgid "Merge"
+msgstr "Слей"
+
+
 msgid "UV Mapping"
 msgstr "UV Картиране"
 
 
 msgid "Rigid Body"
 msgstr "Твърдо тяло"
-
-
-msgid "Apply"
-msgstr "Прилагане"
 
 
 msgid "Make Single User"
@@ -722,10 +726,6 @@ msgstr "Куки"
 
 msgid "In-Betweens"
 msgstr "Междинни Кадри"
-
-
-msgid "Merge"
-msgstr "Слей"
 
 
 msgid "Languages..."

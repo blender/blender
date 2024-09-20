@@ -32,12 +32,17 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
+#include "ANIM_action.hh"
+
 #include "ED_anim_api.hh"
 
 #include "UI_interface.hh"
+#include "UI_interface_c.hh"
 #include "UI_resources.hh"
 
 #include "nla_intern.hh" /* own include */
+
+using namespace blender;
 
 /* ******************* nla editor space & buttons ************** */
 
@@ -332,16 +337,7 @@ static void nla_panel_animdata(const bContext *C, Panel *panel)
   /* Active Action Properties ------------------------------------- */
   /* action */
   row = uiLayoutRow(layout, true);
-  uiTemplateID(row,
-               C,
-               &adt_ptr,
-               "action",
-               "ACTION_OT_new",
-               nullptr,
-               "NLA_OT_action_unlink",
-               UI_TEMPLATE_ID_FILTER_ALL,
-               false,
-               nullptr);
+  uiTemplateID(row, C, &adt_ptr, "action", "ACTION_OT_new", nullptr, "NLA_OT_action_unlink");
 
   /* extrapolation */
   row = uiLayoutRow(layout, true);
@@ -479,12 +475,36 @@ static void nla_panel_actclip(const bContext *C, Panel *panel)
   block = uiLayoutGetBlock(layout);
   UI_block_func_handle_set(block, do_nla_region_buttons, nullptr);
   uiLayoutSetPropSep(layout, true);
-  uiLayoutSetPropDecorate(layout, false);
+  uiLayoutSetPropDecorate(layout, true);
 
   /* Strip Properties ------------------------------------- */
   /* action pointer */
-  row = uiLayoutRow(layout, true);
-  uiItemR(row, &strip_ptr, "action", UI_ITEM_NONE, nullptr, ICON_ACTION);
+  column = uiLayoutColumn(layout, true);
+  uiItemR(column, &strip_ptr, "action", UI_ITEM_NONE, nullptr, ICON_ACTION);
+
+#ifdef WITH_ANIM_BAKLAVA
+  NlaStrip *strip = static_cast<NlaStrip *>(strip_ptr.data);
+  if (strip->act) {
+    BLI_assert(strip_ptr.owner_id);
+
+    animrig::Action &action = strip->act->wrap();
+    ID &animated_id = *strip_ptr.owner_id;
+    if (action.is_action_layered()) {
+      PointerRNA animated_id_ptr = RNA_id_pointer_create(&animated_id);
+      uiLayoutSetContextPointer(column, "animated_id", &animated_id_ptr);
+      uiLayoutSetContextPointer(column, "nla_strip", &strip_ptr);
+      uiTemplateSearch(column,
+                       C,
+                       &strip_ptr,
+                       "action_slot",
+                       &strip_ptr,
+                       "action_slots",
+                       nullptr,
+                       "anim.slot_unassign_from_nla_strip",
+                       "Slot");
+    }
+  }
+#endif
 
   /* action extents */
   column = uiLayoutColumn(layout, true);

@@ -47,7 +47,11 @@ def gather_image(
         uri, factor_uri = __gather_uri(image_data, mime_type, name, export_settings)
     else:
         # Retrieve URI relative to exported glTF files
-        uri = __gather_original_uri(image_data.original.filepath, export_settings)
+        uri = __gather_original_uri(
+            image_data.original.filepath,
+            blender_shader_sockets[0].socket.id_data.library,
+            export_settings
+        )
         # In case we can't retrieve image (for example packed images, with original moved)
         # We don't create invalid image without uri
         factor_uri = None
@@ -74,9 +78,9 @@ def gather_image(
     return image, image_data, factor, None
 
 
-def __gather_original_uri(original_uri, export_settings):
+def __gather_original_uri(original_uri, library, export_settings):
+    path_to_image = bpy.path.abspath(original_uri, library=library)
 
-    path_to_image = bpy.path.abspath(original_uri)
     if not os.path.exists(path_to_image):
         return None
     try:

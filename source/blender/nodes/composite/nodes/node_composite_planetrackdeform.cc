@@ -79,16 +79,7 @@ static void node_composit_buts_planetrackdeform(uiLayout *layout, bContext *C, P
   bNode *node = (bNode *)ptr->data;
   NodePlaneTrackDeformData *data = (NodePlaneTrackDeformData *)node->storage;
 
-  uiTemplateID(layout,
-               C,
-               ptr,
-               "clip",
-               nullptr,
-               "CLIP_OT_open",
-               nullptr,
-               UI_TEMPLATE_ID_FILTER_ALL,
-               false,
-               nullptr);
+  uiTemplateID(layout, C, ptr, "clip", nullptr, "CLIP_OT_open", nullptr);
 
   if (node->id) {
     MovieClip *clip = (MovieClip *)node->id;

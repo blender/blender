@@ -731,6 +731,59 @@ class ANIM_OT_slot_unassign_from_id(Operator):
         return {'FINISHED'}
 
 
+class generic_slot_unassign_mixin():
+    context_property_name = ""
+    """Which context attribute to use to get the to-be-manipulated data-block."""
+
+    @classmethod
+    def poll(cls, context):
+        slot_user = getattr(context, cls.context_property_name, None)
+        if not slot_user:
+            return False
+
+        if not slot_user.action_slot:
+            cls.poll_message_set("No Action slot is assigned, so there is nothing to un-assign")
+            return False
+        return True
+
+    def execute(self, context):
+        slot_user = getattr(context, self.context_property_name, None)
+        slot_user.action_slot = None
+        return {'FINISHED'}
+
+
+class ANIM_OT_slot_unassign_from_nla_strip(generic_slot_unassign_mixin, Operator):
+    """Un-assign the assigned Action Slot from an NLA strip.
+
+    Note that _which_ NLA strip should get this slot unassigned must be set in
+    the "nla_strip" context pointer, using:
+
+    >>> layout.context_pointer_set("nla_strip", nla_strip)
+    """
+    bl_idname = "anim.slot_unassign_from_nla_strip"
+    bl_label = "Unassign Slot"
+    bl_description = "Un-assign the action slot from this NLA strip, effectively making it non-animated"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    context_property_name = "nla_strip"
+
+
+class ANIM_OT_slot_unassign_from_constraint(generic_slot_unassign_mixin, Operator):
+    """Un-assign the assigned Action Slot from an Action constraint.
+
+    Note that _which_ constraint should get this slot unassigned must be set in
+    the "constraint" context pointer, using:
+
+    >>> layout.context_pointer_set("constraint", constraint)
+    """
+    bl_idname = "anim.slot_unassign_from_constraint"
+    bl_label = "Unassign Slot"
+    bl_description = "Un-assign the action slot from this constraint"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    context_property_name = "constraint"
+
+
 classes = (
     ANIM_OT_keying_set_export,
     NLA_OT_bake,
@@ -742,4 +795,6 @@ classes = (
     ARMATURE_OT_collection_remove_unused,
     ANIM_OT_slot_new_for_id,
     ANIM_OT_slot_unassign_from_id,
+    ANIM_OT_slot_unassign_from_nla_strip,
+    ANIM_OT_slot_unassign_from_constraint,
 )

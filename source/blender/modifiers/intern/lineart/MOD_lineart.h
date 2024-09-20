@@ -628,7 +628,7 @@ BLI_INLINE int lineart_intersect_seg_seg(const double a1[2],
                                          bool *r_aligned)
 {
 /* Legacy intersection math aligns better with occlusion function quirks. */
-/* #define USE_VECTOR_LINE_INTERSECTION */
+// #define USE_VECTOR_LINE_INTERSECTION
 #ifdef USE_VECTOR_LINE_INTERSECTION
 
   /* from isect_line_line_v2_point() */

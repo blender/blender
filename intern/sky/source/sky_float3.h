@@ -28,25 +28,15 @@ struct float3 {
 
   float3() = default;
 
-  float3(const float *ptr) : x{ptr[0]}, y{ptr[1]}, z{ptr[2]}
-  {
-  }
+  float3(const float *ptr) : x{ptr[0]}, y{ptr[1]}, z{ptr[2]} {}
 
-  float3(const float (*ptr)[3]) : float3((const float *)ptr)
-  {
-  }
+  float3(const float (*ptr)[3]) : float3((const float *)ptr) {}
 
-  explicit float3(float value) : x(value), y(value), z(value)
-  {
-  }
+  explicit float3(float value) : x(value), y(value), z(value) {}
 
-  explicit float3(int value) : x(value), y(value), z(value)
-  {
-  }
+  explicit float3(int value) : x(value), y(value), z(value) {}
 
-  float3(float x, float y, float z) : x{x}, y{y}, z{z}
-  {
-  }
+  float3(float x, float y, float z) : x{x}, y{y}, z{z} {}
 
   operator const float *() const
   {

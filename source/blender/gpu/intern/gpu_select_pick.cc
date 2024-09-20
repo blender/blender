@@ -27,7 +27,7 @@
 
 #include "BLI_strict_flags.h" /* Keep last. */
 
-/* #define DEBUG_PRINT */
+// #define DEBUG_PRINT
 
 /* Alloc number for depths */
 #define ALLOC_DEPTHS 200

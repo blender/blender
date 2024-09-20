@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
@@ -9,6 +10,7 @@
 #include "BKE_paint.hh"
 
 #include "BLI_array_utils.hh"
+#include "BLI_easing.h"
 #include "BLI_index_mask.hh"
 #include "BLI_math_angle_types.hh"
 #include "BLI_math_geom.h"
@@ -35,6 +37,11 @@
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
+#include "RNA_enum_types.hh"
+#include "RNA_prototypes.hh"
+
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include <climits>
 
@@ -44,8 +51,104 @@ using ed::greasepencil::InterpolateFlipMode;
 using ed::greasepencil::InterpolateLayerMode;
 
 /* -------------------------------------------------------------------- */
-/** \name Interpolate Operator
+/** \name Common Utilities for Interpolation Operators
  * \{ */
+
+/* Modes for the interpolation tool. */
+enum class InterpolationType {
+  /** Traditional Linear Interpolation. */
+  Linear,
+  /** CurveMap Defined Interpolation. */
+  CurveMap,
+  /* Easing Equations. */
+  Back,
+  Bounce,
+  Circular,
+  Cubic,
+  Elastic,
+  Exponential,
+  Quadratic,
+  Quartic,
+  Quintic,
+  Sine,
+};
+
+/**
+ * \note This is a near exact duplicate of #rna_enum_beztriple_interpolation_mode_items,
+ * Changes here will likely apply there too.
+ */
+static const EnumPropertyItem grease_pencil_interpolation_type_items[] = {
+    /* Interpolation. */
+    RNA_ENUM_ITEM_HEADING(CTX_N_(BLT_I18NCONTEXT_ID_GPENCIL, "Interpolation"),
+                          N_("Standard transitions between keyframes")),
+    {int(InterpolationType::Linear),
+     "LINEAR",
+     ICON_IPO_LINEAR,
+     "Linear",
+     "Straight-line interpolation between A and B (i.e. no ease in/out)"},
+    {int(InterpolationType::CurveMap),
+     "CUSTOM",
+     ICON_IPO_BEZIER,
+     "Custom",
+     "Custom interpolation defined using a curve map"},
+
+    /* Easing. */
+    RNA_ENUM_ITEM_HEADING(CTX_N_(BLT_I18NCONTEXT_ID_GPENCIL, "Easing (by strength)"),
+                          N_("Predefined inertial transitions, useful for motion graphics "
+                             "(from least to most \"dramatic\")")),
+    {int(InterpolationType::Sine),
+     "SINE",
+     ICON_IPO_SINE,
+     "Sinusoidal",
+     "Sinusoidal easing (weakest, almost linear but with a slight curvature)"},
+    {int(InterpolationType::Quadratic), "QUAD", ICON_IPO_QUAD, "Quadratic", "Quadratic easing"},
+    {int(InterpolationType::Cubic), "CUBIC", ICON_IPO_CUBIC, "Cubic", "Cubic easing"},
+    {int(InterpolationType::Quartic), "QUART", ICON_IPO_QUART, "Quartic", "Quartic easing"},
+    {int(InterpolationType::Quintic), "QUINT", ICON_IPO_QUINT, "Quintic", "Quintic easing"},
+    {int(InterpolationType::Exponential),
+     "EXPO",
+     ICON_IPO_EXPO,
+     "Exponential",
+     "Exponential easing (dramatic)"},
+    {int(InterpolationType::Circular),
+     "CIRC",
+     ICON_IPO_CIRC,
+     "Circular",
+     "Circular easing (strongest and most dynamic)"},
+
+    RNA_ENUM_ITEM_HEADING(CTX_N_(BLT_I18NCONTEXT_ID_GPENCIL, "Dynamic Effects"),
+                          N_("Simple physics-inspired easing effects")),
+    {int(InterpolationType::Back),
+     "BACK",
+     ICON_IPO_BACK,
+     "Back",
+     "Cubic easing with overshoot and settle"},
+    {int(InterpolationType::Bounce),
+     "BOUNCE",
+     ICON_IPO_BOUNCE,
+     "Bounce",
+     "Exponentially decaying parabolic bounce, like when objects collide"},
+    {int(InterpolationType::Elastic),
+     "ELASTIC",
+     ICON_IPO_ELASTIC,
+     "Elastic",
+     "Exponentially decaying sine wave, like an elastic band"},
+
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+static const EnumPropertyItem grease_pencil_interpolate_flip_mode_items[] = {
+    {int(InterpolateFlipMode::None), "NONE", 0, "No Flip", ""},
+    {int(InterpolateFlipMode::Flip), "FLIP", 0, "Flip", ""},
+    {int(InterpolateFlipMode::FlipAuto), "AUTO", 0, "Automatic", ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+static const EnumPropertyItem grease_pencil_interpolate_layer_items[] = {
+    {int(InterpolateLayerMode::Active), "ACTIVE", 0, "Active", ""},
+    {int(InterpolateLayerMode::All), "ALL", 0, "All Layers", ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
 
 constexpr float interpolate_factor_min = -1.0f;
 constexpr float interpolate_factor_max = 2.0f;
@@ -84,6 +187,8 @@ struct InterpolateOpData {
   NumInput numeric_input;
   Array<LayerData> layer_data;
   int active_layer_index;
+
+  static InterpolateOpData *from_operator(const bContext &C, const wmOperator &op);
 };
 
 using FramesMapKeyIntervalT = std::pair<int, int>;
@@ -162,6 +267,64 @@ static void find_curve_mapping_from_index(const GreasePencil &grease_pencil,
   array_utils::fill_index_range(
       pairs.from_curves.as_mutable_span().slice(old_pairs_num, pairs_num));
   array_utils::fill_index_range(pairs.to_curves.as_mutable_span().slice(old_pairs_num, pairs_num));
+}
+
+InterpolateOpData *InterpolateOpData::from_operator(const bContext &C, const wmOperator &op)
+{
+  using bke::greasepencil::Drawing;
+  using bke::greasepencil::Layer;
+
+  const Scene &scene = *CTX_data_scene(&C);
+  const int current_frame = scene.r.cfra;
+  const Object &object = *CTX_data_active_object(&C);
+  const GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+
+  BLI_assert(grease_pencil.has_active_layer());
+  const Layer &active_layer = *grease_pencil.get_active_layer();
+
+  InterpolateOpData *data = MEM_new<InterpolateOpData>(__func__);
+
+  if (RNA_struct_find_property(op.ptr, "shift") != nullptr) {
+    data->shift = RNA_float_get(op.ptr, "shift");
+  }
+  data->exclude_breakdowns = RNA_boolean_get(op.ptr, "exclude_breakdowns");
+  data->flipmode = InterpolateFlipMode(RNA_enum_get(op.ptr, "flip"));
+  data->smooth_factor = RNA_float_get(op.ptr, "smooth_factor");
+  data->smooth_steps = RNA_int_get(op.ptr, "smooth_steps");
+  data->active_layer_index = *grease_pencil.get_layer_index(active_layer);
+
+  const auto layer_mode = InterpolateLayerMode(RNA_enum_get(op.ptr, "layers"));
+  switch (layer_mode) {
+    case InterpolateLayerMode::Active:
+      data->layer_mask = IndexRange::from_single(data->active_layer_index);
+      break;
+    case InterpolateLayerMode::All:
+      data->layer_mask = IndexMask::from_predicate(
+          grease_pencil.layers().index_range(),
+          GrainSize(1024),
+          data->layer_mask_memory,
+          [&](const int layer_index) { return grease_pencil.layer(layer_index)->is_editable(); });
+      break;
+  }
+
+  data->layer_data.reinitialize(grease_pencil.layers().size());
+  data->layer_mask.foreach_index([&](const int layer_index) {
+    const Layer &layer = *grease_pencil.layer(layer_index);
+    InterpolateOpData::LayerData &layer_data = data->layer_data[layer_index];
+
+    /* Pair from/to curves by index. */
+    find_curve_mapping_from_index(
+        grease_pencil, layer, current_frame, data->exclude_breakdowns, layer_data.curve_pairs);
+  });
+
+  const std::optional<FramesMapKeyIntervalT> active_layer_interval = find_frames_interval(
+      active_layer, current_frame, data->exclude_breakdowns);
+  data->init_factor = active_layer_interval ?
+                          float(current_frame - active_layer_interval->first) /
+                              (active_layer_interval->second - active_layer_interval->first + 1) :
+                          0.5f;
+
+  return data;
 }
 
 static bool compute_auto_flip(const Span<float3> from_positions, const Span<float3> to_positions)
@@ -365,6 +528,12 @@ static bke::CurvesGeometry interpolate_between_curves(const GreasePencil &grease
   return dst_curves;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Interpolate Operator
+ * \{ */
+
 static void grease_pencil_interpolate_status_indicators(bContext &C,
                                                         const InterpolateOpData &opdata)
 {
@@ -410,11 +579,13 @@ static bke::greasepencil::Drawing *ensure_drawing_at_exact_frame(
 {
   using bke::greasepencil::Drawing;
 
+  static constexpr eBezTriple_KeyframeType keyframe_type = BEZT_KEYTYPE_BREAKDOWN;
+
   if (Drawing *drawing = get_drawing_at_exact_frame(grease_pencil, layer, frame_number)) {
     layer_data.orig_curves = drawing->strokes();
     return drawing;
   }
-  return grease_pencil.insert_frame(layer, frame_number);
+  return grease_pencil.insert_frame(layer, frame_number, 0, keyframe_type);
 }
 
 static void grease_pencil_interpolate_update(bContext &C, const wmOperator &op)
@@ -453,7 +624,7 @@ static void grease_pencil_interpolate_update(bContext &C, const wmOperator &op)
           opdata.smooth_steps,
           opdata.smooth_factor,
           false,
-          false,
+          true,
           positions);
       interpolated_curves.tag_positions_changed();
     }
@@ -509,59 +680,23 @@ static void grease_pencil_interpolate_restore(bContext &C, wmOperator &op)
 
 static bool grease_pencil_interpolate_init(const bContext &C, wmOperator &op)
 {
-  using bke::greasepencil::Drawing;
   using bke::greasepencil::Layer;
+
+  op.customdata = InterpolateOpData::from_operator(C, op);
+  InterpolateOpData &data = *static_cast<InterpolateOpData *>(op.customdata);
 
   const Scene &scene = *CTX_data_scene(&C);
   const int current_frame = scene.r.cfra;
   Object &object = *CTX_data_active_object(&C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
 
-  BLI_assert(grease_pencil.has_active_layer());
-  const Layer &active_layer = *grease_pencil.get_active_layer();
-
-  op.customdata = MEM_new<InterpolateOpData>(__func__);
-  InterpolateOpData &data = *static_cast<InterpolateOpData *>(op.customdata);
-
-  data.shift = RNA_float_get(op.ptr, "shift");
-  data.exclude_breakdowns = RNA_boolean_get(op.ptr, "exclude_breakdowns");
-  data.flipmode = InterpolateFlipMode(RNA_enum_get(op.ptr, "flip"));
-  data.smooth_factor = RNA_float_get(op.ptr, "smooth_factor");
-  data.smooth_steps = RNA_int_get(op.ptr, "smooth_steps");
-  data.active_layer_index = *grease_pencil.get_layer_index(active_layer);
-
-  const auto layer_mode = InterpolateLayerMode(RNA_enum_get(op.ptr, "layers"));
-  switch (layer_mode) {
-    case InterpolateLayerMode::Active:
-      data.layer_mask = IndexRange::from_single(data.active_layer_index);
-      break;
-    case InterpolateLayerMode::All:
-      data.layer_mask = IndexMask::from_predicate(
-          grease_pencil.layers().index_range(),
-          GrainSize(1024),
-          data.layer_mask_memory,
-          [&](const int layer_index) { return grease_pencil.layer(layer_index)->is_editable(); });
-      break;
-  }
-
-  data.layer_data.reinitialize(grease_pencil.layers().size());
+  /* Create target frames. */
   data.layer_mask.foreach_index([&](const int layer_index) {
     Layer &layer = *grease_pencil.layer(layer_index);
     InterpolateOpData::LayerData &layer_data = data.layer_data[layer_index];
 
-    /* Pair from/to curves by index. */
-    find_curve_mapping_from_index(
-        grease_pencil, layer, current_frame, data.exclude_breakdowns, layer_data.curve_pairs);
-
     ensure_drawing_at_exact_frame(grease_pencil, layer, layer_data, current_frame);
   });
-
-  const std::optional<FramesMapKeyIntervalT> active_layer_interval = find_frames_interval(
-      active_layer, current_frame, data.exclude_breakdowns);
-  data.init_factor = active_layer_interval ?
-                         float(current_frame - active_layer_interval->first) /
-                             (active_layer_interval->second - active_layer_interval->first + 1) :
-                         0.5f;
 
   return true;
 }
@@ -714,19 +849,6 @@ static void grease_pencil_interpolate_cancel(bContext *C, wmOperator *op)
 
 static void GREASE_PENCIL_OT_interpolate(wmOperatorType *ot)
 {
-  static const EnumPropertyItem flip_modes[] = {
-      {int(InterpolateFlipMode::None), "NONE", 0, "No Flip", ""},
-      {int(InterpolateFlipMode::Flip), "FLIP", 0, "Flip", ""},
-      {int(InterpolateFlipMode::FlipAuto), "AUTO", 0, "Automatic", ""},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
-  static const EnumPropertyItem gpencil_interpolation_layer_items[] = {
-      {int(InterpolateLayerMode::Active), "ACTIVE", 0, "Active", ""},
-      {int(InterpolateLayerMode::All), "ALL", 0, "All Layers", ""},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
   ot->name = "Grease Pencil Interpolation";
   ot->idname = "GREASE_PENCIL_OT_interpolate";
   ot->description = "Interpolate grease pencil strokes between frames";
@@ -751,7 +873,7 @@ static void GREASE_PENCIL_OT_interpolate(wmOperatorType *ot)
 
   RNA_def_enum(ot->srna,
                "layers",
-               gpencil_interpolation_layer_items,
+               grease_pencil_interpolate_layer_items,
                0,
                "Layer",
                "Layers included in the interpolation");
@@ -764,7 +886,7 @@ static void GREASE_PENCIL_OT_interpolate(wmOperatorType *ot)
 
   RNA_def_enum(ot->srna,
                "flip",
-               flip_modes,
+               grease_pencil_interpolate_flip_mode_items,
                int(InterpolateFlipMode::FlipAuto),
                "Flip Mode",
                "Invert destination stroke to match start and end with source stroke");
@@ -792,6 +914,442 @@ static void GREASE_PENCIL_OT_interpolate(wmOperatorType *ot)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Interpolate Sequence Operator
+ * \{ */
+
+/* Helper: Perform easing equation calculations for GP interpolation operator. */
+static float grease_pencil_interpolate_sequence_easing_calc(const eBezTriple_Easing easing,
+                                                            const InterpolationType type,
+                                                            const float back_easing,
+                                                            const float amplitude,
+                                                            const float period,
+                                                            const CurveMapping &custom_ipo,
+                                                            const float time)
+{
+  constexpr float begin = 0.0f;
+  constexpr float change = 1.0f;
+  constexpr float duration = 1.0f;
+
+  switch (type) {
+    case InterpolationType::Linear:
+      return time;
+
+    case InterpolationType::CurveMap:
+      return BKE_curvemapping_evaluateF(&custom_ipo, 0, time);
+
+    case InterpolationType::Back:
+      switch (easing) {
+        case BEZT_IPO_EASE_IN:
+          return BLI_easing_back_ease_in(time, begin, change, duration, back_easing);
+        case BEZT_IPO_EASE_OUT:
+          return BLI_easing_back_ease_out(time, begin, change, duration, back_easing);
+        case BEZT_IPO_EASE_IN_OUT:
+          return BLI_easing_back_ease_in_out(time, begin, change, duration, back_easing);
+
+        default:
+          return BLI_easing_back_ease_out(time, begin, change, duration, back_easing);
+      }
+      break;
+
+    case InterpolationType::Bounce:
+      switch (easing) {
+        case BEZT_IPO_EASE_IN:
+          return BLI_easing_bounce_ease_in(time, begin, change, duration);
+        case BEZT_IPO_EASE_OUT:
+          return BLI_easing_bounce_ease_out(time, begin, change, duration);
+        case BEZT_IPO_EASE_IN_OUT:
+          return BLI_easing_bounce_ease_in_out(time, begin, change, duration);
+
+        default:
+          return BLI_easing_bounce_ease_out(time, begin, change, duration);
+      }
+      break;
+
+    case InterpolationType::Circular:
+      switch (easing) {
+        case BEZT_IPO_EASE_IN:
+          return BLI_easing_circ_ease_in(time, begin, change, duration);
+        case BEZT_IPO_EASE_OUT:
+          return BLI_easing_circ_ease_out(time, begin, change, duration);
+        case BEZT_IPO_EASE_IN_OUT:
+          return BLI_easing_circ_ease_in_out(time, begin, change, duration);
+
+        default:
+          return BLI_easing_circ_ease_in(time, begin, change, duration);
+      }
+      break;
+
+    case InterpolationType::Cubic:
+      switch (easing) {
+        case BEZT_IPO_EASE_IN:
+          return BLI_easing_cubic_ease_in(time, begin, change, duration);
+        case BEZT_IPO_EASE_OUT:
+          return BLI_easing_cubic_ease_out(time, begin, change, duration);
+        case BEZT_IPO_EASE_IN_OUT:
+          return BLI_easing_cubic_ease_in_out(time, begin, change, duration);
+
+        default:
+          return BLI_easing_cubic_ease_in(time, begin, change, duration);
+      }
+      break;
+
+    case InterpolationType::Elastic:
+      switch (easing) {
+        case BEZT_IPO_EASE_IN:
+          return BLI_easing_elastic_ease_in(time, begin, change, duration, amplitude, period);
+        case BEZT_IPO_EASE_OUT:
+          return BLI_easing_elastic_ease_out(time, begin, change, duration, amplitude, period);
+        case BEZT_IPO_EASE_IN_OUT:
+          return BLI_easing_elastic_ease_in_out(time, begin, change, duration, amplitude, period);
+
+        default:
+          return BLI_easing_elastic_ease_out(time, begin, change, duration, amplitude, period);
+      }
+      break;
+
+    case InterpolationType::Exponential:
+      switch (easing) {
+        case BEZT_IPO_EASE_IN:
+          return BLI_easing_expo_ease_in(time, begin, change, duration);
+        case BEZT_IPO_EASE_OUT:
+          return BLI_easing_expo_ease_out(time, begin, change, duration);
+        case BEZT_IPO_EASE_IN_OUT:
+          return BLI_easing_expo_ease_in_out(time, begin, change, duration);
+
+        default:
+          return BLI_easing_expo_ease_in(time, begin, change, duration);
+      }
+      break;
+
+    case InterpolationType::Quadratic:
+      switch (easing) {
+        case BEZT_IPO_EASE_IN:
+          return BLI_easing_quad_ease_in(time, begin, change, duration);
+        case BEZT_IPO_EASE_OUT:
+          return BLI_easing_quad_ease_out(time, begin, change, duration);
+        case BEZT_IPO_EASE_IN_OUT:
+          return BLI_easing_quad_ease_in_out(time, begin, change, duration);
+
+        default:
+          return BLI_easing_quad_ease_in(time, begin, change, duration);
+      }
+      break;
+
+    case InterpolationType::Quartic:
+      switch (easing) {
+        case BEZT_IPO_EASE_IN:
+          return BLI_easing_quart_ease_in(time, begin, change, duration);
+        case BEZT_IPO_EASE_OUT:
+          return BLI_easing_quart_ease_out(time, begin, change, duration);
+        case BEZT_IPO_EASE_IN_OUT:
+          return BLI_easing_quart_ease_in_out(time, begin, change, duration);
+
+        default:
+          return BLI_easing_quart_ease_in(time, begin, change, duration);
+      }
+      break;
+
+    case InterpolationType::Quintic:
+      switch (easing) {
+        case BEZT_IPO_EASE_IN:
+          return BLI_easing_quint_ease_in(time, begin, change, duration);
+        case BEZT_IPO_EASE_OUT:
+          return BLI_easing_quint_ease_out(time, begin, change, duration);
+        case BEZT_IPO_EASE_IN_OUT:
+          return BLI_easing_quint_ease_in_out(time, begin, change, duration);
+
+        default:
+          return BLI_easing_quint_ease_in(time, begin, change, duration);
+      }
+      break;
+
+    case InterpolationType::Sine:
+      switch (easing) {
+        case BEZT_IPO_EASE_IN:
+          return BLI_easing_sine_ease_in(time, begin, change, duration);
+        case BEZT_IPO_EASE_OUT:
+          return BLI_easing_sine_ease_out(time, begin, change, duration);
+        case BEZT_IPO_EASE_IN_OUT:
+          return BLI_easing_sine_ease_in_out(time, begin, change, duration);
+
+        default:
+          return BLI_easing_sine_ease_in(time, begin, change, duration);
+      }
+      break;
+
+    default:
+      BLI_assert_unreachable();
+      break;
+  }
+
+  return time;
+}
+
+static int grease_pencil_interpolate_sequence_exec(bContext *C, wmOperator *op)
+{
+  using bke::greasepencil::Drawing;
+  using bke::greasepencil::Layer;
+
+  op->customdata = InterpolateOpData::from_operator(*C, *op);
+  InterpolateOpData &opdata = *static_cast<InterpolateOpData *>(op->customdata);
+
+  const Scene &scene = *CTX_data_scene(C);
+  const int current_frame = scene.r.cfra;
+  Object &object = *CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+  ToolSettings &ts = *CTX_data_tool_settings(C);
+  const InterpolationType type = InterpolationType(RNA_enum_get(op->ptr, "type"));
+  const eBezTriple_Easing easing = eBezTriple_Easing(RNA_enum_get(op->ptr, "easing"));
+  const float back_easing = RNA_float_get(op->ptr, "back");
+  const float amplitude = RNA_float_get(op->ptr, "amplitude");
+  const float period = RNA_float_get(op->ptr, "period");
+  const int step = RNA_int_get(op->ptr, "step");
+
+  GP_Interpolate_Settings &ipo_settings = ts.gp_interpolate;
+  if (ipo_settings.custom_ipo == nullptr) {
+    ipo_settings.custom_ipo = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+  }
+  BKE_curvemapping_init(ipo_settings.custom_ipo);
+
+  opdata.layer_mask.foreach_index([&](const int layer_index) {
+    Layer &layer = *grease_pencil.layer(layer_index);
+    InterpolateOpData::LayerData &layer_data = opdata.layer_data[layer_index];
+
+    std::optional<FramesMapKeyIntervalT> interval = find_frames_interval(
+        layer, current_frame, opdata.exclude_breakdowns);
+    if (!interval) {
+      return;
+    }
+
+    const int frame_range_size = interval->second - interval->first + 1;
+
+    /* First and last frame are ignored. */
+    for (int cframe = interval->first + step; cframe < interval->second; cframe += step) {
+      ensure_drawing_at_exact_frame(grease_pencil, layer, layer_data, cframe);
+      Drawing *dst_drawing = get_drawing_at_exact_frame(grease_pencil, layer, cframe);
+      if (dst_drawing == nullptr) {
+        return;
+      }
+
+      const float base_factor = float(cframe - interval->first) /
+                                std::max(frame_range_size - 1, 1);
+      const float mix_factor = grease_pencil_interpolate_sequence_easing_calc(
+          easing, type, back_easing, amplitude, period, *ipo_settings.custom_ipo, base_factor);
+
+      bke::CurvesGeometry interpolated_curves = interpolate_between_curves(
+          grease_pencil, layer, layer_data.curve_pairs, mix_factor, opdata.flipmode);
+
+      if (opdata.smooth_factor > 0.0f && opdata.smooth_steps > 0) {
+        MutableSpan<float3> positions = interpolated_curves.positions_for_write();
+        geometry::smooth_curve_attribute(
+            interpolated_curves.curves_range(),
+            interpolated_curves.points_by_curve(),
+            VArray<bool>::ForSingle(true, interpolated_curves.points_num()),
+            interpolated_curves.cyclic(),
+            opdata.smooth_steps,
+            opdata.smooth_factor,
+            false,
+            true,
+            positions);
+        interpolated_curves.tag_positions_changed();
+      }
+
+      dst_drawing->strokes_for_write() = std::move(interpolated_curves);
+      dst_drawing->tag_topology_changed();
+    }
+  });
+
+  /* Notifiers */
+  DEG_id_tag_update(&grease_pencil.id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
+
+  MEM_delete(static_cast<InterpolateOpData *>(op->customdata));
+  op->customdata = nullptr;
+
+  return OPERATOR_FINISHED;
+}
+
+static void grease_pencil_interpolate_sequence_ui(bContext *C, wmOperator *op)
+{
+  uiLayout *layout = op->layout;
+  uiLayout *col, *row;
+
+  const InterpolationType type = InterpolationType(RNA_enum_get(op->ptr, "type"));
+
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+  row = uiLayoutRow(layout, true);
+  uiItemR(row, op->ptr, "step", UI_ITEM_NONE, nullptr, ICON_NONE);
+
+  row = uiLayoutRow(layout, true);
+  uiItemR(row, op->ptr, "layers", UI_ITEM_NONE, nullptr, ICON_NONE);
+
+  if (CTX_data_mode_enum(C) == CTX_MODE_EDIT_GPENCIL_LEGACY) {
+    row = uiLayoutRow(layout, true);
+    uiItemR(row, op->ptr, "interpolate_selected_only", UI_ITEM_NONE, nullptr, ICON_NONE);
+  }
+
+  row = uiLayoutRow(layout, true);
+  uiItemR(row, op->ptr, "exclude_breakdowns", UI_ITEM_NONE, nullptr, ICON_NONE);
+
+  row = uiLayoutRow(layout, true);
+  uiItemR(row, op->ptr, "flip", UI_ITEM_NONE, nullptr, ICON_NONE);
+
+  col = uiLayoutColumn(layout, true);
+  uiItemR(col, op->ptr, "smooth_factor", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, op->ptr, "smooth_steps", UI_ITEM_NONE, nullptr, ICON_NONE);
+
+  row = uiLayoutRow(layout, true);
+  uiItemR(row, op->ptr, "type", UI_ITEM_NONE, nullptr, ICON_NONE);
+
+  if (type == InterpolationType::CurveMap) {
+    /* Get an RNA pointer to ToolSettings to give to the custom curve. */
+    Scene *scene = CTX_data_scene(C);
+    ToolSettings *ts = scene->toolsettings;
+    PointerRNA gpsettings_ptr = RNA_pointer_create(
+        &scene->id, &RNA_GPencilInterpolateSettings, &ts->gp_interpolate);
+    uiTemplateCurveMapping(
+        layout, &gpsettings_ptr, "interpolation_curve", 0, false, true, true, false);
+  }
+  else if (type != InterpolationType::Linear) {
+    row = uiLayoutRow(layout, false);
+    uiItemR(row, op->ptr, "easing", UI_ITEM_NONE, nullptr, ICON_NONE);
+    if (type == InterpolationType::Back) {
+      row = uiLayoutRow(layout, false);
+      uiItemR(row, op->ptr, "back", UI_ITEM_NONE, nullptr, ICON_NONE);
+    }
+    else if (type == InterpolationType::Elastic) {
+      row = uiLayoutRow(layout, false);
+      uiItemR(row, op->ptr, "amplitude", UI_ITEM_NONE, nullptr, ICON_NONE);
+      row = uiLayoutRow(layout, false);
+      uiItemR(row, op->ptr, "period", UI_ITEM_NONE, nullptr, ICON_NONE);
+    }
+  }
+}
+
+static void GREASE_PENCIL_OT_interpolate_sequence(wmOperatorType *ot)
+{
+  PropertyRNA *prop;
+
+  ot->name = "Interpolate Sequence";
+  ot->idname = "GREASE_PENCIL_OT_interpolate_sequence";
+  ot->translation_context = BLT_I18NCONTEXT_ID_GPENCIL;
+  ot->description = "Generate 'in-betweens' to smoothly interpolate between Grease Pencil frames";
+
+  ot->exec = grease_pencil_interpolate_sequence_exec;
+  ot->poll = grease_pencil_interpolate_poll;
+  ot->ui = grease_pencil_interpolate_sequence_ui;
+
+  RNA_def_int(ot->srna,
+              "step",
+              1,
+              1,
+              MAXFRAME,
+              "Step",
+              "Number of frames between generated interpolated frames",
+              1,
+              MAXFRAME);
+
+  RNA_def_enum(ot->srna,
+               "layers",
+               grease_pencil_interpolate_layer_items,
+               0,
+               "Layer",
+               "Layers included in the interpolation");
+
+  RNA_def_boolean(ot->srna,
+                  "interpolate_selected_only",
+                  false,
+                  "Only Selected",
+                  "Interpolate only selected strokes");
+
+  RNA_def_boolean(ot->srna,
+                  "exclude_breakdowns",
+                  false,
+                  "Exclude Breakdowns",
+                  "Exclude existing Breakdowns keyframes as interpolation extremes");
+
+  RNA_def_enum(ot->srna,
+               "flip",
+               grease_pencil_interpolate_flip_mode_items,
+               int(InterpolateFlipMode::FlipAuto),
+               "Flip Mode",
+               "Invert destination stroke to match start and end with source stroke");
+
+  RNA_def_int(ot->srna,
+              "smooth_steps",
+              1,
+              1,
+              3,
+              "Iterations",
+              "Number of times to smooth newly created strokes",
+              1,
+              3);
+
+  RNA_def_float(ot->srna,
+                "smooth_factor",
+                0.0f,
+                0.0f,
+                2.0f,
+                "Smooth",
+                "Amount of smoothing to apply to interpolated strokes, to reduce jitter/noise",
+                0.0f,
+                2.0f);
+
+  prop = RNA_def_enum(ot->srna,
+                      "type",
+                      grease_pencil_interpolation_type_items,
+                      0,
+                      "Type",
+                      "Interpolation method to use the next time 'Interpolate Sequence' is run");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_GPENCIL);
+
+  prop = RNA_def_enum(
+      ot->srna,
+      "easing",
+      rna_enum_beztriple_interpolation_easing_items,
+      BEZT_IPO_LIN,
+      "Easing",
+      "Which ends of the segment between the preceding and following grease pencil frames "
+      "easing interpolation is applied to");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_GPENCIL);
+
+  RNA_def_float(ot->srna,
+                "back",
+                1.702f,
+                0.0f,
+                FLT_MAX,
+                "Back",
+                "Amount of overshoot for 'back' easing",
+                0.0f,
+                FLT_MAX);
+
+  RNA_def_float(ot->srna,
+                "amplitude",
+                0.15f,
+                0.0f,
+                FLT_MAX,
+                "Amplitude",
+                "Amount to boost elastic bounces for 'elastic' easing",
+                0.0f,
+                FLT_MAX);
+
+  RNA_def_float(ot->srna,
+                "period",
+                0.15f,
+                -FLT_MAX,
+                FLT_MAX,
+                "Period",
+                "Time between bounces for elastic easing",
+                -FLT_MAX,
+                FLT_MAX);
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/** \} */
+
 }  // namespace blender::ed::sculpt_paint::greasepencil
 
 /* -------------------------------------------------------------------- */
@@ -802,6 +1360,7 @@ void ED_operatortypes_grease_pencil_interpolate()
 {
   using namespace blender::ed::sculpt_paint::greasepencil;
   WM_operatortype_append(GREASE_PENCIL_OT_interpolate);
+  WM_operatortype_append(GREASE_PENCIL_OT_interpolate_sequence);
 }
 
 void ED_interpolatetool_modal_keymap(wmKeyConfig *keyconf)

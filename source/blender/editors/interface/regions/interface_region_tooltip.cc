@@ -1208,8 +1208,7 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
 {
   const float pad_px = UI_TIP_PADDING;
   wmWindow *win = CTX_wm_window(C);
-  const int winx = WM_window_native_pixel_x(win);
-  const int winy = WM_window_native_pixel_y(win);
+  const blender::int2 win_size = WM_window_native_pixel_size(win);
   const uiStyle *style = UI_style_get();
   rcti rect_i;
   int font_flag = 0;
@@ -1234,7 +1233,7 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
 
   UI_fontstyle_set(&data->fstyle);
 
-  data->wrap_width = min_ii(UI_TIP_MAXWIDTH * U.pixelsize, winx - (UI_TIP_PADDING * 2));
+  data->wrap_width = min_ii(UI_TIP_MAXWIDTH * U.pixelsize, win_size[0] - (UI_TIP_PADDING * 2));
 
   font_flag |= BLF_WORD_WRAP;
   BLF_enable(data->fstyle.uifont_id, font_flag);
@@ -1326,9 +1325,9 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
       init_rect.ymax = init_rect_overlap->ymax + pad;
       rcti rect_clamp;
       rect_clamp.xmin = 0;
-      rect_clamp.xmax = winx;
+      rect_clamp.xmax = win_size[0];
       rect_clamp.ymin = 0;
-      rect_clamp.ymax = winy;
+      rect_clamp.ymax = win_size[1];
       /* try right. */
       const int size_x = BLI_rcti_size_x(&rect_i);
       const int size_y = BLI_rcti_size_y(&rect_i);
@@ -1410,9 +1409,9 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
       const int pad = max_ff(1.0f, U.pixelsize) * 5;
       rcti rect_clamp;
       rect_clamp.xmin = pad;
-      rect_clamp.xmax = winx - pad;
+      rect_clamp.xmax = win_size[0] - pad;
       rect_clamp.ymin = pad + (UI_UNIT_Y * 2);
-      rect_clamp.ymax = winy - pad;
+      rect_clamp.ymax = win_size[1] - pad;
       int offset_dummy[2];
       BLI_rcti_clamp(&rect_i, &rect_clamp, offset_dummy);
     }

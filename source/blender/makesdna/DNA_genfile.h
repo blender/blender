@@ -153,7 +153,7 @@ void DNA_struct_switch_endian(const struct SDNA *sdna, int struct_index, char *d
  * Constructs and returns an array of byte flags with one element for each struct in oldsdna,
  * indicating how it compares to newsdna.
  */
-const char *DNA_struct_get_compareflags(const struct SDNA *sdna, const struct SDNA *newsdna);
+const char *DNA_struct_get_compareflags(const struct SDNA *oldsdna, const struct SDNA *newsdna);
 /**
  * \param reconstruct_info: Information preprocessed by #DNA_reconstruct_info_create.
  * \param old_struct_index: Index of struct info within oldsdna.

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'd52d70324d18')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-02 14:03+0000\n"
+"POT-Creation-Date: 2024-09-16 11:03+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4699,12 +4699,16 @@ msgid "Mirror Object"
 msgstr "Peilaa objekti"
 
 
+msgid "Names"
+msgstr "Nimet"
+
+
 msgid "Show/Hide"
 msgstr "Näytä/Piilota"
 
 
-msgid "Names"
-msgstr "Nimet"
+msgid "Mesh Select Mode"
+msgstr "Muodon valintatila"
 
 
 msgid "UV Mapping"
@@ -4741,10 +4745,6 @@ msgstr "Koukut"
 
 msgid "Random Mask"
 msgstr "Satunnainen maski"
-
-
-msgid "Mesh Select Mode"
-msgstr "Muodon valintatila"
 
 
 msgid "Basic"
@@ -8116,11 +8116,6 @@ msgid "Shortest Path"
 msgstr "Lyhyin polku"
 
 
-msgctxt "Image"
-msgid "New"
-msgstr "Uusi"
-
-
 msgctxt "Operator"
 msgid "Save All Images"
 msgstr "Tallenna kaikki kuvat"
@@ -9028,6 +9023,11 @@ msgstr "Uusi"
 
 
 msgctxt "GPencil"
+msgid "New"
+msgstr "Uusi"
+
+
+msgctxt "Image"
 msgid "New"
 msgstr "Uusi"
 

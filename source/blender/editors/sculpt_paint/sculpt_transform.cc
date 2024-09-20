@@ -36,6 +36,7 @@
 #include "mesh_brush_common.hh"
 #include "paint_intern.hh"
 #include "paint_mask.hh"
+#include "sculpt_automask.hh"
 #include "sculpt_filter.hh"
 #include "sculpt_intern.hh"
 #include "sculpt_undo.hh"
@@ -52,6 +53,7 @@ namespace blender::ed::sculpt_paint {
 
 void init_transform(bContext *C, Object &ob, const float mval_fl[2], const char *undo_name)
 {
+  const Scene &scene = *CTX_data_scene(C);
   const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
   SculptSession &ss = *ob.sculpt;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
@@ -64,7 +66,7 @@ void init_transform(bContext *C, Object &ob, const float mval_fl[2], const char 
   ss.prev_pivot_rot = ss.pivot_rot;
   ss.prev_pivot_scale = ss.pivot_scale;
 
-  undo::push_begin_ex(ob, undo_name);
+  undo::push_begin_ex(scene, ob, undo_name);
   BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
 
   ss.pivot_rot[3] = 1.0f;
@@ -188,15 +190,14 @@ BLI_NOINLINE static void filter_translations_with_symmetry(const Span<float3> po
   }
 }
 
-static void transform_node_mesh(const Depsgraph &depsgraph,
-                                const Sculpt &sd,
+static void transform_node_mesh(const Sculpt &sd,
                                 const std::array<float4x4, 8> &transform_mats,
-                                const Span<float3> positions_eval,
                                 const bke::pbvh::MeshNode &node,
                                 Object &object,
                                 TransformLocalData &tls,
-                                const MutableSpan<float3> positions_orig)
+                                const PositionDeformData &position_data)
 {
+  SculptSession &ss = *object.sculpt;
   const Mesh &mesh = *static_cast<const Mesh *>(object.data);
 
   const Span<int> verts = node.verts();
@@ -214,7 +215,8 @@ static void transform_node_mesh(const Depsgraph &depsgraph,
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(object);
   filter_translations_with_symmetry(orig_data.positions, symm, translations);
 
-  write_translations(depsgraph, sd, object, positions_eval, verts, translations, positions_orig);
+  clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+  position_data.deform(translations, verts);
 }
 
 static void transform_node_grids(const Sculpt &sd,
@@ -299,26 +301,25 @@ static void sculpt_transform_all_vertices(const Depsgraph &depsgraph, const Scul
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-      Mesh &mesh = *static_cast<Mesh *>(ob.data);
-      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, ob);
-      MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
+      const PositionDeformData position_data(depsgraph, ob);
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         TransformLocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
-          transform_node_mesh(
-              depsgraph, sd, transform_mats, positions_eval, nodes[i], ob, tls, positions_orig);
-          BKE_pbvh_node_mark_positions_update(nodes[i]);
+          transform_node_mesh(sd, transform_mats, nodes[i], ob, tls, position_data);
+          bke::pbvh::update_node_bounds_mesh(position_data.eval, nodes[i]);
         });
       });
       break;
     }
     case bke::pbvh::Type::Grids: {
+      SubdivCCG &subdiv_ccg = *ob.sculpt->subdiv_ccg;
+      MutableSpan<float3> positions = subdiv_ccg.positions;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         TransformLocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
           transform_node_grids(sd, transform_mats, nodes[i], ob, tls);
-          BKE_pbvh_node_mark_positions_update(nodes[i]);
+          bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
         });
       });
       break;
@@ -329,12 +330,14 @@ static void sculpt_transform_all_vertices(const Depsgraph &depsgraph, const Scul
         TransformLocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
           transform_node_bmesh(sd, transform_mats, nodes[i], ob, tls);
-          BKE_pbvh_node_mark_positions_update(nodes[i]);
+          bke::pbvh::update_node_bounds_bmesh(nodes[i]);
         });
       });
       break;
     }
   }
+  pbvh.tag_positions_changed(node_mask);
+  bke::pbvh::flush_bounds_to_parents(pbvh);
 }
 
 BLI_NOINLINE static void calc_transform_translations(const float4x4 &elastic_transform_mat,
@@ -358,21 +361,20 @@ BLI_NOINLINE static void apply_kelvinet_to_translations(const KelvinletParams &p
   }
 }
 
-static void elastic_transform_node_mesh(const Depsgraph &depsgraph,
-                                        const Sculpt &sd,
+static void elastic_transform_node_mesh(const Sculpt &sd,
                                         const KelvinletParams &params,
                                         const float4x4 &elastic_transform_mat,
                                         const float3 &elastic_transform_pivot,
-                                        const Span<float3> positions_eval,
                                         const bke::pbvh::MeshNode &node,
                                         Object &object,
                                         TransformLocalData &tls,
-                                        const MutableSpan<float3> positions_orig)
+                                        const PositionDeformData &position_data)
 {
+  const SculptSession &ss = *object.sculpt;
   const Mesh &mesh = *static_cast<const Mesh *>(object.data);
 
   const Span<int> verts = node.verts();
-  const MutableSpan positions = gather_data_mesh(positions_eval, verts, tls.positions);
+  const MutableSpan positions = gather_data_mesh(position_data.eval, verts, tls.positions);
 
   /* TODO: Using the factors array is unnecessary when there are no hidden vertices and no mask. */
   tls.factors.resize(verts.size());
@@ -387,7 +389,8 @@ static void elastic_transform_node_mesh(const Depsgraph &depsgraph,
 
   scale_translations(translations, factors);
 
-  write_translations(depsgraph, sd, object, positions_eval, verts, translations, positions_orig);
+  clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+  position_data.deform(translations, verts);
 }
 
 static void elastic_transform_node_grids(const Sculpt &sd,
@@ -489,35 +492,33 @@ static void transform_radius_elastic(const Depsgraph &depsgraph,
     switch (pbvh.type()) {
       case bke::pbvh::Type::Mesh: {
         MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-        Mesh &mesh = *static_cast<Mesh *>(ob.data);
-        const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, ob);
-        MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
+        const PositionDeformData position_data(depsgraph, ob);
         threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
           TransformLocalData &tls = all_tls.local();
           node_mask.slice(range).foreach_index([&](const int i) {
-            elastic_transform_node_mesh(depsgraph,
-                                        sd,
+            elastic_transform_node_mesh(sd,
                                         params,
                                         elastic_transform_mat,
                                         elastic_transform_pivot,
-                                        positions_eval,
                                         nodes[i],
                                         ob,
                                         tls,
-                                        positions_orig);
-            BKE_pbvh_node_mark_positions_update(nodes[i]);
+                                        position_data);
+            bke::pbvh::update_node_bounds_mesh(position_data.eval, nodes[i]);
           });
         });
         break;
       }
       case bke::pbvh::Type::Grids: {
+        SubdivCCG &subdiv_ccg = *ob.sculpt->subdiv_ccg;
+        MutableSpan<float3> positions = subdiv_ccg.positions;
         MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
         threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
           TransformLocalData &tls = all_tls.local();
           node_mask.slice(range).foreach_index([&](const int i) {
             elastic_transform_node_grids(
                 sd, params, elastic_transform_mat, elastic_transform_pivot, nodes[i], ob, tls);
-            BKE_pbvh_node_mark_positions_update(nodes[i]);
+            bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
           });
         });
         break;
@@ -529,13 +530,15 @@ static void transform_radius_elastic(const Depsgraph &depsgraph,
           node_mask.slice(range).foreach_index([&](const int i) {
             elastic_transform_node_bmesh(
                 sd, params, elastic_transform_mat, elastic_transform_pivot, nodes[i], ob, tls);
-            BKE_pbvh_node_mark_positions_update(nodes[i]);
+            bke::pbvh::update_node_bounds_bmesh(nodes[i]);
           });
         });
         break;
       }
     }
   }
+  pbvh.tag_positions_changed(node_mask);
+  bke::pbvh::flush_bounds_to_parents(pbvh);
 }
 
 void update_modal_transform(bContext *C, Object &ob)

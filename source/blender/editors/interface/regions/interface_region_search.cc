@@ -769,7 +769,7 @@ static void ui_searchbox_region_layout_fn(const bContext *C, ARegion *region)
     }
   }
   else {
-    int searchbox_width = UI_searchbox_size_x();
+    int searchbox_width = int(float(UI_searchbox_size_x()) * 1.4f);
 
     /* We should make this wider if there is a path or hint on the right. */
     if (ui_searchbox_item_separator(data) != UI_MENU_ITEM_SEPARATOR_NONE) {

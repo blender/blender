@@ -983,7 +983,7 @@ class TEXTURE_PT_animation(TextureButtonsPanel, PropertiesAnimationMixin, Proper
         if texture_user := context.texture_user:
             texture_user_id = texture_user.id_data
             col = layout.column(align=True)
-            # I (Sybren) tested with particle settings, and then this just shows
+            # NOTE(@sybren): I tested with particle settings, and then this just shows
             # "Particle Settings". If there are other users of Texture data-blocks
             # still around, and this produces unwanted results, let's adjust.
             col.label(text=texture_user_id.bl_rna.name)

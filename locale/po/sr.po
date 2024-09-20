@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'd52d70324d18')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-02 14:03+0000\n"
+"POT-Creation-Date: 2024-09-16 11:03+0000\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -8752,16 +8752,40 @@ msgid "Material slot name"
 msgstr "Назив слота материјала"
 
 
+msgid "Names"
+msgstr "Имена"
+
+
 msgid "Show/Hide"
 msgstr "Прикажи/сакриј"
 
 
+msgid "Apply"
+msgstr "Примени"
+
+
+msgid "Toggle Bone Options"
+msgstr "Мање/више информација"
+
+
+msgid "Enable Bone Options"
+msgstr "Омогући опције костију"
+
+
+msgid "Disable Bone Options"
+msgstr "Онемогући опције костију"
+
+
+msgid "Mesh Select Mode"
+msgstr "Мод избора мреже"
+
+
+msgid "Merge"
+msgstr "Сједини"
+
+
 msgid "Special Characters"
 msgstr "Специјални знаци"
-
-
-msgid "Names"
-msgstr "Имена"
 
 
 msgid "Bone Roll"
@@ -8804,10 +8828,6 @@ msgid "Rigid Body"
 msgstr "Круто тело"
 
 
-msgid "Apply"
-msgstr "Примени"
-
-
 msgid "Track"
 msgstr "Стаза"
 
@@ -8830,26 +8850,6 @@ msgstr "У међувремену"
 
 msgid "Propagate"
 msgstr "Пренеси"
-
-
-msgid "Toggle Bone Options"
-msgstr "Мање/више информација"
-
-
-msgid "Enable Bone Options"
-msgstr "Омогући опције костију"
-
-
-msgid "Disable Bone Options"
-msgstr "Онемогући опције костију"
-
-
-msgid "Mesh Select Mode"
-msgstr "Мод избора мреже"
-
-
-msgid "Merge"
-msgstr "Сједини"
 
 
 msgid "Basic"
@@ -14964,6 +14964,11 @@ msgid "Select Mode"
 msgstr "Мод изабора"
 
 
+msgctxt "Operator"
+msgid "Normalize All Vertex Groups"
+msgstr "Нормализуј све групе темена"
+
+
 msgid "Relative Paths"
 msgstr "Релативне путање"
 
@@ -17356,11 +17361,6 @@ msgstr "Поставља активну групу темена"
 
 
 msgctxt "Operator"
-msgid "Normalize All Vertex Groups"
-msgstr "Нормализуј све групе темена"
-
-
-msgctxt "Operator"
 msgid "Remove Vertex Group"
 msgstr "Уклони групу темена"
 
@@ -18342,10 +18342,6 @@ msgstr "Користи Лапласов метод за опуштање"
 msgctxt "Operator"
 msgid "Change Effect Input"
 msgstr "Измени улаз ефекта"
-
-
-msgid "The effect inputs to swap"
-msgstr "Замена улазног ефекта"
 
 
 msgctxt "Operator"
@@ -24530,11 +24526,6 @@ msgid "Linked"
 msgstr "Повезано"
 
 
-msgctxt "Image"
-msgid "New"
-msgstr "Ново"
-
-
 msgctxt "Operator"
 msgid "Edit Externally"
 msgstr "Уреди слику екстерно"
@@ -25761,6 +25752,11 @@ msgid "New"
 msgstr "Ново"
 
 
+msgctxt "Image"
+msgid "New"
+msgstr "Ново"
+
+
 msgctxt "Lattice"
 msgid "New"
 msgstr "Ново"
@@ -26334,10 +26330,6 @@ msgstr "Уређивач видео исечака"
 
 msgid "Mask not found"
 msgstr "Маскирај позадину"
-
-
-msgid "Cannot apply effect to more than 3 sequence strips"
-msgstr "Почетни кадар траке секвенце"
 
 
 msgid "2 selected sequence strips are needed"

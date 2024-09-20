@@ -212,8 +212,6 @@ bool BLI_change_working_dir(const char *dir)
     if ([[NSFileManager defaultManager] changeCurrentDirectoryPath:path] == YES) {
       return true;
     }
-    else {
-      return false;
-    }
+    return false;
   }
 }

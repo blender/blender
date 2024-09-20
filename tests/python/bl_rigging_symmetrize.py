@@ -116,6 +116,10 @@ def check_constraints(self, input_arm, expected_arm, bone, exp_bone):
                              "Mismatching constraint value types in pose.bones[%s].constraints[%s].%s" % (
                              bone.name, const_name, var))
 
+            if isinstance(value, bpy.types.bpy_prop_collection):
+                # Don't compare collection properties.
+                continue
+
             if isinstance(value, str):
                 self.assertEqual(value, exp_value,
                                  "Mismatching constraint value in pose.bones[%s].constraints[%s].%s" % (
@@ -133,10 +137,19 @@ def check_constraints(self, input_arm, expected_arm, bone, exp_bone):
                 self.assertEqual(value, exp_value,
                                  "Mismatching constraint boolean in pose.bones[%s].constraints[%s].%s" % (
                                      bone.name, const_name, var))
-            else:
+            elif isinstance(value, float):
                 msg = "Mismatching constraint value in pose.bones[%s].constraints[%s].%s" % (
                     bone.name, const_name, var)
                 self.assertAlmostEqual(value, exp_value, places=6, msg=msg)
+            elif isinstance(value, int):
+                msg = "Mismatching constraint value in pose.bones[%s].constraints[%s].%s" % (
+                    bone.name, const_name, var)
+                self.assertEqual(value, exp_value, msg=msg)
+            elif value is None:
+                # Since above the types were compared already, if value is none, so is exp_value.
+                pass
+            else:
+                self.fail(f"unexpected value type: {value!r} is of type {type(value)}")
 
 
 class AbstractAnimationTest:

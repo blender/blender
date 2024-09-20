@@ -194,8 +194,11 @@ static void poselib_blend_apply(bContext *C, wmOperator *op)
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph, 0.0f);
   bAction *to_blend = poselib_action_to_blend(pbd);
+  blender::animrig::slot_handle_t to_blend_slot_handle = blender::animrig::first_slot_handle(
+      *to_blend);
+
   blender::animrig::pose_apply_action_blend(
-      pbd->ob, to_blend, &anim_eval_context, pbd->blend_factor);
+      pbd->ob, to_blend, to_blend_slot_handle, &anim_eval_context, pbd->blend_factor);
 }
 
 /* ---------------------------- */

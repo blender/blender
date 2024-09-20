@@ -1940,10 +1940,10 @@ static void gpencil_init_drawing_brush(bContext *C, tGPsdata *p)
   p->brush = brush;
 
   Brush *eraser_brush;
-  if (p->brush->gpencil_brush_type != GPAINT_BRUSH_TYPE_ERASE &&
+  if ((p->brush->gpencil_brush_type != GPAINT_BRUSH_TYPE_ERASE) &&
       (eraser_brush = BKE_paint_eraser_brush(paint)))
   {
-    if (eraser_brush && !eraser_brush->gpencil_settings) {
+    if (!eraser_brush->gpencil_settings) {
       BKE_brush_init_gpencil_settings(eraser_brush);
     }
     p->eraser = eraser_brush;

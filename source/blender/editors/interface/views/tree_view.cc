@@ -22,6 +22,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+#include "BLI_multi_value_map.hh"
+
 #include "UI_tree_view.hh"
 
 namespace blender::ui {
@@ -219,8 +221,18 @@ void AbstractTreeView::update_children_from_old(const AbstractView &old_view)
 void AbstractTreeView::update_children_from_old_recursive(const TreeViewOrItem &new_items,
                                                           const TreeViewOrItem &old_items)
 {
+  /* This map can't find the exact old item for a new item. However, it can drastically reduce the
+   * number of items that need to be checked. */
+  MultiValueMap<StringRef, AbstractTreeViewItem *> old_children_by_label;
+  for (const auto &old_item : old_items.children_) {
+    old_children_by_label.add(old_item->label_, old_item.get());
+  }
+
   for (const auto &new_item : new_items.children_) {
-    AbstractTreeViewItem *matching_old_item = find_matching_child(*new_item, old_items);
+    const Span<AbstractTreeViewItem *> possible_old_children = old_children_by_label.lookup(
+        new_item->label_);
+    AbstractTreeViewItem *matching_old_item = find_matching_child(*new_item,
+                                                                  possible_old_children);
     if (!matching_old_item) {
       continue;
     }
@@ -233,12 +245,12 @@ void AbstractTreeView::update_children_from_old_recursive(const TreeViewOrItem &
 }
 
 AbstractTreeViewItem *AbstractTreeView::find_matching_child(
-    const AbstractTreeViewItem &lookup_item, const TreeViewOrItem &items)
+    const AbstractTreeViewItem &lookup_item, const Span<AbstractTreeViewItem *> possible_items)
 {
-  for (const auto &iter_item : items.children_) {
+  for (auto *iter_item : possible_items) {
     if (lookup_item.matches(*iter_item)) {
       /* We have a matching item! */
-      return iter_item.get();
+      return iter_item;
     }
   }
 

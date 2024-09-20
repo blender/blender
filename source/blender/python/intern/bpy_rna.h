@@ -18,7 +18,7 @@
 #  define USE_WEAKREFS
 
 /* method to invalidate removed py data, XXX, slow to remove objects, otherwise no overhead */
-/* #define USE_PYRNA_INVALIDATE_GC */
+// #define USE_PYRNA_INVALIDATE_GC
 
 /* different method */
 #  define USE_PYRNA_INVALIDATE_WEAKREF

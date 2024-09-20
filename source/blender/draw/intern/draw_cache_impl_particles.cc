@@ -833,8 +833,11 @@ static void particle_batch_cache_ensure_procedural_final_points(ParticleHairCach
 
   /* Create a destination buffer for the transform feedback. Sized appropriately */
   /* Those are points! not line segments. */
-  GPU_vertbuf_data_alloc(*cache->final[subdiv].proc_buf,
-                         cache->final[subdiv].strands_res * cache->strands_len);
+  uint point_len = cache->final[subdiv].strands_res * cache->strands_len;
+  /* Avoid creating null sized VBO which can lead to crashes on certain platforms. */
+  point_len = max_ii(1, point_len);
+
+  GPU_vertbuf_data_alloc(*cache->final[subdiv].proc_buf, point_len);
 }
 
 static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit,

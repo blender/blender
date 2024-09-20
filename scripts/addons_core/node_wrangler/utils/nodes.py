@@ -215,13 +215,13 @@ def nw_check_selected(cls, context, min=1, max=inf):
     num_selected = len(context.selected_nodes)
     if num_selected < min:
         if min > 1:
-            poll_message = tip_("At least {:s} nodes must be selected.").format(min)
+            poll_message = tip_("At least {:d} nodes must be selected.").format(min)
         else:
             poll_message = tip_("At least one node must be selected.")
         cls.poll_message_set(poll_message)
         return False
     if num_selected > max:
-        poll_message = tip_("{:s} nodes are selected, but this operator can only work on {:s}.").format(
+        poll_message = tip_("{:d} nodes are selected, but this operator can only work on {:d}.").format(
             num_selected, max)
         cls.poll_message_set(poll_message)
         return False

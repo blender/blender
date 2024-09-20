@@ -78,7 +78,8 @@ static void mesh_extract_render_data_node_exec(void *__restrict task_data)
                                DRW_vbo_requested(buffers.vbo.edit_data) ||
                                DRW_vbo_requested(buffers.vbo.vnor) ||
                                DRW_vbo_requested(buffers.vbo.vert_idx) ||
-                               DRW_vbo_requested(buffers.vbo.edge_idx);
+                               DRW_vbo_requested(buffers.vbo.edge_idx) ||
+                               DRW_vbo_requested(buffers.vbo.edge_fac);
 
   if (calc_loose_geom) {
     mesh_render_data_update_loose_geom(mr, update_task_data->cache);

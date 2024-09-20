@@ -440,7 +440,7 @@ static void versions_gpencil_add_main(Main *bmain, ListBase *lb, ID *id, const c
   id->flag = ID_FLAG_FAKEUSER;
   *((short *)id->name) = ID_GD_LEGACY;
 
-  BKE_id_new_name_validate(bmain, lb, id, name, false);
+  BKE_id_new_name_validate(*bmain, *lb, *id, name, IDNewNameMode::RenameExistingNever, false);
   /* alphabetic insertion: is in BKE_id_new_name_validate */
 
   if ((id->tag & ID_TAG_TEMP_MAIN) == 0) {

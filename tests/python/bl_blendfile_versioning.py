@@ -3,6 +3,12 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # ./blender.bin --background --python tests/python/bl_blendfile_versioning.py ..
+
+# WARNING(@ideasman42): some blend files causes the tests to fail (seemingly) at random (on Linux & macOS at least).
+# Take care when adding new files as they may break on other platforms, frequently but not on every execution.
+#
+# This needs to be investigated!
+
 import os
 import platform
 import sys

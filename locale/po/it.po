@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'd52d70324d18')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-02 14:03+0000\n"
+"POT-Creation-Date: 2024-09-16 11:03+0000\n"
 "PO-Revision-Date: 2024-08-18 03:56+0000\n"
 "Last-Translator: Francesco Bellini <doc.open.dev@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -13744,10 +13744,6 @@ msgid "Clone Image"
 msgstr "Immagine Clone"
 
 
-msgid "Image for clone tool"
-msgstr "Immagine per lo strumento clona"
-
-
 msgid "Clone Offset"
 msgstr "Offset Clone"
 
@@ -22612,20 +22608,48 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
+msgid "Names"
+msgstr "Nomi"
+
+
 msgid "Show/Hide"
 msgstr "Mostra/Nascondi"
+
+
+msgid "Apply"
+msgstr "Applica"
+
+
+msgid "Toggle Bone Options"
+msgstr "Attiva/disattiva Opzioni Osso"
+
+
+msgid "Enable Bone Options"
+msgstr "Abilita Opzioni Osso"
+
+
+msgid "Disable Bone Options"
+msgstr "Disabilita Opzioni Osso"
+
+
+msgid "Mesh Select Mode"
+msgstr "Modalità Selezione Mesh"
+
+
+msgid "Face Data"
+msgstr "Dati Faccia"
 
 
 msgid "Clean Up"
 msgstr "Ripulisci"
 
 
+msgid "Merge"
+msgstr "Unisci"
+
+
 msgid "Special Characters"
 msgstr "Caratteri Speciali"
-
-
-msgid "Names"
-msgstr "Nomi"
 
 
 msgid "Bone Roll"
@@ -22712,10 +22736,6 @@ msgid "Rigid Body"
 msgstr "Corpo Rigido"
 
 
-msgid "Apply"
-msgstr "Applica"
-
-
 msgid "Track"
 msgstr "Traccia"
 
@@ -22742,30 +22762,6 @@ msgstr "Intermedio"
 
 msgid "Propagate"
 msgstr "Propaga"
-
-
-msgid "Toggle Bone Options"
-msgstr "Attiva/disattiva Opzioni Osso"
-
-
-msgid "Enable Bone Options"
-msgstr "Abilita Opzioni Osso"
-
-
-msgid "Disable Bone Options"
-msgstr "Disabilita Opzioni Osso"
-
-
-msgid "Mesh Select Mode"
-msgstr "Modalità Selezione Mesh"
-
-
-msgid "Face Data"
-msgstr "Dati Faccia"
-
-
-msgid "Merge"
-msgstr "Unisci"
 
 
 msgid "Basic"
@@ -23837,6 +23833,10 @@ msgstr "Limita la larghezza per evitare sovrapposizioni sulle intersezioni"
 
 msgid "Vertex group name"
 msgstr "Nome del Gruppo di Vertici"
+
+
+msgid "Vertex Weight"
+msgstr "Peso del Vertice"
 
 
 msgid "Boolean Modifier"
@@ -29418,10 +29418,6 @@ msgstr "Nome Attributo Vertice"
 
 msgid "Vertex color layer"
 msgstr "Livello colori dei vertici"
-
-
-msgid "Vertex Weight"
-msgstr "Peso del Vertice"
 
 
 msgid "Vertex group weight"
@@ -35695,6 +35691,11 @@ msgstr "Modo Selezione"
 
 
 msgctxt "Operator"
+msgid "Normalize All Vertex Groups"
+msgstr "Normalizza Tutti Gruppi Vertici"
+
+
+msgctxt "Operator"
 msgid "Add Render Slot"
 msgstr "Aggiungi Slot Render"
 
@@ -40483,11 +40484,6 @@ msgstr "Normalizza i pesi del gruppo vertici attivo, cosicchè il più alto sia 
 
 
 msgctxt "Operator"
-msgid "Normalize All Vertex Groups"
-msgstr "Normalizza Tutti Gruppi Vertici"
-
-
-msgctxt "Operator"
 msgid "Quantize Vertex Weights"
 msgstr "Quantizza Pesi Vertici"
 
@@ -42904,10 +42900,6 @@ msgid "Change Effect Input"
 msgstr "Cambia ingresso dell'effetto"
 
 
-msgid "The effect inputs to swap"
-msgstr "Gli effetti in ingresso da scambiare"
-
-
 msgctxt "Operator"
 msgid "Change Effect Type"
 msgstr "Cambia Tipo di Effetto"
@@ -43507,10 +43499,6 @@ msgstr "Scambia 2 spezzoni del sequencer"
 msgctxt "Operator"
 msgid "Swap Inputs"
 msgstr "Scambia Ingressi"
-
-
-msgid "Swap the first two inputs for the effect strip"
-msgstr "Scambia i primi due ingressi per lo spezzone effetto"
 
 
 msgid "Unmute (un)selected strips"
@@ -56118,11 +56106,6 @@ msgstr "Clip Editor DopeSheet"
 
 
 msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Edit Mode"
-msgstr "Modalità Modifica Pennellata Matita"
-
-
-msgctxt "WindowManager"
 msgid "Mask Editing"
 msgstr "Modifica Maschera"
 
@@ -57608,11 +57591,6 @@ msgstr "Collegati"
 msgctxt "Operator"
 msgid "Shortest Path"
 msgstr "Percorso Più Breve"
-
-
-msgctxt "Image"
-msgid "New"
-msgstr "Nuova"
 
 
 msgctxt "Operator"
@@ -60905,6 +60883,11 @@ msgid "New"
 msgstr "Nuova"
 
 
+msgctxt "Image"
+msgid "New"
+msgstr "Nuova"
+
+
 msgctxt "Lattice"
 msgid "New"
 msgstr "Nuovo"
@@ -62555,10 +62538,6 @@ msgid "Slip offset: %d"
 msgstr "Offset troncamento: %d"
 
 
-msgid "Cannot apply effect to more than 3 sequence strips"
-msgstr "Non è possibile applicare l'effetto a più di 3 spezzoni di sequenza"
-
-
 msgid "2 selected sequence strips are needed"
 msgstr "Sono necessari 2 spezzoni sequenza selezionati"
 
@@ -63965,10 +63944,6 @@ msgstr "Piega Spigolo"
 
 msgid "Rotate islands for best fit"
 msgstr "Ruota le isole per ottimizzare lo spazio"
-
-
-msgid "{} node"
-msgstr "{} nodo"
 
 
 msgid "Shader Editor"

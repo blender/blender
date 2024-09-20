@@ -13,6 +13,10 @@
 
 #include "DNA_listBase.h"
 
+#include "BKE_anim_data.hh"
+
+#include "BLI_function_ref.hh"
+
 struct AnimData;
 struct ID;
 struct LibraryForeachIDData;
@@ -171,7 +175,7 @@ void BKE_nla_clip_length_ensure_nonzero(const float *actstart, float *r_actend);
 /**
  * Create a NLA Strip referencing the given Action.
  */
-NlaStrip *BKE_nlastrip_new(bAction *act);
+NlaStrip *BKE_nlastrip_new(bAction *act, ID &animated_id);
 
 /*
  * Removes the given NLA strip from the list of strips provided.
@@ -187,7 +191,7 @@ void BKE_nlastrip_remove_and_free(ListBase *strips, NlaStrip *strip, const bool 
  * Add new NLA-strip to the top of the NLA stack - i.e.
  * into the last track if space, or a new one otherwise.
  */
-NlaStrip *BKE_nlastack_add_strip(AnimData *adt, bAction *act, bool is_liboverride);
+NlaStrip *BKE_nlastack_add_strip(OwnedAnimData owned_adt, bAction *act, bool is_liboverride);
 /**
  * Add a NLA Strip referencing the given speaker's sound.
  */
@@ -456,7 +460,7 @@ bool BKE_nla_action_is_stashed(AnimData *adt, bAction *act);
  * "Stash" an action (i.e. store it as a track/layer in the NLA, but non-contributing)
  * to retain it in the file for future uses.
  */
-bool BKE_nla_action_stash(AnimData *adt, bool is_liboverride);
+bool BKE_nla_action_stash(OwnedAnimData owned_adt, bool is_liboverride);
 
 /* ............ */
 
@@ -468,17 +472,17 @@ bool BKE_nla_action_stash(AnimData *adt, bool is_liboverride);
  *
  * TODO: maybe we should have checks for this too.
  */
-void BKE_nla_action_pushdown(AnimData *adt, bool is_liboverride);
+void BKE_nla_action_pushdown(OwnedAnimData owned_adt, bool is_liboverride);
 
 /**
  * Find the active strip + track combination, and set them up as the tweaking track,
  * and return if successful or not.
  */
-bool BKE_nla_tweakmode_enter(AnimData *adt);
+bool BKE_nla_tweakmode_enter(OwnedAnimData owned_adt);
 /**
  * Exit tweak-mode for this AnimData block.
  */
-void BKE_nla_tweakmode_exit(AnimData *adt);
+void BKE_nla_tweakmode_exit(OwnedAnimData owned_adt);
 
 /**
  * Clear all NLA Tweak Mode related flags on the ADT, tracks, and strips.
@@ -488,12 +492,12 @@ void BKE_nla_tweakmode_clear_flags(AnimData *adt);
 /**
  * Partially exit NLA tweak-mode for this AnimData block, without following any
  * pointers to other data-blocks. This means no strip length syncing (as that
- * needs to know info about the strip's Action), and no reference counting on
- * the Action.
+ * needs to know info about the strip's Action), no reference counting on the
+ * Action, and no user update on the Action Slot.
  *
  * This function just writes to the AnimData-owned data. It is intended to be
- * used in blend-file reading code, which performs a reference count later
- * anyway.
+ * used in blend-file reading code, which performs a reference count + rebuilds
+ * the slot user map later anyway.
  */
 void BKE_nla_tweakmode_exit_nofollowptr(AnimData *adt);
 
@@ -545,3 +549,37 @@ void BKE_nla_liboverride_post_process(ID *id, AnimData *adt);
  * Either of the parameters can be NULL, but not both.
  */
 void BKE_nla_debug_print_flags(AnimData *adt, ID *owner_id);
+
+namespace blender::bke::nla {
+
+/**
+ * Call the callback for every strip of this ID's NLA.
+ *
+ * Automatically recurses into meta-strips.
+ *
+ * The callback should return a 'keep going' status, i.e. `true` to keep
+ * looping, and `false` to break the loop.
+ *
+ * \return the last value returned by the callback, so `true` if the loop ran
+ * until the end, and `false` it was stopped by the callback. When there is no
+ * NLA or it has no strips, returns `true` because the loop ran until its
+ * natural end and wasn't stopped by the callback.
+ */
+bool foreach_strip(ID *id, blender::FunctionRef<bool(NlaStrip *)> callback);
+
+/**
+ * Call the callback for every strip of this AnimData's NLA.
+ *
+ * Automatically recurses into meta-strips.
+ *
+ * The callback should return a 'keep going' status, i.e. `true` to keep
+ * looping, and `false` to break the loop.
+ *
+ * \return the last value returned by the callback, so `true` if the loop ran
+ * until the end, and `false` it was stopped by the callback. When there is no
+ * NLA or it has no strips, returns `true` because the loop ran until its
+ * natural end and wasn't stopped by the callback.
+ */
+bool foreach_strip_adt(const AnimData &adt, blender::FunctionRef<bool(NlaStrip *)> callback);
+
+}  // namespace blender::bke::nla

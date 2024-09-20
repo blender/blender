@@ -63,16 +63,18 @@ void ED_operatortypes_grease_pencil_edit();
 void ED_operatortypes_grease_pencil_material();
 void ED_operatortypes_grease_pencil_primitives();
 void ED_operatortypes_grease_pencil_weight_paint();
+void ED_operatortypes_grease_pencil_vertex_paint();
 void ED_operatortypes_grease_pencil_interpolate();
 void ED_operatortypes_grease_pencil_lineart();
 void ED_operatortypes_grease_pencil_trace();
+void ED_operatortypes_grease_pencil_bake_animation();
 void ED_operatormacros_grease_pencil();
 void ED_keymap_grease_pencil(wmKeyConfig *keyconf);
 void ED_primitivetool_modal_keymap(wmKeyConfig *keyconf);
 void ED_filltool_modal_keymap(wmKeyConfig *keyconf);
 void ED_interpolatetool_modal_keymap(wmKeyConfig *keyconf);
 
-void GREASE_PENCIL_OT_stroke_cutter(wmOperatorType *ot);
+void GREASE_PENCIL_OT_stroke_trim(wmOperatorType *ot);
 
 void ED_undosys_type_grease_pencil(UndoType *undo_type);
 
@@ -128,7 +130,8 @@ class DrawingPlacement {
                    const View3D &view3d,
                    const Object &eval_object,
                    const bke::greasepencil::Layer *layer,
-                   ReprojectMode reproject_mode);
+                   ReprojectMode reproject_mode,
+                   float surface_offset = 0.0f);
   DrawingPlacement(const DrawingPlacement &other);
   DrawingPlacement(DrawingPlacement &&other);
   DrawingPlacement &operator=(const DrawingPlacement &other);
@@ -497,6 +500,12 @@ void normalize_vertex_weights(MDeformVert &dvert,
                               Span<bool> vertex_group_is_locked,
                               Span<bool> vertex_group_is_bone_deformed);
 
+/** Adds vertex groups for the bones in the armature (with matching names). */
+bool add_armature_vertex_groups(Object &object, const Object &armature);
+/** Create vertex groups for the bones in the armature and use the bone envelopes to assign
+ * weights. */
+void add_armature_envelope_weights(Scene &scene, Object &object, const Object &ob_armature);
+
 void clipboard_free();
 const bke::CurvesGeometry &clipboard_curves();
 /**
@@ -817,14 +826,14 @@ bool apply_mask_as_segment_selection(bke::CurvesGeometry &curves,
                                      GrainSize grain_size,
                                      eSelectOp sel_op);
 
-namespace cutter {
+namespace trim {
 bke::CurvesGeometry trim_curve_segments(const bke::CurvesGeometry &src,
                                         Span<float2> screen_space_positions,
                                         Span<rcti> screen_space_curve_bounds,
                                         const IndexMask &curve_selection,
                                         const Vector<Vector<int>> &selected_points_in_curves,
                                         bool keep_caps);
-};  // namespace cutter
+};  // namespace trim
 
 /* Lineart */
 

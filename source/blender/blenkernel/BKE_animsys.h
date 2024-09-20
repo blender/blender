@@ -206,27 +206,6 @@ void BKE_animdata_transfer_by_basepath(struct Main *bmain,
                                        struct ID *dstID,
                                        struct ListBase *basepaths);
 
-/* ************************************* */
-/* Batch AnimData API */
-
-/* Define for callback looper used in BKE_animdata_main_cb */
-typedef void (*ID_AnimData_Edit_Callback)(struct ID *id, struct AnimData *adt, void *user_data);
-
-/* Define for callback looper used in BKE_fcurves_main_cb */
-typedef void (*ID_FCurve_Edit_Callback)(struct ID *id, struct FCurve *fcu, void *user_data);
-
-/* Loop over all datablocks applying callback */
-void BKE_animdata_main_cb(struct Main *bmain, ID_AnimData_Edit_Callback func, void *user_data);
-
-/** Apply the given callback function on all F-Curves attached to data in `main` database. */
-void BKE_fcurves_main_cb(struct Main *bmain, ID_FCurve_Edit_Callback func, void *user_data);
-
-/* Look over all f-curves of a given ID. */
-void BKE_fcurves_id_cb(struct ID *id, ID_FCurve_Edit_Callback func, void *user_data);
-
-/* ************************************* */
-/* TODO: overrides, remapping, and path-finding API's. */
-
 /* ------------ NLA Keyframing --------------- */
 
 typedef struct NlaKeyframingContext NlaKeyframingContext;
@@ -330,15 +309,21 @@ void BKE_animsys_evaluate_all_animation(struct Main *main,
  *      Particles/Sequencer performing funky time manipulation is not ok.
  */
 
-/* Evaluate Action (F-Curve Bag) */
+/**
+ * Evaluate Action (F-Curve Bag).
+ *
+ * Note that this is only used for either legacy Actions or for evaluation of the NLA.
+ */
 void animsys_evaluate_action(struct PointerRNA *ptr,
                              struct bAction *act,
+                             int32_t action_slot_handle,
                              const struct AnimationEvalContext *anim_eval_context,
                              bool flush_to_original);
 
 /* Evaluate action, and blend the result into the current values (instead of overwriting fully). */
 void animsys_blend_in_action(struct PointerRNA *ptr,
                              struct bAction *act,
+                             int32_t action_slot_handle,
                              const AnimationEvalContext *anim_eval_context,
                              float blend_factor);
 

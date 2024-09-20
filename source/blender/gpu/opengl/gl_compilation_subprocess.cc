@@ -283,7 +283,8 @@ void GPU_compilation_subprocess_run(const char *subprocess_name)
   GHOST_DisposeSystem(ghost_system);
 }
 
-void GPU_shader_cache_dir_clear_old()
+namespace blender::gpu {
+void GL_shader_cache_dir_clear_old()
 {
   std::string cache_dir = cache_dir_get();
 
@@ -302,5 +303,6 @@ void GPU_shader_cache_dir_clear_old()
   }
   BLI_filelist_free(entries, dir_len);
 }
+}  // namespace blender::gpu
 
 #endif

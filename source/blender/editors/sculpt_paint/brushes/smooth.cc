@@ -21,6 +21,7 @@
 #include "BLI_virtual_array.hh"
 
 #include "editors/sculpt_paint/mesh_brush_common.hh"
+#include "editors/sculpt_paint/sculpt_automask.hh"
 #include "editors/sculpt_paint/sculpt_boundary.hh"
 #include "editors/sculpt_paint/sculpt_intern.hh"
 #include "editors/sculpt_paint/sculpt_smooth.hh"
@@ -57,14 +58,13 @@ struct LocalData {
 BLI_NOINLINE static void apply_positions_faces(const Depsgraph &depsgraph,
                                                const Sculpt &sd,
                                                const Brush &brush,
-                                               const Span<float3> positions_eval,
                                                const Span<float3> vert_normals,
                                                const bke::pbvh::MeshNode &node,
                                                const float strength,
                                                Object &object,
                                                LocalData &tls,
                                                const Span<float3> new_positions,
-                                               MutableSpan<float3> positions_orig)
+                                               const PositionDeformData &position_data)
 {
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
@@ -75,7 +75,7 @@ BLI_NOINLINE static void apply_positions_faces(const Depsgraph &depsgraph,
   tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(mesh, verts, factors);
-  filter_region_clip_factors(ss, positions_eval, verts, factors);
+  filter_region_clip_factors(ss, position_data.eval, verts, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
     calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
   }
@@ -83,7 +83,7 @@ BLI_NOINLINE static void apply_positions_faces(const Depsgraph &depsgraph,
   tls.distances.resize(verts.size());
   const MutableSpan<float> distances = tls.distances;
   calc_brush_distances(
-      ss, positions_eval, verts, eBrushFalloffShape(brush.falloff_shape), distances);
+      ss, position_data.eval, verts, eBrushFalloffShape(brush.falloff_shape), distances);
   filter_distances_with_radius(cache.radius, distances, factors);
   apply_hardness_to_distances(cache, distances);
   calc_brush_strength_factors(cache, brush, distances, factors);
@@ -92,14 +92,15 @@ BLI_NOINLINE static void apply_positions_faces(const Depsgraph &depsgraph,
 
   scale_factors(factors, strength);
 
-  calc_brush_texture_factors(ss, brush, positions_eval, verts, factors);
+  calc_brush_texture_factors(ss, brush, position_data.eval, verts, factors);
 
   tls.translations.resize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
-  translations_from_new_positions(new_positions, verts, positions_eval, translations);
+  translations_from_new_positions(new_positions, verts, position_data.eval, translations);
   scale_translations(translations, factors);
 
-  write_translations(depsgraph, sd, object, positions_eval, verts, translations, positions_orig);
+  clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+  position_data.deform(translations, verts);
 }
 
 BLI_NOINLINE static void do_smooth_brush_mesh(const Depsgraph &depsgraph,
@@ -115,12 +116,12 @@ BLI_NOINLINE static void do_smooth_brush_mesh(const Depsgraph &depsgraph,
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
 
-  const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
+  const PositionDeformData position_data(depsgraph, object);
   const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, object);
-  MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
 
   Array<int> node_offset_data;
   const OffsetIndices<int> node_vert_offsets = create_node_vert_offsets(
@@ -139,13 +140,13 @@ BLI_NOINLINE static void do_smooth_brush_mesh(const Depsgraph &depsgraph,
       tls.vert_neighbors.resize(verts.size());
       calc_vert_neighbors_interior(faces,
                                    corner_verts,
-                                   ss.vert_to_face_map,
+                                   vert_to_face_map,
                                    ss.vertex_info.boundary,
                                    hide_poly,
                                    verts,
                                    tls.vert_neighbors);
       smooth::neighbor_data_average_mesh_check_loose(
-          positions_eval,
+          position_data.eval,
           verts,
           tls.vert_neighbors,
           new_positions.as_mutable_span().slice(node_vert_offsets[pos]));
@@ -156,14 +157,13 @@ BLI_NOINLINE static void do_smooth_brush_mesh(const Depsgraph &depsgraph,
       apply_positions_faces(depsgraph,
                             sd,
                             brush,
-                            positions_eval,
                             vert_normals,
                             nodes[i],
                             strength,
                             object,
                             tls,
                             new_positions.as_span().slice(node_vert_offsets[pos]),
-                            positions_orig);
+                            position_data);
     });
   }
 }
@@ -329,6 +329,8 @@ void do_smooth_brush(const Depsgraph &depsgraph,
       break;
     }
   }
+  pbvh.tag_positions_changed(node_mask);
+  bke::pbvh::update_bounds(depsgraph, object, pbvh);
 }
 
 }  // namespace blender::ed::sculpt_paint

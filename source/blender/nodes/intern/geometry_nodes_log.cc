@@ -337,31 +337,31 @@ void GeoTreeLog::ensure_node_warnings(const bNodeTree *tree)
   reduced_node_warnings_ = true;
 }
 
-void GeoTreeLog::ensure_node_run_time()
+void GeoTreeLog::ensure_execution_times()
 {
-  if (reduced_node_run_times_) {
+  if (reduced_execution_times_) {
     return;
   }
   for (GeoTreeLogger *tree_logger : tree_loggers_) {
     for (const GeoTreeLogger::NodeExecutionTime &timings : tree_logger->node_execution_times) {
       const std::chrono::nanoseconds duration = timings.end - timings.start;
-      this->nodes.lookup_or_add_default_as(timings.node_id).run_time += duration;
-      this->run_time_sum += duration;
+      this->nodes.lookup_or_add_default_as(timings.node_id).execution_time += duration;
     }
+    this->execution_time += tree_logger->execution_time;
   }
   for (const ComputeContextHash &child_hash : children_hashes_) {
     GeoTreeLog &child_log = modifier_log_->get_tree_log(child_hash);
     if (child_log.tree_loggers_.is_empty()) {
       continue;
     }
-    child_log.ensure_node_run_time();
+    child_log.ensure_execution_times();
     const std::optional<int32_t> &parent_node_id = child_log.tree_loggers_[0]->parent_node_id;
     if (parent_node_id.has_value()) {
-      this->nodes.lookup_or_add_default(*parent_node_id).run_time += child_log.run_time_sum;
+      this->nodes.lookup_or_add_default(*parent_node_id).execution_time +=
+          child_log.execution_time;
     }
-    this->run_time_sum += child_log.run_time_sum;
   }
-  reduced_node_run_times_ = true;
+  reduced_execution_times_ = true;
 }
 
 void GeoTreeLog::ensure_socket_values()

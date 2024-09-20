@@ -26,8 +26,7 @@ ccl_device_noinline void svm_node_hsv(KernelGlobals kg,
 
   color = rgb_to_hsv(color);
 
-  /* Remember: `fmodf` doesn't work for negative numbers here. */
-  color.x = fmodf(color.x + hue + 0.5f, 1.0f);
+  color.x = fractf(color.x + hue + 0.5f);
   color.y = saturatef(color.y * sat);
   color.z *= val;
 

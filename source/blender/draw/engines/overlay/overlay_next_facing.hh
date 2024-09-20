@@ -73,8 +73,7 @@ class Facing {
     else {
       blender::gpu::Batch *geom = DRW_cache_object_surface_get(ob_ref.object);
       if (geom) {
-        ResourceHandle handle = manager.resource_handle(ob_ref);
-        ps_.draw(geom, handle);
+        ps_.draw(geom, manager.unique_handle(ob_ref));
       }
     }
   }

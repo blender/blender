@@ -69,7 +69,7 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   ops.gpencil.primitive_line
   ops.gpencil.primitive_polyline
   ops.gpencil.radius
-  ops.gpencil.stroke_cutter
+  ops.gpencil.stroke_trim
   ops.gpencil.transform_fill
   ops.mesh.bevel
   ops.mesh.bisect

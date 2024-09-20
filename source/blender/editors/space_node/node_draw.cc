@@ -551,6 +551,10 @@ static bool node_update_basis_socket(const bContext &C,
 }
 
 struct NodeInterfaceItemData {
+ private:
+  NodeInterfaceItemData() = default;
+
+ public:
   /* Declaration of a socket (only for socket items). */
   const nodes::SocketDeclaration *socket_decl = nullptr;
   bNodeSocket *input = nullptr;
@@ -563,6 +567,8 @@ struct NodeInterfaceItemData {
   bNodePanelState *state = nullptr;
   /* Runtime panel state for draw locations. */
   bke::bNodePanelRuntime *runtime = nullptr;
+
+  bool is_separator = false;
 
   NodeInterfaceItemData(const nodes::SocketDeclaration *_socket_decl,
                         bNodeSocket *_input,
@@ -577,6 +583,13 @@ struct NodeInterfaceItemData {
   {
   }
 
+  static NodeInterfaceItemData separator()
+  {
+    NodeInterfaceItemData item;
+    item.is_separator = true;
+    return item;
+  }
+
   bool is_valid_socket() const
   {
     /* At least one socket pointer must be valid. */
@@ -587,6 +600,11 @@ struct NodeInterfaceItemData {
   {
     /* Panel can only be drawn when state data is available. */
     return this->panel_decl && this->state && this->runtime;
+  }
+
+  bool is_valid_separator() const
+  {
+    return this->is_separator;
   }
 };
 
@@ -666,6 +684,10 @@ static Vector<NodeInterfaceItemData> node_build_item_data(bNode &node)
       ++panel_state;
       ++panel_runtime;
     }
+    else if (dynamic_cast<const nodes::SeparatorDeclaration *>(item_decl->get())) {
+      ++item_decl;
+      result.append(NodeInterfaceItemData::separator());
+    }
   }
   return result;
 }
@@ -729,6 +751,9 @@ static void node_update_panel_items_visibility_recursive(int num_items,
           parent_state.flag |= NODE_PANEL_CONTENT_VISIBLE;
         }
       }
+    }
+    else if (item.is_valid_separator()) {
+      /* Nothing to do. */
     }
     else {
       /* Should not happen. */
@@ -867,6 +892,20 @@ static void add_panel_items_recursive(const bContext &C,
         state.is_first = false;
         state.need_spacer_after_item = true;
       }
+    }
+    else if (item.is_valid_separator()) {
+      uiLayout *layout = UI_block_layout(&block,
+                                         UI_LAYOUT_VERTICAL,
+                                         UI_LAYOUT_PANEL,
+                                         locx + NODE_DYS,
+                                         locy,
+                                         NODE_WIDTH(node) - NODE_DY,
+                                         NODE_DY,
+                                         0,
+                                         UI_style_get_dpi());
+      uiItemS_ex(layout, 1.0, LayoutSeparatorType::Line);
+      UI_block_layout_resolve(&block, nullptr, nullptr);
+      locy -= NODE_ITEM_SPACING_Y;
     }
     else {
       /* Should not happen. */
@@ -2735,7 +2774,7 @@ static std::optional<std::chrono::nanoseconds> geo_node_get_execution_time(
     return std::nullopt;
   }
   if (node.type == NODE_GROUP_OUTPUT) {
-    return tree_log->run_time_sum;
+    return tree_log->execution_time;
   }
   if (node.is_frame()) {
     /* Could be cached in the future if this recursive code turns out to be slow. */
@@ -2755,7 +2794,7 @@ static std::optional<std::chrono::nanoseconds> geo_node_get_execution_time(
         if (const geo_log::GeoNodeLog *node_log = tree_log->nodes.lookup_ptr_as(tnode->identifier))
         {
           found_node = true;
-          run_time += node_log->run_time;
+          run_time += node_log->execution_time;
         }
       }
     }
@@ -2765,7 +2804,7 @@ static std::optional<std::chrono::nanoseconds> geo_node_get_execution_time(
     return std::nullopt;
   }
   if (const geo_log::GeoNodeLog *node_log = tree_log->nodes.lookup_ptr(node.identifier)) {
-    return node_log->run_time;
+    return node_log->execution_time;
   }
   return std::nullopt;
 }
@@ -3396,7 +3435,7 @@ static void node_draw_basis(const bContext &C,
   float iconofs = rct.xmax - 0.35f * U.widget_unit;
 
   /* Group edit. This icon should be the first for the node groups. */
-  if (node.type == NODE_GROUP) {
+  if (node.is_group()) {
     iconofs -= iconbutw;
     UI_block_emboss_set(&block, UI_EMBOSS_NONE);
     uiBut *but = uiDefIconBut(&block,
@@ -3443,7 +3482,7 @@ static void node_draw_basis(const bContext &C,
                     (void *)"NODE_OT_preview_toggle");
     UI_block_emboss_set(&block, UI_EMBOSS);
   }
-  if (node.is_group() && node.typeinfo->ui_icon != ICON_NONE) {
+  if (ELEM(node.type, NODE_CUSTOM, NODE_CUSTOM_GROUP) && node.typeinfo->ui_icon != ICON_NONE) {
     iconofs -= iconbutw;
     UI_block_emboss_set(&block, UI_EMBOSS_NONE);
     uiDefIconBut(&block,
@@ -4777,7 +4816,7 @@ static void draw_nodetree(const bContext &C,
         *snode);
     for (geo_log::GeoTreeLog *log : tree_draw_ctx.geo_log_by_zone.values()) {
       log->ensure_node_warnings(&ntree);
-      log->ensure_node_run_time();
+      log->ensure_execution_times();
     }
     const WorkSpace *workspace = CTX_wm_workspace(&C);
     tree_draw_ctx.active_geometry_nodes_viewer = viewer_path::find_geometry_nodes_viewer(

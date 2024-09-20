@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'd52d70324d18')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-02 14:03+0000\n"
+"POT-Creation-Date: 2024-09-16 11:03+0000\n"
 "PO-Revision-Date: 2024-03-13 11:04+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -14889,10 +14889,6 @@ msgid "Clone Image"
 msgstr "Клонувати зображення"
 
 
-msgid "Image for clone tool"
-msgstr "Зображення для інструменту клонування"
-
-
 msgid "Clone Offset"
 msgstr "Клонувати зсув"
 
@@ -15279,10 +15275,6 @@ msgstr "Інвертувати модуляцію натиску в жорстк
 
 msgid "Invert to Scrape or Fill"
 msgstr "Інвертувати у Шкрябання або Заповнення"
-
-
-msgid "Use Scrape or Fill tool when inverting this brush instead of inverting its displacement direction"
-msgstr "Вжити засіб Шкрябання або Заповнення при інвертуванні цього пензля замість інвертування напрямку його зміщення"
 
 
 msgid "Invert Pressure for Wet Mix"
@@ -26967,12 +26959,52 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
+msgid "Names"
+msgstr "Назви"
+
+
 msgid "Show/Hide"
 msgstr "Показати/приховати"
 
 
+msgid "Apply"
+msgstr "Застосувати"
+
+
+msgid "Toggle Bone Options"
+msgstr "Перемкнути параметри кісток"
+
+
+msgid "Enable Bone Options"
+msgstr "Увімкнути параметри кісток"
+
+
+msgid "Disable Bone Options"
+msgstr "Відключити параметри кісток"
+
+
+msgid "Mesh Select Mode"
+msgstr "Режим Вибору Сіті"
+
+
+msgid "Face Data"
+msgstr "Дані граней"
+
+
+msgid "Select by Face Strength"
+msgstr "Вибрати за Силою Грані"
+
+
+msgid "Set Face Strength"
+msgstr "Задати Силу Грані"
+
+
 msgid "Clean Up"
 msgstr "Вичищення"
+
+
+msgid "Merge"
+msgstr "Об'єднання"
 
 
 msgid "Special Characters"
@@ -26981,10 +27013,6 @@ msgstr "Спеціальні символи"
 
 msgid "Kerning"
 msgstr "Кернінг"
-
-
-msgid "Names"
-msgstr "Назви"
 
 
 msgid "Bone Roll"
@@ -27091,10 +27119,6 @@ msgid "Rigid Body"
 msgstr "Тверде тіло"
 
 
-msgid "Apply"
-msgstr "Застосувати"
-
-
 msgid "Track"
 msgstr "Стеження"
 
@@ -27141,38 +27165,6 @@ msgstr "У проміжках"
 
 msgid "Propagate"
 msgstr "Поширити"
-
-
-msgid "Toggle Bone Options"
-msgstr "Перемкнути параметри кісток"
-
-
-msgid "Enable Bone Options"
-msgstr "Увімкнути параметри кісток"
-
-
-msgid "Disable Bone Options"
-msgstr "Відключити параметри кісток"
-
-
-msgid "Mesh Select Mode"
-msgstr "Режим Вибору Сіті"
-
-
-msgid "Face Data"
-msgstr "Дані граней"
-
-
-msgid "Select by Face Strength"
-msgstr "Вибрати за Силою Грані"
-
-
-msgid "Set Face Strength"
-msgstr "Задати Силу Грані"
-
-
-msgid "Merge"
-msgstr "Об'єднання"
 
 
 msgid "Basic"
@@ -28860,6 +28852,10 @@ msgstr "Усікти за шириною, щоб уникнути перекри
 
 msgid "Vertex group name"
 msgstr "Назва групи вершин"
+
+
+msgid "Vertex Weight"
+msgstr "Вагомість вершини"
 
 
 msgid "Vertex Mesh Method"
@@ -37448,10 +37444,6 @@ msgstr "Атрибут вершин для використання для ко�
 
 msgid "Vertex color layer"
 msgstr "Шар кольору вершин"
-
-
-msgid "Vertex Weight"
-msgstr "Вагомість вершини"
 
 
 msgid "Vertex group weight"
@@ -47848,6 +47840,11 @@ msgstr "Вибрати усі точки штрихів між іншими шт
 
 
 msgctxt "Operator"
+msgid "Normalize All Vertex Groups"
+msgstr "Нормалізувати всі групи вершин"
+
+
+msgctxt "Operator"
 msgid "Add Render Slot"
 msgstr "Додати Гніздо Рендера"
 
@@ -54926,11 +54923,6 @@ msgstr "Нормалізувати вагомості активної груп�
 
 
 msgctxt "Operator"
-msgid "Normalize All Vertex Groups"
-msgstr "Нормалізувати всі групи вершин"
-
-
-msgctxt "Operator"
 msgid "Quantize Vertex Weights"
 msgstr "Квантувати вагу вершин"
 
@@ -59171,10 +59163,6 @@ msgid "Change Effect Input"
 msgstr "Змінити ввід ефекту"
 
 
-msgid "The effect inputs to swap"
-msgstr "Вводи ефектів для обміну"
-
-
 msgctxt "Operator"
 msgid "Change Effect Type"
 msgstr "Змінити тип ефекту"
@@ -60080,10 +60068,6 @@ msgstr "Обміняти 2 смужки у відеоряднику"
 msgctxt "Operator"
 msgid "Swap Inputs"
 msgstr "Обміняти вводи"
-
-
-msgid "Swap the first two inputs for the effect strip"
-msgstr "Поміняти місцями перші два вводи для смужки ефекту"
 
 
 msgctxt "Operator"
@@ -66331,8 +66315,8 @@ msgstr "Вибірка Групи Вершин"
 
 
 msgctxt "Operator"
-msgid "Cutter"
-msgstr "Різак"
+msgid "Trim"
+msgstr "Підріз"
 
 
 msgctxt "Operator"
@@ -66363,6 +66347,11 @@ msgstr "Коробка"
 msgctxt "Operator"
 msgid "Circle"
 msgstr "Коло"
+
+
+msgctxt "Operator"
+msgid "Cutter"
+msgstr "Різак"
 
 
 msgid "Expand or contract the radius of the selected points"
@@ -81631,131 +81620,6 @@ msgstr "Редактор Аркуша експозицій для кліпів"
 
 
 msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Curve Edit Mode"
-msgstr "Режим Редагування Кривої Штриха Нарисного Олівця"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Edit Mode"
-msgstr "Режим Редагування Штриха Нарисного Олівця"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Paint (Draw brush)"
-msgstr "Малювання Штриха Нарисного Олівця (пензель Рисування)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Paint (Fill)"
-msgstr "Малювання Штриха Нарисного Олівця (Заповнення)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Paint (Erase)"
-msgstr "Малювання Штриха Нарисного Олівця (Стирання)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Paint (Tint)"
-msgstr "Малювання Штриха Нарисного Олівця (Підбарвлення)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Paint Mode"
-msgstr "Режим Малювання Штриха Нарисного Олівця"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt Mode"
-msgstr "Режим Ліплення Штриха Нарисного Олівця"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt (Smooth)"
-msgstr "Ліплення Штриха Нарисного Олівця (Згладження)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt (Thickness)"
-msgstr "Ліплення Штриха Нарисного Олівця (Товщина)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt (Strength)"
-msgstr "Ліплення Штриха Нарисного Олівця (Сила)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt (Grab)"
-msgstr "Ліплення Штриха Нарисного Олівця (Захоп)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt (Push)"
-msgstr "Ліплення Штриха Нарисного Олівця (Уштовх)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt (Twist)"
-msgstr "Ліплення Штриха Нарисного Олівця (Кручення)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt (Pinch)"
-msgstr "Ліплення Штриха Нарисного Олівця (Прищемлення)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt (Randomize)"
-msgstr "Ліплення Штриха Нарисного Олівця (Рандомізація)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt (Clone)"
-msgstr "Ліплення Штриха Нарисного Олівця (Клонування)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Weight Mode"
-msgstr "Режим Виваження Штриха Нарисного Олівця"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Weight (Draw)"
-msgstr "Вагомість Штриха Нарисного Олівця (Рисування)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Vertex Mode"
-msgstr "Режим Вершин Штриха Нарисного Олівця"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Vertex (Draw)"
-msgstr "Вершина Штриха Нарисного Олівця (Рисування)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Vertex (Blur)"
-msgstr "Вершина Штриха Нарисного Олівця (Розмив)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Vertex (Average)"
-msgstr "Вершина Штриха Нарисного Олівця (Усереднення)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Vertex (Smear)"
-msgstr "Вершина Штриха Нарисного Олівця (Розмазання)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Vertex (Replace)"
-msgstr "Вершина Штриха Нарисного Олівця (Заміна)"
-
-
-msgctxt "WindowManager"
 msgid "Mask Editing"
 msgstr "Редагування маски"
 
@@ -84885,11 +84749,6 @@ msgid "Shortest Path"
 msgstr "Найкоротший Шлях"
 
 
-msgctxt "Image"
-msgid "New"
-msgstr "Новий"
-
-
 msgctxt "Operator"
 msgid "Save All Images"
 msgstr "Зберегти Всі Зображення"
@@ -87085,11 +86944,6 @@ msgstr "Фіксовано"
 msgctxt "Operator"
 msgid "Adaptive"
 msgstr "Адаптивно"
-
-
-msgctxt "Operator"
-msgid "Trim"
-msgstr "Підріз"
 
 
 msgctxt "Operator"
@@ -90136,6 +89990,11 @@ msgid "New"
 msgstr "Новий"
 
 
+msgctxt "Image"
+msgid "New"
+msgstr "Новий"
+
+
 msgctxt "Lattice"
 msgid "New"
 msgstr "Новий"
@@ -93023,10 +92882,6 @@ msgid "Cannot apply effects to audio sequence strips"
 msgstr "Неможливо застосувати ефект до звукової смужки послідовності"
 
 
-msgid "Cannot apply effect to more than 3 sequence strips"
-msgstr "Неможливо застосувати ефект до більше ніж 3 смужок послідовності"
-
-
 msgid "At least one selected sequence strip is needed"
 msgstr "Потрібно вибрати принаймні одну смужку послідовності"
 
@@ -94574,20 +94429,12 @@ msgid "Sequences.new_effect: effect takes 2 input sequences"
 msgstr "Sequences.new_effect: ефект отримує 2 ввідні послідовності"
 
 
-msgid "Sequences.new_effect: effect takes 3 input sequences"
-msgstr "Sequences.new_effect: ефект отримує 3 ввідні послідовності"
-
-
 msgid "SequenceElements.pop: cannot pop the last element"
 msgstr "SequenceElements.pop: неможливо виштовхнути останній елемент"
 
 
 msgid "SequenceElements.pop: index out of range"
 msgstr "SequenceElements.pop: індекс за межами"
-
-
-msgid "Sequences.new_effect: effect expects more than 3 inputs (%d, should never happen!)"
-msgstr "Sequences.new_effect: ефект потребує більше ніж 3 вводи (%d, не повинно відбутись)"
 
 
 msgid "Sequence '%s' not in scene '%s'"

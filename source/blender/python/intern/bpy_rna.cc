@@ -90,7 +90,7 @@
 
 BPy_StructRNA *bpy_context_module = nullptr; /* for fast access */
 
-static PyObject *pyrna_struct_CreatePyObject_from_type(PointerRNA *ptr,
+static PyObject *pyrna_struct_CreatePyObject_from_type(const PointerRNA *ptr,
                                                        PyTypeObject *tp,
                                                        void **instance);
 
@@ -6500,7 +6500,7 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
 
   /* enable this so all strings are copied and freed after calling.
    * this exposes bugs where the pointer to the string is held and re-used */
-  /* #define DEBUG_STRING_FREE */
+  // #define DEBUG_STRING_FREE
 
 #ifdef DEBUG_STRING_FREE
   PyObject *string_free_ls = PyList_New(0);
@@ -7624,7 +7624,7 @@ static PyObject *pyrna_struct_Subtype(PointerRNA *ptr)
  * A lower level version of #pyrna_struct_CreatePyObject,
  * use this when type (`tp`) needs to be set to a non-standard value.
  */
-static PyObject *pyrna_struct_CreatePyObject_from_type(PointerRNA *ptr,
+static PyObject *pyrna_struct_CreatePyObject_from_type(const PointerRNA *ptr,
                                                        PyTypeObject *tp,
                                                        void **instance)
 {
@@ -9235,6 +9235,7 @@ static PyObject *pyrna_register_class(PyObject * /*self*/, PyObject *py_class)
   if (!BLI_listbase_is_empty(&reports.list)) {
     const bool has_error = (BPy_reports_to_error(&reports, PyExc_RuntimeError, false) == -1);
     if (!has_error) {
+      BKE_report_print_level_set(&reports, G.quiet ? RPT_WARNING : RPT_DEBUG);
       BPy_reports_write_stdout(&reports, error_prefix);
     }
     if (has_error) {

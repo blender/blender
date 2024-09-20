@@ -15,10 +15,14 @@
 #include "DNA_object_types.h"
 #include "RNA_access.hh"
 
+#include "ANIM_action.hh"
+
+namespace blender::animrig {
+
 namespace {
 
-using ActionApplier =
-    blender::FunctionRef<void(PointerRNA *, bAction *, const AnimationEvalContext *)>;
+using ActionApplier = blender::FunctionRef<void(
+    PointerRNA *, bAction *, slot_handle_t, const AnimationEvalContext *)>;
 
 void pose_apply_restore_fcurves(bAction *action)
 {
@@ -42,6 +46,7 @@ void pose_apply_disable_fcurves_for_unselected_bones(
 
 void pose_apply(Object *ob,
                 bAction *action,
+                const slot_handle_t slot_handle,
                 const AnimationEvalContext *anim_eval_context,
                 ActionApplier applier)
 {
@@ -64,7 +69,7 @@ void pose_apply(Object *ob,
   /* Apply the Action. */
   PointerRNA pose_owner_ptr = RNA_id_pointer_create(&ob->id);
 
-  applier(&pose_owner_ptr, action, anim_eval_context);
+  applier(&pose_owner_ptr, action, slot_handle, anim_eval_context);
 
   if (limit_to_selected_bones) {
     pose_apply_restore_fcurves(action);
@@ -73,40 +78,44 @@ void pose_apply(Object *ob,
 
 }  // namespace
 
-namespace blender::animrig {
-
 void pose_apply_action_selected_bones(Object *ob,
                                       bAction *action,
+                                      const int32_t slot_handle,
                                       const AnimationEvalContext *anim_eval_context)
 {
-  auto evaluate_and_apply =
-      [](PointerRNA *ptr, bAction *act, const AnimationEvalContext *anim_eval_context) {
-        animsys_evaluate_action(ptr, act, anim_eval_context, false);
-      };
+  auto evaluate_and_apply = [](PointerRNA *ptr,
+                               bAction *act,
+                               const int32_t slot_handle,
+                               const AnimationEvalContext *anim_eval_context) {
+    animsys_evaluate_action(ptr, act, slot_handle, anim_eval_context, false);
+  };
 
-  pose_apply(ob, action, anim_eval_context, evaluate_and_apply);
+  pose_apply(ob, action, slot_handle, anim_eval_context, evaluate_and_apply);
 }
 
 void pose_apply_action_all_bones(Object *ob,
                                  bAction *action,
+                                 const int32_t slot_handle,
                                  const AnimationEvalContext *anim_eval_context)
 {
   PointerRNA pose_owner_ptr = RNA_id_pointer_create(&ob->id);
-  animsys_evaluate_action(&pose_owner_ptr, action, anim_eval_context, false);
+  animsys_evaluate_action(&pose_owner_ptr, action, slot_handle, anim_eval_context, false);
 }
 
 void pose_apply_action_blend(Object *ob,
                              bAction *action,
+                             const int32_t slot_handle,
                              const AnimationEvalContext *anim_eval_context,
                              const float blend_factor)
 {
   auto evaluate_and_blend = [blend_factor](PointerRNA *ptr,
                                            bAction *act,
+                                           const int32_t slot_handle,
                                            const AnimationEvalContext *anim_eval_context) {
-    animsys_blend_in_action(ptr, act, anim_eval_context, blend_factor);
+    animsys_blend_in_action(ptr, act, slot_handle, anim_eval_context, blend_factor);
   };
 
-  pose_apply(ob, action, anim_eval_context, evaluate_and_blend);
+  pose_apply(ob, action, slot_handle, anim_eval_context, evaluate_and_blend);
 }
 
 }  // namespace blender::animrig

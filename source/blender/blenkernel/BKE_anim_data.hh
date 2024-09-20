@@ -8,13 +8,15 @@
  * \ingroup bke
  */
 
+#include <functional>
 #include <optional>
 
-#include "BLI_sys_types.h" /* for bool */
+#include "BLI_function_ref.hh"
 
 struct AnimData;
 struct BlendDataReader;
 struct BlendWriter;
+struct FCurve;
 struct ID;
 struct Library;
 struct LibraryForeachIDData;
@@ -24,6 +26,24 @@ struct bAction;
 
 /* ************************************* */
 /* AnimData API */
+
+/**
+ * Container for the owning ID and its AnimData struct (`adt`).
+ *
+ * Fetching the `adt` pointer from an ID via BKE_animdata_from_id() involves finding the ID type,
+ * and checking whether that's animatable. This is why the `adt` is often obtained once, and then
+ * passed to other functions.
+ *
+ * However, Action Slot (un)assignment needs to keep track of which ID is being animated. Also
+ * Slots have to be checked whether they are suitable for the given ID, before they can be
+ * assigned. This means that not just the `adt` needs to be known, but also the animated ID itself.
+ *
+ * This struct is here to avoid passing two references all the time.
+ */
+struct OwnedAnimData {
+  ID &owner_id;
+  AnimData &adt;
+};
 
 /**
  * Check if the given ID-block can have AnimData.
@@ -152,3 +172,17 @@ void BKE_animdata_blend_read_data(BlendDataReader *reader, ID *id);
  * applied.
  */
 void BKE_animdata_liboverride_post_process(ID *id);
+
+/* ************************************* */
+/* Batch AnimData API */
+/* Loop over all datablocks applying callback */
+void BKE_animdata_main_cb(struct Main *bmain, blender::FunctionRef<void(ID *, AnimData *)> func);
+
+/** Apply the given callback function on all F-Curves attached to data in `main` database. */
+void BKE_fcurves_main_cb(struct Main *bmain, blender::FunctionRef<void(ID *, FCurve *)> func);
+
+/* Look over all f-curves of a given ID. */
+void BKE_fcurves_id_cb(struct ID *id, blender::FunctionRef<void(ID *, FCurve *)> func);
+
+/* ************************************* */
+/* TODO: overrides, remapping, and path-finding API's. */

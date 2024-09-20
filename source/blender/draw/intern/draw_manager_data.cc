@@ -1384,14 +1384,12 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
   IndexMaskMemory memory;
   const IndexMask visible_nodes = bke::pbvh::search_nodes(
       *pbvh, memory, [&](const bke::pbvh::Node &node) {
-        return BKE_pbvh_node_frustum_contain_AABB(&node, &draw_frustum);
+        return !BKE_pbvh_node_fully_hidden_get(node) &&
+               BKE_pbvh_node_frustum_contain_AABB(&node, &draw_frustum);
       });
 
   const IndexMask nodes_to_update = update_only_visible ? visible_nodes :
                                                           bke::pbvh::all_leaf_nodes(*pbvh, memory);
-
-  draw_data.tag_all_attributes_dirty(
-      bke::pbvh::node_draw_update_mask(*pbvh, nodes_to_update, memory));
 
   const draw::pbvh::ViewportRequest request{scd->attrs, scd->fast_mode};
   Span<gpu::Batch *> batches;
@@ -1401,8 +1399,6 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
   else {
     batches = draw_data.ensure_tris_batches(object, request, nodes_to_update);
   }
-
-  bke::pbvh::remove_node_draw_tags(const_cast<bke::pbvh::Tree &>(*pbvh), nodes_to_update);
 
   Span<int> material_indices;
   if (scd->use_mats) {

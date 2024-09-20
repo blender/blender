@@ -878,10 +878,10 @@ static void ui_node_draw_input(uiLayout &layout,
   PointerRNA nodeptr = RNA_pointer_create(&ntree.id, &RNA_Node, &node);
 
   row = uiLayoutRow(&layout, true);
-  /* Decorations are added manually here. */
-  uiLayoutSetPropDecorate(row, false);
 
   uiPropertySplitWrapper split_wrapper = uiItemPropertySplitWrapperCreate(row);
+  /* Decorations are added manually here. */
+  uiLayoutSetPropDecorate(row, false);
   /* Empty decorator item for alignment. */
   bool add_dummy_decorator = false;
 
@@ -944,8 +944,10 @@ static void ui_node_draw_input(uiLayout &layout,
         case SOCK_BOOLEAN:
         case SOCK_RGBA:
           uiItemR(sub, &inputptr, "default_value", UI_ITEM_NONE, "", ICON_NONE);
-          uiItemDecoratorR(
-              split_wrapper.decorate_column, &inputptr, "default_value", RNA_NO_INDEX);
+          if (split_wrapper.decorate_column) {
+            uiItemDecoratorR(
+                split_wrapper.decorate_column, &inputptr, "default_value", RNA_NO_INDEX);
+          }
           break;
         case SOCK_STRING: {
           const bNodeTree *node_tree = (const bNodeTree *)nodeptr.owner_id;
@@ -958,8 +960,10 @@ static void ui_node_draw_input(uiLayout &layout,
           else {
             uiItemR(sub, &inputptr, "default_value", UI_ITEM_NONE, "", ICON_NONE);
           }
-          uiItemDecoratorR(
-              split_wrapper.decorate_column, &inputptr, "default_value", RNA_NO_INDEX);
+          if (split_wrapper.decorate_column) {
+            uiItemDecoratorR(
+                split_wrapper.decorate_column, &inputptr, "default_value", RNA_NO_INDEX);
+          }
           break;
         }
         case SOCK_MENU:
@@ -974,7 +978,7 @@ static void ui_node_draw_input(uiLayout &layout,
     }
   }
 
-  if (add_dummy_decorator) {
+  if (add_dummy_decorator && split_wrapper.decorate_column) {
     uiItemDecoratorR(split_wrapper.decorate_column, nullptr, nullptr, 0);
   }
 

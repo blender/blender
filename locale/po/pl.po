@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'd52d70324d18')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-02 14:03+0000\n"
+"POT-Creation-Date: 2024-09-16 11:03+0000\n"
 "PO-Revision-Date: 2024-07-27 01:56+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -11238,12 +11238,28 @@ msgid "Use Material Mask"
 msgstr "Używa maski materiału"
 
 
+msgid "Bone Collections"
+msgstr "Kolekcja kości"
+
+
 msgid "Show/Hide"
 msgstr "Pokaż/Ukryj"
 
 
+msgid "Apply"
+msgstr "Zastosuj"
+
+
+msgid "Face Data"
+msgstr "Dane ściany"
+
+
 msgid "Clean Up"
 msgstr "Sprzątanie"
+
+
+msgid "Merge"
+msgstr "Scal"
 
 
 msgid "Assign Material"
@@ -11282,10 +11298,6 @@ msgid "Rigid Body"
 msgstr "Bryła sztywna"
 
 
-msgid "Apply"
-msgstr "Zastosuj"
-
-
 msgid "Track"
 msgstr "Ścieżka"
 
@@ -11300,18 +11312,6 @@ msgstr "Prefabrykat"
 
 msgid "Convert"
 msgstr "Konwertuj"
-
-
-msgid "Bone Collections"
-msgstr "Kolekcja kości"
-
-
-msgid "Face Data"
-msgstr "Dane ściany"
-
-
-msgid "Merge"
-msgstr "Scal"
 
 
 msgid "Catalog"
@@ -11607,6 +11607,10 @@ msgstr "Zastosowanie"
 
 msgid "New"
 msgstr "Nowy"
+
+
+msgid "Vertex Weight"
+msgstr "Waga wierzchołka"
 
 
 msgid "Randomize"
@@ -12585,10 +12589,6 @@ msgstr "Rura"
 
 msgid "Object Vertices"
 msgstr "Wierzchołki obiektu"
-
-
-msgid "Vertex Weight"
-msgstr "Waga wierzchołka"
 
 
 msgid "Sun Direction"
@@ -17050,10 +17050,6 @@ msgid "Metal"
 msgstr "Metal"
 
 
-msgid "Vulkan"
-msgstr "Vulkan"
-
-
 msgid "GLSL"
 msgstr "GLSL"
 
@@ -18789,16 +18785,6 @@ msgstr "Konsola"
 
 
 msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Weight (Smear)"
-msgstr "Waga kresek Grease Pencil (smużenie)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Vertex (Smear)"
-msgstr "Wierzchołki kresek Grease Pencil (smużenie)"
-
-
-msgctxt "WindowManager"
 msgid "Animation"
 msgstr "Animacja"
 
@@ -19641,11 +19627,6 @@ msgid "Shortest Path"
 msgstr "Najkrótsza ścieżka"
 
 
-msgctxt "Image"
-msgid "New"
-msgstr "Nowy"
-
-
 msgctxt "Operator"
 msgid "At Center"
 msgstr "Do środka"
@@ -20159,11 +20140,6 @@ msgstr "Nieprawidłowy identyfikator"
 
 
 msgctxt "Text"
-msgid "Wrap"
-msgstr "Zawijaj"
-
-
-msgctxt "Text"
 msgid "New"
 msgstr "Nowy"
 
@@ -20284,11 +20260,6 @@ msgstr "Interaktywnie dodaje siatkę prostopadłościanu"
 msgctxt "Operator"
 msgid "Install Application Template..."
 msgstr "Instaluj szablon aplikacji..."
-
-
-msgctxt "Operator"
-msgid "Purge Unused Data"
-msgstr "Wyczyść nieużywane dane"
 
 
 msgctxt "WindowManager"
@@ -22932,6 +22903,11 @@ msgid "New"
 msgstr "Nowy"
 
 
+msgctxt "Image"
+msgid "New"
+msgstr "Nowy"
+
+
 msgctxt "Lattice"
 msgid "New"
 msgstr "Nowa"
@@ -25024,10 +25000,6 @@ msgid "Cannot apply effects to audio sequence strips"
 msgstr "Nie można zaaplikować efektów na dźwiękowe paski sekwencji"
 
 
-msgid "Cannot apply effect to more than 3 sequence strips"
-msgstr "Nie można zaaplikować efektu dla więcej niż 3 pasków sekwencji"
-
-
 msgid "At least one selected sequence strip is needed"
 msgstr "Potrzebne są przynajmniej dwa zaznaczone paski sekwencji"
 
@@ -26256,20 +26228,12 @@ msgid "Sequences.new_effect: effect takes 2 input sequences"
 msgstr "Sequences.new_effect: efekt używa 2 sekwencji źródłowych"
 
 
-msgid "Sequences.new_effect: effect takes 3 input sequences"
-msgstr "Sequences.new_effect: efekt używa 3 sekwencji źródłowych"
-
-
 msgid "SequenceElements.pop: cannot pop the last element"
 msgstr "SequenceElements.pop: nie można usunąć (pop) ostatniego elementu"
 
 
 msgid "SequenceElements.pop: index out of range"
 msgstr "SequenceElements.pop: indeks spoza zakresu"
-
-
-msgid "Sequences.new_effect: effect expects more than 3 inputs (%d, should never happen!)"
-msgstr "Sequences.new_effect: efekt wymaga więcej niż 3 źródła (%d, nie powinno zaistnieć!)"
 
 
 msgid "Sequence '%s' not in scene '%s'"
@@ -26863,10 +26827,6 @@ msgstr "Brakuje \"Okna\" w kontekście"
 
 msgid "Load Factory \"{}\" Preferences."
 msgstr "Wczytaj preferencje fabryczne \"{}\"."
-
-
-msgid "Remove All"
-msgstr "Usuń wszystkie"
 
 
 msgid "Allow Execution"

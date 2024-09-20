@@ -221,7 +221,7 @@ static bool asset_write_in_library(Main &bmain,
   Main *new_main = asset_main_create_from_ID(bmain, id, &new_id);
 
   std::string new_name = name;
-  BKE_libblock_rename(new_main, new_id, new_name.c_str());
+  BKE_libblock_rename(*new_main, *new_id, new_name);
   id_fake_user_set(new_id);
 
   BlendFileWriteParams blend_file_write_params{};

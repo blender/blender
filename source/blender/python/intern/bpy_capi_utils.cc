@@ -42,11 +42,25 @@ short BPy_reports_to_error(ReportList *reports, PyObject *exception, const bool 
 
 void BPy_reports_write_stdout(const ReportList *reports, const char *header)
 {
+  const Report *report;
+  for (report = static_cast<const Report *>(reports->list.first); report; report = report->next) {
+    if (report->type < reports->printlevel) {
+      continue;
+    }
+    break;
+  }
+  if (report == nullptr) {
+    return;
+  }
+
   if (header) {
     PySys_WriteStdout("%s\n", header);
   }
 
-  LISTBASE_FOREACH (const Report *, report, &reports->list) {
+  for (; report; report = report->next) {
+    if (report->type < reports->printlevel) {
+      continue;
+    }
     PySys_WriteStdout("%s: %s\n", report->typestr, report->message);
   }
 }

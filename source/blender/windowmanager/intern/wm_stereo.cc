@@ -51,7 +51,9 @@ void wm_stereo3d_draw_sidebyside(wmWindow *win, int view)
 
   immBindBuiltinProgram(GPU_SHADER_3D_IMAGE);
 
-  int soffx = WM_window_native_pixel_x(win) * 0.5f;
+  const blender::int2 win_size = WM_window_native_pixel_size(win);
+
+  int soffx = win_size[0] / 2;
   if (view == STEREO_LEFT_ID) {
     if (!cross_eyed) {
       soffx = 0;
@@ -63,12 +65,9 @@ void wm_stereo3d_draw_sidebyside(wmWindow *win, int view)
     }
   }
 
-  const int sizex = WM_window_native_pixel_x(win);
-  const int sizey = WM_window_native_pixel_y(win);
-
   /* `wmOrtho` for the screen has this same offset. */
-  const float halfx = GLA_PIXEL_OFS / sizex;
-  const float halfy = GLA_PIXEL_OFS / sizex;
+  const float halfx = GLA_PIXEL_OFS / win_size[0];
+  const float halfy = GLA_PIXEL_OFS / win_size[1];
 
   /* Texture is already bound to GL_TEXTURE0 unit. */
 
@@ -78,13 +77,13 @@ void wm_stereo3d_draw_sidebyside(wmWindow *win, int view)
   immVertex2f(pos, soffx, 0.0f);
 
   immAttr2f(texcoord, 1.0f + halfx, halfy);
-  immVertex2f(pos, soffx + (sizex * 0.5f), 0.0f);
+  immVertex2f(pos, soffx + (win_size[0] * 0.5f), 0.0f);
 
   immAttr2f(texcoord, 1.0f + halfx, 1.0f + halfy);
-  immVertex2f(pos, soffx + (sizex * 0.5f), sizey);
+  immVertex2f(pos, soffx + (win_size[0] * 0.5f), win_size[1]);
 
   immAttr2f(texcoord, halfx, 1.0f + halfy);
-  immVertex2f(pos, soffx, sizey);
+  immVertex2f(pos, soffx, win_size[1]);
 
   immEnd();
 
@@ -99,20 +98,19 @@ void wm_stereo3d_draw_topbottom(wmWindow *win, int view)
 
   immBindBuiltinProgram(GPU_SHADER_3D_IMAGE);
 
+  const blender::int2 win_size = WM_window_native_pixel_size(win);
+
   int soffy;
   if (view == STEREO_LEFT_ID) {
-    soffy = WM_window_native_pixel_y(win) * 0.5f;
+    soffy = win_size[1] * 0.5f;
   }
   else { /* #STEREO_RIGHT_ID. */
     soffy = 0;
   }
 
-  const int sizex = WM_window_native_pixel_x(win);
-  const int sizey = WM_window_native_pixel_y(win);
-
   /* `wmOrtho` for the screen has this same offset. */
-  const float halfx = GLA_PIXEL_OFS / sizex;
-  const float halfy = GLA_PIXEL_OFS / sizex;
+  const float halfx = GLA_PIXEL_OFS / win_size[0];
+  const float halfy = GLA_PIXEL_OFS / win_size[1];
 
   /* Texture is already bound to GL_TEXTURE0 unit. */
 
@@ -122,13 +120,13 @@ void wm_stereo3d_draw_topbottom(wmWindow *win, int view)
   immVertex2f(pos, 0.0f, soffy);
 
   immAttr2f(texcoord, 1.0f + halfx, halfy);
-  immVertex2f(pos, sizex, soffy);
+  immVertex2f(pos, win_size[0], soffy);
 
   immAttr2f(texcoord, 1.0f + halfx, 1.0f + halfy);
-  immVertex2f(pos, sizex, soffy + (sizey * 0.5f));
+  immVertex2f(pos, win_size[0], soffy + (win_size[1] * 0.5f));
 
   immAttr2f(texcoord, halfx, 1.0f + halfy);
-  immVertex2f(pos, 0.0f, soffy + (sizey * 0.5f));
+  immVertex2f(pos, 0.0f, soffy + (win_size[1] * 0.5f));
 
   immEnd();
 

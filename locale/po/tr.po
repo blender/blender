@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'd52d70324d18')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-02 14:03+0000\n"
+"POT-Creation-Date: 2024-09-16 11:03+0000\n"
 "PO-Revision-Date: 2024-01-18 08:08+0000\n"
 "Last-Translator: Emre İnan <emre4321a@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -7646,12 +7646,24 @@ msgid "Texture"
 msgstr "Doku"
 
 
-msgid "Show/Hide"
-msgstr "Göster/Gizle"
+msgid "Bone Collections"
+msgstr "Kemik Koleksiyonları"
 
 
 msgid "Names"
 msgstr "Adlar"
+
+
+msgid "Show/Hide"
+msgstr "Göster/Gizle"
+
+
+msgid "Apply"
+msgstr "Uygula"
+
+
+msgid "Mesh Select Mode"
+msgstr "Örgü Seçim Kipi"
 
 
 msgid "Snap"
@@ -7666,24 +7678,12 @@ msgid "Add Image"
 msgstr "Resim Ekle"
 
 
-msgid "Apply"
-msgstr "Uygula"
-
-
 msgid "Convert"
 msgstr "Çevir"
 
 
 msgid "Link/Transfer Data"
 msgstr "Veriyi Bağlantıla/Aktar"
-
-
-msgid "Bone Collections"
-msgstr "Kemik Koleksiyonları"
-
-
-msgid "Mesh Select Mode"
-msgstr "Örgü Seçim Kipi"
 
 
 msgid "Bone Collection Specials"
@@ -11616,11 +11616,6 @@ msgid "Shear Keys"
 msgstr "Anahtarları Kırk"
 
 
-msgctxt "Image"
-msgid "New"
-msgstr "Yeni"
-
-
 msgctxt "Operator"
 msgid "Save All Images"
 msgstr "Tüm Görselleri Kaydet"
@@ -12436,6 +12431,11 @@ msgstr "Yeni"
 
 
 msgctxt "GPencil"
+msgid "New"
+msgstr "Yeni"
+
+
+msgctxt "Image"
 msgid "New"
 msgstr "Yeni"
 

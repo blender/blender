@@ -348,7 +348,8 @@ static bool reuse_bmain_move_id(ReuseOldBMainData *reuse_data,
 
   id->lib = lib;
   BLI_addtail(new_lb, id);
-  BKE_id_new_name_validate(new_bmain, new_lb, id, nullptr, true);
+  BKE_id_new_name_validate(
+      *new_bmain, *new_lb, *id, nullptr, IDNewNameMode::RenameExistingNever, true);
   BKE_lib_libblock_session_uid_renew(id);
 
   /* Remap to itself, to avoid re-processing this ID again. */

@@ -43,6 +43,7 @@ class Meshes {
   PassSimple::Sub *vert_normals_ = nullptr;
 
   PassSimple edit_mesh_analysis_ps_ = {"Mesh Analysis"};
+  PassSimple edit_mesh_weight_ps_ = {"Edit Weight"};
 
   PassSimple edit_mesh_edges_ps_ = {"Edges"};
   PassSimple edit_mesh_faces_ps_ = {"Faces"};
@@ -60,6 +61,7 @@ class Meshes {
   bool show_mesh_analysis = false;
   bool show_face = false;
   bool show_face_dots = false;
+  bool show_weight = false;
 
   bool select_edge = false;
   bool select_face = false;
@@ -96,6 +98,7 @@ class Meshes {
     show_mesh_analysis = (edit_flag & V3D_OVERLAY_EDIT_STATVIS);
     show_face = (edit_flag & V3D_OVERLAY_EDIT_FACES);
     show_face_dots = ((edit_flag & V3D_OVERLAY_EDIT_FACE_DOT) || state.xray_enabled) & select_face;
+    show_weight = (edit_flag & V3D_OVERLAY_EDIT_WEIGHT);
 
     const bool show_face_nor = (edit_flag & V3D_OVERLAY_EDIT_FACE_NORMALS);
     const bool show_loop_nor = (edit_flag & V3D_OVERLAY_EDIT_LOOP_NORMALS);
@@ -165,6 +168,26 @@ class Meshes {
       }
       if (show_vert_nor) {
         vert_normals_ = shader_pass(res.shaders.mesh_vert_normal.get(), "VertexNor");
+      }
+    }
+    {
+      /* Support masked transparency in Workbench.
+       * EEVEE can't be supported since depth won't match. */
+      const bool shadeless = eDrawType(state.v3d->shading.type) == OB_WIRE;
+
+      auto &pass = edit_mesh_weight_ps_;
+      pass.init();
+      pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WRITE_DEPTH,
+                     state.clipping_plane_count);
+      pass.shader_set(shadeless ? res.shaders.paint_weight.get() :
+                                  res.shaders.paint_weight_fake_shading.get());
+      pass.bind_ubo("globalsBlock", &res.globals_buf);
+      pass.bind_texture("colorramp", &res.weight_ramp_tx);
+      pass.push_constant("drawContours", false);
+      pass.push_constant("opacity", state.overlay.weight_paint_mode_opacity);
+      if (!shadeless) {
+        /* Arbitrary light to give a hint of the geometry behind the weights. */
+        pass.push_constant("light_dir", math::normalize(float3(0.0f, 0.5f, 0.86602f)));
       }
     }
     {
@@ -256,7 +279,7 @@ class Meshes {
       return;
     }
 
-    ResourceHandle res_handle = manager.resource_handle(ob_ref);
+    ResourceHandle res_handle = manager.unique_handle(ob_ref);
 
     Object *ob = ob_ref.object;
     Mesh &mesh = *static_cast<Mesh *>(ob->data);
@@ -277,6 +300,11 @@ class Meshes {
     if (show_mesh_analysis) {
       gpu::Batch *geom = DRW_cache_mesh_surface_mesh_analysis_get(ob);
       edit_mesh_analysis_ps_.draw(geom, res_handle);
+    }
+
+    if (show_weight) {
+      gpu::Batch *geom = DRW_cache_mesh_surface_weights_get(ob);
+      edit_mesh_weight_ps_.draw(geom, res_handle);
     }
 
     if (face_normals_) {
@@ -332,6 +360,7 @@ class Meshes {
     GPU_framebuffer_bind(framebuffer);
     manager.submit(edit_mesh_prepass_ps_, view);
     manager.submit(edit_mesh_analysis_ps_, view);
+    manager.submit(edit_mesh_weight_ps_, view);
 
     if (xray_enabled) {
       GPU_debug_group_end();
@@ -444,7 +473,7 @@ class MeshUVs {
   bool show_uv_edit = false;
 
   /** Wireframe Overlay */
-  /* Draw final evaluated UVs (modifier stack applied) as greyed out wire-frame. */
+  /* Draw final evaluated UVs (modifier stack applied) as grayed out wire-frame. */
   /* TODO(fclem): Maybe should be its own Overlay?. */
   bool show_wireframe = false;
 
@@ -684,7 +713,7 @@ class MeshUVs {
     }
 
     /* When editing objects that share the same mesh we should only draw the
-     * first object to avoid overlapping UVs. Moreove, only the first evalutated object has the
+     * first object to avoid overlapping UVs. Moreover, only the first evaluated object has the
      * correct batches with the correct selection state.
      * To this end, we skip duplicates and use the evaluated object returned by the depsgraph.
      * See #83187. */
@@ -692,12 +721,11 @@ class MeshUVs {
     Object *object_eval = DEG_get_evaluated_object(state.depsgraph, object_orig);
 
     if (drawn_object_set_.contains(object_orig)) {
-      printf("Skip\n");
       return;
     }
     drawn_object_set_.add(object_orig);
 
-    ResourceHandle res_handle = manager.resource_handle(ob_ref);
+    ResourceHandle res_handle = manager.unique_handle(ob_ref);
 
     Object &ob = *object_eval;
     Mesh &mesh = *static_cast<Mesh *>(ob.data);

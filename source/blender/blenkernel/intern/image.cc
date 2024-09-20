@@ -2613,7 +2613,7 @@ bool BKE_imbuf_alpha_test(ImBuf *ibuf)
   return false;
 }
 
-int BKE_imbuf_write(ImBuf *ibuf, const char *filepath, const ImageFormatData *imf)
+bool BKE_imbuf_write(ImBuf *ibuf, const char *filepath, const ImageFormatData *imf)
 {
   BKE_image_format_to_imbuf(ibuf, imf);
 
@@ -2627,13 +2627,13 @@ int BKE_imbuf_write(ImBuf *ibuf, const char *filepath, const ImageFormatData *im
   return ok;
 }
 
-int BKE_imbuf_write_as(ImBuf *ibuf,
-                       const char *filepath,
-                       const ImageFormatData *imf,
-                       const bool save_copy)
+bool BKE_imbuf_write_as(ImBuf *ibuf,
+                        const char *filepath,
+                        const ImageFormatData *imf,
+                        const bool save_copy)
 {
   ImBuf ibuf_back = *ibuf;
-  int ok;
+  bool ok;
 
   /* All data is RGBA anyway, this just controls how to save for some formats. */
   ibuf->planes = imf->planes;
@@ -2650,11 +2650,11 @@ int BKE_imbuf_write_as(ImBuf *ibuf,
   return ok;
 }
 
-int BKE_imbuf_write_stamp(const Scene *scene,
-                          const RenderResult *rr,
-                          ImBuf *ibuf,
-                          const char *filepath,
-                          const ImageFormatData *imf)
+bool BKE_imbuf_write_stamp(const Scene *scene,
+                           const RenderResult *rr,
+                           ImBuf *ibuf,
+                           const char *filepath,
+                           const ImageFormatData *imf)
 {
   if (scene && scene->r.stamp & R_STAMP_ALL) {
     BKE_imbuf_stamp_info(rr, ibuf);
@@ -2689,12 +2689,15 @@ ImBufAnim *openanim(const char *filepath,
 
   ibuf = IMB_anim_absolute(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
   if (ibuf == nullptr) {
-    if (BLI_exists(filepath)) {
-      printf("not an anim: %s\n", filepath);
+    const char *reason;
+    if (!BLI_exists(filepath)) {
+      reason = "file doesn't exist";
     }
     else {
-      printf("anim file doesn't exist: %s\n", filepath);
+      reason = "not an anim";
     }
+    CLOG_INFO(&LOG, 1, "unable to load anim, %s: %s", reason, filepath);
+
     IMB_free_anim(anim);
     return nullptr;
   }
@@ -3214,7 +3217,7 @@ void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
         const int tot_viewfiles = image_num_viewfiles(ima);
         const int tot_files = tot_viewfiles * BLI_listbase_count(&ima->tiles);
 
-        if (tot_files != BLI_listbase_count_at_most(&ima->packedfiles, tot_files + 1)) {
+        if (!BLI_listbase_count_is_equal_to(&ima->packedfiles, tot_files)) {
           /* in case there are new available files to be loaded */
           image_free_packedfiles(ima);
           BKE_image_packfiles(nullptr, ima, ID_BLEND_PATH(bmain, &ima->id));
@@ -4138,7 +4141,7 @@ static ImBuf *image_load_movie_file(Image *ima, ImageUser *iuser, int frame)
   const bool is_multiview = BKE_image_is_multiview(ima);
   const int tot_viewfiles = image_num_viewfiles(ima);
 
-  if (tot_viewfiles != BLI_listbase_count_at_most(&ima->anims, tot_viewfiles + 1)) {
+  if (!BLI_listbase_count_is_equal_to(&ima->anims, tot_viewfiles)) {
     image_free_anims(ima);
 
     for (int i = 0; i < tot_viewfiles; i++) {
@@ -4297,7 +4300,7 @@ static ImBuf *image_load_image_file(
   /* this should never happen, but just playing safe */
   if (!is_sequence && has_packed) {
     const int totfiles = tot_viewfiles * BLI_listbase_count(&ima->tiles);
-    if (totfiles != BLI_listbase_count_at_most(&ima->packedfiles, totfiles + 1)) {
+    if (!BLI_listbase_count_is_equal_to(&ima->packedfiles, totfiles)) {
       image_free_packedfiles(ima);
       has_packed = false;
     }

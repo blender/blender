@@ -272,7 +272,7 @@ static NeededBuffers compute_number_of_needed_buffers(Stack<DNode> &output_nodes
  * stored in extra buffers in addition to the buffers needed by A. The number of buffers needed by
  * each node is estimated as described in the compute_number_of_needed_buffers function.
  *
- * This is a heuristic generalization of the Sethi–Ullman algorithm, a generalization that
+ * This is a heuristic generalization of the Sethi-Ullman algorithm, a generalization that
  * doesn't always guarantee an optimal evaluation order, as the optimal evaluation order is very
  * difficult to compute, however, this method works well in most cases. Moreover it assumes that
  * all buffers will have roughly the same size, which may not always be the case. */

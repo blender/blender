@@ -264,9 +264,7 @@ static bke::CurvesGeometry join_curves_ranges(const bke::CurvesGeometry &src_cur
   new_offsets.fill(0);
   for (const int new_i : new_offsets.index_range().drop_back(1)) {
     const IndexRange old_curves = old_curves_by_new[new_i];
-    for (const int old_i : old_curves) {
-      new_offsets[new_i] += old_points_by_curve[old_i].size();
-    }
+    new_offsets[new_i] = offset_indices::sum_group_sizes(old_points_by_curve, old_curves);
   }
   offset_indices::accumulate_counts_to_offsets(new_offsets);
 

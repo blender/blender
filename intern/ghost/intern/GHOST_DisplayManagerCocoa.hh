@@ -24,14 +24,14 @@ class GHOST_DisplayManagerCocoa : public GHOST_DisplayManager {
   /**
    * Constructor.
    */
-  GHOST_DisplayManagerCocoa();
+  GHOST_DisplayManagerCocoa() = default;
 
   /**
    * Returns the number of display devices on this system.
    * \param numDisplays: The number of displays on this system.
    * \return Indication of success.
    */
-  GHOST_TSuccess getNumDisplays(uint8_t &numDisplays) const;
+  GHOST_TSuccess getNumDisplays(uint8_t &numDisplays) const override;
 
   /**
    * Returns the number of display settings for this display device.
@@ -39,7 +39,7 @@ class GHOST_DisplayManagerCocoa : public GHOST_DisplayManager {
    * \param numSetting: The number of settings of the display device with this index.
    * \return Indication of success.
    */
-  GHOST_TSuccess getNumDisplaySettings(uint8_t display, int32_t &numSettings) const;
+  GHOST_TSuccess getNumDisplaySettings(uint8_t display, int32_t &numSettings) const override;
 
   /**
    * Returns the current setting for this display device.
@@ -50,7 +50,7 @@ class GHOST_DisplayManagerCocoa : public GHOST_DisplayManager {
    */
   GHOST_TSuccess getDisplaySetting(uint8_t display,
                                    int32_t index,
-                                   GHOST_DisplaySetting &setting) const;
+                                   GHOST_DisplaySetting &setting) const override;
 
   /**
    * Returns the current setting for this display device.
@@ -58,7 +58,8 @@ class GHOST_DisplayManagerCocoa : public GHOST_DisplayManager {
    * \param setting: The current setting of the display device with this index.
    * \return Indication of success.
    */
-  GHOST_TSuccess getCurrentDisplaySetting(uint8_t display, GHOST_DisplaySetting &setting) const;
+  GHOST_TSuccess getCurrentDisplaySetting(uint8_t display,
+                                          GHOST_DisplaySetting &setting) const override;
 
   /**
    * Changes the current setting for this display device.
@@ -66,7 +67,8 @@ class GHOST_DisplayManagerCocoa : public GHOST_DisplayManager {
    * \param setting: The current setting of the display device with this index.
    * \return Indication of success.
    */
-  GHOST_TSuccess setCurrentDisplaySetting(uint8_t display, const GHOST_DisplaySetting &setting);
+  GHOST_TSuccess setCurrentDisplaySetting(uint8_t display,
+                                          const GHOST_DisplaySetting &setting) override;
 
  protected:
   // Do not cache values as OS X supports screen hot plug

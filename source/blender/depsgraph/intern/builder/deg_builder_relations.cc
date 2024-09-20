@@ -1715,8 +1715,8 @@ void DepsgraphRelationBuilder::build_animdata_action_targets(ID *id,
     for (animrig::Strip *strip : layer->strips()) {
       switch (strip->type()) {
         case animrig::Strip::Type::Keyframe: {
-          animrig::KeyframeStrip &keyframe_strip = strip->as<animrig::KeyframeStrip>();
-          animrig::ChannelBag *channels = keyframe_strip.channelbag_for_slot(*slot);
+          animrig::StripKeyframeData &strip_data = strip->data<animrig::StripKeyframeData>(action);
+          animrig::ChannelBag *channels = strip_data.channelbag_for_slot(*slot);
           if (channels == nullptr) {
             /* Go to next strip. */
             break;
@@ -1746,13 +1746,8 @@ void DepsgraphRelationBuilder::build_animdata_nlastrip_targets(ID *id,
       ComponentKey action_key(&strip->act->id, NodeType::ANIMATION);
       add_relation(action_key, adt_key, "Action -> Animation");
 
-      if (!strip->act->wrap().is_action_legacy()) {
-        /* TODO: add NLA support for layered actions. */
-        continue;
-      }
-      /* TODO: get slot handle from the owning ID. */
-      const animrig::slot_handle_t slot_handle = animrig::Slot::unassigned;
-      build_animdata_action_targets(id, slot_handle, adt_key, operation_from, strip->act);
+      build_animdata_action_targets(
+          id, strip->action_slot_handle, adt_key, operation_from, strip->act);
     }
     else if (strip->strips.first != nullptr) {
       build_animdata_nlastrip_targets(id, adt_key, operation_from, &strip->strips);

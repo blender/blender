@@ -163,6 +163,15 @@ bool BKE_bpath_foreach_path_allocated_process(BPathForeachPathData *bpath_data, 
 /** Check for missing files. */
 void BKE_bpath_missing_files_check(Main *bmain, ReportList *reports);
 
+/** A summary of operating on many paths. */
+struct BPathSummary {
+  int count_total = 0;
+  int count_changed = 0;
+  int count_failed = 0;
+};
+
+void BKE_bpath_summary_report(const BPathSummary &summary, ReportList *reports);
+
 /**
  * Recursively search into given search directory, for all file paths of all IDs in given
  * \a bmain, and replace existing paths as needed.
@@ -185,13 +194,20 @@ void BKE_bpath_missing_files_find(Main *bmain,
 void BKE_bpath_relative_rebase(Main *bmain,
                                const char *basedir_src,
                                const char *basedir_dst,
-                               ReportList *reports);
+                               ReportList *reports,
+                               BPathSummary *r_summary = nullptr);
 
 /** Make all absolute file paths in given \a bmain relative to given \a basedir. */
-void BKE_bpath_relative_convert(Main *bmain, const char *basedir, ReportList *reports);
+void BKE_bpath_relative_convert(Main *bmain,
+                                const char *basedir,
+                                ReportList *reports,
+                                BPathSummary *r_summary = nullptr);
 
 /** Make all relative file paths in given \a bmain absolute, using given \a basedir as root. */
-void BKE_bpath_absolute_convert(Main *bmain, const char *basedir, ReportList *reports);
+void BKE_bpath_absolute_convert(Main *bmain,
+                                const char *basedir,
+                                ReportList *reports,
+                                BPathSummary *r_summary = nullptr);
 
 /**
  * Temp backup of paths from all IDs in given \a bmain.

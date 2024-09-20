@@ -84,6 +84,8 @@ SOURCE_EXT = (
     "glsl",
     "osl",
     "py",
+    "txt",  # for `CMakeLists.txt`.
+    "cmake",
 )
 
 BASEDIR = os.path.abspath(os.path.dirname(__file__))
@@ -319,6 +321,8 @@ def extract_code_strings(filepath: str) -> Tuple[List[Comment], Set[str]]:
     #     return comments, code_words
     if filepath.endswith(".py"):
         lex = lexers.get_lexer_by_name("python")
+    elif filepath.endswith((".cmake", ".txt")):
+        lex = lexers.get_lexer_by_name("cmake")
     else:
         lex = lexers.get_lexer_by_name("c")
 
@@ -364,6 +368,35 @@ def extract_py_comments(filepath: str) -> Tuple[List[Comment], Set[str]]:
                 code_words.add(match.group(0))
 
         prev_toktype = toktype
+    return comments, code_words
+
+
+def extract_cmake_comments(filepath: str) -> Tuple[List[Comment], Set[str]]:
+    from pygments import lexers
+    from pygments.token import Token
+
+    lex = lexers.get_lexer_by_name("cmake")
+
+    with open(filepath, encoding='utf-8') as fh:
+        source = fh.read()
+
+    comments = []
+    code_words = set()
+
+    slineno = 0
+    for ty, ttext in lex.get_tokens(source):
+        if ty in {Token.Literal.String, Token.Literal.String.Double, Token.Literal.String.Single}:
+            # Disable because most CMake strings are references to paths/code."
+            if False:
+                comments.append(Comment(filepath, ttext, slineno, 'STRING'))
+        elif ty in {Token.Comment, Token.Comment.Single}:
+            comments.append(Comment(filepath, ttext, slineno, 'COMMENT'))
+        else:
+            for match in re_vars.finditer(ttext):
+                code_words.add(match.group(0))
+        # Ugh - not nice or fast.
+        slineno += ttext.count("\n")
+
     return comments, code_words
 
 
@@ -520,6 +553,8 @@ def spell_check_file(
     if extract_type == 'COMMENTS':
         if filepath.endswith(".py"):
             comment_list, code_words = extract_py_comments(filepath)
+        elif filepath.endswith((".cmake", ".txt")):
+            comment_list, code_words = extract_cmake_comments(filepath)
         else:
             comment_list, code_words = extract_c_comments(filepath)
     elif extract_type == 'STRINGS':

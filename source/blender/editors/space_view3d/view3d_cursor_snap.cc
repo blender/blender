@@ -867,7 +867,7 @@ static void v3d_cursor_snap_draw_fn(bContext *C, int x, int y, void * /*customda
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = DEG_get_input_scene(depsgraph);
 
-  wmWindow *win = CTX_wm_window(C);
+  const wmWindow *win = CTX_wm_window(C);
   const wmEvent *event = win->eventstate;
   if (event && v3d_cursor_eventstate_has_changed(data_intern, state, UNPACK2(xy), event->modifier))
   {

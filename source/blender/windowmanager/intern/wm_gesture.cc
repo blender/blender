@@ -509,8 +509,7 @@ static void wm_gesture_draw_polyline(wmGesture *gt)
 static void wm_gesture_draw_cross(wmWindow *win, wmGesture *gt)
 {
   const rcti *rect = static_cast<const rcti *>(gt->customdata);
-  const int winsize_x = WM_window_native_pixel_x(win);
-  const int winsize_y = WM_window_native_pixel_y(win);
+  const blender::int2 win_size = WM_window_native_pixel_size(win);
 
   float x1, x2, y1, y2;
 
@@ -531,18 +530,18 @@ static void wm_gesture_draw_cross(wmWindow *win, wmGesture *gt)
 
   immBegin(GPU_PRIM_LINES, 4);
 
-  x1 = float(rect->xmin - winsize_x);
+  x1 = float(rect->xmin - win_size[0]);
   y1 = float(rect->ymin);
-  x2 = float(rect->xmin + winsize_x);
+  x2 = float(rect->xmin + win_size[0]);
   y2 = y1;
 
   immVertex2f(shdr_pos, x1, y1);
   immVertex2f(shdr_pos, x2, y2);
 
   x1 = float(rect->xmin);
-  y1 = float(rect->ymin - winsize_y);
+  y1 = float(rect->ymin - win_size[1]);
   x2 = x1;
-  y2 = float(rect->ymin + winsize_y);
+  y2 = float(rect->ymin + win_size[1]);
 
   immVertex2f(shdr_pos, x1, y1);
   immVertex2f(shdr_pos, x2, y2);

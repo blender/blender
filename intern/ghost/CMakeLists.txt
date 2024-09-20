@@ -170,16 +170,9 @@ elseif(WITH_GHOST_SDL)
   list(APPEND INC_SYS
     ${SDL_INCLUDE_DIR}
   )
-  if(WITH_SDL_DYNLOAD)
-    list(APPEND LIB
-      extern_sdlew
-    )
-  else()
-    list(APPEND LIB
-      ${SDL_LIBRARY}
-    )
-  endif()
-
+  list(APPEND LIB
+    ${SDL_LIBRARY}
+  )
 elseif(APPLE AND NOT WITH_GHOST_X11)
   list(APPEND SRC
     intern/GHOST_DisplayManagerCocoa.mm

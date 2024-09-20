@@ -95,6 +95,7 @@ void WM_toolsystem_update_from_context(
  * For paint modes to support non-brush tools.
  */
 bool WM_toolsystem_active_tool_is_brush(const bContext *C);
+bool WM_toolsystem_active_tool_has_custom_cursor(const bContext *C);
 
 /** Follow #wmMsgNotifyFn spec. */
 void WM_toolsystem_do_msg_notify_tag_refresh(bContext *C,

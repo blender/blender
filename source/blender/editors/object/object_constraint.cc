@@ -357,10 +357,23 @@ static void test_constraint(
       /* must have action */
       con->flag |= CONSTRAINT_DISABLE;
     }
-    else if (data->act->idroot != ID_OB) {
-      /* only object-rooted actions can be used */
-      data->act = nullptr;
-      con->flag |= CONSTRAINT_DISABLE;
+    else {
+      animrig::Action &action = data->act->wrap();
+      if (action.is_action_legacy()) {
+        if (data->act->idroot != ID_OB) {
+          /* Only object-rooted actions can be used. */
+          data->act = nullptr;
+          con->flag |= CONSTRAINT_DISABLE;
+        }
+      }
+      else {
+        /* The slot was assigned, so assume that it is suitable to animate the
+         * owner (only suitable slots appear in the drop-down). */
+        animrig::Slot *slot = action.slot_for_handle(data->action_slot_handle);
+        if (!slot) {
+          con->flag |= CONSTRAINT_DISABLE;
+        }
+      }
     }
 
     /* Skip target checking if we're not using it */

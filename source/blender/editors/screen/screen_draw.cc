@@ -170,8 +170,7 @@ void ED_screen_draw_edges(wmWindow *win)
     return;
   }
 
-  const int winsize_x = WM_window_native_pixel_x(win);
-  const int winsize_y = WM_window_native_pixel_y(win);
+  const blender::int2 win_size = WM_window_native_pixel_size(win);
   float col[4], corner_scale, edge_thickness;
   int verts_per_corner = 0;
 
@@ -213,7 +212,7 @@ void ED_screen_draw_edges(wmWindow *win)
   GPU_batch_uniform_4fv(batch, "color", col);
 
   LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-    drawscredge_area(area, winsize_x, winsize_y, edge_thickness);
+    drawscredge_area(area, win_size[0], win_size[1], edge_thickness);
   }
 
   GPU_blend(GPU_BLEND_NONE);
@@ -223,7 +222,7 @@ void ED_screen_draw_edges(wmWindow *win)
   }
 }
 
-static void screen_draw_area_drag_tip(int x, int y, ScrArea *source, std::string hint)
+static void screen_draw_area_drag_tip(int x, int y, const ScrArea *source, const std::string &hint)
 {
   if (!U.experimental.use_docking) {
     return;
@@ -459,7 +458,7 @@ void screen_draw_dock_preview(
                                                                     IFACE_("Split Area"));
 }
 
-void screen_draw_split_preview(ScrArea *area, const eScreenAxis dir_axis, const float fac)
+void screen_draw_split_preview(ScrArea *area, const eScreenAxis dir_axis, const float factor)
 {
   float outline[4] = {1.0f, 1.0f, 1.0f, 0.4f};
   float inner[4] = {1.0f, 1.0f, 1.0f, 0.10f};
@@ -470,14 +469,14 @@ void screen_draw_split_preview(ScrArea *area, const eScreenAxis dir_axis, const 
   rctf rect;
   BLI_rctf_rcti_copy(&rect, &area->totrct);
 
-  if (fac < 0.0001 || fac > 0.9999) {
+  if (factor < 0.0001 || factor > 0.9999) {
     /* Highlight the entire area. */
     UI_draw_roundbox_4fv_ex(&rect, inner, nullptr, 1.0f, outline, U.pixelsize, 7 * U.pixelsize);
     return;
   }
 
-  float x = (1 - fac) * rect.xmin + fac * rect.xmax;
-  float y = (1 - fac) * rect.ymin + fac * rect.ymax;
+  float x = (1 - factor) * rect.xmin + factor * rect.xmax;
+  float y = (1 - factor) * rect.ymin + factor * rect.ymax;
   x = std::clamp(x, rect.xmin, rect.xmax);
   y = std::clamp(y, rect.ymin, rect.ymax);
   float half_line_width = 2.0f * U.pixelsize;

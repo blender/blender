@@ -282,20 +282,17 @@ int rna_ID_name_length(PointerRNA *ptr)
   return strlen(id->name + 2);
 }
 
+static int rna_ID_rename(ID *self, Main *bmain, const char *new_name, const int mode)
+{
+  IDNewNameResult result = BKE_id_rename(*bmain, *self, new_name, IDNewNameMode(mode));
+  return int(result.action);
+}
+
 void rna_ID_name_set(PointerRNA *ptr, const char *value)
 {
   ID *id = (ID *)ptr->data;
-  BLI_assert(BKE_id_is_in_global_main(id));
-  BLI_assert(ID_IS_EDITABLE(id));
 
-  BKE_libblock_rename(G_MAIN, id, value);
-
-  if (GS(id->name) == ID_OB) {
-    Object *ob = (Object *)id;
-    if (ob->type == OB_MBALL) {
-      DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-    }
-  }
+  rna_ID_rename(id, G_MAIN, value, int(IDNewNameMode::RenameExistingNever));
 }
 
 static int rna_ID_name_editable(const PointerRNA *ptr, const char **r_info)
@@ -2191,6 +2188,58 @@ static void rna_def_ID(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
+  static const EnumPropertyItem rename_mode_items[] = {
+      {int(IDNewNameMode::RenameExistingNever),
+       "NEVER",
+       0,
+       "Never Rename",
+       "Never rename an exisitng ID whose name would conflict, the currently renamed ID will get "
+       "a numeric suffix appended to its new name"},
+      {int(IDNewNameMode::RenameExistingAlways),
+       "ALWAYS",
+       0,
+       "Always Rename",
+       "Always rename an exisitng ID whose name would conflict, ensuring that the currently "
+       "renamed ID will get requested name"},
+      {int(IDNewNameMode::RenameExistingSameRoot),
+       "SAME_ROOT",
+       0,
+       "Rename If Same Root",
+       "Only rename an exisitng ID whose name would conflict if its name root (everything besides "
+       "the numerical suffix) is the same as the existing name of the currently renamed ID"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  static const EnumPropertyItem rename_result_items[] = {
+      {int(IDNewNameResult::Action::UNCHANGED),
+       "UNCHANGED",
+       0,
+       "Unchanged",
+       "The ID was not renamed, e.g. because it is already named as requested"},
+      {int(IDNewNameResult::Action::UNCHANGED_COLLISION),
+       "UNCHANGED_COLLISION",
+       0,
+       "Unchanged Due to Collision",
+       "The ID was not renamed, because requested name would have collided with another existing "
+       "ID's name, and the automatically adjusted name was the same as the current ID's name"},
+      {int(IDNewNameResult::Action::RENAMED_NO_COLLISION),
+       "RENAMED_NO_COLLISION",
+       0,
+       "Renamed Without Collision",
+       "The ID was renamed as requested, without creating any name collision"},
+      {int(IDNewNameResult::Action::RENAMED_COLLISION_ADJUSTED),
+       "RENAMED_COLLISION_ADJUSTED",
+       0,
+       "Renamed With Collision",
+       "The ID was renamed with adjustement of the requested name, to avoid a name collision"},
+      {int(IDNewNameResult::Action::RENAMED_COLLISION_FORCED),
+       "RENAMED_COLLISION_FORCED",
+       0,
+       "Renamed Enforced With Collision",
+       "The ID was renamed as requested, also renaming another ID to avoid a name collision"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   srna = RNA_def_struct(brna, "ID", nullptr);
   RNA_def_struct_ui_text(
       srna,
@@ -2358,6 +2407,32 @@ static void rna_def_ID(BlenderRNA *brna)
   RNA_def_property_pointer_funcs(prop, "rna_IDPreview_get", nullptr, nullptr, nullptr);
 
   /* functions */
+  func = RNA_def_function(srna, "rename", "rna_ID_rename");
+  RNA_def_function_ui_description(
+      func, "More refined handling in case the new name collides with another ID's name");
+  RNA_def_function_flag(func, FUNC_USE_MAIN);
+  parm = RNA_def_string(func,
+                        "name",
+                        nullptr,
+                        MAX_NAME,
+                        "",
+                        "New name to rename the ID to, if empty will re-use the current ID name");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  parm = RNA_def_enum(func,
+                      "mode",
+                      rename_mode_items,
+                      int(IDNewNameMode::RenameExistingNever),
+                      "",
+                      "How to handle name collision, in case the requested new name is already "
+                      "used by another ID of the same type");
+  parm = RNA_def_enum(func,
+                      "id_rename_result",
+                      rename_result_items,
+                      int(IDNewNameResult::Action::UNCHANGED),
+                      "",
+                      "How did the renaming of the data-block went on");
+  RNA_def_function_return(func, parm);
+
   func = RNA_def_function(srna, "evaluated_get", "rna_ID_evaluated_get");
   RNA_def_function_ui_description(
       func,

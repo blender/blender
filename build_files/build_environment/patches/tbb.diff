@@ -171,6 +171,23 @@ index 00000000..13d56678
 +    _InterlockedAnd((long volatile *)operand, (long)addend);
 +}
 +
+diff --git a/include/tbb/tbb_config.h b/include/tbb/tbb_config.h
+index 7a8d06a0..80b4e3a6 100644
+--- a/include/tbb/tbb_config.h
++++ b/include/tbb/tbb_config.h
+@@ -209,10 +209,10 @@
+ #elif __clang__
+ /** TODO: these options need to be rechecked **/
+     #define __TBB_CPP11_VARIADIC_TEMPLATES_PRESENT          __has_feature(__cxx_variadic_templates__)
+-    #define __TBB_CPP11_RVALUE_REF_PRESENT                  (__has_feature(__cxx_rvalue_references__) && (_LIBCPP_VERSION || __TBB_GLIBCXX_VERSION >= 40500))
++    #define __TBB_CPP11_RVALUE_REF_PRESENT                  (__has_feature(__cxx_rvalue_references__) && (_LIBCPP_VERSION || __TBB_GLIBCXX_VERSION >= 40500 || _MSC_VER >= 1700))
+     #define __TBB_IMPLICIT_MOVE_PRESENT                     __has_feature(cxx_implicit_moves)
+ /** TODO: extend exception_ptr related conditions to cover libstdc++ **/
+-    #define __TBB_EXCEPTION_PTR_PRESENT                     (__cplusplus >= 201103L && (_LIBCPP_VERSION || __TBB_GLIBCXX_VERSION >= 40600))
++    #define __TBB_EXCEPTION_PTR_PRESENT                     (__cplusplus >= 201103L && (_LIBCPP_VERSION || __TBB_GLIBCXX_VERSION >= 40600 || _MSC_VER >= 1600))
+     #define __TBB_STATIC_ASSERT_PRESENT                     __has_feature(__cxx_static_assert__)
+     #if (__cplusplus >= 201103L && __has_include(<tuple>))
+         #define __TBB_CPP11_TUPLE_PRESENT                   1
 diff --git a/include/tbb/tbb_machine.h b/include/tbb/tbb_machine.h
 index 9752be58..ebb98ec2 100644
 --- a/include/tbb/tbb_machine.h

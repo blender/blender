@@ -589,6 +589,59 @@ static void rna_uiTemplateAction(uiLayout *layout,
   uiTemplateAction(layout, C, id, newop, unlinkop, name);
 }
 
+static void rna_uiTemplateSearch(uiLayout *layout,
+                                 const bContext *C,
+                                 PointerRNA *ptr,
+                                 const char *propname,
+                                 PointerRNA *searchptr,
+                                 const char *searchpropname,
+                                 const char *newop,
+                                 const char *unlinkop,
+                                 const char *name,
+                                 const char *text_ctxt,
+                                 bool translate)
+{
+  PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
+
+  if (!prop) {
+    RNA_warning("property not found: %s.%s", RNA_struct_identifier(ptr->type), propname);
+    return;
+  }
+
+  /* Get translated name (label). */
+  name = rna_translate_ui_text(name, text_ctxt, nullptr, prop, translate);
+
+  uiTemplateSearch(layout, C, ptr, propname, searchptr, searchpropname, newop, unlinkop, name);
+}
+
+static void rna_uiTemplateSearchPreview(uiLayout *layout,
+                                        bContext *C,
+                                        PointerRNA *ptr,
+                                        const char *propname,
+                                        PointerRNA *searchptr,
+                                        const char *searchpropname,
+                                        const char *newop,
+                                        const char *unlinkop,
+                                        const char *name,
+                                        const char *text_ctxt,
+                                        bool translate,
+                                        const int rows,
+                                        const int cols)
+{
+  PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
+
+  if (!prop) {
+    RNA_warning("property not found: %s.%s", RNA_struct_identifier(ptr->type), propname);
+    return;
+  }
+
+  /* Get translated name (label). */
+  name = rna_translate_ui_text(name, text_ctxt, nullptr, prop, translate);
+
+  uiTemplateSearchPreview(
+      layout, C, ptr, propname, searchptr, searchpropname, newop, unlinkop, rows, cols, name);
+}
+
 void rna_uiTemplateList(uiLayout *layout,
                         bContext *C,
                         const char *listtype_name,
@@ -1737,7 +1790,7 @@ void RNA_api_ui_layout(StructRNA *srna)
   RNA_def_string(func, "unlink", nullptr, 0, "", "Operator identifier to unlink the ID block");
   api_ui_item_common_text(func);
 
-  func = RNA_def_function(srna, "template_search", "uiTemplateSearch");
+  func = RNA_def_function(srna, "template_search", "rna_uiTemplateSearch");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
   api_ui_item_rna_common(func);
   parm = RNA_def_pointer(
@@ -1755,8 +1808,9 @@ void RNA_api_ui_layout(StructRNA *srna)
                  "",
                  "Operator identifier to unlink or delete the active "
                  "item from the collection");
+  api_ui_item_common_text(func);
 
-  func = RNA_def_function(srna, "template_search_preview", "uiTemplateSearchPreview");
+  func = RNA_def_function(srna, "template_search_preview", "rna_uiTemplateSearchPreview");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
   api_ui_item_rna_common(func);
   parm = RNA_def_pointer(
@@ -1774,6 +1828,7 @@ void RNA_api_ui_layout(StructRNA *srna)
                  "",
                  "Operator identifier to unlink or delete the active "
                  "item from the collection");
+  api_ui_item_common_text(func);
   RNA_def_int(
       func, "rows", 0, 0, INT_MAX, "Number of thumbnail preview rows to display", "", 0, INT_MAX);
   RNA_def_int(func,

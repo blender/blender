@@ -2502,29 +2502,21 @@ void GPENCIL_OT_vertex_group_normalize_all(wmOperatorType *ot)
 
 /****************************** Join ***********************************/
 
-/** User-data for #gpencil_joined_fix_animdata_cb(). */
-struct tJoinGPencil_AdtFixData {
-  bGPdata *src_gpd;
-  bGPdata *tar_gpd;
-
-  GHash *names_map;
-};
-
 /**
  * Callback to pass to #BKE_fcurves_main_cb()
  * for RNA Paths attached to each F-Curve used in the #AnimData.
  */
-static void gpencil_joined_fix_animdata_cb(ID *id, FCurve *fcu, void *user_data)
+static void gpencil_joined_fix_animdata_cb(
+    ID *id, FCurve *fcu, bGPdata *src_gpd, bGPdata *tar_gpd, GHash *names_map)
 {
-  tJoinGPencil_AdtFixData *afd = (tJoinGPencil_AdtFixData *)user_data;
-  ID *src_id = &afd->src_gpd->id;
-  ID *dst_id = &afd->tar_gpd->id;
+  ID *src_id = &src_gpd->id;
+  ID *dst_id = &tar_gpd->id;
 
   GHashIterator gh_iter;
 
   /* Fix paths - If this is the target datablock, it will have some "dirty" paths */
   if ((id == src_id) && fcu->rna_path && strstr(fcu->rna_path, "layers[")) {
-    GHASH_ITER (gh_iter, afd->names_map) {
+    GHASH_ITER (gh_iter, names_map) {
       const char *old_name = static_cast<const char *>(BLI_ghashIterator_getKey(&gh_iter));
       const char *new_name = static_cast<const char *>(BLI_ghashIterator_getValue(&gh_iter));
 
@@ -2556,7 +2548,7 @@ static void gpencil_joined_fix_animdata_cb(ID *id, FCurve *fcu, void *user_data)
            * little twists so that we know that it isn't going to clobber the wrong data
            */
           if (dtar->rna_path && strstr(dtar->rna_path, "layers[")) {
-            GHASH_ITER (gh_iter, afd->names_map) {
+            GHASH_ITER (gh_iter, names_map) {
               const char *old_name = static_cast<const char *>(BLI_ghashIterator_getKey(&gh_iter));
               const char *new_name = static_cast<const char *>(
                   BLI_ghashIterator_getValue(&gh_iter));
@@ -2674,10 +2666,7 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
         }
 
         /* Duplicate #bGPDlayers. */
-        tJoinGPencil_AdtFixData afd = {nullptr};
-        afd.src_gpd = gpd_src;
-        afd.tar_gpd = gpd_dst;
-        afd.names_map = BLI_ghash_str_new("joined_gp_layers_map");
+        GHash *names_map = BLI_ghash_str_new("joined_gp_layers_map");
 
         float imat[3][3], bmat[3][3];
         float offset_global[3];
@@ -2727,15 +2716,17 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
                          '.',
                          offsetof(bGPDlayer, info),
                          sizeof(gpl_new->info));
-          BLI_ghash_insert(afd.names_map, BLI_strdup(gpl_src->info), gpl_new->info);
+          BLI_ghash_insert(names_map, BLI_strdup(gpl_src->info), gpl_new->info);
 
           /* add to destination datablock */
           BLI_addtail(&gpd_dst->layers, gpl_new);
         }
 
         /* Fix all the animation data */
-        BKE_fcurves_main_cb(bmain, gpencil_joined_fix_animdata_cb, &afd);
-        BLI_ghash_free(afd.names_map, MEM_freeN, nullptr);
+        BKE_fcurves_main_cb(bmain, [&](ID *id, FCurve *fcu) {
+          gpencil_joined_fix_animdata_cb(id, fcu, gpd_src, gpd_dst, names_map);
+        });
+        BLI_ghash_free(names_map, MEM_freeN, nullptr);
 
         /* Only copy over animdata now, after all the remapping has been done,
          * so that we don't have to worry about ambiguities re which datablock

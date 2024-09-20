@@ -177,7 +177,7 @@ int logImageIsDpx(const void *buffer, unsigned int size);
 int logImageIsCineon(const void *buffer, unsigned int size);
 LogImageFile *logImageOpenFromMemory(const unsigned char *buffer, unsigned int size);
 LogImageFile *logImageOpenFromFile(const char *filepath, int cineon);
-void logImageGetSize(LogImageFile *logImage, int *width, int *height, int *depth);
+void logImageGetSize(const LogImageFile *logImage, int *width, int *height, int *depth);
 LogImageFile *logImageCreate(const char *filepath,
                              int cineon,
                              int width,

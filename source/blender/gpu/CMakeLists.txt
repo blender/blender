@@ -18,7 +18,7 @@ set(INC
   # For theme color access.
   ../editors/include
 
-  # For *_info.hh includes.
+  # For `*_info.hh` includes.
   ../compositor/realtime_compositor
   ../draw/engines/eevee_next
   ../draw/engines/gpencil
@@ -236,8 +236,10 @@ set(VULKAN_SRC
   vulkan/vk_sampler.cc
   vulkan/vk_samplers.cc
   vulkan/vk_shader.cc
+  vulkan/vk_shader_compiler.cc
   vulkan/vk_shader_interface.cc
   vulkan/vk_shader_log.cc
+  vulkan/vk_shader_module.cc
   vulkan/vk_staging_buffer.cc
   vulkan/vk_state_manager.cc
   vulkan/vk_storage_buffer.cc
@@ -308,8 +310,10 @@ set(VULKAN_SRC
   vulkan/vk_sampler.hh
   vulkan/vk_samplers.hh
   vulkan/vk_shader.hh
+  vulkan/vk_shader_compiler.hh
   vulkan/vk_shader_interface.hh
   vulkan/vk_shader_log.hh
+  vulkan/vk_shader_module.hh
   vulkan/vk_staging_buffer.hh
   vulkan/vk_state_manager.hh
   vulkan/vk_storage_buffer.hh
@@ -886,7 +890,7 @@ endif()
 if(WITH_GPU_BUILDTIME_SHADER_BUILDER)
   set(_manifest)
   if(WIN32)
-    # We can re-use the manifest from tests.exe here since it's
+    # We can re-use the manifest from `tests.exe` here since it's
     # rather generic and just selects the appropriate common
     # controls version.
     set(_manifest "${CMAKE_BINARY_DIR}/tests.exe.manifest")
@@ -902,6 +906,7 @@ if(WITH_GPU_BUILDTIME_SHADER_BUILDER)
 
   if(WITH_BUILD_INFO)
     target_link_libraries(shader_builder PRIVATE buildinfoobj)
+    add_definitions(-DWITH_BUILD_INFO)
   endif()
   target_link_libraries(shader_builder PRIVATE
     bf_gpu
@@ -978,7 +983,7 @@ if(WITH_GTESTS)
     )
   endif()
 
-  # Enable shader validation on buildbot for Metal
+  # Enable shader validation on build-bot for Metal
   if(WITH_METAL_BACKEND AND NOT WITH_GPU_DRAW_TESTS)
     list(APPEND TEST_SRC
       tests/shader_create_info_test.cc

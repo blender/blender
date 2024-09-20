@@ -41,8 +41,7 @@ class Prepass {
   void begin_sync(Resources &res, const State &state)
   {
     use_selection_ = (selection_type_ != SelectionType::DISABLED);
-    enabled_ = !state.xray_enabled || use_selection_;
-    enabled_ &= state.space_type == SPACE_VIEW3D;
+    enabled_ = (state.space_type == SPACE_VIEW3D);
 
     if (!enabled_) {
       /* Not used. But release the data. */
@@ -159,10 +158,6 @@ class Prepass {
       return;
     }
 
-    if (ob_ref.object->dt < OB_SOLID) {
-      return;
-    }
-
     particle_sync(manager, ob_ref, res, state);
 
     const bool use_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob_ref.object, state.rv3d) &&
@@ -222,7 +217,7 @@ class Prepass {
                                          grease_pencil_view,
                                          state.scene,
                                          ob_ref.object,
-                                         manager.resource_handle(ob_ref),
+                                         manager.unique_handle(ob_ref),
                                          res.select_id(ob_ref));
         return;
       default:
@@ -233,7 +228,7 @@ class Prepass {
       return;
     }
 
-    ResourceHandle res_handle = manager.resource_handle(ob_ref);
+    ResourceHandle res_handle = manager.unique_handle(ob_ref);
 
     for (int material_id : geom_list.index_range()) {
       select::ID select_id = use_material_slot_selection_ ?

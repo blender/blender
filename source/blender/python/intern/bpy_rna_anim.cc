@@ -436,6 +436,7 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
     BKE_reports_free(&reports);
     return nullptr;
   }
+  BKE_report_print_level_set(&reports, G.quiet ? RPT_WARNING : RPT_DEBUG);
   BPy_reports_write_stdout(&reports, nullptr);
   BKE_reports_free(&reports);
 

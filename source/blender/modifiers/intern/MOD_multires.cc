@@ -231,10 +231,6 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
       sculpt_session->multires.active = true;
       sculpt_session->multires.modifier = mmd;
       sculpt_session->multires.level = mmd->sculptlvl;
-      sculpt_session->totvert = mesh->verts_num;
-      sculpt_session->faces_num = mesh->faces_num;
-      sculpt_session->faces = {};
-      sculpt_session->corner_verts = {};
     }
     // blender::bke::subdiv::stats_print(&subdiv->stats);
   }
@@ -250,7 +246,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     if (use_clnors) {
       float(*corner_normals)[3] = static_cast<float(*)[3]>(
           CustomData_get_layer_for_write(&result->corner_data, CD_NORMAL, result->corners_num));
-      BKE_mesh_set_custom_normals(result, corner_normals);
+      BKE_mesh_set_custom_normals_normalized(result, corner_normals);
       CustomData_free_layers(&result->corner_data, CD_NORMAL, result->corners_num);
     }
     // blender::bke::subdiv::stats_print(&subdiv->stats);

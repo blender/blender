@@ -642,6 +642,7 @@ void BKE_armature_deform_coords_with_gpencil_stroke(const Object *ob_arm,
 void BKE_armature_deform_coords_with_curves(
     const Object &ob_arm,
     const Object &ob_target,
+    const ListBase *defbase,
     blender::MutableSpan<blender::float3> vert_coords,
     std::optional<blender::MutableSpan<blender::float3>> vert_coords_prev,
     std::optional<blender::MutableSpan<blender::float3x3>> vert_deform_mats,

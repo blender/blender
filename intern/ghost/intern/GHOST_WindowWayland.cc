@@ -329,7 +329,7 @@ static GHOST_TSuccess gwl_window_cursor_custom_load(const GWL_WindowCursorCustom
 }
 
 static GHOST_TSuccess gwl_window_cursor_shape_refresh(GHOST_TStandardCursor shape,
-                                                      GWL_WindowCursorCustomShape &ccs,
+                                                      const GWL_WindowCursorCustomShape &ccs,
                                                       GHOST_SystemWayland *system)
 {
 #ifdef USE_EVENT_BACKGROUND_THREAD

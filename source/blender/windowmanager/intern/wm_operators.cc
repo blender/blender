@@ -1883,9 +1883,9 @@ int WM_operator_redo_popup(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  /* Refreshing not supported, because operator might get freed. */
-  const bool can_refresh = false;
-  UI_popup_block_invoke_ex(C, wm_block_create_redo, op, nullptr, can_refresh);
+  /* Operator is stored and kept alive in the window manager. So passing a pointer to the UI is
+   * fine, it will remain valid. */
+  UI_popup_block_invoke(C, wm_block_create_redo, op, nullptr);
 
   return OPERATOR_CANCELLED;
 }

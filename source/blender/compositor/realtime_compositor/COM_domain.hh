@@ -49,7 +49,7 @@ struct RealizationOptions {
  * output, but also by its transformation in that virtual space. The transformation of the result
  * together with the dimension of its image is stored and represented by a Domain. In the figure
  * below, two results of different domains are illustrated on the virtual compositing space. One of
- * the results is centered in space with an image dimension of 800px × 600px, and the other result
+ * the results is centered in space with an image dimension of 800px x 600px, and the other result
  * is scaled down and translated such that it lies in the upper right quadrant of the space with an
  * image dimension of 800px × 400px. The position of the domain is in pixel space, and the domain
  * is considered centered if it has an identity transformation. Note that both results have the

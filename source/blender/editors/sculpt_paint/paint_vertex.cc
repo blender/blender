@@ -256,27 +256,25 @@ void init_session_data(const ToolSettings &ts, Object &ob)
 
   /* Create average brush arrays */
   if (ob.mode == OB_MODE_WEIGHT_PAINT) {
+    SculptSession &ss = *ob.sculpt;
     if (!vwpaint::brush_use_accumulate(*ts.wpaint)) {
-      if (ob.sculpt->mode.wpaint.alpha_weight == nullptr) {
-        ob.sculpt->mode.wpaint.alpha_weight = (float *)MEM_callocN(mesh->verts_num * sizeof(float),
-                                                                   __func__);
+      if (ss.mode.wpaint.alpha_weight == nullptr) {
+        ss.mode.wpaint.alpha_weight = (float *)MEM_callocN(mesh->verts_num * sizeof(float),
+                                                           __func__);
       }
-      if (ob.sculpt->mode.wpaint.dvert_prev == nullptr) {
-        ob.sculpt->mode.wpaint.dvert_prev = (MDeformVert *)MEM_callocN(
-            mesh->verts_num * sizeof(MDeformVert), __func__);
-        MDeformVert *dv = ob.sculpt->mode.wpaint.dvert_prev;
-        for (int i = 0; i < mesh->verts_num; i++, dv++) {
-          /* Use to show this isn't initialized, never apply to the mesh data. */
-          dv->flag = 1;
-        }
+      if (ss.mode.wpaint.dvert_prev.is_empty()) {
+        MDeformVert initial_value{};
+        /* Use to show this isn't initialized, never apply to the mesh data. */
+        initial_value.flag = 1;
+        ss.mode.wpaint.dvert_prev = Array<MDeformVert>(mesh->verts_num, initial_value);
       }
     }
     else {
-      MEM_SAFE_FREE(ob.sculpt->mode.wpaint.alpha_weight);
-      if (ob.sculpt->mode.wpaint.dvert_prev != nullptr) {
-        BKE_defvert_array_free_elems(ob.sculpt->mode.wpaint.dvert_prev, mesh->verts_num);
-        MEM_freeN(ob.sculpt->mode.wpaint.dvert_prev);
-        ob.sculpt->mode.wpaint.dvert_prev = nullptr;
+      MEM_SAFE_FREE(ss.mode.wpaint.alpha_weight);
+      if (!ss.mode.wpaint.dvert_prev.is_empty()) {
+        BKE_defvert_array_free_elems(ss.mode.wpaint.dvert_prev.data(),
+                                     ss.mode.wpaint.dvert_prev.size());
+        ss.mode.wpaint.dvert_prev = {};
       }
     }
   }
@@ -2075,9 +2073,10 @@ static int vpaint_invoke(bContext *C, wmOperator *op, const wmEvent *event)
                                     vpaint_stroke_done,
                                     event->type);
 
+  const Scene &scene = *CTX_data_scene(C);
   Object &ob = *CTX_data_active_object(C);
 
-  undo::push_begin_ex(ob, "Vertex Paint");
+  undo::push_begin_ex(scene, ob, "Vertex Paint");
 
   if ((retval = op->type->modal(C, op, event)) == OPERATOR_FINISHED) {
     paint_stroke_free(C, op, (PaintStroke *)op->customdata);
@@ -2312,16 +2311,17 @@ static int vertex_color_set_exec(bContext *C, wmOperator *op)
 
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(obact);
 
-  undo::push_begin(obact, op);
+  undo::push_begin(scene, obact, op);
   IndexMaskMemory memory;
   const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
 
   undo::push_nodes(depsgraph, obact, node_mask, undo::Type::Color);
 
+  Mesh &mesh = *static_cast<Mesh *>(obact.data);
+
   fill_active_color(obact, paintcol, true, affect_alpha);
 
-  MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-  node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update_color(nodes[i]); });
+  pbvh.tag_attribute_changed(node_mask, mesh.active_color_attribute);
   undo::push_end(obact);
 
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, &obact);

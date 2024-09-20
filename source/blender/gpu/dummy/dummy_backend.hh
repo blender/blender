@@ -93,6 +93,7 @@ class DummyBackend : public GPUBackend {
   {
     return new DummyVertexBuffer;
   }
+  void shader_cache_dir_clear_old() override {}
   void render_begin() override {}
   void render_end() override {}
   void render_step() override {}

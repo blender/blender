@@ -122,10 +122,10 @@ static bool seq_cache_hashcmp(const void *a_, const void *b_)
           seq_cmp_render_data(&a->context, &b->context));
 }
 
-static float seq_cache_timeline_frame_to_frame_index(Scene *scene,
+static float seq_cache_timeline_frame_to_frame_index(const Scene *scene,
                                                      const Sequence *seq,
-                                                     float timeline_frame,
-                                                     int type)
+                                                     const float timeline_frame,
+                                                     const int type)
 {
   /* With raw images, map timeline_frame to strip input media frame range. This means that static
    * images or extended frame range of movies will only generate one cache entry. No special

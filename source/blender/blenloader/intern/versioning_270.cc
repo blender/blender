@@ -386,7 +386,7 @@ static char *replace_bbone_easing_rnapath(char *old_path)
   return old_path;
 }
 
-static void do_version_bbone_easing_fcurve_fix(ID * /*id*/, FCurve *fcu, void * /*user_data*/)
+static void do_version_bbone_easing_fcurve_fix(ID * /*id*/, FCurve *fcu)
 {
   /* F-Curve's path (for bbone_in/out) */
   if (fcu->rna_path) {
@@ -1626,6 +1626,6 @@ void do_versions_after_linking_270(Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 279, 2)) {
     /* B-Bones (bbone_in/out -> bbone_easein/out) + Stepped FMod Frame Start/End fix */
-    BKE_fcurves_main_cb(bmain, do_version_bbone_easing_fcurve_fix, nullptr);
+    BKE_fcurves_main_cb(bmain, do_version_bbone_easing_fcurve_fix);
   }
 }

@@ -616,12 +616,7 @@ void BlenderSync::sync_images()
   }
   /* Free buffers used by images which are not needed for render. */
   for (BL::Image &b_image : b_data.images) {
-    /* TODO(sergey): Consider making it an utility function to check
-     * whether image is considered builtin.
-     */
-    const bool is_builtin = b_image.packed_file() ||
-                            b_image.source() == BL::Image::source_GENERATED ||
-                            b_image.source() == BL::Image::source_MOVIE || b_engine.is_preview();
+    const bool is_builtin = image_is_builtin(b_image, b_engine);
     if (is_builtin == false) {
       b_image.buffers_free();
     }

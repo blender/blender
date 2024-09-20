@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'd52d70324d18')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-02 14:03+0000\n"
+"POT-Creation-Date: 2024-09-16 11:03+0000\n"
 "PO-Revision-Date: 2023-12-21 01:55+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -2682,12 +2682,12 @@ msgid "Active Point"
 msgstr "Actieve Punt"
 
 
-msgid "Show/Hide"
-msgstr "Toon/Verberg"
-
-
 msgid "Names"
 msgstr "Namen"
+
+
+msgid "Show/Hide"
+msgstr "Toon/Verberg"
 
 
 msgid "Mirror"
@@ -7778,11 +7778,6 @@ msgid "Shortest Path"
 msgstr "Kortste pad"
 
 
-msgctxt "Image"
-msgid "New"
-msgstr "Nieuw"
-
-
 msgctxt "Operator"
 msgid "Save All Images"
 msgstr "Sla Alle Afbeeldingen Op"
@@ -8807,6 +8802,11 @@ msgstr "Nieuw"
 
 
 msgctxt "GPencil"
+msgid "New"
+msgstr "Nieuw"
+
+
+msgctxt "Image"
 msgid "New"
 msgstr "Nieuw"
 

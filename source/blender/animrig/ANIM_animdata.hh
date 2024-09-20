@@ -11,6 +11,7 @@
 #pragma once
 
 #include "BLI_string_ref.hh"
+#include "BLI_vector.hh"
 
 struct ID;
 struct Main;
@@ -47,6 +48,15 @@ void reevaluate_fcurve_errors(bAnimContext *ac);
  * come from a NLA Strip being tweaked.
  */
 bool animdata_remove_empty_action(AnimData *adt);
+
+/**
+ * Build a Vector of IDs that are related to the given ID. Related things are e.g. Object<->Data,
+ * Mesh<->Material and so on. The exact relationships are defined per ID type. Only relationships
+ * of 1:1 are traced. The case of multiple users for 1 ID is treated as not related.
+ * The returned Vector always contains the passed ID as the first index as such will never be
+ * emtpy.
+ */
+Vector<ID *> find_related_ids(Main &bmain, ID &id);
 
 /**
  * Compatibility helper function for `BKE_animadata_fcurve_find_by_rna_path()`.

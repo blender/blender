@@ -142,20 +142,29 @@ ShaderModule::ShaderModule(const SelectionType selection_type, const bool clippi
       "overlay_edit_curves_handle",
       [](gpu::shader::ShaderCreateInfo &info) { shader_patch_common(info); });
 
-  grid_background = shader("overlay_grid_background",
-                           [](gpu::shader::ShaderCreateInfo &info) { shader_patch_common(info); });
+  extra_point = shader("overlay_extra_point", [](gpu::shader::ShaderCreateInfo &info) {
+    info.additional_infos_.clear();
+    info.vertex_inputs_.pop_last();
+    info.push_constants_.pop_last();
+    info.additional_info("draw_view", "draw_modelmat_new", "draw_globals")
+        .typedef_source("overlay_shader_shared.h")
+        .storage_buf(0, Qualifier::READ, "VertexData", "data_buf[]")
+        .define("pos", "data_buf[gl_VertexID].pos_.xyz")
+        .define("ucolor", "data_buf[gl_VertexID].color_");
+  });
+
+  grid_background = shader("overlay_grid_background", [](gpu::shader::ShaderCreateInfo &info) {
+    shader_patch_common(info);
+    info.push_constant(gpu::shader::Type::VEC3, "tile_scale");
+    info.define("tile_pos", "vec3(0.0)");
+  });
 
   grid_image = shader("overlay_grid_image", [](gpu::shader::ShaderCreateInfo &info) {
-    info.additional_infos_.clear();
-    info.additional_info("draw_view", "draw_globals")
-        .typedef_source("draw_shader_shared.hh")
-        .storage_buf(0, Qualifier::READ, "ObjectMatrices", "tile_matrix_buf[]")
-        .define("DRAW_MODELMAT_CREATE_INFO")
-        .define("drw_ModelMatrixInverse", "tile_matrix_buf[gl_InstanceID].model_inverse")
-        .define("drw_ModelMatrix", "tile_matrix_buf[gl_InstanceID].model")
-        /* TODO For compatibility with old shaders. To be removed. */
-        .define("ModelMatrixInverse", "drw_ModelMatrixInverse")
-        .define("ModelMatrix", "drw_ModelMatrix");
+    shader_patch_common(info);
+    info.storage_buf(0, Qualifier::READ, "vec3", "tile_pos_buf[]")
+        .define("tile_pos", "tile_pos_buf[gl_InstanceID]")
+        .define("tile_scale", "vec3(1.0)");
+    ;
   });
 
   legacy_curve_edit_wires = shader(
@@ -230,11 +239,6 @@ ShaderModule::ShaderModule(const SelectionType selection_type, const bool clippi
         shader_patch_common(info);
         info.additional_info("draw_object_infos_new", "overlay_outline_prepass");
       });
-  outline_prepass_wire = shader(
-      "overlay_outline_prepass_wire", [](gpu::shader::ShaderCreateInfo &info) {
-        shader_patch_common(info);
-        info.additional_info("draw_object_infos_new", "overlay_outline_prepass");
-      });
   outline_prepass_curves = shader(
       "overlay_outline_prepass_curves", [](gpu::shader::ShaderCreateInfo &info) {
         shader_patch_common(info);
@@ -251,6 +255,33 @@ ShaderModule::ShaderModule(const SelectionType selection_type, const bool clippi
         shader_patch_common(info);
         info.additional_info("draw_gpencil_new", "draw_object_infos_new");
       });
+
+  particle_edit_vert = shader(
+      "overlay_edit_particle_point",
+      [](gpu::shader::ShaderCreateInfo &info) { shader_patch_common(info); });
+  particle_edit_edge = shader(
+      "overlay_edit_particle_strand",
+      [](gpu::shader::ShaderCreateInfo &info) { shader_patch_common(info); });
+
+  paint_region_edge = shader("overlay_paint_wire", [](gpu::shader::ShaderCreateInfo &info) {
+    shader_patch_common(info);
+  });
+  paint_region_face = shader("overlay_paint_face", [](gpu::shader::ShaderCreateInfo &info) {
+    shader_patch_common(info);
+  });
+  paint_region_vert = shader("overlay_paint_point", [](gpu::shader::ShaderCreateInfo &info) {
+    shader_patch_common(info);
+  });
+  paint_texture = shader("overlay_paint_texture",
+                         [](gpu::shader::ShaderCreateInfo &info) { shader_patch_common(info); });
+  paint_weight = shader("overlay_paint_weight",
+                        [](gpu::shader::ShaderCreateInfo &info) { shader_patch_common(info); });
+  paint_weight_fake_shading = shader("overlay_paint_weight",
+                                     [](gpu::shader::ShaderCreateInfo &info) {
+                                       shader_patch_common(info);
+                                       info.define("FAKE_SHADING");
+                                       info.push_constant(gpu::shader::Type::VEC3, "light_dir");
+                                     });
 
   sculpt_mesh = shader("overlay_sculpt_mask",
                        [](gpu::shader::ShaderCreateInfo &info) { shader_patch_common(info); });
@@ -283,6 +314,7 @@ ShaderModule::ShaderModule(const SelectionType selection_type, const bool clippi
                             [](gpu::shader::ShaderCreateInfo &info) {
                               info.additional_infos_.clear();
                               info.push_constant(gpu::shader::Type::VEC3, "tile_pos");
+                              info.define("tile_scale", "vec3(1.0)");
                               info.additional_info("draw_view");
                             });
   uv_brush_stencil = shader("overlay_edit_uv_stencil_image",
@@ -537,6 +569,19 @@ ShaderModule::ShaderModule(const SelectionType selection_type, const bool clippi
     info.additional_infos_.clear();
     info.additional_info(
         "draw_view", "draw_modelmat_new", "draw_resource_handle_new", "draw_globals");
+  });
+
+  uniform_color_batch = shader("overlay_uniform_color", [](gpu::shader::ShaderCreateInfo &info) {
+    info.additional_infos_.clear();
+    info.additional_info("draw_view", "draw_globals")
+        .typedef_source("draw_shader_shared.hh")
+        .storage_buf(0, Qualifier::READ, "ObjectMatrices", "matrix_buf[]")
+        .define("DRAW_MODELMAT_CREATE_INFO")
+        .define("drw_ModelMatrixInverse", "matrix_buf[gl_InstanceID].model_inverse")
+        .define("drw_ModelMatrix", "matrix_buf[gl_InstanceID].model")
+        /* TODO For compatibility with old shaders. To be removed. */
+        .define("ModelMatrixInverse", "drw_ModelMatrixInverse")
+        .define("ModelMatrix", "drw_ModelMatrix");
   });
 
   wireframe_mesh = selectable_shader("overlay_wireframe", [](gpu::shader::ShaderCreateInfo &info) {

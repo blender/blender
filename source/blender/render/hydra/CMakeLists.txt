@@ -14,7 +14,7 @@ if(WIN32)
 endif()
 add_definitions(-DBOOST_ALL_NO_LIB)
 
-# Precompiled Linux libs are made with GCC, and USD uses some extensions
+# Pre-compiled Linux libraries are made with GCC, and USD uses some extensions
 # which lead to an incompatible ABI for Clang. Using those extensions with
 # Clang as well works around the issue.
 if(UNIX AND NOT APPLE)

@@ -14,7 +14,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_animsys.h"
+#include "BKE_anim_data.hh"
 
 #include "RNA_path.hh"
 
@@ -63,50 +63,33 @@ uint64_t AnimatedPropertyID::hash() const
   return uint64_t(((ptr1 >> 4) * 33) ^ (ptr2 >> 4));
 }
 
-namespace {
-
-struct AnimatedPropertyCallbackData {
-  PointerRNA pointer_rna;
-  AnimatedPropertyStorage *animated_property_storage;
-  DepsgraphBuilderCache *builder_cache;
-};
-
-void animated_property_cb(ID * /*id*/, FCurve *fcurve, void *data_v)
-{
-  if (fcurve->rna_path == nullptr || fcurve->rna_path[0] == '\0') {
-    return;
-  }
-  AnimatedPropertyCallbackData *data = static_cast<AnimatedPropertyCallbackData *>(data_v);
-  /* Resolve property. */
-  PointerRNA pointer_rna;
-  PropertyRNA *property_rna = nullptr;
-  if (!RNA_path_resolve_property(
-          &data->pointer_rna, fcurve->rna_path, &pointer_rna, &property_rna))
-  {
-    return;
-  }
-  /* Get storage for the ID.
-   * This is needed to deal with cases when nested datablock is animated by its parent. */
-  AnimatedPropertyStorage *animated_property_storage = data->animated_property_storage;
-  if (pointer_rna.owner_id != data->pointer_rna.owner_id) {
-    animated_property_storage = data->builder_cache->ensureAnimatedPropertyStorage(
-        pointer_rna.owner_id);
-  }
-  /* Set the property as animated. */
-  animated_property_storage->tagPropertyAsAnimated(&pointer_rna, property_rna);
-}
-
-}  // namespace
-
 AnimatedPropertyStorage::AnimatedPropertyStorage() : is_fully_initialized(false) {}
 
 void AnimatedPropertyStorage::initializeFromID(DepsgraphBuilderCache *builder_cache, const ID *id)
 {
-  AnimatedPropertyCallbackData data;
-  data.pointer_rna = RNA_id_pointer_create(const_cast<ID *>(id));
-  data.animated_property_storage = this;
-  data.builder_cache = builder_cache;
-  BKE_fcurves_id_cb(const_cast<ID *>(id), animated_property_cb, &data);
+  PointerRNA own_pointer_rna = RNA_id_pointer_create(const_cast<ID *>(id));
+  BKE_fcurves_id_cb(const_cast<ID *>(id), [&](ID * /*id*/, FCurve *fcurve) {
+    if (fcurve->rna_path == nullptr || fcurve->rna_path[0] == '\0') {
+      return;
+    }
+    /* Resolve property. */
+    PointerRNA pointer_rna;
+    PropertyRNA *property_rna = nullptr;
+    if (!RNA_path_resolve_property(
+            &own_pointer_rna, fcurve->rna_path, &pointer_rna, &property_rna))
+    {
+      return;
+    }
+    /* Get storage for the ID.
+     * This is needed to deal with cases when nested datablock is animated by its parent. */
+    AnimatedPropertyStorage *animated_property_storage = this;
+    if (pointer_rna.owner_id != own_pointer_rna.owner_id) {
+      animated_property_storage = builder_cache->ensureAnimatedPropertyStorage(
+          pointer_rna.owner_id);
+    }
+    /* Set the property as animated. */
+    animated_property_storage->tagPropertyAsAnimated(&pointer_rna, property_rna);
+  });
 }
 
 void AnimatedPropertyStorage::tagPropertyAsAnimated(const AnimatedPropertyID &property_id)

@@ -71,6 +71,7 @@ class MTLBackend : public GPUBackend {
   UniformBuf *uniformbuf_alloc(size_t size, const char *name) override;
   StorageBuf *storagebuf_alloc(size_t size, GPUUsageType usage, const char *name) override;
   VertBuf *vertbuf_alloc() override;
+  void shader_cache_dir_clear_old() override {}
 
   /* Render Frame Coordination. */
   void render_begin() override;

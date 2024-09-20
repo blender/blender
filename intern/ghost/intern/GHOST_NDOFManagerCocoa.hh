@@ -12,7 +12,7 @@
 class GHOST_NDOFManagerCocoa : public GHOST_NDOFManager {
  public:
   GHOST_NDOFManagerCocoa(GHOST_System &);
-  ~GHOST_NDOFManagerCocoa();
+  ~GHOST_NDOFManagerCocoa() override;
 
-  bool available();
+  bool available() override;
 };

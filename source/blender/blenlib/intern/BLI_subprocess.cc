@@ -269,8 +269,8 @@ bool BlenderSubprocess::create(Span<StringRefNull> args)
   }
 
   char path[PATH_MAX + 1];
-  size_t len = readlink("/proc/self/exe", path, PATH_MAX);
-  if (len == -1) {
+  const size_t len = readlink("/proc/self/exe", path, PATH_MAX);
+  if (len == size_t(-1)) {
     ERROR("readlink");
     return false;
   }

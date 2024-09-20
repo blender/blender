@@ -507,11 +507,11 @@ static wmDropBox *wm_dropbox_active(bContext *C, wmDrag *drag, const wmEvent *ev
 static void wm_drop_update_active(bContext *C, wmDrag *drag, const wmEvent *event)
 {
   wmWindow *win = CTX_wm_window(C);
-  const int winsize_x = WM_window_native_pixel_x(win);
-  const int winsize_y = WM_window_native_pixel_y(win);
+  const blender::int2 win_size = WM_window_native_pixel_size(win);
 
   /* For multi-window drags, we only do this if mouse inside. */
-  if (event->xy[0] < 0 || event->xy[1] < 0 || event->xy[0] > winsize_x || event->xy[1] > winsize_y)
+  if (event->xy[0] < 0 || event->xy[1] < 0 || event->xy[0] > win_size[0] ||
+      event->xy[1] > win_size[1])
   {
     return;
   }

@@ -12,6 +12,7 @@ namespace blender::animrig::internal {
  * blending, influence, etc. into account.
  */
 EvaluationResult evaluate_layer(PointerRNA &animated_id_ptr,
+                                Action &owning_action,
                                 Layer &layer,
                                 slot_handle_t slot_handle,
                                 const AnimationEvalContext &anim_eval_context);

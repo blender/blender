@@ -20,6 +20,7 @@
 #include "BLI_task.hh"
 
 #include "editors/sculpt_paint/mesh_brush_common.hh"
+#include "editors/sculpt_paint/sculpt_automask.hh"
 #include "editors/sculpt_paint/sculpt_intern.hh"
 
 namespace blender::ed::sculpt_paint {
@@ -100,6 +101,8 @@ void do_displacement_eraser_brush(const Depsgraph &depsgraph,
                                   const IndexMask &node_mask)
 {
   SculptSession &ss = *object.sculpt;
+  SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+  MutableSpan<float3> positions = subdiv_ccg.positions;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   const float strength = std::min(ss.cache->bstrength, 1.0f);
 
@@ -108,9 +111,13 @@ void do_displacement_eraser_brush(const Depsgraph &depsgraph,
   MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
   threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
     LocalData &tls = all_tls.local();
-    node_mask.slice(range).foreach_index(
-        [&](const int i) { calc_node(depsgraph, sd, object, brush, strength, nodes[i], tls); });
+    node_mask.slice(range).foreach_index([&](const int i) {
+      calc_node(depsgraph, sd, object, brush, strength, nodes[i], tls);
+      bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
+    });
   });
+  pbvh.tag_positions_changed(node_mask);
+  bke::pbvh::flush_bounds_to_parents(pbvh);
 }
 
 }  // namespace blender::ed::sculpt_paint

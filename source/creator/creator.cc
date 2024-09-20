@@ -94,10 +94,6 @@
 #  include "CCL_api.h"
 #endif
 
-#ifdef WITH_SDL_DYNLOAD
-#  include "sdlew.h"
-#endif
-
 #include "creator_intern.h" /* Own include. */
 
 /* -------------------------------------------------------------------- */
@@ -370,10 +366,6 @@ int main(int argc,
       STRNCPY(build_commit_time, unknown);
     }
   }
-#endif
-
-#ifdef WITH_SDL_DYNLOAD
-  sdlewInit();
 #endif
 
   /* Initialize logging. */

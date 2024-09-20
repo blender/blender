@@ -139,6 +139,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  bf_editor_id_management
   bf_editor_undo
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc

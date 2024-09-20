@@ -34,7 +34,7 @@ VKContext::VKContext(void *ghost_window, void *ghost_context, VKThreadData &thre
   front_left = new VKFrameBuffer("front_left");
   active_fb = back_left;
 
-  compiler = new ShaderCompilerGeneric();
+  compiler = &VKBackend::get().shader_compiler;
 }
 
 VKContext::~VKContext()
@@ -50,7 +50,7 @@ VKContext::~VKContext()
   delete imm;
   imm = nullptr;
 
-  delete compiler;
+  compiler = nullptr;
 }
 
 void VKContext::sync_backbuffer()

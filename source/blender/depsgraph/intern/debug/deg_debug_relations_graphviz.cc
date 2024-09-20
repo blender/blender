@@ -502,13 +502,9 @@ static void deg_debug_graphviz_graph_relations(DotExportContext &ctx, const Deps
 
 }  // namespace blender::deg
 
-void DEG_debug_relations_graphviz(const Depsgraph *graph, FILE *fp, const char *label)
+std::string DEG_debug_graph_to_dot(const Depsgraph &graph, const blender::StringRef label)
 {
-  if (!graph) {
-    return;
-  }
-
-  const deg::Depsgraph *deg_graph = reinterpret_cast<const deg::Depsgraph *>(graph);
+  const deg::Depsgraph &deg_graph = reinterpret_cast<const deg::Depsgraph &>(graph);
 
   dot::DirectedGraph digraph;
   deg::DotExportContext ctx{false, digraph};
@@ -522,11 +518,10 @@ void DEG_debug_relations_graphviz(const Depsgraph *graph, FILE *fp, const char *
   digraph.attributes.set("splines", "ortho");
   digraph.attributes.set("overlap", "scalexy");
 
-  deg::deg_debug_graphviz_graph_nodes(ctx, deg_graph);
-  deg::deg_debug_graphviz_graph_relations(ctx, deg_graph);
+  deg::deg_debug_graphviz_graph_nodes(ctx, &deg_graph);
+  deg::deg_debug_graphviz_graph_relations(ctx, &deg_graph);
 
   deg::deg_debug_graphviz_legend(ctx);
 
-  std::string dot_string = digraph.to_dot_string();
-  fprintf(fp, "%s", dot_string.c_str());
+  return digraph.to_dot_string();
 }
