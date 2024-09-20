@@ -2593,7 +2593,7 @@ static void node_draw_panels(bNodeTree &ntree, const bNode &node, uiBlock &block
                        nullptr,
                        0.0f,
                        0.0f,
-                       "");
+                       panel_decl->description.c_str());
     UI_but_func_pushed_state_set(but, [&state](const uiBut &) { return state.is_collapsed(); });
     UI_but_func_set(
         but, node_panel_toggle_button_cb, const_cast<bNodePanelState *>(&state), &ntree);
