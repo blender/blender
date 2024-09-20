@@ -439,18 +439,19 @@ ActionStrip *rna_ActionStrips_new(
 }
 
 void rna_ActionStrips_remove(
-    ID *action, ActionLayer *dna_layer, bContext *C, ReportList *reports, PointerRNA *strip_ptr)
+    ID *action_id, ActionLayer *dna_layer, bContext *C, ReportList *reports, PointerRNA *strip_ptr)
 {
+  animrig::Action &action = reinterpret_cast<bAction *>(action_id)->wrap();
   animrig::Layer &layer = dna_layer->wrap();
   animrig::Strip &strip = rna_data_strip(strip_ptr);
-  if (!layer.strip_remove(strip)) {
+  if (!layer.strip_remove(action, strip)) {
     BKE_report(reports, RPT_ERROR, "This strip does not belong to this layer");
     return;
   }
 
   RNA_POINTER_INVALIDATE(strip_ptr);
   WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN, nullptr);
-  DEG_id_tag_update(action, ID_RECALC_ANIMATION);
+  DEG_id_tag_update(action_id, ID_RECALC_ANIMATION);
 }
 
 static std::optional<std::string> rna_ActionStrip_path(const PointerRNA *ptr)

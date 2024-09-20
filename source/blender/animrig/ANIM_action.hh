@@ -336,10 +336,11 @@ class Action : public ::bAction {
   void slot_setup_for_id(Slot &slot, const ID &animated_id);
 
  protected:
-  /* To give access to `strip_keyframe_data_append()` (and in the future,
-   * corresponding functions for other strip data types), needed for creating
-   * new strips. */
+  /* Friends for the purpose of adding/removing strip data on the action's strip
+   * data arrays. This is needed for the strip creation and removal code in
+   * `Strip` and `Layer`'s methods. */
   friend Strip;
+  friend Layer;
 
   /** Return the layer's index, or -1 if not found in this Action. */
   int64_t find_layer_index(const Layer &layer) const;
@@ -356,6 +357,22 @@ class Action : public ::bAction {
    * \return The index of the appended item in the array.
    */
   int strip_keyframe_data_append(StripKeyframeData *strip_data);
+
+  /**
+   * Remove the keyframe strip data at `index` if it is no longer used anywhere
+   * in the action.
+   *
+   * If the strip data is unused, it is both removed from the array *and* freed.
+   * Otherwise no changes are made and the action remains as-is.
+   *
+   * Note: this may alter the indices of some strip data items, due to items
+   * shifting around to fill the gap left by the removed item. This method
+   * ensures that all indices stored within the action (e.g. in the strips
+   * themselves) are properly updated to the new values so that everything is
+   * still referencing the same data. However, if any indices are stored
+   * *outside* the action, they will no longer be valid.
+   */
+  void strip_keyframe_data_remove_if_unused(int index);
 
  private:
   Slot &slot_allocate();
@@ -553,7 +570,7 @@ class Layer : public ::ActionLayer {
    *
    * \return true when the strip was found & removed, false if it wasn't found.
    */
-  bool strip_remove(Strip &strip);
+  bool strip_remove(Action &owning_action, Strip &strip);
 
   /**
    * Remove all data belonging to the given slot.
