@@ -15,6 +15,8 @@
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 
+#include "BKE_anim_data.hh"
+
 #include "BLI_math_vector.hh"
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
@@ -1111,6 +1113,11 @@ static_assert(sizeof(ChannelGroup) == sizeof(::bActionGroup),
  * will still return `true` as the Action was successfully assigned.
  */
 bool assign_action(Action *action, ID &animated_id);
+
+/**
+ * Same as assign_action, except it assigns to AnimData::tmpact and tmp_slot_handle.
+ */
+void assign_tmpaction(Action *action, OwnedAnimData owned_adt);
 
 /**
  * Un-assign the Action assigned to this ID.

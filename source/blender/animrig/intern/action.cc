@@ -1153,6 +1153,15 @@ bool assign_action(Action *action, ID &animated_id)
   return true;
 }
 
+void assign_tmpaction(Action *action, OwnedAnimData owned_adt)
+{
+  generic_assign_action(owned_adt.owner_id,
+                        action,
+                        owned_adt.adt.tmpact,
+                        owned_adt.adt.tmp_slot_handle,
+                        owned_adt.adt.tmp_slot_name);
+}
+
 void unassign_action(ID &animated_id)
 {
   assign_action(nullptr, animated_id);

@@ -462,19 +462,33 @@ static void animdata_copy_id_action(Main *bmain,
                                     const bool set_newid,
                                     const bool do_linked_id)
 {
+  using namespace blender::animrig;
+
   AnimData *adt = BKE_animdata_from_id(id);
   if (adt) {
     if (adt->action && (do_linked_id || !ID_IS_LINKED(adt->action))) {
-      id_us_min((ID *)adt->action);
-      adt->action = static_cast<bAction *>(
-          set_newid ? ID_NEW_SET(adt->action, BKE_id_copy(bmain, &adt->action->id)) :
-                      BKE_id_copy(bmain, &adt->action->id));
+      bAction *cloned_action = reinterpret_cast<bAction *>(BKE_id_copy(bmain, &adt->action->id));
+      if (set_newid) {
+        ID_NEW_SET(adt->action, cloned_action);
+      }
+
+      /* The Action was cloned, so this should find the same-named slot automatically. */
+      const slot_handle_t orig_slot_handle = adt->slot_handle;
+      assign_action(&cloned_action->wrap(), *id);
+      BLI_assert(orig_slot_handle == adt->slot_handle);
+      UNUSED_VARS_NDEBUG(orig_slot_handle);
     }
     if (adt->tmpact && (do_linked_id || !ID_IS_LINKED(adt->tmpact))) {
-      id_us_min((ID *)adt->tmpact);
-      adt->tmpact = static_cast<bAction *>(
-          set_newid ? ID_NEW_SET(adt->tmpact, BKE_id_copy(bmain, &adt->tmpact->id)) :
-                      BKE_id_copy(bmain, &adt->tmpact->id));
+      bAction *cloned_action = reinterpret_cast<bAction *>(BKE_id_copy(bmain, &adt->tmpact->id));
+      if (set_newid) {
+        ID_NEW_SET(adt->tmpact, cloned_action);
+      }
+
+      /* The Action was cloned, so this should find the same-named slot automatically. */
+      const slot_handle_t orig_slot_handle = adt->tmp_slot_handle;
+      assign_tmpaction(&cloned_action->wrap(), {*id, *adt});
+      BLI_assert(orig_slot_handle == adt->tmp_slot_handle);
+      UNUSED_VARS_NDEBUG(orig_slot_handle);
     }
   }
   bNodeTree *ntree = blender::bke::node_tree_from_id(id);
