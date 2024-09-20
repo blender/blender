@@ -417,7 +417,7 @@ set(LIB
 
 )
 
-# Zstd compressor for kernels
+# `Zstd` compressor for kernels.
 add_executable(zstd_compress ../cmake/zstd_compress.cpp)
 target_include_directories(zstd_compress SYSTEM PRIVATE ${ZSTD_INCLUDE_DIRS})
 target_link_libraries(zstd_compress ${ZSTD_LIBRARIES} ${PTHREADS_LIBRARIES})
@@ -923,14 +923,14 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     set(CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen "${CYCLES_ONEAPI_SYCL_OPTIONS_spir64}" CACHE STRING "Extra build options for spir64_gen target")
     mark_as_advanced(CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen)
   endif()
-  # Enable zebin, a graphics binary format with improved compatibility.
+  # Enable `zebin`, a graphics binary format with improved compatibility.
   string(PREPEND CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen "--format zebin ")
 
   # Host execution won't use GPU binaries, no need to compile them.
   if(WITH_CYCLES_ONEAPI_BINARIES AND NOT WITH_CYCLES_ONEAPI_HOST_TASK_EXECUTION)
     # Add the list of Intel devices to build binaries for.
     foreach(device ${CYCLES_ONEAPI_INTEL_BINARIES_ARCH})
-      # Run ocloc ids to test if the device is supported.
+      # Run `ocloc` ids to test if the device is supported.
       if(WIN32)
         execute_process(
           COMMAND ${OCLOC_INSTALL_DIR}/ocloc.exe ids ${device}
@@ -963,7 +963,7 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
       string(PREPEND CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen "-device ${gen_devices_string} ")
     endif()
 
-    # Iterate over all targest and their options
+    # Iterate over all targets and their options.
     list(JOIN CYCLES_ONEAPI_SYCL_TARGETS "," targets_string)
     list(APPEND sycl_compiler_flags -fsycl-targets=${targets_string})
     foreach(target ${CYCLES_ONEAPI_SYCL_TARGETS})
@@ -1084,8 +1084,8 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     # until the compilation issues it triggers at either AoT or JIT stages gets fixed.
     list(APPEND sycl_compiler_flags -fhonor-nans)
 
-    # add $ORIGIN to cycles_kernel_oneapi.so rpath so libsycl.so and
-    # libpi_level_zero.so can be placed next to it and get found.
+    # Add $ORIGIN to `cycles_kernel_oneapi.so` RPATH so `libsycl.so` and
+    # `libpi_level_zero.so` can be placed next to it and get found.
     list(APPEND sycl_compiler_flags -Wl,-rpath,'$$ORIGIN')
   endif()
 
@@ -1114,13 +1114,14 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     add_custom_command(
       OUTPUT ${cycles_kernel_oneapi_lib} ${cycles_kernel_oneapi_linker_lib}
       COMMAND ${CMAKE_COMMAND} -E env
-              "LIB=${sycl_compiler_root}/../lib\;${sycl_compiler_root}/../compiler/lib/intel64_win" # for compiler to find sycl.lib and in case of icpx, libircmt.lib
-              "PATH=${OCLOC_INSTALL_DIR}\;${sycl_compiler_root}"
-              ${SYCL_COMPILER}
-              "$<$<CONFIG:Release>:${sycl_compiler_flags_Release}>"
-              "$<$<CONFIG:RelWithDebInfo>:${sycl_compiler_flags_RelWithDebInfo}>"
-              "$<$<CONFIG:Debug>:${sycl_compiler_flags_Debug}>"
-              "$<$<CONFIG:MinSizeRel>:${sycl_compiler_flags_Release}>"
+        # Set `LIB` for the compiler to find `sycl.lib` and in case of `icpx`, `libircmt.lib`.
+        "LIB=${sycl_compiler_root}/../lib\;${sycl_compiler_root}/../compiler/lib/intel64_win"
+        "PATH=${OCLOC_INSTALL_DIR}\;${sycl_compiler_root}"
+        ${SYCL_COMPILER}
+        "$<$<CONFIG:Release>:${sycl_compiler_flags_Release}>"
+        "$<$<CONFIG:RelWithDebInfo>:${sycl_compiler_flags_RelWithDebInfo}>"
+        "$<$<CONFIG:Debug>:${sycl_compiler_flags_Debug}>"
+        "$<$<CONFIG:MinSizeRel>:${sycl_compiler_flags_Release}>"
       COMMAND_EXPAND_LISTS
       DEPENDS ${cycles_oneapi_kernel_sources})
   else()
@@ -1188,12 +1189,12 @@ include_directories(SYSTEM ${INC_SYS})
 
 if(WITH_COMPILER_ASAN)
   if(CMAKE_COMPILER_IS_GNUCC AND (NOT WITH_CYCLES_KERNEL_ASAN))
-    # GCC hangs compiling the big kernel files with asan and release, so disable by default.
+    # GCC hangs compiling the big kernel files with ASAN and release, so disable by default.
     string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " -fno-sanitize=all")
     string(APPEND CMAKE_CXX_FLAGS_DEBUG " -fno-sanitize=vptr")
   elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
-    # With OSL, Cycles disables rtti in some modules, which then breaks at linking
-    # when trying to use vptr sanitizer (included into 'undefined' general option).
+    # With OSL, Cycles disables RTTI in some modules, which then breaks at linking
+    # when trying to use `vptr` sanitizer (included into 'undefined' general option).
     string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " -fno-sanitize=vptr")
     string(APPEND CMAKE_CXX_FLAGS_DEBUG " -fno-sanitize=vptr")
   endif()

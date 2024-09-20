@@ -85,12 +85,12 @@ TEST(math_half, float_to_half_scalar)
  * This is time taken to convert 100 million numbers FP16 -> FP32.
  *
  * - CPU: F16C instructions 44ms
- * - OpenEXR/Imath: 21ms
- * - blender::math::half_to_float: 164ms
- * - convert_float_formats from VK_data_conversion.hh: 244ms [converts 2046 values wrong]
+ * - `OpenEXR/Imath`: 21ms
+ * - `blender::math::half_to_float`: 164ms
+ * - `convert_float_formats` from `VK_data_conversion.hh`: 244ms [converts 2046 values wrong]
  *
  * On Mac M1 Max (Clang 15):
- * - blender::math::half_to_float: 127ms (C), 97ms (NEON vcvt)
+ * - `blender::math::half_to_float`: 127ms (C), 97ms (NEON VCVT)
  */
 TEST(math_half_perf, half_to_float_scalar)
 {
@@ -111,12 +111,12 @@ TEST(math_half_perf, half_to_float_scalar)
  * This is time taken to convert 100 million numbers FP32 -> FP16.
  *
  * - CPU: F16C instructions 61ms
- * - OpenEXR/Imath: 240ms
- * - blender::math::float_to_half: 242ms
- * - convert_float_formats from VK_data_conversion.hh: 247ms [converts many values wrong]
+ * - `OpenEXR/Imath`: 240ms
+ * - `blender::math::float_to_half`: 242ms
+ * - `convert_float_formats` from `VK_data_conversion.hh`: 247ms [converts many values wrong]
  *
  * On Mac M1 Max (Clang 15):
- * - blender::math::half_to_float: 198ms (C), 97ms (NEON vcvt)
+ * - `blender::math::half_to_float`: 198ms (C), 97ms (NEON VCVT)
  */
 TEST(math_half_perf, float_to_half_scalar_math)  // 242ms
 {

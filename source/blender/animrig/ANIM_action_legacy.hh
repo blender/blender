@@ -41,10 +41,10 @@ ChannelBag &channelbag_ensure(Action &action);
  * return all F-Curves for all slots/layers/strips.
  *
  * The use of this function is an indicator for code that might have to be
- * inspected to see if this is _really_ the desired behaviour, or whether the
+ * inspected to see if this is _really_ the desired behavior, or whether the
  * F-Curves for a specific slot/layer/strip should be used instead.
  *
- * \see blender::animrig::legacy::fcurves_for_action_slot
+ * \see #blender::animrig::legacy::fcurves_for_action_slot
  */
 Vector<const FCurve *> fcurves_all(const bAction *action);
 Vector<FCurve *> fcurves_all(bAction *action);
@@ -58,8 +58,8 @@ Vector<FCurve *> fcurves_all(bAction *action);
  * Actions feature is no longer experimental. When that switchover happens, calls to this function
  * can be replaced with the more efficient `blender::animrig::fcurves_for_action_slot()`.
  *
- * \see blender::animrig::fcurves_for_action_slot
- * \see blender::animrig::legacy::fcurves_all
+ * \see #blender::animrig::fcurves_for_action_slot
+ * \see #blender::animrig::legacy::fcurves_all
  */
 Vector<FCurve *> fcurves_for_action_slot(bAction *action, slot_handle_t slot_handle);
 Vector<const FCurve *> fcurves_for_action_slot(const bAction *action, slot_handle_t slot_handle);

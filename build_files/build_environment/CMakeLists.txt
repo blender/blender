@@ -5,12 +5,12 @@
 ##################################################################################################
 #
 # This is a build system used by platform maintainers to build library dependencies.
-# For users building Blender, we recommend using the precompiled libraries from lib/
+# For users building Blender, we recommend using the pre-compiled libraries from `lib/`
 # on all platforms.
 #
 # This CMake project is usually built through wrappers:
-# * Windows: build_files/build_environment/windows/build_deps.cmd
-# * macOS and Linux: "make deps" from the blender directory
+# * Windows: `build_files/build_environment/windows/build_deps.cmd`.
+# * macOS and Linux: `make deps` from the blender directory.
 #
 ##################################################################################################
 
@@ -108,9 +108,9 @@ if(BLENDER_PLATFORM_WINDOWS_ARM)
 else()
   include(cmake/openpgl.cmake)
 endif()
-# Embree needs to be included after dpcpp as it uses it for compiling with GPU support
+# EMBREE needs to be included after `dpcpp` as it uses it for compiling with GPU support
 if(BLENDER_PLATFORM_WINDOWS_ARM)
-  # WoA needs embree to be built with the VS Generator + LLVM,
+  # WoA needs EMBREE to be built with the VS Generator + LLVM,
   # put it in its own file to avoid clutter.
   include(cmake/embree_windows_arm.cmake)
 else()

@@ -18,7 +18,7 @@ set(INC
   # For theme color access.
   ../editors/include
 
-  # For *_info.hh includes.
+  # For `*_info.hh` includes.
   ../compositor/realtime_compositor
   ../draw/engines/eevee_next
   ../draw/engines/gpencil
@@ -884,7 +884,7 @@ endif()
 if(WITH_GPU_BUILDTIME_SHADER_BUILDER)
   set(_manifest)
   if(WIN32)
-    # We can re-use the manifest from tests.exe here since it's
+    # We can re-use the manifest from `tests.exe` here since it's
     # rather generic and just selects the appropriate common
     # controls version.
     set(_manifest "${CMAKE_BINARY_DIR}/tests.exe.manifest")
@@ -977,7 +977,7 @@ if(WITH_GTESTS)
     )
   endif()
 
-  # Enable shader validation on buildbot for Metal
+  # Enable shader validation on build-bot for Metal
   if(WITH_METAL_BACKEND AND NOT WITH_GPU_DRAW_TESTS)
     list(APPEND TEST_SRC
       tests/shader_create_info_test.cc

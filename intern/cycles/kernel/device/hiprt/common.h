@@ -319,7 +319,7 @@ ccl_device_inline bool point_custom_intersect(const hiprtRay &ray,
                                               hiprtHit &hit)
 {
   /* Point cloud intersections are currently disabled to decrease register pressure in the ray
-   * tracing kernels. This increases the number of inflight ray traversal waves, and fixes the
+   * tracing kernels. This increases the number of in-flight ray traversal waves, and fixes the
    * performance regression reported in #127464 */
 #  if defined(__POINTCLOUD__) && 0
   RayPayload *local_payload = (RayPayload *)payload;

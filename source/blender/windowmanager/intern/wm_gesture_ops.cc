@@ -767,11 +767,12 @@ static int gesture_polyline_valid_points(const wmGesture &wmGesture, const bool 
   return (wmGesture.mval.x == prev_x && wmGesture.mval.y == prev_y) ? num_points : num_points + 1;
 }
 
-/* Evaluates whether the polyline has at least three points and represents
+/**
+ * Evaluates whether the poly-line has at least three points and represents
  * a shape and can be submitted for other gesture operators to act on.
  *
  * We handle clicking within the original point radius differently than double clicking or
- * submitting through the confirm keybinds, as the user expects to NOT add a new point when
+ * submitting through the confirm key-bindings, as the user expects to *not* add a new point when
  * interacting with this targeted area.
  */
 static bool gesture_polyline_can_apply(const wmGesture &wmGesture, const bool is_click_submitted)

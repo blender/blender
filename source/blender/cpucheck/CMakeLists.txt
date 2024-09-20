@@ -2,8 +2,8 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# The cpu check module cannot build with sse42 since it will be executed
-# by cpus that may not support these instructions
+# The CPU check module cannot build with sse42 since it will be executed
+# by CPU's that may not support these instructions.
 
 set(SRC
   cpu_check.cc

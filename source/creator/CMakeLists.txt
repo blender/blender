@@ -82,7 +82,7 @@ if(WITH_TBB)
 endif()
 
 if(WIN32)
-  # Windows.h will define min/max macros that will collide with the stl versions.
+  # Windows.h will define min/max macros that will collide with the STL versions.
   add_definitions(-DNOMINMAX)
 endif()
 
@@ -417,8 +417,8 @@ elseif(APPLE)
       set(TARGETDIR_VER "./bpy/${BLENDER_VERSION}")
       set(TARGETDIR_LIB "./bpy/lib")
     else()
-      # Paths defined in terms of site-packages since the site-packages
-      # directory can be a symlink (brew for example).
+      # Paths defined in terms of `site-packages` since the `site-packages`
+      # directory can be a symbolic-link (brew for example).
       set(TARGETDIR_BPY ${PYTHON_SITE_PACKAGES}/bpy)
       set(TARGETDIR_VER ${PYTHON_SITE_PACKAGES}/bpy/${BLENDER_VERSION})
       set(TARGETDIR_LIB ${PYTHON_SITE_PACKAGES}/bpy/lib)
@@ -795,7 +795,7 @@ file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so.0.0.0)\n
     )
 
     if(DEFINED LIBDIR)
-      # Precompiled libraries, copy over complete lib directory.
+      # Pre-compiled libraries, copy over complete lib directory.
       install_dir(
         ${PYTHON_LIBPATH}
         ${TARGETDIR_VER}/python
@@ -809,7 +809,8 @@ file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so.0.0.0)\n
 
       # On some platforms (like openSUSE) Python is linked to be used from `lib64` directory.
       # determine this from Python's libraries path.
-      # Ugh, its possible `lib64` is just a symlink to 'lib' which causes incorrect use of `lib64`.
+      # Ugh, its possible `lib64` is just a symbolic-link to `lib`
+      # which causes incorrect use of `lib64`.
       get_filename_component(_pypath_real ${PYTHON_LIBPATH} REALPATH)
       if(${_pypath_real} MATCHES "lib64$")
         set(_target_LIB "lib64")
@@ -882,7 +883,7 @@ file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so.0.0.0)\n
 
       if(WITH_USD)
         # Install to the same directory as the source, so debian-like
-        # distros are happy with their policy.
+        # distributions are happy with their policy.
         set(_suffix "site-packages")
         if(0) # TODO: `PYTHON_USD_PATH` isn't defined anywhere.
           if(${PYTHON_USD_PATH} MATCHES "dist-packages")
@@ -1116,8 +1117,8 @@ elseif(WIN32)
   )
 
   if(WITH_WINDOWS_RELEASE_PDB)
-    # Skip install of stripped pdb if compiling with clang since there doesn't seem
-    # to be a pdbstripped version for clang-cl
+    # Skip install of stripped PDB if compiling with clang since there doesn't seem
+    # to be a PDB-stripped version for `clang-cl`.
     if(WITH_WINDOWS_RELEASE_STRIPPED_PDB AND NOT MSVC_CLANG)
       # Icky hack for older CMAKE from https://stackoverflow.com/a/21198501
       # `$<CONFIG>` will work in newer CMAKE but the version currently (3.12)
@@ -1796,11 +1797,11 @@ if(WITH_USD)
   absolute_include_dirs(../blender/io/usd)
 endif()
 
-# Always install USD shared library and datafiles regardless if Blender
+# Always install USD shared library and `datafiles` regardless if Blender
 # itself uses them, the bundled Python module still needs it.
 if((DEFINED LIBDIR) AND TARGETDIR_LIB)
-  # On windows the usd library sits in ./blender.shared copy the files
-  # relative to the location of the USD dll, if the dll does not exist
+  # On windows the USD library sits in `./blender.shared` copy the files
+  # relative to the location of the USD DLL, if the DLL does not exist
   # assume we are linking against the static 3.5 lib.
   if(WITH_USD)
     if(WIN32 AND

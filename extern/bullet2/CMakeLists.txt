@@ -406,7 +406,7 @@ set(LIB
 )
 
 if(CMAKE_COMPILER_IS_GNUCXX)
-  # needed for gcc 4.6+
+  # Needed for GCC 4.6+.
   string(APPEND CMAKE_CXX_FLAGS " -fpermissive")
 endif()
 

@@ -25,8 +25,8 @@ if(NOT CYCLES_STANDALONE_REPOSITORY)
 endif()
 
 # Build Flags
-# todo: this code could be refactored a bit to avoid duplication
-# note: CXX_HAS_SSE42 is needed in case passing SSE flags fails altogether (gcc-arm)
+# TODO: this code could be refactored a bit to avoid duplication.
+# NOTE: CXX_HAS_SSE42 is needed in case passing SSE flags fails altogether (`gcc-arm`).
 
 if(WITH_CYCLES_NATIVE_ONLY)
   set(CXX_HAS_SSE42 FALSE)
@@ -95,7 +95,7 @@ elseif(WIN32 AND MSVC AND NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   # grained control and the speedup we get here is too big to ignore.
   set(CYCLES_KERNEL_FLAGS "/fp:fast -D_CRT_SECURE_NO_WARNINGS /GS-")
 
-  # "jumptablerdata" improves performance when there is contention in large switch statements
+  # `jumptablerdata` improves performance when there is contention in large switch statements
   # such as in `svm.h`.
   # This flag is supported starting with MSVC 17.7 preview 3:
   # https://learn.microsoft.com/en-us/cpp/build/reference/jump-table-rdata
@@ -128,13 +128,13 @@ elseif(CMAKE_COMPILER_IS_GNUCC OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
     # Pass clang flags directly to clang otherwise. Clang-cl doesn't recognize
     # these flags by default
     set(CYCLES_KERNEL_FLAGS " /clang:-fno-trapping-math")
-    # Avoid overhead of setting errno for NaNs.
+    # Avoid overhead of setting `errno` for NaNs.
     string(APPEND CYCLES_KERNEL_FLAGS " /clang:-fno-math-errno")
     # Let compiler optimize 0.0 - x without worrying about signed zeros.
     string(APPEND CYCLES_KERNEL_FLAGS " /clang:-fno-signed-zeros")
   else()
     set(CYCLES_KERNEL_FLAGS " -fno-trapping-math")
-    # Avoid overhead of setting errno for NaNs.
+    # Avoid overhead of setting `errno` for NaNs.
     string(APPEND CYCLES_KERNEL_FLAGS " -fno-math-errno")
     # Let compiler optimize 0.0 - x without worrying about signed zeros.
     string(APPEND CYCLES_KERNEL_FLAGS " -fno-signed-zeros")

@@ -2717,8 +2717,8 @@ static int grease_pencil_reproject_exec(bContext *C, wmOperator *op)
       scene.toolsettings);
 
   const int oldframe = int(DEG_get_ctime(depsgraph));
-  /* TODO: This can probably be optimized further for the non-Surface projection usecase by
-   * considering all drawings for the parallel loop instead of having to partition by frame number
+  /* TODO: This can probably be optimized further for the non-Surface projection use case by
+   * considering all drawings for the parallel loop instead of having to partition by frame number.
    */
   if (keep_original) {
     const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);

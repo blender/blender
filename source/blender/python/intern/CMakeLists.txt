@@ -135,7 +135,7 @@ set(LIB
   ${PYTHON_LIBRARIES}
 )
 
-# only to check if buildinfo is available
+# Only to check if `buildinfo` is available.
 if(WITH_BUILDINFO)
   add_definitions(-DBUILD_DATE)
 endif()

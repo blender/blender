@@ -440,7 +440,7 @@ if(WITH_GMP)
   add_definitions(-DWITH_GMP)
 endif()
 
-# Build makesrna executable
+# Build `makesrna` executable.
 add_cc_flags_custom_test(makesrna)
 
 add_executable(makesrna ${SRC} ${SRC_RNA_INC} ${SRC_DNA_INC})

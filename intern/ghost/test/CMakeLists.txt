@@ -26,7 +26,7 @@ set(WITH_GUARDEDALLOC ON)
 add_executable(datatoc
   "${CMAKE_SOURCE_DIR}/../../../source/blender/datatoc/datatoc.c")
 
-# Fake the current source dir for includes.
+# Fake the current source directory for includes.
 set(_CMAKE_CURRENT_SOURCE_DIR_INIT "${CMAKE_CURRENT_SOURCE_DIR}")
 
 # -----------------------------------------------------------------------------
@@ -71,7 +71,7 @@ endmacro()
 
 # set the endian define
 if(MSVC)
-  # for some reason this fails on msvc
+  # For some reason this fails on MSVC.
   add_definitions(-D__LITTLE_ENDIAN__)
 else()
   include(TestBigEndian)
@@ -122,7 +122,7 @@ suffix_relpaths(SRC_NEW "${SRC}" "../../guardedalloc/")
 include_directories(${INC_NEW})
 add_library(guardedalloc_lib ${SRC_NEW})
 
-# gpu (used by blenfont)
+# `gpu` (used by `blenfont`).
 add_definitions(-DGPU_STANDALONE)
 set(CMAKE_CURRENT_SOURCE_DIR "${CMAKE_SOURCE_DIR}/../../../source/blender/gpu")
 include(${CMAKE_SOURCE_DIR}/../../../source/blender/gpu/CMakeLists.txt)
@@ -132,7 +132,7 @@ include_directories(${INC_NEW})
 add_library(gpu_lib ${SRC_NEW})
 set(CMAKE_CURRENT_SOURCE_DIR "${_CMAKE_CURRENT_SOURCE_DIR_INIT}")
 
-# imbuf (used by )
+# `imbuf` (used by ???).
 # set(CMAKE_CURRENT_SOURCE_DIR "${CMAKE_SOURCE_DIR}/../../../source/blender/imbuf")
 # include(${CMAKE_SOURCE_DIR}/../../../source/blender/imbuf/CMakeLists.txt)
 # suffix_relpaths(INC_NEW "${INC}" "../../../source/blender/imbuf/")
@@ -141,26 +141,26 @@ set(CMAKE_CURRENT_SOURCE_DIR "${_CMAKE_CURRENT_SOURCE_DIR_INIT}")
 # add_library(imbuf_lib ${SRC_NEW})
 # set(CMAKE_CURRENT_SOURCE_DIR "${_CMAKE_CURRENT_SOURCE_DIR_INIT}")
 
-# blenfont
+# `blenfont`.
 include(${CMAKE_SOURCE_DIR}/../../../source/blender/blenfont/CMakeLists.txt)
 suffix_relpaths(INC_NEW "${INC}" "../../../source/blender/blenfont/")
 suffix_relpaths(SRC_NEW "${SRC}" "../../../source/blender/blenfont/")
 include_directories(${INC_NEW})
 add_library(blenfont_lib ${SRC_NEW})
 
-# wcwidth
+# `wcwidth`.
 include(${CMAKE_SOURCE_DIR}/../../../extern/wcwidth/CMakeLists.txt)
 suffix_relpaths(INC_NEW "${INC}" "../../../extern/wcwidth/")
 suffix_relpaths(SRC_NEW "${SRC}" "../../../extern/wcwidth/")
 include_directories(${INC_NEW})
 add_library(wcwidth_lib ${SRC_NEW})
 
-# grr, blenfont needs BLI
+# Unfortunately `blenfont` needs `blenlib`.
 include_directories(
   "../../../source/blender/blenlib"
 )
 
-# Needed for math_matrix_c.cc to avoid eigen_capi.h dep.
+# Needed for math_matrix_c.cc to avoid eigen_capi.h dependency.
 add_definitions(-DMATH_STANDALONE)
 
 add_library(bli_lib

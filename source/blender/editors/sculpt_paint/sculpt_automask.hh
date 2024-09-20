@@ -51,7 +51,7 @@ struct Settings {
 struct Cache {
   Settings settings;
 
-  /* Cached factor for automasking modes that are implemented to process the entire mesh. */
+  /** Cached factor for auto-masking modes that are implemented to process the entire mesh. */
   Array<float> factor;
 
   enum class OcclusionValue : int8_t {
@@ -81,14 +81,16 @@ struct Cache {
   uchar current_stroke_id;
 };
 
-/* Returns the automasking cache depending on the active tool. Used for code that can run both for
- * brushes and filter. */
+/**
+ * Returns the auto-masking cache depending on the active tool. Used for code that can run both for
+ * brushes and filter.
+ */
 const Cache *active_cache_get(const SculptSession &ss);
 
 /**
- * Creates and initializes an automasking cache.
+ * Creates and initializes an auto-masking cache.
  *
- * For automasking modes that cannot be calculated in real time,
+ * For auto-masking modes that cannot be calculated in real time,
  * data is also stored at the vertex level prior to the stroke starting.
  */
 std::unique_ptr<Cache> cache_init(const Depsgraph &depsgraph, const Sculpt &sd, Object &ob);

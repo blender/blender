@@ -1297,8 +1297,8 @@ static AreaLuminance tonemap_calc_input_luminance(const StripScreenQuad &quad, c
       [&](const IndexRange y_range, const AreaLuminance &init) {
         AreaLuminance lum = init;
         const int64_t chunk_size = y_range.size() * ibuf->x;
-        /* For float images, convert to scene-linear inplace. The rest
-         * of tonemapper can then continue with scene-linear values. */
+        /* For float images, convert to scene-linear in place. The rest
+         * of tone-mapper can then continue with scene-linear values. */
         if (ibuf->float_buffer.data != nullptr) {
           float4 *fptr = reinterpret_cast<float4 *>(ibuf->float_buffer.data);
           fptr += y_range.first() * ibuf->x;

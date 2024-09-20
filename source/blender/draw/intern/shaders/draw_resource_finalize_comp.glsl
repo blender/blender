@@ -52,7 +52,7 @@ void main()
       bounds.bounding_sphere.w = -2.0;
     }
 
-    /* Bypass culling test for objects that are flattenned on one or more axes (see #127774).
+    /* Bypass culling test for objects that are flattened on one or more axes (see #127774).
      * Fixing them is too much computation but might be worth doing if a use case for it.
      * Do not compute the real length to save some instructions. */
     vec3 object_scale = vec3(reduce_add(abs(model_mat[0].xyz)),
