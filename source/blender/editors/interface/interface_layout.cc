@@ -3336,7 +3336,9 @@ uiPropertySplitWrapper uiItemPropertySplitWrapperCreate(uiLayout *parent_layout)
   split_wrapper.label_column = uiLayoutColumn(layout_split, true);
   split_wrapper.label_column->alignment = UI_LAYOUT_ALIGN_RIGHT;
   split_wrapper.property_row = ui_item_prop_split_layout_hack(parent_layout, layout_split);
-  split_wrapper.decorate_column = uiLayoutColumn(layout_row, true);
+  split_wrapper.decorate_column = uiLayoutGetPropDecorate(parent_layout) ?
+                                      uiLayoutColumn(layout_row, true) :
+                                      nullptr;
 
   return split_wrapper;
 }

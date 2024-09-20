@@ -3059,6 +3059,9 @@ void uiItemsFullEnumO_items(uiLayout *layout,
 struct uiPropertySplitWrapper {
   uiLayout *label_column;
   uiLayout *property_row;
+  /**
+   * Column for decorators. Note that this may be null, see #uiItemPropertySplitWrapperCreate().
+   */
   uiLayout *decorate_column;
 };
 
@@ -3066,6 +3069,9 @@ struct uiPropertySplitWrapper {
  * Normally, we handle the split layout in #uiItemFullR(), but there are other cases where the
  * logic is needed. Ideally, #uiItemFullR() could just call this, but it currently has too many
  * special needs.
+ *
+ * The returned #uiPropertySplitWrapper.decorator_column may be null when decorators are disabled
+ * (#uiLayoutGetPropDecorate() returns false).
  */
 uiPropertySplitWrapper uiItemPropertySplitWrapperCreate(uiLayout *parent_layout);
 
