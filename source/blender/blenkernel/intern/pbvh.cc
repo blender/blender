@@ -99,9 +99,13 @@ BLI_NOINLINE static void build_mesh_leaf_nodes(const int verts_num,
       MeshNode &node = nodes[i];
 
       verts.clear();
-      for (const int face : node.face_indices_) {
-        verts.add_multiple(corner_verts.slice(faces[face]));
+      int corners_count = 0;
+      for (const int face_index : node.face_indices_) {
+        const IndexRange face = faces[face_index];
+        verts.add_multiple(corner_verts.slice(face));
+        corners_count += face.size();
       }
+      nodes[i].corners_num_ = corners_count;
 
       new (&verts_per_node[i]) Array<int>(verts.size());
       std::copy(verts.begin(), verts.end(), verts_per_node[i].begin());
