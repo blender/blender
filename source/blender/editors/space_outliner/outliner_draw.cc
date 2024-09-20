@@ -185,9 +185,11 @@ static void restrictbutton_bone_visibility_fn(bContext *C, void *poin, void * /*
   }
 }
 
-static void restrictbutton_bone_select_fn(bContext *C, void * /*poin*/, void *poin2)
+static void restrictbutton_bone_select_fn(bContext *C, void *poin, void *poin2)
 {
-  Bone *bone = (Bone *)poin2;
+  bArmature *arm = static_cast<bArmature *>(poin);
+  Bone *bone = static_cast<Bone *>(poin2);
+
   if (bone->flag & BONE_UNSELECTABLE) {
     bone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
   }
@@ -196,6 +198,7 @@ static void restrictbutton_bone_select_fn(bContext *C, void * /*poin*/, void *po
     restrictbutton_recursive_bone(bone, BONE_UNSELECTABLE, (bone->flag & BONE_UNSELECTABLE) != 0);
   }
 
+  DEG_id_tag_update(&arm->id, ID_RECALC_SYNC_TO_EVAL);
   WM_event_add_notifier(C, NC_OBJECT | ND_POSE, nullptr);
 }
 

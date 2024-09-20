@@ -691,13 +691,27 @@ static void rna_Armature_redraw_data(Main * /*bmain*/, Scene * /*scene*/, Pointe
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 }
 
-/* Unselect bones when hidden */
+/* Unselect bones when hidden or not selectable. */
+static void rna_EditBone_hide_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
+{
+  bArmature *arm = (bArmature *)ptr->owner_id;
+  EditBone *ebone = static_cast<EditBone *>(ptr->data);
+
+  if (ebone->flag & (BONE_HIDDEN_A | BONE_UNSELECTABLE)) {
+    ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+  }
+
+  WM_main_add_notifier(NC_OBJECT | ND_POSE, arm);
+  DEG_id_tag_update(&arm->id, ID_RECALC_SYNC_TO_EVAL);
+}
+
+/* Unselect bones when hidden or not selectable. */
 static void rna_Bone_hide_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   bArmature *arm = (bArmature *)ptr->owner_id;
   Bone *bone = (Bone *)ptr->data;
 
-  if (bone->flag & BONE_HIDDEN_P) {
+  if (bone->flag & (BONE_HIDDEN_P | BONE_UNSELECTABLE)) {
     bone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
   }
 
@@ -1439,7 +1453,12 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
   prop = RNA_def_property(srna, "hide_select", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", BONE_UNSELECTABLE);
   RNA_def_property_ui_text(prop, "Selectable", "Bone is able to be selected");
-  RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
+  if (editbone) {
+    RNA_def_property_update(prop, 0, "rna_EditBone_hide_update");
+  }
+  else {
+    RNA_def_property_update(prop, 0, "rna_Bone_hide_update");
+  }
 
   /* Number values */
   /* envelope deform settings */
@@ -1858,7 +1877,7 @@ static void rna_def_edit_bone(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", BONE_HIDDEN_A);
   RNA_def_property_ui_text(prop, "Hide", "Bone is not visible when in Edit Mode");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
+  RNA_def_property_update(prop, 0, "rna_EditBone_hide_update");
 
   prop = RNA_def_property(srna, "lock", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", BONE_EDITMODE_LOCKED);

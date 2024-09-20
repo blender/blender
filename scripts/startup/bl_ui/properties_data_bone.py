@@ -324,6 +324,7 @@ class BONE_PT_display(BoneButtonsPanel, Panel):
 
         col = layout.column()
         col.prop(bone, "hide", text="Hide", toggle=False)
+        col.prop(bone, "hide_select", invert_checkbox=True)
 
         # Figure out the pose bone.
         ob = context.object
@@ -353,6 +354,7 @@ class BONE_PT_display(BoneButtonsPanel, Panel):
 
         col = layout.column()
         col.prop(bone, "hide", text="Hide", toggle=False)
+        col.prop(bone, "hide_select", invert_checkbox=True)
         layout.prop(bone.color, "palette", text="Bone Color")
         self.draw_bone_color_ui(layout, bone.color)
 
