@@ -29,6 +29,8 @@ struct BlobSlice {
  */
 class BlobReader {
  public:
+  virtual ~BlobReader() = default;
+
   /**
    * Read the data from the given slice into the provided memory buffer.
    * \return True on success, otherwise false.
@@ -51,6 +53,8 @@ class BlobWriter {
   int64_t total_written_size_ = 0;
 
  public:
+  virtual ~BlobWriter() = default;
+
   /**
    * Write the provided binary data.
    * \return Slice where the data has been written to.
