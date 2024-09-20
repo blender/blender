@@ -3055,7 +3055,7 @@ class VIEW3D_MT_object_animation(Menu):
 
         layout.operator("nla.bake", text="Bake Action...")
         layout.operator("gpencil.bake_mesh_animation", text="Bake Mesh to Grease Pencil...")
-        layout.operator("gpencil.bake_grease_pencil_animation", text="Bake Object Transform to Grease Pencil...")
+        layout.operator("grease_pencil.bake_grease_pencil_animation", text="Bake Object Transform to Grease Pencil...")
 
 
 class VIEW3D_MT_object_rigid_body(Menu):

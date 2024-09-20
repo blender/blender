@@ -24,6 +24,7 @@ set(INC_SYS
 
 set(SRC
   intern/grease_pencil_add.cc
+  intern/grease_pencil_bake_animation.cc
   intern/grease_pencil_edit.cc
   intern/grease_pencil_frames.cc
   intern/grease_pencil_geom.cc
