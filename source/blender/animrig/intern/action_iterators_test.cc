@@ -107,4 +107,47 @@ TEST_F(ActionIteratorsTest, iterate_all_fcurves_of_slot)
   });
   ASSERT_TRUE(invalid_slot_fcurves.is_empty());
 }
+
+TEST_F(ActionIteratorsTest, foreach_action_slot_use_with_references)
+{
+  /* Create a cube and assign the Action + a slot. */
+  Object *cube = static_cast<Object *>(BKE_id_new(bmain, ID_OB, "OBCube"));
+  Slot *slot_cube = assign_action_ensure_slot_for_keying(*action, cube->id);
+  ASSERT_NE(slot_cube, nullptr);
+
+  /* Create another Action with slot to assign. */
+  Action &other_action =
+      static_cast<bAction *>(BKE_id_new(bmain, ID_AC, "ACAnotherAction"))->wrap();
+  Slot &another_slot = other_action.slot_add();
+
+  std::optional<ActionSlotAssignmentResult> slot_assignment_result;
+
+  const auto assign_other_action =
+      [&](bAction *&action_ptr_ref, slot_handle_t &slot_handle_ref, char *slot_name) -> bool {
+    /* Assign the other Action. */
+    generic_assign_action(cube->id, &other_action, action_ptr_ref, slot_handle_ref, slot_name);
+
+    /* Assign the slot of the other Action. */
+    slot_assignment_result = generic_assign_action_slot(
+        &another_slot, cube->id, action_ptr_ref, slot_handle_ref, slot_name);
+
+    return true;
+  };
+
+  foreach_action_slot_use_with_references(cube->id, assign_other_action);
+
+  /* Check the result, the slot assignment should have been changed. */
+  ASSERT_TRUE(slot_assignment_result.has_value());
+  EXPECT_EQ(ActionSlotAssignmentResult::OK, slot_assignment_result.value());
+
+  std::optional<std::pair<Action *, Slot *>> action_and_slot = get_action_slot_pair(cube->id);
+
+  ASSERT_TRUE(action_and_slot.has_value());
+  EXPECT_EQ(&other_action, action_and_slot->first)
+      << "Expected Action " << other_action.id.name << " but found "
+      << action_and_slot->first->id.name;
+  EXPECT_EQ(&another_slot, action_and_slot->second)
+      << "Expected Slot " << another_slot.name << " but found " << action_and_slot->second->name;
+}
+
 }  // namespace blender::animrig::tests

@@ -57,4 +57,17 @@ bool foreach_action_slot_use(
     const ID &animated_id,
     FunctionRef<bool(const Action &action, slot_handle_t slot_handle)> callback);
 
+/**
+ * Same as foreach_action_slot_use(), except that it reports some pointers so the callback can
+ * modify which Action/slot is assigned.
+ *
+ * \see blender::animrig::generic_assign_action
+ * \see blender::animrig::generic_assign_action_slot
+ * \see blender::animrig::generic_assign_action_slot_handle
+ */
+bool foreach_action_slot_use_with_references(
+    ID &animated_id,
+    FunctionRef<bool(bAction *&action_ptr_ref, slot_handle_t &slot_handle_ref, char *slot_name)>
+        callback);
+
 }  // namespace blender::animrig
