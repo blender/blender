@@ -13,12 +13,14 @@
 
 #include "BLI_math_base.h"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "DNA_scene_types.h"
 
 #include "BKE_anim_data.hh"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
@@ -44,6 +46,7 @@
 #include "SEQ_time.hh"
 
 #include "ANIM_action.hh"
+#include "ANIM_animdata.hh"
 
 #include "anim_intern.hh"
 
@@ -839,6 +842,90 @@ static void ANIM_OT_convert_legacy_action(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+static bool merge_actions_selection_poll(bContext *C)
+{
+  Object *object = CTX_data_active_object(C);
+  if (!object) {
+    CTX_wm_operator_poll_msg_set(C, "No active object");
+    return false;
+  }
+  blender::animrig::Action *action = blender::animrig::get_action(object->id);
+  if (!action) {
+    CTX_wm_operator_poll_msg_set(C, "Active object has no action");
+    return false;
+  }
+  if (!BKE_id_is_editable(CTX_data_main(C), &action->id)) {
+    return false;
+  }
+  return true;
+}
+
+static int merge_actions_selection_exec(bContext *C, wmOperator *op)
+{
+  using namespace blender::animrig;
+  Object *active_object = CTX_data_active_object(C);
+  /* Those cases are caught by the poll. */
+  BLI_assert(active_object != nullptr);
+  BLI_assert(active_object->adt->action != nullptr);
+
+  Action &active_action = active_object->adt->action->wrap();
+
+  blender::Vector<PointerRNA> selection;
+  if (!CTX_data_selected_objects(C, &selection)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  Main *bmain = CTX_data_main(C);
+  for (const PointerRNA &ptr : selection) {
+    blender::Vector<ID *> related_ids = find_related_ids(*bmain, *ptr.owner_id);
+    for (ID *related_id : related_ids) {
+      Action *action = get_action(*related_id);
+      if (!action) {
+        continue;
+      }
+      if (action == &active_action) {
+        /* Object is already animated by the same action, no point in moving. */
+        continue;
+      }
+      if (action->is_action_legacy()) {
+        continue;
+      }
+      if (!BKE_id_is_editable(bmain, &action->id)) {
+        BKE_reportf(op->reports, RPT_WARNING, "The action %s is not editable", action->id.name);
+        continue;
+      }
+      AnimData *id_anim_data = BKE_animdata_ensure_id(related_id);
+      /* Since we already get an action from the ID the animdata has to exist. */
+      BLI_assert(id_anim_data);
+      Slot *slot = action->slot_for_handle(id_anim_data->slot_handle);
+      if (!slot) {
+        continue;
+      }
+      blender::animrig::move_slot(*bmain, *slot, *action, active_action);
+      ANIM_id_update(bmain, related_id);
+    }
+  }
+
+  DEG_relations_tag_update(bmain);
+  WM_main_add_notifier(NC_ANIMATION | ND_NLA_ACTCHANGE, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+static void ANIM_OT_merge_animation(wmOperatorType *ot)
+{
+  ot->name = "Merge Animation";
+  ot->idname = "ANIM_OT_merge_animation";
+  ot->description =
+      "Merge the animation of the selected objects into the action of the active object. Actions "
+      "are not deleted by this, but might end up with zero users";
+
+  ot->exec = merge_actions_selection_exec;
+  ot->poll = merge_actions_selection_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -888,6 +975,7 @@ void ED_operatortypes_anim()
 
   WM_operatortype_append(ANIM_OT_slot_new_for_object);
   WM_operatortype_append(ANIM_OT_convert_legacy_action);
+  WM_operatortype_append(ANIM_OT_merge_animation);
 }
 
 void ED_keymap_anim(wmKeyConfig *keyconf)

@@ -63,10 +63,7 @@ static void add_object_data_users(const Main &bmain, const ID &id, Vector<ID *> 
   FOREACH_MAIN_LISTBASE_ID_END;
 }
 
-/* Find an action on an ID that is related to the given ID. Related things are e.g. Object<->Data,
- * Mesh<->Material and so on. The exact relationships are defined per ID type. Only relationships
- * of 1:1 are traced. The case of multiple users for 1 ID is treated as not related. */
-static bAction *find_related_action(Main &bmain, ID &id)
+Vector<ID *> find_related_ids(Main &bmain, ID &id)
 {
   Vector<ID *> related_ids({&id});
 
@@ -74,13 +71,6 @@ static bAction *find_related_action(Main &bmain, ID &id)
    * code that defines relationships. */
   for (int i = 0; i < related_ids.size(); i++) {
     ID *related_id = related_ids[i];
-
-    Action *action = get_action(*related_id);
-    if (action && action->is_action_layered()) {
-      /* Returning the first action found means highest priority has the action closest in the
-       * relationship graph. */
-      return action;
-    }
 
     if (related_id->flag & ID_FLAG_EMBEDDED_DATA) {
       /* No matter the type of embedded ID, their owner can always be added to the related IDs. */
@@ -178,6 +168,24 @@ static bAction *find_related_action(Main &bmain, ID &id)
         }
         break;
       }
+    }
+  }
+
+  return related_ids;
+}
+
+/* Find an action on an ID that is related to the given ID. Related things are e.g. Object<->Data,
+ * Mesh<->Material and so on. */
+static bAction *find_related_action(Main &bmain, ID &id)
+{
+  Vector<ID *> related_ids = find_related_ids(bmain, id);
+
+  for (ID *related_id : related_ids) {
+    Action *action = get_action(*related_id);
+    if (action && action->is_action_layered()) {
+      /* Returning the first action found means highest priority has the action closest in the
+       * relationship graph. */
+      return action;
     }
   }
 

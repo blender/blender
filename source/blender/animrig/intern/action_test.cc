@@ -15,6 +15,8 @@
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 
+#include "RNA_access.hh"
+
 #include "BLI_listbase.h"
 #include "BLI_string_utf8.h"
 
@@ -967,6 +969,63 @@ TEST_F(ActionLayersTest, empty_to_layered)
   ASSERT_TRUE(converted != action);
   ASSERT_TRUE(converted->is_action_layered());
   ASSERT_FALSE(converted->is_action_legacy());
+}
+
+TEST_F(ActionLayersTest, action_move_slot)
+{
+  U.flag |= USER_DEVELOPER_UI;
+  U.experimental.use_animation_baklava = 1;
+
+  Action *action_2 = static_cast<Action *>(BKE_id_new(bmain, ID_AC, "Action 2"));
+  EXPECT_TRUE(action->is_empty());
+
+  Slot &slot_cube = action->slot_add();
+  Slot &slot_suzanne = action_2->slot_add();
+  EXPECT_EQ(assign_action_and_slot(action, &slot_cube, cube->id), ActionSlotAssignmentResult::OK);
+  EXPECT_EQ(assign_action_and_slot(action_2, &slot_suzanne, suzanne->id),
+            ActionSlotAssignmentResult::OK);
+
+  PointerRNA cube_rna_pointer = RNA_id_pointer_create(&cube->id);
+  PointerRNA suzanne_rna_pointer = RNA_id_pointer_create(&suzanne->id);
+
+  action_fcurve_ensure(bmain, action, "Test", &cube_rna_pointer, {"location", 0});
+  action_fcurve_ensure(bmain, action, "Test", &cube_rna_pointer, {"rotation_euler", 1});
+
+  action_fcurve_ensure(bmain, action_2, "Test_2", &suzanne_rna_pointer, {"location", 0});
+  action_fcurve_ensure(bmain, action_2, "Test_2", &suzanne_rna_pointer, {"rotation_euler", 1});
+
+  ASSERT_EQ(action->layer_array_num, 1);
+  ASSERT_EQ(action_2->layer_array_num, 1);
+
+  Layer *layer_1 = action->layer(0);
+  Layer *layer_2 = action_2->layer(0);
+
+  ASSERT_EQ(layer_1->strip_array_num, 1);
+  ASSERT_EQ(layer_2->strip_array_num, 1);
+
+  StripKeyframeData &strip_data_1 = layer_1->strip(0)->data<StripKeyframeData>(*action);
+  StripKeyframeData &strip_data_2 = layer_2->strip(0)->data<StripKeyframeData>(*action_2);
+
+  ASSERT_EQ(strip_data_1.channelbag_array_num, 1);
+  ASSERT_EQ(strip_data_2.channelbag_array_num, 1);
+
+  ChannelBag *bag_1 = strip_data_1.channelbag(0);
+  ChannelBag *bag_2 = strip_data_2.channelbag(0);
+
+  ASSERT_EQ(bag_1->fcurve_array_num, 2);
+  ASSERT_EQ(bag_2->fcurve_array_num, 2);
+
+  move_slot(*bmain, slot_suzanne, *action_2, *action);
+
+  ASSERT_EQ(strip_data_1.channelbag_array_num, 2);
+  ASSERT_EQ(strip_data_2.channelbag_array_num, 0);
+
+  ASSERT_EQ(action->slot_array_num, 2);
+  ASSERT_EQ(action_2->slot_array_num, 0);
+
+  /* Action should have been reassigned. */
+  ASSERT_EQ(action, cube->adt->action);
+  ASSERT_EQ(action, suzanne->adt->action);
 }
 
 /*-----------------------------------------------------------*/

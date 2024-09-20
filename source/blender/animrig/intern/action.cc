@@ -2486,4 +2486,67 @@ Action *convert_to_layered_action(Main &bmain, const Action &legacy_action)
   return &converted_action;
 }
 
+/**
+ * Clone information from the given slot into this slot while retaining important info like the
+ * slot handle and runtime data. This copies the name which might clash with other names on the
+ * action. Call `slot_name_ensure_unique` after.
+ */
+static void clone_slot(Slot &from, Slot &to)
+{
+  ActionSlotRuntimeHandle *runtime = to.runtime;
+  slot_handle_t handle = to.handle;
+  *reinterpret_cast<ActionSlot *>(&to) = *reinterpret_cast<ActionSlot *>(&from);
+  to.runtime = runtime;
+  to.handle = handle;
+}
+
+void move_slot(Main &bmain, Slot &source_slot, Action &from_action, Action &to_action)
+{
+  BLI_assert(from_action.slots().as_span().contains(&source_slot));
+  BLI_assert(&from_action != &to_action);
+
+  /* No merging of strips or layers is handled. All data is put into the assumed single strip. */
+  assert_baklava_phase_1_invariants(from_action);
+  assert_baklava_phase_1_invariants(to_action);
+
+  StripKeyframeData &from_strip_data = from_action.layer(0)->strip(0)->data<StripKeyframeData>(
+      from_action);
+  StripKeyframeData &to_strip_data = to_action.layer(0)->strip(0)->data<StripKeyframeData>(
+      to_action);
+
+  Slot &target_slot = to_action.slot_add();
+  clone_slot(source_slot, target_slot);
+  slot_name_ensure_unique(to_action, target_slot);
+
+  ChannelBag *channel_bag = from_strip_data.channelbag_for_slot(source_slot.handle);
+  BLI_assert(channel_bag != nullptr);
+  channel_bag->slot_handle = target_slot.handle;
+  grow_array_and_append<ActionChannelBag *>(
+      &to_strip_data.channelbag_array, &to_strip_data.channelbag_array_num, channel_bag);
+  int index = from_strip_data.find_channelbag_index(*channel_bag);
+  shrink_array_and_remove<ActionChannelBag *>(
+      &from_strip_data.channelbag_array, &from_strip_data.channelbag_array_num, index);
+
+  /* Reassign all users of `source_slot` to the action `to_action` and the slot `target_slot`. */
+  for (ID *user : source_slot.users(bmain)) {
+    const auto assign_other_action =
+        [&](bAction *&action_ptr_ref, slot_handle_t &slot_handle_ref, char *slot_name) -> bool {
+      /* Only reassign if the reference is actually from the same action. Could be from a different
+       * action when using the NLA or action constraints. */
+      if (action_ptr_ref != &from_action) {
+        return true;
+      }
+      generic_assign_action(*user, &to_action, action_ptr_ref, slot_handle_ref, slot_name);
+      const ActionSlotAssignmentResult result = generic_assign_action_slot(
+          &target_slot, *user, action_ptr_ref, slot_handle_ref, slot_name);
+      BLI_assert(result == ActionSlotAssignmentResult::OK);
+      UNUSED_VARS_NDEBUG(result);
+      return true;
+    };
+    foreach_action_slot_use_with_references(*user, assign_other_action);
+  }
+
+  from_action.slot_remove(source_slot);
+}
+
 }  // namespace blender::animrig

@@ -1388,6 +1388,17 @@ void assert_baklava_phase_1_invariants(const Strip &strip);
 Action *convert_to_layered_action(Main &bmain, const Action &legacy_action);
 
 /**
+ * Move the given slot from `from_action` to `to_action`.
+ * The slot name might not be exactly the same if the name already exists in the slots of
+ * `to_action`. Also the slot handle is likely going to be different on `to_action`.
+ * All users of the slot will be reassigned to the moved slot on `to_action`.
+ *
+ * \note The `from_action` will not be deleted by this function. But it might leave it without
+ * users which means it will not be saved (unless it has a fake user).
+ */
+void move_slot(Main &bmain, Slot &slot, Action &from_action, Action &to_action);
+
+/**
  * Deselect the keys of all actions in the Span. Duplicate entries are only visited once.
  */
 void deselect_keys_actions(blender::Span<bAction *> actions);
