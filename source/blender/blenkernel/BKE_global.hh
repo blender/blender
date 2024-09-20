@@ -31,13 +31,13 @@ struct Global {
    * Note that `CTX_data_main(C)` should be used where possible.
    * Otherwise access via #G_MAIN.
    */
-  struct Main *main;
+  Main *main;
 
   /**
    * Preview main is stored to avoid loading the preview file in multiple scenarios.
    * It is actually shared between shader node previews and asset previews.
    */
-  struct Main *pr_main;
+  Main *pr_main;
 
   /** Last saved location for images. */
   char filepath_last_image[/*FILE_MAX*/ 1024];
