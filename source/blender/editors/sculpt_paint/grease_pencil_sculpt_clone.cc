@@ -60,8 +60,7 @@ void CloneOperation::on_stroke_begin(const bContext &C, const InputSample &start
         const OffsetIndices<int> pasted_points_by_curve = curves.points_by_curve().slice(
             pasted_curves);
         const IndexRange pasted_points = IndexRange::from_begin_size(
-            pasted_points_by_curve[0].start(),
-            pasted_points_by_curve.total_size());
+            pasted_points_by_curve[0].start(), pasted_points_by_curve.total_size());
         if (pasted_points.is_empty()) {
           return false;
         }
