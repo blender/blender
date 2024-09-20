@@ -20,9 +20,7 @@ struct ObjVertex {
   uint32_t n = (uint32_t)-1;
   uint32_t uv = (uint32_t)-1;
 
-  ObjVertex()
-  {
-  }
+  ObjVertex() {}
 
   ObjVertex(uint32_t pi)
   {
