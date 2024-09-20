@@ -227,13 +227,12 @@ bAction *id_action_ensure(Main *bmain, ID *id)
 
       /* create action */
       action = BKE_action_add(bmain, actname);
-      /* set ID-type from ID-block that this is going to be assigned to
-       * so that users can't accidentally break actions by assigning them
-       * to the wrong places
-       */
-      BKE_animdata_action_ensure_idroot(id, adt->action);
+
+      /* Decrement the default-1 user count, as assigning it will increase it again. */
+      BLI_assert(action->id.us == 1);
+      id_us_min(&action->id);
     }
-    adt->action = action;
+    animrig::assign_action(action, {*id, *adt});
 
     /* Tag depsgraph to be rebuilt to include time dependency. */
     DEG_relations_tag_update(bmain);
