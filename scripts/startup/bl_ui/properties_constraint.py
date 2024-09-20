@@ -1135,6 +1135,7 @@ class ConstraintButtonsSubPanel:
                 con, "action_slots",
                 new="",  # No use in making a new slot here.
                 unlink="anim.slot_unassign_from_constraint",
+                text="Slot",
             )
 
         layout.prop(con, "use_bone_object_action")
