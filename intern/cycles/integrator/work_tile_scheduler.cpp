@@ -58,7 +58,7 @@ void WorkTileScheduler::reset_scheduler_state()
                                       tile_size_.num_samples;
   const int num_tiles = max_num_path_states_ / num_path_states_in_tile;
 
-  VLOG_WORK << "Will schedule " << num_tiles << " tiles of size " << tile_size_;
+  VLOG_WORK << "Will schedule " << num_tiles << " tiles of " << tile_size_;
 
   if (num_path_states_in_tile == 0) {
     num_tiles_x_ = 0;
