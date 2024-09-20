@@ -71,11 +71,9 @@ static void change_lib(Main *bmain, ID *id, Library *lib)
   BKE_main_namemap_get_name(bmain, id, id->name + 2, false);
 }
 
-static void change_name(Main *bmain, ID *id, const char *name)
+static IDNewNameResult change_name(Main *bmain, ID *id, const char *name, const IDNewNameMode mode)
 {
-  BKE_main_namemap_remove_name(bmain, id, id->name + 2);
-  BLI_strncpy(id->name + 2, name, MAX_NAME);
-  BKE_id_new_name_validate(bmain, &bmain->objects, id, nullptr, true);
+  return BKE_libblock_rename(*bmain, *id, name, mode);
 }
 
 TEST(lib_id_main_sort, linked_ids_1)
@@ -114,7 +112,7 @@ TEST(lib_id_main_sort, linked_ids_1)
   EXPECT_EQ(ctx.bmain->name_map_global, nullptr);
 }
 
-TEST(lib_id_main_unique_name, local_ids_1)
+TEST(lib_id_main_unique_name, local_ids_rename_existing_never)
 {
   LibIDMainSortTestContext ctx;
   EXPECT_TRUE(BLI_listbase_is_empty(&ctx.bmain->libraries));
@@ -126,8 +124,28 @@ TEST(lib_id_main_unique_name, local_ids_1)
 
   EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
 
-  change_name(ctx.bmain, id_c, "OB_A");
+  IDNewNameResult result;
 
+  /* Rename to different root name. */
+  result = change_name(ctx.bmain, id_c, "OB_A", IDNewNameMode::RenameExistingNever);
+
+  EXPECT_EQ(result.action, IDNewNameResult::Action::RENAMED_COLLISION_ADJUSTED);
+  //  EXPECT_EQ(result.other_id, id_a);  /* other_id purposedly not looked-up currently. */
+  EXPECT_EQ(result.other_id, nullptr);
+  EXPECT_STREQ(id_c->name + 2, "OB_A.001");
+  EXPECT_STREQ(id_a->name + 2, "OB_A");
+  EXPECT_TRUE(ctx.bmain->objects.first == id_a);
+  EXPECT_TRUE(ctx.bmain->objects.last == id_b);
+  test_lib_id_main_sort_check_order({id_a, id_c, id_b});
+
+  EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
+
+  /* Rename to same root name. */
+  result = change_name(ctx.bmain, id_c, "OB_A", IDNewNameMode::RenameExistingNever);
+
+  EXPECT_EQ(result.action, IDNewNameResult::Action::UNCHANGED_COLLISION);
+  //  EXPECT_EQ(result.other_id, id_a);  /* other_id purposedly not looked-up currently. */
+  EXPECT_EQ(result.other_id, nullptr);
   EXPECT_STREQ(id_c->name + 2, "OB_A.001");
   EXPECT_STREQ(id_a->name + 2, "OB_A");
   EXPECT_TRUE(ctx.bmain->objects.first == id_a);
@@ -150,11 +168,98 @@ TEST(lib_id_main_unique_name, local_ids_1)
   EXPECT_STREQ(future_name, "OB_BBBB");
   /* Name too long, needs to be truncated. */
   STRNCPY(future_name, "OB_BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB");
-  change_name(ctx.bmain, id_a, future_name);
+  change_name(ctx.bmain, id_a, future_name, IDNewNameMode::RenameExistingNever);
   EXPECT_STREQ(id_a->name + 2, future_name);
   EXPECT_STREQ(future_name, "OB_BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB");
   EXPECT_TRUE(BKE_main_namemap_get_name(ctx.bmain, id_c, future_name, false));
   EXPECT_STREQ(future_name, "OB_BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB");
+}
+
+TEST(lib_id_main_unique_name, local_ids_rename_existing_always)
+{
+  LibIDMainSortTestContext ctx;
+  EXPECT_TRUE(BLI_listbase_is_empty(&ctx.bmain->libraries));
+
+  ID *id_c = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_C"));
+  ID *id_a = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_A"));
+  ID *id_b = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_B"));
+  test_lib_id_main_sort_check_order({id_a, id_b, id_c});
+
+  EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
+
+  IDNewNameResult result;
+
+  /* Rename to different root name. */
+  result = change_name(ctx.bmain, id_c, "OB_A", IDNewNameMode::RenameExistingAlways);
+
+  EXPECT_EQ(result.action, IDNewNameResult::Action::RENAMED_COLLISION_FORCED);
+  EXPECT_EQ(result.other_id, id_a);
+  EXPECT_STREQ(id_c->name + 2, "OB_A");
+  EXPECT_STREQ(id_a->name + 2, "OB_A.001");
+  EXPECT_TRUE(ctx.bmain->objects.first == id_c);
+  EXPECT_TRUE(ctx.bmain->objects.last == id_b);
+  test_lib_id_main_sort_check_order({id_c, id_a, id_b});
+
+  EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
+
+  /* Rename to same root name. */
+  result = change_name(ctx.bmain, id_a, "OB_A", IDNewNameMode::RenameExistingAlways);
+
+  EXPECT_EQ(result.action, IDNewNameResult::Action::RENAMED_COLLISION_FORCED);
+  EXPECT_EQ(result.other_id, id_c);
+  EXPECT_STREQ(id_c->name + 2, "OB_A.001");
+  EXPECT_STREQ(id_a->name + 2, "OB_A");
+  EXPECT_TRUE(ctx.bmain->objects.first == id_a);
+  EXPECT_TRUE(ctx.bmain->objects.last == id_b);
+  test_lib_id_main_sort_check_order({id_a, id_c, id_b});
+
+  EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
+
+  EXPECT_EQ(ctx.bmain->name_map_global, nullptr);
+}
+
+TEST(lib_id_main_unique_name, local_ids_rename_existing_same_root)
+{
+  LibIDMainSortTestContext ctx;
+  EXPECT_TRUE(BLI_listbase_is_empty(&ctx.bmain->libraries));
+
+  ID *id_c = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_C"));
+  ID *id_a = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_A"));
+  ID *id_b = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_B"));
+  test_lib_id_main_sort_check_order({id_a, id_b, id_c});
+
+  EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
+
+  IDNewNameResult result;
+
+  /* Rename to different root name. */
+  result = change_name(ctx.bmain, id_c, "OB_A", IDNewNameMode::RenameExistingSameRoot);
+
+  EXPECT_EQ(result.action, IDNewNameResult::Action::RENAMED_COLLISION_ADJUSTED);
+  //  EXPECT_EQ(result.other_id, id_a);  /* other_id purposedly not looked-up currently. */
+  EXPECT_EQ(result.other_id, nullptr);
+  EXPECT_STREQ(id_c->name + 2, "OB_A.001");
+  EXPECT_STREQ(id_a->name + 2, "OB_A");
+  EXPECT_TRUE(ctx.bmain->objects.first == id_a);
+  EXPECT_TRUE(ctx.bmain->objects.last == id_b);
+  test_lib_id_main_sort_check_order({id_a, id_c, id_b});
+
+  EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
+
+  /* Rename to same root name. */
+  result = change_name(ctx.bmain, id_c, "OB_A", IDNewNameMode::RenameExistingSameRoot);
+
+  EXPECT_EQ(result.action, IDNewNameResult::Action::RENAMED_COLLISION_FORCED);
+  EXPECT_EQ(result.other_id, id_a);
+  EXPECT_STREQ(id_c->name + 2, "OB_A");
+  EXPECT_STREQ(id_a->name + 2, "OB_A.001");
+  EXPECT_TRUE(ctx.bmain->objects.first == id_c);
+  EXPECT_TRUE(ctx.bmain->objects.last == id_b);
+  test_lib_id_main_sort_check_order({id_c, id_a, id_b});
+
+  EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
+
+  EXPECT_EQ(ctx.bmain->name_map_global, nullptr);
 }
 
 TEST(lib_id_main_unique_name, linked_ids_1)
@@ -175,7 +280,7 @@ TEST(lib_id_main_unique_name, linked_ids_1)
   change_lib(ctx.bmain, id_b, lib_a);
   id_sort_by_name(&ctx.bmain->objects, id_b, nullptr);
 
-  change_name(ctx.bmain, id_b, "OB_A");
+  change_name(ctx.bmain, id_b, "OB_A", IDNewNameMode::RenameExistingNever);
   EXPECT_STREQ(id_b->name + 2, "OB_A.001");
   EXPECT_STREQ(id_a->name + 2, "OB_A");
   EXPECT_TRUE(ctx.bmain->objects.first == id_c);
@@ -186,7 +291,7 @@ TEST(lib_id_main_unique_name, linked_ids_1)
 
   change_lib(ctx.bmain, id_b, lib_b);
   id_sort_by_name(&ctx.bmain->objects, id_b, nullptr);
-  change_name(ctx.bmain, id_b, "OB_A");
+  change_name(ctx.bmain, id_b, "OB_A", IDNewNameMode::RenameExistingNever);
   EXPECT_STREQ(id_b->name + 2, "OB_A");
   EXPECT_STREQ(id_a->name + 2, "OB_A");
   EXPECT_TRUE(ctx.bmain->objects.first == id_c);
@@ -252,7 +357,7 @@ TEST(lib_id_main_global_unique_name, linked_ids_1)
 
   EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
 
-  change_name(ctx.bmain, id_b, "OB_C");
+  change_name(ctx.bmain, id_b, "OB_C", IDNewNameMode::RenameExistingNever);
   EXPECT_STREQ(id_b->name + 2, "OB_C");
   EXPECT_STREQ(id_a->name + 2, "OB_C.002");
   EXPECT_STREQ(id_c->name + 2, "OB_C");
@@ -519,13 +624,13 @@ TEST(lib_id_main_unique_name, renames_with_duplicates)
 
   EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
 
-  BKE_libblock_rename(ctx.bmain, id_a, "Foo.002");
+  BKE_libblock_rename(*ctx.bmain, *id_a, "Foo.002");
   EXPECT_STREQ(id_a->name + 2, "Foo.002");
-  BKE_libblock_rename(ctx.bmain, id_b, "Bar");
+  BKE_libblock_rename(*ctx.bmain, *id_b, "Bar");
   EXPECT_STREQ(id_b->name + 2, "Bar.001");
-  BKE_libblock_rename(ctx.bmain, id_c, "Foo");
+  BKE_libblock_rename(*ctx.bmain, *id_c, "Foo");
   EXPECT_STREQ(id_c->name + 2, "Foo");
-  BKE_libblock_rename(ctx.bmain, id_b, "Bar");
+  BKE_libblock_rename(*ctx.bmain, *id_b, "Bar");
   EXPECT_STREQ(id_b->name + 2, "Bar");
 
   EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));

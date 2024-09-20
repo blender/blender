@@ -1790,6 +1790,8 @@ void UI_block_funcN_set(uiBlock *block,
                         uiButArgNCopy func_argN_copy_fn = MEM_dupallocN);
 
 void UI_but_func_rename_set(uiBut *but, uiButHandleRenameFunc func, void *arg1);
+void UI_but_func_rename_full_set(uiBut *but,
+                                 std::function<void(std::string &new_name)> rename_full_func);
 void UI_but_func_set(uiBut *but, uiButHandleFunc func, void *arg1, void *arg2);
 void UI_but_funcN_set(uiBut *but,
                       uiButHandleNFunc funcN,

@@ -449,8 +449,9 @@ void OUTLINER_OT_item_rename(wmOperatorType *ot)
 
   ot->poll = ED_operator_region_outliner_active;
 
-  /* Flags. */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  /* Flags. No undo, since this operator only activate the name editing text field in the Outliner,
+   * but does not actually change anything. */
+  ot->flag = OPTYPE_REGISTER;
 
   prop = RNA_def_boolean(ot->srna,
                          "use_active",

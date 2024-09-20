@@ -36,6 +36,7 @@
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
 #include "BLI_memarena.h"
+#include "BLI_string_ref.hh"
 #include "BLI_string_utils.hh"
 
 #include "BLT_translation.hh"
@@ -219,7 +220,16 @@ void BKE_lib_id_clear_library_data(Main *bmain, ID *id, const int flags)
   id->tag &= ~(ID_TAG_INDIRECT | ID_TAG_EXTERN);
   id->flag &= ~ID_FLAG_INDIRECT_WEAK_LINK;
   if (id_in_mainlist) {
-    if (BKE_id_new_name_validate(bmain, which_libbase(bmain, GS(id->name)), id, nullptr, false)) {
+    IDNewNameResult result = BKE_id_new_name_validate(*bmain,
+                                                      *which_libbase(bmain, GS(id->name)),
+                                                      *id,
+                                                      nullptr,
+                                                      IDNewNameMode::RenameExistingNever,
+                                                      false);
+    if (!ELEM(result.action,
+              IDNewNameResult::Action::UNCHANGED,
+              IDNewNameResult::Action::UNCHANGED_COLLISION))
+    {
       bmain->is_memfile_undo_written = false;
     }
   }
@@ -863,8 +873,9 @@ void BKE_id_move_to_same_lib(Main &bmain, ID &id, const ID &owner_id)
   id.tag |= ID_TAG_INDIRECT;
 
   BKE_main_namemap_remove_name(&bmain, &id, BKE_id_name(id));
-  ListBase *lb = which_libbase(&bmain, GS(id.name));
-  BKE_id_new_name_validate(&bmain, lb, &id, BKE_id_name(id), true);
+  ListBase &lb = *which_libbase(&bmain, GS(id.name));
+  BKE_id_new_name_validate(
+      bmain, lb, id, BKE_id_name(id), IDNewNameMode::RenameExistingNever, true);
 }
 
 static void id_embedded_swap(ID **embedded_id_a,
@@ -1104,7 +1115,7 @@ void BKE_libblock_management_main_add(Main *bmain, void *idv)
   BLI_addtail(lb, id);
   /* We need to allow adding extra datablocks into libraries too, e.g. to support generating new
    * overrides for recursive resync. */
-  BKE_id_new_name_validate(bmain, lb, id, nullptr, true);
+  BKE_id_new_name_validate(*bmain, *lb, *id, nullptr, IDNewNameMode::RenameExistingNever, true);
   /* alphabetic insertion: is in new_id */
   id->tag &= ~(ID_TAG_NO_MAIN | ID_TAG_NO_USER_REFCOUNT);
   bmain->is_memfile_undo_written = false;
@@ -1242,7 +1253,8 @@ void BKE_main_id_repair_duplicate_names_listbase(Main *bmain, ListBase *lb)
   }
   for (i = 0; i < lb_len; i++) {
     if (!BLI_gset_add(gset, BKE_id_name(*id_array[i]))) {
-      BKE_id_new_name_validate(bmain, lb, id_array[i], nullptr, false);
+      BKE_id_new_name_validate(
+          *bmain, *lb, *id_array[i], nullptr, IDNewNameMode::RenameExistingNever, false);
     }
   }
   BLI_gset_free(gset, nullptr);
@@ -1361,7 +1373,7 @@ void *BKE_libblock_alloc_in_lib(Main *bmain,
 
       BKE_main_lock(bmain);
       BLI_addtail(lb, id);
-      BKE_id_new_name_validate(bmain, lb, id, name, true);
+      BKE_id_new_name_validate(*bmain, *lb, *id, name, IDNewNameMode::RenameExistingNever, true);
       bmain->is_memfile_undo_written = false;
       /* alphabetic insertion: is in new_id */
       BKE_main_unlock(bmain);
@@ -1639,11 +1651,22 @@ void *BKE_libblock_copy(Main *bmain, const ID *id)
 
 /* ***************** ID ************************ */
 
-ID *BKE_libblock_find_name(Main *bmain, const short type, const char *name)
+ID *BKE_libblock_find_name(Main *bmain,
+                           const short type,
+                           const char *name,
+                           const std::optional<Library *> lib)
 {
   ListBase *lb = which_libbase(bmain, type);
   BLI_assert(lb != nullptr);
-  return static_cast<ID *>(BLI_findstring(lb, name, offsetof(ID, name) + 2));
+
+  ID *id = static_cast<ID *>(BLI_findstring(lb, name, offsetof(ID, name) + 2));
+  if (lib) {
+    while (id && id->lib != *lib) {
+      id = static_cast<ID *>(BLI_listbase_findafter_string_ptr(
+          reinterpret_cast<Link *>(id), name, offsetof(ID, name) + 2));
+    }
+  }
+  return id;
 }
 
 ID *BKE_libblock_find_session_uid(Main *bmain, const short type, const uint32_t session_uid)
@@ -1821,29 +1844,32 @@ void id_sort_by_name(ListBase *lb, ID *id, ID *id_sorting_hint)
 #undef ID_SORT_STEP_SIZE
 }
 
-bool BKE_id_new_name_validate(
-    Main *bmain, ListBase *lb, ID *id, const char *newname, const bool do_linked_data)
+IDNewNameResult BKE_id_new_name_validate(Main &bmain,
+                                         ListBase &lb,
+                                         ID &id,
+                                         const char *newname,
+                                         IDNewNameMode mode,
+                                         const bool do_linked_data)
 {
-  bool result = false;
   char name[MAX_ID_NAME - 2];
 
   /* If library, don't rename (unless explicitly required), but do ensure proper sorting. */
-  if (!do_linked_data && ID_IS_LINKED(id)) {
-    id_sort_by_name(lb, id, nullptr);
+  if (!do_linked_data && ID_IS_LINKED(&id)) {
+    id_sort_by_name(&lb, &id, nullptr);
 
-    return result;
+    return {IDNewNameResult::Action::UNCHANGED, nullptr};
   }
 
   /* If no name given, use name of current ID. */
   if (newname == nullptr) {
-    newname = BKE_id_name(*id);
+    newname = BKE_id_name(id);
   }
   /* Make a copy of given name (newname args can be const). */
   STRNCPY(name, newname);
 
   if (name[0] == '\0') {
     /* Disallow empty names. */
-    STRNCPY_UTF8(name, DATA_(BKE_idtype_idcode_to_name(GS(id->name))));
+    STRNCPY_UTF8(name, DATA_(BKE_idtype_idcode_to_name(GS(id.name))));
   }
   else {
     /* disallow non utf8 chars,
@@ -1851,13 +1877,67 @@ bool BKE_id_new_name_validate(
     BLI_str_utf8_invalid_strip(name, strlen(name));
   }
 
-  result = BKE_main_namemap_get_name(bmain, id, name, false);
-  if (!result && !STREQ(BKE_id_name(*id), name)) {
-    result = true;
+  /* Store original requested new name, in modes that may solve name conflict by renaming the
+   * existing conflicting ID. */
+  char orig_name[MAX_ID_NAME - 2];
+  if (ELEM(mode, IDNewNameMode::RenameExistingAlways, IDNewNameMode::RenameExistingSameRoot)) {
+    STRNCPY(orig_name, name);
   }
 
-  BLI_strncpy(id->name + 2, name, sizeof(id->name) - 2);
-  id_sort_by_name(lb, id, nullptr);
+  const bool had_name_collision = BKE_main_namemap_get_name(&bmain, &id, name, false);
+
+  if (had_name_collision &&
+      ELEM(mode, IDNewNameMode::RenameExistingAlways, IDNewNameMode::RenameExistingSameRoot))
+  {
+    char prev_name[MAX_ID_NAME - 2];
+    char prev_name_root[MAX_ID_NAME - 2];
+    int prev_number = 0;
+    char new_name_root[MAX_ID_NAME - 2];
+    int new_number = 0;
+    STRNCPY(prev_name, BKE_id_name(id));
+    if (mode == IDNewNameMode::RenameExistingSameRoot) {
+      BLI_string_split_name_number(BKE_id_name(id), '.', prev_name_root, &prev_number);
+      BLI_string_split_name_number(name, '.', new_name_root, &new_number);
+    }
+
+    ID *id_other = BKE_libblock_find_name(&bmain, GS(id.name), orig_name, id.lib);
+    BLI_assert(id_other);
+
+    /* In case of #RenameExistingSameRoot, the existing ID (`id_other`) is only renamed if it has
+     * the same 'root' name as the current name of the renamed `id`. */
+    if (mode == IDNewNameMode::RenameExistingAlways ||
+        (mode == IDNewNameMode::RenameExistingSameRoot && STREQ(prev_name_root, new_name_root)))
+    {
+      BLI_strncpy(id_other->name + 2, name, sizeof(id_other->name) - 2);
+      id_sort_by_name(&lb, id_other, nullptr);
+
+      const bool is_idname_changed = !STREQ(BKE_id_name(id), orig_name);
+      IDNewNameResult result = {IDNewNameResult::Action::UNCHANGED_COLLISION, id_other};
+      if (is_idname_changed) {
+        BLI_strncpy(id.name + 2, orig_name, sizeof(id.name) - 2);
+        result.action = IDNewNameResult::Action::RENAMED_COLLISION_FORCED;
+      }
+      id_sort_by_name(&lb, &id, nullptr);
+      return result;
+    }
+  }
+
+  /* The requested new name may be available (not collide with any other existing ID name), but
+   * still differ from the current name of the renamed ID.
+   * Conversely, the requested new name may have been colliding with an existing one, and the
+   * generated unique name may end up being the current ID's name. */
+  const bool is_idname_changed = !STREQ(BKE_id_name(id), name);
+
+  IDNewNameResult result = {IDNewNameResult::Action::UNCHANGED, nullptr};
+  if (is_idname_changed) {
+    BLI_strncpy(id.name + 2, name, sizeof(id.name) - 2);
+    result.action = had_name_collision ? IDNewNameResult::Action::RENAMED_COLLISION_ADJUSTED :
+                                         IDNewNameResult::Action::RENAMED_NO_COLLISION;
+  }
+  else if (had_name_collision) {
+    result.action = IDNewNameResult::Action::UNCHANGED_COLLISION;
+  }
+  id_sort_by_name(&lb, &id, nullptr);
   return result;
 }
 
@@ -2230,17 +2310,53 @@ void BKE_library_make_local(Main *bmain,
 #endif
 }
 
-void BKE_libblock_rename(Main *bmain, ID *id, const char *name)
+IDNewNameResult BKE_libblock_rename(Main &bmain,
+                                    ID &id,
+                                    blender::StringRefNull name,
+                                    const IDNewNameMode mode)
 {
-  BLI_assert(ID_IS_EDITABLE(id));
-  if (STREQ(BKE_id_name(*id), name)) {
-    return;
+  BLI_assert(BKE_id_is_in_main(&bmain, &id));
+
+  if (STREQ(BKE_id_name(id), name.c_str())) {
+    return {IDNewNameResult::Action::UNCHANGED, nullptr};
   }
-  BKE_main_namemap_remove_name(bmain, id, BKE_id_name(*id));
-  ListBase *lb = which_libbase(bmain, GS(id->name));
-  if (BKE_id_new_name_validate(bmain, lb, id, name, true)) {
-    bmain->is_memfile_undo_written = false;
+  BKE_main_namemap_remove_name(&bmain, &id, BKE_id_name(id));
+  ListBase &lb = *which_libbase(&bmain, GS(id.name));
+  IDNewNameResult result = BKE_id_new_name_validate(bmain, lb, id, name.c_str(), mode, true);
+  if (!ELEM(result.action,
+            IDNewNameResult::Action::UNCHANGED,
+            IDNewNameResult::Action::UNCHANGED_COLLISION))
+  {
+    bmain.is_memfile_undo_written = false;
   }
+  return result;
+}
+
+IDNewNameResult BKE_id_rename(Main &bmain,
+                              ID &id,
+                              blender::StringRefNull name,
+                              const IDNewNameMode mode)
+{
+  const IDNewNameResult result = BKE_libblock_rename(bmain, id, name, mode);
+
+  if (!ELEM(result.action,
+            IDNewNameResult::Action::UNCHANGED,
+            IDNewNameResult::Action::UNCHANGED_COLLISION))
+  {
+    switch (GS(id.name)) {
+      case ID_OB: {
+        Object &ob = reinterpret_cast<Object &>(id);
+        if (ob.type == OB_MBALL) {
+          DEG_id_tag_update(&ob.id, ID_RECALC_GEOMETRY);
+        }
+        break;
+      }
+      default:
+        break;
+    }
+  }
+
+  return result;
 }
 
 void BKE_id_full_name_get(char name[MAX_ID_FULL_NAME], const ID *id, char separator_char)
@@ -2304,11 +2420,16 @@ void BKE_id_tag_clear_atomic(ID *id, int tag)
   atomic_fetch_and_and_int32(&id->tag, ~tag);
 }
 
-bool BKE_id_is_in_global_main(ID *id)
+bool BKE_id_is_in_main(Main *bmain, ID *id)
 {
   /* We do not want to fail when id is nullptr here, even though this is a bit strange behavior...
    */
-  return (id == nullptr || BLI_findindex(which_libbase(G_MAIN, GS(id->name)), id) != -1);
+  return (id == nullptr || BLI_findindex(which_libbase(bmain, GS(id->name)), id) != -1);
+}
+
+bool BKE_id_is_in_global_main(ID *id)
+{
+  return BKE_id_is_in_main(G_MAIN, id);
 }
 
 bool BKE_id_can_be_asset(const ID *id)

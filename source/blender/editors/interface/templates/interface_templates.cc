@@ -77,6 +77,7 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "ED_fileselect.hh"
+#include "ED_id_management.hh"
 #include "ED_info.hh"
 #include "ED_object.hh"
 #include "ED_render.hh"
@@ -977,6 +978,10 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
        * still assign the callback so the button can be identified as part of an ID-template. See
        * #UI_context_active_but_prop_get_templateID(). */
       break;
+    case UI_ID_RENAME:
+      /* Only for the undo push. */
+      undo_push_label = "Rename Data-Block";
+      break;
     case UI_ID_BROWSE:
     case UI_ID_PIN:
       RNA_warning("warning, id event %d shouldn't come here", event);
@@ -1393,6 +1398,15 @@ static void template_ID(const bContext *C,
                     0,
                     0,
                     RNA_struct_ui_description(type));
+    /* Handle undo through the #template_id_cb set below. Default undo handling from the button
+     * code (see #ui_apply_but_undo) would not work here, as the new name is not yet applied to the
+     * ID. */
+    UI_but_flag_disable(but, UI_BUT_UNDO);
+    Main *bmain = CTX_data_main(C);
+    UI_but_func_rename_full_set(but, [bmain, id](std::string &new_name) {
+      ED_id_rename(*bmain, *id, new_name);
+      WM_main_add_notifier(NC_ID | NA_RENAME, nullptr);
+    });
     UI_but_funcN_set(but,
                      template_id_cb,
                      MEM_new<TemplateID>(__func__, template_ui),

@@ -3082,8 +3082,14 @@ bool ui_but_string_set(bContext *C, uiBut *but, const char *str)
       const PropertyType type = RNA_property_type(but->rnaprop);
 
       if (type == PROP_STRING) {
-        /* RNA string */
-        RNA_property_string_set(&but->rnapoin, but->rnaprop, str);
+        /* RNA string, only set it if full rename callback is not defined, otherwise just store the
+         * user-defined new name to call the callback later. */
+        if (but->rename_full_func) {
+          but->rename_full_new = str;
+        }
+        else {
+          RNA_property_string_set(&but->rnapoin, but->rnaprop, str);
+        }
         return true;
       }
 
@@ -5943,6 +5949,12 @@ void UI_but_func_rename_set(uiBut *but, uiButHandleRenameFunc func, void *arg1)
 {
   but->rename_func = func;
   but->rename_arg1 = arg1;
+}
+
+void UI_but_func_rename_full_set(uiBut *but,
+                                 std::function<void(std::string &new_name)> rename_full_func)
+{
+  but->rename_full_func = rename_full_func;
 }
 
 void UI_but_func_drawextra_set(

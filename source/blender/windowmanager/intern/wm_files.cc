@@ -790,7 +790,7 @@ static void wm_file_read_post(bContext *C,
     /* Translate workspace names. */
     LISTBASE_FOREACH_MUTABLE (WorkSpace *, workspace, &bmain->workspaces) {
       BKE_libblock_rename(
-          bmain, &workspace->id, CTX_DATA_(BLT_I18NCONTEXT_ID_WORKSPACE, workspace->id.name + 2));
+          *bmain, workspace->id, CTX_DATA_(BLT_I18NCONTEXT_ID_WORKSPACE, workspace->id.name + 2));
     }
   }
 

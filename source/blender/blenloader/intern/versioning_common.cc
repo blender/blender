@@ -108,7 +108,7 @@ ID *do_versions_rename_id(Main *bmain,
     }
   }
   if (id != nullptr) {
-    BKE_libblock_rename(bmain, id, name_dst);
+    BKE_libblock_rename(*bmain, *id, name_dst);
   }
   return id;
 }

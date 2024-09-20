@@ -51,8 +51,10 @@
 
 #include "ED_armature.hh"
 #include "ED_fileselect.hh"
+#include "ED_id_management.hh"
 #include "ED_outliner.hh"
 #include "ED_screen.hh"
+#include "ED_undo.hh"
 
 #include "WM_api.hh"
 #include "WM_message.hh"
@@ -679,22 +681,26 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
   BLI_mempool *ts = space_outliner->treestore;
   TreeStoreElem *tselem = static_cast<TreeStoreElem *>(tsep);
 
+  const char *undo_str = nullptr;
+
   /* Unfortunately at this point, the name of the ID has already been set to its new value. Revert
    * it to its old name, to be able to use the generic 'rename' function for IDs.
    *
    * NOTE: While utterly inelegant, performances are not really a concern here, so this is an
    * acceptable solution for now. */
-  auto id_rename_helper = [bmain, tselem, oldname] {
+  auto id_rename_helper = [bmain, tselem, oldname]() -> bool {
     std::string new_name = tselem->id->name + 2;
     BLI_strncpy(tselem->id->name + 2, oldname, sizeof(tselem->id->name) - 2);
-    BKE_libblock_rename(bmain, tselem->id, new_name.c_str());
+    return ED_id_rename(*bmain, *tselem->id, new_name);
   };
 
   if (ts && tselem) {
     TreeElement *te = outliner_find_tree_element(&space_outliner->tree, tselem);
 
     if (ELEM(tselem->type, TSE_SOME_ID, TSE_LINKED_NODE_TREE)) {
-      id_rename_helper();
+      if (id_rename_helper()) {
+        undo_str = "Rename Data-Block";
+      }
 
       WM_msg_publish_rna_prop(mbus, tselem->id, tselem->id, ID, name);
 
@@ -711,13 +717,6 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
         case ID_SCE:
           WM_event_add_notifier(C, NC_SCENE, nullptr);
           break;
-        case ID_OB: {
-          Object *ob = (Object *)tselem->id;
-          if (ob->type == OB_MBALL) {
-            DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-          }
-          break;
-        }
         default:
           break;
       }
@@ -757,17 +756,21 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           BKE_object_defgroup_unique_name(vg, ob);
           WM_msg_publish_rna_prop(mbus, &ob->id, vg, VertexGroup, name);
           DEG_id_tag_update(tselem->id, ID_RECALC_SYNC_TO_EVAL);
+          undo_str = "Rename Vertex Group";
           break;
         }
         case TSE_NLA_ACTION: {
           /* The #tselem->id is a #bAction. */
-          id_rename_helper();
+          if (id_rename_helper()) {
+            undo_str = "Rename Data-Block";
+          }
           WM_msg_publish_rna_prop(mbus, tselem->id, tselem->id, ID, name);
           DEG_id_tag_update(tselem->id, ID_RECALC_SYNC_TO_EVAL);
           break;
         }
         case TSE_NLA_TRACK: {
           WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_RENAME, nullptr);
+          undo_str = "Rename NLA Track";
           break;
         }
         case TSE_EBONE: {
@@ -783,6 +786,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
             WM_msg_publish_rna_prop(mbus, &arm->id, ebone, EditBone, name);
             WM_event_add_notifier(C, NC_OBJECT | ND_POSE, nullptr);
             DEG_id_tag_update(tselem->id, ID_RECALC_SYNC_TO_EVAL);
+            undo_str = "Rename Edit Bone";
           }
           break;
         }
@@ -805,6 +809,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           WM_msg_publish_rna_prop(mbus, &arm->id, bone, Bone, name);
           WM_event_add_notifier(C, NC_OBJECT | ND_POSE, nullptr);
           DEG_id_tag_update(tselem->id, ID_RECALC_SYNC_TO_EVAL);
+          undo_str = "Rename Bone";
           break;
         }
         case TSE_POSE_CHANNEL: {
@@ -829,6 +834,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           WM_event_add_notifier(C, NC_OBJECT | ND_POSE, nullptr);
           DEG_id_tag_update(tselem->id, ID_RECALC_SYNC_TO_EVAL);
           DEG_id_tag_update(&arm->id, ID_RECALC_SYNC_TO_EVAL);
+          undo_str = "Rename Pose Bone";
           break;
         }
         case TSE_GP_LAYER: {
@@ -846,6 +852,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
           WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, gpd);
           DEG_id_tag_update(tselem->id, ID_RECALC_SYNC_TO_EVAL);
+          undo_str = "Rename Grease Pencil Layer";
           break;
         }
         case TSE_GREASE_PENCIL_NODE: {
@@ -861,6 +868,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           grease_pencil.rename_node(*bmain, node, new_name);
           DEG_id_tag_update(&grease_pencil.id, ID_RECALC_SYNC_TO_EVAL);
           WM_event_add_notifier(C, NC_ID | NA_RENAME, nullptr);
+          undo_str = "Rename Grease Pencil Drawing";
           break;
         }
         case TSE_R_LAYER: {
@@ -877,11 +885,14 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           WM_msg_publish_rna_prop(mbus, &scene->id, view_layer, ViewLayer, name);
           WM_event_add_notifier(C, NC_ID | NA_RENAME, nullptr);
           DEG_id_tag_update(tselem->id, ID_RECALC_SYNC_TO_EVAL);
+          undo_str = "Rename View Layer";
           break;
         }
         case TSE_LAYER_COLLECTION: {
           /* The #tselem->id is a #Collection, not a #LayerCollection */
-          id_rename_helper();
+          if (id_rename_helper()) {
+            undo_str = "Rename Data-Block";
+          }
           WM_msg_publish_rna_prop(mbus, tselem->id, tselem->id, ID, name);
           WM_event_add_notifier(C, NC_ID | NA_RENAME, nullptr);
           DEG_id_tag_update(tselem->id, ID_RECALC_SYNC_TO_EVAL);
@@ -896,11 +907,16 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           WM_msg_publish_rna_prop(mbus, &arm->id, bcoll, BoneCollection, name);
           WM_event_add_notifier(C, NC_OBJECT | ND_BONE_COLLECTION, arm);
           DEG_id_tag_update(&arm->id, ID_RECALC_SYNC_TO_EVAL);
+          undo_str = "Rename Bone Collection";
           break;
         }
       }
     }
     tselem->flag &= ~TSE_TEXTBUT;
+  }
+
+  if (undo_str) {
+    ED_undo_push(C, undo_str);
   }
 }
 
@@ -2139,6 +2155,10 @@ static void outliner_buttons(const bContext *C,
                 1.0,
                 float(len),
                 "");
+  /* Handle undo through the #template_id_cb set below. Default undo handling from the button
+   * code (see #ui_apply_but_undo) would not work here, as the new name is not yet applied to the
+   * ID. */
+  UI_but_flag_disable(bt, UI_BUT_UNDO);
   UI_but_func_rename_set(bt, namebutton_fn, tselem);
 
   /* Returns false if button got removed. */

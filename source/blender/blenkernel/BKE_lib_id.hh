@@ -34,6 +34,7 @@
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_set.hh"
+#include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
@@ -256,13 +257,88 @@ void *BKE_libblock_copy(Main *bmain, const ID *id) ATTR_WARN_UNUSED_RESULT ATTR_
  */
 void BKE_id_move_to_same_lib(Main &bmain, ID &id, const ID &owner_id);
 
+/** How to handle ID rename in case requested name is already used by another ID. */
+enum class IDNewNameMode {
+  /**
+   * Never rename another existing ID if the target name is already in use. The renamed ID will get
+   * a name modified with a numerical suffix instead.
+   */
+  RenameExistingNever = 0,
+  /**
+   * Always rename another existing ID if the target name is already in use. The renamed ID will
+   * get the requested unmodified name.
+   */
+  RenameExistingAlways = 1,
+  /**
+   * Only rename another existing ID if the target name is already in use, when the current name of
+   * the renamed ID has the same root as the other ID name (i.e. they have the same name, besides
+   * the numeric suffix).
+   * E.g. Assuming there is already an existing ID named `Object`:
+   *   - Renaming `Object.001` to `Object`: rename to `Object`, the existing `Object` ID is renamed
+   *     to e.g. `Object.001`
+   *   - Renaming `Cube` to `Object`: rename to `Object.001`,  the existing `Object` ID is not
+   *     renamed.
+   */
+  RenameExistingSameRoot = 2,
+};
+
+/** Information about how an ID rename went on. */
+struct IDNewNameResult {
+  /** How the renaming wnet on. */
+  enum class Action {
+    /** ID was not renamed, because requested new name was already the ID's name. */
+    UNCHANGED = 0,
+    /**
+     * ID was not renamed, because requested new name would collide with another existing ID's
+     * name, and the first available unique name is already current ID's name.
+     */
+    UNCHANGED_COLLISION = 1,
+    /** Successfully renamed, wihtout any collision with another ID's name. */
+    RENAMED_NO_COLLISION = 2,
+    /** Successfully renamed, requested new name was adjusted to avoid collision with another ID.
+     */
+    RENAMED_COLLISION_ADJUSTED = 3,
+    /**
+     * Successfully renamed, requested new name was enforced onto given ID, and another ID had to
+     * be renamed to avoid name collision.
+     */
+    RENAMED_COLLISION_FORCED = 4,
+  } action = Action::UNCHANGED;
+
+  /** The colliding ID, if any.
+   *
+   * \warning Currently will be `nullptr` in #RENAMED_COLLISION_ADJUSTED case, for performance
+   * reasons (avoid an ID lookup by name) when doing 'standard' #RenameExistingNever renames.
+   */
+  ID *other_id = nullptr;
+};
+
 /**
  * Sets the name of a block to name, suitably adjusted for uniqueness.
+ *
+ * \return true if the name of the ID was actually modified.
  */
-void BKE_libblock_rename(Main *bmain, ID *id, const char *name) ATTR_NONNULL();
+IDNewNameResult BKE_libblock_rename(Main &bmain,
+                                    ID &id,
+                                    blender::StringRefNull name,
+                                    const IDNewNameMode mode = IDNewNameMode::RenameExistingNever);
 
-ID *BKE_libblock_find_name(Main *bmain, short type, const char *name) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL();
+/**
+ * Like #BKE_libblock_rename, but also performs additional higher-level updates like depsgraph
+ * tagging when renaming Metaball objects, etc.
+ *
+ * \return true if the name of the ID was actually modified.
+ */
+IDNewNameResult BKE_id_rename(Main &bmain,
+                              ID &id,
+                              blender::StringRefNull name,
+                              const IDNewNameMode mode = IDNewNameMode::RenameExistingNever);
+
+ID *BKE_libblock_find_name(Main *bmain,
+                           short type,
+                           const char *name,
+                           const std::optional<Library *> lib = std::nullopt)
+    ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 ID *BKE_libblock_find_session_uid(Main *bmain, short type, uint32_t session_uid);
 ID *BKE_libblock_find_name_and_library(Main *bmain,
                                        short type,
@@ -619,14 +695,14 @@ void BKE_lib_id_expand_local(Main *bmain, ID *id, int flags);
  * \param do_linked_data: if true, also ensure a unique name in case the given ID is linked
  * (otherwise, just ensure that it is properly sorted).
  *
- * \return true if the ID's name has been modified (either from given `name` parameter, or because
- * its current name was colliding with another existing ID).
+ * \return How renaming went on, see #IDNewNameResult for details.
  */
-bool BKE_id_new_name_validate(Main *bmain,
-                              ListBase *lb,
-                              ID *id,
-                              const char *newname,
-                              bool do_linked_data) ATTR_NONNULL(1, 2, 3);
+IDNewNameResult BKE_id_new_name_validate(Main &bmain,
+                                         ListBase &lb,
+                                         ID &id,
+                                         const char *newname,
+                                         IDNewNameMode mode,
+                                         bool do_linked_data);
 
 /**
  * Pull an ID out of a library (make it local). Only call this for IDs that
@@ -747,6 +823,8 @@ void BKE_library_make_local(Main *bmain,
 void BKE_id_tag_set_atomic(ID *id, int tag);
 void BKE_id_tag_clear_atomic(ID *id, int tag);
 
+/** Check that given ID pointer actually is in given `bmain`. */
+bool BKE_id_is_in_main(Main *bmain, ID *id);
 /**
  * Check that given ID pointer actually is in G_MAIN.
  * Main intended use is for debug asserts in places we cannot easily get rid of #G_MAIN.

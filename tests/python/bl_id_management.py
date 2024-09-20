@@ -205,8 +205,57 @@ class TestIdRename(TestHelper, unittest.TestCase):
                 data = dt
                 break
         data.name = name
-        # This can fail currently, see #71244.
-        # ~ self.assertEqual(data.name, self.default_name + ".001")
+        self.assertEqual(data.name, self.default_name + ".001")
+        self.ensure_proper_order()
+
+    def test_rename_api(self):
+        self.clear_container()
+        self.add_items_with_randomized_names(100)
+        self.ensure_proper_order()
+
+        name = self.default_name
+        data = self.data_container[0]
+        data.name = name
+        data_other = None
+        self.assertEqual(data.name, name)
+        for dt in self.data_container:
+            if dt is not data:
+                data_other = dt
+                break
+        name_other = "Other_" + name
+        data_other.name = name_other
+
+        data_other.rename(name, mode='NEVER')
+        self.assertEqual(data.name, name)
+        self.assertEqual(data_other.name, name + ".001")
+        self.ensure_proper_order()
+        data_other.rename(name, mode='NEVER')
+        self.assertEqual(data.name, name)
+        self.assertEqual(data_other.name, name + ".001")
+        self.ensure_proper_order()
+
+        data_other.name = name_other
+        data.name = name
+
+        data_other.rename(name, mode='ALWAYS')
+        self.assertEqual(data.name, name + ".001")
+        self.assertEqual(data_other.name, name)
+        self.ensure_proper_order()
+        data.rename(name, mode='ALWAYS')
+        self.assertEqual(data.name, name)
+        self.assertEqual(data_other.name, name + ".001")
+        self.ensure_proper_order()
+
+        data_other.name = name_other
+        data.name = name
+
+        data_other.rename(name, mode='SAME_ROOT')
+        self.assertEqual(data.name, name)
+        self.assertEqual(data_other.name, name + ".001")
+        self.ensure_proper_order()
+        data_other.rename(name, mode='SAME_ROOT')
+        self.assertEqual(data.name, name + ".001")
+        self.assertEqual(data_other.name, name)
         self.ensure_proper_order()
 
 

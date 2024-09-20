@@ -33,12 +33,15 @@
 #include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_idprop.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_screen.hh"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
 #include "UI_interface.hh"
+
+#include "ED_id_management.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -2112,6 +2115,8 @@ void uiItemFullR(uiLayout *layout,
   const PropertyType type = RNA_property_type(prop);
   const bool is_array = RNA_property_array_check(prop);
   const int len = (is_array) ? RNA_property_array_length(ptr, prop) : 0;
+  const bool is_id_name_prop = (ptr->owner_id == ptr->data && type == PROP_STRING &&
+                                prop == RNA_struct_name_property(ptr->type));
 
   const bool icon_only = (flag & UI_ITEM_R_ICON_ONLY) != 0;
 
@@ -2395,6 +2400,16 @@ void uiItemFullR(uiLayout *layout,
   /* property with separate label */
   else if (ELEM(type, PROP_ENUM, PROP_STRING, PROP_POINTER)) {
     but = ui_item_with_label(layout, block, name, icon, ptr, prop, index, 0, 0, w, h, flag);
+
+    if (is_id_name_prop) {
+      Main *bmain = CTX_data_main(static_cast<bContext *>(block->evil_C));
+      ID *id = ptr->owner_id;
+      UI_but_func_rename_full_set(but, [bmain, id](std::string &new_name) {
+        ED_id_rename(*bmain, *id, new_name);
+        WM_main_add_notifier(NC_ID | NA_RENAME, nullptr);
+      });
+    }
+
     bool results_are_suggestions = false;
     if (type == PROP_STRING) {
       const eStringPropertySearchFlag search_flag = RNA_property_string_search_flag(prop);
