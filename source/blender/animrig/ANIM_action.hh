@@ -1112,12 +1112,19 @@ static_assert(sizeof(ChannelGroup) == sizeof(::bActionGroup),
  * be animated). If the above fall-through case of "no slot found" is reached, this function
  * will still return `true` as the Action was successfully assigned.
  */
-bool assign_action(Action *action, ID &animated_id);
+bool assign_action(bAction *action, ID &animated_id);
+
+/**
+ * Same as assign_action(action, id) above.
+ *
+ * Use this function when you already have the AnimData struct of this ID.
+ */
+void assign_action(bAction *action, OwnedAnimData owned_adt);
 
 /**
  * Same as assign_action, except it assigns to AnimData::tmpact and tmp_slot_handle.
  */
-void assign_tmpaction(Action *action, OwnedAnimData owned_adt);
+void assign_tmpaction(bAction *action, OwnedAnimData owned_adt);
 
 /**
  * Un-assign the Action assigned to this ID.
@@ -1155,7 +1162,7 @@ Slot *assign_action_ensure_slot_for_keying(Action &action, ID &animated_id);
  * This function always succeeds, and thus it doesn't have any return value.
  */
 void generic_assign_action(ID &animated_id,
-                           Action *action_to_assign,
+                           bAction *action_to_assign,
                            bAction *&action_ptr_ref,
                            slot_handle_t &slot_handle_ref,
                            char *slot_name);

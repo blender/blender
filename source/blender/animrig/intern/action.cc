@@ -1142,18 +1142,26 @@ void Slot::name_ensure_prefix()
 
 /* ----- Functions  ----------- */
 
-bool assign_action(Action *action, ID &animated_id)
+bool assign_action(bAction *action, ID &animated_id)
 {
   AnimData *adt = BKE_animdata_ensure_id(&animated_id);
   if (!adt) {
     return false;
   }
-
-  generic_assign_action(animated_id, action, adt->action, adt->slot_handle, adt->slot_name);
+  assign_action(action, {animated_id, *adt});
   return true;
 }
 
-void assign_tmpaction(Action *action, OwnedAnimData owned_adt)
+void assign_action(bAction *action, const OwnedAnimData owned_adt)
+{
+  generic_assign_action(owned_adt.owner_id,
+                        action,
+                        owned_adt.adt.action,
+                        owned_adt.adt.slot_handle,
+                        owned_adt.adt.slot_name);
+}
+
+void assign_tmpaction(bAction *action, const OwnedAnimData owned_adt)
 {
   generic_assign_action(owned_adt.owner_id,
                         action,
@@ -1222,7 +1230,7 @@ static bool is_id_using_action_slot(const ID &animated_id,
 }
 
 void generic_assign_action(ID &animated_id,
-                           Action *action_to_assign,
+                           bAction *action_to_assign,
                            bAction *&action_ptr_ref,
                            slot_handle_t &slot_handle_ref,
                            char *slot_name)
@@ -1255,7 +1263,7 @@ void generic_assign_action(ID &animated_id,
 
   /* Assign the slot. Since the slot is guaranteed to be usable (or nullptr) and from the assigned
    * Action, this call is guaranteed to succeed. */
-  Slot *slot = action_to_assign->find_suitable_slot_for(animated_id);
+  Slot *slot = action_to_assign->wrap().find_suitable_slot_for(animated_id);
   const ActionSlotAssignmentResult result = generic_assign_action_slot(
       slot, animated_id, action_ptr_ref, slot_handle_ref, slot_name);
   BLI_assert(result == ActionSlotAssignmentResult::OK);
