@@ -94,6 +94,7 @@ static void createTransSculpt(bContext *C, TransInfo *t)
   copy_m3_m3(td->smtx, obmat_inv);
   copy_m3_m4(td->mtx, ob.object_to_world().ptr());
   copy_m3_m4(td->axismtx, ob.object_to_world().ptr());
+  normalize_m3(td->axismtx);
 
   BLI_assert(!(t->options & CTX_PAINT_CURVE));
   sculpt_paint::init_transform(C, ob, t->mval, t->undo_name);
