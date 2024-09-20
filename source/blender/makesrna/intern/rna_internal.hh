@@ -406,6 +406,11 @@ void rna_userdef_is_dirty_update_impl();
  */
 void rna_userdef_is_dirty_update(Main *bmain, Scene *scene, PointerRNA *ptr);
 
+const EnumPropertyItem *rna_WorkSpaceTool_brush_type_itemf(bContext *C,
+                                                           PointerRNA *ptr,
+                                                           PropertyRNA *prop,
+                                                           bool *r_free);
+
 /* API functions */
 
 void RNA_api_action(StructRNA *srna);

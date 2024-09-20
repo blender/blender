@@ -41,8 +41,15 @@ typedef struct bToolRef_Runtime {
   /** One of these 4 must be defined. */
   char keymap[64];
   char gizmo_group[64];
-  char brush_type[64];
   char data_block[64];
+  /**
+   * The brush type this tool is limited too, if #TOOLREF_FLAG_USE_BRUSHES is set. Note that this
+   * is a different enum in different modes, e.g. #eBrushSculptType in sculpt mode,
+   * #eBrushVertexPaintType in vertex paint mode.
+   *
+   *  -1 means any brush type may be used (0 is used by brush type enums of some modes).
+   */
+  int brush_type;
 
   /** Keymap for #bToolRef.idname_fallback, if set. */
   char keymap_fallback[64];

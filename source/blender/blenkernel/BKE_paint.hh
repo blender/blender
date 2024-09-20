@@ -29,6 +29,7 @@
 #include "BKE_pbvh.hh"
 #include "BKE_subdiv_ccg.hh"
 
+struct AssetWeakReference;
 struct BMFace;
 struct BMLog;
 struct BMVert;
@@ -199,6 +200,8 @@ const EnumPropertyItem *BKE_paint_get_tool_enum_from_paintmode(PaintMode mode);
 uint BKE_paint_get_brush_type_offset_from_paintmode(PaintMode mode);
 std::optional<int> BKE_paint_get_brush_type_from_obmode(const Brush *brush,
                                                         const eObjectMode ob_mode);
+std::optional<int> BKE_paint_get_brush_type_from_paintmode(const Brush *brush,
+                                                           const PaintMode mode);
 Paint *BKE_paint_get_active(Scene *sce, ViewLayer *view_layer);
 Paint *BKE_paint_get_active_from_context(const bContext *C);
 PaintMode BKE_paintmode_get_active_from_context(const bContext *C);
@@ -216,11 +219,25 @@ Brush *BKE_paint_brush_from_essentials(Main *bmain, const char *name);
  *
  * \return True on success. If \a brush is already active, this is considered a success (the brush
  * asset reference will still be updated).
+ *
+ * \note #WM_toolsystem_activate_brush_and_tool() might be the preferable way to change the active
+ * brush. It also lets the toolsystem decide if the active tool should be changed given the type of
+ * brush, and it updates the "last used brush" for the previous tool. #BKE_paint_brush_set() should
+ * only be called to force a brush to be active, circumventing the tool system.
  */
 bool BKE_paint_brush_set(Paint *paint, Brush *brush);
+/**
+ * Version of #BKE_paint_brush_set() that takes an asset reference instead of a brush, importing
+ * the brush if necessary.
+ */
+bool BKE_paint_brush_set(Main *bmain,
+                         Paint *paint,
+                         const AssetWeakReference *brush_asset_reference);
 bool BKE_paint_brush_set_default(Main *bmain, Paint *paint);
 bool BKE_paint_brush_set_essentials(Main *bmain, Paint *paint, const char *name);
 
+std::optional<AssetWeakReference> BKE_paint_brush_type_default_reference(
+    eObjectMode ob_mode, std::optional<int> brush_type);
 void BKE_paint_brushes_set_default_references(ToolSettings *ts);
 void BKE_paint_brushes_validate(Main *bmain, Paint *paint);
 

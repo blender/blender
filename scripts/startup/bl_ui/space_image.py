@@ -1718,6 +1718,8 @@ class ImageAssetShelf(BrushAssetShelf):
 
 class IMAGE_AST_brush_paint(ImageAssetShelf, AssetShelf):
     mode_prop = "use_paint_image"
+    brush_type_prop = "image_brush_type"
+    tool_prop = "image_tool"
 
     @classmethod
     def poll(cls, context):

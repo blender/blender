@@ -925,6 +925,38 @@ typedef struct Paint_Runtime {
   char _pad[2];
 } Paint_Runtime;
 
+typedef struct NamedBrushAssetReference {
+  struct NamedBrushAssetReference *next, *prev;
+
+  const char *name;
+  struct AssetWeakReference *brush_asset_reference;
+} NamedBrushAssetReference;
+
+/**
+ * For the tool system: Storage to remember the last active brush for specific tools.
+ *
+ * This stores a "main" brush reference, which is used for any tool that uses brushes but isn't
+ * limited to a specific brush type, and a list of brush references identified by the brush type,
+ * for tools that are limited to a brush type.
+ *
+ * The tool system updates these fields as the active brush or active tool changes. It also
+ * determines the brush to remember/restore on tool changes and activates it.
+ */
+typedef struct ToolSystemBrushBindings {
+  struct AssetWeakReference *main_brush_asset_reference;
+
+  /**
+   * The tool system exposes tools for some brush types, like an eraser tool to access eraser
+   * brushes. Switching between tools should remember the last used brush for a brush type, e.g.
+   * which eraser was used last by the eraser tool.
+   *
+   * Note that multiple tools may use the same brush type, for example primitive draw tools (to
+   * draw rectangles, circles, lines, etc.) all use a "DRAW" brush, which will then be shared
+   * amongst them.
+   */
+  ListBase active_brush_per_brush_type; /* #NamedBrushAssetReference */
+} ToolSystemBrushBindings;
+
 /** Paint Tool Base. */
 typedef struct Paint {
   /**
@@ -943,6 +975,8 @@ typedef struct Paint {
   /** Default eraser brush and associated weak reference. */
   struct Brush *eraser_brush;
   struct AssetWeakReference *eraser_brush_asset_reference;
+
+  ToolSystemBrushBindings tool_brush_bindings;
 
   struct Palette *palette;
   /** Cavity curve. */

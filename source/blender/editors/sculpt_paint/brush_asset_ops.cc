@@ -9,6 +9,7 @@
 #include "DNA_brush_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
+#include "DNA_workspace_types.h"
 
 #include "BKE_asset.hh"
 #include "BKE_asset_edit.hh"
@@ -65,7 +66,10 @@ static int brush_asset_activate_exec(bContext *C, wmOperator *op)
 
   Paint *paint = BKE_paint_get_active_from_context(C);
 
-  if (!BKE_paint_brush_set(paint, brush)) {
+  /* Activate brush through tool system rather than calling #BKE_paint_brush_set() directly, to let
+   * the tool system switch tools if necessary, and update which brush was the last recently used
+   * one for the current tool. */
+  if (!WM_toolsystem_activate_brush_and_tool(C, paint, brush)) {
     /* Note brush datablock was still added, so was not a no-op. */
     BKE_report(op->reports, RPT_WARNING, "Unable to activate brush, wrong object mode");
     return OPERATOR_FINISHED;
@@ -73,7 +77,6 @@ static int brush_asset_activate_exec(bContext *C, wmOperator *op)
 
   WM_main_add_notifier(NC_ASSET | NA_ACTIVATED, nullptr);
   WM_main_add_notifier(NC_SCENE | ND_TOOLSETTINGS, nullptr);
-  WM_toolsystem_ref_set_by_id(C, "builtin.brush");
 
   return OPERATOR_FINISHED;
 }
@@ -260,7 +263,7 @@ static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
   brush = reinterpret_cast<Brush *>(
       bke::asset_edit_id_from_weak_reference(*bmain, ID_BR, brush_asset_reference));
 
-  if (!BKE_paint_brush_set(paint, brush)) {
+  if (!WM_toolsystem_activate_brush_and_tool(C, paint, brush)) {
     /* Note brush asset was still saved in editable asset library, so was not a no-op. */
     BKE_report(op->reports, RPT_WARNING, "Unable to activate just-saved brush asset");
   }
