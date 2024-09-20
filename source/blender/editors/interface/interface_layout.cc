@@ -3360,7 +3360,7 @@ uiLayout *uiItemL_respect_property_split(uiLayout *layout, const char *text, int
   }
   uiItemL_(layout, text, icon);
 
-  return layout;
+  return nullptr;
 }
 
 void uiItemLDrag(uiLayout *layout, PointerRNA *ptr, const char *name, int icon)

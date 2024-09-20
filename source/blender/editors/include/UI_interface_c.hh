@@ -3072,7 +3072,11 @@ uiPropertySplitWrapper uiItemPropertySplitWrapperCreate(uiLayout *parent_layout)
 void uiItemL(uiLayout *layout, const char *name, int icon); /* label */
 uiBut *uiItemL_ex(uiLayout *layout, const char *name, int icon, bool highlight, bool redalert);
 /**
- * Helper to add a label and creates a property split layout if needed.
+ * Helper to add a label using a property split layout if needed. After calling this the
+ * active layout will be the one to place the labeled items in. An additional layout may be
+ * returned to place decorator buttons in.
+ *
+ * \return the layout to place decorators in, if #UI_ITEM_PROP_SEP is enabled. Otherwise null.
  */
 uiLayout *uiItemL_respect_property_split(uiLayout *layout, const char *text, int icon);
 /**
