@@ -1126,7 +1126,17 @@ class ConstraintButtonsSubPanel:
         layout.use_property_split = True
         layout.use_property_decorate = True
 
-        layout.prop(con, "action")
+        col = layout.column(align=True)
+        col.prop(con, "action")
+        if context.preferences.experimental.use_animation_baklava and con.action and con.action.is_action_layered:
+            col.context_pointer_set("animated_id", con.id_data)
+            col.template_search(
+                con, "action_slot",
+                con, "action_slots",
+                new="",  # No use in making a new slot here.
+                unlink="anim.slot_unassign_from_constraint",
+            )
+
         layout.prop(con, "use_bone_object_action")
 
         col = layout.column(align=True)

@@ -2982,18 +2982,19 @@ static void actcon_get_tarmat(Depsgraph *depsgraph,
              (cob->pchan) ? cob->pchan->name : nullptr);
     }
 
-    /* TODO: add an action slot selector to the constraint settings. */
-    const blender::animrig::slot_handle_t slot_handle = blender::animrig::first_slot_handle(
-        *data->act);
-
     /* Get the appropriate information from the action */
     if (cob->type == CONSTRAINT_OBTYPE_OBJECT || (data->flag & ACTCON_BONE_USE_OBJECT_ACTION)) {
       Object workob;
 
       /* evaluate using workob */
       /* FIXME: we don't have any consistent standards on limiting effects on object... */
-      what_does_obaction(
-          cob->ob, &workob, nullptr, data->act, slot_handle, nullptr, &anim_eval_context);
+      what_does_obaction(cob->ob,
+                         &workob,
+                         nullptr,
+                         data->act,
+                         data->action_slot_handle,
+                         nullptr,
+                         &anim_eval_context);
       BKE_object_to_mat4(&workob, ct->matrix);
     }
     else if (cob->type == CONSTRAINT_OBTYPE_BONE) {
@@ -3010,8 +3011,13 @@ static void actcon_get_tarmat(Depsgraph *depsgraph,
       tchan->rotmode = pchan->rotmode;
 
       /* evaluate action using workob (it will only set the PoseChannel in question) */
-      what_does_obaction(
-          cob->ob, &workob, &pose, data->act, slot_handle, pchan->name, &anim_eval_context);
+      what_does_obaction(cob->ob,
+                         &workob,
+                         &pose,
+                         data->act,
+                         data->action_slot_handle,
+                         pchan->name,
+                         &anim_eval_context);
 
       /* convert animation to matrices for use here */
       BKE_pchan_calc_mat(tchan);
@@ -6673,3 +6679,11 @@ void BKE_constraint_blend_read_data(BlendDataReader *reader, ID *id_owner, ListB
     }
   }
 }
+
+/* Some static asserts to ensure that the bActionConstraint data is using the expected types for
+ * some of the fields. This check is done here instead of in DNA_constraint_types.h to avoid the
+ * inclusion of an DNA_anim_types.h in DNA_constraint_types.h just for this assert. */
+static_assert(
+    std::is_same_v<decltype(ActionSlot::handle), decltype(bActionConstraint::action_slot_handle)>);
+static_assert(
+    std::is_same_v<decltype(ActionSlot::name), decltype(bActionConstraint::action_slot_name)>);
