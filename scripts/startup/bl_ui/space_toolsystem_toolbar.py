@@ -1964,6 +1964,26 @@ class _defs_weight_paint:
 class _defs_grease_pencil_paint:
 
     @ToolDef.from_fn
+    def fill():
+        return dict(
+            idname="builtin_brush.Fill",
+            label="Fill",
+            icon="brush.gpencil_draw.fill",
+            brush_type='FILL',
+            options={'USE_BRUSHES'},
+        )
+
+    @ToolDef.from_fn
+    def erase():
+        return dict(
+            idname="builtin_brush.Erase",
+            label="Erase",
+            icon="brush.gpencil_draw.erase",
+            brush_type='ERASE',
+            options={'USE_BRUSHES'},
+        )
+
+    @ToolDef.from_fn
     def trim():
         def draw_settings(context, layout, _tool):
             brush = context.tool_settings.gpencil_paint.brush
@@ -3640,6 +3660,9 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_view3d_generic.cursor,
             None,
             _brush_tool,
+            _defs_grease_pencil_paint.fill,
+            _defs_grease_pencil_paint.erase,
+            None,
             _defs_grease_pencil_paint.trim,
             None,
             _defs_grease_pencil_paint.eyedropper,
