@@ -234,6 +234,17 @@ bool BKE_animdata_action_ensure_idroot(const ID *owner, bAction *action)
     return true;
   }
 
+#ifdef WITH_ANIM_BAKLAVA
+  if (action->wrap().is_action_layered()) {
+    /* TODO: for layered Actions, this function doesn't make sense. Once all Actions are
+     * auto-versioned to layered Actions, this entire function can be removed. */
+    action->idroot = 0;
+    /* Layered Actions can always be assigned to any ID type. It's the slots
+     * that are specialised. */
+    return true;
+  }
+#endif
+
   if (action->idroot == 0) {
     /* First time this Action is assigned, lock it to this ID type. */
     action->idroot = idcode;
