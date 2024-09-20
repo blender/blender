@@ -24,109 +24,106 @@
 
 #include "jacobian.hpp"
 
-namespace KDL
+namespace KDL {
+Jacobian::Jacobian(unsigned int _size, unsigned int _nr_blocks)
+    : size(_size), nr_blocks(_nr_blocks)
 {
-    Jacobian::Jacobian(unsigned int _size,unsigned int _nr_blocks):
-        size(_size),nr_blocks(_nr_blocks)
-    {
-        twists = new Twist[size*nr_blocks];
-    }
-
-    Jacobian::Jacobian(const Jacobian& arg):
-                       size(arg.columns()),
-                       nr_blocks(arg.nr_blocks)
-    {
-        twists = new Twist[size*nr_blocks];
-        for(unsigned int i=0;i<size*nr_blocks;i++)
-            twists[i] = arg.twists[i];
-    }
-
-    Jacobian& Jacobian::operator = (const Jacobian& arg)
-    {
-        assert(size==arg.size);
-        assert(nr_blocks==arg.nr_blocks);
-        for(unsigned int i=0;i<size;i++)
-            twists[i]=arg.twists[i];
-        return *this;
-    }
-
-
-    Jacobian::~Jacobian()
-    {
-        delete [] twists;
-    }
-
-    double Jacobian::operator()(int i,int j)const
-    {
-        assert(i<6*(int)nr_blocks&&j<(int)size);
-        return twists[j+6*(int)(floor((double)i/6))](i%6);
-    }
-
-    double& Jacobian::operator()(int i,int j)
-    {
-        assert(i<6*(int)nr_blocks&&j<(int)size);
-        return twists[j+6*(int)(floor((double)i/6))](i%6);
-    }
-
-    unsigned int Jacobian::rows()const
-    {
-        return 6*nr_blocks;
-    }
-
-    unsigned int Jacobian::columns()const
-    {
-        return size;
-    }
-
-    void SetToZero(Jacobian& jac)
-    {
-        for(unsigned int i=0;i<jac.size*jac.nr_blocks;i++)
-            SetToZero(jac.twists[i]);
-    }
-
-    void changeRefPoint(const Jacobian& src1, const Vector& base_AB, Jacobian& dest)
-    {
-        assert(src1.size==dest.size);
-        assert(src1.nr_blocks==dest.nr_blocks);
-        for(unsigned int i=0;i<src1.size*src1.nr_blocks;i++)
-            dest.twists[i]=src1.twists[i].RefPoint(base_AB);
-    }
-
-    void changeBase(const Jacobian& src1, const Rotation& rot, Jacobian& dest)
-    {
-        assert(src1.size==dest.size);
-        assert(src1.nr_blocks==dest.nr_blocks);
-        for(unsigned int i=0;i<src1.size*src1.nr_blocks;i++)
-            dest.twists[i]=rot*src1.twists[i];
-    }
-
-    void changeRefFrame(const Jacobian& src1,const Frame& frame, Jacobian& dest)
-    {
-        assert(src1.size==dest.size);
-        assert(src1.nr_blocks==dest.nr_blocks);
-        for(unsigned int i=0;i<src1.size*src1.nr_blocks;i++)
-            dest.twists[i]=frame*src1.twists[i];
-    }
-
-    bool Jacobian::operator ==(const Jacobian& arg)
-    {
-        return Equal((*this),arg);
-    }
-    
-    bool Jacobian::operator!=(const Jacobian& arg)
-    {
-        return !Equal((*this),arg);
-    }
-    
-    bool Equal(const Jacobian& a,const Jacobian& b,double eps)
-    {
-        if(a.rows()==b.rows()&&a.columns()==b.columns()){
-            bool rc=true;
-            for(unsigned int i=0;i<a.columns();i++)
-                rc&=Equal(a.twists[i],b.twists[i],eps);
-            return rc;
-        }else
-            return false;
-    }
-    
+  twists = new Twist[size * nr_blocks];
 }
+
+Jacobian::Jacobian(const Jacobian &arg) : size(arg.columns()), nr_blocks(arg.nr_blocks)
+{
+  twists = new Twist[size * nr_blocks];
+  for (unsigned int i = 0; i < size * nr_blocks; i++)
+    twists[i] = arg.twists[i];
+}
+
+Jacobian &Jacobian::operator=(const Jacobian &arg)
+{
+  assert(size == arg.size);
+  assert(nr_blocks == arg.nr_blocks);
+  for (unsigned int i = 0; i < size; i++)
+    twists[i] = arg.twists[i];
+  return *this;
+}
+
+Jacobian::~Jacobian()
+{
+  delete[] twists;
+}
+
+double Jacobian::operator()(int i, int j) const
+{
+  assert(i < 6 * (int)nr_blocks && j < (int)size);
+  return twists[j + 6 * (int)(floor((double)i / 6))](i % 6);
+}
+
+double &Jacobian::operator()(int i, int j)
+{
+  assert(i < 6 * (int)nr_blocks && j < (int)size);
+  return twists[j + 6 * (int)(floor((double)i / 6))](i % 6);
+}
+
+unsigned int Jacobian::rows() const
+{
+  return 6 * nr_blocks;
+}
+
+unsigned int Jacobian::columns() const
+{
+  return size;
+}
+
+void SetToZero(Jacobian &jac)
+{
+  for (unsigned int i = 0; i < jac.size * jac.nr_blocks; i++)
+    SetToZero(jac.twists[i]);
+}
+
+void changeRefPoint(const Jacobian &src1, const Vector &base_AB, Jacobian &dest)
+{
+  assert(src1.size == dest.size);
+  assert(src1.nr_blocks == dest.nr_blocks);
+  for (unsigned int i = 0; i < src1.size * src1.nr_blocks; i++)
+    dest.twists[i] = src1.twists[i].RefPoint(base_AB);
+}
+
+void changeBase(const Jacobian &src1, const Rotation &rot, Jacobian &dest)
+{
+  assert(src1.size == dest.size);
+  assert(src1.nr_blocks == dest.nr_blocks);
+  for (unsigned int i = 0; i < src1.size * src1.nr_blocks; i++)
+    dest.twists[i] = rot * src1.twists[i];
+}
+
+void changeRefFrame(const Jacobian &src1, const Frame &frame, Jacobian &dest)
+{
+  assert(src1.size == dest.size);
+  assert(src1.nr_blocks == dest.nr_blocks);
+  for (unsigned int i = 0; i < src1.size * src1.nr_blocks; i++)
+    dest.twists[i] = frame * src1.twists[i];
+}
+
+bool Jacobian::operator==(const Jacobian &arg)
+{
+  return Equal((*this), arg);
+}
+
+bool Jacobian::operator!=(const Jacobian &arg)
+{
+  return !Equal((*this), arg);
+}
+
+bool Equal(const Jacobian &a, const Jacobian &b, double eps)
+{
+  if (a.rows() == b.rows() && a.columns() == b.columns()) {
+    bool rc = true;
+    for (unsigned int i = 0; i < a.columns(); i++)
+      rc &= Equal(a.twists[i], b.twists[i], eps);
+    return rc;
+  }
+  else
+    return false;
+}
+
+}  // namespace KDL

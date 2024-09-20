@@ -19,12 +19,8 @@ class SceneLock : public ControlledObject::JointLockCallback {
   Range m_qrange;
 
  public:
-  SceneLock(Scene *scene) : m_scene(scene), m_qrange(0, 0)
-  {
-  }
-  virtual ~SceneLock()
-  {
-  }
+  SceneLock(Scene *scene) : m_scene(scene), m_qrange(0, 0) {}
+  virtual ~SceneLock() {}
 
   void setRange(Range &range)
   {
@@ -375,7 +371,8 @@ bool Scene::update(double timestamp,
         }
       }
       if (os->object->getType() == Object::UnControlled &&
-          ((UncontrolledObject *)os->object)->getNrOfCoordinates() != 0) {
+          ((UncontrolledObject *)os->object)->getNrOfCoordinates() != 0)
+      {
         ((UncontrolledObject *)(os->object))->updateCoordinates(ts);
         if (!ts.substep) {
           // velocity of uncontrolled object remains constant during substepping
@@ -391,7 +388,8 @@ bool Scene::update(double timestamp,
       Object_struct *ob2 = cs->object2->second;
 
       if (ob1->base->updated() || ob1->object->updated() || ob2->base->updated() ||
-          ob2->object->updated()) {
+          ob2->object->updated())
+      {
         // the object from which the constraint depends have changed position
         // recompute the constraint pose
         getConstraintPose(cs->task, cs, external_pose);
@@ -440,7 +438,8 @@ bool Scene::update(double timestamp,
         }
       }
       else if (ob1->object->getType() == Object::UnControlled &&
-               ((UncontrolledObject *)ob1->object)->getNrOfCoordinates() != 0) {
+               ((UncontrolledObject *)ob1->object)->getNrOfCoordinates() != 0)
+      {
         // object1 is uncontrolled moving object
         project(m_Ju,
                 cs->featurerange,
@@ -479,7 +478,8 @@ bool Scene::update(double timestamp,
         }
       }
       else if (ob2->object->getType() == Object::UnControlled &&
-               ((UncontrolledObject *)ob2->object)->getNrOfCoordinates() != 0) {
+               ((UncontrolledObject *)ob2->object)->getNrOfCoordinates() != 0)
+      {
         if (ob2->object == ob1->base || ob2->object == ob1->object) {
           project(m_Ju, cs->featurerange, ob2->coordinaterange) -=
               ((UncontrolledObject *)ob2->object)->getJu(cs->ee2index);

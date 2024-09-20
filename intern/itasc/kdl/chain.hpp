@@ -23,75 +23,80 @@
 #define KDL_CHAIN_HPP
 
 #include "segment.hpp"
-#include <string>
 #include <Eigen/StdVector>
+#include <string>
 
 namespace KDL {
-    /**
-	  * \brief This class encapsulates a <strong>serial</strong> kinematic
-	  * interconnection structure. It is build out of segments.
-     *
-     * @ingroup KinematicFamily
-     */
-    class Chain {
-    private:
-        // Eigen allocator is needed for alignment of Eigen data types
-        std::vector<Segment, Eigen::aligned_allocator<Segment> > segments;
-        unsigned int nrOfJoints;
-        unsigned int nrOfSegments;
-    public:
-        /**
-         * The constructor of a chain, a new chain is always empty.
-         *
-         */
-        Chain();
-        Chain(const Chain& in);
-        Chain& operator = (const Chain& arg);
+/**
+ * \brief This class encapsulates a <strong>serial</strong> kinematic
+ * interconnection structure. It is build out of segments.
+ *
+ * @ingroup KinematicFamily
+ */
+class Chain {
+ private:
+  // Eigen allocator is needed for alignment of Eigen data types
+  std::vector<Segment, Eigen::aligned_allocator<Segment>> segments;
+  unsigned int nrOfJoints;
+  unsigned int nrOfSegments;
 
-        /**
-         * Adds a new segment to the <strong>end</strong> of the chain.
-         *
-         * @param segment The segment to add
-         */
-        void addSegment(const Segment& segment);
-        /**
-         * Adds a complete chain to the <strong>end</strong> of the chain
-         * The added chain is copied.
-         *
-         * @param chain The chain to add
-         */
-        void addChain(const Chain& chain);
+ public:
+  /**
+   * The constructor of a chain, a new chain is always empty.
+   *
+   */
+  Chain();
+  Chain(const Chain &in);
+  Chain &operator=(const Chain &arg);
 
-        /**
-         * Request the total number of joints in the chain.\n
-         * <strong> Important:</strong> It is not the
-         * same as the total number of segments since a segment does not
-         * need to have a joint. This function is important when
-         * creating a KDL::JntArray to use with this chain.
-         * @return total nr of joints
-         */
-        unsigned int getNrOfJoints()const {return nrOfJoints;};
-        /**
-         * Request the total number of segments in the chain.
-         * @return total number of segments
-         */
-        unsigned int getNrOfSegments()const {return nrOfSegments;};
+  /**
+   * Adds a new segment to the <strong>end</strong> of the chain.
+   *
+   * @param segment The segment to add
+   */
+  void addSegment(const Segment &segment);
+  /**
+   * Adds a complete chain to the <strong>end</strong> of the chain
+   * The added chain is copied.
+   *
+   * @param chain The chain to add
+   */
+  void addChain(const Chain &chain);
 
-        /**
-         * Request the nr'd segment of the chain. There is no boundary
-         * checking.
-         *
-         * @param nr the nr of the segment starting from 0
-         *
-         * @return a constant reference to the nr'd segment
-         */
-        const Segment& getSegment(unsigned int nr)const;
+  /**
+   * Request the total number of joints in the chain.\n
+   * <strong> Important:</strong> It is not the
+   * same as the total number of segments since a segment does not
+   * need to have a joint. This function is important when
+   * creating a KDL::JntArray to use with this chain.
+   * @return total nr of joints
+   */
+  unsigned int getNrOfJoints() const
+  {
+    return nrOfJoints;
+  };
+  /**
+   * Request the total number of segments in the chain.
+   * @return total number of segments
+   */
+  unsigned int getNrOfSegments() const
+  {
+    return nrOfSegments;
+  };
 
-        virtual ~Chain();
-    };
+  /**
+   * Request the nr'd segment of the chain. There is no boundary
+   * checking.
+   *
+   * @param nr the nr of the segment starting from 0
+   *
+   * @return a constant reference to the nr'd segment
+   */
+  const Segment &getSegment(unsigned int nr) const;
 
+  virtual ~Chain();
+};
 
-
-}//end of namespace KDL
+}  // end of namespace KDL
 
 #endif

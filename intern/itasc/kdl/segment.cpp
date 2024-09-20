@@ -24,48 +24,40 @@
 
 namespace KDL {
 
-    Segment::Segment(const Joint& _joint, const Frame& _f_tip, const Inertia& _M):
-        M(_M),joint(_joint),
-        f_tip(_f_tip)
-    {
-    }
+Segment::Segment(const Joint &_joint, const Frame &_f_tip, const Inertia &_M)
+    : M(_M), joint(_joint), f_tip(_f_tip)
+{
+}
 
-    Segment::Segment(const Segment& in):
-        M(in.M),joint(in.joint),
-        f_tip(in.f_tip)
-    {
-    }
+Segment::Segment(const Segment &in) : M(in.M), joint(in.joint), f_tip(in.f_tip) {}
 
-    Segment& Segment::operator=(const Segment& arg)
-    {
-        joint=arg.joint;
-        M=arg.M;
-        f_tip=arg.f_tip;
-        return *this;
-    }
+Segment &Segment::operator=(const Segment &arg)
+{
+  joint = arg.joint;
+  M = arg.M;
+  f_tip = arg.f_tip;
+  return *this;
+}
 
-    Segment::~Segment()
-    {
-    }
+Segment::~Segment() {}
 
-    Frame Segment::pose(const double* q)const
-    {
-        return joint.pose(q)*f_tip;
-    }
+Frame Segment::pose(const double *q) const
+{
+  return joint.pose(q) * f_tip;
+}
 
-    Twist Segment::twist(const double* q, const double& qdot, int dof)const
-    {
-        return joint.twist(qdot, dof).RefPoint(pose(q).p);
-    }
+Twist Segment::twist(const double *q, const double &qdot, int dof) const
+{
+  return joint.twist(qdot, dof).RefPoint(pose(q).p);
+}
 
-    Twist Segment::twist(const Vector& p, const double& qdot, int dof)const
-    {
-        return joint.twist(qdot, dof).RefPoint(p);
-    }
+Twist Segment::twist(const Vector &p, const double &qdot, int dof) const
+{
+  return joint.twist(qdot, dof).RefPoint(p);
+}
 
-	Twist Segment::twist(const Frame& f, const double& qdot, int dof)const
-    {
-        return (f.M*joint.twist(qdot, dof)).RefPoint(f.p);
-    }
-}//end of namespace KDL
-
+Twist Segment::twist(const Frame &f, const double &qdot, int dof) const
+{
+  return (f.M * joint.twist(qdot, dof)).RefPoint(f.p);
+}
+}  // end of namespace KDL

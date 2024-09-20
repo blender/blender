@@ -28,37 +28,30 @@
 
 namespace KDL {
 
-    ChainFkSolverPos_recursive::ChainFkSolverPos_recursive(const Chain& _chain):
-        chain(_chain)
-    {
+ChainFkSolverPos_recursive::ChainFkSolverPos_recursive(const Chain &_chain) : chain(_chain) {}
+
+int ChainFkSolverPos_recursive::JntToCart(const JntArray &q_in, Frame &p_out, int segmentNr)
+{
+  unsigned int segNr = (unsigned int)segmentNr;
+  if (segmentNr < 0)
+    segNr = chain.getNrOfSegments();
+
+  p_out = Frame::Identity();
+
+  if (q_in.rows() != chain.getNrOfJoints())
+    return -1;
+  else if (segNr > chain.getNrOfSegments())
+    return -1;
+  else {
+    int j = 0;
+    for (unsigned int i = 0; i < segNr; i++) {
+      p_out = p_out * chain.getSegment(i).pose(((JntArray &)q_in)(j));
+      j += chain.getSegment(i).getJoint().getNDof();
     }
-
-    int ChainFkSolverPos_recursive::JntToCart(const JntArray& q_in, Frame& p_out, int segmentNr)
-    {
-		unsigned int segNr = (unsigned int)segmentNr;
-        if(segmentNr<0)
-             segNr=chain.getNrOfSegments();
-
-        p_out = Frame::Identity();
-
-        if(q_in.rows()!=chain.getNrOfJoints())
-            return -1;
-        else if(segNr>chain.getNrOfSegments())
-            return -1;
-        else{
-            int j=0;
-            for(unsigned int i=0;i<segNr;i++){
-                p_out = p_out*chain.getSegment(i).pose(((JntArray&)q_in)(j));
-				j+=chain.getSegment(i).getJoint().getNDof();
-            }
-            return 0;
-        }
-    }
-
-
-    ChainFkSolverPos_recursive::~ChainFkSolverPos_recursive()
-    {
-    }
-
-
+    return 0;
+  }
 }
+
+ChainFkSolverPos_recursive::~ChainFkSolverPos_recursive() {}
+
+}  // namespace KDL

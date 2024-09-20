@@ -29,23 +29,19 @@
 namespace KDL {
 using namespace Eigen;
 
-Inertia::Inertia(double m,double Ixx,double Iyy,double Izz,double Ixy,double Ixz,double Iyz):
-data(Matrix<double,6,6>::Zero())
+Inertia::Inertia(double m, double Ixx, double Iyy, double Izz, double Ixy, double Ixz, double Iyz)
+    : data(Matrix<double, 6, 6>::Zero())
 {
-    data(0,0)=Ixx;
-    data(1,1)=Iyy;
-    data(2,2)=Izz;
-    data(2,1)=data(1,2)=Ixy;
-    data(3,1)=data(1,3)=Ixz;
-    data(3,2)=data(2,3)=Iyz;
+  data(0, 0) = Ixx;
+  data(1, 1) = Iyy;
+  data(2, 2) = Izz;
+  data(2, 1) = data(1, 2) = Ixy;
+  data(3, 1) = data(1, 3) = Ixz;
+  data(3, 2) = data(2, 3) = Iyz;
 
-	data.block(3,3,3,3)=m*Matrix<double,3,3>::Identity();
+  data.block(3, 3, 3, 3) = m * Matrix<double, 3, 3>::Identity();
 }
 
-Inertia::~Inertia()
-{
-}
+Inertia::~Inertia() {}
 
-
-
-}
+}  // namespace KDL

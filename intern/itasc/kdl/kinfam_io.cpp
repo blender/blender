@@ -26,79 +26,92 @@
 #include "frames_io.hpp"
 
 namespace KDL {
-std::ostream& operator <<(std::ostream& os, const Joint& joint) {
-	return os << joint.getTypeName();
+std::ostream &operator<<(std::ostream &os, const Joint &joint)
+{
+  return os << joint.getTypeName();
 }
 
-std::istream& operator >>(std::istream& is, Joint& joint) {
-	return is;
+std::istream &operator>>(std::istream &is, Joint &joint)
+{
+  return is;
 }
 
-std::ostream& operator <<(std::ostream& os, const Segment& segment) {
-	os << "[" << segment.getJoint() << ",\n" << segment.getFrameToTip() << "]";
-	return os;
+std::ostream &operator<<(std::ostream &os, const Segment &segment)
+{
+  os << "[" << segment.getJoint() << ",\n" << segment.getFrameToTip() << "]";
+  return os;
 }
 
-std::istream& operator >>(std::istream& is, Segment& segment) {
-	return is;
+std::istream &operator>>(std::istream &is, Segment &segment)
+{
+  return is;
 }
 
-std::ostream& operator <<(std::ostream& os, const Chain& chain) {
-	os << "[";
-	for (unsigned int i = 0; i < chain.getNrOfSegments(); i++)
-		os << chain.getSegment(i) << "\n";
-	os << "]";
-	return os;
+std::ostream &operator<<(std::ostream &os, const Chain &chain)
+{
+  os << "[";
+  for (unsigned int i = 0; i < chain.getNrOfSegments(); i++)
+    os << chain.getSegment(i) << "\n";
+  os << "]";
+  return os;
 }
 
-std::istream& operator >>(std::istream& is, Chain& chain) {
-	return is;
+std::istream &operator>>(std::istream &is, Chain &chain)
+{
+  return is;
 }
 
-std::ostream& operator <<(std::ostream& os, const Tree& tree) {
-	SegmentMap::const_iterator root = tree.getSegment("root");
-	return os << root;
+std::ostream &operator<<(std::ostream &os, const Tree &tree)
+{
+  SegmentMap::const_iterator root = tree.getSegment("root");
+  return os << root;
 }
 
-std::ostream& operator <<(std::ostream& os, SegmentMap::const_iterator root) {
-	//os<<root->first<<": "<<root->second.segment<<"\n";
-	os << root->first<<"(q_nr: "<<root->second.q_nr<<")"<<"\n \t";
-	for (unsigned int i = 0; i < root->second.children.size(); i++) {
-		os <<(root->second.children[i])<<"\t";
-	}
-	return os << "\n";
+std::ostream &operator<<(std::ostream &os, SegmentMap::const_iterator root)
+{
+  // os<<root->first<<": "<<root->second.segment<<"\n";
+  os << root->first << "(q_nr: " << root->second.q_nr << ")"
+     << "\n \t";
+  for (unsigned int i = 0; i < root->second.children.size(); i++) {
+    os << (root->second.children[i]) << "\t";
+  }
+  return os << "\n";
 }
 
-std::istream& operator >>(std::istream& is, Tree& tree) {
-	return is;
+std::istream &operator>>(std::istream &is, Tree &tree)
+{
+  return is;
 }
 
-std::ostream& operator <<(std::ostream& os, const JntArray& array) {
-	os << "[";
-	for (unsigned int i = 0; i < array.rows(); i++)
-		os << std::setw(KDL_FRAME_WIDTH) << array[i];
-	os << "]";
-	return os;
+std::ostream &operator<<(std::ostream &os, const JntArray &array)
+{
+  os << "[";
+  for (unsigned int i = 0; i < array.rows(); i++)
+    os << std::setw(KDL_FRAME_WIDTH) << array[i];
+  os << "]";
+  return os;
 }
 
-std::istream& operator >>(std::istream& is, JntArray& array) {
-	return is;
+std::istream &operator>>(std::istream &is, JntArray &array)
+{
+  return is;
 }
 
-std::ostream& operator <<(std::ostream& os, const Jacobian& jac) {
-	os << "[";
-	for (unsigned int i = 0; i < jac.rows(); i++) {
-		for (unsigned int j = 0; j < jac.columns(); j++)
-			os << std::setw(KDL_FRAME_WIDTH) << jac(i, j);
-		os << std::endl;
-	}
-	os << "]";
-	return os;
+std::ostream &operator<<(std::ostream &os, const Jacobian &jac)
+{
+  os << "[";
+  for (unsigned int i = 0; i < jac.rows(); i++) {
+    for (unsigned int j = 0; j < jac.columns(); j++)
+      os << std::setw(KDL_FRAME_WIDTH) << jac(i, j);
+    os << std::endl;
+  }
+  os << "]";
+  return os;
 }
 
-std::istream& operator >>(std::istream& is, Jacobian& jac) {
-	return is;
+std::istream &operator>>(std::istream &is, Jacobian &jac)
+{
+  return is;
 }
 
-}
-
+}  // namespace KDL
