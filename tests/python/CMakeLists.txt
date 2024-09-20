@@ -1111,6 +1111,8 @@ else()
     effects
     filter
     transform
+    blend_modes_byte
+    blend_modes_float
   )
 
   foreach(render_test ${render_tests})
