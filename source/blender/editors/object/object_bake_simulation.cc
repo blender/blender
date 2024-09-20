@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iomanip>
 #include <random>
+#include <sstream>
 
 #include "BLI_fileops.hh"
 #include "BLI_path_util.h"
