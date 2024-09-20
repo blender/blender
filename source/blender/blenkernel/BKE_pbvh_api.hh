@@ -235,9 +235,9 @@ class Tree {
   std::unique_ptr<DrawCache> draw_data;
 
  public:
-  Tree(const Tree &other) = default;
+  Tree(const Tree &other) = delete;
   Tree(Tree &&other) = default;
-  Tree &operator=(const Tree &other) = default;
+  Tree &operator=(const Tree &other) = delete;
   Tree &operator=(Tree &&other) = default;
   ~Tree();
 
