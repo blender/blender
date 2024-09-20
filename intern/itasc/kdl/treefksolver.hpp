@@ -26,87 +26,85 @@
 #include <string>
 
 #include "tree.hpp"
-// #include "framevel.hpp"
-// #include "frameacc.hpp"
+//#include "framevel.hpp"
+//#include "frameacc.hpp"
 #include "jntarray.hpp"
-// #include "jntarrayvel.hpp"
-// #include "jntarrayacc.hpp"
+//#include "jntarrayvel.hpp"
+//#include "jntarrayacc.hpp"
 
 namespace KDL {
 
-/**
- * \brief This <strong>abstract</strong> class encapsulates a
- * solver for the forward position kinematics for a KDL::Tree.
- *
- * @ingroup KinematicFamily
- */
+    /**
+	  * \brief This <strong>abstract</strong> class encapsulates a
+	  * solver for the forward position kinematics for a KDL::Tree.
+     *
+     * @ingroup KinematicFamily
+     */
 
-// Forward definition
-class TreeFkSolverPos {
- public:
-  /**
-   * Calculate forward position kinematics for a KDL::Tree,
-   * from joint coordinates to cartesian pose.
-   *
-   * @param q_in input joint coordinates
-   * @param p_out reference to output cartesian pose
-   *
-   * @return if < 0 something went wrong
-   */
-  virtual int JntToCart(const JntArray &q_in,
-                        Frame &p_out,
-                        const std::string &segmentName,
-                        const std::string &baseName) = 0;
-  virtual ~TreeFkSolverPos(){};
-};
+    //Forward definition
+    class TreeFkSolverPos {
+    public:
+        /**
+         * Calculate forward position kinematics for a KDL::Tree,
+         * from joint coordinates to cartesian pose.
+         *
+         * @param q_in input joint coordinates
+         * @param p_out reference to output cartesian pose
+         *
+         * @return if < 0 something went wrong
+         */
+        virtual int JntToCart(const JntArray& q_in, Frame& p_out, const std::string& segmentName, const std::string& baseName)=0;
+        virtual ~TreeFkSolverPos(){};
+    };
 
-/**
- * \brief This <strong>abstract</strong> class encapsulates a solver
- * for the forward velocity kinematics for a KDL::Tree.
- *
- * @ingroup KinematicFamily
- */
+    /**
+     * \brief This <strong>abstract</strong> class encapsulates a solver
+     * for the forward velocity kinematics for a KDL::Tree.
+     *
+     * @ingroup KinematicFamily
+     */
 //    class TreeFkSolverVel {
 //    public:
-/**
- * Calculate forward position and velocity kinematics, from
- * joint coordinates to cartesian coordinates.
- *
- * @param q_in input joint coordinates (position and velocity)
- * @param out output cartesian coordinates (position and velocity)
- *
- * @return if < 0 something went wrong
- */
+        /**
+         * Calculate forward position and velocity kinematics, from
+         * joint coordinates to cartesian coordinates.
+         *
+         * @param q_in input joint coordinates (position and velocity)
+         * @param out output cartesian coordinates (position and velocity)
+         *
+         * @return if < 0 something went wrong
+         */
 //        virtual int JntToCart(const JntArrayVel& q_in, FrameVel& out,int segmentNr=-1)=0;
 
 //        virtual ~TreeFkSolverVel(){};
 //    };
-
-/**
- * \brief This <strong>abstract</strong> class encapsulates a solver
- * for the forward acceleration kinematics for a KDL::Tree.
- *
- * @ingroup KinematicFamily
- */
+    
+    /**
+     * \brief This <strong>abstract</strong> class encapsulates a solver
+     * for the forward acceleration kinematics for a KDL::Tree.
+     *
+     * @ingroup KinematicFamily
+     */
 
 //    class TreeFkSolverAcc {
 //   public:
-/**
- * Calculate forward position, velocity and accelaration
- * kinematics, from joint coordinates to cartesian coordinates
- *
- * @param q_in input joint coordinates (position, velocity and
- * acceleration
- @param out output cartesian coordinates (position, velocity
- * and acceleration
- *
- * @return if < 0 something went wrong
- */
+        /**
+         * Calculate forward position, velocity and accelaration
+         * kinematics, from joint coordinates to cartesian coordinates
+         *
+         * @param q_in input joint coordinates (position, velocity and
+         * acceleration
+         @param out output cartesian coordinates (position, velocity
+         * and acceleration
+         *
+         * @return if < 0 something went wrong
+         */
 //    virtual int JntToCart(const JntArrayAcc& q_in, FrameAcc& out,int segmentNr=-1)=0;
 
 //        virtual ~TreeFkSolverAcc()=0;
 //    };
 
-}  // end of namespace KDL
+
+}//end of namespace KDL
 
 #endif

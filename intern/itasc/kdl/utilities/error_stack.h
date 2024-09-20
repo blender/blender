@@ -1,12 +1,12 @@
 /***************************************************************************
-  tag: Erwin Aertbelien  Mon Jan 10 16:38:39 CET 2005  error_stack.h
+  tag: Erwin Aertbelien  Mon Jan 10 16:38:39 CET 2005  error_stack.h 
 
                         error_stack.h -  description
                            -------------------
     begin                : Mon January 10 2005
     copyright            : (C) 2005 Erwin Aertbelien
     email                : erwin.aertbelien@mech.kuleuven.ac.be
-
+ 
  ***************************************************************************
  *   This library is free software; you can redistribute it and/or         *
  *   modify it under the terms of the GNU Lesser General Public            *
@@ -24,12 +24,13 @@
  *   Fifth Floor, Boston, MA 02110-1301, USA.                               *
  *                                                                         *
  ***************************************************************************/
-
-/**
- * \file
- * \version
+ 
+ 
+/** 
+ * \file 
+ * \version 
  *      ORO_Geometry V0.2
- *
+ *   
  * \par history
  *   - changed layout of the comments to accommodate doxygen
  */
@@ -40,6 +41,7 @@
 #include "utility_io.h"
 #include <string>
 
+
 namespace KDL {
 
 /*
@@ -47,18 +49,21 @@ namespace KDL {
  *    IOTrace-routines store in static memory, should be in thread-local memory.
  * pushes a description of the current routine on the IO-stack trace
  */
-void IOTrace(const std::string &description);
+void IOTrace(const std::string& description);
 
 //! pops a description of the IO-stack
 void IOTracePop();
 
+
 //! outputs the IO-stack to a stream to provide a better errormessage.
-void IOTraceOutput(std::ostream &os);
+void IOTraceOutput(std::ostream& os);
 
 //! outputs one element of the IO-stack to the buffer (maximally size chars)
 //! returns empty string if no elements on the stack.
-void IOTracePopStr(char *buffer, int size);
+void IOTracePopStr(char* buffer,int size);
 
-}  // namespace KDL
+
+}
 
 #endif
+

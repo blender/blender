@@ -27,31 +27,27 @@
 
 namespace KDL {
 
-/**
- * Implementation of a recursive forward position kinematics
- * algorithm to calculate the position transformation from joint
- * space to Cartesian space of a general kinematic tree (KDL::Tree).
- *
- * @ingroup KinematicFamily
- */
-class TreeFkSolverPos_recursive : public TreeFkSolverPos {
- public:
-  TreeFkSolverPos_recursive(const Tree &tree);
-  ~TreeFkSolverPos_recursive();
+    /**
+     * Implementation of a recursive forward position kinematics
+     * algorithm to calculate the position transformation from joint
+     * space to Cartesian space of a general kinematic tree (KDL::Tree).
+     *
+     * @ingroup KinematicFamily
+     */
+    class TreeFkSolverPos_recursive : public TreeFkSolverPos
+    {
+    public:
+        TreeFkSolverPos_recursive(const Tree& tree);
+        ~TreeFkSolverPos_recursive();
 
-  virtual int JntToCart(const JntArray &q_in,
-                        Frame &p_out,
-                        const std::string &segmentName,
-                        const std::string &baseName);
+		virtual int JntToCart(const JntArray& q_in, Frame& p_out, const std::string& segmentName, const std::string& baseName);
 
- private:
-  const Tree tree;
+    private:
+        const Tree tree;
+        
+        Frame recursiveFk(const JntArray& q_in, SegmentMap::value_type const* it, SegmentMap::value_type const* baseit);
+    };
 
-  Frame recursiveFk(const JntArray &q_in,
-                    SegmentMap::value_type const *it,
-                    SegmentMap::value_type const *baseit);
-};
-
-}  // namespace KDL
+}
 
 #endif

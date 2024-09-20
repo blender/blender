@@ -24,43 +24,46 @@
 
 #include "frames.hpp"
 
-namespace KDL {
-// Forward declaration
-class ChainJntToJacSolver;
+namespace KDL
+{
+    //Forward declaration
+    class ChainJntToJacSolver;
 
-class Jacobian {
-  friend class ChainJntToJacSolver;
+    class Jacobian
+    {
+        friend class ChainJntToJacSolver;
+    private:
+        unsigned int size;
+        unsigned int nr_blocks;
+    public:
+        Twist* twists;
+        Jacobian(unsigned int size,unsigned int nr=1);
+        Jacobian(const Jacobian& arg);
 
- private:
-  unsigned int size;
-  unsigned int nr_blocks;
+        Jacobian& operator=(const Jacobian& arg);
 
- public:
-  Twist *twists;
-  Jacobian(unsigned int size, unsigned int nr = 1);
-  Jacobian(const Jacobian &arg);
+        bool operator ==(const Jacobian& arg);
+        bool operator !=(const Jacobian& arg);
+        
+        friend bool Equal(const Jacobian& a,const Jacobian& b,double eps);
+        
 
-  Jacobian &operator=(const Jacobian &arg);
+        ~Jacobian();
 
-  bool operator==(const Jacobian &arg);
-  bool operator!=(const Jacobian &arg);
+        double operator()(int i,int j)const;
+        double& operator()(int i,int j);
+        unsigned int rows()const;
+        unsigned int columns()const;
 
-  friend bool Equal(const Jacobian &a, const Jacobian &b, double eps);
+        friend void SetToZero(Jacobian& jac);
 
-  ~Jacobian();
+        friend void changeRefPoint(const Jacobian& src1, const Vector& base_AB, Jacobian& dest);
+        friend void changeBase(const Jacobian& src1, const Rotation& rot, Jacobian& dest);
+        friend void changeRefFrame(const Jacobian& src1,const Frame& frame, Jacobian& dest);
 
-  double operator()(int i, int j) const;
-  double &operator()(int i, int j);
-  unsigned int rows() const;
-  unsigned int columns() const;
 
-  friend void SetToZero(Jacobian &jac);
-
-  friend void changeRefPoint(const Jacobian &src1, const Vector &base_AB, Jacobian &dest);
-  friend void changeBase(const Jacobian &src1, const Rotation &rot, Jacobian &dest);
-  friend void changeRefFrame(const Jacobian &src1, const Frame &frame, Jacobian &dest);
-};
-bool Equal(const Jacobian &, const Jacobian &, double = epsilon);
-}  // namespace KDL
+    };
+	bool Equal(const Jacobian&, const Jacobian&, double = epsilon);
+}
 
 #endif

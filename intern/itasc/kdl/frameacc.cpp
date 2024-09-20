@@ -14,12 +14,14 @@
  *		$Name:  $
  ****************************************************************************/
 
+
 #include "frameacc.hpp"
 
 namespace KDL {
 
 #ifndef KDL_INLINE
-#  include "frameacc.inl"
+    #include "frameacc.inl"
 #endif
 
-}  // namespace KDL
+}
+

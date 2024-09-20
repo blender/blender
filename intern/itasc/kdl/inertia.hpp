@@ -22,8 +22,8 @@
 #ifndef KDLINERTIA_HPP
 #define KDLINERTIA_HPP
 
-#include "frames.hpp"
 #include <Eigen/Core>
+#include "frames.hpp"
 
 namespace KDL {
 
@@ -34,39 +34,37 @@ using namespace Eigen;
  *	An inertia is defined in a certain reference point and a certain reference base.
  *	The reference point does not have to coincide with the origin of the reference frame.
  */
-class Inertia {
- public:
-  /**
-   * 	This constructor creates a cartesian space inertia matrix,
-   * 	the arguments are the mass and the inertia moments in the cog.
-   */
-  Inertia(double m = 0,
-          double Ixx = 0,
-          double Iyy = 0,
-          double Izz = 0,
-          double Ixy = 0,
-          double Ixz = 0,
-          double Iyz = 0);
+class Inertia{
+public:
 
-  static inline Inertia Zero()
-  {
-    return Inertia(0, 0, 0, 0, 0, 0, 0);
-  };
+	/**
+	 * 	This constructor creates a cartesian space inertia matrix,
+	 * 	the arguments are the mass and the inertia moments in the cog.
+	 */
+	Inertia(double m=0,double Ixx=0,double Iyy=0,double Izz=0,double Ixy=0,double Ixz=0,double Iyz=0);
 
-  friend class Rotation;
-  friend class Frame;
+    static inline Inertia Zero(){
+        return Inertia(0,0,0,0,0,0,0);
+    };
 
-  /**
-   * F = m*a
-   */
-  // Wrench operator* (const AccelerationTwist& acc);
+    friend class Rotation;
+    friend class Frame;
 
-  ~Inertia();
+    /**
+     * F = m*a
+     */
+   // Wrench operator* (const AccelerationTwist& acc);
 
- private:
-  Matrix<double, 6, 6, RowMajor> data;
+
+    ~Inertia();
+private:
+    Matrix<double,6,6,RowMajor> data;
+
 };
 
-}  // namespace KDL
+
+
+
+}
 
 #endif

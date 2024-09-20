@@ -22,45 +22,46 @@
 #ifndef KDL_JNTARRAYACC_HPP
 #define KDL_JNTARRAYACC_HPP
 
-#include "frameacc.hpp"
+#include "utilities/utility.h"
 #include "jntarray.hpp"
 #include "jntarrayvel.hpp"
-#include "utilities/utility.h"
+#include "frameacc.hpp"
 
-namespace KDL {
-class JntArrayAcc {
- public:
-  JntArray q;
-  JntArray qdot;
-  JntArray qdotdot;
+namespace KDL
+{
+    class JntArrayAcc
+    {
+    public:
+        JntArray q;
+        JntArray qdot;
+        JntArray qdotdot;
+    public:
+        JntArrayAcc(unsigned int size);
+        JntArrayAcc(const JntArray& q,const JntArray& qdot,const JntArray& qdotdot);
+        JntArrayAcc(const JntArray& q,const JntArray& qdot);
+        JntArrayAcc(const JntArray& q);
 
- public:
-  JntArrayAcc(unsigned int size);
-  JntArrayAcc(const JntArray &q, const JntArray &qdot, const JntArray &qdotdot);
-  JntArrayAcc(const JntArray &q, const JntArray &qdot);
-  JntArrayAcc(const JntArray &q);
+        JntArray value()const;
+        JntArray deriv()const;
+        JntArray dderiv()const;
 
-  JntArray value() const;
-  JntArray deriv() const;
-  JntArray dderiv() const;
+        friend void Add(const JntArrayAcc& src1,const JntArrayAcc& src2,JntArrayAcc& dest);
+        friend void Add(const JntArrayAcc& src1,const JntArrayVel& src2,JntArrayAcc& dest);
+        friend void Add(const JntArrayAcc& src1,const JntArray& src2,JntArrayAcc& dest);
+        friend void Subtract(const JntArrayAcc& src1,const JntArrayAcc& src2,JntArrayAcc& dest);
+        friend void Subtract(const JntArrayAcc& src1,const JntArrayVel& src2,JntArrayAcc& dest);
+        friend void Subtract(const JntArrayAcc& src1,const JntArray& src2,JntArrayAcc& dest);
+        friend void Multiply(const JntArrayAcc& src,const double& factor,JntArrayAcc& dest);
+        friend void Multiply(const JntArrayAcc& src,const doubleVel& factor,JntArrayAcc& dest);
+        friend void Multiply(const JntArrayAcc& src,const doubleAcc& factor,JntArrayAcc& dest);
+        friend void Divide(const JntArrayAcc& src,const double& factor,JntArrayAcc& dest);
+        friend void Divide(const JntArrayAcc& src,const doubleVel& factor,JntArrayAcc& dest);
+        friend void Divide(const JntArrayAcc& src,const doubleAcc& factor,JntArrayAcc& dest);
+        friend void SetToZero(JntArrayAcc& array);
+        friend bool Equal(const JntArrayAcc& src1,const JntArrayAcc& src2,double eps);
+    };
 
-  friend void Add(const JntArrayAcc &src1, const JntArrayAcc &src2, JntArrayAcc &dest);
-  friend void Add(const JntArrayAcc &src1, const JntArrayVel &src2, JntArrayAcc &dest);
-  friend void Add(const JntArrayAcc &src1, const JntArray &src2, JntArrayAcc &dest);
-  friend void Subtract(const JntArrayAcc &src1, const JntArrayAcc &src2, JntArrayAcc &dest);
-  friend void Subtract(const JntArrayAcc &src1, const JntArrayVel &src2, JntArrayAcc &dest);
-  friend void Subtract(const JntArrayAcc &src1, const JntArray &src2, JntArrayAcc &dest);
-  friend void Multiply(const JntArrayAcc &src, const double &factor, JntArrayAcc &dest);
-  friend void Multiply(const JntArrayAcc &src, const doubleVel &factor, JntArrayAcc &dest);
-  friend void Multiply(const JntArrayAcc &src, const doubleAcc &factor, JntArrayAcc &dest);
-  friend void Divide(const JntArrayAcc &src, const double &factor, JntArrayAcc &dest);
-  friend void Divide(const JntArrayAcc &src, const doubleVel &factor, JntArrayAcc &dest);
-  friend void Divide(const JntArrayAcc &src, const doubleAcc &factor, JntArrayAcc &dest);
-  friend void SetToZero(JntArrayAcc &array);
-  friend bool Equal(const JntArrayAcc &src1, const JntArrayAcc &src2, double eps);
-};
-
-bool Equal(const JntArrayAcc &, const JntArrayAcc &, double = epsilon);
-}  // namespace KDL
+    bool Equal(const JntArrayAcc&, const JntArrayAcc&, double = epsilon);
+}
 
 #endif

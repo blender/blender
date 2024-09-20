@@ -25,44 +25,54 @@
 #include "chain.hpp"
 
 namespace KDL {
-using namespace std;
+    using namespace std;
 
-Chain::Chain() : segments(0), nrOfJoints(0), nrOfSegments(0) {}
+    Chain::Chain():
+        segments(0),
+        nrOfJoints(0),
+        nrOfSegments(0)
+    {
+    }
 
-Chain::Chain(const Chain &in) : nrOfJoints(0), nrOfSegments(0)
-{
-  for (unsigned int i = 0; i < in.getNrOfSegments(); i++)
-    this->addSegment(in.getSegment(i));
+    Chain::Chain(const Chain& in):nrOfJoints(0),
+                                  nrOfSegments(0)
+    {
+        for(unsigned int i=0;i<in.getNrOfSegments();i++)
+            this->addSegment(in.getSegment(i));
+    }
+
+    Chain& Chain::operator=(const Chain& arg)
+    {
+        nrOfJoints=0;
+        nrOfSegments=0;
+        segments.resize(0);
+        for(unsigned int i=0;i<arg.nrOfSegments;i++)
+            addSegment(arg.getSegment(i));
+        return *this;
+
+    }
+
+    void Chain::addSegment(const Segment& segment)
+    {
+        segments.push_back(segment);
+        nrOfSegments++;
+		nrOfJoints += segment.getJoint().getNDof();
+    }
+
+    void Chain::addChain(const Chain& chain)
+    {
+        for(unsigned int i=0;i<chain.getNrOfSegments();i++)
+            this->addSegment(chain.getSegment(i));
+    }
+
+    const Segment& Chain::getSegment(unsigned int nr) const
+    {
+        return segments[nr];
+    }
+
+    Chain::~Chain()
+    {
+    }
+
 }
 
-Chain &Chain::operator=(const Chain &arg)
-{
-  nrOfJoints = 0;
-  nrOfSegments = 0;
-  segments.resize(0);
-  for (unsigned int i = 0; i < arg.nrOfSegments; i++)
-    addSegment(arg.getSegment(i));
-  return *this;
-}
-
-void Chain::addSegment(const Segment &segment)
-{
-  segments.push_back(segment);
-  nrOfSegments++;
-  nrOfJoints += segment.getJoint().getNDof();
-}
-
-void Chain::addChain(const Chain &chain)
-{
-  for (unsigned int i = 0; i < chain.getNrOfSegments(); i++)
-    this->addSegment(chain.getSegment(i));
-}
-
-const Segment &Chain::getSegment(unsigned int nr) const
-{
-  return segments[nr];
-}
-
-Chain::~Chain() {}
-
-}  // namespace KDL

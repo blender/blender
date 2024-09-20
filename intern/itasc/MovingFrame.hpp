@@ -12,41 +12,42 @@
 #include "UncontrolledObject.hpp"
 #include <vector>
 
-namespace iTaSC {
 
-typedef bool (*MovingFrameCallback)(const Timestamp &timestamp,
-                                    const Frame &_current,
-                                    Frame &_next,
-                                    void *param);
+namespace iTaSC{
 
-class MovingFrame : public UncontrolledObject {
- public:
-  MovingFrame(const Frame &frame = F_identity);
-  virtual ~MovingFrame();
+typedef bool (*MovingFrameCallback)(
+        const Timestamp& timestamp,
+        const Frame& _current,
+        Frame& _next,
+        void *param);
 
-  bool setFrame(const Frame &frame);
-  bool setCallback(MovingFrameCallback _function, void *_param);
+class MovingFrame: public UncontrolledObject {
+public:
+    MovingFrame(const Frame& frame=F_identity);
+    virtual ~MovingFrame();
 
-  virtual void updateCoordinates(const Timestamp &timestamp);
-  virtual void updateKinematics(const Timestamp &timestamp);
-  virtual void pushCache(const Timestamp &timestamp);
-  virtual void initCache(Cache *_cache);
-  virtual bool finalize();
+	bool setFrame(const Frame& frame);
+	bool setCallback(MovingFrameCallback _function, void* _param);
 
- protected:
-  virtual void updateJacobian();
+	virtual void updateCoordinates(const Timestamp& timestamp);
+	virtual void updateKinematics(const Timestamp& timestamp);
+    virtual void pushCache(const Timestamp& timestamp);
+	virtual void initCache(Cache *_cache);
+	virtual bool finalize();
+protected:
+	virtual void updateJacobian();
 
- private:
-  void pushInternalFrame(CacheTS timestamp);
-  bool popInternalFrame(CacheTS timestamp);
-  MovingFrameCallback m_function;
-  void *m_param;
-  Frame m_nextPose;
-  Twist m_velocity;
-  int m_poseCCh;  // cache channel for pose
-  unsigned int m_poseCTs;
+private:
+	void pushInternalFrame(CacheTS timestamp);
+	bool popInternalFrame(CacheTS timestamp);
+	MovingFrameCallback m_function;
+	void* m_param;
+	Frame m_nextPose;
+	Twist m_velocity;
+	int m_poseCCh;		// cache channel for pose
+	unsigned int m_poseCTs;
 };
 
-}  // namespace iTaSC
+}
 
 #endif /* MOVINGFRAME_H_ */

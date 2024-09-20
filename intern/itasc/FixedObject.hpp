@@ -12,34 +12,35 @@
 #include "UncontrolledObject.hpp"
 #include <vector>
 
-namespace iTaSC {
 
-class FixedObject : public UncontrolledObject {
- public:
-  FixedObject();
-  virtual ~FixedObject();
+namespace iTaSC{
 
-  int addFrame(const std::string &name, const Frame &frame);
+class FixedObject: public UncontrolledObject {
+public:
+    FixedObject();
+    virtual ~FixedObject();
 
-  virtual void updateCoordinates(const Timestamp &timestamp){};
-  virtual int addEndEffector(const std::string &name);
-  virtual bool finalize();
-  virtual const Frame &getPose(const unsigned int frameIndex);
-  virtual void updateKinematics(const Timestamp &timestamp){};
-  virtual void pushCache(const Timestamp &timestamp){};
-  virtual void initCache(Cache *_cache){};
+	int addFrame(const std::string& name, const Frame& frame);
 
- protected:
-  virtual void updateJacobian() {}
+	virtual void updateCoordinates(const Timestamp& timestamp) {};
+	virtual int addEndEffector(const std::string& name);
+	virtual bool finalize();
+	virtual const Frame& getPose(const unsigned int frameIndex);
+	virtual void updateKinematics(const Timestamp& timestamp) {};
+	virtual void pushCache(const Timestamp& timestamp) {};
+	virtual void initCache(Cache *_cache) {};
 
- private:
-  typedef std::vector<std::pair<std::string, Frame>> FrameList;
+protected:
+	virtual void updateJacobian() {}
+private:
+    typedef std::vector<std::pair<std::string, Frame> > FrameList;
 
-  bool m_finalized;
-  unsigned int m_nframe;
-  FrameList m_frameArray;
+	bool m_finalized;
+	unsigned int m_nframe;
+	FrameList m_frameArray;
+
 };
 
-}  // namespace iTaSC
+}
 
 #endif /* FIXEDOBJECT_H_ */
