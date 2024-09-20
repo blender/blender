@@ -250,6 +250,23 @@ class IndexRange {
   }
 
   /**
+   * Returns true when all indices in the given range are also in the current range.
+   */
+  constexpr bool contains(const IndexRange range) const
+  {
+    if (range.is_empty()) {
+      return true;
+    }
+    if (range.start_ < start_) {
+      return false;
+    }
+    if (range.start_ + range.size_ > start_ + size_) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
    * Returns a new range, that contains a sub-interval of the current one.
    */
   constexpr IndexRange slice(int64_t start, int64_t size) const

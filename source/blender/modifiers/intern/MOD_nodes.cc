@@ -57,6 +57,7 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_object.hh"
+#include "BKE_packedFile.hh"
 #include "BKE_pointcloud.hh"
 #include "BKE_screen.hh"
 #include "BKE_workspace.hh"
@@ -968,15 +969,33 @@ static void ensure_bake_loaded(bake::NodeBakeCache &bake_cache, bake::FrameCache
   if (!frame_cache.state.items_by_id.is_empty()) {
     return;
   }
+  if (!frame_cache.meta_data_source.has_value()) {
+    return;
+  }
+  if (bake_cache.memory_blob_reader) {
+    if (const auto *meta_buffer = std::get_if<Span<std::byte>>(&*frame_cache.meta_data_source)) {
+      const std::string meta_str{reinterpret_cast<const char *>(meta_buffer->data()),
+                                 size_t(meta_buffer->size())};
+      std::istringstream meta_stream{meta_str};
+      std::optional<bake::BakeState> bake_state = bake::deserialize_bake(
+          meta_stream, *bake_cache.memory_blob_reader, *bake_cache.blob_sharing);
+      if (!bake_state.has_value()) {
+        return;
+      }
+      frame_cache.state = std::move(*bake_state);
+      return;
+    }
+  }
   if (!bake_cache.blobs_dir) {
     return;
   }
-  if (!frame_cache.meta_path) {
+  const auto *meta_path = std::get_if<std::string>(&*frame_cache.meta_data_source);
+  if (!meta_path) {
     return;
   }
-  bke::bake::DiskBlobReader blob_reader{*bake_cache.blobs_dir};
-  fstream meta_file{*frame_cache.meta_path};
-  std::optional<bke::bake::BakeState> bake_state = bke::bake::deserialize_bake(
+  bake::DiskBlobReader blob_reader{*bake_cache.blobs_dir};
+  fstream meta_file{*meta_path};
+  std::optional<bake::BakeState> bake_state = bake::deserialize_bake(
       meta_file, blob_reader, *bake_cache.blob_sharing);
   if (!bake_state.has_value()) {
     return;
@@ -984,12 +1003,53 @@ static void ensure_bake_loaded(bake::NodeBakeCache &bake_cache, bake::FrameCache
   frame_cache.state = std::move(*bake_state);
 }
 
-static bool try_find_baked_data(bake::NodeBakeCache &bake,
+static bool try_find_baked_data(const NodesModifierBake &bake,
+                                bake::NodeBakeCache &bake_cache,
                                 const Main &bmain,
                                 const Object &object,
                                 const NodesModifierData &nmd,
                                 const int id)
 {
+  if (bake.packed) {
+    if (bake.packed->meta_files_num == 0) {
+      return false;
+    }
+    bake_cache.reset();
+    Map<SubFrame, const NodesModifierBakeFile *> file_by_frame;
+    for (const NodesModifierBakeFile &meta_file :
+         Span{bake.packed->meta_files, bake.packed->meta_files_num})
+    {
+      const std::optional<SubFrame> frame = bake::file_name_to_frame(meta_file.name);
+      if (!frame) {
+        return false;
+      }
+      if (!file_by_frame.add(*frame, &meta_file)) {
+        /* Can only have on file per (sub)frame. */
+        return false;
+      }
+    }
+    /* Make sure frames processed in the right order. */
+    Vector<SubFrame> frames;
+    frames.extend(file_by_frame.keys().begin(), file_by_frame.keys().end());
+
+    for (const SubFrame &frame : frames) {
+      const NodesModifierBakeFile &meta_file = *file_by_frame.lookup(frame);
+      auto frame_cache = std::make_unique<bake::FrameCache>();
+      frame_cache->frame = frame;
+      frame_cache->meta_data_source = meta_file.data();
+      bake_cache.frames.append(std::move(frame_cache));
+    }
+
+    bake_cache.memory_blob_reader = std::make_unique<bake::MemoryBlobReader>();
+    for (const NodesModifierBakeFile &blob_file :
+         Span{bake.packed->blob_files, bake.packed->blob_files_num})
+    {
+      bake_cache.memory_blob_reader->add(blob_file.name, blob_file.data());
+    }
+    bake_cache.blob_sharing = std::make_unique<bake::BlobReadSharing>();
+    return true;
+  }
+
   std::optional<bake::BakePath> bake_path = bake::get_node_bake_path(bmain, object, nmd, id);
   if (!bake_path) {
     return false;
@@ -998,15 +1058,15 @@ static bool try_find_baked_data(bake::NodeBakeCache &bake,
   if (meta_files.is_empty()) {
     return false;
   }
-  bake.reset();
+  bake_cache.reset();
   for (const bake::MetaFile &meta_file : meta_files) {
     auto frame_cache = std::make_unique<bake::FrameCache>();
     frame_cache->frame = meta_file.frame;
-    frame_cache->meta_path = meta_file.path;
-    bake.frames.append(std::move(frame_cache));
+    frame_cache->meta_data_source = meta_file.path;
+    bake_cache.frames.append(std::move(frame_cache));
   }
-  bake.blobs_dir = bake_path->blobs_dir;
-  bake.blob_sharing = std::make_unique<bake::BlobReadSharing>();
+  bake_cache.blobs_dir = bake_path->blobs_dir;
+  bake_cache.blob_sharing = std::make_unique<bake::BlobReadSharing>();
   return true;
 }
 
@@ -1141,7 +1201,7 @@ class NodesModifierSimulationParams : public nodes::GeoNodesSimulationParams {
       /* Try load baked data. */
       if (!node_cache.bake.failed_finding_bake) {
         if (node_cache.cache_status != bake::CacheStatus::Baked) {
-          if (try_find_baked_data(node_cache.bake, *bmain_, *ctx_.object, nmd_, zone_id)) {
+          if (try_find_baked_data(bake, node_cache.bake, *bmain_, *ctx_.object, nmd_, zone_id)) {
             node_cache.cache_status = bake::CacheStatus::Baked;
           }
           else {
@@ -1434,7 +1494,7 @@ class NodesModifierBakeParams : public nodes::GeoNodesBakeParams {
     /* Try load baked data. */
     if (node_cache.bake.frames.is_empty()) {
       if (!node_cache.bake.failed_finding_bake) {
-        if (!try_find_baked_data(node_cache.bake, *bmain_, *ctx_.object, nmd_, id)) {
+        if (!try_find_baked_data(bake, node_cache.bake, *bmain_, *ctx_.object, nmd_, id)) {
           node_cache.bake.failed_finding_bake = true;
         }
       }
@@ -1503,7 +1563,7 @@ class NodesModifierBakeParams : public nodes::GeoNodesBakeParams {
   [[nodiscard]] bool check_read_error(const bake::FrameCache &frame_cache,
                                       nodes::BakeNodeBehavior &behavior) const
   {
-    if (frame_cache.meta_path && frame_cache.state.items_by_id.is_empty()) {
+    if (frame_cache.meta_data_source && frame_cache.state.items_by_id.is_empty()) {
       auto &read_error_info = behavior.behavior.emplace<sim_output::ReadError>();
       read_error_info.message = RPT_("Cannot load the baked data");
       return true;
@@ -2229,6 +2289,7 @@ static void draw_bake_panel(uiLayout *layout, PointerRNA *modifier_ptr)
   uiLayout *col = uiLayoutColumn(layout, false);
   uiLayoutSetPropSep(col, true);
   uiLayoutSetPropDecorate(col, false);
+  uiItemR(col, modifier_ptr, "bake_target", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(col, modifier_ptr, "bake_directory", UI_ITEM_NONE, IFACE_("Bake Path"), ICON_NONE);
 }
 
@@ -2411,6 +2472,29 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
         BLO_write_string(writer, item.id_name);
         BLO_write_string(writer, item.lib_name);
       }
+      if (bake.packed) {
+        BLO_write_struct(writer, NodesModifierPackedBake, bake.packed);
+        BLO_write_struct_array(
+            writer, NodesModifierBakeFile, bake.packed->meta_files_num, bake.packed->meta_files);
+        BLO_write_struct_array(
+            writer, NodesModifierBakeFile, bake.packed->blob_files_num, bake.packed->blob_files);
+        const auto write_bake_file = [&](const NodesModifierBakeFile &bake_file) {
+          BLO_write_string(writer, bake_file.name);
+          if (bake_file.packed_file) {
+            BKE_packedfile_blend_write(writer, bake_file.packed_file);
+          }
+        };
+        for (const NodesModifierBakeFile &meta_file :
+             Span{bake.packed->meta_files, bake.packed->meta_files_num})
+        {
+          write_bake_file(meta_file);
+        }
+        for (const NodesModifierBakeFile &blob_file :
+             Span{bake.packed->blob_files, bake.packed->blob_files_num})
+        {
+          write_bake_file(blob_file);
+        }
+      }
     }
     BLO_write_struct_array(writer, NodesModifierPanel, nmd->panels_num, nmd->panels);
 
@@ -2461,6 +2545,30 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
       BLO_read_string(reader, &data_block.id_name);
       BLO_read_string(reader, &data_block.lib_name);
     }
+
+    BLO_read_struct(reader, NodesModifierPackedBake, &bake.packed);
+    if (bake.packed) {
+      BLO_read_struct_array(
+          reader, NodesModifierBakeFile, bake.packed->meta_files_num, &bake.packed->meta_files);
+      BLO_read_struct_array(
+          reader, NodesModifierBakeFile, bake.packed->blob_files_num, &bake.packed->blob_files);
+      const auto read_bake_file = [&](NodesModifierBakeFile &bake_file) {
+        BLO_read_string(reader, &bake_file.name);
+        if (bake_file.packed_file) {
+          BKE_packedfile_blend_read(reader, &bake_file.packed_file, "");
+        }
+      };
+      for (NodesModifierBakeFile &meta_file :
+           MutableSpan{bake.packed->meta_files, bake.packed->meta_files_num})
+      {
+        read_bake_file(meta_file);
+      }
+      for (NodesModifierBakeFile &blob_file :
+           MutableSpan{bake.packed->blob_files, bake.packed->blob_files_num})
+      {
+        read_bake_file(blob_file);
+      }
+    }
   }
   BLO_read_struct_array(reader, NodesModifierPanel, nmd->panels_num, &nmd->panels);
 
@@ -2494,6 +2602,24 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
           }
         }
       }
+      if (bake.packed) {
+        bake.packed = static_cast<NodesModifierPackedBake *>(MEM_dupallocN(bake.packed));
+        const auto copy_bake_files_inplace = [](NodesModifierBakeFile **bake_files,
+                                                const int bake_files_num) {
+          if (!*bake_files) {
+            return;
+          }
+          *bake_files = static_cast<NodesModifierBakeFile *>(MEM_dupallocN(*bake_files));
+          for (NodesModifierBakeFile &bake_file : MutableSpan{*bake_files, bake_files_num}) {
+            bake_file.name = BLI_strdup_null(bake_file.name);
+            if (bake_file.packed_file) {
+              bake_file.packed_file = BKE_packedfile_duplicate(bake_file.packed_file);
+            }
+          }
+        };
+        copy_bake_files_inplace(&bake.packed->meta_files, bake.packed->meta_files_num);
+        copy_bake_files_inplace(&bake.packed->blob_files, bake.packed->blob_files_num);
+      }
     }
   }
 
@@ -2520,6 +2646,22 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
   }
 }
 
+void nodes_modifier_packed_bake_free(NodesModifierPackedBake *packed_bake)
+{
+  const auto free_packed_files = [](NodesModifierBakeFile *files, const int files_num) {
+    for (NodesModifierBakeFile &file : MutableSpan{files, files_num}) {
+      MEM_SAFE_FREE(file.name);
+      if (file.packed_file) {
+        BKE_packedfile_free(file.packed_file);
+      }
+    }
+    MEM_SAFE_FREE(files);
+  };
+  free_packed_files(packed_bake->meta_files, packed_bake->meta_files_num);
+  free_packed_files(packed_bake->blob_files, packed_bake->blob_files_num);
+  MEM_SAFE_FREE(packed_bake);
+}
+
 static void free_data(ModifierData *md)
 {
   NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
@@ -2537,6 +2679,10 @@ static void free_data(ModifierData *md)
       MEM_SAFE_FREE(data_block.lib_name);
     }
     MEM_SAFE_FREE(bake.data_blocks);
+
+    if (bake.packed) {
+      nodes_modifier_packed_bake_free(bake.packed);
+    }
   }
   MEM_SAFE_FREE(nmd->bakes);
 

@@ -342,6 +342,8 @@ void OBJECT_OT_simulation_nodes_cache_bake(wmOperatorType *ot);
 void OBJECT_OT_simulation_nodes_cache_delete(wmOperatorType *ot);
 void OBJECT_OT_geometry_node_bake_single(wmOperatorType *ot);
 void OBJECT_OT_geometry_node_bake_delete_single(wmOperatorType *ot);
+void OBJECT_OT_geometry_node_bake_pack_single(wmOperatorType *ot);
+void OBJECT_OT_geometry_node_bake_unpack_single(wmOperatorType *ot);
 
 }  // namespace bake_simulation
 

@@ -6,6 +6,7 @@
 
 #include <optional>
 
+#include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 
 #include "NOD_geo_simulation.hh"
@@ -90,6 +91,7 @@ struct BakeDrawContext {
   std::optional<IndexRange> frame_range;
   bool bake_still;
   bool is_baked;
+  std::optional<NodesModifierBakeTarget> bake_target;
 };
 
 [[nodiscard]] bool get_bake_draw_context(const bContext *C,
@@ -97,8 +99,11 @@ struct BakeDrawContext {
                                          BakeDrawContext &r_ctx);
 
 std::string get_baked_string(const BakeDrawContext &ctx);
+
 std::optional<std::string> get_bake_state_string(const BakeDrawContext &ctx);
-void draw_common_bake_settings(BakeDrawContext &ctx, uiLayout *layout);
-void draw_bake_button(const BakeDrawContext &ctx, uiLayout *layout);
+void draw_common_bake_settings(bContext *C, BakeDrawContext &ctx, uiLayout *layout);
+void draw_bake_button_row(const BakeDrawContext &ctx,
+                          uiLayout *layout,
+                          bool is_in_sidebar = false);
 
 }  // namespace blender::nodes
