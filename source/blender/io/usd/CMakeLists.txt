@@ -108,6 +108,7 @@ set(SRC
   intern/usd_writer_material.cc
   intern/usd_writer_mesh.cc
   intern/usd_writer_metaball.cc
+  intern/usd_writer_points.cc
   intern/usd_writer_transform.cc
   intern/usd_writer_volume.cc
 
@@ -155,6 +156,7 @@ set(SRC
   intern/usd_writer_material.hh
   intern/usd_writer_mesh.hh
   intern/usd_writer_metaball.hh
+  intern/usd_writer_points.hh
   intern/usd_writer_transform.hh
   intern/usd_writer_volume.hh
 

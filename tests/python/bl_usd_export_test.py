@@ -348,6 +348,7 @@ class USDExportTest(AbstractUSDTest):
         self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
 
         stage = Usd.Stage.Open(str(export_path))
+        sparse_frames = [4.0, 5.0, 8.0, 9.0, 12.0, 13.0]
 
         #
         # Validate Mesh data
@@ -355,8 +356,6 @@ class USDExportTest(AbstractUSDTest):
         mesh1 = UsdGeom.Mesh(stage.GetPrimAtPath("/root/mesh1/mesh1"))
         mesh2 = UsdGeom.Mesh(stage.GetPrimAtPath("/root/mesh2/mesh2"))
         mesh3 = UsdGeom.Mesh(stage.GetPrimAtPath("/root/mesh3/mesh3"))
-
-        sparse_frames = [4.0, 5.0, 8.0, 9.0, 12.0, 13.0]
 
         # Positions (should be sparsely written)
         self.assertEqual(mesh1.GetPointsAttr().GetTimeSamples(), sparse_frames)
@@ -370,6 +369,40 @@ class USDExportTest(AbstractUSDTest):
         self.assertEqual(UsdGeom.PrimvarsAPI(mesh1).GetPrimvar("test").GetTimeSamples(), [])
         self.assertEqual(UsdGeom.PrimvarsAPI(mesh2).GetPrimvar("test").GetTimeSamples(), [])
         self.assertEqual(UsdGeom.PrimvarsAPI(mesh3).GetPrimvar("test").GetTimeSamples(), sparse_frames)
+
+        #
+        # Validate PointCloud data
+        #
+        points1 = UsdGeom.Points(stage.GetPrimAtPath("/root/pointcloud1/PointCloud"))
+        points2 = UsdGeom.Points(stage.GetPrimAtPath("/root/pointcloud2/PointCloud"))
+        points3 = UsdGeom.Points(stage.GetPrimAtPath("/root/pointcloud3/PointCloud"))
+        points4 = UsdGeom.Points(stage.GetPrimAtPath("/root/pointcloud4/PointCloud"))
+
+        # Positions (should be sparsely written)
+        self.assertEqual(points1.GetPointsAttr().GetTimeSamples(), sparse_frames)
+        self.assertEqual(points2.GetPointsAttr().GetTimeSamples(), [])
+        self.assertEqual(points3.GetPointsAttr().GetTimeSamples(), [])
+        self.assertEqual(points4.GetPointsAttr().GetTimeSamples(), [])
+        # Velocity (should be sparsely written)
+        self.assertEqual(points1.GetVelocitiesAttr().GetTimeSamples(), [])
+        self.assertEqual(points2.GetVelocitiesAttr().GetTimeSamples(), sparse_frames)
+        self.assertEqual(points3.GetVelocitiesAttr().GetTimeSamples(), [])
+        self.assertEqual(points4.GetVelocitiesAttr().GetTimeSamples(), [])
+        # Radius (should be sparsely written)
+        self.assertEqual(points1.GetWidthsAttr().GetTimeSamples(), [])
+        self.assertEqual(points2.GetWidthsAttr().GetTimeSamples(), [])
+        self.assertEqual(points3.GetWidthsAttr().GetTimeSamples(), sparse_frames)
+        self.assertEqual(points4.GetWidthsAttr().GetTimeSamples(), [])
+        # Regular primvar (should be sparsely written)
+        self.assertEqual(UsdGeom.PrimvarsAPI(points1).GetPrimvar("test").GetTimeSamples(), [])
+        self.assertEqual(UsdGeom.PrimvarsAPI(points2).GetPrimvar("test").GetTimeSamples(), [])
+        self.assertEqual(UsdGeom.PrimvarsAPI(points3).GetPrimvar("test").GetTimeSamples(), [])
+        self.assertEqual(UsdGeom.PrimvarsAPI(points4).GetPrimvar("test").GetTimeSamples(), sparse_frames)
+        # Extents of the point cloud (should be sparsely written)
+        self.assertEqual(UsdGeom.Boundable(points1).GetExtentAttr().GetTimeSamples(), sparse_frames)
+        self.assertEqual(UsdGeom.Boundable(points2).GetExtentAttr().GetTimeSamples(), [])
+        self.assertEqual(UsdGeom.Boundable(points3).GetExtentAttr().GetTimeSamples(), sparse_frames)
+        self.assertEqual(UsdGeom.Boundable(points4).GetExtentAttr().GetTimeSamples(), [])
 
     def test_export_mesh_subd(self):
         """Test exporting Subdivision Surface attributes and values"""

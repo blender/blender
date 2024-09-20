@@ -242,6 +242,7 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
   const bool export_lights = RNA_boolean_get(op->ptr, "export_lights");
   const bool export_cameras = RNA_boolean_get(op->ptr, "export_cameras");
   const bool export_curves = RNA_boolean_get(op->ptr, "export_curves");
+  const bool export_points = RNA_boolean_get(op->ptr, "export_points");
   const bool export_volumes = RNA_boolean_get(op->ptr, "export_volumes");
 
   const bool use_instancing = RNA_boolean_get(op->ptr, "use_instancing");
@@ -323,6 +324,7 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
   params.export_lights = export_lights;
   params.export_cameras = export_cameras;
   params.export_curves = export_curves;
+  params.export_points = export_points;
   params.export_volumes = export_volumes;
   params.export_hair = export_hair;
   params.export_uvmaps = export_uvmaps;
@@ -424,8 +426,9 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
     uiItemR(col, ptr, "export_meshes", UI_ITEM_NONE, nullptr, ICON_NONE);
     uiItemR(col, ptr, "export_lights", UI_ITEM_NONE, nullptr, ICON_NONE);
     uiItemR(col, ptr, "export_cameras", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "export_volumes", UI_ITEM_NONE, nullptr, ICON_NONE);
     uiItemR(col, ptr, "export_curves", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "export_points", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "export_volumes", UI_ITEM_NONE, nullptr, ICON_NONE);
     uiItemR(col, ptr, "export_hair", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
 
@@ -779,6 +782,8 @@ void WM_OT_usd_export(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "export_cameras", true, "Cameras", "Export all cameras");
 
   RNA_def_boolean(ot->srna, "export_curves", true, "Curves", "Export all curves");
+
+  RNA_def_boolean(ot->srna, "export_points", true, "Point Clouds", "Export all point clouds");
 
   RNA_def_boolean(ot->srna, "export_volumes", true, "Volumes", "Export all volumes");
 
