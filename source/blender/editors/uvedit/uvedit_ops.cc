@@ -185,7 +185,7 @@ void uvedit_live_unwrap_update(SpaceImage *sima, Scene *scene, Object *obedit)
   if (sima && (sima->flag & SI_LIVE_UNWRAP)) {
     ED_uvedit_live_unwrap_begin(scene, obedit, nullptr);
     ED_uvedit_live_unwrap_re_solve();
-    ED_uvedit_live_unwrap_end(0);
+    ED_uvedit_live_unwrap_end(false);
   }
 }
 

@@ -2118,7 +2118,7 @@ void ED_uvedit_live_unwrap_re_solve()
   }
 }
 
-void ED_uvedit_live_unwrap_end(short cancel)
+void ED_uvedit_live_unwrap_end(const bool cancel)
 {
   if (g_live_unwrap.timer) {
     wmWindow *win = g_live_unwrap.timer->win;
