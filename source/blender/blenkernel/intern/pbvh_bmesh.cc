@@ -1852,14 +1852,14 @@ static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx,
 
 /************************* Called from pbvh.cc *************************/
 
-bool bmesh_node_raycast(BMeshNode &node,
+bool node_raycast_bmesh(BMeshNode &node,
                         const float3 &ray_start,
                         const float3 &ray_normal,
                         IsectRayPrecalc *isect_precalc,
                         float *depth,
                         bool use_original,
-                        PBVHVertRef *r_active_vertex,
-                        float *r_face_normal)
+                        BMVert **r_active_vertex,
+                        float3 &r_face_normal)
 {
   bool hit = false;
   float3 nearest_vertex_co(0.0f);
@@ -1877,9 +1877,7 @@ bool bmesh_node_raycast(BMeshNode &node,
       if (ray_face_intersection_tri(ray_start, isect_precalc, cos[0], cos[1], cos[2], depth)) {
         hit = true;
 
-        if (r_face_normal) {
-          normal_tri_v3(r_face_normal, cos[0], cos[1], cos[2]);
-        }
+        normal_tri_v3(r_face_normal, cos[0], cos[1], cos[2]);
 
         if (r_active_vertex) {
           float3 location(0.0f);
@@ -1889,7 +1887,7 @@ bool bmesh_node_raycast(BMeshNode &node,
                 len_squared_v3v3(location, cos[i]) < len_squared_v3v3(location, nearest_vertex_co))
             {
               copy_v3_v3(nearest_vertex_co, cos[i]);
-              r_active_vertex->i = intptr_t(node.orig_verts_[node.orig_tris_[tri_idx][i]]);
+              *r_active_vertex = node.orig_verts_[node.orig_tris_[tri_idx][i]];
             }
           }
         }
@@ -1909,9 +1907,7 @@ bool bmesh_node_raycast(BMeshNode &node,
         {
           hit = true;
 
-          if (r_face_normal) {
-            normal_tri_v3(r_face_normal, v_tri[0]->co, v_tri[1]->co, v_tri[2]->co);
-          }
+          normal_tri_v3(r_face_normal, v_tri[0]->co, v_tri[1]->co, v_tri[2]->co);
 
           if (r_active_vertex) {
             float3 location(0.0f);
@@ -1921,7 +1917,7 @@ bool bmesh_node_raycast(BMeshNode &node,
                                 len_squared_v3v3(location, nearest_vertex_co))
               {
                 copy_v3_v3(nearest_vertex_co, v_tri[i]->co);
-                r_active_vertex->i = intptr_t(v_tri[i]);
+                *r_active_vertex = v_tri[i];
               }
             }
           }

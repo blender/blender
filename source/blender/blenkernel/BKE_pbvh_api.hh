@@ -44,6 +44,7 @@ struct Depsgraph;
 struct IsectRayPrecalc;
 struct Mesh;
 struct SubdivCCG;
+struct SubdivCCGCoord;
 struct Image;
 struct ImageUser;
 struct Object;
@@ -319,23 +320,40 @@ void raycast(Tree &pbvh,
              const float3 &ray_normal,
              bool original);
 
-bool raycast_node(Tree &pbvh,
-                  Node &node,
-                  Span<float3> node_positions,
-                  bool use_origco,
-                  Span<float3> vert_positions,
-                  OffsetIndices<int> faces,
-                  Span<int> corner_verts,
-                  Span<int3> corner_tris,
-                  Span<bool> hide_poly,
-                  const SubdivCCG *subdiv_ccg,
-                  const float3 &ray_start,
-                  const float3 &ray_normal,
-                  IsectRayPrecalc *isect_precalc,
-                  float *depth,
-                  PBVHVertRef *r_active_vertex,
-                  int &r_active_face_grid_index,
-                  float3 &r_face_normal);
+bool node_raycast_mesh(const MeshNode &node,
+                       Span<float3> node_positions,
+                       Span<float3> vert_positions,
+                       OffsetIndices<int> faces,
+                       Span<int> corner_verts,
+                       Span<int3> corner_tris,
+                       Span<bool> hide_poly,
+                       const float3 &ray_start,
+                       const float3 &ray_normal,
+                       IsectRayPrecalc *isect_precalc,
+                       float *depth,
+                       int &r_active_vertex,
+                       int &r_active_face_index,
+                       float3 &r_face_normal);
+
+bool node_raycast_grids(const SubdivCCG &subdiv_ccg,
+                        GridsNode &node,
+                        Span<float3> node_positions,
+                        const float3 &ray_start,
+                        const float3 &ray_normal,
+                        const IsectRayPrecalc *isect_precalc,
+                        float *depth,
+                        SubdivCCGCoord &r_active_vertex,
+                        int &r_active_grid_index,
+                        float3 &r_face_normal);
+
+bool node_raycast_bmesh(BMeshNode &node,
+                        const float3 &ray_start,
+                        const float3 &ray_normal,
+                        IsectRayPrecalc *isect_precalc,
+                        float *depth,
+                        bool use_original,
+                        BMVert **r_active_vertex,
+                        float3 &r_face_normal);
 
 bool bmesh_node_raycast_detail(BMeshNode &node,
                                const float3 &ray_start,

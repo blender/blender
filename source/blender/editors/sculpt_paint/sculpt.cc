@@ -2633,7 +2633,7 @@ struct SculptRaycastData {
 
   const SubdivCCG *subdiv_ccg;
 
-  PBVHVertRef active_vertex;
+  ActiveVert active_vertex = {};
   float3 face_normal;
 
   int active_face_grid_index;
@@ -4432,24 +4432,68 @@ static void sculpt_raycast_cb(blender::bke::pbvh::Node &node, SculptRaycastData 
     }
   }
 
-  if (bke::pbvh::raycast_node(pbvh,
-                              node,
-                              origco,
-                              use_origco,
-                              srd.vert_positions,
-                              srd.faces,
-                              srd.corner_verts,
-                              srd.corner_tris,
-                              srd.hide_poly,
-                              srd.subdiv_ccg,
-                              srd.ray_start,
-                              srd.ray_normal,
-                              &srd.isect_precalc,
-                              &srd.depth,
-                              &srd.active_vertex,
-                              srd.active_face_grid_index,
-                              srd.face_normal))
-  {
+  if (node.flag_ & PBVH_FullyHidden) {
+    return;
+  }
+
+  bool hit = false;
+  switch (pbvh.type()) {
+    case bke::pbvh::Type::Mesh: {
+      int mesh_active_vert;
+      hit = bke::pbvh::node_raycast_mesh(static_cast<bke::pbvh::MeshNode &>(node),
+                                         origco,
+                                         srd.vert_positions,
+                                         srd.faces,
+                                         srd.corner_verts,
+                                         srd.corner_tris,
+                                         srd.hide_poly,
+                                         srd.ray_start,
+                                         srd.ray_normal,
+                                         &srd.isect_precalc,
+                                         &srd.depth,
+                                         mesh_active_vert,
+                                         srd.active_face_grid_index,
+                                         srd.face_normal);
+      if (hit) {
+        srd.active_vertex = mesh_active_vert;
+      }
+      break;
+    }
+    case bke::pbvh::Type::Grids: {
+      SubdivCCGCoord grids_active_vert;
+      hit = bke::pbvh::node_raycast_grids(*srd.subdiv_ccg,
+                                          static_cast<bke::pbvh::GridsNode &>(node),
+                                          origco,
+                                          srd.ray_start,
+                                          srd.ray_normal,
+                                          &srd.isect_precalc,
+                                          &srd.depth,
+                                          grids_active_vert,
+                                          srd.active_face_grid_index,
+                                          srd.face_normal);
+      if (hit) {
+        srd.active_vertex = grids_active_vert;
+      }
+      break;
+    }
+    case bke::pbvh::Type::BMesh: {
+      BMVert *bmesh_active_vert;
+      hit = bke::pbvh::node_raycast_bmesh(static_cast<bke::pbvh::BMeshNode &>(node),
+                                          srd.ray_start,
+                                          srd.ray_normal,
+                                          &srd.isect_precalc,
+                                          &srd.depth,
+                                          use_origco,
+                                          &bmesh_active_vert,
+                                          srd.face_normal);
+      if (hit) {
+        srd.active_vertex = bmesh_active_vert;
+      }
+      break;
+    }
+  }
+
+  if (hit) {
     srd.hit = true;
     *tmin = srd.depth;
   }
@@ -4633,23 +4677,7 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
   }
 
   /* Update the active vertex of the SculptSession. */
-  const PBVHVertRef active_vertex = srd.active_vertex;
-  ActiveVert active_vert = {};
-  switch (pbvh->type()) {
-    case bke::pbvh::Type::Mesh:
-      active_vert = int(active_vertex.i);
-      break;
-    case bke::pbvh::Type::Grids: {
-      const CCGKey key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
-      active_vert = SubdivCCGCoord::from_index(key, active_vertex.i);
-      break;
-    }
-    case bke::pbvh::Type::BMesh:
-      active_vert = reinterpret_cast<BMVert *>(active_vertex.i);
-      break;
-  }
-
-  ss.set_active_vert(active_vert);
+  ss.set_active_vert(srd.active_vertex);
   out->active_vertex_co = ss.active_vert_position(*depsgraph, ob);
 
   switch (pbvh->type()) {
