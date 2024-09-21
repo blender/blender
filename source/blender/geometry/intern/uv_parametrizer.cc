@@ -278,7 +278,7 @@ static void fix_large_angle(const float v_fix[3],
                             double *r_a1,
                             double *r_a2)
 {
-  const double max_angle = M_PI * 179.0f / 180.0f;
+  const double max_angle = DEG2RADF(179.0);
   const double fix_amount = *r_fix - max_angle;
   if (fix_amount < 0.0f) {
     return; /* angle is reasonable, i.e. less than 179 degrees. */
@@ -1807,7 +1807,7 @@ static bool p_collapse_allowed_geometric(PEdge *edge, PEdge *pair)
     b[2] = M_PI - b[0] - b[1];
 
     /* ABF criterion 1: avoid sharp and obtuse angles. */
-    minangle = 15.0f * M_PI / 180.0f;
+    minangle = DEG2RADF(15.0);
     maxangle = M_PI - minangle;
 
     for (i = 0; i < 3; i++) {
@@ -1824,7 +1824,7 @@ static bool p_collapse_allowed_geometric(PEdge *edge, PEdge *pair)
 
   if (p_vert_interior(oldv)) {
     /* HLSCM criterion: angular defect smaller than threshold. */
-    if (fabsf(angulardefect) > float(M_PI * 30.0 / 180.0)) {
+    if (fabsf(angulardefect) > DEG2RADF(30.0)) {
       return false;
     }
   }
@@ -1839,7 +1839,7 @@ static bool p_collapse_allowed_geometric(PEdge *edge, PEdge *pair)
 
     /* Don't collapse significant boundary changes. */
     angle = p_vec_angle(v1->co, oldv->co, v2->co);
-    if (angle < (M_PI * 160.0 / 180.0)) {
+    if (angle < DEG2RADF(160.0)) {
       return false;
     }
   }
