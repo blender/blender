@@ -2185,14 +2185,7 @@ static void knife_make_face_cuts(KnifeTool_OpData *kcd, BMesh *bm, BMFace *f, Li
 #endif
 
     {
-      BMFace **face_arr = nullptr;
-      int face_arr_len;
-
-      BM_face_split_edgenet(bm, f, edge_array, edge_array_len, &face_arr, &face_arr_len);
-
-      if (face_arr) {
-        MEM_freeN(face_arr);
-      }
+      BM_face_split_edgenet(bm, f, edge_array, edge_array_len, nullptr);
     }
 
     /* Remove dangling edges, not essential - but nice for users. */

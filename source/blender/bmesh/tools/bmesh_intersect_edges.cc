@@ -12,6 +12,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_sort.h"
 #include "BLI_stack.h"
+#include "BLI_vector.hh"
 
 #include "BKE_bvhutils.hh"
 
@@ -1017,16 +1018,12 @@ bool BM_mesh_intersect_edges(
           }
 
           if (best_face) {
-            BMFace **face_arr = nullptr;
-            int face_arr_len = 0;
-            BM_face_split_edgenet(bm, best_face, edgenet, edgenet_len, &face_arr, &face_arr_len);
-            if (face_arr) {
-              /* Update the new faces normal.
-               * Normal is necessary to obtain the best face for edgenet */
-              while (face_arr_len--) {
-                BM_face_normal_update(face_arr[face_arr_len]);
-              }
-              MEM_freeN(face_arr);
+            blender::Vector<BMFace *> face_arr;
+            BM_face_split_edgenet(bm, best_face, edgenet, edgenet_len, &face_arr);
+            /* Update the new faces normal.
+             * Normal is necessary to obtain the best face for edgenet */
+            for (BMFace *face : face_arr) {
+              BM_face_normal_update(face);
             }
           }
         }

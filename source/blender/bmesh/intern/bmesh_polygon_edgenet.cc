@@ -13,7 +13,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_alloca.h"
-#include "BLI_array.h"
 #include "BLI_kdopbvh.h"
 #include "BLI_linklist_stack.h"
 #include "BLI_math_geom.h"
@@ -22,6 +21,7 @@
 #include "BLI_memarena.h"
 #include "BLI_sort_utils.h"
 #include "BLI_utildefines_stack.h"
+#include "BLI_vector.hh"
 
 #include "BKE_customdata.hh"
 
@@ -446,15 +446,11 @@ bool BM_face_split_edgenet(BMesh *bm,
                            BMFace *f,
                            BMEdge **edge_net,
                            const int edge_net_len,
-                           BMFace ***r_face_arr,
-                           int *r_face_arr_len)
+                           blender::Vector<BMFace *> *r_face_arr)
 {
   /* re-use for new face verts */
   BMVert **face_verts;
   int face_verts_len;
-
-  BMFace **face_arr = nullptr;
-  BLI_array_declare(face_arr);
 
   BMVert **vert_queue;
   STACK_DECLARE(vert_queue);
@@ -469,8 +465,7 @@ bool BM_face_split_edgenet(BMesh *bm,
 
   if (!edge_net_len) {
     if (r_face_arr) {
-      *r_face_arr = nullptr;
-      *r_face_arr_len = 0;
+      r_face_arr->clear_and_shrink();
     }
     return false;
   }
@@ -528,6 +523,7 @@ bool BM_face_split_edgenet(BMesh *bm,
   STACK_PUSH(vert_queue, l_first->v);
   BM_ELEM_API_FLAG_ENABLE(l_first->v, VERT_IN_QUEUE);
 
+  blender::Vector<BMFace *> face_arr;
   while ((v = STACK_POP(vert_queue))) {
     BM_ELEM_API_FLAG_DISABLE(v, VERT_IN_QUEUE);
     if (bm_face_split_edgenet_find_loop(
@@ -542,7 +538,7 @@ bool BM_face_split_edgenet(BMesh *bm,
       }
 
       if (f_new) {
-        BLI_array_append(face_arr, f_new);
+        face_arr.append(f_new);
         copy_v3_v3(f_new->no, f->no);
 
         /* warning, normally don't do this,
@@ -645,7 +641,7 @@ bool BM_face_split_edgenet(BMesh *bm,
     BM_ELEM_API_FLAG_DISABLE(l_iter->v, VERT_VISIT);
   } while ((l_iter = l_iter->next) != l_first);
 
-  if (BLI_array_len(face_arr)) {
+  if (!face_arr.is_empty()) {
     bmesh_face_swap_data(f, face_arr[0]);
     BM_face_kill(bm, face_arr[0]);
     face_arr[0] = f;
@@ -654,18 +650,12 @@ bool BM_face_split_edgenet(BMesh *bm,
     BM_ELEM_API_FLAG_DISABLE(f, FACE_NET);
   }
 
-  for (i = 0; i < BLI_array_len(face_arr); i++) {
-    BM_ELEM_API_FLAG_DISABLE(face_arr[i], FACE_NET);
+  for (BMFace *face : face_arr) {
+    BM_ELEM_API_FLAG_DISABLE(face, FACE_NET);
   }
 
   if (r_face_arr) {
-    *r_face_arr = face_arr;
-    *r_face_arr_len = BLI_array_len(face_arr);
-  }
-  else {
-    if (face_arr) {
-      MEM_freeN(face_arr);
-    }
+    *r_face_arr = std::move(face_arr);
   }
 
   MEM_freeN(edge_order);
