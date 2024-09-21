@@ -17,6 +17,7 @@ struct Editing;
 struct Main;
 struct MetaStack;
 struct Scene;
+struct SeqTimelineChannel;
 struct Sequence;
 struct SequencerToolSettings;
 
@@ -114,13 +115,6 @@ void SEQ_doversion_250_sound_proxy_update(Main *bmain, Editing *ed);
  */
 void SEQ_eval_sequences(Depsgraph *depsgraph, Scene *scene, ListBase *seqbase);
 
-/* Defined in `sequence_lookup.cc`. */
-
-enum eSequenceLookupTag {
-  SEQ_LOOKUP_TAG_INVALID = (1 << 0),
-};
-ENUM_OPERATORS(eSequenceLookupTag, SEQ_LOOKUP_TAG_INVALID)
-
 /**
  * Find a sequence with a given name.
  * If lookup hash doesn't exist, it will be created. If hash is tagged as invalid, it will be
@@ -134,15 +128,20 @@ ENUM_OPERATORS(eSequenceLookupTag, SEQ_LOOKUP_TAG_INVALID)
 Sequence *SEQ_sequence_lookup_seq_by_name(const Scene *scene, const char *key);
 
 /**
+ * Find which meta strip the given timeline channel belongs to. Returns nullptr if it is a global
+ * channel.
+ */
+Sequence *SEQ_sequence_lookup_owner_by_channel(const Scene *scene,
+                                               const SeqTimelineChannel *channel);
+
+/**
  * Free lookup hash data.
  *
  * \param scene: scene that owns lookup hash
  */
 void SEQ_sequence_lookup_free(const Scene *scene);
+
 /**
- * Find a sequence with a given name.
- *
- * \param scene: scene that owns lookup hash
- * \param tag: tag to set
+ * Mark sequence lookup as invalid (i.e. will need rebuilding).
  */
-void SEQ_sequence_lookup_tag(const Scene *scene, eSequenceLookupTag tag);
+void SEQ_sequence_lookup_invalidate(const Scene *scene);

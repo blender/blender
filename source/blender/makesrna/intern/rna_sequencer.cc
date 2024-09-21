@@ -1519,30 +1519,13 @@ static void rna_Sequence_separate(ID *id, Sequence *seqm, Main *bmain)
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 }
 
-/* Find channel owner. If nullptr, owner is `Editing`, otherwise it's `Sequence`. */
-static Sequence *rna_SeqTimelineChannel_owner_get(const Editing *ed,
-                                                  const SeqTimelineChannel *channel)
-{
-  blender::VectorSet strips = SEQ_query_all_meta_strips_recursive(&ed->seqbase);
-
-  Sequence *channel_owner = nullptr;
-  for (Sequence *seq : strips) {
-    if (BLI_findindex(&seq->channels, channel) != -1) {
-      channel_owner = seq;
-      break;
-    }
-  }
-
-  return channel_owner;
-}
-
 static void rna_SequenceTimelineChannel_name_set(PointerRNA *ptr, const char *value)
 {
   SeqTimelineChannel *channel = (SeqTimelineChannel *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
   Editing *ed = SEQ_editing_get(scene);
 
-  Sequence *channel_owner = rna_SeqTimelineChannel_owner_get(ed, channel);
+  Sequence *channel_owner = SEQ_sequence_lookup_owner_by_channel(scene, channel);
   ListBase *channels_base = &ed->channels;
 
   if (channel_owner != nullptr) {
@@ -1566,7 +1549,7 @@ static void rna_SequenceTimelineChannel_mute_update(Main *bmain,
   Editing *ed = SEQ_editing_get(scene);
   SeqTimelineChannel *channel = (SeqTimelineChannel *)ptr;
 
-  Sequence *channel_owner = rna_SeqTimelineChannel_owner_get(ed, channel);
+  Sequence *channel_owner = SEQ_sequence_lookup_owner_by_channel(scene, channel);
   ListBase *seqbase;
   if (channel_owner == nullptr) {
     seqbase = &ed->seqbase;
@@ -1585,10 +1568,9 @@ static void rna_SequenceTimelineChannel_mute_update(Main *bmain,
 static std::optional<std::string> rna_SeqTimelineChannel_path(const PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->owner_id;
-  Editing *ed = SEQ_editing_get(scene);
   SeqTimelineChannel *channel = (SeqTimelineChannel *)ptr->data;
 
-  Sequence *channel_owner = rna_SeqTimelineChannel_owner_get(ed, channel);
+  Sequence *channel_owner = SEQ_sequence_lookup_owner_by_channel(scene, channel);
 
   char channel_name_esc[(sizeof(channel->name)) * 2];
   BLI_str_escape(channel_name_esc, channel->name, sizeof(channel_name_esc));
