@@ -1794,7 +1794,7 @@ void ED_uvedit_live_unwrap_begin(Scene *scene, Object *obedit)
 {
   ParamHandle *handle = nullptr;
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
-  const bool abf = (scene->toolsettings->unwrapper == 0);
+  const bool abf = (scene->toolsettings->unwrapper == UVCALC_UNWRAP_METHOD_ANGLE);
   bool use_subsurf;
 
   modifier_unwrap_state(obedit, scene, &use_subsurf);
@@ -2376,7 +2376,7 @@ static void uvedit_unwrap(const Scene *scene,
   }
 
   blender::geometry::uv_parametrizer_lscm_begin(
-      handle, false, scene->toolsettings->unwrapper == 0);
+      handle, false, scene->toolsettings->unwrapper == UVCALC_UNWRAP_METHOD_ANGLE);
   blender::geometry::uv_parametrizer_lscm_solve(handle, r_count_changed, r_count_failed);
   blender::geometry::uv_parametrizer_lscm_end(handle);
 
@@ -2578,8 +2578,8 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 void UV_OT_unwrap(wmOperatorType *ot)
 {
   static const EnumPropertyItem method_items[] = {
-      {0, "ANGLE_BASED", 0, "Angle Based", ""},
-      {1, "CONFORMAL", 0, "Conformal", ""},
+      {UVCALC_UNWRAP_METHOD_ANGLE, "ANGLE_BASED", 0, "Angle Based", ""},
+      {UVCALC_UNWRAP_METHOD_CONFORMAL, "CONFORMAL", 0, "Conformal", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 

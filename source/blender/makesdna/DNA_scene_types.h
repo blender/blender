@@ -1592,6 +1592,8 @@ typedef struct ToolSettings {
   char selectmode;
 
   /* UV Calculation. */
+
+  /* Use `UVCALC_UNWRAP_METHOD_*` values. */
   char unwrapper;
   char uvcalc_flag;
   char uv_flag;
@@ -2687,6 +2689,12 @@ enum {
   IMAGEPAINT_MISSING_MATERIAL = 1 << 1,
   IMAGEPAINT_MISSING_TEX = 1 << 2,
   IMAGEPAINT_MISSING_STENCIL = 1 << 3,
+};
+
+/** #ToolSettings::unwrapper */
+enum {
+  UVCALC_UNWRAP_METHOD_ANGLE = 0,
+  UVCALC_UNWRAP_METHOD_CONFORMAL = 1,
 };
 
 /** #ToolSettings::uvcalc_flag */
