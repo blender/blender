@@ -328,14 +328,14 @@ set(SRC
   BKE_animsys.h
   BKE_anonymous_attribute_id.hh
   BKE_anonymous_attribute_make.hh
-  BKE_attribute_filter.hh
-  BKE_attribute_filters.hh
   BKE_appdir.hh
   BKE_armature.hh
   BKE_asset.hh
   BKE_asset_edit.hh
   BKE_attribute.h
   BKE_attribute.hh
+  BKE_attribute_filter.hh
+  BKE_attribute_filters.hh
   BKE_attribute_math.hh
   BKE_autoexec.hh
   BKE_bake_data_block_id.hh

@@ -65,15 +65,15 @@ set(SRC
   grease_pencil_tint.cc
   grease_pencil_trace.cc
   grease_pencil_trace_util.cc
-  grease_pencil_weight_average.cc
-  grease_pencil_weight_blur.cc
-  grease_pencil_weight_draw.cc
-  grease_pencil_weight_smear.cc
   grease_pencil_vertex_average.cc
   grease_pencil_vertex_blur.cc
   grease_pencil_vertex_paint.cc
   grease_pencil_vertex_replace.cc
   grease_pencil_vertex_smear.cc
+  grease_pencil_weight_average.cc
+  grease_pencil_weight_blur.cc
+  grease_pencil_weight_draw.cc
+  grease_pencil_weight_smear.cc
   paint_canvas.cc
   paint_cursor.cc
   paint_curve.cc
