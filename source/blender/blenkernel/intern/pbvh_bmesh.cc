@@ -52,8 +52,8 @@ Topology rake:
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
-#include "BLI_vector.hh"
 #include "BLI_time.h"
+#include "BLI_vector.hh"
 
 #include "atomic_ops.h"
 

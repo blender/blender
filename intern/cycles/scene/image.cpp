@@ -632,24 +632,26 @@ bool ImageManager::file_load_image(Image *img, int texture_limit)
     /* For RGBA buffers we put all channels to 0 if either of them is not
      * finite. This way we avoid possible artifacts caused by fully changed
      * hue. */
-    if (is_rgba) {
-      for (size_t i = 0; i < num_pixels; i += 4) {
-        StorageType *pixel = &pixels[i * 4];
-        if (!isfinite(pixel[0]) || !isfinite(pixel[1]) || !isfinite(pixel[2]) ||
-            !isfinite(pixel[3]))
-        {
-          pixel[0] = 0;
-          pixel[1] = 0;
-          pixel[2] = 0;
-          pixel[3] = 0;
+    if constexpr (std::is_floating_point_v<StorageType>) {
+      if (is_rgba) {
+        for (size_t i = 0; i < num_pixels; i += 4) {
+          StorageType *pixel = &pixels[i * 4];
+          if (!isfinite(StorageType(pixel[0])) || !isfinite(StorageType(pixel[1])) ||
+              !isfinite(StorageType(pixel[2])) || !isfinite(StorageType(pixel[3])))
+          {
+            pixel[0] = 0;
+            pixel[1] = 0;
+            pixel[2] = 0;
+            pixel[3] = 0;
+          }
         }
       }
-    }
-    else {
-      for (size_t i = 0; i < num_pixels; ++i) {
-        StorageType *pixel = &pixels[i];
-        if (!isfinite(pixel[0])) {
-          pixel[0] = 0;
+      else {
+        for (size_t i = 0; i < num_pixels; ++i) {
+          StorageType *pixel = &pixels[i];
+          if (!isfinite(pixel[0])) {
+            pixel[0] = 0;
+          }
         }
       }
     }
