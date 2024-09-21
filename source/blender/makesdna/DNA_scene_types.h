@@ -1602,6 +1602,20 @@ typedef struct ToolSettings {
 
   float uvcalc_margin;
 
+  int uvcalc_iterations;
+  float uvcalc_weight_factor;
+
+  /**
+   * Regarding having a single vertex group for all meshes.
+   * In most cases there is no expectation for the names used for vertex groups.
+   * UV weights is a fairly specific feature for unwrapping and in this case
+   * users are expected to use the name `uv_importance`.
+   * While we could support setting a different group per mesh (similar to the active group).
+   * This isn't all that useful in practice, so use a "default" name instead.
+   * This approach may be reworked after gathering feedback from users.
+   */
+  char uvcalc_weight_group[64]; /* MAX_VGROUP_NAME */
+
   /* Auto-IK. */
   /** Runtime only. */
   short autoik_chainlen;
@@ -2695,6 +2709,7 @@ enum {
 enum {
   UVCALC_UNWRAP_METHOD_ANGLE = 0,
   UVCALC_UNWRAP_METHOD_CONFORMAL = 1,
+  UVCALC_UNWRAP_METHOD_MINIMUM_STRETCH = 2,
 };
 
 /** #ToolSettings::uvcalc_flag */
@@ -2710,6 +2725,10 @@ enum {
   UVCALC_TRANSFORM_CORRECT = 1 << 4,
   /** Keep equal values merged while correcting custom-data. */
   UVCALC_TRANSFORM_CORRECT_KEEP_CONNECTED = 1 << 5,
+  /** Prevent unwrap that flips. */
+  UVCALC_UNWRAP_NO_FLIP = 1 << 6,
+  /** Use importance weights. */
+  UVCALC_UNWRAP_USE_WEIGHTS = 1 << 7,
 };
 
 /** #ToolSettings::uv_flag */

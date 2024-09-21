@@ -52,6 +52,10 @@ if(WITH_MOD_FLUID)
   add_subdirectory(mantaflow)
 endif()
 
+if(WITH_UV_SLIM)
+  add_subdirectory(slim)
+endif()
+
 if(WITH_OPENVDB)
   add_subdirectory(openvdb)
 endif()

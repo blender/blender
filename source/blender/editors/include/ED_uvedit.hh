@@ -29,6 +29,7 @@ struct bContext;
 struct bNode;
 struct bNodeTree;
 struct wmKeyConfig;
+struct wmTimer;
 
 /* `uvedit_ops.cc` */
 
@@ -259,8 +260,11 @@ char ED_uvedit_select_mode_get(const Scene *scene);
 void ED_uvedit_select_sync_flush(const ToolSettings *ts, BMEditMesh *em, bool select);
 
 /* `uvedit_unwrap_ops.cc` */
-
-void ED_uvedit_live_unwrap_begin(Scene *scene, Object *obedit);
+const wmTimer *ED_uvedit_live_unwrap_timer();
+/**
+ * \param win_modal: Support interactive (modal) unwrapping that updates with a timer.
+ */
+void ED_uvedit_live_unwrap_begin(Scene *scene, Object *obedit, struct wmWindow *win_modal);
 void ED_uvedit_live_unwrap_re_solve();
 void ED_uvedit_live_unwrap_end(short cancel);
 

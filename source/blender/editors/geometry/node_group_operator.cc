@@ -1142,6 +1142,7 @@ static Set<std::string> get_builtin_menus(const ObjectType object_type, const eO
           menus.add_new("Face");
           menus.add_new("Face/Face Data");
           menus.add_new("UV");
+          menus.add_new("UV/Unwrap");
           break;
         case OB_MODE_SCULPT:
           menus.add_new("View");

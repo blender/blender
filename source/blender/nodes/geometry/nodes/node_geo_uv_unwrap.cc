@@ -104,6 +104,7 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
                                        mp_vkeys.data(),
                                        mp_co.data(),
                                        mp_uv.data(),
+                                       nullptr,
                                        mp_pin.data(),
                                        mp_select.data());
   });

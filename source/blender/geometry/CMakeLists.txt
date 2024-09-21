@@ -101,6 +101,13 @@ set(LIB
   PRIVATE bf::extern::fmtlib
 )
 
+if(WITH_UV_SLIM)
+  list(APPEND INC
+    ../../../intern/slim
+  )
+  add_definitions(-DWITH_UV_SLIM)
+endif()
+
 if(WITH_OPENVDB)
   list(APPEND INC
     ../../../intern/openvdb

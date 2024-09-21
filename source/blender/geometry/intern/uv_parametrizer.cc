@@ -6,6 +6,9 @@
  * \ingroup eduv
  */
 
+#include <functional>
+#include <vector>
+
 #include "GEO_uv_parametrizer.hh"
 
 #include "BLI_array.hh"
@@ -19,6 +22,10 @@
 #include "BLI_polyfill_2d_beautify.h"
 #include "BLI_rand.h"
 
+#ifdef WITH_UV_SLIM
+#  include "slim_matrix_transfer.h"
+#endif
+
 #include "GEO_uv_pack.hh"
 
 #include "eigen_capi.h"
@@ -29,6 +36,13 @@ namespace blender::geometry {
 
 #define param_warning(message) \
   {/* `printf("Warning %s:%d: %s\n", __FILE__, __LINE__, message);` */}(void)0
+
+/* Prevent unused function warnings when slim is disabled.  */
+#ifdef WITH_UV_SLIM
+#  define UNUSED_FUNCTION_NO_SLIM(x) x
+#else
+#  define UNUSED_FUNCTION_NO_SLIM UNUSED_FUNCTION
+#endif
 
 /* Special Purpose Hash */
 
@@ -60,6 +74,10 @@ struct PVert {
   float co[3];
   float uv[2];
   uint flag;
+
+  float weight;
+  bool on_boundary_flag;
+  int slim_id;
 };
 
 struct PEdge {
@@ -121,6 +139,7 @@ enum PFaceFlag {
   PFACE_CONNECTED = 1,
   PFACE_FILLED = 2,
   PFACE_COLLAPSE = 4,
+  PFACE_DONE = 8,
 };
 
 /* Chart */
@@ -344,6 +363,31 @@ static void p_face_angles(PFace *f, double *r_a1, double *r_a2, double *r_a3)
   p_triangle_angles(v1->co, v2->co, v3->co, r_a1, r_a2, r_a3);
 }
 
+static float p_vec_cos(const float v1[3], const float v2[3], const float v3[3])
+{
+  return cos_v3v3v3(v1, v2, v3);
+}
+
+static void p_triangle_cos(const float v1[3],
+                           const float v2[3],
+                           const float v3[3],
+                           float *r_cos1,
+                           float *r_cos2,
+                           float *r_cos3)
+{
+  *r_cos1 = p_vec_cos(v3, v1, v2);
+  *r_cos2 = p_vec_cos(v1, v2, v3);
+  *r_cos3 = p_vec_cos(v2, v3, v1);
+}
+
+static void UNUSED_FUNCTION(p_face_cos)(PFace *f, float *r_cos1, float *r_cos2, float *r_cos3)
+{
+  PEdge *e1 = f->edge, *e2 = e1->next, *e3 = e2->next;
+  PVert *v1 = e1->vert, *v2 = e2->vert, *v3 = e3->vert;
+
+  p_triangle_cos(v1->co, v2->co, v3->co, r_cos1, r_cos2, r_cos3);
+}
+
 static float p_face_area(PFace *f)
 {
   PEdge *e1 = f->edge, *e2 = e1->next, *e3 = e2->next;
@@ -369,6 +413,11 @@ static float p_face_uv_area_signed(PFace *f)
 static float p_edge_length(PEdge *e)
 {
   return len_v3v3(e->vert->co, e->next->vert->co);
+}
+
+static float p_edge_length_squared(PEdge *e)
+{
+  return len_squared_v3v3(e->vert->co, e->next->vert->co);
 }
 
 static float p_edge_uv_length(PEdge *e)
@@ -474,6 +523,11 @@ static bool p_intersect_line_2d_dir(const float v1[2],
 /* Topological Utilities */
 
 static PEdge *p_wheel_edge_next(PEdge *e)
+{
+  return e->next->next->pair;
+}
+
+static const PEdge *p_wheel_edge_next(const PEdge *e)
 {
   return e->next->next->pair;
 }
@@ -592,6 +646,8 @@ static void p_vert_load_pin_select_uvs(ParamHandle *handle, PVert *v)
   }
 }
 
+static void p_chart_flush_collapsed_uvs(PChart *chart);
+
 static void p_flush_uvs(ParamHandle *handle, PChart *chart)
 {
   const float blend = handle->blend;
@@ -601,6 +657,17 @@ static void p_flush_uvs(ParamHandle *handle, PChart *chart)
     if (e->orig_uv) {
       e->orig_uv[0] = blend * e->old_uv[0] + invblend_x * e->vert->uv[0];
       e->orig_uv[1] = blend * e->old_uv[1] + invblend * e->vert->uv[1];
+    }
+  }
+
+  if (chart->collapsed_edges) {
+    p_chart_flush_collapsed_uvs(chart);
+
+    for (PEdge *e = chart->collapsed_edges; e; e = e->nextlink) {
+      if (e->orig_uv) {
+        e->orig_uv[0] = blend * e->old_uv[0] + invblend_x * e->vert->uv[0];
+        e->orig_uv[1] = blend * e->old_uv[1] + invblend * e->vert->uv[1];
+      }
     }
   }
 }
@@ -643,10 +710,12 @@ static void p_face_restore_uvs(PFace *f)
 
 /* Construction (use only during construction, relies on u.key being set */
 
-static PVert *p_vert_add(ParamHandle *handle, PHashKey key, const float co[3], PEdge *e)
+static PVert *p_vert_add(
+    ParamHandle *handle, PHashKey key, const float co[3], const float weight, PEdge *e)
 {
   PVert *v = (PVert *)BLI_memarena_alloc(handle->arena, sizeof(*v));
   copy_v3_v3(v->co, co);
+  v->weight = weight;
 
   /* Sanity check, a single nan/inf point causes the entire result to be invalid.
    * Note that values within the calculation may _become_ non-finite,
@@ -666,14 +735,15 @@ static PVert *p_vert_add(ParamHandle *handle, PHashKey key, const float co[3], P
   return v;
 }
 
-static PVert *p_vert_lookup(ParamHandle *handle, PHashKey key, const float co[3], PEdge *e)
+static PVert *p_vert_lookup(
+    ParamHandle *handle, PHashKey key, const float co[3], const float weight, PEdge *e)
 {
   PVert *v = (PVert *)phash_lookup(handle->hash_verts, key);
 
   if (v) {
     return v;
   }
-  return p_vert_add(handle, key, co, e);
+  return p_vert_add(handle, key, co, weight, e);
 }
 
 static PVert *p_vert_copy(ParamHandle *handle, PVert *v)
@@ -1014,6 +1084,7 @@ static PFace *p_face_add_construct(ParamHandle *handle,
                                    const ParamKey *vkeys,
                                    const float **co,
                                    float **uv,
+                                   const float *weight,
                                    int i1,
                                    int i2,
                                    int i3,
@@ -1023,9 +1094,21 @@ static PFace *p_face_add_construct(ParamHandle *handle,
   PFace *f = p_face_add(handle);
   PEdge *e1 = f->edge, *e2 = e1->next, *e3 = e2->next;
 
-  e1->vert = p_vert_lookup(handle, vkeys[i1], co[i1], e1);
-  e2->vert = p_vert_lookup(handle, vkeys[i2], co[i2], e2);
-  e3->vert = p_vert_lookup(handle, vkeys[i3], co[i3], e3);
+  float weight1, weight2, weight3;
+  if (weight) {
+    weight1 = weight[i1];
+    weight2 = weight[i2];
+    weight3 = weight[i3];
+  }
+  else {
+    weight1 = 1.0f;
+    weight2 = 1.0f;
+    weight3 = 1.0f;
+  }
+
+  e1->vert = p_vert_lookup(handle, vkeys[i1], co[i1], weight1, e1);
+  e2->vert = p_vert_lookup(handle, vkeys[i2], co[i2], weight2, e2);
+  e3->vert = p_vert_lookup(handle, vkeys[i3], co[i3], weight3, e3);
 
   e1->orig_uv = uv[i1];
   e2->orig_uv = uv[i2];
@@ -1556,6 +1639,7 @@ static void p_vert_harmonic_insert(PVert *v)
 
   p_vert_map_harmonic_weights(v);
 }
+#endif
 
 static void p_vert_fix_edge_pointer(PVert *v)
 {
@@ -1680,6 +1764,7 @@ static void p_collapse_edge(PEdge *edge, PEdge *pair)
   }
 }
 
+#if 0
 static void p_split_vertex(PEdge *edge, PEdge *pair)
 {
   PVert *newv, *keepv;
@@ -1727,6 +1812,7 @@ static void p_split_vertex(PEdge *edge, PEdge *pair)
     e = p_wheel_edge_next(e);
   } while (e && (e != newv->edge));
 }
+#endif
 
 static bool p_collapse_allowed_topologic(PEdge *edge, PEdge *pair)
 {
@@ -1753,6 +1839,7 @@ static bool p_collapse_allowed_topologic(PEdge *edge, PEdge *pair)
   return true;
 }
 
+#if 0
 static bool p_collapse_normal_flipped(float *v1, float *v2, float *vold, float *vnew)
 {
   float nold[3], nnew[3], sub1[3], sub2[3];
@@ -1944,6 +2031,7 @@ static float p_collapse_cost(PEdge *edge, PEdge *pair)
 
   return cost;
 }
+#endif
 
 static void p_collapse_cost_vertex(
     PVert *vert,
@@ -2066,38 +2154,6 @@ static void p_chart_simplify_compute(PChart *chart,
   /* For debugging. */
   static const int MAX_SIMPLIFY = INT_MAX;
 
-  PVert *v, *nextv = nullptr;
-  PEdge *e, *nexte = nullptr;
-  PFace *f, *nextf = nullptr;
-
-  for (v = chart->collapsed_verts; v; v = nextv) {
-    nextv = v->nextlink;
-    v->nextlink = chart->verts;
-    chart->verts = v;
-    chart->nverts++;
-  }
-
-  for (e = chart->collapsed_edges; e; e = nexte) {
-    nexte = e->nextlink;
-    e->nextlink = chart->edges;
-    chart->edges = e;
-    chart->nedges++;
-  }
-
-  for (f = chart->collapsed_faces; f; f = nextf) {
-    nextf = f->nextlink;
-    f->nextlink = chart->faces;
-    chart->faces = f;
-    chart->nfaces++;
-  }
-
-  chart->collapsed_verts = nullptr;
-  chart->collapsed_edges = nullptr;
-  chart->collapsed_faces = nullptr;
-}
-
-static void p_chart_simplify_compute(PChart *chart)
-{
   /* Computes a list of edge collapses / vertex splits. The collapsed
    * simplices go in the `chart->collapsed_*` lists, The original and
    * collapsed may then be view as stacks, where the next collapse/split
@@ -2198,6 +2254,41 @@ static void p_chart_simplify_compute(PChart *chart)
   p_chart_post_collapse_flush(chart, collapsededges);
 }
 
+#if 0
+static void p_chart_post_split_flush(PChart *chart)
+{
+  /* Move from `collapsed_*`. */
+
+  PVert *v, *nextv = nullptr;
+  PEdge *e, *nexte = nullptr;
+  PFace *f, *nextf = nullptr;
+
+  for (v = chart->collapsed_verts; v; v = nextv) {
+    nextv = v->nextlink;
+    v->nextlink = chart->verts;
+    chart->verts = v;
+    chart->nverts++;
+  }
+
+  for (e = chart->collapsed_edges; e; e = nexte) {
+    nexte = e->nextlink;
+    e->nextlink = chart->edges;
+    chart->edges = e;
+    chart->nedges++;
+  }
+
+  for (f = chart->collapsed_faces; f; f = nextf) {
+    nextf = f->nextlink;
+    f->nextlink = chart->faces;
+    chart->faces = f;
+    chart->nfaces++;
+  }
+
+  chart->collapsed_verts = nullptr;
+  chart->collapsed_edges = nullptr;
+  chart->collapsed_faces = nullptr;
+}
+
 static void p_chart_complexify(PChart *chart)
 {
   /* For debugging. */
@@ -2235,12 +2326,10 @@ static void p_chart_complexify(PChart *chart)
   p_chart_post_split_flush(chart);
 }
 
-#  if 0
 static void p_chart_simplify(PChart *chart)
 {
   /* Not implemented, needs proper reordering in split_flush. */
 }
-#  endif
 #endif
 
 /* ABF */
@@ -3752,6 +3841,7 @@ static void p_add_ngon(ParamHandle *handle,
                        const ParamKey *vkeys,
                        const float **co,
                        float **uv, /* Output will eventually be written to `uv`. */
+                       const float *weight,
                        const bool *pin,
                        const bool *select)
 {
@@ -3800,10 +3890,22 @@ static void p_add_ngon(ParamHandle *handle,
     const ParamKey tri_vkeys[3] = {vkeys[v0], vkeys[v1], vkeys[v2]};
     const float *tri_co[3] = {co[v0], co[v1], co[v2]};
     float *tri_uv[3] = {uv[v0], uv[v1], uv[v2]};
+
+    float *tri_weight = nullptr;
+    float tri_weight_tmp[3];
+
+    if (weight) {
+      tri_weight_tmp[0] = weight[v0];
+      tri_weight_tmp[1] = weight[v1];
+      tri_weight_tmp[2] = weight[v2];
+      tri_weight = tri_weight_tmp;
+    };
+
     const bool tri_pin[3] = {pin[v0], pin[v1], pin[v2]};
     const bool tri_select[3] = {select[v0], select[v1], select[v2]};
 
-    uv_parametrizer_face_add(handle, key, 3, tri_vkeys, tri_co, tri_uv, tri_pin, tri_select);
+    uv_parametrizer_face_add(
+        handle, key, 3, tri_vkeys, tri_co, tri_uv, tri_weight, tri_pin, tri_select);
   }
 
   BLI_memarena_clear(arena);
@@ -3815,6 +3917,7 @@ void uv_parametrizer_face_add(ParamHandle *phandle,
                               const ParamKey *vkeys,
                               const float **co,
                               float **uv,
+                              float *weight,
                               const bool *pin,
                               const bool *select)
 {
@@ -3852,7 +3955,7 @@ void uv_parametrizer_face_add(ParamHandle *phandle,
        * NOTE: Should probably call `uv_parametrizer_face_add`
        * instead of `p_face_add_construct`. */
       int iprev = permute[(i + pm - 1) % pm];
-      p_face_add_construct(phandle, key, vkeys, co, uv, iprev, i0, i1, pin, select);
+      p_face_add_construct(phandle, key, vkeys, co, uv, weight, iprev, i0, i1, pin, select);
 
       permute.remove(i);
       if (permute.size() == 3) {
@@ -3865,6 +3968,7 @@ void uv_parametrizer_face_add(ParamHandle *phandle,
       Array<ParamKey> vkeys_sub(pm);
       Array<const float *> co_sub(pm);
       Array<float *> uv_sub(pm);
+      Array<float> weight_sub(pm);
       Array<bool> pin_sub(pm);
       Array<bool> select_sub(pm);
       for (int i = 0; i < pm; i++) {
@@ -3872,6 +3976,7 @@ void uv_parametrizer_face_add(ParamHandle *phandle,
         vkeys_sub[i] = vkeys[j];
         co_sub[i] = co[j];
         uv_sub[i] = uv[j];
+        weight_sub[i] = weight[j];
         pin_sub[i] = pin && pin[j];
         select_sub[i] = select && select[j];
       }
@@ -3881,6 +3986,7 @@ void uv_parametrizer_face_add(ParamHandle *phandle,
                  &vkeys_sub.first(),
                  &co_sub.first(),
                  &uv_sub.first(),
+                 &weight_sub.first(),
                  &pin_sub.first(),
                  &select_sub.first());
       return; /* Nothing more to do. */
@@ -3889,11 +3995,11 @@ void uv_parametrizer_face_add(ParamHandle *phandle,
   }
   if (nverts > 3) {
     /* ngon */
-    p_add_ngon(phandle, key, nverts, vkeys, co, uv, pin, select);
+    p_add_ngon(phandle, key, nverts, vkeys, co, uv, weight, pin, select);
   }
   else if (!p_face_exists(phandle, vkeys, 0, 1, 2)) {
     /* triangle */
-    p_face_add_construct(phandle, key, vkeys, co, uv, 0, 1, 2, pin, select);
+    p_face_add_construct(phandle, key, vkeys, co, uv, weight, 0, 1, 2, pin, select);
   }
 }
 
@@ -4282,5 +4388,1006 @@ void uv_parametrizer_flush_restore(ParamHandle *phandle)
     }
   }
 }
+
+/* -------------------------------------------------------------------- */
+/** \name Degenerate Geometry Fixing
+ * \{ */
+
+static bool p_collapse_doubles_allowed(PEdge *edge, PEdge *pair, float threshold_squared)
+{
+  PVert *oldv, *keepv;
+
+  p_collapsing_verts(edge, pair, &oldv, &keepv);
+
+  /* Do not collapse a pinned vertex unless the target vertex
+   * is also pinned. */
+  if ((oldv->flag & PVERT_PIN) && !(keepv->flag & PVERT_PIN)) {
+    return false;
+  }
+
+  if (!p_collapse_allowed_topologic(edge, pair)) {
+    return false;
+  }
+
+  PEdge *collapse_e = edge ? edge : pair;
+  return p_edge_length_squared(collapse_e) < threshold_squared;
+}
+
+static float p_collapse_doubles_cost(PEdge *edge, PEdge *pair)
+{
+  PEdge *collapse_e = edge ? edge : pair;
+  return p_edge_length_squared(collapse_e);
+}
+
+static void UNUSED_FUNCTION(p_chart_collapse_doubles)(PChart *chart, const float threshold)
+{
+  const float threshold_squared = threshold * threshold;
+
+  p_chart_simplify_compute(chart, p_collapse_doubles_cost, [=](PEdge *e, PEdge *pair) {
+    return p_collapse_doubles_allowed(e, pair, threshold_squared);
+  });
+}
+
+static void p_chart_flush_collapsed_uvs(PChart *chart)
+{
+  PEdge *e, *pair, *edge;
+  PVert *newv, *keepv;
+
+  for (e = chart->collapsed_edges; e; e = e->nextlink) {
+    if (!(e->flag & PEDGE_COLLAPSE_EDGE)) {
+      break;
+    }
+    edge = e;
+    pair = e->pair;
+    if (edge->flag & PEDGE_COLLAPSE_PAIR) {
+      std::swap(edge, pair);
+    }
+    p_collapsing_verts(edge, pair, &newv, &keepv);
+
+    if (!(newv->flag & PVERT_PIN)) {
+      newv->uv[0] = keepv->uv[0];
+      newv->uv[1] = keepv->uv[1];
+    }
+  }
+}
+
+static bool p_validate_corrected_coords_point(const PEdge *corr_e,
+                                              const float corr_co1[3],
+                                              const float corr_co2[3],
+                                              const float min_area,
+                                              const float min_angle_cos)
+{
+  /* Check whether the given corrected coordinates don't result in any other triangle with area
+   * lower than min_area. */
+
+  const PVert *corr_v = corr_e->vert;
+  const PEdge *e = corr_v->edge;
+
+  do {
+    float area;
+
+    if (e == corr_e) {
+      continue;
+    }
+
+    if (!(e->face->flag & PFACE_DONE) && (e != corr_e)) {
+      continue;
+    }
+
+    if (e->next->next == corr_e->pair) {
+      PVert *other_v = e->next->next->vert;
+      area = area_tri_v3(corr_co1, corr_co2, other_v->co);
+    }
+    else {
+      const PVert *other_v1 = e->next->vert;
+      const PVert *other_v2 = e->next->next->vert;
+      area = area_tri_v3(corr_co1, other_v1->co, other_v2->co);
+    }
+
+    if (area < min_area) {
+      return false;
+    }
+
+    float f_cos[3];
+
+    if (e->next->next == corr_e->pair) {
+      PVert *other_v = e->next->next->vert;
+      p_triangle_cos(corr_co1, corr_co2, other_v->co, f_cos, f_cos + 1, f_cos + 2);
+    }
+    else {
+      const PVert *other_v1 = e->next->vert;
+      const PVert *other_v2 = e->next->next->vert;
+      p_triangle_cos(corr_co1, other_v1->co, other_v2->co, f_cos, f_cos + 1, f_cos + 2);
+    }
+
+    for (int i = 0; i < 3; i++) {
+      if (f_cos[i] > min_angle_cos) {
+        return false;
+      }
+    }
+
+  } while ((e = p_wheel_edge_next(e)) && (e != corr_v->edge));
+
+  return true;
+}
+
+static bool p_validate_corrected_coords(const PEdge *corr_e,
+                                        const float corr_co[3],
+                                        float min_area,
+                                        float min_angle_cos)
+{
+  /* Check whether the given corrected coordinates don't result in any other triangle with area
+   * lower than min_area. */
+
+  const PVert *corr_v = corr_e->vert;
+  const PEdge *e = corr_v->edge;
+
+  do {
+    if (!(e->face->flag & PFACE_DONE) && (e != corr_e)) {
+      continue;
+    }
+
+    const PVert *other_v1 = e->next->vert;
+    const PVert *other_v2 = e->next->next->vert;
+
+    const float area = area_tri_v3(corr_co, other_v1->co, other_v2->co);
+
+    if (area < min_area) {
+      return false;
+    }
+
+    float f_cos[3];
+    p_triangle_cos(corr_co, other_v1->co, other_v2->co, f_cos, f_cos + 1, f_cos + 2);
+
+    for (int i = 0; i < 3; i++) {
+      if (f_cos[i] > min_angle_cos) {
+        return false;
+      }
+    }
+
+  } while ((e = p_wheel_edge_next(e)) && (e != corr_v->edge));
+
+  return true;
+}
+
+static bool p_edge_matrix(float R[3][3], const float edge_dir[3])
+{
+  static const constexpr float eps = 1.0e-5;
+  static const constexpr float n1[3] = {0.0f, 0.0f, 1.0f};
+  static const constexpr float n2[3] = {0.0f, 1.0f, 0.0f};
+
+  float edge_len = len_v3(edge_dir);
+  if (edge_len < eps) {
+    return false;
+  }
+
+  float edge_dir_norm[3];
+  copy_v3_v3(edge_dir_norm, edge_dir);
+  mul_v3_fl(edge_dir_norm, 1.0f / edge_len);
+
+  float normal_dir[3];
+  cross_v3_v3v3(normal_dir, edge_dir_norm, n1);
+  float normal_len = len_v3(normal_dir);
+
+  if (normal_len < eps) {
+    cross_v3_v3v3(normal_dir, edge_dir_norm, n2);
+    normal_len = len_v3(normal_dir);
+
+    if (normal_len < eps) {
+      return false;
+    }
+  }
+
+  mul_v3_fl(normal_dir, 1.0f / normal_len);
+
+  float tangent_dir[3];
+  cross_v3_v3v3(tangent_dir, edge_dir_norm, normal_dir);
+
+  R[0][0] = edge_dir_norm[0];
+  R[1][0] = edge_dir_norm[1];
+  R[2][0] = edge_dir_norm[2];
+
+  R[0][1] = normal_dir[0];
+  R[1][1] = normal_dir[1];
+  R[2][1] = normal_dir[2];
+
+  R[0][2] = tangent_dir[0];
+  R[1][2] = tangent_dir[1];
+  R[2][2] = tangent_dir[2];
+
+  return true;
+}
+
+static bool p_edge_matrix(float R[3][3], const PEdge *e)
+{
+  float edge_dir[3];
+  copy_v3_v3(edge_dir, e->next->vert->co);
+  sub_v3_v3(edge_dir, e->vert->co);
+
+  return p_edge_matrix(R, edge_dir);
+}
+
+static const float CORR_ZERO_AREA_EPS = 1.0e-10f;
+
+static bool p_chart_correct_degenerate_triangle_point(PFace *f,
+                                                      float min_area,
+                                                      float min_angle_cos)
+{
+  static const float3 ref_edges[] = {
+      {1.0f, 0.0f, 0.0f},
+      {0.0f, 1.0f, 0.0f},
+      {0.0f, 0.0f, 1.0f},
+      {0.0f, 1.0f, 1.0f},
+      {1.0f, 0.0f, 1.0f},
+      {1.0f, 1.0f, 0.0f},
+
+      {0.0f, 0.5f, 1.0f},
+      {0.5f, 0.0f, 1.0f},
+      {0.5f, 1.0f, 0.0f},
+
+      {0.0f, 1.0f, 0.5f},
+      {1.0f, 0.0f, 0.5f},
+      {1.0f, 0.5f, 0.0f},
+  };
+  static const int ref_edge_count = ARRAY_SIZE(ref_edges);
+  static const int LEN_MULTIPLIER_COUNT = 3;
+  bool corr_co_found = false;
+
+  float corr_len = 2.0f * std::sqrt((min_area + CORR_ZERO_AREA_EPS) / 3.0f / std::sqrt(3.0f));
+
+  for (int m = 0; m < LEN_MULTIPLIER_COUNT; m++) {
+    for (int re = 0; re < ref_edge_count; re++) {
+      float M[3][3];
+
+      if (!p_edge_matrix(M, ref_edges[re])) {
+        continue;
+      }
+
+      float corr_co[3][3];
+      PEdge *e = f->edge;
+
+      for (int i = 0; i < 3; i++) {
+        const float angle = (float(i) / 3.0f) * float(2.0 * M_PI);
+        float corr_dir[3] = {0.0f, cos(angle), sin(angle)};
+
+        float corr_len_multiplied = corr_len * (m + 1);
+
+        mul_m3_v3(M, corr_dir);
+        mul_v3_fl(corr_dir, corr_len_multiplied);
+
+        copy_v3_v3(corr_co[i], e->vert->co);
+        add_v3_v3(corr_co[i], corr_dir);
+        e = e->next;
+      }
+
+      e = f->edge;
+      for (int i = 0; i < 3; i++) {
+        if (!p_validate_corrected_coords_point(
+                e, corr_co[i], corr_co[(i + 1) % 3], min_area, min_angle_cos))
+        {
+          return false;
+        }
+
+        e = e->next;
+      }
+
+      e = f->edge;
+      for (int i = 0; i < 3; i++) {
+        copy_v3_v3(e->vert->co, corr_co[i]);
+        e = e->next;
+      }
+
+      corr_co_found = true;
+      break;
+    }
+
+    if (corr_co_found) {
+      break;
+    }
+  }
+
+  if (!corr_co_found) {
+    return false;
+  }
+
+  f->flag |= PFACE_DONE;
+  return true;
+}
+
+static bool p_chart_correct_degenerate_triangles2(PChart *chart, float min_area, float min_angle)
+{
+  static const float eps = 1.0e-6;
+
+  float min_angle_cos = std::cos(min_angle);
+  float min_angle_sin = std::sin(min_angle + CORR_ZERO_AREA_EPS);
+
+  for (PFace *f = chart->faces; f; f = f->nextlink) {
+    if (f->flag & PFACE_DONE) {
+      continue;
+    }
+
+    float face_area = p_face_area(f);
+
+    PEdge *max_edge = nullptr;
+    float max_edge_len = -std::numeric_limits<float>::infinity();
+
+    PEdge *min_edge = nullptr;
+    float min_edge_len = std::numeric_limits<float>::infinity();
+
+    PEdge *middle_edge = nullptr;
+
+    PEdge *e = f->edge;
+    do {
+      float len = p_edge_length(e);
+
+      if (len > max_edge_len) {
+        max_edge = e;
+        max_edge_len = len;
+
+        middle_edge = max_edge->next == min_edge ? min_edge->next : max_edge->next;
+      }
+
+      if (len < min_edge_len) {
+        min_edge = e;
+        min_edge_len = len;
+
+        middle_edge = min_edge->next == max_edge ? max_edge->next : min_edge->next;
+      }
+
+      e = e->next;
+    } while (e != f->edge);
+
+    BLI_assert(max_edge);
+    BLI_assert(min_edge);
+    BLI_assert(middle_edge);
+
+    bool small_uniside_tri = (face_area <= min_area) && (min_edge == max_edge);
+
+    if ((max_edge_len < eps) || small_uniside_tri) {
+      p_chart_correct_degenerate_triangle_point(f, min_area, min_angle_cos);
+      continue;
+    }
+
+    if (min_edge == max_edge) {
+      BLI_assert(face_area > min_area);
+      f->flag |= PFACE_DONE;
+      continue;
+    }
+
+    BLI_assert(middle_edge != max_edge);
+    BLI_assert(middle_edge != min_edge);
+
+    float M[3][3];
+    if (!p_edge_matrix(M, max_edge)) {
+      continue;
+    }
+
+    float max_face_cos =
+        middle_edge->next == max_edge ?
+            p_vec_cos(middle_edge->vert->co, max_edge->vert->co, min_edge->vert->co) :
+            p_vec_cos(max_edge->vert->co, middle_edge->vert->co, min_edge->vert->co);
+
+    float angle_corr_len = max_face_cos > min_angle_cos ?
+                               p_edge_length(middle_edge) * min_angle_sin :
+                               0.0f;
+
+    if ((face_area > min_area) && (angle_corr_len == 0.0f)) {
+      f->flag |= PFACE_DONE;
+      continue;
+    }
+
+    float corr_len = (min_area + CORR_ZERO_AREA_EPS) * 2.0f / max_edge_len;
+    corr_len = std::max(corr_len, angle_corr_len);
+
+    PEdge *corr_e = max_edge->next->next;
+    PVert *corr_v = corr_e->vert;
+
+    /* Check 4 distinct directions. */
+    static const constexpr int DIR_COUNT = 16;
+    static const constexpr int LEN_MULTIPLIER_COUNT = 2;
+    float corr_co[3];
+    bool corr_co_found = false;
+
+    for (int m = 0; m < LEN_MULTIPLIER_COUNT; m++) {
+      for (int d = 0; d < DIR_COUNT; d++) {
+        const float angle = (float(d) / DIR_COUNT) * float(2.0 * M_PI);
+        float corr_dir[3] = {0.0f, cos(angle), sin(angle)};
+
+        const float corr_len_multiplied = corr_len * (m + 1);
+
+        mul_m3_v3(M, corr_dir);
+        mul_v3_fl(corr_dir, corr_len_multiplied);
+
+        copy_v3_v3(corr_co, corr_v->co);
+        add_v3_v3(corr_co, corr_dir);
+
+        if (p_validate_corrected_coords(corr_e, corr_co, min_area, min_angle_cos)) {
+          corr_co_found = true;
+          break;
+        }
+      }
+
+      if (corr_co_found) {
+        break;
+      }
+    }
+
+    if (!corr_co_found) {
+      continue;
+    }
+
+    f->flag |= PFACE_DONE;
+    copy_v3_v3(corr_v->co, corr_co);
+  }
+
+  return true;
+}
+
+#ifndef NDEBUG
+
+static bool p_validate_triangle_angles(const PVert *vert1,
+                                       const PVert *vert2,
+                                       const PVert *vert3,
+                                       const float min_angle_cos)
+{
+  float t_cos[3];
+  p_triangle_cos(vert1->co, vert2->co, vert3->co, t_cos, t_cos + 1, t_cos + 2);
+
+  for (int i = 0; i < 3; i++) {
+    if (t_cos[i] > min_angle_cos) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+#endif
+
+static bool UNUSED_FUNCTION_NO_SLIM(p_chart_correct_degenerate_triangles)(PChart *chart,
+                                                                          const float min_area,
+                                                                          const float min_angle)
+{
+  /* Look for degenerate triangles: triangles with angles lower than `min_angle` or having area
+   * lower than `min_area` and try to correct vertex coordinates so that the resulting triangle is
+   * not degenerate.
+   *
+   * The return value indicates whether all triangles could be corrected.
+   */
+
+  bool ret = p_chart_correct_degenerate_triangles2(chart, min_area, min_angle);
+
+#ifndef NDEBUG
+  float min_angle_cos = std::cos(min_angle - CORR_ZERO_AREA_EPS);
+#endif
+
+  for (PFace *f = chart->faces; f; f = f->nextlink) {
+    if (!(f->flag & PFACE_DONE)) {
+      ret = false;
+    }
+    else {
+#ifndef NDEBUG
+      float f_area = p_face_area(f);
+      BLI_assert(f_area > (min_area - CORR_ZERO_AREA_EPS));
+
+      PVert *vert1 = f->edge->vert;
+      PVert *vert2 = f->edge->next->vert;
+      PVert *vert3 = f->edge->next->next->vert;
+
+      BLI_assert(p_validate_triangle_angles(vert1, vert2, vert3, min_angle_cos));
+#endif
+    }
+
+    f->flag &= ~PFACE_DONE;
+  }
+
+  return ret;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name SLIM Implementation (Private API)
+ * \{ */
+
+#ifdef WITH_UV_SLIM
+
+/**
+ * Get SLIM parameters from the scene.
+ */
+static slim::MatrixTransfer *slim_matrix_transfer(const ParamSlimOptions *slim_options)
+{
+  slim::MatrixTransfer *mt = new slim::MatrixTransfer();
+
+  mt->use_weights = slim_options->weight_influence > 0.0f;
+  mt->weight_influence = slim_options->weight_influence;
+  mt->n_iterations = slim_options->iterations;
+  mt->reflection_mode = slim_options->no_flip;
+  mt->skip_initialization = slim_options->skip_init;
+
+  return mt;
+}
+
+/**
+ * For one chart, allocate memory. If no accurate estimate
+ * (e.g. for number of pinned vertices) overestimate and correct later.
+ */
+static void slim_allocate_matrices(const PChart *chart, slim::MatrixTransferChart *mt_chart)
+{
+  mt_chart->verts_num = chart->nverts;
+  mt_chart->faces_num = chart->nfaces;
+  mt_chart->edges_num = chart->nedges;
+
+  mt_chart->v_matrices.resize(mt_chart->verts_num * 3);
+  mt_chart->uv_matrices.resize(mt_chart->verts_num * 2);
+  mt_chart->pp_matrices.resize(mt_chart->verts_num * 2);
+
+  mt_chart->f_matrices.resize(mt_chart->faces_num * 3);
+  mt_chart->p_matrices.resize(mt_chart->verts_num);
+  mt_chart->b_vectors.resize(mt_chart->verts_num);
+  /* Also clear memory for weight vectors, hence 'new' followed by `()`. */
+  mt_chart->w_vectors.resize(mt_chart->verts_num, 0.0);
+
+  mt_chart->e_matrices.resize(mt_chart->edges_num * 2 * 2);
+  mt_chart->el_vectors.resize(mt_chart->edges_num * 2);
+}
+
+/**
+ * Transfer edges and edge lengths.
+ */
+static void slim_transfer_edges(PChart *chart, slim::MatrixTransferChart *mt_chart)
+{
+  std::vector<int> &E = mt_chart->e_matrices;
+  std::vector<double> &EL = mt_chart->el_vectors;
+
+  PEdge *outer;
+  p_chart_boundaries(chart, &outer);
+
+  PEdge *be = outer;
+  int eid = 0;
+
+  static const float DOUBLED_VERT_THRESHOLD = 1.0e-5;
+
+  do {
+    E[eid] = be->vert->slim_id;
+    const float edge_len = p_edge_length(be);
+    EL[eid] = edge_len;
+
+    /* Temporary solution : SLIM doesn't support doubled vertices for now. */
+    if (edge_len < DOUBLED_VERT_THRESHOLD) {
+      mt_chart->succeeded = false;
+    }
+
+    be = p_boundary_edge_next(be);
+    E[eid + mt_chart->edges_num + mt_chart->boundary_vertices_num] = be->vert->slim_id;
+    eid++;
+
+  } while (be != outer);
+
+  for (PEdge *e = chart->edges; e; e = e->nextlink) {
+    PEdge *e1 = e->next;
+
+    E[eid] = e->vert->slim_id;
+    const float edge_len = p_edge_length(e);
+    EL[eid] = edge_len;
+
+    /* Temporary solution : SLIM doesn't support doubled vertices for now. */
+    if (edge_len < DOUBLED_VERT_THRESHOLD) {
+      mt_chart->succeeded = false;
+    }
+
+    E[eid + mt_chart->edges_num + mt_chart->boundary_vertices_num] = e1->vert->slim_id;
+    eid++;
+  }
+}
+
+/**
+ * Transfer vertices and pinned information.
+ */
+static void slim_transfer_vertices(const PChart *chart,
+                                   slim::MatrixTransferChart *mt_chart,
+                                   slim::MatrixTransfer *mt)
+{
+  int r = mt_chart->verts_num;
+  std::vector<double> &v_mat = mt_chart->v_matrices;
+  std::vector<double> &uv_mat = mt_chart->uv_matrices;
+  std::vector<int> &p_mat = mt_chart->p_matrices;
+  std::vector<double> &pp_mat = mt_chart->pp_matrices;
+  std::vector<float> &w_vec = mt_chart->w_vectors;
+
+  int p_vid = 0;
+  int vid = mt_chart->boundary_vertices_num;
+
+  /* For every vertex, fill up V matrix and P matrix (pinned vertices) */
+  for (PVert *v = chart->verts; v; v = v->nextlink) {
+    if (!v->on_boundary_flag) {
+      if (mt->use_weights) {
+        w_vec[vid] = v->weight;
+      }
+
+      v->slim_id = vid;
+      vid++;
+    }
+
+    v_mat[v->slim_id] = v->co[0];
+    v_mat[r + v->slim_id] = v->co[1];
+    v_mat[2 * r + v->slim_id] = v->co[2];
+
+    uv_mat[v->slim_id] = v->uv[0];
+    uv_mat[r + v->slim_id] = v->uv[1];
+
+    if (v->flag & PVERT_PIN || (mt->is_minimize_stretch && !(v->flag & PVERT_SELECT))) {
+      mt_chart->pinned_vertices_num += 1;
+
+      p_mat[p_vid] = v->slim_id;
+      pp_mat[2 * p_vid] = double(v->uv[0]);
+      pp_mat[2 * p_vid + 1] = double(v->uv[1]);
+      p_vid += 1;
+    }
+  }
+}
+
+/**
+ * Transfer boundary vertices.
+ */
+static void slim_transfer_boundary_vertices(PChart *chart,
+                                            slim::MatrixTransferChart *mt_chart,
+                                            const slim::MatrixTransfer *mt)
+{
+  std::vector<int> &b_vec = mt_chart->b_vectors;
+  std::vector<float> &w_vec = mt_chart->w_vectors;
+
+  /* For every vertex, set slim_flag to 0 */
+  for (PVert *v = chart->verts; v; v = v->nextlink) {
+    v->on_boundary_flag = false;
+  }
+
+  /* Find vertices on boundary and save into vector B */
+  PEdge *outer;
+  p_chart_boundaries(chart, &outer);
+
+  PEdge *be = outer;
+  int vid = 0;
+
+  do {
+    if (mt->use_weights) {
+      w_vec[vid] = be->vert->weight;
+    }
+
+    mt_chart->boundary_vertices_num += 1;
+    be->vert->slim_id = vid;
+    be->vert->on_boundary_flag = true;
+    b_vec[vid] = vid;
+
+    vid += 1;
+    be = p_boundary_edge_next(be);
+
+  } while (be != outer);
+}
+
+/**
+ * Transfer faces.
+ */
+static void slim_transfer_faces(const PChart *chart, slim::MatrixTransferChart *mt_chart)
+{
+  int fid = 0;
+
+  for (PFace *f = chart->faces; f; f = f->nextlink) {
+    PEdge *e = f->edge;
+    PEdge *e1 = e->next;
+    PEdge *e2 = e1->next;
+
+    int r = mt_chart->faces_num;
+    std::vector<int> &F = mt_chart->f_matrices;
+
+    F[fid] = e->vert->slim_id;
+    F[r + fid] = e1->vert->slim_id;
+    F[2 * r + fid] = e2->vert->slim_id;
+    fid++;
+  }
+}
+
+/**
+ * Conversion Function to build matrix for SLIM Parametrization.
+ */
+static void slim_convert_blender(ParamHandle *phandle, slim::MatrixTransfer *mt)
+{
+  static const float SLIM_CORR_MIN_AREA = 1.0e-8;
+  static const float SLIM_CORR_MIN_ANGLE = DEG2RADF(1.0);
+
+  mt->charts.resize(phandle->ncharts);
+
+  for (int i = 0; i < phandle->ncharts; i++) {
+    PChart *chart = phandle->charts[i];
+    slim::MatrixTransferChart *mt_chart = &mt->charts[i];
+
+    p_chart_correct_degenerate_triangles(chart, SLIM_CORR_MIN_AREA, SLIM_CORR_MIN_ANGLE);
+
+    mt_chart->succeeded = true;
+    mt_chart->pinned_vertices_num = 0;
+    mt_chart->boundary_vertices_num = 0;
+
+    /* Allocate memory for matrices of Vertices,Faces etc. for each chart. */
+    slim_allocate_matrices(chart, mt_chart);
+
+    /* For each chart, fill up matrices. */
+    slim_transfer_boundary_vertices(chart, mt_chart, mt);
+    slim_transfer_vertices(chart, mt_chart, mt);
+    slim_transfer_edges(chart, mt_chart);
+    slim_transfer_faces(chart, mt_chart);
+
+    mt_chart->pp_matrices.resize(mt_chart->pinned_vertices_num * 2);
+    mt_chart->pp_matrices.shrink_to_fit();
+
+    mt_chart->p_matrices.resize(mt_chart->pinned_vertices_num);
+    mt_chart->p_matrices.shrink_to_fit();
+
+    mt_chart->b_vectors.resize(mt_chart->boundary_vertices_num);
+    mt_chart->b_vectors.shrink_to_fit();
+
+    mt_chart->e_matrices.resize((mt_chart->edges_num + mt_chart->boundary_vertices_num) * 2);
+    mt_chart->e_matrices.shrink_to_fit();
+  }
+}
+
+static void slim_transfer_data_to_slim(ParamHandle *phandle, const ParamSlimOptions *slim_options)
+{
+  slim::MatrixTransfer *mt = slim_matrix_transfer(slim_options);
+
+  slim_convert_blender(phandle, mt);
+  phandle->slim_mt = mt;
+}
+
+/**
+ * Set UV on each vertex after SLIM parametrization, for each chart.
+ */
+static void slim_flush_uvs(ParamHandle *phandle,
+                           slim::MatrixTransfer *mt,
+                           int *count_changed,
+                           int *count_failed,
+                           bool live = false)
+{
+  int vid;
+  PVert *v;
+
+  for (int i = 0; i < phandle->ncharts; i++) {
+    PChart *chart = phandle->charts[i];
+    slim::MatrixTransferChart *mt_chart = &mt->charts[i];
+
+    if (mt_chart->succeeded) {
+      if (count_changed) {
+        (*count_changed)++;
+      }
+
+      std::vector<double> &UV = mt_chart->uv_matrices;
+      for (v = chart->verts; v; v = v->nextlink) {
+        if (v->flag & PVERT_PIN) {
+          continue;
+        }
+
+        vid = v->slim_id;
+        v->uv[0] = UV[vid];
+        v->uv[1] = UV[mt_chart->verts_num + vid];
+      }
+    }
+    else {
+      if (count_failed) {
+        (*count_failed)++;
+      }
+
+      if (!live) {
+        for (v = chart->verts; v; v = v->nextlink) {
+          v->uv[0] = 0.0f;
+          v->uv[1] = 0.0f;
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Cleanup memory.
+ */
+static void slim_free_matrix_transfer(ParamHandle *phandle)
+{
+  delete phandle->slim_mt;
+  phandle->slim_mt = nullptr;
+}
+
+static void slim_get_pinned_vertex_data(ParamHandle *phandle,
+                                        PChart *chart,
+                                        slim::MatrixTransferChart &mt_chart,
+                                        slim::PinnedVertexData &pinned_vertex_data)
+{
+  std::vector<int> &pinned_vertex_indices = pinned_vertex_data.pinned_vertex_indices;
+  std::vector<double> &pinned_vertex_positions_2D = pinned_vertex_data.pinned_vertex_positions_2D;
+  std::vector<int> &selected_pins = pinned_vertex_data.selected_pins;
+
+  pinned_vertex_indices.clear();
+  pinned_vertex_positions_2D.clear();
+  selected_pins.clear();
+
+  /* Boundary vertices have lower slim_ids, process them first. */
+  PEdge *outer;
+  p_chart_boundaries(chart, &outer);
+  PEdge *be = outer;
+  do {
+    if (be->vert->flag & PVERT_PIN) {
+      /* Reload vertex position. */
+      p_vert_load_pin_select_uvs(phandle, be->vert);
+
+      if (be->vert->flag & PVERT_SELECT) {
+        selected_pins.push_back(be->vert->slim_id);
+      }
+
+      pinned_vertex_indices.push_back(be->vert->slim_id);
+      pinned_vertex_positions_2D.push_back(be->vert->uv[0]);
+      pinned_vertex_positions_2D.push_back(be->vert->uv[1]);
+    }
+    be = p_boundary_edge_next(be);
+  } while (be != outer);
+
+  PVert *v;
+  for (v = chart->verts; v; v = v->nextlink) {
+    if (!v->on_boundary_flag && (v->flag & PVERT_PIN)) {
+      /* Reload `v`. */
+      p_vert_load_pin_select_uvs(phandle, v);
+
+      if (v->flag & PVERT_SELECT) {
+        selected_pins.push_back(v->slim_id);
+      }
+      pinned_vertex_indices.push_back(v->slim_id);
+      pinned_vertex_positions_2D.push_back(v->uv[0]);
+      pinned_vertex_positions_2D.push_back(v->uv[1]);
+    }
+  }
+
+  mt_chart.pinned_vertices_num = pinned_vertex_indices.size();
+}
+
+#endif /* WITH_UV_SLIM */
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name SLIM Integration (Public API)
+ * \{ */
+
+void uv_parametrizer_slim_solve(ParamHandle *phandle,
+                                const ParamSlimOptions *slim_options,
+                                int *count_changed,
+                                int *count_failed)
+{
+#ifdef WITH_UV_SLIM
+  slim_transfer_data_to_slim(phandle, slim_options);
+  slim::MatrixTransfer *mt = phandle->slim_mt;
+
+  mt->parametrize();
+
+  slim_flush_uvs(phandle, mt, count_changed, count_failed);
+  slim_free_matrix_transfer(phandle);
+#else
+  *count_changed = 0;
+  *count_failed = 0;
+  UNUSED_VARS(phandle, slim_options, count_changed, count_failed);
+#endif /* !WITH_UV_SLIM */
+}
+
+void uv_parametrizer_slim_live_begin(ParamHandle *phandle, const ParamSlimOptions *slim_options)
+{
+#ifdef WITH_UV_SLIM
+  slim_transfer_data_to_slim(phandle, slim_options);
+  slim::MatrixTransfer *mt = phandle->slim_mt;
+
+  for (int i = 0; i < phandle->ncharts; i++) {
+    for (PFace *f = phandle->charts[i]->faces; f; f = f->nextlink) {
+      p_face_backup_uvs(f);
+    }
+  }
+
+  for (int i = 0; i < phandle->ncharts; i++) {
+    PChart *chart = phandle->charts[i];
+    slim::MatrixTransferChart &mt_chart = mt->charts[i];
+
+    bool select = false, deselect = false;
+
+    /* Give vertices matrix indices and count pins. */
+    for (PVert *v = chart->verts; v; v = v->nextlink) {
+      if (v->flag & PVERT_PIN) {
+        if (v->flag & PVERT_SELECT) {
+          select = true;
+        }
+      }
+
+      if (!(v->flag & PVERT_SELECT)) {
+        deselect = true;
+      }
+    }
+
+    if (!select || !deselect) {
+      chart->skip_flush = true;
+      mt_chart.succeeded = false;
+      continue;
+    }
+
+    mt->setup_slim_data(mt_chart);
+  }
+#else
+  UNUSED_VARS(phandle, slim_options);
+#endif /* !WITH_UV_SLIM */
+}
+
+void uv_parametrizer_slim_stretch_iteration(ParamHandle *phandle, const float blend)
+{
+#ifdef WITH_UV_SLIM
+  slim::MatrixTransfer *mt = phandle->slim_mt;
+
+  /* Do one iteration and transfer UVs. */
+  for (int i = 0; i < phandle->ncharts; i++) {
+    mt->charts[i].parametrize_single_iteration();
+    mt->charts[i].transfer_uvs_blended(blend);
+  }
+
+  /* Assign new UVs back to each vertex. */
+  slim_flush_uvs(phandle, mt, nullptr, nullptr);
+#else
+  UNUSED_VARS(phandle, blend);
+#endif /* !WITH_UV_SLIM */
+}
+
+void uv_parametrizer_slim_live_solve_iteration(ParamHandle *phandle)
+{
+#ifdef WITH_UV_SLIM
+  slim::MatrixTransfer *mt = phandle->slim_mt;
+
+  /* Do one iteration and transfer UVs */
+  for (int i = 0; i < phandle->ncharts; i++) {
+    PChart *chart = phandle->charts[i];
+    slim::MatrixTransferChart &mt_chart = mt->charts[i];
+
+    if (!mt_chart.data) {
+      continue;
+    }
+
+    slim_get_pinned_vertex_data(phandle, chart, mt_chart, mt->pinned_vertex_data);
+
+    mt->parametrize_live(mt_chart, mt->pinned_vertex_data);
+  }
+
+  /* Assign new UVs back to each vertex. */
+  const bool live = true;
+  slim_flush_uvs(phandle, mt, nullptr, nullptr, live);
+#else
+  UNUSED_VARS(phandle);
+#endif /* !WITH_UV_SLIM */
+}
+
+void uv_parametrizer_slim_live_end(ParamHandle *phandle)
+{
+#ifdef WITH_UV_SLIM
+  slim::MatrixTransfer *mt = phandle->slim_mt;
+
+  for (int i = 0; i < phandle->ncharts; i++) {
+    slim::MatrixTransferChart *mt_chart = &mt->charts[i];
+    mt_chart->free_slim_data();
+  }
+
+  slim_free_matrix_transfer(phandle);
+#else
+  UNUSED_VARS(phandle);
+#endif /* WITH_UV_SLIM */
+}
+
+bool uv_parametrizer_is_slim(const ParamHandle *phandle)
+{
+#ifdef WITH_UV_SLIM
+  return phandle->slim_mt != nullptr;
+#else
+  UNUSED_VARS(phandle);
+  return false;
+#endif
+}
+
+/** \} */
 
 }  // namespace blender::geometry
