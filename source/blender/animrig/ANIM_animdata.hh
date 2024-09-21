@@ -54,7 +54,7 @@ bool animdata_remove_empty_action(AnimData *adt);
  * Mesh<->Material and so on. The exact relationships are defined per ID type. Only relationships
  * of 1:1 are traced. The case of multiple users for 1 ID is treated as not related.
  * The returned Vector always contains the passed ID as the first index as such will never be
- * emtpy.
+ * empty.
  */
 Vector<ID *> find_related_ids(Main &bmain, ID &id);
 

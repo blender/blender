@@ -952,7 +952,7 @@ typedef struct ToolSystemBrushBindings {
    *
    * Note that multiple tools may use the same brush type, for example primitive draw tools (to
    * draw rectangles, circles, lines, etc.) all use a "DRAW" brush, which will then be shared
-   * amongst them.
+   * among them.
    */
   ListBase active_brush_per_brush_type; /* #NamedBrushAssetReference */
 } ToolSystemBrushBindings;

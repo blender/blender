@@ -130,7 +130,7 @@ TEST(lib_id_main_unique_name, local_ids_rename_existing_never)
   result = change_name(ctx.bmain, id_c, "OB_A", IDNewNameMode::RenameExistingNever);
 
   EXPECT_EQ(result.action, IDNewNameResult::Action::RENAMED_COLLISION_ADJUSTED);
-  //  EXPECT_EQ(result.other_id, id_a);  /* other_id purposedly not looked-up currently. */
+  //  EXPECT_EQ(result.other_id, id_a);  /* other_id purposely not looked-up currently. */
   EXPECT_EQ(result.other_id, nullptr);
   EXPECT_STREQ(id_c->name + 2, "OB_A.001");
   EXPECT_STREQ(id_a->name + 2, "OB_A");
@@ -144,7 +144,7 @@ TEST(lib_id_main_unique_name, local_ids_rename_existing_never)
   result = change_name(ctx.bmain, id_c, "OB_A", IDNewNameMode::RenameExistingNever);
 
   EXPECT_EQ(result.action, IDNewNameResult::Action::UNCHANGED_COLLISION);
-  //  EXPECT_EQ(result.other_id, id_a);  /* other_id purposedly not looked-up currently. */
+  //  EXPECT_EQ(result.other_id, id_a);  /* other_id purposely not looked-up currently. */
   EXPECT_EQ(result.other_id, nullptr);
   EXPECT_STREQ(id_c->name + 2, "OB_A.001");
   EXPECT_STREQ(id_a->name + 2, "OB_A");
@@ -236,7 +236,7 @@ TEST(lib_id_main_unique_name, local_ids_rename_existing_same_root)
   result = change_name(ctx.bmain, id_c, "OB_A", IDNewNameMode::RenameExistingSameRoot);
 
   EXPECT_EQ(result.action, IDNewNameResult::Action::RENAMED_COLLISION_ADJUSTED);
-  //  EXPECT_EQ(result.other_id, id_a);  /* other_id purposedly not looked-up currently. */
+  //  EXPECT_EQ(result.other_id, id_a);  /* other_id purposely not looked-up currently. */
   EXPECT_EQ(result.other_id, nullptr);
   EXPECT_STREQ(id_c->name + 2, "OB_A.001");
   EXPECT_STREQ(id_a->name + 2, "OB_A");

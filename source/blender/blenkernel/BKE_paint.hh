@@ -221,9 +221,10 @@ Brush *BKE_paint_brush_from_essentials(Main *bmain, const char *name);
  * asset reference will still be updated).
  *
  * \note #WM_toolsystem_activate_brush_and_tool() might be the preferable way to change the active
- * brush. It also lets the toolsystem decide if the active tool should be changed given the type of
- * brush, and it updates the "last used brush" for the previous tool. #BKE_paint_brush_set() should
- * only be called to force a brush to be active, circumventing the tool system.
+ * brush. It also lets the tool-system decide if the active tool should be changed given the type
+ * of brush, and it updates the "last used brush" for the previous tool.
+ * #BKE_paint_brush_set() should only be called to force a brush to be active,
+ * circumventing the tool system.
  */
 bool BKE_paint_brush_set(Paint *paint, Brush *brush);
 /**
