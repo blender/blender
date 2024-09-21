@@ -2045,9 +2045,28 @@ static struct {
   wmTimer *timer;
 } g_live_unwrap = {nullptr};
 
-const wmTimer *ED_uvedit_live_unwrap_timer()
+bool ED_uvedit_live_unwrap_timer_check(const wmTimer *timer)
 {
-  return g_live_unwrap.timer;
+  /* NOTE: don't validate the timer, assume the timer passed in is valid. */
+  return g_live_unwrap.timer == timer;
+}
+
+/**
+ * In practice the timer should practically always be valid.
+ * Use this to prevent the unlikely case of a stale timer being set.
+ *
+ * Loading a new file while unwrapping is running could cause this for example.
+ */
+static bool uvedit_live_unwrap_timer_validate(const wmWindowManager *wm)
+{
+  if (g_live_unwrap.timer == nullptr) {
+    return false;
+  }
+  if (BLI_findindex(&wm->timers, g_live_unwrap.timer) != -1) {
+    return false;
+  }
+  g_live_unwrap.timer = nullptr;
+  return true;
 }
 
 void ED_uvedit_live_unwrap_begin(Scene *scene, Object *obedit, wmWindow *win_modal)
@@ -2078,6 +2097,8 @@ void ED_uvedit_live_unwrap_begin(Scene *scene, Object *obedit, wmWindow *win_mod
 
     if (win_modal) {
       wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
+      /* Clear in the unlikely event this is still set. */
+      uvedit_live_unwrap_timer_validate(wm);
       BLI_assert(!g_live_unwrap.timer);
       g_live_unwrap.timer = WM_event_timer_add(wm, win_modal, TIMER, 0.01f);
     }
@@ -2121,10 +2142,13 @@ void ED_uvedit_live_unwrap_re_solve()
 void ED_uvedit_live_unwrap_end(const bool cancel)
 {
   if (g_live_unwrap.timer) {
-    wmWindow *win = g_live_unwrap.timer->win;
     wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
-    WM_event_timer_remove(wm, win, g_live_unwrap.timer);
-    g_live_unwrap.timer = nullptr;
+    uvedit_live_unwrap_timer_validate(wm);
+    if (g_live_unwrap.timer) {
+      wmWindow *win = g_live_unwrap.timer->win;
+      WM_event_timer_remove(wm, win, g_live_unwrap.timer);
+      g_live_unwrap.timer = nullptr;
+    }
   }
 
   if (g_live_unwrap.handles) {
