@@ -21,7 +21,6 @@ set(INC_SYS
 )
 
 set(SRC
-  intern/BLI_array.c
   intern/BLI_assert.c
   intern/BLI_color.cc
   intern/BLI_dial_2d.c
@@ -179,7 +178,6 @@ set(SRC
   BLI_alloca.h
   BLI_allocator.hh
   BLI_any.hh
-  BLI_array.h
   BLI_array.hh
   BLI_array_store.h
   BLI_array_store_utils.h
