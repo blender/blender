@@ -28,48 +28,21 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_brush_types.h"
-#include "DNA_cachefile_types.h"
-#include "DNA_fluid_types.h"
-#include "DNA_freestyle_types.h"
-#include "DNA_image_types.h"
-#include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_movieclip_types.h"
-#include "DNA_node_types.h"
-#include "DNA_object_fluidsim_types.h"
-#include "DNA_object_force_types.h"
-#include "DNA_object_types.h"
-#include "DNA_particle_types.h"
-#include "DNA_pointcache_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_sequence_types.h"
-#include "DNA_sound_types.h"
-#include "DNA_text_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_vfont_types.h"
-#include "DNA_volume_types.h"
-
-#include "BLI_blenlib.h"
+#include "BLI_fileops.h"
+#include "BLI_path_util.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "DEG_depsgraph.hh"
 
 #include "BKE_idtype.hh"
-#include "BKE_image.h"
-#include "BKE_lib_id.hh"
-#include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_report.hh"
-#include "BKE_vfont.hh"
 
 #include "BKE_bpath.hh" /* own include */
 
 #include "CLG_log.h"
-
-#include "SEQ_iterator.hh"
 
 #ifndef _MSC_VER
 #  include "BLI_strict_flags.h" /* Keep last. */
