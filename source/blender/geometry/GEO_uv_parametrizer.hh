@@ -91,13 +91,13 @@ void uv_parametrizer_face_add(ParamHandle *handle,
                               const ParamKey *vkeys,
                               const float **co,
                               float **uv, /* Output will eventually be written to `uv`. */
-                              float *weight,
+                              const float *weight,
                               const bool *pin,
                               const bool *select);
 
-void uv_parametrizer_edge_set_seam(ParamHandle *handle, ParamKey *vkeys);
+void uv_parametrizer_edge_set_seam(ParamHandle *phandle, const ParamKey *vkeys);
 
-void uv_parametrizer_construct_end(ParamHandle *handle,
+void uv_parametrizer_construct_end(ParamHandle *phandle,
                                    bool fill_holes,
                                    bool topology_from_uvs,
                                    int *r_count_failed = nullptr);

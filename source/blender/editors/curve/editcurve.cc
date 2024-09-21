@@ -658,7 +658,8 @@ static void calc_shapeKeys(Object *obedit, ListBase *newnurbs)
 
   float(*ofs)[3] = nullptr;
   std::optional<blender::Array<bool>> dependent;
-  float *oldkey, *newkey, *ofp;
+  const float *oldkey, *ofp;
+  float *newkey;
 
   /* editing the base key should update others */
   if (cu->key->type == KEY_RELATIVE) {

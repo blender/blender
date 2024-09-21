@@ -371,8 +371,8 @@ static void toolsystem_brush_activate_from_toolref_for_object_paint(const bConte
  * Activate a brush compatible with \a tref, call when the active tool changes.
  */
 static void toolsystem_brush_activate_from_toolref(const bContext *C,
-                                                   WorkSpace *workspace,
-                                                   bToolRef *tref)
+                                                   const WorkSpace *workspace,
+                                                   const bToolRef *tref)
 {
   BLI_assert(tref->runtime->flag & TOOLREF_FLAG_USE_BRUSHES);
 
@@ -1015,13 +1015,13 @@ void WM_toolsystem_update_from_context(
 
 bool WM_toolsystem_active_tool_is_brush(const bContext *C)
 {
-  bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_from_context((bContext *)C);
+  const bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_from_context((bContext *)C);
   return tref_rt && (tref_rt->flag & TOOLREF_FLAG_USE_BRUSHES);
 }
 
 bool WM_toolsystem_active_tool_has_custom_cursor(const bContext *C)
 {
-  bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_from_context((bContext *)C);
+  const bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_from_context((bContext *)C);
   return tref_rt && (tref_rt->cursor != WM_CURSOR_DEFAULT);
 }
 

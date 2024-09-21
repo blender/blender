@@ -2404,7 +2404,7 @@ void uiItemFullR(uiLayout *layout,
     if (is_id_name_prop) {
       Main *bmain = CTX_data_main(static_cast<bContext *>(block->evil_C));
       ID *id = ptr->owner_id;
-      UI_but_func_rename_full_set(but, [bmain, id](std::string &new_name) {
+      UI_but_func_rename_full_set(but, [bmain, id](const std::string &new_name) {
         ED_id_rename(*bmain, *id, new_name);
         WM_main_add_notifier(NC_ID | NA_RENAME, nullptr);
       });

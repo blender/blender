@@ -2160,14 +2160,13 @@ static void p_chart_simplify_compute(PChart *chart,
    * is at the top of the respective lists. */
 
   Heap *heap = BLI_heap_new();
-  PVert *v;
-  PEdge *collapsededges = nullptr, *e;
+  PEdge *collapsededges = nullptr;
   int ncollapsed = 0;
   Vector<PVert *> wheelverts;
   wheelverts.reserve(16);
 
   /* insert all potential collapses into heap */
-  for (v = chart->verts; v; v = v->nextlink) {
+  for (PVert *v = chart->verts; v; v = v->nextlink) {
     float cost;
     PEdge *e = nullptr;
 
@@ -2181,7 +2180,7 @@ static void p_chart_simplify_compute(PChart *chart,
     }
   }
 
-  for (e = chart->edges; e; e = e->nextlink) {
+  for (PEdge *e = chart->edges; e; e = e->nextlink) {
     e->u.nextcollapse = nullptr;
   }
 
@@ -3891,7 +3890,7 @@ static void p_add_ngon(ParamHandle *handle,
     const float *tri_co[3] = {co[v0], co[v1], co[v2]};
     float *tri_uv[3] = {uv[v0], uv[v1], uv[v2]};
 
-    float *tri_weight = nullptr;
+    const float *tri_weight = nullptr;
     float tri_weight_tmp[3];
 
     if (weight) {
@@ -3917,7 +3916,7 @@ void uv_parametrizer_face_add(ParamHandle *phandle,
                               const ParamKey *vkeys,
                               const float **co,
                               float **uv,
-                              float *weight,
+                              const float *weight,
                               const bool *pin,
                               const bool *select)
 {
@@ -3934,8 +3933,7 @@ void uv_parametrizer_face_add(ParamHandle *phandle,
       permute.append_unchecked(i);
     }
 
-    int i = nverts - 1;
-    while (i >= 0) {
+    for (int i = nverts - 1; i >= 0;) {
       /* Just check the "ears" of the n-gon.
        * For quads, this is sufficient.
        * For pentagons and higher, we might miss internal duplicate triangles, but note
@@ -4003,7 +4001,7 @@ void uv_parametrizer_face_add(ParamHandle *phandle,
   }
 }
 
-void uv_parametrizer_edge_set_seam(ParamHandle *phandle, ParamKey *vkeys)
+void uv_parametrizer_edge_set_seam(ParamHandle *phandle, const ParamKey *vkeys)
 {
   BLI_assert(phandle->state == PHANDLE_STATE_ALLOCATED);
 
@@ -4470,7 +4468,7 @@ static bool p_validate_corrected_coords_point(const PEdge *corr_e,
       continue;
     }
 
-    if (!(e->face->flag & PFACE_DONE) && (e != corr_e)) {
+    if (!(e->face->flag & PFACE_DONE)) {
       continue;
     }
 
@@ -5159,7 +5157,7 @@ static void slim_flush_uvs(ParamHandle *phandle,
         (*count_changed)++;
       }
 
-      std::vector<double> &UV = mt_chart->uv_matrices;
+      const std::vector<double> &UV = mt_chart->uv_matrices;
       for (v = chart->verts; v; v = v->nextlink) {
         if (v->flag & PVERT_PIN) {
           continue;

@@ -1624,7 +1624,7 @@ static void icu_to_fcurves(ID *id,
         if ((id) && (icu->blocktype == GS(id->name)) && (GS(id->name) == ID_CU_LEGACY) &&
             (fcu->rna_path && STREQ(fcu->rna_path, "eval_time")))
         {
-          Curve *cu = (Curve *)id;
+          const Curve *cu = (const Curve *)id;
 
           dst->vec[0][1] *= cu->pathlen;
           dst->vec[1][1] *= cu->pathlen;
@@ -1637,8 +1637,8 @@ static void icu_to_fcurves(ID *id,
          * - were also degrees/10
          */
         if (fcu->driver && fcu->driver->variables.first) {
-          DriverVar *dvar = static_cast<DriverVar *>(fcu->driver->variables.first);
-          DriverTarget *dtar = &dvar->targets[0];
+          const DriverVar *dvar = static_cast<const DriverVar *>(fcu->driver->variables.first);
+          const DriverTarget *dtar = &dvar->targets[0];
 
           if (ELEM(dtar->transChan, DTAR_TRANSCHAN_ROTX, DTAR_TRANSCHAN_ROTY, DTAR_TRANSCHAN_ROTZ))
           {

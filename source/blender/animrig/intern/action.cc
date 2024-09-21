@@ -605,8 +605,8 @@ void Action::strip_keyframe_data_remove_if_unused(const int index)
   BLI_assert(index >= 0 && index < this->strip_keyframe_data_array_num);
 
   /* Make sure the data isn't being used anywhere. */
-  for (Layer *layer : this->layers()) {
-    for (Strip *strip : layer->strips()) {
+  for (const Layer *layer : this->layers()) {
+    for (const Strip *strip : layer->strips()) {
       if (strip->type() == Strip::Type::Keyframe && strip->data_index == index) {
         return;
       }
