@@ -66,7 +66,7 @@ vec3 lightprobe_volume_grid_bias_sample_coord(VolumeProbeData grid_data,
   /**
    * References:
    *
-   * "Probe-based lighting, strand-based hair system, and physical hair shading in Unity’s Enemies"
+   * "Probe-based lighting, strand-based hair system, and physical hair shading in Unity's Enemies"
    * by Francesco Cifariello Ciardi, Lasse Jon Fuglsang Pedersen and John Parsaie.
    *
    * "Multi-Scale Global Illumination in Quantum Break"

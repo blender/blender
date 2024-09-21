@@ -150,7 +150,7 @@ template<typename T, int Size>
 
 /**
  * Return the value of x raised to the y power.
- * The result is undefined if x < 0 or if x = 0 and y ≤ 0.
+ * The result is undefined if x < 0 or if x = 0 and y <= 0.
  */
 template<typename T, int Size>
 [[nodiscard]] inline VecBase<T, Size> pow(const VecBase<T, Size> &x, const T &y)
@@ -164,7 +164,7 @@ template<typename T, int Size>
 
 /**
  * Return the value of x raised to the y power.
- * The result is undefined if x < 0 or if x = 0 and y ≤ 0.
+ * The result is undefined if x < 0 or if x = 0 and y <= 0.
  */
 template<typename T, int Size>
 [[nodiscard]] inline VecBase<T, Size> pow(const VecBase<T, Size> &x, const VecBase<T, Size> &y)
