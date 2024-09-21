@@ -1929,7 +1929,7 @@ bool node_raycast_bmesh(BMeshNode &node,
   return hit;
 }
 
-bool bmesh_node_raycast_detail(BMeshNode &node,
+bool raycast_node_detail_bmesh(BMeshNode &node,
                                const float3 &ray_start,
                                IsectRayPrecalc *isect_precalc,
                                float *depth,
