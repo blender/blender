@@ -203,7 +203,8 @@ static int bake_grease_pencil_animation_exec(bContext *C, wmOperator *op)
             "{}_{}", source_object->id.name + 2, source_layer->name());
         TreeNode *node = target.find_node_by_name(layer_name);
         if (node == nullptr) {
-          target.add_layer(layer_name);
+          Layer &new_layer = target.add_layer(layer_name);
+          target.set_active_layer(&new_layer);
         }
 
         Layer &target_layer = target.find_node_by_name(layer_name)->as_layer();
