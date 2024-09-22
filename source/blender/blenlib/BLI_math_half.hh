@@ -8,6 +8,7 @@
  * \ingroup bli
  */
 
+#include <cstddef>
 #include <cstdint>
 
 namespace blender::math {
@@ -22,6 +23,10 @@ namespace blender::math {
  *
  * When compiling for ARM NEON (e.g. Apple Silicon),
  * hardware VCVT instructions are used.
+ *
+ * For anything involving more than a handful of numbers,
+ * prefer #float_to_half_array and #half_to_float_array for
+ * performance.
  */
 
 /**
@@ -33,5 +38,8 @@ uint16_t float_to_half(float v);
  * Converts half-precision (FP16) number to float (FP32).
  */
 float half_to_float(uint16_t v);
+
+void float_to_half_array(const float *src, uint16_t *dst, size_t length);
+void half_to_float_array(const uint16_t *src, float *dst, size_t length);
 
 }  // namespace blender::math

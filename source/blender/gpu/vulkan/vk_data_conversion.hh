@@ -273,7 +273,6 @@ class FloatingPointFormat {
 };
 
 using FormatF32 = FloatingPointFormat<true, 23, 8>;
-using FormatF16 = FloatingPointFormat<true, 10, 5>;
 using FormatF11 = FloatingPointFormat<false, 6, 5>;
 using FormatF10 = FloatingPointFormat<false, 5, 5>;
 

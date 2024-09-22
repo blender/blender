@@ -78,19 +78,73 @@ TEST(math_half, float_to_half_scalar)
 #undef HFUN
 }
 
+TEST(math_half, half_to_float_array)
+{
+  const uint16_t src[13] = {
+      0, 1, 6789, 16383, 16384, 31743, 31744, 32768, 32769, 46765, 54501, 64511, 64512};
+  /* One extra entry in destination, to check that function leaves it intact. */
+  const float exp[14] = {
+      0.0f,
+      5.960464478e-08f,
+      0.003183364868f,
+      1.999023438f,
+      2.0f,
+      65504.0f,
+      std::numeric_limits<float>::infinity(),
+      -0.0f,
+      -5.960464478e-08f,
+      -0.4172363281f,
+      -78.3125f,
+      -65504.0f,
+      -std::numeric_limits<float>::infinity(),
+      1.2345f,
+  };
+  float dst[14] = {};
+  dst[13] = 1.2345f;
+
+  blender::math::half_to_float_array(src, dst, 13);
+  EXPECT_EQ_ARRAY(exp, dst, 14);
+}
+
+TEST(math_half, float_to_half_array)
+{
+  const float src[13] = {0.0f,
+                         5.960464478e-08f,
+                         0.003183364868f,
+                         1.999023438f,
+                         2.0f,
+                         65504.0f,
+                         std::numeric_limits<float>::infinity(),
+                         -0.0f,
+                         -5.960464478e-08f,
+                         -0.4172363281f,
+                         -78.3125f,
+                         -65504.0f,
+                         -std::numeric_limits<float>::infinity()};
+  /* One extra entry in destination, to check that function leaves it intact. */
+  const uint16_t exp[14] = {
+      0, 1, 6789, 16383, 16384, 31743, 31744, 32768, 32769, 46765, 54501, 64511, 64512, 12345};
+  uint16_t dst[14] = {};
+  dst[13] = 12345;
+
+  blender::math::float_to_half_array(src, dst, 13);
+  EXPECT_EQ_ARRAY(exp, dst, 14);
+}
+
 #ifdef DO_PERF_TESTS
 
 /*
- * Performance numbers of various other solutions, all on Ryzen 5950X, VS2022.
- * This is time taken to convert 100 million numbers FP16 -> FP32.
+ * Time to convert 100 million numbers FP16 -> FP32.
  *
- * - CPU: F16C instructions 44ms
- * - `OpenEXR/Imath`: 21ms
- * - `blender::math::half_to_float`: 164ms
- * - `convert_float_formats` from `VK_data_conversion.hh`: 244ms [converts 2046 values wrong]
+ * Ryzen 5950X (VS2022):
+ * - `half_to_float`: 164ms
+ * - `half_to_float_array`: 132ms (scalar)
+ * - `half_to_float_array`:  84ms (SSE2 4x wide path)
+ * - `half_to_float_array`:  86ms (w/ AVX2 F16C - however Blender is not compiled for AVX2 yet)
  *
- * On Mac M1 Max (Clang 15):
- * - `blender::math::half_to_float`: 127ms (C), 97ms (NEON VCVT)
+ * Mac M1 Max (Clang 15), using NEON VCVT:
+ * - `half_to_float`: 97ms
+ * - `half_to_float_array`: 53ms
  */
 TEST(math_half_perf, half_to_float_scalar)
 {
@@ -103,22 +157,45 @@ TEST(math_half_perf, half_to_float_scalar)
     sum += fu;
   }
   double t1 = BLI_time_now_seconds();
-  printf("- FP16->FP32 blimath: %.3fs sum %zu\n", t1 - t0, sum);
+  printf("- FP16->FP32 scalar: %.3fs sum %zu\n", t1 - t0, sum);
+}
+
+TEST(math_half_perf, half_to_float_array)
+{
+  const int test_size = 100'000'000;
+  uint16_t *src = new uint16_t[test_size];
+  float *dst = new float[test_size];
+  for (int i = 0; i < test_size; i++) {
+    src[i] = i & 0xFFFF;
+  }
+  double t0 = BLI_time_now_seconds();
+  size_t sum = 0;
+  blender::math::half_to_float_array(src, dst, test_size);
+  for (int i = 0; i < test_size; i++) {
+    uint32_t fu;
+    memcpy(&fu, &dst[i], sizeof(fu));
+    sum += fu;
+  }
+  double t1 = BLI_time_now_seconds();
+  printf("- FP16->FP32 array : %.3fs sum %zu\n", t1 - t0, sum);
+  delete[] src;
+  delete[] dst;
 }
 
 /*
- * Performance numbers of various other solutions, all on Ryzen 5950X, VS2022.
- * This is time taken to convert 100 million numbers FP32 -> FP16.
+ * Time to convert 100 million numbers FP32 -> FP16.
  *
- * - CPU: F16C instructions 61ms
- * - `OpenEXR/Imath`: 240ms
- * - `blender::math::float_to_half`: 242ms
- * - `convert_float_formats` from `VK_data_conversion.hh`: 247ms [converts many values wrong]
+ * Ryzen 5950X (VS2022):
+ * - `float_to_half`: 242ms
+ * - `float_to_half_array`: 184ms (scalar)
+ * - `float_to_half_array`:  68ms (SSE2 4x wide path)
+ * - `float_to_half_array`:  50ms (w/ AVX2 F16C - however Blender is not compiled for AVX2 yet)
  *
- * On Mac M1 Max (Clang 15):
- * - `blender::math::half_to_float`: 198ms (C), 97ms (NEON VCVT)
+ * Mac M1 Max (Clang 15), using NEON VCVT:
+ * - `float_to_half`: 93ms
+ * - `float_to_half_array`: 21ms
  */
-TEST(math_half_perf, float_to_half_scalar_math)  // 242ms
+TEST(math_half_perf, float_to_half_scalar)
 {
   double t0 = BLI_time_now_seconds();
   uint32_t sum = 0;
@@ -128,7 +205,28 @@ TEST(math_half_perf, float_to_half_scalar_math)  // 242ms
     sum += h;
   }
   double t1 = BLI_time_now_seconds();
-  printf("- FP32->FP16 blimath: %.3fs sum %u\n", t1 - t0, sum);
+  printf("- FP32->FP16 scalar: %.3fs sum %u\n", t1 - t0, sum);
+}
+
+TEST(math_half_perf, float_to_half_array)
+{
+  const int test_size = 100'000'000;
+  float *src = new float[test_size];
+  uint16_t *dst = new uint16_t[test_size];
+  for (int i = 0; i < test_size; i++) {
+    src[i] = ((i & 0xFFFF) - 0x8000) + 0.1f;
+  }
+
+  double t0 = BLI_time_now_seconds();
+  uint32_t sum = 0;
+  blender::math::float_to_half_array(src, dst, test_size);
+  for (int i = 0; i < test_size; i++) {
+    sum += dst[i];
+  }
+  double t1 = BLI_time_now_seconds();
+  printf("- FP32->FP16 array : %.3fs sum %u\n", t1 - t0, sum);
+  delete[] src;
+  delete[] dst;
 }
 
 #endif  // #ifdef DO_PERF_TESTS
