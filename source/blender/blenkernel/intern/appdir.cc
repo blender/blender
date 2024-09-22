@@ -525,16 +525,6 @@ static bool get_path_system_ex(char *targetpath,
                                const bool check_is_dir)
 {
   char system_path[FILE_MAX];
-  char relfolder[FILE_MAX];
-
-  if (folder_name) { /* `subfolder_name` may be nullptr. */
-    const char *path_array[] = {folder_name, subfolder_name};
-    const int path_array_num = subfolder_name ? 2 : 1;
-    BLI_path_join_array(relfolder, sizeof(relfolder), path_array, path_array_num);
-  }
-  else {
-    relfolder[0] = '\0';
-  }
 
   if (test_env_path(system_path, "BLENDER_SYSTEM_RESOURCES", check_is_dir)) {
     /* Pass. */
