@@ -13,8 +13,12 @@ Example usage:
 
 import argparse
 import dataclasses
+import sys
+
 from datetime import date
 from gitea_utils import gitea_json_issues_search
+
+IS_ATTY = sys.stdout.isatty()
 
 
 @dataclasses.dataclass
@@ -95,7 +99,8 @@ def compile_list(severity: str) -> None:
                 new_label_name = label_iter["name"]
                 print(f"ALERT: The name of label of '{current_module_name}' changed.")
                 print(f"The new name is '{new_label_name}'.")
-                input("Press enter to continue: \n")
+                if IS_ATTY:
+                    input("Press enter to continue: \n")
 
             modules[current_module_name].buglist.append(f"[#{number}]({html_url})")
             modules[current_module_name].buglist_full.append(f"* [{title}]({html_url}) - {created_at}\n")
