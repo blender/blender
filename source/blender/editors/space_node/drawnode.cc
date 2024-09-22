@@ -1500,10 +1500,14 @@ static void std_node_socket_interface_draw(ID *id,
       uiItemR(sub, &ptr, "max_value", DEFAULT_FLAGS, IFACE_("Max"), ICON_NONE);
       break;
     }
+    case SOCK_STRING: {
+      uiItemR(col, &ptr, "subtype", DEFAULT_FLAGS, IFACE_("Subtype"), ICON_NONE);
+      uiItemR(col, &ptr, "default_value", DEFAULT_FLAGS, IFACE_("Default"), ICON_NONE);
+      break;
+    }
     case SOCK_BOOLEAN:
     case SOCK_ROTATION:
     case SOCK_RGBA:
-    case SOCK_STRING:
     case SOCK_OBJECT:
     case SOCK_COLLECTION:
     case SOCK_IMAGE:

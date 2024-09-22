@@ -326,6 +326,7 @@ std::unique_ptr<IDProperty, bke::idprop::IDPropertyDeleter> id_property_create_f
       IDPropertyUIDataString *ui_data = (IDPropertyUIDataString *)IDP_ui_data_ensure(
           property.get());
       ui_data->default_value = BLI_strdup(value->value);
+      ui_data->base.rna_subtype = value->subtype;
       return property;
     }
     case SOCK_MENU: {
