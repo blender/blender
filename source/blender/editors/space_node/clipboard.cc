@@ -287,6 +287,8 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator * /*op*/)
   Map<const bNode *, bNode *> node_map;
   Map<const bNodeSocket *, bNodeSocket *> socket_map;
 
+  node_select_paired(tree);
+
   for (const bNode *node : tree.all_nodes()) {
     if (node->flag & SELECT) {
       clipboard.copy_add_node(*node, node_map, socket_map);

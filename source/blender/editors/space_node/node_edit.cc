@@ -1384,6 +1384,8 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
   Map<const bNodeSocket *, bNodeSocket *> socket_map;
   Map<const ID *, ID *> duplicated_node_groups;
 
+  node_select_paired(*ntree);
+
   for (bNode *node : get_selected_nodes(*ntree)) {
     bNode *new_node = bke::node_copy_with_mapping(
         ntree, *node, LIB_ID_COPY_DEFAULT, true, socket_map);
