@@ -794,9 +794,11 @@ class LazyFunctionForViewerNode : public LazyFunction {
       }
       else {
         geometry.modify_geometry_sets([&](GeometrySet &geometry) {
-          for (const bke::GeometryComponent::Type type : {bke::GeometryComponent::Type::Mesh,
-                                                          bke::GeometryComponent::Type::PointCloud,
-                                                          bke::GeometryComponent::Type::Curve})
+          for (const bke::GeometryComponent::Type type :
+               {bke::GeometryComponent::Type::Mesh,
+                bke::GeometryComponent::Type::PointCloud,
+                bke::GeometryComponent::Type::Curve,
+                bke::GeometryComponent::Type::GreasePencil})
           {
             if (geometry.has(type)) {
               GeometryComponent &component = geometry.get_component_for_write(type);
