@@ -176,7 +176,6 @@ void BCAnimationSampler::sample_scene(BCExportSettings &export_settings, bool ke
   Scene *scene = blender_context.get_scene();
   BCFrameSet scene_sample_frames;
   get_sample_frames(scene_sample_frames, sampling_rate, keyframe_at_end, scene);
-  BCFrameSet::iterator it;
 
   int startframe = scene->r.sfra;
   int endframe = scene->r.efra;
@@ -277,7 +276,6 @@ void BCAnimationSampler::get_animated_from_export_set(std::set<Object *> &animat
    */
 
   animated_objects.clear();
-  std::set<Object *> static_objects;
   std::set<Object *> candidates;
 
   LinkNode *node;

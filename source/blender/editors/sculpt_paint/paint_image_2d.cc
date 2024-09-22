@@ -70,7 +70,7 @@ struct BrushPainterCache {
 
   CurveMaskCache curve_mask_cache;
 
-  int image_size[2];
+  // int image_size[2]; /* UNUSED. */
 };
 
 struct BrushPainter {
