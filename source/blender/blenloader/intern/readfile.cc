@@ -2272,8 +2272,6 @@ static void lib_link_scenes_check_set(Main *bmain)
 
 static void direct_link_library(FileData *fd, Library *lib, Main *main)
 {
-  Main *newmain;
-
   /* Make sure we have full path in lib->runtime.filepath_abs */
   /* NOTE: Since existing libraries are searched by their absolute path, this has to be generated
    * before the lookup below. Otherwise, in case the stored absolute filepath is not 'correct' (may
@@ -2321,7 +2319,7 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
   BKE_packedfile_blend_read(&reader, &lib->packedfile, lib->filepath);
 
   /* new main */
-  newmain = BKE_main_new();
+  Main *newmain = BKE_main_new();
   BLI_addtail(fd->mainlist, newmain);
   newmain->curlib = lib;
 

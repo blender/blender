@@ -1170,7 +1170,6 @@ static void draw_text_decoration(SpaceText *st, ARegion *region)
   Text *text = st->text;
   int vcurl, vcurc, vsell, vselc;
   bool hidden = false;
-  int x, y, w, i;
   int offl, offc;
   const int lheight = TXT_LINE_HEIGHT(st);
 
@@ -1206,8 +1205,8 @@ static void draw_text_decoration(SpaceText *st, ARegion *region)
 
     immUniformThemeColor(TH_SHADE2);
 
-    x = TXT_BODY_LEFT(st);
-    y = region->winy;
+    int x = TXT_BODY_LEFT(st);
+    int y = region->winy;
     if (st->flags & ST_SCROLL_SELECT) {
       y += st->runtime->scroll_ofs_px[1];
     }
@@ -1252,7 +1251,7 @@ static void draw_text_decoration(SpaceText *st, ARegion *region)
           pos, x + fromc * st->runtime->cwidth_px - U.pixelsize, y, region->winx, y - lheight);
       y -= lheight;
 
-      for (i = froml + 1; i < tol; i++) {
+      for (int i = froml + 1; i < tol; i++) {
         immRecti(pos, x - U.pixelsize, y, region->winx, y - lheight);
         y -= lheight;
       }
@@ -1262,6 +1261,8 @@ static void draw_text_decoration(SpaceText *st, ARegion *region)
       }
       y -= lheight;
     }
+    /* Quiet warnings. */
+    UNUSED_VARS(x, y);
   }
 
   if (st->line_hlight) {
@@ -1299,8 +1300,8 @@ static void draw_text_decoration(SpaceText *st, ARegion *region)
 
   if (!hidden) {
     /* Draw the cursor itself (we draw the sel. cursor as this is the leading edge) */
-    x = TXT_BODY_LEFT(st) + (vselc * st->runtime->cwidth_px);
-    y = region->winy - vsell * lheight;
+    int x = TXT_BODY_LEFT(st) + (vselc * st->runtime->cwidth_px);
+    int y = region->winy - vsell * lheight;
     if (st->flags & ST_SCROLL_SELECT) {
       y += st->runtime->scroll_ofs_px[1];
     }
@@ -1311,7 +1312,7 @@ static void draw_text_decoration(SpaceText *st, ARegion *region)
       char ch = text->sell->line[text->selc];
 
       y += TXT_LINE_SPACING(st);
-      w = st->runtime->cwidth_px;
+      int w = st->runtime->cwidth_px;
       if (ch == '\t') {
         w *= st->tabnumber - (vselc + st->left) % st->tabnumber;
       }
