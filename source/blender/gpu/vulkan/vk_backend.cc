@@ -38,6 +38,84 @@ static CLG_LogRef LOG = {"gpu.vulkan"};
 
 namespace blender::gpu {
 
+static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physical_device)
+{
+  Vector<StringRefNull> missing_capabilities;
+  /* Check device features. */
+  VkPhysicalDeviceFeatures2 features = {};
+  VkPhysicalDeviceDynamicRenderingFeatures dynamic_rendering = {};
+
+  features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+  dynamic_rendering.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES;
+  VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT
+      dynamic_rendering_unused_attachments = {};
+  dynamic_rendering_unused_attachments.sType =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_FEATURES_EXT;
+  features.pNext = &dynamic_rendering;
+  dynamic_rendering.pNext = &dynamic_rendering_unused_attachments;
+
+  vkGetPhysicalDeviceFeatures2(vk_physical_device, &features);
+#ifndef __APPLE__
+  if (features.features.geometryShader == VK_FALSE) {
+    missing_capabilities.append("geometry shaders");
+  }
+  if (features.features.logicOp == VK_FALSE) {
+    missing_capabilities.append("logical operations");
+  }
+#endif
+  if (features.features.dualSrcBlend == VK_FALSE) {
+    missing_capabilities.append("dual source blending");
+  }
+  if (features.features.imageCubeArray == VK_FALSE) {
+    missing_capabilities.append("image cube array");
+  }
+  if (features.features.multiDrawIndirect == VK_FALSE) {
+    missing_capabilities.append("multi draw indirect");
+  }
+  if (features.features.multiViewport == VK_FALSE) {
+    missing_capabilities.append("multi viewport");
+  }
+  if (features.features.shaderClipDistance == VK_FALSE) {
+    missing_capabilities.append("shader clip distance");
+  }
+  if (features.features.drawIndirectFirstInstance == VK_FALSE) {
+    missing_capabilities.append("draw indirect first instance");
+  }
+  if (features.features.fragmentStoresAndAtomics == VK_FALSE) {
+    missing_capabilities.append("fragment stores and atomics");
+  }
+  if (dynamic_rendering.dynamicRendering == VK_FALSE) {
+    missing_capabilities.append("dynamic rendering");
+  }
+
+  /* Check device extensions. */
+  uint32_t vk_extension_count;
+  vkEnumerateDeviceExtensionProperties(vk_physical_device, nullptr, &vk_extension_count, nullptr);
+
+  Array<VkExtensionProperties> vk_extensions(vk_extension_count);
+  vkEnumerateDeviceExtensionProperties(
+      vk_physical_device, nullptr, &vk_extension_count, vk_extensions.data());
+  Set<StringRefNull> extensions;
+  for (VkExtensionProperties &vk_extension : vk_extensions) {
+    extensions.add(vk_extension.extensionName);
+  }
+
+  if (!extensions.contains(VK_KHR_SWAPCHAIN_EXTENSION_NAME)) {
+    missing_capabilities.append(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+  }
+  if (!extensions.contains(VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME)) {
+    missing_capabilities.append(VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME);
+  }
+  if (!extensions.contains(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME)) {
+    missing_capabilities.append(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
+  }
+  if (!extensions.contains(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME)) {
+    missing_capabilities.append(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
+  }
+
+  return missing_capabilities;
+}
+
 bool VKBackend::is_supported()
 {
   CLG_logref_init(&LOG);
@@ -71,85 +149,10 @@ bool VKBackend::is_supported()
   vkEnumeratePhysicalDevices(vk_instance, &physical_devices_count, vk_physical_devices.data());
 
   for (VkPhysicalDevice vk_physical_device : vk_physical_devices) {
+    Vector<StringRefNull> missing_capabilities = missing_capabilities_get(vk_physical_device);
 
-    /* Check minimum device property limits. */
     VkPhysicalDeviceProperties vk_properties = {};
     vkGetPhysicalDeviceProperties(vk_physical_device, &vk_properties);
-
-    Vector<StringRefNull> missing_capabilities;
-
-    /* Check device features. */
-    VkPhysicalDeviceFeatures2 features = {};
-    VkPhysicalDeviceDynamicRenderingFeatures dynamic_rendering = {};
-
-    features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
-    dynamic_rendering.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES;
-    VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT
-        dynamic_rendering_unused_attachments = {};
-    dynamic_rendering_unused_attachments.sType =
-        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_FEATURES_EXT;
-    features.pNext = &dynamic_rendering;
-    dynamic_rendering.pNext = &dynamic_rendering_unused_attachments;
-
-    vkGetPhysicalDeviceFeatures2(vk_physical_device, &features);
-#ifndef __APPLE__
-    if (features.features.geometryShader == VK_FALSE) {
-      missing_capabilities.append("geometry shaders");
-    }
-    if (features.features.logicOp == VK_FALSE) {
-      missing_capabilities.append("logical operations");
-    }
-#endif
-    if (features.features.dualSrcBlend == VK_FALSE) {
-      missing_capabilities.append("dual source blending");
-    }
-    if (features.features.imageCubeArray == VK_FALSE) {
-      missing_capabilities.append("image cube array");
-    }
-    if (features.features.multiDrawIndirect == VK_FALSE) {
-      missing_capabilities.append("multi draw indirect");
-    }
-    if (features.features.multiViewport == VK_FALSE) {
-      missing_capabilities.append("multi viewport");
-    }
-    if (features.features.shaderClipDistance == VK_FALSE) {
-      missing_capabilities.append("shader clip distance");
-    }
-    if (features.features.drawIndirectFirstInstance == VK_FALSE) {
-      missing_capabilities.append("draw indirect first instance");
-    }
-    if (features.features.fragmentStoresAndAtomics == VK_FALSE) {
-      missing_capabilities.append("fragment stores and atomics");
-    }
-    if (dynamic_rendering.dynamicRendering == VK_FALSE) {
-      missing_capabilities.append("dynamic rendering");
-    }
-
-    /* Check device extensions. */
-    uint32_t vk_extension_count;
-    vkEnumerateDeviceExtensionProperties(
-        vk_physical_device, nullptr, &vk_extension_count, nullptr);
-
-    Array<VkExtensionProperties> vk_extensions(vk_extension_count);
-    vkEnumerateDeviceExtensionProperties(
-        vk_physical_device, nullptr, &vk_extension_count, vk_extensions.data());
-    Set<StringRefNull> extensions;
-    for (VkExtensionProperties &vk_extension : vk_extensions) {
-      extensions.add(vk_extension.extensionName);
-    }
-
-    if (!extensions.contains(VK_KHR_SWAPCHAIN_EXTENSION_NAME)) {
-      missing_capabilities.append(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-    }
-    if (!extensions.contains(VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME)) {
-      missing_capabilities.append(VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME);
-    }
-    if (!extensions.contains(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME)) {
-      missing_capabilities.append(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
-    }
-    if (!extensions.contains(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME)) {
-      missing_capabilities.append(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
-    }
 
     /* Report result. */
     if (missing_capabilities.is_empty()) {
@@ -206,6 +209,53 @@ void VKBackend::platform_init()
            "",
            "",
            GPU_ARCHITECTURE_IMR);
+
+  /* Query for all compatible devices */
+  VkApplicationInfo vk_application_info = {VK_STRUCTURE_TYPE_APPLICATION_INFO};
+  vk_application_info.pApplicationName = "Blender";
+  vk_application_info.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+  vk_application_info.pEngineName = "Blender";
+  vk_application_info.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+  vk_application_info.apiVersion = VK_API_VERSION_1_2;
+
+  const char *instance_extensions[] = {VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME};
+
+  VkInstanceCreateInfo vk_instance_info = {VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
+  vk_instance_info.pApplicationInfo = &vk_application_info;
+  vk_instance_info.enabledExtensionCount = 1;
+  vk_instance_info.ppEnabledExtensionNames = instance_extensions;
+
+  VkInstance vk_instance = VK_NULL_HANDLE;
+  vkCreateInstance(&vk_instance_info, nullptr, &vk_instance);
+  BLI_assert(vk_instance != VK_NULL_HANDLE);
+
+  uint32_t physical_devices_count = 0;
+  vkEnumeratePhysicalDevices(vk_instance, &physical_devices_count, nullptr);
+  Array<VkPhysicalDevice> vk_physical_devices(physical_devices_count);
+  vkEnumeratePhysicalDevices(vk_instance, &physical_devices_count, vk_physical_devices.data());
+  int index = 0;
+  for (VkPhysicalDevice vk_physical_device : vk_physical_devices) {
+    if (missing_capabilities_get(vk_physical_device).is_empty()) {
+      VkPhysicalDeviceProperties vk_properties = {};
+      vkGetPhysicalDeviceProperties(vk_physical_device, &vk_properties);
+      std::stringstream identifier;
+      identifier << std::hex << vk_properties.vendorID << "/" << vk_properties.deviceID << "/"
+                 << index;
+      GPG.devices.append({identifier.str(),
+                          index,
+                          vk_properties.vendorID,
+                          vk_properties.deviceID,
+                          std::string(vk_properties.deviceName)});
+    }
+    index++;
+  }
+  vkDestroyInstance(vk_instance, nullptr);
+  std::sort(GPG.devices.begin(), GPG.devices.end(), [&](const GPUDevice &a, const GPUDevice &b) {
+    if (a.name == b.name) {
+      return a.index < b.index;
+    }
+    return a.name < b.name;
+  });
 }
 
 void VKBackend::platform_init(const VKDevice &device)

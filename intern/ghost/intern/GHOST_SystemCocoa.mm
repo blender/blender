@@ -758,7 +758,8 @@ GHOST_IWindow *GHOST_SystemCocoa::createWindow(const char *title,
                                    gpuSettings.flags & GHOST_gpuStereoVisual,
                                    gpuSettings.flags & GHOST_gpuDebugContext,
                                    is_dialog,
-                                   (GHOST_WindowCocoa *)parentWindow);
+                                   (GHOST_WindowCocoa *)parentWindow,
+                                   gpuSettings.preferred_device);
 
     if (window->getValid()) {
       /* Store the pointer to the window. */
@@ -791,7 +792,8 @@ GHOST_IContext *GHOST_SystemCocoa::createOffscreenContext(GHOST_GPUSettings gpuS
   switch (gpuSettings.context_type) {
 #ifdef WITH_VULKAN_BACKEND
     case GHOST_kDrawingContextTypeVulkan: {
-      GHOST_Context *context = new GHOST_ContextVK(false, nullptr, 1, 2, debug_context);
+      GHOST_Context *context = new GHOST_ContextVK(
+          false, nullptr, 1, 2, debug_context, gpuSettings.preferred_device);
       if (context->initializeDrawingContext()) {
         return context;
       }

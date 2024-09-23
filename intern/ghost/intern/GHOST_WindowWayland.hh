@@ -78,7 +78,8 @@ class GHOST_WindowWayland : public GHOST_Window {
                       const bool is_dialog,
                       const bool stereoVisual,
                       const bool exclusive,
-                      const bool is_debug);
+                      const bool is_debug,
+                      const GHOST_GPUDevice &preferred_device);
 
   ~GHOST_WindowWayland() override;
 
@@ -206,6 +207,7 @@ class GHOST_WindowWayland : public GHOST_Window {
   GHOST_SystemWayland *system_;
   struct GWL_Window *window_;
   bool is_debug_context_;
+  GHOST_GPUDevice preferred_device_;
 
   /**
    * \param type: The type of rendering context create.

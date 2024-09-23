@@ -696,6 +696,10 @@ class USERPREF_PT_system_display_graphics(SystemPanel, CenterAlignMixIn, Panel):
         if system.gpu_backend != gpu.platform.backend_type_get():
             layout.label(text="A restart of Blender is required", icon="INFO")
 
+        if gpu.platform.backend_type_get() == 'VULKAN':
+            col = layout.column()
+            col.prop(system, "gpu_preferred_device")
+
         if system.gpu_backend == 'VULKAN':
             col = layout.column()
             col.label(text="The Vulkan backend is experimental:", icon="INFO")

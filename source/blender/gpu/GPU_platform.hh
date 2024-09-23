@@ -8,6 +8,9 @@
 
 #pragma once
 
+#include <string>
+
+#include "BLI_span.hh"
 #include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
 
@@ -63,6 +66,14 @@ enum GPUArchitectureType {
   GPU_ARCHITECTURE_TBDR = 1,
 };
 
+typedef struct GPUDevice {
+  std::string identifier;
+  int index;
+  uint32_t vendor_id;
+  uint32_t device_id;
+  std::string name;
+} GPUDevice;
+
 /* GPU Types */
 /* TODO: Verify all use-cases of GPU_type_matches to determine which graphics API it should apply
  * to, and replace with `GPU_type_matches_ex` where appropriate. */
@@ -79,3 +90,4 @@ const char *GPU_platform_version();
 const char *GPU_platform_support_level_key();
 const char *GPU_platform_gpu_name();
 GPUArchitectureType GPU_platform_architecture();
+blender::Span<GPUDevice> GPU_platform_devices_list();

@@ -332,7 +332,8 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
                                      const bool stereoVisual,
                                      bool is_debug,
                                      bool is_dialog,
-                                     GHOST_WindowCocoa *parentWindow)
+                                     GHOST_WindowCocoa *parentWindow,
+                                     const GHOST_GPUDevice &preferred_device)
     : GHOST_Window(width, height, state, stereoVisual, false),
       m_openGLView(nil),
       m_metalView(nil),
@@ -341,7 +342,8 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
       m_customCursor(nullptr),
       m_immediateDraw(false),
       m_debug_context(is_debug),
-      m_is_dialog(is_dialog)
+      m_is_dialog(is_dialog),
+      m_preferred_device(preferred_device)
 {
   m_fullScreen = false;
 
@@ -847,7 +849,8 @@ GHOST_Context *GHOST_WindowCocoa::newDrawingContext(GHOST_TDrawingContextType ty
   switch (type) {
 #ifdef WITH_VULKAN_BACKEND
     case GHOST_kDrawingContextTypeVulkan: {
-      GHOST_Context *context = new GHOST_ContextVK(m_wantStereoVisual, m_metalLayer, 1, 2, true);
+      GHOST_Context *context = new GHOST_ContextVK(
+          m_wantStereoVisual, m_metalLayer, 1, 2, true, m_preferred_device);
       if (context->initializeDrawingContext()) {
         return context;
       }

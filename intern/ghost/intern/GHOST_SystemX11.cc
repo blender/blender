@@ -384,7 +384,8 @@ GHOST_IWindow *GHOST_SystemX11::createWindow(const char *title,
                                is_dialog,
                                ((gpuSettings.flags & GHOST_gpuStereoVisual) != 0),
                                exclusive,
-                               (gpuSettings.flags & GHOST_gpuDebugContext) != 0);
+                               (gpuSettings.flags & GHOST_gpuDebugContext) != 0,
+                               gpuSettings.preferred_device);
 
   if (window) {
     /* Both are now handle in GHOST_WindowX11.cc
@@ -419,7 +420,8 @@ GHOST_IContext *GHOST_SystemX11::createOffscreenContext(GHOST_GPUSettings gpuSet
                                                    nullptr,
                                                    1,
                                                    2,
-                                                   debug_context);
+                                                   debug_context,
+                                                   gpuSettings.preferred_device);
       if (context->initializeDrawingContext()) {
         return context;
       }

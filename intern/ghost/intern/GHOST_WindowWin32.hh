@@ -65,6 +65,7 @@ class GHOST_WindowWin32 : public GHOST_Window {
    * \param state: The state the window is initially opened with.
    * \param type: The type of drawing context installed in this window.
    * \param wantStereoVisual: Stereo visual for quad buffered stereo.
+   * \param preferred_device: Preferred device to use when new device will be created.
    * \param parentWindowHwnd: TODO.
    */
   GHOST_WindowWin32(GHOST_SystemWin32 *system,
@@ -74,12 +75,13 @@ class GHOST_WindowWin32 : public GHOST_Window {
                     uint32_t width,
                     uint32_t height,
                     GHOST_TWindowState state,
-                    GHOST_TDrawingContextType type = GHOST_kDrawingContextTypeNone,
-                    bool wantStereoVisual = false,
-                    bool alphaBackground = false,
-                    GHOST_WindowWin32 *parentWindow = 0,
-                    bool is_debug = false,
-                    bool dialog = false);
+                    GHOST_TDrawingContextType type,
+                    bool wantStereoVisual,
+                    bool alphaBackground,
+                    GHOST_WindowWin32 *parentWindow,
+                    bool is_debug,
+                    bool dialog,
+                    const GHOST_GPUDevice &preferred_device);
 
   /**
    * Destructor.
@@ -384,6 +386,7 @@ class GHOST_WindowWin32 : public GHOST_Window {
   HDC m_hDC;
 
   bool m_isDialog;
+  GHOST_GPUDevice m_preferred_device;
 
   /** Flag for if window has captured the mouse. */
   bool m_hasMouseCaptured;
