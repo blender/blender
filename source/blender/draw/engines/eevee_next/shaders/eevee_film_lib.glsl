@@ -42,6 +42,22 @@ float film_luma_weight(float luma)
   return 1.0 / (4.0 + luma * uniform_buf.film.exposure_scale);
 }
 
+/**
+ * Round floats mantissa before they get written to a 16 bit float storage to avoid drifting.
+ *
+ * Apparently, most (if not all) hardware truncate the mantissa when writting the attribute to a 16
+ * bit float texture. This biases our accumulation drastically (see #126947). Manually rounding the
+ * mantissa right before storage (and thus truncation) fixes the issue.
+ */
+vec4 film_patch_float_for_16f_storage(vec4 color)
+{
+  return uintBitsToFloat(floatBitsToUint(color) + 0x1000);
+}
+float film_patch_float_for_16f_storage(float value)
+{
+  return uintBitsToFloat(floatBitsToUint(value) + 0x1000);
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Filter
  * \{ */
@@ -511,6 +527,7 @@ void film_store_combined(
   if (display_id == -1) {
     display = color;
   }
+  color = film_patch_float_for_16f_storage(color);
   imageStoreFast(out_combined_img, dst.texel, color);
 }
 
@@ -538,6 +555,7 @@ void film_store_color(FilmSample dst, int pass_id, vec4 color, inout vec4 displa
   if (display_id == pass_id) {
     display = color;
   }
+  color = film_patch_float_for_16f_storage(color);
   imageStoreFast(color_accum_img, ivec3(dst.texel, pass_id), color);
 }
 
@@ -559,6 +577,7 @@ void film_store_value(FilmSample dst, int pass_id, float value, inout vec4 displ
   if (display_id == pass_id) {
     display = vec4(value, value, value, 1.0);
   }
+  value = film_patch_float_for_16f_storage(value);
   imageStoreFast(value_accum_img, ivec3(dst.texel, pass_id), vec4(value));
 }
 
