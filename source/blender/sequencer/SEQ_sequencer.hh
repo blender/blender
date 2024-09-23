@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004 Blender Authors
+/* SPDX-FileCopyrightText: 2004-2024 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -20,6 +20,8 @@ struct Scene;
 struct SeqTimelineChannel;
 struct Sequence;
 struct SequencerToolSettings;
+
+constexpr int SEQ_MAX_CHANNELS = 128;
 
 /* RNA enums, just to be more readable */
 enum {
@@ -96,7 +98,7 @@ void SEQ_sequence_base_dupli_recursive(const Scene *scene_src,
                                        const ListBase *seqbase,
                                        int dupe_flag,
                                        int flag);
-bool SEQ_valid_strip_channel(Sequence *seq);
+bool SEQ_is_valid_strip_channel(const Sequence *seq);
 
 /**
  * Read and Write functions for `.blend` file data.

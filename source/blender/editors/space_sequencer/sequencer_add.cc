@@ -115,8 +115,15 @@ static void sequencer_generic_props__internal(wmOperatorType *ot, int flag)
                 MAXFRAME);
   }
 
-  RNA_def_int(
-      ot->srna, "channel", 1, 1, MAXSEQ, "Channel", "Channel to place this strip into", 1, MAXSEQ);
+  RNA_def_int(ot->srna,
+              "channel",
+              1,
+              1,
+              SEQ_MAX_CHANNELS,
+              "Channel",
+              "Channel to place this strip into",
+              1,
+              SEQ_MAX_CHANNELS);
 
   RNA_def_boolean(
       ot->srna, "replace_sel", true, "Replace Selection", "Deselect previously selected strips");
@@ -1453,7 +1460,7 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
   if (!RNA_struct_property_is_set(op->ptr, "channel")) {
     if (seq1 != nullptr) {
       int chan = max_ii(seq1 ? seq1->machine : 0, seq2 ? seq2->machine : 0);
-      if (chan < MAXSEQ) {
+      if (chan < SEQ_MAX_CHANNELS) {
         load_data.channel = chan;
       }
     }

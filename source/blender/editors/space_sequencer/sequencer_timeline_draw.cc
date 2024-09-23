@@ -629,7 +629,7 @@ static void drawmeta_contents(TimelineDrawContext *timeline_ctx,
 
   uchar col[4];
 
-  int chan_min = MAXSEQ;
+  int chan_min = SEQ_MAX_CHANNELS;
   int chan_max = 0;
   int chan_range = 0;
   /* Some vertical margin to account for rounded corners, so that contents do

@@ -115,6 +115,8 @@
 
 #include "GPU_context.hh"
 
+#include "SEQ_sequencer.hh"
+
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
@@ -1032,7 +1034,7 @@ static void file_read_reports_finalize(BlendFileReadReport *bf_reports)
                 RPT_ERROR,
                 "%d sequence strips were not read because they were in a channel larger than %d",
                 bf_reports->count.sequence_strips_skipped,
-                MAXSEQ);
+                SEQ_MAX_CHANNELS);
   }
 
   BLI_linklist_free(bf_reports->resynced_lib_overrides_libraries, nullptr);

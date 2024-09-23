@@ -578,8 +578,6 @@ typedef struct SoundEqualizerModifierData {
 /** \name Flags & Types
  * \{ */
 
-#define MAXSEQ 128
-
 /** #Editor::overlay_frame_flag */
 enum {
   SEQ_EDIT_OVERLAY_FRAME_SHOW = 1,

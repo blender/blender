@@ -276,7 +276,7 @@ Vector<Sequence *> seq_get_shown_sequences(const Scene *scene,
       scene, channels, seqbase, timeline_frame, chanshown);
   const int strip_count = strips.size();
 
-  if (UNLIKELY(strip_count > MAXSEQ)) {
+  if (UNLIKELY(strip_count > SEQ_MAX_CHANNELS)) {
     BLI_assert_msg(0, "Too many strips, this shouldn't happen");
     return result;
   }
