@@ -2751,6 +2751,8 @@ class WM_OT_batch_rename(Operator):
 
     @classmethod
     def _data_from_context(cls, context, data_type, only_selected, *, check_context=False):
+        def _is_editable(data):
+            return data.is_editable and not data.override_library
 
         mode = context.mode
         scene = context.scene
@@ -2949,6 +2951,7 @@ class WM_OT_batch_rename(Operator):
                     "name",
                     descr,
                 )
+        data = ([id for id in data[0] if _is_editable(id)], data[1], data[2])
 
         return data
 
