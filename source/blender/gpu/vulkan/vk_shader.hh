@@ -39,6 +39,7 @@ class VKShader : public Shader {
    */
   VkPipeline vk_pipeline_base_ = VK_NULL_HANDLE;
 
+  bool is_compute_shader_ = false;
   bool is_static_shader_ = false;
   bool use_batch_compilation_ = false;
 
@@ -113,16 +114,6 @@ class VKShader : public Shader {
                                               VKFrameBuffer &framebuffer);
 
   const VKShaderInterface &interface_get() const;
-
-  bool is_graphics_shader() const
-  {
-    return !is_compute_shader();
-  }
-
-  bool is_compute_shader() const
-  {
-    return compute_module.vk_shader_module;
-  }
 
   /**
    * Some shaders don't have a descriptor set and should not bind any descriptor set to the

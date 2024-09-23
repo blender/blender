@@ -235,7 +235,6 @@ void VKContext::update_pipeline_data(GPUPrimType primitive,
                                      render_graph::VKPipelineData &r_pipeline_data)
 {
   VKShader &vk_shader = unwrap(*shader);
-  BLI_assert(vk_shader.is_graphics_shader());
   VKFrameBuffer &framebuffer = *active_framebuffer_get();
   update_pipeline_data(
       vk_shader,
@@ -246,7 +245,6 @@ void VKContext::update_pipeline_data(GPUPrimType primitive,
 void VKContext::update_pipeline_data(render_graph::VKPipelineData &r_pipeline_data)
 {
   VKShader &vk_shader = unwrap(*shader);
-  BLI_assert(vk_shader.is_compute_shader());
   update_pipeline_data(vk_shader, vk_shader.ensure_and_get_compute_pipeline(), r_pipeline_data);
 }
 

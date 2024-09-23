@@ -501,6 +501,7 @@ void VKShader::init(const shader::ShaderCreateInfo &info, bool is_batch_compilat
   vk_interface->init(info);
   interface = vk_interface;
   is_static_shader_ = info.do_static_compilation_;
+  is_compute_shader_ = !info.compute_source_.is_empty() || !info.compute_source_generated.empty();
   use_batch_compilation_ = is_batch_compilation;
 }
 
@@ -611,7 +612,7 @@ bool VKShader::finalize_post()
    * TODO: We should check if VK_EXT_graphics_pipeline_library can improve the pipeline creation
    * step for graphical shaders.
    */
-  if (result && is_compute_shader()) {
+  if (result && is_compute_shader_) {
     ensure_and_get_compute_pipeline();
   }
   return result;
@@ -666,8 +667,8 @@ bool VKShader::finalize_pipeline_layout(VkDevice vk_device,
   if (push_constants_layout.storage_type_get() == VKPushConstants::StorageType::PUSH_CONSTANTS) {
     push_constant_range.offset = 0;
     push_constant_range.size = push_constants_layout.size_in_bytes();
-    push_constant_range.stageFlags = is_graphics_shader() ? VK_SHADER_STAGE_ALL_GRAPHICS :
-                                                            VK_SHADER_STAGE_COMPUTE_BIT;
+    push_constant_range.stageFlags = is_compute_shader_ ? VK_SHADER_STAGE_COMPUTE_BIT :
+                                                          VK_SHADER_STAGE_ALL_GRAPHICS;
     pipeline_info.pushConstantRangeCount = 1;
     pipeline_info.pPushConstantRanges = &push_constant_range;
   }
@@ -1236,6 +1237,7 @@ bool VKShader::do_geometry_shader_injection(const shader::ShaderCreateInfo *info
 
 VkPipeline VKShader::ensure_and_get_compute_pipeline()
 {
+  BLI_assert(is_compute_shader_);
   BLI_assert(compute_module.vk_shader_module != VK_NULL_HANDLE);
   BLI_assert(vk_pipeline_layout != VK_NULL_HANDLE);
 
@@ -1265,6 +1267,7 @@ VkPipeline VKShader::ensure_and_get_graphics_pipeline(GPUPrimType primitive,
                                                       VKStateManager &state_manager,
                                                       VKFrameBuffer &framebuffer)
 {
+  BLI_assert(!is_compute_shader_);
   BLI_assert_msg(
       primitive != GPU_PRIM_POINTS || interface_get().is_point_shader(),
       "GPU_PRIM_POINTS is used with a shader that doesn't set point size before "
