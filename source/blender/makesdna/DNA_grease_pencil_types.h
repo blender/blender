@@ -623,15 +623,15 @@ typedef struct GreasePencil {
    * Low-level resizing of drawings array. Only allocates new entries in the array, no drawings are
    * created in case of size increase. In case of size decrease, the removed drawings are deleted.
    */
-  void resize_drawings(const int new_num);
+  void resize_drawings(int new_num);
   /** Add `add_num` new empty geometry drawings. */
   void add_empty_drawings(int add_num);
   void add_duplicate_drawings(int duplicate_num,
                               const blender::bke::greasepencil::Drawing &drawing);
   bool insert_duplicate_frame(blender::bke::greasepencil::Layer &layer,
-                              const int src_frame_number,
-                              const int dst_frame_number,
-                              const bool do_instance);
+                              int src_frame_number,
+                              int dst_frame_number,
+                              bool do_instance);
 
   /**
    * Move a set of frames in a \a layer.
