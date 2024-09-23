@@ -336,9 +336,15 @@ class Extend : public SocketDeclaration {
 
 class ExtendBuilder : public SocketDeclarationBuilder<Extend> {};
 
+class CustomTypeBuilder;
+
 class Custom : public SocketDeclaration {
  public:
   static constexpr eNodeSocketDatatype static_socket_type = SOCK_CUSTOM;
+
+  friend CustomTypeBuilder;
+
+  using Builder = CustomTypeBuilder;
 
   const char *idname_;
   std::function<void(bNode &node, bNodeSocket &socket, const char *data_path)> init_socket_fn;
@@ -347,6 +353,11 @@ class Custom : public SocketDeclaration {
   bool matches(const bNodeSocket &socket) const override;
   bNodeSocket &update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &socket) const override;
   bool can_connect(const bNodeSocket &socket) const override;
+};
+
+class CustomTypeBuilder : public SocketDeclarationBuilder<Custom> {
+ public:
+  CustomTypeBuilder &idname(const char *name);
 };
 
 /* -------------------------------------------------------------------- */
@@ -526,6 +537,18 @@ inline Collection::Collection() : IDSocketDeclaration("NodeSocketCollection") {}
 inline Texture::Texture() : IDSocketDeclaration("NodeSocketTexture") {}
 
 inline Image::Image() : IDSocketDeclaration("NodeSocketImage") {}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #CustomTypeBuilder Inline Methods
+ * \{ */
+
+inline CustomTypeBuilder &CustomTypeBuilder::idname(const char *idname)
+{
+  decl_->idname_ = idname;
+  return *this;
+}
 
 /** \} */
 

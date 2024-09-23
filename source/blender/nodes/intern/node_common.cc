@@ -572,15 +572,24 @@ void register_node_type_frame()
 /** \name Node Re-Route
  * \{ */
 
-static void node_reroute_init(bNodeTree *ntree, bNode *node)
+static void node_reroute_declare(blender::nodes::NodeDeclarationBuilder &b)
 {
-  /* NOTE: Cannot use socket templates for this, since it would reset the socket type
-   * on each file read via the template verification procedure.
-   */
-  blender::bke::node_add_static_socket(
-      ntree, node, SOCK_IN, SOCK_RGBA, PROP_NONE, "Input", "Input");
-  blender::bke::node_add_static_socket(
-      ntree, node, SOCK_OUT, SOCK_RGBA, PROP_NONE, "Output", "Output");
+  const bNode *node = b.node_or_null();
+  if (node == nullptr) {
+    return;
+  }
+
+  const blender::StringRefNull socket_idname(
+      static_cast<const NodeReroute *>(node->storage)->type_idname);
+  b.add_input<blender::nodes::decl::Custom>("Input").idname(socket_idname.c_str());
+  b.add_output<blender::nodes::decl::Custom>("Output").idname(socket_idname.c_str());
+}
+
+static void node_reroute_init(bNodeTree * /*ntree*/, bNode *node)
+{
+  NodeReroute *data = MEM_cnew<NodeReroute>(__func__);
+  STRNCPY(data->type_idname, "NodeSocketColor");
+  node->storage = data;
 }
 
 void register_node_type_reroute()
@@ -590,7 +599,9 @@ void register_node_type_reroute()
   ntype->free_self = (void (*)(blender::bke::bNodeType *))MEM_freeN;
 
   blender::bke::node_type_base(ntype, NODE_REROUTE, "Reroute", NODE_CLASS_LAYOUT);
+  ntype->declare = node_reroute_declare;
   ntype->initfunc = node_reroute_init;
+  node_type_storage(ntype, "NodeReroute", node_free_standard_storage, node_copy_standard_storage);
 
   blender::bke::node_register_type(ntype);
 }
@@ -674,17 +685,9 @@ void ntree_update_reroute_nodes(bNodeTree *ntree)
   for (const auto item : reroute_types.items()) {
     bNode *reroute_node = item.key;
     const blender::bke::bNodeSocketType *socket_type = item.value;
-    bNodeSocket *input_socket = (bNodeSocket *)reroute_node->inputs.first;
-    bNodeSocket *output_socket = (bNodeSocket *)reroute_node->outputs.first;
-
-    if (input_socket->typeinfo != socket_type) {
-      blender::bke::node_modify_socket_type(
-          ntree, reroute_node, input_socket, socket_type->idname);
-    }
-    if (output_socket->typeinfo != socket_type) {
-      blender::bke::node_modify_socket_type(
-          ntree, reroute_node, output_socket, socket_type->idname);
-    }
+    NodeReroute *storage = static_cast<NodeReroute *>(reroute_node->storage);
+    STRNCPY(storage->type_idname, socket_type->idname);
+    blender::nodes::update_node_declaration_and_sockets(*ntree, *reroute_node);
   }
 }
 

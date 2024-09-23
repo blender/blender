@@ -23,7 +23,7 @@ DefNode(Node,           NODE_FRAME,              def_frame,              "FRAME"
 DefNode(Node,           NODE_GROUP,              def_group,              "GROUP",          Group,            "Group",             "")
 DefNode(Node,           NODE_GROUP_INPUT,        def_group_input,        "GROUP_INPUT",    GroupInput,       "Group Input",       "Expose connected data from inside a node group as inputs to its interface")
 DefNode(Node,           NODE_GROUP_OUTPUT,       def_group_output,       "GROUP_OUTPUT",   GroupOutput,      "Group Output",      "Output data from inside of a node group")
-DefNode(Node,           NODE_REROUTE,            0,                      "REROUTE",        Reroute,          "Reroute",           "A single-socket organization tool that supports one input and multiple outputs")
+DefNode(Node,           NODE_REROUTE,            def_reroute,            "REROUTE",        Reroute,          "Reroute",           "A single-socket organization tool that supports one input and multiple outputs")
 
 DefNode(ShaderNode,     SH_NODE_RGB,             0,                      "RGB",            RGB,              "RGB",               "A color picker")
 DefNode(ShaderNode,     SH_NODE_VALUE,           0,                      "VALUE",          Value,            "Value",             "Input numerical values to other nodes in the tree")
