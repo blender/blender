@@ -716,7 +716,7 @@ static void idprop_ui_data_to_dict_int(IDProperty *property, PyObject *dict)
   Py_DECREF(item);
   PyDict_SetItemString(dict, "step", item = PyLong_FromLong(ui_data->step));
   Py_DECREF(item);
-  if (property->type == IDP_ARRAY) {
+  if ((property->type == IDP_ARRAY) && ui_data->default_array) {
     PyObject *list = PyList_New(ui_data->default_array_len);
     for (int i = 0; i < ui_data->default_array_len; i++) {
       PyList_SET_ITEM(list, i, PyLong_FromLong(ui_data->default_array[i]));
@@ -756,7 +756,7 @@ static void idprop_ui_data_to_dict_bool(IDProperty *property, PyObject *dict)
   IDPropertyUIDataBool *ui_data = (IDPropertyUIDataBool *)property->ui_data;
   PyObject *item;
 
-  if (property->type == IDP_ARRAY) {
+  if ((property->type == IDP_ARRAY) && ui_data->default_array) {
     PyObject *list = PyList_New(ui_data->default_array_len);
     for (int i = 0; i < ui_data->default_array_len; i++) {
       PyList_SET_ITEM(list, i, PyBool_FromLong(ui_data->default_array[i]));
@@ -787,7 +787,7 @@ static void idprop_ui_data_to_dict_float(IDProperty *property, PyObject *dict)
   Py_DECREF(item);
   PyDict_SetItemString(dict, "precision", item = PyLong_FromDouble(double(ui_data->precision)));
   Py_DECREF(item);
-  if (property->type == IDP_ARRAY) {
+  if ((property->type == IDP_ARRAY) && ui_data->default_array) {
     PyObject *list = PyList_New(ui_data->default_array_len);
     for (int i = 0; i < ui_data->default_array_len; i++) {
       PyList_SET_ITEM(list, i, PyFloat_FromDouble(ui_data->default_array[i]));
