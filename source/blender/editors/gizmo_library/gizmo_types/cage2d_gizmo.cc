@@ -558,12 +558,14 @@ static void cage2d_draw_circle_wire(const float color[3],
 {
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
-  immBindBuiltinProgram(is_zero_v2(margin) ? GPU_SHADER_3D_UNIFORM_COLOR :
-                                             GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
+  const bool use_points = is_zero_v2(margin);
+  immBindBuiltinProgram(use_points ? GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA :
+                                     GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
   immUniformColor3fv(color);
 
-  if (is_zero_v2(margin)) {
+  if (use_points) {
     /* Draw a central point. */
+    immUniform1f("size", 1.0 * U.pixelsize);
     immBegin(GPU_PRIM_POINTS, 1);
     immVertex3f(pos, 0.0f, 0.0f, 0.0f);
     immEnd();
