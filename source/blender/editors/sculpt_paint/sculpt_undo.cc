@@ -1589,11 +1589,6 @@ static void save_active_attribute(Object &object, SculptAttrRef *attr)
   attr->type = meta_data->data_type;
 }
 
-void push_begin(const Scene &scene, Object &ob, const wmOperator *op)
-{
-  push_begin_ex(scene, ob, op->type->name);
-}
-
 void push_begin_ex(const Scene & /*scene*/, Object &ob, const char *name)
 {
   UndoStack *ustack = ED_undo_stack_get();
@@ -1651,9 +1646,9 @@ void push_begin_ex(const Scene & /*scene*/, Object &ob, const char *name)
   }
 }
 
-void push_end(Object &ob)
+void push_begin(const Scene &scene, Object &ob, const wmOperator *op)
 {
-  push_end_ex(ob, false);
+  push_begin_ex(scene, ob, op->type->name);
 }
 
 static size_t node_size_in_bytes(const Node &node)
@@ -1719,6 +1714,11 @@ void push_end_ex(Object &ob, const bool use_nested_undo)
       ustack, BKE_UNDOSYS_TYPE_SCULPT);
 
   save_active_attribute(ob, &us->active_color_end);
+}
+
+void push_end(Object &ob)
+{
+  push_end_ex(ob, false);
 }
 
 /* -------------------------------------------------------------------- */
