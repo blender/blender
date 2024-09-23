@@ -52,7 +52,7 @@ static void subdivide_grease_pencil_curves(GreasePencil &grease_pencil,
 {
   using namespace bke::greasepencil;
   for (const int layer_index : grease_pencil.layers().index_range()) {
-    Drawing *drawing = grease_pencil.get_eval_drawing(*grease_pencil.layer(layer_index));
+    Drawing *drawing = grease_pencil.get_eval_drawing(grease_pencil.layer(layer_index));
 
     if (drawing == nullptr) {
       continue;

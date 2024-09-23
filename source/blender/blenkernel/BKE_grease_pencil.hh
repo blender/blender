@@ -1000,15 +1000,13 @@ inline GreasePencilDrawingBase *GreasePencil::drawing(const int64_t index)
   return this->drawings()[index];
 }
 
-inline const blender::bke::greasepencil::Layer *GreasePencil::layer(const int64_t index) const
+inline const blender::bke::greasepencil::Layer &GreasePencil::layer(const int64_t index) const
 {
-  BLI_assert(index >= 0 && index < this->layers().size());
-  return this->layers()[index];
+  return *this->layers()[index];
 }
-inline blender::bke::greasepencil::Layer *GreasePencil::layer(const int64_t index)
+inline blender::bke::greasepencil::Layer &GreasePencil::layer(const int64_t index)
 {
-  BLI_assert(index >= 0 && index < this->layers().size());
-  return this->layers_for_write()[index];
+  return *this->layers_for_write()[index];
 }
 
 inline const blender::bke::greasepencil::LayerGroup &GreasePencil::root_group() const

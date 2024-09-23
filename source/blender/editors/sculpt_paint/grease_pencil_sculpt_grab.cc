@@ -87,7 +87,7 @@ void GrabOperation::foreach_grabbed_drawing(
     if (data.point_mask.is_empty()) {
       return;
     }
-    const Layer &layer = *grease_pencil.layer(data.layer_index);
+    const Layer &layer = grease_pencil.layer(data.layer_index);
     /* If a new frame is created, could be impossible find the stroke. */
     bke::greasepencil::Drawing *drawing = grease_pencil.get_drawing_at(layer, data.frame_number);
     if (drawing == nullptr) {
@@ -149,7 +149,7 @@ void GrabOperation::on_stroke_begin(const bContext &C, const InputSample &start_
     BLI_assert(info.layer_index >= 0);
     PointWeights &data = this->drawing_data[i];
 
-    const bke::greasepencil::Layer &layer = *grease_pencil.layer(info.layer_index);
+    const bke::greasepencil::Layer &layer = grease_pencil.layer(info.layer_index);
     BLI_assert(grease_pencil.get_drawing_at(layer, info.frame_number) == &info.drawing);
 
     GreasePencilStrokeParams params = {*scene.toolsettings,

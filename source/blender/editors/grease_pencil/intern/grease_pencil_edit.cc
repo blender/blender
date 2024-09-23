@@ -1864,7 +1864,7 @@ static bke::greasepencil::Layer &find_or_create_layer_in_dst_by_name(
   using namespace bke::greasepencil;
 
   /* This assumes that the index is valid. Will cause an assert if it is not. */
-  const Layer &layer_src = *grease_pencil_src.layer(layer_index);
+  const Layer &layer_src = grease_pencil_src.layer(layer_index);
   if (TreeNode *node = grease_pencil_dst.find_node_by_name(layer_src.name())) {
     return node->as_layer();
   }
@@ -1959,8 +1959,8 @@ static bool grease_pencil_separate_layer(bContext &C,
 
   /* Create a new object for each layer. */
   for (const int layer_i : grease_pencil_src.layers().index_range()) {
-    Layer *layer_src = grease_pencil_src.layer(layer_i);
-    if (layer_src->is_selected() || layer_src->is_locked()) {
+    Layer &layer_src = grease_pencil_src.layer(layer_i);
+    if (layer_src.is_selected() || layer_src.is_locked()) {
       continue;
     }
 
@@ -1972,7 +1972,7 @@ static bool grease_pencil_separate_layer(bContext &C,
 
     /* Iterate through all the drawings at current frame. */
     const Vector<MutableDrawingInfo> drawings_src = retrieve_editable_drawings_from_layer(
-        scene, grease_pencil_src, *layer_src);
+        scene, grease_pencil_src, layer_src);
     for (const MutableDrawingInfo &info : drawings_src) {
       bke::CurvesGeometry &curves_src = info.drawing.strokes_for_write();
       IndexMaskMemory memory;
@@ -2768,7 +2768,7 @@ static int grease_pencil_reproject_exec(bContext *C, wmOperator *op)
         return;
       }
 
-      const bke::greasepencil::Layer &layer = *grease_pencil.layer(info.layer_index);
+      const bke::greasepencil::Layer &layer = grease_pencil.layer(info.layer_index);
       bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
       const DrawingPlacement drawing_placement(
           scene, *region, *v3d, *object, &layer, mode, offset, view_depths);
@@ -2922,7 +2922,7 @@ static int grease_pencil_snap_to_grid_exec(bContext *C, wmOperator * /*op*/)
     IndexMaskMemory memory;
     const IndexMask selected_points = ed::curves::retrieve_selected_points(curves, memory);
 
-    const Layer &layer = *grease_pencil.layer(drawing_info.layer_index);
+    const Layer &layer = grease_pencil.layer(drawing_info.layer_index);
     const float4x4 layer_to_world = layer.to_world_space(object);
     const float4x4 world_to_layer = math::invert(layer_to_world);
 
@@ -2983,7 +2983,7 @@ static int grease_pencil_snap_to_cursor_exec(bContext *C, wmOperator *op)
     const IndexMask selected_points = ed::curves::retrieve_selected_points(curves,
                                                                            selected_points_memory);
 
-    const Layer &layer = *grease_pencil.layer(drawing_info.layer_index);
+    const Layer &layer = grease_pencil.layer(drawing_info.layer_index);
     const float4x4 layer_to_world = layer.to_world_space(object);
     const float4x4 world_to_layer = math::invert(layer_to_world);
     const float3 cursor_layer = math::transform_point(world_to_layer, cursor_world);
@@ -3073,7 +3073,7 @@ static bool grease_pencil_snap_compute_centroid(const Scene &scene,
     const IndexMask selected_points = ed::curves::retrieve_selected_points(curves,
                                                                            selected_points_memory);
 
-    const Layer &layer = *grease_pencil.layer(drawing_info.layer_index);
+    const Layer &layer = grease_pencil.layer(drawing_info.layer_index);
     const float4x4 layer_to_world = layer.to_world_space(object);
 
     Span<float3> positions = curves.positions();

@@ -1138,7 +1138,7 @@ static bool apply_grease_pencil_for_modifier(Depsgraph *depsgraph,
   /* Convert the layer map into an index mapping. */
   Array<int> eval_to_orig_layer_indices_map(grease_pencil_result.layers().size());
   for (const int layer_eval_i : grease_pencil_result.layers().index_range()) {
-    const Layer *layer_eval = grease_pencil_result.layer(layer_eval_i);
+    const Layer *layer_eval = &grease_pencil_result.layer(layer_eval_i);
     const Layer *layer_orig = eval_to_orig_layer_map.lookup(layer_eval);
     const int layer_orig_index = *grease_pencil_orig.get_layer_index(*layer_orig);
     eval_to_orig_layer_indices_map[layer_eval_i] = layer_orig_index;

@@ -1361,7 +1361,7 @@ Curves2DBVHTree build_curves_2d_bvh_from_visible(const ViewContext &vc,
       continue;
     }
 
-    const bke::greasepencil::Layer &layer = *grease_pencil.layer(info.layer_index);
+    const bke::greasepencil::Layer &layer = grease_pencil.layer(info.layer_index);
     const float4x4 layer_to_world = layer.to_world_space(object);
     const float4x4 projection = ED_view3d_ob_project_mat_get_from_obmat(vc.rv3d, layer_to_world);
     const bke::CurvesGeometry &curves = info.drawing.strokes();

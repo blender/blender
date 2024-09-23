@@ -176,7 +176,7 @@ static GreasePencil *curve_instances_to_grease_pencil_layers(
     const VArray<float> opacities = *instances_attributes.lookup_or_default<float>(
         "opacity", AttrDomain::Instance, 1.0f);
     instance_selection.foreach_index([&](const int instance_i, const int layer_i) {
-      grease_pencil->layer(layer_i)->opacity = opacities[instance_i];
+      grease_pencil->layer(layer_i).opacity = opacities[instance_i];
     });
   }
 

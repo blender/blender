@@ -216,7 +216,7 @@ static int grease_pencil_layer_active_exec(bContext *C, wmOperator *op)
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
   int layer_index = RNA_int_get(op->ptr, "layer");
 
-  Layer &layer = *grease_pencil.layer(layer_index);
+  Layer &layer = grease_pencil.layer(layer_index);
   if (grease_pencil.is_layer_active(&layer)) {
     return OPERATOR_CANCELLED;
   }

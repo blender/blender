@@ -633,7 +633,7 @@ GeometryDeformation get_evaluated_grease_pencil_drawing_deformation(const Object
   const GreasePencil &grease_pencil_orig = *static_cast<const GreasePencil *>(ob_orig.data);
 
   const Span<const bke::greasepencil::Layer *> layers_orig = grease_pencil_orig.layers();
-  const bke::greasepencil::Layer &layer_orig = *grease_pencil_orig.layer(layer_index);
+  const bke::greasepencil::Layer &layer_orig = grease_pencil_orig.layer(layer_index);
   const bke::greasepencil::Drawing *drawing_orig = grease_pencil_orig.get_drawing_at(layer_orig,
                                                                                      frame);
   if (drawing_orig == nullptr) {

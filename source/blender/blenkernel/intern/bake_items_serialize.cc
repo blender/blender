@@ -799,11 +799,10 @@ static GreasePencil *try_load_grease_pencil(const DictionaryValue &io_geometry,
   }
 
   for (const int layer_i : IndexRange(layers_num)) {
-    greasepencil::Layer *layer = grease_pencil->layer(layer_i);
-    BLI_assert(layer);
-    layer->opacity = layer_opacities[layer_i];
-    layer->blend_mode = layer_blend_modes[layer_i];
-    layer->set_local_transform(layer_transforms[layer_i]);
+    greasepencil::Layer &layer = grease_pencil->layer(layer_i);
+    layer.opacity = layer_opacities[layer_i];
+    layer.blend_mode = layer_blend_modes[layer_i];
+    layer.set_local_transform(layer_transforms[layer_i]);
   }
 
   if (const io::serialize::ArrayValue *io_materials = io_grease_pencil->lookup_array("materials"))

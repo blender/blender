@@ -469,7 +469,7 @@ std::optional<const bke::AttributeAccessor> GeometryDataSource::get_component_at
   }
   if (layer_index_ >= 0 && layer_index_ < grease_pencil->layers().size()) {
     if (const bke::greasepencil::Drawing *drawing = grease_pencil->get_eval_drawing(
-            *grease_pencil->layer(layer_index_)))
+            grease_pencil->layer(layer_index_)))
     {
       return drawing->strokes().attributes();
     }

@@ -509,8 +509,8 @@ typedef struct GreasePencil {
   /* Layers, layer groups and nodes read/write access. */
   blender::Span<const blender::bke::greasepencil::Layer *> layers() const;
   blender::Span<blender::bke::greasepencil::Layer *> layers_for_write();
-  const blender::bke::greasepencil::Layer *layer(int64_t index) const;
-  blender::bke::greasepencil::Layer *layer(int64_t index);
+  const blender::bke::greasepencil::Layer &layer(int64_t index) const;
+  blender::bke::greasepencil::Layer &layer(int64_t index);
 
   blender::Span<const blender::bke::greasepencil::LayerGroup *> layer_groups() const;
   blender::Span<blender::bke::greasepencil::LayerGroup *> layer_groups_for_write();

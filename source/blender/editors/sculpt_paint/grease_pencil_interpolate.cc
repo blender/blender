@@ -303,13 +303,13 @@ InterpolateOpData *InterpolateOpData::from_operator(const bContext &C, const wmO
           grease_pencil.layers().index_range(),
           GrainSize(1024),
           data->layer_mask_memory,
-          [&](const int layer_index) { return grease_pencil.layer(layer_index)->is_editable(); });
+          [&](const int layer_index) { return grease_pencil.layer(layer_index).is_editable(); });
       break;
   }
 
   data->layer_data.reinitialize(grease_pencil.layers().size());
   data->layer_mask.foreach_index([&](const int layer_index) {
-    const Layer &layer = *grease_pencil.layer(layer_index);
+    const Layer &layer = grease_pencil.layer(layer_index);
     InterpolateOpData::LayerData &layer_data = data->layer_data[layer_index];
 
     /* Pair from/to curves by index. */
@@ -601,7 +601,7 @@ static void grease_pencil_interpolate_update(bContext &C, const wmOperator &op)
   const auto flip_mode = InterpolateFlipMode(RNA_enum_get(op.ptr, "flip"));
 
   opdata.layer_mask.foreach_index([&](const int layer_index) {
-    Layer &layer = *grease_pencil.layer(layer_index);
+    Layer &layer = grease_pencil.layer(layer_index);
     const InterpolateOpData::LayerData &layer_data = opdata.layer_data[layer_index];
 
     /* Drawings must be created on operator invoke. */
@@ -656,7 +656,7 @@ static void grease_pencil_interpolate_restore(bContext &C, wmOperator &op)
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
 
   opdata.layer_mask.foreach_index([&](const int layer_index) {
-    Layer &layer = *grease_pencil.layer(layer_index);
+    Layer &layer = grease_pencil.layer(layer_index);
     const InterpolateOpData::LayerData &layer_data = opdata.layer_data[layer_index];
 
     if (layer_data.orig_curves) {
@@ -692,7 +692,7 @@ static bool grease_pencil_interpolate_init(const bContext &C, wmOperator &op)
 
   /* Create target frames. */
   data.layer_mask.foreach_index([&](const int layer_index) {
-    Layer &layer = *grease_pencil.layer(layer_index);
+    Layer &layer = grease_pencil.layer(layer_index);
     InterpolateOpData::LayerData &layer_data = data.layer_data[layer_index];
 
     ensure_drawing_at_exact_frame(grease_pencil, layer, layer_data, current_frame);
@@ -1113,7 +1113,7 @@ static int grease_pencil_interpolate_sequence_exec(bContext *C, wmOperator *op)
   BKE_curvemapping_init(ipo_settings.custom_ipo);
 
   opdata.layer_mask.foreach_index([&](const int layer_index) {
-    Layer &layer = *grease_pencil.layer(layer_index);
+    Layer &layer = grease_pencil.layer(layer_index);
     InterpolateOpData::LayerData &layer_data = opdata.layer_data[layer_index];
 
     std::optional<FramesMapKeyIntervalT> interval = find_frames_interval(

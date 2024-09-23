@@ -870,7 +870,7 @@ struct EraseOperationExecutor {
     const auto execute_eraser_on_drawing = [&](const int layer_index,
                                                const int frame_number,
                                                Drawing &drawing) {
-      const Layer &layer = *grease_pencil.layer(layer_index);
+      const Layer &layer = grease_pencil.layer(layer_index);
       const bke::CurvesGeometry &src = drawing.strokes();
 
       /* Evaluated geometry. */

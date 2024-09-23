@@ -392,7 +392,7 @@ class GreasePencilLayerCurvesDomainViewItem : public DataSetViewItem {
     uiItemL(&row, label_.c_str(), icon);
 
     const bke::greasepencil::Drawing *drawing = grease_pencil_.get_eval_drawing(
-        *grease_pencil_.layer(layer_index_));
+        grease_pencil_.layer(layer_index_));
     const int count = drawing ? drawing->strokes().attributes().domain_size(domain_) : 0;
     draw_count(*this, count);
   }
