@@ -198,6 +198,11 @@ static bool idprop_ui_data_update_int_default(IDProperty *idprop,
       PyErr_SetString(PyExc_ValueError, "Error converting \"default\" argument to integer");
       return false;
     }
+
+    /* Use the non-array default, even for arrays, also prevent dangling pointer, see #127952. */
+    ui_data->default_array = nullptr;
+    ui_data->default_array_len = 0;
+
     ui_data->default_value = value;
   }
 
@@ -356,6 +361,11 @@ static bool idprop_ui_data_update_bool_default(IDProperty *idprop,
       PyErr_SetString(PyExc_ValueError, "Error converting \"default\" argument to integer");
       return false;
     }
+
+    /* Use the non-array default, even for arrays, also prevent dangling pointer, see #127952. */
+    ui_data->default_array_len = 0;
+    ui_data->default_array = nullptr;
+
     ui_data->default_value = (value != 0);
   }
 
@@ -441,6 +451,11 @@ static bool idprop_ui_data_update_float_default(IDProperty *idprop,
       PyErr_SetString(PyExc_ValueError, "Error converting \"default\" argument to double");
       return false;
     }
+
+    /* Use the non-array default, even for arrays, also prevent dangling pointer, see #127952. */
+    ui_data->default_array_len = 0;
+    ui_data->default_array = nullptr;
+
     ui_data->default_value = value;
   }
 
