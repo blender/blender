@@ -284,21 +284,6 @@ FCurve *id_data_find_fcurve(
     ID *id, void *data, StructRNA *type, const char *prop_name, int index, bool *r_driven);
 
 /**
- * Get list of LinkData's containing pointers to the F-Curves
- * which control the types of data indicated.
- * e.g. `numMatches = BKE_fcurves_filter(matches, &act->curves, "pose.bones[", "MyFancyBone");`
- *
- * Lists:
- * \param dst: list of LinkData's matching the criteria returned.
- * List must be freed after use, and is assumed to be empty when passed.
- * \param src: list of F-Curves to search through
- * Filters:
- * \param dataPrefix: i.e. `pose.bones[` or `nodes[`.
- * \param dataName: name of entity within "" immediately following the prefix.
- */
-int BKE_fcurves_filter(ListBase *dst, ListBase *src, const char *dataPrefix, const char *dataName);
-
-/**
  * Find an F-Curve from its rna path and index.
  *
  * The search order is as follows. The first match will be returned:

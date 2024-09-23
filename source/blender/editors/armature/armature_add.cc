@@ -34,6 +34,8 @@
 #include "BKE_lib_id.hh"
 #include "BKE_object_types.hh"
 
+#include "ANIM_action.hh"
+
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
@@ -508,14 +510,12 @@ static void updateDuplicateActionConstraintSettings(
   }
 
   /* See if there is any channels that uses this bone */
-  ListBase ani_curves;
-  BLI_listbase_clear(&ani_curves);
-  if ((act != nullptr) &&
-      BKE_fcurves_filter(&ani_curves, &act->curves, "pose.bones[", orig_bone->name))
-  {
+  bAction *act = (bAction *)act_con->act;
+  if (act) {
     /* Create a copy and mirror the animation */
-    LISTBASE_FOREACH (LinkData *, ld, &ani_curves) {
-      FCurve *old_curve = static_cast<FCurve *>(ld->data);
+    Vector<FCurve *> fcurves = blender::animrig::fcurve_find_in_action_slot_filtered(
+        act, act_con->action_slot_handle, "pose.bones[", orig_bone->name);
+    for (const FCurve *old_curve : fcurves) {
       FCurve *new_curve = BKE_fcurve_copy(old_curve);
       bActionGroup *agrp;
 
@@ -568,7 +568,6 @@ static void updateDuplicateActionConstraintSettings(
       action_groups_add_channel(act, agrp, new_curve);
     }
   }
-  BLI_freelistN(&ani_curves);
 
   /* Make depsgraph aware of our changes. */
   DEG_id_tag_update(&act->id, ID_RECALC_ANIMATION_NO_FLUSH);

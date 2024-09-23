@@ -2218,6 +2218,40 @@ FCurve *fcurve_find_in_action_slot(bAction *act,
   return cbag->fcurve_find(fcurve_descriptor);
 }
 
+Vector<FCurve *> fcurve_find_in_action_slot_filtered(bAction *act,
+                                                     const slot_handle_t slot_handle,
+                                                     const StringRefNull collection_rna_path,
+                                                     const StringRefNull data_name)
+{
+  BLI_assert(act);
+  BLI_assert(!collection_rna_path.is_empty());
+
+  Vector<FCurve *> found;
+
+  const size_t quoted_name_size = data_name.size() + 1;
+  char *quoted_name = static_cast<char *>(alloca(quoted_name_size));
+
+  action_foreach_fcurve(act->wrap(), slot_handle, [&](FCurve &fcurve) {
+    if (!fcurve.rna_path) {
+      return;
+    }
+    /* Skipping names longer than `quoted_name_size` is OK since we're after an exact match. */
+    if (!BLI_str_quoted_substr(
+            fcurve.rna_path, collection_rna_path.c_str(), quoted_name, quoted_name_size))
+    {
+      return;
+    }
+    if (quoted_name != data_name) {
+      return;
+    }
+
+    found.append(&fcurve);
+    return;
+  });
+
+  return found;
+}
+
 FCurve *action_fcurve_ensure(Main *bmain,
                              bAction *act,
                              const char group[],

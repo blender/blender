@@ -297,47 +297,6 @@ FCurve *BKE_fcurve_iter_step(FCurve *fcu_iter, const char rna_path[])
   return nullptr;
 }
 
-int BKE_fcurves_filter(ListBase *dst, ListBase *src, const char *dataPrefix, const char *dataName)
-{
-  int matches = 0;
-
-  /* Sanity checks. */
-  if (ELEM(nullptr, dst, src, dataPrefix, dataName)) {
-    return 0;
-  }
-  if ((dataPrefix[0] == 0) || (dataName[0] == 0)) {
-    return 0;
-  }
-
-  const size_t quotedName_size = strlen(dataName) + 1;
-  char *quotedName = static_cast<char *>(alloca(quotedName_size));
-
-  /* Search each F-Curve one by one. */
-  LISTBASE_FOREACH (FCurve *, fcu, src) {
-    /* Check if quoted string matches the path. */
-    if (fcu->rna_path == nullptr) {
-      continue;
-    }
-    /* Skipping names longer than `quotedName_size` is OK since we're after an exact match. */
-    if (!BLI_str_quoted_substr(fcu->rna_path, dataPrefix, quotedName, quotedName_size)) {
-      continue;
-    }
-    if (!STREQ(quotedName, dataName)) {
-      continue;
-    }
-
-    /* Check if the quoted name matches the required name. */
-    LinkData *ld = static_cast<LinkData *>(MEM_callocN(sizeof(LinkData), __func__));
-
-    ld->data = fcu;
-    BLI_addtail(dst, ld);
-
-    matches++;
-  }
-  /* Return the number of matches. */
-  return matches;
-}
-
 FCurve *BKE_animadata_fcurve_find_by_rna_path(
     AnimData *animdata, const char *rna_path, int rna_index, bAction **r_action, bool *r_driven)
 {
