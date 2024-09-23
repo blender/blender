@@ -243,6 +243,7 @@ class VIEW3D_HT_tool_header(Header):
             layer = context.object.data.layers.active
             group = context.object.data.layer_groups.active
             text = "Layer"
+            node_name = None
 
             if layer:
                 node_name = layer.name
