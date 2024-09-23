@@ -348,7 +348,7 @@ static bool fake_keys_draw(const bContext *C,
   int right_key_frame = right_fake_key_frame_get(C, seq);
 
   if (SEQ_retiming_key_get_by_timeline_frame(scene, seq, left_key_frame) == nullptr) {
-    SeqRetimingKey fake_key;
+    SeqRetimingKey fake_key = {0};
     fake_key.strip_frame_index = (left_key_frame - SEQ_time_start_frame_get(seq)) *
                                  SEQ_time_media_playback_rate_factor_get(scene, seq);
     fake_key.flag = 0;
@@ -363,7 +363,7 @@ static bool fake_keys_draw(const bContext *C,
       right_key_frame += 1;
     }
 
-    SeqRetimingKey fake_key;
+    SeqRetimingKey fake_key = {0};
     fake_key.strip_frame_index = (right_key_frame - SEQ_time_start_frame_get(seq)) *
                                  SEQ_time_media_playback_rate_factor_get(scene, seq);
     fake_key.flag = 0;
