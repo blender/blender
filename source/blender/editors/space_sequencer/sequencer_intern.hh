@@ -90,6 +90,8 @@ struct StripDrawContext {
   float handle_width;      /* Width of strip handle in frames. */
   float strip_length;
 
+  const FCurve *curve = nullptr; /* Curve for overlay, if any (blend factor or volume). */
+
   bool can_draw_text_overlay;
   bool can_draw_strip_content;
   bool strip_is_too_small; /* Shorthand for (!can_draw_text_overlay && !can_draw_strip_content). */

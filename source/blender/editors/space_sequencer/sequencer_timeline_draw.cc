@@ -13,6 +13,7 @@
 #include "BLI_array.hh"
 #include "BLI_blenlib.h"
 #include "BLI_string_utils.hh"
+#include "BLI_task.hh"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
@@ -135,7 +136,7 @@ static TimelineDrawContext timeline_draw_context_get(const bContext *C, SeqQuads
   return ctx;
 }
 
-static bool seq_draw_waveforms_poll(const bContext * /*C*/, SpaceSeq *sseq, Sequence *seq)
+static bool seq_draw_waveforms_poll(const SpaceSeq *sseq, const Sequence *seq)
 {
   const bool strip_is_valid = seq->type == SEQ_TYPE_SOUND_RAM && seq->sound != nullptr;
   const bool overlays_enabled = (sseq->flag & SEQ_SHOW_OVERLAY) != 0;
@@ -153,10 +154,10 @@ static bool seq_draw_waveforms_poll(const bContext * /*C*/, SpaceSeq *sseq, Sequ
   return false;
 }
 
-static bool strip_hides_text_overlay_first(TimelineDrawContext *ctx,
+static bool strip_hides_text_overlay_first(const TimelineDrawContext *ctx,
                                            const StripDrawContext *strip_ctx)
 {
-  return seq_draw_waveforms_poll(ctx->C, ctx->sseq, strip_ctx->seq) ||
+  return seq_draw_waveforms_poll(ctx->sseq, strip_ctx->seq) ||
          strip_ctx->seq->type == SEQ_TYPE_COLOR;
 }
 
@@ -249,7 +250,29 @@ static StripDrawContext strip_draw_context_get(TimelineDrawContext *ctx, Sequenc
     strip_ctx.strip_content_top = strip_ctx.top;
   }
 
+  strip_ctx.curve = nullptr;
   return strip_ctx;
+}
+
+static void strip_draw_context_curve_get(const TimelineDrawContext *ctx,
+                                         StripDrawContext &strip_ctx)
+{
+  strip_ctx.curve = nullptr;
+  const bool showing_curve_overlay = strip_ctx.can_draw_strip_content &&
+                                     (ctx->sseq->flag & SEQ_SHOW_OVERLAY) != 0 &&
+                                     (ctx->sseq->timeline_overlay.flag &
+                                      SEQ_TIMELINE_SHOW_FCURVES) != 0;
+  const bool showing_waveform = (strip_ctx.seq->type == SEQ_TYPE_SOUND_RAM) &&
+                                !strip_ctx.strip_is_too_small &&
+                                seq_draw_waveforms_poll(ctx->sseq, strip_ctx.seq);
+  if (showing_curve_overlay || showing_waveform) {
+    const char *prop_name = strip_ctx.seq->type == SEQ_TYPE_SOUND_RAM ? "volume" : "blend_alpha";
+    strip_ctx.curve = id_data_find_fcurve(
+        &ctx->scene->id, strip_ctx.seq, &RNA_Sequence, prop_name, 0, nullptr);
+    if (strip_ctx.curve && BKE_fcurve_is_empty(strip_ctx.curve)) {
+      strip_ctx.curve = nullptr;
+    }
+  }
 }
 
 static void color3ubv_from_seq(const Scene *curscene,
@@ -433,7 +456,7 @@ static float align_frame_with_pixel(float frame_coord, float frames_per_pixel)
 static void draw_seq_waveform_overlay(TimelineDrawContext *timeline_ctx,
                                       const StripDrawContext *strip_ctx)
 {
-  if (!seq_draw_waveforms_poll(timeline_ctx->C, timeline_ctx->sseq, strip_ctx->seq) ||
+  if (!seq_draw_waveforms_poll(timeline_ctx->sseq, strip_ctx->seq) ||
       strip_ctx->strip_is_too_small)
   {
     return;
@@ -481,9 +504,6 @@ static void draw_seq_waveform_overlay(TimelineDrawContext *timeline_ctx,
     return; /* Waveform was not built. */
   }
 
-  /* F-Curve lookup is quite expensive, so do this after precondition. */
-  const FCurve *fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "volume", 0, nullptr);
-
   /* Draw zero line (when actual samples close to zero are drawn, they might not cover a pixel. */
   uchar color[4] = {255, 255, 255, 127};
   uchar color_clip[4] = {255, 0, 0, 127};
@@ -522,9 +542,9 @@ static void draw_seq_waveform_overlay(TimelineDrawContext *timeline_ctx,
     }
 
     float volume = seq->volume;
-    if (fcu && !BKE_fcurve_is_empty(fcu)) {
+    if (strip_ctx->curve != nullptr) {
       float evaltime = draw_start_frame + (i * frames_per_pixel);
-      volume = evaluate_fcurve(fcu, evaltime);
+      volume = evaluate_fcurve(strip_ctx->curve, evaltime);
       CLAMP_MIN(volume, 0.0f);
     }
 
@@ -1115,23 +1135,12 @@ static void draw_seq_fcurve_overlay(TimelineDrawContext *timeline_ctx,
   {
     return;
   }
-
-  Scene *scene = timeline_ctx->scene;
-  const int eval_step = max_ii(1, floor(timeline_ctx->pixelx));
-  uchar color[4] = {0, 0, 0, 38};
-
-  const FCurve *fcu;
-  if (strip_ctx->seq->type == SEQ_TYPE_SOUND_RAM) {
-    fcu = id_data_find_fcurve(&scene->id, strip_ctx->seq, &RNA_Sequence, "volume", 0, nullptr);
-  }
-  else {
-    fcu = id_data_find_fcurve(
-        &scene->id, strip_ctx->seq, &RNA_Sequence, "blend_alpha", 0, nullptr);
-  }
-
-  if (fcu == nullptr || BKE_fcurve_is_empty(fcu)) {
+  if (strip_ctx->curve == nullptr) {
     return;
   }
+
+  const int eval_step = max_ii(1, floor(timeline_ctx->pixelx));
+  uchar color[4] = {0, 0, 0, 38};
 
   /* Clamp curve evaluation to the editor's borders. */
   int eval_start = max_ff(strip_ctx->left_handle, timeline_ctx->v2d->cur.xmin);
@@ -1142,14 +1151,14 @@ static void draw_seq_fcurve_overlay(TimelineDrawContext *timeline_ctx,
 
   const float y_height = strip_ctx->top - strip_ctx->bottom;
   float prev_x = eval_start;
-  float prev_val = evaluate_fcurve(fcu, eval_start);
+  float prev_val = evaluate_fcurve(strip_ctx->curve, eval_start);
   CLAMP(prev_val, 0.0f, 1.0f);
   bool skip = false;
 
   for (int timeline_frame = eval_start + eval_step; timeline_frame <= eval_end;
        timeline_frame += eval_step)
   {
-    float curve_val = evaluate_fcurve(fcu, timeline_frame);
+    float curve_val = evaluate_fcurve(strip_ctx->curve, timeline_frame);
     CLAMP(curve_val, 0.0f, 1.0f);
 
     /* Avoid adding adjacent verts that have the same value. */
@@ -1241,10 +1250,10 @@ static void draw_seq_timeline_channels(TimelineDrawContext *ctx)
   immUnbindProgram();
 }
 
-/* Get visible strips into two sets: unselected strips, and selected strips
- * (with selected active being the last in there). This is to make
- * sure that visually selected are always "on top" of others. It matters
- * while selection is being dragged over other strips. */
+/* Get visible strips into two sets: regular strips, and strips
+ * that are dragged over other strips right now (e.g. dragging
+ * selection in the timeline). This is to make the dragged strips
+ * always render "on top" of others. */
 static void visible_strips_ordered_get(TimelineDrawContext *timeline_ctx,
                                        Vector<StripDrawContext> &r_bottom_layer,
                                        Vector<StripDrawContext> &r_top_layer)
@@ -1253,6 +1262,7 @@ static void visible_strips_ordered_get(TimelineDrawContext *timeline_ctx,
   r_top_layer.clear();
 
   Vector<Sequence *> strips = sequencer_visible_strips_get(timeline_ctx->C);
+  r_bottom_layer.reserve(strips.size());
 
   for (Sequence *seq : strips) {
     StripDrawContext strip_ctx = strip_draw_context_get(timeline_ctx, seq);
@@ -1263,6 +1273,19 @@ static void visible_strips_ordered_get(TimelineDrawContext *timeline_ctx,
       r_top_layer.append(strip_ctx);
     }
   }
+
+  /* Finding which curves (if any) drive a strip is expensive, do these lookups
+   * in parallel. */
+  threading::parallel_for(IndexRange(r_bottom_layer.size()), 64, [&](IndexRange range) {
+    for (int64_t index : range) {
+      strip_draw_context_curve_get(timeline_ctx, r_bottom_layer[index]);
+    }
+  });
+  threading::parallel_for(IndexRange(r_top_layer.size()), 64, [&](IndexRange range) {
+    for (int64_t index : range) {
+      strip_draw_context_curve_get(timeline_ctx, r_top_layer[index]);
+    }
+  });
 }
 
 static void draw_strips_background(TimelineDrawContext *timeline_ctx,
