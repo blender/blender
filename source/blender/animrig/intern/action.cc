@@ -1175,6 +1175,11 @@ void unassign_action(ID &animated_id)
   assign_action(nullptr, animated_id);
 }
 
+void unassign_action(OwnedAnimData owned_adt)
+{
+  assign_action(nullptr, owned_adt);
+}
+
 Slot *assign_action_ensure_slot_for_keying(Action &action, ID &animated_id)
 {
   Slot *slot;

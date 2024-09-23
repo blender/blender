@@ -57,7 +57,7 @@
 
 static CLG_LogRef LOG = {"bke.anim_sys"};
 
-using blender::FunctionRef;
+using namespace blender;
 
 /* ***************************************** */
 /* AnimData API */
@@ -753,24 +753,26 @@ void BKE_animdata_transfer_by_basepath(Main *bmain, ID *srcID, ID *dstID, ListBa
 
   /* active action */
   if (srcAdt->action) {
-    /* Set up an action if necessary,
-     * and name it in a similar way so that it can be easily found again. */
-    if (dstAdt->action == nullptr) {
-      dstAdt->action = BKE_action_add(bmain, srcAdt->action->id.name + 2);
-      BKE_animdata_action_ensure_idroot(dstID, dstAdt->action);
-    }
-    else if (dstAdt->action == srcAdt->action) {
+    const OwnedAnimData dst_owned_adt = {*dstID, *dstAdt};
+    if (dstAdt->action == srcAdt->action) {
       CLOG_WARN(&LOG,
-                "Argh! Source and Destination share animation! "
+                "Source and Destination share animation! "
                 "('%s' and '%s' both use '%s') Making new empty action",
                 srcID->name,
                 dstID->name,
                 srcAdt->action->id.name);
 
-      /* TODO: review this... */
-      id_us_min(&dstAdt->action->id);
-      dstAdt->action = BKE_action_add(bmain, dstAdt->action->id.name + 2);
-      BKE_animdata_action_ensure_idroot(dstID, dstAdt->action);
+      /* This sets dstAdt->action to nullptr. */
+      animrig::unassign_action(dst_owned_adt);
+    }
+
+    /* Set up an action if necessary, and name it in a similar way so that it
+     * can be easily found again. */
+    if (!dstAdt->action) {
+      bAction *new_action = BKE_action_add(bmain, srcAdt->action->id.name + 2);
+      /* Reduce user count to 0 as the Action is unused before it's assigned. */
+      id_us_min(&new_action->id);
+      animrig::assign_action(new_action, dst_owned_adt);
     }
 
     /* loop over base paths, trying to fix for each one... */

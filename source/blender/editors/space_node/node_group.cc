@@ -33,6 +33,8 @@
 #include "BKE_node_tree_update.hh"
 #include "BKE_report.hh"
 
+#include "ANIM_action.hh"
+
 #include "DEG_depsgraph_build.hh"
 
 #include "ED_node.hh" /* own include */
@@ -341,11 +343,10 @@ static void node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
   /* and copy across the animation,
    * note that the animation data's action can be nullptr here */
   if (wgroup->adt) {
-    bAction *waction;
-
     /* firstly, wgroup needs to temporary dummy action
      * that can be destroyed, as it shares copies */
-    waction = wgroup->adt->action = (bAction *)BKE_id_copy(bmain, &wgroup->adt->action->id);
+    bAction *waction = reinterpret_cast<bAction *>(BKE_id_copy(bmain, &wgroup->adt->action->id));
+    animrig::assign_action(waction, {wgroup->id, *wgroup->adt});
 
     /* now perform the moving */
     BKE_animdata_transfer_by_basepath(bmain, &wgroup->id, &ntree->id, &anim_basepaths);
@@ -357,8 +358,8 @@ static void node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
 
     /* free temp action too */
     if (waction) {
+      animrig::unassign_action({wgroup->id, *wgroup->adt});
       BKE_id_free(bmain, waction);
-      wgroup->adt->action = nullptr;
     }
   }
 

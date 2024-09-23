@@ -1131,9 +1131,18 @@ void assign_tmpaction(bAction *action, OwnedAnimData owned_adt);
  *
  * Same as calling `assign_action(nullptr, animated_id)`.
  *
- * \see assign_action
+ * \see blender::animrig::assign_action(ID &animated_id)
  */
 void unassign_action(ID &animated_id);
+
+/**
+ * Un-assign the Action assigned to this ID.
+ *
+ * Same as calling `assign_action(nullptr, owned_adt)`.
+ *
+ * \see blender::animrig::assign_action(OwnedAnimData owned_adt)
+ */
+void unassign_action(OwnedAnimData owned_adt);
 
 /**
  * Assign the Action, ensuring that a Slot is also assigned.
