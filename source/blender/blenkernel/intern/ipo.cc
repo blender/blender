@@ -2133,6 +2133,8 @@ void do_versions_ipos_to_animato(Main *bmain)
       nlastrips_to_animdata(id, &ob->nlastrips);
     }
     else if ((ob->ipo) || (ob->action)) {
+      BKE_animdata_ensure_id(id);
+
       /* Action first - so that Action name get conserved */
       if (ob->action) {
         action_to_animdata(id, ob->action);
