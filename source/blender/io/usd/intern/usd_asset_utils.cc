@@ -24,17 +24,17 @@
 
 #include <string_view>
 
-static const char UDIM_PATTERN[] = "<UDIM>";
-static const char UDIM_PATTERN2[] = "%3CUDIM%3E";
+namespace blender::io::usd {
+
+constexpr char UDIM_PATTERN[] = "<UDIM>";
+constexpr char UDIM_PATTERN2[] = "%3CUDIM%3E";
 
 /* Maximum range of UDIM tiles, per the
  * UsdPreviewSurface specifications.  See
  * https://graphics.pixar.com/usd/release/spec_usdpreviewsurface.html#texture-reader
  */
-static const int UDIM_START_TILE = 1001;
-static const int UDIM_END_TILE = 1100;
-
-namespace blender::io::usd {
+constexpr int UDIM_START_TILE = 1001;
+constexpr int UDIM_END_TILE = 1100;
 
 /**
  * The following is copied from `_SplitUdimPattern()` in
