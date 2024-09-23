@@ -378,6 +378,10 @@ static void outliner_collection_set_flag_recursive(Scene *scene,
   }
   PointerRNA ptr;
   outliner_layer_or_collection_pointer_create(scene, layer_collection, collection, &ptr);
+  if (!RNA_property_editable(&ptr, base_or_object_prop)) {
+    return;
+  }
+
   RNA_property_boolean_set(&ptr, layer_or_collection_prop, value);
 
   /* Set the same flag for the nested objects as well. */
@@ -387,6 +391,10 @@ static void outliner_collection_set_flag_recursive(Scene *scene,
     LISTBASE_FOREACH (CollectionObject *, cob, &layer_collection->collection->gobject) {
 
       outliner_base_or_object_pointer_create(scene, view_layer, collection, cob->ob, &ptr);
+      if (!RNA_property_editable(&ptr, base_or_object_prop)) {
+        continue;
+      }
+
       RNA_property_boolean_set(&ptr, base_or_object_prop, value);
 
       if (collection) {
