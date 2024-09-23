@@ -79,13 +79,10 @@ class VKBuffer {
 /**
  * Helper struct to enable buffers to be bound with an offset.
  *
- * VKImmediate mode uses a single VKBuffer with multiple vertex layouts. Those layouts are send to
- * the command buffer containing an offset.
- *
- * VKIndexBuffer uses this when it is a subrange of another buffer.
+ * Used for de-interleaved vertex input buffers and immediate mode buffers.
  */
 struct VKBufferWithOffset {
-  const VKBuffer &buffer;
+  const VkBuffer buffer;
   VkDeviceSize offset;
 };
 

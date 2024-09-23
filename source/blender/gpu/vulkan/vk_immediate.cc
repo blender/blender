@@ -57,7 +57,6 @@ void VKImmediate::end()
   VKStateManager &state_manager = context.state_manager_get();
   state_manager.apply_state();
   vertex_attributes_.update_bindings(*this);
-  vertex_attributes_.ensure_vbos_uploaded();
   context.active_framebuffer_get()->rendering_ensure(context);
 
   render_graph::VKDrawNode::CreateInfo draw(resource_access_info);

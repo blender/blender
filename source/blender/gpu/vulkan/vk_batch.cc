@@ -32,7 +32,6 @@ void VKBatch::draw(int vertex_first, int vertex_count, int instance_first, int i
   const bool draw_indexed = index_buffer != nullptr;
 
   /* Upload geometry */
-  vao.ensure_vbos_uploaded();
   if (draw_indexed) {
     index_buffer->upload_data();
   }
@@ -97,7 +96,6 @@ void VKBatch::multi_draw_indirect(const VkBuffer indirect_buffer,
   const bool draw_indexed = index_buffer != nullptr;
 
   /* Upload geometry */
-  vao.ensure_vbos_uploaded();
   if (draw_indexed) {
     index_buffer->upload_data();
   }
