@@ -1083,7 +1083,7 @@ static int followpath_path_animate_exec(bContext *C, wmOperator *op)
     Curve *cu = (Curve *)data->tar->data;
 
     if (ELEM(nullptr, cu->adt, cu->adt->action) ||
-        (BKE_fcurve_find(&cu->adt->action->curves, "eval_time", 0) == nullptr))
+        (animrig::fcurve_find_in_assigned_slot(*cu->adt, {"eval_time", 0}) == nullptr))
     {
       /* create F-Curve for path animation */
       act = animrig::id_action_ensure(bmain, &cu->id);

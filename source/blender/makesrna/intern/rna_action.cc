@@ -1147,7 +1147,7 @@ static FCurve *rna_Action_fcurve_find(bAction *act,
 #  endif
 
   /* Returns nullptr if not found. */
-  return BKE_fcurve_find(&act->curves, data_path, index);
+  return animrig::fcurve_find_in_action(act, {data_path, index});
 }
 
 static void rna_Action_fcurve_remove(bAction *act, ReportList *reports, PointerRNA *fcu_ptr)

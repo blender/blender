@@ -1309,6 +1309,22 @@ FCurve *action_fcurve_ensure(Main *bmain,
 FCurve *fcurve_find_in_action(bAction *act, FCurveDescriptor fcurve_descriptor);
 
 /**
+ * Find the F-Curve in the given Action Slot.
+ *
+ * \see blender::animrig::fcurve_find_in_action
+ */
+FCurve *fcurve_find_in_action_slot(bAction *act,
+                                   slot_handle_t slot_handle,
+                                   FCurveDescriptor fcurve_descriptor);
+
+/**
+ * Find the F-Curve in the Action Slot assigned to this ADT.
+ *
+ * \see blender::animrig::fcurve_find_in_action
+ */
+FCurve *fcurve_find_in_assigned_slot(AnimData &adt, FCurveDescriptor fcurve_descriptor);
+
+/**
  * Remove the given FCurve from the action by searching for it in all channelbags.
  * This assumes that an FCurve can only exist in an action once.
  *

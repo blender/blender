@@ -338,36 +338,6 @@ int BKE_fcurves_filter(ListBase *dst, ListBase *src, const char *dataPrefix, con
   return matches;
 }
 
-static std::optional<std::pair<FCurve *, bAction *>> animdata_fcurve_find_by_rna_path(
-    AnimData &adt, const char *rna_path, const int rna_index)
-{
-  if (!adt.action) {
-    return std::nullopt;
-  }
-
-  blender::animrig::Action &action = adt.action->wrap();
-  if (action.is_empty()) {
-    return std::nullopt;
-  }
-
-  FCurve *fcu = nullptr;
-  if (action.is_action_layered()) {
-    const FCurve *const_fcurve = blender::animrig::fcurve_find_by_rna_path(
-        adt, rna_path, rna_index);
-    /* The new layered Action code is stricter with const-ness than older code, hence the
-     * const_cast. */
-    fcu = const_cast<FCurve *>(const_fcurve);
-  }
-  else {
-    fcu = BKE_fcurve_find(&action.curves, rna_path, rna_index);
-  }
-
-  if (!fcu) {
-    return std::nullopt;
-  }
-  return std::make_pair(fcu, &action);
-}
-
 FCurve *BKE_animadata_fcurve_find_by_rna_path(
     AnimData *animdata, const char *rna_path, int rna_index, bAction **r_action, bool *r_driven)
 {
@@ -378,14 +348,14 @@ FCurve *BKE_animadata_fcurve_find_by_rna_path(
     *r_action = nullptr;
   }
 
-  std::optional<std::pair<FCurve *, bAction *>> found = animdata_fcurve_find_by_rna_path(
-      *animdata, rna_path, rna_index);
-  if (found) {
+  FCurve *fcurve = blender::animrig::fcurve_find_in_action_slot(
+      animdata->action, animdata->slot_handle, {rna_path, rna_index});
+  if (fcurve) {
     /* Action takes priority over drivers. */
     if (r_action) {
-      *r_action = found->second;
+      *r_action = animdata->action;
     }
-    return found->first;
+    return fcurve;
   }
 
   /* If not animated, check if driven. */
