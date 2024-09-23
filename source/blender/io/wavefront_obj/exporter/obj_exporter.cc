@@ -166,7 +166,9 @@ static void write_mesh_objects(const Span<std::unique_ptr<OBJMesh>> exportable_a
   /* Serial: gather material indices, ensure normals & edges. */
   Vector<Vector<int>> mtlindices;
   if (mtl_writer) {
-    obj_writer.write_mtllib_name(mtl_writer->mtl_file_path());
+    if (export_params.export_materials) {
+      obj_writer.write_mtllib_name(mtl_writer->mtl_file_path());
+    }
     mtlindices.reserve(count);
   }
   for (auto &obj_mesh : exportable_as_mesh) {
@@ -281,9 +283,9 @@ void export_frame(Depsgraph *depsgraph, const OBJExportParams &export_params, co
     return;
   }
   std::unique_ptr<MTLWriter> mtl_writer = nullptr;
-  if (export_params.export_materials) {
+  if (export_params.export_materials || export_params.export_material_groups) {
     try {
-      mtl_writer = std::make_unique<MTLWriter>(filepath);
+      mtl_writer = std::make_unique<MTLWriter>(filepath, export_params.export_materials);
     }
     catch (const std::system_error &ex) {
       print_exception_error(ex);
@@ -300,7 +302,7 @@ void export_frame(Depsgraph *depsgraph, const OBJExportParams &export_params, co
                                                                             export_params);
 
   write_mesh_objects(exportable_as_mesh, *frame_writer, mtl_writer.get(), export_params);
-  if (mtl_writer) {
+  if (mtl_writer && export_params.export_materials) {
     mtl_writer->write_header(export_params.blen_filepath);
     char dest_dir[FILE_MAX];
     if (export_params.file_base_for_tests[0] == '\0') {

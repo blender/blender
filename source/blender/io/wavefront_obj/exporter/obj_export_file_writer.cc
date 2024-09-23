@@ -386,12 +386,16 @@ void OBJWriter::write_face_elements(FormatHandler &fh,
     }
 
     /* Write material name and material group if different from previous. */
-    if (export_params_.export_materials && obj_mesh_data.tot_materials() > 0) {
+    if ((export_params_.export_materials || export_params_.export_material_groups) &&
+        obj_mesh_data.tot_materials() > 0)
+    {
       const int16_t prev_mat = idx == 0 ? NEGATIVE_INIT : std::max(0, material_indices[prev_i]);
       const int16_t mat = std::max(0, material_indices[i]);
       if (mat != prev_mat) {
         if (mat == NOT_FOUND) {
-          buf.write_obj_usemtl(MATERIAL_GROUP_DISABLED);
+          if (export_params_.export_materials) {
+            buf.write_obj_usemtl(MATERIAL_GROUP_DISABLED);
+          }
         }
         else {
           const char *mat_name = matname_fn(mat);
@@ -403,7 +407,9 @@ void OBJWriter::write_face_elements(FormatHandler &fh,
             spaces_to_underscores(object_name);
             buf.write_obj_group(object_name + "_" + mat_name);
           }
-          buf.write_obj_usemtl(mat_name);
+          if (export_params_.export_materials) {
+            buf.write_obj_usemtl(mat_name);
+          }
         }
       }
     }
@@ -526,8 +532,11 @@ static std::string float3_to_string(const float3 &numbers)
   return r_string.str();
 };
 
-MTLWriter::MTLWriter(const char *obj_filepath) noexcept(false)
+MTLWriter::MTLWriter(const char *obj_filepath, bool write_file) noexcept(false)
 {
+  if (!write_file) {
+    return;
+  }
   char mtl_path[FILE_MAX];
   STRNCPY(mtl_path, obj_filepath);
 
