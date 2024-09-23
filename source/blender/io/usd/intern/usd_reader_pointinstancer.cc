@@ -88,11 +88,8 @@ void USDPointInstancerReader::read_object_data(Main *bmain, const double motionS
 
   PointCloud *point_cloud = BKE_pointcloud_new_nomain(positions.size());
 
-  MutableSpan<float3> positions_span = point_cloud->positions_for_write();
-
-  for (int i = 0; i < positions.size(); ++i) {
-    positions_span[i] = float3(positions[i][0], positions[i][1], positions[i][2]);
-  }
+  MutableSpan<float3> point_positions = point_cloud->positions_for_write();
+  point_positions.copy_from(Span(positions.data(), positions.size()).cast<float3>());
 
   bke::MutableAttributeAccessor attributes = point_cloud->attributes_for_write();
 
