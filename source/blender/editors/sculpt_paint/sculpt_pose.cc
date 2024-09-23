@@ -334,8 +334,9 @@ BLI_NOINLINE static void add_fake_neighbors(const Span<int> fake_neighbors,
                                             const MutableSpan<Vector<int>> neighbors)
 {
   for (const int i : verts.index_range()) {
-    if (fake_neighbors[verts[i]] != FAKE_NEIGHBOR_NONE) {
-      neighbors[i].append(fake_neighbors[verts[i]]);
+    const int neighbor = fake_neighbors[verts[i]];
+    if (neighbor != FAKE_NEIGHBOR_NONE) {
+      neighbors[i].append(neighbor);
     }
   }
 }
@@ -1884,7 +1885,9 @@ static std::unique_ptr<IKChain> ik_chain_init(const Depsgraph &depsgraph,
 
   if (use_fake_neighbors) {
     SCULPT_fake_neighbors_ensure(depsgraph, ob, brush.disconnected_distance_max);
-    SCULPT_fake_neighbors_enable(ob);
+  }
+  else {
+    SCULPT_fake_neighbors_free(ob);
   }
 
   switch (brush.pose_origin_type) {
@@ -1897,10 +1900,6 @@ static std::unique_ptr<IKChain> ik_chain_init(const Depsgraph &depsgraph,
     case BRUSH_POSE_ORIGIN_FACE_SETS_FK:
       ik_chain = ik_chain_init_face_sets_fk(depsgraph, ob, ss, radius, initial_location);
       break;
-  }
-
-  if (use_fake_neighbors) {
-    SCULPT_fake_neighbors_disable(ob);
   }
 
   return ik_chain;

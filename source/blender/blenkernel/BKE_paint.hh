@@ -333,8 +333,6 @@ struct SculptBoundaryPreview {
 };
 
 struct SculptFakeNeighbors {
-  bool use_fake_neighbors;
-
   /* Max distance used to calculate neighborhood information. */
   float current_max_distance;
 

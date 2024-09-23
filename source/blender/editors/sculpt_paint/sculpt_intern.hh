@@ -534,9 +534,14 @@ Span<int> vert_neighbors_get_mesh(OffsetIndices<int> faces,
 
 #define FAKE_NEIGHBOR_NONE -1
 
-void SCULPT_fake_neighbors_ensure(const Depsgraph &depsgraph, Object &ob, float max_dist);
-void SCULPT_fake_neighbors_enable(Object &ob);
-void SCULPT_fake_neighbors_disable(Object &ob);
+/**
+ * This allows the sculpt brushes to work on meshes with multiple connected components as if they
+ * had only one connected component. These neighbors are calculated for each vertex using the
+ * minimum distance to a vertex that is in a different connected component.
+ */
+blender::Span<int> SCULPT_fake_neighbors_ensure(const Depsgraph &depsgraph,
+                                                Object &ob,
+                                                float max_dist);
 void SCULPT_fake_neighbors_free(Object &ob);
 
 /** \} */

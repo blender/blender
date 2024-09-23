@@ -5482,26 +5482,6 @@ void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 }
 
 /* Fake Neighbors. */
-/* This allows the sculpt brushes to work on meshes with multiple connected components as they had
- * only one connected component. When initialized and enabled, the sculpt API will return extra
- * connectivity neighbors that are not in the real mesh. These neighbors are calculated for each
- * vertex using the minimum distance to a vertex that is in a different connected component. */
-
-/* The fake neighbors first need to be ensured to be initialized.
- * After that brushes which needs fake neighbors functionality need to
- * temporarily enable it:
- *
- *   void my_awesome_sculpt_brush_type() {
- *     SCULPT_fake_neighbors_ensure(object, brush->disconnected_distance_max);
- *     SCULPT_fake_neighbors_enable(ob);
- *
- *     ... Logic of the brush type ...
- *     SCULPT_fake_neighbors_disable(ob);
- *   }
- *
- * Such approach allows to keep all the connectivity information ready for reuse
- * (without having lag prior to every stroke), but also makes it so the affect
- * is localized to a specific brushes and brush types only. */
 
 static void fake_neighbor_init(Object &object, const float max_dist)
 {
@@ -5794,7 +5774,9 @@ void ensure_boundary_info(Object &object)
 
 }  // namespace blender::ed::sculpt_paint::boundary
 
-void SCULPT_fake_neighbors_ensure(const Depsgraph &depsgraph, Object &ob, const float max_dist)
+Span<int> SCULPT_fake_neighbors_ensure(const Depsgraph &depsgraph,
+                                       Object &ob,
+                                       const float max_dist)
 {
   using namespace blender::ed::sculpt_paint;
   SculptSession &ss = *ob.sculpt;
@@ -5804,26 +5786,14 @@ void SCULPT_fake_neighbors_ensure(const Depsgraph &depsgraph, Object &ob, const 
   if (!ss.fake_neighbors.fake_neighbor_index.is_empty() &&
       ss.fake_neighbors.current_max_distance == max_dist)
   {
-    return;
+    return ss.fake_neighbors.fake_neighbor_index;
   }
 
   islands::ensure_cache(ob);
   fake_neighbor_init(ob, max_dist);
   fake_neighbor_search(depsgraph, ob, max_dist * max_dist, ss.fake_neighbors.fake_neighbor_index);
-}
 
-void SCULPT_fake_neighbors_enable(Object &ob)
-{
-  SculptSession &ss = *ob.sculpt;
-  BLI_assert(!ss.fake_neighbors.fake_neighbor_index.is_empty());
-  ss.fake_neighbors.use_fake_neighbors = true;
-}
-
-void SCULPT_fake_neighbors_disable(Object &ob)
-{
-  SculptSession &ss = *ob.sculpt;
-  BLI_assert(!ss.fake_neighbors.fake_neighbor_index.is_empty());
-  ss.fake_neighbors.use_fake_neighbors = false;
+  return ss.fake_neighbors.fake_neighbor_index;
 }
 
 void SCULPT_fake_neighbors_free(Object &ob)
