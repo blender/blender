@@ -2889,44 +2889,6 @@ float SCULPT_brush_plane_offset_get(const Sculpt &sd, const SculptSession &ss)
 /** \name Sculpt Brush Utilities
  * \{ */
 
-void SCULPT_vertcos_to_key(Object &ob, KeyBlock *kb, const Span<float3> vertCos)
-{
-  Mesh *mesh = (Mesh *)ob.data;
-  float(*ofs)[3] = nullptr;
-  int a, currkey_i;
-  const int kb_act_idx = ob.shapenr - 1;
-
-  /* For relative keys editing of base should update other keys. */
-  if (std::optional<blender::Array<bool>> dependent = BKE_keyblock_get_dependent_keys(mesh->key,
-                                                                                      kb_act_idx))
-  {
-    ofs = BKE_keyblock_convert_to_vertcos(&ob, kb);
-
-    /* Calculate key coord offsets (from previous location). */
-    for (a = 0; a < mesh->verts_num; a++) {
-      sub_v3_v3v3(ofs[a], vertCos[a], ofs[a]);
-    }
-
-    /* Apply offsets on other keys. */
-    LISTBASE_FOREACH_INDEX (KeyBlock *, currkey, &mesh->key->block, currkey_i) {
-      if ((currkey != kb) && (*dependent)[currkey_i]) {
-        BKE_keyblock_update_from_offset(&ob, currkey, ofs);
-      }
-    }
-
-    MEM_freeN(ofs);
-  }
-
-  /* Modifying of basis key should update mesh. */
-  if (kb == mesh->key->refkey) {
-    mesh->vert_positions_for_write().copy_from(vertCos);
-    mesh->tag_positions_changed();
-  }
-
-  /* Apply new coords on active key block, no need to re-allocate kb->data here! */
-  BKE_keyblock_update_from_vertcos(&ob, kb, reinterpret_cast<const float(*)[3]>(vertCos.data()));
-}
-
 namespace blender::ed::sculpt_paint {
 
 static void dynamic_topology_update(const Depsgraph &depsgraph,

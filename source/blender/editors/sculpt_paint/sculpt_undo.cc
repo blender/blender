@@ -37,6 +37,7 @@
 
 #include "BLI_array.hh"
 #include "BLI_bit_group_vector.hh"
+#include "BLI_enumerable_thread_specific.hh"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_string.h"
@@ -136,7 +137,6 @@ namespace blender::ed::sculpt_paint::undo {
 
 struct Node {
   Array<float3, 0> position;
-  Array<float3, 0> orig_position;
   Array<float3, 0> normal;
   Array<float4, 0> col;
   Array<float, 0> mask;
@@ -427,26 +427,6 @@ static bool indices_contain_true(const Span<bool> data, const Span<int> indices)
   return std::any_of(indices.begin(), indices.end(), [&](const int i) { return data[i]; });
 }
 
-static bool test_swap_v3_v3(float3 &a, float3 &b)
-{
-  /* No need for float comparison here (memory is exactly equal or not). */
-  if (memcmp(a, b, sizeof(float[3])) != 0) {
-    std::swap(a, b);
-    return true;
-  }
-  return false;
-}
-
-static bool restore_deformed(
-    const SculptSession &ss, Node &unode, int uindex, int oindex, float3 &coord)
-{
-  if (test_swap_v3_v3(coord, unode.orig_position[uindex])) {
-    copy_v3_v3(unode.position[uindex], ss.deform_cos[oindex]);
-    return true;
-  }
-  return false;
-}
-
 static bool restore_active_shape_key(bContext &C,
                                      Depsgraph &depsgraph,
                                      const StepData &step_data,
@@ -474,75 +454,28 @@ static bool restore_active_shape_key(bContext &C,
   return true;
 }
 
-static void restore_position_mesh(Object &object,
+static void restore_position_mesh(const Depsgraph &depsgraph,
+                                  Object &object,
                                   const Span<std::unique_ptr<Node>> unodes,
                                   MutableSpan<bool> modified_verts)
 {
-  SculptSession &ss = *object.sculpt;
-  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+  PositionDeformData position_data(depsgraph, object);
+  threading::EnumerableThreadSpecific<Vector<float3>> all_tls;
+  threading::parallel_for(unodes.index_range(), 1, [&](const IndexRange range) {
+    Vector<float3> &translations = all_tls.local();
+    for (const int i : range) {
+      Node &unode = *unodes[i];
+      const Span<int> verts = unode.vert_indices.as_span().take_front(unode.unique_verts_num);
+      translations.resize(verts.size());
+      translations_from_new_positions(unode.position, verts, position_data.eval, translations);
 
-  if (ss.shapekey_active) {
-    float(*vertCos)[3] = BKE_keyblock_convert_to_vertcos(&object, ss.shapekey_active);
-    MutableSpan key_positions(reinterpret_cast<float3 *>(vertCos), ss.shapekey_active->totelem);
+      gather_data_mesh(position_data.eval, verts, unode.position.as_mutable_span());
 
-    for (const std::unique_ptr<Node> &unode : unodes) {
-      const Span<int> verts = unode->vert_indices.as_span().take_front(unode->unique_verts_num);
-      if (!unode->orig_position.is_empty()) {
-        if (ss.deform_modifiers_active) {
-          for (const int i : verts.index_range()) {
-            restore_deformed(ss, *unode, i, verts[i], key_positions[verts[i]]);
-          }
-        }
-        else {
-          for (const int i : verts.index_range()) {
-            std::swap(key_positions[verts[i]], unode->orig_position[i]);
-          }
-        }
-      }
-      else {
-        for (const int i : verts.index_range()) {
-          std::swap(key_positions[verts[i]], unode->position[i]);
-        }
-      }
+      position_data.deform(translations, verts);
+
+      modified_verts.fill_indices(verts, true);
     }
-
-    /* Propagate new coords to keyblock. */
-    SCULPT_vertcos_to_key(object, ss.shapekey_active, key_positions);
-
-    /* bke::pbvh::Tree uses its own vertex array, so coords should be */
-    /* propagated to bke::pbvh::Tree here. */
-    BKE_pbvh_vert_coords_apply(pbvh, key_positions);
-
-    MEM_freeN(vertCos);
-  }
-  else {
-    Mesh &mesh = *static_cast<Mesh *>(object.data);
-    MutableSpan<float3> positions = mesh.vert_positions_for_write();
-
-    for (const std::unique_ptr<Node> &unode : unodes) {
-      const Span<int> verts = unode->vert_indices.as_span().take_front(unode->unique_verts_num);
-      if (!unode->orig_position.is_empty()) {
-        if (ss.deform_modifiers_active) {
-          for (const int i : verts.index_range()) {
-            restore_deformed(ss, *unode, i, verts[i], positions[verts[i]]);
-            modified_verts[verts[i]] = true;
-          }
-        }
-        else {
-          for (const int i : verts.index_range()) {
-            std::swap(positions[verts[i]], unode->orig_position[i]);
-            modified_verts[verts[i]] = true;
-          }
-        }
-      }
-      else {
-        for (const int i : verts.index_range()) {
-          std::swap(positions[verts[i]], unode->position[i]);
-          modified_verts[verts[i]] = true;
-        }
-      }
-    }
-  }
+  });
 }
 
 static void restore_position_grids(MutableSpan<float3> positions,
@@ -1011,7 +944,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         }
         const Mesh &mesh = *static_cast<const Mesh *>(object.data);
         Array<bool> modified_verts(mesh.verts_num, false);
-        restore_position_mesh(object, step_data.nodes, modified_verts);
+        restore_position_mesh(*depsgraph, object, step_data.nodes, modified_verts);
 
         const IndexMask changed_nodes = IndexMask::from_predicate(
             node_mask, GrainSize(1), memory, [&](const int i) {
@@ -1283,22 +1216,12 @@ static void store_vert_visibility_grids(const SubdivCCG &subdiv_ccg,
 
 static void store_positions_mesh(const Depsgraph &depsgraph, const Object &object, Node &unode)
 {
-  SculptSession &ss = *object.sculpt;
   gather_data_mesh(bke::pbvh::vert_positions_eval(depsgraph, object),
                    unode.vert_indices.as_span(),
                    unode.position.as_mutable_span());
   gather_data_mesh(bke::pbvh::vert_normals_eval(depsgraph, object),
                    unode.vert_indices.as_span(),
                    unode.normal.as_mutable_span());
-  if (ss.deform_modifiers_active) {
-    const Mesh &mesh = *static_cast<const Mesh *>(object.data);
-    const Span<float3> orig_positions = ss.shapekey_active ? Span(static_cast<const float3 *>(
-                                                                      ss.shapekey_active->data),
-                                                                  mesh.verts_num) :
-                                                             mesh.vert_positions();
-    gather_data_mesh(
-        orig_positions, unode.vert_indices.as_span(), unode.orig_position.as_mutable_span());
-  }
 }
 
 static void store_positions_grids(const SubdivCCG &subdiv_ccg, Node &unode)
@@ -1429,7 +1352,6 @@ static void fill_node_data_mesh(const Depsgraph &depsgraph,
                                 const Type type,
                                 Node &unode)
 {
-  const SculptSession &ss = *object.sculpt;
   const Mesh &mesh = *static_cast<Mesh *>(object.data);
 
   unode.vert_indices = node.all_verts();
@@ -1450,9 +1372,6 @@ static void fill_node_data_mesh(const Depsgraph &depsgraph,
       unode.position.reinitialize(verts_num);
       /* Needed for original data lookup. */
       unode.normal.reinitialize(verts_num);
-      if (ss.deform_modifiers_active) {
-        unode.orig_position.reinitialize(unode.vert_indices.size());
-      }
       store_positions_mesh(depsgraph, object, unode);
       break;
     }
@@ -1520,9 +1439,6 @@ static void fill_node_data_grids(const Object &object,
       unode.position.reinitialize(verts_num);
       /* Needed for original data lookup. */
       unode.normal.reinitialize(verts_num);
-      if (ss.deform_modifiers_active) {
-        unode.orig_position.reinitialize(unode.vert_indices.size());
-      }
       store_positions_grids(subdiv_ccg, unode);
       break;
     }
@@ -1866,7 +1782,6 @@ static size_t node_size_in_bytes(const Node &node)
 {
   size_t size = sizeof(Node);
   size += node.position.as_span().size_in_bytes();
-  size += node.orig_position.as_span().size_in_bytes();
   size += node.normal.as_span().size_in_bytes();
   size += node.col.as_span().size_in_bytes();
   size += node.mask.as_span().size_in_bytes();

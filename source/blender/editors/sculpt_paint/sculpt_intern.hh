@@ -742,8 +742,6 @@ std::optional<Span<float>> orig_mask_data_lookup_grids(const Object &object,
 
 /** \} */
 
-void SCULPT_vertcos_to_key(Object &ob, KeyBlock *kb, blender::Span<blender::float3> vertCos);
-
 /**
  * Get a screen-space rectangle of the modified area.
  */
