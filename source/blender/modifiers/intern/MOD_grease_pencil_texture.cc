@@ -364,7 +364,7 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
 
 ModifierTypeInfo modifierType_GreasePencilTexture = {
     /*idname*/ "GreasePencilTexture",
-    /*name*/ N_("TimeOffset"),
+    /*name*/ N_("TextureMapping"),
     /*struct_name*/ "GreasePencilTextureModifierData",
     /*struct_size*/ sizeof(GreasePencilTextureModifierData),
     /*srna*/ &RNA_GreasePencilTextureModifier,
