@@ -1299,9 +1299,14 @@ FCurve *action_fcurve_ensure(Main *bmain,
                              FCurveDescriptor fcurve_descriptor);
 
 /**
- * Find the F-Curve from the given Action. This assumes that all the destinations are valid.
+ * Find the F-Curve in the given Action.
+ *
+ * All the Action slots are searched for this F-Curve. To limit to a single
+ * slot, use fcurve_find_in_action_slot().
+ *
+ * \see blender::animrig::fcurve_find_in_action_slot
  */
-FCurve *action_fcurve_find(bAction *act, FCurveDescriptor fcurve_descriptor);
+FCurve *fcurve_find_in_action(bAction *act, FCurveDescriptor fcurve_descriptor);
 
 /**
  * Remove the given FCurve from the action by searching for it in all channelbags.

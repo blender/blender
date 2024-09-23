@@ -1108,7 +1108,7 @@ static FCurve *rna_Action_fcurve_new(bAction *act,
 #  endif
 
   /* Annoying, check if this exists. */
-  if (blender::animrig::action_fcurve_find(act, fcurve_descriptor)) {
+  if (blender::animrig::fcurve_find_in_action(act, fcurve_descriptor)) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "F-Curve '%s[%d]' already exists in action '%s'",

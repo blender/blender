@@ -2158,7 +2158,7 @@ Span<const FCurve *> fcurves_for_action_slot(const Action &action, const slot_ha
   return bag->fcurves();
 }
 
-FCurve *action_fcurve_find(bAction *act, FCurveDescriptor fcurve_descriptor)
+FCurve *fcurve_find_in_action(bAction *act, FCurveDescriptor fcurve_descriptor)
 {
   if (act == nullptr) {
     return nullptr;
