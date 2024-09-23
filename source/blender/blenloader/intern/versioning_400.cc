@@ -2788,7 +2788,16 @@ static void node_reroute_add_storage(bNodeTree &tree)
         continue;
       }
 
-      const bNodeSocket &input = *static_cast<const bNodeSocket *>(node->inputs.first);
+      bNodeSocket &input = *static_cast<bNodeSocket *>(node->inputs.first);
+      bNodeSocket &output = *static_cast<bNodeSocket *>(node->outputs.first);
+
+      /* Use uniform identifier for sockets. In old Blender versions (<=2021, up to af0b7925), the
+       * identifiers were sometimes all lower case. Fixing those wrong socket identifiers is
+       * important because otherwise they loose links now that the reroute node also uses node
+       * declarations. */
+      STRNCPY(input.identifier, "Input");
+      STRNCPY(output.identifier, "Output");
+
       NodeReroute *data = MEM_cnew<NodeReroute>(__func__);
       STRNCPY(data->type_idname, input.idname);
       node->storage = data;
