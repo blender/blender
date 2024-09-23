@@ -125,10 +125,10 @@ static std::string copy_udim_asset_to_directory(const char *src_path,
    * of a directory using the USD resolver, we must take a brute force approach.  We iterate
    * over the allowed range of tile indices and copy any tiles that exist.  The USDPreviewSurface
    * specification stipulates "a maximum of ten tiles in the U direction" and that
-   * "the tiles must be within the range [1001, 1099]". See
+   * "the tiles must be within the range [1001, 1100] (as of specification version 2.5)". See
    * https://graphics.pixar.com/usd/release/spec_usdpreviewsurface.html#texture-reader
    */
-  for (int i = UDIM_START_TILE; i < UDIM_END_TILE; ++i) {
+  for (int i = UDIM_START_TILE; i <= UDIM_END_TILE; ++i) {
     const std::string src_udim = splitPath.first + std::to_string(i) + splitPath.second;
     if (asset_exists(src_udim.c_str())) {
       copy_asset_to_directory(src_udim.c_str(), dest_dir_path, name_collision_mode, reports);
