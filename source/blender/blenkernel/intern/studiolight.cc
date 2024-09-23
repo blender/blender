@@ -293,7 +293,9 @@ static void *studiolight_multilayer_addlayer(void *base, const char * /*layer_na
 /* Convert a multilayer pass to ImBuf channel 4 float buffer.
  * NOTE: Parameter rect will become invalid. Do not use rect after calling this
  * function */
-static float *studiolight_multilayer_convert_pass(ImBuf *ibuf, float *rect, const uint channels)
+static float *studiolight_multilayer_convert_pass(const ImBuf *ibuf,
+                                                  float *rect,
+                                                  const uint channels)
 {
   if (channels == 4) {
     return rect;
@@ -487,7 +489,7 @@ static void studiolight_create_matcap_specular_gputexture(StudioLight *sl)
   sl->flag |= STUDIOLIGHT_MATCAP_SPECULAR_GPUTEXTURE;
 }
 
-static float4 studiolight_calculate_radiance(ImBuf *ibuf, const float direction[3])
+static float4 studiolight_calculate_radiance(const ImBuf *ibuf, const float direction[3])
 {
   float uv[2];
   direction_to_equirect(uv, direction);

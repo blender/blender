@@ -38,7 +38,7 @@
 
 #include "BLI_strict_flags.h" /* Keep last. */
 
-static void *buffer_alloc(BLI_Buffer *buffer, const size_t len)
+static void *buffer_alloc(const BLI_Buffer *buffer, const size_t len)
 {
   return MEM_mallocN(buffer->elem_size * len, "BLI_Buffer.data");
 }

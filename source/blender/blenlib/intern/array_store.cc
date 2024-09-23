@@ -1452,6 +1452,7 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
   }
 
   BLI_assert(i_prev == data_len);
+  UNUSED_VARS_NDEBUG(i_prev);
 
 #ifdef USE_FASTPATH_CHUNKS_LAST
   if (chunk_list_reference_last != nullptr) {
@@ -1472,6 +1473,7 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
 #undef data_len_original
 
   BLI_assert(i_prev == data_len_original);
+  UNUSED_VARS_NDEBUG(i_prev);
 
   /* Check we're the correct size and that we didn't accidentally modify the reference. */
   ASSERT_CHUNKLIST_SIZE(chunk_list, data_len_original);

@@ -4305,7 +4305,7 @@ static void gesture_pinch_handle_begin(void *data,
   /* Reset defaults. */
   seat->pointer_gesture_pinch = GWL_SeatStatePointerGesture_Pinch{};
 
-  GHOST_WindowWayland *win = nullptr;
+  const GHOST_WindowWayland *win = nullptr;
   if (wl_surface *wl_surface_focus = seat->pointer.wl.surface_window) {
     win = ghost_wl_surface_user_data(wl_surface_focus);
   }
