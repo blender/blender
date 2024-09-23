@@ -2059,20 +2059,22 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 
   /* Remove all selected from main list, and put in meta.
    * Sequence is moved within the same edit, no need to re-generate the UID. */
-  LISTBASE_FOREACH_MUTABLE (Sequence *, seq, active_seqbase) {
+  blender::VectorSet<Sequence *> strips_to_move;
+  LISTBASE_FOREACH (Sequence *, seq, active_seqbase) {
     if (seq != seqm && seq->flag & SELECT) {
-      blender::VectorSet<Sequence *> related = SEQ_get_connected_strips(seq);
-      related.add(seq);
-      for (Sequence *rel : related) {
-        BLI_remlink(active_seqbase, rel);
-        BLI_addtail(&seqm->seqbase, rel);
-        SEQ_relations_invalidate_cache_preprocessed(scene, rel);
-        channel_max = max_ii(rel->machine, channel_max);
-        channel_min = min_ii(rel->machine, channel_min);
-        meta_start_frame = min_ii(SEQ_time_left_handle_frame_get(scene, rel), meta_start_frame);
-        meta_end_frame = max_ii(SEQ_time_right_handle_frame_get(scene, rel), meta_end_frame);
-      }
+      strips_to_move.add(seq);
+      strips_to_move.add_multiple(SEQ_get_connected_strips(seq));
     }
+  }
+
+  for (Sequence *seq : strips_to_move) {
+    SEQ_relations_invalidate_cache_preprocessed(scene, seq);
+    BLI_remlink(active_seqbase, seq);
+    BLI_addtail(&seqm->seqbase, seq);
+    channel_max = max_ii(seq->machine, channel_max);
+    channel_min = min_ii(seq->machine, channel_min);
+    meta_start_frame = min_ii(SEQ_time_left_handle_frame_get(scene, seq), meta_start_frame);
+    meta_end_frame = max_ii(SEQ_time_right_handle_frame_get(scene, seq), meta_end_frame);
   }
 
   ListBase *channels_cur = SEQ_channels_displayed_get(ed);
