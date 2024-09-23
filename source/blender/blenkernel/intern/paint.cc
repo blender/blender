@@ -789,12 +789,16 @@ static void paint_brush_default_essentials_name_get(
       name = "Pencil";
       /* Different default brush for some brush types. */
       if (brush_type) {
-        switch (*brush_type) {
+        switch (eBrushGPaintType(*brush_type)) {
           case GPAINT_BRUSH_TYPE_ERASE:
             name = "Eraser Hard";
             break;
           case GPAINT_BRUSH_TYPE_FILL:
             name = "Fill Area";
+            break;
+          case GPAINT_BRUSH_TYPE_DRAW:
+          case GPAINT_BRUSH_TYPE_TINT:
+            /* Use default, don't override. */
             break;
         }
       }
