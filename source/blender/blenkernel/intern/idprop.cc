@@ -1437,6 +1437,10 @@ static void read_ui_data(IDProperty *prop, BlendDataReader *reader)
         BLO_read_int32_array(
             reader, ui_data_int->default_array_len, (int **)&ui_data_int->default_array);
       }
+      else {
+        ui_data_int->default_array = nullptr;
+        ui_data_int->default_array_len = 0;
+      }
       BLO_read_struct_array(reader,
                             IDPropertyUIDataEnumItem,
                             size_t(ui_data_int->enum_items_num),
@@ -1456,6 +1460,10 @@ static void read_ui_data(IDProperty *prop, BlendDataReader *reader)
         BLO_read_int8_array(
             reader, ui_data_bool->default_array_len, (int8_t **)&ui_data_bool->default_array);
       }
+      else {
+        ui_data_bool->default_array = nullptr;
+        ui_data_bool->default_array_len = 0;
+      }
       break;
     }
     case IDP_UI_DATA_TYPE_FLOAT: {
@@ -1464,6 +1472,10 @@ static void read_ui_data(IDProperty *prop, BlendDataReader *reader)
       if (prop->type == IDP_ARRAY) {
         BLO_read_double_array(
             reader, ui_data_float->default_array_len, (double **)&ui_data_float->default_array);
+      }
+      else {
+        ui_data_float->default_array = nullptr;
+        ui_data_float->default_array_len = 0;
       }
       break;
     }
