@@ -299,6 +299,10 @@ bool BlenderSubprocess::create(Span<StringRefNull> args)
   /* This should only be reached if `execvp` fails and stack isn't replaced. */
   ERROR("execv");
 
+  /* Ensure outputs are flushed as `_exit` doesn't flush. */
+  fflush(stdout);
+  fflush(stderr);
+
   /* Use `_exit` instead of `exit` so Blender's `atexit` cleanup functions don't run. */
   _exit(errno);
   BLI_assert_unreachable();

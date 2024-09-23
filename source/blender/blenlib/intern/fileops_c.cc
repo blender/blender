@@ -1255,6 +1255,10 @@ static int delete_soft(const char *filepath, const char **error_message)
 
   const int status = execvp(args[0], (char **)args);
 
+  /* Ensure outputs are flushed as `_exit` doesn't flush. */
+  fflush(stdout);
+  fflush(stderr);
+
   /* This should only be reached if `execvp` fails and stack isn't replaced. */
   /* Use `_exit` instead of `exit` so Blender's `atexit` cleanup functions don't run. */
   _exit(status);
