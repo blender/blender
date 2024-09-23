@@ -513,7 +513,8 @@ static void detect_workarounds()
         strstr(renderer, "RX 6750") || strstr(renderer, "RX 6800") ||
         strstr(renderer, "RX 6850") || strstr(renderer, "RX 6900") ||
         strstr(renderer, "RX 6950") || strstr(renderer, "W6300") || strstr(renderer, "W6400") ||
-        strstr(renderer, "W6500") || strstr(renderer, "W6600") || strstr(renderer, "W6800") ||
+        strstr(renderer, "W6500") || strstr(renderer, "W6600") ||
+        /* NOTE: `W6700` was never released, so it's not in this list. */
         strstr(renderer, "W6800") || strstr(renderer, "W6900"))
     {
       GLContext::layered_rendering_support = false;
