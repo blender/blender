@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_context.hh"
+#include "BKE_crazyspace.hh"
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_paint.hh"
@@ -42,15 +43,14 @@ void PinchOperation::on_stroke_extended(const bContext &C, const InputSample &ex
       eGP_Sculpt_SelectMaskFlag(scene.toolsettings->gpencil_selectmode_sculpt));
 
   this->foreach_editable_drawing(
-      C,
-      [&](const GreasePencilStrokeParams &params,
-          const ed::greasepencil::DrawingPlacement &placement) {
+      C, [&](const GreasePencilStrokeParams &params, const DeltaProjectionFunc &projection_fn) {
         IndexMaskMemory selection_memory;
         const IndexMask selection = point_selection_mask(params, is_masking, selection_memory);
         if (selection.is_empty()) {
           return false;
         }
 
+        bke::crazyspace::GeometryDeformation deformation = get_drawing_deformation(params);
         Array<float2> view_positions = calculate_view_positions(params, selection);
         bke::CurvesGeometry &curves = params.drawing.strokes_for_write();
         MutableSpan<float3> positions = curves.positions_for_write();
@@ -65,9 +65,11 @@ void PinchOperation::on_stroke_extended(const bContext &C, const InputSample &ex
             return;
           }
 
-          const float scale_offset = influence * influence / 25.0f;
-          const float scale = invert ? 1.0 + scale_offset : 1.0f - scale_offset;
-          positions[point_i] = placement.project(target + (co - target) * scale);
+          const float influence_squared = influence * influence / 25.0f;
+          const float influence_final = invert ? 1.0 + influence_squared :
+                                                 1.0f - influence_squared;
+          positions[point_i] = projection_fn(deformation.positions[point_i],
+                                             (target - co) * (1.0f - influence_final));
         });
 
         params.drawing.tag_positions_changed();

@@ -47,15 +47,14 @@ void CloneOperation::on_stroke_begin(const bContext &C, const InputSample &start
    *
    * Here we only have the GPv2 behavior that actually works for now. */
   this->foreach_editable_drawing(
-      C,
-      [&](const GreasePencilStrokeParams &params,
-          const ed::greasepencil::DrawingPlacement &placement) {
+      C, [&](const GreasePencilStrokeParams &params, const DeltaProjectionFunc &projection_fn) {
         const IndexRange pasted_curves = ed::greasepencil::clipboard_paste_strokes(
             bmain, object, params.drawing, false);
         if (pasted_curves.is_empty()) {
           return false;
         }
 
+        const bke::crazyspace::GeometryDeformation deformation = get_drawing_deformation(params);
         bke::CurvesGeometry &curves = params.drawing.strokes_for_write();
         const OffsetIndices<int> pasted_points_by_curve = curves.points_by_curve().slice(
             pasted_curves);
@@ -73,7 +72,7 @@ void CloneOperation::on_stroke_begin(const bContext &C, const InputSample &start
         MutableSpan<float3> positions = curves.positions_for_write();
         threading::parallel_for(pasted_points, 4096, [&](const IndexRange range) {
           for (const int point_i : range) {
-            positions[point_i] = placement.project(view_positions[point_i] + mouse_delta);
+            positions[point_i] = projection_fn(deformation.positions[point_i], mouse_delta);
           }
         });
         params.drawing.tag_positions_changed();
