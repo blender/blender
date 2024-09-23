@@ -37,6 +37,7 @@ set(SRC
   nodes/node_fn_input_special_characters.cc
   nodes/node_fn_input_string.cc
   nodes/node_fn_input_vector.cc
+  nodes/node_fn_integer_math.cc
   nodes/node_fn_invert_matrix.cc
   nodes/node_fn_invert_rotation.cc
   nodes/node_fn_matrix_multiply.cc

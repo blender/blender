@@ -1425,6 +1425,7 @@ void node_tree_remove_layer_n(bNodeTree *ntree, Scene *scene, int layer_index);
 #define FN_NODE_INPUT_ROTATION 1243
 #define FN_NODE_AXES_TO_ROTATION 1244
 #define FN_NODE_HASH_VALUE 1245
+#define FN_NODE_INTEGER_MATH 1246
 
 /** \} */
 

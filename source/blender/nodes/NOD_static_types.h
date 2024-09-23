@@ -285,6 +285,7 @@ DefNode(FunctionNode, FN_NODE_INPUT_ROTATION, def_fn_input_rotation, "INPUT_ROTA
 DefNode(FunctionNode, FN_NODE_INPUT_SPECIAL_CHARACTERS, 0, "INPUT_SPECIAL_CHARACTERS", InputSpecialCharacters, "Special Characters", "")
 DefNode(FunctionNode, FN_NODE_INPUT_STRING, def_fn_input_string, "INPUT_STRING", InputString, "String", "")
 DefNode(FunctionNode, FN_NODE_INPUT_VECTOR, def_fn_input_vector, "INPUT_VECTOR", InputVector, "Vector", "")
+DefNode(FunctionNode, FN_NODE_INTEGER_MATH, 0, "INTEGER_MATH", IntegerMath, "Integer Math", "")
 DefNode(FunctionNode, FN_NODE_INVERT_MATRIX, 0, "INVERT_MATRIX", InvertMatrix, "Invert Matrix", "")
 DefNode(FunctionNode, FN_NODE_INVERT_ROTATION, 0, "INVERT_ROTATION", InvertRotation, "Invert Rotation", "")
 DefNode(FunctionNode, FN_NODE_MATRIX_MULTIPLY, 0, "MATRIX_MULTIPLY", MatrixMultiply, "Multiply Matrices", "")
