@@ -208,8 +208,8 @@ class Tree {
   friend Node;
   Type type_;
 
-  /* Memory backing for Node.prim_indices. */
-  Array<int> prim_indices_;
+  /* Memory backing for Node.prim_indices. Without an inline buffer to make #Tree moveable. */
+  Array<int, 0> prim_indices_;
 
  public:
   std::variant<Vector<MeshNode>, Vector<GridsNode>, Vector<BMeshNode>> nodes_;
