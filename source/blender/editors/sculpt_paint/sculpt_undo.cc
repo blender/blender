@@ -91,9 +91,6 @@
 
 namespace blender::ed::sculpt_paint::undo {
 
-/* Uncomment to print the undo stack in the console on push/undo/redo. */
-// #define SCULPT_UNDO_DEBUG
-
 /* Implementation of undo system for objects in sculpt mode.
  *
  * Each undo step in sculpt mode consists of list of nodes, each node contains:
@@ -269,10 +266,6 @@ struct SculptUndoStep {
 
   /* Active color attribute at the end of this undo step. */
   SculptAttrRef active_color_end;
-
-#ifdef SCULPT_UNDO_DEBUG
-  int id;
-#endif
 };
 
 static SculptUndoStep *get_active_step()
@@ -289,121 +282,6 @@ static StepData *get_step_data()
   }
   return nullptr;
 }
-
-#ifdef SCULPT_UNDO_DEBUG
-#  ifdef _
-#    undef _
-#  endif
-#  define _(type) \
-    case type: \
-      return #type;
-static char *undo_type_to_str(int type)
-{
-  switch (type) {
-    _(Type::DyntopoBegin)
-    _(Type::DyntopoEnd)
-    _(Type::Position)
-    _(Type::Geometry)
-    _(Type::DyntopoSymmetrize)
-    _(Type::FaceSet)
-    _(Type::HideVert)
-    _(Type::HideFace)
-    _(Type::Mask)
-    _(Type::Color)
-    default:
-      return "unknown node type";
-  }
-}
-#  undef _
-
-static int nodeidgen = 1;
-
-static void print_sculpt_node(Object &ob, Node *node)
-{
-  printf("    %s:%s {applied=%d}\n", undo_type_to_str(node->type), node->idname, node->applied);
-
-  if (node->bm_entry) {
-    BM_log_print_entry(object.sculpt ? object.sculpt->bm : nullptr, node->bm_entry);
-  }
-}
-
-static void print_step(Object &ob, UndoStep *us, UndoStep *active, int i)
-{
-  Node *node;
-
-  if (us->type != BKE_UNDOSYS_TYPE_SCULPT) {
-    printf("%d %s (non-sculpt): '%s', type:%s, use_memfile_step:%s\n",
-           i,
-           us == active ? "->" : "  ",
-           us->name,
-           us->type->name,
-           us->use_memfile_step ? "true" : "false");
-    return;
-  }
-
-  int id = -1;
-
-  SculptUndoStep *su = (SculptUndoStep *)us;
-  if (!su->id) {
-    su->id = nodeidgen++;
-  }
-
-  id = su->id;
-
-  printf("id=%d %s %d %s (use_memfile_step=%s)\n",
-         id,
-         us == active ? "->" : "  ",
-         i,
-         us->name,
-         us->use_memfile_step ? "true" : "false");
-
-  if (us->type == BKE_UNDOSYS_TYPE_SCULPT) {
-    StepData *step_data = reinterpret_cast<SculptUndoStep *>(us)->data;
-
-    for (node = step_data->nodes.first; node; node = node->next) {
-      print_sculpt_node(ob, node);
-    }
-  }
-}
-static void print_nodes(Object &ob, void *active)
-{
-
-  printf("=================== Sculpt undo steps ==============\n");
-
-  UndoStack *ustack = ED_undo_stack_get();
-  UndoStep *us = ustack->steps.first;
-  if (active == nullptr) {
-    active = ustack->step_active;
-  }
-
-  if (!us) {
-    return;
-  }
-
-  printf("\n");
-  if (ustack->step_init) {
-    printf("===Undo initialization stepB===\n");
-    print_step(ob, ustack->step_init, active, -1);
-    printf("===============\n");
-  }
-
-  int i = 0, act_i = -1;
-  for (; us; us = us->next, i++) {
-    if (active == us) {
-      act_i = i;
-    }
-
-    print_step(ob, us, active, i);
-  }
-
-  if (ustack->step_active) {
-    printf("\n\n==Active step:==\n");
-    print_step(ob, ustack->step_active, active, act_i);
-  }
-}
-#else
-static void print_nodes(Object & /*ob*/, void * /*active*/) {}
-#endif
 
 static bool use_multires_undo(const StepData &step_data, const SculptSession &ss)
 {
@@ -1841,7 +1719,6 @@ void push_end_ex(Object &ob, const bool use_nested_undo)
       ustack, BKE_UNDOSYS_TYPE_SCULPT);
 
   save_active_attribute(ob, &us->active_color_end);
-  print_nodes(ob, nullptr);
 }
 
 /* -------------------------------------------------------------------- */
@@ -1928,8 +1805,6 @@ static void step_decode_undo_impl(bContext *C, Depsgraph *depsgraph, SculptUndoS
 
   restore_list(C, depsgraph, us->data);
   us->step.is_applied = false;
-
-  print_nodes(*CTX_data_active_object(C), nullptr);
 }
 
 static void step_decode_redo_impl(bContext *C, Depsgraph *depsgraph, SculptUndoStep *us)
@@ -1938,8 +1813,6 @@ static void step_decode_redo_impl(bContext *C, Depsgraph *depsgraph, SculptUndoS
 
   restore_list(C, depsgraph, us->data);
   us->step.is_applied = true;
-
-  print_nodes(*CTX_data_active_object(C), nullptr);
 }
 
 static void step_decode_undo(bContext *C,
