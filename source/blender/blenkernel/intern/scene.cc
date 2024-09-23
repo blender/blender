@@ -226,7 +226,7 @@ static void scene_init_data(ID *id)
 
   BKE_color_managed_display_settings_init(&scene->display_settings);
   BKE_color_managed_view_settings_init_render(
-      &scene->view_settings, &scene->display_settings, "Filmic");
+      &scene->view_settings, &scene->display_settings, "AgX");
   STRNCPY(scene->sequencer_colorspace_settings.name, colorspace_name);
 
   BKE_image_format_init(&scene->r.im_format, true);
