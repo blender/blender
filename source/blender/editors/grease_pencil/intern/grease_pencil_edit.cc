@@ -2303,7 +2303,7 @@ static int grease_pencil_copy_strokes_exec(bContext *C, wmOperator *op)
   const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   for (const MutableDrawingInfo &drawing_info : drawings) {
     const bke::CurvesGeometry &curves = drawing_info.drawing.strokes();
-    const Layer &layer = *grease_pencil.layer(drawing_info.layer_index);
+    const Layer &layer = grease_pencil.layer(drawing_info.layer_index);
     const float4x4 layer_to_object = layer.to_object_space(*object);
 
     if (curves.curves_num() == 0) {
