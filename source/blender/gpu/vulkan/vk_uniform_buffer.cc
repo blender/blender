@@ -69,10 +69,12 @@ void VKUniformBuffer::add_to_descriptor_set(AddToDescriptorSetContext &data,
       data.shader_interface.descriptor_set_location(bind_type, binding);
   if (location) {
     if (bind_type == shader::ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER) {
-      data.descriptor_set.bind(*this, *location);
+      data.descriptor_set.bind_buffer(
+          VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, vk_handle(), size_in_bytes(), *location);
     }
     else {
-      data.descriptor_set.bind_as_ssbo(*this, *location);
+      data.descriptor_set.bind_buffer(
+          VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, vk_handle(), size_in_bytes(), *location);
     }
     render_graph::VKBufferAccess buffer_access = {};
     buffer_access.vk_buffer = buffer_.vk_handle();

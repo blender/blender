@@ -57,7 +57,9 @@ void VKIndexBuffer::add_to_descriptor_set(AddToDescriptorSetContext &data,
   const std::optional<VKDescriptorSet::Location> location =
       data.shader_interface.descriptor_set_location(bind_type, binding);
   if (location) {
-    data.descriptor_set.bind_as_ssbo(*this, *location);
+    data.descriptor_set.bind_buffer(
+        VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, vk_handle(), size_get(), *location);
+
     render_graph::VKBufferAccess buffer_access = {};
     buffer_access.vk_buffer = buffer_.vk_handle();
     buffer_access.vk_access_flags = data.shader_interface.access_mask(bind_type, binding);

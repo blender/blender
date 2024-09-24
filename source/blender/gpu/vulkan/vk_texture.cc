@@ -518,17 +518,27 @@ void VKTexture::add_to_descriptor_set(AddToDescriptorSetContext &data,
     return;
   }
 
+  /* TODO: Based on the actual usage we should use
+   * VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL or VK_IMAGE_LAYOUT_GENERAL. */
   const std::optional<VKDescriptorSet::Location> location =
       data.shader_interface.descriptor_set_location(bind_type, binding);
   if (location) {
     const VKImageViewArrayed arrayed = data.shader_interface.arrayed(bind_type, binding);
     if (bind_type == shader::ShaderCreateInfo::Resource::BindType::IMAGE) {
-      data.descriptor_set.image_bind(*this, *location, arrayed);
+      data.descriptor_set.bind_image(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+                                     VK_NULL_HANDLE,
+                                     image_view_get(arrayed).vk_handle(),
+                                     VK_IMAGE_LAYOUT_GENERAL,
+                                     *location);
     }
     else {
       VKDevice &device = VKBackend::get().device;
       const VKSampler &sampler = device.samplers().get(sampler_state);
-      data.descriptor_set.bind(*this, *location, sampler, arrayed);
+      data.descriptor_set.bind_image(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                                     sampler.vk_handle(),
+                                     image_view_get(arrayed).vk_handle(),
+                                     VK_IMAGE_LAYOUT_GENERAL,
+                                     *location);
     }
     uint32_t layer_base = 0;
     uint32_t layer_count = VK_REMAINING_ARRAY_LAYERS;

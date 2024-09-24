@@ -70,10 +70,11 @@ void VKVertexBuffer::add_to_descriptor_set(AddToDescriptorSetContext &data,
 
   /* TODO: Check if we can move this check inside the descriptor set. */
   if (bind_type == shader::ShaderCreateInfo::Resource::BindType::SAMPLER) {
-    data.descriptor_set.bind(*this, *location);
+    data.descriptor_set.bind_texel_buffer(*this, *location);
   }
   else {
-    data.descriptor_set.bind_as_ssbo(*this, *location);
+    data.descriptor_set.bind_buffer(
+        VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, vk_handle(), size_used_get(), *location);
   }
   render_graph::VKBufferAccess buffer_access = {};
   buffer_access.vk_buffer = buffer_.vk_handle();
