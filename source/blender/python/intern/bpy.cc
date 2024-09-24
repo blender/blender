@@ -33,7 +33,7 @@
 #include "WM_api.hh" /* For #WM_ghost_backend */
 
 #include "bpy.h"
-#include "bpy_app.h"
+#include "bpy_app.hh"
 #include "bpy_cli_command.h"
 #include "bpy_driver.h"
 #include "bpy_library.h"

@@ -9,7 +9,7 @@
 #include "BLI_utildefines.h"
 #include <Python.h>
 
-#include "bpy_app_openvdb.h"
+#include "bpy_app_openvdb.hh"
 
 #include "../generic/py_capi_utils.h"
 

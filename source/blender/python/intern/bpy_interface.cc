@@ -41,7 +41,7 @@
 #include "bpy_rna.hh"
 #include "bpy_traceback.h"
 
-#include "bpy_app_translations.h"
+#include "bpy_app_translations.hh"
 
 #include "DNA_text_types.h"
 

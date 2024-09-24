@@ -73,20 +73,20 @@ set(SRC
   stubs.cc
 
   bpy.h
-  bpy_app.h
-  bpy_app_alembic.h
-  bpy_app_build_options.h
-  bpy_app_ffmpeg.h
-  bpy_app_handlers.h
-  bpy_app_icons.h
-  bpy_app_ocio.h
-  bpy_app_oiio.h
-  bpy_app_opensubdiv.h
-  bpy_app_openvdb.h
-  bpy_app_sdl.h
-  bpy_app_timers.h
-  bpy_app_translations.h
-  bpy_app_usd.h
+  bpy_app.hh
+  bpy_app_alembic.hh
+  bpy_app_build_options.hh
+  bpy_app_ffmpeg.hh
+  bpy_app_handlers.hh
+  bpy_app_icons.hh
+  bpy_app_ocio.hh
+  bpy_app_oiio.hh
+  bpy_app_opensubdiv.hh
+  bpy_app_openvdb.hh
+  bpy_app_sdl.hh
+  bpy_app_timers.hh
+  bpy_app_translations.hh
+  bpy_app_usd.hh
   bpy_capi_utils.h
   bpy_cli_command.h
   bpy_driver.h

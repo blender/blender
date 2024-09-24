@@ -10,7 +10,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "bpy_app_build_options.h"
+#include "bpy_app_build_options.hh"
 
 static PyTypeObject BlenderAppBuildOptionsType;
 

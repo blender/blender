@@ -9,7 +9,7 @@
 #include "BLI_utildefines.h"
 #include <Python.h>
 
-#include "bpy_app_sdl.h"
+#include "bpy_app_sdl.hh"
 
 #include "../generic/py_capi_utils.h"
 

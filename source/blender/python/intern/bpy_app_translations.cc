@@ -17,7 +17,7 @@
 #include "BLI_utildefines.h"
 
 #include "BPY_extern.h"
-#include "bpy_app_translations.h"
+#include "bpy_app_translations.hh"
 
 #include "MEM_guardedalloc.h"
 

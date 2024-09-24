@@ -9,7 +9,7 @@
 #include "BLI_utildefines.h"
 #include <Python.h>
 
-#include "bpy_app_ocio.h"
+#include "bpy_app_ocio.hh"
 
 #include "../generic/py_capi_utils.h"
 

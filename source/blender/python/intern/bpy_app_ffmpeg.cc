@@ -9,7 +9,7 @@
 #include "BLI_utildefines.h"
 #include <Python.h>
 
-#include "bpy_app_ffmpeg.h"
+#include "bpy_app_ffmpeg.hh"
 
 #include "../generic/py_capi_utils.h"
 
