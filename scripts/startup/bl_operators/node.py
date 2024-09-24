@@ -173,6 +173,8 @@ class NodeAddZoneOperator(NodeAddOperator):
         default=(150, 0),
     )
 
+    add_default_geometry_link = True
+
     def execute(self, context):
         space = context.space_data
         tree = space.edit_tree
@@ -189,11 +191,12 @@ class NodeAddZoneOperator(NodeAddOperator):
         input_node.location -= Vector(self.offset)
         output_node.location += Vector(self.offset)
 
-        # Connect geometry sockets by default.
-        # Get the sockets by their types, because the name is not guaranteed due to i18n.
-        from_socket = next(s for s in input_node.outputs if s.type == 'GEOMETRY')
-        to_socket = next(s for s in output_node.inputs if s.type == 'GEOMETRY')
-        tree.links.new(to_socket, from_socket)
+        if self.add_default_geometry_link:
+            # Connect geometry sockets by default if available.
+            # Get the sockets by their types, because the name is not guaranteed due to i18n.
+            from_socket = next(s for s in input_node.outputs if s.type == 'GEOMETRY')
+            to_socket = next(s for s in output_node.inputs if s.type == 'GEOMETRY')
+            tree.links.new(to_socket, from_socket)
 
         return {'FINISHED'}
 
@@ -216,6 +219,17 @@ class NODE_OT_add_repeat_zone(NodeAddZoneOperator, Operator):
 
     input_node_type = "GeometryNodeRepeatInput"
     output_node_type = "GeometryNodeRepeatOutput"
+
+
+class NODE_OT_add_foreach_geometry_element_zone(NodeAddZoneOperator, Operator):
+    """Add a For Each Geometry Element zone that allows executing nodes e.g. for each vertex separately"""
+    bl_idname = "node.add_foreach_geometry_element_zone"
+    bl_label = "Add For Each Geometry Element Zone"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    input_node_type = "GeometryNodeForeachGeometryElementInput"
+    output_node_type = "GeometryNodeForeachGeometryElementOutput"
+    add_default_geometry_link = False
 
 
 class NODE_OT_collapse_hide_unused_toggle(Operator):
@@ -418,6 +432,7 @@ classes = (
     NODE_OT_add_node,
     NODE_OT_add_simulation_zone,
     NODE_OT_add_repeat_zone,
+    NODE_OT_add_foreach_geometry_element_zone,
     NODE_OT_collapse_hide_unused_toggle,
     NODE_OT_interface_item_new,
     NODE_OT_interface_item_duplicate,

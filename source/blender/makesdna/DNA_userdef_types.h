@@ -343,7 +343,6 @@ typedef struct ThemeSpace {
   unsigned char syntaxd[4], syntaxr[4]; /* In node-space used for distort. */
 
   unsigned char line_numbers[4];
-  char _pad6[3];
 
   unsigned char nodeclass_output[4], nodeclass_filter[4];
   unsigned char nodeclass_vector[4], nodeclass_texture[4];
@@ -353,6 +352,7 @@ typedef struct ThemeSpace {
 
   unsigned char node_zone_simulation[4];
   unsigned char node_zone_repeat[4];
+  unsigned char node_zone_foreach_geometry_element[4];
   unsigned char simulated_frames[4];
 
   /** For sequence editor. */
@@ -361,7 +361,6 @@ typedef struct ThemeSpace {
   unsigned char active_strip[4], selected_strip[4];
 
   /** For dopesheet - scale factor for size of keyframes (i.e. height of channels). */
-  char _pad7[1];
   float keyframe_scale_fac;
 
   unsigned char editmesh_active[4];

@@ -84,12 +84,33 @@ class RepeatZoneType : public blender::bke::bNodeZoneType {
   }
 };
 
+class ForeachGeometryElementZoneType : public blender::bke::bNodeZoneType {
+ public:
+  ForeachGeometryElementZoneType()
+  {
+    this->input_idname = "GeometryNodeForeachGeometryElementInput";
+    this->output_idname = "GeometryNodeForeachGeometryElementOutput";
+    this->input_type = GEO_NODE_FOREACH_GEOMETRY_ELEMENT_INPUT;
+    this->output_type = GEO_NODE_FOREACH_GEOMETRY_ELEMENT_OUTPUT;
+    this->theme_id = TH_NODE_ZONE_FOREACH_GEOMETRY_ELEMENT;
+  }
+
+  const int &get_corresponding_output_id(const bNode &input_bnode) const override
+  {
+    BLI_assert(input_bnode.type == this->input_type);
+    return static_cast<NodeGeometryForeachGeometryElementInput *>(input_bnode.storage)
+        ->output_node_id;
+  }
+};
+
 static void register_zone_types()
 {
   static SimulationZoneType simulation_zone_type;
   static RepeatZoneType repeat_zone_type;
+  static ForeachGeometryElementZoneType foreach_geometry_element_zone_type;
   blender::bke::register_node_zone_type(simulation_zone_type);
   blender::bke::register_node_zone_type(repeat_zone_type);
+  blender::bke::register_node_zone_type(foreach_geometry_element_zone_type);
 }
 
 void register_nodes()

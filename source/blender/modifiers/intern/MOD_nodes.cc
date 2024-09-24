@@ -571,10 +571,33 @@ static void try_add_side_effect_node(const ComputeContext &final_compute_context
         return;
       }
       local_side_effect_nodes.nodes_by_context.add(parent_compute_context_hash, lf_zone_node);
-      local_side_effect_nodes.iterations_by_repeat_zone.add(
+      local_side_effect_nodes.iterations_by_iteration_zone.add(
           {parent_compute_context_hash, compute_context->output_node_id()},
           compute_context->iteration());
       current_zone = repeat_zone;
+    }
+    else if (const auto *compute_context =
+                 dynamic_cast<const bke::ForeachGeometryElementZoneComputeContext *>(
+                     compute_context_generic))
+    {
+      const bke::bNodeTreeZone *foreach_zone = current_zones->get_zone_by_node(
+          compute_context->output_node_id());
+      if (foreach_zone == nullptr) {
+        return;
+      }
+      if (foreach_zone->parent_zone != current_zone) {
+        return;
+      }
+      const lf::FunctionNode *lf_zone_node = lf_graph_info->mapping.zone_node_map.lookup_default(
+          foreach_zone, nullptr);
+      if (lf_zone_node == nullptr) {
+        return;
+      }
+      local_side_effect_nodes.nodes_by_context.add(parent_compute_context_hash, lf_zone_node);
+      local_side_effect_nodes.iterations_by_iteration_zone.add(
+          {parent_compute_context_hash, compute_context->output_node_id()},
+          compute_context->index());
+      current_zone = foreach_zone;
     }
     else if (const auto *compute_context = dynamic_cast<const bke::GroupNodeComputeContext *>(
                  compute_context_generic))
@@ -631,8 +654,8 @@ static void try_add_side_effect_node(const ComputeContext &final_compute_context
   for (const auto item : local_side_effect_nodes.nodes_by_context.items()) {
     r_side_effect_nodes.nodes_by_context.add_multiple(item.key, item.value);
   }
-  for (const auto item : local_side_effect_nodes.iterations_by_repeat_zone.items()) {
-    r_side_effect_nodes.iterations_by_repeat_zone.add_multiple(item.key, item.value);
+  for (const auto item : local_side_effect_nodes.iterations_by_iteration_zone.items()) {
+    r_side_effect_nodes.iterations_by_iteration_zone.add_multiple(item.key, item.value);
   }
 }
 

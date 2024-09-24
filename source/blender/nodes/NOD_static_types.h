@@ -352,6 +352,8 @@ DefNode(GeometryNode, GEO_NODE_EXTRUDE_MESH, 0, "EXTRUDE_MESH", ExtrudeMesh, "Ex
 DefNode(GeometryNode, GEO_NODE_FILL_CURVE, 0, "FILL_CURVE", FillCurve, "Fill Curve", "Generate a mesh on the XY plane with faces on the inside of input curves")
 DefNode(GeometryNode, GEO_NODE_FILLET_CURVE, 0, "FILLET_CURVE", FilletCurve, "Fillet Curve", "Round corners by generating circular arcs on each control point")
 DefNode(GeometryNode, GEO_NODE_FLIP_FACES, 0, "FLIP_FACES", FlipFaces, "Flip Faces", "Reverse the order of the vertices and edges of selected faces, flipping their normal direction")
+DefNode(GeometryNode, GEO_NODE_FOREACH_GEOMETRY_ELEMENT_INPUT, def_geo_foreach_geometry_element_input, "FOREACH_GEOMETRY_ELEMENT_INPUT", ForeachGeometryElementInput, "For Each Geometry Element Input", "")
+DefNode(GeometryNode, GEO_NODE_FOREACH_GEOMETRY_ELEMENT_OUTPUT, def_geo_foreach_geometry_element_output, "FOREACH_GEOMETRY_ELEMENT_OUTPUT", ForeachGeometryElementOutput, "For Each Geometry Element Output", "")
 DefNode(GeometryNode, GEO_NODE_GEOMETRY_TO_INSTANCE, 0, "GEOMETRY_TO_INSTANCE", GeometryToInstance, "Geometry to Instance", "Convert each input geometry into an instance, which can be much faster than the Join Geometry node when the inputs are large")
 DefNode(GeometryNode, GEO_NODE_GET_NAMED_GRID, 0, "GET_NAMED_GRID", GetNamedGrid, "Get Named Grid", "Get volume grid from a volume geometry with the specified name")
 DefNode(GeometryNode, GEO_NODE_GIZMO_LINEAR, 0, "GIZMO_LINEAR", GizmoLinear, "Linear Gizmo", "Show a linear gizmo in the viewport for a value")

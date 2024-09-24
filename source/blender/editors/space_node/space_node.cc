@@ -373,6 +373,13 @@ bool push_compute_context_for_tree_path(const SpaceNode &snode,
                                                                       storage.inspection_index);
           break;
         }
+        case GEO_NODE_FOREACH_GEOMETRY_ELEMENT_OUTPUT: {
+          const auto &storage = *static_cast<const NodeGeometryForeachGeometryElementOutput *>(
+              zone->output_node->storage);
+          compute_context_builder.push<bke::ForeachGeometryElementZoneComputeContext>(
+              *zone->output_node, storage.inspection_index);
+          break;
+        }
       }
     }
     compute_context_builder.push<bke::GroupNodeComputeContext>(*group_node, *tree);

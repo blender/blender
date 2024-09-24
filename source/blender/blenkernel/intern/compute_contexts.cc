@@ -117,6 +117,33 @@ void RepeatZoneComputeContext::print_current_in_line(std::ostream &stream) const
   stream << "Repeat Zone ID: " << output_node_id_;
 }
 
+ForeachGeometryElementZoneComputeContext::ForeachGeometryElementZoneComputeContext(
+    const ComputeContext *parent, const int32_t output_node_id, const int index)
+    : ComputeContext(s_static_type, parent), output_node_id_(output_node_id), index_(index)
+{
+  /* Mix static type and node id into a single buffer so that only a single call to #mix_in is
+   * necessary. */
+  const int type_size = strlen(s_static_type);
+  const int buffer_size = type_size + 1 + sizeof(int32_t) + sizeof(int);
+  DynamicStackBuffer<64, 8> buffer_owner(buffer_size, 8);
+  char *buffer = static_cast<char *>(buffer_owner.buffer());
+  memcpy(buffer, s_static_type, type_size + 1);
+  memcpy(buffer + type_size + 1, &output_node_id_, sizeof(int32_t));
+  memcpy(buffer + type_size + 1 + sizeof(int32_t), &index_, sizeof(int));
+  hash_.mix_in(buffer, buffer_size);
+}
+
+ForeachGeometryElementZoneComputeContext::ForeachGeometryElementZoneComputeContext(
+    const ComputeContext *parent, const bNode &node, const int index)
+    : ForeachGeometryElementZoneComputeContext(parent, node.identifier, index)
+{
+}
+
+void ForeachGeometryElementZoneComputeContext::print_current_in_line(std::ostream &stream) const
+{
+  stream << "Foreach Geometry Element Zone ID: " << output_node_id_;
+}
+
 OperatorComputeContext::OperatorComputeContext() : OperatorComputeContext(nullptr) {}
 
 OperatorComputeContext::OperatorComputeContext(const ComputeContext *parent)

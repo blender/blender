@@ -927,6 +927,7 @@ set(geo_node_tests
   curve_primitives
   curves
   curves/interpolate_curves
+  foreach_geometry_element_zone
   geometry
   grease_pencil
   instance

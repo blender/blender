@@ -1489,6 +1489,32 @@ class NodeTreeMainUpdater {
             }
           }
         }
+        /* Zones may propagate changes from the input node to the output node even though there is
+         * no explicit link. */
+        switch (node.type) {
+          case GEO_NODE_REPEAT_OUTPUT:
+          case GEO_NODE_SIMULATION_OUTPUT:
+          case GEO_NODE_FOREACH_GEOMETRY_ELEMENT_OUTPUT: {
+            const bNodeTreeZones *zones = tree.zones();
+            if (!zones) {
+              break;
+            }
+            const bNodeTreeZone *zone = zones->get_zone_by_node(node.identifier);
+            if (!zone->input_node) {
+              break;
+            }
+            for (const bNodeSocket *input_socket : zone->input_node->input_sockets()) {
+              if (input_socket->is_available()) {
+                bool &pushed = pushed_by_socket_id[input_socket->index_in_tree()];
+                if (!pushed) {
+                  sockets_to_check.push(input_socket);
+                  pushed = true;
+                }
+              }
+            }
+            break;
+          }
+        }
         /* The Normal node has a special case, because the value stored in the first output
          * socket is used as input in the node. */
         if (node.type == SH_NODE_NORMAL && socket.index() == 1) {
