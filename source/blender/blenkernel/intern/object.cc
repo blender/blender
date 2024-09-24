@@ -143,6 +143,8 @@
 
 #include "SEQ_sequencer.hh"
 
+#include "ANIM_action_legacy.hh"
+
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"
 #endif
@@ -4742,7 +4744,7 @@ static bool modifiers_has_animation_check(const Object *ob)
   if (ob->adt != nullptr) {
     AnimData *adt = ob->adt;
     if (adt->action != nullptr) {
-      LISTBASE_FOREACH (FCurve *, fcu, &adt->action->curves) {
+      for (FCurve *fcu : blender::animrig::legacy::fcurves_for_assigned_action(adt)) {
         if (fcu->rna_path && strstr(fcu->rna_path, "modifiers[")) {
           return true;
         }

@@ -49,6 +49,8 @@
 #include "RNA_access.hh"
 #include "RNA_path.hh"
 
+#include "ANIM_action_legacy.hh"
+
 #include "CLG_log.h"
 
 #ifdef WITH_ANIM_BAKLAVA
@@ -886,12 +888,12 @@ static bool fcurves_path_rename_fix(ID *owner_id,
                                     const char *newName,
                                     const char *oldKey,
                                     const char *newKey,
-                                    ListBase *curves,
+                                    blender::Span<FCurve *> curves,
                                     bool verify_paths)
 {
   bool is_changed = false;
   /* We need to check every curve. */
-  LISTBASE_FOREACH (FCurve *, fcu, curves) {
+  for (FCurve *fcu : curves) {
     if (fcu->rna_path == nullptr) {
       continue;
     }
@@ -982,7 +984,14 @@ static bool nlastrips_path_rename_fix(ID *owner_id,
     /* fix strip's action */
     if (strip->act != nullptr) {
       const bool is_changed_action = fcurves_path_rename_fix(
-          owner_id, prefix, oldName, newName, oldKey, newKey, &strip->act->curves, verify_paths);
+          owner_id,
+          prefix,
+          oldName,
+          newName,
+          oldKey,
+          newKey,
+          blender::animrig::legacy::fcurves_all(strip->act),
+          verify_paths);
       if (is_changed_action) {
         DEG_id_tag_update(&strip->act->id, ID_RECALC_ANIMATION);
       }
@@ -1092,8 +1101,14 @@ void BKE_action_fix_paths_rename(ID *owner_id,
   }
 
   /* fix paths in action */
-  fcurves_path_rename_fix(
-      owner_id, prefix, oldName, newName, oldN, newN, &act->curves, verify_paths);
+  fcurves_path_rename_fix(owner_id,
+                          prefix,
+                          oldName,
+                          newName,
+                          oldN,
+                          newN,
+                          blender::animrig::legacy::fcurves_all(act),
+                          verify_paths);
 
   /* free the temp names */
   MEM_freeN(oldN);
@@ -1137,15 +1152,27 @@ void BKE_animdata_fix_paths_rename(ID *owner_id,
   }
   /* Active action and temp action. */
   if (adt->action != nullptr) {
-    if (fcurves_path_rename_fix(
-            owner_id, prefix, oldName, newName, oldN, newN, &adt->action->curves, verify_paths))
+    if (fcurves_path_rename_fix(owner_id,
+                                prefix,
+                                oldName,
+                                newName,
+                                oldN,
+                                newN,
+                                blender::animrig::legacy::fcurves_all(adt->action),
+                                verify_paths))
     {
       DEG_id_tag_update(&adt->action->id, ID_RECALC_SYNC_TO_EVAL);
     }
   }
   if (adt->tmpact) {
-    if (fcurves_path_rename_fix(
-            owner_id, prefix, oldName, newName, oldN, newN, &adt->tmpact->curves, verify_paths))
+    if (fcurves_path_rename_fix(owner_id,
+                                prefix,
+                                oldName,
+                                newName,
+                                oldN,
+                                newN,
+                                blender::animrig::legacy::fcurves_all(adt->tmpact),
+                                verify_paths))
     {
       DEG_id_tag_update(&adt->tmpact->id, ID_RECALC_SYNC_TO_EVAL);
     }
@@ -1245,8 +1272,17 @@ bool BKE_animdata_fix_paths_remove(ID *id, const char *prefix)
 
 /* Helper for adt_apply_all_fcurves_cb() - Apply wrapped operator to list of F-Curves */
 static void fcurves_apply_cb(ID *id,
-                             ListBase *fcurves,
+                             blender::Span<FCurve *> fcurves,
                              const FunctionRef<void(ID *, FCurve *)> func)
+{
+  for (FCurve *fcu : fcurves) {
+    func(id, fcu);
+  }
+}
+static void fcurves_listbase_apply_cb(ID *id,
+                                      ListBase *fcurves,
+
+                                      const FunctionRef<void(ID *, FCurve *)> func)
 {
   LISTBASE_FOREACH (FCurve *, fcu, fcurves) {
     func(id, fcu);
@@ -1261,7 +1297,7 @@ static void nlastrips_apply_all_curves_cb(ID *id,
   LISTBASE_FOREACH (NlaStrip *, strip, strips) {
     /* fix strip's action */
     if (strip->act) {
-      fcurves_apply_cb(id, &strip->act->curves, func);
+      fcurves_apply_cb(id, blender::animrig::legacy::fcurves_all(strip->act), func);
     }
 
     /* Check sub-strips (if meta-strips). */
@@ -1275,15 +1311,15 @@ static void adt_apply_all_fcurves_cb(ID *id,
                                      const FunctionRef<void(ID *, FCurve *)> func)
 {
   if (adt->action) {
-    fcurves_apply_cb(id, &adt->action->curves, func);
+    fcurves_apply_cb(id, blender::animrig::legacy::fcurves_all(adt->action), func);
   }
 
   if (adt->tmpact) {
-    fcurves_apply_cb(id, &adt->tmpact->curves, func);
+    fcurves_apply_cb(id, blender::animrig::legacy::fcurves_all(adt->tmpact), func);
   }
 
   /* free drivers - stored as a list of F-Curves */
-  fcurves_apply_cb(id, &adt->drivers, func);
+  fcurves_listbase_apply_cb(id, &adt->drivers, func);
 
   /* NLA Data - Animation Data for Strips */
   LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
