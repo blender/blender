@@ -2213,6 +2213,16 @@ class _defs_grease_pencil_edit:
             draw_settings=draw_settings,
         )
 
+    @ToolDef.from_fn
+    def texture_gradient():
+        return dict(
+            idname="builtin.texture_gradient",
+            label="Gradient",
+            icon="ops.paint.weight_gradient",
+            widget=None,
+            keymap=(),
+        )
+
 
 class _defs_image_generic:
 
@@ -3552,6 +3562,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             ),
             None,
             _defs_grease_pencil_edit.interpolate,
+            None,
+            _defs_grease_pencil_edit.texture_gradient,
             None,
             *_tools_annotate,
         ],

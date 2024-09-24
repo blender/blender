@@ -8897,6 +8897,19 @@ def km_3d_view_tool_sculpt_gpencil_select_lasso(params):
         {"items": _template_items_tool_select_actions("gpencil.select_lasso", **params.tool_tweak_event)},
     )
 
+# ------------------------------------------------------------------------------
+# Grease Pencil: Texture Gradient Tool
+
+
+def km_3d_view_tool_edit_grease_pencil_texture_gradient(params):
+    return (
+        "3D View Tool: Edit Grease Pencil, Gradient",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("grease_pencil.texture_gradient", params.tool_maybe_tweak_event, None),
+        ]},
+    )
+
 
 # ------------------------------------------------------------------------------
 # Tool System (Sequencer, Generic)
@@ -9382,6 +9395,7 @@ def generate_keymaps(params=None):
         *(km_sequencer_editor_tool_generic_select_box_preview(params, fallback=fallback)
           for fallback in (False, True)),
         km_3d_view_tool_paint_grease_pencil_trim(params),
+        km_3d_view_tool_edit_grease_pencil_texture_gradient(params),
         km_sequencer_editor_tool_generic_cursor(params),
         km_sequencer_editor_tool_blade(params),
         km_sequencer_editor_tool_sample(params),
