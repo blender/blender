@@ -16,6 +16,8 @@
 #include "GPU_immediate.hh"
 #include "GPU_matrix.hh"
 
+#include "DEG_depsgraph_query.hh"
+
 #include "ED_mesh.hh"
 #include "ED_screen.hh"
 
@@ -247,9 +249,20 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
    * See: #125646 for details.
    */
   BMBVHTree *bmbvh = nullptr;
+  Array<float3> bmbvh_coord_storage;
   if (use_occlude_geometry) {
+    Scene *scene_eval = (Scene *)DEG_get_evaluated_id(t->depsgraph, &t->scene->id);
+    Object *obedit_eval = DEG_get_evaluated_object(t->depsgraph, tc->obedit);
     BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
-    bmbvh = BKE_bmbvh_new_from_editmesh(em, BMBVH_RESPECT_HIDDEN, nullptr, false);
+
+    const Span<float3> vert_positions = BKE_editmesh_vert_coords_when_deformed(
+        t->depsgraph, em, scene_eval, obedit_eval, bmbvh_coord_storage);
+
+    bmbvh = BKE_bmbvh_new_from_editmesh(em,
+                                        BMBVH_RESPECT_HIDDEN,
+                                        vert_positions.is_empty() ? nullptr :
+                                                                    vert_positions.data(),
+                                        false);
   }
 
   /* Find mouse vectors, the global one, and one per loop in case we have
