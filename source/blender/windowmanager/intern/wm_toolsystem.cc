@@ -249,30 +249,29 @@ bool WM_toolsystem_activate_brush_and_tool(bContext *C, Paint *paint, Brush *bru
     return false;
   }
 
-  if (active_tool->runtime->brush_type == -1) {
-    /* Only update the main brush binding to reference the newly active brush. */
-    toolsystem_main_brush_binding_update_from_active(paint);
-    return true;
-  }
-
-  toolsystem_brush_type_binding_update(paint, paint_mode, active_tool->runtime->brush_type);
-
   /* If necessary, find a compatible tool to switch to. */
   {
     std::optional<int> brush_type = BKE_paint_get_brush_type_from_paintmode(brush, paint_mode);
     if (!brush_type) {
       BLI_assert_unreachable();
       WM_toolsystem_ref_set_by_id(C, "builtin.brush");
-      return true;
     }
-
-    if (!brush_type_is_compatible_with_active_tool(C, *brush_type)) {
+    else if (!brush_type_is_compatible_with_active_tool(C, *brush_type)) {
       std::optional<blender::StringRefNull> compatible_tool = find_tool_id_from_brush_type_id(
           C, *brush_type);
       WM_toolsystem_ref_set_by_id(C, compatible_tool.value_or("builtin.brush").c_str());
     }
-    return true;
   }
+
+  if (active_tool->runtime->brush_type == -1) {
+    /* Only update the main brush binding to reference the newly active brush. */
+    toolsystem_main_brush_binding_update_from_active(paint);
+  }
+  else {
+    toolsystem_brush_type_binding_update(paint, paint_mode, active_tool->runtime->brush_type);
+  }
+
+  return true;
 }
 
 static void toolsystem_brush_activate_from_toolref_for_object_particle(const bContext *C,
