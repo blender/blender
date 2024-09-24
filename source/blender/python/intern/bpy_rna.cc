@@ -31,8 +31,8 @@
 #include "BPY_extern_clog.h"
 
 #include "bpy_capi_utils.h"
-#include "bpy_intern_string.h"
-#include "bpy_props.h"
+#include "bpy_intern_string.hh"
+#include "bpy_props.hh"
 #include "bpy_rna.hh"
 #include "bpy_rna_anim.hh"
 #include "bpy_rna_callback.hh"

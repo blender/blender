@@ -18,7 +18,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "bpy_utils_units.h"
+#include "bpy_utils_units.hh"
 
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_compat.h"

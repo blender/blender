@@ -72,7 +72,7 @@ set(SRC
   bpy_utils_units.cc
   stubs.cc
 
-  bpy.h
+  bpy.hh
   bpy_app.hh
   bpy_app_alembic.hh
   bpy_app_build_options.hh
@@ -88,16 +88,16 @@ set(SRC
   bpy_app_translations.hh
   bpy_app_usd.hh
   bpy_capi_utils.h
-  bpy_cli_command.h
-  bpy_driver.h
-  bpy_gizmo_wrap.h
-  bpy_intern_string.h
-  bpy_library.h
-  bpy_msgbus.h
-  bpy_operator.h
-  bpy_operator_wrap.h
-  bpy_path.h
-  bpy_props.h
+  bpy_cli_command.hh
+  bpy_driver.hh
+  bpy_gizmo_wrap.hh
+  bpy_intern_string.hh
+  bpy_library.hh
+  bpy_msgbus.hh
+  bpy_operator.hh
+  bpy_operator_wrap.hh
+  bpy_path.hh
+  bpy_props.hh
   bpy_rna.hh
   bpy_rna_anim.hh
   bpy_rna_callback.hh
@@ -110,9 +110,9 @@ set(SRC
   bpy_rna_text.hh
   bpy_rna_types_capi.hh
   bpy_rna_ui.hh
-  bpy_traceback.h
-  bpy_utils_previews.h
-  bpy_utils_units.h
+  bpy_traceback.hh
+  bpy_utils_previews.hh
+  bpy_utils_units.hh
   ../BPY_extern.h
   ../BPY_extern_clog.h
   ../BPY_extern_python.h

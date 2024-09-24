@@ -412,7 +412,7 @@ static PointerRNA rna_Gizmo_group_get(PointerRNA *ptr)
 #  ifdef WITH_PYTHON
 
 static bool rna_Gizmo_unregister(Main *bmain, StructRNA *type);
-extern "C" void BPY_RNA_gizmo_wrapper(wmGizmoType *gzgt, void *userdata);
+extern void BPY_RNA_gizmo_wrapper(wmGizmoType *gzgt, void *userdata);
 
 static StructRNA *rna_Gizmo_register(Main *bmain,
                                      ReportList *reports,
@@ -787,7 +787,7 @@ static void rna_gizmogroup_invoke_prepare_cb(const bContext *C,
   RNA_parameter_list_free(&list);
 }
 
-extern "C" void BPY_RNA_gizmogroup_wrapper(wmGizmoGroupType *gzgt, void *userdata);
+extern void BPY_RNA_gizmogroup_wrapper(wmGizmoGroupType *gzgt, void *userdata);
 static bool rna_GizmoGroup_unregister(Main *bmain, StructRNA *type);
 
 static StructRNA *rna_GizmoGroup_register(Main *bmain,

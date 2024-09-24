@@ -35,7 +35,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "bpy_capi_utils.h"
-#include "bpy_library.h"
+#include "bpy_library.hh"
 
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_compat.h"

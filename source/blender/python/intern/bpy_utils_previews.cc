@@ -20,7 +20,7 @@
 #include "RNA_prototypes.hh"
 
 #include "bpy_rna.hh"
-#include "bpy_utils_previews.h"
+#include "bpy_utils_previews.hh"
 
 #include "../generic/py_capi_utils.h"
 

@@ -32,19 +32,19 @@
 
 #include "WM_api.hh" /* For #WM_ghost_backend */
 
-#include "bpy.h"
+#include "bpy.hh"
 #include "bpy_app.hh"
-#include "bpy_cli_command.h"
-#include "bpy_driver.h"
-#include "bpy_library.h"
-#include "bpy_operator.h"
-#include "bpy_props.h"
+#include "bpy_cli_command.hh"
+#include "bpy_driver.hh"
+#include "bpy_library.hh"
+#include "bpy_operator.hh"
+#include "bpy_props.hh"
 #include "bpy_rna.hh"
 #include "bpy_rna_data.hh"
 #include "bpy_rna_gizmo.hh"
 #include "bpy_rna_types_capi.hh"
-#include "bpy_utils_previews.h"
-#include "bpy_utils_units.h"
+#include "bpy_utils_previews.hh"
+#include "bpy_utils_units.hh"
 
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_compat.h"
@@ -53,7 +53,7 @@
 /* external util modules */
 #include "../generic/idprop_py_api.h"
 #include "../generic/idprop_py_ui_api.h"
-#include "bpy_msgbus.h"
+#include "bpy_msgbus.hh"
 
 #ifdef WITH_FREESTYLE
 #  include "BPy_Freestyle.h"

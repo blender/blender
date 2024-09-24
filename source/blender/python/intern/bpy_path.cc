@@ -12,7 +12,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "bpy_path.h"
+#include "bpy_path.hh"
 
 #include "../generic/py_capi_utils.h"
 

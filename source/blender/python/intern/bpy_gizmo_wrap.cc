@@ -24,8 +24,8 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "bpy_gizmo_wrap.h" /* own include */
-#include "bpy_intern_string.h"
+#include "bpy_gizmo_wrap.hh" /* own include */
+#include "bpy_intern_string.hh"
 #include "bpy_rna.hh"
 
 #include "../generic/py_capi_rna.h"

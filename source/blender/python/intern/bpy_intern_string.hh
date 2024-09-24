@@ -8,12 +8,8 @@
  * \ingroup pythonintern
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-void bpy_intern_string_init(void);
-void bpy_intern_string_exit(void);
+void bpy_intern_string_init();
+void bpy_intern_string_exit();
 
 extern PyObject *bpy_intern_str___annotations__;
 extern PyObject *bpy_intern_str___doc__;
@@ -32,7 +28,3 @@ extern PyObject *bpy_intern_str_register;
 extern PyObject *bpy_intern_str_self;
 extern PyObject *bpy_intern_str_depsgraph;
 extern PyObject *bpy_intern_str_unregister;
-
-#ifdef __cplusplus
-}
-#endif

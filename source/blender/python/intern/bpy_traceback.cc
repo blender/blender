@@ -18,7 +18,7 @@
 #  include "BLI_string.h" /* BLI_strcasecmp */
 #endif
 
-#include "bpy_traceback.h"
+#include "bpy_traceback.hh"
 
 #define MAKE_PY_IDENTIFIER_EX(varname, value) static _Py_Identifier varname{value, -1};
 #define MAKE_PY_IDENTIFIER(varname) MAKE_PY_IDENTIFIER_EX(PyId_##varname, #varname)

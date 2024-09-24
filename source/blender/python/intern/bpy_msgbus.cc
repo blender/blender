@@ -27,7 +27,7 @@
 #include "bpy_capi_utils.h"
 #include "bpy_rna.hh"
 
-#include "bpy_msgbus.h" /* own include */
+#include "bpy_msgbus.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Utils

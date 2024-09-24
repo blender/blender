@@ -22,8 +22,8 @@
 #include "RNA_define.hh"
 #include "RNA_prototypes.hh"
 
-#include "bpy_intern_string.h"
-#include "bpy_operator_wrap.h" /* own include */
+#include "bpy_intern_string.hh"
+#include "bpy_operator_wrap.hh" /* own include */
 #include "bpy_rna.hh"
 
 static void operator_properties_init(wmOperatorType *ot)

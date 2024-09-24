@@ -24,7 +24,7 @@
 #include "BLI_utildefines.h"
 
 #include "bpy_capi_utils.h"
-#include "bpy_props.h"
+#include "bpy_props.hh"
 #include "bpy_rna.hh"
 
 #include "RNA_access.hh"

@@ -27,8 +27,8 @@
 
 #include "BPY_extern.h"
 #include "bpy_capi_utils.h"
-#include "bpy_operator.h"
-#include "bpy_operator_wrap.h"
+#include "bpy_operator.hh"
+#include "bpy_operator_wrap.hh"
 #include "bpy_rna.hh" /* for setting argument properties & type method `get_rna_type`. */
 
 #include "RNA_access.hh"

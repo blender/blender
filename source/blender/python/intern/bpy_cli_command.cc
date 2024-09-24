@@ -21,7 +21,7 @@
 #include "../generic/python_compat.h"
 #include "../generic/python_utildefines.h"
 
-#include "bpy_cli_command.h" /* Own include. */
+#include "bpy_cli_command.hh" /* Own include. */
 
 static const char *bpy_cli_command_capsule_name = "bpy_cli_command";
 static const char *bpy_cli_command_capsule_name_invalid = "bpy_cli_command<invalid>";

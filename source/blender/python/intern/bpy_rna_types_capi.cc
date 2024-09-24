@@ -21,7 +21,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "bpy_library.h"
+#include "bpy_library.hh"
 #include "bpy_rna.hh"
 #include "bpy_rna_callback.hh"
 #include "bpy_rna_context.hh"

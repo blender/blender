@@ -8,12 +8,5 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-PyObject *BPY_utils_previews_module(void);
-
-#ifdef __cplusplus
-}
-#endif
+extern PyMethodDef BPY_cli_command_register_def;
+extern PyMethodDef BPY_cli_command_unregister_def;
