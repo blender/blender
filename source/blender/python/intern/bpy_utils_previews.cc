@@ -22,7 +22,7 @@
 #include "bpy_rna.hh"
 #include "bpy_utils_previews.hh"
 
-#include "../generic/py_capi_utils.h"
+#include "../generic/py_capi_utils.hh"
 
 #include "MEM_guardedalloc.h"
 

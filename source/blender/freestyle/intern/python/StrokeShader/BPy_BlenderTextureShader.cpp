@@ -10,7 +10,7 @@
 
 #include "../../stroke/BasicStrokeShaders.h"
 
-#include "../../../../python/generic/py_capi_utils.h"
+#include "../../../../python/generic/py_capi_utils.hh"
 
 #ifdef __cplusplus
 extern "C" {

@@ -33,8 +33,8 @@
 
 #include "../mathutils/mathutils.hh"
 
-#include "../generic/py_capi_utils.h"
-#include "../generic/python_utildefines.h"
+#include "../generic/py_capi_utils.hh"
+#include "../generic/python_utildefines.hh"
 
 #include "bmesh_py_types.h" /* own include */
 #include "bmesh_py_types_customdata.h"

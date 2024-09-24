@@ -18,11 +18,11 @@
 
 #include "WM_types.hh"
 
-#include "bpy_capi_utils.h"
+#include "bpy_capi_utils.hh"
 #include "bpy_rna_gizmo.hh"
 
-#include "../generic/py_capi_utils.h"
-#include "../generic/python_compat.h"
+#include "../generic/py_capi_utils.hh"
+#include "../generic/python_compat.hh"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"

@@ -15,7 +15,7 @@
 
 #include <Python.h>
 
-#include "py_capi_rna.h"
+#include "py_capi_rna.hh"
 
 #include "BLI_bitmap.h"
 #include "BLI_dynstr.h"

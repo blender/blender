@@ -14,7 +14,7 @@
 
 #include "bpy_path.hh"
 
-#include "../generic/py_capi_utils.h"
+#include "../generic/py_capi_utils.hh"
 
 /* #include "IMB_imbuf_types.hh" */
 extern const char *imb_ext_image[];

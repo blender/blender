@@ -20,8 +20,8 @@
 #include "bmesh_py_types_customdata.h"
 #include "bmesh_py_types_meshdata.h"
 
-#include "../generic/py_capi_utils.h"
-#include "../generic/python_utildefines.h"
+#include "../generic/py_capi_utils.hh"
+#include "../generic/python_utildefines.hh"
 #include "../mathutils/mathutils.hh"
 
 #include "BKE_customdata.hh"

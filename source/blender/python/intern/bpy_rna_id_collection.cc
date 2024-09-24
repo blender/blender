@@ -30,9 +30,9 @@
 
 #include "bpy_rna_id_collection.hh"
 
-#include "../generic/py_capi_rna.h"
-#include "../generic/py_capi_utils.h"
-#include "../generic/python_compat.h"
+#include "../generic/py_capi_rna.hh"
+#include "../generic/py_capi_utils.hh"
+#include "../generic/python_compat.hh"
 
 #include "RNA_enum_types.hh"
 

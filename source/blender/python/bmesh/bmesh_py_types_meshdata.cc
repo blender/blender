@@ -35,8 +35,8 @@
 #include "bmesh.hh"
 #include "bmesh_py_types_meshdata.h"
 
-#include "../generic/py_capi_utils.h"
-#include "../generic/python_utildefines.h"
+#include "../generic/py_capi_utils.hh"
+#include "../generic/python_utildefines.hh"
 
 /* Mesh Loop UV
  * ************ */

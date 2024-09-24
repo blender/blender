@@ -46,13 +46,13 @@
 #include "bpy_utils_previews.hh"
 #include "bpy_utils_units.hh"
 
-#include "../generic/py_capi_utils.h"
-#include "../generic/python_compat.h"
-#include "../generic/python_utildefines.h"
+#include "../generic/py_capi_utils.hh"
+#include "../generic/python_compat.hh"
+#include "../generic/python_utildefines.hh"
 
 /* external util modules */
-#include "../generic/idprop_py_api.h"
-#include "../generic/idprop_py_ui_api.h"
+#include "../generic/idprop_py_api.hh"
+#include "../generic/idprop_py_ui_api.hh"
 #include "bpy_msgbus.hh"
 
 #ifdef WITH_FREESTYLE

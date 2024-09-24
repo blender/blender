@@ -9,12 +9,4 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-PyMODINIT_FUNC BPyInit_bl_math(void);
-
-#ifdef __cplusplus
-}
-#endif
+PyMODINIT_FUNC BPyInit_bl_math();

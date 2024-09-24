@@ -18,7 +18,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
-#include "../generic/py_capi_utils.h"
+#include "../generic/py_capi_utils.hh"
 
 #ifndef MATH_STANDALONE
 #  include "BLI_dynstr.h"

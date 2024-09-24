@@ -12,7 +12,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "../generic/py_capi_utils.h"
+#include "../generic/py_capi_utils.hh"
 
 #include "UI_interface.hh"
 

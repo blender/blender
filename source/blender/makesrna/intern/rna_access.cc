@@ -6707,7 +6707,7 @@ bool RNA_property_assign_default(PointerRNA *ptr, PropertyRNA *prop)
 }
 
 #ifdef WITH_PYTHON
-extern "C" void PyC_LineSpit(void);
+extern void PyC_LineSpit(void);
 #endif
 
 void _RNA_warning(const char *format, ...)

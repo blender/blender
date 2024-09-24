@@ -21,7 +21,7 @@
 
 #include "BPY_extern_run.h"
 
-#include "bpy_capi_utils.h"
+#include "bpy_capi_utils.hh"
 
 namespace Freestyle {
 

@@ -11,8 +11,8 @@
 
 #include <Python.h>
 
-#include "../generic/py_capi_rna.h"
-#include "../generic/python_utildefines.h"
+#include "../generic/py_capi_rna.hh"
+#include "../generic/python_utildefines.hh"
 
 #include "DNA_space_types.h"
 
@@ -28,7 +28,7 @@
 
 #include "BPY_extern.h" /* For public API. */
 
-#include "bpy_capi_utils.h"
+#include "bpy_capi_utils.hh"
 #include "bpy_rna.hh"
 #include "bpy_rna_callback.hh" /* Own include. */
 

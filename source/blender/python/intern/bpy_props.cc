@@ -23,7 +23,7 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
-#include "bpy_capi_utils.h"
+#include "bpy_capi_utils.hh"
 #include "bpy_props.hh"
 #include "bpy_rna.hh"
 
@@ -36,9 +36,9 @@
 
 #include "DNA_ID.h" /* MAX_IDPROP_NAME */
 
-#include "../generic/py_capi_rna.h"
-#include "../generic/py_capi_utils.h"
-#include "../generic/python_compat.h"
+#include "../generic/py_capi_rna.hh"
+#include "../generic/py_capi_utils.hh"
+#include "../generic/python_compat.hh"
 
 using blender::Array;
 

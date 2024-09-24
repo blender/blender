@@ -13,7 +13,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "idprop_py_ui_api.h"
+#include "idprop_py_ui_api.hh"
 
 #include "BKE_idprop.hh"
 
@@ -25,11 +25,11 @@
 #define USE_STRING_COERCE
 
 #ifdef USE_STRING_COERCE
-#  include "py_capi_utils.h"
+#  include "py_capi_utils.hh"
 #endif
-#include "py_capi_rna.h"
+#include "py_capi_rna.hh"
 
-#include "python_utildefines.h"
+#include "python_utildefines.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name UI Data Update

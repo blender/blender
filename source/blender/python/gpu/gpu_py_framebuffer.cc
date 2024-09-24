@@ -18,9 +18,9 @@
 #include "GPU_framebuffer.hh"
 #include "GPU_init_exit.hh"
 
-#include "../generic/py_capi_utils.h"
-#include "../generic/python_compat.h"
-#include "../generic/python_utildefines.h"
+#include "../generic/py_capi_utils.hh"
+#include "../generic/python_compat.hh"
+#include "../generic/python_utildefines.hh"
 
 #include "../mathutils/mathutils.hh"
 

@@ -26,8 +26,8 @@
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
-#include "../generic/py_capi_utils.h"
-#include "../generic/python_utildefines.h"
+#include "../generic/py_capi_utils.hh"
+#include "../generic/python_utildefines.hh"
 
 /*-------------------------DOC STRINGS ---------------------------*/
 PyDoc_STRVAR(

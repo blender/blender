@@ -8,14 +8,6 @@
  * \ingroup pygen
  */
 
-#include <Python.h>
+PyObject *BPyInit_imbuf();
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-PyObject *BPyInit_blf(void);
-
-#ifdef __cplusplus
-}
-#endif
+extern PyTypeObject Py_ImBuf_Type;

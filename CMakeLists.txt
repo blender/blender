@@ -1334,7 +1334,7 @@ endif()
 # Check if Sub-modules are Cloned
 
 if(WITH_PYTHON)
-  # While we have this as an '#error' in 'bpy_capi_utils.h',
+  # While we have this as an '#error' in 'bpy_capi_utils.hh',
   # upgrading Python tends to cause confusion for users who build.
   # Give the error message early to make this more obvious.
   #

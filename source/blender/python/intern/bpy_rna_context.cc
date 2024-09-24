@@ -23,7 +23,7 @@
 
 #include "bpy_rna_context.hh"
 
-#include "../generic/python_compat.h"
+#include "../generic/python_compat.hh"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"

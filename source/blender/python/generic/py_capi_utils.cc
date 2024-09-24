@@ -21,9 +21,9 @@
 
 #include "BLI_utildefines.h" /* for bool */
 
-#include "py_capi_utils.h"
+#include "py_capi_utils.hh"
 
-#include "python_utildefines.h"
+#include "python_utildefines.hh"
 
 #ifndef MATH_STANDALONE
 #  include "MEM_guardedalloc.h"

@@ -26,11 +26,11 @@
 
 #include "BPY_extern_run.h"
 
-#include "bpy_capi_utils.h"
+#include "bpy_capi_utils.hh"
 #include "bpy_intern_string.hh"
 #include "bpy_traceback.hh"
 
-#include "../generic/py_capi_utils.h"
+#include "../generic/py_capi_utils.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Private Utilities

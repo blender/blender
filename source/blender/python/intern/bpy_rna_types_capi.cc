@@ -33,7 +33,7 @@
 
 #include "bpy_rna_operator.hh"
 
-#include "../generic/py_capi_utils.h"
+#include "../generic/py_capi_utils.hh"
 
 #include "RNA_prototypes.hh"
 

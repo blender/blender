@@ -21,7 +21,7 @@
 
 #include "DNA_texture_types.h"
 
-#include "../generic/py_capi_utils.h"
+#include "../generic/py_capi_utils.hh"
 
 #include "mathutils.hh"
 #include "mathutils_noise.hh"

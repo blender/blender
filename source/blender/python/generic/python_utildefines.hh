@@ -5,14 +5,10 @@
 /** \file
  * \ingroup pygen
  * \brief header-only utilities
- * \note light addition to Python.h, use py_capi_utils.h for larger features.
+ * \note light addition to Python.h, use py_capi_utils.hh for larger features.
  */
 
 #pragma once
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #define PyTuple_SET_ITEMS(op_arg, ...) \
   { \
@@ -44,7 +40,3 @@ Py_LOCAL_INLINE(int) PyList_APPEND(PyObject *op, PyObject *v)
   Py_DecRef(v);
   return ret;
 }
-
-#ifdef __cplusplus
-}
-#endif

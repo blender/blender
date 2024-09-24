@@ -10,7 +10,7 @@
 
 #include "RE_engine.h"
 
-#include "../generic/py_capi_utils.h"
+#include "../generic/py_capi_utils.hh"
 #include "bpy_rna.hh"
 
 #include "BKE_context.hh"

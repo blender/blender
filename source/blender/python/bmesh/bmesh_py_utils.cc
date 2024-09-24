@@ -22,8 +22,8 @@
 #include "bmesh_py_types.h"
 #include "bmesh_py_utils.h" /* own include */
 
-#include "../generic/py_capi_utils.h"
-#include "../generic/python_utildefines.h"
+#include "../generic/py_capi_utils.hh"
+#include "../generic/python_utildefines.hh"
 
 PyDoc_STRVAR(
     /* Wrap. */

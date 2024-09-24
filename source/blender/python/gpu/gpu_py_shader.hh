@@ -9,7 +9,7 @@
 #pragma once
 
 #ifndef __cplusplus
-#  include "../generic/py_capi_utils.h"
+#  include "../generic/py_capi_utils.hh"
 #endif
 
 struct GPUShaderCreateInfo;

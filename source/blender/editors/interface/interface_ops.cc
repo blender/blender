@@ -2056,9 +2056,7 @@ static bool ui_editsource_uibut_match(uiBut *but_a, uiBut *but_b)
   return false;
 }
 
-extern "C" {
-void PyC_FileAndNum_Safe(const char **r_filename, int *r_lineno);
-}
+extern void PyC_FileAndNum_Safe(const char **r_filename, int *r_lineno);
 
 void UI_editsource_active_but_test(uiBut *but)
 {

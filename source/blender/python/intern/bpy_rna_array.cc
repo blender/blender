@@ -24,7 +24,7 @@
 
 #include "BPY_extern_clog.h"
 
-#include "../generic/py_capi_utils.h"
+#include "../generic/py_capi_utils.hh"
 
 #define USE_MATHUTILS
 

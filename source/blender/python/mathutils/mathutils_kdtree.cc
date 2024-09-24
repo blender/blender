@@ -16,8 +16,8 @@
 #include "BLI_kdtree.h"
 #include "BLI_utildefines.h"
 
-#include "../generic/py_capi_utils.h"
-#include "../generic/python_utildefines.h"
+#include "../generic/py_capi_utils.hh"
+#include "../generic/python_utildefines.hh"
 
 #include "mathutils.hh"
 #include "mathutils_kdtree.hh" /* own include */

@@ -26,7 +26,7 @@
 
 #include "RNA_types.hh"
 
-#include "../generic/python_utildefines.h"
+#include "../generic/python_utildefines.hh"
 
 #ifdef WITH_INTERNATIONAL
 #  include "BLI_ghash.h"

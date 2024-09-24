@@ -12,7 +12,7 @@
 
 #include "bpy_app_timers.hh"
 
-#include "../generic/python_compat.h"
+#include "../generic/python_compat.hh"
 
 static double handle_returned_value(PyObject *function, PyObject *ret)
 {

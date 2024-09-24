@@ -28,7 +28,7 @@
 
 #include "DNA_mesh_types.h"
 
-#include "../generic/py_capi_utils.h"
+#include "../generic/py_capi_utils.hh"
 
 #include "bmesh_py_api.h" /* own include */
 

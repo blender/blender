@@ -6,17 +6,14 @@
  * \ingroup pygen
  */
 
-/* Use a define instead of `#pragma once` because of `bmesh_py_types.h` */
-#ifndef __PY_CAPI_UTILS_H__
-#define __PY_CAPI_UTILS_H__
+#pragma once
+
+#include <string>
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_span.hh"
 #include "BLI_sys_types.h"
 #include "BLI_utildefines_variadic.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /** Useful to print Python objects while debugging. */
 void PyC_ObSpit(const char *name, PyObject *var);
@@ -25,8 +22,8 @@ void PyC_ObSpit(const char *name, PyObject *var);
  * Use for logging.
  */
 void PyC_ObSpitStr(char *result, size_t result_maxncpy, PyObject *var);
-void PyC_LineSpit(void);
-void PyC_StackSpit(void);
+void PyC_LineSpit();
+void PyC_StackSpit();
 
 /**
  * Return a string containing the full stack trace.
@@ -37,14 +34,14 @@ void PyC_StackSpit(void);
  * - `SystemExit` exceptions will exit (so `sys.exit(..)` works, matching `PyErr_Print` behavior).
  * - The always returns a Python string (unless exiting where the function doesn't return).
  */
-PyObject *PyC_ExceptionBuffer(void) ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
+PyObject *PyC_ExceptionBuffer() ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
 /**
  * A version of #PyC_ExceptionBuffer that returns the last exception only.
  *
  * Useful for error messages from evaluating numeric expressions for e.g.
  * where a full multi-line stack-trace isn't needed and doesn't format well in the status-bar.
  */
-PyObject *PyC_ExceptionBuffer_Simple(void) ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
+PyObject *PyC_ExceptionBuffer_Simple() ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
 
 PyObject *PyC_Object_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...);
 PyObject *PyC_FrozenSetFromStrings(const char **strings);
@@ -145,11 +142,11 @@ const char *PyC_UnicodeAsBytesAndSize(PyObject *py_str, Py_ssize_t *r_size, PyOb
  * - Always `Py_XDECREF(value_coerce)` before returning,
  *   after this `value` must not be accessed.
  */
-typedef struct PyC_UnicodeAsBytesAndSize_Data {
+struct PyC_UnicodeAsBytesAndSize_Data {
   PyObject *value_coerce;
   const char *value;
   Py_ssize_t value_len;
-} PyC_UnicodeAsBytesAndSize_Data;
+};
 
 /**
  * Use with PyArg_ParseTuple's "O&" formatting.
@@ -195,7 +192,7 @@ bool PyC_NameSpace_ImportArray(PyObject *py_dict, const char *imports[]);
 PyObject *PyC_MainModule_Backup() ATTR_WARN_UNUSED_RESULT;
 void PyC_MainModule_Restore(PyObject *main_mod);
 
-bool PyC_IsInterpreterActive(void);
+bool PyC_IsInterpreterActive();
 
 /**
  * Generic function to avoid depending on RNA.
@@ -203,10 +200,10 @@ bool PyC_IsInterpreterActive(void);
 void *PyC_RNA_AsPointer(PyObject *value, const char *type_name);
 
 /* flag / set --- interchange */
-typedef struct PyC_FlagSet {
+struct PyC_FlagSet {
   int value;
   const char *identifier;
-} PyC_FlagSet;
+};
 
 PyObject *PyC_FlagSet_AsString(const PyC_FlagSet *item);
 int PyC_FlagSet_ValueFromID_int(const PyC_FlagSet *item, const char *identifier, int *r_value);
@@ -356,15 +353,6 @@ bool PyC_StructFmt_type_is_int_any(char format);
 bool PyC_StructFmt_type_is_byte(char format);
 bool PyC_StructFmt_type_is_bool(char format);
 
-#ifdef __cplusplus
-}
-#endif
-
-#ifdef __cplusplus
-#  include "BLI_span.hh"
-
-#  include <string>
-
 /**
  * Create a `str` from `std::string`, wraps #PyC_UnicodeFromBytesAndSize.
  */
@@ -390,20 +378,3 @@ inline PyObject *PyC_Tuple_Pack_Bool(const blender::Span<bool> values)
 {
   return PyC_Tuple_PackArray_Bool(values.data(), values.size());
 }
-
-#else
-
-#  define PyC_Tuple_Pack_F32(...) \
-    PyC_Tuple_PackArray_F32(((const float[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
-#  define PyC_Tuple_Pack_F64(...) \
-    PyC_Tuple_PackArray_F64(((const double[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
-#  define PyC_Tuple_Pack_I32(...) \
-    PyC_Tuple_PackArray_I32(((const int[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
-#  define PyC_Tuple_Pack_I32FromBool(...) \
-    PyC_Tuple_PackArray_I32FromBool(((const int[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
-#  define PyC_Tuple_Pack_Bool(...) \
-    PyC_Tuple_PackArray_Bool(((const bool[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
-
-#endif
-
-#endif /* __PY_CAPI_UTILS_H__ */

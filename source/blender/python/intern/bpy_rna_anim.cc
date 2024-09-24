@@ -41,12 +41,12 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "bpy_capi_utils.h"
+#include "bpy_capi_utils.hh"
 #include "bpy_rna.hh"
 #include "bpy_rna_anim.hh"
 
-#include "../generic/py_capi_rna.h"
-#include "../generic/python_utildefines.h"
+#include "../generic/py_capi_rna.hh"
+#include "../generic/python_utildefines.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"

@@ -22,7 +22,7 @@
 #include "GPU_context.hh"
 #include "GPU_state.hh"
 
-#include "py_capi_utils.h"
+#include "py_capi_utils.hh"
 
 #include "BKE_global.hh"
 

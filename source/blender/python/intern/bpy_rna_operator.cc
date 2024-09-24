@@ -14,10 +14,10 @@
 
 #include "BKE_context.hh"
 
-#include "../generic/python_utildefines.h"
+#include "../generic/python_utildefines.hh"
 
 #include "BPY_extern.h"
-#include "bpy_capi_utils.h"
+#include "bpy_capi_utils.hh"
 
 #include "bpy_rna_operator.hh" /* Own include, #BPY_rna_operator_poll_message_set_method_def. */
 

@@ -11,15 +11,15 @@
 
 #include "BLI_utildefines.h"
 
-#include "bpy_capi_utils.h"
+#include "bpy_capi_utils.hh"
 
 #include "MEM_guardedalloc.h"
 
 #include "BKE_blender_cli_command.hh"
 
-#include "../generic/py_capi_utils.h"
-#include "../generic/python_compat.h"
-#include "../generic/python_utildefines.h"
+#include "../generic/py_capi_utils.hh"
+#include "../generic/python_compat.hh"
+#include "../generic/python_utildefines.hh"
 
 #include "bpy_cli_command.hh" /* Own include. */
 

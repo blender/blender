@@ -18,7 +18,7 @@
 
 #include "BKE_text.h"
 
-#include "../generic/python_compat.h"
+#include "../generic/python_compat.hh"
 
 #include "bpy_rna.hh"
 #include "bpy_rna_text.hh" /* Declare #BPY_rna_region_as_string_method_def. */

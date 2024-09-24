@@ -14,8 +14,8 @@
 
 #include "BLI_utildefines.h"
 
-#include "idprop_py_api.h"
-#include "idprop_py_ui_api.h"
+#include "idprop_py_api.hh"
+#include "idprop_py_ui_api.hh"
 
 #include "BKE_idprop.hh"
 
@@ -24,10 +24,10 @@
 #define USE_STRING_COERCE
 
 #ifdef USE_STRING_COERCE
-#  include "py_capi_utils.h"
+#  include "py_capi_utils.hh"
 #endif
 
-#include "python_utildefines.h"
+#include "python_utildefines.hh"
 
 extern bool pyrna_id_FromPyObject(PyObject *obj, ID **id);
 extern PyObject *pyrna_id_CreatePyObject(ID *id);

@@ -16,8 +16,8 @@
 #include <Python.h>
 #include <cstddef>
 
-#include "../generic/py_capi_utils.h"
-#include "../generic/python_compat.h"
+#include "../generic/py_capi_utils.hh"
+#include "../generic/python_compat.hh"
 
 #include "BLI_string.h"
 #include "BLI_utildefines.h"

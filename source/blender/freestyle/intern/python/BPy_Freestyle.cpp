@@ -40,7 +40,7 @@
 #include "RNA_prototypes.hh"
 #include "bpy_rna.hh" /* pyrna_struct_CreatePyObject() */
 
-#include "../generic/py_capi_utils.h" /* #PyC_UnicodeFromBytes */
+#include "../generic/py_capi_utils.hh" /* #PyC_UnicodeFromBytes */
 
 #include "BKE_colorband.hh"  /* BKE_colorband_evaluate() */
 #include "BKE_colortools.hh" /* BKE_curvemapping_evaluateF() */

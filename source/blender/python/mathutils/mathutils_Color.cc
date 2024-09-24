@@ -14,8 +14,8 @@
 
 #include "BLI_utildefines.h"
 
-#include "../generic/py_capi_utils.h"
-#include "../generic/python_utildefines.h"
+#include "../generic/py_capi_utils.hh"
+#include "../generic/python_utildefines.hh"
 
 #ifndef MATH_STANDALONE
 #  include "IMB_colormanagement.hh"

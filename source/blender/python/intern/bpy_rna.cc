@@ -30,7 +30,7 @@
 #include "BPY_extern.h"
 #include "BPY_extern_clog.h"
 
-#include "bpy_capi_utils.h"
+#include "bpy_capi_utils.hh"
 #include "bpy_intern_string.hh"
 #include "bpy_props.hh"
 #include "bpy_rna.hh"
@@ -62,12 +62,12 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "../generic/idprop_py_api.h" /* For IDprop lookups. */
-#include "../generic/idprop_py_ui_api.h"
-#include "../generic/py_capi_rna.h"
-#include "../generic/py_capi_utils.h"
-#include "../generic/python_compat.h"
-#include "../generic/python_utildefines.h"
+#include "../generic/idprop_py_api.hh" /* For IDprop lookups. */
+#include "../generic/idprop_py_ui_api.hh"
+#include "../generic/py_capi_rna.hh"
+#include "../generic/py_capi_utils.hh"
+#include "../generic/python_compat.hh"
+#include "../generic/python_utildefines.hh"
 
 #define USE_PEDANTIC_WRITE
 #define USE_MATHUTILS

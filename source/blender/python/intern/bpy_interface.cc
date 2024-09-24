@@ -34,7 +34,7 @@
 #include "RNA_types.hh"
 
 #include "bpy.hh"
-#include "bpy_capi_utils.h"
+#include "bpy_capi_utils.hh"
 #include "bpy_intern_string.hh"
 #include "bpy_path.hh"
 #include "bpy_props.hh"
@@ -59,15 +59,15 @@
 #include "BPY_extern_python.h"
 #include "BPY_extern_run.h"
 
-#include "../generic/py_capi_utils.h"
+#include "../generic/py_capi_utils.hh"
 
 /* `inittab` initialization functions. */
 #include "../bmesh/bmesh_py_api.h"
 #include "../generic/bgl.h"
-#include "../generic/bl_math_py_api.h"
-#include "../generic/blf_py_api.h"
-#include "../generic/idprop_py_api.h"
-#include "../generic/imbuf_py_api.h"
+#include "../generic/bl_math_py_api.hh"
+#include "../generic/blf_py_api.hh"
+#include "../generic/idprop_py_api.hh"
+#include "../generic/imbuf_py_api.hh"
 #include "../gpu/gpu_py_api.hh"
 #include "../mathutils/mathutils.hh"
 

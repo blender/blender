@@ -54,10 +54,10 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "../generic/py_capi_rna.h"
-#include "../generic/py_capi_utils.h"
-#include "../generic/python_compat.h"
-#include "../generic/python_utildefines.h"
+#include "../generic/py_capi_rna.hh"
+#include "../generic/py_capi_utils.hh"
+#include "../generic/python_compat.hh"
+#include "../generic/python_utildefines.hh"
 
 #ifdef BUILD_DATE
 extern "C" char build_date[];

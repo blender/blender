@@ -20,7 +20,7 @@
 #include "bpy_app_handlers.hh"
 #include "bpy_rna.hh"
 
-#include "../generic/python_utildefines.h"
+#include "../generic/python_utildefines.hh"
 
 #include "BPY_extern.h"
 

@@ -11,7 +11,7 @@
 
 #include "bpy_app_oiio.hh"
 
-#include "../generic/py_capi_utils.h"
+#include "../generic/py_capi_utils.hh"
 
 #include "openimageio_api.h"
 
