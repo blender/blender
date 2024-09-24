@@ -44,7 +44,7 @@
 
 #  include "bmesh.hh"
 
-#  include "../bmesh/bmesh_py_types.h"
+#  include "../bmesh/bmesh_py_types.hh"
 #endif /* MATH_STANDALONE */
 
 #include "BLI_strict_flags.h" /* Keep last. */

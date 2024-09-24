@@ -33,7 +33,7 @@
 #include "BKE_deform.hh"
 
 #include "bmesh.hh"
-#include "bmesh_py_types_meshdata.h"
+#include "bmesh_py_types_meshdata.hh"
 
 #include "../generic/py_capi_utils.hh"
 #include "../generic/python_utildefines.hh"

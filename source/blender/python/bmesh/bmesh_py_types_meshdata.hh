@@ -8,19 +8,15 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 extern PyTypeObject BPy_BMLoopUV_Type;
 extern PyTypeObject BPy_BMDeformVert_Type;
 
 #define BPy_BMLoopUV_Check(v) (Py_TYPE(v) == &BPy_BMLoopUV_Type)
 
-typedef struct BPy_BMGenericMeshData {
+struct BPy_BMGenericMeshData {
   PyObject_VAR_HEAD
   void *data;
-} BPy_BMGenericMeshData;
+};
 
 struct MDeformVert;
 struct MLoopCol;
@@ -40,8 +36,4 @@ int BPy_BMDeformVert_AssignPyObject(struct MDeformVert *dvert, PyObject *value);
 PyObject *BPy_BMDeformVert_CreatePyObject(struct MDeformVert *dvert);
 
 /* call to init all types */
-void BPy_BM_init_types_meshdata(void);
-
-#ifdef __cplusplus
-}
-#endif
+void BPy_BM_init_types_meshdata();

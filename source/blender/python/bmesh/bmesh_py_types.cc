@@ -36,10 +36,10 @@
 #include "../generic/py_capi_utils.hh"
 #include "../generic/python_utildefines.hh"
 
-#include "bmesh_py_types.h" /* own include */
-#include "bmesh_py_types_customdata.h"
-#include "bmesh_py_types_meshdata.h"
-#include "bmesh_py_types_select.h"
+#include "bmesh_py_types.hh" /* own include */
+#include "bmesh_py_types_customdata.hh"
+#include "bmesh_py_types_meshdata.hh"
+#include "bmesh_py_types_select.hh"
 
 static void bm_dealloc_editmode_warn(BPy_BMesh *self);
 

@@ -62,7 +62,7 @@
 #include "../generic/py_capi_utils.hh"
 
 /* `inittab` initialization functions. */
-#include "../bmesh/bmesh_py_api.h"
+#include "../bmesh/bmesh_py_api.hh"
 #include "../generic/bgl.h"
 #include "../generic/bl_math_py_api.hh"
 #include "../generic/blf_py_api.hh"

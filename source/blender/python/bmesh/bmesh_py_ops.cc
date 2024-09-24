@@ -18,8 +18,8 @@
 
 #include "bmesh.hh"
 
-#include "bmesh_py_ops.h" /* own include */
-#include "bmesh_py_ops_call.h"
+#include "bmesh_py_ops.hh" /* own include */
+#include "bmesh_py_ops_call.hh"
 
 /* bmesh operator 'bmesh.ops.*' callable types
  * ******************************************* */
