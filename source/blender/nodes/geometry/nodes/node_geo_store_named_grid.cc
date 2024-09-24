@@ -21,7 +21,7 @@ namespace blender::nodes::node_geo_store_named_grid_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Volume");
-  b.add_input<decl::String>("Name");
+  b.add_input<decl::String>("Name").hide_label();
   b.add_output<decl::Geometry>("Volume");
 
   const bNode *node = b.node_or_null();

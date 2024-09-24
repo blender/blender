@@ -33,7 +33,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
   b.add_input<decl::Geometry>("Geometry");
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
-  b.add_input<decl::String>("Name").is_attribute_name();
+  b.add_input<decl::String>("Name").is_attribute_name().hide_label();
 
   if (node != nullptr) {
     const NodeGeometryStoreNamedAttribute &storage = node_storage(*node);

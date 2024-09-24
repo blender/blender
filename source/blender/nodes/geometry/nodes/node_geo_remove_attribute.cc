@@ -21,7 +21,7 @@ enum class PatternMode {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::String>("Name").is_attribute_name();
+  b.add_input<decl::String>("Name").is_attribute_name().hide_label();
   b.add_output<decl::Geometry>("Geometry").propagate_all();
 }
 
