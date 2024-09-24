@@ -15,7 +15,7 @@
 
 #include "BKE_bvhutils.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_editmesh_bvh.h"
+#include "BKE_editmesh_bvh.hh"
 #include "BKE_editmesh_cache.hh"
 
 #include "extract_mesh.hh"
