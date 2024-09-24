@@ -332,8 +332,10 @@ static eFieldStateSyncResult repeat_field_state_sync(
     const MutableSpan<SocketFieldState> field_state_by_socket_id)
 {
   eFieldStateSyncResult res = eFieldStateSyncResult::NONE;
-  for (const int i : output_node.output_sockets().index_range()) {
-    const bNodeSocket &input_socket = input_node.output_socket(i);
+  const NodeGeometryRepeatOutput &storage = *static_cast<const NodeGeometryRepeatOutput *>(
+      output_node.storage);
+  for (const int i : IndexRange(storage.items_num)) {
+    const bNodeSocket &input_socket = input_node.output_socket(i + 1);
     const bNodeSocket &output_socket = output_node.output_socket(i);
     SocketFieldState &input_state = field_state_by_socket_id[input_socket.index_in_tree()];
     SocketFieldState &output_state = field_state_by_socket_id[output_socket.index_in_tree()];

@@ -137,10 +137,12 @@ static const aal::RelationsInNode &get_relations_in_node(const bNode &node, Reso
         }
       }
     }
-    const int items_num = node.output_sockets().size() - 1;
+    const int input_items_start = (node.type == GEO_NODE_REPEAT_INPUT) ? 1 : 0;
+    const int output_items_start = (node.type == GEO_NODE_REPEAT_INPUT) ? 1 : 0;
+    const int items_num = node.output_sockets().size() - 1 - output_items_start;
     for (const int i : IndexRange(items_num)) {
-      const int input_index = (node.type == GEO_NODE_REPEAT_INPUT) ? i + 1 : i;
-      const int output_index = i;
+      const int input_index = input_items_start + i;
+      const int output_index = output_items_start + i;
       const bNodeSocket &input_socket = node.input_socket(input_index);
       if (input_socket.type == SOCK_GEOMETRY) {
         relations.propagate_relations.append({input_index, output_index});
@@ -537,7 +539,7 @@ static AnonymousAttributeInferencingResult analyze_anonymous_attribute_usages(
         input_propagated_geometries |= propagated_geometries_by_socket[src];
       }
       for (const int i : IndexRange(storage.items_num)) {
-        const bNodeSocket &body_input_socket = zone->input_node->output_socket(i);
+        const bNodeSocket &body_input_socket = zone->input_node->output_socket(i + 1);
         const bNodeSocket &body_output_socket = zone->output_node->input_socket(i);
         const int in_index = body_input_socket.index_in_tree();
         const int out_index = body_output_socket.index_in_tree();
@@ -699,7 +701,7 @@ static AnonymousAttributeInferencingResult analyze_anonymous_attribute_usages(
       const auto &storage = *static_cast<const NodeGeometryRepeatOutput *>(
           zone->output_node->storage);
       for (const int i : IndexRange(storage.items_num)) {
-        const bNodeSocket &body_input_socket = zone->input_node->output_socket(i);
+        const bNodeSocket &body_input_socket = zone->input_node->output_socket(i + 1);
         const bNodeSocket &body_output_socket = zone->output_node->input_socket(i);
         const int in_index = body_input_socket.index_in_tree();
         const int out_index = body_output_socket.index_in_tree();
