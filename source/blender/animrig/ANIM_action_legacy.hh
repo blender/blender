@@ -35,11 +35,6 @@ ChannelBag *channelbag_get(Action &action);
 ChannelBag &channelbag_ensure(Action &action);
 
 /**
- * Return whether this Action has any F-Curves.
- */
-bool action_has_fcurves(const bAction &action);
-
-/**
  * Return all F-Curves in the Action.
  *
  * This works for both legacy and layered Actions. For the latter, it will
