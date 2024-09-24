@@ -947,7 +947,11 @@ static int delete_key_v3d_without_keying_set(bContext *C, wmOperator *op)
         }
       }
 
-      DEG_id_tag_update(&ob->adt->action->id, ID_RECALC_ANIMATION_NO_FLUSH);
+      if (ob->adt->action) {
+        /* The Action might have been unassigned, if it is legacy and the last
+         * F-Curve was removed. */
+        DEG_id_tag_update(&ob->adt->action->id, ID_RECALC_ANIMATION_NO_FLUSH);
+      }
     }
 
     /* Only for reporting. */
