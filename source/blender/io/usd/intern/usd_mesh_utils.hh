@@ -5,14 +5,12 @@
 #include <pxr/usd/usdGeom/primvar.h>
 
 struct Mesh;
-struct ReportList;
 
 namespace blender::io::usd {
 
-void read_color_data_primvar(Mesh *mesh,
-                             const pxr::UsdGeomPrimvar &color_primvar,
-                             double motion_sample_time,
-                             ReportList *reports,
-                             bool is_left_handed);
+void read_generic_mesh_primvar(Mesh *mesh,
+                               const pxr::UsdGeomPrimvar &primvar,
+                               double motionSampleTime,
+                               bool is_left_handed);
 
 }  // namespace blender::io::usd

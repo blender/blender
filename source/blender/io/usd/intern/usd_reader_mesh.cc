@@ -51,8 +51,6 @@ namespace usdtokens {
 /* Materials */
 static const pxr::TfToken st("st", pxr::TfToken::Immortal);
 static const pxr::TfToken UVMap("UVMap", pxr::TfToken::Immortal);
-static const pxr::TfToken Cd("Cd", pxr::TfToken::Immortal);
-static const pxr::TfToken displayColor("displayColor", pxr::TfToken::Immortal);
 static const pxr::TfToken normalsPrimvar("normals", pxr::TfToken::Immortal);
 }  // namespace usdtokens
 
@@ -159,31 +157,6 @@ USDMeshReader::USDMeshReader(const pxr::UsdPrim &prim,
       is_time_varying_(false),
       is_initial_load_(false)
 {
-}
-
-static std::optional<bke::AttrDomain> convert_usd_varying_to_blender(const pxr::TfToken usd_domain)
-{
-  static const blender::Map<pxr::TfToken, bke::AttrDomain> domain_map = []() {
-    blender::Map<pxr::TfToken, bke::AttrDomain> map;
-    map.add_new(pxr::UsdGeomTokens->faceVarying, bke::AttrDomain::Corner);
-    map.add_new(pxr::UsdGeomTokens->vertex, bke::AttrDomain::Point);
-    map.add_new(pxr::UsdGeomTokens->varying, bke::AttrDomain::Point);
-    map.add_new(pxr::UsdGeomTokens->face, bke::AttrDomain::Face);
-    /* As there's no "constant" type in Blender, for now we're
-     * translating into a point Attribute. */
-    map.add_new(pxr::UsdGeomTokens->constant, bke::AttrDomain::Point);
-    map.add_new(pxr::UsdGeomTokens->uniform, bke::AttrDomain::Face);
-    /* Notice: Edge types are not supported! */
-    return map;
-  }();
-
-  const bke::AttrDomain *value = domain_map.lookup_ptr(usd_domain);
-
-  if (value == nullptr) {
-    return std::nullopt;
-  }
-
-  return *value;
 }
 
 void USDMeshReader::create_object(Main *bmain, const double /*motionSampleTime*/)
@@ -378,36 +351,6 @@ void USDMeshReader::read_uv_data_primvar(Mesh *mesh,
   }
 
   uv_data.finish();
-}
-
-void USDMeshReader::read_generic_data_primvar(Mesh *mesh,
-                                              const pxr::UsdGeomPrimvar &primvar,
-                                              const double motionSampleTime)
-{
-  const pxr::SdfValueTypeName pv_type = primvar.GetTypeName();
-  const pxr::TfToken pv_interp = primvar.GetInterpolation();
-
-  const std::optional<bke::AttrDomain> domain = convert_usd_varying_to_blender(pv_interp);
-  const std::optional<eCustomDataType> type = convert_usd_type_to_blender(pv_type);
-
-  if (!domain.has_value() || !type.has_value()) {
-    const pxr::TfToken pv_name = pxr::UsdGeomPrimvar::StripPrimvarsName(primvar.GetPrimvarName());
-    BKE_reportf(reports(),
-                RPT_WARNING,
-                "Primvar '%s' (interpolation %s, type %s) cannot be converted to Blender",
-                pv_name.GetText(),
-                pv_interp.GetText(),
-                pv_type.GetAsToken().GetText());
-    return;
-  }
-
-  OffsetIndices<int> faces;
-  if (is_left_handed_) {
-    faces = mesh->faces();
-  }
-
-  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
-  copy_primvar_to_blender_attribute(primvar, motionSampleTime, *type, *domain, faces, attributes);
 }
 
 void USDMeshReader::read_vertex_creases(Mesh *mesh, const double motionSampleTime)
@@ -645,7 +588,7 @@ void USDMeshReader::read_custom_data(const ImportSettings *settings,
           active_color_name = name;
         }
 
-        read_color_data_primvar(mesh, pv, motionSampleTime, reports(), is_left_handed_);
+        read_generic_mesh_primvar(mesh, pv, motionSampleTime, is_left_handed_);
       }
     }
 
@@ -663,14 +606,14 @@ void USDMeshReader::read_custom_data(const ImportSettings *settings,
         if (active_uv_set_name.IsEmpty() || name == usdtokens::st) {
           active_uv_set_name = name;
         }
-        read_uv_data_primvar(mesh, pv, motionSampleTime);
+        this->read_uv_data_primvar(mesh, pv, motionSampleTime);
       }
     }
 
     /* Read all other primvars. */
     else {
       if ((settings->read_flag & MOD_MESHSEQ_READ_ATTRIBUTES) != 0) {
-        read_generic_data_primvar(mesh, pv, motionSampleTime);
+        read_generic_mesh_primvar(mesh, pv, motionSampleTime, is_left_handed_);
       }
     }
 

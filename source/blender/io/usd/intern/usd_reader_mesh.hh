@@ -97,9 +97,6 @@ class USDMeshReader : public USDGeomReader {
   void read_uv_data_primvar(Mesh *mesh,
                             const pxr::UsdGeomPrimvar &primvar,
                             const double motionSampleTime);
-  void read_generic_data_primvar(Mesh *mesh,
-                                 const pxr::UsdGeomPrimvar &primvar,
-                                 const double motionSampleTime);
 
   /**
    * Override transform computation to account for the binding

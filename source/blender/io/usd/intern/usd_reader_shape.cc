@@ -28,11 +28,6 @@
 #include <pxr/usdImaging/usdImaging/cylinderAdapter.h>
 #include <pxr/usdImaging/usdImaging/sphereAdapter.h>
 
-namespace usdtokens {
-/* Materials */
-static const pxr::TfToken displayColor("displayColor", pxr::TfToken::Immortal);
-}  // namespace usdtokens
-
 namespace blender::io::usd {
 
 USDShapeReader::USDShapeReader(const pxr::UsdPrim &prim,
@@ -223,13 +218,13 @@ void USDShapeReader::apply_primvars_to_mesh(Mesh *mesh, const double motionSampl
       if (active_color_name.IsEmpty() || name == usdtokens::displayColor) {
         active_color_name = name;
       }
+    }
 
-      read_color_data_primvar(mesh, pv, motionSampleTime, reports(), false);
+    read_generic_mesh_primvar(mesh, pv, motionSampleTime, false);
 
-      /* Record whether the primvar attribute might be time varying. */
-      if (!primvar_time_varying_map_.contains(name)) {
-        primvar_time_varying_map_.add(name, pv.ValueMightBeTimeVarying());
-      }
+    /* Record whether the primvar attribute might be time varying. */
+    if (!primvar_time_varying_map_.contains(name)) {
+      primvar_time_varying_map_.add(name, pv.ValueMightBeTimeVarying());
     }
   }
 

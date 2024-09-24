@@ -17,7 +17,6 @@
 
 #include "BLI_array_utils.hh"
 #include "BLI_assert.h"
-#include "BLI_color.hh"
 #include "BLI_math_vector_types.hh"
 
 #include "BKE_attribute.hh"
@@ -192,15 +191,6 @@ void USDGenericMeshWriter::write_custom_data(const Object *obj,
       }
     }
 
-    /* Color data. */
-    else if (ELEM(meta_data.domain, bke::AttrDomain::Corner, bke::AttrDomain::Point) &&
-             ELEM(meta_data.data_type, CD_PROP_BYTE_COLOR, CD_PROP_COLOR))
-    {
-      if (usd_export_context_.export_params.export_mesh_colors) {
-        this->write_color_data(mesh, usd_mesh, attribute_id, meta_data);
-      }
-    }
-
     else {
       this->write_generic_data(mesh, usd_mesh, attribute_id, meta_data);
     }
@@ -231,10 +221,12 @@ void USDGenericMeshWriter::write_generic_data(const Mesh *mesh,
                                               const StringRef attribute_id,
                                               const bke::AttributeMetaData &meta_data)
 {
-  /* Varying type depends on original domain. */
+  const pxr::TfToken pv_name(
+      make_safe_name(attribute_id, usd_export_context_.export_params.allow_unicode));
+  const bool use_color3f_type = pv_name == usdtokens::displayColor;
   const std::optional<pxr::TfToken> pv_interp = convert_blender_domain_to_usd(meta_data.domain);
   const std::optional<pxr::SdfValueTypeName> pv_type = convert_blender_type_to_usd(
-      meta_data.data_type);
+      meta_data.data_type, use_color3f_type);
 
   if (!pv_interp || !pv_type) {
     BKE_reportf(reports(),
@@ -254,8 +246,6 @@ void USDGenericMeshWriter::write_generic_data(const Mesh *mesh,
   }
 
   const pxr::UsdTimeCode timecode = get_export_time_code();
-  const pxr::TfToken pv_name(
-      make_safe_name(attribute_id, usd_export_context_.export_params.allow_unicode));
   const pxr::UsdGeomPrimvarsAPI pv_api = pxr::UsdGeomPrimvarsAPI(usd_mesh);
 
   pxr::UsdGeomPrimvar pv_attr = pv_api.CreatePrimvar(pv_name, *pv_type, *pv_interp);
@@ -291,41 +281,6 @@ void USDGenericMeshWriter::write_uv_data(const Mesh *mesh,
       pv_name, pxr::SdfValueTypeNames->TexCoord2fArray, pxr::UsdGeomTokens->faceVarying);
 
   copy_blender_buffer_to_primvar<float2, pxr::GfVec2f>(buffer, timecode, pv_uv, usd_value_writer_);
-}
-
-void USDGenericMeshWriter::write_color_data(const Mesh *mesh,
-                                            const pxr::UsdGeomMesh &usd_mesh,
-                                            const StringRef attribute_id,
-                                            const bke::AttributeMetaData &meta_data)
-{
-  const VArray<ColorGeometry4f> buffer = *mesh->attributes().lookup<ColorGeometry4f>(
-      attribute_id, meta_data.domain);
-  if (buffer.is_empty()) {
-    return;
-  }
-
-  const pxr::UsdTimeCode timecode = get_export_time_code();
-  const pxr::TfToken pv_name(
-      make_safe_name(attribute_id, usd_export_context_.export_params.allow_unicode));
-  const pxr::UsdGeomPrimvarsAPI pv_api = pxr::UsdGeomPrimvarsAPI(usd_mesh);
-
-  /* Varying type depends on original domain. */
-  const pxr::TfToken pv_interp = meta_data.domain == bke::AttrDomain::Corner ?
-                                     pxr::UsdGeomTokens->faceVarying :
-                                     pxr::UsdGeomTokens->vertex;
-
-  pxr::UsdGeomPrimvar colors_pv = pv_api.CreatePrimvar(
-      pv_name, pxr::SdfValueTypeNames->Color4fArray, pv_interp);
-
-  switch (meta_data.domain) {
-    case bke::AttrDomain::Corner:
-    case bke::AttrDomain::Point:
-      copy_blender_buffer_to_primvar<ColorGeometry4f, pxr::GfVec4f>(
-          buffer, timecode, colors_pv, usd_value_writer_);
-      break;
-    default:
-      BLI_assert_msg(0, "Invalid type for mesh color data.");
-  }
 }
 
 void USDGenericMeshWriter::free_export_mesh(Mesh *mesh)
