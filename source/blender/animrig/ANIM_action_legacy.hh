@@ -90,11 +90,21 @@ bool assigned_action_has_keyframes(AnimData *adt);
  * Return all Channel Groups in the Action.
  *
  * This works for both legacy and layered Actions. For the latter, it will
- * return all F-Curves for all slots/layers/strips.
+ * return all channel groups for all slots/layers/strips.
  *
- * \see #blender::animrig::legacy::channel_groups_for_action_slot
+ * \see #blender::animrig::legacy::channel_groups_for_assigned_slot
  */
 Vector<bActionGroup *> channel_groups_all(bAction *action);
+
+/**
+ * Return all Channel Groups for the assigned Action Slot.
+ *
+ * This works for both legacy and layered Actions. For the former, this function
+ * acts identical to channel_groups_all().
+ *
+ * \see #blender::animrig::legacy::channel_groups_all
+ */
+Vector<bActionGroup *> channel_groups_for_assigned_slot(AnimData *adt);
 
 /**
  * Determine whether to treat this Action as a legacy Action or not.

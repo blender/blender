@@ -1782,6 +1782,10 @@ static void action_to_animato(
   bActionChannel *achan, *achann;
   bConstraintChannel *conchan, *conchann;
 
+  BLI_assert_msg(
+      act->wrap().is_action_legacy(),
+      "Conversion from pre-2.5 animation data should happen before conversion to layered Actions");
+
   /* only continue if there are Action Channels (indicating unconverted data) */
   if (BLI_listbase_is_empty(&act->chanbase)) {
     return;

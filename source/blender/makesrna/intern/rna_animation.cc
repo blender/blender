@@ -116,6 +116,8 @@ const EnumPropertyItem rna_enum_keying_flag_api_items[] = {
 #  include "BKE_fcurve.hh"
 #  include "BKE_nla.hh"
 
+#  include "ANIM_action_legacy.hh"
+
 #  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"
 
@@ -681,21 +683,15 @@ static void rna_KeyingSet_name_set(PointerRNA *ptr, const char *value)
         AnimData *adt = BKE_animdata_from_id(ksp->id);
 
         /* TODO: NLA strips? */
-        if (adt && adt->action) {
-          bActionGroup *agrp;
-
-          /* lazy check - should really find the F-Curve for the affected path and check its
-           * group but this way should be faster and work well for most cases, as long as there
-           * are no conflicts
-           */
-          for (agrp = static_cast<bActionGroup *>(adt->action->groups.first); agrp;
-               agrp = agrp->next)
-          {
-            if (STREQ(ks->name, agrp->name)) {
-              /* there should only be one of these in the action, so can stop... */
-              STRNCPY(agrp->name, value);
-              break;
-            }
+        /* lazy check - should really find the F-Curve for the affected path and check its
+         * group but this way should be faster and work well for most cases, as long as there
+         * are no conflicts
+         */
+        for (bActionGroup *agrp : animrig::legacy::channel_groups_for_assigned_slot(adt)) {
+          if (STREQ(ks->name, agrp->name)) {
+            /* there should only be one of these in the action, so can stop... */
+            STRNCPY(agrp->name, value);
+            break;
           }
         }
       }

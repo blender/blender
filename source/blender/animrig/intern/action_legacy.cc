@@ -247,6 +247,29 @@ Vector<bActionGroup *> channel_groups_all(bAction *action)
 #endif /* WITH_ANIM_BAKLAVA */
 }
 
+Vector<bActionGroup *> channel_groups_for_assigned_slot(AnimData *adt)
+{
+  if (!adt || !adt->action) {
+    return {};
+  }
+
+  Action &action = adt->action->wrap();
+
+  /* Legacy Action. */
+  if (action.is_action_legacy()) {
+    return channel_groups_all(adt->action);
+  }
+
+  /* Layered Action. */
+  ChannelBag *bag = channelbag_for_action_slot(action, adt->slot_handle);
+  if (!bag) {
+    return {};
+  }
+
+  Vector<bActionGroup *> slot_groups(bag->channel_groups());
+  return slot_groups;
+}
+
 bool action_treat_as_legacy(const bAction &action)
 {
   const Action &action_wrap = action.wrap();
