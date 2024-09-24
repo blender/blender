@@ -82,6 +82,12 @@ class VKThreadData : public NonCopyable, NonMovable {
    */
   int32_t rendering_depth = 0;
 
+  /**
+   * Number of contexts registered in the current thread.
+   * Discarded resources are destroyed when all contexts are unregistered.
+   */
+  int32_t num_contexts = 0;
+
   VKThreadData(VKDevice &device,
                pthread_t thread_id,
                std::unique_ptr<render_graph::VKCommandBufferInterface> command_buffer,

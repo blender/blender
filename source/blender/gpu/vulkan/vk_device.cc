@@ -402,11 +402,19 @@ VKDiscardPool &VKDevice::discard_pool_for_current_thread()
 void VKDevice::context_register(VKContext &context)
 {
   contexts_.append(std::reference_wrapper(context));
+  current_thread_data().num_contexts += 1;
 }
 
 void VKDevice::context_unregister(VKContext &context)
 {
   contexts_.remove(contexts_.first_index_of(std::reference_wrapper(context)));
+
+  auto &thread_data = current_thread_data();
+  thread_data.num_contexts -= 1;
+  BLI_assert(thread_data.num_contexts >= 0);
+  if (thread_data.num_contexts == 0) {
+    discard_pool_for_current_thread().destroy_discarded_resources(*this);
+  }
 }
 Span<std::reference_wrapper<VKContext>> VKDevice::contexts_get() const
 {
