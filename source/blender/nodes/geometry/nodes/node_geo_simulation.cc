@@ -849,7 +849,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
   b.allow_any_socket_order();
-  b.add_input<decl::Bool>("Skip").description(
+  b.add_input<decl::Bool>("Skip").hide_value().description(
       "Forward the output of the simulation input node directly to the output node and ignore "
       "the nodes in the simulation zone");
 
