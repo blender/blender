@@ -515,6 +515,9 @@ bool add_armature_vertex_groups(Object &object, const Object &armature);
 /** Create vertex groups for the bones in the armature and use the bone envelopes to assign
  * weights. */
 void add_armature_envelope_weights(Scene &scene, Object &object, const Object &ob_armature);
+/** Create vertex groups for the bones in the armature and use a simple distance based algorithm to
+ * assign automatic weights. */
+void add_armature_automatic_weights(Scene &scene, Object &object, const Object &ob_armature);
 
 void clipboard_free();
 const bke::CurvesGeometry &clipboard_curves();
