@@ -209,6 +209,72 @@ static void GREASE_PENCIL_OT_layer_reorder(wmOperatorType *ot)
       ot->srna, "location", prop_layer_reorder_location, LAYER_REORDER_ABOVE, "Location", "");
 }
 
+enum class LayerMoveDirection : int8_t { Up = -1, Down = 1 };
+
+static const EnumPropertyItem enum_layer_move_direction[] = {
+    {int(LayerMoveDirection::Up), "UP", 0, "Up", ""},
+    {int(LayerMoveDirection::Down), "DOWN", 0, "Down", ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+static bool grease_pencil_layer_move_poll(bContext *C)
+{
+  using namespace blender::bke::greasepencil;
+  if (!active_grease_pencil_poll(C)) {
+    return false;
+  }
+
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  const TreeNode &active_node = *grease_pencil.get_active_node();
+  const LayerGroup *parent = active_node.parent_group();
+
+  if (parent == nullptr || parent->num_direct_nodes() < 2) {
+    return false;
+  }
+
+  return true;
+}
+
+static int grease_pencil_layer_move_exec(bContext *C, wmOperator *op)
+{
+  using namespace blender::bke::greasepencil;
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+
+  const LayerMoveDirection direction = LayerMoveDirection(RNA_enum_get(op->ptr, "direction"));
+
+  TreeNode &active_node = *grease_pencil.get_active_node();
+
+  if (direction == LayerMoveDirection::Up) {
+    grease_pencil.move_node_up(active_node);
+  }
+  else if (direction == LayerMoveDirection::Down) {
+    grease_pencil.move_node_down(active_node);
+  }
+
+  DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_layer_move(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Reorder Layer";
+  ot->idname = "GREASE_PENCIL_OT_layer_move";
+  ot->description = "Move the active Grease Pencil layer or Group";
+
+  /* callbacks */
+  ot->exec = grease_pencil_layer_move_exec;
+  ot->poll = grease_pencil_layer_move_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  ot->prop = RNA_def_enum(ot->srna, "direction", enum_layer_move_direction, 0, "Direction", "");
+}
+
 static int grease_pencil_layer_active_exec(bContext *C, wmOperator *op)
 {
   using namespace blender::bke::greasepencil;
@@ -687,8 +753,6 @@ static void GREASE_PENCIL_OT_layer_mask_remove(wmOperatorType *ot)
   ot->poll = active_grease_pencil_layer_poll;
 }
 
-enum class LayerMaskMoveDirection : int8_t { Up = -1, Down = 1 };
-
 static int grease_pencil_layer_mask_reorder_exec(bContext *C, wmOperator *op)
 {
   using namespace blender::bke::greasepencil;
@@ -724,12 +788,6 @@ static int grease_pencil_layer_mask_reorder_exec(bContext *C, wmOperator *op)
 
 static void GREASE_PENCIL_OT_layer_mask_reorder(wmOperatorType *ot)
 {
-  static const EnumPropertyItem enum_direction[] = {
-      {int(LayerMaskMoveDirection::Up), "UP", 0, "Up", ""},
-      {int(LayerMaskMoveDirection::Down), "DOWN", 0, "Down", ""},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
   /* identifiers */
   ot->name = "Reorder Grease Pencil Layer Mask";
   ot->idname = "GREASE_PENCIL_OT_layer_mask_reorder";
@@ -742,7 +800,7 @@ static void GREASE_PENCIL_OT_layer_mask_reorder(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  ot->prop = RNA_def_enum(ot->srna, "direction", enum_direction, 0, "Direction", "");
+  ot->prop = RNA_def_enum(ot->srna, "direction", enum_layer_move_direction, 0, "Direction", "");
 }
 
 const EnumPropertyItem enum_layergroup_color_items[] = {
@@ -895,6 +953,7 @@ void ED_operatortypes_grease_pencil_layers()
   WM_operatortype_append(GREASE_PENCIL_OT_layer_add);
   WM_operatortype_append(GREASE_PENCIL_OT_layer_remove);
   WM_operatortype_append(GREASE_PENCIL_OT_layer_reorder);
+  WM_operatortype_append(GREASE_PENCIL_OT_layer_move);
   WM_operatortype_append(GREASE_PENCIL_OT_layer_active);
   WM_operatortype_append(GREASE_PENCIL_OT_layer_hide);
   WM_operatortype_append(GREASE_PENCIL_OT_layer_reveal);

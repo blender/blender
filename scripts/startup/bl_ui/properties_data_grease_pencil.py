@@ -233,9 +233,17 @@ class DATA_PT_grease_pencil_layers(DataButtonsPanel, Panel):
         sub = col.column(align=True)
         sub.operator_context = 'EXEC_DEFAULT'
         sub.operator("grease_pencil.layer_add", icon='ADD', text="")
+        sub.operator("grease_pencil.layer_remove", icon='REMOVE', text="")
+
+        sub.separator()
+
         sub.menu("GREASE_PENCIL_MT_grease_pencil_add_layer_extra", icon='DOWNARROW_HLT', text="")
 
-        col.operator("grease_pencil.layer_remove", icon='REMOVE', text="")
+        col.separator()
+
+        sub = col.column(align=True)
+        sub.operator("grease_pencil.layer_move", icon='TRIA_UP', text="").direction = 'UP'
+        sub.operator("grease_pencil.layer_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
         if not layer:
             return
