@@ -512,11 +512,14 @@ const bke::CurvesGeometry &clipboard_curves();
 /**
  * Paste curves from the clipboard into the drawing.
  * \param paste_back: Render behind existing curves by inserting curves at the front.
+ * \param keep_world_transform: Keep the world transform of clipboard strokes unchanged.
  * \return Index range of the new curves in the drawing after pasting.
  */
 IndexRange clipboard_paste_strokes(Main &bmain,
                                    Object &object,
                                    bke::greasepencil::Drawing &drawing,
+                                   const float4x4 &transform,
+                                   bool keep_world_transform,
                                    bool paste_back);
 
 /**

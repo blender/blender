@@ -37,6 +37,7 @@ void CloneOperation::on_stroke_begin(const bContext &C, const InputSample &start
 {
   Main &bmain = *CTX_data_main(&C);
   Object &object = *CTX_data_active_object(&C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
 
   this->init_stroke(C, start_sample);
 
@@ -48,8 +49,16 @@ void CloneOperation::on_stroke_begin(const bContext &C, const InputSample &start
    * Here we only have the GPv2 behavior that actually works for now. */
   this->foreach_editable_drawing(
       C, [&](const GreasePencilStrokeParams &params, const DeltaProjectionFunc &projection_fn) {
+        /* Only insert on the active layer. */
+        if (&params.layer != grease_pencil.get_active_layer()) {
+          return false;
+        }
+
+        /* TODO Could become a tool setting. */
+        const bool keep_world_transform = false;
+        const float4x4 clipboard_to_layer = math::invert(params.layer.to_world_space(object));
         const IndexRange pasted_curves = ed::greasepencil::clipboard_paste_strokes(
-            bmain, object, params.drawing, false);
+            bmain, object, params.drawing, clipboard_to_layer, keep_world_transform, false);
         if (pasted_curves.is_empty()) {
           return false;
         }
