@@ -629,6 +629,8 @@ if(DEFINED LIBDIR)
   without_system_libs_end()
 endif()
 
+add_bundled_libraries(hiprt/lib)
+
 # ----------------------------------------------------------------------------
 # Build and Link Flags
 

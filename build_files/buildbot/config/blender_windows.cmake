@@ -5,3 +5,5 @@
 include("${CMAKE_CURRENT_LIST_DIR}/../../cmake/config/blender_release.cmake")
 
 set(WITH_CYCLES_TEST_OSL     ON CACHE BOOL "" FORCE)
+
+set(HIPRT_COMPILER_PARALLEL_JOBS 4 CACHE STRING "" FORCE)

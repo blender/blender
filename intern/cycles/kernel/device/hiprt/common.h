@@ -44,36 +44,38 @@ struct LocalPayload {
 
 #  if defined(HIPRT_SHARED_STACK)
 #    define GET_TRAVERSAL_STACK() \
-      Stack stack(&kg->global_stack_buffer[0], \
-                  HIPRT_THREAD_STACK_SIZE, \
-                  kg->shared_stack, \
-                  HIPRT_SHARED_STACK_SIZE);
+      Stack stack(kg->global_stack_buffer, kg->shared_stack); \
+      Instance_Stack instance_stack;
 #  else
 #    define GET_TRAVERSAL_STACK()
 #  endif
 
 #  ifdef HIPRT_SHARED_STACK
 #    define GET_TRAVERSAL_ANY_HIT(FUNCTION_TABLE, RAY_TYPE, RAY_TIME) \
-      hiprtSceneTraversalAnyHitCustomStack<Stack> traversal(kernel_data.device_bvh, \
-                                                            ray_hip, \
-                                                            stack, \
-                                                            visibility, \
-                                                            hiprtTraversalHintDefault, \
-                                                            &payload, \
-                                                            kernel_params.FUNCTION_TABLE, \
-                                                            RAY_TYPE, \
-                                                            RAY_TIME);
+      hiprtSceneTraversalAnyHitCustomStack<Stack, Instance_Stack> traversal( \
+          (hiprtScene)kernel_data.device_bvh, \
+          ray_hip, \
+          stack, \
+          instance_stack, \
+          visibility, \
+          hiprtTraversalHintDefault, \
+          &payload, \
+          kernel_params.FUNCTION_TABLE, \
+          RAY_TYPE, \
+          RAY_TIME);
 
 #    define GET_TRAVERSAL_CLOSEST_HIT(FUNCTION_TABLE, RAY_TYPE, RAY_TIME) \
-      hiprtSceneTraversalClosestCustomStack<Stack> traversal(kernel_data.device_bvh, \
-                                                             ray_hip, \
-                                                             stack, \
-                                                             visibility, \
-                                                             hiprtTraversalHintDefault, \
-                                                             &payload, \
-                                                             kernel_params.FUNCTION_TABLE, \
-                                                             RAY_TYPE, \
-                                                             RAY_TIME);
+      hiprtSceneTraversalClosestCustomStack<Stack, Instance_Stack> traversal( \
+          (hiprtScene)kernel_data.device_bvh, \
+          ray_hip, \
+          stack, \
+          instance_stack, \
+          visibility, \
+          hiprtTraversalHintDefault, \
+          &payload, \
+          kernel_params.FUNCTION_TABLE, \
+          RAY_TYPE, \
+          RAY_TIME);
 #  else
 #    define GET_TRAVERSAL_ANY_HIT(FUNCTION_TABLE) \
       hiprtSceneTraversalAnyHit traversal(kernel_data.device_bvh, \
@@ -654,14 +656,14 @@ ccl_device_inline bool volume_intersection_filter(const hiprtRay &ray,
     return false;
 }
 
-HIPRT_DEVICE bool intersectFunc(u32 geomType,
-                                u32 rayType,
+HIPRT_DEVICE bool intersectFunc(uint geomType,
+                                uint rayType,
                                 const hiprtFuncTableHeader &tableHeader,
                                 const hiprtRay &ray,
                                 void *payload,
                                 hiprtHit &hit)
 {
-  const u32 index = tableHeader.numGeomTypes * rayType + geomType;
+  const uint index = tableHeader.numGeomTypes * rayType + geomType;
   const void *data = tableHeader.funcDataSets[index].filterFuncData;
   switch (index) {
     case Curve_Intersect_Function:
@@ -683,14 +685,14 @@ HIPRT_DEVICE bool intersectFunc(u32 geomType,
   return false;
 }
 
-HIPRT_DEVICE bool filterFunc(u32 geomType,
-                             u32 rayType,
+HIPRT_DEVICE bool filterFunc(uint geomType,
+                             uint rayType,
                              const hiprtFuncTableHeader &tableHeader,
                              const hiprtRay &ray,
                              void *payload,
                              const hiprtHit &hit)
 {
-  const u32 index = tableHeader.numGeomTypes * rayType + geomType;
+  const uint index = tableHeader.numGeomTypes * rayType + geomType;
   const void *data = tableHeader.funcDataSets[index].intersectFuncData;
   switch (index) {
     case Triangle_Filter_Closest:

@@ -4,7 +4,6 @@
 
 # Find HIPRT SDK. This module defines:
 #   HIPRT_INCLUDE_DIR, path to HIPRT include directory
-#   HIPRT_BITCODE, bitcode file with ray-tracing functionality
 #   HIPRT_FOUND, if SDK found
 
 if(NOT (DEFINED HIPRT_ROOT_DIR))
@@ -23,36 +22,32 @@ endif()
 
 set(_hiprt_SEARCH_DIRS
   ${HIPRT_ROOT_DIR}
+  /opt/lib/hiprt
 )
 
 find_path(HIPRT_INCLUDE_DIR
   NAMES
     hiprt/hiprt.h
   HINTS
-    ${_hiprt_SEARCH_DIRS}/include
     ${_hiprt_SEARCH_DIRS}
+  PATH_SUFFIXES
+    include
 )
+
+set(HIPRT_VERSION)
 
 if(HIPRT_INCLUDE_DIR)
   file(STRINGS "${HIPRT_INCLUDE_DIR}/hiprt/hiprt.h" _hiprt_version
     REGEX "^#define HIPRT_VERSION_STR[ \t]\".*\"$")
-  string(REGEX MATCHALL "[0-9]+[.0-9]+" _hiprt_version ${_hiprt_version})
-
-  find_file(HIPRT_BITCODE
-    NAMES
-      hiprt${_hiprt_version}_amd_lib_win.bc
-    HINTS
-      ${HIPRT_ROOT_DIR}/bin
-      ${HIPRT_ROOT_DIR}/dist/bin/Release
-    NO_DEFAULT_PATH
-  )
-
-  unset(_hiprt_version)
+  string(REGEX MATCHALL "[0-9]+[.0-9]+" HIPRT_VERSION ${_hiprt_version})
 endif()
 
+unset(_hiprt_version)
+
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(HIPRT DEFAULT_MSG
-  HIPRT_INCLUDE_DIR HIPRT_BITCODE)
+find_package_handle_standard_args(HIPRT
+  REQUIRED_VARS HIPRT_INCLUDE_DIR HIP_LINKER_EXECUTABLE
+  FAIL_MESSAGE "HIP-RT or one of its dependencies not found")
 
 mark_as_advanced(
   HIPRT_INCLUDE_DIR

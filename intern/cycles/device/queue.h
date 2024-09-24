@@ -28,6 +28,7 @@ struct DeviceKernelArguments {
     INT32,
     FLOAT32,
     KERNEL_FILM_CONVERT,
+    HIPRT_GLOBAL_STACK,
   };
 
   static const int MAX_ARGS = 18;

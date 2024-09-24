@@ -1831,10 +1831,9 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
         if compute_device_type == 'HIP':
             import platform
-            if platform.system() == "Windows":  # HIP-RT is currently only supported on Windows
-                row = layout.row()
-                row.active = has_rt_api_support['HIP']
-                row.prop(self, "use_hiprt")
+            row = layout.row()
+            row.active = has_rt_api_support['HIP']
+            row.prop(self, "use_hiprt")
 
         elif compute_device_type == 'ONEAPI' and _cycles.with_embree_gpu:
             row = layout.row()

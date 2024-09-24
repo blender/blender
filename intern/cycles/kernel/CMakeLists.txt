@@ -92,6 +92,28 @@ set(SRC_KERNEL_DEVICE_HIPRT_HEADERS
   device/hiprt/hiprt_kernels.h
 )
 
+set(SRC_KERNEL_DEVICE_HIPRT_SDK
+  hiprt/impl/Aabb.h
+  hiprt/impl/BvhNode.h
+  hiprt/impl/Geometry.h
+  hiprt/impl/hiprt_device_impl.h
+  hiprt/impl/hiprt_kernels_bitcode.h
+  hiprt/impl/Instance.h
+  hiprt/impl/Math.h
+  hiprt/impl/QrDecomposition.h
+  hiprt/impl/Quaternion.h
+  hiprt/impl/Scene.h
+  hiprt/impl/Transform.h
+  hiprt/impl/Triangle.h
+)
+
+set(SRC_KERNEL_DEVICE_HIPRT_SDK_HEADERS
+  hiprt/hiprt_common.h
+  hiprt/hiprt_device.h
+  hiprt/hiprt_types.h
+  hiprt/hiprt_vec.h
+)
+
 set(SRC_KERNEL_DEVICE_OPTIX_HEADERS
   device/optix/bvh.h
   device/optix/compat.h
@@ -422,6 +444,21 @@ add_executable(zstd_compress ../cmake/zstd_compress.cpp)
 target_include_directories(zstd_compress SYSTEM PRIVATE ${ZSTD_INCLUDE_DIRS})
 target_link_libraries(zstd_compress ${ZSTD_LIBRARIES} ${PTHREADS_LIBRARIES})
 
+if(NOT WITH_BLENDER)
+  # For the Cycles standalone put libraries next to the Cycles application.
+  set(cycles_kernel_runtime_lib_target_path ${CYCLES_INSTALL_PATH})
+else()
+  # For Blender put the libraries next to the Blender executable.
+  #
+  # Note that the installation path in the delayed_install is relative to the versioned folder,
+  # which means we need to go one level up.
+  set(cycles_kernel_runtime_lib_target_path "../")
+endif()
+
+if(UNIX AND NOT APPLE)
+    set(cycles_kernel_runtime_lib_target_path ${cycles_kernel_runtime_lib_target_path}/lib)
+endif()
+
 # CUDA module
 
 if(WITH_CYCLES_CUDA_BINARIES)
@@ -689,17 +726,13 @@ endif()
 
 # HIP RT module
 
-if(WITH_CYCLES_DEVICE_HIPRT AND WITH_CYCLES_HIP_BINARIES)
-  set(hiprt_sources device/hiprt/kernel.cpp
-    ${SRC_KERNEL_HEADERS}
-    ${SRC_KERNEL_DEVICE_GPU_HEADERS}
-    ${SRC_KERNEL_DEVICE_HIPRT_HEADERS}
-    ${SRC_UTIL_HEADERS})
-  set(bitcode_file ${CMAKE_CURRENT_BINARY_DIR}/kernel_rt_gfx.bc)
-  set(hiprt_file ${CMAKE_CURRENT_BINARY_DIR}/kernel_rt_gfx.hipfb)
-  set(hiprt_file_compressed ${hiprt_file}.zst)
-  set(kernel_sources ${hiprt_sources})
-  set(hiprt_kernel_src "/device/hiprt/kernel.cpp")
+if(WITH_CYCLES_DEVICE_HIPRT)
+  set(HIPRT_COMPILER_PARALLEL_JOBS 1 CACHE STRING "Number of parallel compiler instances to use for for HIP-RT kernels")
+  mark_as_advanced(HIPRT_COMPILER_PARALLEL_JOBS)
+
+  set(bvh_file ${CMAKE_CURRENT_BINARY_DIR}/hiprt${HIPRT_VERSION}_${HIP_VERSION_SHORT}_amd.hipfb)
+  set(bvh_file_oro ${CMAKE_CURRENT_BINARY_DIR}/oro_compiled_kernels.hipfb)
+
   if(WIN32)
     set(hiprt_compile_command ${CMAKE_COMMAND})
     set(hiprt_compile_flags
@@ -713,7 +746,106 @@ if(WITH_CYCLES_DEVICE_HIPRT AND WITH_CYCLES_HIP_BINARIES)
   foreach(arch ${CYCLES_HIP_BINARIES_ARCH})
     list(APPEND target_gpus "--offload-arch=${arch}")
   endforeach()
-  set(hiprt_compile_flags
+
+  if(WITH_NANOVDB)
+    set(hiprt_compile_flags ${hiprt_compile_flags} -D WITH_NANOVDB)
+  endif()
+
+  if(WITH_CYCLES_DEBUG)
+    set(hiprt_compile_flags ${hiprt_compile_flags} -D WITH_CYCLES_DEBUG)
+  endif()
+
+  set(hiprt_compile_flags_bvh
+    ${hiprt_compile_flags}
+    ${target_gpus}
+    ${HIP_HIPCC_FLAGS}
+    -x hip
+    ${HIPRT_INCLUDE_DIR}/hiprt/impl/hiprt_kernels.h
+    ${flags}
+    -D HIPRT_BITCODE_LINKING
+    -std=c++17
+    -mllvm
+    -amdgpu-early-inline-all=false
+    -mllvm
+    -amdgpu-function-calls=true
+    -parallel-jobs=${HIPRT_COMPILER_PARALLEL_JOBS}
+    --genco
+    -I ${HIPRT_INCLUDE_DIR}
+    -Wno-parentheses-equality
+    -Wno-unused-value
+    -ffast-math
+    -o ${bvh_file})
+
+  set(hiprt_compile_flags_bvh_oro
+    ${hiprt_compile_flags}
+    ${target_gpus}
+    ${HIP_HIPCC_FLAGS}
+    -x hip
+    ${HIPRT_INCLUDE_DIR}/contrib/Orochi/ParallelPrimitives/RadixSortKernels.h
+    ${flags}
+    -D HIPRT_BITCODE_LINKING
+    -std=c++17
+    -mllvm
+    -amdgpu-early-inline-all=false
+    -mllvm
+    -amdgpu-function-calls=true
+    -parallel-jobs=${HIPRT_COMPILER_PARALLEL_JOBS}
+    --genco
+    -I ${HIPRT_INCLUDE_DIR}/contrib/Orochi
+    -include hip/hip_runtime.h
+    -Wno-parentheses-equality
+    -Wno-unused-value
+    -ffast-math
+    -o ${bvh_file_oro})
+
+  add_custom_command(
+    OUTPUT  ${bvh_file}
+    COMMAND ${hiprt_compile_command} ${hiprt_compile_flags_bvh}
+    DEPENDS ${HIPRT_INCLUDE_DIR}/hiprt/impl/hiprt_kernels.h)
+
+  add_custom_command(
+    OUTPUT  ${bvh_file_oro}
+    COMMAND ${hiprt_compile_command} ${hiprt_compile_flags_bvh_oro}
+    DEPENDS ${HIPRT_INCLUDE_DIR}/contrib/Orochi/ParallelPrimitives/RadixSortKernels.h)
+
+  delayed_install("" "${bvh_file}"     ${cycles_kernel_runtime_lib_target_path})
+  delayed_install("" "${bvh_file_oro}" ${cycles_kernel_runtime_lib_target_path})
+
+  if(WITH_CYCLES_HIP_BINARIES)
+    set(hiprt_sources device/hiprt/kernel.cpp
+    ${SRC_KERNEL_HEADERS}
+    ${SRC_KERNEL_DEVICE_GPU_HEADERS}
+    ${SRC_KERNEL_DEVICE_HIPRT_HEADERS}
+    ${SRC_UTIL_HEADERS})
+
+    set(cycles_bitcode_file ${CMAKE_CURRENT_BINARY_DIR}/kernel_rt_gfx.bc)
+    set(sdk_bitcode_file ${CMAKE_CURRENT_BINARY_DIR}/hiprt${HIPRT_VERSION}_${HIP_VERSION_SHORT}_amd_lib.bc)
+    set(hiprt_file ${CMAKE_CURRENT_BINARY_DIR}/kernel_rt_gfx.hipfb)
+    set(hiprt_file_compressed ${hiprt_file}.zst)
+    set(kernel_sources ${hiprt_sources})
+    set(hiprt_kernel_src "/device/hiprt/kernel.cpp")
+
+    set(hiprt_compile_flags_sdk_bc
+      ${hiprt_compile_flags}
+      ${target_gpus}
+      ${HIP_HIPCC_FLAGS}
+      ${flags}
+      -x hip
+      ${HIPRT_INCLUDE_DIR}/hiprt/impl/hiprt_kernels_bitcode.h
+      -D HIPRT_BITCODE_LINKING
+      -std=c++17
+      -fgpu-rdc
+      -c
+      --gpu-bundle-output
+      -parallel-jobs=${HIPRT_COMPILER_PARALLEL_JOBS}
+      -emit-llvm
+      -I ${HIPRT_INCLUDE_DIR}
+      -Wno-parentheses-equality
+      -Wno-unused-value
+      -ffast-math
+      -o ${sdk_bitcode_file})
+
+  set(hiprt_compile_flags_cycles_bc
     ${hiprt_compile_flags}
     ${target_gpus}
     ${HIP_HIPCC_FLAGS}
@@ -727,6 +859,7 @@ if(WITH_CYCLES_DEVICE_HIPRT AND WITH_CYCLES_HIP_BINARIES)
     -fgpu-rdc
     -c
     --gpu-bundle-output
+    -parallel-jobs=${HIPRT_COMPILER_PARALLEL_JOBS}
     -emit-llvm
     -I ${CMAKE_CURRENT_SOURCE_DIR}/..
     -I ${CMAKE_CURRENT_SOURCE_DIR}/device/hiprt
@@ -734,45 +867,52 @@ if(WITH_CYCLES_DEVICE_HIPRT AND WITH_CYCLES_HIP_BINARIES)
     -Wno-parentheses-equality
     -Wno-unused-value
     -ffast-math
-    -o ${bitcode_file})
+    -o ${cycles_bitcode_file})
 
-  if(WITH_NANOVDB)
-    set(hiprt_compile_flags ${hiprt_compile_flags} -D WITH_NANOVDB)
-  endif()
-
-  if(WITH_CYCLES_DEBUG)
-    set(hiprt_compile_flags ${hiprt_compile_flags} -D WITH_CYCLES_DEBUG)
-  endif()
   add_custom_command(
-    OUTPUT  ${bitcode_file}
-    COMMAND ${hiprt_compile_command} ${hiprt_compile_flags}
+    OUTPUT  ${cycles_bitcode_file}
+    COMMAND ${hiprt_compile_command} ${hiprt_compile_flags_cycles_bc}
     DEPENDS ${kernel_sources})
+
+  add_custom_command(
+    OUTPUT  ${sdk_bitcode_file}
+    COMMAND ${hiprt_compile_command} ${hiprt_compile_flags_sdk_bc}
+    DEPENDS ${HIPRT_INCLUDE_DIR}/hiprt/impl/hiprt_kernels_bitcode.h)
+
   if(WIN32)
     set(hiprt_link_command ${CMAKE_COMMAND})
     set(hiprt_link_flags   -E env "HIP_PATH=${HIP_ROOT_DIR}"
       ${HIP_LINKER_EXECUTABLE})
   else()
-    # not implemented yet
+    set(hiprt_link_command ${HIP_LINKER_EXECUTABLE})
+    set(hiprt_link_flags)
   endif()
+
   set(hiprt_link_flags
     ${hiprt_link_flags}
     ${target_gpus}
     -fgpu-rdc
     --hip-link
     --cuda-device-only
-    ${bitcode_file}
-    ${HIPRT_BITCODE}
+    -parallel-jobs=${HIPRT_COMPILER_PARALLEL_JOBS}
+    ${cycles_bitcode_file}
+    ${sdk_bitcode_file}
     -o ${hiprt_file})
-  add_custom_command(
-    OUTPUT  ${hiprt_file}
-    COMMAND ${hiprt_link_command} ${hiprt_link_flags}
-    DEPENDS ${bitcode_file})
+
+    add_custom_command(
+      OUTPUT  ${hiprt_file}
+      COMMAND ${hiprt_link_command} ${hiprt_link_flags}
+      DEPENDS ${cycles_bitcode_file} ${sdk_bitcode_file})
+
     add_custom_command(
       OUTPUT ${hiprt_file_compressed}
       COMMAND "$<TARGET_FILE:zstd_compress>" ${hiprt_file} ${hiprt_file_compressed}
       DEPENDS ${hiprt_file})
-  delayed_install("${CMAKE_CURRENT_BINARY_DIR}" "${hiprt_file_compressed}" ${CYCLES_INSTALL_PATH}/lib)
-  add_custom_target(cycles_kernel_hiprt ALL DEPENDS ${hiprt_file_compressed})
+    delayed_install("${CMAKE_CURRENT_BINARY_DIR}" "${hiprt_file_compressed}" ${CYCLES_INSTALL_PATH}/lib)
+
+  endif()
+
+  add_custom_target(cycles_kernel_hiprt ALL DEPENDS ${hiprt_file_compressed} ${bvh_file} ${bvh_file_oro})
   cycles_set_solution_folder(cycles_kernel_hiprt)
 endif()
 
@@ -1151,23 +1291,8 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
       DEPENDS ${cycles_oneapi_kernel_sources})
   endif()
 
-  if(NOT WITH_BLENDER)
-    # For the Cycles standalone put libraries next to the Cycles application.
-    set(cycles_oneapi_target_path ${CYCLES_INSTALL_PATH})
-  else()
-    # For Blender put the libraries next to the Blender executable.
-    #
-    # Note that the installation path in the delayed_install is relative to the versioned folder,
-    # which means we need to go one level up.
-    set(cycles_oneapi_target_path "../")
-  endif()
-
   # install dynamic libraries required at runtime
-  if(WIN32)
-    delayed_install("" "${cycles_kernel_oneapi_lib}" ${cycles_oneapi_target_path})
-  elseif(UNIX AND NOT APPLE)
-    delayed_install("" "${cycles_kernel_oneapi_lib}" ${cycles_oneapi_target_path}/lib)
-  endif()
+  delayed_install("" "${cycles_kernel_oneapi_lib}" ${cycles_kernel_runtime_lib_target_path})
 
   add_custom_target(cycles_kernel_oneapi ALL DEPENDS ${cycles_kernel_oneapi_lib})
 endif()
@@ -1287,6 +1412,10 @@ delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_DEVICE_HIP}" ${CYCLES_
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_DEVICE_HIP_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/device/hip)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_DEVICE_HIPRT}" ${CYCLES_INSTALL_PATH}/source/kernel/device/hiprt)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_DEVICE_HIPRT_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/device/hiprt)
+if(WITH_CYCLES_DEVICE_HIPRT)
+  delayed_install(${HIPRT_INCLUDE_DIR}      "${SRC_KERNEL_DEVICE_HIPRT_SDK_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/device/hiprt/hiprt)
+  delayed_install(${HIPRT_INCLUDE_DIR}      "${SRC_KERNEL_DEVICE_HIPRT_SDK}" ${CYCLES_INSTALL_PATH}/source/kernel/device/hiprt/hiprt/impl)
+endif()
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_DEVICE_OPTIX}" ${CYCLES_INSTALL_PATH}/source/kernel/device/optix)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_DEVICE_OPTIX_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/device/optix)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_DEVICE_METAL}" ${CYCLES_INSTALL_PATH}/source/kernel/device/metal)
