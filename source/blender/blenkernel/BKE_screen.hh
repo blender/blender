@@ -692,6 +692,12 @@ ScrArea *BKE_screen_find_area_xy(const bScreen *screen, int spacetype, const int
 
 void BKE_screen_gizmo_tag_refresh(bScreen *screen);
 
+/**
+ * Refresh any screen data that should be set on file-load
+ * with "Load UI" disabled.
+ */
+void BKE_screen_runtime_refresh_for_blendfile(bScreen *screen);
+
 void BKE_screen_view3d_sync(View3D *v3d, Scene *scene);
 void BKE_screen_view3d_scene_sync(bScreen *screen, Scene *scene);
 bool BKE_screen_is_fullscreen_area(const bScreen *screen) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();

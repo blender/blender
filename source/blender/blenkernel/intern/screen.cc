@@ -481,6 +481,14 @@ void BKE_screen_gizmo_tag_refresh(bScreen *screen)
   }
 }
 
+void BKE_screen_runtime_refresh_for_blendfile(bScreen *screen)
+{
+  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+    area->runtime.tool = nullptr;
+    area->runtime.is_tool_set = false;
+  }
+}
+
 /**
  * Avoid bad-level calls to #WM_gizmomap_delete.
  */

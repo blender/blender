@@ -956,6 +956,12 @@ static void setup_app_data(bContext *C,
         }
       }
     }
+
+    if (mode != LOAD_UI) {
+      LISTBASE_FOREACH (bScreen *, screen, &bfd->main->screens) {
+        BKE_screen_runtime_refresh_for_blendfile(screen);
+      }
+    }
   }
 
   /* Logic for 'track_undo_scene' is to keep using the scene which the active screen has, as long
