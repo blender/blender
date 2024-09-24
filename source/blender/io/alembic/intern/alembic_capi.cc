@@ -874,12 +874,6 @@ void ABC_CacheReader_free(CacheReader *reader)
   }
 }
 
-void ABC_CacheReader_incref(CacheReader *reader)
-{
-  AbcObjectReader *abc_reader = reinterpret_cast<AbcObjectReader *>(reader);
-  abc_reader->incref();
-}
-
 CacheReader *CacheReader_open_alembic_object(CacheArchiveHandle *handle,
                                              CacheReader *reader,
                                              Object *object,

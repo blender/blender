@@ -614,12 +614,6 @@ bool USD_mesh_topology_changed(CacheReader *reader,
   return usd_reader->topology_changed(existing_mesh, time);
 }
 
-void USD_CacheReader_incref(CacheReader *reader)
-{
-  USDPrimReader *usd_reader = reinterpret_cast<USDPrimReader *>(reader);
-  usd_reader->incref();
-}
-
 CacheReader *CacheReader_open_usd_object(CacheArchiveHandle *handle,
                                          CacheReader *reader,
                                          Object *object,

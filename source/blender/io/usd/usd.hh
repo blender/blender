@@ -284,7 +284,6 @@ CacheReader *CacheReader_open_usd_object(CacheArchiveHandle *handle,
                                          Object *object,
                                          const char *object_path);
 
-void USD_CacheReader_incref(CacheReader *reader);
 void USD_CacheReader_free(CacheReader *reader);
 
 /** Data for registering USD IO hooks. */

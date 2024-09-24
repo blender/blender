@@ -146,7 +146,6 @@ bool ABC_mesh_topology_changed(struct CacheReader *reader,
                                double time,
                                const char **r_err_str);
 
-void ABC_CacheReader_incref(struct CacheReader *reader);
 void ABC_CacheReader_free(struct CacheReader *reader);
 
 struct CacheReader *CacheReader_open_alembic_object(struct CacheArchiveHandle *handle,
