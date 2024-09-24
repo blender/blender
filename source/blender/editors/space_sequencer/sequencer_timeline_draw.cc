@@ -74,7 +74,7 @@
 using namespace blender;
 using namespace blender::ed::seq;
 
-#define MUTE_ALPHA 120
+constexpr int MUTE_ALPHA = 120;
 
 constexpr float ICON_SIZE = 12.0f;
 
@@ -250,6 +250,7 @@ static StripDrawContext strip_draw_context_get(TimelineDrawContext *ctx, Sequenc
     strip_ctx.strip_content_top = strip_ctx.top;
   }
 
+  strip_ctx.is_muted = SEQ_render_is_muted(ctx->channels, seq);
   strip_ctx.curve = nullptr;
   return strip_ctx;
 }
@@ -278,11 +279,9 @@ static void strip_draw_context_curve_get(const TimelineDrawContext *ctx,
 static void color3ubv_from_seq(const Scene *curscene,
                                const Sequence *seq,
                                const bool show_strip_color_tag,
+                               const bool is_muted,
                                uchar r_col[3])
 {
-  Editing *ed = SEQ_editing_get(curscene);
-  ListBase *channels = SEQ_channels_displayed_get(ed);
-
   if (show_strip_color_tag && uint(seq->color_tag) < SEQUENCE_COLOR_TOT &&
       seq->color_tag != SEQUENCE_COLOR_NONE)
   {
@@ -409,7 +408,7 @@ static void color3ubv_from_seq(const Scene *curscene,
     case SEQ_TYPE_SOUND_RAM:
       UI_GetThemeColor3ubv(TH_SEQ_AUDIO, r_col);
       blendcol[0] = blendcol[1] = blendcol[2] = 128;
-      if (SEQ_render_is_muted(channels, seq)) {
+      if (is_muted) {
         UI_GetColorPtrBlendShade3ubv(r_col, blendcol, r_col, 0.5, 20);
       }
       break;
@@ -643,8 +642,6 @@ static void drawmeta_contents(TimelineDrawContext *timeline_ctx,
   }
   float draw_height;
 
-  Editing *ed = SEQ_editing_get(scene);
-  ListBase *channels = SEQ_channels_displayed_get(ed);
   ListBase *meta_seqbase;
   ListBase *meta_channels;
   int offset;
@@ -688,10 +685,10 @@ static void drawmeta_contents(TimelineDrawContext *timeline_ctx,
         rgb_float_to_uchar(col, colvars->col);
       }
       else {
-        color3ubv_from_seq(scene, seq, strip_ctx->show_strip_color_tag, col);
+        color3ubv_from_seq(scene, seq, strip_ctx->show_strip_color_tag, strip_ctx->is_muted, col);
       }
 
-      if (SEQ_render_is_muted(channels, seq_meta) || SEQ_render_is_muted(meta_channels, seq)) {
+      if (strip_ctx->is_muted || SEQ_render_is_muted(meta_channels, seq)) {
         col[3] = 64;
       }
       else {
@@ -881,9 +878,7 @@ static size_t draw_seq_text_get_overlay_string(TimelineDrawContext *timeline_ctx
   return BLI_string_join_array(r_overlay_string, overlay_string_len, text_array, i);
 }
 
-static void get_strip_text_color(const TimelineDrawContext *ctx,
-                                 const StripDrawContext *strip,
-                                 uchar r_col[4])
+static void get_strip_text_color(const StripDrawContext *strip, uchar r_col[4])
 {
   const Sequence *seq = strip->seq;
   const bool active_or_selected = (seq->flag & SELECT) || strip->is_active_strip;
@@ -896,9 +891,7 @@ static void get_strip_text_color(const TimelineDrawContext *ctx,
     r_col[0] = r_col[1] = r_col[2] = 0;
 
     /* On muted and missing media/data-block strips: gray color, reduce opacity. */
-    if ((SEQ_render_is_muted(ctx->channels, seq)) ||
-        (strip->missing_data_block || strip->missing_media))
-    {
+    if (strip->is_muted || strip->missing_data_block || strip->missing_media) {
       r_col[0] = r_col[1] = r_col[2] = 192;
       r_col[3] *= 0.66f;
     }
@@ -962,7 +955,7 @@ static void draw_strip_icons(TimelineDrawContext *timeline_ctx,
         strip.can_draw_text_overlay)
     {
       uchar col[4];
-      get_strip_text_color(timeline_ctx, &strip, col);
+      get_strip_text_color(&strip, col);
 
       float icon_indent = 2.0f * strip.handle_width - 4 * timeline_ctx->pixelx * UI_SCALE_FAC;
       rctf rect;
@@ -1026,7 +1019,7 @@ static void draw_seq_text_overlay(TimelineDrawContext *timeline_ctx,
   }
 
   uchar col[4];
-  get_strip_text_color(timeline_ctx, strip_ctx, col);
+  get_strip_text_color(strip_ctx, col);
 
   float text_margin = 2.0f * strip_ctx->handle_width;
   rctf rect;
@@ -1076,14 +1069,13 @@ static void draw_strip_offsets(TimelineDrawContext *timeline_ctx,
   }
 
   const Scene *scene = timeline_ctx->scene;
-  const ListBase *channels = timeline_ctx->channels;
 
   uchar col[4], blend_col[4];
-  color3ubv_from_seq(scene, seq, strip_ctx->show_strip_color_tag, col);
+  color3ubv_from_seq(scene, seq, strip_ctx->show_strip_color_tag, strip_ctx->is_muted, col);
   if (seq->flag & SELECT) {
     UI_GetColorPtrShade3ubv(col, col, 50);
   }
-  col[3] = SEQ_render_is_muted(channels, seq) ? MUTE_ALPHA : 200;
+  col[3] = strip_ctx->is_muted ? MUTE_ALPHA : 200;
   UI_GetColorPtrShade3ubv(col, blend_col, 10);
   blend_col[3] = 255;
 
@@ -1111,15 +1103,6 @@ static void draw_strip_offsets(TimelineDrawContext *timeline_ctx,
                                        strip_ctx->top + SEQ_STRIP_OFSBOTTOM,
                                        blend_col);
   }
-}
-
-static uchar mute_alpha_factor_get(const ListBase *channels, const Sequence *seq)
-{
-  /* Draw muted strips semi-transparent. */
-  if (SEQ_render_is_muted(channels, seq)) {
-    return MUTE_ALPHA;
-  }
-  return 255;
 }
 
 /**
@@ -1313,10 +1296,10 @@ static void draw_strips_background(TimelineDrawContext *timeline_ctx,
     /* Background color. */
     uchar col[4];
     data.flags |= GPU_SEQ_FLAG_BACKGROUND;
-    color3ubv_from_seq(scene, strip.seq, strip.show_strip_color_tag, col);
-    col[3] = mute_alpha_factor_get(timeline_ctx->channels, strip.seq);
+    color3ubv_from_seq(scene, strip.seq, strip.show_strip_color_tag, strip.is_muted, col);
+    col[3] = strip.is_muted ? MUTE_ALPHA : 255;
     /* Muted strips: turn almost gray. */
-    if (col[3] == MUTE_ALPHA) {
+    if (strip.is_muted) {
       uchar muted_color[3] = {128, 128, 128};
       UI_GetColorPtrBlendShade3ubv(col, muted_color, col, 0.5f, 0);
     }
@@ -1344,7 +1327,7 @@ static void draw_strips_background(TimelineDrawContext *timeline_ctx,
         rgb_float_to_uchar(col, ((const SolidColorVars *)seq1->effectdata)->col);
       }
       else {
-        color3ubv_from_seq(scene, seq1, strip.show_strip_color_tag, col);
+        color3ubv_from_seq(scene, seq1, strip.show_strip_color_tag, strip.is_muted, col);
       }
       data.col_transition_in = color_pack(col);
 
@@ -1353,7 +1336,7 @@ static void draw_strips_background(TimelineDrawContext *timeline_ctx,
         rgb_float_to_uchar(col, ((const SolidColorVars *)seq2->effectdata)->col);
       }
       else {
-        color3ubv_from_seq(scene, seq2, strip.show_strip_color_tag, col);
+        color3ubv_from_seq(scene, seq2, strip.show_strip_color_tag, strip.is_muted, col);
         /* If the transition inputs are of the same type, draw the right side slightly darker. */
         if (seq1->type == seq2->type) {
           UI_GetColorPtrShade3ubv(col, col, -15);
@@ -1368,12 +1351,11 @@ static void draw_strips_background(TimelineDrawContext *timeline_ctx,
 }
 
 static void strip_data_missing_media_flags_set(const StripDrawContext &strip,
-                                               const TimelineDrawContext *timeline_ctx,
                                                SeqStripDrawData &data)
 {
   if (strip.missing_data_block || strip.missing_media) {
     /* Do not tint title area for muted strips; we want to see gray for them. */
-    if (!SEQ_render_is_muted(timeline_ctx->channels, strip.seq)) {
+    if (!strip.is_muted) {
       data.flags |= GPU_SEQ_FLAG_MISSING_TITLE;
     }
     /* Do not tint content area for meta strips; we want to display children. */
@@ -1507,7 +1489,7 @@ static void draw_strips_foreground(TimelineDrawContext *timeline_ctx,
                                                     strip.handle_width,
                                                     strip.is_single_image);
     data.flags |= GPU_SEQ_FLAG_BORDER;
-    strip_data_missing_media_flags_set(strip, timeline_ctx, data);
+    strip_data_missing_media_flags_set(strip, data);
     strip_data_lock_flags_set(strip, timeline_ctx, data);
     strip_data_outline_params_set(strip, timeline_ctx, data);
     strip_data_highlight_flags_set(strip, timeline_ctx, data);
