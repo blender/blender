@@ -9,13 +9,15 @@
 #include "BLI_math_matrix.h"
 #include "BLI_string.h"
 
+#include "BKE_editmesh.hh"
+#include "BKE_editmesh_bvh.hh"
 #include "BKE_unit.hh"
 
 #include "GPU_immediate.hh"
 #include "GPU_matrix.hh"
 
+#include "ED_mesh.hh"
 #include "ED_screen.hh"
-#include "ED_transform_snap_object_context.hh"
 
 #include "WM_api.hh"
 
@@ -180,59 +182,23 @@ static void edge_slide_data_init_mval(MouseInput *mi, EdgeSlideData *sld, float 
   sld->mval_end[1] = mi->imval[1] + mval_end[1];
 }
 
-static bool is_vert_slide_visible(TransInfo *t,
-                                  SnapObjectContext *sctx,
-                                  TransDataEdgeSlideVert *sv,
-                                  const float4x4 &obmat,
-                                  const float4 &plane_near)
+static bool is_vert_slide_visible_bmesh(TransInfo *t,
+                                        TransDataContainer *tc,
+                                        const View3D *v3d,
+                                        const BMBVHTree *bmbvh,
+                                        TransDataEdgeSlideVert *sv)
 {
-  const float3 &v_co_orig = sv->v_co_orig();
-  float3 points[3] = {
-      v_co_orig,
-      v_co_orig + sv->dir_side[0] * 0.9f,
-      v_co_orig + sv->dir_side[1] * 0.9f,
-  };
+  /* NOTE:  */
+  BMIter iter_other;
+  BMEdge *e;
 
-  float3 hit_loc;
-  for (float3 &p : points) {
-    p = math::transform_point(obmat, p);
-    float3 view_vec;
-    float lambda, ray_depth = FLT_MAX;
-
-    transform_view_vector_calc(t, p, view_vec);
-
-    if (dot_v3v3(view_vec, plane_near) > 0.0f) {
-      /* Behind the view origin. */
-      return false;
+  BMVert *v = static_cast<BMVert *>(sv->td->extra);
+  BM_ITER_ELEM (e, &iter_other, v, BM_EDGES_OF_VERT) {
+    if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
+      continue;
     }
 
-    if (!isect_ray_plane_v3(p, view_vec, plane_near, &lambda, false)) {
-      return false;
-    }
-
-    float3 view_orig = p + view_vec * lambda;
-
-    SnapObjectParams snap_object_params{};
-    snap_object_params.snap_target_select = t->tsnap.target_operation;
-    snap_object_params.edit_mode_type = (t->flag & T_EDIT) != 0 ? SNAP_GEOM_EDIT : SNAP_GEOM_FINAL;
-    snap_object_params.use_occlusion_test = false;
-    snap_object_params.use_backface_culling = (t->tsnap.flag & SCE_SNAP_BACKFACE_CULLING) != 0;
-
-    bool has_hit = ED_transform_snap_object_project_ray_ex(sctx,
-                                                           t->depsgraph,
-                                                           static_cast<const View3D *>(t->view),
-                                                           &snap_object_params,
-                                                           view_orig,
-                                                           -view_vec,
-                                                           &ray_depth,
-                                                           hit_loc,
-                                                           nullptr,
-                                                           nullptr,
-                                                           nullptr,
-                                                           nullptr);
-
-    const bool is_occluded = has_hit && lambda > (ray_depth + 0.0001f);
-    if (!is_occluded) {
+    if (BMBVH_EdgeVisible(bmbvh, e, t->depsgraph, t->region, v3d, tc->obedit)) {
       return true;
     }
   }
@@ -243,25 +209,47 @@ static bool is_vert_slide_visible(TransInfo *t,
  * Calculate screen-space `mval_start` / `mval_end`, optionally slide direction.
  */
 static void calcEdgeSlide_mval_range(TransInfo *t,
+                                     TransDataContainer *tc,
                                      EdgeSlideData *sld,
                                      const int loop_nr,
                                      const float2 &mval,
                                      const bool use_calc_direction)
 {
+  View3D *v3d = nullptr;
+
   /* Use for visibility checks. */
-  SnapObjectContext *snap_context = nullptr;
   bool use_occlude_geometry = false;
-  const float4x4 *obmat = nullptr;
-  float4 plane_near;
   if (t->spacetype == SPACE_VIEW3D) {
-    View3D *v3d = static_cast<View3D *>(t->area ? t->area->spacedata.first : nullptr);
-    Object *obedit = TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit;
-    use_occlude_geometry = (v3d && obedit->dt > OB_WIRE && !XRAY_ENABLED(v3d));
-    if (use_occlude_geometry) {
-      obmat = &obedit->object_to_world();
-      planes_from_projmat(t->persmat, nullptr, nullptr, nullptr, nullptr, plane_near, nullptr);
-      snap_context = ED_transform_snap_object_context_create(t->scene, 0);
+    v3d = static_cast<View3D *>(t->area ? t->area->spacedata.first : nullptr);
+    if (v3d) {
+      if (tc->obedit->type == OB_MESH) {
+        use_occlude_geometry = (tc->obedit->dt > OB_WIRE && !XRAY_ENABLED(v3d));
+      }
     }
+  }
+
+  /* NOTE(@ideasman42): At the moment this is only needed for meshes.
+   * In principle we could use a generic ray-cast test.
+   *
+   * Prefer #BMBVHTree over generic snap: #SnapObjectContext
+   * or any method that considers all other objects in the scene.
+   *
+   * While generic snapping is technically "correct" there are multiple reasons not to use this.
+   *
+   * - Performance, where generic snapping would consider all other objects for every-vertex.
+   *   This can cause lockups when #DupliObject have to be created multiple times for each vertex.
+   * - In practice it's acceptable (even preferable) to skip back-facing vertices
+   *   based on each meshes own faces that doesn't take other scene objects into account,
+   *   especially since this includes instances objects from particles or nodes.
+   * - The #BMBVH_EdgeVisible check skips faces that the edge is connected to,
+   *   unlike generic ray-casts where an edge can (under some conditions) overlap it self.
+   *
+   * See: #125646 for details.
+   */
+  BMBVHTree *bmbvh = nullptr;
+  if (use_occlude_geometry) {
+    BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
+    bmbvh = BKE_bmbvh_new_from_editmesh(em, BMBVH_RESPECT_HIDDEN, nullptr, false);
   }
 
   /* Find mouse vectors, the global one, and one per loop in case we have
@@ -281,8 +269,7 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
 
   for (int i : sld->sv.index_range()) {
     TransDataEdgeSlideVert *sv = &sld->sv[i];
-    bool is_visible = !use_occlude_geometry ||
-                      is_vert_slide_visible(t, snap_context, sv, *obmat, plane_near);
+    bool is_visible = !use_occlude_geometry || is_vert_slide_visible_bmesh(t, tc, v3d, bmbvh, sv);
 
     /* This test is only relevant if object is not wire-drawn! See #32068. */
     if (!is_visible && !use_calc_direction) {
@@ -330,8 +317,8 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
 
   edge_slide_data_init_mval(&t->mouse, sld, mval_dir);
 
-  if (snap_context) {
-    ED_transform_snap_object_context_destroy(snap_context);
+  if (bmbvh) {
+    BKE_bmbvh_free(bmbvh);
   }
 }
 
@@ -385,7 +372,7 @@ static EdgeSlideData *createEdgeSlideVerts(TransInfo *t,
   sld->curr_sv_index = 0;
   sld->update_proj_mat(t, tc);
 
-  calcEdgeSlide_mval_range(t, sld, group_len, t->mval, use_double_side);
+  calcEdgeSlide_mval_range(t, tc, sld, group_len, t->mval, use_double_side);
 
   return sld;
 }
