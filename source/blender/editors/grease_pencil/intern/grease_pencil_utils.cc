@@ -1501,6 +1501,7 @@ int grease_pencil_draw_operator_invoke(bContext *C,
                                        wmOperator *op,
                                        const bool use_duplicate_previous_key)
 {
+  const Scene *scene = CTX_data_scene(C);
   const Object *object = CTX_data_active_object(C);
   if (!object || object->type != OB_GREASE_PENCIL) {
     return OPERATOR_CANCELLED;
@@ -1528,7 +1529,7 @@ int grease_pencil_draw_operator_invoke(bContext *C,
   /* Ensure a drawing at the current keyframe. */
   bool inserted_keyframe = false;
   if (!ed::greasepencil::ensure_active_keyframe(
-          C, grease_pencil, use_duplicate_previous_key, inserted_keyframe))
+          *scene, grease_pencil, active_layer, use_duplicate_previous_key, inserted_keyframe))
   {
     BKE_report(op->reports, RPT_ERROR, "No Grease Pencil frame to draw on");
     return OPERATOR_CANCELLED;

@@ -2221,7 +2221,7 @@ static int grease_pencil_paste_strokes_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "No active Grease Pencil layer");
     return OPERATOR_CANCELLED;
   }
-  const bke::greasepencil::Layer &active_layer = *grease_pencil.get_active_layer();
+  bke::greasepencil::Layer &active_layer = *grease_pencil.get_active_layer();
   if (!active_layer.is_editable()) {
     BKE_report(op->reports, RPT_ERROR, "Active layer is locked or hidden");
     return OPERATOR_CANCELLED;
@@ -2229,7 +2229,7 @@ static int grease_pencil_paste_strokes_exec(bContext *C, wmOperator *op)
 
   /* Ensure active keyframe. */
   bool inserted_keyframe = false;
-  if (!ensure_active_keyframe(C, grease_pencil, false, inserted_keyframe)) {
+  if (!ensure_active_keyframe(scene, grease_pencil, active_layer, false, inserted_keyframe)) {
     BKE_report(op->reports, RPT_ERROR, "No Grease Pencil frame to draw on");
     return OPERATOR_CANCELLED;
   }
