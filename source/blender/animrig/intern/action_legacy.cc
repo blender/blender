@@ -194,4 +194,19 @@ Vector<const FCurve *> fcurves_for_assigned_action(const AnimData *adt)
                                          adt->slot_handle);
 }
 
+bool assigned_action_has_keyframes(AnimData *adt)
+{
+  if (adt == nullptr || adt->action == nullptr) {
+    return false;
+  }
+
+  Action &action = adt->action->wrap();
+
+  if (action.is_action_legacy()) {
+    return action.curves.first != nullptr;
+  }
+
+  return action.has_keyframes(adt->slot_handle);
+}
+
 }  // namespace blender::animrig::legacy

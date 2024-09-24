@@ -816,22 +816,15 @@ std::string AnimationExporter::get_collada_sid(const BCAnimationCurve &curve,
  * So we have to update BCSample for this to work. */
 void AnimationExporter::export_morph_animation(Object *ob, BCAnimationSampler &sampler)
 {
-  FCurve *fcu;
   Key *key = BKE_key_from_object(ob);
   if (!key) {
     return;
   }
 
-  if (key->adt && key->adt->action) {
-    fcu = (FCurve *)key->adt->action->curves.first;
+  for (FCurve *fcu : blender::animrig::legacy::fcurves_for_assigned_action(key->adt)) {
+    BC_animation_transform_type tm_type = get_transform_type(fcu->rna_path);
 
-    while (fcu) {
-      BC_animation_transform_type tm_type = get_transform_type(fcu->rna_path);
-
-      create_keyframed_animation(ob, fcu, tm_type, true, sampler);
-
-      fcu = fcu->next;
-    }
+    create_keyframed_animation(ob, fcu, tm_type, true, sampler);
   }
 }
 #endif

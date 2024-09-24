@@ -75,4 +75,15 @@ Vector<const FCurve *> fcurves_for_action_slot(const bAction *action, slot_handl
 Vector<FCurve *> fcurves_for_assigned_action(AnimData *adt);
 Vector<const FCurve *> fcurves_for_assigned_action(const AnimData *adt);
 
+/**
+ * Return whether the action (+slot), if any, assigned to `adt` has keyframes.
+ *
+ * This works for both layered and legacy actions. For layered actions this only
+ * considers the assigned slot.
+ *
+ * A null `adt` or a lack of assigned action are both handled, and are
+ * considered to mean no key frames (and thus will return false).
+ */
+bool assigned_action_has_keyframes(AnimData *adt);
+
 }  // namespace blender::animrig::legacy
