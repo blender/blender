@@ -42,7 +42,7 @@ BMBVHTree *BKE_bmbvh_new(struct BMesh *bm,
 void BKE_bmbvh_free(BMBVHTree *tree);
 struct BVHTree *BKE_bmbvh_tree_get(BMBVHTree *tree);
 
-struct BMFace *BKE_bmbvh_ray_cast(BMBVHTree *tree,
+struct BMFace *BKE_bmbvh_ray_cast(const BMBVHTree *tree,
                                   const float co[3],
                                   const float dir[3],
                                   float radius,
@@ -50,7 +50,7 @@ struct BMFace *BKE_bmbvh_ray_cast(BMBVHTree *tree,
                                   float r_hitout[3],
                                   float r_cagehit[3]);
 
-struct BMFace *BKE_bmbvh_ray_cast_filter(BMBVHTree *tree,
+struct BMFace *BKE_bmbvh_ray_cast_filter(const BMBVHTree *tree,
                                          const float co[3],
                                          const float dir[3],
                                          float radius,
@@ -63,8 +63,12 @@ struct BMFace *BKE_bmbvh_ray_cast_filter(BMBVHTree *tree,
 /**
  * Find a vert closest to co in a sphere of radius dist_max.
  */
-struct BMVert *BKE_bmbvh_find_vert_closest(BMBVHTree *tree, const float co[3], float dist_max);
-struct BMFace *BKE_bmbvh_find_face_closest(BMBVHTree *tree, const float co[3], float dist_max);
+struct BMVert *BKE_bmbvh_find_vert_closest(const BMBVHTree *tree,
+                                           const float co[3],
+                                           float dist_max);
+struct BMFace *BKE_bmbvh_find_face_closest(const BMBVHTree *tree,
+                                           const float co[3],
+                                           float dist_max);
 
 /**
  * Overlap indices reference the looptris.

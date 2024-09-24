@@ -1825,7 +1825,7 @@ BMElem *EDBM_elem_from_index_any_multi(const Scene *scene,
  * \{ */
 
 static BMFace *edge_ray_cast(
-    BMBVHTree *tree, const float co[3], const float dir[3], float *r_hitout, BMEdge *e)
+    const BMBVHTree *tree, const float co[3], const float dir[3], float *r_hitout, const BMEdge *e)
 {
   BMFace *f = BKE_bmbvh_ray_cast(tree, co, dir, 0.0f, nullptr, r_hitout, nullptr);
 
@@ -1843,8 +1843,12 @@ static void scale_point(float c1[3], const float p[3], const float s)
   add_v3_v3(c1, p);
 }
 
-bool BMBVH_EdgeVisible(
-    BMBVHTree *tree, BMEdge *e, Depsgraph *depsgraph, ARegion *region, View3D *v3d, Object *obedit)
+bool BMBVH_EdgeVisible(const BMBVHTree *tree,
+                       const BMEdge *e,
+                       const Depsgraph *depsgraph,
+                       const ARegion *region,
+                       const View3D *v3d,
+                       const Object *obedit)
 {
   BMFace *f;
   float co1[3], co2[3], co3[3], dir1[3], dir2[3], dir3[3];
