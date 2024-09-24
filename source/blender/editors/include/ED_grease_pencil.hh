@@ -81,11 +81,19 @@ void ED_undosys_type_grease_pencil(UndoType *undo_type);
 /**
  * Get the selection mode for Grease Pencil selection operators: point, stroke, segment.
  */
-blender::bke::AttrDomain ED_grease_pencil_selection_domain_get(const ToolSettings *tool_settings);
+blender::bke::AttrDomain ED_grease_pencil_edit_selection_domain_get(
+    const ToolSettings *tool_settings);
+blender::bke::AttrDomain ED_grease_pencil_sculpt_selection_domain_get(
+    const ToolSettings *tool_settings);
+blender::bke::AttrDomain ED_grease_pencil_selection_domain_get(const ToolSettings *tool_settings,
+                                                               const Object *object);
 /**
  * True if segment selection is enabled.
  */
-bool ED_grease_pencil_segment_selection_enabled(const ToolSettings *tool_settings);
+bool ED_grease_pencil_edit_segment_selection_enabled(const ToolSettings *tool_settings);
+bool ED_grease_pencil_sculpt_segment_selection_enabled(const ToolSettings *tool_settings);
+bool ED_grease_pencil_segment_selection_enabled(const ToolSettings *tool_settings,
+                                                const Object *object);
 
 /** \} */
 

@@ -1416,9 +1416,21 @@ bool BKE_paint_select_vert_test(const Object *ob)
           (ob->mode & OB_MODE_WEIGHT_PAINT || ob->mode & OB_MODE_VERTEX_PAINT));
 }
 
+bool BKE_paint_select_grease_pencil_test(const Object *ob)
+{
+  if (ob == nullptr || ob->data == nullptr) {
+    return false;
+  }
+  if (ob->type == OB_GREASE_PENCIL) {
+    return (ob->mode & OB_MODE_SCULPT_GPENCIL_LEGACY);
+  }
+  return false;
+}
+
 bool BKE_paint_select_elem_test(const Object *ob)
 {
-  return (BKE_paint_select_vert_test(ob) || BKE_paint_select_face_test(ob));
+  return (BKE_paint_select_vert_test(ob) || BKE_paint_select_face_test(ob) ||
+          BKE_paint_select_grease_pencil_test(ob));
 }
 
 bool BKE_paint_always_hide_test(const Object *ob)

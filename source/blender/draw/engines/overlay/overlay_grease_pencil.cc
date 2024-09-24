@@ -17,26 +17,44 @@
 
 #include "overlay_private.hh"
 
+static void is_selection_visible(bool &r_show_points, bool &r_show_lines)
+{
+  using namespace blender;
+
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const ToolSettings *ts = draw_ctx->scene->toolsettings;
+  const bool in_sculpt_mode = (draw_ctx->object_mode & OB_MODE_SCULPT_GPENCIL_LEGACY) != 0;
+  const bool in_weight_mode = (draw_ctx->object_mode & OB_MODE_WEIGHT_GPENCIL_LEGACY) != 0;
+  const bool flag_show_lines = (draw_ctx->v3d->gp_flag & V3D_GP_SHOW_EDIT_LINES) != 0;
+
+  if (in_weight_mode) {
+    /* Always display points in weight mode. */
+    r_show_points = true;
+    r_show_lines = flag_show_lines;
+    return;
+  }
+
+  if (in_sculpt_mode) {
+    /* Sculpt selection modes are flags and can be disabled individually. */
+    static constexpr int sculpt_point_modes = GP_SCULPT_MASK_SELECTMODE_POINT |
+                                              GP_SCULPT_MASK_SELECTMODE_SEGMENT;
+    r_show_points = (ts->gpencil_selectmode_sculpt & sculpt_point_modes) != 0;
+    r_show_lines = flag_show_lines && (ts->gpencil_selectmode_sculpt != 0);
+    return;
+  }
+
+  /* Edit selection modes are exclusive. */
+  r_show_points = ELEM(ts->gpencil_selectmode_edit, GP_SELECTMODE_POINT, GP_SELECTMODE_SEGMENT);
+  r_show_lines = flag_show_lines;
+}
+
 void OVERLAY_edit_grease_pencil_cache_init(OVERLAY_Data *vedata)
 {
   using namespace blender;
   OVERLAY_PassList *psl = vedata->psl;
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const ToolSettings *ts = draw_ctx->scene->toolsettings;
-  const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(ts);
-  const View3D *v3d = draw_ctx->v3d;
   const bool use_weight = (draw_ctx->object_mode & OB_MODE_WEIGHT_GPENCIL_LEGACY) != 0;
-  const bool in_sculpt_mode = (draw_ctx->object_mode & OB_MODE_SCULPT_GPENCIL_LEGACY) != 0;
-
-  const bool flag_show_lines = (v3d->gp_flag & V3D_GP_SHOW_EDIT_LINES) != 0;
-  const bool edit_point = selection_domain == bke::AttrDomain::Point;
-  const bool sculpt_point = (ts->gpencil_selectmode_sculpt & GP_SCULPT_MASK_SELECTMODE_POINT) != 0;
-  const bool sculpt_stroke = (ts->gpencil_selectmode_sculpt & GP_SCULPT_MASK_SELECTMODE_STROKE) !=
-                             0;
-  const bool sculpt_segment = (ts->gpencil_selectmode_sculpt &
-                               GP_SCULPT_MASK_SELECTMODE_SEGMENT) != 0;
-  const bool sculpt_any = sculpt_point || sculpt_stroke || sculpt_segment;
 
   GPUShader *sh;
   DRWShadingGroup *grp;
@@ -45,9 +63,9 @@ void OVERLAY_edit_grease_pencil_cache_init(OVERLAY_Data *vedata)
                    DRW_STATE_BLEND_ALPHA;
   DRW_PASS_CREATE(psl->edit_grease_pencil_ps, (state | pd->clipping_state));
 
-  const bool show_points = (edit_point && !in_sculpt_mode) || (in_sculpt_mode && sculpt_point) ||
-                           use_weight;
-  const bool show_lines = flag_show_lines && (sculpt_any || !in_sculpt_mode);
+  bool show_points = false;
+  bool show_lines = false;
+  is_selection_visible(show_points, show_lines);
 
   if (show_lines) {
     sh = OVERLAY_shader_edit_particle_strand();

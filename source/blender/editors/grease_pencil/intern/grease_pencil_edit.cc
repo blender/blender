@@ -463,7 +463,7 @@ static int grease_pencil_delete_exec(bContext *C, wmOperator * /*op*/)
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
-  const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
+  const bke::AttrDomain selection_domain = ED_grease_pencil_edit_selection_domain_get(
       scene->toolsettings);
 
   bool changed = false;
@@ -1318,7 +1318,7 @@ static int grease_pencil_duplicate_exec(bContext *C, wmOperator * /*op*/)
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
-  const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
+  const bke::AttrDomain selection_domain = ED_grease_pencil_edit_selection_domain_get(
       scene->toolsettings);
 
   std::atomic<bool> changed = false;
@@ -1437,7 +1437,7 @@ static int gpencil_stroke_subdivide_exec(bContext *C, wmOperator *op)
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
-  const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
+  const bke::AttrDomain selection_domain = ED_grease_pencil_edit_selection_domain_get(
       scene->toolsettings);
 
   const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
@@ -2210,7 +2210,7 @@ static int grease_pencil_paste_strokes_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   const Scene &scene = *CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
-  const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
+  const bke::AttrDomain selection_domain = ED_grease_pencil_edit_selection_domain_get(
       scene.toolsettings);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
   const bool keep_world_transform = RNA_boolean_get(op->ptr, "keep_world_transform");
@@ -2289,7 +2289,7 @@ static int grease_pencil_copy_strokes_exec(bContext *C, wmOperator *op)
   const Scene *scene = CTX_data_scene(C);
   const Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
-  const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
+  const bke::AttrDomain selection_domain = ED_grease_pencil_edit_selection_domain_get(
       scene->toolsettings);
 
   Clipboard &clipboard = ensure_grease_pencil_clipboard();
@@ -2773,7 +2773,7 @@ static int grease_pencil_reproject_exec(bContext *C, wmOperator *op)
     ED_view3d_depth_override(depsgraph, region, v3d, nullptr, V3D_DEPTH_NO_GPENCIL, &view_depths);
   }
 
-  const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
+  const bke::AttrDomain selection_domain = ED_grease_pencil_edit_selection_domain_get(
       scene.toolsettings);
 
   const int oldframe = int(DEG_get_ctime(depsgraph));

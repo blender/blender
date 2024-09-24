@@ -54,11 +54,10 @@ class GreasePencil {
 
     const View3D *v3d = state.v3d;
     const ToolSettings *ts = state.scene->toolsettings;
-    const int sculpt_select_mode = ts->gpencil_selectmode_sculpt;
 
-    const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(ts);
-    const bool show_edit_point = selection_domain == bke::AttrDomain::Point;
-    const bool show_edit_lines = (v3d->gp_flag & V3D_GP_SHOW_EDIT_LINES);
+    const bke::AttrDomain selection_domain_edit = ED_grease_pencil_edit_selection_domain_get(ts);
+    const bool show_edit_point = selection_domain_edit == bke::AttrDomain::Point;
+    const bool show_lines = (v3d->gp_flag & V3D_GP_SHOW_EDIT_LINES);
 
     show_points_ = show_lines_ = show_weight_ = false;
 
@@ -72,18 +71,18 @@ class GreasePencil {
       case OB_MODE_EDIT:
         /* Edit mode. */
         show_points_ = show_edit_point;
-        show_lines_ = show_edit_lines;
+        show_lines_ = show_lines;
         break;
       case OB_MODE_WEIGHT_GPENCIL_LEGACY:
         /* Weight paint mode. */
         show_points_ = true;
-        show_lines_ = show_edit_lines;
+        show_lines_ = show_lines;
         show_weight_ = true;
         break;
       case OB_MODE_SCULPT_GPENCIL_LEGACY:
         /* Sculpt mode. */
-        show_points_ = sculpt_select_mode & GP_SCULPT_MASK_SELECTMODE_POINT;
-        show_lines_ = show_edit_lines && (sculpt_select_mode != 0);
+        show_points_ = (selection_domain_edit == bke::AttrDomain::Point);
+        show_lines_ = show_lines && (ts->gpencil_selectmode_sculpt != 0);
         break;
       default:
         /* Not a Grease Pencil mode. */

@@ -212,15 +212,16 @@ bool selection_update(const ViewContext *vc,
                       SelectionUpdateFunc select_operation)
 {
   using namespace blender;
-  const Object *ob_eval = DEG_get_evaluated_object(vc->depsgraph,
-                                                   const_cast<Object *>(vc->obedit));
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(vc->obedit->data);
+
+  Object *object = (vc->obedit ? vc->obedit : vc->obact);
+  const Object *ob_eval = DEG_get_evaluated_object(vc->depsgraph, object);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
   /* Get selection domain from tool settings. */
   const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
-      vc->scene->toolsettings);
+      vc->scene->toolsettings, object);
   const bool use_segment_selection = ED_grease_pencil_segment_selection_enabled(
-      vc->scene->toolsettings);
+      vc->scene->toolsettings, object);
 
   bool changed = false;
   const Array<Vector<ed::greasepencil::MutableDrawingInfo>> drawings_by_frame =
@@ -252,7 +253,7 @@ bool selection_update(const ViewContext *vc,
 
       IndexMaskMemory memory;
       const IndexMask elements = ed::greasepencil::retrieve_editable_elements(
-          *vc->obedit, info, selection_domain, memory);
+          *object, info, selection_domain, memory);
       if (elements.is_empty()) {
         continue;
       }
@@ -300,8 +301,8 @@ bool selection_update(const ViewContext *vc,
   if (changed) {
     /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
      * generic attribute for now. */
-    DEG_id_tag_update(static_cast<ID *>(vc->obedit->data), ID_RECALC_GEOMETRY);
-    WM_event_add_notifier(vc->C, NC_GEOM | ND_DATA, vc->obedit->data);
+    DEG_id_tag_update(static_cast<ID *>(object->data), ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(vc->C, NC_GEOM | ND_DATA, object->data);
   }
 
   return changed;
@@ -315,7 +316,8 @@ static int select_all_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
-  bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(scene->toolsettings);
+  bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(scene->toolsettings,
+                                                                           object);
 
   const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
@@ -468,7 +470,8 @@ static int select_random_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
-  bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(scene->toolsettings);
+  bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(scene->toolsettings,
+                                                                           object);
   const ViewContext vc = ED_view3d_viewcontext_init(C, CTX_data_depsgraph_pointer(C));
 
   /* Note: For segment selection this doesn't work very well, because it is based on random point
@@ -629,8 +632,8 @@ static int select_set_mode_exec(bContext *C, wmOperator *op)
   ts->gpencil_selectmode_edit = mode_new;
 
   /* Convert all drawings of the active GP to the new selection domain. */
-  const bke::AttrDomain domain = ED_grease_pencil_selection_domain_get(ts);
   Object *object = CTX_data_active_object(C);
+  const bke::AttrDomain domain = ED_grease_pencil_selection_domain_get(ts, object);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
   Span<GreasePencilDrawingBase *> drawings = grease_pencil.drawings();
 
@@ -768,7 +771,8 @@ static void GREASE_PENCIL_OT_material_select(wmOperatorType *ot)
 
 }  // namespace blender::ed::greasepencil
 
-blender::bke::AttrDomain ED_grease_pencil_selection_domain_get(const ToolSettings *tool_settings)
+blender::bke::AttrDomain ED_grease_pencil_edit_selection_domain_get(
+    const ToolSettings *tool_settings)
 {
   switch (tool_settings->gpencil_selectmode_edit) {
     case GP_SELECTMODE_POINT:
@@ -781,9 +785,51 @@ blender::bke::AttrDomain ED_grease_pencil_selection_domain_get(const ToolSetting
   return blender::bke::AttrDomain::Point;
 }
 
-bool ED_grease_pencil_segment_selection_enabled(const ToolSettings *tool_settings)
+blender::bke::AttrDomain ED_grease_pencil_sculpt_selection_domain_get(
+    const ToolSettings *tool_settings)
+{
+  const int selectmode = tool_settings->gpencil_selectmode_sculpt;
+  if (selectmode & (GP_SCULPT_MASK_SELECTMODE_POINT | GP_SCULPT_MASK_SELECTMODE_SEGMENT)) {
+    return blender::bke::AttrDomain::Point;
+  }
+  if (selectmode & (GP_SCULPT_MASK_SELECTMODE_STROKE)) {
+    return blender::bke::AttrDomain::Curve;
+  }
+  return blender::bke::AttrDomain::Point;
+}
+
+blender::bke::AttrDomain ED_grease_pencil_selection_domain_get(const ToolSettings *tool_settings,
+                                                               const Object *object)
+{
+  if (object->mode & OB_MODE_EDIT) {
+    return ED_grease_pencil_edit_selection_domain_get(tool_settings);
+  }
+  if (object->mode & OB_MODE_SCULPT_GPENCIL_LEGACY) {
+    return ED_grease_pencil_sculpt_selection_domain_get(tool_settings);
+  }
+  return blender::bke::AttrDomain::Point;
+}
+
+bool ED_grease_pencil_edit_segment_selection_enabled(const ToolSettings *tool_settings)
 {
   return tool_settings->gpencil_selectmode_edit == GP_SELECTMODE_SEGMENT;
+}
+
+bool ED_grease_pencil_sculpt_segment_selection_enabled(const ToolSettings *tool_settings)
+{
+  return tool_settings->gpencil_selectmode_sculpt & GP_SCULPT_MASK_SELECTMODE_SEGMENT;
+}
+
+bool ED_grease_pencil_segment_selection_enabled(const ToolSettings *tool_settings,
+                                                const Object *object)
+{
+  if (object->mode & OB_MODE_EDIT) {
+    return ED_grease_pencil_edit_segment_selection_enabled(tool_settings);
+  }
+  if (object->mode & OB_MODE_SCULPT_GPENCIL_LEGACY) {
+    return ED_grease_pencil_sculpt_segment_selection_enabled(tool_settings);
+  }
+  return false;
 }
 
 void ED_operatortypes_grease_pencil_select()

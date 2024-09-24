@@ -1095,7 +1095,8 @@ static void vgroup_select_verts(const ToolSettings &tool_settings, Object *ob, i
     }
   }
   else if (ob->type == OB_GREASE_PENCIL) {
-    const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(&tool_settings);
+    const bke::AttrDomain selection_domain = ED_grease_pencil_edit_selection_domain_get(
+        &tool_settings);
     GreasePencil *grease_pencil = static_cast<GreasePencil *>(ob->data);
     bke::greasepencil::select_from_group(
         *grease_pencil, selection_domain, def_group->name, bool(select));

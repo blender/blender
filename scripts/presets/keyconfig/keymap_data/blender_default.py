@@ -4777,6 +4777,13 @@ def km_grease_pencil_sculpt_mode(params):
          "ctrl": True}, {"properties": [("mode", 'INVERT')]}),
         ("grease_pencil.sculpt_paint", {"type": 'LEFTMOUSE', "value": 'PRESS',
          "shift": True}, {"properties": [("mode", 'SMOOTH')]}),
+        # Selection mode
+        ("wm.context_toggle", {"type": 'ONE', "value": 'PRESS'},
+         {"properties": [("data_path", 'scene.tool_settings.use_gpencil_select_mask_point')]}),
+        ("wm.context_toggle", {"type": 'TWO', "value": 'PRESS'},
+         {"properties": [("data_path", 'scene.tool_settings.use_gpencil_select_mask_stroke')]}),
+        ("wm.context_toggle", {"type": 'THREE', "value": 'PRESS'},
+         {"properties": [("data_path", 'scene.tool_settings.use_gpencil_select_mask_segment')]}),
         *_template_paint_radial_control("gpencil_sculpt_paint"),
         op_asset_shelf_popup(
             "VIEW3D_AST_brush_gpencil_sculpt",

@@ -463,28 +463,20 @@ static bool view3d_selectable_data(bContext *C)
   if (!ED_operator_region_view3d_active(C)) {
     return false;
   }
-
-  if (ob) {
-    if (ob->mode & OB_MODE_EDIT) {
-      if (ob->type == OB_FONT) {
-        return false;
-      }
-    }
-    else {
-      if ((ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_TEXTURE_PAINT)) &&
-          !BKE_paint_select_elem_test(ob))
-      {
-        return false;
-      }
-      if ((ob->mode & OB_MODE_WEIGHT_PAINT) &&
-          !(BKE_paint_select_elem_test(ob) || BKE_object_pose_armature_get_with_wpaint_check(ob)))
-      {
-        return false;
-      }
-    }
+  if (ob == nullptr) {
+    return false;
   }
 
-  return true;
+  if (ob->mode & OB_MODE_EDIT) {
+    return ob->type != OB_FONT;
+  }
+  if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_TEXTURE_PAINT | OB_MODE_SCULPT_GPENCIL_LEGACY)) {
+    return BKE_paint_select_elem_test(ob);
+  }
+  if (ob->mode & OB_MODE_WEIGHT_PAINT) {
+    return BKE_paint_select_elem_test(ob) && BKE_object_pose_armature_get_with_wpaint_check(ob);
+  }
+  return false;
 }
 
 /* helper also for box_select */
@@ -1186,11 +1178,11 @@ static bool do_lasso_select_grease_pencil(const ViewContext *vc,
                                           const eSelectOp sel_op)
 {
   using namespace blender;
-  const Object *ob_eval = DEG_get_evaluated_object(vc->depsgraph,
-                                                   const_cast<Object *>(vc->obedit));
-  const GreasePencil &grease_pencil = *static_cast<GreasePencil *>(vc->obedit->data);
+  Object *object = (vc->obedit ? vc->obedit : vc->obact);
+  const Object *ob_eval = DEG_get_evaluated_object(vc->depsgraph, const_cast<Object *>(object));
+  const GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
   const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
-      vc->scene->toolsettings);
+      vc->scene->toolsettings, object);
 
   return ed::greasepencil::selection_update(
       vc,
@@ -1203,10 +1195,10 @@ static bool do_lasso_select_grease_pencil(const ViewContext *vc,
         const bke::greasepencil::Layer &layer = grease_pencil.layer(info.layer_index);
         const bke::crazyspace::GeometryDeformation deformation =
             bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-                ob_eval, *vc->obedit, info.layer_index, info.frame_number);
+                ob_eval, *object, info.layer_index, info.frame_number);
         const IndexMask visible_handle_elements =
             ed::greasepencil::retrieve_visible_bezier_handle_elements(
-                *vc->obedit, info.drawing, info.layer_index, selection_domain, memory);
+                *object, info.drawing, info.layer_index, selection_domain, memory);
         const float4x4 layer_to_world = layer.to_world_space(*ob_eval);
         const float4x4 projection = ED_view3d_ob_project_mat_get_from_obmat(vc->rv3d,
                                                                             layer_to_world);
@@ -1370,6 +1362,9 @@ static bool view3d_lasso_select(bContext *C,
     }
     else if (BKE_paint_select_vert_test(ob)) {
       changed_multi |= do_lasso_select_paintvert(vc, wm_userdata, mcoords, sel_op);
+    }
+    else if (BKE_paint_select_grease_pencil_test(ob)) {
+      changed_multi |= do_lasso_select_grease_pencil(vc, mcoords, sel_op);
     }
     else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT)) {
       changed_multi |= PE_lasso_select(C,
@@ -3225,16 +3220,17 @@ static bool ed_grease_pencil_select_pick(bContext *C,
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   /* Setup view context for argument to callbacks. */
   const ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
+  Object *object = (vc.obedit ? vc.obedit : vc.obact);
 
   /* Collect editable drawings. */
-  const Object *ob_eval = DEG_get_evaluated_object(vc.depsgraph, const_cast<Object *>(vc.obedit));
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(vc.obedit->data);
+  const Object *ob_eval = DEG_get_evaluated_object(vc.depsgraph, const_cast<Object *>(object));
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
   const Vector<ed::greasepencil::MutableDrawingInfo> drawings =
       ed::greasepencil::retrieve_editable_drawings(*vc.scene, grease_pencil);
 
   /* Get selection domain from tool settings. */
   const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
-      vc.scene->toolsettings);
+      vc.scene->toolsettings, object);
 
   const ClosestGreasePencilDrawing closest = threading::parallel_reduce(
       drawings.index_range(),
@@ -3248,17 +3244,17 @@ static bool ed_grease_pencil_select_pick(bContext *C,
           /* Get deformation by modifiers. */
           bke::crazyspace::GeometryDeformation deformation =
               bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-                  ob_eval, *vc.obedit, info.layer_index, info.frame_number);
+                  ob_eval, *object, info.layer_index, info.frame_number);
 
           IndexMaskMemory memory;
           const IndexMask elements = ed::greasepencil::retrieve_editable_elements(
-              *vc.obedit, info, selection_domain, memory);
+              *object, info, selection_domain, memory);
           if (elements.is_empty()) {
             continue;
           }
           const IndexMask visible_handle_elements =
               ed::greasepencil::retrieve_visible_bezier_handle_elements(
-                  *vc.obedit, info.drawing, info.layer_index, selection_domain, memory);
+                  *object, info.drawing, info.layer_index, selection_domain, memory);
           const bke::CurvesGeometry &curves = info.drawing.strokes();
           const float4x4 layer_to_world = layer.to_world_space(*ob_eval);
           const float4x4 projection = ED_view3d_ob_project_mat_get_from_obmat(vc.rv3d,
@@ -3309,7 +3305,7 @@ static bool ed_grease_pencil_select_pick(bContext *C,
         ed::greasepencil::MutableDrawingInfo info = drawings[i];
         IndexMaskMemory memory;
         const IndexMask elements = ed::greasepencil::retrieve_editable_elements(
-            *vc.obedit, info, selection_domain, memory);
+            *object, info, selection_domain, memory);
         if (elements.is_empty()) {
           continue;
         }
@@ -3469,6 +3465,9 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
   }
   else if (BKE_paint_select_vert_test(obact)) {
     changed = ed_wpaint_vertex_select_pick(C, mval, &params, obact);
+  }
+  else if (BKE_paint_select_grease_pencil_test(obact)) {
+    changed = ed_grease_pencil_select_pick(C, mval, params);
   }
   else {
     changed = ed_object_select_pick(C, mval, &params, center, enumerate, object_only);
@@ -4282,11 +4281,11 @@ static bool do_grease_pencil_box_select(const ViewContext *vc,
                                         const eSelectOp sel_op)
 {
   using namespace blender;
-  const Object *ob_eval = DEG_get_evaluated_object(vc->depsgraph,
-                                                   const_cast<Object *>(vc->obedit));
-  const GreasePencil &grease_pencil = *static_cast<GreasePencil *>(vc->obedit->data);
+  Object *object = (vc->obedit ? vc->obedit : vc->obact);
+  const Object *ob_eval = DEG_get_evaluated_object(vc->depsgraph, const_cast<Object *>(object));
+  const GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
   const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
-      vc->scene->toolsettings);
+      vc->scene->toolsettings, object);
 
   return ed::greasepencil::selection_update(
       vc,
@@ -4299,10 +4298,10 @@ static bool do_grease_pencil_box_select(const ViewContext *vc,
         const bke::greasepencil::Layer &layer = grease_pencil.layer(info.layer_index);
         const bke::crazyspace::GeometryDeformation deformation =
             bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-                ob_eval, *vc->obedit, info.layer_index, info.frame_number);
+                ob_eval, *object, info.layer_index, info.frame_number);
         const IndexMask visible_handle_elements =
             ed::greasepencil::retrieve_visible_bezier_handle_elements(
-                *vc->obedit, info.drawing, info.layer_index, selection_domain, memory);
+                *object, info.drawing, info.layer_index, selection_domain, memory);
         const float4x4 layer_to_world = layer.to_world_space(*ob_eval);
         const float4x4 projection = ED_view3d_ob_project_mat_get_from_obmat(vc->rv3d,
                                                                             layer_to_world);
@@ -4428,6 +4427,9 @@ static int view3d_box_select_exec(bContext *C, wmOperator *op)
     }
     else if (vc.obact && BKE_paint_select_vert_test(vc.obact)) {
       changed_multi = do_paintvert_box_select(&vc, wm_userdata, &rect, sel_op);
+    }
+    else if (vc.obact && BKE_paint_select_grease_pencil_test(vc.obact)) {
+      changed_multi = do_grease_pencil_box_select(&vc, &rect, sel_op);
     }
     else if (vc.obact && vc.obact->mode & OB_MODE_PARTICLE_EDIT) {
       changed_multi = PE_box_select(C, &rect, sel_op);
@@ -5146,11 +5148,11 @@ static bool grease_pencil_circle_select(const ViewContext *vc,
                                         const float rad)
 {
   using namespace blender;
-  const Object *ob_eval = DEG_get_evaluated_object(vc->depsgraph,
-                                                   const_cast<Object *>(vc->obedit));
-  const GreasePencil &grease_pencil = *static_cast<GreasePencil *>(vc->obedit->data);
+  Object *object = (vc->obedit ? vc->obedit : vc->obact);
+  const Object *ob_eval = DEG_get_evaluated_object(vc->depsgraph, const_cast<Object *>(object));
+  const GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
   const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
-      vc->scene->toolsettings);
+      vc->scene->toolsettings, object);
 
   return ed::greasepencil::selection_update(
       vc,
@@ -5163,10 +5165,10 @@ static bool grease_pencil_circle_select(const ViewContext *vc,
         const bke::greasepencil::Layer &layer = grease_pencil.layer(info.layer_index);
         const bke::crazyspace::GeometryDeformation deformation =
             bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-                ob_eval, *vc->obedit, info.layer_index, info.frame_number);
+                ob_eval, *object, info.layer_index, info.frame_number);
         const IndexMask visible_handle_elements =
             ed::greasepencil::retrieve_visible_bezier_handle_elements(
-                *vc->obedit, info.drawing, info.layer_index, selection_domain, memory);
+                *object, info.drawing, info.layer_index, selection_domain, memory);
         const float4x4 layer_to_world = layer.to_world_space(*ob_eval);
         const float4x4 projection = ED_view3d_ob_project_mat_get_from_obmat(vc->rv3d,
                                                                             layer_to_world);
@@ -5391,6 +5393,9 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
       }
       else if (BKE_paint_select_vert_test(obact)) {
         paint_vertsel_circle_select(&vc, wm_userdata, sel_op, mval, float(radius));
+      }
+      else if (BKE_paint_select_grease_pencil_test(obact)) {
+        grease_pencil_circle_select(&vc, sel_op, mval, float(radius));
       }
       else if (obact->mode & OB_MODE_POSE) {
         pose_circle_select(&vc, sel_op, mval, float(radius));
