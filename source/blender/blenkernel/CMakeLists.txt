@@ -391,7 +391,7 @@ set(SRC
   BKE_dynamicpaint.h
   BKE_editlattice.h
   BKE_editmesh.hh
-  BKE_editmesh_bvh.h
+  BKE_editmesh_bvh.hh
   BKE_editmesh_cache.hh
   BKE_editmesh_tangent.hh
   BKE_effect.h
