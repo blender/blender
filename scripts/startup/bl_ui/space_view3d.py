@@ -4082,6 +4082,14 @@ class VIEW3D_MT_mask(Menu):
         props = layout.operator("sculpt.mask_from_cavity", text="Mask from Cavity")
         props.settings_source = 'OPERATOR'
 
+        props = layout.operator("sculpt.mask_from_boundary", text="Mask from Mesh Boundary")
+        props.settings_source = 'OPERATOR'
+        props.boundary_mode = 'MESH'
+
+        props = layout.operator("sculpt.mask_from_boundary", text="Mask from Face Sets Boundary")
+        props.settings_source = 'OPERATOR'
+        props.boundary_mode = 'FACE_SETS'
+
         layout.separator()
 
         layout.menu("VIEW3D_MT_random_mask", text="Random Mask")
@@ -9255,8 +9263,21 @@ class VIEW3D_PT_sculpt_automasking(Panel):
         col.separator()
 
         col = layout.column(align=True)
-        col.prop(sculpt, "use_automasking_boundary_edges", text="Mesh Boundary")
-        col.prop(sculpt, "use_automasking_boundary_face_sets", text="Face Sets Boundary")
+        row = col.row()
+        row.prop(sculpt, "use_automasking_boundary_edges", text="Mesh Boundary")
+
+        if sculpt.use_automasking_boundary_edges:
+            props = row.operator("sculpt.mask_from_boundary", text="Create Mask")
+            props.settings_source = 'SCENE'
+            props.boundary_mode = 'MESH'
+
+        row = col.row()
+        row.prop(sculpt, "use_automasking_boundary_face_sets", text="Face Sets Boundary")
+
+        if sculpt.use_automasking_boundary_face_sets:
+            props = row.operator("sculpt.mask_from_boundary", text="Create Mask")
+            props.settings_source = 'SCENE'
+            props.boundary_mode = 'FACE_SETS'
 
         if sculpt.use_automasking_boundary_edges or sculpt.use_automasking_boundary_face_sets:
             col.prop(sculpt, "automasking_boundary_edges_propagation_steps")

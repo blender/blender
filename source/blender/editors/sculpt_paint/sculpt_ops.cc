@@ -73,6 +73,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
+#include "CLG_log.h"
 #include "bmesh.hh"
 
 #include <cmath>
@@ -897,7 +898,26 @@ enum class ApplyMaskMode : int8_t {
   Subtract,
 };
 
+static EnumPropertyItem mix_modes[] = {
+    {int(ApplyMaskMode::Mix), "MIX", ICON_NONE, "Mix", ""},
+    {int(ApplyMaskMode::Multiply), "MULTIPLY", ICON_NONE, "Multiply", ""},
+    {int(ApplyMaskMode::Divide), "DIVIDE", ICON_NONE, "Divide", ""},
+    {int(ApplyMaskMode::Add), "ADD", ICON_NONE, "Add", ""},
+    {int(ApplyMaskMode::Subtract), "SUBTRACT", ICON_NONE, "Subtract", ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 enum class MaskSettingsSource : int8_t { Operator, Scene, Brush };
+
+static EnumPropertyItem settings_sources[] = {
+    {int(MaskSettingsSource::Operator),
+     "OPERATOR",
+     ICON_NONE,
+     "Operator",
+     "Use settings from operator properties"},
+    {int(MaskSettingsSource::Brush), "BRUSH", ICON_NONE, "Brush", "Use settings from brush"},
+    {int(MaskSettingsSource::Scene), "SCENE", ICON_NONE, "Scene", "Use settings from scene"},
+    {0, nullptr, 0, nullptr, nullptr}};
 
 struct LocalData {
   Vector<float> mask;
@@ -941,6 +961,7 @@ static void apply_mask_mesh(const Depsgraph &depsgraph,
                             const auto_mask::Cache &automasking,
                             const ApplyMaskMode mode,
                             const float factor,
+                            const bool invert_automask,
                             const bke::pbvh::MeshNode &node,
                             LocalData &tls,
                             const MutableSpan<float> mask)
@@ -958,6 +979,10 @@ static void apply_mask_mesh(const Depsgraph &depsgraph,
   new_mask.fill(1.0f);
   auto_mask::calc_vert_factors(depsgraph, object, automasking, node, verts, new_mask);
 
+  if (invert_automask) {
+    mask::invert_mask(new_mask);
+  }
+
   tls.mask.resize(verts.size());
   const MutableSpan<float> node_mask = tls.mask;
   gather_data_mesh(mask.as_span(), verts, node_mask);
@@ -973,6 +998,7 @@ static void apply_mask_grids(const Depsgraph &depsgraph,
                              const auto_mask::Cache &automasking,
                              const ApplyMaskMode mode,
                              const float factor,
+                             const bool invert_automask,
                              const bke::pbvh::GridsNode &node,
                              LocalData &tls)
 {
@@ -993,6 +1019,10 @@ static void apply_mask_grids(const Depsgraph &depsgraph,
   new_mask.fill(1.0f);
   auto_mask::calc_grids_factors(depsgraph, object, automasking, node, grids, new_mask);
 
+  if (invert_automask) {
+    mask::invert_mask(new_mask);
+  }
+
   tls.mask.resize(grid_verts_num);
   const MutableSpan<float> node_mask = tls.mask;
   gather_mask_grids(subdiv_ccg, grids, node_mask);
@@ -1008,6 +1038,7 @@ static void apply_mask_bmesh(const Depsgraph &depsgraph,
                              const auto_mask::Cache &automasking,
                              const ApplyMaskMode mode,
                              const float factor,
+                             const float invert_automask,
                              bke::pbvh::BMeshNode &node,
                              LocalData &tls)
 {
@@ -1024,6 +1055,10 @@ static void apply_mask_bmesh(const Depsgraph &depsgraph,
   new_mask.fill(1.0f);
   auto_mask::calc_vert_factors(depsgraph, object, automasking, node, verts, new_mask);
 
+  if (invert_automask) {
+    mask::invert_mask(new_mask);
+  }
+
   tls.mask.resize(verts.size());
   const MutableSpan<float> node_mask = tls.mask;
   gather_mask_bmesh(*ss.bm, verts, node_mask);
@@ -1032,6 +1067,73 @@ static void apply_mask_bmesh(const Depsgraph &depsgraph,
   mix_new_masks(new_mask, factors, node_mask);
 
   scatter_mask_bmesh(node_mask.as_span(), *ss.bm, verts);
+}
+
+static void apply_mask_from_settings(const Depsgraph &depsgraph,
+                                     Object &object,
+                                     bke::pbvh::Tree &pbvh,
+                                     const IndexMask &node_mask,
+                                     const auto_mask::Cache &automasking,
+                                     const ApplyMaskMode mode,
+                                     const float factor,
+                                     const bool invert_automask)
+{
+  threading::EnumerableThreadSpecific<LocalData> all_tls;
+  switch (pbvh.type()) {
+    case bke::pbvh::Type::Mesh: {
+      Mesh &mesh = *static_cast<Mesh *>(object.data);
+      bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+      bke::SpanAttributeWriter mask = attributes.lookup_or_add_for_write_span<float>(
+          ".sculpt_mask", bke::AttrDomain::Point);
+      MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
+      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+        LocalData &tls = all_tls.local();
+        node_mask.slice(range).foreach_index([&](const int i) {
+          apply_mask_mesh(depsgraph,
+                          object,
+                          automasking,
+                          mode,
+                          factor,
+                          invert_automask,
+                          nodes[i],
+                          tls,
+                          mask.span);
+          bke::pbvh::node_update_mask_mesh(mask.span, nodes[i]);
+        });
+      });
+      mask.finish();
+      break;
+    }
+    case bke::pbvh::Type::Grids: {
+      SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+      const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+      MutableSpan<float> masks = subdiv_ccg.masks;
+      MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
+      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+        LocalData &tls = all_tls.local();
+        node_mask.slice(range).foreach_index([&](const int i) {
+          apply_mask_grids(
+              depsgraph, object, automasking, mode, factor, invert_automask, nodes[i], tls);
+          bke::pbvh::node_update_mask_grids(key, masks, nodes[i]);
+        });
+      });
+      break;
+    }
+    case bke::pbvh::Type::BMesh: {
+      const int mask_offset = CustomData_get_offset_named(
+          &object.sculpt->bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
+      MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
+      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+        LocalData &tls = all_tls.local();
+        node_mask.slice(range).foreach_index([&](const int i) {
+          apply_mask_bmesh(
+              depsgraph, object, automasking, mode, factor, invert_automask, nodes[i], tls);
+          bke::pbvh::node_update_mask_bmesh(mask_offset, nodes[i]);
+        });
+      });
+      break;
+    }
+  }
 }
 
 static int mask_from_cavity_exec(bContext *C, wmOperator *op)
@@ -1053,8 +1155,6 @@ static int mask_from_cavity_exec(bContext *C, wmOperator *op)
 
   BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
   SCULPT_vertex_random_access_ensure(ob);
-
-  undo::push_begin(scene, ob, op);
 
   const ApplyMaskMode mode = ApplyMaskMode(RNA_enum_get(op->ptr, "mix_mode"));
   const float factor = RNA_float_get(op->ptr, "mix_factor");
@@ -1128,54 +1228,14 @@ static int mask_from_cavity_exec(bContext *C, wmOperator *op)
   std::unique_ptr<auto_mask::Cache> automasking = auto_mask::cache_init(
       *depsgraph, scene_copy, &brush_copy, ob);
 
+  if (!automasking) {
+    return OPERATOR_CANCELLED;
+  }
+
+  undo::push_begin(scene, ob, op);
   undo::push_nodes(*depsgraph, ob, node_mask, undo::Type::Mask);
 
-  threading::EnumerableThreadSpecific<LocalData> all_tls;
-  switch (pbvh.type()) {
-    case bke::pbvh::Type::Mesh: {
-      Mesh &mesh = *static_cast<Mesh *>(ob.data);
-      bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
-      bke::SpanAttributeWriter mask = attributes.lookup_or_add_for_write_span<float>(
-          ".sculpt_mask", bke::AttrDomain::Point);
-      MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
-        LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          apply_mask_mesh(*depsgraph, ob, *automasking, mode, factor, nodes[i], tls, mask.span);
-          bke::pbvh::node_update_mask_mesh(mask.span, nodes[i]);
-        });
-      });
-      mask.finish();
-      break;
-    }
-    case bke::pbvh::Type::Grids: {
-      SubdivCCG &subdiv_ccg = *ob.sculpt->subdiv_ccg;
-      const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-      MutableSpan<float> masks = subdiv_ccg.masks;
-      MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
-        LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          apply_mask_grids(*depsgraph, ob, *automasking, mode, factor, nodes[i], tls);
-          bke::pbvh::node_update_mask_grids(key, masks, nodes[i]);
-        });
-      });
-      break;
-    }
-    case bke::pbvh::Type::BMesh: {
-      const int mask_offset = CustomData_get_offset_named(
-          &ob.sculpt->bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
-      MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
-        LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          apply_mask_bmesh(*depsgraph, ob, *automasking, mode, factor, nodes[i], tls);
-          bke::pbvh::node_update_mask_bmesh(mask_offset, nodes[i]);
-        });
-      });
-      break;
-    }
-  }
+  apply_mask_from_settings(*depsgraph, ob, pbvh, node_mask, *automasking, mode, factor, false);
 
   undo::push_end(ob);
 
@@ -1204,7 +1264,6 @@ static void mask_from_cavity_ui(bContext *C, wmOperator *op)
     case MaskSettingsSource::Operator: {
       uiItemR(layout, op->ptr, "mix_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
       uiItemR(layout, op->ptr, "mix_factor", UI_ITEM_NONE, nullptr, ICON_NONE);
-      uiItemR(layout, op->ptr, "settings_source", UI_ITEM_NONE, nullptr, ICON_NONE);
       uiItemR(layout, op->ptr, "factor", UI_ITEM_NONE, nullptr, ICON_NONE);
       uiItemR(layout, op->ptr, "blur_steps", UI_ITEM_NONE, nullptr, ICON_NONE);
       uiItemR(layout, op->ptr, "invert", UI_ITEM_NONE, nullptr, ICON_NONE);
@@ -1221,7 +1280,6 @@ static void mask_from_cavity_ui(bContext *C, wmOperator *op)
     case MaskSettingsSource::Scene:
       uiItemR(layout, op->ptr, "mix_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
       uiItemR(layout, op->ptr, "mix_factor", UI_ITEM_NONE, nullptr, ICON_NONE);
-      uiItemR(layout, op->ptr, "settings_source", UI_ITEM_NONE, nullptr, ICON_NONE);
 
       break;
   }
@@ -1232,17 +1290,8 @@ static void SCULPT_OT_mask_from_cavity(wmOperatorType *ot)
   ot->name = "Mask From Cavity";
   ot->idname = "SCULPT_OT_mask_from_cavity";
   ot->description = "Creates a mask based on the curvature of the surface";
+
   ot->ui = mask_from_cavity_ui;
-
-  static EnumPropertyItem mix_modes[] = {
-      {int(ApplyMaskMode::Mix), "MIX", ICON_NONE, "Mix", ""},
-      {int(ApplyMaskMode::Multiply), "MULTIPLY", ICON_NONE, "Multiply", ""},
-      {int(ApplyMaskMode::Divide), "DIVIDE", ICON_NONE, "Divide", ""},
-      {int(ApplyMaskMode::Add), "ADD", ICON_NONE, "Add", ""},
-      {int(ApplyMaskMode::Subtract), "SUBTRACT", ICON_NONE, "Subtract", ""},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
   ot->exec = mask_from_cavity_exec;
   ot->poll = SCULPT_mode_poll;
 
@@ -1250,24 +1299,12 @@ static void SCULPT_OT_mask_from_cavity(wmOperatorType *ot)
 
   RNA_def_enum(ot->srna, "mix_mode", mix_modes, int(ApplyMaskMode::Mix), "Mode", "Mix mode");
   RNA_def_float(ot->srna, "mix_factor", 1.0f, 0.0f, 5.0f, "Mix Factor", "", 0.0f, 1.0f);
-
-  static EnumPropertyItem settings_sources[] = {
-      {int(MaskSettingsSource::Operator),
-       "OPERATOR",
-       ICON_NONE,
-       "Operator",
-       "Use settings from operator properties"},
-      {int(MaskSettingsSource::Brush), "BRUSH", ICON_NONE, "Brush", "Use settings from brush"},
-      {int(MaskSettingsSource::Scene), "SCENE", ICON_NONE, "Scene", "Use settings from scene"},
-      {0, nullptr, 0, nullptr, nullptr}};
-
   RNA_def_enum(ot->srna,
                "settings_source",
                settings_sources,
                int(MaskSettingsSource::Operator),
                "Settings",
                "Use settings from here");
-
   RNA_def_float(ot->srna,
                 "factor",
                 0.5f,
@@ -1287,8 +1324,181 @@ static void SCULPT_OT_mask_from_cavity(wmOperatorType *ot)
               0,
               25);
   RNA_def_boolean(ot->srna, "use_curve", false, "Custom Curve", "");
-
   RNA_def_boolean(ot->srna, "invert", false, "Cavity (Inverted)", "");
+}
+
+enum class MaskBoundaryMode : int8_t { Mesh, FaceSets };
+
+static int mask_from_boundary_exec(bContext *C, wmOperator *op)
+{
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Object &ob = *CTX_data_active_object(C);
+  const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
+  const Scene &scene = *CTX_data_scene(C);
+  const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
+
+  const View3D *v3d = CTX_wm_view3d(C);
+  const Base *base = CTX_data_active_base(C);
+  if (!BKE_base_is_visible(v3d, base)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  MultiresModifierData *mmd = BKE_sculpt_multires_active(CTX_data_scene(C), &ob);
+  BKE_sculpt_mask_layers_ensure(depsgraph, CTX_data_main(C), &ob, mmd);
+
+  BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
+  SCULPT_vertex_random_access_ensure(ob);
+
+  const ApplyMaskMode mode = ApplyMaskMode(RNA_enum_get(op->ptr, "mix_mode"));
+  const float factor = RNA_float_get(op->ptr, "mix_factor");
+
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
+
+  IndexMaskMemory memory;
+  const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
+
+  /* Set up automasking settings. */
+  Sculpt scene_copy = sd;
+
+  MaskSettingsSource src = (MaskSettingsSource)RNA_enum_get(op->ptr, "settings_source");
+  switch (src) {
+    case MaskSettingsSource::Operator: {
+      const MaskBoundaryMode boundary_mode = MaskBoundaryMode(
+          RNA_enum_get(op->ptr, "boundary_mode"));
+      switch (boundary_mode) {
+        case MaskBoundaryMode::Mesh:
+          scene_copy.automasking_flags = BRUSH_AUTOMASKING_BOUNDARY_EDGES;
+          break;
+        case MaskBoundaryMode::FaceSets:
+          scene_copy.automasking_flags = BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS;
+          break;
+      }
+      scene_copy.automasking_boundary_edges_propagation_steps = RNA_int_get(op->ptr,
+                                                                            "propagation_steps");
+      break;
+    }
+    case MaskSettingsSource::Brush:
+      if (brush) {
+        scene_copy.automasking_flags = brush->automasking_flags;
+        scene_copy.automasking_boundary_edges_propagation_steps =
+            brush->automasking_boundary_edges_propagation_steps;
+
+        scene_copy.automasking_flags &= BRUSH_AUTOMASKING_BOUNDARY_EDGES |
+                                        BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS;
+      }
+      else {
+        scene_copy.automasking_flags = 0;
+        BKE_report(op->reports, RPT_WARNING, "No active brush");
+
+        return OPERATOR_CANCELLED;
+      }
+
+      break;
+    case MaskSettingsSource::Scene:
+      scene_copy.automasking_flags &= BRUSH_AUTOMASKING_BOUNDARY_EDGES |
+                                      BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS;
+      break;
+  }
+
+  /* Create copy of brush with cleared automasking settings. */
+  Brush brush_copy = dna::shallow_copy(*brush);
+  /* Set a brush type that doesn't change topology so automasking isn't "disabled". */
+  brush_copy.sculpt_brush_type = SCULPT_BRUSH_TYPE_SMOOTH;
+  brush_copy.automasking_flags = 0;
+  brush_copy.automasking_boundary_edges_propagation_steps = 1;
+
+  std::unique_ptr<auto_mask::Cache> automasking = auto_mask::cache_init(
+      *depsgraph, scene_copy, &brush_copy, ob);
+
+  if (!automasking) {
+    return OPERATOR_CANCELLED;
+  }
+
+  undo::push_begin(scene, ob, op);
+  undo::push_nodes(*depsgraph, ob, node_mask, undo::Type::Mask);
+
+  apply_mask_from_settings(*depsgraph, ob, pbvh, node_mask, *automasking, mode, factor, true);
+
+  undo::push_end(ob);
+
+  pbvh.tag_masks_changed(node_mask);
+  flush_update_done(C, ob, UpdateType::Mask);
+  SCULPT_tag_update_overlays(C);
+
+  return OPERATOR_FINISHED;
+}
+
+static void mask_from_boundary_ui(bContext *C, wmOperator *op)
+{
+  uiLayout *layout = op->layout;
+  Scene *scene = CTX_data_scene(C);
+  Sculpt *sd = scene->toolsettings ? scene->toolsettings->sculpt : nullptr;
+
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+  MaskSettingsSource source = (MaskSettingsSource)RNA_enum_get(op->ptr, "settings_source");
+
+  if (!sd) {
+    source = MaskSettingsSource::Operator;
+  }
+
+  switch (source) {
+    case MaskSettingsSource::Operator: {
+      uiItemR(layout, op->ptr, "mix_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "mix_factor", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "boundary_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "propagation_steps", UI_ITEM_NONE, nullptr, ICON_NONE);
+      break;
+    }
+    case MaskSettingsSource::Brush:
+    case MaskSettingsSource::Scene:
+      uiItemR(layout, op->ptr, "mix_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "mix_factor", UI_ITEM_NONE, nullptr, ICON_NONE);
+      break;
+  }
+}
+
+static void SCULPT_OT_mask_from_boundary(wmOperatorType *ot)
+{
+  ot->name = "Mask From Boundary";
+  ot->idname = "SCULPT_OT_mask_from_boundary";
+  ot->description = "Creates a mask based on the boundaries of the surface";
+
+  ot->ui = mask_from_boundary_ui;
+  ot->exec = mask_from_boundary_exec;
+  ot->poll = SCULPT_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_enum(ot->srna, "mix_mode", mix_modes, int(ApplyMaskMode::Mix), "Mode", "Mix mode");
+  RNA_def_float(ot->srna, "mix_factor", 1.0f, 0.0f, 5.0f, "Mix Factor", "", 0.0f, 1.0f);
+  RNA_def_enum(ot->srna,
+               "settings_source",
+               settings_sources,
+               int(MaskSettingsSource::Operator),
+               "Settings",
+               "Use settings from here");
+
+  static EnumPropertyItem mask_boundary_modes[] = {
+      {int(MaskBoundaryMode::Mesh),
+       "MESH",
+       ICON_NONE,
+       "Mesh",
+       "Calculate the boundary mask based on disconnected mesh topology islands"},
+      {int(MaskBoundaryMode::FaceSets),
+       "FACE_SETS",
+       ICON_NONE,
+       "Face Sets",
+       "Calculate the boundary mask between face sets"},
+      {0, nullptr, 0, nullptr, nullptr}};
+
+  RNA_def_enum(ot->srna,
+               "boundary_mode",
+               mask_boundary_modes,
+               int(MaskBoundaryMode::Mesh),
+               "Mode",
+               "Boundary type to mask");
+  RNA_def_int(ot->srna, "propagation_steps", 1, 1, 20, "Propagation Steps", "", 1, 20);
 }
 
 /** \} */
@@ -1332,6 +1542,7 @@ void operatortypes_sculpt()
 
   WM_operatortype_append(expand::SCULPT_OT_expand);
   WM_operatortype_append(mask::SCULPT_OT_mask_from_cavity);
+  WM_operatortype_append(mask::SCULPT_OT_mask_from_boundary);
 }
 
 void keymap_sculpt(wmKeyConfig *keyconf)

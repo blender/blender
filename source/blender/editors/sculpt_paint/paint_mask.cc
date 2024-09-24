@@ -114,6 +114,13 @@ void clamp_mask(const MutableSpan<float> masks)
   }
 }
 
+void invert_mask(const MutableSpan<float> masks)
+{
+  for (float &mask : masks) {
+    mask = 1.0f - mask;
+  }
+}
+
 void gather_mask_bmesh(const BMesh &bm,
                        const Set<BMVert *, 0> &verts,
                        const MutableSpan<float> r_mask)

@@ -1103,8 +1103,21 @@ def brush_settings_advanced(layout, context, brush, popover=False):
         layout.separator()
 
         col = layout.column(align=True)
-        col.prop(brush, "use_automasking_boundary_edges", text="Mesh Boundary")
-        col.prop(brush, "use_automasking_boundary_face_sets", text="Face Sets Boundary")
+        row = col.row()
+        row.prop(brush, "use_automasking_boundary_edges", text="Mesh Boundary")
+
+        if brush.use_automasking_boundary_edges:
+            props = row.operator("sculpt.mask_from_boundary", text="Create Mask")
+            props.settings_source = 'BRUSH'
+            props.boundary_mode = 'MESH'
+
+        row = col.row()
+        row.prop(brush, "use_automasking_boundary_face_sets", text="Face Sets Boundary")
+
+        if brush.use_automasking_boundary_face_sets:
+            props = row.operator("sculpt.mask_from_boundary", text="Create Mask")
+            props.settings_source = 'BRUSH'
+            props.boundary_mode = 'FACE_SETS'
 
         if brush.use_automasking_boundary_edges or brush.use_automasking_boundary_face_sets:
             col = layout.column()
