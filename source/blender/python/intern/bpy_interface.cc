@@ -38,7 +38,7 @@
 #include "bpy_intern_string.h"
 #include "bpy_path.h"
 #include "bpy_props.h"
-#include "bpy_rna.h"
+#include "bpy_rna.hh"
 #include "bpy_traceback.h"
 
 #include "bpy_app_translations.h"

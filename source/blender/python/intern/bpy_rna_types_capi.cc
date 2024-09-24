@@ -22,16 +22,16 @@
 #include "BLI_utildefines.h"
 
 #include "bpy_library.h"
-#include "bpy_rna.h"
-#include "bpy_rna_callback.h"
-#include "bpy_rna_context.h"
-#include "bpy_rna_data.h"
-#include "bpy_rna_id_collection.h"
-#include "bpy_rna_text.h"
-#include "bpy_rna_types_capi.h"
-#include "bpy_rna_ui.h"
+#include "bpy_rna.hh"
+#include "bpy_rna_callback.hh"
+#include "bpy_rna_context.hh"
+#include "bpy_rna_data.hh"
+#include "bpy_rna_id_collection.hh"
+#include "bpy_rna_text.hh"
+#include "bpy_rna_types_capi.hh"
+#include "bpy_rna_ui.hh"
 
-#include "bpy_rna_operator.h"
+#include "bpy_rna_operator.hh"
 
 #include "../generic/py_capi_utils.h"
 

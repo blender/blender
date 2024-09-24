@@ -8,12 +8,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+int BPY_rna_data_context_type_ready(void);
 
-extern PyMethodDef BPY_rna_operator_poll_message_set_method_def;
-
-#ifdef __cplusplus
-}
-#endif
+extern PyMethodDef BPY_rna_data_context_method_def;

@@ -33,9 +33,9 @@
 #include "bpy_capi_utils.h"
 #include "bpy_intern_string.h"
 #include "bpy_props.h"
-#include "bpy_rna.h"
-#include "bpy_rna_anim.h"
-#include "bpy_rna_callback.h"
+#include "bpy_rna.hh"
+#include "bpy_rna_anim.hh"
+#include "bpy_rna_callback.hh"
 
 #ifdef USE_PYRNA_INVALIDATE_WEAKREF
 #  include "BLI_ghash.h"

@@ -98,18 +98,18 @@ set(SRC
   bpy_operator_wrap.h
   bpy_path.h
   bpy_props.h
-  bpy_rna.h
-  bpy_rna_anim.h
-  bpy_rna_callback.h
-  bpy_rna_context.h
-  bpy_rna_data.h
-  bpy_rna_driver.h
-  bpy_rna_gizmo.h
-  bpy_rna_id_collection.h
-  bpy_rna_operator.h
-  bpy_rna_text.h
-  bpy_rna_types_capi.h
-  bpy_rna_ui.h
+  bpy_rna.hh
+  bpy_rna_anim.hh
+  bpy_rna_callback.hh
+  bpy_rna_context.hh
+  bpy_rna_data.hh
+  bpy_rna_driver.hh
+  bpy_rna_gizmo.hh
+  bpy_rna_id_collection.hh
+  bpy_rna_operator.hh
+  bpy_rna_text.hh
+  bpy_rna_types_capi.hh
+  bpy_rna_ui.hh
   bpy_traceback.h
   bpy_utils_previews.h
   bpy_utils_units.h

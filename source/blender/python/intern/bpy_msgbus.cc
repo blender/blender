@@ -25,7 +25,7 @@
 #include "RNA_access.hh"
 
 #include "bpy_capi_utils.h"
-#include "bpy_rna.h"
+#include "bpy_rna.hh"
 
 #include "bpy_msgbus.h" /* own include */
 

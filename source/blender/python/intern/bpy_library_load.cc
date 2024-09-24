@@ -46,7 +46,7 @@
 
 #ifdef USE_RNA_DATABLOCKS
 #  include "RNA_access.hh"
-#  include "bpy_rna.h"
+#  include "bpy_rna.hh"
 #endif
 
 struct BPy_Library {

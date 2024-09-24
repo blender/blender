@@ -21,7 +21,7 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 #include "RNA_types.hh"
-#include "bpy_rna.h"
+#include "bpy_rna.hh"
 
 #include <list>
 #include <memory>

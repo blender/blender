@@ -38,7 +38,7 @@
 #include "FRS_freestyle.h"
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
-#include "bpy_rna.h" /* pyrna_struct_CreatePyObject() */
+#include "bpy_rna.hh" /* pyrna_struct_CreatePyObject() */
 
 #include "../generic/py_capi_utils.h" /* #PyC_UnicodeFromBytes */
 

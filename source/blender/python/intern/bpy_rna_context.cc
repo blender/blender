@@ -21,14 +21,14 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "bpy_rna_context.h"
+#include "bpy_rna_context.hh"
 
 #include "../generic/python_compat.h"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
-#include "bpy_rna.h"
+#include "bpy_rna.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Private Utility Functions

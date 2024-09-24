@@ -30,7 +30,7 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "bpy_rna.h"
+#include "bpy_rna.hh"
 
 #include "hydra_scene_delegate.hh"
 #include "image.hh"

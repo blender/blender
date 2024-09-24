@@ -19,7 +19,7 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
-#include "bpy_rna.h"
+#include "bpy_rna.hh"
 #include "bpy_utils_previews.h"
 
 #include "../generic/py_capi_utils.h"

@@ -26,12 +26,12 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
-#include "bpy_rna_driver.h" /* For #pyrna_driver_get_variable_value. */
+#include "bpy_rna_driver.hh" /* For #pyrna_driver_get_variable_value. */
 
 #include "bpy_intern_string.h"
 
 #include "bpy_driver.h"
-#include "bpy_rna.h"
+#include "bpy_rna.hh"
 
 #include "BPY_extern.h"
 

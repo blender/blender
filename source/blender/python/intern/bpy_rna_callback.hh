@@ -10,10 +10,6 @@
 
 struct BPy_StructRNA;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #if 0
 PyObject *pyrna_callback_add(BPy_StructRNA *self, PyObject *args);
 PyObject *pyrna_callback_remove(BPy_StructRNA *self, PyObject *args);
@@ -21,7 +17,3 @@ PyObject *pyrna_callback_remove(BPy_StructRNA *self, PyObject *args);
 
 PyObject *pyrna_callback_classmethod_add(PyObject *self, PyObject *args);
 PyObject *pyrna_callback_classmethod_remove(PyObject *self, PyObject *args);
-
-#ifdef __cplusplus
-}
-#endif

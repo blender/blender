@@ -25,7 +25,7 @@
 
 #include "bpy_capi_utils.h"
 #include "bpy_props.h"
-#include "bpy_rna.h"
+#include "bpy_rna.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh" /* for defining our own rna */

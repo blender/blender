@@ -11,7 +11,7 @@
 #include "RE_engine.h"
 
 #include "../generic/py_capi_utils.h"
-#include "bpy_rna.h"
+#include "bpy_rna.hh"
 
 #include "BKE_context.hh"
 

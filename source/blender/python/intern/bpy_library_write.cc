@@ -30,7 +30,7 @@
 
 #include "bpy_capi_utils.h"
 #include "bpy_library.h" /* Declaration for #BPY_library_load_method_def */
-#include "bpy_rna.h"
+#include "bpy_rna.hh"
 
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_compat.h"

@@ -16,7 +16,7 @@
 
 #include "RNA_types.hh"
 
-#include "bpy_rna.h"
+#include "bpy_rna.hh"
 
 #include "MEM_guardedalloc.h"
 

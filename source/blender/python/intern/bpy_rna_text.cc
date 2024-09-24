@@ -20,8 +20,8 @@
 
 #include "../generic/python_compat.h"
 
-#include "bpy_rna.h"
-#include "bpy_rna_text.h" /* Declare #BPY_rna_region_as_string_method_def. */
+#include "bpy_rna.hh"
+#include "bpy_rna_text.hh" /* Declare #BPY_rna_region_as_string_method_def. */
 
 /* -------------------------------------------------------------------- */
 /** \name Data structures.

@@ -24,7 +24,7 @@
 
 #include "bpy_intern_string.h"
 #include "bpy_operator_wrap.h" /* own include */
-#include "bpy_rna.h"
+#include "bpy_rna.hh"
 
 static void operator_properties_init(wmOperatorType *ot)
 {

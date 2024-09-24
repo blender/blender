@@ -16,8 +16,8 @@
 
 #include "UI_interface.hh"
 
-#include "bpy_rna.h"
-#include "bpy_rna_ui.h" /* Declare #BPY_rna_uilayout_introspect_method_def. */
+#include "bpy_rna.hh"
+#include "bpy_rna_ui.hh" /* Declare #BPY_rna_uilayout_introspect_method_def. */
 
 PyDoc_STRVAR(
     /* Wrap. */

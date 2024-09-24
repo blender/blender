@@ -9,6 +9,7 @@
 #pragma once
 
 /* --- bpy build options --- */
+#include "intern/rna_internal_types.hh"
 #ifdef WITH_PYTHON_SAFETY
 
 /**
@@ -53,10 +54,6 @@
 /* --- end bpy build options --- */
 
 struct ID;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * Sub-classes of #pyrna_struct_Type which support idprop definitions use this as a meta-class.
@@ -111,15 +108,15 @@ extern PyTypeObject pyrna_func_Type;
 
 /* 'in_weakreflist' MUST be aligned */
 
-typedef struct {
+struct BPy_DummyPointerRNA {
   PyObject_HEAD /* Required Python macro. */
 #ifdef USE_WEAKREFS
   PyObject *in_weakreflist;
 #endif
   PointerRNA ptr;
-} BPy_DummyPointerRNA;
+};
 
-typedef struct BPy_StructRNA {
+struct BPy_StructRNA {
   PyObject_HEAD /* Required Python macro. */
 #ifdef USE_WEAKREFS
   PyObject *in_weakreflist;
@@ -135,18 +132,18 @@ typedef struct BPy_StructRNA {
   /** Needed in some cases if ptr.data is created on the fly, free when deallocating. */
   bool freeptr;
 #endif /* PYRNA_FREE_SUPPORT */
-} BPy_StructRNA;
+};
 
-typedef struct {
+struct BPy_PropertyRNA {
   PyObject_HEAD /* Required Python macro. */
 #ifdef USE_WEAKREFS
   PyObject *in_weakreflist;
 #endif
   PointerRNA ptr;
   PropertyRNA *prop;
-} BPy_PropertyRNA;
+};
 
-typedef struct {
+struct BPy_PropertyArrayRNA {
   PyObject_HEAD /* Required Python macro. */
 #ifdef USE_WEAKREFS
   PyObject *in_weakreflist;
@@ -159,9 +156,9 @@ typedef struct {
   int arraydim;
   /** Array first item offset, e.g. if face.uv is [4][2], arrayoffset for face.uv[n] is 2n. */
   int arrayoffset;
-} BPy_PropertyArrayRNA;
+};
 
-typedef struct {
+struct BPy_PropertyCollectionIterRNA {
   PyObject_HEAD /* Required Python macro. */
 #ifdef USE_WEAKREFS
   PyObject *in_weakreflist;
@@ -169,16 +166,16 @@ typedef struct {
 
   /* collection iterator specific parts */
   CollectionPropertyIterator iter;
-} BPy_PropertyCollectionIterRNA;
+};
 
-typedef struct {
+struct BPy_FunctionRNA {
   PyObject_HEAD /* Required Python macro. */
 #ifdef USE_WEAKREFS
   PyObject *in_weakreflist;
 #endif
   PointerRNA ptr;
   FunctionRNA *func;
-} BPy_FunctionRNA;
+};
 
 StructRNA *srna_from_self(PyObject *self, const char *error_prefix);
 StructRNA *pyrna_struct_as_srna(PyObject *self, bool parent, const char *error_prefix);
@@ -196,15 +193,15 @@ PyObject *pyrna_struct_CreatePyObject(PointerRNA *ptr);
 PyObject *pyrna_prop_CreatePyObject(PointerRNA *ptr, PropertyRNA *prop);
 
 /* extern'd by other modules which don't deal closely with RNA */
-PyObject *pyrna_id_CreatePyObject(struct ID *id);
-bool pyrna_id_FromPyObject(PyObject *obj, struct ID **id);
+PyObject *pyrna_id_CreatePyObject(ID *id);
+bool pyrna_id_FromPyObject(PyObject *obj, ID **id);
 bool pyrna_id_CheckPyObject(PyObject *obj);
 
 /* operators also need this to set args */
 int pyrna_pydict_to_props(PointerRNA *ptr, PyObject *kw, bool all_args, const char *error_prefix);
 PyObject *pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop);
 
-int pyrna_deferred_register_class(struct StructRNA *srna, PyTypeObject *py_class);
+int pyrna_deferred_register_class(StructRNA *srna, PyTypeObject *py_class);
 
 const PointerRNA *pyrna_struct_as_ptr(PyObject *py_obj, const StructRNA *srna);
 const PointerRNA *pyrna_struct_as_ptr_or_null(PyObject *py_obj, const StructRNA *srna);
@@ -233,9 +230,7 @@ int pyrna_struct_as_ptr_parse(PyObject *o, void *p);
  */
 int pyrna_struct_as_ptr_or_null_parse(PyObject *o, void *p);
 
-void pyrna_struct_type_extend_capi(struct StructRNA *srna,
-                                   struct PyMethodDef *method,
-                                   struct PyGetSetDef *getset);
+void pyrna_struct_type_extend_capi(StructRNA *srna, PyMethodDef *method, PyGetSetDef *getset);
 
 /* Called before stopping Python. */
 
@@ -283,7 +278,3 @@ extern PyMethodDef meth_bpy_owner_id_set;
 extern PyMethodDef meth_bpy_owner_id_get;
 
 extern BPy_StructRNA *bpy_context_module;
-
-#ifdef __cplusplus
-}
-#endif

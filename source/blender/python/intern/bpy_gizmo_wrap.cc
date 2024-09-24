@@ -26,7 +26,7 @@
 
 #include "bpy_gizmo_wrap.h" /* own include */
 #include "bpy_intern_string.h"
-#include "bpy_rna.h"
+#include "bpy_rna.hh"
 
 #include "../generic/py_capi_rna.h"
 #include "../generic/python_compat.h"

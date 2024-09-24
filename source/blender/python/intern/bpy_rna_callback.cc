@@ -29,8 +29,8 @@
 #include "BPY_extern.h" /* For public API. */
 
 #include "bpy_capi_utils.h"
-#include "bpy_rna.h"
-#include "bpy_rna_callback.h" /* Own include. */
+#include "bpy_rna.hh"
+#include "bpy_rna_callback.hh" /* Own include. */
 
 /* Use this to stop other capsules from being mis-used. */
 static const char *rna_capsual_id = "RNA_HANDLE";

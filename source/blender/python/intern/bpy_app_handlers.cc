@@ -18,7 +18,7 @@
 #include "RNA_access.hh"
 
 #include "bpy_app_handlers.h"
-#include "bpy_rna.h"
+#include "bpy_rna.hh"
 
 #include "../generic/python_utildefines.h"
 

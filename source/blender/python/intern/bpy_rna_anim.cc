@@ -42,8 +42,8 @@
 #include "WM_types.hh"
 
 #include "bpy_capi_utils.h"
-#include "bpy_rna.h"
-#include "bpy_rna_anim.h"
+#include "bpy_rna.hh"
+#include "bpy_rna_anim.hh"
 
 #include "../generic/py_capi_rna.h"
 #include "../generic/python_utildefines.h"

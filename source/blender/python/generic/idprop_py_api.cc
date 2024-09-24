@@ -29,9 +29,9 @@
 
 #include "python_utildefines.h"
 
-extern "C" bool pyrna_id_FromPyObject(PyObject *obj, ID **id);
-extern "C" PyObject *pyrna_id_CreatePyObject(ID *id);
-extern "C" bool pyrna_id_CheckPyObject(PyObject *obj);
+extern bool pyrna_id_FromPyObject(PyObject *obj, ID **id);
+extern PyObject *pyrna_id_CreatePyObject(ID *id);
+extern bool pyrna_id_CheckPyObject(PyObject *obj);
 
 /* Currently there is no need to expose this publicly. */
 static PyObject *BPy_IDGroup_IterKeys_CreatePyObject(BPy_IDProperty *group, const bool reversed);

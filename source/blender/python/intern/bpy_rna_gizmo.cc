@@ -19,7 +19,7 @@
 #include "WM_types.hh"
 
 #include "bpy_capi_utils.h"
-#include "bpy_rna_gizmo.h"
+#include "bpy_rna_gizmo.hh"
 
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_compat.h"
@@ -27,7 +27,7 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
-#include "bpy_rna.h"
+#include "bpy_rna.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Parsing Utility Functions

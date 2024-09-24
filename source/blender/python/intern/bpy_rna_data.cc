@@ -28,8 +28,8 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
-#include "bpy_rna.h"
-#include "bpy_rna_data.h"
+#include "bpy_rna.hh"
+#include "bpy_rna_data.hh"
 
 struct BPy_DataContext {
   PyObject_HEAD /* Required Python macro. */

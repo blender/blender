@@ -8,12 +8,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+extern PyMethodDef BPY_rna_context_temp_override_method_def;
 
-void BPY_rna_types_extend_capi(void);
-
-#ifdef __cplusplus
-}
-#endif
+void bpy_rna_context_types_init(void);
