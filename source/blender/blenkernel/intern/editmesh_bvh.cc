@@ -218,7 +218,7 @@ struct RayCastUserData {
   float uv[2];
 };
 
-static BMFace *bmbvh_ray_cast_handle_hit(BMBVHTree *bmtree,
+static BMFace *bmbvh_ray_cast_handle_hit(const BMBVHTree *bmtree,
                                          RayCastUserData *bmcb_data,
                                          const BVHTreeRayHit *hit,
                                          float *r_dist,
@@ -286,7 +286,7 @@ static void bmbvh_ray_cast_cb(void *userdata, int index, const BVHTreeRay *ray, 
   }
 }
 
-BMFace *BKE_bmbvh_ray_cast(BMBVHTree *bmtree,
+BMFace *BKE_bmbvh_ray_cast(const BMBVHTree *bmtree,
                            const float co[3],
                            const float dir[3],
                            const float radius,
@@ -344,7 +344,7 @@ static void bmbvh_ray_cast_cb_filter(void *userdata,
   }
 }
 
-BMFace *BKE_bmbvh_ray_cast_filter(BMBVHTree *bmtree,
+BMFace *BKE_bmbvh_ray_cast_filter(const BMBVHTree *bmtree,
                                   const float co[3],
                                   const float dir[3],
                                   const float radius,
@@ -421,7 +421,9 @@ static void bmbvh_find_vert_closest_cb(void *userdata,
   }
 }
 
-BMVert *BKE_bmbvh_find_vert_closest(BMBVHTree *bmtree, const float co[3], const float dist_max)
+BMVert *BKE_bmbvh_find_vert_closest(const BMBVHTree *bmtree,
+                                    const float co[3],
+                                    const float dist_max)
 {
   BVHTreeNearest hit;
   VertSearchUserData bmcb_data;
@@ -480,7 +482,9 @@ static void bmbvh_find_face_closest_cb(void *userdata,
   }
 }
 
-BMFace *BKE_bmbvh_find_face_closest(BMBVHTree *bmtree, const float co[3], const float dist_max)
+BMFace *BKE_bmbvh_find_face_closest(const BMBVHTree *bmtree,
+                                    const float co[3],
+                                    const float dist_max)
 {
   BVHTreeNearest hit;
   FaceSearchUserData bmcb_data;
