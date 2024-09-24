@@ -18,6 +18,7 @@
 #include "RNA_access.hh"
 
 #include "BLI_listbase.h"
+#include "BLI_string.h"
 #include "BLI_string_utf8.h"
 
 #include <limits>
@@ -1808,5 +1809,126 @@ TEST_F(ChannelBagTest, channel_group_fcurve_ungroup)
   EXPECT_EQ(nullptr, fcu1.grp);
   EXPECT_EQ(nullptr, fcu2.grp);
 }
+
+/*-----------------------------------------------------------*/
+
+class ActionFCurveMoveTest : public testing::Test {
+ public:
+  Main *bmain;
+
+  static void SetUpTestSuite()
+  {
+    /* BKE_id_free() hits a code path that uses CLOG, which crashes if not initialized properly. */
+    CLG_init();
+
+    /* To make id_can_have_animdata() and friends work, the `id_types` array needs to be set up. */
+    BKE_idtype_init();
+  }
+
+  static void TearDownTestSuite()
+  {
+    CLG_exit();
+  }
+
+  void SetUp() override
+  {
+    bmain = BKE_main_new();
+  }
+
+  void TearDown() override
+  {
+    BKE_main_free(bmain);
+  }
+
+  static FCurve *fcurve_create(const StringRefNull rna_path, const int array_index)
+  {
+    FCurve *fcurve = BKE_fcurve_create();
+    fcurve->rna_path = BLI_strdupn(rna_path.c_str(), array_index);
+    return fcurve;
+  };
+};
+
+TEST_F(ActionFCurveMoveTest, test_fcurve_move_legacy)
+{
+  Action &action_src = action_add(*this->bmain, "SourceAction");
+  Action &action_dst = action_add(*this->bmain, "DestinationAction");
+
+  /* Add F-Curves to source Action. */
+  BLI_addtail(&action_src.curves, this->fcurve_create("source_prop", 0));
+  FCurve *fcurve_to_move = this->fcurve_create("source_prop", 2);
+  BLI_addtail(&action_src.curves, fcurve_to_move);
+
+  /* Add F-Curves to destination Action. */
+  BLI_addtail(&action_dst.curves, this->fcurve_create("dest_prop", 0));
+
+  ASSERT_TRUE(action_src.is_action_legacy());
+  ASSERT_TRUE(action_dst.is_action_legacy());
+
+  action_fcurve_move(action_dst, Slot::unassigned, action_src, *fcurve_to_move);
+
+  EXPECT_TRUE(action_src.is_action_legacy());
+  EXPECT_TRUE(action_dst.is_action_legacy());
+
+  EXPECT_EQ(-1, BLI_findindex(&action_src.curves, fcurve_to_move))
+      << "F-Curve should no longer exist in source Action";
+  EXPECT_EQ(1, BLI_findindex(&action_dst.curves, fcurve_to_move))
+      << "F-Curve should exist in destination Action";
+
+  EXPECT_EQ(1, BLI_listbase_count(&action_src.curves))
+      << "Source Action should still have the other F-Curve";
+  EXPECT_EQ(2, BLI_listbase_count(&action_dst.curves))
+      << "Destination Action should have its original and the moved F-Curve";
+}
+
+#ifdef WITH_ANIM_BAKLAVA
+TEST_F(ActionFCurveMoveTest, test_fcurve_move_layered)
+{
+  Action &action_src = action_add(*this->bmain, "SourceAction");
+  Action &action_dst = action_add(*this->bmain, "DestinationAction");
+
+  /* Add F-Curves to source Action. */
+  Slot &slot_src = action_src.slot_add();
+  action_src.layer_keystrip_ensure();
+  StripKeyframeData &strip_data_src = action_src.layer(0)->strip(0)->data<StripKeyframeData>(
+      action_src);
+  ChannelBag &cbag_src = strip_data_src.channelbag_for_slot_ensure(slot_src);
+
+  cbag_src.fcurve_ensure(this->bmain, {"source_prop", 0});
+  FCurve &fcurve_to_move = cbag_src.fcurve_ensure(this->bmain, {"source_prop", 2});
+  bActionGroup &group_src = cbag_src.channel_group_create("Gröpje");
+  cbag_src.fcurve_assign_to_channel_group(fcurve_to_move, group_src);
+
+  /* Add F-Curves to destination Action. */
+  Slot &slot_dst = action_dst.slot_add();
+  action_dst.layer_keystrip_ensure();
+  StripKeyframeData &strip_data_dst = action_dst.layer(0)->strip(0)->data<StripKeyframeData>(
+      action_dst);
+  ChannelBag &cbag_dst = strip_data_dst.channelbag_for_slot_ensure(slot_dst);
+
+  cbag_dst.fcurve_ensure(this->bmain, {"dest_prop", 0});
+
+  ASSERT_TRUE(action_src.is_action_layered());
+  ASSERT_TRUE(action_dst.is_action_layered());
+
+  action_fcurve_move(action_dst, slot_dst.handle, action_src, fcurve_to_move);
+
+  EXPECT_TRUE(action_src.is_action_layered());
+  EXPECT_TRUE(action_dst.is_action_layered());
+
+  EXPECT_EQ(nullptr, cbag_src.fcurve_find({fcurve_to_move.rna_path, fcurve_to_move.array_index}))
+      << "F-Curve should no longer exist in source Action";
+  EXPECT_EQ(&fcurve_to_move,
+            cbag_dst.fcurve_find({fcurve_to_move.rna_path, fcurve_to_move.array_index}))
+      << "F-Curve should exist in destination Action";
+
+  EXPECT_EQ(1, cbag_src.fcurves().size()) << "Source Action should still have the other F-Curve";
+  EXPECT_EQ(2, cbag_dst.fcurves().size())
+      << "Destination Action should have its original and the moved F-Curve";
+
+  bActionGroup *group_dst = cbag_dst.channel_group_find("Gröpje");
+  ASSERT_NE(nullptr, group_dst) << "Expected channel group to be created";
+  ASSERT_EQ(group_dst, fcurve_to_move.grp) << "Expected group membership to move as well";
+}
+#endif
 
 }  // namespace blender::animrig::tests

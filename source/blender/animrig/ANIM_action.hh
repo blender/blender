@@ -869,8 +869,25 @@ class ChannelBag : public ::ActionChannelBag {
    * valid, as the curve will have been freed.
    *
    * \return true when the F-Curve was found & removed, false if it wasn't found.
+   *
+   * \see fcurve_detach
    */
   bool fcurve_remove(FCurve &fcurve_to_remove);
+
+  /**
+   * Detach an F-Curve from the ChannelBag.
+   *
+   * Additionally, if the fcurve was the last fcurve in a channel group, that
+   * channel group is deleted.
+   *
+   * The F-Curve is not freed. After the call returns `true`, its ownership has
+   * transferred to the caller.
+   *
+   * \return true when the F-Curve was found & detached, false if it wasn't found.
+   *
+   * \see fcurve_remove
+   */
+  bool fcurve_detach(FCurve &fcurve_to_detach);
 
   /**
    * Move the given fcurve to position `to_fcurve_index` in the fcurve array.
@@ -1094,6 +1111,16 @@ class ChannelGroup : public ::bActionGroup {
 
 static_assert(sizeof(ChannelGroup) == sizeof(::bActionGroup),
               "DNA struct and its C++ wrapper must have the same size");
+
+/**
+ * Create a new Action with zero users.
+ *
+ * This is basically the same as `BKE_action_add`, except that the Action has
+ * zero users and it's already wrapped with its C++ wrapper.
+ *
+ * \see BKE_action_add
+ */
+Action &action_add(Main &bmain, StringRefNull name);
 
 /**
  * Assign the Action to the ID.
@@ -1343,8 +1370,65 @@ Vector<FCurve *> fcurve_find_in_action_slot_filtered(bAction *act,
  * This assumes that an FCurve can only exist in an action once.
  *
  *  \returns true if the given FCurve was removed.
+ *
+ * \see action_fcurve_detach
  */
 bool action_fcurve_remove(Action &action, FCurve &fcu);
+
+/**
+ * Detach the F-Curve from the Action, searching for it in all channelbags.
+ *
+ * Compatible with both legacy and layered Actions. The slot handles are ignored
+ * for legacy Actions.
+ *
+ * The F-Curve is not freed, and ownership is transferred to the caller.
+ *
+ * \see action_fcurve_remove
+ * \see action_fcurve_attach
+ * \see action_fcurve_move
+ *
+ * \return true when the F-Curve was found and detached, false if not found.
+ */
+bool action_fcurve_detach(Action &action, FCurve &fcurve_to_detach);
+
+/**
+ * Attach the F-Curve to the Action Slot.
+ *
+ * Compatible with both legacy and layered Actions. The slot handle is ignored
+ * for legacy Actions.
+ *
+ * On layered Actions, this assumes the 'Baklava Phase 1' invariants (one layer,
+ * one keyframe strip).
+ *
+ * \see action_fcurve_detach
+ * \see action_fcurve_move
+ */
+void action_fcurve_attach(Action &action,
+                          slot_handle_t action_slot,
+                          FCurve &fcurve_to_attach,
+                          std::optional<StringRefNull> group_name);
+
+/**
+ * Move an F-Curve from one Action to the other.
+ *
+ * If the F-Curve was part of a channel group, the group membership also carries
+ * over to the destination Action. If no group with the same name exists, it is
+ * created. This only happens for layered Actions, though.
+ *
+ * Compatible with both legacy and layered Actions. The slot handle and group
+ * membership are ignored for legacy Actions.
+ *
+ * The F-Curve must exist on the source Action. All channelbags for all slots
+ * are searched for the F-Curve.
+ *
+ * \param action_slot_dst may not be Slot::unassigned on layered Actions.
+ *
+ * \see blender::animrig::action_fcurve_detach
+ */
+void action_fcurve_move(Action &action_dst,
+                        slot_handle_t action_slot_dst,
+                        Action &action_src,
+                        FCurve &fcurve);
 
 /**
  * Find an appropriate user of the given Action + Slot for keyframing purposes.

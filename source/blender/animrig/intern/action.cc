@@ -1142,6 +1142,13 @@ void Slot::name_ensure_prefix()
 
 /* ----- Functions  ----------- */
 
+Action &action_add(Main &bmain, const StringRefNull name)
+{
+  bAction *dna_action = BKE_action_add(&bmain, name.c_str());
+  id_us_clear_real(&dna_action->id);
+  return dna_action->wrap();
+}
+
 bool assign_action(bAction *action, ID &animated_id)
 {
   AnimData *adt = BKE_animdata_ensure_id(&animated_id);
@@ -1709,7 +1716,18 @@ static void fcurve_ptr_destructor(FCurve **fcurve_ptr)
 
 bool ChannelBag::fcurve_remove(FCurve &fcurve_to_remove)
 {
-  const int64_t fcurve_index = this->fcurves().as_span().first_index_try(&fcurve_to_remove);
+  if (!fcurve_detach(fcurve_to_remove)) {
+    return false;
+  }
+  BKE_fcurve_free(&fcurve_to_remove);
+  return true;
+}
+
+static void fcurve_ptr_noop_destructor(FCurve ** /*fcurve_ptr*/) {}
+
+bool ChannelBag::fcurve_detach(FCurve &fcurve_to_detach)
+{
+  const int64_t fcurve_index = this->fcurves().as_span().first_index_try(&fcurve_to_detach);
   if (fcurve_index < 0) {
     return false;
   }
@@ -1725,8 +1743,11 @@ bool ChannelBag::fcurve_remove(FCurve &fcurve_to_remove)
     }
   }
 
-  dna::array::remove_index(
-      &this->fcurve_array, &this->fcurve_array_num, nullptr, fcurve_index, fcurve_ptr_destructor);
+  dna::array::remove_index(&this->fcurve_array,
+                           &this->fcurve_array_num,
+                           nullptr,
+                           fcurve_index,
+                           fcurve_ptr_noop_destructor);
 
   this->restore_channel_group_invariants();
 
@@ -2369,6 +2390,8 @@ FCurve *action_fcurve_ensure(Main *bmain,
 
 bool action_fcurve_remove(Action &action, FCurve &fcu)
 {
+  BLI_assert(action.is_action_layered());
+
   for (Layer *layer : action.layers()) {
     for (Strip *strip : layer->strips()) {
       if (!(strip->type() == Strip::Type::Keyframe)) {
@@ -2384,6 +2407,83 @@ bool action_fcurve_remove(Action &action, FCurve &fcu)
     }
   }
   return false;
+}
+
+bool action_fcurve_detach(Action &action, FCurve &fcurve_to_detach)
+{
+  if (action.is_action_legacy()) {
+    return BLI_remlink_safe(&action.curves, &fcurve_to_detach);
+  }
+
+  for (Layer *layer : action.layers()) {
+    for (Strip *strip : layer->strips()) {
+      if (!(strip->type() == Strip::Type::Keyframe)) {
+        continue;
+      }
+      StripKeyframeData &strip_data = strip->data<StripKeyframeData>(action);
+      for (ChannelBag *bag : strip_data.channelbags()) {
+        const bool is_detached = bag->fcurve_detach(fcurve_to_detach);
+        if (is_detached) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
+void action_fcurve_attach(Action &action,
+                          const slot_handle_t action_slot,
+                          FCurve &fcurve_to_attach,
+                          std::optional<StringRefNull> group_name)
+{
+  const bool use_layered_action = (USER_EXPERIMENTAL_TEST(&U, use_animation_baklava) &&
+                                   action.is_empty()) ||
+                                  !action.is_action_legacy();
+  if (!use_layered_action) {
+    BLI_addtail(&action.curves, &fcurve_to_attach);
+    return;
+  }
+
+  Slot *slot = action.slot_for_handle(action_slot);
+  BLI_assert(slot);
+  if (!slot) {
+    printf("Cannot find slot handle %d on Action %s, unable to attach F-Curve %s[%d] to it!\n",
+           action_slot,
+           action.id.name + 2,
+           fcurve_to_attach.rna_path,
+           fcurve_to_attach.array_index);
+    return;
+  }
+
+  action.layer_keystrip_ensure();
+  StripKeyframeData &strip_data = action.layer(0)->strip(0)->data<StripKeyframeData>(action);
+  ChannelBag &cbag = strip_data.channelbag_for_slot_ensure(*slot);
+  cbag.fcurve_append(fcurve_to_attach);
+
+  if (group_name) {
+    bActionGroup &group = cbag.channel_group_ensure(*group_name);
+    cbag.fcurve_assign_to_channel_group(fcurve_to_attach, group);
+  }
+}
+
+void action_fcurve_move(Action &action_dst,
+                        const slot_handle_t action_slot_dst,
+                        Action &action_src,
+                        FCurve &fcurve)
+{
+  /* Store the group name locally, as the group will be removed if this was its
+   * last F-Curve. */
+  std::optional<std::string> group_name;
+  if (fcurve.grp) {
+    group_name = fcurve.grp->name;
+  }
+
+  const bool is_detached = action_fcurve_detach(action_src, fcurve);
+  BLI_assert(is_detached);
+  UNUSED_VARS_NDEBUG(is_detached);
+
+  action_fcurve_attach(action_dst, action_slot_dst, fcurve, group_name);
 }
 
 bool ChannelBag::fcurve_assign_to_channel_group(FCurve &fcurve, bActionGroup &to_group)

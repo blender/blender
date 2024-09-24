@@ -59,6 +59,10 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
+#include "ANIM_action.hh"
+#include "ANIM_action_iterators.hh"
+#include "ANIM_action_legacy.hh"
+
 namespace blender::bke::greasepencil::convert {
 
 /**
@@ -258,13 +262,24 @@ class AnimDataConvertor {
 
   /* Iterator over all FCurves in a given animation data. */
 
-  bool fcurve_foreach(bAction *owner_action,
-                      ListBase &fcurves,
-                      blender::FunctionRef<FCurveCallback> callback) const
+  bool fcurve_foreach_in_action(bAction *owner_action,
+                                blender::FunctionRef<FCurveCallback> callback) const
+  {
+    bool is_changed = false;
+    animrig::foreach_fcurve_in_action(owner_action->wrap(), [&](FCurve &fcurve) {
+      const bool local_is_changed = callback(owner_action, fcurve);
+      is_changed = is_changed || local_is_changed;
+    });
+
+    return is_changed;
+  }
+
+  bool fcurve_foreach_in_listbase(ListBase &fcurves,
+                                  blender::FunctionRef<FCurveCallback> callback) const
   {
     bool is_changed = false;
     LISTBASE_FOREACH (FCurve *, fcurve, &fcurves) {
-      const bool local_is_changed = callback(owner_action, *fcurve);
+      const bool local_is_changed = callback(nullptr, *fcurve);
       is_changed = is_changed || local_is_changed;
     }
     return is_changed;
@@ -275,7 +290,7 @@ class AnimDataConvertor {
   {
     bool is_changed = false;
     if (nla_strip.act) {
-      if (this->fcurve_foreach(nla_strip.act, nla_strip.act->curves, callback)) {
+      if (this->fcurve_foreach_in_action(nla_strip.act, callback)) {
         DEG_id_tag_update(&nla_strip.act->id, ID_RECALC_ANIMATION);
         is_changed = true;
       }
@@ -292,20 +307,20 @@ class AnimDataConvertor {
   {
     bool is_changed = false;
     if (anim_data.action) {
-      if (this->fcurve_foreach(anim_data.action, anim_data.action->curves, callback)) {
+      if (this->fcurve_foreach_in_action(anim_data.action, callback)) {
         DEG_id_tag_update(&anim_data.action->id, ID_RECALC_ANIMATION);
         is_changed = true;
       }
     }
     if (anim_data.tmpact) {
-      if (this->fcurve_foreach(anim_data.tmpact, anim_data.tmpact->curves, callback)) {
+      if (this->fcurve_foreach_in_action(anim_data.tmpact, callback)) {
         DEG_id_tag_update(&anim_data.tmpact->id, ID_RECALC_ANIMATION);
         is_changed = true;
       }
     }
 
     {
-      const bool local_is_changed = this->fcurve_foreach(nullptr, anim_data.drivers, callback);
+      const bool local_is_changed = this->fcurve_foreach_in_listbase(anim_data.drivers, callback);
       is_changed = is_changed || local_is_changed;
     }
 
@@ -473,7 +488,17 @@ class AnimDataConvertor {
       this->animdata_dst = BKE_animdata_ensure_id(&this->id_dst);
     }
 
-    auto fcurves_move =
+    auto fcurves_move = [&](bAction *action_dst,
+                            const animrig::slot_handle_t slot_handle_dst,
+                            bAction *action_src,
+                            const Span<FCurve *> fcurves) {
+      for (FCurve *fcurve : fcurves) {
+        animrig::action_fcurve_move(
+            action_dst->wrap(), slot_handle_dst, action_src->wrap(), *fcurve);
+      }
+    };
+
+    auto fcurves_move_between_listbases =
         [&](ListBase &fcurves_dst, ListBase &fcurves_src, const Span<FCurve *> fcurves) {
           for (FCurve *fcurve : fcurves) {
             BLI_assert(BLI_findindex(&fcurves_src, fcurve) >= 0);
@@ -484,30 +509,42 @@ class AnimDataConvertor {
 
     if (!this->fcurves_from_src_main_action.is_empty()) {
       if (!this->animdata_dst->action) {
-        this->animdata_dst->action = BKE_action_add(
-            &this->conversion_data.bmain,
+        /* Create a new action. */
+        animrig::Action &action = animrig::action_add(
+            this->conversion_data.bmain,
             this->animdata_src->action ? this->animdata_src->action->id.name + 2 : nullptr);
+        if (USER_EXPERIMENTAL_TEST(&U, use_animation_baklava)) {
+          action.slot_add_for_id(this->id_dst);
+        }
+        animrig::assign_action(&action, {this->id_dst, *this->animdata_dst});
       }
-      fcurves_move(this->animdata_dst->action->curves,
-                   this->animdata_src->action->curves,
+      fcurves_move(this->animdata_dst->action,
+                   this->animdata_dst->slot_handle,
+                   this->animdata_src->action,
                    this->fcurves_from_src_main_action);
       this->fcurves_from_src_main_action.clear();
     }
     if (!this->fcurves_from_src_tmp_action.is_empty()) {
       if (!this->animdata_dst->tmpact) {
-        this->animdata_dst->tmpact = BKE_action_add(
-            &this->conversion_data.bmain,
+        /* Create a new tmpact. */
+        animrig::Action &tmpact = animrig::action_add(
+            this->conversion_data.bmain,
             this->animdata_src->tmpact ? this->animdata_src->tmpact->id.name + 2 : nullptr);
+        if (USER_EXPERIMENTAL_TEST(&U, use_animation_baklava)) {
+          tmpact.slot_add_for_id(this->id_dst);
+        }
+        animrig::assign_tmpaction(&tmpact, {this->id_dst, *this->animdata_dst});
       }
-      fcurves_move(this->animdata_dst->tmpact->curves,
-                   this->animdata_src->tmpact->curves,
+      fcurves_move(this->animdata_dst->tmpact,
+                   this->animdata_dst->tmp_slot_handle,
+                   this->animdata_src->tmpact,
                    this->fcurves_from_src_tmp_action);
       this->fcurves_from_src_tmp_action.clear();
     }
     if (!this->fcurves_from_src_drivers.is_empty()) {
-      fcurves_move(this->animdata_dst->drivers,
-                   this->animdata_src->drivers,
-                   this->fcurves_from_src_drivers);
+      fcurves_move_between_listbases(this->animdata_dst->drivers,
+                                     this->animdata_src->drivers,
+                                     this->fcurves_from_src_drivers);
       this->fcurves_from_src_drivers.clear();
     }
 

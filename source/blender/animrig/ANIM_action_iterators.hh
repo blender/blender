@@ -28,6 +28,12 @@ namespace blender::animrig {
 using slot_handle_t = decltype(::ActionSlot::handle);
 
 /**
+ * Iterates over all FCurves of the Action and executes the callback on it.
+ * Works on layered and legacy actions.
+ */
+void foreach_fcurve_in_action(Action &action, FunctionRef<void(FCurve &fcurve)> callback);
+
+/**
  * Iterates over all FCurves of the given slot handle in the Action and executes the callback on
  * it. Works on layered and legacy actions. When the action is legacy, the slot handle will be
  * ignored.
