@@ -418,6 +418,8 @@ static int startffmpeg(ImBufAnim *anim)
   anim->img_convert_ctx = BKE_ffmpeg_sws_get_context(anim->x,
                                                      anim->y,
                                                      anim->pCodecCtx->pix_fmt,
+                                                     anim->x,
+                                                     anim->y,
                                                      AV_PIX_FMT_RGBA,
                                                      SWS_BILINEAR | SWS_PRINT_INFO |
                                                          SWS_FULL_CHR_H_INT);

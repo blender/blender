@@ -36,12 +36,12 @@ enum {
 };
 
 struct AVFrame;
+struct ImageFormatData;
+struct ImBuf;
 struct RenderData;
 struct ReportList;
 struct Scene;
 struct SwsContext;
-
-struct ImBuf;
 
 bool BKE_ffmpeg_start(void *context_v,
                       const Scene *scene,
@@ -79,8 +79,13 @@ void BKE_ffmpeg_exit();
  * to release it. Internally the contexts are coming from the context
  * pool/cache.
  */
-SwsContext *BKE_ffmpeg_sws_get_context(
-    int width, int height, int av_src_format, int av_dst_format, int sws_flags);
+SwsContext *BKE_ffmpeg_sws_get_context(int src_width,
+                                       int src_height,
+                                       int av_src_format,
+                                       int dst_width,
+                                       int dst_height,
+                                       int av_dst_format,
+                                       int sws_flags);
 void BKE_ffmpeg_sws_release_context(SwsContext *ctx);
 
 void BKE_ffmpeg_sws_scale_frame(SwsContext *ctx, AVFrame *dst, const AVFrame *src);
