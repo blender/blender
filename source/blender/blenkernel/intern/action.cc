@@ -896,6 +896,8 @@ bActionGroup *action_groups_add_new(bAction *act, const char name[])
     return nullptr;
   }
 
+  BLI_assert(act->wrap().is_action_legacy());
+
   /* allocate a new one */
   agrp = static_cast<bActionGroup *>(MEM_callocN(sizeof(bActionGroup), "bActionGroup"));
 
@@ -918,6 +920,8 @@ void action_groups_add_channel(bAction *act, bActionGroup *agrp, FCurve *fcurve)
   if (ELEM(nullptr, act, agrp, fcurve)) {
     return;
   }
+
+  BLI_assert(act->wrap().is_action_legacy());
 
   /* if no channels anywhere, just add to two lists at the same time */
   if (BLI_listbase_is_empty(&act->curves)) {
@@ -983,7 +987,13 @@ void action_groups_add_channel(bAction *act, bActionGroup *agrp, FCurve *fcurve)
 void BKE_action_groups_reconstruct(bAction *act)
 {
   /* Sanity check. */
-  if (ELEM(nullptr, act, act->groups.first)) {
+  if (!act) {
+    return;
+  }
+
+  BLI_assert(act->wrap().is_action_legacy());
+
+  if (BLI_listbase_is_empty(&act->groups)) {
     return;
   }
 
@@ -1026,6 +1036,8 @@ void action_groups_remove_channel(bAction *act, FCurve *fcu)
     return;
   }
 
+  BLI_assert(act->wrap().is_action_legacy());
+
   /* check if any group used this directly */
   if (fcu->grp) {
     bActionGroup *agrp = fcu->grp;
@@ -1066,6 +1078,8 @@ bActionGroup *BKE_action_group_find_name(bAction *act, const char name[])
     return nullptr;
   }
 
+  BLI_assert(act->wrap().is_action_legacy());
+
   /* do string comparisons */
   return static_cast<bActionGroup *>(
       BLI_findstring(&act->groups, name, offsetof(bActionGroup, name)));
@@ -1073,13 +1087,7 @@ bActionGroup *BKE_action_group_find_name(bAction *act, const char name[])
 
 void action_groups_clear_tempflags(bAction *act)
 {
-  /* sanity checks */
-  if (ELEM(nullptr, act, act->groups.first)) {
-    return;
-  }
-
-  /* flag clearing loop */
-  LISTBASE_FOREACH (bActionGroup *, agrp, &act->groups) {
+  for (bActionGroup *agrp : animrig::legacy::channel_groups_all(act)) {
     agrp->flag &= ~AGRP_TEMP;
   }
 }
@@ -2176,6 +2184,9 @@ void BKE_action_fcurves_clear(bAction *act)
   if (!act) {
     return;
   }
+
+  BLI_assert(act->wrap().is_action_legacy());
+
   while (act->curves.first) {
     FCurve *fcu = static_cast<FCurve *>(act->curves.first);
     action_groups_remove_channel(act, fcu);

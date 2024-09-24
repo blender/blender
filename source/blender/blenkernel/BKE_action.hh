@@ -44,6 +44,8 @@ bAction *BKE_action_add(Main *bmain, const char name[]);
 
 /**
  * Remove all fcurves from the action.
+ *
+ * \note This function only supports legacy Actions.
  */
 void BKE_action_fcurves_clear(bAction *act);
 
@@ -85,6 +87,8 @@ void action_group_colors_set_from_posebone(bActionGroup *grp, const bPoseChannel
 
 /**
  * Add a new action group with the given name to the action>
+ *
+ * \note This function ONLY works on legacy Actions, not on layered Actions.
  */
 bActionGroup *action_groups_add_new(bAction *act, const char name[]);
 
@@ -92,11 +96,15 @@ bActionGroup *action_groups_add_new(bAction *act, const char name[]);
  * Add given channel into (active) group
  * - assumes that channel is not linked to anything anymore
  * - always adds at the end of the group
+ *
+ * \note This function ONLY works on legacy Actions, not on layered Actions.
  */
 void action_groups_add_channel(bAction *act, bActionGroup *agrp, FCurve *fcurve);
 
 /**
  * Remove the given channel from all groups.
+ *
+ * \note This function ONLY works on legacy Actions, not on layered Actions.
  */
 void action_groups_remove_channel(bAction *act, FCurve *fcu);
 
@@ -104,16 +112,22 @@ void action_groups_remove_channel(bAction *act, FCurve *fcu);
  * Reconstruct channel pointers.
  * Assumes that the groups referred to by the FCurves are already in act->groups.
  * Reorders the main channel list to match group order.
+ *
+ * \note This function ONLY works on legacy Actions, not on layered Actions.
  */
 void BKE_action_groups_reconstruct(bAction *act);
 
 /**
  * Find a group with the given name.
+ *
+ * \note This function supports only legacy Actions.
  */
 bActionGroup *BKE_action_group_find_name(bAction *act, const char name[]);
 
 /**
  * Clear all 'temp' flags on all groups.
+ *
+ * \note This function supports both legacy and layered Actions.
  */
 void action_groups_clear_tempflags(bAction *act);
 
