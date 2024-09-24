@@ -71,6 +71,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
       m_hWnd(0),
       m_hDC(0),
       m_isDialog(dialog),
+      m_preferred_device(preferred_device),
       m_hasMouseCaptured(false),
       m_hasGrabMouse(false),
       m_nPressedButtons(0),
@@ -83,8 +84,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
       m_user32(::LoadLibrary("user32.dll")),
       m_parentWindowHwnd(parentwindow ? parentwindow->m_hWnd : HWND_DESKTOP),
       m_directManipulationHelper(nullptr),
-      m_debug_context(is_debug),
-      m_preferred_device(preferred_device)
+      m_debug_context(is_debug)
 {
   DWORD style = parentwindow ?
                     WS_POPUPWINDOW | WS_CAPTION | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_SIZEBOX :
