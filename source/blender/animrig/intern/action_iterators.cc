@@ -18,9 +18,9 @@
 
 namespace blender::animrig {
 
-void action_foreach_fcurve(Action &action,
-                           slot_handle_t handle,
-                           FunctionRef<void(FCurve &fcurve)> callback)
+void foreach_fcurve_in_action_slot(Action &action,
+                                   slot_handle_t handle,
+                                   FunctionRef<void(FCurve &fcurve)> callback)
 {
   if (action.is_action_legacy()) {
     LISTBASE_FOREACH (FCurve *, fcurve, &action.curves) {

@@ -2231,7 +2231,7 @@ Vector<FCurve *> fcurve_find_in_action_slot_filtered(bAction *act,
   const size_t quoted_name_size = data_name.size() + 1;
   char *quoted_name = static_cast<char *>(alloca(quoted_name_size));
 
-  action_foreach_fcurve(act->wrap(), slot_handle, [&](FCurve &fcurve) {
+  foreach_fcurve_in_action_slot(act->wrap(), slot_handle, [&](FCurve &fcurve) {
     if (!fcurve.rna_path) {
       return;
     }

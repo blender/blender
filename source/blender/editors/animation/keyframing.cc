@@ -768,7 +768,7 @@ static int clear_anim_v3d_exec(bContext *C, wmOperator * /*op*/)
       Action &action = dna_action->wrap();
       if (action.is_action_layered()) {
         blender::Vector<FCurve *> fcurves_to_delete;
-        action_foreach_fcurve(action, adt->slot_handle, [&](FCurve &fcurve) {
+        foreach_fcurve_in_action_slot(action, adt->slot_handle, [&](FCurve &fcurve) {
           if (can_delete_fcurve(&fcurve, ob)) {
             fcurves_to_delete.append(&fcurve);
           }
@@ -917,7 +917,7 @@ static int delete_key_v3d_without_keying_set(bContext *C, wmOperator *op)
       Action &action = act->wrap();
       if (action.is_action_layered()) {
         blender::Vector<FCurve *> modified_fcurves;
-        action_foreach_fcurve(action, adt->slot_handle, [&](FCurve &fcurve) {
+        foreach_fcurve_in_action_slot(action, adt->slot_handle, [&](FCurve &fcurve) {
           if (!can_delete_key(&fcurve, ob, op->reports)) {
             return;
           }

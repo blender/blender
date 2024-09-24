@@ -34,9 +34,9 @@ using slot_handle_t = decltype(::ActionSlot::handle);
  *
  * \note Use lambdas to have access to specific data in the callback.
  */
-void action_foreach_fcurve(Action &action,
-                           slot_handle_t handle,
-                           FunctionRef<void(FCurve &fcurve)> callback);
+void foreach_fcurve_in_action_slot(Action &action,
+                                   slot_handle_t handle,
+                                   FunctionRef<void(FCurve &fcurve)> callback);
 
 /**
  * Call the given callback for each Action + Slot that this ID uses.
