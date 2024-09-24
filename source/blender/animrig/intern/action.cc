@@ -2229,7 +2229,9 @@ FCurve *action_fcurve_ensure(Main *bmain,
   }
   Action &action = act->wrap();
 
-  if (USER_EXPERIMENTAL_TEST(&U, use_animation_baklava) && action.is_action_layered()) {
+  if ((USER_EXPERIMENTAL_TEST(&U, use_animation_baklava) && action.is_empty()) ||
+      !action.is_action_legacy())
+  {
     /* NOTE: for layered actions we require the following:
      *
      * - `ptr` is non-null.
