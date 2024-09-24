@@ -8,7 +8,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BPY_extern.h"
+#include "BPY_extern.hh"
 
 /* python, will come back */
 // void BPY_script_exec(void) {}

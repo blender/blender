@@ -16,7 +16,7 @@
 
 #include "../generic/python_utildefines.hh"
 
-#include "BPY_extern.h"
+#include "BPY_extern.hh"
 #include "bpy_capi_utils.hh"
 
 #include "bpy_rna_operator.hh" /* Own include, #BPY_rna_operator_poll_message_set_method_def. */

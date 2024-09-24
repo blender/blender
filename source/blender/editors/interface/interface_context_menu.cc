@@ -41,8 +41,8 @@
 #include "RNA_prototypes.hh"
 
 #ifdef WITH_PYTHON
-#  include "BPY_extern.h"
-#  include "BPY_extern_run.h"
+#  include "BPY_extern.hh"
+#  include "BPY_extern_run.hh"
 #endif
 
 #include "WM_api.hh"

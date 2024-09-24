@@ -618,7 +618,7 @@ const EnumPropertyItem rna_enum_wm_report_items[] = {
 #  include "MEM_guardedalloc.h"
 
 #  ifdef WITH_PYTHON
-#    include "BPY_extern.h"
+#    include "BPY_extern.hh"
 #  endif
 
 static wmOperator *rna_OperatorProperties_find_operator(PointerRNA *ptr)

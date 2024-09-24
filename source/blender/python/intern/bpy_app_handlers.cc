@@ -22,7 +22,7 @@
 
 #include "../generic/python_utildefines.hh"
 
-#include "BPY_extern.h"
+#include "BPY_extern.hh"
 
 void bpy_app_generic_callback(Main *main,
                               PointerRNA **pointers,

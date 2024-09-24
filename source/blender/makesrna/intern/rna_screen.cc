@@ -67,7 +67,7 @@ static const EnumPropertyItem rna_enum_region_panel_category_items[] = {
 #  include "BLT_translation.hh"
 
 #  ifdef WITH_PYTHON
-#    include "BPY_extern.h"
+#    include "BPY_extern.hh"
 #  endif
 
 static void rna_Screen_bar_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)

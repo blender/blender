@@ -38,7 +38,7 @@
 #include "BLO_read_write.hh"
 
 #ifdef WITH_PYTHON
-#  include "BPY_extern.h"
+#  include "BPY_extern.hh"
 #endif
 
 /* -------------------------------------------------------------------- */

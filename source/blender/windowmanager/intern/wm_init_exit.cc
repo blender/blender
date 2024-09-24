@@ -62,8 +62,8 @@
 #include "RE_pipeline.h" /* `RE_` free stuff. */
 
 #ifdef WITH_PYTHON
-#  include "BPY_extern_python.h"
-#  include "BPY_extern_run.h"
+#  include "BPY_extern_python.hh"
+#  include "BPY_extern_run.hh"
 #endif
 
 #include "GHOST_C-api.h"

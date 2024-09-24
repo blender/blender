@@ -26,7 +26,7 @@
 
 #include "ED_space_api.hh"
 
-#include "BPY_extern.h" /* For public API. */
+#include "BPY_extern.hh" /* For public API. */
 
 #include "bpy_capi_utils.hh"
 #include "bpy_rna.hh"

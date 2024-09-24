@@ -16,7 +16,7 @@
 #include "BLI_utildefines.h"
 
 #ifdef WITH_PYTHON
-#  include "BPY_extern.h"
+#  include "BPY_extern.hh"
 #endif
 
 #include "DEG_depsgraph.hh"

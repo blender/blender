@@ -25,7 +25,7 @@
 #include "../generic/python_compat.hh"
 #include "../generic/python_utildefines.hh"
 
-#include "BPY_extern.h"
+#include "BPY_extern.hh"
 #include "bpy_capi_utils.hh"
 #include "bpy_operator.hh"
 #include "bpy_operator_wrap.hh"

@@ -52,7 +52,7 @@
 #  include "GPU_state.hh"
 
 #  ifdef WITH_PYTHON
-#    include "BPY_extern.h"
+#    include "BPY_extern.hh"
 #  endif
 
 /* -------------------------------------------------------------------- */

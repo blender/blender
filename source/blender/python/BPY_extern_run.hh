@@ -22,10 +22,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "BLI_sys_types.h"
 
 #include "BLI_compiler_attrs.h"
@@ -57,8 +53,7 @@ struct bContext;
  * \note Python scripts could consider `bpy.utils.execfile`, which has the advantage of returning
  * the object as a module for data access & caching `pyc` file for faster re-execution.
  */
-bool BPY_run_filepath(struct bContext *C, const char *filepath, struct ReportList *reports)
-    ATTR_NONNULL(1, 2);
+bool BPY_run_filepath(bContext *C, const char *filepath, ReportList *reports) ATTR_NONNULL(1, 2);
 /**
  * Execute a Blender `text` block as a Python script.
  *
@@ -76,8 +71,7 @@ bool BPY_run_filepath(struct bContext *C, const char *filepath, struct ReportLis
  * This is done so error messages give useful output however there are rare cases causes problems
  * with introspection tools which attempt to load `__file__`.
  */
-bool BPY_run_text(struct bContext *C, struct Text *text, struct ReportList *reports, bool do_jump)
-    ATTR_NONNULL(1, 2);
+bool BPY_run_text(bContext *C, Text *text, ReportList *reports, bool do_jump) ATTR_NONNULL(1, 2);
 
 /** \} */
 
@@ -94,14 +88,14 @@ bool BPY_run_text(struct bContext *C, struct Text *text, struct ReportList *repo
  * \param C: Optional context (may be null),
  *  used for `bpy.context` and reporting errors to `CTX_wm_reports(C)`.
  */
-bool BPY_run_string_exec(struct bContext *C, const char *imports[], const char *expr);
+bool BPY_run_string_exec(bContext *C, const char *imports[], const char *expr);
 /**
  * Run an expression, matches: `exec(compile(..., "eval"))`.
  *
  * \param C: Optional context (may be null),
  *  used for `bpy.context` and reporting errors to `CTX_wm_reports(C)`.
  */
-bool BPY_run_string_eval(struct bContext *C, const char *imports[], const char *expr);
+bool BPY_run_string_eval(bContext *C, const char *imports[], const char *expr);
 
 /** \} */
 
@@ -120,7 +114,7 @@ struct BPy_RunErrInfo {
   bool use_single_line_error;
 
   /** Report with optional prefix (when non-NULL). */
-  struct ReportList *reports;
+  ReportList *reports;
   const char *report_prefix;
 
   /** Allocated exception text (assign when non-NULL). */
@@ -137,10 +131,10 @@ struct BPy_RunErrInfo {
  * \param r_value: The resulting value.
  * \return Success.
  */
-bool BPY_run_string_as_number(struct bContext *C,
+bool BPY_run_string_as_number(bContext *C,
                               const char *imports[],
                               const char *expr,
-                              struct BPy_RunErrInfo *err_info,
+                              BPy_RunErrInfo *err_info,
                               double *r_value) ATTR_NONNULL(1, 3, 5);
 /**
  * Evaluate `expr` as an integer or pointer.
@@ -154,10 +148,10 @@ bool BPY_run_string_as_number(struct bContext *C,
  * \param r_value: The resulting value.
  * \return Success.
  */
-bool BPY_run_string_as_intptr(struct bContext *C,
+bool BPY_run_string_as_intptr(bContext *C,
                               const char *imports[],
                               const char *expr,
-                              struct BPy_RunErrInfo *err_info,
+                              BPy_RunErrInfo *err_info,
                               intptr_t *r_value) ATTR_NONNULL(1, 3, 5);
 /**
  * Evaluate `expr` as a string.
@@ -169,18 +163,18 @@ bool BPY_run_string_as_intptr(struct bContext *C,
  * \param r_value: The resulting value.
  * \return Success.
  */
-bool BPY_run_string_as_string_and_len(struct bContext *C,
+bool BPY_run_string_as_string_and_len(bContext *C,
                                       const char *imports[],
                                       const char *expr,
-                                      struct BPy_RunErrInfo *err_info,
+                                      BPy_RunErrInfo *err_info,
                                       char **r_value,
                                       size_t *r_value_len) ATTR_NONNULL(1, 3, 5, 6);
 
 /** See #BPY_run_string_as_string_and_len */
-bool BPY_run_string_as_string(struct bContext *C,
+bool BPY_run_string_as_string(bContext *C,
                               const char *imports[],
                               const char *expr,
-                              struct BPy_RunErrInfo *err_info,
+                              BPy_RunErrInfo *err_info,
                               char **r_value) ATTR_NONNULL(1, 3, 5);
 
 /**
@@ -194,22 +188,18 @@ bool BPY_run_string_as_string(struct bContext *C,
  * \param r_value: The resulting value.
  * \return Success.
  */
-bool BPY_run_string_as_string_and_len_or_none(struct bContext *C,
+bool BPY_run_string_as_string_and_len_or_none(bContext *C,
                                               const char *imports[],
                                               const char *expr,
-                                              struct BPy_RunErrInfo *err_info,
+                                              BPy_RunErrInfo *err_info,
                                               char **r_value,
                                               size_t *r_value_len) ATTR_NONNULL(1, 3, 5, 6);
 
 /** See #BPY_run_string_as_string_and_len */
-bool BPY_run_string_as_string_or_none(struct bContext *C,
+bool BPY_run_string_as_string_or_none(bContext *C,
                                       const char *imports[],
                                       const char *expr,
-                                      struct BPy_RunErrInfo *err_info,
+                                      BPy_RunErrInfo *err_info,
                                       char **r_value) ATTR_NONNULL(1, 3, 5);
 
 /** \} */
-
-#ifdef __cplusplus
-} /* extern "C" */
-#endif

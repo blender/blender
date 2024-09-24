@@ -22,7 +22,7 @@
 
 #include "RNA_access.hh"
 
-#include "BPY_extern_clog.h"
+#include "BPY_extern_clog.hh"
 
 #include "../generic/py_capi_utils.hh"
 

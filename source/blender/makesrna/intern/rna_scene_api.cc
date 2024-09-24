@@ -43,7 +43,7 @@
 #  include "ED_uvedit.hh"
 
 #  ifdef WITH_PYTHON
-#    include "BPY_extern.h"
+#    include "BPY_extern.hh"
 #  endif
 
 static void rna_Scene_frame_set(Scene *scene, Main *bmain, int frame, float subframe)

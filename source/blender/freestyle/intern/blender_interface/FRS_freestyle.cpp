@@ -44,7 +44,7 @@ using namespace Freestyle;
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 
-#include "BPY_extern.h"
+#include "BPY_extern.hh"
 
 #include "DEG_depsgraph_query.hh"
 

@@ -113,10 +113,10 @@ set(SRC
   bpy_traceback.hh
   bpy_utils_previews.hh
   bpy_utils_units.hh
-  ../BPY_extern.h
-  ../BPY_extern_clog.h
-  ../BPY_extern_python.h
-  ../BPY_extern_run.h
+  ../BPY_extern.hh
+  ../BPY_extern_clog.hh
+  ../BPY_extern_python.hh
+  ../BPY_extern_run.hh
 )
 
 set(LIB

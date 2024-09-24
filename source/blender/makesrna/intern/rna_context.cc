@@ -57,7 +57,7 @@ const EnumPropertyItem rna_enum_context_mode_items[] = {
 #  include "DNA_asset_types.h"
 
 #  ifdef WITH_PYTHON
-#    include "BPY_extern.h"
+#    include "BPY_extern.hh"
 #  endif
 
 #  include "RE_engine.h"

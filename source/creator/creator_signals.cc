@@ -49,7 +49,7 @@
 #  include <csignal>
 
 #  ifdef WITH_PYTHON
-#    include "BPY_extern_python.h" /* #BPY_python_backtrace. */
+#    include "BPY_extern_python.hh" /* #BPY_python_backtrace. */
 #  endif
 
 #  include "creator_intern.h" /* Own include. */

@@ -69,7 +69,7 @@
 #include "RE_pipeline.h"
 
 #ifdef WITH_PYTHON
-#  include "BPY_extern.h"
+#  include "BPY_extern.hh"
 #endif
 
 using namespace blender::bke;

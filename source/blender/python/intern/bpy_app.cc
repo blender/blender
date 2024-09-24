@@ -29,7 +29,7 @@
 #include "bpy_app_handlers.hh"
 #include "bpy_driver.hh"
 
-#include "BPY_extern_python.h" /* For #BPY_python_app_help_text_fn. */
+#include "BPY_extern_python.hh" /* For #BPY_python_app_help_text_fn. */
 
 /* modules */
 #include "bpy_app_icons.hh"

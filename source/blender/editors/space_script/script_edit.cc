@@ -29,7 +29,7 @@
 #include "script_intern.hh" /* own include */
 
 #ifdef WITH_PYTHON
-#  include "BPY_extern_run.h"
+#  include "BPY_extern_run.hh"
 #endif
 
 static int run_pyfile_exec(bContext *C, wmOperator *op)

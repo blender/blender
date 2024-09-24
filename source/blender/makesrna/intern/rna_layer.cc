@@ -27,7 +27,7 @@
 #ifdef RNA_RUNTIME
 
 #  ifdef WITH_PYTHON
-#    include "BPY_extern.h"
+#    include "BPY_extern.hh"
 #  endif
 
 #  include "DNA_collection_types.h"

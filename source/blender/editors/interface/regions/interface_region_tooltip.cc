@@ -69,7 +69,7 @@
 #include "BLT_translation.hh"
 
 #ifdef WITH_PYTHON
-#  include "BPY_extern_run.h"
+#  include "BPY_extern_run.hh"
 #endif
 
 #include "ED_screen.hh"

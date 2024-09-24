@@ -27,8 +27,8 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BPY_extern.h"
-#include "BPY_extern_clog.h"
+#include "BPY_extern.hh"
+#include "BPY_extern_clog.hh"
 
 #include "bpy_capi_utils.hh"
 #include "bpy_intern_string.hh"

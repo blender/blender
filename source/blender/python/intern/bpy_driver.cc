@@ -33,7 +33,7 @@
 #include "bpy_driver.hh"
 #include "bpy_rna.hh"
 
-#include "BPY_extern.h"
+#include "BPY_extern.hh"
 
 #define USE_RNA_AS_PYOBJECT
 

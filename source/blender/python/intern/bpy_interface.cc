@@ -55,9 +55,9 @@
 #  include "CCL_api.h"
 #endif
 
-#include "BPY_extern.h"
-#include "BPY_extern_python.h"
-#include "BPY_extern_run.h"
+#include "BPY_extern.hh"
+#include "BPY_extern_python.hh"
+#include "BPY_extern_run.hh"
 
 #include "../generic/py_capi_utils.hh"
 

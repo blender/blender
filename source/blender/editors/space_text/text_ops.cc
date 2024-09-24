@@ -43,8 +43,8 @@
 #include "RNA_define.hh"
 
 #ifdef WITH_PYTHON
-#  include "BPY_extern.h"
-#  include "BPY_extern_run.h"
+#  include "BPY_extern.hh"
+#  include "BPY_extern_run.hh"
 #endif
 
 #include "text_format.hh"
