@@ -196,7 +196,7 @@ static bool is_vert_slide_visible_bmesh(TransInfo *t,
 
   BMVert *v = static_cast<BMVert *>(sv->td->extra);
   BM_ITER_ELEM (e, &iter_other, v, BM_EDGES_OF_VERT) {
-    if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
+    if (BM_elem_flag_test(e, BM_ELEM_SELECT | BM_ELEM_HIDDEN)) {
       continue;
     }
 
