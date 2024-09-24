@@ -56,16 +56,16 @@ enum {
   /** Wrapped data type. */ \
   unsigned char flag
 
-typedef struct {
+struct BaseMathObject {
   BASE_MATH_MEMBERS(data);
-} BaseMathObject;
+};
 
 /* types */
-#include "mathutils_Color.h"
-#include "mathutils_Euler.h"
-#include "mathutils_Matrix.h"
-#include "mathutils_Quaternion.h"
-#include "mathutils_Vector.h"
+#include "mathutils_Color.hh"
+#include "mathutils_Euler.hh"
+#include "mathutils_Matrix.hh"
+#include "mathutils_Quaternion.hh"
+#include "mathutils_Vector.hh"
 
 /* avoid checking all types */
 #define BaseMathObject_CheckExact(v) (Py_TYPE(v)->tp_dealloc == (destructor)BaseMathObject_dealloc)
@@ -83,7 +83,7 @@ int BaseMathObject_clear(BaseMathObject *self);
 void BaseMathObject_dealloc(BaseMathObject *self);
 int BaseMathObject_is_gc(BaseMathObject *self);
 
-PyMODINIT_FUNC PyInit_mathutils(void);
+PyMODINIT_FUNC PyInit_mathutils();
 
 int EXPP_FloatsAreEqual(float af, float bf, int maxDiff);
 int EXPP_VectorsAreEqual(const float *vecA, const float *vecB, int size, int floatSteps);

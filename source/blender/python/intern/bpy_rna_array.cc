@@ -29,7 +29,7 @@
 #define USE_MATHUTILS
 
 #ifdef USE_MATHUTILS
-#  include "../mathutils/mathutils.h" /* so we can have mathutils callbacks */
+#  include "../mathutils/mathutils.hh" /* so we can have mathutils callbacks */
 #endif
 
 #define MAX_ARRAY_DIMENSION 10

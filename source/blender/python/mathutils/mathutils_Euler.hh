@@ -12,11 +12,10 @@ extern PyTypeObject euler_Type;
 #define EulerObject_Check(v) PyObject_TypeCheck((v), &euler_Type)
 #define EulerObject_CheckExact(v) (Py_TYPE(v) == &euler_Type)
 
-typedef struct {
+struct EulerObject {
   BASE_MATH_MEMBERS(eul);
   unsigned char order; /* rotation order */
-
-} EulerObject;
+};
 
 /* struct data contains a pointer to the actual data that the
  * object uses. It can use either PyMem allocated data (which will

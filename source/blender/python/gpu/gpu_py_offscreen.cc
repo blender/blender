@@ -30,7 +30,7 @@
 
 #include "ED_view3d_offscreen.hh"
 
-#include "../mathutils/mathutils.h"
+#include "../mathutils/mathutils.hh"
 
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_compat.h"

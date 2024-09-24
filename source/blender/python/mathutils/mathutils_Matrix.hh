@@ -36,11 +36,11 @@ typedef unsigned short ushort;
 #define MATRIX_COL_INDEX(_mat, _col) (MATRIX_ITEM_INDEX(_mat, 0, _col))
 #define MATRIX_COL_PTR(_mat, _col) ((_mat)->matrix + MATRIX_COL_INDEX(_mat, _col))
 
-typedef struct {
+struct MatrixObject {
   BASE_MATH_MEMBERS(matrix);
   ushort col_num;
   ushort row_num;
-} MatrixObject;
+};
 
 /* struct data contains a pointer to the actual data that the
  * object uses. It can use either PyMem allocated data (which will

@@ -16,7 +16,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "../mathutils/mathutils.h"
+#include "../mathutils/mathutils.hh"
 
 #include "bmesh.hh"
 #include "bmesh_py_types.h"

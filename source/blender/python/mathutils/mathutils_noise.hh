@@ -2,10 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma once
-
 /** \file
- * \ingroup pymathutils
+ * \ingroup mathutils
  */
 
-PyMODINIT_FUNC PyInit_mathutils_interpolate(void);
+#pragma once
+
+PyMODINIT_FUNC PyInit_mathutils_noise();

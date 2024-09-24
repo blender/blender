@@ -10,7 +10,7 @@
 
 #include <Python.h>
 
-#include "mathutils.h"
+#include "mathutils.hh"
 
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_utildefines.h"

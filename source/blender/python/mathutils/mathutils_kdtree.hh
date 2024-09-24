@@ -8,6 +8,6 @@
 
 #pragma once
 
-PyMODINIT_FUNC PyInit_mathutils_kdtree(void);
+PyMODINIT_FUNC PyInit_mathutils_kdtree();
 
 extern PyTypeObject PyKDTree_Type;

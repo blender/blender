@@ -8,8 +8,8 @@
 
 #include <Python.h>
 
-#include "mathutils.h"
-#include "mathutils_geometry.h"
+#include "mathutils.hh"
+#include "mathutils_geometry.hh"
 
 /* Used for PolyFill */
 #ifndef MATH_STANDALONE /* define when building outside blender */

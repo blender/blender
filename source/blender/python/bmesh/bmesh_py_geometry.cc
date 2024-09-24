@@ -13,7 +13,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "../mathutils/mathutils.h"
+#include "../mathutils/mathutils.hh"
 
 #include "bmesh.hh"
 #include "bmesh_py_geometry.h" /* own include */

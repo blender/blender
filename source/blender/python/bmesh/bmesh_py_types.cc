@@ -31,7 +31,7 @@
 
 #include <Python.h>
 
-#include "../mathutils/mathutils.h"
+#include "../mathutils/mathutils.hh"
 
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_utildefines.h"

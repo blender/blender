@@ -18,7 +18,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "../mathutils/mathutils.h"
+#include "../mathutils/mathutils.hh"
 
 #include "../generic/py_capi_utils.h"
 

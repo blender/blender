@@ -8,7 +8,7 @@
 
 #pragma once
 
-PyMODINIT_FUNC PyInit_mathutils_bvhtree(void);
+PyMODINIT_FUNC PyInit_mathutils_bvhtree();
 
 extern PyTypeObject PyBVHTree_Type;
 

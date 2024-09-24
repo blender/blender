@@ -8,4 +8,4 @@
  * \ingroup pymathutils
  */
 
-PyMODINIT_FUNC PyInit_mathutils_geometry(void);
+PyMODINIT_FUNC PyInit_mathutils_geometry();

@@ -10,7 +10,7 @@
 
 #include <Python.h>
 
-#include "mathutils.h"
+#include "mathutils.hh"
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"

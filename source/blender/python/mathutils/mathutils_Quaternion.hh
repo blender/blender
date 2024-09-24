@@ -13,9 +13,9 @@ extern PyTypeObject quaternion_Type;
 #define QuaternionObject_Check(v) PyObject_TypeCheck((v), &quaternion_Type)
 #define QuaternionObject_CheckExact(v) (Py_TYPE(v) == &quaternion_Type)
 
-typedef struct {
+struct QuaternionObject {
   BASE_MATH_MEMBERS(quat);
-} QuaternionObject;
+};
 
 /* struct data contains a pointer to the actual data that the
  * object uses. It can use either PyMem allocated data (which will

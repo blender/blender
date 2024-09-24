@@ -19,7 +19,7 @@
 
 #include <Python.h>
 
-#include "../mathutils/mathutils.h"
+#include "../mathutils/mathutils.hh"
 
 #include "DNA_meshdata_types.h"
 

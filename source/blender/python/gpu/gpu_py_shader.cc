@@ -21,7 +21,7 @@
 #include "../generic/python_compat.h"
 #include "../generic/python_utildefines.h"
 
-#include "../mathutils/mathutils.h"
+#include "../mathutils/mathutils.hh"
 
 #include "gpu_py.hh"
 #include "gpu_py_texture.hh"

@@ -12,9 +12,9 @@ extern PyTypeObject color_Type;
 #define ColorObject_Check(v) PyObject_TypeCheck((v), &color_Type)
 #define ColorObject_CheckExact(v) (Py_TYPE(v) == &color_Type)
 
-typedef struct {
+struct ColorObject {
   BASE_MATH_MEMBERS(col);
-} ColorObject;
+};
 
 /* struct data contains a pointer to the actual data that the
  * object uses. It can use either PyMem allocated data (which will

@@ -19,8 +19,8 @@
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_utildefines.h"
 
-#include "mathutils.h"
-#include "mathutils_kdtree.h" /* own include */
+#include "mathutils.hh"
+#include "mathutils_kdtree.hh" /* own include */
 
 #include "BLI_strict_flags.h" /* Keep last. */
 

@@ -8,8 +8,8 @@
 
 #include <Python.h>
 
-#include "mathutils.h"
-#include "mathutils_interpolate.h"
+#include "mathutils.hh"
+#include "mathutils_interpolate.hh"
 
 #include "BLI_math_geom.h"
 #include "BLI_utildefines.h"

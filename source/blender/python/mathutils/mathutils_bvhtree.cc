@@ -27,8 +27,8 @@
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_utildefines.h"
 
-#include "mathutils.h"
-#include "mathutils_bvhtree.h" /* own include */
+#include "mathutils.hh"
+#include "mathutils_bvhtree.hh" /* own include */
 
 #ifndef MATH_STANDALONE
 #  include "DNA_mesh_types.h"
