@@ -622,6 +622,25 @@ void SCULPT_flip_quat_by_symm_area(float quat[4],
 
 namespace blender::ed::sculpt_paint {
 
+/**
+ * Utility functions to get the closest vertices after flipping an original vertex position for
+ * all symmetry passes. The returned vector is sorted.
+ */
+Vector<int> find_symm_verts_mesh(const Depsgraph &depsgraph,
+                                 const Object &object,
+                                 int original_vert,
+                                 float max_distance = std::numeric_limits<float>::max());
+Vector<int> find_symm_verts_grids(const Object &object,
+                                  int original_vert,
+                                  float max_distance = std::numeric_limits<float>::max());
+Vector<int> find_symm_verts_bmesh(const Object &object,
+                                  int original_vert,
+                                  float max_distance = std::numeric_limits<float>::max());
+Vector<int> find_symm_verts(const Depsgraph &depsgraph,
+                            const Object &object,
+                            int original_vert,
+                            float max_distance = std::numeric_limits<float>::max());
+
 bool node_fully_masked_or_hidden(const bke::pbvh::Node &node);
 bool node_in_sphere(const bke::pbvh::Node &node,
                     const float3 &location,

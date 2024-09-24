@@ -30,12 +30,8 @@ struct FillDataMesh {
   FillDataMesh(int size) : visited_verts(size) {}
 
   void add_initial(int vertex);
+  void add_initial(Span<int> verts);
   void add_and_skip_initial(int vertex);
-  void add_initial_with_symmetry(const Depsgraph &depsgraph,
-                                 const Object &object,
-                                 const bke::pbvh::Tree &pbvh,
-                                 int vertex,
-                                 float radius);
   void execute(Object &object,
                GroupedSpan<int> vert_to_face_map,
                FunctionRef<bool(int from_v, int to_v)> func);
@@ -48,12 +44,8 @@ struct FillDataGrids {
   FillDataGrids(int size) : visited_verts(size) {}
 
   void add_initial(SubdivCCGCoord vertex);
+  void add_initial(const CCGKey &key, Span<int> verts);
   void add_and_skip_initial(SubdivCCGCoord vertex, int index);
-  void add_initial_with_symmetry(const Object &object,
-                                 const bke::pbvh::Tree &pbvh,
-                                 const SubdivCCG &subdiv_ccg,
-                                 SubdivCCGCoord vertex,
-                                 float radius);
   void execute(
       Object &object,
       const SubdivCCG &subdiv_ccg,
@@ -67,11 +59,8 @@ struct FillDataBMesh {
   FillDataBMesh(int size) : visited_verts(size) {}
 
   void add_initial(BMVert *vertex);
+  void add_initial(BMesh &bm, Span<int> verts);
   void add_and_skip_initial(BMVert *vertex, int index);
-  void add_initial_with_symmetry(const Object &object,
-                                 const bke::pbvh::Tree &pbvh,
-                                 BMVert *vertex,
-                                 float radius);
   void execute(Object &object, FunctionRef<bool(BMVert *from_v, BMVert *to_v)> func);
 };
 
