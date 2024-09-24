@@ -6474,12 +6474,7 @@ static bool uiTemplateInputStatusAzone(uiLayout *layout, const AZone *az, const 
 {
   if (az->type == AZONE_AREA) {
     uiItemL(layout, nullptr, ICON_MOUSE_LMB_DRAG);
-    if (U.experimental.use_docking) {
-      uiItemL(layout, IFACE_("Split/Dock"), ICON_NONE);
-    }
-    else {
-      uiItemL(layout, IFACE_("Split/Join"), ICON_NONE);
-    }
+    uiItemL(layout, IFACE_("Split/Dock"), ICON_NONE);
     uiItemS_ex(layout, 0.7f);
     uiItemL(layout, "", ICON_EVENT_SHIFT);
     uiItemL(layout, nullptr, ICON_MOUSE_LMB_DRAG);
