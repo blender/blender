@@ -300,63 +300,6 @@ pxr::VtFloatArray get_blendshape_weights(const Key *key)
   return weights;
 }
 
-bool has_animated_mesh_shape_key(const Object *obj)
-{
-  const Key *key = get_mesh_shape_key(obj);
-
-  return key && key->totkey > 0 && key->adt != nullptr;
-}
-
-pxr::VtTokenArray get_blend_shape_names(const Key *key)
-{
-  KeyBlock *basis_key = static_cast<KeyBlock *>(key->block.first);
-
-  if (!basis_key) {
-    return pxr::VtTokenArray();
-  }
-
-  pxr::VtTokenArray blendshape_names;
-
-  LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
-
-    if (kb == basis_key) {
-      /* Skip the basis. */
-      continue;
-    }
-
-    pxr::TfToken name(pxr::TfMakeValidIdentifier(kb->name));
-    blendshape_names.push_back(name);
-  }
-
-  return blendshape_names;
-}
-
-pxr::VtTokenArray get_blend_shapes_attr_value(const pxr::UsdPrim &mesh_prim)
-{
-  pxr::UsdSkelBindingAPI skel_api = pxr::UsdSkelBindingAPI::Apply(mesh_prim);
-
-  if (!skel_api) {
-    CLOG_WARN(&LOG,
-              "Couldn't apply UsdSkelBindingAPI to blend shape prim %s",
-              mesh_prim.GetPath().GetAsString().c_str());
-    return pxr::VtTokenArray();
-  }
-
-  pxr::VtTokenArray blend_shape_names;
-
-  if (!skel_api.GetBlendShapesAttr().HasValue()) {
-    return blend_shape_names;
-  }
-
-  if (!skel_api.GetBlendShapesAttr().Get(&blend_shape_names)) {
-    CLOG_WARN(&LOG,
-              "Couldn't get blend shapes attribute value for prim %s",
-              mesh_prim.GetPath().GetAsString().c_str());
-  }
-
-  return blend_shape_names;
-}
-
 void remap_blend_shape_anim(pxr::UsdStageRefPtr stage,
                             const pxr::SdfPath &skel_path,
                             const pxr::SdfPathSet &mesh_paths)
