@@ -23,13 +23,23 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>("Curve").supported_type(
       {GeometryComponent::Type::Curve, GeometryComponent::Type::GreasePencil});
   b.add_input<decl::Bool>("Selection").default_value(true).field_on_all().hide_value();
-  b.add_input<decl::Int>("Count").default_value(10).min(1).max(100000).field_on_all();
-  b.add_input<decl::Float>("Length")
-      .default_value(0.1f)
-      .min(0.01f)
-      .subtype(PROP_DISTANCE)
-      .field_on_all();
+  auto &count =
+      b.add_input<decl::Int>("Count").default_value(10).min(1).max(100000).field_on_all();
+  auto &length = b.add_input<decl::Float>("Length")
+                     .default_value(0.1f)
+                     .min(0.01f)
+                     .subtype(PROP_DISTANCE)
+                     .field_on_all();
   b.add_output<decl::Geometry>("Curve").propagate_all();
+
+  const bNode *node = b.node_or_null();
+  if (node != nullptr) {
+    const NodeGeometryCurveResample &storage = node_storage(*node);
+    const GeometryNodeCurveResampleMode mode = GeometryNodeCurveResampleMode(storage.mode);
+
+    count.available(mode == GEO_NODE_CURVE_RESAMPLE_COUNT);
+    length.available(mode == GEO_NODE_CURVE_RESAMPLE_LENGTH);
+  }
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -43,18 +53,6 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 
   data->mode = GEO_NODE_CURVE_RESAMPLE_COUNT;
   node->storage = data;
-}
-
-static void node_update(bNodeTree *ntree, bNode *node)
-{
-  const NodeGeometryCurveResample &storage = node_storage(*node);
-  const GeometryNodeCurveResampleMode mode = (GeometryNodeCurveResampleMode)storage.mode;
-
-  bNodeSocket *count_socket = static_cast<bNodeSocket *>(node->inputs.first)->next->next;
-  bNodeSocket *length_socket = count_socket->next;
-
-  bke::node_set_socket_availability(ntree, count_socket, mode == GEO_NODE_CURVE_RESAMPLE_COUNT);
-  bke::node_set_socket_availability(ntree, length_socket, mode == GEO_NODE_CURVE_RESAMPLE_LENGTH);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -207,7 +205,6 @@ static void node_register()
   blender::bke::node_type_storage(
       &ntype, "NodeGeometryCurveResample", node_free_standard_storage, node_copy_standard_storage);
   ntype.initfunc = node_init;
-  ntype.updatefunc = node_update;
   ntype.geometry_node_execute = node_geo_exec;
   blender::bke::node_register_type(&ntype);
 

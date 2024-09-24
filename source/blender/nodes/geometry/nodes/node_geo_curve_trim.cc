@@ -26,31 +26,50 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>("Curve").supported_type(
       {GeometryComponent::Type::Curve, GeometryComponent::Type::GreasePencil});
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().supports_field();
-  b.add_input<decl::Float>("Start")
-      .min(0.0f)
-      .max(1.0f)
-      .subtype(PROP_FACTOR)
-      .make_available([](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_FACTOR; })
-      .field_on_all();
-  b.add_input<decl::Float>("End")
-      .min(0.0f)
-      .max(1.0f)
-      .default_value(1.0f)
-      .subtype(PROP_FACTOR)
-      .make_available([](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_FACTOR; })
-      .field_on_all();
-  b.add_input<decl::Float>("Start", "Start_001")
-      .min(0.0f)
-      .subtype(PROP_DISTANCE)
-      .make_available([](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_LENGTH; })
-      .field_on_all();
-  b.add_input<decl::Float>("End", "End_001")
-      .min(0.0f)
-      .default_value(1.0f)
-      .subtype(PROP_DISTANCE)
-      .make_available([](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_LENGTH; })
-      .field_on_all();
+  auto &start_fac = b.add_input<decl::Float>("Start")
+                        .min(0.0f)
+                        .max(1.0f)
+                        .subtype(PROP_FACTOR)
+                        .make_available([](bNode &node) {
+                          node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_FACTOR;
+                        })
+                        .field_on_all();
+  auto &end_fac = b.add_input<decl::Float>("End")
+                      .min(0.0f)
+                      .max(1.0f)
+                      .default_value(1.0f)
+                      .subtype(PROP_FACTOR)
+                      .make_available([](bNode &node) {
+                        node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_FACTOR;
+                      })
+                      .field_on_all();
+  auto &start_len = b.add_input<decl::Float>("Start", "Start_001")
+                        .min(0.0f)
+                        .subtype(PROP_DISTANCE)
+                        .make_available([](bNode &node) {
+                          node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_LENGTH;
+                        })
+                        .field_on_all();
+  auto &end_len = b.add_input<decl::Float>("End", "End_001")
+                      .min(0.0f)
+                      .default_value(1.0f)
+                      .subtype(PROP_DISTANCE)
+                      .make_available([](bNode &node) {
+                        node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_LENGTH;
+                      })
+                      .field_on_all();
   b.add_output<decl::Geometry>("Curve").propagate_all();
+
+  const bNode *node = b.node_or_null();
+  if (node != nullptr) {
+    const NodeGeometryCurveTrim &storage = node_storage(*node);
+    const GeometryNodeCurveSampleMode mode = GeometryNodeCurveSampleMode(storage.mode);
+
+    start_fac.available(mode == GEO_NODE_CURVE_SAMPLE_FACTOR);
+    end_fac.available(mode == GEO_NODE_CURVE_SAMPLE_FACTOR);
+    start_len.available(mode == GEO_NODE_CURVE_SAMPLE_LENGTH);
+    end_len.available(mode == GEO_NODE_CURVE_SAMPLE_LENGTH);
+  }
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -64,22 +83,6 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 
   data->mode = GEO_NODE_CURVE_SAMPLE_FACTOR;
   node->storage = data;
-}
-
-static void node_update(bNodeTree *ntree, bNode *node)
-{
-  const NodeGeometryCurveTrim &storage = node_storage(*node);
-  const GeometryNodeCurveSampleMode mode = (GeometryNodeCurveSampleMode)storage.mode;
-
-  bNodeSocket *start_fac = static_cast<bNodeSocket *>(node->inputs.first)->next->next;
-  bNodeSocket *end_fac = start_fac->next;
-  bNodeSocket *start_len = end_fac->next;
-  bNodeSocket *end_len = start_len->next;
-
-  bke::node_set_socket_availability(ntree, start_fac, mode == GEO_NODE_CURVE_SAMPLE_FACTOR);
-  bke::node_set_socket_availability(ntree, end_fac, mode == GEO_NODE_CURVE_SAMPLE_FACTOR);
-  bke::node_set_socket_availability(ntree, start_len, mode == GEO_NODE_CURVE_SAMPLE_LENGTH);
-  bke::node_set_socket_availability(ntree, end_len, mode == GEO_NODE_CURVE_SAMPLE_LENGTH);
 }
 
 class SocketSearchOp {
@@ -264,7 +267,6 @@ static void node_register()
   blender::bke::node_type_storage(
       &ntype, "NodeGeometryCurveTrim", node_free_standard_storage, node_copy_standard_storage);
   ntype.initfunc = node_init;
-  ntype.updatefunc = node_update;
   ntype.gather_link_search_ops = node_gather_link_searches;
   blender::bke::node_register_type(&ntype);
 

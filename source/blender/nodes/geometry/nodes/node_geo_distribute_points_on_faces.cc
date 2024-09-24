@@ -36,28 +36,45 @@ static void node_declare(NodeDeclarationBuilder &b)
 
   b.add_input<decl::Geometry>("Mesh").supported_type(GeometryComponent::Type::Mesh);
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
-  b.add_input<decl::Float>("Distance Min")
-      .min(0.0f)
-      .subtype(PROP_DISTANCE)
-      .make_available(enable_poisson);
-  b.add_input<decl::Float>("Density Max")
-      .default_value(10.0f)
-      .min(0.0f)
-      .make_available(enable_poisson);
-  b.add_input<decl::Float>("Density").default_value(10.0f).min(0.0f).field_on_all().make_available(
-      enable_random);
-  b.add_input<decl::Float>("Density Factor")
-      .default_value(1.0f)
-      .min(0.0f)
-      .max(1.0f)
-      .subtype(PROP_FACTOR)
-      .field_on_all()
-      .make_available(enable_poisson);
+  auto &distance_min = b.add_input<decl::Float>("Distance Min")
+                           .min(0.0f)
+                           .subtype(PROP_DISTANCE)
+                           .make_available(enable_poisson);
+  auto &density_max = b.add_input<decl::Float>("Density Max")
+                          .default_value(10.0f)
+                          .min(0.0f)
+                          .make_available(enable_poisson);
+  auto &density = b.add_input<decl::Float>("Density")
+                      .default_value(10.0f)
+                      .min(0.0f)
+                      .field_on_all()
+                      .make_available(enable_random);
+  auto &density_factor = b.add_input<decl::Float>("Density Factor")
+                             .default_value(1.0f)
+                             .min(0.0f)
+                             .max(1.0f)
+                             .subtype(PROP_FACTOR)
+                             .field_on_all()
+                             .make_available(enable_poisson);
   b.add_input<decl::Int>("Seed");
 
   b.add_output<decl::Geometry>("Points").propagate_all();
   b.add_output<decl::Vector>("Normal").field_on_all();
   b.add_output<decl::Rotation>("Rotation").field_on_all();
+
+  const bNode *node = b.node_or_null();
+  if (node != nullptr) {
+    switch (node->custom1) {
+      case GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_POISSON:
+        distance_min.available(true);
+        density_max.available(true);
+        density_factor.available(true);
+        break;
+      case GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_RANDOM:
+        density.available(true);
+        break;
+    }
+  }
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -68,26 +85,6 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 static void node_layout_ex(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "use_legacy_normal", UI_ITEM_NONE, nullptr, ICON_NONE);
-}
-
-static void node_point_distribute_points_on_faces_update(bNodeTree *ntree, bNode *node)
-{
-  bNodeSocket *sock_distance_min = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 2));
-  bNodeSocket *sock_density_max = static_cast<bNodeSocket *>(sock_distance_min->next);
-  bNodeSocket *sock_density = sock_density_max->next;
-  bNodeSocket *sock_density_factor = sock_density->next;
-  bke::node_set_socket_availability(ntree,
-                                    sock_distance_min,
-                                    node->custom1 ==
-                                        GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_POISSON);
-  bke::node_set_socket_availability(
-      ntree, sock_density_max, node->custom1 == GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_POISSON);
-  bke::node_set_socket_availability(
-      ntree, sock_density, node->custom1 == GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_RANDOM);
-  bke::node_set_socket_availability(ntree,
-                                    sock_density_factor,
-                                    node->custom1 ==
-                                        GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_POISSON);
 }
 
 /**
@@ -609,7 +606,6 @@ static void node_register()
                      GEO_NODE_DISTRIBUTE_POINTS_ON_FACES,
                      "Distribute Points on Faces",
                      NODE_CLASS_GEOMETRY);
-  ntype.updatefunc = node_point_distribute_points_on_faces_update;
   blender::bke::node_type_size(&ntype, 170, 100, 320);
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;

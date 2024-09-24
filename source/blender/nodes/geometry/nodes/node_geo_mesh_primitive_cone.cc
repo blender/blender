@@ -32,11 +32,11 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(1)
       .max(512)
       .description("The number of edges running vertically along the side of the cone");
-  b.add_input<decl::Int>("Fill Segments")
-      .default_value(1)
-      .min(1)
-      .max(512)
-      .description("Number of concentric rings used to fill the round face");
+  auto &fill = b.add_input<decl::Int>("Fill Segments")
+                   .default_value(1)
+                   .min(1)
+                   .max(512)
+                   .description("Number of concentric rings used to fill the round face");
   b.add_input<decl::Float>("Radius Top")
       .min(0.0f)
       .subtype(PROP_DISTANCE)
@@ -57,6 +57,14 @@ static void node_declare(NodeDeclarationBuilder &b)
       BLT_I18NCONTEXT_ID_NODETREE);
   b.add_output<decl::Bool>("Side").field_on_all();
   b.add_output<decl::Vector>("UV Map").field_on_all();
+
+  const bNode *node = b.node_or_null();
+  if (node != nullptr) {
+    const NodeGeometryMeshCone &storage = node_storage(*node);
+    const GeometryNodeMeshCircleFillType fill_type = GeometryNodeMeshCircleFillType(
+        storage.fill_type);
+    fill.available(fill_type != GEO_NODE_MESH_CIRCLE_FILL_NONE);
+  }
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -66,18 +74,6 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   node_storage->fill_type = GEO_NODE_MESH_CIRCLE_FILL_NGON;
 
   node->storage = node_storage;
-}
-
-static void node_update(bNodeTree *ntree, bNode *node)
-{
-  bNodeSocket *vertices_socket = static_cast<bNodeSocket *>(node->inputs.first);
-  bNodeSocket *rings_socket = vertices_socket->next;
-  bNodeSocket *fill_subdiv_socket = rings_socket->next;
-
-  const NodeGeometryMeshCone &storage = node_storage(*node);
-  const GeometryNodeMeshCircleFillType fill = (GeometryNodeMeshCircleFillType)storage.fill_type;
-  const bool has_fill = fill != GEO_NODE_MESH_CIRCLE_FILL_NONE;
-  bke::node_set_socket_availability(ntree, fill_subdiv_socket, has_fill);
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -159,7 +155,6 @@ static void node_register()
 
   geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_CONE, "Cone", NODE_CLASS_GEOMETRY);
   ntype.initfunc = node_init;
-  ntype.updatefunc = node_update;
   blender::bke::node_type_storage(
       &ntype, "NodeGeometryMeshCone", node_free_standard_storage, node_copy_standard_storage);
   ntype.geometry_node_execute = node_geo_exec;

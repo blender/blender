@@ -32,24 +32,34 @@ static void node_declare(NodeDeclarationBuilder &b)
     b.add_input(eCustomDataType(storage.data_type), "Value").hide_value().field_on_all();
   }
 
-  b.add_input<decl::Float>("Factor")
-      .min(0.0f)
-      .max(1.0f)
-      .subtype(PROP_FACTOR)
-      .field_on_all()
-      .make_available([](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_FACTOR; });
-  b.add_input<decl::Float>("Length")
-      .min(0.0f)
-      .subtype(PROP_DISTANCE)
-      .field_on_all()
-      .make_available([](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_LENGTH; });
-  b.add_input<decl::Int>("Curve Index").field_on_all().make_available([](bNode &node) {
-    node_storage(node).use_all_curves = false;
-  });
+  auto &factor = b.add_input<decl::Float>("Factor")
+                     .min(0.0f)
+                     .max(1.0f)
+                     .subtype(PROP_FACTOR)
+                     .field_on_all()
+                     .make_available([](bNode &node) {
+                       node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_FACTOR;
+                     });
+  auto &length = b.add_input<decl::Float>("Length")
+                     .min(0.0f)
+                     .subtype(PROP_DISTANCE)
+                     .field_on_all()
+                     .make_available([](bNode &node) {
+                       node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_LENGTH;
+                     });
+  auto &index =
+      b.add_input<decl::Int>("Curve Index").field_on_all().make_available([](bNode &node) {
+        node_storage(node).use_all_curves = false;
+      });
 
   if (const bNode *node = b.node_or_null()) {
     const NodeGeometryCurveSample &storage = node_storage(*node);
+    const GeometryNodeCurveSampleMode mode = GeometryNodeCurveSampleMode(storage.mode);
     b.add_output(eCustomDataType(storage.data_type), "Value").dependent_field({2, 3, 4});
+
+    factor.available(mode == GEO_NODE_CURVE_SAMPLE_FACTOR);
+    length.available(mode == GEO_NODE_CURVE_SAMPLE_LENGTH);
+    index.available(!storage.use_all_curves);
   }
 
   b.add_output<decl::Vector>("Position").dependent_field({2, 3, 4});
@@ -71,20 +81,6 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   data->use_all_curves = false;
   data->data_type = CD_PROP_FLOAT;
   node->storage = data;
-}
-
-static void node_update(bNodeTree *ntree, bNode *node)
-{
-  const NodeGeometryCurveSample &storage = node_storage(*node);
-  const GeometryNodeCurveSampleMode mode = GeometryNodeCurveSampleMode(storage.mode);
-
-  bNodeSocket *factor = static_cast<bNodeSocket *>(node->inputs.first)->next->next;
-  bNodeSocket *length = factor->next;
-  bNodeSocket *curve_index = length->next;
-
-  bke::node_set_socket_availability(ntree, factor, mode == GEO_NODE_CURVE_SAMPLE_FACTOR);
-  bke::node_set_socket_availability(ntree, length, mode == GEO_NODE_CURVE_SAMPLE_LENGTH);
-  bke::node_set_socket_availability(ntree, curve_index, !storage.use_all_curves);
 }
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
@@ -502,7 +498,6 @@ static void node_register()
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
-  ntype.updatefunc = node_update;
   blender::bke::node_type_storage(
       &ntype, "NodeGeometryCurveSample", node_free_standard_storage, node_copy_standard_storage);
   ntype.draw_buttons = node_layout;

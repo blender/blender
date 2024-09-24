@@ -39,12 +39,20 @@ static void node_declare(NodeDeclarationBuilder &b)
       .implicit_field_on_all(implicit_field_inputs::normal)
       .hide_value();
   b.add_input<decl::Float>("Offset Scale").default_value(1.0f).field_on_all();
-  b.add_input<decl::Bool>("Individual").default_value(true).make_available([](bNode &node) {
-    node_storage(node).mode = GEO_NODE_EXTRUDE_MESH_FACES;
-  });
+  auto &individual =
+      b.add_input<decl::Bool>("Individual").default_value(true).make_available([](bNode &node) {
+        node_storage(node).mode = GEO_NODE_EXTRUDE_MESH_FACES;
+      });
   b.add_output<decl::Geometry>("Mesh").propagate_all();
   b.add_output<decl::Bool>("Top").field_on_all().translation_context(BLT_I18NCONTEXT_ID_NODETREE);
   b.add_output<decl::Bool>("Side").field_on_all();
+
+  const bNode *node = b.node_or_null();
+  if (node != nullptr) {
+    const NodeGeometryExtrudeMesh &storage = node_storage(*node);
+    const GeometryNodeExtrudeMeshMode mode = GeometryNodeExtrudeMeshMode(storage.mode);
+    individual.available(mode == GEO_NODE_EXTRUDE_MESH_FACES);
+  }
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -59,16 +67,6 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   NodeGeometryExtrudeMesh *data = MEM_cnew<NodeGeometryExtrudeMesh>(__func__);
   data->mode = GEO_NODE_EXTRUDE_MESH_FACES;
   node->storage = data;
-}
-
-static void node_update(bNodeTree *ntree, bNode *node)
-{
-  const NodeGeometryExtrudeMesh &storage = node_storage(*node);
-  const GeometryNodeExtrudeMeshMode mode = GeometryNodeExtrudeMeshMode(storage.mode);
-
-  bNodeSocket *individual_socket = static_cast<bNodeSocket *>(node->inputs.last);
-
-  bke::node_set_socket_availability(ntree, individual_socket, mode == GEO_NODE_EXTRUDE_MESH_FACES);
 }
 
 struct AttributeOutputs {
@@ -1543,7 +1541,6 @@ static void node_register()
   geo_node_type_base(&ntype, GEO_NODE_EXTRUDE_MESH, "Extrude Mesh", NODE_CLASS_GEOMETRY);
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
-  ntype.updatefunc = node_update;
   ntype.geometry_node_execute = node_geo_exec;
   blender::bke::node_type_storage(
       &ntype, "NodeGeometryExtrudeMesh", node_free_standard_storage, node_copy_standard_storage);

@@ -23,8 +23,14 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Curve").supported_type(
       {GeometryComponent::Type::Curve, GeometryComponent::Type::GreasePencil});
-  b.add_input<decl::Int>("Count").default_value(1).min(1).max(1000).field_on_all().make_available(
-      [](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_FILLET_POLY; });
+  auto &count_input = b.add_input<decl::Int>("Count")
+                          .default_value(1)
+                          .min(1)
+                          .max(1000)
+                          .field_on_all()
+                          .make_available([](bNode &node) {
+                            node_storage(node).mode = GEO_NODE_CURVE_FILLET_POLY;
+                          });
   b.add_input<decl::Float>("Radius")
       .min(0.0f)
       .max(FLT_MAX)
@@ -34,6 +40,12 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Bool>("Limit Radius")
       .description("Limit the maximum value of the radius in order to avoid overlapping fillets");
   b.add_output<decl::Geometry>("Curve").propagate_all();
+
+  const bNode *node = b.node_or_null();
+  if (node != nullptr) {
+    const NodeGeometryCurveFillet &storage = node_storage(*node);
+    count_input.available(GeometryNodeCurveFilletMode(storage.mode) == GEO_NODE_CURVE_FILLET_POLY);
+  }
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -46,14 +58,6 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   NodeGeometryCurveFillet *data = MEM_cnew<NodeGeometryCurveFillet>(__func__);
   data->mode = GEO_NODE_CURVE_FILLET_BEZIER;
   node->storage = data;
-}
-
-static void node_update(bNodeTree *ntree, bNode *node)
-{
-  const NodeGeometryCurveFillet &storage = node_storage(*node);
-  const GeometryNodeCurveFilletMode mode = (GeometryNodeCurveFilletMode)storage.mode;
-  bNodeSocket *poly_socket = static_cast<bNodeSocket *>(node->inputs.first)->next;
-  bke::node_set_socket_availability(ntree, poly_socket, mode == GEO_NODE_CURVE_FILLET_POLY);
 }
 
 static bke::CurvesGeometry fillet_curve(const bke::CurvesGeometry &src_curves,
@@ -199,7 +203,6 @@ static void node_register()
       &ntype, "NodeGeometryCurveFillet", node_free_standard_storage, node_copy_standard_storage);
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
-  ntype.updatefunc = node_update;
   ntype.geometry_node_execute = node_geo_exec;
   blender::bke::node_register_type(&ntype);
 

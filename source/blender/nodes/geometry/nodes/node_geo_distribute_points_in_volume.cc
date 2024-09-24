@@ -33,25 +33,37 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>("Volume")
       .supported_type(GeometryComponent::Type::Volume)
       .translation_context(BLT_I18NCONTEXT_ID_ID);
-  b.add_input<decl::Float>("Density")
-      .default_value(1.0f)
-      .min(0.0f)
-      .max(100000.0f)
-      .subtype(PROP_NONE)
-      .description("Number of points to sample per unit volume");
-  b.add_input<decl::Int>("Seed").min(-10000).max(10000).description(
+  auto &density = b.add_input<decl::Float>("Density")
+                      .default_value(1.0f)
+                      .min(0.0f)
+                      .max(100000.0f)
+                      .subtype(PROP_NONE)
+                      .description("Number of points to sample per unit volume");
+  auto &seed = b.add_input<decl::Int>("Seed").min(-10000).max(10000).description(
       "Seed used by the random number generator to generate random points");
-  b.add_input<decl::Vector>("Spacing")
-      .default_value({0.3, 0.3, 0.3})
-      .min(0.0001f)
-      .subtype(PROP_XYZ)
-      .description("Spacing between grid points");
-  b.add_input<decl::Float>("Threshold")
-      .default_value(0.1f)
-      .min(0.0f)
-      .max(FLT_MAX)
-      .description("Minimum density of a volume cell to contain a grid point");
+  auto &spacing = b.add_input<decl::Vector>("Spacing")
+                      .default_value({0.3, 0.3, 0.3})
+                      .min(0.0001f)
+                      .subtype(PROP_XYZ)
+                      .description("Spacing between grid points");
+  auto &threshold = b.add_input<decl::Float>("Threshold")
+                        .default_value(0.1f)
+                        .min(0.0f)
+                        .max(FLT_MAX)
+                        .description("Minimum density of a volume cell to contain a grid point");
   b.add_output<decl::Geometry>("Points").propagate_all();
+
+  const bNode *node = b.node_or_null();
+  if (node != nullptr) {
+    const NodeGeometryDistributePointsInVolume &storage = node_storage(*node);
+    GeometryNodeDistributePointsInVolumeMode mode = GeometryNodeDistributePointsInVolumeMode(
+        storage.mode);
+
+    density.available(mode == GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_RANDOM);
+    spacing.available(mode == GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_GRID);
+    seed.available(mode == GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_RANDOM);
+    threshold.available(mode == GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_GRID);
+  }
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -65,27 +77,6 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
       __func__);
   data->mode = GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_RANDOM;
   node->storage = data;
-}
-
-static void node_update(bNodeTree *ntree, bNode *node)
-{
-  const NodeGeometryDistributePointsInVolume &storage = node_storage(*node);
-  GeometryNodeDistributePointsInVolumeMode mode = GeometryNodeDistributePointsInVolumeMode(
-      storage.mode);
-
-  bNodeSocket *sock_density = static_cast<bNodeSocket *>(node->inputs.first)->next;
-  bNodeSocket *sock_seed = sock_density->next;
-  bNodeSocket *sock_spacing = sock_seed->next;
-  bNodeSocket *sock_threshold = sock_spacing->next;
-
-  bke::node_set_socket_availability(
-      ntree, sock_density, mode == GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_RANDOM);
-  bke::node_set_socket_availability(
-      ntree, sock_seed, mode == GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_RANDOM);
-  bke::node_set_socket_availability(
-      ntree, sock_spacing, mode == GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_GRID);
-  bke::node_set_socket_availability(
-      ntree, sock_threshold, mode == GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_GRID);
 }
 
 #ifdef WITH_OPENVDB
@@ -299,7 +290,6 @@ static void node_register()
                                   node_free_standard_storage,
                                   node_copy_standard_storage);
   ntype.initfunc = node_init;
-  ntype.updatefunc = node_update;
   blender::bke::node_type_size(&ntype, 170, 100, 320);
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
