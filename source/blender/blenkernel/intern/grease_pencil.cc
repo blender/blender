@@ -178,6 +178,11 @@ static void grease_pencil_foreach_id(ID *id, LibraryForeachIDData *data)
       BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, drawing_reference->id_reference, IDWALK_CB_USER);
     }
   }
+  for (const blender::bke::greasepencil::Layer *layer : grease_pencil->layers()) {
+    if (layer->parent) {
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, layer->parent, IDWALK_CB_USER);
+    }
+  }
 }
 
 static void grease_pencil_blend_write(BlendWriter *writer, ID *id, const void *id_address)
