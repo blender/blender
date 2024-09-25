@@ -207,7 +207,7 @@ class ShaderModule {
   ShaderPtr background_clip_bound = shader("overlay_clipbound");
   ShaderPtr curve_edit_points;
   ShaderPtr curve_edit_line;
-  ShaderPtr curve_edit_handles;
+  ShaderPtr curve_edit_handles = shader("overlay_edit_curves_handle_next");
   ShaderPtr extra_point;
   ShaderPtr facing;
   ShaderPtr grid = shader("overlay_grid");

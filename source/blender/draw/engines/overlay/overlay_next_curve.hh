@@ -56,18 +56,6 @@ class Curves {
       auto &pass = edit_curves_ps_;
       pass.init();
       {
-        auto &sub = pass.sub("Points");
-        sub.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND_ALPHA |
-                          DRW_STATE_WRITE_DEPTH,
-                      state.clipping_plane_count);
-        sub.shader_set(res.shaders.curve_edit_points.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
-        sub.bind_texture("weightTex", &res.weight_ramp_tx);
-        sub.push_constant("useWeight", false);
-        sub.push_constant("useGreasePencil", false);
-        edit_curves_points_ = &sub;
-      }
-      {
         auto &sub = pass.sub("Lines");
         sub.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND_ALPHA |
                           DRW_STATE_WRITE_DEPTH,
@@ -81,10 +69,24 @@ class Curves {
       }
       {
         auto &sub = pass.sub("Handles");
-        sub.state_set(DRW_STATE_WRITE_COLOR, state.clipping_plane_count);
+        sub.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA, state.clipping_plane_count);
         sub.shader_set(res.shaders.curve_edit_handles.get());
         sub.bind_ubo("globalsBlock", &res.globals_buf);
+        sub.push_constant("showCurveHandles", state.overlay.handle_display != CURVE_HANDLE_NONE);
+        sub.push_constant("curveHandleDisplay", int(state.overlay.handle_display));
         edit_curves_handles_ = &sub;
+      }
+      {
+        auto &sub = pass.sub("Points");
+        sub.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND_ALPHA |
+                          DRW_STATE_WRITE_DEPTH,
+                      state.clipping_plane_count);
+        sub.shader_set(res.shaders.curve_edit_points.get());
+        sub.bind_ubo("globalsBlock", &res.globals_buf);
+        sub.bind_texture("weightTex", &res.weight_ramp_tx);
+        sub.push_constant("useWeight", false);
+        sub.push_constant("useGreasePencil", false);
+        edit_curves_points_ = &sub;
       }
     }
 
@@ -149,16 +151,13 @@ class Curves {
     ::Curves &curves = *static_cast<::Curves *>(ob->data);
     const bool show_points = bke::AttrDomain(curves.selection_domain) == bke::AttrDomain::Point;
 
-    GPUUniformBuf *ubo_storage = DRW_curves_batch_cache_ubo_storage(&curves);
-
     if (show_points) {
       gpu::Batch *geom = DRW_curves_batch_cache_get_edit_points(&curves);
       edit_curves_points_->draw(geom, manager.unique_handle(ob_ref));
     }
     {
       gpu::Batch *geom = DRW_curves_batch_cache_get_edit_curves_handles(&curves);
-      edit_curves_handles_->bind_ubo("curvesInfoBlock", ubo_storage);
-      edit_curves_handles_->draw(geom, manager.unique_handle(ob_ref));
+      edit_curves_handles_->draw_expand(geom, GPU_PRIM_TRIS, 8, 1, manager.unique_handle(ob_ref));
     }
     {
       gpu::Batch *geom = DRW_curves_batch_cache_get_edit_curves_lines(&curves);

@@ -71,6 +71,7 @@ void OVERLAY_edit_curves_cache_init(OVERLAY_Data *vedata)
     sh = OVERLAY_shader_edit_curves_handle();
     grp = pd->edit_curves_handles_grp = DRW_shgroup_create(sh, psl->edit_curves_handles_ps);
     DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
+    DRW_shgroup_state_enable(grp, DRW_STATE_BLEND_ALPHA);
   }
 }
 
@@ -86,14 +87,10 @@ static void overlay_edit_curves_add_ob_to_pass(OVERLAY_PrivateData *pd, Object *
   }
 
   DRWShadingGroup *handles_shgrp = pd->edit_curves_handles_grp;
-  DRW_shgroup_uniform_block(
-      handles_shgrp, "curvesInfoBlock", DRW_curves_batch_cache_ubo_storage(curves));
   blender::gpu::Batch *geom_handles = DRW_curves_batch_cache_get_edit_curves_handles(curves);
   DRW_shgroup_call_no_cull(handles_shgrp, geom_handles, ob);
 
   DRWShadingGroup *lines_shgrp = pd->edit_curves_lines_grp[in_front];
-  DRW_shgroup_uniform_block(
-      lines_shgrp, "curvesInfoBlock", DRW_curves_batch_cache_ubo_storage(curves));
   blender::gpu::Batch *geom_lines = DRW_curves_batch_cache_get_edit_curves_lines(curves);
   DRW_shgroup_call_no_cull(lines_shgrp, geom_lines, ob);
 }

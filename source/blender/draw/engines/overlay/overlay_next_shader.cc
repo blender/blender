@@ -138,9 +138,6 @@ ShaderModule::ShaderModule(const SelectionType selection_type, const bool clippi
       [](gpu::shader::ShaderCreateInfo &info) { shader_patch_common(info); });
   curve_edit_line = shader("overlay_edit_particle_strand",
                            [](gpu::shader::ShaderCreateInfo &info) { shader_patch_common(info); });
-  curve_edit_handles = shader(
-      "overlay_edit_curves_handle",
-      [](gpu::shader::ShaderCreateInfo &info) { shader_patch_common(info); });
 
   extra_point = shader("overlay_extra_point", [](gpu::shader::ShaderCreateInfo &info) {
     info.additional_infos_.clear();
