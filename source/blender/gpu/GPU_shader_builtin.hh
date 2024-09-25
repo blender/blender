@@ -24,7 +24,7 @@ struct GPUShader;
 
 enum eGPUBuiltinShader {
   /** Glyph drawing shader used by the BLF module. */
-  GPU_SHADER_TEXT,
+  GPU_SHADER_TEXT = 0,
   /** Draws keyframe markers. All markers shapes are supported through a single shader. */
   GPU_SHADER_KEYFRAME_SHAPE,
   /** Draw solid mesh with a single distant light using a clamped simple dot product. */

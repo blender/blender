@@ -645,7 +645,7 @@ blender::Array<uchar> BLF_svg_icon_bitmap(uint icon_id,
     return blf_svg_icon_bitmap(font, icon_id, size, r_width, r_height, multicolor, edit_source_cb);
   }
 #else
-  UNUSED_VARS(icon_id, size, r_width, r_height, multicolor);
+  UNUSED_VARS(icon_id, size, r_width, r_height, multicolor, edit_source_cb);
 #endif /* WITH_HEADLESS */
   return {};
 }
