@@ -22,7 +22,7 @@ void main()
   }
 
   ObjectBounds bounds = bounds_buf[index];
-  if (!drw_bounds_are_valid(bounds) || bounds._inner_sphere_radius <= 0.0) {
+  if (!drw_bounds_are_valid(bounds)) {
     return;
   }
 
