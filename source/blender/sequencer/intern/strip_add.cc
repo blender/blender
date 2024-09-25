@@ -280,7 +280,7 @@ Sequence *SEQ_add_image_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
 
 #ifdef WITH_AUDASPACE
 
-static void seq_add_sound_av_sync(Main *bmain, Scene *scene, Sequence *seq, SeqLoadData *load_data)
+void SEQ_add_sound_av_sync(Main *bmain, Scene *scene, Sequence *seq, SeqLoadData *load_data)
 {
   SoundStreamInfo sound_stream;
   if (!BKE_sound_stream_info_get(bmain, load_data->path, 0, &sound_stream)) {
@@ -343,8 +343,6 @@ Sequence *SEQ_add_sound_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
     /* Turn on Display Waveform by default. */
     seq->flag |= SEQ_AUDIO_DRAW_WAVEFORM;
   }
-
-  seq_add_sound_av_sync(bmain, scene, seq, load_data);
 
   /* Set Last active directory. */
   BLI_strncpy(scene->ed->act_sounddir, strip->dirpath, FILE_MAXDIR);

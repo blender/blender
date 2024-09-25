@@ -829,14 +829,19 @@ static void seq_build_proxy(bContext *C, blender::Span<Sequence *> movie_strips)
   ED_area_tag_redraw(CTX_wm_area(C));
 }
 
-static void sequencer_add_movie_clamp_sound_strip_length(Scene *scene,
-                                                         Sequence *seq_movie,
-                                                         Sequence *seq_sound)
+static void sequencer_add_movie_sync_sound_strip(
+    Main *bmain, Scene *scene, Sequence *seq_movie, Sequence *seq_sound, SeqLoadData *load_data)
 {
   if (ELEM(nullptr, seq_movie, seq_sound)) {
     return;
   }
 
+  /* Make sure that the sound strip start time relative to the movie is taken into account. */
+  SEQ_add_sound_av_sync(bmain, scene, seq_sound, load_data);
+
+  /* Ensure that the sound strip start/end matches the movie strip even if the actual
+   * length and true position of the sound doesn't match up exactly.
+   */
   SEQ_time_right_handle_frame_set(
       scene, seq_sound, SEQ_time_right_handle_frame_get(scene, seq_movie));
   SEQ_time_left_handle_frame_set(
@@ -874,7 +879,7 @@ static void sequencer_add_movie_multiple_strips(bContext *C,
     else {
       if (RNA_boolean_get(op->ptr, "sound")) {
         seq_sound = SEQ_add_sound_strip(bmain, scene, ed->seqbasep, load_data);
-        sequencer_add_movie_clamp_sound_strip_length(scene, seq_movie, seq_sound);
+        sequencer_add_movie_sync_sound_strip(bmain, scene, seq_movie, seq_sound, load_data);
         added_strips.append(seq_movie);
 
         if (seq_sound) {
@@ -936,7 +941,7 @@ static bool sequencer_add_movie_single_strip(bContext *C,
   }
   if (RNA_boolean_get(op->ptr, "sound")) {
     seq_sound = SEQ_add_sound_strip(bmain, scene, ed->seqbasep, load_data);
-    sequencer_add_movie_clamp_sound_strip_length(scene, seq_movie, seq_sound);
+    sequencer_add_movie_sync_sound_strip(bmain, scene, seq_movie, seq_sound, load_data);
     added_strips.append(seq_movie);
 
     if (seq_sound) {
