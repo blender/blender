@@ -86,4 +86,23 @@ Vector<const FCurve *> fcurves_for_assigned_action(const AnimData *adt);
  */
 bool assigned_action_has_keyframes(AnimData *adt);
 
+/**
+ * Return all Channel Groups in the Action.
+ *
+ * This works for both legacy and layered Actions. For the latter, it will
+ * return all F-Curves for all slots/layers/strips.
+ *
+ * \see #blender::animrig::legacy::channel_groups_for_action_slot
+ */
+Vector<bActionGroup *> channel_groups_all(bAction *action);
+
+/**
+ * Determine whether to treat this Action as a legacy Action or not.
+ *
+ * - empty Action: returns the value of the 'Slotted Actions' experimental feature.
+ * - layered Action: always returns false.
+ * - legacy Action: always returns true.
+ */
+bool action_treat_as_legacy(const bAction &action);
+
 }  // namespace blender::animrig::legacy

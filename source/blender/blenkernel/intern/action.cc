@@ -65,12 +65,15 @@
 #include "BLO_read_write.hh"
 
 #include "ANIM_action.hh"
+#include "ANIM_action_legacy.hh"
 #include "ANIM_bone_collections.hh"
 #include "ANIM_bonecolor.hh"
 
 #include "CLG_log.h"
 
 static CLG_LogRef LOG = {"bke.action"};
+
+using namespace blender;
 
 /* *********************** NOTE ON POSE AND ACTION **********************
  *
@@ -802,28 +805,21 @@ bAction *BKE_action_add(Main *bmain, const char name[])
 
 bActionGroup *get_active_actiongroup(bAction *act)
 {
-  bActionGroup *agrp = nullptr;
-
-  if (act && act->groups.first) {
-    for (agrp = static_cast<bActionGroup *>(act->groups.first); agrp; agrp = agrp->next) {
-      if (agrp->flag & AGRP_ACTIVE) {
-        break;
-      }
+  /* TODO: move this logic to the animrig::ChannelBag struct and unify with code
+   * that uses direct access to the flags. */
+  for (bActionGroup *agrp : animrig::legacy::channel_groups_all(act)) {
+    if (agrp->flag & AGRP_ACTIVE) {
+      return agrp;
     }
   }
-
-  return agrp;
+  return nullptr;
 }
 
 void set_active_action_group(bAction *act, bActionGroup *agrp, short select)
 {
-  /* sanity checks */
-  if (act == nullptr) {
-    return;
-  }
-
-  /* Deactivate all others */
-  LISTBASE_FOREACH (bActionGroup *, grp, &act->groups) {
+  /* TODO: move this logic to the animrig::ChannelBag struct and unify with code
+   * that uses direct access to the flags. */
+  for (bActionGroup *grp : animrig::legacy::channel_groups_all(act)) {
     if ((grp == agrp) && (select)) {
       grp->flag |= AGRP_ACTIVE;
     }

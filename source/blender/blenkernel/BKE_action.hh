@@ -51,11 +51,15 @@ void BKE_action_fcurves_clear(bAction *act);
 
 /**
  * Get the active action-group for an Action.
+ *
+ * \note This function supports both legacy and layered Actions.
  */
 bActionGroup *get_active_actiongroup(bAction *act) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Make the given Action-Group the active one.
+ *
+ * \note This function supports both legacy and layered Actions.
  */
 void set_active_action_group(bAction *act, bActionGroup *agrp, short select);
 
