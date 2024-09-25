@@ -126,7 +126,9 @@ set(SRC
   grease_pencil_trace_util.hh
   grease_pencil_weight_paint.hh
   mesh_brush_common.hh
+  paint_hide.hh
   paint_intern.hh
+  paint_mask.hh
   sculpt_automask.hh
   sculpt_boundary.hh
   sculpt_cloth.hh

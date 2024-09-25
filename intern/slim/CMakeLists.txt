@@ -5,9 +5,9 @@
 # Derived from `libigl`, a simple C++ geometry processing library.
 
 set(INC
-  ./
+  .
   ../../source/blender/blenlib
-  ../../intern/guardedalloc
+  ../guardedalloc
 )
 
 set(INC_SYS
