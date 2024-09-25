@@ -174,6 +174,7 @@
 #  define UNIFORM_SSBO_INDEX_MODE_U16_STR "uniform_ssbo_index_mode_u16"
 #  define UNIFORM_SSBO_INPUT_PRIM_TYPE_STR "uniform_ssbo_input_prim_type"
 #  define UNIFORM_SSBO_INPUT_VERT_COUNT_STR "uniform_ssbo_input_vert_count"
+#  define UNIFORM_SSBO_INDEX_BASE_STR "uniform_ssbo_index_base_"
 /* Per-attribute. */
 #  define UNIFORM_SSBO_OFFSET_STR "uniform_ssbo_offset_"
 #  define UNIFORM_SSBO_STRIDE_STR "uniform_ssbo_stride_"
@@ -186,6 +187,7 @@
 #  define UNIFORM_SSBO_INDEX_MODE_U16_STR "_mu"
 #  define UNIFORM_SSBO_INPUT_PRIM_TYPE_STR "_pt"
 #  define UNIFORM_SSBO_INPUT_VERT_COUNT_STR "_vc"
+#  define UNIFORM_SSBO_INDEX_BASE_STR "_ib"
 /* Per-attribute. */
 #  define UNIFORM_SSBO_OFFSET_STR "_so"
 #  define UNIFORM_SSBO_STRIDE_STR "_ss"
