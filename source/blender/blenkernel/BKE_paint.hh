@@ -407,8 +407,8 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
   blender::ed::sculpt_paint::expand::Cache *expand_cache = nullptr;
 
   /* Cursor data and active vertex for tools */
-  int active_face_index = -1;
-  int active_grid_index = -1;
+  std::optional<int> active_face_index;
+  std::optional<int> active_grid_index;
 
   /* When active, the cursor draws with faded colors, indicating that there is an action
    * enabled.

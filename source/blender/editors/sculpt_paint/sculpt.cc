@@ -203,20 +203,20 @@ int active_face_set_get(const Object &object)
       const Mesh &mesh = *static_cast<const Mesh *>(object.data);
       const bke::AttributeAccessor attributes = mesh.attributes();
       const VArray face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
-      if (!face_sets) {
+      if (!face_sets || !ss.active_face_index) {
         return SCULPT_FACE_SET_NONE;
       }
-      return face_sets[ss.active_face_index];
+      return face_sets[*ss.active_face_index];
     }
     case bke::pbvh::Type::Grids: {
       const Mesh &mesh = *static_cast<const Mesh *>(object.data);
       const bke::AttributeAccessor attributes = mesh.attributes();
       const VArray face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
-      if (!face_sets) {
+      if (!face_sets || !ss.active_grid_index) {
         return SCULPT_FACE_SET_NONE;
       }
       const int face_index = BKE_subdiv_ccg_grid_to_face_index(*ss.subdiv_ccg,
-                                                               ss.active_grid_index);
+                                                               *ss.active_grid_index);
       return face_sets[face_index];
     }
     case bke::pbvh::Type::BMesh:
@@ -4645,15 +4645,15 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
   switch (pbvh->type()) {
     case bke::pbvh::Type::Mesh:
       ss.active_face_index = srd.active_face_grid_index;
-      ss.active_grid_index = 0;
+      ss.active_grid_index = std::nullopt;
       break;
     case bke::pbvh::Type::Grids:
-      ss.active_face_index = 0;
+      ss.active_face_index = std::nullopt;
       ss.active_grid_index = srd.active_face_grid_index;
       break;
     case bke::pbvh::Type::BMesh:
-      ss.active_face_index = 0;
-      ss.active_grid_index = 0;
+      ss.active_face_index = std::nullopt;
+      ss.active_grid_index = std::nullopt;
       break;
   }
 

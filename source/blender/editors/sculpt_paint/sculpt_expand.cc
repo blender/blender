@@ -2273,10 +2273,16 @@ static int active_face_set_id_get(Object &object, Cache &expand_cache)
   SculptSession &ss = *object.sculpt;
   switch (bke::object::pbvh_get(object)->type()) {
     case bke::pbvh::Type::Mesh:
-      return expand_cache.original_face_sets[ss.active_face_index];
+      if (!ss.active_face_index) {
+        return SCULPT_FACE_SET_NONE;
+      }
+      return expand_cache.original_face_sets[*ss.active_face_index];
     case bke::pbvh::Type::Grids: {
+      if (!ss.active_grid_index) {
+        return SCULPT_FACE_SET_NONE;
+      }
       const int face_index = BKE_subdiv_ccg_grid_to_face_index(*ss.subdiv_ccg,
-                                                               ss.active_grid_index);
+                                                               *ss.active_grid_index);
       return expand_cache.original_face_sets[face_index];
     }
     case bke::pbvh::Type::BMesh: {
