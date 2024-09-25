@@ -85,6 +85,8 @@ blender::bke::AttrDomain ED_grease_pencil_edit_selection_domain_get(
     const ToolSettings *tool_settings);
 blender::bke::AttrDomain ED_grease_pencil_sculpt_selection_domain_get(
     const ToolSettings *tool_settings);
+blender::bke::AttrDomain ED_grease_pencil_vertex_selection_domain_get(
+    const ToolSettings *tool_settings);
 blender::bke::AttrDomain ED_grease_pencil_selection_domain_get(const ToolSettings *tool_settings,
                                                                const Object *object);
 /**
@@ -92,6 +94,7 @@ blender::bke::AttrDomain ED_grease_pencil_selection_domain_get(const ToolSetting
  */
 bool ED_grease_pencil_edit_segment_selection_enabled(const ToolSettings *tool_settings);
 bool ED_grease_pencil_sculpt_segment_selection_enabled(const ToolSettings *tool_settings);
+bool ED_grease_pencil_vertex_segment_selection_enabled(const ToolSettings *tool_settings);
 bool ED_grease_pencil_segment_selection_enabled(const ToolSettings *tool_settings,
                                                 const Object *object);
 

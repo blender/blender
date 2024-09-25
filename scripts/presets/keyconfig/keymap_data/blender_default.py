@@ -4870,6 +4870,13 @@ def km_grease_pencil_vertex_paint(params):
          {"properties": [("scalar", 0.9)]}),
         ("brush.scale_size", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "repeat": True},
          {"properties": [("scalar", 1.0 / 0.9)]}),
+        # Selection mode
+        ("wm.context_toggle", {"type": 'ONE', "value": 'PRESS'},
+         {"properties": [("data_path", 'scene.tool_settings.use_gpencil_vertex_select_mask_point')]}),
+        ("wm.context_toggle", {"type": 'TWO', "value": 'PRESS'},
+         {"properties": [("data_path", 'scene.tool_settings.use_gpencil_vertex_select_mask_stroke')]}),
+        ("wm.context_toggle", {"type": 'THREE', "value": 'PRESS'},
+         {"properties": [("data_path", 'scene.tool_settings.use_gpencil_vertex_select_mask_segment')]}),
         # Radial controls
         *_template_paint_radial_control("gpencil_vertex_paint"),
         # Context menu

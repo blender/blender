@@ -798,6 +798,19 @@ blender::bke::AttrDomain ED_grease_pencil_sculpt_selection_domain_get(
   return blender::bke::AttrDomain::Point;
 }
 
+blender::bke::AttrDomain ED_grease_pencil_vertex_selection_domain_get(
+    const ToolSettings *tool_settings)
+{
+  const int selectmode = tool_settings->gpencil_selectmode_vertex;
+  if (selectmode & (GP_VERTEX_MASK_SELECTMODE_POINT | GP_VERTEX_MASK_SELECTMODE_SEGMENT)) {
+    return blender::bke::AttrDomain::Point;
+  }
+  if (selectmode & (GP_VERTEX_MASK_SELECTMODE_STROKE)) {
+    return blender::bke::AttrDomain::Curve;
+  }
+  return blender::bke::AttrDomain::Point;
+}
+
 blender::bke::AttrDomain ED_grease_pencil_selection_domain_get(const ToolSettings *tool_settings,
                                                                const Object *object)
 {
@@ -806,6 +819,9 @@ blender::bke::AttrDomain ED_grease_pencil_selection_domain_get(const ToolSetting
   }
   if (object->mode & OB_MODE_SCULPT_GPENCIL_LEGACY) {
     return ED_grease_pencil_sculpt_selection_domain_get(tool_settings);
+  }
+  if (object->mode & OB_MODE_VERTEX_GPENCIL_LEGACY) {
+    return ED_grease_pencil_vertex_selection_domain_get(tool_settings);
   }
   return blender::bke::AttrDomain::Point;
 }
@@ -820,6 +836,11 @@ bool ED_grease_pencil_sculpt_segment_selection_enabled(const ToolSettings *tool_
   return tool_settings->gpencil_selectmode_sculpt & GP_SCULPT_MASK_SELECTMODE_SEGMENT;
 }
 
+bool ED_grease_pencil_vertex_segment_selection_enabled(const ToolSettings *tool_settings)
+{
+  return tool_settings->gpencil_selectmode_vertex & GP_VERTEX_MASK_SELECTMODE_SEGMENT;
+}
+
 bool ED_grease_pencil_segment_selection_enabled(const ToolSettings *tool_settings,
                                                 const Object *object)
 {
@@ -828,6 +849,9 @@ bool ED_grease_pencil_segment_selection_enabled(const ToolSettings *tool_setting
   }
   if (object->mode & OB_MODE_SCULPT_GPENCIL_LEGACY) {
     return ED_grease_pencil_sculpt_segment_selection_enabled(tool_settings);
+  }
+  if (object->mode & OB_MODE_VERTEX_GPENCIL_LEGACY) {
+    return ED_grease_pencil_vertex_segment_selection_enabled(tool_settings);
   }
   return false;
 }

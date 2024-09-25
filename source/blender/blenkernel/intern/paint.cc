@@ -1422,7 +1422,7 @@ bool BKE_paint_select_grease_pencil_test(const Object *ob)
     return false;
   }
   if (ob->type == OB_GREASE_PENCIL) {
-    return (ob->mode & OB_MODE_SCULPT_GPENCIL_LEGACY);
+    return (ob->mode & (OB_MODE_SCULPT_GPENCIL_LEGACY | OB_MODE_VERTEX_GPENCIL_LEGACY));
   }
   return false;
 }

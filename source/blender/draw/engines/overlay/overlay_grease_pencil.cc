@@ -25,6 +25,7 @@ static void is_selection_visible(bool &r_show_points, bool &r_show_lines)
   const ToolSettings *ts = draw_ctx->scene->toolsettings;
   const bool in_sculpt_mode = (draw_ctx->object_mode & OB_MODE_SCULPT_GPENCIL_LEGACY) != 0;
   const bool in_weight_mode = (draw_ctx->object_mode & OB_MODE_WEIGHT_GPENCIL_LEGACY) != 0;
+  const bool in_vertex_mode = (draw_ctx->object_mode & OB_MODE_VERTEX_GPENCIL_LEGACY) != 0;
   const bool flag_show_lines = (draw_ctx->v3d->gp_flag & V3D_GP_SHOW_EDIT_LINES) != 0;
 
   if (in_weight_mode) {
@@ -40,6 +41,15 @@ static void is_selection_visible(bool &r_show_points, bool &r_show_lines)
                                               GP_SCULPT_MASK_SELECTMODE_SEGMENT;
     r_show_points = (ts->gpencil_selectmode_sculpt & sculpt_point_modes) != 0;
     r_show_lines = flag_show_lines && (ts->gpencil_selectmode_sculpt != 0);
+    return;
+  }
+
+  if (in_vertex_mode) {
+    /* Vertex selection modes are flags and can be disabled individually. */
+    static constexpr int vertex_point_modes = GP_VERTEX_MASK_SELECTMODE_POINT |
+                                              GP_VERTEX_MASK_SELECTMODE_SEGMENT;
+    r_show_points = (ts->gpencil_selectmode_vertex & vertex_point_modes) != 0;
+    r_show_lines = flag_show_lines && (ts->gpencil_selectmode_vertex != 0);
     return;
   }
 
@@ -245,6 +255,30 @@ void OVERLAY_weight_grease_pencil_cache_populate(OVERLAY_Data *vedata, Object *o
     blender::gpu::Batch *geom_points = DRW_cache_grease_pencil_weight_points_get(draw_ctx->scene,
                                                                                  ob);
     DRW_shgroup_call_no_cull(points_grp, geom_points, ob);
+  }
+}
+
+void OVERLAY_vertex_grease_pencil_cache_populate(OVERLAY_Data *vedata, Object *ob)
+{
+  using namespace blender::draw;
+  OVERLAY_PrivateData *pd = vedata->stl->pd;
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+
+  DRWShadingGroup *lines_grp = pd->edit_grease_pencil_wires_grp;
+  if (lines_grp) {
+    blender::gpu::Batch *geom_lines = DRW_cache_grease_pencil_edit_lines_get(draw_ctx->scene, ob);
+    if (geom_lines) {
+      DRW_shgroup_call_no_cull(lines_grp, geom_lines, ob);
+    }
+  }
+
+  DRWShadingGroup *points_grp = pd->edit_grease_pencil_points_grp;
+  if (points_grp) {
+    blender::gpu::Batch *geom_points = DRW_cache_grease_pencil_edit_points_get(draw_ctx->scene,
+                                                                               ob);
+    if (geom_points) {
+      DRW_shgroup_call_no_cull(points_grp, geom_points, ob);
+    }
   }
 }
 
