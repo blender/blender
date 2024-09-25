@@ -353,6 +353,14 @@ Sequence *SEQ_add_sound_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
 }
 
 #else   // WITH_AUDASPACE
+
+void SEQ_add_sound_av_sync(Main * /*bmain*/,
+                           Scene * /*scene*/,
+                           Sequence * /*seq*/,
+                           SeqLoadData * /*load_data*/)
+{
+}
+
 Sequence *SEQ_add_sound_strip(Main * /*bmain*/,
                               Scene * /*scene*/,
                               ListBase * /*seqbase*/,
