@@ -199,13 +199,13 @@ static void calc_bmesh(const Depsgraph &depsgraph,
   apply_translations(translations, verts);
 }
 
-void do_plane_brush(const Depsgraph &depsgraph,
-                    const Sculpt &sd,
-                    Object &object,
-                    const IndexMask &node_mask,
-                    const float direction,
-                    const IndexedFilterFn indexed_filter,
-                    const GenericFilterFn generic_filter)
+static void do_plane_brush(const Depsgraph &depsgraph,
+                           const Sculpt &sd,
+                           Object &object,
+                           const IndexMask &node_mask,
+                           const float direction,
+                           const IndexedFilterFn indexed_filter,
+                           const GenericFilterFn generic_filter)
 {
   const SculptSession &ss = *object.sculpt;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
