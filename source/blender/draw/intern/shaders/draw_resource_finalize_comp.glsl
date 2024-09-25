@@ -20,7 +20,7 @@ void main()
   ObjectInfos infos = infos_buf[resource_id];
   ObjectBounds bounds = bounds_buf[resource_id];
 
-  if (drw_bounds_are_valid(bounds)) {
+  if (drw_bounds_corners_are_valid(bounds)) {
     /* Convert corners to origin + sides in world space. */
     vec3 p0 = bounds.bounding_corners[0].xyz;
     vec3 p01 = bounds.bounding_corners[1].xyz - p0;

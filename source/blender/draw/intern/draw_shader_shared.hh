@@ -205,15 +205,18 @@ struct ObjectBounds {
 BLI_STATIC_ASSERT_ALIGN(ObjectBounds, 16)
 
 /* Return true if `bounding_corners` are valid. Should be checked before accessing them.
- * Does not guarantee that `bounding_sphere` is valid. */
-inline bool drw_bounds_are_valid(ObjectBounds bounds)
+ * Does not guarantee that `bounding_sphere` is valid.
+ * Converting these bounds to an `IsectBox` may generate invalid clip planes.
+ * For safe `IsectBox` generation check `drw_bounds_are_valid`. */
+inline bool drw_bounds_corners_are_valid(ObjectBounds bounds)
 {
   return bounds.bounding_sphere.w != -1.0f;
 }
 
 /* Return true if bounds are ready for culling.
- * In this case, both `bounding_corners` and `bounding_sphere` are valid. */
-inline bool drw_bounds_culling_enabled(ObjectBounds bounds)
+ * In this case, both `bounding_corners` and `bounding_sphere` are valid.
+ * These bounds can be safely converted to an `IsectBox` with valid clip planes. */
+inline bool drw_bounds_are_valid(ObjectBounds bounds)
 {
   return bounds.bounding_sphere.w >= 0.0f;
 }
