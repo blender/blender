@@ -17,6 +17,7 @@
 #include "BKE_global.hh"
 #include "BKE_layer.hh"
 #include "BKE_report.hh"
+#include "BKE_workspace.hh"
 
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
@@ -199,13 +200,10 @@ static int mesh_bisect_modal(bContext *C, wmOperator *op, const wmEvent *event)
   ret = WM_gesture_straightline_modal(C, op, event);
 
   /* update or clear modal callout */
-  if (event->type == EVT_MODAL_MAP) {
-    if (event->val == GESTURE_MODAL_BEGIN) {
-      ED_workspace_status_text(C, IFACE_("LMB: Release to confirm cut line"));
-    }
-    else {
-      ED_workspace_status_text(C, nullptr);
-    }
+  WorkSpace *workspace = CTX_wm_workspace(C);
+
+  if (workspace) {
+    BKE_workspace_status_clear(workspace);
   }
 
   if (ret & (OPERATOR_FINISHED | OPERATOR_CANCELLED)) {
