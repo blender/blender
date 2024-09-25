@@ -11,21 +11,6 @@
 extern "C" {
 #endif
 
-/* ****************************************************************************
- * Suggestions should be added in sorted order although a linear sorting method is
- * implemented. The list is then divided up based on the prefix provided by
- * update_suggestions:
- *
- * Example:
- *   Prefix: ab
- *   aaa <-- first
- *   aab
- *   aba <-- firstmatch
- *   abb <-- lastmatch
- *   baa
- *   bab <-- last
- **************************************************************************** */
-
 struct Text;
 
 typedef struct SuggItem {
@@ -34,6 +19,19 @@ typedef struct SuggItem {
   char name[0];
 } SuggItem;
 
+/**
+ * Suggestions should be added in sorted order although a linear sorting method is implemented.
+ * The list is then divided up based on the prefix provided by update_suggestions:
+ *
+ * Example:
+ *   Prefix: `ab`
+ *   `aaa` <- #SuggList::first
+ *   `aab`
+ *   `aba` <- #SuggList::firstmatch
+ *   `abb` <- #SuggList::lastmatch
+ *   `baa`
+ *   `bab` <- #SuggList::last
+ */
 typedef struct SuggList {
   SuggItem *first, *last;
   SuggItem *firstmatch, *lastmatch;

@@ -1149,7 +1149,7 @@ bool assign_action(bAction *action, ID &animated_id);
 void assign_action(bAction *action, OwnedAnimData owned_adt);
 
 /**
- * Same as assign_action, except it assigns to AnimData::tmpact and tmp_slot_handle.
+ * Same as assign_action, except it assigns to #AnimData::tmpact and #AnimData::tmp_slot_handle.
  */
 void assign_tmpaction(bAction *action, OwnedAnimData owned_adt);
 
@@ -1354,7 +1354,7 @@ FCurve *fcurve_find_in_assigned_slot(AnimData &adt, FCurveDescriptor fcurve_desc
 /**
  * Find all F-Curves that target the named item in the collection.
  *
- * For example, to find all F-Curves for the pose bone named "botje", you'd pass
+ * For example, to find all F-Curves for the pose bone named `"botje"`, you'd pass
  * `collection_rna_path = "pose.bones["` and `item_name="botje"`.
  *
  * This could be implemented as iterator as well, but it's only used in one

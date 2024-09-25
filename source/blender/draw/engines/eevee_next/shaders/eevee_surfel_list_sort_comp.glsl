@@ -138,7 +138,7 @@ void main()
    * good rays by evaluating null radiance transfer between the coplanar surfels for rays that
    * are not directly perpendicular to the surface. */
 
-  /* Mutable foreach. */
+  /* Mutable `foreach`. */
   for (int i = sorted_list.first, next = 0; i > -1; i = next) {
     next = surfel_buf[i].next;
 

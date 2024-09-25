@@ -108,7 +108,7 @@ suffix_relpaths(SRC_NEW "${SRC}" "../../string/")
 include_directories(${INC_NEW})
 add_library(string_lib ${SRC_NEW})
 
-# numaapi (for 'bli_lib')
+# `numaapi` (for 'bli_lib').
 include(${CMAKE_SOURCE_DIR}/../../numaapi/CMakeLists.txt)
 suffix_relpaths(INC_NEW "${INC}" "../../numaapi/")
 suffix_relpaths(SRC_NEW "${SRC}" "../../numaapi/")

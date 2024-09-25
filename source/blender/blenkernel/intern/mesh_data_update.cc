@@ -218,7 +218,8 @@ static void add_orco_mesh(Object &ob,
   }
 }
 
-/* Does final touches to the final evaluated mesh, making sure it is perfectly usable.
+/**
+ * Does final touches to the final evaluated mesh, making sure it is perfectly usable.
  *
  * This is needed because certain information is not passed along intermediate meshes allocated
  * during stack evaluation.

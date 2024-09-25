@@ -276,7 +276,7 @@ static void draw_channel_headers(const SeqChannelDrawContext *context)
   const float offset_mute = icon_width * 2.5f;
   const float offset_width = icon_width * 3.5f;
   /* Draw widgets separately from text labels so they are batched together,
-   * instead of alternating between two fonts (regular and svg/icons). */
+   * instead of alternating between two fonts (regular and SVG/icons). */
   for (int channel = channel_range[0]; channel <= channel_range[1]; channel++) {
     draw_channel_widget_lock(context, block, channel, offset_lock);
     draw_channel_widget_mute(context, block, channel, offset_mute);

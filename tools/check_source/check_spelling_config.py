@@ -143,6 +143,7 @@ dict_custom = {
     "discretization",
     "discretized",
     "discretizes",
+    "distributable",
     "downcasting",
     "downsample",
     "downsampled",

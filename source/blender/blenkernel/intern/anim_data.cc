@@ -243,7 +243,7 @@ bool BKE_animdata_action_ensure_idroot(const ID *owner, bAction *action)
      * auto-versioned to layered Actions, this entire function can be removed. */
     action->idroot = 0;
     /* Layered Actions can always be assigned to any ID type. It's the slots
-     * that are specialised. */
+     * that are specialized. */
     return true;
   }
 #endif

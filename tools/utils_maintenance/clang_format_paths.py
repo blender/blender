@@ -69,7 +69,7 @@ ignore_directories = {
 def compute_paths(paths: List[str], use_default_paths: bool) -> List[str]:
     # The resulting paths:
     # - Use forward slashes on all systems.
-    # - Are relative to the GIT repo without any `.` or `./` prefix.
+    # - Are relative to the GIT repository without any `.` or `./` prefix.
 
     # Optionally pass in files to operate on.
     if use_default_paths:

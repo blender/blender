@@ -45,7 +45,7 @@ float film_luma_weight(float luma)
 /**
  * Round floats mantissa before they get written to a 16 bit float storage to avoid drifting.
  *
- * Apparently, most (if not all) hardware truncate the mantissa when writting the attribute to a 16
+ * Apparently, most (if not all) hardware truncate the mantissa when writing the attribute to a 16
  * bit float texture. This biases our accumulation drastically (see #126947). Manually rounding the
  * mantissa right before storage (and thus truncation) fixes the issue.
  */

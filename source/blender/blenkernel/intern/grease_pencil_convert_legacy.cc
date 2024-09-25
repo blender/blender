@@ -624,7 +624,7 @@ static float3x2 get_legacy_stroke_to_texture_matrix(const float2 uv_translation,
 
   float3x2 texture_matrix = float3x2::identity();
 
-  /* Apply bounding box rescaling. */
+  /* Apply bounding box re-scaling. */
   texture_matrix[2] -= minv;
   texture_matrix = math::from_scale<float2x2>(1.0f / diagonal) * texture_matrix;
 

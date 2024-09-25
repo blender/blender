@@ -33,7 +33,7 @@ namespace blender::ed::sculpt_paint {
 
 /**
  * Projects a screen-space displacement vector into layer space.
- * Current position (in layer space) is used to compute the perspective distance (zfac).
+ * Current position (in layer space) is used to compute the perspective distance (`zfac`).
  * Returns the new layer space position with the projected delta applied.
  */
 using DeltaProjectionFunc =

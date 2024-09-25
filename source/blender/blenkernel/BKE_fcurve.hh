@@ -253,10 +253,10 @@ void BKE_fcurve_foreach_id(FCurve *fcu, LibraryForeachIDData *data);
  * in the list of F-Curves provided.
  *
  * \note ONLY use this on a list of F-Curves that is NOT from an Action. Example
- * of a good use would be on adt->drivers, or nlastrip->fcurves.
+ * of a good use would be on `adt->drivers`, or `nlastrip->fcurves`.
  *
- * \see blender::animrig::fcurve_find_in_action
- * \see blender::animrig::fcurve_find_in_action_slot
+ * \see #blender::animrig::fcurve_find_in_action
+ * \see #blender::animrig::fcurve_find_in_action_slot
  */
 FCurve *BKE_fcurve_find(ListBase *list, const char rna_path[], int array_index);
 

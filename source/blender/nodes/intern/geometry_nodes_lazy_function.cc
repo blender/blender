@@ -2322,7 +2322,7 @@ class LazyFunctionForForeachGeometryElementZone : public LazyFunction {
     IndexRange bsocket_inner;
   };
 
-  /** Reduces the hardcoding of index offsets in lots of places below which is quite brittle. */
+  /** Reduces the hard-coding of index offsets in lots of places below which is quite brittle. */
   struct {
     ItemIndices inputs;
     ItemIndices main;

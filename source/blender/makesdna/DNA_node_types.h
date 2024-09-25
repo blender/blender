@@ -2033,8 +2033,9 @@ typedef struct NodeForeachGeometryElementGenerationItems {
 
 typedef struct NodeGeometryForeachGeometryElementOutput {
   /**
-   * The foreach zone has three sets of dynamic sockets.One on the input node and two on the
-   * output node. All settings are stored centrally in the output node storage though.
+   * The `foreach` zone has three sets of dynamic sockets.
+   * One on the input node and two on the output node.
+   * All settings are stored centrally in the output node storage though.
    */
   NodeForeachGeometryElementInputItems input_items;
   NodeForeachGeometryElementMainItems main_items;
