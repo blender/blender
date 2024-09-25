@@ -467,7 +467,8 @@ static bool view3d_selectable_data(bContext *C)
     if (ob->mode & OB_MODE_EDIT) {
       return ob->type != OB_FONT;
     }
-    if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_TEXTURE_PAINT | OB_MODE_SCULPT_GPENCIL_LEGACY)) {
+    if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_TEXTURE_PAINT | OB_MODE_SCULPT_GPENCIL_LEGACY))
+    {
       return BKE_paint_select_elem_test(ob);
     }
     if (ob->mode & OB_MODE_WEIGHT_PAINT) {
