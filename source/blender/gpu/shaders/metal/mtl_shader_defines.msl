@@ -1919,8 +1919,9 @@ inline float2x2 operator-(float2x2 a)
 
 #  define RESOLVE_VERTEX(v_id) \
     ((UNIFORM_SSBO_USES_INDEXED_RENDERING_STR > 0) ? \
-         ((UNIFORM_SSBO_INDEX_MODE_U16_STR > 0) ? MTL_INDEX_DATA_U16[v_id] : \
-                                                  MTL_INDEX_DATA_U32[v_id]) : \
+         (((UNIFORM_SSBO_INDEX_MODE_U16_STR > 0) ? MTL_INDEX_DATA_U16[v_id] : \
+                                                   MTL_INDEX_DATA_U32[v_id]) + \
+          UNIFORM_SSBO_INDEX_BASE_STR) : \
          v_id)
 #  define ATTR_TYPE(attr) PPCAT(SSBO_ATTR_TYPE_, attr)
 #  define vertex_fetch_attribute_raw(n, attr, type) \
@@ -1935,6 +1936,7 @@ inline float2x2 operator-(float2x2 a)
 #  define vertex_fetch_get_input_prim_type() UNIFORM_SSBO_INPUT_PRIM_TYPE_STR
 #  define vertex_fetch_get_input_vert_count() UNIFORM_SSBO_INPUT_VERT_COUNT_STR
 #  define vertex_fetch_get_attr_type(attr) PPCAT(UNIFORM_SSBO_TYPE_STR, attr)
+#  define vertex_fetch_get_index_base() UNIFORM_SSBO_INDEX_BASE_STR
 
 /* Must mirror GPU_primitive.hh. */
 #  define GPU_PRIM_POINTS 0

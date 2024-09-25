@@ -174,6 +174,7 @@ class MTLShader : public Shader {
   int uni_ssbo_input_vert_count_loc = -1;
   int uni_ssbo_uses_indexed_rendering = -1;
   int uni_ssbo_uses_index_mode_u16 = -1;
+  int uni_ssbo_index_base_loc = -1;
 
  private:
   /* Context Handle. */
