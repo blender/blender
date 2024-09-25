@@ -45,6 +45,14 @@ void cpack_to_rgb(unsigned int col, float *r_r, float *r_g, float *r_b);
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Conversion to RGBA
+ * \{ */
+
+void hex_to_rgba(const char *hexcol, float *r_r, float *r_g, float *r_b, float *r_a);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Conversion from RGB
  * \{ */
 

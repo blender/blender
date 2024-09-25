@@ -184,13 +184,23 @@ void ycc_to_rgb(float y, float cb, float cr, float *r_r, float *r_g, float *r_b,
 
 void hex_to_rgb(const char *hexcol, float *r_r, float *r_g, float *r_b)
 {
-  uint ri, gi, bi;
+  hex_to_rgba(hexcol, r_r, r_g, r_b, nullptr);
+}
+
+void hex_to_rgba(const char *hexcol, float *r_r, float *r_g, float *r_b, float *r_a)
+{
+  uint ri, gi, bi, ai;
+  bool has_alpha = false;
 
   if (hexcol[0] == '#') {
     hexcol++;
   }
 
-  if (sscanf(hexcol, "%02x%02x%02x", &ri, &gi, &bi) == 3) {
+  if (sscanf(hexcol, "%02x%02x%02x%02x", &ri, &gi, &bi, &ai) == 4) {
+    /* height digit hex colors with alpha */
+    has_alpha = true;
+  }
+  else if (sscanf(hexcol, "%02x%02x%02x", &ri, &gi, &bi) == 3) {
     /* six digit hex colors */
   }
   else if (sscanf(hexcol, "%01x%01x%01x", &ri, &gi, &bi) == 3) {
@@ -202,6 +212,9 @@ void hex_to_rgb(const char *hexcol, float *r_r, float *r_g, float *r_b)
   else {
     /* avoid using un-initialized vars */
     *r_r = *r_g = *r_b = 0.0f;
+    if (r_a) {
+      *r_a = 0.0f;
+    }
     return;
   }
 
@@ -211,6 +224,11 @@ void hex_to_rgb(const char *hexcol, float *r_r, float *r_g, float *r_b)
   CLAMP(*r_r, 0.0f, 1.0f);
   CLAMP(*r_g, 0.0f, 1.0f);
   CLAMP(*r_b, 0.0f, 1.0f);
+
+  if (r_a && has_alpha) {
+    *r_a = float(ai) * (1.0f / 255.0f);
+    CLAMP(*r_a, 0.0f, 1.0f);
+  }
 }
 
 void rgb_to_hsv(float r, float g, float b, float *r_h, float *r_s, float *r_v)
