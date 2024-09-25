@@ -154,7 +154,7 @@ set(SRC
   intern/task_pool.cc
   intern/task_range.cc
   intern/task_scheduler.cc
-  intern/tempfile.c
+  intern/tempfile.cc
   intern/threads.cc
   intern/time.c
   intern/timecode.c
