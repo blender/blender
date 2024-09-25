@@ -458,12 +458,10 @@ static void view3d_userdata_lassoselect_init(LassoSelectUserData *r_data,
 
 static bool view3d_selectable_data(bContext *C)
 {
-  Object *ob = CTX_data_active_object(C);
-
   if (!ED_operator_region_view3d_active(C)) {
     return false;
   }
-  if (ob == nullptr) {
+  if (Object *ob = CTX_data_active_object(C)) {
     if (ob->mode & OB_MODE_EDIT) {
       return ob->type != OB_FONT;
     }
