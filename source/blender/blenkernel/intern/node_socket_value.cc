@@ -63,6 +63,45 @@ template<typename T> static std::optional<eNodeSocketDatatype> static_type_to_so
   return std::nullopt;
 }
 
+/**
+ * Check if a socket type stores the static C++ type.
+ */
+template<typename T>
+static bool static_type_is_base_socket_type(const eNodeSocketDatatype socket_type)
+{
+  switch (socket_type) {
+    case SOCK_INT:
+      return std::is_same_v<T, int>;
+    case SOCK_FLOAT:
+      return std::is_same_v<T, float>;
+    case SOCK_BOOLEAN:
+      return std::is_same_v<T, bool>;
+    case SOCK_VECTOR:
+      return std::is_same_v<T, float3>;
+    case SOCK_RGBA:
+      return std::is_same_v<T, ColorGeometry4f>;
+    case SOCK_ROTATION:
+      return std::is_same_v<T, math::Quaternion>;
+    case SOCK_MATRIX:
+      return std::is_same_v<T, float4x4>;
+    case SOCK_STRING:
+      return std::is_same_v<T, std::string>;
+    case SOCK_MENU:
+      return std::is_same_v<T, int>;
+    case SOCK_CUSTOM:
+    case SOCK_SHADER:
+    case SOCK_OBJECT:
+    case SOCK_IMAGE:
+    case SOCK_GEOMETRY:
+    case SOCK_COLLECTION:
+    case SOCK_TEXTURE:
+    case SOCK_MATERIAL:
+      return false;
+  }
+  BLI_assert_unreachable();
+  return false;
+}
+
 template<typename T> T SocketValueVariant::extract()
 {
   if constexpr (std::is_same_v<T, fn::GField>) {
@@ -86,7 +125,7 @@ template<typename T> T SocketValueVariant::extract()
     }
   }
   else if constexpr (fn::is_field_v<T>) {
-    BLI_assert(socket_type_ == static_type_to_socket_type<typename T::base_type>());
+    BLI_assert(static_type_is_base_socket_type<typename T::base_type>(socket_type_));
     return T(this->extract<fn::GField>());
   }
 #ifdef WITH_OPENVDB
@@ -109,12 +148,12 @@ template<typename T> T SocketValueVariant::extract()
     }
   }
   else if constexpr (is_VolumeGrid_v<T>) {
-    BLI_assert(socket_type_ == static_type_to_socket_type<typename T::base_type>());
+    BLI_assert(static_type_is_base_socket_type<typename T::base_type>(socket_type_));
     return this->extract<GVolumeGrid>().typed<typename T::base_type>();
   }
 #endif
   else {
-    BLI_assert(socket_type_ == static_type_to_socket_type<T>());
+    BLI_assert(static_type_is_base_socket_type<T>(socket_type_));
     if (kind_ == Kind::Single) {
       return std::move(value_.get<T>());
     }
@@ -302,6 +341,8 @@ void *SocketValueVariant::allocate_single(const eNodeSocketDatatype socket_type)
       return value_.allocate<ColorGeometry4f>();
     case SOCK_STRING:
       return value_.allocate<std::string>();
+    case SOCK_MENU:
+      return value_.allocate<int>();
     default: {
       BLI_assert_unreachable();
       return nullptr;

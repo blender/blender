@@ -954,6 +954,23 @@ class NodeTreeMainUpdater {
           }
         }
       }
+      else if (node->type == GEO_NODE_FOREACH_GEOMETRY_ELEMENT_INPUT) {
+        /* Propagate menu from element inputs to field inputs. */
+        BLI_assert(node->input_sockets().size() == node->output_sockets().size());
+        /* Inputs Geometry, Selection and outputs Index, Element are ignored. */
+        const IndexRange sockets = node->input_sockets().index_range().drop_front(2);
+        for (const int socket_i : sockets) {
+          bNodeSocket *input = node->input_sockets()[socket_i];
+          bNodeSocket *output = node->output_sockets()[socket_i];
+          if (input->is_available() && input->type == SOCK_MENU && output->is_available() &&
+              output->type == SOCK_MENU)
+          {
+            this->update_socket_enum_definition(
+                *input->default_value_typed<bNodeSocketValueMenu>(),
+                *output->default_value_typed<bNodeSocketValueMenu>());
+          }
+        }
+      }
       else {
         /* Propagate over internal relations. */
         /* XXX Placeholder implementation just propagates all outputs
