@@ -178,8 +178,7 @@ class GREASE_PENCIL_MT_grease_pencil_add_layer_extra(Menu):
         layer = grease_pencil.layers.active
         space = context.space_data
 
-        if space.type == 'PROPERTIES':
-            layout.operator("grease_pencil.layer_group_add", text="Add Group")
+        layout.operator("grease_pencil.layer_group_add", text="Add Group")
 
         layout.separator()
         layout.operator("grease_pencil.layer_duplicate", text="Duplicate", icon='DUPLICATE').empty_keyframes = False
@@ -220,10 +219,8 @@ class GREASE_PENCIL_MT_group_context_menu(Menu):
 class DATA_PT_grease_pencil_layers(DataButtonsPanel, Panel):
     bl_label = "Layers"
 
-    def draw(self, context):
-        layout = self.layout
-
-        grease_pencil = context.grease_pencil
+    @classmethod
+    def draw_settings(cls, layout, grease_pencil):
         layer = grease_pencil.layers.active
 
         row = layout.row()
@@ -261,6 +258,12 @@ class DATA_PT_grease_pencil_layers(DataButtonsPanel, Panel):
 
         row = layout.row(align=True)
         row.prop(layer, "use_lights", text="Lights")
+
+    def draw(self, context):
+        layout = self.layout
+        grease_pencil = context.grease_pencil
+
+        self.draw_settings(layout, grease_pencil)
 
 
 class DATA_PT_grease_pencil_layer_masks(LayerDataButtonsPanel, GreasePencil_LayerMaskPanel, Panel):
