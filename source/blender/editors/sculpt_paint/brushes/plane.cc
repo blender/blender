@@ -5,7 +5,7 @@
 /** \file
  * \ingroup edsculpt
  *
- * "Plane" related brushes, all three of these peform a similar displacement with an optional
+ * "Plane" related brushes, all three of these perform a similar displacement with an optional
  * additional filtering step.
  */
 

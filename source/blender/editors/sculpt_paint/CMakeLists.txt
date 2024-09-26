@@ -165,8 +165,8 @@ set(SRC
   brushes/multiplane_scrape.cc
   brushes/multires_displacement_eraser.cc
   brushes/multires_displacement_smear.cc
-  brushes/plane.cc
   brushes/pinch.cc
+  brushes/plane.cc
   brushes/relax.cc
   brushes/rotate.cc
   brushes/smooth.cc

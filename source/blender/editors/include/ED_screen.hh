@@ -161,7 +161,6 @@ void ED_region_info_draw_multiline(ARegion *region,
 void ED_region_image_metadata_panel_draw(ImBuf *ibuf, uiLayout *layout);
 void ED_region_grid_draw(ARegion *region, float zoomx, float zoomy, float x0, float y0);
 float ED_region_blend_alpha(ARegion *region);
-void ED_region_visible_rect_calc(ARegion *region, rcti *rect);
 const rcti *ED_region_visible_rect(ARegion *region);
 /**
  * Overlapping regions only in the following restricted cases.
