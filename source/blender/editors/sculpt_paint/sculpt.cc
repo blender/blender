@@ -6614,11 +6614,13 @@ void apply_hardness_to_distances(const float radius,
   if (hardness == 0.0f) {
     return;
   }
+  const float threshold = hardness * radius;
   if (hardness == 1.0f) {
-    distances.fill(0.0f);
+    for (const int i : distances.index_range()) {
+      distances[i] = distances[i] < threshold ? 0.0f : radius;
+    }
     return;
   }
-  const float threshold = hardness * radius;
   const float radius_inv = math::rcp(radius);
   const float hardness_inv_rcp = math::rcp(1.0f - hardness);
   for (const int i : distances.index_range()) {
