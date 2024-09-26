@@ -9,7 +9,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_span.hh"
 
 #include "DNA_sequence_types.h"
 
@@ -19,6 +18,7 @@
 #include "BLF_api.hh"
 
 #include "GPU_batch.hh"
+#include "GPU_matrix.hh"
 #include "GPU_state.hh"
 
 #include "WM_api.hh"
@@ -396,16 +396,19 @@ static bool fake_keys_draw(const TimelineDrawContext *timeline_ctx,
 }
 
 void sequencer_retiming_keys_draw(const TimelineDrawContext *timeline_ctx,
-                                  const StripDrawContext &strip_ctx)
+                                  blender::Span<StripDrawContext> strips)
 {
-  if (!can_draw_retiming(timeline_ctx, strip_ctx)) {
+  if (strips.is_empty()) {
+    return;
+  }
+  if (timeline_ctx->ed == nullptr || !retiming_keys_can_be_displayed(timeline_ctx->sseq)) {
     return;
   }
 
+  GPU_matrix_push_projection();
   wmOrtho2_region_pixelspace(timeline_ctx->region);
 
   const View2D *v2d = timeline_ctx->v2d;
-  const Sequence *seq = strip_ctx.seq;
 
   GPUVertFormat *format = immVertexFormat();
   KeyframeShaderBindings sh_bindings;
@@ -426,26 +429,33 @@ void sequencer_retiming_keys_draw(const TimelineDrawContext *timeline_ctx,
   int point_counter = 0;
   immBeginAtMost(GPU_PRIM_POINTS, MAX_KEYS_IN_BATCH);
 
-  if (fake_keys_draw(timeline_ctx, strip_ctx, sh_bindings)) {
-    point_counter += 2;
-  }
+  for (const StripDrawContext &strip_ctx : strips) {
+    if (!can_draw_retiming(timeline_ctx, strip_ctx)) {
+      continue;
+    }
+    if (fake_keys_draw(timeline_ctx, strip_ctx, sh_bindings)) {
+      point_counter += 2;
+    }
 
-  for (const SeqRetimingKey &key : SEQ_retiming_keys_get(seq)) {
-    retime_key_draw(timeline_ctx, strip_ctx, &key, sh_bindings);
-    point_counter++;
+    for (const SeqRetimingKey &key : SEQ_retiming_keys_get(strip_ctx.seq)) {
+      retime_key_draw(timeline_ctx, strip_ctx, &key, sh_bindings);
+      point_counter++;
 
-    /* Next key plus possible two fake keys for next sequence would need at
-     * most 3 points, so restart the batch if we're close to that. */
-    if (point_counter + 3 >= MAX_KEYS_IN_BATCH) {
-      immEnd();
-      immBeginAtMost(GPU_PRIM_POINTS, MAX_KEYS_IN_BATCH);
-      point_counter = 0;
+      /* Next key plus possible two fake keys for next sequence would need at
+       * most 3 points, so restart the batch if we're close to that. */
+      if (point_counter + 3 >= MAX_KEYS_IN_BATCH) {
+        immEnd();
+        immBeginAtMost(GPU_PRIM_POINTS, MAX_KEYS_IN_BATCH);
+        point_counter = 0;
+      }
     }
   }
 
   immEnd();
   GPU_program_point_size(false);
   immUnbindProgram();
+
+  GPU_matrix_pop_projection();
 }
 
 /** \} */

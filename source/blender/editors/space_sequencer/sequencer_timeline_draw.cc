@@ -1550,10 +1550,9 @@ static void draw_seq_strips(TimelineDrawContext *timeline_ctx,
     draw_handle_transform_text(timeline_ctx, &strip_ctx, SEQ_HANDLE_LEFT);
     draw_handle_transform_text(timeline_ctx, &strip_ctx, SEQ_HANDLE_RIGHT);
     draw_seq_text_overlay(timeline_ctx, &strip_ctx);
-    sequencer_retiming_keys_draw(timeline_ctx, strip_ctx);
     sequencer_retiming_speed_draw(timeline_ctx, strip_ctx);
   }
-
+  sequencer_retiming_keys_draw(timeline_ctx, strips);
   timeline_ctx->quads->draw();
 
   draw_strips_foreground(timeline_ctx, strips_batch, strips);
