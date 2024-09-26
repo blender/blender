@@ -19,6 +19,7 @@
 #include "BLT_translation.hh"
 
 #include "BKE_action.hh"
+#include "BKE_blender.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -71,7 +72,20 @@ const EnumPropertyItem rna_enum_strip_type_items[] = {
      "Strip containing keyframes on F-Curves"},
     {0, nullptr, 0, nullptr, nullptr},
 };
-#endif  // WITH_ANIM_BAKLAVA
+
+/* Cannot use rna_enum_dummy_DEFAULT_items because the UNSPECIFIED entry needs
+ * to exist as it is the default. */
+const EnumPropertyItem default_ActionSlot_id_root_items[] = {
+    {0,
+     "UNSPECIFIED",
+     ICON_NONE,
+     "Unspecified",
+     "Not yet specified. When this slot is first assigned to a data-block, this will be set to "
+     "the type of that data-block"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+#endif /* WITH_ANIM_BAKLAVA */
 
 #ifdef RNA_RUNTIME
 
@@ -292,11 +306,10 @@ static std::optional<std::string> rna_ActionSlot_path(const PointerRNA *ptr)
   return fmt::format("slots[\"{}\"]", name_esc);
 }
 
-int rna_ActionSlot_idtype_icon_get(PointerRNA *ptr)
+int rna_ActionSlot_id_root_icon_get(PointerRNA *ptr)
 {
   animrig::Slot &slot = rna_data_slot(ptr);
   return UI_icon_from_idcode(slot.idtype);
-  ;
 }
 
 /* Name functions that ignore the first two ID characters */
@@ -1511,6 +1524,57 @@ static const EnumPropertyItem *rna_id_root_itemf(bContext * /* C */,
   return items;
 }
 
+#  ifdef WITH_ANIM_BAKLAVA
+
+static const EnumPropertyItem *rna_ActionSlot_id_root_itemf(bContext * /* C */,
+                                                            PointerRNA * /* ptr */,
+                                                            PropertyRNA * /* prop */,
+                                                            bool *r_free)
+{
+  /* These items don't change, as the ID types are hard-coded. So better to
+   * cache the list of enum items. */
+  static EnumPropertyItem *_rna_ActionSlot_id_root_items = nullptr;
+
+  if (_rna_ActionSlot_id_root_items) {
+    return _rna_ActionSlot_id_root_items;
+  }
+
+  int totitem = 0;
+  EnumPropertyItem *items = nullptr;
+
+  int i = 0;
+  while (rna_enum_id_type_items[i].identifier != nullptr) {
+    EnumPropertyItem item = {0};
+    item.value = rna_enum_id_type_items[i].value;
+    item.name = rna_enum_id_type_items[i].name;
+    item.identifier = rna_enum_id_type_items[i].identifier;
+    item.icon = rna_enum_id_type_items[i].icon;
+    item.description = rna_enum_id_type_items[i].description;
+    RNA_enum_item_add(&items, &totitem, &item);
+    i++;
+  }
+
+  RNA_enum_item_add(&items, &totitem, &default_ActionSlot_id_root_items[0]);
+
+  RNA_enum_item_end(&items, &totitem);
+
+  /* Don't free, but keep a reference to the created list. This is necessary
+   * because of the PROP_ENUM_NO_CONTEXT flag. Without it, this will make
+   * Blender use memory after it is freed:
+   *
+   * >>> slot = C.object.animation_data.action_slot
+   * >>> enum_item = s.bl_rna.properties['id_root'].enum_items[slot.id_root]
+   * >>> print(enum_item.name)
+   */
+  *r_free = false;
+  _rna_ActionSlot_id_root_items = items;
+
+  BKE_blender_atexit_register(MEM_freeN, items);
+
+  return items;
+}
+#  endif /* WITH_ANIM_BAKLAVA */
+
 #else
 
 static void rna_def_dopesheet(BlenderRNA *brna)
@@ -1948,10 +2012,21 @@ static void rna_def_action_slot(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Slot Name",
-      "Used when connecting an Action to a data-block, to find the correct slot handle");
+      "Used when connecting an Action to a data-block, to find the correct slot handle. This is "
+      "the display name, prefixed by two characters determined by the slot's ID type");
 
-  prop = RNA_def_property(srna, "idtype_icon", PROP_INT, PROP_NONE);
-  RNA_def_property_int_funcs(prop, "rna_ActionSlot_idtype_icon_get", nullptr, nullptr);
+  prop = RNA_def_property(srna, "id_root", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "idtype");
+  RNA_def_property_enum_items(prop, default_ActionSlot_id_root_items);
+  RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_ActionSlot_id_root_itemf");
+  RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(
+      prop, "ID Root Type", "Type of data-block that can be animated by this slot");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ID);
+
+  prop = RNA_def_property(srna, "id_root_icon", PROP_INT, PROP_NONE);
+  RNA_def_property_int_funcs(prop, "rna_ActionSlot_id_root_icon_get", nullptr, nullptr);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
   prop = RNA_def_property(srna, "name_display", PROP_STRING, PROP_NONE);
@@ -1964,8 +2039,8 @@ static void rna_def_action_slot(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Slot Display Name",
-      "Name of the slot for showing in the interface. It is the name, without the first two "
-      "characters that identify what kind of data-block it animates.");
+      "Name of the slot, for display in the user interface. This name combined with the slot's "
+      "data-block type is unique within its Action");
 
   prop = RNA_def_property(srna, "handle", PROP_INT, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
