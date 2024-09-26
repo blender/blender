@@ -1284,6 +1284,13 @@ void ED_view3d_shade_update(Main *bmain, View3D *v3d, ScrArea *area);
 #define XRAY_ALPHA(v3d) SHADING_XRAY_ALPHA((v3d)->shading)
 #define XRAY_FLAG(v3d) SHADING_XRAY_FLAG((v3d)->shading)
 #define XRAY_FLAG_ENABLED(v3d) SHADING_XRAY_FLAG_ENABLED((v3d)->shading)
+/**
+ * Checks X-ray is enabled and the alpha is less than one.
+ *
+ * \note In edit-mode vertices & edges behave differently,
+ * using X-ray drawing irrespective of the alpha value.
+ * In this case #XRAY_FLAG_ENABLED should be used instead.
+ */
 #define XRAY_ENABLED(v3d) SHADING_XRAY_ENABLED((v3d)->shading)
 #define XRAY_ACTIVE(v3d) SHADING_XRAY_ACTIVE((v3d)->shading)
 
