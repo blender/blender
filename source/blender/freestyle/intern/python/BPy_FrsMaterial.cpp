@@ -31,8 +31,7 @@ int FrsMaterial_Init(PyObject *module)
   if (PyType_Ready(&FrsMaterial_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&FrsMaterial_Type);
-  PyModule_AddObject(module, "Material", (PyObject *)&FrsMaterial_Type);
+  PyModule_AddObjectRef(module, "Material", (PyObject *)&FrsMaterial_Type);
 
   FrsMaterial_mathutils_register_callback();
 

@@ -1005,8 +1005,7 @@ void *CCL_python_module_init()
    *               might use to get version in runtime.
    */
   int curversion = OSL_LIBRARY_VERSION_CODE;
-  PyModule_AddObject(mod, "with_osl", Py_True);
-  Py_INCREF(Py_True);
+  PyModule_AddObjectRef(mod, "with_osl", Py_True);
   PyModule_AddObject(
       mod,
       "osl_version",
@@ -1017,52 +1016,41 @@ void *CCL_python_module_init()
       PyUnicode_FromFormat(
           "%2d, %2d, %2d", curversion / 10000, (curversion / 100) % 100, curversion % 100));
 #else
-  PyModule_AddObject(mod, "with_osl", Py_False);
-  Py_INCREF(Py_False);
+  PyModule_AddObjectRef(mod, "with_osl", Py_False);
   PyModule_AddStringConstant(mod, "osl_version", "unknown");
   PyModule_AddStringConstant(mod, "osl_version_string", "unknown");
 #endif
 
   if (ccl::guiding_supported()) {
-    PyModule_AddObject(mod, "with_path_guiding", Py_True);
-    Py_INCREF(Py_True);
+    PyModule_AddObjectRef(mod, "with_path_guiding", Py_True);
   }
   else {
-    PyModule_AddObject(mod, "with_path_guiding", Py_False);
-    Py_INCREF(Py_False);
+    PyModule_AddObjectRef(mod, "with_path_guiding", Py_False);
   }
 
 #ifdef WITH_EMBREE
-  PyModule_AddObject(mod, "with_embree", Py_True);
-  Py_INCREF(Py_True);
+  PyModule_AddObjectRef(mod, "with_embree", Py_True);
 #else  /* WITH_EMBREE */
-  PyModule_AddObject(mod, "with_embree", Py_False);
-  Py_INCREF(Py_False);
+  PyModule_AddObjectRef(mod, "with_embree", Py_False);
 #endif /* WITH_EMBREE */
 
 #ifdef WITH_EMBREE_GPU
-  PyModule_AddObject(mod, "with_embree_gpu", Py_True);
-  Py_INCREF(Py_True);
+  PyModule_AddObjectRef(mod, "with_embree_gpu", Py_True);
 #else  /* WITH_EMBREE_GPU */
-  PyModule_AddObject(mod, "with_embree_gpu", Py_False);
-  Py_INCREF(Py_False);
+  PyModule_AddObjectRef(mod, "with_embree_gpu", Py_False);
 #endif /* WITH_EMBREE_GPU */
 
   if (ccl::openimagedenoise_supported()) {
-    PyModule_AddObject(mod, "with_openimagedenoise", Py_True);
-    Py_INCREF(Py_True);
+    PyModule_AddObjectRef(mod, "with_openimagedenoise", Py_True);
   }
   else {
-    PyModule_AddObject(mod, "with_openimagedenoise", Py_False);
-    Py_INCREF(Py_False);
+    PyModule_AddObjectRef(mod, "with_openimagedenoise", Py_False);
   }
 
 #ifdef WITH_CYCLES_DEBUG
-  PyModule_AddObject(mod, "with_debug", Py_True);
-  Py_INCREF(Py_True);
+  PyModule_AddObjectRef(mod, "with_debug", Py_True);
 #else  /* WITH_CYCLES_DEBUG */
-  PyModule_AddObject(mod, "with_debug", Py_False);
-  Py_INCREF(Py_False);
+  PyModule_AddObjectRef(mod, "with_debug", Py_False);
 #endif /* WITH_CYCLES_DEBUG */
 
   return (void *)mod;

@@ -40,8 +40,7 @@ int Operators_Init(PyObject *module)
   if (PyType_Ready(&Operators_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&Operators_Type);
-  PyModule_AddObject(module, "Operators", (PyObject *)&Operators_Type);
+  PyModule_AddObjectRef(module, "Operators", (PyObject *)&Operators_Type);
 
   return 0;
 }

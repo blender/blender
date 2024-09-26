@@ -31,8 +31,7 @@ int ViewMap_Init(PyObject *module)
   if (PyType_Ready(&ViewMap_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&ViewMap_Type);
-  PyModule_AddObject(module, "ViewMap", (PyObject *)&ViewMap_Type);
+  PyModule_AddObjectRef(module, "ViewMap", (PyObject *)&ViewMap_Type);
 
   return 0;
 }

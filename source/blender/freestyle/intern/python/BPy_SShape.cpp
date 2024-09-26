@@ -34,8 +34,7 @@ int SShape_Init(PyObject *module)
   if (PyType_Ready(&SShape_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&SShape_Type);
-  PyModule_AddObject(module, "SShape", (PyObject *)&SShape_Type);
+  PyModule_AddObjectRef(module, "SShape", (PyObject *)&SShape_Type);
 
   return 0;
 }

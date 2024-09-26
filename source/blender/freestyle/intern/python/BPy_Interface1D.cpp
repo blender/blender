@@ -37,44 +37,37 @@ int Interface1D_Init(PyObject *module)
   if (PyType_Ready(&Interface1D_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&Interface1D_Type);
-  PyModule_AddObject(module, "Interface1D", (PyObject *)&Interface1D_Type);
+  PyModule_AddObjectRef(module, "Interface1D", (PyObject *)&Interface1D_Type);
 
   if (PyType_Ready(&FrsCurve_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&FrsCurve_Type);
-  PyModule_AddObject(module, "Curve", (PyObject *)&FrsCurve_Type);
+  PyModule_AddObjectRef(module, "Curve", (PyObject *)&FrsCurve_Type);
 
   if (PyType_Ready(&Chain_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&Chain_Type);
-  PyModule_AddObject(module, "Chain", (PyObject *)&Chain_Type);
+  PyModule_AddObjectRef(module, "Chain", (PyObject *)&Chain_Type);
 
   if (PyType_Ready(&FEdge_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&FEdge_Type);
-  PyModule_AddObject(module, "FEdge", (PyObject *)&FEdge_Type);
+  PyModule_AddObjectRef(module, "FEdge", (PyObject *)&FEdge_Type);
 
   if (PyType_Ready(&FEdgeSharp_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&FEdgeSharp_Type);
-  PyModule_AddObject(module, "FEdgeSharp", (PyObject *)&FEdgeSharp_Type);
+  PyModule_AddObjectRef(module, "FEdgeSharp", (PyObject *)&FEdgeSharp_Type);
 
   if (PyType_Ready(&FEdgeSmooth_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&FEdgeSmooth_Type);
-  PyModule_AddObject(module, "FEdgeSmooth", (PyObject *)&FEdgeSmooth_Type);
+  PyModule_AddObjectRef(module, "FEdgeSmooth", (PyObject *)&FEdgeSmooth_Type);
 
   if (PyType_Ready(&Stroke_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&Stroke_Type);
-  PyModule_AddObject(module, "Stroke", (PyObject *)&Stroke_Type);
+  PyModule_AddObjectRef(module, "Stroke", (PyObject *)&Stroke_Type);
 
 #define ADD_TYPE_CONST(id) \
   PyLong_subtype_add_to_dict(Stroke_Type.tp_dict, &MediumType_Type, STRINGIFY(id), Stroke::id)
@@ -86,8 +79,7 @@ int Interface1D_Init(PyObject *module)
   if (PyType_Ready(&ViewEdge_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&ViewEdge_Type);
-  PyModule_AddObject(module, "ViewEdge", (PyObject *)&ViewEdge_Type);
+  PyModule_AddObjectRef(module, "ViewEdge", (PyObject *)&ViewEdge_Type);
 
   FEdgeSharp_mathutils_register_callback();
   FEdgeSmooth_mathutils_register_callback();

@@ -36,44 +36,37 @@ int Interface0D_Init(PyObject *module)
   if (PyType_Ready(&Interface0D_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&Interface0D_Type);
-  PyModule_AddObject(module, "Interface0D", (PyObject *)&Interface0D_Type);
+  PyModule_AddObjectRef(module, "Interface0D", (PyObject *)&Interface0D_Type);
 
   if (PyType_Ready(&CurvePoint_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&CurvePoint_Type);
-  PyModule_AddObject(module, "CurvePoint", (PyObject *)&CurvePoint_Type);
+  PyModule_AddObjectRef(module, "CurvePoint", (PyObject *)&CurvePoint_Type);
 
   if (PyType_Ready(&SVertex_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&SVertex_Type);
-  PyModule_AddObject(module, "SVertex", (PyObject *)&SVertex_Type);
+  PyModule_AddObjectRef(module, "SVertex", (PyObject *)&SVertex_Type);
 
   if (PyType_Ready(&ViewVertex_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&ViewVertex_Type);
-  PyModule_AddObject(module, "ViewVertex", (PyObject *)&ViewVertex_Type);
+  PyModule_AddObjectRef(module, "ViewVertex", (PyObject *)&ViewVertex_Type);
 
   if (PyType_Ready(&StrokeVertex_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&StrokeVertex_Type);
-  PyModule_AddObject(module, "StrokeVertex", (PyObject *)&StrokeVertex_Type);
+  PyModule_AddObjectRef(module, "StrokeVertex", (PyObject *)&StrokeVertex_Type);
 
   if (PyType_Ready(&NonTVertex_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&NonTVertex_Type);
-  PyModule_AddObject(module, "NonTVertex", (PyObject *)&NonTVertex_Type);
+  PyModule_AddObjectRef(module, "NonTVertex", (PyObject *)&NonTVertex_Type);
 
   if (PyType_Ready(&TVertex_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&TVertex_Type);
-  PyModule_AddObject(module, "TVertex", (PyObject *)&TVertex_Type);
+  PyModule_AddObjectRef(module, "TVertex", (PyObject *)&TVertex_Type);
 
   SVertex_mathutils_register_callback();
   StrokeVertex_mathutils_register_callback();

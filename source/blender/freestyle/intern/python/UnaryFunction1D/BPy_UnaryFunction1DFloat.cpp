@@ -31,8 +31,7 @@ int UnaryFunction1DFloat_Init(PyObject *module)
   if (PyType_Ready(&UnaryFunction1DFloat_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&UnaryFunction1DFloat_Type);
-  PyModule_AddObject(module, "UnaryFunction1DFloat", (PyObject *)&UnaryFunction1DFloat_Type);
+  PyModule_AddObjectRef(module, "UnaryFunction1DFloat", (PyObject *)&UnaryFunction1DFloat_Type);
 
   return 0;
 }

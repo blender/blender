@@ -37,8 +37,7 @@ int UnaryFunction0D_Init(PyObject *module)
   if (PyType_Ready(&UnaryFunction0D_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&UnaryFunction0D_Type);
-  PyModule_AddObject(module, "UnaryFunction0D", (PyObject *)&UnaryFunction0D_Type);
+  PyModule_AddObjectRef(module, "UnaryFunction0D", (PyObject *)&UnaryFunction0D_Type);
 
   UnaryFunction0DDouble_Init(module);
   UnaryFunction0DEdgeNature_Init(module);

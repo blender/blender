@@ -33,8 +33,7 @@ int FrsNoise_Init(PyObject *module)
   if (PyType_Ready(&FrsNoise_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&FrsNoise_Type);
-  PyModule_AddObject(module, "Noise", (PyObject *)&FrsNoise_Type);
+  PyModule_AddObjectRef(module, "Noise", (PyObject *)&FrsNoise_Type);
 
   return 0;
 }

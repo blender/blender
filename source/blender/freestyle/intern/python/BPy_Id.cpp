@@ -29,8 +29,7 @@ int Id_Init(PyObject *module)
     return -1;
   }
 
-  Py_INCREF(&Id_Type);
-  PyModule_AddObject(module, "Id", (PyObject *)&Id_Type);
+  PyModule_AddObjectRef(module, "Id", (PyObject *)&Id_Type);
   return 0;
 }
 

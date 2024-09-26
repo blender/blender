@@ -2679,8 +2679,7 @@ PyObject *BPyInit_bgl()
   UNUSED_VARS(LOG);
 #endif
 
-  PyModule_AddObject(submodule, "Buffer", (PyObject *)&BGL_bufferType);
-  Py_INCREF((PyObject *)&BGL_bufferType);
+  PyModule_AddObjectRef(submodule, "Buffer", (PyObject *)&BGL_bufferType);
 
   init_bgl_version_1_0_methods(submodule, dict);
   init_bgl_version_1_1_methods(submodule, dict);

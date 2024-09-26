@@ -1124,9 +1124,8 @@ PyObject *PyC_DefaultNameSpace(const char *filename)
    * In this case an identifier is typically used that is surrounded by angle-brackets.
    * It's mainly helpful for the UI and messages to show *something*. */
   PyModule_AddObject(mod_main, "__file__", PyC_UnicodeFromBytes(filename));
+  PyModule_AddObjectRef(mod_main, "__builtins__", builtins);
 
-  PyModule_AddObject(mod_main, "__builtins__", builtins);
-  Py_INCREF(builtins); /* AddObject steals a reference */
   return PyModule_GetDict(mod_main);
 }
 
