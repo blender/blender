@@ -149,6 +149,15 @@ def do_primitives(gltf, mesh_idx, skin_idx, mesh, ob):
         for _ in range(num_shapekeys)
     ]
 
+    # We need to detect if some non-tri primitives have some VC.
+    # (Because, in that case, we will need to create vertex domain VC, instead of corner domain VC)
+    has_non_tri_vcs = []
+    vc_domains = []
+    for i in range(num_cols):
+        has_non_tri_vcs.append(any([prim.mode not in [None, 4, 5, 6] and any(
+            ['COLOR_' + str(i) in attr for attr in prim.attributes]) for prim in pymesh.primitives]))
+        vc_domains.append('POINT' if has_non_tri_vcs[i] else 'CORNER')
+
     for prim in pymesh.primitives:
         prim.num_faces = 0
 
@@ -232,6 +241,7 @@ def do_primitives(gltf, mesh_idx, skin_idx, mesh, ob):
 
             loop_vidxs = np.concatenate((loop_vidxs, prim_vidxs))
 
+            # UV only if we have a face
             for uv_i in range(num_uvs):
                 if ('TEXCOORD_%d' % uv_i) in prim.attributes:
                     uvs = BinaryData.decode_accessor(gltf, prim.attributes['TEXCOORD_%d' % uv_i], cache=True)
@@ -240,15 +250,22 @@ def do_primitives(gltf, mesh_idx, skin_idx, mesh, ob):
                     uvs = np.zeros((len(indices), 2), dtype=np.float32)
                 loop_uvs[uv_i] = np.concatenate((loop_uvs[uv_i], uvs))
 
-            for col_i in range(num_cols):
-                if ('COLOR_%d' % col_i) in prim.attributes:
-                    cols = BinaryData.decode_accessor(gltf, prim.attributes['COLOR_%d' % col_i], cache=True)
+        # We can have VC for points, lines, and tris
+        for col_i in range(num_cols):
+            if ('COLOR_%d' % col_i) in prim.attributes:
+                cols = BinaryData.decode_accessor(gltf, prim.attributes['COLOR_%d' % col_i], cache=True)
+                if vc_domains[col_i] == 'CORNER':
                     cols = cols[indices]
-                    if cols.shape[1] == 3:
-                        cols = colors_rgb_to_rgba(cols)
                 else:
+                    cols = cols[unique_indices]
+                if cols.shape[1] == 3:
+                    cols = colors_rgb_to_rgba(cols)
+            else:
+                if vc_domains[col_i] == 'CORNER':
                     cols = np.ones((len(indices), 4), dtype=np.float32)
-                loop_cols[col_i] = np.concatenate((loop_cols[col_i], cols))
+                else:
+                    cols = np.ones((len(unique_indices), 4), dtype=np.float32)
+            loop_cols[col_i] = np.concatenate((loop_cols[col_i], cols))
 
         for idx, attr in enumerate(attributes):
             if attr in prim.attributes:
@@ -328,7 +345,7 @@ def do_primitives(gltf, mesh_idx, skin_idx, mesh, ob):
 
     for col_i in range(num_cols):
         name = 'Color' if col_i == 0 else 'Color.%03d' % col_i
-        layer = mesh.color_attributes.new(name, 'BYTE_COLOR', 'CORNER')
+        layer = mesh.color_attributes.new(name, 'BYTE_COLOR', vc_domains[col_i])
 
         layer.data.foreach_set('color', squish(loop_cols[col_i], np.float32))
 
