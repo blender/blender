@@ -127,6 +127,7 @@ void VKBuffer::read(VKContext &context, void *data) const
 {
   BLI_assert_msg(is_mapped(), "Cannot read a non-mapped buffer.");
   context.rendering_end();
+  context.descriptor_set_get().upload_descriptor_sets();
   context.render_graph.submit_buffer_for_read(vk_buffer_);
   memcpy(data, mapped_memory_, size_in_bytes_);
 }

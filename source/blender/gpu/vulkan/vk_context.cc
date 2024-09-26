@@ -137,6 +137,7 @@ void VKContext::flush_render_graph()
       framebuffer.rendering_end(*this);
     }
   }
+  descriptor_set_get().upload_descriptor_sets();
   render_graph.submit();
 }
 
@@ -338,6 +339,7 @@ void VKContext::swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &swap_c
 
   framebuffer.rendering_end(*this);
   render_graph.add_node(blit_image);
+  descriptor_set_get().upload_descriptor_sets();
   render_graph.submit_for_present(swap_chain_data.image);
 
   device.resources.remove_image(swap_chain_data.image);

@@ -279,11 +279,14 @@ void VKDescriptorSetTracker::update_descriptor_set(VKContext &context,
   debug::object_label(vk_descriptor_set, shader.name_get());
   const VKDevice &device = VKBackend::get().device;
   bind_shader_resources(device, state_manager, shader, access_info);
-  upload_descriptor_sets();
 }
 
 void VKDescriptorSetTracker::upload_descriptor_sets()
 {
+  if (vk_write_descriptor_sets_.is_empty()) {
+    return;
+  }
+
   /* Finalize pointers that could have changed due to reallocations. */
   int buffer_index = 0;
   int buffer_view_index = 0;
