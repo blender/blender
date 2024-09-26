@@ -11,6 +11,7 @@
 #include "vk_common.hh"
 
 #include "vk_descriptor_pools.hh"
+#include "vk_immediate.hh"
 
 namespace blender::gpu {
 
@@ -58,6 +59,7 @@ class VKResourcePool {
   VKDescriptorPools descriptor_pools;
   VKDescriptorSetTracker descriptor_set;
   VKDiscardPool discard_pool;
+  VKImmediate immediate;
 
   void init(VKDevice &device);
   void deinit(VKDevice &device);

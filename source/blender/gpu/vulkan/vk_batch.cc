@@ -22,9 +22,6 @@ void VKBatch::draw(int vertex_first, int vertex_count, int instance_first, int i
 {
   VKContext &context = *VKContext::get();
   render_graph::VKResourceAccessInfo &resource_access_info = context.reset_and_get_access_info();
-  VKStateManager &state_manager = context.state_manager_get();
-  state_manager.apply_state();
-
   VKVertexAttributeObject vao;
   vao.update_bindings(context, *this);
 
@@ -86,9 +83,6 @@ void VKBatch::multi_draw_indirect(const VkBuffer indirect_buffer,
 {
   VKContext &context = *VKContext::get();
   render_graph::VKResourceAccessInfo &resource_access_info = context.reset_and_get_access_info();
-  VKStateManager &state_manager = context.state_manager_get();
-  state_manager.apply_state();
-
   VKVertexAttributeObject vao;
   vao.update_bindings(context, *this);
 

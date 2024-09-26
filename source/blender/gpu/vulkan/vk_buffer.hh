@@ -10,6 +10,7 @@
 
 #include "gpu_context_private.hh"
 
+#include "BLI_utility_mixins.hh"
 #include "vk_common.hh"
 
 namespace blender::gpu {
@@ -18,7 +19,7 @@ class VKContext;
 /**
  * Class for handing vulkan buffers (allocation/updating/binding).
  */
-class VKBuffer {
+class VKBuffer : public NonCopyable {
   size_t size_in_bytes_ = 0;
   VkBuffer vk_buffer_ = VK_NULL_HANDLE;
   VmaAllocation allocation_ = VK_NULL_HANDLE;

@@ -28,7 +28,7 @@ VKContext::VKContext(void *ghost_window, void *ghost_context, VKThreadData &thre
   ghost_context_ = ghost_context;
 
   state_manager = new VKStateManager();
-  imm = new VKImmediate();
+  imm = &thread_data.resource_pool_get().immediate;
 
   back_left = new VKFrameBuffer("back_left");
   front_left = new VKFrameBuffer("front_left");
@@ -47,9 +47,7 @@ VKContext::~VKContext()
   }
   VKBackend::get().device.context_unregister(*this);
 
-  delete imm;
   imm = nullptr;
-
   compiler = nullptr;
 }
 
@@ -62,6 +60,7 @@ void VKContext::sync_backbuffer()
     if (assign_if_different(thread_data_.resource_pool_index, swap_chain_data.swap_chain_index)) {
       thread_data_.resource_pool_index = swap_chain_data.swap_chain_index;
       VKResourcePool &resource_pool = thread_data_.resource_pool_get();
+      imm = &resource_pool.immediate;
       resource_pool.discard_pool.destroy_discarded_resources(device);
       resource_pool.reset();
       resource_pool.discard_pool.move_data(device.orphaned_data);

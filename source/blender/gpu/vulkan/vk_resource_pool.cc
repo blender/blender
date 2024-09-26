@@ -25,6 +25,7 @@ void VKResourcePool::deinit(VKDevice &device)
 void VKResourcePool::reset()
 {
   descriptor_pools.reset();
+  immediate.reset();
 }
 
 void VKDiscardPool::deinit(VKDevice &device)

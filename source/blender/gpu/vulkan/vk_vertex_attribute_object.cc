@@ -216,9 +216,7 @@ void VKVertexAttributeObject::update_bindings(VKImmediate &immediate)
   const VKShaderInterface &interface = unwrap(unwrap(immediate.shader))->interface_get();
   AttributeMask occupied_attributes = 0;
 
-  VKBufferWithOffset immediate_buffer = {immediate.active_resource()->vk_handle(),
-                                         immediate.subbuffer_offset_get()};
-
+  VKBufferWithOffset immediate_buffer = immediate.active_buffer();
   update_bindings(immediate.vertex_format_converter.device_format_get(),
                   nullptr,
                   &immediate_buffer,
