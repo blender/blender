@@ -1020,6 +1020,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
     }
     case Type::Geometry: {
       restore_geometry(step_data, object);
+      BKE_sculptsession_free_deformMats(&ss);
       BKE_sculpt_update_object_for_edit(depsgraph, &object, false);
       if (SubdivCCG *subdiv_ccg = ss.subdiv_ccg) {
         refine_subdiv(depsgraph, ss, object, subdiv_ccg->subdiv);
