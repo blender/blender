@@ -158,7 +158,7 @@ bool VKBackend::is_supported()
     if (missing_capabilities.is_empty()) {
       /* This device meets minimum requirements. */
       CLOG_INFO(&LOG,
-                0,
+                2,
                 "Device [%s] supports minimum requirements. Skip checking other GPUs. Another GPU "
                 "can still be selected during auto-detection.",
                 vk_properties.deviceName);
@@ -279,6 +279,13 @@ void VKBackend::platform_init(const VKDevice &device)
            properties.deviceName,
            driver_version.c_str(),
            GPU_ARCHITECTURE_IMR);
+
+  CLOG_INFO(&LOG,
+            0,
+            "Using vendor [%s] device [%s] driver version [%s].",
+            vendor_name.c_str(),
+            device.vk_physical_device_properties_.deviceName,
+            driver_version.c_str());
 }
 
 void VKBackend::detect_workarounds(VKDevice &device)
