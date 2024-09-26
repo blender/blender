@@ -250,129 +250,134 @@ static SocketDeclarationPtr declaration_for_interface_socket(
 
   blender::bke::bNodeSocketType *base_typeinfo = blender::bke::node_socket_type_find(
       io_socket.socket_type);
-  if (base_typeinfo == nullptr) {
-    return dst;
+  eNodeSocketDatatype datatype = SOCK_CUSTOM;
+  if (base_typeinfo) {
+    datatype = eNodeSocketDatatype(base_typeinfo->type);
+    switch (datatype) {
+      case SOCK_FLOAT: {
+        const auto &value = node_interface::get_socket_data_as<bNodeSocketValueFloat>(io_socket);
+        std::unique_ptr<decl::Float> decl = std::make_unique<decl::Float>();
+        decl->subtype = PropertySubType(value.subtype);
+        decl->default_value = value.value;
+        decl->soft_min_value = value.min;
+        decl->soft_max_value = value.max;
+        dst = std::move(decl);
+        break;
+      }
+      case SOCK_VECTOR: {
+        const auto &value = node_interface::get_socket_data_as<bNodeSocketValueVector>(io_socket);
+        std::unique_ptr<decl::Vector> decl = std::make_unique<decl::Vector>();
+        decl->subtype = PropertySubType(value.subtype);
+        decl->default_value = value.value;
+        decl->soft_min_value = value.min;
+        decl->soft_max_value = value.max;
+        dst = std::move(decl);
+        break;
+      }
+      case SOCK_RGBA: {
+        const auto &value = node_interface::get_socket_data_as<bNodeSocketValueRGBA>(io_socket);
+        std::unique_ptr<decl::Color> decl = std::make_unique<decl::Color>();
+        decl->default_value = value.value;
+        dst = std::move(decl);
+        break;
+      }
+      case SOCK_SHADER: {
+        std::unique_ptr<decl::Shader> decl = std::make_unique<decl::Shader>();
+        dst = std::move(decl);
+        break;
+      }
+      case SOCK_BOOLEAN: {
+        const auto &value = node_interface::get_socket_data_as<bNodeSocketValueBoolean>(io_socket);
+        std::unique_ptr<decl::Bool> decl = std::make_unique<decl::Bool>();
+        decl->default_value = value.value;
+        dst = std::move(decl);
+        break;
+      }
+      case SOCK_ROTATION: {
+        const auto &value = node_interface::get_socket_data_as<bNodeSocketValueRotation>(
+            io_socket);
+        std::unique_ptr<decl::Rotation> decl = std::make_unique<decl::Rotation>();
+        decl->default_value = math::EulerXYZ(float3(value.value_euler));
+        dst = std::move(decl);
+        break;
+      }
+      case SOCK_MATRIX: {
+        std::unique_ptr<decl::Matrix> decl = std::make_unique<decl::Matrix>();
+        dst = std::move(decl);
+        break;
+      }
+      case SOCK_INT: {
+        const auto &value = node_interface::get_socket_data_as<bNodeSocketValueInt>(io_socket);
+        std::unique_ptr<decl::Int> decl = std::make_unique<decl::Int>();
+        decl->subtype = PropertySubType(value.subtype);
+        decl->default_value = value.value;
+        decl->soft_min_value = value.min;
+        decl->soft_max_value = value.max;
+        dst = std::move(decl);
+        break;
+      }
+      case SOCK_STRING: {
+        const auto &value = node_interface::get_socket_data_as<bNodeSocketValueString>(io_socket);
+        std::unique_ptr<decl::String> decl = std::make_unique<decl::String>();
+        decl->default_value = value.value;
+        decl->subtype = PropertySubType(value.subtype);
+        dst = std::move(decl);
+        break;
+      }
+      case SOCK_MENU: {
+        const auto &value = node_interface::get_socket_data_as<bNodeSocketValueMenu>(io_socket);
+        std::unique_ptr<decl::Menu> decl = std::make_unique<decl::Menu>();
+        decl->default_value = value.value;
+        dst = std::move(decl);
+        break;
+      }
+      case SOCK_OBJECT: {
+        auto value = std::make_unique<decl::Object>();
+        value->default_value_fn = get_default_id_getter(ntree.tree_interface, io_socket);
+        dst = std::move(value);
+        break;
+      }
+      case SOCK_IMAGE: {
+        auto value = std::make_unique<decl::Image>();
+        value->default_value_fn = get_default_id_getter(ntree.tree_interface, io_socket);
+        dst = std::move(value);
+        break;
+      }
+      case SOCK_GEOMETRY:
+        dst = std::make_unique<decl::Geometry>();
+        break;
+      case SOCK_COLLECTION: {
+        auto value = std::make_unique<decl::Collection>();
+        value->default_value_fn = get_default_id_getter(ntree.tree_interface, io_socket);
+        dst = std::move(value);
+        break;
+      }
+      case SOCK_TEXTURE: {
+        auto value = std::make_unique<decl::Texture>();
+        value->default_value_fn = get_default_id_getter(ntree.tree_interface, io_socket);
+        dst = std::move(value);
+        break;
+      }
+      case SOCK_MATERIAL: {
+        auto value = std::make_unique<decl::Material>();
+        value->default_value_fn = get_default_id_getter(ntree.tree_interface, io_socket);
+        dst = std::move(value);
+        break;
+      }
+      case SOCK_CUSTOM: {
+        auto value = std::make_unique<decl::Custom>();
+        value->init_socket_fn = get_init_socket_fn(ntree.tree_interface, io_socket);
+        value->idname_ = io_socket.socket_type;
+        dst = std::move(value);
+        break;
+      }
+    }
   }
-
-  eNodeSocketDatatype datatype = eNodeSocketDatatype(base_typeinfo->type);
-
-  switch (datatype) {
-    case SOCK_FLOAT: {
-      const auto &value = node_interface::get_socket_data_as<bNodeSocketValueFloat>(io_socket);
-      std::unique_ptr<decl::Float> decl = std::make_unique<decl::Float>();
-      decl->subtype = PropertySubType(value.subtype);
-      decl->default_value = value.value;
-      decl->soft_min_value = value.min;
-      decl->soft_max_value = value.max;
-      dst = std::move(decl);
-      break;
-    }
-    case SOCK_VECTOR: {
-      const auto &value = node_interface::get_socket_data_as<bNodeSocketValueVector>(io_socket);
-      std::unique_ptr<decl::Vector> decl = std::make_unique<decl::Vector>();
-      decl->subtype = PropertySubType(value.subtype);
-      decl->default_value = value.value;
-      decl->soft_min_value = value.min;
-      decl->soft_max_value = value.max;
-      dst = std::move(decl);
-      break;
-    }
-    case SOCK_RGBA: {
-      const auto &value = node_interface::get_socket_data_as<bNodeSocketValueRGBA>(io_socket);
-      std::unique_ptr<decl::Color> decl = std::make_unique<decl::Color>();
-      decl->default_value = value.value;
-      dst = std::move(decl);
-      break;
-    }
-    case SOCK_SHADER: {
-      std::unique_ptr<decl::Shader> decl = std::make_unique<decl::Shader>();
-      dst = std::move(decl);
-      break;
-    }
-    case SOCK_BOOLEAN: {
-      const auto &value = node_interface::get_socket_data_as<bNodeSocketValueBoolean>(io_socket);
-      std::unique_ptr<decl::Bool> decl = std::make_unique<decl::Bool>();
-      decl->default_value = value.value;
-      dst = std::move(decl);
-      break;
-    }
-    case SOCK_ROTATION: {
-      const auto &value = node_interface::get_socket_data_as<bNodeSocketValueRotation>(io_socket);
-      std::unique_ptr<decl::Rotation> decl = std::make_unique<decl::Rotation>();
-      decl->default_value = math::EulerXYZ(float3(value.value_euler));
-      dst = std::move(decl);
-      break;
-    }
-    case SOCK_MATRIX: {
-      std::unique_ptr<decl::Matrix> decl = std::make_unique<decl::Matrix>();
-      dst = std::move(decl);
-      break;
-    }
-    case SOCK_INT: {
-      const auto &value = node_interface::get_socket_data_as<bNodeSocketValueInt>(io_socket);
-      std::unique_ptr<decl::Int> decl = std::make_unique<decl::Int>();
-      decl->subtype = PropertySubType(value.subtype);
-      decl->default_value = value.value;
-      decl->soft_min_value = value.min;
-      decl->soft_max_value = value.max;
-      dst = std::move(decl);
-      break;
-    }
-    case SOCK_STRING: {
-      const auto &value = node_interface::get_socket_data_as<bNodeSocketValueString>(io_socket);
-      std::unique_ptr<decl::String> decl = std::make_unique<decl::String>();
-      decl->default_value = value.value;
-      decl->subtype = PropertySubType(value.subtype);
-      dst = std::move(decl);
-      break;
-    }
-    case SOCK_MENU: {
-      const auto &value = node_interface::get_socket_data_as<bNodeSocketValueMenu>(io_socket);
-      std::unique_ptr<decl::Menu> decl = std::make_unique<decl::Menu>();
-      decl->default_value = value.value;
-      dst = std::move(decl);
-      break;
-    }
-    case SOCK_OBJECT: {
-      auto value = std::make_unique<decl::Object>();
-      value->default_value_fn = get_default_id_getter(ntree.tree_interface, io_socket);
-      dst = std::move(value);
-      break;
-    }
-    case SOCK_IMAGE: {
-      auto value = std::make_unique<decl::Image>();
-      value->default_value_fn = get_default_id_getter(ntree.tree_interface, io_socket);
-      dst = std::move(value);
-      break;
-    }
-    case SOCK_GEOMETRY:
-      dst = std::make_unique<decl::Geometry>();
-      break;
-    case SOCK_COLLECTION: {
-      auto value = std::make_unique<decl::Collection>();
-      value->default_value_fn = get_default_id_getter(ntree.tree_interface, io_socket);
-      dst = std::move(value);
-      break;
-    }
-    case SOCK_TEXTURE: {
-      auto value = std::make_unique<decl::Texture>();
-      value->default_value_fn = get_default_id_getter(ntree.tree_interface, io_socket);
-      dst = std::move(value);
-      break;
-    }
-    case SOCK_MATERIAL: {
-      auto value = std::make_unique<decl::Material>();
-      value->default_value_fn = get_default_id_getter(ntree.tree_interface, io_socket);
-      dst = std::move(value);
-      break;
-    }
-    case SOCK_CUSTOM: {
-      auto value = std::make_unique<decl::Custom>();
-      value->init_socket_fn = get_init_socket_fn(ntree.tree_interface, io_socket);
-      value->idname_ = io_socket.socket_type;
-      dst = std::move(value);
-      break;
-    }
+  else {
+    auto value = std::make_unique<decl::Custom>();
+    value->init_socket_fn = get_init_socket_fn(ntree.tree_interface, io_socket);
+    value->idname_ = io_socket.socket_type;
+    dst = std::move(value);
   }
   dst->name = io_socket.name ? io_socket.name : "";
   dst->identifier = io_socket.identifier;
