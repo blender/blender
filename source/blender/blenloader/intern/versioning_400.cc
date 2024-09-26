@@ -3738,7 +3738,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 401, 17)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       ToolSettings *ts = scene->toolsettings;
-      int input_sample_values[10];
+      int input_sample_values[9];
 
       input_sample_values[0] = ts->imapaint.paint.num_input_samples_deprecated;
       input_sample_values[1] = ts->sculpt != nullptr ?
@@ -3748,28 +3748,28 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
                                    ts->curves_sculpt->paint.num_input_samples_deprecated :
                                    1;
 
-      input_sample_values[4] = ts->gp_paint != nullptr ?
+      input_sample_values[3] = ts->gp_paint != nullptr ?
                                    ts->gp_paint->paint.num_input_samples_deprecated :
                                    1;
-      input_sample_values[5] = ts->gp_vertexpaint != nullptr ?
+      input_sample_values[4] = ts->gp_vertexpaint != nullptr ?
                                    ts->gp_vertexpaint->paint.num_input_samples_deprecated :
                                    1;
-      input_sample_values[6] = ts->gp_sculptpaint != nullptr ?
+      input_sample_values[5] = ts->gp_sculptpaint != nullptr ?
                                    ts->gp_sculptpaint->paint.num_input_samples_deprecated :
                                    1;
-      input_sample_values[7] = ts->gp_weightpaint != nullptr ?
+      input_sample_values[6] = ts->gp_weightpaint != nullptr ?
                                    ts->gp_weightpaint->paint.num_input_samples_deprecated :
                                    1;
 
-      input_sample_values[8] = ts->vpaint != nullptr ?
+      input_sample_values[7] = ts->vpaint != nullptr ?
                                    ts->vpaint->paint.num_input_samples_deprecated :
                                    1;
-      input_sample_values[9] = ts->wpaint != nullptr ?
+      input_sample_values[8] = ts->wpaint != nullptr ?
                                    ts->wpaint->paint.num_input_samples_deprecated :
                                    1;
 
       int unified_value = 1;
-      for (int i = 0; i < 10; i++) {
+      for (int i = 0; i < 9; i++) {
         if (input_sample_values[i] != 1) {
           if (unified_value == 1) {
             unified_value = input_sample_values[i];
