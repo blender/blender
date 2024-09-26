@@ -1445,29 +1445,29 @@ GlyphBLF::~GlyphBLF()
 /** \name Glyph Bounds Calculation
  * \{ */
 
-static void blf_glyph_calc_rect(rcti *rect, GlyphBLF *g, const int x, const int y)
+static void blf_glyph_calc_rect(GlyphBLF *g, const int x, const int y, rcti *r_rect)
 {
-  rect->xmin = x + g->pos[0];
-  rect->xmax = rect->xmin + g->dims[0];
-  rect->ymin = y + g->pos[1];
-  rect->ymax = rect->ymin - g->dims[1];
+  r_rect->xmin = x + g->pos[0];
+  r_rect->xmax = r_rect->xmin + g->dims[0];
+  r_rect->ymin = y + g->pos[1];
+  r_rect->ymax = r_rect->ymin - g->dims[1];
 }
 
-static void blf_glyph_calc_rect_test(rcti *rect, GlyphBLF *g, const int x, const int y)
+static void blf_glyph_calc_rect_test(GlyphBLF *g, const int x, const int y, rcti *r_rect)
 {
   /* Intentionally check with `g->advance`, because this is the
    * width used by BLF_width. This allows that the text slightly
    * overlaps the clipping border to achieve better alignment. */
-  rect->xmin = x + abs(g->pos[0]) + 1;
-  rect->xmax = x + std::min(ft_pix_to_int(g->advance_x), g->dims[0]);
-  rect->ymin = y;
-  rect->ymax = rect->ymin - g->dims[1];
+  r_rect->xmin = x + abs(g->pos[0]) + 1;
+  r_rect->xmax = x + std::min(ft_pix_to_int(g->advance_x), g->dims[0]);
+  r_rect->ymin = y;
+  r_rect->ymax = r_rect->ymin - g->dims[1];
 }
 
 static void blf_glyph_calc_rect_shadow(
-    rcti *rect, GlyphBLF *g, const int x, const int y, FontBLF *font)
+    GlyphBLF *g, const int x, const int y, FontBLF *font, rcti *r_rect)
 {
-  blf_glyph_calc_rect(rect, g, x + font->shadow_x, y + font->shadow_y);
+  blf_glyph_calc_rect(g, x + font->shadow_x, y + font->shadow_y, r_rect);
 }
 
 /** \} */
@@ -1557,7 +1557,7 @@ void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, const int x, 
     }
 
     rcti rect_test;
-    blf_glyph_calc_rect_test(&rect_test, g, int(float(x) * xa), int(float(y) * ya));
+    blf_glyph_calc_rect_test(g, int(float(x) * xa), int(float(y) * ya), &rect_test);
     BLI_rcti_translate(&rect_test, font->pos[0], font->pos[1]);
     if (!BLI_rcti_inside_rcti(&font->clip_rec, &rect_test)) {
       return;
@@ -1571,7 +1571,7 @@ void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, const int x, 
 
   if (font->flags & BLF_SHADOW) {
     rcti rect_ofs;
-    blf_glyph_calc_rect_shadow(&rect_ofs, g, x, y, font);
+    blf_glyph_calc_rect_shadow(g, x, y, font, &rect_ofs);
 
     blf_texture_draw(g,
                      font->shadow_color,
@@ -1583,7 +1583,7 @@ void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, const int x, 
   }
 
   rcti rect;
-  blf_glyph_calc_rect(&rect, g, x, y);
+  blf_glyph_calc_rect(g, x, y, &rect);
   blf_texture_draw(
       g, font->color, FontShadowType::None, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 }

@@ -5810,7 +5810,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
                                bAnimContext *ac,
                                bAnimListElem *ale,
                                uiBlock *block,
-                               rctf *rect,
+                               const rctf *rect,
                                size_t channel_index)
 {
   const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);

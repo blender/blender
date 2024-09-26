@@ -601,7 +601,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
     uv_to_texel = math::invert(uv_to_texel);
 
     rctf crop_rect;
-    rctf *crop_rect_ptr = nullptr;
+    const rctf *crop_rect_ptr = nullptr;
     eIMBTransformMode transform_mode;
     if (instance_data.flags.do_tile_drawing) {
       transform_mode = IMB_TRANSFORM_MODE_WRAP_REPEAT;

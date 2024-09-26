@@ -885,7 +885,7 @@ int space_text_get_total_lines(SpaceText *st, const ARegion *region)
 /** \name Draw Scroll-Bar
  * \{ */
 
-static void calc_text_rcts(SpaceText *st, ARegion *region, rcti *scroll, rcti *back)
+static void calc_text_rcts(SpaceText *st, ARegion *region, rcti *r_scroll, rcti *r_back)
 {
   int lhlstart, lhlend, ltexth, sell_off, curl_off;
   short barheight, barstart, hlstart, hlend, blank_lines;
@@ -898,15 +898,15 @@ static void calc_text_rcts(SpaceText *st, ARegion *region, rcti *scroll, rcti *b
   blank_lines = st->runtime->viewlines / 2;
 
   /* nicer code: use scroll rect for entire bar */
-  back->xmin = region->winx - (0.6 * U.widget_unit);
-  back->xmax = region->winx;
-  back->ymin = 0;
-  back->ymax = region->winy;
+  r_back->xmin = region->winx - (0.6 * U.widget_unit);
+  r_back->xmax = region->winx;
+  r_back->ymin = 0;
+  r_back->ymax = region->winy;
 
-  scroll->xmax = region->winx - (0.2 * U.widget_unit);
-  scroll->xmin = scroll->xmax - (0.4 * U.widget_unit);
-  scroll->ymin = pix_top_margin;
-  scroll->ymax = pix_available;
+  r_scroll->xmax = region->winx - (0.2 * U.widget_unit);
+  r_scroll->xmin = r_scroll->xmax - (0.4 * U.widget_unit);
+  r_scroll->ymin = pix_top_margin;
+  r_scroll->ymax = pix_available;
 
   /* when re-sizing a 2D Viewport with the bar at the bottom to a greater height
    * more blank lines will be added */
@@ -924,7 +924,7 @@ static void calc_text_rcts(SpaceText *st, ARegion *region, rcti *scroll, rcti *b
   }
   barstart = (ltexth > 0) ? ((pix_available - pix_bardiff) * st->top) / ltexth : 0;
 
-  st->runtime->scroll_region_handle = *scroll;
+  st->runtime->scroll_region_handle = *r_scroll;
   st->runtime->scroll_region_handle.ymax -= barstart;
   st->runtime->scroll_region_handle.ymin = st->runtime->scroll_region_handle.ymax - barheight;
 
@@ -1005,7 +1005,7 @@ static void calc_text_rcts(SpaceText *st, ARegion *region, rcti *scroll, rcti *b
     hlend = hlstart + 2;
   }
 
-  st->runtime->scroll_region_select = *scroll;
+  st->runtime->scroll_region_select = *r_scroll;
   st->runtime->scroll_region_select.ymax = region->winy - pix_top_margin - hlstart;
   st->runtime->scroll_region_select.ymin = region->winy - pix_top_margin - hlend;
 

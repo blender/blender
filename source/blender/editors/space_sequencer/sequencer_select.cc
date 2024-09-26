@@ -264,12 +264,12 @@ void ED_sequencer_select_sequence_single(Scene *scene, Sequence *seq, bool desel
   recurs_sel_seq(seq);
 }
 
-void seq_rectf(const Scene *scene, const Sequence *seq, rctf *rect)
+void seq_rectf(const Scene *scene, const Sequence *seq, rctf *r_rect)
 {
-  rect->xmin = SEQ_time_left_handle_frame_get(scene, seq);
-  rect->xmax = SEQ_time_right_handle_frame_get(scene, seq);
-  rect->ymin = seq->machine + SEQ_STRIP_OFSBOTTOM;
-  rect->ymax = seq->machine + SEQ_STRIP_OFSTOP;
+  r_rect->xmin = SEQ_time_left_handle_frame_get(scene, seq);
+  r_rect->xmax = SEQ_time_right_handle_frame_get(scene, seq);
+  r_rect->ymin = seq->machine + SEQ_STRIP_OFSBOTTOM;
+  r_rect->ymax = seq->machine + SEQ_STRIP_OFSTOP;
 }
 
 Sequence *find_neighboring_sequence(Scene *scene, Sequence *test, int lr, int sel)
@@ -2015,7 +2015,9 @@ void SEQUENCER_OT_select_side(wmOperatorType *ot)
 /** \name Box Select Operator
  * \{ */
 
-static bool seq_box_select_rect_image_isect(const Scene *scene, const Sequence *seq, rctf *rect)
+static bool seq_box_select_rect_image_isect(const Scene *scene,
+                                            const Sequence *seq,
+                                            const rctf *rect)
 {
   float seq_image_quad[4][2];
   SEQ_image_transform_final_quad_get(scene, seq, seq_image_quad);
@@ -2038,7 +2040,9 @@ static bool seq_box_select_rect_image_isect(const Scene *scene, const Sequence *
              seq_image_quad[3], rect_quad[0], rect_quad[1], rect_quad[2], rect_quad[3]);
 }
 
-static void seq_box_select_seq_from_preview(const bContext *C, rctf *rect, const eSelectOp mode)
+static void seq_box_select_seq_from_preview(const bContext *C,
+                                            const rctf *rect,
+                                            const eSelectOp mode)
 {
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene);

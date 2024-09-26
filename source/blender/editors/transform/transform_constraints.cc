@@ -785,7 +785,7 @@ static void drawLine(
   else {
     UI_GetThemeColor3ubv(TH_GRID, col);
   }
-  UI_make_axis_color(col, col2, axis);
+  UI_make_axis_color(col, axis, col2);
 
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 

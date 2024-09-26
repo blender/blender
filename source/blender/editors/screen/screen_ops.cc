@@ -824,7 +824,7 @@ static bool azone_clipped_rect_calc(const AZone *az, rcti *r_rect_clip)
 }
 
 /* Return the azone's calculated rect. */
-static void area_actionzone_get_rect(AZone *az, rcti *rect)
+static void area_actionzone_get_rect(AZone *az, rcti *r_rect)
 {
   if (az->type == AZONE_REGION_SCROLL) {
     const bool is_horizontal = az->direction == AZ_SCROLL_HOR;
@@ -836,13 +836,13 @@ static void area_actionzone_get_rect(AZone *az, rcti *rect)
     /* For scroll azones use the area around the region's scroll-bar location. */
     rcti scroller_vert = is_horizontal ? az->region->v2d.hor : az->region->v2d.vert;
     BLI_rcti_translate(&scroller_vert, az->region->winrct.xmin, az->region->winrct.ymin);
-    rect->xmin = scroller_vert.xmin - (is_right ? V2D_SCROLL_HIDE_HEIGHT : 0);
-    rect->ymin = scroller_vert.ymin - (is_top ? V2D_SCROLL_HIDE_WIDTH : 0);
-    rect->xmax = scroller_vert.xmax + (is_left ? V2D_SCROLL_HIDE_HEIGHT : 0);
-    rect->ymax = scroller_vert.ymax + (is_botton ? V2D_SCROLL_HIDE_WIDTH : 0);
+    r_rect->xmin = scroller_vert.xmin - (is_right ? V2D_SCROLL_HIDE_HEIGHT : 0);
+    r_rect->ymin = scroller_vert.ymin - (is_top ? V2D_SCROLL_HIDE_WIDTH : 0);
+    r_rect->xmax = scroller_vert.xmax + (is_left ? V2D_SCROLL_HIDE_HEIGHT : 0);
+    r_rect->ymax = scroller_vert.ymax + (is_botton ? V2D_SCROLL_HIDE_WIDTH : 0);
   }
   else {
-    azone_clipped_rect_calc(az, rect);
+    azone_clipped_rect_calc(az, r_rect);
   }
 }
 

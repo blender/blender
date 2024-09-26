@@ -106,7 +106,7 @@ void blf_draw_svg_icon(FontBLF *font,
                        float x,
                        float y,
                        float size,
-                       float color[4] = nullptr,
+                       const float color[4] = nullptr,
                        float outline_alpha = 1.0f,
                        bool multicolor = false,
                        blender::FunctionRef<void(std::string &)> edit_source_cb = nullptr);

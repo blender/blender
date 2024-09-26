@@ -3920,7 +3920,7 @@ int ED_region_global_size_y()
 
 void ED_region_info_draw_multiline(ARegion *region,
                                    const char *text_array[],
-                                   float fill_color[4],
+                                   const float fill_color[4],
                                    const bool full_redraw)
 {
   const int header_height = UI_UNIT_Y;
@@ -3996,7 +3996,7 @@ void ED_region_info_draw_multiline(ARegion *region,
 
 void ED_region_info_draw(ARegion *region,
                          const char *text,
-                         float fill_color[4],
+                         const float fill_color[4],
                          const bool full_redraw)
 {
   const char *text_array[2] = {text, nullptr};

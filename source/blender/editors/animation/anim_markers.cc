@@ -539,12 +539,12 @@ static bool marker_is_in_frame_range(TimeMarker *marker, const int frame_range[2
   return true;
 }
 
-static void get_marker_region_rect(View2D *v2d, rctf *rect)
+static void get_marker_region_rect(View2D *v2d, rctf *r_rect)
 {
-  rect->xmin = v2d->cur.xmin;
-  rect->xmax = v2d->cur.xmax;
-  rect->ymin = 0;
-  rect->ymax = UI_MARKER_MARGIN_Y;
+  r_rect->xmin = v2d->cur.xmin;
+  r_rect->xmax = v2d->cur.xmax;
+  r_rect->ymin = 0;
+  r_rect->ymax = UI_MARKER_MARGIN_Y;
 }
 
 static void get_marker_clip_frame_range(View2D *v2d, float xscale, int r_range[2])

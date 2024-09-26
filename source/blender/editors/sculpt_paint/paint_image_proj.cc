@@ -1033,9 +1033,9 @@ static bool cmp_uv(const float vec2a[2], const float vec2b[2])
  * return zero if there is no area in the returned rectangle */
 #ifndef PROJ_DEBUG_NOSEAMBLEED
 static bool pixel_bounds_uv(const float uv_quad[4][2],
-                            rcti *bounds_px,
                             const int ibuf_x,
-                            const int ibuf_y)
+                            const int ibuf_y,
+                            rcti *r_bounds_px)
 {
   /* UV bounds */
   float min_uv[2], max_uv[2];
@@ -1047,21 +1047,23 @@ static bool pixel_bounds_uv(const float uv_quad[4][2],
   minmax_v2v2_v2(min_uv, max_uv, uv_quad[2]);
   minmax_v2v2_v2(min_uv, max_uv, uv_quad[3]);
 
-  bounds_px->xmin = int(ibuf_x * min_uv[0]);
-  bounds_px->ymin = int(ibuf_y * min_uv[1]);
+  r_bounds_px->xmin = int(ibuf_x * min_uv[0]);
+  r_bounds_px->ymin = int(ibuf_y * min_uv[1]);
 
-  bounds_px->xmax = int(ibuf_x * max_uv[0]) + 1;
-  bounds_px->ymax = int(ibuf_y * max_uv[1]) + 1;
+  r_bounds_px->xmax = int(ibuf_x * max_uv[0]) + 1;
+  r_bounds_px->ymax = int(ibuf_y * max_uv[1]) + 1;
 
   // printf("%d %d %d %d\n", min_px[0], min_px[1], max_px[0], max_px[1]);
 
   /* face uses no UV area when quantized to pixels? */
-  return (bounds_px->xmin == bounds_px->xmax || bounds_px->ymin == bounds_px->ymax) ? false : true;
+  return (r_bounds_px->xmin == r_bounds_px->xmax || r_bounds_px->ymin == r_bounds_px->ymax) ?
+             false :
+             true;
 }
 #endif
 
 static bool pixel_bounds_array(
-    float (*uv)[2], rcti *bounds_px, const int ibuf_x, const int ibuf_y, int tot)
+    float (*uv)[2], const int ibuf_x, const int ibuf_y, int tot, rcti *r_bounds_px)
 {
   /* UV bounds */
   float min_uv[2], max_uv[2];
@@ -1077,16 +1079,18 @@ static bool pixel_bounds_array(
     uv++;
   }
 
-  bounds_px->xmin = int(ibuf_x * min_uv[0]);
-  bounds_px->ymin = int(ibuf_y * min_uv[1]);
+  r_bounds_px->xmin = int(ibuf_x * min_uv[0]);
+  r_bounds_px->ymin = int(ibuf_y * min_uv[1]);
 
-  bounds_px->xmax = int(ibuf_x * max_uv[0]) + 1;
-  bounds_px->ymax = int(ibuf_y * max_uv[1]) + 1;
+  r_bounds_px->xmax = int(ibuf_x * max_uv[0]) + 1;
+  r_bounds_px->ymax = int(ibuf_y * max_uv[1]) + 1;
 
   // printf("%d %d %d %d\n", min_px[0], min_px[1], max_px[0], max_px[1]);
 
   /* face uses no UV area when quantized to pixels? */
-  return (bounds_px->xmin == bounds_px->xmax || bounds_px->ymin == bounds_px->ymax) ? false : true;
+  return (r_bounds_px->xmin == r_bounds_px->xmax || r_bounds_px->ymin == r_bounds_px->ymax) ?
+             false :
+             true;
 }
 
 #ifndef PROJ_DEBUG_NOSEAMBLEED
@@ -3085,7 +3089,7 @@ static void project_paint_face_init(const ProjPaintState *ps,
     }
 #endif
 
-    if (pixel_bounds_array(uv_clip, &bounds_px, ibuf->x, ibuf->y, uv_clip_tot)) {
+    if (pixel_bounds_array(uv_clip, ibuf->x, ibuf->y, uv_clip_tot, &bounds_px)) {
 #if 0
       project_paint_undo_tiles_init(
           &bounds_px, ps->projImages + image_index, tmpibuf, tile_width, threaded, ps->do_masking);
@@ -3306,7 +3310,7 @@ static void project_paint_face_init(const ProjPaintState *ps,
             interp_v3_v3v3(edge_verts_inset_clip[0], insetCos[fidx1], insetCos[fidx2], fac1);
             interp_v3_v3v3(edge_verts_inset_clip[1], insetCos[fidx1], insetCos[fidx2], fac2);
 
-            if (pixel_bounds_uv(seam_subsection, &bounds_px, ibuf->x, ibuf->y)) {
+            if (pixel_bounds_uv(seam_subsection, ibuf->x, ibuf->y, &bounds_px)) {
               /* bounds between the seam rect and the uvspace bucket pixels */
 
               has_isect = 0;
@@ -3469,18 +3473,19 @@ static void project_paint_bucket_bounds(const ProjPaintState *ps,
 static void project_bucket_bounds(const ProjPaintState *ps,
                                   const int bucket_x,
                                   const int bucket_y,
-                                  rctf *bucket_bounds)
+                                  rctf *r_bucket_bounds)
 {
   /* left */
-  bucket_bounds->xmin = (ps->screenMin[0] + ((bucket_x) * (ps->screen_width / ps->buckets_x)));
+  r_bucket_bounds->xmin = (ps->screenMin[0] + ((bucket_x) * (ps->screen_width / ps->buckets_x)));
   /* right */
-  bucket_bounds->xmax = (ps->screenMin[0] + ((bucket_x + 1) * (ps->screen_width / ps->buckets_x)));
+  r_bucket_bounds->xmax = (ps->screenMin[0] +
+                           ((bucket_x + 1) * (ps->screen_width / ps->buckets_x)));
 
   /* bottom */
-  bucket_bounds->ymin = (ps->screenMin[1] + ((bucket_y) * (ps->screen_height / ps->buckets_y)));
+  r_bucket_bounds->ymin = (ps->screenMin[1] + ((bucket_y) * (ps->screen_height / ps->buckets_y)));
   /* top */
-  bucket_bounds->ymax = (ps->screenMin[1] +
-                         ((bucket_y + 1) * (ps->screen_height / ps->buckets_y)));
+  r_bucket_bounds->ymax = (ps->screenMin[1] +
+                           ((bucket_y + 1) * (ps->screen_height / ps->buckets_y)));
 }
 
 /* Fill this bucket with pixels from the faces that intersect it.
@@ -5761,8 +5766,8 @@ static void paint_proj_stroke_ps(const bContext * /*C*/,
                           ps->mode == BRUSH_STROKE_INVERT,
                           distance,
                           pressure,
-                          ps->paint_color,
-                          nullptr);
+                          nullptr,
+                          ps->paint_color);
     srgb_to_linearrgb_v3_v3(ps->paint_color_linear, ps->paint_color);
   }
   else if (ps->brush_type == IMAGE_PAINT_BRUSH_TYPE_MASK) {

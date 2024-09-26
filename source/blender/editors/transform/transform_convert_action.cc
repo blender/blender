@@ -647,8 +647,8 @@ static void createTransActionData(bContext *C, TransInfo *t)
    * and they are the ones that are being transformed. */
   const bool use_duplicated = (t->flag & T_DUPLICATED_KEYFRAMES) != 0;
 
-  rcti *mask = &t->region->v2d.mask;
-  rctf *datamask = &t->region->v2d.cur;
+  const rcti *mask = &t->region->v2d.mask;
+  const rctf *datamask = &t->region->v2d.cur;
 
   float xsize = BLI_rctf_size_x(datamask);
   float ysize = BLI_rctf_size_y(datamask);

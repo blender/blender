@@ -19,7 +19,7 @@ struct rctf;
  * \param scene: the Scene instance whose timeline boundaries are extracted from
  * \param rect: output parameter to be filled with timeline boundaries
  */
-void SEQ_timeline_init_boundbox(const Scene *scene, rctf *rect);
+void SEQ_timeline_init_boundbox(const Scene *scene, rctf *r_rect);
 /**
  * Stretch the given rectangle to include the given strips boundaries
  *
@@ -34,7 +34,7 @@ void SEQ_timeline_expand_boundbox(const Scene *scene, const ListBase *seqbase, r
  * \param seqbase: ListBase in which strips are located
  * \param rect: data structure describing rectangle, that will be filled in by this function
  */
-void SEQ_timeline_boundbox(const Scene *scene, const ListBase *seqbase, rctf *rect);
+void SEQ_timeline_boundbox(const Scene *scene, const ListBase *seqbase, rctf *r_rect);
 /**
  * Get FPS rate of source media. Movie, scene and movie-clip strips are supported.
  * Returns 0 for unsupported strip or if media can't be loaded.

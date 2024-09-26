@@ -172,7 +172,7 @@ void channel_draw_context_init(const bContext *C,
 
 /* `sequencer_edit.cc` */
 
-void seq_rectf(const Scene *scene, const Sequence *seq, rctf *rect);
+void seq_rectf(const Scene *scene, const Sequence *seq, rctf *r_rect);
 Sequence *find_neighboring_sequence(Scene *scene, Sequence *test, int lr, int sel);
 void recurs_sel_seq(Sequence *seq_meta);
 int seq_effect_find_selected(Scene *scene,

@@ -391,7 +391,7 @@ static ImBuf *brush_painter_imbuf_new(
   /* get brush color */
   if (brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_DRAW) {
     paint_brush_color_get(
-        scene, brush, use_color_correction, cache->invert, distance, pressure, brush_rgb, display);
+        scene, brush, use_color_correction, cache->invert, distance, pressure, display, brush_rgb);
   }
   else {
     brush_rgb[0] = 1.0f;
@@ -475,7 +475,7 @@ static void brush_painter_imbuf_update(BrushPainter *painter,
   /* get brush color */
   if (brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_DRAW) {
     paint_brush_color_get(
-        scene, brush, use_color_correction, cache->invert, 0.0f, 1.0f, brush_rgb, display);
+        scene, brush, use_color_correction, cache->invert, 0.0f, 1.0f, display, brush_rgb);
   }
   else {
     brush_rgb[0] = 1.0f;
@@ -633,7 +633,7 @@ static void brush_painter_2d_tex_mapping(ImagePaintState *s,
                                          const float pos[2],
                                          const float mouse[2],
                                          int mapmode,
-                                         rctf *mapping)
+                                         rctf *r_mapping)
 {
   float invw = 1.0f / float(tile->canvas->x);
   float invh = 1.0f / float(tile->canvas->y);
@@ -650,33 +650,33 @@ static void brush_painter_2d_tex_mapping(ImagePaintState *s,
     UI_view2d_view_to_region_fl(
         s->v2d, (start[0] + diameter) * invw, (start[1] + diameter) * invh, &xmax, &ymax);
 
-    /* output mapping from brush ibuf x/y to region coordinates */
-    mapping->xmax = (xmax - xmin) / float(diameter);
-    mapping->ymax = (ymax - ymin) / float(diameter);
-    mapping->xmin = xmin + (tile->uv_origin[0] * tile->size[0] * mapping->xmax);
-    mapping->ymin = ymin + (tile->uv_origin[1] * tile->size[1] * mapping->ymax);
+    /* output r_mapping from brush ibuf x/y to region coordinates */
+    r_mapping->xmax = (xmax - xmin) / float(diameter);
+    r_mapping->ymax = (ymax - ymin) / float(diameter);
+    r_mapping->xmin = xmin + (tile->uv_origin[0] * tile->size[0] * r_mapping->xmax);
+    r_mapping->ymin = ymin + (tile->uv_origin[1] * tile->size[1] * r_mapping->ymax);
   }
   else if (mapmode == MTEX_MAP_MODE_3D) {
     /* 3D mapping, just mapping to canvas 0..1. */
-    mapping->xmin = 2.0f * (start[0] * invw - 0.5f);
-    mapping->ymin = 2.0f * (start[1] * invh - 0.5f);
-    mapping->xmax = 2.0f * invw;
-    mapping->ymax = 2.0f * invh;
+    r_mapping->xmin = 2.0f * (start[0] * invw - 0.5f);
+    r_mapping->ymin = 2.0f * (start[1] * invh - 0.5f);
+    r_mapping->xmax = 2.0f * invw;
+    r_mapping->ymax = 2.0f * invh;
   }
   else if (ELEM(mapmode, MTEX_MAP_MODE_VIEW, MTEX_MAP_MODE_RANDOM)) {
     /* view mapping */
-    mapping->xmin = mouse[0] - diameter * 0.5f + 0.5f;
-    mapping->ymin = mouse[1] - diameter * 0.5f + 0.5f;
-    mapping->xmax = 1.0f;
-    mapping->ymax = 1.0f;
+    r_mapping->xmin = mouse[0] - diameter * 0.5f + 0.5f;
+    r_mapping->ymin = mouse[1] - diameter * 0.5f + 0.5f;
+    r_mapping->xmax = 1.0f;
+    r_mapping->ymax = 1.0f;
   }
   else /* if (mapmode == MTEX_MAP_MODE_TILED) */ {
-    mapping->xmin = int(-diameter * 0.5) + int(floorf(pos[0])) -
-                    int(floorf(tile->start_paintpos[0]));
-    mapping->ymin = int(-diameter * 0.5) + int(floorf(pos[1])) -
-                    int(floorf(tile->start_paintpos[1]));
-    mapping->xmax = 1.0f;
-    mapping->ymax = 1.0f;
+    r_mapping->xmin = int(-diameter * 0.5) + int(floorf(pos[0])) -
+                      int(floorf(tile->start_paintpos[0]));
+    r_mapping->ymin = int(-diameter * 0.5) + int(floorf(pos[1])) -
+                      int(floorf(tile->start_paintpos[1]));
+    r_mapping->xmax = 1.0f;
+    r_mapping->ymax = 1.0f;
   }
 }
 

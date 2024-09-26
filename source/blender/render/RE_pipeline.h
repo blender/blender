@@ -314,7 +314,7 @@ void RE_InitState(struct Render *re,
                   struct ViewLayer *single_layer,
                   int winx,
                   int winy,
-                  rcti *disprect);
+                  const rcti *disprect);
 
 /**
  * Set up the view-plane/perspective matrix, three choices.

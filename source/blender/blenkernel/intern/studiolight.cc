@@ -553,7 +553,7 @@ static float blinn_specular(const float L[3],
 }
 
 /* Keep in sync with the GLSL shader function `get_world_lighting()`. */
-static void studiolight_lights_eval(StudioLight *sl, float color[3], const float normal[3])
+static void studiolight_lights_eval(StudioLight *sl, const float normal[3], float r_color[3])
 {
   float R[3], I[3] = {0.0f, 0.0f, 1.0f}, N[3] = {normal[0], normal[2], -normal[1]};
   const float roughness = 0.5f;
@@ -583,7 +583,7 @@ static void studiolight_lights_eval(StudioLight *sl, float color[3], const float
   mul_v3_fl(diff_light, diffuse_color * (1.0 - specular_color));
   mul_v3_fl(spec_light, specular_color);
 
-  add_v3_v3v3(color, diff_light, spec_light);
+  add_v3_v3v3(r_color, diff_light, spec_light);
 }
 
 static StudioLight *studiolight_add_file(const char *filepath, int flag)

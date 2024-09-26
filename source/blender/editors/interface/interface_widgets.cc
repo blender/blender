@@ -264,7 +264,7 @@ struct uiWidgetType {
                  int roundboxalign,
                  const float zoom) ATTR_NONNULL();
   void (*draw_block)(
-      uiWidgetColors *, rcti *, int block_flag, int roundboxalign, const float zoom);
+      uiWidgetColors *, const rcti *, int block_flag, int roundboxalign, const float zoom);
   void (*text)(const uiFontStyle *, const uiWidgetColors *, uiBut *, rcti *);
 };
 
@@ -964,17 +964,17 @@ static void shape_preset_trias_from_rect_dash(uiWidgetTrias *tria, const rcti *r
 
 /* prepares shade colors */
 static void shadecolors4(
-    uchar coltop[4], uchar coldown[4], const uchar *color, short shadetop, short shadedown)
+    const uchar *color, short shadetop, short shadedown, uchar r_coltop[4], uchar r_coldown[4])
 {
-  coltop[0] = std::clamp(color[0] + shadetop, 0, 255);
-  coltop[1] = std::clamp(color[1] + shadetop, 0, 255);
-  coltop[2] = std::clamp(color[2] + shadetop, 0, 255);
-  coltop[3] = color[3];
+  r_coltop[0] = std::clamp(color[0] + shadetop, 0, 255);
+  r_coltop[1] = std::clamp(color[1] + shadetop, 0, 255);
+  r_coltop[2] = std::clamp(color[2] + shadetop, 0, 255);
+  r_coltop[3] = color[3];
 
-  coldown[0] = std::clamp(color[0] + shadedown, 0, 255);
-  coldown[1] = std::clamp(color[1] + shadedown, 0, 255);
-  coldown[2] = std::clamp(color[2] + shadedown, 0, 255);
-  coldown[3] = color[3];
+  r_coldown[0] = std::clamp(color[0] + shadedown, 0, 255);
+  r_coldown[1] = std::clamp(color[1] + shadedown, 0, 255);
+  r_coldown[2] = std::clamp(color[2] + shadedown, 0, 255);
+  r_coldown[3] = color[3];
 }
 
 static void widget_verts_to_triangle_strip(uiWidgetBase *wtb,
@@ -1159,7 +1159,7 @@ static void widgetbase_draw_ex(uiWidgetBase *wtb,
     }
     else {
       /* gradient fill */
-      shadecolors4(inner_col1, inner_col2, wcol->inner, wcol->shadetop, wcol->shadedown);
+      shadecolors4(wcol->inner, wcol->shadetop, wcol->shadedown, inner_col1, inner_col2);
     }
   }
 
@@ -2759,8 +2759,11 @@ static void widget_softshadow(const rcti *rect, int roundboxalign, const float r
   ui_draw_dropshadow(&shadow_rect, radin, shadow_width, 1.0f, shadow_alpha);
 }
 
-static void widget_menu_back(
-    uiWidgetColors *wcol, rcti *rect, const int block_flag, const int direction, const float zoom)
+static void widget_menu_back(uiWidgetColors *wcol,
+                             const rcti *rect,
+                             const int block_flag,
+                             const int direction,
+                             const float zoom)
 {
   uiWidgetBase wtb;
   int roundboxalign = UI_CNR_ALL;
@@ -5155,7 +5158,7 @@ void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, uiBut *but,
   }
 }
 
-static void ui_draw_clip_tri(uiBlock *block, rcti *rect, uiWidgetType *wt)
+static void ui_draw_clip_tri(uiBlock *block, const rcti *rect, uiWidgetType *wt)
 {
   if (block) {
     float draw_color[4];
@@ -5177,7 +5180,7 @@ static void ui_draw_clip_tri(uiBlock *block, rcti *rect, uiWidgetType *wt)
   }
 }
 
-void ui_draw_menu_back(uiStyle * /*style*/, uiBlock *block, rcti *rect)
+void ui_draw_menu_back(uiStyle * /*style*/, uiBlock *block, const rcti *rect)
 {
   uiWidgetType *wt = widget_type(UI_WTYPE_MENU_BACK);
 
@@ -5198,7 +5201,7 @@ void ui_draw_menu_back(uiStyle * /*style*/, uiBlock *block, rcti *rect)
  * because we need to pass in the original location so we know where to show the arrow.
  */
 static void ui_draw_popover_back_impl(const uiWidgetColors *wcol,
-                                      rcti *rect,
+                                      const rcti *rect,
                                       int direction,
                                       const float unit_size,
                                       const float mval_origin[2])
@@ -5267,7 +5270,7 @@ static void ui_draw_popover_back_impl(const uiWidgetColors *wcol,
   GPU_blend(GPU_BLEND_NONE);
 }
 
-void ui_draw_popover_back(ARegion *region, uiStyle * /*style*/, uiBlock *block, rcti *rect)
+void ui_draw_popover_back(ARegion *region, uiStyle * /*style*/, uiBlock *block, const rcti *rect)
 {
   uiWidgetType *wt = widget_type(UI_WTYPE_MENU_BACK);
 
@@ -5356,11 +5359,11 @@ void ui_draw_pie_center(uiBlock *block)
   GPU_blend(GPU_BLEND_ALPHA);
   if (btheme->tui.wcol_pie_menu.shaded) {
     uchar col1[4], col2[4];
-    shadecolors4(col1,
-                 col2,
-                 btheme->tui.wcol_pie_menu.inner,
+    shadecolors4(btheme->tui.wcol_pie_menu.inner,
                  btheme->tui.wcol_pie_menu.shadetop,
-                 btheme->tui.wcol_pie_menu.shadedown);
+                 btheme->tui.wcol_pie_menu.shadedown,
+                 col1,
+                 col2);
     draw_disk_shaded(
         0.0f, float(M_PI * 2.0), pie_radius_internal, pie_radius_external, subd, col1, col2, true);
   }
@@ -5378,11 +5381,11 @@ void ui_draw_pie_center(uiBlock *block)
   if (!(block->pie_data.flags & UI_PIE_INVALID_DIR)) {
     if (btheme->tui.wcol_pie_menu.shaded) {
       uchar col1[4], col2[4];
-      shadecolors4(col1,
-                   col2,
-                   btheme->tui.wcol_pie_menu.inner_sel,
+      shadecolors4(btheme->tui.wcol_pie_menu.inner_sel,
                    btheme->tui.wcol_pie_menu.shadetop,
-                   btheme->tui.wcol_pie_menu.shadedown);
+                   btheme->tui.wcol_pie_menu.shadedown,
+                   col1,
+                   col2);
       draw_disk_shaded(angle - range / 2.0f,
                        range,
                        pie_radius_internal,
@@ -5456,16 +5459,16 @@ static void ui_draw_widget_back_color(uiWidgetTypeEnum type,
     widget_softshadow(rect, UI_CNR_ALL, 0.25f * U.widget_unit);
   }
 
-  rcti rect_copy = *rect;
   wt->state(wt, &STATE_INFO_NULL, UI_EMBOSS_UNDEFINED);
   if (color) {
     rgba_float_to_uchar(wt->wcol.inner, color);
   }
 
   if (wt->draw_block) {
-    wt->draw_block(&wt->wcol, &rect_copy, 0, UI_CNR_ALL, 1.0f);
+    wt->draw_block(&wt->wcol, rect, 0, UI_CNR_ALL, 1.0f);
   }
   else if (wt->draw) {
+    rcti rect_copy = *rect;
     wt->draw(&wt->wcol, &rect_copy, &STATE_INFO_NULL, UI_CNR_ALL, 1.0f);
   }
   else {
@@ -5482,7 +5485,7 @@ void ui_draw_widget_menu_back(const rcti *rect, bool use_shadow)
   ui_draw_widget_back_color(UI_WTYPE_MENU_BACK, use_shadow, rect, nullptr);
 }
 
-void ui_draw_tooltip_background(const uiStyle * /*style*/, uiBlock * /*block*/, rcti *rect)
+void ui_draw_tooltip_background(const uiStyle * /*style*/, uiBlock * /*block*/, const rcti *rect)
 {
   uiWidgetType *wt = widget_type(UI_WTYPE_TOOLTIP);
   wt->state(wt, &STATE_INFO_NULL, UI_EMBOSS_UNDEFINED);

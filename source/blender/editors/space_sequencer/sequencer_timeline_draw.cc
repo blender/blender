@@ -324,7 +324,7 @@ static void color3ubv_from_seq(const Scene *curscene,
       UI_GetThemeColor3ubv(TH_SEQ_SCENE, r_col);
 
       if (seq->scene == curscene) {
-        UI_GetColorPtrShade3ubv(r_col, r_col, 20);
+        UI_GetColorPtrShade3ubv(r_col, 20, r_col);
       }
       break;
 
@@ -409,7 +409,7 @@ static void color3ubv_from_seq(const Scene *curscene,
       UI_GetThemeColor3ubv(TH_SEQ_AUDIO, r_col);
       blendcol[0] = blendcol[1] = blendcol[2] = 128;
       if (is_muted) {
-        UI_GetColorPtrBlendShade3ubv(r_col, blendcol, r_col, 0.5, 20);
+        UI_GetColorPtrBlendShade3ubv(r_col, blendcol, 0.5, 20, r_col);
       }
       break;
 
@@ -1073,10 +1073,10 @@ static void draw_strip_offsets(TimelineDrawContext *timeline_ctx,
   uchar col[4], blend_col[4];
   color3ubv_from_seq(scene, seq, strip_ctx->show_strip_color_tag, strip_ctx->is_muted, col);
   if (seq->flag & SELECT) {
-    UI_GetColorPtrShade3ubv(col, col, 50);
+    UI_GetColorPtrShade3ubv(col, 50, col);
   }
   col[3] = strip_ctx->is_muted ? MUTE_ALPHA : 200;
-  UI_GetColorPtrShade3ubv(col, blend_col, 10);
+  UI_GetColorPtrShade3ubv(col, 10, blend_col);
   blend_col[3] = 255;
 
   if (strip_ctx->left_handle > strip_ctx->content_start) {
@@ -1301,7 +1301,7 @@ static void draw_strips_background(TimelineDrawContext *timeline_ctx,
     /* Muted strips: turn almost gray. */
     if (strip.is_muted) {
       uchar muted_color[3] = {128, 128, 128};
-      UI_GetColorPtrBlendShade3ubv(col, muted_color, col, 0.5f, 0);
+      UI_GetColorPtrBlendShade3ubv(col, muted_color, 0.5f, 0, col);
     }
     data.col_background = color_pack(col);
 
@@ -1339,7 +1339,7 @@ static void draw_strips_background(TimelineDrawContext *timeline_ctx,
         color3ubv_from_seq(scene, seq2, strip.show_strip_color_tag, strip.is_muted, col);
         /* If the transition inputs are of the same type, draw the right side slightly darker. */
         if (seq1->type == seq2->type) {
-          UI_GetColorPtrShade3ubv(col, col, -15);
+          UI_GetColorPtrShade3ubv(col, -15, col);
         }
       }
       data.col_transition_out = color_pack(col);
@@ -1414,7 +1414,7 @@ static void strip_data_outline_params_set(const StripDrawContext &strip,
       data.flags |= GPU_SEQ_FLAG_OVERLAP;
     }
     else if (selected) {
-      UI_GetColorPtrShade3ubv(col, col, 70);
+      UI_GetColorPtrShade3ubv(col, 70, col);
     }
   }
 

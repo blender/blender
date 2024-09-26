@@ -2293,7 +2293,7 @@ static void gpencil_paint_initstroke(tGPsdata *p,
     if (rv3d->persp == RV3D_CAMOB) {
       /* no shift */
       ED_view3d_calc_camera_border(
-          p->scene, depsgraph, p->region, v3d, rv3d, &p->subrect_data, true);
+          p->scene, depsgraph, p->region, v3d, rv3d, true, &p->subrect_data);
       p->subrect = &p->subrect_data;
     }
   }

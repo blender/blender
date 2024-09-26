@@ -368,11 +368,11 @@ void paint_brush_color_get(Scene *scene,
                            bool invert,
                            float distance,
                            float pressure,
-                           float color[3],
-                           ColorManagedDisplay *display)
+                           ColorManagedDisplay *display,
+                           float r_color[3])
 {
   if (invert) {
-    copy_v3_v3(color, BKE_brush_secondary_color_get(scene, br));
+    copy_v3_v3(r_color, BKE_brush_secondary_color_get(scene, br));
   }
   else {
     if (br->flag & BRUSH_USE_GRADIENT) {
@@ -393,14 +393,14 @@ void paint_brush_color_get(Scene *scene,
       }
       /* Gradient / Color-band colors are not considered #PROP_COLOR_GAMMA.
        * Brush colors are expected to be in sRGB though. */
-      IMB_colormanagement_scene_linear_to_srgb_v3(color, color_gr);
+      IMB_colormanagement_scene_linear_to_srgb_v3(r_color, color_gr);
     }
     else {
-      copy_v3_v3(color, BKE_brush_color_get(scene, br));
+      copy_v3_v3(r_color, BKE_brush_color_get(scene, br));
     }
   }
   if (color_correction) {
-    IMB_colormanagement_display_to_scene_linear_v3(color, display);
+    IMB_colormanagement_display_to_scene_linear_v3(r_color, display);
   }
 }
 
@@ -1088,7 +1088,7 @@ void PAINT_OT_brush_colors_flip(wmOperatorType *ot)
 /** \name Texture Paint Bucket Fill Operator
  * \{ */
 
-void ED_imapaint_bucket_fill(bContext *C, float color[3], wmOperator *op, const int mouse[2])
+void ED_imapaint_bucket_fill(bContext *C, float const color[3], wmOperator *op, const int mouse[2])
 {
   SpaceImage *sima = CTX_wm_space_image(C);
 

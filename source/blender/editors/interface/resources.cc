@@ -1480,7 +1480,7 @@ bool UI_GetIconThemeColor4ubv(int colorid, uchar col[4])
   return true;
 }
 
-void UI_GetColorPtrShade3ubv(const uchar cp[3], uchar col[3], int offset)
+void UI_GetColorPtrShade3ubv(const uchar cp[3], int offset, uchar r_col[3])
 {
   int r, g, b;
 
@@ -1492,13 +1492,13 @@ void UI_GetColorPtrShade3ubv(const uchar cp[3], uchar col[3], int offset)
   CLAMP(g, 0, 255);
   CLAMP(b, 0, 255);
 
-  col[0] = r;
-  col[1] = g;
-  col[2] = b;
+  r_col[0] = r;
+  r_col[1] = g;
+  r_col[2] = b;
 }
 
 void UI_GetColorPtrBlendShade3ubv(
-    const uchar cp1[3], const uchar cp2[3], uchar col[3], float fac, int offset)
+    const uchar cp1[3], const uchar cp2[3], float fac, int offset, uchar r_col[3])
 {
   int r, g, b;
 
@@ -1511,9 +1511,9 @@ void UI_GetColorPtrBlendShade3ubv(
   CLAMP(g, 0, 255);
   CLAMP(b, 0, 255);
 
-  col[0] = r;
-  col[1] = g;
-  col[2] = b;
+  r_col[0] = r;
+  r_col[1] = g;
+  r_col[2] = b;
 }
 
 void UI_ThemeClearColor(int colorid)
@@ -1530,22 +1530,22 @@ int UI_ThemeMenuShadowWidth()
   return int(btheme->tui.menu_shadow_width * UI_SCALE_FAC);
 }
 
-void UI_make_axis_color(const uchar src_col[3], uchar dst_col[3], const char axis)
+void UI_make_axis_color(const uchar col[3], const char axis, uchar r_col[3])
 {
-  uchar col[3];
+  uchar col_axis[3];
 
   switch (axis) {
     case 'X':
-      UI_GetThemeColor3ubv(TH_AXIS_X, col);
-      UI_GetColorPtrBlendShade3ubv(src_col, col, dst_col, 0.5f, -10);
+      UI_GetThemeColor3ubv(TH_AXIS_X, col_axis);
+      UI_GetColorPtrBlendShade3ubv(col, col_axis, 0.5f, -10, r_col);
       break;
     case 'Y':
-      UI_GetThemeColor3ubv(TH_AXIS_Y, col);
-      UI_GetColorPtrBlendShade3ubv(src_col, col, dst_col, 0.5f, -10);
+      UI_GetThemeColor3ubv(TH_AXIS_Y, col_axis);
+      UI_GetColorPtrBlendShade3ubv(col, col_axis, 0.5f, -10, r_col);
       break;
     case 'Z':
-      UI_GetThemeColor3ubv(TH_AXIS_Z, col);
-      UI_GetColorPtrBlendShade3ubv(src_col, col, dst_col, 0.5f, -10);
+      UI_GetThemeColor3ubv(TH_AXIS_Z, col_axis);
+      UI_GetColorPtrBlendShade3ubv(col, col_axis, 0.5f, -10, r_col);
       break;
     default:
       BLI_assert(0);

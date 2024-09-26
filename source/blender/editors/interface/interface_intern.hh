@@ -1263,14 +1263,14 @@ enum {
 blender::gpu::Batch *ui_batch_roundbox_widget_get();
 blender::gpu::Batch *ui_batch_roundbox_shadow_get();
 
-void ui_draw_menu_back(uiStyle *style, uiBlock *block, rcti *rect);
-void ui_draw_popover_back(ARegion *region, uiStyle *style, uiBlock *block, rcti *rect);
+void ui_draw_menu_back(uiStyle *style, uiBlock *block, const rcti *rect);
+void ui_draw_popover_back(ARegion *region, uiStyle *style, uiBlock *block, const rcti *rect);
 void ui_draw_pie_center(uiBlock *block);
 const uiWidgetColors *ui_tooltip_get_theme();
 
 void ui_draw_widget_menu_back_color(const rcti *rect, bool use_shadow, const float color[4]);
 void ui_draw_widget_menu_back(const rcti *rect, bool use_shadow);
-void ui_draw_tooltip_background(const uiStyle *style, uiBlock *block, rcti *rect);
+void ui_draw_tooltip_background(const uiStyle *style, uiBlock *block, const rcti *rect);
 
 /**
  * Conversion from old to new buttons, so still messy.

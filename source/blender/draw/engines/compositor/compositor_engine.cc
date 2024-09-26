@@ -121,8 +121,8 @@ class Context : public realtime_compositor::Context {
                                  DRW_context_state_get()->region,
                                  DRW_context_state_get()->v3d,
                                  DRW_context_state_get()->rv3d,
-                                 &camera_border,
-                                 false);
+                                 false,
+                                 &camera_border);
 
     rcti camera_region;
     BLI_rcti_rctf_copy_floor(&camera_region, &camera_border);

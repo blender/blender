@@ -99,8 +99,8 @@ void GpencilIO::prepare_camera_params(Scene *scene, const GpencilIOParams *ipara
                                  params_.region,
                                  params_.v3d,
                                  rv3d_,
-                                 &camera_rect_,
-                                 true);
+                                 true,
+                                 &camera_rect_);
     is_camera_ = true;
     camera_ratio_ = render_x_ / (camera_rect_.xmax - camera_rect_.xmin);
     offset_.x = camera_rect_.xmin;

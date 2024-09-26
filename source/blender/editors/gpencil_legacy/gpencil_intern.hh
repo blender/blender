@@ -115,7 +115,7 @@ struct GP_SpaceConversion {
   ARegion *region;
   View2D *v2d;
 
-  rctf *subrect; /* for using the camera rect within the 3d view */
+  const rctf *subrect; /* for using the camera rect within the 3d view */
   rctf subrect_data;
 
   float mat[4][4]; /* transform matrix on the strokes (introduced in [b770964]) */

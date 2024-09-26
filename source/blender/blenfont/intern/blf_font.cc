@@ -530,7 +530,7 @@ void blf_draw_svg_icon(FontBLF *font,
                        float x,
                        float y,
                        float size,
-                       float color[4],
+                       const float color[4],
                        float outline_alpha,
                        bool multicolor,
                        blender::FunctionRef<void(std::string &)> edit_source_cb)
@@ -895,7 +895,7 @@ static void blf_font_boundbox_ex(FontBLF *font,
                                  GlyphCacheBLF *gc,
                                  const char *str,
                                  const size_t str_len,
-                                 rcti *box,
+                                 rcti *r_box,
                                  ResultBLF *r_info,
                                  ft_pix pen_y)
 {
@@ -945,10 +945,10 @@ static void blf_font_boundbox_ex(FontBLF *font,
     box_ymax = 0;
   }
 
-  box->xmin = ft_pix_to_int_floor(box_xmin);
-  box->xmax = ft_pix_to_int_ceil(box_xmax);
-  box->ymin = ft_pix_to_int_floor(box_ymin);
-  box->ymax = ft_pix_to_int_ceil(box_ymax);
+  r_box->xmin = ft_pix_to_int_floor(box_xmin);
+  r_box->xmax = ft_pix_to_int_ceil(box_xmax);
+  r_box->ymin = ft_pix_to_int_floor(box_ymin);
+  r_box->ymax = ft_pix_to_int_ceil(box_ymax);
 
   if (r_info) {
     r_info->lines = 1;
@@ -1156,14 +1156,14 @@ static bool blf_str_offset_foreach_glyph(const char * /*str*/,
 void blf_str_offset_to_glyph_bounds(FontBLF *font,
                                     const char *str,
                                     size_t str_offset,
-                                    rcti *glyph_bounds)
+                                    rcti *r_glyph_bounds)
 {
   StrOffsetToGlyphBounds_Data data{};
   data.str_offset = str_offset;
   data.bounds = {0};
 
   blf_font_boundbox_foreach_glyph(font, str, str_offset + 1, blf_str_offset_foreach_glyph, &data);
-  *glyph_bounds = data.bounds;
+  *r_glyph_bounds = data.bounds;
 }
 
 int blf_str_offset_to_cursor(FontBLF *font,

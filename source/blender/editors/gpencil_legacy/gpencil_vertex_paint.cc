@@ -564,7 +564,7 @@ static bool brush_average_apply(tGP_BrushVertexpaintData *gso,
                                 int pt_index,
                                 const int radius,
                                 const int co[2],
-                                float average_color[3])
+                                const float average_color[3])
 {
   Brush *brush = gso->brush;
 

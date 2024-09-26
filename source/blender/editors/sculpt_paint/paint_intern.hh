@@ -308,8 +308,8 @@ void paint_brush_color_get(Scene *scene,
                            bool invert,
                            float distance,
                            float pressure,
-                           float color[3],
-                           ColorManagedDisplay *display);
+                           ColorManagedDisplay *display,
+                           float r_color[3]);
 bool paint_use_opacity_masking(Brush *brush);
 void paint_brush_init_tex(Brush *brush);
 void paint_brush_exit_tex(Brush *brush);

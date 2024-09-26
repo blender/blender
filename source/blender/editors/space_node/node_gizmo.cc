@@ -210,19 +210,19 @@ static void gizmo_node_crop_update(NodeCropWidgetGroup *crop_group)
 }
 
 static void two_xy_to_rect(
-    const NodeTwoXYs *nxy, rctf *rect, const float2 &dims, const float2 offset, bool is_relative)
+    const NodeTwoXYs *nxy, const float2 &dims, const float2 offset, bool is_relative, rctf *r_rect)
 {
   if (is_relative) {
-    rect->xmin = nxy->fac_x1 + (offset.x / dims.x);
-    rect->xmax = nxy->fac_x2 + (offset.x / dims.x);
-    rect->ymin = nxy->fac_y1 + (offset.y / dims.y);
-    rect->ymax = nxy->fac_y2 + (offset.y / dims.y);
+    r_rect->xmin = nxy->fac_x1 + (offset.x / dims.x);
+    r_rect->xmax = nxy->fac_x2 + (offset.x / dims.x);
+    r_rect->ymin = nxy->fac_y1 + (offset.y / dims.y);
+    r_rect->ymax = nxy->fac_y2 + (offset.y / dims.y);
   }
   else {
-    rect->xmin = (nxy->x1 + offset.x) / dims.x;
-    rect->xmax = (nxy->x2 + offset.x) / dims.x;
-    rect->ymin = (nxy->y1 + offset.y) / dims.y;
-    rect->ymax = (nxy->y2 + offset.y) / dims.y;
+    r_rect->xmin = (nxy->x1 + offset.x) / dims.x;
+    r_rect->xmax = (nxy->x2 + offset.x) / dims.x;
+    r_rect->ymin = (nxy->y1 + offset.y) / dims.y;
+    r_rect->ymax = (nxy->y2 + offset.y) / dims.y;
   }
 }
 
@@ -257,7 +257,7 @@ static void gizmo_node_crop_prop_matrix_get(const wmGizmo *gz,
   const NodeTwoXYs *nxy = (const NodeTwoXYs *)node->storage;
   bool is_relative = bool(node->custom2);
   rctf rct;
-  two_xy_to_rect(nxy, &rct, dims, offset, is_relative);
+  two_xy_to_rect(nxy, dims, offset, is_relative, &rct);
   matrix[0][0] = fabsf(BLI_rctf_size_x(&rct));
   matrix[1][1] = fabsf(BLI_rctf_size_y(&rct));
   matrix[3][0] = (BLI_rctf_cent_x(&rct) - 0.5f) * dims[0];
@@ -277,7 +277,7 @@ static void gizmo_node_crop_prop_matrix_set(const wmGizmo *gz,
   NodeTwoXYs *nxy = (NodeTwoXYs *)node->storage;
   bool is_relative = bool(node->custom2);
   rctf rct;
-  two_xy_to_rect(nxy, &rct, dims, offset, is_relative);
+  two_xy_to_rect(nxy, dims, offset, is_relative, &rct);
   const bool nx = rct.xmin > rct.xmax;
   const bool ny = rct.ymin > rct.ymax;
   BLI_rctf_resize(&rct, fabsf(matrix[0][0]), fabsf(matrix[1][1]));

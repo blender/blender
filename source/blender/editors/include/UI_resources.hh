@@ -463,16 +463,16 @@ bool UI_GetIconThemeColor4ubv(int colorid, unsigned char col[4]);
 /**
  * Shade a 3 byte color (same as UI_GetColorPtrBlendShade3ubv with 0.0 factor).
  */
-void UI_GetColorPtrShade3ubv(const unsigned char cp[3], unsigned char col[3], int offset);
+void UI_GetColorPtrShade3ubv(const unsigned char cp[3], int offset, unsigned char r_col[3]);
 
 /**
  * Get a 3 byte color, blended and shaded between two other char color pointers.
  */
 void UI_GetColorPtrBlendShade3ubv(const unsigned char cp1[3],
                                   const unsigned char cp2[3],
-                                  unsigned char col[3],
                                   float fac,
-                                  int offset);
+                                  int offset,
+                                  unsigned char r_col[3]);
 
 /**
  * Sets the font color
@@ -511,4 +511,4 @@ int UI_ThemeMenuShadowWidth();
  */
 const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid);
 
-void UI_make_axis_color(const unsigned char src_col[3], unsigned char dst_col[3], char axis);
+void UI_make_axis_color(const unsigned char col[3], char axis, unsigned char r_col[3]);

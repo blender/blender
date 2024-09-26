@@ -134,7 +134,7 @@ void ED_view3d_update_viewmat(const Depsgraph *depsgraph,
   /* store window coordinates scaling/offset */
   if (!offscreen && rv3d->persp == RV3D_CAMOB && v3d->camera) {
     rctf cameraborder;
-    ED_view3d_calc_camera_border(scene, depsgraph, region, v3d, rv3d, &cameraborder, false);
+    ED_view3d_calc_camera_border(scene, depsgraph, region, v3d, rv3d, false, &cameraborder);
     rv3d->viewcamtexcofac[0] = float(region->winx) / BLI_rctf_size_x(&cameraborder);
     rv3d->viewcamtexcofac[1] = float(region->winy) / BLI_rctf_size_y(&cameraborder);
 
@@ -441,8 +441,8 @@ void ED_view3d_calc_camera_border(const Scene *scene,
                                   const ARegion *region,
                                   const View3D *v3d,
                                   const RegionView3D *rv3d,
-                                  rctf *r_viewborder,
-                                  const bool no_shift)
+                                  const bool no_shift,
+                                  rctf *r_viewborder)
 {
   view3d_camera_border(scene, depsgraph, region, v3d, rv3d, r_viewborder, no_shift, false);
 }
@@ -543,7 +543,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *region, 
     ca = static_cast<Camera *>(v3d->camera->data);
   }
 
-  ED_view3d_calc_camera_border(scene, depsgraph, region, v3d, rv3d, &viewborder, false);
+  ED_view3d_calc_camera_border(scene, depsgraph, region, v3d, rv3d, false, &viewborder);
   /* the offsets */
   x1 = viewborder.xmin;
   y1 = viewborder.ymin;
@@ -2662,7 +2662,7 @@ static bool view3d_main_region_do_render_draw(const Scene *scene)
 }
 
 bool ED_view3d_calc_render_border(
-    const Scene *scene, Depsgraph *depsgraph, View3D *v3d, ARegion *region, rcti *rect)
+    const Scene *scene, Depsgraph *depsgraph, View3D *v3d, ARegion *region, rcti *r_rect)
 {
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
   bool use_border;
@@ -2687,22 +2687,22 @@ bool ED_view3d_calc_render_border(
   /* Compute border. */
   if (rv3d->persp == RV3D_CAMOB) {
     rctf viewborder;
-    ED_view3d_calc_camera_border(scene, depsgraph, region, v3d, rv3d, &viewborder, false);
+    ED_view3d_calc_camera_border(scene, depsgraph, region, v3d, rv3d, false, &viewborder);
 
-    rect->xmin = viewborder.xmin + scene->r.border.xmin * BLI_rctf_size_x(&viewborder);
-    rect->ymin = viewborder.ymin + scene->r.border.ymin * BLI_rctf_size_y(&viewborder);
-    rect->xmax = viewborder.xmin + scene->r.border.xmax * BLI_rctf_size_x(&viewborder);
-    rect->ymax = viewborder.ymin + scene->r.border.ymax * BLI_rctf_size_y(&viewborder);
+    r_rect->xmin = viewborder.xmin + scene->r.border.xmin * BLI_rctf_size_x(&viewborder);
+    r_rect->ymin = viewborder.ymin + scene->r.border.ymin * BLI_rctf_size_y(&viewborder);
+    r_rect->xmax = viewborder.xmin + scene->r.border.xmax * BLI_rctf_size_x(&viewborder);
+    r_rect->ymax = viewborder.ymin + scene->r.border.ymax * BLI_rctf_size_y(&viewborder);
   }
   else {
-    rect->xmin = v3d->render_border.xmin * region->winx;
-    rect->xmax = v3d->render_border.xmax * region->winx;
-    rect->ymin = v3d->render_border.ymin * region->winy;
-    rect->ymax = v3d->render_border.ymax * region->winy;
+    r_rect->xmin = v3d->render_border.xmin * region->winx;
+    r_rect->xmax = v3d->render_border.xmax * region->winx;
+    r_rect->ymin = v3d->render_border.ymin * region->winy;
+    r_rect->ymax = v3d->render_border.ymax * region->winy;
   }
 
-  BLI_rcti_translate(rect, region->winrct.xmin, region->winrct.ymin);
-  BLI_rcti_isect(&region->winrct, rect, rect);
+  BLI_rcti_translate(r_rect, region->winrct.xmin, region->winrct.ymin);
+  BLI_rcti_isect(&region->winrct, r_rect, r_rect);
 
   return true;
 }

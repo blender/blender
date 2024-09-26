@@ -613,7 +613,7 @@ void BLF_draw_svg_icon(uint icon_id,
                        float x,
                        float y,
                        float size,
-                       float color[4],
+                       const float color[4],
                        float outline_alpha,
                        bool multicolor,
                        blender::FunctionRef<void(std::string &)> edit_source_cb)
@@ -681,11 +681,11 @@ size_t BLF_str_offset_from_cursor_position(int fontid,
 bool BLF_str_offset_to_glyph_bounds(int fontid,
                                     const char *str,
                                     size_t str_offset,
-                                    rcti *glyph_bounds)
+                                    rcti *r_glyph_bounds)
 {
   FontBLF *font = blf_get(fontid);
   if (font) {
-    blf_str_offset_to_glyph_bounds(font, str, str_offset, glyph_bounds);
+    blf_str_offset_to_glyph_bounds(font, str, str_offset, r_glyph_bounds);
     return true;
   }
   return false;
