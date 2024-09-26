@@ -32,7 +32,7 @@ static GreasePencil *curves_to_grease_pencil_with_one_layer(
 {
   bke::CurvesGeometry curves = curves_id.geometry.wrap();
 
-  const bke::CurvesFieldContext field_context{curves, AttrDomain::Curve};
+  const bke::CurvesFieldContext field_context{curves_id, AttrDomain::Curve};
   FieldEvaluator evaluator{field_context, curves.curves_num()};
   evaluator.set_selection(selection_field);
   evaluator.evaluate();

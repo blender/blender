@@ -211,7 +211,7 @@ void separate_geometry(bke::GeometrySet &geometry_set,
   if (const Curves *src_curves_id = geometry_set.get_curves()) {
     if (ELEM(domain, AttrDomain::Point, AttrDomain::Curve)) {
       const bke::CurvesGeometry &src_curves = src_curves_id->geometry.wrap();
-      const bke::CurvesFieldContext field_context{src_curves, domain};
+      const bke::CurvesFieldContext field_context{*src_curves_id, domain};
       std::optional<bke::CurvesGeometry> dst_curves = separate_curves_selection(
           src_curves, field_context, selection, domain, attribute_filter);
       if (dst_curves) {

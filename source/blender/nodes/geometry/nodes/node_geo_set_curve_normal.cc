@@ -108,8 +108,8 @@ static void node_geo_exec(GeoNodeExecParams params)
       bke::CurvesGeometry &curves = curves_id->geometry.wrap();
       set_curve_normal(curves,
                        mode,
-                       bke::CurvesFieldContext(curves, AttrDomain::Curve),
-                       bke::CurvesFieldContext(curves, AttrDomain::Point),
+                       bke::CurvesFieldContext(*curves_id, AttrDomain::Curve),
+                       bke::CurvesFieldContext(*curves_id, AttrDomain::Point),
                        selection_field,
                        custom_normal);
     }

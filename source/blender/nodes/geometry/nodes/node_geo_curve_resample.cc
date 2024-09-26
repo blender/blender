@@ -72,7 +72,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       geometry_set.modify_geometry_sets([&](GeometrySet &geometry) {
         if (const Curves *src_curves_id = geometry.get_curves()) {
           const bke::CurvesGeometry &src_curves = src_curves_id->geometry.wrap();
-          const bke::CurvesFieldContext field_context{src_curves, AttrDomain::Curve};
+          const bke::CurvesFieldContext field_context{*src_curves_id, AttrDomain::Curve};
           bke::CurvesGeometry dst_curves = geometry::resample_to_count(
               src_curves, field_context, selection, count);
           Curves *dst_curves_id = bke::curves_new_nomain(std::move(dst_curves));
@@ -104,7 +104,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       geometry_set.modify_geometry_sets([&](GeometrySet &geometry) {
         if (const Curves *src_curves_id = geometry.get_curves()) {
           const bke::CurvesGeometry &src_curves = src_curves_id->geometry.wrap();
-          const bke::CurvesFieldContext field_context{src_curves, AttrDomain::Curve};
+          const bke::CurvesFieldContext field_context{*src_curves_id, AttrDomain::Curve};
           bke::CurvesGeometry dst_curves = geometry::resample_to_length(
               src_curves, field_context, selection, length);
           Curves *dst_curves_id = bke::curves_new_nomain(std::move(dst_curves));
@@ -134,7 +134,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       geometry_set.modify_geometry_sets([&](GeometrySet &geometry) {
         if (const Curves *src_curves_id = geometry.get_curves()) {
           const bke::CurvesGeometry &src_curves = src_curves_id->geometry.wrap();
-          const bke::CurvesFieldContext field_context{src_curves, AttrDomain::Curve};
+          const bke::CurvesFieldContext field_context{*src_curves_id, AttrDomain::Curve};
           bke::CurvesGeometry dst_curves = geometry::resample_to_evaluated(
               src_curves, field_context, selection);
           Curves *dst_curves_id = bke::curves_new_nomain(std::move(dst_curves));

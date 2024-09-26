@@ -28,7 +28,7 @@ static Curves *subdivide_curves(const Curves &src_curves_id,
 {
   const bke::CurvesGeometry &src_curves = src_curves_id.geometry.wrap();
 
-  const bke::CurvesFieldContext field_context{src_curves, AttrDomain::Point};
+  const bke::CurvesFieldContext field_context{src_curves_id, AttrDomain::Point};
   fn::FieldEvaluator evaluator{field_context, src_curves.points_num()};
   evaluator.add(cuts_field);
   evaluator.evaluate();

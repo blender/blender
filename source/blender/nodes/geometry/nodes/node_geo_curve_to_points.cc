@@ -146,7 +146,7 @@ static void curve_to_points(GeometrySet &geometry_set,
       geometry_set.modify_geometry_sets([&](GeometrySet &geometry) {
         if (const Curves *src_curves_id = geometry.get_curves()) {
           const bke::CurvesGeometry &src_curves = src_curves_id->geometry.wrap();
-          const bke::CurvesFieldContext field_context{src_curves, AttrDomain::Curve};
+          const bke::CurvesFieldContext field_context{*src_curves_id, AttrDomain::Curve};
           bke::CurvesGeometry dst_curves = geometry::resample_to_count(
               src_curves,
               field_context,
@@ -168,7 +168,7 @@ static void curve_to_points(GeometrySet &geometry_set,
       geometry_set.modify_geometry_sets([&](GeometrySet &geometry) {
         if (const Curves *src_curves_id = geometry.get_curves()) {
           const bke::CurvesGeometry &src_curves = src_curves_id->geometry.wrap();
-          const bke::CurvesFieldContext field_context{src_curves, AttrDomain::Curve};
+          const bke::CurvesFieldContext field_context{*src_curves_id, AttrDomain::Curve};
           bke::CurvesGeometry dst_curves = geometry::resample_to_length(
               src_curves,
               field_context,
@@ -189,7 +189,7 @@ static void curve_to_points(GeometrySet &geometry_set,
       geometry_set.modify_geometry_sets([&](GeometrySet &geometry) {
         if (const Curves *src_curves_id = geometry.get_curves()) {
           const bke::CurvesGeometry &src_curves = src_curves_id->geometry.wrap();
-          const bke::CurvesFieldContext field_context{src_curves, AttrDomain::Curve};
+          const bke::CurvesFieldContext field_context{*src_curves_id, AttrDomain::Curve};
           bke::CurvesGeometry dst_curves = geometry::resample_to_evaluated(
               src_curves, field_context, fn::make_constant_field<bool>(true), resample_attributes);
           PointCloud *pointcloud = pointcloud_from_curves(std::move(dst_curves),

@@ -158,7 +158,7 @@ static void geometry_set_curve_trim(GeometrySet &geometry_set,
   if (geometry_set.has_curves()) {
     const Curves &src_curves_id = *geometry_set.get_curves();
     const bke::CurvesGeometry &src_curves = src_curves_id.geometry.wrap();
-    const bke::CurvesFieldContext field_context{src_curves, AttrDomain::Curve};
+    const bke::CurvesFieldContext field_context{src_curves_id, AttrDomain::Curve};
     bke::CurvesGeometry dst_curves;
     if (trim_curves(src_curves,
                     mode,

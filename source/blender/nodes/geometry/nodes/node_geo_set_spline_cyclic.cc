@@ -58,7 +58,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (Curves *curves_id = geometry_set.get_curves_for_write()) {
       bke::CurvesGeometry &curves = curves_id->geometry.wrap();
-      const bke::CurvesFieldContext field_context{curves, AttrDomain::Curve};
+      const bke::CurvesFieldContext field_context{*curves_id, AttrDomain::Curve};
       set_curve_cyclic(curves, field_context, selection, cyclic);
     }
     if (GreasePencil *grease_pencil = geometry_set.get_grease_pencil_for_write()) {

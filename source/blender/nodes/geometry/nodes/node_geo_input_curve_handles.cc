@@ -20,21 +20,27 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>("Right").field_source_reference_all();
 }
 
-class HandlePositionFieldInput final : public bke::CurvesFieldInput {
+class HandlePositionFieldInput final : public bke::GeometryFieldInput {
   Field<bool> relative_;
   bool left_;
 
  public:
   HandlePositionFieldInput(Field<bool> relative, bool left)
-      : bke::CurvesFieldInput(CPPType::get<float3>(), "Handle"), relative_(relative), left_(left)
+      : bke::GeometryFieldInput(CPPType::get<float3>(), "Handle"), relative_(relative), left_(left)
   {
   }
 
-  GVArray get_varray_for_context(const bke::CurvesGeometry &curves,
-                                 const AttrDomain domain,
+  GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
                                  const IndexMask &mask) const final
   {
-    const bke::CurvesFieldContext field_context{curves, AttrDomain::Point};
+    const bke::CurvesGeometry *curves_ptr = context.curves_or_strokes();
+    if (!curves_ptr) {
+      return {};
+    }
+    const bke::CurvesGeometry &curves = *curves_ptr;
+    const bke::AttrDomain domain = context.domain();
+
+    const bke::GeometryFieldContext field_context{context, AttrDomain::Point};
     fn::FieldEvaluator evaluator(field_context, &mask);
     evaluator.add(relative_);
     evaluator.evaluate();
@@ -92,7 +98,8 @@ class HandlePositionFieldInput final : public bke::CurvesFieldInput {
     return false;
   }
 
-  std::optional<AttrDomain> preferred_domain(const bke::CurvesGeometry & /*curves*/) const final
+  std::optional<AttrDomain> preferred_domain(
+      const bke::GeometryComponent & /*component*/) const final
   {
     return AttrDomain::Point;
   }

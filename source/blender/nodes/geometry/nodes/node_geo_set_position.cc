@@ -141,7 +141,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   if (Curves *curves_id = geometry.get_curves_for_write()) {
     bke::CurvesGeometry &curves = curves_id->geometry.wrap();
     set_curves_position(curves,
-                        bke::CurvesFieldContext(curves, bke::AttrDomain::Point),
+                        bke::CurvesFieldContext(*curves_id, bke::AttrDomain::Point),
                         selection_field,
                         position_field);
   }

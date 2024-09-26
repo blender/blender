@@ -255,7 +255,7 @@ static void duplicate_curves(GeometrySet &geometry_set,
   const Curves &curves_id = *geometry_set.get_curves();
   const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
 
-  const bke::CurvesFieldContext field_context{curves, AttrDomain::Curve};
+  const bke::CurvesFieldContext field_context{curves_id, AttrDomain::Curve};
   FieldEvaluator evaluator{field_context, curves.curves_num()};
   evaluator.add(count_field);
   evaluator.set_selection(selection_field);
@@ -704,7 +704,7 @@ static void duplicate_points_curve(GeometrySet &geometry_set,
     return;
   }
 
-  const bke::CurvesFieldContext field_context{src_curves, AttrDomain::Point};
+  const bke::CurvesFieldContext field_context{src_curves_id, AttrDomain::Point};
   FieldEvaluator evaluator{field_context, src_curves.points_num()};
   evaluator.add(count_field);
   evaluator.set_selection(selection_field);
