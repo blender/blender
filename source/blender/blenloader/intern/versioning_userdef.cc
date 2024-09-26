@@ -198,6 +198,12 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(space_node.node_zone_foreach_geometry_element);
   }
 
+  if (!USER_VERSION_ATLEAST(403, 27)) {
+    FROM_DEFAULT_V4_UCHAR(tui.editor_border);
+    FROM_DEFAULT_V4_UCHAR(tui.editor_outline);
+    FROM_DEFAULT_V4_UCHAR(tui.editor_outline_active);
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a USER_VERSION_ATLEAST check.

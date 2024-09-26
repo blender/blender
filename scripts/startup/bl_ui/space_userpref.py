@@ -1166,7 +1166,9 @@ class USERPREF_PT_theme_interface_styles(ThemePanel, CenterAlignMixIn, Panel):
 
         col = flow.column()
         col.prop(ui, "widget_text_cursor")
+        col.prop(ui, "editor_border")
         col.prop(ui, "editor_outline")
+        col.prop(ui, "editor_outline_active")
         col.prop(ui, "widget_emboss")
         col.prop(ui, "panel_roundness")
 

@@ -7,11 +7,15 @@
  */
 
 #include "ED_screen.hh"
+#include "ED_screen_types.hh"
 
 #include "GPU_batch_presets.hh"
 #include "GPU_immediate.hh"
 #include "GPU_platform.hh"
 #include "GPU_state.hh"
+
+#include "BKE_global.hh"
+#include "BKE_screen.hh"
 
 #include "BLF_api.hh"
 
@@ -165,6 +169,38 @@ void ED_screen_draw_edges(wmWindow *win)
     return;
   }
 
+  ARegion *region = screen->active_region;
+  ScrArea *active_area = nullptr;
+
+  if (region) {
+    /* Find active area from active region. */
+    const int pos[2] = {region->winrct.xmin, region->winrct.ymin};
+    active_area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, pos);
+  }
+
+  if (!active_area) {
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      AZone *zone = ED_area_actionzone_find_xy(area, win->eventstate->xy);
+      /* Get area from action zone, if not scrollbar. */
+      if (zone && zone->type != AZONE_REGION_SCROLL) {
+        active_area = area;
+        break;
+      }
+    }
+  }
+
+  if (!active_area && G.moving & G_TRANSFORM_WM) {
+    active_area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, win->eventstate->xy);
+    /* We don't want an active area if at a border edge. */
+    if (active_area) {
+      rcti rect = active_area->totrct;
+      BLI_rcti_pad(&rect, -BORDERPADDING, -BORDERPADDING);
+      if (!BLI_rcti_isect_pt_v(&rect, win->eventstate->xy)) {
+        active_area = nullptr;
+      }
+    }
+  }
+
   const blender::int2 win_size = WM_window_native_pixel_size(win);
   float col[4], corner_scale, edge_thickness;
   int verts_per_corner = 0;
@@ -193,7 +229,7 @@ void ED_screen_draw_edges(wmWindow *win)
     GPU_scissor_test(true);
   }
 
-  UI_GetThemeColor4fv(TH_EDITOR_OUTLINE, col);
+  UI_GetThemeColor4fv(TH_EDITOR_BORDER, col);
   col[3] = 1.0f;
   corner_scale = U.pixelsize * 8.0f;
   edge_thickness = corner_scale * 0.21f;
@@ -206,8 +242,28 @@ void ED_screen_draw_edges(wmWindow *win)
   GPU_batch_uniform_1f(batch, "scale", corner_scale);
   GPU_batch_uniform_4fv(batch, "color", col);
 
+  float outline1[4];
+  float outline2[4];
+  UI_GetThemeColor4fv(TH_EDITOR_OUTLINE, outline1);
+  UI_GetThemeColor4fv(TH_EDITOR_OUTLINE_ACTIVE, outline2);
+  UI_draw_roundbox_corner_set(UI_CNR_ALL);
+  const float offset = UI_SCALE_FAC * 1.34f;
+
   LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
     drawscredge_area(area, win_size[0], win_size[1], edge_thickness);
+
+    rctf rectf2 = {float(area->totrct.xmin) + offset - 0.5f,
+                   float(area->totrct.xmax) - offset + 1.0f,
+                   float(area->totrct.ymin) + offset - 0.5f,
+                   float(area->totrct.ymax) - offset + 1.0f};
+
+    UI_draw_roundbox_4fv_ex(&rectf2,
+                            nullptr,
+                            nullptr,
+                            1.0f,
+                            (area == active_area) ? outline2 : outline1,
+                            U.pixelsize,
+                            6.0f * U.pixelsize);
   }
 
   GPU_blend(GPU_BLEND_NONE);
@@ -369,7 +425,7 @@ void screen_draw_dock_preview(
   float outline[4] = {1.0f, 1.0f, 1.0f, 0.4f};
   float inner[4] = {1.0f, 1.0f, 1.0f, 0.1f};
   float border[4];
-  UI_GetThemeColor4fv(TH_EDITOR_OUTLINE, border);
+  UI_GetThemeColor4fv(TH_EDITOR_BORDER, border);
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
   float half_line_width = 2.0f * U.pixelsize;
 
@@ -432,7 +488,7 @@ void screen_draw_split_preview(ScrArea *area, const eScreenAxis dir_axis, const 
   float outline[4] = {1.0f, 1.0f, 1.0f, 0.4f};
   float inner[4] = {1.0f, 1.0f, 1.0f, 0.10f};
   float border[4];
-  UI_GetThemeColor4fv(TH_EDITOR_OUTLINE, border);
+  UI_GetThemeColor4fv(TH_EDITOR_BORDER, border);
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
 
   rctf rect;
