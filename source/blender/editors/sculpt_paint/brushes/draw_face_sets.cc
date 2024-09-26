@@ -295,6 +295,7 @@ static void do_draw_face_sets_brush_grids(const Depsgraph &depsgraph,
                  face_sets.span);
     });
   });
+  pbvh.tag_face_sets_changed(node_mask);
   face_sets.finish();
 }
 struct BMeshLocalData {
@@ -421,6 +422,7 @@ static void do_draw_face_sets_brush_bmesh(const Depsgraph &depsgraph,
           object, brush, ss.cache->bstrength, ss.cache->paint_face_set, nodes[i], tls, cd_offset);
     });
   });
+  pbvh.tag_face_sets_changed(node_mask);
 }
 
 }  // namespace draw_face_sets_cc
