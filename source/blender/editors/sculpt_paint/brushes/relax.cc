@@ -213,7 +213,10 @@ static void do_relax_face_sets_brush_mesh(const Depsgraph &depsgraph,
                           object,
                           translations.as_mutable_span().slice(node_vert_offsets[pos]),
                           position_data);
+    bke::pbvh::update_node_bounds_mesh(position_data.eval, nodes[i]);
   });
+  pbvh.tag_positions_changed(node_mask);
+  bke::pbvh::flush_bounds_to_parents(pbvh);
 }
 
 BLI_NOINLINE static void calc_factors_grids(const Depsgraph &depsgraph,
@@ -281,6 +284,7 @@ static void do_relax_face_sets_brush_grids(const Depsgraph &depsgraph,
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+  MutableSpan<float3> positions = subdiv_ccg.positions;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
   Mesh &mesh = *static_cast<Mesh *>(object.data);
@@ -339,7 +343,10 @@ static void do_relax_face_sets_brush_grids(const Depsgraph &depsgraph,
                           object,
                           current_positions.as_mutable_span().slice(node_vert_offsets[pos]),
                           translations.as_mutable_span().slice(node_vert_offsets[pos]));
+    bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
   });
+  pbvh.tag_positions_changed(node_mask);
+  bke::pbvh::flush_bounds_to_parents(pbvh);
 }
 
 static void calc_factors_bmesh(const Depsgraph &depsgraph,
@@ -436,7 +443,10 @@ static void do_relax_face_sets_brush_bmesh(const Depsgraph &depsgraph,
                           object,
                           translations.as_mutable_span().slice(node_vert_offsets[pos]),
                           current_positions.as_span().slice(node_vert_offsets[pos]));
+    bke::pbvh::update_node_bounds_bmesh(nodes[i]);
   });
+  pbvh.tag_positions_changed(node_mask);
+  bke::pbvh::flush_bounds_to_parents(pbvh);
 }
 
 /** \} */
