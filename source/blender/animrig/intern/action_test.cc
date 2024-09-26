@@ -310,9 +310,9 @@ TEST_F(ActionLayersTest, add_slot_multiple)
 {
   Slot &slot_cube = action->slot_add();
   Slot &slot_suzanne = action->slot_add();
-  assign_action(action, cube->id);
+  EXPECT_TRUE(assign_action(action, cube->id));
   EXPECT_EQ(assign_action_slot(&slot_cube, cube->id), ActionSlotAssignmentResult::OK);
-  assign_action(action, suzanne->id);
+  EXPECT_TRUE(assign_action(action, suzanne->id));
   EXPECT_EQ(assign_action_slot(&slot_suzanne, suzanne->id), ActionSlotAssignmentResult::OK);
 
   EXPECT_EQ(2, action->last_slot_handle);
@@ -475,7 +475,7 @@ TEST_F(ActionLayersTest, action_assign_id)
 
   { /* Unassign the Action. */
     const int user_count_pre = action->id.us;
-    unassign_action(cube->id);
+    EXPECT_TRUE(unassign_action(cube->id));
     ASSERT_EQ(action->id.us, user_count_pre - 1)
         << "Unassigning an Action should lower its user count";
 
@@ -530,7 +530,7 @@ TEST_F(ActionLayersTest, rename_slot)
    * unassign. This should still result in the correct slot name being stored
    * on the ADT. */
   action->slot_name_define(slot_cube, "Even Newer Name");
-  unassign_action(cube->id);
+  EXPECT_TRUE(unassign_action(cube->id));
   EXPECT_STREQ("Even Newer Name", cube->adt->slot_name);
 }
 
@@ -818,7 +818,7 @@ TEST_F(ActionLayersTest, is_action_assignable_to)
 
 TEST_F(ActionLayersTest, action_slot_get_id_for_keying__empty_action)
 {
-  assign_action(action, cube->id);
+  EXPECT_TRUE(assign_action(action, cube->id));
 
   /* Double-check that the action is considered empty for the test. */
   EXPECT_TRUE(action->is_empty());
@@ -835,7 +835,7 @@ TEST_F(ActionLayersTest, action_slot_get_id_for_keying__legacy_action)
   FCurve *fcurve = action_fcurve_ensure(bmain, action, nullptr, nullptr, {"location", 0});
   EXPECT_FALSE(fcurve == nullptr);
 
-  assign_action(action, cube->id);
+  EXPECT_TRUE(assign_action(action, cube->id));
 
   /* Double-check that the action is considered legacy for the test. */
   EXPECT_TRUE(action->is_action_legacy());

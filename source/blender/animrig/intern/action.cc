@@ -29,6 +29,7 @@
 #include "BKE_main.hh"
 #include "BKE_nla.hh"
 #include "BKE_preview_image.hh"
+#include "BKE_report.hh"
 
 #include "RNA_access.hh"
 #include "RNA_path.hh"
@@ -1160,36 +1161,41 @@ bool assign_action(bAction *action, ID &animated_id)
   if (!adt) {
     return false;
   }
-  assign_action(action, {animated_id, *adt});
-  return true;
+  return assign_action(action, {animated_id, *adt});
 }
 
-void assign_action(bAction *action, const OwnedAnimData owned_adt)
+bool assign_action(bAction *action, const OwnedAnimData owned_adt)
 {
-  generic_assign_action(owned_adt.owner_id,
-                        action,
-                        owned_adt.adt.action,
-                        owned_adt.adt.slot_handle,
-                        owned_adt.adt.slot_name);
+  if (!BKE_animdata_action_editable(&owned_adt.adt)) {
+    /* Cannot remove, otherwise things turn to custard. */
+    BKE_report(nullptr, RPT_ERROR, "Cannot change action, as it is still being edited in NLA");
+    return false;
+  }
+
+  return generic_assign_action(owned_adt.owner_id,
+                               action,
+                               owned_adt.adt.action,
+                               owned_adt.adt.slot_handle,
+                               owned_adt.adt.slot_name);
 }
 
-void assign_tmpaction(bAction *action, const OwnedAnimData owned_adt)
+bool assign_tmpaction(bAction *action, const OwnedAnimData owned_adt)
 {
-  generic_assign_action(owned_adt.owner_id,
-                        action,
-                        owned_adt.adt.tmpact,
-                        owned_adt.adt.tmp_slot_handle,
-                        owned_adt.adt.tmp_slot_name);
+  return generic_assign_action(owned_adt.owner_id,
+                               action,
+                               owned_adt.adt.tmpact,
+                               owned_adt.adt.tmp_slot_handle,
+                               owned_adt.adt.tmp_slot_name);
 }
 
-void unassign_action(ID &animated_id)
+bool unassign_action(ID &animated_id)
 {
-  assign_action(nullptr, animated_id);
+  return assign_action(nullptr, animated_id);
 }
 
-void unassign_action(OwnedAnimData owned_adt)
+bool unassign_action(OwnedAnimData owned_adt)
 {
-  assign_action(nullptr, owned_adt);
+  return assign_action(nullptr, owned_adt);
 }
 
 Slot *assign_action_ensure_slot_for_keying(Action &action, ID &animated_id)
@@ -1225,8 +1231,14 @@ Slot *assign_action_ensure_slot_for_keying(Action &action, ID &animated_id)
     slot = &action.slot_add_for_id(animated_id);
   }
 
-  assign_action(&action, animated_id);
+  if (!assign_action(&action, animated_id)) {
+    return nullptr;
+  }
+
   if (assign_action_slot(slot, animated_id) != ActionSlotAssignmentResult::OK) {
+    /* This should never happen, as a few lines above a new slot is created for
+     * this ID if the found one wasn't deemed suitable. */
+    BLI_assert_unreachable();
     return nullptr;
   }
 
@@ -1246,7 +1258,7 @@ static bool is_id_using_action_slot(const ID &animated_id,
   return !looped_until_end;
 }
 
-void generic_assign_action(ID &animated_id,
+bool generic_assign_action(ID &animated_id,
                            bAction *action_to_assign,
                            bAction *&action_ptr_ref,
                            slot_handle_t &slot_handle_ref,
@@ -1254,8 +1266,24 @@ void generic_assign_action(ID &animated_id,
 {
   BLI_assert(slot_name);
 
+  if (action_to_assign && legacy::action_treat_as_legacy(*action_to_assign)) {
+    /* Check that the Action is suitable for this ID type.
+     * This is only necessary for legacy Actions. */
+    if (!BKE_animdata_action_ensure_idroot(&animated_id, action_to_assign)) {
+      BKE_reportf(
+          nullptr,
+          RPT_ERROR,
+          "Could not set action '%s' to animate ID '%s', as it does not have suitably rooted "
+          "paths for this purpose",
+          action_to_assign->id.name + 2,
+          animated_id.name);
+      return false;
+    }
+  }
+
   /* Un-assign any previously-assigned Action first. */
   if (action_ptr_ref) {
+#ifdef WITH_ANIM_BAKLAVA
     /* Un-assign the slot. This will always succeed, so no need to check the result. */
     if (slot_handle_ref != Slot::unassigned) {
       const ActionSlotAssignmentResult result = generic_assign_action_slot(
@@ -1263,6 +1291,9 @@ void generic_assign_action(ID &animated_id,
       BLI_assert(result == ActionSlotAssignmentResult::OK);
       UNUSED_VARS_NDEBUG(result);
     }
+#else
+    UNUSED_VARS(slot_handle_ref);
+#endif /* WITH_ANIM_BAKLAVA */
 
     /* Un-assign the Action itself. */
     id_us_min(&action_ptr_ref->id);
@@ -1271,20 +1302,24 @@ void generic_assign_action(ID &animated_id,
 
   if (!action_to_assign) {
     /* Un-assigning was the point, so the work is done. */
-    return;
+    return true;
   }
 
   /* Assign the new Action. */
   action_ptr_ref = action_to_assign;
   id_us_plus(&action_ptr_ref->id);
 
-  /* Assign the slot. Since the slot is guaranteed to be usable (or nullptr) and from the assigned
-   * Action, this call is guaranteed to succeed. */
+#ifdef WITH_ANIM_BAKLAVA
+  /* Assign the slot. Legacy Actions do not have slots, so for those `slot` will always be
+   * `nullptr`, which is perfectly acceptable for generic_assign_action_slot(). */
   Slot *slot = action_to_assign->wrap().find_suitable_slot_for(animated_id);
   const ActionSlotAssignmentResult result = generic_assign_action_slot(
       slot, animated_id, action_ptr_ref, slot_handle_ref, slot_name);
   BLI_assert(result == ActionSlotAssignmentResult::OK);
   UNUSED_VARS_NDEBUG(result);
+#endif
+
+  return true;
 }
 
 ActionSlotAssignmentResult generic_assign_action_slot(Slot *slot_to_assign,
@@ -2742,11 +2777,19 @@ void move_slot(Main &bmain, Slot &source_slot, Action &from_action, Action &to_a
       if (action_ptr_ref != &from_action) {
         return true;
       }
-      generic_assign_action(*user, &to_action, action_ptr_ref, slot_handle_ref, slot_name);
-      const ActionSlotAssignmentResult result = generic_assign_action_slot(
-          &target_slot, *user, action_ptr_ref, slot_handle_ref, slot_name);
-      BLI_assert(result == ActionSlotAssignmentResult::OK);
-      UNUSED_VARS_NDEBUG(result);
+
+      { /* Assign the Action. */
+        const bool assign_ok = generic_assign_action(
+            *user, &to_action, action_ptr_ref, slot_handle_ref, slot_name);
+        BLI_assert_msg(assign_ok, "Expecting slotted Actions to always be assignable");
+        UNUSED_VARS_NDEBUG(assign_ok);
+      }
+      { /* Assign the Slot. */
+        const ActionSlotAssignmentResult result = generic_assign_action_slot(
+            &target_slot, *user, action_ptr_ref, slot_handle_ref, slot_name);
+        BLI_assert(result == ActionSlotAssignmentResult::OK);
+        UNUSED_VARS_NDEBUG(result);
+      }
       return true;
     };
     foreach_action_slot_use_with_references(*user, assign_other_action);

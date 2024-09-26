@@ -516,7 +516,9 @@ class AnimDataConvertor {
         if (USER_EXPERIMENTAL_TEST(&U, use_animation_baklava)) {
           action.slot_add_for_id(this->id_dst);
         }
-        animrig::assign_action(&action, {this->id_dst, *this->animdata_dst});
+        const bool ok = animrig::assign_action(&action, {this->id_dst, *this->animdata_dst});
+        BLI_assert_msg(ok, "Expecting action assignment to work when converting Grease Pencil");
+        UNUSED_VARS_NDEBUG(ok);
       }
       fcurves_move(this->animdata_dst->action,
                    this->animdata_dst->slot_handle,
@@ -533,7 +535,9 @@ class AnimDataConvertor {
         if (USER_EXPERIMENTAL_TEST(&U, use_animation_baklava)) {
           tmpact.slot_add_for_id(this->id_dst);
         }
-        animrig::assign_tmpaction(&tmpact, {this->id_dst, *this->animdata_dst});
+        const bool ok = animrig::assign_tmpaction(&tmpact, {this->id_dst, *this->animdata_dst});
+        BLI_assert_msg(ok, "Expecting tmpact assignment to work when converting Grease Pencil");
+        UNUSED_VARS_NDEBUG(ok);
       }
       fcurves_move(this->animdata_dst->tmpact,
                    this->animdata_dst->tmp_slot_handle,

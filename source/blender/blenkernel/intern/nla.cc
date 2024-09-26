@@ -2184,7 +2184,10 @@ void BKE_nla_action_pushdown(const OwnedAnimData owned_adt, const bool is_libove
   animrig::nla::assign_action_slot_handle(*strip, adt->slot_handle, owned_adt.owner_id);
 
   /* Clear reference to action now that we've pushed it onto the stack. */
-  animrig::unassign_action(owned_adt.owner_id);
+  const bool unassign_ok = animrig::unassign_action(owned_adt.owner_id);
+  BLI_assert_msg(unassign_ok,
+                 "Expecting un-assigning an action to always work when pushing down an NLA strip");
+  UNUSED_VARS_NDEBUG(unassign_ok);
 
   /* copy current "action blending" settings from adt to the strip,
    * as it was keyframed with these settings, so omitting them will
@@ -2431,7 +2434,20 @@ void BKE_nla_tweakmode_exit(const OwnedAnimData owned_adt)
 
   if (owned_adt.adt.action) {
     /* The Action will be replaced with adt->tmpact, and thus needs to be unassigned first. */
-    animrig::unassign_action(owned_adt.owner_id);
+
+    /* The high-level function animrig::unassign_action() will check whether NLA tweak mode is
+     * enabled, and if so, refuse to work (and rightfully so). However, exiting tweak mode is not
+     * just setting a flag (see BKE_animdata_action_editable(), it checks for the tmpact pointer as
+     * well). Because of that, here we call the low-level generic assignment function, to
+     * circumvent that check and unconditionally unassign the tweaked Action. */
+    const bool unassign_ok = animrig::generic_assign_action(owned_adt.owner_id,
+                                                            nullptr,
+                                                            owned_adt.adt.action,
+                                                            owned_adt.adt.slot_handle,
+                                                            owned_adt.adt.slot_name);
+    BLI_assert_msg(unassign_ok,
+                   "When exiting tweak mode, unassigning the tweaked Action should work");
+    UNUSED_VARS_NDEBUG(unassign_ok);
   }
 
   nla_tweakmode_exit_sync_strip_lengths(&owned_adt.adt);

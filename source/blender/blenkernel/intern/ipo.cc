@@ -1884,7 +1884,10 @@ static void ipo_to_animdata(
 
       bAction *action = BKE_action_add(bmain, nameBuf);
       id_us_min(&action->id);
-      animrig::assign_action(action, {*id, *adt});
+      const bool assign_ok = animrig::assign_action(action, {*id, *adt});
+      BLI_assert_msg(assign_ok, "Expecting the assignment of a new Action to always work");
+      UNUSED_VARS_NDEBUG(assign_ok);
+
       if (G.debug & G_DEBUG) {
         printf("\t\tadded new action - '%s'\n", nameBuf);
       }
@@ -1922,7 +1925,9 @@ static void action_to_animdata(ID *id, bAction *act)
     if (G.debug & G_DEBUG) {
       printf("act_to_adt - set adt action to act\n");
     }
-    animrig::assign_action(act, {*id, *adt});
+    const bool assign_ok = animrig::assign_action(act, {*id, *adt});
+    BLI_assert_msg(assign_ok, "Expecting the assignment of a just-converted Action to work");
+    UNUSED_VARS_NDEBUG(assign_ok);
   }
 
   /* convert Action data */

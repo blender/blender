@@ -68,8 +68,8 @@ TEST_F(ActionFilterTest, slots_expanded_or_not)
 {
   Slot &slot_cube = action->slot_add();
   Slot &slot_suzanne = action->slot_add();
-  assign_action(action, cube->id);
-  assign_action(action, suzanne->id);
+  ASSERT_TRUE(assign_action(action, cube->id));
+  ASSERT_TRUE(assign_action(action, suzanne->id));
   ASSERT_EQ(assign_action_slot(&slot_cube, cube->id), ActionSlotAssignmentResult::OK);
   ASSERT_EQ(assign_action_slot(&slot_suzanne, suzanne->id), ActionSlotAssignmentResult::OK);
 

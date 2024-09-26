@@ -232,7 +232,13 @@ bAction *id_action_ensure(Main *bmain, ID *id)
       BLI_assert(action->id.us == 1);
       id_us_min(&action->id);
     }
-    animrig::assign_action(action, {*id, *adt});
+
+    /* Assigning the Action should always work here. The only reason it wouldn't, is when a legacy
+     * Action of the wrong ID type is assigned, but since in this branch of the code we're only
+     * dealing with either new or layered Actions, this will never fail. */
+    const bool ok = animrig::assign_action(action, {*id, *adt});
+    BLI_assert_msg(ok, "Expecting Action assignment to work here");
+    UNUSED_VARS_NDEBUG(ok);
 
     /* Tag depsgraph to be rebuilt to include time dependency. */
     DEG_relations_tag_update(bmain);

@@ -1139,19 +1139,23 @@ Action &action_add(Main &bmain, StringRefNull name);
  * be animated). If the above fall-through case of "no slot found" is reached, this function
  * will still return `true` as the Action was successfully assigned.
  */
-bool assign_action(bAction *action, ID &animated_id);
+[[nodiscard]] bool assign_action(bAction *action, ID &animated_id);
 
 /**
  * Same as assign_action(action, id) above.
  *
  * Use this function when you already have the AnimData struct of this ID.
+ *
+ * \return true when succesful, false otherwise. This can fail when the NLA is in tweak mode (no
+ * action changes allowed) or when a legacy Action is assigned and it doesn't match the animated
+ * ID's type.
  */
-void assign_action(bAction *action, OwnedAnimData owned_adt);
+[[nodiscard]] bool assign_action(bAction *action, OwnedAnimData owned_adt);
 
 /**
  * Same as assign_action, except it assigns to #AnimData::tmpact and #AnimData::tmp_slot_handle.
  */
-void assign_tmpaction(bAction *action, OwnedAnimData owned_adt);
+[[nodiscard]] bool assign_tmpaction(bAction *action, OwnedAnimData owned_adt);
 
 /**
  * Un-assign the Action assigned to this ID.
@@ -1160,7 +1164,7 @@ void assign_tmpaction(bAction *action, OwnedAnimData owned_adt);
  *
  * \see blender::animrig::assign_action(ID &animated_id)
  */
-void unassign_action(ID &animated_id);
+[[nodiscard]] bool unassign_action(ID &animated_id);
 
 /**
  * Un-assign the Action assigned to this ID.
@@ -1169,7 +1173,7 @@ void unassign_action(ID &animated_id);
  *
  * \see blender::animrig::assign_action(OwnedAnimData owned_adt)
  */
-void unassign_action(OwnedAnimData owned_adt);
+[[nodiscard]] bool unassign_action(OwnedAnimData owned_adt);
 
 /**
  * Assign the Action, ensuring that a Slot is also assigned.
@@ -1177,8 +1181,10 @@ void unassign_action(OwnedAnimData owned_adt);
  * If this Action happens to already be assigned, and a Slot is assigned too, that Slot is
  * returned. Otherwise a new Slot is created + assigned.
  *
- * \returns the assigned slot if the assignment was successful, or `nullptr` otherwise.
- * The only reason the assignment can fail is when the given ID is of an animatable type.
+ * \returns the assigned slot if the assignment was successful, or `nullptr` otherwise. Reasons the
+ * assignment can fail is when the given ID is of an animatable type, when the ID is in NLA Tweak
+ * mode (in which case no Action assignments can happen), or when the legacy Action ID type doesn't
+ * match the animated ID.
  *
  * \note Contrary to `assign_action()` this skips the search by slot name when the Action is
  * already assigned. It should be possible for an animator to un-assign a slot, then create a new
@@ -1187,7 +1193,7 @@ void unassign_action(OwnedAnimData owned_adt);
  *
  * \see assign_action()
  */
-Slot *assign_action_ensure_slot_for_keying(Action &action, ID &animated_id);
+[[nodiscard]] Slot *assign_action_ensure_slot_for_keying(Action &action, ID &animated_id);
 
 /**
  * Generic function to build Action-assignment logic.
@@ -1195,13 +1201,12 @@ Slot *assign_action_ensure_slot_for_keying(Action &action, ID &animated_id);
  * This is a low-level function, intended as a building block for higher-level Action assignment
  * functions.
  *
- * This function always succeeds, and thus it doesn't have any return value.
  */
-void generic_assign_action(ID &animated_id,
-                           bAction *action_to_assign,
-                           bAction *&action_ptr_ref,
-                           slot_handle_t &slot_handle_ref,
-                           char *slot_name);
+[[nodiscard]] bool generic_assign_action(ID &animated_id,
+                                         bAction *action_to_assign,
+                                         bAction *&action_ptr_ref,
+                                         slot_handle_t &slot_handle_ref,
+                                         char *slot_name);
 
 enum class ActionSlotAssignmentResult : int8_t {
   OK = 0,

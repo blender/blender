@@ -215,12 +215,7 @@ bool BKE_animdata_set_action(ReportList *reports, ID *id, bAction *act)
   }
 
 #ifdef WITH_ANIM_BAKLAVA
-  if (!act) {
-    animrig::unassign_action(*id);
-    return true;
-  }
-  animrig::Action &action = act->wrap();
-  return animrig::assign_action(&action, *id);
+  return animrig::assign_action(act, {*id, *adt});
 #else
   return animdata_set_action(reports, id, &adt->action, act);
 #endif  // WITH_ANIM_BAKLAVA
@@ -278,10 +273,15 @@ void BKE_animdata_free(ID *id, const bool do_id_user)
   }
 
   if (do_id_user) {
-    /* unlink action (don't free, as it's in its own list) */
+    /* The ADT is going to be freed, which means that if it's in tweak mode, it'll have to exit
+     * that first. Otherwise we cannot un-assign its Action. */
+    BKE_nla_tweakmode_exit({*id, *adt});
+
     if (adt->action) {
 #ifdef WITH_ANIM_BAKLAVA
-      blender::animrig::unassign_action(*id);
+      const bool unassign_ok = blender::animrig::unassign_action(*id);
+      BLI_assert_msg(unassign_ok,
+                     "Expecting action un-assignment to always work when not in NLA tweak mode");
 #else
       id_us_min(&adt->action->id);
 #endif
@@ -289,10 +289,10 @@ void BKE_animdata_free(ID *id, const bool do_id_user)
     /* same goes for the temporarily displaced action */
     if (adt->tmpact) {
 #ifdef WITH_ANIM_BAKLAVA
-      /* TODO: Linked Actions do not support usage in the NLA yet, so work around this and cleanly
-       * unassign the Action by moving it back to `adt->action`.  */
-      adt->action = adt->tmpact;
-      blender::animrig::unassign_action(*id);
+      /* This should never happen, as we _just_ exited tweak mode. */
+      BLI_assert_unreachable();
+      const bool unassign_ok = blender::animrig::assign_tmpaction(nullptr, {*id, *adt});
+      BLI_assert_msg(unassign_ok, "Expecting tmpaction un-assignment to always work");
 #else
       id_us_min(&adt->tmpact->id);
 #endif
@@ -483,9 +483,10 @@ static void animdata_copy_id_action(Main *bmain,
 
       /* The Action was cloned, so this should find the same-named slot automatically. */
       const slot_handle_t orig_slot_handle = adt->slot_handle;
-      assign_action(&cloned_action->wrap(), *id);
+      const bool assign_ok = assign_action(&cloned_action->wrap(), *id);
+      BLI_assert_msg(assign_ok, "Expected action assignment to work when copying animdata");
       BLI_assert(orig_slot_handle == adt->slot_handle);
-      UNUSED_VARS_NDEBUG(orig_slot_handle);
+      UNUSED_VARS_NDEBUG(assign_ok, orig_slot_handle);
     }
     if (adt->tmpact && (do_linked_id || !ID_IS_LINKED(adt->tmpact))) {
       bAction *cloned_action = reinterpret_cast<bAction *>(BKE_id_copy(bmain, &adt->tmpact->id));
@@ -495,9 +496,10 @@ static void animdata_copy_id_action(Main *bmain,
 
       /* The Action was cloned, so this should find the same-named slot automatically. */
       const slot_handle_t orig_slot_handle = adt->tmp_slot_handle;
-      assign_tmpaction(&cloned_action->wrap(), {*id, *adt});
+      const bool assign_ok = assign_tmpaction(&cloned_action->wrap(), {*id, *adt});
+      BLI_assert_msg(assign_ok, "Expected tmp-action assignment to work when copying animdata");
       BLI_assert(orig_slot_handle == adt->tmp_slot_handle);
-      UNUSED_VARS_NDEBUG(orig_slot_handle);
+      UNUSED_VARS_NDEBUG(assign_ok, orig_slot_handle);
     }
   }
   bNodeTree *ntree = blender::bke::node_tree_from_id(id);
@@ -722,7 +724,9 @@ void BKE_animdata_transfer_by_basepath(Main *bmain, ID *srcID, ID *dstID, ListBa
                 srcAdt->action->id.name);
 
       /* This sets dstAdt->action to nullptr. */
-      animrig::unassign_action(dst_owned_adt);
+      const bool unassign_ok = animrig::unassign_action(dst_owned_adt);
+      BLI_assert_msg(unassign_ok, "Expected Action unassignment to work");
+      UNUSED_VARS_NDEBUG(unassign_ok);
     }
 
     /* Set up an action if necessary, and name it in a similar way so that it
@@ -732,7 +736,9 @@ void BKE_animdata_transfer_by_basepath(Main *bmain, ID *srcID, ID *dstID, ListBa
       if (USER_EXPERIMENTAL_TEST(&U, use_animation_baklava)) {
         new_action.slot_add_for_id(*dstID);
       }
-      animrig::assign_action(&new_action, dst_owned_adt);
+      const bool assign_ok = animrig::assign_action(&new_action, dst_owned_adt);
+      BLI_assert_msg(assign_ok, "Expected Action assignment to work");
+      UNUSED_VARS_NDEBUG(assign_ok);
       if (USER_EXPERIMENTAL_TEST(&U, use_animation_baklava)) {
         BLI_assert(dstAdt->slot_handle != animrig::Slot::unassigned);
       }

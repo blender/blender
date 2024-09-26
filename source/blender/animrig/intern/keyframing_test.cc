@@ -650,7 +650,7 @@ TEST_F(KeyframingTest, insert_keyframes__layered_action__multiple_ids)
   ASSERT_NE(nullptr, channel_bag_1);
 
   /* Assign the action to the second object, with no slot. */
-  assign_action(&action, armature_object->id);
+  ASSERT_TRUE(assign_action(&action, armature_object->id));
   ASSERT_EQ(assign_action_slot(nullptr, armature_object->id), ActionSlotAssignmentResult::OK);
 
   /* Keying the second object should go into the same action, creating a new
