@@ -48,7 +48,7 @@ class VKDescriptorPools {
 
   void init(const VKDevice &vk_device);
 
-  std::unique_ptr<VKDescriptorSet> allocate(const VkDescriptorSetLayout &descriptor_set_layout);
+  VkDescriptorSet allocate(const VkDescriptorSetLayout descriptor_set_layout);
 
   /**
    * Reset the pools to start looking for free space from the first descriptor pool.

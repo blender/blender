@@ -31,6 +31,11 @@ void VKDescriptorPools::init(const VKDevice &device)
 
 void VKDescriptorPools::reset()
 {
+  const VKDevice &device = VKBackend::get().device;
+  for (const VkDescriptorPool vk_descriptor_pool : pools_) {
+    vkResetDescriptorPool(device.vk_handle(), vk_descriptor_pool, 0);
+  }
+
   active_pool_index_ = 0;
 }
 
@@ -79,8 +84,7 @@ bool VKDescriptorPools::is_last_pool_active()
   return active_pool_index_ == pools_.size() - 1;
 }
 
-std::unique_ptr<VKDescriptorSet> VKDescriptorPools::allocate(
-    const VkDescriptorSetLayout &descriptor_set_layout)
+VkDescriptorSet VKDescriptorPools::allocate(const VkDescriptorSetLayout descriptor_set_layout)
 {
   BLI_assert(descriptor_set_layout != VK_NULL_HANDLE);
   const VKDevice &device = VKBackend::get().device;
@@ -106,7 +110,7 @@ std::unique_ptr<VKDescriptorSet> VKDescriptorPools::allocate(
     return allocate(descriptor_set_layout);
   }
 
-  return std::make_unique<VKDescriptorSet>(pool, vk_descriptor_set);
+  return vk_descriptor_set;
 }
 
 }  // namespace blender::gpu

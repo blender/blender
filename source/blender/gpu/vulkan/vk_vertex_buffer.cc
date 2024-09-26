@@ -27,7 +27,7 @@ void VKVertexBuffer::bind_as_ssbo(uint binding)
 {
   VKContext &context = *VKContext::get();
   VKStateManager &state_manager = context.state_manager_get();
-  state_manager.storage_buffer_bind(*this, binding);
+  state_manager.storage_buffer_bind(BindSpaceStorageBuffers::Type::VertexBuffer, this, binding);
 }
 
 void VKVertexBuffer::bind_as_texture(uint binding)
@@ -37,49 +37,30 @@ void VKVertexBuffer::bind_as_texture(uint binding)
   state_manager.texel_buffer_bind(*this, binding);
 }
 
-void VKVertexBuffer::add_to_descriptor_set(AddToDescriptorSetContext &data,
-                                           int binding,
-                                           shader::ShaderCreateInfo::Resource::BindType bind_type,
-                                           const GPUSamplerState /*sampler_state*/)
+void VKVertexBuffer::ensure_updated()
 {
-  const std::optional<VKDescriptorSet::Location> location =
-      data.shader_interface.descriptor_set_location(bind_type, binding);
-  if (!location) {
+  upload_data();
+}
+
+void VKVertexBuffer::ensure_buffer_view()
+{
+  if (vk_buffer_view_ != VK_NULL_HANDLE) {
     return;
   }
 
-  upload_data();
+  VkBufferViewCreateInfo buffer_view_info = {};
+  eGPUTextureFormat texture_format = to_texture_format(&format);
 
-  if (bind_type == shader::ShaderCreateInfo::Resource::BindType::SAMPLER &&
-      vk_buffer_view_ == VK_NULL_HANDLE)
-  {
-    VkBufferViewCreateInfo buffer_view_info = {};
-    eGPUTextureFormat texture_format = to_texture_format(&format);
+  buffer_view_info.sType = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO;
+  buffer_view_info.buffer = buffer_.vk_handle();
+  buffer_view_info.format = to_vk_format(texture_format);
+  buffer_view_info.range = buffer_.size_in_bytes();
 
-    buffer_view_info.sType = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO;
-    buffer_view_info.buffer = buffer_.vk_handle();
-    buffer_view_info.format = to_vk_format(texture_format);
-    buffer_view_info.range = buffer_.size_in_bytes();
-
-    VK_ALLOCATION_CALLBACKS;
-    const VKDevice &device = VKBackend::get().device;
-    vkCreateBufferView(
-        device.vk_handle(), &buffer_view_info, vk_allocation_callbacks, &vk_buffer_view_);
-    debug::object_label(vk_buffer_view_, "VertexBufferView");
-  }
-
-  /* TODO: Check if we can move this check inside the descriptor set. */
-  if (bind_type == shader::ShaderCreateInfo::Resource::BindType::SAMPLER) {
-    data.descriptor_set.bind_texel_buffer(*this, *location);
-  }
-  else {
-    data.descriptor_set.bind_buffer(
-        VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, vk_handle(), size_used_get(), *location);
-  }
-  render_graph::VKBufferAccess buffer_access = {};
-  buffer_access.vk_buffer = buffer_.vk_handle();
-  buffer_access.vk_access_flags = data.shader_interface.access_mask(bind_type, binding);
-  data.resource_access_info.buffers.append(buffer_access);
+  VK_ALLOCATION_CALLBACKS;
+  const VKDevice &device = VKBackend::get().device;
+  vkCreateBufferView(
+      device.vk_handle(), &buffer_view_info, vk_allocation_callbacks, &vk_buffer_view_);
+  debug::object_label(vk_buffer_view_, "VertexBufferView");
 }
 
 void VKVertexBuffer::wrap_handle(uint64_t /*handle*/)

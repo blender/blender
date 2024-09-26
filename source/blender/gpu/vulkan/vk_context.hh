@@ -80,7 +80,7 @@ class VKContext : public Context, NonCopyable {
    */
   void rendering_end();
 
-  render_graph::VKResourceAccessInfo &update_and_get_access_info();
+  render_graph::VKResourceAccessInfo &reset_and_get_access_info();
 
   /**
    * Update the give shader data with the current state of the context.

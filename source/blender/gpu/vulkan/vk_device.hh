@@ -249,7 +249,7 @@ class VKDevice : public NonCopyable {
     return debugging_tools_;
   }
 
-  VKSamplers &samplers()
+  const VKSamplers &samplers() const
   {
     return samplers_;
   }

@@ -344,7 +344,7 @@ void VKBackend::samplers_update()
 void VKBackend::compute_dispatch(int groups_x_len, int groups_y_len, int groups_z_len)
 {
   VKContext &context = *VKContext::get();
-  render_graph::VKResourceAccessInfo &resources = context.update_and_get_access_info();
+  render_graph::VKResourceAccessInfo &resources = context.reset_and_get_access_info();
   render_graph::VKDispatchNode::CreateInfo dispatch_info(resources);
   context.update_pipeline_data(dispatch_info.dispatch_node.pipeline_data);
   dispatch_info.dispatch_node.group_count_x = groups_x_len;
@@ -358,7 +358,7 @@ void VKBackend::compute_dispatch_indirect(StorageBuf *indirect_buf)
   BLI_assert(indirect_buf);
   VKContext &context = *VKContext::get();
   VKStorageBuffer &indirect_buffer = *unwrap(indirect_buf);
-  render_graph::VKResourceAccessInfo &resources = context.update_and_get_access_info();
+  render_graph::VKResourceAccessInfo &resources = context.reset_and_get_access_info();
   render_graph::VKDispatchIndirectNode::CreateInfo dispatch_indirect_info(resources);
   context.update_pipeline_data(dispatch_indirect_info.dispatch_indirect_node.pipeline_data);
   dispatch_indirect_info.dispatch_indirect_node.buffer = indirect_buffer.vk_handle();

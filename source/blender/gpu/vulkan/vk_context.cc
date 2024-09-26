@@ -260,34 +260,23 @@ void VKContext::update_pipeline_data(VKShader &vk_shader,
   r_pipeline_data.push_constants_size = 0;
   const VKPushConstants::Layout &push_constants_layout =
       vk_shader.interface_get().push_constants_layout_get();
-  vk_shader.push_constants.update(*this);
   if (push_constants_layout.storage_type_get() == VKPushConstants::StorageType::PUSH_CONSTANTS) {
     r_pipeline_data.push_constants_size = push_constants_layout.size_in_bytes();
     r_pipeline_data.push_constants_data = vk_shader.push_constants.data();
-  }
-
-  /* When using the push constant fallback we need to add a read access dependency to the uniform
-   * buffer after the buffer has been updated.
-   * NOTE: this alters the context instance variable `access_info_` which isn't clear from the API.
-   */
-  if (push_constants_layout.storage_type_get() == VKPushConstants::StorageType::UNIFORM_BUFFER) {
-    access_info_.buffers.append(
-        {vk_shader.push_constants.uniform_buffer_get()->vk_handle(), VK_ACCESS_UNIFORM_READ_BIT});
   }
 
   /* Update descriptor set. */
   r_pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
   if (vk_shader.has_descriptor_set()) {
     VKDescriptorSetTracker &descriptor_set = descriptor_set_get();
-    descriptor_set.update(*this);
-    r_pipeline_data.vk_descriptor_set = descriptor_set.active_descriptor_set()->vk_handle();
+    descriptor_set.update_descriptor_set(*this, access_info_);
+    r_pipeline_data.vk_descriptor_set = descriptor_set.vk_descriptor_set;
   }
 }
 
-render_graph::VKResourceAccessInfo &VKContext::update_and_get_access_info()
+render_graph::VKResourceAccessInfo &VKContext::reset_and_get_access_info()
 {
   access_info_.reset();
-  state_manager_get().apply_bindings(*this, access_info_);
   return access_info_;
 }
 

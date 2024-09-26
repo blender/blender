@@ -145,28 +145,6 @@ VKPushConstants &VKPushConstants::operator=(VKPushConstants &&other)
   return *this;
 }
 
-void VKPushConstants::update(VKContext &context)
-{
-  VKDescriptorSetTracker &descriptor_set = context.descriptor_set_get();
-
-  switch (layout_get().storage_type_get()) {
-    case VKPushConstants::StorageType::NONE:
-      break;
-
-    case VKPushConstants::StorageType::PUSH_CONSTANTS:
-      break;
-
-    case VKPushConstants::StorageType::UNIFORM_BUFFER:
-      update_uniform_buffer();
-      const VKUniformBuffer &buffer = *uniform_buffer_get();
-      descriptor_set.bind_buffer(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                                 buffer.vk_handle(),
-                                 buffer.size_in_bytes(),
-                                 layout_get().descriptor_set_location_get());
-      break;
-  }
-}
-
 void VKPushConstants::update_uniform_buffer()
 {
   BLI_assert(layout_->storage_type_get() == StorageType::UNIFORM_BUFFER);

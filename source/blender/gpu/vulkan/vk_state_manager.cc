@@ -24,22 +24,6 @@ void VKStateManager::apply_state()
    * If this leads to issues we should have an active state. */
 }
 
-void VKStateManager::apply_bindings(VKContext &context,
-                                    render_graph::VKResourceAccessInfo &resource_access_info)
-{
-  VKShader *shader = unwrap(context.shader);
-  if (shader == nullptr) {
-    return;
-  }
-  AddToDescriptorSetContext data(
-      context.descriptor_set_get(), shader->interface_get(), resource_access_info);
-  context.descriptor_set_get().reset();
-  textures_.add_to_descriptor_set(data);
-  images_.add_to_descriptor_set(data);
-  uniform_buffers_.add_to_descriptor_set(data);
-  storage_buffers_.add_to_descriptor_set(data);
-}
-
 void VKStateManager::force_state()
 {
   /* Intentionally empty. State is polled during pipeline creation and is always forced. */
@@ -69,86 +53,104 @@ void VKStateManager::issue_barrier(eGPUBarrier barrier_bits)
   }
 }
 
-void VKStateManager::texture_bind(Texture *tex, GPUSamplerState sampler, int unit)
+void VKStateManager::texture_bind(Texture *texture, GPUSamplerState sampler, int binding)
 {
-  VKTexture *texture = unwrap(tex);
-  textures_.bind(unit, *texture, sampler);
+  textures_.bind(BindSpaceTextures::Type::Texture, texture, sampler, binding);
+  is_dirty = true;
 }
 
-void VKStateManager::texture_unbind(Texture *tex)
+void VKStateManager::texture_unbind(Texture *texture)
 {
-  VKTexture *texture = unwrap(tex);
-  textures_.unbind(*texture);
+  textures_.unbind(texture);
+  is_dirty = true;
 }
 
 void VKStateManager::texture_unbind_all()
 {
   textures_.unbind_all();
+  is_dirty = true;
 }
 
 void VKStateManager::image_bind(Texture *tex, int binding)
 {
   VKTexture *texture = unwrap(tex);
-  images_.bind(binding, *texture);
+  images_.bind(texture, binding);
+  is_dirty = true;
 }
 
 void VKStateManager::image_unbind(Texture *tex)
 {
   VKTexture *texture = unwrap(tex);
-  images_.unbind(*texture);
+  images_.unbind(texture);
+  is_dirty = true;
 }
 
 void VKStateManager::image_unbind_all()
 {
   images_.unbind_all();
+  is_dirty = true;
 }
 
-void VKStateManager::uniform_buffer_bind(VKUniformBuffer *uniform_buffer, int slot)
+void VKStateManager::uniform_buffer_bind(VKUniformBuffer *uniform_buffer, int binding)
 {
-  uniform_buffers_.bind(slot, *uniform_buffer);
+  uniform_buffers_.bind(uniform_buffer, binding);
+  is_dirty = true;
 }
 
 void VKStateManager::uniform_buffer_unbind(VKUniformBuffer *uniform_buffer)
 {
-  uniform_buffers_.unbind(*uniform_buffer);
+  uniform_buffers_.unbind(uniform_buffer);
+  is_dirty = true;
 }
 
 void VKStateManager::uniform_buffer_unbind_all()
 {
   uniform_buffers_.unbind_all();
+  is_dirty = true;
 }
 
-void VKStateManager::unbind_from_all_namespaces(VKBindableResource &resource)
+void VKStateManager::unbind_from_all_namespaces(void *resource)
 {
   uniform_buffers_.unbind(resource);
   storage_buffers_.unbind(resource);
   images_.unbind(resource);
   textures_.unbind(resource);
+  is_dirty = true;
 }
 
-void VKStateManager::texel_buffer_bind(VKVertexBuffer &vertex_buffer, int slot)
+void VKStateManager::texel_buffer_bind(VKVertexBuffer &vertex_buffer, int binding)
 {
-  textures_.bind(slot, vertex_buffer);
+  textures_.bind(BindSpaceTextures::Type::VertexBuffer,
+                 &vertex_buffer,
+                 GPUSamplerState::default_sampler(),
+                 binding);
+  is_dirty = true;
 }
 
 void VKStateManager::texel_buffer_unbind(VKVertexBuffer &vertex_buffer)
 {
-  textures_.unbind(vertex_buffer);
+  textures_.unbind(&vertex_buffer);
+  is_dirty = true;
 }
 
-void VKStateManager::storage_buffer_bind(VKBindableResource &resource, int slot)
+void VKStateManager::storage_buffer_bind(BindSpaceStorageBuffers::Type resource_type,
+                                         void *resource,
+                                         int binding)
 {
-  storage_buffers_.bind(slot, resource);
+  storage_buffers_.bind(resource_type, resource, binding);
+  is_dirty = true;
 }
 
-void VKStateManager::storage_buffer_unbind(VKBindableResource &resource)
+void VKStateManager::storage_buffer_unbind(void *resource)
 {
   storage_buffers_.unbind(resource);
+  is_dirty = true;
 }
 
 void VKStateManager::storage_buffer_unbind_all()
 {
   storage_buffers_.unbind_all();
+  is_dirty = true;
 }
 
 void VKStateManager::texture_unpack_row_length_set(uint len)

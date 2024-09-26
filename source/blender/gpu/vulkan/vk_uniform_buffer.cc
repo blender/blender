@@ -50,10 +50,7 @@ void VKUniformBuffer::clear_to_zero()
   buffer_.clear(context, 0);
 }
 
-void VKUniformBuffer::add_to_descriptor_set(AddToDescriptorSetContext &data,
-                                            int binding,
-                                            shader::ShaderCreateInfo::Resource::BindType bind_type,
-                                            const GPUSamplerState /*sampler_state*/)
+void VKUniformBuffer::ensure_updated()
 {
   if (!buffer_.is_allocated()) {
     allocate();
@@ -63,23 +60,6 @@ void VKUniformBuffer::add_to_descriptor_set(AddToDescriptorSetContext &data,
   if (data_) {
     update(data_);
     MEM_SAFE_FREE(data_);
-  }
-
-  const std::optional<VKDescriptorSet::Location> location =
-      data.shader_interface.descriptor_set_location(bind_type, binding);
-  if (location) {
-    if (bind_type == shader::ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER) {
-      data.descriptor_set.bind_buffer(
-          VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, vk_handle(), size_in_bytes(), *location);
-    }
-    else {
-      data.descriptor_set.bind_buffer(
-          VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, vk_handle(), size_in_bytes(), *location);
-    }
-    render_graph::VKBufferAccess buffer_access = {};
-    buffer_access.vk_buffer = buffer_.vk_handle();
-    buffer_access.vk_access_flags = data.shader_interface.access_mask(bind_type, binding);
-    data.resource_access_info.buffers.append(buffer_access);
   }
 }
 
@@ -92,7 +72,8 @@ void VKUniformBuffer::bind(int slot)
 void VKUniformBuffer::bind_as_ssbo(int slot)
 {
   VKContext &context = *VKContext::get();
-  context.state_manager_get().storage_buffer_bind(*this, slot);
+  context.state_manager_get().storage_buffer_bind(
+      BindSpaceStorageBuffers::Type::UniformBuffer, this, slot);
 }
 
 void VKUniformBuffer::unbind()
@@ -101,7 +82,7 @@ void VKUniformBuffer::unbind()
   if (context != nullptr) {
     VKStateManager &state_manager = context->state_manager_get();
     state_manager.uniform_buffer_unbind(this);
-    state_manager.storage_buffer_unbind(*this);
+    state_manager.storage_buffer_unbind(this);
   }
 }
 
