@@ -229,8 +229,10 @@ class BlenderVolumeLoader : public VDBImageLoader {
 #ifdef WITH_OPENVDB
     for (BL::VolumeGrid &b_volume_grid : b_volume.grids) {
       if (b_volume_grid.name() == grid_name) {
-        const auto *volume_grid = static_cast<const blender::bke::VolumeGridData *>(
+        const auto *grid_data = static_cast<const blender::bke::VolumeGridData *>(
             b_volume_grid.ptr.data);
+        grid_data->add_user();
+        volume_grid = blender::bke::GVolumeGrid{grid_data};
         grid = volume_grid->grid_ptr(tree_access_token);
         break;
       }
@@ -257,6 +259,7 @@ class BlenderVolumeLoader : public VDBImageLoader {
   BL::Volume b_volume;
 #ifdef WITH_OPENVDB
   /* Store tree user so that the OPENVDB grid that is shared with Blender is not unloaded. */
+  blender::bke::GVolumeGrid volume_grid;
   blender::bke::VolumeTreeAccessToken tree_access_token;
 #endif
 };
