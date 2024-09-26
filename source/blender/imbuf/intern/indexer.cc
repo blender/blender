@@ -37,7 +37,6 @@
 #ifdef WITH_FFMPEG
 extern "C" {
 #  include "ffmpeg_compat.h"
-#  include <libavutil/cpu.h>
 #  include <libavutil/imgutils.h>
 }
 #endif
@@ -598,7 +597,7 @@ static proxy_output_ctx *alloc_proxy_output_ffmpeg(
   if (st->codecpar->width != width || st->codecpar->height != height ||
       st->codecpar->format != rv->c->pix_fmt)
   {
-    const size_t align = av_cpu_max_align();
+    const size_t align = ffmpeg_get_buffer_alignment();
     rv->frame = av_frame_alloc();
     rv->frame->format = rv->c->pix_fmt;
     rv->frame->width = width;

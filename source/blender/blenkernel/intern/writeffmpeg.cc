@@ -46,7 +46,6 @@ extern "C" {
 #  include <libavformat/avformat.h>
 #  include <libavutil/buffer.h>
 #  include <libavutil/channel_layout.h>
-#  include <libavutil/cpu.h>
 #  include <libavutil/imgutils.h>
 #  include <libavutil/opt.h>
 #  include <libavutil/rational.h>
@@ -258,7 +257,7 @@ static AVFrame *alloc_picture(AVPixelFormat pix_fmt, int width, int height)
   }
 
   /* allocate the actual picture buffer */
-  const size_t align = av_cpu_max_align();
+  const size_t align = ffmpeg_get_buffer_alignment();
   int size = av_image_get_buffer_size(pix_fmt, width, height, align);
   AVBufferRef *buf = av_buffer_alloc(size);
   if (buf == nullptr) {
