@@ -442,10 +442,10 @@ void USDCurvesWriter::write_custom_data(const bke::CurvesGeometry &curves,
 {
   const bke::AttributeAccessor attributes = curves.attributes();
 
-  attributes.for_all([&](const StringRef attribute_id, const bke::AttributeMetaData &meta_data) {
+  attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
     /* Skip "internal" Blender properties and attributes dealt with elsewhere. */
-    const StringRef attr_name = attribute_id;
-    if (attr_name[0] == '.' || bke::attribute_name_is_anonymous(attribute_id) ||
+    const StringRef attr_name = iter.name;
+    if (attr_name[0] == '.' || bke::attribute_name_is_anonymous(attr_name) ||
         ELEM(attr_name,
              "position",
              "radius",
@@ -457,22 +457,20 @@ void USDCurvesWriter::write_custom_data(const bke::CurvesGeometry &curves,
              "handle_type_left",
              "handle_type_right"))
     {
-      return true;
+      return;
     }
 
     /* Spline UV data */
-    if (meta_data.domain == bke::AttrDomain::Curve && meta_data.data_type == CD_PROP_FLOAT2) {
+    if (iter.domain == bke::AttrDomain::Curve && iter.data_type == CD_PROP_FLOAT2) {
       if (usd_export_context_.export_params.export_uvmaps) {
-        this->write_uv_data(curves, attribute_id, usd_curves);
+        this->write_uv_data(curves, attr_name, usd_curves);
       }
     }
 
     /* Everything else. */
     else {
-      this->write_generic_data(curves, attribute_id, meta_data, usd_curves);
+      this->write_generic_data(curves, attr_name, {iter.domain, iter.data_type}, usd_curves);
     }
-
-    return true;
   });
 }
 

@@ -21,25 +21,25 @@ static Map<StringRef, AttributeMetaData> get_final_attribute_info(
   Map<StringRef, AttributeMetaData> info;
 
   for (const GeometryComponent *component : components) {
-    component->attributes()->for_all(
-        [&](const StringRef attribute_id, const AttributeMetaData &meta_data) {
-          if (ignored_attributes.contains(attribute_id)) {
-            return true;
-          }
-          if (meta_data.data_type == CD_PROP_STRING) {
-            return true;
-          }
-          info.add_or_modify(
-              attribute_id,
-              [&](AttributeMetaData *meta_data_final) { *meta_data_final = meta_data; },
-              [&](AttributeMetaData *meta_data_final) {
-                meta_data_final->data_type = bke::attribute_data_type_highest_complexity(
-                    {meta_data_final->data_type, meta_data.data_type});
-                meta_data_final->domain = bke::attribute_domain_highest_priority(
-                    {meta_data_final->domain, meta_data.domain});
-              });
-          return true;
-        });
+    component->attributes()->foreach_attribute([&](const bke::AttributeIter &iter) {
+      if (ignored_attributes.contains(iter.name)) {
+        return;
+      }
+      if (iter.data_type == CD_PROP_STRING) {
+        return;
+      }
+      info.add_or_modify(
+          iter.name,
+          [&](AttributeMetaData *meta_data_final) {
+            *meta_data_final = {iter.domain, iter.data_type};
+          },
+          [&](AttributeMetaData *meta_data_final) {
+            meta_data_final->data_type = bke::attribute_data_type_highest_complexity(
+                {meta_data_final->data_type, iter.data_type});
+            meta_data_final->domain = bke::attribute_domain_highest_priority(
+                {meta_data_final->domain, iter.domain});
+          });
+    });
   }
 
   return info;

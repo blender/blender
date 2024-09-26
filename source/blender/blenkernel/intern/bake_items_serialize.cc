@@ -1038,23 +1038,23 @@ static std::shared_ptr<io::serialize::ArrayValue> serialize_attributes(
     const Set<std::string> &attributes_to_ignore)
 {
   auto io_attributes = std::make_shared<io::serialize::ArrayValue>();
-  attributes.for_all([&](const StringRef attribute_id, const AttributeMetaData &meta_data) {
-    BLI_assert(!bke::attribute_name_is_anonymous(attribute_id));
-    if (attributes_to_ignore.contains_as(attribute_id)) {
-      return true;
+  attributes.foreach_attribute([&](const AttributeIter &iter) {
+    BLI_assert(!bke::attribute_name_is_anonymous(iter.name));
+    if (attributes_to_ignore.contains_as(iter.name)) {
+      return;
     }
 
     auto io_attribute = io_attributes->append_dict();
 
-    io_attribute->append_str("name", attribute_id);
+    io_attribute->append_str("name", iter.name);
 
-    const StringRefNull domain_name = get_domain_io_name(meta_data.domain);
+    const StringRefNull domain_name = get_domain_io_name(iter.domain);
     io_attribute->append_str("domain", domain_name);
 
-    const StringRefNull type_name = get_data_type_io_name(meta_data.data_type);
+    const StringRefNull type_name = get_data_type_io_name(iter.data_type);
     io_attribute->append_str("type", type_name);
 
-    const GAttributeReader attribute = attributes.lookup(attribute_id);
+    const GAttributeReader attribute = iter.get();
     const GVArraySpan attribute_span(attribute.varray);
     io_attribute->append("data",
                          write_blob_shared_simple_gspan(
@@ -1062,7 +1062,6 @@ static std::shared_ptr<io::serialize::ArrayValue> serialize_attributes(
                              blob_sharing,
                              attribute_span,
                              attribute.varray.is_span() ? attribute.sharing_info : nullptr));
-    return true;
   });
   return io_attributes;
 }

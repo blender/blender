@@ -78,38 +78,34 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   const bke::AttributeAccessor grease_pencil_attributes = grease_pencil->attributes();
   bke::MutableAttributeAccessor instances_attributes = instances->attributes_for_write();
-  grease_pencil_attributes.for_all(
-      [&](const StringRef attribute_id, const AttributeMetaData &meta_data) {
-        if (ELEM(attribute_id, "opacity")) {
-          return true;
-        }
-        const GAttributeReader src_attribute = grease_pencil_attributes.lookup(attribute_id);
-        if (!src_attribute) {
-          return true;
-        }
-        if (src_attribute.varray.is_span() && src_attribute.sharing_info) {
-          /* Try reusing existing attribute array. */
-          instances_attributes.add(
-              attribute_id,
-              AttrDomain::Instance,
-              meta_data.data_type,
-              bke::AttributeInitShared{src_attribute.varray.get_internal_span().data(),
-                                       *src_attribute.sharing_info});
-          return true;
-        }
-        if (!instances_attributes.add(attribute_id,
-                                      AttrDomain::Instance,
-                                      meta_data.data_type,
-                                      bke::AttributeInitConstruct()))
-        {
-          return true;
-        }
-        bke::GSpanAttributeWriter dst_attribute = instances_attributes.lookup_for_write_span(
-            attribute_id);
-        array_utils::gather(src_attribute.varray, layer_selection, dst_attribute.span);
-        dst_attribute.finish();
-        return true;
-      });
+  grease_pencil_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (ELEM(iter.name, "opacity")) {
+      return;
+    }
+    const GAttributeReader src_attribute = iter.get();
+    if (!src_attribute) {
+      return;
+    }
+    if (src_attribute.varray.is_span() && src_attribute.sharing_info) {
+      /* Try reusing existing attribute array. */
+      instances_attributes.add(
+          iter.name,
+          AttrDomain::Instance,
+          iter.data_type,
+          bke::AttributeInitShared{src_attribute.varray.get_internal_span().data(),
+                                   *src_attribute.sharing_info});
+      return;
+    }
+    if (!instances_attributes.add(
+            iter.name, AttrDomain::Instance, iter.data_type, bke::AttributeInitConstruct()))
+    {
+      return;
+    }
+    bke::GSpanAttributeWriter dst_attribute = instances_attributes.lookup_for_write_span(
+        iter.name);
+    array_utils::gather(src_attribute.varray, layer_selection, dst_attribute.span);
+    dst_attribute.finish();
+  });
 
   {
     /* Manually propagate "opacity" data, because it's not a layer attribute on grease pencil

@@ -388,6 +388,70 @@ struct GSpanAttributeWriter {
 };
 
 /**
+ * This is used when iterating over attributes, e.g. with #foreach_attribute. It contains meta-data
+ * for the current attribute and provides easy access to the actual attribute data.
+ */
+class AttributeIter {
+ public:
+  StringRefNull name;
+  AttrDomain domain;
+  eCustomDataType data_type;
+  bool is_builtin = false;
+  mutable const AttributeAccessor *accessor = nullptr;
+
+ private:
+  FunctionRef<GAttributeReader()> get_fn_;
+  mutable bool stop_iteration_ = false;
+
+ public:
+  AttributeIter(const StringRefNull name,
+                const AttrDomain domain,
+                const eCustomDataType data_type,
+                const FunctionRef<GAttributeReader()> get_fn)
+      : name(name), domain(domain), data_type(data_type), get_fn_(get_fn)
+  {
+  }
+
+  /** Stops the iteration. Remaining attributes will be skipped. */
+  void stop() const
+  {
+    stop_iteration_ = true;
+  }
+
+  bool is_stopped() const
+  {
+    return stop_iteration_;
+  }
+
+  /** Get read-only access to the current attribute. This method always succeeds. */
+  GAttributeReader get() const
+  {
+    return get_fn_();
+  }
+
+  GAttributeReader get(std::optional<AttrDomain> domain,
+                       std::optional<eCustomDataType> data_type) const;
+
+  GAttributeReader get(const AttrDomain domain) const
+  {
+    return this->get(domain, std::nullopt);
+  }
+
+  GAttributeReader get(const eCustomDataType data_type) const
+  {
+    return this->get(std::nullopt, data_type);
+  }
+
+  template<typename T>
+  AttributeReader<T> get(const std::optional<AttrDomain> domain = std::nullopt) const
+  {
+    const CPPType &cpp_type = CPPType::get<T>();
+    const eCustomDataType data_type = cpp_type_to_custom_data_type(cpp_type);
+    return this->get(domain, data_type).typed<T>();
+  }
+};
+
+/**
  * Core functions which make up the attribute API. They should not be called directly, but through
  * #AttributesAccessor or #MutableAttributesAccessor.
  *
@@ -396,8 +460,6 @@ struct GSpanAttributeWriter {
  * makes it easy to return the attribute accessor for a geometry from a function.
  */
 struct AttributeAccessorFunctions {
-  bool (*contains)(const void *owner, StringRef attribute_id);
-  std::optional<AttributeMetaData> (*lookup_meta_data)(const void *owner, StringRef attribute_id);
   bool (*domain_supported)(const void *owner, AttrDomain domain);
   int (*domain_size)(const void *owner, AttrDomain domain);
   bool (*is_builtin)(const void *owner, StringRef attribute_id);
@@ -406,8 +468,9 @@ struct AttributeAccessorFunctions {
                           const GVArray &varray,
                           AttrDomain from_domain,
                           AttrDomain to_domain);
-  bool (*for_all)(const void *owner,
-                  FunctionRef<bool(StringRefNull, const AttributeMetaData &)> fn);
+  void (*foreach_attribute)(const void *owner,
+                            FunctionRef<void(const AttributeIter &iter)> fn,
+                            const AttributeAccessor &accessor);
   AttributeValidator (*lookup_validator)(const void *owner, StringRef attribute_id);
   GAttributeWriter (*lookup_for_write)(void *owner, StringRef attribute_id);
   bool (*remove)(void *owner, StringRef attribute_id);
@@ -430,8 +493,8 @@ class AttributeAccessor {
    * The data that actually owns the attributes, for example, a pointer to a #Mesh or #PointCloud
    * Most commonly this is a pointer to a #Mesh or #PointCloud.
    * Under some circumstances this can be null. In that case most methods can't be used. Allowed
-   * methods are #domain_size, #for_all and #is_builtin. We could potentially make these methods
-   * accessible without #AttributeAccessor and then #owner_ could always be non-null.
+   * methods are #domain_size, #foreach_attribute and #is_builtin. We could potentially make these
+   * methods accessible without #AttributeAccessor and then #owner_ could always be non-null.
    *
    * \note This class cannot modify the owner's attributes, but the pointer is still non-const, so
    * this class can be a base class for the mutable version.
@@ -456,18 +519,12 @@ class AttributeAccessor {
   /**
    * \return True, when the attribute is available.
    */
-  bool contains(const StringRef attribute_id) const
-  {
-    return fn_->contains(owner_, attribute_id);
-  }
+  bool contains(const StringRef attribute_id) const;
 
   /**
    * \return Information about the attribute if it exists.
    */
-  std::optional<AttributeMetaData> lookup_meta_data(const StringRef attribute_id) const
-  {
-    return fn_->lookup_meta_data(owner_, attribute_id);
-  }
+  std::optional<AttributeMetaData> lookup_meta_data(const StringRef attribute_id) const;
 
   /**
    * \return True, when attributes can exist on that domain.
@@ -600,12 +657,11 @@ class AttributeAccessor {
    * Run the provided function for every attribute.
    * Attributes should not be removed or added during iteration.
    */
-  bool for_all(const AttributeForeachCallback fn) const
+  void foreach_attribute(const FunctionRef<void(const AttributeIter &)> fn) const
   {
     if (owner_ != nullptr) {
-      return fn_->for_all(owner_, fn);
+      fn_->foreach_attribute(owner_, fn, *this);
     }
-    return true;
   }
 
   /**
@@ -679,6 +735,9 @@ class MutableAttributeAccessor : public AttributeAccessor {
            const eCustomDataType data_type,
            const AttributeInit &initializer)
   {
+    if (this->contains(attribute_id)) {
+      return false;
+    }
     return fn_->add(owner_, attribute_id, domain, data_type, initializer);
   }
   template<typename T>

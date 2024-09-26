@@ -725,18 +725,17 @@ static void attr_create_generic(Scene *scene,
   const bool need_uv = hair->need_attribute(scene, ATTR_STD_UV);
   bool have_uv = false;
 
-  b_attributes.for_all([&](const blender::StringRef id,
-                           const blender::bke::AttributeMetaData meta_data) {
-    const ustring name{std::string_view(id)};
+  b_attributes.foreach_attribute([&](const blender::bke::AttributeIter &iter) {
+    const ustring name{std::string_view(iter.name)};
 
-    const blender::bke::AttrDomain b_domain = meta_data.domain;
-    const eCustomDataType b_data_type = meta_data.data_type;
+    const blender::bke::AttrDomain b_domain = iter.domain;
+    const eCustomDataType b_data_type = iter.data_type;
 
     if (need_motion && name == u_velocity) {
-      const blender::VArraySpan b_attr = *b_attributes.lookup<blender::float3>(
-          id, blender::bke::AttrDomain::Point);
+      const blender::VArraySpan b_attr = *iter.get<blender::float3>(
+          blender::bke::AttrDomain::Point);
       attr_create_motion_from_velocity(hair, b_attr, motion_scale);
-      return true;
+      return;
     }
 
     /* Weak, use first float2 attribute as standard UV. */
@@ -745,23 +744,23 @@ static void attr_create_generic(Scene *scene,
     {
       Attribute *attr = attributes.add(ATTR_STD_UV, name);
 
-      const blender::VArraySpan b_attr = *b_attributes.lookup<blender::float2>(id);
+      const blender::VArraySpan b_attr = *iter.get<blender::float2>();
 
       static_assert(sizeof(blender::float2) == sizeof(float2));
       const blender::Span src = b_attr.cast<float2>();
       std::copy(src.begin(), src.end(), attr->data_float2());
       have_uv = true;
-      return true;
+      return;
     }
 
     if (!hair->need_attribute(scene, name)) {
-      return true;
+      return;
     }
     if (attributes.find(name)) {
-      return true;
+      return;
     }
 
-    const blender::bke::GAttributeReader b_attr = b_attributes.lookup(id);
+    const blender::bke::GAttributeReader b_attr = iter.get();
 
     AttributeElement element = ATTR_ELEMENT_NONE;
     switch (b_attr.domain) {
@@ -772,7 +771,7 @@ static void attr_create_generic(Scene *scene,
         element = ATTR_ELEMENT_CURVE;
         break;
       default:
-        return true;
+        return;
     }
 
     blender::bke::attribute_math::convert_to_static_type(b_attr.varray.type(), [&](auto dummy) {
@@ -789,7 +788,6 @@ static void attr_create_generic(Scene *scene,
         }
       }
     });
-    return true;
   });
 }
 

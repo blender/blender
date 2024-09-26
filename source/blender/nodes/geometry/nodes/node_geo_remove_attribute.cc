@@ -85,20 +85,17 @@ static void node_geo_exec(GeoNodeExecParams params)
           break;
         }
         case PatternMode::Wildcard: {
-          read_only_component.attributes()->for_all(
-              [&](const blender::StringRef id,
-                  const blender::bke::AttributeMetaData /*meta_data*/) {
-                if (bke::attribute_name_is_anonymous(id)) {
-                  return true;
-                }
-                const StringRef attribute_name = id;
-                if (attribute_name.startswith(wildcard_prefix) &&
-                    attribute_name.endswith(wildcard_suffix))
-                {
-                  attributes_to_remove.append(attribute_name);
-                }
-                return true;
-              });
+          read_only_component.attributes()->foreach_attribute([&](const bke::AttributeIter &iter) {
+            const StringRef attribute_name = iter.name;
+            if (bke::attribute_name_is_anonymous(attribute_name)) {
+              return;
+            }
+            if (attribute_name.startswith(wildcard_prefix) &&
+                attribute_name.endswith(wildcard_suffix))
+            {
+              attributes_to_remove.append(attribute_name);
+            }
+          });
 
           break;
         }

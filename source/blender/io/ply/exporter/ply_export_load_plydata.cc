@@ -179,23 +179,22 @@ static void load_custom_attributes(const Mesh *mesh,
   const StringRef uv_name = CustomData_get_active_layer_name(&mesh->corner_data, CD_PROP_FLOAT2);
   const int64_t size = ply_to_vertex.size();
 
-  attributes.for_all([&](const StringRef attribute_id, const bke::AttributeMetaData &meta_data) {
+  attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
     /* Skip internal, standard and non-vertex domain attributes. */
-    if (meta_data.domain != bke::AttrDomain::Point || attribute_id[0] == '.' ||
-        bke::attribute_name_is_anonymous(attribute_id) ||
-        ELEM(attribute_id, "position", color_name, uv_name))
+    if (iter.domain != bke::AttrDomain::Point || iter.name[0] == '.' ||
+        bke::attribute_name_is_anonymous(iter.name) ||
+        ELEM(iter.name, "position", color_name, uv_name))
     {
-      return true;
+      return;
     }
 
-    const GVArraySpan attribute = *mesh->attributes().lookup(
-        attribute_id, meta_data.domain, meta_data.data_type);
+    const GVArraySpan attribute = *iter.get();
     if (attribute.is_empty()) {
-      return true;
+      return;
     }
-    switch (meta_data.data_type) {
+    switch (iter.data_type) {
       case CD_PROP_FLOAT: {
-        float *attr = find_or_add_attribute(attribute_id, size, vertex_offset, r_attributes);
+        float *attr = find_or_add_attribute(iter.name, size, vertex_offset, r_attributes);
         auto typed = attribute.typed<float>();
         for (const int64_t i : ply_to_vertex.index_range()) {
           attr[i] = typed[ply_to_vertex[i]];
@@ -203,7 +202,7 @@ static void load_custom_attributes(const Mesh *mesh,
         break;
       }
       case CD_PROP_INT8: {
-        float *attr = find_or_add_attribute(attribute_id, size, vertex_offset, r_attributes);
+        float *attr = find_or_add_attribute(iter.name, size, vertex_offset, r_attributes);
         auto typed = attribute.typed<int8_t>();
         for (const int64_t i : ply_to_vertex.index_range()) {
           attr[i] = typed[ply_to_vertex[i]];
@@ -211,7 +210,7 @@ static void load_custom_attributes(const Mesh *mesh,
         break;
       }
       case CD_PROP_INT32: {
-        float *attr = find_or_add_attribute(attribute_id, size, vertex_offset, r_attributes);
+        float *attr = find_or_add_attribute(iter.name, size, vertex_offset, r_attributes);
         auto typed = attribute.typed<int32_t>();
         for (const int64_t i : ply_to_vertex.index_range()) {
           attr[i] = typed[ply_to_vertex[i]];
@@ -219,10 +218,8 @@ static void load_custom_attributes(const Mesh *mesh,
         break;
       }
       case CD_PROP_INT32_2D: {
-        float *attr_x = find_or_add_attribute(
-            attribute_id + "_x", size, vertex_offset, r_attributes);
-        float *attr_y = find_or_add_attribute(
-            attribute_id + "_y", size, vertex_offset, r_attributes);
+        float *attr_x = find_or_add_attribute(iter.name + "_x", size, vertex_offset, r_attributes);
+        float *attr_y = find_or_add_attribute(iter.name + "_y", size, vertex_offset, r_attributes);
         auto typed = attribute.typed<int2>();
         for (const int64_t i : ply_to_vertex.index_range()) {
           int j = ply_to_vertex[i];
@@ -232,10 +229,8 @@ static void load_custom_attributes(const Mesh *mesh,
         break;
       }
       case CD_PROP_FLOAT2: {
-        float *attr_x = find_or_add_attribute(
-            attribute_id + "_x", size, vertex_offset, r_attributes);
-        float *attr_y = find_or_add_attribute(
-            attribute_id + "_y", size, vertex_offset, r_attributes);
+        float *attr_x = find_or_add_attribute(iter.name + "_x", size, vertex_offset, r_attributes);
+        float *attr_y = find_or_add_attribute(iter.name + "_y", size, vertex_offset, r_attributes);
         auto typed = attribute.typed<float2>();
         for (const int64_t i : ply_to_vertex.index_range()) {
           int j = ply_to_vertex[i];
@@ -245,12 +240,9 @@ static void load_custom_attributes(const Mesh *mesh,
         break;
       }
       case CD_PROP_FLOAT3: {
-        float *attr_x = find_or_add_attribute(
-            attribute_id + "_x", size, vertex_offset, r_attributes);
-        float *attr_y = find_or_add_attribute(
-            attribute_id + "_y", size, vertex_offset, r_attributes);
-        float *attr_z = find_or_add_attribute(
-            attribute_id + "_z", size, vertex_offset, r_attributes);
+        float *attr_x = find_or_add_attribute(iter.name + "_x", size, vertex_offset, r_attributes);
+        float *attr_y = find_or_add_attribute(iter.name + "_y", size, vertex_offset, r_attributes);
+        float *attr_z = find_or_add_attribute(iter.name + "_z", size, vertex_offset, r_attributes);
         auto typed = attribute.typed<float3>();
         for (const int64_t i : ply_to_vertex.index_range()) {
           int j = ply_to_vertex[i];
@@ -261,14 +253,10 @@ static void load_custom_attributes(const Mesh *mesh,
         break;
       }
       case CD_PROP_BYTE_COLOR: {
-        float *attr_r = find_or_add_attribute(
-            attribute_id + "_r", size, vertex_offset, r_attributes);
-        float *attr_g = find_or_add_attribute(
-            attribute_id + "_g", size, vertex_offset, r_attributes);
-        float *attr_b = find_or_add_attribute(
-            attribute_id + "_b", size, vertex_offset, r_attributes);
-        float *attr_a = find_or_add_attribute(
-            attribute_id + "_a", size, vertex_offset, r_attributes);
+        float *attr_r = find_or_add_attribute(iter.name + "_r", size, vertex_offset, r_attributes);
+        float *attr_g = find_or_add_attribute(iter.name + "_g", size, vertex_offset, r_attributes);
+        float *attr_b = find_or_add_attribute(iter.name + "_b", size, vertex_offset, r_attributes);
+        float *attr_a = find_or_add_attribute(iter.name + "_a", size, vertex_offset, r_attributes);
         auto typed = attribute.typed<ColorGeometry4b>();
         for (const int64_t i : ply_to_vertex.index_range()) {
           ColorGeometry4f col = typed[ply_to_vertex[i]].decode();
@@ -280,14 +268,10 @@ static void load_custom_attributes(const Mesh *mesh,
         break;
       }
       case CD_PROP_COLOR: {
-        float *attr_r = find_or_add_attribute(
-            attribute_id + "_r", size, vertex_offset, r_attributes);
-        float *attr_g = find_or_add_attribute(
-            attribute_id + "_g", size, vertex_offset, r_attributes);
-        float *attr_b = find_or_add_attribute(
-            attribute_id + "_b", size, vertex_offset, r_attributes);
-        float *attr_a = find_or_add_attribute(
-            attribute_id + "_a", size, vertex_offset, r_attributes);
+        float *attr_r = find_or_add_attribute(iter.name + "_r", size, vertex_offset, r_attributes);
+        float *attr_g = find_or_add_attribute(iter.name + "_g", size, vertex_offset, r_attributes);
+        float *attr_b = find_or_add_attribute(iter.name + "_b", size, vertex_offset, r_attributes);
+        float *attr_a = find_or_add_attribute(iter.name + "_a", size, vertex_offset, r_attributes);
         auto typed = attribute.typed<ColorGeometry4f>();
         for (const int64_t i : ply_to_vertex.index_range()) {
           ColorGeometry4f col = typed[ply_to_vertex[i]];
@@ -299,7 +283,7 @@ static void load_custom_attributes(const Mesh *mesh,
         break;
       }
       case CD_PROP_BOOL: {
-        float *attr = find_or_add_attribute(attribute_id, size, vertex_offset, r_attributes);
+        float *attr = find_or_add_attribute(iter.name, size, vertex_offset, r_attributes);
         auto typed = attribute.typed<bool>();
         for (const int64_t i : ply_to_vertex.index_range()) {
           attr[i] = typed[ply_to_vertex[i]] ? 1.0f : 0.0f;
@@ -307,14 +291,10 @@ static void load_custom_attributes(const Mesh *mesh,
         break;
       }
       case CD_PROP_QUATERNION: {
-        float *attr_x = find_or_add_attribute(
-            attribute_id + "_x", size, vertex_offset, r_attributes);
-        float *attr_y = find_or_add_attribute(
-            attribute_id + "_y", size, vertex_offset, r_attributes);
-        float *attr_z = find_or_add_attribute(
-            attribute_id + "_z", size, vertex_offset, r_attributes);
-        float *attr_w = find_or_add_attribute(
-            attribute_id + "_w", size, vertex_offset, r_attributes);
+        float *attr_x = find_or_add_attribute(iter.name + "_x", size, vertex_offset, r_attributes);
+        float *attr_y = find_or_add_attribute(iter.name + "_y", size, vertex_offset, r_attributes);
+        float *attr_z = find_or_add_attribute(iter.name + "_z", size, vertex_offset, r_attributes);
+        float *attr_w = find_or_add_attribute(iter.name + "_w", size, vertex_offset, r_attributes);
         auto typed = attribute.typed<math::Quaternion>();
         for (const int64_t i : ply_to_vertex.index_range()) {
           int j = ply_to_vertex[i];
@@ -328,7 +308,6 @@ static void load_custom_attributes(const Mesh *mesh,
       default:
         BLI_assert_msg(0, "Unsupported attribute type for PLY export.");
     }
-    return true;
   });
 }
 

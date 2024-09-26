@@ -35,23 +35,16 @@ Array<Mesh *> extract_mesh_vertices(const Mesh &mesh,
   const bke::AttributeAccessor src_attributes = mesh.attributes();
 
   Vector<PropagationAttribute> propagation_attributes;
-  src_attributes.for_all(
-      [&](const StringRef attribute_name, const bke::AttributeMetaData meta_data) {
-        if (meta_data.data_type == CD_PROP_STRING) {
-          return true;
-        }
-        if (attribute_filter.allow_skip(attribute_name)) {
-          return true;
-        }
-        const bke::GAttributeReader src_attribute = src_attributes.lookup(attribute_name,
-                                                                          AttrDomain::Point);
-        if (!src_attribute) {
-          return true;
-        }
-        propagation_attributes.append(
-            {attribute_name, meta_data.data_type, AttrDomain::Point, *src_attribute});
-        return true;
-      });
+  src_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (iter.data_type == CD_PROP_STRING) {
+      return;
+    }
+    if (attribute_filter.allow_skip(iter.name)) {
+      return;
+    }
+    const bke::GAttributeReader src_attribute = iter.get(AttrDomain::Point);
+    propagation_attributes.append({iter.name, iter.data_type, AttrDomain::Point, *src_attribute});
+  });
 
   mask.foreach_index(GrainSize(32), [&](const int vert_i, const int element_i) {
     Mesh *element = BKE_mesh_new_nomain(1, 0, 0, 0);
@@ -86,43 +79,38 @@ Array<Mesh *> extract_mesh_edges(const Mesh &mesh,
   const bke::AttributeAccessor src_attributes = mesh.attributes();
 
   Vector<PropagationAttribute> propagation_attributes;
-  src_attributes.for_all(
-      [&](const StringRef attribute_name, const bke::AttributeMetaData meta_data) {
-        if (meta_data.data_type == CD_PROP_STRING) {
-          return true;
-        }
-        if (attribute_name == ".edge_verts") {
-          return true;
-        }
-        if (attribute_filter.allow_skip(attribute_name)) {
-          return true;
-        }
-        const bke::GAttributeReader src_attribute = src_attributes.lookup(attribute_name);
-        if (!src_attribute) {
-          return true;
-        }
-        if (ELEM(src_attribute.domain, AttrDomain::Point, AttrDomain::Edge)) {
-          propagation_attributes.append(
-              {attribute_name, meta_data.data_type, src_attribute.domain, *src_attribute});
-        }
-        else if (src_attribute.domain == AttrDomain::Corner) {
-          if (GVArray adapted_attribute = src_attributes.adapt_domain(
-                  *src_attribute, src_attribute.domain, AttrDomain::Point))
-          {
-            propagation_attributes.append(
-                {attribute_name, meta_data.data_type, AttrDomain::Point, adapted_attribute});
-          }
-        }
-        else if (src_attribute.domain == AttrDomain::Face) {
-          if (GVArray adapted_attribute = src_attributes.adapt_domain(
-                  *src_attribute, src_attribute.domain, AttrDomain::Edge))
-          {
-            propagation_attributes.append(
-                {attribute_name, meta_data.data_type, AttrDomain::Edge, adapted_attribute});
-          }
-        }
-        return true;
-      });
+  src_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (iter.data_type == CD_PROP_STRING) {
+      return;
+    }
+    if (iter.name == ".edge_verts") {
+      return;
+    }
+    if (attribute_filter.allow_skip(iter.name)) {
+      return;
+    }
+    const bke::GAttributeReader src_attribute = iter.get();
+    if (ELEM(src_attribute.domain, AttrDomain::Point, AttrDomain::Edge)) {
+      propagation_attributes.append(
+          {iter.name, iter.data_type, src_attribute.domain, *src_attribute});
+    }
+    else if (src_attribute.domain == AttrDomain::Corner) {
+      if (GVArray adapted_attribute = src_attributes.adapt_domain(
+              *src_attribute, src_attribute.domain, AttrDomain::Point))
+      {
+        propagation_attributes.append(
+            {iter.name, iter.data_type, AttrDomain::Point, adapted_attribute});
+      }
+    }
+    else if (src_attribute.domain == AttrDomain::Face) {
+      if (GVArray adapted_attribute = src_attributes.adapt_domain(
+              *src_attribute, src_attribute.domain, AttrDomain::Edge))
+      {
+        propagation_attributes.append(
+            {iter.name, iter.data_type, AttrDomain::Edge, adapted_attribute});
+      }
+    }
+  });
 
   mask.foreach_index(GrainSize(32), [&](const int edge_i, const int element_i) {
     Mesh *element = BKE_mesh_new_nomain(2, 1, 0, 0);
@@ -168,25 +156,23 @@ Array<Mesh *> extract_mesh_faces(const Mesh &mesh,
   const bke::AttributeAccessor src_attributes = mesh.attributes();
 
   Vector<PropagationAttribute> propagation_attributes;
-  src_attributes.for_all(
-      [&](const StringRef attribute_name, const bke::AttributeMetaData meta_data) {
-        if (meta_data.data_type == CD_PROP_STRING) {
-          return true;
-        }
-        if (ELEM(attribute_name, ".edge_verts", ".corner_edge", ".corner_vert")) {
-          return true;
-        }
-        if (attribute_filter.allow_skip(attribute_name)) {
-          return true;
-        }
-        const bke::GAttributeReader src_attribute = src_attributes.lookup(attribute_name);
-        if (!src_attribute) {
-          return true;
-        }
-        propagation_attributes.append(
-            {attribute_name, meta_data.data_type, src_attribute.domain, *src_attribute});
-        return true;
-      });
+  src_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (iter.data_type == CD_PROP_STRING) {
+      return;
+    }
+    if (ELEM(iter.name, ".edge_verts", ".corner_edge", ".corner_vert")) {
+      return;
+    }
+    if (attribute_filter.allow_skip(iter.name)) {
+      return;
+    }
+    const bke::GAttributeReader src_attribute = iter.get();
+    if (!src_attribute) {
+      return;
+    }
+    propagation_attributes.append(
+        {iter.name, iter.data_type, src_attribute.domain, *src_attribute});
+  });
 
   mask.foreach_index(GrainSize(32), [&](const int face_i, const int element_i) {
     const IndexRange src_face = src_faces[face_i];

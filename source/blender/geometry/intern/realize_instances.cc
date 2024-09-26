@@ -507,25 +507,25 @@ static Vector<std::pair<int, GSpan>> prepare_attribute_fallbacks(
 {
   Vector<std::pair<int, GSpan>> attributes_to_override;
   const bke::AttributeAccessor attributes = instances.attributes();
-  attributes.for_all([&](const StringRef attribute_id, const AttributeMetaData &meta_data) {
-    const int attribute_index = ordered_attributes.ids.index_of_try(attribute_id);
+  attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+    const int attribute_index = ordered_attributes.ids.index_of_try(iter.name);
     if (attribute_index == -1) {
       /* The attribute is not propagated to the final geometry. */
-      return true;
+      return;
     }
-    const bke::GAttributeReader attribute = attributes.lookup(attribute_id);
+    const bke::GAttributeReader attribute = iter.get();
     if (!attribute || !attribute.varray.is_span()) {
-      return true;
+      return;
     }
     GSpan span = attribute.varray.get_internal_span();
     const eCustomDataType expected_type = ordered_attributes.kinds[attribute_index].data_type;
-    if (meta_data.data_type != expected_type) {
+    if (iter.data_type != expected_type) {
       const CPPType &from_type = span.type();
       const CPPType &to_type = *bke::custom_data_type_to_cpp_type(expected_type);
       const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
       if (!conversions.is_convertible(from_type, to_type)) {
         /* Ignore the attribute because it can not be converted to the desired type. */
-        return true;
+        return;
       }
       /* Convert the attribute on the instances component to the expected attribute type. */
       std::unique_ptr<GArray<>> temporary_array = std::make_unique<GArray<>>(
@@ -535,7 +535,6 @@ static Vector<std::pair<int, GSpan>> prepare_attribute_fallbacks(
       gather_info.r_temporary_arrays.append(std::move(temporary_array));
     }
     attributes_to_override.append({attribute_index, span});
-    return true;
   });
   return attributes_to_override;
 }
@@ -834,10 +833,9 @@ static bool attribute_foreach(const bke::GeometrySet &geometry_set,
         const bke::GeometryComponent &component = *geometry_set.get_component(component_type);
         const std::optional<bke::AttributeAccessor> attributes = component.attributes();
         if (attributes.has_value()) {
-          attributes->for_all([&](const StringRef attributeId, const AttributeMetaData &metaData) {
-            callback(attributeId, metaData, component);
+          attributes->foreach_attribute([&](const bke::AttributeIter &iter) {
+            callback(iter.name, {iter.domain, iter.data_type}, component);
             any_attribute_found = true;
-            return true;
           });
         }
       }

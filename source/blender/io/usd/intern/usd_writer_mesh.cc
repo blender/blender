@@ -153,49 +153,47 @@ void USDGenericMeshWriter::write_custom_data(const Object *obj,
   const StringRef active_uvmap_name = CustomData_get_render_layer_name(&mesh->corner_data,
                                                                        CD_PROP_FLOAT2);
 
-  attributes.for_all([&](const StringRef attribute_id, const bke::AttributeMetaData &meta_data) {
+  attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
     /* Skip "internal" Blender properties and attributes processed elsewhere.
      * Skip edge domain because USD doesn't have a good conversion for them. */
-    if (attribute_id[0] == '.' || bke::attribute_name_is_anonymous(attribute_id) ||
-        meta_data.domain == bke::AttrDomain::Edge ||
-        ELEM(attribute_id, "position", "material_index", "velocity", "crease_vert"))
+    if (iter.name[0] == '.' || bke::attribute_name_is_anonymous(iter.name) ||
+        iter.domain == bke::AttrDomain::Edge ||
+        ELEM(iter.name, "position", "material_index", "velocity", "crease_vert"))
     {
-      return true;
+      return;
     }
 
     if ((usd_export_context_.export_params.export_armatures ||
          usd_export_context_.export_params.export_shapekeys) &&
-        attribute_id.rfind("skel:") == 0)
+        iter.name.rfind("skel:") == 0)
     {
       /* If we're exporting armatures or shape keys to UsdSkel, we skip any
        * attributes that have names with the "skel:" namespace, to avoid possible
        * conflicts. Such attribute might have been previously imported into Blender
        * from USD, but can no longer be considered valid. */
-      return true;
+      return;
     }
 
     if (usd_export_context_.export_params.export_armatures &&
-        is_armature_modifier_bone_name(*obj, attribute_id.data(), usd_export_context_.depsgraph))
+        is_armature_modifier_bone_name(*obj, iter.name, usd_export_context_.depsgraph))
     {
       /* This attribute is likely a vertex group for the armature modifier,
        * and it may conflict with skinning data that will be written to
        * the USD mesh, so we skip it.  Such vertex groups will instead be
        * handled in #export_deform_verts(). */
-      return true;
+      return;
     }
 
     /* UV Data. */
-    if (meta_data.domain == bke::AttrDomain::Corner && meta_data.data_type == CD_PROP_FLOAT2) {
+    if (iter.domain == bke::AttrDomain::Corner && iter.data_type == CD_PROP_FLOAT2) {
       if (usd_export_context_.export_params.export_uvmaps) {
-        this->write_uv_data(mesh, usd_mesh, attribute_id, active_uvmap_name);
+        this->write_uv_data(mesh, usd_mesh, iter.name, active_uvmap_name);
       }
     }
 
     else {
-      this->write_generic_data(mesh, usd_mesh, attribute_id, meta_data);
+      this->write_generic_data(mesh, usd_mesh, iter.name, {iter.domain, iter.data_type});
     }
-
-    return true;
   });
 }
 

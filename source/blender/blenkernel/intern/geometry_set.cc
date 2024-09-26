@@ -614,9 +614,8 @@ void GeometrySet::attribute_foreach(const Span<GeometryComponent::Type> componen
     const GeometryComponent &component = *this->get_component(component_type);
     const std::optional<AttributeAccessor> attributes = component.attributes();
     if (attributes.has_value()) {
-      attributes->for_all([&](const StringRef attribute_id, const AttributeMetaData &meta_data) {
-        callback(attribute_id, meta_data, component);
-        return true;
+      attributes->foreach_attribute([&](const AttributeIter &iter) {
+        callback(iter.name, {iter.domain, iter.data_type}, component);
       });
     }
   }
@@ -633,25 +632,24 @@ void GeometrySet::propagate_attributes_from_layer_to_instances(
     MutableAttributeAccessor dst_attributes,
     const AttributeFilter &attribute_filter)
 {
-  src_attributes.for_all([&](const StringRef id, const AttributeMetaData meta_data) {
-    if (attribute_filter.allow_skip(id)) {
-      return true;
+  src_attributes.foreach_attribute([&](const AttributeIter &iter) {
+    if (attribute_filter.allow_skip(iter.name)) {
+      return;
     }
-    const GAttributeReader src = src_attributes.lookup(id, AttrDomain::Layer);
+    const GAttributeReader src = iter.get(AttrDomain::Layer);
     if (src.sharing_info && src.varray.is_span()) {
       const AttributeInitShared init(src.varray.get_internal_span().data(), *src.sharing_info);
-      if (dst_attributes.add(id, AttrDomain::Instance, meta_data.data_type, init)) {
-        return true;
+      if (dst_attributes.add(iter.name, AttrDomain::Instance, iter.data_type, init)) {
+        return;
       }
     }
     GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
-        id, AttrDomain::Instance, meta_data.data_type);
+        iter.name, AttrDomain::Instance, iter.data_type);
     if (!dst) {
-      return true;
+      return;
     }
     array_utils::copy(src.varray, dst.span);
     dst.finish();
-    return true;
   });
 }
 

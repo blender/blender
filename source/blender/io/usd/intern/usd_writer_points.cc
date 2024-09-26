@@ -113,17 +113,16 @@ void USDPointsWriter::write_custom_data(const PointCloud *points,
 {
   const bke::AttributeAccessor attributes = points->attributes();
 
-  attributes.for_all([&](const StringRef attribute_id, const bke::AttributeMetaData &meta_data) {
+  attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
     /* Skip "internal" Blender properties and attributes dealt with elsewhere. */
-    if (attribute_id[0] == '.' || bke::attribute_name_is_anonymous(attribute_id) ||
-        ELEM(attribute_id, "position", "radius", "id", "velocity"))
+    if (iter.name[0] == '.' || bke::attribute_name_is_anonymous(iter.name) ||
+        ELEM(iter.name, "position", "radius", "id", "velocity"))
     {
-      return true;
+      return;
     }
 
-    this->write_generic_data(points, attribute_id, meta_data, usd_points, timecode);
-
-    return true;
+    this->write_generic_data(
+        points, iter.name, {iter.domain, iter.data_type}, usd_points, timecode);
   });
 }
 

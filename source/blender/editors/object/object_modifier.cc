@@ -1147,15 +1147,15 @@ static bool apply_grease_pencil_for_modifier(Depsgraph *depsgraph,
   /* Propagate layer attributes. */
   AttributeAccessor src_attributes = grease_pencil_result.attributes();
   MutableAttributeAccessor dst_attributes = grease_pencil_orig.attributes_for_write();
-  src_attributes.for_all([&](const StringRef id, const AttributeMetaData meta_data) {
-    if (meta_data.data_type == CD_PROP_STRING) {
-      return true;
+  src_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (iter.data_type == CD_PROP_STRING) {
+      return;
     }
-    const GVArraySpan src = *src_attributes.lookup(id, AttrDomain::Layer);
+    const GVArraySpan src = *iter.get(AttrDomain::Layer);
     GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
-        id, AttrDomain::Layer, meta_data.data_type);
+        iter.name, AttrDomain::Layer, iter.data_type);
     if (!dst) {
-      return true;
+      return;
     }
     attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
       using T = decltype(dummy);
@@ -1163,7 +1163,6 @@ static bool apply_grease_pencil_for_modifier(Depsgraph *depsgraph,
           src.typed<T>(), eval_to_orig_layer_indices_map.as_span(), dst.span.typed<T>());
     });
     dst.finish();
-    return true;
   });
 
   Main *bmain = DEG_get_bmain(depsgraph);

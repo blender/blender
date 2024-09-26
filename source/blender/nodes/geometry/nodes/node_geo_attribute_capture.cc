@@ -179,18 +179,17 @@ static void clean_unused_attributes(const AttributeFilter &attribute_filter,
   }
 
   Vector<std::string> unused_ids;
-  attributes->for_all([&](const StringRef id, const AttributeMetaData /*meta_data*/) {
-    if (!bke::attribute_name_is_anonymous(id)) {
-      return true;
+  attributes->foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (!bke::attribute_name_is_anonymous(iter.name)) {
+      return;
     }
-    if (keep.contains(id)) {
-      return true;
+    if (keep.contains(iter.name)) {
+      return;
     }
-    if (!attribute_filter.allow_skip(id)) {
-      return true;
+    if (!attribute_filter.allow_skip(iter.name)) {
+      return;
     }
-    unused_ids.append(id);
-    return true;
+    unused_ids.append(iter.name);
   });
 
   for (const std::string &unused_id : unused_ids) {
