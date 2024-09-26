@@ -78,12 +78,11 @@ static void gpencil_bake_set_frame_end(Main * /*main*/, Scene * /*scene*/, Point
 static bool gpencil_bake_grease_pencil_animation_poll(bContext *C)
 {
   Object *obact = CTX_data_active_object(C);
-  if (CTX_data_mode_enum(C) != CTX_MODE_OBJECT) {
-    return false;
-  }
 
   /* Check if grease pencil or empty for dupli groups. */
-  if ((obact == nullptr) || !ELEM(obact->type, OB_GPENCIL_LEGACY, OB_EMPTY)) {
+  if ((obact == nullptr) || (obact->mode != OB_MODE_OBJECT) ||
+      !ELEM(obact->type, OB_GPENCIL_LEGACY, OB_EMPTY))
+  {
     return false;
   }
 

@@ -293,12 +293,11 @@ static int bake_grease_pencil_animation_exec(bContext *C, wmOperator *op)
 static bool bake_grease_pencil_animation_poll(bContext *C)
 {
   const Object *obact = CTX_data_active_object(C);
-  if (CTX_data_mode_enum(C) != CTX_MODE_OBJECT) {
-    return false;
-  }
 
   /* Check if grease pencil or empty for dupli groups. */
-  if ((obact == nullptr) || !ELEM(obact->type, OB_GREASE_PENCIL, OB_EMPTY)) {
+  if ((obact == nullptr) || (obact->mode != OB_MODE_OBJECT) ||
+      !ELEM(obact->type, OB_GREASE_PENCIL, OB_EMPTY))
+  {
     return false;
   }
 
