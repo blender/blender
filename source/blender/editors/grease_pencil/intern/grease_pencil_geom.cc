@@ -811,8 +811,8 @@ bke::CurvesGeometry create_curves_outline(const bke::greasepencil::Drawing &draw
                          dst_point_map,
                          dst_attributes);
   bke::gather_attributes(src_attributes,
-                         bke::AttrDomain::Point,
-                         bke::AttrDomain::Point,
+                         bke::AttrDomain::Curve,
+                         bke::AttrDomain::Curve,
                          bke::attribute_filter_from_skip_ref({"cyclic", "material_index"}),
                          dst_curve_map,
                          dst_attributes);
