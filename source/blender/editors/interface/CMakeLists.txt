@@ -35,6 +35,7 @@ set(SRC
   eyedroppers/eyedropper_depth.cc
   eyedroppers/eyedropper_driver.cc
   eyedroppers/eyedropper_gpencil_color.cc
+  eyedroppers/eyedropper_bone.cc
   eyedroppers/eyedropper_grease_pencil_color.cc
   eyedroppers/interface_eyedropper.cc
   interface.cc

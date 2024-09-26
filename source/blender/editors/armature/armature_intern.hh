@@ -266,10 +266,6 @@ void armature_tag_unselect(bArmature *arm);
 /** \name Selection Picking
  * \{ */
 
-EditBone *ED_armature_pick_ebone(bContext *C, const int xy[2], bool findunsel, Base **r_base);
-bPoseChannel *ED_armature_pick_pchan(bContext *C, const int xy[2], bool findunsel, Base **r_base);
-Bone *ED_armature_pick_bone(bContext *C, const int xy[2], bool findunsel, Base **r_base);
-
 EditBone *ED_armature_pick_ebone_from_selectbuffer(blender::Span<Base *> bases,
                                                    const GPUSelectResult *hit_results,
                                                    int hits,
