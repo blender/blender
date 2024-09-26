@@ -9,7 +9,7 @@
 #include "BKE_blender.hh"
 #include "BKE_preferences.h"
 
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_string_ref.hh"
 
 #include "DNA_asset_types.h"

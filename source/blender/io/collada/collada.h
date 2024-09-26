@@ -14,7 +14,7 @@
 #include "ImportSettings.h"
 
 #include "BLI_linklist.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "RNA_types.hh"
 
 #ifdef __cplusplus

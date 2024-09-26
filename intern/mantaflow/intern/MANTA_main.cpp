@@ -21,7 +21,7 @@
 #include "smoke_script.h"
 
 #include "BLI_fileops.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "DNA_fluid_types.h"

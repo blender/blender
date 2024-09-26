@@ -12,7 +12,7 @@
 #include <Python.h>
 #include <frameobject.h>
 
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_utildefines.h"
 #ifdef WIN32
 #  include "BLI_string.h" /* BLI_strcasecmp */

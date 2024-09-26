@@ -19,7 +19,7 @@
 #include "IMB_imbuf_types.hh"
 
 #include "BLI_math_base.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_string.h"
 
 #ifdef __BIG_ENDIAN__

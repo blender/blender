@@ -7,7 +7,7 @@
 #include "IMB_imbuf.hh"
 
 #include "BLI_fileops.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
 
@@ -63,7 +63,7 @@ static char *str_replace_char_strdup(const char *str, char src, char dst)
   ((void)0)
 
 /* #BLI_path_normalize: do nothing. */
-TEST(path_util, Normalize_Nop)
+TEST(path_utils, Normalize_Nop)
 {
   NORMALIZE(".", ".");
   NORMALIZE("./", "./");
@@ -72,7 +72,7 @@ TEST(path_util, Normalize_Nop)
   NORMALIZE("//a", "//a");
 }
 
-TEST(path_util, Normalize_NopRelative)
+TEST(path_utils, Normalize_NopRelative)
 {
   NORMALIZE("..", "..");
   NORMALIZE("../", "../");
@@ -82,7 +82,7 @@ TEST(path_util, Normalize_NopRelative)
 }
 
 /* #BLI_path_normalize: "/./" -> "/" */
-TEST(path_util, Normalize_Dot)
+TEST(path_utils, Normalize_Dot)
 {
   NORMALIZE("/./", "/");
   NORMALIZE("/a/./b/./c/./", "/a/b/c/");
@@ -90,18 +90,18 @@ TEST(path_util, Normalize_Dot)
   NORMALIZE("/a/./././b/", "/a/b/");
 }
 /* #BLI_path_normalize: complex "/./" -> "/", "//" -> "/", "./path/../" -> "./". */
-TEST(path_util, Normalize_ComplexAbsolute)
+TEST(path_utils, Normalize_ComplexAbsolute)
 {
   NORMALIZE("/a/./b/./c/./.././.././", "/a/");
   NORMALIZE("/a//.//b//.//c//.//..//.//..//.//", "/a/");
 }
-TEST(path_util, Normalize_ComplexRelative)
+TEST(path_utils, Normalize_ComplexRelative)
 {
   NORMALIZE("a/b/c/d/e/f/g/../a/../b/../../c/../../../d/../../../..", ".");
   NORMALIZE("a/b/c/d/e/f/g/../a/../../../../b/../../../c/../../d/..", ".");
 }
 /* #BLI_path_normalize: "//" -> "/" */
-TEST(path_util, Normalize_DoubleSlash)
+TEST(path_utils, Normalize_DoubleSlash)
 {
   NORMALIZE("//", "//"); /* Exception, double forward slash. */
   NORMALIZE(".//", "./");
@@ -109,13 +109,13 @@ TEST(path_util, Normalize_DoubleSlash)
   NORMALIZE("./a////", "a/");
 }
 /* #BLI_path_normalize: "foo/bar/../" -> "foo/" */
-TEST(path_util, Normalize_Parent)
+TEST(path_utils, Normalize_Parent)
 {
   NORMALIZE("/a/b/c/../../../", "/");
   NORMALIZE("/a/../a/b/../b/c/../c/", "/a/b/c/");
 }
 /* #BLI_path_normalize: with too many "/../", match Python's behavior. */
-TEST(path_util, Normalize_UnbalancedAbsolute)
+TEST(path_utils, Normalize_UnbalancedAbsolute)
 {
   NORMALIZE("/../", "/");
   NORMALIZE("/../a", "/a");
@@ -129,7 +129,7 @@ TEST(path_util, Normalize_UnbalancedAbsolute)
 }
 
 /* #BLI_path_normalize: with relative paths that result in leading "../". */
-TEST(path_util, Normalize_UnbalancedRelative)
+TEST(path_utils, Normalize_UnbalancedRelative)
 {
   NORMALIZE("./a/b/c/../../../", ".");
   NORMALIZE("a/b/c/../../../", ".");
@@ -146,7 +146,7 @@ TEST(path_util, Normalize_UnbalancedRelative)
   NORMALIZE(".../.../a/.../b/../c/../../d/../../../e/../../../.../../f", "../f");
 }
 
-TEST(path_util, Normalize_UnbalancedRelativeTrailing)
+TEST(path_utils, Normalize_UnbalancedRelativeTrailing)
 {
   NORMALIZE("./a/b/c/../../..", ".");
   NORMALIZE("a/b/c/../../..", ".");
@@ -171,7 +171,7 @@ TEST(path_util, Normalize_UnbalancedRelativeTrailing)
  * \note #BLI_path_normalize tests handle most of the corner cases.
  * \{ */
 
-TEST(path_util, CompareNormalized)
+TEST(path_utils, CompareNormalized)
 {
   /* Trailing slash should not matter. */
   EXPECT_EQ(BLI_path_cmp_normalized("/tmp/", "/tmp"), 0);
@@ -203,14 +203,14 @@ TEST(path_util, CompareNormalized)
   } \
   ((void)0)
 
-TEST(path_util, ParentDir_Simple)
+TEST(path_utils, ParentDir_Simple)
 {
   PARENT_DIR("/a/b/", "/a/");
   PARENT_DIR("/a/b", "/a/");
   PARENT_DIR("/a", "/");
 }
 
-TEST(path_util, ParentDir_NOP)
+TEST(path_utils, ParentDir_NOP)
 {
   PARENT_DIR("/", "/");
   PARENT_DIR("", "");
@@ -220,7 +220,7 @@ TEST(path_util, ParentDir_NOP)
   PARENT_DIR("./.", "./.");
 }
 
-TEST(path_util, ParentDir_TrailingPeriod)
+TEST(path_utils, ParentDir_TrailingPeriod)
 {
   /* Ensure trailing dots aren't confused with parent path. */
   PARENT_DIR("/.../.../.../", "/.../.../");
@@ -233,7 +233,7 @@ TEST(path_util, ParentDir_TrailingPeriod)
   PARENT_DIR("/a./b./c.", "/a./b./");
 }
 
-TEST(path_util, ParentDir_Complex)
+TEST(path_utils, ParentDir_Complex)
 {
   PARENT_DIR("./a/", "./");
   PARENT_DIR("./a", "./");
@@ -271,7 +271,7 @@ TEST(path_util, ParentDir_Complex)
   } \
   ((void)0)
 
-TEST(path_util, NameAtIndex_Single)
+TEST(path_utils, NameAtIndex_Single)
 {
   AT_INDEX("/a", 0, "a");
   AT_INDEX("/a/", 0, "a");
@@ -284,7 +284,7 @@ TEST(path_util, NameAtIndex_Single)
   AT_INDEX("a/", 1, nullptr);
   AT_INDEX("//a//", 1, nullptr);
 }
-TEST(path_util, NameAtIndex_SingleNeg)
+TEST(path_utils, NameAtIndex_SingleNeg)
 {
   AT_INDEX("/a", -1, "a");
   AT_INDEX("/a/", -1, "a");
@@ -298,7 +298,7 @@ TEST(path_util, NameAtIndex_SingleNeg)
   AT_INDEX("//a//", -2, nullptr);
 }
 
-TEST(path_util, NameAtIndex_Double)
+TEST(path_utils, NameAtIndex_Double)
 {
   AT_INDEX("/ab", 0, "ab");
   AT_INDEX("/ab/", 0, "ab");
@@ -312,7 +312,7 @@ TEST(path_util, NameAtIndex_Double)
   AT_INDEX("//ab//", 1, nullptr);
 }
 
-TEST(path_util, NameAtIndex_DoublNeg)
+TEST(path_utils, NameAtIndex_DoublNeg)
 {
   AT_INDEX("/ab", -1, "ab");
   AT_INDEX("/ab/", -1, "ab");
@@ -326,7 +326,7 @@ TEST(path_util, NameAtIndex_DoublNeg)
   AT_INDEX("//ab//", -2, nullptr);
 }
 
-TEST(path_util, NameAtIndex_Misc)
+TEST(path_utils, NameAtIndex_Misc)
 {
   AT_INDEX("/how/now/brown/cow", 0, "how");
   AT_INDEX("/how/now/brown/cow", 1, "now");
@@ -336,7 +336,7 @@ TEST(path_util, NameAtIndex_Misc)
   AT_INDEX("/how/now/brown/cow/", 4, nullptr);
 }
 
-TEST(path_util, NameAtIndex_MiscNeg)
+TEST(path_utils, NameAtIndex_MiscNeg)
 {
   AT_INDEX("/how/now/brown/cow", 0, "how");
   AT_INDEX("/how/now/brown/cow", 1, "now");
@@ -348,7 +348,7 @@ TEST(path_util, NameAtIndex_MiscNeg)
 
 #define TEST_STR "./a/./b/./c/."
 
-TEST(path_util, NameAtIndex_SingleDot)
+TEST(path_utils, NameAtIndex_SingleDot)
 {
   AT_INDEX(TEST_STR, 0, ".");
   AT_INDEX(TEST_STR, 1, "a");
@@ -357,7 +357,7 @@ TEST(path_util, NameAtIndex_SingleDot)
   AT_INDEX(TEST_STR, 4, nullptr);
 }
 
-TEST(path_util, NameAtIndex_SingleDotNeg)
+TEST(path_utils, NameAtIndex_SingleDotNeg)
 {
   AT_INDEX(TEST_STR, -5, nullptr);
   AT_INDEX(TEST_STR, -4, ".");
@@ -370,7 +370,7 @@ TEST(path_util, NameAtIndex_SingleDotNeg)
 
 #define TEST_STR ".//a//.//b//.//c//.//"
 
-TEST(path_util, NameAtIndex_SingleDotDoubleSlash)
+TEST(path_utils, NameAtIndex_SingleDotDoubleSlash)
 {
   AT_INDEX(TEST_STR, 0, ".");
   AT_INDEX(TEST_STR, 1, "a");
@@ -379,7 +379,7 @@ TEST(path_util, NameAtIndex_SingleDotDoubleSlash)
   AT_INDEX(TEST_STR, 4, nullptr);
 }
 
-TEST(path_util, NameAtIndex_SingleDotDoubleSlashNeg)
+TEST(path_utils, NameAtIndex_SingleDotDoubleSlashNeg)
 {
   AT_INDEX(TEST_STR, -5, nullptr);
   AT_INDEX(TEST_STR, -4, ".");
@@ -390,21 +390,21 @@ TEST(path_util, NameAtIndex_SingleDotDoubleSlashNeg)
 
 #undef TEST_STR
 
-TEST(path_util, NameAtIndex_SingleDotSeries)
+TEST(path_utils, NameAtIndex_SingleDotSeries)
 {
   AT_INDEX("abc/././/././xyz", 0, "abc");
   AT_INDEX("abc/././/././xyz", 1, "xyz");
   AT_INDEX("abc/././/././xyz", 2, nullptr);
 }
 
-TEST(path_util, NameAtIndex_SingleDotSeriesNeg)
+TEST(path_utils, NameAtIndex_SingleDotSeriesNeg)
 {
   AT_INDEX("abc/././/././xyz", -3, nullptr);
   AT_INDEX("abc/././/././xyz", -2, "abc");
   AT_INDEX("abc/././/././xyz", -1, "xyz");
 }
 
-TEST(path_util, NameAtIndex_MiscComplex)
+TEST(path_utils, NameAtIndex_MiscComplex)
 {
   AT_INDEX("how//now/brown/cow", 0, "how");
   AT_INDEX("//how///now//brown/cow", 1, "now");
@@ -414,7 +414,7 @@ TEST(path_util, NameAtIndex_MiscComplex)
   AT_INDEX("how/now/brown//cow/", 4, nullptr);
 }
 
-TEST(path_util, NameAtIndex_MiscComplexNeg)
+TEST(path_utils, NameAtIndex_MiscComplexNeg)
 {
   AT_INDEX("how//now/brown/cow", -4, "how");
   AT_INDEX("//how///now//brown/cow", -3, "now");
@@ -424,7 +424,7 @@ TEST(path_util, NameAtIndex_MiscComplexNeg)
   AT_INDEX("how/now/brown//cow/", -5, nullptr);
 }
 
-TEST(path_util, NameAtIndex_NoneComplex)
+TEST(path_utils, NameAtIndex_NoneComplex)
 {
   AT_INDEX("", 0, nullptr);
   AT_INDEX("/", 0, nullptr);
@@ -432,7 +432,7 @@ TEST(path_util, NameAtIndex_NoneComplex)
   AT_INDEX("///", 0, nullptr);
 }
 
-TEST(path_util, NameAtIndex_NoneComplexNeg)
+TEST(path_utils, NameAtIndex_NoneComplexNeg)
 {
   AT_INDEX("", -1, nullptr);
   AT_INDEX("/", -1, nullptr);
@@ -448,7 +448,7 @@ TEST(path_util, NameAtIndex_NoneComplexNeg)
 /** \name Tests for: #BLI_path_is_unc
  * \{ */
 
-TEST(path_util, IsUnc)
+TEST(path_utils, IsUnc)
 {
   EXPECT_TRUE(BLI_path_is_unc("\\\\server_name\\share_name"));
   EXPECT_TRUE(BLI_path_is_unc("\\\\.\\C:\\file.txt"));
@@ -468,7 +468,7 @@ TEST(path_util, IsUnc)
 /** \name Tests for: #BLI_path_is_win32_drive
  * \{ */
 
-TEST(path_util, IsWin32Drive)
+TEST(path_utils, IsWin32Drive)
 {
   EXPECT_TRUE(BLI_path_is_win32_drive("E:\\file.txt"));
   EXPECT_TRUE(BLI_path_is_win32_drive("E:/file.txt"));
@@ -493,7 +493,7 @@ TEST(path_util, IsWin32Drive)
 /** \name Tests for: #BLI_path_is_win32_drive_only
  * \{ */
 
-TEST(path_util, IsWin32DriveOnly)
+TEST(path_utils, IsWin32DriveOnly)
 {
   EXPECT_FALSE(BLI_path_is_win32_drive_only("E:\\file.txt"));
   EXPECT_FALSE(BLI_path_is_win32_drive_only("E:/file.txt"));
@@ -519,7 +519,7 @@ TEST(path_util, IsWin32DriveOnly)
 /** \name Tests for: #BLI_path_is_win32_drive_with_slash
  * \{ */
 
-TEST(path_util, IsWin32DriveWithSlash)
+TEST(path_utils, IsWin32DriveWithSlash)
 {
   EXPECT_TRUE(BLI_path_is_win32_drive_with_slash("E:\\file.txt"));
   EXPECT_TRUE(BLI_path_is_win32_drive_with_slash("E:/file.txt"));
@@ -590,7 +590,7 @@ TEST(path_util, IsWin32DriveWithSlash)
 #  define JOIN JOIN_FORWARD_SLASH
 #endif
 
-TEST(path_util, JoinNop)
+TEST(path_utils, JoinNop)
 {
   JOIN("", 100, "");
   JOIN("", 100, "", "");
@@ -601,7 +601,7 @@ TEST(path_util, JoinNop)
   JOIN("/", 100, "/", "", "/", "");
 }
 
-TEST(path_util, JoinSingle)
+TEST(path_utils, JoinSingle)
 {
   JOIN("test", 100, "test");
   JOIN("", 100, "");
@@ -613,7 +613,7 @@ TEST(path_util, JoinSingle)
   JOIN("//a/", 100, "//a//");
 }
 
-TEST(path_util, JoinTriple)
+TEST(path_utils, JoinTriple)
 {
   JOIN("/a/b/c", 100, "/a", "b", "c");
   JOIN("/a/b/c", 100, "/a/", "/b/", "/c");
@@ -628,7 +628,7 @@ TEST(path_util, JoinTriple)
   JOIN("/a/b/c/", 100, "/", "a/b/c", "/");
 }
 
-TEST(path_util, JoinTruncateShort)
+TEST(path_utils, JoinTruncateShort)
 {
   JOIN("", 1, "/");
   JOIN("/", 2, "/");
@@ -645,7 +645,7 @@ TEST(path_util, JoinTruncateShort)
   JOIN("/a/b", 5, "/a", "b", "c");
 }
 
-TEST(path_util, JoinTruncateLong)
+TEST(path_utils, JoinTruncateLong)
 {
   JOIN("", 1, "//", "//longer", "path");
   JOIN("/", 2, "//", "//longer", "path");
@@ -665,14 +665,14 @@ TEST(path_util, JoinTruncateLong)
   JOIN("//longer/path/t", 16, "//", "//longer", "path/", "trunc");
 }
 
-TEST(path_util, JoinComplex)
+TEST(path_utils, JoinComplex)
 {
   JOIN("/a/b/c/d/e/f/g/", 100, "/", "a/b", "//////c/d", "", "e", "f", "g//");
   JOIN("/aa/bb/cc/dd/ee/ff/gg/", 100, "/", "aa/bb", "//////cc/dd", "", "ee", "ff", "gg//");
   JOIN("1/2/3/", 100, "1", "////////", "", "2", "3///");
 }
 
-TEST(path_util, JoinRelativePrefix)
+TEST(path_utils, JoinRelativePrefix)
 {
   JOIN("//a/b/c", 100, "//a", "b", "c");
   JOIN("//a/b/c", 100, "//", "//a//", "//b//", "//c");
@@ -708,13 +708,13 @@ TEST(path_util, JoinRelativePrefix)
   } \
   ((void)0)
 
-TEST(path_util, AppendFile)
+TEST(path_utils, AppendFile)
 {
   APPEND("a/b", 100, "a", "b");
   APPEND("a/b", 100, "a/", "b");
 }
 
-TEST(path_util, AppendFile_Truncate)
+TEST(path_utils, AppendFile_Truncate)
 {
   APPEND("/A", 3, "/", "ABC");
   APPEND("/", 2, "/", "test");
@@ -730,7 +730,7 @@ TEST(path_util, AppendFile_Truncate)
 /** \name Tests for: #BLI_path_frame
  * \{ */
 
-TEST(path_util, Frame)
+TEST(path_utils, Frame)
 {
   bool ret;
 
@@ -821,7 +821,7 @@ TEST(path_util, Frame)
 /** \name Tests for: #BLI_path_split_dir_file
  * \{ */
 
-TEST(path_util, SplitDirfile)
+TEST(path_utils, SplitDirfile)
 {
   {
     const char *path = "";
@@ -893,7 +893,7 @@ TEST(path_util, SplitDirfile)
   } \
   ((void)0)
 
-TEST(path_util, FrameStrip)
+TEST(path_utils, FrameStrip)
 {
   PATH_FRAME_STRIP("", "", "");
   PATH_FRAME_STRIP("nonum.abc", "nonum", ".abc");
@@ -910,7 +910,7 @@ TEST(path_util, FrameStrip)
 /** \name Tests for: #BLI_path_extension
  * \{ */
 
-TEST(path_util, Extension)
+TEST(path_utils, Extension)
 {
   EXPECT_EQ(BLI_path_extension("some.def/file"), nullptr);
   EXPECT_EQ(BLI_path_extension("Text"), nullptr);
@@ -953,7 +953,7 @@ TEST(path_util, Extension)
   } \
   ((void)0)
 
-TEST(path_util, ExtensionCheck)
+TEST(path_utils, ExtensionCheck)
 {
   PATH_EXTENSION_CHECK("a/b/c.exe", ".exe", ".exe");
   PATH_EXTENSION_CHECK("correct/path/to/file.h", ".h", ".h");
@@ -1004,7 +1004,7 @@ TEST(path_util, ExtensionCheck)
 #define PATH_EXTENSION_REPLACE(input_path, input_ext, expect_result, expect_path) \
   PATH_EXTENSION_REPLACE_WITH_MAXLEN(input_path, input_ext, expect_result, expect_path, FILE_MAX)
 
-TEST(path_util, ExtensionReplace)
+TEST(path_utils, ExtensionReplace)
 {
   PATH_EXTENSION_REPLACE("test", ".txt", true, "test.txt");
   PATH_EXTENSION_REPLACE("test.", ".txt", true, "test.txt");
@@ -1033,7 +1033,7 @@ TEST(path_util, ExtensionReplace)
   PATH_EXTENSION_REPLACE("._.hidden", ".hidden", true, "._.hidden");
 }
 
-TEST(path_util, ExtensionReplace_Overflow)
+TEST(path_utils, ExtensionReplace_Overflow)
 {
   /* Small values. */
   PATH_EXTENSION_REPLACE_WITH_MAXLEN("test", ".txt", false, "test", 0);
@@ -1075,7 +1075,7 @@ TEST(path_util, ExtensionReplace_Overflow)
 #define PATH_EXTENSION_ENSURE(input_path, input_ext, expect_result, expect_path) \
   PATH_EXTENSION_ENSURE_WITH_MAXLEN(input_path, input_ext, expect_result, expect_path, FILE_MAX)
 
-TEST(path_util, ExtensionEnsure)
+TEST(path_utils, ExtensionEnsure)
 {
   PATH_EXTENSION_ENSURE("test", ".txt", true, "test.txt");
   PATH_EXTENSION_ENSURE("test.", ".txt", true, "test.txt");
@@ -1101,7 +1101,7 @@ TEST(path_util, ExtensionEnsure)
   PATH_EXTENSION_ENSURE("._.hidden", ".hidden", true, "._.hidden");
 }
 
-TEST(path_util, ExtensionEnsure_Overflow)
+TEST(path_utils, ExtensionEnsure_Overflow)
 {
   /* Small values. */
   PATH_EXTENSION_ENSURE_WITH_MAXLEN("test", ".txt", false, "test", 0);
@@ -1132,7 +1132,7 @@ TEST(path_util, ExtensionEnsure_Overflow)
   } \
   ((void)0)
 
-TEST(path_util, FrameCheckChars)
+TEST(path_utils, FrameCheckChars)
 {
   PATH_FRAME_CHECK_CHARS("a#", true);
   PATH_FRAME_CHECK_CHARS("aaaaa#", true);
@@ -1173,7 +1173,7 @@ TEST(path_util, FrameCheckChars)
   } \
   ((void)0)
 
-TEST(path_util, FrameRange)
+TEST(path_utils, FrameRange)
 {
   int dummy = -1;
   PATH_FRAME_RANGE("#", 1, 2, dummy, "1-2");
@@ -1211,7 +1211,7 @@ TEST(path_util, FrameRange)
   } \
   ((void)0)
 
-TEST(path_util, FrameGet)
+TEST(path_utils, FrameGet)
 {
   PATH_FRAME_GET("001.avi", 1, 3, true);
   PATH_FRAME_GET("0000299.ext", 299, 7, true);
@@ -1243,7 +1243,7 @@ TEST(path_util, FrameGet)
   } \
   (void)0;
 
-TEST(path_util, SequenceDecode)
+TEST(path_utils, SequenceDecode)
 {
   /* Basic use. */
   PATH_SEQ_DECODE("file_123.txt", 123, "file_", ".txt", 3);
@@ -1274,7 +1274,7 @@ TEST(path_util, SequenceDecode)
   } \
   (void)0;
 
-TEST(path_util, Suffix)
+TEST(path_utils, Suffix)
 {
   /* Extension. */
   PATH_SUFFIX("file.txt", FILE_MAX, "_", "123", true, "file_123.txt");
@@ -1331,17 +1331,17 @@ TEST(path_util, Suffix)
 #  define ABS_PREFIX ""
 #endif
 
-TEST(path_util, RelPath_Simple)
+TEST(path_utils, RelPath_Simple)
 {
   PATH_REL(ABS_PREFIX "/foo/bar/blender.blend", ABS_PREFIX "/foo/bar/", "//blender.blend");
 }
 
-TEST(path_util, RelPath_SimpleSubdir)
+TEST(path_utils, RelPath_SimpleSubdir)
 {
   PATH_REL(ABS_PREFIX "/foo/bar/blender.blend", ABS_PREFIX "/foo/bar", "//bar/blender.blend");
 }
 
-TEST(path_util, RelPath_BufferOverflowRoot)
+TEST(path_utils, RelPath_BufferOverflowRoot)
 {
   char abs_path_in[FILE_MAX];
   const char *abs_prefix = ABS_PREFIX "/";
@@ -1357,7 +1357,7 @@ TEST(path_util, RelPath_BufferOverflowRoot)
   PATH_REL(abs_path_in, abs_prefix, abs_path_out);
 }
 
-TEST(path_util, RelPath_BufferOverflowSubdir)
+TEST(path_utils, RelPath_BufferOverflowSubdir)
 {
   char abs_path_in[FILE_MAX];
   const char *ref_path_in = ABS_PREFIX "/foo/bar/";
@@ -1383,7 +1383,7 @@ TEST(path_util, RelPath_BufferOverflowSubdir)
 /** \name Tests for: #BLI_path_is_rel
  * \{ */
 
-TEST(path_util, PathIsRel)
+TEST(path_utils, PathIsRel)
 {
   EXPECT_TRUE(BLI_path_is_rel("//file.txt"));
 
@@ -1405,7 +1405,7 @@ TEST(path_util, PathIsRel)
 /** \name Tests for: #BLI_path_is_abs_from_cwd
  * \{ */
 
-TEST(path_util, PathIsAbsFromCwd)
+TEST(path_utils, PathIsAbsFromCwd)
 {
 #ifdef WIN32
   EXPECT_FALSE(BLI_path_is_abs_from_cwd("/file.txt"));
@@ -1436,7 +1436,7 @@ TEST(path_util, PathIsAbsFromCwd)
 /** \name Tests for: #BLI_path_contains
  * \{ */
 
-TEST(path_util, Contains)
+TEST(path_utils, Contains)
 {
   EXPECT_TRUE(BLI_path_contains("/some/path", "/some/path")) << "A path contains itself";
   EXPECT_TRUE(BLI_path_contains("/some/path", "/some/path/inside"))
@@ -1459,7 +1459,7 @@ TEST(path_util, Contains)
 }
 
 #ifdef WIN32
-TEST(path_util, Contains_Windows_case_insensitive)
+TEST(path_utils, Contains_Windows_case_insensitive)
 {
   EXPECT_TRUE(BLI_path_contains("C:\\some\\path", "c:\\SOME\\path\\inside"))
       << "On Windows path comparison should ignore case";
@@ -1472,7 +1472,7 @@ TEST(path_util, Contains_Windows_case_insensitive)
 /** \name Tests for: #BLI_path_has_hidden_component
  * \{ */
 
-TEST(path_util, HasHiddenComponents)
+TEST(path_utils, HasHiddenComponents)
 {
   /* No hidden components: */
   EXPECT_FALSE(BLI_path_has_hidden_component(""));
@@ -1536,7 +1536,7 @@ TEST(path_util, HasHiddenComponents)
 
 #  include "BLI_timeit.hh"
 
-TEST(path_util, HasHiddenComponents_Performance)
+TEST(path_utils, HasHiddenComponents_Performance)
 {
   SCOPED_TIMER(__func__);
   const char *test_paths[] = {

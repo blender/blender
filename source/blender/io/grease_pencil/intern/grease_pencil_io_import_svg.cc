@@ -13,7 +13,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.hh"
 #include "BLI_offset_indices.hh"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"

@@ -13,7 +13,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_string.h"
 
 #include "BKE_anonymous_attribute_make.hh"

@@ -126,7 +126,7 @@ set(SRC
   intern/noise.cc
   intern/offset_indices.cc
   intern/ordered_edge.cc
-  intern/path_util.cc
+  intern/path_utils.cc
   intern/polyfill_2d.c
   intern/polyfill_2d_beautify.c
   intern/quadric.c
@@ -343,7 +343,7 @@ set(SRC
   BLI_offset_span.hh
   BLI_ordered_edge.hh
   BLI_parameter_pack_utils.hh
-  BLI_path_util.h
+  BLI_path_utils.hh
   BLI_polyfill_2d.h
   BLI_polyfill_2d_beautify.h
   BLI_pool.hh
@@ -580,7 +580,7 @@ if(WITH_GTESTS)
     tests/BLI_mesh_intersect_test.cc
     tests/BLI_multi_value_map_test.cc
     tests/BLI_offset_indices_test.cc
-    tests/BLI_path_util_test.cc
+    tests/BLI_path_utils_test.cc
     tests/BLI_polyfill_2d_test.cc
     tests/BLI_pool_test.cc
     tests/BLI_random_access_iterator_mixin_test.cc

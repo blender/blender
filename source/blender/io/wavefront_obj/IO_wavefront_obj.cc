@@ -8,7 +8,7 @@
 
 #include <iostream>
 
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_timeit.hh"
 
 #include "IO_wavefront_obj.hh"

@@ -8,7 +8,7 @@
 
 #include <string>
 
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_appdir.hh"

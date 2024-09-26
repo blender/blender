@@ -16,7 +16,7 @@
 #include "BKE_report.hh"
 
 #include "BLI_fileops.hh"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
 

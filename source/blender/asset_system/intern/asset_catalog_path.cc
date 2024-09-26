@@ -8,7 +8,7 @@
 
 #include "AS_asset_catalog_path.hh"
 
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 
 #include <sstream>
 

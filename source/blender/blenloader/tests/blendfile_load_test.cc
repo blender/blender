@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "blendfile_loading_base_test.h"
 
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 
 class BlendfileLoadingTest : public BlendfileLoadingBaseTest {};
 

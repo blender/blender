@@ -222,7 +222,7 @@ static const EnumPropertyItem rna_enum_preferences_extension_repo_source_type_it
 
 #  include "BLF_api.hh"
 
-#  include "BLI_path_util.h"
+#  include "BLI_path_utils.hh"
 
 #  include "MEM_CacheLimiterC-Api.h"
 #  include "MEM_guardedalloc.h"

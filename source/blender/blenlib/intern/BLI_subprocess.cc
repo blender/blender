@@ -9,7 +9,7 @@
 /* Based on https://github.com/jarikomppa/ipc (Unlicense) */
 
 #  include "BLI_assert.h"
-#  include "BLI_path_util.h"
+#  include "BLI_path_utils.hh"
 #  include "BLI_string_utf8.h"
 #  include <iostream>
 

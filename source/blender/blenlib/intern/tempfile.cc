@@ -5,7 +5,7 @@
 #include "BLI_tempfile.h"
 
 #include "BLI_fileops.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_string.h"
 
 bool BLI_temp_directory_path_copy_if_valid(char *tempdir,

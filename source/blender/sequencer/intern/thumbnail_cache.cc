@@ -8,7 +8,7 @@
 
 #include "BLI_map.hh"
 #include "BLI_math_base.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_set.hh"
 #include "BLI_task.hh"
 #include "BLI_vector.hh"

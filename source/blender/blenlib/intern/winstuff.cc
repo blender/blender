@@ -20,7 +20,7 @@
 
 #  define WIN32_SKIP_HKEY_PROTECTION /* Need to use HKEY. */
 #  include "BLI_fileops.h"
-#  include "BLI_path_util.h"
+#  include "BLI_path_utils.hh"
 #  include "BLI_string.h"
 #  include "BLI_utildefines.h"
 #  include "BLI_winstuff.h"

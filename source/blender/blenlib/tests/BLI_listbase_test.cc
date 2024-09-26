@@ -8,7 +8,7 @@
 
 #include "BLI_array_utils.h"
 #include "BLI_listbase.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_ressource_strings.h"
 #include "BLI_string.h"
 

@@ -547,7 +547,7 @@ static const EnumPropertyItem rna_enum_curve_display_handle_items[] = {
 #  include "DNA_screen_types.h"
 #  include "DNA_userdef_types.h"
 
-#  include "BLI_path_util.h"
+#  include "BLI_path_utils.hh"
 #  include "BLI_string.h"
 
 #  include "BKE_anim_data.hh"

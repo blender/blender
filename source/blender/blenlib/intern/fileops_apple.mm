@@ -11,7 +11,7 @@
 #import <Foundation/Foundation.h>
 
 #include "BLI_fileops.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 
 int BLI_delete_soft(const char *filepath, const char **r_error_message)
 {

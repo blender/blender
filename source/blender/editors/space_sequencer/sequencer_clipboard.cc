@@ -25,7 +25,7 @@
 
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 
 #include "BKE_anim_data.hh"
 #include "BKE_appdir.hh"

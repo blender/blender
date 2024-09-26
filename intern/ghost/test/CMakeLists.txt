@@ -179,7 +179,7 @@ add_library(bli_lib
   "../../../source/blender/blenlib/intern/task.c"
   "../../../source/blender/blenlib/intern/threads.c"
   "../../../source/blender/blenlib/intern/time.c"
-  "../../../source/blender/blenlib/intern/path_util.c"
+  "../../../source/blender/blenlib/intern/path_utils.cc"
   "../../../source/blender/blenlib/intern/BLI_dynstr.c"
   "../../../source/blender/blenlib/intern/BLI_ghash.c"
   "../../../source/blender/blenlib/intern/BLI_ghash_utils.cc"

@@ -13,7 +13,7 @@
 #include "BLI_fileops_types.h"
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 

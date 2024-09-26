@@ -22,7 +22,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"

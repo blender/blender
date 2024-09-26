@@ -12,7 +12,7 @@
 
 #include "BLI_fileops.hh"
 #include "BLI_map.hh"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 
 namespace blender::ui::string_search {
 

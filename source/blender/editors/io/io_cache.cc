@@ -12,7 +12,7 @@
 #include "DNA_space_types.h"
 
 #include "BLI_listbase.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_string.h"
 
 #include "BKE_cachefile.hh"

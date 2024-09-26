@@ -11,7 +11,7 @@
 #include <pxr/imaging/hgi/tokens.h>
 #include <pxr/usd/usdGeom/tokens.h>
 
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 
 #include "BKE_context.hh"
 

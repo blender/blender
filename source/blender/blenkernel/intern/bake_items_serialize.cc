@@ -16,7 +16,7 @@
 #include "BLI_endian_defines.h"
 #include "BLI_endian_switch.h"
 #include "BLI_math_matrix_types.hh"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 
 #include "DNA_material_types.h"
 #include "DNA_modifier_types.h"

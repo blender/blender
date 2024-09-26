@@ -44,7 +44,7 @@
 #include "BLI_compiler_compat.h"
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_sort.hh"
 #include "BLI_span.hh"
 #include "BLI_string.h"

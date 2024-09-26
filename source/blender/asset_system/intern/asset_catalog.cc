@@ -16,7 +16,7 @@
 #include "asset_catalog_definition_file.hh"
 
 #include "BLI_fileops.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 
 /* For S_ISREG() and S_ISDIR() on Windows. */
 #ifdef WIN32

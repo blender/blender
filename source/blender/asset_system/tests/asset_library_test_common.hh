@@ -16,7 +16,7 @@
 #include "BKE_callbacks.hh"
 
 #include "BLI_fileops.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 
 #include "CLG_log.h"
 

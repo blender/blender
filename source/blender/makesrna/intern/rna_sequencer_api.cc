@@ -30,7 +30,7 @@
 #  include "DNA_mask_types.h"
 #  include "DNA_sound_types.h"
 
-#  include "BLI_path_util.h" /* #BLI_path_split_dir_file */
+#  include "BLI_path_utils.hh" /* #BLI_path_split_dir_file */
 
 #  include "BKE_image.h"
 #  include "BKE_mask.h"

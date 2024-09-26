@@ -50,7 +50,7 @@
 #include "BKE_material.h"
 #include "BKE_scene.hh"
 
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 
 #include "DNA_camera_types.h"
 #include "DNA_light_types.h"

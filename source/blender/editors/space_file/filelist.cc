@@ -3701,7 +3701,7 @@ static void filelist_readjob_recursive_dir_add_items(const bool do_lib,
 
     BLI_stack_discard(todo_dirs);
 
-    /* ARRRG! We have to be very careful *not to use* common BLI_path_util helpers over
+    /* ARRRG! We have to be very careful *not to use* common `BLI_path_utils.hh` helpers over
      * entry->relpath itself (nor any path containing it), since it may actually be a datablock
      * name inside .blend file, which can have slashes and backslashes! See #46827.
      * Note that in the end, this means we 'cache' valid relative subdir once here,

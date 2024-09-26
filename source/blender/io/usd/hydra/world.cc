@@ -17,7 +17,7 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_math_rotation.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"

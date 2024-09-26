@@ -29,7 +29,7 @@
 #include "BLI_math_vector.hh"
 #include "BLI_memory_counter.hh"
 #include "BLI_mempool.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_string.h"

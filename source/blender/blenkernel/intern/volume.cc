@@ -25,7 +25,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
 #include "BLI_task.hh"
