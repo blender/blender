@@ -6522,7 +6522,7 @@ void filter_distances_with_radius(const float radius,
                                   const MutableSpan<float> factors)
 {
   for (const int i : distances.index_range()) {
-    if (distances[i] > radius) {
+    if (distances[i] >= radius) {
       factors[i] = 0.0f;
     }
   }
