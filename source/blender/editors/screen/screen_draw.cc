@@ -273,6 +273,39 @@ void ED_screen_draw_edges(wmWindow *win)
   }
 }
 
+void screen_draw_move_highlight(bScreen *screen, eScreenAxis dir_axis)
+{
+  rctf rect = {SHRT_MAX, SHRT_MIN, SHRT_MAX, SHRT_MIN};
+
+  LISTBASE_FOREACH (const ScrEdge *, edge, &screen->edgebase) {
+    if (edge->v1->editflag && edge->v2->editflag) {
+      if (dir_axis == SCREEN_AXIS_H) {
+        rect.xmin = std::min({rect.xmin, float(edge->v1->vec.x), float(edge->v2->vec.x)});
+        rect.xmax = std::max({rect.xmax, float(edge->v1->vec.x), float(edge->v2->vec.x)});
+        rect.ymin = rect.ymax = float(edge->v1->vec.y);
+      }
+      else {
+        rect.ymin = std::min({rect.ymin, float(edge->v1->vec.y), float(edge->v2->vec.y)});
+        rect.ymax = std::max({rect.ymax, float(edge->v1->vec.y), float(edge->v2->vec.y)});
+        rect.xmin = rect.xmax = float(edge->v1->vec.x);
+      }
+    };
+  }
+
+  if (dir_axis == SCREEN_AXIS_H) {
+    BLI_rctf_pad(&rect, 0.0f, 2.5f * U.pixelsize);
+  }
+  else {
+    BLI_rctf_pad(&rect, 2.5f * U.pixelsize, 0.0f);
+  }
+
+  float inner[4] = {1.0f, 1.0f, 1.0f, 0.7f};
+  float outline[4] = {0.0f, 0.0f, 0.0f, 0.8f};
+  UI_draw_roundbox_corner_set(UI_CNR_ALL);
+  UI_draw_roundbox_4fv_ex(
+      &rect, inner, nullptr, 1.0f, outline, 2.0f * U.pixelsize, 2.5f * U.pixelsize);
+}
+
 static void screen_draw_area_drag_tip(int x, int y, const ScrArea *source, const std::string &hint)
 {
   const char *area_name = IFACE_(ED_area_name(source).c_str());
