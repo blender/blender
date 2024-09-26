@@ -712,34 +712,74 @@ bool BKE_paint_brush_set(Paint *paint, Brush *brush)
   return true;
 }
 
-static AssetWeakReference *paint_brush_asset_reference_from_essentials(const char *name)
+static const char *paint_brush_essentials_asset_file_name_from_obmode(const eObjectMode ob_mode)
 {
+  switch (ob_mode) {
+    case OB_MODE_SCULPT:
+      return "essentials_brushes-mesh_sculpt.blend";
+    case OB_MODE_VERTEX_PAINT:
+      return "essentials_brushes-mesh_vertex.blend";
+    case OB_MODE_WEIGHT_PAINT:
+      return "essentials_brushes-mesh_weight.blend";
+    case OB_MODE_TEXTURE_PAINT:
+      return "essentials_brushes-mesh_texture.blend";
+    case OB_MODE_PAINT_GPENCIL_LEGACY:
+      return "essentials_brushes-gp_draw.blend";
+    case OB_MODE_SCULPT_GPENCIL_LEGACY:
+      return "essentials_brushes-gp_sculpt.blend";
+    case OB_MODE_WEIGHT_GPENCIL_LEGACY:
+      return "essentials_brushes-gp_weight.blend";
+    case OB_MODE_VERTEX_GPENCIL_LEGACY:
+      return "essentials_brushes-gp_vertex.blend";
+    case OB_MODE_SCULPT_CURVES:
+      return "essentials_brushes-curve_sculpt.blend";
+    default:
+      return nullptr;
+  }
+}
+
+static AssetWeakReference *paint_brush_asset_reference_ptr_from_essentials(
+    const char *name, const eObjectMode ob_mode)
+{
+  const char *essentials_file_name = paint_brush_essentials_asset_file_name_from_obmode(ob_mode);
+  if (!essentials_file_name) {
+    return nullptr;
+  }
+
   AssetWeakReference *weak_ref = MEM_new<AssetWeakReference>(__func__);
   weak_ref->asset_library_type = eAssetLibraryType::ASSET_LIBRARY_ESSENTIALS;
   weak_ref->asset_library_identifier = nullptr;
-  weak_ref->relative_asset_identifier = BLI_sprintfN("brushes/essentials_brushes.blend/Brush/%s",
-                                                     name);
+  weak_ref->relative_asset_identifier = BLI_sprintfN(
+      "brushes/%s/Brush/%s", essentials_file_name, name);
   return weak_ref;
 }
 
-static void paint_brush_asset_reference_from_essentials(const char *name,
-                                                        AssetWeakReference *r_weak_ref)
+static std::optional<AssetWeakReference> paint_brush_asset_reference_from_essentials(
+    const char *name, const eObjectMode ob_mode)
 {
-  r_weak_ref->asset_library_type = eAssetLibraryType::ASSET_LIBRARY_ESSENTIALS;
-  r_weak_ref->asset_library_identifier = nullptr;
-  r_weak_ref->relative_asset_identifier = BLI_sprintfN("brushes/essentials_brushes.blend/Brush/%s",
-                                                       name);
-}
+  const char *essentials_file_name = paint_brush_essentials_asset_file_name_from_obmode(ob_mode);
+  if (!essentials_file_name) {
+    return {};
+  }
 
-Brush *BKE_paint_brush_from_essentials(Main *bmain, const char *name)
-{
   AssetWeakReference weak_ref;
   weak_ref.asset_library_type = eAssetLibraryType::ASSET_LIBRARY_ESSENTIALS;
-  weak_ref.relative_asset_identifier = BLI_sprintfN("brushes/essentials_brushes.blend/Brush/%s",
-                                                    name);
+  weak_ref.asset_library_identifier = nullptr;
+  weak_ref.relative_asset_identifier = BLI_sprintfN(
+      "brushes/%s/Brush/%s", essentials_file_name, name);
+  return weak_ref;
+}
+
+Brush *BKE_paint_brush_from_essentials(Main *bmain, const eObjectMode ob_mode, const char *name)
+{
+  std::optional<AssetWeakReference> weak_ref = paint_brush_asset_reference_from_essentials(
+      name, ob_mode);
+  if (!weak_ref) {
+    return nullptr;
+  }
 
   return reinterpret_cast<Brush *>(
-      blender::bke::asset_edit_id_from_weak_reference(*bmain, ID_BR, weak_ref));
+      blender::bke::asset_edit_id_from_weak_reference(*bmain, ID_BR, *weak_ref));
 }
 
 static void paint_brush_set_essentials_reference(Paint *paint, const char *name)
@@ -747,7 +787,9 @@ static void paint_brush_set_essentials_reference(Paint *paint, const char *name)
   /* Set brush asset reference to a named brush in the essentials asset library. */
   MEM_delete(paint->brush_asset_reference);
 
-  paint->brush_asset_reference = paint_brush_asset_reference_from_essentials(name);
+  BLI_assert(paint->runtime.initialized);
+  paint->brush_asset_reference = paint_brush_asset_reference_ptr_from_essentials(
+      name, eObjectMode(paint->runtime.ob_mode));
   paint->brush = nullptr;
 }
 
@@ -756,7 +798,9 @@ static void paint_eraser_brush_set_essentials_reference(Paint *paint, const char
   /* Set brush asset reference to a named brush in the essentials asset library. */
   MEM_delete(paint->eraser_brush_asset_reference);
 
-  paint->eraser_brush_asset_reference = paint_brush_asset_reference_from_essentials(name);
+  BLI_assert(paint->runtime.initialized);
+  paint->eraser_brush_asset_reference = paint_brush_asset_reference_ptr_from_essentials(
+      name, eObjectMode(paint->runtime.ob_mode));
   paint->eraser_brush = nullptr;
 }
 
@@ -834,9 +878,7 @@ std::optional<AssetWeakReference> BKE_paint_brush_type_default_reference(
     return {};
   }
 
-  AssetWeakReference asset_reference;
-  paint_brush_asset_reference_from_essentials(name.c_str(), &asset_reference);
-  return asset_reference;
+  return paint_brush_asset_reference_from_essentials(name.c_str(), ob_mode);
 }
 
 static void paint_brush_set_default_reference(Paint *paint,
@@ -986,15 +1028,16 @@ bool BKE_paint_eraser_brush_set(Paint *paint, Brush *brush)
   return true;
 }
 
-Brush *BKE_paint_eraser_brush_from_essentials(Main *bmain, const char *name)
+Brush *BKE_paint_eraser_brush_from_essentials(Main *bmain, eObjectMode ob_mode, const char *name)
 {
-  AssetWeakReference weak_ref;
-  weak_ref.asset_library_type = eAssetLibraryType::ASSET_LIBRARY_ESSENTIALS;
-  weak_ref.relative_asset_identifier = BLI_sprintfN("brushes/essentials_brushes.blend/Brush/%s",
-                                                    name);
+  std::optional<AssetWeakReference> weak_ref = paint_brush_asset_reference_from_essentials(
+      name, ob_mode);
+  if (!weak_ref) {
+    return {};
+  }
 
   return reinterpret_cast<Brush *>(
-      blender::bke::asset_edit_id_from_weak_reference(*bmain, ID_BR, weak_ref));
+      blender::bke::asset_edit_id_from_weak_reference(*bmain, ID_BR, *weak_ref));
 }
 
 bool BKE_paint_eraser_brush_set_default(Main *bmain, Paint *paint)

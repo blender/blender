@@ -2179,7 +2179,8 @@ static void gpencil_sculpt_brush_apply(bContext *C, wmOperator *op, PointerRNA *
 static Brush *gpencil_sculpt_get_smooth_brush(tGP_BrushEditData *gso)
 {
   Main *bmain = gso->bmain;
-  Brush *brush = BKE_paint_brush_from_essentials(bmain, "Smooth Stroke");
+  Brush *brush = BKE_paint_brush_from_essentials(
+      bmain, OB_MODE_SCULPT_GPENCIL_LEGACY, "Smooth Stroke");
   if (brush && !brush->gpencil_settings) {
     BKE_brush_init_gpencil_settings(brush);
   }
