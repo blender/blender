@@ -215,14 +215,14 @@ static void two_xy_to_rect(
   if (is_relative) {
     r_rect->xmin = nxy->fac_x1 + (offset.x / dims.x);
     r_rect->xmax = nxy->fac_x2 + (offset.x / dims.x);
-    r_rect->ymin = nxy->fac_y1 + (offset.y / dims.y);
-    r_rect->ymax = nxy->fac_y2 + (offset.y / dims.y);
+    r_rect->ymin = nxy->fac_y2 + (offset.y / dims.y);
+    r_rect->ymax = nxy->fac_y1 + (offset.y / dims.y);
   }
   else {
     r_rect->xmin = (nxy->x1 + offset.x) / dims.x;
     r_rect->xmax = (nxy->x2 + offset.x) / dims.x;
-    r_rect->ymin = (nxy->y1 + offset.y) / dims.y;
-    r_rect->ymax = (nxy->y2 + offset.y) / dims.y;
+    r_rect->ymin = (nxy->y2 + offset.y) / dims.y;
+    r_rect->ymax = (nxy->y1 + offset.y) / dims.y;
   }
 }
 
@@ -232,14 +232,14 @@ static void two_xy_from_rect(
   if (is_relative) {
     nxy->fac_x1 = rect->xmin - (offset.x / dims.x);
     nxy->fac_x2 = rect->xmax - (offset.x / dims.x);
-    nxy->fac_y1 = rect->ymin - (offset.y / dims.y);
-    nxy->fac_y2 = rect->ymax - (offset.y / dims.y);
+    nxy->fac_y2 = rect->ymin - (offset.y / dims.y);
+    nxy->fac_y1 = rect->ymax - (offset.y / dims.y);
   }
   else {
     nxy->x1 = rect->xmin * dims.x - offset.x;
     nxy->x2 = rect->xmax * dims.x - offset.x;
-    nxy->y1 = rect->ymin * dims.y - offset.y;
-    nxy->y2 = rect->ymax * dims.y - offset.y;
+    nxy->y2 = rect->ymin * dims.y - offset.y;
+    nxy->y1 = rect->ymax * dims.y - offset.y;
   }
 }
 
@@ -278,8 +278,6 @@ static void gizmo_node_crop_prop_matrix_set(const wmGizmo *gz,
   bool is_relative = bool(node->custom2);
   rctf rct;
   two_xy_to_rect(nxy, dims, offset, is_relative, &rct);
-  const bool nx = rct.xmin > rct.xmax;
-  const bool ny = rct.ymin > rct.ymax;
   BLI_rctf_resize(&rct, fabsf(matrix[0][0]), fabsf(matrix[1][1]));
   BLI_rctf_recenter(&rct, ((matrix[3][0]) / dims[0]) + 0.5f, ((matrix[3][1]) / dims[1]) + 0.5f);
   rctf rct_isect{};
@@ -288,12 +286,6 @@ static void gizmo_node_crop_prop_matrix_set(const wmGizmo *gz,
   rct_isect.ymin = offset.y;
   rct_isect.ymax = offset.y / dims.y + 1;
   BLI_rctf_isect(&rct_isect, &rct, &rct);
-  if (nx) {
-    std::swap(rct.xmin, rct.xmax);
-  }
-  if (ny) {
-    std::swap(rct.ymin, rct.ymax);
-  }
   two_xy_from_rect(nxy, &rct, dims, offset, is_relative);
   gizmo_node_crop_update(crop_group);
 }
