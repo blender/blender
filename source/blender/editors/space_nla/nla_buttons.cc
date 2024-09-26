@@ -33,6 +33,7 @@
 #include "RNA_prototypes.hh"
 
 #include "ANIM_action.hh"
+#include "ANIM_action_legacy.hh"
 
 #include "ED_anim_api.hh"
 
@@ -489,7 +490,7 @@ static void nla_panel_actclip(const bContext *C, Panel *panel)
 
     animrig::Action &action = strip->act->wrap();
     ID &animated_id = *strip_ptr.owner_id;
-    if (action.is_action_layered()) {
+    if (!blender::animrig::legacy::action_treat_as_legacy(action)) {
       PointerRNA animated_id_ptr = RNA_id_pointer_create(&animated_id);
       uiLayoutSetContextPointer(column, "animated_id", &animated_id_ptr);
       uiLayoutSetContextPointer(column, "nla_strip", &strip_ptr);

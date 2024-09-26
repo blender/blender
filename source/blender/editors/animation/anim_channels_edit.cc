@@ -44,6 +44,7 @@
 #include "BKE_workspace.hh"
 
 #include "ANIM_action.hh"
+#include "ANIM_action_legacy.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -1958,7 +1959,7 @@ static void rearrange_action_channels(bAnimContext *ac, bAction *act, eRearrange
   BLI_assert(act != nullptr);
 
   /* Layered actions. */
-  if (!act->wrap().is_action_legacy()) {
+  if (!blender::animrig::legacy::action_treat_as_legacy(*act)) {
     rearrange_layered_action_channel_groups(ac, mode);
     rearrange_layered_action_fcurves(ac, act->wrap(), mode);
     return;
@@ -2341,7 +2342,7 @@ static void animchannels_group_channels(bAnimContext *ac,
   }
 
   /* Legacy actions. */
-  if (act->wrap().is_action_legacy()) {
+  if (blender::animrig::legacy::action_treat_as_legacy(*act)) {
     bActionGroup *agrp;
 
     /* create new group, which should now be part of the action */
@@ -2507,7 +2508,7 @@ static int animchannels_ungroup_exec(bContext *C, wmOperator * /*op*/)
     bAction *act = ale->adt->action;
 
     /* Legacy actions. */
-    if (act->wrap().is_action_legacy()) {
+    if (blender::animrig::legacy::action_treat_as_legacy(*act)) {
       bActionGroup *agrp = fcu->grp;
 
       /* remove F-Curve from group and add at tail (ungrouped) */

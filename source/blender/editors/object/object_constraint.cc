@@ -60,6 +60,7 @@
 #include "ED_screen.hh"
 
 #include "ANIM_action.hh"
+#include "ANIM_action_legacy.hh"
 #include "ANIM_animdata.hh"
 
 #include "UI_interface.hh"
@@ -358,8 +359,7 @@ static void test_constraint(
       con->flag |= CONSTRAINT_DISABLE;
     }
     else {
-      animrig::Action &action = data->act->wrap();
-      if (action.is_action_legacy()) {
+      if (animrig::legacy::action_treat_as_legacy(*data->act)) {
         if (data->act->idroot != ID_OB && data->act->idroot != 0) {
           /* Only object-rooted actions can be used. */
           data->act = nullptr;
@@ -369,6 +369,7 @@ static void test_constraint(
       else {
         /* The slot was assigned, so assume that it is suitable to animate the
          * owner (only suitable slots appear in the drop-down). */
+        animrig::Action &action = data->act->wrap();
         animrig::Slot *slot = action.slot_for_handle(data->action_slot_handle);
         if (!slot) {
           con->flag |= CONSTRAINT_DISABLE;

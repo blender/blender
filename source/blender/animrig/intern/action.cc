@@ -1377,7 +1377,7 @@ bool is_action_assignable_to(const bAction *dna_action, const ID_Type id_code)
   }
 
   const animrig::Action &action = dna_action->wrap();
-  if (!action.is_action_layered()) {
+  if (legacy::action_treat_as_legacy(action)) {
     /* Legacy Actions can only be assigned if their idroot matches. Empty
      * Actions are considered both 'layered' and 'legacy' at the same time,
      * hence this condition checks for 'not layered' rather than 'legacy'. */
@@ -2282,11 +2282,8 @@ FCurve *action_fcurve_ensure(Main *bmain,
   if (act == nullptr) {
     return nullptr;
   }
-  Action &action = act->wrap();
 
-  if ((USER_EXPERIMENTAL_TEST(&U, use_animation_baklava) && action.is_empty()) ||
-      !action.is_action_legacy())
-  {
+  if (!animrig::legacy::action_treat_as_legacy(*act)) {
     /* NOTE: for layered actions we require the following:
      *
      * - `ptr` is non-null.
@@ -2303,6 +2300,8 @@ FCurve *action_fcurve_ensure(Main *bmain,
      * hold, or if this is even the best place to handle the layered action
      * cases at all, was leading to discussion of larger changes than made sense
      * to tackle at that point. */
+    Action &action = act->wrap();
+
     BLI_assert(ptr != nullptr);
     if (ptr == nullptr || ptr->owner_id == nullptr) {
       return nullptr;
@@ -2437,10 +2436,7 @@ void action_fcurve_attach(Action &action,
                           FCurve &fcurve_to_attach,
                           std::optional<StringRefNull> group_name)
 {
-  const bool use_layered_action = (USER_EXPERIMENTAL_TEST(&U, use_animation_baklava) &&
-                                   action.is_empty()) ||
-                                  !action.is_action_legacy();
-  if (!use_layered_action) {
+  if (animrig::legacy::action_treat_as_legacy(action)) {
     BLI_addtail(&action.curves, &fcurve_to_attach);
     return;
   }
@@ -2558,7 +2554,7 @@ ID *action_slot_get_id_for_keying(Main &bmain,
                                   const slot_handle_t slot_handle,
                                   ID *primary_id)
 {
-  if (action.is_action_legacy()) {
+  if (animrig::legacy::action_treat_as_legacy(action)) {
     if (primary_id && get_action(*primary_id) == &action) {
       return primary_id;
     }

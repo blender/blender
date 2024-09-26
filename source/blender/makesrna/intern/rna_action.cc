@@ -27,6 +27,7 @@
 #include "rna_internal.hh"
 
 #include "ANIM_action.hh"
+#include "ANIM_action_legacy.hh"
 
 #include "WM_types.hh"
 
@@ -846,14 +847,11 @@ static PointerRNA rna_ActionGroup_channels_get(CollectionPropertyIterator *iter)
 }
 
 #  ifdef WITH_ANIM_BAKLAVA
-/* Use the backward-compatible API only when the experimental feature is
- * enabled OR if the Action is already a layered Action. */
+/* Use the backward-compatible API only when we're working with the action as a
+ * layered action. */
 static bool use_backward_compatible_api(animrig::Action &action)
 {
-  /* action.is_action_layered() returns 'true' on empty Actions, and that case must be protected by
-   * the experimental flag, hence the expression below uses !action.is_action_legacy(). */
-  return (USER_EXPERIMENTAL_TEST(&U, use_animation_baklava) && action.is_empty()) ||
-         !action.is_action_legacy();
+  return !animrig::legacy::action_treat_as_legacy(action);
 }
 
 static void rna_iterator_Action_groups_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -1384,7 +1382,7 @@ bool rna_Action_id_poll(PointerRNA *ptr, PointerRNA value)
   }
 
   animrig::Action &action = dna_action->wrap();
-  if (action.is_action_legacy()) {
+  if (animrig::legacy::action_treat_as_legacy(action)) {
     /* there can still be actions that will have undefined id-root
      * (i.e. floating "action-library" members) which we will not
      * be able to resolve an idroot for automatically, so let these through
