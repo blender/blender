@@ -107,7 +107,7 @@ VKBuffer &VKImmediate::ensure_space(size_t bytes_needed)
   }
 
   size_t alloc_size = new_buffer_size(bytes_needed);
-  CLOG_INFO(&LOG, 2, "Allocate buffer (size=%d)", (int)alloc_size);
+  CLOG_INFO(&LOG, 2, "Allocate buffer (size=%d)", int(alloc_size));
   buffer_offset_ = 0;
   active_buffers_.append(std::make_unique<VKBuffer>());
   VKBuffer &result = *active_buffers_.last();
@@ -122,7 +122,7 @@ VKBuffer &VKImmediate::ensure_space(size_t bytes_needed)
 void VKImmediate::reset()
 {
   if (!recycling_buffers_.is_empty()) {
-    CLOG_INFO(&LOG, 2, "Discarding %d unused buffers", (int)recycling_buffers_.size());
+    CLOG_INFO(&LOG, 2, "Discarding %d unused buffers", int(recycling_buffers_.size()));
     recycling_buffers_.clear();
   }
   while (!active_buffers_.is_empty()) {

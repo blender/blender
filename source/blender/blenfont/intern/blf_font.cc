@@ -412,7 +412,7 @@ BLI_INLINE ft_pix blf_kerning(FontBLF *font, const GlyphBLF *g_prev, const Glyph
 
 BLI_INLINE GlyphBLF *blf_glyph_from_utf8_and_step(FontBLF *font,
                                                   GlyphCacheBLF *gc,
-                                                  GlyphBLF *g_prev,
+                                                  const GlyphBLF *g_prev,
                                                   const char *str,
                                                   size_t str_len,
                                                   size_t *i_p,
@@ -782,7 +782,7 @@ void blf_font_draw_buffer(FontBLF *font, const char *str, const size_t str_len, 
 
 static bool blf_font_width_to_strlen_glyph_process(FontBLF *font,
                                                    GlyphCacheBLF *gc,
-                                                   GlyphBLF *g_prev,
+                                                   const GlyphBLF *g_prev,
                                                    GlyphBLF *g,
                                                    ft_pix *pen_x,
                                                    const int width_i)
@@ -817,7 +817,8 @@ static bool blf_font_width_to_strlen_glyph_process(FontBLF *font,
 size_t blf_font_width_to_strlen(
     FontBLF *font, const char *str, const size_t str_len, int width, int *r_width)
 {
-  GlyphBLF *g, *g_prev;
+  GlyphBLF *g;
+  const GlyphBLF *g_prev;
   ft_pix pen_x;
   ft_pix width_new;
   size_t i, i_prev;
@@ -897,7 +898,7 @@ static void blf_font_boundbox_ex(FontBLF *font,
                                  ResultBLF *r_info,
                                  ft_pix pen_y)
 {
-  GlyphBLF *g = nullptr;
+  const GlyphBLF *g = nullptr;
   ft_pix pen_x = 0;
   size_t i = 0;
 
@@ -1051,7 +1052,7 @@ void blf_font_boundbox_foreach_glyph(FontBLF *font,
     return;
   }
 
-  GlyphBLF *g = nullptr;
+  const GlyphBLF *g = nullptr;
   ft_pix pen_x = 0;
   size_t i = 0;
 
@@ -1248,7 +1249,7 @@ static void blf_font_wrap_apply(FontBLF *font,
                                 void *userdata)
 {
   GlyphBLF *g = nullptr;
-  GlyphBLF *g_prev = nullptr;
+  const GlyphBLF *g_prev = nullptr;
   ft_pix pen_x = 0;
   ft_pix pen_y = 0;
   size_t i = 0;

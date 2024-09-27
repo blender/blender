@@ -357,7 +357,7 @@ class Custom : public SocketDeclaration {
 
 class CustomTypeBuilder : public SocketDeclarationBuilder<Custom> {
  public:
-  CustomTypeBuilder &idname(const char *name);
+  CustomTypeBuilder &idname(const char *idname);
 };
 
 /* -------------------------------------------------------------------- */

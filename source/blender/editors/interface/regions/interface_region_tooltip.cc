@@ -429,7 +429,7 @@ static bool ui_tooltip_period_needed(blender::StringRef tip)
     return false;
   }
 
-  /* Already ends with puncuation. */
+  /* Already ends with punctuation. */
   if (ELEM(tip.back(), '.', '!', '?')) {
     return false;
   }

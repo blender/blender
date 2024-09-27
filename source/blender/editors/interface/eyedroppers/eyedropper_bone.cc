@@ -524,8 +524,8 @@ static bool bonedropper_poll(bContext *C)
     return false;
   }
 
-  StructRNA *type = RNA_property_pointer_type(&search_but->rnasearchpoin,
-                                              search_but->rnasearchprop);
+  const StructRNA *type = RNA_property_pointer_type(&search_but->rnasearchpoin,
+                                                    search_but->rnasearchprop);
 
   return type == &RNA_Bone || type == &RNA_EditBone;
 }

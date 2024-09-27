@@ -360,7 +360,7 @@ static void test_constraint(
     }
     else {
       if (animrig::legacy::action_treat_as_legacy(*data->act)) {
-        if (data->act->idroot != ID_OB && data->act->idroot != 0) {
+        if (!ELEM(data->act->idroot, ID_OB, 0)) {
           /* Only object-rooted actions can be used. */
           data->act = nullptr;
           con->flag |= CONSTRAINT_DISABLE;
