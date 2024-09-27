@@ -35,13 +35,15 @@ static std::string cache_image_file(
     const char *r_ext = BLI_path_extension_or_end(image->id.name);
     if (!pxr::HioImageRegistry::GetInstance().IsSupportedImageFile(image->id.name)) {
       BKE_image_path_ext_from_imformat(&scene->r.im_format, &r_ext);
-      opts.im_format = scene->r.im_format;
+      BKE_image_format_free(&opts.im_format);
+      BKE_image_format_copy(&opts.im_format, &scene->r.im_format);
     }
 
     SNPRINTF(file_name, "img_%p%s", image, r_ext);
 
     file_path = blender::io::usd::get_image_cache_file(file_name);
     if (check_exist && BLI_exists(file_path.c_str())) {
+      BKE_image_save_options_free(&opts);
       return file_path;
     }
 
