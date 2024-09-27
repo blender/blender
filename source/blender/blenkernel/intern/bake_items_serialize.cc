@@ -735,7 +735,11 @@ static GreasePencil *try_load_grease_pencil(const DictionaryValue &io_geometry,
     return nullptr;
   };
 
-  for (const auto &io_layer_value : io_layers->elements()) {
+  const int layers_num = io_layers->elements().size();
+  grease_pencil->add_layers_with_empty_drawings_for_eval(layers_num);
+
+  for (const int layer_i : io_layers->elements().index_range()) {
+    const auto &io_layer_value = io_layers->elements()[layer_i];
     const io::serialize::DictionaryValue *io_layer = io_layer_value->as_dictionary_value();
     if (!io_layer) {
       return cancel();
@@ -748,29 +752,21 @@ static GreasePencil *try_load_grease_pencil(const DictionaryValue &io_geometry,
     if (!layer_name) {
       return cancel();
     }
-    greasepencil::Layer &layer = grease_pencil->add_layer(*layer_name);
-    if (layer.name() != *layer_name) {
-      return cancel();
-    }
+    greasepencil::Layer &layer = grease_pencil->layer(layer_i);
+    layer.set_name(*layer_name);
     std::optional<CurvesGeometry> curves_opt = try_load_curves_geometry(
         *io_strokes, blob_reader, blob_sharing);
     if (!curves_opt) {
       return cancel();
     }
-    greasepencil::Drawing *drawing = grease_pencil->insert_frame(
-        layer, grease_pencil->runtime->eval_frame);
-    if (!drawing) {
-      return cancel();
-    }
-    drawing->strokes_for_write() = std::move(*curves_opt);
+    greasepencil::Drawing &drawing = *grease_pencil->get_eval_drawing(layer);
+    drawing.strokes_for_write() = std::move(*curves_opt);
   }
 
   MutableAttributeAccessor attributes = grease_pencil->attributes_for_write();
   if (!load_attributes(*io_layer_attributes, attributes, blob_reader, blob_sharing)) {
     return cancel();
   }
-
-  const int layers_num = grease_pencil->layers().size();
 
   const DictionaryValue *io_layer_opacities = io_grease_pencil->lookup_dict("opacities");
   Array<float> layer_opacities(layers_num);

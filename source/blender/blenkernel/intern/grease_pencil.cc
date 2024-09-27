@@ -2595,16 +2595,22 @@ void GreasePencil::add_layers_with_empty_drawings_for_eval(const int num)
   using namespace blender;
   using namespace blender::bke::greasepencil;
   const int old_drawings_num = this->drawing_array_num;
+  const int old_layers_num = this->layers().size();
   this->add_empty_drawings(num);
-  for (const int i : IndexRange(num)) {
-    const int drawing_i = old_drawings_num + i;
-    Drawing &drawing = reinterpret_cast<GreasePencilDrawing *>(this->drawing(drawing_i))->wrap();
-    Layer &layer = this->add_layer(std::to_string(i));
-    GreasePencilFrame *frame = layer.add_frame(this->runtime->eval_frame);
-    BLI_assert(frame);
-    frame->drawing_index = drawing_i;
-    drawing.add_user();
-  }
+  this->add_layers_for_eval(num);
+  threading::parallel_for(IndexRange(num), 256, [&](const IndexRange range) {
+    for (const int i : range) {
+      const int new_drawing_i = old_drawings_num + i;
+      const int new_layer_i = old_layers_num + i;
+      Drawing &drawing =
+          reinterpret_cast<GreasePencilDrawing *>(this->drawing(new_drawing_i))->wrap();
+      Layer &layer = this->layer(new_layer_i);
+      GreasePencilFrame *frame = layer.add_frame(this->runtime->eval_frame);
+      BLI_assert(frame);
+      frame->drawing_index = new_drawing_i;
+      drawing.add_user();
+    }
+  });
 }
 
 void GreasePencil::remove_drawings_with_no_users()
@@ -3117,10 +3123,21 @@ blender::bke::greasepencil::Layer &GreasePencil::add_layer(
 {
   using namespace blender;
   blender::bke::greasepencil::Layer &new_layer = this->add_layer(name);
-  /* Hide masks by default. */
-  new_layer.base.flag |= GP_LAYER_TREE_NODE_HIDE_MASKS;
   move_node_into(new_layer.as_node(), parent_group);
   return new_layer;
+}
+
+void GreasePencil::add_layers_for_eval(const int num_new_layers)
+{
+  using namespace blender;
+  const int num_layers = this->layers().size();
+  CustomData_realloc(&layers_data, num_layers, num_layers + num_new_layers);
+  for ([[maybe_unused]] const int i : IndexRange(num_new_layers)) {
+    bke::greasepencil::Layer *new_layer = MEM_new<bke::greasepencil::Layer>(__func__);
+    /* Hide masks by default. */
+    new_layer->base.flag |= GP_LAYER_TREE_NODE_HIDE_MASKS;
+    this->root_group().add_node(new_layer->as_node());
+  }
 }
 
 blender::bke::greasepencil::Layer &GreasePencil::duplicate_layer(

@@ -42,11 +42,11 @@ static GreasePencil *curves_to_grease_pencil_with_one_layer(
   curves.remove_curves(curves_to_delete, attribute_filter);
 
   GreasePencil *grease_pencil = BKE_grease_pencil_new_nomain();
-  bke::greasepencil::Layer &layer = grease_pencil->add_layer(layer_name);
-  bke::greasepencil::Drawing *drawing = grease_pencil->insert_frame(
-      layer, grease_pencil->runtime->eval_frame);
-  BLI_assert(drawing);
-  drawing->strokes_for_write() = std::move(curves);
+  grease_pencil->add_layers_with_empty_drawings_for_eval(1);
+  bke::greasepencil::Layer &layer = grease_pencil->layer(0);
+  layer.set_name(layer_name);
+  bke::greasepencil::Drawing &drawing = *grease_pencil->get_eval_drawing(layer);
+  drawing.strokes_for_write() = std::move(curves);
 
   /* Transfer materials. */
   const int materials_num = curves_id.totcol;
@@ -85,16 +85,14 @@ static GreasePencil *curve_instances_to_grease_pencil_layers(
   GreasePencil *grease_pencil = BKE_grease_pencil_new_nomain();
 
   VectorSet<Material *> all_materials;
-
+  grease_pencil->add_layers_with_empty_drawings_for_eval(layer_num);
   instance_selection.foreach_index([&](const int instance_i) {
     const bke::InstanceReference &reference = references[reference_handles[instance_i]];
 
-    bke::greasepencil::Layer &layer = grease_pencil->add_layer(reference.name());
-    grease_pencil->insert_frame(layer, grease_pencil->runtime->eval_frame);
+    bke::greasepencil::Layer &layer = grease_pencil->layer(instance_i);
+    bke::greasepencil::Drawing &drawing = *grease_pencil->get_eval_drawing(layer);
+    layer.set_name(reference.name());
     layer.set_local_transform(transforms[instance_i]);
-
-    bke::greasepencil::Drawing *drawing = grease_pencil->get_eval_drawing(layer);
-    BLI_assert(drawing);
 
     GeometrySet instance_geometry;
     reference.to_geometry_set(instance_geometry);
@@ -103,7 +101,7 @@ static GreasePencil *curve_instances_to_grease_pencil_layers(
       return;
     }
 
-    bke::CurvesGeometry &strokes = drawing->strokes_for_write();
+    bke::CurvesGeometry &strokes = drawing.strokes_for_write();
     strokes = instance_curves->geometry.wrap();
 
     Vector<int> new_material_indices;

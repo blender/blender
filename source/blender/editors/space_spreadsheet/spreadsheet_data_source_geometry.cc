@@ -293,7 +293,11 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
         const Span<const bke::greasepencil::Layer *> layers = grease_pencil->layers();
         return std::make_unique<ColumnValues>(
             column_id.name, VArray<std::string>::ForFunc(domain_num, [layers](int64_t index) {
-              return std::string(layers[index]->name());
+              StringRefNull name = layers[index]->name();
+              if (name.is_empty()) {
+                name = IFACE_("(Layer)");
+              }
+              return std::string(name);
             }));
       }
     }

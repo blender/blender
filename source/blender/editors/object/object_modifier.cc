@@ -98,6 +98,8 @@
 
 #include "ANIM_bone_collections.hh"
 
+#include "GEO_merge_layers.hh"
+
 #include "UI_interface.hh"
 
 #include "WM_api.hh"
@@ -997,30 +999,46 @@ static bool apply_grease_pencil_for_modifier(Depsgraph *depsgraph,
   using namespace bke;
   using namespace bke::greasepencil;
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md_eval->type));
-  GreasePencil *grease_pencil_src = ob_eval->runtime->data_orig ?
-                                        reinterpret_cast<GreasePencil *>(
-                                            ob_eval->runtime->data_orig) :
-                                        &grease_pencil_orig;
+  GreasePencil *grease_pencil_for_eval = ob_eval->runtime->data_orig ?
+                                             reinterpret_cast<GreasePencil *>(
+                                                 ob_eval->runtime->data_orig) :
+                                             &grease_pencil_orig;
   const int eval_frame = int(DEG_get_ctime(depsgraph));
   GreasePencil *grease_pencil_temp = reinterpret_cast<GreasePencil *>(
-      BKE_id_copy_ex(nullptr, &grease_pencil_src->id, nullptr, LIB_ID_COPY_LOCALIZE));
+      BKE_id_copy_ex(nullptr, &grease_pencil_for_eval->id, nullptr, LIB_ID_COPY_LOCALIZE));
   grease_pencil_temp->runtime->eval_frame = eval_frame;
-  GeometrySet geometry_set = GeometrySet::from_grease_pencil(grease_pencil_temp,
-                                                             GeometryOwnershipType::Owned);
+  GeometrySet eval_geometry_set = GeometrySet::from_grease_pencil(grease_pencil_temp,
+                                                                  GeometryOwnershipType::Owned);
 
   ModifierEvalContext mectx = {depsgraph, ob_eval, MOD_APPLY_TO_ORIGINAL};
-  mti->modify_geometry_set(md_eval, &mectx, &geometry_set);
-  if (!geometry_set.has_grease_pencil()) {
+  mti->modify_geometry_set(md_eval, &mectx, &eval_geometry_set);
+  if (!eval_geometry_set.has_grease_pencil()) {
     BKE_report(reports,
                RPT_ERROR,
                "Evaluated geometry from modifier does not contain grease pencil geometry");
     return false;
   }
   GreasePencil &grease_pencil_result =
-      *geometry_set.get_component_for_write<GreasePencilComponent>().get_for_write();
+      *eval_geometry_set.get_component_for_write<GreasePencilComponent>().get_for_write();
 
   /* Anonymous attributes shouldn't be available on original geometry. */
   grease_pencil_result.attributes_for_write().remove_anonymous();
+
+  /* Ensure that the layer names are unique by merging layers with the same name. */
+  const int old_layers_num = grease_pencil_result.layers().size();
+  Vector<Vector<int>> layers_map;
+  Map<StringRef, int> new_layer_index_by_name;
+  for (const int layer_i : IndexRange(old_layers_num)) {
+    const Layer &layer = grease_pencil_result.layer(layer_i);
+    const int new_layer_index = new_layer_index_by_name.lookup_or_add_cb(
+        layer.name(), [&]() { return layers_map.append_and_get_index_as(); });
+    layers_map[new_layer_index].append(layer_i);
+  }
+  if (GreasePencil *merged_layers_grease_pencil = geometry::merge_layers(
+          grease_pencil_result, layers_map, {}))
+  {
+    grease_pencil_result = std::move(*merged_layers_grease_pencil);
+  }
 
   Map<const Layer *, const Layer *> eval_to_orig_layer_map;
   {
