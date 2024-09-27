@@ -126,7 +126,15 @@ void VKDevice::init_debug_callbacks()
 void VKDevice::init_physical_device_properties()
 {
   BLI_assert(vk_physical_device_ != VK_NULL_HANDLE);
-  vkGetPhysicalDeviceProperties(vk_physical_device_, &vk_physical_device_properties_);
+
+  VkPhysicalDeviceProperties2 vk_physical_device_properties = {};
+  vk_physical_device_properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+  vk_physical_device_driver_properties_.sType =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES;
+  vk_physical_device_properties.pNext = &vk_physical_device_driver_properties_;
+
+  vkGetPhysicalDeviceProperties2(vk_physical_device_, &vk_physical_device_properties);
+  vk_physical_device_properties_ = vk_physical_device_properties.properties;
 }
 
 void VKDevice::init_physical_device_memory_properties()
@@ -307,33 +315,8 @@ std::string VKDevice::vendor_name() const
 
 std::string VKDevice::driver_version() const
 {
-  /*
-   * NOTE: this depends on the driver type and is currently incorrect. Idea is to use a default per
-   * OS.
-   */
-  const uint32_t driver_version = vk_physical_device_properties_.driverVersion;
-  switch (vk_physical_device_properties_.vendorID) {
-    case PCI_ID_NVIDIA:
-      return std::to_string((driver_version >> 22) & 0x3FF) + "." +
-             std::to_string((driver_version >> 14) & 0xFF) + "." +
-             std::to_string((driver_version >> 6) & 0xFF) + "." +
-             std::to_string(driver_version & 0x3F);
-    case PCI_ID_INTEL: {
-      const uint32_t major = VK_VERSION_MAJOR(driver_version);
-      /* When using Mesa driver we should use VK_VERSION_*. */
-      if (major > 30) {
-        return std::to_string((driver_version >> 14) & 0x3FFFF) + "." +
-               std::to_string(driver_version & 0x3FFF);
-      }
-      break;
-    }
-    default:
-      break;
-  }
-
-  return std::to_string(VK_VERSION_MAJOR(driver_version)) + "." +
-         std::to_string(VK_VERSION_MINOR(driver_version)) + "." +
-         std::to_string(VK_VERSION_PATCH(driver_version));
+  return StringRefNull(vk_physical_device_driver_properties_.driverName) + " " +
+         StringRefNull(vk_physical_device_driver_properties_.driverInfo);
 }
 
 /** \} */
