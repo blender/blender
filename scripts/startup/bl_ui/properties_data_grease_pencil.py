@@ -178,7 +178,9 @@ class GREASE_PENCIL_MT_grease_pencil_add_layer_extra(Menu):
         layer = grease_pencil.layers.active
         space = context.space_data
 
-        layout.operator("grease_pencil.layer_group_add", text="Add Group")
+        # In the dopesheet, groups are only shown if they have at least one layer. Don't show this operator there.
+        if not space or space.type != 'DOPESHEET_EDITOR':
+            layout.operator("grease_pencil.layer_group_add", text="Add Group")
 
         layout.separator()
         layout.operator("grease_pencil.layer_duplicate", text="Duplicate", icon='DUPLICATE').empty_keyframes = False
