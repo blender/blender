@@ -56,6 +56,10 @@ static void node_update(bNodeTree *ntree, bNode *node)
       node_sock_label(sockB, N_("Multiplier"));
       node_sock_label(sockC, N_("Addend"));
       break;
+    case NODE_INTEGER_MATH_POWER:
+      node_sock_label(sockA, N_("Base"));
+      node_sock_label(sockB, N_("Exponent"));
+      break;
   }
 }
 
