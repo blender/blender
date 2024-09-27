@@ -124,68 +124,77 @@ void OVERLAY_grease_pencil_cache_init(OVERLAY_Data *vedata)
                            (GP_PROJECT_DEPTH_VIEW | GP_PROJECT_DEPTH_STROKE)) == 0);
   const bool grid_xray = (v3d->gp_flag & V3D_GP_SHOW_GRID_XRAY);
 
-  if (show_grid && show_overlays) {
-    const float3 base_color = float3(0.5f);
-    const float4 col_grid = float4(base_color, v3d->overlay.gpencil_grid_opacity);
-
-    float4x4 mat = ob->object_to_world();
-
-    const GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
-    const blender::bke::greasepencil::Layer &layer = *grease_pencil.get_active_layer();
-
-    if (ts->gp_sculpt.lock_axis != GP_LOCKAXIS_CURSOR) {
-      mat = layer.to_world_space(*ob);
-    }
-    const View3DCursor *cursor = &scene->cursor;
-
-    /* Set the grid in the selected axis */
-    switch (ts->gp_sculpt.lock_axis) {
-      case GP_LOCKAXIS_X:
-        std::swap(mat[0], mat[2]);
-        break;
-      case GP_LOCKAXIS_Y:
-        std::swap(mat[1], mat[2]);
-        break;
-      case GP_LOCKAXIS_Z:
-        /* Default. */
-        break;
-      case GP_LOCKAXIS_CURSOR: {
-        mat = float4x4(cursor->matrix<float3x3>());
-        break;
-      }
-      case GP_LOCKAXIS_VIEW:
-        /* view aligned */
-        DRW_view_viewmat_get(nullptr, mat.ptr(), true);
-        break;
-    }
-
-    mat *= 2.0f;
-
-    if (ts->gpencil_v3d_align & GP_PROJECT_CURSOR) {
-      mat.location() = cursor->location;
-    }
-    else {
-      mat.location() = layer.to_world_space(*ob).location();
-    }
-
-    const int gridlines = 4;
-    const int line_count = gridlines * 4 + 2;
-
-    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA;
-    state |= (grid_xray) ? DRW_STATE_DEPTH_ALWAYS : DRW_STATE_DEPTH_LESS_EQUAL;
-
-    DRW_PASS_CREATE(psl->grease_pencil_canvas_ps, state);
-
-    sh = OVERLAY_shader_gpencil_canvas();
-    grp = DRW_shgroup_create(sh, psl->grease_pencil_canvas_ps);
-    DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
-    DRW_shgroup_uniform_vec4_copy(grp, "color", col_grid);
-    DRW_shgroup_uniform_vec3_copy(grp, "xAxis", mat[0]);
-    DRW_shgroup_uniform_vec3_copy(grp, "yAxis", mat[1]);
-    DRW_shgroup_uniform_vec3_copy(grp, "origin", mat[3]);
-    DRW_shgroup_uniform_int_copy(grp, "halfLineCount", line_count / 2);
-    DRW_shgroup_call_procedural_lines(grp, nullptr, line_count);
+  if (!ob || (ob->type != OB_GREASE_PENCIL) || !show_grid || !show_overlays) {
+    return;
   }
+  const float3 base_color = float3(v3d->overlay.gpencil_grid_color);
+  const float4 col_grid = float4(base_color, v3d->overlay.gpencil_grid_opacity);
+
+  float4x4 mat = ob->object_to_world();
+
+  const GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
+  if (ts->gp_sculpt.lock_axis != GP_LOCKAXIS_CURSOR && grease_pencil.has_active_layer()) {
+    const blender::bke::greasepencil::Layer &layer = *grease_pencil.get_active_layer();
+    mat = layer.to_world_space(*ob);
+  }
+  const View3DCursor *cursor = &scene->cursor;
+
+  /* Set the grid in the selected axis */
+  switch (ts->gp_sculpt.lock_axis) {
+    case GP_LOCKAXIS_X:
+      std::swap(mat[0], mat[2]);
+      break;
+    case GP_LOCKAXIS_Y:
+      std::swap(mat[1], mat[2]);
+      break;
+    case GP_LOCKAXIS_Z:
+      /* Default. */
+      break;
+    case GP_LOCKAXIS_CURSOR: {
+      mat = float4x4(cursor->matrix<float3x3>());
+      break;
+    }
+    case GP_LOCKAXIS_VIEW:
+      /* view aligned */
+      DRW_view_viewmat_get(nullptr, mat.ptr(), true);
+      break;
+  }
+
+  /* Note: This is here to match the legacy size. */
+  mat *= 2.0f;
+
+  if (ts->gpencil_v3d_align & GP_PROJECT_CURSOR) {
+    mat.location() = cursor->location;
+  }
+  else if (grease_pencil.has_active_layer()) {
+    const blender::bke::greasepencil::Layer &layer = *grease_pencil.get_active_layer();
+    mat.location() = layer.to_world_space(*ob).location();
+  }
+  /* Local transform of the grid from the overlay settings. */
+  const float3 offset = float3(
+      v3d->overlay.gpencil_grid_offset[0], v3d->overlay.gpencil_grid_offset[1], 0.0f);
+  const float3 scale = float3(
+      v3d->overlay.gpencil_grid_scale[0], v3d->overlay.gpencil_grid_scale[1], 0.0f);
+  const float4x4 local_transform = math::from_loc_scale<float4x4>(offset, scale);
+  mat = mat * local_transform;
+
+  const int gridlines = v3d->overlay.gpencil_grid_subdivisions;
+  const int line_count = gridlines * 4 + 2;
+
+  DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA;
+  state |= (grid_xray) ? DRW_STATE_DEPTH_ALWAYS : DRW_STATE_DEPTH_LESS_EQUAL;
+
+  DRW_PASS_CREATE(psl->grease_pencil_canvas_ps, state);
+
+  sh = OVERLAY_shader_gpencil_canvas();
+  grp = DRW_shgroup_create(sh, psl->grease_pencil_canvas_ps);
+  DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
+  DRW_shgroup_uniform_vec4_copy(grp, "color", col_grid);
+  DRW_shgroup_uniform_vec3_copy(grp, "xAxis", mat[0]);
+  DRW_shgroup_uniform_vec3_copy(grp, "yAxis", mat[1]);
+  DRW_shgroup_uniform_vec3_copy(grp, "origin", mat[3]);
+  DRW_shgroup_uniform_int_copy(grp, "halfLineCount", line_count / 2);
+  DRW_shgroup_call_procedural_lines(grp, nullptr, line_count);
 }
 
 void OVERLAY_edit_grease_pencil_cache_populate(OVERLAY_Data *vedata, Object *ob)
