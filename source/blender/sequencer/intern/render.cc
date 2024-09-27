@@ -1472,8 +1472,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
    */
 
   const bool is_rendering = G.is_rendering;
-  bool do_seq_gl = !context->for_render && (context->scene->r.seq_prev_type) != OB_RENDER &&
-                   BLI_thread_is_main();
+  bool is_preview = !context->for_render && (context->scene->r.seq_prev_type) != OB_RENDER;
 
   bool have_comp = false;
   bool use_gpencil = true;
@@ -1540,7 +1539,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
   is_frame_update = (orig_data.timeline_frame != scene->r.cfra) ||
                     (orig_data.subframe != scene->r.subframe);
 
-  if (sequencer_view3d_fn && do_seq_gl && camera) {
+  if (sequencer_view3d_fn && is_preview && camera && BLI_thread_is_main()) {
     char err_out[256] = "unknown";
     int width, height;
     BKE_render_resolution(&scene->r, false, &width, &height);
@@ -1596,7 +1595,8 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
      * When rendering from command line renderer is called from main thread, in this
      * case it's always safe to render scene here
      */
-    if (!context->for_render && (is_rendering && !G.background)) {
+
+    if (is_preview && (is_rendering && !G.background)) {
       goto finally;
     }
 
