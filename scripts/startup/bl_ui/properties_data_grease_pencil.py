@@ -247,8 +247,6 @@ class DATA_PT_grease_pencil_layers(DataButtonsPanel, Panel):
         sub.operator("grease_pencil.layer_move", icon='TRIA_UP', text="").direction = 'UP'
         sub.operator("grease_pencil.layer_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
-        sub.menu("GREASE_PENCIL_MT_grease_pencil_add_layer_extra", icon='DOWNARROW_HLT', text="")
-
         if not is_layer_active:
             return
 
