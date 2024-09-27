@@ -1209,31 +1209,25 @@ static bool nlastrips_path_remove_fix(const char *prefix, ListBase *strips)
 
 bool BKE_animdata_fix_paths_remove(ID *id, const char *prefix)
 {
-  /* Only some ID-blocks have this info for now, so we cast the
-   * types that do to be of type IdAdtTemplate
-   */
-  if (!id_can_have_animdata(id)) {
+  AnimData *adt = BKE_animdata_from_id(id);
+  if (!adt) {
     return false;
   }
-  bool any_removed = false;
-  IdAdtTemplate *iat = (IdAdtTemplate *)id;
-  AnimData *adt = iat->adt;
-  /* check if there's any AnimData to start with */
-  if (adt) {
-    /* free fcurves */
-    if (adt->action != nullptr) {
-      any_removed |= fcurves_path_remove_fix(prefix, &adt->action->curves);
-    }
-    if (adt->tmpact != nullptr) {
-      any_removed |= fcurves_path_remove_fix(prefix, &adt->tmpact->curves);
-    }
-    /* free drivers - stored as a list of F-Curves */
-    any_removed |= fcurves_path_remove_fix(prefix, &adt->drivers);
-    /* NLA Data - Animation Data for Strips */
-    LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
-      any_removed |= nlastrips_path_remove_fix(prefix, &nlt->strips);
-    }
+
+  /* free fcurves */
+  if (adt->action != nullptr) {
+    any_removed |= fcurves_path_remove_fix(prefix, &adt->action->curves);
   }
+  if (adt->tmpact != nullptr) {
+    any_removed |= fcurves_path_remove_fix(prefix, &adt->tmpact->curves);
+  }
+  /* free drivers - stored as a list of F-Curves */
+  any_removed |= fcurves_path_remove_fix(prefix, &adt->drivers);
+  /* NLA Data - Animation Data for Strips */
+  LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
+    any_removed |= nlastrips_path_remove_fix(prefix, &nlt->strips);
+  }
+
   return any_removed;
 }
 
