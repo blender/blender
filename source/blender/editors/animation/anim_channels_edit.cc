@@ -5284,6 +5284,70 @@ static void ANIM_OT_slot_channels_move_to_new_action(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+static int separate_slots_exec(bContext *C, wmOperator * /* op */)
+{
+  using namespace blender::animrig;
+  Object *active_object = CTX_data_active_object(C);
+  /* Checked by the poll function. */
+  BLI_assert(active_object != nullptr);
+
+  Action *action = get_action(active_object->id);
+  /* Also checked by the poll function. */
+  BLI_assert(action != nullptr);
+
+  Main *bmain = CTX_data_main(C);
+  while (action->slot_array_num) {
+    Slot *slot = action->slot(action->slot_array_num - 1);
+    char actname[MAX_ID_NAME - 2];
+    SNPRINTF(actname, DATA_("%sAction"), slot->name + 2);
+    Action &target_action = action_add(*bmain, actname);
+    Layer &layer = target_action.layer_add(std::nullopt);
+    layer.strip_add(target_action, Strip::Type::Keyframe);
+    move_slot(*bmain, *slot, *action, target_action);
+    DEG_id_tag_update(&target_action.id, ID_RECALC_ANIMATION_NO_FLUSH);
+  }
+
+  DEG_id_tag_update(&action->id, ID_RECALC_ANIMATION_NO_FLUSH);
+  DEG_relations_tag_update(CTX_data_main(C));
+  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA_ACTCHANGE | NA_EDITED, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+static bool separate_slots_poll(bContext *C)
+{
+  Object *active_object = CTX_data_active_object(C);
+  if (!active_object) {
+    CTX_wm_operator_poll_msg_set(C, "No active object");
+    return false;
+  }
+
+  blender::animrig::Action *action = blender::animrig::get_action(active_object->id);
+  if (!action) {
+    CTX_wm_operator_poll_msg_set(C, "Active object isn't animated");
+    return false;
+  }
+  if (!action->is_action_layered()) {
+    return false;
+  }
+  return true;
+}
+
+static void ANIM_OT_separate_slots(wmOperatorType *ot)
+{
+  ot->name = "Separate Slots";
+  ot->idname = "ANIM_OT_separate_slots";
+  ot->description =
+      "Move all slots of the action on the active object into newly created, separate actions. "
+      "All users of those slots will be reassigned to the new actions. The current action won't "
+      "be deleted but will be empty and might end up having zero users";
+
+  ot->exec = separate_slots_exec;
+  ot->poll = separate_slots_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 #endif /* WITH_ANIM_BAKLAVA */
 
 /**
@@ -5670,6 +5734,7 @@ void ED_operatortypes_animchannels()
 
 #ifdef WITH_ANIM_BAKLAVA
   WM_operatortype_append(ANIM_OT_slot_channels_move_to_new_action);
+  WM_operatortype_append(ANIM_OT_separate_slots);
 #endif
 }
 
