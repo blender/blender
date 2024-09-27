@@ -106,8 +106,12 @@ class MeshTopology {
   //////////////////////////////////////////////////////////////////////////////
   // Comparison.
 
-  // Check whether this topology refiner defines same topology as the given
-  // converter.
+  // Compare given topology with converter. Returns truth if topology
+  // matches given converter, false otherwise.
+  //
+  // This allows users to construct converter (which is supposed to be cheap)
+  // and compare with existing topology before going into more computationally
+  // complicated parts of subdivision process.
   bool isEqualToConverter(const OpenSubdiv_Converter *converter) const;
 
  protected:

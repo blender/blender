@@ -40,7 +40,9 @@
 #include "opensubdiv_capi_type.hh"
 #include "opensubdiv_converter_capi.hh"
 #include "opensubdiv_evaluator_capi.hh"
-#include "opensubdiv_topology_refiner_capi.hh"
+#ifdef WITH_OPENSUBDIV
+#  include "opensubdiv_topology_refiner_capi.hh"
+#endif
 
 #include "draw_cache_extract.hh"
 #include "draw_cache_impl.hh"
@@ -848,10 +850,10 @@ static void draw_subdiv_invalidate_evaluator_for_orco(bke::subdiv::Subdiv *subdi
     openSubdiv_deleteEvaluator(subdiv->evaluator);
     subdiv->evaluator = nullptr;
 
-    if (subdiv->topology_refiner != nullptr) {
-      openSubdiv_deleteTopologyRefiner(subdiv->topology_refiner);
-      subdiv->topology_refiner = nullptr;
-    }
+#ifdef WITH_OPENSUBDIV
+    delete subdiv->topology_refiner;
+    subdiv->topology_refiner = nullptr;
+#endif
   }
 }
 

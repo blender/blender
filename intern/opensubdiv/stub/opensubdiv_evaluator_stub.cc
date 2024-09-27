@@ -9,7 +9,7 @@
 #include <cstddef>
 
 OpenSubdiv_Evaluator *openSubdiv_createEvaluatorFromTopologyRefiner(
-    OpenSubdiv_TopologyRefiner * /*topology_refiner*/,
+    blender::opensubdiv::TopologyRefinerImpl * /*topology_refiner*/,
     eOpenSubdivEvaluator /*evaluator_type*/,
     OpenSubdiv_EvaluatorCache * /*evaluator_cache*/)
 {

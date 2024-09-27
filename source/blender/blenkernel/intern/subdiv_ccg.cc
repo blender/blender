@@ -24,7 +24,9 @@
 #include "BKE_subdiv.hh"
 #include "BKE_subdiv_eval.hh"
 
-#include "opensubdiv_topology_refiner_capi.hh"
+#ifdef WITH_OPENSUBDIV
+#  include "opensubdiv_topology_refiner_capi.hh"
+#endif
 
 using blender::Array;
 using blender::float3;
@@ -61,12 +63,13 @@ void subdiv_ccg_average_faces_boundaries_and_corners(SubdivCCG &subdiv_ccg,
  * \{ */
 
 /* TODO(sergey): Make it more accessible function. */
-static int topology_refiner_count_face_corners(const OpenSubdiv_TopologyRefiner *topology_refiner)
+static int topology_refiner_count_face_corners(
+    const blender::opensubdiv::TopologyRefinerImpl *topology_refiner)
 {
-  const int num_faces = topology_refiner->getNumFaces();
+  const int num_faces = topology_refiner->base_level().GetNumFaces();
   int num_corners = 0;
   for (int face_index = 0; face_index < num_faces; face_index++) {
-    num_corners += topology_refiner->getNumFaceVertices(face_index);
+    num_corners += topology_refiner->base_level().GetFaceVertices(face_index).size();
   }
   return num_corners;
 }
@@ -77,7 +80,7 @@ static void subdiv_ccg_alloc_elements(SubdivCCG &subdiv_ccg,
                                       Subdiv &subdiv,
                                       const SubdivToCCGSettings &settings)
 {
-  const OpenSubdiv_TopologyRefiner *topology_refiner = subdiv.topology_refiner;
+  const blender::opensubdiv::TopologyRefinerImpl *topology_refiner = subdiv.topology_refiner;
   /* Allocate memory for surface grids. */
   const int64_t num_grids = topology_refiner_count_face_corners(topology_refiner);
   const int64_t grid_size = grid_size_from_level(subdiv_ccg.level);
@@ -210,8 +213,8 @@ static bool subdiv_ccg_evaluate_grids(SubdivCCG &subdiv_ccg,
                                       SubdivCCGMaskEvaluator *mask_evaluator)
 {
   using namespace blender;
-  const OpenSubdiv_TopologyRefiner *topology_refiner = subdiv.topology_refiner;
-  const int num_faces = topology_refiner->getNumFaces();
+  const blender::opensubdiv::TopologyRefinerImpl *topology_refiner = subdiv.topology_refiner;
+  const int num_faces = topology_refiner->base_level().GetNumFaces();
   const Span<int> face_ptex_offset(face_ptex_offset_get(&subdiv), subdiv_ccg.faces.size());
   threading::parallel_for(IndexRange(num_faces), 1024, [&](const IndexRange range) {
     for (const int face_index : range) {
@@ -267,8 +270,8 @@ static void subdiv_ccg_init_faces_edge_neighborhood(SubdivCCG &subdiv_ccg)
 {
   Subdiv *subdiv = subdiv_ccg.subdiv;
   const OffsetIndices<int> faces = subdiv_ccg.faces;
-  OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
-  const int num_edges = topology_refiner->getNumEdges();
+  const OpenSubdiv::Far::TopologyLevel &base_level = subdiv->topology_refiner->base_level();
+  const int num_edges = base_level.GetNumEdges();
   const int grid_size = subdiv_ccg.grid_size;
   if (num_edges == 0) {
     /* Early output, nothing to do in this case. */
@@ -276,24 +279,20 @@ static void subdiv_ccg_init_faces_edge_neighborhood(SubdivCCG &subdiv_ccg)
   }
   subdiv_ccg_allocate_adjacent_edges(subdiv_ccg, num_edges);
 
-  Vector<int, 64> face_vertices;
-  Vector<int, 64> face_edges;
   /* Store adjacency for all faces. */
   for (const int face_index : faces.index_range()) {
     const IndexRange face = faces[face_index];
     const int num_face_grids = face.size();
-    face_vertices.reinitialize(num_face_grids);
-    topology_refiner->getFaceVertices(face_index, face_vertices.data());
+    const OpenSubdiv::Far::ConstIndexArray face_vertices = base_level.GetFaceVertices(face_index);
     /* Note that order of edges is same as order of MLoops, which also
      * means it's the same as order of grids. */
-    face_edges.reinitialize(num_face_grids);
-    topology_refiner->getFaceEdges(face_index, face_edges.data());
+    const OpenSubdiv::Far::ConstIndexArray face_edges = base_level.GetFaceEdges(face_index);
     /* Store grids adjacency for this edge. */
     for (int corner = 0; corner < num_face_grids; corner++) {
       const int vertex_index = face_vertices[corner];
       const int edge_index = face_edges[corner];
-      int edge_vertices[2];
-      topology_refiner->getEdgeVertices(edge_index, edge_vertices);
+      const OpenSubdiv::Far::ConstIndexArray edge_vertices = base_level.GetEdgeVertices(
+          edge_index);
       const bool is_edge_flipped = (edge_vertices[0] != vertex_index);
       /* Grid which is adjacent to the current corner. */
       const int current_grid_index = face.start() + corner;
@@ -353,21 +352,20 @@ static void subdiv_ccg_init_faces_vertex_neighborhood(SubdivCCG &subdiv_ccg)
 {
   Subdiv *subdiv = subdiv_ccg.subdiv;
   const OffsetIndices<int> faces = subdiv_ccg.faces;
-  OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
-  const int num_vertices = topology_refiner->getNumVertices();
+  const blender::opensubdiv::TopologyRefinerImpl *topology_refiner = subdiv->topology_refiner;
+  const int num_vertices = topology_refiner->base_level().GetNumVertices();
   const int grid_size = subdiv_ccg.grid_size;
   if (num_vertices == 0) {
     /* Early output, nothing to do in this case. */
     return;
   }
   subdiv_ccg_allocate_adjacent_vertices(subdiv_ccg, num_vertices);
-  Vector<int, 64> face_vertices;
   /* Store adjacency for all faces. */
   for (const int face_index : faces.index_range()) {
     const IndexRange face = faces[face_index];
     const int num_face_grids = face.size();
-    face_vertices.reinitialize(num_face_grids);
-    topology_refiner->getFaceVertices(face_index, face_vertices.data());
+    const OpenSubdiv::Far::ConstIndexArray face_vertices =
+        topology_refiner->base_level().GetFaceVertices(face_index);
     for (int corner = 0; corner < num_face_grids; corner++) {
       const int vertex_index = face_vertices[corner];
       /* Grid which is adjacent to the current corner. */
@@ -858,20 +856,16 @@ static void subdiv_ccg_affected_face_adjacency(SubdivCCG &subdiv_ccg,
                                                blender::Set<int> &adjacent_edges)
 {
   Subdiv *subdiv = subdiv_ccg.subdiv;
-  const OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
-
-  Vector<int, 64> face_vertices;
-  Vector<int, 64> face_edges;
+  const blender::opensubdiv::TopologyRefinerImpl *topology_refiner = subdiv->topology_refiner;
 
   face_mask.foreach_index([&](const int face_index) {
-    const int num_face_grids = subdiv_ccg.faces[face_index].size();
-    face_vertices.reinitialize(num_face_grids);
-    topology_refiner->getFaceVertices(face_index, face_vertices.data());
-    adjacent_verts.add_multiple(face_vertices);
+    const OpenSubdiv::Far::ConstIndexArray face_vertices =
+        topology_refiner->base_level().GetFaceVertices(face_index);
+    adjacent_verts.add_multiple({face_vertices.begin(), face_vertices.size()});
 
-    face_edges.reinitialize(num_face_grids);
-    topology_refiner->getFaceEdges(face_index, face_edges.data());
-    adjacent_edges.add_multiple(face_edges);
+    const OpenSubdiv::Far::ConstIndexArray face_edges =
+        topology_refiner->base_level().GetFaceEdges(face_index);
+    adjacent_edges.add_multiple({face_edges.begin(), face_edges.size()});
   });
 }
 
@@ -1115,15 +1109,14 @@ static int adjacent_vertex_index_from_coord(const SubdivCCG &subdiv_ccg,
                                             const SubdivCCGCoord &coord)
 {
   Subdiv *subdiv = subdiv_ccg.subdiv;
-  const OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
+  const blender::opensubdiv::TopologyRefinerImpl *topology_refiner = subdiv->topology_refiner;
 
   const int face_index = subdiv_ccg.grid_to_face_map[coord.grid_index];
   const IndexRange face = subdiv_ccg.faces[face_index];
   const int face_grid_index = coord.grid_index - face.start();
-  const int num_face_grids = face.size();
 
-  Array<int, 64> face_vertices(num_face_grids);
-  topology_refiner->getFaceVertices(face_index, face_vertices.data());
+  const OpenSubdiv::Far::ConstIndexArray face_vertices =
+      topology_refiner->base_level().GetFaceVertices(face_index);
 
   const int adjacent_vertex_index = face_vertices[face_grid_index];
   return adjacent_vertex_index;
@@ -1136,29 +1129,27 @@ static void neighbor_coords_corner_vertex_get(const SubdivCCG &subdiv_ccg,
                                               SubdivCCGNeighbors &r_neighbors)
 {
   Subdiv *subdiv = subdiv_ccg.subdiv;
-  const OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
+  const blender::opensubdiv::TopologyRefinerImpl *topology_refiner = subdiv->topology_refiner;
 
   const int adjacent_vertex_index = adjacent_vertex_index_from_coord(subdiv_ccg, coord);
-  const int num_vertex_edges = topology_refiner->getNumVertexEdges(adjacent_vertex_index);
+  const OpenSubdiv::Far::ConstIndexArray vertex_edges =
+      topology_refiner->base_level().GetVertexEdges(adjacent_vertex_index);
 
   const SubdivCCGAdjacentVertex &adjacent_vert = subdiv_ccg.adjacent_verts[adjacent_vertex_index];
   const int num_adjacent_faces = adjacent_vert.num_adjacent_faces;
 
   subdiv_ccg_neighbors_init(
-      r_neighbors, num_vertex_edges, (include_duplicates) ? num_adjacent_faces - 1 : 0);
+      r_neighbors, vertex_edges.size(), (include_duplicates) ? num_adjacent_faces - 1 : 0);
 
-  Array<int, 64> vertex_edges(num_vertex_edges);
-  topology_refiner->getVertexEdges(adjacent_vertex_index, vertex_edges.data());
-
-  for (int i = 0; i < num_vertex_edges; ++i) {
+  for (int i = 0; i < vertex_edges.size(); ++i) {
     const int edge_index = vertex_edges[i];
 
     /* Use very first grid of every edge. */
     const int edge_face_index = 0;
 
     /* Depending edge orientation we use first (zero-based) or previous-to-last point. */
-    int edge_vertices_indices[2];
-    topology_refiner->getEdgeVertices(edge_index, edge_vertices_indices);
+    const OpenSubdiv::Far::ConstIndexArray edge_vertices_indices =
+        topology_refiner->base_level().GetEdgeVertices(edge_index);
     int edge_point_index, duplicate_edge_point_index;
     if (edge_vertices_indices[0] == adjacent_vertex_index) {
       duplicate_edge_point_index = 0;
@@ -1178,7 +1169,7 @@ static void neighbor_coords_corner_vertex_get(const SubdivCCG &subdiv_ccg,
 
   if (include_duplicates) {
     /* Add duplicates of the current grid vertex in adjacent faces if requested. */
-    for (int i = 0, duplicate_i = num_vertex_edges; i < num_adjacent_faces; i++) {
+    for (int i = 0, duplicate_i = vertex_edges.size(); i < num_adjacent_faces; i++) {
       SubdivCCGCoord neighbor_coord = adjacent_vert.corner_coords[i];
       if (neighbor_coord.grid_index != coord.grid_index) {
         r_neighbors.coords[duplicate_i++] = neighbor_coord;
@@ -1190,15 +1181,14 @@ static void neighbor_coords_corner_vertex_get(const SubdivCCG &subdiv_ccg,
 static int adjacent_edge_index_from_coord(const SubdivCCG &subdiv_ccg, const SubdivCCGCoord &coord)
 {
   Subdiv *subdiv = subdiv_ccg.subdiv;
-  const OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
+  const blender::opensubdiv::TopologyRefinerImpl *topology_refiner = subdiv->topology_refiner;
 
   const int face_index = subdiv_ccg.grid_to_face_map[coord.grid_index];
   const IndexRange face = subdiv_ccg.faces[face_index];
   const int face_grid_index = coord.grid_index - face.start();
-  const int num_face_edges = topology_refiner->getNumFaceEdges(face_index);
 
-  Array<int, 64> face_edges(num_face_edges);
-  topology_refiner->getFaceEdges(face_index, face_edges.data());
+  const OpenSubdiv::Far::ConstIndexArray face_edges = topology_refiner->base_level().GetFaceEdges(
+      face_index);
 
   const int grid_size_1 = subdiv_ccg.grid_size - 1;
   int adjacent_edge_index = -1;
@@ -1218,11 +1208,11 @@ static int adjacent_edge_point_index_from_coord(const SubdivCCG &subdiv_ccg,
                                                 const int adjacent_edge_index)
 {
   Subdiv *subdiv = subdiv_ccg.subdiv;
-  const OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
+  const blender::opensubdiv::TopologyRefinerImpl *topology_refiner = subdiv->topology_refiner;
 
   const int adjacent_vertex_index = adjacent_vertex_index_from_coord(subdiv_ccg, coord);
-  int edge_vertices_indices[2];
-  topology_refiner->getEdgeVertices(adjacent_edge_index, edge_vertices_indices);
+  const OpenSubdiv::Far::ConstIndexArray edge_vertices_indices =
+      topology_refiner->base_level().GetEdgeVertices(adjacent_edge_index);
 
   /* Vertex index of an edge which is used to see whether edge points in the right direction.
    * Tricky part here is that depending whether input coordinate is are maximum X or Y coordinate
@@ -1490,18 +1480,18 @@ const int *BKE_subdiv_ccg_start_face_grid_index_ensure(SubdivCCG &subdiv_ccg)
 #ifdef WITH_OPENSUBDIV
   if (subdiv_ccg.cache_.start_face_grid_index.is_empty()) {
     const Subdiv *subdiv = subdiv_ccg.subdiv;
-    OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
+    const blender::opensubdiv::TopologyRefinerImpl *topology_refiner = subdiv->topology_refiner;
     if (topology_refiner == nullptr) {
       return nullptr;
     }
 
-    const int num_coarse_faces = topology_refiner->getNumFaces();
+    const int num_coarse_faces = topology_refiner->base_level().GetNumFaces();
 
     subdiv_ccg.cache_.start_face_grid_index.reinitialize(num_coarse_faces);
 
     int start_grid_index = 0;
     for (int face_index = 0; face_index < num_coarse_faces; face_index++) {
-      const int num_face_grids = topology_refiner->getNumFaceVertices(face_index);
+      const int num_face_grids = topology_refiner->base_level().GetFaceVertices(face_index).size();
       subdiv_ccg.cache_.start_face_grid_index[face_index] = start_grid_index;
       start_grid_index += num_face_grids;
     }

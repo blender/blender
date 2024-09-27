@@ -420,11 +420,11 @@ OpenSubdiv_EvaluatorImpl::~OpenSubdiv_EvaluatorImpl()
 }
 
 OpenSubdiv_EvaluatorImpl *openSubdiv_createEvaluatorInternal(
-    OpenSubdiv_TopologyRefiner *topology_refiner,
+    blender::opensubdiv::TopologyRefinerImpl *topology_refiner,
     eOpenSubdivEvaluator evaluator_type,
     OpenSubdiv_EvaluatorCacheImpl *evaluator_cache_descr)
 {
-  TopologyRefiner *refiner = topology_refiner->impl->topology_refiner;
+  TopologyRefiner *refiner = topology_refiner->topology_refiner;
   if (refiner == NULL) {
     // Happens on bad topology.
     return NULL;
@@ -433,8 +433,8 @@ OpenSubdiv_EvaluatorImpl *openSubdiv_createEvaluatorInternal(
   const bool has_varying_data = false;
   const int num_face_varying_channels = refiner->GetNumFVarChannels();
   const bool has_face_varying_data = (num_face_varying_channels != 0);
-  const int level = topology_refiner->getSubdivisionLevel();
-  const bool is_adaptive = topology_refiner->getIsAdaptive();
+  const int level = topology_refiner->settings.level;
+  const bool is_adaptive = topology_refiner->settings.is_adaptive;
   // Common settings for stencils and patches.
   const bool stencil_generate_intermediate_levels = is_adaptive;
   const bool stencil_generate_offsets = true;

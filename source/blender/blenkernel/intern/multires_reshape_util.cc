@@ -51,6 +51,9 @@ blender::bke::subdiv::Subdiv *multires_reshape_create_subdiv(Depsgraph *depsgrap
   subdiv::Settings subdiv_settings;
   BKE_multires_subdiv_settings_init(&subdiv_settings, mmd);
   subdiv::Subdiv *subdiv = subdiv::new_from_mesh(&subdiv_settings, base_mesh);
+  if (!subdiv) {
+    return nullptr;
+  }
   if (!subdiv::eval_begin_from_mesh(
           subdiv, base_mesh, {}, subdiv::SUBDIV_EVALUATOR_TYPE_CPU, nullptr))
   {
@@ -164,6 +167,9 @@ bool multires_reshape_context_create_from_base_mesh(MultiresReshapeContext *resh
   reshape_context->base_corner_edges = base_mesh->corner_edges();
 
   reshape_context->subdiv = multires_reshape_create_subdiv(nullptr, object, mmd);
+  if (!reshape_context->subdiv) {
+    return false;
+  }
   reshape_context->need_free_subdiv = true;
 
   reshape_context->reshape.level = multires_get_level(
@@ -205,6 +211,9 @@ bool multires_reshape_context_create_from_object(MultiresReshapeContext *reshape
   reshape_context->base_corner_edges = base_mesh->corner_edges();
 
   reshape_context->subdiv = multires_reshape_create_subdiv(depsgraph, object, mmd);
+  if (!reshape_context->subdiv) {
+    return false;
+  }
   reshape_context->need_free_subdiv = true;
 
   reshape_context->reshape.level = multires_get_level(

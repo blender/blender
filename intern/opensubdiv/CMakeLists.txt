@@ -64,7 +64,6 @@ if(WITH_OPENSUBDIV)
     internal/topology/mesh_topology.cc
     internal/topology/mesh_topology_compare.cc
     internal/topology/mesh_topology.h
-    internal/topology/topology_refiner_capi.cc
     internal/topology/topology_refiner_factory.cc
     internal/topology/topology_refiner_impl.cc
     internal/topology/topology_refiner_impl_compare.cc
@@ -95,7 +94,6 @@ else()
   list(APPEND SRC
     stub/opensubdiv_stub.cc
     stub/opensubdiv_evaluator_stub.cc
-    stub/opensubdiv_topology_refiner_stub.cc
   )
 endif()
 
