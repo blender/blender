@@ -818,16 +818,16 @@ static void paint_brush_default_essentials_name_get(
       name = "Draw";
       break;
     case OB_MODE_VERTEX_PAINT:
-      name = "Paint Vertex";
+      name = "Paint Hard";
       break;
     case OB_MODE_WEIGHT_PAINT:
-      name = "Paint Weight";
+      name = "Paint";
       break;
     case OB_MODE_TEXTURE_PAINT:
-      name = "Paint Texture";
+      name = "Paint Hard";
       break;
     case OB_MODE_SCULPT_CURVES:
-      name = "Comb Curves";
+      name = "Comb";
       break;
     case OB_MODE_PAINT_GPENCIL_LEGACY:
       name = "Pencil";
@@ -849,13 +849,13 @@ static void paint_brush_default_essentials_name_get(
       eraser_name = "Eraser Soft";
       break;
     case OB_MODE_VERTEX_GPENCIL_LEGACY:
-      name = "Paint Point Color";
+      name = "Paint";
       break;
     case OB_MODE_SCULPT_GPENCIL_LEGACY:
-      name = "Smooth Stroke";
+      name = "Smooth";
       break;
     case OB_MODE_WEIGHT_GPENCIL_LEGACY:
-      name = "Paint Point Weight";
+      name = "Paint";
       break;
     default:
       BLI_assert_unreachable();
