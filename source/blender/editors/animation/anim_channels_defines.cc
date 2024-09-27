@@ -3893,7 +3893,7 @@ static void *layer_setting_ptr(bAnimListElem *ale,
 
 static int layer_group_icon(bAnimListElem * /*ale*/)
 {
-  return ICON_FILE_FOLDER;
+  return ICON_GREASEPENCIL_LAYER_GROUP;
 }
 
 static void layer_group_color(bAnimContext * /*ac*/, bAnimListElem * /*ale*/, float r_color[3])

@@ -384,7 +384,7 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
   {
     uiItemS_ex(&row, 0.8f);
 
-    short icon = ICON_FILE_FOLDER;
+    short icon = ICON_GREASEPENCIL_LAYER_GROUP;
     if (group_.color_tag != LAYERGROUP_COLOR_NONE) {
       icon = ICON_LAYERGROUP_COLOR_01 + group_.color_tag;
     }

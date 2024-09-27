@@ -373,6 +373,7 @@ if(WITH_BLENDER)
       gp_select_strokes
       graph
       greasepencil
+      greasepencil_layer_group
       grid
       grip
       group

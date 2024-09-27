@@ -2947,7 +2947,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
           data.icon = ICON_OUTLINER_DATA_GP_LAYER;
         }
         else if (node.is_group()) {
-          data.icon = ICON_FILE_FOLDER;
+          data.icon = ICON_GREASEPENCIL_LAYER_GROUP;
         }
         break;
       }
