@@ -205,24 +205,59 @@ static void version_legacy_actions_to_layered(Main *bmain)
     Action &action = item.key->wrap();
     convert_action_in_place(action);
     blender::Vector<ActionUserInfo> &user_infos = item.value;
+    Slot &slot_to_assign = *action.slot(0);
+
     if (user_infos.size() == 1) {
       /* Rename the slot after its single user. If there are multiple users, the name is unchanged
        * because there is no good way to determine a name. */
-      action.slot_name_set(*bmain, *action.slot(0), user_infos[0].id->name);
+      action.slot_name_set(*bmain, slot_to_assign, user_infos[0].id->name);
     }
     for (ActionUserInfo &action_user : user_infos) {
-      BLI_assert_msg(*action_user.slot_handle == Slot::unassigned,
-                     "Because the action was just converted from legacy, none of the users of "
-                     "that action should have a slot set yet.");
-
-      ActionSlotAssignmentResult result = generic_assign_action_slot_handle(
-          action.slot(0)->handle,
+      const ActionSlotAssignmentResult result = generic_assign_action_slot(
+          &slot_to_assign,
           *action_user.id,
           *action_user.action_ptr_ptr,
           *action_user.slot_handle,
           action_user.slot_name);
-      BLI_assert(result == ActionSlotAssignmentResult::OK);
-      UNUSED_VARS_NDEBUG(result);
+      switch (result) {
+        case ActionSlotAssignmentResult::OK:
+          break;
+        case ActionSlotAssignmentResult::SlotNotSuitable:
+          /* The slot assignment can fail in the following scenario, when dealing
+           * with "old Blender" (only supporting legacy Actions) and "new Blender"
+           * (versions supporting slotted/layered Actions).
+           *
+           * - New Blender: create an action with two slots, ME and KE, and assign
+           *   to respectively a Mesh and a Shape Key. Save the file.
+           * - Old Blender: load the file. This will load the legacy data, but still
+           *   keep the assignments. This means that the Shape Key will get a ME
+           *   Action assigned, which is incompatible. Save the file.
+           * - New Blender: upgrades the Action (this code here), and tries to
+           *   assign the first (and by now only) slot. This will fail for the shape
+           *   key, as the ID type doesn't match.
+           *
+           * The failure is in itself okay, as there was actual data loss in this
+           * scenario, and so issuing a warning is the right way to go about this.
+           * The Action is still assigned, but the data-block won't get a slot
+           * assigned.
+           */
+          printf(
+              "Warning: while upgrading legacy Action \"%s\", its slot \"%s\" could not be "
+              "assigned to data-block \"%s\" because it was meant for ID type \"%s\". The Action "
+              "assignment will be kept, but \"%s\" will not be animated.\n",
+              action.id.name + 2,
+              slot_to_assign.name_without_prefix().c_str(),
+              action_user.id->name,
+              slot_to_assign.name_prefix_for_idtype().c_str(),
+              action_user.id->name);
+          break;
+        case ActionSlotAssignmentResult::SlotNotFromAction:
+          BLI_assert(!"SlotNotFromAction should not be returned here");
+          break;
+        case ActionSlotAssignmentResult::MissingAction:
+          BLI_assert(!"MissingAction should not be returned here");
+          break;
+      }
     }
   }
 }
