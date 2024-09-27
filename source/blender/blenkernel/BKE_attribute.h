@@ -125,6 +125,7 @@ int BKE_attributes_length(const AttributeOwner &owner,
 
 struct CustomDataLayer *BKE_attributes_active_get(AttributeOwner &owner);
 void BKE_attributes_active_set(AttributeOwner &owner, const char *name);
+void BKE_attributes_active_clear(AttributeOwner &owner);
 int *BKE_attributes_active_index_p(AttributeOwner &owner);
 
 CustomData *BKE_attributes_iterator_next_domain(AttributeOwner &owner,
@@ -143,6 +144,7 @@ int BKE_attribute_to_index(const AttributeOwner &owner,
 const char *BKE_id_attributes_active_color_name(const struct ID *id);
 const char *BKE_id_attributes_default_color_name(const struct ID *id);
 void BKE_id_attributes_active_color_set(struct ID *id, const char *name);
+void BKE_id_attributes_active_color_clear(struct ID *id);
 void BKE_id_attributes_default_color_set(struct ID *id, const char *name);
 
 const struct CustomDataLayer *BKE_id_attributes_color_find(const struct ID *id, const char *name);

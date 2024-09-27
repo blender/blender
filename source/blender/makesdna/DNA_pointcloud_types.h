@@ -45,6 +45,7 @@ typedef struct PointCloud {
 
   /* Custom Data */
   struct CustomData pdata;
+  /** Set to -1 when none is active. */
   int attributes_active_index;
   int _pad4;
 

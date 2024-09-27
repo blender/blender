@@ -462,6 +462,8 @@ typedef struct GreasePencil {
   CustomData layers_data;
   /**
    * The index of the active attribute in the UI.
+   *
+   * Set to -1 when none is active.
    */
   int attributes_active_index;
   char _pad2[4];
