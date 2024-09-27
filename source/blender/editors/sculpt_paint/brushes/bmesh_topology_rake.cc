@@ -54,36 +54,18 @@ static void calc_bmesh(const Depsgraph &depsgraph,
                        LocalData &tls)
 {
   SculptSession &ss = *object.sculpt;
-  const StrokeCache &cache = *ss.cache;
 
   const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
   const MutableSpan positions = gather_bmesh_positions(verts, tls.positions);
 
-  tls.factors.resize(verts.size());
-  const MutableSpan<float> factors = tls.factors;
-  fill_factor_from_hide_and_mask(*ss.bm, verts, factors);
-  filter_region_clip_factors(ss, positions, factors);
-  if (brush.flag & BRUSH_FRONTFACE) {
-    calc_front_face(cache.view_normal_symm, verts, factors);
-  }
+  calc_factors_common_bmesh(depsgraph, brush, object, positions, node, tls.factors, tls.distances);
 
-  tls.distances.resize(verts.size());
-  const MutableSpan<float> distances = tls.distances;
-  calc_brush_distances(ss, positions, eBrushFalloffShape(brush.falloff_shape), distances);
-  filter_distances_with_radius(cache.radius, distances, factors);
-  apply_hardness_to_distances(cache, distances);
-  calc_brush_strength_factors(cache, brush, distances, factors);
-
-  auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
-
-  calc_brush_texture_factors(ss, brush, positions, factors);
-
-  scale_factors(factors, strength);
+  scale_factors(tls.factors, strength);
 
   tls.translations.resize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
   calc_translations(verts, direction, translations);
-  scale_translations(translations, factors);
+  scale_translations(translations, tls.factors);
 
   clip_and_lock_translations(sd, ss, positions, translations);
   apply_translations(translations, verts);

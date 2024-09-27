@@ -6181,6 +6181,249 @@ template void scatter_data_bmesh<float3>(Span<float3>,
                                          const Set<BMVert *, 0> &,
                                          MutableSpan<float3>);
 
+void calc_factors_common_mesh_indexed(const Depsgraph &depsgraph,
+                                      const Brush &brush,
+                                      const Object &object,
+                                      const Span<float3> vert_positions,
+                                      const Span<float3> vert_normals,
+                                      const bke::pbvh::MeshNode &node,
+                                      Vector<float> &r_factors,
+                                      Vector<float> &r_distances)
+{
+  const SculptSession &ss = *object.sculpt;
+  const StrokeCache &cache = *ss.cache;
+  const Mesh &mesh = *static_cast<Mesh *>(object.data);
+
+  const Span<int> verts = node.verts();
+
+  r_factors.resize(verts.size());
+  const MutableSpan<float> factors = r_factors;
+  fill_factor_from_hide_and_mask(mesh, verts, factors);
+  filter_region_clip_factors(ss, vert_positions, verts, factors);
+  if (brush.flag & BRUSH_FRONTFACE) {
+    calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
+  }
+
+  r_distances.resize(verts.size());
+  const MutableSpan<float> distances = r_distances;
+  calc_brush_distances(
+      ss, vert_positions, verts, eBrushFalloffShape(brush.falloff_shape), distances);
+  filter_distances_with_radius(cache.radius, distances, factors);
+  apply_hardness_to_distances(cache, distances);
+  calc_brush_strength_factors(cache, brush, distances, factors);
+
+  auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
+
+  calc_brush_texture_factors(ss, brush, vert_positions, verts, factors);
+}
+
+void calc_factors_common_mesh(const Depsgraph &depsgraph,
+                              const Brush &brush,
+                              const Object &object,
+                              const Span<float3> positions,
+                              const Span<float3> vert_normals,
+                              const bke::pbvh::MeshNode &node,
+                              Vector<float> &r_factors,
+                              Vector<float> &r_distances)
+{
+  const SculptSession &ss = *object.sculpt;
+  const StrokeCache &cache = *ss.cache;
+  const Mesh &mesh = *static_cast<Mesh *>(object.data);
+
+  const Span<int> verts = node.verts();
+
+  r_factors.resize(verts.size());
+  const MutableSpan<float> factors = r_factors;
+  fill_factor_from_hide_and_mask(mesh, verts, factors);
+  filter_region_clip_factors(ss, positions, factors);
+  if (brush.flag & BRUSH_FRONTFACE) {
+    calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
+  }
+
+  r_distances.resize(verts.size());
+  const MutableSpan<float> distances = r_distances;
+  calc_brush_distances(ss, positions, eBrushFalloffShape(brush.falloff_shape), distances);
+  filter_distances_with_radius(cache.radius, distances, factors);
+  apply_hardness_to_distances(cache, distances);
+  calc_brush_strength_factors(cache, brush, distances, factors);
+
+  auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
+
+  calc_brush_texture_factors(ss, brush, positions, factors);
+}
+
+void calc_factors_common_grids(const Depsgraph &depsgraph,
+                               const Brush &brush,
+                               const Object &object,
+                               const Span<float3> positions,
+                               const bke::pbvh::GridsNode &node,
+                               Vector<float> &r_factors,
+                               Vector<float> &r_distances)
+{
+  const SculptSession &ss = *object.sculpt;
+  const StrokeCache &cache = *ss.cache;
+  const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+
+  const Span<int> grids = node.grids();
+
+  r_factors.resize(positions.size());
+  const MutableSpan<float> factors = r_factors;
+  fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
+  filter_region_clip_factors(ss, positions, factors);
+  if (brush.flag & BRUSH_FRONTFACE) {
+    calc_front_face(cache.view_normal_symm, subdiv_ccg, grids, factors);
+  }
+
+  r_distances.resize(positions.size());
+  const MutableSpan<float> distances = r_distances;
+  calc_brush_distances(ss, positions, eBrushFalloffShape(brush.falloff_shape), distances);
+  filter_distances_with_radius(cache.radius, distances, factors);
+  apply_hardness_to_distances(cache, distances);
+  calc_brush_strength_factors(cache, brush, distances, factors);
+
+  auto_mask::calc_grids_factors(depsgraph, object, cache.automasking.get(), node, grids, factors);
+
+  calc_brush_texture_factors(ss, brush, positions, factors);
+}
+
+void calc_factors_common_bmesh(const Depsgraph &depsgraph,
+                               const Brush &brush,
+                               const Object &object,
+                               const Span<float3> positions,
+                               bke::pbvh::BMeshNode &node,
+                               Vector<float> &r_factors,
+                               Vector<float> &r_distances)
+{
+  const SculptSession &ss = *object.sculpt;
+  const StrokeCache &cache = *ss.cache;
+
+  const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
+
+  r_factors.resize(verts.size());
+  const MutableSpan<float> factors = r_factors;
+  fill_factor_from_hide_and_mask(*ss.bm, verts, factors);
+  filter_region_clip_factors(ss, positions, factors);
+  if (brush.flag & BRUSH_FRONTFACE) {
+    calc_front_face(cache.view_normal_symm, verts, factors);
+  }
+
+  r_distances.resize(verts.size());
+  const MutableSpan<float> distances = r_distances;
+  calc_brush_distances(ss, positions, eBrushFalloffShape(brush.falloff_shape), distances);
+  filter_distances_with_radius(cache.radius, distances, factors);
+  apply_hardness_to_distances(cache, distances);
+  calc_brush_strength_factors(cache, brush, distances, factors);
+
+  auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
+
+  calc_brush_texture_factors(ss, brush, positions, factors);
+}
+
+void calc_factors_common_from_orig_data_mesh(const Depsgraph &depsgraph,
+                                             const Brush &brush,
+                                             const Object &object,
+                                             const Span<float3> positions,
+                                             const Span<float3> normals,
+                                             const bke::pbvh::MeshNode &node,
+                                             Vector<float> &r_factors,
+                                             Vector<float> &r_distances)
+{
+  const SculptSession &ss = *object.sculpt;
+  const StrokeCache &cache = *ss.cache;
+  const Mesh &mesh = *static_cast<Mesh *>(object.data);
+
+  const Span<int> verts = node.verts();
+
+  r_factors.resize(verts.size());
+  const MutableSpan<float> factors = r_factors;
+  fill_factor_from_hide_and_mask(mesh, verts, factors);
+  filter_region_clip_factors(ss, positions, factors);
+
+  if (brush.flag & BRUSH_FRONTFACE) {
+    calc_front_face(cache.view_normal_symm, normals, factors);
+  }
+
+  r_distances.resize(verts.size());
+  const MutableSpan<float> distances = r_distances;
+  calc_brush_distances(ss, positions, eBrushFalloffShape(brush.falloff_shape), distances);
+  filter_distances_with_radius(cache.radius, distances, factors);
+  apply_hardness_to_distances(cache, distances);
+  calc_brush_strength_factors(cache, brush, distances, factors);
+
+  auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
+
+  calc_brush_texture_factors(ss, brush, positions, factors);
+}
+
+void calc_factors_common_from_orig_data_grids(const Depsgraph &depsgraph,
+                                              const Brush &brush,
+                                              const Object &object,
+                                              const Span<float3> positions,
+                                              const Span<float3> normals,
+                                              const bke::pbvh::GridsNode &node,
+                                              Vector<float> &r_factors,
+                                              Vector<float> &r_distances)
+{
+  SculptSession &ss = *object.sculpt;
+  const StrokeCache &cache = *ss.cache;
+  SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+
+  const Span<int> grids = node.grids();
+
+  r_factors.resize(positions.size());
+  const MutableSpan<float> factors = r_factors;
+  fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
+  filter_region_clip_factors(ss, positions, factors);
+  if (brush.flag & BRUSH_FRONTFACE) {
+    calc_front_face(cache.view_normal_symm, normals, grids, factors);
+  }
+
+  r_distances.resize(positions.size());
+  const MutableSpan<float> distances = r_distances;
+  calc_brush_distances(ss, positions, eBrushFalloffShape(brush.falloff_shape), distances);
+  filter_distances_with_radius(cache.radius, distances, factors);
+  apply_hardness_to_distances(cache, distances);
+  calc_brush_strength_factors(cache, brush, distances, factors);
+
+  auto_mask::calc_grids_factors(depsgraph, object, cache.automasking.get(), node, grids, factors);
+
+  calc_brush_texture_factors(ss, brush, positions, factors);
+}
+
+void calc_factors_common_from_orig_data_bmesh(const Depsgraph &depsgraph,
+                                              const Brush &brush,
+                                              const Object &object,
+                                              const Span<float3> positions,
+                                              const Span<float3> normals,
+                                              bke::pbvh::BMeshNode &node,
+                                              Vector<float> &r_factors,
+                                              Vector<float> &r_distances)
+{
+  SculptSession &ss = *object.sculpt;
+  const StrokeCache &cache = *ss.cache;
+
+  const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
+
+  r_factors.resize(verts.size());
+  const MutableSpan<float> factors = r_factors;
+  fill_factor_from_hide_and_mask(*ss.bm, verts, factors);
+  filter_region_clip_factors(ss, positions, factors);
+  if (brush.flag & BRUSH_FRONTFACE) {
+    calc_front_face(cache.view_normal_symm, normals, factors);
+  }
+
+  r_distances.resize(verts.size());
+  const MutableSpan<float> distances = r_distances;
+  calc_brush_distances(ss, positions, eBrushFalloffShape(brush.falloff_shape), distances);
+  filter_distances_with_radius(cache.radius, distances, factors);
+  apply_hardness_to_distances(cache, distances);
+  calc_brush_strength_factors(cache, brush, distances, factors);
+
+  auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
+
+  calc_brush_texture_factors(ss, brush, positions, factors);
+}
+
 void fill_factor_from_hide(const Mesh &mesh,
                            const Span<int> verts,
                            const MutableSpan<float> r_factors)
