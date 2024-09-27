@@ -1138,7 +1138,6 @@ class IMAGE_OT_convert_to_mesh_plane(MaterialProperties_MixIn, TextureProperties
         return context.window_manager.invoke_props_dialog(self)
 
     def execute(self, context):
-        scene = context.scene
 
         selected_objects = [ob for ob in context.selected_objects]
         converted = 0

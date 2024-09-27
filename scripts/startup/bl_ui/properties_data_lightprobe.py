@@ -198,8 +198,6 @@ class DATA_PT_lightprobe_bake(DataButtonsPanel, Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        probe = context.lightprobe
-
         col = layout.column()
         row = col.row(align=True)
         row.operator("object.lightprobe_cache_bake").subset = 'ACTIVE'

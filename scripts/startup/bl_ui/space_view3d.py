@@ -426,7 +426,6 @@ class _draw_tool_settings_context_mode:
         gp_settings = brush.gpencil_settings
 
         row = layout.row(align=True)
-        settings = tool_settings.gpencil_paint
 
         BrushAssetShelf.draw_popup_selector(row, context, brush)
 
@@ -3722,10 +3721,8 @@ class VIEW3D_MT_greasepencil_vertex_group(Menu):
         layout = self.layout
 
         layout.operator_context = 'EXEC_AREA'
-        ob = context.active_object
 
         layout.operator("object.vertex_group_add", text="Add New Group")
-        ob = context.active_object
 
 
 class VIEW3D_MT_paint_weight_lock(Menu):
@@ -8124,7 +8121,6 @@ class VIEW3D_PT_gpencil_origin(Panel):
     def draw(self, context):
         layout = self.layout
         tool_settings = context.tool_settings
-        gpd = context.gpencil_data
 
         layout.label(text="Stroke Placement")
 

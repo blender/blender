@@ -1182,7 +1182,6 @@ def brush_settings_advanced(layout, context, brush, popover=False):
             layout.separator()
 
     elif mode == 'SCULPT_GREASE_PENCIL':
-        tool = brush.gpencil_sculpt_tool
         gp_settings = brush.gpencil_settings
 
         col = layout.column(heading="Affect", align=True)

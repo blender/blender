@@ -2385,9 +2385,6 @@ class VIEW3D_PT_tools_grease_pencil_brush_eraser(View3DPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        tool_settings = context.tool_settings
-        settings = tool_settings.gpencil_paint
-
         if context.region.type == 'TOOL_HEADER':
             return False
 
@@ -2525,7 +2522,6 @@ class VIEW3D_PT_tools_grease_pencil_v3_brush_advanced(View3DPanel, Panel):
         layout.use_property_decorate = False
 
         tool_settings = context.scene.tool_settings
-        ups = tool_settings.unified_paint_settings
         gpencil_paint = tool_settings.gpencil_paint
         brush = gpencil_paint.brush
         gp_settings = brush.gpencil_settings

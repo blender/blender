@@ -176,9 +176,6 @@ class RENDER_PT_color_management_white_balance(RenderButtonsPanel, Panel):
     def draw_header_preset(self, context):
         layout = self.layout
 
-        scene = context.scene
-        view = scene.view_settings
-
         RENDER_PT_color_management_white_balance_presets.draw_panel_header(layout)
 
         eye = layout.operator("ui.eyedropper_color", text="", icon='EYEDROPPER')
