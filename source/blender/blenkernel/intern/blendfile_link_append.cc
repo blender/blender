@@ -1016,7 +1016,7 @@ static int foreach_libblock_append_add_dependencies_callback(LibraryIDLinkCallba
       id, nullptr);
   if (item == nullptr) {
     item = BKE_blendfile_link_append_context_item_add(
-        data->lapp_context, id->name, GS(id->name), nullptr);
+        data->lapp_context, BKE_id_name(*id), GS(id->name), nullptr);
     item->new_id = id;
     item->source_library = id->lib;
     /* Since we did not have an item for that ID yet, we know user did not select it explicitly,
@@ -1521,7 +1521,7 @@ static int foreach_libblock_link_finalize_cb(LibraryIDLinkCallbackData *cb_data)
    */
   if (item == nullptr) {
     item = BKE_blendfile_link_append_context_item_add(
-        data->lapp_context, id->name, GS(id->name), nullptr);
+        data->lapp_context, BKE_id_name(*id), GS(id->name), nullptr);
     item->new_id = id;
     item->source_library = id->lib;
     /* Since there is no item for that ID yet, the user did not select it explicitly, it was
@@ -1853,7 +1853,8 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
           BLI_remlink(which_libbase(bmain, GS(old_key->id.name)), &old_key->id);
         }
 
-        item = BKE_blendfile_link_append_context_item_add(lapp_context, id->name + 2, idcode, id);
+        item = BKE_blendfile_link_append_context_item_add(
+            lapp_context, BKE_id_name(*id), idcode, id);
         item->libraries.fill(true);
 
         CLOG_INFO(&LOG, 4, "Datablock to seek for: %s", id->name);
