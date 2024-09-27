@@ -123,13 +123,11 @@ void do_bmesh_topology_rake_brush(const Depsgraph &depsgraph,
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   for ([[maybe_unused]] const int i : IndexRange(count)) {
     MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
-    threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+    node_mask.foreach_index(GrainSize(1), [&](const int i) {
       LocalData &tls = all_tls.local();
-      node_mask.slice(range).foreach_index([&](const int i) {
-        calc_bmesh(
-            depsgraph, sd, object, brush, direction, factor * ss.cache->pressure, nodes[i], tls);
-        bke::pbvh::update_node_bounds_bmesh(nodes[i]);
-      });
+      calc_bmesh(
+          depsgraph, sd, object, brush, direction, factor * ss.cache->pressure, nodes[i], tls);
+      bke::pbvh::update_node_bounds_bmesh(nodes[i]);
     });
   }
   pbvh.tag_positions_changed(node_mask);

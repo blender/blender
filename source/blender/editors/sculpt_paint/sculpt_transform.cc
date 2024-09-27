@@ -302,12 +302,10 @@ static void sculpt_transform_all_vertices(const Depsgraph &depsgraph, const Scul
     case bke::pbvh::Type::Mesh: {
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       const PositionDeformData position_data(depsgraph, ob);
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         TransformLocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          transform_node_mesh(sd, transform_mats, nodes[i], ob, tls, position_data);
-          bke::pbvh::update_node_bounds_mesh(position_data.eval, nodes[i]);
-        });
+        transform_node_mesh(sd, transform_mats, nodes[i], ob, tls, position_data);
+        bke::pbvh::update_node_bounds_mesh(position_data.eval, nodes[i]);
       });
       break;
     }
@@ -315,23 +313,19 @@ static void sculpt_transform_all_vertices(const Depsgraph &depsgraph, const Scul
       SubdivCCG &subdiv_ccg = *ob.sculpt->subdiv_ccg;
       MutableSpan<float3> positions = subdiv_ccg.positions;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         TransformLocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          transform_node_grids(sd, transform_mats, nodes[i], ob, tls);
-          bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
-        });
+        transform_node_grids(sd, transform_mats, nodes[i], ob, tls);
+        bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
       });
       break;
     }
     case bke::pbvh::Type::BMesh: {
       MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         TransformLocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          transform_node_bmesh(sd, transform_mats, nodes[i], ob, tls);
-          bke::pbvh::update_node_bounds_bmesh(nodes[i]);
-        });
+        transform_node_bmesh(sd, transform_mats, nodes[i], ob, tls);
+        bke::pbvh::update_node_bounds_bmesh(nodes[i]);
       });
       break;
     }
@@ -493,19 +487,17 @@ static void transform_radius_elastic(const Depsgraph &depsgraph,
       case bke::pbvh::Type::Mesh: {
         MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
         const PositionDeformData position_data(depsgraph, ob);
-        threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+        node_mask.foreach_index(GrainSize(1), [&](const int i) {
           TransformLocalData &tls = all_tls.local();
-          node_mask.slice(range).foreach_index([&](const int i) {
-            elastic_transform_node_mesh(sd,
-                                        params,
-                                        elastic_transform_mat,
-                                        elastic_transform_pivot,
-                                        nodes[i],
-                                        ob,
-                                        tls,
-                                        position_data);
-            bke::pbvh::update_node_bounds_mesh(position_data.eval, nodes[i]);
-          });
+          elastic_transform_node_mesh(sd,
+                                      params,
+                                      elastic_transform_mat,
+                                      elastic_transform_pivot,
+                                      nodes[i],
+                                      ob,
+                                      tls,
+                                      position_data);
+          bke::pbvh::update_node_bounds_mesh(position_data.eval, nodes[i]);
         });
         break;
       }
@@ -513,25 +505,21 @@ static void transform_radius_elastic(const Depsgraph &depsgraph,
         SubdivCCG &subdiv_ccg = *ob.sculpt->subdiv_ccg;
         MutableSpan<float3> positions = subdiv_ccg.positions;
         MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-        threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+        node_mask.foreach_index(GrainSize(1), [&](const int i) {
           TransformLocalData &tls = all_tls.local();
-          node_mask.slice(range).foreach_index([&](const int i) {
-            elastic_transform_node_grids(
-                sd, params, elastic_transform_mat, elastic_transform_pivot, nodes[i], ob, tls);
-            bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
-          });
+          elastic_transform_node_grids(
+              sd, params, elastic_transform_mat, elastic_transform_pivot, nodes[i], ob, tls);
+          bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
         });
         break;
       }
       case bke::pbvh::Type::BMesh: {
         MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
-        threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+        node_mask.foreach_index(GrainSize(1), [&](const int i) {
           TransformLocalData &tls = all_tls.local();
-          node_mask.slice(range).foreach_index([&](const int i) {
-            elastic_transform_node_bmesh(
-                sd, params, elastic_transform_mat, elastic_transform_pivot, nodes[i], ob, tls);
-            bke::pbvh::update_node_bounds_bmesh(nodes[i]);
-          });
+          elastic_transform_node_bmesh(
+              sd, params, elastic_transform_mat, elastic_transform_pivot, nodes[i], ob, tls);
+          bke::pbvh::update_node_bounds_bmesh(nodes[i]);
         });
         break;
       }

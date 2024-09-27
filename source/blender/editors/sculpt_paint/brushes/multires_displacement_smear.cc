@@ -185,25 +185,21 @@ void do_displacement_smear_brush(const Depsgraph &depsgraph,
     eval_all_limit_positions(subdiv_ccg, ss.cache->displacement_smear.limit_surface_co);
   }
 
-  threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
-    node_mask.slice(range).foreach_index([&](const int i) {
-      store_node_prev_displacement(ss.cache->displacement_smear.limit_surface_co,
-                                   subdiv_ccg.positions,
-                                   key,
-                                   nodes[i],
-                                   ss.cache->displacement_smear.prev_displacement);
-    });
+  node_mask.foreach_index(GrainSize(1), [&](const int i) {
+    store_node_prev_displacement(ss.cache->displacement_smear.limit_surface_co,
+                                 subdiv_ccg.positions,
+                                 key,
+                                 nodes[i],
+                                 ss.cache->displacement_smear.prev_displacement);
   });
 
   const float strength = std::clamp(ss.cache->bstrength, 0.0f, 1.0f);
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
-  threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+  node_mask.foreach_index(GrainSize(1), [&](const int i) {
     LocalData &tls = all_tls.local();
-    node_mask.slice(range).foreach_index([&](const int i) {
-      calc_node(depsgraph, ob, brush, strength, nodes[i], tls);
-      bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
-    });
+    calc_node(depsgraph, ob, brush, strength, nodes[i], tls);
+    bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
   });
   pbvh.tag_positions_changed(node_mask);
   bke::pbvh::flush_bounds_to_parents(pbvh);

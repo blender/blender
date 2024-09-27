@@ -305,10 +305,9 @@ void do_smooth_mask_brush(const Depsgraph &depsgraph,
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       for (const float strength : iteration_strengths(brush_strength)) {
         MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-        threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+        node_mask.foreach_index(GrainSize(1), [&](const int i) {
           LocalData &tls = all_tls.local();
-          node_mask.slice(range).foreach_index(
-              [&](const int i) { calc_grids(depsgraph, object, brush, strength, nodes[i], tls); });
+          calc_grids(depsgraph, object, brush, strength, nodes[i], tls);
         });
       }
       bke::pbvh::update_mask_grids(*ss.subdiv_ccg, node_mask, pbvh);
@@ -323,11 +322,9 @@ void do_smooth_mask_brush(const Depsgraph &depsgraph,
           &ss.bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
       for (const float strength : iteration_strengths(brush_strength)) {
         MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
-        threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+        node_mask.foreach_index(GrainSize(1), [&](const int i) {
           LocalData &tls = all_tls.local();
-          node_mask.slice(range).foreach_index([&](const int i) {
-            calc_bmesh(depsgraph, object, mask_offset, brush, strength, nodes[i], tls);
-          });
+          calc_bmesh(depsgraph, object, mask_offset, brush, strength, nodes[i], tls);
         });
       }
       bke::pbvh::update_mask_bmesh(*ss.bm, node_mask, pbvh);

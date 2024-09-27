@@ -578,22 +578,20 @@ void do_paint_brush(const Scene &scene,
 
   if (ss.cache->alt_smooth) {
     threading::EnumerableThreadSpecific<ColorPaintLocalData> all_tls;
-    threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+    node_mask.foreach_index(GrainSize(1), [&](const int i) {
       ColorPaintLocalData &tls = all_tls.local();
-      node_mask.slice(range).foreach_index([&](const int i) {
-        do_color_smooth_task(depsgraph,
-                             ob,
-                             vert_positions,
-                             vert_normals,
-                             faces,
-                             corner_verts,
-                             vert_to_face_map,
-                             hide_poly,
-                             brush,
-                             nodes[i],
-                             tls,
-                             color_attribute);
-      });
+      do_color_smooth_task(depsgraph,
+                           ob,
+                           vert_positions,
+                           vert_normals,
+                           faces,
+                           corner_verts,
+                           vert_to_face_map,
+                           hide_poly,
+                           brush,
+                           nodes[i],
+                           tls,
+                           color_attribute);
     });
     pbvh.tag_attribute_changed(node_mask, mesh.active_color_attribute);
     color_attribute.finish();
@@ -653,25 +651,23 @@ void do_paint_brush(const Scene &scene,
   }
 
   threading::EnumerableThreadSpecific<ColorPaintLocalData> all_tls;
-  threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+  node_mask.foreach_index(GrainSize(1), [&](const int i) {
     ColorPaintLocalData &tls = all_tls.local();
-    node_mask.slice(range).foreach_index([&](const int i) {
-      do_paint_brush_task(scene,
-                          depsgraph,
-                          ob,
-                          vert_positions,
-                          vert_normals,
-                          faces,
-                          corner_verts,
-                          vert_to_face_map,
-                          brush,
-                          mat,
-                          wet_color,
-                          nodes[i],
-                          tls,
-                          ss.cache->paint_brush.mix_colors,
-                          color_attribute);
-    });
+    do_paint_brush_task(scene,
+                        depsgraph,
+                        ob,
+                        vert_positions,
+                        vert_normals,
+                        faces,
+                        corner_verts,
+                        vert_to_face_map,
+                        brush,
+                        mat,
+                        wet_color,
+                        nodes[i],
+                        tls,
+                        ss.cache->paint_brush.mix_colors,
+                        color_attribute);
   });
   pbvh.tag_attribute_changed(node_mask, mesh.active_color_attribute);
   color_attribute.finish();
@@ -880,22 +876,20 @@ void do_smear_brush(const Depsgraph &depsgraph,
   /* Smooth colors mode. */
   if (ss.cache->alt_smooth) {
     threading::EnumerableThreadSpecific<ColorPaintLocalData> all_tls;
-    threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+    node_mask.foreach_index(GrainSize(1), [&](const int i) {
       ColorPaintLocalData &tls = all_tls.local();
-      node_mask.slice(range).foreach_index([&](const int i) {
-        do_color_smooth_task(depsgraph,
-                             ob,
-                             vert_positions,
-                             vert_normals,
-                             faces,
-                             corner_verts,
-                             vert_to_face_map,
-                             hide_poly,
-                             brush,
-                             nodes[i],
-                             tls,
-                             color_attribute);
-      });
+      do_color_smooth_task(depsgraph,
+                           ob,
+                           vert_positions,
+                           vert_normals,
+                           faces,
+                           corner_verts,
+                           vert_to_face_map,
+                           hide_poly,
+                           brush,
+                           nodes[i],
+                           tls,
+                           color_attribute);
     });
   }
   else {
@@ -911,22 +905,20 @@ void do_smear_brush(const Depsgraph &depsgraph,
       }
     });
     threading::EnumerableThreadSpecific<ColorPaintLocalData> all_tls;
-    threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+    node_mask.foreach_index(GrainSize(1), [&](const int i) {
       ColorPaintLocalData &tls = all_tls.local();
-      node_mask.slice(range).foreach_index([&](const int i) {
-        do_smear_brush_task(depsgraph,
-                            ob,
-                            vert_positions,
-                            vert_normals,
-                            faces,
-                            corner_verts,
-                            vert_to_face_map,
-                            hide_poly,
-                            brush,
-                            nodes[i],
-                            tls,
-                            color_attribute);
-      });
+      do_smear_brush_task(depsgraph,
+                          ob,
+                          vert_positions,
+                          vert_normals,
+                          faces,
+                          corner_verts,
+                          vert_to_face_map,
+                          hide_poly,
+                          brush,
+                          nodes[i],
+                          tls,
+                          color_attribute);
     });
   }
   pbvh.tag_attribute_changed(node_mask, mesh.active_color_attribute);

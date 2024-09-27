@@ -212,21 +212,19 @@ void update_mask_mesh(const Depsgraph &depsgraph,
   Array<bool> node_changed(node_mask.min_array_size(), false);
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
-  threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+  node_mask.foreach_index(GrainSize(1), [&](const int i) {
     LocalData &tls = all_tls.local();
-    node_mask.slice(range).foreach_index([&](const int i) {
-      const Span<int> verts = hide::node_visible_verts(nodes[i], hide_vert, tls.visible_verts);
-      tls.mask.resize(verts.size());
-      gather_data_mesh(mask.span.as_span(), verts, tls.mask.as_mutable_span());
-      update_fn(tls.mask, verts);
-      if (array_utils::indexed_data_equal<float>(mask.span, verts, tls.mask)) {
-        return;
-      }
-      undo::push_node(depsgraph, object, &nodes[i], undo::Type::Mask);
-      scatter_data_mesh(tls.mask.as_span(), verts, mask.span);
-      bke::pbvh::node_update_mask_mesh(mask.span, nodes[i]);
-      node_changed[i] = true;
-    });
+    const Span<int> verts = hide::node_visible_verts(nodes[i], hide_vert, tls.visible_verts);
+    tls.mask.resize(verts.size());
+    gather_data_mesh(mask.span.as_span(), verts, tls.mask.as_mutable_span());
+    update_fn(tls.mask, verts);
+    if (array_utils::indexed_data_equal<float>(mask.span, verts, tls.mask)) {
+      return;
+    }
+    undo::push_node(depsgraph, object, &nodes[i], undo::Type::Mask);
+    scatter_data_mesh(tls.mask.as_span(), verts, mask.span);
+    bke::pbvh::node_update_mask_mesh(mask.span, nodes[i]);
+    node_changed[i] = true;
   });
 
   IndexMaskMemory memory;
@@ -404,17 +402,15 @@ static void fill_mask_mesh(const Depsgraph &depsgraph,
   Array<bool> node_changed(node_mask.min_array_size(), false);
 
   threading::EnumerableThreadSpecific<Vector<int>> all_index_data;
-  threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+  node_mask.foreach_index(GrainSize(1), [&](const int i) {
     Vector<int> &index_data = all_index_data.local();
-    node_mask.slice(range).foreach_index([&](const int i) {
-      const Span<int> verts = hide::node_visible_verts(nodes[i], hide_vert, index_data);
-      if (std::all_of(verts.begin(), verts.end(), [&](int i) { return mask.span[i] == value; })) {
-        return;
-      }
-      undo::push_node(depsgraph, object, &nodes[i], undo::Type::Mask);
-      mask.span.fill_indices(verts, value);
-      node_changed[i] = true;
-    });
+    const Span<int> verts = hide::node_visible_verts(nodes[i], hide_vert, index_data);
+    if (std::all_of(verts.begin(), verts.end(), [&](int i) { return mask.span[i] == value; })) {
+      return;
+    }
+    undo::push_node(depsgraph, object, &nodes[i], undo::Type::Mask);
+    mask.span.fill_indices(verts, value);
+    node_changed[i] = true;
   });
 
   IndexMaskMemory memory;
@@ -783,29 +779,27 @@ static void gesture_apply_for_symmetry_pass(bContext & /*C*/, gesture::GestureDa
 
       Array<bool> node_changed(node_mask.min_array_size(), false);
 
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
-        node_mask.slice(range).foreach_index([&](const int node_index) {
-          bke::pbvh::GridsNode &node = nodes[node_index];
-          bool any_changed = false;
-          for (const int grid : node.grids()) {
-            const int vert_start = grid * key.grid_area;
-            BKE_subdiv_ccg_foreach_visible_grid_vert(key, grid_hidden, grid, [&](const int i) {
-              const int vert = vert_start + i;
-              if (gesture::is_affected(gesture_data, positions[vert], normals[vert])) {
-                float &mask = masks[vert];
-                if (!any_changed) {
-                  any_changed = true;
-                  undo::push_node(depsgraph, object, &node, undo::Type::Mask);
-                }
-                mask = mask_gesture_get_new_value(mask, op.mode, op.value);
+      node_mask.foreach_index(GrainSize(1), [&](const int node_index) {
+        bke::pbvh::GridsNode &node = nodes[node_index];
+        bool any_changed = false;
+        for (const int grid : node.grids()) {
+          const int vert_start = grid * key.grid_area;
+          BKE_subdiv_ccg_foreach_visible_grid_vert(key, grid_hidden, grid, [&](const int i) {
+            const int vert = vert_start + i;
+            if (gesture::is_affected(gesture_data, positions[vert], normals[vert])) {
+              float &mask = masks[vert];
+              if (!any_changed) {
+                any_changed = true;
+                undo::push_node(depsgraph, object, &node, undo::Type::Mask);
               }
-            });
-            if (any_changed) {
-              bke::pbvh::node_update_mask_grids(key, masks, node);
-              node_changed[node_index] = true;
+              mask = mask_gesture_get_new_value(mask, op.mode, op.value);
             }
+          });
+          if (any_changed) {
+            bke::pbvh::node_update_mask_grids(key, masks, node);
+            node_changed[node_index] = true;
           }
-        });
+        }
       });
 
       IndexMaskMemory memory;
@@ -820,25 +814,23 @@ static void gesture_apply_for_symmetry_pass(bContext & /*C*/, gesture::GestureDa
 
       Array<bool> node_changed(node_mask.min_array_size(), false);
 
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
-        node_mask.slice(range).foreach_index([&](const int i) {
-          bool any_changed = false;
-          for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(&nodes[i])) {
-            if (gesture::is_affected(gesture_data, vert->co, vert->no)) {
-              const float old_mask = BM_ELEM_CD_GET_FLOAT(vert, offset);
-              if (!any_changed) {
-                any_changed = true;
-                undo::push_node(depsgraph, object, &nodes[i], undo::Type::Mask);
-              }
-              const float new_mask = mask_gesture_get_new_value(old_mask, op.mode, op.value);
-              BM_ELEM_CD_SET_FLOAT(vert, offset, new_mask);
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
+        bool any_changed = false;
+        for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(&nodes[i])) {
+          if (gesture::is_affected(gesture_data, vert->co, vert->no)) {
+            const float old_mask = BM_ELEM_CD_GET_FLOAT(vert, offset);
+            if (!any_changed) {
+              any_changed = true;
+              undo::push_node(depsgraph, object, &nodes[i], undo::Type::Mask);
             }
+            const float new_mask = mask_gesture_get_new_value(old_mask, op.mode, op.value);
+            BM_ELEM_CD_SET_FLOAT(vert, offset, new_mask);
           }
-          if (any_changed) {
-            bke::pbvh::node_update_mask_bmesh(offset, nodes[i]);
-            node_changed[i] = true;
-          }
-        });
+        }
+        if (any_changed) {
+          bke::pbvh::node_update_mask_bmesh(offset, nodes[i]);
+          node_changed[i] = true;
+        }
       });
 
       IndexMaskMemory memory;

@@ -357,46 +357,38 @@ static void calc_smooth_filter(const Depsgraph &depsgraph,
       const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> verts = nodes[i].verts();
-          const Span<float3> positions = gather_data_mesh(
-              position_data.eval, verts, tls.positions);
-          const OrigPositionData orig_data = orig_position_data_get_mesh(object, nodes[i]);
+        const Span<int> verts = nodes[i].verts();
+        const Span<float3> positions = gather_data_mesh(position_data.eval, verts, tls.positions);
+        const OrigPositionData orig_data = orig_position_data_get_mesh(object, nodes[i]);
 
-          tls.factors.resize(verts.size());
-          const MutableSpan<float> factors = tls.factors;
-          fill_factor_from_hide_and_mask(mesh, verts, factors);
-          auto_mask::calc_vert_factors(
-              depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
-          scale_factors(factors, strength);
-          clamp_factors(factors, -1.0f, 1.0f);
+        tls.factors.resize(verts.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide_and_mask(mesh, verts, factors);
+        auto_mask::calc_vert_factors(
+            depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
+        scale_factors(factors, strength);
+        clamp_factors(factors, -1.0f, 1.0f);
 
-          tls.vert_neighbors.resize(verts.size());
-          MutableSpan<Vector<int>> neighbors = tls.vert_neighbors;
-          calc_vert_neighbors_interior(faces,
-                                       corner_verts,
-                                       vert_to_face_map,
-                                       ss.vertex_info.boundary,
-                                       {},
-                                       verts,
-                                       neighbors);
-          tls.new_positions.resize(verts.size());
-          const MutableSpan<float3> new_positions = tls.new_positions;
-          smooth::neighbor_data_average_mesh_check_loose(
-              position_data.eval, verts, neighbors, new_positions);
+        tls.vert_neighbors.resize(verts.size());
+        MutableSpan<Vector<int>> neighbors = tls.vert_neighbors;
+        calc_vert_neighbors_interior(
+            faces, corner_verts, vert_to_face_map, ss.vertex_info.boundary, {}, verts, neighbors);
+        tls.new_positions.resize(verts.size());
+        const MutableSpan<float3> new_positions = tls.new_positions;
+        smooth::neighbor_data_average_mesh_check_loose(
+            position_data.eval, verts, neighbors, new_positions);
 
-          tls.translations.resize(verts.size());
-          const MutableSpan<float3> translations = tls.translations;
-          translations_from_new_positions(new_positions, orig_data.positions, translations);
-          scale_translations(translations, factors);
-          reset_translations_to_original(translations, positions, orig_data.positions);
+        tls.translations.resize(verts.size());
+        const MutableSpan<float3> translations = tls.translations;
+        translations_from_new_positions(new_positions, orig_data.positions, translations);
+        scale_translations(translations, factors);
+        reset_translations_to_original(translations, positions, orig_data.positions);
 
-          zero_disabled_axis_components(*ss.filter_cache, translations);
-          clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
-          position_data.deform(translations, verts);
-        });
+        zero_disabled_axis_components(*ss.filter_cache, translations);
+        clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+        position_data.deform(translations, verts);
       });
       break;
     }
@@ -408,36 +400,34 @@ static void calc_smooth_filter(const Depsgraph &depsgraph,
       SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> grids = nodes[i].grids();
-          const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
-          const OrigPositionData orig_data = orig_position_data_get_grids(object, nodes[i]);
+        const Span<int> grids = nodes[i].grids();
+        const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
+        const OrigPositionData orig_data = orig_position_data_get_grids(object, nodes[i]);
 
-          tls.factors.resize(positions.size());
-          const MutableSpan<float> factors = tls.factors;
-          fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
-          auto_mask::calc_grids_factors(
-              depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], grids, factors);
-          scale_factors(factors, strength);
-          clamp_factors(factors, -1.0f, 1.0f);
+        tls.factors.resize(positions.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
+        auto_mask::calc_grids_factors(
+            depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], grids, factors);
+        scale_factors(factors, strength);
+        clamp_factors(factors, -1.0f, 1.0f);
 
-          tls.new_positions.resize(positions.size());
-          const MutableSpan<float3> new_positions = tls.new_positions;
-          smooth::neighbor_position_average_interior_grids(
-              faces, corner_verts, ss.vertex_info.boundary, subdiv_ccg, grids, new_positions);
+        tls.new_positions.resize(positions.size());
+        const MutableSpan<float3> new_positions = tls.new_positions;
+        smooth::neighbor_position_average_interior_grids(
+            faces, corner_verts, ss.vertex_info.boundary, subdiv_ccg, grids, new_positions);
 
-          tls.translations.resize(positions.size());
-          const MutableSpan<float3> translations = tls.translations;
-          translations_from_new_positions(new_positions, orig_data.positions, translations);
-          scale_translations(translations, factors);
-          reset_translations_to_original(translations, positions, orig_data.positions);
+        tls.translations.resize(positions.size());
+        const MutableSpan<float3> translations = tls.translations;
+        translations_from_new_positions(new_positions, orig_data.positions, translations);
+        scale_translations(translations, factors);
+        reset_translations_to_original(translations, positions, orig_data.positions);
 
-          zero_disabled_axis_components(*ss.filter_cache, translations);
-          clip_and_lock_translations(sd, ss, orig_data.positions, translations);
-          apply_translations(translations, grids, subdiv_ccg);
-        });
+        zero_disabled_axis_components(*ss.filter_cache, translations);
+        clip_and_lock_translations(sd, ss, orig_data.positions, translations);
+        apply_translations(translations, grids, subdiv_ccg);
       });
       break;
     }
@@ -445,36 +435,34 @@ static void calc_smooth_filter(const Depsgraph &depsgraph,
       BMesh &bm = *ss.bm;
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&nodes[i]);
-          const Span<float3> positions = gather_bmesh_positions(verts, tls.positions);
-          Array<float3> orig_positions(verts.size());
-          orig_position_data_gather_bmesh(*ss.bm_log, verts, orig_positions, {});
+        const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&nodes[i]);
+        const Span<float3> positions = gather_bmesh_positions(verts, tls.positions);
+        Array<float3> orig_positions(verts.size());
+        orig_position_data_gather_bmesh(*ss.bm_log, verts, orig_positions, {});
 
-          tls.factors.resize(verts.size());
-          const MutableSpan<float> factors = tls.factors;
-          fill_factor_from_hide_and_mask(bm, verts, factors);
-          auto_mask::calc_vert_factors(
-              depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
-          scale_factors(factors, strength);
-          clamp_factors(factors, -1.0f, 1.0f);
+        tls.factors.resize(verts.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide_and_mask(bm, verts, factors);
+        auto_mask::calc_vert_factors(
+            depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
+        scale_factors(factors, strength);
+        clamp_factors(factors, -1.0f, 1.0f);
 
-          tls.new_positions.resize(verts.size());
-          const MutableSpan<float3> new_positions = tls.new_positions;
-          smooth::neighbor_position_average_interior_bmesh(verts, new_positions);
+        tls.new_positions.resize(verts.size());
+        const MutableSpan<float3> new_positions = tls.new_positions;
+        smooth::neighbor_position_average_interior_bmesh(verts, new_positions);
 
-          tls.translations.resize(verts.size());
-          const MutableSpan<float3> translations = tls.translations;
-          translations_from_new_positions(new_positions, orig_positions, translations);
-          scale_translations(translations, factors);
-          reset_translations_to_original(translations, positions, orig_positions);
+        tls.translations.resize(verts.size());
+        const MutableSpan<float3> translations = tls.translations;
+        translations_from_new_positions(new_positions, orig_positions, translations);
+        scale_translations(translations, factors);
+        reset_translations_to_original(translations, positions, orig_positions);
 
-          zero_disabled_axis_components(*ss.filter_cache, translations);
-          clip_and_lock_translations(sd, ss, orig_positions, translations);
-          apply_translations(translations, verts);
-        });
+        zero_disabled_axis_components(*ss.filter_cache, translations);
+        clip_and_lock_translations(sd, ss, orig_positions, translations);
+        apply_translations(translations, verts);
       });
       break;
     }
@@ -500,31 +488,28 @@ static void calc_inflate_filter(const Depsgraph &depsgraph,
       const PositionDeformData position_data(depsgraph, object);
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> verts = nodes[i].verts();
-          const Span<float3> positions = gather_data_mesh(
-              position_data.eval, verts, tls.positions);
-          const OrigPositionData orig_data = orig_position_data_get_mesh(object, nodes[i]);
+        const Span<int> verts = nodes[i].verts();
+        const Span<float3> positions = gather_data_mesh(position_data.eval, verts, tls.positions);
+        const OrigPositionData orig_data = orig_position_data_get_mesh(object, nodes[i]);
 
-          tls.factors.resize(verts.size());
-          const MutableSpan<float> factors = tls.factors;
-          fill_factor_from_hide_and_mask(mesh, verts, factors);
-          auto_mask::calc_vert_factors(
-              depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
-          scale_factors(factors, strength);
+        tls.factors.resize(verts.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide_and_mask(mesh, verts, factors);
+        auto_mask::calc_vert_factors(
+            depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
+        scale_factors(factors, strength);
 
-          tls.translations.resize(verts.size());
-          const MutableSpan<float3> translations = tls.translations;
-          translations.copy_from(orig_data.normals);
-          scale_translations(translations, factors);
-          reset_translations_to_original(translations, positions, orig_data.positions);
+        tls.translations.resize(verts.size());
+        const MutableSpan<float3> translations = tls.translations;
+        translations.copy_from(orig_data.normals);
+        scale_translations(translations, factors);
+        reset_translations_to_original(translations, positions, orig_data.positions);
 
-          zero_disabled_axis_components(*ss.filter_cache, translations);
-          clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
-          position_data.deform(translations, verts);
-        });
+        zero_disabled_axis_components(*ss.filter_cache, translations);
+        clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+        position_data.deform(translations, verts);
       });
       break;
     }
@@ -532,30 +517,28 @@ static void calc_inflate_filter(const Depsgraph &depsgraph,
       SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> grids = nodes[i].grids();
-          const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
-          const OrigPositionData orig_data = orig_position_data_get_grids(object, nodes[i]);
+        const Span<int> grids = nodes[i].grids();
+        const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
+        const OrigPositionData orig_data = orig_position_data_get_grids(object, nodes[i]);
 
-          tls.factors.resize(positions.size());
-          const MutableSpan<float> factors = tls.factors;
-          fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
-          auto_mask::calc_grids_factors(
-              depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], grids, factors);
-          scale_factors(factors, strength);
+        tls.factors.resize(positions.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
+        auto_mask::calc_grids_factors(
+            depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], grids, factors);
+        scale_factors(factors, strength);
 
-          tls.translations.resize(positions.size());
-          const MutableSpan<float3> translations = tls.translations;
-          translations.copy_from(orig_data.normals);
-          scale_translations(translations, factors);
-          reset_translations_to_original(translations, positions, orig_data.positions);
+        tls.translations.resize(positions.size());
+        const MutableSpan<float3> translations = tls.translations;
+        translations.copy_from(orig_data.normals);
+        scale_translations(translations, factors);
+        reset_translations_to_original(translations, positions, orig_data.positions);
 
-          zero_disabled_axis_components(*ss.filter_cache, translations);
-          clip_and_lock_translations(sd, ss, orig_data.positions, translations);
-          apply_translations(translations, grids, subdiv_ccg);
-        });
+        zero_disabled_axis_components(*ss.filter_cache, translations);
+        clip_and_lock_translations(sd, ss, orig_data.positions, translations);
+        apply_translations(translations, grids, subdiv_ccg);
       });
       break;
     }
@@ -563,32 +546,30 @@ static void calc_inflate_filter(const Depsgraph &depsgraph,
       BMesh &bm = *ss.bm;
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&nodes[i]);
-          const Span<float3> positions = gather_bmesh_positions(verts, tls.positions);
-          Array<float3> orig_positions(verts.size());
-          Array<float3> orig_normals(verts.size());
-          orig_position_data_gather_bmesh(*ss.bm_log, verts, orig_positions, orig_normals);
+        const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&nodes[i]);
+        const Span<float3> positions = gather_bmesh_positions(verts, tls.positions);
+        Array<float3> orig_positions(verts.size());
+        Array<float3> orig_normals(verts.size());
+        orig_position_data_gather_bmesh(*ss.bm_log, verts, orig_positions, orig_normals);
 
-          tls.factors.resize(verts.size());
-          const MutableSpan<float> factors = tls.factors;
-          fill_factor_from_hide_and_mask(bm, verts, factors);
-          auto_mask::calc_vert_factors(
-              depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
-          scale_factors(factors, strength);
+        tls.factors.resize(verts.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide_and_mask(bm, verts, factors);
+        auto_mask::calc_vert_factors(
+            depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
+        scale_factors(factors, strength);
 
-          tls.translations.resize(verts.size());
-          const MutableSpan<float3> translations = tls.translations;
-          translations.copy_from(orig_normals);
-          scale_translations(translations, factors);
-          reset_translations_to_original(translations, positions, orig_positions);
+        tls.translations.resize(verts.size());
+        const MutableSpan<float3> translations = tls.translations;
+        translations.copy_from(orig_normals);
+        scale_translations(translations, factors);
+        reset_translations_to_original(translations, positions, orig_positions);
 
-          zero_disabled_axis_components(*ss.filter_cache, translations);
-          clip_and_lock_translations(sd, ss, orig_positions, translations);
-          apply_translations(translations, verts);
-        });
+        zero_disabled_axis_components(*ss.filter_cache, translations);
+        clip_and_lock_translations(sd, ss, orig_positions, translations);
+        apply_translations(translations, verts);
       });
       break;
     }
@@ -614,31 +595,28 @@ static void calc_scale_filter(const Depsgraph &depsgraph,
       const PositionDeformData position_data(depsgraph, object);
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> verts = nodes[i].verts();
-          const Span<float3> positions = gather_data_mesh(
-              position_data.eval, verts, tls.positions);
-          const OrigPositionData orig_data = orig_position_data_get_mesh(object, nodes[i]);
+        const Span<int> verts = nodes[i].verts();
+        const Span<float3> positions = gather_data_mesh(position_data.eval, verts, tls.positions);
+        const OrigPositionData orig_data = orig_position_data_get_mesh(object, nodes[i]);
 
-          tls.factors.resize(verts.size());
-          const MutableSpan<float> factors = tls.factors;
-          fill_factor_from_hide_and_mask(mesh, verts, factors);
-          auto_mask::calc_vert_factors(
-              depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
-          scale_factors(factors, strength);
+        tls.factors.resize(verts.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide_and_mask(mesh, verts, factors);
+        auto_mask::calc_vert_factors(
+            depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
+        scale_factors(factors, strength);
 
-          tls.translations.resize(verts.size());
-          const MutableSpan<float3> translations = tls.translations;
-          translations.copy_from(orig_data.positions);
-          scale_translations(translations, factors);
-          reset_translations_to_original(translations, positions, orig_data.positions);
+        tls.translations.resize(verts.size());
+        const MutableSpan<float3> translations = tls.translations;
+        translations.copy_from(orig_data.positions);
+        scale_translations(translations, factors);
+        reset_translations_to_original(translations, positions, orig_data.positions);
 
-          zero_disabled_axis_components(*ss.filter_cache, translations);
-          clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
-          position_data.deform(translations, verts);
-        });
+        zero_disabled_axis_components(*ss.filter_cache, translations);
+        clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+        position_data.deform(translations, verts);
       });
       break;
     }
@@ -646,30 +624,28 @@ static void calc_scale_filter(const Depsgraph &depsgraph,
       SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> grids = nodes[i].grids();
-          const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
-          const OrigPositionData orig_data = orig_position_data_get_grids(object, nodes[i]);
+        const Span<int> grids = nodes[i].grids();
+        const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
+        const OrigPositionData orig_data = orig_position_data_get_grids(object, nodes[i]);
 
-          tls.factors.resize(positions.size());
-          const MutableSpan<float> factors = tls.factors;
-          fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
-          auto_mask::calc_grids_factors(
-              depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], grids, factors);
-          scale_factors(factors, strength);
+        tls.factors.resize(positions.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
+        auto_mask::calc_grids_factors(
+            depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], grids, factors);
+        scale_factors(factors, strength);
 
-          tls.translations.resize(positions.size());
-          const MutableSpan<float3> translations = tls.translations;
-          translations.copy_from(orig_data.positions);
-          scale_translations(translations, factors);
-          reset_translations_to_original(translations, positions, orig_data.positions);
+        tls.translations.resize(positions.size());
+        const MutableSpan<float3> translations = tls.translations;
+        translations.copy_from(orig_data.positions);
+        scale_translations(translations, factors);
+        reset_translations_to_original(translations, positions, orig_data.positions);
 
-          zero_disabled_axis_components(*ss.filter_cache, translations);
-          clip_and_lock_translations(sd, ss, orig_data.positions, translations);
-          apply_translations(translations, grids, subdiv_ccg);
-        });
+        zero_disabled_axis_components(*ss.filter_cache, translations);
+        clip_and_lock_translations(sd, ss, orig_data.positions, translations);
+        apply_translations(translations, grids, subdiv_ccg);
       });
       break;
     }
@@ -677,31 +653,29 @@ static void calc_scale_filter(const Depsgraph &depsgraph,
       BMesh &bm = *ss.bm;
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&nodes[i]);
-          const Span<float3> positions = gather_bmesh_positions(verts, tls.positions);
-          Array<float3> orig_positions(verts.size());
-          orig_position_data_gather_bmesh(*ss.bm_log, verts, orig_positions, {});
+        const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&nodes[i]);
+        const Span<float3> positions = gather_bmesh_positions(verts, tls.positions);
+        Array<float3> orig_positions(verts.size());
+        orig_position_data_gather_bmesh(*ss.bm_log, verts, orig_positions, {});
 
-          tls.factors.resize(verts.size());
-          const MutableSpan<float> factors = tls.factors;
-          fill_factor_from_hide_and_mask(bm, verts, factors);
-          auto_mask::calc_vert_factors(
-              depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
-          scale_factors(factors, strength);
+        tls.factors.resize(verts.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide_and_mask(bm, verts, factors);
+        auto_mask::calc_vert_factors(
+            depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
+        scale_factors(factors, strength);
 
-          tls.translations.resize(positions.size());
-          const MutableSpan<float3> translations = tls.translations;
-          translations.copy_from(orig_positions);
-          scale_translations(translations, factors);
-          reset_translations_to_original(translations, positions, orig_positions);
+        tls.translations.resize(positions.size());
+        const MutableSpan<float3> translations = tls.translations;
+        translations.copy_from(orig_positions);
+        scale_translations(translations, factors);
+        reset_translations_to_original(translations, positions, orig_positions);
 
-          zero_disabled_axis_components(*ss.filter_cache, translations);
-          clip_and_lock_translations(sd, ss, orig_positions, translations);
-          apply_translations(translations, verts);
-        });
+        zero_disabled_axis_components(*ss.filter_cache, translations);
+        clip_and_lock_translations(sd, ss, orig_positions, translations);
+        apply_translations(translations, verts);
       });
       break;
     }
@@ -744,30 +718,27 @@ static void calc_sphere_filter(const Depsgraph &depsgraph,
       const PositionDeformData position_data(depsgraph, object);
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> verts = nodes[i].verts();
-          const Span<float3> positions = gather_data_mesh(
-              position_data.eval, verts, tls.positions);
-          const OrigPositionData orig_data = orig_position_data_get_mesh(object, nodes[i]);
+        const Span<int> verts = nodes[i].verts();
+        const Span<float3> positions = gather_data_mesh(position_data.eval, verts, tls.positions);
+        const OrigPositionData orig_data = orig_position_data_get_mesh(object, nodes[i]);
 
-          tls.factors.resize(verts.size());
-          const MutableSpan<float> factors = tls.factors;
-          fill_factor_from_hide_and_mask(mesh, verts, factors);
-          auto_mask::calc_vert_factors(
-              depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
-          scale_factors(factors, strength);
+        tls.factors.resize(verts.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide_and_mask(mesh, verts, factors);
+        auto_mask::calc_vert_factors(
+            depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
+        scale_factors(factors, strength);
 
-          tls.translations.resize(verts.size());
-          const MutableSpan<float3> translations = tls.translations;
-          calc_sphere_translations(orig_data.positions, factors, translations);
-          reset_translations_to_original(translations, positions, orig_data.positions);
+        tls.translations.resize(verts.size());
+        const MutableSpan<float3> translations = tls.translations;
+        calc_sphere_translations(orig_data.positions, factors, translations);
+        reset_translations_to_original(translations, positions, orig_data.positions);
 
-          zero_disabled_axis_components(*ss.filter_cache, translations);
-          clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
-          position_data.deform(translations, verts);
-        });
+        zero_disabled_axis_components(*ss.filter_cache, translations);
+        clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+        position_data.deform(translations, verts);
       });
       break;
     }
@@ -775,29 +746,27 @@ static void calc_sphere_filter(const Depsgraph &depsgraph,
       SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> grids = nodes[i].grids();
-          const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
-          const OrigPositionData orig_data = orig_position_data_get_grids(object, nodes[i]);
+        const Span<int> grids = nodes[i].grids();
+        const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
+        const OrigPositionData orig_data = orig_position_data_get_grids(object, nodes[i]);
 
-          tls.factors.resize(positions.size());
-          const MutableSpan<float> factors = tls.factors;
-          fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
-          auto_mask::calc_grids_factors(
-              depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], grids, factors);
-          scale_factors(factors, strength);
+        tls.factors.resize(positions.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
+        auto_mask::calc_grids_factors(
+            depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], grids, factors);
+        scale_factors(factors, strength);
 
-          tls.translations.resize(positions.size());
-          const MutableSpan<float3> translations = tls.translations;
-          calc_sphere_translations(orig_data.positions, factors, translations);
-          reset_translations_to_original(translations, positions, orig_data.positions);
+        tls.translations.resize(positions.size());
+        const MutableSpan<float3> translations = tls.translations;
+        calc_sphere_translations(orig_data.positions, factors, translations);
+        reset_translations_to_original(translations, positions, orig_data.positions);
 
-          zero_disabled_axis_components(*ss.filter_cache, translations);
-          clip_and_lock_translations(sd, ss, orig_data.positions, translations);
-          apply_translations(translations, grids, subdiv_ccg);
-        });
+        zero_disabled_axis_components(*ss.filter_cache, translations);
+        clip_and_lock_translations(sd, ss, orig_data.positions, translations);
+        apply_translations(translations, grids, subdiv_ccg);
       });
       break;
     }
@@ -805,30 +774,28 @@ static void calc_sphere_filter(const Depsgraph &depsgraph,
       BMesh &bm = *ss.bm;
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&nodes[i]);
-          const Span<float3> positions = gather_bmesh_positions(verts, tls.positions);
-          Array<float3> orig_positions(verts.size());
-          orig_position_data_gather_bmesh(*ss.bm_log, verts, orig_positions, {});
+        const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&nodes[i]);
+        const Span<float3> positions = gather_bmesh_positions(verts, tls.positions);
+        Array<float3> orig_positions(verts.size());
+        orig_position_data_gather_bmesh(*ss.bm_log, verts, orig_positions, {});
 
-          tls.factors.resize(verts.size());
-          const MutableSpan<float> factors = tls.factors;
-          fill_factor_from_hide_and_mask(bm, verts, factors);
-          auto_mask::calc_vert_factors(
-              depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
-          scale_factors(factors, strength);
+        tls.factors.resize(verts.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide_and_mask(bm, verts, factors);
+        auto_mask::calc_vert_factors(
+            depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
+        scale_factors(factors, strength);
 
-          tls.translations.resize(positions.size());
-          const MutableSpan<float3> translations = tls.translations;
-          calc_sphere_translations(orig_positions, factors, translations);
-          reset_translations_to_original(translations, positions, orig_positions);
+        tls.translations.resize(positions.size());
+        const MutableSpan<float3> translations = tls.translations;
+        calc_sphere_translations(orig_positions, factors, translations);
+        reset_translations_to_original(translations, positions, orig_positions);
 
-          zero_disabled_axis_components(*ss.filter_cache, translations);
-          clip_and_lock_translations(sd, ss, orig_positions, translations);
-          apply_translations(translations, verts);
-        });
+        zero_disabled_axis_components(*ss.filter_cache, translations);
+        clip_and_lock_translations(sd, ss, orig_positions, translations);
+        apply_translations(translations, verts);
       });
       break;
     }
@@ -866,32 +833,29 @@ static void calc_random_filter(const Depsgraph &depsgraph,
       const PositionDeformData position_data(depsgraph, object);
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> verts = nodes[i].verts();
-          const Span<float3> positions = gather_data_mesh(
-              position_data.eval, verts, tls.positions);
-          const OrigPositionData orig_data = orig_position_data_get_mesh(object, nodes[i]);
+        const Span<int> verts = nodes[i].verts();
+        const Span<float3> positions = gather_data_mesh(position_data.eval, verts, tls.positions);
+        const OrigPositionData orig_data = orig_position_data_get_mesh(object, nodes[i]);
 
-          tls.factors.resize(verts.size());
-          const MutableSpan<float> factors = tls.factors;
-          fill_factor_from_hide_and_mask(mesh, verts, factors);
-          auto_mask::calc_vert_factors(
-              depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
-          scale_factors(factors, strength);
+        tls.factors.resize(verts.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide_and_mask(mesh, verts, factors);
+        auto_mask::calc_vert_factors(
+            depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
+        scale_factors(factors, strength);
 
-          randomize_factors(orig_data.positions, ss.filter_cache->random_seed, factors);
-          tls.translations.resize(verts.size());
-          const MutableSpan<float3> translations = tls.translations;
-          translations.copy_from(orig_data.normals);
-          scale_translations(translations, factors);
-          reset_translations_to_original(translations, positions, orig_data.positions);
+        randomize_factors(orig_data.positions, ss.filter_cache->random_seed, factors);
+        tls.translations.resize(verts.size());
+        const MutableSpan<float3> translations = tls.translations;
+        translations.copy_from(orig_data.normals);
+        scale_translations(translations, factors);
+        reset_translations_to_original(translations, positions, orig_data.positions);
 
-          zero_disabled_axis_components(*ss.filter_cache, translations);
-          clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
-          position_data.deform(translations, verts);
-        });
+        zero_disabled_axis_components(*ss.filter_cache, translations);
+        clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+        position_data.deform(translations, verts);
       });
       break;
     }
@@ -899,31 +863,29 @@ static void calc_random_filter(const Depsgraph &depsgraph,
       SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> grids = nodes[i].grids();
-          const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
-          const OrigPositionData orig_data = orig_position_data_get_grids(object, nodes[i]);
+        const Span<int> grids = nodes[i].grids();
+        const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
+        const OrigPositionData orig_data = orig_position_data_get_grids(object, nodes[i]);
 
-          tls.factors.resize(positions.size());
-          const MutableSpan<float> factors = tls.factors;
-          fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
-          auto_mask::calc_grids_factors(
-              depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], grids, factors);
-          scale_factors(factors, strength);
+        tls.factors.resize(positions.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
+        auto_mask::calc_grids_factors(
+            depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], grids, factors);
+        scale_factors(factors, strength);
 
-          randomize_factors(orig_data.positions, ss.filter_cache->random_seed, factors);
-          tls.translations.resize(positions.size());
-          const MutableSpan<float3> translations = tls.translations;
-          translations.copy_from(orig_data.normals);
-          scale_translations(translations, factors);
-          reset_translations_to_original(translations, positions, orig_data.positions);
+        randomize_factors(orig_data.positions, ss.filter_cache->random_seed, factors);
+        tls.translations.resize(positions.size());
+        const MutableSpan<float3> translations = tls.translations;
+        translations.copy_from(orig_data.normals);
+        scale_translations(translations, factors);
+        reset_translations_to_original(translations, positions, orig_data.positions);
 
-          zero_disabled_axis_components(*ss.filter_cache, translations);
-          clip_and_lock_translations(sd, ss, orig_data.positions, translations);
-          apply_translations(translations, grids, subdiv_ccg);
-        });
+        zero_disabled_axis_components(*ss.filter_cache, translations);
+        clip_and_lock_translations(sd, ss, orig_data.positions, translations);
+        apply_translations(translations, grids, subdiv_ccg);
       });
       break;
     }
@@ -931,33 +893,31 @@ static void calc_random_filter(const Depsgraph &depsgraph,
       BMesh &bm = *ss.bm;
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&nodes[i]);
-          const Span<float3> positions = gather_bmesh_positions(verts, tls.positions);
-          Array<float3> orig_positions(verts.size());
-          Array<float3> orig_normals(verts.size());
-          orig_position_data_gather_bmesh(*ss.bm_log, verts, orig_positions, orig_normals);
+        const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&nodes[i]);
+        const Span<float3> positions = gather_bmesh_positions(verts, tls.positions);
+        Array<float3> orig_positions(verts.size());
+        Array<float3> orig_normals(verts.size());
+        orig_position_data_gather_bmesh(*ss.bm_log, verts, orig_positions, orig_normals);
 
-          tls.factors.resize(verts.size());
-          const MutableSpan<float> factors = tls.factors;
-          fill_factor_from_hide_and_mask(bm, verts, factors);
-          auto_mask::calc_vert_factors(
-              depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
-          scale_factors(factors, strength);
+        tls.factors.resize(verts.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide_and_mask(bm, verts, factors);
+        auto_mask::calc_vert_factors(
+            depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
+        scale_factors(factors, strength);
 
-          randomize_factors(orig_positions, ss.filter_cache->random_seed, factors);
-          tls.translations.resize(positions.size());
-          const MutableSpan<float3> translations = tls.translations;
-          translations.copy_from(orig_normals);
-          scale_translations(translations, factors);
-          reset_translations_to_original(translations, positions, orig_positions);
+        randomize_factors(orig_positions, ss.filter_cache->random_seed, factors);
+        tls.translations.resize(positions.size());
+        const MutableSpan<float3> translations = tls.translations;
+        translations.copy_from(orig_normals);
+        scale_translations(translations, factors);
+        reset_translations_to_original(translations, positions, orig_positions);
 
-          zero_disabled_axis_components(*ss.filter_cache, translations);
-          clip_and_lock_translations(sd, ss, orig_positions, translations);
-          apply_translations(translations, verts);
-        });
+        zero_disabled_axis_components(*ss.filter_cache, translations);
+        clip_and_lock_translations(sd, ss, orig_positions, translations);
+        apply_translations(translations, verts);
       });
       break;
     }
@@ -992,39 +952,37 @@ static void calc_relax_filter(const Depsgraph &depsgraph,
                                                            bke::AttrDomain::Face);
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> verts = nodes[i].verts();
+        const Span<int> verts = nodes[i].verts();
 
-          tls.factors.resize(verts.size());
-          const MutableSpan<float> factors = tls.factors;
-          fill_factor_from_hide_and_mask(mesh, verts, factors);
-          auto_mask::calc_vert_factors(
-              depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
-          scale_factors(factors, strength);
-          clamp_factors(factors, 0.0f, 1.0f);
+        tls.factors.resize(verts.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide_and_mask(mesh, verts, factors);
+        auto_mask::calc_vert_factors(
+            depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
+        scale_factors(factors, strength);
+        clamp_factors(factors, 0.0f, 1.0f);
 
-          tls.translations.resize(verts.size());
-          const MutableSpan<float3> translations = tls.translations;
-          smooth::calc_relaxed_translations_faces(position_data.eval,
-                                                  vert_normals,
-                                                  faces,
-                                                  corner_verts,
-                                                  vert_to_face_map,
-                                                  ss.vertex_info.boundary,
-                                                  face_sets,
-                                                  hide_poly,
-                                                  false,
-                                                  verts,
-                                                  factors,
-                                                  tls.vert_neighbors,
-                                                  translations);
+        tls.translations.resize(verts.size());
+        const MutableSpan<float3> translations = tls.translations;
+        smooth::calc_relaxed_translations_faces(position_data.eval,
+                                                vert_normals,
+                                                faces,
+                                                corner_verts,
+                                                vert_to_face_map,
+                                                ss.vertex_info.boundary,
+                                                face_sets,
+                                                hide_poly,
+                                                false,
+                                                verts,
+                                                factors,
+                                                tls.vert_neighbors,
+                                                translations);
 
-          zero_disabled_axis_components(*ss.filter_cache, translations);
-          clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
-          position_data.deform(translations, verts);
-        });
+        zero_disabled_axis_components(*ss.filter_cache, translations);
+        clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+        position_data.deform(translations, verts);
       });
       break;
     }
@@ -1045,38 +1003,36 @@ static void calc_relax_filter(const Depsgraph &depsgraph,
       SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> grids = nodes[i].grids();
-          const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
+        const Span<int> grids = nodes[i].grids();
+        const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
 
-          tls.factors.resize(positions.size());
-          const MutableSpan<float> factors = tls.factors;
-          fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
-          auto_mask::calc_grids_factors(
-              depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], grids, factors);
-          scale_factors(factors, strength);
-          clamp_factors(factors, 0.0f, 1.0f);
+        tls.factors.resize(positions.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
+        auto_mask::calc_grids_factors(
+            depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], grids, factors);
+        scale_factors(factors, strength);
+        clamp_factors(factors, 0.0f, 1.0f);
 
-          tls.translations.resize(positions.size());
-          const MutableSpan<float3> translations = tls.translations;
-          smooth::calc_relaxed_translations_grids(subdiv_ccg,
-                                                  faces,
-                                                  corner_verts,
-                                                  face_sets,
-                                                  vert_to_face_map,
-                                                  ss.vertex_info.boundary,
-                                                  grids,
-                                                  false,
-                                                  factors,
-                                                  tls.vert_neighbors,
-                                                  translations);
+        tls.translations.resize(positions.size());
+        const MutableSpan<float3> translations = tls.translations;
+        smooth::calc_relaxed_translations_grids(subdiv_ccg,
+                                                faces,
+                                                corner_verts,
+                                                face_sets,
+                                                vert_to_face_map,
+                                                ss.vertex_info.boundary,
+                                                grids,
+                                                false,
+                                                factors,
+                                                tls.vert_neighbors,
+                                                translations);
 
-          zero_disabled_axis_components(*ss.filter_cache, translations);
-          clip_and_lock_translations(sd, ss, positions, translations);
-          apply_translations(translations, grids, subdiv_ccg);
-        });
+        zero_disabled_axis_components(*ss.filter_cache, translations);
+        clip_and_lock_translations(sd, ss, positions, translations);
+        apply_translations(translations, grids, subdiv_ccg);
       });
       break;
     }
@@ -1093,29 +1049,27 @@ static void calc_relax_filter(const Depsgraph &depsgraph,
 
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&nodes[i]);
-          const Span<float3> positions = gather_bmesh_positions(verts, tls.positions);
+        const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&nodes[i]);
+        const Span<float3> positions = gather_bmesh_positions(verts, tls.positions);
 
-          tls.factors.resize(verts.size());
-          const MutableSpan<float> factors = tls.factors;
-          fill_factor_from_hide_and_mask(bm, verts, factors);
-          auto_mask::calc_vert_factors(
-              depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
-          scale_factors(factors, strength);
-          clamp_factors(factors, 0.0f, 1.0f);
+        tls.factors.resize(verts.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide_and_mask(bm, verts, factors);
+        auto_mask::calc_vert_factors(
+            depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
+        scale_factors(factors, strength);
+        clamp_factors(factors, 0.0f, 1.0f);
 
-          tls.translations.resize(verts.size());
-          const MutableSpan<float3> translations = tls.translations;
-          smooth::calc_relaxed_translations_bmesh(
-              verts, positions, face_set_offset, false, factors, tls.vert_neighbors, translations);
+        tls.translations.resize(verts.size());
+        const MutableSpan<float3> translations = tls.translations;
+        smooth::calc_relaxed_translations_bmesh(
+            verts, positions, face_set_offset, false, factors, tls.vert_neighbors, translations);
 
-          zero_disabled_axis_components(*ss.filter_cache, translations);
-          clip_and_lock_translations(sd, ss, positions, translations);
-          apply_translations(translations, verts);
-        });
+        zero_disabled_axis_components(*ss.filter_cache, translations);
+        clip_and_lock_translations(sd, ss, positions, translations);
+        apply_translations(translations, verts);
       });
       break;
     }
@@ -1157,42 +1111,40 @@ static void calc_relax_face_sets_filter(const Depsgraph &depsgraph,
                                                            bke::AttrDomain::Face);
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> verts = nodes[i].verts();
+        const Span<int> verts = nodes[i].verts();
 
-          tls.factors.resize(verts.size());
-          const MutableSpan<float> factors = tls.factors;
-          fill_factor_from_hide_and_mask(mesh, verts, factors);
-          auto_mask::calc_vert_factors(
-              depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
-          scale_factors(factors, strength);
-          clamp_factors(factors, 0.0f, 1.0f);
+        tls.factors.resize(verts.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide_and_mask(mesh, verts, factors);
+        auto_mask::calc_vert_factors(
+            depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
+        scale_factors(factors, strength);
+        clamp_factors(factors, 0.0f, 1.0f);
 
-          face_set::filter_verts_with_unique_face_sets_mesh(
-              vert_to_face_map, face_sets, relax_face_sets, verts, factors);
+        face_set::filter_verts_with_unique_face_sets_mesh(
+            vert_to_face_map, face_sets, relax_face_sets, verts, factors);
 
-          tls.translations.resize(verts.size());
-          const MutableSpan<float3> translations = tls.translations;
-          smooth::calc_relaxed_translations_faces(position_data.eval,
-                                                  vert_normals,
-                                                  faces,
-                                                  corner_verts,
-                                                  vert_to_face_map,
-                                                  ss.vertex_info.boundary,
-                                                  face_sets,
-                                                  hide_poly,
-                                                  relax_face_sets,
-                                                  verts,
-                                                  factors,
-                                                  tls.vert_neighbors,
-                                                  translations);
+        tls.translations.resize(verts.size());
+        const MutableSpan<float3> translations = tls.translations;
+        smooth::calc_relaxed_translations_faces(position_data.eval,
+                                                vert_normals,
+                                                faces,
+                                                corner_verts,
+                                                vert_to_face_map,
+                                                ss.vertex_info.boundary,
+                                                face_sets,
+                                                hide_poly,
+                                                relax_face_sets,
+                                                verts,
+                                                factors,
+                                                tls.vert_neighbors,
+                                                translations);
 
-          zero_disabled_axis_components(*ss.filter_cache, translations);
-          clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
-          position_data.deform(translations, verts);
-        });
+        zero_disabled_axis_components(*ss.filter_cache, translations);
+        clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+        position_data.deform(translations, verts);
       });
       break;
     }
@@ -1214,47 +1166,45 @@ static void calc_relax_face_sets_filter(const Depsgraph &depsgraph,
       SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> grids = nodes[i].grids();
-          const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
+        const Span<int> grids = nodes[i].grids();
+        const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
 
-          tls.factors.resize(positions.size());
-          const MutableSpan<float> factors = tls.factors;
-          fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
-          auto_mask::calc_grids_factors(
-              depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], grids, factors);
-          scale_factors(factors, strength);
-          clamp_factors(factors, 0.0f, 1.0f);
+        tls.factors.resize(positions.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
+        auto_mask::calc_grids_factors(
+            depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], grids, factors);
+        scale_factors(factors, strength);
+        clamp_factors(factors, 0.0f, 1.0f);
 
-          face_set::filter_verts_with_unique_face_sets_grids(faces,
-                                                             corner_verts,
-                                                             vert_to_face_map,
-                                                             face_sets,
-                                                             subdiv_ccg,
-                                                             relax_face_sets,
-                                                             grids,
-                                                             factors);
+        face_set::filter_verts_with_unique_face_sets_grids(faces,
+                                                           corner_verts,
+                                                           vert_to_face_map,
+                                                           face_sets,
+                                                           subdiv_ccg,
+                                                           relax_face_sets,
+                                                           grids,
+                                                           factors);
 
-          tls.translations.resize(positions.size());
-          const MutableSpan<float3> translations = tls.translations;
-          smooth::calc_relaxed_translations_grids(subdiv_ccg,
-                                                  faces,
-                                                  corner_verts,
-                                                  face_sets,
-                                                  vert_to_face_map,
-                                                  ss.vertex_info.boundary,
-                                                  grids,
-                                                  relax_face_sets,
-                                                  factors,
-                                                  tls.vert_neighbors,
-                                                  translations);
+        tls.translations.resize(positions.size());
+        const MutableSpan<float3> translations = tls.translations;
+        smooth::calc_relaxed_translations_grids(subdiv_ccg,
+                                                faces,
+                                                corner_verts,
+                                                face_sets,
+                                                vert_to_face_map,
+                                                ss.vertex_info.boundary,
+                                                grids,
+                                                relax_face_sets,
+                                                factors,
+                                                tls.vert_neighbors,
+                                                translations);
 
-          zero_disabled_axis_components(*ss.filter_cache, translations);
-          clip_and_lock_translations(sd, ss, positions, translations);
-          apply_translations(translations, grids, subdiv_ccg);
-        });
+        zero_disabled_axis_components(*ss.filter_cache, translations);
+        clip_and_lock_translations(sd, ss, positions, translations);
+        apply_translations(translations, grids, subdiv_ccg);
       });
       break;
     }
@@ -1270,37 +1220,35 @@ static void calc_relax_face_sets_filter(const Depsgraph &depsgraph,
           &bm.pdata, CD_PROP_INT32, ".sculpt_face_set");
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&nodes[i]);
-          const Span<float3> positions = gather_bmesh_positions(verts, tls.positions);
+        const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&nodes[i]);
+        const Span<float3> positions = gather_bmesh_positions(verts, tls.positions);
 
-          tls.factors.resize(verts.size());
-          const MutableSpan<float> factors = tls.factors;
-          fill_factor_from_hide_and_mask(bm, verts, factors);
-          auto_mask::calc_vert_factors(
-              depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
-          scale_factors(factors, strength);
-          clamp_factors(factors, 0.0f, 1.0f);
+        tls.factors.resize(verts.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide_and_mask(bm, verts, factors);
+        auto_mask::calc_vert_factors(
+            depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
+        scale_factors(factors, strength);
+        clamp_factors(factors, 0.0f, 1.0f);
 
-          face_set::filter_verts_with_unique_face_sets_bmesh(
-              face_set_offset, relax_face_sets, verts, factors);
+        face_set::filter_verts_with_unique_face_sets_bmesh(
+            face_set_offset, relax_face_sets, verts, factors);
 
-          tls.translations.resize(verts.size());
-          const MutableSpan<float3> translations = tls.translations;
-          smooth::calc_relaxed_translations_bmesh(verts,
-                                                  positions,
-                                                  face_set_offset,
-                                                  relax_face_sets,
-                                                  factors,
-                                                  tls.vert_neighbors,
-                                                  translations);
+        tls.translations.resize(verts.size());
+        const MutableSpan<float3> translations = tls.translations;
+        smooth::calc_relaxed_translations_bmesh(verts,
+                                                positions,
+                                                face_set_offset,
+                                                relax_face_sets,
+                                                factors,
+                                                tls.vert_neighbors,
+                                                translations);
 
-          zero_disabled_axis_components(*ss.filter_cache, translations);
-          clip_and_lock_translations(sd, ss, positions, translations);
-          apply_translations(translations, verts);
-        });
+        zero_disabled_axis_components(*ss.filter_cache, translations);
+        clip_and_lock_translations(sd, ss, positions, translations);
+        apply_translations(translations, verts);
       });
       break;
     }
@@ -1335,85 +1283,78 @@ static void calc_surface_smooth_filter(const Depsgraph &depsgraph,
       const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> verts = nodes[i].verts();
-          const Span<float3> positions = gather_data_mesh(
-              position_data.eval, verts, tls.positions);
-          const OrigPositionData orig_data = orig_position_data_get_mesh(object, nodes[i]);
+        const Span<int> verts = nodes[i].verts();
+        const Span<float3> positions = gather_data_mesh(position_data.eval, verts, tls.positions);
+        const OrigPositionData orig_data = orig_position_data_get_mesh(object, nodes[i]);
 
-          tls.factors.resize(verts.size());
-          const MutableSpan<float> factors = tls.factors;
-          fill_factor_from_hide_and_mask(mesh, verts, factors);
-          auto_mask::calc_vert_factors(
-              depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
-          scale_factors(factors, strength);
-          clamp_factors(factors, 0.0f, 1.0f);
+        tls.factors.resize(verts.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide_and_mask(mesh, verts, factors);
+        auto_mask::calc_vert_factors(
+            depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
+        scale_factors(factors, strength);
+        clamp_factors(factors, 0.0f, 1.0f);
 
-          tls.vert_neighbors.reinitialize(verts.size());
-          calc_vert_neighbors(
-              faces, corner_verts, vert_to_face_map, {}, verts, tls.vert_neighbors);
+        tls.vert_neighbors.reinitialize(verts.size());
+        calc_vert_neighbors(faces, corner_verts, vert_to_face_map, {}, verts, tls.vert_neighbors);
 
-          tls.average_positions.reinitialize(verts.size());
-          const MutableSpan<float3> average_positions = tls.average_positions;
-          smooth::neighbor_data_average_mesh(
-              position_data.eval, tls.vert_neighbors, average_positions);
+        tls.average_positions.reinitialize(verts.size());
+        const MutableSpan<float3> average_positions = tls.average_positions;
+        smooth::neighbor_data_average_mesh(
+            position_data.eval, tls.vert_neighbors, average_positions);
 
-          tls.laplacian_disp.reinitialize(verts.size());
-          const MutableSpan<float3> laplacian_disp = tls.laplacian_disp;
-          tls.translations.reinitialize(verts.size());
-          const MutableSpan<float3> translations = tls.translations;
-          smooth::surface_smooth_laplacian_step(positions,
-                                                orig_data.positions,
-                                                average_positions,
-                                                alpha,
-                                                laplacian_disp,
-                                                translations);
-          scale_translations(translations, factors);
+        tls.laplacian_disp.reinitialize(verts.size());
+        const MutableSpan<float3> laplacian_disp = tls.laplacian_disp;
+        tls.translations.reinitialize(verts.size());
+        const MutableSpan<float3> translations = tls.translations;
+        smooth::surface_smooth_laplacian_step(positions,
+                                              orig_data.positions,
+                                              average_positions,
+                                              alpha,
+                                              laplacian_disp,
+                                              translations);
+        scale_translations(translations, factors);
 
-          scatter_data_mesh(laplacian_disp.as_span(), verts, all_laplacian_disp);
+        scatter_data_mesh(laplacian_disp.as_span(), verts, all_laplacian_disp);
 
-          zero_disabled_axis_components(*ss.filter_cache, translations);
-          clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
-          position_data.deform(translations, verts);
-        });
+        zero_disabled_axis_components(*ss.filter_cache, translations);
+        clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+        position_data.deform(translations, verts);
       });
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> verts = nodes[i].verts();
+        const Span<int> verts = nodes[i].verts();
 
-          tls.factors.resize(verts.size());
-          const MutableSpan<float> factors = tls.factors;
-          fill_factor_from_hide_and_mask(mesh, verts, factors);
-          auto_mask::calc_vert_factors(
-              depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
-          scale_factors(factors, strength);
-          clamp_factors(factors, 0.0f, 1.0f);
+        tls.factors.resize(verts.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide_and_mask(mesh, verts, factors);
+        auto_mask::calc_vert_factors(
+            depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
+        scale_factors(factors, strength);
+        clamp_factors(factors, 0.0f, 1.0f);
 
-          const MutableSpan<float3> laplacian_disp = gather_data_mesh(
-              all_laplacian_disp.as_span(), verts, tls.laplacian_disp);
+        const MutableSpan<float3> laplacian_disp = gather_data_mesh(
+            all_laplacian_disp.as_span(), verts, tls.laplacian_disp);
 
-          tls.vert_neighbors.resize(verts.size());
-          calc_vert_neighbors(
-              faces, corner_verts, vert_to_face_map, {}, verts, tls.vert_neighbors);
+        tls.vert_neighbors.resize(verts.size());
+        calc_vert_neighbors(faces, corner_verts, vert_to_face_map, {}, verts, tls.vert_neighbors);
 
-          tls.average_positions.resize(verts.size());
-          const MutableSpan<float3> average_laplacian_disps = tls.average_positions;
-          smooth::neighbor_data_average_mesh(
-              all_laplacian_disp.as_span(), tls.vert_neighbors, average_laplacian_disps);
+        tls.average_positions.resize(verts.size());
+        const MutableSpan<float3> average_laplacian_disps = tls.average_positions;
+        smooth::neighbor_data_average_mesh(
+            all_laplacian_disp.as_span(), tls.vert_neighbors, average_laplacian_disps);
 
-          tls.translations.resize(verts.size());
-          const MutableSpan<float3> translations = tls.translations;
-          smooth::surface_smooth_displace_step(
-              laplacian_disp, average_laplacian_disps, beta, translations);
-          scale_translations(translations, factors);
+        tls.translations.resize(verts.size());
+        const MutableSpan<float3> translations = tls.translations;
+        smooth::surface_smooth_displace_step(
+            laplacian_disp, average_laplacian_disps, beta, translations);
+        scale_translations(translations, factors);
 
-          zero_disabled_axis_components(*ss.filter_cache, translations);
-          clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
-          position_data.deform(translations, verts);
-        });
+        zero_disabled_axis_components(*ss.filter_cache, translations);
+        clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+        position_data.deform(translations, verts);
       });
       break;
     }
@@ -1421,77 +1362,73 @@ static void calc_surface_smooth_filter(const Depsgraph &depsgraph,
       SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> grids = nodes[i].grids();
-          const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
-          const OrigPositionData orig_data = orig_position_data_get_grids(object, nodes[i]);
+        const Span<int> grids = nodes[i].grids();
+        const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
+        const OrigPositionData orig_data = orig_position_data_get_grids(object, nodes[i]);
 
-          tls.factors.resize(positions.size());
-          const MutableSpan<float> factors = tls.factors;
-          fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
-          auto_mask::calc_grids_factors(
-              depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], grids, factors);
-          scale_factors(factors, strength);
-          clamp_factors(factors, 0.0f, 1.0f);
+        tls.factors.resize(positions.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
+        auto_mask::calc_grids_factors(
+            depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], grids, factors);
+        scale_factors(factors, strength);
+        clamp_factors(factors, 0.0f, 1.0f);
 
-          tls.average_positions.resize(positions.size());
-          const MutableSpan<float3> average_positions = tls.average_positions;
-          smooth::average_data_grids(
-              subdiv_ccg, subdiv_ccg.positions.as_span(), grids, average_positions);
+        tls.average_positions.resize(positions.size());
+        const MutableSpan<float3> average_positions = tls.average_positions;
+        smooth::average_data_grids(
+            subdiv_ccg, subdiv_ccg.positions.as_span(), grids, average_positions);
 
-          tls.laplacian_disp.resize(positions.size());
-          const MutableSpan<float3> laplacian_disp = tls.laplacian_disp;
-          tls.translations.resize(positions.size());
-          const MutableSpan<float3> translations = tls.translations;
-          smooth::surface_smooth_laplacian_step(positions,
-                                                orig_data.positions,
-                                                average_positions,
-                                                alpha,
-                                                laplacian_disp,
-                                                translations);
-          scale_translations(translations, factors);
+        tls.laplacian_disp.resize(positions.size());
+        const MutableSpan<float3> laplacian_disp = tls.laplacian_disp;
+        tls.translations.resize(positions.size());
+        const MutableSpan<float3> translations = tls.translations;
+        smooth::surface_smooth_laplacian_step(positions,
+                                              orig_data.positions,
+                                              average_positions,
+                                              alpha,
+                                              laplacian_disp,
+                                              translations);
+        scale_translations(translations, factors);
 
-          scatter_data_grids(subdiv_ccg, laplacian_disp.as_span(), grids, all_laplacian_disp);
+        scatter_data_grids(subdiv_ccg, laplacian_disp.as_span(), grids, all_laplacian_disp);
 
-          zero_disabled_axis_components(*ss.filter_cache, translations);
-          clip_and_lock_translations(sd, ss, orig_data.positions, translations);
-          apply_translations(translations, grids, subdiv_ccg);
-        });
+        zero_disabled_axis_components(*ss.filter_cache, translations);
+        clip_and_lock_translations(sd, ss, orig_data.positions, translations);
+        apply_translations(translations, grids, subdiv_ccg);
       });
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> grids = nodes[i].grids();
-          const OrigPositionData orig_data = orig_position_data_get_grids(object, nodes[i]);
+        const Span<int> grids = nodes[i].grids();
+        const OrigPositionData orig_data = orig_position_data_get_grids(object, nodes[i]);
 
-          tls.factors.resize(orig_data.positions.size());
-          const MutableSpan<float> factors = tls.factors;
-          fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
-          auto_mask::calc_grids_factors(
-              depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], grids, factors);
-          scale_factors(factors, strength);
-          clamp_factors(factors, 0.0f, 1.0f);
+        tls.factors.resize(orig_data.positions.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
+        auto_mask::calc_grids_factors(
+            depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], grids, factors);
+        scale_factors(factors, strength);
+        clamp_factors(factors, 0.0f, 1.0f);
 
-          const MutableSpan<float3> laplacian_disp = gather_data_grids(
-              subdiv_ccg, all_laplacian_disp.as_span(), grids, tls.laplacian_disp);
+        const MutableSpan<float3> laplacian_disp = gather_data_grids(
+            subdiv_ccg, all_laplacian_disp.as_span(), grids, tls.laplacian_disp);
 
-          tls.average_positions.resize(orig_data.positions.size());
-          const MutableSpan<float3> average_laplacian_disps = tls.average_positions;
-          smooth::average_data_grids(
-              subdiv_ccg, all_laplacian_disp.as_span(), grids, average_laplacian_disps);
+        tls.average_positions.resize(orig_data.positions.size());
+        const MutableSpan<float3> average_laplacian_disps = tls.average_positions;
+        smooth::average_data_grids(
+            subdiv_ccg, all_laplacian_disp.as_span(), grids, average_laplacian_disps);
 
-          tls.translations.resize(orig_data.positions.size());
-          const MutableSpan<float3> translations = tls.translations;
-          smooth::surface_smooth_displace_step(
-              laplacian_disp, average_laplacian_disps, beta, translations);
-          scale_translations(translations, factors);
+        tls.translations.resize(orig_data.positions.size());
+        const MutableSpan<float3> translations = tls.translations;
+        smooth::surface_smooth_displace_step(
+            laplacian_disp, average_laplacian_disps, beta, translations);
+        scale_translations(translations, factors);
 
-          zero_disabled_axis_components(*ss.filter_cache, translations);
-          clip_and_lock_translations(sd, ss, orig_data.positions, translations);
-          apply_translations(translations, grids, subdiv_ccg);
-        });
+        zero_disabled_axis_components(*ss.filter_cache, translations);
+        clip_and_lock_translations(sd, ss, orig_data.positions, translations);
+        apply_translations(translations, grids, subdiv_ccg);
       });
       break;
     }
@@ -1499,75 +1436,71 @@ static void calc_surface_smooth_filter(const Depsgraph &depsgraph,
       BMesh &bm = *ss.bm;
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&nodes[i]);
-          const Span<float3> positions = gather_bmesh_positions(verts, tls.positions);
-          Array<float3> orig_positions(verts.size());
-          Array<float3> orig_normals(verts.size());
-          orig_position_data_gather_bmesh(*ss.bm_log, verts, orig_positions, orig_normals);
+        const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&nodes[i]);
+        const Span<float3> positions = gather_bmesh_positions(verts, tls.positions);
+        Array<float3> orig_positions(verts.size());
+        Array<float3> orig_normals(verts.size());
+        orig_position_data_gather_bmesh(*ss.bm_log, verts, orig_positions, orig_normals);
 
-          tls.factors.resize(verts.size());
-          const MutableSpan<float> factors = tls.factors;
-          fill_factor_from_hide_and_mask(bm, verts, factors);
-          auto_mask::calc_vert_factors(
-              depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
-          scale_factors(factors, strength);
-          clamp_factors(factors, 0.0f, 1.0f);
+        tls.factors.resize(verts.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide_and_mask(bm, verts, factors);
+        auto_mask::calc_vert_factors(
+            depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
+        scale_factors(factors, strength);
+        clamp_factors(factors, 0.0f, 1.0f);
 
-          tls.average_positions.resize(verts.size());
-          const MutableSpan<float3> average_positions = tls.average_positions;
-          smooth::neighbor_position_average_bmesh(verts, average_positions);
+        tls.average_positions.resize(verts.size());
+        const MutableSpan<float3> average_positions = tls.average_positions;
+        smooth::neighbor_position_average_bmesh(verts, average_positions);
 
-          tls.laplacian_disp.resize(verts.size());
-          const MutableSpan<float3> laplacian_disp = tls.laplacian_disp;
-          tls.translations.resize(verts.size());
-          const MutableSpan<float3> translations = tls.translations;
-          smooth::surface_smooth_laplacian_step(
-              positions, orig_positions, average_positions, alpha, laplacian_disp, translations);
-          scale_translations(translations, factors);
+        tls.laplacian_disp.resize(verts.size());
+        const MutableSpan<float3> laplacian_disp = tls.laplacian_disp;
+        tls.translations.resize(verts.size());
+        const MutableSpan<float3> translations = tls.translations;
+        smooth::surface_smooth_laplacian_step(
+            positions, orig_positions, average_positions, alpha, laplacian_disp, translations);
+        scale_translations(translations, factors);
 
-          scatter_data_bmesh(laplacian_disp.as_span(), verts, all_laplacian_disp);
+        scatter_data_bmesh(laplacian_disp.as_span(), verts, all_laplacian_disp);
 
-          zero_disabled_axis_components(*ss.filter_cache, translations);
-          clip_and_lock_translations(sd, ss, orig_positions, translations);
-          apply_translations(translations, verts);
-        });
+        zero_disabled_axis_components(*ss.filter_cache, translations);
+        clip_and_lock_translations(sd, ss, orig_positions, translations);
+        apply_translations(translations, verts);
       });
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&nodes[i]);
-          Array<float3> orig_positions(verts.size());
-          Array<float3> orig_normals(verts.size());
-          orig_position_data_gather_bmesh(*ss.bm_log, verts, orig_positions, orig_normals);
+        const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&nodes[i]);
+        Array<float3> orig_positions(verts.size());
+        Array<float3> orig_normals(verts.size());
+        orig_position_data_gather_bmesh(*ss.bm_log, verts, orig_positions, orig_normals);
 
-          tls.factors.resize(verts.size());
-          const MutableSpan<float> factors = tls.factors;
-          fill_factor_from_hide_and_mask(bm, verts, factors);
-          auto_mask::calc_vert_factors(
-              depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
-          scale_factors(factors, strength);
-          clamp_factors(factors, 0.0f, 1.0f);
+        tls.factors.resize(verts.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide_and_mask(bm, verts, factors);
+        auto_mask::calc_vert_factors(
+            depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
+        scale_factors(factors, strength);
+        clamp_factors(factors, 0.0f, 1.0f);
 
-          const MutableSpan<float3> laplacian_disp = gather_data_bmesh(
-              all_laplacian_disp.as_span(), verts, tls.laplacian_disp);
+        const MutableSpan<float3> laplacian_disp = gather_data_bmesh(
+            all_laplacian_disp.as_span(), verts, tls.laplacian_disp);
 
-          tls.average_positions.resize(verts.size());
-          const MutableSpan<float3> average_laplacian_disps = tls.average_positions;
-          smooth::average_data_bmesh(all_laplacian_disp.as_span(), verts, average_laplacian_disps);
+        tls.average_positions.resize(verts.size());
+        const MutableSpan<float3> average_laplacian_disps = tls.average_positions;
+        smooth::average_data_bmesh(all_laplacian_disp.as_span(), verts, average_laplacian_disps);
 
-          tls.translations.resize(verts.size());
-          const MutableSpan<float3> translations = tls.translations;
-          smooth::surface_smooth_displace_step(
-              laplacian_disp, average_laplacian_disps, beta, translations);
-          scale_translations(translations, factors);
+        tls.translations.resize(verts.size());
+        const MutableSpan<float3> translations = tls.translations;
+        smooth::surface_smooth_displace_step(
+            laplacian_disp, average_laplacian_disps, beta, translations);
+        scale_translations(translations, factors);
 
-          zero_disabled_axis_components(*ss.filter_cache, translations);
-          clip_and_lock_translations(sd, ss, orig_positions, translations);
-          apply_translations(translations, verts);
-        });
+        zero_disabled_axis_components(*ss.filter_cache, translations);
+        clip_and_lock_translations(sd, ss, orig_positions, translations);
+        apply_translations(translations, verts);
       });
       break;
     }
@@ -1621,71 +1554,68 @@ static void calc_sharpen_filter(const Depsgraph &depsgraph,
       const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int node_index) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int node_index) {
-          const Span<int> verts = nodes[node_index].verts();
-          const Span<float3> positions = gather_data_mesh(
-              position_data.eval, verts, tls.positions);
+        const Span<int> verts = nodes[node_index].verts();
+        const Span<float3> positions = gather_data_mesh(position_data.eval, verts, tls.positions);
 
-          tls.factors.resize(verts.size());
-          const MutableSpan<float> factors = tls.factors;
-          fill_factor_from_hide_and_mask(mesh, verts, factors);
-          auto_mask::calc_vert_factors(depsgraph,
-                                       object,
-                                       ss.filter_cache->automasking.get(),
-                                       nodes[node_index],
-                                       verts,
-                                       factors);
-          scale_factors(factors, strength);
+        tls.factors.resize(verts.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide_and_mask(mesh, verts, factors);
+        auto_mask::calc_vert_factors(depsgraph,
+                                     object,
+                                     ss.filter_cache->automasking.get(),
+                                     nodes[node_index],
+                                     verts,
+                                     factors);
+        scale_factors(factors, strength);
 
-          /* This filter can't work at full strength as it needs multiple iterations to reach a
-           * stable state. */
-          clamp_factors(factors, 0.0f, 0.5f);
+        /* This filter can't work at full strength as it needs multiple iterations to reach a
+         * stable state. */
+        clamp_factors(factors, 0.0f, 0.5f);
 
-          tls.vert_neighbors.resize(verts.size());
-          const MutableSpan<Vector<int>> neighbors = tls.vert_neighbors;
-          calc_vert_neighbors(faces, corner_verts, vert_to_face_map, {}, verts, neighbors);
+        tls.vert_neighbors.resize(verts.size());
+        const MutableSpan<Vector<int>> neighbors = tls.vert_neighbors;
+        calc_vert_neighbors(faces, corner_verts, vert_to_face_map, {}, verts, neighbors);
 
-          tls.smooth_positions.resize(verts.size());
-          const MutableSpan<float3> smooth_positions = tls.smooth_positions;
-          smooth::neighbor_data_average_mesh(position_data.eval, neighbors, smooth_positions);
+        tls.smooth_positions.resize(verts.size());
+        const MutableSpan<float3> smooth_positions = tls.smooth_positions;
+        smooth::neighbor_data_average_mesh(position_data.eval, neighbors, smooth_positions);
 
-          const Span<float> sharpen_factors = gather_data_mesh(
-              ss.filter_cache->sharpen_factor.as_span(), verts, tls.sharpen_factors);
+        const Span<float> sharpen_factors = gather_data_mesh(
+            ss.filter_cache->sharpen_factor.as_span(), verts, tls.sharpen_factors);
 
-          tls.translations.resize(verts.size());
-          const MutableSpan<float3> translations = tls.translations;
-          for (const int i : verts.index_range()) {
-            const int vert = verts[i];
-            const float3 &position = position_data.eval[vert];
+        tls.translations.resize(verts.size());
+        const MutableSpan<float3> translations = tls.translations;
+        for (const int i : verts.index_range()) {
+          const int vert = verts[i];
+          const float3 &position = position_data.eval[vert];
 
-            float3 disp_sharpen(0.0f);
-            for (const int neighbor : neighbors[i]) {
-              float3 disp_n = position_data.eval[neighbor] - position;
-              disp_n *= ss.filter_cache->sharpen_factor[neighbor];
-              disp_sharpen += disp_n;
-            }
-
-            disp_sharpen *= (1.0f - sharpen_factors[i]);
-            translations[i] = disp_sharpen;
+          float3 disp_sharpen(0.0f);
+          for (const int neighbor : neighbors[i]) {
+            float3 disp_n = position_data.eval[neighbor] - position;
+            disp_n *= ss.filter_cache->sharpen_factor[neighbor];
+            disp_sharpen += disp_n;
           }
 
-          const Span<float3> detail_directions = gather_data_mesh(
-              ss.filter_cache->detail_directions.as_span(), verts, tls.detail_directions);
+          disp_sharpen *= (1.0f - sharpen_factors[i]);
+          translations[i] = disp_sharpen;
+        }
 
-          calc_sharpen_detail_translations(*ss.filter_cache,
-                                           positions,
-                                           smooth_positions,
-                                           sharpen_factors,
-                                           detail_directions,
-                                           translations);
-          scale_translations(translations, factors);
+        const Span<float3> detail_directions = gather_data_mesh(
+            ss.filter_cache->detail_directions.as_span(), verts, tls.detail_directions);
 
-          zero_disabled_axis_components(*ss.filter_cache, translations);
-          clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
-          position_data.deform(translations, verts);
-        });
+        calc_sharpen_detail_translations(*ss.filter_cache,
+                                         positions,
+                                         smooth_positions,
+                                         sharpen_factors,
+                                         detail_directions,
+                                         translations);
+        scale_translations(translations, factors);
+
+        zero_disabled_axis_components(*ss.filter_cache, translations);
+        clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+        position_data.deform(translations, verts);
       });
       break;
     }
@@ -1696,83 +1626,81 @@ static void calc_sharpen_filter(const Depsgraph &depsgraph,
 
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int node_index) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int node_index) {
-          const Span<int> grids = nodes[node_index].grids();
-          const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
+        const Span<int> grids = nodes[node_index].grids();
+        const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
 
-          tls.factors.resize(positions.size());
-          const MutableSpan<float> factors = tls.factors;
-          fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
-          auto_mask::calc_grids_factors(depsgraph,
-                                        object,
-                                        ss.filter_cache->automasking.get(),
-                                        nodes[node_index],
-                                        grids,
-                                        factors);
-          scale_factors(factors, strength);
+        tls.factors.resize(positions.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
+        auto_mask::calc_grids_factors(depsgraph,
+                                      object,
+                                      ss.filter_cache->automasking.get(),
+                                      nodes[node_index],
+                                      grids,
+                                      factors);
+        scale_factors(factors, strength);
 
-          /* This filter can't work at full strength as it needs multiple iterations to reach a
-           * stable state. */
-          clamp_factors(factors, 0.0f, 0.5f);
+        /* This filter can't work at full strength as it needs multiple iterations to reach a
+         * stable state. */
+        clamp_factors(factors, 0.0f, 0.5f);
 
-          tls.vert_neighbors.resize(positions.size());
+        tls.vert_neighbors.resize(positions.size());
 
-          tls.smooth_positions.resize(positions.size());
-          const MutableSpan<float3> smooth_positions = tls.smooth_positions;
-          smooth::average_data_grids(
-              subdiv_ccg, subdiv_ccg.positions.as_span(), grids, smooth_positions);
+        tls.smooth_positions.resize(positions.size());
+        const MutableSpan<float3> smooth_positions = tls.smooth_positions;
+        smooth::average_data_grids(
+            subdiv_ccg, subdiv_ccg.positions.as_span(), grids, smooth_positions);
 
-          const Span<float> sharpen_factors = gather_data_grids(
-              subdiv_ccg, ss.filter_cache->sharpen_factor.as_span(), grids, tls.sharpen_factors);
+        const Span<float> sharpen_factors = gather_data_grids(
+            subdiv_ccg, ss.filter_cache->sharpen_factor.as_span(), grids, tls.sharpen_factors);
 
-          tls.translations.resize(positions.size());
-          const MutableSpan<float3> translations = tls.translations;
-          for (const int i : grids.index_range()) {
-            const int node_verts_start = i * key.grid_area;
-            const int grid = grids[i];
-            for (const short y : IndexRange(key.grid_size)) {
-              for (const short x : IndexRange(key.grid_size)) {
-                const int offset = CCG_grid_xy_to_index(key.grid_size, x, y);
-                const int node_vert = node_verts_start + offset;
+        tls.translations.resize(positions.size());
+        const MutableSpan<float3> translations = tls.translations;
+        for (const int i : grids.index_range()) {
+          const int node_verts_start = i * key.grid_area;
+          const int grid = grids[i];
+          for (const short y : IndexRange(key.grid_size)) {
+            for (const short x : IndexRange(key.grid_size)) {
+              const int offset = CCG_grid_xy_to_index(key.grid_size, x, y);
+              const int node_vert = node_verts_start + offset;
 
-                const float3 &position = positions[node_vert];
+              const float3 &position = positions[node_vert];
 
-                float3 disp_sharpen(0.0f);
-                SubdivCCGNeighbors neighbors;
-                BKE_subdiv_ccg_neighbor_coords_get(
-                    subdiv_ccg, SubdivCCGCoord{grid, x, y}, false, neighbors);
-                for (const SubdivCCGCoord neighbor : neighbors.coords) {
-                  float3 disp_n = vert_positions[neighbor.to_index(key)] - position;
-                  disp_n *= ss.filter_cache->sharpen_factor[neighbor.to_index(key)];
-                  disp_sharpen += disp_n;
-                }
-
-                disp_sharpen *= (1.0f - sharpen_factors[node_vert]);
-                translations[node_vert] = disp_sharpen;
+              float3 disp_sharpen(0.0f);
+              SubdivCCGNeighbors neighbors;
+              BKE_subdiv_ccg_neighbor_coords_get(
+                  subdiv_ccg, SubdivCCGCoord{grid, x, y}, false, neighbors);
+              for (const SubdivCCGCoord neighbor : neighbors.coords) {
+                float3 disp_n = vert_positions[neighbor.to_index(key)] - position;
+                disp_n *= ss.filter_cache->sharpen_factor[neighbor.to_index(key)];
+                disp_sharpen += disp_n;
               }
+
+              disp_sharpen *= (1.0f - sharpen_factors[node_vert]);
+              translations[node_vert] = disp_sharpen;
             }
           }
+        }
 
-          const Span<float3> detail_directions = gather_data_grids(
-              subdiv_ccg,
-              ss.filter_cache->detail_directions.as_span(),
-              grids,
-              tls.detail_directions);
+        const Span<float3> detail_directions = gather_data_grids(
+            subdiv_ccg,
+            ss.filter_cache->detail_directions.as_span(),
+            grids,
+            tls.detail_directions);
 
-          calc_sharpen_detail_translations(*ss.filter_cache,
-                                           positions,
-                                           smooth_positions,
-                                           sharpen_factors,
-                                           detail_directions,
-                                           translations);
-          scale_translations(translations, factors);
+        calc_sharpen_detail_translations(*ss.filter_cache,
+                                         positions,
+                                         smooth_positions,
+                                         sharpen_factors,
+                                         detail_directions,
+                                         translations);
+        scale_translations(translations, factors);
 
-          zero_disabled_axis_components(*ss.filter_cache, translations);
-          clip_and_lock_translations(sd, ss, positions, translations);
-          apply_translations(translations, grids, subdiv_ccg);
-        });
+        zero_disabled_axis_components(*ss.filter_cache, translations);
+        clip_and_lock_translations(sd, ss, positions, translations);
+        apply_translations(translations, grids, subdiv_ccg);
       });
       break;
     }
@@ -1781,70 +1709,68 @@ static void calc_sharpen_filter(const Depsgraph &depsgraph,
       BM_mesh_elem_index_ensure(&bm, BM_VERT);
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int node_index) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int node_index) {
-          const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&nodes[node_index]);
-          const Span<float3> positions = gather_bmesh_positions(verts, tls.positions);
+        const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&nodes[node_index]);
+        const Span<float3> positions = gather_bmesh_positions(verts, tls.positions);
 
-          tls.factors.resize(verts.size());
-          const MutableSpan<float> factors = tls.factors;
-          fill_factor_from_hide_and_mask(bm, verts, factors);
-          auto_mask::calc_vert_factors(depsgraph,
-                                       object,
-                                       ss.filter_cache->automasking.get(),
-                                       nodes[node_index],
-                                       verts,
-                                       factors);
-          scale_factors(factors, strength);
+        tls.factors.resize(verts.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide_and_mask(bm, verts, factors);
+        auto_mask::calc_vert_factors(depsgraph,
+                                     object,
+                                     ss.filter_cache->automasking.get(),
+                                     nodes[node_index],
+                                     verts,
+                                     factors);
+        scale_factors(factors, strength);
 
-          /* This filter can't work at full strength as it needs multiple iterations to reach a
-           * stable state. */
-          clamp_factors(factors, 0.0f, 0.5f);
+        /* This filter can't work at full strength as it needs multiple iterations to reach a
+         * stable state. */
+        clamp_factors(factors, 0.0f, 0.5f);
 
-          tls.smooth_positions.resize(verts.size());
-          const MutableSpan<float3> smooth_positions = tls.smooth_positions;
-          smooth::neighbor_position_average_bmesh(verts, smooth_positions);
+        tls.smooth_positions.resize(verts.size());
+        const MutableSpan<float3> smooth_positions = tls.smooth_positions;
+        smooth::neighbor_position_average_bmesh(verts, smooth_positions);
 
-          const Span<float> sharpen_factors = gather_data_bmesh(
-              ss.filter_cache->sharpen_factor.as_span(), verts, tls.sharpen_factors);
+        const Span<float> sharpen_factors = gather_data_bmesh(
+            ss.filter_cache->sharpen_factor.as_span(), verts, tls.sharpen_factors);
 
-          tls.translations.resize(verts.size());
-          const MutableSpan<float3> translations = tls.translations;
+        tls.translations.resize(verts.size());
+        const MutableSpan<float3> translations = tls.translations;
 
-          Vector<BMVert *, 64> neighbors;
+        Vector<BMVert *, 64> neighbors;
 
-          int i = 0;
-          for (BMVert *vert : verts) {
-            const float3 position = vert->co;
+        int i = 0;
+        for (BMVert *vert : verts) {
+          const float3 position = vert->co;
 
-            float3 disp_sharpen(0.0f);
-            for (const BMVert *neighbor : vert_neighbors_get_bmesh(*vert, neighbors)) {
-              float3 disp_n = float3(neighbor->co) - position;
-              disp_n *= ss.filter_cache->sharpen_factor[BM_elem_index_get(neighbor)];
-              disp_sharpen += disp_n;
-            }
-
-            disp_sharpen *= (1.0f - sharpen_factors[i]);
-            translations[i] = disp_sharpen;
-            i++;
+          float3 disp_sharpen(0.0f);
+          for (const BMVert *neighbor : vert_neighbors_get_bmesh(*vert, neighbors)) {
+            float3 disp_n = float3(neighbor->co) - position;
+            disp_n *= ss.filter_cache->sharpen_factor[BM_elem_index_get(neighbor)];
+            disp_sharpen += disp_n;
           }
 
-          const Span<float3> detail_directions = gather_data_bmesh(
-              ss.filter_cache->detail_directions.as_span(), verts, tls.detail_directions);
+          disp_sharpen *= (1.0f - sharpen_factors[i]);
+          translations[i] = disp_sharpen;
+          i++;
+        }
 
-          calc_sharpen_detail_translations(*ss.filter_cache,
-                                           positions,
-                                           smooth_positions,
-                                           sharpen_factors,
-                                           detail_directions,
-                                           translations);
-          scale_translations(translations, factors);
+        const Span<float3> detail_directions = gather_data_bmesh(
+            ss.filter_cache->detail_directions.as_span(), verts, tls.detail_directions);
 
-          zero_disabled_axis_components(*ss.filter_cache, translations);
-          clip_and_lock_translations(sd, ss, positions, translations);
-          apply_translations(translations, verts);
-        });
+        calc_sharpen_detail_translations(*ss.filter_cache,
+                                         positions,
+                                         smooth_positions,
+                                         sharpen_factors,
+                                         detail_directions,
+                                         translations);
+        scale_translations(translations, factors);
+
+        zero_disabled_axis_components(*ss.filter_cache, translations);
+        clip_and_lock_translations(sd, ss, positions, translations);
+        apply_translations(translations, verts);
       });
       break;
     }
@@ -1871,30 +1797,27 @@ static void calc_enhance_details_filter(const Depsgraph &depsgraph,
       const PositionDeformData position_data(depsgraph, object);
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> verts = nodes[i].verts();
-          const Span<float3> positions = gather_data_mesh(
-              position_data.eval, verts, tls.positions);
-          const OrigPositionData orig_data = orig_position_data_get_mesh(object, nodes[i]);
+        const Span<int> verts = nodes[i].verts();
+        const Span<float3> positions = gather_data_mesh(position_data.eval, verts, tls.positions);
+        const OrigPositionData orig_data = orig_position_data_get_mesh(object, nodes[i]);
 
-          tls.factors.resize(verts.size());
-          const MutableSpan<float> factors = tls.factors;
-          fill_factor_from_hide_and_mask(mesh, verts, factors);
-          auto_mask::calc_vert_factors(
-              depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
-          scale_factors(factors, final_strength);
+        tls.factors.resize(verts.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide_and_mask(mesh, verts, factors);
+        auto_mask::calc_vert_factors(
+            depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
+        scale_factors(factors, final_strength);
 
-          const MutableSpan translations = gather_data_mesh(
-              ss.filter_cache->detail_directions.as_span(), verts, tls.translations);
-          scale_translations(translations, factors);
-          reset_translations_to_original(translations, positions, orig_data.positions);
+        const MutableSpan translations = gather_data_mesh(
+            ss.filter_cache->detail_directions.as_span(), verts, tls.translations);
+        scale_translations(translations, factors);
+        reset_translations_to_original(translations, positions, orig_data.positions);
 
-          zero_disabled_axis_components(*ss.filter_cache, translations);
-          clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
-          position_data.deform(translations, verts);
-        });
+        zero_disabled_axis_components(*ss.filter_cache, translations);
+        clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+        position_data.deform(translations, verts);
       });
       break;
     }
@@ -1902,29 +1825,27 @@ static void calc_enhance_details_filter(const Depsgraph &depsgraph,
       SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> grids = nodes[i].grids();
-          const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
-          const OrigPositionData orig_data = orig_position_data_get_grids(object, nodes[i]);
+        const Span<int> grids = nodes[i].grids();
+        const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
+        const OrigPositionData orig_data = orig_position_data_get_grids(object, nodes[i]);
 
-          tls.factors.resize(positions.size());
-          const MutableSpan<float> factors = tls.factors;
-          fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
-          auto_mask::calc_grids_factors(
-              depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], grids, factors);
-          scale_factors(factors, final_strength);
+        tls.factors.resize(positions.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
+        auto_mask::calc_grids_factors(
+            depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], grids, factors);
+        scale_factors(factors, final_strength);
 
-          const MutableSpan translations = gather_data_grids(
-              subdiv_ccg, ss.filter_cache->detail_directions.as_span(), grids, tls.translations);
-          scale_translations(translations, factors);
-          reset_translations_to_original(translations, positions, orig_data.positions);
+        const MutableSpan translations = gather_data_grids(
+            subdiv_ccg, ss.filter_cache->detail_directions.as_span(), grids, tls.translations);
+        scale_translations(translations, factors);
+        reset_translations_to_original(translations, positions, orig_data.positions);
 
-          zero_disabled_axis_components(*ss.filter_cache, translations);
-          clip_and_lock_translations(sd, ss, orig_data.positions, translations);
-          apply_translations(translations, grids, subdiv_ccg);
-        });
+        zero_disabled_axis_components(*ss.filter_cache, translations);
+        clip_and_lock_translations(sd, ss, orig_data.positions, translations);
+        apply_translations(translations, grids, subdiv_ccg);
       });
       break;
     }
@@ -1932,30 +1853,28 @@ static void calc_enhance_details_filter(const Depsgraph &depsgraph,
       BMesh &bm = *ss.bm;
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&nodes[i]);
-          const Span<float3> positions = gather_bmesh_positions(verts, tls.positions);
-          Array<float3> orig_positions(verts.size());
-          orig_position_data_gather_bmesh(*ss.bm_log, verts, orig_positions, {});
+        const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&nodes[i]);
+        const Span<float3> positions = gather_bmesh_positions(verts, tls.positions);
+        Array<float3> orig_positions(verts.size());
+        orig_position_data_gather_bmesh(*ss.bm_log, verts, orig_positions, {});
 
-          tls.factors.resize(verts.size());
-          const MutableSpan<float> factors = tls.factors;
-          fill_factor_from_hide_and_mask(bm, verts, factors);
-          auto_mask::calc_vert_factors(
-              depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
-          scale_factors(factors, final_strength);
+        tls.factors.resize(verts.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide_and_mask(bm, verts, factors);
+        auto_mask::calc_vert_factors(
+            depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
+        scale_factors(factors, final_strength);
 
-          const MutableSpan<float3> translations = gather_data_bmesh(
-              ss.filter_cache->detail_directions.as_span(), verts, tls.translations);
-          scale_translations(translations, factors);
-          reset_translations_to_original(translations, positions, orig_positions);
+        const MutableSpan<float3> translations = gather_data_bmesh(
+            ss.filter_cache->detail_directions.as_span(), verts, tls.translations);
+        scale_translations(translations, factors);
+        reset_translations_to_original(translations, positions, orig_positions);
 
-          zero_disabled_axis_components(*ss.filter_cache, translations);
-          clip_and_lock_translations(sd, ss, orig_positions, translations);
-          apply_translations(translations, verts);
-        });
+        zero_disabled_axis_components(*ss.filter_cache, translations);
+        clip_and_lock_translations(sd, ss, orig_positions, translations);
+        apply_translations(translations, verts);
       });
       break;
     }
@@ -1979,33 +1898,31 @@ static void calc_erase_displacement_filter(const Depsgraph &depsgraph,
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-  threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+  node_mask.foreach_index(GrainSize(1), [&](const int i) {
     LocalData &tls = all_tls.local();
-    node_mask.slice(range).foreach_index([&](const int i) {
-      const Span<int> grids = nodes[i].grids();
-      const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
-      const OrigPositionData orig_data = orig_position_data_get_grids(object, nodes[i]);
+    const Span<int> grids = nodes[i].grids();
+    const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
+    const OrigPositionData orig_data = orig_position_data_get_grids(object, nodes[i]);
 
-      tls.factors.resize(positions.size());
-      const MutableSpan<float> factors = tls.factors;
-      fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
-      auto_mask::calc_grids_factors(
-          depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], grids, factors);
-      scale_factors(factors, strength);
-      clamp_factors(factors, -1.0f, 1.0f);
+    tls.factors.resize(positions.size());
+    const MutableSpan<float> factors = tls.factors;
+    fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
+    auto_mask::calc_grids_factors(
+        depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], grids, factors);
+    scale_factors(factors, strength);
+    clamp_factors(factors, -1.0f, 1.0f);
 
-      const MutableSpan<float3> new_positions = gather_data_grids(
-          subdiv_ccg, ss.filter_cache->limit_surface_co.as_span(), grids, tls.new_positions);
-      tls.translations.resize(positions.size());
-      const MutableSpan<float3> translations = tls.translations;
-      translations_from_new_positions(new_positions, orig_data.positions, translations);
-      scale_translations(translations, factors);
-      reset_translations_to_original(translations, positions, orig_data.positions);
+    const MutableSpan<float3> new_positions = gather_data_grids(
+        subdiv_ccg, ss.filter_cache->limit_surface_co.as_span(), grids, tls.new_positions);
+    tls.translations.resize(positions.size());
+    const MutableSpan<float3> translations = tls.translations;
+    translations_from_new_positions(new_positions, orig_data.positions, translations);
+    scale_translations(translations, factors);
+    reset_translations_to_original(translations, positions, orig_data.positions);
 
-      zero_disabled_axis_components(*ss.filter_cache, translations);
-      clip_and_lock_translations(sd, ss, orig_data.positions, translations);
-      apply_translations(translations, grids, subdiv_ccg);
-    });
+    zero_disabled_axis_components(*ss.filter_cache, translations);
+    clip_and_lock_translations(sd, ss, orig_data.positions, translations);
+    apply_translations(translations, grids, subdiv_ccg);
   });
 }
 
@@ -2091,25 +2008,23 @@ static void mesh_filter_sharpen_init(const Depsgraph &depsgraph,
         const Span<int> corner_verts = mesh.corner_verts();
         const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
         const Span<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-        threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+        node_mask.foreach_index(GrainSize(1), [&](const int i) {
           LocalData &tls = all_tls.local();
-          node_mask.slice(range).foreach_index([&](const int i) {
-            const Span<int> verts = nodes[i].verts();
+          const Span<int> verts = nodes[i].verts();
 
-            tls.vert_neighbors.resize(verts.size());
-            const MutableSpan<Vector<int>> neighbors = tls.vert_neighbors;
-            calc_vert_neighbors(faces, corner_verts, vert_to_face_map, {}, verts, neighbors);
+          tls.vert_neighbors.resize(verts.size());
+          const MutableSpan<Vector<int>> neighbors = tls.vert_neighbors;
+          calc_vert_neighbors(faces, corner_verts, vert_to_face_map, {}, verts, neighbors);
 
-            tls.smooth_directions.resize(verts.size());
-            smooth::neighbor_data_average_mesh(
-                detail_directions.as_span(), neighbors, tls.smooth_directions.as_mutable_span());
-            scatter_data_mesh(tls.smooth_directions.as_span(), verts, detail_directions);
+          tls.smooth_directions.resize(verts.size());
+          smooth::neighbor_data_average_mesh(
+              detail_directions.as_span(), neighbors, tls.smooth_directions.as_mutable_span());
+          scatter_data_mesh(tls.smooth_directions.as_span(), verts, detail_directions);
 
-            tls.smooth_factors.resize(verts.size());
-            smooth::neighbor_data_average_mesh(
-                sharpen_factors.as_span(), neighbors, tls.smooth_factors.as_mutable_span());
-            scatter_data_mesh(tls.smooth_factors.as_span(), verts, sharpen_factors);
-          });
+          tls.smooth_factors.resize(verts.size());
+          smooth::neighbor_data_average_mesh(
+              sharpen_factors.as_span(), neighbors, tls.smooth_factors.as_mutable_span());
+          scatter_data_mesh(tls.smooth_factors.as_span(), verts, sharpen_factors);
         });
         break;
       }
@@ -2117,48 +2032,42 @@ static void mesh_filter_sharpen_init(const Depsgraph &depsgraph,
         SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
         const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
         const Span<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-        threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+        node_mask.foreach_index(GrainSize(1), [&](const int i) {
           LocalData &tls = all_tls.local();
-          node_mask.slice(range).foreach_index([&](const int i) {
-            const Span<int> grids = nodes[i].grids();
-            const int grid_verts_num = grids.size() * key.grid_area;
+          const Span<int> grids = nodes[i].grids();
+          const int grid_verts_num = grids.size() * key.grid_area;
 
-            tls.smooth_directions.resize(grid_verts_num);
-            smooth::average_data_grids(subdiv_ccg,
-                                       detail_directions.as_span(),
-                                       grids,
-                                       tls.smooth_directions.as_mutable_span());
-            scatter_data_grids(
-                subdiv_ccg, tls.smooth_directions.as_span(), grids, detail_directions);
+          tls.smooth_directions.resize(grid_verts_num);
+          smooth::average_data_grids(subdiv_ccg,
+                                     detail_directions.as_span(),
+                                     grids,
+                                     tls.smooth_directions.as_mutable_span());
+          scatter_data_grids(
+              subdiv_ccg, tls.smooth_directions.as_span(), grids, detail_directions);
 
-            tls.smooth_factors.resize(grid_verts_num);
-            smooth::average_data_grids(subdiv_ccg,
-                                       sharpen_factors.as_span(),
-                                       grids,
-                                       tls.smooth_factors.as_mutable_span());
-            scatter_data_grids(subdiv_ccg, tls.smooth_factors.as_span(), grids, sharpen_factors);
-          });
+          tls.smooth_factors.resize(grid_verts_num);
+          smooth::average_data_grids(
+              subdiv_ccg, sharpen_factors.as_span(), grids, tls.smooth_factors.as_mutable_span());
+          scatter_data_grids(subdiv_ccg, tls.smooth_factors.as_span(), grids, sharpen_factors);
         });
         break;
       }
       case bke::pbvh::Type::BMesh:
         const Span<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
-        threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+        node_mask.foreach_index(GrainSize(1), [&](const int i) {
           LocalData &tls = all_tls.local();
-          node_mask.slice(range).foreach_index([&](const int i) {
-            const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(
-                &const_cast<bke::pbvh::BMeshNode &>(nodes[i]));
+          const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(
+              &const_cast<bke::pbvh::BMeshNode &>(nodes[i]));
 
-            tls.smooth_directions.resize(verts.size());
-            smooth::average_data_bmesh(
-                detail_directions.as_span(), verts, tls.smooth_directions.as_mutable_span());
-            scatter_data_bmesh(tls.smooth_directions.as_span(), verts, detail_directions);
+          tls.smooth_directions.resize(verts.size());
+          smooth::average_data_bmesh(
+              detail_directions.as_span(), verts, tls.smooth_directions.as_mutable_span());
+          scatter_data_bmesh(tls.smooth_directions.as_span(), verts, detail_directions);
 
-            tls.smooth_factors.resize(verts.size());
-            smooth::average_data_bmesh(
-                sharpen_factors.as_span(), verts, tls.smooth_factors.as_mutable_span());
-            scatter_data_bmesh(tls.smooth_factors.as_span(), verts, sharpen_factors);
-          });
+          tls.smooth_factors.resize(verts.size());
+          smooth::average_data_bmesh(
+              sharpen_factors.as_span(), verts, tls.smooth_factors.as_mutable_span());
+          scatter_data_bmesh(tls.smooth_factors.as_span(), verts, sharpen_factors);
         });
         break;
     }
@@ -2312,7 +2221,6 @@ static int sculpt_mesh_filter_confirm(SculptSession &ss,
                                       wmOperator *op,
                                       const MeshFilterType filter_type)
 {
-
   float initial_strength = ss.filter_cache->start_filter_strength;
   /* Don't update strength property if we're storing an event history. */
   if (sculpt_mesh_filter_is_continuous(filter_type)) {
@@ -2485,8 +2393,8 @@ static int sculpt_mesh_filter_start(bContext *C, wmOperator *op)
 
   float2 mval_fl{float(mval[0]), float(mval[1])};
   if (use_automasking) {
-    /* Update the active face set manually as the paint cursor is not enabled when using the Mesh
-     * Filter Tool. */
+    /* Update the active face set manually as the paint cursor is not enabled when using the
+     * Mesh Filter Tool. */
     SculptCursorGeometryInfo sgi;
     SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
   }
@@ -2558,16 +2466,16 @@ void register_operator_props(wmOperatorType *ot)
   RNA_def_int_array(
       ot->srna, "start_mouse", 2, nullptr, 0, 1 << 14, "Starting Mouse", "", 0, 1 << 14);
 
-  RNA_def_float(
-      ot->srna,
-      "area_normal_radius",
-      0.25,
-      0.001,
-      5.0,
-      "Normal Radius",
-      "Radius used for calculating area normal on initial click,\nin percentage of brush radius",
-      0.01,
-      1.0);
+  RNA_def_float(ot->srna,
+                "area_normal_radius",
+                0.25,
+                0.001,
+                5.0,
+                "Normal Radius",
+                "Radius used for calculating area normal on initial click,\nin percentage "
+                "of brush radius",
+                0.01,
+                1.0);
   RNA_def_float(
       ot->srna, "strength", 1.0f, -10.0f, 10.0f, "Strength", "Filter strength", -10.0f, 10.0f);
   RNA_def_int(ot->srna,

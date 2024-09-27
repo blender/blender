@@ -339,25 +339,23 @@ static void sculpt_color_presmooth_init(const Mesh &mesh, Object &object)
   };
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   for ([[maybe_unused]] const int iteration : IndexRange(2)) {
-    threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+    node_mask.foreach_index(GrainSize(1), [&](const int i) {
       LocalData &tls = all_tls.local();
-      node_mask.slice(range).foreach_index([&](const int i) {
-        const Span<int> verts = nodes[i].verts();
+      const Span<int> verts = nodes[i].verts();
 
-        tls.vert_neighbors.resize(verts.size());
-        calc_vert_neighbors(faces, corner_verts, vert_to_face_map, {}, verts, tls.vert_neighbors);
-        const Span<Vector<int>> vert_neighbors = tls.vert_neighbors;
+      tls.vert_neighbors.resize(verts.size());
+      calc_vert_neighbors(faces, corner_verts, vert_to_face_map, {}, verts, tls.vert_neighbors);
+      const Span<Vector<int>> vert_neighbors = tls.vert_neighbors;
 
-        tls.averaged_colors.resize(verts.size());
-        const MutableSpan<float4> averaged_colors = tls.averaged_colors;
-        smooth::neighbor_data_average_mesh(
-            pre_smoothed_color.as_span(), vert_neighbors, averaged_colors);
+      tls.averaged_colors.resize(verts.size());
+      const MutableSpan<float4> averaged_colors = tls.averaged_colors;
+      smooth::neighbor_data_average_mesh(
+          pre_smoothed_color.as_span(), vert_neighbors, averaged_colors);
 
-        for (const int i : verts.index_range()) {
-          pre_smoothed_color[verts[i]] = math::interpolate(
-              pre_smoothed_color[verts[i]], averaged_colors[i], 0.5f);
-        }
-      });
+      for (const int i : verts.index_range()) {
+        pre_smoothed_color[verts[i]] = math::interpolate(
+            pre_smoothed_color[verts[i]], averaged_colors[i], 0.5f);
+      }
     });
   }
 }
@@ -389,21 +387,19 @@ static void sculpt_color_filter_apply(bContext *C, wmOperator *op, Object &ob)
   bke::GSpanAttributeWriter color_attribute = active_color_attribute_for_write(mesh);
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
-  threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+  node_mask.foreach_index(GrainSize(1), [&](const int i) {
     LocalData &tls = all_tls.local();
-    node_mask.slice(range).foreach_index([&](const int i) {
-      color_filter_task(depsgraph,
-                        ob,
-                        faces,
-                        corner_verts,
-                        vert_to_face_map,
-                        mode,
-                        filter_strength,
-                        fill_color,
-                        nodes[i],
-                        tls,
-                        color_attribute);
-    });
+    color_filter_task(depsgraph,
+                      ob,
+                      faces,
+                      corner_verts,
+                      vert_to_face_map,
+                      mode,
+                      filter_strength,
+                      fill_color,
+                      nodes[i],
+                      tls,
+                      color_attribute);
   });
   pbvh.tag_attribute_changed(node_mask, mesh.active_color_attribute);
   color_attribute.finish();

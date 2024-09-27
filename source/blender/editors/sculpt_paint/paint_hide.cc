@@ -230,24 +230,22 @@ static void flush_face_changes_node(Mesh &mesh,
     Vector<bool> new_hide;
   };
   threading::EnumerableThreadSpecific<TLS> all_tls;
-  threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+  node_mask.foreach_index(GrainSize(1), [&](const int i) {
     TLS &tls = all_tls.local();
-    node_mask.slice(range).foreach_index([&](const int i) {
-      const Span<int> node_faces = nodes[i].faces();
+    const Span<int> node_faces = nodes[i].faces();
 
-      tls.new_hide.resize(node_faces.size());
-      gather_data_mesh(hide_poly.span.as_span(), node_faces, tls.new_hide.as_mutable_span());
+    tls.new_hide.resize(node_faces.size());
+    gather_data_mesh(hide_poly.span.as_span(), node_faces, tls.new_hide.as_mutable_span());
 
-      calc_face_hide(node_faces, faces, corner_verts, hide_vert, tls.new_hide.as_mutable_span());
+    calc_face_hide(node_faces, faces, corner_verts, hide_vert, tls.new_hide.as_mutable_span());
 
-      if (array_utils::indexed_data_equal<bool>(hide_poly.span, node_faces, tls.new_hide)) {
-        return;
-      }
+    if (array_utils::indexed_data_equal<bool>(hide_poly.span, node_faces, tls.new_hide)) {
+      return;
+    }
 
-      scatter_data_mesh(tls.new_hide.as_span(), node_faces, hide_poly.span);
-      node_changed[i] = true;
-      bke::pbvh::node_update_visibility_mesh(hide_vert, nodes[i]);
-    });
+    scatter_data_mesh(tls.new_hide.as_span(), node_faces, hide_poly.span);
+    node_changed[i] = true;
+    bke::pbvh::node_update_visibility_mesh(hide_vert, nodes[i]);
   });
   hide_poly.finish();
 
@@ -297,22 +295,20 @@ static void vert_hide_update(const Depsgraph &depsgraph,
 
   bool any_changed = false;
   threading::EnumerableThreadSpecific<Vector<bool>> all_new_hide;
-  threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+  node_mask.foreach_index(GrainSize(1), [&](const int i) {
     Vector<bool> &new_hide = all_new_hide.local();
-    node_mask.slice(range).foreach_index([&](const int i) {
-      const Span<int> verts = nodes[i].verts();
+    const Span<int> verts = nodes[i].verts();
 
-      new_hide.resize(verts.size());
-      gather_data_mesh(hide_vert.span.as_span(), verts, new_hide.as_mutable_span());
-      calc_hide(verts, new_hide);
-      if (array_utils::indexed_data_equal<bool>(hide_vert.span, verts, new_hide)) {
-        return;
-      }
+    new_hide.resize(verts.size());
+    gather_data_mesh(hide_vert.span.as_span(), verts, new_hide.as_mutable_span());
+    calc_hide(verts, new_hide);
+    if (array_utils::indexed_data_equal<bool>(hide_vert.span, verts, new_hide)) {
+      return;
+    }
 
-      any_changed = true;
-      undo::push_node(depsgraph, object, &nodes[i], undo::Type::HideVert);
-      scatter_data_mesh(new_hide.as_span(), verts, hide_vert.span);
-    });
+    any_changed = true;
+    undo::push_node(depsgraph, object, &nodes[i], undo::Type::HideVert);
+    scatter_data_mesh(new_hide.as_span(), verts, hide_vert.span);
   });
 
   hide_vert.finish();
@@ -339,35 +335,33 @@ static void grid_hide_update(Depsgraph &depsgraph,
   Array<bool> node_changed(node_mask.min_array_size(), false);
 
   bool any_changed = false;
-  threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
-    node_mask.slice(range).foreach_index([&](const int i) {
-      const Span<int> grids = nodes[i].grids();
-      BitGroupVector<> new_hide(grids.size(), grid_hidden.group_size());
-      for (const int i : grids.index_range()) {
-        new_hide[i].copy_from(grid_hidden[grids[i]].as_span());
-      }
+  node_mask.foreach_index(GrainSize(1), [&](const int i) {
+    const Span<int> grids = nodes[i].grids();
+    BitGroupVector<> new_hide(grids.size(), grid_hidden.group_size());
+    for (const int i : grids.index_range()) {
+      new_hide[i].copy_from(grid_hidden[grids[i]].as_span());
+    }
 
-      for (const int i : grids.index_range()) {
-        calc_hide(grids[i], new_hide[i]);
-      }
+    for (const int i : grids.index_range()) {
+      calc_hide(grids[i], new_hide[i]);
+    }
 
-      if (std::all_of(grids.index_range().begin(), grids.index_range().end(), [&](const int i) {
-            return bits::spans_equal(grid_hidden[grids[i]], new_hide[i]);
-          }))
-      {
-        return;
-      }
+    if (std::all_of(grids.index_range().begin(), grids.index_range().end(), [&](const int i) {
+          return bits::spans_equal(grid_hidden[grids[i]], new_hide[i]);
+        }))
+    {
+      return;
+    }
 
-      any_changed = true;
-      undo::push_node(depsgraph, object, &nodes[i], undo::Type::HideVert);
+    any_changed = true;
+    undo::push_node(depsgraph, object, &nodes[i], undo::Type::HideVert);
 
-      for (const int i : grids.index_range()) {
-        grid_hidden[grids[i]].copy_from(new_hide[i].as_span());
-      }
+    for (const int i : grids.index_range()) {
+      grid_hidden[grids[i]].copy_from(new_hide[i].as_span());
+    }
 
-      node_changed[i] = true;
-      bke::pbvh::node_update_visibility_grids(grid_hidden, nodes[i]);
-    });
+    node_changed[i] = true;
+    bke::pbvh::node_update_visibility_grids(grid_hidden, nodes[i]);
   });
 
   IndexMaskMemory memory;

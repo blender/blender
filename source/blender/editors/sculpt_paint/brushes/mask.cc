@@ -225,21 +225,19 @@ void do_mask_brush(const Depsgraph &depsgraph,
       bke::SpanAttributeWriter<float> mask = attributes.lookup_or_add_for_write_span<float>(
           ".sculpt_mask", bke::AttrDomain::Point);
 
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          calc_faces(depsgraph,
-                     brush,
-                     bstrength,
-                     positions,
-                     vert_normals,
-                     nodes[i],
-                     object,
-                     mesh,
-                     tls,
-                     mask.span);
-          bke::pbvh::node_update_mask_mesh(mask.span, nodes[i]);
-        });
+        calc_faces(depsgraph,
+                   brush,
+                   bstrength,
+                   positions,
+                   vert_normals,
+                   nodes[i],
+                   object,
+                   mesh,
+                   tls,
+                   mask.span);
+        bke::pbvh::node_update_mask_mesh(mask.span, nodes[i]);
       });
       mask.finish();
       break;
@@ -249,12 +247,10 @@ void do_mask_brush(const Depsgraph &depsgraph,
       const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
       MutableSpan<float> masks = subdiv_ccg.masks;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          calc_grids(depsgraph, object, brush, bstrength, nodes[i], tls);
-          bke::pbvh::node_update_mask_grids(key, masks, nodes[i]);
-        });
+        calc_grids(depsgraph, object, brush, bstrength, nodes[i], tls);
+        bke::pbvh::node_update_mask_grids(key, masks, nodes[i]);
       });
       break;
     }
@@ -262,12 +258,10 @@ void do_mask_brush(const Depsgraph &depsgraph,
       const int mask_offset = CustomData_get_offset_named(
           &ss.bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
       MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          calc_bmesh(depsgraph, object, brush, bstrength, nodes[i], tls);
-          bke::pbvh::node_update_mask_bmesh(mask_offset, nodes[i]);
-        });
+        calc_bmesh(depsgraph, object, brush, bstrength, nodes[i], tls);
+        bke::pbvh::node_update_mask_bmesh(mask_offset, nodes[i]);
       });
       break;
     }

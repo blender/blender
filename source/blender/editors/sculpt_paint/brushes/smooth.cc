@@ -295,20 +295,18 @@ void do_smooth_brush(const Depsgraph &depsgraph,
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       for (const float strength : iteration_strengths(brush_strength)) {
         MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-        threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+        node_mask.foreach_index(GrainSize(1), [&](const int i) {
           LocalData &tls = all_tls.local();
-          node_mask.slice(range).foreach_index([&](const int i) {
-            calc_grids(depsgraph,
-                       sd,
-                       faces,
-                       corner_verts,
-                       ss.vertex_info.boundary,
-                       object,
-                       brush,
-                       strength,
-                       nodes[i],
-                       tls);
-          });
+          calc_grids(depsgraph,
+                     sd,
+                     faces,
+                     corner_verts,
+                     ss.vertex_info.boundary,
+                     object,
+                     brush,
+                     strength,
+                     nodes[i],
+                     tls);
         });
       }
       break;
@@ -319,11 +317,9 @@ void do_smooth_brush(const Depsgraph &depsgraph,
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       for (const float strength : iteration_strengths(brush_strength)) {
         MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
-        threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+        node_mask.foreach_index(GrainSize(1), [&](const int i) {
           LocalData &tls = all_tls.local();
-          node_mask.slice(range).foreach_index([&](const int i) {
-            calc_bmesh(depsgraph, sd, object, brush, strength, nodes[i], tls);
-          });
+          calc_bmesh(depsgraph, sd, object, brush, strength, nodes[i], tls);
         });
       }
       break;
