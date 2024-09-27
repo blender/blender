@@ -866,11 +866,9 @@ size_t blf_font_width_to_rstrlen(
     s_prev = BLI_str_find_prev_char_utf8(s, str);
     i_prev = size_t(s_prev - str);
 
-    if (s_prev != nullptr) {
-      i_tmp = i_prev;
-      g_prev = blf_glyph_from_utf8_and_step(font, gc, nullptr, str, str_len, &i_tmp, nullptr);
-      BLI_assert(i_tmp == i);
-    }
+    i_tmp = i_prev;
+    g_prev = blf_glyph_from_utf8_and_step(font, gc, nullptr, str, str_len, &i_tmp, nullptr);
+    BLI_assert(i_tmp == i);
 
     if (blf_font_width_to_strlen_glyph_process(font, gc, g_prev, g, &pen_x, width)) {
       break;
