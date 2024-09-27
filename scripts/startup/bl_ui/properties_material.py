@@ -433,6 +433,7 @@ class MATERIAL_PT_animation(MaterialButtonsPanel, Panel, PropertiesAnimationMixi
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         # MaterialButtonsPanel.poll ensures this is not None.
         material = context.material

@@ -110,6 +110,7 @@ class PropertiesAnimationMixin:
 
         col = layout.column(align=True)
         col.use_property_split = True
+        col.use_property_decorate = False
         self.draw_action_and_slot_selector(context, col, self._animated_id(context))
 
     @classmethod
