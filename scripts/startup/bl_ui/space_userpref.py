@@ -1157,18 +1157,22 @@ class USERPREF_PT_theme_interface_styles(ThemePanel, CenterAlignMixIn, Panel):
         flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
 
         col = flow.column(align=True)
-        col.prop(ui, "menu_shadow_fac")
-        col.prop(ui, "menu_shadow_width", text="Shadow Width")
+        col.prop(ui, "editor_border")
+        col.prop(ui, "editor_outline")
+        col.prop(ui, "editor_outline_active")
+
+        col = flow.column()
+        col.prop(ui, "widget_text_cursor")
 
         col = flow.column(align=True)
         col.prop(ui, "icon_alpha")
         col.prop(ui, "icon_saturation", text="Saturation")
 
+        col = flow.column(align=True)
+        col.prop(ui, "menu_shadow_fac")
+        col.prop(ui, "menu_shadow_width", text="Shadow Width")
+
         col = flow.column()
-        col.prop(ui, "widget_text_cursor")
-        col.prop(ui, "editor_border")
-        col.prop(ui, "editor_outline")
-        col.prop(ui, "editor_outline_active")
         col.prop(ui, "widget_emboss")
         col.prop(ui, "panel_roundness")
 
