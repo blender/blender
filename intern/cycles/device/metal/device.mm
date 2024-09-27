@@ -31,6 +31,11 @@ bool device_metal_init()
   return true;
 }
 
+void device_metal_exit()
+{
+  MetalDeviceKernels::static_deinitialize();
+}
+
 void device_metal_info(vector<DeviceInfo> &devices)
 {
   auto usable_devices = MetalInfo::get_usable_devices();

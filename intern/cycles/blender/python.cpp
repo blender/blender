@@ -35,6 +35,10 @@
 #  include <OSL/oslquery.h>
 #endif
 
+#ifdef WITH_METAL
+#  include "device/metal/device.h"
+#endif
+
 CCL_NAMESPACE_BEGIN
 
 namespace {
@@ -144,6 +148,10 @@ static PyObject *init_func(PyObject * /*self*/, PyObject *args)
 
 static PyObject *exit_func(PyObject * /*self*/, PyObject * /*args*/)
 {
+#ifdef WITH_METAL
+  device_metal_exit();
+#endif
+
   ShaderManager::free_memory();
   TaskScheduler::free_memory();
   Device::free_memory();

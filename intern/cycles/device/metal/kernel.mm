@@ -897,6 +897,13 @@ bool MetalDeviceKernels::is_benchmark_warmup()
   return false;
 }
 
+void MetalDeviceKernels::static_deinitialize()
+{
+  for (int i = 0; i < g_shaderCacheCount; i++) {
+    g_shaderCache[i] = DeviceShaderCache();
+  }
+}
+
 CCL_NAMESPACE_END
 
 #endif /* WITH_METAL */
