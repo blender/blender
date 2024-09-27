@@ -2372,6 +2372,7 @@ class VIEW3D_MT_select_edit_grease_pencil(Menu):
 
         layout.separator()
 
+        layout.operator_menu_enum("grease_pencil.select_similar", "mode", text="Similar")
         layout.operator("grease_pencil.select_linked")
 
         layout.separator()

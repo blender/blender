@@ -6,13 +6,14 @@
  * \ingroup edgreasepencil
  */
 
-#include "BKE_curves.hh"
-
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"
+#include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
 
+#include "BLI_enumerable_thread_specific.hh"
 #include "BLI_offset_indices.hh"
+#include "BLI_task.hh"
 
 #include "DNA_object_types.h"
 
@@ -560,6 +561,229 @@ static void GREASE_PENCIL_OT_select_alternate(wmOperatorType *ot)
                   "(De)select the first and last point of each stroke");
 }
 
+enum class SelectSimilarMode {
+  LAYER,
+  MATERIAL,
+  VERTEX_COLOR,
+  RADIUS,
+  OPACITY,
+};
+
+static const EnumPropertyItem select_similar_mode_items[] = {
+    {int(SelectSimilarMode::LAYER), "LAYER", 0, "Layer", ""},
+    {int(SelectSimilarMode::MATERIAL), "MATERIAL", 0, "Material", ""},
+    {int(SelectSimilarMode::VERTEX_COLOR), "VERTEX_COLOR", 0, "Vertex Color", ""},
+    {int(SelectSimilarMode::RADIUS), "RADIUS", 0, "Radius", ""},
+    {int(SelectSimilarMode::OPACITY), "OPACITY", 0, "Opacity", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
+template<typename T>
+void insert_selected_values(const bke::CurvesGeometry &curves,
+                            const bke::AttrDomain domain,
+                            const StringRef attribute_id,
+                            blender::Set<T> &r_value_set)
+{
+  T default_value;
+  CPPType::get<T>().default_construct(&default_value);
+
+  const bke::AttributeAccessor attributes = curves.attributes();
+  const VArraySpan<bool> selection = *attributes.lookup_or_default<bool>(
+      ".selection", domain, true);
+  const VArraySpan<T> values = *attributes.lookup_or_default<T>(
+      attribute_id, domain, default_value);
+
+  threading::EnumerableThreadSpecific<Set<T>> value_set_by_thread;
+  threading::parallel_for(
+      IndexRange(attributes.domain_size(domain)), 1024, [&](const IndexRange range) {
+        Set<T> &local_value_set = value_set_by_thread.local();
+        for (const int i : range) {
+          if (selection[i]) {
+            local_value_set.add(values[i]);
+          }
+        }
+      });
+
+  for (const Set<T> &local_value_set : value_set_by_thread) {
+    /* TODO is there a union function that can do this more efficiently? */
+    for (const T &key : local_value_set) {
+      r_value_set.add(key);
+    }
+  }
+}
+
+template<typename T, typename DistanceFn>
+static void select_similar_by_value(Scene *scene,
+                                    Object *object,
+                                    GreasePencil &grease_pencil,
+                                    const bke::AttrDomain domain,
+                                    const StringRef attribute_id,
+                                    float threshold,
+                                    DistanceFn distance_fn)
+{
+  using namespace blender::ed::greasepencil;
+
+  T default_value;
+  CPPType::get<T>().default_construct(&default_value);
+
+  const blender::Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene,
+                                                                                  grease_pencil);
+
+  blender::Set<T> selected_values;
+  for (const MutableDrawingInfo &info : drawings) {
+    insert_selected_values(info.drawing.strokes(), domain, attribute_id, selected_values);
+  }
+
+  threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
+    bke::MutableAttributeAccessor attributes =
+        info.drawing.strokes_for_write().attributes_for_write();
+    const int domain_size = attributes.domain_size(domain);
+    bke::SpanAttributeWriter<bool> selection_writer =
+        attributes.lookup_or_add_for_write_span<bool>(
+            ".selection",
+            domain,
+            bke::AttributeInitVArray(VArray<bool>::ForSingle(true, domain_size)));
+    const VArraySpan<T> values = *attributes.lookup_or_default<T>(
+        attribute_id, domain, default_value);
+
+    IndexMaskMemory memory;
+    const IndexMask mask = ed::greasepencil::retrieve_editable_points(
+        *object, info.drawing, info.layer_index, memory);
+
+    mask.foreach_index(GrainSize(1024), [&](const int index) {
+      if (selection_writer.span[index]) {
+        return;
+      }
+      for (const T &test_value : selected_values) {
+        if (distance_fn(values[index], test_value) <= threshold) {
+          selection_writer.span[index] = true;
+        }
+      }
+    });
+
+    selection_writer.finish();
+  });
+}
+
+static void select_similar_by_layer(Scene *scene,
+                                    Object *object,
+                                    GreasePencil &grease_pencil,
+                                    bke::AttrDomain domain)
+{
+  const blender::Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene,
+                                                                                  grease_pencil);
+
+  blender::Set<int> selected_layers;
+  /* Layer is selected if any point is selected. */
+  for (const MutableDrawingInfo &info : drawings) {
+    const VArraySpan<bool> selection =
+        *info.drawing.strokes().attributes().lookup_or_default<bool>(".selection", domain, true);
+    for (const int i : selection.index_range()) {
+      if (selection[i]) {
+        selected_layers.add(info.layer_index);
+        break;
+      }
+    }
+  }
+
+  threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
+    if (!selected_layers.contains(info.layer_index)) {
+      return;
+    }
+
+    IndexMaskMemory memory;
+    const IndexMask editable_elements = retrieve_editable_elements(*object, info, domain, memory);
+    if (editable_elements.is_empty()) {
+      return;
+    }
+    ed::curves::select_all(
+        info.drawing.strokes_for_write(), editable_elements, domain, SEL_SELECT);
+  });
+}
+
+static int select_similar_exec(bContext *C, wmOperator *op)
+{
+  const SelectSimilarMode mode = SelectSimilarMode(RNA_enum_get(op->ptr, "mode"));
+  const float threshold = RNA_float_get(op->ptr, "threshold");
+  Scene *scene = CTX_data_scene(C);
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(scene->toolsettings,
+                                                                           object);
+
+  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+
+  switch (mode) {
+    case SelectSimilarMode::LAYER:
+      select_similar_by_layer(scene, object, grease_pencil, selection_domain);
+      break;
+    case SelectSimilarMode::MATERIAL:
+      select_similar_by_value<int>(
+          scene,
+          object,
+          grease_pencil,
+          selection_domain,
+          "material_index",
+          threshold,
+          [](const int a, const int b) -> float { return float(math::distance(a, b)); });
+      break;
+    case SelectSimilarMode::VERTEX_COLOR:
+      select_similar_by_value<ColorGeometry4f>(
+          scene,
+          object,
+          grease_pencil,
+          selection_domain,
+          "vertex_color",
+          threshold,
+          [](const ColorGeometry4f &a, const ColorGeometry4f &b) -> float {
+            return math::distance(float4(a), float4(b));
+          });
+      break;
+    case SelectSimilarMode::RADIUS:
+      select_similar_by_value<float>(
+          scene,
+          object,
+          grease_pencil,
+          selection_domain,
+          "radius",
+          threshold,
+          [](const float a, const float b) -> float { return math::distance(a, b); });
+      break;
+    case SelectSimilarMode::OPACITY:
+      select_similar_by_value<float>(
+          scene,
+          object,
+          grease_pencil,
+          selection_domain,
+          "opacity",
+          threshold,
+          [](const float a, const float b) -> float { return math::distance(a, b); });
+      break;
+  }
+
+  DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_select_similar(wmOperatorType *ot)
+{
+  ot->name = "Select Similar";
+  ot->idname = "GREASE_PENCIL_OT_select_similar";
+  ot->description = "Select all strokes with similar characteristics";
+
+  ot->exec = select_similar_exec;
+  ot->poll = editable_grease_pencil_point_selection_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_enum(
+      ot->srna, "mode", select_similar_mode_items, int(SelectSimilarMode::LAYER), "Mode", "");
+
+  RNA_def_float(ot->srna, "threshold", 0.1f, 0.0f, FLT_MAX, "Threshold", "", 0.0f, 10.0f);
+}
+
 static int select_ends_exec(bContext *C, wmOperator *op)
 {
   const int amount_start = RNA_int_get(op->ptr, "amount_start");
@@ -865,6 +1089,7 @@ void ED_operatortypes_grease_pencil_select()
   WM_operatortype_append(GREASE_PENCIL_OT_select_linked);
   WM_operatortype_append(GREASE_PENCIL_OT_select_random);
   WM_operatortype_append(GREASE_PENCIL_OT_select_alternate);
+  WM_operatortype_append(GREASE_PENCIL_OT_select_similar);
   WM_operatortype_append(GREASE_PENCIL_OT_select_ends);
   WM_operatortype_append(GREASE_PENCIL_OT_set_selection_mode);
   WM_operatortype_append(GREASE_PENCIL_OT_material_select);
