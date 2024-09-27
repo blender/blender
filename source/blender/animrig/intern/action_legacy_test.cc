@@ -4,6 +4,7 @@
 #include "ANIM_action.hh"
 #include "ANIM_action_legacy.hh"
 
+#include "BKE_fcurve.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
@@ -49,6 +50,15 @@ class ActionLegacyTest : public testing::Test {
   bAction *create_empty_action()
   {
     return static_cast<bAction *>(BKE_id_new(bmain, ID_AC, "ACAction"));
+  }
+
+  FCurve *fcurve_add_legacy(bAction *action, const StringRefNull rna_path, const int array_index)
+  {
+    FCurve *fcurve = static_cast<FCurve *>(MEM_callocN(sizeof(FCurve), __func__));
+    BKE_fcurve_rnapath_set(*fcurve, rna_path);
+    fcurve->array_index = array_index;
+    BLI_addtail(&action->curves, fcurve);
+    return fcurve;
   }
 };
 
@@ -139,6 +149,63 @@ TEST_F(ActionLegacyTest, fcurves_for_action_slot_layered)
   EXPECT_EQ(fcurve1_expect, legacy::fcurves_for_action_slot(&action, slot1.handle));
   EXPECT_EQ(fcurve2_expect, legacy::fcurves_for_action_slot(&action, slot2.handle));
 }
+#endif /* WITH_ANIM_BAKLAVA */
+
+TEST_F(ActionLegacyTest, action_fcurves_remove_legacy)
+{
+  { /* Empty Action. */
+    bAction *action = create_empty_action();
+    EXPECT_FALSE(legacy::action_fcurves_remove(*action, Slot::unassigned, "rotation"));
+  }
+
+  { /* Legacy Action. */
+    bAction *action = create_empty_action();
+    FCurve *fcurve_loc_x = fcurve_add_legacy(action, "location", 0);
+    fcurve_add_legacy(action, "rotation_euler", 2);
+    fcurve_add_legacy(action, "rotation_mode", 0);
+    FCurve *fcurve_loc_y = fcurve_add_legacy(action, "location", 1);
+
+    EXPECT_TRUE(legacy::action_fcurves_remove(*action, Slot::unassigned, "rotation"));
+    Vector<FCurve *> fcurves_expect = {fcurve_loc_x, fcurve_loc_y};
+    EXPECT_EQ(fcurves_expect, legacy::fcurves_all(action));
+  }
+}
+
+#ifdef WITH_ANIM_BAKLAVA
+TEST_F(ActionLegacyTest, action_fcurves_remove_layered)
+{
+  /* Create an Action with two slots, to check that the 2nd slot is not affected
+   * by removal from the 1st. */
+  Action &action = create_empty_action()->wrap();
+  Slot &slot_1 = action.slot_add();
+  Slot &slot_2 = action.slot_add();
+
+  action.layer_keystrip_ensure();
+  StripKeyframeData *strip_data = action.strip_keyframe_data()[0];
+  ChannelBag &bag_1 = strip_data->channelbag_for_slot_ensure(slot_1);
+  ChannelBag &bag_2 = strip_data->channelbag_for_slot_ensure(slot_2);
+
+  /* Add some F-Curves to each channelbag. */
+  FCurve &fcurve_loc_x = bag_1.fcurve_ensure(nullptr, {"location", 0});
+  bag_1.fcurve_ensure(nullptr, {"rotation_euler", 2});
+  bag_1.fcurve_ensure(nullptr, {"rotation_mode", 0});
+  FCurve &fcurve_loc_y = bag_1.fcurve_ensure(nullptr, {"location", 1});
+
+  bag_2.fcurve_ensure(nullptr, {"location", 0});
+  bag_2.fcurve_ensure(nullptr, {"rotation_euler", 2});
+  bag_2.fcurve_ensure(nullptr, {"rotation_mode", 0});
+  bag_2.fcurve_ensure(nullptr, {"location", 1});
+
+  /* Check that removing from slot_1 works as expected. */
+  EXPECT_TRUE(legacy::action_fcurves_remove(action, slot_1.handle, "rotation"));
+
+  Vector<FCurve *> fcurves_bag_1_expect = {&fcurve_loc_x, &fcurve_loc_y};
+  EXPECT_EQ(fcurves_bag_1_expect, legacy::fcurves_for_action_slot(&action, slot_1.handle));
+
+  EXPECT_EQ(4, bag_2.fcurves().size())
+      << "Expected all F-Curves for slot 2 to be there after manipulating slot 1";
+}
+
 #endif /* WITH_ANIM_BAKLAVA */
 
 }  // namespace blender::animrig::tests

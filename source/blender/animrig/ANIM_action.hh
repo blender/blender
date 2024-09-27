@@ -875,6 +875,16 @@ class ChannelBag : public ::ActionChannelBag {
   bool fcurve_remove(FCurve &fcurve_to_remove);
 
   /**
+   * Remove an F-Curve from the ChannelBag, identified by its index in the array.
+   *
+   * Acts the same as fcurve_remove() except it's a bit more efficient as it
+   * doesn't need to find the F-Curve in the array first.
+   *
+   * \see fcurve_remove
+   */
+  void fcurve_remove_by_index(int64_t fcurve_array_index);
+
+  /**
    * Detach an F-Curve from the ChannelBag.
    *
    * Additionally, if the fcurve was the last fcurve in a channel group, that
@@ -888,6 +898,16 @@ class ChannelBag : public ::ActionChannelBag {
    * \see fcurve_remove
    */
   bool fcurve_detach(FCurve &fcurve_to_detach);
+
+  /**
+   * Detach an F-Curve from the ChannelBag, identified by its index in the array.
+   *
+   * Acts the same as fcurve_detach() except it's a bit more efficient as it
+   * doesn't need to find the F-Curve in the array first.
+   *
+   * \see fcurve_detach
+   */
+  void fcurve_detach_by_index(int64_t fcurve_array_index);
 
   /**
    * Move the given fcurve to position `to_fcurve_index` in the fcurve array.

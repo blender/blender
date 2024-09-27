@@ -1165,8 +1165,8 @@ void BKE_animdata_fix_paths_rename(ID *owner_id,
 
 /* Remove FCurves with Prefix  -------------------------------------- */
 
-/* Check RNA-Paths for a list of F-Curves */
-static bool fcurves_path_remove_fix(const char *prefix, ListBase *curves)
+/** Remove F-Curves from the listbase when their RNA path starts with `prefix`. */
+static bool fcurves_path_remove_from_listbase(const char *prefix, ListBase *curves)
 {
   FCurve *fcu, *fcn;
   bool any_removed = false;
@@ -1198,12 +1198,14 @@ static bool nlastrips_path_remove_fix(const char *prefix, ListBase *strips)
   LISTBASE_FOREACH (NlaStrip *, strip, strips) {
     /* fix strip's action */
     if (strip->act) {
-      any_removed |= fcurves_path_remove_fix(prefix, &strip->act->curves);
+      any_removed |= animrig::legacy::action_fcurves_remove(
+          *strip->act, strip->action_slot_handle, prefix);
     }
 
     /* Check sub-strips (if meta-strips). */
     any_removed |= nlastrips_path_remove_fix(prefix, &strip->strips);
   }
+
   return any_removed;
 }
 
@@ -1214,16 +1216,21 @@ bool BKE_animdata_fix_paths_remove(ID *id, const char *prefix)
     return false;
   }
 
-  /* free fcurves */
-  if (adt->action != nullptr) {
-    any_removed |= fcurves_path_remove_fix(prefix, &adt->action->curves);
+  bool any_removed = false;
+
+  /* Actions. */
+  if (adt->action) {
+    any_removed |= animrig::legacy::action_fcurves_remove(*adt->action, adt->slot_handle, prefix);
   }
-  if (adt->tmpact != nullptr) {
-    any_removed |= fcurves_path_remove_fix(prefix, &adt->tmpact->curves);
+  if (adt->tmpact) {
+    any_removed |= animrig::legacy::action_fcurves_remove(
+        *adt->action, adt->tmp_slot_handle, prefix);
   }
-  /* free drivers - stored as a list of F-Curves */
-  any_removed |= fcurves_path_remove_fix(prefix, &adt->drivers);
-  /* NLA Data - Animation Data for Strips */
+
+  /* Drivers. */
+  any_removed |= fcurves_path_remove_from_listbase(prefix, &adt->drivers);
+
+  /* NLA strips. */
   LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
     any_removed |= nlastrips_path_remove_fix(prefix, &nlt->strips);
   }

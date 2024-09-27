@@ -1756,11 +1756,21 @@ static void fcurve_ptr_destructor(FCurve **fcurve_ptr)
 
 bool ChannelBag::fcurve_remove(FCurve &fcurve_to_remove)
 {
-  if (!fcurve_detach(fcurve_to_remove)) {
+  if (!this->fcurve_detach(fcurve_to_remove)) {
     return false;
   }
   BKE_fcurve_free(&fcurve_to_remove);
   return true;
+}
+
+void ChannelBag::fcurve_remove_by_index(const int64_t fcurve_index)
+{
+  /* Grab the pointer before it's detached, so we can free it after. */
+  FCurve *fcurve_to_remove = this->fcurve(fcurve_index);
+
+  this->fcurve_detach_by_index(fcurve_index);
+
+  BKE_fcurve_free(fcurve_to_remove);
 }
 
 static void fcurve_ptr_noop_destructor(FCurve ** /*fcurve_ptr*/) {}
@@ -1771,6 +1781,14 @@ bool ChannelBag::fcurve_detach(FCurve &fcurve_to_detach)
   if (fcurve_index < 0) {
     return false;
   }
+  this->fcurve_detach_by_index(fcurve_index);
+  return true;
+}
+
+void ChannelBag::fcurve_detach_by_index(const int64_t fcurve_index)
+{
+  BLI_assert(fcurve_index >= 0);
+  BLI_assert(fcurve_index < this->fcurve_array_num);
 
   const int group_index = this->channel_group_containing_index(fcurve_index);
   if (group_index != -1) {
@@ -1794,8 +1812,6 @@ bool ChannelBag::fcurve_detach(FCurve &fcurve_to_detach)
   /* As an optimization, this function could call `DEG_relations_tag_update(bmain)` to prune any
    * relationships that are now no longer necessary. This is not needed for correctness of the
    * depsgraph evaluation results though. */
-
-  return true;
 }
 
 void ChannelBag::fcurve_move(FCurve &fcurve, int to_fcurve_index)
