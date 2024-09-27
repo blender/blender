@@ -345,9 +345,14 @@ static void restore_position_mesh(const Depsgraph &depsgraph,
       Node &unode = *unodes[i];
       const Span<int> verts = unode.vert_indices.as_span().take_front(unode.unique_verts_num);
       translations.resize(verts.size());
-      translations_from_new_positions(unode.position, verts, position_data.eval, translations);
+      translations_from_new_positions(unode.position.as_span().take_front(unode.unique_verts_num),
+                                      verts,
+                                      position_data.eval,
+                                      translations);
 
-      gather_data_mesh(position_data.eval, verts, unode.position.as_mutable_span());
+      gather_data_mesh(position_data.eval,
+                       verts,
+                       unode.position.as_mutable_span().take_front(unode.unique_verts_num));
 
       position_data.deform(translations, verts);
 
