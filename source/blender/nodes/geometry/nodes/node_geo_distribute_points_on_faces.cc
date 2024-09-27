@@ -39,23 +39,27 @@ static void node_declare(NodeDeclarationBuilder &b)
   auto &distance_min = b.add_input<decl::Float>("Distance Min")
                            .min(0.0f)
                            .subtype(PROP_DISTANCE)
-                           .make_available(enable_poisson);
+                           .make_available(enable_poisson)
+                           .available(false);
   auto &density_max = b.add_input<decl::Float>("Density Max")
                           .default_value(10.0f)
                           .min(0.0f)
-                          .make_available(enable_poisson);
+                          .make_available(enable_poisson)
+                          .available(false);
   auto &density = b.add_input<decl::Float>("Density")
                       .default_value(10.0f)
                       .min(0.0f)
                       .field_on_all()
-                      .make_available(enable_random);
+                      .make_available(enable_random)
+                      .available(false);
   auto &density_factor = b.add_input<decl::Float>("Density Factor")
                              .default_value(1.0f)
                              .min(0.0f)
                              .max(1.0f)
                              .subtype(PROP_FACTOR)
                              .field_on_all()
-                             .make_available(enable_poisson);
+                             .make_available(enable_poisson)
+                             .available(false);
   b.add_input<decl::Int>("Seed");
 
   b.add_output<decl::Geometry>("Points").propagate_all();
