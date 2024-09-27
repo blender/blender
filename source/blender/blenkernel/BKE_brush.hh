@@ -52,8 +52,6 @@ void BKE_brush_init_curves_sculpt_settings(Brush *brush);
 
 Brush *BKE_brush_first_search(Main *bmain, eObjectMode ob_mode);
 
-void BKE_brush_sculpt_reset(Brush *brush);
-
 void BKE_brush_jitter_pos(const Scene &scene,
                           const Brush &brush,
                           const float pos[2],
