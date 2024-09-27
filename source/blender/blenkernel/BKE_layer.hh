@@ -434,7 +434,7 @@ void BKE_view_layer_visible_bases_iterator_end(BLI_Iterator *iter);
   } \
   ((void)0)
 
-#define FOREACH_OBJECT_FLAG_BEGIN(_scene, _view_layer, _v3d, flag, _instance) \
+#define FOREACH_OBJECT_FLAG_BEGIN(_scene, _view_layer, _v3d, _flag, _instance) \
   { \
     IteratorBeginCb func_begin; \
     IteratorCb func_next, func_end; \
@@ -446,25 +446,28 @@ void BKE_view_layer_visible_bases_iterator_end(BLI_Iterator *iter);
 \
     SceneObjectsIteratorExData data_flag_ = {NULL}; \
     data_flag_.scene = _scene; \
-    data_flag_.flag = flag; \
-\
-    if (flag == SELECT) { \
-      func_begin = &BKE_view_layer_selected_objects_iterator_begin; \
-      func_next = &BKE_view_layer_selected_objects_iterator_next; \
-      func_end = &BKE_view_layer_selected_objects_iterator_end; \
-      data_in = &data_select_; \
-    } \
-    else if (flag != 0) { \
-      func_begin = BKE_scene_objects_iterator_begin_ex; \
-      func_next = BKE_scene_objects_iterator_next_ex; \
-      func_end = BKE_scene_objects_iterator_end_ex; \
-      data_in = &data_flag_; \
-    } \
-    else { \
-      func_begin = BKE_scene_objects_iterator_begin; \
-      func_next = BKE_scene_objects_iterator_next; \
-      func_end = BKE_scene_objects_iterator_end; \
-      data_in = data_flag_.scene; \
+    switch ((data_flag_.flag = _flag)) { \
+      case SELECT: { \
+        func_begin = &BKE_view_layer_selected_objects_iterator_begin; \
+        func_next = &BKE_view_layer_selected_objects_iterator_next; \
+        func_end = &BKE_view_layer_selected_objects_iterator_end; \
+        data_in = &data_select_; \
+        break; \
+      } \
+      case 0: { \
+        func_begin = BKE_scene_objects_iterator_begin; \
+        func_next = BKE_scene_objects_iterator_next; \
+        func_end = BKE_scene_objects_iterator_end; \
+        data_in = data_flag_.scene; \
+        break; \
+      } \
+      default: { \
+        func_begin = BKE_scene_objects_iterator_begin_ex; \
+        func_next = BKE_scene_objects_iterator_next_ex; \
+        func_end = BKE_scene_objects_iterator_end_ex; \
+        data_in = &data_flag_; \
+        break; \
+      } \
     } \
     if (data_select_.view_layer) { \
       BKE_view_layer_synced_ensure(data_flag_.scene, data_select_.view_layer); \
