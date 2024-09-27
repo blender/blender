@@ -23,6 +23,8 @@
 
 namespace blender::gpu {
 
+class VKDevice;
+
 /* Size of internal buffer. */
 constexpr size_t DEFAULT_INTERNAL_BUFFER_SIZE = 4 * 1024 * 1024;
 
@@ -40,6 +42,7 @@ class VKImmediate : public Immediate {
  public:
   VKImmediate();
   virtual ~VKImmediate();
+  void deinit(VKDevice &device);
 
   void reset();
 

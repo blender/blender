@@ -19,6 +19,7 @@ void VKResourcePool::init(VKDevice &device)
 
 void VKResourcePool::deinit(VKDevice &device)
 {
+  immediate.deinit(device);
   discard_pool.deinit(device);
 }
 
