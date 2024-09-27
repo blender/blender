@@ -109,7 +109,7 @@ class Action : public ::bAction {
   const Layer *layer(int64_t index) const;
   Layer *layer(int64_t index);
 
-  Layer &layer_add(StringRefNull name);
+  Layer &layer_add(std::optional<StringRefNull> name);
 
   /**
    * Remove the layer from this Action.

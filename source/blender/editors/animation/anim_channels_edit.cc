@@ -65,6 +65,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+#include "BLT_translation.hh"
+
 /* -------------------------------------------------------------------- */
 /** \name Channel helper functions
  * \{ */
@@ -5185,6 +5187,105 @@ static void ANIM_OT_channels_bake(wmOperatorType *ot)
                   "Bake Modifiers into keyframes and delete them after");
 }
 
+#ifdef WITH_ANIM_BAKLAVA
+
+static int slot_channels_move_to_new_action_exec(bContext *C, wmOperator * /* op */)
+{
+  using namespace blender::animrig;
+  bAnimContext ac;
+
+  /* Get editor data. */
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  ListBase anim_data = {nullptr, nullptr};
+  const eAnimFilter_Flags filter = (ANIMFILTER_SEL | ANIMFILTER_NODUPLIS |
+                                    ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_CHANNELS);
+
+  size_t anim_data_length = ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+
+  if (anim_data_length == 0) {
+    WM_report(RPT_WARNING, "No channels to operate on");
+    return OPERATOR_CANCELLED;
+  }
+
+  blender::Vector<std::pair<Slot *, bAction *>> slots;
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+    if (ale->type != ANIMTYPE_ACTION_SLOT) {
+      continue;
+    }
+    BLI_assert(GS(ale->fcurve_owner_id->name) == ID_AC);
+    bAction *owning_action = reinterpret_cast<bAction *>(ale->fcurve_owner_id);
+    slots.append({reinterpret_cast<Slot *>(ale->data), owning_action});
+  }
+  ANIM_animdata_freelist(&anim_data);
+
+  if (slots.size() == 0) {
+    WM_report(RPT_WARNING, "None of the selected channels is an Action Slot");
+    return OPERATOR_CANCELLED;
+  }
+
+  /* If multiple slots are selected they are moved to the new action together. In that case it is
+   * hard to determine a name, so a constant default is used. */
+  Action *target_action;
+  Main *bmain = CTX_data_main(C);
+  if (slots.size() == 1) {
+    char actname[MAX_ID_NAME - 2];
+    SNPRINTF(actname, DATA_("%sAction"), slots[0].first->name + 2);
+    target_action = &action_add(*bmain, actname);
+  }
+  else {
+    target_action = &action_add(*bmain, DATA_("CombinedAction"));
+  }
+
+  Layer &layer = target_action->layer_add(std::nullopt);
+  layer.strip_add(*target_action, Strip::Type::Keyframe);
+
+  for (std::pair<Slot *, bAction *> &slot_data : slots) {
+    Action &source_action = slot_data.second->wrap();
+    move_slot(*bmain, *slot_data.first, source_action, *target_action);
+    DEG_id_tag_update(&source_action.id, ID_RECALC_ANIMATION_NO_FLUSH);
+  }
+
+  DEG_id_tag_update(&target_action->id, ID_RECALC_ANIMATION_NO_FLUSH);
+  DEG_relations_tag_update(bmain);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA_ACTCHANGE | NA_EDITED, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+static bool slot_channels_move_to_new_action_poll(bContext *C)
+{
+  SpaceAction *space_action = CTX_wm_space_action(C);
+  if (!space_action) {
+    return false;
+  }
+  if (!space_action->action) {
+    CTX_wm_operator_poll_msg_set(C, "No active action to operate on");
+    return false;
+  }
+  if (!space_action->action->wrap().is_action_layered()) {
+    CTX_wm_operator_poll_msg_set(C, "Active action is not layered");
+    return false;
+  }
+  return true;
+}
+
+static void ANIM_OT_slot_channels_move_to_new_action(wmOperatorType *ot)
+{
+  ot->name = "Move Slots to new Action";
+  ot->idname = "ANIM_OT_slot_channels_move_to_new_action";
+  ot->description = "Move the selected slots into a newly created action";
+
+  ot->exec = slot_channels_move_to_new_action_exec;
+  ot->poll = slot_channels_move_to_new_action_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+#endif /* WITH_ANIM_BAKLAVA */
+
 /**
  *  Find a Graph Editor area and set the context arguments accordingly.
  */
@@ -5566,6 +5667,10 @@ void ED_operatortypes_animchannels()
   WM_operatortype_append(ANIM_OT_channels_ungroup);
 
   WM_operatortype_append(ANIM_OT_channels_bake);
+
+#ifdef WITH_ANIM_BAKLAVA
+  WM_operatortype_append(ANIM_OT_slot_channels_move_to_new_action);
+#endif
 }
 
 void ED_keymap_animchannels(wmKeyConfig *keyconf)

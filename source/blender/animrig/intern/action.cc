@@ -245,10 +245,15 @@ Layer *Action::layer(const int64_t index)
   return &this->layer_array[index]->wrap();
 }
 
-Layer &Action::layer_add(const StringRefNull name)
+Layer &Action::layer_add(const std::optional<StringRefNull> name)
 {
   Layer &new_layer = ActionLayer_alloc();
-  STRNCPY_UTF8(new_layer.name, name.c_str());
+  if (name.has_value()) {
+    STRNCPY_UTF8(new_layer.name, name.value().c_str());
+  }
+  else {
+    STRNCPY_UTF8(new_layer.name, layer_default_name);
+  }
 
   grow_array_and_append<::ActionLayer *>(&this->layer_array, &this->layer_array_num, &new_layer);
   this->layer_active_index = this->layer_array_num - 1;
