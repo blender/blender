@@ -1432,7 +1432,12 @@ static void snap_source_closest_fn(TransInfo *t)
     /* Previously Snap to Grid had its own snap source which was always the result of
      * #snap_source_median_fn. Now this mode shares the same code, so to not change the behavior
      * too much when using Closest, use the transform pivot as the snap source in this case. */
-    copy_v3_v3(t->tsnap.snap_source, t->center_global);
+    if (t->tsnap.source_type != SCE_SNAP_TO_POINT) {
+      tranform_snap_target_median_calc(t, t->tsnap.snap_source);
+      /* Use #SCE_SNAP_TO_POINT to differentiate from 'Closest' bounds and thus avoid recalculating
+       * the median center. */
+      t->tsnap.source_type = SCE_SNAP_TO_POINT;
+    }
   }
   else {
     float dist_closest = 0.0f;
@@ -1521,10 +1526,10 @@ static void snap_source_closest_fn(TransInfo *t)
     }
 
     TargetSnapOffset(t, closest);
+    t->tsnap.source_type = SCE_SNAP_TO_NONE;
   }
 
   t->tsnap.status |= SNAP_SOURCE_FOUND;
-  t->tsnap.source_type = SCE_SNAP_TO_NONE;
 }
 
 /** \} */
