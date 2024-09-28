@@ -187,7 +187,7 @@ void USDGenericMeshWriter::write_custom_data(const Object *obj,
     /* UV Data. */
     if (iter.domain == bke::AttrDomain::Corner && iter.data_type == CD_PROP_FLOAT2) {
       if (usd_export_context_.export_params.export_uvmaps) {
-        this->write_uv_data(mesh, usd_mesh, iter, active_uvmap_name);
+        this->write_uv_data(usd_mesh, iter, active_uvmap_name);
       }
     }
 
@@ -250,8 +250,7 @@ void USDGenericMeshWriter::write_generic_data(const Mesh *mesh,
       attribute, attr.data_type, timecode, pv_attr, usd_value_writer_);
 }
 
-void USDGenericMeshWriter::write_uv_data(const Mesh *mesh,
-                                         const pxr::UsdGeomMesh &usd_mesh,
+void USDGenericMeshWriter::write_uv_data(const pxr::UsdGeomMesh &usd_mesh,
                                          const bke::AttributeIter &attr,
                                          const StringRef active_uvmap_name)
 {

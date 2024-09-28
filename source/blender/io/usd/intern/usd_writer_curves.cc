@@ -413,8 +413,7 @@ void USDCurvesWriter::write_generic_data(const bke::CurvesGeometry &curves,
       attribute, attr.data_type, timecode, pv_attr, usd_value_writer_);
 }
 
-void USDCurvesWriter::write_uv_data(const bke::CurvesGeometry &curves,
-                                    const bke::AttributeIter &attr,
+void USDCurvesWriter::write_uv_data(const bke::AttributeIter &attr,
                                     const pxr::UsdGeomCurves &usd_curves)
 {
   const VArray<float2> buffer = *attr.get<float2>(bke::AttrDomain::Curve);
@@ -458,7 +457,7 @@ void USDCurvesWriter::write_custom_data(const bke::CurvesGeometry &curves,
     /* Spline UV data */
     if (iter.domain == bke::AttrDomain::Curve && iter.data_type == CD_PROP_FLOAT2) {
       if (usd_export_context_.export_params.export_uvmaps) {
-        this->write_uv_data(curves, iter, usd_curves);
+        this->write_uv_data(iter, usd_curves);
       }
     }
 

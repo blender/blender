@@ -51,8 +51,7 @@ class USDGenericMeshWriter : public USDAbstractWriter {
   void write_generic_data(const Mesh *mesh,
                           const pxr::UsdGeomMesh &usd_mesh,
                           const bke::AttributeIter &attr);
-  void write_uv_data(const Mesh *mesh,
-                     const pxr::UsdGeomMesh &usd_mesh,
+  void write_uv_data(const pxr::UsdGeomMesh &usd_mesh,
                      const bke::AttributeIter &attr,
                      const StringRef active_uvmap_name);
 };

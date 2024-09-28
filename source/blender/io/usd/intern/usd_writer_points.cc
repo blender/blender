@@ -71,8 +71,7 @@ static std::optional<pxr::TfToken> convert_blender_domain_to_usd(
   }
 }
 
-void USDPointsWriter::write_generic_data(const PointCloud *points,
-                                         const bke::AttributeIter &attr,
+void USDPointsWriter::write_generic_data(const bke::AttributeIter &attr,
                                          const pxr::UsdGeomPoints &usd_points,
                                          const pxr::UsdTimeCode timecode)
 {
@@ -118,7 +117,7 @@ void USDPointsWriter::write_custom_data(const PointCloud *points,
       return;
     }
 
-    this->write_generic_data(points, iter, usd_points, timecode);
+    this->write_generic_data(iter, usd_points, timecode);
   });
 }
 

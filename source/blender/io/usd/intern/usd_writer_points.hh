@@ -26,8 +26,7 @@ class USDPointsWriter final : public USDAbstractWriter {
   virtual void do_write(HierarchyContext &context) override;
 
  private:
-  void write_generic_data(const PointCloud *points,
-                          const bke::AttributeIter &attr,
+  void write_generic_data(const bke::AttributeIter &attr,
                           const pxr::UsdGeomPoints &usd_points,
                           pxr::UsdTimeCode timecode);
 
