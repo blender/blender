@@ -245,10 +245,7 @@ static void *add_generic_custom_data_layer(CustomData &custom_data,
                                            const int domain_size,
                                            const StringRef attribute_id)
 {
-  char attribute_name_c[MAX_CUSTOMDATA_LAYER_NAME];
-  attribute_id.copy(attribute_name_c);
-  return CustomData_add_layer_named(
-      &custom_data, data_type, alloctype, domain_size, attribute_name_c);
+  return CustomData_add_layer_named(&custom_data, data_type, alloctype, domain_size, attribute_id);
 }
 
 static const void *add_generic_custom_data_layer_with_existing_data(
