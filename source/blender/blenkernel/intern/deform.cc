@@ -45,7 +45,9 @@
 
 #include "data_transfer_intern.h"
 
-bDeformGroup *BKE_object_defgroup_new(Object *ob, const char *name)
+using blender::StringRef;
+
+bDeformGroup *BKE_object_defgroup_new(Object *ob, const StringRef name)
 {
   bDeformGroup *defgroup;
 
@@ -53,7 +55,7 @@ bDeformGroup *BKE_object_defgroup_new(Object *ob, const char *name)
 
   defgroup = MEM_cnew<bDeformGroup>(__func__);
 
-  STRNCPY(defgroup->name, name);
+  name.copy(defgroup->name);
 
   ListBase *defbase = BKE_object_defgroup_list_mutable(ob);
 
@@ -514,16 +516,21 @@ ListBase *BKE_id_defgroup_list_get_mutable(ID *id)
   return (ListBase *)BKE_id_defgroup_list_get(id);
 }
 
-bDeformGroup *BKE_object_defgroup_find_name(const Object *ob, const char *name)
+bDeformGroup *BKE_object_defgroup_find_name(const Object *ob, const StringRef name)
 {
-  if (name == nullptr || name[0] == '\0') {
+  if (name.is_empty()) {
     return nullptr;
   }
   const ListBase *defbase = BKE_object_defgroup_list(ob);
-  return static_cast<bDeformGroup *>(BLI_findstring(defbase, name, offsetof(bDeformGroup, name)));
+  LISTBASE_FOREACH (bDeformGroup *, group, defbase) {
+    if (name == group->name) {
+      return group;
+    }
+  }
+  return nullptr;
 }
 
-int BKE_defgroup_name_index(const ListBase *defbase, const char *name)
+int BKE_defgroup_name_index(const ListBase *defbase, const StringRef name)
 {
   int index;
   if (!BKE_defgroup_listbase_name_find(defbase, name, &index, nullptr)) {
@@ -532,22 +539,22 @@ int BKE_defgroup_name_index(const ListBase *defbase, const char *name)
   return index;
 }
 
-int BKE_id_defgroup_name_index(const ID *id, const char *name)
+int BKE_id_defgroup_name_index(const ID *id, const StringRef name)
 {
   return BKE_defgroup_name_index(BKE_id_defgroup_list_get(id), name);
 }
 
 bool BKE_defgroup_listbase_name_find(const ListBase *defbase,
-                                     const char *name,
+                                     const StringRef name,
                                      int *r_index,
                                      bDeformGroup **r_group)
 {
-  if (name == nullptr || name[0] == '\0') {
+  if (name.is_empty()) {
     return false;
   }
   int index;
   LISTBASE_FOREACH_INDEX (bDeformGroup *, group, defbase, index) {
-    if (STREQ(name, group->name)) {
+    if (name == group->name) {
       if (r_index != nullptr) {
         *r_index = index;
       }
@@ -561,7 +568,7 @@ bool BKE_defgroup_listbase_name_find(const ListBase *defbase,
 }
 
 bool BKE_id_defgroup_name_find(const ID *id,
-                               const char *name,
+                               const StringRef name,
                                int *r_index,
                                bDeformGroup **r_group)
 {
@@ -574,7 +581,7 @@ const ListBase *BKE_object_defgroup_list(const Object *ob)
   return BKE_id_defgroup_list_get((const ID *)ob->data);
 }
 
-int BKE_object_defgroup_name_index(const Object *ob, const char *name)
+int BKE_object_defgroup_name_index(const Object *ob, const StringRef name)
 {
   return BKE_id_defgroup_name_index((ID *)ob->data, name);
 }
@@ -720,13 +727,13 @@ struct DeformGroupUniqueNameData {
   bDeformGroup *dg;
 };
 
-static bool defgroup_find_name_dupe(const char *name, bDeformGroup *dg, Object *ob)
+static bool defgroup_find_name_dupe(const StringRef name, bDeformGroup *dg, Object *ob)
 {
   const ListBase *defbase = BKE_object_defgroup_list(ob);
 
   LISTBASE_FOREACH (bDeformGroup *, curdef, defbase) {
     if (dg != curdef) {
-      if (STREQ(curdef->name, name)) {
+      if (curdef->name == name) {
         return true;
       }
     }

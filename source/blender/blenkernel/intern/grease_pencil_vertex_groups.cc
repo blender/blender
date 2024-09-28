@@ -54,10 +54,10 @@ void validate_drawing_vertex_groups(GreasePencil &grease_pencil)
 
 int ensure_vertex_group(const StringRef name, ListBase &vertex_group_names)
 {
-  int def_nr = BKE_defgroup_name_index(&vertex_group_names, name.data());
+  int def_nr = BKE_defgroup_name_index(&vertex_group_names, name);
   if (def_nr < 0) {
     bDeformGroup *defgroup = MEM_cnew<bDeformGroup>(__func__);
-    STRNCPY(defgroup->name, name.data());
+    name.copy(defgroup->name);
     BLI_addtail(&vertex_group_names, defgroup);
     def_nr = BLI_listbase_count(&vertex_group_names) - 1;
     BLI_assert(def_nr >= 0);
@@ -76,12 +76,12 @@ void assign_to_vertex_group_from_mask(bke::CurvesGeometry &curves,
 
   ListBase &vertex_group_names = curves.vertex_group_names;
   /* Look for existing group, otherwise lazy-initialize if any vertex is selected. */
-  int def_nr = BKE_defgroup_name_index(&vertex_group_names, name.data());
+  int def_nr = BKE_defgroup_name_index(&vertex_group_names, name);
 
   /* Lazily add the vertex group if any vertex is selected. */
   if (def_nr < 0) {
     bDeformGroup *defgroup = MEM_cnew<bDeformGroup>(__func__);
-    STRNCPY(defgroup->name, name.data());
+    name.copy(defgroup->name);
     BLI_addtail(&vertex_group_names, defgroup);
     def_nr = BLI_listbase_count(&vertex_group_names) - 1;
     BLI_assert(def_nr >= 0);
@@ -110,7 +110,7 @@ void assign_to_vertex_group(GreasePencil &grease_pencil, const StringRef name, c
         ".selection", bke::AttrDomain::Point, true);
 
     /* Look for existing group, otherwise lazy-initialize if any vertex is selected. */
-    int def_nr = BKE_defgroup_name_index(&vertex_group_names, name.data());
+    int def_nr = BKE_defgroup_name_index(&vertex_group_names, name);
 
     const MutableSpan<MDeformVert> dverts = curves.deform_verts_for_write();
     for (const int i : dverts.index_range()) {
@@ -118,7 +118,7 @@ void assign_to_vertex_group(GreasePencil &grease_pencil, const StringRef name, c
         /* Lazily add the vertex group if any vertex is selected. */
         if (def_nr < 0) {
           bDeformGroup *defgroup = MEM_cnew<bDeformGroup>(__func__);
-          STRNCPY(defgroup->name, name.data());
+          name.copy(defgroup->name);
 
           BLI_addtail(&vertex_group_names, defgroup);
           def_nr = BLI_listbase_count(&vertex_group_names) - 1;
@@ -148,7 +148,7 @@ bool remove_from_vertex_group(GreasePencil &grease_pencil,
     bke::CurvesGeometry &curves = drawing.strokes_for_write();
     ListBase &vertex_group_names = curves.vertex_group_names;
 
-    const int def_nr = BKE_defgroup_name_index(&vertex_group_names, name.data());
+    const int def_nr = BKE_defgroup_name_index(&vertex_group_names, name);
     if (def_nr < 0) {
       /* No vertices assigned to the group in this drawing. */
       continue;
@@ -206,7 +206,7 @@ void select_from_group(GreasePencil &grease_pencil,
     bke::CurvesGeometry &curves = drawing.strokes_for_write();
     ListBase &vertex_group_names = curves.vertex_group_names;
 
-    const int def_nr = BKE_defgroup_name_index(&vertex_group_names, name.data());
+    const int def_nr = BKE_defgroup_name_index(&vertex_group_names, name);
     if (def_nr < 0) {
       /* No vertices assigned to the group in this drawing. */
       continue;

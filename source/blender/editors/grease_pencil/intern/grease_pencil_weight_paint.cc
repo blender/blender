@@ -293,14 +293,14 @@ static void get_root_and_tips_of_bones(Span<const Bone *> bones,
   });
 }
 
-static int lookup_or_add_deform_group_index(CurvesGeometry &curves, const char *deform_group_name)
+static int lookup_or_add_deform_group_index(CurvesGeometry &curves, const StringRef name)
 {
-  int def_nr = BKE_defgroup_name_index(&curves.vertex_group_names, deform_group_name);
+  int def_nr = BKE_defgroup_name_index(&curves.vertex_group_names, name);
 
   /* Lazily add the vertex group. */
   if (def_nr == -1) {
     bDeformGroup *defgroup = MEM_cnew<bDeformGroup>(__func__);
-    STRNCPY(defgroup->name, deform_group_name);
+    name.copy(defgroup->name);
     BLI_addtail(&curves.vertex_group_names, defgroup);
     def_nr = BLI_listbase_count(&curves.vertex_group_names) - 1;
     BLI_assert(def_nr >= 0);

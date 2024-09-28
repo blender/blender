@@ -128,7 +128,7 @@ static float get_distance_factor(float3 target_pos,
 
 static int ensure_vertex_group(const StringRefNull name, ListBase &vertex_group_names)
 {
-  int def_nr = BKE_defgroup_name_index(&vertex_group_names, name.c_str());
+  int def_nr = BKE_defgroup_name_index(&vertex_group_names, name);
   if (def_nr < 0) {
     bDeformGroup *defgroup = MEM_cnew<bDeformGroup>(__func__);
     STRNCPY(defgroup->name, name.c_str());
@@ -142,7 +142,7 @@ static int ensure_vertex_group(const StringRefNull name, ListBase &vertex_group_
 static bool target_vertex_group_available(const StringRefNull name,
                                           const ListBase &vertex_group_names)
 {
-  const int def_nr = BKE_defgroup_name_index(&vertex_group_names, name.c_str());
+  const int def_nr = BKE_defgroup_name_index(&vertex_group_names, name);
   if (def_nr < 0) {
     return false;
   }

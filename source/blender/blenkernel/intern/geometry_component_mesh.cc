@@ -892,9 +892,8 @@ class MeshVertexGroupsAttributeProvider final : public DynamicAttributesProvider
     if (mesh == nullptr) {
       return {};
     }
-    const std::string name = attribute_id;
     const int vertex_group_index = BKE_defgroup_name_index(&mesh->vertex_group_names,
-                                                           name.c_str());
+                                                           attribute_id);
     if (vertex_group_index < 0) {
       return {};
     }
@@ -923,9 +922,8 @@ class MeshVertexGroupsAttributeProvider final : public DynamicAttributesProvider
       return {};
     }
 
-    const std::string name = attribute_id;
     const int vertex_group_index = BKE_defgroup_name_index(&mesh->vertex_group_names,
-                                                           name.c_str());
+                                                           attribute_id);
     if (vertex_group_index < 0) {
       return {};
     }
