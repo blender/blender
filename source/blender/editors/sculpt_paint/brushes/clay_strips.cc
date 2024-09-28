@@ -71,6 +71,7 @@ static void calc_faces(const Depsgraph &depsgraph,
   const MutableSpan<float> distances = tls.distances;
   calc_brush_cube_distances(brush, mat, position_data.eval, verts, distances, factors);
   filter_distances_with_radius(1.0f, distances, factors);
+  apply_hardness_to_distances(1.0f, cache.hardness, distances);
   BKE_brush_calc_curve_factors(
       eBrushCurvePreset(brush.curve_preset), brush.curve, distances, 1.0f, factors);
 
