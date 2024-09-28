@@ -3607,7 +3607,7 @@ static int vgroup_do_remap(Object *ob, const char *name_array, wmOperator *op)
 
   name = name_array;
   for (def = static_cast<const bDeformGroup *>(defbase->first), i = 0; def; def = def->next, i++) {
-    sort_map[i] = BLI_findstringindex(defbase, name, offsetof(bDeformGroup, name));
+    sort_map[i] = BKE_defgroup_name_index(defbase, name);
     name += MAX_VGROUP_NAME;
 
     BLI_assert(sort_map[i] != -1);

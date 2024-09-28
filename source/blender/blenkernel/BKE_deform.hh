@@ -44,6 +44,7 @@ void BKE_object_defgroup_active_index_set(Object *ob, int new_index);
  */
 const ListBase *BKE_id_defgroup_list_get(const ID *id);
 ListBase *BKE_id_defgroup_list_get_mutable(ID *id);
+int BKE_defgroup_name_index(const ListBase *defbase, const char *name);
 int BKE_id_defgroup_name_index(const ID *id, const char *name);
 bool BKE_defgroup_listbase_name_find(const ListBase *defbase,
                                      const char *name,

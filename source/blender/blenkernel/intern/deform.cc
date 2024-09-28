@@ -523,13 +523,18 @@ bDeformGroup *BKE_object_defgroup_find_name(const Object *ob, const char *name)
   return static_cast<bDeformGroup *>(BLI_findstring(defbase, name, offsetof(bDeformGroup, name)));
 }
 
-int BKE_id_defgroup_name_index(const ID *id, const char *name)
+int BKE_defgroup_name_index(const ListBase *defbase, const char *name)
 {
   int index;
-  if (!BKE_id_defgroup_name_find(id, name, &index, nullptr)) {
+  if (!BKE_defgroup_listbase_name_find(defbase, name, &index, nullptr)) {
     return -1;
   }
   return index;
+}
+
+int BKE_id_defgroup_name_index(const ID *id, const char *name)
+{
+  return BKE_defgroup_name_index(BKE_id_defgroup_list_get(id), name);
 }
 
 bool BKE_defgroup_listbase_name_find(const ListBase *defbase,

@@ -516,7 +516,7 @@ static void armature_deform_coords_impl(const Object *ob_arm,
 
   if (BKE_object_supports_vertex_groups(ob_target)) {
     /* Collect the vertex group names from the evaluated data. */
-    armature_def_nr = BLI_findstringindex(defbase, defgrp_name, offsetof(bDeformGroup, name));
+    armature_def_nr = BKE_defgroup_name_index(defbase, defgrp_name);
     defbase_len = BLI_listbase_count(defbase);
 
     /* get a vertex-deform-index to posechannel array */

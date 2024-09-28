@@ -1130,7 +1130,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
       GSetIterator gs_iter;
       GSET_ITER (gs_iter, gset) {
         const char *name = static_cast<const char *>(BLI_gsetIterator_getKey(&gs_iter));
-        int vgroup_id = BLI_findstringindex(defbase, name, offsetof(bDeformGroup, name));
+        int vgroup_id = BKE_defgroup_name_index(defbase, name);
         if (vgroup_id != -1) {
           BLI_BITMAP_ENABLE(defbase_selected, vgroup_id);
           found_any = true;

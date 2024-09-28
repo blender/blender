@@ -295,8 +295,7 @@ static void get_root_and_tips_of_bones(Span<const Bone *> bones,
 
 static int lookup_or_add_deform_group_index(CurvesGeometry &curves, const char *deform_group_name)
 {
-  int def_nr = BLI_findstringindex(
-      &curves.vertex_group_names, deform_group_name, offsetof(bDeformGroup, name));
+  int def_nr = BKE_defgroup_name_index(&curves.vertex_group_names, deform_group_name);
 
   /* Lazily add the vertex group. */
   if (def_nr == -1) {
@@ -482,10 +481,8 @@ static int weight_sample_invoke(bContext *C, wmOperator * /*op*/, const wmEvent 
           const bke::greasepencil::Layer &layer = grease_pencil.layer(info.layer_index);
 
           /* Skip drawing when it doesn't use the active vertex group. */
-          const int drawing_defgroup_nr = BLI_findstringindex(
-              &info.drawing.strokes().vertex_group_names,
-              object_defgroup->name,
-              offsetof(bDeformGroup, name));
+          const int drawing_defgroup_nr = BKE_defgroup_name_index(
+              &info.drawing.strokes().vertex_group_names, object_defgroup->name);
           if (drawing_defgroup_nr == -1) {
             continue;
           }
@@ -633,8 +630,8 @@ static int grease_pencil_weight_invert_exec(bContext *C, wmOperator *op)
   threading::parallel_for_each(drawings, [&](MutableDrawingInfo info) {
     bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
     /* Active vgroup index of drawing. */
-    const int drawing_vgroup_index = BLI_findstringindex(
-        &curves.vertex_group_names, active_defgroup->name, offsetof(bDeformGroup, name));
+    const int drawing_vgroup_index = BKE_defgroup_name_index(&curves.vertex_group_names,
+                                                             active_defgroup->name);
     if (drawing_vgroup_index == -1) {
       return;
     }
@@ -904,8 +901,8 @@ static int vertex_group_normalize_all_exec(bContext *C, wmOperator *op)
       /* Get the active vertex group in the drawing when it needs to be locked. */
       int active_vertex_group = -1;
       if (object_defgroup && lock_active_group) {
-        active_vertex_group = BLI_findstringindex(
-            &curves.vertex_group_names, object_defgroup->name, offsetof(bDeformGroup, name));
+        active_vertex_group = BKE_defgroup_name_index(&curves.vertex_group_names,
+                                                      object_defgroup->name);
       }
 
       /* Put the lock state of every vertex group in a boolean array. */

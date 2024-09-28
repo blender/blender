@@ -366,8 +366,8 @@ class CurvesVertexGroupsAttributeProvider final : public DynamicAttributesProvid
       return {};
     }
     const std::string name = attribute_id;
-    const int vertex_group_index = BLI_findstringindex(
-        &curves->vertex_group_names, name.c_str(), offsetof(bDeformGroup, name));
+    const int vertex_group_index = BKE_defgroup_name_index(&curves->vertex_group_names,
+                                                           name.c_str());
     if (vertex_group_index < 0) {
       return {};
     }
@@ -396,8 +396,8 @@ class CurvesVertexGroupsAttributeProvider final : public DynamicAttributesProvid
       return {};
     }
     const std::string name = attribute_id;
-    const int vertex_group_index = BLI_findstringindex(
-        &curves->vertex_group_names, name.c_str(), offsetof(bDeformGroup, name));
+    const int vertex_group_index = BKE_defgroup_name_index(&curves->vertex_group_names,
+                                                           name.c_str());
     if (vertex_group_index < 0) {
       return {};
     }

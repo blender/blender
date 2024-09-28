@@ -893,8 +893,8 @@ class MeshVertexGroupsAttributeProvider final : public DynamicAttributesProvider
       return {};
     }
     const std::string name = attribute_id;
-    const int vertex_group_index = BLI_findstringindex(
-        &mesh->vertex_group_names, name.c_str(), offsetof(bDeformGroup, name));
+    const int vertex_group_index = BKE_defgroup_name_index(&mesh->vertex_group_names,
+                                                           name.c_str());
     if (vertex_group_index < 0) {
       return {};
     }
@@ -924,8 +924,8 @@ class MeshVertexGroupsAttributeProvider final : public DynamicAttributesProvider
     }
 
     const std::string name = attribute_id;
-    const int vertex_group_index = BLI_findstringindex(
-        &mesh->vertex_group_names, name.c_str(), offsetof(bDeformGroup, name));
+    const int vertex_group_index = BKE_defgroup_name_index(&mesh->vertex_group_names,
+                                                           name.c_str());
     if (vertex_group_index < 0) {
       return {};
     }
