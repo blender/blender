@@ -126,6 +126,8 @@ if(CXX_HAS_SSE42)
   add_definitions(
     -DWITH_KERNEL_SSE42
   )
+  # We require SSE4.2 as a minimum, so make use of it
+  string(APPEND CMAKE_CXX_FLAGS " ${CYCLES_SSE42_FLAGS}")
 endif()
 
 if(CXX_HAS_AVX2)
@@ -174,15 +176,10 @@ elseif(CMAKE_COMPILER_IS_GNUCC OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
     string(APPEND CMAKE_CXX_FLAGS " -fno-signaling-nans")
     # Assume a fixed rounding mode for better constant folding.
     string(APPEND CMAKE_CXX_FLAGS " -fno-rounding-math")
-  endif()
 
-  if(CXX_HAS_SSE42)
-    if(CMAKE_COMPILER_IS_GNUCC)
+    if(CXX_HAS_SSE42)
       string(APPEND CMAKE_CXX_FLAGS " -mfpmath=sse")
     endif()
-
-    # We require SSE4.2 as a minimum, so make use of it
-    string(APPEND CMAKE_CXX_FLAGS " ${CYCLES_SSE42_FLAGS}")
   endif()
 endif()
 
