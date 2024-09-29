@@ -163,6 +163,7 @@ static void calc_faces(const Depsgraph &depsgraph,
                        const SculptProjectVector *spvc,
                        const float3 &grab_delta,
                        const Span<float3> vert_normals,
+                       const MeshAttributeData &attribute_data,
                        bke::pbvh::MeshNode &node,
                        LocalData &tls,
                        const PositionDeformData &position_data)
@@ -170,7 +171,6 @@ static void calc_faces(const Depsgraph &depsgraph,
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
   const bool do_elastic = brush.snake_hook_deform_type == BRUSH_SNAKE_HOOK_DEFORM_ELASTIC;
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
 
   const Span<int> verts = node.verts();
   const MutableSpan positions = gather_data_mesh(position_data.eval, verts, tls.positions);
@@ -182,7 +182,7 @@ static void calc_faces(const Depsgraph &depsgraph,
     factors.fill(1.0f);
   }
   else {
-    fill_factor_from_hide_and_mask(mesh, verts, factors);
+    fill_factor_from_hide_and_mask(attribute_data.hide_vert, attribute_data.mask, verts, factors);
     filter_region_clip_factors(ss, positions, factors);
     if (brush.flag & BRUSH_FRONTFACE) {
       calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
@@ -209,7 +209,7 @@ static void calc_faces(const Depsgraph &depsgraph,
   calc_rake_rotation_influence(cache, positions, factors, translations);
 
   if (do_elastic) {
-    fill_factor_from_hide_and_mask(mesh, verts, factors);
+    fill_factor_from_hide_and_mask(attribute_data.hide_vert, attribute_data.mask, verts, factors);
     scale_factors(factors, cache.bstrength * 20.0f);
     auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
 
@@ -377,6 +377,8 @@ void do_snake_hook_brush(const Depsgraph &depsgraph,
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
+      Mesh &mesh = *static_cast<Mesh *>(object.data);
+      const MeshAttributeData attribute_data(mesh.attributes());
       const PositionDeformData position_data(depsgraph, object);
       const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, object);
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
@@ -389,6 +391,7 @@ void do_snake_hook_brush(const Depsgraph &depsgraph,
                    &spvc,
                    grab_delta,
                    vert_normals,
+                   attribute_data,
                    nodes[i],
                    tls,
                    position_data);

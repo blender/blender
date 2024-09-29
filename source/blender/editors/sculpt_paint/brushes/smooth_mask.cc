@@ -71,6 +71,7 @@ static void apply_masks_faces(const Depsgraph &depsgraph,
                               const Brush &brush,
                               const Span<float3> positions_eval,
                               const Span<float3> vert_normals,
+                              const Span<bool> hide_vert,
                               const bke::pbvh::MeshNode &node,
                               const float strength,
                               Object &object,
@@ -80,13 +81,12 @@ static void apply_masks_faces(const Depsgraph &depsgraph,
 {
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
-  const Mesh &mesh = *static_cast<Mesh *>(object.data);
 
   const Span<int> verts = node.verts();
 
   tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
-  fill_factor_from_hide(mesh, verts, factors);
+  fill_factor_from_hide(hide_vert, verts, factors);
   filter_region_clip_factors(ss, positions_eval, verts, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
     calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
@@ -144,6 +144,7 @@ static void do_smooth_brush_mesh(const Depsgraph &depsgraph,
 
   bke::SpanAttributeWriter<float> mask = write_attributes.lookup_for_write_span<float>(
       ".sculpt_mask");
+  const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   for (const float strength : iteration_strengths(brush_strength)) {
@@ -167,6 +168,7 @@ static void do_smooth_brush_mesh(const Depsgraph &depsgraph,
                         brush,
                         positions_eval,
                         vert_normals,
+                        hide_vert,
                         nodes[i],
                         strength,
                         object,

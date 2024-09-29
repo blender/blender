@@ -158,6 +158,7 @@ BLI_NOINLINE static void add_arrays(const MutableSpan<float3> a, const Span<floa
 static void calc_mesh(const Depsgraph &depsgraph,
                       const Sculpt &sd,
                       const Brush &brush,
+                      const MeshAttributeData &attribute_data,
                       const bke::pbvh::MeshNode &node,
                       Object &object,
                       BrushLocalData &tls,
@@ -165,7 +166,6 @@ static void calc_mesh(const Depsgraph &depsgraph,
 {
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
-  const Mesh &mesh = *static_cast<Mesh *>(object.data);
 
   const Span<int> verts = node.verts();
   const Span<float3> positions = gather_data_mesh(position_data.eval, verts, tls.positions);
@@ -173,7 +173,7 @@ static void calc_mesh(const Depsgraph &depsgraph,
 
   tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
-  fill_factor_from_hide_and_mask(mesh, verts, factors);
+  fill_factor_from_hide_and_mask(attribute_data.hide_vert, attribute_data.mask, verts, factors);
   auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
 
   tls.translations.resize(verts.size());
@@ -2122,11 +2122,13 @@ void do_pose_brush(const Depsgraph &depsgraph,
   threading::EnumerableThreadSpecific<BrushLocalData> all_tls;
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
+      Mesh &mesh = *static_cast<Mesh *>(ob.data);
+      const MeshAttributeData attribute_data(mesh.attributes());
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       const PositionDeformData position_data(depsgraph, ob);
       node_mask.foreach_index(GrainSize(1), [&](const int i) {
         BrushLocalData &tls = all_tls.local();
-        calc_mesh(depsgraph, sd, brush, nodes[i], ob, tls, position_data);
+        calc_mesh(depsgraph, sd, brush, attribute_data, nodes[i], ob, tls, position_data);
         bke::pbvh::update_node_bounds_mesh(position_data.eval, nodes[i]);
       });
       break;

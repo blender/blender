@@ -6184,6 +6184,7 @@ template void scatter_data_bmesh<float3>(Span<float3>,
 void calc_factors_common_mesh_indexed(const Depsgraph &depsgraph,
                                       const Brush &brush,
                                       const Object &object,
+                                      const MeshAttributeData &attribute_data,
                                       const Span<float3> vert_positions,
                                       const Span<float3> vert_normals,
                                       const bke::pbvh::MeshNode &node,
@@ -6192,13 +6193,12 @@ void calc_factors_common_mesh_indexed(const Depsgraph &depsgraph,
 {
   const SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
-  const Mesh &mesh = *static_cast<Mesh *>(object.data);
 
   const Span<int> verts = node.verts();
 
   r_factors.resize(verts.size());
   const MutableSpan<float> factors = r_factors;
-  fill_factor_from_hide_and_mask(mesh, verts, factors);
+  fill_factor_from_hide_and_mask(attribute_data.hide_vert, attribute_data.mask, verts, factors);
   filter_region_clip_factors(ss, vert_positions, verts, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
     calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
@@ -6220,6 +6220,7 @@ void calc_factors_common_mesh_indexed(const Depsgraph &depsgraph,
 void calc_factors_common_mesh(const Depsgraph &depsgraph,
                               const Brush &brush,
                               const Object &object,
+                              const MeshAttributeData &attribute_data,
                               const Span<float3> positions,
                               const Span<float3> vert_normals,
                               const bke::pbvh::MeshNode &node,
@@ -6228,13 +6229,12 @@ void calc_factors_common_mesh(const Depsgraph &depsgraph,
 {
   const SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
-  const Mesh &mesh = *static_cast<Mesh *>(object.data);
 
   const Span<int> verts = node.verts();
 
   r_factors.resize(verts.size());
   const MutableSpan<float> factors = r_factors;
-  fill_factor_from_hide_and_mask(mesh, verts, factors);
+  fill_factor_from_hide_and_mask(attribute_data.hide_vert, attribute_data.mask, verts, factors);
   filter_region_clip_factors(ss, positions, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
     calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
@@ -6322,6 +6322,7 @@ void calc_factors_common_bmesh(const Depsgraph &depsgraph,
 void calc_factors_common_from_orig_data_mesh(const Depsgraph &depsgraph,
                                              const Brush &brush,
                                              const Object &object,
+                                             const MeshAttributeData &attribute_data,
                                              const Span<float3> positions,
                                              const Span<float3> normals,
                                              const bke::pbvh::MeshNode &node,
@@ -6330,13 +6331,12 @@ void calc_factors_common_from_orig_data_mesh(const Depsgraph &depsgraph,
 {
   const SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
-  const Mesh &mesh = *static_cast<Mesh *>(object.data);
 
   const Span<int> verts = node.verts();
 
   r_factors.resize(verts.size());
   const MutableSpan<float> factors = r_factors;
-  fill_factor_from_hide_and_mask(mesh, verts, factors);
+  fill_factor_from_hide_and_mask(attribute_data.hide_vert, attribute_data.mask, verts, factors);
   filter_region_clip_factors(ss, positions, factors);
 
   if (brush.flag & BRUSH_FRONTFACE) {
@@ -6424,18 +6424,15 @@ void calc_factors_common_from_orig_data_bmesh(const Depsgraph &depsgraph,
   calc_brush_texture_factors(ss, brush, positions, factors);
 }
 
-void fill_factor_from_hide(const Mesh &mesh,
+void fill_factor_from_hide(const Span<bool> hide_vert,
                            const Span<int> verts,
                            const MutableSpan<float> r_factors)
 {
   BLI_assert(verts.size() == r_factors.size());
 
-  /* TODO: Avoid overhead of accessing attributes for every bke::pbvh::Tree node. */
-  const bke::AttributeAccessor attributes = mesh.attributes();
-  if (const VArray hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point)) {
-    const VArraySpan span(hide_vert);
+  if (!hide_vert.is_empty()) {
     for (const int i : verts.index_range()) {
-      r_factors[i] = span[verts[i]] ? 0.0f : 1.0f;
+      r_factors[i] = hide_vert[verts[i]] ? 0.0f : 1.0f;
     }
   }
   else {
@@ -6475,28 +6472,26 @@ void fill_factor_from_hide(const Set<BMVert *, 0> &verts, const MutableSpan<floa
   }
 }
 
-void fill_factor_from_hide_and_mask(const Mesh &mesh,
+void fill_factor_from_hide_and_mask(const Span<bool> hide_vert,
+                                    const Span<float> mask,
                                     const Span<int> verts,
                                     const MutableSpan<float> r_factors)
 {
   BLI_assert(verts.size() == r_factors.size());
+  BLI_assert(mask.size() == hide_vert.size());
 
-  /* TODO: Avoid overhead of accessing attributes for every bke::pbvh::Tree node. */
-  const bke::AttributeAccessor attributes = mesh.attributes();
-  if (const VArray mask = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point)) {
-    const VArraySpan span(mask);
+  if (!mask.is_empty()) {
     for (const int i : verts.index_range()) {
-      r_factors[i] = 1.0f - span[verts[i]];
+      r_factors[i] = 1.0f - mask[verts[i]];
     }
   }
   else {
     r_factors.fill(1.0f);
   }
 
-  if (const VArray hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point)) {
-    const VArraySpan span(hide_vert);
+  if (!hide_vert.is_empty()) {
     for (const int i : verts.index_range()) {
-      if (span[verts[i]]) {
+      if (hide_vert[verts[i]]) {
         r_factors[i] = 0.0f;
       }
     }

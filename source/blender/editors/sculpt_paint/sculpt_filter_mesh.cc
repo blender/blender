@@ -351,6 +351,7 @@ static void calc_smooth_filter(const Depsgraph &depsgraph,
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
+      const MeshAttributeData attribute_data(mesh.attributes());
       const PositionDeformData position_data(depsgraph, object);
       const OffsetIndices faces = mesh.faces();
       const Span<int> corner_verts = mesh.corner_verts();
@@ -365,7 +366,8 @@ static void calc_smooth_filter(const Depsgraph &depsgraph,
 
         tls.factors.resize(verts.size());
         const MutableSpan<float> factors = tls.factors;
-        fill_factor_from_hide_and_mask(mesh, verts, factors);
+        fill_factor_from_hide_and_mask(
+            attribute_data.hide_vert, attribute_data.mask, verts, factors);
         auto_mask::calc_vert_factors(
             depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
         scale_factors(factors, strength);
@@ -485,6 +487,9 @@ static void calc_inflate_filter(const Depsgraph &depsgraph,
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
+      bke::AttributeAccessor attributes = mesh.attributes();
+      const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
+      const VArraySpan mask = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point);
       const PositionDeformData position_data(depsgraph, object);
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
@@ -496,7 +501,7 @@ static void calc_inflate_filter(const Depsgraph &depsgraph,
 
         tls.factors.resize(verts.size());
         const MutableSpan<float> factors = tls.factors;
-        fill_factor_from_hide_and_mask(mesh, verts, factors);
+        fill_factor_from_hide_and_mask(hide_vert, mask, verts, factors);
         auto_mask::calc_vert_factors(
             depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
         scale_factors(factors, strength);
@@ -592,6 +597,7 @@ static void calc_scale_filter(const Depsgraph &depsgraph,
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
+      MeshAttributeData attribute_data(mesh.attributes());
       const PositionDeformData position_data(depsgraph, object);
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
@@ -603,7 +609,8 @@ static void calc_scale_filter(const Depsgraph &depsgraph,
 
         tls.factors.resize(verts.size());
         const MutableSpan<float> factors = tls.factors;
-        fill_factor_from_hide_and_mask(mesh, verts, factors);
+        fill_factor_from_hide_and_mask(
+            attribute_data.hide_vert, attribute_data.mask, verts, factors);
         auto_mask::calc_vert_factors(
             depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
         scale_factors(factors, strength);
@@ -716,6 +723,7 @@ static void calc_sphere_filter(const Depsgraph &depsgraph,
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
       const PositionDeformData position_data(depsgraph, object);
+      const MeshAttributeData attribute_data(mesh.attributes());
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       node_mask.foreach_index(GrainSize(1), [&](const int i) {
@@ -726,7 +734,8 @@ static void calc_sphere_filter(const Depsgraph &depsgraph,
 
         tls.factors.resize(verts.size());
         const MutableSpan<float> factors = tls.factors;
-        fill_factor_from_hide_and_mask(mesh, verts, factors);
+        fill_factor_from_hide_and_mask(
+            attribute_data.hide_vert, attribute_data.mask, verts, factors);
         auto_mask::calc_vert_factors(
             depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
         scale_factors(factors, strength);
@@ -830,6 +839,7 @@ static void calc_random_filter(const Depsgraph &depsgraph,
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
+      const MeshAttributeData attribute_data(mesh.attributes());
       const PositionDeformData position_data(depsgraph, object);
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
@@ -841,7 +851,8 @@ static void calc_random_filter(const Depsgraph &depsgraph,
 
         tls.factors.resize(verts.size());
         const MutableSpan<float> factors = tls.factors;
-        fill_factor_from_hide_and_mask(mesh, verts, factors);
+        fill_factor_from_hide_and_mask(
+            attribute_data.hide_vert, attribute_data.mask, verts, factors);
         auto_mask::calc_vert_factors(
             depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
         scale_factors(factors, strength);
@@ -946,10 +957,7 @@ static void calc_relax_filter(const Depsgraph &depsgraph,
       const OffsetIndices faces = mesh.faces();
       const Span<int> corner_verts = mesh.corner_verts();
       const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
-      const bke::AttributeAccessor attributes = mesh.attributes();
-      const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
-      const VArraySpan face_sets = *attributes.lookup<int>(".sculpt_face_set",
-                                                           bke::AttrDomain::Face);
+      const MeshAttributeData attribute_data(mesh.attributes());
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       node_mask.foreach_index(GrainSize(1), [&](const int i) {
@@ -958,7 +966,8 @@ static void calc_relax_filter(const Depsgraph &depsgraph,
 
         tls.factors.resize(verts.size());
         const MutableSpan<float> factors = tls.factors;
-        fill_factor_from_hide_and_mask(mesh, verts, factors);
+        fill_factor_from_hide_and_mask(
+            attribute_data.hide_vert, attribute_data.mask, verts, factors);
         auto_mask::calc_vert_factors(
             depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
         scale_factors(factors, strength);
@@ -972,8 +981,8 @@ static void calc_relax_filter(const Depsgraph &depsgraph,
                                                 corner_verts,
                                                 vert_to_face_map,
                                                 ss.vertex_info.boundary,
-                                                face_sets,
-                                                hide_poly,
+                                                attribute_data.face_sets,
+                                                attribute_data.hide_poly,
                                                 false,
                                                 verts,
                                                 factors,
@@ -1105,10 +1114,7 @@ static void calc_relax_face_sets_filter(const Depsgraph &depsgraph,
       const OffsetIndices faces = mesh.faces();
       const Span<int> corner_verts = mesh.corner_verts();
       const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
-      const bke::AttributeAccessor attributes = mesh.attributes();
-      const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
-      const VArraySpan face_sets = *attributes.lookup<int>(".sculpt_face_set",
-                                                           bke::AttrDomain::Face);
+      const MeshAttributeData attribute_data(mesh.attributes());
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       node_mask.foreach_index(GrainSize(1), [&](const int i) {
@@ -1117,14 +1123,15 @@ static void calc_relax_face_sets_filter(const Depsgraph &depsgraph,
 
         tls.factors.resize(verts.size());
         const MutableSpan<float> factors = tls.factors;
-        fill_factor_from_hide_and_mask(mesh, verts, factors);
+        fill_factor_from_hide_and_mask(
+            attribute_data.hide_vert, attribute_data.mask, verts, factors);
         auto_mask::calc_vert_factors(
             depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
         scale_factors(factors, strength);
         clamp_factors(factors, 0.0f, 1.0f);
 
         face_set::filter_verts_with_unique_face_sets_mesh(
-            vert_to_face_map, face_sets, relax_face_sets, verts, factors);
+            vert_to_face_map, attribute_data.face_sets, relax_face_sets, verts, factors);
 
         tls.translations.resize(verts.size());
         const MutableSpan<float3> translations = tls.translations;
@@ -1134,8 +1141,8 @@ static void calc_relax_face_sets_filter(const Depsgraph &depsgraph,
                                                 corner_verts,
                                                 vert_to_face_map,
                                                 ss.vertex_info.boundary,
-                                                face_sets,
-                                                hide_poly,
+                                                attribute_data.face_sets,
+                                                attribute_data.hide_poly,
                                                 relax_face_sets,
                                                 verts,
                                                 factors,
@@ -1277,6 +1284,7 @@ static void calc_surface_smooth_filter(const Depsgraph &depsgraph,
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
+      const MeshAttributeData attribute_data(mesh.attributes());
       const PositionDeformData position_data(depsgraph, object);
       const OffsetIndices faces = mesh.faces();
       const Span<int> corner_verts = mesh.corner_verts();
@@ -1291,7 +1299,8 @@ static void calc_surface_smooth_filter(const Depsgraph &depsgraph,
 
         tls.factors.resize(verts.size());
         const MutableSpan<float> factors = tls.factors;
-        fill_factor_from_hide_and_mask(mesh, verts, factors);
+        fill_factor_from_hide_and_mask(
+            attribute_data.hide_vert, attribute_data.mask, verts, factors);
         auto_mask::calc_vert_factors(
             depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
         scale_factors(factors, strength);
@@ -1329,7 +1338,8 @@ static void calc_surface_smooth_filter(const Depsgraph &depsgraph,
 
         tls.factors.resize(verts.size());
         const MutableSpan<float> factors = tls.factors;
-        fill_factor_from_hide_and_mask(mesh, verts, factors);
+        fill_factor_from_hide_and_mask(
+            attribute_data.hide_vert, attribute_data.mask, verts, factors);
         auto_mask::calc_vert_factors(
             depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
         scale_factors(factors, strength);
@@ -1547,6 +1557,7 @@ static void calc_sharpen_filter(const Depsgraph &depsgraph,
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
+      const MeshAttributeData attribute_data(mesh.attributes());
       const PositionDeformData position_data(depsgraph, object);
 
       const OffsetIndices faces = mesh.faces();
@@ -1561,7 +1572,8 @@ static void calc_sharpen_filter(const Depsgraph &depsgraph,
 
         tls.factors.resize(verts.size());
         const MutableSpan<float> factors = tls.factors;
-        fill_factor_from_hide_and_mask(mesh, verts, factors);
+        fill_factor_from_hide_and_mask(
+            attribute_data.hide_vert, attribute_data.mask, verts, factors);
         auto_mask::calc_vert_factors(depsgraph,
                                      object,
                                      ss.filter_cache->automasking.get(),
@@ -1794,6 +1806,7 @@ static void calc_enhance_details_filter(const Depsgraph &depsgraph,
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
+      const MeshAttributeData attribute_data(mesh.attributes());
       const PositionDeformData position_data(depsgraph, object);
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
@@ -1805,7 +1818,8 @@ static void calc_enhance_details_filter(const Depsgraph &depsgraph,
 
         tls.factors.resize(verts.size());
         const MutableSpan<float> factors = tls.factors;
-        fill_factor_from_hide_and_mask(mesh, verts, factors);
+        fill_factor_from_hide_and_mask(
+            attribute_data.hide_vert, attribute_data.mask, verts, factors);
         auto_mask::calc_vert_factors(
             depsgraph, object, ss.filter_cache->automasking.get(), nodes[i], verts, factors);
         scale_factors(factors, final_strength);

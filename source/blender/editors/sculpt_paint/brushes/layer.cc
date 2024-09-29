@@ -118,8 +118,8 @@ BLI_NOINLINE static void calc_translations(const Span<float3> base_positions,
 static void calc_faces(const Depsgraph &depsgraph,
                        const Sculpt &sd,
                        const Brush &brush,
+                       const MeshAttributeData &attribute_data,
                        const Span<float3> vert_normals,
-                       const Span<float> mask_attribute,
                        const bool use_persistent_base,
                        const Span<float3> persistent_base_positions,
                        const Span<float3> persistent_base_normals,
@@ -135,15 +135,22 @@ static void calc_faces(const Depsgraph &depsgraph,
   const Span<int> verts = node.verts();
   const MutableSpan positions = gather_data_mesh(position_data.eval, verts, tls.positions);
 
-  calc_factors_common_mesh(
-      depsgraph, brush, object, positions, vert_normals, node, tls.factors, tls.distances);
+  calc_factors_common_mesh(depsgraph,
+                           brush,
+                           object,
+                           attribute_data,
+                           positions,
+                           vert_normals,
+                           node,
+                           tls.factors,
+                           tls.distances);
 
-  if (mask_attribute.is_empty()) {
+  if (attribute_data.mask.is_empty()) {
     tls.masks.clear();
   }
   else {
     tls.masks.resize(verts.size());
-    gather_data_mesh(mask_attribute, verts, tls.masks.as_mutable_span());
+    gather_data_mesh(attribute_data.mask, verts, tls.masks.as_mutable_span());
   }
   const MutableSpan<float> masks = tls.masks;
 
@@ -314,7 +321,7 @@ void do_layer_brush(const Depsgraph &depsgraph,
       const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, object);
 
       bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
-      const VArraySpan masks = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point);
+      const MeshAttributeData attribute_data(attributes);
       const VArraySpan persistent_position = *attributes.lookup<float3>(".sculpt_persistent_co",
                                                                         bke::AttrDomain::Point);
       const VArraySpan persistent_normal = *attributes.lookup<float3>(".sculpt_persistent_no",
@@ -348,8 +355,8 @@ void do_layer_brush(const Depsgraph &depsgraph,
         calc_faces(depsgraph,
                    sd,
                    brush,
+                   attribute_data,
                    vert_normals,
-                   masks,
                    use_persistent_base,
                    persistent_position,
                    persistent_normal,

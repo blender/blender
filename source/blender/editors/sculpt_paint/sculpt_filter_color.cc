@@ -100,6 +100,7 @@ static void color_filter_task(const Depsgraph &depsgraph,
                               const OffsetIndices<int> faces,
                               const Span<int> corner_verts,
                               const GroupedSpan<int> vert_to_face_map,
+                              const MeshAttributeData &attribute_data,
                               const FilterType mode,
                               const float filter_strength,
                               const float *filter_fill_color,
@@ -107,7 +108,6 @@ static void color_filter_task(const Depsgraph &depsgraph,
                               LocalData &tls,
                               bke::GSpanAttributeWriter &color_attribute)
 {
-  const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
   SculptSession &ss = *ob.sculpt;
 
   const Span<float4> orig_colors = orig_color_data_get_mesh(ob, node);
@@ -116,7 +116,7 @@ static void color_filter_task(const Depsgraph &depsgraph,
 
   tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
-  fill_factor_from_hide_and_mask(mesh, verts, factors);
+  fill_factor_from_hide_and_mask(attribute_data.hide_vert, attribute_data.mask, verts, factors);
   auto_mask::calc_vert_factors(
       depsgraph, ob, ss.filter_cache->automasking.get(), node, verts, factors);
   scale_factors(factors, filter_strength);
@@ -385,6 +385,7 @@ static void sculpt_color_filter_apply(bContext *C, wmOperator *op, Object &ob)
   const Span<int> corner_verts = mesh.corner_verts();
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   bke::GSpanAttributeWriter color_attribute = active_color_attribute_for_write(mesh);
+  const MeshAttributeData attribute_data(mesh.attributes());
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   node_mask.foreach_index(GrainSize(1), [&](const int i) {
@@ -394,6 +395,7 @@ static void sculpt_color_filter_apply(bContext *C, wmOperator *op, Object &ob)
                       faces,
                       corner_verts,
                       vert_to_face_map,
+                      attribute_data,
                       mode,
                       filter_strength,
                       fill_color,

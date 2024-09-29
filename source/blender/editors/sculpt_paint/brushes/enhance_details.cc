@@ -39,6 +39,7 @@ struct LocalData {
 static void calc_faces(const Depsgraph &depsgraph,
                        const Sculpt &sd,
                        const Brush &brush,
+                       const MeshAttributeData &attribute_data,
                        const Span<float3> vert_normals,
                        const Span<float3> all_translations,
                        const float strength,
@@ -54,6 +55,7 @@ static void calc_faces(const Depsgraph &depsgraph,
   calc_factors_common_mesh_indexed(depsgraph,
                                    brush,
                                    object,
+                                   attribute_data,
                                    position_data.eval,
                                    vert_normals,
                                    node,
@@ -261,6 +263,8 @@ void do_enhance_details_brush(const Depsgraph &depsgraph,
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
+      const Mesh &mesh = *static_cast<Mesh *>(object.data);
+      const MeshAttributeData attribute_data(mesh.attributes());
       const PositionDeformData position_data(depsgraph, object);
       const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, object);
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
@@ -269,6 +273,7 @@ void do_enhance_details_brush(const Depsgraph &depsgraph,
         calc_faces(depsgraph,
                    sd,
                    brush,
+                   attribute_data,
                    vert_normals,
                    translations,
                    strength,

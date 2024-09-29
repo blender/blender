@@ -958,6 +958,7 @@ static void calc_new_masks(const ApplyMaskMode mode,
 
 static void apply_mask_mesh(const Depsgraph &depsgraph,
                             const Object &object,
+                            const Span<bool> hide_vert,
                             const auto_mask::Cache &automasking,
                             const ApplyMaskMode mode,
                             const float factor,
@@ -966,12 +967,11 @@ static void apply_mask_mesh(const Depsgraph &depsgraph,
                             LocalData &tls,
                             const MutableSpan<float> mask)
 {
-  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
   const Span<int> verts = node.verts();
 
   tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
-  fill_factor_from_hide(mesh, verts, factors);
+  fill_factor_from_hide(hide_vert, verts, factors);
   scale_factors(factors, factor);
 
   tls.new_mask.resize(verts.size());
@@ -1085,11 +1085,13 @@ static void apply_mask_from_settings(const Depsgraph &depsgraph,
       bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
       bke::SpanAttributeWriter mask = attributes.lookup_or_add_for_write_span<float>(
           ".sculpt_mask", bke::AttrDomain::Point);
+      const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
         apply_mask_mesh(depsgraph,
                         object,
+                        hide_vert,
                         automasking,
                         mode,
                         factor,

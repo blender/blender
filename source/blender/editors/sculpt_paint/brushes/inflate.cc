@@ -48,6 +48,7 @@ static void calc_faces(const Depsgraph &depsgraph,
                        const Sculpt &sd,
                        const Brush &brush,
                        const float3 &scale,
+                       const MeshAttributeData &attribute_data,
                        const Span<float3> vert_normals,
                        const bke::pbvh::MeshNode &node,
                        Object &object,
@@ -61,6 +62,7 @@ static void calc_faces(const Depsgraph &depsgraph,
   calc_factors_common_mesh_indexed(depsgraph,
                                    brush,
                                    object,
+                                   attribute_data,
                                    position_data.eval,
                                    vert_normals,
                                    node,
@@ -142,13 +144,23 @@ void do_inflate_brush(const Depsgraph &depsgraph,
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
+      const Mesh &mesh = *static_cast<Mesh *>(object.data);
+      const MeshAttributeData attribute_data(mesh.attributes());
       const PositionDeformData position_data(depsgraph, object);
       const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, object);
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        calc_faces(
-            depsgraph, sd, brush, scale, vert_normals, nodes[i], object, tls, position_data);
+        calc_faces(depsgraph,
+                   sd,
+                   brush,
+                   scale,
+                   attribute_data,
+                   vert_normals,
+                   nodes[i],
+                   object,
+                   tls,
+                   position_data);
         bke::pbvh::update_node_bounds_mesh(position_data.eval, nodes[i]);
       });
       break;

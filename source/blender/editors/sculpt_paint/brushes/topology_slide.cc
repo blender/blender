@@ -156,7 +156,7 @@ static void calc_faces(const Depsgraph &depsgraph,
                        const OffsetIndices<int> faces,
                        const Span<int> corner_verts,
                        const GroupedSpan<int> vert_to_face_map,
-                       const Span<bool> hide_poly,
+                       const MeshAttributeData &attribute_data,
                        const bke::pbvh::MeshNode &node,
                        Object &object,
                        LocalData &tls,
@@ -172,6 +172,7 @@ static void calc_faces(const Depsgraph &depsgraph,
   calc_factors_common_from_orig_data_mesh(depsgraph,
                                           brush,
                                           object,
+                                          attribute_data,
                                           orig_data.positions,
                                           orig_data.normals,
                                           node,
@@ -181,7 +182,8 @@ static void calc_faces(const Depsgraph &depsgraph,
   scale_factors(tls.factors, cache.bstrength);
 
   tls.vert_neighbors.resize(verts.size());
-  calc_vert_neighbors(faces, corner_verts, vert_to_face_map, hide_poly, verts, tls.vert_neighbors);
+  calc_vert_neighbors(
+      faces, corner_verts, vert_to_face_map, attribute_data.hide_poly, verts, tls.vert_neighbors);
   const Span<Vector<int>> vert_neighbors = tls.vert_neighbors;
 
   tls.translations.resize(verts.size());
@@ -285,8 +287,7 @@ void do_topology_slide_brush(const Depsgraph &depsgraph,
       const OffsetIndices faces = mesh.faces();
       const Span<int> corner_verts = mesh.corner_verts();
       const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
-      const bke::AttributeAccessor attributes = mesh.attributes();
-      const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
+      const MeshAttributeData attribute_data(mesh.attributes());
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
@@ -296,7 +297,7 @@ void do_topology_slide_brush(const Depsgraph &depsgraph,
                    faces,
                    corner_verts,
                    vert_to_face_map,
-                   hide_poly,
+                   attribute_data,
                    nodes[i],
                    object,
                    tls,

@@ -192,20 +192,20 @@ BLI_NOINLINE static void filter_translations_with_symmetry(const Span<float3> po
 
 static void transform_node_mesh(const Sculpt &sd,
                                 const std::array<float4x4, 8> &transform_mats,
+                                const MeshAttributeData &attribute_data,
                                 const bke::pbvh::MeshNode &node,
                                 Object &object,
                                 TransformLocalData &tls,
                                 const PositionDeformData &position_data)
 {
   SculptSession &ss = *object.sculpt;
-  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
 
   const Span<int> verts = node.verts();
   const OrigPositionData orig_data = orig_position_data_get_mesh(object, node);
 
   tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
-  fill_factor_from_hide_and_mask(mesh, verts, factors);
+  fill_factor_from_hide_and_mask(attribute_data.hide_vert, attribute_data.mask, verts, factors);
 
   tls.translations.resize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
@@ -300,11 +300,13 @@ static void sculpt_transform_all_vertices(const Depsgraph &depsgraph, const Scul
   threading::EnumerableThreadSpecific<TransformLocalData> all_tls;
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
+      Mesh &mesh = *static_cast<Mesh *>(ob.data);
+      const MeshAttributeData attribute_data(mesh.attributes());
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       const PositionDeformData position_data(depsgraph, ob);
       node_mask.foreach_index(GrainSize(1), [&](const int i) {
         TransformLocalData &tls = all_tls.local();
-        transform_node_mesh(sd, transform_mats, nodes[i], ob, tls, position_data);
+        transform_node_mesh(sd, transform_mats, attribute_data, nodes[i], ob, tls, position_data);
         bke::pbvh::update_node_bounds_mesh(position_data.eval, nodes[i]);
       });
       break;
@@ -359,13 +361,13 @@ static void elastic_transform_node_mesh(const Sculpt &sd,
                                         const KelvinletParams &params,
                                         const float4x4 &elastic_transform_mat,
                                         const float3 &elastic_transform_pivot,
+                                        const MeshAttributeData &attribute_data,
                                         const bke::pbvh::MeshNode &node,
                                         Object &object,
                                         TransformLocalData &tls,
                                         const PositionDeformData &position_data)
 {
   const SculptSession &ss = *object.sculpt;
-  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
 
   const Span<int> verts = node.verts();
   const MutableSpan positions = gather_data_mesh(position_data.eval, verts, tls.positions);
@@ -373,7 +375,7 @@ static void elastic_transform_node_mesh(const Sculpt &sd,
   /* TODO: Using the factors array is unnecessary when there are no hidden vertices and no mask. */
   tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
-  fill_factor_from_hide_and_mask(mesh, verts, factors);
+  fill_factor_from_hide_and_mask(attribute_data.hide_vert, attribute_data.mask, verts, factors);
   scale_factors(factors, 20.0f);
 
   tls.translations.resize(verts.size());
@@ -485,14 +487,17 @@ static void transform_radius_elastic(const Depsgraph &depsgraph,
     float4x4 elastic_transform_mat = transform_mats[symm_area];
     switch (pbvh.type()) {
       case bke::pbvh::Type::Mesh: {
+        Mesh &mesh = *static_cast<Mesh *>(ob.data);
         MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
         const PositionDeformData position_data(depsgraph, ob);
+        const MeshAttributeData attribute_data(mesh.attributes());
         node_mask.foreach_index(GrainSize(1), [&](const int i) {
           TransformLocalData &tls = all_tls.local();
           elastic_transform_node_mesh(sd,
                                       params,
                                       elastic_transform_mat,
                                       elastic_transform_pivot,
+                                      attribute_data,
                                       nodes[i],
                                       ob,
                                       tls,
@@ -672,6 +677,7 @@ static float3 average_unmasked_position(const Depsgraph &depsgraph,
     case bke::pbvh::Type::Mesh: {
       const Span<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const MeshAttributeData attribute_data(mesh.attributes());
       const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, object);
       const AveragePositionAccumulation total = threading::parallel_reduce(
           node_mask.index_range(),
@@ -689,7 +695,8 @@ static float3 average_unmasked_position(const Depsgraph &depsgraph,
 
                 tls.factors.resize(verts.size());
                 const MutableSpan<float> factors = tls.factors;
-                fill_factor_from_hide_and_mask(mesh, verts, factors);
+                fill_factor_from_hide_and_mask(
+                    attribute_data.hide_vert, attribute_data.mask, verts, factors);
                 filter_verts_outside_symmetry_area(positions, pivot, symm, factors);
 
                 accumulate_weighted_average_position(positions, factors, sum);
@@ -797,6 +804,7 @@ static float3 average_mask_border_position(const Depsgraph &depsgraph,
       const bke::AttributeAccessor attributes = mesh.attributes();
       const VArraySpan mask_attr = *attributes.lookup_or_default<float>(
           ".sculpt_mask", bke::AttrDomain::Point, 0.0f);
+      const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
       const AveragePositionAccumulation total = threading::parallel_reduce(
           node_mask.index_range(),
           1,
@@ -810,7 +818,7 @@ static float3 average_mask_border_position(const Depsgraph &depsgraph,
 
               tls.factors.resize(verts.size());
               const MutableSpan<float> factors = tls.factors;
-              fill_factor_from_hide(mesh, verts, factors);
+              fill_factor_from_hide(hide_vert, verts, factors);
 
               mask_border_weight_calc(masks, factors);
               filter_verts_outside_symmetry_area(positions, pivot, symm, factors);
