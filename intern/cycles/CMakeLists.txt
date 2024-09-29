@@ -153,34 +153,31 @@ if(WIN32 AND MSVC AND NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   endif()
 elseif(CMAKE_COMPILER_IS_GNUCC OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
   # Assume no signal trapping for better code generation.
-  # We need to omit or modify specific flags to pass through clang-cl to prevent
-  # unknown flag errors
-  if(WIN32 AND MSVC)
-    # Pass clang flags directly to clang otherwise. Clang-cl doesn't recognize
-    # these flags by default
-    string(APPEND CMAKE_CXX_FLAGS " /clang:-fno-trapping-math")
-    # Avoid overhead of setting `errno` for NaNs.
-    string(APPEND CMAKE_CXX_FLAGS " /clang:-fno-math-errno")
-    # Let compiler optimize 0.0 - x without worrying about signed zeros.
-    string(APPEND CMAKE_CXX_FLAGS " /clang:-fno-signed-zeros")
-  else()
-    string(APPEND CMAKE_CXX_FLAGS " -fno-trapping-math")
-    # Avoid overhead of setting `errno` for NaNs.
-    string(APPEND CMAKE_CXX_FLAGS " -fno-math-errno")
-    # Let compiler optimize 0.0 - x without worrying about signed zeros.
-    string(APPEND CMAKE_CXX_FLAGS " -fno-signed-zeros")
-  endif()
+  list(APPEND CYCLES_MATH_FLAGS "-fno-trapping-math")
+  # Avoid overhead of setting `errno` for NaNs.
+  list(APPEND CYCLES_MATH_FLAGS "-fno-math-errno")
+  # Let compiler optimize 0.0 - x without worrying about signed zeros.
+  list(APPEND CYCLES_MATH_FLAGS "-fno-signed-zeros")
 
   if(CMAKE_COMPILER_IS_GNUCC)
     # Assume no signal trapping for better code generation.
-    string(APPEND CMAKE_CXX_FLAGS " -fno-signaling-nans")
+    list(APPEND CYCLES_MATH_FLAGS "-fno-signaling-nans")
     # Assume a fixed rounding mode for better constant folding.
-    string(APPEND CMAKE_CXX_FLAGS " -fno-rounding-math")
+    list(APPEND CYCLES_MATH_FLAGS "-fno-rounding-math")
 
     if(CXX_HAS_SSE42)
-      string(APPEND CMAKE_CXX_FLAGS " -mfpmath=sse")
+      list(APPEND CYCLES_MATH_FLAGS "-mfpmath=sse")
     endif()
   endif()
+
+  if(WIN32 AND MSVC)
+    # Pass clang flags directly to clang otherwise. Clang-cl doesn't recognize
+    # these flags by default
+    list(TRANSFORM CYCLES_MATH_FLAGS PREPEND "/clang:")
+  endif()
+
+  list(JOIN CYCLES_MATH_FLAGS " " CYCLES_MATH_FLAGS)
+  string(APPEND CMAKE_CXX_FLAGS " ${CYCLES_MATH_FLAGS}")
 endif()
 
 # Definitions and Includes
