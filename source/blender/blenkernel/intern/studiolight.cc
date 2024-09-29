@@ -765,7 +765,7 @@ static void studiolight_irradiance_preview(uint *icon_buffer, StudioLight *sl)
       std::swap(normal[1], normal[2]);
       normal[1] = -normal[1];
 
-      studiolight_lights_eval(sl, color, normal);
+      studiolight_lights_eval(sl, normal, color);
 
       *pixel = rgb_to_cpack(linearrgb_to_srgb(color[0]),
                             linearrgb_to_srgb(color[1]),
