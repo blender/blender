@@ -158,6 +158,14 @@ elseif(CMAKE_COMPILER_IS_GNUCC OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
   list(APPEND CYCLES_MATH_FLAGS "-fno-math-errno")
   # Let compiler optimize 0.0 - x without worrying about signed zeros.
   list(APPEND CYCLES_MATH_FLAGS "-fno-signed-zeros")
+  # Let the compiler generate fused multiply-add instructions
+  list(APPEND CYCLES_MATH_FLAGS "-ffp-contract=fast")
+  # Let the compiler replace x/y with x*(1/y)
+  list(APPEND CYCLES_MATH_FLAGS "-freciprocal-math")
+  # Let the compiler reorder terms to save operations
+  list(APPEND CYCLES_MATH_FLAGS "-fassociative-math")
+  # Don't enable -ffinite-math-only since the BVH code relies on NaNs.
+  # Otherwise, we could just use -ffast-math.
 
   if(CMAKE_COMPILER_IS_GNUCC)
     # Assume no signal trapping for better code generation.
