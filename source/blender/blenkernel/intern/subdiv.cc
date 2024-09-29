@@ -22,7 +22,7 @@
 #include "opensubdiv_capi.hh"
 #include "opensubdiv_converter_capi.hh"
 #include "opensubdiv_evaluator_capi.hh"
-#ifdef WITH_OPENVDB
+#ifdef WITH_OPENSUBDIV
 #  include "opensubdiv_topology_refiner_capi.hh"
 #endif
 
