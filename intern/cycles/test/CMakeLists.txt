@@ -50,7 +50,7 @@ if(NOT APPLE)
     list(APPEND SRC
       util_float8_avx2_test.cpp
     )
-    set_source_files_properties(util_float8_avx2_test.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX2_KERNEL_FLAGS}")
+    set_source_files_properties(util_float8_avx2_test.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX2_FLAGS}")
   endif()
 endif()
 
