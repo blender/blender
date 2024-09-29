@@ -264,6 +264,37 @@ class USDImportTest(AbstractUSDTest):
         self.assertEqual(self.round_vector(node.inputs[1].default_value), [2, -2, 2])
         self.assertEqual(self.round_vector(node.inputs[2].default_value), [-1, 1, -1])
 
+    def test_import_material_subsets(self):
+        """Validate multiple materials assigned to the same mesh work correctly."""
+
+        # Use the existing materials test file to create the USD file
+        # for import. It is validated as part of the bl_usd_export test.
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_materials_multi.blend"))
+        # Ensure the simulation zone data is baked for all relevant frames...
+        for frame in range(1, 5):
+            bpy.context.scene.frame_set(frame)
+        bpy.context.scene.frame_set(1)
+
+        testfile = str(self.tempdir / "usd_materials_multi.usda")
+        res = bpy.ops.wm.usd_export(filepath=testfile, export_animation=True, evaluation_mode="RENDER")
+        self.assertEqual({'FINISHED'}, res, f"Unable to export to {testfile}")
+
+        # Reload the empty file and import back in
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
+        res = bpy.ops.wm.usd_import(filepath=testfile)
+        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {testfile}")
+
+        # The static mesh should have 4 materials each assigned to 4 faces (16 faces total)
+        static_mesh = bpy.data.objects["static_mesh"].data
+        material_index_attr = static_mesh.attributes["material_index"]
+        self.assertEqual(len(static_mesh.materials), 4)
+        self.assertEqual(len(static_mesh.polygons), 16)
+        self.assertEqual(len(material_index_attr.data), 16)
+
+        for mat_index in range(0, 4):
+            face_indices = [i for i, d in enumerate(material_index_attr.data) if d.value == mat_index]
+            self.assertEqual(len(face_indices), 4, f"Incorrect number of faces with material index {mat_index}")
+
     def test_import_shader_varname_with_connection(self):
         """Test importing USD shader where uv primvar is a connection"""
 
