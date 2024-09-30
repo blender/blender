@@ -787,12 +787,12 @@ static void rna_ActionGroup_channels_begin(CollectionPropertyIterator *iter, Poi
   }
 
   /* Group from a layered action. */
-  MutableSpan<FCurve *> fcurves = group->channel_bag->wrap().fcurves();
+  animrig::ChannelBag &cbag = group->channel_bag->wrap();
 
   custom_iter->tag = ActionGroupChannelsIterator::ARRAY;
-  custom_iter->array.ptr = reinterpret_cast<char *>(fcurves.data() + group->fcurve_range_start);
-  custom_iter->array.endptr = reinterpret_cast<char *>(fcurves.data() + group->fcurve_range_start +
-                                                       group->fcurve_range_length);
+  custom_iter->array.ptr = reinterpret_cast<char *>(cbag.fcurve_array + group->fcurve_range_start);
+  custom_iter->array.endptr = reinterpret_cast<char *>(
+      cbag.fcurve_array + group->fcurve_range_start + group->fcurve_range_length);
   custom_iter->array.itemsize = sizeof(FCurve *);
   custom_iter->array.length = group->fcurve_range_length;
 

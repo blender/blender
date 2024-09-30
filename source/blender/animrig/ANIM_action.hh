@@ -105,7 +105,7 @@ class Action : public ::bAction {
 
   /* Action Layers access. */
   blender::Span<const Layer *> layers() const;
-  blender::MutableSpan<Layer *> layers();
+  blender::Span<Layer *> layers();
   const Layer *layer(int64_t index) const;
   Layer *layer(int64_t index);
 
@@ -131,7 +131,7 @@ class Action : public ::bAction {
 
   /* Action Slot access. */
   blender::Span<const Slot *> slots() const;
-  blender::MutableSpan<Slot *> slots();
+  blender::Span<Slot *> slots();
   const Slot *slot(int64_t index) const;
   Slot *slot(int64_t index);
 
@@ -238,7 +238,7 @@ class Action : public ::bAction {
    * Strip data array access.
    */
   Span<const StripKeyframeData *> strip_keyframe_data() const;
-  MutableSpan<StripKeyframeData *> strip_keyframe_data();
+  Span<StripKeyframeData *> strip_keyframe_data();
 
   /**
    * Find the slot that best matches the animated ID.
@@ -555,7 +555,7 @@ class Layer : public ::ActionLayer {
 
   /* Strip access. */
   blender::Span<const Strip *> strips() const;
-  blender::MutableSpan<Strip *> strips();
+  blender::Span<Strip *> strips();
   const Strip *strip(int64_t index) const;
   Strip *strip(int64_t index);
 
@@ -745,7 +745,7 @@ class StripKeyframeData : public ::ActionStripKeyframeData {
 
   /* ChannelBag array access. */
   blender::Span<const ChannelBag *> channelbags() const;
-  blender::MutableSpan<ChannelBag *> channelbags();
+  blender::Span<ChannelBag *> channelbags();
   const ChannelBag *channelbag(int64_t index) const;
   ChannelBag *channelbag(int64_t index);
 
@@ -811,7 +811,7 @@ class ChannelBag : public ::ActionChannelBag {
 
   /* FCurves access. */
   blender::Span<const FCurve *> fcurves() const;
-  blender::MutableSpan<FCurve *> fcurves();
+  blender::Span<FCurve *> fcurves();
   const FCurve *fcurve(int64_t index) const;
   FCurve *fcurve(int64_t index);
 
@@ -927,7 +927,7 @@ class ChannelBag : public ::ActionChannelBag {
 
   /* Channel group access. */
   blender::Span<const bActionGroup *> channel_groups() const;
-  blender::MutableSpan<bActionGroup *> channel_groups();
+  blender::Span<bActionGroup *> channel_groups();
   const bActionGroup *channel_group(int64_t index) const;
   bActionGroup *channel_group(int64_t index);
 

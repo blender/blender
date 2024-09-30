@@ -1722,7 +1722,7 @@ static void rearrange_layered_action_channel_groups(bAnimContext *ac,
           continue;
         }
         blender::animrig::ChannelBag &bag = group->channel_bag->wrap();
-        const int group_index = bag.channel_groups().as_span().first_index_try(group);
+        const int group_index = bag.channel_groups().first_index_try(group);
         const int to_index = group_index - 1;
         BLI_assert(group_index >= 0);
 
@@ -1760,7 +1760,7 @@ static void rearrange_layered_action_channel_groups(bAnimContext *ac,
           continue;
         }
         blender::animrig::ChannelBag &bag = group->channel_bag->wrap();
-        const int group_index = bag.channel_groups().as_span().first_index_try(group);
+        const int group_index = bag.channel_groups().first_index_try(group);
         const int to_index = group_index + 1;
         BLI_assert(group_index >= 0);
 
@@ -1874,7 +1874,7 @@ static void rearrange_layered_action_fcurves(bAnimContext *ac,
         }
 
         blender::animrig::ChannelBag &bag = group.channel_bag->wrap();
-        const int fcurve_index = bag.fcurves().as_span().first_index_try(fcurve);
+        const int fcurve_index = bag.fcurves().first_index_try(fcurve);
         const int to_index = fcurve_index - 1;
 
         /* We skip moving when the destination is also selected because that
@@ -1917,7 +1917,7 @@ static void rearrange_layered_action_fcurves(bAnimContext *ac,
         }
 
         blender::animrig::ChannelBag &bag = group.channel_bag->wrap();
-        const int fcurve_index = bag.fcurves().as_span().first_index_try(fcurve);
+        const int fcurve_index = bag.fcurves().first_index_try(fcurve);
         const int to_index = fcurve_index + 1;
 
         /* We skip moving when the destination is also selected because that
