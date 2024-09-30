@@ -251,7 +251,7 @@ static void node_eval_inverse_elem(value_elem::InverseElemEvalParams &params)
 
 static void node_eval_inverse(inverse_eval::InverseEvalParams &params)
 {
-  const NodeMathOperation op = NodeMathOperation(params.node.custom1);
+  const NodeIntegerMathOperation op = NodeIntegerMathOperation(params.node.custom1);
   const StringRef first_input_id = "Value";
   const StringRef second_input_id = "Value_001";
   const StringRef output_id = "Value";
