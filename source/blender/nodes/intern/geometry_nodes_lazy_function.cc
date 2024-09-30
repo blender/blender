@@ -3109,7 +3109,7 @@ void LazyFunctionForReduceForeachGeometryElement::handle_generation_items_group(
   AttributeFilter attribute_filter;
 
   const int bodies_num = eval_storage_.lf_body_nodes.size();
-  Array<GeometrySet> geometries(bodies_num);
+  Array<GeometrySet> geometries(bodies_num + 1);
 
   /* Create attribute names for the outputs. */
   Array<std::string> attribute_names(generation_items_range.size());
@@ -3250,6 +3250,11 @@ void LazyFunctionForReduceForeachGeometryElement::handle_generation_items_group(
       }
     });
   }
+
+  /* The last geometry contains the edit data from the main geometry. */
+  GeometrySet &edit_data_geometry = geometries.last();
+  edit_data_geometry = eval_storage_.main_geometry;
+  edit_data_geometry.keep_only({GeometryComponent::Type::Edit});
 
   /* Join the geometries from all iterations into a single one. */
   GeometrySet joined_geometry = geometry::join_geometries(geometries, attribute_filter);
