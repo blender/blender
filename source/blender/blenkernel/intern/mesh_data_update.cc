@@ -1210,6 +1210,9 @@ Mesh *mesh_get_eval_deform(Depsgraph *depsgraph,
       !CustomData_MeshMasks_are_matching(&(ob->runtime->last_data_mask), &cddata_masks) ||
       (need_mapping && !ob->runtime->last_need_mapping))
   {
+    /* FIXME: this block may leak memory (& assert) because it runs #BKE_object_eval_assign_data
+     * intended only to run during depsgraph-evaluation that overwrites the evaluated mesh
+     * without freeing beforehand, see: !128228. */
     CustomData_MeshMasks_update(&cddata_masks, &ob->runtime->last_data_mask);
     mesh_build_data(
         *depsgraph, *scene, *ob, cddata_masks, need_mapping || ob->runtime->last_need_mapping);
@@ -1266,6 +1269,9 @@ Mesh *editbmesh_get_eval_cage(Depsgraph *depsgraph,
   if (!obedit->runtime->editmesh_eval_cage ||
       !CustomData_MeshMasks_are_matching(&(obedit->runtime->last_data_mask), &cddata_masks))
   {
+    /* FIXME: this block may leak memory (& assert) because it runs #BKE_object_eval_assign_data
+     * intended only to run during depsgraph-evaluation that overwrites the evaluated mesh
+     * without freeing beforehand, see: !128228. */
     editbmesh_build_data(*depsgraph, *scene, *obedit, cddata_masks);
   }
 
