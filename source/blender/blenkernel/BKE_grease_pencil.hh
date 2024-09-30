@@ -1035,7 +1035,7 @@ GreasePencil *BKE_grease_pencil_new_nomain();
 GreasePencil *BKE_grease_pencil_copy_for_eval(const GreasePencil *grease_pencil_src);
 /**
  * Move data from a grease pencil outside of the main data-base into a grease pencil in the
- * data-base. Takes ownership of the source mesh. */
+ * data-base. Takes ownership of the source grease pencil. */
 void BKE_grease_pencil_nomain_to_grease_pencil(GreasePencil *grease_pencil_src,
                                                GreasePencil *grease_pencil_dst);
 

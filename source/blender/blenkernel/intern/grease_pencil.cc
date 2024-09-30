@@ -1801,37 +1801,43 @@ void BKE_grease_pencil_nomain_to_grease_pencil(GreasePencil *grease_pencil_src,
 
   /* Drawings. */
   const int drawing_array_num = grease_pencil_src->drawing_array_num;
-  grease_pencil_dst->resize_drawings(drawing_array_num);
-  for (const int i : IndexRange(drawing_array_num)) {
-    if (grease_pencil_dst->drawing_array[i]) {
-      switch (grease_pencil_dst->drawing_array[i]->type) {
-        case GP_DRAWING:
-          MEM_delete(&reinterpret_cast<GreasePencilDrawing *>(grease_pencil_dst->drawing_array[i])
-                          ->wrap());
+  if (drawing_array_num > 0) {
+    grease_pencil_dst->resize_drawings(drawing_array_num);
+    for (const int i : IndexRange(drawing_array_num)) {
+      if (grease_pencil_dst->drawing_array[i]) {
+        switch (grease_pencil_dst->drawing_array[i]->type) {
+          case GP_DRAWING:
+            MEM_delete(
+                &reinterpret_cast<GreasePencilDrawing *>(grease_pencil_dst->drawing_array[i])
+                     ->wrap());
+            break;
+          case GP_DRAWING_REFERENCE:
+            MEM_delete(&reinterpret_cast<GreasePencilDrawingReference *>(
+                            grease_pencil_dst->drawing_array[i])
+                            ->wrap());
+            break;
+        }
+      }
+      switch (grease_pencil_src->drawing_array[i]->type) {
+        case GP_DRAWING: {
+          const Drawing &src_drawing =
+              reinterpret_cast<GreasePencilDrawing *>(grease_pencil_src->drawing_array[i])->wrap();
+          grease_pencil_dst->drawing_array[i] = reinterpret_cast<GreasePencilDrawingBase *>(
+              MEM_new<Drawing>(__func__, src_drawing));
           break;
+        }
         case GP_DRAWING_REFERENCE:
-          MEM_delete(&reinterpret_cast<GreasePencilDrawingReference *>(
-                          grease_pencil_dst->drawing_array[i])
-                          ->wrap());
+          const DrawingReference &src_drawing_ref =
+              reinterpret_cast<GreasePencilDrawingReference *>(grease_pencil_src->drawing_array[i])
+                  ->wrap();
+          grease_pencil_dst->drawing_array[i] = reinterpret_cast<GreasePencilDrawingBase *>(
+              MEM_new<DrawingReference>(__func__, src_drawing_ref));
           break;
       }
     }
-    switch (grease_pencil_src->drawing_array[i]->type) {
-      case GP_DRAWING: {
-        const Drawing &src_drawing =
-            reinterpret_cast<GreasePencilDrawing *>(grease_pencil_src->drawing_array[i])->wrap();
-        grease_pencil_dst->drawing_array[i] = reinterpret_cast<GreasePencilDrawingBase *>(
-            MEM_new<Drawing>(__func__, src_drawing));
-        break;
-      }
-      case GP_DRAWING_REFERENCE:
-        const DrawingReference &src_drawing_ref = reinterpret_cast<GreasePencilDrawingReference *>(
-                                                      grease_pencil_src->drawing_array[i])
-                                                      ->wrap();
-        grease_pencil_dst->drawing_array[i] = reinterpret_cast<GreasePencilDrawingBase *>(
-            MEM_new<DrawingReference>(__func__, src_drawing_ref));
-        break;
-    }
+  }
+  else {
+    free_drawing_array(*grease_pencil_dst);
   }
 
   /* Layers. */
@@ -1842,6 +1848,9 @@ void BKE_grease_pencil_nomain_to_grease_pencil(GreasePencil *grease_pencil_src,
   grease_pencil_dst->root_group_ptr = MEM_new<bke::greasepencil::LayerGroup>(
       __func__, grease_pencil_src->root_group_ptr->wrap());
   BLI_assert(grease_pencil_src->layers().size() == grease_pencil_dst->layers().size());
+
+  /* Reset the active node. */
+  grease_pencil_dst->active_node = nullptr;
 
   CustomData_init_from(&grease_pencil_src->layers_data,
                        &grease_pencil_dst->layers_data,
