@@ -46,6 +46,7 @@ void ShaderBuilder::init_system()
 {
   CLG_init();
   ghost_system_ = GHOST_CreateSystemBackground();
+  GPU_backend_ghost_system_set(ghost_system_);
 }
 
 bool ShaderBuilder::init_context()

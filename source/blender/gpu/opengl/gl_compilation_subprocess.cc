@@ -167,6 +167,7 @@ void GPU_compilation_subprocess_run(const char *subprocess_name)
 
   GHOST_SystemHandle ghost_system = GHOST_CreateSystemBackground();
   BLI_assert(ghost_system);
+  GPU_backend_ghost_system_set(ghost_system);
   GHOST_GPUSettings gpu_settings = {0};
   gpu_settings.context_type = GHOST_kDrawingContextTypeOpenGL;
   GHOST_ContextHandle ghost_context = GHOST_CreateGPUContext(ghost_system, gpu_settings);
