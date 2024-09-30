@@ -27,7 +27,14 @@ namespace blender::ed::space_node {
 
 VectorSet<bNode *> get_selected_nodes(bNodeTree &node_tree);
 
-void node_insert_on_link_flags_set(SpaceNode &snode, const ARegion &region, bool attach_enabled);
+/**
+ * \param is_new_node: If the node was just inserted, it is allowed to be inserted in a link, even
+ * if it is linked already (after link-drag-search).
+ */
+void node_insert_on_link_flags_set(SpaceNode &snode,
+                                   const ARegion &region,
+                                   bool attach_enabled,
+                                   bool is_new_node);
 
 /**
  * Assumes link with #NODE_LINK_INSERT_TARGET set.
