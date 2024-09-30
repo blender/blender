@@ -1829,6 +1829,12 @@ void ChannelBag::fcurve_move(FCurve &fcurve, int to_fcurve_index)
 void ChannelBag::fcurves_clear()
 {
   dna::array::clear(&this->fcurve_array, &this->fcurve_array_num, nullptr, fcurve_ptr_destructor);
+
+  /* Since all F-Curves are gone, the groups are all empty. */
+  for (bActionGroup *group : channel_groups()) {
+    group->fcurve_range_start = 0;
+    group->fcurve_range_length = 0;
+  }
 }
 
 SingleKeyingResult StripKeyframeData::keyframe_insert(Main *bmain,
