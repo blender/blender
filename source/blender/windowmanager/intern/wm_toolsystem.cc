@@ -115,6 +115,31 @@ bool WM_toolsystem_ref_ensure(WorkSpace *workspace, const bToolKey *tkey, bToolR
   return true;
 }
 
+/**
+ * Get the active tool for the current context (space and mode) if the current space supports tools
+ * or, fallback to the active tool of the 3D View in the current mode.
+ *
+ * Use this instead of #WM_toolsystem_ref_from_context() when usage from properties editors should
+ * be possible, which shows tool settings of the 3D View.
+ */
+static const bToolRef *toolsystem_active_tool_from_context_or_view3d(const bContext *C)
+{
+  /* Current space & mode has its own active tool, use that. */
+  const ScrArea *area = CTX_wm_area(C);
+  if (area && ((1 << area->spacetype) & WM_TOOLSYSTEM_SPACE_MASK)) {
+    return WM_toolsystem_ref_from_context(C);
+  }
+
+  /* Otherwise: Fallback to getting the active tool for 3D views. */
+  WorkSpace *workspace = CTX_wm_workspace(C);
+  const Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  bToolKey tkey{};
+  tkey.space_type = SPACE_VIEW3D;
+  tkey.mode = WM_toolsystem_mode_from_spacetype(scene, view_layer, nullptr, SPACE_VIEW3D);
+  return WM_toolsystem_ref_find(workspace, &tkey);
+}
+
 /** \} */
 
 static void toolsystem_unlink_ref(bContext *C, WorkSpace * /*workspace*/, bToolRef *tref)
@@ -171,7 +196,7 @@ static bool brush_type_is_compatible_with_active_tool(bContext *C, const int bru
     return false;
   }
 
-  const bToolRef *active_tool = WM_toolsystem_ref_from_context(C);
+  const bToolRef *active_tool = toolsystem_active_tool_from_context_or_view3d(C);
 
   BLI_assert(BKE_paintmode_get_active_from_context(C) == BKE_paintmode_get_from_tool(active_tool));
 
@@ -242,7 +267,7 @@ static void toolsystem_brush_type_binding_update(Paint *paint,
 
 bool WM_toolsystem_activate_brush_and_tool(bContext *C, Paint *paint, Brush *brush)
 {
-  const bToolRef *active_tool = WM_toolsystem_ref_from_context(C);
+  const bToolRef *active_tool = toolsystem_active_tool_from_context_or_view3d(C);
   const PaintMode paint_mode = BKE_paintmode_get_active_from_context(C);
 
   if (!BKE_paint_brush_set(paint, brush)) {
