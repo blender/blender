@@ -237,6 +237,7 @@ void ED_operatortypes_grease_pencil()
   ED_operatortypes_grease_pencil_layers();
   ED_operatortypes_grease_pencil_select();
   ED_operatortypes_grease_pencil_edit();
+  ED_operatortypes_grease_pencil_join();
   ED_operatortypes_grease_pencil_material();
   ED_operatortypes_grease_pencil_primitives();
   ED_operatortypes_grease_pencil_weight_paint();
