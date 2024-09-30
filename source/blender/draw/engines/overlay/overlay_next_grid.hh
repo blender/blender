@@ -56,7 +56,7 @@ class Grid {
       const float4 color_back = math::interpolate(
           res.theme_settings.color_background, res.theme_settings.color_grid, 0.5);
       sub.push_constant("ucolor", color_back);
-      sub.push_constant("tile_scale", data_.size);
+      sub.push_constant("tile_scale", float3(data_.size));
       sub.bind_texture("depthBuffer", &res.depth_tx);
       sub.draw(shapes.quad_solid.get());
     }
