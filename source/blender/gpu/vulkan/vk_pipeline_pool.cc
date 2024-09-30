@@ -691,7 +691,7 @@ static std::string pipeline_cache_filepath_get()
 
   std::string cache_dir = std::string(tmp_dir_buffer) + "vk-pipeline-cache" + SEP_STR;
   BLI_dir_create_recursive(cache_dir.c_str());
-  std::string cache_file = cache_dir + "static-shaders.bin";
+  std::string cache_file = cache_dir + "static.bin";
   return cache_file;
 }
 #endif
@@ -729,14 +729,15 @@ void VKPipelinePool::read_from_disk()
      * [https://medium.com/@zeuxcg/creating-a-robust-pipeline-cache-with-vulkan-961d09416cda]
      */
     MEM_freeN(buffer);
-    CLOG_WARN(&LOG,
+    CLOG_INFO(&LOG,
+              1,
               "Pipeline cache on disk [%s] is ignored as it was written by a different driver or "
-              "Blender version.",
+              "Blender version. Cache will be overwritten when exiting.",
               cache_file.c_str());
     return;
   }
 
-  CLOG_INFO(&LOG, 0, "Initialize static pipeline cache from disk [%s].", cache_file.c_str());
+  CLOG_INFO(&LOG, 1, "Initialize static pipeline cache from disk [%s].", cache_file.c_str());
   VKDevice &device = VKBackend::get().device;
   VkPipelineCacheCreateInfo create_info = {};
   create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
@@ -767,7 +768,7 @@ void VKPipelinePool::write_to_disk()
   vkGetPipelineCacheData(device.vk_handle(), vk_pipeline_cache_static_, &data_size, buffer);
 
   std::string cache_file = pipeline_cache_filepath_get();
-  CLOG_INFO(&LOG, 0, "Writing static pipeline cache to disk [%s].", cache_file.c_str());
+  CLOG_INFO(&LOG, 1, "Writing static pipeline cache to disk [%s].", cache_file.c_str());
 
   fstream file(cache_file, std::ios::binary | std::ios::out);
 
