@@ -3891,7 +3891,7 @@ static void *layer_setting_ptr(bAnimListElem *ale,
   return GET_ACF_FLAG_PTR(layer->base.flag, r_type);
 }
 
-static int layer_group_icon(bAnimListElem * ale)
+static int layer_group_icon(bAnimListElem *ale)
 {
   using namespace bke::greasepencil;
   const LayerGroup &group = *static_cast<LayerGroup *>(ale->data);
