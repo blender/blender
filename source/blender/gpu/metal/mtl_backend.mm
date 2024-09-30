@@ -28,6 +28,7 @@
 #include <Cocoa/Cocoa.h>
 #include <Metal/Metal.h>
 #include <QuartzCore/QuartzCore.h>
+#include <sys/sysctl.h>
 
 namespace blender::gpu {
 
@@ -285,6 +286,64 @@ bool supports_barycentric_whitelist(id<MTLDevice> device)
   return supported_gpu && should_support_barycentrics;
 }
 
+bool is_apple_sillicon(id<MTLDevice> device)
+{
+  NSString *gpu_name = [device name];
+  BLI_assert([gpu_name length]);
+
+  const char *vendor = [gpu_name UTF8String];
+
+  /* Known good configs. */
+  return (strstr(vendor, "Apple") || strstr(vendor, "APPLE"));
+}
+
+static int get_num_performance_cpu_cores(id<MTLDevice> device)
+{
+  const int SYSCTL_BUF_LENGTH = 16;
+  int num_performance_cores = -1;
+  unsigned char sysctl_buffer[SYSCTL_BUF_LENGTH];
+  size_t sysctl_buffer_length = SYSCTL_BUF_LENGTH;
+
+  if (is_apple_sillicon(device)) {
+    /* On Apple Silicon query the number of performance cores */
+    if (sysctlbyname("hw.perflevel0.logicalcpu", &sysctl_buffer, &sysctl_buffer_length, NULL, 0) ==
+        0)
+    {
+      num_performance_cores = sysctl_buffer[0];
+    }
+  }
+  else {
+    /* On Intel just return the logical core count */
+    if (sysctlbyname("hw.logicalcpu", &sysctl_buffer, &sysctl_buffer_length, NULL, 0) == 0) {
+      num_performance_cores = sysctl_buffer[0];
+    }
+  }
+  BLI_assert(num_performance_cores != -1);
+  return num_performance_cores;
+}
+
+static int get_num_efficiency_cpu_cores(id<MTLDevice> device)
+{
+  if (is_apple_sillicon(device)) {
+    /* On Apple Silicon query the number of efficiency cores */
+    const int SYSCTL_BUF_LENGTH = 16;
+    int num_efficiency_cores = -1;
+    unsigned char sysctl_buffer[SYSCTL_BUF_LENGTH];
+    size_t sysctl_buffer_length = SYSCTL_BUF_LENGTH;
+    if (sysctlbyname("hw.perflevel1.logicalcpu", &sysctl_buffer, &sysctl_buffer_length, NULL, 0) ==
+        0)
+    {
+      num_efficiency_cores = sysctl_buffer[0];
+    }
+
+    BLI_assert(num_efficiency_cores != -1);
+    return num_efficiency_cores;
+  }
+  else {
+    return 0;
+  }
+}
+
 bool MTLBackend::metal_is_supported()
 {
   /* Device compatibility information using Metal Feature-set tables.
@@ -392,6 +451,10 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
   }
 #endif
 
+  /* CPU Info */
+  MTLBackend::capabilities.num_performance_cores = get_num_performance_cpu_cores(ctx->device);
+  MTLBackend::capabilities.num_efficiency_cores = get_num_efficiency_cpu_cores(ctx->device);
+
   /* Common Global Capabilities. */
   GCaps.max_texture_size = ([device supportsFamily:MTLGPUFamilyApple3] ||
                             MTLBackend::capabilities.supports_family_mac1) ?
@@ -429,6 +492,9 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
   GCaps.hdr_viewport_support = true;
 
   GCaps.geometry_shader_support = false;
+
+  /* Compile shaders on performance cores but leave one free so UI is still responsive */
+  GCaps.max_parallel_compilations = MTLBackend::capabilities.num_performance_cores - 1;
 
   /* Maximum buffer bindings: 31. Consider required slot for uniforms/UBOs/Vertex attributes.
    * Can use argument buffers if a higher limit is required. */

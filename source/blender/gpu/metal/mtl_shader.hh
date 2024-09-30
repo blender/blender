@@ -20,6 +20,7 @@
 #include <functional>
 #include <unordered_map>
 
+#include <deque>
 #include <mutex>
 #include <thread>
 
@@ -264,8 +265,13 @@ class MTLShader : public Shader {
   void *push_constant_data_ = nullptr;
   bool push_constant_modified_ = false;
 
-  /** Special definition for Max TotalThreadsPerThreadgroup tuning. */
+  /* Special definition for Max TotalThreadsPerThreadgroup tuning. */
   uint maxTotalThreadsPerThreadgroup_Tuning_ = 0;
+
+  /* Set to true when batch compiling */
+  bool async_compilation_ = false;
+
+  bool finalize_shader(const shader::ShaderCreateInfo *info = nullptr);
 
  public:
   MTLShader(MTLContext *ctx, const char *name);
@@ -278,7 +284,7 @@ class MTLShader : public Shader {
             NSString *fragment_function_name_);
   ~MTLShader();
 
-  void init(const shader::ShaderCreateInfo & /*info*/, bool /*is_batch_compilation*/) override {}
+  void init(const shader::ShaderCreateInfo & /*info*/, bool is_batch_compilation) override;
 
   /* Assign GLSL source. */
   void vertex_shader_from_glsl(MutableSpan<const char *> sources) override;
@@ -295,6 +301,14 @@ class MTLShader : public Shader {
   bool is_valid()
   {
     return valid_;
+  }
+  bool has_compute_shader_lib()
+  {
+    return (shader_library_compute_ != nil);
+  }
+  bool has_parent_shader()
+  {
+    return (parent_shader_ != nil);
   }
   MTLRenderPipelineStateDescriptor &get_current_pipeline_state()
   {
@@ -375,7 +389,9 @@ class MTLShader : public Shader {
       MTLPrimitiveTopologyClass prim_type,
       const MTLRenderPipelineStateDescriptor &pipeline_descriptor);
 
-  MTLComputePipelineStateInstance *bake_compute_pipeline_state(MTLContext *ctx);
+  MTLComputePipelineStateInstance *bake_compute_pipeline_state(
+      MTLContext *ctx, MTLComputePipelineStateDescriptor &compute_pipeline_descriptor);
+
   const MTLComputePipelineStateCommon &get_compute_common_state()
   {
     return compute_pso_common_state_;
@@ -390,6 +406,94 @@ class MTLShader : public Shader {
   bool generate_msl_from_glsl_compute(const shader::ShaderCreateInfo *info);
 
   MEM_CXX_CLASS_ALLOC_FUNCS("MTLShader");
+};
+
+class MTLParallelShaderCompiler {
+ private:
+  enum ParallelWorkType {
+    PARALLELWORKTYPE_UNSPECIFIED,
+    PARALLELWORKTYPE_COMPILE_SHADER,
+    PARALLELWORKTYPE_BAKE_PSO,
+  };
+
+  struct ParallelWork {
+    const shader::ShaderCreateInfo *info = nullptr;
+    class MTLShaderCompiler *shader_compiler = nullptr;
+    MTLShader *shader = nullptr;
+    Vector<Shader::Constants::Value> specialization_values;
+
+    ParallelWorkType work_type = PARALLELWORKTYPE_UNSPECIFIED;
+    bool is_ready = false;
+  };
+
+  struct Batch {
+    Vector<ParallelWork *> items;
+    bool is_ready = false;
+  };
+
+  std::mutex batch_mutex;
+  BatchHandle next_batch_handle = 1;
+  Map<BatchHandle, Batch> batches;
+
+  std::vector<std::thread> compile_threads;
+
+  volatile bool terminate_compile_threads;
+  std::condition_variable cond_var;
+  std::mutex queue_mutex;
+  std::deque<ParallelWork *> parallel_work_queue;
+
+  void parallel_compilation_thread_func(GPUContext *blender_gpu_context);
+  BatchHandle create_batch(size_t batch_size);
+  void add_item_to_batch(ParallelWork *work_item, BatchHandle batch_handle);
+  void add_parallel_item_to_queue(ParallelWork *add_parallel_item_to_queuework_item,
+                                  BatchHandle batch_handle);
+
+  std::atomic<int> ref_count;
+
+ public:
+  MTLParallelShaderCompiler();
+  ~MTLParallelShaderCompiler();
+
+  void create_compile_threads();
+  BatchHandle batch_compile(MTLShaderCompiler *shade_compiler,
+                            Span<const shader::ShaderCreateInfo *> &infos);
+  bool batch_is_ready(BatchHandle handle);
+  Vector<Shader *> batch_finalize(BatchHandle &handle);
+
+  SpecializationBatchHandle precompile_specializations(Span<ShaderSpecialization> specializations);
+  bool specialization_batch_is_ready(SpecializationBatchHandle &handle);
+
+  void increment_ref_count()
+  {
+    ref_count++;
+  }
+  void decrement_ref_count()
+  {
+    ref_count--;
+  }
+  int get_ref_count()
+  {
+    return ref_count;
+  }
+};
+
+class MTLShaderCompiler : public ShaderCompiler {
+ private:
+  MTLParallelShaderCompiler *parallel_shader_compiler;
+
+ public:
+  MTLShaderCompiler();
+  virtual ~MTLShaderCompiler() override;
+
+  virtual BatchHandle batch_compile(Span<const shader::ShaderCreateInfo *> &infos) override;
+  virtual bool batch_is_ready(BatchHandle handle) override;
+  virtual Vector<Shader *> batch_finalize(BatchHandle &handle) override;
+
+  virtual SpecializationBatchHandle precompile_specializations(
+      Span<ShaderSpecialization> specializations) override;
+  virtual bool specialization_batch_is_ready(SpecializationBatchHandle &handle) override;
+
+  void release_parallel_shader_compiler();
 };
 
 /* Vertex format conversion.

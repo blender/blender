@@ -1844,6 +1844,7 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
     GHOST_SetBacktraceHandler((GHOST_TBacktraceFn)BLI_system_backtrace);
 
     ps.ghost_data.system = GHOST_CreateSystem();
+    GPU_backend_ghost_system_set(ps.ghost_data.system);
 
     if (UNLIKELY(ps.ghost_data.system == nullptr)) {
       /* GHOST will have reported the back-ends that failed to load. */
