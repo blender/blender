@@ -137,7 +137,7 @@ class RootGeometryViewItem : public InstancesTreeViewItem {
  public:
   RootGeometryViewItem(const bke::GeometrySet &geometry)
   {
-    label_ = geometry.name.empty() ? IFACE_("Geometry") : geometry.name;
+    label_ = geometry.name.empty() ? IFACE_("(Geometry)") : geometry.name;
   }
 
   void build_row(uiLayout &row) override
@@ -165,7 +165,7 @@ class InstanceReferenceViewItem : public InstancesTreeViewItem {
     const int icon = get_instance_reference_icon(reference_);
     StringRefNull name = reference_.name();
     if (name.is_empty()) {
-      name = IFACE_("Geometry");
+      name = IFACE_("(Geometry)");
     }
     uiItemL(&row, name.c_str(), icon);
     draw_count(*this, user_count_);

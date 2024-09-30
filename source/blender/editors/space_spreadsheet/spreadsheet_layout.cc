@@ -218,7 +218,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
     }
     else if (data.type().is<bke::InstanceReference>()) {
       const bke::InstanceReference value = data.get<bke::InstanceReference>(real_index);
-      const StringRefNull name = value.name().is_empty() ? IFACE_("Geometry") : value.name();
+      const StringRefNull name = value.name().is_empty() ? IFACE_("(Geometry)") : value.name();
       const int icon = get_instance_reference_icon(value);
       uiDefIconTextBut(params.block,
                        UI_BTYPE_LABEL,
