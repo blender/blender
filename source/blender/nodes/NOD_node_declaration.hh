@@ -459,6 +459,21 @@ class PanelDeclarationBuilder {
   typename DeclType::Builder &add_input(StringRef name, StringRef identifier = "");
   template<typename DeclType>
   typename DeclType::Builder &add_output(StringRef name, StringRef identifier = "");
+
+  BaseSocketDeclarationBuilder &add_input(eNodeSocketDatatype socket_type,
+                                          StringRef name,
+                                          StringRef identifier = "");
+  BaseSocketDeclarationBuilder &add_input(eCustomDataType data_type,
+                                          StringRef name,
+                                          StringRef identifier = "");
+  BaseSocketDeclarationBuilder &add_output(eNodeSocketDatatype socket_type,
+                                           StringRef name,
+                                           StringRef identifier = "");
+  BaseSocketDeclarationBuilder &add_output(eCustomDataType data_type,
+                                           StringRef name,
+                                           StringRef identifier = "");
+
+  void add_separator();
 };
 
 using PanelDeclarationPtr = std::unique_ptr<PanelDeclaration>;

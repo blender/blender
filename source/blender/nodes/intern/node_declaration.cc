@@ -234,7 +234,12 @@ bool NodeDeclaration::is_valid() const
       }
     }
     else if (dynamic_cast<const SeparatorDeclaration *>(item_decl.get())) {
-      /* Nothing to check. */
+      if (panel_states.size() > 1) {
+        --state.remaining_items;
+        if (state.remaining_items == 0) {
+          panel_states.pop();
+        }
+      }
     }
     else {
       BLI_assert_unreachable();
@@ -503,6 +508,59 @@ BaseSocketDeclarationBuilder &NodeDeclarationBuilder::add_output(const eCustomDa
 void NodeDeclarationBuilder::add_separator()
 {
   declaration_.items.append(std::make_unique<SeparatorDeclaration>());
+}
+
+BaseSocketDeclarationBuilder &PanelDeclarationBuilder::add_input(
+    const eNodeSocketDatatype socket_type, const StringRef name, const StringRef identifier)
+{
+  BaseSocketDeclarationBuilder *decl = nullptr;
+  socket_type_to_static_decl_type(socket_type, [&](auto type_tag) {
+    using DeclT = typename decltype(type_tag)::type;
+    decl = &this->add_input<DeclT>(name, identifier);
+  });
+  if (!decl) {
+    BLI_assert_unreachable();
+    decl = &this->add_input<decl::Float>("", "");
+  }
+  return *decl;
+}
+
+BaseSocketDeclarationBuilder &PanelDeclarationBuilder::add_input(const eCustomDataType data_type,
+                                                                 const StringRef name,
+                                                                 const StringRef identifier)
+{
+  return this->add_input(*bke::custom_data_type_to_socket_type(data_type), name, identifier);
+}
+
+BaseSocketDeclarationBuilder &PanelDeclarationBuilder::add_output(
+    const eNodeSocketDatatype socket_type, const StringRef name, const StringRef identifier)
+{
+  BaseSocketDeclarationBuilder *decl = nullptr;
+  socket_type_to_static_decl_type(socket_type, [&](auto type_tag) {
+    using DeclT = typename decltype(type_tag)::type;
+    decl = &this->add_output<DeclT>(name, identifier);
+  });
+  if (!decl) {
+    BLI_assert_unreachable();
+    decl = &this->add_output<decl::Float>("", "");
+  }
+  return *decl;
+}
+
+BaseSocketDeclarationBuilder &PanelDeclarationBuilder::add_output(const eCustomDataType data_type,
+                                                                  const StringRef name,
+                                                                  const StringRef identifier)
+{
+  return this->add_output(*bke::custom_data_type_to_socket_type(data_type), name, identifier);
+}
+
+void PanelDeclarationBuilder::add_separator()
+{
+  if (is_complete_) {
+    BLI_assert_unreachable();
+  }
+  ++this->decl_->num_child_decls;
+  node_decl_builder_->add_separator();
 }
 
 BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::supports_field()

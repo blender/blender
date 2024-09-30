@@ -685,8 +685,8 @@ static Vector<NodeInterfaceItemData> node_build_item_data(bNode &node)
       ++panel_runtime;
     }
     else if (dynamic_cast<const nodes::SeparatorDeclaration *>(item_decl->get())) {
-      ++item_decl;
       result.append(NodeInterfaceItemData::separator());
+      ++item_decl;
     }
   }
   return result;
@@ -894,18 +894,20 @@ static void add_panel_items_recursive(const bContext &C,
       }
     }
     else if (item.is_valid_separator()) {
-      uiLayout *layout = UI_block_layout(&block,
-                                         UI_LAYOUT_VERTICAL,
-                                         UI_LAYOUT_PANEL,
-                                         locx + NODE_DYS,
-                                         locy,
-                                         NODE_WIDTH(node) - NODE_DY,
-                                         NODE_DY,
-                                         0,
-                                         UI_style_get_dpi());
-      uiItemS_ex(layout, 1.0, LayoutSeparatorType::Line);
-      UI_block_layout_resolve(&block, nullptr, nullptr);
-      locy -= NODE_ITEM_SPACING_Y;
+      if (!is_parent_collapsed) {
+        uiLayout *layout = UI_block_layout(&block,
+                                           UI_LAYOUT_VERTICAL,
+                                           UI_LAYOUT_PANEL,
+                                           locx + NODE_DYS,
+                                           locy,
+                                           NODE_WIDTH(node) - NODE_DY,
+                                           NODE_DY,
+                                           0,
+                                           UI_style_get_dpi());
+        uiItemS_ex(layout, 1.0, LayoutSeparatorType::Line);
+        UI_block_layout_resolve(&block, nullptr, nullptr);
+        locy -= NODE_ITEM_SPACING_Y;
+      }
     }
     else {
       /* Should not happen. */
