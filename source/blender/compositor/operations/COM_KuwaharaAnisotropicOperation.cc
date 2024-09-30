@@ -266,7 +266,15 @@ void KuwaharaAnisotropicOperation::update_memory_buffer_partial(MemoryBuffer *ou
       sum_of_weights += weight;
       weighted_sum += color_mean * weight;
     }
-    weighted_sum /= sum_of_weights;
+
+    /* Fallback to the original color if all sector weights are zero due to very high standard
+     * deviation and sharpness. */
+    if (sum_of_weights == 0.0f) {
+      weighted_sum = center_color;
+    }
+    else {
+      weighted_sum /= sum_of_weights;
+    }
 
     copy_v4_v4(it.out, weighted_sum);
   }
