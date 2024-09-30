@@ -282,6 +282,7 @@ void BKE_animdata_free(ID *id, const bool do_id_user)
       const bool unassign_ok = blender::animrig::unassign_action(*id);
       BLI_assert_msg(unassign_ok,
                      "Expecting action un-assignment to always work when not in NLA tweak mode");
+      UNUSED_VARS_NDEBUG(unassign_ok);
 #else
       id_us_min(&adt->action->id);
 #endif
@@ -293,6 +294,7 @@ void BKE_animdata_free(ID *id, const bool do_id_user)
       BLI_assert_unreachable();
       const bool unassign_ok = blender::animrig::assign_tmpaction(nullptr, {*id, *adt});
       BLI_assert_msg(unassign_ok, "Expecting tmpaction un-assignment to always work");
+      UNUSED_VARS_NDEBUG(unassign_ok);
 #else
       id_us_min(&adt->tmpact->id);
 #endif
