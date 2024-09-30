@@ -423,7 +423,7 @@ void Film::init(const int2 &extent, const rcti *output_rect)
       int index = -1;
       if (enabled_passes_ & pass_type) {
         index = cryptomatte_id;
-        cryptomatte_id += data_.cryptomatte_samples_len / 2;
+        cryptomatte_id += divide_ceil_u(data_.cryptomatte_samples_len, 2u);
 
         if (inst_.is_viewport() && inst_.v3d->shading.render_pass == pass_type) {
           data_.display_id = index;
@@ -468,7 +468,8 @@ void Film::init(const int2 &extent, const rcti *output_rect)
                                              (data_.value_len > 0) ? data_.extent : int2(1),
                                              (data_.value_len > 0) ? data_.value_len : 1);
     /* Divided by two as two cryptomatte samples fit in pixel (RG, BA). */
-    int cryptomatte_array_len = cryptomatte_layer_len_get() * data_.cryptomatte_samples_len / 2;
+    int cryptomatte_array_len = cryptomatte_layer_len_get() *
+                                divide_ceil_u(data_.cryptomatte_samples_len, 2u);
     reset += cryptomatte_tx_.ensure_2d_array(cryptomatte_format,
                                              (cryptomatte_array_len > 0) ? data_.extent : int2(1),
                                              (cryptomatte_array_len > 0) ? cryptomatte_array_len :
