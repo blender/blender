@@ -79,6 +79,7 @@ void output_vertex_pair(const uint line_id,
 {
   GeomOut geom_out;
   geom_out.color = color;
+  geom_out.color.a *= alpha;
   geom_out.offset = offset;
 
   geom_out.gpu_position = geom_in[0].gpu_position;
