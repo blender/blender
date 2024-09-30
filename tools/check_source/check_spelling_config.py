@@ -578,6 +578,7 @@ dict_custom = {
     "multithreaded",
     "multithreading",
     "namespace",
+    "namespaces",
     "reparent",
     "tooltip",
     "unparent",

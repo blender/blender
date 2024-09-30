@@ -299,7 +299,7 @@ PointsRange copy_point_attributes(MutableSpan<PointsRange> selected_ranges,
 
 void copy_curve_attributes(Span<PointsRange> ranges_selected, bke::CurvesGeometry &dst_curves)
 {
-  /* The decission of which stroke use to copy the curve attribues is a bit arbitrary, since the
+  /* The decision of which stroke use to copy the curve attributes is a bit arbitrary, since the
    * original selection may embrace several strokes. The criteria is as follows:
    *  - If the selection contained points from the active layer, the first selected stroke from it
    * is used.

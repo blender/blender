@@ -48,7 +48,7 @@ enum class OutputSocketFieldType {
 };
 
 /**
- * A bit-field that maps to the realtime_compositor::InputRealizationOptions.
+ * A bit-field that maps to the #realtime_compositor::InputRealizationOptions.
  */
 enum class CompositorInputRealizationOptions : uint8_t {
   None = 0,

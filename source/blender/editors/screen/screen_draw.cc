@@ -181,7 +181,7 @@ void ED_screen_draw_edges(wmWindow *win)
   if (!active_area) {
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       AZone *zone = ED_area_actionzone_find_xy(area, win->eventstate->xy);
-      /* Get area from action zone, if not scrollbar. */
+      /* Get area from action zone, if not scroll-bar. */
       if (zone && zone->type != AZONE_REGION_SCROLL) {
         active_area = area;
         break;

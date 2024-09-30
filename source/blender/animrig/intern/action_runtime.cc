@@ -62,7 +62,7 @@ void rebuild_slot_user_cache(Main &bmain)
       if (!slot) {
         return true;
       }
-      /* Const cast because the foreach produces const Actions, and I (Sybren)
+      /* Constant cast because the `foreach` produces const Actions, and I (Sybren)
        * didn't want to make a non-const duplicate. */
       const_cast<Slot *>(slot)->users_add(*id);
       return true;

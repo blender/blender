@@ -192,7 +192,7 @@ PyObject *pyrna_struct_CreatePyObject_with_primitive_support(PointerRNA *ptr);
 PyObject *pyrna_struct_CreatePyObject(PointerRNA *ptr);
 PyObject *pyrna_prop_CreatePyObject(PointerRNA *ptr, PropertyRNA *prop);
 
-/* extern'd by other modules which don't deal closely with RNA */
+/* Made public for other modules which don't deal closely with RNA. */
 PyObject *pyrna_id_CreatePyObject(ID *id);
 bool pyrna_id_FromPyObject(PyObject *obj, ID **id);
 bool pyrna_id_CheckPyObject(PyObject *obj);

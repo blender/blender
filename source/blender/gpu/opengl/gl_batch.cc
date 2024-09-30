@@ -5,7 +5,7 @@
 /** \file
  * \ingroup gpu
  *
- * GL implementation of gpu::Batch.
+ * GL implementation of #gpu::Batch.
  * The only specificity of GL here is that it caches a list of
  * Vertex Array Objects based on the bound shader interface.
  */

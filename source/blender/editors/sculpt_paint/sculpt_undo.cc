@@ -240,7 +240,7 @@ struct StepData {
   std::mutex nodes_mutex;
 
   /**
-   * #undo::Node is stored per pbvh::Node to reduce data storage needed for changes only impacting
+   * #undo::Node is stored per #pbvh::Node to reduce data storage needed for changes only impacting
    * small portions of the mesh. During undo step creation and brush evaluation we often need to
    * look up the undo state for a specific node. That lookup must be protected by a lock since
    * nodes are pushed from multiple threads. This map speeds up undo node access to reduce the

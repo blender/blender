@@ -1818,7 +1818,7 @@ bool MTLShader::has_transform_feedback_varying(std::string str)
 
 /* Since this is going to be compiling shaders in a multi-threaded fashion we
  * don't want to create an instance per context as we want to restrict the
- * number of simultanenous compliation threads to ensure system respsonsiveness.
+ * number of simultaneous compilation threads to ensure system responsiveness.
  * Hence the global shared instance. */
 MTLParallelShaderCompiler *g_shared_parallel_shader_compiler = nullptr;
 std::mutex g_shared_parallel_shader_compiler_mutex;
@@ -1893,7 +1893,7 @@ void MTLParallelShaderCompiler::create_compile_threads()
   id<MTLDevice> metal_device = metal_context->device;
 
 #if defined(MAC_OS_VERSION_13_3)
-  /* Clamp the number of threads if neccessary. */
+  /* Clamp the number of threads if necessary. */
   if (@available(macOS 13.3, *)) {
     /* Check we've set the flag to allow more than 2 compile threads. */
     BLI_assert(metal_device.shouldMaximizeConcurrentCompilation);
@@ -2120,7 +2120,7 @@ SpecializationBatchHandle MTLParallelShaderCompiler::precompile_specializations(
      * We don't have the relevant info to create a Render PSO Descriptor unless
      * the shader has a has_parent_shader() but in that case it would (currently) be
      * invalid to apply specialization constants. For those reasons we currently only
-     * support precompilation of Compute shaders.
+     * support pre-compilation of Compute shaders.
      * (technically we could call makeFunction but the benefit would likely be minimal) */
     if (!sh->has_compute_shader_lib()) {
       continue;
