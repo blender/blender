@@ -236,7 +236,7 @@ const EnumPropertyItem rna_enum_space_file_browse_mode_items[] = {
   }
 #define SACT_ITEM_GPENCIL \
   { \
-    SACTCONT_GPENCIL, "GPENCIL", ICON_GREASEPENCIL, "Grease Pencil", \
+    SACTCONT_GPENCIL, "GPENCIL", ICON_OUTLINER_OB_GREASEPENCIL, "Grease Pencil", \
         "Edit timings for all Grease Pencil sketches in file" \
   }
 #define SACT_ITEM_MASK \
