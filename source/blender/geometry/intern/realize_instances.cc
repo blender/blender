@@ -2189,8 +2189,6 @@ static void execute_realize_grease_pencil_tasks(
   const int new_layers_num = last_task.start_index +
                              last_task.grease_pencil_info->grease_pencil->layers().size();
 
-  const GreasePencil &first_src_grease_pencil = *tasks.first().grease_pencil_info->grease_pencil;
-
   /* Allocate new grease pencil. */
   GreasePencil *dst_grease_pencil = BKE_grease_pencil_new_nomain();
   r_realized_geometry.replace_grease_pencil(dst_grease_pencil);
