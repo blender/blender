@@ -1036,9 +1036,7 @@ static void duplicate_layers(GeometrySet &geometry_set,
   }
 
   GreasePencil *new_grease_pencil = BKE_grease_pencil_new_nomain();
-  new_grease_pencil->material_array_num = src_grease_pencil.material_array_num;
-  new_grease_pencil->material_array = static_cast<Material **>(
-      MEM_dupallocN(src_grease_pencil.material_array));
+  BKE_grease_pencil_copy_parameters(src_grease_pencil, *new_grease_pencil);
 
   new_grease_pencil->add_layers_with_empty_drawings_for_eval(new_layers_num);
   static bke::CurvesGeometry static_empty_curves;
@@ -1053,11 +1051,7 @@ static void duplicate_layers(GeometrySet &geometry_set,
                                                           static_empty_curves;
     const StringRefNull src_layer_name = src_layer.name();
     for (Layer *new_layer : new_grease_pencil->layers_for_write().slice(range)) {
-      new_layer->opacity = src_layer.opacity;
-      new_layer->blend_mode = src_layer.blend_mode;
-      copy_v3_v3(new_layer->translation, src_layer.translation);
-      copy_v3_v3(new_layer->rotation, src_layer.rotation);
-      copy_v3_v3(new_layer->scale, src_layer.scale);
+      BKE_grease_pencil_copy_layer_parameters(src_layer, *new_layer);
       new_layer->set_name(src_layer_name);
       Drawing *new_drawing = new_grease_pencil->get_eval_drawing(*new_layer);
       new_drawing->strokes_for_write() = src_curves;
