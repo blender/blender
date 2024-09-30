@@ -977,6 +977,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
    */
   optional_device_extensions.push_back(VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME);
   optional_device_extensions.push_back(VK_EXT_SHADER_STENCIL_EXPORT_EXTENSION_NAME);
+  optional_device_extensions.push_back(VK_KHR_MAINTENANCE_4_EXTENSION_NAME);
 
   /* Enable MoltenVK required instance extensions. */
 #ifdef __APPLE__
@@ -1072,10 +1073,6 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
   }
 
   vulkan_device->users++;
-  /* Register optional device extensions */
-  if (vulkan_device->has_extensions({VK_KHR_MAINTENANCE_4_EXTENSION_NAME})) {
-    required_device_extensions.push_back(VK_KHR_MAINTENANCE_4_EXTENSION_NAME);
-  }
 #ifdef WITH_VULKAN_MOLTENVK
   /* According to the Vulkan specs, when `VK_KHR_portability_subset` is available it should be
    * enabled. See
