@@ -919,8 +919,10 @@ static CombinedKeyingResult insert_key_layered_action(Main *bmain,
 
     for (const int property_index : rna_values.index_range()) {
       /* If we're only keying one array element, skip all elements other than
-       * that one. */
-      if (rna_path.index.has_value() && *rna_path.index != property_index) {
+       * that one. index == -1 means 'all array elements' though, so that one is
+       * treated just like having no value here at all. */
+      if (rna_path.index.has_value() && *rna_path.index != -1 && *rna_path.index != property_index)
+      {
         continue;
       }
 
