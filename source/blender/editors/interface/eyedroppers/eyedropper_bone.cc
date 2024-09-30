@@ -106,14 +106,14 @@ static int bonedropper_init(bContext *C, wmOperator *op)
     return false;
   }
 
-  BoneDropper *bone_dropper = MEM_cnew<BoneDropper>(__func__);
+  BoneDropper *bone_dropper = MEM_new<BoneDropper>(__func__);
   uiButSearch *search_button = (uiButSearch *)button;
   bone_dropper->ptr = button_ptr;
   bone_dropper->prop = button_prop;
   bone_dropper->search_ptr = search_button->rnasearchpoin;
   bone_dropper->search_prop = search_button->rnasearchprop;
   if (!is_bone_dropper_valid(bone_dropper)) {
-    MEM_freeN(bone_dropper);
+    MEM_delete(bone_dropper);
     return false;
   }
 
@@ -138,15 +138,14 @@ static void bonedropper_exit(bContext *C, wmOperator *op)
 
   if (op->customdata) {
     BoneDropper *bdr = (BoneDropper *)op->customdata;
+    op->customdata = nullptr;
 
     if (bdr->area_region_type) {
       ED_region_draw_cb_exit(bdr->area_region_type, bdr->draw_handle_pixel);
     }
     ED_area_tag_redraw(bdr->cursor_area);
 
-    MEM_freeN(op->customdata);
-
-    op->customdata = nullptr;
+    MEM_delete(bdr);
   }
   WM_event_add_mousemove(win);
 }
