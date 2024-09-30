@@ -270,7 +270,8 @@ bool WM_toolsystem_activate_brush_and_tool(bContext *C, Paint *paint, Brush *bru
   const bToolRef *active_tool = toolsystem_active_tool_from_context_or_view3d(C);
   const PaintMode paint_mode = BKE_paintmode_get_active_from_context(C);
 
-  if (!BKE_paint_brush_set(paint, brush)) {
+  if (!BKE_paint_brush_poll(paint, brush)) {
+    /* Avoid switching tool when brush isn't valid for this mode anyway. */
     return false;
   }
 
@@ -286,6 +287,12 @@ bool WM_toolsystem_activate_brush_and_tool(bContext *C, Paint *paint, Brush *bru
           C, *brush_type);
       WM_toolsystem_ref_set_by_id(C, compatible_tool.value_or("builtin.brush").c_str());
     }
+  }
+
+  /* Do after switching tool, since switching tool will attempt to restore the last used brush of
+   * that tool (in #toolsystem_brush_activate_from_toolref_for_object_paint()). */
+  if (!BKE_paint_brush_set(paint, brush)) {
+    return false;
   }
 
   if (active_tool->runtime->brush_type == -1) {

@@ -646,6 +646,14 @@ const Brush *BKE_paint_brush_for_read(const Paint *paint)
   return paint ? paint->brush : nullptr;
 }
 
+bool BKE_paint_brush_poll(const Paint *paint, const Brush *brush)
+{
+  if (paint == nullptr) {
+    return false;
+  }
+  return !brush || (paint->runtime.ob_mode & brush->ob_mode) != 0;
+}
+
 static AssetWeakReference *asset_reference_create_from_brush(Brush *brush)
 {
   if (std::optional<AssetWeakReference> weak_ref = blender::bke::asset_edit_weak_reference_from_id(
@@ -671,8 +679,8 @@ bool BKE_paint_brush_set(Main *bmain,
   BLI_assert(brush == nullptr || blender::bke::asset_edit_id_is_editable(brush->id));
 
   /* Ensure we have a brush with appropriate mode to assign.
-   * Could happen if contents of asset blend was manually changed. */
-  if (brush && (paint->runtime.ob_mode & brush->ob_mode) == 0) {
+   * Could happen if contents of asset blend were manually changed. */
+  if (!BKE_paint_brush_poll(paint, brush)) {
     return false;
   }
 
@@ -694,10 +702,7 @@ bool BKE_paint_brush_set(Main *bmain,
 
 bool BKE_paint_brush_set(Paint *paint, Brush *brush)
 {
-  if (paint == nullptr) {
-    return false;
-  }
-  if (brush && (paint->runtime.ob_mode & brush->ob_mode) == 0) {
+  if (!BKE_paint_brush_poll(paint, brush)) {
     return false;
   }
 

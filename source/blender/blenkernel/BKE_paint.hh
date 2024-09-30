@@ -214,8 +214,14 @@ const Brush *BKE_paint_brush_for_read(const Paint *paint);
 Brush *BKE_paint_brush_from_essentials(Main *bmain, eObjectMode obmode, const char *name);
 
 /**
+ * Check if brush \a brush may be set/activated for \a paint. Passing null for \a brush will return
+ * true.
+ */
+bool BKE_paint_brush_poll(const Paint *paint, const Brush *brush);
+
+/**
  * Activates \a brush for painting, and updates #Paint.brush_asset_reference so the brush can be
- * restored after file read.
+ * restored after file read. No change is done if #BKE_paint_brush_poll() returns false.
  *
  * \return True on success. If \a brush is already active, this is considered a success (the brush
  * asset reference will still be updated).
