@@ -42,7 +42,11 @@ bool editable_grease_pencil_poll(bContext *C)
   if (!ED_operator_object_active_editable_ex(C, object)) {
     return false;
   }
-  if (!ELEM(object->mode, OB_MODE_EDIT, OB_MODE_SCULPT_GPENCIL_LEGACY)) {
+  if (!ELEM(object->mode,
+            OB_MODE_EDIT,
+            OB_MODE_SCULPT_GPENCIL_LEGACY,
+            OB_MODE_VERTEX_GPENCIL_LEGACY))
+  {
     return false;
   }
   return true;
