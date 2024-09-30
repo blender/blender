@@ -843,7 +843,7 @@ static void paint_brush_default_essentials_name_get(
             name = "Eraser Hard";
             break;
           case GPAINT_BRUSH_TYPE_FILL:
-            name = "Fill Area";
+            name = "Fill";
             break;
           case GPAINT_BRUSH_TYPE_DRAW:
           case GPAINT_BRUSH_TYPE_TINT:
