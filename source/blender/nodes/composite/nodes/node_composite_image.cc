@@ -462,7 +462,7 @@ class ImageOperation : public NodeOperation {
         context(), get_image(), get_image_user(), get_pass_name(identifier));
 
     Result &result = get_result(identifier);
-    if (!cached_image) {
+    if (!cached_image || !cached_image->is_allocated()) {
       result.allocate_invalid();
       return;
     }
