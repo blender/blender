@@ -174,6 +174,10 @@ void GLBackend::platform_init()
       {
         support_level = GPU_SUPPORT_LEVEL_LIMITED;
       }
+      /* A rare GPU that has z-fighting issues in edit mode. (see #128179) */
+      if (strstr(renderer, "HD Graphics 405")) {
+        support_level = GPU_SUPPORT_LEVEL_LIMITED;
+      }
       /* Latest Intel driver have bugs that won't allow Blender to start.
        * Users must install different version of the driver.
        * See #113124 for more information. */
