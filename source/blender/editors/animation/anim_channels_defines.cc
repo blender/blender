@@ -3891,9 +3891,15 @@ static void *layer_setting_ptr(bAnimListElem *ale,
   return GET_ACF_FLAG_PTR(layer->base.flag, r_type);
 }
 
-static int layer_group_icon(bAnimListElem * /*ale*/)
+static int layer_group_icon(bAnimListElem * ale)
 {
-  return ICON_GREASEPENCIL_LAYER_GROUP;
+  using namespace bke::greasepencil;
+  const LayerGroup &group = *static_cast<LayerGroup *>(ale->data);
+  int icon = ICON_GREASEPENCIL_LAYER_GROUP;
+  if (group.color_tag != LAYERGROUP_COLOR_NONE) {
+    icon = ICON_LAYERGROUP_COLOR_01 + group.color_tag;
+  }
+  return icon;
 }
 
 static void layer_group_color(bAnimContext * /*ac*/, bAnimListElem * /*ale*/, float r_color[3])

@@ -2947,7 +2947,12 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
           data.icon = ICON_OUTLINER_DATA_GP_LAYER;
         }
         else if (node.is_group()) {
+          const bke::greasepencil::LayerGroup &group = node.as_group();
+
           data.icon = ICON_GREASEPENCIL_LAYER_GROUP;
+          if (group.color_tag != LAYERGROUP_COLOR_NONE) {
+            data.icon = ICON_LAYERGROUP_COLOR_01 + group.color_tag;
+          }
         }
         break;
       }
