@@ -1792,6 +1792,17 @@ GreasePencil *BKE_grease_pencil_copy_for_eval(const GreasePencil *grease_pencil_
   return grease_pencil;
 }
 
+void BKE_grease_pencil_copy_parameters(const GreasePencil &src, GreasePencil &dst)
+{
+  dst.material_array_num = src.material_array_num;
+  dst.material_array = static_cast<Material **>(MEM_dupallocN(src.material_array));
+  dst.attributes_active_index = src.attributes_active_index;
+  dst.flag = src.flag;
+  BLI_duplicatelist(&dst.vertex_group_names, &src.vertex_group_names);
+  dst.vertex_group_active_index = src.vertex_group_active_index;
+  dst.onion_skinning_settings = src.onion_skinning_settings;
+}
+
 void BKE_grease_pencil_nomain_to_grease_pencil(GreasePencil *grease_pencil_src,
                                                GreasePencil *grease_pencil_dst)
 {
