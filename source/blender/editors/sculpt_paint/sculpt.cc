@@ -7514,7 +7514,7 @@ void filter_plane_trim_limit_factors(const Brush &brush,
   }
   const float threshold = cache.radius_squared * cache.plane_trim_squared;
   for (const int i : translations.index_range()) {
-    if (math::length_squared(translations[i]) <= threshold) {
+    if (math::length_squared(translations[i]) > threshold) {
       factors[i] = 0.0f;
     }
   }
