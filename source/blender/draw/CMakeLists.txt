@@ -290,6 +290,7 @@ set(SRC
   engines/overlay/overlay_engine.h
   engines/overlay/overlay_next_antialiasing.hh
   engines/overlay/overlay_next_armature.hh
+  engines/overlay/overlay_next_attribute_viewer.hh
   engines/overlay/overlay_next_background.hh
   engines/overlay/overlay_next_bounds.hh
   engines/overlay/overlay_next_camera.hh

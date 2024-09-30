@@ -201,6 +201,11 @@ class ShaderModule {
 
  public:
   /** Shaders */
+  ShaderPtr attribute_viewer_mesh;
+  ShaderPtr attribute_viewer_pointcloud;
+  ShaderPtr attribute_viewer_curve;
+  ShaderPtr attribute_viewer_curves;
+
   ShaderPtr anti_aliasing = shader("overlay_antialiasing");
   ShaderPtr armature_degrees_of_freedom;
   ShaderPtr background_fill = shader("overlay_background");
