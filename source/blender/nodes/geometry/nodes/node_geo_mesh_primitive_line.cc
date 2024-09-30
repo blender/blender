@@ -23,13 +23,13 @@ NODE_STORAGE_FUNCS(NodeGeometryMeshLine)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  auto &count = b.add_input<decl::Int>("Count").default_value(10).min(1).max(10000).description(
+  b.add_input<decl::Int>("Count").default_value(10).min(1).max(10000).description(
       "Number of vertices on the line");
-  auto &resolution = b.add_input<decl::Float>("Resolution")
-                         .default_value(1.0f)
-                         .min(0.1f)
-                         .subtype(PROP_DISTANCE)
-                         .description("Length of each individual edge");
+  b.add_input<decl::Float>("Resolution")
+      .default_value(1.0f)
+      .min(0.1f)
+      .subtype(PROP_DISTANCE)
+      .description("Length of each individual edge");
   b.add_input<decl::Vector>("Start Location")
       .subtype(PROP_TRANSLATION)
       .description("Position of the first vertex");
@@ -40,18 +40,6 @@ static void node_declare(NodeDeclarationBuilder &b)
           "In offset mode, the distance between each socket on each axis. In end points mode, the "
           "position of the final vertex");
   b.add_output<decl::Geometry>("Mesh");
-
-  const bNode *node = b.node_or_null();
-  if (node != nullptr) {
-    const NodeGeometryMeshLine &storage = node_storage(*node);
-    const GeometryNodeMeshLineMode mode = GeometryNodeMeshLineMode(storage.mode);
-    const GeometryNodeMeshLineCountMode count_mode = GeometryNodeMeshLineCountMode(
-        storage.count_mode);
-    count.available(mode == GEO_NODE_MESH_LINE_MODE_OFFSET ||
-                    count_mode == GEO_NODE_MESH_LINE_COUNT_TOTAL);
-    resolution.available(mode == GEO_NODE_MESH_LINE_MODE_END_POINTS &&
-                         count_mode == GEO_NODE_MESH_LINE_COUNT_RESOLUTION);
-  }
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -72,6 +60,32 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   node_storage->count_mode = GEO_NODE_MESH_LINE_COUNT_TOTAL;
 
   node->storage = node_storage;
+}
+
+static void node_update(bNodeTree *ntree, bNode *node)
+{
+  bNodeSocket *count_socket = static_cast<bNodeSocket *>(node->inputs.first);
+  bNodeSocket *resolution_socket = count_socket->next;
+  bNodeSocket *start_socket = resolution_socket->next;
+  bNodeSocket *end_and_offset_socket = start_socket->next;
+
+  const NodeGeometryMeshLine &storage = node_storage(*node);
+  const GeometryNodeMeshLineMode mode = (GeometryNodeMeshLineMode)storage.mode;
+  const GeometryNodeMeshLineCountMode count_mode = (GeometryNodeMeshLineCountMode)
+                                                       storage.count_mode;
+
+  node_sock_label(end_and_offset_socket,
+                  (mode == GEO_NODE_MESH_LINE_MODE_END_POINTS) ? N_("End Location") :
+                                                                 N_("Offset"));
+
+  bke::node_set_socket_availability(ntree,
+                                    resolution_socket,
+                                    mode == GEO_NODE_MESH_LINE_MODE_END_POINTS &&
+                                        count_mode == GEO_NODE_MESH_LINE_COUNT_RESOLUTION);
+  bke::node_set_socket_availability(ntree,
+                                    count_socket,
+                                    mode == GEO_NODE_MESH_LINE_MODE_OFFSET ||
+                                        count_mode == GEO_NODE_MESH_LINE_COUNT_TOTAL);
 }
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
@@ -215,6 +229,7 @@ static void node_register()
       &ntype, "NodeGeometryMeshLine", node_free_standard_storage, node_copy_standard_storage);
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
+  ntype.updatefunc = node_update;
   ntype.gather_link_search_ops = node_gather_link_searches;
   blender::bke::node_register_type(&ntype);
 
