@@ -307,6 +307,7 @@ DefNode(FunctionNode, FN_NODE_TRANSFORM_DIRECTION, 0, "TRANSFORM_DIRECTION", Tra
 DefNode(FunctionNode, FN_NODE_TRANSFORM_POINT, 0, "TRANSFORM_POINT", TransformPoint, "Transform Point", "")
 DefNode(FunctionNode, FN_NODE_TRANSPOSE_MATRIX, 0, "TRANSPOSE_MATRIX", TransposeMatrix, "Transpose Matrix", "")
 DefNode(FunctionNode, FN_NODE_VALUE_TO_STRING, 0, "VALUE_TO_STRING", ValueToString, "Value to String", "")
+DefNode(FunctionNode, FN_NODE_MATRIX_DETERMINANT, 0, "MATRIX_DETERMINANT", MatrixDeterminant, "Matrix Determinant", "")
 
 DefNode(GeometryNode, GEO_NODE_ACCUMULATE_FIELD, 0, "ACCUMULATE_FIELD", AccumulateField, "Accumulate Field", "Add the values of an evaluated field together and output the running total for each element")
 DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_DOMAIN_SIZE, 0, "ATTRIBUTE_DOMAIN_SIZE", AttributeDomainSize, "Domain Size", "Retrieve the number of elements in a geometry for each attribute domain")
