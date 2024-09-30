@@ -1153,17 +1153,6 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
     BLI_assert_msg(0, "invalid 'retval'");
   }
 
-  if (success == false) {
-    /* Remove from recent files list. */
-    if (do_history_file_update) {
-      RecentFile *recent = wm_file_history_find(filepath);
-      if (recent) {
-        wm_history_file_free(recent);
-        wm_history_file_write();
-      }
-    }
-  }
-
   WM_cursor_wait(false);
 
   wm_read_callback_post_wrapper(C, filepath, success);
