@@ -1035,6 +1035,11 @@ GreasePencil *BKE_grease_pencil_new_nomain();
 GreasePencil *BKE_grease_pencil_copy_for_eval(const GreasePencil *grease_pencil_src);
 /** Copy everything except the layer tree and the drawings. */
 void BKE_grease_pencil_copy_parameters(const GreasePencil &src, GreasePencil &dst);
+void BKE_grease_pencil_copy_layer_parameters(const blender::bke::greasepencil::Layer &src,
+                                             blender::bke::greasepencil::Layer &dst);
+void BKE_grease_pencil_copy_layer_group_parameters(
+    const blender::bke::greasepencil::LayerGroup &src,
+    blender::bke::greasepencil::LayerGroup &dst);
 /**
  * Move data from a grease pencil outside of the main data-base into a grease pencil in the
  * data-base. Takes ownership of the source grease pencil. */
