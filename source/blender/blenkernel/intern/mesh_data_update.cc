@@ -1134,7 +1134,10 @@ static void object_get_datamask(const Depsgraph &depsgraph,
     if (ob.mode & OB_MODE_WEIGHT_PAINT) {
       r_mask.vmask |= CD_MASK_MDEFORMVERT;
     }
+  }
 
+  /* Multiple objects can be in edit-mode at once. */
+  if (actob && (actob->mode & OB_MODE_EDIT)) {
     if (ob.mode & OB_MODE_EDIT) {
       r_mask.vmask |= CD_MASK_MVERT_SKIN;
     }
