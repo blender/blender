@@ -309,7 +309,7 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
   OperationKey armature_key(&armature->id, NodeType::ARMATURE, OperationCode::ARMATURE_EVAL);
   add_relation(armature_key, pose_init_key, "Data dependency");
   /* Run cleanup even when there are no bones. */
-  add_relation(pose_init_key, pose_cleanup_key, "Init -> Cleanup");
+  add_relation(pose_init_ik_key, pose_cleanup_key, "Init -> Cleanup");
   /* Relation to the instance, so that instancer can use pose of this object. */
   add_relation(ComponentKey(&object->id, NodeType::EVAL_POSE),
                OperationKey{&object->id, NodeType::INSTANCING, OperationCode::INSTANCE},
