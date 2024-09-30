@@ -394,79 +394,81 @@ void PanelDeclaration::update_or_build(const bNodePanelState &old_panel,
   SET_FLAG_FROM_TEST(new_panel.flag, old_panel.is_collapsed(), NODE_PANEL_COLLAPSED);
 }
 
-std::unique_ptr<SocketDeclaration> make_declaration_for_socket_type(
-    const eNodeSocketDatatype socket_type)
+template<typename Fn>
+static bool socket_type_to_static_decl_type(const eNodeSocketDatatype socket_type, Fn &&fn)
 {
   switch (socket_type) {
     case SOCK_FLOAT:
-      return std::make_unique<decl::Float>();
+      fn(TypeTag<decl::Float>());
+      return true;
     case SOCK_VECTOR:
-      return std::make_unique<decl::Vector>();
+      fn(TypeTag<decl::Vector>());
+      return true;
     case SOCK_RGBA:
-      return std::make_unique<decl::Color>();
+      fn(TypeTag<decl::Color>());
+      return true;
     case SOCK_BOOLEAN:
-      return std::make_unique<decl::Bool>();
+      fn(TypeTag<decl::Bool>());
+      return true;
     case SOCK_ROTATION:
-      return std::make_unique<decl::Rotation>();
+      fn(TypeTag<decl::Rotation>());
+      return true;
     case SOCK_MATRIX:
-      return std::make_unique<decl::Matrix>();
+      fn(TypeTag<decl::Matrix>());
+      return true;
     case SOCK_INT:
-      return std::make_unique<decl::Int>();
+      fn(TypeTag<decl::Int>());
+      return true;
     case SOCK_STRING:
-      return std::make_unique<decl::String>();
+      fn(TypeTag<decl::String>());
+      return true;
     case SOCK_GEOMETRY:
-      return std::make_unique<decl::Geometry>();
+      fn(TypeTag<decl::Geometry>());
+      return true;
     case SOCK_OBJECT:
-      return std::make_unique<decl::Object>();
+      fn(TypeTag<decl::Object>());
+      return true;
     case SOCK_IMAGE:
-      return std::make_unique<decl::Image>();
+      fn(TypeTag<decl::Image>());
+      return true;
     case SOCK_COLLECTION:
-      return std::make_unique<decl::Collection>();
+      fn(TypeTag<decl::Collection>());
+      return true;
     case SOCK_MATERIAL:
-      return std::make_unique<decl::Material>();
+      fn(TypeTag<decl::Material>());
+      return true;
     case SOCK_MENU:
-      return std::make_unique<decl::Menu>();
+      fn(TypeTag<decl::Menu>());
+      return true;
     default:
-      return {};
+      return false;
   }
+}
+
+std::unique_ptr<SocketDeclaration> make_declaration_for_socket_type(
+    const eNodeSocketDatatype socket_type)
+{
+  std::unique_ptr<SocketDeclaration> decl;
+  socket_type_to_static_decl_type(socket_type, [&](auto type_tag) {
+    using DeclT = typename decltype(type_tag)::type;
+    decl = std::make_unique<DeclT>();
+  });
+  return decl;
 }
 
 BaseSocketDeclarationBuilder &NodeDeclarationBuilder::add_input(
     const eNodeSocketDatatype socket_type, const StringRef name, const StringRef identifier)
 {
-  switch (socket_type) {
-    case SOCK_FLOAT:
-      return this->add_input<decl::Float>(name, identifier);
-    case SOCK_VECTOR:
-      return this->add_input<decl::Vector>(name, identifier);
-    case SOCK_RGBA:
-      return this->add_input<decl::Color>(name, identifier);
-    case SOCK_BOOLEAN:
-      return this->add_input<decl::Bool>(name, identifier);
-    case SOCK_ROTATION:
-      return this->add_input<decl::Rotation>(name, identifier);
-    case SOCK_MATRIX:
-      return this->add_input<decl::Matrix>(name, identifier);
-    case SOCK_INT:
-      return this->add_input<decl::Int>(name, identifier);
-    case SOCK_STRING:
-      return this->add_input<decl::String>(name, identifier);
-    case SOCK_GEOMETRY:
-      return this->add_input<decl::Geometry>(name, identifier);
-    case SOCK_OBJECT:
-      return this->add_input<decl::Object>(name, identifier);
-    case SOCK_IMAGE:
-      return this->add_input<decl::Image>(name, identifier);
-    case SOCK_COLLECTION:
-      return this->add_input<decl::Collection>(name, identifier);
-    case SOCK_MATERIAL:
-      return this->add_input<decl::Material>(name, identifier);
-    case SOCK_MENU:
-      return this->add_input<decl::Menu>(name, identifier);
-    default:
-      BLI_assert_unreachable();
-      return this->add_input<decl::Float>("", "");
+  BaseSocketDeclarationBuilder *decl = nullptr;
+  socket_type_to_static_decl_type(socket_type, [&](auto type_tag) {
+    using DeclT = typename decltype(type_tag)::type;
+    decl = &this->add_input<DeclT>(name, identifier);
+  });
+  if (!decl) {
+    BLI_assert_unreachable();
+    decl = &this->add_input<decl::Float>("", "");
   }
+  return *decl;
 }
 
 BaseSocketDeclarationBuilder &NodeDeclarationBuilder::add_input(const eCustomDataType data_type,
@@ -479,39 +481,16 @@ BaseSocketDeclarationBuilder &NodeDeclarationBuilder::add_input(const eCustomDat
 BaseSocketDeclarationBuilder &NodeDeclarationBuilder::add_output(
     const eNodeSocketDatatype socket_type, const StringRef name, const StringRef identifier)
 {
-  switch (socket_type) {
-    case SOCK_FLOAT:
-      return this->add_output<decl::Float>(name, identifier);
-    case SOCK_VECTOR:
-      return this->add_output<decl::Vector>(name, identifier);
-    case SOCK_RGBA:
-      return this->add_output<decl::Color>(name, identifier);
-    case SOCK_BOOLEAN:
-      return this->add_output<decl::Bool>(name, identifier);
-    case SOCK_ROTATION:
-      return this->add_output<decl::Rotation>(name, identifier);
-    case SOCK_MATRIX:
-      return this->add_output<decl::Matrix>(name, identifier);
-    case SOCK_INT:
-      return this->add_output<decl::Int>(name, identifier);
-    case SOCK_STRING:
-      return this->add_output<decl::String>(name, identifier);
-    case SOCK_GEOMETRY:
-      return this->add_output<decl::Geometry>(name, identifier);
-    case SOCK_OBJECT:
-      return this->add_output<decl::Object>(name, identifier);
-    case SOCK_IMAGE:
-      return this->add_output<decl::Image>(name, identifier);
-    case SOCK_COLLECTION:
-      return this->add_output<decl::Collection>(name, identifier);
-    case SOCK_MATERIAL:
-      return this->add_output<decl::Material>(name, identifier);
-    case SOCK_MENU:
-      return this->add_output<decl::Menu>(name, identifier);
-    default:
-      BLI_assert_unreachable();
-      return this->add_output<decl::Float>("", "");
+  BaseSocketDeclarationBuilder *decl = nullptr;
+  socket_type_to_static_decl_type(socket_type, [&](auto type_tag) {
+    using DeclT = typename decltype(type_tag)::type;
+    decl = &this->add_output<DeclT>(name, identifier);
+  });
+  if (!decl) {
+    BLI_assert_unreachable();
+    decl = &this->add_output<decl::Float>("", "");
   }
+  return *decl;
 }
 
 BaseSocketDeclarationBuilder &NodeDeclarationBuilder::add_output(const eCustomDataType data_type,
