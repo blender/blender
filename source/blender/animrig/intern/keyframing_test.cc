@@ -125,7 +125,8 @@ class KeyframingTest : public testing::Test {
      * NLA strip, and make that strip active and in tweak mode. */
     AnimData *adt = BKE_animdata_ensure_id(&object_with_nla->id);
     NlaTrack *track = BKE_nlatrack_new_head(&adt->nla_tracks, false);
-    NlaStrip *strip = BKE_nlastack_add_strip({object_with_nla->id, *adt}, nla_action, false);
+    ASSERT_TRUE(animrig::assign_action(nla_action, object_with_nla->id));
+    NlaStrip *strip = BKE_nlastack_add_strip({object_with_nla->id, *adt}, false);
     track->flag |= NLATRACK_ACTIVE;
     strip->flag |= NLASTRIP_FLAG_ACTIVE;
     strip->start = -10.0;

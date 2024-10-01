@@ -17,6 +17,9 @@
 
 #include "BLI_function_ref.hh"
 
+/* For blender::animrig::slot_handle_t. */
+#include "ANIM_action.hh"
+
 struct AnimData;
 struct ID;
 struct LibraryForeachIDData;
@@ -174,8 +177,23 @@ void BKE_nla_clip_length_ensure_nonzero(const float *actstart, float *r_actend);
 
 /**
  * Create a NLA Strip referencing the given Action.
+ *
+ * If this is a layered Action, a suitable slot is automatically chosen. If
+ * there is none available, no slot will be assigned.
  */
 NlaStrip *BKE_nlastrip_new(bAction *act, ID &animated_id);
+
+/**
+ * Create a NLA Strip referencing the given Action & Slot.
+ *
+ * If the Action is legacy, the slot is ignored.
+ *
+ * This can return nullptr only when act == nullptr or when the slot ID type
+ * does not match the given animated ID.
+ */
+NlaStrip *BKE_nlastrip_new_for_slot(bAction *act,
+                                    blender::animrig::slot_handle_t slot_handle,
+                                    ID &animated_id);
 
 /*
  * Removes the given NLA strip from the list of strips provided.
@@ -191,7 +209,8 @@ void BKE_nlastrip_remove_and_free(ListBase *strips, NlaStrip *strip, const bool 
  * Add new NLA-strip to the top of the NLA stack - i.e.
  * into the last track if space, or a new one otherwise.
  */
-NlaStrip *BKE_nlastack_add_strip(OwnedAnimData owned_adt, bAction *act, bool is_liboverride);
+NlaStrip *BKE_nlastack_add_strip(OwnedAnimData owned_adt, const bool is_liboverride);
+
 /**
  * Add a NLA Strip referencing the given speaker's sound.
  */
