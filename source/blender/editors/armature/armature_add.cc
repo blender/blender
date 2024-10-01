@@ -516,8 +516,12 @@ static void updateDuplicateActionConstraintSettings(
         action, act_con->action_slot_handle);
 
     /* Create a copy and mirror the animation */
-    Vector<FCurve *> fcurves = blender::animrig::fcurve_find_in_action_slot_filtered(
-        act, act_con->action_slot_handle, "pose.bones[", orig_bone->name);
+    auto bone_name_filter = [&](const FCurve &fcurve) -> bool {
+      return blender::animrig::fcurve_matches_collection_path(
+          fcurve, "pose.bones[", orig_bone->name);
+    };
+    Vector<FCurve *> fcurves = blender::animrig::fcurves_in_action_slot_filtered(
+        act, act_con->action_slot_handle, bone_name_filter);
     for (const FCurve *old_curve : fcurves) {
       FCurve *new_curve = BKE_fcurve_copy(old_curve);
       char *old_path = new_curve->rna_path;

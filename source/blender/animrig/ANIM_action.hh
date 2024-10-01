@@ -1377,18 +1377,26 @@ FCurve *fcurve_find_in_action_slot(bAction *act,
 FCurve *fcurve_find_in_assigned_slot(AnimData &adt, FCurveDescriptor fcurve_descriptor);
 
 /**
- * Find all F-Curves that target the named item in the collection.
+ * Return whether `fcurve` targets the given collection path + data name.
  *
- * For example, to find all F-Curves for the pose bone named `"botje"`, you'd pass
- * `collection_rna_path = "pose.bones["` and `item_name="botje"`.
+ * For example, to match F-Curves for the pose bone named `"botje"`, you'd pass
+ * `collection_rna_path = "pose.bones["` and `data_name="botje"`.
  *
- * This could be implemented as iterator as well, but it's only used in one
- * place, and that modifies the Action while it's looping.
+ * \return True if `fcurve` matches, false if it doesn't.
  */
-Vector<FCurve *> fcurve_find_in_action_slot_filtered(bAction *act,
-                                                     slot_handle_t slot_handle,
-                                                     StringRefNull collection_rna_path,
-                                                     StringRefNull data_name);
+bool fcurve_matches_collection_path(const FCurve &fcurve,
+                                    StringRefNull collection_rna_path,
+                                    StringRefNull data_name);
+
+/**
+ * Return the F-Curves in the given action+slot for which `predicate` returns
+ * true.
+ *
+ * This works for both layered and legacy actions. For legacy actions the slot
+ * handle is ignored.
+ */
+Vector<FCurve *> fcurves_in_action_slot_filtered(
+    bAction *act, slot_handle_t slot_handle, FunctionRef<bool(const FCurve &fcurve)> predicate);
 
 /**
  * Remove the given FCurve from the action by searching for it in all channelbags.
