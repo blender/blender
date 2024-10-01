@@ -2362,6 +2362,12 @@ class VIEW3D_MT_select_edit_grease_pencil(Menu):
 
         layout.separator()
 
+        layout.operator("view3d.select_box", text="Box Select")
+        layout.operator("view3d.select_circle", text="Circle Select")
+        layout.operator_menu_enum("view3d.select_lasso", "mode")
+
+        layout.separator()
+
         layout.operator("grease_pencil.select_random")
         layout.operator("grease_pencil.select_alternate")
 
@@ -2372,7 +2378,7 @@ class VIEW3D_MT_select_edit_grease_pencil(Menu):
 
         layout.separator()
 
-        layout.operator_menu_enum("grease_pencil.select_similar", "mode", text="Similar")
+        layout.operator_menu_enum("grease_pencil.select_similar", "mode")
         layout.operator("grease_pencil.select_linked")
 
         layout.separator()
@@ -2395,13 +2401,17 @@ class VIEW3D_MT_paint_grease_pencil(Menu):
 
         layout.separator()
 
+        layout.menu("VIEW3D_MT_edit_greasepencil_animation", text="Animation")
+        layout.operator("grease_pencil.interpolate_sequence", text="Interpolate Sequence")
+
+        layout.separator()
+
         layout.menu("VIEW3D_MT_edit_greasepencil_showhide")
         layout.menu("VIEW3D_MT_edit_greasepencil_cleanup")
 
         layout.separator()
 
         layout.operator("paint.sample_color")
-        layout.operator("grease_pencil.interpolate_sequence", text="Interpolate Sequence")
 
 
 class VIEW3D_MT_paint_gpencil(Menu):
@@ -6065,17 +6075,17 @@ class VIEW3D_MT_weight_grease_pencil(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("grease_pencil.weight_sample", text="Sample Weight")
-
-        layout.separator()
-
         layout.operator("grease_pencil.vertex_group_normalize_all", text="Normalize All")
         layout.operator("grease_pencil.vertex_group_normalize", text="Normalize")
 
         layout.separator()
 
-        layout.operator("grease_pencil.weight_invert", text="Invert Weight")
+        layout.operator("grease_pencil.weight_invert", text="Invert")
         layout.operator("grease_pencil.vertex_group_smooth", text="Smooth")
+
+        layout.separator()
+
+        layout.operator("grease_pencil.weight_sample", text="Sample Weight")
 
 
 class VIEW3D_MT_gpencil_animation(Menu):
@@ -6167,7 +6177,7 @@ class VIEW3D_MT_edit_greasepencil_showhide(Menu):
 
 
 class VIEW3D_MT_edit_greasepencil_cleanup(Menu):
-    bl_label = "Cleanup"
+    bl_label = "Clean Up"
 
     def draw(self, context):
         ob = context.object
@@ -6198,12 +6208,21 @@ class VIEW3D_MT_edit_greasepencil(Menu):
 
         layout.separator()
 
+        layout.menu("VIEW3D_MT_edit_greasepencil_animation", text="Animation")
+        layout.operator("grease_pencil.interpolate_sequence", text="Interpolate Sequence")
+
+        layout.separator()
+
         layout.operator("grease_pencil.duplicate_move", text="Duplicate")
 
         layout.separator()
 
         layout.operator("grease_pencil.copy", text="Copy", icon='COPYDOWN')
         layout.operator("grease_pencil.paste", text="Paste", icon='PASTEDOWN')
+
+        layout.separator()
+
+        layout.menu("VIEW3D_MT_weight_grease_pencil")
 
         layout.separator()
 
@@ -6214,7 +6233,6 @@ class VIEW3D_MT_edit_greasepencil(Menu):
         layout.separator()
 
         layout.menu("VIEW3D_MT_edit_greasepencil_delete")
-        layout.operator("grease_pencil.interpolate_sequence", text="Interpolate Sequence")
 
 
 class VIEW3D_MT_edit_greasepencil_stroke(Menu):
@@ -6232,7 +6250,7 @@ class VIEW3D_MT_edit_greasepencil_stroke(Menu):
 
         layout.separator()
 
-        layout.operator_menu_enum("grease_pencil.join_selection", "type", text="Join")
+        layout.operator("grease_pencil.stroke_trim", text="Trim")
 
         layout.separator()
 
