@@ -861,13 +861,15 @@ static SingleKeyingResult insert_key_layer(
       insert_key_flags);
 }
 
-static CombinedKeyingResult insert_key_layered_action(Main *bmain,
-                                                      Action &action,
-                                                      PointerRNA *rna_pointer,
-                                                      const blender::Span<RNAPath> rna_paths,
-                                                      const float scene_frame,
-                                                      const KeyframeSettings &key_settings,
-                                                      const eInsertKeyFlags insert_key_flags)
+static CombinedKeyingResult insert_key_layered_action(
+    Main *bmain,
+    Action &action,
+    PointerRNA *rna_pointer,
+    const std::optional<StringRefNull> channel_group,
+    const blender::Span<RNAPath> rna_paths,
+    const float scene_frame,
+    const KeyframeSettings &key_settings,
+    const eInsertKeyFlags insert_key_flags)
 {
   BLI_assert(action.is_action_layered());
   ID &animated_id = *rna_pointer->owner_id;
@@ -911,8 +913,9 @@ static CombinedKeyingResult insert_key_layered_action(Main *bmain,
                                                                                         prop);
     BLI_assert(rna_path_id_to_prop.has_value());
 
-    const std::optional<blender::StringRefNull> channel_group = default_channel_group_for_path(
-        &ptr, *rna_path_id_to_prop);
+    const std::optional<blender::StringRefNull> this_rna_path_channel_group =
+        channel_group.has_value() ? *channel_group :
+                                    default_channel_group_for_path(&ptr, *rna_path_id_to_prop);
 
     const PropertySubType prop_subtype = RNA_property_subtype(prop);
     Vector<float> rna_values = get_keyframe_values(&ptr, prop, use_visual_keyframing);
@@ -933,7 +936,7 @@ static CombinedKeyingResult insert_key_layered_action(Main *bmain,
                                                          *slot,
                                                          *rna_path_id_to_prop,
                                                          prop_subtype,
-                                                         channel_group,
+                                                         this_rna_path_channel_group,
                                                          key_data,
                                                          key_settings,
                                                          insert_key_flags);
@@ -983,6 +986,7 @@ CombinedKeyingResult insert_keyframes(Main *bmain,
     return insert_key_layered_action(bmain,
                                      action,
                                      struct_pointer,
+                                     channel_group,
                                      rna_paths,
                                      scene_frame.value_or(anim_eval_context.eval_time),
                                      key_settings,

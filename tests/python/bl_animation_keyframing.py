@@ -232,6 +232,29 @@ class InsertKeyTest(AbstractKeyframingTest, unittest.TestCase):
         self.assertEqual('scale', ob_fcurves[0].data_path)
         self.assertEqual(2, ob_fcurves[0].array_index)
 
+    def test_keyframe_insert_py_func_with_group(self):
+        curve_object = _create_animation_object()
+
+        # Test with property for which Blender knows a group name too ('Object Transforms').
+        self.assertTrue(curve_object.keyframe_insert('location', group="Téšt"))
+
+        fcurves = curve_object.animation_data.action.fcurves
+        fgroups = curve_object.animation_data.action.groups
+
+        self.assertEqual(3 * ['location'], [fcurve.data_path for fcurve in fcurves])
+        self.assertEqual([0, 1, 2], [fcurve.array_index for fcurve in fcurves])
+        self.assertEqual(["Téšt"], [group.name for group in fgroups])
+        self.assertEqual(3 * ["Téšt"], [fcurve.group and fcurve.group.name for fcurve in fcurves])
+
+        fcurves.clear()
+        while fgroups:
+            fgroups.remove(fgroups[0])
+
+        # Test with property that does not have predefined group name.
+        self.assertTrue(curve_object.keyframe_insert('show_wire', group="Téšt"))
+        self.assertEqual('show_wire', fcurves[0].data_path)
+        self.assertEqual(["Téšt"], [group.name for group in fgroups])
+
 
 class LayeredInsertKeyTest(InsertKeyTest):
     @classmethod
