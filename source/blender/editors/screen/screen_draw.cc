@@ -242,6 +242,10 @@ void ED_screen_draw_edges(wmWindow *win)
   GPU_batch_uniform_1f(batch, "scale", corner_scale);
   GPU_batch_uniform_4fv(batch, "color", col);
 
+  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+    drawscredge_area(area, win_size[0], win_size[1], edge_thickness);
+  }
+
   float outline1[4];
   float outline2[4];
   UI_GetThemeColor4fv(TH_EDITOR_OUTLINE, outline1);
@@ -250,11 +254,9 @@ void ED_screen_draw_edges(wmWindow *win)
   const float offset = UI_SCALE_FAC * 1.34f;
 
   LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-    drawscredge_area(area, win_size[0], win_size[1], edge_thickness);
-
-    rctf rectf2 = {float(area->totrct.xmin) + offset - 0.5f,
-                   float(area->totrct.xmax) - offset + 1.0f,
-                   float(area->totrct.ymin) + offset - 0.5f,
+    rctf rectf2 = {float(area->totrct.xmin) + offset - 1.0f,
+                   float(area->totrct.xmax) - offset + 1.5f,
+                   float(area->totrct.ymin) + offset - 1.0f,
                    float(area->totrct.ymax) - offset + 1.0f};
 
     UI_draw_roundbox_4fv_ex(&rectf2,
