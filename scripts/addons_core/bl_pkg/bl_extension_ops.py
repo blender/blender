@@ -1632,6 +1632,7 @@ class EXTENSIONS_OT_repo_enable_from_drop(Operator):
     bl_label = "Enable Repository from Drop"
     bl_options = {'INTERNAL'}
 
+    # pylint: disable-next=declare-non-slot
     repo_index: rna_prop_repo_index
 
     __slots__ = (

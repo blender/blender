@@ -216,7 +216,7 @@ def addon_draw_item_expanded(
         addon_type,  # `int`
         is_enabled,  # `bool`
         # Expanded from both legacy add-ons & extensions.
-        item_name,  # `str`
+        # item_name,  # `str`  # UNUSED.
         item_description,  # `str`
         item_maintainer,  # `str`
         item_version,  # `str`
@@ -582,7 +582,7 @@ def addons_panel_draw_items(
                 addon_type=addon_type,
                 is_enabled=is_enabled,
                 # Expanded from both legacy add-ons & extensions.
-                item_name=item_name,
+                # item_name=item_name, # UNUSED.
                 item_description=item_description,
                 # pylint: disable-next=used-before-assignment
                 item_maintainer=item_maintainer,
@@ -626,11 +626,12 @@ def addons_panel_draw_error_generic(layout, lines):
 
 
 def addons_panel_draw_impl(
-        self,
+        panel,
         context,  # `bpy.types.Context`
         search_casefold,  # `str`
         addon_tags_exclude,  # `Set[str]`
         enabled_only,  # `bool`
+        *,
         show_development,  # `bool`
 ):
     """
@@ -644,7 +645,7 @@ def addons_panel_draw_impl(
 
     from . import repo_cache_store_ensure
 
-    layout = self.layout
+    layout = panel.layout
 
     # First show any errors, this should be an exceptional situation that should be resolved,
     # otherwise add-ons may not behave correctly.
