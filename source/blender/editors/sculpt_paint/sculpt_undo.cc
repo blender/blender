@@ -1024,6 +1024,8 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       break;
     }
     case Type::Geometry: {
+      BLI_assert(!ss.bm);
+
       restore_geometry(step_data, object);
       BKE_sculptsession_free_deformMats(&ss);
       BKE_sculpt_update_object_for_edit(depsgraph, &object, false);
@@ -1034,7 +1036,6 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
     }
     case Type::DyntopoBegin:
     case Type::DyntopoEnd:
-    case Type::DyntopoSymmetrize:
       /* Handled elsewhere. */
       BLI_assert_unreachable();
       break;
@@ -1280,7 +1281,6 @@ static void fill_node_data_mesh(const Depsgraph &depsgraph,
     }
     case Type::DyntopoBegin:
     case Type::DyntopoEnd:
-    case Type::DyntopoSymmetrize:
       /* Dyntopo should be handled elsewhere. */
       BLI_assert_unreachable();
       break;
@@ -1346,7 +1346,6 @@ static void fill_node_data_grids(const Object &object,
     }
     case Type::DyntopoBegin:
     case Type::DyntopoEnd:
-    case Type::DyntopoSymmetrize:
       /* Dyntopo should be handled elsewhere. */
       BLI_assert_unreachable();
       break;
@@ -1445,7 +1444,6 @@ BLI_NOINLINE static void bmesh_push(const Object &object,
 
       case Type::DyntopoBegin:
       case Type::DyntopoEnd:
-      case Type::DyntopoSymmetrize:
       case Type::Geometry:
       case Type::FaceSet:
       case Type::Color:

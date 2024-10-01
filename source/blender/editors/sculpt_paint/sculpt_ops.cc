@@ -234,7 +234,7 @@ static int symmetrize_exec(bContext *C, wmOperator *op)
        * are logged as added (as opposed to attempting to store just the
        * parts that symmetrize modifies). */
       undo::push_begin(scene, ob, op);
-      undo::push_node(depsgraph, ob, nullptr, undo::Type::DyntopoSymmetrize);
+      undo::push_node(depsgraph, ob, nullptr, undo::Type::Geometry);
       BM_log_before_all_removed(ss.bm, ss.bm_log);
 
       BM_mesh_toolflags_set(ss.bm, true);

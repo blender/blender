@@ -33,7 +33,6 @@ enum class Type : int8_t {
   Mask,
   DyntopoBegin,
   DyntopoEnd,
-  DyntopoSymmetrize,
   Geometry,
   FaceSet,
   Color,
