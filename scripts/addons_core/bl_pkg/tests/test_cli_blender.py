@@ -403,7 +403,7 @@ class TestWithTempBlenderUser_MixIn(unittest.TestCase):
             "--clear-all",
             repo_id,
         ))
-        self.assertEqual(stdout, "Info: Preferences saved\n")
+        self.assertEqual(stdout, "")
 
     def build_package(
             self,
