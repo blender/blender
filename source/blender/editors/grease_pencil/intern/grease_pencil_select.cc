@@ -328,6 +328,12 @@ static int select_all_exec(bContext *C, wmOperator *op)
     if (selectable_elements.is_empty()) {
       return;
     }
+    if (action == SEL_TOGGLE) {
+      action = blender::ed::curves::has_anything_selected(info.drawing.strokes(),
+                                                          selection_domain) ?
+                   SEL_DESELECT :
+                   SEL_SELECT;
+    }
     blender::ed::curves::select_all(
         info.drawing.strokes_for_write(), selectable_elements, selection_domain, action);
   });
