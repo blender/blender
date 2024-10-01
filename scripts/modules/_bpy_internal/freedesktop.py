@@ -453,7 +453,7 @@ def call_handle_checked(
 ) -> Optional[str]:
     try:
         result = fn(do_register, all_users)
-    except BaseException as ex:
+    except Exception as ex:
         # This should never happen.
         result = "Internal Error: {!r}".format(ex)
     return result

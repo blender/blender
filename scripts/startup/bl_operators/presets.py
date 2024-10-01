@@ -53,7 +53,7 @@ def _call_preset_cb(fn, context, filepath, *, deprecated="4.2"):
 
     try:
         fn(*args)
-    except BaseException as ex:
+    except Exception as ex:
         print("Internal error running", fn, str(ex))
 
 
@@ -185,7 +185,7 @@ class AddPresetBase:
                             # to simple lists to repr()
                             try:
                                 value = value[:]
-                            except BaseException:
+                            except Exception:
                                 pass
 
                             file_preset.write("{:s} = {!r}\n".format(rna_path_step, value))
@@ -230,7 +230,7 @@ class AddPresetBase:
                     self.remove(context, filepath)
                 else:
                     os.remove(filepath)
-            except BaseException as ex:
+            except Exception as ex:
                 self.report({'ERROR'}, rpt_("Unable to remove preset: {!r}").format(ex))
                 import traceback
                 traceback.print_exc()
@@ -288,7 +288,7 @@ class ExecutePreset(Operator):
         if ext == ".py":
             try:
                 bpy.utils.execfile(filepath)
-            except BaseException as ex:
+            except Exception as ex:
                 self.report({'ERROR'}, "Failed to execute the preset: " + repr(ex))
 
         elif ext == ".xml":
@@ -691,7 +691,7 @@ class SavePresetInterfaceTheme(AddPresetBase, Operator):
         preset_menu_class = getattr(bpy.types, self.preset_menu)
         try:
             rna_xml.xml_file_write(context, filepath, preset_menu_class.preset_xml_map)
-        except BaseException as ex:
+        except Exception as ex:
             self.report({'ERROR'}, "Unable to overwrite preset: {:s}".format(str(ex)))
             import traceback
             traceback.print_exc()

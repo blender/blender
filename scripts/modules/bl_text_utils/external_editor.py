@@ -42,13 +42,13 @@ def open_external_editor(filepath, line, column, /):
 
     try:
         args.extend([Template(arg).substitute(**template_vars) for arg in shlex.split(text_editor_args)])
-    except BaseException as ex:
+    except Exception as ex:
         return rpt_("Exception parsing template: {!r}").format(ex)
 
     try:
         # With `check=True` if `process.returncode != 0` an exception will be raised.
         subprocess.run(args, check=True)
-    except BaseException as ex:
+    except Exception as ex:
         return rpt_("Exception running external editor: {!r}").format(ex)
 
     return ""

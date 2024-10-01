@@ -239,7 +239,7 @@ def enable_addons(addons=None, support=None, disable=False, check_only=False):
                         continue
                     print("    Enabling module ", addon_module_name)
                     bpy.ops.preferences.addon_enable(module=addon_module_name)
-            except BaseException as ex:  # XXX TEMP WORKAROUND
+            except Exception as ex:  # XXX TEMP WORKAROUND
                 print(ex)
 
         # XXX There are currently some problems with bpy/rna...

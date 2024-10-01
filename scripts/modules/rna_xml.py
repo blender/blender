@@ -366,7 +366,7 @@ def xml2rna(
 def _get_context_val(context, path):
     try:
         value = context.path_resolve(path)
-    except BaseException as ex:
+    except Exception as ex:
         print("Error: {!r}, path {!r} not found".format(ex, path))
         value = Ellipsis
 

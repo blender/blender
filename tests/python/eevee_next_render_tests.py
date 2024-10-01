@@ -154,7 +154,7 @@ def get_gpu_device_type(blender):
             if line.startswith("GPU_DEVICE_TYPE:"):
                 vendor = line.split(':')[1]
                 return vendor
-    except BaseException as e:
+    except Exception:
         return None
     return None
 

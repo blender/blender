@@ -92,7 +92,7 @@ class _TestExprMixIn:
             )
             # exec(expr_code, {}, bpy.app.driver_namespace)
             ex = None
-        except BaseException as ex_test:
+        except Exception as ex_test:
             ex = ex_test
 
         if self.expressions_expect_unreachable:
