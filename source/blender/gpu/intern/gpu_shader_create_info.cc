@@ -95,17 +95,12 @@ bool ShaderCreateInfo::is_vulkan_compatible() const
 
 /** \} */
 
-void ShaderCreateInfo::finalize()
+void ShaderCreateInfo::finalize(const bool recursive)
 {
   if (finalized_) {
     return;
   }
   finalized_ = true;
-
-#if 0
-  /* TODO(Miguel Pozo): This triggers for image renders. */
-  BLI_assert(BLI_thread_is_main());
-#endif
 
   Set<StringRefNull> deps_merged;
 
@@ -117,8 +112,12 @@ void ShaderCreateInfo::finalize()
     const ShaderCreateInfo &info = *reinterpret_cast<const ShaderCreateInfo *>(
         gpu_shader_create_info_get(info_name.c_str()));
 
-    /* Recursive. */
-    const_cast<ShaderCreateInfo &>(info).finalize();
+    if (recursive) {
+      const_cast<ShaderCreateInfo &>(info).finalize(recursive);
+    }
+    else {
+      BLI_assert(info.finalized_);
+    }
 
     interface_names_size_ += info.interface_names_size_;
 
@@ -583,6 +582,10 @@ void gpu_shader_create_info_init()
       info->additional_info("draw_debug_print");
     }
 #endif
+  }
+
+  for (ShaderCreateInfo *info : g_create_infos->values()) {
+    info->finalize(true);
   }
 
   /* TEST */

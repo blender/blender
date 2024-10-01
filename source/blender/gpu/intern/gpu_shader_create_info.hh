@@ -1268,8 +1268,10 @@ struct ShaderCreateInfo {
    * descriptors. This avoids tedious traversal in shader source creation.
    * \{ */
 
-  /* WARNING: Recursive. */
-  void finalize();
+  /* WARNING: Recursive evaluation is not thread safe.
+   * Non-recursive evaluation expects their dependencies to be already finalized.
+   * (All statically declared CreateInfos are automatically finalized at startup) */
+  void finalize(const bool recursive = false);
 
   std::string check_error() const;
   bool is_vulkan_compatible() const;

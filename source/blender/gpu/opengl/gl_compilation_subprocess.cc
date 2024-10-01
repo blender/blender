@@ -10,7 +10,6 @@
 #  include "BLI_fileops.hh"
 #  include "BLI_hash.hh"
 #  include "BLI_path_utils.hh"
-#  include "BLI_threads.h"
 #  include "CLG_log.h"
 #  include "GHOST_C-api.h"
 #  include "GPU_context.hh"
@@ -154,7 +153,6 @@ void GPU_compilation_subprocess_run(const char *subprocess_name)
 #  endif
 
   CLG_init();
-  BLI_threadapi_init();
 
   std::string name = subprocess_name;
   SharedMemory shared_mem(name, compilation_subprocess_shared_memory_size, false);
@@ -284,7 +282,6 @@ void GPU_compilation_subprocess_run(const char *subprocess_name)
   GPU_context_discard(gpu_context);
   GHOST_DisposeGPUContext(ghost_system, ghost_context);
   GHOST_DisposeSystem(ghost_system);
-  BLI_threadapi_exit();
 }
 
 namespace blender::gpu {
