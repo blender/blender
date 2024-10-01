@@ -9027,14 +9027,14 @@ def draw_gpencil_material_active(context, layout):
 class VIEW3D_PT_gpencil_sculpt_automasking(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
-    bl_label = "Auto-masking"
+    bl_label = "Auto-Masking"
     bl_ui_units_x = 10
 
     def draw(self, context):
         layout = self.layout
         tool_settings = context.scene.tool_settings
 
-        layout.label(text="Auto-masking")
+        layout.label(text="Auto-Masking")
 
         col = layout.column(align=True)
         col.prop(tool_settings.gpencil_sculpt, "use_automasking_stroke", text="Stroke")
