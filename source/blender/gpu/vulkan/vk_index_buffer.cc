@@ -31,7 +31,7 @@ void VKIndexBuffer::ensure_updated()
 
   VKContext &context = *VKContext::get();
   VKStagingBuffer staging_buffer(buffer_, VKStagingBuffer::Direction::HostToDevice);
-  staging_buffer.host_buffer_get().update(data_);
+  staging_buffer.host_buffer_get().update_immediately(data_);
   staging_buffer.copy_to_device(context);
   MEM_SAFE_FREE(data_);
 }

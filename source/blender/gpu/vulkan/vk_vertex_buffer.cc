@@ -130,7 +130,7 @@ void VKVertexBuffer::upload_data_direct(const VKBuffer &host_buffer)
     host_buffer.flush();
   }
   else {
-    host_buffer.update(data_);
+    host_buffer.update_immediately(data_);
   }
 }
 

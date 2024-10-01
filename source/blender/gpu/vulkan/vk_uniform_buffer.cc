@@ -20,15 +20,12 @@ void VKUniformBuffer::update(const void *data)
   if (!buffer_.is_allocated()) {
     allocate();
   }
+
+  /* TODO: when buffer is mapped and newly created we should use `buffer_.update_immediately`. */
+  void *data_copy = MEM_mallocN(size_in_bytes_, __func__);
+  memcpy(data_copy, data, size_in_bytes_);
   VKContext &context = *VKContext::get();
-  if (buffer_.is_mapped()) {
-    buffer_.update(data);
-  }
-  else {
-    VKStagingBuffer staging_buffer(buffer_, VKStagingBuffer::Direction::HostToDevice);
-    staging_buffer.host_buffer_get().update(data);
-    staging_buffer.copy_to_device(context);
-  }
+  buffer_.update_render_graph(context, data_copy);
 }
 
 void VKUniformBuffer::allocate()
@@ -58,8 +55,10 @@ void VKUniformBuffer::ensure_updated()
 
   /* Upload attached data, during bind time. */
   if (data_) {
-    update(data_);
-    MEM_SAFE_FREE(data_);
+    /* TODO: when buffer is mapped and newly created we should use `buffer_.update_immediately`. */
+    VKContext &context = *VKContext::get();
+    buffer_.update_render_graph(context, std::move(data_));
+    data_ = nullptr;
   }
 }
 

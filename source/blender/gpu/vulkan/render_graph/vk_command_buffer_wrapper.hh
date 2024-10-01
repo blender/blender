@@ -55,6 +55,10 @@ class VKCommandBufferInterface {
                         uint32_t group_count_y,
                         uint32_t group_count_z) = 0;
   virtual void dispatch_indirect(VkBuffer buffer, VkDeviceSize offset) = 0;
+  virtual void update_buffer(VkBuffer dst_buffer,
+                             VkDeviceSize dst_offset,
+                             VkDeviceSize data_size,
+                             const void *p_data) = 0;
   virtual void copy_buffer(VkBuffer src_buffer,
                            VkBuffer dst_buffer,
                            uint32_t region_count,
@@ -183,6 +187,10 @@ class VKCommandBufferWrapper : public VKCommandBufferInterface {
                              uint32_t stride) override;
   void dispatch(uint32_t group_count_x, uint32_t group_count_y, uint32_t group_count_z) override;
   void dispatch_indirect(VkBuffer buffer, VkDeviceSize offset) override;
+  void update_buffer(VkBuffer dst_buffer,
+                     VkDeviceSize dst_offset,
+                     VkDeviceSize data_size,
+                     const void *p_data) override;
   void copy_buffer(VkBuffer src_buffer,
                    VkBuffer dst_buffer,
                    uint32_t region_count,

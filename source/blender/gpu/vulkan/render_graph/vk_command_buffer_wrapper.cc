@@ -189,6 +189,14 @@ void VKCommandBufferWrapper::dispatch_indirect(VkBuffer buffer, VkDeviceSize off
   vkCmdDispatchIndirect(vk_command_buffer_, buffer, offset);
 }
 
+void VKCommandBufferWrapper::update_buffer(VkBuffer dst_buffer,
+                                           VkDeviceSize dst_offset,
+                                           VkDeviceSize data_size,
+                                           const void *p_data)
+{
+  vkCmdUpdateBuffer(vk_command_buffer_, dst_buffer, dst_offset, data_size, p_data);
+}
+
 void VKCommandBufferWrapper::copy_buffer(VkBuffer src_buffer,
                                          VkBuffer dst_buffer,
                                          uint32_t region_count,

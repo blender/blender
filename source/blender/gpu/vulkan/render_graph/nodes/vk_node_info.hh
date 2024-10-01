@@ -42,6 +42,7 @@ enum class VKNodeType {
   FILL_BUFFER,
   RESET_QUERY_POOL,
   SYNCHRONIZATION,
+  UPDATE_BUFFER,
   UPDATE_MIPMAPS,
 };
 
@@ -113,6 +114,9 @@ BLI_INLINE std::ostream &operator<<(std::ostream &os, const VKNodeType node_type
       break;
     case VKNodeType::SYNCHRONIZATION:
       os << "SYNCHRONIZATION";
+      break;
+    case VKNodeType::UPDATE_BUFFER:
+      os << "UPDATE_BUFFER";
       break;
     case VKNodeType::UPDATE_MIPMAPS:
       os << "UPDATE_MIPMAPS";

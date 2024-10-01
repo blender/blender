@@ -201,7 +201,7 @@ void VKDevice::init_dummy_buffer()
   /* Default dummy buffer. Set the 4th element to 1 to fix missing orcos. */
   float data[16] = {
       0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-  dummy_buffer.update(static_cast<void *>(data));
+  dummy_buffer.update_immediately(static_cast<void *>(data));
 }
 
 void VKDevice::init_glsl_patch()
