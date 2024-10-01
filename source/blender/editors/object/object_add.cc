@@ -4596,7 +4596,14 @@ static bool object_join_poll(bContext *C)
     return false;
   }
 
-  if (ELEM(ob->type, OB_MESH, OB_CURVES_LEGACY, OB_SURF, OB_ARMATURE, OB_GPENCIL_LEGACY)) {
+  if (ELEM(ob->type,
+           OB_MESH,
+           OB_CURVES_LEGACY,
+           OB_SURF,
+           OB_ARMATURE,
+           OB_GPENCIL_LEGACY,
+           OB_GREASE_PENCIL))
+  {
     return true;
   }
   return false;
@@ -4643,6 +4650,9 @@ static int object_join_exec(bContext *C, wmOperator *op)
   }
   else if (ob->type == OB_GPENCIL_LEGACY) {
     ret = ED_gpencil_join_objects_exec(C, op);
+  }
+  else if (ob->type == OB_GREASE_PENCIL) {
+    ret = ED_grease_pencil_join_objects_exec(C, op);
   }
 
   if (ret & OPERATOR_FINISHED) {
