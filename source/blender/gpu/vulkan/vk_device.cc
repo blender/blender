@@ -435,8 +435,38 @@ void VKDevice::memory_statistics_get(int *r_total_mem_kb, int *r_free_mem_kb) co
 /** \name Debugging/statistics
  * \{ */
 
+void VKDevice::debug_print(std::ostream &os, const VKDiscardPool &discard_pool)
+{
+  if (discard_pool.images_.is_empty() && discard_pool.buffers_.is_empty() &&
+      discard_pool.image_views_.is_empty() && discard_pool.shader_modules_.is_empty() &&
+      discard_pool.pipeline_layouts_.is_empty())
+  {
+    return;
+  }
+  os << "  Discardable resources: ";
+  if (!discard_pool.images_.is_empty()) {
+    os << "VkImage=" << discard_pool.images_.size() << " ";
+  }
+  if (!discard_pool.image_views_.is_empty()) {
+    os << "VkImageView=" << discard_pool.image_views_.size() << " ";
+  }
+  if (!discard_pool.buffers_.is_empty()) {
+    os << "VkBuffer=" << discard_pool.buffers_.size() << " ";
+  }
+  if (!discard_pool.shader_modules_.is_empty()) {
+    os << "VkShaderModule=" << discard_pool.shader_modules_.size() << " ";
+  }
+  if (!discard_pool.pipeline_layouts_.is_empty()) {
+    os << "VkPipelineLayout=" << discard_pool.pipeline_layouts_.size();
+  }
+  os << "\n";
+}
+
 void VKDevice::debug_print()
 {
+  BLI_assert_msg(BLI_thread_is_main(),
+                 "VKDevice::debug_print can only be called from the main thread.");
+
   std::ostream &os = std::cout;
 
   os << "Pipelines\n";
@@ -444,6 +474,23 @@ void VKDevice::debug_print()
   os << " Compute: " << pipelines.compute_pipelines_.size() << "\n";
   os << "Descriptor sets\n";
   os << " VkDescriptorSetLayouts: " << descriptor_set_layouts_.size() << "\n";
+  for (const VKThreadData *thread_data : thread_data_) {
+    /* NOTE: Assumption that this is always called form the main thread. This could be solved by
+     * keeping track of the main thread inside the thread data.*/
+    const bool is_main = pthread_equal(thread_data->thread_id, pthread_self());
+    os << "ThreadData" << (is_main ? " (main-thread)" : "") << ")\n";
+    os << " Rendering_depth: " << thread_data->rendering_depth << "\n";
+    os << " Number of contexts: " << thread_data->num_contexts << "\n";
+    for (int resource_pool_index : IndexRange(thread_data->resource_pools.size())) {
+      const VKResourcePool &resource_pool = thread_data->resource_pools[resource_pool_index];
+      const bool is_active = thread_data->resource_pool_index == resource_pool_index;
+      os << " Resource Pool (index=" << resource_pool_index << (is_active ? " active" : "")
+         << ")\n";
+      debug_print(os, resource_pool.discard_pool);
+    }
+  }
+  os << "Orphaned data\n";
+  debug_print(os, orphaned_data);
   os << "\n";
 }
 

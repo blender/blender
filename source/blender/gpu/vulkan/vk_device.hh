@@ -59,6 +59,8 @@ struct VKWorkarounds {
  * Shared resources between contexts that run in the same thread.
  */
 class VKThreadData : public NonCopyable, NonMovable {
+  static constexpr uint32_t resource_pools_count = 3;
+
  public:
   /** Thread ID this instance belongs to. */
   pthread_t thread_id;
@@ -70,7 +72,7 @@ class VKThreadData : public NonCopyable, NonMovable {
    * NOTE: Initialized to `UINT32_MAX` to detect first change.
    */
   uint32_t resource_pool_index = UINT32_MAX;
-  std::array<VKResourcePool, 5> resource_pools;
+  std::array<VKResourcePool, resource_pools_count> resource_pools;
 
   /**
    * The current rendering depth.
@@ -112,7 +114,7 @@ class VKThreadData : public NonCopyable, NonMovable {
       resource_pool_index = 1;
     }
     else {
-      resource_pool_index = (resource_pool_index + 1) % 5;
+      resource_pool_index = (resource_pool_index + 1) % resource_pools_count;
     }
   }
 };
@@ -309,6 +311,7 @@ class VKDevice : public NonCopyable {
   Span<std::reference_wrapper<VKContext>> contexts_get() const;
 
   void memory_statistics_get(int *r_total_mem_kb, int *r_free_mem_kb) const;
+  static void debug_print(std::ostream &os, const VKDiscardPool &discard_pool);
   void debug_print();
 
   /** \} */

@@ -14,6 +14,7 @@
 #include "vk_immediate.hh"
 
 namespace blender::gpu {
+class VKDevice;
 
 /**
  * Pool of resources that are discarded, but can still be in used and cannot be destroyed.
@@ -26,6 +27,8 @@ namespace blender::gpu {
  * screen.
  */
 class VKDiscardPool {
+  friend class VKDevice;
+
  private:
   Vector<std::pair<VkImage, VmaAllocation>> images_;
   Vector<std::pair<VkBuffer, VmaAllocation>> buffers_;

@@ -124,7 +124,14 @@ void VKContext::deactivate()
 
 void VKContext::begin_frame() {}
 
-void VKContext::end_frame() {}
+void VKContext::end_frame()
+{
+  /* Enable this to track how resources are managed per thread and resource pool. */
+#if 0
+  VKDevice &device = VKBackend::get().device;
+  device.debug_print();
+#endif
+}
 
 void VKContext::flush() {}
 
