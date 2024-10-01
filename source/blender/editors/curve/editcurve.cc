@@ -963,9 +963,10 @@ static void fcurve_path_rename(const char *orig_rna_path,
       pt_index = 0;
 
       while (a--) {
+        SNPRINTF(rna_path, "splines[%d].bezier_points[%d]", nu_index, pt_index);
+
         keyIndex = getCVKeyIndex(editnurb, bezt);
         if (keyIndex) {
-          SNPRINTF(rna_path, "splines[%d].bezier_points[%d]", nu_index, pt_index);
           SNPRINTF(orig_rna_path,
                    "splines[%d].bezier_points[%d]",
                    keyIndex->nu_index,
@@ -987,6 +988,16 @@ static void fcurve_path_rename(const char *orig_rna_path,
           keyIndex->nu_index = nu_index;
           keyIndex->pt_index = pt_index;
         }
+        else {
+          /* In this case, the bezier point exists. It just hasn't been indexed yet (which seems to
+           * happen on entering edit mode, so points added after that may not have such an index
+           * yet) */
+
+          /* This is a no-op when it comes to the manipulation of F-Curves. It does find the
+           * relevant F-Curves to place them in `processed_fcurves`, which will prevent them from
+           * being deleted later on. */
+          fcurve_path_rename(rna_path, rna_path, orig_curves, processed_fcurves);
+        }
 
         bezt++;
         pt_index++;
@@ -998,15 +1009,26 @@ static void fcurve_path_rename(const char *orig_rna_path,
       pt_index = 0;
 
       while (a--) {
+        SNPRINTF(rna_path, "splines[%d].points[%d]", nu_index, pt_index);
+
         keyIndex = getCVKeyIndex(editnurb, bp);
         if (keyIndex) {
-          SNPRINTF(rna_path, "splines[%d].points[%d]", nu_index, pt_index);
           SNPRINTF(
               orig_rna_path, "splines[%d].points[%d]", keyIndex->nu_index, keyIndex->pt_index);
           fcurve_path_rename(orig_rna_path, rna_path, orig_curves, processed_fcurves);
 
           keyIndex->nu_index = nu_index;
           keyIndex->pt_index = pt_index;
+        }
+        else {
+          /* In this case, the bezier point exists. It just hasn't been indexed yet (which seems to
+           * happen on entering edit mode, so points added after that may not have such an index
+           * yet) */
+
+          /* This is a no-op when it comes to the manipulation of F-Curves. It does find the
+           * relevant F-Curves to place them in `processed_fcurves`, which will prevent them from
+           * being deleted later on. */
+          fcurve_path_rename(rna_path, rna_path, orig_curves, processed_fcurves);
         }
 
         bp++;
