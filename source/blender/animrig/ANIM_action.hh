@@ -605,7 +605,7 @@ ENUM_OPERATORS(Layer::Flags, Layer::Flags::Enabled);
 class Slot : public ::ActionSlot {
  public:
   Slot();
-  Slot(const Slot &other);
+  explicit Slot(const Slot &other);
   ~Slot();
 
   /**
@@ -740,7 +740,7 @@ class StripKeyframeData : public ::ActionStripKeyframeData {
   static constexpr Strip::Type TYPE = Strip::Type::Keyframe;
 
   StripKeyframeData() = default;
-  StripKeyframeData(const StripKeyframeData &other);
+  explicit StripKeyframeData(const StripKeyframeData &other);
   ~StripKeyframeData();
 
   /* ChannelBag array access. */
@@ -806,7 +806,7 @@ static_assert(sizeof(StripKeyframeData) == sizeof(::ActionStripKeyframeData),
 class ChannelBag : public ::ActionChannelBag {
  public:
   ChannelBag() = default;
-  ChannelBag(const ChannelBag &other);
+  explicit ChannelBag(const ChannelBag &other);
   ~ChannelBag();
 
   /* FCurves access. */
