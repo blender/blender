@@ -1071,7 +1071,7 @@ def _initialize_extensions_compat_ensure_up_to_date(extensions_directory, extens
         try:
             if _extension_compat_cache_update_needed(cache_data, blender_id, extensions_enabled, print_debug):
                 cache_data = None
-        except Exception as ex:
+        except Exception:
             print("Extension: unexpected error reading cache, this is is a bug! (regenerating)")
             import traceback
             traceback.print_exc()
@@ -1160,7 +1160,7 @@ def _initialize_extensions_compat_data(
             extensions_enabled,
             print_debug,
         )
-    except Exception as ex:
+    except Exception:
         print("Extension: unexpected error detecting cache, this is is a bug!")
         import traceback
         traceback.print_exc()
@@ -1170,7 +1170,7 @@ def _initialize_extensions_compat_data(
         if updated:
             try:
                 _initialize_extensions_compat_ensure_up_to_date_wheels(extensions_directory, wheel_list, debug)
-            except Exception as ex:
+            except Exception:
                 print("Extension: unexpected error updating wheels, this is is a bug!")
                 import traceback
                 traceback.print_exc()
@@ -1226,7 +1226,7 @@ def _bl_info_from_extension(mod_name, mod_path):
             for i, x in enumerate(value.split(".", 2))
         )
     except BaseException as ex:
-        print("Error: \"version\" is not a semantic version (X.Y.Z) in ", filepath_toml)
+        print("Error: \"version\" is not a semantic version (X.Y.Z) in ", filepath_toml, str(ex))
         return None, filepath_toml
     bl_info["version"] = value
 
