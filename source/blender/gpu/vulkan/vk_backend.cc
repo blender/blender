@@ -103,12 +103,6 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   if (!extensions.contains(VK_KHR_SWAPCHAIN_EXTENSION_NAME)) {
     missing_capabilities.append(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
   }
-  if (!extensions.contains(VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME)) {
-    missing_capabilities.append(VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME);
-  }
-  if (!extensions.contains(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME)) {
-    missing_capabilities.append(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
-  }
   if (!extensions.contains(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME)) {
     missing_capabilities.append(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
   }
@@ -128,12 +122,8 @@ bool VKBackend::is_supported()
   vk_application_info.engineVersion = VK_MAKE_VERSION(1, 0, 0);
   vk_application_info.apiVersion = VK_API_VERSION_1_2;
 
-  const char *instance_extensions[] = {VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME};
-
   VkInstanceCreateInfo vk_instance_info = {VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
   vk_instance_info.pApplicationInfo = &vk_application_info;
-  vk_instance_info.enabledExtensionCount = 1;
-  vk_instance_info.ppEnabledExtensionNames = instance_extensions;
 
   VkInstance vk_instance = VK_NULL_HANDLE;
   vkCreateInstance(&vk_instance_info, nullptr, &vk_instance);
@@ -218,12 +208,8 @@ void VKBackend::platform_init()
   vk_application_info.engineVersion = VK_MAKE_VERSION(1, 0, 0);
   vk_application_info.apiVersion = VK_API_VERSION_1_2;
 
-  const char *instance_extensions[] = {VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME};
-
   VkInstanceCreateInfo vk_instance_info = {VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
   vk_instance_info.pApplicationInfo = &vk_application_info;
-  vk_instance_info.enabledExtensionCount = 1;
-  vk_instance_info.ppEnabledExtensionNames = instance_extensions;
 
   VkInstance vk_instance = VK_NULL_HANDLE;
   vkCreateInstance(&vk_instance_info, nullptr, &vk_instance);

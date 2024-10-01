@@ -979,8 +979,6 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
 
     required_device_extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
   }
-  required_device_extensions.push_back(VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME);
-  required_device_extensions.push_back(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
   required_device_extensions.push_back(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
   /* NOTE: marking this as an optional extension, but is actually required. Renderdoc doesn't
    * create a device with this extension, but seems to work when not requesting the extension.
@@ -995,9 +993,6 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
   requireExtension(
       extensions_available, extensions_enabled, VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
 #endif
-  requireExtension(extensions_available,
-                   extensions_enabled,
-                   VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 
   VkInstance instance = VK_NULL_HANDLE;
   if (!vulkan_device.has_value()) {
