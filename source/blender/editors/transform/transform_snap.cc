@@ -1549,7 +1549,7 @@ static eSnapMode snapObjectsTransform(
 
   float *prev_co = (t->tsnap.status & SNAP_SOURCE_FOUND) ? t->tsnap.snap_source : t->center_global;
   float *grid_co = nullptr, grid_co_stack[3];
-  if ((t->tsnap.mode & SCE_SNAP_TO_GRID) && (t->con.mode & CON_APPLY)) {
+  if ((t->tsnap.mode & SCE_SNAP_TO_GRID) && (t->con.mode & CON_APPLY) && t->mode != TFM_ROTATION) {
     /* Without this position adjustment, the snap may be far from the expected constraint point. */
     grid_co = grid_co_stack;
     convertViewVec(t, grid_co, mval[0] - t->center2d[0], mval[1] - t->center2d[1]);
