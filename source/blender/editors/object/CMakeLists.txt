@@ -41,6 +41,7 @@ set(SRC
   object_hook.cc
   object_light_linking_ops.cc
   object_modes.cc
+  object_multires_modifier.cc
   object_modifier.cc
   object_ops.cc
   object_random.cc
