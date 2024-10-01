@@ -1036,6 +1036,9 @@ static void legacy_gpencil_to_grease_pencil(ConversionData &conversion_data,
 
   /* Second loop, to write to layer attributes after all layers were created. */
   MutableAttributeAccessor layer_attributes = grease_pencil.attributes_for_write();
+  /* Note: Layer Adjustments like the tint and the radius offsets are deliberatly ignored here!
+   * These are converted to modifiers at the bottom of the stack to keep visual compatibility with
+   * GPv2. */
   SpanAttributeWriter<int> layer_passes = layer_attributes.lookup_or_add_for_write_span<int>(
       "pass_index", bke::AttrDomain::Layer);
 

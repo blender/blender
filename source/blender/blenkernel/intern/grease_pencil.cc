@@ -1969,6 +1969,78 @@ static void grease_pencil_evaluate_modifiers(Depsgraph *depsgraph,
   }
 }
 
+static void grease_pencil_do_layer_adjustments(GreasePencil &grease_pencil)
+{
+  using namespace blender;
+  using namespace bke::greasepencil;
+
+  const bke::AttributeAccessor layer_attributes = grease_pencil.attributes();
+  if (!layer_attributes.contains("tint_color") && !layer_attributes.contains("radius_offset")) {
+    return;
+  }
+
+  struct LayerDrawingInfo {
+    Drawing *drawing;
+    const int layer_index;
+  };
+
+  Set<Drawing *> all_drawings;
+  Vector<LayerDrawingInfo> drawing_infos;
+  for (const int layer_i : grease_pencil.layers().index_range()) {
+    const Layer &layer = grease_pencil.layer(layer_i);
+    /* Set of owned drawings, ignore drawing references to other data blocks. */
+    if (Drawing *drawing = grease_pencil.get_eval_drawing(layer)) {
+      if (all_drawings.add(drawing)) {
+        drawing_infos.append({drawing, layer_i});
+      }
+    }
+  }
+
+  if (layer_attributes.contains("radius_offset")) {
+    const VArray<float> radius_offsets = *layer_attributes.lookup_or_default<float>(
+        "radius_offset", bke::AttrDomain::Layer, 0.0f);
+    threading::parallel_for_each(drawing_infos, [&](LayerDrawingInfo &info) {
+      if (radius_offsets[info.layer_index] == 0.0f) {
+        return;
+      }
+      MutableSpan<float> radii = info.drawing->radii_for_write();
+      threading::parallel_for(radii.index_range(), 4096, [&](const IndexRange range) {
+        for (const int i : range) {
+          radii[i] += radius_offsets[info.layer_index];
+        }
+      });
+    });
+  }
+
+  if (layer_attributes.contains("tint_color")) {
+    auto mix_tint = [](const float4 base, const float4 tint) -> float4 {
+      return base * (1.0 - tint.w) + tint * tint.w;
+    };
+    const VArray<ColorGeometry4f> tint_colors =
+        *layer_attributes.lookup_or_default<ColorGeometry4f>(
+            "tint_color", bke::AttrDomain::Layer, ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f));
+    threading::parallel_for_each(drawing_infos, [&](LayerDrawingInfo &info) {
+      if (tint_colors[info.layer_index].a == 0.0f) {
+        return;
+      }
+      MutableSpan<ColorGeometry4f> vertex_colors = info.drawing->vertex_colors_for_write();
+      threading::parallel_for(vertex_colors.index_range(), 4096, [&](const IndexRange range) {
+        for (const int i : range) {
+          vertex_colors[i] = ColorGeometry4f(
+              mix_tint(float4(vertex_colors[i]), float4(tint_colors[info.layer_index])));
+        }
+      });
+      MutableSpan<ColorGeometry4f> fill_colors = info.drawing->fill_colors_for_write();
+      threading::parallel_for(fill_colors.index_range(), 4096, [&](const IndexRange range) {
+        for (const int i : range) {
+          fill_colors[i] = ColorGeometry4f(
+              mix_tint(float4(fill_colors[i]), float4(tint_colors[info.layer_index])));
+        }
+      });
+    });
+  }
+}
+
 void BKE_grease_pencil_data_update(Depsgraph *depsgraph, Scene *scene, Object *object)
 {
   using namespace blender::bke;
@@ -1979,6 +2051,10 @@ void BKE_grease_pencil_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
   GreasePencil *grease_pencil = static_cast<GreasePencil *>(object->data);
   /* Store the frame that this grease pencil is evaluated on. */
   grease_pencil->runtime->eval_frame = int(DEG_get_ctime(depsgraph));
+  /* The layer adjustments for tinting and radii offsets are applied before modifier evaluation.
+   * This ensures that the evaluated geometry contains the modifications. In the future, it would
+   * be better to move these into modifiers. For now, these are hardcoded. */
+  grease_pencil_do_layer_adjustments(*grease_pencil);
   GeometrySet geometry_set = GeometrySet::from_grease_pencil(grease_pencil,
                                                              GeometryOwnershipType::ReadOnly);
   /* Only add the edit hint component in edit mode for now so users can properly select deformed
@@ -3171,7 +3247,16 @@ blender::bke::greasepencil::Layer &GreasePencil::add_layer(const blender::String
   bke::greasepencil::Layer *new_layer = MEM_new<bke::greasepencil::Layer>(__func__, unique_name);
   /* Hide masks by default. */
   new_layer->base.flag |= GP_LAYER_TREE_NODE_HIDE_MASKS;
-  return root_group().add_node(new_layer->as_node()).as_layer();
+  bke::greasepencil::Layer &layer = root_group().add_node(new_layer->as_node()).as_layer();
+
+  /* Initialize the attributes with default values. */
+  bke::MutableAttributeAccessor attributes = this->attributes_for_write();
+  bke::fill_attribute_range_default(attributes,
+                                    bke::AttrDomain::Layer,
+                                    bke::attribute_filter_from_skip_ref({"name"}),
+                                    IndexRange::from_single(numLayers));
+
+  return layer;
 }
 
 blender::bke::greasepencil::Layer &GreasePencil::add_layer(
