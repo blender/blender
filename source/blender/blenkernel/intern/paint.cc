@@ -821,18 +821,113 @@ static void paint_brush_default_essentials_name_get(
   switch (ob_mode) {
     case OB_MODE_SCULPT:
       name = "Draw";
+      if (brush_type) {
+        switch (eBrushSculptType(*brush_type)) {
+          case SCULPT_BRUSH_TYPE_MASK:
+            name = "Mask";
+            break;
+          case SCULPT_BRUSH_TYPE_DRAW_FACE_SETS:
+            name = "Face Set Paint";
+            break;
+          case SCULPT_BRUSH_TYPE_PAINT:
+            name = "Paint Hard";
+            break;
+          case SCULPT_BRUSH_TYPE_SIMPLIFY:
+            name = "Density";
+            break;
+          case SCULPT_BRUSH_TYPE_DISPLACEMENT_ERASER:
+            name = "Erase Multires Displacement";
+            break;
+          case SCULPT_BRUSH_TYPE_DISPLACEMENT_SMEAR:
+            name = "Smear Multires Displacement";
+            break;
+          default:
+            break;
+        }
+      }
       break;
     case OB_MODE_VERTEX_PAINT:
-      name = "Paint Hard";
+      name = "Paint";
+      if (brush_type) {
+        switch (eBrushVertexPaintType(*brush_type)) {
+          case VPAINT_BRUSH_TYPE_BLUR:
+            name = "Blur";
+            break;
+          case VPAINT_BRUSH_TYPE_AVERAGE:
+            name = "Average";
+            break;
+          case VPAINT_BRUSH_TYPE_SMEAR:
+            name = "Smear";
+            break;
+          case VPAINT_BRUSH_TYPE_DRAW:
+            /* Use default, don't override. */
+            break;
+        }
+      }
       break;
     case OB_MODE_WEIGHT_PAINT:
       name = "Paint";
+      if (brush_type) {
+        switch (eBrushWeightPaintType(*brush_type)) {
+          case WPAINT_BRUSH_TYPE_BLUR:
+            name = "Blur";
+            break;
+          case WPAINT_BRUSH_TYPE_AVERAGE:
+            name = "Average";
+            break;
+          case WPAINT_BRUSH_TYPE_SMEAR:
+            name = "Smear";
+            break;
+          case WPAINT_BRUSH_TYPE_DRAW:
+            /* Use default, don't override. */
+            break;
+        }
+      }
       break;
     case OB_MODE_TEXTURE_PAINT:
       name = "Paint Hard";
+      if (brush_type) {
+        switch (eBrushImagePaintType(*brush_type)) {
+          case IMAGE_PAINT_BRUSH_TYPE_SOFTEN:
+            name = "Blur";
+            break;
+          case IMAGE_PAINT_BRUSH_TYPE_SMEAR:
+            name = "Smear";
+            break;
+          case IMAGE_PAINT_BRUSH_TYPE_FILL:
+            name = "Fill";
+            break;
+          case IMAGE_PAINT_BRUSH_TYPE_MASK:
+            name = "Mask";
+            break;
+          case IMAGE_PAINT_BRUSH_TYPE_CLONE:
+            name = "Clone";
+            break;
+          case IMAGE_PAINT_BRUSH_TYPE_DRAW:
+            break;
+        }
+      }
       break;
     case OB_MODE_SCULPT_CURVES:
       name = "Comb";
+      if (brush_type) {
+        switch (eBrushCurvesSculptType(*brush_type)) {
+          case CURVES_SCULPT_BRUSH_TYPE_ADD:
+            name = "Add";
+            break;
+          case CURVES_SCULPT_BRUSH_TYPE_DELETE:
+            name = "Delete";
+            break;
+          case CURVES_SCULPT_BRUSH_TYPE_DENSITY:
+            name = "Density";
+            break;
+          case CURVES_SCULPT_BRUSH_TYPE_SELECTION_PAINT:
+            name = "Select";
+            break;
+          default:
+            break;
+        }
+      }
       break;
     case OB_MODE_PAINT_GPENCIL_LEGACY:
       name = "Pencil";
@@ -855,12 +950,60 @@ static void paint_brush_default_essentials_name_get(
       break;
     case OB_MODE_VERTEX_GPENCIL_LEGACY:
       name = "Paint";
+      if (brush_type) {
+        switch (eBrushGPVertexType(*brush_type)) {
+          case GPVERTEX_BRUSH_TYPE_BLUR:
+            name = "Blur";
+            break;
+          case GPVERTEX_BRUSH_TYPE_AVERAGE:
+            name = "Average";
+            break;
+          case GPVERTEX_BRUSH_TYPE_SMEAR:
+            name = "Smear";
+            break;
+          case GPVERTEX_BRUSH_TYPE_REPLACE:
+            name = "Replace";
+            break;
+          case GPVERTEX_BRUSH_TYPE_DRAW:
+            /* Use default, don't override. */
+            break;
+          case GPVERTEX_BRUSH_TYPE_TINT:
+            /* Unused brush type. */
+            BLI_assert_unreachable();
+            break;
+        }
+      }
       break;
     case OB_MODE_SCULPT_GPENCIL_LEGACY:
       name = "Smooth";
+      if (brush_type) {
+        switch (eBrushGPSculptType(*brush_type)) {
+          case GPSCULPT_BRUSH_TYPE_CLONE:
+            name = "Clone";
+            break;
+          default:
+            break;
+        }
+      }
       break;
     case OB_MODE_WEIGHT_GPENCIL_LEGACY:
       name = "Paint";
+      if (brush_type) {
+        switch (eBrushGPWeightType(*brush_type)) {
+          case GPWEIGHT_BRUSH_TYPE_BLUR:
+            name = "Blur";
+            break;
+          case GPWEIGHT_BRUSH_TYPE_AVERAGE:
+            name = "Average";
+            break;
+          case GPWEIGHT_BRUSH_TYPE_SMEAR:
+            name = "Smear";
+            break;
+          case GPWEIGHT_BRUSH_TYPE_DRAW:
+            /* Use default, don't override. */
+            break;
+        }
+      }
       break;
     default:
       BLI_assert_unreachable();
