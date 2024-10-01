@@ -303,6 +303,7 @@ void VKBackend::detect_workarounds(VKDevice &device)
     workarounds.shader_output_layer = true;
     workarounds.shader_output_viewport_index = true;
     workarounds.vertex_formats.r8g8b8 = true;
+    workarounds.fragment_shader_barycentric = true;
 
     device.workarounds_ = workarounds;
     return;
@@ -325,6 +326,9 @@ void VKBackend::detect_workarounds(VKDevice &device)
       device.physical_device_get(), VK_FORMAT_R8G8B8_UNORM, &format_properties);
   workarounds.vertex_formats.r8g8b8 = (format_properties.bufferFeatures &
                                        VK_FORMAT_FEATURE_VERTEX_BUFFER_BIT) == 0;
+
+  workarounds.fragment_shader_barycentric = !device.supports_extension(
+      VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME);
 
   device.workarounds_ = workarounds;
 }

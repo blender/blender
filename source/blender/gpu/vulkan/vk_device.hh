@@ -53,6 +53,13 @@ struct VKWorkarounds {
      */
     bool r8g8b8 = false;
   } vertex_formats;
+
+  /**
+   * Is the workaround for devices that don't support
+   * #VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR::fragmentShaderBarycentric enabled.
+   * If set to true, the backend would inject a geometry shader to produce barycentric coordinates.
+   */
+  bool fragment_shader_barycentric = false;
 };
 
 /**

@@ -230,6 +230,11 @@ void VKDevice::init_glsl_patch()
   if (!workarounds_.shader_output_viewport_index) {
     ss << "#define gpu_ViewportIndex gl_ViewportIndex\n";
   }
+  if (!workarounds_.fragment_shader_barycentric) {
+    ss << "#extension GL_EXT_fragment_shader_barycentric : require\n";
+    ss << "#define gpu_BaryCoord gl_BaryCoordEXT\n";
+    ss << "#define gpu_BaryCoordNoPersp gl_BaryCoordNoPerspEXT\n";
+  }
 
   ss << "#define DFDX_SIGN 1.0\n";
   ss << "#define DFDY_SIGN 1.0\n";

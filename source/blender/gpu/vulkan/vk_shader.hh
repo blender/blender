@@ -146,7 +146,7 @@ class VKShader : public Shader {
    * and layered rendering, necessitate a geometry shader to work on older hardware.
    */
   std::string workaround_geometry_shader_source_create(const shader::ShaderCreateInfo &info);
-  bool do_geometry_shader_injection(const shader::ShaderCreateInfo *info);
+  bool do_geometry_shader_injection(const shader::ShaderCreateInfo *info) const;
 };
 
 static inline VKShader &unwrap(Shader &shader)

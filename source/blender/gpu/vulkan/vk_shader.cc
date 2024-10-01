@@ -844,22 +844,11 @@ std::string VKShader::vertex_interface_declare(const shader::ShaderCreateInfo &i
   {
     ss << "layout(location=" << (location++) << ") out int gpu_ViewportIndex;\n";
   }
-  if (bool(info.builtins_ & BuiltinBits::BARYCENTRIC_COORD)) {
-    /* Need this for stable barycentric. */
-    ss << "layout(location=" << (location++) << ") flat out vec4 gpu_pos_flat;\n";
-    ss << "layout(location=" << (location++) << ") out vec4 gpu_pos;\n";
-
-    post_main += "  gpu_pos = gpu_pos_flat = gl_Position;\n";
-  }
   ss << "\n";
 
   /* Retarget depth from -1..1 to 0..1. This will be done by geometry stage, when geometry shaders
    * are used. */
-  const bool has_geometry_stage = bool(info.builtins_ & (BuiltinBits::BARYCENTRIC_COORD)) ||
-                                  (bool(info.builtins_ & (BuiltinBits::LAYER)) &&
-                                   workarounds.shader_output_layer) ||
-                                  (bool(info.builtins_ & (BuiltinBits::VIEWPORT_INDEX)) &&
-                                   workarounds.shader_output_viewport_index) ||
+  const bool has_geometry_stage = do_geometry_shader_injection(&info) ||
                                   !info.geometry_source_.is_empty();
   const bool retarget_depth = !has_geometry_stage;
   if (retarget_depth) {
@@ -943,38 +932,13 @@ std::string VKShader::fragment_interface_declare(const shader::ShaderCreateInfo 
     ss << "#define gpu_ViewportIndex gl_ViewportIndex\n";
   }
 
-  if (bool(info.builtins_ & BuiltinBits::BARYCENTRIC_COORD)) {
-    /* TODO: add support for
-     * https://docs.vulkan.org/features/latest/features/proposals/VK_KHR_fragment_shader_barycentric.html
-     */
-    ss << "layout(location=" << (location) << ") flat in vec4 gpu_pos[3];\n";
-    location += 3;
+  if (workarounds.fragment_shader_barycentric &&
+      bool(info.builtins_ & BuiltinBits::BARYCENTRIC_COORD))
+  {
     ss << "layout(location=" << (location++) << ") smooth in vec3 gpu_BaryCoord;\n";
     ss << "layout(location=" << (location++) << ") noperspective in vec3 gpu_BaryCoordNoPersp;\n";
-
-#if 0
-    std::cout << "native" << std::endl;
-    /* NOTE(fclem): This won't work with geometry shader. Hopefully, we don't need geometry
-     * shader workaround if this extension/feature is detected. */
-    ss << "\n/* Stable Barycentric Coordinates. */\n";
-    ss << "flat in vec4 gpu_pos_flat;\n";
-    ss << "__explicitInterpAMD in vec4 gpu_pos;\n";
-    /* Globals. */
-    ss << "vec3 gpu_BaryCoord;\n";
-    ss << "vec3 gpu_BaryCoordNoPersp;\n";
-    ss << "\n";
-    ss << "vec2 stable_bary_(vec2 in_bary) {\n";
-    ss << "  vec3 bary = vec3(in_bary, 1.0 - in_bary.x - in_bary.y);\n";
-    ss << "  if (interpolateAtVertexAMD(gpu_pos, 0) == gpu_pos_flat) { return bary.zxy; }\n";
-    ss << "  if (interpolateAtVertexAMD(gpu_pos, 2) == gpu_pos_flat) { return bary.yzx; }\n";
-    ss << "  return bary.xyz;\n";
-    ss << "}\n";
-    ss << "\n";
-
-    pre_main += "  gpu_BaryCoord = stable_bary_(gl_BaryCoordSmoothAMD);\n";
-    pre_main += "  gpu_BaryCoordNoPersp = stable_bary_(gl_BaryCoordNoPerspAMD);\n";
-#endif
   }
+
   if (info.early_fragment_test_) {
     ss << "layout(early_fragment_tests) in;\n";
   }
@@ -1153,7 +1117,8 @@ std::string VKShader::workaround_geometry_shader_source_create(
                                    bool(info.builtins_ & BuiltinBits::LAYER);
   const bool do_viewport_workaround = workarounds.shader_output_viewport_index &&
                                       bool(info.builtins_ & BuiltinBits::VIEWPORT_INDEX);
-  const bool do_barycentric_workaround = bool(info.builtins_ & BuiltinBits::BARYCENTRIC_COORD);
+  const bool do_barycentric_workaround = workarounds.fragment_shader_barycentric &&
+                                         bool(info.builtins_ & BuiltinBits::BARYCENTRIC_COORD);
 
   shader::ShaderCreateInfo info_modified = info;
   info_modified.geometry_out_interfaces_ = info_modified.vertex_out_interfaces_;
@@ -1172,17 +1137,18 @@ std::string VKShader::workaround_geometry_shader_source_create(
     }
   }
 
+  int location_in = location;
+  int location_out = location;
   if (do_layer_workaround) {
-    ss << "layout(location=" << (location++) << ") in int gpu_Layer[];\n";
+    ss << "layout(location=" << (location_in++) << ") in int gpu_Layer[];\n";
   }
   if (do_viewport_workaround) {
-    ss << "layout(location=" << (location++) << ") in int gpu_ViewportIndex[];\n";
+    ss << "layout(location=" << (location_in++) << ") in int gpu_ViewportIndex[];\n";
   }
   if (do_barycentric_workaround) {
-    ss << "layout(location=" << (location) << ") flat out vec4 gpu_pos[3];\n";
-    location += 3;
-    ss << "layout(location=" << (location++) << ") smooth out vec3 gpu_BaryCoord;\n";
-    ss << "layout(location=" << (location++) << ") noperspective out vec3 gpu_BaryCoordNoPersp;\n";
+    ss << "layout(location=" << (location_out++) << ") smooth out vec3 gpu_BaryCoord;\n";
+    ss << "layout(location=" << (location_out++)
+       << ") noperspective out vec3 gpu_BaryCoordNoPersp;\n";
   }
   ss << "\n";
 
@@ -1193,11 +1159,6 @@ std::string VKShader::workaround_geometry_shader_source_create(
   }
   if (do_viewport_workaround) {
     ss << "  gl_ViewportIndex = gpu_ViewportIndex[0];\n";
-  }
-  if (do_barycentric_workaround) {
-    ss << "  gpu_pos[0] = gl_in[0].gl_Position;\n";
-    ss << "  gpu_pos[1] = gl_in[1].gl_Position;\n";
-    ss << "  gpu_pos[2] = gl_in[2].gl_Position;\n";
   }
   for (auto i : IndexRange(3)) {
     for (StageInterfaceInfo *iface : info_modified.vertex_out_interfaces_) {
@@ -1217,11 +1178,11 @@ std::string VKShader::workaround_geometry_shader_source_create(
   return ss.str();
 }
 
-bool VKShader::do_geometry_shader_injection(const shader::ShaderCreateInfo *info)
+bool VKShader::do_geometry_shader_injection(const shader::ShaderCreateInfo *info) const
 {
   const VKWorkarounds &workarounds = VKBackend::get().device.workarounds_get();
   BuiltinBits builtins = info->builtins_;
-  if (bool(builtins & BuiltinBits::BARYCENTRIC_COORD)) {
+  if (workarounds.fragment_shader_barycentric && bool(builtins & BuiltinBits::BARYCENTRIC_COORD)) {
     return true;
   }
   if (workarounds.shader_output_layer && bool(builtins & BuiltinBits::LAYER)) {
