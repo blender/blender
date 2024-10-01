@@ -1208,7 +1208,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, const uiWidgetColors *wcol)
 
 #define UI_TEXT_CLIP_MARGIN (0.25f * U.widget_unit / but->block->aspect)
 
-#define PREVIEW_PAD 4
+#define PREVIEW_PAD 6
 
 static float widget_alpha_factor(const uiWidgetStateInfo *state)
 {
