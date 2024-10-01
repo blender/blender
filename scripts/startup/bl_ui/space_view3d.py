@@ -240,11 +240,20 @@ class VIEW3D_HT_tool_header(Header):
                 text=text,
             )
 
-        if mode_string in {'EDIT_GREASE_PENCIL', 'PAINT_GREASE_PENCIL', 'SCULPT_GREASE_PENCIL', 'WEIGHT_GREASE_PENCIL', 'VERTEX_GREASE_PENCIL'}:
+        if mode_string in {
+            'EDIT_GREASE_PENCIL',
+            'PAINT_GREASE_PENCIL',
+            'SCULPT_GREASE_PENCIL',
+            'WEIGHT_GREASE_PENCIL',
+                'VERTEX_GREASE_PENCIL'}:
             row = layout.row(align=True)
             row.prop(tool_settings, "use_grease_pencil_multi_frame_editing", text="")
 
-            if mode_string in {'EDIT_GREASE_PENCIL', 'SCULPT_GREASE_PENCIL', 'WEIGHT_GREASE_PENCIL', 'VERTEX_GREASE_PENCIL'}:
+            if mode_string in {
+                'EDIT_GREASE_PENCIL',
+                'SCULPT_GREASE_PENCIL',
+                'WEIGHT_GREASE_PENCIL',
+                    'VERTEX_GREASE_PENCIL'}:
                 sub = row.row(align=True)
                 sub.active = tool_settings.use_grease_pencil_multi_frame_editing
                 sub.popover(
@@ -1085,7 +1094,12 @@ class VIEW3D_HT_header(Header):
                     panel="VIEW3D_PT_gpencil_lock",
                 )
 
-            if mode_string in {'EDIT_GREASE_PENCIL', 'PAINT_GREASE_PENCIL', 'SCULPT_GREASE_PENCIL', 'WEIGHT_GREASE_PENCIL', 'VERTEX_GREASE_PENCIL'}:
+            if mode_string in {
+                'EDIT_GREASE_PENCIL',
+                'PAINT_GREASE_PENCIL',
+                'SCULPT_GREASE_PENCIL',
+                'WEIGHT_GREASE_PENCIL',
+                    'VERTEX_GREASE_PENCIL'}:
                 grease_pencil = context.object.data
                 layer = grease_pencil.layers.active
                 group = grease_pencil.layer_groups.active

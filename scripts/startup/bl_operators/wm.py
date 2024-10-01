@@ -2416,7 +2416,9 @@ class WM_OT_tool_set_by_brush_type(Operator):
         tool_helper_cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
         # Lookup a tool with a matching brush type (ignoring some specific ones).
         tool_id = "builtin.brush"
-        for item in ToolSelectPanelHelper._tools_flatten(tool_helper_cls.tools_from_context(context, mode=context.mode)):
+        for item in ToolSelectPanelHelper._tools_flatten(
+            tool_helper_cls.tools_from_context(
+                context, mode=context.mode)):
             if item is None:
                 continue
 
@@ -2443,6 +2445,7 @@ class WM_OT_tool_set_by_brush_type(Operator):
         else:
             self.report({'WARNING'}, rpt_("Tool {!r} not found for space {!r}").format(tool_id, space_type))
             return {'CANCELLED'}
+
 
 class WM_OT_toolbar(Operator):
     bl_idname = "wm.toolbar"

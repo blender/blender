@@ -3074,7 +3074,6 @@ class _defs_grease_pencil_sculpt:
         )
 
 
-
 class _defs_gpencil_weight:
     # No mode specific tools currently (only general ones).
     pass
