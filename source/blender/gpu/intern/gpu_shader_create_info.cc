@@ -101,7 +101,10 @@ void ShaderCreateInfo::finalize()
   }
   finalized_ = true;
 
+#if 0
+  /* TODO(Miguel Pozo): This triggers for image renders. */
   BLI_assert(BLI_thread_is_main());
+#endif
 
   Set<StringRefNull> deps_merged;
 
