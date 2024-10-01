@@ -3863,11 +3863,23 @@ static int area_join_cursor(sAreaJoinData *jd, const wmEvent *event)
     }
   }
 
+  if (jd->sa1 && jd->sa1 == jd->sa2) {
+    if (jd->split_fac >= 0.0001f) {
+      /* Mouse inside source area, so allow splitting. */
+      return (jd->split_dir == SCREEN_AXIS_V) ? WM_CURSOR_V_SPLIT : WM_CURSOR_H_SPLIT;
+    }
+    return WM_CURSOR_EDIT;
+  }
+
+  if (jd->dir != SCREEN_DIR_NONE || jd->dock_target != AreaDockTarget::None) {
 #if defined(__APPLE__)
-  return WM_CURSOR_HAND_CLOSED;
+    return WM_CURSOR_HAND_CLOSED;
 #else
-  return WM_CURSOR_MOVE;
+    return WM_CURSOR_MOVE;
 #endif
+  }
+
+  return WM_CURSOR_PICK_AREA;
 }
 
 static float area_docking_snap(const float pos, const wmEvent *event)

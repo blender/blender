@@ -974,11 +974,7 @@ static void screen_cursor_set(wmWindow *win, const int xy[2])
 
   if (area) {
     if (az->type == AZONE_AREA) {
-#if defined(__APPLE__)
-      WM_cursor_set(win, WM_CURSOR_HAND);
-#else
       WM_cursor_set(win, WM_CURSOR_EDIT);
-#endif
     }
     else if (az->type == AZONE_REGION) {
       if (ELEM(az->edge, AE_LEFT_TO_TOPRIGHT, AE_RIGHT_TO_TOPLEFT)) {
