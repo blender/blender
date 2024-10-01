@@ -16,11 +16,13 @@
 #include "BLI_array_utils.h"
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
+#include "BLI_listbase_wrapper.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_set.hh"
+#include "BLI_span.hh"
 
 #include "BLT_translation.hh"
 
@@ -40,6 +42,7 @@
 #include "BKE_report.hh"
 
 #include "ANIM_action.hh"
+#include "ANIM_action_legacy.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -911,12 +914,12 @@ static bool curve_is_animated(Curve *cu)
  */
 static void fcurve_path_rename(const char *orig_rna_path,
                                const char *rna_path,
-                               ListBase *orig_curves,
+                               const blender::Span<FCurve *> orig_curves,
                                blender::Set<FCurve *> &processed_fcurves)
 {
   const int len = strlen(orig_rna_path);
 
-  LISTBASE_FOREACH (FCurve *, fcu, orig_curves) {
+  for (FCurve *fcu : orig_curves) {
     if (processed_fcurves.contains(fcu)) {
       continue;
     }
@@ -939,10 +942,10 @@ static void fcurve_path_rename(const char *orig_rna_path,
  * \return a vector of F-Curves that should be removed, because they refer to
  * no-longer-existing parts of the curve.
  */
-[[nodiscard]] static blender::Vector<FCurve *> curve_rename_fcurves(Curve *cu,
-                                                                    ListBase *orig_curves)
+[[nodiscard]] static blender::Vector<FCurve *> curve_rename_fcurves(
+    Curve *cu, blender::Span<FCurve *> orig_curves)
 {
-  if (BLI_listbase_is_empty(orig_curves)) {
+  if (orig_curves.is_empty()) {
     /* If there is no animation data to operate on, better stop now. */
     return {};
   }
@@ -1040,7 +1043,7 @@ static void fcurve_path_rename(const char *orig_rna_path,
   /* remove paths for removed control points
    * need this to make further step with copying non-cv related curves copying
    * not touching cv's f-curves */
-  LISTBASE_FOREACH (FCurve *, fcu, orig_curves) {
+  for (FCurve *fcu : orig_curves) {
     if (processed_fcurves.contains(fcu)) {
       continue;
     }
@@ -1075,7 +1078,7 @@ static void fcurve_path_rename(const char *orig_rna_path,
 
   /* the remainders in orig_curves can be copied back (like follow path) */
   /* (if it's not path to spline) */
-  LISTBASE_FOREACH_MUTABLE (FCurve *, fcu, orig_curves) {
+  for (FCurve *fcu : orig_curves) {
     if (processed_fcurves.contains(fcu)) {
       continue;
     }
@@ -1101,10 +1104,23 @@ int ED_curve_updateAnimPaths(Main *bmain, Curve *cu)
   }
 
   if (adt->action != nullptr) {
-    Vector<FCurve *> fcurves_to_remove = curve_rename_fcurves(cu, &adt->action->curves);
+    blender::animrig::Action &action = adt->action->wrap();
+    const bool is_action_legacy = action.is_action_legacy();
+
+    Vector<FCurve *> fcurves_to_process = blender::animrig::legacy::fcurves_for_assigned_action(
+        adt);
+
+    Vector<FCurve *> fcurves_to_remove = curve_rename_fcurves(cu, fcurves_to_process);
     for (FCurve *fcurve : fcurves_to_remove) {
-      action_groups_remove_channel(adt->action, fcurve);
-      BKE_fcurve_free(fcurve);
+      if (is_action_legacy) {
+        action_groups_remove_channel(adt->action, fcurve);
+        BKE_fcurve_free(fcurve);
+      }
+      else {
+        const bool remove_ok = blender::animrig::action_fcurve_remove(action, *fcurve);
+        BLI_assert(remove_ok);
+        UNUSED_VARS_NDEBUG(remove_ok);
+      }
     }
 
     BKE_action_groups_reconstruct(adt->action);
@@ -1112,7 +1128,8 @@ int ED_curve_updateAnimPaths(Main *bmain, Curve *cu)
   }
 
   {
-    Vector<FCurve *> fcurves_to_remove = curve_rename_fcurves(cu, &adt->drivers);
+    Vector<FCurve *> fcurves_to_process = blender::listbase_to_vector<FCurve>(adt->drivers);
+    Vector<FCurve *> fcurves_to_remove = curve_rename_fcurves(cu, fcurves_to_process);
     for (FCurve *driver : fcurves_to_remove) {
       BLI_remlink(&adt->drivers, driver);
       BKE_fcurve_free(driver);
