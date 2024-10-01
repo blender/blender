@@ -1743,7 +1743,7 @@ def fbx_data_video_elements(root, vid, scene_data):
                     with open(filepath, 'br') as f:
                         elem_data_single_bytes(fbx_vid, b"Content", f.read())
                 except Exception as e:
-                    print("WARNING: embedding file {} failed ({})".format(filepath, e))
+                    print("WARNING: embedding file {:s} failed ({:s})".format(filepath, str(e)))
                     elem_data_single_bytes(fbx_vid, b"Content", b"")
                 msetts.embedded_set.add(filepath)
     # Looks like we'd rather not write any 'Content' element in this case (see T44442).

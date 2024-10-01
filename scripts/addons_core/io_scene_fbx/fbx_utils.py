@@ -837,7 +837,7 @@ def _key_to_uuid(uuids, key):
             uuid += inc
             if 0 > uuid >= 2**63:
                 # Note that this is more that unlikely, but does not harm anyway...
-                raise ValueError("Unable to generate an UUID for key {}".format(key))
+                raise ValueError("Unable to generate an UUID for key {!r}".format(key))
     return UUID(uuid)
 
 
@@ -1728,7 +1728,7 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
                 if par_type in {'OBJECT', 'BONE'}:
                     return True
                 else:
-                    print("Sorry, “{}” parenting type is not supported".format(par_type))
+                    print("Sorry, \"{:s}\" parenting type is not supported".format(par_type))
                     return False
             return True
         return False

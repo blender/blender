@@ -118,7 +118,7 @@ class PropertiesAnimationMixin:
         if not animated_id:
             class_list = [c.__name__ for c in cls.mro()]
             print("PropertiesAnimationMixin: no animatable data-block, this is a bug "
-                  "in one of these classes: {}".format(class_list))
+                  "in one of these classes: {!r}".format(class_list))
             layout.label(text='No animatable data-block, please report as bug', icon='ERROR')
             return
 
