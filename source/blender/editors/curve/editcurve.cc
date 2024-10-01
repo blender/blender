@@ -20,6 +20,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
+#include "BLI_set.hh"
 
 #include "BLT_translation.hh"
 
@@ -37,6 +38,8 @@
 #include "BKE_modifier.hh"
 #include "BKE_object_types.hh"
 #include "BKE_report.hh"
+
+#include "ANIM_action.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -903,65 +906,54 @@ static bool curve_is_animated(Curve *cu)
   return ad && (ad->action || ad->drivers.first);
 }
 
-static void fcurve_path_rename(AnimData *adt,
-                               const char *orig_rna_path,
+/**
+ * Rename F-Curves, but only if they haven't been processed yet.
+ */
+static void fcurve_path_rename(const char *orig_rna_path,
                                const char *rna_path,
                                ListBase *orig_curves,
-                               ListBase *curves)
+                               blender::Set<FCurve *> &processed_fcurves)
 {
-  FCurve *nfcu;
-  int len = strlen(orig_rna_path);
+  const int len = strlen(orig_rna_path);
 
-  LISTBASE_FOREACH_MUTABLE (FCurve *, fcu, orig_curves) {
-    if (STREQLEN(fcu->rna_path, orig_rna_path, len)) {
-      char *spath, *suffix = fcu->rna_path + len;
-      nfcu = BKE_fcurve_copy(fcu);
-      spath = nfcu->rna_path;
-      nfcu->rna_path = BLI_sprintfN("%s%s", rna_path, suffix);
-
-      /* BKE_fcurve_copy() sets nfcu->grp to nullptr. To maintain the groups, we need to keep the
-       * pointer. As a result, the group's 'channels' pointers will be wrong, which is fixed by
-       * calling `action_groups_reconstruct(action)` later, after all fcurves have been renamed. */
-      nfcu->grp = fcu->grp;
-      BLI_addtail(curves, nfcu);
-
-      if (fcu->grp) {
-        action_groups_remove_channel(adt->action, fcu);
-      }
-      else if ((adt->action) && (&adt->action->curves == orig_curves)) {
-        BLI_remlink(&adt->action->curves, fcu);
-      }
-      else {
-        BLI_remlink(&adt->drivers, fcu);
-      }
-
-      BKE_fcurve_free(fcu);
-
-      MEM_freeN(spath);
+  LISTBASE_FOREACH (FCurve *, fcu, orig_curves) {
+    if (processed_fcurves.contains(fcu)) {
+      continue;
     }
+    if (!STREQLEN(fcu->rna_path, orig_rna_path, len)) {
+      continue;
+    }
+
+    processed_fcurves.add(fcu);
+
+    const char *suffix = fcu->rna_path + len;
+    char *new_rna_path = BLI_sprintfN("%s%s", rna_path, suffix);
+    MEM_SAFE_FREE(fcu->rna_path);
+    fcu->rna_path = new_rna_path;
   }
 }
 
-static void fcurve_remove(AnimData *adt, ListBase *orig_curves, FCurve *fcu)
+/**
+ * Rename F-Curves to account for changes in the Curve data.
+ *
+ * \return a vector of F-Curves that should be removed, because they refer to
+ * no-longer-existing parts of the curve.
+ */
+[[nodiscard]] static blender::Vector<FCurve *> curve_rename_fcurves(Curve *cu,
+                                                                    ListBase *orig_curves)
 {
-  if (orig_curves == &adt->drivers) {
-    BLI_remlink(&adt->drivers, fcu);
-  }
-  else {
-    action_groups_remove_channel(adt->action, fcu);
+  if (BLI_listbase_is_empty(orig_curves)) {
+    /* If there is no animation data to operate on, better stop now. */
+    return {};
   }
 
-  BKE_fcurve_free(fcu);
-}
-
-static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
-{
   int a, pt_index;
   EditNurb *editnurb = cu->editnurb;
   CVKeyIndex *keyIndex;
   char rna_path[64], orig_rna_path[64];
-  AnimData *adt = BKE_animdata_from_id(&cu->id);
-  ListBase curves = {nullptr, nullptr};
+
+  blender::Set<FCurve *> processed_fcurves;
+  blender::Vector<FCurve *> fcurves_to_remove;
 
   int nu_index = 0;
   LISTBASE_FOREACH_INDEX (Nurb *, nu, &editnurb->nurbs, nu_index) {
@@ -983,14 +975,14 @@ static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
             char handle_path[64], orig_handle_path[64];
             SNPRINTF(orig_handle_path, "%s.handle_left", orig_rna_path);
             SNPRINTF(handle_path, "%s.handle_right", rna_path);
-            fcurve_path_rename(adt, orig_handle_path, handle_path, orig_curves, &curves);
+            fcurve_path_rename(orig_handle_path, handle_path, orig_curves, processed_fcurves);
 
             SNPRINTF(orig_handle_path, "%s.handle_right", orig_rna_path);
             SNPRINTF(handle_path, "%s.handle_left", rna_path);
-            fcurve_path_rename(adt, orig_handle_path, handle_path, orig_curves, &curves);
+            fcurve_path_rename(orig_handle_path, handle_path, orig_curves, processed_fcurves);
           }
 
-          fcurve_path_rename(adt, orig_rna_path, rna_path, orig_curves, &curves);
+          fcurve_path_rename(orig_rna_path, rna_path, orig_curves, processed_fcurves);
 
           keyIndex->nu_index = nu_index;
           keyIndex->pt_index = pt_index;
@@ -1011,7 +1003,7 @@ static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
           SNPRINTF(rna_path, "splines[%d].points[%d]", nu_index, pt_index);
           SNPRINTF(
               orig_rna_path, "splines[%d].points[%d]", keyIndex->nu_index, keyIndex->pt_index);
-          fcurve_path_rename(adt, orig_rna_path, rna_path, orig_curves, &curves);
+          fcurve_path_rename(orig_rna_path, rna_path, orig_curves, processed_fcurves);
 
           keyIndex->nu_index = nu_index;
           keyIndex->pt_index = pt_index;
@@ -1026,12 +1018,16 @@ static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
   /* remove paths for removed control points
    * need this to make further step with copying non-cv related curves copying
    * not touching cv's f-curves */
-  LISTBASE_FOREACH_MUTABLE (FCurve *, fcu, orig_curves) {
+  LISTBASE_FOREACH (FCurve *, fcu, orig_curves) {
+    if (processed_fcurves.contains(fcu)) {
+      continue;
+    }
+
     if (STRPREFIX(fcu->rna_path, "splines")) {
       const char *ch = strchr(fcu->rna_path, '.');
 
       if (ch && (STRPREFIX(ch, ".bezier_points") || STRPREFIX(ch, ".points"))) {
-        fcurve_remove(adt, orig_curves, fcu);
+        fcurves_to_remove.append(fcu);
       }
     }
   }
@@ -1051,25 +1047,22 @@ static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
     if (keyIndex) {
       SNPRINTF(rna_path, "splines[%d]", nu_index);
       SNPRINTF(orig_rna_path, "splines[%d]", keyIndex->nu_index);
-      fcurve_path_rename(adt, orig_rna_path, rna_path, orig_curves, &curves);
+      fcurve_path_rename(orig_rna_path, rna_path, orig_curves, processed_fcurves);
     }
   }
 
   /* the remainders in orig_curves can be copied back (like follow path) */
   /* (if it's not path to spline) */
   LISTBASE_FOREACH_MUTABLE (FCurve *, fcu, orig_curves) {
-    if (STRPREFIX(fcu->rna_path, "splines")) {
-      fcurve_remove(adt, orig_curves, fcu);
+    if (processed_fcurves.contains(fcu)) {
+      continue;
     }
-    else {
-      BLI_addtail(&curves, fcu);
+    if (STRPREFIX(fcu->rna_path, "splines")) {
+      fcurves_to_remove.append(fcu);
     }
   }
 
-  *orig_curves = curves;
-  if (adt != nullptr) {
-    BKE_action_groups_reconstruct(adt->action);
-  }
+  return fcurves_to_remove;
 }
 
 int ED_curve_updateAnimPaths(Main *bmain, Curve *cu)
@@ -1086,12 +1079,24 @@ int ED_curve_updateAnimPaths(Main *bmain, Curve *cu)
   }
 
   if (adt->action != nullptr) {
-    curve_rename_fcurves(cu, &adt->action->curves);
+    Vector<FCurve *> fcurves_to_remove = curve_rename_fcurves(cu, &adt->action->curves);
+    for (FCurve *fcurve : fcurves_to_remove) {
+      action_groups_remove_channel(adt->action, fcurve);
+      BKE_fcurve_free(fcurve);
+    }
+
+    BKE_action_groups_reconstruct(adt->action);
     DEG_id_tag_update(&adt->action->id, ID_RECALC_SYNC_TO_EVAL);
   }
 
-  curve_rename_fcurves(cu, &adt->drivers);
-  DEG_id_tag_update(&cu->id, ID_RECALC_SYNC_TO_EVAL);
+  {
+    Vector<FCurve *> fcurves_to_remove = curve_rename_fcurves(cu, &adt->drivers);
+    for (FCurve *driver : fcurves_to_remove) {
+      BLI_remlink(&adt->drivers, driver);
+      BKE_fcurve_free(driver);
+    }
+    DEG_id_tag_update(&cu->id, ID_RECALC_SYNC_TO_EVAL);
+  }
 
   /* TODO(sergey): Only update if something actually changed. */
   DEG_relations_tag_update(bmain);

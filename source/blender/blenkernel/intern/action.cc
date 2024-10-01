@@ -991,11 +991,15 @@ void BKE_action_groups_reconstruct(bAction *act)
     return;
   }
 
-  BLI_assert(act->wrap().is_action_legacy());
-
   if (BLI_listbase_is_empty(&act->groups)) {
+    /* NOTE: this also includes layered Actions, as act->groups is the legacy storage for groups.
+     * Layered Actions should never have to deal with 'reconstructing' groups, as arbitrarily
+     * shuffling of the underlying data isn't allowed, and the available methods for modifying
+     * F-Curves/Groups already ensure that the data is valid when they return. */
     return;
   }
+
+  BLI_assert(act->wrap().is_action_legacy());
 
   /* Clear out all group channels. Channels that are actually in use are
    * reconstructed below; this step is necessary to clear out unused groups. */
