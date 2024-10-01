@@ -5039,7 +5039,7 @@ def main(
         sys.stdout.write("{:s}\n".format(VERSION))
         return 0
 
-    if sys.platform == "win32":
+    if (sys.platform == "win32") and (sys.version_info < (3, 12, 6)):
         _worlaround_win32_ssl_cert_failure()
 
     parser = argparse_create(
