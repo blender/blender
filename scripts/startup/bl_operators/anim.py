@@ -694,7 +694,7 @@ class ANIM_OT_slot_new_for_id(Operator):
         return True
 
     def execute(self, context):
-        animated_id = getattr(context, "animated_id", None)
+        animated_id = context.animated_id
 
         action = animated_id.animation_data.action
         slot = action.slots.new(for_id=animated_id)
@@ -726,7 +726,7 @@ class ANIM_OT_slot_unassign_from_id(Operator):
         return True
 
     def execute(self, context):
-        animated_id = getattr(context, "animated_id", None)
+        animated_id = context.animated_id
         animated_id.animation_data.action_slot = None
         return {'FINISHED'}
 
