@@ -8114,11 +8114,15 @@ static void rna_def_modifier_nodes(BlenderRNA *brna)
                                     nullptr);
   RNA_def_property_struct_type(prop, "NodesModifierWarning");
 
-  rna_def_modifier_panel_open_prop(srna, "open_output_attributes_panel", 0);
-  rna_def_modifier_panel_open_prop(srna, "open_manage_panel", 1);
-  rna_def_modifier_panel_open_prop(srna, "open_bake_panel", 2);
-  rna_def_modifier_panel_open_prop(srna, "open_named_attributes_panel", 3);
-  rna_def_modifier_panel_open_prop(srna, "open_bake_data_blocks_panel", 4);
+  rna_def_modifier_panel_open_prop(
+      srna, "open_output_attributes_panel", NODES_MODIFIER_PANEL_OUTPUT_ATTRIBUTES);
+  rna_def_modifier_panel_open_prop(srna, "open_manage_panel", NODES_MODIFIER_PANEL_MANAGE);
+  rna_def_modifier_panel_open_prop(srna, "open_bake_panel", NODES_MODIFIER_PANEL_BAKE);
+  rna_def_modifier_panel_open_prop(
+      srna, "open_named_attributes_panel", NODES_MODIFIER_PANEL_NAMED_ATTRIBUTES);
+  rna_def_modifier_panel_open_prop(
+      srna, "open_bake_data_blocks_panel", NODES_MODIFIER_PANEL_BAKE_DATA_BLOCKS);
+  rna_def_modifier_panel_open_prop(srna, "open_warnings_panel", NODES_MODIFIER_PANEL_WARNINGS);
 
   RNA_define_lib_overridable(false);
 }

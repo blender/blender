@@ -2496,6 +2496,15 @@ typedef enum NodesModifierBakeMode {
   NODES_MODIFIER_BAKE_MODE_STILL = 1,
 } NodesModifierBakeMode;
 
+typedef enum GeometryNodesModifierPanel {
+  NODES_MODIFIER_PANEL_OUTPUT_ATTRIBUTES = 0,
+  NODES_MODIFIER_PANEL_MANAGE = 1,
+  NODES_MODIFIER_PANEL_BAKE = 2,
+  NODES_MODIFIER_PANEL_NAMED_ATTRIBUTES = 3,
+  NODES_MODIFIER_PANEL_BAKE_DATA_BLOCKS = 4,
+  NODES_MODIFIER_PANEL_WARNINGS = 5,
+} GeometryNodesModifierPanel;
+
 typedef struct NodesModifierData {
   ModifierData modifier;
   struct bNodeTree *node_group;
