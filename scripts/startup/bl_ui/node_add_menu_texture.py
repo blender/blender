@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-import bpy
 from bpy.types import Menu
 from bpy.app.translations import (
     contexts as i18n_contexts,
