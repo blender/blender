@@ -52,6 +52,7 @@ static bToolRef *toolsystem_reinit_ensure_toolref(bContext *C,
 static void toolsystem_refresh_screen_from_active_tool(Main *bmain,
                                                        WorkSpace *workspace,
                                                        bToolRef *tref);
+static void toolsystem_ref_set_by_brush_type(bContext *C, const char *brush_type);
 
 /* -------------------------------------------------------------------- */
 /** \name Tool Reference API
@@ -166,20 +167,6 @@ void WM_toolsystem_unlink(bContext *C, WorkSpace *workspace, const bToolKey *tke
 /** \name Brush Tools
  * \{ */
 
-static std::optional<blender::StringRefNull> find_tool_id_from_brush_type_id(const bContext *C,
-                                                                             const int brush_type)
-{
-  const WorkSpace *workspace = CTX_wm_workspace(C);
-  LISTBASE_FOREACH (const bToolRef *, tref, &workspace->tools) {
-    if (tref->runtime && (tref->runtime->brush_type != -1) &&
-        tref->runtime->brush_type == brush_type)
-    {
-      return tref->idname;
-    }
-  }
-  return {};
-}
-
 static const char *brush_type_identifier_get(const int brush_type, const PaintMode paint_mode)
 {
   const EnumPropertyItem *type_enum = BKE_paint_get_tool_enum_from_paintmode(paint_mode);
@@ -190,20 +177,14 @@ static const char *brush_type_identifier_get(const int brush_type, const PaintMo
   return type_enum[item_idx].identifier;
 }
 
-static bool brush_type_is_compatible_with_active_tool(bContext *C, const int brush_type)
+static bool brush_type_matches_active_tool(bContext *C, const int brush_type)
 {
   if (!WM_toolsystem_active_tool_is_brush(C)) {
     return false;
   }
 
   const bToolRef *active_tool = toolsystem_active_tool_from_context_or_view3d(C);
-
   BLI_assert(BKE_paintmode_get_active_from_context(C) == BKE_paintmode_get_from_tool(active_tool));
-
-  /* Tool supports any brush type, no need to check further. */
-  if (active_tool->runtime->brush_type == -1) {
-    return true;
-  }
   return active_tool->runtime->brush_type == brush_type;
 }
 
@@ -282,10 +263,10 @@ bool WM_toolsystem_activate_brush_and_tool(bContext *C, Paint *paint, Brush *bru
       BLI_assert_unreachable();
       WM_toolsystem_ref_set_by_id(C, "builtin.brush");
     }
-    else if (!brush_type_is_compatible_with_active_tool(C, *brush_type)) {
-      std::optional<blender::StringRefNull> compatible_tool = find_tool_id_from_brush_type_id(
-          C, *brush_type);
-      WM_toolsystem_ref_set_by_id(C, compatible_tool.value_or("builtin.brush").c_str());
+    else if (!brush_type_matches_active_tool(C, *brush_type)) {
+      const char *brush_type_name = brush_type_identifier_get(*brush_type, paint_mode);
+      /* Calls into .py to query available tools. */
+      toolsystem_ref_set_by_brush_type(C, brush_type_name);
     }
   }
 
@@ -912,6 +893,51 @@ bToolRef *WM_toolsystem_ref_set_by_id(bContext *C, const char *name)
     return WM_toolsystem_ref_set_by_id_ex(C, workspace, &tkey, name, false);
   }
   return nullptr;
+}
+
+static void toolsystem_ref_set_by_brush_type(bContext *C, const char *brush_type)
+{
+  const Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  ScrArea *area = CTX_wm_area(C);
+  bToolKey tkey;
+  if (WM_toolsystem_key_from_context(scene, view_layer, area, &tkey)) {
+    WorkSpace *workspace = CTX_wm_workspace(C);
+
+    wmOperatorType *ot = WM_operatortype_find("WM_OT_tool_set_by_brush_type", false);
+    /* On startup, Python operators are not yet loaded. */
+    if (ot == nullptr) {
+      return;
+    }
+
+/* Some contexts use the current space type (image editor for e.g.),
+ * ensure this is set correctly or there is no area. */
+#ifndef NDEBUG
+    /* Exclude this check for some space types where the space type isn't used. */
+    if ((1 << tkey.space_type) & WM_TOOLSYSTEM_SPACE_MASK_MODE_FROM_SPACE) {
+      ScrArea *area = CTX_wm_area(C);
+      BLI_assert(area == nullptr || area->spacetype == tkey.space_type);
+    }
+#endif
+
+    PointerRNA op_props;
+    WM_operator_properties_create_ptr(&op_props, ot);
+    RNA_string_set(&op_props, "brush_type", brush_type);
+
+    BLI_assert((1 << tkey.space_type) & WM_TOOLSYSTEM_SPACE_MASK);
+
+    RNA_enum_set(&op_props, "space_type", tkey.space_type);
+
+    WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_DEFAULT, &op_props, nullptr);
+    WM_operator_properties_free(&op_props);
+
+    bToolRef *tref = WM_toolsystem_ref_find(workspace, &tkey);
+
+    if (tref) {
+      Main *bmain = CTX_data_main(C);
+      toolsystem_refresh_screen_from_active_tool(bmain, workspace, tref);
+    }
+  }
 }
 
 static void toolsystem_reinit_with_toolref(bContext *C, WorkSpace *workspace, bToolRef *tref)

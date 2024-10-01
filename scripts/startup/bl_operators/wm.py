@@ -2390,6 +2390,60 @@ class WM_OT_tool_set_by_index(Operator):
             raise Exception("Internal error setting tool")
 
 
+class WM_OT_tool_set_by_brush_type(Operator):
+    """Look up the most appropriate tool for the given brush type and activate that"""
+    bl_idname = "wm.tool_set_by_brush_type"
+    bl_label = "Set Tool by Brush Type"
+
+    brush_type: StringProperty(
+        name="Brush Type",
+        description="Brush type identifier for which the most appropriate tool will be looked up",
+    )
+
+    space_type: rna_space_type_prop
+
+    def execute(self, context):
+        from bl_ui.space_toolsystem_common import (
+            ToolSelectPanelHelper,
+            activate_by_id
+        )
+
+        if self.properties.is_property_set("space_type"):
+            space_type = self.space_type
+        else:
+            space_type = context.space_data.type
+
+        tool_helper_cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
+        # Lookup a tool with a matching brush type (ignoring some specific ones).
+        tool_id = "builtin.brush"
+        for item in ToolSelectPanelHelper._tools_flatten(tool_helper_cls.tools_from_context(context, mode=context.mode)):
+            if item is None:
+                continue
+
+            # Never automatically activate these tools, they use a brush type that we want to use
+            # the main brush for (e.g. grease pencil primitive tools use 'DRAW' brush type, which
+            # is the most general one).
+            if item.idname in {
+                    "builtin.arc",
+                    "builtin.curve",
+                    "builtin.line",
+                    "builtin.box",
+                    "builtin.circle",
+                    "builtin.polyline",
+            }:
+                continue
+
+            if item.options is not None and ('USE_BRUSHES' in item.options) and item.brush_type is not None:
+                if item.brush_type == self.brush_type:
+                    tool_id = item.idname
+                    break
+
+        if activate_by_id(context, space_type, tool_id):
+            return {'FINISHED'}
+        else:
+            self.report({'WARNING'}, rpt_("Tool {!r} not found for space {!r}").format(tool_id, space_type))
+            return {'CANCELLED'}
+
 class WM_OT_toolbar(Operator):
     bl_idname = "wm.toolbar"
     bl_label = "Toolbar"
@@ -3597,6 +3651,7 @@ classes = (
     WM_OT_url_open_preset,
     WM_OT_tool_set_by_id,
     WM_OT_tool_set_by_index,
+    WM_OT_tool_set_by_brush_type,
     WM_OT_toolbar,
     WM_OT_toolbar_fallback_pie,
     WM_OT_toolbar_prompt,
