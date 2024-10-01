@@ -101,7 +101,7 @@ TEST(vk_render_graph, begin_rendering_copy_buffer_end_rendering)
       "dst_stage_mask=VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT" +
           endl() +
           " - image_barrier(src_access_mask=VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, "
-          "dst_access_mask=VK_ACCESS_MEMORY_WRITE_BIT, "
+          "dst_access_mask=, "
           "old_layout=VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, "
           "new_layout=VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, image=0x1, subresource_range=" +
           endl() +
@@ -224,7 +224,7 @@ TEST(vk_render_graph, begin_clear_attachments_copy_buffer_end)
       "dst_stage_mask=VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT" +
           endl() +
           " - image_barrier(src_access_mask=VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, "
-          "dst_access_mask=VK_ACCESS_MEMORY_WRITE_BIT, "
+          "dst_access_mask=, "
           "old_layout=VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, "
           "new_layout=VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, image=0x1, subresource_range=" +
           endl() +
@@ -347,7 +347,7 @@ TEST(vk_render_graph, begin_copy_buffer_clear_attachments_end)
       "dst_stage_mask=VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT" +
           endl() +
           " - image_barrier(src_access_mask=VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, "
-          "dst_access_mask=VK_ACCESS_MEMORY_WRITE_BIT, "
+          "dst_access_mask=, "
           "old_layout=VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, "
           "new_layout=VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, image=0x1, subresource_range=" +
           endl() +
@@ -510,7 +510,7 @@ TEST(vk_render_graph, begin_clear_attachments_copy_buffer_clear_attachments_end)
       "dst_stage_mask=VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT" +
           endl() +
           " - image_barrier(src_access_mask=VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, "
-          "dst_access_mask=VK_ACCESS_MEMORY_WRITE_BIT, "
+          "dst_access_mask=, "
           "old_layout=VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, "
           "new_layout=VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, image=0x1, subresource_range=" +
           endl() +
