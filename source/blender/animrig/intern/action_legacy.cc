@@ -5,6 +5,8 @@
 #include "ANIM_action.hh"
 #include "ANIM_action_legacy.hh"
 
+#include "BLI_listbase_wrapper.hh"
+
 #include "BKE_fcurve.hh"
 
 namespace blender::animrig::legacy {
@@ -140,11 +142,7 @@ static Vector<FCurveType *> fcurves_for_action_slot_templated(ActionType &action
   /* Legacy Action. */
   if (action.is_action_legacy()) {
 #endif /* WITH_ANIM_BAKLAVA */
-    Vector<FCurveType *> legacy_fcurves;
-    LISTBASE_FOREACH (FCurveType *, fcurve, &action.curves) {
-      legacy_fcurves.append(fcurve);
-    }
-    return legacy_fcurves;
+    return listbase_to_vector<FCurveType>(action.curves);
 #ifdef WITH_ANIM_BAKLAVA
   }
 

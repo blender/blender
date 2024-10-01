@@ -112,4 +112,17 @@ template<typename T> Vector<T *> listbase_to_vector(ListBase &list)
   return vector;
 }
 
+/**
+ * Convert a ListBase to a Vector.
+ */
+template<typename T> Vector<T *> listbase_to_vector(const ListBase &list)
+{
+  Vector<T *> vector;
+
+  for (T *item : ConstListBaseWrapper<T>(list)) {
+    vector.append(item);
+  }
+  return vector;
+}
+
 } /* namespace blender */
