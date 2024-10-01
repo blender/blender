@@ -30,7 +30,6 @@ from bpy.types import (
     Object,
     Operator,
 )
-from bpy_extras import asset_utils
 from bpy.app.translations import pgettext_tip as tip_
 
 
@@ -257,6 +256,8 @@ class POSELIB_OT_paste_asset(Operator):
 
     @classmethod
     def poll(cls, context: Context) -> bool:
+        from bpy_extras import asset_utils
+
         if not asset_utils.SpaceAssetInfo.is_asset_browser(context.space_data):
             cls.poll_message_set("Current editor is not an asset browser")
             return False
