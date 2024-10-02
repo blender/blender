@@ -2497,7 +2497,7 @@ class VIEW3D_PT_tools_grease_pencil_v3_brush_settings(Panel, View3DPanel, Grease
                 from bl_ui.properties_paint_common import (
                     brush_basic_grease_pencil_paint_settings,
                 )
-                brush_basic_grease_pencil_paint_settings(layout, context, brush, compact=False)
+                brush_basic_grease_pencil_paint_settings(layout, context, brush, None, compact=False)
 
 
 class VIEW3D_PT_tools_grease_pencil_v3_brush_advanced(View3DPanel, Panel):

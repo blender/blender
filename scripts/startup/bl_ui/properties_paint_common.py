@@ -1433,7 +1433,7 @@ def brush_basic_texpaint_settings(layout, context, brush, *, compact=False):
     )
 
 
-def brush_basic__draw_color_selector(context, layout, brush, gp_settings, props):
+def brush_basic__draw_color_selector(context, layout, brush, gp_settings):
     tool_settings = context.scene.tool_settings
     settings = tool_settings.gpencil_paint
     ma = gp_settings.material
@@ -1474,14 +1474,14 @@ def brush_basic__draw_color_selector(context, layout, brush, gp_settings, props)
             sub_row.prop_enum(settings, "color_mode", 'MATERIAL', text="", icon='MATERIAL')
             sub_row.prop_enum(settings, "color_mode", 'VERTEXCOLOR', text="", icon='VPAINT_HLT')
 
-        sub_row = row.row(align=True)
-        sub_row.enabled = settings.color_mode == 'VERTEXCOLOR' or gp_settings.brush_draw_mode == 'VERTEXCOLOR'
-        sub_row.prop_with_popover(brush, "color", text="", panel="TOPBAR_PT_gpencil_vertexcolor")
-        row.prop(gp_settings, "pin_draw_mode", text="")
+        show_vertex_color = settings.color_mode == 'VERTEXCOLOR' or gp_settings.brush_draw_mode == 'VERTEXCOLOR'
 
-    if props:
-        row = layout.row(align=True)
-        row.prop(props, "subdivision")
+        if show_vertex_color:
+            sub_row = row.row(align=True)
+            sub_row.enabled = show_vertex_color
+            sub_row.scale_x = 0.8
+            sub_row.prop_with_popover(brush, "color", text="", panel="TOPBAR_PT_gpencil_vertexcolor")
+        row.prop(gp_settings, "pin_draw_mode", text="")
 
 
 def brush_basic_gpencil_paint_settings(layout, context, brush, *, compact=False):
@@ -1584,7 +1584,7 @@ def brush_basic_gpencil_paint_settings(layout, context, brush, *, compact=False)
                 layout.template_curve_mapping(settings, "thickness_primitive_curve", brush=True)
 
 
-def brush_basic_grease_pencil_paint_settings(layout, context, brush, *, compact=False):
+def brush_basic_grease_pencil_paint_settings(layout, context, brush, props, *, compact=False):
     gp_settings = brush.gpencil_settings
     tool = context.workspace.tools.from_space_view3d_mode(context.mode, create=False)
     if gp_settings is None:
@@ -1625,6 +1625,9 @@ def brush_basic_grease_pencil_paint_settings(layout, context, brush, *, compact=
         if brush.use_pressure_strength and not compact:
             col = layout.column()
             col.template_curve_mapping(gp_settings, "curve_strength", brush=True, use_negative_slope=True)
+
+    if props:
+        layout.prop(props, "subdivision")
 
     # Brush details
     if tool.idname in {
@@ -1683,9 +1686,9 @@ def brush_basic_grease_pencil_paint_settings(layout, context, brush, *, compact=
         layout.use_property_split = use_property_split_prev
     elif grease_pencil_tool == 'ERASE':
         layout.prop(gp_settings, "eraser_mode", expand=True)
+        layout.prop(gp_settings, "use_active_layer_only")
         if gp_settings.eraser_mode in {'HARD', 'SOFT'}:
             layout.prop(gp_settings, "use_keep_caps_eraser")
-        layout.prop(gp_settings, "use_active_layer_only")
     elif grease_pencil_tool == 'TINT':
         layout.prop(gp_settings, "vertex_mode", text="Mode")
         layout.popover("VIEW3D_PT_tools_brush_falloff")
