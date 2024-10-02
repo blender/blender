@@ -1111,13 +1111,17 @@ class VIEW3D_HT_header(Header):
                 grease_pencil = context.object.data
                 layer = grease_pencil.layers.active
                 group = grease_pencil.layer_groups.active
-                icon = 'OUTLINER_DATA_GP_LAYER' if layer else 'GREASEPENCIL_LAYER_GROUP'
-                node_name = layer.name if layer else group.name
 
-                # Clamp long names otherwise the selector can get too wide.
-                max_width = 25
-                if len(node_name) > max_width:
-                    node_name = node_name[:max_width - 5] + '..' + node_name[-3:]
+                icon = 'OUTLINER_DATA_GP_LAYER'
+                node_name = None
+                if layer or group:
+                    icon = 'OUTLINER_DATA_GP_LAYER' if layer else 'GREASEPENCIL_LAYER_GROUP'
+                    node_name = layer.name if layer else group.name
+
+                    # Clamp long names otherwise the selector can get too wide.
+                    max_width = 25
+                    if len(node_name) > max_width:
+                        node_name = node_name[:max_width - 5] + '..' + node_name[-3:]
 
                 sub = layout.row()
                 sub.popover(
