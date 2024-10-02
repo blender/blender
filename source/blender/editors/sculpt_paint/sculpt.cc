@@ -6481,7 +6481,6 @@ void fill_factor_from_hide_and_mask(const Span<bool> hide_vert,
                                     const MutableSpan<float> r_factors)
 {
   BLI_assert(verts.size() == r_factors.size());
-  BLI_assert(mask.size() == hide_vert.size());
 
   if (!mask.is_empty()) {
     for (const int i : verts.index_range()) {
