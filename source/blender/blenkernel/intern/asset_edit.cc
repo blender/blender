@@ -61,7 +61,11 @@ static ID *asset_link_id(Main &global_main,
       lapp_context, asset_name, id_type, nullptr);
   BKE_blendfile_link_append_context_item_library_index_enable(lapp_context, lapp_item, 0);
 
+  BKE_blendfile_link_append_context_init_done(lapp_context);
+
   BKE_blendfile_link(lapp_context, nullptr);
+
+  BKE_blendfile_link_append_context_finalize(lapp_context);
 
   ID *local_asset = BKE_blendfile_link_append_context_item_newid_get(lapp_context, lapp_item);
 

@@ -527,6 +527,8 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject * /*args*/)
     }
   }
 
+  BKE_blendfile_link_append_context_init_done(lapp_context);
+
   BKE_blendfile_link(lapp_context, nullptr);
   if (do_append) {
     BKE_blendfile_append(lapp_context, nullptr);
@@ -534,6 +536,8 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject * /*args*/)
   else if (create_liboverrides) {
     BKE_blendfile_override(lapp_context, self->liboverride_flags, nullptr);
   }
+
+  BKE_blendfile_link_append_context_finalize(lapp_context);
 
 /* If enabled, replace named items in given lists by the final matching new ID pointer. */
 #ifdef USE_RNA_DATABLOCKS
