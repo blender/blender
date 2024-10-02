@@ -197,15 +197,28 @@ struct StepData {
   /** Name of the object's active shape key when the undo step was created. */
   std::string active_shape_key_name;
 
-  /* The number of vertices in the entire mesh. */
-  int mesh_verts_num;
-  /* The number of face corners in the entire mesh. */
-  int mesh_corners_num;
+  /* TODO: Combine the three structs into a variant, since they specify data that is only valid
+   * within a single mode. */
+  struct {
+    /* The number of vertices in the entire mesh. */
+    int verts_num;
+    /* The number of face corners in the entire mesh. */
+    int corners_num;
+  } mesh;
 
-  /** The number of grids in the entire mesh. */
-  int mesh_grids_num;
-  /** A copy of #SubdivCCG::grid_size. */
-  int grid_size;
+  struct {
+    /** The number of grids in the entire mesh. A copy of #SubdivCCG::grids_num. */
+    int grids_num;
+    /** A copy of #SubdivCCG::grid_size. */
+    int grid_size;
+  } grids;
+
+  struct {
+    BMLogEntry *bm_entry;
+
+    /* Geometry at the bmesh enter moment. */
+    NodeGeometry geometry_enter;
+  } bmesh;
 
   float3 pivot_pos;
   float4 pivot_rot;
@@ -219,12 +232,6 @@ struct StepData {
   bool geometry_clear_pbvh;
   NodeGeometry geometry_original;
   NodeGeometry geometry_modified;
-
-  /* bmesh */
-  BMLogEntry *bm_entry;
-
-  /* Geometry at the bmesh enter moment. */
-  NodeGeometry geometry_bmesh_enter;
 
   bool applied;
 
@@ -276,7 +283,7 @@ static StepData *get_step_data()
 
 static bool use_multires_undo(const StepData &step_data, const SculptSession &ss)
 {
-  return step_data.mesh_grids_num != 0 && ss.subdiv_ccg != nullptr;
+  return step_data.grids.grids_num != 0 && ss.subdiv_ccg != nullptr;
 }
 
 static bool topology_matches(const StepData &step_data, const Object &object)
@@ -284,11 +291,11 @@ static bool topology_matches(const StepData &step_data, const Object &object)
   const SculptSession &ss = *object.sculpt;
   if (use_multires_undo(step_data, ss)) {
     const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
-    return subdiv_ccg.grids_num == step_data.mesh_grids_num &&
-           subdiv_ccg.grid_size == step_data.grid_size;
+    return subdiv_ccg.grids_num == step_data.grids.grids_num &&
+           subdiv_ccg.grid_size == step_data.grids.grid_size;
   }
   const Mesh &mesh = *static_cast<Mesh *>(object.data);
-  return mesh.verts_num == step_data.mesh_verts_num;
+  return mesh.verts_num == step_data.mesh.verts_num;
 }
 
 static bool indices_contain_true(const Span<bool> data, const Span<int> indices)
@@ -571,7 +578,7 @@ static void bmesh_enable(Object &object, const StepData &step_data)
   mesh->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;
 
   /* Restore the BMLog using saved entries. */
-  ss.bm_log = BM_log_from_existing_entries_create(ss.bm, step_data.bm_entry);
+  ss.bm_log = BM_log_from_existing_entries_create(ss.bm, step_data.bmesh.bm_entry);
 }
 
 static void bmesh_restore_begin(bContext *C,
@@ -728,12 +735,12 @@ static int bmesh_restore(bContext *C,
 
 void restore_from_bmesh_enter_geometry(const StepData &step_data, Mesh &mesh)
 {
-  restore_geometry_data(&step_data.geometry_bmesh_enter, &mesh);
+  restore_geometry_data(&step_data.bmesh.geometry_enter, &mesh);
 }
 
 BMLogEntry *get_bmesh_log_entry()
 {
-  return get_step_data()->bm_entry;
+  return get_step_data()->bmesh.bm_entry;
 }
 
 /* Geometry updates (such as Apply Base, for example) will re-evaluate the object and refine its
@@ -1053,9 +1060,9 @@ static void free_step_data(StepData &step_data)
 {
   geometry_free_data(&step_data.geometry_original);
   geometry_free_data(&step_data.geometry_modified);
-  geometry_free_data(&step_data.geometry_bmesh_enter);
-  if (step_data.bm_entry) {
-    BM_log_entry_drop(step_data.bm_entry);
+  geometry_free_data(&step_data.bmesh.geometry_enter);
+  if (step_data.bmesh.bm_entry) {
+    BM_log_entry_drop(step_data.bmesh.bm_entry);
   }
   step_data.~StepData();
 }
@@ -1384,7 +1391,7 @@ BLI_NOINLINE static void bmesh_push(const Object &object,
     step_data->applied = true;
 
     if (type == Type::DyntopoEnd) {
-      step_data->bm_entry = BM_log_entry_add(ss.bm_log);
+      step_data->bmesh.bm_entry = BM_log_entry_add(ss.bm_log);
       BM_log_before_all_removed(ss.bm, ss.bm_log);
     }
     else if (type == Type::DyntopoBegin) {
@@ -1393,14 +1400,14 @@ BLI_NOINLINE static void bmesh_push(const Object &object,
        * dynamic-topology immediately does topological edits
        * (converting faces to triangles) that the BMLog can't
        * fully restore from. */
-      NodeGeometry *geometry = &step_data->geometry_bmesh_enter;
+      NodeGeometry *geometry = &step_data->bmesh.geometry_enter;
       store_geometry_data(geometry, object);
 
-      step_data->bm_entry = BM_log_entry_add(ss.bm_log);
+      step_data->bmesh.bm_entry = BM_log_entry_add(ss.bm_log);
       BM_log_all_added(ss.bm, ss.bm_log);
     }
     else {
-      step_data->bm_entry = BM_log_entry_add(ss.bm_log);
+      step_data->bmesh.bm_entry = BM_log_entry_add(ss.bm_log);
     }
   }
 
@@ -1627,13 +1634,13 @@ void push_begin_ex(const Scene & /*scene*/, Object &ob, const char *name)
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
-      us->data.mesh_verts_num = mesh.verts_num;
-      us->data.mesh_corners_num = mesh.corners_num;
+      us->data.mesh.verts_num = mesh.verts_num;
+      us->data.mesh.corners_num = mesh.corners_num;
       break;
     }
     case bke::pbvh::Type::Grids: {
-      us->data.mesh_grids_num = ss.subdiv_ccg->grids_num;
-      us->data.grid_size = ss.subdiv_ccg->grid_size;
+      us->data.grids.grids_num = ss.subdiv_ccg->grids_num;
+      us->data.grids.grid_size = ss.subdiv_ccg->grid_size;
       break;
     }
     case bke::pbvh::Type::BMesh: {
