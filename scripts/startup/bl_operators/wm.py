@@ -2417,8 +2417,8 @@ class WM_OT_tool_set_by_brush_type(Operator):
         # Lookup a tool with a matching brush type (ignoring some specific ones).
         tool_id = "builtin.brush"
         for item in ToolSelectPanelHelper._tools_flatten(
-            tool_helper_cls.tools_from_context(
-                context, mode=context.mode)):
+                tool_helper_cls.tools_from_context(context, mode=context.mode),
+        ):
             if item is None:
                 continue
 

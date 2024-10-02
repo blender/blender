@@ -222,7 +222,12 @@ class VIEW3D_HT_tool_header(Header):
             layout.popover_group(context=".particlemode", **popover_kw)
         elif mode_string == 'OBJECT':
             layout.popover_group(context=".objectmode", **popover_kw)
-        elif mode_string in {'PAINT_GPENCIL', 'EDIT_GPENCIL', 'SCULPT_GPENCIL', 'WEIGHT_GPENCIL'}:
+        elif mode_string in {
+                'PAINT_GPENCIL',
+                'EDIT_GPENCIL',
+                'SCULPT_GPENCIL',
+                'WEIGHT_GPENCIL',
+        }:
             # Grease pencil layer.
             gpl = context.active_gpencil_layer
             if gpl and gpl.info is not None:
@@ -245,7 +250,8 @@ class VIEW3D_HT_tool_header(Header):
             'PAINT_GREASE_PENCIL',
             'SCULPT_GREASE_PENCIL',
             'WEIGHT_GREASE_PENCIL',
-                'VERTEX_GREASE_PENCIL'}:
+            'VERTEX_GREASE_PENCIL',
+        }:
             row = layout.row(align=True)
             row.prop(tool_settings, "use_grease_pencil_multi_frame_editing", text="")
 
@@ -253,7 +259,8 @@ class VIEW3D_HT_tool_header(Header):
                 'EDIT_GREASE_PENCIL',
                 'SCULPT_GREASE_PENCIL',
                 'WEIGHT_GREASE_PENCIL',
-                    'VERTEX_GREASE_PENCIL'}:
+                'VERTEX_GREASE_PENCIL',
+            }:
                 sub = row.row(align=True)
                 sub.active = tool_settings.use_grease_pencil_multi_frame_editing
                 sub.popover(
@@ -806,7 +813,7 @@ class VIEW3D_HT_header(Header):
         scene = context.scene
 
         # Orientation
-        if object_mode in {'OBJECT', 'EDIT', 'EDIT_GPENCIL'} or has_pose_mode:
+        if has_pose_mode or object_mode in {'OBJECT', 'EDIT', 'EDIT_GPENCIL'}:
             orient_slot = scene.transform_orientation_slots[0]
             row = layout.row(align=True)
 
@@ -819,7 +826,7 @@ class VIEW3D_HT_header(Header):
             )
 
         # Pivot
-        if object_mode in {'OBJECT', 'EDIT', 'EDIT_GPENCIL', 'SCULPT_GPENCIL'} or has_pose_mode:
+        if has_pose_mode or object_mode in {'OBJECT', 'EDIT', 'EDIT_GPENCIL', 'SCULPT_GPENCIL'}:
             layout.prop(tool_settings, "transform_pivot_point", text="", icon_only=True)
 
         # Snap
@@ -827,10 +834,11 @@ class VIEW3D_HT_header(Header):
         if obj is None:
             show_snap = True
         else:
-            if (object_mode not in {
-                    'SCULPT', 'SCULPT_CURVES', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT',
+            if has_pose_mode or (object_mode not in {
+                    'SCULPT', 'SCULPT_CURVES',
+                    'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT',
                     'PAINT_GPENCIL', 'SCULPT_GPENCIL', 'WEIGHT_GPENCIL', 'VERTEX_GPENCIL',
-            }) or has_pose_mode:
+            }):
                 show_snap = True
             else:
 
