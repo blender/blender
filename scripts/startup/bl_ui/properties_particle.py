@@ -2285,7 +2285,7 @@ class PARTICLE_PT_animation(ParticleButtonsPanel, PropertiesAnimationMixin, Prop
 
     @classmethod
     def _animated_id(cls, context):
-        psys = getattr(context, 'particle_system', None)
+        psys = getattr(context, "particle_system", None)
         return psys and psys.settings
 
 

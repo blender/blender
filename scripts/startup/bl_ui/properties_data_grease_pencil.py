@@ -395,7 +395,7 @@ class DATA_PT_grease_pencil_settings(DataButtonsPanel, Panel):
 
 
 class DATA_PT_grease_pencil_animation(DataButtonsPanel, PropertiesAnimationMixin, PropertyPanel, Panel):
-    _animated_id_context_property = 'grease_pencil'
+    _animated_id_context_property = "grease_pencil"
 
 
 class DATA_PT_grease_pencil_custom_props(DataButtonsPanel, PropertyPanel, Panel):

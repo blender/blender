@@ -240,7 +240,7 @@ def _selected_keyframes_for_bone(object: Object, bone: PoseBone) -> list[float]:
     Only keys on the given pose bone are considered.
     """
     name = bpy.utils.escape_identifier(bone.name)
-    return _selected_keyframes_in_action(object, f'pose.bones["{name}"].')
+    return _selected_keyframes_in_action(object, "pose.bones[\"{:s}\"].".format(name))
 
 
 def _selected_keyframes_for_object(object: Object) -> list[float]:

@@ -115,14 +115,14 @@ def DefAttributeGetterSetters(attributes_list):
 # Define the list of attributes that should be exposed as read/write properties on the class.
 @DefAttributeGetterSetters([
     # Property Name, Attribute Name, Type, Default Value, Doc-string.
-    ('position', 'position', 'FLOAT_VECTOR', (0.0, 0.0, 0.0), "The position of the point (in local space)."),
-    ('radius', 'radius', 'FLOAT', 0.01, "The radius of the point."),
-    ('opacity', 'opacity', 'FLOAT', 0.0, "The opacity of the point."),
-    ('select', '.selection', 'BOOLEAN', True, "The selection state for this point."),
-    ('vertex_color', 'vertex_color', 'FLOAT_COLOR', (0.0, 0.0, 0.0, 0.0),
+    ("position", "position", 'FLOAT_VECTOR', (0.0, 0.0, 0.0), "The position of the point (in local space)."),
+    ("radius", "radius", 'FLOAT', 0.01, "The radius of the point."),
+    ("opacity", "opacity", 'FLOAT', 0.0, "The opacity of the point."),
+    ("select", ".selection", 'BOOLEAN', True, "The selection state for this point."),
+    ("vertex_color", "vertex_color", 'FLOAT_COLOR', (0.0, 0.0, 0.0, 0.0),
      "The color for this point. The alpha value is used as a mix factor with the base color of the stroke."),
-    ('rotation', 'rotation', 'FLOAT', 0.0, "The rotation for this point. Used to rotate textures."),
-    ('delta_time', 'delta_time', 'FLOAT', 0.0, "The time delta in seconds since the start of the stroke."),
+    ("rotation", "rotation", 'FLOAT', 0.0, "The rotation for this point. Used to rotate textures."),
+    ("delta_time", "delta_time", 'FLOAT', 0.0, "The time delta in seconds since the start of the stroke."),
 ])
 class GreasePencilStrokePoint(AttributeGetterSetter):
     """
@@ -157,16 +157,16 @@ class GreasePencilStrokePointSlice(SliceHelper):
 # Define the list of attributes that should be exposed as read/write properties on the class.
 @DefAttributeGetterSetters([
     # Property Name, Attribute Name, Type, Default Value, Doc-string.
-    ('cyclic', 'cyclic', 'BOOLEAN', False, "The closed state for this stroke."),
-    ('material_index', 'material_index', 'INT', 0, "The index of the material for this stroke."),
-    ('select', '.selection', 'BOOLEAN', True, "The selection state for this stroke."),
-    ('softness', 'softness', 'FLOAT', 0.0, "Used by the renderer to generate a soft gradient from the stroke center line to the edges."),
-    ('start_cap', 'start_cap', 'INT8', 0, "The type of start cap of this stroke."),
-    ('end_cap', 'end_cap', 'INT8', 0, "The type of end cap of this stroke."),
-    ('aspect_ratio', 'aspect_ratio', 'FLOAT', 1.0, "The aspect ratio (x/y) used for textures. "),
-    ('fill_opacity', 'fill_opacity', 'FLOAT', 0.0, "The opacity of the fill."),
-    ('fill_color', 'fill_color', 'FLOAT_COLOR', (0.0, 0.0, 0.0, 0.0), "The color of the fill."),
-    ('time_start', 'init_time', 'FLOAT', 0.0, "A time value for when the stroke was created."),
+    ("cyclic", "cyclic", 'BOOLEAN', False, "The closed state for this stroke."),
+    ("material_index", "material_index", 'INT', 0, "The index of the material for this stroke."),
+    ("select", ".selection", 'BOOLEAN', True, "The selection state for this stroke."),
+    ("softness", "softness", 'FLOAT', 0.0, "Used by the renderer to generate a soft gradient from the stroke center line to the edges."),
+    ("start_cap", "start_cap", 'INT8', 0, "The type of start cap of this stroke."),
+    ("end_cap", "end_cap", 'INT8', 0, "The type of end cap of this stroke."),
+    ("aspect_ratio", "aspect_ratio", 'FLOAT', 1.0, "The aspect ratio (x/y) used for textures. "),
+    ("fill_opacity", "fill_opacity", 'FLOAT', 0.0, "The opacity of the fill."),
+    ("fill_color", "fill_color", 'FLOAT_COLOR', (0.0, 0.0, 0.0, 0.0), "The color of the fill."),
+    ("time_start", "init_time", 'FLOAT', 0.0, "A time value for when the stroke was created."),
 ])
 class GreasePencilStroke(AttributeGetterSetter):
     """
@@ -214,7 +214,7 @@ class GreasePencilStroke(AttributeGetterSetter):
         The curve type of this stroke.
         """
         # Note: This is read-only which is why it is not part of the AttributeGetterSetters.
-        return super()._get_attribute('curve_type', 'INT8', 0)
+        return super()._get_attribute("curve_type", 'INT8', 0)
 
 
 class GreasePencilStrokeSlice(SliceHelper):

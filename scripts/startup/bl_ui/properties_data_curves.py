@@ -178,7 +178,7 @@ class DATA_PT_curves_animation(DataButtonsPanel, PropertiesAnimationMixin, Prope
         'BLENDER_EEVEE_NEXT',
         'BLENDER_WORKBENCH',
     }
-    _animated_id_context_property = 'curves'
+    _animated_id_context_property = "curves"
 
 
 class DATA_PT_custom_props_curves(DataButtonsPanel, PropertyPanel, Panel):

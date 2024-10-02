@@ -385,7 +385,7 @@ class DATA_PT_lightprobe_animation(DataButtonsPanel, PropertiesAnimationMixin, P
         'BLENDER_EEVEE_NEXT',
         'BLENDER_EEVEE',
     }
-    _animated_id_context_property = 'lightprobe'
+    _animated_id_context_property = "lightprobe"
 
 
 classes = (

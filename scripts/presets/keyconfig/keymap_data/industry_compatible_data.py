@@ -205,13 +205,13 @@ def km_window(params):
         # NDOF settings
         op_panel("USERPREF_PT_ndof_settings", {"type": 'NDOF_BUTTON_MENU', "value": 'PRESS'}),
         ("wm.context_scale_float", {"type": 'NDOF_BUTTON_PLUS', "value": 'PRESS'},
-         {"properties": [("data_path", 'preferences.inputs.ndof_sensitivity'), ("value", 1.1)]}),
+         {"properties": [("data_path", "preferences.inputs.ndof_sensitivity"), ("value", 1.1)]}),
         ("wm.context_scale_float", {"type": 'NDOF_BUTTON_MINUS', "value": 'PRESS'},
-         {"properties": [("data_path", 'preferences.inputs.ndof_sensitivity'), ("value", 1.0 / 1.1)]}),
+         {"properties": [("data_path", "preferences.inputs.ndof_sensitivity"), ("value", 1.0 / 1.1)]}),
         ("wm.context_scale_float", {"type": 'NDOF_BUTTON_PLUS', "value": 'PRESS', "shift": True},
-         {"properties": [("data_path", 'preferences.inputs.ndof_sensitivity'), ("value", 1.5)]}),
+         {"properties": [("data_path", "preferences.inputs.ndof_sensitivity"), ("value", 1.5)]}),
         ("wm.context_scale_float", {"type": 'NDOF_BUTTON_MINUS', "value": 'PRESS', "shift": True},
-         {"properties": [("data_path", 'preferences.inputs.ndof_sensitivity'), ("value", 2.0 / 3.0)]}),
+         {"properties": [("data_path", "preferences.inputs.ndof_sensitivity"), ("value", 2.0 / 3.0)]}),
         ("info.reports_display_update", {"type": 'TIMER_REPORT', "value": 'ANY', "any": True}, None),
     ])
 
@@ -610,9 +610,9 @@ def km_uv_editor(params):
         op_menu_pie("IMAGE_MT_uvs_snap_pie", {"type": 'X', "value": 'PRESS', "shift": True}),
         *_template_items_context_menu("IMAGE_MT_uvs_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
         ("wm.context_toggle", {"type": 'B', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.use_proportional_edit')]}),
+         {"properties": [("data_path", "tool_settings.use_proportional_edit")]}),
         ("wm.context_toggle", {"type": 'X', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.use_snap')]}),
+         {"properties": [("data_path", "tool_settings.use_snap")]}),
         # Tools
         op_tool_cycle("builtin.select_box", {"type": 'Q', "value": 'PRESS'}),
         op_tool_cycle("builtin.move", {"type": 'W', "value": 'PRESS'}),
@@ -637,11 +637,11 @@ def km_view3d_generic(_params):
 
     items.extend([
         ("wm.context_toggle", {"type": 'LEFT_BRACKET', "value": 'PRESS', "ctrl": True},
-         {"properties": [("data_path", 'space_data.show_region_toolbar')]}),
+         {"properties": [("data_path", "space_data.show_region_toolbar")]}),
         ("wm.context_toggle", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "ctrl": True},
-         {"properties": [("data_path", 'space_data.show_region_ui')]}),
+         {"properties": [("data_path", "space_data.show_region_ui")]}),
         ("wm.context_toggle", {"type": 'SPACE', "value": 'PRESS', "shift": True},
-         {"properties": [("data_path", 'space_data.show_region_asset_shelf')]}),
+         {"properties": [("data_path", "space_data.show_region_asset_shelf")]}),
     ])
 
     return keymap
@@ -771,7 +771,7 @@ def km_view3d(params):
         op_menu_pie("VIEW3D_MT_orientations_pie", {"type": 'COMMA', "value": 'PRESS'}),
         ("view3d.toggle_xray", {"type": 'X', "value": 'PRESS', "alt": True}, None),
         ("wm.context_toggle", {"type": 'X', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.use_snap')]}),
+         {"properties": [("data_path", "tool_settings.use_snap")]}),
     ])
 
     return keymap
@@ -789,7 +789,7 @@ def km_mask_editing(params):
         ("wm.search_menu", {"type": 'TAB', "value": 'PRESS'}, None),
         ("mask.new", {"type": 'N', "value": 'PRESS', "alt": True}, None),
         ("wm.context_toggle", {"type": 'B', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.use_proportional_edit_mask')]}),
+         {"properties": [("data_path", "tool_settings.use_proportional_edit_mask")]}),
         ("mask.add_vertex_slide", {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl": True}, None),
         ("mask.add_feather_vertex_slide", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "ctrl": True}, None),
         ("mask.delete", {"type": 'BACK_SPACE', "value": 'PRESS'}, None),
@@ -908,9 +908,9 @@ def km_graph_editor(params):
     items.extend([
         ("wm.search_menu", {"type": 'TAB', "value": 'PRESS'}, None),
         ("wm.context_toggle", {"type": 'LEFT_BRACKET', "value": 'PRESS', "ctrl": True},
-         {"properties": [("data_path", 'space_data.show_region_channels')]}),
+         {"properties": [("data_path", "space_data.show_region_channels")]}),
         ("wm.context_toggle", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "ctrl": True},
-         {"properties": [("data_path", 'space_data.show_region_ui')]}),
+         {"properties": [("data_path", "space_data.show_region_ui")]}),
         *_template_items_animation(),
         ("graph.cursor_set", {"type": 'RIGHTMOUSE', "value": 'PRESS', "ctrl": True}, None),
         ("graph.clickselect", {"type": 'LEFTMOUSE', "value": 'PRESS'},
@@ -971,9 +971,9 @@ def km_graph_editor(params):
         ("transform.rotate", {"type": 'E', "value": 'PRESS'}, None),
         ("transform.resize", {"type": 'R', "value": 'PRESS'}, None),
         ("wm.context_toggle", {"type": 'B', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.use_proportional_fcurve')]}),
+         {"properties": [("data_path", "tool_settings.use_proportional_fcurve")]}),
         ("wm.context_menu_enum", {"type": 'X', "value": 'PRESS'},
-         {"properties": [("data_path", 'space_data.auto_snap')]}),
+         {"properties": [("data_path", "space_data.auto_snap")]}),
         ("marker.add", {"type": 'M', "value": 'PRESS'}, None),
         op_menu_pie("GRAPH_MT_snap_pie", {"type": 'X', "value": 'PRESS', "shift": True}),
     ])
@@ -992,9 +992,9 @@ def km_image_generic(params):
     items.extend([
         op_panel("TOPBAR_PT_name", {"type": 'RET', "value": 'PRESS'}, [("keep_open", False)]),
         ("wm.context_toggle", {"type": 'LEFT_BRACKET', "value": 'PRESS', "ctrl": True},
-         {"properties": [("data_path", 'space_data.show_region_toolbar')]}),
+         {"properties": [("data_path", "space_data.show_region_toolbar")]}),
         ("wm.context_toggle", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "ctrl": True},
-         {"properties": [("data_path", 'space_data.show_region_ui')]}),
+         {"properties": [("data_path", "space_data.show_region_ui")]}),
         ("wm.search_menu", {"type": 'TAB', "value": 'PRESS'}, None),
         ("image.new", {"type": 'N', "value": 'PRESS', "alt": True}, None),
         ("image.open", {"type": 'O', "value": 'PRESS', "alt": True}, None),
@@ -1087,9 +1087,9 @@ def km_node_generic(_params):
         ("wm.search_single_menu", {"type": 'TAB', "value": 'PRESS'},
          {"properties": [("menu_idname", 'NODE_MT_add')]}),
         ("wm.context_toggle", {"type": 'LEFT_BRACKET', "value": 'PRESS', "ctrl": True},
-         {"properties": [("data_path", 'space_data.show_region_toolbar')]}),
+         {"properties": [("data_path", "space_data.show_region_toolbar")]}),
         ("wm.context_toggle", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "ctrl": True},
-         {"properties": [("data_path", 'space_data.show_region_ui')]}),
+         {"properties": [("data_path", "space_data.show_region_ui")]}),
     ])
 
     return keymap
@@ -1179,7 +1179,7 @@ def km_node_editor(params):
         ("node.move_detach_links_release", {"type": params.action_mouse, "value": 'CLICK_DRAG', "alt": True}, None),
         ("node.move_detach_links", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG', "alt": True}, None),
         ("wm.context_toggle", {"type": 'X', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.use_snap_node')]}),
+         {"properties": [("data_path", "tool_settings.use_snap_node")]}),
     ])
 
     return keymap
@@ -1228,7 +1228,7 @@ def km_file_browser(params):
 
     items.extend([
         ("wm.context_toggle", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "ctrl": True},
-         {"properties": [("data_path", 'space_data.show_region_tool_props')]}),
+         {"properties": [("data_path", "space_data.show_region_tool_props")]}),
         ("file.parent", {"type": 'UP_ARROW', "value": 'PRESS', "alt": True}, None),
         ("file.parent", {"type": 'UP_ARROW', "value": 'PRESS', "ctrl": True}, None),
         ("file.previous", {"type": 'LEFT_ARROW', "value": 'PRESS', "alt": True}, None),
@@ -1243,13 +1243,13 @@ def km_file_browser(params):
         ("file.previous", {"type": 'BACK_SPACE', "value": 'PRESS'}, None),
         ("file.next", {"type": 'BACK_SPACE', "value": 'PRESS', "shift": True}, None),
         ("wm.context_toggle", {"type": 'H', "value": 'PRESS'},
-         {"properties": [("data_path", 'space_data.params.show_hidden')]}),
+         {"properties": [("data_path", "space_data.params.show_hidden")]}),
         ("file.directory_new", {"type": 'I', "value": 'PRESS'}, None),
         ("file.rename", {"type": 'F2', "value": 'PRESS'}, None),
         ("file.delete", {"type": 'DEL', "value": 'PRESS'}, None),
         ("file.smoothscroll", {"type": 'TIMER1', "value": 'ANY', "any": True}, None),
         ("wm.context_toggle", {"type": 'T', "value": 'PRESS'},
-            {"properties": [("data_path", 'space_data.show_region_toolbar')]}),
+            {"properties": [("data_path", "space_data.show_region_toolbar")]}),
         ("file.bookmark_add", {"type": 'B', "value": 'PRESS', "ctrl": True}, None),
         ("file.filenum", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "repeat": True},
          {"properties": [("increment", 1)]}),
@@ -1374,9 +1374,9 @@ def km_dopesheet_generic(params):
         op_panel("TOPBAR_PT_name", {"type": 'RET', "value": 'PRESS'}, [("keep_open", False)]),
         ("wm.search_menu", {"type": 'TAB', "value": 'PRESS'}, None),
         ("wm.context_toggle", {"type": 'LEFT_BRACKET', "value": 'PRESS', "ctrl": True},
-         {"properties": [("data_path", 'space_data.show_region_channels')]}),
+         {"properties": [("data_path", "space_data.show_region_channels")]}),
         ("wm.context_toggle", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "ctrl": True},
-         {"properties": [("data_path", 'space_data.show_region_ui')]}),
+         {"properties": [("data_path", "space_data.show_region_ui")]}),
     ])
 
     return keymap
@@ -1437,7 +1437,7 @@ def km_dopesheet(params):
         ("action.select_linked", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
         ("action.frame_jump", {"type": 'G', "value": 'PRESS', "ctrl": True}, None),
         ("wm.context_menu_enum", {"type": 'X', "value": 'PRESS'},
-         {"properties": [("data_path", 'space_data.auto_snap')]}),
+         {"properties": [("data_path", "space_data.auto_snap")]}),
         op_menu_pie("DOPESHEET_MT_snap_pie", {"type": 'X', "value": 'PRESS', "shift": True}),
         *_template_items_context_menu("DOPESHEET_MT_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
         op_menu("DOPESHEET_MT_delete", {"type": 'BACK_SPACE', "value": 'PRESS'}),
@@ -1468,7 +1468,7 @@ def km_dopesheet(params):
         ("transform.transform", {"type": 'T', "value": 'PRESS', "shift": True},
          {"properties": [("mode", 'TIME_SLIDE')]}),
         ("wm.context_toggle", {"type": 'B', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.use_proportional_action')]}),
+         {"properties": [("data_path", "tool_settings.use_proportional_action")]}),
         ("marker.add", {"type": 'M', "value": 'PRESS'}, None),
         ("anim.start_frame_set", {"type": 'LEFT_ARROW', "value": 'PRESS', "ctrl": True}, None),
         ("anim.end_frame_set", {"type": 'RIGHT_ARROW', "value": 'PRESS', "ctrl": True}, None),
@@ -1488,9 +1488,9 @@ def km_nla_generic(params):
     items.extend([
         op_panel("TOPBAR_PT_name", {"type": 'RET', "value": 'PRESS'}, [("keep_open", False)]),
         ("wm.context_toggle", {"type": 'LEFT_BRACKET', "value": 'PRESS', "ctrl": True},
-         {"properties": [("data_path", 'space_data.show_region_channels')]}),
+         {"properties": [("data_path", "space_data.show_region_channels")]}),
         ("wm.context_toggle", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "ctrl": True},
-         {"properties": [("data_path", 'space_data.show_region_ui')]}),
+         {"properties": [("data_path", "space_data.show_region_ui")]}),
         ("wm.search_menu", {"type": 'TAB', "value": 'PRESS'}, None),
         *_template_items_animation(),
         ("nla.tweakmode_enter", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK'}, None),
@@ -1603,7 +1603,7 @@ def km_text_generic(params):
         ("text.find", {"type": 'G', "value": 'PRESS', "ctrl": True}, None),
         ("text.replace", {"type": 'H', "value": 'PRESS', "ctrl": True}, None),
         ("wm.context_toggle", {"type": 'I', "value": 'PRESS', "ctrl": True},
-         {"properties": [("data_path", 'space_data.show_region_ui')]}),
+         {"properties": [("data_path", "space_data.show_region_ui")]}),
     ])
 
     return keymap
@@ -1631,13 +1631,13 @@ def km_text(params):
         ("text.move", {"type": 'RIGHT_ARROW', "value": 'PRESS', "alt": True},
          {"properties": [("type", 'NEXT_WORD')]}),
         ("wm.context_cycle_int", {"type": 'WHEELUPMOUSE', "value": 'PRESS', "ctrl": True},
-         {"properties": [("data_path", 'space_data.font_size'), ("reverse", False)]}),
+         {"properties": [("data_path", "space_data.font_size"), ("reverse", False)]}),
         ("wm.context_cycle_int", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS', "ctrl": True},
-         {"properties": [("data_path", 'space_data.font_size'), ("reverse", True)]}),
+         {"properties": [("data_path", "space_data.font_size"), ("reverse", True)]}),
         ("wm.context_cycle_int", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "ctrl": True, "repeat": True},
-         {"properties": [("data_path", 'space_data.font_size'), ("reverse", False)]}),
+         {"properties": [("data_path", "space_data.font_size"), ("reverse", False)]}),
         ("wm.context_cycle_int", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "ctrl": True, "repeat": True},
-         {"properties": [("data_path", 'space_data.font_size'), ("reverse", True)]}),
+         {"properties": [("data_path", "space_data.font_size"), ("reverse", True)]}),
         ("text.new", {"type": 'N', "value": 'PRESS', "ctrl": True}, None),
     ])
 
@@ -1759,9 +1759,9 @@ def km_sequencercommon(_params):
     items.extend([
         op_panel("TOPBAR_PT_name", {"type": 'RET', "value": 'PRESS'}, [("keep_open", False)]),
         ("wm.context_toggle", {"type": 'LEFT_BRACKET', "value": 'PRESS', "ctrl": True},
-         {"properties": [("data_path", 'space_data.show_region_channels')]}),
+         {"properties": [("data_path", "space_data.show_region_channels")]}),
         ("wm.context_toggle", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "ctrl": True},
-         {"properties": [("data_path", 'space_data.show_region_ui')]}),
+         {"properties": [("data_path", "space_data.show_region_ui")]}),
     ])
 
     return keymap
@@ -1867,7 +1867,7 @@ def km_sequencer(params):
         ("sequencer.select_grouped", {"type": 'G', "value": 'PRESS', "shift": True}, None),
         ("sequencer.slip", {"type": 'R', "value": 'PRESS'}, None),
         ("wm.context_set_int", {"type": 'O', "value": 'PRESS'},
-         {"properties": [("data_path", 'scene.sequence_editor.overlay_frame'), ("value", 0)]}),
+         {"properties": [("data_path", "scene.sequence_editor.overlay_frame"), ("value", 0)]}),
         ("transform.seq_slide", {"type": 'W', "value": 'PRESS'}, None),
         ("transform.seq_slide", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'}, None),
         ("transform.seq_slide", {"type": 'MIDDLEMOUSE', "value": 'CLICK_DRAG'}, None),
@@ -1947,13 +1947,13 @@ def km_console(params):
         ("console.move", {"type": 'END', "value": 'PRESS', "shift": True},
          {"properties": [("type", 'LINE_END'), ("select", True)]}),
         ("wm.context_cycle_int", {"type": 'WHEELUPMOUSE', "value": 'PRESS', "ctrl": True},
-         {"properties": [("data_path", 'space_data.font_size'), ("reverse", False)]}),
+         {"properties": [("data_path", "space_data.font_size"), ("reverse", False)]}),
         ("wm.context_cycle_int", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS', "ctrl": True},
-         {"properties": [("data_path", 'space_data.font_size'), ("reverse", True)]}),
+         {"properties": [("data_path", "space_data.font_size"), ("reverse", True)]}),
         ("wm.context_cycle_int", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "ctrl": True, "repeat": True},
-         {"properties": [("data_path", 'space_data.font_size'), ("reverse", False)]}),
+         {"properties": [("data_path", "space_data.font_size"), ("reverse", False)]}),
         ("wm.context_cycle_int", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "ctrl": True, "repeat": True},
-         {"properties": [("data_path", 'space_data.font_size'), ("reverse", True)]}),
+         {"properties": [("data_path", "space_data.font_size"), ("reverse", True)]}),
         ("console.move", {"type": 'LEFT_ARROW', "value": 'PRESS', "repeat": True},
          {"properties": [("type", 'PREVIOUS_CHARACTER')]}),
         ("console.move", {"type": 'LEFT_ARROW', "value": 'PRESS', "repeat": True, "shift": True},
@@ -2021,7 +2021,7 @@ def km_clip(params):
         ("clip.track_markers", {"type": 'T', "value": 'PRESS', "shift": True, "ctrl": True},
          {"properties": [("backwards", True), ("sequence", True)]}),
         ("wm.context_toggle_enum", {"type": 'TAB', "value": 'PRESS'},
-         {"properties": [("data_path", 'space_data.mode'), ("value_1", 'TRACKING'), ("value_2", 'MASK')]}),
+         {"properties": [("data_path", "space_data.mode"), ("value_1", 'TRACKING'), ("value_2", 'MASK')]}),
         ("clip.solve_camera", {"type": 'S', "value": 'PRESS', "shift": True}, None),
         ("clip.prefetch", {"type": 'P', "value": 'PRESS'}, None),
     ])
@@ -2039,9 +2039,9 @@ def km_clip_editor(params):
 
     items.extend([
         ("wm.context_toggle", {"type": 'LEFT_BRACKET', "value": 'PRESS', "ctrl": True},
-         {"properties": [("data_path", 'space_data.show_region_toolbar')]}),
+         {"properties": [("data_path", "space_data.show_region_toolbar")]}),
         ("wm.context_toggle", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "ctrl": True},
-         {"properties": [("data_path", 'space_data.show_region_ui')]}),
+         {"properties": [("data_path", "space_data.show_region_ui")]}),
         ("wm.search_menu", {"type": 'TAB', "value": 'PRESS'}, None),
         ("clip.view_pan", {"type": 'MIDDLEMOUSE', "value": 'PRESS'}, None),
         ("clip.view_pan", {"type": 'MIDDLEMOUSE', "value": 'PRESS', "shift": True}, None),
@@ -2121,13 +2121,13 @@ def km_clip_editor(params):
         ("clip.join_tracks", {"type": 'J', "value": 'PRESS', "ctrl": True}, None),
         *_template_items_context_menu("CLIP_MT_tracking_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
         ("wm.context_toggle", {"type": 'L', "value": 'PRESS'},
-         {"properties": [("data_path", 'space_data.lock_selection')]}),
+         {"properties": [("data_path", "space_data.lock_selection")]}),
         ("wm.context_toggle", {"type": 'D', "value": 'PRESS', "alt": True},
-         {"properties": [("data_path", 'space_data.show_disabled')]}),
+         {"properties": [("data_path", "space_data.show_disabled")]}),
         ("wm.context_toggle", {"type": 'S', "value": 'PRESS', "alt": True},
-         {"properties": [("data_path", 'space_data.show_marker_search')]}),
+         {"properties": [("data_path", "space_data.show_marker_search")]}),
         ("wm.context_toggle", {"type": 'M', "value": 'PRESS'},
-         {"properties": [("data_path", 'space_data.use_mute_footage')]}),
+         {"properties": [("data_path", "space_data.use_mute_footage")]}),
         ("transform.translate", {"type": 'W', "value": 'PRESS'}, None),
         ("transform.translate", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'}, None),
         ("transform.resize", {"type": 'R', "value": 'PRESS'}, None),
@@ -2175,7 +2175,7 @@ def km_clip_graph_editor(params):
         ("clip.graph_view_all", {"type": 'NDOF_BUTTON_FIT', "value": 'PRESS'}, None),
         ("clip.graph_center_current_frame", {"type": 'NUMPAD_0', "value": 'PRESS'}, None),
         ("wm.context_toggle", {"type": 'L', "value": 'PRESS'},
-         {"properties": [("data_path", 'space_data.lock_time_cursor')]}),
+         {"properties": [("data_path", "space_data.lock_time_cursor")]}),
         ("clip.clear_track_path", {"type": 'T', "value": 'PRESS', "alt": True},
          {"properties": [("action", 'REMAINED'), ("clear_active", True)]}),
         ("clip.clear_track_path", {"type": 'T', "value": 'PRESS', "shift": True},
@@ -2225,7 +2225,7 @@ def km_spreadsheet_generic(_params):
             channels_key={"type": 'T', "value": 'PRESS'},
         ),
         ("wm.context_toggle", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "ctrl": True},
-         {"properties": [("data_path", 'space_data.show_region_ui')]}),
+         {"properties": [("data_path", "space_data.show_region_ui")]}),
     ])
 
     return keymap
@@ -2267,7 +2267,7 @@ def km_animation(params):
 
     items.extend([
         ("wm.context_toggle", {"type": 'T', "value": 'PRESS', "ctrl": True},
-         {"properties": [("data_path", 'space_data.show_seconds')]}),
+         {"properties": [("data_path", "space_data.show_seconds")]}),
     ])
 
     return keymap
@@ -2380,9 +2380,9 @@ def _gpencil_legacy_selection(params):
 def _gpencil_legacy_display():
     return [
         ("wm.context_toggle", {"type": 'Q', "value": 'PRESS', "shift": True},
-         {"properties": [("data_path", 'space_data.overlay.use_gpencil_edit_lines')]}),
+         {"properties": [("data_path", "space_data.overlay.use_gpencil_edit_lines")]}),
         ("wm.context_toggle", {"type": 'Q', "value": 'PRESS', "shift": True, "alt": True},
-         {"properties": [("data_path", 'space_data.overlay.use_gpencil_multiedit_line_only')]}),
+         {"properties": [("data_path", "space_data.overlay.use_gpencil_multiedit_line_only")]}),
     ]
 
 
@@ -2434,7 +2434,7 @@ def km_gpencil_legacy_stroke_edit_mode(params):
         # Transform tools
         ("transform.translate", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'}, None),
         ("wm.context_toggle", {"type": 'B', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.use_proportional_edit')]}),
+         {"properties": [("data_path", "tool_settings.use_proportional_edit")]}),
         # Vertex group menu
         op_menu("GPENCIL_MT_gpencil_vertex_group", {"type": 'G', "value": 'PRESS', "ctrl": True}),
         # Select mode
@@ -2472,10 +2472,10 @@ def km_gpencil_legacy_stroke_paint_mode(params):
     items.extend([
         # Brush strength
         ("wm.radial_control", {"type": 'U', "value": 'PRESS'},
-         {"properties": [("data_path_primary", 'tool_settings.gpencil_paint.brush.gpencil_settings.pen_strength')]}),
+         {"properties": [("data_path_primary", "tool_settings.gpencil_paint.brush.gpencil_settings.pen_strength")]}),
         # Brush properties
         ("wm.radial_control", {"type": 'S', "value": 'PRESS'},
-         {"properties": [("data_path_primary", 'tool_settings.gpencil_paint.brush.size')]}),
+         {"properties": [("data_path_primary", "tool_settings.gpencil_paint.brush.size")]}),
         ("brush.scale_size", {"type": 'LEFT_BRACKET', "value": 'PRESS', "repeat": True},
          {"properties": [("scalar", 0.9)]}),
         ("brush.scale_size", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "repeat": True},
@@ -2633,11 +2633,11 @@ def km_gpencil_legacy_stroke_sculpt_mode(params):
     items.extend([
         # Selection Modes
         ("wm.context_toggle", {"type": 'ONE', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.use_gpencil_select_mask_point')]}),
+         {"properties": [("data_path", "tool_settings.use_gpencil_select_mask_point")]}),
         ("wm.context_toggle", {"type": 'TWO', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.use_gpencil_select_mask_stroke')]}),
+         {"properties": [("data_path", "tool_settings.use_gpencil_select_mask_stroke")]}),
         ("wm.context_toggle", {"type": 'THREE', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.use_gpencil_select_mask_segment')]}),
+         {"properties": [("data_path", "tool_settings.use_gpencil_select_mask_segment")]}),
         # Normal Selection
         ("gpencil.select", {"type": 'LEFTMOUSE', "value": 'CLICK', "shift": True, "alt": True},
          {"properties": [("deselect_all", True), ("toggle", True), ("use_shift_extend", False)]}),
@@ -2647,13 +2647,13 @@ def km_gpencil_legacy_stroke_sculpt_mode(params):
         *_gpencil_legacy_selection(params),
         # Brush properties
         ("wm.radial_control", {"type": 'U', "value": 'PRESS'},
-         {"properties": [("data_path_primary", 'tool_settings.gpencil_sculpt_paint.brush.strength')]}),
+         {"properties": [("data_path_primary", "tool_settings.gpencil_sculpt_paint.brush.strength")]}),
         ("brush.scale_size", {"type": 'LEFT_BRACKET', "value": 'PRESS', "repeat": True},
          {"properties": [("scalar", 0.9)]}),
         ("brush.scale_size", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "repeat": True},
          {"properties": [("scalar", 1.0 / 0.9)]}),
         ("wm.radial_control", {"type": 'S', "value": 'PRESS'},
-         {"properties": [("data_path_primary", 'tool_settings.gpencil_sculpt_paint.brush.size')]}),
+         {"properties": [("data_path_primary", "tool_settings.gpencil_sculpt_paint.brush.size")]}),
         # Copy
         ("gpencil.copy", {"type": 'C', "value": 'PRESS', "ctrl": True}, None),
         # Display
@@ -2873,16 +2873,16 @@ def km_gpencil_legacy_stroke_weight_mode(params):
     items.extend([
         # Brush strength
         ("wm.radial_control", {"type": 'U', "value": 'PRESS'},
-         {"properties": [("data_path_primary", 'tool_settings.gpencil_weight_paint.brush.strength')]}),
+         {"properties": [("data_path_primary", "tool_settings.gpencil_weight_paint.brush.strength")]}),
         # Brush size
         ("wm.radial_control", {"type": 'S', "value": 'PRESS'},
-         {"properties": [("data_path_primary", 'tool_settings.gpencil_weight_paint.brush.size')]}),
+         {"properties": [("data_path_primary", "tool_settings.gpencil_weight_paint.brush.size")]}),
         ("brush.scale_size", {"type": 'LEFT_BRACKET', "value": 'PRESS', "repeat": True},
          {"properties": [("scalar", 0.9)]}),
         ("brush.scale_size", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "repeat": True},
          {"properties": [("scalar", 1.0 / 0.9)]}),
         ("wm.radial_control", {"type": 'F', "value": 'PRESS', "ctrl": True},
-         {"properties": [("data_path_primary", 'tool_settings.gpencil_weight_paint.brush.weight')]}),
+         {"properties": [("data_path_primary", "tool_settings.gpencil_weight_paint.brush.weight")]}),
         # Weight sample
         ("gpencil.weight_sample", {"type": 'I', "value": 'PRESS'}, None),
         # Tools
@@ -2984,11 +2984,11 @@ def km_gpencil_legacy_stroke_vertex_mode(params):
     items.extend([
         # Selection Modes
         ("wm.context_toggle", {"type": 'ONE', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.use_gpencil_vertex_select_mask_point')]}),
+         {"properties": [("data_path", "tool_settings.use_gpencil_vertex_select_mask_point")]}),
         ("wm.context_toggle", {"type": 'TWO', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.use_gpencil_vertex_select_mask_stroke')]}),
+         {"properties": [("data_path", "tool_settings.use_gpencil_vertex_select_mask_stroke")]}),
         ("wm.context_toggle", {"type": 'THREE', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.use_gpencil_vertex_select_mask_segment')]}),
+         {"properties": [("data_path", "tool_settings.use_gpencil_vertex_select_mask_segment")]}),
         # Normal Selection
         ("gpencil.select", {"type": 'LEFTMOUSE', "value": 'CLICK', "shift": True, "alt": True},
          {"properties": [("deselect_all", True), ("toggle", True), ("use_shift_extend", False)]}),
@@ -2999,11 +2999,11 @@ def km_gpencil_legacy_stroke_vertex_mode(params):
         # Brush strength
         ("wm.radial_control", {"type": 'U', "value": 'PRESS'},
          {"properties": [
-             ("data_path_primary", 'tool_settings.gpencil_vertex_paint.brush.gpencil_settings.pen_strength'),
+             ("data_path_primary", "tool_settings.gpencil_vertex_paint.brush.gpencil_settings.pen_strength"),
          ]}),
         # Brush size
         ("wm.radial_control", {"type": 'S', "value": 'PRESS'},
-         {"properties": [("data_path_primary", 'tool_settings.gpencil_vertex_paint.brush.size')]}),
+         {"properties": [("data_path_primary", "tool_settings.gpencil_vertex_paint.brush.size")]}),
         ("brush.scale_size", {"type": 'LEFT_BRACKET', "value": 'PRESS', "repeat": True},
          {"properties": [("scalar", 0.9)]}),
         ("brush.scale_size", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "repeat": True},
@@ -3051,11 +3051,11 @@ def km_gpencil_legacy_stroke_vertex_draw(params):
         # Brush strength
         ("wm.radial_control", {"type": 'U', "value": 'PRESS'},
          {"properties": [
-             ("data_path_primary", 'tool_settings.gpencil_vertex_paint.brush.gpencil_settings.pen_strength'),
+             ("data_path_primary", "tool_settings.gpencil_vertex_paint.brush.gpencil_settings.pen_strength"),
          ]}),
         # Brush size
         ("wm.radial_control", {"type": 'S', "value": 'PRESS'},
-         {"properties": [("data_path_primary", 'tool_settings.gpencil_vertex_paint.brush.size')]}),
+         {"properties": [("data_path_primary", "tool_settings.gpencil_vertex_paint.brush.size")]}),
     ])
 
     return keymap
@@ -3076,12 +3076,12 @@ def km_gpencil_legacy_stroke_vertex_blur(params):
         # Brush strength
         ("wm.radial_control", {"type": 'U', "value": 'PRESS'},
          {"properties": [
-             ("data_path_primary", 'tool_settings.gpencil_vertex_paint.brush.gpencil_settings.pen_strength'),
+             ("data_path_primary", "tool_settings.gpencil_vertex_paint.brush.gpencil_settings.pen_strength"),
          ]}),
         # Brush size
         ("wm.radial_control", {"type": 'S', "value": 'PRESS'},
          {"properties": [
-             ("data_path_primary", 'tool_settings.gpencil_vertex_paint.brush.size'),
+             ("data_path_primary", "tool_settings.gpencil_vertex_paint.brush.size"),
          ]}),
     ])
 
@@ -3105,11 +3105,11 @@ def km_gpencil_legacy_stroke_vertex_average(params):
         # Brush strength
         ("wm.radial_control", {"type": 'U', "value": 'PRESS'},
          {"properties": [
-             ("data_path_primary", 'tool_settings.gpencil_vertex_paint.brush.gpencil_settings.pen_strength'),
+             ("data_path_primary", "tool_settings.gpencil_vertex_paint.brush.gpencil_settings.pen_strength"),
          ]}),
         # Brush size
         ("wm.radial_control", {"type": 'S', "value": 'PRESS'},
-         {"properties": [("data_path_primary", 'tool_settings.gpencil_vertex_paint.brush.size')]}),
+         {"properties": [("data_path_primary", "tool_settings.gpencil_vertex_paint.brush.size")]}),
     ])
 
     return keymap
@@ -3130,11 +3130,11 @@ def km_gpencil_legacy_stroke_vertex_smear(params):
         # Brush strength
         ("wm.radial_control", {"type": 'U', "value": 'PRESS', "shift": True},
          {"properties": [
-             ("data_path_primary", 'tool_settings.gpencil_vertex_paint.brush.gpencil_settings.pen_strength'),
+             ("data_path_primary", "tool_settings.gpencil_vertex_paint.brush.gpencil_settings.pen_strength"),
          ]}),
         # Brush size
         ("wm.radial_control", {"type": 'S', "value": 'PRESS'},
-         {"properties": [("data_path_primary", 'tool_settings.gpencil_vertex_paint.brush.size')]}),
+         {"properties": [("data_path_primary", "tool_settings.gpencil_vertex_paint.brush.size")]}),
     ])
 
     return keymap
@@ -3154,7 +3154,7 @@ def km_gpencil_legacy_stroke_vertex_replace(params):
          {"properties": [("wait_for_input", False)]}),
         # Brush size
         ("wm.radial_control", {"type": 'S', "value": 'PRESS'},
-         {"properties": [("data_path_primary", 'tool_settings.gpencil_vertex_paint.brush.size')]}),
+         {"properties": [("data_path_primary", "tool_settings.gpencil_vertex_paint.brush.size")]}),
     ])
 
     return keymap
@@ -3318,7 +3318,7 @@ def km_object_mode(params):
         ("object.parent_set", {"type": 'P', "value": 'PRESS'}, None),
 
         ("wm.context_toggle", {"type": 'B', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.use_proportional_edit_objects')]}),
+         {"properties": [("data_path", "tool_settings.use_proportional_edit_objects")]}),
         ("object.parent_clear", {"type": 'P', "value": 'PRESS', "shift": True}, None),
         ("object.location_clear", {"type": 'W', "value": 'PRESS', "alt": True},
          {"properties": [("clear_delta", False)]}),
@@ -3436,7 +3436,7 @@ def km_curve(params):
          {"properties": [("unselected", True)]}),
         *_template_items_context_menu("VIEW3D_MT_edit_curve_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
         ("wm.context_toggle", {"type": 'B', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.use_proportional_edit')]}),
+         {"properties": [("data_path", "tool_settings.use_proportional_edit")]}),
         # Tools
         *_template_items_basic_tools(),
         op_tool_cycle("builtin.extrude", {"type": 'E', "value": 'PRESS', "ctrl": True}),
@@ -3451,21 +3451,21 @@ def km_curve(params):
 
 
 def radial_control_properties(paint, prop, secondary_prop, secondary_rotation=False, color=False, zoom=False):
-    brush_path = 'tool_settings.' + paint + '.brush'
-    unified_path = 'tool_settings.unified_paint_settings'
-    rotation = 'mask_texture_slot.angle' if secondary_rotation else 'texture_slot.angle'
+    brush_path = "tool_settings." + paint + ".brush"
+    unified_path = "tool_settings.unified_paint_settings"
+    rotation = "mask_texture_slot.angle" if secondary_rotation else "texture_slot.angle"
     return {
         "properties": [
-            ("data_path_primary", brush_path + '.' + prop),
-            ("data_path_secondary", unified_path + '.' + prop if secondary_prop else ''),
-            ("use_secondary", unified_path + '.' + secondary_prop if secondary_prop else ''),
-            ("rotation_path", brush_path + '.' + rotation),
-            ("color_path", brush_path + '.cursor_color_add'),
-            ("fill_color_path", brush_path + '.color' if color else ''),
-            ("fill_color_override_path", unified_path + '.color' if color else ''),
-            ("fill_color_override_test_path", unified_path + '.use_unified_color' if color else ''),
-            ("zoom_path", 'space_data.zoom' if zoom else ''),
-            ("image_id", brush_path + ''),
+            ("data_path_primary", brush_path + "." + prop),
+            ("data_path_secondary", unified_path + "." + prop if secondary_prop else ""),
+            ("use_secondary", unified_path + "." + secondary_prop if secondary_prop else ""),
+            ("rotation_path", brush_path + "." + rotation),
+            ("color_path", brush_path + ".cursor_color_add"),
+            ("fill_color_path", brush_path + ".color" if color else ""),
+            ("fill_color_override_path", unified_path + ".color" if color else ""),
+            ("fill_color_override_test_path", unified_path + ".use_unified_color" if color else ""),
+            ("zoom_path", "space_data.zoom" if zoom else ""),
+            ("image_id", brush_path + ""),
             ("secondary_tex", secondary_rotation),
         ],
     }
@@ -3486,34 +3486,34 @@ def _template_paint_radial_control(
     items.extend([
         ("wm.radial_control", {"type": 'S', "value": 'PRESS'},
          radial_control_properties(
-             paint, 'size', 'use_unified_size', secondary_rotation=secondary_rotation, color=color, zoom=zoom)),
+             paint, "size", "use_unified_size", secondary_rotation=secondary_rotation, color=color, zoom=zoom)),
         ("wm.radial_control", {"type": 'U', "value": 'PRESS'},
          radial_control_properties(
-             paint, 'strength', 'use_unified_strength', secondary_rotation=secondary_rotation, color=color)),
+             paint, "strength", "use_unified_strength", secondary_rotation=secondary_rotation, color=color)),
     ])
 
     if rotation:
         items.extend([
             ("wm.radial_control", {"type": 'F', "value": 'PRESS', "ctrl": True},
-             radial_control_properties(paint, 'texture_slot.angle', None, color=color)),
+             radial_control_properties(paint, "texture_slot.angle", None, color=color)),
         ])
 
     if secondary_rotation:
         items.extend([
             ("wm.radial_control", {"type": 'F', "value": 'PRESS', "ctrl": True, "alt": True},
              radial_control_properties(
-                 paint, 'mask_texture_slot.angle', None, secondary_rotation=secondary_rotation, color=color)),
+                 paint, "mask_texture_slot.angle", None, secondary_rotation=secondary_rotation, color=color)),
         ])
 
     if weight:
         items.extend([
             ("wm.radial_control", {"type": 'F', "value": 'PRESS', "ctrl": True, "alt": True},
              radial_control_properties(
-                 paint, 'mask_texture_slot.angle', None, secondary_rotation=secondary_rotation, color=color)),
+                 paint, "mask_texture_slot.angle", None, secondary_rotation=secondary_rotation, color=color)),
 
             ("wm.radial_control", {"type": 'F', "value": 'PRESS', "ctrl": True},
              radial_control_properties(
-                paint, 'weight', 'use_unified_weight'))
+                paint, "weight", "use_unified_weight"))
         ])
 
     return items
@@ -3559,10 +3559,10 @@ def km_image_paint(params):
          {"properties": [("mode", 'ROTATION'), ("texmode", 'SECONDARY')]}),
         # Mask Modes
         ("wm.context_toggle", {"type": 'ONE', "value": 'PRESS'},
-         {"properties": [("data_path", 'image_paint_object.data.use_paint_mask')]}),
+         {"properties": [("data_path", "image_paint_object.data.use_paint_mask")]}),
         # Stabilize Strokes
         ("wm.context_toggle", {"type": 'L', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.image_paint.brush.use_smooth_stroke')]}),
+         {"properties": [("data_path", "tool_settings.image_paint.brush.use_smooth_stroke")]}),
         # Context menu.
         *_template_items_context_panel("VIEW3D_PT_paint_texture_context_menu",
                                        {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
@@ -3617,12 +3617,12 @@ def km_vertex_paint(params):
          {"properties": [("mode", 'ROTATION'), ("texmode", 'SECONDARY')]}),
         # Mask Modes
         ("wm.context_toggle", {"type": 'ONE', "value": 'PRESS'},
-         {"properties": [("data_path", 'vertex_paint_object.data.use_paint_mask')]}),
+         {"properties": [("data_path", "vertex_paint_object.data.use_paint_mask")]}),
         ("wm.context_toggle", {"type": 'TWO', "value": 'PRESS'},
-         {"properties": [("data_path", 'vertex_paint_object.data.use_paint_mask_vertex')]}),
+         {"properties": [("data_path", "vertex_paint_object.data.use_paint_mask_vertex")]}),
         # Stabilize Stroke
         ("wm.context_toggle", {"type": 'L', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.vertex_paint.brush.use_smooth_stroke')]}),
+         {"properties": [("data_path", "tool_settings.vertex_paint.brush.use_smooth_stroke")]}),
         # Context menu.
         *_template_items_context_panel("VIEW3D_PT_paint_vertex_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
         # Tools
@@ -3664,12 +3664,12 @@ def km_weight_paint(params):
         *_template_paint_radial_control("weight_paint", weight=True),
         # Mask Modes
         ("wm.context_toggle", {"type": 'ONE', "value": 'PRESS'},
-         {"properties": [("data_path", 'weight_paint_object.data.use_paint_mask')]}),
+         {"properties": [("data_path", "weight_paint_object.data.use_paint_mask")]}),
         ("wm.context_toggle", {"type": 'TWO', "value": 'PRESS'},
-         {"properties": [("data_path", 'weight_paint_object.data.use_paint_mask_vertex')]}),
+         {"properties": [("data_path", "weight_paint_object.data.use_paint_mask_vertex")]}),
         # Stabilize Stroke
         ("wm.context_toggle", {"type": 'L', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.weight_paint.brush.use_smooth_stroke')]}),
+         {"properties": [("data_path", "tool_settings.weight_paint.brush.use_smooth_stroke")]}),
         # Context menu.
         *_template_items_context_panel("VIEW3D_PT_paint_weight_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
         # For combined weight paint + pose mode.
@@ -3698,7 +3698,7 @@ def km_sculpt(params):
 
     items.extend([
         # Sculpt Pivot
-        ("sculpt.set_pivot_position", {"type": 'RIGHTMOUSE', 'value': 'PRESS', "shift": True},
+        ("sculpt.set_pivot_position", {"type": 'RIGHTMOUSE', "value": 'PRESS', "shift": True},
          {"properties": [("mode", 'SURFACE')]}),
         # Brush strokes
         ("sculpt.brush_stroke", {"type": 'LEFTMOUSE', "value": 'PRESS'},
@@ -3794,7 +3794,7 @@ def km_sculpt(params):
          {"properties": [("mode", 'ROTATION'), ("texmode", 'SECONDARY')]}),
         # Stabilize Stroke
         ("wm.context_toggle", {"type": 'L', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.sculpt.brush.use_smooth_stroke')]}),
+         {"properties": [("data_path", "tool_settings.sculpt.brush.use_smooth_stroke")]}),
         # Tools
         # This is the only mode without an Annotate shortcut.
         # The multi-resolution shortcuts took precedence instead.
@@ -3867,7 +3867,7 @@ def km_mesh(params):
         ("mesh.dissolve_mode", {"type": 'BACK_SPACE', "value": 'PRESS', "ctrl": True}, None),
         ("mesh.dissolve_mode", {"type": 'DEL', "value": 'PRESS', "ctrl": True}, None),
         ("wm.context_toggle", {"type": 'B', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.use_proportional_edit')]}),
+         {"properties": [("data_path", "tool_settings.use_proportional_edit")]}),
         # Menus.
         *_template_items_context_menu("VIEW3D_MT_edit_mesh_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
         # Tools
@@ -3969,7 +3969,7 @@ def km_metaball(params):
         ("mball.select_similar", {"type": 'G', "value": 'PRESS', "shift": True}, None),
         *_template_items_context_menu("VIEW3D_MT_edit_metaball_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
         ("wm.context_toggle", {"type": 'B', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.use_proportional_edit')]}),
+         {"properties": [("data_path", "tool_settings.use_proportional_edit")]}),
         # Tools
         *_template_items_basic_tools(),
     ])
@@ -3996,7 +3996,7 @@ def km_lattice(params):
         ("object.vertex_parent_set", {"type": 'P', "value": 'PRESS', "ctrl": True}, None),
         *_template_items_context_menu("VIEW3D_MT_edit_lattice_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
         ("wm.context_toggle", {"type": 'B', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.use_proportional_edit')]}),
+         {"properties": [("data_path", "tool_settings.use_proportional_edit")]}),
         # Tools
         op_tool_cycle("builtin.select_box", {"type": 'Q', "value": 'PRESS'}),
         op_tool_cycle("builtin.move", {"type": 'W', "value": 'PRESS'}),
@@ -4040,11 +4040,11 @@ def km_particle(params):
         ("particle.brush_edit", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
         ("particle.brush_edit", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True}, None),
         ("wm.radial_control", {"type": 'S', "value": 'PRESS'},
-         {"properties": [("data_path_primary", 'tool_settings.particle_edit.brush.size')]}),
+         {"properties": [("data_path_primary", "tool_settings.particle_edit.brush.size")]}),
         ("wm.radial_control", {"type": 'U', "value": 'PRESS'},
-         {"properties": [("data_path_primary", 'tool_settings.particle_edit.brush.strength')]}),
+         {"properties": [("data_path_primary", "tool_settings.particle_edit.brush.strength")]}),
         ("wm.context_toggle", {"type": 'B', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.use_proportional_edit')]}),
+         {"properties": [("data_path", "tool_settings.use_proportional_edit")]}),
         *_template_items_context_menu("VIEW3D_MT_particle_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
     ])
 
@@ -4175,7 +4175,7 @@ def km_curves(params):
         ("curves.delete", {"type": 'DEL', "value": 'PRESS'}, None),
         # Proportional Editing
         ("wm.context_toggle", {"type": 'B', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.use_proportional_edit')]}),
+         {"properties": [("data_path", "tool_settings.use_proportional_edit")]}),
         # Tools
         *_template_items_basic_tools(),
         op_tool_cycle("builtin.annotate", {"type": 'D', "value": 'PRESS'}),

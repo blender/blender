@@ -442,7 +442,7 @@ class SCENE_PT_eevee_next_light_probes(SceneButtonsPanel, Panel):
 
 
 class SCENE_PT_animation(SceneButtonsPanel, PropertiesAnimationMixin, PropertyPanel, Panel):
-    _animated_id_context_property = 'scene'
+    _animated_id_context_property = "scene"
 
 
 class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel, Panel):

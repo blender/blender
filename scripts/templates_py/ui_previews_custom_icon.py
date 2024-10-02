@@ -11,7 +11,7 @@
 # - provide a fixed list of previews to select from
 # - provide a dynamic list of preview (eg. calculated from reading a directory)
 #
-# For the above use cases, see the template 'ui_previews_dynamic_enum.py"
+# For the above use cases, see the template `ui_previews_dynamic_enum.py`.
 
 
 import os

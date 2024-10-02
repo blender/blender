@@ -414,7 +414,7 @@ class DATA_PT_gpencil_canvas(DataButtonsPanel, Panel):
 
 
 class DATA_PT_gpencil_animation(DataButtonsPanel, PropertiesAnimationMixin, PropertyPanel, Panel):
-    _animated_id_context_property = 'gpencil'
+    _animated_id_context_property = "gpencil"
 
 
 class DATA_PT_custom_props_gpencil(DataButtonsPanel, PropertyPanel, Panel):
