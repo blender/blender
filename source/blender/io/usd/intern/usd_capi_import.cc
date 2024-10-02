@@ -214,7 +214,6 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
         display_name, sizeof(display_name), BLI_path_basename(data->filepath));
     Collection *import_collection = BKE_collection_add(
         data->bmain, data->scene->master_collection, display_name);
-    id_fake_user_set(&import_collection->id);
 
     DEG_id_tag_update(&import_collection->id, ID_RECALC_SYNC_TO_EVAL);
     DEG_relations_tag_update(data->bmain);

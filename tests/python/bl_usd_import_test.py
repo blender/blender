@@ -1116,6 +1116,27 @@ class USDImportTest(AbstractUSDTest):
             self.assertTrue(len(ob.modifiers) == 1 and ob.modifiers[0].type ==
                             'MESH_SEQUENCE_CACHE', f"{ob.name} has incorrect modifiers")
 
+    def test_import_collection_creation(self):
+        """Test that the 'create_collection' option functions correctly."""
+
+        # Any USD file will do
+        infile = str(self.testdir / "usd_shapes_test.usda")
+
+        # Import the file more than once to ensure the auto generated Collection name is unique
+        # and no naming conflicts occur
+        res = bpy.ops.wm.usd_import(filepath=infile, create_collection=True)
+        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {infile}")
+        res = bpy.ops.wm.usd_import(filepath=infile, create_collection=True)
+        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {infile}")
+
+        # Validate the correct user count for each Collection and ensure the objects were
+        # placed inside each one.
+        self.assertEqual(len(bpy.data.collections), 2)
+        self.assertEqual(bpy.data.collections["Usd Shapes Test"].users, 1)
+        self.assertEqual(bpy.data.collections["Usd Shapes Test.001"].users, 1)
+        self.assertEqual(len(bpy.data.collections["Usd Shapes Test"].all_objects), 7)
+        self.assertEqual(len(bpy.data.collections["Usd Shapes Test.001"].all_objects), 7)
+
     def test_import_id_props(self):
         """Test importing object and data IDProperties."""
 
