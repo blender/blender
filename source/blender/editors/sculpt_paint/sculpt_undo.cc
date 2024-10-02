@@ -9,25 +9,23 @@
  * Usage Guide
  * ===========
  *
- * The sculpt undo system is a delta-based system. Each undo step stores
- * the difference with the prior one.
+ * The sculpt undo system is a delta-based system. Each undo step stores the difference with the
+ * prior one.
  *
- * To use the sculpt undo system, you must call push_begin
- * inside an operator exec or invoke callback (geometry_begin
- * may be called if you wish to save a non-delta copy of the entire mesh).
+ * To use the sculpt undo system, you must call push_begin inside an operator exec or invoke
+ * callback (geometry_begin may be called if you wish to save a non-delta copy of the entire mesh).
  * This will initialize the sculpt undo stack and set up an undo step.
  *
  * At the end of the operator you should call push_end.
  *
- * push_end and geometry_begin both take a
- * #wmOperatorType as an argument. There are _ex versions that allow a custom
- * name; try to avoid using them. These can break the redo panel since it requires
- * the undo push have the same name as the calling operator.
+ * push_begin and geometry_begin both take a #wmOperatorType as an argument. There are _ex versions
+ * that allow a custom name; try to avoid using them. These can break the redo panel since it
+ * requires the undo push to have the same name as the calling operator.
  *
- * NOTE: Sculpt undo steps are not appended to the global undo stack until
- * the operator finishes.  We use BKE_undosys_step_push_init_with_type to build
- * a tentative undo step with is appended later when the operator ends.
- * Operators must have the OPTYPE_UNDO flag set for this to work properly.
+ * NOTE: Sculpt undo steps are not appended to the global undo stack until the operator finishes.
+ * We use BKE_undosys_step_push_init_with_type to build a tentative undo step with is appended
+ * later when the operator ends. Operators must have the OPTYPE_UNDO flag set for this to work
+ * properly.
  */
 #include "sculpt_undo.hh"
 
@@ -93,42 +91,35 @@ namespace blender::ed::sculpt_paint::undo {
 
 /* Implementation of undo system for objects in sculpt mode.
  *
- * Each undo step in sculpt mode consists of list of nodes, each node contains:
- *  - Node type
- *  - Data for this type.
+ * Each undo step in sculpt mode consists of list of nodes, each node contains a flat array of data
+ * related to the step type.
  *
- * Node type used for undo depends on specific operation and active sculpt mode
- * ("regular" or dynamic topology).
+ * Node type used for undo depends on specific operation and active sculpt mode ("regular" or
+ * dynamic topology).
  *
- * Regular sculpt brushes will use COORDS, HIDDEN or MASK nodes. These nodes are
- * created for every BVH node which is affected by the brush. The undo push for
- * the node happens BEFORE modifications. This makes the operation undo to work
- * in the following way: for every node in the undo step swap happens between
- * node in the undo stack and the corresponding value in the BVH. This is how
- * redo is possible after undo.
+ * Regular sculpt brushes will use Position, HideVert, HideFace, Mask, Face Set * nodes. These
+ * nodes are created for every BVH node which is affected by the brush. The undo push for the node
+ * happens BEFORE modifications. This makes the operation undo to work in the following way: for
+ * every node in the undo step swap happens between node in the undo stack and the corresponding
+ * value in the BVH. This is how redo is possible after undo.
  *
- * The COORDS, HIDDEN or MASK type of nodes contains arrays of the corresponding
- * values.
+ * The COORDS, HIDDEN or MASK type of nodes contains arrays of the corresponding values.
  *
- * Operations like Symmetrize are using GEOMETRY type of nodes which pushes the
- * entire state of the mesh to the undo stack. This node contains all CustomData
- * layers.
+ * Operations like Symmetrize are using GEOMETRY type of nodes which pushes the entire state of the
+ * mesh to the undo stack. This node contains all CustomData layers.
  *
- * The tricky aspect of this undo node type is that it stores mesh before and
- * after modification. This allows the undo system to both undo and redo the
- * symmetrize operation within the pre-modified-push of other node type
- * behavior, but it uses more memory that it seems it should be.
+ * The tricky aspect of this undo node type is that it stores mesh before and after modification.
+ * This allows the undo system to both undo and redo the symmetrize operation within the
+ * pre-modified-push of other node type behavior, but it uses more memory that it seems it should
+ * be.
  *
- * The dynamic topology undo nodes are handled somewhat separately from all
- * other ones and the idea there is to store log of operations: which vertices
- * and faces have been added or removed.
+ * The dynamic topology undo nodes are handled somewhat separately from all other ones and the idea
+ * there is to store log of operations: which vertices and faces have been added or removed.
  *
- * Begin of dynamic topology sculpting mode have own node type. It contains an
- * entire copy of mesh since just enabling the dynamic topology mode already
- * does modifications on it.
+ * Begin of dynamic topology sculpting mode have own node type. It contains an entire copy of mesh
+ * since just enabling the dynamic topology mode already does modifications on it.
  *
- * End of dynamic topology and symmetrize in this mode are handled in a special
- * manner as well. */
+ * End of dynamic topology and symmetrize in this mode are handled in a special manner as well. */
 
 #define NO_ACTIVE_LAYER bke::AttrDomain::Auto
 
