@@ -3236,7 +3236,7 @@ static size_t animdata_filter_dopesheet_ob(bAnimContext *ac,
     }
 
     /* grease pencil */
-    if ((ELEM(ob->type, OB_GREASE_PENCIL, OB_GPENCIL_LEGACY)) && (ob->data) &&
+    if (ELEM(ob->type, OB_GREASE_PENCIL, OB_GPENCIL_LEGACY) && (ob->data) &&
         !(ads_filterflag & ADS_FILTER_NOGPENCIL))
     {
       if (ob->type == OB_GREASE_PENCIL) {

@@ -2363,9 +2363,9 @@ bke::GeometrySet realize_instances(bke::GeometrySet geometry_set,
 
   if (not_to_realize_set.has_instances()) {
     gather_info.instances.instances_components_to_merge.append(
-        (not_to_realize_set.get_component_for_write<bke::InstancesComponent>()).copy());
+        not_to_realize_set.get_component_for_write<bke::InstancesComponent>().copy());
     gather_info.instances.instances_components_transforms.append(float4x4::identity());
-    gather_info.instances.attribute_fallback.append((gather_info.instances_attriubutes.size()));
+    gather_info.instances.attribute_fallback.append(gather_info.instances_attriubutes.size());
   }
 
   const float4x4 transform = float4x4::identity();

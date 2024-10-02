@@ -194,7 +194,7 @@ void WM_gizmo_unlink(ListBase *gizmolist, wmGizmoMap *gzmap, wmGizmo *gz, bConte
 
 wmGizmoOpElem *WM_gizmo_operator_get(wmGizmo *gz, int part_index)
 {
-  if (((part_index >= 0) && (part_index < gz->op_data.size()))) {
+  if ((part_index >= 0) && (part_index < gz->op_data.size())) {
     return &gz->op_data[part_index];
   }
   return nullptr;

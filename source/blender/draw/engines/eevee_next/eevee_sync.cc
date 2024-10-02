@@ -109,7 +109,7 @@ void SyncModule::sync_mesh(Object *ob,
     return;
   }
 
-  if ((ob->dt < OB_SOLID) && ((inst_.is_viewport() && inst_.v3d->shading.type != OB_RENDER))) {
+  if ((ob->dt < OB_SOLID) && (inst_.is_viewport() && inst_.v3d->shading.type != OB_RENDER)) {
     /** Do not render objects with display type lower than solid when in material preview mode. */
     return;
   }

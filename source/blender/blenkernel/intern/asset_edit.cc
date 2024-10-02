@@ -135,7 +135,7 @@ static std::string asset_blendfile_path_for_save(const bUserAssetLibrary &user_l
   for (int i = 1;; i++) {
     const std::string filepath = root_path + SEP + base_name_filesafe + "_" + std::to_string(i++) +
                                  BLENDER_ASSET_FILE_SUFFIX;
-    if (!BLI_is_file((filepath.c_str()))) {
+    if (!BLI_is_file(filepath.c_str())) {
       return filepath;
     }
   }

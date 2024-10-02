@@ -931,7 +931,7 @@ void axis_set_view(bContext *C,
   else if (rv3d->persp == RV3D_CAMOB) {
     rv3d->persp = perspo;
   }
-  if ((rv3d->persp != orig_persp)) {
+  if (rv3d->persp != orig_persp) {
     ED_region_tag_redraw(region);
   }
 

@@ -272,7 +272,7 @@ static void append_line_loop(
   const int step = dashed ? 2 : 1;
   for (const int i : IndexRange(verts.size() / step)) {
     for (const int j : IndexRange(2)) {
-      const float2 &cv = verts[(i * step + j) % (verts.size())];
+      const float2 &cv = verts[(i * step + j) % verts.size()];
       dest.append({{cv[0], cv[1], z}, flag});
     }
   }

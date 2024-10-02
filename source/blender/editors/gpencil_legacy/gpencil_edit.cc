@@ -339,7 +339,7 @@ static bool gpencil_paintmode_toggle_poll(bContext *C)
 {
   /* if using gpencil object, use this gpd */
   Object *ob = CTX_data_active_object(C);
-  if ((ob) && (ELEM(ob->type, OB_GPENCIL_LEGACY, OB_GREASE_PENCIL))) {
+  if ((ob) && ELEM(ob->type, OB_GPENCIL_LEGACY, OB_GREASE_PENCIL)) {
     return ob->data != nullptr;
   }
   return false;
@@ -627,7 +627,7 @@ static bool gpencil_weightmode_toggle_poll(bContext *C)
 {
   /* if using gpencil object, use this gpd */
   Object *ob = CTX_data_active_object(C);
-  if ((ob) && (ELEM(ob->type, OB_GPENCIL_LEGACY, OB_GREASE_PENCIL))) {
+  if ((ob) && ELEM(ob->type, OB_GPENCIL_LEGACY, OB_GREASE_PENCIL)) {
     return ob->data != nullptr;
   }
   return false;

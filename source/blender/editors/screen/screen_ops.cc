@@ -3804,7 +3804,7 @@ void static area_docking_apply(bContext *C, wmOperator *op)
   bool same_area = (jd->sa1 == jd->sa2);
 
   if (!(jd->dock_target == AreaDockTarget::Center)) {
-    eScreenAxis dir = (ELEM(jd->dock_target, AreaDockTarget::Left, AreaDockTarget::Right)) ?
+    eScreenAxis dir = ELEM(jd->dock_target, AreaDockTarget::Left, AreaDockTarget::Right) ?
                           SCREEN_AXIS_V :
                           SCREEN_AXIS_H;
 
@@ -3992,7 +3992,7 @@ static AreaDockTarget area_docking_target(sAreaJoinData *jd, const wmEvent *even
     if (fac_y > 0.4f && fac_y < 0.6f) {
       return AreaDockTarget::Center;
     }
-    if ((float(y) > float(jd->sa2->winy) / 2.0f)) {
+    if (float(y) > float(jd->sa2->winy) / 2.0f) {
       jd->factor = area_docking_snap(1.0f - float(y) / float(jd->sa2->winy), event);
       return AreaDockTarget::Top;
     }
@@ -4005,7 +4005,7 @@ static AreaDockTarget area_docking_target(sAreaJoinData *jd, const wmEvent *even
     if (fac_x > 0.4f && fac_x < 0.6f) {
       return AreaDockTarget::Center;
     }
-    if ((float(x) > float(jd->sa2->winx) / 2.0f)) {
+    if (float(x) > float(jd->sa2->winx) / 2.0f) {
       jd->factor = area_docking_snap(1.0f - float(x) / float(jd->sa2->winx), event);
       return AreaDockTarget::Right;
     }
@@ -4365,8 +4365,7 @@ static int screen_area_options_invoke(bContext *C, wmOperator *op, const wmEvent
     if (dir != SCREEN_DIR_NONE) {
       uiItemFullO(layout,
                   "SCREEN_OT_area_join",
-                  (ELEM(dir, SCREEN_DIR_N, SCREEN_DIR_S)) ? IFACE_("Join Up") :
-                                                            IFACE_("Join Right"),
+                  ELEM(dir, SCREEN_DIR_N, SCREEN_DIR_S) ? IFACE_("Join Up") : IFACE_("Join Right"),
                   ELEM(dir, SCREEN_DIR_N, SCREEN_DIR_S) ? ICON_AREA_JOIN_UP : ICON_AREA_JOIN,
                   nullptr,
                   WM_OP_EXEC_DEFAULT,
@@ -4378,7 +4377,7 @@ static int screen_area_options_invoke(bContext *C, wmOperator *op, const wmEvent
       uiItemFullO(
           layout,
           "SCREEN_OT_area_join",
-          (ELEM(dir, SCREEN_DIR_N, SCREEN_DIR_S)) ? IFACE_("Join Down") : IFACE_("Join Left"),
+          ELEM(dir, SCREEN_DIR_N, SCREEN_DIR_S) ? IFACE_("Join Down") : IFACE_("Join Left"),
           ELEM(dir, SCREEN_DIR_N, SCREEN_DIR_S) ? ICON_AREA_JOIN_DOWN : ICON_AREA_JOIN_LEFT,
           nullptr,
           WM_OP_EXEC_DEFAULT,

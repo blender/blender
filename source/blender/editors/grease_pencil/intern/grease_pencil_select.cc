@@ -581,7 +581,7 @@ static const EnumPropertyItem select_similar_mode_items[] = {
     {int(SelectSimilarMode::VERTEX_COLOR), "VERTEX_COLOR", 0, "Vertex Color", ""},
     {int(SelectSimilarMode::RADIUS), "RADIUS", 0, "Radius", ""},
     {int(SelectSimilarMode::OPACITY), "OPACITY", 0, "Opacity", ""},
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 template<typename T>
