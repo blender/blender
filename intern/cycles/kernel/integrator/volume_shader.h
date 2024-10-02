@@ -30,21 +30,13 @@ ccl_device_inline void volume_shader_merge_closures(ccl_private ShaderData *sd)
   for (int i = 0; i < sd->num_closure; i++) {
     ccl_private ShaderClosure *sci = &sd->closure[i];
 
-    if (sci->type != CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID) {
+    if (!CLOSURE_IS_VOLUME_SCATTER(sci->type)) {
       continue;
     }
 
     for (int j = i + 1; j < sd->num_closure; j++) {
       ccl_private ShaderClosure *scj = &sd->closure[j];
-      if (sci->type != scj->type) {
-        continue;
-      }
-
-      ccl_private const HenyeyGreensteinVolume *hgi = (ccl_private const HenyeyGreensteinVolume *)
-          sci;
-      ccl_private const HenyeyGreensteinVolume *hgj = (ccl_private const HenyeyGreensteinVolume *)
-          scj;
-      if (!(hgi->g == hgj->g)) {
+      if (!volume_phase_equal(sci, scj)) {
         continue;
       }
 
@@ -73,16 +65,10 @@ ccl_device_inline void volume_shader_copy_phases(ccl_private ShaderVolumePhases 
 
   for (int i = 0; i < sd->num_closure; i++) {
     ccl_private const ShaderClosure *from_sc = &sd->closure[i];
-    ccl_private const HenyeyGreensteinVolume *from_hg =
-        (ccl_private const HenyeyGreensteinVolume *)from_sc;
-
-    if (from_sc->type == CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID) {
-      ccl_private ShaderVolumeClosure *to_sc = &phases->closure[phases->num_closure];
-
-      to_sc->weight = from_sc->weight;
-      to_sc->sample_weight = from_sc->sample_weight;
-      to_sc->g = from_hg->g;
-      phases->num_closure++;
+    if (CLOSURE_IS_VOLUME_SCATTER(from_sc->type)) {
+      /* ShaderVolumeClosure is a subset of ShaderClosure, so this is fine for all volume scatter
+       * closures. */
+      phases->closure[phases->num_closure++] = *((ccl_private const ShaderVolumeClosure *)from_sc);
       if (phases->num_closure >= MAX_VOLUME_CLOSURE) {
         break;
       }
@@ -147,7 +133,8 @@ ccl_device_inline void volume_shader_prepare_guiding(KernelGlobals kg,
 
   /* Init guiding for selected phase function. */
   ccl_private const ShaderVolumeClosure *svc = &phases->closure[phase_id];
-  if (!guiding_phase_init(kg, state, P, D, svc->g, rand_phase_guiding)) {
+  const float phase_g = volume_phase_get_g(svc);
+  if (!guiding_phase_init(kg, state, P, D, phase_g, rand_phase_guiding)) {
     state->guiding.use_volume_guiding = false;
     return;
   }
@@ -301,7 +288,7 @@ ccl_device int volume_shader_phase_guided_sample(KernelGlobals kg,
 
   *unguided_phase_pdf = 0.0f;
   float guide_pdf = 0.0f;
-  *sampled_roughness = 1.0f - fabsf(svc->g);
+  *sampled_roughness = 1.0f - fabsf(volume_phase_get_g(svc));
 
   bsdf_eval_init(phase_eval, zero_spectrum());
 
@@ -355,7 +342,7 @@ ccl_device int volume_shader_phase_sample(KernelGlobals kg,
                                           ccl_private float *pdf,
                                           ccl_private float *sampled_roughness)
 {
-  *sampled_roughness = 1.0f - fabsf(svc->g);
+  *sampled_roughness = 1.0f - fabsf(volume_phase_get_g(svc));
   Spectrum eval = zero_spectrum();
 
   *pdf = 0.0f;

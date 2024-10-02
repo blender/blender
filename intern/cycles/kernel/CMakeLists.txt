@@ -161,6 +161,11 @@ set(SRC_KERNEL_CLOSURE_HEADERS
   closure/bssrdf.h
   closure/emissive.h
   closure/volume.h
+  closure/volume_util.h
+  closure/volume_henyey_greenstein.h
+  closure/volume_rayleigh.h
+  closure/volume_fournier_forand.h
+  closure/volume_draine.h
   closure/bsdf_principled_hair_chiang.h
   closure/bsdf_principled_hair_huang.h
 )
