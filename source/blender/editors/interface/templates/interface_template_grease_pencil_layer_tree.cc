@@ -473,7 +473,7 @@ void uiTemplateGreasePencilLayerTree(uiLayout *layout, bContext *C)
       "Grease Pencil Layer Tree View",
       std::make_unique<blender::ui::greasepencil::LayerTreeView>(grease_pencil));
   tree_view->set_context_menu_title("Grease Pencil Layer");
-  tree_view->set_min_rows(6);
+  tree_view->set_default_rows(6);
 
   ui::TreeViewBuilder::build_tree_view(*tree_view, *layout);
 }

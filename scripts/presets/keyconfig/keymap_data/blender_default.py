@@ -1012,6 +1012,8 @@ def km_user_interface(_params):
         ("ui.list_start_filter", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
         # UI views (polls check if there's a UI view under the cursor).
         ("ui.view_start_filter", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
+        ("ui.view_scroll", {"type": 'WHEELUPMOUSE', "value": 'ANY'}, None),
+        ("ui.view_scroll", {"type": 'WHEELDOWNMOUSE', "value": 'ANY'}, None),
     ])
 
     return keymap
