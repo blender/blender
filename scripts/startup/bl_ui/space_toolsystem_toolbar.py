@@ -3415,22 +3415,6 @@ class _defs_sequencer_select:
         )
 
     @ToolDef.from_fn
-    def box_timeline():
-        def draw_settings(_context, layout, tool):
-            props = tool.operator_properties("sequencer.select_box")
-            row = layout.row()
-            row.use_property_split = False
-            row.prop(props, "mode", text="", expand=True, icon_only=True)
-        return dict(
-            idname="builtin.select_box",
-            label="Select Box",
-            icon="ops.generic.select_box",
-            widget=None,
-            keymap="Sequencer Timeline Tool: Select Box",
-            draw_settings=draw_settings,
-        )
-
-    @ToolDef.from_fn
     def select_preview():
         return dict(
             idname="builtin.select",
@@ -4175,17 +4159,11 @@ class SEQUENCER_PT_tools_active(ToolSelectPanelHelper, Panel):
             *_tools_annotate,
         ],
         'SEQUENCER': [
-            (
-                _defs_sequencer_select.select_timeline,
-                _defs_sequencer_select.box_timeline,
-            ),
+            _defs_sequencer_select.select_timeline,
             _defs_sequencer_generic.blade,
         ],
         'SEQUENCER_PREVIEW': [
-            (
-                _defs_sequencer_select.select_timeline,
-                _defs_sequencer_select.box_timeline,
-            ),
+            _defs_sequencer_select.select_timeline,
             *_tools_annotate,
             None,
             _defs_sequencer_generic.blade,

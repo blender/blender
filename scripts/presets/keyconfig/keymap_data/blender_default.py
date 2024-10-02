@@ -3015,13 +3015,13 @@ def km_sequencer(params):
          {"properties": [("extend", True)]}),
         ("sequencer.select_linked", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
         ("sequencer.select_box", {"type": params.select_mouse, "value": 'CLICK_DRAG'},
-         {"properties": [("tweak", True), ("mode", 'SET')]}),
+         {"properties": [("mode", 'SET')]}),
         ("sequencer.select_box", {"type": params.select_mouse, "value": 'CLICK_DRAG', "shift": True},
-         {"properties": [("tweak", True), ("mode", 'ADD')]}),
+         {"properties": [("mode", 'ADD')]}),
         ("sequencer.select_box", {"type": params.select_mouse, "value": 'CLICK_DRAG', "ctrl": True},
-         {"properties": [("tweak", True), ("mode", 'SUB')]}),
+         {"properties": [("mode", 'SUB')]}),
         ("sequencer.select_box", {"type": params.select_mouse, "value": 'CLICK_DRAG', "alt": True},
-         {"properties": [("tweak", True), ("ignore_connections", True), ("mode", 'SET')]}),
+         {"properties": [("ignore_connections", True), ("mode", 'SET')]}),
         ("sequencer.select_box", {"type": 'B', "value": 'PRESS'}, None),
         ("sequencer.select_box", {"type": 'B', "value": 'PRESS', "ctrl": True},
          {"properties": [("include_handles", True)]}),
@@ -8935,7 +8935,7 @@ def km_3d_view_tool_edit_grease_pencil_texture_gradient(params):
 # ------------------------------------------------------------------------------
 # Tool System (Sequencer, Generic)
 
-def km_sequencer_editor_tool_generic_select_timeline_rcs(params, fallback):
+def km_sequencer_editor_tool_generic_select_timeline_rcs(params):
     return [
         ("sequencer.select_handle", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
         ("sequencer.select_handle", {"type": 'LEFTMOUSE', "value": 'PRESS',
@@ -8949,10 +8949,11 @@ def km_sequencer_editor_tool_generic_select_timeline_rcs(params, fallback):
     ]
 
 
-def km_sequencer_editor_tool_generic_select_timeline_lcs(params, fallback):
+def km_sequencer_editor_tool_generic_select_timeline_lcs(params):
     return [
-        *_template_items_tool_select(
-            params, "sequencer.select", None, cursor_prioritize=True, fallback=fallback),
+        ("sequencer.select", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
+        ("sequencer.select", {"type": 'LEFTMOUSE', "value": 'PRESS',
+         "shift": True}, {"properties": [("toggle", True)]}),
         *_template_items_change_frame(params),
     ]
 
@@ -8962,28 +8963,9 @@ def km_sequencer_editor_tool_generic_select_timeline(params, *, fallback):
         _fallback_id("Sequencer Timeline Tool: Tweak", fallback),
         {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
-            *(km_sequencer_editor_tool_generic_select_timeline_rcs(params, fallback)
+            *(km_sequencer_editor_tool_generic_select_timeline_rcs(params)
               if (params.select_mouse == 'RIGHTMOUSE') else
-              km_sequencer_editor_tool_generic_select_timeline_lcs(params, fallback)),
-        ]},
-    )
-
-
-def km_sequencer_editor_tool_generic_select_box_timeline(params, *, fallback):
-    return (
-        _fallback_id("Sequencer Timeline Tool: Select Box", fallback),
-        {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
-        {"items": [
-            # Don't use `tool_maybe_tweak_event`, see comment for this slot.
-            *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple(
-                "sequencer.select_box",
-                **(params.select_tweak_event if (fallback and params.use_fallback_tool_select_mouse) else
-                   params.tool_tweak_event),
-                properties=[("tweak", params.select_mouse == 'LEFTMOUSE')])),
-            # RMB select can already set the frame, match the tweak tool.
-            # Ignored for preview.
-            *(_template_items_change_frame(params)
-              if params.select_mouse == 'LEFTMOUSE' else []),
+              km_sequencer_editor_tool_generic_select_timeline_lcs(params)),
         ]},
     )
 
@@ -9012,8 +8994,7 @@ def km_sequencer_editor_tool_generic_select_box_preview(params, *, fallback):
             *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple(
                 "sequencer.select_box",
                 **(params.select_tweak_event if (fallback and params.use_fallback_tool_select_mouse) else
-                   params.tool_tweak_event),
-                properties=[("tweak", params.select_mouse == 'LEFTMOUSE')])),
+                   params.tool_tweak_event))),
         ]},
     )
 
@@ -9408,8 +9389,6 @@ def generate_keymaps(params=None):
         km_3d_view_tool_sculpt_gpencil_select_circle(params),
         km_3d_view_tool_sculpt_gpencil_select_lasso(params),
         *(km_sequencer_editor_tool_generic_select_timeline(params, fallback=fallback)
-          for fallback in (False, True)),
-        *(km_sequencer_editor_tool_generic_select_box_timeline(params, fallback=fallback)
           for fallback in (False, True)),
         *(km_sequencer_editor_tool_generic_select_preview(params, fallback=fallback)
           for fallback in (False, True)),
