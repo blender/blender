@@ -861,6 +861,10 @@ bke::CurvesGeometry trim_curve_segments(const bke::CurvesGeometry &src,
                                         bool keep_caps);
 };  // namespace trim
 
+void merge_layers(const GreasePencil &src_grease_pencil,
+                  const Span<Vector<int>> src_layer_indices_by_dst_layer,
+                  GreasePencil &dst_grease_pencil);
+
 /* Lineart */
 
 /* Stores the maximum calculation range in the whole modifier stack for line art so the cache can
