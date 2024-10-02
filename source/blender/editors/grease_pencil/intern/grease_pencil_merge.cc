@@ -193,16 +193,16 @@ void merge_layers(const GreasePencil &src_grease_pencil,
     Map<FramesMapKeyT, InsertKeyframe> dst_frames;
     for (const int src_layer_i : src_layer_indices) {
       const Layer &src_layer = *src_layers[src_layer_i];
-      for (const auto &[key, value] : src_layer.frames().items()) {
-        if (value.is_end()) {
+      for (const auto &item : src_layer.frames().items()) {
+        if (item.value.is_end()) {
           continue;
         }
-        const int duration = src_layer.get_frame_duration_at(key);
+        const int duration = src_layer.get_frame_duration_at(item.key);
         BLI_assert(duration >= 0);
         dst_frames.add_or_modify(
-            key,
+            item.key,
             [&](InsertKeyframe *frame) {
-              *frame = {value, duration};
+              *frame = {item.value, duration};
             },
             [&](InsertKeyframe *frame) {
               /* The destination frame is always an implicit hold if at least on of the source
