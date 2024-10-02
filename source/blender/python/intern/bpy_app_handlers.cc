@@ -99,6 +99,10 @@ static PyStructSequence_Field app_cb_info_fields[] = {
     {"_extension_repos_sync", "on creating or synchronizing the active repository"},
     {"_extension_repos_files_clear",
      "remove files from the repository directory (uses as a string argument)"},
+    {"blend_import_pre",
+     "on linking or appending data (before), get a single `BlendImportContext` parameter"},
+    {"blend_import_post",
+     "on linking or appending data (after), get a single `BlendImportContext` parameter"},
 
 /* sets the permanent tag */
 #define APP_CB_OTHER_FIELDS 1

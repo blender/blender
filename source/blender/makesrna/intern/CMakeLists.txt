@@ -55,6 +55,7 @@ set(DEFSRC
   rna_light.cc
   rna_lightprobe.cc
   rna_linestyle.cc
+  rna_blendfile_import.cc
   rna_main.cc
   rna_mask.cc
   rna_material.cc
