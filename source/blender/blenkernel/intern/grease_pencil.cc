@@ -3236,10 +3236,11 @@ static std::string unique_layer_group_name(const GreasePencil &grease_pencil,
   return unique_node_name(grease_pencil, DATA_("Group"), name);
 }
 
-blender::bke::greasepencil::Layer &GreasePencil::add_layer(const blender::StringRefNull name)
+blender::bke::greasepencil::Layer &GreasePencil::add_layer(const blender::StringRefNull name,
+                                                           const bool check_name_is_unique)
 {
   using namespace blender;
-  std::string unique_name = unique_layer_name(*this, name);
+  std::string unique_name = check_name_is_unique ? unique_layer_name(*this, name) : name.c_str();
   const int numLayers = layers().size();
   CustomData_realloc(&layers_data, numLayers, numLayers + 1);
   bke::greasepencil::Layer *new_layer = MEM_new<bke::greasepencil::Layer>(__func__, unique_name);
@@ -3258,10 +3259,12 @@ blender::bke::greasepencil::Layer &GreasePencil::add_layer(const blender::String
 }
 
 blender::bke::greasepencil::Layer &GreasePencil::add_layer(
-    blender::bke::greasepencil::LayerGroup &parent_group, const blender::StringRefNull name)
+    blender::bke::greasepencil::LayerGroup &parent_group,
+    const blender::StringRefNull name,
+    const bool check_name_is_unique)
 {
   using namespace blender;
-  blender::bke::greasepencil::Layer &new_layer = this->add_layer(name);
+  blender::bke::greasepencil::Layer &new_layer = this->add_layer(name, check_name_is_unique);
   move_node_into(new_layer.as_node(), parent_group);
   return new_layer;
 }
@@ -3305,10 +3308,13 @@ blender::bke::greasepencil::Layer &GreasePencil::duplicate_layer(
 }
 
 blender::bke::greasepencil::LayerGroup &GreasePencil::add_layer_group(
-    blender::bke::greasepencil::LayerGroup &parent_group, const blender::StringRefNull name)
+    blender::bke::greasepencil::LayerGroup &parent_group,
+    const blender::StringRefNull name,
+    const bool check_name_is_unique)
 {
   using namespace blender;
-  std::string unique_name = unique_layer_group_name(*this, name);
+  std::string unique_name = check_name_is_unique ? unique_layer_group_name(*this, name) :
+                                                   name.c_str();
   bke::greasepencil::LayerGroup *new_group = MEM_new<bke::greasepencil::LayerGroup>(__func__,
                                                                                     unique_name);
   /* Hide masks by default. */

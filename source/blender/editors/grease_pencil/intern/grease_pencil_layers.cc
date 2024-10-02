@@ -655,6 +655,155 @@ static void GREASE_PENCIL_OT_layer_duplicate(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "empty_keyframes", false, "Empty Keyframes", "Add Empty Keyframes");
 }
 
+enum class MergeMode : int8_t {
+  Down = 0,
+  Group = 1,
+  All = 2,
+};
+
+static int grease_pencil_merge_layer_exec(bContext *C, wmOperator *op)
+{
+  using namespace blender::bke::greasepencil;
+  Main *bmain = CTX_data_main(C);
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  const MergeMode mode = MergeMode(RNA_enum_get(op->ptr, "mode"));
+
+  Vector<Vector<int>> src_layer_indices_by_dst_layer;
+  std::string merged_layer_name;
+  if (mode == MergeMode::Down) {
+    if (!grease_pencil.has_active_layer()) {
+      BKE_report(op->reports, RPT_ERROR, "No active layer");
+      return OPERATOR_CANCELLED;
+    }
+    const Layer &active_layer = *grease_pencil.get_active_layer();
+    GreasePencilLayerTreeNode *prev_node = active_layer.as_node().prev;
+    if (prev_node == nullptr || !prev_node->wrap().is_layer()) {
+      /* No layer below the active one. */
+      return OPERATOR_CANCELLED;
+    }
+    const Layer &prev_layer = prev_node->wrap().as_layer();
+    /* Get the indices of the two layers to be merged. */
+    const int prev_layer_index = *grease_pencil.get_layer_index(prev_layer);
+    const int active_layer_index = *grease_pencil.get_layer_index(active_layer);
+
+    /* Map all the other layers to their own index. */
+    const Span<const Layer *> layers = grease_pencil.layers();
+    for (const int layer_i : layers.index_range()) {
+      if (layer_i != prev_layer_index && layer_i != active_layer_index) {
+        src_layer_indices_by_dst_layer.append({layer_i});
+      }
+    }
+    /* Map the two layers to one index so they will be merged. */
+    src_layer_indices_by_dst_layer.append({prev_layer_index, active_layer_index});
+
+    /* Store the name of the current active layer as the name of the merged layer. */
+    merged_layer_name = grease_pencil.layer(prev_layer_index).name();
+  }
+  else if (mode == MergeMode::Group) {
+    if (!grease_pencil.has_active_group()) {
+      BKE_report(op->reports, RPT_ERROR, "No active group");
+      return OPERATOR_CANCELLED;
+    }
+    LayerGroup &active_group = *grease_pencil.get_active_group();
+    /* Remove all sub groups of the active group since they won't be needed anymore, but keep the
+     * layers. */
+    Array<LayerGroup *> groups = active_group.groups_for_write();
+    for (LayerGroup *group : groups) {
+      grease_pencil.remove_group(*group, true);
+    }
+
+    const Span<const Layer *> layers = grease_pencil.layers();
+    Vector<int> indices;
+    for (const int layer_i : layers.index_range()) {
+      const Layer &layer = grease_pencil.layer(layer_i);
+      if (!layer.is_child_of(active_group)) {
+        src_layer_indices_by_dst_layer.append({layer_i});
+      }
+      else {
+        indices.append(layer_i);
+      }
+    }
+    src_layer_indices_by_dst_layer.append(indices);
+
+    /* Store the name of the group as the name of the merged layer. */
+    merged_layer_name = active_group.name();
+
+    /* Remove the active group. */
+    grease_pencil.remove_group(active_group, true);
+
+    /* Rename the first node so that the merged layer will have the name of the group. */
+    grease_pencil.rename_node(
+        *bmain, grease_pencil.layer(indices[0]).as_node(), merged_layer_name);
+  }
+  else if (mode == MergeMode::All) {
+    /* Remove all groups, keep the layers. */
+    Array<LayerGroup *> groups = grease_pencil.layer_groups_for_write();
+    for (LayerGroup *group : groups) {
+      grease_pencil.remove_group(*group, true);
+    }
+
+    Vector<int> indices;
+    for (const int layer_i : grease_pencil.layers().index_range()) {
+      indices.append(layer_i);
+    }
+    src_layer_indices_by_dst_layer.append(indices);
+
+    merged_layer_name = N_("Layer");
+    grease_pencil.rename_node(
+        *bmain, grease_pencil.layer(indices[0]).as_node(), merged_layer_name);
+  }
+  else {
+    BLI_assert_unreachable();
+  }
+
+  GreasePencil *merged_grease_pencil = BKE_grease_pencil_new_nomain();
+  ed::greasepencil::merge_layers(
+      grease_pencil, src_layer_indices_by_dst_layer, *merged_grease_pencil);
+  BKE_grease_pencil_nomain_to_grease_pencil(merged_grease_pencil, &grease_pencil);
+
+  /* Try to set the active (merged) layer. */
+  TreeNode *node = grease_pencil.find_node_by_name(merged_layer_name);
+  if (node && node->is_layer()) {
+    Layer &layer = node->as_layer();
+    grease_pencil.set_active_layer(&layer);
+  }
+
+  DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_layer_merge(wmOperatorType *ot)
+{
+  static const EnumPropertyItem merge_modes[] = {
+      {int(MergeMode::Down),
+       "ACTIVE",
+       0,
+       "Active",
+       "Combine the active layer with the layer just below (if it exists)"},
+      {int(MergeMode::Group),
+       "GROUP",
+       0,
+       "Group",
+       "Combine layers in the active group into a single layer"},
+      {int(MergeMode::All), "ALL", 0, "All", "Combine all layers into a single layer"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  ot->name = "Merge";
+  ot->idname = "GREASE_PENCIL_OT_layer_merge";
+  ot->description = "Combine layers based on the mode into one layer";
+
+  ot->exec = grease_pencil_merge_layer_exec;
+  ot->poll = active_grease_pencil_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  ot->prop = RNA_def_enum(ot->srna, "mode", merge_modes, int(MergeMode::Down), "Mode", "");
+}
+
 static int grease_pencil_layer_mask_add_exec(bContext *C, wmOperator *op)
 {
   using namespace blender::bke::greasepencil;
@@ -966,6 +1115,7 @@ void ED_operatortypes_grease_pencil_layers()
   WM_operatortype_append(GREASE_PENCIL_OT_layer_isolate);
   WM_operatortype_append(GREASE_PENCIL_OT_layer_lock_all);
   WM_operatortype_append(GREASE_PENCIL_OT_layer_duplicate);
+  WM_operatortype_append(GREASE_PENCIL_OT_layer_merge);
 
   WM_operatortype_append(GREASE_PENCIL_OT_layer_group_add);
   WM_operatortype_append(GREASE_PENCIL_OT_layer_group_remove);

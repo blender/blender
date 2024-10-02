@@ -543,10 +543,13 @@ typedef struct GreasePencil {
 
   /* Adding layers and layer groups. */
   /** Adds a new layer with the given name to the top of root group. */
-  blender::bke::greasepencil::Layer &add_layer(blender::StringRefNull name);
+  blender::bke::greasepencil::Layer &add_layer(blender::StringRefNull name,
+                                               bool check_name_is_unique = true);
   /** Adds a new layer with the given name to the top of the given group. */
   blender::bke::greasepencil::Layer &add_layer(
-      blender::bke::greasepencil::LayerGroup &parent_group, blender::StringRefNull name);
+      blender::bke::greasepencil::LayerGroup &parent_group,
+      blender::StringRefNull name,
+      bool check_name_is_unique = true);
   /** Duplicates the given layer to the top of the root group. */
   blender::bke::greasepencil::Layer &duplicate_layer(
       const blender::bke::greasepencil::Layer &duplicate_layer);
@@ -555,7 +558,9 @@ typedef struct GreasePencil {
       blender::bke::greasepencil::LayerGroup &parent_group,
       const blender::bke::greasepencil::Layer &duplicate_layer);
   blender::bke::greasepencil::LayerGroup &add_layer_group(
-      blender::bke::greasepencil::LayerGroup &parent_group, blender::StringRefNull name);
+      blender::bke::greasepencil::LayerGroup &parent_group,
+      blender::StringRefNull name,
+      bool check_name_is_unique = true);
 
   /**
    *  Adds multiple layers with an empty name.

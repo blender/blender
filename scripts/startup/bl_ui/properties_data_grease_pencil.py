@@ -216,6 +216,11 @@ class GREASE_PENCIL_MT_grease_pencil_add_layer_extra(Menu):
             layout.prop(layer, "ignore_locked_materials")
 
         layout.separator()
+        layout.operator("grease_pencil.layer_merge", text="Merge Down").mode = 'ACTIVE'
+        layout.operator("grease_pencil.layer_merge", text="Merge Group").mode = 'GROUP'
+        layout.operator("grease_pencil.layer_merge", text="Merge All").mode = 'ALL'
+
+        layout.separator()
         layout.operator("grease_pencil.layer_duplicate_object", text="Copy Layer to Selected").only_active = True
         layout.operator("grease_pencil.layer_duplicate_object", text="Copy All Layers to Selected").only_active = False
 
@@ -227,6 +232,7 @@ class GREASE_PENCIL_MT_group_context_menu(Menu):
         layout = self.layout
         layout.operator("grease_pencil.layer_group_remove", text="Delete Group").keep_children = False
         layout.operator("grease_pencil.layer_group_remove", text="Ungroup").keep_children = True
+        layout.operator("grease_pencil.layer_merge", text="Merge Group").mode = 'GROUP'
 
         layout.separator()
         row = layout.row(align=True)
