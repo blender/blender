@@ -256,16 +256,18 @@ class InsertKeyTest(AbstractKeyframingTest, unittest.TestCase):
         self.assertEqual(["Téšt"], [group.name for group in fgroups])
 
 
-class LayeredInsertKeyTest(InsertKeyTest):
-    @classmethod
-    def setUpClass(cls) -> None:
-        enable_experimental_animation_baklava()
-        super().setUpClass()
+if hasattr(bpy.types, 'ActionSlot'):
+    # This test only makes sense when built with slotted/layered Actions.
+    class LayeredInsertKeyTest(InsertKeyTest):
+        @classmethod
+        def setUpClass(cls) -> None:
+            enable_experimental_animation_baklava()
+            super().setUpClass()
 
-    @classmethod
-    def tearDownClass(cls) -> None:
-        disable_experimental_animation_baklava()
-        super().tearDownClass()
+        @classmethod
+        def tearDownClass(cls) -> None:
+            disable_experimental_animation_baklava()
+            super().tearDownClass()
 
 
 class VisualKeyingTest(AbstractKeyframingTest, unittest.TestCase):
