@@ -795,8 +795,6 @@ enum {
 };
 
 typedef struct AssetShelfSettings {
-  struct AssetShelfSettings *next, *prev;
-
   AssetLibraryReference asset_library_reference;
 
   ListBase enabled_catalog_paths; /* #AssetCatalogPathLink */
