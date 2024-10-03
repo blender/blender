@@ -2342,6 +2342,20 @@ Vector<FCurve *> fcurves_in_action_slot_filtered(bAction *act,
   return found;
 }
 
+Vector<FCurve *> fcurves_in_listbase_filtered(ListBase /* FCurve * */ fcurves,
+                                              FunctionRef<bool(const FCurve &fcurve)> predicate)
+{
+  Vector<FCurve *> found;
+
+  LISTBASE_FOREACH (FCurve *, fcurve, &fcurves) {
+    if (predicate(*fcurve)) {
+      found.append(fcurve);
+    }
+  }
+
+  return found;
+}
+
 FCurve *action_fcurve_ensure(Main *bmain,
                              bAction *act,
                              const char group[],
@@ -2549,6 +2563,31 @@ void action_fcurve_move(Action &action_dst,
   UNUSED_VARS_NDEBUG(is_detached);
 
   action_fcurve_attach(action_dst, action_slot_dst, fcurve, group_name);
+}
+
+void channelbag_fcurves_move(ChannelBag &channelbag_dst, ChannelBag &channelbag_src)
+{
+  while (!channelbag_src.fcurves().is_empty()) {
+    FCurve &fcurve = *channelbag_src.fcurve(0);
+
+    /* Store the group name locally, as the group will be removed if this was its
+     * last F-Curve. */
+    std::optional<std::string> group_name;
+    if (fcurve.grp) {
+      group_name = fcurve.grp->name;
+    }
+
+    const bool is_detached = channelbag_src.fcurve_detach(fcurve);
+    BLI_assert(is_detached);
+    UNUSED_VARS_NDEBUG(is_detached);
+
+    channelbag_dst.fcurve_append(fcurve);
+
+    if (group_name) {
+      bActionGroup &group = channelbag_dst.channel_group_ensure(*group_name);
+      channelbag_dst.fcurve_assign_to_channel_group(fcurve, group);
+    }
+  }
 }
 
 bool ChannelBag::fcurve_assign_to_channel_group(FCurve &fcurve, bActionGroup &to_group)

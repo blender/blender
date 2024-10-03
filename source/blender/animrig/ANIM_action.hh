@@ -1399,6 +1399,13 @@ Vector<FCurve *> fcurves_in_action_slot_filtered(
     bAction *act, slot_handle_t slot_handle, FunctionRef<bool(const FCurve &fcurve)> predicate);
 
 /**
+ * Return the F-Curves in the given listbase for which `predicate` returns
+ * true.
+ */
+Vector<FCurve *> fcurves_in_listbase_filtered(ListBase /* FCurve * */ fcurves,
+                                              FunctionRef<bool(const FCurve &fcurve)> predicate);
+
+/**
  * Remove the given FCurve from the action by searching for it in all channelbags.
  * This assumes that an FCurve can only exist in an action once.
  *
@@ -1462,6 +1469,22 @@ void action_fcurve_move(Action &action_dst,
                         slot_handle_t action_slot_dst,
                         Action &action_src,
                         FCurve &fcurve);
+
+/**
+ * Moves all F-Curves from one ChannelBag to the other.
+ *
+ * The ChannelBags do not need to be part of the same action, or even belong to
+ * an action at all.
+ *
+ * If the F-Curves belonged to channel groups, the group membership also carries
+ * over to the destination ChannelBag. If groups with the same names don't
+ * exist, they are created. \see blender::animrig::action_fcurve_detach
+ *
+ * The order of existing channel groups in the destination ChannelBag are not
+ * changed, and any new groups are placed after those in the order they appeared
+ * in the src group.
+ */
+void channelbag_fcurves_move(ChannelBag &channelbag_dst, ChannelBag &channelbag_src);
 
 /**
  * Find an appropriate user of the given Action + Slot for keyframing purposes.
