@@ -4911,17 +4911,17 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
-  /**
-   * Always bump subversion in BKE_blender_version.h when adding versioning
-   * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
-   *
-   * \note Keep this message at the bottom of the function.
-   */
-
   /* Always run this versioning; meshes are written with the legacy format which always needs to
    * be converted to the new format on file load. Can be moved to a subversion check in a larger
    * breaking release. */
   LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
     blender::bke::mesh_sculpt_mask_to_generic(*mesh);
   }
+
+  /**
+   * Always bump subversion in BKE_blender_version.h when adding versioning
+   * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
+   *
+   * \note Keep this message at the bottom of the function.
+   */
 }
