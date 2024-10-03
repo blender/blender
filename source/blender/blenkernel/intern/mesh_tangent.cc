@@ -201,7 +201,19 @@ struct SGLSLMeshToTangent {
 #else
     tri = &corner_tris[face_num];
 #endif
+
+    /* Safe to suppress since the way `face_as_quad_map` is used
+     * prevents out-of-bounds reads on the 4th component of the `int3`. */
+#ifdef __GNUC__
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Warray-bounds"
+#endif
+
     return uint(tri[int(vert_num)]);
+
+#ifdef __GNUC__
+#  pragma GCC diagnostic pop
+#endif
   }
 
   mikk::float3 GetPosition(const uint face_num, const uint vert_num)
