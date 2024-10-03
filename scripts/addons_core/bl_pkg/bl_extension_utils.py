@@ -89,6 +89,10 @@ PKG_REPO_LIST_FILENAME = "index.json"
 PKG_MANIFEST_FILENAME_TOML = "blender_manifest.toml"
 PKG_EXT = ".zip"
 
+# Components to use when creating temporary directory.
+# Note that digits may be added to the suffix avoid conflicts.
+PKG_TEMP_PREFIX_AND_SUFFIX = (".", ".~temp~")
+
 # Add this to the local JSON file.
 REPO_LOCAL_JSON = os.path.join(REPO_LOCAL_PRIVATE_DIR, PKG_REPO_LIST_FILENAME)
 
@@ -590,6 +594,7 @@ def repo_upgrade(
         "--remote-url", remote_url,
         "--online-user-agent", online_user_agent,
         "--access-token", access_token,
+        "--temp-prefix-and-suffix", "/".join(PKG_TEMP_PREFIX_AND_SUFFIX),
     ], use_idle=use_idle, python_args=python_args)
     yield [COMPLETE_ITEM]
 
@@ -629,6 +634,7 @@ def pkg_install_files(
         "install-files", *files,
         "--local-dir", directory,
         "--blender-version", "{:d}.{:d}.{:d}".format(*blender_version),
+        "--temp-prefix-and-suffix", "/".join(PKG_TEMP_PREFIX_AND_SUFFIX),
     ], use_idle=use_idle, python_args=python_args)
     yield [COMPLETE_ITEM]
 
@@ -659,6 +665,7 @@ def pkg_install(
         "--access-token", access_token,
         "--local-cache", str(int(use_cache)),
         "--timeout", "{:g}".format(timeout),
+        "--temp-prefix-and-suffix", "/".join(PKG_TEMP_PREFIX_AND_SUFFIX),
     ], use_idle=use_idle, python_args=python_args)
     yield [COMPLETE_ITEM]
 
@@ -679,6 +686,7 @@ def pkg_uninstall(
         "uninstall", ",".join(pkg_id_sequence),
         "--local-dir", directory,
         "--user-dir", user_directory,
+        "--temp-prefix-and-suffix", "/".join(PKG_TEMP_PREFIX_AND_SUFFIX),
     ], use_idle=use_idle, python_args=python_args)
     yield [COMPLETE_ITEM]
 

@@ -616,6 +616,73 @@ def rmtree_with_fallback_or_error(
     return None
 
 
+def rmtree_with_fallback_or_error_pseudo_atomic(
+        path: str,
+        *,
+        temp_prefix_and_suffix: Tuple[str, str],
+        remove_file: bool = True,
+        remove_link: bool = True,
+) -> Optional[str]:
+
+    # It's possible the directory doesn't exist, only attempt a rename if it does.
+    try:
+        isdir = os.path.isdir(path)
+    except Exception:
+        isdir = False
+
+    if isdir:
+        # Apply the prefix/suffix.
+        path_base_dirname, path_base_filename = os.path.split(path.rstrip(os.sep))
+        path_base = os.path.join(
+            path_base_dirname,
+            temp_prefix_and_suffix[0] + path_base_filename + temp_prefix_and_suffix[1],
+        )
+        del path_base_dirname, path_base_filename
+
+        path_test = path_base
+        test_count = 0
+        # Unlikely this exists.
+        while os.path.exists(path_test):
+            path_test = "{:s}{:d}".format(path_base, test_count)
+            test_count += 1
+            # Very unlikely, something is likely incorrect in the setup, avoid hanging.
+            if test_count > 1000:
+                return "Unable to create a new path at: {:s}".format(path_test)
+
+        # NOTE(@ideasman42): on WIN32 renaming a directory will fail if any files within the directory are open.
+        # The rename is important, the reasoning is as follows.
+        # - If the rename fails, the entire directory is left as-is.
+        #   This is done because in the case of an upgrade we *never* want to leave the extension
+        #   in a broken state, with some files removed and the directory locked,
+        #   meaning that an updated extension cannot be written to the destination.
+        # - If the rename succeeds but deleting the directory fails (unlikely but possible),
+        #   then at least the directory name is available (necessary for an upgrade).
+        #   The directory will use the `temp_prefix_and_suffix` can be removed later.
+        #
+        # On other systems, renaming before removal isn't important but is harmless,
+        # so keep it to avoid logic diverging.
+        #
+        # See #128175.
+
+        try:
+            os.rename(path, path_test)
+        except Exception as ex:
+            ex_str = str(ex)
+            if isinstance(ex, PermissionError):
+                if sys.platform == "win32":
+                    if "The process cannot access the file because it is being used by another process" in ex_str:
+                        return "locked by another process: {:s}".format(path)
+            return ex_str
+
+        path = path_test
+
+    return rmtree_with_fallback_or_error(
+        path,
+        remove_file=remove_file,
+        remove_link=remove_link,
+    )
+
+
 def build_paths_expand_iter(
         path: str,
         path_list: Sequence[str],
@@ -2730,6 +2797,13 @@ def arg_handle_str_as_package_names(value: str) -> Sequence[str]:
     return result
 
 
+def arg_handle_str_as_temp_prefix_and_suffix(value: str) -> Tuple[str, str]:
+    if (value.count("/") != 1) and (len(value) > 1):
+        raise argparse.ArgumentTypeError("Must contain a \"/\" character with a prefix and/or suffix")
+    a, b = value.split("/", 1)
+    return a, b
+
+
 # -----------------------------------------------------------------------------
 # Argument Handlers ("build" command)
 
@@ -2944,6 +3018,20 @@ def generic_arg_blender_version(subparse: argparse.ArgumentParser) -> None:
         type=str,
         help=(
             "The version of Blender used for selecting packages."
+        ),
+        required=False,
+    )
+
+
+def generic_arg_temp_prefix_and_suffix(subparse: argparse.ArgumentParser) -> None:
+    subparse.add_argument(
+        "--temp-prefix-and-suffix",
+        dest="temp_prefix_and_suffix",
+        default="./.temp",
+        type=arg_handle_str_as_temp_prefix_and_suffix,
+        help=(
+            "The template to use when removing files. "
+            "A slash separates the: `prefix/suffix`, digits may be appended"
         ),
         required=False,
     )
@@ -3526,6 +3614,7 @@ class subcmd_client:
             filepath_archive: str,
             blender_version_tuple: Tuple[int, int, int],
             manifest_compare: Optional[PkgManifest],
+            temp_prefix_and_suffix: Tuple[str, str],
     ) -> bool:
         # NOTE: Don't use `FATAL_ERROR` because other packages will attempt to install.
 
@@ -3620,7 +3709,10 @@ class subcmd_client:
 
             is_reinstall = False
             if os.path.isdir(filepath_local_pkg):
-                if (error := rmtree_with_fallback_or_error(filepath_local_pkg)) is not None:
+                if (error := rmtree_with_fallback_or_error_pseudo_atomic(
+                        filepath_local_pkg,
+                        temp_prefix_and_suffix=temp_prefix_and_suffix,
+                )) is not None:
                     msglog.error("Failed to remove existing directory for \"{:s}\": {:s}".format(manifest.id, error))
                     return False
 
@@ -3643,6 +3735,7 @@ class subcmd_client:
             local_dir: str,
             package_files: Sequence[str],
             blender_version: str,
+            temp_prefix_and_suffix: Tuple[str, str],
     ) -> bool:
         if not os.path.exists(local_dir):
             msglog.fatal_error("destination directory \"{:s}\" does not exist".format(local_dir))
@@ -3664,6 +3757,7 @@ class subcmd_client:
                         blender_version_tuple=blender_version_tuple,
                         # There is no manifest from the repository, leave this unset.
                         manifest_compare=None,
+                        temp_prefix_and_suffix=temp_prefix_and_suffix,
                 ):
                     # The package failed to install.
                     continue
@@ -3682,6 +3776,7 @@ class subcmd_client:
             blender_version: str,
             access_token: str,
             timeout_in_seconds: float,
+            temp_prefix_and_suffix: Tuple[str, str],
     ) -> bool:
 
         # Validate arguments.
@@ -3907,6 +4002,7 @@ class subcmd_client:
                         filepath_archive=filepath_local_cache_archive,
                         blender_version_tuple=blender_version_tuple,
                         manifest_compare=manifest_archive.manifest,
+                        temp_prefix_and_suffix=temp_prefix_and_suffix,
                 ):
                     # The package failed to install.
                     continue
@@ -3920,6 +4016,7 @@ class subcmd_client:
             local_dir: str,
             user_dir: str,
             packages: Sequence[str],
+            temp_prefix_and_suffix: Tuple[str, str],
     ) -> bool:
         if not os.path.isdir(local_dir):
             msglog.fatal_error("Missing local \"{:s}\"".format(local_dir))
@@ -3970,10 +4067,16 @@ class subcmd_client:
             for pkg_idname in packages_valid:
                 filepath_local_pkg = os.path.join(local_dir, pkg_idname)
 
-                if (error := rmtree_with_fallback_or_error(filepath_local_pkg)) is not None:
+                # First try and rename which will fail on WIN32 when one of the files is locked.
+
+                if (error := rmtree_with_fallback_or_error_pseudo_atomic(
+                        filepath_local_pkg,
+                        temp_prefix_and_suffix=temp_prefix_and_suffix,
+                )) is not None:
                     msglog.error("Failure to remove \"{:s}\" with error ({:s})".format(pkg_idname, error))
-                else:
-                    msglog.status("Removed \"{:s}\"".format(pkg_idname))
+                    continue
+
+                msglog.status("Removed \"{:s}\"".format(pkg_idname))
 
                 filepath_local_cache_archive = os.path.join(local_cache_dir, pkg_idname + PKG_EXT)
                 if os.path.exists(filepath_local_cache_archive):
@@ -3982,7 +4085,10 @@ class subcmd_client:
                 if user_dir:
                     filepath_user_pkg = os.path.join(user_dir, pkg_idname)
                     if os.path.exists(filepath_user_pkg):
-                        if (error := rmtree_with_fallback_or_error(filepath_user_pkg)) is not None:
+                        if (error := rmtree_with_fallback_or_error_pseudo_atomic(
+                                filepath_user_pkg,
+                                temp_prefix_and_suffix=temp_prefix_and_suffix,
+                        )) is not None:
                             msglog.error(
                                 "Failure to remove \"{:s}\" user files with error ({:s})".format(pkg_idname, error),
                             )
@@ -4707,6 +4813,8 @@ def argparse_create_client_install_files(subparsers: "argparse._SubParsersAction
     generic_arg_local_dir(subparse)
     generic_arg_blender_version(subparse)
 
+    generic_arg_temp_prefix_and_suffix(subparse)
+
     generic_arg_output_type(subparse)
 
     subparse.set_defaults(
@@ -4715,6 +4823,7 @@ def argparse_create_client_install_files(subparsers: "argparse._SubParsersAction
             local_dir=args.local_dir,
             package_files=args.files,
             blender_version=args.blender_version,
+            temp_prefix_and_suffix=args.temp_prefix_and_suffix,
         ),
     )
 
@@ -4735,6 +4844,8 @@ def argparse_create_client_install(subparsers: "argparse._SubParsersAction[argpa
     generic_arg_blender_version(subparse)
     generic_arg_access_token(subparse)
 
+    generic_arg_temp_prefix_and_suffix(subparse)
+
     generic_arg_output_type(subparse)
     generic_arg_timeout(subparse)
 
@@ -4749,6 +4860,7 @@ def argparse_create_client_install(subparsers: "argparse._SubParsersAction[argpa
             blender_version=args.blender_version,
             access_token=args.access_token,
             timeout_in_seconds=args.timeout,
+            temp_prefix_and_suffix=args.temp_prefix_and_suffix,
         ),
     )
 
@@ -4764,6 +4876,9 @@ def argparse_create_client_uninstall(subparsers: "argparse._SubParsersAction[arg
 
     generic_arg_local_dir(subparse)
     generic_arg_user_dir(subparse)
+
+    generic_arg_temp_prefix_and_suffix(subparse)
+
     generic_arg_output_type(subparse)
 
     subparse.set_defaults(
@@ -4772,6 +4887,7 @@ def argparse_create_client_uninstall(subparsers: "argparse._SubParsersAction[arg
             local_dir=args.local_dir,
             user_dir=args.user_dir,
             packages=args.packages.split(","),
+            temp_prefix_and_suffix=args.temp_prefix_and_suffix,
         ),
     )
 
