@@ -564,7 +564,7 @@ typedef struct GreasePencil {
 
   /**
    *  Adds multiple layers with an empty name.
-   *  Note: Evaluated Grease Pencil geometry is allowed to have layers with the same name.
+   *  NOTE: Evaluated Grease Pencil geometry is allowed to have layers with the same name.
    */
   void add_layers_for_eval(int num_new_layers);
 

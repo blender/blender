@@ -4137,7 +4137,7 @@ void ui_block_cm_to_display_space_v3(uiBlock *block, float pixel[3])
 /**
  * Factory function: Allocate button and set #uiBut.type.
  *
- * \note: #ui_but_mem_delete is the matching 'destructor' function.
+ * \note #ui_but_mem_delete is the matching 'destructor' function.
  */
 static uiBut *ui_but_new(const eButType type)
 {

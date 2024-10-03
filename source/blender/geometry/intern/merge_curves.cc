@@ -248,7 +248,7 @@ static bke::CurvesGeometry join_curves_ranges(const bke::CurvesGeometry &src_cur
   bke::CurvesGeometry dst_curves = bke::CurvesGeometry(src_curves.points_num(),
                                                        old_curves_by_new.size());
 
-  /* Note: using the offsets as an index map means the first curve of each range is used for
+  /* NOTE: using the offsets as an index map means the first curve of each range is used for
    * attributes. */
   const Span<int> old_by_new_map = old_curves_by_new.data().drop_back(1);
   bke::gather_attributes(src_curves.attributes(),

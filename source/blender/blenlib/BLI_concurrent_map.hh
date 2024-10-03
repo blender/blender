@@ -42,7 +42,7 @@ namespace blender {
  * sure that only one thread can modify a value at a time. Multiple threads may read from the same
  * key at the same time though.
  *
- * \note: #ConcurrentMap does not support iteration over all values.
+ * \note #ConcurrentMap does not support iteration over all values.
  *
  * This is a thin wrapper around #tbb::concurrent_hash_map that also has a fallback implementation
  * if TBB is not available. The fallback implementation is not optimized for performance. It mainly

@@ -25,8 +25,8 @@ shader node_scatter_volume(string phase = "Henyey-Greenstein",
     scatter = rayleigh();
   }
   else if (phase == "Mie") {
-    /* Approxmiation of Mie phase function for water droplets using a mix of Draine and H-G.
-     * See kernel/svm/closure.h for details. */
+    /* Approximation of Mie phase function for water droplets using a mix of Draine and H-G.
+     * See `kernel/svm/closure.h` for details. */
     float d = max(Diameter, 2.0);
     float aniso_hg = exp(-0.0990567 / (d - 1.67154));
     float aniso_d = exp(-2.20679 / (d + 3.91029) - 0.428934);
