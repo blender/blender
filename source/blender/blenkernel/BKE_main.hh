@@ -292,16 +292,16 @@ void BKE_main_init(Main &bmain);
  * This is similar to a call to #BKE_main_destroy followed by #BKE_main_init, however the internal
  * #Main::lock is kept unchanged, and the #Main::is_global_main flag is not reset to `true` either.
  *
- * \note: Unlike #BKE_main_free, only process the given \a bmain, without handling any potential
+ * \note Unlike #BKE_main_free, only process the given \a bmain, without handling any potential
  * other linked Main.
  */
 void BKE_main_clear(Main &bmain);
 /**
  * Clear and free all data in given \a bmain, but does not free \a bmain itself.
  *
- * \note: In most cases, #BKE_main_free should be used instead of this function.
+ * \note In most cases, #BKE_main_free should be used instead of this function.
  *
- * \note: Unlike #BKE_main_free, only process the given \a bmain, without handling any potential
+ * \note Unlike #BKE_main_free, only process the given \a bmain, without handling any potential
  * other linked Main.
  */
 void BKE_main_destroy(Main &bmain);

@@ -127,7 +127,7 @@ TEST(imbuf_scaling, bilinear_2x_smaller)
 {
   ImBuf *res = scale_2x_smaller(false, false);
   const uchar4 *got = reinterpret_cast<uchar4 *>(res->byte_buffer.data);
-  /* Note: IMB_transform results in (191, 128, 64, 255), <same>,
+  /* NOTE: #IMB_transform results in (191, 128, 64, 255), <same>,
    * (55, 50, 48, 254) i.e. different rounding. */
   EXPECT_EQ(uint4(got[0]), uint4(191, 127, 63, 255));
   EXPECT_EQ(uint4(got[1]), uint4(133, 55, 31, 16));

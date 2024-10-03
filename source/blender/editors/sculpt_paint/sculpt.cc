@@ -4909,7 +4909,7 @@ static void restore_from_undo_step_if_necessary(const Depsgraph &depsgraph,
    * rather than in the brush deformation calculation because that is called once for each symmetry
    * pass, potentially within the same BVH node.
    *
-   * Note: Despite the Cloth and Boundary brush using original coordinates, the brushes do not
+   * NOTE: Despite the Cloth and Boundary brush using original coordinates, the brushes do not
    * expect this restoration to happen on every stroke step. Performing this restoration causes
    * issues with the cloth simulation mode for those brushes.
    */

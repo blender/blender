@@ -144,7 +144,7 @@ int64_t av_get_frame_duration_in_pts_units(const AVFrame *picture)
 
 FFMPEG_INLINE size_t ffmpeg_get_buffer_alignment()
 {
-  /* Note: even if av_frame_get_buffer suggests to pass 0 for alignment,
+  /* NOTE: even if av_frame_get_buffer suggests to pass 0 for alignment,
    * as of ffmpeg 6.1/7.0 it does not use correct alignment for AVX512
    * CPU (frame.c get_video_buffer ends up always using 32 alignment,
    * whereas it should have used 64). Reported upstream:

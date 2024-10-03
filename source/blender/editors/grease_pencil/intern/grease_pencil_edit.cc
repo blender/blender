@@ -3962,7 +3962,7 @@ static void join_object_with_active(Main &bmain,
   /* Rename animation paths to layers. */
   BKE_fcurves_main_cb(&bmain, [&](ID *id, FCurve *fcu) {
     if (id == &grease_pencil_src.id && fcu->rna_path && strstr(fcu->rna_path, "layers[")) {
-      /* Have to use linear search, the layer name map only contains substrings of RNA paths. */
+      /* Have to use linear search, the layer name map only contains sub-strings of RNA paths. */
       for (auto [name_src, name_dst] : layer_name_map.items()) {
         if (name_dst != name_src) {
           const char *old_path = fcu->rna_path;

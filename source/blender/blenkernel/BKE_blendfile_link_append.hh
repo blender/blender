@@ -58,7 +58,7 @@ enum {
 };
 
 /* NOTE: These three structs are currently exposed in header to allow for their usage in RNA.
- * Regualr C++ code should not access their content directly.
+ * Regular C++ code should not access their content directly.
  *
  * TODO: Refactor these three structs into classes, and integrated the whole API into them. */
 struct BlendfileLinkAppendContext;
