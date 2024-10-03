@@ -42,13 +42,6 @@ bool editable_grease_pencil_poll(bContext *C)
   if (!ED_operator_object_active_editable_ex(C, object)) {
     return false;
   }
-  if (!ELEM(object->mode,
-            OB_MODE_EDIT,
-            OB_MODE_SCULPT_GPENCIL_LEGACY,
-            OB_MODE_VERTEX_GPENCIL_LEGACY))
-  {
-    return false;
-  }
   return true;
 }
 
@@ -73,6 +66,24 @@ bool editable_grease_pencil_point_selection_poll(bContext *C)
   return (ts->gpencil_selectmode_edit != GP_SELECTMODE_STROKE);
 }
 
+bool grease_pencil_selection_poll(bContext *C)
+{
+  if (!active_grease_pencil_poll(C)) {
+    return false;
+  }
+  Object *object = CTX_data_active_object(C);
+  /* Selection operators are available in multiple modes, e.g. for masking in sculpt and vertex
+   * paint mode. */
+  if (!ELEM(object->mode,
+            OB_MODE_EDIT_GPENCIL_LEGACY,
+            OB_MODE_SCULPT_GPENCIL_LEGACY,
+            OB_MODE_VERTEX_GPENCIL_LEGACY))
+  {
+    return false;
+  }
+  return true;
+}
+
 bool grease_pencil_painting_poll(bContext *C)
 {
   if (!active_grease_pencil_poll(C)) {
@@ -84,6 +95,18 @@ bool grease_pencil_painting_poll(bContext *C)
   }
   ToolSettings *ts = CTX_data_tool_settings(C);
   if (!ts || !ts->gp_paint) {
+    return false;
+  }
+  return true;
+}
+
+bool grease_pencil_edit_poll(bContext *C)
+{
+  if (!active_grease_pencil_poll(C)) {
+    return false;
+  }
+  Object *object = CTX_data_active_object(C);
+  if ((object->mode & OB_MODE_EDIT) == 0) {
     return false;
   }
   return true;
@@ -137,11 +160,18 @@ bool grease_pencil_vertex_painting_poll(bContext *C)
   return true;
 }
 
+static void keymap_grease_pencil_selection(wmKeyConfig *keyconf)
+{
+  wmKeyMap *keymap = WM_keymap_ensure(
+      keyconf, "Grease Pencil Selection", SPACE_EMPTY, RGN_TYPE_WINDOW);
+  keymap->poll = grease_pencil_selection_poll;
+}
+
 static void keymap_grease_pencil_edit_mode(wmKeyConfig *keyconf)
 {
   wmKeyMap *keymap = WM_keymap_ensure(
       keyconf, "Grease Pencil Edit Mode", SPACE_EMPTY, RGN_TYPE_WINDOW);
-  keymap->poll = editable_grease_pencil_poll;
+  keymap->poll = grease_pencil_edit_poll;
 }
 
 static void keymap_grease_pencil_paint_mode(wmKeyConfig *keyconf)
@@ -291,6 +321,7 @@ void ED_operatormacros_grease_pencil()
 void ED_keymap_grease_pencil(wmKeyConfig *keyconf)
 {
   using namespace blender::ed::greasepencil;
+  keymap_grease_pencil_selection(keyconf);
   keymap_grease_pencil_edit_mode(keyconf);
   keymap_grease_pencil_paint_mode(keyconf);
   keymap_grease_pencil_sculpt_mode(keyconf);
@@ -298,6 +329,7 @@ void ED_keymap_grease_pencil(wmKeyConfig *keyconf)
   keymap_grease_pencil_vertex_paint_mode(keyconf);
   keymap_grease_pencil_brush_stroke(keyconf);
   keymap_grease_pencil_fill_tool(keyconf);
+
   ED_primitivetool_modal_keymap(keyconf);
   ED_filltool_modal_keymap(keyconf);
   ED_interpolatetool_modal_keymap(keyconf);

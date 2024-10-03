@@ -3707,6 +3707,28 @@ def km_annotate(params):
 
 
 # Grease Pencil
+def km_grease_pencil_selection(params):
+    items = []
+    keymap = (
+        "Grease Pencil Selection",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW'},
+        {"items": items},
+    )
+
+    items.extend([
+        # Select All
+        *_template_items_select_actions(params, "grease_pencil.select_all"),
+        # Select linked
+        ("grease_pencil.select_linked", {"type": 'L', "value": 'PRESS'}, None),
+        ("grease_pencil.select_linked", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
+        # Select more/less
+        ("grease_pencil.select_more", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
+        ("grease_pencil.select_less", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
+    ])
+
+    return keymap
+
+
 def km_grease_pencil_paint_mode(params):
     items = []
     keymap = (
@@ -3788,12 +3810,6 @@ def km_grease_pencil_edit_mode(params):
     )
 
     items.extend([
-        *_template_items_select_actions(params, "grease_pencil.select_all"),
-        # Select linked
-        ("grease_pencil.select_linked", {"type": 'L', "value": 'PRESS'}, None),
-        ("grease_pencil.select_linked", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
-        ("grease_pencil.select_more", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
-        ("grease_pencil.select_less", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
         # Delete menu
         op_menu("VIEW3D_MT_edit_greasepencil_delete", {"type": 'X', "value": 'PRESS'}),
         op_menu("VIEW3D_MT_edit_greasepencil_delete", {"type": 'DEL', "value": 'PRESS'}),
@@ -8042,6 +8058,7 @@ def generate_keymaps(params=None):
         # Annotations
         km_annotate(params),
         # Grease Pencil
+        km_grease_pencil_selection(params),
         km_grease_pencil_paint_mode(params),
         km_grease_pencil_edit_mode(params),
         km_grease_pencil_sculpt_mode(params),
