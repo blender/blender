@@ -160,6 +160,57 @@ static bool bm_edge_delimit_cdata(CustomData *ldata,
   return (r_delim_cd->cd_offset != -1);
 }
 
+/**
+ * Setup the delimit data from the parameters provided to the operator.
+ *
+ * \param bm: The mesh to provide UV or color data.
+ * \param op: The operator to provide the parameters.
+ */
+static DelimitData bm_edge_delmimit_data_from_op(BMesh *bm, BMOperator *op)
+{
+  DelimitData delimit_data = {0};
+  delimit_data.do_seam = BMO_slot_bool_get(op->slots_in, "cmp_seam");
+  delimit_data.do_sharp = BMO_slot_bool_get(op->slots_in, "cmp_sharp");
+  delimit_data.do_mat = BMO_slot_bool_get(op->slots_in, "cmp_materials");
+
+  /* Determine if angle face processing occurs and its parameters. */
+  float angle_face = BMO_slot_float_get(op->slots_in, "angle_face_threshold");
+  if (angle_face < DEG2RADF(180.0f)) {
+    delimit_data.angle_face = angle_face;
+    delimit_data.angle_face__cos = cosf(angle_face);
+    delimit_data.do_angle_face = true;
+  }
+  else {
+    delimit_data.do_angle_face = false;
+  }
+
+  /* Determine if angle shape processing occurs and its parameters. */
+  float angle_shape = BMO_slot_float_get(op->slots_in, "angle_shape_threshold");
+  if (angle_shape < DEG2RADF(180.0f)) {
+    delimit_data.angle_shape = angle_shape;
+    delimit_data.do_angle_shape = true;
+  }
+  else {
+    delimit_data.do_angle_shape = false;
+  }
+
+  if (BMO_slot_bool_get(op->slots_in, "cmp_uvs") &&
+      bm_edge_delimit_cdata(
+          &bm->ldata, CD_PROP_FLOAT2, &delimit_data.cdata[delimit_data.cdata_len]))
+  {
+    delimit_data.cdata_len += 1;
+  }
+
+  delimit_data.cdata[delimit_data.cdata_len].cd_offset = -1;
+  if (BMO_slot_bool_get(op->slots_in, "cmp_vcols") &&
+      bm_edge_delimit_cdata(
+          &bm->ldata, CD_PROP_BYTE_COLOR, &delimit_data.cdata[delimit_data.cdata_len]))
+  {
+    delimit_data.cdata_len += 1;
+  }
+  return delimit_data;
+}
+
 static bool bm_edge_is_delimit(const BMEdge *e, const DelimitData *delimit_data)
 {
   BMFace *f_a = e->l->f, *f_b = e->l->radial_next->f;
@@ -239,8 +290,6 @@ static bool bm_edge_is_delimit(const BMEdge *e, const DelimitData *delimit_data)
 
 void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 {
-  float angle_face, angle_shape;
-
   BMIter iter;
   BMOIter siter;
   BMFace *f;
@@ -250,45 +299,7 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
   uint i, totedge;
   uint totedge_tag = 0;
 
-  DelimitData delimit_data = {0};
-
-  delimit_data.do_seam = BMO_slot_bool_get(op->slots_in, "cmp_seam");
-  delimit_data.do_sharp = BMO_slot_bool_get(op->slots_in, "cmp_sharp");
-  delimit_data.do_mat = BMO_slot_bool_get(op->slots_in, "cmp_materials");
-
-  angle_face = BMO_slot_float_get(op->slots_in, "angle_face_threshold");
-  if (angle_face < DEG2RADF(180.0f)) {
-    delimit_data.angle_face = angle_face;
-    delimit_data.angle_face__cos = cosf(angle_face);
-    delimit_data.do_angle_face = true;
-  }
-  else {
-    delimit_data.do_angle_face = false;
-  }
-
-  angle_shape = BMO_slot_float_get(op->slots_in, "angle_shape_threshold");
-  if (angle_shape < DEG2RADF(180.0f)) {
-    delimit_data.angle_shape = angle_shape;
-    delimit_data.do_angle_shape = true;
-  }
-  else {
-    delimit_data.do_angle_shape = false;
-  }
-
-  if (BMO_slot_bool_get(op->slots_in, "cmp_uvs") &&
-      bm_edge_delimit_cdata(
-          &bm->ldata, CD_PROP_FLOAT2, &delimit_data.cdata[delimit_data.cdata_len]))
-  {
-    delimit_data.cdata_len += 1;
-  }
-
-  delimit_data.cdata[delimit_data.cdata_len].cd_offset = -1;
-  if (BMO_slot_bool_get(op->slots_in, "cmp_vcols") &&
-      bm_edge_delimit_cdata(
-          &bm->ldata, CD_PROP_BYTE_COLOR, &delimit_data.cdata[delimit_data.cdata_len]))
-  {
-    delimit_data.cdata_len += 1;
-  }
+  const DelimitData delimit_data = bm_edge_delmimit_data_from_op(bm, op);
 
   /* flag all edges of all input face */
   BMO_ITER (f, &siter, op->slots_in, "faces", BM_FACE) {
