@@ -169,20 +169,20 @@ static bool bm_edge_is_delimit(const BMEdge *e, const DelimitData *delimit_data)
 #endif
 
   if (delimit_data->do_seam && BM_elem_flag_test(e, BM_ELEM_SEAM)) {
-    goto fail;
+    return true;
   }
 
   if (delimit_data->do_sharp && (BM_elem_flag_test(e, BM_ELEM_SMOOTH) == 0)) {
-    goto fail;
+    return true;
   }
 
   if (delimit_data->do_mat && (f_a->mat_nr != f_b->mat_nr)) {
-    goto fail;
+    return true;
   }
 
   if (delimit_data->do_angle_face) {
     if (dot_v3v3(f_a->no, f_b->no) < delimit_data->angle_face__cos) {
-      goto fail;
+      return true;
     }
   }
 
@@ -192,32 +192,31 @@ static bool bm_edge_is_delimit(const BMEdge *e, const DelimitData *delimit_data)
 
     /* if we're checking the shape at all, a flipped face is out of the question */
     if (is_quad_flip_v3(verts[0]->co, verts[1]->co, verts[2]->co, verts[3]->co)) {
-      goto fail;
+      return true;
     }
-    else {
-      float edge_vecs[4][3];
 
-      sub_v3_v3v3(edge_vecs[0], verts[0]->co, verts[1]->co);
-      sub_v3_v3v3(edge_vecs[1], verts[1]->co, verts[2]->co);
-      sub_v3_v3v3(edge_vecs[2], verts[2]->co, verts[3]->co);
-      sub_v3_v3v3(edge_vecs[3], verts[3]->co, verts[0]->co);
+    float edge_vecs[4][3];
 
-      normalize_v3(edge_vecs[0]);
-      normalize_v3(edge_vecs[1]);
-      normalize_v3(edge_vecs[2]);
-      normalize_v3(edge_vecs[3]);
+    sub_v3_v3v3(edge_vecs[0], verts[0]->co, verts[1]->co);
+    sub_v3_v3v3(edge_vecs[1], verts[1]->co, verts[2]->co);
+    sub_v3_v3v3(edge_vecs[2], verts[2]->co, verts[3]->co);
+    sub_v3_v3v3(edge_vecs[3], verts[3]->co, verts[0]->co);
 
-      if ((fabsf(angle_normalized_v3v3(edge_vecs[0], edge_vecs[1]) - float(M_PI_2)) >
-           delimit_data->angle_shape) ||
-          (fabsf(angle_normalized_v3v3(edge_vecs[1], edge_vecs[2]) - float(M_PI_2)) >
-           delimit_data->angle_shape) ||
-          (fabsf(angle_normalized_v3v3(edge_vecs[2], edge_vecs[3]) - float(M_PI_2)) >
-           delimit_data->angle_shape) ||
-          (fabsf(angle_normalized_v3v3(edge_vecs[3], edge_vecs[0]) - float(M_PI_2)) >
-           delimit_data->angle_shape))
-      {
-        goto fail;
-      }
+    normalize_v3(edge_vecs[0]);
+    normalize_v3(edge_vecs[1]);
+    normalize_v3(edge_vecs[2]);
+    normalize_v3(edge_vecs[3]);
+
+    if ((fabsf(angle_normalized_v3v3(edge_vecs[0], edge_vecs[1]) - float(M_PI_2)) >
+         delimit_data->angle_shape) ||
+        (fabsf(angle_normalized_v3v3(edge_vecs[1], edge_vecs[2]) - float(M_PI_2)) >
+         delimit_data->angle_shape) ||
+        (fabsf(angle_normalized_v3v3(edge_vecs[2], edge_vecs[3]) - float(M_PI_2)) >
+         delimit_data->angle_shape) ||
+        (fabsf(angle_normalized_v3v3(edge_vecs[3], edge_vecs[0]) - float(M_PI_2)) >
+         delimit_data->angle_shape))
+    {
+      return true;
     }
   }
 
@@ -225,15 +224,12 @@ static bool bm_edge_is_delimit(const BMEdge *e, const DelimitData *delimit_data)
     int i;
     for (i = 0; i < delimit_data->cdata_len; i++) {
       if (!bm_edge_is_contiguous_loop_cd_all(e, &delimit_data->cdata[i])) {
-        goto fail;
+        return true;
       }
     }
   }
 
   return false;
-
-fail:
-  return true;
 }
 
 #define EDGE_MARK (1 << 0)
