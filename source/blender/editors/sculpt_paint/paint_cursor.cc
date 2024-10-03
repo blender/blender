@@ -1524,17 +1524,16 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext *pcontext)
     return;
   }
 
-  /* Hide the cursor while drawing. */
-  if (grease_pencil->runtime->is_drawing_stroke) {
-    return;
-  }
-
   float3 color(1.0f);
   const int x = pcontext->x;
   const int y = pcontext->y;
 
-  /* for paint use paint brush size and color */
   if (pcontext->mode == PaintMode::GPencil) {
+    /* Hide the cursor while drawing. */
+    if (grease_pencil->runtime->is_drawing_stroke) {
+      return;
+    }
+
     /* Eraser has a special shape and uses a different shader program. */
     if (brush->gpencil_brush_type == GPAINT_BRUSH_TYPE_ERASE ||
         grease_pencil->runtime->temp_use_eraser)
@@ -1551,20 +1550,27 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext *pcontext)
       return;
     }
 
-    /* Hide the cursor while drawing. */
-    if (grease_pencil->runtime->is_drawing_stroke) {
+    if (brush->gpencil_brush_type == GPAINT_BRUSH_TYPE_FILL) {
+      /* Don't draw a paint cursor for the fill tool. */
       return;
     }
 
-    if (brush->gpencil_brush_type == GPAINT_BRUSH_TYPE_DRAW &&
-        (brush->flag & BRUSH_LOCK_SIZE) != 0)
-    {
-      const bke::greasepencil::Layer *layer = grease_pencil->get_active_layer();
-      const ed::greasepencil::DrawingPlacement placement(
-          *pcontext->scene, *pcontext->region, *pcontext->vc.v3d, *object, layer);
-      const float3 location = placement.project(float2(pcontext->x, pcontext->y));
-      pcontext->pixel_radius = project_brush_radius(
-          &pcontext->vc, brush->unprojected_radius, location);
+    if (brush->gpencil_brush_type == GPAINT_BRUSH_TYPE_TINT) {
+      pcontext->pixel_radius = brush->size;
+    }
+
+    if (brush->gpencil_brush_type == GPAINT_BRUSH_TYPE_DRAW) {
+      if ((brush->flag & BRUSH_LOCK_SIZE) != 0) {
+        const bke::greasepencil::Layer *layer = grease_pencil->get_active_layer();
+        const ed::greasepencil::DrawingPlacement placement(
+            *pcontext->scene, *pcontext->region, *pcontext->vc.v3d, *object, layer);
+        const float3 location = placement.project(float2(pcontext->x, pcontext->y));
+        pcontext->pixel_radius = project_brush_radius(
+            &pcontext->vc, brush->unprojected_radius, location);
+      }
+      else {
+        pcontext->pixel_radius = brush->size;
+      }
     }
 
     /* Get current drawing material. */
