@@ -42,11 +42,13 @@ struct RepeatItemsAccessor {
     auto *storage = static_cast<NodeGeometryRepeatOutput *>(node.storage);
     return {&storage->items, &storage->items_num, &storage->active_index};
   }
+
   static void copy_item(const NodeRepeatItem &src, NodeRepeatItem &dst)
   {
     dst = src;
     dst.name = BLI_strdup_null(dst.name);
   }
+
   static void destruct_item(NodeRepeatItem *item)
   {
     MEM_SAFE_FREE(item->name);
@@ -59,10 +61,12 @@ struct RepeatItemsAccessor {
   {
     return eNodeSocketDatatype(item.socket_type);
   }
+
   static char **get_name(NodeRepeatItem &item)
   {
     return &item.name;
   }
+
   static bool supports_socket_type(const eNodeSocketDatatype socket_type)
   {
     return ELEM(socket_type,
@@ -80,6 +84,7 @@ struct RepeatItemsAccessor {
                 SOCK_IMAGE,
                 SOCK_COLLECTION);
   }
+
   static void init_with_socket_type_and_name(bNode &node,
                                              NodeRepeatItem &item,
                                              const eNodeSocketDatatype socket_type,
@@ -90,6 +95,7 @@ struct RepeatItemsAccessor {
     item.identifier = storage->next_identifier++;
     socket_items::set_item_name_and_make_unique<RepeatItemsAccessor>(node, item, name);
   }
+
   static std::string socket_identifier_for_item(const NodeRepeatItem &item)
   {
     return "Item_" + std::to_string(item.identifier);

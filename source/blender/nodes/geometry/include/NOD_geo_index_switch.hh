@@ -29,18 +29,23 @@ struct IndexSwitchItemsAccessor {
     auto &storage = *static_cast<NodeIndexSwitch *>(node.storage);
     return {&storage.items, &storage.items_num, nullptr};
   }
+
   static void copy_item(const IndexSwitchItem &src, IndexSwitchItem &dst)
   {
     dst = src;
   }
+
   static void destruct_item(IndexSwitchItem * /*item*/) {}
+
   static void blend_write_item(BlendWriter *writer, const ItemT &item);
   static void blend_read_data_item(BlendDataReader *reader, ItemT &item);
+
   static void init(bNode &node, IndexSwitchItem &item)
   {
     auto &storage = *static_cast<NodeIndexSwitch *>(node.storage);
     item.identifier = storage.next_identifier++;
   }
+
   static std::string socket_identifier_for_item(const IndexSwitchItem &item)
   {
     return "Item_" + std::to_string(item.identifier);

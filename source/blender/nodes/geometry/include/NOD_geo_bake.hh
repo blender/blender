@@ -54,11 +54,13 @@ struct BakeItemsAccessor {
     auto *storage = static_cast<NodeGeometryBake *>(node.storage);
     return {&storage->items, &storage->items_num, &storage->active_index};
   }
+
   static void copy_item(const NodeGeometryBakeItem &src, NodeGeometryBakeItem &dst)
   {
     dst = src;
     dst.name = BLI_strdup_null(dst.name);
   }
+
   static void destruct_item(NodeGeometryBakeItem *item)
   {
     MEM_SAFE_FREE(item->name);
@@ -71,14 +73,17 @@ struct BakeItemsAccessor {
   {
     return eNodeSocketDatatype(item.socket_type);
   }
+
   static char **get_name(NodeGeometryBakeItem &item)
   {
     return &item.name;
   }
+
   static bool supports_socket_type(const eNodeSocketDatatype socket_type)
   {
     return SimulationItemsAccessor::supports_socket_type(socket_type);
   }
+
   static void init_with_socket_type_and_name(bNode &node,
                                              NodeGeometryBakeItem &item,
                                              const eNodeSocketDatatype socket_type,
@@ -89,6 +94,7 @@ struct BakeItemsAccessor {
     item.identifier = storage->next_identifier++;
     socket_items::set_item_name_and_make_unique<BakeItemsAccessor>(node, item, name);
   }
+
   static std::string socket_identifier_for_item(const NodeGeometryBakeItem &item)
   {
     return "Item_" + std::to_string(item.identifier);
