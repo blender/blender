@@ -6,6 +6,7 @@
  * NVIDIA Corporation. All rights reserved. */
 
 #include "usd_reader_mesh.hh"
+#include "usd.hh"
 #include "usd_attribute_utils.hh"
 #include "usd_hash_types.hh"
 #include "usd_mesh_utils.hh"
@@ -40,6 +41,7 @@
 #include <pxr/usd/usdGeom/primvarsAPI.h>
 #include <pxr/usd/usdGeom/subset.h>
 #include <pxr/usd/usdShade/materialBindingAPI.h>
+#include <pxr/usd/usdShade/tokens.h>
 #include <pxr/usd/usdSkel/bindingAPI.h>
 
 #include <algorithm>
@@ -55,22 +57,31 @@ static const pxr::TfToken normalsPrimvar("normals", pxr::TfToken::Immortal);
 }  // namespace usdtokens
 
 namespace utils {
-
-static pxr::UsdShadeMaterial compute_bound_material(const pxr::UsdPrim &prim)
+using namespace blender::io::usd;
+static pxr::UsdShadeMaterial compute_bound_material(const pxr::UsdPrim &prim,
+                                                    eUSDMtlPurpose mtl_purpose)
 {
-  pxr::UsdShadeMaterialBindingAPI api = pxr::UsdShadeMaterialBindingAPI(prim);
+  const pxr::UsdShadeMaterialBindingAPI api = pxr::UsdShadeMaterialBindingAPI(prim);
 
-  /* Compute generically bound ('allPurpose') materials. */
-  pxr::UsdShadeMaterial mtl = api.ComputeBoundMaterial();
+  /* See the following documentation for material resolution behavior:
+   * https://openusd.org/release/api/class_usd_shade_material_binding_a_p_i.html#UsdShadeMaterialBindingAPI_MaterialResolution
+   */
 
-  /* If no generic material could be resolved, also check for 'preview' and
-   * 'full' purpose materials as fallbacks. */
-  if (!mtl) {
-    mtl = api.ComputeBoundMaterial(pxr::UsdShadeTokens->preview);
-  }
-
-  if (!mtl) {
-    mtl = api.ComputeBoundMaterial(pxr::UsdShadeTokens->full);
+  pxr::UsdShadeMaterial mtl;
+  switch (mtl_purpose) {
+    case USD_MTL_PURPOSE_FULL:
+      mtl = api.ComputeBoundMaterial(pxr::UsdShadeTokens->full);
+      if (!mtl) {
+        /* Add an additional Blender-specific fallback to help with oddly authored USD files. */
+        mtl = api.ComputeBoundMaterial(pxr::UsdShadeTokens->preview);
+      }
+      break;
+    case USD_MTL_PURPOSE_PREVIEW:
+      mtl = api.ComputeBoundMaterial(pxr::UsdShadeTokens->preview);
+      break;
+    case USD_MTL_PURPOSE_ALL:
+      mtl = api.ComputeBoundMaterial(pxr::UsdShadeTokens->allPurpose);
+      break;
   }
 
   return mtl;
@@ -663,7 +674,8 @@ void USDMeshReader::assign_facesets_to_material_indices(double motionSampleTime,
   if (!subsets.empty()) {
     for (const pxr::UsdGeomSubset &subset : subsets) {
       pxr::UsdPrim subset_prim = subset.GetPrim();
-      pxr::UsdShadeMaterial subset_mtl = utils::compute_bound_material(subset_prim);
+      pxr::UsdShadeMaterial subset_mtl = utils::compute_bound_material(subset_prim,
+                                                                       import_params_.mtl_purpose);
       if (!subset_mtl) {
         continue;
       }
@@ -707,8 +719,7 @@ void USDMeshReader::assign_facesets_to_material_indices(double motionSampleTime,
   }
 
   if (r_mat_map->is_empty()) {
-
-    pxr::UsdShadeMaterial mtl = utils::compute_bound_material(prim_);
+    pxr::UsdShadeMaterial mtl = utils::compute_bound_material(prim_, import_params_.mtl_purpose);
     if (mtl) {
       pxr::SdfPath mtl_path = mtl.GetPath();
 
