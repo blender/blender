@@ -135,6 +135,8 @@ void main()
           render_view_buf[view_index].tilemap_tiles_index = tilemap_data.tiles_index;
           render_view_buf[view_index].tilemap_lod = lod;
           render_view_buf[view_index].rect_min = rect_min;
+          /* For shadow linking. */
+          render_view_buf[view_index].shadow_set_membership = tilemap_data.shadow_set_membership;
         }
       }
     }

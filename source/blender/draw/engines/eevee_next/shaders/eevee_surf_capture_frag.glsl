@@ -64,6 +64,7 @@ void main()
         surfel_buf[surfel_id].radiance_direct.back.rgb = is_double_sided ? g_emission : vec3(0);
         surfel_buf[surfel_id].radiance_direct.back.a = 0.0;
         surfel_buf[surfel_id].double_sided = is_double_sided;
+        surfel_buf[surfel_id].receiver_light_set = receiver_light_set_get(drw_infos[resource_id]);
 
         if (!capture_info_buf.capture_emission) {
           surfel_buf[surfel_id].radiance_direct.front.rgb = vec3(0.0);

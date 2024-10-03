@@ -61,12 +61,13 @@ void main()
   /* Direct light. */
   ClosureLightStack stack;
   stack.cl[0] = closure_light_new(cl, V);
-  light_eval_reflection(stack, P, Ng, V, vPz);
+  uchar receiver_light_set = gbuffer_light_link_receiver_unpack(gbuf.header);
+  light_eval_reflection(stack, P, Ng, V, vPz, receiver_light_set);
 
   vec3 radiance_front = stack.cl[0].light_shadowed;
 
   stack.cl[0] = closure_light_new(cl_transmit, V, gbuf.thickness);
-  light_eval_transmission(stack, P, Ng, V, vPz, gbuf.thickness);
+  light_eval_transmission(stack, P, Ng, V, vPz, gbuf.thickness, receiver_light_set);
 
   vec3 radiance_back = stack.cl[0].light_shadowed;
 

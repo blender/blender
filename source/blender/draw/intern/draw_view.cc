@@ -244,7 +244,10 @@ void View::compute_procedural_bounds()
   GPU_debug_group_end();
 }
 
-void View::compute_visibility(ObjectBoundsBuf &bounds, uint resource_len, bool debug_freeze)
+void View::compute_visibility(ObjectBoundsBuf &bounds,
+                              ObjectInfosBuf & /*infos*/,
+                              uint resource_len,
+                              bool debug_freeze)
 {
   if (debug_freeze && frozen_ == false) {
     data_freeze_[0] = static_cast<ViewMatrices>(data_[0]);

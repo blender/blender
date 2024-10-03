@@ -208,6 +208,7 @@ void ShadowPass::ShadowView::set_mode(ShadowPass::PassType type)
 }
 
 void ShadowPass::ShadowView::compute_visibility(ObjectBoundsBuf &bounds,
+                                                ObjectInfosBuf & /*infos*/,
                                                 uint resource_len,
                                                 bool /*debug_freeze*/)
 {
