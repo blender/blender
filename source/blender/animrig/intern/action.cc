@@ -1230,11 +1230,17 @@ Slot *assign_action_ensure_slot_for_keying(Action &action, ID &animated_id)
     slot = &action.slot_add_for_id(animated_id);
   }
 
-  if (!assign_action(&action, animated_id)) {
+  /* Only try to assign the Action to the ID if it is not already assigned.
+   * Assignment can fail when the ID is in NLA Tweak mode. */
+  const std::optional<std::pair<Action *, Slot *>> assigned = get_action_slot_pair(animated_id);
+  const bool is_correct_action = assigned && assigned->first == &action;
+  if (!is_correct_action && !assign_action(&action, animated_id)) {
     return nullptr;
   }
 
-  if (assign_action_slot(slot, animated_id) != ActionSlotAssignmentResult::OK) {
+  const bool is_correct_slot = assigned && assigned->second == slot;
+  if (!is_correct_slot && assign_action_slot(slot, animated_id) != ActionSlotAssignmentResult::OK)
+  {
     /* This should never happen, as a few lines above a new slot is created for
      * this ID if the found one wasn't deemed suitable. */
     BLI_assert_unreachable();
