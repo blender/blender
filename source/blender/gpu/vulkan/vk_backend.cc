@@ -490,26 +490,25 @@ void VKBackend::capabilities_init(VKDevice &device)
       device.physical_device_vulkan_11_features_get().shaderDrawParameters;
 
   GCaps.max_texture_size = max_ii(limits.maxImageDimension1D, limits.maxImageDimension2D);
-  GCaps.max_texture_3d_size = limits.maxImageDimension3D;
-  GCaps.max_texture_layers = limits.maxImageArrayLayers;
-  GCaps.max_textures = limits.maxDescriptorSetSampledImages;
-  GCaps.max_textures_vert = limits.maxPerStageDescriptorSampledImages;
-  GCaps.max_textures_geom = limits.maxPerStageDescriptorSampledImages;
-  GCaps.max_textures_frag = limits.maxPerStageDescriptorSampledImages;
-  GCaps.max_samplers = limits.maxSamplerAllocationCount;
-  GCaps.max_images = limits.maxPerStageDescriptorStorageImages;
+  GCaps.max_texture_3d_size = min_uu(limits.maxImageDimension3D, INT_MAX);
+  GCaps.max_texture_layers = min_uu(limits.maxImageArrayLayers, INT_MAX);
+  GCaps.max_textures = min_uu(limits.maxDescriptorSetSampledImages, INT_MAX);
+  GCaps.max_textures_vert = GCaps.max_textures_geom = GCaps.max_textures_frag = min_uu(
+      limits.maxPerStageDescriptorSampledImages, INT_MAX);
+  GCaps.max_samplers = min_uu(limits.maxSamplerAllocationCount, INT_MAX);
+  GCaps.max_images = min_uu(limits.maxPerStageDescriptorStorageImages, INT_MAX);
   for (int i = 0; i < 3; i++) {
-    GCaps.max_work_group_count[i] = limits.maxComputeWorkGroupCount[i];
-    GCaps.max_work_group_size[i] = limits.maxComputeWorkGroupSize[i];
+    GCaps.max_work_group_count[i] = min_uu(limits.maxComputeWorkGroupCount[i], INT_MAX);
+    GCaps.max_work_group_size[i] = min_uu(limits.maxComputeWorkGroupSize[i], INT_MAX);
   }
-  GCaps.max_uniforms_vert = limits.maxPerStageDescriptorUniformBuffers;
-  GCaps.max_uniforms_frag = limits.maxPerStageDescriptorUniformBuffers;
-  GCaps.max_batch_indices = limits.maxDrawIndirectCount;
-  GCaps.max_batch_vertices = limits.maxDrawIndexedIndexValue;
-  GCaps.max_vertex_attribs = limits.maxVertexInputAttributes;
-  GCaps.max_varying_floats = limits.maxVertexOutputComponents;
-  GCaps.max_shader_storage_buffer_bindings = limits.maxPerStageDescriptorStorageBuffers;
-  GCaps.max_compute_shader_storage_blocks = limits.maxPerStageDescriptorStorageBuffers;
+  GCaps.max_uniforms_vert = GCaps.max_uniforms_frag = min_uu(
+      limits.maxPerStageDescriptorUniformBuffers, INT_MAX);
+  GCaps.max_batch_indices = min_uu(limits.maxDrawIndirectCount, INT_MAX);
+  GCaps.max_batch_vertices = min_uu(limits.maxDrawIndexedIndexValue, INT_MAX);
+  GCaps.max_vertex_attribs = min_uu(limits.maxVertexInputAttributes, INT_MAX);
+  GCaps.max_varying_floats = min_uu(limits.maxVertexOutputComponents, INT_MAX);
+  GCaps.max_shader_storage_buffer_bindings = GCaps.max_compute_shader_storage_blocks = min_uu(
+      limits.maxPerStageDescriptorStorageBuffers, INT_MAX);
   GCaps.max_storage_buffer_size = size_t(limits.maxStorageBufferRange);
 
   GCaps.max_parallel_compilations = BLI_system_thread_count();
