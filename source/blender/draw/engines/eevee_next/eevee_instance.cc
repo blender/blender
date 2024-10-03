@@ -418,10 +418,6 @@ void Instance::render_sample()
   /* Motion blur may need to do re-sync after a certain number of sample. */
   if (!is_viewport() && sampling.do_render_sync()) {
     render_sync();
-    if (!info_.empty()) {
-      printf("%s", info_.c_str());
-      info_ = "";
-    }
   }
 
   DebugScope debug_scope(debug_scope_render_sample, "EEVEE.render_sample");
@@ -563,6 +559,13 @@ void Instance::render_frame(RenderEngine *engine, RenderLayer *render_layer, con
   this->film.cryptomatte_sort();
 
   this->render_read_result(render_layer, view_name);
+
+  if (!info_.empty()) {
+    RE_engine_set_error_message(
+        engine, RPT_("Errors during render. See the System Console for more info."));
+    printf("%s", info_.c_str());
+    info_ = "";
+  }
 }
 
 void Instance::draw_viewport()

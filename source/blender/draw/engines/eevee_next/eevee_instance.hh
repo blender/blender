@@ -239,8 +239,11 @@ class Instance {
    * NOTE: When calling this function, `msg` should be a string literal. */
   template<typename... Args> void info_append_i18n(const char *msg, Args &&...args)
   {
-    info_ += fmt::format(RPT_(msg), args...);
-    info_ += "\n";
+    std::string fmt_msg = fmt::format(RPT_(msg), args...) + "\n";
+    /* Don't print the same error twice. */
+    if (info_ != fmt_msg && !BLI_str_endswith(info_.c_str(), fmt_msg.c_str())) {
+      info_ += fmt_msg;
+    }
   }
 
   const char *info_get()

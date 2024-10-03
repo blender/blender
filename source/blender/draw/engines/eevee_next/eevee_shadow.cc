@@ -1150,6 +1150,7 @@ bool ShadowModule::shadow_update_finished(int loop_count)
   if (loop_count >= (SHADOW_MAX_TILEMAP * SHADOW_TILEMAP_LOD) / SHADOW_VIEW_MAX) {
     /* We have reach the maximum theoretical number of updates.
      * This can indicate a problem in the statistic buffer read-back or update tagging. */
+    inst_.info_append_i18n("Error: Reached max shadow updates.");
     return true;
   }
 
@@ -1170,6 +1171,15 @@ bool ShadowModule::shadow_update_finished(int loop_count)
   statistics_buf_.current().async_flush_to_host();
   statistics_buf_.current().read();
   ShadowStatistics stats = statistics_buf_.current();
+
+  if (stats.page_used_count > shadow_page_len_) {
+    inst_.info_append_i18n(
+        "Error: Shadow buffer full, may result in missing shadows and lower "
+        "performance. ({} / {})",
+        stats.page_used_count,
+        shadow_page_len_);
+  }
+
   /* Rendering is finished if we rendered all the remaining pages. */
   return stats.view_needed_count <= SHADOW_VIEW_MAX;
 }
