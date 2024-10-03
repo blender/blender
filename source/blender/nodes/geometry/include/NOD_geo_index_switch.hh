@@ -18,6 +18,7 @@ struct IndexSwitchItemsAccessor {
   using ItemT = IndexSwitchItem;
   static StructRNA *item_srna;
   static int node_type;
+  static int item_dna_type;
   static constexpr const char *node_idname = "GeometryNodeIndexSwitch";
   static constexpr bool has_type = false;
   static constexpr bool has_name = false;
@@ -33,8 +34,8 @@ struct IndexSwitchItemsAccessor {
     dst = src;
   }
   static void destruct_item(IndexSwitchItem * /*item*/) {}
-  static void blend_write(BlendWriter *writer, const bNode &node);
-  static void blend_read_data(BlendDataReader *reader, bNode &node);
+  static void blend_write_item(BlendWriter *writer, const ItemT &item);
+  static void blend_read_data_item(BlendDataReader *reader, ItemT &item);
   static void init(bNode &node, IndexSwitchItem &item)
   {
     auto &storage = *static_cast<NodeIndexSwitch *>(node.storage);

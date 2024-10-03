@@ -18,6 +18,7 @@ struct SimulationItemsAccessor {
   using ItemT = NodeSimulationItem;
   static StructRNA *item_srna;
   static int node_type;
+  static int item_dna_type;
   static constexpr const char *node_idname = "GeometryNodeSimulationOutput";
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;
@@ -49,8 +50,10 @@ struct SimulationItemsAccessor {
   {
     MEM_SAFE_FREE(item->name);
   }
-  static void blend_write(BlendWriter *writer, const bNode &node);
-  static void blend_read_data(BlendDataReader *reader, bNode &node);
+
+  static void blend_write_item(BlendWriter *writer, const ItemT &item);
+  static void blend_read_data_item(BlendDataReader *reader, ItemT &item);
+
   static eNodeSocketDatatype get_socket_type(const NodeSimulationItem &item)
   {
     return eNodeSocketDatatype(item.socket_type);

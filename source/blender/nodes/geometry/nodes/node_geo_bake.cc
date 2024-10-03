@@ -904,23 +904,16 @@ std::unique_ptr<LazyFunction> get_bake_lazy_function(
 
 StructRNA *BakeItemsAccessor::item_srna = &RNA_NodeGeometryBakeItem;
 int BakeItemsAccessor::node_type = GEO_NODE_BAKE;
+int BakeItemsAccessor::item_dna_type = SDNA_TYPE_FROM_STRUCT(NodeGeometryBakeItem);
 
-void BakeItemsAccessor::blend_write(BlendWriter *writer, const bNode &node)
+void BakeItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {
-  const auto &storage = *static_cast<const NodeGeometryBake *>(node.storage);
-  BLO_write_struct_array(writer, NodeGeometryBakeItem, storage.items_num, storage.items);
-  for (const NodeGeometryBakeItem &item : Span(storage.items, storage.items_num)) {
-    BLO_write_string(writer, item.name);
-  }
+  BLO_write_string(writer, item.name);
 }
 
-void BakeItemsAccessor::blend_read_data(BlendDataReader *reader, bNode &node)
+void BakeItemsAccessor::blend_read_data_item(BlendDataReader *reader, ItemT &item)
 {
-  auto &storage = *static_cast<NodeGeometryBake *>(node.storage);
-  BLO_read_struct_array(reader, NodeGeometryBakeItem, storage.items_num, &storage.items);
-  for (const NodeGeometryBakeItem &item : Span(storage.items, storage.items_num)) {
-    BLO_read_string(reader, &item.name);
-  }
+  BLO_read_string(reader, &item.name);
 }
 
 };  // namespace blender::nodes

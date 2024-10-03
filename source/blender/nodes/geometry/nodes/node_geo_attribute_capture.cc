@@ -274,29 +274,17 @@ namespace blender::nodes {
 
 StructRNA *CaptureAttributeItemsAccessor::item_srna = &RNA_NodeGeometryCaptureAttributeItem;
 int CaptureAttributeItemsAccessor::node_type = GEO_NODE_CAPTURE_ATTRIBUTE;
+int CaptureAttributeItemsAccessor::item_dna_type = SDNA_TYPE_FROM_STRUCT(
+    NodeGeometryAttributeCaptureItem);
 
-void CaptureAttributeItemsAccessor::blend_write(BlendWriter *writer, const bNode &node)
+void CaptureAttributeItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {
-  const auto &storage = *static_cast<const NodeGeometryAttributeCapture *>(node.storage);
-  BLO_write_struct_array(
-      writer, NodeGeometryAttributeCaptureItem, storage.capture_items_num, storage.capture_items);
-  for (const NodeGeometryAttributeCaptureItem &item :
-       Span(storage.capture_items, storage.capture_items_num))
-  {
-    BLO_write_string(writer, item.name);
-  }
+  BLO_write_string(writer, item.name);
 }
 
-void CaptureAttributeItemsAccessor::blend_read_data(BlendDataReader *reader, bNode &node)
+void CaptureAttributeItemsAccessor::blend_read_data_item(BlendDataReader *reader, ItemT &item)
 {
-  auto &storage = *static_cast<NodeGeometryAttributeCapture *>(node.storage);
-  BLO_read_struct_array(
-      reader, NodeGeometryAttributeCaptureItem, storage.capture_items_num, &storage.capture_items);
-  for (const NodeGeometryAttributeCaptureItem &item :
-       Span(storage.capture_items, storage.capture_items_num))
-  {
-    BLO_read_string(reader, &item.name);
-  }
+  BLO_read_string(reader, &item.name);
 }
 
 }  // namespace blender::nodes

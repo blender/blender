@@ -19,6 +19,7 @@ struct RepeatItemsAccessor {
   using ItemT = NodeRepeatItem;
   static StructRNA *item_srna;
   static int node_type;
+  static int item_dna_type;
   static constexpr const char *node_idname = "GeometryNodeRepeatOutput";
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;
@@ -50,8 +51,10 @@ struct RepeatItemsAccessor {
   {
     MEM_SAFE_FREE(item->name);
   }
-  static void blend_write(BlendWriter *writer, const bNode &node);
-  static void blend_read_data(BlendDataReader *reader, bNode &node);
+
+  static void blend_write_item(BlendWriter *writer, const ItemT &item);
+  static void blend_read_data_item(BlendDataReader *reader, ItemT &item);
+
   static eNodeSocketDatatype get_socket_type(const NodeRepeatItem &item)
   {
     return eNodeSocketDatatype(item.socket_type);

@@ -959,23 +959,16 @@ void mix_baked_data_item(const eNodeSocketDatatype socket_type,
 
 StructRNA *SimulationItemsAccessor::item_srna = &RNA_SimulationStateItem;
 int SimulationItemsAccessor::node_type = GEO_NODE_SIMULATION_OUTPUT;
+int SimulationItemsAccessor::item_dna_type = SDNA_TYPE_FROM_STRUCT(NodeSimulationItem);
 
-void SimulationItemsAccessor::blend_write(BlendWriter *writer, const bNode &node)
+void SimulationItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {
-  const auto &storage = *static_cast<const NodeGeometrySimulationOutput *>(node.storage);
-  BLO_write_struct_array(writer, NodeSimulationItem, storage.items_num, storage.items);
-  for (const NodeSimulationItem &item : Span(storage.items, storage.items_num)) {
-    BLO_write_string(writer, item.name);
-  }
+  BLO_write_string(writer, item.name);
 }
 
-void SimulationItemsAccessor::blend_read_data(BlendDataReader *reader, bNode &node)
+void SimulationItemsAccessor::blend_read_data_item(BlendDataReader *reader, ItemT &item)
 {
-  auto &storage = *static_cast<NodeGeometrySimulationOutput *>(node.storage);
-  BLO_read_struct_array(reader, NodeSimulationItem, storage.items_num, &storage.items);
-  for (const NodeSimulationItem &item : Span(storage.items, storage.items_num)) {
-    BLO_read_string(reader, &item.name);
-  }
+  BLO_read_string(reader, &item.name);
 }
 
 }  // namespace blender::nodes
