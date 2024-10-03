@@ -946,7 +946,7 @@ void blo_do_versions_userdef(UserDef *userdef)
 
   if (!USER_VERSION_ATLEAST(400, 24)) {
     /* Clear deprecated USER_MENUFIXEDORDER user flag for reuse. */
-    userdef->uiflag &= ~USER_UIFLAG_UNUSED_4;
+    userdef->uiflag &= ~(1 << 23);
   }
 
   if (!USER_VERSION_ATLEAST(400, 26)) {
@@ -1062,6 +1062,10 @@ void blo_do_versions_userdef(UserDef *userdef)
   }
   if (!USER_VERSION_ATLEAST(403, 19)) {
     userdef->sequencer_editor_flag |= USER_SEQ_ED_CONNECT_STRIPS_BY_DEFAULT;
+  }
+
+  if (!USER_VERSION_ATLEAST(403, 30)) {
+    userdef->uiflag |= USER_FILTER_BRUSHES_BY_TOOL;
   }
 
   /**
