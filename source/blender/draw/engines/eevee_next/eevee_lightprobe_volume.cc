@@ -932,8 +932,8 @@ void IrradianceBake::surfels_create(const Object &probe_object)
   capture_info_buf_.do_surfel_count = false;
   capture_info_buf_.do_surfel_output = false;
 
-  int neg_flt_max = int(0xFF7FFFFFu ^ 0x7FFFFFFFu); /* floatBitsToOrderedInt(-FLT_MAX) */
-  int pos_flt_max = 0x7F7FFFFF;                     /* floatBitsToOrderedInt(FLT_MAX) */
+  const int neg_flt_max = int(0xFF7FFFFFu ^ 0x7FFFFFFFu); /* floatBitsToOrderedInt(-FLT_MAX) */
+  const int pos_flt_max = 0x7F7FFFFF;                     /* floatBitsToOrderedInt(FLT_MAX) */
   capture_info_buf_.scene_bound_x_min = pos_flt_max;
   capture_info_buf_.scene_bound_y_min = pos_flt_max;
   capture_info_buf_.scene_bound_z_min = pos_flt_max;
@@ -947,6 +947,12 @@ void IrradianceBake::surfels_create(const Object &probe_object)
 
   GPU_memory_barrier(GPU_BARRIER_BUFFER_UPDATE);
   capture_info_buf_.read();
+
+  if (capture_info_buf_.scene_bound_x_min == pos_flt_max) {
+    /* No valid object has been found. */
+    do_break_ = true;
+    return;
+  }
 
   auto ordered_int_bits_to_float = [](int32_t int_value) -> float {
     int32_t float_bits = (int_value < 0) ? (int_value ^ 0x7FFFFFFF) : int_value;
