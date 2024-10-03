@@ -28,6 +28,13 @@ struct RepeatItemsAccessor {
     static constexpr const char *remove_item = "NODE_OT_repeat_zone_item_remove";
     static constexpr const char *move_item = "NODE_OT_repeat_zone_item_move";
   };
+  struct ui_idnames {
+    static constexpr const char *list = "DATA_UL_repeat_zone_state";
+  };
+  struct rna_names {
+    static constexpr const char *items = "repeat_items";
+    static constexpr const char *active_index = "active_index";
+  };
 
   static socket_items::SocketItemsRef<NodeRepeatItem> get_items_from_node(bNode &node)
   {

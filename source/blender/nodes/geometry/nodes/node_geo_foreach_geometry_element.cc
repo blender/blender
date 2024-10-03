@@ -14,6 +14,7 @@
 #include "NOD_geo_foreach_geometry_element.hh"
 #include "NOD_node_extra_info.hh"
 #include "NOD_socket_items_ops.hh"
+#include "NOD_socket_items_ui.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -23,25 +24,6 @@
 #include "WM_api.hh"
 
 namespace blender::nodes::node_geo_foreach_geometry_element_cc {
-
-static void draw_item(uiList * /*ui_list*/,
-                      const bContext *C,
-                      uiLayout *layout,
-                      PointerRNA * /*idataptr*/,
-                      PointerRNA *itemptr,
-                      int /*icon*/,
-                      PointerRNA * /*active_dataptr*/,
-                      const char * /*active_propname*/,
-                      int /*index*/,
-                      int /*flt_flag*/)
-{
-  uiLayout *row = uiLayoutRow(layout, true);
-  float4 color;
-  RNA_float_get_array(itemptr, "color", color);
-  uiTemplateNodeSocket(row, const_cast<bContext *>(C), color);
-  uiLayoutSetEmboss(row, UI_EMBOSS_NONE);
-  uiItemR(row, itemptr, "name", UI_ITEM_NONE, "", ICON_NONE);
-}
 
 /** Shared between zone input and output node. */
 static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_node_ptr)
@@ -68,55 +50,8 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
 
   if (is_zone_input_node) {
     if (uiLayout *panel = uiLayoutPanel(C, layout, "input", false, TIP_("Input Fields"))) {
-      static const uiListType *input_items_list = []() {
-        uiListType *list = MEM_cnew<uiListType>(__func__);
-        STRNCPY(list->idname, "DATA_UL_foreach_geometry_element_input_items");
-        list->draw_item = draw_item;
-        WM_uilisttype_add(list);
-        return list;
-      }();
-      uiLayout *row = uiLayoutRow(panel, false);
-      uiTemplateList(row,
-                     C,
-                     input_items_list->idname,
-                     "",
-                     &output_node_ptr,
-                     "input_items",
-                     &output_node_ptr,
-                     "active_input_index",
-                     nullptr,
-                     3,
-                     5,
-                     UILST_LAYOUT_DEFAULT,
-                     0,
-                     UI_TEMPLATE_LIST_FLAG_NONE);
-      {
-        uiLayout *ops_col = uiLayoutColumn(row, false);
-        {
-          uiLayout *add_remove_col = uiLayoutColumn(ops_col, true);
-          uiItemO(
-              add_remove_col, "", ICON_ADD, "node.foreach_geometry_element_zone_input_item_add");
-          uiItemO(add_remove_col,
-                  "",
-                  ICON_REMOVE,
-                  "node.foreach_geometry_element_zone_input_item_remove");
-        }
-        {
-          uiLayout *up_down_col = uiLayoutColumn(ops_col, true);
-          uiItemEnumO(up_down_col,
-                      "node.foreach_geometry_element_zone_input_item_move",
-                      "",
-                      ICON_TRIA_UP,
-                      "direction",
-                      0);
-          uiItemEnumO(up_down_col,
-                      "node.foreach_geometry_element_zone_input_item_move",
-                      "",
-                      ICON_TRIA_DOWN,
-                      "direction",
-                      1);
-        }
-      }
+      socket_items::ui::draw_items_list_with_operators<ForeachGeometryElementInputItemsAccessor>(
+          C, panel, ntree, output_node);
 
       if (storage.input_items.active_index >= 0 &&
           storage.input_items.active_index < storage.input_items.items_num)
@@ -135,55 +70,8 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
   }
   else {
     if (uiLayout *panel = uiLayoutPanel(C, layout, "main_items", false, TIP_("Main Geometry"))) {
-      static const uiListType *main_items_list = []() {
-        uiListType *list = MEM_cnew<uiListType>(__func__);
-        STRNCPY(list->idname, "DATA_UL_foreach_geometry_element_main_items");
-        list->draw_item = draw_item;
-        WM_uilisttype_add(list);
-        return list;
-      }();
-      uiLayout *row = uiLayoutRow(panel, false);
-      uiTemplateList(row,
-                     C,
-                     main_items_list->idname,
-                     "",
-                     &output_node_ptr,
-                     "main_items",
-                     &output_node_ptr,
-                     "active_main_index",
-                     nullptr,
-                     3,
-                     5,
-                     UILST_LAYOUT_DEFAULT,
-                     0,
-                     UI_TEMPLATE_LIST_FLAG_NONE);
-      {
-        uiLayout *ops_col = uiLayoutColumn(row, false);
-        {
-          uiLayout *add_remove_col = uiLayoutColumn(ops_col, true);
-          uiItemO(
-              add_remove_col, "", ICON_ADD, "node.foreach_geometry_element_zone_main_item_add");
-          uiItemO(add_remove_col,
-                  "",
-                  ICON_REMOVE,
-                  "node.foreach_geometry_element_zone_main_item_remove");
-        }
-        {
-          uiLayout *up_down_col = uiLayoutColumn(ops_col, true);
-          uiItemEnumO(up_down_col,
-                      "node.foreach_geometry_element_zone_main_item_move",
-                      "",
-                      ICON_TRIA_UP,
-                      "direction",
-                      0);
-          uiItemEnumO(up_down_col,
-                      "node.foreach_geometry_element_zone_main_item_move",
-                      "",
-                      ICON_TRIA_DOWN,
-                      "direction",
-                      1);
-        }
-      }
+      socket_items::ui::draw_items_list_with_operators<ForeachGeometryElementMainItemsAccessor>(
+          C, panel, ntree, output_node);
 
       if (storage.main_items.active_index >= 0 &&
           storage.main_items.active_index < storage.main_items.items_num)
@@ -202,57 +90,8 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
     if (uiLayout *panel = uiLayoutPanel(
             C, layout, "generation_items", false, TIP_("Generated Geometry")))
     {
-      static const uiListType *generation_items_list = []() {
-        uiListType *list = MEM_cnew<uiListType>(__func__);
-        STRNCPY(list->idname, "DATA_UL_foreach_geometry_element_generation_items");
-        list->draw_item = draw_item;
-        WM_uilisttype_add(list);
-        return list;
-      }();
-      uiLayout *row = uiLayoutRow(panel, false);
-      uiTemplateList(row,
-                     C,
-                     generation_items_list->idname,
-                     "",
-                     &output_node_ptr,
-                     "generation_items",
-                     &output_node_ptr,
-                     "active_generation_index",
-                     nullptr,
-                     3,
-                     5,
-                     UILST_LAYOUT_DEFAULT,
-                     0,
-                     UI_TEMPLATE_LIST_FLAG_NONE);
-      {
-        uiLayout *ops_col = uiLayoutColumn(row, false);
-        {
-          uiLayout *add_remove_col = uiLayoutColumn(ops_col, true);
-          uiItemO(add_remove_col,
-                  "",
-                  ICON_ADD,
-                  "node.foreach_geometry_element_zone_generation_item_add");
-          uiItemO(add_remove_col,
-                  "",
-                  ICON_REMOVE,
-                  "node.foreach_geometry_element_zone_generation_item_remove");
-        }
-        {
-          uiLayout *up_down_col = uiLayoutColumn(ops_col, true);
-          uiItemEnumO(up_down_col,
-                      "node.foreach_geometry_element_zone_generation_item_move",
-                      "",
-                      ICON_TRIA_UP,
-                      "direction",
-                      0);
-          uiItemEnumO(up_down_col,
-                      "node.foreach_geometry_element_zone_generation_item_move",
-                      "",
-                      ICON_TRIA_DOWN,
-                      "direction",
-                      1);
-        }
-      }
+      socket_items::ui::draw_items_list_with_operators<
+          ForeachGeometryElementGenerationItemsAccessor>(C, panel, ntree, output_node);
 
       if (storage.generation_items.active_index >= 0 &&
           storage.generation_items.active_index < storage.generation_items.items_num)

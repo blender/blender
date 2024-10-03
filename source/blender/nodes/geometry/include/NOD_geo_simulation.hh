@@ -27,6 +27,13 @@ struct SimulationItemsAccessor {
     static constexpr const char *remove_item = "NODE_OT_simulation_zone_item_remove";
     static constexpr const char *move_item = "NODE_OT_simulation_zone_item_move";
   };
+  struct ui_idnames {
+    static constexpr const char *list = "DATA_UL_simulation_zone_state";
+  };
+  struct rna_names {
+    static constexpr const char *items = "state_items";
+    static constexpr const char *active_index = "active_index";
+  };
 
   static socket_items::SocketItemsRef<NodeSimulationItem> get_items_from_node(bNode &node)
   {

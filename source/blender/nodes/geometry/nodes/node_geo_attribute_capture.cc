@@ -9,6 +9,7 @@
 
 #include "NOD_geo_capture_attribute.hh"
 #include "NOD_socket_items_ops.hh"
+#include "NOD_socket_items_ui.hh"
 #include "NOD_socket_search_link.hh"
 
 #include "RNA_enum_types.hh"
@@ -66,80 +67,27 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   node->storage = data;
 }
 
-static void draw_item(uiList * /*ui_list*/,
-                      const bContext *C,
-                      uiLayout *layout,
-                      PointerRNA * /*idataptr*/,
-                      PointerRNA *itemptr,
-                      int /*icon*/,
-                      PointerRNA * /*active_dataptr*/,
-                      const char * /*active_propname*/,
-                      int /*index*/,
-                      int /*flt_flag*/)
-{
-  uiLayout *row = uiLayoutRow(layout, true);
-  float4 color;
-  RNA_float_get_array(itemptr, "color", color);
-  uiTemplateNodeSocket(row, const_cast<bContext *>(C), color);
-  uiLayoutSetEmboss(row, UI_EMBOSS_NONE);
-  uiItemR(row, itemptr, "name", UI_ITEM_NONE, "", ICON_NONE);
-}
-
 static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-  static const uiListType *items_list = []() {
-    uiListType *list = MEM_cnew<uiListType>(__func__);
-    STRNCPY(list->idname, "NODE_UL_capture_items_list");
-    list->draw_item = draw_item;
-    WM_uilisttype_add(list);
-    return list;
-  }();
+  bNodeTree &tree = *reinterpret_cast<bNodeTree *>(ptr->owner_id);
+  bNode &node = *static_cast<bNode *>(ptr->data);
 
   uiItemR(layout, ptr, "domain", UI_ITEM_NONE, "", ICON_NONE);
 
   if (uiLayout *panel = uiLayoutPanel(
           C, layout, "capture_attribute_items", false, TIP_("Capture Items")))
   {
-    uiLayout *row = uiLayoutRow(panel, false);
-    uiTemplateList(row,
-                   C,
-                   items_list->idname,
-                   "",
-                   ptr,
-                   "capture_items",
-                   ptr,
-                   "active_index",
-                   nullptr,
-                   3,
-                   5,
-                   UILST_LAYOUT_DEFAULT,
-                   0,
-                   UI_TEMPLATE_LIST_FLAG_NONE);
-    {
-      uiLayout *ops_col = uiLayoutColumn(row, false);
-      {
-        uiLayout *add_remove_col = uiLayoutColumn(ops_col, true);
-        uiItemO(add_remove_col, "", ICON_ADD, "node.capture_attribute_item_add");
-        uiItemO(add_remove_col, "", ICON_REMOVE, "node.capture_attribute_item_remove");
-      }
-      {
-        uiLayout *up_down_col = uiLayoutColumn(ops_col, true);
-        uiItemEnumO(
-            up_down_col, "node.capture_attribute_item_move", "", ICON_TRIA_UP, "direction", 0);
-        uiItemEnumO(
-            up_down_col, "node.capture_attribute_item_move", "", ICON_TRIA_DOWN, "direction", 1);
-      }
-      bNode &node = *static_cast<bNode *>(ptr->data);
-      auto &storage = node_storage(node);
-      if (storage.active_index >= 0 && storage.active_index < storage.capture_items_num) {
-        NodeGeometryAttributeCaptureItem &active_item =
-            storage.capture_items[storage.active_index];
-        PointerRNA item_ptr = RNA_pointer_create(
-            ptr->owner_id, CaptureAttributeItemsAccessor::item_srna, &active_item);
-        uiLayoutSetPropSep(panel, true);
-        uiLayoutSetPropDecorate(panel, false);
-        uiItemR(panel, &item_ptr, "data_type", UI_ITEM_NONE, nullptr, ICON_NONE);
-      }
+    socket_items::ui::draw_items_list_with_operators<CaptureAttributeItemsAccessor>(
+        C, panel, tree, node);
+
+    auto &storage = node_storage(node);
+    if (storage.active_index >= 0 && storage.active_index < storage.capture_items_num) {
+      NodeGeometryAttributeCaptureItem &active_item = storage.capture_items[storage.active_index];
+      PointerRNA item_ptr = RNA_pointer_create(
+          ptr->owner_id, CaptureAttributeItemsAccessor::item_srna, &active_item);
+      uiLayoutSetPropSep(panel, true);
+      uiLayoutSetPropDecorate(panel, false);
+      uiItemR(panel, &item_ptr, "data_type", UI_ITEM_NONE, nullptr, ICON_NONE);
     }
   }
 }

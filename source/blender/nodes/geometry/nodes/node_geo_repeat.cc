@@ -8,6 +8,7 @@
 #include "NOD_geo_repeat.hh"
 #include "NOD_socket.hh"
 #include "NOD_socket_items_ops.hh"
+#include "NOD_socket_items_ui.hh"
 
 #include "BLO_read_write.hh"
 
@@ -25,25 +26,6 @@
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_repeat_cc {
-
-static void draw_repeat_state_item(uiList * /*ui_list*/,
-                                   const bContext *C,
-                                   uiLayout *layout,
-                                   PointerRNA * /*idataptr*/,
-                                   PointerRNA *itemptr,
-                                   int /*icon*/,
-                                   PointerRNA * /*active_dataptr*/,
-                                   const char * /*active_propname*/,
-                                   int /*index*/,
-                                   int /*flt_flag*/)
-{
-  uiLayout *row = uiLayoutRow(layout, true);
-  float4 color;
-  RNA_float_get_array(itemptr, "color", color);
-  uiTemplateNodeSocket(row, const_cast<bContext *>(C), color);
-  uiLayoutSetEmboss(row, UI_EMBOSS_NONE);
-  uiItemR(row, itemptr, "name", UI_ITEM_NONE, "", ICON_NONE);
-}
 
 /** Shared between repeat zone input and output node. */
 static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_node_ptr)
@@ -66,43 +48,9 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
   PointerRNA output_node_ptr = RNA_pointer_create(
       current_node_ptr->owner_id, &RNA_Node, &output_node);
 
-  static const uiListType *state_items_list = []() {
-    uiListType *list = MEM_cnew<uiListType>(__func__);
-    STRNCPY(list->idname, "DATA_UL_repeat_zone_state");
-    list->draw_item = draw_repeat_state_item;
-    WM_uilisttype_add(list);
-    return list;
-  }();
-
   if (uiLayout *panel = uiLayoutPanel(C, layout, "repeat_items", false, TIP_("Repeat Items"))) {
-    uiLayout *row = uiLayoutRow(panel, false);
-    uiTemplateList(row,
-                   C,
-                   state_items_list->idname,
-                   "",
-                   &output_node_ptr,
-                   "repeat_items",
-                   &output_node_ptr,
-                   "active_index",
-                   nullptr,
-                   3,
-                   5,
-                   UILST_LAYOUT_DEFAULT,
-                   0,
-                   UI_TEMPLATE_LIST_FLAG_NONE);
-    {
-      uiLayout *ops_col = uiLayoutColumn(row, false);
-      {
-        uiLayout *add_remove_col = uiLayoutColumn(ops_col, true);
-        uiItemO(add_remove_col, "", ICON_ADD, "node.repeat_zone_item_add");
-        uiItemO(add_remove_col, "", ICON_REMOVE, "node.repeat_zone_item_remove");
-      }
-      {
-        uiLayout *up_down_col = uiLayoutColumn(ops_col, true);
-        uiItemEnumO(up_down_col, "node.repeat_zone_item_move", "", ICON_TRIA_UP, "direction", 0);
-        uiItemEnumO(up_down_col, "node.repeat_zone_item_move", "", ICON_TRIA_DOWN, "direction", 1);
-      }
-    }
+    socket_items::ui::draw_items_list_with_operators<RepeatItemsAccessor>(
+        C, panel, ntree, output_node);
     auto &storage = *static_cast<NodeGeometryRepeatOutput *>(output_node.storage);
     if (storage.active_index >= 0 && storage.active_index < storage.items_num) {
       NodeRepeatItem &active_item = storage.items[storage.active_index];

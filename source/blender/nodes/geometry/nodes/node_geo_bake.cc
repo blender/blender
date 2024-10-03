@@ -8,6 +8,7 @@
 #include "NOD_node_extra_info.hh"
 #include "NOD_rna_define.hh"
 #include "NOD_socket_items_ops.hh"
+#include "NOD_socket_items_ui.hh"
 #include "NOD_socket_search_link.hh"
 
 #include "UI_interface.hh"
@@ -126,67 +127,13 @@ static const CPPType &get_item_cpp_type(const eNodeSocketDatatype socket_type)
   return *typeinfo->geometry_nodes_cpp_type;
 }
 
-static void draw_bake_item(uiList * /*ui_list*/,
-                           const bContext *C,
-                           uiLayout *layout,
-                           PointerRNA * /*idataptr*/,
-                           PointerRNA *itemptr,
-                           int /*icon*/,
-                           PointerRNA * /*active_dataptr*/,
-                           const char * /*active_propname*/,
-                           int /*index*/,
-                           int /*flt_flag*/)
-{
-  uiLayout *row = uiLayoutRow(layout, true);
-  float4 color;
-  RNA_float_get_array(itemptr, "color", color);
-  uiTemplateNodeSocket(row, const_cast<bContext *>(C), color);
-  uiLayoutSetEmboss(row, UI_EMBOSS_NONE);
-  uiItemR(row, itemptr, "name", UI_ITEM_NONE, "", ICON_NONE);
-}
-
 static void draw_bake_items(const bContext *C, uiLayout *layout, PointerRNA node_ptr)
 {
-  static const uiListType *bake_items_list = []() {
-    uiListType *list = MEM_cnew<uiListType>(__func__);
-    STRNCPY(list->idname, "DATA_UL_bake_node_items");
-    list->draw_item = draw_bake_item;
-    WM_uilisttype_add(list);
-    return list;
-  }();
-
+  bNodeTree &tree = *reinterpret_cast<bNodeTree *>(node_ptr.owner_id);
   bNode &node = *static_cast<bNode *>(node_ptr.data);
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "bake_items", false, TIP_("Bake Items"))) {
-    uiLayout *row = uiLayoutRow(panel, false);
-    uiTemplateList(row,
-                   C,
-                   bake_items_list->idname,
-                   "",
-                   &node_ptr,
-                   "bake_items",
-                   &node_ptr,
-                   "active_index",
-                   nullptr,
-                   3,
-                   5,
-                   UILST_LAYOUT_DEFAULT,
-                   0,
-                   UI_TEMPLATE_LIST_FLAG_NONE);
-
-    {
-      uiLayout *ops_col = uiLayoutColumn(row, false);
-      {
-        uiLayout *add_remove_col = uiLayoutColumn(ops_col, true);
-        uiItemO(add_remove_col, "", ICON_ADD, "node.bake_node_item_add");
-        uiItemO(add_remove_col, "", ICON_REMOVE, "node.bake_node_item_remove");
-      }
-      {
-        uiLayout *up_down_col = uiLayoutColumn(ops_col, true);
-        uiItemEnumO(up_down_col, "node.bake_node_item_move", "", ICON_TRIA_UP, "direction", 0);
-        uiItemEnumO(up_down_col, "node.bake_node_item_move", "", ICON_TRIA_DOWN, "direction", 1);
-      }
-    }
+    socket_items::ui::draw_items_list_with_operators<BakeItemsAccessor>(C, panel, tree, node);
 
     NodeGeometryBake &storage = node_storage(node);
     if (storage.active_index >= 0 && storage.active_index < storage.items_num) {

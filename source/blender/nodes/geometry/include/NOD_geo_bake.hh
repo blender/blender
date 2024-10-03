@@ -40,6 +40,13 @@ struct BakeItemsAccessor {
     static constexpr const char *remove_item = "NODE_OT_bake_node_item_remove";
     static constexpr const char *move_item = "NODE_OT_bake_node_item_move";
   };
+  struct ui_idnames {
+    static constexpr const char *list = "DATA_UL_bake_node_items";
+  };
+  struct rna_names {
+    static constexpr const char *items = "bake_items";
+    static constexpr const char *active_index = "active_index";
+  };
 
   static socket_items::SocketItemsRef<NodeGeometryBakeItem> get_items_from_node(bNode &node)
   {

@@ -28,6 +28,13 @@ struct MenuSwitchItemsAccessor {
     static constexpr const char *remove_item = "NODE_OT_enum_definition_item_remove";
     static constexpr const char *move_item = "NODE_OT_enum_definition_item_move";
   };
+  struct ui_idnames {
+    static constexpr const char *list = "NODE_UL_enum_definition_items";
+  };
+  struct rna_names {
+    static constexpr const char *items = "enum_items";
+    static constexpr const char *active_index = "active_index";
+  };
 
   static socket_items::SocketItemsRef<NodeEnumItem> get_items_from_node(bNode &node)
   {

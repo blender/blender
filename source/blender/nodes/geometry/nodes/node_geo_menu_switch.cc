@@ -19,6 +19,7 @@
 #include "NOD_rna_define.hh"
 #include "NOD_socket.hh"
 #include "NOD_socket_items_ops.hh"
+#include "NOD_socket_items_ui.hh"
 #include "NOD_socket_search_link.hh"
 
 #include "BLO_read_write.hh"
@@ -357,66 +358,16 @@ class LazyFunctionForMenuSwitchSocketUsage : public lf::LazyFunction {
   }
 };
 
-static void draw_menu_switch_item(uiList * /*ui_list*/,
-                                  const bContext * /*C*/,
-                                  uiLayout *layout,
-                                  PointerRNA * /*idataptr*/,
-                                  PointerRNA *itemptr,
-                                  int /*icon*/,
-                                  PointerRNA * /*active_dataptr*/,
-                                  const char * /*active_propname*/,
-                                  int /*index*/,
-                                  int /*flt_flag*/)
-{
-  uiLayoutSetEmboss(layout, UI_EMBOSS_NONE);
-  uiItemR(layout, itemptr, "name", UI_ITEM_NONE, "", ICON_NONE);
-}
-
 static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
+  bNodeTree &tree = *reinterpret_cast<bNodeTree *>(ptr->owner_id);
   bNode &node = *static_cast<bNode *>(ptr->data);
-
-  static const uiListType *menu_items_list = []() {
-    uiListType *list = MEM_cnew<uiListType>(__func__);
-    STRNCPY(list->idname, "NODE_UL_enum_definition_items");
-    list->draw_item = draw_menu_switch_item;
-    WM_uilisttype_add(list);
-    return list;
-  }();
 
   uiItemR(layout, ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "menu_switch_items", false, TIP_("Menu Items"))) {
-    uiLayout *row = uiLayoutRow(panel, false);
-    uiTemplateList(row,
-                   C,
-                   menu_items_list->idname,
-                   "",
-                   ptr,
-                   "enum_items",
-                   ptr,
-                   "active_index",
-                   nullptr,
-                   3,
-                   5,
-                   UILST_LAYOUT_DEFAULT,
-                   0,
-                   UI_TEMPLATE_LIST_FLAG_NONE);
-    {
-      uiLayout *ops_col = uiLayoutColumn(row, false);
-      {
-        uiLayout *add_remove_col = uiLayoutColumn(ops_col, true);
-        uiItemO(add_remove_col, "", ICON_ADD, "node.enum_definition_item_add");
-        uiItemO(add_remove_col, "", ICON_REMOVE, "node.enum_definition_item_remove");
-      }
-      {
-        uiLayout *up_down_col = uiLayoutColumn(ops_col, true);
-        uiItemEnumO(
-            up_down_col, "node.enum_definition_item_move", "", ICON_TRIA_UP, "direction", 0);
-        uiItemEnumO(
-            up_down_col, "node.enum_definition_item_move", "", ICON_TRIA_DOWN, "direction", 1);
-      }
-    }
+    socket_items::ui::draw_items_list_with_operators<MenuSwitchItemsAccessor>(
+        C, panel, tree, node);
 
     auto &storage = node_storage(node);
     if (storage.enum_definition.active_index >= 0 &&
