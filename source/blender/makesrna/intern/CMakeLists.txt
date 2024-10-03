@@ -31,6 +31,7 @@ set(DEFSRC
   rna_armature.cc
   rna_asset.cc
   rna_attribute.cc
+  rna_blendfile_import.cc
   rna_boid.cc
   rna_brush.cc
   rna_cachefile.cc
@@ -55,7 +56,6 @@ set(DEFSRC
   rna_light.cc
   rna_lightprobe.cc
   rna_linestyle.cc
-  rna_blendfile_import.cc
   rna_main.cc
   rna_mask.cc
   rna_material.cc
