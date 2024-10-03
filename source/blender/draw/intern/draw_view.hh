@@ -28,6 +28,7 @@ class Manager;
 
 /* TODO: de-duplicate. */
 using ObjectBoundsBuf = StorageArrayBuffer<ObjectBounds, 128>;
+using ObjectInfosBuf = StorageArrayBuffer<ObjectInfos, 128>;
 using VisibilityBuf = StorageArrayBuffer<uint, 4, true>;
 
 class View {
@@ -173,7 +174,10 @@ class View {
  protected:
   /** Called from draw manager. */
   void bind();
-  virtual void compute_visibility(ObjectBoundsBuf &bounds, uint resource_len, bool debug_freeze);
+  virtual void compute_visibility(ObjectBoundsBuf &bounds,
+                                  ObjectInfosBuf &infos,
+                                  uint resource_len,
+                                  bool debug_freeze);
   virtual VisibilityBuf &get_visibility_buffer();
 
   void update_viewport_size();

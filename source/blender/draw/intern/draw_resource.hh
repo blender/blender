@@ -73,6 +73,15 @@ inline void ObjectInfos::sync(const blender::draw::ObjectRef ref, bool is_active
 {
   object_attrs_len = 0;
   object_attrs_offset = 0;
+  light_and_shadow_set_membership = 0;
+
+  LightLinking *light_linking = (ref.dupli_parent) != nullptr ? ref.dupli_parent->light_linking :
+                                                                ref.object->light_linking;
+  if (light_linking) {
+    light_and_shadow_set_membership |= light_linking->runtime.receiver_light_set;
+    light_and_shadow_set_membership |= light_linking->runtime.blocker_shadow_set << 8;
+  }
+
   bool is_holdout = (ref.object->base_flag & BASE_HOLDOUT) ||
                     (ref.object->visibility_flag & OB_HOLDOUT);
 

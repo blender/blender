@@ -93,10 +93,15 @@ struct ShadowTileMap : public ShadowTileMapData {
   void sync_orthographic(const float4x4 &object_mat_,
                          int2 origin_offset,
                          int clipmap_level,
-                         eShadowProjectionType projection_type_);
+                         eShadowProjectionType projection_type_,
+                         uint2 shadow_set_membership_ = ~uint2(0));
 
-  void sync_cubeface(
-      eLightType light_type_, const float4x4 &object_mat, float near, float far, eCubeFace face);
+  void sync_cubeface(eLightType light_type_,
+                     const float4x4 &object_mat,
+                     float near,
+                     float far,
+                     eCubeFace face,
+                     uint2 shadow_set_membership_ = ~uint2(0));
 
   void debug_draw() const;
 
@@ -278,8 +283,25 @@ class ShadowModule {
   /** \name Rendering
    * \{ */
 
+  class ShadowView : public View {
+    Instance &inst_;
+    ShadowRenderViewBuf &render_view_buf_;
+
+   public:
+    ShadowView(const char *name, Instance &inst, ShadowRenderViewBuf &render_view_buf)
+        : View(name, SHADOW_VIEW_MAX, true), inst_(inst), render_view_buf_(render_view_buf)
+    {
+    }
+
+   protected:
+    virtual void compute_visibility(ObjectBoundsBuf &bounds,
+                                    ObjectInfosBuf &infos,
+                                    uint resource_len,
+                                    bool debug_freeze) override;
+  };
+
   /** Multi-View containing a maximum of 64 view to be rendered with the shadow pipeline. */
-  View shadow_multi_view_ = {"ShadowMultiView", SHADOW_VIEW_MAX, true};
+  ShadowView shadow_multi_view_ = {"ShadowMultiView", inst_, render_view_buf_};
   /** Framebuffer with the atlas_tx attached. */
   Framebuffer render_fb_ = {"shadow_write_framebuffer"};
 

@@ -77,6 +77,16 @@ void set_flag_from_test(inout int value, bool test, int flag)
 #define SET_FLAG_FROM_TEST(value, test, flag) set_flag_from_test(value, test, flag)
 
 /**
+ * Return true if the bit inside bitmask at bit_index is set high.
+ * Assume the lower bits are inside first component of bitmask,
+ */
+bool bitmask64_test(uvec2 bitmask, uint bit_index)
+{
+  uint bitmask32 = (bit_index >= 32u) ? bitmask.y : bitmask.x;
+  return flag_test(bitmask32, 1u << (bit_index & 0x1Fu));
+}
+
+/**
  * Pack two 16-bit uint into one 32-bit uint.
  */
 uint packUvec2x16(uvec2 a)

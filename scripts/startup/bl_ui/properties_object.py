@@ -421,6 +421,128 @@ class OBJECT_PT_visibility(ObjectButtonsPanel, Panel):
         col.prop(ob, "is_holdout")
 
 
+def has_geometry_visibility(ob):
+    return ob and (
+        (ob.type in {
+            'MESH',
+            'CURVE',
+            'SURFACE',
+            'FONT',
+            'META',
+            'LIGHT',
+            'VOLUME',
+            'POINTCLOUD',
+            'CURVES',
+        }) or (ob.instance_type == 'COLLECTION' and ob.instance_collection))
+
+
+class OBJECT_PT_shading(ObjectButtonsPanel, Panel):
+    bl_label = "Shading"
+    bl_context = "object"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT'}
+
+    @classmethod
+    def poll(cls, context):
+        if context.engine not in cls.COMPAT_ENGINES:
+            return False
+
+        return has_geometry_visibility(context.object)
+
+    def draw(self, context):
+        pass
+
+
+class OBJECT_MT_light_linking_context_menu(Menu):
+    bl_label = "Light Linking Specials"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("object.light_linking_receivers_select")
+
+
+class OBJECT_PT_light_linking(ObjectButtonsPanel, Panel):
+    bl_label = "Light Linking"
+    bl_parent_id = "OBJECT_PT_shading"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        object = context.object
+        light_linking = object.light_linking
+
+        col = layout.column()
+
+        col.template_ID(
+            light_linking,
+            "receiver_collection",
+            new="object.light_linking_receiver_collection_new")
+
+        if not light_linking.receiver_collection:
+            return
+
+        row = layout.row()
+        col = row.column()
+        col.template_light_linking_collection(row, light_linking, "receiver_collection")
+
+        col = row.column()
+        sub = col.column(align=True)
+        prop = sub.operator("object.light_linking_receivers_link", icon='ADD', text="")
+        prop.link_state = 'INCLUDE'
+        sub.operator("object.light_linking_unlink_from_collection", icon='REMOVE', text="")
+        sub = col.column()
+        sub.menu("OBJECT_MT_light_linking_context_menu", icon='DOWNARROW_HLT', text="")
+
+
+class OBJECT_MT_shadow_linking_context_menu(Menu):
+    bl_label = "Shadow Linking Specials"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("object.light_linking_blockers_select")
+
+
+class OBJECT_PT_shadow_linking(ObjectButtonsPanel, Panel):
+    bl_label = "Shadow Linking"
+    bl_parent_id = "OBJECT_PT_shading"
+    bl_context = "object"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        object = context.object
+        light_linking = object.light_linking
+
+        col = layout.column()
+
+        col.template_ID(
+            light_linking,
+            "blocker_collection",
+            new="object.light_linking_blocker_collection_new")
+
+        if not light_linking.blocker_collection:
+            return
+
+        row = layout.row()
+        col = row.column()
+        col.template_light_linking_collection(row, light_linking, "blocker_collection")
+
+        col = row.column()
+        sub = col.column(align=True)
+        prop = sub.operator("object.light_linking_blockers_link", icon='ADD', text="")
+        prop.link_state = 'INCLUDE'
+        sub.operator("object.light_linking_unlink_from_collection", icon='REMOVE', text="")
+        sub = col.column()
+        sub.menu("OBJECT_MT_shadow_linking_context_menu", icon='DOWNARROW_HLT', text="")
+
+
 class OBJECT_PT_animation(ObjectButtonsPanel, PropertiesAnimationMixin, PropertyPanel, Panel):
     _animated_id_context_property = "object"
 
@@ -443,6 +565,11 @@ classes = (
     OBJECT_PT_motion_paths,
     OBJECT_PT_motion_paths_display,
     OBJECT_PT_display,
+    OBJECT_PT_shading,
+    OBJECT_MT_light_linking_context_menu,
+    OBJECT_PT_light_linking,
+    OBJECT_MT_shadow_linking_context_menu,
+    OBJECT_PT_shadow_linking,
     OBJECT_PT_visibility,
     OBJECT_PT_lineart,
     OBJECT_PT_animation,

@@ -96,6 +96,7 @@ void main()
   gbuf_data.surface_N = g_data.N;
   gbuf_data.thickness = g_thickness;
   gbuf_data.object_id = resource_id;
+  gbuf_data.receiver_light_set = receiver_light_set_get(drw_infos[resource_id]);
 
   GBufferWriter gbuf = gbuffer_pack(gbuf_data);
 

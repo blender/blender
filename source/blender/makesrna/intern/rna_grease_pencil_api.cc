@@ -170,6 +170,32 @@ static GreasePencilFrame *rna_Frames_frame_copy(ID *id,
   return layer.frame_at(to_frame_number);
 }
 
+static GreasePencilFrame *rna_Frames_frame_move(ID *id,
+                                                GreasePencilLayer *layer_in,
+                                                ReportList *reports,
+                                                int from_frame_number,
+                                                int to_frame_number)
+{
+  using namespace blender::bke::greasepencil;
+  GreasePencil &grease_pencil = *reinterpret_cast<GreasePencil *>(id);
+  Layer &layer = static_cast<GreasePencilLayer *>(layer_in)->wrap();
+
+  if (!layer.frames().contains(from_frame_number)) {
+    BKE_reportf(reports, RPT_ERROR, "Frame doesn't exists on frame number %d", from_frame_number);
+    return nullptr;
+  }
+  if (layer.frames().contains(to_frame_number)) {
+    BKE_reportf(reports, RPT_ERROR, "Frame already exists on frame number %d", to_frame_number);
+    return nullptr;
+  }
+
+  grease_pencil.insert_duplicate_frame(layer, from_frame_number, to_frame_number, true);
+  grease_pencil.remove_frames(layer, {from_frame_number});
+  WM_main_add_notifier(NC_GPENCIL | NA_EDITED, &grease_pencil);
+
+  return layer.frame_at(to_frame_number);
+}
+
 static GreasePencilFrame *rna_GreasePencilLayer_get_frame_at(GreasePencilLayer *layer,
                                                              int frame_number)
 {
@@ -519,6 +545,32 @@ void RNA_api_grease_pencil_frames(StructRNA *srna)
                          "Instance Drawing",
                          "Let the copied frame use the same drawing as the source");
   parm = RNA_def_pointer(func, "copy", "GreasePencilFrame", "", "The newly copied frame");
+  RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "move", "rna_Frames_frame_move");
+  RNA_def_function_ui_description(func, "Move a Grease Pencil frame");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
+  parm = RNA_def_int(func,
+                     "from_frame_number",
+                     1,
+                     MINAFRAME,
+                     MAXFRAME,
+                     "Source Frame Number",
+                     "The frame number of the source frame",
+                     MINAFRAME,
+                     MAXFRAME);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  parm = RNA_def_int(func,
+                     "to_frame_number",
+                     2,
+                     MINAFRAME,
+                     MAXFRAME,
+                     "Target Frame Number",
+                     "The frame number to move the frame to",
+                     MINAFRAME,
+                     MAXFRAME);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  parm = RNA_def_pointer(func, "moved", "GreasePencilFrame", "", "The moved frame");
   RNA_def_function_return(func, parm);
 }
 

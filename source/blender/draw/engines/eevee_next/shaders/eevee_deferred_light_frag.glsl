@@ -70,7 +70,8 @@ void main()
 
   /* TODO(fclem): If transmission (no SSS) is present, we could reduce LIGHT_CLOSURE_EVAL_COUNT
    * by 1 for this evaluation and skip evaluating the transmission closure twice. */
-  light_eval_reflection(stack, P, Ng, V, vPz);
+  uchar receiver_light_set = gbuffer_light_link_receiver_unpack(gbuf.header);
+  light_eval_reflection(stack, P, Ng, V, vPz, receiver_light_set);
 
   if (use_transmission) {
     ClosureUndetermined cl_transmit = gbuffer_closure_get(gbuf, 0);
@@ -85,7 +86,7 @@ void main()
     stack.cl[0] = closure_light_new(cl_transmit, V, gbuf.thickness);
 
     /* NOTE: Only evaluates `stack.cl[0]`. */
-    light_eval_transmission(stack, P, Ng, V, vPz, gbuf.thickness);
+    light_eval_transmission(stack, P, Ng, V, vPz, gbuf.thickness, receiver_light_set);
 
 #if 1 /* TODO Limit to SSS. */
     if (cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID) {

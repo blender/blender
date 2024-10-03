@@ -37,7 +37,8 @@ void forward_lighting_eval(float thickness, out vec3 radiance, out vec3 transmit
 
   /* TODO(fclem): If transmission (no SSS) is present, we could reduce LIGHT_CLOSURE_EVAL_COUNT
    * by 1 for this evaluation and skip evaluating the transmission closure twice. */
-  light_eval_reflection(stack, g_data.P, surface_N, V, vPz);
+  uchar receiver_light_set = receiver_light_set_get(drw_infos[resource_id]);
+  light_eval_reflection(stack, g_data.P, surface_N, V, vPz, receiver_light_set);
 
 #if defined(MAT_SUBSURFACE) || defined(MAT_REFRACTION) || defined(MAT_TRANSLUCENT)
 
@@ -54,7 +55,7 @@ void forward_lighting_eval(float thickness, out vec3 radiance, out vec3 transmit
     stack.cl[0] = closure_light_new(cl_transmit, V, thickness);
 
     /* NOTE: Only evaluates `stack.cl[0]`. */
-    light_eval_transmission(stack, g_data.P, surface_N, V, vPz, thickness);
+    light_eval_transmission(stack, g_data.P, surface_N, V, vPz, thickness, receiver_light_set);
 
 #  if defined(MAT_SUBSURFACE)
     if (cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID) {
