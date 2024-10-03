@@ -1207,18 +1207,18 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
     version_node_socket_index_animdata(bmain, NTREE_SHADER, SH_NODE_BSDF_PRINCIPLED, 7, 1, 30);
   }
 
+  /* Keeping this block is without a `MAIN_VERSION_FILE_ATLEAST` until the experimental flag is
+   * removed. */
+  if (USER_EXPERIMENTAL_TEST(&U, use_animation_baklava)) {
+    version_legacy_actions_to_layered(bmain);
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
    *
    * \note Keep this message at the bottom of the function.
    */
-
-  /* Keeping this block is without a `MAIN_VERSION_FILE_ATLEAST` until the experimental flag is
-   * removed. */
-  if (USER_EXPERIMENTAL_TEST(&U, use_animation_baklava)) {
-    version_legacy_actions_to_layered(bmain);
-  }
 }
 
 static void version_mesh_legacy_to_struct_of_array_format(Mesh &mesh)

@@ -4542,12 +4542,6 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     FOREACH_NODETREE_END;
   }
 
-  /**
-   * Always bump subversion in BKE_blender_version.h when adding versioning
-   * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
-   *
-   * \note Keep this message at the bottom of the function.
-   */
   {
     /* Keep this block, even when empty. */
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
@@ -4556,4 +4550,11 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       STRNCPY(scene->toolsettings->uvcalc_weight_group, "uv_importance");
     }
   }
+
+  /**
+   * Always bump subversion in BKE_blender_version.h when adding versioning
+   * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
+   *
+   * \note Keep this message at the bottom of the function.
+   */
 }
