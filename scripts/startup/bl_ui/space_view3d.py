@@ -9042,6 +9042,25 @@ class VIEW3D_PT_greasepencil_vertex_paint_context_menu(Panel):
             row.operator("grease_pencil.layer_remove", text="", icon='X')
 
 
+class VIEW3D_PT_greasepencil_weight_context_menu(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'WINDOW'
+    bl_label = "Weight Paint"
+    bl_ui_units_x = 12
+
+    def draw(self, context):
+        tool_settings = context.tool_settings
+        settings = tool_settings.gpencil_weight_paint
+        brush = settings.brush
+        layout = self.layout
+
+        # Weight settings
+        brush_basic_grease_pencil_weight_settings(layout, context, brush)
+
+        # Layers
+        draw_gpencil_layer_active(context, layout)
+
+
 def draw_gpencil_layer_active(context, layout):
     gpl = context.active_gpencil_layer
     if gpl:
@@ -9119,11 +9138,7 @@ class VIEW3D_PT_gpencil_weight_context_menu(Panel):
         layout = self.layout
 
         # Weight settings
-        if context.mode == 'WEIGHT_GPENCIL':
-            brush_basic_gpencil_weight_settings(layout, context, brush)
-        else:
-            # Grease Pencil v3
-            brush_basic_grease_pencil_weight_settings(layout, context, brush)
+        brush_basic_gpencil_weight_settings(layout, context, brush)
 
         # Layers
         draw_gpencil_layer_active(context, layout)
@@ -9987,6 +10002,7 @@ classes = (
     VIEW3D_PT_greasepencil_draw_context_menu,
     VIEW3D_PT_greasepencil_sculpt_context_menu,
     VIEW3D_PT_greasepencil_vertex_paint_context_menu,
+    VIEW3D_PT_greasepencil_weight_context_menu,
 )
 
 
