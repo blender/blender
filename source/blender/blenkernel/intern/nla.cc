@@ -2681,7 +2681,7 @@ static bool visit_strip(NlaStrip *strip, blender::FunctionRef<bool(NlaStrip *)> 
 
   /* Recurse into sub-strips. */
   LISTBASE_FOREACH (NlaStrip *, sub_strip, &strip->strips) {
-    if (!visit_strip(strip, callback)) {
+    if (!visit_strip(sub_strip, callback)) {
       return false;
     }
   }
