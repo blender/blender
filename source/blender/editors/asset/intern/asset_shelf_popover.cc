@@ -71,6 +71,8 @@ static AssetShelf *get_shelf_for_popup(const bContext &C, AssetShelfType &shelf_
   if (type_poll_for_popup(C, &shelf_type)) {
     AssetShelf *new_shelf = create_shelf_from_type(shelf_type);
     new_shelf->settings.display_flag |= ASSETSHELF_SHOW_NAMES;
+    /* Increased size of previews, to leave more space for the name. */
+    new_shelf->settings.preview_size = ASSET_SHELF_PREVIEW_SIZE_DEFAULT;
     popup_shelves.append(new_shelf);
     return new_shelf;
   }
