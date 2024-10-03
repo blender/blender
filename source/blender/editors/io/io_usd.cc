@@ -171,6 +171,27 @@ const EnumPropertyItem rna_enum_usd_tex_export_mode_items[] = {
      "Export textures to a 'textures' folder next to the USD file"},
     {0, nullptr, 0, nullptr, nullptr}};
 
+const EnumPropertyItem rna_enum_usd_mtl_purpose_items[] = {
+    {USD_MTL_PURPOSE_ALL,
+     "MTL_ALL_PURPOSE",
+     0,
+     "All Purpose",
+     "Attempt to import 'allPurpose' materials."},
+    {USD_MTL_PURPOSE_PREVIEW,
+     "MTL_PREVIEW",
+     0,
+     "Preview",
+     "Attempt to import 'preview' materials. "
+     "Load 'allPurpose' materials as a fallback"},
+    {USD_MTL_PURPOSE_FULL,
+     "MTL_FULL",
+     0,
+     "Full",
+     "Attempt to import 'full' materials. "
+     "Load 'allPurpose' or 'preview' materials, in that order, as a fallback"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 /* Stored in the wmOperator's customdata field to indicate it should run as a background job.
  * This is set when the operator is invoked, and not set when it is only executed. */
 struct eUSDOperatorOptions {
@@ -903,6 +924,7 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
 
   const float light_intensity_scale = RNA_float_get(op->ptr, "light_intensity_scale");
 
+  const eUSDMtlPurpose mtl_purpose = eUSDMtlPurpose(RNA_enum_get(op->ptr, "mtl_purpose"));
   const eUSDMtlNameCollisionMode mtl_name_collision_mode = eUSDMtlNameCollisionMode(
       RNA_enum_get(op->ptr, "mtl_name_collision_mode"));
 
@@ -967,6 +989,7 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
 
   params.import_usd_preview = import_usd_preview;
   params.set_material_blend = set_material_blend;
+  params.mtl_purpose = mtl_purpose;
   params.mtl_name_collision_mode = mtl_name_collision_mode;
   params.import_textures_mode = import_textures_mode;
   params.tex_name_collision_mode = tex_name_collision_mode;
@@ -1031,10 +1054,13 @@ static void wm_usd_import_draw(bContext *C, wmOperator *op)
     uiItemR(col, ptr, "import_points", UI_ITEM_NONE, nullptr, ICON_NONE);
     uiItemR(col, ptr, "import_shapes", UI_ITEM_NONE, nullptr, ICON_NONE);
 
-    col = uiLayoutColumnWithHeading(panel, true, IFACE_("USD Purpose"));
+    col = uiLayoutColumnWithHeading(panel, true, IFACE_("Display Purpose"));
     uiItemR(col, ptr, "import_render", UI_ITEM_NONE, nullptr, ICON_NONE);
     uiItemR(col, ptr, "import_proxy", UI_ITEM_NONE, nullptr, ICON_NONE);
     uiItemR(col, ptr, "import_guide", UI_ITEM_NONE, nullptr, ICON_NONE);
+
+    col = uiLayoutColumnWithHeading(panel, true, IFACE_("Material Purpose"));
+    uiItemR(col, ptr, "mtl_purpose", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "USD_import_geometry", true, IFACE_("Geometry")))
@@ -1229,6 +1255,15 @@ void WM_OT_usd_import(wmOperatorType *ot)
                 "Scale for the intensity of imported lights",
                 0.0001f,
                 1000.0f);
+
+  RNA_def_enum(ot->srna,
+               "mtl_purpose",
+               rna_enum_usd_mtl_purpose_items,
+               USD_MTL_PURPOSE_FULL,
+               "Material Purpose",
+               "Attempt to import materials with the given purpose. "
+               "If no material with this purpose is bound to the primitive, "
+               "fall back on loading any other bound material");
 
   RNA_def_enum(
       ot->srna,
