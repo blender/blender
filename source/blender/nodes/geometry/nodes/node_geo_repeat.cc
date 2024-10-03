@@ -269,29 +269,9 @@ static bool node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
       *ntree, *node, *node, *link);
 }
 
-static void NODE_OT_repeat_zone_item_remove(wmOperatorType *ot)
-{
-  socket_items::ops::remove_active_item<RepeatItemsAccessor>(
-      ot, "Remove Repeat Zone Item", __func__, "Remove active repeat zone item");
-}
-
-static void NODE_OT_repeat_zone_item_add(wmOperatorType *ot)
-{
-  socket_items::ops::add_item<RepeatItemsAccessor>(
-      ot, "Add Repeat Zone Item", __func__, "Add repeat zone item");
-}
-
-static void NODE_OT_repeat_zone_item_move(wmOperatorType *ot)
-{
-  socket_items::ops::move_active_item<RepeatItemsAccessor>(
-      ot, "Move Repeat Zone Item", __func__, "Move active repeat zone item");
-}
-
 static void node_operators()
 {
-  WM_operatortype_append(NODE_OT_repeat_zone_item_add);
-  WM_operatortype_append(NODE_OT_repeat_zone_item_remove);
-  WM_operatortype_append(NODE_OT_repeat_zone_item_move);
+  socket_items::ops::make_common_operators<RepeatItemsAccessor>();
 }
 
 static void node_register()

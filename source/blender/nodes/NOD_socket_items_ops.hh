@@ -218,4 +218,25 @@ inline void move_active_item(wmOperatorType *ot,
   RNA_def_enum(ot->srna, "direction", direction_items, 0, "Direction", "Move direction");
 }
 
+/**
+ * Creates simple operators for adding, removing and moving items.
+ * The idnames are passed in explicitly, so that they are more searchable compared to when they
+ * would be computed automatically.
+ */
+template<typename Accessor> inline void make_common_operators()
+{
+  WM_operatortype_append([](wmOperatorType *ot) {
+    socket_items::ops::add_item<Accessor>(
+        ot, "Add Item", Accessor::operator_idnames::add_item, "Add item below active item");
+  });
+  WM_operatortype_append([](wmOperatorType *ot) {
+    socket_items::ops::remove_active_item<Accessor>(
+        ot, "Remove Item", Accessor::operator_idnames::remove_item, "Remove active item");
+  });
+  WM_operatortype_append([](wmOperatorType *ot) {
+    socket_items::ops::move_active_item<Accessor>(
+        ot, "Move Item", Accessor::operator_idnames::move_item, "Move active item");
+  });
+}
+
 }  // namespace blender::nodes::socket_items::ops

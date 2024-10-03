@@ -22,6 +22,11 @@ struct SimulationItemsAccessor {
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;
   static constexpr bool has_single_identifier_str = true;
+  struct operator_idnames {
+    static constexpr const char *add_item = "NODE_OT_simulation_zone_item_add";
+    static constexpr const char *remove_item = "NODE_OT_simulation_zone_item_remove";
+    static constexpr const char *move_item = "NODE_OT_simulation_zone_item_move";
+  };
 
   static socket_items::SocketItemsRef<NodeSimulationItem> get_items_from_node(bNode &node)
   {

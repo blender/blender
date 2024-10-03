@@ -534,73 +534,11 @@ static bool node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
       ForeachGeometryElementGenerationItemsAccessor>(*ntree, *node, *node, *link);
 }
 
-static void NODE_OT_foreach_geometry_element_zone_input_item_remove(wmOperatorType *ot)
-{
-  socket_items::ops::remove_active_item<ForeachGeometryElementInputItemsAccessor>(
-      ot, "Remove For Each Input Item", __func__, "Remove active for-each input item");
-}
-
-static void NODE_OT_foreach_geometry_element_zone_input_item_add(wmOperatorType *ot)
-{
-  socket_items::ops::add_item<ForeachGeometryElementInputItemsAccessor>(
-      ot, "Add For Each Input Item", __func__, "Add for-each input item");
-}
-
-static void NODE_OT_foreach_geometry_element_zone_input_item_move(wmOperatorType *ot)
-{
-  socket_items::ops::move_active_item<ForeachGeometryElementInputItemsAccessor>(
-      ot, "Move For Each Input Item", __func__, "Move active for-each input item");
-}
-
-static void NODE_OT_foreach_geometry_element_zone_generation_item_remove(wmOperatorType *ot)
-{
-  socket_items::ops::remove_active_item<ForeachGeometryElementGenerationItemsAccessor>(
-      ot, "Remove For Each Generation Item", __func__, "Remove active for-each generation item");
-}
-
-static void NODE_OT_foreach_geometry_element_zone_generation_item_add(wmOperatorType *ot)
-{
-  socket_items::ops::add_item<ForeachGeometryElementGenerationItemsAccessor>(
-      ot, "Add For Each Generation Item", __func__, "Add for-each generation item");
-}
-
-static void NODE_OT_foreach_geometry_element_zone_generation_item_move(wmOperatorType *ot)
-{
-  socket_items::ops::move_active_item<ForeachGeometryElementGenerationItemsAccessor>(
-      ot, "Move For Each Generation Item", __func__, "Move active for-each generation item");
-}
-
-static void NODE_OT_foreach_geometry_element_zone_main_item_remove(wmOperatorType *ot)
-{
-  socket_items::ops::remove_active_item<ForeachGeometryElementMainItemsAccessor>(
-      ot, "Remove For Each Main Item", __func__, "Remove active for-each main item");
-}
-
-static void NODE_OT_foreach_geometry_element_zone_main_item_add(wmOperatorType *ot)
-{
-  socket_items::ops::add_item<ForeachGeometryElementMainItemsAccessor>(
-      ot, "Add For Each Main Item", __func__, "Add for-each main item");
-}
-
-static void NODE_OT_foreach_geometry_element_zone_main_item_move(wmOperatorType *ot)
-{
-  socket_items::ops::move_active_item<ForeachGeometryElementMainItemsAccessor>(
-      ot, "Move For Each Main Item", __func__, "Move active for-each main item");
-}
-
 static void node_operators()
 {
-  WM_operatortype_append(NODE_OT_foreach_geometry_element_zone_input_item_add);
-  WM_operatortype_append(NODE_OT_foreach_geometry_element_zone_input_item_remove);
-  WM_operatortype_append(NODE_OT_foreach_geometry_element_zone_input_item_move);
-
-  WM_operatortype_append(NODE_OT_foreach_geometry_element_zone_generation_item_add);
-  WM_operatortype_append(NODE_OT_foreach_geometry_element_zone_generation_item_remove);
-  WM_operatortype_append(NODE_OT_foreach_geometry_element_zone_generation_item_move);
-
-  WM_operatortype_append(NODE_OT_foreach_geometry_element_zone_main_item_add);
-  WM_operatortype_append(NODE_OT_foreach_geometry_element_zone_main_item_remove);
-  WM_operatortype_append(NODE_OT_foreach_geometry_element_zone_main_item_move);
+  socket_items::ops::make_common_operators<ForeachGeometryElementInputItemsAccessor>();
+  socket_items::ops::make_common_operators<ForeachGeometryElementMainItemsAccessor>();
+  socket_items::ops::make_common_operators<ForeachGeometryElementGenerationItemsAccessor>();
 }
 
 static void node_extra_info(NodeExtraInfoParams &params)

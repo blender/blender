@@ -276,24 +276,6 @@ static void draw_simulation_state(const bContext *C,
   }
 }
 
-static void NODE_OT_simulation_zone_item_remove(wmOperatorType *ot)
-{
-  socket_items::ops::remove_active_item<SimulationItemsAccessor>(
-      ot, "Remove Simulation Zone Item", __func__, "Remove active simulation zone item");
-}
-
-static void NODE_OT_simulation_zone_item_add(wmOperatorType *ot)
-{
-  socket_items::ops::add_item<SimulationItemsAccessor>(
-      ot, "Add Simulation Zone Item", __func__, "Add simulation zone item");
-}
-
-static void NODE_OT_simulation_zone_item_move(wmOperatorType *ot)
-{
-  socket_items::ops::move_active_item<SimulationItemsAccessor>(
-      ot, "Move Simulation Zone Item", __func__, "Move active simulation zone item");
-}
-
 /** Shared for simulation input and output node. */
 static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_node_ptr)
 {
@@ -914,9 +896,7 @@ static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const b
 
 static void node_operators()
 {
-  WM_operatortype_append(NODE_OT_simulation_zone_item_add);
-  WM_operatortype_append(NODE_OT_simulation_zone_item_remove);
-  WM_operatortype_append(NODE_OT_simulation_zone_item_move);
+  socket_items::ops::make_common_operators<SimulationItemsAccessor>();
 }
 
 static bool node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)

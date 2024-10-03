@@ -144,29 +144,9 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
   }
 }
 
-static void NODE_OT_capture_attribute_item_add(wmOperatorType *ot)
-{
-  socket_items::ops::add_item<CaptureAttributeItemsAccessor>(
-      ot, "Add Capture Attribute Item", __func__, "Add capture attribute item");
-}
-
-static void NODE_OT_capture_attribute_item_remove(wmOperatorType *ot)
-{
-  socket_items::ops::remove_active_item<CaptureAttributeItemsAccessor>(
-      ot, "Remove Capture Attribute Item", __func__, "Remove active capture attribute item");
-}
-
-static void NODE_OT_capture_attribute_item_move(wmOperatorType *ot)
-{
-  socket_items::ops::move_active_item<CaptureAttributeItemsAccessor>(
-      ot, "Move Capture Attribute Item", __func__, "Move active capture attribute item");
-}
-
 static void node_operators()
 {
-  WM_operatortype_append(NODE_OT_capture_attribute_item_add);
-  WM_operatortype_append(NODE_OT_capture_attribute_item_remove);
-  WM_operatortype_append(NODE_OT_capture_attribute_item_move);
+  socket_items::ops::make_common_operators<CaptureAttributeItemsAccessor>();
 }
 
 static void clean_unused_attributes(const AttributeFilter &attribute_filter,
