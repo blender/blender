@@ -160,7 +160,7 @@ static bool bm_edge_delimit_cdata(CustomData *ldata,
   return (r_delim_cd->cd_offset != -1);
 }
 
-static float bm_edge_is_delimit(const BMEdge *e, const DelimitData *delimit_data)
+static bool bm_edge_is_delimit(const BMEdge *e, const DelimitData *delimit_data)
 {
   BMFace *f_a = e->l->f, *f_b = e->l->radial_next->f;
 #if 0

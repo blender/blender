@@ -55,7 +55,7 @@ static float bm_edge_calc_rotate_cost(const BMEdge *e)
 /**
  * Check if this edge is a boundary: Are more than one of the connected faces edges rotating too?
  */
-static float bm_edge_rotate_is_boundary(const BMEdge *e)
+static bool bm_edge_rotate_is_boundary(const BMEdge *e)
 {
   /* Number of adjacent shared faces. */
   int count = 0;
