@@ -48,7 +48,6 @@ class BrushAssetShelf:
 
         return False
 
-
     @classmethod
     def brush_type_poll(cls, context, asset):
         from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
