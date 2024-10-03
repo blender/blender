@@ -47,7 +47,7 @@ Checks:  >
   -modernize-pass-by-value,
   -modernize-raw-string-literal,
   -modernize-return-braced-init-list,
-  
+
   objc-*
 
 CheckOptions:

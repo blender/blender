@@ -1782,7 +1782,7 @@ void UI_but_search_preview_grid_size_set(uiBut *but, int rows, int cols);
 
 void UI_but_view_item_draw_size_set(uiBut *but,
                                     const std::optional<int> draw_width = std::nullopt,
-                                    const std::optional<int> draw_heigh = std::nullopt);
+                                    const std::optional<int> draw_height = std::nullopt);
 
 void UI_block_func_handle_set(uiBlock *block, uiBlockHandleFunc func, void *arg);
 void UI_block_func_set(uiBlock *block, uiButHandleFunc func, void *arg1, void *arg2);

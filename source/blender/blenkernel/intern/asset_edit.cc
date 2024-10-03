@@ -129,10 +129,11 @@ static std::string asset_blendfile_path_for_save(const bUserAssetLibrary &user_l
               std::min(sizeof(base_name_filesafe), size_t(base_name.size() + 1)));
   BLI_path_make_safe_filename(base_name_filesafe);
 
-  const std::string filepath = root_path + SEP + base_name_filesafe + BLENDER_ASSET_FILE_SUFFIX;
-
-  if (!BLI_is_file(filepath.c_str())) {
-    return filepath;
+  {
+    const std::string filepath = root_path + SEP + base_name_filesafe + BLENDER_ASSET_FILE_SUFFIX;
+    if (!BLI_is_file(filepath.c_str())) {
+      return filepath;
+    }
   }
 
   /* Avoid overwriting existing file by adding number suffix. */

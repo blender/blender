@@ -141,7 +141,7 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
    * are fewer items, empty dummy items will be added. These contribute to the view bounds, so the
    * drop target of the view includes them, but they are not interactive (e.g. no mouse-hover
    * highlight). */
-  void set_default_rows(int min_rows);
+  void set_default_rows(int default_rows);
 
  protected:
   virtual void build_tree() = 0;
