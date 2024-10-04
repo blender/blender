@@ -19,6 +19,7 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
+#include "ED_grease_pencil.hh"
 #include "ED_undo.hh"
 
 #include "WM_api.hh"
@@ -460,18 +461,18 @@ void uiTemplateGreasePencilLayerTree(uiLayout *layout, bContext *C)
 {
   using namespace blender;
 
-  Object *object = CTX_data_active_object(C);
-  if (!object || object->type != OB_GREASE_PENCIL) {
+  GreasePencil *grease_pencil = blender::ed::greasepencil::from_context(*C);
+
+  if (grease_pencil == nullptr) {
     return;
   }
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
   uiBlock *block = uiLayoutGetBlock(layout);
 
   ui::AbstractTreeView *tree_view = UI_block_add_view(
       *block,
       "Grease Pencil Layer Tree View",
-      std::make_unique<blender::ui::greasepencil::LayerTreeView>(grease_pencil));
+      std::make_unique<blender::ui::greasepencil::LayerTreeView>(*grease_pencil));
   tree_view->set_context_menu_title("Grease Pencil Layer");
   tree_view->set_default_rows(6);
 

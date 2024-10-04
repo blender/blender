@@ -27,6 +27,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 
+#include "RNA_prototypes.hh"
+
 #include "ED_curves.hh"
 #include "ED_grease_pencil.hh"
 #include "ED_view3d.hh"
@@ -1578,6 +1580,20 @@ float4x2 calculate_texture_space(const Scene *scene,
 
   return math::transpose(float2x4(float4(u_dir, -math::dot(u_dir, origin)),
                                   float4(v_dir, -math::dot(v_dir, origin))));
+}
+
+GreasePencil *from_context(bContext &C)
+{
+  GreasePencil *grease_pencil = static_cast<GreasePencil *>(
+      CTX_data_pointer_get_type(&C, "grease_pencil", &RNA_GreasePencilv3).data);
+
+  if (grease_pencil == nullptr) {
+    Object *object = CTX_data_active_object(&C);
+    if (object && object->type == OB_GREASE_PENCIL) {
+      grease_pencil = static_cast<GreasePencil *>(object->data);
+    }
+  }
+  return grease_pencil;
 }
 
 }  // namespace blender::ed::greasepencil
