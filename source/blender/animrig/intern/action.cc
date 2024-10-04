@@ -1447,6 +1447,20 @@ ActionSlotAssignmentResult assign_action_and_slot(Action *action,
   return assign_action_slot(slot_to_assign, animated_id);
 }
 
+ActionSlotAssignmentResult assign_tmpaction_and_slot_handle(bAction *action,
+                                                            const slot_handle_t slot_handle,
+                                                            const OwnedAnimData owned_adt)
+{
+  if (!assign_tmpaction(action, owned_adt)) {
+    return ActionSlotAssignmentResult::MissingAction;
+  }
+  return generic_assign_action_slot_handle(slot_handle,
+                                           owned_adt.owner_id,
+                                           owned_adt.adt.tmpact,
+                                           owned_adt.adt.tmp_slot_handle,
+                                           owned_adt.adt.tmp_slot_name);
+}
+
 /* TODO: rename to get_action(). */
 Action *get_action(ID &animated_id)
 {

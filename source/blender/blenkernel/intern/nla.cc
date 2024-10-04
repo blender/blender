@@ -2326,22 +2326,12 @@ bool BKE_nla_tweakmode_enter(const OwnedAnimData owned_adt)
     }
   }
 
-  /* handle AnimData level changes:
-   * - 'real' active action to temp storage (no need to change user-counts).
-   * - Action of active strip set to be the 'active action', and have its user-count incremented.
-   * - Editing-flag for this AnimData block should also get turned on
-   *   (for more efficient restoring).
-   * - Take note of the active strip for mapping-correction of keyframes
-   *   in the action being edited.
-   */
-  adt.tmpact = adt.action;
-  adt.tmp_slot_handle = adt.slot_handle;
-  STRNCPY(adt.tmp_slot_name, adt.slot_name);
-
-  /* Don't go through the regular animrig::unassign_action() call, as the old Action is still being
-   * used by this ID. But do reset the action pointer, as Action::assign_id() doesn't like it when
-   * another Action is already assigned. */
-  adt.action = nullptr;
+  /* Remember which Action + Slot was previously assigned. This will be stored in adt.tmpact and
+   * related properties further down. This doesn't manipulate `adt.tmpact` quite yet, so that the
+   * assignment of the tweaked NLA strip's Action can happen normally (we're not in tweak mode
+   * yet). */
+  bAction *prev_action = adt.action;
+  const animrig::slot_handle_t prev_slot_handle = adt.slot_handle;
 
   if (activeStrip->act) {
     animrig::Action &strip_action = activeStrip->act->wrap();
@@ -2352,6 +2342,13 @@ bool BKE_nla_tweakmode_enter(const OwnedAnimData owned_adt)
       {
         printf("NLA tweak-mode enter - could not assign slot %s\n",
                strip_slot ? strip_slot->name : "-unassigned-");
+        /* There is one other reason this could fail: when already in NLA tweak mode. But since
+         * we're here in the code, the ADT_NLA_EDIT_ON flag is not yet set, and thus that shouldn't
+         * be the case.
+         *
+         * Because this ADT is not in tweak mode, it means that the Action assignment will have
+         * succeeded (I know, too much coupling here, would be better to have another
+         * SlotAssignmentResult value for this). */
       }
     }
     else {
@@ -2359,12 +2356,27 @@ bool BKE_nla_tweakmode_enter(const OwnedAnimData owned_adt)
       id_us_plus(&adt.action->id);
     }
   }
+  else {
+    /* This is a strange situation to be in, as every 'tweakable' NLA strip should have an Action.
+     */
+    BLI_assert_unreachable();
+    const bool unassign_ok = animrig::unassign_action(owned_adt);
+    BLI_assert_msg(unassign_ok,
+                   "Expecting un-assigning the Action to work (while entering NLA tweak mode)");
+    UNUSED_VARS_NDEBUG(unassign_ok);
+  }
 
+  /* Actually set those properties that make this 'NLA Tweak Mode'. */
+  const animrig::ActionSlotAssignmentResult result = animrig::assign_tmpaction_and_slot_handle(
+      prev_action, prev_slot_handle, owned_adt);
+  BLI_assert_msg(
+      result == animrig::ActionSlotAssignmentResult::OK,
+      "Expecting the Action+Slot of an NLA strip to be suitable for direct assignment as well");
+  UNUSED_VARS_NDEBUG(result);
   adt.act_track = activeTrack;
   adt.actstrip = activeStrip;
   adt.flag |= ADT_NLA_EDIT_ON;
 
-  /* done! */
   return true;
 }
 

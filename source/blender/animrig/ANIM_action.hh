@@ -1282,6 +1282,9 @@ ActionSlotAssignmentResult assign_action_and_slot(Action *action,
                                                   Slot *slot_to_assign,
                                                   ID &animated_id);
 
+[[nodiscard]] ActionSlotAssignmentResult assign_tmpaction_and_slot_handle(
+    bAction *action, slot_handle_t slot_handle, OwnedAnimData owned_adt);
+
 /**
  * Return the Action of this ID, or nullptr if it has none.
  */
