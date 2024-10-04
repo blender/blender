@@ -283,7 +283,7 @@ inline constexpr int64_t power_of_2_max(const int64_t x)
 
 #define ARRAY_HAS_ITEM(arr_item, arr_start, arr_len) \
   (CHECK_TYPE_PAIR_INLINE(arr_start, arr_item), \
-   ((unsigned int)((arr_item) - (arr_start)) < (unsigned int)(arr_len)))
+   ((size_t)((arr_item) - (arr_start)) < (size_t)(arr_len)))
 
 /* assuming a static array */
 #ifndef __cplusplus
