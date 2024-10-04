@@ -25,19 +25,32 @@
 #include "intern/bmesh_operators_private.hh" /* own include */
 
 /**
- * \note Assumes edges are validated before reaching this point.
+ * Keep track of our math for the error values and ensures it doesn't become invalid.
+ */
+#define ASSERT_VALID_ERROR_METRIC(val) \
+  BLI_assert(isfinite(val) && (val) >= 0.0 && (val) <= 2 * M_PI)
+
+/**
+ * Computes error of a proposed merge quad. Quads with the lowest error are merged first.
+ *
+ * A quad that is a flat plane has lower error.
+ *
+ * A quad with four corners that are all right angles has lower error.
+ * Note parallelograms are higher error than squares or rectangles.
+ *
+ * A quad that is concave has higher error.
+ *
+ * \param v1,v2,v3,v4: The four corner coordinates of the quad.
+ * \return The computed error associated with the quad.
  */
 static float quad_calc_error(const float v1[3],
                              const float v2[3],
                              const float v3[3],
                              const float v4[3])
 {
-  /* Gives a 'weight' to a pair of triangles that join an edge
-   * to decide how good a join they would make. */
-  /* NOTE: this is more complicated than it needs to be and should be cleaned up. */
   float error = 0.0f;
 
-  /* Normal difference */
+  /* Normal difference: a perfectly flat planar face adds a difference of zero. */
   {
     float n1[3], n2[3];
     float angle_a, angle_b;
@@ -53,10 +66,12 @@ static float quad_calc_error(const float v1[3],
 
     diff = (angle_a + angle_b) / float(M_PI * 2);
 
+    ASSERT_VALID_ERROR_METRIC(diff);
+
     error += diff;
   }
 
-  /* Co-linearity */
+  /* Co-linearity: a face with four right angle corners adds a difference of zero. */
   {
     float edge_vecs[4][3];
     float diff;
@@ -78,10 +93,12 @@ static float quad_calc_error(const float v1[3],
             fabsf(angle_normalized_v3v3(edge_vecs[3], edge_vecs[0]) - float(M_PI_2))) /
            float(M_PI * 2);
 
+    ASSERT_VALID_ERROR_METRIC(diff);
+
     error += diff;
   }
 
-  /* Concavity */
+  /* Concavity: a face with no concavity adds an error of 0. */
   {
     float area_min, area_max, area_a, area_b;
     float diff;
@@ -92,14 +109,25 @@ static float quad_calc_error(const float v1[3],
     area_min = min_ff(area_a, area_b);
     area_max = max_ff(area_a, area_b);
 
+    /* Note use of ternary operator to guard against divide by zero. */
     diff = area_max ? (1.0f - (area_min / area_max)) : 1.0f;
+
+    ASSERT_VALID_ERROR_METRIC(diff);
 
     error += diff;
   }
 
+  ASSERT_VALID_ERROR_METRIC(error);
+
   return error;
 }
 
+/**
+ * Get the corners of the quad that would result after an edge merge.
+ *
+ * \param e: An edge to be merged. It must be manifold and have triangles on either side.
+ * \param r_v_quad: An array of vertices to return the corners.
+ */
 static void bm_edge_to_quad_verts(const BMEdge *e, const BMVert *r_v_quad[4])
 {
   BLI_assert(e->l->f->len == 3 && e->l->radial_next->f->len == 3);
@@ -109,6 +137,10 @@ static void bm_edge_to_quad_verts(const BMEdge *e, const BMVert *r_v_quad[4])
   r_v_quad[2] = e->l->next->v;
   r_v_quad[3] = e->l->radial_next->prev->v;
 }
+
+/* -------------------------------------------------------------------- */
+/** \name Delimit processing
+ * \{ */
 
 /* cache customdata delimiters */
 struct DelimitData_CD {
@@ -134,6 +166,7 @@ struct DelimitData {
   int cdata_len;
 };
 
+/** Determines if the loop customdata is contiguous. */
 static bool bm_edge_is_contiguous_loop_cd_all(const BMEdge *e, const DelimitData_CD *delimit_data)
 {
   int cd_offset;
@@ -148,6 +181,7 @@ static bool bm_edge_is_contiguous_loop_cd_all(const BMEdge *e, const DelimitData
   return true;
 }
 
+/** Looks up delimit data from custom data. Used to delimit by color or UV. */
 static bool bm_edge_delimit_cdata(CustomData *ldata,
                                   eCustomDataType type,
                                   DelimitData_CD *r_delim_cd)
@@ -211,6 +245,13 @@ static DelimitData bm_edge_delmimit_data_from_op(BMesh *bm, BMOperator *op)
   return delimit_data;
 }
 
+/**
+ * Computes if an edge is a delimit edge, therefore should not be considered for merging.
+ *
+ * \param e: the edge to check
+ * \param delimit_data: the delimit configuration
+ * \return true, if the edge is a delimit edge.
+ */
 static bool bm_edge_is_delimit(const BMEdge *e, const DelimitData *delimit_data)
 {
   BMFace *f_a = e->l->f, *f_b = e->l->radial_next->f;
@@ -283,11 +324,14 @@ static bool bm_edge_is_delimit(const BMEdge *e, const DelimitData *delimit_data)
   return false;
 }
 
+/** \} */
+
 #define EDGE_MARK (1 << 0)
 
 #define FACE_OUT (1 << 0)
 #define FACE_INPUT (1 << 2)
 
+/** Given a mesh, convert triangles to quads. */
 void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 {
   BMIter iter;
