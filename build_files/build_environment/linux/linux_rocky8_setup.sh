@@ -202,9 +202,9 @@ yum -y install jack-audio-connection-kit-devel
 # Register ROCm packages
 rm -f /etc/yum.repos.d/rocm.repo
 tee --append /etc/yum.repos.d/rocm.repo <<EOF
-[ROCm-6.1.2]
-name=ROCm6.1.2
-baseurl=https://repo.radeon.com/rocm/rhel8/6.1.2/main
+[ROCm-6.1.3]
+name=ROCm6.1.3
+baseurl=https://repo.radeon.com/rocm/rhel8/6.1.3/main
 enabled=1
 priority=50
 gpgcheck=1
