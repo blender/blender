@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 /**
  * Implementation of Horizon Based Global Illumination and Ambient Occlusion.
  *
@@ -13,14 +15,14 @@
  * defined.
  */
 
-#pragma BLENDER_REQUIRE(common_shape_lib.glsl)
-#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_horizon_scan_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_ray_types_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_bxdf_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_spherical_harmonics_lib.glsl)
+#include "common_shape_lib.glsl"
+#include "draw_view_lib.glsl"
+#include "eevee_bxdf_lib.glsl"
+#include "eevee_horizon_scan_lib.glsl"
+#include "eevee_ray_types_lib.glsl"
+#include "eevee_sampling_lib.glsl"
+#include "eevee_spherical_harmonics_lib.glsl"
+#include "gpu_shader_codegen_lib.glsl"
 
 #ifdef HORIZON_OCCLUSION
 /* Do nothing. */

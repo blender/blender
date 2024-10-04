@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_gpencil_lib.glsl)
+#include "common_gpencil_lib.glsl"
 
 vec3 ray_plane_intersection(vec3 ray_ori, vec3 ray_dir, vec4 plane)
 {

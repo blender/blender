@@ -7,7 +7,7 @@
  * Extracted of OpenCV demhist.c
  */
 
-#pragma BLENDER_REQUIRE(gpu_shader_common_color_utils.glsl)
+#include "gpu_shader_common_color_utils.glsl"
 
 #define FLT_EPSILON 1.192092896e-07F
 

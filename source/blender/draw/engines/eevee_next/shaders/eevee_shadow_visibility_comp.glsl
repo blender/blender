@@ -8,11 +8,10 @@
  */
 /* TODO(fclem): Could reject bounding boxes that are covering only invalid tiles. */
 
-#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
-#pragma BLENDER_REQUIRE(common_intersect_lib.glsl)
-#pragma BLENDER_REQUIRE(common_intersect_lib.glsl)
+#include "common_intersect_lib.glsl"
+#include "common_math_lib.glsl"
+#include "common_view_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 
 bool shadow_linking_affects_caster(uint view_id, uint resource_id)
 {

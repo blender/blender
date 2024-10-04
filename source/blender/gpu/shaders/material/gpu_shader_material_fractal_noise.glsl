@@ -2,8 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(gpu_shader_common_hash.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_material_noise.glsl)
+#include "gpu_shader_common_hash.glsl"
+#include "gpu_shader_material_noise.glsl"
 
 #define NOISE_FBM(T) \
   float noise_fbm(T co, \

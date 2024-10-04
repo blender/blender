@@ -11,8 +11,8 @@
  * still operate if the interior of the masks was also included. However, the algorithm operates
  * more accurately when the number of pixels to be flooded is minimum. */
 
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_jump_flooding_lib.glsl)
+#include "gpu_shader_compositor_jump_flooding_lib.glsl"
+#include "gpu_shader_compositor_texture_utilities.glsl"
 
 void main()
 {

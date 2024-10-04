@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(gpu_shader_colorspace_lib.glsl)
+#include "gpu_shader_colorspace_lib.glsl"
 
 /* Font texture is conceptually laid out like a big 1D buffer: each glyph
  * rectangle is flattened in row-major order into a "pixel strip". Inside

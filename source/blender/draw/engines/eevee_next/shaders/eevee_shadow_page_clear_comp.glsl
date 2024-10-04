@@ -8,7 +8,7 @@
  * Equivalent to a frame-buffer depth clear but only for pages pushed to the clear_page_buf.
  */
 
-#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
+#include "gpu_shader_utildefines_lib.glsl"
 
 void main()
 {

@@ -9,7 +9,7 @@
  * Dashed is performed in screen space.
  */
 
-#pragma BLENDER_REQUIRE(gpu_shader_cfg_world_clip_lib.glsl)
+#include "gpu_shader_cfg_world_clip_lib.glsl"
 
 void main()
 {

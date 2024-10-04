@@ -13,9 +13,9 @@
  * Dispatch 1 thread per surfel.
  */
 
-#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_surfel_list_lib.glsl)
+#include "eevee_surfel_list_lib.glsl"
+#include "gpu_shader_math_base_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 
 void main()
 {

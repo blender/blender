@@ -16,7 +16,7 @@
 #define LINE_SMOOTH_START (0.5 - DISC_RADIUS)
 #define LINE_SMOOTH_END (0.5 + DISC_RADIUS)
 
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#include "common_math_lib.glsl"
 
 /**
  * Returns coverage of a line onto a sample that is distance_to_line (in pixels) far from the line.

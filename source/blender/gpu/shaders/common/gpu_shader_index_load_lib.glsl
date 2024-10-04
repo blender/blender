@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 /**
  * Library to read the index buffer of a `gpu::Batch` using a SSBO rather than using `gl_VertexID`.
  * This is required for primitive expansion without geometry shader.

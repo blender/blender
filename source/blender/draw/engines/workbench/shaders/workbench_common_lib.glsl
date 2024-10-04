@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 #define EPSILON 0.00001
 
 #define CAVITY_BUFFER_RANGE 4.0

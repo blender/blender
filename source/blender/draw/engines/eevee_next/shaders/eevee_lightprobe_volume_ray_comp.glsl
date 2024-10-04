@@ -10,12 +10,12 @@
  * Dispatched as 1 thread per irradiance probe sample.
  */
 
-#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_spherical_harmonics_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_surfel_list_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_lightprobe_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_lightprobe_sphere_lib.glsl)
+#include "eevee_lightprobe_lib.glsl"
+#include "eevee_lightprobe_sphere_lib.glsl"
+#include "eevee_spherical_harmonics_lib.glsl"
+#include "eevee_surfel_list_lib.glsl"
+#include "gpu_shader_math_base_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 
 void irradiance_capture(vec3 L, vec3 irradiance, float visibility, inout SphericalHarmonicL1 sh)
 {

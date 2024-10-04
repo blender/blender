@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 float linearrgb_to_srgb(float c)
 {
   if (c < 0.0031308) {

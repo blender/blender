@@ -15,7 +15,7 @@
  * - Separated foreground and background CoC. 1/8th of half-res resolution. So 1/16th of full-res.
  */
 
-#pragma BLENDER_REQUIRE(eevee_depth_of_field_lib.glsl)
+#include "eevee_depth_of_field_lib.glsl"
 
 /**
  * In order to use atomic operations, we have to use uints. But this means having to deal with the

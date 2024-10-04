@@ -10,7 +10,7 @@
  * as it is way more complex and expensive to do.
  */
 
-#pragma BLENDER_REQUIRE(eevee_depth_of_field_lib.glsl)
+#include "eevee_depth_of_field_lib.glsl"
 
 void main()
 {

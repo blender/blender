@@ -2,9 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#include "common_math_lib.glsl"
+#include "common_view_clipping_lib.glsl"
+#include "common_view_lib.glsl"
 #pragma USE_SSBO_VERTEX_FETCH(TriangleList, 24)
 
 #define M_TAN_PI_BY_8 tan(M_PI / 8)

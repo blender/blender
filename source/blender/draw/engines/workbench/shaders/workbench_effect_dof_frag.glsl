@@ -8,8 +8,8 @@
  * Converted and adapted from HLSL to GLSL by Clément Foucault
  */
 
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#include "common_math_lib.glsl"
+#include "common_view_lib.glsl"
 
 #define dof_aperturesize dofParams.x
 #define dof_distance dofParams.y

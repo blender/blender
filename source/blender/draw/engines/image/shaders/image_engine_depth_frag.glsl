@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_colormanagement_lib.glsl)
+#include "common_colormanagement_lib.glsl"
 
 #define Z_DEPTH_BORDER 1.0
 #define Z_DEPTH_IMAGE 0.75

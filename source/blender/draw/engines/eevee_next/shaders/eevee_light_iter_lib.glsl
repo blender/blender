@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 uint bitfield_mask(uint bit_width, uint bit_min)
 {
   /* Cannot bit shift more than 31 positions. */

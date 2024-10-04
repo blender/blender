@@ -2,14 +2,16 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(draw_model_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_matrix_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
+#pragma once
+
+#include "draw_model_lib.glsl"
+#include "gpu_shader_codegen_lib.glsl"
+#include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_math_vector_lib.glsl"
 /* MAT_GEOM_POINT_CLOUD */
-#pragma BLENDER_REQUIRE(common_pointcloud_lib.glsl)
+#include "common_pointcloud_lib.glsl"
 /* MAT_GEOM_CURVES */
-#pragma BLENDER_REQUIRE(common_hair_lib.glsl) /* TODO rename to curve. */
+#include "common_hair_lib.glsl" /* TODO rename to curve. */
 
 #define EEVEE_ATTRIBUTE_LIB
 

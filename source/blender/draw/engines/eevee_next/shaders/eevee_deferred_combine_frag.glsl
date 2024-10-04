@@ -7,10 +7,10 @@
  * This also fills the different render passes.
  */
 
-#pragma BLENDER_REQUIRE(gpu_shader_shared_exponent_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_renderpass_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_colorspace_lib.glsl)
+#include "eevee_colorspace_lib.glsl"
+#include "eevee_gbuffer_lib.glsl"
+#include "eevee_renderpass_lib.glsl"
+#include "gpu_shader_shared_exponent_lib.glsl"
 
 vec3 load_radiance_direct(ivec2 texel, int i)
 {

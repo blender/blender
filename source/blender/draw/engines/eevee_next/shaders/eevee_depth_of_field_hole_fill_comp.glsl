@@ -12,7 +12,7 @@
  * rotation to ensure maximum coverage.
  */
 
-#pragma BLENDER_REQUIRE(eevee_depth_of_field_accumulator_lib.glsl)
+#include "eevee_depth_of_field_accumulator_lib.glsl"
 
 void main()
 {

@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_colormanagement_lib.glsl)
+#include "common_colormanagement_lib.glsl"
 
 void main()
 {

@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 #ifdef USE_WORLD_CLIP_PLANES
 #  if defined(GPU_VERTEX_SHADER) || defined(GPU_GEOMETRY_SHADER)
 

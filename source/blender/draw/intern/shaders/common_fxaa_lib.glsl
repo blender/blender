@@ -3,6 +3,8 @@
  *
  * SPDX-License-Identifier: BSD-3-Clause AND GPL-2.0-or-later */
 
+#pragma once
+
 /* ---------------------------------------------------------------------------------
  * File:        es3-kepler\FXAA/FXAA3_11.h
  * SDK Version: v3.00

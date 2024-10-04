@@ -50,7 +50,7 @@
  * the erode case, except the minimum value is computed instead.
  */
 
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
+#include "gpu_shader_compositor_texture_utilities.glsl"
 
 void main()
 {

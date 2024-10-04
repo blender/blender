@@ -6,7 +6,7 @@
  * Apply lights contribution to scene surfel representation.
  */
 
-#pragma BLENDER_REQUIRE(eevee_light_eval_lib.glsl)
+#include "eevee_light_eval_lib.glsl"
 
 #ifndef LIGHT_ITER_FORCE_NO_CULLING
 #  error light_eval_reflection argument assumes this is defined

@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 /* [Drobot2014a] Low Level Optimizations for GCN */
 vec4 fast_rcp(vec4 v)
 {

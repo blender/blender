@@ -17,8 +17,8 @@
  * as explained in https://www.shadertoy.com/view/llG3zy.
  */
 
-#pragma BLENDER_REQUIRE(gpu_shader_common_hash.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_common_math_utils.glsl)
+#include "gpu_shader_common_hash.glsl"
+#include "gpu_shader_common_math_utils.glsl"
 
 #define SHD_VORONOI_EUCLIDEAN 0
 #define SHD_VORONOI_MANHATTAN 1

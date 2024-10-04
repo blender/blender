@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(gpu_shader_bicubic_sampler_lib.glsl)
+#include "gpu_shader_bicubic_sampler_lib.glsl"
 
 void point_texco_remap_square(vec3 vin, out vec3 vout)
 {

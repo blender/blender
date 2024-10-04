@@ -6,9 +6,9 @@
  * compute some information about the inpainting region, like the distance to the boundary, as well
  * as the blur radius to use to smooth out that region. */
 
-#pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_jump_flooding_lib.glsl)
+#include "gpu_shader_compositor_jump_flooding_lib.glsl"
+#include "gpu_shader_compositor_texture_utilities.glsl"
+#include "gpu_shader_math_base_lib.glsl"
 
 void main()
 {

@@ -10,8 +10,8 @@
  * Dispatched with one local thread per LOD0 tile and one work-group per tile-map.
  */
 
-#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_shadow_tilemap_lib.glsl)
+#include "eevee_shadow_tilemap_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 
 shared int directional_range_changed;
 

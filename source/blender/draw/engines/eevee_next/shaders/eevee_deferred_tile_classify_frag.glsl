@@ -7,7 +7,7 @@
  * lighting complexity.
  */
 
-#pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
+#include "eevee_gbuffer_lib.glsl"
 
 void main()
 {

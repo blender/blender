@@ -7,13 +7,13 @@
 
 /* Store volumetric properties into the froxel textures. */
 
-#pragma BLENDER_REQUIRE(eevee_volume_lib.glsl)
+#include "eevee_volume_lib.glsl"
 
 /* Needed includes for shader nodes. */
-#pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_attributes_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_nodetree_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_occupancy_lib.glsl)
+#include "eevee_attributes_lib.glsl"
+#include "eevee_nodetree_lib.glsl"
+#include "eevee_occupancy_lib.glsl"
+#include "eevee_sampling_lib.glsl"
 
 GlobalData init_globals(vec3 wP)
 {

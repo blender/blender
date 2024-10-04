@@ -9,7 +9,7 @@
  * views per shadow map).
  */
 
-#pragma BLENDER_REQUIRE(eevee_shadow_tilemap_lib.glsl)
+#include "eevee_shadow_tilemap_lib.glsl"
 
 /* Reuse the same enum values for these transient flag during the amend phase.
  * They are never written to the tile data SSBO. */

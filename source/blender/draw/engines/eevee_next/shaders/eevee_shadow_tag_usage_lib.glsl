@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 /**
  * Virtual shadow-mapping: Usage tagging
  *
@@ -9,11 +11,11 @@
  * This contains the common logic used for tagging shadows for opaque and transparent receivers.
  */
 
-#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
-#pragma BLENDER_REQUIRE(draw_intersect_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_light_iter_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_light_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_shadow_lib.glsl)
+#include "draw_intersect_lib.glsl"
+#include "draw_view_lib.glsl"
+#include "eevee_light_iter_lib.glsl"
+#include "eevee_light_lib.glsl"
+#include "eevee_shadow_lib.glsl"
 
 void shadow_tag_usage_tile(LightData light, uvec2 tile_co, int lod, int tilemap_index)
 {

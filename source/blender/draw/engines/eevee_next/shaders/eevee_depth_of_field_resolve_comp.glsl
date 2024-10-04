@@ -11,7 +11,7 @@
  * in-focus and defocus regions.
  */
 
-#pragma BLENDER_REQUIRE(eevee_depth_of_field_accumulator_lib.glsl)
+#include "eevee_depth_of_field_accumulator_lib.glsl"
 
 /* Workarounds for Metal/AMD issue where atomicMax lead to incorrect results.
  * See #123052 */

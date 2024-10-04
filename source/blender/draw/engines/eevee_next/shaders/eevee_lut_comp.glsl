@@ -7,9 +7,9 @@
  * the blender executable. This is only used for reference or to update them.
  */
 
-#pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_bxdf_sampling_lib.glsl)
+#include "eevee_bxdf_sampling_lib.glsl"
+#include "eevee_sampling_lib.glsl"
+#include "gpu_shader_math_base_lib.glsl"
 
 /* Generate BRDF LUT following "Real shading in unreal engine 4" by Brian Karis
  * https://cdn2.unrealengine.com/Resources/files/2013SiggraphPresentationsNotes-26915738.pdf

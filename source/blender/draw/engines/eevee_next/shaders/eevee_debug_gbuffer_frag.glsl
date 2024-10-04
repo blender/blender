@@ -7,10 +7,10 @@
  * This also fills the different render passes.
  */
 
-#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_renderpass_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_debug_gradients_lib.glsl)
+#include "draw_view_lib.glsl"
+#include "eevee_gbuffer_lib.glsl"
+#include "eevee_renderpass_lib.glsl"
+#include "gpu_shader_debug_gradients_lib.glsl"
 
 void main()
 {

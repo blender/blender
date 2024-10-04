@@ -7,6 +7,8 @@
  *
  * SPDX-License-Identifier: MIT AND GPL-2.0-or-later */
 
+#pragma once
+
 /**
  *                  _______  ___  ___       ___           ___
  *                 /       ||   \/   |     /   \         /   \

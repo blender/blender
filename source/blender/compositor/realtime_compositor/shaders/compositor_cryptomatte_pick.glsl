@@ -22,7 +22,7 @@
  * Except we put the identifier in the red channel by convention instead of the suggested blue
  * channel. */
 
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
+#include "gpu_shader_compositor_texture_utilities.glsl"
 
 void main()
 {

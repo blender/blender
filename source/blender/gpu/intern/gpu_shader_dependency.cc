@@ -1031,17 +1031,23 @@ struct GPUSource {
       GPUSource *dependency_source = nullptr;
 
       {
-        pos = source.find("pragma BLENDER_REQUIRE(", pos + 1);
+        /* Include directive has been mangled on purpose. See `datatoc.cc`. */
+        pos = source.find("//nclude \"", pos + 1);
         if (pos == -1) {
           return 0;
         }
-        int64_t start = source.find('(', pos) + 1;
-        int64_t end = source.find(')', pos);
+        int64_t start = source.find('"', pos) + 1;
+        int64_t end = source.find('"', start + 1);
         if (end == -1) {
-          print_error(source, start, "Malformed BLENDER_REQUIRE: Missing \")\" token");
+          print_error(source, start, "Malformed include: Missing \" token");
           return 1;
         }
         StringRef dependency_name = source.substr(start, end - start);
+        if (dependency_name == "gpu_glsl_cpp_stubs.hh") {
+          /* Skip GLSL-C++ stubs. They are only for IDE linting. */
+          continue;
+        }
+
         dependency_source = dict.lookup_default(dependency_name, nullptr);
         if (dependency_source == nullptr) {
           print_error(source, start, "Dependency not found");

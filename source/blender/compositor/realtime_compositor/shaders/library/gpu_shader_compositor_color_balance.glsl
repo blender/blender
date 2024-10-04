@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(gpu_shader_common_color_utils.glsl)
+#include "gpu_shader_common_color_utils.glsl"
 
 void node_composite_color_balance_lgg(
     float factor, vec4 color, vec3 lift, vec3 gamma, vec3 gain, out vec4 result)

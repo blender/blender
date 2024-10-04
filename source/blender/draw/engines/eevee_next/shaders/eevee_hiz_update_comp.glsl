@@ -17,7 +17,7 @@
  * downsample to max level.
  */
 
-#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
+#include "gpu_shader_math_vector_lib.glsl"
 
 shared float local_depths[gl_WorkGroupSize.y][gl_WorkGroupSize.x];
 

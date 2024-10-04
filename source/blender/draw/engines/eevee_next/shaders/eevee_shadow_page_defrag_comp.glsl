@@ -18,7 +18,7 @@
  *     `[----xxxxxx------]`
  */
 
-#pragma BLENDER_REQUIRE(eevee_shadow_page_ops_lib.glsl)
+#include "eevee_shadow_page_ops_lib.glsl"
 
 const uint max_page = SHADOW_MAX_PAGE;
 

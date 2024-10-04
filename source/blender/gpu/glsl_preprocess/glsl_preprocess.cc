@@ -57,11 +57,9 @@ int main(int argc, char **argv)
     if (skip_line) {
       line = "";
     }
-#if 0 /* Wait until we support this new syntax. */
     else if (line.rfind("#include ", 0) == 0 || line.rfind("#pragma once", 0) == 0) {
       line[0] = line[1] = '/';
     }
-#endif
 
     output_file << line << "\n";
   }

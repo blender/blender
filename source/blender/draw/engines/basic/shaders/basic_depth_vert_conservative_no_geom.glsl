@@ -4,8 +4,8 @@
 
 #pragma USE_SSBO_VERTEX_FETCH(TriangleList, 3)
 
-#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#include "common_view_clipping_lib.glsl"
+#include "common_view_lib.glsl"
 
 void main()
 {

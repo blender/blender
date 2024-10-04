@@ -7,7 +7,7 @@
 
 /* Step 4 : Apply final integration on top of the scene color. */
 
-#pragma BLENDER_REQUIRE(eevee_volume_lib.glsl)
+#include "eevee_volume_lib.glsl"
 
 void main()
 {
