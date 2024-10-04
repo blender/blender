@@ -26,6 +26,12 @@ if(WIN32)
   LIST(APPEND MATERIALX_EXTRA_ARGS -DPYTHON_LIBRARIES=${LIBDIR}/python/libs/python${PYTHON_SHORT_VERSION_NO_DOTS}${PYTHON_POSTFIX}.lib)
 endif()
 
+if(UNIX AND NOT APPLE)
+  LIST(APPEND MATERIALX_EXTRA_ARGS
+    -DCMAKE_SHARED_LINKER_FLAGS=-Wl,--version-script="${CMAKE_SOURCE_DIR}/linux/materialx_symbols_unix.map"
+  )
+endif()
+
 ExternalProject_Add(external_materialx
   URL file://${PACKAGE_DIR}/${MATERIALX_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
