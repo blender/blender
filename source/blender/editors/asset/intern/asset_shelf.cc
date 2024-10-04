@@ -205,7 +205,8 @@ static void activate_shelf(RegionAssetShelf &shelf_regiondata, AssetShelf &shelf
 static AssetShelf *update_active_shelf(const bContext &C,
                                        const eSpace_Type space_type,
                                        RegionAssetShelf &shelf_regiondata,
-                                       FunctionRef<void(AssetShelf &new_shelf)> on_create)
+                                       FunctionRef<void(AssetShelf &new_shelf)> on_create,
+                                       FunctionRef<void(AssetShelf &shelf)> on_reactivate)
 {
   /* NOTE: Don't access #AssetShelf.type directly, use #type_ensure(). */
 
@@ -229,6 +230,9 @@ static AssetShelf *update_active_shelf(const bContext &C,
     if (type_poll_for_non_popup(C, ensure_shelf_has_type(*shelf), space_type)) {
       /* Found a valid previously activated shelf, reactivate it. */
       activate_shelf(shelf_regiondata, *shelf);
+      if (on_reactivate) {
+        on_reactivate(*shelf);
+      }
       return shelf;
     }
   }
@@ -563,21 +567,38 @@ void region_on_poll_success(const bContext *C, ARegion *region)
     return;
   }
 
+  const int old_region_flag = region->flag;
+
   ScrArea *area = CTX_wm_area(C);
   update_active_shelf(
       *C,
       eSpace_Type(area->spacetype),
       *shelf_regiondata,
-      /*on_create=*/[&](AssetShelf &new_shelf) {
-        /* Update region visibility (`'DEFAULT_VISIBLE'` option). */
-        const int old_flag = region->flag;
+      /*on_create=*/
+      [&](AssetShelf &new_shelf) {
+        /* Set region visibility for first time shelf is created (`'DEFAULT_VISIBLE'` option). */
         SET_FLAG_FROM_TEST(region->flag,
                            (new_shelf.type->flag & ASSET_SHELF_TYPE_FLAG_DEFAULT_VISIBLE) == 0,
                            RGN_FLAG_HIDDEN);
-        if (old_flag != region->flag) {
-          ED_region_visibility_change_update(const_cast<bContext *>(C), area, region);
-        }
+      },
+      /*on_reactivate=*/
+      [&](AssetShelf &shelf) {
+        /* Restore region visibility from previous asset shelf instantiation when reactivating. */
+        SET_FLAG_FROM_TEST(
+            region->flag, shelf.instance_flag & ASSETSHELF_REGION_IS_HIDDEN, RGN_FLAG_HIDDEN);
       });
+
+  if (old_region_flag != region->flag) {
+    ED_region_visibility_change_update(const_cast<bContext *>(C), area, region);
+  }
+
+  if (shelf_regiondata->active_shelf) {
+    /* Remember current visibility state of the region in the shelf, so we can restore it on
+     * reactivation. */
+    SET_FLAG_FROM_TEST(shelf_regiondata->active_shelf->instance_flag,
+                       region->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_HIDDEN_BY_USER),
+                       ASSETSHELF_REGION_IS_HIDDEN);
+  }
 }
 
 void header_region_listen(const wmRegionListenerParams *params)
