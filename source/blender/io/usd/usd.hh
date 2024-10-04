@@ -38,7 +38,7 @@ enum eUSDMtlNameCollisionMode {
 };
 
 /* Enums specifying the USD material purpose,
- * corresponding to pxr::UsdShadeTokens 'allPurpose',
+ * corresponding to #pxr::UsdShadeTokens 'allPurpose',
  * 'preview', and 'render', respectively. */
 enum eUSDMtlPurpose {
   USD_MTL_PURPOSE_ALL = 0,
