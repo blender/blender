@@ -142,14 +142,14 @@ bool SEQ_transform_seqbase_shuffle_ex(ListBase *seqbasep,
 
   test->machine += channel_delta;
   while (SEQ_transform_test_overlap(evil_scene, seqbasep, test)) {
-    if ((channel_delta > 0) ? (test->machine >= MAXSEQ) : (test->machine < 1)) {
+    if ((channel_delta > 0) ? (test->machine >= SEQ_MAX_CHANNELS) : (test->machine < 1)) {
       break;
     }
 
     test->machine += channel_delta;
   }
 
-  if (!SEQ_valid_strip_channel(test)) {
+  if (!SEQ_is_valid_strip_channel(test)) {
     /* Blender 2.4x would remove the strip.
      * nicer to move it to the end */
 
@@ -335,7 +335,7 @@ static void seq_transform_handle_expand_to_fit(Scene *scene,
 
   /* Temporarily move right side strips beyond timeline boundary. */
   for (Sequence *seq : right_side_strips) {
-    seq->machine += MAXSEQ * 2;
+    seq->machine += SEQ_MAX_CHANNELS * 2;
   }
 
   /* Shuffle transformed standalone strips. This is because transformed strips can overlap with
@@ -346,7 +346,7 @@ static void seq_transform_handle_expand_to_fit(Scene *scene,
 
   /* Move temporarily moved strips back to their original place and tag for shuffling. */
   for (Sequence *seq : right_side_strips) {
-    seq->machine -= MAXSEQ * 2;
+    seq->machine -= SEQ_MAX_CHANNELS * 2;
   }
   /* Shuffle again to displace strips on right side. Final effect shuffling is done in
    * SEQ_transform_handle_overlap. */

@@ -51,7 +51,7 @@
 #include "../editors/asset/ED_asset_shelf.hh"
 
 #ifdef WITH_PYTHON
-#  include "BPY_extern.h"
+#  include "BPY_extern.hh"
 #endif
 
 using blender::Span;
@@ -478,6 +478,14 @@ void BKE_screen_gizmo_tag_refresh(bScreen *screen)
         region_refresh_tag_gizmomap_callback(region->gizmo_map);
       }
     }
+  }
+}
+
+void BKE_screen_runtime_refresh_for_blendfile(bScreen *screen)
+{
+  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+    area->runtime.tool = nullptr;
+    area->runtime.is_tool_set = false;
   }
 }
 

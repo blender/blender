@@ -21,7 +21,6 @@ set(INC_SYS
 )
 
 set(SRC
-  intern/BLI_array.c
   intern/BLI_assert.c
   intern/BLI_color.cc
   intern/BLI_dial_2d.c
@@ -127,7 +126,7 @@ set(SRC
   intern/noise.cc
   intern/offset_indices.cc
   intern/ordered_edge.cc
-  intern/path_util.cc
+  intern/path_utils.cc
   intern/polyfill_2d.c
   intern/polyfill_2d_beautify.c
   intern/quadric.c
@@ -155,7 +154,7 @@ set(SRC
   intern/task_pool.cc
   intern/task_range.cc
   intern/task_scheduler.cc
-  intern/tempfile.c
+  intern/tempfile.cc
   intern/threads.cc
   intern/time.c
   intern/timecode.c
@@ -179,7 +178,6 @@ set(SRC
   BLI_alloca.h
   BLI_allocator.hh
   BLI_any.hh
-  BLI_array.h
   BLI_array.hh
   BLI_array_store.h
   BLI_array_store_utils.h
@@ -345,7 +343,7 @@ set(SRC
   BLI_offset_span.hh
   BLI_ordered_edge.hh
   BLI_parameter_pack_utils.hh
-  BLI_path_util.h
+  BLI_path_utils.hh
   BLI_polyfill_2d.h
   BLI_polyfill_2d_beautify.h
   BLI_pool.hh
@@ -489,8 +487,8 @@ endif()
 
 if(APPLE)
   list(APPEND SRC
-    intern/storage_apple.mm
     intern/fileops_apple.mm
+    intern/storage_apple.mm
   )
 endif()
 
@@ -582,7 +580,7 @@ if(WITH_GTESTS)
     tests/BLI_mesh_intersect_test.cc
     tests/BLI_multi_value_map_test.cc
     tests/BLI_offset_indices_test.cc
-    tests/BLI_path_util_test.cc
+    tests/BLI_path_utils_test.cc
     tests/BLI_polyfill_2d_test.cc
     tests/BLI_pool_test.cc
     tests/BLI_random_access_iterator_mixin_test.cc

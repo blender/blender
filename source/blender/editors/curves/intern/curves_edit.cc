@@ -117,17 +117,17 @@ void duplicate_points(bke::CurvesGeometry &curves, const IndexMask &mask)
                                                old_points_num);
 
   /* Transfer curve and point attributes. */
-  attributes.for_all([&](const StringRef id, const bke::AttributeMetaData meta_data) {
-    bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
+  attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+    bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(iter.name);
     if (!attribute) {
-      return true;
+      return;
     }
 
-    switch (meta_data.domain) {
+    switch (iter.domain) {
       case bke::AttrDomain::Curve: {
-        if (id == "cyclic") {
+        if (iter.name == "cyclic") {
           attribute.finish();
-          return true;
+          return;
         }
         bke::attribute_math::gather(
             attribute.span,
@@ -145,13 +145,11 @@ void duplicate_points(bke::CurvesGeometry &curves, const IndexMask &mask)
       default: {
         attribute.finish();
         BLI_assert_unreachable();
-        return true;
+        return;
       }
     }
 
     attribute.finish();
-
-    return true;
   });
 
   if (!(src_cyclic.is_single() && !src_cyclic.get_internal_single())) {
@@ -194,9 +192,9 @@ void duplicate_curves(bke::CurvesGeometry &curves, const IndexMask &mask)
   /* Resize the points array to match the new total point count. */
   curves.resize(points_by_curve.total_size(), curves.curves_num());
 
-  attributes.for_all([&](const StringRef id, const bke::AttributeMetaData meta_data) {
-    bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
-    switch (meta_data.domain) {
+  attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+    bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(iter.name);
+    switch (iter.domain) {
       case bke::AttrDomain::Point:
         bke::attribute_math::gather_group_to_group(points_by_curve.slice(orig_curves_range),
                                                    points_by_curve.slice(new_curves_range),
@@ -209,10 +207,9 @@ void duplicate_curves(bke::CurvesGeometry &curves, const IndexMask &mask)
         break;
       default:
         BLI_assert_unreachable();
-        return true;
+        return;
     }
     attribute.finish();
-    return true;
   });
 
   curves.update_curve_types();
@@ -285,16 +282,16 @@ void resize_curves(bke::CurvesGeometry &curves,
   const OffsetIndices<int> dst_offsets = dst_curves.points_by_curve();
   const bke::AttributeAccessor src_attributes = curves.attributes();
   bke::MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
-  src_attributes.for_all([&](const StringRef id, const bke::AttributeMetaData meta_data) {
-    if (meta_data.domain != domain || bke::attribute_name_is_anonymous(id)) {
-      return true;
+  src_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (iter.domain != domain || bke::attribute_name_is_anonymous(iter.name)) {
+      return;
     }
-    const GVArraySpan src = *src_attributes.lookup(id, domain);
+    const GVArraySpan src = *iter.get(domain);
     const CPPType &type = src.type();
     bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
-        id, domain, meta_data.data_type);
+        iter.name, domain, iter.data_type);
     if (!dst) {
-      return true;
+      return;
     }
 
     curves_to_resize.foreach_index(GrainSize(512), [&](const int curve_i) {
@@ -313,7 +310,6 @@ void resize_curves(bke::CurvesGeometry &curves,
     });
     array_utils::copy_group_to_group(src_offsets, dst_offsets, curves_to_copy, src, dst.span);
     dst.finish();
-    return true;
   });
 
   dst_curves.update_curve_types();

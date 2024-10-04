@@ -7,7 +7,7 @@
  * \ingroup bke
  */
 
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_utildefines.h"
 #include "DNA_ID.h"
 #include "DNA_listBase.h"

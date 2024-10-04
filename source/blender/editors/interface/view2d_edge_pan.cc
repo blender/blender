@@ -229,8 +229,8 @@ void UI_view2d_edge_pan_apply(bContext *C, View2DEdgePanData *vpd, const int xy[
     vpd->enabled = true;
   }
 
-  rctf *cur = &vpd->v2d->cur;
-  rctf *limit = &vpd->limit;
+  const rctf *cur = &vpd->v2d->cur;
+  const rctf *limit = &vpd->limit;
 
   int pan_dir_x = 0;
   int pan_dir_y = 0;

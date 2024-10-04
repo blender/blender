@@ -8,202 +8,313 @@
 
 #include "vk_descriptor_set.hh"
 #include "vk_index_buffer.hh"
-#include "vk_sampler.hh"
 #include "vk_shader.hh"
+#include "vk_shader_interface.hh"
+#include "vk_state_manager.hh"
 #include "vk_storage_buffer.hh"
 #include "vk_texture.hh"
-#include "vk_uniform_buffer.hh"
 #include "vk_vertex_buffer.hh"
-
-#include "BLI_assert.h"
 
 namespace blender::gpu {
 
-VKDescriptorSet::VKDescriptorSet(VKDescriptorSet &&other)
-    : vk_descriptor_pool_(other.vk_descriptor_pool_), vk_descriptor_set_(other.vk_descriptor_set_)
+void VKDescriptorSetTracker::bind_buffer(VkDescriptorType vk_descriptor_type,
+                                         VkBuffer vk_buffer,
+                                         VkDeviceSize size_in_bytes,
+                                         VKDescriptorSet::Location location)
 {
-  other.vk_descriptor_set_ = VK_NULL_HANDLE;
-  other.vk_descriptor_pool_ = VK_NULL_HANDLE;
+  vk_descriptor_buffer_infos_.append({vk_buffer, 0, size_in_bytes});
+  vk_write_descriptor_sets_.append({VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                                    nullptr,
+                                    vk_descriptor_set,
+                                    location,
+                                    0,
+                                    1,
+                                    vk_descriptor_type,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr});
 }
 
-VKDescriptorSet::~VKDescriptorSet()
+void VKDescriptorSetTracker::bind_texel_buffer(VkBufferView vk_buffer_view,
+                                               const VKDescriptorSet::Location location)
 {
-  if (vk_descriptor_set_ != VK_NULL_HANDLE) {
-    /* Handle should be given back to the pool. */
-    const VKDevice &device = VKBackend::get().device;
-    vkFreeDescriptorSets(device.vk_handle(), vk_descriptor_pool_, 1, &vk_descriptor_set_);
+  vk_buffer_views_.append(vk_buffer_view);
+  vk_write_descriptor_sets_.append({VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                                    nullptr,
+                                    vk_descriptor_set,
+                                    location,
+                                    0,
+                                    1,
+                                    VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr});
+}
 
-    vk_descriptor_set_ = VK_NULL_HANDLE;
-    vk_descriptor_pool_ = VK_NULL_HANDLE;
+void VKDescriptorSetTracker::bind_image(VkDescriptorType vk_descriptor_type,
+                                        VkSampler vk_sampler,
+                                        VkImageView vk_image_view,
+                                        VkImageLayout vk_image_layout,
+                                        VKDescriptorSet::Location location)
+{
+  vk_descriptor_image_infos_.append({vk_sampler, vk_image_view, vk_image_layout});
+  vk_write_descriptor_sets_.append({VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                                    nullptr,
+                                    vk_descriptor_set,
+                                    location,
+                                    0,
+                                    1,
+                                    vk_descriptor_type,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr});
+}
+
+void VKDescriptorSetTracker::bind_image_resource(const VKStateManager &state_manager,
+                                                 const VKResourceBinding &resource_binding,
+                                                 render_graph::VKResourceAccessInfo &access_info)
+{
+  VKTexture &texture = *state_manager.images_.get(resource_binding.binding);
+  bind_image(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+             VK_NULL_HANDLE,
+             texture.image_view_get(resource_binding.arrayed).vk_handle(),
+             VK_IMAGE_LAYOUT_GENERAL,
+             resource_binding.location);
+  /* Update access info. */
+  uint32_t layer_base = 0;
+  uint32_t layer_count = VK_REMAINING_ARRAY_LAYERS;
+  if (resource_binding.arrayed == VKImageViewArrayed::ARRAYED && texture.is_texture_view()) {
+    IndexRange layer_range = texture.layer_range();
+    layer_base = layer_range.start();
+    layer_count = layer_range.size();
+  }
+  access_info.images.append({texture.vk_image_handle(),
+                             resource_binding.access_mask,
+                             to_vk_image_aspect_flag_bits(texture.device_format_get()),
+                             layer_base,
+                             layer_count});
+}
+
+void VKDescriptorSetTracker::bind_texture_resource(const VKDevice &device,
+                                                   const VKStateManager &state_manager,
+                                                   const VKResourceBinding &resource_binding,
+                                                   render_graph::VKResourceAccessInfo &access_info)
+{
+  const BindSpaceTextures::Elem &elem = state_manager.textures_.get(resource_binding.binding);
+  switch (elem.resource_type) {
+    case BindSpaceTextures::Type::VertexBuffer: {
+      VKVertexBuffer *vertex_buffer = static_cast<VKVertexBuffer *>(elem.resource);
+      vertex_buffer->ensure_updated();
+      vertex_buffer->ensure_buffer_view();
+      bind_texel_buffer(vertex_buffer->vk_buffer_view_get(), resource_binding.location);
+      access_info.buffers.append({vertex_buffer->vk_handle(), resource_binding.access_mask});
+      break;
+    }
+    case BindSpaceTextures::Type::Texture: {
+      VKTexture *texture = static_cast<VKTexture *>(elem.resource);
+      if (texture->type_ != GPU_TEXTURE_BUFFER) {
+        const VKSampler &sampler = device.samplers().get(elem.sampler);
+        bind_image(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                   sampler.vk_handle(),
+                   texture->image_view_get(resource_binding.arrayed).vk_handle(),
+                   VK_IMAGE_LAYOUT_GENERAL,
+                   resource_binding.location);
+        access_info.images.append({texture->vk_image_handle(),
+                                   resource_binding.access_mask,
+                                   to_vk_image_aspect_flag_bits(texture->device_format_get()),
+                                   0,
+                                   VK_REMAINING_ARRAY_LAYERS});
+      }
+      else {
+        /* Texture buffers are no textures, but wrap around vertex buffers and need to be
+         * bound as texel buffers. */
+        /* TODO: Investigate if this can be improved in the API. */
+        VKVertexBuffer *vertex_buffer = texture->source_buffer_;
+        vertex_buffer->ensure_updated();
+        vertex_buffer->ensure_buffer_view();
+        bind_texel_buffer(vertex_buffer->vk_buffer_view_get(), resource_binding.location);
+        access_info.buffers.append({vertex_buffer->vk_handle(), resource_binding.access_mask});
+      }
+      break;
+    }
+    case BindSpaceTextures::Type::Unused: {
+      BLI_assert_unreachable();
+    }
   }
 }
 
-void VKDescriptorSetTracker::bind(VKStorageBuffer &buffer,
-                                  const VKDescriptorSet::Location location)
+void VKDescriptorSetTracker::bind_storage_buffer_resource(
+    const VKStateManager &state_manager,
+    const VKResourceBinding &resource_binding,
+    render_graph::VKResourceAccessInfo &access_info)
 {
-  Binding &binding = ensure_location(location);
-  binding.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-  binding.vk_buffer = buffer.vk_handle();
-  binding.buffer_size = buffer.size_in_bytes();
-}
-
-void VKDescriptorSetTracker::bind_as_ssbo(VKVertexBuffer &buffer,
-                                          const VKDescriptorSet::Location location)
-{
-  Binding &binding = ensure_location(location);
-  binding.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-  binding.vk_buffer = buffer.vk_handle();
-  binding.buffer_size = buffer.size_used_get();
-}
-
-void VKDescriptorSetTracker::bind(VKUniformBuffer &buffer,
-                                  const VKDescriptorSet::Location location)
-{
-  Binding &binding = ensure_location(location);
-  binding.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  binding.vk_buffer = buffer.vk_handle();
-  binding.buffer_size = buffer.size_in_bytes();
-}
-
-void VKDescriptorSetTracker::bind_as_ssbo(VKIndexBuffer &buffer,
-                                          const VKDescriptorSet::Location location)
-{
-  Binding &binding = ensure_location(location);
-  binding.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-  binding.vk_buffer = buffer.vk_handle();
-  binding.buffer_size = buffer.size_get();
-}
-
-void VKDescriptorSetTracker::bind_as_ssbo(VKUniformBuffer &buffer,
-                                          const VKDescriptorSet::Location location)
-{
-  Binding &binding = ensure_location(location);
-  binding.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-  binding.vk_buffer = buffer.vk_handle();
-  binding.buffer_size = buffer.size_in_bytes();
-}
-
-void VKDescriptorSetTracker::image_bind(VKTexture &texture,
-                                        const VKDescriptorSet::Location location,
-                                        VKImageViewArrayed arrayed)
-{
-  Binding &binding = ensure_location(location);
-  binding.type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-  binding.texture = &texture;
-  binding.arrayed = arrayed;
-}
-
-void VKDescriptorSetTracker::bind(VKTexture &texture,
-                                  const VKDescriptorSet::Location location,
-                                  const VKSampler &sampler,
-                                  VKImageViewArrayed arrayed)
-{
-  Binding &binding = ensure_location(location);
-  binding.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-  binding.texture = &texture;
-  binding.vk_sampler = sampler.vk_handle();
-  binding.arrayed = arrayed;
-}
-
-void VKDescriptorSetTracker::bind(VKVertexBuffer &vertex_buffer,
-                                  const VKDescriptorSet::Location location)
-{
-  Binding &binding = ensure_location(location);
-  binding.type = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
-  binding.vk_buffer_view = vertex_buffer.vk_buffer_view_get();
-  binding.buffer_size = vertex_buffer.size_alloc_get();
-}
-
-VKDescriptorSetTracker::Binding &VKDescriptorSetTracker::ensure_location(
-    const VKDescriptorSet::Location location)
-{
-  for (Binding &binding : bindings_) {
-    if (binding.location == location) {
-      return binding;
+  const BindSpaceStorageBuffers::Elem &elem = state_manager.storage_buffers_.get(
+      resource_binding.binding);
+  VkBuffer vk_buffer = VK_NULL_HANDLE;
+  VkDeviceSize vk_device_size = 0;
+  switch (elem.resource_type) {
+    case BindSpaceStorageBuffers::Type::IndexBuffer: {
+      VKIndexBuffer *index_buffer = static_cast<VKIndexBuffer *>(elem.resource);
+      index_buffer->ensure_updated();
+      vk_buffer = index_buffer->vk_handle();
+      vk_device_size = index_buffer->size_get();
+      break;
+    }
+    case BindSpaceStorageBuffers::Type::VertexBuffer: {
+      VKVertexBuffer *vertex_buffer = static_cast<VKVertexBuffer *>(elem.resource);
+      vertex_buffer->ensure_updated();
+      vk_buffer = vertex_buffer->vk_handle();
+      vk_device_size = vertex_buffer->size_used_get();
+      break;
+    }
+    case BindSpaceStorageBuffers::Type::UniformBuffer: {
+      VKUniformBuffer *uniform_buffer = static_cast<VKUniformBuffer *>(elem.resource);
+      uniform_buffer->ensure_updated();
+      vk_buffer = uniform_buffer->vk_handle();
+      vk_device_size = uniform_buffer->size_in_bytes();
+      break;
+    }
+    case BindSpaceStorageBuffers::Type::StorageBuffer: {
+      VKStorageBuffer *storage_buffer = static_cast<VKStorageBuffer *>(elem.resource);
+      storage_buffer->ensure_allocated();
+      vk_buffer = storage_buffer->vk_handle();
+      vk_device_size = storage_buffer->size_in_bytes();
+      break;
+    }
+    case BindSpaceStorageBuffers::Type::Unused: {
+      BLI_assert_unreachable();
     }
   }
 
-  Binding binding = {};
-  binding.location = location;
-  bindings_.append(binding);
-  return bindings_.last();
+  bind_buffer(
+      VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, vk_buffer, vk_device_size, resource_binding.location);
+  access_info.buffers.append({vk_buffer, resource_binding.access_mask});
 }
 
-void VKDescriptorSetTracker::update(VKContext &context)
+void VKDescriptorSetTracker::bind_uniform_buffer_resource(
+    const VKStateManager &state_manager,
+    const VKResourceBinding &resource_binding,
+    render_graph::VKResourceAccessInfo &access_info)
 {
-  const VKShader &shader = *unwrap(context.shader);
+  VKUniformBuffer &uniform_buffer = *state_manager.uniform_buffers_.get(resource_binding.binding);
+  uniform_buffer.ensure_updated();
+  bind_buffer(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+              uniform_buffer.vk_handle(),
+              uniform_buffer.size_in_bytes(),
+              resource_binding.location);
+  access_info.buffers.append({uniform_buffer.vk_handle(), resource_binding.access_mask});
+}
+
+void VKDescriptorSetTracker::bind_push_constants(VKPushConstants &push_constants,
+                                                 render_graph::VKResourceAccessInfo &access_info)
+{
+  if (push_constants.layout_get().storage_type_get() !=
+      VKPushConstants::StorageType::UNIFORM_BUFFER)
+  {
+    return;
+  }
+  push_constants.update_uniform_buffer();
+  const VKUniformBuffer &uniform_buffer = *push_constants.uniform_buffer_get().get();
+  bind_buffer(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+              uniform_buffer.vk_handle(),
+              uniform_buffer.size_in_bytes(),
+              push_constants.layout_get().descriptor_set_location_get());
+  access_info.buffers.append({uniform_buffer.vk_handle(), VK_ACCESS_UNIFORM_READ_BIT});
+}
+
+void VKDescriptorSetTracker::bind_shader_resources(const VKDevice &device,
+                                                   const VKStateManager &state_manager,
+                                                   VKShader &shader,
+                                                   render_graph::VKResourceAccessInfo &access_info)
+{
+  const VKShaderInterface &shader_interface = shader.interface_get();
+  for (const VKResourceBinding &resource_binding : shader_interface.resource_bindings_get()) {
+    if (resource_binding.binding == -1) {
+      continue;
+    }
+
+    switch (resource_binding.bind_type) {
+      case shader::ShaderCreateInfo::Resource::BindType::IMAGE:
+        bind_image_resource(state_manager, resource_binding, access_info);
+        break;
+
+      case shader::ShaderCreateInfo::Resource::BindType::SAMPLER:
+        bind_texture_resource(device, state_manager, resource_binding, access_info);
+        break;
+
+      case shader::ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER:
+        bind_storage_buffer_resource(state_manager, resource_binding, access_info);
+        break;
+
+      case shader::ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER:
+        bind_uniform_buffer_resource(state_manager, resource_binding, access_info);
+        break;
+    }
+  }
+
+  /* Bind uniform push constants to descriptor set. */
+  bind_push_constants(shader.push_constants, access_info);
+}
+
+void VKDescriptorSetTracker::update_descriptor_set(VKContext &context,
+                                                   render_graph::VKResourceAccessInfo &access_info)
+{
+  VKShader &shader = *unwrap(context.shader);
+  VKStateManager &state_manager = context.state_manager_get();
+
+  /* Can we reuse previous descriptor set. */
+  if (!state_manager.is_dirty &&
+      !assign_if_different(vk_descriptor_set_layout_, shader.vk_descriptor_set_layout_get()) &&
+      shader.push_constants.layout_get().storage_type_get() !=
+          VKPushConstants::StorageType::UNIFORM_BUFFER)
+  {
+    return;
+  }
+  state_manager.is_dirty = false;
+
+  /* Allocate a new descriptor set. */
   VkDescriptorSetLayout vk_descriptor_set_layout = shader.vk_descriptor_set_layout_get();
-  active_vk_descriptor_set_layout = vk_descriptor_set_layout;
-  tracked_resource_for(context, true);
-  std::unique_ptr<VKDescriptorSet> &descriptor_set = active_descriptor_set();
-  VkDescriptorSet vk_descriptor_set = descriptor_set->vk_handle();
+  vk_descriptor_set = context.descriptor_pools_get().allocate(vk_descriptor_set_layout);
   BLI_assert(vk_descriptor_set != VK_NULL_HANDLE);
   debug::object_label(vk_descriptor_set, shader.name_get());
+  const VKDevice &device = VKBackend::get().device;
+  bind_shader_resources(device, state_manager, shader, access_info);
+}
 
-  /* Ensure that the local arrays contain enough space to store the bindings. */
-  BLI_assert_msg(vk_descriptor_image_infos_.is_empty() && vk_descriptor_buffer_infos_.is_empty() &&
-                     vk_write_descriptor_sets_.is_empty(),
-                 "Incorrect usage, internal vectors should be empty.");
-  if (vk_descriptor_buffer_infos_.capacity() < bindings_.size()) {
-    vk_descriptor_buffer_infos_.reserve(bindings_.size() * 2);
-    vk_descriptor_image_infos_.reserve(bindings_.size() * 2);
+void VKDescriptorSetTracker::upload_descriptor_sets()
+{
+  if (vk_write_descriptor_sets_.is_empty()) {
+    return;
   }
 
-  for (const Binding &binding : bindings_) {
-    if (!binding.is_buffer()) {
-      continue;
+  /* Finalize pointers that could have changed due to reallocations. */
+  int buffer_index = 0;
+  int buffer_view_index = 0;
+  int image_index = 0;
+  for (int write_index : vk_write_descriptor_sets_.index_range()) {
+    VkWriteDescriptorSet &vk_write_descriptor_set = vk_write_descriptor_sets_[write_index++];
+    switch (vk_write_descriptor_set.descriptorType) {
+      case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
+      case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+        vk_write_descriptor_set.pImageInfo = &vk_descriptor_image_infos_[image_index++];
+        break;
+
+      case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
+        vk_write_descriptor_set.pTexelBufferView = &vk_buffer_views_[buffer_view_index++];
+        break;
+
+      case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
+      case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
+        vk_write_descriptor_set.pBufferInfo = &vk_descriptor_buffer_infos_[buffer_index++];
+        break;
+
+      default:
+        BLI_assert_unreachable();
+        break;
     }
-    vk_descriptor_buffer_infos_.append({binding.vk_buffer, 0, binding.buffer_size});
-    vk_write_descriptor_sets_.append({VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                                      nullptr,
-                                      vk_descriptor_set,
-                                      binding.location,
-                                      0,
-                                      1,
-                                      binding.type,
-                                      nullptr,
-                                      &vk_descriptor_buffer_infos_.last(),
-                                      nullptr});
   }
 
-  for (const Binding &binding : bindings_) {
-    if (!binding.is_texel_buffer()) {
-      continue;
-    }
-    vk_write_descriptor_sets_.append({VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                                      nullptr,
-                                      vk_descriptor_set,
-                                      binding.location,
-                                      0,
-                                      1,
-                                      binding.type,
-                                      nullptr,
-                                      nullptr,
-                                      &binding.vk_buffer_view});
-  }
-
-  for (const Binding &binding : bindings_) {
-    if (!binding.is_image()) {
-      continue;
-    }
-    /* TODO: Based on the actual usage we should use
-     * VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL or VK_IMAGE_LAYOUT_GENERAL. */
-    vk_descriptor_image_infos_.append(
-        {binding.vk_sampler,
-         binding.texture->image_view_get(binding.arrayed).vk_handle(),
-         VK_IMAGE_LAYOUT_GENERAL});
-    vk_write_descriptor_sets_.append({VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                                      nullptr,
-                                      vk_descriptor_set,
-                                      binding.location,
-                                      0,
-                                      1,
-                                      binding.type,
-                                      &vk_descriptor_image_infos_.last(),
-                                      nullptr,
-                                      nullptr});
-  }
-
+  /* Update the descriptor set on the device. */
   const VKDevice &device = VKBackend::get().device;
   vkUpdateDescriptorSets(device.vk_handle(),
                          vk_write_descriptor_sets_.size(),
@@ -211,28 +322,10 @@ void VKDescriptorSetTracker::update(VKContext &context)
                          0,
                          nullptr);
 
-  bindings_.clear();
   vk_descriptor_image_infos_.clear();
   vk_descriptor_buffer_infos_.clear();
+  vk_buffer_views_.clear();
   vk_write_descriptor_sets_.clear();
-}
-
-std::unique_ptr<VKDescriptorSet> VKDescriptorSetTracker::create_resource(VKContext &context)
-{
-  return context.descriptor_pools_get().allocate(active_vk_descriptor_set_layout);
-}
-
-void VKDescriptorSetTracker::debug_print() const
-{
-  for (const Binding &binding : bindings_) {
-    binding.debug_print();
-  }
-}
-
-void VKDescriptorSetTracker::Binding::debug_print() const
-{
-  std::cout << "VkDescriptorSetTrackker::Binding(type: " << type
-            << ", location:" << location.binding << ")\n";
 }
 
 }  // namespace blender::gpu

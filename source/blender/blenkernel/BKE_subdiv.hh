@@ -15,7 +15,9 @@ struct Mesh;
 struct MultiresModifierData;
 struct OpenSubdiv_Converter;
 struct OpenSubdiv_Evaluator;
-class OpenSubdiv_TopologyRefiner;
+namespace blender::opensubdiv {
+class TopologyRefinerImpl;
+}
 
 namespace blender::bke::subdiv {
 
@@ -159,7 +161,7 @@ struct Subdiv {
   /* Topology refiner includes all the glue logic to feed Blender side
    * topology to OpenSubdiv. It can be shared by both evaluator and GL mesh
    * drawer. */
-  OpenSubdiv_TopologyRefiner *topology_refiner;
+  blender::opensubdiv::TopologyRefinerImpl *topology_refiner;
   /* CPU side evaluator. */
   OpenSubdiv_Evaluator *evaluator;
   /* Optional displacement evaluator. */

@@ -49,7 +49,7 @@
  * Since the erode/dilate distance is already signed appropriately as described before, we just add
  * it in both cases. */
 
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
+#include "gpu_shader_compositor_texture_utilities.glsl"
 
 void main()
 {

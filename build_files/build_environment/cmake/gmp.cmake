@@ -56,17 +56,13 @@ else()
   set(GMP_OPTIONS --enable-static --disable-shared )
 endif()
 
-if(APPLE AND NOT BLENDER_PLATFORM_ARM)
-  set(GMP_OPTIONS
-    ${GMP_OPTIONS}
-    --with-pic
-  )
-elseif(UNIX AND NOT APPLE)
-  set(GMP_OPTIONS
-    ${GMP_OPTIONS}
-    --with-pic
-    --enable-fat
-  )
+if(UNIX)
+  if(NOT (APPLE AND BLENDER_PLATFORN_ARM))
+    set(GMP_OPTIONS ${GMP_OPTIONS} --with-pic)
+  endif()
+  if(NOT (APPLE OR BLENDER_PLATFORM_ARM))
+    set(GMP_OPTIONS ${GMP_OPTIONS} --enable-fat)
+  endif()
 endif()
 
 # Boolean crashes with Arm assembly, see #103423.

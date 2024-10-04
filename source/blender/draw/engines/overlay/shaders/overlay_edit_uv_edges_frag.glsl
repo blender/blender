@@ -14,7 +14,7 @@
 #define GRID_LINE_SMOOTH_START (0.5 - DISC_RADIUS)
 #define GRID_LINE_SMOOTH_END (0.5 + DISC_RADIUS)
 
-#pragma BLENDER_REQUIRE(overlay_common_lib.glsl)
+#include "overlay_common_lib.glsl"
 
 void main()
 {

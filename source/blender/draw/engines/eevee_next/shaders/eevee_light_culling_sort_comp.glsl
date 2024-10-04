@@ -8,7 +8,7 @@
  * One thread processes one Light entity.
  */
 
-#pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
+#include "gpu_shader_math_base_lib.glsl"
 
 shared float zdists_cache[gl_WorkGroupSize.x];
 

@@ -19,7 +19,7 @@
 #else
 #  include "BKE_context.hh"
 
-#  include "BPY_extern_run.h"
+#  include "BPY_extern_run.hh"
 #endif
 
 /* -------------------------------------------------------------------- */

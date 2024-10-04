@@ -46,14 +46,6 @@ bool ray_face_nearest_tri(const float3 &ray_start,
 
 /* pbvh_bmesh.cc */
 
-bool bmesh_node_raycast(blender::bke::pbvh::BMeshNode &node,
-                        const float3 &ray_start,
-                        const float3 &ray_normal,
-                        IsectRayPrecalc *isect_precalc,
-                        float *depth,
-                        bool use_original,
-                        PBVHVertRef *r_active_vertex,
-                        float *r_face_normal);
 bool bmesh_node_nearest_to_ray(blender::bke::pbvh::BMeshNode &node,
                                const float3 &ray_start,
                                const float3 &ray_normal,

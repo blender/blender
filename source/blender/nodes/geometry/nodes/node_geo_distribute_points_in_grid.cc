@@ -34,27 +34,37 @@ enum class DistributeMode {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Float>("Grid").hide_value();
-  b.add_input<decl::Float>("Density")
-      .default_value(1.0f)
-      .min(0.0f)
-      .max(100000.0f)
-      .subtype(PROP_NONE)
-      .description(
-          "When combined with each voxel's value, determines the number of points to sample per "
-          "unit volume");
-  b.add_input<decl::Int>("Seed").min(-10000).max(10000).description(
+  auto &density = b.add_input<decl::Float>("Density")
+                      .default_value(1.0f)
+                      .min(0.0f)
+                      .max(100000.0f)
+                      .subtype(PROP_NONE)
+                      .description(
+                          "When combined with each voxel's value, determines the number of points "
+                          "to sample per unit volume");
+  auto &seed = b.add_input<decl::Int>("Seed").min(-10000).max(10000).description(
       "Seed used by the random number generator to generate random points");
-  b.add_input<decl::Vector>("Spacing")
-      .default_value({0.3, 0.3, 0.3})
-      .min(0.0001f)
-      .subtype(PROP_XYZ)
-      .description("Spacing between grid points");
-  b.add_input<decl::Float>("Threshold")
-      .default_value(0.1f)
-      .min(0.0f)
-      .max(FLT_MAX)
-      .description("Minimum density of a voxel to contain a grid point");
+  auto &spacing = b.add_input<decl::Vector>("Spacing")
+                      .default_value({0.3, 0.3, 0.3})
+                      .min(0.0001f)
+                      .subtype(PROP_XYZ)
+                      .description("Spacing between grid points");
+  auto &threshold = b.add_input<decl::Float>("Threshold")
+                        .default_value(0.1f)
+                        .min(0.0f)
+                        .max(FLT_MAX)
+                        .description("Minimum density of a voxel to contain a grid point");
   b.add_output<decl::Geometry>("Points").propagate_all();
+
+  const bNode *node = b.node_or_null();
+  if (node != nullptr) {
+    const auto mode = DistributeMode(node->custom1);
+
+    density.available(mode == DistributeMode::Random);
+    seed.available(mode == DistributeMode::Random);
+    spacing.available(mode == DistributeMode::Grid);
+    threshold.available(mode == DistributeMode::Grid);
+  }
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -65,21 +75,6 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   node->custom1 = int16_t(DistributeMode::Random);
-}
-
-static void node_update(bNodeTree *ntree, bNode *node)
-{
-  const auto mode = DistributeMode(node->custom1);
-
-  bNodeSocket *sock_density = static_cast<bNodeSocket *>(node->inputs.first)->next;
-  bNodeSocket *sock_seed = sock_density->next;
-  bNodeSocket *sock_spacing = sock_seed->next;
-  bNodeSocket *sock_threshold = sock_spacing->next;
-
-  bke::node_set_socket_availability(ntree, sock_density, mode == DistributeMode::Random);
-  bke::node_set_socket_availability(ntree, sock_seed, mode == DistributeMode::Random);
-  bke::node_set_socket_availability(ntree, sock_spacing, mode == DistributeMode::Grid);
-  bke::node_set_socket_availability(ntree, sock_threshold, mode == DistributeMode::Grid);
 }
 
 #ifdef WITH_OPENVDB
@@ -263,7 +258,6 @@ static void node_register()
                      "Distribute Points in Grid",
                      NODE_CLASS_GEOMETRY);
   ntype.initfunc = node_init;
-  ntype.updatefunc = node_update;
   blender::bke::node_type_size(&ntype, 170, 100, 320);
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;

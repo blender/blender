@@ -181,7 +181,7 @@ static SpaceLink *sequencer_create(const ScrArea * /*area*/, const Scene *scene)
   region->v2d.min[1] = 1.0f;
 
   region->v2d.max[0] = MAXFRAMEF;
-  region->v2d.max[1] = MAXSEQ;
+  region->v2d.max[1] = SEQ_MAX_CHANNELS;
 
   region->v2d.minzoom = 0.01f;
   region->v2d.maxzoom = 100.0f;

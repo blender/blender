@@ -145,7 +145,7 @@ void ui_block_views_listen(const uiBlock *block, const wmRegionListenerParams *l
 void ui_block_views_draw_overlays(const ARegion *region, const uiBlock *block)
 {
   LISTBASE_FOREACH (ViewLink *, view_link, &block->views) {
-    view_link->view->draw_overlays(*region);
+    view_link->view->draw_overlays(*region, *block);
   }
 }
 

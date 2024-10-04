@@ -19,6 +19,13 @@
 CCL_NAMESPACE_BEGIN
 
 class Device;
+class GPUDevice;
+class CUDADevice;
+class OptiXDevice;
+class HIPDevice;
+class HIPRTDevice;
+class MetalDevice;
+class OneapiDevice;
 
 enum MemoryType {
   MEM_READ_ONLY,

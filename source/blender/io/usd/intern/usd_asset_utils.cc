@@ -16,7 +16,7 @@
 #include "BKE_report.hh"
 
 #include "BLI_fileops.hh"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
 
@@ -24,17 +24,17 @@
 
 #include <string_view>
 
-static const char UDIM_PATTERN[] = "<UDIM>";
-static const char UDIM_PATTERN2[] = "%3CUDIM%3E";
+namespace blender::io::usd {
+
+constexpr char UDIM_PATTERN[] = "<UDIM>";
+constexpr char UDIM_PATTERN2[] = "%3CUDIM%3E";
 
 /* Maximum range of UDIM tiles, per the
  * UsdPreviewSurface specifications.  See
  * https://graphics.pixar.com/usd/release/spec_usdpreviewsurface.html#texture-reader
  */
-static const int UDIM_START_TILE = 1001;
-static const int UDIM_END_TILE = 1100;
-
-namespace blender::io::usd {
+constexpr int UDIM_START_TILE = 1001;
+constexpr int UDIM_END_TILE = 1100;
 
 /**
  * The following is copied from `_SplitUdimPattern()` in
@@ -125,10 +125,10 @@ static std::string copy_udim_asset_to_directory(const char *src_path,
    * of a directory using the USD resolver, we must take a brute force approach.  We iterate
    * over the allowed range of tile indices and copy any tiles that exist.  The USDPreviewSurface
    * specification stipulates "a maximum of ten tiles in the U direction" and that
-   * "the tiles must be within the range [1001, 1099]". See
+   * "the tiles must be within the range [1001, 1100] (as of specification version 2.5)". See
    * https://graphics.pixar.com/usd/release/spec_usdpreviewsurface.html#texture-reader
    */
-  for (int i = UDIM_START_TILE; i < UDIM_END_TILE; ++i) {
+  for (int i = UDIM_START_TILE; i <= UDIM_END_TILE; ++i) {
     const std::string src_udim = splitPath.first + std::to_string(i) + splitPath.second;
     if (asset_exists(src_udim.c_str())) {
       copy_asset_to_directory(src_udim.c_str(), dest_dir_path, name_collision_mode, reports);

@@ -22,8 +22,8 @@ RotateOperation::RotateOperation()
 
 void RotateOperation::get_rotation_center(const rcti &area, float &r_x, float &r_y)
 {
-  r_x = (BLI_rcti_size_x(&area)) / 2.0;
-  r_y = (BLI_rcti_size_y(&area)) / 2.0;
+  r_x = BLI_rcti_size_x(&area) / 2.0;
+  r_y = BLI_rcti_size_y(&area) / 2.0;
 }
 
 void RotateOperation::get_rotation_offset(const rcti &input_canvas,

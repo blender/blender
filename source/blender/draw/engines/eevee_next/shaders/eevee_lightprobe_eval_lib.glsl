@@ -2,19 +2,21 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_fast_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_bxdf_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_lightprobe_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_ray_generate_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_lightprobe_sphere_eval_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_lightprobe_volume_eval_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_spherical_harmonics_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_subsurface_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_closure_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_thickness_lib.glsl)
+#pragma once
+
+#include "eevee_bxdf_lib.glsl"
+#include "eevee_closure_lib.glsl"
+#include "eevee_lightprobe_lib.glsl"
+#include "eevee_lightprobe_sphere_eval_lib.glsl"
+#include "eevee_lightprobe_volume_eval_lib.glsl"
+#include "eevee_ray_generate_lib.glsl"
+#include "eevee_sampling_lib.glsl"
+#include "eevee_spherical_harmonics_lib.glsl"
+#include "eevee_subsurface_lib.glsl"
+#include "eevee_thickness_lib.glsl"
+#include "gpu_shader_codegen_lib.glsl"
+#include "gpu_shader_math_base_lib.glsl"
+#include "gpu_shader_math_fast_lib.glsl"
 
 #ifdef SPHERE_PROBE
 

@@ -46,7 +46,9 @@ Checks:  >
   -modernize-loop-convert,
   -modernize-pass-by-value,
   -modernize-raw-string-literal,
-  -modernize-return-braced-init-list
+  -modernize-return-braced-init-list,
+
+  objc-*
 
 CheckOptions:
   - key: modernize-use-default-member-init.UseAssignment

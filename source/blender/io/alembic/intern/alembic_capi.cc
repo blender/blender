@@ -44,7 +44,7 @@
 #include "BLI_compiler_compat.h"
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_sort.hh"
 #include "BLI_span.hh"
 #include "BLI_string.h"
@@ -872,12 +872,6 @@ void ABC_CacheReader_free(CacheReader *reader)
   if (abc_reader->refcount() == 0) {
     delete abc_reader;
   }
-}
-
-void ABC_CacheReader_incref(CacheReader *reader)
-{
-  AbcObjectReader *abc_reader = reinterpret_cast<AbcObjectReader *>(reader);
-  abc_reader->incref();
 }
 
 CacheReader *CacheReader_open_alembic_object(CacheArchiveHandle *handle,

@@ -24,7 +24,7 @@
 
 #include "BLI_fileops.h"
 #include "BLI_math_rotation.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_threads.h"
 
@@ -613,7 +613,7 @@ void BLF_draw_svg_icon(uint icon_id,
                        float x,
                        float y,
                        float size,
-                       float color[4],
+                       const float color[4],
                        float outline_alpha,
                        bool multicolor,
                        blender::FunctionRef<void(std::string &)> edit_source_cb)
@@ -645,7 +645,7 @@ blender::Array<uchar> BLF_svg_icon_bitmap(uint icon_id,
     return blf_svg_icon_bitmap(font, icon_id, size, r_width, r_height, multicolor, edit_source_cb);
   }
 #else
-  UNUSED_VARS(icon_id, size, r_width, r_height, multicolor);
+  UNUSED_VARS(icon_id, size, r_width, r_height, multicolor, edit_source_cb);
 #endif /* WITH_HEADLESS */
   return {};
 }
@@ -681,11 +681,11 @@ size_t BLF_str_offset_from_cursor_position(int fontid,
 bool BLF_str_offset_to_glyph_bounds(int fontid,
                                     const char *str,
                                     size_t str_offset,
-                                    rcti *glyph_bounds)
+                                    rcti *r_glyph_bounds)
 {
   FontBLF *font = blf_get(fontid);
   if (font) {
-    blf_str_offset_to_glyph_bounds(font, str, str_offset, glyph_bounds);
+    blf_str_offset_to_glyph_bounds(font, str, str_offset, r_glyph_bounds);
     return true;
   }
   return false;
@@ -807,6 +807,17 @@ float BLF_fixed_width(int fontid)
 
   if (font) {
     return blf_font_fixed_width(font);
+  }
+
+  return 0.0f;
+}
+
+int BLF_glyph_advance(int fontid, const char *str)
+{
+  FontBLF *font = blf_get(fontid);
+
+  if (font) {
+    return blf_font_glyph_advance(font, str);
   }
 
   return 0.0f;

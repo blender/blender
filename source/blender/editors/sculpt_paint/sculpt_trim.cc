@@ -661,6 +661,7 @@ static void gesture_end(bContext & /*C*/, gesture::GestureData &gesture_data)
   free_geometry(gesture_data);
 
   undo::geometry_end(*object);
+  BKE_sculptsession_free_pbvh(*object);
   BKE_mesh_batch_cache_dirty_tag(mesh, BKE_MESH_BATCH_DIRTY_ALL);
   DEG_id_tag_update(&gesture_data.vc.obact->id, ID_RECALC_GEOMETRY);
 }

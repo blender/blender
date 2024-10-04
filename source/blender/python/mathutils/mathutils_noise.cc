@@ -21,10 +21,10 @@
 
 #include "DNA_texture_types.h"
 
-#include "../generic/py_capi_utils.h"
+#include "../generic/py_capi_utils.hh"
 
-#include "mathutils.h"
-#include "mathutils_noise.h"
+#include "mathutils.hh"
+#include "mathutils_noise.hh"
 
 /*-----------------------------------------*/
 /* 'mersenne twister' random number generator */

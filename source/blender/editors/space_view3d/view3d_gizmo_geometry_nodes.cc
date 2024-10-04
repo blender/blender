@@ -236,6 +236,10 @@ class LinearGizmo : public NodeGizmos {
 
     WM_gizmo_set_line_width(gizmo_, 1.0f);
 
+    const float length = (storage.draw_style == GEO_NODE_LINEAR_GIZMO_DRAW_STYLE_BOX) ? 0.8f :
+                                                                                        1.0f;
+    RNA_float_set(gizmo_->ptr, "length", length);
+
     const ThemeColorID color_theme_id = get_gizmo_theme_color_id(
         GeometryNodeGizmoColor(storage.color_id));
     UI_GetThemeColor3fv(color_theme_id, gizmo_->color);

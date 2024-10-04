@@ -29,6 +29,10 @@ set(INC
   # For node muting stuff.
   ../nodes
 
+  # For shader includes
+  shaders/common
+  shaders
+
   ../../../intern/ghost
   ../../../intern/mantaflow/extern
 )
@@ -201,7 +205,6 @@ set(OPENGL_SRC
 set(VULKAN_SRC
   vulkan/vk_backend.cc
   vulkan/vk_batch.cc
-  vulkan/vk_bindable_resource.cc
   vulkan/vk_buffer.cc
   vulkan/vk_common.cc
   vulkan/vk_context.cc
@@ -251,7 +254,6 @@ set(VULKAN_SRC
 
   vulkan/vk_backend.hh
   vulkan/vk_batch.hh
-  vulkan/vk_bindable_resource.hh
   vulkan/vk_buffer.hh
   vulkan/vk_common.hh
   vulkan/vk_context.hh
@@ -296,6 +298,7 @@ set(VULKAN_SRC
   vulkan/render_graph/nodes/vk_pipeline_data.hh
   vulkan/render_graph/nodes/vk_reset_query_pool_node.hh
   vulkan/render_graph/nodes/vk_synchronization_node.hh
+  vulkan/render_graph/nodes/vk_update_buffer_node.hh
   vulkan/render_graph/nodes/vk_update_mipmaps_node.hh
   vulkan/render_graph/vk_command_buffer_wrapper.hh
   vulkan/render_graph/vk_command_builder.hh
@@ -700,13 +703,13 @@ if(WITH_METAL_BACKEND)
 
   set(MSL_C)
   foreach(MSL_FILE ${MSL_SRC})
-    data_to_c_simple(${MSL_FILE} MSL_C STRIP_LEADING_C_COMMENTS)
+    glsl_to_c(${MSL_FILE} MSL_C)
   endforeach()
 endif()
 
 set(GLSL_C)
 foreach(GLSL_FILE ${GLSL_SRC})
-  data_to_c_simple(${GLSL_FILE} GLSL_C STRIP_LEADING_C_COMMENTS)
+  glsl_to_c(${GLSL_FILE} GLSL_C)
 endforeach()
 
 set(SHADER_C)

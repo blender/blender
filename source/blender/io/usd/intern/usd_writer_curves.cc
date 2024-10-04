@@ -377,58 +377,53 @@ static std::optional<pxr::TfToken> convert_blender_domain_to_usd(
 }
 
 void USDCurvesWriter::write_generic_data(const bke::CurvesGeometry &curves,
-                                         const StringRef attribute_id,
-                                         const bke::AttributeMetaData &meta_data,
+                                         const bke::AttributeIter &attr,
                                          const pxr::UsdGeomCurves &usd_curves)
 {
   const CurveType curve_type = CurveType(curves.curve_types().first());
   const bool is_bezier = curve_type == CURVE_TYPE_BEZIER;
 
-  const std::optional<pxr::TfToken> pv_interp = convert_blender_domain_to_usd(meta_data.domain,
+  const std::optional<pxr::TfToken> pv_interp = convert_blender_domain_to_usd(attr.domain,
                                                                               is_bezier);
-  const std::optional<pxr::SdfValueTypeName> pv_type = convert_blender_type_to_usd(
-      meta_data.data_type);
+  const std::optional<pxr::SdfValueTypeName> pv_type = convert_blender_type_to_usd(attr.data_type);
 
   if (!pv_interp || !pv_type) {
     BKE_reportf(this->reports(),
                 RPT_WARNING,
                 "Attribute '%s' (Blender domain %d, type %d) cannot be converted to USD",
-                std::string(attribute_id).c_str(),
-                int(meta_data.domain),
-                meta_data.data_type);
+                attr.name.c_str(),
+                int8_t(attr.domain),
+                attr.data_type);
     return;
   }
 
-  const GVArray attribute = *curves.attributes().lookup(
-      attribute_id, meta_data.domain, meta_data.data_type);
+  const GVArray attribute = *attr.get();
   if (attribute.is_empty()) {
     return;
   }
 
   const pxr::UsdTimeCode timecode = get_export_time_code();
   const pxr::TfToken pv_name(
-      make_safe_name(attribute_id, usd_export_context_.export_params.allow_unicode));
+      make_safe_name(attr.name, usd_export_context_.export_params.allow_unicode));
   const pxr::UsdGeomPrimvarsAPI pv_api = pxr::UsdGeomPrimvarsAPI(usd_curves);
 
   pxr::UsdGeomPrimvar pv_attr = pv_api.CreatePrimvar(pv_name, *pv_type, *pv_interp);
 
   copy_blender_attribute_to_primvar(
-      attribute, meta_data.data_type, timecode, pv_attr, usd_value_writer_);
+      attribute, attr.data_type, timecode, pv_attr, usd_value_writer_);
 }
 
-void USDCurvesWriter::write_uv_data(const bke::CurvesGeometry &curves,
-                                    const StringRef attribute_id,
+void USDCurvesWriter::write_uv_data(const bke::AttributeIter &attr,
                                     const pxr::UsdGeomCurves &usd_curves)
 {
-  const VArray<float2> buffer = *curves.attributes().lookup<float2>(attribute_id,
-                                                                    bke::AttrDomain::Curve);
+  const VArray<float2> buffer = *attr.get<float2>(bke::AttrDomain::Curve);
   if (buffer.is_empty()) {
     return;
   }
 
   const pxr::UsdTimeCode timecode = get_export_time_code();
   const pxr::TfToken pv_name(
-      make_safe_name(attribute_id, usd_export_context_.export_params.allow_unicode));
+      make_safe_name(attr.name, usd_export_context_.export_params.allow_unicode));
   const pxr::UsdGeomPrimvarsAPI pv_api = pxr::UsdGeomPrimvarsAPI(usd_curves);
 
   pxr::UsdGeomPrimvar pv_uv = pv_api.CreatePrimvar(
@@ -442,11 +437,10 @@ void USDCurvesWriter::write_custom_data(const bke::CurvesGeometry &curves,
 {
   const bke::AttributeAccessor attributes = curves.attributes();
 
-  attributes.for_all([&](const StringRef attribute_id, const bke::AttributeMetaData &meta_data) {
+  attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
     /* Skip "internal" Blender properties and attributes dealt with elsewhere. */
-    const StringRef attr_name = attribute_id;
-    if (attr_name[0] == '.' || bke::attribute_name_is_anonymous(attribute_id) ||
-        ELEM(attr_name,
+    if (iter.name[0] == '.' || bke::attribute_name_is_anonymous(iter.name) ||
+        ELEM(iter.name,
              "position",
              "radius",
              "resolution",
@@ -457,22 +451,20 @@ void USDCurvesWriter::write_custom_data(const bke::CurvesGeometry &curves,
              "handle_type_left",
              "handle_type_right"))
     {
-      return true;
+      return;
     }
 
     /* Spline UV data */
-    if (meta_data.domain == bke::AttrDomain::Curve && meta_data.data_type == CD_PROP_FLOAT2) {
+    if (iter.domain == bke::AttrDomain::Curve && iter.data_type == CD_PROP_FLOAT2) {
       if (usd_export_context_.export_params.export_uvmaps) {
-        this->write_uv_data(curves, attribute_id, usd_curves);
+        this->write_uv_data(iter, usd_curves);
       }
     }
 
     /* Everything else. */
     else {
-      this->write_generic_data(curves, attribute_id, meta_data, usd_curves);
+      this->write_generic_data(curves, iter, usd_curves);
     }
-
-    return true;
   });
 }
 

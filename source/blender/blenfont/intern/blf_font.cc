@@ -32,7 +32,7 @@
 #include "BLI_math_bits.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_math_matrix.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_string_cursor_utf8.h"
@@ -412,7 +412,7 @@ BLI_INLINE ft_pix blf_kerning(FontBLF *font, const GlyphBLF *g_prev, const Glyph
 
 BLI_INLINE GlyphBLF *blf_glyph_from_utf8_and_step(FontBLF *font,
                                                   GlyphCacheBLF *gc,
-                                                  GlyphBLF *g_prev,
+                                                  const GlyphBLF *g_prev,
                                                   const char *str,
                                                   size_t str_len,
                                                   size_t *i_p,
@@ -530,7 +530,7 @@ void blf_draw_svg_icon(FontBLF *font,
                        float x,
                        float y,
                        float size,
-                       float color[4],
+                       const float color[4],
                        float outline_alpha,
                        bool multicolor,
                        blender::FunctionRef<void(std::string &)> edit_source_cb)
@@ -782,7 +782,7 @@ void blf_font_draw_buffer(FontBLF *font, const char *str, const size_t str_len, 
 
 static bool blf_font_width_to_strlen_glyph_process(FontBLF *font,
                                                    GlyphCacheBLF *gc,
-                                                   GlyphBLF *g_prev,
+                                                   const GlyphBLF *g_prev,
                                                    GlyphBLF *g,
                                                    ft_pix *pen_x,
                                                    const int width_i)
@@ -817,7 +817,8 @@ static bool blf_font_width_to_strlen_glyph_process(FontBLF *font,
 size_t blf_font_width_to_strlen(
     FontBLF *font, const char *str, const size_t str_len, int width, int *r_width)
 {
-  GlyphBLF *g, *g_prev;
+  GlyphBLF *g;
+  const GlyphBLF *g_prev;
   ft_pix pen_x;
   ft_pix width_new;
   size_t i, i_prev;
@@ -866,11 +867,9 @@ size_t blf_font_width_to_rstrlen(
     s_prev = BLI_str_find_prev_char_utf8(s, str);
     i_prev = size_t(s_prev - str);
 
-    if (s_prev != nullptr) {
-      i_tmp = i_prev;
-      g_prev = blf_glyph_from_utf8_and_step(font, gc, nullptr, str, str_len, &i_tmp, nullptr);
-      BLI_assert(i_tmp == i);
-    }
+    i_tmp = i_prev;
+    g_prev = blf_glyph_from_utf8_and_step(font, gc, nullptr, str, str_len, &i_tmp, nullptr);
+    BLI_assert(i_tmp == i);
 
     if (blf_font_width_to_strlen_glyph_process(font, gc, g_prev, g, &pen_x, width)) {
       break;
@@ -895,11 +894,11 @@ static void blf_font_boundbox_ex(FontBLF *font,
                                  GlyphCacheBLF *gc,
                                  const char *str,
                                  const size_t str_len,
-                                 rcti *box,
+                                 rcti *r_box,
                                  ResultBLF *r_info,
                                  ft_pix pen_y)
 {
-  GlyphBLF *g = nullptr;
+  const GlyphBLF *g = nullptr;
   ft_pix pen_x = 0;
   size_t i = 0;
 
@@ -945,10 +944,10 @@ static void blf_font_boundbox_ex(FontBLF *font,
     box_ymax = 0;
   }
 
-  box->xmin = ft_pix_to_int_floor(box_xmin);
-  box->xmax = ft_pix_to_int_ceil(box_xmax);
-  box->ymin = ft_pix_to_int_floor(box_ymin);
-  box->ymax = ft_pix_to_int_ceil(box_ymax);
+  r_box->xmin = ft_pix_to_int_floor(box_xmin);
+  r_box->xmax = ft_pix_to_int_ceil(box_xmax);
+  r_box->ymin = ft_pix_to_int_floor(box_ymin);
+  r_box->ymax = ft_pix_to_int_ceil(box_ymax);
 
   if (r_info) {
     r_info->lines = 1;
@@ -1042,6 +1041,23 @@ float blf_font_fixed_width(FontBLF *font)
   return width;
 }
 
+int blf_font_glyph_advance(FontBLF *font, const char *str)
+{
+  GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
+  const uint charcode = BLI_str_utf8_as_unicode_safe(str);
+  const GlyphBLF *g = blf_glyph_ensure(font, gc, charcode);
+
+  if (UNLIKELY(g == nullptr)) {
+    blf_glyph_cache_release(font);
+    return 0;
+  }
+
+  const int glyph_advance = ft_pix_to_int(g->advance_x);
+
+  blf_glyph_cache_release(font);
+  return glyph_advance;
+}
+
 void blf_font_boundbox_foreach_glyph(FontBLF *font,
                                      const char *str,
                                      const size_t str_len,
@@ -1053,7 +1069,7 @@ void blf_font_boundbox_foreach_glyph(FontBLF *font,
     return;
   }
 
-  GlyphBLF *g = nullptr;
+  const GlyphBLF *g = nullptr;
   ft_pix pen_x = 0;
   size_t i = 0;
 
@@ -1156,14 +1172,14 @@ static bool blf_str_offset_foreach_glyph(const char * /*str*/,
 void blf_str_offset_to_glyph_bounds(FontBLF *font,
                                     const char *str,
                                     size_t str_offset,
-                                    rcti *glyph_bounds)
+                                    rcti *r_glyph_bounds)
 {
   StrOffsetToGlyphBounds_Data data{};
   data.str_offset = str_offset;
   data.bounds = {0};
 
   blf_font_boundbox_foreach_glyph(font, str, str_offset + 1, blf_str_offset_foreach_glyph, &data);
-  *glyph_bounds = data.bounds;
+  *r_glyph_bounds = data.bounds;
 }
 
 int blf_str_offset_to_cursor(FontBLF *font,
@@ -1250,7 +1266,7 @@ static void blf_font_wrap_apply(FontBLF *font,
                                 void *userdata)
 {
   GlyphBLF *g = nullptr;
-  GlyphBLF *g_prev = nullptr;
+  const GlyphBLF *g_prev = nullptr;
   ft_pix pen_x = 0;
   ft_pix pen_y = 0;
   size_t i = 0;

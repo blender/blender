@@ -64,8 +64,7 @@ BLI_NOINLINE static void do_surface_smooth_brush_mesh(const Depsgraph &depsgraph
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
-  const bke::AttributeAccessor attributes = mesh.attributes();
-  const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
+  const MeshAttributeData attribute_data(mesh.attributes());
 
   const PositionDeformData position_data(depsgraph, object);
   const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, object);
@@ -80,7 +79,7 @@ BLI_NOINLINE static void do_surface_smooth_brush_mesh(const Depsgraph &depsgraph
     const Span<int> verts = nodes[i].verts();
 
     const MutableSpan<float> factors = all_factors.as_mutable_span().slice(node_offsets[pos]);
-    fill_factor_from_hide_and_mask(mesh, verts, factors);
+    fill_factor_from_hide_and_mask(attribute_data.hide_vert, attribute_data.mask, verts, factors);
     filter_region_clip_factors(ss, position_data.eval, verts, factors);
     if (brush.flag & BRUSH_FRONTFACE) {
       calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
@@ -112,8 +111,12 @@ BLI_NOINLINE static void do_surface_smooth_brush_mesh(const Depsgraph &depsgraph
       const Span<float> factors = all_factors.as_span().slice(node_offsets[pos]);
 
       tls.vert_neighbors.resize(verts.size());
-      calc_vert_neighbors(
-          faces, corner_verts, vert_to_face_map, hide_poly, verts, tls.vert_neighbors);
+      calc_vert_neighbors(faces,
+                          corner_verts,
+                          vert_to_face_map,
+                          attribute_data.hide_poly,
+                          verts,
+                          tls.vert_neighbors);
 
       tls.average_positions.resize(verts.size());
       const MutableSpan<float3> average_positions = tls.average_positions;
@@ -143,8 +146,12 @@ BLI_NOINLINE static void do_surface_smooth_brush_mesh(const Depsgraph &depsgraph
           all_laplacian_disp.as_span(), verts, tls.laplacian_disp);
 
       tls.vert_neighbors.resize(verts.size());
-      calc_vert_neighbors(
-          faces, corner_verts, vert_to_face_map, hide_poly, verts, tls.vert_neighbors);
+      calc_vert_neighbors(faces,
+                          corner_verts,
+                          vert_to_face_map,
+                          attribute_data.hide_poly,
+                          verts,
+                          tls.vert_neighbors);
 
       tls.average_positions.resize(verts.size());
       const MutableSpan<float3> average_laplacian_disps = tls.average_positions;

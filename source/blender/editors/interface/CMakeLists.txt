@@ -29,6 +29,7 @@ set(INC_SYS
 )
 
 set(SRC
+  eyedroppers/eyedropper_bone.cc
   eyedroppers/eyedropper_color.cc
   eyedroppers/eyedropper_colorband.cc
   eyedroppers/eyedropper_datablock.cc

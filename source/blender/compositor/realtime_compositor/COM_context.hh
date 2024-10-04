@@ -85,8 +85,11 @@ class Context {
   virtual Result get_output_result() = 0;
 
   /* Get the result where the result of the compositor viewer should be written, given the domain
-   * of the result to be viewed and whether the output is a non-color data image. */
-  virtual Result get_viewer_output_result(Domain domain, bool is_data) = 0;
+   * of the result to be viewed, its precision, and whether the output is a non-color data image
+   * that should be displayed without view transform. */
+  virtual Result get_viewer_output_result(Domain domain,
+                                          bool is_data,
+                                          ResultPrecision precision) = 0;
 
   /* Get the texture where the given render pass is stored. This should be called by the Render
    * Layer node to populate its outputs. */

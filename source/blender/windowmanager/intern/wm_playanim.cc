@@ -33,7 +33,7 @@
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_math_vector_types.hh"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_system.h"
@@ -1583,6 +1583,9 @@ static GHOST_WindowHandle playanim_window_open(
   GHOST_GPUSettings gpusettings = {0};
   const eGPUBackendType gpu_backend = GPU_backend_type_selection_get();
   gpusettings.context_type = wm_ghost_drawing_context_type(gpu_backend);
+  gpusettings.preferred_device.index = U.gpu_preferred_index;
+  gpusettings.preferred_device.vendor_id = U.gpu_preferred_vendor_id;
+  gpusettings.preferred_device.device_id = U.gpu_preferred_device_id;
 
   {
     bool screen_size_valid = false;
@@ -1841,6 +1844,7 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
     GHOST_SetBacktraceHandler((GHOST_TBacktraceFn)BLI_system_backtrace);
 
     ps.ghost_data.system = GHOST_CreateSystem();
+    GPU_backend_ghost_system_set(ps.ghost_data.system);
 
     if (UNLIKELY(ps.ghost_data.system == nullptr)) {
       /* GHOST will have reported the back-ends that failed to load. */

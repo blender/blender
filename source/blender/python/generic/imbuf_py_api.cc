@@ -14,12 +14,12 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "py_capi_utils.h"
+#include "py_capi_utils.hh"
 
-#include "python_compat.h"
-#include "python_utildefines.h"
+#include "python_compat.hh"
+#include "python_utildefines.hh"
 
-#include "imbuf_py_api.h" /* own include */
+#include "imbuf_py_api.hh" /* own include */
 
 #include "../../imbuf/IMB_imbuf.hh"
 #include "../../imbuf/IMB_imbuf_types.hh"

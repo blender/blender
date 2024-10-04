@@ -38,12 +38,19 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(
           "Origin of the scaling for each element. If multiple elements are connected, their "
           "center is averaged");
-  b.add_input<decl::Vector>("Axis")
-      .default_value({1.0f, 0.0f, 0.0f})
-      .field_on_all()
-      .description("Direction in which to scale the element")
-      .make_available([](bNode &node) { node.custom2 = GEO_NODE_SCALE_ELEMENTS_SINGLE_AXIS; });
+  auto &axis = b.add_input<decl::Vector>("Axis")
+                   .default_value({1.0f, 0.0f, 0.0f})
+                   .field_on_all()
+                   .description("Direction in which to scale the element")
+                   .make_available(
+                       [](bNode &node) { node.custom2 = GEO_NODE_SCALE_ELEMENTS_SINGLE_AXIS; });
   b.add_output<decl::Geometry>("Geometry").propagate_all();
+
+  const bNode *node = b.node_or_null();
+  if (node != nullptr) {
+    const GeometryNodeScaleElementsMode mode = GeometryNodeScaleElementsMode(node->custom2);
+    axis.available(mode == GEO_NODE_SCALE_ELEMENTS_SINGLE_AXIS);
+  }
 };
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -56,20 +63,6 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   node->custom1 = int16_t(AttrDomain::Face);
   node->custom2 = GEO_NODE_SCALE_ELEMENTS_UNIFORM;
-}
-
-static void node_update(bNodeTree *ntree, bNode *node)
-{
-  bNodeSocket *geometry_socket = static_cast<bNodeSocket *>(node->inputs.first);
-  bNodeSocket *selection_socket = geometry_socket->next;
-  bNodeSocket *scale_float_socket = selection_socket->next;
-  bNodeSocket *center_socket = scale_float_socket->next;
-  bNodeSocket *axis_socket = center_socket->next;
-
-  const GeometryNodeScaleElementsMode mode = GeometryNodeScaleElementsMode(node->custom2);
-  const bool use_single_axis = mode == GEO_NODE_SCALE_ELEMENTS_SINGLE_AXIS;
-
-  bke::node_set_socket_availability(ntree, axis_socket, use_single_axis);
 }
 
 static Array<int> create_reverse_offsets(const Span<int> indices, const int items_num)
@@ -577,7 +570,6 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.draw_buttons = node_layout;
   ntype.initfunc = node_init;
-  ntype.updatefunc = node_update;
   blender::bke::node_register_type(&ntype);
 
   node_rna(ntype.rna_ext.srna);

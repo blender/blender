@@ -9,7 +9,7 @@
 #include "BKE_main.hh"
 #include "BLI_fileops.h"
 #include "BLI_map.hh"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_threads.h"
 #include "DNA_scene_types.h"

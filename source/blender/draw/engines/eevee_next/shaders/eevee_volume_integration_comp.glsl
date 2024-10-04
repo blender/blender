@@ -8,8 +8,8 @@
 /* Step 3 : Integrate for each froxel the final amount of light
  * scattered back to the viewer and the amount of transmittance. */
 
-#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_volume_lib.glsl)
+#include "draw_view_lib.glsl"
+#include "eevee_volume_lib.glsl"
 
 void main()
 {

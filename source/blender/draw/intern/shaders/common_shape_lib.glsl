@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 /**
  * Geometric shape structures.
  * Some constructors might seems redundant but are here to make the API cleaner and

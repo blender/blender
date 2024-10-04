@@ -83,7 +83,7 @@ static float from_16dot16(FT_Fixed value)
 /** \name Glyph Cache
  * \{ */
 
-static GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font)
+static GlyphCacheBLF *blf_glyph_cache_find(const FontBLF *font)
 {
   for (const std::unique_ptr<GlyphCacheBLF> &gc : font->cache) {
     if (gc->size == font->size && (gc->bold == ((font->flags & BLF_BOLD) != 0)) &&
@@ -1044,7 +1044,7 @@ static const FT_Var_Axis *blf_var_axis_by_tag(const FT_MM_Var *variations,
  * \param value: New float value. Converted to 16.16 and clamped within allowed range.
  * \return success if able to set this value.
  */
-static bool blf_glyph_set_variation_float(FontBLF *font,
+static bool blf_glyph_set_variation_float(const FontBLF *font,
                                           FT_Fixed coords[],
                                           uint32_t tag,
                                           float *value)
@@ -1068,7 +1068,7 @@ static bool blf_glyph_set_variation_float(FontBLF *font,
  * \param weight: Weight class value (1-1000 allowed, 100-900 typical).
  * \return value set (could be clamped), or current weight if the axis does not exist.
  */
-static float blf_glyph_set_variation_weight(FontBLF *font,
+static float blf_glyph_set_variation_weight(const FontBLF *font,
                                             FT_Fixed coords[],
                                             float current_weight,
                                             float target_weight)
@@ -1087,7 +1087,7 @@ static float blf_glyph_set_variation_weight(FontBLF *font,
  * \param degrees: Slant in clockwise (opposite to spec) degrees.
  * \return value set (could be clamped), or current slant if the axis does not exist.
  */
-static float blf_glyph_set_variation_slant(FontBLF *font,
+static float blf_glyph_set_variation_slant(const FontBLF *font,
                                            FT_Fixed coords[],
                                            float current_degrees,
                                            float target_degrees)
@@ -1106,7 +1106,7 @@ static float blf_glyph_set_variation_slant(FontBLF *font,
  * \param width: Glyph width value. 1.0 is normal, as per spec (which uses percent).
  * \return value set (could be clamped), or current width if the axis does not exist.
  */
-static float blf_glyph_set_variation_width(FontBLF *font,
+static float blf_glyph_set_variation_width(const FontBLF *font,
                                            FT_Fixed coords[],
                                            float current_width,
                                            float target_width)
@@ -1125,7 +1125,7 @@ static float blf_glyph_set_variation_width(FontBLF *font,
  * \param spacing: Glyph spacing value. 0.0 is normal, as per spec.
  * \return value set (could be clamped), or current spacing if the axis does not exist.
  */
-static float blf_glyph_set_variation_spacing(FontBLF *font,
+static float blf_glyph_set_variation_spacing(const FontBLF *font,
                                              FT_Fixed coords[],
                                              float current_spacing,
                                              float target_spacing)
@@ -1144,7 +1144,7 @@ static float blf_glyph_set_variation_spacing(FontBLF *font,
  * \param points: Non-zero size in typographic points.
  * \return success if able to set this value.
  */
-static bool blf_glyph_set_variation_optical_size(FontBLF *font,
+static bool blf_glyph_set_variation_optical_size(const FontBLF *font,
                                                  FT_Fixed coords[],
                                                  const float points)
 {
@@ -1445,29 +1445,29 @@ GlyphBLF::~GlyphBLF()
 /** \name Glyph Bounds Calculation
  * \{ */
 
-static void blf_glyph_calc_rect(rcti *rect, GlyphBLF *g, const int x, const int y)
+static void blf_glyph_calc_rect(const GlyphBLF *g, const int x, const int y, rcti *r_rect)
 {
-  rect->xmin = x + g->pos[0];
-  rect->xmax = rect->xmin + g->dims[0];
-  rect->ymin = y + g->pos[1];
-  rect->ymax = rect->ymin - g->dims[1];
+  r_rect->xmin = x + g->pos[0];
+  r_rect->xmax = r_rect->xmin + g->dims[0];
+  r_rect->ymin = y + g->pos[1];
+  r_rect->ymax = r_rect->ymin - g->dims[1];
 }
 
-static void blf_glyph_calc_rect_test(rcti *rect, GlyphBLF *g, const int x, const int y)
+static void blf_glyph_calc_rect_test(const GlyphBLF *g, const int x, const int y, rcti *r_rect)
 {
   /* Intentionally check with `g->advance`, because this is the
    * width used by BLF_width. This allows that the text slightly
    * overlaps the clipping border to achieve better alignment. */
-  rect->xmin = x + abs(g->pos[0]) + 1;
-  rect->xmax = x + std::min(ft_pix_to_int(g->advance_x), g->dims[0]);
-  rect->ymin = y;
-  rect->ymax = rect->ymin - g->dims[1];
+  r_rect->xmin = x + abs(g->pos[0]) + 1;
+  r_rect->xmax = x + std::min(ft_pix_to_int(g->advance_x), g->dims[0]);
+  r_rect->ymin = y;
+  r_rect->ymax = r_rect->ymin - g->dims[1];
 }
 
 static void blf_glyph_calc_rect_shadow(
-    rcti *rect, GlyphBLF *g, const int x, const int y, FontBLF *font)
+    const GlyphBLF *g, const int x, const int y, const FontBLF *font, rcti *r_rect)
 {
-  blf_glyph_calc_rect(rect, g, x + font->shadow_x, y + font->shadow_y);
+  blf_glyph_calc_rect(g, x + font->shadow_x, y + font->shadow_y, r_rect);
 }
 
 /** \} */
@@ -1557,7 +1557,7 @@ void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, const int x, 
     }
 
     rcti rect_test;
-    blf_glyph_calc_rect_test(&rect_test, g, int(float(x) * xa), int(float(y) * ya));
+    blf_glyph_calc_rect_test(g, int(float(x) * xa), int(float(y) * ya), &rect_test);
     BLI_rcti_translate(&rect_test, font->pos[0], font->pos[1]);
     if (!BLI_rcti_inside_rcti(&font->clip_rec, &rect_test)) {
       return;
@@ -1571,7 +1571,7 @@ void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, const int x, 
 
   if (font->flags & BLF_SHADOW) {
     rcti rect_ofs;
-    blf_glyph_calc_rect_shadow(&rect_ofs, g, x, y, font);
+    blf_glyph_calc_rect_shadow(g, x, y, font, &rect_ofs);
 
     blf_texture_draw(g,
                      font->shadow_color,
@@ -1583,7 +1583,7 @@ void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, const int x, 
   }
 
   rcti rect;
-  blf_glyph_calc_rect(&rect, g, x, y);
+  blf_glyph_calc_rect(g, x, y, &rect);
   blf_texture_draw(
       g, font->color, FontShadowType::None, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 }

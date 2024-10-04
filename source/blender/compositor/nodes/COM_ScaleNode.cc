@@ -66,8 +66,8 @@ void ScaleNode::convert_to_operations(NodeConverter &converter,
           ELEM(bnode->custom2, CMP_NODE_SCALE_RENDER_SIZE_FIT, CMP_NODE_SCALE_RENDER_SIZE_CROP));
       operation->set_is_crop(bnode->custom2 == CMP_NODE_SCALE_RENDER_SIZE_CROP);
       operation->set_offset(bnode->custom3, bnode->custom4);
-      operation->set_new_width(rd->xsch * render_size_factor);
-      operation->set_new_height(rd->ysch * render_size_factor);
+      operation->set_new_width(int(math::round(rd->xsch * render_size_factor)));
+      operation->set_new_height(int(math::round(rd->ysch * render_size_factor)));
       converter.add_operation(operation);
 
       converter.map_input_socket(input_socket, operation->get_input_socket(0));

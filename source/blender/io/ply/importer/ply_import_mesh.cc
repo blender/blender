@@ -99,8 +99,8 @@ Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
     uv_map.finish();
   }
 
-  /* If we have custom vertex normals, set them (note: important to do this
-   * after initializing the loops). */
+  /* If we have custom vertex normals, set them
+   * (NOTE: important to do this after initializing the loops). */
   bool set_custom_normals_for_verts = false;
   if (!data.vertex_normals.is_empty()) {
     if (!data.face_sizes.is_empty()) {

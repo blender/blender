@@ -7,12 +7,14 @@
  */
 
 #include "ED_screen.hh"
+#include "ED_screen_types.hh"
 
 #include "GPU_batch_presets.hh"
 #include "GPU_immediate.hh"
 #include "GPU_platform.hh"
 #include "GPU_state.hh"
 
+#include "BKE_global.hh"
 #include "BKE_screen.hh"
 
 #include "BLF_api.hh"
@@ -27,9 +29,6 @@
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
-
-#include "RNA_access.hh"
-#include "RNA_enum_types.hh"
 
 #include "screen_intern.hh"
 
@@ -170,6 +169,38 @@ void ED_screen_draw_edges(wmWindow *win)
     return;
   }
 
+  ARegion *region = screen->active_region;
+  ScrArea *active_area = nullptr;
+
+  if (region) {
+    /* Find active area from active region. */
+    const int pos[2] = {BLI_rcti_cent_x(&region->winrct), BLI_rcti_cent_y(&region->winrct)};
+    active_area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, pos);
+  }
+
+  if (!active_area) {
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      AZone *zone = ED_area_actionzone_find_xy(area, win->eventstate->xy);
+      /* Get area from action zone, if not scroll-bar. */
+      if (zone && zone->type != AZONE_REGION_SCROLL) {
+        active_area = area;
+        break;
+      }
+    }
+  }
+
+  if (!active_area && G.moving & G_TRANSFORM_WM) {
+    active_area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, win->eventstate->xy);
+    /* We don't want an active area if at a border edge. */
+    if (active_area) {
+      rcti rect = active_area->totrct;
+      BLI_rcti_pad(&rect, -BORDERPADDING, -BORDERPADDING);
+      if (!BLI_rcti_isect_pt_v(&rect, win->eventstate->xy)) {
+        active_area = nullptr;
+      }
+    }
+  }
+
   const blender::int2 win_size = WM_window_native_pixel_size(win);
   float col[4], corner_scale, edge_thickness;
   int verts_per_corner = 0;
@@ -198,7 +229,7 @@ void ED_screen_draw_edges(wmWindow *win)
     GPU_scissor_test(true);
   }
 
-  UI_GetThemeColor4fv(TH_EDITOR_OUTLINE, col);
+  UI_GetThemeColor4fv(TH_EDITOR_BORDER, col);
   col[3] = 1.0f;
   corner_scale = U.pixelsize * 8.0f;
   edge_thickness = corner_scale * 0.21f;
@@ -215,6 +246,28 @@ void ED_screen_draw_edges(wmWindow *win)
     drawscredge_area(area, win_size[0], win_size[1], edge_thickness);
   }
 
+  float outline1[4];
+  float outline2[4];
+  UI_GetThemeColor4fv(TH_EDITOR_OUTLINE, outline1);
+  UI_GetThemeColor4fv(TH_EDITOR_OUTLINE_ACTIVE, outline2);
+  UI_draw_roundbox_corner_set(UI_CNR_ALL);
+  const float offset = UI_SCALE_FAC * 1.34f;
+
+  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+    rctf rectf2 = {float(area->totrct.xmin) + offset - 1.0f,
+                   float(area->totrct.xmax) - offset + 1.5f,
+                   float(area->totrct.ymin) + offset - 1.0f,
+                   float(area->totrct.ymax) - offset + 1.0f};
+
+    UI_draw_roundbox_4fv_ex(&rectf2,
+                            nullptr,
+                            nullptr,
+                            1.0f,
+                            (area == active_area) ? outline2 : outline1,
+                            U.pixelsize,
+                            6.0f * U.pixelsize);
+  }
+
   GPU_blend(GPU_BLEND_NONE);
 
   if (U.pixelsize <= 1.0f) {
@@ -222,12 +275,41 @@ void ED_screen_draw_edges(wmWindow *win)
   }
 }
 
-static void screen_draw_area_drag_tip(int x, int y, const ScrArea *source, const std::string &hint)
+void screen_draw_move_highlight(bScreen *screen, eScreenAxis dir_axis)
 {
-  if (!U.experimental.use_docking) {
-    return;
+  rctf rect = {SHRT_MAX, SHRT_MIN, SHRT_MAX, SHRT_MIN};
+
+  LISTBASE_FOREACH (const ScrEdge *, edge, &screen->edgebase) {
+    if (edge->v1->editflag && edge->v2->editflag) {
+      if (dir_axis == SCREEN_AXIS_H) {
+        rect.xmin = std::min({rect.xmin, float(edge->v1->vec.x), float(edge->v2->vec.x)});
+        rect.xmax = std::max({rect.xmax, float(edge->v1->vec.x), float(edge->v2->vec.x)});
+        rect.ymin = rect.ymax = float(edge->v1->vec.y);
+      }
+      else {
+        rect.ymin = std::min({rect.ymin, float(edge->v1->vec.y), float(edge->v2->vec.y)});
+        rect.ymax = std::max({rect.ymax, float(edge->v1->vec.y), float(edge->v2->vec.y)});
+        rect.xmin = rect.xmax = float(edge->v1->vec.x);
+      }
+    };
   }
 
+  if (dir_axis == SCREEN_AXIS_H) {
+    BLI_rctf_pad(&rect, 0.0f, 2.5f * U.pixelsize);
+  }
+  else {
+    BLI_rctf_pad(&rect, 2.5f * U.pixelsize, 0.0f);
+  }
+
+  float inner[4] = {1.0f, 1.0f, 1.0f, 0.7f};
+  float outline[4] = {0.0f, 0.0f, 0.0f, 0.8f};
+  UI_draw_roundbox_corner_set(UI_CNR_ALL);
+  UI_draw_roundbox_4fv_ex(
+      &rect, inner, nullptr, 1.0f, outline, 2.0f * U.pixelsize, 2.5f * U.pixelsize);
+}
+
+static void screen_draw_area_drag_tip(int x, int y, const ScrArea *source, const std::string &hint)
+{
   const char *area_name = IFACE_(ED_area_name(source).c_str());
   const uiFontStyle *fstyle = UI_FSTYLE_TOOLTIP;
   const bTheme *btheme = UI_GetTheme();
@@ -360,28 +442,6 @@ void screen_draw_join_highlight(const wmWindow *win, ScrArea *sa1, ScrArea *sa2,
 
   /* Outline the combined area. */
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
-
-  if (!U.experimental.use_docking) {
-    float inner1[4] = {1.0f, 1.0f, 1.0f, 0.10f};
-    rctf source = {std::max(float(sa1->totrct.xmin), combined.xmin),
-                   std::min(float(sa1->totrct.xmax), combined.xmax),
-                   std::max(float(sa1->totrct.ymin), combined.ymin),
-                   std::min(float(sa1->totrct.ymax), combined.ymax)};
-    UI_draw_roundbox_4fv_ex(&source, inner1, nullptr, 1.0f, nullptr, 1.0f, 0.0f);
-
-    float inner2[4] = {0.0f, 0.0f, 0.0f, 0.25f};
-    rctf dest = {std::max(float(sa2->totrct.xmin), combined.xmin),
-                 std::min(float(sa2->totrct.xmax), combined.xmax),
-                 std::max(float(sa2->totrct.ymin), combined.ymin),
-                 std::min(float(sa2->totrct.ymax), combined.ymax)};
-    UI_draw_roundbox_4fv_ex(&dest, inner2, nullptr, 1.0f, nullptr, 0.0f, 0.0f);
-
-    float outline[4] = {1.0f, 1.0f, 1.0f, 0.8f};
-    UI_draw_roundbox_4fv_ex(
-        &combined, nullptr, nullptr, 1.0f, outline, U.pixelsize, 6 * U.pixelsize);
-    return;
-  }
-
   float outline[4] = {1.0f, 1.0f, 1.0f, 0.4f};
   float inner[4] = {1.0f, 1.0f, 1.0f, 0.10f};
   UI_draw_roundbox_4fv_ex(&combined, inner, nullptr, 1.0f, outline, U.pixelsize, 6 * U.pixelsize);
@@ -400,7 +460,7 @@ void screen_draw_dock_preview(
   float outline[4] = {1.0f, 1.0f, 1.0f, 0.4f};
   float inner[4] = {1.0f, 1.0f, 1.0f, 0.1f};
   float border[4];
-  UI_GetThemeColor4fv(TH_EDITOR_OUTLINE, border);
+  UI_GetThemeColor4fv(TH_EDITOR_BORDER, border);
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
   float half_line_width = 2.0f * U.pixelsize;
 
@@ -463,7 +523,7 @@ void screen_draw_split_preview(ScrArea *area, const eScreenAxis dir_axis, const 
   float outline[4] = {1.0f, 1.0f, 1.0f, 0.4f};
   float inner[4] = {1.0f, 1.0f, 1.0f, 0.10f};
   float border[4];
-  UI_GetThemeColor4fv(TH_EDITOR_OUTLINE, border);
+  UI_GetThemeColor4fv(TH_EDITOR_BORDER, border);
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
 
   rctf rect;

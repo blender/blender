@@ -1000,15 +1000,13 @@ inline GreasePencilDrawingBase *GreasePencil::drawing(const int64_t index)
   return this->drawings()[index];
 }
 
-inline const blender::bke::greasepencil::Layer *GreasePencil::layer(const int64_t index) const
+inline const blender::bke::greasepencil::Layer &GreasePencil::layer(const int64_t index) const
 {
-  BLI_assert(index >= 0 && index < this->layers().size());
-  return this->layers()[index];
+  return *this->layers()[index];
 }
-inline blender::bke::greasepencil::Layer *GreasePencil::layer(const int64_t index)
+inline blender::bke::greasepencil::Layer &GreasePencil::layer(const int64_t index)
 {
-  BLI_assert(index >= 0 && index < this->layers().size());
-  return this->layers_for_write()[index];
+  return *this->layers_for_write()[index];
 }
 
 inline const blender::bke::greasepencil::LayerGroup &GreasePencil::root_group() const
@@ -1035,9 +1033,17 @@ bool BKE_grease_pencil_drawing_attribute_required(const GreasePencilDrawing *, c
 void *BKE_grease_pencil_add(Main *bmain, const char *name);
 GreasePencil *BKE_grease_pencil_new_nomain();
 GreasePencil *BKE_grease_pencil_copy_for_eval(const GreasePencil *grease_pencil_src);
+/** Copy everything except the layer tree and the drawings. */
+void BKE_grease_pencil_copy_parameters(const GreasePencil &src, GreasePencil &dst);
+void BKE_grease_pencil_copy_layer_parameters(const blender::bke::greasepencil::Layer &src,
+                                             blender::bke::greasepencil::Layer &dst);
+void BKE_grease_pencil_copy_layer_group_parameters(
+    const blender::bke::greasepencil::LayerGroup &src,
+    blender::bke::greasepencil::LayerGroup &dst);
+
 /**
  * Move data from a grease pencil outside of the main data-base into a grease pencil in the
- * data-base. Takes ownership of the source mesh. */
+ * data-base. Takes ownership of the source grease pencil. */
 void BKE_grease_pencil_nomain_to_grease_pencil(GreasePencil *grease_pencil_src,
                                                GreasePencil *grease_pencil_dst);
 

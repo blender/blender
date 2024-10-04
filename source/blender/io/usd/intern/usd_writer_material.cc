@@ -23,7 +23,7 @@
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_memory_utils.hh"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_set.hh"
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"

@@ -2,8 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(gpu_shader_common_hash.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
+#include "gpu_shader_common_hash.glsl"
+#include "gpu_shader_compositor_texture_utilities.glsl"
 
 /* A model that approximates lens distortion parameterized by a distortion parameter and dependent
  * on the squared distance to the center of the image. The distorted pixel is then computed as the

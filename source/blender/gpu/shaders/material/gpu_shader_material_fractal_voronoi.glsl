@@ -2,9 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(gpu_shader_common_hash.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_common_math_utils.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_material_voronoi.glsl)
+#include "gpu_shader_common_hash.glsl"
+#include "gpu_shader_common_math_utils.glsl"
+#include "gpu_shader_material_voronoi.glsl"
 
 /* TODO(jbakker): Deduplicate code when OpenGL backend has been removed.
  * `fractal_voronoi_x_fx` functions are identical, except for the input parameter.

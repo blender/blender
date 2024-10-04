@@ -18,58 +18,102 @@ NODE_STORAGE_FUNCS(NodeGeometryCurvePrimitiveQuad)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>("Width")
-      .default_value(2.0f)
-      .min(0.0f)
-      .subtype(PROP_DISTANCE)
-      .description("The X axis size of the shape");
-  b.add_input<decl::Float>("Height")
-      .default_value(2.0f)
-      .min(0.0f)
-      .subtype(PROP_DISTANCE)
-      .description("The Y axis size of the shape");
-  b.add_input<decl::Float>("Bottom Width")
-      .default_value(4.0f)
-      .min(0.0f)
-      .subtype(PROP_DISTANCE)
-      .description("The X axis size of the shape");
-  b.add_input<decl::Float>("Top Width")
-      .default_value(2.0f)
-      .min(0.0f)
-      .subtype(PROP_DISTANCE)
-      .description("The X axis size of the shape");
-  b.add_input<decl::Float>("Offset")
-      .default_value(1.0f)
-      .subtype(PROP_DISTANCE)
-      .description(
-          "For Parallelogram, the relative X difference between the top and bottom edges. For "
-          "Trapezoid, the amount to move the top edge in the positive X axis");
-  b.add_input<decl::Float>("Bottom Height")
-      .default_value(3.0f)
-      .min(0.0f)
-      .subtype(PROP_DISTANCE)
-      .description("The distance between the bottom point and the X axis");
-  b.add_input<decl::Float>("Top Height")
-      .default_value(1.0f)
-      .subtype(PROP_DISTANCE)
-      .description("The distance between the top point and the X axis");
-  b.add_input<decl::Vector>("Point 1")
-      .default_value({-1.0f, -1.0f, 0.0f})
-      .subtype(PROP_TRANSLATION)
-      .description("The exact location of the point to use");
-  b.add_input<decl::Vector>("Point 2")
-      .default_value({1.0f, -1.0f, 0.0f})
-      .subtype(PROP_TRANSLATION)
-      .description("The exact location of the point to use");
-  b.add_input<decl::Vector>("Point 3")
-      .default_value({1.0f, 1.0f, 0.0f})
-      .subtype(PROP_TRANSLATION)
-      .description("The exact location of the point to use");
-  b.add_input<decl::Vector>("Point 4")
-      .default_value({-1.0f, 1.0f, 0.0f})
-      .subtype(PROP_TRANSLATION)
-      .description("The exact location of the point to use");
+  auto &width = b.add_input<decl::Float>("Width")
+                    .default_value(2.0f)
+                    .min(0.0f)
+                    .subtype(PROP_DISTANCE)
+                    .description("The X axis size of the shape");
+  auto &height = b.add_input<decl::Float>("Height")
+                     .default_value(2.0f)
+                     .min(0.0f)
+                     .subtype(PROP_DISTANCE)
+                     .description("The Y axis size of the shape")
+                     .available(false);
+  auto &bottom = b.add_input<decl::Float>("Bottom Width")
+                     .default_value(4.0f)
+                     .min(0.0f)
+                     .subtype(PROP_DISTANCE)
+                     .description("The X axis size of the shape")
+                     .available(false);
+  auto &top = b.add_input<decl::Float>("Top Width")
+                  .default_value(2.0f)
+                  .min(0.0f)
+                  .subtype(PROP_DISTANCE)
+                  .description("The X axis size of the shape")
+                  .available(false);
+  auto &offset =
+      b.add_input<decl::Float>("Offset")
+          .default_value(1.0f)
+          .subtype(PROP_DISTANCE)
+          .description(
+              "For Parallelogram, the relative X difference between the top and bottom edges. For "
+              "Trapezoid, the amount to move the top edge in the positive X axis")
+          .available(false);
+  auto &bottom_height = b.add_input<decl::Float>("Bottom Height")
+                            .default_value(3.0f)
+                            .min(0.0f)
+                            .subtype(PROP_DISTANCE)
+                            .description("The distance between the bottom point and the X axis")
+                            .available(false);
+  auto &top_height = b.add_input<decl::Float>("Top Height")
+                         .default_value(1.0f)
+                         .subtype(PROP_DISTANCE)
+                         .description("The distance between the top point and the X axis")
+                         .available(false);
+  auto &p1 = b.add_input<decl::Vector>("Point 1")
+                 .default_value({-1.0f, -1.0f, 0.0f})
+                 .subtype(PROP_TRANSLATION)
+                 .description("The exact location of the point to use")
+                 .available(false);
+  auto &p2 = b.add_input<decl::Vector>("Point 2")
+                 .default_value({1.0f, -1.0f, 0.0f})
+                 .subtype(PROP_TRANSLATION)
+                 .description("The exact location of the point to use")
+                 .available(false);
+  auto &p3 = b.add_input<decl::Vector>("Point 3")
+                 .default_value({1.0f, 1.0f, 0.0f})
+                 .subtype(PROP_TRANSLATION)
+                 .description("The exact location of the point to use")
+                 .available(false);
+  auto &p4 = b.add_input<decl::Vector>("Point 4")
+                 .default_value({-1.0f, 1.0f, 0.0f})
+                 .subtype(PROP_TRANSLATION)
+                 .description("The exact location of the point to use")
+                 .available(false);
   b.add_output<decl::Geometry>("Curve");
+
+  const bNode *node = b.node_or_null();
+  if (node != nullptr) {
+    const NodeGeometryCurvePrimitiveQuad &storage = node_storage(*node);
+    switch (GeometryNodeCurvePrimitiveQuadMode(storage.mode)) {
+      case GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_RECTANGLE:
+        width.available(true);
+        height.available(true);
+        break;
+      case GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_PARALLELOGRAM:
+        width.available(true);
+        height.available(true);
+        offset.available(true);
+        break;
+      case GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_TRAPEZOID:
+        bottom.available(true);
+        top.available(true);
+        offset.available(true);
+        height.available(true);
+        break;
+      case GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_KITE:
+        width.available(true);
+        bottom_height.available(true);
+        top_height.available(true);
+        break;
+      case GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_POINTS:
+        p1.available(true);
+        p2.available(true);
+        p3.available(true);
+        p4.available(true);
+        break;
+    }
+  }
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -82,46 +126,6 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   NodeGeometryCurvePrimitiveQuad *data = MEM_cnew<NodeGeometryCurvePrimitiveQuad>(__func__);
   data->mode = GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_RECTANGLE;
   node->storage = data;
-}
-
-static void node_update(bNodeTree *ntree, bNode *node)
-{
-  const NodeGeometryCurvePrimitiveQuad &storage = node_storage(*node);
-  GeometryNodeCurvePrimitiveQuadMode mode = GeometryNodeCurvePrimitiveQuadMode(storage.mode);
-
-  bNodeSocket *width = static_cast<bNodeSocket *>(node->inputs.first);
-  bNodeSocket *height = width->next;
-  bNodeSocket *bottom = height->next;
-  bNodeSocket *top = bottom->next;
-  bNodeSocket *offset = top->next;
-  bNodeSocket *bottom_height = offset->next;
-  bNodeSocket *top_height = bottom_height->next;
-  bNodeSocket *p1 = top_height->next;
-  bNodeSocket *p2 = p1->next;
-  bNodeSocket *p3 = p2->next;
-  bNodeSocket *p4 = p3->next;
-
-  Vector<bNodeSocket *> available_sockets;
-
-  if (mode == GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_RECTANGLE) {
-    available_sockets.extend({width, height});
-  }
-  else if (mode == GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_PARALLELOGRAM) {
-    available_sockets.extend({width, height, offset});
-  }
-  else if (mode == GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_TRAPEZOID) {
-    available_sockets.extend({bottom, top, offset, height});
-  }
-  else if (mode == GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_KITE) {
-    available_sockets.extend({width, bottom_height, top_height});
-  }
-  else if (mode == GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_POINTS) {
-    available_sockets.extend({p1, p2, p3, p4});
-  }
-
-  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-    bke::node_set_socket_availability(ntree, sock, available_sockets.contains(sock));
-  }
 }
 
 class SocketSearchOp {
@@ -311,7 +315,6 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
-  ntype.updatefunc = node_update;
   ntype.initfunc = node_init;
   blender::bke::node_type_storage(&ntype,
                                   "NodeGeometryCurvePrimitiveQuad",

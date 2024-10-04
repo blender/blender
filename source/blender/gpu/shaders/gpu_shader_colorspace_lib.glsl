@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 /* Undefine the macro that avoids compilation errors. */
 #undef blender_srgb_to_framebuffer_space
 

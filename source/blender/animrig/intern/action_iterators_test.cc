@@ -55,7 +55,7 @@ TEST_F(ActionIteratorsTest, iterate_all_fcurves_of_slot)
 
   /* Try iterating an empty action. */
   blender::Vector<FCurve *> no_fcurves;
-  action_foreach_fcurve(
+  foreach_fcurve_in_action_slot(
       *action, cube_slot.handle, [&](FCurve &fcurve) { no_fcurves.append(&fcurve); });
 
   ASSERT_TRUE(no_fcurves.is_empty());
@@ -80,7 +80,7 @@ TEST_F(ActionIteratorsTest, iterate_all_fcurves_of_slot)
 
   /* Get all FCurves. */
   blender::Vector<FCurve *> cube_fcurves;
-  action_foreach_fcurve(
+  foreach_fcurve_in_action_slot(
       *action, cube_slot.handle, [&](FCurve &fcurve) { cube_fcurves.append(&fcurve); });
 
   ASSERT_EQ(cube_fcurves.size(), 3);
@@ -90,7 +90,7 @@ TEST_F(ActionIteratorsTest, iterate_all_fcurves_of_slot)
 
   /* Get only FCurves with index 0 which should be 1. */
   blender::Vector<FCurve *> monkey_fcurves;
-  action_foreach_fcurve(*action, monkey_slot.handle, [&](FCurve &fcurve) {
+  foreach_fcurve_in_action_slot(*action, monkey_slot.handle, [&](FCurve &fcurve) {
     if (fcurve.array_index == 0) {
       monkey_fcurves.append(&fcurve);
     }
@@ -102,9 +102,9 @@ TEST_F(ActionIteratorsTest, iterate_all_fcurves_of_slot)
   /* Slots handles are just numbers. Passing in a slot handle that doesn't exist should return
    * nothing. */
   blender::Vector<FCurve *> invalid_slot_fcurves;
-  action_foreach_fcurve(*action, monkey_slot.handle + cube_slot.handle, [&](FCurve &fcurve) {
-    invalid_slot_fcurves.append(&fcurve);
-  });
+  foreach_fcurve_in_action_slot(*action,
+                                monkey_slot.handle + cube_slot.handle,
+                                [&](FCurve &fcurve) { invalid_slot_fcurves.append(&fcurve); });
   ASSERT_TRUE(invalid_slot_fcurves.is_empty());
 }
 
@@ -122,10 +122,12 @@ TEST_F(ActionIteratorsTest, foreach_action_slot_use_with_references)
 
   std::optional<ActionSlotAssignmentResult> slot_assignment_result;
 
+  bool all_assigns_ok = true;
   const auto assign_other_action =
       [&](bAction *&action_ptr_ref, slot_handle_t &slot_handle_ref, char *slot_name) -> bool {
     /* Assign the other Action. */
-    generic_assign_action(cube->id, &other_action, action_ptr_ref, slot_handle_ref, slot_name);
+    all_assigns_ok &= generic_assign_action(
+        cube->id, &other_action, action_ptr_ref, slot_handle_ref, slot_name);
 
     /* Assign the slot of the other Action. */
     slot_assignment_result = generic_assign_action_slot(
@@ -135,6 +137,7 @@ TEST_F(ActionIteratorsTest, foreach_action_slot_use_with_references)
   };
 
   foreach_action_slot_use_with_references(cube->id, assign_other_action);
+  ASSERT_TRUE(all_assigns_ok);
 
   /* Check the result, the slot assignment should have been changed. */
   ASSERT_TRUE(slot_assignment_result.has_value());

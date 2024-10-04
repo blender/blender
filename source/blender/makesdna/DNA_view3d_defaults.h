@@ -61,6 +61,10 @@
  \
     .gpencil_paper_opacity = 0.5f, \
     .gpencil_grid_opacity = 0.9f, \
+    .gpencil_grid_color = {0.5f, 0.5f, 0.5f}, \
+    .gpencil_grid_scale = {1.0f, 1.0f}, \
+    .gpencil_grid_offset = {0.0f, 0.0f}, \
+    .gpencil_grid_subdivisions = 4, \
     .gpencil_vertex_paint_opacity = 1.0f, \
     .normals_constant_screen_size = 7.0f, \
   }

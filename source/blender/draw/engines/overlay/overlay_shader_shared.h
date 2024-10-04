@@ -69,8 +69,8 @@ BLI_STATIC_ASSERT_ALIGN(OVERLAY_GridData, 16)
 /* Keep the same values as in `draw_cache_impl_curves.cc` */
 #  define EDIT_CURVES_NURBS_CONTROL_POINT (1u)
 #  define EDIT_CURVES_BEZIER_HANDLE (1u << 1)
-#  define EDIT_CURVES_LEFT_HANDLE_TYPES_SHIFT (6u)
-#  define EDIT_CURVES_RIGHT_HANDLE_TYPES_SHIFT (4u)
+#  define EDIT_CURVES_ACTIVE_HANDLE (1u << 2)
+#  define EDIT_CURVES_HANDLE_TYPES_SHIFT (4u)
 /* Keep the same values as in `draw_cache_imp_curve.c` */
 #  define ACTIVE_NURB (1u << 2)
 #  define BEZIER_HANDLE (1u << 3)

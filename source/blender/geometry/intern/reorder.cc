@@ -48,18 +48,18 @@ static void reorder_attributes_group_to_group(const bke::AttributeAccessor src_a
                                               const Span<int> old_by_new_map,
                                               bke::MutableAttributeAccessor dst_attributes)
 {
-  src_attributes.for_all([&](const StringRef id, const bke::AttributeMetaData meta_data) {
-    if (meta_data.domain != domain) {
-      return true;
+  src_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (iter.domain != domain) {
+      return;
     }
-    if (meta_data.data_type == CD_PROP_STRING) {
-      return true;
+    if (iter.data_type == CD_PROP_STRING) {
+      return;
     }
-    const GVArray src = *src_attributes.lookup(id, domain);
+    const GVArray src = *iter.get(domain);
     bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
-        id, domain, meta_data.data_type);
+        iter.name, domain, iter.data_type);
     if (!dst) {
-      return true;
+      return;
     }
 
     threading::parallel_for(old_by_new_map.index_range(), 1024, [&](const IndexRange range) {
@@ -70,7 +70,6 @@ static void reorder_attributes_group_to_group(const bke::AttributeAccessor src_a
     });
 
     dst.finish();
-    return true;
   });
 }
 
@@ -217,18 +216,17 @@ static void clean_unused_attributes(const bke::AttributeFilter &attribute_filter
                                     bke::MutableAttributeAccessor attributes)
 {
   Vector<std::string> unused_ids;
-  attributes.for_all([&](const StringRef id, const bke::AttributeMetaData meta_data) {
-    if (!bke::attribute_name_is_anonymous(id)) {
-      return true;
+  attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (!bke::attribute_name_is_anonymous(iter.name)) {
+      return;
     }
-    if (meta_data.data_type == CD_PROP_STRING) {
-      return true;
+    if (iter.data_type == CD_PROP_STRING) {
+      return;
     }
-    if (!attribute_filter.allow_skip(id)) {
-      return true;
+    if (!attribute_filter.allow_skip(iter.name)) {
+      return;
     }
-    unused_ids.append(id);
-    return true;
+    unused_ids.append(iter.name);
   });
 
   for (const std::string &unused_id : unused_ids) {

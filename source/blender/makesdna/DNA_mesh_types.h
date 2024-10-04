@@ -104,6 +104,8 @@ typedef struct Mesh {
   /**
    * The index of the active attribute in the UI. The attribute list is a combination of the
    * generic type attributes from vertex, edge, face, and corner custom data.
+   *
+   * Set to -1 when none is active.
    */
   int attributes_active_index;
 

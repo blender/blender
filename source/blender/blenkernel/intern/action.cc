@@ -65,12 +65,15 @@
 #include "BLO_read_write.hh"
 
 #include "ANIM_action.hh"
+#include "ANIM_action_legacy.hh"
 #include "ANIM_bone_collections.hh"
 #include "ANIM_bonecolor.hh"
 
 #include "CLG_log.h"
 
 static CLG_LogRef LOG = {"bke.action"};
+
+using namespace blender;
 
 /* *********************** NOTE ON POSE AND ACTION **********************
  *
@@ -802,28 +805,21 @@ bAction *BKE_action_add(Main *bmain, const char name[])
 
 bActionGroup *get_active_actiongroup(bAction *act)
 {
-  bActionGroup *agrp = nullptr;
-
-  if (act && act->groups.first) {
-    for (agrp = static_cast<bActionGroup *>(act->groups.first); agrp; agrp = agrp->next) {
-      if (agrp->flag & AGRP_ACTIVE) {
-        break;
-      }
+  /* TODO: move this logic to the animrig::ChannelBag struct and unify with code
+   * that uses direct access to the flags. */
+  for (bActionGroup *agrp : animrig::legacy::channel_groups_all(act)) {
+    if (agrp->flag & AGRP_ACTIVE) {
+      return agrp;
     }
   }
-
-  return agrp;
+  return nullptr;
 }
 
 void set_active_action_group(bAction *act, bActionGroup *agrp, short select)
 {
-  /* sanity checks */
-  if (act == nullptr) {
-    return;
-  }
-
-  /* Deactivate all others */
-  LISTBASE_FOREACH (bActionGroup *, grp, &act->groups) {
+  /* TODO: move this logic to the animrig::ChannelBag struct and unify with code
+   * that uses direct access to the flags. */
+  for (bActionGroup *grp : animrig::legacy::channel_groups_all(act)) {
     if ((grp == agrp) && (select)) {
       grp->flag |= AGRP_ACTIVE;
     }
@@ -900,6 +896,8 @@ bActionGroup *action_groups_add_new(bAction *act, const char name[])
     return nullptr;
   }
 
+  BLI_assert(act->wrap().is_action_legacy());
+
   /* allocate a new one */
   agrp = static_cast<bActionGroup *>(MEM_callocN(sizeof(bActionGroup), "bActionGroup"));
 
@@ -922,6 +920,8 @@ void action_groups_add_channel(bAction *act, bActionGroup *agrp, FCurve *fcurve)
   if (ELEM(nullptr, act, agrp, fcurve)) {
     return;
   }
+
+  BLI_assert(act->wrap().is_action_legacy());
 
   /* if no channels anywhere, just add to two lists at the same time */
   if (BLI_listbase_is_empty(&act->curves)) {
@@ -987,9 +987,19 @@ void action_groups_add_channel(bAction *act, bActionGroup *agrp, FCurve *fcurve)
 void BKE_action_groups_reconstruct(bAction *act)
 {
   /* Sanity check. */
-  if (ELEM(nullptr, act, act->groups.first)) {
+  if (!act) {
     return;
   }
+
+  if (BLI_listbase_is_empty(&act->groups)) {
+    /* NOTE: this also includes layered Actions, as act->groups is the legacy storage for groups.
+     * Layered Actions should never have to deal with 'reconstructing' groups, as arbitrarily
+     * shuffling of the underlying data isn't allowed, and the available methods for modifying
+     * F-Curves/Groups already ensure that the data is valid when they return. */
+    return;
+  }
+
+  BLI_assert(act->wrap().is_action_legacy());
 
   /* Clear out all group channels. Channels that are actually in use are
    * reconstructed below; this step is necessary to clear out unused groups. */
@@ -1029,6 +1039,8 @@ void action_groups_remove_channel(bAction *act, FCurve *fcu)
   if (ELEM(nullptr, act, fcu)) {
     return;
   }
+
+  BLI_assert(act->wrap().is_action_legacy());
 
   /* check if any group used this directly */
   if (fcu->grp) {
@@ -1070,6 +1082,8 @@ bActionGroup *BKE_action_group_find_name(bAction *act, const char name[])
     return nullptr;
   }
 
+  BLI_assert(act->wrap().is_action_legacy());
+
   /* do string comparisons */
   return static_cast<bActionGroup *>(
       BLI_findstring(&act->groups, name, offsetof(bActionGroup, name)));
@@ -1077,13 +1091,7 @@ bActionGroup *BKE_action_group_find_name(bAction *act, const char name[])
 
 void action_groups_clear_tempflags(bAction *act)
 {
-  /* sanity checks */
-  if (ELEM(nullptr, act, act->groups.first)) {
-    return;
-  }
-
-  /* flag clearing loop */
-  LISTBASE_FOREACH (bActionGroup *, agrp, &act->groups) {
+  for (bActionGroup *agrp : animrig::legacy::channel_groups_all(act)) {
     agrp->flag &= ~AGRP_TEMP;
   }
 }
@@ -2180,6 +2188,9 @@ void BKE_action_fcurves_clear(bAction *act)
   if (!act) {
     return;
   }
+
+  BLI_assert(act->wrap().is_action_legacy());
+
   while (act->curves.first) {
     FCurve *fcu = static_cast<FCurve *>(act->curves.first);
     action_groups_remove_channel(act, fcu);

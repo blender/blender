@@ -53,12 +53,21 @@ struct VKWorkarounds {
      */
     bool r8g8b8 = false;
   } vertex_formats;
+
+  /**
+   * Is the workaround for devices that don't support
+   * #VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR::fragmentShaderBarycentric enabled.
+   * If set to true, the backend would inject a geometry shader to produce barycentric coordinates.
+   */
+  bool fragment_shader_barycentric = false;
 };
 
 /**
  * Shared resources between contexts that run in the same thread.
  */
 class VKThreadData : public NonCopyable, NonMovable {
+  static constexpr uint32_t resource_pools_count = 3;
+
  public:
   /** Thread ID this instance belongs to. */
   pthread_t thread_id;
@@ -70,7 +79,7 @@ class VKThreadData : public NonCopyable, NonMovable {
    * NOTE: Initialized to `UINT32_MAX` to detect first change.
    */
   uint32_t resource_pool_index = UINT32_MAX;
-  std::array<VKResourcePool, 5> resource_pools;
+  std::array<VKResourcePool, resource_pools_count> resource_pools;
 
   /**
    * The current rendering depth.
@@ -81,6 +90,12 @@ class VKThreadData : public NonCopyable, NonMovable {
    * when the rendering_depth set to 0.
    */
   int32_t rendering_depth = 0;
+
+  /**
+   * Number of contexts registered in the current thread.
+   * Discarded resources are destroyed when all contexts are unregistered.
+   */
+  int32_t num_contexts = 0;
 
   VKThreadData(VKDevice &device,
                pthread_t thread_id,
@@ -106,7 +121,7 @@ class VKThreadData : public NonCopyable, NonMovable {
       resource_pool_index = 1;
     }
     else {
-      resource_pool_index = (resource_pool_index + 1) % 5;
+      resource_pool_index = (resource_pool_index + 1) % resource_pools_count;
     }
   }
 };
@@ -139,6 +154,7 @@ class VKDevice : public NonCopyable {
 
   /** Limits of the device linked to this context. */
   VkPhysicalDeviceProperties vk_physical_device_properties_ = {};
+  VkPhysicalDeviceDriverProperties vk_physical_device_driver_properties_ = {};
   VkPhysicalDeviceMemoryProperties vk_physical_device_memory_properties_ = {};
   /** Features support. */
   VkPhysicalDeviceFeatures vk_physical_device_features_ = {};
@@ -243,7 +259,7 @@ class VKDevice : public NonCopyable {
     return debugging_tools_;
   }
 
-  VKSamplers &samplers()
+  const VKSamplers &samplers() const
   {
     return samplers_;
   }
@@ -302,6 +318,7 @@ class VKDevice : public NonCopyable {
   Span<std::reference_wrapper<VKContext>> contexts_get() const;
 
   void memory_statistics_get(int *r_total_mem_kb, int *r_free_mem_kb) const;
+  static void debug_print(std::ostream &os, const VKDiscardPool &discard_pool);
   void debug_print();
 
   /** \} */

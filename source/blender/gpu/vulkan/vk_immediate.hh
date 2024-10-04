@@ -16,7 +16,6 @@
 #include "gpu_vertex_format_private.hh"
 
 #include "vk_buffer.hh"
-#include "vk_context.hh"
 #include "vk_data_conversion.hh"
 #include "vk_mem_alloc.h"
 #include "vk_resource_tracker.hh"
@@ -24,10 +23,12 @@
 
 namespace blender::gpu {
 
-/* Size of internal buffer. */
-constexpr size_t DEFAULT_INTERNAL_BUFFER_SIZE = (4 * 1024 * 1024);
+class VKDevice;
 
-class VKImmediate : public Immediate, VKResourceTracker<VKBuffer> {
+/* Size of internal buffer. */
+constexpr size_t DEFAULT_INTERNAL_BUFFER_SIZE = 4 * 1024 * 1024;
+
+class VKImmediate : public Immediate {
  private:
   VKVertexAttributeObject vertex_attributes_;
 
@@ -35,9 +36,15 @@ class VKImmediate : public Immediate, VKResourceTracker<VKBuffer> {
   VkDeviceSize current_subbuffer_len_ = 0;
   VertexFormatConverter vertex_format_converter;
 
+  Vector<std::unique_ptr<VKBuffer>> active_buffers_;
+  Vector<std::unique_ptr<VKBuffer>> recycling_buffers_;
+
  public:
   VKImmediate();
   virtual ~VKImmediate();
+  void deinit(VKDevice &device);
+
+  void reset();
 
   uchar *begin() override;
   void end() override;
@@ -45,10 +52,10 @@ class VKImmediate : public Immediate, VKResourceTracker<VKBuffer> {
   friend class VKVertexAttributeObject;
 
  private:
-  VkDeviceSize subbuffer_offset_get();
+  VKBufferWithOffset active_buffer() const;
   VkDeviceSize buffer_bytes_free();
 
-  std::unique_ptr<VKBuffer> create_resource(VKContext &context) override;
+  VKBuffer &ensure_space(size_t bytes_needed);
 };
 
 }  // namespace blender::gpu

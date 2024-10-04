@@ -31,9 +31,9 @@
 CCL_NAMESPACE_BEGIN
 
 struct KernelGlobalsGPU {
-  int *global_stack_buffer;
+  hiprtGlobalStackBuffer global_stack_buffer;
 #ifdef HIPRT_SHARED_STACK
-  int *shared_stack;
+  hiprtSharedStackBuffer shared_stack;
 #endif
 };
 
@@ -47,7 +47,8 @@ typedef ccl_global KernelGlobalsGPU *ccl_restrict KernelGlobals;
     ccl_gpu_shared int shared_stack[HIPRT_SHARED_STACK_SIZE * HIPRT_THREAD_GROUP_SIZE]; \
     ccl_global KernelGlobalsGPU kg_gpu; \
     KernelGlobals kg = &kg_gpu; \
-    kg->shared_stack = &shared_stack[0]; \
+    kg->shared_stack.stackData = &shared_stack[0]; \
+    kg->shared_stack.stackSize = HIPRT_SHARED_STACK_SIZE; \
     kg->global_stack_buffer = stack_buffer;
 #else
 #  define HIPRT_INIT_KERNEL_GLOBAL() \
@@ -146,6 +147,7 @@ __constant__ KernelParamsHIPRT kernel_params;
 
 #  ifdef HIPRT_SHARED_STACK
 typedef hiprtGlobalStack Stack;
+typedef hiprtEmptyInstanceStack Instance_Stack;
 #  endif
 
 #endif

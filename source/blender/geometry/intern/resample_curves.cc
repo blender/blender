@@ -138,23 +138,22 @@ static void gather_point_attributes_to_interpolate(
 {
   VectorSet<StringRef> ids;
   VectorSet<StringRef> ids_no_interpolation;
-  src_curves.attributes().for_all([&](const StringRef id, const bke::AttributeMetaData meta_data) {
-    if (meta_data.domain != bke::AttrDomain::Point) {
-      return true;
+  src_curves.attributes().foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (iter.domain != bke::AttrDomain::Point) {
+      return;
     }
-    if (meta_data.data_type == CD_PROP_STRING) {
-      return true;
+    if (iter.data_type == CD_PROP_STRING) {
+      return;
     }
-    if (!interpolate_attribute_to_curves(id, dst_curves.curve_type_counts())) {
-      return true;
+    if (!interpolate_attribute_to_curves(iter.name, dst_curves.curve_type_counts())) {
+      return;
     }
-    if (interpolate_attribute_to_poly_curve(id)) {
-      ids.add_new(id);
+    if (interpolate_attribute_to_poly_curve(iter.name)) {
+      ids.add_new(iter.name);
     }
     else {
-      ids_no_interpolation.add_new(id);
+      ids_no_interpolation.add_new(iter.name);
     }
-    return true;
   });
 
   /* Position is handled differently since it has non-generic interpolation for Bezier

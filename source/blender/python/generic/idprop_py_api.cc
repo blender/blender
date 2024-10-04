@@ -14,8 +14,8 @@
 
 #include "BLI_utildefines.h"
 
-#include "idprop_py_api.h"
-#include "idprop_py_ui_api.h"
+#include "idprop_py_api.hh"
+#include "idprop_py_ui_api.hh"
 
 #include "BKE_idprop.hh"
 
@@ -24,14 +24,14 @@
 #define USE_STRING_COERCE
 
 #ifdef USE_STRING_COERCE
-#  include "py_capi_utils.h"
+#  include "py_capi_utils.hh"
 #endif
 
-#include "python_utildefines.h"
+#include "python_utildefines.hh"
 
-extern "C" bool pyrna_id_FromPyObject(PyObject *obj, ID **id);
-extern "C" PyObject *pyrna_id_CreatePyObject(ID *id);
-extern "C" bool pyrna_id_CheckPyObject(PyObject *obj);
+extern bool pyrna_id_FromPyObject(PyObject *obj, ID **id);
+extern PyObject *pyrna_id_CreatePyObject(ID *id);
+extern bool pyrna_id_CheckPyObject(PyObject *obj);
 
 /* Currently there is no need to expose this publicly. */
 static PyObject *BPy_IDGroup_IterKeys_CreatePyObject(BPy_IDProperty *group, const bool reversed);

@@ -9,9 +9,9 @@
  * This pass scans all volume froxels and tags tiles needed for shadowing.
  */
 
-#pragma BLENDER_REQUIRE(eevee_volume_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_shadow_tag_usage_lib.glsl)
+#include "eevee_sampling_lib.glsl"
+#include "eevee_shadow_tag_usage_lib.glsl"
+#include "eevee_volume_lib.glsl"
 
 void main()
 {

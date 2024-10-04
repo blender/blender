@@ -151,7 +151,7 @@ void BLF_draw_svg_icon(uint icon_id,
                        float x,
                        float y,
                        float size,
-                       float color[4] = nullptr,
+                       const float color[4] = nullptr,
                        float outline_alpha = 1.0f,
                        bool multicolor = false,
                        blender::FunctionRef<void(std::string &)> edit_source_cb = nullptr);
@@ -197,7 +197,8 @@ size_t BLF_str_offset_from_cursor_position(int fontid,
 bool BLF_str_offset_to_glyph_bounds(int fontid,
                                     const char *str,
                                     size_t str_offset,
-                                    rcti *glyph_bounds) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(2, 4);
+                                    rcti *r_glyph_bounds) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL(2, 4);
 
 /**
  * Return left edge of text cursor (caret), given a character offset and cursor width.
@@ -269,6 +270,11 @@ void BLF_width_and_height(
  * character.
  */
 float BLF_fixed_width(int fontid) ATTR_WARN_UNUSED_RESULT;
+
+/**
+ * Returns offset for drawing next character in the string.
+ */
+int BLF_glyph_advance(int fontid, const char *str);
 
 /**
  * By default, rotation and clipping are disable and

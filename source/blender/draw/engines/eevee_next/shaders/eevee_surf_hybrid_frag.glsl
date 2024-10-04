@@ -9,14 +9,14 @@
  * Some render-pass are written during this pass.
  */
 
-#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
-#pragma BLENDER_REQUIRE(common_hair_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_ambient_occlusion_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_surf_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_forward_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_nodetree_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
+#include "common_hair_lib.glsl"
+#include "draw_view_lib.glsl"
+#include "eevee_ambient_occlusion_lib.glsl"
+#include "eevee_forward_lib.glsl"
+#include "eevee_gbuffer_lib.glsl"
+#include "eevee_nodetree_lib.glsl"
+#include "eevee_sampling_lib.glsl"
+#include "eevee_surf_lib.glsl"
 
 /* Global thickness because it is needed for closure_to_rgba. */
 float g_thickness;
@@ -93,9 +93,11 @@ void main()
 #if CLOSURE_BIN_COUNT > 2
   gbuf_data.closure[2] = g_closure_get_resolved(2, alpha_rcp);
 #endif
+  ObjectInfos object_infos = drw_infos[resource_id];
   gbuf_data.surface_N = g_data.N;
   gbuf_data.thickness = g_thickness;
   gbuf_data.object_id = resource_id;
+  gbuf_data.receiver_light_set = receiver_light_set_get(object_infos);
 
   GBufferWriter gbuf = gbuffer_pack(gbuf_data);
 

@@ -12,7 +12,7 @@
  *   and transparency." ACM SIGGRAPH 2015 Posters. 2015. 1-1.
  */
 
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
+#include "gpu_shader_compositor_texture_utilities.glsl"
 
 void main()
 {

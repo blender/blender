@@ -9,6 +9,7 @@
 #include "vk_shader_interface.hh"
 #include "vk_backend.hh"
 #include "vk_context.hh"
+#include "vk_state_manager.hh"
 
 namespace blender::gpu {
 
@@ -178,14 +179,8 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
   init_descriptor_set_layout_info(info, resources_len, all_resources, push_constants_storage_type);
 
   /* Update the descriptor set locations, bind types and access masks. */
-  descriptor_set_locations_ = Array<VKDescriptorSet::Location>(resources_len);
-  descriptor_set_locations_.fill(-1);
-  descriptor_set_bind_types_ = Array<shader::ShaderCreateInfo::Resource::BindType>(resources_len);
-  descriptor_set_bind_types_.fill(shader::ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER);
-  access_masks_ = Array<VkAccessFlags>(resources_len);
-  access_masks_.fill(VK_ACCESS_NONE);
-  arrayed_ = Array<VKImageViewArrayed>(resources_len);
-  arrayed_.fill(VKImageViewArrayed::DONT_CARE);
+  resource_bindings_ = Array<VKResourceBinding>(resources_len);
+  resource_bindings_.fill({});
 
   uint32_t descriptor_set_location = 0;
   for (const ShaderCreateInfo::SubpassIn &subpass_in : info.subpass_inputs_) {
@@ -282,10 +277,7 @@ void VKShaderInterface::descriptor_set_location_update(
                  "Incorrect parameter, bind types do not match.");
 
   int32_t index = shader_input_index(inputs_, shader_input);
-  BLI_assert(descriptor_set_locations_[index].binding == -1);
-  descriptor_set_locations_[index] = location;
-  descriptor_set_bind_types_[index] = bind_type;
-  arrayed_[index] = arrayed;
+  BLI_assert(resource_bindings_[index].binding == -1);
 
   VkAccessFlags vk_access_flags = VK_ACCESS_NONE;
   if (resource.has_value()) {
@@ -323,21 +315,20 @@ void VKShaderInterface::descriptor_set_location_update(
   else if (bind_type == shader::ShaderCreateInfo::Resource::BindType::SAMPLER) {
     vk_access_flags |= VK_ACCESS_SHADER_READ_BIT;
   }
-  access_masks_[index] = vk_access_flags;
+
+  VKResourceBinding &resource_binding = resource_bindings_[index];
+  resource_binding.bind_type = bind_type;
+  resource_binding.binding = shader_input->binding;
+  resource_binding.location = location;
+  resource_binding.arrayed = arrayed;
+  resource_binding.access_mask = vk_access_flags;
 }
 
-const VKDescriptorSet::Location VKShaderInterface::descriptor_set_location(
+const VKResourceBinding &VKShaderInterface::resource_binding_info(
     const ShaderInput *shader_input) const
 {
   int32_t index = shader_input_index(inputs_, shader_input);
-  return descriptor_set_locations_[index];
-}
-
-const shader::ShaderCreateInfo::Resource::BindType VKShaderInterface::descriptor_set_bind_type(
-    const ShaderInput *shader_input) const
-{
-  int32_t index = shader_input_index(inputs_, shader_input);
-  return descriptor_set_bind_types_[index];
+  return resource_bindings_[index];
 }
 
 const VKDescriptorSet::Location VKShaderInterface::descriptor_set_location(
@@ -345,7 +336,7 @@ const VKDescriptorSet::Location VKShaderInterface::descriptor_set_location(
 {
   const ShaderInput *shader_input = shader_input_get(resource);
   BLI_assert(shader_input);
-  return descriptor_set_location(shader_input);
+  return resource_binding_info(shader_input).location;
 }
 
 const std::optional<VKDescriptorSet::Location> VKShaderInterface::descriptor_set_location(
@@ -355,16 +346,11 @@ const std::optional<VKDescriptorSet::Location> VKShaderInterface::descriptor_set
   if (shader_input == nullptr) {
     return std::nullopt;
   }
-  if (descriptor_set_bind_type(shader_input) != bind_type) {
+  const VKResourceBinding &resource_binding = resource_binding_info(shader_input);
+  if (resource_binding.bind_type != bind_type) {
     return std::nullopt;
   }
-  return descriptor_set_location(shader_input);
-}
-
-const VkAccessFlags VKShaderInterface::access_mask(const ShaderInput *shader_input) const
-{
-  int32_t index = shader_input_index(inputs_, shader_input);
-  return access_masks_[index];
+  return resource_binding.location;
 }
 
 const VkAccessFlags VKShaderInterface::access_mask(
@@ -374,10 +360,11 @@ const VkAccessFlags VKShaderInterface::access_mask(
   if (shader_input == nullptr) {
     return VK_ACCESS_NONE;
   }
-  if (descriptor_set_bind_type(shader_input) != bind_type) {
+  const VKResourceBinding &resource_binding = resource_binding_info(shader_input);
+  if (resource_binding.bind_type != bind_type) {
     return VK_ACCESS_NONE;
   }
-  return access_mask(shader_input);
+  return resource_binding.access_mask;
 }
 
 const VKImageViewArrayed VKShaderInterface::arrayed(
@@ -387,8 +374,7 @@ const VKImageViewArrayed VKShaderInterface::arrayed(
   if (shader_input == nullptr) {
     return VKImageViewArrayed::DONT_CARE;
   }
-  int32_t index = shader_input_index(inputs_, shader_input);
-  return arrayed_[index];
+  return resource_binding_info(shader_input).arrayed;
 }
 
 const ShaderInput *VKShaderInterface::shader_input_get(

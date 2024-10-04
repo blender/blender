@@ -275,10 +275,12 @@ template<typename Accessor>
  * \return False if the link should be removed.
  */
 template<typename Accessor>
-[[nodiscard]] inline bool try_add_item_via_any_extend_socket(bNodeTree &ntree,
-                                                             bNode &extend_node,
-                                                             bNode &storage_node,
-                                                             bNodeLink &link)
+[[nodiscard]] inline bool try_add_item_via_any_extend_socket(
+    bNodeTree &ntree,
+    bNode &extend_node,
+    bNode &storage_node,
+    bNodeLink &link,
+    const std::optional<StringRef> socket_identifier = std::nullopt)
 {
   bNodeSocket *possible_extend_socket = nullptr;
   if (link.fromnode == &extend_node) {
@@ -292,6 +294,11 @@ template<typename Accessor>
   }
   if (!STREQ(possible_extend_socket->idname, "NodeSocketVirtual")) {
     return true;
+  }
+  if (socket_identifier.has_value()) {
+    if (possible_extend_socket->identifier != socket_identifier) {
+      return true;
+    }
   }
   return try_add_item_via_extend_socket<Accessor>(
       ntree, extend_node, *possible_extend_socket, storage_node, link);

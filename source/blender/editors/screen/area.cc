@@ -79,7 +79,7 @@ static void region_draw_emboss(const ARegion *region, const rcti *scirct, int si
   GPU_blend(GPU_BLEND_ALPHA);
 
   float color[4] = {0.0f, 0.0f, 0.0f, 0.25f};
-  UI_GetThemeColor3fv(TH_EDITOR_OUTLINE, color);
+  UI_GetThemeColor3fv(TH_EDITOR_BORDER, color);
 
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -342,7 +342,7 @@ static void region_draw_azones(ScrArea *area, ARegion *region)
 static void region_draw_status_text(ScrArea * /*area*/, ARegion *region)
 {
   float header_color[4];
-  UI_GetThemeColor4fv(TH_HEADER_ACTIVE, header_color);
+  UI_GetThemeColor4fv(TH_HEADER, header_color);
 
   /* Clear the region from the buffer. */
   GPU_clear_color(0.0f, 0.0f, 0.0f, 0.0f);
@@ -517,7 +517,7 @@ void ED_region_do_draw(bContext *C, ARegion *region)
   UI_SetTheme(area ? area->spacetype : 0, at->regionid);
 
   if (area && area_is_pseudo_minimized(area)) {
-    UI_ThemeClearColor(TH_EDITOR_OUTLINE);
+    UI_ThemeClearColor(TH_EDITOR_BORDER);
     return;
   }
   /* optional header info instead? */
@@ -572,7 +572,7 @@ void ED_region_do_draw(bContext *C, ARegion *region)
       /* draw separating lines between the quad views */
 
       float color[4] = {0.0f, 0.0f, 0.0f, 0.8f};
-      UI_GetThemeColor3fv(TH_EDITOR_OUTLINE, color);
+      UI_GetThemeColor3fv(TH_EDITOR_BORDER, color);
       GPUVertFormat *format = immVertexFormat();
       uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
@@ -1948,161 +1948,9 @@ static void ed_default_handlers(
   /* Keep last because of LMB/RMB handling, see: #57527. */
   if (flag & ED_KEYMAP_GPENCIL) {
     /* grease pencil */
-    /* NOTE: This is now 4 keymaps - One for basic functionality,
-     *       and others for special stroke modes (edit, paint and sculpt).
-     *
-     *       For now, it's easier to just include all,
-     *       since you hardly want one without the others.
-     */
     {
       wmKeyMap *keymap = WM_keymap_ensure(
           wm->defaultconf, "Grease Pencil", SPACE_EMPTY, RGN_TYPE_WINDOW);
-      WM_event_add_keymap_handler(handlers, keymap);
-    }
-    {
-      wmKeyMap *keymap = WM_keymap_ensure(
-          wm->defaultconf, "Grease Pencil Stroke Curve Edit Mode", SPACE_EMPTY, RGN_TYPE_WINDOW);
-      WM_event_add_keymap_handler(handlers, keymap);
-    }
-    {
-      wmKeyMap *keymap = WM_keymap_ensure(
-          wm->defaultconf, "Grease Pencil Stroke Edit Mode", SPACE_EMPTY, RGN_TYPE_WINDOW);
-      WM_event_add_keymap_handler(handlers, keymap);
-    }
-    {
-      wmKeyMap *keymap = WM_keymap_ensure(
-          wm->defaultconf, "Grease Pencil Stroke Paint Mode", SPACE_EMPTY, RGN_TYPE_WINDOW);
-      WM_event_add_keymap_handler(handlers, keymap);
-    }
-    {
-      wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf,
-                                          "Grease Pencil Stroke Paint (Draw brush)",
-                                          SPACE_EMPTY,
-                                          RGN_TYPE_WINDOW);
-      WM_event_add_keymap_handler(handlers, keymap);
-    }
-    {
-      wmKeyMap *keymap = WM_keymap_ensure(
-          wm->defaultconf, "Grease Pencil Stroke Paint (Erase)", SPACE_EMPTY, RGN_TYPE_WINDOW);
-      WM_event_add_keymap_handler(handlers, keymap);
-    }
-    {
-      wmKeyMap *keymap = WM_keymap_ensure(
-          wm->defaultconf, "Grease Pencil Stroke Paint (Fill)", SPACE_EMPTY, RGN_TYPE_WINDOW);
-      WM_event_add_keymap_handler(handlers, keymap);
-    }
-    {
-      wmKeyMap *keymap = WM_keymap_ensure(
-          wm->defaultconf, "Grease Pencil Stroke Paint (Tint)", SPACE_EMPTY, RGN_TYPE_WINDOW);
-      WM_event_add_keymap_handler(handlers, keymap);
-    }
-    {
-      wmKeyMap *keymap = WM_keymap_ensure(
-          wm->defaultconf, "Grease Pencil Stroke Sculpt Mode", SPACE_EMPTY, RGN_TYPE_WINDOW);
-      WM_event_add_keymap_handler(handlers, keymap);
-    }
-    {
-      wmKeyMap *keymap = WM_keymap_ensure(
-          wm->defaultconf, "Grease Pencil Stroke Vertex Mode", SPACE_EMPTY, RGN_TYPE_WINDOW);
-      WM_event_add_keymap_handler(handlers, keymap);
-    }
-    {
-      wmKeyMap *keymap = WM_keymap_ensure(
-          wm->defaultconf, "Grease Pencil Stroke Vertex (Draw)", SPACE_EMPTY, RGN_TYPE_WINDOW);
-      WM_event_add_keymap_handler(handlers, keymap);
-    }
-    {
-      wmKeyMap *keymap = WM_keymap_ensure(
-          wm->defaultconf, "Grease Pencil Stroke Vertex (Blur)", SPACE_EMPTY, RGN_TYPE_WINDOW);
-      WM_event_add_keymap_handler(handlers, keymap);
-    }
-    {
-      wmKeyMap *keymap = WM_keymap_ensure(
-          wm->defaultconf, "Grease Pencil Stroke Vertex (Average)", SPACE_EMPTY, RGN_TYPE_WINDOW);
-      WM_event_add_keymap_handler(handlers, keymap);
-    }
-    {
-      wmKeyMap *keymap = WM_keymap_ensure(
-          wm->defaultconf, "Grease Pencil Stroke Vertex (Smear)", SPACE_EMPTY, RGN_TYPE_WINDOW);
-      WM_event_add_keymap_handler(handlers, keymap);
-    }
-    {
-      wmKeyMap *keymap = WM_keymap_ensure(
-          wm->defaultconf, "Grease Pencil Stroke Vertex (Replace)", SPACE_EMPTY, RGN_TYPE_WINDOW);
-      WM_event_add_keymap_handler(handlers, keymap);
-    }
-    {
-      wmKeyMap *keymap = WM_keymap_ensure(
-          wm->defaultconf, "Grease Pencil Stroke Sculpt (Smooth)", SPACE_EMPTY, RGN_TYPE_WINDOW);
-      WM_event_add_keymap_handler(handlers, keymap);
-    }
-    {
-      wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf,
-                                          "Grease Pencil Stroke Sculpt (Thickness)",
-                                          SPACE_EMPTY,
-                                          RGN_TYPE_WINDOW);
-      WM_event_add_keymap_handler(handlers, keymap);
-    }
-    {
-      wmKeyMap *keymap = WM_keymap_ensure(
-          wm->defaultconf, "Grease Pencil Stroke Sculpt (Strength)", SPACE_EMPTY, RGN_TYPE_WINDOW);
-      WM_event_add_keymap_handler(handlers, keymap);
-    }
-    {
-      wmKeyMap *keymap = WM_keymap_ensure(
-          wm->defaultconf, "Grease Pencil Stroke Sculpt (Grab)", SPACE_EMPTY, RGN_TYPE_WINDOW);
-      WM_event_add_keymap_handler(handlers, keymap);
-    }
-    {
-      wmKeyMap *keymap = WM_keymap_ensure(
-          wm->defaultconf, "Grease Pencil Stroke Sculpt (Push)", SPACE_EMPTY, RGN_TYPE_WINDOW);
-      WM_event_add_keymap_handler(handlers, keymap);
-    }
-    {
-      wmKeyMap *keymap = WM_keymap_ensure(
-          wm->defaultconf, "Grease Pencil Stroke Sculpt (Twist)", SPACE_EMPTY, RGN_TYPE_WINDOW);
-      WM_event_add_keymap_handler(handlers, keymap);
-    }
-    {
-      wmKeyMap *keymap = WM_keymap_ensure(
-          wm->defaultconf, "Grease Pencil Stroke Sculpt (Pinch)", SPACE_EMPTY, RGN_TYPE_WINDOW);
-      WM_event_add_keymap_handler(handlers, keymap);
-    }
-    {
-      wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf,
-                                          "Grease Pencil Stroke Sculpt (Randomize)",
-                                          SPACE_EMPTY,
-                                          RGN_TYPE_WINDOW);
-      WM_event_add_keymap_handler(handlers, keymap);
-    }
-    {
-      wmKeyMap *keymap = WM_keymap_ensure(
-          wm->defaultconf, "Grease Pencil Stroke Sculpt (Clone)", SPACE_EMPTY, RGN_TYPE_WINDOW);
-      WM_event_add_keymap_handler(handlers, keymap);
-    }
-    {
-      wmKeyMap *keymap = WM_keymap_ensure(
-          wm->defaultconf, "Grease Pencil Stroke Weight Mode", SPACE_EMPTY, RGN_TYPE_WINDOW);
-      WM_event_add_keymap_handler(handlers, keymap);
-    }
-    {
-      wmKeyMap *keymap = WM_keymap_ensure(
-          wm->defaultconf, "Grease Pencil Stroke Weight (Draw)", SPACE_EMPTY, RGN_TYPE_WINDOW);
-      WM_event_add_keymap_handler(handlers, keymap);
-    }
-    {
-      wmKeyMap *keymap = WM_keymap_ensure(
-          wm->defaultconf, "Grease Pencil Stroke Weight (Blur)", SPACE_EMPTY, RGN_TYPE_WINDOW);
-      WM_event_add_keymap_handler(handlers, keymap);
-    }
-    {
-      wmKeyMap *keymap = WM_keymap_ensure(
-          wm->defaultconf, "Grease Pencil Stroke Weight (Average)", SPACE_EMPTY, RGN_TYPE_WINDOW);
-      WM_event_add_keymap_handler(handlers, keymap);
-    }
-    {
-      wmKeyMap *keymap = WM_keymap_ensure(
-          wm->defaultconf, "Grease Pencil Stroke Weight (Smear)", SPACE_EMPTY, RGN_TYPE_WINDOW);
       WM_event_add_keymap_handler(handlers, keymap);
     }
   }
@@ -2943,19 +2791,12 @@ int ED_area_header_switchbutton(const bContext *C, uiBlock *block, int yco)
 
 /************************ standard UI regions ************************/
 
-static ThemeColorID region_background_color_id(const bContext *C, const ARegion *region)
+static ThemeColorID region_background_color_id(const bContext * /*C*/, const ARegion *region)
 {
-  ScrArea *area = CTX_wm_area(C);
-
   switch (region->regiontype) {
     case RGN_TYPE_HEADER:
     case RGN_TYPE_TOOL_HEADER:
-      if (ED_screen_area_active(C) && !ED_area_is_global(area)) {
-        return TH_HEADER_ACTIVE;
-      }
-      else {
-        return TH_HEADER;
-      }
+      return TH_HEADER;
     case RGN_TYPE_PREVIEW:
       return TH_PREVIEW_BACK;
     default:
@@ -3920,7 +3761,7 @@ int ED_region_global_size_y()
 
 void ED_region_info_draw_multiline(ARegion *region,
                                    const char *text_array[],
-                                   float fill_color[4],
+                                   const float fill_color[4],
                                    const bool full_redraw)
 {
   const int header_height = UI_UNIT_Y;
@@ -3996,7 +3837,7 @@ void ED_region_info_draw_multiline(ARegion *region,
 
 void ED_region_info_draw(ARegion *region,
                          const char *text,
-                         float fill_color[4],
+                         const float fill_color[4],
                          const bool full_redraw)
 {
   const char *text_array[2] = {text, nullptr};

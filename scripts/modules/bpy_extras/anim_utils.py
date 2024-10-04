@@ -252,7 +252,7 @@ def bake_action_iter(
             if key in obj.bl_rna.properties:
                 rna_path = key
             else:
-                rna_path = f'["{bpy.utils.escape_identifier(key)}"]'
+                rna_path = "[\"{:s}\"]".format(bpy.utils.escape_identifier(key))
             try:
                 obj.keyframe_insert(rna_path, frame=frame, group=group_name)
             except TypeError:

@@ -477,6 +477,7 @@ class DATA_PT_mesh_animation(MeshButtonsPanel, PropertiesAnimationMixin, Propert
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         # MeshButtonsPanel.poll ensures this is not None.
         mesh = context.mesh

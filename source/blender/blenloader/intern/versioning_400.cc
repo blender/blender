@@ -79,6 +79,8 @@
 #include "SEQ_sequencer.hh"
 #include "SEQ_time.hh"
 
+#include "ANIM_action.hh"
+#include "ANIM_action_iterators.hh"
 #include "ANIM_armature_iter.hh"
 #include "ANIM_bone_collections.hh"
 
@@ -101,6 +103,161 @@ static void version_composite_nodetree_null_id(bNodeTree *ntree, Scene *scene)
                                  node->custom1 == CMP_NODE_CRYPTOMATTE_SOURCE_RENDER)))
     {
       node->id = &scene->id;
+    }
+  }
+}
+
+struct ActionUserInfo {
+  ID *id;
+  blender::animrig::slot_handle_t *slot_handle;
+  bAction **action_ptr_ptr;
+  char *slot_name;
+};
+
+static void convert_action_in_place(blender::animrig::Action &action)
+{
+  using namespace blender::animrig;
+  if (action.is_action_layered()) {
+    return;
+  }
+  Slot &slot = action.slot_add();
+  slot.idtype = action.idroot;
+  action.idroot = 0;
+  Layer &layer = action.layer_add("Layer");
+  blender::animrig::Strip &strip = layer.strip_add(action,
+                                                   blender::animrig::Strip::Type::Keyframe);
+  ChannelBag &bag = strip.data<StripKeyframeData>(action).channelbag_for_slot_ensure(slot);
+  const int fcu_count = BLI_listbase_count(&action.curves);
+  const int group_count = BLI_listbase_count(&action.groups);
+  bag.fcurve_array = MEM_cnew_array<FCurve *>(fcu_count, "Action versioning - fcurves");
+  bag.fcurve_array_num = fcu_count;
+  bag.group_array = MEM_cnew_array<bActionGroup *>(group_count, "Action versioning - groups");
+  bag.group_array_num = group_count;
+
+  int group_index = 0;
+  int fcurve_index = 0;
+  LISTBASE_FOREACH_INDEX (bActionGroup *, group, &action.groups, group_index) {
+    bag.group_array[group_index] = group;
+
+    group->channel_bag = &bag;
+    group->fcurve_range_start = fcurve_index;
+
+    LISTBASE_FOREACH (FCurve *, fcu, &group->channels) {
+      if (fcu->grp != group) {
+        break;
+      }
+      bag.fcurve_array[fcurve_index++] = fcu;
+    }
+
+    group->fcurve_range_length = fcurve_index - group->fcurve_range_start;
+  }
+
+  LISTBASE_FOREACH (FCurve *, fcu, &action.curves) {
+    /* Any fcurves with groups have already been added to the fcurve array. */
+    if (fcu->grp) {
+      continue;
+    }
+    bag.fcurve_array[fcurve_index++] = fcu;
+  }
+
+  BLI_assert(fcurve_index == fcu_count);
+
+  action.curves = {nullptr, nullptr};
+  action.groups = {nullptr, nullptr};
+}
+
+static void version_legacy_actions_to_layered(Main *bmain)
+{
+  using namespace blender::animrig;
+  blender::Map<bAction *, blender::Vector<ActionUserInfo>> action_users;
+  LISTBASE_FOREACH (bAction *, dna_action, &bmain->actions) {
+    Action &action = dna_action->wrap();
+    if (action.is_action_layered()) {
+      continue;
+    }
+    action_users.add(dna_action, {});
+  }
+
+  ID *id;
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
+    auto callback =
+        [&](bAction *&action_ptr_ref, slot_handle_t &slot_handle_ref, char *slot_name) -> bool {
+      blender::Vector<ActionUserInfo> *action_user_vector = action_users.lookup_ptr(
+          action_ptr_ref);
+      /* Only actions that need to be converted are in this map. */
+      if (!action_user_vector) {
+        return true;
+      }
+      ActionUserInfo user_info;
+      user_info.id = id;
+      user_info.action_ptr_ptr = &action_ptr_ref;
+      user_info.slot_handle = &slot_handle_ref;
+      user_info.slot_name = slot_name;
+      action_user_vector->append(user_info);
+      return true;
+    };
+
+    foreach_action_slot_use_with_references(*id, callback);
+  }
+  FOREACH_MAIN_ID_END;
+
+  for (const auto &item : action_users.items()) {
+    Action &action = item.key->wrap();
+    convert_action_in_place(action);
+    blender::Vector<ActionUserInfo> &user_infos = item.value;
+    Slot &slot_to_assign = *action.slot(0);
+
+    if (user_infos.size() == 1) {
+      /* Rename the slot after its single user. If there are multiple users, the name is unchanged
+       * because there is no good way to determine a name. */
+      action.slot_name_set(*bmain, slot_to_assign, user_infos[0].id->name);
+    }
+    for (ActionUserInfo &action_user : user_infos) {
+      const ActionSlotAssignmentResult result = generic_assign_action_slot(
+          &slot_to_assign,
+          *action_user.id,
+          *action_user.action_ptr_ptr,
+          *action_user.slot_handle,
+          action_user.slot_name);
+      switch (result) {
+        case ActionSlotAssignmentResult::OK:
+          break;
+        case ActionSlotAssignmentResult::SlotNotSuitable:
+          /* The slot assignment can fail in the following scenario, when dealing
+           * with "old Blender" (only supporting legacy Actions) and "new Blender"
+           * (versions supporting slotted/layered Actions).
+           *
+           * - New Blender: create an action with two slots, ME and KE, and assign
+           *   to respectively a Mesh and a Shape Key. Save the file.
+           * - Old Blender: load the file. This will load the legacy data, but still
+           *   keep the assignments. This means that the Shape Key will get a ME
+           *   Action assigned, which is incompatible. Save the file.
+           * - New Blender: upgrades the Action (this code here), and tries to
+           *   assign the first (and by now only) slot. This will fail for the shape
+           *   key, as the ID type doesn't match.
+           *
+           * The failure is in itself okay, as there was actual data loss in this
+           * scenario, and so issuing a warning is the right way to go about this.
+           * The Action is still assigned, but the data-block won't get a slot
+           * assigned.
+           */
+          printf(
+              "Warning: while upgrading legacy Action \"%s\", its slot \"%s\" could not be "
+              "assigned to data-block \"%s\" because it was meant for ID type \"%s\". The Action "
+              "assignment will be kept, but \"%s\" will not be animated.\n",
+              action.id.name + 2,
+              slot_to_assign.name_without_prefix().c_str(),
+              action_user.id->name,
+              slot_to_assign.name_prefix_for_idtype().c_str(),
+              action_user.id->name);
+          break;
+        case ActionSlotAssignmentResult::SlotNotFromAction:
+          BLI_assert(!"SlotNotFromAction should not be returned here");
+          break;
+        case ActionSlotAssignmentResult::MissingAction:
+          BLI_assert(!"MissingAction should not be returned here");
+          break;
+      }
     }
   }
 }
@@ -1048,6 +1205,12 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 403, 6)) {
     /* Shift animation data to accommodate the new Diffuse Roughness input. */
     version_node_socket_index_animdata(bmain, NTREE_SHADER, SH_NODE_BSDF_PRINCIPLED, 7, 1, 30);
+  }
+
+  /* Keeping this block is without a `MAIN_VERSION_FILE_ATLEAST` until the experimental flag is
+   * removed. */
+  if (USER_EXPERIMENTAL_TEST(&U, use_animation_baklava)) {
+    version_legacy_actions_to_layered(bmain);
   }
 
   /**
@@ -2780,6 +2943,31 @@ static void add_image_editor_asset_shelf(Main &bmain)
   }
 }
 
+static void node_reroute_add_storage(bNodeTree &tree)
+{
+  for (bNode *node : tree.all_nodes()) {
+    if (node->is_reroute()) {
+      if (node->storage != nullptr) {
+        continue;
+      }
+
+      bNodeSocket &input = *static_cast<bNodeSocket *>(node->inputs.first);
+      bNodeSocket &output = *static_cast<bNodeSocket *>(node->outputs.first);
+
+      /* Use uniform identifier for sockets. In old Blender versions (<=2021, up to af0b7925), the
+       * identifiers were sometimes all lower case. Fixing those wrong socket identifiers is
+       * important because otherwise they loose links now that the reroute node also uses node
+       * declarations. */
+      STRNCPY(input.identifier, "Input");
+      STRNCPY(output.identifier, "Output");
+
+      NodeReroute *data = MEM_cnew<NodeReroute>(__func__);
+      STRNCPY(data->type_idname, input.idname);
+      node->storage = data;
+    }
+  }
+}
+
 /**
  * It was possible that curve attributes were initialized to 0 even if that is not allowed for some
  * attributes.
@@ -2823,6 +3011,65 @@ static void add_bevel_modifier_attribute_name_defaults(Main &bmain)
       }
     }
   }
+}
+
+static void hide_simulation_node_skip_socket_value(Main &bmain)
+{
+  LISTBASE_FOREACH (bNodeTree *, tree, &bmain.nodetrees) {
+    LISTBASE_FOREACH (bNode *, node, &tree->nodes) {
+      if (node->type != GEO_NODE_SIMULATION_OUTPUT) {
+        continue;
+      }
+      bNodeSocket *skip_input = static_cast<bNodeSocket *>(node->inputs.first);
+      if (!skip_input || !STREQ(skip_input->identifier, "Skip")) {
+        continue;
+      }
+      auto *default_value = static_cast<bNodeSocketValueBoolean *>(skip_input->default_value);
+      if (!default_value->value) {
+        continue;
+      }
+      bool is_linked = false;
+      LISTBASE_FOREACH (bNodeLink *, link, &tree->links) {
+        if (link->tosock == skip_input) {
+          is_linked = true;
+        }
+      }
+      if (is_linked) {
+        continue;
+      }
+
+      bNode &input_node = version_node_add_empty(*tree, "FunctionNodeInputBool");
+      input_node.parent = node->parent;
+      input_node.locx = node->locx - 25;
+      input_node.locy = node->locy;
+
+      NodeInputBool *input_node_storage = MEM_cnew<NodeInputBool>(__func__);
+      input_node.storage = input_node_storage;
+      input_node_storage->boolean = true;
+
+      bNodeSocket &input_node_socket = version_node_add_socket(
+          *tree, input_node, SOCK_OUT, "NodeSocketBool", "Boolean");
+
+      version_node_add_link(*tree, input_node, input_node_socket, *node, *skip_input);
+
+      /* Change the old socket value so that the versioning code is not run again. */
+      default_value->value = false;
+    }
+  }
+}
+
+static bool versioning_convert_seq_text_anchor(Sequence *seq, void * /*user_data*/)
+{
+  if (seq->type != SEQ_TYPE_TEXT || seq->effectdata == nullptr) {
+    return true;
+  }
+
+  TextVars *data = static_cast<TextVars *>(seq->effectdata);
+  data->anchor_x = data->align;
+  data->anchor_y = data->align_y;
+  data->align = SEQ_TEXT_ALIGN_X_LEFT;
+
+  return true;
 }
 
 void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
@@ -3668,7 +3915,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 401, 17)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       ToolSettings *ts = scene->toolsettings;
-      int input_sample_values[10];
+      int input_sample_values[9];
 
       input_sample_values[0] = ts->imapaint.paint.num_input_samples_deprecated;
       input_sample_values[1] = ts->sculpt != nullptr ?
@@ -3678,28 +3925,28 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
                                    ts->curves_sculpt->paint.num_input_samples_deprecated :
                                    1;
 
-      input_sample_values[4] = ts->gp_paint != nullptr ?
+      input_sample_values[3] = ts->gp_paint != nullptr ?
                                    ts->gp_paint->paint.num_input_samples_deprecated :
                                    1;
-      input_sample_values[5] = ts->gp_vertexpaint != nullptr ?
+      input_sample_values[4] = ts->gp_vertexpaint != nullptr ?
                                    ts->gp_vertexpaint->paint.num_input_samples_deprecated :
                                    1;
-      input_sample_values[6] = ts->gp_sculptpaint != nullptr ?
+      input_sample_values[5] = ts->gp_sculptpaint != nullptr ?
                                    ts->gp_sculptpaint->paint.num_input_samples_deprecated :
                                    1;
-      input_sample_values[7] = ts->gp_weightpaint != nullptr ?
+      input_sample_values[6] = ts->gp_weightpaint != nullptr ?
                                    ts->gp_weightpaint->paint.num_input_samples_deprecated :
                                    1;
 
-      input_sample_values[8] = ts->vpaint != nullptr ?
+      input_sample_values[7] = ts->vpaint != nullptr ?
                                    ts->vpaint->paint.num_input_samples_deprecated :
                                    1;
-      input_sample_values[9] = ts->wpaint != nullptr ?
+      input_sample_values[8] = ts->wpaint != nullptr ?
                                    ts->wpaint->paint.num_input_samples_deprecated :
                                    1;
 
       int unified_value = 1;
-      for (int i = 0; i < 10; i++) {
+      for (int i = 0; i < 9; i++) {
         if (input_sample_values[i] != 1) {
           if (unified_value == 1) {
             unified_value = input_sample_values[i];
@@ -4625,12 +4872,79 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     add_bevel_modifier_attribute_name_defaults(*bmain);
   }
 
-  /**
-   * Always bump subversion in BKE_blender_version.h when adding versioning
-   * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
-   *
-   * \note Keep this message at the bottom of the function.
-   */
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 403, 23)) {
+    LISTBASE_FOREACH (Object *, object, &bmain->objects) {
+      LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
+        if (md->type != eModifierType_Nodes) {
+          continue;
+        }
+        NodesModifierData &nmd = *reinterpret_cast<NodesModifierData *>(md);
+        if (nmd.bake_target == NODES_MODIFIER_BAKE_TARGET_INHERIT) {
+          /* Use disk target for existing modifiers to avoid changing behavior. */
+          nmd.bake_target = NODES_MODIFIER_BAKE_TARGET_DISK;
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 403, 24)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      node_reroute_add_storage(*ntree);
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 403, 26)) {
+    hide_simulation_node_skip_socket_value(*bmain);
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 403, 28)) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_VIEW3D) {
+            View3D *v3d = reinterpret_cast<View3D *>(sl);
+            copy_v3_fl(v3d->overlay.gpencil_grid_color, 0.5f);
+            copy_v2_fl(v3d->overlay.gpencil_grid_scale, 1.0f);
+            copy_v2_fl(v3d->overlay.gpencil_grid_offset, 0.0f);
+            v3d->overlay.gpencil_grid_subdivisions = 4;
+          }
+        }
+      }
+    }
+
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type != NTREE_COMPOSIT) {
+        continue;
+      }
+      LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
+        if (node->type == CMP_NODE_VIEWER || node->type == CMP_NODE_COMPOSITE) {
+          node->flag &= ~NODE_PREVIEW;
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 403, 29)) {
+    /* Open warnings panel by default. */
+    LISTBASE_FOREACH (Object *, object, &bmain->objects) {
+      LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
+        if (md->type == eModifierType_Nodes) {
+          md->layout_panel_open_flag |= 1 << NODES_MODIFIER_PANEL_WARNINGS;
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 1)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      Editing *ed = SEQ_editing_get(scene);
+      if (ed != nullptr) {
+        SEQ_for_each_callback(&ed->seqbase, versioning_convert_seq_text_anchor, nullptr);
+      }
+    }
+  }
 
   /* Always run this versioning; meshes are written with the legacy format which always needs to
    * be converted to the new format on file load. Can be moved to a subversion check in a larger
@@ -4638,4 +4952,11 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
     blender::bke::mesh_sculpt_mask_to_generic(*mesh);
   }
+
+  /**
+   * Always bump subversion in BKE_blender_version.h when adding versioning
+   * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
+   *
+   * \note Keep this message at the bottom of the function.
+   */
 }

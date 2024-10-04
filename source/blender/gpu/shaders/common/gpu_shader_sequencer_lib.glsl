@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 /* Signed distance to rounded box, centered at origin.
  * Reference: https://iquilezles.org/articles/distfunctions2d/ */
 float sdf_rounded_box(vec2 pos, vec2 size, float radius)

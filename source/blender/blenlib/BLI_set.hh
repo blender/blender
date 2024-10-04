@@ -23,9 +23,9 @@
  * to be relatively fast by default in all cases. However, it also offers many customization
  * points that allow it to be optimized for a specific use case.
  *
- * A rudimentary benchmark can be found in BLI_set_test.cc. The results of that benchmark are
- * there as well. The numbers show that in this specific case blender::Set outperforms
- * std::unordered_set consistently by a good amount.
+ * A rudimentary benchmark can be found in `BLI_set_test.cc`. The results of that benchmark are
+ * there as well. The numbers show that in this specific case #blender::Set outperforms
+ * #std::unordered_set consistently by a good amount.
  *
  * Some noteworthy information:
  * - Key must be a movable type.

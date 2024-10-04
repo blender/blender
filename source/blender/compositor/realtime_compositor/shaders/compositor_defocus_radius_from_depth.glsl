@@ -8,7 +8,7 @@
  *   Potmesil, Michael, and Indranil Chakravarty. "A lens and aperture camera model for synthetic
  *   image generation." ACM SIGGRAPH Computer Graphics 15.3 (1981): 297-305. */
 
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
+#include "gpu_shader_compositor_texture_utilities.glsl"
 
 void main()
 {

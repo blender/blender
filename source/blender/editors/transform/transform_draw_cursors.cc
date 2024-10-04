@@ -174,11 +174,11 @@ void transform_draw_cursor_draw(bContext * /*C*/, int x, int y, void *customdata
     case HLP_TRACKBALL: {
       uchar col[3], col2[3];
       UI_GetThemeColor3ubv(TH_GRID, col);
-      UI_make_axis_color(col, col2, 'X');
+      UI_make_axis_color(col, 'X', col2);
       immUniformColor3ubv(col2);
       drawArrow(pos_id, RIGHT);
       drawArrow(pos_id, LEFT);
-      UI_make_axis_color(col, col2, 'Y');
+      UI_make_axis_color(col, 'Y', col2);
       immUniformColor3ubv(col2);
       drawArrow(pos_id, UP);
       drawArrow(pos_id, DOWN);

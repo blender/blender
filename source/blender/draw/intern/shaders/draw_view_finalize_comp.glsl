@@ -6,7 +6,7 @@
  * Compute culling data for each views of a given view buffer.
  */
 
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#include "common_math_lib.glsl"
 
 void projmat_dimensions(mat4 winmat,
                         out float r_left,

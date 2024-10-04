@@ -33,14 +33,12 @@ int UnaryFunction1DVec3f_Init(PyObject *module)
   if (PyType_Ready(&UnaryFunction1DVec3f_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&UnaryFunction1DVec3f_Type);
-  PyModule_AddObject(module, "UnaryFunction1DVec3f", (PyObject *)&UnaryFunction1DVec3f_Type);
+  PyModule_AddObjectRef(module, "UnaryFunction1DVec3f", (PyObject *)&UnaryFunction1DVec3f_Type);
 
   if (PyType_Ready(&Orientation3DF1D_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&Orientation3DF1D_Type);
-  PyModule_AddObject(module, "Orientation3DF1D", (PyObject *)&Orientation3DF1D_Type);
+  PyModule_AddObjectRef(module, "Orientation3DF1D", (PyObject *)&Orientation3DF1D_Type);
 
   return 0;
 }

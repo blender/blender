@@ -18,9 +18,9 @@
 
 #include "BLI_utildefines.h"
 
-#include "../mathutils/mathutils.h"
+#include "../mathutils/mathutils.hh"
 
-#include "../generic/py_capi_utils.h"
+#include "../generic/py_capi_utils.hh"
 
 #define USE_GPU_PY_MATRIX_API
 #include "GPU_matrix.hh"

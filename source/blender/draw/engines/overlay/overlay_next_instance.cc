@@ -121,6 +121,7 @@ void Instance::begin_sync()
 
   auto begin_sync_layer = [&](OverlayLayer &layer) {
     layer.armatures.begin_sync(resources, state);
+    layer.attribute_viewer.begin_sync(resources, state);
     layer.bounds.begin_sync();
     layer.cameras.begin_sync(resources, state, view);
     layer.curves.begin_sync(resources, state, view);
@@ -215,13 +216,12 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
       case OB_ARMATURE:
         layer.armatures.edit_object_sync(ob_ref, resources, shapes, state);
         break;
+      case OB_SURF:
       case OB_CURVES_LEGACY:
         layer.curves.edit_object_sync_legacy(manager, ob_ref, resources);
         break;
       case OB_CURVES:
         layer.curves.edit_object_sync(manager, ob_ref, resources);
-        break;
-      case OB_SURF:
         break;
       case OB_LATTICE:
         layer.lattices.edit_object_sync(manager, ob_ref, resources);
@@ -278,6 +278,7 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
         layer.speakers.object_sync(ob_ref, resources, state);
         break;
     }
+    layer.attribute_viewer.object_sync(ob_ref, state, manager);
     layer.bounds.object_sync(ob_ref, resources, state);
     layer.facing.object_sync(manager, ob_ref, state);
     layer.fade.object_sync(manager, ob_ref, state);
@@ -473,11 +474,13 @@ void Instance::draw(Manager &manager)
     layer.relations.draw(framebuffer, manager, view);
     layer.fluids.draw(framebuffer, manager, view);
     layer.particles.draw(framebuffer, manager, view);
+    layer.attribute_viewer.draw(framebuffer, manager, view);
     layer.armatures.draw(framebuffer, manager, view);
     layer.sculpts.draw(framebuffer, manager, view);
     layer.grease_pencil.draw(framebuffer, manager, view);
     layer.meshes.draw(framebuffer, manager, view);
     layer.mesh_uvs.draw(framebuffer, manager, view);
+    layer.curves.draw(framebuffer, manager, view);
   };
 
   auto draw_layer_color_only = [&](OverlayLayer &layer, Framebuffer &framebuffer) {

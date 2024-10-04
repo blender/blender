@@ -770,8 +770,8 @@ void ED_view3d_calc_camera_border(const Scene *scene,
                                   const ARegion *region,
                                   const View3D *v3d,
                                   const RegionView3D *rv3d,
-                                  rctf *r_viewborder,
-                                  bool no_shift);
+                                  bool no_shift,
+                                  rctf *r_viewborder);
 void ED_view3d_calc_camera_border_size(const Scene *scene,
                                        Depsgraph *depsgraph,
                                        const ARegion *region,
@@ -779,7 +779,7 @@ void ED_view3d_calc_camera_border_size(const Scene *scene,
                                        const RegionView3D *rv3d,
                                        float r_size[2]);
 bool ED_view3d_calc_render_border(
-    const Scene *scene, Depsgraph *depsgraph, View3D *v3d, ARegion *region, rcti *rect);
+    const Scene *scene, Depsgraph *depsgraph, View3D *v3d, ARegion *region, rcti *r_rect);
 
 void ED_view3d_clipping_calc_from_boundbox(float clip[4][4], const BoundBox *bb, bool is_flip);
 void ED_view3d_clipping_calc(
@@ -888,8 +888,11 @@ bool ED_view3d_autodist_simple(ARegion *region,
                                float mouse_worldloc[3],
                                int margin,
                                const float *force_depth);
-bool ED_view3d_depth_read_cached_seg(
-    const ViewDepths *vd, const int mval_sta[2], const int mval_end[2], int margin, float *depth);
+bool ED_view3d_depth_read_cached_seg(const ViewDepths *vd,
+                                     const int mval_sta[2],
+                                     const int mval_end[2],
+                                     int margin,
+                                     float *r_depth);
 
 /**
  * Returns viewport color in linear space, matching #ED_space_node_color_sample().
@@ -1284,6 +1287,13 @@ void ED_view3d_shade_update(Main *bmain, View3D *v3d, ScrArea *area);
 #define XRAY_ALPHA(v3d) SHADING_XRAY_ALPHA((v3d)->shading)
 #define XRAY_FLAG(v3d) SHADING_XRAY_FLAG((v3d)->shading)
 #define XRAY_FLAG_ENABLED(v3d) SHADING_XRAY_FLAG_ENABLED((v3d)->shading)
+/**
+ * Checks X-ray is enabled and the alpha is less than one.
+ *
+ * \note In edit-mode vertices & edges behave differently,
+ * using X-ray drawing irrespective of the alpha value.
+ * In this case #XRAY_FLAG_ENABLED should be used instead.
+ */
 #define XRAY_ENABLED(v3d) SHADING_XRAY_ENABLED((v3d)->shading)
 #define XRAY_ACTIVE(v3d) SHADING_XRAY_ACTIVE((v3d)->shading)
 

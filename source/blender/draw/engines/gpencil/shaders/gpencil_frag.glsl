@@ -2,8 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_gpencil_lib.glsl)
-#pragma BLENDER_REQUIRE(common_colormanagement_lib.glsl)
+#include "common_colormanagement_lib.glsl"
+#include "common_gpencil_lib.glsl"
 
 float length_squared(vec2 v)
 {

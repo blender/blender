@@ -19,10 +19,10 @@
 
 #include "bmesh.hh"
 
-#include "bmesh_py_types.h"
-#include "bmesh_py_types_select.h"
+#include "bmesh_py_types.hh"
+#include "bmesh_py_types_select.hh"
 
-#include "../generic/python_utildefines.h"
+#include "../generic/python_utildefines.hh"
 
 PyDoc_STRVAR(
     /* Wrap. */

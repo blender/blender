@@ -11,9 +11,9 @@
 /* Future-proof, See https://docs.python.org/3/c-api/arg.html#strings-and-buffers */
 #define PY_SSIZE_T_CLEAN
 
-#include "blf_py_api.h"
+#include "blf_py_api.hh"
 
-#include "../generic/py_capi_utils.h"
+#include "../generic/py_capi_utils.hh"
 
 #include <Python.h>
 
@@ -21,7 +21,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "python_utildefines.h"
+#include "python_utildefines.hh"
 
 PyDoc_STRVAR(
     /* Wrap. */

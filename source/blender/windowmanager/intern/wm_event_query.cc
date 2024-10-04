@@ -57,6 +57,7 @@ static void event_ids_from_flag(char *str,
     }
   }
   ofs += BLI_strncpy_rlen(str + ofs, "}", str_maxncpy - ofs);
+  UNUSED_VARS(ofs); /* Quiet warning. */
 }
 
 static void event_ids_from_type_and_value(const short type,

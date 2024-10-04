@@ -100,6 +100,29 @@ class MaterialSelectionFieldInput final : public bke::GeometryFieldInput {
             domain_mask);
         return attributes.adapt_domain<bool>(std::move(selection), AttrDomain::Curve, domain);
       }
+      case GeometryComponent::Type::Curve: {
+        const Curves *curves_id = context.curves_id();
+        if (!curves_id) {
+          return {};
+        }
+        const bke::CurvesGeometry *curves = context.curves_or_strokes();
+        if (!curves) {
+          return {};
+        }
+        const AttrDomain domain = context.domain();
+        const IndexMask domain_mask = (domain == AttrDomain::Curve) ?
+                                          mask :
+                                          IndexMask(curves->curves_num());
+        const AttributeAccessor attributes = curves->attributes();
+        const VArray<int> material_indices = *attributes.lookup_or_default<int>(
+            "material_index", AttrDomain::Curve, 0);
+        VArray<bool> selection = select_by_material({curves_id->mat, curves_id->totcol},
+                                                    material_,
+                                                    attributes,
+                                                    AttrDomain::Curve,
+                                                    domain_mask);
+        return attributes.adapt_domain<bool>(std::move(selection), AttrDomain::Curve, domain);
+      }
       default:
         return {};
     }

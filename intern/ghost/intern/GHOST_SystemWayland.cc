@@ -2246,9 +2246,9 @@ static const GWL_Cursor_ShapeInfo ghost_wl_cursors = []() -> GWL_Cursor_ShapeInf
     CASE_CURSOR(GHOST_kStandardCursorZoomIn, "zoom-in");
     CASE_CURSOR(GHOST_kStandardCursorZoomOut, "zoom-out");
     CASE_CURSOR(GHOST_kStandardCursorMove, "move");
-    CASE_CURSOR(GHOST_kStandardCursorHandOpen, "move");
-    CASE_CURSOR(GHOST_kStandardCursorHandClosed, "move");
-    CASE_CURSOR(GHOST_kStandardCursorHandPoint, "move");
+    CASE_CURSOR(GHOST_kStandardCursorHandOpen, "hand1");
+    CASE_CURSOR(GHOST_kStandardCursorHandClosed, "grabbing");
+    CASE_CURSOR(GHOST_kStandardCursorHandPoint, "hand2");
     CASE_CURSOR(GHOST_kStandardCursorNSEWScroll, "all-scroll");
     CASE_CURSOR(GHOST_kStandardCursorNSScroll, "size_ver");
     CASE_CURSOR(GHOST_kStandardCursorEWScroll, "size_hor");
@@ -4305,7 +4305,7 @@ static void gesture_pinch_handle_begin(void *data,
   /* Reset defaults. */
   seat->pointer_gesture_pinch = GWL_SeatStatePointerGesture_Pinch{};
 
-  GHOST_WindowWayland *win = nullptr;
+  const GHOST_WindowWayland *win = nullptr;
   if (wl_surface *wl_surface_focus = seat->pointer.wl.surface_window) {
     win = ghost_wl_surface_user_data(wl_surface_focus);
   }
@@ -5725,6 +5725,12 @@ static void text_input_handle_enter(void *data,
   CLOG_INFO(LOG, 2, "enter");
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
   seat->ime.surface_window = surface;
+  /* If text input is enabled, should call `enable` after receive `enter` event.
+   * This support switch input method during input, otherwise input method will not work. */
+  if (seat->ime.is_enabled) {
+    zwp_text_input_v3_enable(seat->wp.text_input);
+    zwp_text_input_v3_commit(seat->wp.text_input);
+  }
 }
 
 static void text_input_handle_leave(void *data,
@@ -5740,6 +5746,9 @@ static void text_input_handle_leave(void *data,
   if (seat->ime.surface_window == surface) {
     seat->ime.surface_window = nullptr;
   }
+  /* Always call `disable` after receive `leave` event. */
+  zwp_text_input_v3_disable(seat->wp.text_input);
+  zwp_text_input_v3_commit(seat->wp.text_input);
 }
 
 static void text_input_handle_preedit_string(void *data,
@@ -8273,7 +8282,8 @@ GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GPUSettings gp
                                                    nullptr,
                                                    1,
                                                    2,
-                                                   debug_context);
+                                                   debug_context,
+                                                   gpuSettings.preferred_device);
 
       if (context->initializeDrawingContext()) {
         context->setUserData(wl_surface);
@@ -8400,7 +8410,8 @@ GHOST_IWindow *GHOST_SystemWayland::createWindow(const char *title,
       is_dialog,
       ((gpuSettings.flags & GHOST_gpuStereoVisual) != 0),
       exclusive,
-      (gpuSettings.flags & GHOST_gpuDebugContext) != 0);
+      (gpuSettings.flags & GHOST_gpuDebugContext) != 0,
+      gpuSettings.preferred_device);
 
   if (window) {
     if (window->getValid()) {
@@ -8911,10 +8922,6 @@ void GHOST_SystemWayland::ime_begin(const GHOST_WindowWayland *win,
     seat->ime.has_preedit = false;
     seat->ime.is_enabled = true;
 
-    /* NOTE(@flibit): For some reason this has to be done twice,
-     * it appears to be a bug in mutter? Maybe? */
-    zwp_text_input_v3_enable(seat->wp.text_input);
-    zwp_text_input_v3_commit(seat->wp.text_input);
     zwp_text_input_v3_enable(seat->wp.text_input);
     zwp_text_input_v3_commit(seat->wp.text_input);
 

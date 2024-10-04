@@ -511,8 +511,8 @@ bool BKE_library_id_can_use_idtype(ID *owner_id, const short id_type_used)
 struct IDUsersIter {
   ID *id;
 
-  ListBase *lb_array[INDEX_ID_MAX];
-  int lb_idx;
+  // ListBase *lb_array[INDEX_ID_MAX]; /* UNUSED. */
+  // int lb_idx; /* UNUSED. */
 
   ID *curr_id;
   int count_direct, count_indirect; /* Set by callback. */

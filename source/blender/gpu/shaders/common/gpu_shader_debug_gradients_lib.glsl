@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 /*
  * For debugging purpose mainly.
  * From https://www.shadertoy.com/view/4dsSzr

@@ -16,14 +16,14 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "../mathutils/mathutils.h"
+#include "../mathutils/mathutils.hh"
 
 #include "bmesh.hh"
-#include "bmesh_py_types.h"
-#include "bmesh_py_utils.h" /* own include */
+#include "bmesh_py_types.hh"
+#include "bmesh_py_utils.hh" /* own include */
 
-#include "../generic/py_capi_utils.h"
-#include "../generic/python_utildefines.h"
+#include "../generic/py_capi_utils.hh"
+#include "../generic/python_utildefines.hh"
 
 PyDoc_STRVAR(
     /* Wrap. */
@@ -564,8 +564,6 @@ static PyObject *bpy_bm_utils_face_split_edgenet(PyObject * /*self*/, PyObject *
 
   BMesh *bm;
 
-  BMFace **face_arr;
-  int face_arr_len;
   bool ok;
 
   if (!PyArg_ParseTupleAndKeywords(args,
@@ -598,16 +596,13 @@ static PyObject *bpy_bm_utils_face_split_edgenet(PyObject * /*self*/, PyObject *
   }
 
   /* --- main function body --- */
-
-  ok = BM_face_split_edgenet(bm, py_face->f, edge_array, edge_array_len, &face_arr, &face_arr_len);
+  blender::Vector<BMFace *> face_arr;
+  ok = BM_face_split_edgenet(bm, py_face->f, edge_array, edge_array_len, &face_arr);
 
   PyMem_FREE(edge_array);
 
   if (ok) {
-    PyObject *ret = BPy_BMFace_Array_As_Tuple(bm, face_arr, face_arr_len);
-    if (face_arr) {
-      MEM_freeN(face_arr);
-    }
+    PyObject *ret = BPy_BMFace_Array_As_Tuple(bm, face_arr.data(), face_arr.size());
     return ret;
   }
 

@@ -16,6 +16,7 @@
 
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
+#include <libavutil/cpu.h>
 #include <libswscale/swscale.h>
 
 /* Check if our ffmpeg is new enough, avoids user complaints.
@@ -139,6 +140,25 @@ int64_t av_get_frame_duration_in_pts_units(const AVFrame *picture)
 #else
   return picture->duration;
 #endif
+}
+
+FFMPEG_INLINE size_t ffmpeg_get_buffer_alignment()
+{
+  /* NOTE: even if av_frame_get_buffer suggests to pass 0 for alignment,
+   * as of ffmpeg 6.1/7.0 it does not use correct alignment for AVX512
+   * CPU (frame.c get_video_buffer ends up always using 32 alignment,
+   * whereas it should have used 64). Reported upstream:
+   * https://trac.ffmpeg.org/ticket/11116 and the fix on their code
+   * side is to use 64 byte alignment as soon as AVX512 is compiled
+   * in (even if CPU might not support it). So play safe and
+   * use at least 64 byte alignment here too. Currently larger than
+   * 64 alignment would not happen anywhere, but keep on querying
+   * av_cpu_max_align just in case some future platform might. */
+  size_t align = av_cpu_max_align();
+  if (align < 64) {
+    align = 64;
+  }
+  return align;
 }
 
 /* -------------------------------------------------------------------- */

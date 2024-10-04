@@ -7,8 +7,8 @@
  * irradiance cache from each spherical probe location except for the world probe.
  */
 
-#pragma BLENDER_REQUIRE(eevee_lightprobe_sphere_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_lightprobe_volume_eval_lib.glsl)
+#include "eevee_lightprobe_sphere_lib.glsl"
+#include "eevee_lightprobe_volume_eval_lib.glsl"
 
 void main()
 {

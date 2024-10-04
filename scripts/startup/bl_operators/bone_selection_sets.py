@@ -352,7 +352,7 @@ def _uniqify(name, other_names):
         if min_index < num:
             break
         min_index = num + 1
-    return "{}.{:03d}".format(name, min_index)
+    return "{:s}.{:03d}".format(name, min_index)
 
 
 def _to_json(context):

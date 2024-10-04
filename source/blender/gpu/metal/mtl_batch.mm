@@ -517,6 +517,10 @@ id<MTLRenderCommandEncoder> MTLBatch::bind(uint v_count)
       BLI_assert(uniform_ssbo_index_mode_u16 != -1);
       int uses_index_mode_u16 = (mtl_elem->index_type_ == GPU_INDEX_U16) ? 1 : 0;
       active_shader_->uniform_int(uniform_ssbo_index_mode_u16, 1, 1, &uses_index_mode_u16);
+
+      BLI_assert(active_shader_->uni_ssbo_index_base_loc != -1);
+      int index_base = (int)mtl_elem->index_base_;
+      active_shader_->uniform_int(active_shader_->uni_ssbo_index_base_loc, 1, 1, &index_base);
     }
     else {
       idx_buffer = ctx->get_null_buffer();

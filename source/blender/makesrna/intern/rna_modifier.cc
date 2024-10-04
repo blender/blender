@@ -239,7 +239,7 @@ const EnumPropertyItem rna_enum_object_modifier_type_items[] = {
     {eModifierType_GreasePencilArray,
      "GREASE_PENCIL_ARRAY",
      ICON_MOD_ARRAY,
-     "Array strokes",
+     "Array",
      "Duplicate strokes into an array"},
     {eModifierType_GreasePencilBuild,
      "GREASE_PENCIL_BUILD",
@@ -253,13 +253,13 @@ const EnumPropertyItem rna_enum_object_modifier_type_items[] = {
      "Grease Pencil length modifier"},
     {eModifierType_GreasePencilLineart,
      "LINEART",
-     ICON_GREASEPENCIL,
+     ICON_MOD_LINEART,
      "Line Art",
      "Generate Line Art from scene geometries"},
     {eModifierType_GreasePencilMirror,
      "GREASE_PENCIL_MIRROR",
      ICON_MOD_MIRROR,
-     "Mirror strokes",
+     "Mirror",
      "Duplicate strokes like a mirror"},
     {eModifierType_GreasePencilMultiply,
      "GREASE_PENCIL_MULTIPLY",
@@ -273,8 +273,8 @@ const EnumPropertyItem rna_enum_object_modifier_type_items[] = {
      "Simplify stroke reducing number of points"},
     {eModifierType_GreasePencilSubdiv,
      "GREASE_PENCIL_SUBDIV",
-     ICON_MOD_SUBSURF,
-     "Subdivide strokes",
+     ICON_MOD_SMOOTH,
+     "Subdivide",
      "Grease Pencil subdivide modifier"},
     {eModifierType_GreasePencilEnvelope,
      "GREASE_PENCIL_ENVELOPE",
@@ -285,7 +285,7 @@ const EnumPropertyItem rna_enum_object_modifier_type_items[] = {
      "GREASE_PENCIL_OUTLINE",
      ICON_MOD_OUTLINE,
      "Outline",
-     "Convert stroke to perimeter"},
+     "Convert stroke to outline"},
 
     RNA_ENUM_ITEM_HEADING(N_("Deform"), nullptr),
     {eModifierType_Armature,
@@ -568,9 +568,13 @@ const EnumPropertyItem rna_enum_shrinkwrap_face_cull_items[] = {
 };
 
 const EnumPropertyItem rna_enum_node_warning_type_items[] = {
-    {int(blender::nodes::geo_eval_log::NodeWarningType::Error), "ERROR", 0, "Error", ""},
-    {int(blender::nodes::geo_eval_log::NodeWarningType::Warning), "WARNING", 0, "Warning", ""},
-    {int(blender::nodes::geo_eval_log::NodeWarningType::Info), "INFO", 0, "Info", ""},
+    {int(blender::nodes::geo_eval_log::NodeWarningType::Error), "ERROR", ICON_CANCEL, "Error", ""},
+    {int(blender::nodes::geo_eval_log::NodeWarningType::Warning),
+     "WARNING",
+     ICON_ERROR,
+     "Warning",
+     ""},
+    {int(blender::nodes::geo_eval_log::NodeWarningType::Info), "INFO", ICON_INFO, "Info", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -939,6 +943,12 @@ static void rna_Modifier_dependency_update(Main *bmain, Scene *scene, PointerRNA
 {
   rna_Modifier_update(bmain, scene, ptr);
   DEG_relations_tag_update(bmain);
+}
+
+static void rna_NodesModifier_bake_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+  rna_Modifier_update(bmain, scene, ptr);
+  WM_main_add_notifier(NC_NODE | NA_EDITED, ptr->owner_id);
 }
 
 static void rna_Modifier_is_active_set(PointerRNA *ptr, bool value)
@@ -7868,6 +7878,39 @@ static void rna_def_modifier_nodes_bake_data_blocks(BlenderRNA *brna)
   RNA_def_property_int_sdna(prop, nullptr, "active_data_block");
 }
 
+static EnumPropertyItem bake_target_in_node_items[] = {
+    {NODES_MODIFIER_BAKE_TARGET_INHERIT,
+     "INHERIT",
+     0,
+     "Inherit from Modifier",
+     "Use setting from the modifier"},
+    {NODES_MODIFIER_BAKE_TARGET_PACKED,
+     "PACKED",
+     0,
+     "Packed",
+     "Pack the baked data into the .blend file"},
+    {NODES_MODIFIER_BAKE_TARGET_DISK,
+     "DISK",
+     0,
+     "Disk",
+     "Store the baked data in a directory on disk"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+static EnumPropertyItem bake_target_in_modifier_items[] = {
+    {NODES_MODIFIER_BAKE_TARGET_PACKED,
+     "PACKED",
+     0,
+     "Packed",
+     "Pack the baked data into the .blend file"},
+    {NODES_MODIFIER_BAKE_TARGET_DISK,
+     "DISK",
+     0,
+     "Disk",
+     "Store the baked data in a directory on disk"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 static void rna_def_modifier_nodes_bake(BlenderRNA *brna)
 {
   rna_def_modifier_nodes_bake_data_blocks(brna);
@@ -7888,33 +7931,38 @@ static void rna_def_modifier_nodes_bake(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "directory", PROP_STRING, PROP_DIRPATH);
   RNA_def_property_ui_text(prop, "Directory", "Location on disk where the bake data is stored");
-  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+  RNA_def_property_update(prop, 0, "rna_NodesModifier_bake_update");
 
   prop = RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);
   RNA_def_property_ui_text(prop, "Start Frame", "Frame where the baking starts");
-  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+  RNA_def_property_update(prop, 0, "rna_NodesModifier_bake_update");
 
   prop = RNA_def_property(srna, "frame_end", PROP_INT, PROP_TIME);
   RNA_def_property_ui_text(prop, "End Frame", "Frame where the baking ends");
-  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+  RNA_def_property_update(prop, 0, "rna_NodesModifier_bake_update");
 
   prop = RNA_def_property(srna, "use_custom_simulation_frame_range", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(
       prop, nullptr, "flag", NODES_MODIFIER_BAKE_CUSTOM_SIMULATION_FRAME_RANGE);
   RNA_def_property_ui_text(
       prop, "Custom Simulation Frame Range", "Override the simulation frame range from the scene");
-  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+  RNA_def_property_update(prop, 0, "rna_NodesModifier_bake_update");
 
   prop = RNA_def_property(srna, "use_custom_path", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", NODES_MODIFIER_BAKE_CUSTOM_PATH);
   RNA_def_property_ui_text(
       prop, "Custom Path", "Specify a path where the baked data should be stored manually");
-  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+  RNA_def_property_update(prop, 0, "rna_NodesModifier_bake_update");
+
+  prop = RNA_def_property(srna, "bake_target", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, bake_target_in_node_items);
+  RNA_def_property_ui_text(prop, "Bake Target", "Where to store the baked data");
+  RNA_def_property_update(prop, 0, "rna_NodesModifier_bake_update");
 
   prop = RNA_def_property(srna, "bake_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, bake_mode_items);
   RNA_def_property_ui_text(prop, "Bake Mode", "");
-  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+  RNA_def_property_update(prop, 0, "rna_NodesModifier_bake_update");
 
   prop = RNA_def_property(srna, "bake_id", PROP_INT, PROP_NONE);
   RNA_def_property_ui_text(prop,
@@ -8034,7 +8082,12 @@ static void rna_def_modifier_nodes(BlenderRNA *brna)
   prop = RNA_def_property(srna, "bake_directory", PROP_STRING, PROP_DIRPATH);
   RNA_def_property_ui_text(
       prop, "Simulation Bake Directory", "Location on disk where the bake data is stored");
-  RNA_def_property_update(prop, 0, nullptr);
+  RNA_def_property_update(prop, 0, "rna_NodesModifier_bake_update");
+
+  prop = RNA_def_property(srna, "bake_target", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, bake_target_in_modifier_items);
+  RNA_def_property_ui_text(prop, "Bake Target", "Where to store the baked data");
+  RNA_def_property_update(prop, 0, "rna_NodesModifier_bake_update");
 
   prop = RNA_def_property(srna, "bakes", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "NodesModifierBake");
@@ -8065,11 +8118,15 @@ static void rna_def_modifier_nodes(BlenderRNA *brna)
                                     nullptr);
   RNA_def_property_struct_type(prop, "NodesModifierWarning");
 
-  rna_def_modifier_panel_open_prop(srna, "open_output_attributes_panel", 0);
-  rna_def_modifier_panel_open_prop(srna, "open_manage_panel", 1);
-  rna_def_modifier_panel_open_prop(srna, "open_bake_panel", 2);
-  rna_def_modifier_panel_open_prop(srna, "open_named_attributes_panel", 3);
-  rna_def_modifier_panel_open_prop(srna, "open_bake_data_blocks_panel", 4);
+  rna_def_modifier_panel_open_prop(
+      srna, "open_output_attributes_panel", NODES_MODIFIER_PANEL_OUTPUT_ATTRIBUTES);
+  rna_def_modifier_panel_open_prop(srna, "open_manage_panel", NODES_MODIFIER_PANEL_MANAGE);
+  rna_def_modifier_panel_open_prop(srna, "open_bake_panel", NODES_MODIFIER_PANEL_BAKE);
+  rna_def_modifier_panel_open_prop(
+      srna, "open_named_attributes_panel", NODES_MODIFIER_PANEL_NAMED_ATTRIBUTES);
+  rna_def_modifier_panel_open_prop(
+      srna, "open_bake_data_blocks_panel", NODES_MODIFIER_PANEL_BAKE_DATA_BLOCKS);
+  rna_def_modifier_panel_open_prop(srna, "open_warnings_panel", NODES_MODIFIER_PANEL_WARNINGS);
 
   RNA_define_lib_overridable(false);
 }

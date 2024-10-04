@@ -13,7 +13,7 @@
 #include "BLF_api.hh"
 
 #include "BLI_fileops.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 
 #include "BKE_appdir.hh"
 

@@ -2,8 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_blur_common.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
+#include "gpu_shader_compositor_blur_common.glsl"
+#include "gpu_shader_compositor_texture_utilities.glsl"
 
 vec4 load_input(ivec2 texel)
 {

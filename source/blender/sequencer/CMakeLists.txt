@@ -5,6 +5,7 @@
 set(INC
   .
   intern
+  ../animrig
   ../blenkernel
   ../blenloader
   ../blentranslation

@@ -13,8 +13,12 @@ Example usage:
 
 import argparse
 import dataclasses
+import sys
+
 from datetime import date
 from gitea_utils import gitea_json_issues_search
+
+IS_ATTY = sys.stdout.isatty()
 
 
 @dataclasses.dataclass
@@ -33,7 +37,7 @@ modules = {
     "Module/Modeling": ModuleInfo(name="Modeling", labelid="274"),
     "Module/Nodes & Physics": ModuleInfo(name="Nodes & Physics", labelid="275"),
     "Module/Pipeline, Assets & IO": ModuleInfo(name="Pipeline, Assets & I/O", labelid="276"),
-    "Module/Platforms, Builds, Test & Devices": ModuleInfo(name="Platforms, Builds, Test & Devices", labelid="278"),
+    "Module/Platforms, Builds & Tests": ModuleInfo(name="Platforms, Builds, Test & Devices", labelid="278"),
     "Module/Python API": ModuleInfo(name="Python API", labelid="279"),
     "Module/Render & Cycles": ModuleInfo(name="Render & Cycles", labelid="280"),
     "Module/Sculpt, Paint & Texture": ModuleInfo(name="Sculpt, Paint & Texture", labelid="281"),
@@ -95,7 +99,8 @@ def compile_list(severity: str) -> None:
                 new_label_name = label_iter["name"]
                 print(f"ALERT: The name of label of '{current_module_name}' changed.")
                 print(f"The new name is '{new_label_name}'.")
-                input("Press enter to continue: \n")
+                if IS_ATTY:
+                    input("Press enter to continue: \n")
 
             modules[current_module_name].buglist.append(f"[#{number}]({html_url})")
             modules[current_module_name].buglist_full.append(f"* [{title}]({html_url}) - {created_at}\n")

@@ -431,7 +431,6 @@ class PrimitiveCreator:
         materials_use_vc = None
         warning_already_displayed = False
         warning_already_displayed_vc_nodetree = False
-        some_alpha = False
         for material_idx in self.prim_indices.keys():
             base_material, material_info = get_base_material(material_idx, self.materials, self.export_settings)
 
@@ -545,8 +544,6 @@ class PrimitiveCreator:
                             elif materials_use_vc is None:
                                 materials_use_vc = vc_key
                                 add_alpha = True  # As we are using the active Vertex Color without checking node tree, we need to add alpha
-                                if add_alpha is True:
-                                    some_alpha = True
                                 self.vc_infos.append({
                                     'color': vc_color_name,
                                     'alpha': vc_alpha_name,
@@ -605,8 +602,6 @@ class PrimitiveCreator:
                             materials_use_vc = vc_key
                             add_alpha = vc_alpha_name is not None
                             add_alpha = add_alpha and material_info['vc_info']['alpha_mode'] != "OPAQUE"
-                            if add_alpha is True:
-                                some_alpha = True
                             self.vc_infos.append({
                                 'color': vc_color_name,
                                 'alpha': vc_alpha_name,
@@ -792,7 +787,7 @@ class PrimitiveCreator:
                     no_materials is True and self.export_settings['gltf_active_vertex_color_when_no_material'] is True):
                 for vc in self.blender_mesh.color_attributes:
                     if vc.name not in [v['color'] for v in self.vc_infos if v['forced'] is False]:
-                        add_alpha = some_alpha is True
+                        add_alpha = True  # As we are using the active Vertex Color without checking node tree, we need to add alpha
                         self.vc_infos.append({
                             'color': vc.name,
                             'alpha': vc.name,
@@ -977,8 +972,14 @@ class PrimitiveCreator:
                         self.attributes_edges_points[attr['gltf_attribute_name']]["data"] = res
                         self.attributes_edges_points[attr['gltf_attribute_name']]["component_type"] = gltf2_blender_conversion.get_component_type(
                             attr['blender_data_type'])
-                        self.attributes_edges_points[attr['gltf_attribute_name']]["data_type"] = gltf2_blender_conversion.get_data_type(
-                            attr['blender_data_type'])
+                        if attr['gltf_attribute_name'].startswith('COLOR_'):
+                            # Because we can have remove the alpha channel, we need to check the
+                            # length of the data, and not be based on the Blender data type
+                            self.attributes_edges_points[attr['gltf_attribute_name']
+                                                         ]["data_type"] = gltf2_io_constants.DataType.Vec3 if attr['len'] == 3 else gltf2_io_constants.DataType.Vec4
+                        else:
+                            self.attributes_edges_points[attr['gltf_attribute_name']]["data_type"] = gltf2_blender_conversion.get_data_type(
+                                attr['blender_data_type'])
 
                 if self.skin:
                     joints = [[] for _ in range(self.num_joint_sets)]
@@ -1027,8 +1028,14 @@ class PrimitiveCreator:
                         self.attributes_edges_points[attr['gltf_attribute_name']]["data"] = res
                         self.attributes_edges_points[attr['gltf_attribute_name']]["component_type"] = gltf2_blender_conversion.get_component_type(
                             attr['blender_data_type'])
-                        self.attributes_edges_points[attr['gltf_attribute_name']]["data_type"] = gltf2_blender_conversion.get_data_type(
-                            attr['blender_data_type'])
+                        if attr['gltf_attribute_name'].startswith('COLOR_'):
+                            # Because we can have remove the alpha channel, we need to check the
+                            # length of the data, and not be based on the Blender data type
+                            self.attributes_edges_points[attr['gltf_attribute_name']
+                                                         ]["data_type"] = gltf2_io_constants.DataType.Vec3 if attr['len'] == 3 else gltf2_io_constants.DataType.Vec4
+                        else:
+                            self.attributes_edges_points[attr['gltf_attribute_name']]["data_type"] = gltf2_blender_conversion.get_data_type(
+                                attr['blender_data_type'])
 
                 if self.skin:
                     joints = [[] for _ in range(self.num_joint_sets)]

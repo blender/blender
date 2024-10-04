@@ -25,7 +25,7 @@
 #include "BLI_fileops.h"
 #include "BLI_fileops_types.h"
 #include "BLI_listbase.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_threads.h"
 
 #include "BKE_main.hh"

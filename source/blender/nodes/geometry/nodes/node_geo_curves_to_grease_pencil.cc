@@ -32,7 +32,7 @@ static GreasePencil *curves_to_grease_pencil_with_one_layer(
 {
   bke::CurvesGeometry curves = curves_id.geometry.wrap();
 
-  const bke::CurvesFieldContext field_context{curves, AttrDomain::Curve};
+  const bke::CurvesFieldContext field_context{curves_id, AttrDomain::Curve};
   FieldEvaluator evaluator{field_context, curves.curves_num()};
   evaluator.set_selection(selection_field);
   evaluator.evaluate();
@@ -42,11 +42,11 @@ static GreasePencil *curves_to_grease_pencil_with_one_layer(
   curves.remove_curves(curves_to_delete, attribute_filter);
 
   GreasePencil *grease_pencil = BKE_grease_pencil_new_nomain();
-  bke::greasepencil::Layer &layer = grease_pencil->add_layer(layer_name);
-  bke::greasepencil::Drawing *drawing = grease_pencil->insert_frame(
-      layer, grease_pencil->runtime->eval_frame);
-  BLI_assert(drawing);
-  drawing->strokes_for_write() = std::move(curves);
+  grease_pencil->add_layers_with_empty_drawings_for_eval(1);
+  bke::greasepencil::Layer &layer = grease_pencil->layer(0);
+  layer.set_name(layer_name);
+  bke::greasepencil::Drawing &drawing = *grease_pencil->get_eval_drawing(layer);
+  drawing.strokes_for_write() = std::move(curves);
 
   /* Transfer materials. */
   const int materials_num = curves_id.totcol;
@@ -85,16 +85,14 @@ static GreasePencil *curve_instances_to_grease_pencil_layers(
   GreasePencil *grease_pencil = BKE_grease_pencil_new_nomain();
 
   VectorSet<Material *> all_materials;
-
+  grease_pencil->add_layers_with_empty_drawings_for_eval(layer_num);
   instance_selection.foreach_index([&](const int instance_i) {
     const bke::InstanceReference &reference = references[reference_handles[instance_i]];
 
-    bke::greasepencil::Layer &layer = grease_pencil->add_layer(reference.name());
-    grease_pencil->insert_frame(layer, grease_pencil->runtime->eval_frame);
+    bke::greasepencil::Layer &layer = grease_pencil->layer(instance_i);
+    bke::greasepencil::Drawing &drawing = *grease_pencil->get_eval_drawing(layer);
+    layer.set_name(reference.name());
     layer.set_local_transform(transforms[instance_i]);
-
-    bke::greasepencil::Drawing *drawing = grease_pencil->get_eval_drawing(layer);
-    BLI_assert(drawing);
 
     GeometrySet instance_geometry;
     reference.to_geometry_set(instance_geometry);
@@ -103,7 +101,7 @@ static GreasePencil *curve_instances_to_grease_pencil_layers(
       return;
     }
 
-    bke::CurvesGeometry &strokes = drawing->strokes_for_write();
+    bke::CurvesGeometry &strokes = drawing.strokes_for_write();
     strokes = instance_curves->geometry.wrap();
 
     Vector<int> new_material_indices;
@@ -129,45 +127,38 @@ static GreasePencil *curve_instances_to_grease_pencil_layers(
 
   const bke::AttributeAccessor instances_attributes = instances.attributes();
   bke::MutableAttributeAccessor grease_pencil_attributes = grease_pencil->attributes_for_write();
-  instances_attributes.for_all([&](const StringRef attribute_id,
-                                   const AttributeMetaData &meta_data) {
-    if (instances_attributes.is_builtin(attribute_id) &&
-        !grease_pencil_attributes.is_builtin(attribute_id))
-    {
-      return true;
+  instances_attributes.foreach_attribute([&](const AttributeIter &iter) {
+    if (iter.is_builtin && !grease_pencil_attributes.is_builtin(iter.name)) {
+      return;
     }
-    if (ELEM(attribute_id, "opacity")) {
-      return true;
+    if (ELEM(iter.name, "opacity")) {
+      return;
     }
-    if (attribute_filter.allow_skip(attribute_id)) {
-      return true;
+    if (attribute_filter.allow_skip(iter.name)) {
+      return;
     }
-    const GAttributeReader src_attribute = instances_attributes.lookup(attribute_id);
-    if (!src_attribute) {
-      return true;
-    }
+    const GAttributeReader src_attribute = iter.get();
     if (instance_selection.size() == instances_num && src_attribute.varray.is_span() &&
         src_attribute.sharing_info)
     {
       /* Try reusing existing attribute array. */
       grease_pencil_attributes.add(
-          attribute_id,
+          iter.name,
           AttrDomain::Layer,
-          meta_data.data_type,
+          iter.data_type,
           bke::AttributeInitShared{src_attribute.varray.get_internal_span().data(),
                                    *src_attribute.sharing_info});
-      return true;
+      return;
     }
     if (!grease_pencil_attributes.add(
-            attribute_id, AttrDomain::Layer, meta_data.data_type, bke::AttributeInitConstruct()))
+            iter.name, AttrDomain::Layer, iter.data_type, bke::AttributeInitConstruct()))
     {
-      return true;
+      return;
     }
     bke::GSpanAttributeWriter dst_attribute = grease_pencil_attributes.lookup_for_write_span(
-        attribute_id);
+        iter.name);
     array_utils::gather(src_attribute.varray, instance_selection, dst_attribute.span);
     dst_attribute.finish();
-    return true;
   });
 
   {
@@ -176,7 +167,7 @@ static GreasePencil *curve_instances_to_grease_pencil_layers(
     const VArray<float> opacities = *instances_attributes.lookup_or_default<float>(
         "opacity", AttrDomain::Instance, 1.0f);
     instance_selection.foreach_index([&](const int instance_i, const int layer_i) {
-      grease_pencil->layer(layer_i)->opacity = opacities[instance_i];
+      grease_pencil->layer(layer_i).opacity = opacities[instance_i];
     });
   }
 

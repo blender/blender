@@ -23,7 +23,7 @@
 #endif
 
 #ifdef WIN32
-#  include "BLI_path_util.h"
+#  include "BLI_path_utils.hh"
 #endif
 
 #include <Dwmapi.h>
@@ -61,7 +61,8 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
                                      bool alphaBackground,
                                      GHOST_WindowWin32 *parentwindow,
                                      bool is_debug,
-                                     bool dialog)
+                                     bool dialog,
+                                     const GHOST_GPUDevice &preferred_device)
     : GHOST_Window(width, height, state, wantStereoVisual, false),
       m_mousePresent(false),
       m_inLiveResize(false),
@@ -70,6 +71,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
       m_hWnd(0),
       m_hDC(0),
       m_isDialog(dialog),
+      m_preferred_device(preferred_device),
       m_hasMouseCaptured(false),
       m_hasGrabMouse(false),
       m_nPressedButtons(0),
@@ -620,7 +622,8 @@ GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType ty
   switch (type) {
 #ifdef WITH_VULKAN_BACKEND
     case GHOST_kDrawingContextTypeVulkan: {
-      GHOST_Context *context = new GHOST_ContextVK(false, m_hWnd, 1, 2, m_debug_context);
+      GHOST_Context *context = new GHOST_ContextVK(
+          false, m_hWnd, 1, 2, m_debug_context, m_preferred_device);
       if (context->initializeDrawingContext()) {
         return context;
       }

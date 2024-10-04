@@ -21,7 +21,7 @@
 #include "smoke_script.h"
 
 #include "BLI_fileops.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "DNA_fluid_types.h"
@@ -605,8 +605,7 @@ static PyObject *manta_python_main_module_create(const char *filename)
      * NOTE: this won't map to a real file when executing text-blocks and buttons. */
     PyModule_AddObject(mod_main, "__file__", PyUnicode_InternFromString(filename));
   }
-  PyModule_AddObject(mod_main, "__builtins__", builtins);
-  Py_INCREF(builtins); /* AddObject steals a reference */
+  PyModule_AddObjectRef(mod_main, "__builtins__", builtins);
   return mod_main;
 }
 

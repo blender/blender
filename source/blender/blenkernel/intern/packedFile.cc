@@ -20,6 +20,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_image_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_vfont_types.h"
@@ -28,6 +29,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_bake_geometry_nodes_modifier.hh"
+#include "BKE_bake_geometry_nodes_modifier_pack.hh"
 #include "BKE_image.h"
 #include "BKE_image_format.h"
 #include "BKE_main.hh"
@@ -37,8 +40,12 @@
 #include "BKE_vfont.hh"
 #include "BKE_volume.hh"
 
+#include "DEG_depsgraph.hh"
+
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
+
+#include "MOD_nodes.hh"
 
 #include "BLO_read_write.hh"
 
@@ -108,26 +115,27 @@ int BKE_packedfile_read(PackedFile *pf, void *data, int size)
   return size;
 }
 
-int BKE_packedfile_count_all(Main *bmain)
+PackedFileCount BKE_packedfile_count_all(Main *bmain)
 {
   Image *ima;
   VFont *vf;
   bSound *sound;
   Volume *volume;
-  int count = 0;
+
+  PackedFileCount count;
 
   /* let's check if there are packed files... */
   for (ima = static_cast<Image *>(bmain->images.first); ima;
        ima = static_cast<Image *>(ima->id.next))
   {
     if (BKE_image_has_packedfile(ima) && !ID_IS_LINKED(ima)) {
-      count++;
+      count.individual_files++;
     }
   }
 
   for (vf = static_cast<VFont *>(bmain->fonts.first); vf; vf = static_cast<VFont *>(vf->id.next)) {
     if (vf->packedfile && !ID_IS_LINKED(vf)) {
-      count++;
+      count.individual_files++;
     }
   }
 
@@ -135,7 +143,7 @@ int BKE_packedfile_count_all(Main *bmain)
        sound = static_cast<bSound *>(sound->id.next))
   {
     if (sound->packedfile && !ID_IS_LINKED(sound)) {
-      count++;
+      count.individual_files++;
     }
   }
 
@@ -143,7 +151,23 @@ int BKE_packedfile_count_all(Main *bmain)
        volume = static_cast<Volume *>(volume->id.next))
   {
     if (volume->packedfile && !ID_IS_LINKED(volume)) {
-      count++;
+      count.individual_files++;
+    }
+  }
+
+  LISTBASE_FOREACH (Object *, object, &bmain->objects) {
+    if (ID_IS_LINKED(object)) {
+      continue;
+    }
+    LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
+      if (md->type == eModifierType_Nodes) {
+        NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
+        for (const NodesModifierBake &bake : blender::Span{nmd->bakes, nmd->bakes_num}) {
+          if (bake.packed) {
+            count.bakes++;
+          }
+        }
+      }
     }
   }
 
@@ -177,14 +201,20 @@ PackedFile *BKE_packedfile_duplicate(const PackedFile *pf_src)
   return pf_dst;
 }
 
-PackedFile *BKE_packedfile_new_from_memory(void *mem, int memlen)
+PackedFile *BKE_packedfile_new_from_memory(const void *mem,
+                                           int memlen,
+                                           const blender::ImplicitSharingInfo *sharing_info)
 {
   BLI_assert(mem != nullptr);
+  if (!sharing_info) {
+    /* Assume we are the only owner of that memory currently. */
+    sharing_info = blender::implicit_sharing::info_for_mem_free(const_cast<void *>(mem));
+  }
 
   PackedFile *pf = static_cast<PackedFile *>(MEM_callocN(sizeof(*pf), "PackedFile"));
   pf->data = mem;
   pf->size = memlen;
-  pf->sharing_info = blender::implicit_sharing::info_for_mem_free(mem);
+  pf->sharing_info = sharing_info;
 
   return pf;
 }
@@ -296,6 +326,20 @@ void BKE_packedfile_pack_all(Main *bmain, ReportList *reports, bool verbose)
       volume->packedfile = BKE_packedfile_new(
           reports, volume->filepath, BKE_main_blendfile_path(bmain));
       tot++;
+    }
+  }
+
+  LISTBASE_FOREACH (Object *, object, &bmain->objects) {
+    if (ID_IS_LINKED(object)) {
+      continue;
+    }
+    LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
+      if (md->type == eModifierType_Nodes) {
+        NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
+        for (NodesModifierBake &bake : blender::MutableSpan{nmd->bakes, nmd->bakes_num}) {
+          blender::bke::bake::pack_geometry_nodes_bake(*bmain, reports, *object, *nmd, bake);
+        }
+      }
     }
   }
 
@@ -814,6 +858,21 @@ void BKE_packedfile_unpack_all(Main *bmain, ReportList *reports, enum ePF_FileSt
   {
     if (volume->packedfile && !ID_IS_LINKED(volume)) {
       BKE_packedfile_unpack_volume(bmain, reports, volume, how);
+    }
+  }
+
+  LISTBASE_FOREACH (Object *, object, &bmain->objects) {
+    if (ID_IS_LINKED(object)) {
+      continue;
+    }
+    LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
+      if (md->type == eModifierType_Nodes) {
+        NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
+        for (NodesModifierBake &bake : blender::MutableSpan{nmd->bakes, nmd->bakes_num}) {
+          blender::bke::bake::unpack_geometry_nodes_bake(
+              *bmain, reports, *object, *nmd, bake, how);
+        }
+      }
     }
   }
 }

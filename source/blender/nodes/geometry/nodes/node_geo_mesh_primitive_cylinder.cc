@@ -31,11 +31,11 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(1)
       .max(512)
       .description("The number of rectangular segments along each side");
-  b.add_input<decl::Int>("Fill Segments")
-      .default_value(1)
-      .min(1)
-      .max(512)
-      .description("The number of concentric rings used to fill the round faces");
+  auto &fill = b.add_input<decl::Int>("Fill Segments")
+                   .default_value(1)
+                   .min(1)
+                   .max(512)
+                   .description("The number of concentric rings used to fill the round faces");
   b.add_input<decl::Float>("Radius")
       .default_value(1.0f)
       .min(0.0f)
@@ -52,6 +52,14 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Bool>("Bottom").field_on_all().translation_context(
       BLT_I18NCONTEXT_ID_NODETREE);
   b.add_output<decl::Vector>("UV Map").field_on_all();
+
+  const bNode *node = b.node_or_null();
+  if (node != nullptr) {
+    const NodeGeometryMeshCylinder &storage = node_storage(*node);
+    const GeometryNodeMeshCircleFillType fill_type = GeometryNodeMeshCircleFillType(
+        storage.fill_type);
+    fill.available(fill_type != GEO_NODE_MESH_CIRCLE_FILL_NONE);
+  }
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -68,18 +76,6 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   node_storage->fill_type = GEO_NODE_MESH_CIRCLE_FILL_NGON;
 
   node->storage = node_storage;
-}
-
-static void node_update(bNodeTree *ntree, bNode *node)
-{
-  bNodeSocket *vertices_socket = static_cast<bNodeSocket *>(node->inputs.first);
-  bNodeSocket *rings_socket = vertices_socket->next;
-  bNodeSocket *fill_subdiv_socket = rings_socket->next;
-
-  const NodeGeometryMeshCylinder &storage = node_storage(*node);
-  const GeometryNodeMeshCircleFillType fill = (GeometryNodeMeshCircleFillType)storage.fill_type;
-  const bool has_fill = fill != GEO_NODE_MESH_CIRCLE_FILL_NONE;
-  bke::node_set_socket_availability(ntree, fill_subdiv_socket, has_fill);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -149,7 +145,6 @@ static void node_register()
   static blender::bke::bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_CYLINDER, "Cylinder", NODE_CLASS_GEOMETRY);
   ntype.initfunc = node_init;
-  ntype.updatefunc = node_update;
   blender::bke::node_type_storage(
       &ntype, "NodeGeometryMeshCylinder", node_free_standard_storage, node_copy_standard_storage);
   ntype.declare = node_declare;

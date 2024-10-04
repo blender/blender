@@ -1656,7 +1656,7 @@ ID *BKE_libblock_find_name(Main *bmain,
                            const char *name,
                            const std::optional<Library *> lib)
 {
-  ListBase *lb = which_libbase(bmain, type);
+  const ListBase *lb = which_libbase(bmain, type);
   BLI_assert(lb != nullptr);
 
   ID *id = static_cast<ID *>(BLI_findstring(lb, name, offsetof(ID, name) + 2));
@@ -1671,7 +1671,7 @@ ID *BKE_libblock_find_name(Main *bmain,
 
 ID *BKE_libblock_find_session_uid(Main *bmain, const short type, const uint32_t session_uid)
 {
-  ListBase *lb = which_libbase(bmain, type);
+  const ListBase *lb = which_libbase(bmain, type);
   BLI_assert(lb != nullptr);
   LISTBASE_FOREACH (ID *, id, lb) {
     if (id->session_uid == session_uid) {

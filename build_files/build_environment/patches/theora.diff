@@ -16,3 +16,15 @@
  	| alpha-* | alphaev[4-8]-* | alphaev56-* | alphaev6[78]-* \
  	| alpha64-* | alpha64ev[4-8]-* | alpha64ev56-* | alpha64ev6[78]-* \
  	| alphapca5[67]-* | alpha64pca5[67]-* | arc-* \
+--- config.guess	2024-07-11 13:42:08.171028863 +0200
++++ config.guess	2024-07-11 13:41:13.921323750 +0200
+@@ -861,6 +861,9 @@
+     x86_64:Linux:*:*)
+ 	echo x86_64-unknown-linux-gnu
+ 	exit 0 ;;
++    aarch64:Linux:*:*)
++	echo aarch64-unknown-linux-gnu
++	exit 0 ;;
+     i*86:Linux:*:*)
+ 	# The BFD linker knows what the default object file format is, so
+ 	# first see if it will tell us. cd to the root directory to prevent

@@ -29,14 +29,14 @@ static void node_declare(NodeDeclarationBuilder &b)
       "The number of points in the curve");
 }
 
-class PointsOfCurveInput final : public bke::CurvesFieldInput {
+class PointsOfCurveInput final : public bke::GeometryFieldInput {
   const Field<int> curve_index_;
   const Field<int> sort_index_;
   const Field<float> sort_weight_;
 
  public:
   PointsOfCurveInput(Field<int> curve_index, Field<int> sort_index, Field<float> sort_weight)
-      : bke::CurvesFieldInput(CPPType::get<int>(), "Point of Curve"),
+      : bke::GeometryFieldInput(CPPType::get<int>(), "Point of Curve"),
         curve_index_(std::move(curve_index)),
         sort_index_(std::move(sort_index)),
         sort_weight_(std::move(sort_weight))
@@ -44,13 +44,17 @@ class PointsOfCurveInput final : public bke::CurvesFieldInput {
     category_ = Category::Generated;
   }
 
-  GVArray get_varray_for_context(const bke::CurvesGeometry &curves,
-                                 const AttrDomain domain,
+  GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
                                  const IndexMask &mask) const final
   {
+    const bke::CurvesGeometry *curves_ptr = context.curves_or_strokes();
+    if (!curves_ptr) {
+      return {};
+    }
+    const bke::CurvesGeometry &curves = *curves_ptr;
+
     const OffsetIndices points_by_curve = curves.points_by_curve();
 
-    const bke::CurvesFieldContext context{curves, domain};
     fn::FieldEvaluator evaluator{context, &mask};
     evaluator.add(curve_index_);
     evaluator.add(sort_index_);
@@ -58,7 +62,7 @@ class PointsOfCurveInput final : public bke::CurvesFieldInput {
     const VArray<int> curve_indices = evaluator.get_evaluated<int>(0);
     const VArray<int> indices_in_sort = evaluator.get_evaluated<int>(1);
 
-    const bke::CurvesFieldContext point_context{curves, AttrDomain::Point};
+    const bke::GeometryFieldContext point_context{context, AttrDomain::Point};
     fn::FieldEvaluator point_evaluator{point_context, curves.points_num()};
     point_evaluator.add(sort_weight_);
     point_evaluator.evaluate();
@@ -128,7 +132,7 @@ class PointsOfCurveInput final : public bke::CurvesFieldInput {
     return false;
   }
 
-  std::optional<AttrDomain> preferred_domain(const bke::CurvesGeometry & /*curves*/) const final
+  std::optional<AttrDomain> preferred_domain(const GeometryComponent & /*component*/) const final
   {
     return AttrDomain::Curve;
   }

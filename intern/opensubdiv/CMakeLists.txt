@@ -64,7 +64,6 @@ if(WITH_OPENSUBDIV)
     internal/topology/mesh_topology.cc
     internal/topology/mesh_topology_compare.cc
     internal/topology/mesh_topology.h
-    internal/topology/topology_refiner_capi.cc
     internal/topology/topology_refiner_factory.cc
     internal/topology/topology_refiner_impl.cc
     internal/topology/topology_refiner_impl_compare.cc
@@ -86,16 +85,14 @@ if(WITH_OPENSUBDIV)
     add_definitions(-D_USE_MATH_DEFINES)
   endif()
 
-  data_to_c_simple(
+  glsl_to_c(
     internal/evaluator/shaders/glsl_compute_kernel.glsl
     SRC
-    STRIP_LEADING_C_COMMENTS
   )
 else()
   list(APPEND SRC
     stub/opensubdiv_stub.cc
     stub/opensubdiv_evaluator_stub.cc
-    stub/opensubdiv_topology_refiner_stub.cc
   )
 endif()
 

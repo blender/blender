@@ -207,6 +207,7 @@ void MESH_OT_shortest_path_pick(wmOperatorType *ot);
 void MESH_OT_select_linked(wmOperatorType *ot);
 void MESH_OT_select_linked_pick(wmOperatorType *ot);
 void MESH_OT_select_face_by_sides(wmOperatorType *ot);
+void MESH_OT_select_by_pole_count(wmOperatorType *ot);
 void MESH_OT_select_loose(wmOperatorType *ot);
 void MESH_OT_select_mirror(wmOperatorType *ot);
 void MESH_OT_select_more(wmOperatorType *ot);

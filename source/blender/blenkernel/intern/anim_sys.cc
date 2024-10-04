@@ -797,7 +797,7 @@ static void action_idcode_patch_check(ID *id, bAction *act)
   }
 
 #ifdef WITH_ANIM_BAKLAVA
-  if (act->wrap().is_action_layered()) {
+  if (!blender::animrig::legacy::action_treat_as_legacy(*act)) {
     /* Layered Actions can always be assigned to any ID. It's actually the Slot that is limited
      * to an ID type (similar to legacy Actions). Layered Actions are evaluated differently,
      * though, and their evaluation shouldn't end up here. At the moment of writing it can still

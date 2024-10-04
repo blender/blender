@@ -52,6 +52,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::animrig
   PRIVATE bf::blenfont
   bf_blenkernel
   PRIVATE bf::blenlib

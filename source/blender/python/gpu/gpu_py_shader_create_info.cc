@@ -16,8 +16,8 @@
 #include "GPU_shader.hh"
 #include "intern/gpu_shader_create_info.hh"
 
-#include "../generic/py_capi_utils.h"
-#include "../generic/python_compat.h"
+#include "../generic/py_capi_utils.hh"
+#include "../generic/python_compat.hh"
 
 #include "gpu_py.hh"
 #include "gpu_py_shader.hh" /* own include */

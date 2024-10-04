@@ -319,7 +319,7 @@ static void seq_view_collection_rect_timeline(const bContext *C,
   const Scene *scene = CTX_data_scene(C);
   int xmin = MAXFRAME * 2;
   int xmax = -MAXFRAME * 2;
-  int ymin = MAXSEQ + 1;
+  int ymin = SEQ_MAX_CHANNELS + 1;
   int ymax = 0;
   int xmargin = FPS;
 

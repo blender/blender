@@ -13,11 +13,11 @@
 
 #include "BLI_utildefines.h"
 
-#include "../mathutils/mathutils.h"
+#include "../mathutils/mathutils.hh"
 
 #include "bmesh.hh"
-#include "bmesh_py_geometry.h" /* own include */
-#include "bmesh_py_types.h"
+#include "bmesh_py_geometry.hh" /* own include */
+#include "bmesh_py_types.hh"
 
 PyDoc_STRVAR(
     /* Wrap. */

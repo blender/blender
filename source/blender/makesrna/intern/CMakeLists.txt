@@ -31,6 +31,7 @@ set(DEFSRC
   rna_armature.cc
   rna_asset.cc
   rna_attribute.cc
+  rna_blendfile_import.cc
   rna_boid.cc
   rna_brush.cc
   rna_cachefile.cc
@@ -245,8 +246,8 @@ set(INC
   ../../bmesh
   ../../depsgraph
   ../../draw
-  ../../gpu
   ../../functions
+  ../../gpu
   ../../ikplugin
   ../../imbuf
   ../../io/usd

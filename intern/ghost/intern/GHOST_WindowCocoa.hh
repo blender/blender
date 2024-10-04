@@ -42,6 +42,7 @@ class GHOST_WindowCocoa : public GHOST_Window {
    * \param state: The state the window is initially opened with.
    * \param type: The type of drawing context installed in this window.
    * \param stereoVisual: Stereo visual for quad buffered stereo.
+   * \param preferred_device: Preferred device to use when new device will be created.
    */
   GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
                     const char *title,
@@ -50,11 +51,12 @@ class GHOST_WindowCocoa : public GHOST_Window {
                     uint32_t width,
                     uint32_t height,
                     GHOST_TWindowState state,
-                    GHOST_TDrawingContextType type = GHOST_kDrawingContextTypeNone,
-                    const bool stereoVisual = false,
-                    bool is_debug = false,
-                    bool dialog = false,
-                    GHOST_WindowCocoa *parentWindow = nullptr);
+                    GHOST_TDrawingContextType type,
+                    const bool stereoVisual,
+                    bool is_debug,
+                    bool dialog,
+                    GHOST_WindowCocoa *parentWindow,
+                    const GHOST_GPUDevice &preferred_device);
 
   /**
    * Destructor.
@@ -312,6 +314,7 @@ class GHOST_WindowCocoa : public GHOST_Window {
   bool m_immediateDraw;
   bool m_debug_context;  // for debug messages during context setup
   bool m_is_dialog;
+  GHOST_GPUDevice m_preferred_device;
 };
 
 #ifdef WITH_INPUT_IME

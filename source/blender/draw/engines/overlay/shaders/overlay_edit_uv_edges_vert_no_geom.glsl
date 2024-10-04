@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma USE_SSBO_VERTEX_FETCH(TriangleList, 6)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(overlay_common_lib.glsl)
+#include "common_view_lib.glsl"
+#include "overlay_common_lib.glsl"
 
 #define DISCARD_VERTEX \
   gl_Position = vec4(0.0); \

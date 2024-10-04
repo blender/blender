@@ -69,6 +69,8 @@ Mesh *STLMeshHelper::to_mesh()
   offset_indices::fill_constant_group_size(3, 0, mesh->face_offsets_for_write());
   array_utils::copy(tris_.as_span().cast<int>(), mesh->corner_verts_for_write());
 
+  bke::mesh_smooth_set(*mesh, false);
+
   /* NOTE: edges must be calculated first before setting custom normals. */
   bke::mesh_calc_edges(*mesh, false, false);
 

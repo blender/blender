@@ -185,9 +185,11 @@ static void restrictbutton_bone_visibility_fn(bContext *C, void *poin, void * /*
   }
 }
 
-static void restrictbutton_bone_select_fn(bContext *C, void * /*poin*/, void *poin2)
+static void restrictbutton_bone_select_fn(bContext *C, void *poin, void *poin2)
 {
-  Bone *bone = (Bone *)poin2;
+  bArmature *arm = static_cast<bArmature *>(poin);
+  Bone *bone = static_cast<Bone *>(poin2);
+
   if (bone->flag & BONE_UNSELECTABLE) {
     bone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
   }
@@ -196,6 +198,7 @@ static void restrictbutton_bone_select_fn(bContext *C, void * /*poin*/, void *po
     restrictbutton_recursive_bone(bone, BONE_UNSELECTABLE, (bone->flag & BONE_UNSELECTABLE) != 0);
   }
 
+  DEG_id_tag_update(&arm->id, ID_RECALC_SYNC_TO_EVAL);
   WM_event_add_notifier(C, NC_OBJECT | ND_POSE, nullptr);
 }
 
@@ -375,6 +378,10 @@ static void outliner_collection_set_flag_recursive(Scene *scene,
   }
   PointerRNA ptr;
   outliner_layer_or_collection_pointer_create(scene, layer_collection, collection, &ptr);
+  if (base_or_object_prop && !RNA_property_editable(&ptr, base_or_object_prop)) {
+    return;
+  }
+
   RNA_property_boolean_set(&ptr, layer_or_collection_prop, value);
 
   /* Set the same flag for the nested objects as well. */
@@ -384,6 +391,10 @@ static void outliner_collection_set_flag_recursive(Scene *scene,
     LISTBASE_FOREACH (CollectionObject *, cob, &layer_collection->collection->gobject) {
 
       outliner_base_or_object_pointer_create(scene, view_layer, collection, cob->ob, &ptr);
+      if (!RNA_property_editable(&ptr, base_or_object_prop)) {
+        continue;
+      }
+
       RNA_property_boolean_set(&ptr, base_or_object_prop, value);
 
       if (collection) {
@@ -2936,7 +2947,12 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
           data.icon = ICON_OUTLINER_DATA_GP_LAYER;
         }
         else if (node.is_group()) {
-          data.icon = ICON_FILE_FOLDER;
+          const bke::greasepencil::LayerGroup &group = node.as_group();
+
+          data.icon = ICON_GREASEPENCIL_LAYER_GROUP;
+          if (group.color_tag != LAYERGROUP_COLOR_NONE) {
+            data.icon = ICON_LAYERGROUP_COLOR_01 + group.color_tag;
+          }
         }
         break;
       }

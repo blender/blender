@@ -28,9 +28,9 @@ endif()
 # TODO: this code could be refactored a bit to avoid duplication.
 # NOTE: CXX_HAS_SSE42 is needed in case passing SSE flags fails altogether (`gcc-arm`).
 
+# Determine vectorization support and required build flags
 if(WITH_CYCLES_NATIVE_ONLY)
   set(CXX_HAS_SSE42 FALSE)
-  set(CXX_HAS_AVX FALSE)
   set(CXX_HAS_AVX2 FALSE)
   add_definitions(
     -DWITH_KERNEL_NATIVE
@@ -42,9 +42,9 @@ if(WITH_CYCLES_NATIVE_ONLY)
       _has_march_native "-march=native"
     )
     if(_has_march_native)
-      set(CYCLES_KERNEL_FLAGS "-march=native")
+      string(APPEND CMAKE_CXX_FLAGS " -march=native")
     else()
-      set(CYCLES_KERNEL_FLAGS "")
+      string(APPEND CMAKE_CXX_FLAGS "")
     endif()
     unset(_has_march_native)
   else()
@@ -62,128 +62,62 @@ if(WITH_CYCLES_NATIVE_ONLY)
         set(MSVC_NATIVE_ARCH_FLAGS ${arch_run_output} CACHE STRING "MSVC Native architecture flags")
       endif()
     endif()
-    set(CYCLES_KERNEL_FLAGS "${MSVC_NATIVE_ARCH_FLAGS}")
+    string(APPEND CMAKE_CXX_FLAGS " ${MSVC_NATIVE_ARCH_FLAGS}")
   endif()
 elseif(WIN32 AND MSVC AND SUPPORT_NEON_BUILD AND SSE2NEON_FOUND)
-  set(CXX_HAS_SSE FALSE)
-  set(CXX_HAS_AVX FALSE)
+  set(CXX_HAS_SSE42 FALSE)
   set(CXX_HAS_AVX2 FALSE)
-  set(CYCLES_KERNEL_FLAGS "/fp:fast -D_CRT_SECURE_NO_WARNINGS /GS-")
-  string(APPEND CMAKE_CXX_FLAGS " ${CYCLES_KERNEL_FLAGS}")
-  string(APPEND CMAKE_CXX_FLAGS_RELEASE " /Ox")
-  string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " /Ox")
-  string(APPEND CMAKE_CXX_FLAGS_MINSIZEREL " /Ox")
 elseif(NOT WITH_CPU_SIMD OR (SUPPORT_NEON_BUILD AND SSE2NEON_FOUND))
   set(CXX_HAS_SSE42 FALSE)
-  set(CXX_HAS_AVX FALSE)
   set(CXX_HAS_AVX2 FALSE)
 elseif(WIN32 AND MSVC AND NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(CXX_HAS_SSE42 TRUE)
-  set(CXX_HAS_AVX TRUE)
   set(CXX_HAS_AVX2 TRUE)
 
   # /arch:AVX for VC2012 and above
   if(NOT MSVC_VERSION LESS 1700)
-    set(CYCLES_AVX_ARCH_FLAGS "/arch:AVX")
-    set(CYCLES_AVX2_ARCH_FLAGS "/arch:AVX /arch:AVX2")
+    set(CYCLES_AVX2_FLAGS "/arch:AVX /arch:AVX2")
   elseif(NOT CMAKE_CL_64)
-    set(CYCLES_AVX_ARCH_FLAGS "/arch:SSE2")
-    set(CYCLES_AVX2_ARCH_FLAGS "/arch:SSE2")
-  endif()
-
-  # Unlike GCC/clang we still use fast math, because there is no fine
-  # grained control and the speedup we get here is too big to ignore.
-  set(CYCLES_KERNEL_FLAGS "/fp:fast -D_CRT_SECURE_NO_WARNINGS /GS-")
-
-  # `jumptablerdata` improves performance when there is contention in large switch statements
-  # such as in `svm.h`.
-  # This flag is supported starting with MSVC 17.7 preview 3:
-  # https://learn.microsoft.com/en-us/cpp/build/reference/jump-table-rdata
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.37.32820)
-    string(APPEND CYCLES_KERNEL_FLAGS " /jumptablerdata")
+    set(CYCLES_AVX2_FLAGS "/arch:SSE2")
   endif()
 
   # there is no /arch:SSE3, but intrinsics are available anyway
   if(CMAKE_CL_64)
-    set(CYCLES_SSE42_KERNEL_FLAGS "${CYCLES_KERNEL_FLAGS}")
-    set(CYCLES_AVX2_KERNEL_FLAGS "${CYCLES_AVX2_ARCH_FLAGS} ${CYCLES_KERNEL_FLAGS}")
+    set(CYCLES_SSE42_FLAGS "")
   else()
-    set(CYCLES_SSE42_KERNEL_FLAGS "/arch:SSE2 ${CYCLES_KERNEL_FLAGS}")
-    set(CYCLES_AVX2_KERNEL_FLAGS "${CYCLES_AVX2_ARCH_FLAGS} ${CYCLES_KERNEL_FLAGS}")
+    set(CYCLES_SSE42_FLAGS "/arch:SSE2")
   endif()
-
-  string(APPEND CMAKE_CXX_FLAGS " ${CYCLES_KERNEL_FLAGS}")
-  string(APPEND CMAKE_CXX_FLAGS_RELEASE " /Ox")
-  string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " /Ox")
-  string(APPEND CMAKE_CXX_FLAGS_MINSIZEREL " /Ox")
 elseif(CMAKE_COMPILER_IS_GNUCC OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
   check_cxx_compiler_flag(-msse4.2 CXX_HAS_SSE42)
-  check_cxx_compiler_flag(-mavx CXX_HAS_AVX)
   check_cxx_compiler_flag(-mavx2 CXX_HAS_AVX2)
 
-  # Assume no signal trapping for better code generation.
-  # We need to omit or modify specific flags to pass through clang-cl to prevent
-  # unknown flag errors
-  if(WIN32 AND MSVC)
-    # Pass clang flags directly to clang otherwise. Clang-cl doesn't recognize
-    # these flags by default
-    set(CYCLES_KERNEL_FLAGS " /clang:-fno-trapping-math")
-    # Avoid overhead of setting `errno` for NaNs.
-    string(APPEND CYCLES_KERNEL_FLAGS " /clang:-fno-math-errno")
-    # Let compiler optimize 0.0 - x without worrying about signed zeros.
-    string(APPEND CYCLES_KERNEL_FLAGS " /clang:-fno-signed-zeros")
-  else()
-    set(CYCLES_KERNEL_FLAGS " -fno-trapping-math")
-    # Avoid overhead of setting `errno` for NaNs.
-    string(APPEND CYCLES_KERNEL_FLAGS " -fno-math-errno")
-    # Let compiler optimize 0.0 - x without worrying about signed zeros.
-    string(APPEND CYCLES_KERNEL_FLAGS " -fno-signed-zeros")
-  endif()
-
-  if(CMAKE_COMPILER_IS_GNUCC)
-    # Assume no signal trapping for better code generation.
-    string(APPEND CYCLES_KERNEL_FLAGS " -fno-signaling-nans")
-    # Assume a fixed rounding mode for better constant folding.
-    string(APPEND CYCLES_KERNEL_FLAGS " -fno-rounding-math")
-  endif()
-
   if(CXX_HAS_SSE42)
-    if(CMAKE_COMPILER_IS_GNUCC)
-      string(APPEND CYCLES_KERNEL_FLAGS " -mfpmath=sse")
-    endif()
-
-    set(CYCLES_SSE42_KERNEL_FLAGS "${CYCLES_KERNEL_FLAGS} -msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2")
+    set(CYCLES_SSE42_FLAGS "-msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2")
     if(CXX_HAS_AVX2)
-      set(CYCLES_AVX2_KERNEL_FLAGS "${CYCLES_SSE42_KERNEL_FLAGS} -mavx -mavx2 -mfma -mlzcnt -mbmi -mbmi2 -mf16c")
+      set(CYCLES_AVX2_FLAGS "${CYCLES_SSE42_FLAGS} -mavx -mavx2 -mfma -mlzcnt -mbmi -mbmi2 -mf16c")
     endif()
-
-    string(APPEND CMAKE_CXX_FLAGS " ${CYCLES_SSE42_KERNEL_FLAGS}")
-  else()
-    string(APPEND CMAKE_CXX_FLAGS " ${CYCLES_KERNEL_FLAGS}")
   endif()
 
 elseif(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
   check_cxx_compiler_flag(/QxSSE4.2 CXX_HAS_SSE42)
-  check_cxx_compiler_flag(/arch:AVX CXX_HAS_AVX)
   check_cxx_compiler_flag(/QxCORE-AVX2 CXX_HAS_AVX2)
 
   if(CXX_HAS_SSE42)
-    set(CYCLES_SSE42_KERNEL_FLAGS "/QxSSE4.2")
+    set(CYCLES_SSE42_FLAGS "/QxSSE4.2")
 
     if(CXX_HAS_AVX2)
-      set(CYCLES_AVX2_KERNEL_FLAGS "/QxCORE-AVX2")
+      set(CYCLES_AVX2_FLAGS "/QxCORE-AVX2")
     endif()
   endif()
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
   check_cxx_compiler_flag(-xsse4.2 CXX_HAS_SSE42)
-  check_cxx_compiler_flag(-xavx CXX_HAS_AVX)
   check_cxx_compiler_flag(-xcore-avx2 CXX_HAS_AVX2)
 
   if(CXX_HAS_SSE42)
-    set(CYCLES_SSE42_KERNEL_FLAGS "-xsse4.2")
+    set(CYCLES_SSE42_FLAGS "-xsse4.2")
 
     if(CXX_HAS_AVX2)
-      set(CYCLES_AVX2_KERNEL_FLAGS "-xcore-avx2")
+      set(CYCLES_AVX2_FLAGS "-xcore-avx2")
     endif()
   endif()
 endif()
@@ -192,10 +126,66 @@ if(CXX_HAS_SSE42)
   add_definitions(
     -DWITH_KERNEL_SSE42
   )
+  # We require SSE4.2 as a minimum, so make use of it
+  string(APPEND CMAKE_CXX_FLAGS " ${CYCLES_SSE42_FLAGS}")
 endif()
 
 if(CXX_HAS_AVX2)
   add_definitions(-DWITH_KERNEL_AVX2)
+endif()
+
+# Enable math optimizations
+
+if(WIN32 AND MSVC AND NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  # Unlike GCC/clang we still use fast math, because there is no fine
+  # grained control and the speedup we get here is too big to ignore.
+  string(APPEND CMAKE_CXX_FLAGS " /fp:fast -D_CRT_SECURE_NO_WARNINGS /GS-")
+  string(APPEND CMAKE_CXX_FLAGS_RELEASE " /Ox")
+  string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " /Ox")
+  string(APPEND CMAKE_CXX_FLAGS_MINSIZEREL " /Ox")
+
+  # `jumptablerdata` improves performance when there is contention in large switch statements
+  # such as in `svm.h`.
+  # This flag is supported starting with MSVC 17.7 preview 3:
+  # https://learn.microsoft.com/en-us/cpp/build/reference/jump-table-rdata
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.37.32820)
+    string(APPEND CMAKE_CXX_FLAGS " /jumptablerdata")
+  endif()
+elseif(CMAKE_COMPILER_IS_GNUCC OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
+  # Assume no signal trapping for better code generation.
+  list(APPEND CYCLES_MATH_FLAGS "-fno-trapping-math")
+  # Avoid overhead of setting `errno` for NaNs.
+  list(APPEND CYCLES_MATH_FLAGS "-fno-math-errno")
+  # Let compiler optimize 0.0 - x without worrying about signed zeros.
+  list(APPEND CYCLES_MATH_FLAGS "-fno-signed-zeros")
+  # Let the compiler generate fused multiply-add instructions
+  list(APPEND CYCLES_MATH_FLAGS "-ffp-contract=fast")
+  # Let the compiler replace x/y with x*(1/y)
+  list(APPEND CYCLES_MATH_FLAGS "-freciprocal-math")
+  # Let the compiler reorder terms to save operations
+  list(APPEND CYCLES_MATH_FLAGS "-fassociative-math")
+  # Don't enable `-ffinite-math-only` since the BVH code relies on NaNs.
+  # Otherwise, we could just use `-ffast-math`.
+
+  if(CMAKE_COMPILER_IS_GNUCC)
+    # Assume no signal trapping for better code generation.
+    list(APPEND CYCLES_MATH_FLAGS "-fno-signaling-nans")
+    # Assume a fixed rounding mode for better constant folding.
+    list(APPEND CYCLES_MATH_FLAGS "-fno-rounding-math")
+
+    if(CXX_HAS_SSE42)
+      list(APPEND CYCLES_MATH_FLAGS "-mfpmath=sse")
+    endif()
+  endif()
+
+  if(WIN32 AND MSVC)
+    # Pass clang flags directly to clang otherwise. Clang-cl doesn't recognize
+    # these flags by default
+    list(TRANSFORM CYCLES_MATH_FLAGS PREPEND "/clang:")
+  endif()
+
+  list(JOIN CYCLES_MATH_FLAGS " " CYCLES_MATH_FLAGS)
+  string(APPEND CMAKE_CXX_FLAGS " ${CYCLES_MATH_FLAGS}")
 endif()
 
 # Definitions and Includes

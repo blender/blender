@@ -32,14 +32,12 @@ int UnaryFunction0DId_Init(PyObject *module)
   if (PyType_Ready(&UnaryFunction0DId_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&UnaryFunction0DId_Type);
-  PyModule_AddObject(module, "UnaryFunction0DId", (PyObject *)&UnaryFunction0DId_Type);
+  PyModule_AddObjectRef(module, "UnaryFunction0DId", (PyObject *)&UnaryFunction0DId_Type);
 
   if (PyType_Ready(&ShapeIdF0D_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&ShapeIdF0D_Type);
-  PyModule_AddObject(module, "ShapeIdF0D", (PyObject *)&ShapeIdF0D_Type);
+  PyModule_AddObjectRef(module, "ShapeIdF0D", (PyObject *)&ShapeIdF0D_Type);
 
   return 0;
 }

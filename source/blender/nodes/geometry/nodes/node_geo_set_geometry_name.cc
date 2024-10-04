@@ -9,7 +9,7 @@ namespace blender::nodes::node_geo_set_geometry_name {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::String>("Name");
+  b.add_input<decl::String>("Name").hide_label();
   b.add_output<decl::Geometry>("Geometry").propagate_all();
 }
 

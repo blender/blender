@@ -968,7 +968,7 @@ static void curveprofile_make_segments_table(CurveProfile *profile)
 void BKE_curveprofile_update(CurveProfile *profile, const int update_flags)
 {
   CurveProfilePoint *points = profile->path;
-  rctf *clipr = &profile->clip_rect;
+  const rctf *clipr = &profile->clip_rect;
 
   profile->changed_timestamp++;
 

@@ -1643,9 +1643,9 @@ void eulO_to_quat(float q[4], const float e[3], const short order)
   double ti, tj, th, ci, cj, ch, si, sj, sh, cc, cs, sc, ss;
   double a[3];
 
-  ti = e[i] * 0.5f;
-  tj = e[j] * (R->parity ? -0.5f : 0.5f);
-  th = e[k] * 0.5f;
+  ti = (double)e[i] * 0.5;
+  tj = (double)e[j] * (R->parity ? -0.5 : 0.5);
+  th = (double)e[k] * 0.5;
 
   ci = cos(ti);
   cj = cos(tj);

@@ -29,7 +29,7 @@ class VKSamplers : NonCopyable {
   void init();
   void free();
 
-  const VKSampler &get(const GPUSamplerState &sampler_state);
+  const VKSampler &get(const GPUSamplerState &sampler_state) const;
 };
 
 }  // namespace blender::gpu

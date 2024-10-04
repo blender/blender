@@ -2,12 +2,14 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 /**
  * Version of common_math_geom_lib.glsl that doesn't rely on common_math_lib.
  * This should ultimately be rewritten inside a gpu_shader lib with higher quality standard.
  */
 
-#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
+#include "gpu_shader_math_vector_lib.glsl"
 
 /* ---------------------------------------------------------------------- */
 /** \name Math intersection & projection functions.

@@ -28,32 +28,47 @@ enum class Operation {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>("Grid 1").hide_value();
-  b.add_input<decl::Float>("Grid 2").hide_value().multi_input().make_available(
-      [](bNode &node) { node.custom1 = int16_t(Operation::Difference); });
+  const bNode *node = b.node_or_null();
+
+  auto &first_grid = b.add_input<decl::Float>("Grid 1").hide_value();
+
+  if (node) {
+    static const auto make_available = [](bNode &node) {
+      node.custom1 = int16_t(Operation::Difference);
+    };
+    switch (Operation(node->custom1)) {
+      case Operation::Intersect:
+      case Operation::Union:
+        b.add_input<decl::Float>("Grid", "Grid 2")
+            .hide_value()
+            .multi_input()
+            .make_available(make_available);
+        break;
+      case Operation::Difference:
+        b.add_input<decl::Float>("Grid 2").hide_value().multi_input().make_available(
+            make_available);
+        break;
+    }
+  }
+
   b.add_output<decl::Float>("Grid").hide_value();
+
+  if (node) {
+    switch (Operation(node->custom1)) {
+      case Operation::Intersect:
+      case Operation::Union:
+        first_grid.available(false);
+        break;
+      case Operation::Difference:
+        first_grid.available(true);
+        break;
+    }
+  }
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "operation", UI_ITEM_NONE, "", ICON_NONE);
-}
-
-static void node_update(bNodeTree *ntree, bNode *node)
-{
-  bNodeSocket *grid_1_socket = static_cast<bNodeSocket *>(node->inputs.first);
-  bNodeSocket *grid_2_socket = grid_1_socket->next;
-  switch (Operation(node->custom1)) {
-    case Operation::Intersect:
-    case Operation::Union:
-      bke::node_set_socket_availability(ntree, grid_1_socket, false);
-      node_sock_label(grid_2_socket, "Grid");
-      break;
-    case Operation::Difference:
-      bke::node_set_socket_availability(ntree, grid_1_socket, true);
-      node_sock_label(grid_2_socket, "Grid 2");
-      break;
-  }
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -167,7 +182,6 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
   ntype.draw_buttons = node_layout;
-  ntype.updatefunc = node_update;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.gather_link_search_ops = search_link_ops_for_volume_grid_node;
   blender::bke::node_register_type(&ntype);

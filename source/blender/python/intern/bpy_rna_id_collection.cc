@@ -28,15 +28,15 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "bpy_rna_id_collection.h"
+#include "bpy_rna_id_collection.hh"
 
-#include "../generic/py_capi_rna.h"
-#include "../generic/py_capi_utils.h"
-#include "../generic/python_compat.h"
+#include "../generic/py_capi_rna.hh"
+#include "../generic/py_capi_utils.hh"
+#include "../generic/python_compat.hh"
 
 #include "RNA_enum_types.hh"
 
-#include "bpy_rna.h"
+#include "bpy_rna.hh"
 
 struct IDUserMapData {
   /** We loop over data-blocks that this ID points to (do build a reverse lookup table) */

@@ -36,7 +36,7 @@ struct BakePath {
 };
 
 std::string frame_to_file_name(const SubFrame &frame);
-std::optional<SubFrame> file_name_to_frame(const StringRefNull file_name);
+std::optional<SubFrame> file_name_to_frame(const StringRef file_name);
 
 Vector<MetaFile> find_sorted_meta_files(const StringRefNull meta_dir);
 

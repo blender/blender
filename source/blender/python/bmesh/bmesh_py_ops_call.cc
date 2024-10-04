@@ -14,16 +14,16 @@
 
 #include "BLI_utildefines.h"
 
-#include "../mathutils/mathutils.h"
+#include "../mathutils/mathutils.hh"
 
 #include "bmesh.hh"
 
-#include "bmesh_py_ops_call.h" /* own include */
+#include "bmesh_py_ops_call.hh" /* own include */
 
-#include "bmesh_py_types.h"
+#include "bmesh_py_types.hh"
 
-#include "../generic/py_capi_utils.h"
-#include "../generic/python_utildefines.h"
+#include "../generic/py_capi_utils.hh"
+#include "../generic/python_utildefines.hh"
 
 BLI_STATIC_ASSERT(sizeof(PyC_FlagSet) == sizeof(BMO_FlagSet), "size mismatch");
 

@@ -125,7 +125,7 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
   void *local_geom = (void *)(kernel_data_fetch(blas_ptr, local_object));
   // we don't need custom intersection functions for SSR
 #  ifdef HIPRT_SHARED_STACK
-  hiprtGeomTraversalAnyHitCustomStack<Stack> traversal(local_geom,
+  hiprtGeomTraversalAnyHitCustomStack<Stack> traversal((hiprtGeometry)local_geom,
                                                        ray_hip,
                                                        stack,
                                                        hiprtTraversalHintDefault,

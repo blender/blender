@@ -954,7 +954,7 @@ void BKE_curvemapping_changed(CurveMapping *cumap, const bool rem_doubles)
 {
   CurveMap *cuma = cumap->cm + cumap->cur;
   CurveMapPoint *cmp = cuma->curve;
-  rctf *clipr = &cumap->clipr;
+  const rctf *clipr = &cumap->clipr;
   float thresh = 0.01f * BLI_rctf_size_x(clipr);
   float dx = 0.0f, dy = 0.0f;
   int a;

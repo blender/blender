@@ -472,28 +472,27 @@ void mesh_remesh_reproject_attributes(const Mesh &src, Mesh &dst)
   Vector<StringRef> edge_ids;
   Vector<StringRef> face_ids;
   Vector<StringRef> corner_ids;
-  src_attributes.for_all([&](const StringRef id, const AttributeMetaData &meta_data) {
-    if (ELEM(id, "position", ".edge_verts", ".corner_vert", ".corner_edge")) {
-      return true;
+  src_attributes.foreach_attribute([&](const AttributeIter &iter) {
+    if (ELEM(iter.name, "position", ".edge_verts", ".corner_vert", ".corner_edge")) {
+      return;
     }
-    switch (meta_data.domain) {
+    switch (iter.domain) {
       case AttrDomain::Point:
-        point_ids.append(id);
+        point_ids.append(iter.name);
         break;
       case AttrDomain::Edge:
-        edge_ids.append(id);
+        edge_ids.append(iter.name);
         break;
       case AttrDomain::Face:
-        face_ids.append(id);
+        face_ids.append(iter.name);
         break;
       case AttrDomain::Corner:
-        corner_ids.append(id);
+        corner_ids.append(iter.name);
         break;
       default:
         BLI_assert_unreachable();
         break;
     }
-    return true;
   });
 
   if (point_ids.is_empty() && edge_ids.is_empty() && face_ids.is_empty() && corner_ids.is_empty())

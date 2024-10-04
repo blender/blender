@@ -12,7 +12,9 @@ struct OpenSubdiv_EvaluatorCacheImpl;
 struct OpenSubdiv_EvaluatorImpl;
 struct OpenSubdiv_EvaluatorInternal;
 struct OpenSubdiv_PatchCoord;
-class OpenSubdiv_TopologyRefiner;
+namespace blender::opensubdiv {
+class TopologyRefinerImpl;
+}
 
 struct OpenSubdiv_EvaluatorSettings {
   // Number of smoothly interpolated vertex data channels.
@@ -225,7 +227,7 @@ struct OpenSubdiv_EvaluatorCache {
 };
 
 OpenSubdiv_Evaluator *openSubdiv_createEvaluatorFromTopologyRefiner(
-    OpenSubdiv_TopologyRefiner *topology_refiner,
+    blender::opensubdiv::TopologyRefinerImpl *topology_refiner,
     eOpenSubdivEvaluator evaluator_type,
     OpenSubdiv_EvaluatorCache *evaluator_cache);
 

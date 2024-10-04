@@ -13,13 +13,13 @@
  * we precompute a weight profile texture to be able to support per pixel AND per channel radius.
  */
 
-#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_shared_exponent_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_rotation_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_matrix_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
+#include "draw_view_lib.glsl"
+#include "eevee_gbuffer_lib.glsl"
+#include "eevee_sampling_lib.glsl"
+#include "gpu_shader_codegen_lib.glsl"
+#include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_math_rotation_lib.glsl"
+#include "gpu_shader_shared_exponent_lib.glsl"
 
 /* Produces NaN tile artifacts on Metal (M1). */
 #ifndef GPU_METAL

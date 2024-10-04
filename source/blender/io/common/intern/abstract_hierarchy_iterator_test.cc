@@ -6,7 +6,7 @@
 #include "tests/blendfile_loading_base_test.h"
 
 #include "BKE_scene.hh"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLO_readfile.hh"
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"

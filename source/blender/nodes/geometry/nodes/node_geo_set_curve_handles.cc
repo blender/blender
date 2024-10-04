@@ -82,17 +82,18 @@ static void update_handle_types_for_movement(int8_t &type, int8_t &other)
   }
 }
 
-static void set_position_in_component(bke::CurvesGeometry &curves,
+static void set_position_in_component(Curves &curves_id,
                                       const GeometryNodeCurveHandleMode mode,
                                       const Field<bool> &selection_field,
                                       const Field<float3> &position_field,
                                       const Field<float3> &offset_field)
 {
+  bke::CurvesGeometry &curves = curves_id.geometry.wrap();
   if (curves.points_num() == 0) {
     return;
   }
 
-  const bke::CurvesFieldContext field_context{curves, AttrDomain::Point};
+  const bke::CurvesFieldContext field_context{curves_id, AttrDomain::Point};
   fn::FieldEvaluator evaluator{field_context, curves.points_num()};
   evaluator.set_selection(selection_field);
   evaluator.add(position_field);
@@ -157,7 +158,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       }
       has_bezier = true;
 
-      set_position_in_component(curves, mode, selection_field, position_field, offset_field);
+      set_position_in_component(*curves_id, mode, selection_field, position_field, offset_field);
     }
   });
 

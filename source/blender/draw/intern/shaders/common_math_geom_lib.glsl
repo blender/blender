@@ -2,7 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma once
+
+#include "common_math_lib.glsl"
 
 /* ---------------------------------------------------------------------- */
 /** \name Math intersection & projection functions.

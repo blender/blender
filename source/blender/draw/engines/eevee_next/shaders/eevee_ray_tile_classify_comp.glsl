@@ -7,11 +7,11 @@
  * This mask is then processed by the compaction phase.
  */
 
-#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_closure_lib.glsl)
+#include "eevee_closure_lib.glsl"
+#include "eevee_gbuffer_lib.glsl"
+#include "gpu_shader_codegen_lib.glsl"
+#include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 
 shared uint tile_contains_ray_tracing[GBUFFER_LAYER_MAX];
 shared uint tile_contains_horizon_scan;

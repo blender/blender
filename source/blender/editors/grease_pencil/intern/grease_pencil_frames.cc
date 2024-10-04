@@ -337,24 +337,21 @@ void create_keyframe_edit_data_selected_frames_list(KeyframeEditData *ked,
   }
 }
 
-bool ensure_active_keyframe(bContext *C,
+bool ensure_active_keyframe(const Scene &scene,
                             GreasePencil &grease_pencil,
+                            bke::greasepencil::Layer &layer,
                             const bool duplicate_previous_key,
                             bool &r_inserted_keyframe)
 {
-  Scene &scene = *CTX_data_scene(C);
   const int current_frame = scene.r.cfra;
-  bke::greasepencil::Layer &active_layer = *grease_pencil.get_active_layer();
-
-  if (!active_layer.has_drawing_at(current_frame) && !blender::animrig::is_autokey_on(&scene)) {
+  if (!layer.has_drawing_at(current_frame) && !blender::animrig::is_autokey_on(&scene)) {
     return false;
   }
 
   /* If auto-key is on and the drawing at the current frame starts before the current frame a new
    * keyframe needs to be inserted. */
-  const bool is_first = active_layer.is_empty() ||
-                        (active_layer.sorted_keys().first() > current_frame);
-  const std::optional<int> previous_key_frame_start = active_layer.start_frame_at(current_frame);
+  const bool is_first = layer.is_empty() || (layer.sorted_keys().first() > current_frame);
+  const std::optional<int> previous_key_frame_start = layer.start_frame_at(current_frame);
   const bool has_previous_key = previous_key_frame_start.has_value();
   const bool needs_new_drawing = is_first || !has_previous_key ||
                                  (previous_key_frame_start < current_frame);
@@ -363,18 +360,16 @@ bool ensure_active_keyframe(bContext *C,
                                        GP_TOOL_FLAG_RETAIN_LAST) != 0;
     if (has_previous_key && (use_additive_drawing || duplicate_previous_key)) {
       /* We duplicate the frame that's currently visible and insert it at the current frame. */
-      grease_pencil.insert_duplicate_frame(
-          active_layer, *previous_key_frame_start, current_frame, false);
+      grease_pencil.insert_duplicate_frame(layer, *previous_key_frame_start, current_frame, false);
     }
     else {
       /* Otherwise we just insert a blank keyframe at the current frame. */
-      grease_pencil.insert_frame(active_layer, current_frame);
+      grease_pencil.insert_frame(layer, current_frame);
     }
     r_inserted_keyframe = true;
   }
   /* There should now always be a drawing at the current frame. */
-  BLI_assert(active_layer.has_drawing_at(current_frame));
-
+  BLI_assert(layer.has_drawing_at(current_frame));
   return true;
 }
 

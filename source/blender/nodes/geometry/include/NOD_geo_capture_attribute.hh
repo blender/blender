@@ -16,10 +16,23 @@ struct CaptureAttributeItemsAccessor {
   using ItemT = NodeGeometryAttributeCaptureItem;
   static StructRNA *item_srna;
   static int node_type;
+  static int item_dna_type;
   static constexpr const char *node_idname = "GeometryNodeCaptureAttribute";
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;
   static constexpr bool has_single_identifier_str = false;
+  struct operator_idnames {
+    static constexpr const char *add_item = "NODE_OT_capture_attribute_item_add";
+    static constexpr const char *remove_item = "NODE_OT_capture_attribute_item_remove";
+    static constexpr const char *move_item = "NODE_OT_capture_attribute_item_move";
+  };
+  struct ui_idnames {
+    static constexpr const char *list = "NODE_UL_capture_items_list";
+  };
+  struct rna_names {
+    static constexpr const char *items = "capture_items";
+    static constexpr const char *active_index = "active_index";
+  };
 
   static socket_items::SocketItemsRef<NodeGeometryAttributeCaptureItem> get_items_from_node(
       bNode &node)
@@ -40,8 +53,8 @@ struct CaptureAttributeItemsAccessor {
     MEM_SAFE_FREE(item->name);
   }
 
-  static void blend_write(BlendWriter *writer, const bNode &node);
-  static void blend_read_data(BlendDataReader *reader, bNode &node);
+  static void blend_write_item(BlendWriter *writer, const ItemT &item);
+  static void blend_read_data_item(BlendDataReader *reader, ItemT &item);
 
   static eNodeSocketDatatype get_socket_type(const NodeGeometryAttributeCaptureItem &item)
   {

@@ -18,7 +18,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_color.h"
 #include "BLI_math_vector.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_string.h"
 
 #include "DNA_listBase.h"
@@ -293,7 +293,9 @@ static void *studiolight_multilayer_addlayer(void *base, const char * /*layer_na
 /* Convert a multilayer pass to ImBuf channel 4 float buffer.
  * NOTE: Parameter rect will become invalid. Do not use rect after calling this
  * function */
-static float *studiolight_multilayer_convert_pass(ImBuf *ibuf, float *rect, const uint channels)
+static float *studiolight_multilayer_convert_pass(const ImBuf *ibuf,
+                                                  float *rect,
+                                                  const uint channels)
 {
   if (channels == 4) {
     return rect;
@@ -487,7 +489,7 @@ static void studiolight_create_matcap_specular_gputexture(StudioLight *sl)
   sl->flag |= STUDIOLIGHT_MATCAP_SPECULAR_GPUTEXTURE;
 }
 
-static float4 studiolight_calculate_radiance(ImBuf *ibuf, const float direction[3])
+static float4 studiolight_calculate_radiance(const ImBuf *ibuf, const float direction[3])
 {
   float uv[2];
   direction_to_equirect(uv, direction);
@@ -551,7 +553,7 @@ static float blinn_specular(const float L[3],
 }
 
 /* Keep in sync with the GLSL shader function `get_world_lighting()`. */
-static void studiolight_lights_eval(StudioLight *sl, float color[3], const float normal[3])
+static void studiolight_lights_eval(StudioLight *sl, const float normal[3], float r_color[3])
 {
   float R[3], I[3] = {0.0f, 0.0f, 1.0f}, N[3] = {normal[0], normal[2], -normal[1]};
   const float roughness = 0.5f;
@@ -581,7 +583,7 @@ static void studiolight_lights_eval(StudioLight *sl, float color[3], const float
   mul_v3_fl(diff_light, diffuse_color * (1.0 - specular_color));
   mul_v3_fl(spec_light, specular_color);
 
-  add_v3_v3v3(color, diff_light, spec_light);
+  add_v3_v3v3(r_color, diff_light, spec_light);
 }
 
 static StudioLight *studiolight_add_file(const char *filepath, int flag)
@@ -763,7 +765,7 @@ static void studiolight_irradiance_preview(uint *icon_buffer, StudioLight *sl)
       std::swap(normal[1], normal[2]);
       normal[1] = -normal[1];
 
-      studiolight_lights_eval(sl, color, normal);
+      studiolight_lights_eval(sl, normal, color);
 
       *pixel = rgb_to_cpack(linearrgb_to_srgb(color[0]),
                             linearrgb_to_srgb(color[1]),

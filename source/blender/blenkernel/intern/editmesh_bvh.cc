@@ -14,7 +14,7 @@
 
 #include "BKE_editmesh.hh"
 
-#include "BKE_editmesh_bvh.h" /* own include */
+#include "BKE_editmesh_bvh.hh" /* own include */
 
 using blender::Span;
 
@@ -25,7 +25,7 @@ struct BMBVHTree {
 
   BMesh *bm;
 
-  const float (*cos_cage)[3];
+  const blender::float3 *cos_cage;
   bool cos_cage_free;
 
   int flag;
@@ -33,7 +33,7 @@ struct BMBVHTree {
 
 BMBVHTree *BKE_bmbvh_new_from_editmesh(BMEditMesh *em,
                                        int flag,
-                                       const float (*cos_cage)[3],
+                                       const blender::float3 *cos_cage,
                                        const bool cos_cage_free)
 {
   return BKE_bmbvh_new(em->bm, em->looptris, flag, cos_cage, cos_cage_free);
@@ -42,7 +42,7 @@ BMBVHTree *BKE_bmbvh_new_from_editmesh(BMEditMesh *em,
 BMBVHTree *BKE_bmbvh_new_ex(BMesh *bm,
                             const Span<std::array<BMLoop *, 3>> looptris,
                             int flag,
-                            const float (*cos_cage)[3],
+                            const blender::float3 *cos_cage,
                             const bool cos_cage_free,
                             bool (*test_fn)(BMFace *, void *user_data),
                             void *user_data)
@@ -146,7 +146,7 @@ static bool bm_face_is_not_hidden(BMFace *f, void * /*user_data*/)
 BMBVHTree *BKE_bmbvh_new(BMesh *bm,
                          const Span<std::array<BMLoop *, 3>> looptris,
                          int flag,
-                         const float (*cos_cage)[3],
+                         const blender::float3 *cos_cage,
                          const bool cos_cage_free)
 {
   bool (*test_fn)(BMFace *, void *user_data);
@@ -190,7 +190,7 @@ BVHTree *BKE_bmbvh_tree_get(BMBVHTree *bmtree)
  */
 static void bmbvh_tri_from_face(const float *cos[3],
                                 const std::array<BMLoop *, 3> &ltri,
-                                const float (*cos_cage)[3])
+                                const blender::float3 *cos_cage)
 {
   if (cos_cage == nullptr) {
     cos[0] = ltri[0]->v->co;
@@ -212,13 +212,13 @@ static void bmbvh_tri_from_face(const float *cos[3],
 struct RayCastUserData {
   /* from the bmtree */
   Span<std::array<BMLoop *, 3>> looptris;
-  const float (*cos_cage)[3];
+  const blender::float3 *cos_cage;
 
   /* from the hit */
   float uv[2];
 };
 
-static BMFace *bmbvh_ray_cast_handle_hit(BMBVHTree *bmtree,
+static BMFace *bmbvh_ray_cast_handle_hit(const BMBVHTree *bmtree,
                                          RayCastUserData *bmcb_data,
                                          const BVHTreeRayHit *hit,
                                          float *r_dist,
@@ -286,7 +286,7 @@ static void bmbvh_ray_cast_cb(void *userdata, int index, const BVHTreeRay *ray, 
   }
 }
 
-BMFace *BKE_bmbvh_ray_cast(BMBVHTree *bmtree,
+BMFace *BKE_bmbvh_ray_cast(const BMBVHTree *bmtree,
                            const float co[3],
                            const float dir[3],
                            const float radius,
@@ -344,7 +344,7 @@ static void bmbvh_ray_cast_cb_filter(void *userdata,
   }
 }
 
-BMFace *BKE_bmbvh_ray_cast_filter(BMBVHTree *bmtree,
+BMFace *BKE_bmbvh_ray_cast_filter(const BMBVHTree *bmtree,
                                   const float co[3],
                                   const float dir[3],
                                   const float radius,
@@ -389,7 +389,7 @@ BMFace *BKE_bmbvh_ray_cast_filter(BMBVHTree *bmtree,
 struct VertSearchUserData {
   /* from the bmtree */
   Span<std::array<BMLoop *, 3>> looptris;
-  const float (*cos_cage)[3];
+  const blender::float3 *cos_cage;
 
   /* from the hit */
   float dist_max_sq;
@@ -421,7 +421,9 @@ static void bmbvh_find_vert_closest_cb(void *userdata,
   }
 }
 
-BMVert *BKE_bmbvh_find_vert_closest(BMBVHTree *bmtree, const float co[3], const float dist_max)
+BMVert *BKE_bmbvh_find_vert_closest(const BMBVHTree *bmtree,
+                                    const float co[3],
+                                    const float dist_max)
 {
   BVHTreeNearest hit;
   VertSearchUserData bmcb_data;
@@ -450,7 +452,7 @@ BMVert *BKE_bmbvh_find_vert_closest(BMBVHTree *bmtree, const float co[3], const 
 struct FaceSearchUserData {
   /* from the bmtree */
   Span<std::array<BMLoop *, 3>> looptris;
-  const float (*cos_cage)[3];
+  const blender::float3 *cos_cage;
 
   /* from the hit */
   float dist_max_sq;
@@ -480,7 +482,9 @@ static void bmbvh_find_face_closest_cb(void *userdata,
   }
 }
 
-BMFace *BKE_bmbvh_find_face_closest(BMBVHTree *bmtree, const float co[3], const float dist_max)
+BMFace *BKE_bmbvh_find_face_closest(const BMBVHTree *bmtree,
+                                    const float co[3],
+                                    const float dist_max)
 {
   BVHTreeNearest hit;
   FaceSearchUserData bmcb_data;

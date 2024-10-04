@@ -31,7 +31,6 @@ from bpy_extras.object_utils import (
     world_to_camera_view,
 )
 
-from bpy_extras.image_utils import load_image
 from bpy_extras.io_utils import ImportHelper
 
 # -----------------------------------------------------------------------------
@@ -131,6 +130,7 @@ def load_images(filenames, directory, force_reload=False, frame_start=1, find_se
     """
     import os
     from itertools import repeat
+    from bpy_extras.image_utils import load_image
 
     if find_sequences:  # If finding sequences, we need some pre-processing first.
         file_iter = find_image_sequences(filenames)
@@ -1138,7 +1138,6 @@ class IMAGE_OT_convert_to_mesh_plane(MaterialProperties_MixIn, TextureProperties
         return context.window_manager.invoke_props_dialog(self)
 
     def execute(self, context):
-        scene = context.scene
 
         selected_objects = [ob for ob in context.selected_objects]
         converted = 0

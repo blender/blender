@@ -65,15 +65,15 @@ set(SRC
   grease_pencil_tint.cc
   grease_pencil_trace.cc
   grease_pencil_trace_util.cc
-  grease_pencil_weight_average.cc
-  grease_pencil_weight_blur.cc
-  grease_pencil_weight_draw.cc
-  grease_pencil_weight_smear.cc
   grease_pencil_vertex_average.cc
   grease_pencil_vertex_blur.cc
   grease_pencil_vertex_paint.cc
   grease_pencil_vertex_replace.cc
   grease_pencil_vertex_smear.cc
+  grease_pencil_weight_average.cc
+  grease_pencil_weight_blur.cc
+  grease_pencil_weight_draw.cc
+  grease_pencil_weight_smear.cc
   paint_canvas.cc
   paint_cursor.cc
   paint_curve.cc
@@ -126,7 +126,9 @@ set(SRC
   grease_pencil_trace_util.hh
   grease_pencil_weight_paint.hh
   mesh_brush_common.hh
+  paint_hide.hh
   paint_intern.hh
+  paint_mask.hh
   sculpt_automask.hh
   sculpt_boundary.hh
   sculpt_cloth.hh
@@ -156,8 +158,6 @@ set(SRC
   brushes/draw_vector_displacement.cc
   brushes/elastic_deform.cc
   brushes/enhance_details.cc
-  brushes/fill.cc
-  brushes/flatten.cc
   brushes/grab.cc
   brushes/inflate.cc
   brushes/layer.cc
@@ -166,9 +166,9 @@ set(SRC
   brushes/multires_displacement_eraser.cc
   brushes/multires_displacement_smear.cc
   brushes/pinch.cc
+  brushes/plane.cc
   brushes/relax.cc
   brushes/rotate.cc
-  brushes/scrape.cc
   brushes/smooth.cc
   brushes/smooth_mask.cc
   brushes/snake_hook.cc

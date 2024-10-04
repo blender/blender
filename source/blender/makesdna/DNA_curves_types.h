@@ -143,6 +143,7 @@ typedef struct CurvesGeometry {
   /** The active index in the #vertex_group_names list. */
   int vertex_group_active_index;
 
+  /** Set to -1 when none is active. */
   int attributes_active_index;
 
   /**

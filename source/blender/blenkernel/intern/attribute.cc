@@ -781,6 +781,9 @@ bool BKE_attribute_required(const AttributeOwner &owner, const char *name)
 CustomDataLayer *BKE_attributes_active_get(AttributeOwner &owner)
 {
   int active_index = *BKE_attributes_active_index_p(owner);
+  if (active_index == -1) {
+    return nullptr;
+  }
   if (active_index > BKE_attributes_length(owner, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL)) {
     active_index = 0;
   }
@@ -821,23 +824,28 @@ void BKE_attributes_active_set(AttributeOwner &owner, const char *name)
   *BKE_attributes_active_index_p(owner) = index;
 }
 
+void BKE_attributes_active_clear(AttributeOwner &owner)
+{
+  *BKE_attributes_active_index_p(owner) = -1;
+}
+
 int *BKE_attributes_active_index_p(AttributeOwner &owner)
 {
   switch (owner.type()) {
     case AttributeOwnerType::PointCloud: {
-      return &(owner.get_pointcloud())->attributes_active_index;
+      return &owner.get_pointcloud()->attributes_active_index;
     }
     case AttributeOwnerType::Mesh: {
-      return &(owner.get_mesh())->attributes_active_index;
+      return &owner.get_mesh()->attributes_active_index;
     }
     case AttributeOwnerType::Curves: {
       return &owner.get_curves()->geometry.attributes_active_index;
     }
     case AttributeOwnerType::GreasePencil: {
-      return &(owner.get_grease_pencil())->attributes_active_index;
+      return &owner.get_grease_pencil()->attributes_active_index;
     }
     case AttributeOwnerType::GreasePencilDrawing: {
-      return &(owner.get_grease_pencil_drawing())->geometry.attributes_active_index;
+      return &owner.get_grease_pencil_drawing()->geometry.attributes_active_index;
     }
   }
   return nullptr;
@@ -963,6 +971,19 @@ void BKE_id_attributes_active_color_set(ID *id, const char *name)
       if (name) {
         mesh->active_color_attribute = BLI_strdup(name);
       }
+      break;
+    }
+    default:
+      break;
+  }
+}
+
+void BKE_id_attributes_active_color_clear(ID *id)
+{
+  switch (GS(id->name)) {
+    case ID_ME: {
+      Mesh *mesh = reinterpret_cast<Mesh *>(id);
+      MEM_SAFE_FREE(mesh->active_color_attribute);
       break;
     }
     default:

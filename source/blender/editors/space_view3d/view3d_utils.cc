@@ -1217,7 +1217,7 @@ static bool depth_segment_cb(int x, int y, void *user_data)
 }
 
 bool ED_view3d_depth_read_cached_seg(
-    const ViewDepths *vd, const int mval_sta[2], const int mval_end[2], int margin, float *depth)
+    const ViewDepths *vd, const int mval_sta[2], const int mval_end[2], int margin, float *r_depth)
 {
   struct {
     const ViewDepths *vd;
@@ -1236,9 +1236,9 @@ bool ED_view3d_depth_read_cached_seg(
 
   BLI_bitmap_draw_2d_line_v2v2i(p1, p2, depth_segment_cb, &data);
 
-  *depth = data.depth;
+  *r_depth = data.depth;
 
-  return (*depth != 1.0f);
+  return (*r_depth != 1.0f);
 }
 
 /** \} */

@@ -5,7 +5,7 @@
 #include "BKE_bake_items_paths.hh"
 
 #include "BLI_fileops.hh"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
 
@@ -19,13 +19,18 @@ std::string frame_to_file_name(const SubFrame &frame)
   return file_name_c;
 }
 
-std::optional<SubFrame> file_name_to_frame(const StringRefNull file_name)
+std::optional<SubFrame> file_name_to_frame(const StringRef file_name)
 {
   char modified_file_name[FILE_MAX];
-  STRNCPY(modified_file_name, file_name.c_str());
+  file_name.copy(modified_file_name);
   BLI_string_replace_char(modified_file_name, '_', '.');
-  const SubFrame frame = std::stof(modified_file_name);
-  return frame;
+  try {
+    const SubFrame frame = std::stof(modified_file_name);
+    return frame;
+  }
+  catch (...) {
+    return std::nullopt;
+  }
 }
 
 Vector<MetaFile> find_sorted_meta_files(const StringRefNull meta_dir)

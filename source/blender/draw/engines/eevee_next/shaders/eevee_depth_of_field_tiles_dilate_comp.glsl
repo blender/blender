@@ -10,7 +10,7 @@
  * - Separated foreground and background CoC. 1/8th of half-res resolution. So 1/16th of full-res.
  */
 
-#pragma BLENDER_REQUIRE(eevee_depth_of_field_lib.glsl)
+#include "eevee_depth_of_field_lib.glsl"
 
 /* Error introduced by the random offset of the gathering kernel's center. */
 const float bluring_radius_error = 1.0 + 1.0 / (float(DOF_GATHER_RING_COUNT) + 0.5);

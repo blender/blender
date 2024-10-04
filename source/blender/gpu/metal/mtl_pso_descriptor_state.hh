@@ -347,6 +347,12 @@ struct MTLComputePipelineStateDescriptor {
   /* Specialization constants map. */
   SpecializationStateDescriptor specialization_state;
 
+  MTLComputePipelineStateDescriptor() {}
+  MTLComputePipelineStateDescriptor(Vector<Shader::Constants::Value> values)
+  {
+    specialization_state.values = values;
+  }
+
   /* Comparison Operator for caching. */
   bool operator==(const MTLComputePipelineStateDescriptor &other) const
   {

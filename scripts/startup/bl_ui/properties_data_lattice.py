@@ -78,6 +78,7 @@ class DATA_PT_lattice_animation(DataButtonsPanel, PropertiesAnimationMixin, Prop
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         # DataButtonsPanel.poll ensures this is not None.
         lattice = context.lattice

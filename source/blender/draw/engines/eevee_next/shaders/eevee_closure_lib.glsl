@@ -2,9 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_bxdf_microfacet_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_bxdf_diffuse_lib.glsl)
+#pragma once
+
+#include "eevee_bxdf_diffuse_lib.glsl"
+#include "eevee_bxdf_microfacet_lib.glsl"
+#include "gpu_shader_codegen_lib.glsl"
 
 /* Return the apparent roughness of a closure compared to a GGX reflection lobe. */
 float closure_apparent_roughness_get(ClosureUndetermined cl)

@@ -69,6 +69,7 @@ set(SRC
   intern/autoexec.cc
   intern/bake_data_block_map.cc
   intern/bake_geometry_nodes_modifier.cc
+  intern/bake_geometry_nodes_modifier_pack.cc
   intern/bake_items.cc
   intern/bake_items_paths.cc
   intern/bake_items_serialize.cc
@@ -328,19 +329,20 @@ set(SRC
   BKE_animsys.h
   BKE_anonymous_attribute_id.hh
   BKE_anonymous_attribute_make.hh
-  BKE_attribute_filter.hh
-  BKE_attribute_filters.hh
   BKE_appdir.hh
   BKE_armature.hh
   BKE_asset.hh
   BKE_asset_edit.hh
   BKE_attribute.h
   BKE_attribute.hh
+  BKE_attribute_filter.hh
+  BKE_attribute_filters.hh
   BKE_attribute_math.hh
   BKE_autoexec.hh
   BKE_bake_data_block_id.hh
   BKE_bake_data_block_map.hh
   BKE_bake_geometry_nodes_modifier.hh
+  BKE_bake_geometry_nodes_modifier_pack.hh
   BKE_bake_items.hh
   BKE_bake_items_paths.hh
   BKE_bake_items_serialize.hh
@@ -390,7 +392,7 @@ set(SRC
   BKE_dynamicpaint.h
   BKE_editlattice.h
   BKE_editmesh.hh
-  BKE_editmesh_bvh.h
+  BKE_editmesh_bvh.hh
   BKE_editmesh_cache.hh
   BKE_editmesh_tangent.hh
   BKE_effect.h

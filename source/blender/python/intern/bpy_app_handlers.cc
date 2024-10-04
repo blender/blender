@@ -17,12 +17,12 @@
 
 #include "RNA_access.hh"
 
-#include "bpy_app_handlers.h"
-#include "bpy_rna.h"
+#include "bpy_app_handlers.hh"
+#include "bpy_rna.hh"
 
-#include "../generic/python_utildefines.h"
+#include "../generic/python_utildefines.hh"
 
-#include "BPY_extern.h"
+#include "BPY_extern.hh"
 
 void bpy_app_generic_callback(Main *main,
                               PointerRNA **pointers,
@@ -99,6 +99,10 @@ static PyStructSequence_Field app_cb_info_fields[] = {
     {"_extension_repos_sync", "on creating or synchronizing the active repository"},
     {"_extension_repos_files_clear",
      "remove files from the repository directory (uses as a string argument)"},
+    {"blend_import_pre",
+     "on linking or appending data (before), get a single `BlendImportContext` parameter"},
+    {"blend_import_post",
+     "on linking or appending data (after), get a single `BlendImportContext` parameter"},
 
 /* sets the permanent tag */
 #define APP_CB_OTHER_FIELDS 1

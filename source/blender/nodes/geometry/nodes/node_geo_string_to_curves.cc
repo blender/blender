@@ -28,25 +28,35 @@ NODE_STORAGE_FUNCS(NodeGeometryStringToCurves)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::String>("String");
+  b.add_input<decl::String>("String").hide_label();
   b.add_input<decl::Float>("Size").default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
   b.add_input<decl::Float>("Character Spacing").default_value(1.0f).min(0.0f);
   b.add_input<decl::Float>("Word Spacing").default_value(1.0f).min(0.0f);
   b.add_input<decl::Float>("Line Spacing").default_value(1.0f).min(0.0f);
   b.add_input<decl::Float>("Text Box Width").default_value(0.0f).min(0.0f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>("Text Box Height")
-      .default_value(0.0f)
-      .min(0.0f)
-      .subtype(PROP_DISTANCE)
-      .make_available([](bNode &node) {
-        node_storage(node).overflow = GEO_NODE_STRING_TO_CURVES_MODE_SCALE_TO_FIT;
-      });
+  auto &height = b.add_input<decl::Float>("Text Box Height")
+                     .default_value(0.0f)
+                     .min(0.0f)
+                     .subtype(PROP_DISTANCE)
+                     .make_available([](bNode &node) {
+                       node_storage(node).overflow = GEO_NODE_STRING_TO_CURVES_MODE_SCALE_TO_FIT;
+                     });
   b.add_output<decl::Geometry>("Curve Instances");
-  b.add_output<decl::String>("Remainder").make_available([](bNode &node) {
+  auto &remainder = b.add_output<decl::String>("Remainder").make_available([](bNode &node) {
     node_storage(node).overflow = GEO_NODE_STRING_TO_CURVES_MODE_TRUNCATE;
   });
   b.add_output<decl::Int>("Line").field_on_all();
   b.add_output<decl::Vector>("Pivot Point").field_on_all();
+
+  const bNode *node = b.node_or_null();
+  if (node != nullptr) {
+    const NodeGeometryStringToCurves &storage = node_storage(*node);
+    const GeometryNodeStringToCurvesOverflowMode overflow = GeometryNodeStringToCurvesOverflowMode(
+        storage.overflow);
+
+    remainder.available(overflow == GEO_NODE_STRING_TO_CURVES_MODE_TRUNCATE);
+    height.available(overflow != GEO_NODE_STRING_TO_CURVES_MODE_OVERFLOW);
+  }
 }
 
 static void node_layout(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -70,20 +80,6 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   data->pivot_mode = GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_BOTTOM_LEFT;
   node->storage = data;
   node->id = reinterpret_cast<ID *>(BKE_vfont_builtin_get());
-}
-
-static void node_update(bNodeTree *ntree, bNode *node)
-{
-  const NodeGeometryStringToCurves &storage = node_storage(*node);
-  const GeometryNodeStringToCurvesOverflowMode overflow = (GeometryNodeStringToCurvesOverflowMode)
-                                                              storage.overflow;
-  bNodeSocket *socket_remainder = static_cast<bNodeSocket *>(node->outputs.first)->next;
-  bke::node_set_socket_availability(
-      ntree, socket_remainder, overflow == GEO_NODE_STRING_TO_CURVES_MODE_TRUNCATE);
-
-  bNodeSocket *height_socket = static_cast<bNodeSocket *>(node->inputs.last);
-  bke::node_set_socket_availability(
-      ntree, height_socket, overflow != GEO_NODE_STRING_TO_CURVES_MODE_OVERFLOW);
 }
 
 static float3 get_pivot_point(GeoNodeExecParams &params, bke::CurvesGeometry &curves)
@@ -386,7 +382,6 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.initfunc = node_init;
-  ntype.updatefunc = node_update;
   blender::bke::node_type_size(&ntype, 190, 120, 700);
   blender::bke::node_type_storage(&ntype,
                                   "NodeGeometryStringToCurves",

@@ -977,6 +977,15 @@ typedef struct AttributeMap {
   float sample_weight; \
   float3 N
 
+/* To save some space, volume closures (phase functions) don't store a normal.
+ * They are still allocated as ShaderClosures first, but get assigned to
+ * slots of type ShaderVolumeClosure later, so make sure to keep the layout
+ * in sync. */
+#define SHADER_CLOSURE_VOLUME_BASE \
+  Spectrum weight; \
+  ClosureType type; \
+  float sample_weight
+
 typedef struct ccl_align(16) ShaderClosure
 {
   SHADER_CLOSURE_BASE;
@@ -1221,12 +1230,18 @@ ShaderDataCausticsStorage;
 
 /* Compact volume closures storage.
  *
- * Used for decoupled direct/indirect light closure storage. */
-
+ * Used for decoupled direct/indirect light closure storage.
+ *
+ * This shares its basic layout with SHADER_CLOSURE_VOLUME_BASE and ShaderClosure,
+ * just without the normal and with less space for closure-specific parameters.
+ * That way, we can just cast ShaderClosure* to ShaderVolumeClosure* and assign it.
+ */
 typedef struct ShaderVolumeClosure {
   Spectrum weight;
+  ClosureType type;
   float sample_weight;
-  float g;
+  /* Space for closure-specific parameters. */
+  float param[3];
 } ShaderVolumeClosure;
 
 typedef struct ShaderVolumePhases {

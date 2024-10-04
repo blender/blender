@@ -30,7 +30,7 @@ ExternalProject_Add(external_shaderc_spirv_tools
   URL_HASH ${SHADERC_SPIRV_TOOLS_HASH_TYPE}=${SHADERC_SPIRV_TOOLS_HASH}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   PREFIX ${BUILD_DIR}/shaderc_spirv_tools
-  
+
   PATCH_COMMAND COMMAND ${PATCH_CMD} -p 1 -d
     ${BUILD_DIR}/shaderc_spirv_tools/src/external_shaderc_spirv_tools <
     ${PATCH_DIR}/shaderc_spirv_tools_5805.diff

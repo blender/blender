@@ -28,6 +28,7 @@
 #  include "BLI_listbase.h"
 
 #  include "BKE_global.hh"
+#  include "BKE_paint.hh"
 
 #  include "DNA_object_types.h"
 #  include "DNA_screen_types.h"
@@ -197,16 +198,42 @@ static bool rna_WorkSpaceTool_use_brushes_get(PointerRNA *ptr)
   return (tref->runtime) ? ((tref->runtime->flag & TOOLREF_FLAG_USE_BRUSHES) != 0) : false;
 }
 
-static void rna_WorkSpaceTool_brush_type_get(PointerRNA *ptr, char *value)
+static int rna_WorkSpaceTool_brush_type_get(PointerRNA *ptr)
 {
   bToolRef *tref = static_cast<bToolRef *>(ptr->data);
-  strcpy(value, tref->runtime ? tref->runtime->brush_type : "");
+  return tref->runtime ? tref->runtime->brush_type : -1;
 }
 
-static int rna_WorkSpaceTool_brush_type_length(PointerRNA *ptr)
+const EnumPropertyItem *rna_WorkSpaceTool_brush_type_itemf(bContext *C,
+                                                           PointerRNA *ptr,
+                                                           PropertyRNA * /*prop*/,
+                                                           bool *r_free)
 {
-  bToolRef *tref = static_cast<bToolRef *>(ptr->data);
-  return tref->runtime ? strlen(tref->runtime->brush_type) : 0;
+
+  PaintMode paint_mode = [&]() {
+    if (ptr->type == &RNA_WorkSpaceTool) {
+      const bToolRef *tref = static_cast<bToolRef *>(ptr->data);
+      return BKE_paintmode_get_from_tool(tref);
+    }
+    return C ? BKE_paintmode_get_active_from_context(C) : PaintMode::Invalid;
+  }();
+
+  EnumPropertyItem *items = nullptr;
+  int totitem = 0;
+
+  EnumPropertyItem unset_item = {
+      -1, "ANY", 0, "Any", "Donnot limit this tool to a specific brush type"};
+  RNA_enum_item_add(&items, &totitem, &unset_item);
+
+  if (paint_mode != PaintMode::Invalid) {
+    const EnumPropertyItem *valid_items = BKE_paint_get_tool_enum_from_paintmode(paint_mode);
+    RNA_enum_items_add(&items, &totitem, valid_items);
+  }
+
+  RNA_enum_item_end(&items, &totitem);
+
+  *r_free = true;
+  return items;
 }
 
 static void rna_WorkSpaceTool_widget_get(PointerRNA *ptr, char *value)
@@ -324,14 +351,15 @@ static void rna_def_workspace_tool(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Uses Brushes", "");
   RNA_def_property_boolean_funcs(prop, "rna_WorkSpaceTool_use_brushes_get", nullptr);
 
-  prop = RNA_def_property(srna, "brush_type", PROP_STRING, PROP_NONE);
+  prop = RNA_def_property(srna, "brush_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop,
                            "Brush Type",
                            "If the tool uses brushes and is limited to a specific brush type, the "
                            "identifier of the brush type");
-  RNA_def_property_string_funcs(
-      prop, "rna_WorkSpaceTool_brush_type_get", "rna_WorkSpaceTool_brush_type_length", nullptr);
+  RNA_def_property_enum_items(prop, rna_enum_dummy_DEFAULT_items);
+  RNA_def_property_enum_funcs(
+      prop, "rna_WorkSpaceTool_brush_type_get", nullptr, "rna_WorkSpaceTool_brush_type_itemf");
 
   RNA_define_verify_sdna(true);
 

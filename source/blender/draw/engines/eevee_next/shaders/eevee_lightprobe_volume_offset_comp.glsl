@@ -10,8 +10,8 @@
  * Dispatched as 1 thread per irradiance probe sample.
  */
 
-#pragma BLENDER_REQUIRE(eevee_surfel_list_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_lightprobe_lib.glsl)
+#include "eevee_lightprobe_lib.glsl"
+#include "eevee_surfel_list_lib.glsl"
 
 int find_closest_surfel(ivec3 grid_coord, vec3 P)
 {

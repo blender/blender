@@ -14,13 +14,13 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
-#include "bpy_capi_utils.h"
+#include "bpy_capi_utils.hh"
 
 #include "MEM_guardedalloc.h"
 
 #include "BKE_report.hh"
 
-#include "../generic/py_capi_utils.h"
+#include "../generic/py_capi_utils.hh"
 
 short BPy_reports_to_error(ReportList *reports, PyObject *exception, const bool clear)
 {

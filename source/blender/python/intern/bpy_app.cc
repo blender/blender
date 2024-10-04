@@ -12,28 +12,28 @@
 
 #include <Python.h>
 
-#include "bpy_app.h"
+#include "bpy_app.hh"
 
-#include "bpy_app_alembic.h"
-#include "bpy_app_build_options.h"
-#include "bpy_app_ffmpeg.h"
-#include "bpy_app_ocio.h"
-#include "bpy_app_oiio.h"
-#include "bpy_app_opensubdiv.h"
-#include "bpy_app_openvdb.h"
-#include "bpy_app_sdl.h"
-#include "bpy_app_usd.h"
+#include "bpy_app_alembic.hh"
+#include "bpy_app_build_options.hh"
+#include "bpy_app_ffmpeg.hh"
+#include "bpy_app_ocio.hh"
+#include "bpy_app_oiio.hh"
+#include "bpy_app_opensubdiv.hh"
+#include "bpy_app_openvdb.hh"
+#include "bpy_app_sdl.hh"
+#include "bpy_app_usd.hh"
 
-#include "bpy_app_translations.h"
+#include "bpy_app_translations.hh"
 
-#include "bpy_app_handlers.h"
-#include "bpy_driver.h"
+#include "bpy_app_handlers.hh"
+#include "bpy_driver.hh"
 
-#include "BPY_extern_python.h" /* For #BPY_python_app_help_text_fn. */
+#include "BPY_extern_python.hh" /* For #BPY_python_app_help_text_fn. */
 
 /* modules */
-#include "bpy_app_icons.h"
-#include "bpy_app_timers.h"
+#include "bpy_app_icons.hh"
+#include "bpy_app_timers.hh"
 
 #include "BLI_utildefines.h"
 
@@ -54,10 +54,10 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "../generic/py_capi_rna.h"
-#include "../generic/py_capi_utils.h"
-#include "../generic/python_compat.h"
-#include "../generic/python_utildefines.h"
+#include "../generic/py_capi_rna.hh"
+#include "../generic/py_capi_utils.hh"
+#include "../generic/python_compat.hh"
+#include "../generic/python_utildefines.hh"
 
 #ifdef BUILD_DATE
 extern "C" char build_date[];

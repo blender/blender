@@ -1,4 +1,8 @@
-set BUILD_VS_LIBDIR=lib/windows_x64
+if "%BUILD_ARCH%" == "arm64" (
+	set BUILD_VS_LIBDIR=lib/windows_arm64
+) else (
+	set BUILD_VS_LIBDIR=lib/windows_x64
+)
 
 :RETRY
 "%GIT%" -C "%BLENDER_DIR%\" config --local "submodule.%BUILD_VS_LIBDIR%.update" "checkout"

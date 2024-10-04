@@ -10,7 +10,7 @@
 #include <cstdlib>
 
 #include "BLI_math_vector.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
 

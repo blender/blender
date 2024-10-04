@@ -67,7 +67,7 @@ static bool is_vertex_in_id(BMVert *v, const int *elem_id, int elem)
 
 static bool is_vertex_pole_three(BMVert *v)
 {
-  return !BM_vert_is_boundary(v) && (BM_vert_edge_count_is_equal(v, 3));
+  return !BM_vert_is_boundary(v) && BM_vert_edge_count_is_equal(v, 3);
 }
 
 static bool is_vertex_pole(BMVert *v)

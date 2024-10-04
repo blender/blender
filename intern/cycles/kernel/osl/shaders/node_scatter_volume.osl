@@ -4,10 +4,39 @@
 
 #include "stdcycles.h"
 
-shader node_scatter_volume(color Color = color(0.8, 0.8, 0.8),
+shader node_scatter_volume(string phase = "Henyey-Greenstein",
+                           color Color = color(0.8, 0.8, 0.8),
                            float Density = 1.0,
                            float Anisotropy = 0.0,
+                           float IOR = 1.33,
+                           float Backscatter = 0.1,
+                           float Alpha = 0.5,
+                           float Diameter = 20.0,
                            output closure color Volume = 0)
 {
-  Volume = (Color * max(Density, 0.0)) * henyey_greenstein(Anisotropy);
+  closure color scatter = 0;
+  if (phase == "Fournier-Forand") {
+    scatter = fournier_forand(Backscatter, IOR);
+  }
+  else if (phase == "Draine") {
+    scatter = draine(Anisotropy, Alpha);
+  }
+  else if (phase == "Rayleigh") {
+    scatter = rayleigh();
+  }
+  else if (phase == "Mie") {
+    /* Approximation of Mie phase function for water droplets using a mix of Draine and H-G.
+     * See `kernel/svm/closure.h` for details. */
+    float d = max(Diameter, 2.0);
+    float aniso_hg = exp(-0.0990567 / (d - 1.67154));
+    float aniso_d = exp(-2.20679 / (d + 3.91029) - 0.428934);
+    float alpha = exp(3.62489 - 8.29288 / (d + 5.52825));
+    float mixture = exp(-0.599085 / (d - 0.641583) - 0.665888);
+    scatter = mix(henyey_greenstein(aniso_hg), draine(aniso_d, alpha), mixture);
+  }
+  else {
+    scatter = henyey_greenstein(Anisotropy);
+  }
+
+  Volume = (Color * max(Density, 0.0)) * scatter;
 }

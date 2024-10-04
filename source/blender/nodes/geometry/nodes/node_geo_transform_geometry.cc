@@ -20,26 +20,21 @@ namespace blender::nodes::node_geo_transform_geometry_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Vector>("Translation").subtype(PROP_TRANSLATION);
-  b.add_input<decl::Rotation>("Rotation");
-  b.add_input<decl::Vector>("Scale").default_value({1, 1, 1}).subtype(PROP_XYZ);
-  b.add_input<decl::Matrix>("Transform");
+  auto &translation = b.add_input<decl::Vector>("Translation").subtype(PROP_TRANSLATION);
+  auto &rotation = b.add_input<decl::Rotation>("Rotation");
+  auto &scale = b.add_input<decl::Vector>("Scale").default_value({1, 1, 1}).subtype(PROP_XYZ);
+  auto &transform = b.add_input<decl::Matrix>("Transform");
   b.add_output<decl::Geometry>("Geometry").propagate_all();
-}
 
-static void node_update(bNodeTree *tree, bNode *node)
-{
-  bNodeSocket *translation_socket = static_cast<bNodeSocket *>(node->inputs.first)->next;
-  bNodeSocket *rotation_socket = translation_socket->next;
-  bNodeSocket *scale_socket = rotation_socket->next;
-  bNodeSocket *transform_socket = scale_socket->next;
+  const bNode *node = b.node_or_null();
+  if (node != nullptr) {
+    const bool use_matrix = node->custom1 == GEO_NODE_TRANSFORM_MODE_MATRIX;
 
-  const bool use_matrix = node->custom1 == GEO_NODE_TRANSFORM_MODE_MATRIX;
-
-  bke::node_set_socket_availability(tree, translation_socket, !use_matrix);
-  bke::node_set_socket_availability(tree, rotation_socket, !use_matrix);
-  bke::node_set_socket_availability(tree, scale_socket, !use_matrix);
-  bke::node_set_socket_availability(tree, transform_socket, use_matrix);
+    translation.available(!use_matrix);
+    rotation.available(!use_matrix);
+    scale.available(!use_matrix);
+    transform.available(use_matrix);
+  }
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -130,7 +125,6 @@ static void register_node()
   geo_node_type_base(
       &ntype, GEO_NODE_TRANSFORM_GEOMETRY, "Transform Geometry", NODE_CLASS_GEOMETRY);
   ntype.declare = node_declare;
-  ntype.updatefunc = node_update;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
   blender::bke::node_register_type(&ntype);

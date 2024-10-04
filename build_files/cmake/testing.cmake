@@ -126,10 +126,9 @@ macro(blender_src_gtest_ex)
       set_target_properties(${TARGET_NAME} PROPERTIES VS_GLOBAL_VcpkgEnabled "false")
 
       if(WITH_WINDOWS_EXTERNAL_MANIFEST)
-        install(
-          FILES ${CMAKE_BINARY_DIR}/tests.exe.manifest
-          DESTINATION ${TESTS_OUTPUT_DIR}
-          RENAME ${TARGET_NAME}.exe.manifest
+        add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+          COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/tests.exe.manifest ${TESTS_OUTPUT_DIR}/${TARGET_NAME}.exe.manifest
+          DEPENDS ${CMAKE_BINARY_DIR}/tests.exe.manifest
         )
       endif()
     endif()

@@ -5,10 +5,10 @@
 /* Sum all spherical harmonic coefficients extracting during remapping to octahedral map.
  * Dispatch only one thread-group that sums. */
 
-#pragma BLENDER_REQUIRE(eevee_lightprobe_sphere_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_lightprobe_sphere_mapping_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_spherical_harmonics_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
+#include "eevee_lightprobe_sphere_lib.glsl"
+#include "eevee_lightprobe_sphere_mapping_lib.glsl"
+#include "eevee_sampling_lib.glsl"
+#include "eevee_spherical_harmonics_lib.glsl"
 
 shared vec4 local_sh_coefs[gl_WorkGroupSize.x][4];
 

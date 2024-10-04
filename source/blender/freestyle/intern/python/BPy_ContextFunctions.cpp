@@ -330,8 +330,7 @@ int ContextFunctions_Init(PyObject *module)
   if (m == nullptr) {
     return -1;
   }
-  Py_INCREF(m);
-  PyModule_AddObject(module, "ContextFunctions", m);
+  PyModule_AddObjectRef(module, "ContextFunctions", m);
 
   return 0;
 }

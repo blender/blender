@@ -144,7 +144,7 @@ static std::optional<GreasePencil *> separate_grease_pencil_layer_selection(
   GreasePencil *dst_grease_pencil = BKE_grease_pencil_new_nomain();
   BKE_grease_pencil_duplicate_drawing_array(&src_grease_pencil, dst_grease_pencil);
   selection.foreach_index([&](const int index) {
-    const bke::greasepencil::Layer &src_layer = *src_grease_pencil.layer(index);
+    const bke::greasepencil::Layer &src_layer = src_grease_pencil.layer(index);
     dst_grease_pencil->duplicate_layer(src_layer);
   });
   dst_grease_pencil->remove_drawings_with_no_users();
@@ -211,7 +211,7 @@ void separate_geometry(bke::GeometrySet &geometry_set,
   if (const Curves *src_curves_id = geometry_set.get_curves()) {
     if (ELEM(domain, AttrDomain::Point, AttrDomain::Curve)) {
       const bke::CurvesGeometry &src_curves = src_curves_id->geometry.wrap();
-      const bke::CurvesFieldContext field_context{src_curves, domain};
+      const bke::CurvesFieldContext field_context{*src_curves_id, domain};
       std::optional<bke::CurvesGeometry> dst_curves = separate_curves_selection(
           src_curves, field_context, selection, domain, attribute_filter);
       if (dst_curves) {
@@ -241,7 +241,7 @@ void separate_geometry(bke::GeometrySet &geometry_set,
     else if (ELEM(domain, AttrDomain::Point, AttrDomain::Curve)) {
       GreasePencil &grease_pencil = *geometry_set.get_grease_pencil_for_write();
       for (const int layer_index : grease_pencil.layers().index_range()) {
-        Drawing *drawing = grease_pencil.get_eval_drawing(*grease_pencil.layer(layer_index));
+        Drawing *drawing = grease_pencil.get_eval_drawing(grease_pencil.layer(layer_index));
         if (drawing == nullptr) {
           continue;
         }

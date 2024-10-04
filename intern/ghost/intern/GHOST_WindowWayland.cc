@@ -1755,11 +1755,13 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
                                          const bool is_dialog,
                                          const bool stereoVisual,
                                          const bool exclusive,
-                                         const bool is_debug)
+                                         const bool is_debug,
+                                         const GHOST_GPUDevice &preferred_device)
     : GHOST_Window(width, height, state, stereoVisual, exclusive),
       system_(system),
       window_(new GWL_Window),
-      is_debug_context_(is_debug)
+      is_debug_context_(is_debug),
+      preferred_device_(preferred_device)
 {
 #ifdef USE_EVENT_BACKGROUND_THREAD
   std::lock_guard lock_server_guard{*system->server_mutex};
@@ -2505,7 +2507,8 @@ GHOST_Context *GHOST_WindowWayland::newDrawingContext(GHOST_TDrawingContextType 
                                                      window_->backend.vulkan_window_info,
                                                      1,
                                                      2,
-                                                     is_debug_context_);
+                                                     is_debug_context_,
+                                                     preferred_device_);
       if (context->initializeDrawingContext()) {
         return context;
       }

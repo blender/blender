@@ -43,12 +43,6 @@ enum PBVHNodeFlags {
 };
 ENUM_OPERATORS(PBVHNodeFlags, PBVH_TopologyUpdated);
 
-struct PBVHVertRef {
-  intptr_t i;
-};
-
-#define PBVH_REF_NONE -1LL
-
 void BKE_pbvh_draw_debug_cb(blender::bke::pbvh::Tree &pbvh,
                             void (*draw_fn)(blender::bke::pbvh::Node *node,
                                             void *user_data,

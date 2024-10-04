@@ -246,7 +246,7 @@ static void face_edges_split(BMesh *bm,
   UNUSED_VARS(use_island_connect, mem_arena_edgenet);
 #  endif
 
-  BM_face_split_edgenet(bm, f, edge_arr, int(edge_arr_len), nullptr, nullptr);
+  BM_face_split_edgenet(bm, f, edge_arr, int(edge_arr_len), nullptr);
 }
 #endif
 

@@ -129,7 +129,15 @@ GPUShader *GPU_shader_get_builtin_shader_with_config(eGPUBuiltinShader shader,
 {
   BLI_assert(shader < GPU_SHADER_BUILTIN_LEN);
   BLI_assert(sh_cfg < GPU_SHADER_CFG_LEN);
+
+#ifdef __GNUC__
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Warray-bounds"
+#endif
   GPUShader **sh_p = &builtin_shaders[sh_cfg][shader];
+#ifdef __GNUC__
+#  pragma GCC diagnostic pop
+#endif
 
   if (*sh_p == nullptr) {
     if (sh_cfg == GPU_SHADER_CFG_DEFAULT) {

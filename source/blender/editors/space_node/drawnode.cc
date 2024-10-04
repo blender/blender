@@ -447,6 +447,11 @@ static void node_buts_output_shader(uiLayout *layout, bContext *C, PointerRNA *p
   uiTemplateID(layout, C, ptr, "nprtree", "render.npr_new", nullptr, nullptr, 0, false, nullptr);
 }
 
+static void node_shader_buts_scatter(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "phase", DEFAULT_FLAGS, "", ICON_NONE);
+}
+
 /* only once called */
 static void node_shader_set_butfunc(blender::bke::bNodeType *ntype)
 {
@@ -502,6 +507,9 @@ static void node_shader_set_butfunc(blender::bke::bNodeType *ntype)
     case SH_NODE_OUTPUT_LIGHT:
     case SH_NODE_OUTPUT_WORLD:
       ntype->draw_buttons = node_buts_output_shader;
+      break;
+    case SH_NODE_VOLUME_SCATTER:
+      ntype->draw_buttons = node_shader_buts_scatter;
       break;
   }
 }
@@ -1305,6 +1313,7 @@ static void std_node_socket_draw(
     return;
   }
 
+  const char *label = text;
   text = (sock->flag & SOCK_HIDE_LABEL) ? "" : text;
 
   /* Some socket types draw the gizmo icon in a special way to look better. All others use a
@@ -1370,7 +1379,7 @@ static void std_node_socket_draw(
     case SOCK_STRING: {
       if (socket_needs_attribute_search(*node, *sock)) {
         if (text[0] == '\0') {
-          node_geometry_add_attribute_search_button(*C, *node, *ptr, *layout);
+          node_geometry_add_attribute_search_button(*C, *node, *ptr, *layout, label);
         }
         else {
           uiLayout *row = uiLayoutSplit(layout, 0.4f, false);
@@ -1380,7 +1389,15 @@ static void std_node_socket_draw(
       }
       else {
         if (text[0] == '\0') {
-          uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
+          uiItemFullR(layout,
+                      ptr,
+                      RNA_struct_find_property(ptr, "default_value"),
+                      -1,
+                      0,
+                      UI_ITEM_NONE,
+                      "",
+                      ICON_NONE,
+                      label);
         }
         else {
           uiLayout *row = uiLayoutSplit(layout, 0.4f, false);
@@ -1502,10 +1519,14 @@ static void std_node_socket_interface_draw(ID *id,
       uiItemR(sub, &ptr, "max_value", DEFAULT_FLAGS, IFACE_("Max"), ICON_NONE);
       break;
     }
+    case SOCK_STRING: {
+      uiItemR(col, &ptr, "subtype", DEFAULT_FLAGS, IFACE_("Subtype"), ICON_NONE);
+      uiItemR(col, &ptr, "default_value", DEFAULT_FLAGS, IFACE_("Default"), ICON_NONE);
+      break;
+    }
     case SOCK_BOOLEAN:
     case SOCK_ROTATION:
     case SOCK_RGBA:
-    case SOCK_STRING:
     case SOCK_OBJECT:
     case SOCK_COLLECTION:
     case SOCK_IMAGE:
@@ -1667,7 +1688,7 @@ void draw_nodespace_back_pix(const bContext &C,
      */
     if (snode.edittree) {
       bNode *node = (bNode *)snode.edittree->nodes.first;
-      rctf *viewer_border = &snode.nodetree->viewer_border;
+      const rctf *viewer_border = &snode.nodetree->viewer_border;
       while (node) {
         if (node->flag & NODE_SELECT) {
           if (node->typeinfo->draw_backdrop) {

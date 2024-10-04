@@ -789,7 +789,9 @@ static int convert_action_exec(bContext *C, wmOperator * /*op*/)
   animrig::Action *layered_action = animrig::convert_to_layered_action(*bmain, legacy_action);
   /* We did already check if the action can be converted. */
   BLI_assert(layered_action != nullptr);
-  animrig::assign_action(layered_action, object->id);
+  const bool assign_ok = animrig::assign_action(layered_action, object->id);
+  BLI_assert_msg(assign_ok, "Expecting assigning a layered Action to always work");
+  UNUSED_VARS_NDEBUG(assign_ok);
 
   BLI_assert(layered_action->slots().size() == 1);
   animrig::Slot *slot = layered_action->slot(0);

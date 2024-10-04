@@ -13,13 +13,12 @@
 #include "GPU_vertex_buffer.hh"
 #include "gpu_storage_buffer_private.hh"
 
-#include "vk_bindable_resource.hh"
 #include "vk_buffer.hh"
 
 namespace blender::gpu {
 class VertBuf;
 
-class VKStorageBuffer : public StorageBuf, public VKBindableResource {
+class VKStorageBuffer : public StorageBuf {
   GPUUsageType usage_;
   VKBuffer buffer_;
 
@@ -28,10 +27,6 @@ class VKStorageBuffer : public StorageBuf, public VKBindableResource {
 
   void update(const void *data) override;
   void bind(int slot) override;
-  void add_to_descriptor_set(AddToDescriptorSetContext &data,
-                             int slot,
-                             shader::ShaderCreateInfo::Resource::BindType bind_type,
-                             const GPUSamplerState sampler_state) override;
   void unbind() override;
   void clear(uint32_t clear_value) override;
   void copy_sub(VertBuf *src, uint dst_offset, uint src_offset, uint copy_size) override;

@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "draw_defines.hh"
 #include "eevee_defines.hh"
 
 #include "gpu_shader_create_info.hh"
@@ -269,6 +270,22 @@ GPU_SHADER_CREATE_INFO(eevee_shadow_page_tile_store)
     .vertex_out(eevee_shadow_page_tile_store_flat_iface)
     .vertex_source("eevee_shadow_page_tile_vert.glsl")
     .fragment_source("eevee_shadow_page_tile_frag.glsl");
+
+/* Custom visibility check pass. */
+GPU_SHADER_CREATE_INFO(eevee_shadow_view_visibility)
+    .do_static_compilation(true)
+    .typedef_source("eevee_defines.hh")
+    .typedef_source("eevee_shader_shared.hh")
+    .local_group_size(DRW_VISIBILITY_GROUP_SIZE)
+    .define("DRW_VIEW_LEN", STRINGIFY(DRW_VIEW_MAX))
+    .storage_buf(0, Qualifier::READ, "ObjectBounds", "bounds_buf[]")
+    .storage_buf(1, Qualifier::READ_WRITE, "uint", "visibility_buf[]")
+    .storage_buf(2, Qualifier::READ, "ShadowRenderView", "render_view_buf[SHADOW_VIEW_MAX]")
+    .push_constant(Type::INT, "resource_len")
+    .push_constant(Type::INT, "view_len")
+    .push_constant(Type::INT, "visibility_word_per_draw")
+    .compute_source("eevee_shadow_visibility_comp.glsl")
+    .additional_info("draw_view", "draw_view_culling", "draw_object_infos_new");
 
 /** \} */
 

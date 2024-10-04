@@ -17,7 +17,7 @@
 #include <cstddef>
 
 #include "BLI_linklist.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -34,19 +34,19 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "bpy_capi_utils.h"
-#include "bpy_library.h"
+#include "bpy_capi_utils.hh"
+#include "bpy_library.hh"
 
-#include "../generic/py_capi_utils.h"
-#include "../generic/python_compat.h"
-#include "../generic/python_utildefines.h"
+#include "../generic/py_capi_utils.hh"
+#include "../generic/python_compat.hh"
+#include "../generic/python_utildefines.hh"
 
 /* nifty feature. swap out strings for RNA data */
 #define USE_RNA_DATABLOCKS
 
 #ifdef USE_RNA_DATABLOCKS
 #  include "RNA_access.hh"
-#  include "bpy_rna.h"
+#  include "bpy_rna.hh"
 #endif
 
 struct BPy_Library {
@@ -527,6 +527,8 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject * /*args*/)
     }
   }
 
+  BKE_blendfile_link_append_context_init_done(lapp_context);
+
   BKE_blendfile_link(lapp_context, nullptr);
   if (do_append) {
     BKE_blendfile_append(lapp_context, nullptr);
@@ -534,6 +536,8 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject * /*args*/)
   else if (create_liboverrides) {
     BKE_blendfile_override(lapp_context, self->liboverride_flags, nullptr);
   }
+
+  BKE_blendfile_link_append_context_finalize(lapp_context);
 
 /* If enabled, replace named items in given lists by the final matching new ID pointer. */
 #ifdef USE_RNA_DATABLOCKS

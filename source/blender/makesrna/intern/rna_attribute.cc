@@ -332,7 +332,7 @@ const EnumPropertyItem *rna_enum_attribute_domain_itemf(const AttributeOwner &ow
       continue;
     }
     if (owner.type() == AttributeOwnerType::GreasePencil &&
-        ELEM(domain_item->value, int(AttrDomain::Layer)))
+        !ELEM(domain_item->value, int(AttrDomain::Layer)))
     {
       continue;
     }
@@ -657,20 +657,25 @@ static void rna_AttributeGroupID_active_set(PointerRNA *ptr,
 {
   AttributeOwner owner = AttributeOwner::from_id(ptr->owner_id);
   CustomDataLayer *layer = static_cast<CustomDataLayer *>(attribute_ptr.data);
-  BKE_attributes_active_set(owner, layer->name);
+  if (layer) {
+    BKE_attributes_active_set(owner, layer->name);
+  }
+  else {
+    BKE_attributes_active_clear(owner);
+  }
 }
 
 static void rna_AttributeGroupID_active_index_set(PointerRNA *ptr, int value)
 {
   AttributeOwner owner = AttributeOwner::from_id(ptr->owner_id);
-  *BKE_attributes_active_index_p(owner) = value;
+  *BKE_attributes_active_index_p(owner) = std::max(-1, value);
 }
 
 static void rna_AttributeGroupID_active_index_range(
     PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
   AttributeOwner owner = AttributeOwner::from_id(ptr->owner_id);
-  *min = 0;
+  *min = -1;
   *max = BKE_attributes_length(owner, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL);
 
   *softmin = *min;
@@ -720,7 +725,12 @@ static void rna_AttributeGroupMesh_active_color_set(PointerRNA *ptr,
 {
   ID *id = ptr->owner_id;
   CustomDataLayer *layer = static_cast<CustomDataLayer *>(attribute_ptr.data);
-  BKE_id_attributes_active_color_set(id, layer->name);
+  if (layer) {
+    BKE_id_attributes_active_color_set(id, layer->name);
+  }
+  else {
+    BKE_id_attributes_active_color_clear(id);
+  }
 }
 
 static int rna_AttributeGroupMesh_active_color_index_get(PointerRNA *ptr)
@@ -907,7 +917,12 @@ static void rna_AttributeGroupGreasePencilDrawing_active_set(PointerRNA *ptr,
   GreasePencilDrawing *drawing = static_cast<GreasePencilDrawing *>(ptr->data);
   AttributeOwner owner = AttributeOwner(AttributeOwnerType::GreasePencilDrawing, drawing);
   CustomDataLayer *layer = static_cast<CustomDataLayer *>(attribute_ptr.data);
-  BKE_attributes_active_set(owner, layer->name);
+  if (layer) {
+    BKE_attributes_active_set(owner, layer->name);
+  }
+  else {
+    BKE_attributes_active_clear(owner);
+  }
 }
 
 static bool rna_AttributeGroupGreasePencilDrawing_active_poll(PointerRNA *ptr,
@@ -929,7 +944,7 @@ static void rna_AttributeGroupGreasePencilDrawing_active_index_set(PointerRNA *p
 {
   GreasePencilDrawing *drawing = static_cast<GreasePencilDrawing *>(ptr->data);
   AttributeOwner owner = AttributeOwner(AttributeOwnerType::GreasePencilDrawing, drawing);
-  *BKE_attributes_active_index_p(owner) = value;
+  *BKE_attributes_active_index_p(owner) = std::max(-1, value);
 }
 
 static void rna_AttributeGroupGreasePencilDrawing_active_index_range(
@@ -937,7 +952,7 @@ static void rna_AttributeGroupGreasePencilDrawing_active_index_range(
 {
   GreasePencilDrawing *drawing = static_cast<GreasePencilDrawing *>(ptr->data);
   AttributeOwner owner = AttributeOwner(AttributeOwnerType::GreasePencilDrawing, drawing);
-  *min = 0;
+  *min = -1;
   *max = BKE_attributes_length(owner, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL);
 
   *softmin = *min;
@@ -1504,7 +1519,9 @@ static void rna_def_attribute_group_id_common(StructRNA *srna)
   RNA_def_property_update(prop, 0, "rna_AttributeGroup_update_active");
 
   prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_NONE);
-  RNA_def_property_ui_text(prop, "Active Attribute Index", "Active attribute index");
+  RNA_def_property_ui_text(
+      prop, "Active Attribute Index", "Active attribute index or -1 when none are active");
+  RNA_def_property_range(prop, -1, INT_MAX);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_int_funcs(prop,
                              "rna_AttributeGroupID_active_index_get",
@@ -1679,7 +1696,9 @@ static void rna_def_attribute_group_grease_pencil_drawing(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_AttributeGroup_update_active");
 
   prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_NONE);
-  RNA_def_property_ui_text(prop, "Active Attribute Index", "Active attribute index");
+  RNA_def_property_ui_text(
+      prop, "Active Attribute Index", "Active attribute index or -1 when none are active");
+  RNA_def_property_range(prop, -1, INT_MAX);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_int_funcs(prop,
                              "rna_AttributeGroupGreasePencilDrawing_active_index_get",

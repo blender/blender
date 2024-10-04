@@ -10,7 +10,7 @@ namespace blender::nodes::node_fn_replace_string_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::String>("String");
+  b.add_input<decl::String>("String").hide_label();
   b.add_input<decl::String>("Find").description("The string to find in the input string");
   b.add_input<decl::String>("Replace").description("The string to replace each match with");
   b.add_output<decl::String>("String");

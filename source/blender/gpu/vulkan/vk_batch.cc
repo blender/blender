@@ -21,10 +21,7 @@ namespace blender::gpu {
 void VKBatch::draw(int vertex_first, int vertex_count, int instance_first, int instance_count)
 {
   VKContext &context = *VKContext::get();
-  render_graph::VKResourceAccessInfo &resource_access_info = context.update_and_get_access_info();
-  VKStateManager &state_manager = context.state_manager_get();
-  state_manager.apply_state();
-
+  render_graph::VKResourceAccessInfo &resource_access_info = context.reset_and_get_access_info();
   VKVertexAttributeObject vao;
   vao.update_bindings(context, *this);
 
@@ -32,7 +29,6 @@ void VKBatch::draw(int vertex_first, int vertex_count, int instance_first, int i
   const bool draw_indexed = index_buffer != nullptr;
 
   /* Upload geometry */
-  vao.ensure_vbos_uploaded();
   if (draw_indexed) {
     index_buffer->upload_data();
   }
@@ -86,10 +82,7 @@ void VKBatch::multi_draw_indirect(const VkBuffer indirect_buffer,
                                   const intptr_t stride)
 {
   VKContext &context = *VKContext::get();
-  render_graph::VKResourceAccessInfo &resource_access_info = context.update_and_get_access_info();
-  VKStateManager &state_manager = context.state_manager_get();
-  state_manager.apply_state();
-
+  render_graph::VKResourceAccessInfo &resource_access_info = context.reset_and_get_access_info();
   VKVertexAttributeObject vao;
   vao.update_bindings(context, *this);
 
@@ -97,7 +90,6 @@ void VKBatch::multi_draw_indirect(const VkBuffer indirect_buffer,
   const bool draw_indexed = index_buffer != nullptr;
 
   /* Upload geometry */
-  vao.ensure_vbos_uploaded();
   if (draw_indexed) {
     index_buffer->upload_data();
   }

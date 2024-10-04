@@ -16,7 +16,7 @@
  * execute the vertex shader code on each of the input primitive's vertices.
  */
 
-#pragma BLENDER_REQUIRE(workbench_shadow_lib.glsl)
+#include "workbench_shadow_lib.glsl"
 
 void emit_cap(bool front,
               bool invert,

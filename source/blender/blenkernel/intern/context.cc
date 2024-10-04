@@ -49,7 +49,7 @@
 #include "CLG_log.h"
 
 #ifdef WITH_PYTHON
-#  include "BPY_extern.h"
+#  include "BPY_extern.hh"
 #endif
 
 using blender::Vector;

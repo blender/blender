@@ -819,7 +819,7 @@ IndexMask FieldEvaluator::get_evaluated_as_mask(const int field_index)
   return index_mask_from_selection(mask_, varray, scope_);
 }
 
-IndexMask FieldEvaluator::get_evaluated_selection_as_mask()
+IndexMask FieldEvaluator::get_evaluated_selection_as_mask() const
 {
   BLI_assert(is_evaluated_);
   return selection_mask_;

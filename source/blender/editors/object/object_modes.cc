@@ -78,20 +78,17 @@ static const char *object_mode_op_string(eObjectMode mode)
   if (mode == OB_MODE_POSE) {
     return "OBJECT_OT_posemode_toggle";
   }
-  if (mode == OB_MODE_EDIT_GPENCIL_LEGACY) {
-    return "GPENCIL_OT_editmode_toggle";
-  }
   if (mode == OB_MODE_PAINT_GPENCIL_LEGACY) {
-    return "GPENCIL_OT_paintmode_toggle";
+    return "GREASE_PENCIL_OT_paintmode_toggle";
   }
   if (mode == OB_MODE_SCULPT_GPENCIL_LEGACY) {
-    return "GPENCIL_OT_sculptmode_toggle";
+    return "GREASE_PENCIL_OT_sculptmode_toggle";
   }
   if (mode == OB_MODE_WEIGHT_GPENCIL_LEGACY) {
-    return "GPENCIL_OT_weightmode_toggle";
+    return "GREASE_PENCIL_OT_weightmode_toggle";
   }
   if (mode == OB_MODE_VERTEX_GPENCIL_LEGACY) {
-    return "GPENCIL_OT_vertexmode_toggle";
+    return "GREASE_PENCIL_OT_vertexmode_toggle";
   }
   if (mode == OB_MODE_SCULPT_CURVES) {
     return "CURVES_OT_sculptmode_toggle";

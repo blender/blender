@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "BLI_vector.hh"
+
 /** \file
  * \ingroup bmesh
  */
@@ -20,8 +22,7 @@ bool BM_face_split_edgenet(BMesh *bm,
                            BMFace *f,
                            BMEdge **edge_net,
                            int edge_net_len,
-                           BMFace ***r_face_arr,
-                           int *r_face_arr_len);
+                           blender::Vector<BMFace *> *r_face_arr);
 
 /**
  * For when the edge-net has holes in it-this connects them.

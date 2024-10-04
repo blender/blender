@@ -6,8 +6,8 @@
  * for digital images." Proceedings of the 29th annual conference on Computer graphics and
  * interactive techniques. 2002. */
 
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_common_math_utils.glsl)
+#include "gpu_shader_common_math_utils.glsl"
+#include "gpu_shader_compositor_texture_utilities.glsl"
 
 void main()
 {

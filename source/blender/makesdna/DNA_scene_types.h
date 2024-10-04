@@ -925,6 +925,38 @@ typedef struct Paint_Runtime {
   char _pad[2];
 } Paint_Runtime;
 
+typedef struct NamedBrushAssetReference {
+  struct NamedBrushAssetReference *next, *prev;
+
+  const char *name;
+  struct AssetWeakReference *brush_asset_reference;
+} NamedBrushAssetReference;
+
+/**
+ * For the tool system: Storage to remember the last active brush for specific tools.
+ *
+ * This stores a "main" brush reference, which is used for any tool that uses brushes but isn't
+ * limited to a specific brush type, and a list of brush references identified by the brush type,
+ * for tools that are limited to a brush type.
+ *
+ * The tool system updates these fields as the active brush or active tool changes. It also
+ * determines the brush to remember/restore on tool changes and activates it.
+ */
+typedef struct ToolSystemBrushBindings {
+  struct AssetWeakReference *main_brush_asset_reference;
+
+  /**
+   * The tool system exposes tools for some brush types, like an eraser tool to access eraser
+   * brushes. Switching between tools should remember the last used brush for a brush type, e.g.
+   * which eraser was used last by the eraser tool.
+   *
+   * Note that multiple tools may use the same brush type, for example primitive draw tools (to
+   * draw rectangles, circles, lines, etc.) all use a "DRAW" brush, which will then be shared
+   * among them.
+   */
+  ListBase active_brush_per_brush_type; /* #NamedBrushAssetReference */
+} ToolSystemBrushBindings;
+
 /** Paint Tool Base. */
 typedef struct Paint {
   /**
@@ -943,6 +975,8 @@ typedef struct Paint {
   /** Default eraser brush and associated weak reference. */
   struct Brush *eraser_brush;
   struct AssetWeakReference *eraser_brush_asset_reference;
+
+  ToolSystemBrushBindings tool_brush_bindings;
 
   struct Palette *palette;
   /** Cavity curve. */
@@ -1558,6 +1592,8 @@ typedef struct ToolSettings {
   char selectmode;
 
   /* UV Calculation. */
+
+  /* Use `UVCALC_UNWRAP_METHOD_*` values. */
   char unwrapper;
   char uvcalc_flag;
   char uv_flag;
@@ -1565,6 +1601,20 @@ typedef struct ToolSettings {
   char uv_sticky;
 
   float uvcalc_margin;
+
+  int uvcalc_iterations;
+  float uvcalc_weight_factor;
+
+  /**
+   * Regarding having a single vertex group for all meshes.
+   * In most cases there is no expectation for the names used for vertex groups.
+   * UV weights is a fairly specific feature for unwrapping and in this case
+   * users are expected to use the name `uv_importance`.
+   * While we could support setting a different group per mesh (similar to the active group).
+   * This isn't all that useful in practice, so use a "default" name instead.
+   * This approach may be reworked after gathering feedback from users.
+   */
+  char uvcalc_weight_group[64]; /* MAX_VGROUP_NAME */
 
   /* Auto-IK. */
   /** Runtime only. */
@@ -2655,6 +2705,13 @@ enum {
   IMAGEPAINT_MISSING_STENCIL = 1 << 3,
 };
 
+/** #ToolSettings::unwrapper */
+enum {
+  UVCALC_UNWRAP_METHOD_ANGLE = 0,
+  UVCALC_UNWRAP_METHOD_CONFORMAL = 1,
+  UVCALC_UNWRAP_METHOD_MINIMUM_STRETCH = 2,
+};
+
 /** #ToolSettings::uvcalc_flag */
 enum {
   UVCALC_FILLHOLES = 1 << 0,
@@ -2668,6 +2725,10 @@ enum {
   UVCALC_TRANSFORM_CORRECT = 1 << 4,
   /** Keep equal values merged while correcting custom-data. */
   UVCALC_TRANSFORM_CORRECT_KEEP_CONNECTED = 1 << 5,
+  /** Prevent unwrap that flips. */
+  UVCALC_UNWRAP_NO_FLIP = 1 << 6,
+  /** Use importance weights. */
+  UVCALC_UNWRAP_USE_WEIGHTS = 1 << 7,
 };
 
 /** #ToolSettings::uv_flag */

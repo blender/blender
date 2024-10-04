@@ -16,7 +16,9 @@ CalculateMeanOperation::CalculateMeanOperation()
   this->add_output_socket(DataType::Value);
   is_calculated_ = false;
   setting_ = 1;
-  flags_.is_constant_operation = true;
+
+  /* Prevent optimization by constant folder. */
+  flags_.is_constant_operation = false;
 
   needs_canvas_to_get_constant_ = true;
 }

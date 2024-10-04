@@ -505,7 +505,7 @@ class Report:
                 if completed_process.returncode != 0:
                     crash = True
                 output = completed_process.stdout
-            except BaseException:
+            except Exception:
                 crash = True
 
             if verbose:

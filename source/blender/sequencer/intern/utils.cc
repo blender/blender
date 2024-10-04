@@ -376,19 +376,6 @@ ListBase *SEQ_get_seqbase_by_seq(const Scene *scene, Sequence *seq)
   return nullptr;
 }
 
-Sequence *SEQ_get_meta_by_seqbase(ListBase *seqbase_main, ListBase *meta_seqbase)
-{
-  blender::VectorSet strips = SEQ_query_all_meta_strips_recursive(seqbase_main);
-
-  for (Sequence *seq : strips) {
-    if (&seq->seqbase == meta_seqbase) {
-      return seq;
-    }
-  }
-
-  return nullptr;
-}
-
 Sequence *SEQ_sequence_from_strip_elem(ListBase *seqbase, StripElem *se)
 {
   Sequence *iseq;

@@ -535,6 +535,7 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
     }
     if (!create_new_object) {
       sculpt_paint::undo::geometry_end(ob);
+      BKE_sculptsession_free_pbvh(ob);
     }
   }
 

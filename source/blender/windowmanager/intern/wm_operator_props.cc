@@ -397,19 +397,19 @@ void WM_operator_properties_border(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
-void WM_operator_properties_border_to_rcti(wmOperator *op, rcti *rect)
+void WM_operator_properties_border_to_rcti(wmOperator *op, rcti *r_rect)
 {
-  rect->xmin = RNA_int_get(op->ptr, "xmin");
-  rect->ymin = RNA_int_get(op->ptr, "ymin");
-  rect->xmax = RNA_int_get(op->ptr, "xmax");
-  rect->ymax = RNA_int_get(op->ptr, "ymax");
+  r_rect->xmin = RNA_int_get(op->ptr, "xmin");
+  r_rect->ymin = RNA_int_get(op->ptr, "ymin");
+  r_rect->xmax = RNA_int_get(op->ptr, "xmax");
+  r_rect->ymax = RNA_int_get(op->ptr, "ymax");
 }
 
-void WM_operator_properties_border_to_rctf(wmOperator *op, rctf *rect)
+void WM_operator_properties_border_to_rctf(wmOperator *op, rctf *r_rect)
 {
   rcti rect_i;
   WM_operator_properties_border_to_rcti(op, &rect_i);
-  BLI_rctf_rcti_copy(rect, &rect_i);
+  BLI_rctf_rcti_copy(r_rect, &rect_i);
 }
 
 void WM_operator_properties_gesture_box_ex(wmOperatorType *ot, bool deselect, bool extend)

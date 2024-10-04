@@ -9,9 +9,9 @@
 #include "BLI_utildefines.h"
 #include <Python.h>
 
-#include "bpy_app_opensubdiv.h"
+#include "bpy_app_opensubdiv.hh"
 
-#include "../generic/py_capi_utils.h"
+#include "../generic/py_capi_utils.hh"
 
 #ifdef WITH_OPENSUBDIV
 #  include "opensubdiv_capi.hh"

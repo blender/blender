@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_gpencil_lib.glsl)
+#include "common_gpencil_lib.glsl"
 
 void gpencil_color_output(vec4 stroke_col, vec4 vert_col, float vert_strength, float mix_tex)
 {

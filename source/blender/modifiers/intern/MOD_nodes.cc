@@ -18,7 +18,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_multi_value_map.hh"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_set.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -57,6 +57,7 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_object.hh"
+#include "BKE_packedFile.hh"
 #include "BKE_pointcloud.hh"
 #include "BKE_screen.hh"
 #include "BKE_workspace.hh"
@@ -111,6 +112,7 @@ static void init_data(ModifierData *md)
   NodesModifierData *nmd = (NodesModifierData *)md;
 
   BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(nmd, modifier));
+  nmd->modifier.layout_panel_open_flag |= 1 << NODES_MODIFIER_PANEL_WARNINGS;
 
   MEMCPY_STRUCT_AFTER(nmd, DNA_struct_default_get(NodesModifierData), modifier);
   nmd->runtime = MEM_new<NodesModifierRuntime>(__func__);
@@ -570,10 +572,33 @@ static void try_add_side_effect_node(const ComputeContext &final_compute_context
         return;
       }
       local_side_effect_nodes.nodes_by_context.add(parent_compute_context_hash, lf_zone_node);
-      local_side_effect_nodes.iterations_by_repeat_zone.add(
+      local_side_effect_nodes.iterations_by_iteration_zone.add(
           {parent_compute_context_hash, compute_context->output_node_id()},
           compute_context->iteration());
       current_zone = repeat_zone;
+    }
+    else if (const auto *compute_context =
+                 dynamic_cast<const bke::ForeachGeometryElementZoneComputeContext *>(
+                     compute_context_generic))
+    {
+      const bke::bNodeTreeZone *foreach_zone = current_zones->get_zone_by_node(
+          compute_context->output_node_id());
+      if (foreach_zone == nullptr) {
+        return;
+      }
+      if (foreach_zone->parent_zone != current_zone) {
+        return;
+      }
+      const lf::FunctionNode *lf_zone_node = lf_graph_info->mapping.zone_node_map.lookup_default(
+          foreach_zone, nullptr);
+      if (lf_zone_node == nullptr) {
+        return;
+      }
+      local_side_effect_nodes.nodes_by_context.add(parent_compute_context_hash, lf_zone_node);
+      local_side_effect_nodes.iterations_by_iteration_zone.add(
+          {parent_compute_context_hash, compute_context->output_node_id()},
+          compute_context->index());
+      current_zone = foreach_zone;
     }
     else if (const auto *compute_context = dynamic_cast<const bke::GroupNodeComputeContext *>(
                  compute_context_generic))
@@ -630,8 +655,8 @@ static void try_add_side_effect_node(const ComputeContext &final_compute_context
   for (const auto item : local_side_effect_nodes.nodes_by_context.items()) {
     r_side_effect_nodes.nodes_by_context.add_multiple(item.key, item.value);
   }
-  for (const auto item : local_side_effect_nodes.iterations_by_repeat_zone.items()) {
-    r_side_effect_nodes.iterations_by_repeat_zone.add_multiple(item.key, item.value);
+  for (const auto item : local_side_effect_nodes.iterations_by_iteration_zone.items()) {
+    r_side_effect_nodes.iterations_by_iteration_zone.add_multiple(item.key, item.value);
   }
 }
 
@@ -968,15 +993,33 @@ static void ensure_bake_loaded(bake::NodeBakeCache &bake_cache, bake::FrameCache
   if (!frame_cache.state.items_by_id.is_empty()) {
     return;
   }
+  if (!frame_cache.meta_data_source.has_value()) {
+    return;
+  }
+  if (bake_cache.memory_blob_reader) {
+    if (const auto *meta_buffer = std::get_if<Span<std::byte>>(&*frame_cache.meta_data_source)) {
+      const std::string meta_str{reinterpret_cast<const char *>(meta_buffer->data()),
+                                 size_t(meta_buffer->size())};
+      std::istringstream meta_stream{meta_str};
+      std::optional<bake::BakeState> bake_state = bake::deserialize_bake(
+          meta_stream, *bake_cache.memory_blob_reader, *bake_cache.blob_sharing);
+      if (!bake_state.has_value()) {
+        return;
+      }
+      frame_cache.state = std::move(*bake_state);
+      return;
+    }
+  }
   if (!bake_cache.blobs_dir) {
     return;
   }
-  if (!frame_cache.meta_path) {
+  const auto *meta_path = std::get_if<std::string>(&*frame_cache.meta_data_source);
+  if (!meta_path) {
     return;
   }
-  bke::bake::DiskBlobReader blob_reader{*bake_cache.blobs_dir};
-  fstream meta_file{*frame_cache.meta_path};
-  std::optional<bke::bake::BakeState> bake_state = bke::bake::deserialize_bake(
+  bake::DiskBlobReader blob_reader{*bake_cache.blobs_dir};
+  fstream meta_file{*meta_path};
+  std::optional<bake::BakeState> bake_state = bake::deserialize_bake(
       meta_file, blob_reader, *bake_cache.blob_sharing);
   if (!bake_state.has_value()) {
     return;
@@ -984,12 +1027,53 @@ static void ensure_bake_loaded(bake::NodeBakeCache &bake_cache, bake::FrameCache
   frame_cache.state = std::move(*bake_state);
 }
 
-static bool try_find_baked_data(bake::NodeBakeCache &bake,
+static bool try_find_baked_data(const NodesModifierBake &bake,
+                                bake::NodeBakeCache &bake_cache,
                                 const Main &bmain,
                                 const Object &object,
                                 const NodesModifierData &nmd,
                                 const int id)
 {
+  if (bake.packed) {
+    if (bake.packed->meta_files_num == 0) {
+      return false;
+    }
+    bake_cache.reset();
+    Map<SubFrame, const NodesModifierBakeFile *> file_by_frame;
+    for (const NodesModifierBakeFile &meta_file :
+         Span{bake.packed->meta_files, bake.packed->meta_files_num})
+    {
+      const std::optional<SubFrame> frame = bake::file_name_to_frame(meta_file.name);
+      if (!frame) {
+        return false;
+      }
+      if (!file_by_frame.add(*frame, &meta_file)) {
+        /* Can only have on file per (sub)frame. */
+        return false;
+      }
+    }
+    /* Make sure frames processed in the right order. */
+    Vector<SubFrame> frames;
+    frames.extend(file_by_frame.keys().begin(), file_by_frame.keys().end());
+
+    for (const SubFrame &frame : frames) {
+      const NodesModifierBakeFile &meta_file = *file_by_frame.lookup(frame);
+      auto frame_cache = std::make_unique<bake::FrameCache>();
+      frame_cache->frame = frame;
+      frame_cache->meta_data_source = meta_file.data();
+      bake_cache.frames.append(std::move(frame_cache));
+    }
+
+    bake_cache.memory_blob_reader = std::make_unique<bake::MemoryBlobReader>();
+    for (const NodesModifierBakeFile &blob_file :
+         Span{bake.packed->blob_files, bake.packed->blob_files_num})
+    {
+      bake_cache.memory_blob_reader->add(blob_file.name, blob_file.data());
+    }
+    bake_cache.blob_sharing = std::make_unique<bake::BlobReadSharing>();
+    return true;
+  }
+
   std::optional<bake::BakePath> bake_path = bake::get_node_bake_path(bmain, object, nmd, id);
   if (!bake_path) {
     return false;
@@ -998,15 +1082,15 @@ static bool try_find_baked_data(bake::NodeBakeCache &bake,
   if (meta_files.is_empty()) {
     return false;
   }
-  bake.reset();
+  bake_cache.reset();
   for (const bake::MetaFile &meta_file : meta_files) {
     auto frame_cache = std::make_unique<bake::FrameCache>();
     frame_cache->frame = meta_file.frame;
-    frame_cache->meta_path = meta_file.path;
-    bake.frames.append(std::move(frame_cache));
+    frame_cache->meta_data_source = meta_file.path;
+    bake_cache.frames.append(std::move(frame_cache));
   }
-  bake.blobs_dir = bake_path->blobs_dir;
-  bake.blob_sharing = std::make_unique<bake::BlobReadSharing>();
+  bake_cache.blobs_dir = bake_path->blobs_dir;
+  bake_cache.blob_sharing = std::make_unique<bake::BlobReadSharing>();
   return true;
 }
 
@@ -1141,7 +1225,7 @@ class NodesModifierSimulationParams : public nodes::GeoNodesSimulationParams {
       /* Try load baked data. */
       if (!node_cache.bake.failed_finding_bake) {
         if (node_cache.cache_status != bake::CacheStatus::Baked) {
-          if (try_find_baked_data(node_cache.bake, *bmain_, *ctx_.object, nmd_, zone_id)) {
+          if (try_find_baked_data(bake, node_cache.bake, *bmain_, *ctx_.object, nmd_, zone_id)) {
             node_cache.cache_status = bake::CacheStatus::Baked;
           }
           else {
@@ -1434,7 +1518,7 @@ class NodesModifierBakeParams : public nodes::GeoNodesBakeParams {
     /* Try load baked data. */
     if (node_cache.bake.frames.is_empty()) {
       if (!node_cache.bake.failed_finding_bake) {
-        if (!try_find_baked_data(node_cache.bake, *bmain_, *ctx_.object, nmd_, id)) {
+        if (!try_find_baked_data(bake, node_cache.bake, *bmain_, *ctx_.object, nmd_, id)) {
           node_cache.bake.failed_finding_bake = true;
         }
       }
@@ -1503,7 +1587,7 @@ class NodesModifierBakeParams : public nodes::GeoNodesBakeParams {
   [[nodiscard]] bool check_read_error(const bake::FrameCache &frame_cache,
                                       nodes::BakeNodeBehavior &behavior) const
   {
-    if (frame_cache.meta_path && frame_cache.state.items_by_id.is_empty()) {
+    if (frame_cache.meta_data_source && frame_cache.state.items_by_id.is_empty()) {
       auto &read_error_info = behavior.behavior.emplace<sim_output::ReadError>();
       read_error_info.message = RPT_("Cannot load the baked data");
       return true;
@@ -2175,10 +2259,19 @@ static void draw_interface_panel_content(const bContext *C,
       NodesModifierPanel *panel = find_panel_by_id(nmd, sub_interface_panel.identifier);
       PointerRNA panel_ptr = RNA_pointer_create(
           modifier_ptr->owner_id, &RNA_NodesModifierPanel, panel);
-      if (uiLayout *panel_layout = uiLayoutPanelProp(
-              C, layout, &panel_ptr, "is_open", IFACE_(sub_interface_panel.name)))
-      {
-        draw_interface_panel_content(C, panel_layout, modifier_ptr, nmd, sub_interface_panel);
+      PanelLayout panel_layout = uiLayoutPanelProp(C, layout, &panel_ptr, "is_open");
+      uiItemL(panel_layout.header, IFACE_(sub_interface_panel.name), ICON_NONE);
+      uiLayoutSetTooltipFunc(
+          panel_layout.header,
+          [](bContext * /*C*/, void *panel_arg, const char * /*tip*/) -> std::string {
+            const auto *panel = static_cast<bNodeTreeInterfacePanel *>(panel_arg);
+            return StringRef(panel->description);
+          },
+          const_cast<bNodeTreeInterfacePanel *>(&sub_interface_panel),
+          nullptr,
+          nullptr);
+      if (panel_layout.body) {
+        draw_interface_panel_content(C, panel_layout.body, modifier_ptr, nmd, sub_interface_panel);
       }
     }
     else {
@@ -2229,6 +2322,7 @@ static void draw_bake_panel(uiLayout *layout, PointerRNA *modifier_ptr)
   uiLayout *col = uiLayoutColumn(layout, false);
   uiLayoutSetPropSep(col, true);
   uiLayoutSetPropDecorate(col, false);
+  uiItemR(col, modifier_ptr, "bake_target", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(col, modifier_ptr, "bake_directory", UI_ITEM_NONE, IFACE_("Bake Path"), ICON_NONE);
 }
 
@@ -2315,6 +2409,49 @@ static void draw_manage_panel(const bContext *C,
   }
 }
 
+static void draw_warnings(const bContext *C,
+                          const NodesModifierData &nmd,
+                          uiLayout *layout,
+                          PointerRNA *md_ptr)
+{
+  using namespace geo_log;
+  GeoTreeLog *tree_log = get_root_tree_log(nmd);
+  if (!tree_log) {
+    return;
+  }
+  tree_log->ensure_node_warnings(nmd.node_group);
+  const int warnings_num = tree_log->all_warnings.size();
+  if (warnings_num == 0) {
+    return;
+  }
+  PanelLayout panel = uiLayoutPanelProp(C, layout, md_ptr, "open_warnings_panel");
+  uiItemL(panel.header, fmt::format(IFACE_("Warnings ({})"), warnings_num).c_str(), ICON_NONE);
+  if (!panel.body) {
+    return;
+  }
+  Vector<const NodeWarning *> warnings(tree_log->all_warnings.size());
+  for (const int i : warnings.index_range()) {
+    warnings[i] = &tree_log->all_warnings[i];
+  }
+  std::sort(warnings.begin(), warnings.end(), [](const NodeWarning *a, const NodeWarning *b) {
+    const int severity_a = node_warning_type_severity(a->type);
+    const int severity_b = node_warning_type_severity(b->type);
+    if (severity_a > severity_b) {
+      return true;
+    }
+    if (severity_a < severity_b) {
+      return false;
+    }
+    return BLI_strcasecmp_natural(a->message.c_str(), b->message.c_str()) < 0;
+  });
+
+  uiLayout *col = uiLayoutColumn(panel.body, false);
+  for (const NodeWarning *warning : warnings) {
+    const int icon = node_warning_type_icon(warning->type);
+    uiItemL(col, warning->message.c_str(), icon);
+  }
+}
+
 static void panel_draw(const bContext *C, Panel *panel)
 {
   uiLayout *layout = panel->layout;
@@ -2338,20 +2475,9 @@ static void panel_draw(const bContext *C, Panel *panel)
     draw_interface_panel_content(C, layout, ptr, *nmd, nmd->node_group->tree_interface.root_panel);
   }
 
-  /* Draw node warnings. */
-  geo_log::GeoTreeLog *tree_log = get_root_tree_log(*nmd);
-  if (tree_log != nullptr) {
-    tree_log->ensure_node_warnings(nmd->node_group);
-    for (const geo_log::NodeWarning &warning : tree_log->all_warnings) {
-      if (warning.type != geo_log::NodeWarningType::Info) {
-        uiItemL(layout,
-                warning.message.c_str(),
-                warning.type == geo_log::NodeWarningType::Warning ? ICON_ERROR : ICON_CANCEL);
-      }
-    }
-  }
-
   modifier_panel_end(layout, ptr);
+
+  draw_warnings(C, *nmd, layout, ptr);
 
   if (has_output_attribute(*nmd)) {
     if (uiLayout *panel_layout = uiLayoutPanelProp(
@@ -2411,6 +2537,29 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
         BLO_write_string(writer, item.id_name);
         BLO_write_string(writer, item.lib_name);
       }
+      if (bake.packed) {
+        BLO_write_struct(writer, NodesModifierPackedBake, bake.packed);
+        BLO_write_struct_array(
+            writer, NodesModifierBakeFile, bake.packed->meta_files_num, bake.packed->meta_files);
+        BLO_write_struct_array(
+            writer, NodesModifierBakeFile, bake.packed->blob_files_num, bake.packed->blob_files);
+        const auto write_bake_file = [&](const NodesModifierBakeFile &bake_file) {
+          BLO_write_string(writer, bake_file.name);
+          if (bake_file.packed_file) {
+            BKE_packedfile_blend_write(writer, bake_file.packed_file);
+          }
+        };
+        for (const NodesModifierBakeFile &meta_file :
+             Span{bake.packed->meta_files, bake.packed->meta_files_num})
+        {
+          write_bake_file(meta_file);
+        }
+        for (const NodesModifierBakeFile &blob_file :
+             Span{bake.packed->blob_files, bake.packed->blob_files_num})
+        {
+          write_bake_file(blob_file);
+        }
+      }
     }
     BLO_write_struct_array(writer, NodesModifierPanel, nmd->panels_num, nmd->panels);
 
@@ -2461,6 +2610,30 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
       BLO_read_string(reader, &data_block.id_name);
       BLO_read_string(reader, &data_block.lib_name);
     }
+
+    BLO_read_struct(reader, NodesModifierPackedBake, &bake.packed);
+    if (bake.packed) {
+      BLO_read_struct_array(
+          reader, NodesModifierBakeFile, bake.packed->meta_files_num, &bake.packed->meta_files);
+      BLO_read_struct_array(
+          reader, NodesModifierBakeFile, bake.packed->blob_files_num, &bake.packed->blob_files);
+      const auto read_bake_file = [&](NodesModifierBakeFile &bake_file) {
+        BLO_read_string(reader, &bake_file.name);
+        if (bake_file.packed_file) {
+          BKE_packedfile_blend_read(reader, &bake_file.packed_file, "");
+        }
+      };
+      for (NodesModifierBakeFile &meta_file :
+           MutableSpan{bake.packed->meta_files, bake.packed->meta_files_num})
+      {
+        read_bake_file(meta_file);
+      }
+      for (NodesModifierBakeFile &blob_file :
+           MutableSpan{bake.packed->blob_files, bake.packed->blob_files_num})
+      {
+        read_bake_file(blob_file);
+      }
+    }
   }
   BLO_read_struct_array(reader, NodesModifierPanel, nmd->panels_num, &nmd->panels);
 
@@ -2494,6 +2667,24 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
           }
         }
       }
+      if (bake.packed) {
+        bake.packed = static_cast<NodesModifierPackedBake *>(MEM_dupallocN(bake.packed));
+        const auto copy_bake_files_inplace = [](NodesModifierBakeFile **bake_files,
+                                                const int bake_files_num) {
+          if (!*bake_files) {
+            return;
+          }
+          *bake_files = static_cast<NodesModifierBakeFile *>(MEM_dupallocN(*bake_files));
+          for (NodesModifierBakeFile &bake_file : MutableSpan{*bake_files, bake_files_num}) {
+            bake_file.name = BLI_strdup_null(bake_file.name);
+            if (bake_file.packed_file) {
+              bake_file.packed_file = BKE_packedfile_duplicate(bake_file.packed_file);
+            }
+          }
+        };
+        copy_bake_files_inplace(&bake.packed->meta_files, bake.packed->meta_files_num);
+        copy_bake_files_inplace(&bake.packed->blob_files, bake.packed->blob_files_num);
+      }
     }
   }
 
@@ -2520,6 +2711,22 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
   }
 }
 
+void nodes_modifier_packed_bake_free(NodesModifierPackedBake *packed_bake)
+{
+  const auto free_packed_files = [](NodesModifierBakeFile *files, const int files_num) {
+    for (NodesModifierBakeFile &file : MutableSpan{files, files_num}) {
+      MEM_SAFE_FREE(file.name);
+      if (file.packed_file) {
+        BKE_packedfile_free(file.packed_file);
+      }
+    }
+    MEM_SAFE_FREE(files);
+  };
+  free_packed_files(packed_bake->meta_files, packed_bake->meta_files_num);
+  free_packed_files(packed_bake->blob_files, packed_bake->blob_files_num);
+  MEM_SAFE_FREE(packed_bake);
+}
+
 static void free_data(ModifierData *md)
 {
   NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
@@ -2537,6 +2744,10 @@ static void free_data(ModifierData *md)
       MEM_SAFE_FREE(data_block.lib_name);
     }
     MEM_SAFE_FREE(bake.data_blocks);
+
+    if (bake.packed) {
+      nodes_modifier_packed_bake_free(bake.packed);
+    }
   }
   MEM_SAFE_FREE(nmd->bakes);
 

@@ -24,6 +24,8 @@
 
 #include "MOD_nodes.hh"
 
+#include "UI_resources.hh"
+
 namespace blender::nodes::geo_eval_log {
 
 using bke::bNodeTreeZone;
@@ -597,20 +599,26 @@ GeoTreeLogger &GeoModifierLog::get_local_tree_logger(const ComputeContext &compu
     GeoTreeLogger &parent_logger = this->get_local_tree_logger(*parent_compute_context);
     parent_logger.children_hashes.append(compute_context.hash());
   }
-  if (const bke::GroupNodeComputeContext *node_group_compute_context =
+  if (const bke::GroupNodeComputeContext *typed_compute_context =
           dynamic_cast<const bke::GroupNodeComputeContext *>(&compute_context))
   {
-    tree_logger.parent_node_id.emplace(node_group_compute_context->node_id());
+    tree_logger.parent_node_id.emplace(typed_compute_context->node_id());
   }
-  else if (const bke::RepeatZoneComputeContext *node_group_compute_context =
+  else if (const bke::RepeatZoneComputeContext *typed_compute_context =
                dynamic_cast<const bke::RepeatZoneComputeContext *>(&compute_context))
   {
-    tree_logger.parent_node_id.emplace(node_group_compute_context->output_node_id());
+    tree_logger.parent_node_id.emplace(typed_compute_context->output_node_id());
   }
-  else if (const bke::SimulationZoneComputeContext *node_group_compute_context =
+  else if (const bke::ForeachGeometryElementZoneComputeContext *typed_compute_context =
+               dynamic_cast<const bke::ForeachGeometryElementZoneComputeContext *>(
+                   &compute_context))
+  {
+    tree_logger.parent_node_id.emplace(typed_compute_context->output_node_id());
+  }
+  else if (const bke::SimulationZoneComputeContext *typed_compute_context =
                dynamic_cast<const bke::SimulationZoneComputeContext *>(&compute_context))
   {
-    tree_logger.parent_node_id.emplace(node_group_compute_context->output_node_id());
+    tree_logger.parent_node_id.emplace(typed_compute_context->output_node_id());
   }
   return tree_logger;
 }
@@ -646,6 +654,13 @@ static void find_tree_zone_hash_recursive(
           zone.output_node->storage);
       compute_context_builder.push<bke::RepeatZoneComputeContext>(*zone.output_node,
                                                                   storage.inspection_index);
+      break;
+    }
+    case GEO_NODE_FOREACH_GEOMETRY_ELEMENT_OUTPUT: {
+      const auto &storage = *static_cast<const NodeGeometryForeachGeometryElementOutput *>(
+          zone.output_node->storage);
+      compute_context_builder.push<bke::ForeachGeometryElementZoneComputeContext>(
+          *zone.output_node, storage.inspection_index);
       break;
     }
   }
@@ -769,6 +784,34 @@ const ViewerNodeLog *GeoModifierLog::find_viewer_node_log_for_path(const ViewerP
   const ViewerNodeLog *viewer_log = tree_log.viewer_node_logs.lookup_default(
       parsed_path->viewer_node_id, nullptr);
   return viewer_log;
+}
+
+int node_warning_type_icon(const NodeWarningType type)
+{
+  switch (type) {
+    case NodeWarningType::Error:
+      return ICON_CANCEL;
+    case NodeWarningType::Warning:
+      return ICON_ERROR;
+    case NodeWarningType::Info:
+      return ICON_INFO;
+  }
+  BLI_assert_unreachable();
+  return ICON_ERROR;
+}
+
+int node_warning_type_severity(const NodeWarningType type)
+{
+  switch (type) {
+    case NodeWarningType::Error:
+      return 3;
+    case NodeWarningType::Warning:
+      return 2;
+    case NodeWarningType::Info:
+      return 1;
+  }
+  BLI_assert_unreachable();
+  return 0;
 }
 
 }  // namespace blender::nodes::geo_eval_log

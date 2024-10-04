@@ -685,8 +685,8 @@ static Vector<NodeInterfaceItemData> node_build_item_data(bNode &node)
       ++panel_runtime;
     }
     else if (dynamic_cast<const nodes::SeparatorDeclaration *>(item_decl->get())) {
-      ++item_decl;
       result.append(NodeInterfaceItemData::separator());
+      ++item_decl;
     }
   }
   return result;
@@ -894,18 +894,20 @@ static void add_panel_items_recursive(const bContext &C,
       }
     }
     else if (item.is_valid_separator()) {
-      uiLayout *layout = UI_block_layout(&block,
-                                         UI_LAYOUT_VERTICAL,
-                                         UI_LAYOUT_PANEL,
-                                         locx + NODE_DYS,
-                                         locy,
-                                         NODE_WIDTH(node) - NODE_DY,
-                                         NODE_DY,
-                                         0,
-                                         UI_style_get_dpi());
-      uiItemS_ex(layout, 1.0, LayoutSeparatorType::Line);
-      UI_block_layout_resolve(&block, nullptr, nullptr);
-      locy -= NODE_ITEM_SPACING_Y;
+      if (!is_parent_collapsed) {
+        uiLayout *layout = UI_block_layout(&block,
+                                           UI_LAYOUT_VERTICAL,
+                                           UI_LAYOUT_PANEL,
+                                           locx + NODE_DYS,
+                                           locy,
+                                           NODE_WIDTH(node) - NODE_DY,
+                                           NODE_DY,
+                                           0,
+                                           UI_style_get_dpi());
+        uiItemS_ex(layout, 1.0, LayoutSeparatorType::Line);
+        UI_block_layout_resolve(&block, nullptr, nullptr);
+        locy -= NODE_ITEM_SPACING_Y;
+      }
     }
     else {
       /* Should not happen. */
@@ -945,6 +947,15 @@ static void node_update_basis_from_declaration(
 
   /* Start by adding root panel items. */
   LocationUpdateState location_state(item_data);
+
+  /* Draw buttons at the top when the node has a custom socket order. This could be customized in
+   * the future to support showing the buttons in any place. */
+  if (node.declaration()->allow_any_socket_order) {
+    location_state.buttons_drawn = true;
+    location_state.need_spacer_after_item = node_update_basis_buttons(
+        C, ntree, node, node.typeinfo->draw_buttons, block, locy);
+  }
+
   add_panel_items_recursive(
       C, ntree, node, block, locx, locy, -1, false, "", nullptr, location_state);
 
@@ -2142,7 +2153,7 @@ static void node_draw_preview_background(rctf *rect)
 }
 
 /* Not a callback. */
-static void node_draw_preview(const Scene *scene, ImBuf *preview, rctf *prv)
+static void node_draw_preview(const Scene *scene, ImBuf *preview, const rctf *prv)
 {
   float xrect = BLI_rctf_size_x(prv);
   float yrect = BLI_rctf_size_y(prv);
@@ -2593,7 +2604,7 @@ static void node_draw_panels(bNodeTree &ntree, const bNode &node, uiBlock &block
                        nullptr,
                        0.0f,
                        0.0f,
-                       "");
+                       panel_decl->description.c_str());
     UI_but_func_pushed_state_set(but, [&state](const uiBut &) { return state.is_collapsed(); });
     UI_but_func_set(
         but, node_panel_toggle_button_cb, const_cast<bNodePanelState *>(&state), &ntree);
@@ -2604,42 +2615,12 @@ static void node_draw_panels(bNodeTree &ntree, const bNode &node, uiBlock &block
   }
 }
 
-static int node_error_type_to_icon(const geo_log::NodeWarningType type)
-{
-  switch (type) {
-    case geo_log::NodeWarningType::Error:
-      return ICON_CANCEL;
-    case geo_log::NodeWarningType::Warning:
-      return ICON_ERROR;
-    case geo_log::NodeWarningType::Info:
-      return ICON_INFO;
-  }
-
-  BLI_assert(false);
-  return ICON_ERROR;
-}
-
-static uint8_t node_error_type_priority(const geo_log::NodeWarningType type)
-{
-  switch (type) {
-    case geo_log::NodeWarningType::Error:
-      return 3;
-    case geo_log::NodeWarningType::Warning:
-      return 2;
-    case geo_log::NodeWarningType::Info:
-      return 1;
-  }
-
-  BLI_assert(false);
-  return 0;
-}
-
 static geo_log::NodeWarningType node_error_highest_priority(Span<geo_log::NodeWarning> warnings)
 {
-  uint8_t highest_priority = 0;
+  int highest_priority = 0;
   geo_log::NodeWarningType highest_priority_type = geo_log::NodeWarningType::Info;
   for (const geo_log::NodeWarning &warning : warnings) {
-    const uint8_t priority = node_error_type_priority(warning.type);
+    const int priority = node_warning_type_severity(warning.type);
     if (priority > highest_priority) {
       highest_priority = priority;
       highest_priority_type = warning.type;
@@ -2741,7 +2722,7 @@ static void node_add_error_message_button(const TreeDrawContext &tree_draw_ctx,
   uiBut *but = uiDefIconBut(&block,
                             UI_BTYPE_BUT,
                             0,
-                            node_error_type_to_icon(display_type),
+                            geo_log::node_warning_type_icon(display_type),
                             icon_offset,
                             rect.ymax - NODE_DY,
                             NODE_HEADER_ICON_SIZE,
@@ -2767,6 +2748,9 @@ static std::optional<std::chrono::nanoseconds> geo_node_get_execution_time(
       return nullptr;
     }
     const bNodeTreeZone *zone = zones->get_zone_by_node(node.identifier);
+    if (zone && ELEM(&node, zone->input_node, zone->output_node)) {
+      zone = zone->parent_zone;
+    }
     return tree_draw_ctx.geo_log_by_zone.lookup_default(zone, nullptr);
   }();
 
@@ -3136,7 +3120,12 @@ static Vector<NodeExtraInfoRow> node_get_extra_info(const bContext &C,
 
   if (snode.overlay.flag & SN_OVERLAY_SHOW_TIMINGS &&
       (ELEM(node.typeinfo->nclass, NODE_CLASS_GEOMETRY, NODE_CLASS_GROUP, NODE_CLASS_ATTRIBUTE) ||
-       ELEM(node.type, NODE_FRAME, NODE_GROUP_OUTPUT)))
+       ELEM(node.type,
+            NODE_FRAME,
+            NODE_GROUP_OUTPUT,
+            GEO_NODE_SIMULATION_OUTPUT,
+            GEO_NODE_REPEAT_OUTPUT,
+            GEO_NODE_FOREACH_GEOMETRY_ELEMENT_OUTPUT)))
   {
     std::optional<NodeExtraInfoRow> row = node_get_execution_time_label_row(
         tree_draw_ctx, snode, node);

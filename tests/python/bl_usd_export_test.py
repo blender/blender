@@ -32,21 +32,16 @@ class AbstractUSDTest(unittest.TestCase):
     def tearDown(self):
         self._tempdir.cleanup()
 
+    def export_and_validate(self, **kwargs):
+        """Export and validate the resulting USD file."""
 
-class USDExportTest(AbstractUSDTest):
-    def test_export_usdchecker(self):
-        """Test exporting a scene and verifying it passes the usdchecker test suite"""
-        bpy.ops.wm.open_mainfile(
-            filepath=str(self.testdir / "usd_materials_export.blend")
-        )
-        export_path = self.tempdir / "usdchecker.usda"
-        res = bpy.ops.wm.usd_export(
-            filepath=str(export_path),
-            export_materials=True,
-            evaluation_mode="RENDER",
-        )
+        export_path = kwargs["filepath"]
+
+        # Do the actual export
+        res = bpy.ops.wm.usd_export(**kwargs)
         self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
 
+        # Validate resulting file
         checker = UsdUtils.ComplianceChecker(
             arkit=False,
             skipARKitRootLayerCheck=False,
@@ -54,7 +49,7 @@ class USDExportTest(AbstractUSDTest):
             skipVariants=False,
             verbose=False,
         )
-        checker.CheckCompliance(str(export_path))
+        checker.CheckCompliance(export_path)
 
         failed_checks = {}
 
@@ -75,6 +70,8 @@ class USDExportTest(AbstractUSDTest):
 
         self.assertFalse(failed_checks, pprint.pformat(failed_checks))
 
+
+class USDExportTest(AbstractUSDTest):
     # Utility function to round each component of a vector to a few digits. The "+ 0" is to
     # ensure that any negative zeros (-0.0) are converted to positive zeros (0.0).
     @staticmethod
@@ -92,13 +89,13 @@ class USDExportTest(AbstractUSDTest):
         """Test that exported scenes contain have a properly authored extent attribute on each boundable prim"""
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_extent_test.blend"))
         export_path = self.tempdir / "usd_extent_test.usda"
-        res = bpy.ops.wm.usd_export(
+
+        self.export_and_validate(
             filepath=str(export_path),
             export_materials=True,
             evaluation_mode="RENDER",
             convert_world_material=False,
         )
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
 
         # if prims are missing, the exporter must have skipped some objects
         stats = UsdUtils.ComputeUsdStageStats(str(export_path))
@@ -138,8 +135,7 @@ class USDExportTest(AbstractUSDTest):
         # Use the common materials .blend file
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_materials_export.blend"))
         export_path = self.tempdir / "material_transforms.usda"
-        res = bpy.ops.wm.usd_export(filepath=str(export_path), export_materials=True)
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
+        self.export_and_validate(filepath=str(export_path), export_materials=True)
 
         # Inspect the UsdTransform2d prim on the "Transforms" material
         stage = Usd.Stage.Open(str(export_path))
@@ -160,8 +156,7 @@ class USDExportTest(AbstractUSDTest):
         # Use the common materials .blend file
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_materials_export.blend"))
         export_path = self.tempdir / "material_normalmaps.usda"
-        res = bpy.ops.wm.usd_export(filepath=str(export_path), export_materials=True)
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
+        self.export_and_validate(filepath=str(export_path), export_materials=True)
 
         # Inspect the UsdUVTexture prim on the "typical" "NormalMap" material
         stage = Usd.Stage.Open(str(export_path))
@@ -193,8 +188,7 @@ class USDExportTest(AbstractUSDTest):
         # Use the common materials .blend file
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_materials_export.blend"))
         export_path = self.tempdir / "material_opacities.usda"
-        res = bpy.ops.wm.usd_export(filepath=str(export_path), export_materials=True)
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
+        self.export_and_validate(filepath=str(export_path), export_materials=True)
 
         # Inspect and validate the exported USD for the opaque blend case.
         stage = Usd.Stage.Open(str(export_path))
@@ -221,6 +215,42 @@ class USDExportTest(AbstractUSDTest):
         self.assertEqual(opacity_input.HasConnectedSource(), True, "Alpha input should be connected")
         self.assertAlmostEqual(opacity_thresh_input.Get(), 0.2, 2, "Opacity threshold input should be 0.2")
 
+    def test_export_material_subsets(self):
+        """Validate multiple materials assigned to the same mesh work correctly."""
+
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_materials_multi.blend"))
+
+        # Ensure the simulation zone data is baked for all relevant frames...
+        for frame in range(1, 5):
+            bpy.context.scene.frame_set(frame)
+        bpy.context.scene.frame_set(1)
+
+        export_path = self.tempdir / "usd_materials_multi.usda"
+        self.export_and_validate(filepath=str(export_path), export_animation=True, evaluation_mode="RENDER")
+
+        stage = Usd.Stage.Open(str(export_path))
+
+        # The static mesh should have 4 materials each assigned to 4 faces (16 faces total)
+        static_mesh_prim = UsdGeom.Mesh(stage.GetPrimAtPath("/root/static_mesh/static_mesh"))
+        geom_subsets = UsdGeom.Subset.GetGeomSubsets(static_mesh_prim)
+        self.assertEqual(len(geom_subsets), 4)
+
+        unique_face_indices = set()
+        for subset in geom_subsets:
+            face_indices = subset.GetIndicesAttr().Get()
+            self.assertEqual(len(face_indices), 4)
+            unique_face_indices.update(face_indices)
+        self.assertEqual(len(unique_face_indices), 16)
+
+        # The dynamic mesh varies over time (currently blocked, see #124554 and #118754)
+        #  - Frame 1: 1 face and 1 material [mat2]
+        #  - Frame 2: 2 faces and 2 materials [mat2, mat3]
+        #  - Frame 3: 4 faces and 3 materials [mat2, mat3, mat2, mat1]
+        #  - Frame 4: 4 faces and 2 materials [mat2, mat3, mat2, mat3]
+        dynamic_mesh_prim = UsdGeom.Mesh(stage.GetPrimAtPath("/root/dynamic_mesh/dynamic_mesh"))
+        geom_subsets = UsdGeom.Subset.GetGeomSubsets(dynamic_mesh_prim)
+        self.assertEqual(len(geom_subsets), 0)
+
     def check_primvar(self, prim, pv_name, pv_typeName, pv_interp, elements_len):
         pv = UsdGeom.PrimvarsAPI(prim).GetPrimvar(pv_name)
         self.assertTrue(pv.HasValue())
@@ -235,8 +265,7 @@ class USDExportTest(AbstractUSDTest):
     def test_export_attributes(self):
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_attribute_test.blend"))
         export_path = self.tempdir / "usd_attribute_test.usda"
-        res = bpy.ops.wm.usd_export(filepath=str(export_path), evaluation_mode="RENDER")
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
+        self.export_and_validate(filepath=str(export_path), evaluation_mode="RENDER")
 
         stage = Usd.Stage.Open(str(export_path))
 
@@ -270,8 +299,8 @@ class USDExportTest(AbstractUSDTest):
         self.check_primvar(prim, "f_int8", "VtArray<unsigned char>", "uniform", 1)
         self.check_primvar(prim, "f_int32", "VtArray<int>", "uniform", 1)
         self.check_primvar(prim, "f_float", "VtArray<float>", "uniform", 1)
-        self.check_primvar_missing(prim, "f_color")
-        self.check_primvar_missing(prim, "f_byte_color")
+        self.check_primvar(prim, "f_color", "VtArray<GfVec4f>", "uniform", 1)
+        self.check_primvar(prim, "f_byte_color", "VtArray<GfVec4f>", "uniform", 1)
         self.check_primvar(prim, "f_vec2", "VtArray<GfVec2f>", "uniform", 1)
         self.check_primvar(prim, "f_vec3", "VtArray<GfVec3f>", "uniform", 1)
         self.check_primvar(prim, "f_quat", "VtArray<GfQuatf>", "uniform", 1)
@@ -294,8 +323,8 @@ class USDExportTest(AbstractUSDTest):
         self.check_primvar(prim, "p_int8", "VtArray<unsigned char>", "vertex", 24)
         self.check_primvar(prim, "p_int32", "VtArray<int>", "vertex", 24)
         self.check_primvar(prim, "p_float", "VtArray<float>", "vertex", 24)
-        self.check_primvar_missing(prim, "p_color")
-        self.check_primvar_missing(prim, "p_byte_color")
+        self.check_primvar(prim, "p_color", "VtArray<GfVec4f>", "vertex", 24)
+        self.check_primvar(prim, "p_byte_color", "VtArray<GfVec4f>", "vertex", 24)
         self.check_primvar(prim, "p_vec2", "VtArray<GfVec2f>", "vertex", 24)
         self.check_primvar(prim, "p_vec3", "VtArray<GfVec3f>", "vertex", 24)
         self.check_primvar(prim, "p_quat", "VtArray<GfQuatf>", "vertex", 24)
@@ -305,8 +334,8 @@ class USDExportTest(AbstractUSDTest):
         self.check_primvar(prim, "sp_int8", "VtArray<unsigned char>", "uniform", 2)
         self.check_primvar(prim, "sp_int32", "VtArray<int>", "uniform", 2)
         self.check_primvar(prim, "sp_float", "VtArray<float>", "uniform", 2)
-        self.check_primvar_missing(prim, "sp_color")
-        self.check_primvar_missing(prim, "sp_byte_color")
+        self.check_primvar(prim, "sp_color", "VtArray<GfVec4f>", "uniform", 2)
+        self.check_primvar(prim, "sp_byte_color", "VtArray<GfVec4f>", "uniform", 2)
         self.check_primvar(prim, "sp_vec2", "VtArray<GfVec2f>", "uniform", 2)
         self.check_primvar(prim, "sp_vec3", "VtArray<GfVec3f>", "uniform", 2)
         self.check_primvar(prim, "sp_quat", "VtArray<GfQuatf>", "uniform", 2)
@@ -318,8 +347,8 @@ class USDExportTest(AbstractUSDTest):
         self.check_primvar(prim, "p_int8", "VtArray<unsigned char>", "varying", 10)
         self.check_primvar(prim, "p_int32", "VtArray<int>", "varying", 10)
         self.check_primvar(prim, "p_float", "VtArray<float>", "varying", 10)
-        self.check_primvar_missing(prim, "p_color")
-        self.check_primvar_missing(prim, "p_byte_color")
+        self.check_primvar(prim, "p_color", "VtArray<GfVec4f>", "varying", 10)
+        self.check_primvar(prim, "p_byte_color", "VtArray<GfVec4f>", "varying", 10)
         self.check_primvar(prim, "p_vec2", "VtArray<GfVec2f>", "varying", 10)
         self.check_primvar(prim, "p_vec3", "VtArray<GfVec3f>", "varying", 10)
         self.check_primvar(prim, "p_quat", "VtArray<GfQuatf>", "varying", 10)
@@ -329,8 +358,8 @@ class USDExportTest(AbstractUSDTest):
         self.check_primvar(prim, "sp_int8", "VtArray<unsigned char>", "uniform", 3)
         self.check_primvar(prim, "sp_int32", "VtArray<int>", "uniform", 3)
         self.check_primvar(prim, "sp_float", "VtArray<float>", "uniform", 3)
-        self.check_primvar_missing(prim, "sp_color")
-        self.check_primvar_missing(prim, "sp_byte_color")
+        self.check_primvar(prim, "sp_color", "VtArray<GfVec4f>", "uniform", 3)
+        self.check_primvar(prim, "sp_byte_color", "VtArray<GfVec4f>", "uniform", 3)
         self.check_primvar(prim, "sp_vec2", "VtArray<GfVec2f>", "uniform", 3)
         self.check_primvar(prim, "sp_vec3", "VtArray<GfVec3f>", "uniform", 3)
         self.check_primvar(prim, "sp_quat", "VtArray<GfQuatf>", "uniform", 3)
@@ -344,10 +373,10 @@ class USDExportTest(AbstractUSDTest):
         bpy.context.scene.frame_set(1)
 
         export_path = self.tempdir / "usd_attribute_varying_test.usda"
-        res = bpy.ops.wm.usd_export(filepath=str(export_path), export_animation=True, evaluation_mode="RENDER")
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
+        self.export_and_validate(filepath=str(export_path), export_animation=True, evaluation_mode="RENDER")
 
         stage = Usd.Stage.Open(str(export_path))
+        sparse_frames = [4.0, 5.0, 8.0, 9.0, 12.0, 13.0]
 
         #
         # Validate Mesh data
@@ -355,8 +384,6 @@ class USDExportTest(AbstractUSDTest):
         mesh1 = UsdGeom.Mesh(stage.GetPrimAtPath("/root/mesh1/mesh1"))
         mesh2 = UsdGeom.Mesh(stage.GetPrimAtPath("/root/mesh2/mesh2"))
         mesh3 = UsdGeom.Mesh(stage.GetPrimAtPath("/root/mesh3/mesh3"))
-
-        sparse_frames = [4.0, 5.0, 8.0, 9.0, 12.0, 13.0]
 
         # Positions (should be sparsely written)
         self.assertEqual(mesh1.GetPointsAttr().GetTimeSamples(), sparse_frames)
@@ -371,16 +398,49 @@ class USDExportTest(AbstractUSDTest):
         self.assertEqual(UsdGeom.PrimvarsAPI(mesh2).GetPrimvar("test").GetTimeSamples(), [])
         self.assertEqual(UsdGeom.PrimvarsAPI(mesh3).GetPrimvar("test").GetTimeSamples(), sparse_frames)
 
+        #
+        # Validate PointCloud data
+        #
+        points1 = UsdGeom.Points(stage.GetPrimAtPath("/root/pointcloud1/PointCloud"))
+        points2 = UsdGeom.Points(stage.GetPrimAtPath("/root/pointcloud2/PointCloud"))
+        points3 = UsdGeom.Points(stage.GetPrimAtPath("/root/pointcloud3/PointCloud"))
+        points4 = UsdGeom.Points(stage.GetPrimAtPath("/root/pointcloud4/PointCloud"))
+
+        # Positions (should be sparsely written)
+        self.assertEqual(points1.GetPointsAttr().GetTimeSamples(), sparse_frames)
+        self.assertEqual(points2.GetPointsAttr().GetTimeSamples(), [])
+        self.assertEqual(points3.GetPointsAttr().GetTimeSamples(), [])
+        self.assertEqual(points4.GetPointsAttr().GetTimeSamples(), [])
+        # Velocity (should be sparsely written)
+        self.assertEqual(points1.GetVelocitiesAttr().GetTimeSamples(), [])
+        self.assertEqual(points2.GetVelocitiesAttr().GetTimeSamples(), sparse_frames)
+        self.assertEqual(points3.GetVelocitiesAttr().GetTimeSamples(), [])
+        self.assertEqual(points4.GetVelocitiesAttr().GetTimeSamples(), [])
+        # Radius (should be sparsely written)
+        self.assertEqual(points1.GetWidthsAttr().GetTimeSamples(), [])
+        self.assertEqual(points2.GetWidthsAttr().GetTimeSamples(), [])
+        self.assertEqual(points3.GetWidthsAttr().GetTimeSamples(), sparse_frames)
+        self.assertEqual(points4.GetWidthsAttr().GetTimeSamples(), [])
+        # Regular primvar (should be sparsely written)
+        self.assertEqual(UsdGeom.PrimvarsAPI(points1).GetPrimvar("test").GetTimeSamples(), [])
+        self.assertEqual(UsdGeom.PrimvarsAPI(points2).GetPrimvar("test").GetTimeSamples(), [])
+        self.assertEqual(UsdGeom.PrimvarsAPI(points3).GetPrimvar("test").GetTimeSamples(), [])
+        self.assertEqual(UsdGeom.PrimvarsAPI(points4).GetPrimvar("test").GetTimeSamples(), sparse_frames)
+        # Extents of the point cloud (should be sparsely written)
+        self.assertEqual(UsdGeom.Boundable(points1).GetExtentAttr().GetTimeSamples(), sparse_frames)
+        self.assertEqual(UsdGeom.Boundable(points2).GetExtentAttr().GetTimeSamples(), [])
+        self.assertEqual(UsdGeom.Boundable(points3).GetExtentAttr().GetTimeSamples(), sparse_frames)
+        self.assertEqual(UsdGeom.Boundable(points4).GetExtentAttr().GetTimeSamples(), [])
+
     def test_export_mesh_subd(self):
         """Test exporting Subdivision Surface attributes and values"""
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_mesh_subd.blend"))
         export_path = self.tempdir / "usd_mesh_subd.usda"
-        res = bpy.ops.wm.usd_export(
+        self.export_and_validate(
             filepath=str(export_path),
             export_subdivision='BEST_MATCH',
             evaluation_mode="RENDER",
         )
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
 
         stage = Usd.Stage.Open(str(export_path))
 
@@ -457,24 +517,22 @@ class USDExportTest(AbstractUSDTest):
         # in checking that USD passes its operator properties through correctly. We use a minimal
         # combination of quad and ngon methods to test.
         tri_export_path1 = self.tempdir / "usd_mesh_tri_setup1.usda"
-        res = bpy.ops.wm.usd_export(
+        self.export_and_validate(
             filepath=str(tri_export_path1),
             triangulate_meshes=True,
             quad_method='FIXED',
             ngon_method='BEAUTY',
             evaluation_mode="RENDER",
         )
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {tri_export_path1}")
 
         tri_export_path2 = self.tempdir / "usd_mesh_tri_setup2.usda"
-        res = bpy.ops.wm.usd_export(
+        self.export_and_validate(
             filepath=str(tri_export_path2),
             triangulate_meshes=True,
             quad_method='FIXED_ALTERNATE',
             ngon_method='CLIP',
             evaluation_mode="RENDER",
         )
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {tri_export_path2}")
 
         stage1 = Usd.Stage.Open(str(tri_export_path1))
         stage2 = Usd.Stage.Open(str(tri_export_path2))
@@ -500,12 +558,11 @@ class USDExportTest(AbstractUSDTest):
     def test_export_animation(self):
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_anim_test.blend"))
         export_path = self.tempdir / "usd_anim_test.usda"
-        res = bpy.ops.wm.usd_export(
+        self.export_and_validate(
             filepath=str(export_path),
             export_animation=True,
             evaluation_mode="RENDER",
         )
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
 
         stage = Usd.Stage.Open(str(export_path))
 
@@ -560,16 +617,13 @@ class USDExportTest(AbstractUSDTest):
         bpy.data.objects[0].scale = scale
 
         test_path1 = self.tempdir / "temp_xform_trs_test.usda"
-        res = bpy.ops.wm.usd_export(filepath=str(test_path1), xform_op_mode='TRS')
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {test_path1}")
+        self.export_and_validate(filepath=str(test_path1), xform_op_mode='TRS')
 
         test_path2 = self.tempdir / "temp_xform_tos_test.usda"
-        res = bpy.ops.wm.usd_export(filepath=str(test_path2), xform_op_mode='TOS')
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {test_path2}")
+        self.export_and_validate(filepath=str(test_path2), xform_op_mode='TOS')
 
         test_path3 = self.tempdir / "temp_xform_mat_test.usda"
-        res = bpy.ops.wm.usd_export(filepath=str(test_path3), xform_op_mode='MAT')
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {test_path3}")
+        self.export_and_validate(filepath=str(test_path3), xform_op_mode='MAT')
 
         # Validate relevant details for each case
         stage = Usd.Stage.Open(str(test_path1))
@@ -611,20 +665,18 @@ class USDExportTest(AbstractUSDTest):
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
 
         test_path1 = self.tempdir / "temp_orientation_yup.usda"
-        res = bpy.ops.wm.usd_export(
+        self.export_and_validate(
             filepath=str(test_path1),
             convert_orientation=True,
             export_global_forward_selection='NEGATIVE_Z',
             export_global_up_selection='Y')
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {test_path1}")
 
         test_path2 = self.tempdir / "temp_orientation_zup_rev.usda"
-        res = bpy.ops.wm.usd_export(
+        self.export_and_validate(
             filepath=str(test_path2),
             convert_orientation=True,
             export_global_forward_selection='NEGATIVE_Y',
             export_global_up_selection='Z')
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {test_path2}")
 
         stage = Usd.Stage.Open(str(test_path1))
         xf = UsdGeom.Xformable(stage.GetPrimAtPath("/root"))
@@ -636,10 +688,12 @@ class USDExportTest(AbstractUSDTest):
 
     def test_materialx_network(self):
         """Test exporting that a MaterialX export makes it out alright"""
-        bpy.ops.wm.open_mainfile(
-            filepath=str(self.testdir / "usd_materials_export.blend")
-        )
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_materials_export.blend"))
         export_path = self.tempdir / "materialx.usda"
+
+        # USD currently has an issue where embedded MaterialX graphs cause validation to fail.
+        # Skip validation and just run a regular export until this is fixed.
+        # See: https://github.com/PixarAnimationStudios/OpenUSD/pull/3243
         res = bpy.ops.wm.usd_export(
             filepath=str(export_path),
             export_materials=True,
@@ -698,7 +752,7 @@ class USDExportTest(AbstractUSDTest):
         test_path = self.tempdir / "hook.usda"
 
         try:
-            bpy.ops.wm.usd_export(filepath=str(test_path))
+            self.export_and_validate(filepath=str(test_path))
         except:
             pass
 
@@ -722,8 +776,8 @@ class USDExportTest(AbstractUSDTest):
             "on_export": [],
             "on_import": [],
         }
-        bpy.ops.wm.usd_export(filepath=str(test_path))
-        bpy.ops.wm.usd_import(filepath=str(test_path))
+        self.export_and_validate(filepath=str(test_path))
+        self.export_and_validate(filepath=str(test_path))
         self.assertEqual(USDHookBase.responses["on_material_export"], [])
         self.assertEqual(USDHookBase.responses["on_export"], [])
         self.assertEqual(USDHookBase.responses["on_import"], [])

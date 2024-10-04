@@ -9,7 +9,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_volume_types.h"
 
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_string.h"
 
 #include "BKE_mesh.h"

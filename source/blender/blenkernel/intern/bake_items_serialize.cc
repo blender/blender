@@ -16,9 +16,10 @@
 #include "BLI_endian_defines.h"
 #include "BLI_endian_switch.h"
 #include "BLI_math_matrix_types.hh"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 
 #include "DNA_material_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_volume_types.h"
 
 #include "RNA_access.hh"
@@ -126,7 +127,15 @@ BlobSlice DiskBlobWriter::write(const void *data, const int64_t size)
   const int64_t old_offset = current_offset_;
   blob_stream_.write(static_cast<const char *>(data), size);
   current_offset_ += size;
+  total_written_size_ += size;
   return {blob_name_, {old_offset, size}};
+}
+
+static std::string make_independent_file_name(const StringRef base_name,
+                                              const int file_index,
+                                              const StringRef extension)
+{
+  return fmt::format("{}_file_{}{}", base_name, file_index, extension);
 }
 
 BlobSlice DiskBlobWriter::write_as_stream(const StringRef file_extension,
@@ -134,8 +143,8 @@ BlobSlice DiskBlobWriter::write_as_stream(const StringRef file_extension,
 {
   BLI_assert(file_extension.startswith("."));
   independent_file_count_++;
-  const std::string file_name = fmt::format(
-      "{}_file_{}{}", base_name_, independent_file_count_, file_extension);
+  const std::string file_name = make_independent_file_name(
+      base_name_, independent_file_count_, file_extension);
 
   char path[FILE_MAX];
   BLI_path_join(path, sizeof(path), blob_dir_.c_str(), file_name.c_str());
@@ -143,7 +152,58 @@ BlobSlice DiskBlobWriter::write_as_stream(const StringRef file_extension,
   std::fstream stream{path, std::ios::out | std::ios::binary};
   fn(stream);
   const int64_t written_bytes_num = stream.tellg();
+  total_written_size_ += written_bytes_num;
   return {file_name, {0, written_bytes_num}};
+}
+
+void MemoryBlobReader::add(const StringRef name, const Span<std::byte> blob)
+{
+  blob_by_name_.add(name, blob);
+}
+
+bool MemoryBlobReader::read(const BlobSlice &slice, void *r_data) const
+{
+  if (slice.range.is_empty()) {
+    return true;
+  }
+  const Span<std::byte> blob_data = blob_by_name_.lookup_default(slice.name, {});
+  if (!blob_data.index_range().contains(slice.range)) {
+    return false;
+  }
+  const void *copy_src = blob_data.slice(slice.range).data();
+  memcpy(r_data, copy_src, slice.range.size());
+  return true;
+}
+
+MemoryBlobWriter::MemoryBlobWriter(std::string base_name) : base_name_(std::move(base_name))
+{
+  blob_name_ = base_name_ + ".blob";
+  stream_by_name_.add(blob_name_, {std::make_unique<std::ostringstream>(std::ios::binary)});
+}
+
+BlobSlice MemoryBlobWriter::write(const void *data, int64_t size)
+{
+  OutputStream &stream = stream_by_name_.lookup(blob_name_);
+  const int64_t old_offset = stream.offset;
+  stream.stream->write(static_cast<const char *>(data), size);
+  stream.offset += size;
+  total_written_size_ += size;
+  return {blob_name_, IndexRange::from_begin_size(old_offset, size)};
+}
+
+BlobSlice MemoryBlobWriter::write_as_stream(const StringRef file_extension,
+                                            const FunctionRef<void(std::ostream &)> fn)
+{
+  BLI_assert(file_extension.startswith("."));
+  independent_file_count_++;
+  const std::string name = make_independent_file_name(
+      base_name_, independent_file_count_, file_extension);
+  OutputStream stream{std::make_unique<std::ostringstream>(std::ios::binary)};
+  fn(*stream.stream);
+  const int64_t size = stream.stream->tellp();
+  stream_by_name_.add_new(name, std::move(stream));
+  total_written_size_ += size;
+  return {base_name_, IndexRange(size)};
 }
 
 BlobWriteSharing::~BlobWriteSharing()
@@ -675,7 +735,11 @@ static GreasePencil *try_load_grease_pencil(const DictionaryValue &io_geometry,
     return nullptr;
   };
 
-  for (const auto &io_layer_value : io_layers->elements()) {
+  const int layers_num = io_layers->elements().size();
+  grease_pencil->add_layers_with_empty_drawings_for_eval(layers_num);
+
+  for (const int layer_i : io_layers->elements().index_range()) {
+    const auto &io_layer_value = io_layers->elements()[layer_i];
     const io::serialize::DictionaryValue *io_layer = io_layer_value->as_dictionary_value();
     if (!io_layer) {
       return cancel();
@@ -688,29 +752,21 @@ static GreasePencil *try_load_grease_pencil(const DictionaryValue &io_geometry,
     if (!layer_name) {
       return cancel();
     }
-    greasepencil::Layer &layer = grease_pencil->add_layer(*layer_name);
-    if (layer.name() != *layer_name) {
-      return cancel();
-    }
+    greasepencil::Layer &layer = grease_pencil->layer(layer_i);
+    layer.set_name(*layer_name);
     std::optional<CurvesGeometry> curves_opt = try_load_curves_geometry(
         *io_strokes, blob_reader, blob_sharing);
     if (!curves_opt) {
       return cancel();
     }
-    greasepencil::Drawing *drawing = grease_pencil->insert_frame(
-        layer, grease_pencil->runtime->eval_frame);
-    if (!drawing) {
-      return cancel();
-    }
-    drawing->strokes_for_write() = std::move(*curves_opt);
+    greasepencil::Drawing &drawing = *grease_pencil->get_eval_drawing(layer);
+    drawing.strokes_for_write() = std::move(*curves_opt);
   }
 
   MutableAttributeAccessor attributes = grease_pencil->attributes_for_write();
   if (!load_attributes(*io_layer_attributes, attributes, blob_reader, blob_sharing)) {
     return cancel();
   }
-
-  const int layers_num = grease_pencil->layers().size();
 
   const DictionaryValue *io_layer_opacities = io_grease_pencil->lookup_dict("opacities");
   Array<float> layer_opacities(layers_num);
@@ -739,11 +795,10 @@ static GreasePencil *try_load_grease_pencil(const DictionaryValue &io_geometry,
   }
 
   for (const int layer_i : IndexRange(layers_num)) {
-    greasepencil::Layer *layer = grease_pencil->layer(layer_i);
-    BLI_assert(layer);
-    layer->opacity = layer_opacities[layer_i];
-    layer->blend_mode = layer_blend_modes[layer_i];
-    layer->set_local_transform(layer_transforms[layer_i]);
+    greasepencil::Layer &layer = grease_pencil->layer(layer_i);
+    layer.opacity = layer_opacities[layer_i];
+    layer.blend_mode = layer_blend_modes[layer_i];
+    layer.set_local_transform(layer_transforms[layer_i]);
   }
 
   if (const io::serialize::ArrayValue *io_materials = io_grease_pencil->lookup_array("materials"))
@@ -979,23 +1034,23 @@ static std::shared_ptr<io::serialize::ArrayValue> serialize_attributes(
     const Set<std::string> &attributes_to_ignore)
 {
   auto io_attributes = std::make_shared<io::serialize::ArrayValue>();
-  attributes.for_all([&](const StringRef attribute_id, const AttributeMetaData &meta_data) {
-    BLI_assert(!bke::attribute_name_is_anonymous(attribute_id));
-    if (attributes_to_ignore.contains_as(attribute_id)) {
-      return true;
+  attributes.foreach_attribute([&](const AttributeIter &iter) {
+    BLI_assert(!bke::attribute_name_is_anonymous(iter.name));
+    if (attributes_to_ignore.contains_as(iter.name)) {
+      return;
     }
 
     auto io_attribute = io_attributes->append_dict();
 
-    io_attribute->append_str("name", attribute_id);
+    io_attribute->append_str("name", iter.name);
 
-    const StringRefNull domain_name = get_domain_io_name(meta_data.domain);
+    const StringRefNull domain_name = get_domain_io_name(iter.domain);
     io_attribute->append_str("domain", domain_name);
 
-    const StringRefNull type_name = get_data_type_io_name(meta_data.data_type);
+    const StringRefNull type_name = get_data_type_io_name(iter.data_type);
     io_attribute->append_str("type", type_name);
 
-    const GAttributeReader attribute = attributes.lookup(attribute_id);
+    const GAttributeReader attribute = iter.get();
     const GVArraySpan attribute_span(attribute.varray);
     io_attribute->append("data",
                          write_blob_shared_simple_gspan(
@@ -1003,7 +1058,6 @@ static std::shared_ptr<io::serialize::ArrayValue> serialize_attributes(
                              blob_sharing,
                              attribute_span,
                              attribute.varray.is_span() ? attribute.sharing_info : nullptr));
-    return true;
   });
   return io_attributes;
 }

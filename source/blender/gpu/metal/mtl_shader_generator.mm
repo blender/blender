@@ -1105,6 +1105,8 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
                  "\n"
                  "#define UNIFORM_SSBO_INPUT_VERT_COUNT_STR " UNIFORM_SSBO_INPUT_VERT_COUNT_STR
                  "\n"
+                 "#define UNIFORM_SSBO_INDEX_BASE_STR " UNIFORM_SSBO_INDEX_BASE_STR
+                 "\n"
                  "#define UNIFORM_SSBO_OFFSET_STR " UNIFORM_SSBO_OFFSET_STR
                  "\n"
                  "#define UNIFORM_SSBO_STRIDE_STR " UNIFORM_SSBO_STRIDE_STR
@@ -1733,10 +1735,13 @@ void MTLShader::prepare_ssbo_vertex_fetch_metadata()
       UNIFORM_SSBO_USES_INDEXED_RENDERING_STR);
   const ShaderInput *inp_uses_index_mode_u16 = interface->uniform_get(
       UNIFORM_SSBO_INDEX_MODE_U16_STR);
+  const ShaderInput *inp_index_base = interface->uniform_get(UNIFORM_SSBO_INDEX_BASE_STR);
 
   this->uni_ssbo_input_prim_type_loc = (inp_prim_type != nullptr) ? inp_prim_type->location : -1;
   this->uni_ssbo_input_vert_count_loc = (inp_vert_count != nullptr) ? inp_vert_count->location :
                                                                       -1;
+  this->uni_ssbo_index_base_loc = (inp_index_base != nullptr) ? inp_index_base->location : -1;
+
   this->uni_ssbo_uses_indexed_rendering = (inp_uses_indexed_rendering != nullptr) ?
                                               inp_uses_indexed_rendering->location :
                                               -1;
@@ -1752,6 +1757,8 @@ void MTLShader::prepare_ssbo_vertex_fetch_metadata()
                  "uni_ssbo_uses_indexed_rendering uniform location invalid!");
   BLI_assert_msg(this->uni_ssbo_uses_index_mode_u16 != -1,
                  "uni_ssbo_uses_index_mode_u16 uniform location invalid!");
+  BLI_assert_msg(this->uni_ssbo_index_base_loc != -1,
+                 "uni_ssbo_index_base_loc uniform location invalid!");
 
   /* Prepare SSBO-vertex-fetch attribute uniform location cache. */
   MTLShaderInterface *mtl_interface = this->get_interface();
@@ -2232,6 +2239,7 @@ void MSLGeneratorInterface::prepare_ssbo_vertex_fetch_uniforms()
   this->uniforms.append(MSLUniform(Type::INT, UNIFORM_SSBO_INPUT_VERT_COUNT_STR, false));
   this->uniforms.append(MSLUniform(Type::INT, UNIFORM_SSBO_USES_INDEXED_RENDERING_STR, false));
   this->uniforms.append(MSLUniform(Type::INT, UNIFORM_SSBO_INDEX_MODE_U16_STR, false));
+  this->uniforms.append(MSLUniform(Type::INT, UNIFORM_SSBO_INDEX_BASE_STR, false));
 
   for (const MSLVertexInputAttribute &attr : this->vertex_input_attributes) {
     const std::string &uname = attr.name;

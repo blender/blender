@@ -28,7 +28,7 @@ VKContext::VKContext(void *ghost_window, void *ghost_context, VKThreadData &thre
   ghost_context_ = ghost_context;
 
   state_manager = new VKStateManager();
-  imm = new VKImmediate();
+  imm = &thread_data.resource_pool_get().immediate;
 
   back_left = new VKFrameBuffer("back_left");
   front_left = new VKFrameBuffer("front_left");
@@ -47,9 +47,7 @@ VKContext::~VKContext()
   }
   VKBackend::get().device.context_unregister(*this);
 
-  delete imm;
   imm = nullptr;
-
   compiler = nullptr;
 }
 
@@ -62,6 +60,7 @@ void VKContext::sync_backbuffer()
     if (assign_if_different(thread_data_.resource_pool_index, swap_chain_data.swap_chain_index)) {
       thread_data_.resource_pool_index = swap_chain_data.swap_chain_index;
       VKResourcePool &resource_pool = thread_data_.resource_pool_get();
+      imm = &resource_pool.immediate;
       resource_pool.discard_pool.destroy_discarded_resources(device);
       resource_pool.reset();
       resource_pool.discard_pool.move_data(device.orphaned_data);
@@ -125,7 +124,14 @@ void VKContext::deactivate()
 
 void VKContext::begin_frame() {}
 
-void VKContext::end_frame() {}
+void VKContext::end_frame()
+{
+  /* Enable this to track how resources are managed per thread and resource pool. */
+#if 0
+  VKDevice &device = VKBackend::get().device;
+  device.debug_print();
+#endif
+}
 
 void VKContext::flush() {}
 
@@ -137,6 +143,7 @@ void VKContext::flush_render_graph()
       framebuffer.rendering_end(*this);
     }
   }
+  descriptor_set_get().upload_descriptor_sets();
   render_graph.submit();
 }
 
@@ -235,7 +242,6 @@ void VKContext::update_pipeline_data(GPUPrimType primitive,
                                      render_graph::VKPipelineData &r_pipeline_data)
 {
   VKShader &vk_shader = unwrap(*shader);
-  BLI_assert(vk_shader.is_graphics_shader());
   VKFrameBuffer &framebuffer = *active_framebuffer_get();
   update_pipeline_data(
       vk_shader,
@@ -246,7 +252,6 @@ void VKContext::update_pipeline_data(GPUPrimType primitive,
 void VKContext::update_pipeline_data(render_graph::VKPipelineData &r_pipeline_data)
 {
   VKShader &vk_shader = unwrap(*shader);
-  BLI_assert(vk_shader.is_compute_shader());
   update_pipeline_data(vk_shader, vk_shader.ensure_and_get_compute_pipeline(), r_pipeline_data);
 }
 
@@ -262,34 +267,23 @@ void VKContext::update_pipeline_data(VKShader &vk_shader,
   r_pipeline_data.push_constants_size = 0;
   const VKPushConstants::Layout &push_constants_layout =
       vk_shader.interface_get().push_constants_layout_get();
-  vk_shader.push_constants.update(*this);
   if (push_constants_layout.storage_type_get() == VKPushConstants::StorageType::PUSH_CONSTANTS) {
     r_pipeline_data.push_constants_size = push_constants_layout.size_in_bytes();
     r_pipeline_data.push_constants_data = vk_shader.push_constants.data();
-  }
-
-  /* When using the push constant fallback we need to add a read access dependency to the uniform
-   * buffer after the buffer has been updated.
-   * NOTE: this alters the context instance variable `access_info_` which isn't clear from the API.
-   */
-  if (push_constants_layout.storage_type_get() == VKPushConstants::StorageType::UNIFORM_BUFFER) {
-    access_info_.buffers.append(
-        {vk_shader.push_constants.uniform_buffer_get()->vk_handle(), VK_ACCESS_UNIFORM_READ_BIT});
   }
 
   /* Update descriptor set. */
   r_pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
   if (vk_shader.has_descriptor_set()) {
     VKDescriptorSetTracker &descriptor_set = descriptor_set_get();
-    descriptor_set.update(*this);
-    r_pipeline_data.vk_descriptor_set = descriptor_set.active_descriptor_set()->vk_handle();
+    descriptor_set.update_descriptor_set(*this, access_info_);
+    r_pipeline_data.vk_descriptor_set = descriptor_set.vk_descriptor_set;
   }
 }
 
-render_graph::VKResourceAccessInfo &VKContext::update_and_get_access_info()
+render_graph::VKResourceAccessInfo &VKContext::reset_and_get_access_info()
 {
   access_info_.reset();
-  state_manager_get().apply_bindings(*this, access_info_);
   return access_info_;
 }
 
@@ -351,6 +345,7 @@ void VKContext::swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &swap_c
 
   framebuffer.rendering_end(*this);
   render_graph.add_node(blit_image);
+  descriptor_set_get().upload_descriptor_sets();
   render_graph.submit_for_present(swap_chain_data.image);
 
   device.resources.remove_image(swap_chain_data.image);

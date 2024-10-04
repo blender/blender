@@ -9,9 +9,9 @@
 #include "BLI_utildefines.h"
 #include <Python.h>
 
-#include "bpy_app_sdl.h"
+#include "bpy_app_sdl.hh"
 
-#include "../generic/py_capi_utils.h"
+#include "../generic/py_capi_utils.hh"
 
 #ifdef WITH_SDL
 /* SDL force defines __SSE__ and __SSE2__ flags, which generates warnings

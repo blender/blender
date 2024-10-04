@@ -14,7 +14,7 @@
 
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_string.h"
 
 #include "BKE_context.hh"
@@ -24,13 +24,13 @@
 
 #include "DNA_text_types.h"
 
-#include "BPY_extern_run.h"
+#include "BPY_extern_run.hh"
 
-#include "bpy_capi_utils.h"
-#include "bpy_intern_string.h"
-#include "bpy_traceback.h"
+#include "bpy_capi_utils.hh"
+#include "bpy_intern_string.hh"
+#include "bpy_traceback.hh"
 
-#include "../generic/py_capi_utils.h"
+#include "../generic/py_capi_utils.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Private Utilities

@@ -8,9 +8,10 @@
  * Dispatch one thread per word.
  */
 
-#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
-#pragma BLENDER_REQUIRE(common_intersect_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_light_iter_lib.glsl)
+#include "common_intersect_lib.glsl"
+#include "draw_view_lib.glsl"
+#include "eevee_light_iter_lib.glsl"
+#include "gpu_shader_math_matrix_lib.glsl"
 
 /* ---------------------------------------------------------------------- */
 /** \name Culling shapes extraction

@@ -2,8 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
+#include "common_math_lib.glsl"
+#include "gpu_shader_compositor_texture_utilities.glsl"
 
 /* Get the 2D vertex position of the vertex with the given index in the regular polygon
  * representing this bokeh. The polygon is rotated by the rotation amount and have a unit

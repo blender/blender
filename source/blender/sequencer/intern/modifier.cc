@@ -1240,7 +1240,7 @@ static void tonemap_rd_photoreceptor(float4 *scene_linear,
 
 static bool is_point_inside_quad(const StripScreenQuad &quad, int x, int y)
 {
-  float2 pt(x - 0.5f, y - 0.5f);
+  float2 pt(x + 0.5f, y + 0.5f);
   return isect_point_quad_v2(pt, quad.v0, quad.v1, quad.v2, quad.v3);
 }
 

@@ -100,11 +100,21 @@ bool VKBuffer::create(size_t size_in_bytes,
   return true;
 }
 
-void VKBuffer::update(const void *data) const
+void VKBuffer::update_immediately(const void *data) const
 {
   BLI_assert_msg(is_mapped(), "Cannot update a non-mapped buffer.");
   memcpy(mapped_memory_, data, size_in_bytes_);
   flush();
+}
+
+void VKBuffer::update_render_graph(VKContext &context, void *data) const
+{
+  BLI_assert(size_in_bytes_ <= 65536 && size_in_bytes_ % 4 == 0);
+  render_graph::VKUpdateBufferNode::CreateInfo update_buffer = {};
+  update_buffer.dst_buffer = vk_buffer_;
+  update_buffer.data_size = size_in_bytes_;
+  update_buffer.data = data;
+  context.render_graph.add_node(update_buffer);
 }
 
 void VKBuffer::flush() const
@@ -127,6 +137,7 @@ void VKBuffer::read(VKContext &context, void *data) const
 {
   BLI_assert_msg(is_mapped(), "Cannot read a non-mapped buffer.");
   context.rendering_end();
+  context.descriptor_set_get().upload_descriptor_sets();
   context.render_graph.submit_buffer_for_read(vk_buffer_);
   memcpy(data, mapped_memory_, size_in_bytes_);
 }
@@ -173,6 +184,19 @@ bool VKBuffer::free()
   vk_buffer_ = VK_NULL_HANDLE;
 
   return true;
+}
+
+void VKBuffer::free_immediately(VKDevice &device)
+{
+  BLI_assert(vk_buffer_ != VK_NULL_HANDLE);
+  BLI_assert(allocation_ != VK_NULL_HANDLE);
+  if (is_mapped()) {
+    unmap();
+  }
+  device.resources.remove_buffer(vk_buffer_);
+  vmaDestroyBuffer(device.mem_allocator_get(), vk_buffer_, allocation_);
+  allocation_ = VK_NULL_HANDLE;
+  vk_buffer_ = VK_NULL_HANDLE;
 }
 
 }  // namespace blender::gpu

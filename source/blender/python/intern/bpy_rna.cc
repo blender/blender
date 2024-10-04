@@ -27,15 +27,15 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BPY_extern.h"
-#include "BPY_extern_clog.h"
+#include "BPY_extern.hh"
+#include "BPY_extern_clog.hh"
 
-#include "bpy_capi_utils.h"
-#include "bpy_intern_string.h"
-#include "bpy_props.h"
-#include "bpy_rna.h"
-#include "bpy_rna_anim.h"
-#include "bpy_rna_callback.h"
+#include "bpy_capi_utils.hh"
+#include "bpy_intern_string.hh"
+#include "bpy_props.hh"
+#include "bpy_rna.hh"
+#include "bpy_rna_anim.hh"
+#include "bpy_rna_callback.hh"
 
 #ifdef USE_PYRNA_INVALIDATE_WEAKREF
 #  include "BLI_ghash.h"
@@ -62,12 +62,12 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "../generic/idprop_py_api.h" /* For IDprop lookups. */
-#include "../generic/idprop_py_ui_api.h"
-#include "../generic/py_capi_rna.h"
-#include "../generic/py_capi_utils.h"
-#include "../generic/python_compat.h"
-#include "../generic/python_utildefines.h"
+#include "../generic/idprop_py_api.hh" /* For IDprop lookups. */
+#include "../generic/idprop_py_ui_api.hh"
+#include "../generic/py_capi_rna.hh"
+#include "../generic/py_capi_utils.hh"
+#include "../generic/python_compat.hh"
+#include "../generic/python_utildefines.hh"
 
 #define USE_PEDANTIC_WRITE
 #define USE_MATHUTILS
@@ -393,7 +393,7 @@ static int pyrna_py_to_prop(
 static int deferred_register_prop(StructRNA *srna, PyObject *key, PyObject *item);
 
 #ifdef USE_MATHUTILS
-#  include "../mathutils/mathutils.h" /* So we can have mathutils callbacks. */
+#  include "../mathutils/mathutils.hh" /* So we can have mathutils callbacks. */
 
 static PyObject *pyrna_prop_array_subscript_slice(BPy_PropertyArrayRNA *self,
                                                   PointerRNA *ptr,

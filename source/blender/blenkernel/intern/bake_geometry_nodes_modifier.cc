@@ -13,7 +13,7 @@
 
 #include "BLI_binary_search.hh"
 #include "BLI_fileops.hh"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_string.h"
 
 #include "MOD_nodes.hh"
@@ -71,6 +71,16 @@ NodeBakeCache *ModifierCache::get_node_bake_cache(const int id)
   return nullptr;
 }
 
+void ModifierCache::reset_cache(const int id)
+{
+  if (SimulationNodeCache *cache = this->get_simulation_node_cache(id)) {
+    cache->reset();
+  }
+  if (BakeNodeCache *cache = this->get_bake_node_cache(id)) {
+    cache->reset();
+  }
+}
+
 void scene_simulation_states_reset(Scene &scene)
 {
   FOREACH_SCENE_OBJECT_BEGIN (&scene, ob) {
@@ -97,6 +107,9 @@ std::optional<std::string> get_modifier_bake_path(const Main &bmain,
   if (StringRef(nmd.bake_directory).is_empty()) {
     return std::nullopt;
   }
+  if (!BLI_path_is_rel(nmd.bake_directory)) {
+    return nmd.bake_directory;
+  }
   const char *base_path = ID_BLEND_PATH(&bmain, &object.id);
   if (StringRef(base_path).is_empty()) {
     return std::nullopt;
@@ -105,6 +118,23 @@ std::optional<std::string> get_modifier_bake_path(const Main &bmain,
   STRNCPY(absolute_bake_dir, nmd.bake_directory);
   BLI_path_abs(absolute_bake_dir, base_path);
   return absolute_bake_dir;
+}
+
+std::optional<NodesModifierBakeTarget> get_node_bake_target(const Object & /*object*/,
+                                                            const NodesModifierData &nmd,
+                                                            int node_id)
+{
+  const NodesModifierBake *bake = nmd.find_bake(node_id);
+  if (!bake) {
+    return std::nullopt;
+  }
+  if (bake->bake_target != NODES_MODIFIER_BAKE_TARGET_INHERIT) {
+    return NodesModifierBakeTarget(bake->bake_target);
+  }
+  if (nmd.bake_target != NODES_MODIFIER_BAKE_TARGET_INHERIT) {
+    return NodesModifierBakeTarget(nmd.bake_target);
+  }
+  return NODES_MODIFIER_BAKE_TARGET_PACKED;
 }
 
 std::optional<bake::BakePath> get_node_bake_path(const Main &bmain,
@@ -119,6 +149,9 @@ std::optional<bake::BakePath> get_node_bake_path(const Main &bmain,
   if (bake->flag & NODES_MODIFIER_BAKE_CUSTOM_PATH) {
     if (StringRef(bake->directory).is_empty()) {
       return std::nullopt;
+    }
+    if (!BLI_path_is_rel(bake->directory)) {
+      return BakePath::from_single_root(bake->directory);
     }
     const char *base_path = ID_BLEND_PATH(&bmain, &object.id);
     if (StringRef(base_path).is_empty()) {
@@ -214,6 +247,21 @@ std::string get_default_modifier_bake_directory(const Main &bmain,
                 "//",
                 get_blend_file_name(bmain).c_str(),
                 get_modifier_directory_name(object, nmd.modifier).c_str());
+  return dir;
+}
+
+std::string get_default_node_bake_directory(const Main &bmain,
+                                            const Object &object,
+                                            const NodesModifierData &nmd,
+                                            int node_id)
+{
+  char dir[FILE_MAX];
+  BLI_path_join(dir,
+                sizeof(dir),
+                "//",
+                get_blend_file_name(bmain).c_str(),
+                get_modifier_directory_name(object, nmd.modifier).c_str(),
+                std::to_string(node_id).c_str());
   return dir;
 }
 

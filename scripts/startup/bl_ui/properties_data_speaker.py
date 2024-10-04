@@ -133,7 +133,7 @@ class DATA_PT_speaker_animation(DataButtonsPanel, PropertiesAnimationMixin, Prop
         'BLENDER_EEVEE_NEXT',
         'BLENDER_WORKBENCH',
     }
-    _animated_id_context_property = 'speaker'
+    _animated_id_context_property = "speaker"
 
 
 class DATA_PT_custom_props_speaker(DataButtonsPanel, PropertyPanel, Panel):

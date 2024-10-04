@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 /**
  * Screen-space ray-tracing routine.
  *
@@ -12,11 +14,11 @@
  * Many modifications were made for our own usage.
  */
 
-#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_matrix_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_fast_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_ray_types_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_thickness_lib.glsl)
+#include "draw_view_lib.glsl"
+#include "eevee_ray_types_lib.glsl"
+#include "eevee_thickness_lib.glsl"
+#include "gpu_shader_math_fast_lib.glsl"
+#include "gpu_shader_math_matrix_lib.glsl"
 
 /* Inputs expected to be in view-space. */
 void raytrace_clip_ray_to_near_plane(inout Ray ray)

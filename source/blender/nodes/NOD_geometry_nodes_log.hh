@@ -59,6 +59,9 @@ enum class NodeWarningType {
   Info = 2,
 };
 
+int node_warning_type_icon(NodeWarningType type);
+int node_warning_type_severity(NodeWarningType type);
+
 struct NodeWarning {
   NodeWarningType type;
   std::string message;

@@ -45,7 +45,7 @@ void VKSamplers::free()
   }
 }
 
-const VKSampler &VKSamplers::get(const GPUSamplerState &sampler_state)
+const VKSampler &VKSamplers::get(const GPUSamplerState &sampler_state) const
 {
   BLI_assert(sampler_state.type != GPU_SAMPLER_STATE_TYPE_INTERNAL);
 

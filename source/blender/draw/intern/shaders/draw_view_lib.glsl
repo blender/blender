@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 #ifndef DRAW_VIEW_CREATE_INFO
 #  error Missing draw_view additional create info on shader create info
 #endif

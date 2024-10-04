@@ -19,6 +19,12 @@
 
 namespace blender::eevee {
 
+/* Convert by putting the least significant bits in the first component. */
+static uint2 uint64_to_uint2(uint64_t data)
+{
+  return {uint(data), uint(data >> uint64_t(32))};
+}
+
 /* -------------------------------------------------------------------- */
 /** \name LightData
  * \{ */
@@ -50,6 +56,7 @@ void Light::sync(ShadowModule &shadows,
                  float4x4 object_to_world,
                  char visibility_flag,
                  const ::Light *la,
+                 const LightLinking *light_linking /* = nullptr */,
                  float threshold)
 {
   using namespace blender::math;
@@ -97,6 +104,16 @@ void Light::sync(ShadowModule &shadows,
   }
   else {
     shadow_discard_safe(shadows);
+  }
+
+  if (light_linking) {
+    this->light_set_membership = uint64_to_uint2(light_linking->runtime.light_set_membership);
+    this->shadow_set_membership = uint64_to_uint2(light_linking->runtime.shadow_set_membership);
+  }
+  else {
+    /* Set all bits if light linking is not used. */
+    this->light_set_membership = uint64_to_uint2(~uint64_t(0));
+    this->shadow_set_membership = uint64_to_uint2(~uint64_t(0));
   }
 
   this->initialized = true;
@@ -365,7 +382,7 @@ void LightModule::begin_sync()
 
     Light &light = light_map_.lookup_or_add_default(world_sunlight_key);
     light.used = true;
-    light.sync(inst_.shadows, float4x4::identity(), 0, &la, light_threshold_);
+    light.sync(inst_.shadows, float4x4::identity(), 0, &la, nullptr, light_threshold_);
 
     sun_lights_len_ += 1;
   }
@@ -388,7 +405,12 @@ void LightModule::sync_light(const Object *ob, ObjectHandle &handle)
   light.used = true;
   if (handle.recalc != 0 || !light.initialized) {
     light.initialized = true;
-    light.sync(inst_.shadows, ob->object_to_world(), ob->visibility_flag, la, light_threshold_);
+    light.sync(inst_.shadows,
+               ob->object_to_world(),
+               ob->visibility_flag,
+               la,
+               ob->light_linking,
+               light_threshold_);
   }
   sun_lights_len_ += int(is_sun_light(light.type));
   local_lights_len_ += int(!is_sun_light(light.type));

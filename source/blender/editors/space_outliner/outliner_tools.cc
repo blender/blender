@@ -2310,7 +2310,7 @@ static void modifier_fn(int event, TreeElement *te, TreeStoreElem * /*tselem*/, 
   }
   else if (event == OL_MODIFIER_OP_APPLY) {
     object::modifier_apply(
-        bmain, data->reports, depsgraph, scene, ob, md, object::MODIFIER_APPLY_DATA, false);
+        bmain, data->reports, depsgraph, scene, ob, md, object::MODIFIER_APPLY_DATA, false, false);
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     DEG_relations_tag_update(bmain);
     WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);

@@ -9,9 +9,9 @@
 #include "BLI_utildefines.h"
 #include <Python.h>
 
-#include "bpy_app_alembic.h"
+#include "bpy_app_alembic.hh"
 
-#include "../generic/py_capi_utils.h"
+#include "../generic/py_capi_utils.hh"
 
 #ifdef WITH_ALEMBIC
 #  include "ABC_alembic.h"

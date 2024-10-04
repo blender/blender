@@ -35,11 +35,26 @@ CHECKER_IGNORE_PREFIX = [
 # different parts of the source.
 CHECKER_ISOLATE_BUILD_DIR = False
 
+CHECKER_EXCLUDE_SOURCE_FILES_EXT = (
+    # Exclude generated shaders, harmless but also not very useful and are quite slow.
+    ".glsl.c",
+)
+
 # To add files use a relative path.
 CHECKER_EXCLUDE_SOURCE_FILES = set(os.path.join(*f.split("/")) for f in (
     "source/blender/draw/engines/eevee_next/eevee_lut.cc",
     # Hangs for hours CPPCHECK-2.14.0.
     "intern/cycles/blender/output_driver.cpp",
+))
+
+
+CHECKER_EXCLUDE_SOURCE_DIRECTORIES_BUILD = set(os.path.join(*f.split("/")) + os.sep for f in (
+    # Exclude data-files, especially `datatoc` as the files can be large & are slow to scan.
+    "release/datafiles",
+    # Exclude generated RNA, harmless but also not very useful and are quite slow.
+    "source/blender/makesrna/intern",
+    # Exclude generated WAYLAND protocols.
+    "intern/ghost/libwayland"
 ))
 
 CHECKER_ARGS = (
@@ -121,21 +136,31 @@ CHECKER_EXCLUDE_FROM_SUMMARY = {
 
 def source_info_filter(
         source_info: List[Tuple[str, List[str], List[str]]],
+        source_dir: str,
+        cmake_dir: str,
 ) -> List[Tuple[str, List[str], List[str]]]:
-    source_dir = project_source_info.SOURCE_DIR
-    if not source_dir.endswith(os.sep):
-        source_dir += os.sep
+    source_dir = source_dir.rstrip(os.sep) + os.sep
+    cmake_dir = cmake_dir.rstrip(os.sep) + os.sep
+
+    cmake_dir_prefix_tuple = tuple(CHECKER_EXCLUDE_SOURCE_DIRECTORIES_BUILD)
+
     source_info_result = []
     for i, item in enumerate(source_info):
         c = item[0]
+
+        if c.endswith(*CHECKER_EXCLUDE_SOURCE_FILES_EXT):
+            continue
+
         if c.startswith(source_dir):
             c_relative = c[len(source_dir):]
             if c_relative in CHECKER_EXCLUDE_SOURCE_FILES:
                 CHECKER_EXCLUDE_SOURCE_FILES.remove(c_relative)
                 continue
-        # Exclude generated RNA, harmless but also not very useful and are quite slow.
-        if c.endswith("_gen.cc") and os.path.basename(c).startswith("rna_"):
-            continue
+        elif c.startswith(cmake_dir):
+            c_relative = c[len(cmake_dir):]
+            if c_relative.startswith(cmake_dir_prefix_tuple):
+                continue
+
         # TODO: support filtering on filepath.
         # if "/editors/mask" not in c:
         #     continue
@@ -154,6 +179,7 @@ def cppcheck(cppcheck_dir: str, temp_dir: str, log_fh: IO[bytes]) -> None:
     del temp_dir
 
     source_dir = os.path.normpath(os.path.abspath(project_source_info.SOURCE_DIR))
+    cmake_dir = os.path.normpath(os.path.abspath(project_source_info.CMAKE_DIR))
 
     cppcheck_build_dir = os.path.join(cppcheck_dir, "build")
     os.makedirs(cppcheck_build_dir, exist_ok=True)
@@ -171,7 +197,7 @@ def cppcheck(cppcheck_dir: str, temp_dir: str, log_fh: IO[bytes]) -> None:
         fh.write("#define UINT_MAX 0xFFFFFFFF\n")
 
     # Apply exclusion.
-    source_info = source_info_filter(source_info)
+    source_info = source_info_filter(source_info, source_dir, cmake_dir)
 
     check_commands = []
     for c, inc_dirs, defs in source_info:

@@ -4827,6 +4827,7 @@ static RNAProcessItem PROCESS_ITEMS[] = {
     {"rna_lattice.cc", "rna_lattice_api.cc", RNA_def_lattice},
     {"rna_layer.cc", nullptr, RNA_def_view_layer},
     {"rna_linestyle.cc", nullptr, RNA_def_linestyle},
+    {"rna_blendfile_import.cc", nullptr, RNA_def_blendfile_import},
     {"rna_main.cc", "rna_main_api.cc", RNA_def_main},
     {"rna_fluid.cc", nullptr, RNA_def_fluid},
     {"rna_material.cc", "rna_material_api.cc", RNA_def_material},

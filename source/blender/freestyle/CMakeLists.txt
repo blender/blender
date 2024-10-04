@@ -566,7 +566,7 @@ if(WITH_PYTHON_MODULE)
 endif()
 
 if(WITH_PYTHON_SAFETY)
-  # For bpy_rna.h access.
+  # For bpy_rna.hh access.
   add_definitions(-DWITH_PYTHON_SAFETY)
 endif()
 

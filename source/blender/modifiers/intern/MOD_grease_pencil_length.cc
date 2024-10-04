@@ -215,7 +215,7 @@ static void deform_drawing(const ModifierData &md,
         float length = curves.evaluated_length_total_for_curve(curve, false);
         if (mmd.mode & GP_LENGTH_ABSOLUTE) {
           starts[curve] = -math::min(use_starts[curve], 0.0f);
-          ends[curve] = length - (-math::min(use_ends[curve], 0.0f));
+          ends[curve] = length - -math::min(use_ends[curve], 0.0f);
         }
         else {
           starts[curve] = -math::min(use_starts[curve], 0.0f) * length;

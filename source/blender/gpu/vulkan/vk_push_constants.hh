@@ -260,12 +260,6 @@ class VKPushConstants : VKResourceTracker<VKUniformBuffer> {
   }
 
   /**
-   * Update the GPU resources with the latest push constants.
-   */
-  void update(VKContext &context);
-
- private:
-  /**
    * When storage type = StorageType::UNIFORM_BUFFER use this method to update the uniform
    * buffer.
    *

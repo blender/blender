@@ -29,6 +29,7 @@
 #include "nodes/vk_fill_buffer_node.hh"
 #include "nodes/vk_reset_query_pool_node.hh"
 #include "nodes/vk_synchronization_node.hh"
+#include "nodes/vk_update_buffer_node.hh"
 #include "nodes/vk_update_mipmaps_node.hh"
 
 namespace blender::gpu::render_graph {
@@ -69,6 +70,7 @@ struct VKRenderGraphNode {
     VKFillBufferNode::Data fill_buffer;
     VKResetQueryPoolNode::Data reset_query_pool;
     VKSynchronizationNode::Data synchronization;
+    VKUpdateBufferNode::Data update_buffer;
     VKUpdateMipmapsNode::Data update_mipmaps;
   };
 
@@ -158,6 +160,8 @@ struct VKRenderGraphNode {
         return VKResetQueryPoolNode::pipeline_stage;
       case VKNodeType::SYNCHRONIZATION:
         return VKSynchronizationNode::pipeline_stage;
+      case VKNodeType::UPDATE_BUFFER:
+        return VKUpdateBufferNode::pipeline_stage;
       case VKNodeType::UPDATE_MIPMAPS:
         return VKUpdateMipmapsNode::pipeline_stage;
     }
@@ -195,6 +199,7 @@ struct VKRenderGraphNode {
         BUILD_COMMANDS(VKNodeType::END_QUERY, VKEndQueryNode, end_query)
         BUILD_COMMANDS(VKNodeType::END_RENDERING, VKEndRenderingNode, end_rendering)
         BUILD_COMMANDS(VKNodeType::FILL_BUFFER, VKFillBufferNode, fill_buffer)
+        BUILD_COMMANDS(VKNodeType::UPDATE_BUFFER, VKUpdateBufferNode, update_buffer)
         BUILD_COMMANDS(VKNodeType::COPY_BUFFER, VKCopyBufferNode, copy_buffer)
         BUILD_COMMANDS(
             VKNodeType::COPY_BUFFER_TO_IMAGE, VKCopyBufferToImageNode, copy_buffer_to_image)
@@ -237,6 +242,7 @@ struct VKRenderGraphNode {
       FREE_DATA(
           VKNodeType::DRAW_INDEXED_INDIRECT, VKDrawIndexedIndirectNode, draw_indexed_indirect)
       FREE_DATA(VKNodeType::DRAW_INDIRECT, VKDrawIndirectNode, draw_indirect)
+      FREE_DATA(VKNodeType::UPDATE_BUFFER, VKUpdateBufferNode, update_buffer)
 #undef FREE_DATA
 
       case VKNodeType::UNUSED:

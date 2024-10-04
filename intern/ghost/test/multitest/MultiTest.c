@@ -874,6 +874,7 @@ MultiTestApp *multitestapp_new(void)
   if (!app->sys) {
     fatal("Unable to create ghost system");
   }
+  GPU_backend_ghost_system_set(app->sys);
 
   if (!GHOST_AddEventConsumer(app->sys, consumer)) {
     fatal("Unable to add multitest event consumer ");

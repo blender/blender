@@ -288,7 +288,8 @@ GHOST_IWindow *GHOST_SystemWin32::createWindow(const char *title,
       false,
       (GHOST_WindowWin32 *)parentWindow,
       ((gpuSettings.flags & GHOST_gpuDebugContext) != 0),
-      is_dialog);
+      is_dialog,
+      gpuSettings.preferred_device);
 
   if (window->getValid()) {
     /* Store the pointer to the window */
@@ -316,7 +317,8 @@ GHOST_IContext *GHOST_SystemWin32::createOffscreenContext(GHOST_GPUSettings gpuS
   switch (gpuSettings.context_type) {
 #ifdef WITH_VULKAN_BACKEND
     case GHOST_kDrawingContextTypeVulkan: {
-      GHOST_Context *context = new GHOST_ContextVK(false, (HWND)0, 1, 2, debug_context);
+      GHOST_Context *context = new GHOST_ContextVK(
+          false, (HWND)0, 1, 2, debug_context, gpuSettings.preferred_device);
       if (context->initializeDrawingContext()) {
         return context;
       }

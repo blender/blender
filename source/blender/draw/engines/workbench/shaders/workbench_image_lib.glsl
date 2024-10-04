@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 /* TODO(fclem): deduplicate code. */
 bool node_tex_tile_lookup(inout vec3 co, sampler2DArray ima, sampler1DArray map)
 {

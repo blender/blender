@@ -2,9 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(gpu_shader_math_matrix_lib.glsl)
-#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_camera_lib.glsl)
+#pragma once
+
+#include "draw_view_lib.glsl"
+#include "eevee_camera_lib.glsl"
+#include "gpu_shader_math_matrix_lib.glsl"
 
 vec4 velocity_pack(vec4 data)
 {

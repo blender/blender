@@ -6,7 +6,7 @@
  * Apply lights contribution to scene surfel representation.
  */
 
-#pragma BLENDER_REQUIRE(eevee_light_eval_lib.glsl)
+#include "eevee_light_eval_lib.glsl"
 
 #ifndef LIGHT_ITER_FORCE_NO_CULLING
 #  error light_eval_reflection argument assumes this is defined
@@ -32,7 +32,7 @@ void main()
   cl_reflect.N = surfel.normal;
   cl_reflect.type = CLOSURE_BSDF_DIFFUSE_ID;
   stack.cl[0] = closure_light_new(cl_reflect, V);
-  light_eval_reflection(stack, P, Ng, V, 0.0);
+  light_eval_reflection(stack, P, Ng, V, 0.0, surfel.receiver_light_set);
 
   if (capture_info_buf.capture_indirect) {
     surfel_buf[index].radiance_direct.front.rgb += stack.cl[0].light_shadowed *
@@ -43,7 +43,7 @@ void main()
   cl_transmit.N = -surfel.normal;
   cl_transmit.type = CLOSURE_BSDF_DIFFUSE_ID;
   stack.cl[0] = closure_light_new(cl_transmit, -V);
-  light_eval_reflection(stack, P, -Ng, -V, 0.0);
+  light_eval_reflection(stack, P, -Ng, -V, 0.0, surfel.receiver_light_set);
 
   if (capture_info_buf.capture_indirect) {
     surfel_buf[index].radiance_direct.back.rgb += stack.cl[0].light_shadowed * surfel.albedo_back;

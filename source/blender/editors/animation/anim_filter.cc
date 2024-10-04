@@ -870,10 +870,10 @@ static bAnimListElem *make_new_animlistelem(
 
         /* the corresponding keyframes are from the animdata */
         if (ale->adt && ale->adt->action) {
-          bAction *act = ale->adt->action;
           /* Try to find the F-Curve which corresponds to this exactly. */
           if (std::optional<std::string> rna_path = BKE_keyblock_curval_rnapath_get(key, kb)) {
-            ale->key_data = (void *)BKE_fcurve_find(&act->curves, rna_path->c_str(), 0);
+            ale->key_data = (void *)blender::animrig::fcurve_find_in_assigned_slot(*ale->adt,
+                                                                                   {*rna_path, 0});
           }
         }
         ale->datatype = (ale->key_data) ? ALE_FCURVE : ALE_NONE;
@@ -3236,7 +3236,7 @@ static size_t animdata_filter_dopesheet_ob(bAnimContext *ac,
     }
 
     /* grease pencil */
-    if ((ELEM(ob->type, OB_GREASE_PENCIL, OB_GPENCIL_LEGACY)) && (ob->data) &&
+    if (ELEM(ob->type, OB_GREASE_PENCIL, OB_GPENCIL_LEGACY) && (ob->data) &&
         !(ads_filterflag & ADS_FILTER_NOGPENCIL))
     {
       if (ob->type == OB_GREASE_PENCIL) {

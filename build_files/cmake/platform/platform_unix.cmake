@@ -16,7 +16,11 @@ else()
     set(LIBDIR_NATIVE_ABI ${CMAKE_SOURCE_DIR}/../lib/${LIBDIR_NAME})
 
     # Path to precompiled libraries with known glibc 2.28 ABI.
-    set(LIBDIR_GLIBC228_ABI ${CMAKE_SOURCE_DIR}/lib/linux_x64)
+    if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
+      set(LIBDIR_GLIBC228_ABI ${CMAKE_SOURCE_DIR}/lib/linux_arm64)
+    else()
+      set(LIBDIR_GLIBC228_ABI ${CMAKE_SOURCE_DIR}/lib/linux_x64)
+    endif()
 
     # Choose the best suitable libraries.
     if(EXISTS ${LIBDIR_NATIVE_ABI})
@@ -628,6 +632,8 @@ endif()
 if(DEFINED LIBDIR)
   without_system_libs_end()
 endif()
+
+add_bundled_libraries(hiprt/lib)
 
 # ----------------------------------------------------------------------------
 # Build and Link Flags

@@ -506,7 +506,7 @@ static void wm_gesture_draw_polyline(wmGesture *gt)
   draw_start_vertex_circle(*gt, shdr_pos);
 }
 
-static void wm_gesture_draw_cross(wmWindow *win, wmGesture *gt)
+static void wm_gesture_draw_cross(const wmWindow *win, const wmGesture *gt)
 {
   const rcti *rect = static_cast<const rcti *>(gt->customdata);
   const blender::int2 win_size = WM_window_native_pixel_size(win);

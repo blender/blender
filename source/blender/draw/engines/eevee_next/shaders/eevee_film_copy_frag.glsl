@@ -11,8 +11,8 @@
  *
  * Code is duplicated here to ensure that the compiler will pass read/write resource checks.
  */
-#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#include "common_math_lib.glsl"
+#include "draw_view_lib.glsl"
 
 vec4 cryptomatte_false_color(float hash)
 {

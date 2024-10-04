@@ -73,7 +73,7 @@ static const char *utf8_invalid_tests[][3] = {
      "You should see the Greek word 'kosme':       \"\xce\xba\xe1\xbd\xb9\xcf\x83\xce\xbc\xce\xb5\"                    |", "\x00"},
 
 /*    2  Boundary condition test cases
- *    Note that those will pass for us, those are not erronéous unicode code points
+ *    Note that those will pass for us, those are not erroneous unicode code points
  *    (aside from \x00, which is only valid as string terminator).
  *    2.1  First possible sequence of a certain length */
     {"2.1.1  1 byte  (U-00000000):        \"\x00\"                                       |",

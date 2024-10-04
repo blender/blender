@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(gpu_shader_material_transform_utils.glsl)
+#include "gpu_shader_material_transform_utils.glsl"
 
 void node_displacement_object(float height, float midlevel, float scale, vec3 N, out vec3 result)
 {

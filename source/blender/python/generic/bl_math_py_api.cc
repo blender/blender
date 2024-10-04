@@ -13,7 +13,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "bl_math_py_api.h"
+#include "bl_math_py_api.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Module Doc String

@@ -2,9 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 /* WORKAROUND: to guard against double include in EEVEE. */
 #ifndef GPU_SHADER_MATH_FAST_LIB_GLSL
-#define GPU_SHADER_MATH_FAST_LIB_GLSL
+#  define GPU_SHADER_MATH_FAST_LIB_GLSL
 
 /* [Drobot2014a] Low Level Optimizations for GCN. */
 float sqrt_fast(float v)

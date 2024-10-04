@@ -360,13 +360,32 @@ static int64_t get_final_points_num(const GatherTasks &tasks)
   return points_num;
 }
 
+static bool skip_transform(const float4x4 &transform)
+{
+  return math::is_equal(transform, float4x4::identity(), 1e-6f);
+}
+
 static void copy_transformed_positions(const Span<float3> src,
                                        const float4x4 &transform,
                                        MutableSpan<float3> dst)
 {
-  threading::parallel_for(src.index_range(), 1024, [&](const IndexRange range) {
+  if (skip_transform(transform)) {
+    dst.copy_from(src);
+  }
+  else {
+    threading::parallel_for(src.index_range(), 1024, [&](const IndexRange range) {
+      for (const int i : range) {
+        dst[i] = math::transform_point(transform, src[i]);
+      }
+    });
+  }
+}
+
+static void transform_positions(const float4x4 &transform, MutableSpan<float3> positions)
+{
+  threading::parallel_for(positions.index_range(), 1024, [&](const IndexRange range) {
     for (const int i : range) {
-      dst[i] = math::transform_point(transform, src[i]);
+      positions[i] = math::transform_point(transform, positions[i]);
     }
   });
 }
@@ -488,25 +507,25 @@ static Vector<std::pair<int, GSpan>> prepare_attribute_fallbacks(
 {
   Vector<std::pair<int, GSpan>> attributes_to_override;
   const bke::AttributeAccessor attributes = instances.attributes();
-  attributes.for_all([&](const StringRef attribute_id, const AttributeMetaData &meta_data) {
-    const int attribute_index = ordered_attributes.ids.index_of_try(attribute_id);
+  attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+    const int attribute_index = ordered_attributes.ids.index_of_try(iter.name);
     if (attribute_index == -1) {
       /* The attribute is not propagated to the final geometry. */
-      return true;
+      return;
     }
-    const bke::GAttributeReader attribute = attributes.lookup(attribute_id);
+    const bke::GAttributeReader attribute = iter.get();
     if (!attribute || !attribute.varray.is_span()) {
-      return true;
+      return;
     }
     GSpan span = attribute.varray.get_internal_span();
     const eCustomDataType expected_type = ordered_attributes.kinds[attribute_index].data_type;
-    if (meta_data.data_type != expected_type) {
+    if (iter.data_type != expected_type) {
       const CPPType &from_type = span.type();
       const CPPType &to_type = *bke::custom_data_type_to_cpp_type(expected_type);
       const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
       if (!conversions.is_convertible(from_type, to_type)) {
         /* Ignore the attribute because it can not be converted to the desired type. */
-        return true;
+        return;
       }
       /* Convert the attribute on the instances component to the expected attribute type. */
       std::unique_ptr<GArray<>> temporary_array = std::make_unique<GArray<>>(
@@ -516,7 +535,6 @@ static Vector<std::pair<int, GSpan>> prepare_attribute_fallbacks(
       gather_info.r_temporary_arrays.append(std::move(temporary_array));
     }
     attributes_to_override.append({attribute_index, span});
-    return true;
   });
   return attributes_to_override;
 }
@@ -815,10 +833,9 @@ static bool attribute_foreach(const bke::GeometrySet &geometry_set,
         const bke::GeometryComponent &component = *geometry_set.get_component(component_type);
         const std::optional<bke::AttributeAccessor> attributes = component.attributes();
         if (attributes.has_value()) {
-          attributes->for_all([&](const StringRef attributeId, const AttributeMetaData &metaData) {
-            callback(attributeId, metaData, component);
+          attributes->foreach_attribute([&](const bke::AttributeIter &iter) {
+            callback(iter.name, {iter.domain, iter.data_type}, component);
             any_attribute_found = true;
-            return true;
           });
         }
       }
@@ -1153,6 +1170,26 @@ static void execute_realize_pointcloud_task(
       dst_attribute_writers);
 }
 
+static void add_instance_attributes_to_single_geometry(
+    const OrderedAttributes &ordered_attributes,
+    const AttributeFallbacksArray &attribute_fallbacks,
+    bke::MutableAttributeAccessor attributes)
+{
+  for (const int attribute_index : ordered_attributes.index_range()) {
+    const void *value = attribute_fallbacks.array[attribute_index];
+    if (!value) {
+      continue;
+    }
+    const bke::AttrDomain domain = ordered_attributes.kinds[attribute_index].domain;
+    const eCustomDataType data_type = ordered_attributes.kinds[attribute_index].data_type;
+    const CPPType &cpp_type = *bke::custom_data_type_to_cpp_type(data_type);
+    GVArray gvaray(GVArray::ForSingle(cpp_type, attributes.domain_size(domain), value));
+    attributes.add(ordered_attributes.ids[attribute_index],
+                   domain,
+                   data_type,
+                   bke::AttributeInitVArray(std::move(gvaray)));
+  }
+}
 static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &options,
                                              const AllPointCloudsInfo &all_pointclouds_info,
                                              const Span<RealizePointCloudTask> tasks,
@@ -1160,6 +1197,19 @@ static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &opti
                                              bke::GeometrySet &r_realized_geometry)
 {
   if (tasks.is_empty()) {
+    return;
+  }
+
+  if (tasks.size() == 1) {
+    const RealizePointCloudTask &task = tasks.first();
+    PointCloud *new_points = BKE_pointcloud_copy_for_eval(task.pointcloud_info->pointcloud);
+    if (!skip_transform(task.transform)) {
+      transform_positions(task.transform, new_points->positions_for_write());
+      new_points->tag_positions_changed();
+    }
+    add_instance_attributes_to_single_geometry(
+        ordered_attributes, task.attribute_fallbacks, new_points->attributes_for_write());
+    r_realized_geometry.replace_pointcloud(new_points);
     return;
   }
 
@@ -1488,6 +1538,19 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
                                        bke::GeometrySet &r_realized_geometry)
 {
   if (tasks.is_empty()) {
+    return;
+  }
+
+  if (tasks.size() == 1) {
+    const RealizeMeshTask &task = tasks.first();
+    Mesh *new_mesh = BKE_mesh_copy_for_eval(*task.mesh_info->mesh);
+    if (!skip_transform(task.transform)) {
+      transform_positions(task.transform, new_mesh->vert_positions_for_write());
+      new_mesh->tag_positions_changed();
+    }
+    add_instance_attributes_to_single_geometry(
+        ordered_attributes, task.attribute_fallbacks, new_mesh->attributes_for_write());
+    r_realized_geometry.replace_mesh(new_mesh);
     return;
   }
 
@@ -1831,6 +1894,19 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
     return;
   }
 
+  if (tasks.size() == 1) {
+    const RealizeCurveTask &task = tasks.first();
+    Curves *new_curves = BKE_curves_copy_for_eval(task.curve_info->curves);
+    if (!skip_transform(task.transform)) {
+      new_curves->geometry.wrap().transform(task.transform);
+    }
+    add_instance_attributes_to_single_geometry(ordered_attributes,
+                                               task.attribute_fallbacks,
+                                               new_curves->geometry.wrap().attributes_for_write());
+    r_realized_geometry.replace_curves(new_curves);
+    return;
+  }
+
   const RealizeCurveTask &last_task = tasks.last();
   const Curves &last_curves = *last_task.curve_info->curves;
   const int points_num = last_task.start_indices.point + last_curves.geometry.point_num;
@@ -2040,7 +2116,9 @@ static void execute_realize_grease_pencil_task(
   for (const int layer_i : src_layers.index_range()) {
     const bke::greasepencil::Layer &src_layer = *src_layers[layer_i];
     bke::greasepencil::Layer &dst_layer = *dst_layers[layer_i];
+    BKE_grease_pencil_copy_layer_parameters(src_layer, dst_layer);
 
+    dst_layer.set_name(src_layer.name());
     dst_layer.set_local_transform(task.transform * src_layer.local_transform());
 
     const bke::greasepencil::Drawing *src_drawing = src_grease_pencil.get_eval_drawing(src_layer);
@@ -2077,6 +2155,14 @@ static void execute_realize_grease_pencil_task(
       dst_attribute_writers);
 }
 
+static void transform_grease_pencil_layers(Span<bke::greasepencil::Layer *> layers,
+                                           const float4x4 &transform)
+{
+  for (bke::greasepencil::Layer *layer : layers) {
+    layer->set_local_transform(transform * layer->local_transform());
+  }
+}
+
 static void execute_realize_grease_pencil_tasks(
     const AllGreasePencilsInfo &all_grease_pencils_info,
     const Span<RealizeGreasePencilTask> tasks,
@@ -2086,19 +2172,29 @@ static void execute_realize_grease_pencil_tasks(
   if (tasks.is_empty()) {
     return;
   }
+
+  if (tasks.size() == 1) {
+    const RealizeGreasePencilTask &task = tasks.first();
+    GreasePencil *new_gp = BKE_grease_pencil_copy_for_eval(task.grease_pencil_info->grease_pencil);
+    if (!skip_transform(task.transform)) {
+      transform_grease_pencil_layers(new_gp->layers_for_write(), task.transform);
+    }
+    add_instance_attributes_to_single_geometry(
+        ordered_attributes, task.attribute_fallbacks, new_gp->attributes_for_write());
+    r_realized_geometry.replace_grease_pencil(new_gp);
+    return;
+  }
+
+  const RealizeGreasePencilTask &last_task = tasks.last();
+  const int new_layers_num = last_task.start_index +
+                             last_task.grease_pencil_info->grease_pencil->layers().size();
+
   /* Allocate new grease pencil. */
   GreasePencil *dst_grease_pencil = BKE_grease_pencil_new_nomain();
   r_realized_geometry.replace_grease_pencil(dst_grease_pencil);
 
-  /* Prepare layer names. This is currently quadratic in the number of layers because layer names
-   * are made unique. */
-  for (const RealizeGreasePencilTask &task : tasks) {
-    const GreasePencil &src_grease_pencil = *task.grease_pencil_info->grease_pencil;
-    for (const bke::greasepencil::Layer *src_layer : src_grease_pencil.layers()) {
-      bke::greasepencil::Layer &dst_layer = dst_grease_pencil->add_layer(src_layer->name());
-      dst_grease_pencil->insert_frame(dst_layer, dst_grease_pencil->runtime->eval_frame);
-    }
-  }
+  /* Allocate all layers. */
+  dst_grease_pencil->add_layers_with_empty_drawings_for_eval(new_layers_num);
 
   /* Transfer material pointers. The material indices are updated for each task separately. */
   if (!all_grease_pencils_info.materials.is_empty()) {
@@ -2267,9 +2363,9 @@ bke::GeometrySet realize_instances(bke::GeometrySet geometry_set,
 
   if (not_to_realize_set.has_instances()) {
     gather_info.instances.instances_components_to_merge.append(
-        (not_to_realize_set.get_component_for_write<bke::InstancesComponent>()).copy());
+        not_to_realize_set.get_component_for_write<bke::InstancesComponent>().copy());
     gather_info.instances.instances_components_transforms.append(float4x4::identity());
-    gather_info.instances.attribute_fallback.append((gather_info.instances_attriubutes.size()));
+    gather_info.instances.attribute_fallback.append(gather_info.instances_attriubutes.size());
   }
 
   const float4x4 transform = float4x4::identity();

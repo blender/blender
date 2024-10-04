@@ -284,7 +284,7 @@ enum class IDNewNameMode {
 
 /** Information about how an ID rename went on. */
 struct IDNewNameResult {
-  /** How the renaming wnet on. */
+  /** How the renaming went on. */
   enum class Action {
     /** ID was not renamed, because requested new name was already the ID's name. */
     UNCHANGED = 0,
@@ -293,7 +293,7 @@ struct IDNewNameResult {
      * name, and the first available unique name is already current ID's name.
      */
     UNCHANGED_COLLISION = 1,
-    /** Successfully renamed, wihtout any collision with another ID's name. */
+    /** Successfully renamed, without any collision with another ID's name. */
     RENAMED_NO_COLLISION = 2,
     /** Successfully renamed, requested new name was adjusted to avoid collision with another ID.
      */
@@ -325,7 +325,7 @@ IDNewNameResult BKE_libblock_rename(Main &bmain,
 
 /**
  * Like #BKE_libblock_rename, but also performs additional higher-level updates like depsgraph
- * tagging when renaming Metaball objects, etc.
+ * tagging when renaming Meta-ball objects, etc.
  *
  * \return true if the name of the ID was actually modified.
  */

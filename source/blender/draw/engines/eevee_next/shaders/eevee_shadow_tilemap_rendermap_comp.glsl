@@ -8,7 +8,7 @@
  * For each shadow view, copy page atlas location to the indirection table before render.
  */
 
-#pragma BLENDER_REQUIRE(eevee_shadow_tilemap_lib.glsl)
+#include "eevee_shadow_tilemap_lib.glsl"
 
 void main()
 {

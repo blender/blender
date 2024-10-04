@@ -696,6 +696,10 @@ class USERPREF_PT_system_display_graphics(SystemPanel, CenterAlignMixIn, Panel):
         if system.gpu_backend != gpu.platform.backend_type_get():
             layout.label(text="A restart of Blender is required", icon="INFO")
 
+        if system.gpu_backend == gpu.platform.backend_type_get() == 'VULKAN':
+            col = layout.column()
+            col.prop(system, "gpu_preferred_device")
+
         if system.gpu_backend == 'VULKAN':
             col = layout.column()
             col.label(text="The Vulkan backend is experimental:", icon="INFO")
@@ -1153,16 +1157,22 @@ class USERPREF_PT_theme_interface_styles(ThemePanel, CenterAlignMixIn, Panel):
         flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
 
         col = flow.column(align=True)
-        col.prop(ui, "menu_shadow_fac")
-        col.prop(ui, "menu_shadow_width", text="Shadow Width")
+        col.prop(ui, "editor_border")
+        col.prop(ui, "editor_outline")
+        col.prop(ui, "editor_outline_active")
+
+        col = flow.column()
+        col.prop(ui, "widget_text_cursor")
 
         col = flow.column(align=True)
         col.prop(ui, "icon_alpha")
         col.prop(ui, "icon_saturation", text="Saturation")
 
+        col = flow.column(align=True)
+        col.prop(ui, "menu_shadow_fac")
+        col.prop(ui, "menu_shadow_width", text="Shadow Width")
+
         col = flow.column()
-        col.prop(ui, "widget_text_cursor")
-        col.prop(ui, "editor_outline")
         col.prop(ui, "widget_emboss")
         col.prop(ui, "panel_roundness")
 
@@ -2409,7 +2419,7 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
         addon_preferences_class.layout = box_prefs
         try:
             draw(context)
-        except BaseException:
+        except Exception:
             import traceback
             traceback.print_exc()
             box_prefs.label(text="Error (see console)", icon='ERROR')
@@ -2872,7 +2882,6 @@ class USERPREF_PT_experimental_new_features(ExperimentalPanel, Panel):
                 ({"property": "use_new_volume_nodes"}, ("blender/blender/issues/103248", "#103248")),
                 ({"property": "use_new_file_import_nodes"}, ("blender/blender/issues/122846", "#122846")),
                 ({"property": "use_shader_node_previews"}, ("blender/blender/issues/110353", "#110353")),
-                ({"property": "use_docking"}, ("blender/blender/issues/124915", "#124915")),
             ),
         )
 

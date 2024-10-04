@@ -19,7 +19,9 @@
 #include "MEM_guardedalloc.h"
 
 #include "opensubdiv_evaluator_capi.hh"
-#include "opensubdiv_topology_refiner_capi.hh"
+#ifdef WITH_OPENSUBDIV
+#  include "opensubdiv_topology_refiner_capi.hh"
+#endif
 
 /* --------------------------------------------------------------------
  * Helper functions.
@@ -106,7 +108,7 @@ static void set_coarse_positions(Subdiv *subdiv,
 
 /* Context which is used to fill face varying data in parallel. */
 struct FaceVaryingDataFromUVContext {
-  OpenSubdiv_TopologyRefiner *topology_refiner;
+  opensubdiv::TopologyRefinerImpl *topology_refiner;
   const Mesh *mesh;
   OffsetIndices<int> faces;
   const float (*mloopuv)[2];
@@ -119,16 +121,16 @@ static void set_face_varying_data_from_uv_task(void *__restrict userdata,
                                                const TaskParallelTLS *__restrict /*tls*/)
 {
   FaceVaryingDataFromUVContext *ctx = static_cast<FaceVaryingDataFromUVContext *>(userdata);
-  OpenSubdiv_TopologyRefiner *topology_refiner = ctx->topology_refiner;
+  opensubdiv::TopologyRefinerImpl *topology_refiner = ctx->topology_refiner;
   const int layer_index = ctx->layer_index;
   const float(*mluv)[2] = &ctx->mloopuv[ctx->faces[face_index].start()];
 
   /* TODO(sergey): OpenSubdiv's C-API converter can change winding of
    * loops of a face, need to watch for that, to prevent wrong UVs assigned.
    */
-  const int num_face_vertices = topology_refiner->getNumFaceVertices(face_index);
-  const int *uv_indices = topology_refiner->getFaceFVarValueIndices(face_index, layer_index);
-  for (int vertex_index = 0; vertex_index < num_face_vertices; vertex_index++, mluv++) {
+  const OpenSubdiv::Vtr::ConstIndexArray uv_indices =
+      topology_refiner->base_level().GetFaceFVarValues(face_index, layer_index);
+  for (int vertex_index = 0; vertex_index < uv_indices.size(); vertex_index++, mluv++) {
     copy_v2_v2(ctx->buffer[uv_indices[vertex_index]], *mluv);
   }
 }
@@ -138,12 +140,12 @@ static void set_face_varying_data_from_uv(Subdiv *subdiv,
                                           const float (*mloopuv)[2],
                                           const int layer_index)
 {
-  OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
+  opensubdiv::TopologyRefinerImpl *topology_refiner = subdiv->topology_refiner;
   OpenSubdiv_Evaluator *evaluator = subdiv->evaluator;
-  const int num_faces = topology_refiner->getNumFaces();
+  const int num_faces = topology_refiner->base_level().GetNumFaces();
   const float(*mluv)[2] = mloopuv;
 
-  const int num_fvar_values = topology_refiner->getNumFVarValues(layer_index);
+  const int num_fvar_values = topology_refiner->base_level().GetNumFVarValues(layer_index);
   /* Use a temporary buffer so we do not upload UVs one at a time to the GPU. */
   float(*buffer)[2] = static_cast<float(*)[2]>(
       MEM_mallocN(sizeof(float[2]) * num_fvar_values, __func__));
@@ -176,9 +178,9 @@ static void set_vertex_data_from_orco(Subdiv *subdiv, const Mesh *mesh)
       CustomData_get_layer(&mesh->vert_data, CD_CLOTH_ORCO));
 
   if (orco || cloth_orco) {
-    const OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
+    blender::opensubdiv::TopologyRefinerImpl *topology_refiner = subdiv->topology_refiner;
     OpenSubdiv_Evaluator *evaluator = subdiv->evaluator;
-    const int num_verts = topology_refiner->getNumVertices();
+    const int num_verts = topology_refiner->base_level().GetNumVertices();
 
     if (orco && cloth_orco) {
       /* Set one by one if have both. */

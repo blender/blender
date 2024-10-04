@@ -16,27 +16,68 @@ namespace blender::nodes::node_geo_attribute_domain_size_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry");
-  b.add_output<decl::Int>("Point Count").make_available([](bNode &node) {
-    node.custom1 = int16_t(GeometryComponent::Type::Mesh);
-  });
-  b.add_output<decl::Int>("Edge Count").make_available([](bNode &node) {
-    node.custom1 = int16_t(GeometryComponent::Type::Mesh);
-  });
-  b.add_output<decl::Int>("Face Count").make_available([](bNode &node) {
-    node.custom1 = int16_t(GeometryComponent::Type::Mesh);
-  });
-  b.add_output<decl::Int>("Face Corner Count").make_available([](bNode &node) {
-    node.custom1 = int16_t(GeometryComponent::Type::Mesh);
-  });
-  b.add_output<decl::Int>("Spline Count").make_available([](bNode &node) {
-    node.custom1 = int16_t(GeometryComponent::Type::Curve);
-  });
-  b.add_output<decl::Int>("Instance Count").make_available([](bNode &node) {
-    node.custom1 = int16_t(GeometryComponent::Type::Instance);
-  });
-  b.add_output<decl::Int>("Layer Count").make_available([](bNode &node) {
-    node.custom1 = int16_t(GeometryComponent::Type::GreasePencil);
-  });
+  auto &total_points = b.add_output<decl::Int>("Point Count")
+                           .make_available([](bNode &node) {
+                             node.custom1 = int16_t(GeometryComponent::Type::Mesh);
+                           })
+                           .available(false);
+  auto &total_edges = b.add_output<decl::Int>("Edge Count")
+                          .make_available([](bNode &node) {
+                            node.custom1 = int16_t(GeometryComponent::Type::Mesh);
+                          })
+                          .available(false);
+  auto &total_faces = b.add_output<decl::Int>("Face Count")
+                          .make_available([](bNode &node) {
+                            node.custom1 = int16_t(GeometryComponent::Type::Mesh);
+                          })
+                          .available(false);
+  auto &total_corners = b.add_output<decl::Int>("Face Corner Count")
+                            .make_available([](bNode &node) {
+                              node.custom1 = int16_t(GeometryComponent::Type::Mesh);
+                            })
+                            .available(false);
+  auto &total_curves = b.add_output<decl::Int>("Spline Count")
+                           .make_available([](bNode &node) {
+                             node.custom1 = int16_t(GeometryComponent::Type::Curve);
+                           })
+                           .available(false);
+  auto &total_instances = b.add_output<decl::Int>("Instance Count")
+                              .make_available([](bNode &node) {
+                                node.custom1 = int16_t(GeometryComponent::Type::Instance);
+                              })
+                              .available(false);
+  auto &total_layers = b.add_output<decl::Int>("Layer Count")
+                           .make_available([](bNode &node) {
+                             node.custom1 = int16_t(GeometryComponent::Type::GreasePencil);
+                           })
+                           .available(false);
+
+  const bNode *node = b.node_or_null();
+  if (node != nullptr) {
+    switch (GeometryComponent::Type(node->custom1)) {
+      case GeometryComponent::Type::Mesh:
+        total_points.available(true);
+        total_edges.available(true);
+        total_faces.available(true);
+        total_corners.available(true);
+        break;
+      case GeometryComponent::Type::Curve:
+        total_points.available(true);
+        total_curves.available(true);
+        break;
+      case GeometryComponent::Type::PointCloud:
+        total_points.available(true);
+        break;
+      case GeometryComponent::Type::Instance:
+        total_instances.available(true);
+        break;
+      case GeometryComponent::Type::GreasePencil:
+        total_layers.available(true);
+        break;
+      default:
+        BLI_assert_unreachable();
+    }
+  }
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -47,36 +88,6 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   node->custom1 = int16_t(GeometryComponent::Type::Mesh);
-}
-
-static void node_update(bNodeTree *ntree, bNode *node)
-{
-  bNodeSocket *point_socket = static_cast<bNodeSocket *>(node->outputs.first);
-  bNodeSocket *edge_socket = point_socket->next;
-  bNodeSocket *face_socket = edge_socket->next;
-  bNodeSocket *face_corner_socket = face_socket->next;
-  bNodeSocket *spline_socket = face_corner_socket->next;
-  bNodeSocket *instances_socket = spline_socket->next;
-  bNodeSocket *layers_socket = instances_socket->next;
-
-  bke::node_set_socket_availability(ntree,
-                                    point_socket,
-                                    ELEM(node->custom1,
-                                         int16_t(GeometryComponent::Type::Mesh),
-                                         int16_t(GeometryComponent::Type::Curve),
-                                         int16_t(GeometryComponent::Type::PointCloud)));
-  bke::node_set_socket_availability(
-      ntree, edge_socket, node->custom1 == int16_t(GeometryComponent::Type::Mesh));
-  bke::node_set_socket_availability(
-      ntree, face_socket, node->custom1 == int16_t(GeometryComponent::Type::Mesh));
-  bke::node_set_socket_availability(
-      ntree, face_corner_socket, node->custom1 == int16_t(GeometryComponent::Type::Mesh));
-  bke::node_set_socket_availability(
-      ntree, spline_socket, node->custom1 == int16_t(GeometryComponent::Type::Curve));
-  bke::node_set_socket_availability(
-      ntree, instances_socket, node->custom1 == int16_t(GeometryComponent::Type::Instance));
-  bke::node_set_socket_availability(
-      ntree, layers_socket, node->custom1 == int16_t(GeometryComponent::Type::GreasePencil));
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -166,7 +177,6 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.draw_buttons = node_layout;
   ntype.initfunc = node_init;
-  ntype.updatefunc = node_update;
 
   blender::bke::node_register_type(&ntype);
 

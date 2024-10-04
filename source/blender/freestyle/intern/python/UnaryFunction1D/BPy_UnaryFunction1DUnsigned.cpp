@@ -35,14 +35,13 @@ int UnaryFunction1DUnsigned_Init(PyObject *module)
   if (PyType_Ready(&UnaryFunction1DUnsigned_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&UnaryFunction1DUnsigned_Type);
-  PyModule_AddObject(module, "UnaryFunction1DUnsigned", (PyObject *)&UnaryFunction1DUnsigned_Type);
+  PyModule_AddObjectRef(
+      module, "UnaryFunction1DUnsigned", (PyObject *)&UnaryFunction1DUnsigned_Type);
 
   if (PyType_Ready(&QuantitativeInvisibilityF1D_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&QuantitativeInvisibilityF1D_Type);
-  PyModule_AddObject(
+  PyModule_AddObjectRef(
       module, "QuantitativeInvisibilityF1D", (PyObject *)&QuantitativeInvisibilityF1D_Type);
 
   return 0;

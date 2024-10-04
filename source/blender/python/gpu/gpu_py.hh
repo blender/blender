@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "../generic/py_capi_utils.h"
+#include "../generic/py_capi_utils.hh"
 
 extern struct PyC_StringEnumItems bpygpu_primtype_items[];
 extern struct PyC_StringEnumItems bpygpu_dataformat_items[];

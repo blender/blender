@@ -1652,8 +1652,9 @@ class SEQUENCER_PT_effect_text_layout(SequencerButtonsPanel, Panel):
         layout.use_property_split = True
         col = layout.column()
         col.prop(strip, "location", text="Location")
-        col.prop(strip, "align_x", text="Anchor X")
-        col.prop(strip, "align_y", text="Y")
+        col.prop(strip, "alignment_x", text="Alignment X")
+        col.prop(strip, "anchor_x", text="Anchor X")
+        col.prop(strip, "anchor_y", text="Y")
 
 
 class SEQUENCER_PT_effect_text_style(SequencerButtonsPanel, Panel):

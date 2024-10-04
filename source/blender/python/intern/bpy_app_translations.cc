@@ -16,8 +16,8 @@
 
 #include "BLI_utildefines.h"
 
-#include "BPY_extern.h"
-#include "bpy_app_translations.h"
+#include "BPY_extern.hh"
+#include "bpy_app_translations.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -26,7 +26,7 @@
 
 #include "RNA_types.hh"
 
-#include "../generic/python_utildefines.h"
+#include "../generic/python_utildefines.hh"
 
 #ifdef WITH_INTERNATIONAL
 #  include "BLI_ghash.h"

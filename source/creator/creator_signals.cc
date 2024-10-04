@@ -33,7 +33,7 @@
 #    include "BLI_winstuff.h"
 #  endif
 #  include "BLI_fileops.h"
-#  include "BLI_path_util.h"
+#  include "BLI_path_utils.hh"
 #  include "BLI_string.h"
 #  include "BLI_system.h"
 #  include "BLI_utildefines.h"
@@ -49,7 +49,7 @@
 #  include <csignal>
 
 #  ifdef WITH_PYTHON
-#    include "BPY_extern_python.h" /* #BPY_python_backtrace. */
+#    include "BPY_extern_python.hh" /* #BPY_python_backtrace. */
 #  endif
 
 #  include "creator_intern.h" /* Own include. */

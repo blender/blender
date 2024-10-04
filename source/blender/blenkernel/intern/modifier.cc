@@ -36,7 +36,7 @@
 
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_rand.hh"
 #include "BLI_session_uid.h"
 #include "BLI_string.h"

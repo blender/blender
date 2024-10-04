@@ -14,6 +14,7 @@
 #include "BLI_dynstr.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
+#include "BLI_vector.hh"
 
 #include "GPU_platform.hh"
 
@@ -170,6 +171,11 @@ bool GPU_type_matches_ex(eGPUDeviceType device,
   BLI_assert(GPG.initialized);
   return (GPG.device & device) && (GPG.os & os) && (GPG.driver & driver) &&
          (GPG.backend & backend);
+}
+
+blender::Span<GPUDevice> GPU_platform_devices_list()
+{
+  return GPG.devices.as_span();
 }
 
 /** \} */

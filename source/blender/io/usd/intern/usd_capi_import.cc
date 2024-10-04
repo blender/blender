@@ -23,7 +23,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_timeit.hh"
 
@@ -214,7 +214,6 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
         display_name, sizeof(display_name), BLI_path_basename(data->filepath));
     Collection *import_collection = BKE_collection_add(
         data->bmain, data->scene->master_collection, display_name);
-    id_fake_user_set(&import_collection->id);
 
     DEG_id_tag_update(&import_collection->id, ID_RECALC_SYNC_TO_EVAL);
     DEG_relations_tag_update(data->bmain);
@@ -612,12 +611,6 @@ bool USD_mesh_topology_changed(CacheReader *reader,
   }
 
   return usd_reader->topology_changed(existing_mesh, time);
-}
-
-void USD_CacheReader_incref(CacheReader *reader)
-{
-  USDPrimReader *usd_reader = reinterpret_cast<USDPrimReader *>(reader);
-  usd_reader->incref();
 }
 
 CacheReader *CacheReader_open_usd_object(CacheArchiveHandle *handle,

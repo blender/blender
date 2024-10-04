@@ -19,10 +19,10 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
-#include "bpy_rna.h"
-#include "bpy_utils_previews.h"
+#include "bpy_rna.hh"
+#include "bpy_utils_previews.hh"
 
-#include "../generic/py_capi_utils.h"
+#include "../generic/py_capi_utils.hh"
 
 #include "MEM_guardedalloc.h"
 

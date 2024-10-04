@@ -412,6 +412,7 @@ class ShadowPass {
 
    protected:
     virtual void compute_visibility(ObjectBoundsBuf &bounds,
+                                    ObjectInfosBuf &infos,
                                     uint resource_len,
                                     bool debug_freeze) override;
     virtual VisibilityBuf &get_visibility_buffer() override;

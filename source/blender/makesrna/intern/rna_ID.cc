@@ -238,7 +238,7 @@ const IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
 #  include "WM_api.hh"
 
 #  ifdef WITH_PYTHON
-#    include "BPY_extern.h"
+#    include "BPY_extern.hh"
 #  endif
 
 void rna_ID_override_library_property_operation_refname_get(PointerRNA *ptr, char *value)

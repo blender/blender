@@ -53,6 +53,7 @@ wmKeyMap *eyedropper_modal_keymap(wmKeyConfig *keyconf)
   WM_modalkeymap_assign(keymap, "UI_OT_eyedropper_colorramp");
   WM_modalkeymap_assign(keymap, "UI_OT_eyedropper_color");
   WM_modalkeymap_assign(keymap, "UI_OT_eyedropper_id");
+  WM_modalkeymap_assign(keymap, "UI_OT_eyedropper_bone");
   WM_modalkeymap_assign(keymap, "UI_OT_eyedropper_depth");
   WM_modalkeymap_assign(keymap, "UI_OT_eyedropper_driver");
   WM_modalkeymap_assign(keymap, "UI_OT_eyedropper_gpencil_color");
@@ -141,11 +142,11 @@ uiBut *eyedropper_get_property_button_under_mouse(bContext *C, const wmEvent *ev
   return but;
 }
 
-void datadropper_win_area_find(const bContext *C,
-                               const int event_xy[2],
-                               int r_event_xy[2],
-                               wmWindow **r_win,
-                               ScrArea **r_area)
+void eyedropper_win_area_find(const bContext *C,
+                              const int event_xy[2],
+                              int r_event_xy[2],
+                              wmWindow **r_win,
+                              ScrArea **r_area)
 {
   bScreen *screen = CTX_wm_screen(C);
 

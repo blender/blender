@@ -7,7 +7,7 @@
  */
 
 #include "BLI_math_matrix.hh"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_span.hh"
 #include "BLI_string.h"
 
@@ -99,8 +99,8 @@ void GpencilIO::prepare_camera_params(Scene *scene, const GpencilIOParams *ipara
                                  params_.region,
                                  params_.v3d,
                                  rv3d_,
-                                 &camera_rect_,
-                                 true);
+                                 true,
+                                 &camera_rect_);
     is_camera_ = true;
     camera_ratio_ = render_x_ / (camera_rect_.xmax - camera_rect_.xmin);
     offset_.x = camera_rect_.xmin;

@@ -3,7 +3,7 @@ import bpy
 
 def read_some_data(context, filepath, use_some_setting):
     print("running read_some_data...")
-    f = open(filepath, 'r', encoding='utf-8')
+    f = open(filepath, "r", encoding="utf-8")
     data = f.read()
     f.close()
 

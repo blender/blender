@@ -30,12 +30,12 @@
  *
  */
 
-#pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_nodetree_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_surf_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_velocity_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_volume_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_occupancy_lib.glsl)
+#include "eevee_nodetree_lib.glsl"
+#include "eevee_occupancy_lib.glsl"
+#include "eevee_sampling_lib.glsl"
+#include "eevee_surf_lib.glsl"
+#include "eevee_velocity_lib.glsl"
+#include "eevee_volume_lib.glsl"
 
 vec4 closure_to_rgba(Closure cl)
 {

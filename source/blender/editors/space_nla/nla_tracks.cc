@@ -432,7 +432,9 @@ static int nlatracks_pushdown_exec(bContext *C, wmOperator *op)
                "Cannot push down actions while tweaking a strip's action, exit tweak mode first");
     return OPERATOR_CANCELLED;
   }
-  if (adt->action == nullptr) {
+
+  bAction *action_to_push_down = adt->action;
+  if (!action_to_push_down) {
     BKE_report(op->reports, RPT_WARNING, "No active action to push down");
     return OPERATOR_CANCELLED;
   }
@@ -445,7 +447,7 @@ static int nlatracks_pushdown_exec(bContext *C, wmOperator *op)
 
   /* The action needs updating too, as FCurve modifiers are to be reevaluated. They won't extend
    * beyond the NLA strip after pushing down to the NLA. */
-  DEG_id_tag_update_ex(bmain, &adt->action->id, ID_RECALC_ANIMATION);
+  DEG_id_tag_update_ex(bmain, &action_to_push_down->id, ID_RECALC_ANIMATION);
 
   /* set notifier that things have changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_NLA_ACTCHANGE, nullptr);

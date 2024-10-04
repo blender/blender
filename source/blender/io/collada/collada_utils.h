@@ -70,43 +70,44 @@ extern void bc_update_scene(BlenderContext &blender_context, float ctime);
 
 std::vector<bAction *> bc_getSceneActions(const bContext *C, Object *ob, bool all_actions);
 
-/* Action helpers */
+/* Action and Animdata helpers */
 
+/* Return Object's Action or NULL. */
 inline bAction *bc_getSceneObjectAction(Object *ob)
 {
   return (ob->adt && ob->adt->action) ? ob->adt->action : NULL;
 }
 
-/* Returns Light Action or NULL */
-inline bAction *bc_getSceneLightAction(Object *ob)
+/* Return Light's AnimData or NULL. */
+inline AnimData *bc_getSceneLightAnimData(Object *ob)
 {
   if (ob->type != OB_LAMP) {
     return NULL;
   }
 
   Light *lamp = (Light *)ob->data;
-  return (lamp->adt && lamp->adt->action) ? lamp->adt->action : NULL;
+  return lamp->adt;
 }
 
-/* Return Camera Action or NULL */
-inline bAction *bc_getSceneCameraAction(Object *ob)
+/* Return Camera's AnimData or NULL. */
+inline AnimData *bc_getSceneCameraAnimData(Object *ob)
 {
   if (ob->type != OB_CAMERA) {
     return NULL;
   }
 
   const Camera *camera = (const Camera *)ob->data;
-  return (camera->adt && camera->adt->action) ? camera->adt->action : NULL;
+  return camera->adt;
 }
 
-/* returns material action or NULL */
-inline bAction *bc_getSceneMaterialAction(Material *ma)
+/* Return Material's AnimData or NULL. */
+inline AnimData *bc_getSceneMaterialAnimData(Material *ma)
 {
   if (ma == NULL) {
     return NULL;
   }
 
-  return (ma->adt && ma->adt->action) ? ma->adt->action : NULL;
+  return ma->adt;
 }
 
 std::string bc_get_action_id(std::string action_name,

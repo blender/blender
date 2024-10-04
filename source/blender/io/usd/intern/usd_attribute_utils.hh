@@ -29,6 +29,10 @@
 #include <optional>
 #include <type_traits>
 
+namespace usdtokens {
+inline const pxr::TfToken displayColor("displayColor", pxr::TfToken::Immortal);
+}
+
 namespace blender::io::usd {
 
 namespace detail {
@@ -66,6 +70,16 @@ template<> inline pxr::GfVec4f convert_value(const ColorGeometry4f value)
 {
   return pxr::GfVec4f(value.r, value.g, value.b, value.a);
 }
+template<> inline pxr::GfVec3f convert_value(const ColorGeometry4b value)
+{
+  ColorGeometry4f color4f = value.decode();
+  return pxr::GfVec3f(color4f.r, color4f.g, color4f.b);
+}
+template<> inline pxr::GfVec4f convert_value(const ColorGeometry4b value)
+{
+  ColorGeometry4f color4f = value.decode();
+  return pxr::GfVec4f(color4f.r, color4f.g, color4f.b, color4f.a);
+}
 template<> inline pxr::GfQuatf convert_value(const math::Quaternion value)
 {
   return pxr::GfQuatf(value.w, value.x, value.y, value.z);
@@ -96,7 +110,7 @@ template<> inline math::Quaternion convert_value(const pxr::GfQuatf value)
 }  // namespace detail
 
 std::optional<pxr::SdfValueTypeName> convert_blender_type_to_usd(
-    const eCustomDataType blender_type);
+    const eCustomDataType blender_type, bool use_color3f_type = false);
 
 std::optional<eCustomDataType> convert_usd_type_to_blender(const pxr::SdfValueTypeName usd_type);
 

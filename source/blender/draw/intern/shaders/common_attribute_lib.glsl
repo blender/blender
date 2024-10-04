@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 /* Prototype of functions to implement to load attributes data.
  * Implementation changes based on object data type. */
 

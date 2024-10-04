@@ -602,7 +602,11 @@ PaintMode BKE_paintmode_get_from_tool(const bToolRef *tref)
   return PaintMode::Invalid;
 }
 
-static bool paint_brush_set_from_asset_reference(Main *bmain, Paint *paint)
+/**
+ * After changing #Paint.brush_asset_reference, call this to activate the matching brush, importing
+ * it if necessary. Has no effect if #Paint.brush is set already.
+ */
+static bool paint_brush_update_from_asset_reference(Main *bmain, Paint *paint)
 {
   /* Don't resolve this during file read, it will be done after. */
   if (bmain->is_locked_for_linking) {
@@ -642,12 +646,63 @@ const Brush *BKE_paint_brush_for_read(const Paint *paint)
   return paint ? paint->brush : nullptr;
 }
 
-bool BKE_paint_brush_set(Paint *paint, Brush *brush)
+bool BKE_paint_brush_poll(const Paint *paint, const Brush *brush)
 {
   if (paint == nullptr) {
     return false;
   }
-  if (brush && (paint->runtime.ob_mode & brush->ob_mode) == 0) {
+  return !brush || (paint->runtime.ob_mode & brush->ob_mode) != 0;
+}
+
+static AssetWeakReference *asset_reference_create_from_brush(Brush *brush)
+{
+  if (std::optional<AssetWeakReference> weak_ref = blender::bke::asset_edit_weak_reference_from_id(
+          brush->id))
+  {
+    return MEM_new<AssetWeakReference>(__func__, *weak_ref);
+  }
+
+  return nullptr;
+}
+
+bool BKE_paint_brush_set(Main *bmain,
+                         Paint *paint,
+                         const AssetWeakReference *brush_asset_reference)
+{
+  /* Don't resolve this during file read, it will be done after. */
+  if (bmain->is_locked_for_linking) {
+    return false;
+  }
+
+  Brush *brush = reinterpret_cast<Brush *>(
+      blender::bke::asset_edit_id_from_weak_reference(*bmain, ID_BR, *brush_asset_reference));
+  BLI_assert(brush == nullptr || blender::bke::asset_edit_id_is_editable(brush->id));
+
+  /* Ensure we have a brush with appropriate mode to assign.
+   * Could happen if contents of asset blend were manually changed. */
+  if (!BKE_paint_brush_poll(paint, brush)) {
+    return false;
+  }
+
+  /* Update the brush itself. */
+  paint->brush = brush;
+  /* Update the brush asset reference. */
+  {
+    MEM_delete(paint->brush_asset_reference);
+    paint->brush_asset_reference = nullptr;
+    if (brush != nullptr) {
+      BLI_assert(blender::bke::asset_edit_weak_reference_from_id(brush->id) ==
+                 *brush_asset_reference);
+      paint->brush_asset_reference = MEM_new<AssetWeakReference>(__func__, *brush_asset_reference);
+    }
+  }
+
+  return true;
+}
+
+bool BKE_paint_brush_set(Paint *paint, Brush *brush)
+{
+  if (!BKE_paint_brush_poll(paint, brush)) {
     return false;
   }
 
@@ -655,27 +710,81 @@ bool BKE_paint_brush_set(Paint *paint, Brush *brush)
 
   MEM_delete(paint->brush_asset_reference);
   paint->brush_asset_reference = nullptr;
-
   if (brush != nullptr) {
-    std::optional<AssetWeakReference> weak_ref = blender::bke::asset_edit_weak_reference_from_id(
-        brush->id);
-    if (weak_ref.has_value()) {
-      paint->brush_asset_reference = MEM_new<AssetWeakReference>(__func__, *weak_ref);
-    }
+    paint->brush_asset_reference = asset_reference_create_from_brush(brush);
   }
 
   return true;
 }
 
-Brush *BKE_paint_brush_from_essentials(Main *bmain, const char *name)
+static const char *paint_brush_essentials_asset_file_name_from_obmode(const eObjectMode ob_mode)
 {
+  switch (ob_mode) {
+    case OB_MODE_SCULPT:
+      return "essentials_brushes-mesh_sculpt.blend";
+    case OB_MODE_VERTEX_PAINT:
+      return "essentials_brushes-mesh_vertex.blend";
+    case OB_MODE_WEIGHT_PAINT:
+      return "essentials_brushes-mesh_weight.blend";
+    case OB_MODE_TEXTURE_PAINT:
+      return "essentials_brushes-mesh_texture.blend";
+    case OB_MODE_PAINT_GPENCIL_LEGACY:
+      return "essentials_brushes-gp_draw.blend";
+    case OB_MODE_SCULPT_GPENCIL_LEGACY:
+      return "essentials_brushes-gp_sculpt.blend";
+    case OB_MODE_WEIGHT_GPENCIL_LEGACY:
+      return "essentials_brushes-gp_weight.blend";
+    case OB_MODE_VERTEX_GPENCIL_LEGACY:
+      return "essentials_brushes-gp_vertex.blend";
+    case OB_MODE_SCULPT_CURVES:
+      return "essentials_brushes-curve_sculpt.blend";
+    default:
+      return nullptr;
+  }
+}
+
+static AssetWeakReference *paint_brush_asset_reference_ptr_from_essentials(
+    const char *name, const eObjectMode ob_mode)
+{
+  const char *essentials_file_name = paint_brush_essentials_asset_file_name_from_obmode(ob_mode);
+  if (!essentials_file_name) {
+    return nullptr;
+  }
+
+  AssetWeakReference *weak_ref = MEM_new<AssetWeakReference>(__func__);
+  weak_ref->asset_library_type = eAssetLibraryType::ASSET_LIBRARY_ESSENTIALS;
+  weak_ref->asset_library_identifier = nullptr;
+  weak_ref->relative_asset_identifier = BLI_sprintfN(
+      "brushes/%s/Brush/%s", essentials_file_name, name);
+  return weak_ref;
+}
+
+static std::optional<AssetWeakReference> paint_brush_asset_reference_from_essentials(
+    const char *name, const eObjectMode ob_mode)
+{
+  const char *essentials_file_name = paint_brush_essentials_asset_file_name_from_obmode(ob_mode);
+  if (!essentials_file_name) {
+    return {};
+  }
+
   AssetWeakReference weak_ref;
   weak_ref.asset_library_type = eAssetLibraryType::ASSET_LIBRARY_ESSENTIALS;
-  weak_ref.relative_asset_identifier = BLI_sprintfN("brushes/essentials_brushes.blend/Brush/%s",
-                                                    name);
+  weak_ref.asset_library_identifier = nullptr;
+  weak_ref.relative_asset_identifier = BLI_sprintfN(
+      "brushes/%s/Brush/%s", essentials_file_name, name);
+  return weak_ref;
+}
+
+Brush *BKE_paint_brush_from_essentials(Main *bmain, const eObjectMode ob_mode, const char *name)
+{
+  std::optional<AssetWeakReference> weak_ref = paint_brush_asset_reference_from_essentials(
+      name, ob_mode);
+  if (!weak_ref) {
+    return nullptr;
+  }
 
   return reinterpret_cast<Brush *>(
-      blender::bke::asset_edit_id_from_weak_reference(*bmain, ID_BR, weak_ref));
+      blender::bke::asset_edit_id_from_weak_reference(*bmain, ID_BR, *weak_ref));
 }
 
 static void paint_brush_set_essentials_reference(Paint *paint, const char *name)
@@ -683,11 +792,9 @@ static void paint_brush_set_essentials_reference(Paint *paint, const char *name)
   /* Set brush asset reference to a named brush in the essentials asset library. */
   MEM_delete(paint->brush_asset_reference);
 
-  AssetWeakReference *weak_ref = MEM_new<AssetWeakReference>(__func__);
-  weak_ref->asset_library_type = eAssetLibraryType::ASSET_LIBRARY_ESSENTIALS;
-  weak_ref->relative_asset_identifier = BLI_sprintfN("brushes/essentials_brushes.blend/Brush/%s",
-                                                     name);
-  paint->brush_asset_reference = weak_ref;
+  BLI_assert(paint->runtime.initialized);
+  paint->brush_asset_reference = paint_brush_asset_reference_ptr_from_essentials(
+      name, eObjectMode(paint->runtime.ob_mode));
   paint->brush = nullptr;
 }
 
@@ -696,12 +803,230 @@ static void paint_eraser_brush_set_essentials_reference(Paint *paint, const char
   /* Set brush asset reference to a named brush in the essentials asset library. */
   MEM_delete(paint->eraser_brush_asset_reference);
 
-  AssetWeakReference *weak_ref = MEM_new<AssetWeakReference>(__func__);
-  weak_ref->asset_library_type = eAssetLibraryType::ASSET_LIBRARY_ESSENTIALS;
-  weak_ref->relative_asset_identifier = BLI_sprintfN("brushes/essentials_brushes.blend/Brush/%s",
-                                                     name);
-  paint->eraser_brush_asset_reference = weak_ref;
+  BLI_assert(paint->runtime.initialized);
+  paint->eraser_brush_asset_reference = paint_brush_asset_reference_ptr_from_essentials(
+      name, eObjectMode(paint->runtime.ob_mode));
   paint->eraser_brush = nullptr;
+}
+
+static void paint_brush_default_essentials_name_get(
+    eObjectMode ob_mode,
+    std::optional<int> brush_type,
+    blender::StringRefNull *r_name,
+    blender::StringRefNull *r_eraser_name = nullptr)
+{
+  const char *name = "";
+  const char *eraser_name = "";
+
+  switch (ob_mode) {
+    case OB_MODE_SCULPT:
+      name = "Draw";
+      if (brush_type) {
+        switch (eBrushSculptType(*brush_type)) {
+          case SCULPT_BRUSH_TYPE_MASK:
+            name = "Mask";
+            break;
+          case SCULPT_BRUSH_TYPE_DRAW_FACE_SETS:
+            name = "Face Set Paint";
+            break;
+          case SCULPT_BRUSH_TYPE_PAINT:
+            name = "Paint Hard";
+            break;
+          case SCULPT_BRUSH_TYPE_SIMPLIFY:
+            name = "Density";
+            break;
+          case SCULPT_BRUSH_TYPE_DISPLACEMENT_ERASER:
+            name = "Erase Multires Displacement";
+            break;
+          case SCULPT_BRUSH_TYPE_DISPLACEMENT_SMEAR:
+            name = "Smear Multires Displacement";
+            break;
+          default:
+            break;
+        }
+      }
+      break;
+    case OB_MODE_VERTEX_PAINT:
+      name = "Paint";
+      if (brush_type) {
+        switch (eBrushVertexPaintType(*brush_type)) {
+          case VPAINT_BRUSH_TYPE_BLUR:
+            name = "Blur";
+            break;
+          case VPAINT_BRUSH_TYPE_AVERAGE:
+            name = "Average";
+            break;
+          case VPAINT_BRUSH_TYPE_SMEAR:
+            name = "Smear";
+            break;
+          case VPAINT_BRUSH_TYPE_DRAW:
+            /* Use default, don't override. */
+            break;
+        }
+      }
+      break;
+    case OB_MODE_WEIGHT_PAINT:
+      name = "Paint";
+      if (brush_type) {
+        switch (eBrushWeightPaintType(*brush_type)) {
+          case WPAINT_BRUSH_TYPE_BLUR:
+            name = "Blur";
+            break;
+          case WPAINT_BRUSH_TYPE_AVERAGE:
+            name = "Average";
+            break;
+          case WPAINT_BRUSH_TYPE_SMEAR:
+            name = "Smear";
+            break;
+          case WPAINT_BRUSH_TYPE_DRAW:
+            /* Use default, don't override. */
+            break;
+        }
+      }
+      break;
+    case OB_MODE_TEXTURE_PAINT:
+      name = "Paint Hard";
+      if (brush_type) {
+        switch (eBrushImagePaintType(*brush_type)) {
+          case IMAGE_PAINT_BRUSH_TYPE_SOFTEN:
+            name = "Blur";
+            break;
+          case IMAGE_PAINT_BRUSH_TYPE_SMEAR:
+            name = "Smear";
+            break;
+          case IMAGE_PAINT_BRUSH_TYPE_FILL:
+            name = "Fill";
+            break;
+          case IMAGE_PAINT_BRUSH_TYPE_MASK:
+            name = "Mask";
+            break;
+          case IMAGE_PAINT_BRUSH_TYPE_CLONE:
+            name = "Clone";
+            break;
+          case IMAGE_PAINT_BRUSH_TYPE_DRAW:
+            break;
+        }
+      }
+      break;
+    case OB_MODE_SCULPT_CURVES:
+      name = "Comb";
+      if (brush_type) {
+        switch (eBrushCurvesSculptType(*brush_type)) {
+          case CURVES_SCULPT_BRUSH_TYPE_ADD:
+            name = "Add";
+            break;
+          case CURVES_SCULPT_BRUSH_TYPE_DELETE:
+            name = "Delete";
+            break;
+          case CURVES_SCULPT_BRUSH_TYPE_DENSITY:
+            name = "Density";
+            break;
+          case CURVES_SCULPT_BRUSH_TYPE_SELECTION_PAINT:
+            name = "Select";
+            break;
+          default:
+            break;
+        }
+      }
+      break;
+    case OB_MODE_PAINT_GPENCIL_LEGACY:
+      name = "Pencil";
+      /* Different default brush for some brush types. */
+      if (brush_type) {
+        switch (eBrushGPaintType(*brush_type)) {
+          case GPAINT_BRUSH_TYPE_ERASE:
+            name = "Eraser Hard";
+            break;
+          case GPAINT_BRUSH_TYPE_FILL:
+            name = "Fill";
+            break;
+          case GPAINT_BRUSH_TYPE_DRAW:
+          case GPAINT_BRUSH_TYPE_TINT:
+            /* Use default, don't override. */
+            break;
+        }
+      }
+      eraser_name = "Eraser Soft";
+      break;
+    case OB_MODE_VERTEX_GPENCIL_LEGACY:
+      name = "Paint";
+      if (brush_type) {
+        switch (eBrushGPVertexType(*brush_type)) {
+          case GPVERTEX_BRUSH_TYPE_BLUR:
+            name = "Blur";
+            break;
+          case GPVERTEX_BRUSH_TYPE_AVERAGE:
+            name = "Average";
+            break;
+          case GPVERTEX_BRUSH_TYPE_SMEAR:
+            name = "Smear";
+            break;
+          case GPVERTEX_BRUSH_TYPE_REPLACE:
+            name = "Replace";
+            break;
+          case GPVERTEX_BRUSH_TYPE_DRAW:
+            /* Use default, don't override. */
+            break;
+          case GPVERTEX_BRUSH_TYPE_TINT:
+            /* Unused brush type. */
+            BLI_assert_unreachable();
+            break;
+        }
+      }
+      break;
+    case OB_MODE_SCULPT_GPENCIL_LEGACY:
+      name = "Smooth";
+      if (brush_type) {
+        switch (eBrushGPSculptType(*brush_type)) {
+          case GPSCULPT_BRUSH_TYPE_CLONE:
+            name = "Clone";
+            break;
+          default:
+            break;
+        }
+      }
+      break;
+    case OB_MODE_WEIGHT_GPENCIL_LEGACY:
+      name = "Paint";
+      if (brush_type) {
+        switch (eBrushGPWeightType(*brush_type)) {
+          case GPWEIGHT_BRUSH_TYPE_BLUR:
+            name = "Blur";
+            break;
+          case GPWEIGHT_BRUSH_TYPE_AVERAGE:
+            name = "Average";
+            break;
+          case GPWEIGHT_BRUSH_TYPE_SMEAR:
+            name = "Smear";
+            break;
+          case GPWEIGHT_BRUSH_TYPE_DRAW:
+            /* Use default, don't override. */
+            break;
+        }
+      }
+      break;
+    default:
+      BLI_assert_unreachable();
+      break;
+  }
+
+  *r_name = name;
+  if (r_eraser_name) {
+    *r_eraser_name = eraser_name;
+  }
+}
+
+std::optional<AssetWeakReference> BKE_paint_brush_type_default_reference(
+    eObjectMode ob_mode, std::optional<int> brush_type)
+{
+  blender::StringRefNull name;
+
+  paint_brush_default_essentials_name_get(ob_mode, brush_type, &name, nullptr);
+  if (name.is_empty()) {
+    return {};
+  }
+
+  return paint_brush_asset_reference_from_essentials(name.c_str(), ob_mode);
 }
 
 static void paint_brush_set_default_reference(Paint *paint,
@@ -714,48 +1039,17 @@ static void paint_brush_set_default_reference(Paint *paint,
     return;
   }
 
-  const char *name = nullptr;
-  const char *eraser_name = nullptr;
+  blender::StringRefNull name;
+  blender::StringRefNull eraser_name;
 
-  switch (paint->runtime.ob_mode) {
-    case OB_MODE_SCULPT:
-      name = "Draw";
-      break;
-    case OB_MODE_VERTEX_PAINT:
-      name = "Paint Vertex";
-      break;
-    case OB_MODE_WEIGHT_PAINT:
-      name = "Paint Weight";
-      break;
-    case OB_MODE_TEXTURE_PAINT:
-      name = "Paint Texture";
-      break;
-    case OB_MODE_SCULPT_CURVES:
-      name = "Comb Curves";
-      break;
-    case OB_MODE_PAINT_GPENCIL_LEGACY:
-      name = "Pencil";
-      eraser_name = "Eraser Soft";
-      break;
-    case OB_MODE_VERTEX_GPENCIL_LEGACY:
-      name = "Paint Point Color";
-      break;
-    case OB_MODE_SCULPT_GPENCIL_LEGACY:
-      name = "Smooth Stroke";
-      break;
-    case OB_MODE_WEIGHT_GPENCIL_LEGACY:
-      name = "Paint Point Weight";
-      break;
-    default:
-      BLI_assert_unreachable();
-      return;
-  }
+  paint_brush_default_essentials_name_get(
+      eObjectMode(paint->runtime.ob_mode), std::nullopt, &name, &eraser_name);
 
-  if (do_regular && name) {
-    paint_brush_set_essentials_reference(paint, name);
+  if (do_regular && !name.is_empty()) {
+    paint_brush_set_essentials_reference(paint, name.c_str());
   }
-  if (do_eraser && eraser_name) {
-    paint_eraser_brush_set_essentials_reference(paint, eraser_name);
+  if (do_eraser && !eraser_name.is_empty()) {
+    paint_eraser_brush_set_essentials_reference(paint, eraser_name.c_str());
   }
 }
 
@@ -791,13 +1085,13 @@ void BKE_paint_brushes_set_default_references(ToolSettings *ts)
 bool BKE_paint_brush_set_default(Main *bmain, Paint *paint)
 {
   paint_brush_set_default_reference(paint, true, false);
-  return paint_brush_set_from_asset_reference(bmain, paint);
+  return paint_brush_update_from_asset_reference(bmain, paint);
 }
 
 bool BKE_paint_brush_set_essentials(Main *bmain, Paint *paint, const char *name)
 {
   paint_brush_set_essentials_reference(paint, name);
-  return paint_brush_set_from_asset_reference(bmain, paint);
+  return paint_brush_update_from_asset_reference(bmain, paint);
 }
 
 void BKE_paint_brushes_validate(Main *bmain, Paint *paint)
@@ -882,15 +1176,16 @@ bool BKE_paint_eraser_brush_set(Paint *paint, Brush *brush)
   return true;
 }
 
-Brush *BKE_paint_eraser_brush_from_essentials(Main *bmain, const char *name)
+Brush *BKE_paint_eraser_brush_from_essentials(Main *bmain, eObjectMode ob_mode, const char *name)
 {
-  AssetWeakReference weak_ref;
-  weak_ref.asset_library_type = eAssetLibraryType::ASSET_LIBRARY_ESSENTIALS;
-  weak_ref.relative_asset_identifier = BLI_sprintfN("brushes/essentials_brushes.blend/Brush/%s",
-                                                    name);
+  std::optional<AssetWeakReference> weak_ref = paint_brush_asset_reference_from_essentials(
+      name, ob_mode);
+  if (!weak_ref) {
+    return {};
+  }
 
   return reinterpret_cast<Brush *>(
-      blender::bke::asset_edit_id_from_weak_reference(*bmain, ID_BR, weak_ref));
+      blender::bke::asset_edit_id_from_weak_reference(*bmain, ID_BR, *weak_ref));
 }
 
 bool BKE_paint_eraser_brush_set_default(Main *bmain, Paint *paint)
@@ -994,6 +1289,37 @@ std::optional<int> BKE_paint_get_brush_type_from_obmode(const Brush *brush,
       return brush->gpencil_weight_brush_type;
     case OB_MODE_SCULPT_CURVES:
       return brush->curves_sculpt_brush_type;
+    default:
+      return {};
+  }
+}
+
+std::optional<int> BKE_paint_get_brush_type_from_paintmode(const Brush *brush,
+                                                           const PaintMode mode)
+{
+  switch (mode) {
+    case PaintMode::Texture2D:
+    case PaintMode::Texture3D:
+      return brush->image_brush_type;
+    case PaintMode::Sculpt:
+      return brush->sculpt_brush_type;
+    case PaintMode::Vertex:
+      return brush->vertex_brush_type;
+    case PaintMode::Weight:
+      return brush->weight_brush_type;
+    case PaintMode::GPencil:
+      return brush->gpencil_brush_type;
+    case PaintMode::VertexGPencil:
+      return brush->gpencil_vertex_brush_type;
+    case PaintMode::SculptGPencil:
+      return brush->gpencil_sculpt_brush_type;
+    case PaintMode::WeightGPencil:
+      return brush->gpencil_weight_brush_type;
+    case PaintMode::SculptCurves:
+      return brush->curves_sculpt_brush_type;
+    case PaintMode::SculptGreasePencil:
+      return brush->gpencil_sculpt_brush_type;
+    case PaintMode::Invalid:
     default:
       return {};
   }
@@ -1281,9 +1607,21 @@ bool BKE_paint_select_vert_test(const Object *ob)
           (ob->mode & OB_MODE_WEIGHT_PAINT || ob->mode & OB_MODE_VERTEX_PAINT));
 }
 
+bool BKE_paint_select_grease_pencil_test(const Object *ob)
+{
+  if (ob == nullptr || ob->data == nullptr) {
+    return false;
+  }
+  if (ob->type == OB_GREASE_PENCIL) {
+    return (ob->mode & (OB_MODE_SCULPT_GPENCIL_LEGACY | OB_MODE_VERTEX_GPENCIL_LEGACY));
+  }
+  return false;
+}
+
 bool BKE_paint_select_elem_test(const Object *ob)
 {
-  return (BKE_paint_select_vert_test(ob) || BKE_paint_select_face_test(ob));
+  return (BKE_paint_select_vert_test(ob) || BKE_paint_select_face_test(ob) ||
+          BKE_paint_select_grease_pencil_test(ob));
 }
 
 bool BKE_paint_always_hide_test(const Object *ob)
@@ -1365,7 +1703,7 @@ bool BKE_paint_ensure(Main *bmain, ToolSettings *ts, Paint **r_paint)
       BLI_assert(paint_test.runtime.ob_mode == (*r_paint)->runtime.ob_mode);
 #endif
     }
-    paint_brush_set_from_asset_reference(bmain, *r_paint);
+    paint_brush_update_from_asset_reference(bmain, *r_paint);
     paint_eraser_brush_set_from_asset_reference(bmain, *r_paint);
     return true;
   }
@@ -1437,7 +1775,17 @@ void BKE_paint_free(Paint *paint)
 {
   BKE_curvemapping_free(paint->cavity_curve);
   MEM_delete(paint->brush_asset_reference);
+  MEM_delete(paint->tool_brush_bindings.main_brush_asset_reference);
   MEM_delete(paint->eraser_brush_asset_reference);
+
+  LISTBASE_FOREACH_MUTABLE (NamedBrushAssetReference *,
+                            brush_ref,
+                            &paint->tool_brush_bindings.active_brush_per_brush_type)
+  {
+    MEM_delete(brush_ref->name);
+    MEM_delete(brush_ref->brush_asset_reference);
+    MEM_delete(brush_ref);
+  }
 }
 
 void BKE_paint_copy(const Paint *src, Paint *dst, const int flag)
@@ -1449,9 +1797,22 @@ void BKE_paint_copy(const Paint *src, Paint *dst, const int flag)
     dst->brush_asset_reference = MEM_new<AssetWeakReference>(__func__,
                                                              *src->brush_asset_reference);
   }
+  if (src->tool_brush_bindings.main_brush_asset_reference) {
+    dst->tool_brush_bindings.main_brush_asset_reference = MEM_new<AssetWeakReference>(
+        __func__, *src->tool_brush_bindings.main_brush_asset_reference);
+  }
   if (src->eraser_brush_asset_reference) {
     dst->eraser_brush_asset_reference = MEM_new<AssetWeakReference>(
         __func__, *src->eraser_brush_asset_reference);
+  }
+  BLI_duplicatelist(&dst->tool_brush_bindings.active_brush_per_brush_type,
+                    &src->tool_brush_bindings.active_brush_per_brush_type);
+  LISTBASE_FOREACH (
+      NamedBrushAssetReference *, brush_ref, &dst->tool_brush_bindings.active_brush_per_brush_type)
+  {
+    brush_ref->name = BLI_strdup(brush_ref->name);
+    brush_ref->brush_asset_reference = MEM_new<AssetWeakReference>(
+        __func__, *brush_ref->brush_asset_reference);
   }
 
   if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
@@ -1482,6 +1843,25 @@ void BKE_paint_blend_write(BlendWriter *writer, Paint *paint)
   if (paint->eraser_brush_asset_reference) {
     BKE_asset_weak_reference_write(writer, paint->eraser_brush_asset_reference);
   }
+
+  {
+    /* Write tool system bindings. */
+    ToolSystemBrushBindings &tool_brush_bindings = paint->tool_brush_bindings;
+
+    if (tool_brush_bindings.main_brush_asset_reference) {
+      BKE_asset_weak_reference_write(writer, tool_brush_bindings.main_brush_asset_reference);
+    }
+    BLO_write_struct_list(
+        writer, NamedBrushAssetReference, &tool_brush_bindings.active_brush_per_brush_type);
+    LISTBASE_FOREACH (
+        NamedBrushAssetReference *, brush_ref, &tool_brush_bindings.active_brush_per_brush_type)
+    {
+      BLO_write_string(writer, brush_ref->name);
+      if (brush_ref->brush_asset_reference) {
+        BKE_asset_weak_reference_write(writer, brush_ref->brush_asset_reference);
+      }
+    }
+  }
 }
 
 void BKE_paint_blend_read_data(BlendDataReader *reader, const Scene *scene, Paint *paint)
@@ -1498,10 +1878,32 @@ void BKE_paint_blend_read_data(BlendDataReader *reader, const Scene *scene, Pain
   if (paint->brush_asset_reference) {
     BKE_asset_weak_reference_read(reader, paint->brush_asset_reference);
   }
-
   BLO_read_struct(reader, AssetWeakReference, &paint->eraser_brush_asset_reference);
   if (paint->eraser_brush_asset_reference) {
     BKE_asset_weak_reference_read(reader, paint->eraser_brush_asset_reference);
+  }
+
+  {
+    /* Read tool system bindings. */
+    ToolSystemBrushBindings &tool_brush_bindings = paint->tool_brush_bindings;
+
+    BLO_read_struct(reader, AssetWeakReference, &tool_brush_bindings.main_brush_asset_reference);
+    if (tool_brush_bindings.main_brush_asset_reference) {
+      BKE_asset_weak_reference_read(reader, tool_brush_bindings.main_brush_asset_reference);
+    }
+
+    BLO_read_struct_list(
+        reader, NamedBrushAssetReference, &tool_brush_bindings.active_brush_per_brush_type);
+    LISTBASE_FOREACH (
+        NamedBrushAssetReference *, brush_ref, &tool_brush_bindings.active_brush_per_brush_type)
+    {
+      BLO_read_string(reader, &brush_ref->name);
+
+      BLO_read_struct(reader, AssetWeakReference, &brush_ref->brush_asset_reference);
+      if (brush_ref->brush_asset_reference) {
+        BKE_asset_weak_reference_read(reader, brush_ref->brush_asset_reference);
+      }
+    }
   }
 
   paint->paint_cursor = nullptr;

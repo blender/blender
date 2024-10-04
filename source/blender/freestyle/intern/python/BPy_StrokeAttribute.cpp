@@ -28,8 +28,7 @@ int StrokeAttribute_Init(PyObject *module)
   if (PyType_Ready(&StrokeAttribute_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&StrokeAttribute_Type);
-  PyModule_AddObject(module, "StrokeAttribute", (PyObject *)&StrokeAttribute_Type);
+  PyModule_AddObjectRef(module, "StrokeAttribute", (PyObject *)&StrokeAttribute_Type);
 
   StrokeAttribute_mathutils_register_callback();
   return 0;

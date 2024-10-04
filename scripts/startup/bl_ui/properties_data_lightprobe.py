@@ -198,8 +198,6 @@ class DATA_PT_lightprobe_bake(DataButtonsPanel, Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        probe = context.lightprobe
-
         col = layout.column()
         row = col.row(align=True)
         row.operator("object.lightprobe_cache_bake").subset = 'ACTIVE'
@@ -387,7 +385,7 @@ class DATA_PT_lightprobe_animation(DataButtonsPanel, PropertiesAnimationMixin, P
         'BLENDER_EEVEE_NEXT',
         'BLENDER_EEVEE',
     }
-    _animated_id_context_property = 'lightprobe'
+    _animated_id_context_property = "lightprobe"
 
 
 classes = (

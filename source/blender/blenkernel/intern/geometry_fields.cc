@@ -35,6 +35,12 @@ CurvesFieldContext::CurvesFieldContext(const CurvesGeometry &curves, const AttrD
   BLI_assert(curves.attributes().domain_supported(domain));
 }
 
+CurvesFieldContext::CurvesFieldContext(const Curves &curves_id, const AttrDomain domain)
+    : CurvesFieldContext(curves_id.geometry.wrap(), domain)
+{
+  curves_id_ = &curves_id;
+}
+
 GVArray GreasePencilLayerFieldContext::get_varray_for_input(const fn::FieldInput &field_input,
                                                             const IndexMask &mask,
                                                             ResourceScope &scope) const
@@ -43,7 +49,7 @@ GVArray GreasePencilLayerFieldContext::get_varray_for_input(const fn::FieldInput
           &field_input))
   {
     if (const bke::greasepencil::Drawing *drawing = this->grease_pencil().get_eval_drawing(
-            *this->grease_pencil().layer(this->layer_index())))
+            this->grease_pencil().layer(this->layer_index())))
     {
       if (drawing->strokes().attributes().domain_supported(this->domain())) {
         const CurvesFieldContext context{drawing->strokes(), this->domain()};
@@ -60,6 +66,7 @@ GeometryFieldContext::GeometryFieldContext(const GeometryFieldContext &other,
     : geometry_(other.geometry_),
       type_(other.type_),
       domain_(domain),
+      curves_id_(other.curves_id_),
       grease_pencil_layer_index_(other.grease_pencil_layer_index_)
 {
 }
@@ -95,6 +102,7 @@ GeometryFieldContext::GeometryFieldContext(const GeometryComponent &component,
       const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
       const Curves *curves = curve_component.get();
       geometry_ = curves ? &curves->geometry.wrap() : nullptr;
+      curves_id_ = curve_component.get();
       break;
     }
     case GeometryComponent::Type::PointCloud: {
@@ -130,6 +138,13 @@ GeometryFieldContext::GeometryFieldContext(const Mesh &mesh, AttrDomain domain)
 }
 GeometryFieldContext::GeometryFieldContext(const CurvesGeometry &curves, AttrDomain domain)
     : geometry_(&curves), type_(GeometryComponent::Type::Curve), domain_(domain)
+{
+}
+GeometryFieldContext::GeometryFieldContext(const Curves &curves_id, AttrDomain domain)
+    : geometry_(&curves_id.geometry.wrap()),
+      type_(GeometryComponent::Type::Curve),
+      domain_(domain),
+      curves_id_(&curves_id)
 {
 }
 GeometryFieldContext::GeometryFieldContext(const PointCloud &points)
@@ -174,7 +189,7 @@ std::optional<AttributeAccessor> GeometryFieldContext::attributes() const
       return grease_pencil->attributes();
     }
     if (const greasepencil::Drawing *drawing = grease_pencil->get_eval_drawing(
-            *grease_pencil->layer(grease_pencil_layer_index_)))
+            grease_pencil->layer(grease_pencil_layer_index_)))
     {
       return drawing->strokes().attributes();
     }
@@ -216,7 +231,7 @@ const greasepencil::Drawing *GeometryFieldContext::grease_pencil_layer_drawing()
     return nullptr;
   }
   return this->grease_pencil()->get_eval_drawing(
-      *this->grease_pencil()->layer(this->grease_pencil_layer_index_));
+      this->grease_pencil()->layer(this->grease_pencil_layer_index_));
 }
 const CurvesGeometry *GeometryFieldContext::curves_or_strokes() const
 {
@@ -227,6 +242,10 @@ const CurvesGeometry *GeometryFieldContext::curves_or_strokes() const
     return &drawing->strokes();
   }
   return nullptr;
+}
+const Curves *GeometryFieldContext::curves_id() const
+{
+  return curves_id_;
 }
 const Instances *GeometryFieldContext::instances() const
 {
@@ -249,6 +268,9 @@ GVArray GeometryFieldInput::get_varray_for_context(const fn::FieldContext &conte
   }
   if (const CurvesFieldContext *curve_context = dynamic_cast<const CurvesFieldContext *>(&context))
   {
+    if (const Curves *curves_id = curve_context->curves_id()) {
+      return this->get_varray_for_context({*curves_id, curve_context->domain()}, mask);
+    }
     return this->get_varray_for_context({curve_context->curves(), curve_context->domain()}, mask);
   }
   if (const PointCloudFieldContext *point_context = dynamic_cast<const PointCloudFieldContext *>(
@@ -520,23 +542,23 @@ GVArray NamedLayerSelectionFieldInput::get_varray_for_context(
     return {};
   }
 
-  IndexMaskMemory memory;
-  const IndexMask layer_indices = grease_pencil.layer_selection_by_name(layer_name_, memory);
-  if (layer_indices.is_empty()) {
-    return {};
+  auto layer_is_selected = [selection_name = StringRef(layer_name_),
+                            &grease_pencil,
+                            size = mask.min_array_size()](const int layer_i) {
+    if (layer_i < 0 || layer_i >= grease_pencil.layers().size()) {
+      return false;
+    }
+    const Layer &layer = grease_pencil.layer(layer_i);
+    return layer.name() == selection_name;
+  };
+
+  if (ELEM(domain, AttrDomain::Point, AttrDomain::Curve)) {
+    const int layer_i = context.grease_pencil_layer_index();
+    const bool selected = layer_is_selected(layer_i);
+    return VArray<bool>::ForSingle(selected, mask.min_array_size());
   }
 
-  if (domain == AttrDomain::Layer) {
-    Array<bool> selection(mask.min_array_size());
-    layer_indices.to_bools(selection);
-    return VArray<bool>::ForContainer(std::move(selection));
-  }
-
-  if (!layer_indices.contains(context.grease_pencil_layer_index())) {
-    return {};
-  }
-
-  return VArray<bool>::ForSingle(true, mask.min_array_size());
+  return VArray<bool>::ForFunc(mask.min_array_size(), layer_is_selected);
 }
 
 uint64_t NamedLayerSelectionFieldInput::hash() const
@@ -902,7 +924,7 @@ bool try_capture_fields_on_geometry(GeometryComponent &component,
     threading::parallel_for(grease_pencil->layers().index_range(), 8, [&](const IndexRange range) {
       for (const int layer_index : range) {
         if (greasepencil::Drawing *drawing = grease_pencil->get_eval_drawing(
-                *grease_pencil->layer(layer_index)))
+                grease_pencil->layer(layer_index)))
         {
           const GeometryFieldContext field_context{*grease_pencil, domain, layer_index};
           const bool success = try_capture_fields_on_geometry(

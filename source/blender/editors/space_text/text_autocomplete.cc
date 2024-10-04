@@ -521,9 +521,9 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
     ED_area_tag_redraw(area);
   }
 
-  //  if (swallow) {
-  //      retval = OPERATOR_RUNNING_MODAL;
-  //  }
+  if (swallow) {
+    // retval = OPERATOR_RUNNING_MODAL;
+  }
 
   if (texttool_suggest_first()) {
     if (retval != OPERATOR_RUNNING_MODAL) {

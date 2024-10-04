@@ -98,6 +98,18 @@ Sequence *SEQ_add_sound_strip(Main *bmain,
                               Scene *scene,
                               ListBase *seqbase,
                               SeqLoadData *load_data);
+
+/**
+ * Sync up the sound strip 'seq' with the video data in 'load_data'.
+ * This is intended to be used after adding a movie strip and you want to make sure that the audio
+ * track is properly synced up with the video.
+ *
+ * \param bmain: Main reference
+ * \param scene: Scene where the sound strip is located
+ * \param seq: The sound strip that will be synced
+ * \param load_data: SeqLoadData with information necessary to sync the sound strip
+ */
+void SEQ_add_sound_av_sync(Main *bmain, Scene *scene, Sequence *seq, SeqLoadData *load_data);
 /**
  * Add meta strip.
  *

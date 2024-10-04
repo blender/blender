@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 
 #include "BKE_geometry_set.hh"
 

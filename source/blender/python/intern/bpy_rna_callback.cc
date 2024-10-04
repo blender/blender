@@ -11,8 +11,8 @@
 
 #include <Python.h>
 
-#include "../generic/py_capi_rna.h"
-#include "../generic/python_utildefines.h"
+#include "../generic/py_capi_rna.hh"
+#include "../generic/python_utildefines.hh"
 
 #include "DNA_space_types.h"
 
@@ -26,11 +26,11 @@
 
 #include "ED_space_api.hh"
 
-#include "BPY_extern.h" /* For public API. */
+#include "BPY_extern.hh" /* For public API. */
 
-#include "bpy_capi_utils.h"
-#include "bpy_rna.h"
-#include "bpy_rna_callback.h" /* Own include. */
+#include "bpy_capi_utils.hh"
+#include "bpy_rna.hh"
+#include "bpy_rna_callback.hh" /* Own include. */
 
 /* Use this to stop other capsules from being mis-used. */
 static const char *rna_capsual_id = "RNA_HANDLE";

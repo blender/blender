@@ -12,7 +12,7 @@
 #  include <shlobj_core.h>
 #  include <wrl.h>
 
-#  include "BLI_path_util.h"
+#  include "BLI_path_utils.hh"
 #  include "BLI_winstuff.h"
 #  include "BLI_winstuff_com.hh"
 

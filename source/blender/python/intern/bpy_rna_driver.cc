@@ -20,9 +20,9 @@
 
 #include "RNA_access.hh"
 
-#include "bpy_rna.h"
+#include "bpy_rna.hh"
 
-#include "bpy_rna_driver.h" /* own include */
+#include "bpy_rna_driver.hh" /* own include */
 
 PyObject *pyrna_driver_get_variable_value(const AnimationEvalContext *anim_eval_context,
                                           ChannelDriver *driver,

@@ -83,3 +83,7 @@ void GPU_render_end();
 /* For operations which need to run exactly once per frame -- even if there are no render updates.
  */
 void GPU_render_step();
+
+/* For when we need access to a system context in order to create a GPU context. */
+void GPU_backend_ghost_system_set(void *ghost_system_handle);
+void *GPU_backend_ghost_system_get();

@@ -83,7 +83,7 @@ static void displayed_channel_range_get(const SeqChannelDrawContext *context,
   BLI_rctf_init(&strip_boundbox, 0.0f, 0.0f, 1.0f, r_channel_range[1]);
   SEQ_timeline_expand_boundbox(context->scene, context->seqbase, &strip_boundbox);
   CLAMP(r_channel_range[0], strip_boundbox.ymin, strip_boundbox.ymax);
-  CLAMP(r_channel_range[1], strip_boundbox.ymin, MAXSEQ);
+  CLAMP(r_channel_range[1], strip_boundbox.ymin, SEQ_MAX_CHANNELS);
 }
 
 static std::string draw_channel_widget_tooltip(bContext * /*C*/, void *argN, const char * /*tip*/)
@@ -261,18 +261,6 @@ static void draw_channel_labels(const SeqChannelDrawContext *context,
   }
 }
 
-/* TODO: different text/buttons alignment. */
-static void draw_channel_header(const SeqChannelDrawContext *context,
-                                uiBlock *block,
-                                const int channel_index)
-{
-  float offset = icon_width_get(context) * 1.5f;
-  offset += draw_channel_widget_lock(context, block, channel_index, offset);
-  offset += draw_channel_widget_mute(context, block, channel_index, offset);
-
-  draw_channel_labels(context, block, channel_index, offset);
-}
-
 static void draw_channel_headers(const SeqChannelDrawContext *context)
 {
   GPU_matrix_push();
@@ -283,8 +271,18 @@ static void draw_channel_headers(const SeqChannelDrawContext *context)
   int channel_range[2];
   displayed_channel_range_get(context, channel_range);
 
+  const float icon_width = icon_width_get(context);
+  const float offset_lock = icon_width * 1.5f;
+  const float offset_mute = icon_width * 2.5f;
+  const float offset_width = icon_width * 3.5f;
+  /* Draw widgets separately from text labels so they are batched together,
+   * instead of alternating between two fonts (regular and SVG/icons). */
   for (int channel = channel_range[0]; channel <= channel_range[1]; channel++) {
-    draw_channel_header(context, block, channel);
+    draw_channel_widget_lock(context, block, channel, offset_lock);
+    draw_channel_widget_mute(context, block, channel, offset_mute);
+  }
+  for (int channel = channel_range[0]; channel <= channel_range[1]; channel++) {
+    draw_channel_labels(context, block, channel, offset_width);
   }
 
   UI_block_end(context->C, block);

@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 void workbench_material_data_get(int handle,
                                  vec3 vertex_color,
                                  out vec3 color,

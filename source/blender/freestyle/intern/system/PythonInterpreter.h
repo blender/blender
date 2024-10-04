@@ -19,9 +19,9 @@
 #include "BKE_main.hh"
 #include "BKE_text.h"
 
-#include "BPY_extern_run.h"
+#include "BPY_extern_run.hh"
 
-#include "bpy_capi_utils.h"
+#include "bpy_capi_utils.hh"
 
 namespace Freestyle {
 

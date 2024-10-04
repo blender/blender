@@ -1205,13 +1205,16 @@ void animrecord_check_state(TransInfo *t, ID *id)
           /* TODO: call BKE_nla_action_pushdown() instead?  */
 
           /* Add a new NLA strip to the track, which references the active action + slot.*/
-          NlaStrip *strip = BKE_nlastack_add_strip(
-              {*id, *adt}, adt->action, ID_IS_OVERRIDE_LIBRARY(id));
+          NlaStrip *strip = BKE_nlastack_add_strip({*id, *adt}, ID_IS_OVERRIDE_LIBRARY(id));
           BLI_assert(strip);
           animrig::nla::assign_action_slot_handle(*strip, adt->slot_handle, *id);
 
           /* Clear reference to action now that we've pushed it onto the stack. */
-          animrig::unassign_action(*id);
+          const bool unassign_ok = animrig::unassign_action(*id);
+          BLI_assert_msg(
+              unassign_ok,
+              "Expecting un-assigning an action to always work when pushing down an NLA strip");
+          UNUSED_VARS_NDEBUG(unassign_ok);
 
           /* Adjust blending + extend so that they will behave correctly. */
           strip->extendmode = NLASTRIP_EXTEND_NOTHING;

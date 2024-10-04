@@ -24,7 +24,7 @@ from os.path import splitext
 
 SKIP_DIRS = (
     "extern",
-    # Not this directory.
+    "lib",
     "tests",
 )
 

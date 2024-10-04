@@ -6,7 +6,7 @@
 /** \file
  * \ingroup bgpencil
  */
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 
 #include "gpencil_io_export_base.hh"
 #include "pugixml.hpp"

@@ -23,17 +23,51 @@ namespace blender::nodes::node_geo_boolean_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Mesh 1").only_realized_data().supported_type(
+  const bNode *node = b.node_or_null();
+
+  auto &first_geometry = b.add_input<decl::Geometry>("Mesh 1").only_realized_data().supported_type(
       GeometryComponent::Type::Mesh);
-  b.add_input<decl::Geometry>("Mesh 2")
-      .supported_type(GeometryComponent::Type::Mesh)
-      .multi_input();
+
+  if (node != nullptr) {
+    switch (geometry::boolean::Operation(node->custom1)) {
+      case geometry::boolean::Operation::Intersect:
+      case geometry::boolean::Operation::Union:
+        b.add_input<decl::Geometry>("Mesh", "Mesh 2")
+            .supported_type(GeometryComponent::Type::Mesh)
+            .multi_input();
+        break;
+      case geometry::boolean::Operation::Difference:
+        b.add_input<decl::Geometry>("Mesh 2")
+            .supported_type(GeometryComponent::Type::Mesh)
+            .multi_input();
+        break;
+    }
+  }
+
   b.add_input<decl::Bool>("Self Intersection");
   b.add_input<decl::Bool>("Hole Tolerant");
   b.add_output<decl::Geometry>("Mesh").propagate_all();
-  b.add_output<decl::Bool>("Intersecting Edges").field_on_all().make_available([](bNode &node) {
-    node.custom2 = int16_t(geometry::boolean::Solver::MeshArr);
-  });
+  auto &output_edges = b.add_output<decl::Bool>("Intersecting Edges")
+                           .field_on_all()
+                           .make_available([](bNode &node) {
+                             node.custom2 = int16_t(geometry::boolean::Solver::MeshArr);
+                           });
+
+  if (node != nullptr) {
+    const auto operation = geometry::boolean::Operation(node->custom1);
+    const auto solver = geometry::boolean::Solver(node->custom2);
+
+    output_edges.available(solver == geometry::boolean::Solver::MeshArr);
+
+    switch (operation) {
+      case geometry::boolean::Operation::Intersect:
+      case geometry::boolean::Operation::Union:
+        first_geometry.available(false);
+        break;
+      case geometry::boolean::Operation::Difference:
+        break;
+    }
+  }
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -45,32 +79,6 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 struct AttributeOutputs {
   std::optional<std::string> intersecting_edges_id;
 };
-
-static void node_update(bNodeTree *ntree, bNode *node)
-{
-  const geometry::boolean::Operation operation = geometry::boolean::Operation(node->custom1);
-  const geometry::boolean::Solver solver = geometry::boolean::Solver(node->custom2);
-
-  bNodeSocket *geometry_1_socket = static_cast<bNodeSocket *>(node->inputs.first);
-  bNodeSocket *geometry_2_socket = geometry_1_socket->next;
-
-  bNodeSocket *intersecting_edges_socket = static_cast<bNodeSocket *>(node->outputs.last);
-
-  switch (operation) {
-    case geometry::boolean::Operation::Intersect:
-    case geometry::boolean::Operation::Union:
-      bke::node_set_socket_availability(ntree, geometry_1_socket, false);
-      node_sock_label(geometry_2_socket, "Mesh");
-      break;
-    case geometry::boolean::Operation::Difference:
-      bke::node_set_socket_availability(ntree, geometry_1_socket, true);
-      node_sock_label(geometry_2_socket, "Mesh 2");
-      break;
-  }
-
-  bke::node_set_socket_availability(
-      ntree, intersecting_edges_socket, solver == geometry::boolean::Solver::MeshArr);
-}
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
@@ -285,7 +293,6 @@ static void node_register()
   geo_node_type_base(&ntype, GEO_NODE_MESH_BOOLEAN, "Mesh Boolean", NODE_CLASS_GEOMETRY);
   ntype.declare = node_declare;
   ntype.draw_buttons = node_layout;
-  ntype.updatefunc = node_update;
   ntype.initfunc = node_init;
   ntype.geometry_node_execute = node_geo_exec;
   blender::bke::node_register_type(&ntype);

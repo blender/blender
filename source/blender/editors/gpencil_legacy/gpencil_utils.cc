@@ -609,7 +609,7 @@ void gpencil_point_conversion_init(bContext *C, GP_SpaceConversion *r_gsc)
     /* for camera view set the subrect */
     if (rv3d->persp == RV3D_CAMOB) {
       ED_view3d_calc_camera_border(
-          scene, depsgraph, region, v3d, rv3d, &r_gsc->subrect_data, true);
+          scene, depsgraph, region, v3d, rv3d, true, &r_gsc->subrect_data);
       r_gsc->subrect = &r_gsc->subrect_data;
     }
   }

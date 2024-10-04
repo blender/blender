@@ -124,6 +124,31 @@ ShaderModule::ShaderModule(const SelectionType selection_type, const bool clippi
 {
   /** Shaders */
 
+  attribute_viewer_mesh = shader(
+      "overlay_viewer_attribute_mesh", [](gpu::shader::ShaderCreateInfo &info) {
+        info.additional_infos_.clear();
+        info.additional_info("overlay_viewer_attribute_common", "draw_view", "draw_modelmat_new");
+      });
+  attribute_viewer_pointcloud = shader("overlay_viewer_attribute_pointcloud",
+                                       [](gpu::shader::ShaderCreateInfo &info) {
+                                         info.additional_infos_.clear();
+                                         info.additional_info("overlay_viewer_attribute_common",
+                                                              "draw_pointcloud_new",
+                                                              "draw_view",
+                                                              "draw_modelmat_new");
+                                       });
+  attribute_viewer_curve = shader(
+      "overlay_viewer_attribute_curve", [](gpu::shader::ShaderCreateInfo &info) {
+        info.additional_infos_.clear();
+        info.additional_info("overlay_viewer_attribute_common", "draw_view", "draw_modelmat_new");
+      });
+  attribute_viewer_curves = shader(
+      "overlay_viewer_attribute_curves", [](gpu::shader::ShaderCreateInfo &info) {
+        info.additional_infos_.clear();
+        info.additional_info(
+            "overlay_viewer_attribute_common", "draw_hair_new", "draw_view", "draw_modelmat_new");
+      });
+
   armature_degrees_of_freedom = shader(
       "overlay_armature_dof", [](gpu::shader::ShaderCreateInfo &info) {
         info.storage_buf(0, Qualifier::READ, "ExtraInstanceData", "data_buf[]");
@@ -138,9 +163,6 @@ ShaderModule::ShaderModule(const SelectionType selection_type, const bool clippi
       [](gpu::shader::ShaderCreateInfo &info) { shader_patch_common(info); });
   curve_edit_line = shader("overlay_edit_particle_strand",
                            [](gpu::shader::ShaderCreateInfo &info) { shader_patch_common(info); });
-  curve_edit_handles = shader(
-      "overlay_edit_curves_handle",
-      [](gpu::shader::ShaderCreateInfo &info) { shader_patch_common(info); });
 
   extra_point = shader("overlay_extra_point", [](gpu::shader::ShaderCreateInfo &info) {
     info.additional_infos_.clear();

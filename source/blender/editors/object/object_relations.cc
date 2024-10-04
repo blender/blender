@@ -760,7 +760,7 @@ bool parent_set(ReportList *reports,
       ed::greasepencil::add_armature_envelope_weights(*scene, *ob, *par);
     }
     else if (partype == PAR_ARMATURE_AUTO) {
-      /* TODO. */
+      ed::greasepencil::add_armature_automatic_weights(*scene, *ob, *par);
     }
     /* get corrected inverse */
     ob->partype = PAROBJECT;

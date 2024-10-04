@@ -38,69 +38,60 @@ int Iterator_Init(PyObject *module)
   if (PyType_Ready(&Iterator_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&Iterator_Type);
-  PyModule_AddObject(module, "Iterator", (PyObject *)&Iterator_Type);
+  PyModule_AddObjectRef(module, "Iterator", (PyObject *)&Iterator_Type);
 
   if (PyType_Ready(&AdjacencyIterator_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&AdjacencyIterator_Type);
-  PyModule_AddObject(module, "AdjacencyIterator", (PyObject *)&AdjacencyIterator_Type);
+  PyModule_AddObjectRef(module, "AdjacencyIterator", (PyObject *)&AdjacencyIterator_Type);
 
   if (PyType_Ready(&Interface0DIterator_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&Interface0DIterator_Type);
-  PyModule_AddObject(module, "Interface0DIterator", (PyObject *)&Interface0DIterator_Type);
+  PyModule_AddObjectRef(module, "Interface0DIterator", (PyObject *)&Interface0DIterator_Type);
 
   if (PyType_Ready(&CurvePointIterator_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&CurvePointIterator_Type);
-  PyModule_AddObject(module, "CurvePointIterator", (PyObject *)&CurvePointIterator_Type);
+  PyModule_AddObjectRef(module, "CurvePointIterator", (PyObject *)&CurvePointIterator_Type);
 
   if (PyType_Ready(&StrokeVertexIterator_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&StrokeVertexIterator_Type);
-  PyModule_AddObject(module, "StrokeVertexIterator", (PyObject *)&StrokeVertexIterator_Type);
+  PyModule_AddObjectRef(module, "StrokeVertexIterator", (PyObject *)&StrokeVertexIterator_Type);
 
   if (PyType_Ready(&SVertexIterator_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&SVertexIterator_Type);
-  PyModule_AddObject(module, "SVertexIterator", (PyObject *)&SVertexIterator_Type);
+  PyModule_AddObjectRef(module, "SVertexIterator", (PyObject *)&SVertexIterator_Type);
 
   if (PyType_Ready(&orientedViewEdgeIterator_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&orientedViewEdgeIterator_Type);
-  PyModule_AddObject(
+  PyModule_AddObjectRef(
       module, "orientedViewEdgeIterator", (PyObject *)&orientedViewEdgeIterator_Type);
 
   if (PyType_Ready(&ViewEdgeIterator_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&ViewEdgeIterator_Type);
-  PyModule_AddObject(module, "ViewEdgeIterator", (PyObject *)&ViewEdgeIterator_Type);
+  PyModule_AddObjectRef(module, "ViewEdgeIterator", (PyObject *)&ViewEdgeIterator_Type);
 
   if (PyType_Ready(&ChainingIterator_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&ChainingIterator_Type);
-  PyModule_AddObject(module, "ChainingIterator", (PyObject *)&ChainingIterator_Type);
+  PyModule_AddObjectRef(module, "ChainingIterator", (PyObject *)&ChainingIterator_Type);
 
   if (PyType_Ready(&ChainPredicateIterator_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&ChainPredicateIterator_Type);
-  PyModule_AddObject(module, "ChainPredicateIterator", (PyObject *)&ChainPredicateIterator_Type);
+  PyModule_AddObjectRef(
+      module, "ChainPredicateIterator", (PyObject *)&ChainPredicateIterator_Type);
 
   if (PyType_Ready(&ChainSilhouetteIterator_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&ChainSilhouetteIterator_Type);
-  PyModule_AddObject(module, "ChainSilhouetteIterator", (PyObject *)&ChainSilhouetteIterator_Type);
+  PyModule_AddObjectRef(
+      module, "ChainSilhouetteIterator", (PyObject *)&ChainSilhouetteIterator_Type);
 
   return 0;
 }

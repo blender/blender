@@ -40,6 +40,8 @@ thiprtBuildScene *hiprtBuildScene;
 thiprtGetSceneBuildTemporaryBufferSize *hiprtGetSceneBuildTemporaryBufferSize;
 thiprtCreateFuncTable *hiprtCreateFuncTable;
 thiprtSetFuncTable *hiprtSetFuncTable;
+thiprtCreateGlobalStackBuffer *hiprtCreateGlobalStackBuffer;
+thiprtDestroyGlobalStackBuffer *hiprtDestroyGlobalStackBuffer;
 thiprtDestroyFuncTable *hiprtDestroyFuncTable;
 thiprtSetLogLevel *hiprtSetLogLevel;
 
@@ -61,15 +63,17 @@ bool hiprtewInit()
     return result;
   }
 
-#ifdef _WIN32
   initialized = true;
 
   if (atexit(hipewHipRtExit)) {
     return false;
   }
 
-  std::string hiprt_ver(HIPRT_VERSION_STR);
-  std::string hiprt_path = "hiprt" + hiprt_ver + "64.dll";
+#ifdef _WIN32
+  std::string hiprt_path = "hiprt64.dll";
+#else
+  std::string hiprt_path = "libhiprt64.so";
+#endif
 
   hiprt_lib = dynamic_library_open(hiprt_path.c_str());
 
@@ -89,11 +93,12 @@ bool hiprtewInit()
   HIPRT_LIBRARY_FIND(hiprtGetSceneBuildTemporaryBufferSize)
   HIPRT_LIBRARY_FIND(hiprtCreateFuncTable)
   HIPRT_LIBRARY_FIND(hiprtSetFuncTable)
+  HIPRT_LIBRARY_FIND(hiprtCreateGlobalStackBuffer)
   HIPRT_LIBRARY_FIND(hiprtDestroyFuncTable)
+  HIPRT_LIBRARY_FIND(hiprtDestroyGlobalStackBuffer)
   HIPRT_LIBRARY_FIND(hiprtSetLogLevel)
 
   result = true;
-#endif
 
   return result;
 }

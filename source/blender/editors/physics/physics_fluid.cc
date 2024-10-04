@@ -18,7 +18,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 

@@ -4,6 +4,13 @@
 
 #pragma once
 
+#include "kernel/closure/volume_util.h"
+
+#include "kernel/closure/volume_draine.h"
+#include "kernel/closure/volume_fournier_forand.h"
+#include "kernel/closure/volume_henyey_greenstein.h"
+#include "kernel/closure/volume_rayleigh.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* VOLUME EXTINCTION */
@@ -19,110 +26,27 @@ ccl_device void volume_extinction_setup(ccl_private ShaderData *sd, Spectrum wei
   }
 }
 
-/* HENYEY-GREENSTEIN CLOSURE */
-
-typedef struct HenyeyGreensteinVolume {
-  SHADER_CLOSURE_BASE;
-
-  float g;
-} HenyeyGreensteinVolume;
-
-static_assert(sizeof(ShaderClosure) >= sizeof(HenyeyGreensteinVolume),
-              "HenyeyGreensteinVolume is too large!");
-
-/* Given cosine between rays, return probability density that a photon bounces
- * to that direction. The g parameter controls how different it is from the
- * uniform sphere. g=0 uniform diffuse-like, g=1 close to sharp single ray. */
-ccl_device float single_peaked_henyey_greenstein(float cos_theta, float g)
-{
-  return ((1.0f - g * g) / safe_powf(1.0f + g * g - 2.0f * g * cos_theta, 1.5f)) *
-         (M_1_PI_F * 0.25f);
-};
-
-ccl_device int volume_henyey_greenstein_setup(ccl_private HenyeyGreensteinVolume *volume)
-{
-  volume->type = CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID;
-
-  /* clamp anisotropy to avoid delta function */
-  volume->g = signf(volume->g) * min(fabsf(volume->g), 1.0f - 1e-3f);
-
-  return SD_SCATTER;
-}
-
-ccl_device Spectrum volume_henyey_greenstein_eval_phase(ccl_private const ShaderVolumeClosure *svc,
-                                                        const float3 wi,
-                                                        float3 wo,
-                                                        ccl_private float *pdf)
-{
-  float g = svc->g;
-
-  /* note that wi points towards the viewer */
-  if (fabsf(g) < 1e-3f) {
-    *pdf = M_1_PI_F * 0.25f;
-  }
-  else {
-    float cos_theta = dot(-wi, wo);
-    *pdf = single_peaked_henyey_greenstein(cos_theta, g);
-  }
-
-  return make_spectrum(*pdf);
-}
-
-ccl_device float3 henyey_greenstrein_sample(float3 D, float g, float2 rand, ccl_private float *pdf)
-{
-  /* match pdf for small g */
-  float cos_theta;
-  bool isotropic = fabsf(g) < 1e-3f;
-
-  if (isotropic) {
-    cos_theta = (1.0f - 2.0f * rand.x);
-    if (pdf) {
-      *pdf = M_1_PI_F * 0.25f;
-    }
-  }
-  else {
-    float k = (1.0f - g * g) / (1.0f - g + 2.0f * g * rand.x);
-    cos_theta = (1.0f + g * g - k * k) / (2.0f * g);
-    if (pdf) {
-      *pdf = single_peaked_henyey_greenstein(cos_theta, g);
-    }
-  }
-
-  float sin_theta = sin_from_cos(cos_theta);
-  float phi = M_2PI_F * rand.y;
-  float3 dir = make_float3(sin_theta * cosf(phi), sin_theta * sinf(phi), cos_theta);
-
-  float3 T, B;
-  make_orthonormals(D, &T, &B);
-  dir = dir.x * T + dir.y * B + dir.z * D;
-
-  return dir;
-}
-
-ccl_device int volume_henyey_greenstein_sample(ccl_private const ShaderVolumeClosure *svc,
-                                               float3 wi,
-                                               float2 rand,
-                                               ccl_private Spectrum *eval,
-                                               ccl_private float3 *wo,
-                                               ccl_private float *pdf)
-{
-  float g = svc->g;
-
-  /* note that wi points towards the viewer and so is used negated */
-  *wo = henyey_greenstrein_sample(-wi, g, rand, pdf);
-  *eval = make_spectrum(*pdf); /* perfect importance sampling */
-
-  return LABEL_VOLUME_SCATTER;
-}
-
-/* VOLUME CLOSURE */
+/* VOLUME SCATTERING */
 
 ccl_device Spectrum volume_phase_eval(ccl_private const ShaderData *sd,
                                       ccl_private const ShaderVolumeClosure *svc,
                                       float3 wo,
                                       ccl_private float *pdf)
 {
-  return volume_henyey_greenstein_eval_phase(svc, sd->wi, wo, pdf);
+  switch (svc->type) {
+    case CLOSURE_VOLUME_FOURNIER_FORAND_ID:
+      return volume_fournier_forand_eval(sd, svc, wo, pdf);
+    case CLOSURE_VOLUME_RAYLEIGH_ID:
+      return volume_rayleigh_eval(sd, wo, pdf);
+    case CLOSURE_VOLUME_DRAINE_ID:
+      return volume_draine_eval(sd, svc, wo, pdf);
+    case CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID:
+      return volume_henyey_greenstein_eval(sd, svc, wo, pdf);
+    default:
+      kernel_assert(false);
+      *pdf = 0.0f;
+      return zero_spectrum();
+  }
 }
 
 ccl_device int volume_phase_sample(ccl_private const ShaderData *sd,
@@ -132,7 +56,71 @@ ccl_device int volume_phase_sample(ccl_private const ShaderData *sd,
                                    ccl_private float3 *wo,
                                    ccl_private float *pdf)
 {
-  return volume_henyey_greenstein_sample(svc, sd->wi, rand, eval, wo, pdf);
+  switch (svc->type) {
+    case CLOSURE_VOLUME_FOURNIER_FORAND_ID:
+      return volume_fournier_forand_sample(sd, svc, rand, eval, wo, pdf);
+    case CLOSURE_VOLUME_RAYLEIGH_ID:
+      return volume_rayleigh_sample(sd, rand, eval, wo, pdf);
+    case CLOSURE_VOLUME_DRAINE_ID:
+      return volume_draine_sample(sd, svc, rand, eval, wo, pdf);
+    case CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID:
+      return volume_henyey_greenstein_sample(sd, svc, rand, eval, wo, pdf);
+    default:
+      kernel_assert(false);
+      *pdf = 0.0f;
+      return 0;
+  }
+}
+
+ccl_device bool volume_phase_equal(ccl_private const ShaderClosure *c1,
+                                   ccl_private const ShaderClosure *c2)
+{
+  if (c1->type != c2->type) {
+    return false;
+  }
+  switch (c1->type) {
+    case CLOSURE_VOLUME_FOURNIER_FORAND_ID: {
+      ccl_private FournierForandVolume *v1 = (ccl_private FournierForandVolume *)c1;
+      ccl_private FournierForandVolume *v2 = (ccl_private FournierForandVolume *)c2;
+      return v1->c1 == v2->c1 && v1->c2 == v2->c2 && v1->c3 == v2->c3;
+    }
+    case CLOSURE_VOLUME_RAYLEIGH_ID:
+      return true;
+    case CLOSURE_VOLUME_DRAINE_ID: {
+      ccl_private DraineVolume *v1 = (ccl_private DraineVolume *)c1;
+      ccl_private DraineVolume *v2 = (ccl_private DraineVolume *)c2;
+      return v1->g == v2->g && v1->alpha == v2->alpha;
+    }
+    case CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID: {
+      ccl_private HenyeyGreensteinVolume *v1 = (ccl_private HenyeyGreensteinVolume *)c1;
+      ccl_private HenyeyGreensteinVolume *v2 = (ccl_private HenyeyGreensteinVolume *)c2;
+      return v1->g == v2->g;
+    }
+    default:
+      return false;
+  }
+  return false;
+}
+
+/* Approximate phase functions as Henyey-Greenstein for volume guiding.
+ * TODO: This is not ideal, we should use RIS guiding for non-HG phase functions. */
+ccl_device float volume_phase_get_g(ccl_private const ShaderVolumeClosure *svc)
+{
+  switch (svc->type) {
+    case CLOSURE_VOLUME_FOURNIER_FORAND_ID:
+      /* TODO */
+      return 1.0f;
+    case CLOSURE_VOLUME_RAYLEIGH_ID:
+      /* Approximate as isotropic */
+      return 0.0f;
+    case CLOSURE_VOLUME_DRAINE_ID:
+      /* Approximate as HG, TODO */
+      return ((ccl_private DraineVolume *)svc)->g;
+    case CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID:
+      return ((ccl_private HenyeyGreensteinVolume *)svc)->g;
+    default:
+      return 0.0f;
+  }
 }
 
 /* Volume sampling utilities. */

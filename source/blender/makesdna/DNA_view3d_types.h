@@ -238,6 +238,12 @@ typedef struct View3DOverlay {
   float gpencil_grid_opacity;
   float gpencil_fade_layer;
 
+  /* Grease Pencil canvas settings. */
+  float gpencil_grid_color[3];
+  float gpencil_grid_scale[2];
+  float gpencil_grid_offset[2];
+  int gpencil_grid_subdivisions;
+
   /** Factor for mixing vertex paint with original color */
   float gpencil_vertex_paint_opacity;
   /** Handles display type for curves. */

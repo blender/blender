@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 vec2 matcap_uv_compute(vec3 I, vec3 N, bool flipped)
 {
   /* Quick creation of an orthonormal basis */

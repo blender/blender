@@ -16,7 +16,7 @@
 #include "DNA_screen_types.h"
 
 #include "BLI_fileops.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -41,8 +41,8 @@
 #include "RNA_prototypes.hh"
 
 #ifdef WITH_PYTHON
-#  include "BPY_extern.h"
-#  include "BPY_extern_run.h"
+#  include "BPY_extern.hh"
+#  include "BPY_extern_run.hh"
 #endif
 
 #include "WM_api.hh"
@@ -1097,32 +1097,39 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
     }
   }
 
-  /* If the button represents an id, it can set the "id" context pointer. */
-  if (asset::can_mark_single_from_context(C)) {
-    const ID *id = static_cast<const ID *>(CTX_data_pointer_get_type(C, "id", &RNA_ID).data);
+  /* Expose id specific operators in context menu when button has no operator associated. Otherwise
+   * they would appear in nested context menus, see: #126006. */
+  if ((but->optype == nullptr) && (but->apply_func == nullptr) &&
+      (but->menu_create_func == nullptr))
+  {
+    /* If the button represents an id, it can set the "id" context pointer. */
+    if (asset::can_mark_single_from_context(C)) {
+      const ID *id = static_cast<const ID *>(CTX_data_pointer_get_type(C, "id", &RNA_ID).data);
 
-    /* Gray out items depending on if data-block is an asset. Preferably this could be done via
-     * operator poll, but that doesn't work since the operator also works with "selected_ids",
-     * which isn't cheap to check. */
-    uiLayout *sub = uiLayoutColumn(layout, true);
-    uiLayoutSetEnabled(sub, !id->asset_data);
-    uiItemO(sub,
-            CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Mark as Asset"),
-            ICON_ASSET_MANAGER,
-            "ASSET_OT_mark_single");
-    sub = uiLayoutColumn(layout, true);
-    uiLayoutSetEnabled(sub, id->asset_data);
-    uiItemO(sub,
-            CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Clear Asset"),
-            ICON_NONE,
-            "ASSET_OT_clear_single");
-    uiItemS(layout);
-  }
+      /* Gray out items depending on if data-block is an asset. Preferably this could be done via
+       * operator poll, but that doesn't work since the operator also works with "selected_ids",
+       * which isn't cheap to check. */
+      uiLayout *sub = uiLayoutColumn(layout, true);
+      uiLayoutSetEnabled(sub, !id->asset_data);
+      uiItemO(sub,
+              CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Mark as Asset"),
+              ICON_ASSET_MANAGER,
+              "ASSET_OT_mark_single");
+      sub = uiLayoutColumn(layout, true);
+      uiLayoutSetEnabled(sub, id->asset_data);
+      uiItemO(sub,
+              CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Clear Asset"),
+              ICON_NONE,
+              "ASSET_OT_clear_single");
+      uiItemS(layout);
+    }
 
-  MenuType *mt_idtemplate_liboverride = WM_menutype_find("UI_MT_idtemplate_liboverride", true);
-  if (mt_idtemplate_liboverride && mt_idtemplate_liboverride->poll(C, mt_idtemplate_liboverride)) {
-    uiItemM_ptr(layout, mt_idtemplate_liboverride, IFACE_("Library Override"), ICON_NONE);
-    uiItemS(layout);
+    MenuType *mt_idtemplate_liboverride = WM_menutype_find("UI_MT_idtemplate_liboverride", true);
+    if (mt_idtemplate_liboverride && mt_idtemplate_liboverride->poll(C, mt_idtemplate_liboverride))
+    {
+      uiItemM_ptr(layout, mt_idtemplate_liboverride, IFACE_("Library Override"), ICON_NONE);
+      uiItemS(layout);
+    }
   }
 
   /* Pointer properties and string properties with

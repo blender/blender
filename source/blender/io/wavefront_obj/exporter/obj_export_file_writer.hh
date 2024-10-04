@@ -167,7 +167,7 @@ class OBJWriter : NonMovable, NonCopyable {
 class MTLWriter : NonMovable, NonCopyable {
  private:
   FormatHandler fmt_handler_;
-  FILE *outfile_;
+  FILE *outfile_ = nullptr;
   std::string mtl_filepath_;
   Vector<MTLMaterial> mtlmaterials_;
   /* Map from a Material* to an index into mtlmaterials_. */
@@ -177,7 +177,7 @@ class MTLWriter : NonMovable, NonCopyable {
   /*
    * Create the `.MTL` file.
    */
-  MTLWriter(const char *obj_filepath) noexcept(false);
+  MTLWriter(const char *obj_filepath, bool write_file) noexcept(false);
   ~MTLWriter();
 
   void write_header(const char *blen_filepath);

@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(gpu_shader_material_blackbody.glsl)
+#include "gpu_shader_material_blackbody.glsl"
 
 void node_volume_principled(vec4 color,
                             float density,

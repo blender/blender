@@ -10,19 +10,26 @@
 
 #include "DNA_listBase.h"
 
+#include "ANIM_action.hh"
+#include "ANIM_action_legacy.hh"
+
 struct GSet;
 struct ListBase;
 struct Scene;
 struct Sequence;
 struct SeqAnimationBackup;
 
-bool SEQ_animation_curves_exist(Scene *scene);
+bool SEQ_animation_keyframes_exist(Scene *scene);
 bool SEQ_animation_drivers_exist(Scene *scene);
 void SEQ_free_animdata(Scene *scene, Sequence *seq);
 void SEQ_offset_animdata(Scene *scene, Sequence *seq, int ofs);
-GSet *SEQ_fcurves_by_strip_get(const Sequence *seq, ListBase *fcurve_base);
+/**
+ * Return whether the fcurve targets the given sequence.
+ */
+bool SEQ_fcurve_matches(const Sequence &seq, const FCurve &fcurve);
 struct SeqAnimationBackup {
   ListBase curves;
+  blender::animrig::ChannelBag channel_bag;
   ListBase drivers;
 };
 /**

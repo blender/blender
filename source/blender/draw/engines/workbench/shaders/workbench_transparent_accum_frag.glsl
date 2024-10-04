@@ -2,11 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(workbench_common_lib.glsl)
-#pragma BLENDER_REQUIRE(workbench_image_lib.glsl)
-#pragma BLENDER_REQUIRE(workbench_matcap_lib.glsl)
-#pragma BLENDER_REQUIRE(workbench_world_light_lib.glsl)
+#include "common_view_lib.glsl"
+#include "workbench_common_lib.glsl"
+#include "workbench_image_lib.glsl"
+#include "workbench_matcap_lib.glsl"
+#include "workbench_world_light_lib.glsl"
 
 /* Special function only to be used with calculate_transparent_weight(). */
 float linear_zdepth(float depth, mat4 proj_mat)

@@ -120,7 +120,7 @@ class DATA_PT_metaball_element(DataButtonsPanel, Panel):
 
 
 class DATA_PT_metaball_animation(DataButtonsPanel, PropertiesAnimationMixin, PropertyPanel, Panel):
-    _animated_id_context_property = 'meta_ball'
+    _animated_id_context_property = "meta_ball"
 
 
 class DATA_PT_custom_props_metaball(DataButtonsPanel, PropertyPanel, Panel):

@@ -158,6 +158,7 @@ BLI_NOINLINE static void add_arrays(const MutableSpan<float3> a, const Span<floa
 static void calc_mesh(const Depsgraph &depsgraph,
                       const Sculpt &sd,
                       const Brush &brush,
+                      const MeshAttributeData &attribute_data,
                       const bke::pbvh::MeshNode &node,
                       Object &object,
                       BrushLocalData &tls,
@@ -165,7 +166,6 @@ static void calc_mesh(const Depsgraph &depsgraph,
 {
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
-  const Mesh &mesh = *static_cast<Mesh *>(object.data);
 
   const Span<int> verts = node.verts();
   const Span<float3> positions = gather_data_mesh(position_data.eval, verts, tls.positions);
@@ -173,7 +173,7 @@ static void calc_mesh(const Depsgraph &depsgraph,
 
   tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
-  fill_factor_from_hide_and_mask(mesh, verts, factors);
+  fill_factor_from_hide_and_mask(attribute_data.hide_vert, attribute_data.mask, verts, factors);
   auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
 
   tls.translations.resize(verts.size());
@@ -334,8 +334,9 @@ BLI_NOINLINE static void add_fake_neighbors(const Span<int> fake_neighbors,
                                             const MutableSpan<Vector<int>> neighbors)
 {
   for (const int i : verts.index_range()) {
-    if (fake_neighbors[verts[i]] != FAKE_NEIGHBOR_NONE) {
-      neighbors[i].append(fake_neighbors[verts[i]]);
+    const int neighbor = fake_neighbors[verts[i]];
+    if (neighbor != FAKE_NEIGHBOR_NONE) {
+      neighbors[i].append(neighbor);
     }
   }
 }
@@ -654,12 +655,10 @@ static void calc_pose_origin_and_factor_mesh(const Depsgraph &depsgraph,
   const Mesh &mesh = *static_cast<const Mesh *>(object.data);
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
-  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
 
   /* Calculate the pose rotation point based on the boundaries of the brush factor. */
   flood_fill::FillDataMesh flood(positions_eval.size());
-  flood.add_initial_with_symmetry(
-      depsgraph, object, pbvh, std::get<int>(ss.active_vert()), radius);
+  flood.add_initial(find_symm_verts_mesh(depsgraph, object, ss.active_vert_index(), radius));
 
   const int symm = SCULPT_mesh_symmetry_xyz_get(object);
 
@@ -706,14 +705,12 @@ static void calc_pose_origin_and_factor_grids(Object &object,
   BLI_assert(!r_pose_factor.is_empty());
 
   const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
-  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
 
   const Span<float3> positions = subdiv_ccg.positions;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
   /* Calculate the pose rotation point based on the boundaries of the brush factor. */
   flood_fill::FillDataGrids flood(positions.size());
-  flood.add_initial_with_symmetry(
-      object, pbvh, subdiv_ccg, std::get<SubdivCCGCoord>(ss.active_vert()), radius);
+  flood.add_initial(key, find_symm_verts_grids(object, ss.active_vert_index(), radius));
 
   const int symm = SCULPT_mesh_symmetry_xyz_get(object);
 
@@ -765,11 +762,9 @@ static void calc_pose_origin_and_factor_bmesh(Object &object,
   BLI_assert(!r_pose_factor.is_empty());
   SCULPT_vertex_random_access_ensure(object);
 
-  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
-
   /* Calculate the pose rotation point based on the boundaries of the brush factor. */
   flood_fill::FillDataBMesh flood(BM_mesh_elem_count(ss.bm, BM_VERT));
-  flood.add_initial_with_symmetry(object, pbvh, std::get<BMVert *>(ss.active_vert()), radius);
+  flood.add_initial(*ss.bm, find_symm_verts_bmesh(object, ss.active_vert_index(), radius));
 
   const int symm = SCULPT_mesh_symmetry_xyz_get(object);
 
@@ -1033,15 +1028,13 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_mesh(const Depsgraph &de
 
   SegmentData current_data = {std::get<int>(ss.active_vert()), SCULPT_FACE_SET_NONE};
 
-  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const int symm = SCULPT_mesh_symmetry_xyz_get(object);
   Vector<int> neighbors;
   for (const int i : ik_chain->segments.index_range()) {
     const bool is_first_iteration = i == 0;
 
     flood_fill::FillDataMesh flood_fill(vert_positions.size());
-    flood_fill.add_initial_with_symmetry(
-        depsgraph, object, pbvh, current_data.vert, std::numeric_limits<float>::max());
+    flood_fill.add_initial(find_symm_verts_mesh(depsgraph, object, current_data.vert, radius));
 
     visited_face_sets.add(current_data.face_set);
 
@@ -1173,7 +1166,6 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_grids(Object &object,
     SubdivCCGCoord vert;
     int face_set;
   };
-  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
 
   const Mesh &mesh = *static_cast<const Mesh *>(object.data);
   const OffsetIndices<int> faces = mesh.faces();
@@ -1202,8 +1194,8 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_grids(Object &object,
     const bool is_first_iteration = i == 0;
 
     flood_fill::FillDataGrids flood_fill(grids_num);
-    flood_fill.add_initial_with_symmetry(
-        object, pbvh, subdiv_ccg, current_data.vert, std::numeric_limits<float>::max());
+    flood_fill.add_initial(key,
+                           find_symm_verts_grids(object, current_data.vert.to_index(key), radius));
 
     visited_face_sets.add(current_data.face_set);
 
@@ -1357,15 +1349,14 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_bmesh(Object &object,
 
   SegmentData current_data = {std::get<BMVert *>(ss.active_vert()), SCULPT_FACE_SET_NONE};
 
-  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const int symm = SCULPT_mesh_symmetry_xyz_get(object);
   Vector<BMVert *, 64> neighbors;
   for (const int i : ik_chain->segments.index_range()) {
     const bool is_first_iteration = i == 0;
 
     flood_fill::FillDataBMesh flood_fill(verts_num);
-    flood_fill.add_initial_with_symmetry(
-        object, pbvh, current_data.vert, std::numeric_limits<float>::max());
+    flood_fill.add_initial(
+        *ss.bm, find_symm_verts_bmesh(object, BM_elem_index_get(current_data.vert), radius));
 
     visited_face_sets.add(current_data.face_set);
 
@@ -1598,7 +1589,6 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_fk_mesh(const Depsgraph 
   std::unique_ptr<IKChain> ik_chain = ik_chain_new(1, mesh.verts_num);
 
   const int active_vert = std::get<int>(ss.active_vert());
-  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
 
   const int active_face_set = face_set::active_face_set_get(object);
 
@@ -1651,7 +1641,7 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_fk_mesh(const Depsgraph 
   ik_chain->grab_delta_offset = ik_chain->segments[0].head - initial_location;
 
   flood_fill::FillDataMesh weight_floodfill(mesh.verts_num);
-  weight_floodfill.add_initial_with_symmetry(depsgraph, object, pbvh, active_vert, radius);
+  weight_floodfill.add_initial(find_symm_verts_mesh(depsgraph, object, active_vert, radius));
   MutableSpan<float> fk_weights = ik_chain->segments[0].weights;
   weight_floodfill.execute(object, vert_to_face_map, [&](int /*from_v*/, int to_v) {
     fk_weights[to_v] = 1.0f;
@@ -1684,7 +1674,6 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_fk_grids(const Depsgraph
   std::unique_ptr<IKChain> ik_chain = ik_chain_new(1, grids_num);
 
   const SubdivCCGCoord active_vert = std::get<SubdivCCGCoord>(ss.active_vert());
-  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const int active_vert_index = ss.active_vert_index();
 
   const int active_face_set = face_set::active_face_set_get(object);
@@ -1750,7 +1739,8 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_fk_grids(const Depsgraph
   ik_chain->grab_delta_offset = ik_chain->segments[0].head - initial_location;
 
   flood_fill::FillDataGrids weight_floodfill(grids_num);
-  weight_floodfill.add_initial_with_symmetry(object, pbvh, subdiv_ccg, active_vert, radius);
+  weight_floodfill.add_initial(key,
+                               find_symm_verts_grids(object, active_vert.to_index(key), radius));
   MutableSpan<float> fk_weights = ik_chain->segments[0].weights;
   weight_floodfill.execute(
       object,
@@ -1783,7 +1773,6 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_fk_bmesh(const Depsgraph
   std::unique_ptr<IKChain> ik_chain = ik_chain_new(1, verts_num);
 
   BMVert *active_vert = std::get<BMVert *>(ss.active_vert());
-  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const int active_vert_index = BM_elem_index_get(active_vert);
 
   const int active_face_set = face_set::active_face_set_get(object);
@@ -1840,7 +1829,8 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_fk_bmesh(const Depsgraph
   ik_chain->grab_delta_offset = ik_chain->segments[0].head - initial_location;
 
   flood_fill::FillDataBMesh weight_floodfill(verts_num);
-  weight_floodfill.add_initial_with_symmetry(object, pbvh, active_vert, radius);
+  weight_floodfill.add_initial(
+      *ss.bm, find_symm_verts_bmesh(object, BM_elem_index_get(active_vert), radius));
   MutableSpan<float> fk_weights = ik_chain->segments[0].weights;
   weight_floodfill.execute(object, [&](BMVert * /*from_v*/, BMVert *to_v) {
     int to_v_i = BM_elem_index_get(to_v);
@@ -1884,7 +1874,9 @@ static std::unique_ptr<IKChain> ik_chain_init(const Depsgraph &depsgraph,
 
   if (use_fake_neighbors) {
     SCULPT_fake_neighbors_ensure(depsgraph, ob, brush.disconnected_distance_max);
-    SCULPT_fake_neighbors_enable(ob);
+  }
+  else {
+    SCULPT_fake_neighbors_free(ob);
   }
 
   switch (brush.pose_origin_type) {
@@ -1897,10 +1889,6 @@ static std::unique_ptr<IKChain> ik_chain_init(const Depsgraph &depsgraph,
     case BRUSH_POSE_ORIGIN_FACE_SETS_FK:
       ik_chain = ik_chain_init_face_sets_fk(depsgraph, ob, ss, radius, initial_location);
       break;
-  }
-
-  if (use_fake_neighbors) {
-    SCULPT_fake_neighbors_disable(ob);
   }
 
   return ik_chain;
@@ -2134,14 +2122,14 @@ void do_pose_brush(const Depsgraph &depsgraph,
   threading::EnumerableThreadSpecific<BrushLocalData> all_tls;
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
+      Mesh &mesh = *static_cast<Mesh *>(ob.data);
+      const MeshAttributeData attribute_data(mesh.attributes());
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       const PositionDeformData position_data(depsgraph, ob);
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         BrushLocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          calc_mesh(depsgraph, sd, brush, nodes[i], ob, tls, position_data);
-          bke::pbvh::update_node_bounds_mesh(position_data.eval, nodes[i]);
-        });
+        calc_mesh(depsgraph, sd, brush, attribute_data, nodes[i], ob, tls, position_data);
+        bke::pbvh::update_node_bounds_mesh(position_data.eval, nodes[i]);
       });
       break;
     }
@@ -2149,23 +2137,19 @@ void do_pose_brush(const Depsgraph &depsgraph,
       SubdivCCG &subdiv_ccg = *ob.sculpt->subdiv_ccg;
       MutableSpan<float3> positions = subdiv_ccg.positions;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         BrushLocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          calc_grids(depsgraph, sd, brush, nodes[i], ob, tls);
-          bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
-        });
+        calc_grids(depsgraph, sd, brush, nodes[i], ob, tls);
+        bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
       });
       break;
     }
     case bke::pbvh::Type::BMesh: {
       MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
-      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
         BrushLocalData &tls = all_tls.local();
-        node_mask.slice(range).foreach_index([&](const int i) {
-          calc_bmesh(depsgraph, sd, brush, nodes[i], ob, tls);
-          bke::pbvh::update_node_bounds_bmesh(nodes[i]);
-        });
+        calc_bmesh(depsgraph, sd, brush, nodes[i], ob, tls);
+        bke::pbvh::update_node_bounds_bmesh(nodes[i]);
       });
       break;
     }

@@ -37,7 +37,7 @@ static void reverse_grease_pencil(GreasePencil &grease_pencil, const Field<bool>
 {
   using namespace blender::bke::greasepencil;
   for (const int layer_index : grease_pencil.layers().index_range()) {
-    Drawing *drawing = grease_pencil.get_eval_drawing(*grease_pencil.layer(layer_index));
+    Drawing *drawing = grease_pencil.get_eval_drawing(grease_pencil.layer(layer_index));
     if (drawing == nullptr) {
       continue;
     }
@@ -59,7 +59,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (Curves *curves_id = geometry_set.get_curves_for_write()) {
       bke::CurvesGeometry &curves = curves_id->geometry.wrap();
-      const bke::CurvesFieldContext field_context{curves, AttrDomain::Curve};
+      const bke::CurvesFieldContext field_context{*curves_id, AttrDomain::Curve};
       reverse_curve(curves, field_context, selection_field);
     }
     if (GreasePencil *grease_pencil = geometry_set.get_grease_pencil_for_write()) {

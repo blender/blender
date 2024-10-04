@@ -405,6 +405,8 @@ if(WITH_EXPERIMENTAL_FEATURES)
   add_blender_test(
     bl_animation_action
     --python ${CMAKE_CURRENT_LIST_DIR}/bl_animation_action.py
+    --
+    --testdir "${TEST_SRC_DIR}/animation"
   )
 endif()
 
@@ -744,7 +746,7 @@ if(WITH_CYCLES OR WITH_GPU_RENDER_TESTS)
 
     if(WITH_GPU_RENDER_TESTS)
       list(APPEND gpu_render_tests ${render_tests})
-      list(FILTER gpu_render_tests EXCLUDE REGEX light_group|light_linking|shadow_catcher|denoise|guiding|reports)
+      list(FILTER gpu_render_tests EXCLUDE REGEX light_group|shadow_catcher|denoise|guiding|reports)
 
       set(_gpu_render_tests_arguments)
       if(WITH_GPU_RENDER_TESTS_SILENT)
@@ -927,6 +929,7 @@ set(geo_node_tests
   curve_primitives
   curves
   curves/interpolate_curves
+  foreach_geometry_element_zone
   geometry
   grease_pencil
   instance

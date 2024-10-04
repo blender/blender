@@ -350,6 +350,8 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  BKE_blendfile_link_append_context_init_done(lapp_context);
+
   /* XXX We'd need re-entrant locking on Main for this to work... */
   // BKE_main_lock(bmain);
 
@@ -368,6 +370,8 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 
   /* Instantiate loose data in the scene (e.g. add object to the active collection). */
   BKE_blendfile_link_append_instantiate_loose(lapp_context, op->reports);
+
+  BKE_blendfile_link_append_context_finalize(lapp_context);
 
   BKE_blendfile_link_append_context_free(lapp_context);
 
@@ -543,6 +547,8 @@ static ID *wm_file_link_append_datablock_ex(Main *bmain,
       lapp_context, id_name, id_code, nullptr);
   BKE_blendfile_link_append_context_item_library_index_enable(lapp_context, item, 0);
 
+  BKE_blendfile_link_append_context_init_done(lapp_context);
+
   /* Link datablock. */
   BKE_blendfile_link(lapp_context, nullptr);
 
@@ -551,6 +557,8 @@ static ID *wm_file_link_append_datablock_ex(Main *bmain,
   }
 
   BKE_blendfile_link_append_instantiate_loose(lapp_context, nullptr);
+
+  BKE_blendfile_link_append_context_finalize(lapp_context);
 
   /* Get linked datablock and free working data. */
   ID *id = BKE_blendfile_link_append_context_item_newid_get(lapp_context, item);

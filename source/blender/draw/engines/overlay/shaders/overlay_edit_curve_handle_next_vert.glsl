@@ -2,11 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_attribute_load_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_index_load_lib.glsl)
+#include "common_view_clipping_lib.glsl"
+#include "common_view_lib.glsl"
+#include "gpu_shader_attribute_load_lib.glsl"
+#include "gpu_shader_index_load_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 
 struct VertIn {
   /* Local Position. */
@@ -79,6 +79,7 @@ void output_vertex_pair(const uint line_id,
 {
   GeomOut geom_out;
   geom_out.color = color;
+  geom_out.color.a *= alpha;
   geom_out.offset = offset;
 
   geom_out.gpu_position = geom_in[0].gpu_position;

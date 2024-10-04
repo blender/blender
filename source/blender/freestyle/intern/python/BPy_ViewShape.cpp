@@ -34,8 +34,7 @@ int ViewShape_Init(PyObject *module)
   if (PyType_Ready(&ViewShape_Type) < 0) {
     return -1;
   }
-  Py_INCREF(&ViewShape_Type);
-  PyModule_AddObject(module, "ViewShape", (PyObject *)&ViewShape_Type);
+  PyModule_AddObjectRef(module, "ViewShape", (PyObject *)&ViewShape_Type);
 
   return 0;
 }

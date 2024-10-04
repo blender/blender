@@ -33,7 +33,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_color.h"
 #include "BLI_math_vector.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
@@ -6474,12 +6474,7 @@ static bool uiTemplateInputStatusAzone(uiLayout *layout, const AZone *az, const 
 {
   if (az->type == AZONE_AREA) {
     uiItemL(layout, nullptr, ICON_MOUSE_LMB_DRAG);
-    if (U.experimental.use_docking) {
-      uiItemL(layout, IFACE_("Split/Dock"), ICON_NONE);
-    }
-    else {
-      uiItemL(layout, IFACE_("Split/Join"), ICON_NONE);
-    }
+    uiItemL(layout, IFACE_("Split/Dock"), ICON_NONE);
     uiItemS_ex(layout, 0.7f);
     uiItemL(layout, "", ICON_EVENT_SHIFT);
     uiItemL(layout, nullptr, ICON_MOUSE_LMB_DRAG);

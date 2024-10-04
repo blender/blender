@@ -534,9 +534,14 @@ Span<int> vert_neighbors_get_mesh(OffsetIndices<int> faces,
 
 #define FAKE_NEIGHBOR_NONE -1
 
-void SCULPT_fake_neighbors_ensure(const Depsgraph &depsgraph, Object &ob, float max_dist);
-void SCULPT_fake_neighbors_enable(Object &ob);
-void SCULPT_fake_neighbors_disable(Object &ob);
+/**
+ * This allows the sculpt brushes to work on meshes with multiple connected components as if they
+ * had only one connected component. These neighbors are calculated for each vertex using the
+ * minimum distance to a vertex that is in a different connected component.
+ */
+blender::Span<int> SCULPT_fake_neighbors_ensure(const Depsgraph &depsgraph,
+                                                Object &ob,
+                                                float max_dist);
 void SCULPT_fake_neighbors_free(Object &ob);
 
 /** \} */
@@ -616,6 +621,25 @@ void SCULPT_flip_quat_by_symm_area(float quat[4],
                                    const float pivot[3]);
 
 namespace blender::ed::sculpt_paint {
+
+/**
+ * Utility functions to get the closest vertices after flipping an original vertex position for
+ * all symmetry passes. The returned vector is sorted.
+ */
+Vector<int> find_symm_verts_mesh(const Depsgraph &depsgraph,
+                                 const Object &object,
+                                 int original_vert,
+                                 float max_distance = std::numeric_limits<float>::max());
+Vector<int> find_symm_verts_grids(const Object &object,
+                                  int original_vert,
+                                  float max_distance = std::numeric_limits<float>::max());
+Vector<int> find_symm_verts_bmesh(const Object &object,
+                                  int original_vert,
+                                  float max_distance = std::numeric_limits<float>::max());
+Vector<int> find_symm_verts(const Depsgraph &depsgraph,
+                            const Object &object,
+                            int original_vert,
+                            float max_distance = std::numeric_limits<float>::max());
 
 bool node_fully_masked_or_hidden(const bke::pbvh::Node &node);
 bool node_in_sphere(const bke::pbvh::Node &node,
@@ -741,8 +765,6 @@ std::optional<Span<float>> orig_mask_data_lookup_grids(const Object &object,
 }  // namespace blender::ed::sculpt_paint
 
 /** \} */
-
-void SCULPT_vertcos_to_key(Object &ob, KeyBlock *kb, blender::Span<blender::float3> vertCos);
 
 /**
  * Get a screen-space rectangle of the modified area.

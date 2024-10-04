@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 /**
  * G-buffer: Packing and unpacking of G-buffer data.
  *
@@ -18,9 +20,9 @@
  * without dealing with none-closures.
  */
 
-#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
+#include "gpu_shader_codegen_lib.glsl"
+#include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 
 /* -------------------------------------------------------------------- */
 /** \name Types
@@ -44,6 +46,8 @@ struct GBufferData {
   uint object_id;
   /* First world normal stored in the gbuffer. Only valid if `has_any_surface` is true. */
   vec3 surface_N;
+  /* Index into `light_set_membership` bitmask of Lights for light linking. */
+  uchar receiver_light_set;
 };
 
 /* Result of Packing the GBuffer. */
@@ -308,6 +312,16 @@ uint gbuffer_object_id_f16_unpack(float object_id_packed)
 bool gbuffer_is_refraction(vec4 gbuffer)
 {
   return gbuffer.w < 1.0;
+}
+
+uint gbuffer_light_link_receiver_pack(uchar receiver_light_set)
+{
+  return receiver_light_set << 26u;
+}
+
+uint gbuffer_light_link_receiver_unpack(uint data)
+{
+  return data >> 26u;
 }
 
 uint gbuffer_header_pack(GBufferMode mode, uint bin)
@@ -806,6 +820,9 @@ GBufferWriter gbuffer_pack(GBufferData data_in)
   gbuf.bins_len = 0;
   gbuf.data_len = 0;
   gbuf.normal_len = 0;
+
+  /* Pack light linking data into header. */
+  gbuf.header |= gbuffer_light_link_receiver_pack(data_in.receiver_light_set);
 
   /* Check special configurations first. */
 

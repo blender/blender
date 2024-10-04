@@ -29,6 +29,7 @@ namespace blender::ed::sculpt_paint::mask {
 Array<float> duplicate_mask(const Object &object);
 void mix_new_masks(Span<float> new_masks, Span<float> factors, MutableSpan<float> masks);
 void clamp_mask(MutableSpan<float> masks);
+void invert_mask(MutableSpan<float> masks);
 
 void gather_mask_grids(const SubdivCCG &subdiv_ccg, Span<int> grids, MutableSpan<float> r_mask);
 void gather_mask_bmesh(const BMesh &bm, const Set<BMVert *, 0> &verts, MutableSpan<float> r_mask);

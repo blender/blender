@@ -44,6 +44,7 @@
 #include "BKE_workspace.hh"
 
 #include "ANIM_action.hh"
+#include "ANIM_action_legacy.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -63,6 +64,8 @@
 
 #include "WM_api.hh"
 #include "WM_types.hh"
+
+#include "BLT_translation.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Channel helper functions
@@ -1589,6 +1592,8 @@ static void split_groups_action_temp(bAction *act, bActionGroup *tgrp)
     return;
   }
 
+  BLI_assert(act->wrap().is_action_legacy());
+
   /* Separate F-Curves into lists per group */
   LISTBASE_FOREACH (bActionGroup *, agrp, &act->groups) {
     FCurve *const group_fcurves_first = static_cast<FCurve *>(agrp->channels.first);
@@ -1717,7 +1722,7 @@ static void rearrange_layered_action_channel_groups(bAnimContext *ac,
           continue;
         }
         blender::animrig::ChannelBag &bag = group->channel_bag->wrap();
-        const int group_index = bag.channel_groups().as_span().first_index_try(group);
+        const int group_index = bag.channel_groups().first_index_try(group);
         const int to_index = group_index - 1;
         BLI_assert(group_index >= 0);
 
@@ -1755,7 +1760,7 @@ static void rearrange_layered_action_channel_groups(bAnimContext *ac,
           continue;
         }
         blender::animrig::ChannelBag &bag = group->channel_bag->wrap();
-        const int group_index = bag.channel_groups().as_span().first_index_try(group);
+        const int group_index = bag.channel_groups().first_index_try(group);
         const int to_index = group_index + 1;
         BLI_assert(group_index >= 0);
 
@@ -1869,7 +1874,7 @@ static void rearrange_layered_action_fcurves(bAnimContext *ac,
         }
 
         blender::animrig::ChannelBag &bag = group.channel_bag->wrap();
-        const int fcurve_index = bag.fcurves().as_span().first_index_try(fcurve);
+        const int fcurve_index = bag.fcurves().first_index_try(fcurve);
         const int to_index = fcurve_index - 1;
 
         /* We skip moving when the destination is also selected because that
@@ -1912,7 +1917,7 @@ static void rearrange_layered_action_fcurves(bAnimContext *ac,
         }
 
         blender::animrig::ChannelBag &bag = group.channel_bag->wrap();
-        const int fcurve_index = bag.fcurves().as_span().first_index_try(fcurve);
+        const int fcurve_index = bag.fcurves().first_index_try(fcurve);
         const int to_index = fcurve_index + 1;
 
         /* We skip moving when the destination is also selected because that
@@ -1956,7 +1961,7 @@ static void rearrange_action_channels(bAnimContext *ac, bAction *act, eRearrange
   BLI_assert(act != nullptr);
 
   /* Layered actions. */
-  if (!act->wrap().is_action_legacy()) {
+  if (!blender::animrig::legacy::action_treat_as_legacy(*act)) {
     rearrange_layered_action_channel_groups(ac, mode);
     rearrange_layered_action_fcurves(ac, act->wrap(), mode);
     return;
@@ -2339,7 +2344,7 @@ static void animchannels_group_channels(bAnimContext *ac,
   }
 
   /* Legacy actions. */
-  if (act->wrap().is_action_legacy()) {
+  if (blender::animrig::legacy::action_treat_as_legacy(*act)) {
     bActionGroup *agrp;
 
     /* create new group, which should now be part of the action */
@@ -2505,7 +2510,7 @@ static int animchannels_ungroup_exec(bContext *C, wmOperator * /*op*/)
     bAction *act = ale->adt->action;
 
     /* Legacy actions. */
-    if (act->wrap().is_action_legacy()) {
+    if (blender::animrig::legacy::action_treat_as_legacy(*act)) {
       bActionGroup *agrp = fcu->grp;
 
       /* remove F-Curve from group and add at tail (ungrouped) */
@@ -3566,7 +3571,7 @@ static void ANIM_OT_channels_select_all(wmOperatorType *ot)
 /** \name Box Select Operator
  * \{ */
 
-static void box_select_anim_channels(bAnimContext *ac, rcti *rect, short selectmode)
+static void box_select_anim_channels(bAnimContext *ac, const rcti &rect, short selectmode)
 {
   ListBase anim_data = {nullptr, nullptr};
   int filter;
@@ -3576,8 +3581,8 @@ static void box_select_anim_channels(bAnimContext *ac, rcti *rect, short selectm
   rctf rectf;
 
   /* convert border-region to view coordinates */
-  UI_view2d_region_to_view(v2d, rect->xmin, rect->ymin + 2, &rectf.xmin, &rectf.ymin);
-  UI_view2d_region_to_view(v2d, rect->xmax, rect->ymax - 2, &rectf.xmax, &rectf.ymax);
+  UI_view2d_region_to_view(v2d, rect.xmin, rect.ymin + 2, &rectf.xmin, &rectf.ymin);
+  UI_view2d_region_to_view(v2d, rect.xmax, rect.ymax - 2, &rectf.xmax, &rectf.ymax);
 
   /* filter data */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
@@ -3723,7 +3728,7 @@ static int animchannels_box_select_exec(bContext *C, wmOperator *op)
   }
 
   /* apply box_select animation channels */
-  box_select_anim_channels(&ac, &rect, selectmode);
+  box_select_anim_channels(&ac, rect, selectmode);
 
   /* send notifier that things have changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_SELECTED, nullptr);
@@ -5182,6 +5187,169 @@ static void ANIM_OT_channels_bake(wmOperatorType *ot)
                   "Bake Modifiers into keyframes and delete them after");
 }
 
+#ifdef WITH_ANIM_BAKLAVA
+
+static int slot_channels_move_to_new_action_exec(bContext *C, wmOperator * /* op */)
+{
+  using namespace blender::animrig;
+  bAnimContext ac;
+
+  /* Get editor data. */
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  ListBase anim_data = {nullptr, nullptr};
+  const eAnimFilter_Flags filter = (ANIMFILTER_SEL | ANIMFILTER_NODUPLIS |
+                                    ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_CHANNELS);
+
+  size_t anim_data_length = ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+
+  if (anim_data_length == 0) {
+    WM_report(RPT_WARNING, "No channels to operate on");
+    return OPERATOR_CANCELLED;
+  }
+
+  blender::Vector<std::pair<Slot *, bAction *>> slots;
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+    if (ale->type != ANIMTYPE_ACTION_SLOT) {
+      continue;
+    }
+    BLI_assert(GS(ale->fcurve_owner_id->name) == ID_AC);
+    bAction *owning_action = reinterpret_cast<bAction *>(ale->fcurve_owner_id);
+    slots.append({reinterpret_cast<Slot *>(ale->data), owning_action});
+  }
+  ANIM_animdata_freelist(&anim_data);
+
+  if (slots.size() == 0) {
+    WM_report(RPT_WARNING, "None of the selected channels is an Action Slot");
+    return OPERATOR_CANCELLED;
+  }
+
+  /* If multiple slots are selected they are moved to the new action together. In that case it is
+   * hard to determine a name, so a constant default is used. */
+  Action *target_action;
+  Main *bmain = CTX_data_main(C);
+  if (slots.size() == 1) {
+    char actname[MAX_ID_NAME - 2];
+    SNPRINTF(actname, DATA_("%sAction"), slots[0].first->name + 2);
+    target_action = &action_add(*bmain, actname);
+  }
+  else {
+    target_action = &action_add(*bmain, DATA_("CombinedAction"));
+  }
+
+  Layer &layer = target_action->layer_add(std::nullopt);
+  layer.strip_add(*target_action, Strip::Type::Keyframe);
+
+  for (std::pair<Slot *, bAction *> &slot_data : slots) {
+    Action &source_action = slot_data.second->wrap();
+    move_slot(*bmain, *slot_data.first, source_action, *target_action);
+    DEG_id_tag_update(&source_action.id, ID_RECALC_ANIMATION_NO_FLUSH);
+  }
+
+  DEG_id_tag_update(&target_action->id, ID_RECALC_ANIMATION_NO_FLUSH);
+  DEG_relations_tag_update(bmain);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA_ACTCHANGE | NA_EDITED, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+static bool slot_channels_move_to_new_action_poll(bContext *C)
+{
+  SpaceAction *space_action = CTX_wm_space_action(C);
+  if (!space_action) {
+    return false;
+  }
+  if (!space_action->action) {
+    CTX_wm_operator_poll_msg_set(C, "No active action to operate on");
+    return false;
+  }
+  if (!space_action->action->wrap().is_action_layered()) {
+    CTX_wm_operator_poll_msg_set(C, "Active action is not layered");
+    return false;
+  }
+  return true;
+}
+
+static void ANIM_OT_slot_channels_move_to_new_action(wmOperatorType *ot)
+{
+  ot->name = "Move Slots to new Action";
+  ot->idname = "ANIM_OT_slot_channels_move_to_new_action";
+  ot->description = "Move the selected slots into a newly created action";
+
+  ot->exec = slot_channels_move_to_new_action_exec;
+  ot->poll = slot_channels_move_to_new_action_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static int separate_slots_exec(bContext *C, wmOperator * /* op */)
+{
+  using namespace blender::animrig;
+  Object *active_object = CTX_data_active_object(C);
+  /* Checked by the poll function. */
+  BLI_assert(active_object != nullptr);
+
+  Action *action = get_action(active_object->id);
+  /* Also checked by the poll function. */
+  BLI_assert(action != nullptr);
+
+  Main *bmain = CTX_data_main(C);
+  while (action->slot_array_num) {
+    Slot *slot = action->slot(action->slot_array_num - 1);
+    char actname[MAX_ID_NAME - 2];
+    SNPRINTF(actname, DATA_("%sAction"), slot->name + 2);
+    Action &target_action = action_add(*bmain, actname);
+    Layer &layer = target_action.layer_add(std::nullopt);
+    layer.strip_add(target_action, Strip::Type::Keyframe);
+    move_slot(*bmain, *slot, *action, target_action);
+    DEG_id_tag_update(&target_action.id, ID_RECALC_ANIMATION_NO_FLUSH);
+  }
+
+  DEG_id_tag_update(&action->id, ID_RECALC_ANIMATION_NO_FLUSH);
+  DEG_relations_tag_update(CTX_data_main(C));
+  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA_ACTCHANGE | NA_EDITED, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+static bool separate_slots_poll(bContext *C)
+{
+  Object *active_object = CTX_data_active_object(C);
+  if (!active_object) {
+    CTX_wm_operator_poll_msg_set(C, "No active object");
+    return false;
+  }
+
+  blender::animrig::Action *action = blender::animrig::get_action(active_object->id);
+  if (!action) {
+    CTX_wm_operator_poll_msg_set(C, "Active object isn't animated");
+    return false;
+  }
+  if (!action->is_action_layered()) {
+    return false;
+  }
+  return true;
+}
+
+static void ANIM_OT_separate_slots(wmOperatorType *ot)
+{
+  ot->name = "Separate Slots";
+  ot->idname = "ANIM_OT_separate_slots";
+  ot->description =
+      "Move all slots of the action on the active object into newly created, separate actions. "
+      "All users of those slots will be reassigned to the new actions. The current action won't "
+      "be deleted but will be empty and might end up having zero users";
+
+  ot->exec = separate_slots_exec;
+  ot->poll = separate_slots_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+#endif /* WITH_ANIM_BAKLAVA */
+
 /**
  *  Find a Graph Editor area and set the context arguments accordingly.
  */
@@ -5563,6 +5731,11 @@ void ED_operatortypes_animchannels()
   WM_operatortype_append(ANIM_OT_channels_ungroup);
 
   WM_operatortype_append(ANIM_OT_channels_bake);
+
+#ifdef WITH_ANIM_BAKLAVA
+  WM_operatortype_append(ANIM_OT_slot_channels_move_to_new_action);
+  WM_operatortype_append(ANIM_OT_separate_slots);
+#endif
 }
 
 void ED_keymap_animchannels(wmKeyConfig *keyconf)

@@ -19,6 +19,7 @@
 #include "NOD_rna_define.hh"
 #include "NOD_socket.hh"
 #include "NOD_socket_items_ops.hh"
+#include "NOD_socket_items_ui.hh"
 #include "NOD_socket_search_link.hh"
 
 #include "BLO_read_write.hh"
@@ -357,105 +358,28 @@ class LazyFunctionForMenuSwitchSocketUsage : public lf::LazyFunction {
   }
 };
 
-static void draw_menu_switch_item(uiList * /*ui_list*/,
-                                  const bContext * /*C*/,
-                                  uiLayout *layout,
-                                  PointerRNA * /*idataptr*/,
-                                  PointerRNA *itemptr,
-                                  int /*icon*/,
-                                  PointerRNA * /*active_dataptr*/,
-                                  const char * /*active_propname*/,
-                                  int /*index*/,
-                                  int /*flt_flag*/)
-{
-  uiLayoutSetEmboss(layout, UI_EMBOSS_NONE);
-  uiItemR(layout, itemptr, "name", UI_ITEM_NONE, "", ICON_NONE);
-}
-
 static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
+  bNodeTree &tree = *reinterpret_cast<bNodeTree *>(ptr->owner_id);
   bNode &node = *static_cast<bNode *>(ptr->data);
-
-  static const uiListType *menu_items_list = []() {
-    uiListType *list = MEM_cnew<uiListType>(__func__);
-    STRNCPY(list->idname, "NODE_UL_enum_definition_items");
-    list->draw_item = draw_menu_switch_item;
-    WM_uilisttype_add(list);
-    return list;
-  }();
 
   uiItemR(layout, ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "menu_switch_items", false, TIP_("Menu Items"))) {
-    uiLayout *row = uiLayoutRow(panel, false);
-    uiTemplateList(row,
-                   C,
-                   menu_items_list->idname,
-                   "",
-                   ptr,
-                   "enum_items",
-                   ptr,
-                   "active_index",
-                   nullptr,
-                   3,
-                   5,
-                   UILST_LAYOUT_DEFAULT,
-                   0,
-                   UI_TEMPLATE_LIST_FLAG_NONE);
-    {
-      uiLayout *ops_col = uiLayoutColumn(row, false);
-      {
-        uiLayout *add_remove_col = uiLayoutColumn(ops_col, true);
-        uiItemO(add_remove_col, "", ICON_ADD, "node.enum_definition_item_add");
-        uiItemO(add_remove_col, "", ICON_REMOVE, "node.enum_definition_item_remove");
-      }
-      {
-        uiLayout *up_down_col = uiLayoutColumn(ops_col, true);
-        uiItemEnumO(
-            up_down_col, "node.enum_definition_item_move", "", ICON_TRIA_UP, "direction", 0);
-        uiItemEnumO(
-            up_down_col, "node.enum_definition_item_move", "", ICON_TRIA_DOWN, "direction", 1);
-      }
-    }
-
-    auto &storage = node_storage(node);
-    if (storage.enum_definition.active_index >= 0 &&
-        storage.enum_definition.active_index < storage.enum_definition.items_num)
-    {
-      NodeEnumItem &active_item =
-          storage.enum_definition.items_array[storage.enum_definition.active_index];
-      PointerRNA item_ptr = RNA_pointer_create(
-          ptr->owner_id, MenuSwitchItemsAccessor::item_srna, &active_item);
-      uiLayoutSetPropSep(panel, true);
-      uiLayoutSetPropDecorate(panel, false);
-      uiItemR(panel, &item_ptr, "description", UI_ITEM_NONE, nullptr, ICON_NONE);
-    }
+    socket_items::ui::draw_items_list_with_operators<MenuSwitchItemsAccessor>(
+        C, panel, tree, node);
+    socket_items::ui::draw_active_item_props<MenuSwitchItemsAccessor>(
+        tree, node, [&](PointerRNA *item_ptr) {
+          uiLayoutSetPropSep(panel, true);
+          uiLayoutSetPropDecorate(panel, false);
+          uiItemR(panel, item_ptr, "description", UI_ITEM_NONE, nullptr, ICON_NONE);
+        });
   }
-}
-
-static void NODE_OT_enum_definition_item_add(wmOperatorType *ot)
-{
-  socket_items::ops::add_item<MenuSwitchItemsAccessor>(
-      ot, "Add Menu Item", __func__, "Add menu item");
-}
-
-static void NODE_OT_enum_definition_item_remove(wmOperatorType *ot)
-{
-  socket_items::ops::remove_active_item<MenuSwitchItemsAccessor>(
-      ot, "Remove Menu Item", __func__, "Remove active menu item");
-}
-
-static void NODE_OT_enum_definition_item_move(wmOperatorType *ot)
-{
-  socket_items::ops::move_active_item<MenuSwitchItemsAccessor>(
-      ot, "Move Menu Item", __func__, "Move active menu item");
 }
 
 static void node_operators()
 {
-  WM_operatortype_append(NODE_OT_enum_definition_item_add);
-  WM_operatortype_append(NODE_OT_enum_definition_item_remove);
-  WM_operatortype_append(NODE_OT_enum_definition_item_move);
+  socket_items::ops::make_common_operators<MenuSwitchItemsAccessor>();
 }
 
 static bool node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
@@ -523,31 +447,18 @@ std::unique_ptr<LazyFunction> get_menu_switch_node_socket_usage_lazy_function(co
 
 StructRNA *MenuSwitchItemsAccessor::item_srna = &RNA_NodeEnumItem;
 int MenuSwitchItemsAccessor::node_type = GEO_NODE_MENU_SWITCH;
+int MenuSwitchItemsAccessor::item_dna_type = SDNA_TYPE_FROM_STRUCT(NodeEnumItem);
 
-void MenuSwitchItemsAccessor::blend_write(BlendWriter *writer, const bNode &node)
+void MenuSwitchItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {
-  const NodeMenuSwitch &storage = *static_cast<const NodeMenuSwitch *>(node.storage);
-  BLO_write_struct_array(writer,
-                         NodeEnumItem,
-                         storage.enum_definition.items_num,
-                         storage.enum_definition.items_array);
-  for (const NodeEnumItem &item : storage.enum_definition.items()) {
-    BLO_write_string(writer, item.name);
-    BLO_write_string(writer, item.description);
-  }
+  BLO_write_string(writer, item.name);
+  BLO_write_string(writer, item.description);
 }
 
-void MenuSwitchItemsAccessor::blend_read_data(BlendDataReader *reader, bNode &node)
+void MenuSwitchItemsAccessor::blend_read_data_item(BlendDataReader *reader, ItemT &item)
 {
-  NodeMenuSwitch &storage = *static_cast<NodeMenuSwitch *>(node.storage);
-  BLO_read_struct_array(reader,
-                        NodeEnumItem,
-                        storage.enum_definition.items_num,
-                        &storage.enum_definition.items_array);
-  for (NodeEnumItem &item : storage.enum_definition.items()) {
-    BLO_read_string(reader, &item.name);
-    BLO_read_string(reader, &item.description);
-  }
+  BLO_read_string(reader, &item.name);
+  BLO_read_string(reader, &item.description);
 }
 
 }  // namespace blender::nodes

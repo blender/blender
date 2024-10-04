@@ -8,8 +8,8 @@
 
 #include <Python.h>
 
-#include "mathutils.h"
-#include "mathutils_geometry.h"
+#include "mathutils.hh"
+#include "mathutils_geometry.hh"
 
 /* Used for PolyFill */
 #ifndef MATH_STANDALONE /* define when building outside blender */
@@ -26,8 +26,8 @@
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
-#include "../generic/py_capi_utils.h"
-#include "../generic/python_utildefines.h"
+#include "../generic/py_capi_utils.hh"
+#include "../generic/python_utildefines.hh"
 
 /*-------------------------DOC STRINGS ---------------------------*/
 PyDoc_STRVAR(

@@ -213,7 +213,6 @@ class VIEW3D_PT_vr_viewport_feedback(Panel):
 
     def draw(self, context):
         layout = self.layout
-        scene = context.scene
         view3d = context.space_data
         session_settings = context.window_manager.xr_session_settings
 

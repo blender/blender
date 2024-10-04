@@ -201,13 +201,18 @@ class ShaderModule {
 
  public:
   /** Shaders */
+  ShaderPtr attribute_viewer_mesh;
+  ShaderPtr attribute_viewer_pointcloud;
+  ShaderPtr attribute_viewer_curve;
+  ShaderPtr attribute_viewer_curves;
+
   ShaderPtr anti_aliasing = shader("overlay_antialiasing");
   ShaderPtr armature_degrees_of_freedom;
   ShaderPtr background_fill = shader("overlay_background");
   ShaderPtr background_clip_bound = shader("overlay_clipbound");
   ShaderPtr curve_edit_points;
   ShaderPtr curve_edit_line;
-  ShaderPtr curve_edit_handles;
+  ShaderPtr curve_edit_handles = shader("overlay_edit_curves_handle_next");
   ShaderPtr extra_point;
   ShaderPtr facing;
   ShaderPtr grid = shader("overlay_grid");

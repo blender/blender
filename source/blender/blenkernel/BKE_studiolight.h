@@ -12,7 +12,7 @@
 
 #include "BLI_sys_types.h"
 
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 
 #include "DNA_userdef_types.h" /* for #SolidLight */
 

@@ -8,6 +8,7 @@
 
 #include <climits>
 #include <cstdlib>
+#include <sstream>
 
 #include "DNA_brush_types.h"
 #include "DNA_curve_types.h"
@@ -174,6 +175,11 @@ static const EnumPropertyItem rna_enum_preference_gpu_backend_items[] = {
     {GPU_BACKEND_VULKAN, "VULKAN", 0, "Vulkan (experimental)", "Use Vulkan backend"},
     {0, nullptr, 0, nullptr, nullptr},
 };
+static const EnumPropertyItem rna_enum_preference_gpu_preferred_device_items[] = {
+    {0, "AUTO", 0, "Auto", "Auto detect best GPU for running Blender"},
+    RNA_ENUM_ITEM_SEPR,
+    {0, nullptr, 0, nullptr, nullptr},
+};
 
 static const EnumPropertyItem rna_enum_preferences_extension_repo_source_type_items[] = {
     {USER_EXTENSION_REPO_SOURCE_USER,
@@ -216,7 +222,7 @@ static const EnumPropertyItem rna_enum_preferences_extension_repo_source_type_it
 
 #  include "BLF_api.hh"
 
-#  include "BLI_path_util.h"
+#  include "BLI_path_utils.hh"
 
 #  include "MEM_CacheLimiterC-Api.h"
 #  include "MEM_guardedalloc.h"
@@ -1421,6 +1427,71 @@ static const EnumPropertyItem *rna_preference_gpu_backend_itemf(bContext * /*C*/
   return result;
 }
 
+static const EnumPropertyItem *rna_preference_gpu_preferred_device_itemf(bContext * /*C*/,
+                                                                         PointerRNA * /*ptr*/,
+                                                                         PropertyRNA * /*prop*/,
+                                                                         bool *r_free)
+{
+  int totitem = 0;
+  EnumPropertyItem *result = nullptr;
+
+  for (int i = 0; rna_enum_preference_gpu_preferred_device_items[i].identifier != nullptr; i++) {
+    const EnumPropertyItem *item = &rna_enum_preference_gpu_preferred_device_items[i];
+    RNA_enum_item_add(&result, &totitem, item);
+  }
+  int index = 1;
+  for (const GPUDevice &gpu_device : GPU_platform_devices_list()) {
+    EnumPropertyItem item = {};
+    item.value = index;
+    item.identifier = gpu_device.identifier.c_str();
+    item.name = gpu_device.name.c_str();
+    item.description = gpu_device.name.c_str();
+    RNA_enum_item_add(&result, &totitem, &item);
+    index += 1;
+  }
+
+  RNA_enum_item_end(&result, &totitem);
+  *r_free = true;
+  return result;
+}
+
+static int rna_preference_gpu_preferred_device_get(PointerRNA *ptr)
+{
+  UserDef *preferences = (UserDef *)ptr->data;
+  int index = 1;
+  for (const GPUDevice &gpu_device : GPU_platform_devices_list()) {
+    if (gpu_device.index == preferences->gpu_preferred_index &&
+        gpu_device.vendor_id == preferences->gpu_preferred_vendor_id &&
+        gpu_device.device_id == preferences->gpu_preferred_device_id)
+    {
+      /* Offset by one as first item in the list is always auto-detection. */
+      return index;
+    }
+    index += 1;
+  }
+
+  return 0;
+}
+
+static void rna_preference_gpu_preferred_device_set(PointerRNA *ptr, int value)
+{
+  UserDef *preferences = (UserDef *)ptr->data;
+  if (value > 0) {
+    value -= 1;
+    blender::Span<GPUDevice> devices = GPU_platform_devices_list();
+    if (value < devices.size()) {
+      const GPUDevice &device = devices[value];
+      preferences->gpu_preferred_index = device.index;
+      preferences->gpu_preferred_vendor_id = device.vendor_id;
+      preferences->gpu_preferred_device_id = device.device_id;
+      return;
+    }
+  }
+  preferences->gpu_preferred_index = 0;
+  preferences->gpu_preferred_vendor_id = 0u;
+  preferences->gpu_preferred_device_id = 0u;
+}
+
 #else
 
 #  define USERDEF_TAG_DIRTY_PROPERTY_UPDATE_ENABLE \
@@ -1879,11 +1950,24 @@ static void rna_def_userdef_theme_ui(BlenderRNA *brna)
       prop, "Widget Emboss", "Color of the 1px shadow line underlying widgets");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
+  prop = RNA_def_property(srna, "editor_border", PROP_FLOAT, PROP_COLOR_GAMMA);
+  RNA_def_property_float_sdna(prop, nullptr, "editor_border");
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_ui_text(prop, "Editor Border", "Color of the border between editors");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
   prop = RNA_def_property(srna, "editor_outline", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_float_sdna(prop, nullptr, "editor_outline");
-  RNA_def_property_array(prop, 3);
+  RNA_def_property_array(prop, 4);
   RNA_def_property_ui_text(
-      prop, "Editor Outline", "Color of the outline of the editors and their round corners");
+      prop, "Editor Outline", "Color of the outline of each editor, except the active one");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
+  prop = RNA_def_property(srna, "editor_outline_active", PROP_FLOAT, PROP_COLOR_GAMMA);
+  RNA_def_property_float_sdna(prop, nullptr, "editor_outline_active");
+  RNA_def_property_array(prop, 4);
+  RNA_def_property_ui_text(
+      prop, "Active Editor Outline", "Color of the outline of the active editor");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   prop = RNA_def_property(srna, "widget_text_cursor", PROP_FLOAT, PROP_COLOR_GAMMA);
@@ -3405,6 +3489,12 @@ static void rna_def_userdef_theme_space_node(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, nullptr, "node_zone_repeat");
   RNA_def_property_array(prop, 4);
   RNA_def_property_ui_text(prop, "Repeat Zone", "");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
+  prop = RNA_def_property(srna, "foreach_geometry_element_zone", PROP_FLOAT, PROP_COLOR_GAMMA);
+  RNA_def_property_float_sdna(prop, nullptr, "node_zone_foreach_geometry_element");
+  RNA_def_property_array(prop, 4);
+  RNA_def_property_ui_text(prop, "For Each Geometry Element Zone", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 }
 
@@ -5233,6 +5323,14 @@ static void rna_def_userdef_view(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "uiflag", USER_PLAINMENUS);
   RNA_def_property_ui_text(prop, "Toolbox Column Layout", "Use a column layout for toolbox");
 
+  prop = RNA_def_property(srna, "use_filter_brushes_by_tool", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "uiflag", USER_FILTER_BRUSHES_BY_TOOL);
+  RNA_def_property_ui_text(prop,
+                           "Filter Brushes by Tool",
+                           "Only show brushes applicable for the currently active tool in the "
+                           "asset shelf. Stored in the Preferences, which may have to be saved "
+                           "manually if Auto-Save Preferences is disabled");
+
   static const EnumPropertyItem header_align_items[] = {
       {0, "NONE", 0, "Keep Existing", "Keep existing header alignment"},
       {USER_HEADER_FROM_PREF, "TOP", 0, "Top", "Top aligned on load"},
@@ -6258,6 +6356,18 @@ static void rna_def_userdef_system(BlenderRNA *brna)
       prop,
       "GPU Backend",
       "GPU backend to use (requires restarting Blender for changes to take effect)");
+
+  prop = RNA_def_property(srna, "gpu_preferred_device", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_preference_gpu_preferred_device_items);
+  RNA_def_property_enum_funcs(prop,
+                              "rna_preference_gpu_preferred_device_get",
+                              "rna_preference_gpu_preferred_device_set",
+                              "rna_preference_gpu_preferred_device_itemf");
+  RNA_def_property_enum_default(prop, 0);
+  RNA_def_property_ui_text(prop,
+                           "Device",
+                           "Preferred device to select during detection (requires restarting "
+                           "Blender for changes to take effect)");
 
   prop = RNA_def_property(srna, "max_shader_compilation_subprocesses", PROP_INT, PROP_NONE);
   RNA_def_property_range(prop, 0, INT16_MAX);
@@ -7487,12 +7597,12 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
       prop,
       "Multi-Slot Actions",
       "The new 'layered' Action can contain the animation for multiple data-blocks at once");
-  RNA_def_property_update(prop, 0, "rna_userdef_update");
-
-  prop = RNA_def_property(srna, "use_docking", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_ui_text(prop,
-                           "Interactive Editor Docking",
-                           "Move editor areas to new locations, including between windows");
+#  ifndef WITH_ANIM_BAKLAVA
+  /* Only allow setting this to 'true' when actually built with Baklava. Some of the Baklava code
+   * is not guarded with `WITH_ANIM_BAKLAVA`, but rather assumes that this flag is always 'false'
+   * then. */
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+#  endif
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 

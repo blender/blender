@@ -2,14 +2,16 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 /**
  * Intersection library used for culling.
  * Results are meant to be conservative.
  */
 
-#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
-#pragma BLENDER_REQUIRE(draw_math_geom_lib.glsl)
-#pragma BLENDER_REQUIRE(common_shape_lib.glsl)
+#include "common_shape_lib.glsl"
+#include "draw_math_geom_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 
 /* ---------------------------------------------------------------------- */
 /** \name Plane extraction functions.

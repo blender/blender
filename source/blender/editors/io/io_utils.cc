@@ -4,7 +4,7 @@
 
 #include <fmt/format.h>
 
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 
 #include "BLT_translation.hh"
 

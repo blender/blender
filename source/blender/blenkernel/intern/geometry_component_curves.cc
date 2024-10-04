@@ -365,15 +365,22 @@ class CurvesVertexGroupsAttributeProvider final : public DynamicAttributesProvid
     if (curves == nullptr) {
       return {};
     }
-    const std::string name = attribute_id;
-    const int vertex_group_index = BLI_findstringindex(
-        &curves->vertex_group_names, name.c_str(), offsetof(bDeformGroup, name));
+    const int vertex_group_index = BKE_defgroup_name_index(&curves->vertex_group_names,
+                                                           attribute_id);
     if (vertex_group_index < 0) {
       return {};
     }
     const Span<MDeformVert> dverts = curves->deform_verts();
+    return this->get_for_vertex_group_index(*curves, dverts, vertex_group_index);
+  }
+
+  GAttributeReader get_for_vertex_group_index(const CurvesGeometry &curves,
+                                              const Span<MDeformVert> dverts,
+                                              const int vertex_group_index) const
+  {
+    BLI_assert(vertex_group_index >= 0);
     if (dverts.is_empty()) {
-      return {VArray<float>::ForSingle(0.0f, curves->points_num()), AttrDomain::Point};
+      return {VArray<float>::ForSingle(0.0f, curves.points_num()), AttrDomain::Point};
     }
     return {varray_for_deform_verts(dverts, vertex_group_index), AttrDomain::Point};
   }
@@ -387,9 +394,8 @@ class CurvesVertexGroupsAttributeProvider final : public DynamicAttributesProvid
     if (curves == nullptr) {
       return {};
     }
-    const std::string name = attribute_id;
-    const int vertex_group_index = BLI_findstringindex(
-        &curves->vertex_group_names, name.c_str(), offsetof(bDeformGroup, name));
+    const int vertex_group_index = BKE_defgroup_name_index(&curves->vertex_group_names,
+                                                           attribute_id);
     if (vertex_group_index < 0) {
       return {};
     }
@@ -426,14 +432,24 @@ class CurvesVertexGroupsAttributeProvider final : public DynamicAttributesProvid
     return true;
   }
 
-  bool foreach_attribute(const void *owner, const AttributeForeachCallback callback) const final
+  bool foreach_attribute(const void *owner,
+                         FunctionRef<void(const AttributeIter &)> fn) const final
   {
     const CurvesGeometry *curves = static_cast<const CurvesGeometry *>(owner);
     if (curves == nullptr) {
       return true;
     }
-    LISTBASE_FOREACH (const bDeformGroup *, group, &curves->vertex_group_names) {
-      if (!callback(group->name, {AttrDomain::Point, CD_PROP_FLOAT})) {
+    const Span<MDeformVert> dverts = curves->deform_verts();
+
+    int group_index = 0;
+    LISTBASE_FOREACH_INDEX (const bDeformGroup *, group, &curves->vertex_group_names, group_index)
+    {
+      const auto get_fn = [&]() {
+        return this->get_for_vertex_group_index(*curves, dverts, group_index);
+      };
+      AttributeIter iter{group->name, AttrDomain::Point, CD_PROP_FLOAT, get_fn};
+      fn(iter);
+      if (iter.is_stopped()) {
         return false;
       }
     }

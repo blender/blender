@@ -24,23 +24,35 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Vector>("Start")
       .subtype(PROP_TRANSLATION)
       .description("Position of the first control point");
-  b.add_input<decl::Vector>("End")
-      .default_value({0.0f, 0.0f, 1.0f})
-      .subtype(PROP_TRANSLATION)
-      .description("Position of the second control point")
-      .make_available([](bNode &node) {
-        node_storage(node).mode = GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_POINTS;
-      });
-  b.add_input<decl::Vector>("Direction")
-      .default_value({0.0f, 0.0f, 1.0f})
-      .description("Direction the line is going in. The length of this vector does not matter")
-      .make_available(enable_direction);
-  b.add_input<decl::Float>("Length")
-      .default_value(1.0f)
-      .subtype(PROP_DISTANCE)
-      .description("Distance between the two points")
-      .make_available(enable_direction);
+  auto &end = b.add_input<decl::Vector>("End")
+                  .default_value({0.0f, 0.0f, 1.0f})
+                  .subtype(PROP_TRANSLATION)
+                  .description("Position of the second control point")
+                  .make_available([](bNode &node) {
+                    node_storage(node).mode = GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_POINTS;
+                  });
+  auto &direction =
+      b.add_input<decl::Vector>("Direction")
+          .default_value({0.0f, 0.0f, 1.0f})
+          .description("Direction the line is going in. The length of this vector does not matter")
+          .make_available(enable_direction);
+  auto &length = b.add_input<decl::Float>("Length")
+                     .default_value(1.0f)
+                     .subtype(PROP_DISTANCE)
+                     .description("Distance between the two points")
+                     .make_available(enable_direction);
   b.add_output<decl::Geometry>("Curve");
+
+  const bNode *node = b.node_or_null();
+  if (node != nullptr) {
+    const NodeGeometryCurvePrimitiveLine &storage = node_storage(*node);
+    const GeometryNodeCurvePrimitiveLineMode mode = GeometryNodeCurvePrimitiveLineMode(
+        storage.mode);
+
+    end.available(mode == GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_POINTS);
+    direction.available(mode == GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_DIRECTION);
+    length.available(mode == GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_DIRECTION);
+  }
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -54,23 +66,6 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 
   data->mode = GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_POINTS;
   node->storage = data;
-}
-
-static void node_update(bNodeTree *ntree, bNode *node)
-{
-  const NodeGeometryCurvePrimitiveLine &storage = node_storage(*node);
-  const GeometryNodeCurvePrimitiveLineMode mode = (GeometryNodeCurvePrimitiveLineMode)storage.mode;
-
-  bNodeSocket *p2_socket = static_cast<bNodeSocket *>(node->inputs.first)->next;
-  bNodeSocket *direction_socket = p2_socket->next;
-  bNodeSocket *length_socket = direction_socket->next;
-
-  bke::node_set_socket_availability(
-      ntree, p2_socket, mode == GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_POINTS);
-  bke::node_set_socket_availability(
-      ntree, direction_socket, mode == GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_DIRECTION);
-  bke::node_set_socket_availability(
-      ntree, length_socket, mode == GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_DIRECTION);
 }
 
 static Curves *create_point_line_curve(const float3 start, const float3 end)
@@ -146,7 +141,6 @@ static void node_register()
   static blender::bke::bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_CURVE_PRIMITIVE_LINE, "Curve Line", NODE_CLASS_GEOMETRY);
   ntype.initfunc = node_init;
-  ntype.updatefunc = node_update;
   blender::bke::node_type_storage(&ntype,
                                   "NodeGeometryCurvePrimitiveLine",
                                   node_free_standard_storage,

@@ -122,6 +122,9 @@ const MetalKernelPipeline *get_best_pipeline(const MetalDevice *device, DeviceKe
 void wait_for_all();
 bool is_benchmark_warmup();
 
+/* Deinitialize all static variables, so that no code would run on application exit. */
+void static_deinitialize();
+
 } /* namespace MetalDeviceKernels */
 
 CCL_NAMESPACE_END

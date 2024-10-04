@@ -12,7 +12,7 @@
 #include "BLI_kdopbvh.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "RNA_define.hh"
@@ -43,7 +43,7 @@
 #  include "ED_uvedit.hh"
 
 #  ifdef WITH_PYTHON
-#    include "BPY_extern.h"
+#    include "BPY_extern.hh"
 #  endif
 
 static void rna_Scene_frame_set(Scene *scene, Main *bmain, int frame, float subframe)

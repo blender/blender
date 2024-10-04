@@ -8,16 +8,16 @@
 /* Step 2 : Evaluate all light scattering for each froxels.
  * Also do the temporal reprojection to fight aliasing artifacts. */
 
-#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
+#include "gpu_shader_math_vector_lib.glsl"
 
 /* Included here to avoid requiring lightprobe resources for all volume lib users. */
-#pragma BLENDER_REQUIRE(eevee_lightprobe_eval_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_volume_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_colorspace_lib.glsl)
+#include "eevee_colorspace_lib.glsl"
+#include "eevee_lightprobe_eval_lib.glsl"
+#include "eevee_sampling_lib.glsl"
+#include "eevee_volume_lib.glsl"
 
-#pragma BLENDER_REQUIRE(eevee_volume_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
+#include "eevee_sampling_lib.glsl"
+#include "eevee_volume_lib.glsl"
 
 #ifdef VOLUME_LIGHTING
 

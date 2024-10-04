@@ -12,7 +12,7 @@
 
 #include <Python.h>
 
-#include "bpy_intern_string.h"
+#include "bpy_intern_string.hh"
 
 #include "BLI_utildefines.h"
 

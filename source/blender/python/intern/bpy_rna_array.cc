@@ -16,20 +16,20 @@
 
 #include "RNA_types.hh"
 
-#include "bpy_rna.h"
+#include "bpy_rna.hh"
 
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.hh"
 
-#include "BPY_extern_clog.h"
+#include "BPY_extern_clog.hh"
 
-#include "../generic/py_capi_utils.h"
+#include "../generic/py_capi_utils.hh"
 
 #define USE_MATHUTILS
 
 #ifdef USE_MATHUTILS
-#  include "../mathutils/mathutils.h" /* so we can have mathutils callbacks */
+#  include "../mathutils/mathutils.hh" /* so we can have mathutils callbacks */
 #endif
 
 #define MAX_ARRAY_DIMENSION 10

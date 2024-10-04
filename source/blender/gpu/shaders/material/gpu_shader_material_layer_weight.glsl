@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(gpu_shader_material_fresnel.glsl)
+#include "gpu_shader_material_fresnel.glsl"
 
 void node_layer_weight(float blend, vec3 N, out float fresnel, out float facing)
 {

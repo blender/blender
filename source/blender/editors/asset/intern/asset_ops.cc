@@ -17,7 +17,7 @@
 #include "BKE_report.hh"
 
 #include "BLI_fnmatch.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_set.hh"
 
 #include "ED_asset.hh"

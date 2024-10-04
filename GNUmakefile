@@ -161,6 +161,9 @@ CPU:=$(shell uname -m)
 ifeq ($(CPU),x86_64)
 	CPU:=x64
 endif
+ifeq ($(CPU),aarch64)
+	CPU:=arm64
+endif
 ifeq ($(OS_NCASE),darwin)
 	OS_LIBDIR:=macos
 else

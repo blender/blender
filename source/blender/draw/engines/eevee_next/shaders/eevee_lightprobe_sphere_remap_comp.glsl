@@ -4,9 +4,9 @@
 
 /* Shader to convert cube-map to octahedral projection. */
 
-#pragma BLENDER_REQUIRE(eevee_lightprobe_sphere_mapping_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_colorspace_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_spherical_harmonics_lib.glsl)
+#include "eevee_colorspace_lib.glsl"
+#include "eevee_lightprobe_sphere_mapping_lib.glsl"
+#include "eevee_spherical_harmonics_lib.glsl"
 
 /* OpenGL/Intel drivers have known issues where it isn't able to compile barriers inside for loops.
  * Macros are needed as driver can decide to not unroll in shaders with more complexity. */

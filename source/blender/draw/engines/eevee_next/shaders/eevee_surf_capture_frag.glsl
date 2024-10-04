@@ -9,13 +9,13 @@
  * into other surface shaders.
  */
 
-#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
-#pragma BLENDER_REQUIRE(common_hair_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_surf_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_nodetree_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
+#include "common_hair_lib.glsl"
+#include "draw_view_lib.glsl"
+#include "eevee_gbuffer_lib.glsl"
+#include "eevee_nodetree_lib.glsl"
+#include "eevee_sampling_lib.glsl"
+#include "eevee_surf_lib.glsl"
+#include "gpu_shader_math_vector_lib.glsl"
 
 vec4 closure_to_rgba(Closure cl)
 {
@@ -54,6 +54,7 @@ void main()
     if (is_surface_view_aligned) {
       uint surfel_id = atomicAdd(capture_info_buf.surfel_len, 1u);
       if (capture_info_buf.do_surfel_output) {
+        ObjectInfos object_infos = drw_infos[resource_id];
         surfel_buf[surfel_id].position = g_data.P;
         surfel_buf[surfel_id].normal = gl_FrontFacing ? g_data.Ng : -g_data.Ng;
         surfel_buf[surfel_id].albedo_front = albedo;
@@ -64,6 +65,7 @@ void main()
         surfel_buf[surfel_id].radiance_direct.back.rgb = is_double_sided ? g_emission : vec3(0);
         surfel_buf[surfel_id].radiance_direct.back.a = 0.0;
         surfel_buf[surfel_id].double_sided = is_double_sided;
+        surfel_buf[surfel_id].receiver_light_set = receiver_light_set_get(object_infos);
 
         if (!capture_info_buf.capture_emission) {
           surfel_buf[surfel_id].radiance_direct.front.rgb = vec3(0.0);

@@ -149,7 +149,7 @@ struct tPoseSlideOp {
   /** Sliding Mode. */
   ePoseSlide_Modes mode;
   /** unused for now, but can later get used for storing runtime settings.... */
-  short flag;
+  // short flag;
 
   /* Store overlay settings when invoking the operator. Bones will be temporarily hidden. */
   int overlay_flag;

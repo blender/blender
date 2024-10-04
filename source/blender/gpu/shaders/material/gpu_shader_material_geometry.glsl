@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(gpu_shader_material_tangent.glsl)
+#include "gpu_shader_material_tangent.glsl"
 
 void node_geometry(vec3 orco_attr,
                    out vec3 position,

@@ -3400,7 +3400,10 @@ VolumeNode::VolumeNode(const NodeType *node_type) : ShaderNode(node_type)
   closure = CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID;
 }
 
-void VolumeNode::compile(SVMCompiler &compiler, ShaderInput *param1, ShaderInput *param2)
+void VolumeNode::compile(SVMCompiler &compiler,
+                         ShaderInput *density,
+                         ShaderInput *param1,
+                         ShaderInput *param2)
 {
   ShaderInput *color_in = input("Color");
 
@@ -3411,19 +3414,32 @@ void VolumeNode::compile(SVMCompiler &compiler, ShaderInput *param1, ShaderInput
     compiler.add_node(NODE_CLOSURE_SET_WEIGHT, color);
   }
 
-  compiler.add_node(
-      NODE_CLOSURE_VOLUME,
-      compiler.encode_uchar4(closure,
-                             (param1) ? compiler.stack_assign(param1) : SVM_STACK_INVALID,
-                             (param2) ? compiler.stack_assign(param2) : SVM_STACK_INVALID,
-                             compiler.closure_mix_weight_offset()),
-      __float_as_int((param1) ? get_float(param1->socket_type) : 0.0f),
-      __float_as_int((param2) ? get_float(param2->socket_type) : 0.0f));
+  /* Density and mix weight need to be stored the same way for all volume closures since there's
+   * a shortcut code path if we only need the extinction value. */
+  uint density_ofs = (density) ? compiler.stack_assign_if_linked(density) : SVM_STACK_INVALID;
+  uint mix_weight_ofs = compiler.closure_mix_weight_offset();
+
+  if (param2 == nullptr) {
+    /* More efficient packing if we don't need the second parameter. */
+    uint param1_ofs = (param1) ? compiler.stack_assign_if_linked(param1) : SVM_STACK_INVALID;
+    compiler.add_node(NODE_CLOSURE_VOLUME,
+                      compiler.encode_uchar4(closure, density_ofs, param1_ofs, mix_weight_ofs),
+                      __float_as_int((density) ? get_float(density->socket_type) : 0.0f),
+                      __float_as_int((param1) ? get_float(param1->socket_type) : 0.0f));
+  }
+  else {
+    uint param1_ofs = (param1) ? compiler.stack_assign(param1) : SVM_STACK_INVALID;
+    uint param2_ofs = (param2) ? compiler.stack_assign(param2) : SVM_STACK_INVALID;
+    compiler.add_node(NODE_CLOSURE_VOLUME,
+                      compiler.encode_uchar4(closure, density_ofs, param1_ofs, mix_weight_ofs),
+                      __float_as_int((density) ? get_float(density->socket_type) : 0.0f),
+                      param2_ofs);
+  }
 }
 
 void VolumeNode::compile(SVMCompiler &compiler)
 {
-  compile(compiler, NULL, NULL);
+  compile(compiler, nullptr, nullptr, nullptr);
 }
 
 void VolumeNode::compile(OSLCompiler & /*compiler*/)
@@ -3453,7 +3469,7 @@ AbsorptionVolumeNode::AbsorptionVolumeNode() : VolumeNode(get_node_type())
 
 void AbsorptionVolumeNode::compile(SVMCompiler &compiler)
 {
-  VolumeNode::compile(compiler, input("Density"), NULL);
+  VolumeNode::compile(compiler, input("Density"));
 }
 
 void AbsorptionVolumeNode::compile(OSLCompiler &compiler)
@@ -3470,6 +3486,19 @@ NODE_DEFINE(ScatterVolumeNode)
   SOCKET_IN_COLOR(color, "Color", make_float3(0.8f, 0.8f, 0.8f));
   SOCKET_IN_FLOAT(density, "Density", 1.0f);
   SOCKET_IN_FLOAT(anisotropy, "Anisotropy", 0.0f);
+  SOCKET_IN_FLOAT(IOR, "IOR", 1.33f);
+  SOCKET_IN_FLOAT(backscatter, "Backscatter", 0.1f);
+  SOCKET_IN_FLOAT(alpha, "Alpha", 0.5f);
+  SOCKET_IN_FLOAT(diameter, "Diameter", 20.0f);
+
+  static NodeEnum phase_enum;
+  phase_enum.insert("Henyey-Greenstein", CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID);
+  phase_enum.insert("Fournier-Forand", CLOSURE_VOLUME_FOURNIER_FORAND_ID);
+  phase_enum.insert("Draine", CLOSURE_VOLUME_DRAINE_ID);
+  phase_enum.insert("Rayleigh", CLOSURE_VOLUME_RAYLEIGH_ID);
+  phase_enum.insert("Mie", CLOSURE_VOLUME_MIE_ID);
+  SOCKET_ENUM(phase, "Phase", phase_enum, CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID);
+
   SOCKET_IN_FLOAT(volume_mix_weight, "VolumeMixWeight", 0.0f, SocketType::SVM_INTERNAL);
 
   SOCKET_OUT_CLOSURE(volume, "Volume");
@@ -3484,11 +3513,33 @@ ScatterVolumeNode::ScatterVolumeNode() : VolumeNode(get_node_type())
 
 void ScatterVolumeNode::compile(SVMCompiler &compiler)
 {
-  VolumeNode::compile(compiler, input("Density"), input("Anisotropy"));
+  closure = phase;
+
+  switch (phase) {
+    case CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID:
+      VolumeNode::compile(compiler, input("Density"), input("Anisotropy"));
+      break;
+    case CLOSURE_VOLUME_FOURNIER_FORAND_ID:
+      VolumeNode::compile(compiler, input("Density"), input("IOR"), input("Backscatter"));
+      break;
+    case CLOSURE_VOLUME_RAYLEIGH_ID:
+      VolumeNode::compile(compiler, input("Density"));
+      break;
+    case CLOSURE_VOLUME_DRAINE_ID:
+      VolumeNode::compile(compiler, input("Density"), input("Anisotropy"), input("Alpha"));
+      break;
+    case CLOSURE_VOLUME_MIE_ID:
+      VolumeNode::compile(compiler, input("Density"), input("Diameter"));
+      break;
+    default:
+      assert(false);
+      break;
+  }
 }
 
 void ScatterVolumeNode::compile(OSLCompiler &compiler)
 {
+  compiler.parameter(this, "phase");
   compiler.add(this, "node_scatter_volume");
 }
 

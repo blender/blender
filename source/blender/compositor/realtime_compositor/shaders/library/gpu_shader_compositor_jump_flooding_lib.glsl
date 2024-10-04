@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 /* A special value that indicates that the pixel has not be flooded yet, and consequently is not a
  * seed pixel. */
 #define JUMP_FLOODING_NON_FLOODED_VALUE ivec2(-1)

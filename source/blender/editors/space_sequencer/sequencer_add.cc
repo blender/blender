@@ -115,8 +115,15 @@ static void sequencer_generic_props__internal(wmOperatorType *ot, int flag)
                 MAXFRAME);
   }
 
-  RNA_def_int(
-      ot->srna, "channel", 1, 1, MAXSEQ, "Channel", "Channel to place this strip into", 1, MAXSEQ);
+  RNA_def_int(ot->srna,
+              "channel",
+              1,
+              1,
+              SEQ_MAX_CHANNELS,
+              "Channel",
+              "Channel to place this strip into",
+              1,
+              SEQ_MAX_CHANNELS);
 
   RNA_def_boolean(
       ot->srna, "replace_sel", true, "Replace Selection", "Deselect previously selected strips");
@@ -822,14 +829,19 @@ static void seq_build_proxy(bContext *C, blender::Span<Sequence *> movie_strips)
   ED_area_tag_redraw(CTX_wm_area(C));
 }
 
-static void sequencer_add_movie_clamp_sound_strip_length(Scene *scene,
-                                                         Sequence *seq_movie,
-                                                         Sequence *seq_sound)
+static void sequencer_add_movie_sync_sound_strip(
+    Main *bmain, Scene *scene, Sequence *seq_movie, Sequence *seq_sound, SeqLoadData *load_data)
 {
   if (ELEM(nullptr, seq_movie, seq_sound)) {
     return;
   }
 
+  /* Make sure that the sound strip start time relative to the movie is taken into account. */
+  SEQ_add_sound_av_sync(bmain, scene, seq_sound, load_data);
+
+  /* Ensure that the sound strip start/end matches the movie strip even if the actual
+   * length and true position of the sound doesn't match up exactly.
+   */
   SEQ_time_right_handle_frame_set(
       scene, seq_sound, SEQ_time_right_handle_frame_get(scene, seq_movie));
   SEQ_time_left_handle_frame_set(
@@ -867,7 +879,7 @@ static void sequencer_add_movie_multiple_strips(bContext *C,
     else {
       if (RNA_boolean_get(op->ptr, "sound")) {
         seq_sound = SEQ_add_sound_strip(bmain, scene, ed->seqbasep, load_data);
-        sequencer_add_movie_clamp_sound_strip_length(scene, seq_movie, seq_sound);
+        sequencer_add_movie_sync_sound_strip(bmain, scene, seq_movie, seq_sound, load_data);
         added_strips.append(seq_movie);
 
         if (seq_sound) {
@@ -889,7 +901,7 @@ static void sequencer_add_movie_multiple_strips(bContext *C,
         seq_load_apply_generic_options(C, op, seq_movie);
       }
 
-      if ((U.sequencer_editor_flag & USER_SEQ_ED_CONNECT_STRIPS_BY_DEFAULT)) {
+      if (U.sequencer_editor_flag & USER_SEQ_ED_CONNECT_STRIPS_BY_DEFAULT) {
         SEQ_connect(seq_movie, seq_sound);
       }
 
@@ -929,7 +941,7 @@ static bool sequencer_add_movie_single_strip(bContext *C,
   }
   if (RNA_boolean_get(op->ptr, "sound")) {
     seq_sound = SEQ_add_sound_strip(bmain, scene, ed->seqbasep, load_data);
-    sequencer_add_movie_clamp_sound_strip_length(scene, seq_movie, seq_sound);
+    sequencer_add_movie_sync_sound_strip(bmain, scene, seq_movie, seq_sound, load_data);
     added_strips.append(seq_movie);
 
     if (seq_sound) {
@@ -960,7 +972,7 @@ static bool sequencer_add_movie_single_strip(bContext *C,
     seq_load_apply_generic_options(C, op, seq_movie);
   }
 
-  if ((U.sequencer_editor_flag & USER_SEQ_ED_CONNECT_STRIPS_BY_DEFAULT)) {
+  if (U.sequencer_editor_flag & USER_SEQ_ED_CONNECT_STRIPS_BY_DEFAULT) {
     SEQ_connect(seq_movie, seq_sound);
   }
 
@@ -1453,7 +1465,7 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
   if (!RNA_struct_property_is_set(op->ptr, "channel")) {
     if (seq1 != nullptr) {
       int chan = max_ii(seq1 ? seq1->machine : 0, seq2 ? seq2->machine : 0);
-      if (chan < MAXSEQ) {
+      if (chan < SEQ_MAX_CHANNELS) {
         load_data.channel = chan;
       }
     }

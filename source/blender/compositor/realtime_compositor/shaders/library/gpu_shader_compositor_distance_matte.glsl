@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(gpu_shader_common_color_utils.glsl)
+#include "gpu_shader_common_color_utils.glsl"
 
 void node_composite_distance_matte_rgba(
     vec4 color, vec4 key, float tolerance, float falloff, out vec4 result, out float matte)

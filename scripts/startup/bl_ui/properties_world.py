@@ -83,6 +83,7 @@ class WORLD_PT_animation(WorldButtonsPanel, PropertiesAnimationMixin, PropertyPa
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         # WorldButtonsPanel.poll ensures this is not None.
         world = context.world

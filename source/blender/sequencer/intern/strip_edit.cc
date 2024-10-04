@@ -188,7 +188,7 @@ void SEQ_edit_remove_flagged_sequences(Scene *scene, ListBase *seqbase)
       SEQ_free_animdata(scene, seq);
       BLI_remlink(seqbase, seq);
       SEQ_sequence_free(scene, seq);
-      SEQ_sequence_lookup_tag(scene, SEQ_LOOKUP_TAG_INVALID);
+      SEQ_sequence_lookup_invalidate(scene);
     }
   }
 }
@@ -517,5 +517,5 @@ void SEQ_edit_sequence_name_set(Scene *scene, Sequence *seq, const char *new_nam
 {
   BLI_strncpy_utf8(seq->name + 2, new_name, MAX_NAME - 2);
   BLI_str_utf8_invalid_strip(seq->name + 2, strlen(seq->name + 2));
-  SEQ_sequence_lookup_tag(scene, SEQ_LOOKUP_TAG_INVALID);
+  SEQ_sequence_lookup_invalidate(scene);
 }

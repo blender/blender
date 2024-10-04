@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
+#include "gpu_shader_compositor_texture_utilities.glsl"
 
 /* OCIOMain will be dynamically generated in the OCIOColorSpaceConversionShader class and appended
  * at the end of this file, so forward declare it. Such forward declarations are not supported nor

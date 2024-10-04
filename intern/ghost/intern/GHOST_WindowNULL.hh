@@ -22,7 +22,7 @@ class GHOST_WindowNULL : public GHOST_Window {
     return GHOST_kSuccess;
   }
 
-  GHOST_WindowNULL(const char *title,
+  GHOST_WindowNULL(const char * /*title*/,
                    int32_t /*left*/,
                    int32_t /*top*/,
                    uint32_t width,
@@ -33,7 +33,6 @@ class GHOST_WindowNULL : public GHOST_Window {
                    const bool stereoVisual)
       : GHOST_Window(width, height, state, stereoVisual, false)
   {
-    setTitle(title);
   }
 
  protected:

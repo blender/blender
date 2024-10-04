@@ -12,6 +12,7 @@
 
 #include "overlay_next_antialiasing.hh"
 #include "overlay_next_armature.hh"
+#include "overlay_next_attribute_viewer.hh"
 #include "overlay_next_background.hh"
 #include "overlay_next_bounds.hh"
 #include "overlay_next_camera.hh"
@@ -73,6 +74,7 @@ class Instance {
     const SelectionType selection_type_;
 
     Armatures armatures = {selection_type_};
+    AttributeViewer attribute_viewer;
     Bounds bounds = {selection_type_};
     Cameras cameras = {selection_type_};
     Curves curves;

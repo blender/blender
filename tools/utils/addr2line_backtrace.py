@@ -219,7 +219,7 @@ def main() -> None:
             try:
                 with open(backtrace_filepath, 'r', encoding="utf-8", errors="surrogateescape") as fh:
                     bactrace_data = fh.read()
-            except BaseException as ex:
+            except Exception as ex:
                 print("Filed to open {!r}, {:s}".format(backtrace_filepath, str(ex)))
                 continue
 

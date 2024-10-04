@@ -40,6 +40,7 @@ namespace blender::gpu::render_graph {
 
 class VKCommandBuilder;
 struct VKRenderGraphLink;
+class VKScheduler;
 
 using ResourceHandle = uint64_t;
 
@@ -122,6 +123,7 @@ class VKResourceStateTracker {
    * During the syncing the command builder attributes are resized to reduce reallocations. */
   friend class VKCommandBuilder;
   friend struct VKRenderGraphLink;
+  friend class VKScheduler;
 
   /**
    * A render resource can be a buffer or an image that needs to be tracked during rendering.
@@ -310,6 +312,12 @@ class VKResourceStateTracker {
    * rendering).
    */
   void reset_image_layouts();
+
+  /** Get the resource type for the given handle. */
+  VKResourceType resource_type_get(ResourceHandle resource_handle) const
+  {
+    return resources_.lookup(resource_handle).type;
+  }
 
  private:
   /**

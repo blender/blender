@@ -49,6 +49,9 @@ CCL_NAMESPACE_BEGIN
 #ifndef M_1_2PI_F
 #  define M_1_2PI_F (0.1591549430918953f) /* 1/(2*pi) */
 #endif
+#ifndef M_1_4PI_F
+#  define M_1_4PI_F (0.0795774715459476f) /* 1/(4*pi) */
+#endif
 #ifndef M_SQRT_PI_8_F
 #  define M_SQRT_PI_8_F (0.6266570686577501f) /* sqrt(pi/8) */
 #endif
@@ -70,6 +73,9 @@ CCL_NAMESPACE_BEGIN
 /* Float sqrt variations */
 #ifndef M_SQRT2_F
 #  define M_SQRT2_F (1.4142135623730950f) /* sqrt(2) */
+#endif
+#ifndef M_CBRT2_F
+#  define M_CBRT2_F 1.2599210498948732f /* cbrt(2) */
 #endif
 #ifndef M_SQRT1_2F
 #  define M_SQRT1_2F 0.70710678118654752440f /* sqrt(1/2) */

@@ -57,6 +57,10 @@ struct MTLCapabilities {
   bool supports_family_mac_catalyst1 = false;
   bool supports_family_mac_catalyst2 = false;
   AppleGPUType gpu = APPLE_GPU_UNKNOWN;
+
+  /* CPU Info */
+  int num_performance_cores = -1;
+  int num_efficiency_cores = -1;
 };
 
 }  // namespace gpu

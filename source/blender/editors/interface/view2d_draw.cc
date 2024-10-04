@@ -379,8 +379,8 @@ static void draw_vertical_scale_indicators(const ARegion *region,
   BLF_enable(font_id, BLF_SHADOW);
   float shadow_color[4];
   UI_GetThemeColor4fv(TH_BACK, shadow_color);
-  BLF_shadow(font_id, FontShadowType::Blur5x5, shadow_color);
-  BLF_shadow_offset(font_id, 1, -1);
+  BLF_shadow_offset(font_id, 0, 0);
+  BLF_shadow(font_id, FontShadowType::Outline, shadow_color);
 
   const float x_offset = 8.0f;
   const float xpos = (rect->xmin + x_offset) * UI_SCALE_FAC;

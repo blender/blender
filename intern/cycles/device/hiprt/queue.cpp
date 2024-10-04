@@ -34,14 +34,25 @@ bool HIPRTDeviceQueue::enqueue(DeviceKernel kernel,
   const HIPContextScope scope(hiprt_device_);
   const HIPDeviceKernel &hip_kernel = hiprt_device_->kernels.get(kernel);
 
-  if (!hiprt_device_->global_stack_buffer.device_pointer) {
-    int max_path = num_concurrent_states(0);
-    hiprt_device_->global_stack_buffer.alloc(max_path * HIPRT_SHARED_STACK_SIZE * sizeof(int));
-    hiprt_device_->global_stack_buffer.zero_to_device();
+  if (!hiprt_device_->global_stack_buffer.stackData) {
+    uint32_t max_path = num_concurrent_states(0);
+    hiprtGlobalStackBufferInput stack_buffer_input{
+        hiprtStackTypeGlobal, hiprtStackEntryTypeInteger, HIPRT_THREAD_STACK_SIZE, max_path};
+
+    hiprtError rt_result = hiprtCreateGlobalStackBuffer(hiprt_device_->get_hiprt_context(),
+                                                        stack_buffer_input,
+                                                        hiprt_device_->global_stack_buffer);
+
+    if (rt_result != hiprtSuccess) {
+      LOG(ERROR) << "Failed to create hiprt Global Stack Buffer";
+      return false;
+    }
   }
 
   DeviceKernelArguments args_copy = args;
-  args_copy.add(&hiprt_device_->global_stack_buffer.device_pointer);
+  args_copy.add(DeviceKernelArguments::HIPRT_GLOBAL_STACK,
+                (void *)(&hiprt_device_->global_stack_buffer),
+                sizeof(hiprtGlobalStackBuffer));
 
   /* Compute kernel launch parameters. */
   const int num_threads_per_block = HIPRT_THREAD_GROUP_SIZE;

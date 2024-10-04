@@ -27,6 +27,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 
+#include "RNA_prototypes.hh"
+
 #include "ED_curves.hh"
 #include "ED_grease_pencil.hh"
 #include "ED_view3d.hh"
@@ -120,8 +122,12 @@ DrawingPlacement::DrawingPlacement(const Scene &scene,
                                    const Object &eval_object,
                                    const bke::greasepencil::Layer *layer,
                                    const ReprojectMode reproject_mode,
-                                   const float surface_offset)
-    : region_(&region), view3d_(&view3d), surface_offset_(surface_offset)
+                                   const float surface_offset,
+                                   ViewDepths *view_depths)
+    : region_(&region),
+      view3d_(&view3d),
+      depth_cache_(view_depths),
+      surface_offset_(surface_offset)
 {
   layer_space_to_world_space_ = (layer != nullptr) ? layer->to_world_space(eval_object) :
                                                      eval_object.object_to_world();
@@ -278,7 +284,7 @@ void DrawingPlacement::cache_viewport_depths(Depsgraph *depsgraph, ARegion *regi
       mode = V3D_DEPTH_SELECTED_ONLY;
     }
     else {
-      mode = V3D_DEPTH_NO_OVERLAYS;
+      mode = V3D_DEPTH_NO_GPENCIL;
     }
   }
   ED_view3d_depth_override(depsgraph, region, view3d, nullptr, mode, &this->depth_cache_);
@@ -307,9 +313,9 @@ float3 DrawingPlacement::project_depth(const float2 co) const
   float depth;
   if (depth_cache_ != nullptr && ED_view3d_depth_read_cached(depth_cache_, int2(co), 4, &depth)) {
     ED_view3d_depth_unproject_v3(region_, int2(co), depth, proj_point);
-    float3 normal;
-    ED_view3d_depth_read_cached_normal(region_, depth_cache_, int2(co), normal);
-    proj_point += normal * surface_offset_;
+    float3 view_normal;
+    ED_view3d_win_to_vector(region_, co, view_normal);
+    proj_point -= view_normal * surface_offset_;
   }
   else {
     /* Fallback to `View` placement. */
@@ -347,15 +353,12 @@ void DrawingPlacement::project(const Span<float2> src, MutableSpan<float3> dst) 
 
 float3 DrawingPlacement::reproject(const float3 pos) const
 {
+  const float3 world_pos = math::transform_point(layer_space_to_world_space_, pos);
   float3 proj_point;
   if (depth_ == DrawingPlacementDepth::Surface) {
     /* First project the position into view space. */
     float2 co;
-    if (ED_view3d_project_float_global(region_,
-                                       math::transform_point(layer_space_to_world_space_, pos),
-                                       co,
-                                       V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_OK)
-    {
+    if (ED_view3d_project_float_global(region_, world_pos, co, V3D_PROJ_TEST_NOP)) {
       /* Can't reproject the point. */
       return pos;
     }
@@ -369,10 +372,10 @@ float3 DrawingPlacement::reproject(const float3 pos) const
     float3 ray_co, ray_no;
     if (rv3d->is_persp) {
       ray_co = float3(rv3d->viewinv[3]);
-      ray_no = math::normalize(ray_co - math::transform_point(layer_space_to_world_space_, pos));
+      ray_no = math::normalize(ray_co - world_pos);
     }
     else {
-      ray_co = math::transform_point(layer_space_to_world_space_, pos);
+      ray_co = world_pos;
       ray_no = -float3(rv3d->viewinv[2]);
     }
     float4 plane;
@@ -1500,6 +1503,7 @@ int grease_pencil_draw_operator_invoke(bContext *C,
                                        wmOperator *op,
                                        const bool use_duplicate_previous_key)
 {
+  const Scene *scene = CTX_data_scene(C);
   const Object *object = CTX_data_active_object(C);
   if (!object || object->type != OB_GREASE_PENCIL) {
     return OPERATOR_CANCELLED;
@@ -1527,7 +1531,7 @@ int grease_pencil_draw_operator_invoke(bContext *C,
   /* Ensure a drawing at the current keyframe. */
   bool inserted_keyframe = false;
   if (!ed::greasepencil::ensure_active_keyframe(
-          C, grease_pencil, use_duplicate_previous_key, inserted_keyframe))
+          *scene, grease_pencil, active_layer, use_duplicate_previous_key, inserted_keyframe))
   {
     BKE_report(op->reports, RPT_ERROR, "No Grease Pencil frame to draw on");
     return OPERATOR_CANCELLED;
@@ -1576,6 +1580,20 @@ float4x2 calculate_texture_space(const Scene *scene,
 
   return math::transpose(float2x4(float4(u_dir, -math::dot(u_dir, origin)),
                                   float4(v_dir, -math::dot(v_dir, origin))));
+}
+
+GreasePencil *from_context(bContext &C)
+{
+  GreasePencil *grease_pencil = static_cast<GreasePencil *>(
+      CTX_data_pointer_get_type(&C, "grease_pencil", &RNA_GreasePencilv3).data);
+
+  if (grease_pencil == nullptr) {
+    Object *object = CTX_data_active_object(&C);
+    if (object && object->type == OB_GREASE_PENCIL) {
+      grease_pencil = static_cast<GreasePencil *>(object->data);
+    }
+  }
+  return grease_pencil;
 }
 
 }  // namespace blender::ed::greasepencil

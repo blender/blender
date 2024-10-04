@@ -10,7 +10,7 @@
 #include <utility>
 
 #include "BLI_fileops.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_vector.hh"
 
@@ -61,7 +61,11 @@ static ID *asset_link_id(Main &global_main,
       lapp_context, asset_name, id_type, nullptr);
   BKE_blendfile_link_append_context_item_library_index_enable(lapp_context, lapp_item, 0);
 
+  BKE_blendfile_link_append_context_init_done(lapp_context);
+
   BKE_blendfile_link(lapp_context, nullptr);
+
+  BKE_blendfile_link_append_context_finalize(lapp_context);
 
   ID *local_asset = BKE_blendfile_link_append_context_item_newid_get(lapp_context, lapp_item);
 
@@ -125,17 +129,18 @@ static std::string asset_blendfile_path_for_save(const bUserAssetLibrary &user_l
               std::min(sizeof(base_name_filesafe), size_t(base_name.size() + 1)));
   BLI_path_make_safe_filename(base_name_filesafe);
 
-  const std::string filepath = root_path + SEP + base_name_filesafe + BLENDER_ASSET_FILE_SUFFIX;
-
-  if (!BLI_is_file(filepath.c_str())) {
-    return filepath;
+  {
+    const std::string filepath = root_path + SEP + base_name_filesafe + BLENDER_ASSET_FILE_SUFFIX;
+    if (!BLI_is_file(filepath.c_str())) {
+      return filepath;
+    }
   }
 
   /* Avoid overwriting existing file by adding number suffix. */
   for (int i = 1;; i++) {
     const std::string filepath = root_path + SEP + base_name_filesafe + "_" + std::to_string(i++) +
                                  BLENDER_ASSET_FILE_SUFFIX;
-    if (!BLI_is_file((filepath.c_str()))) {
+    if (!BLI_is_file(filepath.c_str())) {
       return filepath;
     }
   }

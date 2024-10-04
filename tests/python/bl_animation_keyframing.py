@@ -13,6 +13,16 @@ blender -b --factory-startup --python tests/python/bl_animation_keyframing.py --
 """
 
 
+def enable_experimental_animation_baklava():
+    bpy.context.preferences.view.show_developer_ui = True
+    bpy.context.preferences.experimental.use_animation_baklava = True
+
+
+def disable_experimental_animation_baklava():
+    bpy.context.preferences.view.show_developer_ui = False
+    bpy.context.preferences.experimental.use_animation_baklava = False
+
+
 def _fcurve_paths_match(fcurves: list, expected_paths: list) -> bool:
     data_paths = list(set([fcurve.data_path for fcurve in fcurves]))
     data_paths.sort()
@@ -190,6 +200,74 @@ class InsertKeyTest(AbstractKeyframingTest, unittest.TestCase):
             self.assertEqual(len(fcurve.keyframe_points), 2)
             self.assertFalse(fcurve.keyframe_points[0].select_control_point)
             self.assertTrue(fcurve.keyframe_points[1].select_control_point)
+
+    def test_keyframe_insert_py_func(self):
+        curve_object = _create_animation_object()
+
+        # Test on location, which is a 3-item array, without explicitly passing an array index.
+        self.assertTrue(curve_object.keyframe_insert('location'))
+
+        ob_fcurves = curve_object.animation_data.action.fcurves
+
+        self.assertEqual(len(ob_fcurves), 3,
+                         "Keying 'location' without any array index should have created 3 F-Curves")
+        self.assertEqual(3 * ['location'], [fcurve.data_path for fcurve in ob_fcurves])
+        self.assertEqual([0, 1, 2], [fcurve.array_index for fcurve in ob_fcurves])
+
+        ob_fcurves.clear()
+
+        # Test on 'rotation_quaterion' (4 items), with explicit index=-1.
+        self.assertTrue(curve_object.keyframe_insert('rotation_quaternion', index=-1))
+        self.assertEqual(len(ob_fcurves), 4,
+                         "Keying 'rotation_quaternion' with index=-1 should have created 4 F-Curves")
+        self.assertEqual(4 * ['rotation_quaternion'], [fcurve.data_path for fcurve in ob_fcurves])
+        self.assertEqual([0, 1, 2, 3], [fcurve.array_index for fcurve in ob_fcurves])
+
+        ob_fcurves.clear()
+
+        # Test on 'scale' (3 items) with explicit index=1.
+        self.assertTrue(curve_object.keyframe_insert('scale', index=2))
+        self.assertEqual(len(ob_fcurves), 1,
+                         "Keying 'scale' with index=2 should have created 1 F-Curve")
+        self.assertEqual('scale', ob_fcurves[0].data_path)
+        self.assertEqual(2, ob_fcurves[0].array_index)
+
+    def test_keyframe_insert_py_func_with_group(self):
+        curve_object = _create_animation_object()
+
+        # Test with property for which Blender knows a group name too ('Object Transforms').
+        self.assertTrue(curve_object.keyframe_insert('location', group="Téšt"))
+
+        fcurves = curve_object.animation_data.action.fcurves
+        fgroups = curve_object.animation_data.action.groups
+
+        self.assertEqual(3 * ['location'], [fcurve.data_path for fcurve in fcurves])
+        self.assertEqual([0, 1, 2], [fcurve.array_index for fcurve in fcurves])
+        self.assertEqual(["Téšt"], [group.name for group in fgroups])
+        self.assertEqual(3 * ["Téšt"], [fcurve.group and fcurve.group.name for fcurve in fcurves])
+
+        fcurves.clear()
+        while fgroups:
+            fgroups.remove(fgroups[0])
+
+        # Test with property that does not have predefined group name.
+        self.assertTrue(curve_object.keyframe_insert('show_wire', group="Téšt"))
+        self.assertEqual('show_wire', fcurves[0].data_path)
+        self.assertEqual(["Téšt"], [group.name for group in fgroups])
+
+
+if hasattr(bpy.types, 'ActionSlot'):
+    # This test only makes sense when built with slotted/layered Actions.
+    class LayeredInsertKeyTest(InsertKeyTest):
+        @classmethod
+        def setUpClass(cls) -> None:
+            enable_experimental_animation_baklava()
+            super().setUpClass()
+
+        @classmethod
+        def tearDownClass(cls) -> None:
+            disable_experimental_animation_baklava()
+            super().tearDownClass()
 
 
 class VisualKeyingTest(AbstractKeyframingTest, unittest.TestCase):

@@ -17,7 +17,7 @@
  * execute the vertex shader code on each of the input primitive's vertices.
  */
 
-#pragma BLENDER_REQUIRE(workbench_shadow_lib.glsl)
+#include "workbench_shadow_lib.glsl"
 
 void extrude_edge(
     bool invert, VertOut geom_in_1, VertOut geom_in_2, uint out_vertex_id, uint out_primitive_id)

@@ -13,6 +13,7 @@
 
 #include "ANIM_action.hh"
 #include "ANIM_action_iterators.hh"
+#include "ANIM_action_legacy.hh"
 #include "ANIM_animdata.hh"
 #include "ANIM_fcurve.hh"
 #include "ANIM_keyframing.hh"
@@ -523,7 +524,7 @@ static SingleKeyingResult insert_keyframe_fcurve_value(Main *bmain,
 
   FCurve *fcu = key_insertion_may_create_fcurve(flag) ?
                     action_fcurve_ensure(bmain, act, group, ptr, {rna_path, array_index}) :
-                    action_fcurve_find(act, {rna_path, array_index});
+                    fcurve_find_in_action(act, {rna_path, array_index});
 
   /* We may not have a F-Curve when we're replacing only. */
   if (!fcu) {
@@ -645,7 +646,7 @@ int delete_keyframe(Main *bmain, ReportList *reports, ID *id, const RNAPath &rna
   else {
     /* Will only loop once unless the array index was -1. */
     for (; array_index < array_index_max; array_index++) {
-      FCurve *fcu = action_fcurve_find(act, {rna_path.path, array_index});
+      FCurve *fcu = fcurve_find_in_action(act, {rna_path.path, array_index});
 
       if (fcu == nullptr) {
         continue;
@@ -716,7 +717,7 @@ int clear_keyframe(Main *bmain, ReportList *reports, ID *id, const RNAPath &rna_
   if (action.is_action_layered()) {
     if (adt->slot_handle) {
       Vector<FCurve *> fcurves;
-      action_foreach_fcurve(action, adt->slot_handle, [&](FCurve &fcurve) {
+      foreach_fcurve_in_action_slot(action, adt->slot_handle, [&](FCurve &fcurve) {
         if (rna_path.index.has_value() && rna_path.index.value() != fcurve.array_index) {
           return;
         }
@@ -749,7 +750,7 @@ int clear_keyframe(Main *bmain, ReportList *reports, ID *id, const RNAPath &rna_
     }
     /* Will only loop once unless the array index was -1. */
     for (; array_index < array_index_max; array_index++) {
-      FCurve *fcu = action_fcurve_find(act, {rna_path.path, array_index});
+      FCurve *fcu = fcurve_find_in_action(act, {rna_path.path, array_index});
 
       if (fcu == nullptr) {
         continue;
@@ -860,13 +861,15 @@ static SingleKeyingResult insert_key_layer(
       insert_key_flags);
 }
 
-static CombinedKeyingResult insert_key_layered_action(Main *bmain,
-                                                      Action &action,
-                                                      PointerRNA *rna_pointer,
-                                                      const blender::Span<RNAPath> rna_paths,
-                                                      const float scene_frame,
-                                                      const KeyframeSettings &key_settings,
-                                                      const eInsertKeyFlags insert_key_flags)
+static CombinedKeyingResult insert_key_layered_action(
+    Main *bmain,
+    Action &action,
+    PointerRNA *rna_pointer,
+    const std::optional<StringRefNull> channel_group,
+    const blender::Span<RNAPath> rna_paths,
+    const float scene_frame,
+    const KeyframeSettings &key_settings,
+    const eInsertKeyFlags insert_key_flags)
 {
   BLI_assert(action.is_action_layered());
   ID &animated_id = *rna_pointer->owner_id;
@@ -910,16 +913,19 @@ static CombinedKeyingResult insert_key_layered_action(Main *bmain,
                                                                                         prop);
     BLI_assert(rna_path_id_to_prop.has_value());
 
-    const std::optional<blender::StringRefNull> channel_group = default_channel_group_for_path(
-        &ptr, *rna_path_id_to_prop);
+    const std::optional<blender::StringRefNull> this_rna_path_channel_group =
+        channel_group.has_value() ? *channel_group :
+                                    default_channel_group_for_path(&ptr, *rna_path_id_to_prop);
 
     const PropertySubType prop_subtype = RNA_property_subtype(prop);
     Vector<float> rna_values = get_keyframe_values(&ptr, prop, use_visual_keyframing);
 
     for (const int property_index : rna_values.index_range()) {
       /* If we're only keying one array element, skip all elements other than
-       * that one. */
-      if (rna_path.index.has_value() && *rna_path.index != property_index) {
+       * that one. index == -1 means 'all array elements' though, so that one is
+       * treated just like having no value here at all. */
+      if (rna_path.index.has_value() && *rna_path.index != -1 && *rna_path.index != property_index)
+      {
         continue;
       }
 
@@ -930,7 +936,7 @@ static CombinedKeyingResult insert_key_layered_action(Main *bmain,
                                                          *slot,
                                                          *rna_path_id_to_prop,
                                                          prop_subtype,
-                                                         channel_group,
+                                                         this_rna_path_channel_group,
                                                          key_data,
                                                          key_settings,
                                                          insert_key_flags);
@@ -972,16 +978,15 @@ CombinedKeyingResult insert_keyframes(Main *bmain,
   bAction *dna_action = id_action_ensure(bmain, id);
   BLI_assert(dna_action != nullptr);
 
-  Action &action = dna_action->wrap();
-  if (!action.is_action_legacy() ||
-      (action.is_empty() && USER_EXPERIMENTAL_TEST(&U, use_animation_baklava)))
-  {
+  if (!animrig::legacy::action_treat_as_legacy(*dna_action)) {
+    Action &action = dna_action->wrap();
     KeyframeSettings key_settings = get_keyframe_settings(
         (insert_key_flags & INSERTKEY_NO_USERPREF) == 0);
     key_settings.keyframe_type = key_type;
     return insert_key_layered_action(bmain,
                                      action,
                                      struct_pointer,
+                                     channel_group,
                                      rna_paths,
                                      scene_frame.value_or(anim_eval_context.eval_time),
                                      key_settings,
@@ -1046,7 +1051,7 @@ CombinedKeyingResult insert_keyframes(Main *bmain,
       /* Determine if at least one element would succeed getting keyed. */
       bool at_least_one_would_succeed = false;
       for (int i = 0; i < rna_values.size(); i++) {
-        const FCurve *fcu = action_fcurve_find(dna_action, {*rna_path_id_to_prop, i});
+        const FCurve *fcu = fcurve_find_in_action(dna_action, {*rna_path_id_to_prop, i});
         if (!fcu) {
           continue;
         }

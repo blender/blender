@@ -13,7 +13,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.hh"
 #include "BLI_offset_indices.hh"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
@@ -146,7 +146,7 @@ static IndexRange extend_curves_geometry(bke::CurvesGeometry &curves, const NSVG
 
   const IndexRange new_curves_range = {old_curves_num, new_points_by_curve.size()};
   const int curves_num = new_curves_range.one_after_last();
-  const int points_num = new_points_by_curve.total_size();
+  const int points_num = new_points_by_curve.total_size() + old_points_num;
 
   Array<int> new_offsets(curves_num + 1);
   if (old_curves_num > 0) {

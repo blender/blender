@@ -93,6 +93,8 @@ void screen_draw_dock_preview(
     ScrArea *source, ScrArea *target, AreaDockTarget dock_target, float factor, int x, int y);
 void screen_draw_split_preview(ScrArea *area, eScreenAxis dir_axis, float factor);
 
+void screen_draw_move_highlight(bScreen *screen, eScreenAxis dir_axis);
+
 /* `screen_edit.cc` */
 
 /**

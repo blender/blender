@@ -290,12 +290,10 @@ void draw_strip_thumbnails(TimelineDrawContext *ctx,
   }
 
   /* Gather information for all thumbnails. */
-  ListBase *channels = ctx->channels;
   Vector<SeqThumbInfo> thumbs;
   for (const StripDrawContext &strip : strips) {
-    bool is_muted = channels ? SEQ_render_is_muted(channels, strip.seq) : false;
     get_seq_strip_thumbnails(
-        ctx->v2d, ctx->C, ctx->scene, strip, ctx->pixelx, ctx->pixely, is_muted, thumbs);
+        ctx->v2d, ctx->C, ctx->scene, strip, ctx->pixelx, ctx->pixely, strip.is_muted, thumbs);
   }
   if (thumbs.is_empty()) {
     return;

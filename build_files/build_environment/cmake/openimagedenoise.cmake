@@ -21,18 +21,22 @@ else()
     -DLEVEL_ZERO_ROOT=${LIBDIR}/level-zero
   )
 
-  # x64 platforms support SyCL, ARM64 don't
-  if(NOT BLENDER_PLATFORM_WINDOWS_ARM)
+  # x64 platforms support SyCL and HIP, ARM64 doesn't
+  if(NOT BLENDER_PLATFORM_ARM)
     set(OIDN_EXTRA_ARGS
       ${OIDN_EXTRA_ARGS}
       -DOIDN_DEVICE_SYCL=ON
       -DOIDN_DEVICE_SYCL_AOT=OFF
       -DOIDN_DEVICE_CUDA=ON
       -DOIDN_DEVICE_HIP=ON)
+  elseif(UNIX)
+    set(OIDN_EXTRA_ARGS
+      ${OIDN_EXTRA_ARGS}
+      -DOIDN_DEVICE_CUDA=ON)
   endif()
 endif()
 
-if(WIN32 AND NOT BLENDER_PLATFORM_WINDOWS_ARM)
+if(WIN32 AND NOT BLENDER_PLATFORM_ARM)
   set(OIDN_EXTRA_ARGS
     ${OIDN_EXTRA_ARGS}
     -DTBB_DEBUG_LIBRARY=${LIBDIR}/tbb/lib/tbb.lib
@@ -48,7 +52,7 @@ if(WIN32 AND NOT BLENDER_PLATFORM_WINDOWS_ARM)
     -DCMAKE_EXE_LINKER_FLAGS=-L"${LIBDIR}/dpcpp/lib"
   )
 else()
-  if(NOT (APPLE OR BLENDER_PLATFORM_WINDOWS_ARM))
+  if(NOT (APPLE OR WIN32))
     set(OIDN_EXTRA_ARGS
       ${OIDN_EXTRA_ARGS}
       -DCMAKE_CXX_COMPILER=${LIBDIR}/dpcpp/bin/clang++
@@ -99,7 +103,7 @@ add_dependencies(
   external_python
 )
 
-if(UNIX AND NOT APPLE)
+if(NOT (APPLE OR WIN32))
   add_dependencies(
     external_openimagedenoise
     external_dpcpp

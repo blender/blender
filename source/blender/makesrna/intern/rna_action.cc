@@ -19,6 +19,7 @@
 #include "BLT_translation.hh"
 
 #include "BKE_action.hh"
+#include "BKE_blender.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -27,6 +28,7 @@
 #include "rna_internal.hh"
 
 #include "ANIM_action.hh"
+#include "ANIM_action_legacy.hh"
 
 #include "WM_types.hh"
 
@@ -70,7 +72,20 @@ const EnumPropertyItem rna_enum_strip_type_items[] = {
      "Strip containing keyframes on F-Curves"},
     {0, nullptr, 0, nullptr, nullptr},
 };
-#endif  // WITH_ANIM_BAKLAVA
+
+/* Cannot use rna_enum_dummy_DEFAULT_items because the UNSPECIFIED entry needs
+ * to exist as it is the default. */
+const EnumPropertyItem default_ActionSlot_id_root_items[] = {
+    {0,
+     "UNSPECIFIED",
+     ICON_NONE,
+     "Unspecified",
+     "Not yet specified. When this slot is first assigned to a data-block, this will be set to "
+     "the type of that data-block"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+#endif /* WITH_ANIM_BAKLAVA */
 
 #ifdef RNA_RUNTIME
 
@@ -291,11 +306,10 @@ static std::optional<std::string> rna_ActionSlot_path(const PointerRNA *ptr)
   return fmt::format("slots[\"{}\"]", name_esc);
 }
 
-int rna_ActionSlot_idtype_icon_get(PointerRNA *ptr)
+int rna_ActionSlot_id_root_icon_get(PointerRNA *ptr)
 {
   animrig::Slot &slot = rna_data_slot(ptr);
   return UI_icon_from_idcode(slot.idtype);
-  ;
 }
 
 /* Name functions that ignore the first two ID characters */
@@ -773,12 +787,12 @@ static void rna_ActionGroup_channels_begin(CollectionPropertyIterator *iter, Poi
   }
 
   /* Group from a layered action. */
-  MutableSpan<FCurve *> fcurves = group->channel_bag->wrap().fcurves();
+  animrig::ChannelBag &cbag = group->channel_bag->wrap();
 
   custom_iter->tag = ActionGroupChannelsIterator::ARRAY;
-  custom_iter->array.ptr = reinterpret_cast<char *>(fcurves.data() + group->fcurve_range_start);
-  custom_iter->array.endptr = reinterpret_cast<char *>(fcurves.data() + group->fcurve_range_start +
-                                                       group->fcurve_range_length);
+  custom_iter->array.ptr = reinterpret_cast<char *>(cbag.fcurve_array + group->fcurve_range_start);
+  custom_iter->array.endptr = reinterpret_cast<char *>(
+      cbag.fcurve_array + group->fcurve_range_start + group->fcurve_range_length);
   custom_iter->array.itemsize = sizeof(FCurve *);
   custom_iter->array.length = group->fcurve_range_length;
 
@@ -846,14 +860,11 @@ static PointerRNA rna_ActionGroup_channels_get(CollectionPropertyIterator *iter)
 }
 
 #  ifdef WITH_ANIM_BAKLAVA
-/* Use the backward-compatible API only when the experimental feature is
- * enabled OR if the Action is already a layered Action. */
+/* Use the backward-compatible API only when we're working with the action as a
+ * layered action. */
 static bool use_backward_compatible_api(animrig::Action &action)
 {
-  /* action.is_action_layered() returns 'true' on empty Actions, and that case must be protected by
-   * the experimental flag, hence the expression below uses !action.is_action_legacy(). */
-  return (USER_EXPERIMENTAL_TEST(&U, use_animation_baklava) && action.is_empty()) ||
-         !action.is_action_legacy();
+  return !animrig::legacy::action_treat_as_legacy(action);
 }
 
 static void rna_iterator_Action_groups_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -1108,7 +1119,7 @@ static FCurve *rna_Action_fcurve_new(bAction *act,
 #  endif
 
   /* Annoying, check if this exists. */
-  if (blender::animrig::action_fcurve_find(act, fcurve_descriptor)) {
+  if (blender::animrig::fcurve_find_in_action(act, fcurve_descriptor)) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "F-Curve '%s[%d]' already exists in action '%s'",
@@ -1147,7 +1158,7 @@ static FCurve *rna_Action_fcurve_find(bAction *act,
 #  endif
 
   /* Returns nullptr if not found. */
-  return BKE_fcurve_find(&act->curves, data_path, index);
+  return animrig::fcurve_find_in_action(act, {data_path, index});
 }
 
 static void rna_Action_fcurve_remove(bAction *act, ReportList *reports, PointerRNA *fcu_ptr)
@@ -1384,7 +1395,7 @@ bool rna_Action_id_poll(PointerRNA *ptr, PointerRNA value)
   }
 
   animrig::Action &action = dna_action->wrap();
-  if (action.is_action_legacy()) {
+  if (animrig::legacy::action_treat_as_legacy(action)) {
     /* there can still be actions that will have undefined id-root
      * (i.e. floating "action-library" members) which we will not
      * be able to resolve an idroot for automatically, so let these through
@@ -1512,6 +1523,57 @@ static const EnumPropertyItem *rna_id_root_itemf(bContext * /* C */,
   *r_free = true;
   return items;
 }
+
+#  ifdef WITH_ANIM_BAKLAVA
+
+static const EnumPropertyItem *rna_ActionSlot_id_root_itemf(bContext * /* C */,
+                                                            PointerRNA * /* ptr */,
+                                                            PropertyRNA * /* prop */,
+                                                            bool *r_free)
+{
+  /* These items don't change, as the ID types are hard-coded. So better to
+   * cache the list of enum items. */
+  static EnumPropertyItem *_rna_ActionSlot_id_root_items = nullptr;
+
+  if (_rna_ActionSlot_id_root_items) {
+    return _rna_ActionSlot_id_root_items;
+  }
+
+  int totitem = 0;
+  EnumPropertyItem *items = nullptr;
+
+  int i = 0;
+  while (rna_enum_id_type_items[i].identifier != nullptr) {
+    EnumPropertyItem item = {0};
+    item.value = rna_enum_id_type_items[i].value;
+    item.name = rna_enum_id_type_items[i].name;
+    item.identifier = rna_enum_id_type_items[i].identifier;
+    item.icon = rna_enum_id_type_items[i].icon;
+    item.description = rna_enum_id_type_items[i].description;
+    RNA_enum_item_add(&items, &totitem, &item);
+    i++;
+  }
+
+  RNA_enum_item_add(&items, &totitem, &default_ActionSlot_id_root_items[0]);
+
+  RNA_enum_item_end(&items, &totitem);
+
+  /* Don't free, but keep a reference to the created list. This is necessary
+   * because of the PROP_ENUM_NO_CONTEXT flag. Without it, this will make
+   * Blender use memory after it is freed:
+   *
+   * >>> slot = C.object.animation_data.action_slot
+   * >>> enum_item = s.bl_rna.properties['id_root'].enum_items[slot.id_root]
+   * >>> print(enum_item.name)
+   */
+  *r_free = false;
+  _rna_ActionSlot_id_root_items = items;
+
+  BKE_blender_atexit_register(MEM_freeN, items);
+
+  return items;
+}
+#  endif /* WITH_ANIM_BAKLAVA */
 
 #else
 
@@ -1950,10 +2012,21 @@ static void rna_def_action_slot(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Slot Name",
-      "Used when connecting an Action to a data-block, to find the correct slot handle");
+      "Used when connecting an Action to a data-block, to find the correct slot handle. This is "
+      "the display name, prefixed by two characters determined by the slot's ID type");
 
-  prop = RNA_def_property(srna, "idtype_icon", PROP_INT, PROP_NONE);
-  RNA_def_property_int_funcs(prop, "rna_ActionSlot_idtype_icon_get", nullptr, nullptr);
+  prop = RNA_def_property(srna, "id_root", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "idtype");
+  RNA_def_property_enum_items(prop, default_ActionSlot_id_root_items);
+  RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_ActionSlot_id_root_itemf");
+  RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(
+      prop, "ID Root Type", "Type of data-block that can be animated by this slot");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ID);
+
+  prop = RNA_def_property(srna, "id_root_icon", PROP_INT, PROP_NONE);
+  RNA_def_property_int_funcs(prop, "rna_ActionSlot_id_root_icon_get", nullptr, nullptr);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
   prop = RNA_def_property(srna, "name_display", PROP_STRING, PROP_NONE);
@@ -1966,8 +2039,8 @@ static void rna_def_action_slot(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Slot Display Name",
-      "Name of the slot for showing in the interface. It is the name, without the first two "
-      "characters that identify what kind of data-block it animates.");
+      "Name of the slot, for display in the user interface. This name combined with the slot's "
+      "data-block type is unique within its Action");
 
   prop = RNA_def_property(srna, "handle", PROP_INT, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);

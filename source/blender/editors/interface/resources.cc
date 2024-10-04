@@ -63,7 +63,6 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
   ThemeSpace *ts = nullptr;
   static uchar error[4] = {240, 0, 240, 255};
   static uchar alert[4] = {240, 60, 60, 255};
-  static uchar header_active[4] = {0, 0, 0, 255};
   static uchar back[4] = {0, 0, 0, 255};
   static uchar setting = 0;
   const uchar *cp = error;
@@ -246,17 +245,6 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           cp = ts->header;
           break;
 
-        case TH_HEADER_ACTIVE: {
-          cp = ts->header;
-          const int factor = 5;
-          /* Lighten the header color when editor is active. */
-          header_active[0] = cp[0] > 245 ? cp[0] - factor : cp[0] + factor;
-          header_active[1] = cp[1] > 245 ? cp[1] - factor : cp[1] + factor;
-          header_active[2] = cp[2] > 245 ? cp[2] - factor : cp[2] + factor;
-          header_active[3] = cp[3];
-          cp = header_active;
-          break;
-        }
         case TH_HEADER_TEXT:
           cp = ts->header_text;
           break;
@@ -684,6 +672,9 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_NODE_ZONE_REPEAT:
           cp = ts->node_zone_repeat;
           break;
+        case TH_NODE_ZONE_FOREACH_GEOMETRY_ELEMENT:
+          cp = ts->node_zone_foreach_geometry_element;
+          break;
         case TH_SIMULATED_FRAMES:
           cp = ts->simulated_frames;
           break;
@@ -940,8 +931,14 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           cp = btheme->tui.widget_emboss;
           break;
 
+        case TH_EDITOR_BORDER:
+          cp = btheme->tui.editor_border;
+          break;
         case TH_EDITOR_OUTLINE:
           cp = btheme->tui.editor_outline;
+          break;
+        case TH_EDITOR_OUTLINE_ACTIVE:
+          cp = btheme->tui.editor_outline_active;
           break;
         case TH_WIDGET_TEXT_CURSOR:
           cp = btheme->tui.widget_text_cursor;
@@ -1477,7 +1474,7 @@ bool UI_GetIconThemeColor4ubv(int colorid, uchar col[4])
   return true;
 }
 
-void UI_GetColorPtrShade3ubv(const uchar cp[3], uchar col[3], int offset)
+void UI_GetColorPtrShade3ubv(const uchar cp[3], int offset, uchar r_col[3])
 {
   int r, g, b;
 
@@ -1489,13 +1486,13 @@ void UI_GetColorPtrShade3ubv(const uchar cp[3], uchar col[3], int offset)
   CLAMP(g, 0, 255);
   CLAMP(b, 0, 255);
 
-  col[0] = r;
-  col[1] = g;
-  col[2] = b;
+  r_col[0] = r;
+  r_col[1] = g;
+  r_col[2] = b;
 }
 
 void UI_GetColorPtrBlendShade3ubv(
-    const uchar cp1[3], const uchar cp2[3], uchar col[3], float fac, int offset)
+    const uchar cp1[3], const uchar cp2[3], float fac, int offset, uchar r_col[3])
 {
   int r, g, b;
 
@@ -1508,9 +1505,9 @@ void UI_GetColorPtrBlendShade3ubv(
   CLAMP(g, 0, 255);
   CLAMP(b, 0, 255);
 
-  col[0] = r;
-  col[1] = g;
-  col[2] = b;
+  r_col[0] = r;
+  r_col[1] = g;
+  r_col[2] = b;
 }
 
 void UI_ThemeClearColor(int colorid)
@@ -1527,22 +1524,22 @@ int UI_ThemeMenuShadowWidth()
   return int(btheme->tui.menu_shadow_width * UI_SCALE_FAC);
 }
 
-void UI_make_axis_color(const uchar src_col[3], uchar dst_col[3], const char axis)
+void UI_make_axis_color(const uchar col[3], const char axis, uchar r_col[3])
 {
-  uchar col[3];
+  uchar col_axis[3];
 
   switch (axis) {
     case 'X':
-      UI_GetThemeColor3ubv(TH_AXIS_X, col);
-      UI_GetColorPtrBlendShade3ubv(src_col, col, dst_col, 0.5f, -10);
+      UI_GetThemeColor3ubv(TH_AXIS_X, col_axis);
+      UI_GetColorPtrBlendShade3ubv(col, col_axis, 0.5f, -10, r_col);
       break;
     case 'Y':
-      UI_GetThemeColor3ubv(TH_AXIS_Y, col);
-      UI_GetColorPtrBlendShade3ubv(src_col, col, dst_col, 0.5f, -10);
+      UI_GetThemeColor3ubv(TH_AXIS_Y, col_axis);
+      UI_GetColorPtrBlendShade3ubv(col, col_axis, 0.5f, -10, r_col);
       break;
     case 'Z':
-      UI_GetThemeColor3ubv(TH_AXIS_Z, col);
-      UI_GetColorPtrBlendShade3ubv(src_col, col, dst_col, 0.5f, -10);
+      UI_GetThemeColor3ubv(TH_AXIS_Z, col_axis);
+      UI_GetColorPtrBlendShade3ubv(col, col_axis, 0.5f, -10, r_col);
       break;
     default:
       BLI_assert(0);

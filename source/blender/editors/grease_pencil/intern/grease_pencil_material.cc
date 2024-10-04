@@ -401,6 +401,104 @@ static void GREASE_PENCIL_OT_material_copy_to_object(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
+static int material_isolate_exec(bContext *C, wmOperator *op)
+{
+  Object *ob = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
+  Material *active_ma = BKE_gpencil_material(ob, ob->actcol);
+  MaterialGPencilStyle *active_material = BKE_gpencil_material_settings(ob, ob->actcol);
+  MaterialGPencilStyle *gp_style;
+
+  int flags = GP_MATERIAL_LOCKED;
+  bool isolate = false;
+
+  if (RNA_boolean_get(op->ptr, "affect_visibility")) {
+    flags |= GP_MATERIAL_HIDE;
+  }
+
+  if (active_material == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Test whether to isolate or clear all flags */
+  Material *ma = nullptr;
+  short *totcol = BKE_object_material_len_p(ob);
+  for (short i = 0; i < *totcol; i++) {
+    ma = BKE_gpencil_material(ob, i + 1);
+    /* Skip if this is the active one */
+    if (ELEM(ma, nullptr, active_ma)) {
+      continue;
+    }
+
+    /* If the flags aren't set, that means that the color is
+     * not alone, so we have some colors to isolate still
+     */
+    gp_style = ma->gp_style;
+    if ((gp_style->flag & flags) == 0) {
+      isolate = true;
+      break;
+    }
+  }
+
+  /* Set/Clear flags as appropriate */
+  if (isolate) {
+    /* Set flags on all "other" colors */
+    for (short i = 0; i < *totcol; i++) {
+      ma = BKE_gpencil_material(ob, i + 1);
+      if (ma == nullptr) {
+        continue;
+      }
+      gp_style = ma->gp_style;
+      if (gp_style == active_material) {
+        continue;
+      }
+      gp_style->flag |= flags;
+      DEG_id_tag_update(&ma->id, ID_RECALC_SYNC_TO_EVAL);
+    }
+  }
+  else {
+    /* Clear flags - Restore everything else */
+    for (short i = 0; i < *totcol; i++) {
+      ma = BKE_gpencil_material(ob, i + 1);
+      if (ma == nullptr) {
+        continue;
+      }
+      gp_style = ma->gp_style;
+      gp_style->flag &= ~flags;
+      DEG_id_tag_update(&ma->id, ID_RECALC_SYNC_TO_EVAL);
+    }
+  }
+
+  DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_material_isolate(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Isolate Material";
+  ot->idname = "GREASE_PENCIL_OT_material_isolate";
+  ot->description =
+      "Toggle whether the active material is the only one that is editable and/or visible";
+
+  /* callbacks */
+  ot->exec = material_isolate_exec;
+  ot->poll = active_grease_pencil_material_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* properties */
+  RNA_def_boolean(ot->srna,
+                  "affect_visibility",
+                  false,
+                  "Affect Visibility",
+                  "In addition to toggling "
+                  "the editability, also affect the visibility");
+}
+
 /** \} */
 
 }  // namespace blender::ed::greasepencil
@@ -415,4 +513,5 @@ void ED_operatortypes_grease_pencil_material()
   WM_operatortype_append(GREASE_PENCIL_OT_material_lock_unused);
   WM_operatortype_append(GREASE_PENCIL_OT_material_lock_unselected);
   WM_operatortype_append(GREASE_PENCIL_OT_material_copy_to_object);
+  WM_operatortype_append(GREASE_PENCIL_OT_material_isolate);
 }

@@ -160,9 +160,8 @@ static void create_blank_curve(bke::CurvesGeometry &curves, const bool on_back)
 
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
 
-  attributes.for_all([&](const StringRef id, const bke::AttributeMetaData /*meta_data*/) {
-    bke::GSpanAttributeWriter dst = attributes.lookup_for_write_span(id);
-
+  attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+    bke::GSpanAttributeWriter dst = attributes.lookup_for_write_span(iter.name);
     GMutableSpan attribute_data = dst.span;
 
     bke::attribute_math::convert_to_static_type(attribute_data.type(), [&](auto dummy) {
@@ -175,7 +174,6 @@ static void create_blank_curve(bke::CurvesGeometry &curves, const bool on_back)
       }
     });
     dst.finish();
-    return true;
   });
 }
 
@@ -203,12 +201,12 @@ static void extend_curve(bke::CurvesGeometry &curves, const bool on_back, const 
 
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
 
-  attributes.for_all([&](const StringRef id, const bke::AttributeMetaData meta_data) {
-    if (meta_data.domain != bke::AttrDomain::Point) {
-      return true;
+  attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (iter.domain != bke::AttrDomain::Point) {
+      return;
     }
 
-    bke::GSpanAttributeWriter dst = attributes.lookup_for_write_span(id);
+    bke::GSpanAttributeWriter dst = attributes.lookup_for_write_span(iter.name);
     GMutableSpan attribute_data = dst.span;
 
     bke::attribute_math::convert_to_static_type(attribute_data.type(), [&](auto dummy) {
@@ -221,7 +219,6 @@ static void extend_curve(bke::CurvesGeometry &curves, const bool on_back, const 
       }
     });
     dst.finish();
-    return true;
   });
 
   curves.tag_topology_changed();
@@ -1191,6 +1188,11 @@ static void trim_stroke_ends(bke::greasepencil::Drawing &drawing,
       point_selection,
       true);
 
+  /* No intersection found. */
+  if (stroke_trimmed.points_num() == 0) {
+    return;
+  }
+
   /* Remove the original stroke. */
   drawing.strokes_for_write().remove_curves(IndexRange::from_single(active_curve), {});
 
@@ -1291,12 +1293,12 @@ static int trim_end_points(bke::greasepencil::Drawing &drawing,
   const int last_active_point = curves.points_by_curve()[0].last();
 
   /* Shift the data before resizing to not delete the data at the end. */
-  attributes.for_all([&](const StringRef id, const bke::AttributeMetaData meta_data) {
-    if (meta_data.domain != bke::AttrDomain::Point) {
-      return true;
+  attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (iter.domain != bke::AttrDomain::Point) {
+      return;
     }
 
-    bke::GSpanAttributeWriter dst = attributes.lookup_for_write_span(id);
+    bke::GSpanAttributeWriter dst = attributes.lookup_for_write_span(iter.name);
     GMutableSpan attribute_data = dst.span;
 
     bke::attribute_math::convert_to_static_type(attribute_data.type(), [&](auto dummy) {
@@ -1311,7 +1313,6 @@ static int trim_end_points(bke::greasepencil::Drawing &drawing,
       }
     });
     dst.finish();
-    return true;
   });
 
   curves.resize(curves.points_num() - num_points_to_remove, curves.curves_num());
@@ -1332,7 +1333,7 @@ static void deselect_stroke(const bContext &C,
   const IndexRange points = drawing.strokes().points_by_curve()[active_curve];
 
   bke::CurvesGeometry &curves = drawing.strokes_for_write();
-  const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
+  const bke::AttrDomain selection_domain = ED_grease_pencil_edit_selection_domain_get(
       scene->toolsettings);
 
   bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(

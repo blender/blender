@@ -11,7 +11,7 @@
 
 #include <Python.h>
 
-#include "../BPY_extern.h"
+#include "../BPY_extern.hh"
 
 BPy_ThreadStatePtr BPY_thread_save()
 {

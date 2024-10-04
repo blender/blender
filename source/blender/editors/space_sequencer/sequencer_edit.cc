@@ -10,7 +10,7 @@
 
 #include "BLI_fileops.h"
 #include "BLI_math_vector.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_timecode.h"
 #include "BLI_utildefines.h"
@@ -43,6 +43,8 @@
 #include "SEQ_time.hh"
 #include "SEQ_transform.hh"
 #include "SEQ_utils.hh"
+
+#include "ANIM_action_legacy.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -135,7 +137,7 @@ bool ED_space_sequencer_has_playback_animation(const SpaceSeq *sseq, const Scene
     return false;
   }
 
-  LISTBASE_FOREACH (FCurve *, fcurve, &scene->adt->action->curves) {
+  for (FCurve *fcurve : blender::animrig::legacy::fcurves_for_assigned_action(scene->adt)) {
     if (sequencer_fcurves_targets_color_strip(fcurve)) {
       return true;
     }
@@ -1304,7 +1306,7 @@ static int sequencer_reassign_inputs_exec(bContext *C, wmOperator *op)
   /* Force time position update for reassigned effects.
    * TODO(Richard): This is because internally startdisp is still used, due to poor performance of
    * mapping effect range to inputs. This mapping could be cached though. */
-  SEQ_sequence_lookup_tag(scene, SEQ_LOOKUP_TAG_INVALID);
+  SEQ_sequence_lookup_invalidate(scene);
   SEQ_time_left_handle_frame_set(scene, seq1, SEQ_time_left_handle_frame_get(scene, seq1));
 
   SEQ_relations_invalidate_cache_preprocessed(scene, last_seq);
@@ -2059,20 +2061,22 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 
   /* Remove all selected from main list, and put in meta.
    * Sequence is moved within the same edit, no need to re-generate the UID. */
-  LISTBASE_FOREACH_MUTABLE (Sequence *, seq, active_seqbase) {
+  blender::VectorSet<Sequence *> strips_to_move;
+  LISTBASE_FOREACH (Sequence *, seq, active_seqbase) {
     if (seq != seqm && seq->flag & SELECT) {
-      blender::VectorSet<Sequence *> related = SEQ_get_connected_strips(seq);
-      related.add(seq);
-      for (Sequence *rel : related) {
-        BLI_remlink(active_seqbase, rel);
-        BLI_addtail(&seqm->seqbase, rel);
-        SEQ_relations_invalidate_cache_preprocessed(scene, rel);
-        channel_max = max_ii(rel->machine, channel_max);
-        channel_min = min_ii(rel->machine, channel_min);
-        meta_start_frame = min_ii(SEQ_time_left_handle_frame_get(scene, rel), meta_start_frame);
-        meta_end_frame = max_ii(SEQ_time_right_handle_frame_get(scene, rel), meta_end_frame);
-      }
+      strips_to_move.add(seq);
+      strips_to_move.add_multiple(SEQ_get_connected_strips(seq));
     }
+  }
+
+  for (Sequence *seq : strips_to_move) {
+    SEQ_relations_invalidate_cache_preprocessed(scene, seq);
+    BLI_remlink(active_seqbase, seq);
+    BLI_addtail(&seqm->seqbase, seq);
+    channel_max = max_ii(seq->machine, channel_max);
+    channel_min = min_ii(seq->machine, channel_min);
+    meta_start_frame = min_ii(SEQ_time_left_handle_frame_get(scene, seq), meta_start_frame);
+    meta_end_frame = max_ii(SEQ_time_right_handle_frame_get(scene, seq), meta_end_frame);
   }
 
   ListBase *channels_cur = SEQ_channels_displayed_get(ed);
@@ -2094,6 +2098,7 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
     SEQ_transform_seqbase_shuffle(active_seqbase, seqm, scene);
   }
 
+  SEQ_sequence_lookup_invalidate(scene);
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 

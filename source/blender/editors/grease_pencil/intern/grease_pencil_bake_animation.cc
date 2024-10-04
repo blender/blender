@@ -203,7 +203,8 @@ static int bake_grease_pencil_animation_exec(bContext *C, wmOperator *op)
             "{}_{}", source_object->id.name + 2, source_layer->name());
         TreeNode *node = target.find_node_by_name(layer_name);
         if (node == nullptr) {
-          target.add_layer(layer_name);
+          Layer &new_layer = target.add_layer(layer_name);
+          target.set_active_layer(&new_layer);
         }
 
         Layer &target_layer = target.find_node_by_name(layer_name)->as_layer();
@@ -292,12 +293,11 @@ static int bake_grease_pencil_animation_exec(bContext *C, wmOperator *op)
 static bool bake_grease_pencil_animation_poll(bContext *C)
 {
   const Object *obact = CTX_data_active_object(C);
-  if (CTX_data_mode_enum(C) != CTX_MODE_OBJECT) {
-    return false;
-  }
 
   /* Check if grease pencil or empty for dupli groups. */
-  if ((obact == nullptr) || !ELEM(obact->type, OB_GREASE_PENCIL, OB_EMPTY)) {
+  if ((obact == nullptr) || (obact->mode != OB_MODE_OBJECT) ||
+      !ELEM(obact->type, OB_GREASE_PENCIL, OB_EMPTY))
+  {
     return false;
   }
 

@@ -297,77 +297,6 @@ FCurve *BKE_fcurve_iter_step(FCurve *fcu_iter, const char rna_path[])
   return nullptr;
 }
 
-int BKE_fcurves_filter(ListBase *dst, ListBase *src, const char *dataPrefix, const char *dataName)
-{
-  int matches = 0;
-
-  /* Sanity checks. */
-  if (ELEM(nullptr, dst, src, dataPrefix, dataName)) {
-    return 0;
-  }
-  if ((dataPrefix[0] == 0) || (dataName[0] == 0)) {
-    return 0;
-  }
-
-  const size_t quotedName_size = strlen(dataName) + 1;
-  char *quotedName = static_cast<char *>(alloca(quotedName_size));
-
-  /* Search each F-Curve one by one. */
-  LISTBASE_FOREACH (FCurve *, fcu, src) {
-    /* Check if quoted string matches the path. */
-    if (fcu->rna_path == nullptr) {
-      continue;
-    }
-    /* Skipping names longer than `quotedName_size` is OK since we're after an exact match. */
-    if (!BLI_str_quoted_substr(fcu->rna_path, dataPrefix, quotedName, quotedName_size)) {
-      continue;
-    }
-    if (!STREQ(quotedName, dataName)) {
-      continue;
-    }
-
-    /* Check if the quoted name matches the required name. */
-    LinkData *ld = static_cast<LinkData *>(MEM_callocN(sizeof(LinkData), __func__));
-
-    ld->data = fcu;
-    BLI_addtail(dst, ld);
-
-    matches++;
-  }
-  /* Return the number of matches. */
-  return matches;
-}
-
-static std::optional<std::pair<FCurve *, bAction *>> animdata_fcurve_find_by_rna_path(
-    AnimData &adt, const char *rna_path, const int rna_index)
-{
-  if (!adt.action) {
-    return std::nullopt;
-  }
-
-  blender::animrig::Action &action = adt.action->wrap();
-  if (action.is_empty()) {
-    return std::nullopt;
-  }
-
-  FCurve *fcu = nullptr;
-  if (action.is_action_layered()) {
-    const FCurve *const_fcurve = blender::animrig::fcurve_find_by_rna_path(
-        adt, rna_path, rna_index);
-    /* The new layered Action code is stricter with const-ness than older code, hence the
-     * const_cast. */
-    fcu = const_cast<FCurve *>(const_fcurve);
-  }
-  else {
-    fcu = BKE_fcurve_find(&action.curves, rna_path, rna_index);
-  }
-
-  if (!fcu) {
-    return std::nullopt;
-  }
-  return std::make_pair(fcu, &action);
-}
-
 FCurve *BKE_animadata_fcurve_find_by_rna_path(
     AnimData *animdata, const char *rna_path, int rna_index, bAction **r_action, bool *r_driven)
 {
@@ -378,14 +307,14 @@ FCurve *BKE_animadata_fcurve_find_by_rna_path(
     *r_action = nullptr;
   }
 
-  std::optional<std::pair<FCurve *, bAction *>> found = animdata_fcurve_find_by_rna_path(
-      *animdata, rna_path, rna_index);
-  if (found) {
+  FCurve *fcurve = blender::animrig::fcurve_find_in_action_slot(
+      animdata->action, animdata->slot_handle, {rna_path, rna_index});
+  if (fcurve) {
     /* Action takes priority over drivers. */
     if (r_action) {
-      *r_action = found->second;
+      *r_action = animdata->action;
     }
-    return found->first;
+    return fcurve;
   }
 
   /* If not animated, check if driven. */

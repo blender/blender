@@ -15,6 +15,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_gpencil_legacy_types.h"
+#include "DNA_grease_pencil_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -94,8 +95,9 @@ const char *screen_context_dir[] = {
     "active_nla_strip",
     "selected_nla_strips", /* nla editor */
     "selected_movieclip_tracks",
+    /* Legacy Grease Pencil */
     "gpencil_data",
-    "gpencil_data_owner", /* grease pencil data */
+    "gpencil_data_owner",
     "annotation_data",
     "annotation_data_owner",
     "visible_gpencil_layers",
@@ -104,6 +106,8 @@ const char *screen_context_dir[] = {
     "active_gpencil_layer",
     "active_gpencil_frame",
     "active_annotation_layer",
+    /* Grease Pencil v3 */
+    "grease_pencil",
     "active_operator",
     "active_action",
     "selected_visible_actions",
@@ -1025,6 +1029,20 @@ static eContextResult screen_ctx_editable_gpencil_strokes(const bContext *C,
   CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
   return CTX_RESULT_OK;
 }
+static eContextResult screen_ctx_grease_pencil_data(const bContext *C, bContextDataResult *result)
+{
+  wmWindow *win = CTX_wm_window(C);
+  const Scene *scene = WM_window_get_active_scene(win);
+  ViewLayer *view_layer = WM_window_get_active_view_layer(win);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Object *obact = BKE_view_layer_active_object_get(view_layer);
+  if (obact->type == OB_GREASE_PENCIL) {
+    GreasePencil *grease_pencil = static_cast<GreasePencil *>(obact->data);
+    CTX_data_id_pointer_set(result, &grease_pencil->id);
+    return CTX_RESULT_OK;
+  }
+  return CTX_RESULT_NO_DATA;
+}
 static eContextResult screen_ctx_active_operator(const bContext *C, bContextDataResult *result)
 {
   wmOperator *op = nullptr;
@@ -1369,6 +1387,7 @@ static void ensure_ed_screen_context_functions()
   register_context_function("visible_gpencil_layers", screen_ctx_visible_gpencil_layers);
   register_context_function("editable_gpencil_layers", screen_ctx_editable_gpencil_layers);
   register_context_function("editable_gpencil_strokes", screen_ctx_editable_gpencil_strokes);
+  register_context_function("grease_pencil", screen_ctx_grease_pencil_data);
   register_context_function("active_operator", screen_ctx_active_operator);
   register_context_function("active_action", screen_ctx_active_action);
   register_context_function("selected_visible_actions", screen_ctx_selected_visible_actions);

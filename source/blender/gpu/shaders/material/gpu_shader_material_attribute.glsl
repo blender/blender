@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(gpu_shader_common_math.glsl)
+#include "gpu_shader_common_math.glsl"
 
 void node_attribute_color(vec4 attr, out vec4 out_attr)
 {

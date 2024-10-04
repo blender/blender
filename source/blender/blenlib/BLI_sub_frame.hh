@@ -7,6 +7,7 @@
 #include <cmath>
 
 #include "BLI_assert.h"
+#include "BLI_hash.hh"
 #include "BLI_math_base.h"
 #include "BLI_struct_equality_utils.hh"
 
@@ -57,6 +58,11 @@ struct SubFrame {
   static SubFrame max()
   {
     return {INT32_MAX, std::nexttowardf(1.0f, 0.0)};
+  }
+
+  uint64_t hash() const
+  {
+    return get_default_hash(frame_, subframe_);
   }
 
   BLI_STRUCT_EQUALITY_OPERATORS_2(SubFrame, frame_, subframe_)

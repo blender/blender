@@ -6,7 +6,7 @@
  * Convert DrawPrototype into draw commands.
  */
 
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#include "common_math_lib.glsl"
 
 #define atomicAddAndGet(dst, val) (atomicAdd(dst, val) + val)
 

@@ -7,11 +7,9 @@
  */
 /* TODO(fclem): This could be augmented by a 2 pass occlusion culling system. */
 
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
-#pragma BLENDER_REQUIRE(common_intersect_lib.glsl)
-
-shared uint shared_result;
+#include "common_intersect_lib.glsl"
+#include "common_math_lib.glsl"
+#include "common_view_lib.glsl"
 
 void mask_visibility_bit(uint view_id)
 {
@@ -32,7 +30,7 @@ void main()
 
   ObjectBounds bounds = bounds_buf[gl_GlobalInvocationID.x];
 
-  if (drw_bounds_culling_enabled(bounds)) {
+  if (drw_bounds_are_valid(bounds)) {
     IsectBox box = isect_box_setup(bounds.bounding_corners[0].xyz,
                                    bounds.bounding_corners[1].xyz,
                                    bounds.bounding_corners[2].xyz,

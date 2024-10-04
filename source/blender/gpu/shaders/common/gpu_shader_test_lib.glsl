@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 /* clang-format off */
 #ifndef GPU_METAL
 bool is_integer(bool v) { return true; }

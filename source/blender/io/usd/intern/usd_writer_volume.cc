@@ -20,7 +20,7 @@
 #include "BLI_index_range.hh"
 #include "BLI_math_base.h"
 #include "BLI_math_vector_types.hh"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_string.h"
 
 namespace blender::io::usd {

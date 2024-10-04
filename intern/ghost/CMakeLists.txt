@@ -98,7 +98,6 @@ if(WITH_VULKAN_BACKEND)
     list(APPEND LIB
       ${MOLTENVK_LIBRARIES}
     )
-    add_definitions(-DWITH_VULKAN_MOLTENVK)
   endif()
 
   list(APPEND SRC

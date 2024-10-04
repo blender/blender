@@ -52,7 +52,7 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
 
     if (blender::animrig::is_autokey_on(scene)) {
       for (const int info_i : drawings.index_range()) {
-        blender::bke::greasepencil::Layer &target_layer = *grease_pencil.layer(
+        blender::bke::greasepencil::Layer &target_layer = grease_pencil.layer(
             drawings[info_i].layer_index);
         const int current_frame = scene->r.cfra;
         std::optional<int> start_frame = target_layer.start_frame_at(current_frame);

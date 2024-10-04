@@ -215,7 +215,7 @@ class DATA_PT_volume_animation(DataButtonsPanel, PropertiesAnimationMixin, Prope
         'BLENDER_EEVEE_NEXT',
         'BLENDER_WORKBENCH',
     }
-    _animated_id_context_property = 'volume'
+    _animated_id_context_property = "volume"
 
 
 class DATA_PT_custom_props_volume(DataButtonsPanel, PropertyPanel, Panel):

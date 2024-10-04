@@ -16,7 +16,7 @@
 #include "BLI_fileops.h"
 #include "BLI_ghash.h"
 #include "BLI_math_base.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
 #include "BLI_threads.h"
@@ -26,6 +26,8 @@
 #ifdef _WIN32
 #  include "BLI_winstuff.h"
 #endif
+
+#include "BKE_writeffmpeg.hh"
 
 #include "IMB_anim.hh"
 #include "IMB_imbuf.hh"
@@ -595,32 +597,20 @@ static proxy_output_ctx *alloc_proxy_output_ffmpeg(
   if (st->codecpar->width != width || st->codecpar->height != height ||
       st->codecpar->format != rv->c->pix_fmt)
   {
+    const size_t align = ffmpeg_get_buffer_alignment();
     rv->frame = av_frame_alloc();
-
-    av_image_fill_arrays(rv->frame->data,
-                         rv->frame->linesize,
-                         static_cast<const uint8_t *>(MEM_mallocN(
-                             av_image_get_buffer_size(rv->c->pix_fmt, width, height, 1),
-                             "alloc proxy output frame")),
-                         rv->c->pix_fmt,
-                         width,
-                         height,
-                         1);
-
     rv->frame->format = rv->c->pix_fmt;
     rv->frame->width = width;
     rv->frame->height = height;
+    av_frame_get_buffer(rv->frame, align);
 
-    rv->sws_ctx = sws_getContext(st->codecpar->width,
-                                 rv->orig_height,
-                                 AVPixelFormat(st->codecpar->format),
-                                 width,
-                                 height,
-                                 rv->c->pix_fmt,
-                                 SWS_FAST_BILINEAR | SWS_PRINT_INFO,
-                                 nullptr,
-                                 nullptr,
-                                 nullptr);
+    rv->sws_ctx = BKE_ffmpeg_sws_get_context(st->codecpar->width,
+                                             rv->orig_height,
+                                             AVPixelFormat(st->codecpar->format),
+                                             width,
+                                             height,
+                                             rv->c->pix_fmt,
+                                             SWS_FAST_BILINEAR);
   }
 
   ret = avformat_write_header(rv->of, nullptr);
@@ -655,13 +645,7 @@ static void add_to_proxy_output_ffmpeg(proxy_output_ctx *ctx, AVFrame *frame)
   if (ctx->sws_ctx && frame &&
       (frame->data[0] || frame->data[1] || frame->data[2] || frame->data[3]))
   {
-    sws_scale(ctx->sws_ctx,
-              (const uint8_t *const *)frame->data,
-              frame->linesize,
-              0,
-              ctx->orig_height,
-              ctx->frame->data,
-              ctx->frame->linesize);
+    BKE_ffmpeg_sws_scale_frame(ctx->sws_ctx, ctx->frame, frame);
   }
 
   frame = ctx->sws_ctx ? (frame ? ctx->frame : nullptr) : frame;
@@ -752,10 +736,11 @@ static void free_proxy_output_ffmpeg(proxy_output_ctx *ctx, int rollback)
   avformat_free_context(ctx->of);
 
   if (ctx->sws_ctx) {
-    sws_freeContext(ctx->sws_ctx);
-
-    MEM_freeN(ctx->frame->data[0]);
-    av_free(ctx->frame);
+    BKE_ffmpeg_sws_release_context(ctx->sws_ctx);
+    ctx->sws_ctx = nullptr;
+  }
+  if (ctx->frame) {
+    av_frame_free(&ctx->frame);
   }
 
   get_proxy_filepath(ctx->anim, ctx->proxy_size, filepath_tmp, true);

@@ -12,7 +12,7 @@
  * filter, storing the result of each separately. See the DericheGaussianCoefficients class and the
  * implementation for more information. */
 
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
+#include "gpu_shader_compositor_texture_utilities.glsl"
 
 #define FILTER_ORDER 4
 

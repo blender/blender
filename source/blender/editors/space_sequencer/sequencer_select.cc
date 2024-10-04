@@ -162,11 +162,11 @@ static void select_active_side(
 static void select_active_side_range(const Scene *scene,
                                      ListBase *seqbase,
                                      const int sel_side,
-                                     const int frame_ranges[MAXSEQ],
+                                     const int frame_ranges[SEQ_MAX_CHANNELS],
                                      const int frame_ignore)
 {
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
-    if (seq->machine < MAXSEQ) {
+    if (seq->machine < SEQ_MAX_CHANNELS) {
       const int frame = frame_ranges[seq->machine];
       if (frame == frame_ignore) {
         continue;
@@ -264,12 +264,12 @@ void ED_sequencer_select_sequence_single(Scene *scene, Sequence *seq, bool desel
   recurs_sel_seq(seq);
 }
 
-void seq_rectf(const Scene *scene, const Sequence *seq, rctf *rect)
+void seq_rectf(const Scene *scene, const Sequence *seq, rctf *r_rect)
 {
-  rect->xmin = SEQ_time_left_handle_frame_get(scene, seq);
-  rect->xmax = SEQ_time_right_handle_frame_get(scene, seq);
-  rect->ymin = seq->machine + SEQ_STRIP_OFSBOTTOM;
-  rect->ymax = seq->machine + SEQ_STRIP_OFSTOP;
+  r_rect->xmin = SEQ_time_left_handle_frame_get(scene, seq);
+  r_rect->xmax = SEQ_time_right_handle_frame_get(scene, seq);
+  r_rect->ymin = seq->machine + SEQ_STRIP_OFSBOTTOM;
+  r_rect->ymax = seq->machine + SEQ_STRIP_OFSTOP;
 }
 
 Sequence *find_neighboring_sequence(Scene *scene, Sequence *test, int lr, int sel)
@@ -1952,13 +1952,13 @@ static int sequencer_select_side_exec(bContext *C, wmOperator *op)
 
   const int sel_side = RNA_enum_get(op->ptr, "side");
   const int frame_init = sel_side == SEQ_SIDE_LEFT ? INT_MIN : INT_MAX;
-  int frame_ranges[MAXSEQ];
+  int frame_ranges[SEQ_MAX_CHANNELS];
   bool selected = false;
 
   copy_vn_i(frame_ranges, ARRAY_SIZE(frame_ranges), frame_init);
 
   LISTBASE_FOREACH (Sequence *, seq, ed->seqbasep) {
-    if (UNLIKELY(seq->machine >= MAXSEQ)) {
+    if (UNLIKELY(seq->machine >= SEQ_MAX_CHANNELS)) {
       continue;
     }
     int *frame_limit_p = &frame_ranges[seq->machine];
@@ -2015,7 +2015,9 @@ void SEQUENCER_OT_select_side(wmOperatorType *ot)
 /** \name Box Select Operator
  * \{ */
 
-static bool seq_box_select_rect_image_isect(const Scene *scene, const Sequence *seq, rctf *rect)
+static bool seq_box_select_rect_image_isect(const Scene *scene,
+                                            const Sequence *seq,
+                                            const rctf *rect)
 {
   float seq_image_quad[4][2];
   SEQ_image_transform_final_quad_get(scene, seq, seq_image_quad);
@@ -2038,7 +2040,9 @@ static bool seq_box_select_rect_image_isect(const Scene *scene, const Sequence *
              seq_image_quad[3], rect_quad[0], rect_quad[1], rect_quad[2], rect_quad[3]);
 }
 
-static void seq_box_select_seq_from_preview(const bContext *C, rctf *rect, const eSelectOp mode)
+static void seq_box_select_seq_from_preview(const bContext *C,
+                                            const rctf *rect,
+                                            const eSelectOp mode)
 {
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene);
@@ -2179,32 +2183,15 @@ static int sequencer_box_select_invoke(bContext *C, wmOperator *op, const wmEven
     return OPERATOR_CANCELLED;
   }
 
-  const bool tweak = RNA_boolean_get(op->ptr, "tweak");
+  int mval[2];
+  float mouse_co[2];
+  WM_event_drag_start_mval(event, region, mval);
+  UI_view2d_region_to_view(v2d, mval[0], mval[1], &mouse_co[0], &mouse_co[1]);
 
-  if (tweak) {
-    int mval[2];
-    float mouse_co[2];
-    WM_event_drag_start_mval(event, region, mval);
-    UI_view2d_region_to_view(v2d, mval[0], mval[1], &mouse_co[0], &mouse_co[1]);
+  StripSelection selection = ED_sequencer_pick_strip_and_handle(scene, v2d, mouse_co);
 
-    StripSelection selection = ED_sequencer_pick_strip_and_handle(scene, v2d, mouse_co);
-
-    if (selection.seq1 != nullptr) {
-      if (selection.handle != SEQ_HANDLE_NONE) {
-        SpaceSeq *sseq = CTX_wm_space_seq(C);
-        sseq->flag |= SPACE_SEQ_DESELECT_STRIP_HANDLE;
-        ED_sequencer_deselect_all(scene);
-
-        selection.seq1->flag |= (SELECT) | ((selection.handle == SEQ_HANDLE_RIGHT) ? SEQ_RIGHTSEL :
-                                                                                     SEQ_LEFTSEL);
-        if (selection.seq2 != nullptr) {
-          selection.seq2->flag |= (SELECT) |
-                                  ((selection.handle == SEQ_HANDLE_RIGHT) ? SEQ_LEFTSEL :
-                                                                            SEQ_RIGHTSEL);
-        }
-      }
-      return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
-    }
+  if (selection.seq1 != nullptr) {
+    return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 
   return WM_gesture_box_invoke(C, op, event);
@@ -2234,9 +2221,6 @@ void SEQUENCER_OT_select_box(wmOperatorType *ot)
   WM_operator_properties_gesture_box(ot);
   WM_operator_properties_select_operation_simple(ot);
 
-  prop = RNA_def_boolean(
-      ot->srna, "tweak", false, "Tweak", "Operator has been activated using a click-drag event");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(
       ot->srna, "include_handles", false, "Select Handles", "Select the strips and their handles");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);

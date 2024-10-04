@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(eevee_film_lib.glsl)
+#include "eevee_film_lib.glsl"
 
 void main()
 {

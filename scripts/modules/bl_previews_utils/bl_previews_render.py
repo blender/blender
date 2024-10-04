@@ -152,7 +152,7 @@ def do_previews(do_objects, do_collections, do_scenes, do_data_intern):
                 scene = None
             else:
                 rna_backup_restore(scene, render_context.backup_scene)
-        except BaseException as ex:
+        except Exception as ex:
             print("ERROR:", ex)
             success = False
 
@@ -166,7 +166,7 @@ def do_previews(do_objects, do_collections, do_scenes, do_data_intern):
                     bpy.data.worlds.remove(world)
                 else:
                     rna_backup_restore(world, render_context.backup_world)
-            except BaseException as ex:
+            except Exception as ex:
                 print("ERROR:", ex)
                 success = False
 
@@ -184,7 +184,7 @@ def do_previews(do_objects, do_collections, do_scenes, do_data_intern):
                     rna_backup_restore(camera, render_context.backup_camera)
                     rna_backup_restore(bpy.data.cameras[render_context.camera_data, None],
                                        render_context.backup_camera_data)
-            except BaseException as ex:
+            except Exception as ex:
                 print("ERROR:", ex)
                 success = False
 
@@ -201,7 +201,7 @@ def do_previews(do_objects, do_collections, do_scenes, do_data_intern):
                     rna_backup_restore(light, render_context.backup_light)
                     rna_backup_restore(bpy.data.lights[render_context.light_data,
                                                        None], render_context.backup_light_data)
-            except BaseException as ex:
+            except Exception as ex:
                 print("ERROR:", ex)
                 success = False
 
@@ -209,7 +209,7 @@ def do_previews(do_objects, do_collections, do_scenes, do_data_intern):
             image = bpy.data.images[render_context.image, None]
             image.user_clear()
             bpy.data.images.remove(image)
-        except BaseException as ex:
+        except Exception as ex:
             print("ERROR:", ex)
             success = False
 
@@ -424,7 +424,7 @@ def do_previews(do_objects, do_collections, do_scenes, do_data_intern):
         print("Saving {:s}...".format(bpy.data.filepath))
         try:
             bpy.ops.wm.save_mainfile()
-        except BaseException as ex:
+        except Exception as ex:
             # Might fail in some odd cases, like e.g. in regression files we have `glsl/ram_glsl.blend` which
             # references an nonexistent texture. Better not break in this case, just spit error to console.
             print("ERROR:", ex)

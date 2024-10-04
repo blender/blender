@@ -78,13 +78,13 @@ static void view_zoom_to_window_xy_camera(Scene *scene,
     float pt_dst[2];
     float delta_px[2];
 
-    ED_view3d_calc_camera_border(scene, depsgraph, region, v3d, rv3d, &camera_frame_old, false);
+    ED_view3d_calc_camera_border(scene, depsgraph, region, v3d, rv3d, false, &camera_frame_old);
     BLI_rctf_translate(&camera_frame_old, region->winrct.xmin, region->winrct.ymin);
 
     rv3d->camzoom = camzoom_new;
     CLAMP(rv3d->camzoom, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);
 
-    ED_view3d_calc_camera_border(scene, depsgraph, region, v3d, rv3d, &camera_frame_new, false);
+    ED_view3d_calc_camera_border(scene, depsgraph, region, v3d, rv3d, false, &camera_frame_new);
     BLI_rctf_translate(&camera_frame_new, region->winrct.xmin, region->winrct.ymin);
 
     BLI_rctf_transform_pt_v(&camera_frame_new, &camera_frame_old, pt_dst, pt_src);

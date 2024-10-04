@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include "BLI_math_vector_types.hh"
+#include "BLI_vector.hh"
+
 /** \file
  * \ingroup sequencer
  */
@@ -89,3 +92,30 @@ SeqEffectHandle SEQ_effect_handle_get(Sequence *seq);
 int SEQ_effect_get_num_inputs(int seq_type);
 void SEQ_effect_text_font_unload(TextVars *data, bool do_id_user);
 void SEQ_effect_text_font_load(TextVars *data, bool do_id_user);
+
+namespace blender::seq {
+
+struct CharInfo {
+  const char *str_ptr = nullptr;
+  int byte_length = 0;
+  float2 position{0.0f, 0.0f};
+  int advance_x = 0;
+  bool do_wrap = false;
+};
+
+struct LineInfo {
+  Vector<CharInfo> characters;
+  int width;
+};
+
+struct TextVarsRuntime {
+  Vector<LineInfo> lines;
+
+  rcti text_boundbox;
+  int line_height;
+  int font_descender;
+  int character_count;
+  int font;
+};
+
+}  // namespace blender::seq

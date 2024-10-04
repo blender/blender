@@ -8,7 +8,7 @@
 
 #include "BLI_map.hh"
 #include "BLI_math_base.h"
-#include "BLI_path_util.h"
+#include "BLI_path_utils.hh"
 #include "BLI_set.hh"
 #include "BLI_task.hh"
 #include "BLI_vector.hh"
@@ -282,7 +282,7 @@ void ThumbGenerationJob::run_fn(void *customdata, wmJobWorkerStatus *worker_stat
   Vector<ThumbnailCache::Request> requests;
   while (!worker_status->stop) {
     /* Under cache mutex lock: copy all current requests into a vector for processing.
-     * Note: keep the requests set intact! We don't want to add new requests for same
+     * NOTE: keep the requests set intact! We don't want to add new requests for same
      * items while we are processing them. They will be removed from the set once
      * they are finished, one by one. */
     {

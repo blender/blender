@@ -37,6 +37,7 @@ void CloneOperation::on_stroke_begin(const bContext &C, const InputSample &start
 {
   Main &bmain = *CTX_data_main(&C);
   Object &object = *CTX_data_active_object(&C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
 
   this->init_stroke(C, start_sample);
 
@@ -47,21 +48,27 @@ void CloneOperation::on_stroke_begin(const bContext &C, const InputSample &start
    *
    * Here we only have the GPv2 behavior that actually works for now. */
   this->foreach_editable_drawing(
-      C,
-      [&](const GreasePencilStrokeParams &params,
-          const ed::greasepencil::DrawingPlacement &placement) {
+      C, [&](const GreasePencilStrokeParams &params, const DeltaProjectionFunc &projection_fn) {
+        /* Only insert on the active layer. */
+        if (&params.layer != grease_pencil.get_active_layer()) {
+          return false;
+        }
+
+        /* TODO Could become a tool setting. */
+        const bool keep_world_transform = false;
+        const float4x4 clipboard_to_layer = math::invert(params.layer.to_world_space(object));
         const IndexRange pasted_curves = ed::greasepencil::clipboard_paste_strokes(
-            bmain, object, params.drawing, false);
+            bmain, object, params.drawing, clipboard_to_layer, keep_world_transform, false);
         if (pasted_curves.is_empty()) {
           return false;
         }
 
+        const bke::crazyspace::GeometryDeformation deformation = get_drawing_deformation(params);
         bke::CurvesGeometry &curves = params.drawing.strokes_for_write();
         const OffsetIndices<int> pasted_points_by_curve = curves.points_by_curve().slice(
             pasted_curves);
         const IndexRange pasted_points = IndexRange::from_begin_size(
-            pasted_points_by_curve[0].start(),
-            pasted_points_by_curve.total_size());
+            pasted_points_by_curve[0].start(), pasted_points_by_curve.total_size());
         if (pasted_points.is_empty()) {
           return false;
         }
@@ -74,7 +81,7 @@ void CloneOperation::on_stroke_begin(const bContext &C, const InputSample &start
         MutableSpan<float3> positions = curves.positions_for_write();
         threading::parallel_for(pasted_points, 4096, [&](const IndexRange range) {
           for (const int point_i : range) {
-            positions[point_i] = placement.project(view_positions[point_i] + mouse_delta);
+            positions[point_i] = projection_fn(deformation.positions[point_i], mouse_delta);
           }
         });
         params.drawing.tag_positions_changed();

@@ -19,10 +19,12 @@ set(SRC
   intern/add_curves_on_mesh.cc
   intern/curve_constraints.cc
   intern/extend_curves.cc
+  intern/extract_elements.cc
   intern/fillet_curves.cc
   intern/interpolate_curves.cc
   intern/join_geometries.cc
   intern/merge_curves.cc
+  intern/merge_layers.cc
   intern/mesh_boolean.cc
   intern/mesh_copy_selection.cc
   intern/mesh_merge_by_distance.cc
@@ -57,10 +59,12 @@ set(SRC
   GEO_add_curves_on_mesh.hh
   GEO_curve_constraints.hh
   GEO_extend_curves.hh
+  GEO_extract_elements.hh
   GEO_fillet_curves.hh
   GEO_interpolate_curves.hh
   GEO_join_geometries.hh
   GEO_merge_curves.hh
+  GEO_merge_layers.hh
   GEO_mesh_boolean.hh
   GEO_mesh_copy_selection.hh
   GEO_mesh_merge_by_distance.hh
@@ -100,6 +104,13 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::extern::fmtlib
 )
+
+if(WITH_UV_SLIM)
+  list(APPEND INC
+    ../../../intern/slim
+  )
+  add_definitions(-DWITH_UV_SLIM)
+endif()
 
 if(WITH_OPENVDB)
   list(APPEND INC

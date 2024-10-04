@@ -1106,7 +1106,7 @@ static void fill_topology_automasking_factors_mesh(const Depsgraph &depsgraph,
   const int active_vert = std::get<int>(ss.active_vert());
   flood_fill::FillDataMesh flood = flood_fill::FillDataMesh(vert_positions.size());
 
-  flood.add_initial_with_symmetry(depsgraph, ob, *bke::object::pbvh_get(ob), active_vert, radius);
+  flood.add_initial(find_symm_verts_mesh(depsgraph, ob, active_vert, radius));
 
   const bool use_radius = ss.cache && is_constrained_by_radius(brush);
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
@@ -1131,19 +1131,19 @@ static void fill_topology_automasking_factors_grids(const Sculpt &sd,
   const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
 
   const float radius = ss.cache ? ss.cache->radius : std::numeric_limits<float>::max();
-  const SubdivCCGCoord active_vert = std::get<SubdivCCGCoord>(ss.active_vert());
+  const int active_vert = ss.active_vert_index();
 
   const Span<float3> positions = subdiv_ccg.positions;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
   flood_fill::FillDataGrids flood = flood_fill::FillDataGrids(positions.size());
 
-  flood.add_initial_with_symmetry(ob, *bke::object::pbvh_get(ob), subdiv_ccg, active_vert, radius);
+  flood.add_initial(key, find_symm_verts_grids(ob, active_vert, radius));
 
   const bool use_radius = ss.cache && is_constrained_by_radius(brush);
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
 
-  float3 location = positions[active_vert.to_index(key)];
+  float3 location = positions[active_vert];
 
   flood.execute(
       ob, subdiv_ccg, [&](SubdivCCGCoord from_v, SubdivCCGCoord to_v, bool /*is_duplicate*/) {
@@ -1167,7 +1167,7 @@ static void fill_topology_automasking_factors_bmesh(const Sculpt &sd,
   const int num_verts = BM_mesh_elem_count(&bm, BM_VERT);
   flood_fill::FillDataBMesh flood = flood_fill::FillDataBMesh(num_verts);
 
-  flood.add_initial_with_symmetry(ob, *bke::object::pbvh_get(ob), active_vert, radius);
+  flood.add_initial(*ss.bm, find_symm_verts_bmesh(ob, BM_elem_index_get(active_vert), radius));
 
   const bool use_radius = ss.cache && is_constrained_by_radius(brush);
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);

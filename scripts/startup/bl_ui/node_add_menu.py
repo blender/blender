@@ -78,6 +78,13 @@ def add_repeat_zone(layout, label):
     return props
 
 
+def add_foreach_geometry_element_zone(layout, label):
+    props = layout.operator(
+        "node.add_foreach_geometry_element_zone", text=label, text_ctxt=i18n_contexts.default)
+    props.use_transform = True
+    return props
+
+
 class NODE_MT_category_layout(Menu):
     bl_idname = "NODE_MT_category_layout"
     bl_label = "Layout"

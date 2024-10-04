@@ -34,6 +34,8 @@
 #include "BKE_lib_id.hh"
 #include "BKE_object_types.hh"
 
+#include "ANIM_action.hh"
+
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
@@ -437,7 +439,6 @@ static void updateDuplicateActionConstraintSettings(
     EditBone *dup_bone, EditBone *orig_bone, Object *ob, bPoseChannel *pchan, bConstraint *curcon)
 {
   bActionConstraint *act_con = (bActionConstraint *)curcon->data;
-  bAction *act = (bAction *)act_con->act;
 
   float mat[4][4];
 
@@ -508,21 +509,27 @@ static void updateDuplicateActionConstraintSettings(
   }
 
   /* See if there is any channels that uses this bone */
-  ListBase ani_curves;
-  BLI_listbase_clear(&ani_curves);
-  if ((act != nullptr) &&
-      BKE_fcurves_filter(&ani_curves, &act->curves, "pose.bones[", orig_bone->name))
-  {
-    /* Create a copy and mirror the animation */
-    LISTBASE_FOREACH (LinkData *, ld, &ani_curves) {
-      FCurve *old_curve = static_cast<FCurve *>(ld->data);
-      FCurve *new_curve = BKE_fcurve_copy(old_curve);
-      bActionGroup *agrp;
+  bAction *act = (bAction *)act_con->act;
+  if (act) {
+    blender::animrig::Action &action = act->wrap();
+    blender::animrig::ChannelBag *cbag = blender::animrig::channelbag_for_action_slot(
+        action, act_con->action_slot_handle);
 
+    /* Create a copy and mirror the animation */
+    auto bone_name_filter = [&](const FCurve &fcurve) -> bool {
+      return blender::animrig::fcurve_matches_collection_path(
+          fcurve, "pose.bones[", orig_bone->name);
+    };
+    Vector<FCurve *> fcurves = blender::animrig::fcurves_in_action_slot_filtered(
+        act, act_con->action_slot_handle, bone_name_filter);
+    for (const FCurve *old_curve : fcurves) {
+      FCurve *new_curve = BKE_fcurve_copy(old_curve);
       char *old_path = new_curve->rna_path;
 
       new_curve->rna_path = BLI_string_replaceN(old_path, orig_bone->name, dup_bone->name);
       MEM_freeN(old_path);
+
+      /* FIXME: deal with the case where this F-Curve already exists. */
 
       /* Flip the animation */
       int i;
@@ -558,17 +565,23 @@ static void updateDuplicateActionConstraintSettings(
         }
       }
 
-      /* Make sure that a action group name for the new bone exists */
-      agrp = BKE_action_group_find_name(act, dup_bone->name);
-
-      if (agrp == nullptr) {
-        agrp = action_groups_add_new(act, dup_bone->name);
+      if (action.is_action_legacy()) {
+        /* Make sure that a action group name for the new bone exists */
+        bActionGroup *agrp = BKE_action_group_find_name(act, dup_bone->name);
+        if (agrp == nullptr) {
+          agrp = action_groups_add_new(act, dup_bone->name);
+        }
+        BLI_assert(agrp != nullptr);
+        action_groups_add_channel(act, agrp, new_curve);
+        continue;
       }
-      BLI_assert(agrp != nullptr);
-      action_groups_add_channel(act, agrp, new_curve);
+
+      BLI_assert_msg(cbag, "If there are F-Curves for this slot, there should be a channelbag");
+      bActionGroup &agrp = cbag->channel_group_ensure(dup_bone->name);
+      cbag->fcurve_append(*new_curve);
+      cbag->fcurve_assign_to_channel_group(*new_curve, agrp);
     }
   }
-  BLI_freelistN(&ani_curves);
 
   /* Make depsgraph aware of our changes. */
   DEG_id_tag_update(&act->id, ID_RECALC_ANIMATION_NO_FLUSH);

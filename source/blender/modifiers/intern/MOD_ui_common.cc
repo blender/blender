@@ -219,10 +219,28 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
   uiLayoutSetUnitsX(layout, 4.0f);
 
   /* Apply. */
-  uiItemO(layout,
-          CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Apply"),
-          ICON_CHECKMARK,
-          "OBJECT_OT_modifier_apply");
+  if (ob->type == OB_GREASE_PENCIL) {
+    uiItemO(layout,
+            CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Apply (Active Keyframe)"),
+            ICON_CHECKMARK,
+            "OBJECT_OT_modifier_apply");
+
+    uiItemFullO(layout,
+                "OBJECT_OT_modifier_apply",
+                IFACE_("Apply (All Keyframes)"),
+                ICON_KEYFRAME,
+                nullptr,
+                WM_OP_INVOKE_DEFAULT,
+                UI_ITEM_NONE,
+                &op_ptr);
+    RNA_boolean_set(&op_ptr, "all_keyframes", true);
+  }
+  else {
+    uiItemO(layout,
+            CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Apply"),
+            ICON_CHECKMARK,
+            "OBJECT_OT_modifier_apply");
+  }
 
   /* Apply as shapekey. */
   if (BKE_modifier_is_same_topology(md) && !BKE_modifier_is_non_geometrical(md)) {

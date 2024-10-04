@@ -194,16 +194,9 @@ static bAction *find_related_action(Main &bmain, ID &id)
 
 bAction *id_action_ensure(Main *bmain, ID *id)
 {
-  AnimData *adt;
-
-  /* init animdata if none available yet */
-  adt = BKE_animdata_from_id(id);
+  AnimData *adt = BKE_animdata_ensure_id(id);
   if (adt == nullptr) {
-    adt = BKE_animdata_ensure_id(id);
-  }
-  if (adt == nullptr) {
-    /* if still none (as not allowed to add, or ID doesn't have animdata for some reason) */
-    printf("ERROR: Couldn't add AnimData (ID = %s)\n", (id) ? (id->name) : "<None>");
+    printf("ERROR: data-block type is not animatable (ID = %s)\n", (id) ? (id->name) : "<None>");
     return nullptr;
   }
 
@@ -234,13 +227,18 @@ bAction *id_action_ensure(Main *bmain, ID *id)
 
       /* create action */
       action = BKE_action_add(bmain, actname);
-      /* set ID-type from ID-block that this is going to be assigned to
-       * so that users can't accidentally break actions by assigning them
-       * to the wrong places
-       */
-      BKE_animdata_action_ensure_idroot(id, adt->action);
+
+      /* Decrement the default-1 user count, as assigning it will increase it again. */
+      BLI_assert(action->id.us == 1);
+      id_us_min(&action->id);
     }
-    adt->action = action;
+
+    /* Assigning the Action should always work here. The only reason it wouldn't, is when a legacy
+     * Action of the wrong ID type is assigned, but since in this branch of the code we're only
+     * dealing with either new or layered Actions, this will never fail. */
+    const bool ok = animrig::assign_action(action, {*id, *adt});
+    BLI_assert_msg(ok, "Expecting Action assignment to work here");
+    UNUSED_VARS_NDEBUG(ok);
 
     /* Tag depsgraph to be rebuilt to include time dependency. */
     DEG_relations_tag_update(bmain);

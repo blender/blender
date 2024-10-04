@@ -114,31 +114,30 @@ static AttributesForInterpolation gather_point_attributes_to_interpolate(
     const CurvesGeometry &from_curves, const CurvesGeometry &to_curves, CurvesGeometry &dst_curves)
 {
   VectorSet<StringRef> ids;
-  auto add_attribute = [&](const StringRef id, const bke::AttributeMetaData meta_data) {
-    if (meta_data.domain != bke::AttrDomain::Point) {
-      return true;
+  auto add_attribute = [&](const bke::AttributeIter &iter) {
+    if (iter.domain != bke::AttrDomain::Point) {
+      return;
     }
-    if (meta_data.data_type == CD_PROP_STRING) {
-      return true;
+    if (iter.data_type == CD_PROP_STRING) {
+      return;
     }
-    if (!interpolate_attribute_to_curves(id, dst_curves.curve_type_counts())) {
-      return true;
+    if (!interpolate_attribute_to_curves(iter.name, dst_curves.curve_type_counts())) {
+      return;
     }
-    if (!interpolate_attribute_to_poly_curve(id)) {
-      return true;
+    if (!interpolate_attribute_to_poly_curve(iter.name)) {
+      return;
     }
     /* Position is handled differently since it has non-generic interpolation for Bezier
      * curves and because the evaluated positions are cached for each evaluated point. */
-    if (id == "position") {
-      return true;
+    if (iter.name == "position") {
+      return;
     }
 
-    ids.add(id);
-    return true;
+    ids.add(iter.name);
   };
 
-  from_curves.attributes().for_all(add_attribute);
-  to_curves.attributes().for_all(add_attribute);
+  from_curves.attributes().foreach_attribute(add_attribute);
+  to_curves.attributes().foreach_attribute(add_attribute);
 
   return retrieve_attribute_spans(ids, from_curves, to_curves, bke::AttrDomain::Point, dst_curves);
 }
@@ -150,27 +149,26 @@ static AttributesForInterpolation gather_curve_attributes_to_interpolate(
     const CurvesGeometry &from_curves, const CurvesGeometry &to_curves, CurvesGeometry &dst_curves)
 {
   VectorSet<StringRef> ids;
-  auto add_attribute = [&](const StringRef id, const bke::AttributeMetaData meta_data) {
-    if (meta_data.domain != bke::AttrDomain::Curve) {
-      return true;
+  auto add_attribute = [&](const bke::AttributeIter &iter) {
+    if (iter.domain != bke::AttrDomain::Curve) {
+      return;
     }
-    if (meta_data.data_type == CD_PROP_STRING) {
-      return true;
+    if (iter.data_type == CD_PROP_STRING) {
+      return;
     }
-    if (bke::attribute_name_is_anonymous(id)) {
-      return true;
+    if (bke::attribute_name_is_anonymous(iter.name)) {
+      return;
     }
     /* Interpolation tool always outputs poly curves. */
-    if (id == "curve_type") {
-      return true;
+    if (iter.name == "curve_type") {
+      return;
     }
 
-    ids.add(id);
-    return true;
+    ids.add(iter.name);
   };
 
-  from_curves.attributes().for_all(add_attribute);
-  to_curves.attributes().for_all(add_attribute);
+  from_curves.attributes().foreach_attribute(add_attribute);
+  to_curves.attributes().foreach_attribute(add_attribute);
 
   return retrieve_attribute_spans(ids, from_curves, to_curves, bke::AttrDomain::Curve, dst_curves);
 }

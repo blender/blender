@@ -197,26 +197,25 @@ void GeometryDataSource::foreach_default_column_ids(
 
   extra_columns_.foreach_default_column_ids(fn);
 
-  attributes->for_all([&](const StringRef attribute_id, const bke::AttributeMetaData &meta_data) {
-    if (meta_data.domain != domain_) {
-      return true;
+  attributes->foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (iter.domain != domain_) {
+      return;
     }
-    if (bke::attribute_name_is_anonymous(attribute_id)) {
-      return true;
+    if (bke::attribute_name_is_anonymous(iter.name)) {
+      return;
     }
-    if (!bke::allow_procedural_attribute_access(attribute_id)) {
-      return true;
+    if (!bke::allow_procedural_attribute_access(iter.name)) {
+      return;
     }
-    if (meta_data.domain == bke::AttrDomain::Instance && attribute_id == "instance_transform") {
+    if (iter.domain == bke::AttrDomain::Instance && iter.name == "instance_transform") {
       /* Don't display the instance transform attribute, since matrix visualization in the
        * spreadsheet isn't helpful. */
-      return true;
+      return;
     }
     SpreadsheetColumnID column_id;
-    column_id.name = (char *)attribute_id.data();
-    const bool is_front = attribute_id == ".viewer";
+    column_id.name = (char *)iter.name.data();
+    const bool is_front = iter.name == ".viewer";
     fn(column_id, is_front);
-    return true;
   });
 
   if (component_->type() == bke::GeometryComponent::Type::Instance) {
@@ -294,7 +293,11 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
         const Span<const bke::greasepencil::Layer *> layers = grease_pencil->layers();
         return std::make_unique<ColumnValues>(
             column_id.name, VArray<std::string>::ForFunc(domain_num, [layers](int64_t index) {
-              return std::string(layers[index]->name());
+              StringRefNull name = layers[index]->name();
+              if (name.is_empty()) {
+                name = IFACE_("(Layer)");
+              }
+              return std::string(name);
             }));
       }
     }
@@ -469,7 +472,7 @@ std::optional<const bke::AttributeAccessor> GeometryDataSource::get_component_at
   }
   if (layer_index_ >= 0 && layer_index_ < grease_pencil->layers().size()) {
     if (const bke::greasepencil::Drawing *drawing = grease_pencil->get_eval_drawing(
-            *grease_pencil->layer(layer_index_)))
+            grease_pencil->layer(layer_index_)))
     {
       return drawing->strokes().attributes();
     }

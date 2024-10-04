@@ -2,7 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
+#pragma once
+
+#include "draw_view_lib.glsl"
 
 #ifndef DRAW_MODELMAT_CREATE_INFO
 #  error Missing draw_modelmat additional create info on shader create info

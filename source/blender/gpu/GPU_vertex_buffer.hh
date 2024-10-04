@@ -254,7 +254,7 @@ GPU_INLINE void *GPU_vertbuf_raw_step(GPUVertBufRaw *a)
   return (void *)data;
 }
 
-GPU_INLINE uint GPU_vertbuf_raw_used(GPUVertBufRaw *a)
+GPU_INLINE uint GPU_vertbuf_raw_used(const GPUVertBufRaw *a)
 {
   return ((a->data - a->data_init) / a->stride);
 }
