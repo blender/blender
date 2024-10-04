@@ -37,7 +37,8 @@ void forward_lighting_eval(float thickness, out vec3 radiance, out vec3 transmit
 
   /* TODO(fclem): If transmission (no SSS) is present, we could reduce LIGHT_CLOSURE_EVAL_COUNT
    * by 1 for this evaluation and skip evaluating the transmission closure twice. */
-  uchar receiver_light_set = receiver_light_set_get(drw_infos[resource_id]);
+  ObjectInfos object_infos = drw_infos[resource_id];
+  uchar receiver_light_set = receiver_light_set_get(object_infos);
   light_eval_reflection(stack, g_data.P, surface_N, V, vPz, receiver_light_set);
 
 #if defined(MAT_SUBSURFACE) || defined(MAT_REFRACTION) || defined(MAT_TRANSLUCENT)

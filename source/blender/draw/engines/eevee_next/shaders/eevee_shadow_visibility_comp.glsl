@@ -16,8 +16,9 @@
 
 bool shadow_linking_affects_caster(uint view_id, uint resource_id)
 {
+  ObjectInfos object_infos = drw_infos[resource_id];
   return bitmask64_test(render_view_buf[view_id].shadow_set_membership,
-                        blocker_shadow_set_get(drw_infos[resource_id]));
+                        blocker_shadow_set_get(object_infos));
 }
 
 void mask_visibility_bit(uint view_id)

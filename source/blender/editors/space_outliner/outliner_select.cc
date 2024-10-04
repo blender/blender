@@ -1839,7 +1839,7 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
         }
         else {
           /* Double-clicked, but it wasn't on the icon. */
-          return OPERATOR_CANCELLED;
+          return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
         }
       }
       else {
