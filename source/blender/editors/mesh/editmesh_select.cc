@@ -69,6 +69,46 @@
 /* use bmesh operator flags for a few operators */
 #define BMO_ELE_TAG 1
 
+/* -------------------------------------------------------------------- */
+/** \name Common functions to count elements
+ * \{ */
+
+enum eElemCountType {
+  ELEM_COUNT_LESS = 0,
+  ELEM_COUNT_EQUAL,
+  ELEM_COUNT_GREATER,
+  ELEM_COUNT_NOT_EQUAL,
+};
+
+static const EnumPropertyItem elem_count_compare_items[] = {
+    {ELEM_COUNT_LESS, "LESS", false, "Less Than", ""},
+    {ELEM_COUNT_EQUAL, "EQUAL", false, "Equal To", ""},
+    {ELEM_COUNT_GREATER, "GREATER", false, "Greater Than", ""},
+    {ELEM_COUNT_NOT_EQUAL, "NOTEQUAL", false, "Not Equal To", ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+static inline bool is_count_a_match(const eElemCountType type,
+                                    const int value_test,
+                                    const int value_reference)
+{
+  switch (type) {
+    case ELEM_COUNT_LESS:
+      return (value_test < value_reference);
+    case ELEM_COUNT_EQUAL:
+      return (value_test == value_reference);
+    case ELEM_COUNT_GREATER:
+      return (value_test > value_reference);
+    case ELEM_COUNT_NOT_EQUAL:
+      return (value_test != value_reference);
+    default:
+      BLI_assert_unreachable(); /* Bad value of selection `type`. */
+      return false;
+  }
+}
+
+/** \} */
+
 using blender::float3;
 using blender::Span;
 using blender::Vector;
@@ -3725,6 +3765,136 @@ void MESH_OT_select_linked_pick(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Select by Pole Count Operator
+ * \{ */
+
+static int edbm_select_by_pole_count_exec(bContext *C, wmOperator *op)
+{
+  const Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  const bool extend = RNA_boolean_get(op->ptr, "extend");
+  const bool exclude_nonmanifold = RNA_boolean_get(op->ptr, "exclude_nonmanifold");
+  const int pole_count = RNA_int_get(op->ptr, "pole_count");
+  const eElemCountType type = eElemCountType(RNA_enum_get(op->ptr, "type"));
+  const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
+
+  for (Object *obedit : objects) {
+    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+    bool changed = false;
+
+    BMIter iter;
+    BMVert *v;
+
+    if (!extend) {
+      EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+      changed = true;
+    }
+
+    BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
+      if (BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
+        continue;
+      }
+
+      const int v_edge_count = BM_vert_edge_count_at_most(v, pole_count + 1);
+      if (!is_count_a_match(type, v_edge_count, pole_count)) {
+        continue;
+      }
+
+      if (exclude_nonmanifold) {
+        /* Exclude non-manifold vertices (no edges). */
+        if (BM_vert_is_manifold(v) == false) {
+          continue;
+        }
+
+        /* Exclude vertices connected to non-manifold edges. */
+        BMIter eiter;
+        BMEdge *e;
+        bool all_edges_manifold = true;
+        BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
+          if (BM_edge_is_manifold(e) == false) {
+            all_edges_manifold = false;
+            break;
+          }
+        }
+
+        if (all_edges_manifold == false) {
+          continue;
+        }
+      }
+
+      /* All tests passed, perform the selection. */
+
+      /* Multiple selection modes may be active.
+       * Select elements per the finest-grained choice. */
+      changed = true;
+
+      if (em->selectmode & SCE_SELECT_VERTEX) {
+        BM_vert_select_set(em->bm, v, true);
+      }
+      else if (em->selectmode & SCE_SELECT_EDGE) {
+        BMIter eiter;
+        BMEdge *e;
+        BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
+          BM_edge_select_set(em->bm, e, true);
+        }
+      }
+      else if (em->selectmode & SCE_SELECT_FACE) {
+        BMIter fiter;
+        BMFace *f;
+        BM_ITER_ELEM (f, &fiter, v, BM_FACES_OF_VERT) {
+          BM_face_select_set(em->bm, f, true);
+        }
+      }
+      else {
+        BLI_assert_unreachable();
+      }
+    }
+
+    if (changed) {
+      EDBM_selectmode_flush(em);
+      DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+      WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+    }
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+void MESH_OT_select_by_pole_count(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Select By Pole Count";
+  ot->description =
+      "Select all elements that are connected to a pole, by the pole count.\n"
+      "In vertex selection mode, each pole vertex is selected.\n"
+      "In edge selection mode, each pole vertex and all their connected edges are selected.\n"
+      "In face selection mode, each pole vertex and all their connected faces are selected.";
+  ot->idname = "MESH_OT_select_by_pole_count";
+
+  /* api callbacks */
+  ot->exec = edbm_select_by_pole_count_exec;
+  ot->poll = ED_operator_editmesh;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* properties */
+  RNA_def_int(ot->srna, "pole_count", 4, 0, INT_MAX, "Pole Count", "", 0, INT_MAX);
+  RNA_def_enum(ot->srna,
+               "type",
+               elem_count_compare_items,
+               ELEM_COUNT_NOT_EQUAL,
+               "Type",
+               "Type of comparison to make");
+  RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
+  RNA_def_boolean(
+      ot->srna, "exclude_nonmanifold", true, "Exclude Non Manifold", "Exclude non-manifold poles");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Select Face by Sides Operator
  * \{ */
 
@@ -3734,50 +3904,34 @@ static int edbm_select_face_by_sides_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   const bool extend = RNA_boolean_get(op->ptr, "extend");
   const int numverts = RNA_int_get(op->ptr, "number");
-  const int type = RNA_enum_get(op->ptr, "type");
+  const eElemCountType type = eElemCountType(RNA_enum_get(op->ptr, "type"));
   const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
 
   for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
+    bool selection_changed = false;
+
     BMFace *efa;
     BMIter iter;
 
     if (!extend) {
       EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+      selection_changed = true;
     }
 
     BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-      bool select;
-
-      switch (type) {
-        case 0:
-          select = (efa->len < numverts);
-          break;
-        case 1:
-          select = (efa->len == numverts);
-          break;
-        case 2:
-          select = (efa->len > numverts);
-          break;
-        case 3:
-          select = (efa->len != numverts);
-          break;
-        default:
-          BLI_assert(0);
-          select = false;
-          break;
-      }
-
-      if (select) {
+      if (is_count_a_match(type, efa->len, numverts)) {
+        selection_changed = true;
         BM_face_select_set(em->bm, efa, true);
       }
     }
 
-    EDBM_selectmode_flush(em);
-
-    DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
-    WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+    if (selection_changed) {
+      EDBM_selectmode_flush(em);
+      DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+      WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+    }
   }
 
   return OPERATOR_FINISHED;
@@ -3785,13 +3939,6 @@ static int edbm_select_face_by_sides_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_select_face_by_sides(wmOperatorType *ot)
 {
-  static const EnumPropertyItem type_items[] = {
-      {0, "LESS", false, "Less Than", ""},
-      {1, "EQUAL", false, "Equal To", ""},
-      {2, "GREATER", false, "Greater Than", ""},
-      {3, "NOTEQUAL", false, "Not Equal To", ""},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
 
   /* identifiers */
   ot->name = "Select Faces by Sides";
@@ -3807,7 +3954,12 @@ void MESH_OT_select_face_by_sides(wmOperatorType *ot)
 
   /* properties */
   RNA_def_int(ot->srna, "number", 4, 3, INT_MAX, "Number of Vertices", "", 3, INT_MAX);
-  RNA_def_enum(ot->srna, "type", type_items, 1, "Type", "Type of comparison to make");
+  RNA_def_enum(ot->srna,
+               "type",
+               elem_count_compare_items,
+               ELEM_COUNT_EQUAL,
+               "Type",
+               "Type of comparison to make");
   RNA_def_boolean(ot->srna, "extend", true, "Extend", "Extend the selection");
 }
 
