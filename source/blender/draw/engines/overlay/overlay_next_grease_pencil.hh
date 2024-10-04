@@ -62,10 +62,10 @@ class GreasePencil {
     show_points_ = show_lines_ = show_weight_ = false;
 
     switch (state.object_mode) {
-      case OB_MODE_PAINT_GPENCIL_LEGACY:
+      case OB_MODE_PAINT_GREASE_PENCIL:
         /* Draw mode. */
         break;
-      case OB_MODE_VERTEX_GPENCIL_LEGACY:
+      case OB_MODE_VERTEX_GREASE_PENCIL:
         /* Vertex paint mode. */
         break;
       case OB_MODE_EDIT:
@@ -73,13 +73,13 @@ class GreasePencil {
         show_points_ = show_edit_point;
         show_lines_ = show_lines;
         break;
-      case OB_MODE_WEIGHT_GPENCIL_LEGACY:
+      case OB_MODE_WEIGHT_GREASE_PENCIL:
         /* Weight paint mode. */
         show_points_ = true;
         show_lines_ = show_lines;
         show_weight_ = true;
         break;
-      case OB_MODE_SCULPT_GPENCIL_LEGACY:
+      case OB_MODE_SCULPT_GREASE_PENCIL:
         /* Sculpt mode. */
         show_points_ = (selection_domain_edit == bke::AttrDomain::Point);
         show_lines_ = show_lines && (ts->gpencil_selectmode_sculpt != 0);

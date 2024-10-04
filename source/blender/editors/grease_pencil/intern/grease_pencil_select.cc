@@ -1047,10 +1047,10 @@ blender::bke::AttrDomain ED_grease_pencil_selection_domain_get(const ToolSetting
   if (object->mode & OB_MODE_EDIT) {
     return ED_grease_pencil_edit_selection_domain_get(tool_settings);
   }
-  if (object->mode & OB_MODE_SCULPT_GPENCIL_LEGACY) {
+  if (object->mode & OB_MODE_SCULPT_GREASE_PENCIL) {
     return ED_grease_pencil_sculpt_selection_domain_get(tool_settings);
   }
-  if (object->mode & OB_MODE_VERTEX_GPENCIL_LEGACY) {
+  if (object->mode & OB_MODE_VERTEX_GREASE_PENCIL) {
     return ED_grease_pencil_vertex_selection_domain_get(tool_settings);
   }
   return blender::bke::AttrDomain::Point;
@@ -1077,10 +1077,10 @@ bool ED_grease_pencil_segment_selection_enabled(const ToolSettings *tool_setting
   if (object->mode & OB_MODE_EDIT) {
     return ED_grease_pencil_edit_segment_selection_enabled(tool_settings);
   }
-  if (object->mode & OB_MODE_SCULPT_GPENCIL_LEGACY) {
+  if (object->mode & OB_MODE_SCULPT_GREASE_PENCIL) {
     return ED_grease_pencil_sculpt_segment_selection_enabled(tool_settings);
   }
-  if (object->mode & OB_MODE_VERTEX_GPENCIL_LEGACY) {
+  if (object->mode & OB_MODE_VERTEX_GREASE_PENCIL) {
     return ED_grease_pencil_vertex_segment_selection_enabled(tool_settings);
   }
   return false;

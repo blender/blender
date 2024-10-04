@@ -1784,7 +1784,7 @@ float ED_gpencil_radial_control_scale(bContext *C,
                                       const int mval[2])
 {
   float scale_fac = 1.0f;
-  if ((brush && brush->gpencil_settings) && (brush->ob_mode == OB_MODE_PAINT_GPENCIL_LEGACY) &&
+  if ((brush && brush->gpencil_settings) && (brush->ob_mode == OB_MODE_PAINT_GREASE_PENCIL) &&
       (brush->gpencil_brush_type == GPAINT_BRUSH_TYPE_DRAW))
   {
     float cursor_radius = ED_gpencil_cursor_radius(C, mval[0], mval[1]);
@@ -2032,7 +2032,7 @@ void ED_gpencil_setup_modes(bContext *C, bGPdata *gpd, int newmode)
       gpd->flag &= ~GP_DATA_STROKE_VERTEXMODE;
       ED_gpencil_toggle_brush_cursor(C, false, nullptr);
       break;
-    case OB_MODE_PAINT_GPENCIL_LEGACY:
+    case OB_MODE_PAINT_GREASE_PENCIL:
       gpd->flag &= ~GP_DATA_STROKE_EDITMODE;
       gpd->flag |= GP_DATA_STROKE_PAINTMODE;
       gpd->flag &= ~GP_DATA_STROKE_SCULPTMODE;
@@ -2040,7 +2040,7 @@ void ED_gpencil_setup_modes(bContext *C, bGPdata *gpd, int newmode)
       gpd->flag &= ~GP_DATA_STROKE_VERTEXMODE;
       ED_gpencil_toggle_brush_cursor(C, true, nullptr);
       break;
-    case OB_MODE_SCULPT_GPENCIL_LEGACY:
+    case OB_MODE_SCULPT_GREASE_PENCIL:
       gpd->flag &= ~GP_DATA_STROKE_EDITMODE;
       gpd->flag &= ~GP_DATA_STROKE_PAINTMODE;
       gpd->flag |= GP_DATA_STROKE_SCULPTMODE;
@@ -2048,7 +2048,7 @@ void ED_gpencil_setup_modes(bContext *C, bGPdata *gpd, int newmode)
       gpd->flag &= ~GP_DATA_STROKE_VERTEXMODE;
       ED_gpencil_toggle_brush_cursor(C, true, nullptr);
       break;
-    case OB_MODE_WEIGHT_GPENCIL_LEGACY:
+    case OB_MODE_WEIGHT_GREASE_PENCIL:
       gpd->flag &= ~GP_DATA_STROKE_EDITMODE;
       gpd->flag &= ~GP_DATA_STROKE_PAINTMODE;
       gpd->flag &= ~GP_DATA_STROKE_SCULPTMODE;
@@ -2056,7 +2056,7 @@ void ED_gpencil_setup_modes(bContext *C, bGPdata *gpd, int newmode)
       gpd->flag &= ~GP_DATA_STROKE_VERTEXMODE;
       ED_gpencil_toggle_brush_cursor(C, true, nullptr);
       break;
-    case OB_MODE_VERTEX_GPENCIL_LEGACY:
+    case OB_MODE_VERTEX_GREASE_PENCIL:
       gpd->flag &= ~GP_DATA_STROKE_EDITMODE;
       gpd->flag &= ~GP_DATA_STROKE_PAINTMODE;
       gpd->flag &= ~GP_DATA_STROKE_SCULPTMODE;

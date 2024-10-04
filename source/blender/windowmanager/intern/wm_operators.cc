@@ -2638,7 +2638,7 @@ static void radial_control_set_initial_mouse(bContext *C, RadialControl *rc, con
   rc->scale_fac = 1.0f;
   if (rc->ptr.owner_id && GS(rc->ptr.owner_id->name) == ID_BR && rc->prop == &rna_Brush_size) {
     Brush *brush = reinterpret_cast<Brush *>(rc->ptr.owner_id);
-    if ((brush && brush->gpencil_settings) && (brush->ob_mode == OB_MODE_PAINT_GPENCIL_LEGACY) &&
+    if ((brush && brush->gpencil_settings) && (brush->ob_mode == OB_MODE_PAINT_GREASE_PENCIL) &&
         (brush->gpencil_brush_type == GPAINT_BRUSH_TYPE_DRAW) &&
         (brush->flag & BRUSH_LOCK_SIZE) != 0)
     {
