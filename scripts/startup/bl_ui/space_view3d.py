@@ -8586,8 +8586,7 @@ class TOPBAR_PT_grease_pencil_vertex_color(Panel):
         UnifiedPaintPanel.prop_unified_color(sub_row, context, brush, "color", text="")
         UnifiedPaintPanel.prop_unified_color(sub_row, context, brush, "secondary_color", text="")
 
-        # TODO
-        # sub_row.operator("gpencil.tint_flip", icon='FILE_REFRESH', text="")
+        sub_row.operator("paint.brush_colors_flip", icon='FILE_REFRESH', text="")
 
         row = layout.row(align=True)
         row.template_ID(paint, "palette", new="palette.new")
