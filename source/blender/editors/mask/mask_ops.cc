@@ -1986,6 +1986,12 @@ static int mask_duplicate_exec(bContext *C, wmOperator * /*op*/)
 
   LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask->masklayers) {
     LISTBASE_FOREACH_BACKWARD (MaskSpline *, spline, &mask_layer->splines) {
+      const bool act_point_in_spline = mask_layer->act_point &&
+                                       ARRAY_HAS_ITEM(mask_layer->act_point,
+                                                      spline->points,
+                                                      spline->tot_point);
+      const void *act_point_prev = mask_layer->act_point;
+
       MaskSplinePoint *point = spline->points;
       int i = 0;
       while (i < spline->tot_point) {
@@ -2030,6 +2036,19 @@ static int mask_duplicate_exec(bContext *C, wmOperator * /*op*/)
 
           tot_point = new_spline->tot_point;
 
+          /* Update the active. */
+          if (mask_layer->act_point) {
+            ptrdiff_t act_index = mask_layer->act_point - &spline->points[start];
+            if (size_t(act_index) < new_spline->tot_point) {
+              mask_layer->act_point = &new_spline->points[act_index];
+            }
+          }
+          if (mask_layer->act_spline) {
+            if (mask_layer->act_spline == spline) {
+              mask_layer->act_spline = new_spline;
+            }
+          }
+
           /* animation requires points added one by one */
           if (mask_layer->splines_shapes.first) {
             new_spline->tot_point = 0;
@@ -2059,11 +2078,15 @@ static int mask_duplicate_exec(bContext *C, wmOperator * /*op*/)
           /* Flush selection to splines. */
           new_spline->flag |= SELECT;
           spline->flag &= ~SELECT;
-
-          mask_layer->act_spline = new_spline;
         }
         i++;
         point++;
+      }
+
+      if (act_point_in_spline && (mask_layer->act_point == act_point_prev)) {
+        /* The active point was part of this spline but not copied,
+         * clear it to avoid confusion with the active spline & point getting out of sync. */
+        mask_layer->act_point = nullptr;
       }
     }
   }
