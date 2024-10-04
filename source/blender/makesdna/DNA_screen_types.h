@@ -833,7 +833,8 @@ typedef struct AssetShelf {
 
   /** Only for the permanent asset shelf regions, not asset shelves in temporary popups. */
   short preferred_row_count;
-  char _pad[6];
+  short instance_flag;
+  char _pad[4];
 } AssetShelf;
 
 /**
@@ -864,6 +865,17 @@ typedef enum AssetShelfSettings_DisplayFlag {
   ASSETSHELF_SHOW_NAMES = (1 << 0),
 } AssetShelfSettings_DisplayFlag;
 ENUM_OPERATORS(AssetShelfSettings_DisplayFlag, ASSETSHELF_SHOW_NAMES);
+
+/* #AssetShelfSettings.instance_flag */
+typedef enum AssetShelf_InstanceFlag {
+  /**
+   * Remember the last known region visibility state or this shelf, so it can be restored if the
+   * shelf is reactivated. Practically this makes the shelf visibility be remembered per mode.
+   * Continuously updated for the visible region.
+   */
+  ASSETSHELF_REGION_IS_HIDDEN = (1 << 0),
+} AssetShelf_InstanceFlag;
+ENUM_OPERATORS(AssetShelf_InstanceFlag, ASSETSHELF_REGION_IS_HIDDEN);
 
 typedef struct FileHandler {
   DNA_DEFINE_CXX_METHODS(FileHandler)
