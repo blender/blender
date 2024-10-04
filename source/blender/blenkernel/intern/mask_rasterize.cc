@@ -972,6 +972,35 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
         scanfill_flag |= BLI_SCANFILL_CALC_HOLES;
       }
 
+      /* Store an array of edges from `sf_ctx.filledgebase`
+       * because filling may remove edges, see: #127692. */
+      ScanFillEdge **sf_edge_array = nullptr;
+      uint sf_edge_array_num = 0;
+      if (tot_feather_quads) {
+        ListBase *lb_array[] = {&sf_ctx.filledgebase, &isect_remedgebase};
+        for (int pass = 0; pass < 2; pass++) {
+          LISTBASE_FOREACH (ScanFillEdge *, sf_edge, lb_array[pass]) {
+            if (sf_edge->tmp.c == SF_EDGE_IS_BOUNDARY) {
+              sf_edge_array_num += 1;
+            }
+          }
+        }
+
+        if (sf_edge_array_num > 0) {
+          sf_edge_array = static_cast<ScanFillEdge **>(
+              MEM_mallocN(sizeof(ScanFillEdge **) * size_t(sf_edge_array_num), __func__));
+          uint edge_index = 0;
+          for (int pass = 0; pass < 2; pass++) {
+            LISTBASE_FOREACH (ScanFillEdge *, sf_edge, lb_array[pass]) {
+              if (sf_edge->tmp.c == SF_EDGE_IS_BOUNDARY) {
+                sf_edge_array[edge_index++] = sf_edge;
+              }
+            }
+          }
+          BLI_assert(edge_index == sf_edge_array_num);
+        }
+      }
+
       sf_tri_tot = uint(BLI_scanfill_calc_ex(&sf_ctx, scanfill_flag, zvec));
 
       if (is_isect) {
@@ -1005,25 +1034,23 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
       BLI_assert(face_index == sf_tri_tot);
       UNUSED_VARS_NDEBUG(face_index);
 
-      if (tot_feather_quads) {
-        ScanFillEdge *sf_edge;
-
-        for (sf_edge = static_cast<ScanFillEdge *>(sf_ctx.filledgebase.first); sf_edge;
-             sf_edge = sf_edge->next)
-        {
-          if (sf_edge->tmp.c == SF_EDGE_IS_BOUNDARY) {
-            *(face++) = sf_edge->v1->tmp.u;
-            *(face++) = sf_edge->v2->tmp.u;
-            *(face++) = sf_edge->v2->keyindex;
-            *(face++) = sf_edge->v1->keyindex;
-            face_index++;
-            FACE_ASSERT(face - 4, sf_vert_tot);
+      if (sf_edge_array) {
+        BLI_assert(tot_feather_quads);
+        for (uint i = 0; i < sf_edge_array_num; i++) {
+          ScanFillEdge *sf_edge = sf_edge_array[i];
+          BLI_assert(sf_edge->tmp.c == SF_EDGE_IS_BOUNDARY);
+          *(face++) = sf_edge->v1->tmp.u;
+          *(face++) = sf_edge->v2->tmp.u;
+          *(face++) = sf_edge->v2->keyindex;
+          *(face++) = sf_edge->v1->keyindex;
+          face_index++;
+          FACE_ASSERT(face - 4, sf_vert_tot);
 
 #ifdef USE_SCANFILL_EDGE_WORKAROUND
-            tot_boundary_found++;
+          tot_boundary_found++;
 #endif
-          }
         }
+        MEM_freeN(sf_edge_array);
       }
 
 #ifdef USE_SCANFILL_EDGE_WORKAROUND
