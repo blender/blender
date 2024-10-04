@@ -90,10 +90,11 @@ void main()
 #if CLOSURE_BIN_COUNT > 2
   gbuf_data.closure[2] = g_closure_get_resolved(2, alpha_rcp);
 #endif
+  ObjectInfos object_infos = drw_infos[resource_id];
   gbuf_data.surface_N = g_data.N;
   gbuf_data.thickness = thickness;
   gbuf_data.object_id = resource_id;
-  gbuf_data.receiver_light_set = receiver_light_set_get(drw_infos[resource_id]);
+  gbuf_data.receiver_light_set = receiver_light_set_get(object_infos);
 
   GBufferWriter gbuf = gbuffer_pack(gbuf_data);
 
