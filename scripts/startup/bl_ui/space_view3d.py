@@ -1013,7 +1013,7 @@ class VIEW3D_HT_header(Header):
             row = layout.row()
             row.popover(panel="VIEW3D_PT_slots_color_attributes", icon='GROUP_VCOL')
 
-        elif object_mode == 'WEIGHT_PAINT':
+        elif object_mode in {'WEIGHT_PAINT', 'WEIGHT_GPENCIL'}:
             row = layout.row()
             row.popover(panel="VIEW3D_PT_slots_vertex_groups", icon='GROUP_VERTEX')
 
