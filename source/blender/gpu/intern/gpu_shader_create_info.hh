@@ -15,6 +15,7 @@
 
 #include "BLI_hash.hh"
 #include "BLI_string_ref.hh"
+#include "BLI_utildefines_variadic.h"
 #include "BLI_vector.hh"
 #include "GPU_common_types.hh"
 #include "GPU_material.hh"
@@ -38,14 +39,242 @@
 
 namespace blender::gpu::shader {
 
-/* Helps intellisense / auto-completion. */
-#ifndef GPU_SHADER_CREATE_INFO
+#if defined(GLSL_CPP_STUBS)
+#  define GPU_SHADER_NAMED_INTERFACE_INFO(_interface, _inst_name) \
+    namespace _interface { \
+    struct {
+#  define GPU_SHADER_NAMED_INTERFACE_END(_inst_name) \
+    } \
+    _inst_name; \
+    }
+
+#  define GPU_SHADER_INTERFACE_INFO(_interface, _inst_name) namespace _interface {
+#  define GPU_SHADER_INTERFACE_END() }
+
+#  define GPU_SHADER_CREATE_INFO(_info) \
+    namespace _info { \
+    namespace gl_VertexShader { \
+    } \
+    namespace gl_FragmentShader { \
+    } \
+    namespace gl_ComputeShader { \
+    }
+#  define GPU_SHADER_CREATE_END() }
+
+#  define SHADER_LIBRARY_CREATE_INFO(_info) using namespace _info;
+#  define VERTEX_SHADER_CREATE_INFO(_info) \
+    using namespace ::gl_VertexShader; \
+    using namespace _info::gl_VertexShader; \
+    using namespace _info;
+#  define FRAGMENT_SHADER_CREATE_INFO(_info) \
+    using namespace ::gl_FragmentShader; \
+    using namespace _info::gl_FragmentShader; \
+    using namespace _info;
+#  define COMPUTE_SHADER_CREATE_INFO(_info) \
+    using namespace ::gl_ComputeShader; \
+    using namespace _info::gl_ComputeShader; \
+    using namespace _info;
+
+#elif !defined(GPU_SHADER_CREATE_INFO)
+/* Helps intellisense / auto-completion inside info files. */
+#  define GPU_SHADER_NAMED_INTERFACE_INFO(_interface, _inst_name) \
+    StageInterfaceInfo _interface(#_interface, _inst_name); \
+    _interface
 #  define GPU_SHADER_INTERFACE_INFO(_interface, _inst_name) \
     StageInterfaceInfo _interface(#_interface, _inst_name); \
     _interface
 #  define GPU_SHADER_CREATE_INFO(_info) \
     ShaderCreateInfo _info(#_info); \
     _info
+
+#  define GPU_SHADER_NAMED_INTERFACE_END(_inst_name) ;
+#  define GPU_SHADER_INTERFACE_END() ;
+#  define GPU_SHADER_CREATE_END() ;
+
+#endif
+
+#ifndef GLSL_CPP_STUBS
+#  define SMOOTH(type, name) .smooth(Type::type, #name)
+#  define FLAT(type, name) .flat(Type::type, #name)
+#  define NO_PERSPECTIVE(type, name) .no_perspective(Type::type, #name)
+
+/* LOCAL_GROUP_SIZE(int size_x, int size_y = -1, int size_z = -1) */
+#  define LOCAL_GROUP_SIZE(...) .local_group_size(__VA_ARGS__)
+
+#  define VERTEX_IN(slot, type, name) .vertex_in(slot, Type::type, #name)
+#  define VERTEX_OUT(stage_interface) .vertex_out(stage_interface)
+/* TO REMOVE. */
+#  define GEOMETRY_LAYOUT(...) .geometry_layout(__VA_ARGS__)
+#  define GEOMETRY_OUT(stage_interface) .geometry_out(stage_interface)
+
+#  define SUBPASS_IN(slot, type, name, rog) .subpass_in(slot, Type::type, #name, rog)
+
+#  define FRAGMENT_OUT(slot, type, name) .fragment_out(slot, Type::type, #name)
+#  define FRAGMENT_OUT_DUAL(slot, type, name, blend) \
+    .fragment_out(slot, Type::type, #name, DualBlend::blend)
+#  define FRAGMENT_OUT_ROG(slot, type, name, rog) \
+    .fragment_out(slot, Type::type, #name, DualBlend::NONE, rog)
+
+#  define EARLY_FRAGMENT_TEST(enable) .early_fragment_test(enable)
+#  define DEPTH_WRITE(value) .depth_write(value)
+
+#  define SPECIALIZATION_CONSTANT(type, name, default_value) \
+    .specialization_constant(Type::type, #name, default_value)
+
+#  define PUSH_CONSTANT(type, name) .push_constant(Type::type, #name)
+#  define PUSH_CONSTANT_ARRAY(type, name, array_size) .push_constant(Type::type, #name, array_size)
+
+#  define UNIFORM_BUF(slot, type_name, name) .uniform_buf(slot, #type_name, #name)
+#  define UNIFORM_BUF_FREQ(slot, type_name, name, freq) \
+    .uniform_buf(slot, #type_name, #name, Frequency::freq)
+
+#  define STORAGE_BUF(slot, qualifiers, type_name, name) \
+    .storage_buf(slot, Qualifier::qualifiers, STRINGIFY(type_name), #name)
+#  define STORAGE_BUF_FREQ(slot, qualifiers, type_name, name, freq) \
+    .storage_buf(slot, Qualifier::qualifiers, STRINGIFY(type_name), #name, Frequency::freq)
+
+#  define SAMPLER(slot, type, name) .sampler(slot, ImageType::type, #name)
+#  define SAMPLER_FREQ(slot, type, name, freq) \
+    .sampler(slot, ImageType::type, #name, Frequency::freq)
+
+#  define IMAGE(slot, format, qualifiers, type, name) \
+    .image(slot, format, Qualifier::qualifiers, ImageType::type, #name)
+#  define IMAGE_FREQ(slot, format, qualifiers, type, name, freq) \
+    .image(slot, format, Qualifier::qualifiers, ImageType::type, #name, Frequency::freq)
+
+#  define BUILTINS(builtin) .builtins(builtin)
+
+#  define VERTEX_SOURCE(filename) .vertex_source(filename)
+#  define GEOMETRY_SOURCE(filename) .geometry_source(filename)
+#  define FRAGMENT_SOURCE(filename) .fragment_source(filename)
+#  define COMPUTE_SOURCE(filename) .compute_source(filename)
+
+#  define DEFINE(name) .define(name)
+#  define DEFINE_VALUE(name, value) .define(name, value)
+
+#  define DO_STATIC_COMPILATION() .do_static_compilation(true)
+#  define AUTO_RESOURCE_LOCATION() .auto_resource_location(true)
+
+/* TO REMOVE. */
+#  define METAL_BACKEND_ONLY() .metal_backend_only(true)
+
+#  define ADDITIONAL_INFO(info_name) .additional_info(#info_name)
+#  define TYPEDEF_SOURCE(filename) .typedef_source(filename)
+
+#  define MTL_MAX_TOTAL_THREADS_PER_THREADGROUP(value) \
+    .mtl_max_total_threads_per_threadgroup(value)
+
+#else
+
+#  define READ const
+#  define WRITE
+#  define READ_WRITE
+
+#  define _FLOAT_BUFFER(T) T##Buffer
+#  define _FLOAT_1D(T) T##1D
+#  define _FLOAT_1D_ARRAY(T) T##1DArray
+#  define _FLOAT_2D(T) T##2D
+#  define _FLOAT_2D_ARRAY(T) T##2DArray
+#  define _FLOAT_3D(T) T##3D
+#  define _FLOAT_CUBE(T) T##Cube
+#  define _FLOAT_CUBE_ARRAY(T) T##CubeArray
+#  define _INT_BUFFER(T) i##T##Buffer
+#  define _INT_1D(T) i##T##1D
+#  define _INT_1D_ARRAY(T) i##T##1DArray
+#  define _INT_2D(T) i##T##2D
+#  define _INT_2D_ARRAY(T) i##T##2DArray
+#  define _INT_3D(T) i##T##3D
+#  define _INT_CUBE(T) i##T##Cube
+#  define _INT_CUBE_ARRAY(T) i##T##CubeArray
+#  define _UINT_BUFFER(T) u##T##Buffer
+#  define _UINT_1D(T) u##T##1D
+#  define _UINT_1D_ARRAY(T) u##T##1DArray
+#  define _UINT_2D(T) u##T##2D
+#  define _UINT_2D_ARRAY(T) u##T##2DArray
+#  define _UINT_3D(T) u##T##3D
+#  define _UINT_CUBE(T) u##T##Cube
+#  define _UINT_CUBE_ARRAY(T) u##T##CubeArray
+#  define _SHADOW_2D(T) T##2DShadow
+#  define _SHADOW_2D_ARRAY(T) T##2DArrayShadow
+#  define _SHADOW_CUBE(T) T##CubeShadow
+#  define _SHADOW_CUBE_ARRAY(T) T##CubeArrayShadow
+#  define _DEPTH_2D(T) T##2D
+#  define _DEPTH_2D_ARRAY(T) T##2DArray
+#  define _DEPTH_CUBE(T) T##Cube
+#  define _DEPTH_CUBE_ARRAY(T) T##CubeArray
+
+#  define SMOOTH(type, name) type name = {};
+#  define FLAT(type, name) type name = {};
+#  define NO_PERSPECTIVE(type, name) type name = {};
+
+/* LOCAL_GROUP_SIZE(int size_x, int size_y = -1, int size_z = -1) */
+#  define LOCAL_GROUP_SIZE(...)
+
+#  define VERTEX_IN(slot, type, name) \
+    namespace gl_VertexShader { \
+    const type name = {}; \
+    }
+#  define VERTEX_OUT(stage_interface) using namespace stage_interface;
+/* TO REMOVE. */
+#  define GEOMETRY_LAYOUT(...)
+#  define GEOMETRY_OUT(stage_interface) using namespace stage_interface;
+
+#  define SUBPASS_IN(slot, type, name, rog) const type name = {};
+
+#  define FRAGMENT_OUT(slot, type, name) \
+    namespace gl_FragmentShader { \
+    type name; \
+    }
+#  define FRAGMENT_OUT_DUAL(slot, type, name, blend) \
+    namespace gl_FragmentShader { \
+    type name; \
+    }
+#  define FRAGMENT_OUT_ROG(slot, type, name, rog) \
+    namespace gl_FragmentShader { \
+    type name; \
+    }
+
+#  define EARLY_FRAGMENT_TEST(enable)
+#  define DEPTH_WRITE(value)
+
+#  define SPECIALIZATION_CONSTANT(type, name, default_value) constexpr type name = {};
+
+#  define PUSH_CONSTANT(type, name) const type name = {};
+#  define PUSH_CONSTANT_ARRAY(type, name, array_size) const type name[array_size] = {};
+
+#  define UNIFORM_BUF(slot, type_name, name) const type_name name = {};
+#  define UNIFORM_BUF_FREQ(slot, type_name, name, freq) const type_name name = {};
+
+#  define STORAGE_BUF(slot, qualifiers, type_name, name) qualifiers type_name name = {};
+#  define STORAGE_BUF_FREQ(slot, qualifiers, type_name, name, freq) qualifiers type_name name = {};
+
+#  define SAMPLER(slot, type, name) _##type(sampler) name;
+#  define SAMPLER_FREQ(slot, type, name, freq) _##type(sampler) name;
+
+#  define IMAGE(slot, format, qualifiers, type, name) qualifiers _##type(image) name;
+#  define IMAGE_FREQ(slot, format, qualifiers, type, name, freq) qualifiers _##type(image) name;
+
+#  define BUILTINS(builtin)
+
+#  define VERTEX_SOURCE(filename)
+#  define GEOMETRY_SOURCE(filename)
+#  define FRAGMENT_SOURCE(filename)
+#  define COMPUTE_SOURCE(filename)
+
+#  define DEFINE(name)
+#  define DEFINE_VALUE(name, value)
+
+#  define DO_STATIC_COMPILATION()
+#  define AUTO_RESOURCE_LOCATION()
+
+/* TO REMOVE. */
+#  define METAL_BACKEND_ONLY()
+
+#  define ADDITIONAL_INFO(info_name) using namespace info_name;
+#  define TYPEDEF_SOURCE(filename)
+
+#  define MTL_MAX_TOTAL_THREADS_PER_THREADGROUP(value) \
+    .mtl_max_total_threads_per_threadgroup(value)
 #endif
 
 /* All of these functions is a bit out of place */
@@ -326,7 +555,7 @@ struct StageInterfaceInfo {
   /** List of all members of the interface. */
   Vector<InOut> inouts;
 
-  StageInterfaceInfo(const char *name_, const char *instance_name_)
+  StageInterfaceInfo(const char *name_, const char *instance_name_ = "")
       : name(name_), instance_name(instance_name_){};
   ~StageInterfaceInfo(){};
 
@@ -1166,3 +1395,17 @@ template<> struct DefaultHash<Vector<blender::gpu::shader::SpecializationConstan
   }
 };
 }  // namespace blender
+
+#define _INFO_EXPAND2(a, b) ADDITIONAL_INFO(a) ADDITIONAL_INFO(b)
+#define _INFO_EXPAND3(a, b, c) _INFO_EXPAND2(a, b) ADDITIONAL_INFO(c)
+#define _INFO_EXPAND4(a, b, c, d) _INFO_EXPAND3(a, b, c) ADDITIONAL_INFO(d)
+#define _INFO_EXPAND5(a, b, c, d, e) _INFO_EXPAND4(a, b, c, d) ADDITIONAL_INFO(e)
+#define _INFO_EXPAND6(a, b, c, d, e, f) _INFO_EXPAND5(a, b, c, d, e) ADDITIONAL_INFO(f)
+
+#define ADDITIONAL_INFO_EXPAND(...) VA_NARGS_CALL_OVERLOAD(_INFO_EXPAND, __VA_ARGS__)
+
+#define CREATE_INFO_VARIANT(name, ...) \
+  GPU_SHADER_CREATE_INFO(name) \
+  DO_STATIC_COMPILATION() \
+  ADDITIONAL_INFO_EXPAND(__VA_ARGS__) \
+  GPU_SHADER_CREATE_END()
