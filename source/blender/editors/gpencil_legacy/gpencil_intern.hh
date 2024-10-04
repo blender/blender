@@ -430,23 +430,13 @@ const EnumPropertyItem *ED_gpencil_material_enum_itemf(bContext *C,
 /* annotations ------ */
 
 void GPENCIL_OT_annotate(wmOperatorType *ot);
-
-/* drawing ---------- */
-
-void GPENCIL_OT_draw(wmOperatorType *ot);
-void GPENCIL_OT_fill(wmOperatorType *ot);
-
-/* Vertex Paint. */
-void GPENCIL_OT_vertex_paint(wmOperatorType *ot);
-void GPENCIL_OT_vertex_color_brightness_contrast(wmOperatorType *ot);
-void GPENCIL_OT_vertex_color_hsv(wmOperatorType *ot);
-void GPENCIL_OT_vertex_color_invert(wmOperatorType *ot);
-void GPENCIL_OT_vertex_color_levels(wmOperatorType *ot);
-void GPENCIL_OT_vertex_color_set(wmOperatorType *ot);
-
-/* Guides ----------------------- */
-
-void GPENCIL_OT_guide_rotate(wmOperatorType *ot);
+void GPENCIL_OT_annotation_add(wmOperatorType *ot);
+void GPENCIL_OT_data_unlink(wmOperatorType *ot);
+void GPENCIL_OT_layer_annotation_add(wmOperatorType *ot);
+void GPENCIL_OT_layer_annotation_remove(wmOperatorType *ot);
+void GPENCIL_OT_layer_annotation_move(wmOperatorType *ot);
+void GPENCIL_OT_blank_frame_add(wmOperatorType *ot);
+void GPENCIL_OT_annotation_active_frame_delete(wmOperatorType *ot);
 
 /* Paint Modes for operator */
 enum eGPencil_PaintModes {
@@ -460,108 +450,7 @@ enum eGPencil_PaintModes {
 /* chunk size for gp-session buffer (the total size is a multiple of this number) */
 #define GP_STROKE_BUFFER_CHUNK 2048
 
-/* stroke editing ----- */
-
-void GPENCIL_OT_editmode_toggle(wmOperatorType *ot);
-void GPENCIL_OT_selectmode_toggle(wmOperatorType *ot);
-void GPENCIL_OT_paintmode_toggle(wmOperatorType *ot);
-void GPENCIL_OT_sculptmode_toggle(wmOperatorType *ot);
-void GPENCIL_OT_weightmode_toggle(wmOperatorType *ot);
-void GPENCIL_OT_vertexmode_toggle(wmOperatorType *ot);
-void GPENCIL_OT_selection_opacity_toggle(wmOperatorType *ot);
-
-void GPENCIL_OT_select(wmOperatorType *ot);
-void GPENCIL_OT_select_all(wmOperatorType *ot);
-void GPENCIL_OT_select_circle(wmOperatorType *ot);
-void GPENCIL_OT_select_box(wmOperatorType *ot);
-void GPENCIL_OT_select_lasso(wmOperatorType *ot);
-
-void GPENCIL_OT_select_linked(wmOperatorType *ot);
-void GPENCIL_OT_select_grouped(wmOperatorType *ot);
-void GPENCIL_OT_select_more(wmOperatorType *ot);
-void GPENCIL_OT_select_less(wmOperatorType *ot);
-void GPENCIL_OT_select_first(wmOperatorType *ot);
-void GPENCIL_OT_select_last(wmOperatorType *ot);
-void GPENCIL_OT_select_alternate(wmOperatorType *ot);
-void GPENCIL_OT_select_random(wmOperatorType *ot);
-void GPENCIL_OT_select_vertex_color(wmOperatorType *ot);
-
-void GPENCIL_OT_duplicate(wmOperatorType *ot);
-void GPENCIL_OT_delete(wmOperatorType *ot);
-void GPENCIL_OT_dissolve(wmOperatorType *ot);
-void GPENCIL_OT_copy(wmOperatorType *ot);
-void GPENCIL_OT_paste(wmOperatorType *ot);
-void GPENCIL_OT_extrude(wmOperatorType *ot);
-
-void GPENCIL_OT_move_to_layer(wmOperatorType *ot);
-void GPENCIL_OT_layer_change(wmOperatorType *ot);
-void GPENCIL_OT_layer_active(wmOperatorType *ot);
-
-void GPENCIL_OT_snap_to_grid(wmOperatorType *ot);
-void GPENCIL_OT_snap_to_cursor(wmOperatorType *ot);
-void GPENCIL_OT_snap_cursor_to_selected(wmOperatorType *ot);
-
-void GPENCIL_OT_reproject(wmOperatorType *ot);
-void GPENCIL_OT_recalc_geometry(wmOperatorType *ot);
-
-/* stroke editcurve */
-
-void GPENCIL_OT_stroke_enter_editcurve_mode(wmOperatorType *ot);
-void GPENCIL_OT_stroke_editcurve_set_handle_type(wmOperatorType *ot);
-
-/* stroke sculpting -- */
-
-/**
- * Also used for weight paint.
- */
-void GPENCIL_OT_sculpt_paint(wmOperatorType *ot);
-void GPENCIL_OT_weight_paint(wmOperatorType *ot);
-void GPENCIL_OT_weight_toggle_direction(wmOperatorType *ot);
-void GPENCIL_OT_weight_sample(wmOperatorType *ot);
-
 /* buttons editing --- */
-
-void GPENCIL_OT_annotation_add(wmOperatorType *ot);
-void GPENCIL_OT_data_unlink(wmOperatorType *ot);
-
-void GPENCIL_OT_layer_add(wmOperatorType *ot);
-void GPENCIL_OT_layer_remove(wmOperatorType *ot);
-void GPENCIL_OT_layer_move(wmOperatorType *ot);
-void GPENCIL_OT_layer_annotation_add(wmOperatorType *ot);
-void GPENCIL_OT_layer_annotation_remove(wmOperatorType *ot);
-void GPENCIL_OT_layer_annotation_move(wmOperatorType *ot);
-void GPENCIL_OT_layer_duplicate(wmOperatorType *ot);
-void GPENCIL_OT_layer_duplicate_object(wmOperatorType *ot);
-
-void GPENCIL_OT_layer_mask_add(wmOperatorType *ot);
-void GPENCIL_OT_layer_mask_remove(wmOperatorType *ot);
-void GPENCIL_OT_layer_mask_move(wmOperatorType *ot);
-
-void GPENCIL_OT_hide(wmOperatorType *ot);
-void GPENCIL_OT_reveal(wmOperatorType *ot);
-
-void GPENCIL_OT_lock_all(wmOperatorType *ot);
-void GPENCIL_OT_unlock_all(wmOperatorType *ot);
-
-void GPENCIL_OT_layer_isolate(wmOperatorType *ot);
-void GPENCIL_OT_layer_merge(wmOperatorType *ot);
-
-void GPENCIL_OT_blank_frame_add(wmOperatorType *ot);
-
-void GPENCIL_OT_active_frame_delete(wmOperatorType *ot);
-void GPENCIL_OT_annotation_active_frame_delete(wmOperatorType *ot);
-void GPENCIL_OT_active_frames_delete_all(wmOperatorType *ot);
-void GPENCIL_OT_frame_duplicate(wmOperatorType *ot);
-void GPENCIL_OT_frame_clean_fill(wmOperatorType *ot);
-void GPENCIL_OT_frame_clean_loose(wmOperatorType *ot);
-void GPENCIL_OT_frame_clean_duplicate(wmOperatorType *ot);
-
-void GPENCIL_OT_convert(wmOperatorType *ot);
-void GPENCIL_OT_bake_mesh_animation(wmOperatorType *ot);
-void GPENCIL_OT_bake_grease_pencil_animation(wmOperatorType *ot);
-
-void GPENCIL_OT_image_to_grease_pencil(wmOperatorType *ot);
-void GPENCIL_OT_trace_image(wmOperatorType *ot);
 
 enum {
   GP_STROKE_JOIN = -1,
@@ -582,91 +471,11 @@ enum {
   GP_MERGE_POINT = 1,
 };
 
-void GPENCIL_OT_stroke_arrange(wmOperatorType *ot);
-void GPENCIL_OT_stroke_change_color(wmOperatorType *ot);
-void GPENCIL_OT_stroke_apply_thickness(wmOperatorType *ot);
-/**
- * Similar to #CURVE_OT_cyclic_toggle or #MASK_OT_cyclic_toggle, but with
- * option to force opened/closed strokes instead of just toggle behavior.
- */
-void GPENCIL_OT_stroke_cyclical_set(wmOperatorType *ot);
-/**
- * Change Stroke caps mode Rounded or Flat
- */
-void GPENCIL_OT_stroke_caps_set(wmOperatorType *ot);
-void GPENCIL_OT_stroke_join(wmOperatorType *ot);
-void GPENCIL_OT_stroke_start_set(wmOperatorType *ot);
-void GPENCIL_OT_stroke_flip(wmOperatorType *ot);
-void GPENCIL_OT_stroke_subdivide(wmOperatorType *ot);
-void GPENCIL_OT_stroke_simplify(wmOperatorType *ot);
-void GPENCIL_OT_stroke_simplify_fixed(wmOperatorType *ot);
-void GPENCIL_OT_stroke_separate(wmOperatorType *ot);
-void GPENCIL_OT_stroke_split(wmOperatorType *ot);
-void GPENCIL_OT_stroke_smooth(wmOperatorType *ot);
-void GPENCIL_OT_stroke_sample(wmOperatorType *ot);
-void GPENCIL_OT_stroke_merge(wmOperatorType *ot);
-void GPENCIL_OT_stroke_cutter(wmOperatorType *ot);
-void GPENCIL_OT_stroke_trim(wmOperatorType *ot);
-void GPENCIL_OT_stroke_merge_by_distance(wmOperatorType *ot);
-void GPENCIL_OT_stroke_merge_material(wmOperatorType *ot);
-void GPENCIL_OT_stroke_reset_vertex_color(wmOperatorType *ot);
-void GPENCIL_OT_stroke_normalize(wmOperatorType *ot);
-void GPENCIL_OT_stroke_outline(wmOperatorType *ot);
-
-void GPENCIL_OT_material_to_vertex_color(wmOperatorType *ot);
-void GPENCIL_OT_extract_palette_vertex(wmOperatorType *ot);
-
-void GPENCIL_OT_transform_fill(wmOperatorType *ot);
-void GPENCIL_OT_reset_transform_fill(wmOperatorType *ot);
-
 /* undo stack ---------- */
 
 void gpencil_undo_init(bGPdata *gpd);
 void gpencil_undo_push(bGPdata *gpd);
 void gpencil_undo_finish();
-
-/* interpolation ---------- */
-
-void GPENCIL_OT_interpolate(wmOperatorType *ot);
-void GPENCIL_OT_interpolate_sequence(wmOperatorType *ot);
-void GPENCIL_OT_interpolate_reverse(wmOperatorType *ot);
-
-/* primitives ---------- */
-
-void GPENCIL_OT_primitive_box(wmOperatorType *ot);
-void GPENCIL_OT_primitive_line(wmOperatorType *ot);
-void GPENCIL_OT_primitive_polyline(wmOperatorType *ot);
-void GPENCIL_OT_primitive_circle(wmOperatorType *ot);
-void GPENCIL_OT_primitive_curve(wmOperatorType *ot);
-
-/* vertex groups ------------ */
-void GPENCIL_OT_vertex_group_assign(wmOperatorType *ot);
-void GPENCIL_OT_vertex_group_remove_from(wmOperatorType *ot);
-void GPENCIL_OT_vertex_group_select(wmOperatorType *ot);
-void GPENCIL_OT_vertex_group_deselect(wmOperatorType *ot);
-void GPENCIL_OT_vertex_group_invert(wmOperatorType *ot);
-void GPENCIL_OT_vertex_group_smooth(wmOperatorType *ot);
-void GPENCIL_OT_vertex_group_normalize(wmOperatorType *ot);
-void GPENCIL_OT_vertex_group_normalize_all(wmOperatorType *ot);
-
-/* color handle */
-void GPENCIL_OT_lock_layer(wmOperatorType *ot);
-void GPENCIL_OT_material_isolate(wmOperatorType *ot);
-void GPENCIL_OT_material_hide(wmOperatorType *ot);
-void GPENCIL_OT_material_reveal(wmOperatorType *ot);
-void GPENCIL_OT_material_lock_all(wmOperatorType *ot);
-void GPENCIL_OT_material_unlock_all(wmOperatorType *ot);
-void GPENCIL_OT_material_lock_unused(wmOperatorType *ot);
-void GPENCIL_OT_material_select(wmOperatorType *ot);
-void GPENCIL_OT_material_set(wmOperatorType *ot);
-void GPENCIL_OT_set_active_material(wmOperatorType *ot);
-void GPENCIL_OT_materials_copy_to_object(wmOperatorType *ot);
-
-/* convert old 2.7 files to 2.8 */
-void GPENCIL_OT_convert_old_files(wmOperatorType *ot);
-
-/* armatures */
-void GPENCIL_OT_generate_weights(wmOperatorType *ot);
 
 /* ****************************************************** */
 /* Stroke Iteration Utilities */
@@ -826,8 +635,5 @@ struct GP_EditableStrokes_Iter {
   } \
   } \
   (void)0
-
-/* Reused items for bake operators. */
-extern const EnumPropertyItem rna_gpencil_reproject_type_items[];
 
 /* ****************************************************** */
