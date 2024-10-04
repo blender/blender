@@ -256,25 +256,30 @@ class Context : public realtime_compositor::Context {
     return output_result_;
   }
 
-  realtime_compositor::Result get_viewer_output_result(realtime_compositor::Domain domain,
-                                                       const bool is_data) override
+  realtime_compositor::Result get_viewer_output_result(
+      realtime_compositor::Domain domain,
+      const bool is_data,
+      realtime_compositor::ResultPrecision precision) override
   {
     viewer_output_result_.set_transformation(domain.transformation);
     viewer_output_result_.meta_data.is_non_color_data = is_data;
 
     if (viewer_output_result_.is_allocated()) {
-      /* If the allocated result have the same size as the requested domain, return it as is. */
-      if (domain.size == viewer_output_result_.domain().size) {
+      /* If the allocated result have the same size and precision as requested, return it as is. */
+      if (domain.size == viewer_output_result_.domain().size &&
+          precision == viewer_output_result_.precision())
+      {
         return viewer_output_result_;
       }
       else {
-        /* Otherwise, the size changed, so release its data and reset it, then we reallocate it on
-         * the new domain below. */
+        /* Otherwise, the size or precision changed, so release its data and reset it, then we
+         * reallocate it on the new domain below. */
         viewer_output_result_.release();
         viewer_output_result_.reset();
       }
     }
 
+    viewer_output_result_.set_precision(precision);
     viewer_output_result_.allocate_texture(domain, false);
     return viewer_output_result_;
   }
