@@ -459,8 +459,8 @@ void gpu_shader_create_info_init()
   g_interfaces->add_new(#_interface, ptr_##_interface); \
   _interface
 
-#define GPU_SHADER_INTERFACE_INFO(_interface, _inst_name) \
-  StageInterfaceInfo *ptr_##_interface = new StageInterfaceInfo(#_interface, _inst_name); \
+#define GPU_SHADER_INTERFACE_INFO(_interface) \
+  StageInterfaceInfo *ptr_##_interface = new StageInterfaceInfo(#_interface); \
   StageInterfaceInfo &_interface = *ptr_##_interface; \
   g_interfaces->add_new(#_interface, ptr_##_interface); \
   _interface

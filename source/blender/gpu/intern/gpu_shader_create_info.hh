@@ -13,15 +13,17 @@
 
 #pragma once
 
-#include "BLI_hash.hh"
-#include "BLI_string_ref.hh"
-#include "BLI_utildefines_variadic.h"
-#include "BLI_vector.hh"
-#include "GPU_common_types.hh"
-#include "GPU_material.hh"
-#include "GPU_texture.hh"
+#if !defined(GLSL_CPP_STUBS)
+#  include "BLI_hash.hh"
+#  include "BLI_string_ref.hh"
+#  include "BLI_utildefines_variadic.h"
+#  include "BLI_vector.hh"
+#  include "GPU_common_types.hh"
+#  include "GPU_material.hh"
+#  include "GPU_texture.hh"
 
-#include <iostream>
+#  include <iostream>
+#endif
 
 /* Force enable `printf` support in release build. */
 #define GPU_FORCE_ENABLE_SHADER_PRINTF 0
@@ -80,8 +82,8 @@ namespace blender::gpu::shader {
 #  define GPU_SHADER_NAMED_INTERFACE_INFO(_interface, _inst_name) \
     StageInterfaceInfo _interface(#_interface, _inst_name); \
     _interface
-#  define GPU_SHADER_INTERFACE_INFO(_interface, _inst_name) \
-    StageInterfaceInfo _interface(#_interface, _inst_name); \
+#  define GPU_SHADER_INTERFACE_INFO(_interface) \
+    StageInterfaceInfo _interface(#_interface); \
     _interface
 #  define GPU_SHADER_CREATE_INFO(_info) \
     ShaderCreateInfo _info(#_info); \

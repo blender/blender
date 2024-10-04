@@ -5,19 +5,22 @@
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(compositor_morphological_distance_feather_shared)
-    .local_group_size(16, 16)
-    .sampler(0, ImageType::FLOAT_2D, "input_tx")
-    .sampler(1, ImageType::FLOAT_1D, "weights_tx")
-    .sampler(2, ImageType::FLOAT_1D, "falloffs_tx")
-    .image(0, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
-    .compute_source("compositor_morphological_distance_feather.glsl");
+LOCAL_GROUP_SIZE(16, 16)
+SAMPLER(0, FLOAT_2D, input_tx)
+SAMPLER(1, FLOAT_1D, weights_tx)
+SAMPLER(2, FLOAT_1D, falloffs_tx)
+IMAGE(0, GPU_RGBA16F, WRITE, FLOAT_2D, output_img)
+COMPUTE_SOURCE("compositor_morphological_distance_feather.glsl")
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(compositor_morphological_distance_feather_dilate)
-    .additional_info("compositor_morphological_distance_feather_shared")
-    .define("FUNCTION(x)", "x")
-    .do_static_compilation(true);
+ADDITIONAL_INFO(compositor_morphological_distance_feather_shared)
+DEFINE_VALUE("FUNCTION(x)", "x")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(compositor_morphological_distance_feather_erode)
-    .additional_info("compositor_morphological_distance_feather_shared")
-    .define("FUNCTION(x)", "1.0 - x")
-    .do_static_compilation(true);
+ADDITIONAL_INFO(compositor_morphological_distance_feather_shared)
+DEFINE_VALUE("FUNCTION(x)", "1.0 - x")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()

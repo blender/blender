@@ -5,11 +5,12 @@
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(compositor_despeckle)
-    .local_group_size(16, 16)
-    .push_constant(Type::FLOAT, "threshold")
-    .push_constant(Type::FLOAT, "neighbor_threshold")
-    .sampler(0, ImageType::FLOAT_2D, "input_tx")
-    .sampler(1, ImageType::FLOAT_2D, "factor_tx")
-    .image(0, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
-    .compute_source("compositor_despeckle.glsl")
-    .do_static_compilation(true);
+LOCAL_GROUP_SIZE(16, 16)
+PUSH_CONSTANT(FLOAT, threshold)
+PUSH_CONSTANT(FLOAT, neighbor_threshold)
+SAMPLER(0, FLOAT_2D, input_tx)
+SAMPLER(1, FLOAT_2D, factor_tx)
+IMAGE(0, GPU_RGBA16F, WRITE, FLOAT_2D, output_img)
+COMPUTE_SOURCE("compositor_despeckle.glsl")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()

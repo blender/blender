@@ -5,9 +5,10 @@
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(workbench_transparent_resolve)
-    .fragment_out(0, Type::VEC4, "fragColor")
-    .sampler(0, ImageType::FLOAT_2D, "transparentAccum")
-    .sampler(1, ImageType::FLOAT_2D, "transparentRevealage")
-    .fragment_source("workbench_transparent_resolve_frag.glsl")
-    .additional_info("draw_fullscreen")
-    .do_static_compilation(true);
+FRAGMENT_OUT(0, VEC4, fragColor)
+SAMPLER(0, FLOAT_2D, transparentAccum)
+SAMPLER(1, FLOAT_2D, transparentRevealage)
+FRAGMENT_SOURCE("workbench_transparent_resolve_frag.glsl")
+ADDITIONAL_INFO(draw_fullscreen)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()

@@ -9,57 +9,66 @@
 /** \name Display
  * \{ */
 
-GPU_SHADER_INTERFACE_INFO(eevee_debug_surfel_iface, "")
-    .smooth(Type::VEC3, "P")
-    .flat(Type::INT, "surfel_index");
+GPU_SHADER_INTERFACE_INFO(eevee_debug_surfel_iface)
+SMOOTH(VEC3, P)
+FLAT(INT, surfel_index)
+GPU_SHADER_INTERFACE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_debug_surfels)
-    .additional_info("eevee_shared", "draw_view")
-    .vertex_source("eevee_debug_surfels_vert.glsl")
-    .vertex_out(eevee_debug_surfel_iface)
-    .fragment_source("eevee_debug_surfels_frag.glsl")
-    .fragment_out(0, Type::VEC4, "out_color")
-    .storage_buf(0, Qualifier::READ, "Surfel", "surfels_buf[]")
-    .push_constant(Type::FLOAT, "debug_surfel_radius")
-    .push_constant(Type::INT, "debug_mode")
-    .do_static_compilation(true);
+ADDITIONAL_INFO(eevee_shared)
+ADDITIONAL_INFO(draw_view)
+VERTEX_SOURCE("eevee_debug_surfels_vert.glsl")
+VERTEX_OUT(eevee_debug_surfel_iface)
+FRAGMENT_SOURCE("eevee_debug_surfels_frag.glsl")
+FRAGMENT_OUT(0, VEC4, out_color)
+STORAGE_BUF(0, READ, Surfel, surfels_buf[])
+PUSH_CONSTANT(FLOAT, debug_surfel_radius)
+PUSH_CONSTANT(INT, debug_mode)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
 
-GPU_SHADER_INTERFACE_INFO(eevee_debug_irradiance_grid_iface, "")
-    .smooth(Type::VEC4, "interp_color");
+GPU_SHADER_INTERFACE_INFO(eevee_debug_irradiance_grid_iface)
+SMOOTH(VEC4, interp_color)
+GPU_SHADER_INTERFACE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_debug_irradiance_grid)
-    .additional_info("eevee_shared", "draw_view")
-    .fragment_out(0, Type::VEC4, "out_color")
-    .vertex_out(eevee_debug_irradiance_grid_iface)
-    .sampler(0, ImageType::FLOAT_3D, "debug_data_tx")
-    .push_constant(Type::MAT4, "grid_mat")
-    .push_constant(Type::INT, "debug_mode")
-    .push_constant(Type::FLOAT, "debug_value")
-    .vertex_source("eevee_debug_irradiance_grid_vert.glsl")
-    .fragment_source("eevee_debug_irradiance_grid_frag.glsl")
-    .do_static_compilation(true);
+ADDITIONAL_INFO(eevee_shared)
+ADDITIONAL_INFO(draw_view)
+FRAGMENT_OUT(0, VEC4, out_color)
+VERTEX_OUT(eevee_debug_irradiance_grid_iface)
+SAMPLER(0, FLOAT_3D, debug_data_tx)
+PUSH_CONSTANT(MAT4, grid_mat)
+PUSH_CONSTANT(INT, debug_mode)
+PUSH_CONSTANT(FLOAT, debug_value)
+VERTEX_SOURCE("eevee_debug_irradiance_grid_vert.glsl")
+FRAGMENT_SOURCE("eevee_debug_irradiance_grid_frag.glsl")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
 
-GPU_SHADER_INTERFACE_INFO(eevee_display_lightprobe_volume_iface, "")
-    .smooth(Type::VEC2, "lP")
-    .flat(Type::IVEC3, "cell");
+GPU_SHADER_INTERFACE_INFO(eevee_display_lightprobe_volume_iface)
+SMOOTH(VEC2, lP)
+FLAT(IVEC3, cell)
+GPU_SHADER_INTERFACE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_display_lightprobe_volume)
-    .additional_info("eevee_shared", "draw_view")
-    .vertex_source("eevee_display_lightprobe_volume_vert.glsl")
-    .vertex_out(eevee_display_lightprobe_volume_iface)
-    .fragment_source("eevee_display_lightprobe_volume_frag.glsl")
-    .fragment_out(0, Type::VEC4, "out_color")
-    .push_constant(Type::FLOAT, "sphere_radius")
-    .push_constant(Type::IVEC3, "grid_resolution")
-    .push_constant(Type::MAT4, "grid_to_world")
-    .push_constant(Type::MAT4, "world_to_grid")
-    .push_constant(Type::BOOL, "display_validity")
-    .sampler(0, ImageType::FLOAT_3D, "irradiance_a_tx")
-    .sampler(1, ImageType::FLOAT_3D, "irradiance_b_tx")
-    .sampler(2, ImageType::FLOAT_3D, "irradiance_c_tx")
-    .sampler(3, ImageType::FLOAT_3D, "irradiance_d_tx")
-    .sampler(4, ImageType::FLOAT_3D, "validity_tx")
-    .do_static_compilation(true);
+ADDITIONAL_INFO(eevee_shared)
+ADDITIONAL_INFO(draw_view)
+VERTEX_SOURCE("eevee_display_lightprobe_volume_vert.glsl")
+VERTEX_OUT(eevee_display_lightprobe_volume_iface)
+FRAGMENT_SOURCE("eevee_display_lightprobe_volume_frag.glsl")
+FRAGMENT_OUT(0, VEC4, out_color)
+PUSH_CONSTANT(FLOAT, sphere_radius)
+PUSH_CONSTANT(IVEC3, grid_resolution)
+PUSH_CONSTANT(MAT4, grid_to_world)
+PUSH_CONSTANT(MAT4, world_to_grid)
+PUSH_CONSTANT(BOOL, display_validity)
+SAMPLER(0, FLOAT_3D, irradiance_a_tx)
+SAMPLER(1, FLOAT_3D, irradiance_b_tx)
+SAMPLER(2, FLOAT_3D, irradiance_c_tx)
+SAMPLER(3, FLOAT_3D, irradiance_d_tx)
+SAMPLER(4, FLOAT_3D, validity_tx)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
 
 /** \} */
 
@@ -68,100 +77,117 @@ GPU_SHADER_CREATE_INFO(eevee_display_lightprobe_volume)
  * \{ */
 
 GPU_SHADER_CREATE_INFO(eevee_surfel_common)
-    .storage_buf(SURFEL_BUF_SLOT, Qualifier::READ_WRITE, "Surfel", "surfel_buf[]")
-    .storage_buf(CAPTURE_BUF_SLOT, Qualifier::READ, "CaptureInfoData", "capture_info_buf");
+STORAGE_BUF(SURFEL_BUF_SLOT, READ_WRITE, Surfel, surfel_buf[])
+STORAGE_BUF(CAPTURE_BUF_SLOT, READ, CaptureInfoData, capture_info_buf)
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_surfel_light)
-    .define("LIGHT_ITER_FORCE_NO_CULLING")
-    .define("LIGHT_CLOSURE_EVAL_COUNT", "1")
-    .local_group_size(SURFEL_GROUP_SIZE)
-    .additional_info("eevee_shared",
-                     "draw_view",
-                     "eevee_global_ubo",
-                     "eevee_utility_texture",
-                     "eevee_surfel_common",
-                     "eevee_light_data",
-                     "eevee_shadow_data")
-    .compute_source("eevee_surfel_light_comp.glsl")
-    .do_static_compilation(true);
+DEFINE("LIGHT_ITER_FORCE_NO_CULLING")
+DEFINE_VALUE("LIGHT_CLOSURE_EVAL_COUNT", "1")
+LOCAL_GROUP_SIZE(SURFEL_GROUP_SIZE)
+ADDITIONAL_INFO(eevee_shared)
+ADDITIONAL_INFO(draw_view)
+ADDITIONAL_INFO(eevee_global_ubo)
+ADDITIONAL_INFO(eevee_utility_texture)
+ADDITIONAL_INFO(eevee_surfel_common)
+ADDITIONAL_INFO(eevee_light_data)
+ADDITIONAL_INFO(eevee_shadow_data)
+COMPUTE_SOURCE("eevee_surfel_light_comp.glsl")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_surfel_cluster_build)
-    .local_group_size(SURFEL_GROUP_SIZE)
-    .builtins(BuiltinBits::TEXTURE_ATOMIC)
-    .additional_info("eevee_shared", "eevee_surfel_common", "draw_view")
-    .image(0, GPU_R32I, Qualifier::READ_WRITE, ImageType::INT_3D_ATOMIC, "cluster_list_img")
-    .compute_source("eevee_surfel_cluster_build_comp.glsl")
-    .do_static_compilation(true);
+LOCAL_GROUP_SIZE(SURFEL_GROUP_SIZE)
+BUILTINS(BuiltinBits::TEXTURE_ATOMIC)
+ADDITIONAL_INFO(eevee_shared)
+ADDITIONAL_INFO(eevee_surfel_common)
+ADDITIONAL_INFO(draw_view)
+IMAGE(0, GPU_R32I, READ_WRITE, INT_3D_ATOMIC, cluster_list_img)
+COMPUTE_SOURCE("eevee_surfel_cluster_build_comp.glsl")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_surfel_list_build)
-    .local_group_size(SURFEL_GROUP_SIZE)
-    .builtins(BuiltinBits::TEXTURE_ATOMIC)
-    .additional_info("eevee_shared", "eevee_surfel_common", "draw_view")
-    .storage_buf(0, Qualifier::READ_WRITE, "int", "list_start_buf[]")
-    .storage_buf(6, Qualifier::READ_WRITE, "SurfelListInfoData", "list_info_buf")
-    .compute_source("eevee_surfel_list_build_comp.glsl")
-    .do_static_compilation(true);
+LOCAL_GROUP_SIZE(SURFEL_GROUP_SIZE)
+BUILTINS(BuiltinBits::TEXTURE_ATOMIC)
+ADDITIONAL_INFO(eevee_shared)
+ADDITIONAL_INFO(eevee_surfel_common)
+ADDITIONAL_INFO(draw_view)
+STORAGE_BUF(0, READ_WRITE, int, list_start_buf[])
+STORAGE_BUF(6, READ_WRITE, SurfelListInfoData, list_info_buf)
+COMPUTE_SOURCE("eevee_surfel_list_build_comp.glsl")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_surfel_list_sort)
-    .local_group_size(SURFEL_LIST_GROUP_SIZE)
-    .additional_info("eevee_shared", "eevee_surfel_common", "draw_view")
-    .storage_buf(0, Qualifier::READ_WRITE, "int", "list_start_buf[]")
-    .storage_buf(6, Qualifier::READ, "SurfelListInfoData", "list_info_buf")
-    .compute_source("eevee_surfel_list_sort_comp.glsl")
-    .do_static_compilation(true);
+LOCAL_GROUP_SIZE(SURFEL_LIST_GROUP_SIZE)
+ADDITIONAL_INFO(eevee_shared)
+ADDITIONAL_INFO(eevee_surfel_common)
+ADDITIONAL_INFO(draw_view)
+STORAGE_BUF(0, READ_WRITE, int, list_start_buf[])
+STORAGE_BUF(6, READ, SurfelListInfoData, list_info_buf)
+COMPUTE_SOURCE("eevee_surfel_list_sort_comp.glsl")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_surfel_ray)
-    .local_group_size(SURFEL_GROUP_SIZE)
-    .additional_info("eevee_shared",
-                     "eevee_surfel_common",
-                     "eevee_lightprobe_sphere_data",
-                     "draw_view")
-    .push_constant(Type::INT, "radiance_src")
-    .push_constant(Type::INT, "radiance_dst")
-    .compute_source("eevee_surfel_ray_comp.glsl")
-    .do_static_compilation(true);
+LOCAL_GROUP_SIZE(SURFEL_GROUP_SIZE)
+ADDITIONAL_INFO(eevee_shared)
+ADDITIONAL_INFO(eevee_surfel_common)
+ADDITIONAL_INFO(eevee_lightprobe_sphere_data)
+ADDITIONAL_INFO(draw_view)
+PUSH_CONSTANT(INT, radiance_src)
+PUSH_CONSTANT(INT, radiance_dst)
+COMPUTE_SOURCE("eevee_surfel_ray_comp.glsl")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_lightprobe_volume_bounds)
-    .do_static_compilation(true)
-    .local_group_size(IRRADIANCE_BOUNDS_GROUP_SIZE)
-    .storage_buf(0, Qualifier::READ_WRITE, "CaptureInfoData", "capture_info_buf")
-    .storage_buf(1, Qualifier::READ, "ObjectBounds", "bounds_buf[]")
-    .push_constant(Type::INT, "resource_len")
-    .typedef_source("draw_shader_shared.hh")
-    .additional_info("eevee_shared")
-    .compute_source("eevee_lightprobe_volume_bounds_comp.glsl");
+DO_STATIC_COMPILATION()
+LOCAL_GROUP_SIZE(IRRADIANCE_BOUNDS_GROUP_SIZE)
+STORAGE_BUF(0, READ_WRITE, CaptureInfoData, capture_info_buf)
+STORAGE_BUF(1, READ, ObjectBounds, bounds_buf[])
+PUSH_CONSTANT(INT, resource_len)
+TYPEDEF_SOURCE("draw_shader_shared.hh")
+ADDITIONAL_INFO(eevee_shared)
+COMPUTE_SOURCE("eevee_lightprobe_volume_bounds_comp.glsl")
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_lightprobe_volume_ray)
-    .local_group_size(IRRADIANCE_GRID_GROUP_SIZE,
-                      IRRADIANCE_GRID_GROUP_SIZE,
-                      IRRADIANCE_GRID_GROUP_SIZE)
-    .additional_info("eevee_shared",
-                     "eevee_surfel_common",
-                     "eevee_lightprobe_sphere_data",
-                     "draw_view")
-    .push_constant(Type::INT, "radiance_src")
-    .storage_buf(0, Qualifier::READ, "int", "list_start_buf[]")
-    .storage_buf(6, Qualifier::READ, "SurfelListInfoData", "list_info_buf")
-    .image(0, GPU_RGBA32F, Qualifier::READ_WRITE, ImageType::FLOAT_3D, "irradiance_L0_img")
-    .image(1, GPU_RGBA32F, Qualifier::READ_WRITE, ImageType::FLOAT_3D, "irradiance_L1_a_img")
-    .image(2, GPU_RGBA32F, Qualifier::READ_WRITE, ImageType::FLOAT_3D, "irradiance_L1_b_img")
-    .image(3, GPU_RGBA32F, Qualifier::READ_WRITE, ImageType::FLOAT_3D, "irradiance_L1_c_img")
-    .image(4, GPU_RGBA16F, Qualifier::READ, ImageType::FLOAT_3D, "virtual_offset_img")
-    .image(5, GPU_R32F, Qualifier::READ_WRITE, ImageType::FLOAT_3D, "validity_img")
-    .compute_source("eevee_lightprobe_volume_ray_comp.glsl")
-    .do_static_compilation(true);
+LOCAL_GROUP_SIZE(IRRADIANCE_GRID_GROUP_SIZE,
+                 IRRADIANCE_GRID_GROUP_SIZE,
+                 IRRADIANCE_GRID_GROUP_SIZE)
+ADDITIONAL_INFO(eevee_shared)
+ADDITIONAL_INFO(eevee_surfel_common)
+ADDITIONAL_INFO(eevee_lightprobe_sphere_data)
+ADDITIONAL_INFO(draw_view)
+PUSH_CONSTANT(INT, radiance_src)
+STORAGE_BUF(0, READ, int, list_start_buf[])
+STORAGE_BUF(6, READ, SurfelListInfoData, list_info_buf)
+IMAGE(0, GPU_RGBA32F, READ_WRITE, FLOAT_3D, irradiance_L0_img)
+IMAGE(1, GPU_RGBA32F, READ_WRITE, FLOAT_3D, irradiance_L1_a_img)
+IMAGE(2, GPU_RGBA32F, READ_WRITE, FLOAT_3D, irradiance_L1_b_img)
+IMAGE(3, GPU_RGBA32F, READ_WRITE, FLOAT_3D, irradiance_L1_c_img)
+IMAGE(4, GPU_RGBA16F, READ, FLOAT_3D, virtual_offset_img)
+IMAGE(5, GPU_R32F, READ_WRITE, FLOAT_3D, validity_img)
+COMPUTE_SOURCE("eevee_lightprobe_volume_ray_comp.glsl")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_lightprobe_volume_offset)
-    .local_group_size(IRRADIANCE_GRID_GROUP_SIZE,
-                      IRRADIANCE_GRID_GROUP_SIZE,
-                      IRRADIANCE_GRID_GROUP_SIZE)
-    .additional_info("eevee_shared", "eevee_surfel_common", "draw_view")
-    .storage_buf(0, Qualifier::READ, "int", "list_start_buf[]")
-    .storage_buf(6, Qualifier::READ, "SurfelListInfoData", "list_info_buf")
-    .image(0, GPU_R32I, Qualifier::READ, ImageType::INT_3D_ATOMIC, "cluster_list_img")
-    .image(1, GPU_RGBA16F, Qualifier::READ_WRITE, ImageType::FLOAT_3D, "virtual_offset_img")
-    .compute_source("eevee_lightprobe_volume_offset_comp.glsl")
-    .do_static_compilation(true);
+LOCAL_GROUP_SIZE(IRRADIANCE_GRID_GROUP_SIZE,
+                 IRRADIANCE_GRID_GROUP_SIZE,
+                 IRRADIANCE_GRID_GROUP_SIZE)
+ADDITIONAL_INFO(eevee_shared)
+ADDITIONAL_INFO(eevee_surfel_common)
+ADDITIONAL_INFO(draw_view)
+STORAGE_BUF(0, READ, int, list_start_buf[])
+STORAGE_BUF(6, READ, SurfelListInfoData, list_info_buf)
+IMAGE(0, GPU_R32I, READ, INT_3D_ATOMIC, cluster_list_img)
+IMAGE(1, GPU_RGBA16F, READ_WRITE, FLOAT_3D, virtual_offset_img)
+COMPUTE_SOURCE("eevee_lightprobe_volume_offset_comp.glsl")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
 
 /** \} */
 
@@ -170,65 +196,71 @@ GPU_SHADER_CREATE_INFO(eevee_lightprobe_volume_offset)
  * \{ */
 
 GPU_SHADER_CREATE_INFO(eevee_lightprobe_volume_world)
-    .local_group_size(IRRADIANCE_GRID_BRICK_SIZE,
-                      IRRADIANCE_GRID_BRICK_SIZE,
-                      IRRADIANCE_GRID_BRICK_SIZE)
-    .define("IRRADIANCE_GRID_UPLOAD")
-    .additional_info("eevee_shared", "eevee_global_ubo")
-    .push_constant(Type::INT, "grid_index")
-    .storage_buf(0, Qualifier::READ, "uint", "bricks_infos_buf[]")
-    .storage_buf(1, Qualifier::READ, "SphereProbeHarmonic", "harmonic_buf")
-    .uniform_buf(0, "VolumeProbeData", "grids_infos_buf[IRRADIANCE_GRID_MAX]")
-    .image(0, VOLUME_PROBE_FORMAT, Qualifier::WRITE, ImageType::FLOAT_3D, "irradiance_atlas_img")
-    .compute_source("eevee_lightprobe_volume_world_comp.glsl")
-    .do_static_compilation(true);
+LOCAL_GROUP_SIZE(IRRADIANCE_GRID_BRICK_SIZE,
+                 IRRADIANCE_GRID_BRICK_SIZE,
+                 IRRADIANCE_GRID_BRICK_SIZE)
+DEFINE("IRRADIANCE_GRID_UPLOAD")
+ADDITIONAL_INFO(eevee_shared)
+ADDITIONAL_INFO(eevee_global_ubo)
+PUSH_CONSTANT(INT, grid_index)
+STORAGE_BUF(0, READ, uint, bricks_infos_buf[])
+STORAGE_BUF(1, READ, SphereProbeHarmonic, harmonic_buf)
+UNIFORM_BUF(0, VolumeProbeData, grids_infos_buf[IRRADIANCE_GRID_MAX])
+IMAGE(0, VOLUME_PROBE_FORMAT, WRITE, FLOAT_3D, irradiance_atlas_img)
+COMPUTE_SOURCE("eevee_lightprobe_volume_world_comp.glsl")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_lightprobe_volume_load)
-    .local_group_size(IRRADIANCE_GRID_BRICK_SIZE,
-                      IRRADIANCE_GRID_BRICK_SIZE,
-                      IRRADIANCE_GRID_BRICK_SIZE)
-    .define("IRRADIANCE_GRID_UPLOAD")
-    .additional_info("eevee_shared", "eevee_global_ubo")
-    .push_constant(Type::MAT4, "grid_local_to_world")
-    .push_constant(Type::INT, "grid_index")
-    .push_constant(Type::INT, "grid_start_index")
-    .push_constant(Type::FLOAT, "validity_threshold")
-    .push_constant(Type::FLOAT, "dilation_threshold")
-    .push_constant(Type::FLOAT, "dilation_radius")
-    .push_constant(Type::FLOAT, "grid_intensity_factor")
-    .uniform_buf(0, "VolumeProbeData", "grids_infos_buf[IRRADIANCE_GRID_MAX]")
-    .storage_buf(0, Qualifier::READ, "uint", "bricks_infos_buf[]")
-    .sampler(0, ImageType::FLOAT_3D, "irradiance_a_tx")
-    .sampler(1, ImageType::FLOAT_3D, "irradiance_b_tx")
-    .sampler(2, ImageType::FLOAT_3D, "irradiance_c_tx")
-    .sampler(3, ImageType::FLOAT_3D, "irradiance_d_tx")
-    .sampler(4, ImageType::FLOAT_3D, "visibility_a_tx")
-    .sampler(5, ImageType::FLOAT_3D, "visibility_b_tx")
-    .sampler(6, ImageType::FLOAT_3D, "visibility_c_tx")
-    .sampler(7, ImageType::FLOAT_3D, "visibility_d_tx")
-    .sampler(8, ImageType::FLOAT_3D, "irradiance_atlas_tx")
-    .sampler(9, ImageType::FLOAT_3D, "validity_tx")
-    .image(0, VOLUME_PROBE_FORMAT, Qualifier::WRITE, ImageType::FLOAT_3D, "irradiance_atlas_img")
-    .compute_source("eevee_lightprobe_volume_load_comp.glsl")
-    .do_static_compilation(true);
+LOCAL_GROUP_SIZE(IRRADIANCE_GRID_BRICK_SIZE,
+                 IRRADIANCE_GRID_BRICK_SIZE,
+                 IRRADIANCE_GRID_BRICK_SIZE)
+DEFINE("IRRADIANCE_GRID_UPLOAD")
+ADDITIONAL_INFO(eevee_shared)
+ADDITIONAL_INFO(eevee_global_ubo)
+PUSH_CONSTANT(MAT4, grid_local_to_world)
+PUSH_CONSTANT(INT, grid_index)
+PUSH_CONSTANT(INT, grid_start_index)
+PUSH_CONSTANT(FLOAT, validity_threshold)
+PUSH_CONSTANT(FLOAT, dilation_threshold)
+PUSH_CONSTANT(FLOAT, dilation_radius)
+PUSH_CONSTANT(FLOAT, grid_intensity_factor)
+UNIFORM_BUF(0, VolumeProbeData, grids_infos_buf[IRRADIANCE_GRID_MAX])
+STORAGE_BUF(0, READ, uint, bricks_infos_buf[])
+SAMPLER(0, FLOAT_3D, irradiance_a_tx)
+SAMPLER(1, FLOAT_3D, irradiance_b_tx)
+SAMPLER(2, FLOAT_3D, irradiance_c_tx)
+SAMPLER(3, FLOAT_3D, irradiance_d_tx)
+SAMPLER(4, FLOAT_3D, visibility_a_tx)
+SAMPLER(5, FLOAT_3D, visibility_b_tx)
+SAMPLER(6, FLOAT_3D, visibility_c_tx)
+SAMPLER(7, FLOAT_3D, visibility_d_tx)
+SAMPLER(8, FLOAT_3D, irradiance_atlas_tx)
+SAMPLER(9, FLOAT_3D, validity_tx)
+IMAGE(0, VOLUME_PROBE_FORMAT, WRITE, FLOAT_3D, irradiance_atlas_img)
+COMPUTE_SOURCE("eevee_lightprobe_volume_load_comp.glsl")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_volume_probe_data)
-    .uniform_buf(IRRADIANCE_GRID_BUF_SLOT,
-                 "VolumeProbeData",
-                 "grids_infos_buf[IRRADIANCE_GRID_MAX]")
-    /* NOTE: Use uint instead of IrradianceBrickPacked because Metal needs to know the exact type.
-     */
-    .storage_buf(IRRADIANCE_BRICK_BUF_SLOT, Qualifier::READ, "uint", "bricks_infos_buf[]")
-    .sampler(VOLUME_PROBE_TEX_SLOT, ImageType::FLOAT_3D, "irradiance_atlas_tx")
-    .define("IRRADIANCE_GRID_SAMPLING");
+UNIFORM_BUF(IRRADIANCE_GRID_BUF_SLOT, VolumeProbeData, grids_infos_buf[IRRADIANCE_GRID_MAX])
+/* NOTE: Use uint instead of IrradianceBrickPacked because Metal needs to know the exact type.
+ */
+STORAGE_BUF(IRRADIANCE_BRICK_BUF_SLOT, READ, uint, bricks_infos_buf[])
+SAMPLER(VOLUME_PROBE_TEX_SLOT, FLOAT_3D, irradiance_atlas_tx)
+DEFINE("IRRADIANCE_GRID_SAMPLING")
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_lightprobe_data)
-    .additional_info("eevee_lightprobe_sphere_data", "eevee_volume_probe_data");
+ADDITIONAL_INFO(eevee_lightprobe_sphere_data)
+ADDITIONAL_INFO(eevee_volume_probe_data)
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_lightprobe_planar_data)
-    .define("SPHERE_PROBE")
-    .uniform_buf(PLANAR_PROBE_BUF_SLOT, "PlanarProbeData", "probe_planar_buf[PLANAR_PROBE_MAX]")
-    .sampler(PLANAR_PROBE_RADIANCE_TEX_SLOT, ImageType::FLOAT_2D_ARRAY, "planar_radiance_tx")
-    .sampler(PLANAR_PROBE_DEPTH_TEX_SLOT, ImageType::DEPTH_2D_ARRAY, "planar_depth_tx");
+DEFINE("SPHERE_PROBE")
+UNIFORM_BUF(PLANAR_PROBE_BUF_SLOT, PlanarProbeData, probe_planar_buf[PLANAR_PROBE_MAX])
+SAMPLER(PLANAR_PROBE_RADIANCE_TEX_SLOT, FLOAT_2D_ARRAY, planar_radiance_tx)
+SAMPLER(PLANAR_PROBE_DEPTH_TEX_SLOT, DEPTH_2D_ARRAY, planar_depth_tx)
+GPU_SHADER_CREATE_END()
 
 /** \} */

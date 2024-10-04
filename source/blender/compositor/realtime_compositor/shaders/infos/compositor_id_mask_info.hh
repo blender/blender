@@ -5,9 +5,10 @@
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(compositor_id_mask)
-    .local_group_size(16, 16)
-    .push_constant(Type::INT, "index")
-    .sampler(0, ImageType::FLOAT_2D, "input_mask_tx")
-    .image(0, GPU_R16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_mask_img")
-    .compute_source("compositor_id_mask.glsl")
-    .do_static_compilation(true);
+LOCAL_GROUP_SIZE(16, 16)
+PUSH_CONSTANT(INT, index)
+SAMPLER(0, FLOAT_2D, input_mask_tx)
+IMAGE(0, GPU_R16F, WRITE, FLOAT_2D, output_mask_img)
+COMPUTE_SOURCE("compositor_id_mask.glsl")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()

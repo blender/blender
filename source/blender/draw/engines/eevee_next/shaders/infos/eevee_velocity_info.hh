@@ -14,38 +14,39 @@
 
 /* Pass world space deltas to the fragment shader.
  * This is to make sure that the resulting motion vectors are valid even with displacement. */
-GPU_SHADER_INTERFACE_INFO(eevee_velocity_surface_iface, "motion")
-    .smooth(Type::VEC3, "prev")
-    .smooth(Type::VEC3, "next");
+GPU_SHADER_NAMED_INTERFACE_INFO(eevee_velocity_surface_iface, motion)
+SMOOTH(VEC3, prev)
+SMOOTH(VEC3, next)
+GPU_SHADER_NAMED_INTERFACE_END(motion)
 
 GPU_SHADER_CREATE_INFO(eevee_velocity_camera)
-    .define("VELOCITY_CAMERA")
-    .uniform_buf(VELOCITY_CAMERA_PREV_BUF, "CameraData", "camera_prev")
-    .uniform_buf(VELOCITY_CAMERA_CURR_BUF, "CameraData", "camera_curr")
-    .uniform_buf(VELOCITY_CAMERA_NEXT_BUF, "CameraData", "camera_next");
+DEFINE("VELOCITY_CAMERA")
+UNIFORM_BUF(VELOCITY_CAMERA_PREV_BUF, CameraData, camera_prev)
+UNIFORM_BUF(VELOCITY_CAMERA_CURR_BUF, CameraData, camera_curr)
+UNIFORM_BUF(VELOCITY_CAMERA_NEXT_BUF, CameraData, camera_next)
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_velocity_geom)
-    .define("MAT_VELOCITY")
-    .storage_buf(VELOCITY_OBJ_PREV_BUF_SLOT, Qualifier::READ, "mat4", "velocity_obj_prev_buf[]")
-    .storage_buf(VELOCITY_OBJ_NEXT_BUF_SLOT, Qualifier::READ, "mat4", "velocity_obj_next_buf[]")
-    .storage_buf(VELOCITY_GEO_PREV_BUF_SLOT, Qualifier::READ, "vec4", "velocity_geo_prev_buf[]")
-    .storage_buf(VELOCITY_GEO_NEXT_BUF_SLOT, Qualifier::READ, "vec4", "velocity_geo_next_buf[]")
-    .storage_buf(VELOCITY_INDIRECTION_BUF_SLOT,
-                 Qualifier::READ,
-                 "VelocityIndex",
-                 "velocity_indirection_buf[]")
-    .vertex_out(eevee_velocity_surface_iface)
-    .fragment_out(0, Type::VEC4, "out_velocity")
-    .additional_info("eevee_velocity_camera");
+DEFINE("MAT_VELOCITY")
+STORAGE_BUF(VELOCITY_OBJ_PREV_BUF_SLOT, READ, mat4, velocity_obj_prev_buf[])
+STORAGE_BUF(VELOCITY_OBJ_NEXT_BUF_SLOT, READ, mat4, velocity_obj_next_buf[])
+STORAGE_BUF(VELOCITY_GEO_PREV_BUF_SLOT, READ, vec4, velocity_geo_prev_buf[])
+STORAGE_BUF(VELOCITY_GEO_NEXT_BUF_SLOT, READ, vec4, velocity_geo_next_buf[])
+STORAGE_BUF(VELOCITY_INDIRECTION_BUF_SLOT, READ, VelocityIndex, velocity_indirection_buf[])
+VERTEX_OUT(eevee_velocity_surface_iface)
+FRAGMENT_OUT(0, VEC4, out_velocity)
+ADDITIONAL_INFO(eevee_velocity_camera)
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_vertex_copy)
-    .compute_source("eevee_vertex_copy_comp.glsl")
-    .local_group_size(VERTEX_COPY_GROUP_SIZE)
-    .storage_buf(0, Qualifier::READ, "float", "in_buf[]")
-    .storage_buf(1, Qualifier::WRITE, "vec4", "out_buf[]")
-    .push_constant(Type::INT, "start_offset")
-    .push_constant(Type::INT, "vertex_stride")
-    .push_constant(Type::INT, "vertex_count")
-    .do_static_compilation(true);
+COMPUTE_SOURCE("eevee_vertex_copy_comp.glsl")
+LOCAL_GROUP_SIZE(VERTEX_COPY_GROUP_SIZE)
+STORAGE_BUF(0, READ, float, in_buf[])
+STORAGE_BUF(1, WRITE, vec4, out_buf[])
+PUSH_CONSTANT(INT, start_offset)
+PUSH_CONSTANT(INT, vertex_stride)
+PUSH_CONSTANT(INT, vertex_count)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
 
 /** \} */

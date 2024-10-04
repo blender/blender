@@ -5,10 +5,11 @@
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(compositor_normalize)
-    .local_group_size(16, 16)
-    .push_constant(Type::FLOAT, "minimum")
-    .push_constant(Type::FLOAT, "scale")
-    .sampler(0, ImageType::FLOAT_2D, "input_tx")
-    .image(0, GPU_R16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
-    .compute_source("compositor_normalize.glsl")
-    .do_static_compilation(true);
+LOCAL_GROUP_SIZE(16, 16)
+PUSH_CONSTANT(FLOAT, minimum)
+PUSH_CONSTANT(FLOAT, scale)
+SAMPLER(0, FLOAT_2D, input_tx)
+IMAGE(0, GPU_R16F, WRITE, FLOAT_2D, output_img)
+COMPUTE_SOURCE("compositor_normalize.glsl")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()

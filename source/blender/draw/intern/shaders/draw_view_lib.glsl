@@ -4,7 +4,7 @@
 
 #pragma once
 
-#ifndef DRAW_VIEW_CREATE_INFO
+#if !defined(DRAW_VIEW_CREATE_INFO) && !defined(GLSL_CPP_STUBS)
 #  error Missing draw_view additional create info on shader create info
 #endif
 

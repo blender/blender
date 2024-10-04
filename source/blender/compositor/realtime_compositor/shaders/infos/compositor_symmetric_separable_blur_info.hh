@@ -5,25 +5,29 @@
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(compositor_symmetric_separable_blur_shared)
-    .local_group_size(16, 16)
-    .push_constant(Type::BOOL, "extend_bounds")
-    .push_constant(Type::BOOL, "gamma_correct_input")
-    .push_constant(Type::BOOL, "gamma_uncorrect_output")
-    .sampler(0, ImageType::FLOAT_2D, "input_tx")
-    .sampler(1, ImageType::FLOAT_1D, "weights_tx")
-    .compute_source("compositor_symmetric_separable_blur.glsl");
+LOCAL_GROUP_SIZE(16, 16)
+PUSH_CONSTANT(BOOL, extend_bounds)
+PUSH_CONSTANT(BOOL, gamma_correct_input)
+PUSH_CONSTANT(BOOL, gamma_uncorrect_output)
+SAMPLER(0, FLOAT_2D, input_tx)
+SAMPLER(1, FLOAT_1D, weights_tx)
+COMPUTE_SOURCE("compositor_symmetric_separable_blur.glsl")
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(compositor_symmetric_separable_blur_float)
-    .additional_info("compositor_symmetric_separable_blur_shared")
-    .image(0, GPU_R16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
-    .do_static_compilation(true);
+ADDITIONAL_INFO(compositor_symmetric_separable_blur_shared)
+IMAGE(0, GPU_R16F, WRITE, FLOAT_2D, output_img)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(compositor_symmetric_separable_blur_float2)
-    .additional_info("compositor_symmetric_separable_blur_shared")
-    .image(0, GPU_RG16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
-    .do_static_compilation(true);
+ADDITIONAL_INFO(compositor_symmetric_separable_blur_shared)
+IMAGE(0, GPU_RG16F, WRITE, FLOAT_2D, output_img)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(compositor_symmetric_separable_blur_float4)
-    .additional_info("compositor_symmetric_separable_blur_shared")
-    .image(0, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
-    .do_static_compilation(true);
+ADDITIONAL_INFO(compositor_symmetric_separable_blur_shared)
+IMAGE(0, GPU_RGBA16F, WRITE, FLOAT_2D, output_img)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
