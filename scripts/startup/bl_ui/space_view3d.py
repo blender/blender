@@ -1017,12 +1017,13 @@ class VIEW3D_HT_header(Header):
             row = layout.row()
             row.popover(panel="VIEW3D_PT_slots_vertex_groups", icon='GROUP_VERTEX')
 
-            layout.popover(
-                panel="VIEW3D_PT_sculpt_snapping",
-                icon="SNAP_INCREMENT",
-                text="",
-                translate=False,
-            )
+            if object_mode != 'WEIGHT_GPENCIL':
+                layout.popover(
+                    panel="VIEW3D_PT_sculpt_snapping",
+                    icon="SNAP_INCREMENT",
+                    text="",
+                    translate=False,
+                )
 
         elif object_mode == 'TEXTURE_PAINT':
             tool_mode = tool_settings.image_paint.mode
