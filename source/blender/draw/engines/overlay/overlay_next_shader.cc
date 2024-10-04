@@ -16,13 +16,10 @@ ShaderModule::ShaderPtr ShaderModule::shader(
     const char *create_info_name,
     const FunctionRef<void(gpu::shader::ShaderCreateInfo &info)> patch)
 {
-  const gpu::shader::ShaderCreateInfo *info_ptr =
-      reinterpret_cast<const gpu::shader::ShaderCreateInfo *>(
-          GPU_shader_create_info_get(create_info_name));
-  BLI_assert(info_ptr != nullptr);
-
   /* Perform a copy for patching. */
-  gpu::shader::ShaderCreateInfo info = *info_ptr;
+  gpu::shader::ShaderCreateInfo info(create_info_name);
+  GPU_shader_create_info_get_unfinalized_copy(create_info_name,
+                                              reinterpret_cast<GPUShaderCreateInfo &>(info));
 
   patch(info);
 
@@ -45,8 +42,11 @@ ShaderModule::ShaderPtr ShaderModule::selectable_shader(const char *create_info_
   // this->shader_ = GPU_shader_create_from_info_name(create_info_name.c_str());
 
   /* WORKAROUND: ... but for now, we have to patch the create info used by the old engine. */
-  gpu::shader::ShaderCreateInfo info = *reinterpret_cast<const gpu::shader::ShaderCreateInfo *>(
-      GPU_shader_create_info_get(create_info_name));
+
+  /* Perform a copy for patching. */
+  gpu::shader::ShaderCreateInfo info(create_info_name);
+  GPU_shader_create_info_get_unfinalized_copy(create_info_name,
+                                              reinterpret_cast<GPUShaderCreateInfo &>(info));
 
   info.define("OVERLAY_NEXT");
 
@@ -74,8 +74,10 @@ ShaderModule::ShaderPtr ShaderModule::selectable_shader(
     const char *create_info_name,
     const FunctionRef<void(gpu::shader::ShaderCreateInfo &info)> patch)
 {
-  gpu::shader::ShaderCreateInfo info = *reinterpret_cast<const gpu::shader::ShaderCreateInfo *>(
-      GPU_shader_create_info_get(create_info_name));
+  /* Perform a copy for patching. */
+  gpu::shader::ShaderCreateInfo info(create_info_name);
+  GPU_shader_create_info_get_unfinalized_copy(create_info_name,
+                                              reinterpret_cast<GPUShaderCreateInfo &>(info));
 
   patch(info);
 
