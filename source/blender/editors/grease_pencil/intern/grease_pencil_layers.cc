@@ -26,6 +26,12 @@
 
 namespace blender::ed::greasepencil {
 
+bool grease_pencil_context_poll(bContext *C)
+{
+  GreasePencil *grease_pencil = blender::ed::greasepencil::from_context(*C);
+  return grease_pencil != nullptr;
+}
+
 void select_layer_channel(GreasePencil &grease_pencil, bke::greasepencil::Layer *layer)
 {
   using namespace blender::bke::greasepencil;
@@ -43,9 +49,8 @@ void select_layer_channel(GreasePencil &grease_pencil, bke::greasepencil::Layer 
 static int grease_pencil_layer_add_exec(bContext *C, wmOperator *op)
 {
   using namespace blender::bke::greasepencil;
-  Object *object = CTX_data_active_object(C);
   Scene *scene = CTX_data_scene(C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *blender::ed::greasepencil::from_context(*C);
 
   int new_layer_name_length;
   char *new_layer_name = RNA_string_get_alloc(
@@ -89,7 +94,7 @@ static void GREASE_PENCIL_OT_layer_add(wmOperatorType *ot)
   /* callbacks */
   ot->invoke = grease_pencil_layer_add_invoke;
   ot->exec = grease_pencil_layer_add_exec;
-  ot->poll = active_grease_pencil_poll;
+  ot->poll = grease_pencil_context_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
@@ -102,8 +107,7 @@ static void GREASE_PENCIL_OT_layer_add(wmOperatorType *ot)
 static int grease_pencil_layer_remove_exec(bContext *C, wmOperator * /*op*/)
 {
   using namespace blender::bke::greasepencil;
-  Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *blender::ed::greasepencil::from_context(*C);
 
   if (!grease_pencil.has_active_layer()) {
     return OPERATOR_CANCELLED;
@@ -193,7 +197,7 @@ static void GREASE_PENCIL_OT_layer_reorder(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = grease_pencil_layer_reorder_exec;
-  ot->poll = active_grease_pencil_poll;
+  ot->poll = grease_pencil_context_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
@@ -220,12 +224,11 @@ static const EnumPropertyItem enum_layer_move_direction[] = {
 static bool grease_pencil_layer_move_poll(bContext *C)
 {
   using namespace blender::bke::greasepencil;
-  if (!active_grease_pencil_poll(C)) {
+  if (!grease_pencil_context_poll(C)) {
     return false;
   }
 
-  Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *blender::ed::greasepencil::from_context(*C);
   const TreeNode *active_node = grease_pencil.get_active_node();
 
   if (active_node == nullptr) {
@@ -244,8 +247,7 @@ static bool grease_pencil_layer_move_poll(bContext *C)
 static int grease_pencil_layer_move_exec(bContext *C, wmOperator *op)
 {
   using namespace blender::bke::greasepencil;
-  Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *blender::ed::greasepencil::from_context(*C);
 
   const LayerMoveDirection direction = LayerMoveDirection(RNA_enum_get(op->ptr, "direction"));
 
@@ -319,8 +321,7 @@ static void GREASE_PENCIL_OT_layer_active(wmOperatorType *ot)
 static int grease_pencil_layer_group_add_exec(bContext *C, wmOperator *op)
 {
   using namespace blender::bke::greasepencil;
-  Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *blender::ed::greasepencil::from_context(*C);
 
   int new_layer_group_name_length;
   char *new_layer_group_name = RNA_string_get_alloc(
@@ -358,7 +359,7 @@ static void GREASE_PENCIL_OT_layer_group_add(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = grease_pencil_layer_group_add_exec;
-  ot->poll = active_grease_pencil_poll;
+  ot->poll = grease_pencil_context_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
@@ -396,7 +397,7 @@ static void GREASE_PENCIL_OT_layer_group_remove(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = grease_pencil_layer_group_remove_exec;
-  ot->poll = active_grease_pencil_poll;
+  ot->poll = grease_pencil_context_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
@@ -410,8 +411,7 @@ static void GREASE_PENCIL_OT_layer_group_remove(wmOperatorType *ot)
 static int grease_pencil_layer_hide_exec(bContext *C, wmOperator *op)
 {
   using namespace blender::bke::greasepencil;
-  Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *blender::ed::greasepencil::from_context(*C);
   const bool unselected = RNA_boolean_get(op->ptr, "unselected");
 
   if (!grease_pencil.has_active_layer()) {
@@ -448,7 +448,7 @@ static void GREASE_PENCIL_OT_layer_hide(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = grease_pencil_layer_hide_exec;
-  ot->poll = active_grease_pencil_poll;
+  ot->poll = grease_pencil_context_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -463,8 +463,7 @@ static void GREASE_PENCIL_OT_layer_hide(wmOperatorType *ot)
 static int grease_pencil_layer_reveal_exec(bContext *C, wmOperator * /*op*/)
 {
   using namespace blender::bke::greasepencil;
-  Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *blender::ed::greasepencil::from_context(*C);
 
   if (!grease_pencil.has_active_layer()) {
     return OPERATOR_CANCELLED;
@@ -491,7 +490,7 @@ static void GREASE_PENCIL_OT_layer_reveal(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = grease_pencil_layer_reveal_exec;
-  ot->poll = active_grease_pencil_poll;
+  ot->poll = grease_pencil_context_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -500,8 +499,7 @@ static void GREASE_PENCIL_OT_layer_reveal(wmOperatorType *ot)
 static int grease_pencil_layer_isolate_exec(bContext *C, wmOperator *op)
 {
   using namespace blender::bke::greasepencil;
-  Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *blender::ed::greasepencil::from_context(*C);
   const int affect_visibility = RNA_boolean_get(op->ptr, "affect_visibility");
   bool isolate = false;
 
@@ -559,8 +557,7 @@ static void GREASE_PENCIL_OT_layer_isolate(wmOperatorType *ot)
 static int grease_pencil_layer_lock_all_exec(bContext *C, wmOperator *op)
 {
   using namespace blender::bke::greasepencil;
-  Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *blender::ed::greasepencil::from_context(*C);
   const bool lock_value = RNA_boolean_get(op->ptr, "lock");
 
   if (grease_pencil.layers().is_empty()) {
@@ -600,8 +597,7 @@ static void GREASE_PENCIL_OT_layer_lock_all(wmOperatorType *ot)
 static int grease_pencil_layer_duplicate_exec(bContext *C, wmOperator *op)
 {
   using namespace blender::bke::greasepencil;
-  Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *blender::ed::greasepencil::from_context(*C);
   const bool empty_keyframes = RNA_boolean_get(op->ptr, "empty_keyframes");
 
   if (!grease_pencil.has_active_layer()) {
@@ -807,8 +803,7 @@ static void GREASE_PENCIL_OT_layer_merge(wmOperatorType *ot)
 static int grease_pencil_layer_mask_add_exec(bContext *C, wmOperator *op)
 {
   using namespace blender::bke::greasepencil;
-  Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *blender::ed::greasepencil::from_context(*C);
 
   if (!grease_pencil.has_active_layer()) {
     return OPERATOR_CANCELLED;
@@ -869,8 +864,7 @@ static void GREASE_PENCIL_OT_layer_mask_add(wmOperatorType *ot)
 static int grease_pencil_layer_mask_remove_exec(bContext *C, wmOperator * /*op*/)
 {
   using namespace blender::bke::greasepencil;
-  Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *blender::ed::greasepencil::from_context(*C);
 
   if (!grease_pencil.has_active_layer()) {
     return OPERATOR_CANCELLED;
@@ -911,8 +905,7 @@ static void GREASE_PENCIL_OT_layer_mask_remove(wmOperatorType *ot)
 static int grease_pencil_layer_mask_reorder_exec(bContext *C, wmOperator *op)
 {
   using namespace blender::bke::greasepencil;
-  Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *blender::ed::greasepencil::from_context(*C);
 
   if (!grease_pencil.has_active_layer()) {
     return OPERATOR_CANCELLED;
@@ -974,8 +967,7 @@ const EnumPropertyItem enum_layergroup_color_items[] = {
 static int grease_pencil_layer_group_color_tag_exec(bContext *C, wmOperator *op)
 {
   using namespace blender::bke::greasepencil;
-  Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *blender::ed::greasepencil::from_context(*C);
 
   const int color_tag = RNA_enum_get(op->ptr, "color_tag");
   LayerGroup *active_group = grease_pencil.get_active_group();
@@ -995,7 +987,7 @@ static void GREASE_PENCIL_OT_layer_group_color_tag(wmOperatorType *ot)
   ot->description = "Change layer group icon";
 
   ot->exec = grease_pencil_layer_group_color_tag_exec;
-  ot->poll = active_grease_pencil_poll;
+  ot->poll = grease_pencil_context_poll;
 
   ot->flag = OPTYPE_UNDO;
 

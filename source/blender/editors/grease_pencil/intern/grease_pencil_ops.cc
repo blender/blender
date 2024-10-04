@@ -58,12 +58,8 @@ bool editable_grease_pencil_poll(bContext *C)
 
 bool active_grease_pencil_layer_poll(bContext *C)
 {
-  Object *object = CTX_data_active_object(C);
-  if (object == nullptr || object->type != OB_GREASE_PENCIL) {
-    return false;
-  }
-  const GreasePencil *grease_pencil = static_cast<GreasePencil *>(object->data);
-  return grease_pencil->has_active_layer();
+  const GreasePencil *grease_pencil = blender::ed::greasepencil::from_context(*C);
+  return grease_pencil && grease_pencil->has_active_layer();
 }
 
 bool editable_grease_pencil_point_selection_poll(bContext *C)
@@ -111,7 +107,7 @@ bool grease_pencil_painting_poll(bContext *C)
   return true;
 }
 
-static bool grease_pencil_edit_poll(bContext *C)
+bool grease_pencil_edit_poll(bContext *C)
 {
   if (!active_grease_pencil_poll(C)) {
     return false;

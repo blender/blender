@@ -201,7 +201,6 @@ class CommandBufferLog : public VKCommandBufferInterface {
     ss << ", dst_offset=" << dst_offset;
     ss << ", data_size=" << data_size;
     ss << ")";
-    ss << std::endl;
     log_.append(ss.str());
   }
   void copy_buffer(VkBuffer src_buffer,
