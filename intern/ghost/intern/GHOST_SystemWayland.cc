@@ -5725,6 +5725,12 @@ static void text_input_handle_enter(void *data,
   CLOG_INFO(LOG, 2, "enter");
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
   seat->ime.surface_window = surface;
+  /* If text input is enabled, should call `enable` after receive `enter` event.
+   * This support switch input method during input, otherwise input method will not work. */
+  if (seat->ime.is_enabled) {
+    zwp_text_input_v3_enable(seat->wp.text_input);
+    zwp_text_input_v3_commit(seat->wp.text_input);
+  }
 }
 
 static void text_input_handle_leave(void *data,
@@ -5740,6 +5746,9 @@ static void text_input_handle_leave(void *data,
   if (seat->ime.surface_window == surface) {
     seat->ime.surface_window = nullptr;
   }
+  /* Always call `disable` after receive `leave` event. */
+  zwp_text_input_v3_disable(seat->wp.text_input);
+  zwp_text_input_v3_commit(seat->wp.text_input);
 }
 
 static void text_input_handle_preedit_string(void *data,
@@ -8913,10 +8922,6 @@ void GHOST_SystemWayland::ime_begin(const GHOST_WindowWayland *win,
     seat->ime.has_preedit = false;
     seat->ime.is_enabled = true;
 
-    /* NOTE(@flibit): For some reason this has to be done twice,
-     * it appears to be a bug in mutter? Maybe? */
-    zwp_text_input_v3_enable(seat->wp.text_input);
-    zwp_text_input_v3_commit(seat->wp.text_input);
     zwp_text_input_v3_enable(seat->wp.text_input);
     zwp_text_input_v3_commit(seat->wp.text_input);
 
