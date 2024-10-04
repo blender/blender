@@ -88,7 +88,7 @@ bool grease_pencil_selection_poll(bContext *C)
   /* Selection operators are available in multiple modes, e.g. for masking in sculpt and vertex
    * paint mode. */
   if (!ELEM(object->mode,
-            OB_MODE_EDIT_GPENCIL_LEGACY,
+            OB_MODE_EDIT,
             OB_MODE_SCULPT_GPENCIL_LEGACY,
             OB_MODE_VERTEX_GPENCIL_LEGACY))
   {
