@@ -87,10 +87,8 @@ bool grease_pencil_selection_poll(bContext *C)
   Object *object = CTX_data_active_object(C);
   /* Selection operators are available in multiple modes, e.g. for masking in sculpt and vertex
    * paint mode. */
-  if (!ELEM(object->mode,
-            OB_MODE_EDIT,
-            OB_MODE_SCULPT_GPENCIL_LEGACY,
-            OB_MODE_VERTEX_GPENCIL_LEGACY))
+  if (!ELEM(
+          object->mode, OB_MODE_EDIT, OB_MODE_SCULPT_GREASE_PENCIL, OB_MODE_VERTEX_GREASE_PENCIL))
   {
     return false;
   }
@@ -103,7 +101,7 @@ bool grease_pencil_painting_poll(bContext *C)
     return false;
   }
   Object *object = CTX_data_active_object(C);
-  if ((object->mode & OB_MODE_PAINT_GPENCIL_LEGACY) == 0) {
+  if ((object->mode & OB_MODE_PAINT_GREASE_PENCIL) == 0) {
     return false;
   }
   ToolSettings *ts = CTX_data_tool_settings(C);
@@ -131,7 +129,7 @@ bool grease_pencil_sculpting_poll(bContext *C)
     return false;
   }
   Object *object = CTX_data_active_object(C);
-  if ((object->mode & OB_MODE_SCULPT_GPENCIL_LEGACY) == 0) {
+  if ((object->mode & OB_MODE_SCULPT_GREASE_PENCIL) == 0) {
     return false;
   }
   ToolSettings *ts = CTX_data_tool_settings(C);
@@ -147,7 +145,7 @@ bool grease_pencil_weight_painting_poll(bContext *C)
     return false;
   }
   Object *object = CTX_data_active_object(C);
-  if ((object->mode & OB_MODE_WEIGHT_GPENCIL_LEGACY) == 0) {
+  if ((object->mode & OB_MODE_WEIGHT_GREASE_PENCIL) == 0) {
     return false;
   }
   ToolSettings *ts = CTX_data_tool_settings(C);
@@ -163,7 +161,7 @@ bool grease_pencil_vertex_painting_poll(bContext *C)
     return false;
   }
   Object *object = CTX_data_active_object(C);
-  if ((object->mode & OB_MODE_VERTEX_GPENCIL_LEGACY) == 0) {
+  if ((object->mode & OB_MODE_VERTEX_GREASE_PENCIL) == 0) {
     return false;
   }
   ToolSettings *ts = CTX_data_tool_settings(C);

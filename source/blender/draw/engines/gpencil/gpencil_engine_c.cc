@@ -119,7 +119,7 @@ void GPENCIL_engine_init(void *ved)
     stl->pd->v3d_color_type = (v3d->shading.type == OB_SOLID) ? v3d->shading.color_type : -1;
     /* Special case: If we're in Draw or Vertex Paint mode, show vertex colors. */
     if (v3d->shading.type == OB_SOLID && ctx->obact &&
-        ELEM(ctx->obact->mode, OB_MODE_PAINT_GPENCIL_LEGACY, OB_MODE_VERTEX_GPENCIL_LEGACY))
+        ELEM(ctx->obact->mode, OB_MODE_PAINT_GREASE_PENCIL, OB_MODE_VERTEX_GREASE_PENCIL))
     {
       stl->pd->v3d_color_type = V3D_SHADING_VERTEX_COLOR;
     }
@@ -779,9 +779,9 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(GPENCIL_PrivateData 
         "material_index", bke::AttrDomain::Curve, 0);
 
     const bool only_lines = !ELEM(ob->mode,
-                                  OB_MODE_PAINT_GPENCIL_LEGACY,
-                                  OB_MODE_WEIGHT_GPENCIL_LEGACY,
-                                  OB_MODE_VERTEX_GPENCIL_LEGACY) &&
+                                  OB_MODE_PAINT_GREASE_PENCIL,
+                                  OB_MODE_WEIGHT_GREASE_PENCIL,
+                                  OB_MODE_VERTEX_GREASE_PENCIL) &&
                             info.frame_number != pd->cfra && pd->use_multiedit_lines_only;
     const bool is_onion = info.onion_id != 0;
 

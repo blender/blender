@@ -427,9 +427,9 @@ bool ED_object_gpencil_exit(Main *bmain, Object *ob)
                    GP_DATA_STROKE_WEIGHTMODE | GP_DATA_STROKE_VERTEXMODE);
 
     ob->restore_mode = ob->mode;
-    ob->mode &= ~(OB_MODE_PAINT_GPENCIL_LEGACY | OB_MODE_EDIT_GPENCIL_LEGACY |
-                  OB_MODE_SCULPT_GPENCIL_LEGACY | OB_MODE_WEIGHT_GPENCIL_LEGACY |
-                  OB_MODE_VERTEX_GPENCIL_LEGACY);
+    ob->mode &= ~(OB_MODE_PAINT_GREASE_PENCIL | OB_MODE_EDIT_GPENCIL_LEGACY |
+                  OB_MODE_SCULPT_GREASE_PENCIL | OB_MODE_WEIGHT_GREASE_PENCIL |
+                  OB_MODE_VERTEX_GREASE_PENCIL);
 
     /* Inform all evaluated versions that we changed the mode. */
     DEG_id_tag_update_ex(bmain, &ob->id, ID_RECALC_SYNC_TO_EVAL);
