@@ -69,6 +69,33 @@
 /** use #BMesh operator flags for a few operators. */
 #define BMO_ELE_TAG 1
 
+using blender::float3;
+using blender::Span;
+using blender::Vector;
+
+/* -------------------------------------------------------------------- */
+/** \name Generic Poll Funcitons
+ * \{ */
+
+static bool edbm_vert_or_edge_select_mode_poll(bContext *C)
+{
+  Object *obedit = CTX_data_edit_object(C);
+  if (obedit && obedit->type == OB_MESH) {
+    const BMEditMesh *em = BKE_editmesh_from_object(obedit);
+    if (em) {
+      if (em->selectmode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE)) {
+        return true;
+      }
+    }
+  }
+
+  CTX_wm_operator_poll_msg_set(C, "An edit-mesh with vertex or edge selection mode is required");
+
+  return false;
+}
+
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Common functions to count elements
  * \{ */
@@ -108,10 +135,6 @@ static inline bool is_count_a_match(const eElemCountType type,
 }
 
 /** \} */
-
-using blender::float3;
-using blender::Span;
-using blender::Vector;
 
 /* -------------------------------------------------------------------- */
 /** \name Select Mirror
@@ -2673,6 +2696,42 @@ bool EDBM_selectmode_set_multi(bContext *C, const short selectmode)
   return changed;
 }
 
+/**
+ * Ensure all edit-meshes have the same select-mode.
+ *
+ * While this is almost always the case as the UI syncs the values when set,
+ * it's not guaranteed because objects can be shared across scenes and each
+ * scene has it's own select-mode which is applied to the object when entering edit-mode.
+ *
+ * This function should only be used when the an operation would cause errors
+ * when applied in the wrong selection mode.
+ *
+ * \return True when a change was made.
+ */
+static bool edbm_selectmode_sync_multi_ex(Span<Object *> objects)
+{
+  if (objects.size() <= 1) {
+    return false;
+  }
+
+  bool changed = false;
+  BMEditMesh *em_active = BKE_editmesh_from_object(objects[0]);
+  for (Object *obedit : objects) {
+    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+    if (em_active->selectmode == em->selectmode) {
+      continue;
+    }
+    em->selectmode = em_active->selectmode;
+    EDBM_selectmode_set(em);
+    changed = true;
+
+    DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
+    WM_main_add_notifier(NC_GEOM | ND_SELECT, obedit->data);
+  }
+
+  return changed;
+}
+
 bool EDBM_selectmode_disable(Scene *scene,
                              BMEditMesh *em,
                              const short selectmode_disable,
@@ -4742,6 +4801,8 @@ static int edbm_select_non_manifold_exec(bContext *C, wmOperator *op)
   const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
 
+  edbm_selectmode_sync_multi_ex(objects);
+
   for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BMVert *v;
@@ -4756,12 +4817,6 @@ static int edbm_select_non_manifold_exec(bContext *C, wmOperator *op)
     }
 
     /* Selects isolated verts, and edges that do not have 2 neighboring faces. */
-
-    if (em->selectmode == SCE_SELECT_FACE) {
-      BKE_report(op->reports, RPT_ERROR, "Does not work in face selection mode");
-      return OPERATOR_CANCELLED;
-    }
-
     if (use_verts) {
       BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
         if (BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
@@ -4813,7 +4868,7 @@ void MESH_OT_select_non_manifold(wmOperatorType *ot)
 
   /* API callbacks */
   ot->exec = edbm_select_non_manifold_exec;
-  ot->poll = ED_operator_editmesh;
+  ot->poll = edbm_vert_or_edge_select_mode_poll;
 
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
