@@ -1034,7 +1034,7 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
                                 {},
                                 UI_TIP_STYLE_MONO,
                                 UI_TIP_LC_PYTHON,
-                                true);
+                                (data->fields.size() > 0));
     }
 
     if (but->rnapoin.owner_id) {
@@ -1176,7 +1176,7 @@ static uiTooltipData *ui_tooltip_data_from_gizmo(bContext *C, wmGizmo *gz)
               {},
               UI_TIP_STYLE_HEADER,
               UI_TIP_LC_VALUE,
-              true);
+              false);
         }
 
         /* Shortcut */
