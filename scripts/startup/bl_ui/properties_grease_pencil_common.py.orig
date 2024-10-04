@@ -449,6 +449,8 @@ class GreasePencilMaterialsPanel:
                 col.operator("object.material_slot_move", icon='TRIA_UP', text="").direction = 'UP'
                 col.operator("object.material_slot_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
+<<<<<<< HEAD
+=======
                 col.separator()
 
                 sub = col.column(align=True)
@@ -458,6 +460,7 @@ class GreasePencilMaterialsPanel:
                     text="").affect_visibility = True
                 sub.operator("grease_pencil.material_isolate", icon='LOCKED', text="").affect_visibility = False
 
+>>>>>>> blender-v4.3-release
             if show_full_ui:
                 row = layout.row()
 

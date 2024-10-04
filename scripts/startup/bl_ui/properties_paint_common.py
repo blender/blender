@@ -116,10 +116,6 @@ class BrushAssetShelf:
             'PAINT_WEIGHT': "VIEW3D_AST_brush_weight_paint",
             'PAINT_TEXTURE': "VIEW3D_AST_brush_texture_paint",
             'PAINT_2D': "IMAGE_AST_brush_paint",
-            'PAINT_GPENCIL': "VIEW3D_AST_brush_gpencil_paint",
-            'SCULPT_GPENCIL': "VIEW3D_AST_brush_gpencil_sculpt",
-            'WEIGHT_GPENCIL': "VIEW3D_AST_brush_gpencil_weight",
-            'VERTEX_GPENCIL': "VIEW3D_AST_brush_gpencil_vertex",
             'PAINT_GREASE_PENCIL': "VIEW3D_AST_brush_gpencil_paint",
             'SCULPT_GREASE_PENCIL': "VIEW3D_AST_brush_gpencil_sculpt",
             'WEIGHT_GREASE_PENCIL': "VIEW3D_AST_brush_gpencil_weight",
@@ -1511,7 +1507,7 @@ def brush_basic__draw_color_selector(context, layout, brush, gp_settings):
     sub.enabled = not gp_settings.use_material_pin
     sub.ui_units_x = 8
     sub.popover(
-        panel="TOPBAR_PT_gpencil_materials",
+        panel="TOPBAR_PT_grease_pencil_materials",
         text=txt_ma,
         icon_value=icon_id,
     )
@@ -1535,7 +1531,7 @@ def brush_basic__draw_color_selector(context, layout, brush, gp_settings):
             sub_row = row.row(align=True)
             sub_row.enabled = show_vertex_color
             sub_row.scale_x = 0.8
-            sub_row.prop_with_popover(brush, "color", text="", panel="TOPBAR_PT_gpencil_vertexcolor")
+            sub_row.prop_with_popover(brush, "color", text="", panel="TOPBAR_PT_grease_pencil_vertex_color")
         row.prop(gp_settings, "pin_draw_mode", text="")
 
 

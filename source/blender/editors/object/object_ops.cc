@@ -92,7 +92,6 @@ void operatortypes_object()
   WM_operatortype_append(OBJECT_OT_empty_add);
   WM_operatortype_append(OBJECT_OT_lightprobe_add);
   WM_operatortype_append(OBJECT_OT_empty_image_add);
-  WM_operatortype_append(OBJECT_OT_gpencil_add);
   WM_operatortype_append(OBJECT_OT_grease_pencil_add);
   WM_operatortype_append(OBJECT_OT_light_add);
   WM_operatortype_append(OBJECT_OT_camera_add);

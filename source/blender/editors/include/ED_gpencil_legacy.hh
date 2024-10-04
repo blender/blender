@@ -189,7 +189,6 @@ bool ED_gpencil_stroke_material_visible(Object *ob, const bGPDstroke *gps);
 void ED_keymap_gpencil_legacy(wmKeyConfig *keyconf);
 
 void ED_operatortypes_gpencil_legacy();
-void ED_operatormacros_gpencil();
 
 /* ------------- Copy-Paste Buffers -------------------- */
 
