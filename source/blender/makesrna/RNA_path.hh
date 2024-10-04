@@ -38,12 +38,12 @@ struct IDProperty;
  *
  * This type is intended to be convenient to construct with initializer lists:
  *
- * ```
+ * \code{.cpp}
  * RNAPath path_only =               {"dof.focus_distance"};
  * RNAPath path_with_index =         {"location", {}, 2};
  * RNAPath path_with_key =           {"modifiers", "SimpleDeform"};
  * RNAPath path_with_key_and_index = {"modifiers", "SimpleDeform", 5};
- * ```
+ * \endcode
  *
  * NOTE: some older parts of Blender's code base use negative array indices as a
  * magic value to mean things like "all array elements". However, magic values
@@ -51,9 +51,9 @@ struct IDProperty;
  * unspecified. Unspecified indices can then be converted to a negative magic
  * value at the API boundaries that need it, like so:
  *
- * ```
+ * \code{.cpp}
  * some_older_function(rna_path.index.value_or(-1));
- * ```
+ * \endcode
  */
 struct RNAPath {
   std::string path;
