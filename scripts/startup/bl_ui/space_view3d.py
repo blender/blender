@@ -677,7 +677,9 @@ class _draw_tool_settings_context_mode:
 
         if grease_pencil_tool == 'TINT':
             row.separator(factor=0.4)
-            row.prop_with_popover(brush, "color", text="", panel="TOPBAR_PT_grease_pencil_vertex_color")
+            ups = context.tool_settings.unified_paint_settings
+            prop_owner = ups if ups.use_unified_color else brush
+            row.prop_with_popover(prop_owner, "color", text="", panel="TOPBAR_PT_grease_pencil_vertex_color")
 
         from bl_ui.properties_paint_common import (
             brush_basic_grease_pencil_paint_settings,
@@ -8560,18 +8562,25 @@ class TOPBAR_PT_grease_pencil_vertex_color(Panel):
     @classmethod
     def poll(cls, context):
         ob = context.object
-        return ob and ob.type == 'GREASEPENCIL' and context.mode == 'VERTEX_GREASE_PENCIL'
+        return ob and ob.type == 'GREASEPENCIL'
 
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        gpencil_paint = context.scene.tool_settings.gpencil_vertex_paint
-        brush = gpencil_paint.brush
+        ob = context.object
+        if ob.mode == 'PAINT_GPENCIL':
+            paint = context.scene.tool_settings.gpencil_paint
+        elif ob.mode == 'VERTEX_GPENCIL':
+            paint = context.scene.tool_settings.gpencil_vertex_paint
+
+        ups = context.tool_settings.unified_paint_settings
+        brush = paint.brush
+        prop_owner = ups if ups.use_unified_color else brush
 
         col = layout.column()
-        col.template_color_picker(brush, "color", value_slider=True)
+        col.template_color_picker(prop_owner, "color", value_slider=True)
 
         sub_row = layout.row(align=True)
         UnifiedPaintPanel.prop_unified_color(sub_row, context, brush, "color", text="")
@@ -8581,9 +8590,9 @@ class TOPBAR_PT_grease_pencil_vertex_color(Panel):
         # sub_row.operator("gpencil.tint_flip", icon='FILE_REFRESH', text="")
 
         row = layout.row(align=True)
-        row.template_ID(gpencil_paint, "palette", new="palette.new")
-        if gpencil_paint.palette:
-            layout.template_palette(gpencil_paint, "palette", color=True)
+        row.template_ID(paint, "palette", new="palette.new")
+        if paint.palette:
+            layout.template_palette(paint, "palette", color=True)
 
 
 class VIEW3D_PT_curves_sculpt_add_shape(Panel):
