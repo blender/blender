@@ -25,6 +25,12 @@
 
 namespace blender::ed::greasepencil {
 
+bool grease_pencil_context_poll(bContext *C)
+{
+  GreasePencil *grease_pencil = blender::ed::greasepencil::from_context(*C);
+  return grease_pencil != nullptr;
+}
+
 bool active_grease_pencil_poll(bContext *C)
 {
   Object *object = CTX_data_active_object(C);
