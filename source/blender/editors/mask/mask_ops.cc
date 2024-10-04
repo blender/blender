@@ -1431,14 +1431,20 @@ static int delete_exec(bContext *C, wmOperator * /*op*/)
       }
 
       if (count == 0) {
+
+        /* Update active. */
+        if (mask_layer->act_point) {
+          if (ARRAY_HAS_ITEM(mask_layer->act_point, spline->points, spline->tot_point)) {
+            mask_layer->act_point = nullptr;
+          }
+        }
+        if (spline == mask_layer->act_spline) {
+          mask_layer->act_spline = nullptr;
+        }
+
         /* delete the whole spline */
         BLI_remlink(&mask_layer->splines, spline);
         BKE_mask_spline_free(spline);
-
-        if (spline == mask_layer->act_spline) {
-          mask_layer->act_spline = nullptr;
-          mask_layer->act_point = nullptr;
-        }
 
         BKE_mask_layer_shape_changed_remove(mask_layer, mask_layer_shape_ofs, tot_point_orig);
       }
