@@ -115,7 +115,7 @@ ClosureType gbuffer_mode_to_closure_type(uint mode)
  * This allows for writing unit tests that read and write during the same shader invocation.
  * \{ */
 
-#ifdef GBUFFER_LOAD
+#if defined(GBUFFER_LOAD) || defined(GLSL_CPP_STUBS)
 /* Read only shader. Use correct types and functions. */
 #  define samplerGBufferHeader usampler2D
 #  define samplerGBufferClosure sampler2DArray

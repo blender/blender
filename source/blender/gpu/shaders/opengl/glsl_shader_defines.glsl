@@ -103,3 +103,26 @@ bool is_zero(vec4 A)
 {
   return all(equal(A, vec4(0.0)));
 }
+
+/* Array syntax compatibility. */
+#define float_array float[]
+#define float2_array vec2[]
+#define float3_array vec3[]
+#define float4_array vec4[]
+#define int_array int[]
+#define int2_array int2[]
+#define int3_array int3[]
+#define int4_array int4[]
+#define uint_array uint[]
+#define uint2_array uint2[]
+#define uint3_array uint3[]
+#define uint4_array uint4[]
+#define bool_array bool[]
+#define bool2_array bool2[]
+#define bool3_array bool3[]
+#define bool4_array bool4[]
+
+#define SHADER_LIBRARY_CREATE_INFO(a)
+#define VERTEX_SHADER_CREATE_INFO(a)
+#define FRAGMENT_SHADER_CREATE_INFO(a)
+#define COMPUTE_SHADER_CREATE_INFO(a)

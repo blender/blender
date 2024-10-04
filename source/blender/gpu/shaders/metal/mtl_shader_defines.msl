@@ -2531,3 +2531,28 @@ mat3x4 MAT3x4(mat2 m)
 #define MAT2 MAT2x2
 #define MAT3 MAT3x3
 #define MAT4 MAT4x4
+
+/* Array syntax compatibility. */
+/* clang-format off */
+#define float_array(...) { __VA_ARGS__ }
+#define float2_array(...) { __VA_ARGS__ }
+#define float3_array(...) { __VA_ARGS__ }
+#define float4_array(...) { __VA_ARGS__ }
+#define int_array(...) { __VA_ARGS__ }
+#define int2_array(...) { __VA_ARGS__ }
+#define int3_array(...) { __VA_ARGS__ }
+#define int4_array(...) { __VA_ARGS__ }
+#define uint_array(...) { __VA_ARGS__ }
+#define uint2_array(...) { __VA_ARGS__ }
+#define uint3_array(...) { __VA_ARGS__ }
+#define uint4_array(...) { __VA_ARGS__ }
+#define bool_array(...) { __VA_ARGS__ }
+#define bool2_array(...) { __VA_ARGS__ }
+#define bool3_array(...) { __VA_ARGS__ }
+#define bool4_array(...) { __VA_ARGS__ }
+/* clang-format on */
+
+#define SHADER_LIBRARY_CREATE_INFO(a)
+#define VERTEX_SHADER_CREATE_INFO(a)
+#define FRAGMENT_SHADER_CREATE_INFO(a)
+#define COMPUTE_SHADER_CREATE_INFO(a)
