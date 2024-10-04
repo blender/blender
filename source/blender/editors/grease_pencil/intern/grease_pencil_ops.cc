@@ -7,6 +7,7 @@
  */
 
 #include "BKE_context.hh"
+#include "BKE_material.h"
 #include "BKE_paint.hh"
 
 #include "DNA_brush_enums.h"
@@ -31,6 +32,16 @@ bool active_grease_pencil_poll(bContext *C)
     return false;
   }
   return true;
+}
+
+bool active_grease_pencil_material_poll(bContext *C)
+{
+  Object *object = CTX_data_active_object(C);
+  if (object == nullptr || object->type != OB_GREASE_PENCIL) {
+    return false;
+  }
+  short *totcolp = BKE_object_material_len_p(object);
+  return *totcolp > 0;
 }
 
 bool editable_grease_pencil_poll(bContext *C)

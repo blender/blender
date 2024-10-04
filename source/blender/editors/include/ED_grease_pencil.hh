@@ -286,6 +286,7 @@ void create_keyframe_edit_data_selected_frames_list(KeyframeEditData *ked,
                                                     const bke::greasepencil::Layer &layer);
 
 bool active_grease_pencil_poll(bContext *C);
+bool active_grease_pencil_material_poll(bContext *C);
 bool editable_grease_pencil_poll(bContext *C);
 bool active_grease_pencil_layer_poll(bContext *C);
 bool editable_grease_pencil_point_selection_poll(bContext *C);
