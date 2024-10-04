@@ -151,9 +151,7 @@ ccl_device
       const float3 clamped_base_color = min(base_color, one_float3());
 
       // get the subsurface scattering data
-#ifdef __SUBSURFACE__
       uint4 data_subsurf = read_node(kg, &offset);
-#endif
 
       uint4 data_alpha_emission_thin = read_node(kg, &offset);
       svm_unpack_node_uchar4(data_alpha_emission_thin.x,
@@ -419,6 +417,7 @@ ccl_device
       }
 #else
       subsurface_weight = 0.0f;
+      (void)data_subsurf;
 #endif
 
       ccl_private OrenNayarBsdf *bsdf = (ccl_private OrenNayarBsdf *)bsdf_alloc(
