@@ -1062,6 +1062,11 @@ static bool brush_colors_flip_poll(bContext *C)
       if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_TEXTURE_PAINT | OB_MODE_SCULPT)) {
         return true;
       }
+      if (blender::ed::greasepencil::grease_pencil_painting_poll(C) ||
+          blender::ed::greasepencil::grease_pencil_vertex_painting_poll(C))
+      {
+        return true;
+      }
     }
   }
   return false;
