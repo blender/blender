@@ -446,8 +446,10 @@ typedef struct TextVars {
   float shadow_blur;
   float outline_width;
   char flag;
-  char align, align_y;
-  char _pad[5];
+  char align;
+  char align_y DNA_DEPRECATED /* Only used for versioning. */;
+  char anchor_x, anchor_y;
+  char _pad[3];
 } TextVars;
 
 /** #TextVars.flag */
