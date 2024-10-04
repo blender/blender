@@ -198,26 +198,22 @@ static void draw_simulation_state(const bContext *C,
                                   bNodeTree &ntree,
                                   bNode &output_node)
 {
-  PointerRNA output_node_ptr = RNA_pointer_create(&ntree.id, &RNA_Node, &output_node);
-
   if (uiLayout *panel = uiLayoutPanel(
           C, layout, "simulation_state_items", false, TIP_("Simulation State")))
   {
     socket_items::ui::draw_items_list_with_operators<SimulationItemsAccessor>(
         C, panel, ntree, output_node);
-
     auto &storage = *static_cast<NodeGeometrySimulationOutput *>(output_node.storage);
-    if (storage.active_index >= 0 && storage.active_index < storage.items_num) {
-      NodeSimulationItem &active_item = storage.items[storage.active_index];
-      PointerRNA item_ptr = RNA_pointer_create(
-          output_node_ptr.owner_id, SimulationItemsAccessor::item_srna, &active_item);
-      uiLayoutSetPropSep(panel, true);
-      uiLayoutSetPropDecorate(panel, false);
-      uiItemR(panel, &item_ptr, "socket_type", UI_ITEM_NONE, nullptr, ICON_NONE);
-      if (socket_type_supports_fields(eNodeSocketDatatype(active_item.socket_type))) {
-        uiItemR(panel, &item_ptr, "attribute_domain", UI_ITEM_NONE, nullptr, ICON_NONE);
-      }
-    }
+    socket_items::ui::draw_active_item_props<SimulationItemsAccessor>(
+        ntree, output_node, [&](PointerRNA *item_ptr) {
+          NodeSimulationItem &active_item = storage.items[storage.active_index];
+          uiLayoutSetPropSep(panel, true);
+          uiLayoutSetPropDecorate(panel, false);
+          uiItemR(panel, item_ptr, "socket_type", UI_ITEM_NONE, nullptr, ICON_NONE);
+          if (socket_type_supports_fields(eNodeSocketDatatype(active_item.socket_type))) {
+            uiItemR(panel, item_ptr, "attribute_domain", UI_ITEM_NONE, nullptr, ICON_NONE);
+          }
+        });
   }
 }
 

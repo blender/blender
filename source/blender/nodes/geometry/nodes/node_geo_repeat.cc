@@ -51,15 +51,12 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
   if (uiLayout *panel = uiLayoutPanel(C, layout, "repeat_items", false, TIP_("Repeat Items"))) {
     socket_items::ui::draw_items_list_with_operators<RepeatItemsAccessor>(
         C, panel, ntree, output_node);
-    auto &storage = *static_cast<NodeGeometryRepeatOutput *>(output_node.storage);
-    if (storage.active_index >= 0 && storage.active_index < storage.items_num) {
-      NodeRepeatItem &active_item = storage.items[storage.active_index];
-      PointerRNA item_ptr = RNA_pointer_create(
-          output_node_ptr.owner_id, RepeatItemsAccessor::item_srna, &active_item);
-      uiLayoutSetPropSep(panel, true);
-      uiLayoutSetPropDecorate(panel, false);
-      uiItemR(panel, &item_ptr, "socket_type", UI_ITEM_NONE, nullptr, ICON_NONE);
-    }
+    socket_items::ui::draw_active_item_props<RepeatItemsAccessor>(
+        ntree, output_node, [&](PointerRNA *item_ptr) {
+          uiLayoutSetPropSep(panel, true);
+          uiLayoutSetPropDecorate(panel, false);
+          uiItemR(panel, item_ptr, "socket_type", UI_ITEM_NONE, nullptr, ICON_NONE);
+        });
   }
 
   uiItemR(layout, &output_node_ptr, "inspection_index", UI_ITEM_NONE, nullptr, ICON_NONE);

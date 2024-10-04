@@ -368,19 +368,12 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
   if (uiLayout *panel = uiLayoutPanel(C, layout, "menu_switch_items", false, TIP_("Menu Items"))) {
     socket_items::ui::draw_items_list_with_operators<MenuSwitchItemsAccessor>(
         C, panel, tree, node);
-
-    auto &storage = node_storage(node);
-    if (storage.enum_definition.active_index >= 0 &&
-        storage.enum_definition.active_index < storage.enum_definition.items_num)
-    {
-      NodeEnumItem &active_item =
-          storage.enum_definition.items_array[storage.enum_definition.active_index];
-      PointerRNA item_ptr = RNA_pointer_create(
-          ptr->owner_id, MenuSwitchItemsAccessor::item_srna, &active_item);
-      uiLayoutSetPropSep(panel, true);
-      uiLayoutSetPropDecorate(panel, false);
-      uiItemR(panel, &item_ptr, "description", UI_ITEM_NONE, nullptr, ICON_NONE);
-    }
+    socket_items::ui::draw_active_item_props<MenuSwitchItemsAccessor>(
+        tree, node, [&](PointerRNA *item_ptr) {
+          uiLayoutSetPropSep(panel, true);
+          uiLayoutSetPropDecorate(panel, false);
+          uiItemR(panel, item_ptr, "description", UI_ITEM_NONE, nullptr, ICON_NONE);
+        });
   }
 }
 

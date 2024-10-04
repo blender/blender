@@ -52,63 +52,41 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
     if (uiLayout *panel = uiLayoutPanel(C, layout, "input", false, TIP_("Input Fields"))) {
       socket_items::ui::draw_items_list_with_operators<ForeachGeometryElementInputItemsAccessor>(
           C, panel, ntree, output_node);
-
-      if (storage.input_items.active_index >= 0 &&
-          storage.input_items.active_index < storage.input_items.items_num)
-      {
-        NodeForeachGeometryElementInputItem &active_item =
-            storage.input_items.items[storage.input_items.active_index];
-        PointerRNA item_ptr = RNA_pointer_create(
-            output_node_ptr.owner_id,
-            ForeachGeometryElementInputItemsAccessor::item_srna,
-            &active_item);
-        uiLayoutSetPropSep(panel, true);
-        uiLayoutSetPropDecorate(panel, false);
-        uiItemR(panel, &item_ptr, "socket_type", UI_ITEM_NONE, nullptr, ICON_NONE);
-      }
+      socket_items::ui::draw_active_item_props<ForeachGeometryElementInputItemsAccessor>(
+          ntree, output_node, [&](PointerRNA *item_ptr) {
+            uiLayoutSetPropSep(panel, true);
+            uiLayoutSetPropDecorate(panel, false);
+            uiItemR(panel, item_ptr, "socket_type", UI_ITEM_NONE, nullptr, ICON_NONE);
+          });
     }
   }
   else {
     if (uiLayout *panel = uiLayoutPanel(C, layout, "main_items", false, TIP_("Main Geometry"))) {
       socket_items::ui::draw_items_list_with_operators<ForeachGeometryElementMainItemsAccessor>(
           C, panel, ntree, output_node);
-
-      if (storage.main_items.active_index >= 0 &&
-          storage.main_items.active_index < storage.main_items.items_num)
-      {
-        NodeForeachGeometryElementMainItem &active_item =
-            storage.main_items.items[storage.main_items.active_index];
-        PointerRNA item_ptr = RNA_pointer_create(
-            output_node_ptr.owner_id,
-            ForeachGeometryElementMainItemsAccessor::item_srna,
-            &active_item);
-        uiLayoutSetPropSep(panel, true);
-        uiLayoutSetPropDecorate(panel, false);
-        uiItemR(panel, &item_ptr, "socket_type", UI_ITEM_NONE, nullptr, ICON_NONE);
-      }
+      socket_items::ui::draw_active_item_props<ForeachGeometryElementMainItemsAccessor>(
+          ntree, output_node, [&](PointerRNA *item_ptr) {
+            uiLayoutSetPropSep(panel, true);
+            uiLayoutSetPropDecorate(panel, false);
+            uiItemR(panel, item_ptr, "socket_type", UI_ITEM_NONE, nullptr, ICON_NONE);
+          });
     }
     if (uiLayout *panel = uiLayoutPanel(
             C, layout, "generation_items", false, TIP_("Generated Geometry")))
     {
       socket_items::ui::draw_items_list_with_operators<
           ForeachGeometryElementGenerationItemsAccessor>(C, panel, ntree, output_node);
-
-      if (storage.generation_items.active_index >= 0 &&
-          storage.generation_items.active_index < storage.generation_items.items_num)
-      {
-        NodeForeachGeometryElementGenerationItem &active_item =
-            storage.generation_items.items[storage.generation_items.active_index];
-        PointerRNA item_ptr = RNA_pointer_create(
-            output_node_ptr.owner_id,
-            ForeachGeometryElementGenerationItemsAccessor::item_srna,
-            &active_item);
-        uiLayoutSetPropSep(panel, true);
-        uiLayoutSetPropDecorate(panel, false);
-        uiItemR(panel, &item_ptr, "socket_type", UI_ITEM_NONE, nullptr, ICON_NONE);
-        if (active_item.socket_type != SOCK_GEOMETRY) {
-          uiItemR(panel, &item_ptr, "domain", UI_ITEM_NONE, nullptr, ICON_NONE);
-        }
-      }
+      socket_items::ui::draw_active_item_props<ForeachGeometryElementGenerationItemsAccessor>(
+          ntree, output_node, [&](PointerRNA *item_ptr) {
+            NodeForeachGeometryElementGenerationItem &active_item =
+                storage.generation_items.items[storage.generation_items.active_index];
+            uiLayoutSetPropSep(panel, true);
+            uiLayoutSetPropDecorate(panel, false);
+            uiItemR(panel, item_ptr, "socket_type", UI_ITEM_NONE, nullptr, ICON_NONE);
+            if (active_item.socket_type != SOCK_GEOMETRY) {
+              uiItemR(panel, item_ptr, "domain", UI_ITEM_NONE, nullptr, ICON_NONE);
+            }
+          });
     }
   }
 

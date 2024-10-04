@@ -131,23 +131,21 @@ static void draw_bake_items(const bContext *C, uiLayout *layout, PointerRNA node
 {
   bNodeTree &tree = *reinterpret_cast<bNodeTree *>(node_ptr.owner_id);
   bNode &node = *static_cast<bNode *>(node_ptr.data);
+  NodeGeometryBake &storage = node_storage(node);
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "bake_items", false, TIP_("Bake Items"))) {
     socket_items::ui::draw_items_list_with_operators<BakeItemsAccessor>(C, panel, tree, node);
-
-    NodeGeometryBake &storage = node_storage(node);
-    if (storage.active_index >= 0 && storage.active_index < storage.items_num) {
-      NodeGeometryBakeItem &active_item = storage.items[storage.active_index];
-      PointerRNA item_ptr = RNA_pointer_create(
-          node_ptr.owner_id, BakeItemsAccessor::item_srna, &active_item);
-      uiLayoutSetPropSep(panel, true);
-      uiLayoutSetPropDecorate(panel, false);
-      uiItemR(panel, &item_ptr, "socket_type", UI_ITEM_NONE, nullptr, ICON_NONE);
-      if (socket_type_supports_fields(eNodeSocketDatatype(active_item.socket_type))) {
-        uiItemR(panel, &item_ptr, "attribute_domain", UI_ITEM_NONE, nullptr, ICON_NONE);
-        uiItemR(panel, &item_ptr, "is_attribute", UI_ITEM_NONE, nullptr, ICON_NONE);
-      }
-    }
+    socket_items::ui::draw_active_item_props<BakeItemsAccessor>(
+        tree, node, [&](PointerRNA *item_ptr) {
+          const NodeGeometryBakeItem &active_item = storage.items[storage.active_index];
+          uiLayoutSetPropSep(panel, true);
+          uiLayoutSetPropDecorate(panel, false);
+          uiItemR(panel, item_ptr, "socket_type", UI_ITEM_NONE, nullptr, ICON_NONE);
+          if (socket_type_supports_fields(eNodeSocketDatatype(active_item.socket_type))) {
+            uiItemR(panel, item_ptr, "attribute_domain", UI_ITEM_NONE, nullptr, ICON_NONE);
+            uiItemR(panel, item_ptr, "is_attribute", UI_ITEM_NONE, nullptr, ICON_NONE);
+          }
+        });
   }
 }
 
