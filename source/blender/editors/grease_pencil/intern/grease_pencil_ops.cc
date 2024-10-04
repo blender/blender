@@ -77,7 +77,7 @@ bool editable_grease_pencil_point_selection_poll(bContext *C)
   return (ts->gpencil_selectmode_edit != GP_SELECTMODE_STROKE);
 }
 
-static bool grease_pencil_selection_poll(bContext *C)
+bool grease_pencil_selection_poll(bContext *C)
 {
   if (!active_grease_pencil_poll(C)) {
     return false;
