@@ -582,6 +582,9 @@ void gpu_shader_create_info_init()
 
   for (auto [key, info] : g_create_infos->items()) {
     g_create_infos_unfinalized->add_new(key, *info);
+  }
+
+  for (ShaderCreateInfo *info : g_create_infos->values()) {
     info->finalize(true);
   }
 
@@ -713,6 +716,8 @@ void gpu_shader_create_info_get_unfinalized_copy(const char *info_name,
     BLI_assert_msg(0, msg.c_str());
   }
   else {
-    reinterpret_cast<ShaderCreateInfo &>(r_info) = g_create_infos_unfinalized->lookup(info_name);
+    ShaderCreateInfo &info = reinterpret_cast<ShaderCreateInfo &>(r_info);
+    info = g_create_infos_unfinalized->lookup(info_name);
+    BLI_assert(!info.finalized_);
   }
 }
