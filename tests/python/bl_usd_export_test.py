@@ -32,21 +32,16 @@ class AbstractUSDTest(unittest.TestCase):
     def tearDown(self):
         self._tempdir.cleanup()
 
+    def export_and_validate(self, **kwargs):
+        """Export and validate the resulting USD file."""
 
-class USDExportTest(AbstractUSDTest):
-    def test_export_usdchecker(self):
-        """Test exporting a scene and verifying it passes the usdchecker test suite"""
-        bpy.ops.wm.open_mainfile(
-            filepath=str(self.testdir / "usd_materials_export.blend")
-        )
-        export_path = self.tempdir / "usdchecker.usda"
-        res = bpy.ops.wm.usd_export(
-            filepath=str(export_path),
-            export_materials=True,
-            evaluation_mode="RENDER",
-        )
+        export_path = kwargs["filepath"]
+
+        # Do the actual export
+        res = bpy.ops.wm.usd_export(**kwargs)
         self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
 
+        # Validate resulting file
         checker = UsdUtils.ComplianceChecker(
             arkit=False,
             skipARKitRootLayerCheck=False,
@@ -54,7 +49,7 @@ class USDExportTest(AbstractUSDTest):
             skipVariants=False,
             verbose=False,
         )
-        checker.CheckCompliance(str(export_path))
+        checker.CheckCompliance(export_path)
 
         failed_checks = {}
 
@@ -75,6 +70,8 @@ class USDExportTest(AbstractUSDTest):
 
         self.assertFalse(failed_checks, pprint.pformat(failed_checks))
 
+
+class USDExportTest(AbstractUSDTest):
     # Utility function to round each component of a vector to a few digits. The "+ 0" is to
     # ensure that any negative zeros (-0.0) are converted to positive zeros (0.0).
     @staticmethod
@@ -92,13 +89,13 @@ class USDExportTest(AbstractUSDTest):
         """Test that exported scenes contain have a properly authored extent attribute on each boundable prim"""
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_extent_test.blend"))
         export_path = self.tempdir / "usd_extent_test.usda"
-        res = bpy.ops.wm.usd_export(
+
+        self.export_and_validate(
             filepath=str(export_path),
             export_materials=True,
             evaluation_mode="RENDER",
             convert_world_material=False,
         )
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
 
         # if prims are missing, the exporter must have skipped some objects
         stats = UsdUtils.ComputeUsdStageStats(str(export_path))
@@ -138,8 +135,7 @@ class USDExportTest(AbstractUSDTest):
         # Use the common materials .blend file
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_materials_export.blend"))
         export_path = self.tempdir / "material_transforms.usda"
-        res = bpy.ops.wm.usd_export(filepath=str(export_path), export_materials=True)
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
+        self.export_and_validate(filepath=str(export_path), export_materials=True)
 
         # Inspect the UsdTransform2d prim on the "Transforms" material
         stage = Usd.Stage.Open(str(export_path))
@@ -160,8 +156,7 @@ class USDExportTest(AbstractUSDTest):
         # Use the common materials .blend file
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_materials_export.blend"))
         export_path = self.tempdir / "material_normalmaps.usda"
-        res = bpy.ops.wm.usd_export(filepath=str(export_path), export_materials=True)
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
+        self.export_and_validate(filepath=str(export_path), export_materials=True)
 
         # Inspect the UsdUVTexture prim on the "typical" "NormalMap" material
         stage = Usd.Stage.Open(str(export_path))
@@ -193,8 +188,7 @@ class USDExportTest(AbstractUSDTest):
         # Use the common materials .blend file
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_materials_export.blend"))
         export_path = self.tempdir / "material_opacities.usda"
-        res = bpy.ops.wm.usd_export(filepath=str(export_path), export_materials=True)
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
+        self.export_and_validate(filepath=str(export_path), export_materials=True)
 
         # Inspect and validate the exported USD for the opaque blend case.
         stage = Usd.Stage.Open(str(export_path))
@@ -232,8 +226,7 @@ class USDExportTest(AbstractUSDTest):
         bpy.context.scene.frame_set(1)
 
         export_path = self.tempdir / "usd_materials_multi.usda"
-        res = bpy.ops.wm.usd_export(filepath=str(export_path), export_animation=True, evaluation_mode="RENDER")
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
+        self.export_and_validate(filepath=str(export_path), export_animation=True, evaluation_mode="RENDER")
 
         stage = Usd.Stage.Open(str(export_path))
 
@@ -272,8 +265,7 @@ class USDExportTest(AbstractUSDTest):
     def test_export_attributes(self):
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_attribute_test.blend"))
         export_path = self.tempdir / "usd_attribute_test.usda"
-        res = bpy.ops.wm.usd_export(filepath=str(export_path), evaluation_mode="RENDER")
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
+        self.export_and_validate(filepath=str(export_path), evaluation_mode="RENDER")
 
         stage = Usd.Stage.Open(str(export_path))
 
@@ -381,8 +373,7 @@ class USDExportTest(AbstractUSDTest):
         bpy.context.scene.frame_set(1)
 
         export_path = self.tempdir / "usd_attribute_varying_test.usda"
-        res = bpy.ops.wm.usd_export(filepath=str(export_path), export_animation=True, evaluation_mode="RENDER")
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
+        self.export_and_validate(filepath=str(export_path), export_animation=True, evaluation_mode="RENDER")
 
         stage = Usd.Stage.Open(str(export_path))
         sparse_frames = [4.0, 5.0, 8.0, 9.0, 12.0, 13.0]
@@ -445,12 +436,11 @@ class USDExportTest(AbstractUSDTest):
         """Test exporting Subdivision Surface attributes and values"""
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_mesh_subd.blend"))
         export_path = self.tempdir / "usd_mesh_subd.usda"
-        res = bpy.ops.wm.usd_export(
+        self.export_and_validate(
             filepath=str(export_path),
             export_subdivision='BEST_MATCH',
             evaluation_mode="RENDER",
         )
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
 
         stage = Usd.Stage.Open(str(export_path))
 
@@ -527,24 +517,22 @@ class USDExportTest(AbstractUSDTest):
         # in checking that USD passes its operator properties through correctly. We use a minimal
         # combination of quad and ngon methods to test.
         tri_export_path1 = self.tempdir / "usd_mesh_tri_setup1.usda"
-        res = bpy.ops.wm.usd_export(
+        self.export_and_validate(
             filepath=str(tri_export_path1),
             triangulate_meshes=True,
             quad_method='FIXED',
             ngon_method='BEAUTY',
             evaluation_mode="RENDER",
         )
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {tri_export_path1}")
 
         tri_export_path2 = self.tempdir / "usd_mesh_tri_setup2.usda"
-        res = bpy.ops.wm.usd_export(
+        self.export_and_validate(
             filepath=str(tri_export_path2),
             triangulate_meshes=True,
             quad_method='FIXED_ALTERNATE',
             ngon_method='CLIP',
             evaluation_mode="RENDER",
         )
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {tri_export_path2}")
 
         stage1 = Usd.Stage.Open(str(tri_export_path1))
         stage2 = Usd.Stage.Open(str(tri_export_path2))
@@ -570,12 +558,11 @@ class USDExportTest(AbstractUSDTest):
     def test_export_animation(self):
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_anim_test.blend"))
         export_path = self.tempdir / "usd_anim_test.usda"
-        res = bpy.ops.wm.usd_export(
+        self.export_and_validate(
             filepath=str(export_path),
             export_animation=True,
             evaluation_mode="RENDER",
         )
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
 
         stage = Usd.Stage.Open(str(export_path))
 
@@ -630,16 +617,13 @@ class USDExportTest(AbstractUSDTest):
         bpy.data.objects[0].scale = scale
 
         test_path1 = self.tempdir / "temp_xform_trs_test.usda"
-        res = bpy.ops.wm.usd_export(filepath=str(test_path1), xform_op_mode='TRS')
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {test_path1}")
+        self.export_and_validate(filepath=str(test_path1), xform_op_mode='TRS')
 
         test_path2 = self.tempdir / "temp_xform_tos_test.usda"
-        res = bpy.ops.wm.usd_export(filepath=str(test_path2), xform_op_mode='TOS')
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {test_path2}")
+        self.export_and_validate(filepath=str(test_path2), xform_op_mode='TOS')
 
         test_path3 = self.tempdir / "temp_xform_mat_test.usda"
-        res = bpy.ops.wm.usd_export(filepath=str(test_path3), xform_op_mode='MAT')
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {test_path3}")
+        self.export_and_validate(filepath=str(test_path3), xform_op_mode='MAT')
 
         # Validate relevant details for each case
         stage = Usd.Stage.Open(str(test_path1))
@@ -681,20 +665,18 @@ class USDExportTest(AbstractUSDTest):
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
 
         test_path1 = self.tempdir / "temp_orientation_yup.usda"
-        res = bpy.ops.wm.usd_export(
+        self.export_and_validate(
             filepath=str(test_path1),
             convert_orientation=True,
             export_global_forward_selection='NEGATIVE_Z',
             export_global_up_selection='Y')
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {test_path1}")
 
         test_path2 = self.tempdir / "temp_orientation_zup_rev.usda"
-        res = bpy.ops.wm.usd_export(
+        self.export_and_validate(
             filepath=str(test_path2),
             convert_orientation=True,
             export_global_forward_selection='NEGATIVE_Y',
             export_global_up_selection='Z')
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {test_path2}")
 
         stage = Usd.Stage.Open(str(test_path1))
         xf = UsdGeom.Xformable(stage.GetPrimAtPath("/root"))
@@ -706,10 +688,12 @@ class USDExportTest(AbstractUSDTest):
 
     def test_materialx_network(self):
         """Test exporting that a MaterialX export makes it out alright"""
-        bpy.ops.wm.open_mainfile(
-            filepath=str(self.testdir / "usd_materials_export.blend")
-        )
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_materials_export.blend"))
         export_path = self.tempdir / "materialx.usda"
+
+        # USD currently has an issue where embedded MaterialX graphs cause validation to fail.
+        # Skip validation and just run a regular export until this is fixed.
+        # See: https://github.com/PixarAnimationStudios/OpenUSD/pull/3243
         res = bpy.ops.wm.usd_export(
             filepath=str(export_path),
             export_materials=True,
@@ -768,7 +752,7 @@ class USDExportTest(AbstractUSDTest):
         test_path = self.tempdir / "hook.usda"
 
         try:
-            bpy.ops.wm.usd_export(filepath=str(test_path))
+            self.export_and_validate(filepath=str(test_path))
         except:
             pass
 
@@ -792,8 +776,8 @@ class USDExportTest(AbstractUSDTest):
             "on_export": [],
             "on_import": [],
         }
-        bpy.ops.wm.usd_export(filepath=str(test_path))
-        bpy.ops.wm.usd_import(filepath=str(test_path))
+        self.export_and_validate(filepath=str(test_path))
+        self.export_and_validate(filepath=str(test_path))
         self.assertEqual(USDHookBase.responses["on_material_export"], [])
         self.assertEqual(USDHookBase.responses["on_export"], [])
         self.assertEqual(USDHookBase.responses["on_import"], [])
