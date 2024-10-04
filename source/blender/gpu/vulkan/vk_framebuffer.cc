@@ -566,13 +566,15 @@ void VKFrameBuffer::rendering_ensure(VKContext &context)
     uint32_t layer_base = max_ii(attachment.layer, 0);
     GPUAttachmentState attachment_state = attachment_states_[color_attachment_index];
     if (attachment_state == GPU_ATTACHMENT_WRITE) {
-      VKImageViewInfo image_view_info = {eImageViewUsage::Attachment,
-                                         IndexRange(layer_base, layer_count),
-                                         IndexRange(attachment.mip, 1),
-                                         {{'r', 'g', 'b', 'a'}},
-                                         false,
-                                         srgb_ && enabled_srgb_,
-                                         VKImageViewArrayed::DONT_CARE};
+      VKImageViewInfo image_view_info = {
+          eImageViewUsage::Attachment,
+          IndexRange(layer_base,
+                     layer_count != 1 ? max_ii(layer_count - layer_base, 1) : layer_count),
+          IndexRange(attachment.mip, 1),
+          {{'r', 'g', 'b', 'a'}},
+          false,
+          srgb_ && enabled_srgb_,
+          VKImageViewArrayed::DONT_CARE};
       vk_image_view = color_texture.image_view_get(image_view_info).vk_handle();
     }
     attachment_info.imageView = vk_image_view;

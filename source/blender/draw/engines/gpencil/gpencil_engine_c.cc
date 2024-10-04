@@ -117,11 +117,9 @@ void GPENCIL_engine_init(void *ved)
     use_scene_world = V3D_USES_SCENE_WORLD(v3d);
 
     stl->pd->v3d_color_type = (v3d->shading.type == OB_SOLID) ? v3d->shading.color_type : -1;
-    /* Special case: If Vertex Paint mode, use always Vertex mode. */
+    /* Special case: If we're in Draw or Vertex Paint mode, show vertex colors. */
     if (v3d->shading.type == OB_SOLID && ctx->obact &&
-        ((ctx->obact->type == OB_GPENCIL_LEGACY &&
-          ctx->obact->mode == OB_MODE_VERTEX_GPENCIL_LEGACY) ||
-         (ctx->obact->type == OB_GREASE_PENCIL && ctx->obact->mode == OB_MODE_VERTEX_PAINT)))
+        ELEM(ctx->obact->mode, OB_MODE_PAINT_GPENCIL_LEGACY, OB_MODE_VERTEX_GPENCIL_LEGACY))
     {
       stl->pd->v3d_color_type = V3D_SHADING_VERTEX_COLOR;
     }
