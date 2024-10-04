@@ -147,7 +147,12 @@ typedef struct MaskLayer {
 
   /** Active spline. */
   struct MaskSpline *act_spline;
-  /** Active point. */
+  /**
+   * Active point.
+   *
+   * \note By convention the active-point will be a point in `act_spline` however this isn't
+   * guaranteed and cannot be assumed by logic that validates memory.
+   */
   struct MaskSplinePoint *act_point;
 
   /* blending options */
