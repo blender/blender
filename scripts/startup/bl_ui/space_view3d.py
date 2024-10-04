@@ -2043,7 +2043,7 @@ class VIEW3D_MT_edit_mesh_select_by_trait(Menu):
 
     def draw(self, context):
         layout = self.layout
-        is_vert_mode, is_edge_mode, is_face_mode = context.tool_settings.mesh_select_mode
+        _is_vert_mode, _is_edge_mode, is_face_mode = context.tool_settings.mesh_select_mode
 
         if is_face_mode is False:
             layout.operator("mesh.select_non_manifold", text="Non Manifold")
