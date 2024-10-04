@@ -111,7 +111,7 @@ bool grease_pencil_painting_poll(bContext *C)
   return true;
 }
 
-static bool grease_pencil_edit_poll(bContext *C)
+bool grease_pencil_edit_poll(bContext *C)
 {
   if (!active_grease_pencil_poll(C)) {
     return false;
