@@ -2791,23 +2791,45 @@ static void file_expand_directory(bContext *C)
   }
 }
 
-/* TODO: check we still need this, it's annoying to have OS-specific code here... :/. */
-#if defined(WIN32)
-static bool can_create_dir(const char *dir)
+/**
+ * \param dir: A normalized path (from user input).
+ */
+static bool can_create_dir(const char dir[FILE_MAX_LIBEXTRA])
 {
-  /* for UNC paths we need to check whether the parent of the new
-   * directory is a proper directory itself and not a share or the
-   * UNC root (server name) itself. Calling BLI_is_dir does this
-   */
-  if (BLI_path_is_unc(dir)) {
-    char parent[PATH_MAX];
-    BLI_strncpy(parent, dir, PATH_MAX);
-    BLI_path_parent_dir(parent);
-    return BLI_is_dir(parent);
+
+  /* If the user types in a name with no absolute prefix,
+   * creating a directory relative to the CWD doesn't make sense from the UI. */
+  if (!BLI_path_is_abs_from_cwd(dir)) {
+    return false;
   }
+
+  /* If none of the parents exist, the directory can't be created.
+   * This prevents the popup to create a new path showing on WIN32
+   * for a drive-letter that doesn't exist (for example). */
+  {
+    char tdir[FILE_MAX_LIBEXTRA];
+    STRNCPY(tdir, dir);
+    if (!BLI_path_parent_dir_until_exists(tdir)) {
+      return false;
+    }
+  }
+
+#if defined(WIN32)
+  /* For UNC paths we need to check whether the parent of the new
+   * directory is a proper directory itself and not a share or the
+   * UNC root (server name) itself. Calling #BLI_is_dir does this. */
+  if (BLI_path_is_unc(dir)) {
+    char tdir[FILE_MAX_LIBEXTRA];
+    STRNCPY(tdir, dir);
+    BLI_path_parent_dir(tdir);
+    if (!BLI_is_dir(tdir)) {
+      return false;
+    }
+  }
+#endif /* WIN32 */
+
   return true;
 }
-#endif
 
 void file_directory_enter_handle(bContext *C, void * /*arg_unused*/, void * /*arg_but*/)
 {
@@ -2860,14 +2882,12 @@ void file_directory_enter_handle(bContext *C, void * /*arg_unused*/, void * /*ar
        * placing cursor at the end */
       // UI_textbutton_activate_but(C, but);
     }
-#if defined(WIN32)
     else if (!can_create_dir(params->dir)) {
       const char *lastdir = folderlist_peeklastdir(sfile->folders_prev);
       if (lastdir) {
         STRNCPY(params->dir, lastdir);
       }
     }
-#endif
     else {
       const char *lastdir = folderlist_peeklastdir(sfile->folders_prev);
       char tdir[FILE_MAX_LIBEXTRA];
