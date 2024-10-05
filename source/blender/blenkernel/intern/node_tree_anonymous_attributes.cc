@@ -258,14 +258,14 @@ static AnonymousAttributeInferencingResult analyze_anonymous_attribute_usages(
   const bNodeTreeZones *zones = tree.zones();
   Vector<const bNodeTreeZone *> repeat_zones_to_consider;
   if (zones) {
-    for (const std::unique_ptr<bNodeTreeZone> &zone : zones->zones) {
+    for (const bNodeTreeZone *zone : zones->zones) {
       if (ELEM(nullptr, zone->input_node, zone->output_node)) {
         continue;
       }
       if (zone->output_node->type != GEO_NODE_REPEAT_OUTPUT) {
         continue;
       }
-      repeat_zones_to_consider.append(zone.get());
+      repeat_zones_to_consider.append(zone);
     }
   }
 

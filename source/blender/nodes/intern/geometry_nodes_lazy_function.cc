@@ -4183,7 +4183,7 @@ const GeometryNodesLazyFunctionGraphInfo *ensure_geometry_nodes_lazy_function_gr
   if (tree_zones == nullptr) {
     return nullptr;
   }
-  for (const std::unique_ptr<bNodeTreeZone> &zone : tree_zones->zones) {
+  for (const bNodeTreeZone *zone : tree_zones->zones) {
     if (zone->input_node == nullptr || zone->output_node == nullptr) {
       /* Simulations and repeats need input and output nodes. */
       return nullptr;
