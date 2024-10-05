@@ -1349,24 +1349,31 @@ static bool filelist_intern_entry_is_main_file(const FileListInternEntry *intern
 
 static void parent_dir_until_exists_or_default_root(char *dir)
 {
-  if (!BLI_path_parent_dir_until_exists(dir)) {
-#ifdef WIN32
-    BLI_windows_get_default_root_dir(dir);
-#else
-    ARRAY_SET_ITEMS(dir, '/', '\0');
-#endif
+  /* Only allow absolute paths as CWD relative doesn't make sense from the UI. */
+  if (BLI_path_is_abs_from_cwd(dir) && BLI_path_parent_dir_until_exists(dir)) {
+    return;
   }
+
+#ifdef WIN32
+  BLI_windows_get_default_root_dir(dir);
+#else
+  ARRAY_SET_ITEMS(dir, '/', '\0');
+#endif
 }
 
 static bool filelist_checkdir_dir(const FileList * /*filelist*/,
                                   char dirpath[FILE_MAX_LIBEXTRA],
                                   const bool do_change)
 {
+  bool is_valid;
   if (do_change) {
     parent_dir_until_exists_or_default_root(dirpath);
-    return true;
+    is_valid = true;
   }
-  return BLI_is_dir(dirpath);
+  else {
+    is_valid = BLI_path_is_abs_from_cwd(dirpath) && BLI_is_dir(dirpath);
+  }
+  return is_valid;
 }
 
 static bool filelist_checkdir_lib(const FileList * /*filelist*/,
