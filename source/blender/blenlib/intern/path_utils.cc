@@ -590,7 +590,9 @@ bool BLI_path_is_win32_drive_with_slash(const char *path)
  */
 static bool BLI_path_is_abs_win32(const char *path)
 {
-  return BLI_path_is_win32_drive_with_slash(path) || BLI_path_is_unc(path);
+  /* Don't use the `BLI_path_is_win32_drive_with_slash`
+   * since paths such as `C:` are valid on their own. */
+  return BLI_path_is_win32_drive(path) || BLI_path_is_unc(path);
 }
 
 static wchar_t *next_slash(wchar_t *path)
@@ -1199,14 +1201,13 @@ bool BLI_path_abs(char path[FILE_MAX], const char *basepath)
 bool BLI_path_is_abs_from_cwd(const char *path)
 {
   bool is_abs = false;
-  const int path_len_clamp = BLI_strnlen(path, 3);
 
 #ifdef WIN32
-  if ((path_len_clamp >= 3 && BLI_path_is_abs_win32(path)) || BLI_path_is_unc(path)) {
+  if (BLI_path_is_abs_win32(path)) {
     is_abs = true;
   }
 #else
-  if (path_len_clamp >= 2 && path[0] == '/') {
+  if (path[0] == '/') {
     is_abs = true;
   }
 #endif
