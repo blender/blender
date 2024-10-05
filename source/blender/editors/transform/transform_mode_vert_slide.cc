@@ -211,8 +211,12 @@ static void freeVertSlideVerts(TransInfo * /*t*/,
 
 static eRedrawFlag handleEventVertSlide(TransInfo *t, const wmEvent *event)
 {
-  VertSlideParams *slp = static_cast<VertSlideParams *>(t->custom.mode.data);
+  if (t->redraw && event->type != MOUSEMOVE) {
+    /* Event already handled. */
+    return TREDRAW_NOTHING;
+  }
 
+  VertSlideParams *slp = static_cast<VertSlideParams *>(t->custom.mode.data);
   if (slp) {
     switch (event->type) {
       case EVT_EKEY:
