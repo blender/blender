@@ -43,18 +43,19 @@ namespace blender::gpu::shader {
 
 #if defined(GLSL_CPP_STUBS)
 #  define GPU_SHADER_NAMED_INTERFACE_INFO(_interface, _inst_name) \
-    namespace _interface { \
+    namespace create_info::interface::_interface { \
     struct {
 #  define GPU_SHADER_NAMED_INTERFACE_END(_inst_name) \
     } \
     _inst_name; \
     }
 
-#  define GPU_SHADER_INTERFACE_INFO(_interface, _inst_name) namespace _interface {
+#  define GPU_SHADER_INTERFACE_INFO(_interface, _inst_name) \
+    namespace create_info::interface::_interface {
 #  define GPU_SHADER_INTERFACE_END() }
 
 #  define GPU_SHADER_CREATE_INFO(_info) \
-    namespace _info { \
+    namespace create_info::_info { \
     namespace gl_VertexShader { \
     } \
     namespace gl_FragmentShader { \
@@ -63,19 +64,19 @@ namespace blender::gpu::shader {
     }
 #  define GPU_SHADER_CREATE_END() }
 
-#  define SHADER_LIBRARY_CREATE_INFO(_info) using namespace _info;
+#  define SHADER_LIBRARY_CREATE_INFO(_info) using namespace create_info::_info;
 #  define VERTEX_SHADER_CREATE_INFO(_info) \
     using namespace ::gl_VertexShader; \
-    using namespace _info::gl_VertexShader; \
-    using namespace _info;
+    using namespace create_info::_info::gl_VertexShader; \
+    using namespace create_info::_info;
 #  define FRAGMENT_SHADER_CREATE_INFO(_info) \
     using namespace ::gl_FragmentShader; \
-    using namespace _info::gl_FragmentShader; \
-    using namespace _info;
+    using namespace create_info::_info::gl_FragmentShader; \
+    using namespace create_info::_info;
 #  define COMPUTE_SHADER_CREATE_INFO(_info) \
     using namespace ::gl_ComputeShader; \
-    using namespace _info::gl_ComputeShader; \
-    using namespace _info;
+    using namespace create_info::_info::gl_ComputeShader; \
+    using namespace create_info::_info;
 
 #elif !defined(GPU_SHADER_CREATE_INFO)
 /* Helps intellisense / auto-completion inside info files. */
@@ -216,10 +217,10 @@ namespace blender::gpu::shader {
     namespace gl_VertexShader { \
     const type name = {}; \
     }
-#  define VERTEX_OUT(stage_interface) using namespace stage_interface;
+#  define VERTEX_OUT(stage_interface) using namespace create_info::interface::stage_interface;
 /* TO REMOVE. */
 #  define GEOMETRY_LAYOUT(...)
-#  define GEOMETRY_OUT(stage_interface) using namespace stage_interface;
+#  define GEOMETRY_OUT(stage_interface) using namespace create_info::interface::stage_interface;
 
 #  define SUBPASS_IN(slot, type, name, rog) const type name = {};
 
@@ -272,7 +273,7 @@ namespace blender::gpu::shader {
 /* TO REMOVE. */
 #  define METAL_BACKEND_ONLY()
 
-#  define ADDITIONAL_INFO(info_name) using namespace info_name;
+#  define ADDITIONAL_INFO(info_name) using namespace create_info::info_name;
 #  define TYPEDEF_SOURCE(filename)
 
 #  define MTL_MAX_TOTAL_THREADS_PER_THREADGROUP(value) \
