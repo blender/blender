@@ -558,7 +558,7 @@ NlaStrip *BKE_nlastrip_new_for_slot(bAction *act,
     case ActionSlotAssignmentResult::SlotNotFromAction:
     case ActionSlotAssignmentResult::MissingAction:
       BLI_assert_unreachable();
-      /* Fallthrough. */
+      [[fallthrough]];
     case ActionSlotAssignmentResult::SlotNotSuitable:
       BKE_nlastrip_free(strip, true);
       return nullptr;
