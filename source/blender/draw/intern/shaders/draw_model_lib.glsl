@@ -6,7 +6,7 @@
 
 #include "draw_view_lib.glsl"
 
-#ifndef DRAW_MODELMAT_CREATE_INFO
+#if !defined(DRAW_MODELMAT_CREATE_INFO) && !defined(GLSL_CPP_STUBS)
 #  error Missing draw_modelmat additional create info on shader create info
 #endif
 

@@ -18,6 +18,8 @@
 
 #include "workbench_shadow_lib.glsl"
 
+VERTEX_SHADER_CREATE_INFO(workbench_shadow_fail_manifold_caps)
+
 void emit_cap(bool front,
               bool invert,
               VertOut geom_in_0,
