@@ -2752,13 +2752,19 @@ static void file_expand_directory(const Main *bmain, FileSelectParams *params)
    * but not suitable for `BLI_path_utils.hh` which is used for lower level path handling. */
 
   if (BLI_path_is_rel(params->dir)) {
-    /* Use of 'default' folder here is just to avoid an error message on '//' prefix. */
     const char *blendfile_path = BKE_main_blendfile_path(bmain);
-    BLI_path_abs(params->dir,
-                 (blendfile_path[0] != '\0') ? blendfile_path :
-                                               BKE_appdir_folder_default_or_root());
+    if (blendfile_path[0] != '\0') {
+      BLI_path_abs(params->dir, blendfile_path);
+    }
+    else {
+      /* Ignore relative paths for unsaved files.
+       * It's enough of a corner case that any attempt to resolve the path
+       * is more likely to confuse users about the meaning of `//`. */
+      params->dir[0] = '\0';
+    }
   }
-  else if (params->dir[0] == '~') {
+
+  if (params->dir[0] == '~') {
     /* While path handling expansion typically doesn't support home directory expansion
      * in Blender, this is a convenience to be able to type in a single character.
      * Even though this is a UNIX convention, it's harmless to expand on WIN32 as well. */
