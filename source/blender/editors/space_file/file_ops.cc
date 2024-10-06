@@ -2896,7 +2896,8 @@ void file_directory_enter_handle(bContext *C, void * /*arg_unused*/, void * /*ar
     }
   }
 
-  BLI_path_abs(params->dir, BKE_main_blendfile_path(bmain));
+  /* #file_expand_directory will have made absolute. */
+  BLI_assert(!BLI_path_is_rel(params->dir));
   BLI_path_normalize_dir(params->dir, sizeof(params->dir));
 
   if (filelist_is_dir(sfile->files, params->dir)) {
@@ -2952,16 +2953,11 @@ void file_filename_enter_handle(bContext *C, void * /*arg_unused*/, void *arg_bu
 
   Main *bmain = CTX_data_main(C);
   uiBut *but = static_cast<uiBut *>(arg_but);
-  char matched_file[FILE_MAX];
-
-  char filepath[sizeof(params->dir)];
-  int matches;
-  matched_file[0] = '\0';
-  filepath[0] = '\0';
 
   file_expand_directory(bmain, params);
 
-  matches = file_select_match(sfile, params->file, matched_file);
+  char matched_file[FILE_MAX] = "";
+  int matches = file_select_match(sfile, params->file, matched_file);
 
   /* It's important this runs *after* #file_select_match,
    * so making "safe" doesn't remove shell-style globing characters. */
@@ -2974,24 +2970,26 @@ void file_filename_enter_handle(bContext *C, void * /*arg_unused*/, void *arg_bu
     STRNCPY(params->file, matched_file);
 
     WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_PARAMS, nullptr);
-  }
 
-  if (matches == 1) {
-    BLI_path_join(filepath, sizeof(params->dir), params->dir, params->file);
+    if (matches == 1) {
+      char filepath[sizeof(params->dir)];
+      BLI_path_join(filepath, sizeof(params->dir), params->dir, params->file);
 
-    /* If directory, open it and empty filename field. */
-    if (filelist_is_dir(sfile->files, filepath)) {
-      BLI_path_abs(filepath, BKE_main_blendfile_path(bmain));
-      BLI_path_normalize_dir(filepath, sizeof(filepath));
-      STRNCPY(params->dir, filepath);
-      params->file[0] = '\0';
-      ED_file_change_dir(C);
-      UI_textbutton_activate_but(C, but);
-      WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_PARAMS, nullptr);
+      /* If directory, open it and empty filename field. */
+      if (filelist_is_dir(sfile->files, filepath)) {
+        BLI_path_abs(filepath, BKE_main_blendfile_path(bmain));
+        BLI_path_normalize_dir(filepath, sizeof(filepath));
+        STRNCPY(params->dir, filepath);
+        params->file[0] = '\0';
+        ED_file_change_dir(C);
+        UI_textbutton_activate_but(C, but);
+        WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_PARAMS, nullptr);
+      }
     }
-  }
-  else if (matches > 1) {
-    file_draw_check(C);
+    else {
+      BLI_assert(matches > 1);
+      file_draw_check(C);
+    }
   }
 }
 
