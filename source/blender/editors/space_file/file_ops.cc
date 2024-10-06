@@ -2746,49 +2746,43 @@ void FILE_OT_directory_new(wmOperatorType *ot)
  * \{ */
 
 /* TODO: This should go to BLI_path_utils. */
-static void file_expand_directory(bContext *C)
+static void file_expand_directory(const Main *bmain, FileSelectParams *params)
 {
-  Main *bmain = CTX_data_main(C);
-  SpaceFile *sfile = CTX_wm_space_file(C);
-  FileSelectParams *params = ED_fileselect_get_active_params(sfile);
-
-  if (params) {
-    if (BLI_path_is_rel(params->dir)) {
-      /* Use of 'default' folder here is just to avoid an error message on '//' prefix. */
-      const char *blendfile_path = BKE_main_blendfile_path(bmain);
-      BLI_path_abs(params->dir,
-                   (blendfile_path[0] != '\0') ? blendfile_path :
-                                                 BKE_appdir_folder_default_or_root());
-    }
-    else if (params->dir[0] == '~') {
-      /* While path handling expansion typically doesn't support home directory expansion
-       * in Blender, this is a convenience to be able to type in a single character.
-       * Even though this is a UNIX convention, it's harmless to expand on WIN32 as well. */
-      char tmpstr[sizeof(params->dir) - 1];
-      STRNCPY(tmpstr, params->dir + 1);
-      BLI_path_join(params->dir, sizeof(params->dir), BKE_appdir_folder_home(), tmpstr);
-    }
-
-    else if (params->dir[0] == '\0')
-#ifndef WIN32
-    {
-      params->dir[0] = '/';
-      params->dir[1] = '\0';
-    }
-#else
-    {
-      BLI_windows_get_default_root_dir(params->dir);
-    }
-    /* Change `C:` --> `C:\`, #28102. */
-    else if (BLI_path_is_win32_drive_only(params->dir)) {
-      params->dir[2] = SEP;
-      params->dir[3] = '\0';
-    }
-    else if (BLI_path_is_unc(params->dir)) {
-      BLI_path_normalize_unc(params->dir, FILE_MAX_LIBEXTRA);
-    }
-#endif
+  if (BLI_path_is_rel(params->dir)) {
+    /* Use of 'default' folder here is just to avoid an error message on '//' prefix. */
+    const char *blendfile_path = BKE_main_blendfile_path(bmain);
+    BLI_path_abs(params->dir,
+                 (blendfile_path[0] != '\0') ? blendfile_path :
+                                               BKE_appdir_folder_default_or_root());
   }
+  else if (params->dir[0] == '~') {
+    /* While path handling expansion typically doesn't support home directory expansion
+     * in Blender, this is a convenience to be able to type in a single character.
+     * Even though this is a UNIX convention, it's harmless to expand on WIN32 as well. */
+    char tmpstr[sizeof(params->dir) - 1];
+    STRNCPY(tmpstr, params->dir + 1);
+    BLI_path_join(params->dir, sizeof(params->dir), BKE_appdir_folder_home(), tmpstr);
+  }
+
+  else if (params->dir[0] == '\0')
+#ifndef WIN32
+  {
+    params->dir[0] = '/';
+    params->dir[1] = '\0';
+  }
+#else
+  {
+    BLI_windows_get_default_root_dir(params->dir);
+  }
+  /* Change `C:` --> `C:\`, #28102. */
+  else if (BLI_path_is_win32_drive_only(params->dir)) {
+    params->dir[2] = SEP;
+    params->dir[3] = '\0';
+  }
+  else if (BLI_path_is_unc(params->dir)) {
+    BLI_path_normalize_unc(params->dir, FILE_MAX_LIBEXTRA);
+  }
+#endif
 }
 
 /**
@@ -2833,140 +2827,143 @@ static bool can_create_dir(const char dir[FILE_MAX_LIBEXTRA])
 
 void file_directory_enter_handle(bContext *C, void * /*arg_unused*/, void * /*arg_but*/)
 {
-  Main *bmain = CTX_data_main(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
+  if (UNLIKELY(params == nullptr)) {
+    return;
+  }
 
-  if (params) {
-    char old_dir[sizeof(params->dir)];
+  Main *bmain = CTX_data_main(C);
+  char old_dir[sizeof(params->dir)];
 
-    STRNCPY(old_dir, params->dir);
+  STRNCPY(old_dir, params->dir);
 
-    file_expand_directory(C);
+  file_expand_directory(bmain, params);
 
-    /* special case, user may have pasted a filepath into the directory */
-    if (!filelist_is_dir(sfile->files, params->dir)) {
-      char tdir[FILE_MAX_LIBEXTRA];
-      char *group, *name;
+  /* special case, user may have pasted a filepath into the directory */
+  if (!filelist_is_dir(sfile->files, params->dir)) {
+    char tdir[FILE_MAX_LIBEXTRA];
+    char *group, *name;
 
-      if (BLI_is_file(params->dir)) {
-        char dirpath[sizeof(params->dir)];
-        STRNCPY(dirpath, params->dir);
-        BLI_path_split_dir_file(
-            dirpath, params->dir, sizeof(params->dir), params->file, sizeof(params->file));
+    if (BLI_is_file(params->dir)) {
+      char dirpath[sizeof(params->dir)];
+      STRNCPY(dirpath, params->dir);
+      BLI_path_split_dir_file(
+          dirpath, params->dir, sizeof(params->dir), params->file, sizeof(params->file));
+    }
+    else if (BKE_blendfile_library_path_explode(params->dir, tdir, &group, &name)) {
+      if (group) {
+        BLI_path_append(tdir, sizeof(tdir), group);
       }
-      else if (BKE_blendfile_library_path_explode(params->dir, tdir, &group, &name)) {
-        if (group) {
-          BLI_path_append(tdir, sizeof(tdir), group);
-        }
-        STRNCPY(params->dir, tdir);
-        if (name) {
-          STRNCPY(params->file, name);
-        }
-        else {
-          params->file[0] = '\0';
-        }
+      STRNCPY(params->dir, tdir);
+      if (name) {
+        STRNCPY(params->file, name);
+      }
+      else {
+        params->file[0] = '\0';
       }
     }
+  }
 
-    BLI_path_abs(params->dir, BKE_main_blendfile_path(bmain));
-    BLI_path_normalize_dir(params->dir, sizeof(params->dir));
+  BLI_path_abs(params->dir, BKE_main_blendfile_path(bmain));
+  BLI_path_normalize_dir(params->dir, sizeof(params->dir));
 
-    if (filelist_is_dir(sfile->files, params->dir)) {
-      if (!STREQ(params->dir, old_dir)) { /* Avoids flickering when nothing's changed. */
-        /* if directory exists, enter it immediately */
-        ED_file_change_dir(C);
-      }
-
-      /* don't do for now because it selects entire text instead of
-       * placing cursor at the end */
-      // UI_textbutton_activate_but(C, but);
+  if (filelist_is_dir(sfile->files, params->dir)) {
+    if (!STREQ(params->dir, old_dir)) { /* Avoids flickering when nothing's changed. */
+      /* if directory exists, enter it immediately */
+      ED_file_change_dir(C);
     }
-    else if (!can_create_dir(params->dir)) {
-      const char *lastdir = folderlist_peeklastdir(sfile->folders_prev);
+
+    /* don't do for now because it selects entire text instead of
+     * placing cursor at the end */
+    // UI_textbutton_activate_but(C, but);
+  }
+  else if (!can_create_dir(params->dir)) {
+    const char *lastdir = folderlist_peeklastdir(sfile->folders_prev);
+    if (lastdir) {
+      STRNCPY(params->dir, lastdir);
+    }
+  }
+  else {
+    const char *lastdir = folderlist_peeklastdir(sfile->folders_prev);
+    char tdir[FILE_MAX_LIBEXTRA];
+
+    /* If we are 'inside' a blend library, we cannot do anything... */
+    if (lastdir && BKE_blendfile_library_path_explode(lastdir, tdir, nullptr, nullptr)) {
+      STRNCPY(params->dir, lastdir);
+    }
+    else {
+      /* if not, ask to create it and enter if confirmed */
+      wmOperatorType *ot = WM_operatortype_find("FILE_OT_directory_new", false);
+      PointerRNA ptr;
+      WM_operator_properties_create_ptr(&ptr, ot);
+      RNA_string_set(&ptr, "directory", params->dir);
+      RNA_boolean_set(&ptr, "open", true);
+      /* Enable confirmation prompt, else it's too easy
+       * to accidentally create new directories. */
+      RNA_boolean_set(&ptr, "confirm", true);
+
       if (lastdir) {
         STRNCPY(params->dir, lastdir);
       }
+
+      WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr, nullptr);
+      WM_operator_properties_free(&ptr);
     }
-    else {
-      const char *lastdir = folderlist_peeklastdir(sfile->folders_prev);
-      char tdir[FILE_MAX_LIBEXTRA];
-
-      /* If we are 'inside' a blend library, we cannot do anything... */
-      if (lastdir && BKE_blendfile_library_path_explode(lastdir, tdir, nullptr, nullptr)) {
-        STRNCPY(params->dir, lastdir);
-      }
-      else {
-        /* if not, ask to create it and enter if confirmed */
-        wmOperatorType *ot = WM_operatortype_find("FILE_OT_directory_new", false);
-        PointerRNA ptr;
-        WM_operator_properties_create_ptr(&ptr, ot);
-        RNA_string_set(&ptr, "directory", params->dir);
-        RNA_boolean_set(&ptr, "open", true);
-        /* Enable confirmation prompt, else it's too easy
-         * to accidentally create new directories. */
-        RNA_boolean_set(&ptr, "confirm", true);
-
-        if (lastdir) {
-          STRNCPY(params->dir, lastdir);
-        }
-
-        WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr, nullptr);
-        WM_operator_properties_free(&ptr);
-      }
-    }
-
-    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, nullptr);
   }
+
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, nullptr);
 }
 
 void file_filename_enter_handle(bContext *C, void * /*arg_unused*/, void *arg_but)
 {
-  Main *bmain = CTX_data_main(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
+  if (UNLIKELY(params == nullptr)) {
+    return;
+  }
+
+  Main *bmain = CTX_data_main(C);
   uiBut *but = static_cast<uiBut *>(arg_but);
   char matched_file[FILE_MAX];
 
-  if (params) {
-    char filepath[sizeof(params->dir)];
-    int matches;
-    matched_file[0] = '\0';
-    filepath[0] = '\0';
+  char filepath[sizeof(params->dir)];
+  int matches;
+  matched_file[0] = '\0';
+  filepath[0] = '\0';
 
-    file_expand_directory(C);
+  file_expand_directory(bmain, params);
 
-    matches = file_select_match(sfile, params->file, matched_file);
+  matches = file_select_match(sfile, params->file, matched_file);
 
-    /* *After* file_select_match! */
-    const bool allow_tokens = (params->flag & FILE_PATH_TOKENS_ALLOW) != 0;
-    BLI_path_make_safe_filename_ex(params->file, allow_tokens);
+  /* *After* file_select_match! */
+  const bool allow_tokens = (params->flag & FILE_PATH_TOKENS_ALLOW) != 0;
+  BLI_path_make_safe_filename_ex(params->file, allow_tokens);
 
-    if (matches) {
-      /* replace the pattern (or filename that the user typed in,
-       * with the first selected file of the match */
-      STRNCPY(params->file, matched_file);
+  if (matches) {
+    /* replace the pattern (or filename that the user typed in,
+     * with the first selected file of the match */
+    STRNCPY(params->file, matched_file);
 
+    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_PARAMS, nullptr);
+  }
+
+  if (matches == 1) {
+    BLI_path_join(filepath, sizeof(params->dir), params->dir, params->file);
+
+    /* if directory, open it and empty filename field */
+    if (filelist_is_dir(sfile->files, filepath)) {
+      BLI_path_abs(filepath, BKE_main_blendfile_path(bmain));
+      BLI_path_normalize_dir(filepath, sizeof(filepath));
+      STRNCPY(params->dir, filepath);
+      params->file[0] = '\0';
+      ED_file_change_dir(C);
+      UI_textbutton_activate_but(C, but);
       WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_PARAMS, nullptr);
     }
-
-    if (matches == 1) {
-      BLI_path_join(filepath, sizeof(params->dir), params->dir, params->file);
-
-      /* if directory, open it and empty filename field */
-      if (filelist_is_dir(sfile->files, filepath)) {
-        BLI_path_abs(filepath, BKE_main_blendfile_path(bmain));
-        BLI_path_normalize_dir(filepath, sizeof(filepath));
-        STRNCPY(params->dir, filepath);
-        params->file[0] = '\0';
-        ED_file_change_dir(C);
-        UI_textbutton_activate_but(C, but);
-        WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_PARAMS, nullptr);
-      }
-    }
-    else if (matches > 1) {
-      file_draw_check(C);
-    }
+  }
+  else if (matches > 1) {
+    file_draw_check(C);
   }
 }
 
