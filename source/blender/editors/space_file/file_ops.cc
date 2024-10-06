@@ -2745,9 +2745,12 @@ void FILE_OT_directory_new(wmOperatorType *ot)
 /** \name Refresh File List Operator
  * \{ */
 
-/* TODO: This should go to BLI_path_utils. */
 static void file_expand_directory(const Main *bmain, FileSelectParams *params)
 {
+  /* NOTE: Arbitrary conventions are used here which are OK for user facing logic
+   * Attempting to resolve the path to *something* valid is OK for user input
+   * but not suitable for `BLI_path_utils.hh` which is used for lower level path handling. */
+
   if (BLI_path_is_rel(params->dir)) {
     /* Use of 'default' folder here is just to avoid an error message on '//' prefix. */
     const char *blendfile_path = BKE_main_blendfile_path(bmain);
@@ -2780,16 +2783,36 @@ static void file_expand_directory(const Main *bmain, FileSelectParams *params)
     params->dir[3] = '\0';
   }
   else if (BLI_path_is_unc(params->dir)) {
-    BLI_path_normalize_unc(params->dir, FILE_MAX_LIBEXTRA);
+    BLI_path_normalize_unc(params->dir, sizeof(params->dir));
   }
 #endif
 }
 
 /**
  * \param dir: A normalized path (from user input).
+ * \return True when `dir` can be created.
  */
-static bool can_create_dir(const char dir[FILE_MAX_LIBEXTRA])
+static bool can_create_dir_from_user_input(const char dir[FILE_MAX_LIBEXTRA])
 {
+  /* NOTE(@ideasman42): This function checks if the user should be prompted
+   * to create the path when a non-existent path is entered into the directory field.
+   *
+   * Typically when the intention is to create a path, it's simply created only showing
+   * feedback if the operation failed. In the case of entering a path as text any typo
+   * in the would immediately be created (if possible) which isn't good, see: #128567.
+   *
+   * The reason to treat user input differently here is the user could input anything,
+   * Values such as a single space for e.g. this resolves to the current-working-directory:
+   * `$PWD/ ` which is a valid path name and could be created
+   * (this was in fact the behavior until v4.4).
+   *
+   * As this can be error prone, performs basic sanity checks on `dir`.
+   * - Ensure it's an absolute path.
+   * - It contains a writable parent path.
+   * - For WIN32: The UNC path is a directory and not a "share".
+   *
+   * While these checks don't need to be comprehensive,
+   * they should prevent accidents and confusing situations. */
 
   /* If the user types in a name with no absolute prefix,
    * creating a directory relative to the CWD doesn't make sense from the UI. */
@@ -2825,6 +2848,14 @@ static bool can_create_dir(const char dir[FILE_MAX_LIBEXTRA])
   return true;
 }
 
+/**
+ * This callback runs when the user has entered a new path in the file selectors directory field.
+ *
+ * Expand & normalize the path then:
+ * - Change the path when it exists.
+ * - Prompt the user to create the path if it doesn't
+ *   (providing it passes basic sanity checks).
+ */
 void file_directory_enter_handle(bContext *C, void * /*arg_unused*/, void * /*arg_but*/)
 {
   SpaceFile *sfile = CTX_wm_space_file(C);
@@ -2840,7 +2871,7 @@ void file_directory_enter_handle(bContext *C, void * /*arg_unused*/, void * /*ar
 
   file_expand_directory(bmain, params);
 
-  /* special case, user may have pasted a filepath into the directory */
+  /* Special case, user may have pasted a path including a file-name into the directory. */
   if (!filelist_is_dir(sfile->files, params->dir)) {
     char tdir[FILE_MAX_LIBEXTRA];
     char *group, *name;
@@ -2869,16 +2900,13 @@ void file_directory_enter_handle(bContext *C, void * /*arg_unused*/, void * /*ar
   BLI_path_normalize_dir(params->dir, sizeof(params->dir));
 
   if (filelist_is_dir(sfile->files, params->dir)) {
-    if (!STREQ(params->dir, old_dir)) { /* Avoids flickering when nothing's changed. */
-      /* if directory exists, enter it immediately */
+    /* Avoids flickering when nothing's changed. */
+    if (!STREQ(params->dir, old_dir)) {
+      /* If directory exists, enter it immediately. */
       ED_file_change_dir(C);
     }
-
-    /* don't do for now because it selects entire text instead of
-     * placing cursor at the end */
-    // UI_textbutton_activate_but(C, but);
   }
-  else if (!can_create_dir(params->dir)) {
+  else if (!can_create_dir_from_user_input(params->dir)) {
     const char *lastdir = folderlist_peeklastdir(sfile->folders_prev);
     if (lastdir) {
       STRNCPY(params->dir, lastdir);
@@ -2888,19 +2916,18 @@ void file_directory_enter_handle(bContext *C, void * /*arg_unused*/, void * /*ar
     const char *lastdir = folderlist_peeklastdir(sfile->folders_prev);
     char tdir[FILE_MAX_LIBEXTRA];
 
-    /* If we are 'inside' a blend library, we cannot do anything... */
+    /* If we are "inside" a `.blend` library, we cannot do anything. */
     if (lastdir && BKE_blendfile_library_path_explode(lastdir, tdir, nullptr, nullptr)) {
       STRNCPY(params->dir, lastdir);
     }
     else {
-      /* if not, ask to create it and enter if confirmed */
+      /* If not, ask to create it and enter if confirmed. */
       wmOperatorType *ot = WM_operatortype_find("FILE_OT_directory_new", false);
       PointerRNA ptr;
       WM_operator_properties_create_ptr(&ptr, ot);
       RNA_string_set(&ptr, "directory", params->dir);
       RNA_boolean_set(&ptr, "open", true);
-      /* Enable confirmation prompt, else it's too easy
-       * to accidentally create new directories. */
+      /* Enable confirmation prompt, else it's too easy to accidentally create new directories. */
       RNA_boolean_set(&ptr, "confirm", true);
 
       if (lastdir) {
@@ -2936,13 +2963,14 @@ void file_filename_enter_handle(bContext *C, void * /*arg_unused*/, void *arg_bu
 
   matches = file_select_match(sfile, params->file, matched_file);
 
-  /* *After* file_select_match! */
+  /* It's important this runs *after* #file_select_match,
+   * so making "safe" doesn't remove shell-style globing characters. */
   const bool allow_tokens = (params->flag & FILE_PATH_TOKENS_ALLOW) != 0;
   BLI_path_make_safe_filename_ex(params->file, allow_tokens);
 
   if (matches) {
-    /* replace the pattern (or filename that the user typed in,
-     * with the first selected file of the match */
+    /* Replace the pattern (or filename that the user typed in,
+     * with the first selected file of the match. */
     STRNCPY(params->file, matched_file);
 
     WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_PARAMS, nullptr);
@@ -2951,7 +2979,7 @@ void file_filename_enter_handle(bContext *C, void * /*arg_unused*/, void *arg_bu
   if (matches == 1) {
     BLI_path_join(filepath, sizeof(params->dir), params->dir, params->file);
 
-    /* if directory, open it and empty filename field */
+    /* If directory, open it and empty filename field. */
     if (filelist_is_dir(sfile->files, filepath)) {
       BLI_path_abs(filepath, BKE_main_blendfile_path(bmain));
       BLI_path_normalize_dir(filepath, sizeof(filepath));
