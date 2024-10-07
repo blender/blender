@@ -1142,6 +1142,23 @@ static_assert(sizeof(ChannelGroup) == sizeof(::bActionGroup),
  */
 Action &action_add(Main &bmain, StringRefNull name);
 
+/* ---------- Action & Slot Assignment --------------- */
+
+enum class ActionSlotAssignmentResult : int8_t {
+  OK = 0,
+  SlotNotFromAction = 1, /* Slot does not belong to the assigned Action. */
+  SlotNotSuitable = 2,   /* Slot is not suitable for the given ID type.*/
+  MissingAction = 3,     /* No Action assigned yet, so cannot assign slot. */
+};
+
+/**
+ * Return whether the given Action can be assigned to the ID.
+ *
+ * This always returns `true` for layered Actions. For legacy Actions it
+ * returns `true` if the Action's `idroot` matches the ID.
+ */
+[[nodiscard]] bool is_action_assignable_to(const bAction *dna_action, ID_Type id_code);
+
 /**
  * Assign the Action to the ID.
  *
@@ -1172,28 +1189,19 @@ Action &action_add(Main &bmain, StringRefNull name);
  */
 [[nodiscard]] bool assign_action(bAction *action, OwnedAnimData owned_adt);
 
-/**
- * Same as assign_action, except it assigns to #AnimData::tmpact and #AnimData::tmp_slot_handle.
- */
-[[nodiscard]] bool assign_tmpaction(bAction *action, OwnedAnimData owned_adt);
+ActionSlotAssignmentResult assign_action_slot(Slot *slot_to_assign, ID &animated_id);
 
 /**
- * Un-assign the Action assigned to this ID.
+ * Utility function that assigns both an Action and a slot of that Action.
  *
- * Same as calling `assign_action(nullptr, animated_id)`.
+ * Returns the result of the underlying assign_action_slot() call.
  *
- * \see #blender::animrig::assign_action(ID &animated_id)
+ * \see assign_action
+ * \see assign_action_slot
  */
-[[nodiscard]] bool unassign_action(ID &animated_id);
-
-/**
- * Un-assign the Action assigned to this ID.
- *
- * Same as calling `assign_action(nullptr, owned_adt)`.
- *
- * \see #blender::animrig::assign_action(OwnedAnimData owned_adt)
- */
-[[nodiscard]] bool unassign_action(OwnedAnimData owned_adt);
+ActionSlotAssignmentResult assign_action_and_slot(Action *action,
+                                                  Slot *slot_to_assign,
+                                                  ID &animated_id);
 
 /**
  * Assign the Action, ensuring that a Slot is also assigned.
@@ -1216,6 +1224,32 @@ Action &action_add(Main &bmain, StringRefNull name);
 [[nodiscard]] Slot *assign_action_ensure_slot_for_keying(Action &action, ID &animated_id);
 
 /**
+ * Same as assign_action, except it assigns to #AnimData::tmpact and #AnimData::tmp_slot_handle.
+ */
+[[nodiscard]] bool assign_tmpaction(bAction *action, OwnedAnimData owned_adt);
+
+[[nodiscard]] ActionSlotAssignmentResult assign_tmpaction_and_slot_handle(
+    bAction *action, slot_handle_t slot_handle, OwnedAnimData owned_adt);
+
+/**
+ * Un-assign the Action assigned to this ID.
+ *
+ * Same as calling `assign_action(nullptr, animated_id)`.
+ *
+ * \see #blender::animrig::assign_action(ID &animated_id)
+ */
+[[nodiscard]] bool unassign_action(ID &animated_id);
+
+/**
+ * Un-assign the Action assigned to this ID.
+ *
+ * Same as calling `assign_action(nullptr, owned_adt)`.
+ *
+ * \see #blender::animrig::assign_action(OwnedAnimData owned_adt)
+ */
+[[nodiscard]] bool unassign_action(OwnedAnimData owned_adt);
+
+/**
  * Generic function to build Action-assignment logic.
  *
  * This is a low-level function, intended as a building block for higher-level Action assignment
@@ -1228,24 +1262,17 @@ Action &action_add(Main &bmain, StringRefNull name);
                                          slot_handle_t &slot_handle_ref,
                                          char *slot_name);
 
-enum class ActionSlotAssignmentResult : int8_t {
-  OK = 0,
-  SlotNotFromAction = 1, /* Slot does not belong to the assigned Action. */
-  SlotNotSuitable = 2,   /* Slot is not suitable for the given ID type.*/
-  MissingAction = 3,     /* No Action assigned yet, so cannot assign slot. */
-};
-
 /**
  * Generic function to build Slot-assignment logic.
  *
  * This is a low-level function, intended as a building block for higher-level slot assignment
  * functions.
  */
-ActionSlotAssignmentResult generic_assign_action_slot(Slot *slot_to_assign,
-                                                      ID &animated_id,
-                                                      bAction *&action_ptr_ref,
-                                                      slot_handle_t &slot_handle_ref,
-                                                      char *slot_name) ATTR_WARN_UNUSED_RESULT;
+[[nodiscard]] ActionSlotAssignmentResult generic_assign_action_slot(Slot *slot_to_assign,
+                                                                    ID &animated_id,
+                                                                    bAction *&action_ptr_ref,
+                                                                    slot_handle_t &slot_handle_ref,
+                                                                    char *slot_name);
 
 /**
  * Generic function to build Slot Handle-assignment logic.
@@ -1253,37 +1280,14 @@ ActionSlotAssignmentResult generic_assign_action_slot(Slot *slot_to_assign,
  * This is a low-level function, intended as a building block for higher-level slot handle
  * assignment functions.
  */
-ActionSlotAssignmentResult generic_assign_action_slot_handle(slot_handle_t slot_handle_to_assign,
-                                                             ID &animated_id,
-                                                             bAction *&action_ptr_ref,
-                                                             slot_handle_t &slot_handle_ref,
-                                                             char *slot_name)
-    ATTR_WARN_UNUSED_RESULT;
+[[nodiscard]] ActionSlotAssignmentResult generic_assign_action_slot_handle(
+    slot_handle_t slot_handle_to_assign,
+    ID &animated_id,
+    bAction *&action_ptr_ref,
+    slot_handle_t &slot_handle_ref,
+    char *slot_name);
 
-/**
- * Return whether the given Action can be assigned to the ID.
- *
- * This always returns `true` for layered Actions. For legacy Actions it
- * returns `true` if the Action's `idroot` matches the ID.
- */
-bool is_action_assignable_to(const bAction *dna_action, ID_Type id_code) ATTR_WARN_UNUSED_RESULT;
-
-ActionSlotAssignmentResult assign_action_slot(Slot *slot_to_assign, ID &animated_id);
-
-/**
- * Utility function that assigns both an Action and a slot of that Action.
- *
- * Returns the result of the underlying assign_action_slot() call.
- *
- * \see assign_action
- * \see assign_action_slot
- */
-ActionSlotAssignmentResult assign_action_and_slot(Action *action,
-                                                  Slot *slot_to_assign,
-                                                  ID &animated_id);
-
-[[nodiscard]] ActionSlotAssignmentResult assign_tmpaction_and_slot_handle(
-    bAction *action, slot_handle_t slot_handle, OwnedAnimData owned_adt);
+/* --------------- Accessors --------------------- */
 
 /**
  * Return the Action of this ID, or nullptr if it has none.
