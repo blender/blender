@@ -75,9 +75,17 @@ const char *GHOST_SystemPathsUnix::getUserDir(int version, const char *versionst
     else {
       home = getenv("HOME");
       if (home == nullptr) {
-        home = getpwuid(getuid())->pw_dir;
+        if (const passwd *pwuser = getpwuid(getuid())) {
+          home = pwuser->pw_dir;
+        }
       }
-      user_path = string(home) + "/.config/blender/" + versionstr;
+
+      if (home) {
+        user_path = string(home) + "/.config/blender/" + versionstr;
+      }
+      else {
+        return nullptr;
+      }
     }
   }
 
