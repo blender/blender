@@ -196,6 +196,7 @@ static void calc_faces(const Depsgraph &depsgraph,
     calc_brush_strength_factors(cache, brush, distances, factors);
 
     auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
+    calc_brush_texture_factors(ss, brush, positions, factors);
     scale_factors(factors, cache.bstrength);
   }
 
@@ -259,6 +260,7 @@ static void calc_grids(const Depsgraph &depsgraph,
 
     auto_mask::calc_grids_factors(
         depsgraph, object, cache.automasking.get(), node, grids, factors);
+    calc_brush_texture_factors(ss, brush, positions, factors);
     scale_factors(factors, cache.bstrength);
   }
 
@@ -321,6 +323,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
     calc_brush_strength_factors(cache, brush, distances, factors);
 
     auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
+    calc_brush_texture_factors(ss, brush, positions, factors);
     scale_factors(factors, cache.bstrength);
   }
 
