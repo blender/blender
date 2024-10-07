@@ -859,53 +859,50 @@ static void gather_attributes_for_propagation(
     const bke::AttributeFilter &attribute_filter,
     Map<StringRef, AttributeKind> &r_attributes)
 {
-  /* Only needed right now to check if an attribute is built-in on this component type.
-   * TODO: Get rid of the dummy component. */
-  const bke::GeometryComponentPtr dummy_component = bke::GeometryComponent::create(
-      dst_component_type);
-  attribute_foreach(geometry_set,
-                    component_types,
-                    0,
-                    VariedDepthOptions::MAX_DEPTH,
-                    instance_depth,
-                    selection,
-                    [&](const StringRef attribute_id,
-                        const AttributeMetaData &meta_data,
-                        const bke::GeometryComponent &component) {
-                      if (component.attributes()->is_builtin(attribute_id)) {
-                        if (!dummy_component->attributes()->is_builtin(attribute_id)) {
-                          /* Don't propagate built-in attributes that are not built-in on the
-                           * destination component. */
-                          return;
-                        }
-                      }
-                      if (meta_data.data_type == CD_PROP_STRING) {
-                        /* Propagating string attributes is not supported yet. */
-                        return;
-                      }
-                      if (attribute_filter.allow_skip(attribute_id)) {
-                        return;
-                      }
+  attribute_foreach(
+      geometry_set,
+      component_types,
+      0,
+      VariedDepthOptions::MAX_DEPTH,
+      instance_depth,
+      selection,
+      [&](const StringRef attribute_id,
+          const AttributeMetaData &meta_data,
+          const bke::GeometryComponent &component) {
+        if (component.attributes()->is_builtin(attribute_id)) {
+          if (!bke::attribute_is_builtin_on_component_type(dst_component_type, attribute_id)) {
+            /* Don't propagate built-in attributes that are not built-in on the
+             * destination component. */
+            return;
+          }
+        }
+        if (meta_data.data_type == CD_PROP_STRING) {
+          /* Propagating string attributes is not supported yet. */
+          return;
+        }
+        if (attribute_filter.allow_skip(attribute_id)) {
+          return;
+        }
 
-                      AttrDomain domain = meta_data.domain;
-                      if (dst_component_type != bke::GeometryComponent::Type::Instance &&
-                          domain == AttrDomain::Instance)
-                      {
-                        domain = AttrDomain::Point;
-                      }
+        AttrDomain domain = meta_data.domain;
+        if (dst_component_type != bke::GeometryComponent::Type::Instance &&
+            domain == AttrDomain::Instance)
+        {
+          domain = AttrDomain::Point;
+        }
 
-                      auto add_info = [&](AttributeKind *attribute_kind) {
-                        attribute_kind->domain = domain;
-                        attribute_kind->data_type = meta_data.data_type;
-                      };
-                      auto modify_info = [&](AttributeKind *attribute_kind) {
-                        attribute_kind->domain = bke::attribute_domain_highest_priority(
-                            {attribute_kind->domain, domain});
-                        attribute_kind->data_type = bke::attribute_data_type_highest_complexity(
-                            {attribute_kind->data_type, meta_data.data_type});
-                      };
-                      r_attributes.add_or_modify(attribute_id, add_info, modify_info);
-                    });
+        auto add_info = [&](AttributeKind *attribute_kind) {
+          attribute_kind->domain = domain;
+          attribute_kind->data_type = meta_data.data_type;
+        };
+        auto modify_info = [&](AttributeKind *attribute_kind) {
+          attribute_kind->domain = bke::attribute_domain_highest_priority(
+              {attribute_kind->domain, domain});
+          attribute_kind->data_type = bke::attribute_data_type_highest_complexity(
+              {attribute_kind->data_type, meta_data.data_type});
+        };
+        r_attributes.add_or_modify(attribute_id, add_info, modify_info);
+      });
 }
 
 /** \} */
