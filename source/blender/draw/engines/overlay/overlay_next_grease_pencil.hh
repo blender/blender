@@ -189,7 +189,7 @@ class GreasePencil {
       return;
     }
 
-    if (ob_ref.object != state.active_base->object) {
+    if ((!state.active_base) || (ob_ref.object != state.active_base->object)) {
       /* Only display for the active object. */
       return;
     }
