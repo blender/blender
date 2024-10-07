@@ -46,7 +46,7 @@ struct VariedDepthOptions {
   /**
    * Use this value to realize the instance completely
    */
-  static const int MAX_DEPTH = -1;
+  static constexpr int MAX_DEPTH = -1;
 };
 
 /**
