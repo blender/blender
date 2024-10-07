@@ -324,16 +324,14 @@ static void node_declare(NodeDeclarationBuilder &b)
       const StringRef name = item.name ? item.name : "";
       const std::string identifier =
           ForeachGeometryElementInputItemsAccessor::socket_identifier_for_item(item);
-      auto &input_decl = b.add_input(socket_type, name, identifier)
-                             .socket_name_ptr(&tree->id,
-                                              ForeachGeometryElementInputItemsAccessor::item_srna,
-                                              &item,
-                                              "name")
-                             .description("Field that is evaluated on the iteration domain");
+      b.add_input(socket_type, name, identifier)
+          .socket_name_ptr(
+              &tree->id, ForeachGeometryElementInputItemsAccessor::item_srna, &item, "name")
+          .description("Field that is evaluated on the iteration domain")
+          .field_on_all();
       b.add_output(socket_type, name, identifier)
           .align_with_previous()
           .description("Evaluated field value for the current element");
-      input_decl.supports_field();
     }
   }
 
@@ -445,7 +443,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 
     auto &panel = b.add_panel("Generated");
 
-    int previous_geometry_index = -1;
+    int previous_output_geometry_index = -1;
+    int previous_input_geometry_index = -1;
     for (const int i : IndexRange(storage.generation_items.items_num)) {
       const NodeForeachGeometryElementGenerationItem &item = storage.generation_items.items[i];
       const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
@@ -463,7 +462,8 @@ static void node_declare(NodeDeclarationBuilder &b)
                                  "name");
       auto &output_decl = panel.add_output(socket_type, name, identifier).align_with_previous();
       if (socket_type == SOCK_GEOMETRY) {
-        previous_geometry_index = output_decl.index();
+        previous_input_geometry_index = input_decl.index();
+        previous_output_geometry_index = output_decl.index();
         aal::PropagateRelation relation;
         relation.from_geometry_input = input_decl.index();
         relation.to_geometry_output = output_decl.index();
@@ -475,10 +475,10 @@ static void node_declare(NodeDeclarationBuilder &b)
         output_decl.description("Result of joining generated geometries from each iteration");
       }
       else {
-        input_decl.supports_field();
-        if (previous_geometry_index > 0) {
+        if (previous_output_geometry_index > 0) {
           input_decl.description("Field that will be stored as attribute on the geometry above");
-          output_decl.field_on({previous_geometry_index});
+          input_decl.field_on({previous_input_geometry_index});
+          output_decl.field_on({previous_output_geometry_index});
         }
         output_decl.description("Attribute on the geometry above");
       }
