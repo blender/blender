@@ -631,6 +631,8 @@ class RealtimeCompositor {
   /* Evaluate the compositor and output to the scene render result. */
   void execute(const ContextInputData &input_data)
   {
+    context_->update_input_data(input_data);
+
     if (context_->use_gpu()) {
       /* For main thread rendering in background mode, blocking rendering, or when we do not have a
        * render system GPU context, use the DRW context directly, while for threaded rendering when
@@ -650,8 +652,6 @@ class RealtimeCompositor {
         GPU_context_active_set(static_cast<GPUContext *>(re_blender_gpu_context));
       }
     }
-
-    context_->update_input_data(input_data);
 
     /* Always recreate the evaluator, as this only runs on compositing node changes and
      * there is no reason to cache this. Unlike the viewport where it helps for navigation. */
