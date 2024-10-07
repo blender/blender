@@ -118,7 +118,8 @@ void VKScheduler::move_transfer_and_dispatch_outside_rendering_scope(
 
     /* Move buffer update buffer commands to before the rendering scope, unless the buffer is
      * already being used by a draw command. Images modification could also be moved outside the
-     * rendering scope, but it is more tricky as they could also be attached to the framebuffer. */
+     * rendering scope, but it is more tricky as they could also be attached to the frame-buffer.
+     */
     pre_rendering_scope.clear();
     rendering_scope.clear();
     used_buffers.clear();
