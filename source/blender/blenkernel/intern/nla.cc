@@ -2175,10 +2175,8 @@ bool BKE_nla_action_stash(const OwnedAnimData owned_adt, const bool is_liboverri
   /* add the action as a strip in this new track
    * NOTE: a new user is created here
    */
-  strip = BKE_nlastrip_new(adt->action, owned_adt.owner_id);
+  strip = BKE_nlastrip_new_for_slot(adt->action, adt->slot_handle, owned_adt.owner_id);
   BLI_assert(strip != nullptr);
-
-  animrig::nla::assign_action_slot_handle(*strip, adt->slot_handle, owned_adt.owner_id);
 
   BKE_nlatrack_add_strip(nlt, strip, is_liboverride);
   BKE_nlastrip_validate_name(adt, strip);
