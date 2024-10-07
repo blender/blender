@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'd52d70324d18')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'6039cb17e63e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-16 11:03+0000\n"
+"POT-Creation-Date: 2024-10-07 09:15+0000\n"
 "PO-Revision-Date: 2024-05-23 14:56+0000\n"
 "Last-Translator: leif larsen <linuxdk1978@gmail.com>\n"
 "Language-Team: Danish <https://translate.blender.org/projects/blender-ui/ui/da/>\n"
@@ -53,10 +53,6 @@ msgstr "Liste over AOVs"
 
 msgid "Collection of AOVs"
 msgstr "Samling af AOVs"
-
-
-msgid "F-Curves"
-msgstr "F-curves"
 
 
 msgid "Action F-Curves"
@@ -243,34 +239,6 @@ msgid "Collection of action groups"
 msgstr "Samling af handlingsgrupper"
 
 
-msgid "Influence"
-msgstr "Indflydelse"
-
-
-msgid "Mix Mode"
-msgstr "Blandingstilstand"
-
-
-msgid "Replace"
-msgstr "Udskift"
-
-
-msgid "Add"
-msgstr "Tilføj"
-
-
-msgid "Subtract"
-msgstr "Fratrække"
-
-
-msgid "Multiply"
-msgstr "Gange"
-
-
-msgid "Strips"
-msgstr "stimmel"
-
-
 msgid "Action Pose Markers"
 msgstr "Handling poserings markøre"
 
@@ -293,18 +261,6 @@ msgstr "Aktiv poséringsmarkør indeks"
 
 msgid "Index of active pose marker"
 msgstr "Indeks for aktive poséringsmarkører"
-
-
-msgid "Active"
-msgstr "Aktiv"
-
-
-msgid "Show Expanded"
-msgstr "Vis udvidet"
-
-
-msgid "Keyframe"
-msgstr "Nøglebillede"
 
 
 msgid "Add-on"
@@ -535,6 +491,10 @@ msgid "Method used for combining Active Action's result with result of NLA stack
 msgstr "Metode brugt til at kombinere Active Actions resultat med resultat af NLA stak"
 
 
+msgid "Replace"
+msgstr "Udskift"
+
+
 msgid "The strip values replace the accumulated results by amount specified by influence"
 msgstr "Stripværdierne erstatter de akkumulerede resultater med mængde specificeret ved indflydelse"
 
@@ -547,12 +507,24 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "Stripværdierne kombineres med akkumulerede resultater ved passende at bruge addition, multiplikation eller quaternion matematik baseret på kanaltype"
 
 
+msgid "Add"
+msgstr "Tilføj"
+
+
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "Det vægtede resultat af strimlen føjes til de akkumulerede resultater"
 
 
+msgid "Subtract"
+msgstr "Fratrække"
+
+
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "Det vægtede resultat af strimlen fjernes fra de akkumulerede resultater"
+
+
+msgid "Multiply"
+msgstr "Gange"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -1674,10 +1646,6 @@ msgid "Active Attribute Index"
 msgstr "Aktivt attributindeks"
 
 
-msgid "Active attribute index"
-msgstr "Aktivt attributindeks"
-
-
 msgid "Active Color"
 msgstr "Aktiv farve"
 
@@ -1974,6 +1942,46 @@ msgid "Weight"
 msgstr "Vægt"
 
 
+msgid "Armature"
+msgstr "Armatur"
+
+
+msgid "Camera"
+msgstr "Kamera"
+
+
+msgid "Image"
+msgstr "Billede"
+
+
+msgid "Key"
+msgstr "Nøgle"
+
+
+msgid "Material"
+msgstr "Materiale"
+
+
+msgid "Mesh"
+msgstr "Maske"
+
+
+msgid "Movie Clip"
+msgstr "Film klip"
+
+
+msgid "Scene"
+msgstr "Scene"
+
+
+msgid "Sound"
+msgstr "Lyd"
+
+
+msgid "Text"
+msgstr "Tekst"
+
+
 msgid "Level"
 msgstr "Niveau"
 
@@ -2026,8 +2034,8 @@ msgid "Mode"
 msgstr "tilstand"
 
 
-msgid "Material"
-msgstr "Materiale"
+msgid "Active"
+msgstr "Aktiv"
 
 
 msgid "Direction"
@@ -2114,10 +2122,6 @@ msgid "Crop"
 msgstr "Beskær"
 
 
-msgid "Image"
-msgstr "Billede"
-
-
 msgid "Image displayed and edited in this space"
 msgstr "Billedet vises og redigeres i dette rum"
 
@@ -2146,6 +2150,10 @@ msgid "Show this image as background"
 msgstr "Vis dette billede som baggrund"
 
 
+msgid "Show Expanded"
+msgstr "Vis udvidet"
+
+
 msgid "Show On Foreground"
 msgstr "Vis på forgrunden"
 
@@ -2160,10 +2168,6 @@ msgstr "Baggrunds kilde"
 
 msgid "Data source used for background"
 msgstr "Datakilde brugt til baggrund"
-
-
-msgid "Movie Clip"
-msgstr "Film klip"
 
 
 msgid "Camera Clip"
@@ -2234,6 +2238,10 @@ msgid "Temperature"
 msgstr "Temperatur"
 
 
+msgid "Influence"
+msgstr "Indflydelse"
+
+
 msgid "Disable"
 msgstr "Deaktivere"
 
@@ -2278,8 +2286,8 @@ msgid "Locked Track"
 msgstr "Låst spor"
 
 
-msgid "Armature"
-msgstr "Armatur"
+msgid "Mix Mode"
+msgstr "Blandingstilstand"
 
 
 msgid "Target object"
@@ -2306,10 +2314,6 @@ msgid "Up Axis"
 msgstr "Op akse"
 
 
-msgid "Camera"
-msgstr "Kamera"
-
-
 msgid "Bone"
 msgstr "Knogle"
 
@@ -2328,10 +2332,6 @@ msgstr "Lokation"
 
 msgid "Depth"
 msgstr "Dybte"
-
-
-msgid "Scene"
-msgstr "Scene"
 
 
 msgid "Invert"
@@ -2383,6 +2383,10 @@ msgid "Visibility"
 msgstr "Synlighed"
 
 
+msgid "Keyframe"
+msgstr "Nøglebillede"
+
+
 msgid "Blend Mode"
 msgstr "Blandings måde"
 
@@ -2391,20 +2395,8 @@ msgid "Ping Pong"
 msgstr "Ping pong"
 
 
-msgid "Key"
-msgstr "Nøgle"
-
-
-msgid "Mesh"
-msgstr "Maske"
-
-
-msgid "Sound"
-msgstr "Lyd"
-
-
-msgid "Text"
-msgstr "Tekst"
+msgid "F-Curves"
+msgstr "F-curves"
 
 
 msgid "B-Bone"
@@ -2734,6 +2726,10 @@ msgstr "Følsomhed"
 
 msgid "Dynamics"
 msgstr "dynamik"
+
+
+msgid "Strips"
+msgstr "stimmel"
 
 
 msgid "Timeline"
