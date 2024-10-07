@@ -9,15 +9,12 @@ CCL_NAMESPACE_BEGIN
 /* Given a random number, sample a direction that makes an angle of theta with direction D. */
 ccl_device float3 phase_sample_direction(float3 D, float cos_theta, float rand)
 {
-  float sin_theta = sin_from_cos(cos_theta);
   float phi = M_2PI_F * rand;
-  float3 dir = make_float3(sin_theta * cosf(phi), sin_theta * sinf(phi), cos_theta);
+  float3 dir = spherical_cos_to_direction(cos_theta, phi);
 
   float3 T, B;
   make_orthonormals(D, &T, &B);
-  dir = dir.x * T + dir.y * B + dir.z * D;
-
-  return dir;
+  return to_global(dir, T, B, D);
 }
 
 /* Given cosine between rays, return probability density that a photon bounces

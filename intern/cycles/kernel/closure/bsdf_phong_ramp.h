@@ -96,9 +96,7 @@ ccl_device int bsdf_phong_ramp_sample(ccl_private const ShaderClosure *sc,
     make_orthonormals(R, &T, &B);
     float phi = M_2PI_F * rand.x;
     float cosTheta = powf(rand.y, 1 / (m_exponent + 1));
-    float sinTheta2 = 1 - cosTheta * cosTheta;
-    float sinTheta = sinTheta2 > 0 ? sqrtf(sinTheta2) : 0;
-    *wo = (cosf(phi) * sinTheta) * T + (sinf(phi) * sinTheta) * B + (cosTheta)*R;
+    *wo = to_global(spherical_cos_to_direction(cosTheta, phi), T, B, R);
     if (dot(Ng, *wo) > 0.0f) {
       // common terms for pdf and eval
       float cosNO = dot(bsdf->N, *wo);

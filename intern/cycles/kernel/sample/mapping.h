@@ -29,7 +29,7 @@ ccl_device float2 sample_uniform_disk(const float2 rand)
     phi = M_PI_2_F - M_PI_4_F * (a / b);
   }
 
-  return make_float2(r * cosf(phi), r * sinf(phi));
+  return polar_to_cartesian(r, phi);
 }
 
 /* return an orthogonal tangent and bitangent given a normal and tangent that
@@ -168,10 +168,8 @@ ccl_device float3 sample_uniform_sphere(const float2 rand)
   float z = 1.0f - 2.0f * rand.x;
   float r = sin_from_cos(z);
   float phi = M_2PI_F * rand.y;
-  float x = r * cosf(phi);
-  float y = r * sinf(phi);
 
-  return make_float3(x, y, z);
+  return float2_to_float3(polar_to_cartesian(r, phi), z);
 }
 
 /* sample point in unit polygon with given number of corners and rotation */

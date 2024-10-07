@@ -139,13 +139,12 @@ ccl_device_forceinline float diffusion_length_dwivedi(float alpha)
 
 ccl_device_forceinline float3 direction_from_cosine(float3 D, float cos_theta, float randv)
 {
-  float sin_theta = sin_from_cos(cos_theta);
   float phi = M_2PI_F * randv;
-  float3 dir = make_float3(sin_theta * cosf(phi), sin_theta * sinf(phi), cos_theta);
+  float3 dir = spherical_cos_to_direction(cos_theta, phi);
 
   float3 T, B;
   make_orthonormals(D, &T, &B);
-  return dir.x * T + dir.y * B + dir.z * D;
+  return to_global(dir, T, B, D);
 }
 
 ccl_device_forceinline Spectrum subsurface_random_walk_pdf(Spectrum sigma_t,

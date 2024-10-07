@@ -264,8 +264,8 @@ ccl_device Spectrum bsdf_hair_chiang_eval(KernelGlobals kg,
   const float3 Z = safe_normalize(cross(X, Y));
 
   /* local_I is the illumination direction. */
-  const float3 local_O = make_float3(dot(sd->wi, X), dot(sd->wi, Y), dot(sd->wi, Z));
-  const float3 local_I = make_float3(dot(wo, X), dot(wo, Y), dot(wo, Z));
+  const float3 local_O = to_local(sd->wi, X, Y, Z);
+  const float3 local_I = to_local(wo, X, Y, Z);
 
   const float sin_theta_o = local_O.x;
   const float cos_theta_o = cos_from_sin(sin_theta_o);
@@ -350,7 +350,7 @@ ccl_device int bsdf_hair_chiang_sample(KernelGlobals kg,
   const float3 Z = safe_normalize(cross(X, Y));
 
   /* `wo` in PBRT. */
-  const float3 local_O = make_float3(dot(sd->wi, X), dot(sd->wi, Y), dot(sd->wi, Z));
+  const float3 local_O = to_local(sd->wi, X, Y, Z);
 
   const float sin_theta_o = local_O.x;
   const float cos_theta_o = cos_from_sin(sin_theta_o);
@@ -443,8 +443,7 @@ ccl_device int bsdf_hair_chiang_sample(KernelGlobals kg,
 
   *eval = F;
   *pdf = F_energy;
-
-  *wo = X * sin_theta_i + Y * cos_theta_i * cosf(phi_i) + Z * cos_theta_i * sinf(phi_i);
+  *wo = to_global(spherical_cos_to_direction(sin_theta_i, phi_i), Y, Z, X);
 
   return LABEL_GLOSSY | ((p == 0) ? LABEL_REFLECT : LABEL_TRANSMIT);
 }

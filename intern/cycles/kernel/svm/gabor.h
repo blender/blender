@@ -62,11 +62,8 @@ ccl_device float2 compute_2d_gabor_kernel(float2 position, float frequency, floa
   float gaussian_envelop = expf(-M_PI_F * distance_squared);
   float windowed_gaussian_envelope = gaussian_envelop * hann_window;
 
-  float2 frequency_vector = frequency * make_float2(cosf(orientation), sinf(orientation));
-  float angle = 2.0f * M_PI_F * dot(position, frequency_vector);
-  float2 phasor = make_float2(cosf(angle), sinf(angle));
-
-  return windowed_gaussian_envelope * phasor;
+  float angle = 2.0f * M_PI_F * dot(position, polar_to_cartesian(frequency, orientation));
+  return polar_to_cartesian(windowed_gaussian_envelope, angle);
 }
 
 /* Computes the approximate standard deviation of the zero mean normal distribution representing
@@ -181,9 +178,7 @@ ccl_device float2 compute_3d_gabor_kernel(float3 position, float frequency, floa
 
   float3 frequency_vector = frequency * orientation;
   float angle = 2.0f * M_PI_F * dot(position, frequency_vector);
-  float2 phasor = make_float2(cosf(angle), sinf(angle));
-
-  return windowed_gaussian_envelope * phasor;
+  return polar_to_cartesian(windowed_gaussian_envelope, angle);
 }
 
 /* Identical to compute_2d_gabor_standard_deviation except we do triple integration in 3D. The only
@@ -219,9 +214,8 @@ ccl_device float3 compute_3d_orientation(float3 orientation, float isotropy, flo
   inclination += random_angles.x * isotropy;
   azimuth += random_angles.y * isotropy;
 
-  /* Convert back to Cartesian coordinates, */
-  return make_float3(
-      sinf(inclination) * cosf(azimuth), sinf(inclination) * sinf(azimuth), cosf(inclination));
+  /* Convert back to Cartesian coordinates. */
+  return spherical_to_direction(inclination, azimuth);
 }
 
 ccl_device float2 compute_3d_gabor_noise_cell(

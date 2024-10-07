@@ -57,7 +57,7 @@ ccl_device_inline bool subsurface_entry_bounce(KernelGlobals kg,
   /* Sample microfacet normal by transforming to/from local coordinates. */
   const float3 local_I = make_float3(dot(X, sd->wi), dot(Y, sd->wi), cos_NI);
   const float3 local_H = microfacet_ggx_sample_vndf(local_I, alpha, alpha, rand_bsdf);
-  const float3 H = X * local_H.x + Y * local_H.y + Z * local_H.z;
+  const float3 H = to_global(local_H, X, Y, Z);
 
   const float cos_HI = dot(H, sd->wi);
   const float arg = 1.0f - (sqr(neta) * (1.0f - sqr(cos_HI)));

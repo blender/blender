@@ -284,14 +284,14 @@ struct FisheyeEquidistant : public CommonValues {
                                     float const width,
                                     float const height)
   {
-    return direction_to_fisheye(dir, fov);
+    return direction_to_fisheye_equidistant(dir, fov);
   }
   static float3 sensor_to_direction(float2 const &sensor,
                                     float const fov,
                                     float const width,
                                     float const height)
   {
-    return fisheye_to_direction(sensor.x, sensor.y, fov);
+    return fisheye_equidistant_to_direction(sensor.x, sensor.y, fov);
   }
 };
 
