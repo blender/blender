@@ -6827,6 +6827,7 @@ static void keymap_item_modified(bContext * /*C*/, void *kmi_p, void * /*unused*
 {
   wmKeyMapItem *kmi = (wmKeyMapItem *)kmi_p;
   WM_keyconfig_update_tag(nullptr, kmi);
+  U.runtime.is_dirty = true;
 }
 
 static void template_keymap_item_properties(uiLayout *layout, const char *title, PointerRNA *ptr)
