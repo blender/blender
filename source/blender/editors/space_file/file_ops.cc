@@ -2751,7 +2751,13 @@ static void file_expand_directory(const Main *bmain, FileSelectParams *params)
    * Attempting to resolve the path to *something* valid is OK for user input
    * but not suitable for `BLI_path_utils.hh` which is used for lower level path handling. */
 
-  if (BLI_path_is_rel(params->dir)) {
+  /* The path was invalid, fall back to the default root. */
+  bool do_reset = false;
+
+  if (params->dir[0] == '\0') {
+    do_reset = true;
+  }
+  else if (BLI_path_is_rel(params->dir)) { /* `//` literal. */
     const char *blendfile_path = BKE_main_blendfile_path(bmain);
     if (blendfile_path[0] != '\0') {
       BLI_path_abs(params->dir, blendfile_path);
@@ -2760,11 +2766,10 @@ static void file_expand_directory(const Main *bmain, FileSelectParams *params)
       /* Ignore relative paths for unsaved files.
        * It's enough of a corner case that any attempt to resolve the path
        * is more likely to confuse users about the meaning of `//`. */
-      params->dir[0] = '\0';
+      do_reset = true;
     }
   }
-
-  if (params->dir[0] == '~') {
+  else if (params->dir[0] == '~') {
     /* While path handling expansion typically doesn't support home directory expansion
      * in Blender, this is a convenience to be able to type in a single character.
      * Even though this is a UNIX convention, it's harmless to expand on WIN32 as well. */
@@ -2774,30 +2779,23 @@ static void file_expand_directory(const Main *bmain, FileSelectParams *params)
       BLI_path_join(params->dir, sizeof(params->dir), home_dir, tmpstr);
     }
     else {
-      /* Fall back to the default root. */
-      params->dir[0] = '\0';
+      do_reset = true;
     }
   }
-
-  if (params->dir[0] == '\0')
-#ifndef WIN32
-  {
-    params->dir[0] = '/';
-    params->dir[1] = '\0';
-  }
-#else
-  {
-    BLI_windows_get_default_root_dir(params->dir);
-  }
-  /* Change `C:` --> `C:\`, #28102. */
+#ifdef WIN32
   else if (BLI_path_is_win32_drive_only(params->dir)) {
+    /* Change `C:` --> `C:\`, see: #28102. */
     params->dir[2] = SEP;
     params->dir[3] = '\0';
   }
   else if (BLI_path_is_unc(params->dir)) {
     BLI_path_normalize_unc(params->dir, sizeof(params->dir));
   }
-#endif
+#endif /* WIN32 */
+
+  if (do_reset) {
+    STRNCPY(params->dir, BKE_appdir_folder_root());
+  }
 }
 
 /**
