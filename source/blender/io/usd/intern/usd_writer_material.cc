@@ -1398,10 +1398,7 @@ pxr::UsdShadeMaterial create_usd_material(const USDExporterContext &usd_export_c
   }
 #endif
 
-  call_material_export_hooks(usd_export_context.stage,
-                             material,
-                             usd_material,
-                             usd_export_context.export_params.worker_status->reports);
+  call_material_export_hooks(usd_export_context.stage, material, usd_material, reports);
 
   return usd_material;
 }
