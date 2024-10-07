@@ -74,7 +74,7 @@ using blender::Span;
 using blender::Vector;
 
 /* -------------------------------------------------------------------- */
-/** \name Generic Poll Funcitons
+/** \name Generic Poll Functions
  * \{ */
 
 static bool edbm_vert_or_edge_select_mode_poll(bContext *C)

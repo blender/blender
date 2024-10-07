@@ -746,7 +746,7 @@ void USDStageReader::collect_point_instancer_proto_paths(const pxr::UsdPrim &pri
   for (const auto &child_prim : children) {
     if (pxr::UsdGeomPointInstancer instancer = pxr::UsdGeomPointInstancer(child_prim)) {
       /* We should only collect the prototype paths from this instancer if it would be included
-       * by our purpose and visiblity checks, matching what is inside #collect_readers. */
+       * by our purpose and visibility checks, matching what is inside #collect_readers. */
       if (!include_by_purpose(instancer)) {
         continue;
       }
