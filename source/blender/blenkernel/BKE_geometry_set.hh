@@ -802,4 +802,6 @@ class GreasePencilComponent : public GeometryComponent {
   std::optional<MutableAttributeAccessor> attributes_for_write() final;
 };
 
+bool attribute_is_builtin_on_component_type(const GeometryComponent::Type type, StringRef name);
+
 }  // namespace blender::bke
