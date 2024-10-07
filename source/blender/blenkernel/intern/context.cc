@@ -1496,36 +1496,6 @@ bool CTX_data_visible_pose_bones(const bContext *C, blender::Vector<PointerRNA> 
   return ctx_data_collection_get(C, "visible_pose_bones", list);
 }
 
-bGPdata *CTX_data_gpencil_data(const bContext *C)
-{
-  return static_cast<bGPdata *>(ctx_data_pointer_get(C, "gpencil_data"));
-}
-
-bGPDlayer *CTX_data_active_gpencil_layer(const bContext *C)
-{
-  return static_cast<bGPDlayer *>(ctx_data_pointer_get(C, "active_gpencil_layer"));
-}
-
-bGPDframe *CTX_data_active_gpencil_frame(const bContext *C)
-{
-  return static_cast<bGPDframe *>(ctx_data_pointer_get(C, "active_gpencil_frame"));
-}
-
-bool CTX_data_visible_gpencil_layers(const bContext *C, blender::Vector<PointerRNA> *list)
-{
-  return ctx_data_collection_get(C, "visible_gpencil_layers", list);
-}
-
-bool CTX_data_editable_gpencil_layers(const bContext *C, blender::Vector<PointerRNA> *list)
-{
-  return ctx_data_collection_get(C, "editable_gpencil_layers", list);
-}
-
-bool CTX_data_editable_gpencil_strokes(const bContext *C, blender::Vector<PointerRNA> *list)
-{
-  return ctx_data_collection_get(C, "editable_gpencil_strokes", list);
-}
-
 const AssetLibraryReference *CTX_wm_asset_library_ref(const bContext *C)
 {
   return static_cast<AssetLibraryReference *>(ctx_data_pointer_get(C, "asset_library_reference"));

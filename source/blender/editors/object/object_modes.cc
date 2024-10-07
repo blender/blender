@@ -292,14 +292,6 @@ static bool ed_object_mode_generic_exit_ex(
     }
     ED_object_particle_edit_mode_exit_ex(scene, ob);
   }
-  else if (ob->type == OB_GPENCIL_LEGACY) {
-    /* Accounted for above. */
-    BLI_assert((ob->mode & OB_MODE_OBJECT) == 0);
-    if (only_test) {
-      return true;
-    }
-    ED_object_gpencil_exit(bmain, ob);
-  }
   else if (ob->type == OB_GREASE_PENCIL) {
     BLI_assert((ob->mode & OB_MODE_OBJECT) == 0);
     if (only_test) {

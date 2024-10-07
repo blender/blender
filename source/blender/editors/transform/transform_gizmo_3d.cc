@@ -541,71 +541,11 @@ static int gizmo_3d_foreach_selected(const bContext *C,
   Depsgraph *depsgraph = CTX_data_expect_evaluated_depsgraph(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *v3d = static_cast<View3D *>(area->spacedata.first);
-  bGPdata *gpd = CTX_data_gpencil_data(C);
-  const bool is_gp_edit = GPENCIL_ANY_MODE(gpd);
-  const bool is_curve_edit = GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
   int a, totsel = 0;
 
   Object *ob = gizmo_3d_transform_space_object_get(scene, view_layer);
 
-  if (is_gp_edit) {
-    float diff_mat[4][4];
-    const bool use_mat_local = true;
-    LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-      /* Only editable and visible layers are considered. */
-
-      if (BKE_gpencil_layer_is_editable(gpl) && (gpl->actframe != nullptr)) {
-
-        /* Calculate difference matrix. */
-        BKE_gpencil_layer_transform_matrix_get(depsgraph, ob, gpl, diff_mat);
-
-        LISTBASE_FOREACH (bGPDstroke *, gps, &gpl->actframe->strokes) {
-          /* Skip strokes that are invalid for current view. */
-          if (ED_gpencil_stroke_can_use(C, gps) == false) {
-            continue;
-          }
-
-          if (is_curve_edit) {
-            if (gps->editcurve == nullptr) {
-              continue;
-            }
-
-            bGPDcurve *gpc = gps->editcurve;
-            if (gpc->flag & GP_CURVE_SELECT) {
-              for (uint32_t i = 0; i < gpc->tot_curve_points; i++) {
-                bGPDcurve_point *gpc_pt = &gpc->curve_points[i];
-                BezTriple *bezt = &gpc_pt->bezt;
-                if (gpc_pt->flag & GP_CURVE_POINT_SELECT) {
-                  for (uint32_t j = 0; j < 3; j++) {
-                    if (BEZT_ISSEL_IDX(bezt, j)) {
-                      run_coord_with_matrix(bezt->vec[j], use_mat_local, diff_mat);
-                      totsel++;
-                    }
-                  }
-                }
-              }
-            }
-          }
-          else {
-            /* We're only interested in selected points here... */
-            if (gps->flag & GP_STROKE_SELECT) {
-              bGPDspoint *pt;
-              int i;
-
-              /* Change selection status of all points, then make the stroke match. */
-              for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-                if (pt->flag & GP_SPOINT_SELECT) {
-                  run_coord_with_matrix(&pt->x, use_mat_local, diff_mat);
-                  totsel++;
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-  else if (Object *obedit = OBEDIT_FROM_OBACT(ob)) {
+  if (Object *obedit = OBEDIT_FROM_OBACT(ob)) {
 
 #define FOREACH_EDIT_OBJECT_BEGIN(ob_iter, use_mat_local) \
   { \
@@ -1037,9 +977,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
   if (totsel) {
     mul_v3_fl(tbounds->center, 1.0f / float(totsel)); /* Centroid! */
 
-    bGPdata *gpd = CTX_data_gpencil_data(C);
-    const bool is_gp_edit = GPENCIL_ANY_MODE(gpd);
-    if (!is_gp_edit && (obedit || (ob && (ob->mode & (OB_MODE_POSE | OB_MODE_SCULPT))))) {
+    if (obedit || (ob && (ob->mode & (OB_MODE_POSE | OB_MODE_SCULPT)))) {
       if (ob->mode & OB_MODE_POSE) {
         invert_m4_m4(ob->runtime->world_to_object.ptr(), ob->object_to_world().ptr());
       }

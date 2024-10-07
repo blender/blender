@@ -167,7 +167,6 @@ static void ed_undo_step_pre(bContext *C,
 
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
-  ScrArea *area = CTX_wm_area(C);
 
   /* undo during jobs are running can easily lead to freeing data using by jobs,
    * or they can just lead to freezing job in some other cases */
@@ -178,13 +177,6 @@ static void ed_undo_step_pre(bContext *C,
       BKE_report(
           reports, RPT_DEBUG, "Checking validity of current .blend file *BEFORE* undo step");
       BLO_main_validate_libraries(bmain, reports);
-    }
-  }
-
-  if (area && (area->spacetype == SPACE_VIEW3D)) {
-    Object *obact = CTX_data_active_object(C);
-    if (obact && (obact->type == OB_GPENCIL_LEGACY)) {
-      ED_gpencil_toggle_brush_cursor(C, false, nullptr);
     }
   }
 
@@ -213,24 +205,6 @@ static void ed_undo_step_post(bContext *C,
 
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
-  ScrArea *area = CTX_wm_area(C);
-
-  /* Set special modes for grease pencil */
-  if (area != nullptr && (area->spacetype == SPACE_VIEW3D)) {
-    Object *obact = CTX_data_active_object(C);
-    if (obact && (obact->type == OB_GPENCIL_LEGACY)) {
-      /* set cursor */
-      if (obact->mode & OB_MODE_ALL_PAINT_GPENCIL) {
-        ED_gpencil_toggle_brush_cursor(C, true, nullptr);
-      }
-      else {
-        ED_gpencil_toggle_brush_cursor(C, false, nullptr);
-      }
-      /* set workspace mode */
-      Base *basact = CTX_data_active_base(C);
-      object::base_activate(C, basact);
-    }
-  }
 
   /* App-Handlers (post). */
   {

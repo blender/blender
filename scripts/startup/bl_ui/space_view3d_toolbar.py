@@ -1588,21 +1588,6 @@ class GreasePencilPaintPanel:
     bl_context = ".greasepencil_paint"
     bl_category = "Tool"
 
-    @classmethod
-    def poll(cls, context):
-        if context.space_data.type in {'VIEW_3D', 'PROPERTIES'}:
-            if context.gpencil_data is None:
-                return False
-
-            # Hide for tools not using brushes.
-            if tool_use_brush(context) is False:
-                return False
-
-            gpd = context.gpencil_data
-            return bool(gpd.is_stroke_paint_mode)
-        else:
-            return True
-
 
 class VIEW3D_PT_tools_grease_pencil_brush_select(Panel, View3DPanel, GreasePencilPaintPanel, BrushSelectPanel):
     bl_label = "Brush Asset"
@@ -1981,17 +1966,6 @@ class GreasePencilSculptPanel:
     bl_context = ".greasepencil_sculpt"
     bl_category = "Tool"
 
-    @classmethod
-    def poll(cls, context):
-        if context.space_data.type in {'VIEW_3D', 'PROPERTIES'}:
-            if context.gpencil_data is None:
-                return False
-
-            gpd = context.gpencil_data
-            return bool(gpd.is_stroke_sculpt_mode)
-        else:
-            return True
-
 
 class VIEW3D_PT_tools_grease_pencil_sculpt_select(Panel, View3DPanel, GreasePencilSculptPanel, BrushSelectPanel):
     bl_label = "Brush Asset"
@@ -2068,20 +2042,6 @@ class GreasePencilWeightPanel:
     bl_context = ".greasepencil_weight"
     bl_category = "Tool"
 
-    @classmethod
-    def poll(cls, context):
-        if context.space_data.type in {'VIEW_3D', 'PROPERTIES'}:
-            if context.object and context.object.type == 'GREASEPENCIL' and context.mode == 'WEIGHT_GREASE_PENCIL':
-                return True
-
-            if context.gpencil_data is None:
-                return False
-
-            gpd = context.gpencil_data
-            return bool(gpd.is_stroke_weight_mode)
-        else:
-            return True
-
 
 class VIEW3D_PT_tools_grease_pencil_weight_paint_select(View3DPanel, Panel, GreasePencilWeightPanel, BrushSelectPanel):
     bl_label = "Brush Asset"
@@ -2147,17 +2107,6 @@ class VIEW3D_PT_tools_grease_pencil_weight_options(Panel, View3DPanel, GreasePen
 class GreasePencilVertexPanel:
     bl_context = ".greasepencil_vertex"
     bl_category = "Tool"
-
-    @classmethod
-    def poll(cls, context):
-        if context.space_data.type in {'VIEW_3D', 'PROPERTIES'}:
-            if context.gpencil_data is None:
-                return False
-
-            gpd = context.gpencil_data
-            return bool(gpd.is_stroke_vertex_mode)
-        else:
-            return True
 
 
 class VIEW3D_PT_tools_grease_pencil_vertex_paint_select(View3DPanel, Panel, GreasePencilVertexPanel, BrushSelectPanel):
