@@ -892,7 +892,7 @@ static void calc_forces_grids(const Depsgraph &depsgraph,
   calc_brush_strength_factors(cache, brush, distances, factors);
 
   const auto_mask::Cache *automask = auto_mask::active_cache_get(ss);
-  auto_mask::calc_grids_factors(depsgraph, ob, automask, node, verts, factors);
+  auto_mask::calc_grids_factors(depsgraph, ob, automask, node, grids, factors);
 
   calc_brush_texture_factors(ss, brush, current_positions, factors);
 
