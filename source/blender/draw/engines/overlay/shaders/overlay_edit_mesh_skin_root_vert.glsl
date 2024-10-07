@@ -8,7 +8,7 @@
 
 void main()
 {
-  mat3 imat = mat3(ModelMatrixInverse);
+  mat3 imat = to_float3x3(ModelMatrixInverse);
   vec3 right = normalize(imat * ViewMatrixInverse[0].xyz);
   vec3 up = normalize(imat * ViewMatrixInverse[1].xyz);
 #ifdef VERTEX_PULL

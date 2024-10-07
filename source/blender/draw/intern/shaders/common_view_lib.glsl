@@ -227,14 +227,14 @@ uniform mat4 ModelMatrixInverse;
  * NOTE: This is only valid because we are only using the mat3 of the ViewMatrixInverse.
  * ViewMatrix * transpose(ModelMatrixInverse)
  */
-#  define NormalMatrix transpose(mat3(ModelMatrixInverse))
-#  define NormalMatrixInverse transpose(mat3(ModelMatrix))
+#  define NormalMatrix transpose(to_float3x3(ModelMatrixInverse))
+#  define NormalMatrixInverse transpose(to_float3x3(ModelMatrix))
 
-#  define normal_object_to_view(n) (mat3(ViewMatrix) * (NormalMatrix * n))
+#  define normal_object_to_view(n) (to_float3x3(ViewMatrix) * (NormalMatrix * n))
 #  define normal_object_to_world(n) (NormalMatrix * n)
 #  define normal_world_to_object(n) (NormalMatrixInverse * n)
-#  define normal_world_to_view(n) (mat3(ViewMatrix) * n)
-#  define normal_view_to_world(n) (mat3(ViewMatrixInverse) * n)
+#  define normal_world_to_view(n) (to_float3x3(ViewMatrix) * n)
+#  define normal_view_to_world(n) (to_float3x3(ViewMatrixInverse) * n)
 
 #  define point_object_to_ndc(p) \
     (ProjectionMatrix * (ViewMatrix * vec4((ModelMatrix * vec4(p, 1.0)).xyz, 1.0)))

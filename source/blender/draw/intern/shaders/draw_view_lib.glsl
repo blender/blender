@@ -108,12 +108,12 @@ float drw_ndc_to_screen(float ndc_P)
 
 vec3 drw_normal_view_to_world(vec3 vN)
 {
-  return (mat3x3(drw_view.viewinv) * vN);
+  return (to_float3x3(drw_view.viewinv) * vN);
 }
 
 vec3 drw_normal_world_to_view(vec3 N)
 {
-  return (mat3x3(drw_view.viewmat) * N);
+  return (to_float3x3(drw_view.viewmat) * N);
 }
 
 /** \} */

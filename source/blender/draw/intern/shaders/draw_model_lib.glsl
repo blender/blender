@@ -53,11 +53,11 @@ mat4x4 drw_modelinv()
  */
 mat3x3 drw_normat()
 {
-  return transpose(mat3x3(drw_modelinv()));
+  return transpose(to_float3x3(drw_modelinv()));
 }
 mat3x3 drw_norinv()
 {
-  return transpose(mat3x3(drw_modelmat()));
+  return transpose(to_float3x3(drw_modelmat()));
 }
 
 /* -------------------------------------------------------------------- */
@@ -77,11 +77,11 @@ vec3 drw_normal_world_to_object(vec3 N)
 
 vec3 drw_normal_object_to_view(vec3 lN)
 {
-  return (mat3x3(drw_view.viewmat) * (drw_normat() * lN));
+  return (to_float3x3(drw_view.viewmat) * (drw_normat() * lN));
 }
 vec3 drw_normal_view_to_object(vec3 vN)
 {
-  return (drw_norinv() * (mat3x3(drw_view.viewinv) * vN));
+  return (drw_norinv() * (to_float3x3(drw_view.viewinv) * vN));
 }
 
 /** \} */

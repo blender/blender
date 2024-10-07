@@ -104,7 +104,8 @@ void main()
   }
 
   /* Rotate Spherical Harmonic into world space. */
-  mat3 grid_to_world_rot = normalize(mat3(grids_infos_buf[grid_index].world_to_grid_transposed));
+  mat3 grid_to_world_rot = normalize(
+      to_float3x3(grids_infos_buf[grid_index].world_to_grid_transposed));
   sh_local = spherical_harmonics_rotate(grid_to_world_rot, sh_local);
 
   SphericalHarmonicL1 sh_visibility;

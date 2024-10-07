@@ -484,7 +484,13 @@ struct GPUSource {
       int64_t keyword_cursor = 0;
       out_qualifier = keyword_parse(arg, keyword_cursor);
       out_type = keyword_parse(arg, keyword_cursor);
+      /* Skip qualifier prefix macro expanded by GLSL preprocessing (e.g. _out_sta). */
+      StringRef qualifier_prefix = keyword_parse(arg, keyword_cursor);
       out_name = keyword_parse(arg, keyword_cursor);
+
+      if (out_qualifier == "const") {
+        out_name = qualifier_prefix;
+      }
       if (out_name.is_empty()) {
         /* No qualifier case. */
         out_name = out_type;
@@ -1031,8 +1037,8 @@ struct GPUSource {
       GPUSource *dependency_source = nullptr;
 
       {
-        /* Include directive has been mangled on purpose. See `datatoc.cc`. */
-        pos = source.find("//nclude \"", pos + 1);
+        /* Include directive has been mangled on purpose. See `glsl_preprocess.hh`. */
+        pos = source.find("\n//include \"", pos + 1);
         if (pos == -1) {
           return 0;
         }

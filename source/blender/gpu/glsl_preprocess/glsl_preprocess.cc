@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+/* SPDX-FileCopyrightText: 2024 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,11 +6,12 @@
  * \ingroup glsl_preprocess
  */
 
-#include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <regex>
 #include <string>
-#include <vector>
+
+#include "glsl_preprocess.hh"
 
 int main(int argc, char **argv)
 {
@@ -40,8 +41,29 @@ int main(int argc, char **argv)
   bool first_comment = true;
   bool inside_comment = false;
 
+  int error = 0;
+  size_t line_index = 0;
+
+  auto report_error =
+      [&](const std::string &src_line, const std::smatch &match, const char *err_msg) {
+        size_t err_line = line_index;
+        size_t err_char = match.position();
+
+        std::cerr << input_file_name;
+        std::cerr << ':' << std::to_string(err_line) << ':' << std::to_string(err_char);
+        std::cerr << ": error: " << err_msg << std::endl;
+        std::cerr << src_line << std::endl;
+        std::cerr << std::string(err_char, ' ') << '^' << std::endl;
+
+        error++;
+      };
+
+  blender::gpu::shader::Preprocessor processor(report_error);
+
   std::string line;
   while (std::getline(input_file, line)) {
+    line_index++;
+
     /* Remove licence headers (first comment). */
     if (line.rfind("/*", 0) == 0 && first_comment) {
       first_comment = false;
@@ -55,17 +77,17 @@ int main(int argc, char **argv)
     }
 
     if (skip_line) {
-      line = "";
+      output_file << "\n";
     }
-    else if (line.rfind("#include ", 0) == 0 || line.rfind("#pragma once", 0) == 0) {
-      line[0] = line[1] = '/';
+    else {
+      processor << line << '\n';
     }
-
-    output_file << line << "\n";
   }
+
+  output_file << processor.str();
 
   input_file.close();
   output_file.close();
 
-  return 0;
+  return error;
 }

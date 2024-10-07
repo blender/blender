@@ -17,6 +17,8 @@
 #include "GPU_matrix.hh"
 #include "GPU_platform.hh"
 
+#include "glsl_preprocess/glsl_preprocess.hh"
+
 #include "gpu_backend.hh"
 #include "gpu_context_private.hh"
 #include "gpu_shader_create_info.hh"
@@ -299,6 +301,40 @@ GPUShader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info)
   return wrap(Context::get()->compiler->compile(info, false));
 }
 
+static std::string preprocess_source(StringRefNull original)
+{
+  auto no_err_report = [](std::string, std::smatch, const char *) {};
+  gpu::shader::PreprocessorPython processor(no_err_report);
+  processor << std::string(original);
+  return processor.str();
+};
+
+GPUShader *GPU_shader_create_from_info_python(const GPUShaderCreateInfo *_info)
+{
+  using namespace blender::gpu::shader;
+  ShaderCreateInfo &info = *const_cast<ShaderCreateInfo *>(
+      reinterpret_cast<const ShaderCreateInfo *>(_info));
+
+  std::string vertex_source_original = info.vertex_source_generated;
+  std::string fragment_source_original = info.fragment_source_generated;
+  std::string geometry_source_original = info.geometry_source_generated;
+  std::string compute_source_original = info.compute_source_generated;
+
+  info.vertex_source_generated = preprocess_source(info.vertex_source_generated);
+  info.fragment_source_generated = preprocess_source(info.fragment_source_generated);
+  info.geometry_source_generated = preprocess_source(info.geometry_source_generated);
+  info.compute_source_generated = preprocess_source(info.compute_source_generated);
+
+  GPUShader *result = wrap(Context::get()->compiler->compile(info, false));
+
+  info.vertex_source_generated = vertex_source_original;
+  info.fragment_source_generated = fragment_source_original;
+  info.geometry_source_generated = geometry_source_original;
+  info.compute_source_generated = compute_source_original;
+
+  return result;
+}
+
 GPUShader *GPU_shader_create_from_python(const char *vertcode,
                                          const char *fragcode,
                                          const char *geomcode,
@@ -313,6 +349,28 @@ GPUShader *GPU_shader_create_from_python(const char *vertcode,
   }
   else {
     libcode = libcodecat = BLI_strdupcat(libcode, datatoc_gpu_shader_colorspace_lib_glsl);
+  }
+
+  std::string vertex_source_processed;
+  std::string fragment_source_processed;
+  std::string geometry_source_processed;
+  std::string library_source_processed;
+
+  if (vertcode != nullptr) {
+    vertex_source_processed = preprocess_source(vertcode);
+    vertcode = vertex_source_processed.c_str();
+  }
+  if (fragcode != nullptr) {
+    fragment_source_processed = preprocess_source(fragcode);
+    fragcode = fragment_source_processed.c_str();
+  }
+  if (geomcode != nullptr) {
+    geometry_source_processed = preprocess_source(geomcode);
+    geomcode = geometry_source_processed.c_str();
+  }
+  if (libcode != nullptr) {
+    library_source_processed = preprocess_source(libcode);
+    libcode = library_source_processed.c_str();
   }
 
   /* Use pyGPUShader as default name for shader. */

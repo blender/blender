@@ -39,7 +39,7 @@ void do_vertex_shader(mat4 in_inst_obmat,
 
   /* This is slow and run per vertex, but it's still faster than
    * doing it per instance on CPU and sending it on via instance attribute. */
-  mat3 normal_mat = transpose(inverse(mat3(model_mat)));
+  mat3 normal_mat = transpose(inverse(to_float3x3(model_mat)));
 
   out_ssPos = proj(out_pPos);
 

@@ -42,6 +42,11 @@ struct GPUShader;
 GPUShader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info);
 
 /**
+ * Same as GPU_shader_create_from_info but will run preprocessor on source strings.
+ */
+GPUShader *GPU_shader_create_from_info_python(const GPUShaderCreateInfo *_info);
+
+/**
  * Create a shader using a named #GPUShaderCreateInfo registered at startup.
  * These are declared inside `*_info.hh` files using the `GPU_SHADER_CREATE_INFO()` macro.
  * They are also expected to have been flagged using `do_static_compilation`.

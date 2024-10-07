@@ -57,8 +57,8 @@ const float dof_layer_offset = 0.5 + 0.5;
 
 const int dof_max_slight_focus_radius = DOF_MAX_SLIGHT_FOCUS_RADIUS;
 
-const uvec2 quad_offsets_u[4] = uvec2[4](uvec2(0, 1), uvec2(1, 1), uvec2(1, 0), uvec2(0, 0));
-const vec2 quad_offsets[4] = vec2[4](
+const uvec2 quad_offsets_u[4] = uint2_array(uvec2(0, 1), uvec2(1, 1), uvec2(1, 0), uvec2(0, 0));
+const vec2 quad_offsets[4] = float2_array(
     vec2(-0.5, 0.5), vec2(0.5, 0.5), vec2(0.5, -0.5), vec2(-0.5, -0.5));
 
 /** \} */

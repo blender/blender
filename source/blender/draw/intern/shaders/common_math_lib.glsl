@@ -41,7 +41,7 @@ mat3 mul(mat3 m1, mat3 m2)
 #  ifndef GPU_SHADER_MATH_MATRIX_LIB_GLSL
 vec3 transform_direction(mat4 m, vec3 v)
 {
-  return mat3(m) * v;
+  return to_float3x3(m) * v;
 }
 vec3 transform_point(mat4 m, vec3 v)
 {

@@ -124,7 +124,7 @@ void drw_print_value_binary(uint value)
 {
   drw_print_no_endl("0b");
   drw_print_string_start(10u * 4u);
-  uint digits[10] = uint[10](0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
+  uint digits[10] = uint_array(0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
   uint digit = 0u;
   for (uint i = 0u; i < 32u; i++) {
     drw_print_append_digit(((value >> i) & 1u), digits[digit / 4u]);
@@ -155,7 +155,7 @@ void drw_print_value_uint(uint value, const bool hex, bool is_negative, const bo
   drw_print_string_start(3u * 4u);
   const uint blank_value = hex ? 0x30303030u : 0x20202020u;
   const uint prefix = hex ? 0x78302020u : 0x20202020u;
-  uint digits[3] = uint[3](blank_value, blank_value, prefix);
+  uint digits[3] = uint_array(blank_value, blank_value, prefix);
   const uint base = hex ? 16u : 10u;
   uint digit = 0u;
   /* Add `u` suffix. */
@@ -247,7 +247,7 @@ void drw_print_value(float val)
    * and exponent (4). */
   const float significant_digits = 6.0;
   drw_print_string_start(3u * 4u);
-  uint digits[3] = uint[3](0x20202020u, 0x20202020u, 0x20202020u);
+  uint digits[3] = uint_array(0x20202020u, 0x20202020u, 0x20202020u);
 
   float exponent = floor(log(abs(val)) / log(10.0));
   bool display_exponent = exponent >= (significant_digits) ||

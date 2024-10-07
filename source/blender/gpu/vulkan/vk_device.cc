@@ -236,9 +236,6 @@ void VKDevice::init_glsl_patch()
     ss << "#define gpu_BaryCoordNoPersp gl_BaryCoordNoPerspEXT\n";
   }
 
-  ss << "#define DFDX_SIGN 1.0\n";
-  ss << "#define DFDY_SIGN 1.0\n";
-
   /* GLSL Backend Lib. */
   ss << datatoc_glsl_shader_defines_glsl;
   glsl_patch_ = ss.str();

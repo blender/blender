@@ -27,7 +27,7 @@ void main()
    * In perspective mode it's also the view-space position
    * of the sphere center. */
   vec3 cam_ray = (is_persp) ? model_view_matrix[3].xyz : vec3(0.0, 0.0, -1.0);
-  cam_ray = mat3(sphereMatrix) * cam_ray;
+  cam_ray = to_float3x3(sphereMatrix) * cam_ray;
 
   /* Sphere center distance from the camera (persp) in local space. */
   float cam_dist = length(cam_ray);

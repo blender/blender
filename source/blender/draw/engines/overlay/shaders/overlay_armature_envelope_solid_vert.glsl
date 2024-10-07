@@ -36,7 +36,7 @@ void main()
   sp = bone_mat * sp.xzy + headSphere.xyz;
   nor = bone_mat * nor.xzy;
 
-  normalView = mat3(drw_view.viewmat) * nor;
+  normalView = to_float3x3(drw_view.viewmat) * nor;
 
   finalStateColor = stateColor;
   finalBoneColor = boneColor;

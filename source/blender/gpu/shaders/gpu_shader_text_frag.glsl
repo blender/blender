@@ -133,7 +133,7 @@ void main()
       /* 3x3 blur */
 
       /* clang-format off */
-      const float weights3x3[16] = float[16](
+      const float weights3x3[16] = float_array(
         1.0, 2.0, 1.0, 0.0,
         2.0, 4.0, 2.0, 0.0,
         1.0, 2.0, 1.0, 0.0,
@@ -169,7 +169,7 @@ void main()
       /* 5x5 blur */
 
       /* clang-format off */
-      const float weights5x5[36] = float[36](
+      const float weights5x5[36] = float_array(
         1.0, 2.0, 2.0, 2.0, 1.0, 0.0,
         2.0, 5.0, 6.0, 5.0, 2.0, 0.0,
         2.0, 6.0, 8.0, 6.0, 2.0, 0.0,

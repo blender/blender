@@ -100,7 +100,7 @@ void main()
   if (isHair) {
     mat4 obmat = hairDupliMatrix;
     wpos = (obmat * vec4(pos, 1.0)).xyz;
-    wnor = -normalize(mat3(obmat) * nor);
+    wnor = -normalize(to_float3x3(obmat) * nor);
   }
 
   bool is_persp = (drw_view.winmat[3][3] == 0.0);
