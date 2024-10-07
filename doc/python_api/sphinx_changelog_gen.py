@@ -66,7 +66,7 @@ API_F_ARGS = 7
 def api_version():
     try:
         import bpy
-    except:
+    except ModuleNotFoundError:
         return None, None
     version = tuple(bpy.app.version[:2])
     version_key = "%d.%d" % (version[0], version[1])
