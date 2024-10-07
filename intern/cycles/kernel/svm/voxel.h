@@ -10,10 +10,8 @@ CCL_NAMESPACE_BEGIN
  * sampler.
  */
 template<uint node_feature_mask>
-ccl_device_noinline void svm_node_tex_voxel(KernelGlobals kg,
-                                            ccl_private ShaderData *sd,
-                                            ccl_private SVMState *svm,
-                                            uint4 node)
+ccl_device_noinline int svm_node_tex_voxel(
+    KernelGlobals kg, ccl_private ShaderData *sd, ccl_private float *stack, uint4 node, int offset)
 {
   uint co_offset, density_out_offset, color_out_offset, space;
   svm_unpack_node_uchar4(node.z, &co_offset, &density_out_offset, &color_out_offset, &space);
@@ -24,16 +22,16 @@ ccl_device_noinline void svm_node_tex_voxel(KernelGlobals kg,
   IF_KERNEL_NODES_FEATURE(VOLUME)
   {
     int id = node.y;
-    float3 co = stack_load_float3(svm, co_offset);
+    float3 co = stack_load_float3(stack, co_offset);
     if (space == NODE_TEX_VOXEL_SPACE_OBJECT) {
       co = volume_normalized_position(kg, sd, co);
     }
     else {
       kernel_assert(space == NODE_TEX_VOXEL_SPACE_WORLD);
       Transform tfm;
-      tfm.x = read_node_float(kg, svm);
-      tfm.y = read_node_float(kg, svm);
-      tfm.z = read_node_float(kg, svm);
+      tfm.x = read_node_float(kg, &offset);
+      tfm.y = read_node_float(kg, &offset);
+      tfm.z = read_node_float(kg, &offset);
       co = transform_point(&tfm, co);
     }
 
@@ -43,17 +41,18 @@ ccl_device_noinline void svm_node_tex_voxel(KernelGlobals kg,
 #endif /* __VOLUME__ */
       if (space != NODE_TEX_VOXEL_SPACE_OBJECT)
   {
-    read_node_float(kg, svm);
-    read_node_float(kg, svm);
-    read_node_float(kg, svm);
+    read_node_float(kg, &offset);
+    read_node_float(kg, &offset);
+    read_node_float(kg, &offset);
   }
 
   if (stack_valid(density_out_offset)) {
-    stack_store_float(svm, density_out_offset, r.w);
+    stack_store_float(stack, density_out_offset, r.w);
   }
   if (stack_valid(color_out_offset)) {
-    stack_store_float3(svm, color_out_offset, make_float3(r.x, r.y, r.z));
+    stack_store_float3(stack, color_out_offset, make_float3(r.x, r.y, r.z));
   }
+  return offset;
 }
 
 CCL_NAMESPACE_END

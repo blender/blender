@@ -8,7 +8,7 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_noinline void svm_node_tex_white_noise(KernelGlobals kg,
                                                   ccl_private ShaderData *sd,
-                                                  ccl_private SVMState *svm,
+                                                  ccl_private float *stack,
                                                   uint dimensions,
                                                   uint inputs_stack_offsets,
                                                   uint outputs_stack_offsets)
@@ -17,8 +17,8 @@ ccl_device_noinline void svm_node_tex_white_noise(KernelGlobals kg,
   svm_unpack_node_uchar2(inputs_stack_offsets, &vector_stack_offset, &w_stack_offset);
   svm_unpack_node_uchar2(outputs_stack_offsets, &value_stack_offset, &color_stack_offset);
 
-  float3 vector = stack_load_float3(svm, vector_stack_offset);
-  float w = stack_load_float(svm, w_stack_offset);
+  float3 vector = stack_load_float3(stack, vector_stack_offset);
+  float w = stack_load_float(stack, w_stack_offset);
 
   if (stack_valid(color_stack_offset)) {
     float3 color;
@@ -40,7 +40,7 @@ ccl_device_noinline void svm_node_tex_white_noise(KernelGlobals kg,
         kernel_assert(0);
         break;
     }
-    stack_store_float3(svm, color_stack_offset, color);
+    stack_store_float3(stack, color_stack_offset, color);
   }
 
   if (stack_valid(value_stack_offset)) {
@@ -63,7 +63,7 @@ ccl_device_noinline void svm_node_tex_white_noise(KernelGlobals kg,
         kernel_assert(0);
         break;
     }
-    stack_store_float(svm, value_stack_offset, value);
+    stack_store_float(stack, value_stack_offset, value);
   }
 }
 

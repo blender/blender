@@ -8,7 +8,7 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_noinline void svm_node_hsv(KernelGlobals kg,
                                       ccl_private ShaderData *sd,
-                                      ccl_private SVMState *svm,
+                                      ccl_private float *stack,
                                       uint4 node)
 {
   uint in_color_offset, fac_offset, out_color_offset;
@@ -16,13 +16,13 @@ ccl_device_noinline void svm_node_hsv(KernelGlobals kg,
   svm_unpack_node_uchar3(node.y, &in_color_offset, &fac_offset, &out_color_offset);
   svm_unpack_node_uchar3(node.z, &hue_offset, &sat_offset, &val_offset);
 
-  float fac = stack_load_float(svm, fac_offset);
-  float3 in_color = stack_load_float3(svm, in_color_offset);
+  float fac = stack_load_float(stack, fac_offset);
+  float3 in_color = stack_load_float3(stack, in_color_offset);
   float3 color = in_color;
 
-  float hue = stack_load_float(svm, hue_offset);
-  float sat = stack_load_float(svm, sat_offset);
-  float val = stack_load_float(svm, val_offset);
+  float hue = stack_load_float(stack, hue_offset);
+  float sat = stack_load_float(stack, sat_offset);
+  float val = stack_load_float(stack, val_offset);
 
   color = rgb_to_hsv(color);
 
@@ -42,7 +42,7 @@ ccl_device_noinline void svm_node_hsv(KernelGlobals kg,
   color.z = max(color.z, 0.0f);
 
   if (stack_valid(out_color_offset))
-    stack_store_float3(svm, out_color_offset, color);
+    stack_store_float3(stack, out_color_offset, color);
 }
 
 CCL_NAMESPACE_END

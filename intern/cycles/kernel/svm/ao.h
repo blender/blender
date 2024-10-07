@@ -96,7 +96,7 @@ ccl_device_noinline
     svm_node_ao(KernelGlobals kg,
                 ConstIntegratorGenericState state,
                 ccl_private ShaderData *sd,
-                ccl_private SVMState *svm,
+                ccl_private float *stack,
                 uint4 node)
 {
   uint flags, dist_offset, normal_offset, out_ao_offset;
@@ -109,8 +109,8 @@ ccl_device_noinline
 
   IF_KERNEL_NODES_FEATURE(RAYTRACE)
   {
-    float dist = stack_load_float_default(svm, dist_offset, node.w);
-    float3 normal = stack_valid(normal_offset) ? stack_load_float3(svm, normal_offset) : sd->N;
+    float dist = stack_load_float_default(stack, dist_offset, node.w);
+    float3 normal = stack_valid(normal_offset) ? stack_load_float3(stack, normal_offset) : sd->N;
 
 #  ifdef __KERNEL_OPTIX__
     ao = optixDirectCall<float>(0, kg, state, sd, normal, dist, samples, flags);
@@ -120,12 +120,12 @@ ccl_device_noinline
   }
 
   if (stack_valid(out_ao_offset)) {
-    stack_store_float(svm, out_ao_offset, ao);
+    stack_store_float(stack, out_ao_offset, ao);
   }
 
   if (stack_valid(out_color_offset)) {
-    float3 color = stack_load_float3(svm, color_offset);
-    stack_store_float3(svm, out_color_offset, ao * color);
+    float3 color = stack_load_float3(stack, color_offset);
+    stack_store_float3(stack, out_color_offset, ao * color);
   }
 }
 

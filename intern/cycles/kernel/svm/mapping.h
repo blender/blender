@@ -12,7 +12,7 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_noinline void svm_node_mapping(KernelGlobals kg,
                                           ccl_private ShaderData *sd,
-                                          ccl_private SVMState *svm,
+                                          ccl_private float *stack,
                                           uint type,
                                           uint inputs_stack_offsets,
                                           uint result_stack_offset)
@@ -24,47 +24,51 @@ ccl_device_noinline void svm_node_mapping(KernelGlobals kg,
                          &rotation_stack_offset,
                          &scale_stack_offset);
 
-  float3 vector = stack_load_float3(svm, vector_stack_offset);
-  float3 location = stack_load_float3(svm, location_stack_offset);
-  float3 rotation = stack_load_float3(svm, rotation_stack_offset);
-  float3 scale = stack_load_float3(svm, scale_stack_offset);
+  float3 vector = stack_load_float3(stack, vector_stack_offset);
+  float3 location = stack_load_float3(stack, location_stack_offset);
+  float3 rotation = stack_load_float3(stack, rotation_stack_offset);
+  float3 scale = stack_load_float3(stack, scale_stack_offset);
 
   float3 result = svm_mapping((NodeMappingType)type, vector, location, rotation, scale);
-  stack_store_float3(svm, result_stack_offset, result);
+  stack_store_float3(stack, result_stack_offset, result);
 }
 
 /* Texture Mapping */
 
-ccl_device_noinline void svm_node_texture_mapping(KernelGlobals kg,
-                                                  ccl_private ShaderData *sd,
-                                                  ccl_private SVMState *svm,
-                                                  uint vec_offset,
-                                                  uint out_offset)
+ccl_device_noinline int svm_node_texture_mapping(KernelGlobals kg,
+                                                 ccl_private ShaderData *sd,
+                                                 ccl_private float *stack,
+                                                 uint vec_offset,
+                                                 uint out_offset,
+                                                 int offset)
 {
-  float3 v = stack_load_float3(svm, vec_offset);
+  float3 v = stack_load_float3(stack, vec_offset);
 
   Transform tfm;
-  tfm.x = read_node_float(kg, svm);
-  tfm.y = read_node_float(kg, svm);
-  tfm.z = read_node_float(kg, svm);
+  tfm.x = read_node_float(kg, &offset);
+  tfm.y = read_node_float(kg, &offset);
+  tfm.z = read_node_float(kg, &offset);
 
   float3 r = transform_point(&tfm, v);
-  stack_store_float3(svm, out_offset, r);
+  stack_store_float3(stack, out_offset, r);
+  return offset;
 }
 
-ccl_device_noinline void svm_node_min_max(KernelGlobals kg,
-                                          ccl_private ShaderData *sd,
-                                          ccl_private SVMState *svm,
-                                          uint vec_offset,
-                                          uint out_offset)
+ccl_device_noinline int svm_node_min_max(KernelGlobals kg,
+                                         ccl_private ShaderData *sd,
+                                         ccl_private float *stack,
+                                         uint vec_offset,
+                                         uint out_offset,
+                                         int offset)
 {
-  float3 v = stack_load_float3(svm, vec_offset);
+  float3 v = stack_load_float3(stack, vec_offset);
 
-  float3 mn = float4_to_float3(read_node_float(kg, svm));
-  float3 mx = float4_to_float3(read_node_float(kg, svm));
+  float3 mn = float4_to_float3(read_node_float(kg, &offset));
+  float3 mx = float4_to_float3(read_node_float(kg, &offset));
 
   float3 r = min(max(mn, v), mx);
-  stack_store_float3(svm, out_offset, r);
+  stack_store_float3(stack, out_offset, r);
+  return offset;
 }
 
 CCL_NAMESPACE_END

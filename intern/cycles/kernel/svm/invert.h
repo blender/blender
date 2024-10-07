@@ -12,20 +12,20 @@ ccl_device float invert(float color, float factor)
 }
 
 ccl_device_noinline void svm_node_invert(ccl_private ShaderData *sd,
-                                         ccl_private SVMState *svm,
+                                         ccl_private float *stack,
                                          uint in_fac,
                                          uint in_color,
                                          uint out_color)
 {
-  float factor = stack_load_float(svm, in_fac);
-  float3 color = stack_load_float3(svm, in_color);
+  float factor = stack_load_float(stack, in_fac);
+  float3 color = stack_load_float3(stack, in_color);
 
   color.x = invert(color.x, factor);
   color.y = invert(color.y, factor);
   color.z = invert(color.z, factor);
 
   if (stack_valid(out_color)) {
-    stack_store_float3(svm, out_color, color);
+    stack_store_float3(stack, out_color, color);
   }
 }
 

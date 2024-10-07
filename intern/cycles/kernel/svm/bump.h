@@ -10,12 +10,12 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_noinline void svm_node_enter_bump_eval(KernelGlobals kg,
                                                   ccl_private ShaderData *sd,
-                                                  ccl_private SVMState *svm,
+                                                  ccl_private float *stack,
                                                   uint offset)
 {
   /* save state */
-  stack_store_float3(svm, offset + 0, sd->P);
-  stack_store_float(svm, offset + 3, sd->dP);
+  stack_store_float3(stack, offset + 0, sd->P);
+  stack_store_float(stack, offset + 3, sd->dP);
 
   /* set state as if undisplaced */
   const AttributeDescriptor desc = find_attribute(kg, sd, ATTR_STD_POSITION_UNDISPLACED);
@@ -32,19 +32,19 @@ ccl_device_noinline void svm_node_enter_bump_eval(KernelGlobals kg,
     sd->dP = differential_make_compact(dP);
 
     /* Save the full differential, the compact form isn't enough for svm_node_set_bump. */
-    stack_store_float3(svm, offset + 4, dP.dx);
-    stack_store_float3(svm, offset + 7, dP.dy);
+    stack_store_float3(stack, offset + 4, dP.dx);
+    stack_store_float3(stack, offset + 7, dP.dy);
   }
 }
 
 ccl_device_noinline void svm_node_leave_bump_eval(KernelGlobals kg,
                                                   ccl_private ShaderData *sd,
-                                                  ccl_private SVMState *svm,
+                                                  ccl_private float *stack,
                                                   uint offset)
 {
   /* restore state */
-  sd->P = stack_load_float3(svm, offset + 0);
-  sd->dP = stack_load_float(svm, offset + 3);
+  sd->P = stack_load_float3(stack, offset + 0);
+  sd->dP = stack_load_float(stack, offset + 3);
 }
 
 CCL_NAMESPACE_END

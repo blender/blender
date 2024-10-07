@@ -12,7 +12,7 @@ template<uint node_feature_mask, typename ConstIntegratorGenericState>
 ccl_device_noinline void svm_node_light_path(KernelGlobals kg,
                                              ConstIntegratorGenericState state,
                                              ccl_private const ShaderData *sd,
-                                             ccl_private SVMState *svm,
+                                             ccl_private float *stack,
                                              uint type,
                                              uint out_offset,
                                              uint32_t path_flag)
@@ -93,20 +93,20 @@ ccl_device_noinline void svm_node_light_path(KernelGlobals kg,
       break;
   }
 
-  stack_store_float(svm, out_offset, info);
+  stack_store_float(stack, out_offset, info);
 }
 
 /* Light Falloff Node */
 
 ccl_device_noinline void svm_node_light_falloff(ccl_private ShaderData *sd,
-                                                ccl_private SVMState *svm,
+                                                ccl_private float *stack,
                                                 uint4 node)
 {
   uint strength_offset, out_offset, smooth_offset;
 
   svm_unpack_node_uchar3(node.z, &strength_offset, &smooth_offset, &out_offset);
 
-  float strength = stack_load_float(svm, strength_offset);
+  float strength = stack_load_float(stack, strength_offset);
   uint type = node.y;
 
   switch (type) {
@@ -120,7 +120,7 @@ ccl_device_noinline void svm_node_light_falloff(ccl_private ShaderData *sd,
       break;
   }
 
-  float smooth = stack_load_float(svm, smooth_offset);
+  float smooth = stack_load_float(stack, smooth_offset);
 
   if (smooth > 0.0f) {
     float squared = sd->ray_length * sd->ray_length;
@@ -130,7 +130,7 @@ ccl_device_noinline void svm_node_light_falloff(ccl_private ShaderData *sd,
     }
   }
 
-  stack_store_float(svm, out_offset, strength);
+  stack_store_float(stack, out_offset, strength);
 }
 
 CCL_NAMESPACE_END

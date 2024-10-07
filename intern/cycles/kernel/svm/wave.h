@@ -73,13 +73,11 @@ ccl_device_noinline_cpu float svm_wave(NodeWaveType type,
   }
 }
 
-ccl_device_noinline void svm_node_tex_wave(KernelGlobals kg,
-                                           ccl_private ShaderData *sd,
-                                           ccl_private SVMState *svm,
-                                           uint4 node)
+ccl_device_noinline int svm_node_tex_wave(
+    KernelGlobals kg, ccl_private ShaderData *sd, ccl_private float *stack, uint4 node, int offset)
 {
-  uint4 node2 = read_node(kg, svm);
-  uint4 node3 = read_node(kg, svm);
+  uint4 node2 = read_node(kg, &offset);
+  uint4 node3 = read_node(kg, &offset);
 
   /* RNA properties */
   uint type_offset, bands_dir_offset, rings_dir_offset, profile_offset;
@@ -95,13 +93,13 @@ ccl_device_noinline void svm_node_tex_wave(KernelGlobals kg,
       node.w, &detail_offset, &dscale_offset, &droughness_offset, &phase_offset);
   svm_unpack_node_uchar2(node2.x, &color_offset, &fac_offset);
 
-  float3 co = stack_load_float3(svm, co_offset);
-  float scale = stack_load_float_default(svm, scale_offset, node2.y);
-  float distortion = stack_load_float_default(svm, distortion_offset, node2.z);
-  float detail = stack_load_float_default(svm, detail_offset, node2.w);
-  float dscale = stack_load_float_default(svm, dscale_offset, node3.x);
-  float droughness = stack_load_float_default(svm, droughness_offset, node3.y);
-  float phase = stack_load_float_default(svm, phase_offset, node3.z);
+  float3 co = stack_load_float3(stack, co_offset);
+  float scale = stack_load_float_default(stack, scale_offset, node2.y);
+  float distortion = stack_load_float_default(stack, distortion_offset, node2.z);
+  float detail = stack_load_float_default(stack, detail_offset, node2.w);
+  float dscale = stack_load_float_default(stack, dscale_offset, node3.x);
+  float droughness = stack_load_float_default(stack, droughness_offset, node3.y);
+  float phase = stack_load_float_default(stack, phase_offset, node3.z);
 
   float f = svm_wave((NodeWaveType)type_offset,
                      (NodeWaveBandsDirection)bands_dir_offset,
@@ -115,9 +113,10 @@ ccl_device_noinline void svm_node_tex_wave(KernelGlobals kg,
                      phase);
 
   if (stack_valid(fac_offset))
-    stack_store_float(svm, fac_offset, f);
+    stack_store_float(stack, fac_offset, f);
   if (stack_valid(color_offset))
-    stack_store_float3(svm, color_offset, make_float3(f, f, f));
+    stack_store_float3(stack, color_offset, make_float3(f, f, f));
+  return offset;
 }
 
 CCL_NAMESPACE_END

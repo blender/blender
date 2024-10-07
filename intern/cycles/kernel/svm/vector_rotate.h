@@ -9,7 +9,7 @@ CCL_NAMESPACE_BEGIN
 /* Vector Rotate */
 
 ccl_device_noinline void svm_node_vector_rotate(ccl_private ShaderData *sd,
-                                                ccl_private SVMState *svm,
+                                                ccl_private float *stack,
                                                 uint input_stack_offsets,
                                                 uint axis_stack_offsets,
                                                 uint result_stack_offset)
@@ -24,12 +24,12 @@ ccl_device_noinline void svm_node_vector_rotate(ccl_private ShaderData *sd,
 
   if (stack_valid(result_stack_offset)) {
 
-    float3 vector = stack_load_float3(svm, vector_stack_offset);
-    float3 center = stack_load_float3(svm, center_stack_offset);
+    float3 vector = stack_load_float3(stack, vector_stack_offset);
+    float3 center = stack_load_float3(stack, center_stack_offset);
     float3 result = make_float3(0.0f, 0.0f, 0.0f);
 
     if (type == NODE_VECTOR_ROTATE_TYPE_EULER_XYZ) {
-      float3 rotation = stack_load_float3(svm, rotation_stack_offset);  // Default XYZ.
+      float3 rotation = stack_load_float3(stack, rotation_stack_offset);  // Default XYZ.
       Transform rotationTransform = euler_to_transform(rotation);
       if (invert) {
         result = transform_direction_transposed(&rotationTransform, vector - center) + center;
@@ -55,18 +55,18 @@ ccl_device_noinline void svm_node_vector_rotate(ccl_private ShaderData *sd,
           axis_length = 1.0f;
           break;
         default:
-          axis = stack_load_float3(svm, axis_stack_offset);
+          axis = stack_load_float3(stack, axis_stack_offset);
           axis_length = len(axis);
           break;
       }
-      float angle = stack_load_float(svm, angle_stack_offset);
+      float angle = stack_load_float(stack, angle_stack_offset);
       angle = invert ? -angle : angle;
       result = (axis_length != 0.0f) ?
                    rotate_around_axis(vector - center, axis / axis_length, angle) + center :
                    vector;
     }
 
-    stack_store_float3(svm, result_stack_offset, result);
+    stack_store_float3(stack, result_stack_offset, result);
   }
 }
 

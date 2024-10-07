@@ -62,14 +62,12 @@ ccl_device_noinline_cpu float2 svm_brick(float3 p,
   return make_float2(tint, mortar);
 }
 
-ccl_device_noinline void svm_node_tex_brick(KernelGlobals kg,
-                                            ccl_private ShaderData *sd,
-                                            ccl_private SVMState *svm,
-                                            uint4 node)
+ccl_device_noinline int svm_node_tex_brick(
+    KernelGlobals kg, ccl_private ShaderData *sd, ccl_private float *stack, uint4 node, int offset)
 {
-  uint4 node2 = read_node(kg, svm);
-  uint4 node3 = read_node(kg, svm);
-  uint4 node4 = read_node(kg, svm);
+  uint4 node2 = read_node(kg, &offset);
+  uint4 node3 = read_node(kg, &offset);
+  uint4 node4 = read_node(kg, &offset);
 
   /* Input and Output Sockets */
   uint co_offset, color1_offset, color2_offset, mortar_offset, scale_offset;
@@ -87,18 +85,18 @@ ccl_device_noinline void svm_node_tex_brick(KernelGlobals kg,
 
   svm_unpack_node_uchar2(node2.x, &offset_frequency, &squash_frequency);
 
-  float3 co = stack_load_float3(svm, co_offset);
+  float3 co = stack_load_float3(stack, co_offset);
 
-  float3 color1 = stack_load_float3(svm, color1_offset);
-  float3 color2 = stack_load_float3(svm, color2_offset);
-  float3 mortar = stack_load_float3(svm, mortar_offset);
+  float3 color1 = stack_load_float3(stack, color1_offset);
+  float3 color2 = stack_load_float3(stack, color2_offset);
+  float3 mortar = stack_load_float3(stack, mortar_offset);
 
-  float scale = stack_load_float_default(svm, scale_offset, node2.y);
-  float mortar_size = stack_load_float_default(svm, mortar_size_offset, node2.z);
-  float mortar_smooth = stack_load_float_default(svm, mortar_smooth_offset, node4.x);
-  float bias = stack_load_float_default(svm, bias_offset, node2.w);
-  float brick_width = stack_load_float_default(svm, brick_width_offset, node3.x);
-  float row_height = stack_load_float_default(svm, row_height_offset, node3.y);
+  float scale = stack_load_float_default(stack, scale_offset, node2.y);
+  float mortar_size = stack_load_float_default(stack, mortar_size_offset, node2.z);
+  float mortar_smooth = stack_load_float_default(stack, mortar_smooth_offset, node4.x);
+  float bias = stack_load_float_default(stack, bias_offset, node2.w);
+  float brick_width = stack_load_float_default(stack, brick_width_offset, node3.x);
+  float row_height = stack_load_float_default(stack, row_height_offset, node3.y);
   float offset_amount = __int_as_float(node3.z);
   float squash_amount = __int_as_float(node3.w);
 
@@ -122,9 +120,10 @@ ccl_device_noinline void svm_node_tex_brick(KernelGlobals kg,
   }
 
   if (stack_valid(color_offset))
-    stack_store_float3(svm, color_offset, color1 * (1.0f - f) + mortar * f);
+    stack_store_float3(stack, color_offset, color1 * (1.0f - f) + mortar * f);
   if (stack_valid(fac_offset))
-    stack_store_float(svm, fac_offset, f);
+    stack_store_float(stack, fac_offset, f);
+  return offset;
 }
 
 CCL_NAMESPACE_END

@@ -289,7 +289,7 @@ ccl_device_noinline
     svm_node_bevel(KernelGlobals kg,
                    ConstIntegratorGenericState state,
                    ccl_private ShaderData *sd,
-                   ccl_private SVMState *svm,
+                   ccl_private float *stack,
                    uint4 node)
 {
   uint num_samples, radius_offset, normal_offset, out_offset;
@@ -299,7 +299,7 @@ ccl_device_noinline
 
   IF_KERNEL_NODES_FEATURE(RAYTRACE)
   {
-    float radius = stack_load_float(svm, radius_offset);
+    float radius = stack_load_float(stack, radius_offset);
 
 #  ifdef __KERNEL_OPTIX__
     bevel_N = optixDirectCall<float3>(1, kg, state, sd, radius, num_samples);
@@ -309,12 +309,12 @@ ccl_device_noinline
 
     if (stack_valid(normal_offset)) {
       /* Preserve input normal. */
-      float3 ref_N = stack_load_float3(svm, normal_offset);
+      float3 ref_N = stack_load_float3(stack, normal_offset);
       bevel_N = normalize(ref_N + (bevel_N - sd->N));
     }
   }
 
-  stack_store_float3(svm, out_offset, bevel_N);
+  stack_store_float3(stack, out_offset, bevel_N);
 }
 
 #endif /* __SHADER_RAYTRACE__ */

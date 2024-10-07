@@ -10,7 +10,7 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_noinline void svm_node_vector_transform(KernelGlobals kg,
                                                    ccl_private ShaderData *sd,
-                                                   ccl_private SVMState *svm,
+                                                   ccl_private float *stack,
                                                    uint4 node)
 {
   uint itype, ifrom, ito;
@@ -19,7 +19,7 @@ ccl_device_noinline void svm_node_vector_transform(KernelGlobals kg,
   svm_unpack_node_uchar3(node.y, &itype, &ifrom, &ito);
   svm_unpack_node_uchar2(node.z, &vector_in, &vector_out);
 
-  float3 in = stack_load_float3(svm, vector_in);
+  float3 in = stack_load_float3(stack, vector_in);
 
   NodeVectorTransformType type = (NodeVectorTransformType)itype;
   NodeVectorTransformConvertSpace from = (NodeVectorTransformConvertSpace)ifrom;
@@ -117,7 +117,7 @@ ccl_device_noinline void svm_node_vector_transform(KernelGlobals kg,
 
   /* Output */
   if (stack_valid(vector_out)) {
-    stack_store_float3(svm, vector_out, in);
+    stack_store_float3(stack, vector_out, in);
   }
 }
 

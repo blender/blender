@@ -15,17 +15,17 @@ CCL_NAMESPACE_BEGIN
 
 /* Closure Nodes */
 
-ccl_device_inline void svm_node_closure_bsdf_skip(KernelGlobals kg,
-                                                  ccl_private SVMState *svm,
-                                                  uint type)
+ccl_device_inline int svm_node_closure_bsdf_skip(KernelGlobals kg, int offset, uint type)
 {
   if (type == CLOSURE_BSDF_PRINCIPLED_ID) {
     /* Read all principled BSDF extra data to get the right offset. */
-    read_node(kg, svm);
-    read_node(kg, svm);
-    read_node(kg, svm);
-    read_node(kg, svm);
+    read_node(kg, &offset);
+    read_node(kg, &offset);
+    read_node(kg, &offset);
+    read_node(kg, &offset);
   }
+
+  return offset;
 }
 
 template<uint node_feature_mask, ShaderType shader_type>
@@ -34,50 +34,48 @@ ccl_device_noinline
 #else
 ccl_device
 #endif
-    void
+    int
     svm_node_closure_bsdf(KernelGlobals kg,
                           ccl_private ShaderData *sd,
-                          ccl_private SVMState *svm,
+                          ccl_private float *stack,
+                          Spectrum closure_weight,
                           uint4 node,
-                          uint32_t path_flag)
+                          uint32_t path_flag,
+                          int offset)
 {
   uint type, param1_offset, param2_offset;
 
   uint mix_weight_offset;
   svm_unpack_node_uchar4(node.y, &type, &param1_offset, &param2_offset, &mix_weight_offset);
-  float mix_weight = (stack_valid(mix_weight_offset) ? stack_load_float(svm, mix_weight_offset) :
+  float mix_weight = (stack_valid(mix_weight_offset) ? stack_load_float(stack, mix_weight_offset) :
                                                        1.0f);
-  Spectrum weight = svm->closure_weight * mix_weight;
 
   /* note we read this extra node before weight check, so offset is added */
-  uint4 data_node = read_node(kg, svm);
+  uint4 data_node = read_node(kg, &offset);
 
   /* Only compute BSDF for surfaces, transparent variable is shared with volume extinction. */
   IF_KERNEL_NODES_FEATURE(BSDF)
   {
     if ((shader_type != SHADER_TYPE_SURFACE) || mix_weight == 0.0f) {
-      svm_node_closure_bsdf_skip(kg, svm, type);
-      return;
+      return svm_node_closure_bsdf_skip(kg, offset, type);
     }
   }
   else IF_KERNEL_NODES_FEATURE(EMISSION) {
     if (type != CLOSURE_BSDF_PRINCIPLED_ID) {
       /* Only principled BSDF can have emission. */
-      svm_node_closure_bsdf_skip(kg, svm, type);
-      return;
+      return svm_node_closure_bsdf_skip(kg, offset, type);
     }
   }
   else {
-    svm_node_closure_bsdf_skip(kg, svm, type);
-    return;
+    return svm_node_closure_bsdf_skip(kg, offset, type);
   }
 
-  float3 N = stack_valid(data_node.x) ? stack_load_float3(svm, data_node.x) : sd->N;
+  float3 N = stack_valid(data_node.x) ? stack_load_float3(stack, data_node.x) : sd->N;
   N = safe_normalize_fallback(N, sd->N);
 
-  float param1 = (stack_valid(param1_offset)) ? stack_load_float(svm, param1_offset) :
+  float param1 = (stack_valid(param1_offset)) ? stack_load_float(stack, param1_offset) :
                                                 __uint_as_float(node.z);
-  float param2 = (stack_valid(param2_offset)) ? stack_load_float(svm, param2_offset) :
+  float param2 = (stack_valid(param2_offset)) ? stack_load_float(stack, param2_offset) :
                                                 __uint_as_float(node.w);
 
   switch (type) {
@@ -88,9 +86,9 @@ ccl_device
           anisotropic_rotation_offset, coat_tint_offset, coat_normal_offset, alpha_offset,
           emission_strength_offset, emission_offset, thinfilm_thickness_offset,
           diffuse_roughness_offset;
-      uint4 data_node2 = read_node(kg, svm);
+      uint4 data_node2 = read_node(kg, &offset);
 
-      float3 T = stack_load_float3(svm, data_node.y);
+      float3 T = stack_load_float3(stack, data_node.y);
       svm_unpack_node_uchar4(data_node.z,
                              &specular_ior_level_offset,
                              &roughness_offset,
@@ -115,21 +113,21 @@ ccl_device
       // get Disney principled parameters
       float metallic = saturatef(param1);
       float subsurface_weight = saturatef(param2);
-      float specular_ior_level = max(stack_load_float(svm, specular_ior_level_offset), 0.0f);
-      float roughness = saturatef(stack_load_float(svm, roughness_offset));
+      float specular_ior_level = max(stack_load_float(stack, specular_ior_level_offset), 0.0f);
+      float roughness = saturatef(stack_load_float(stack, roughness_offset));
       Spectrum specular_tint = rgb_to_spectrum(
-          max(stack_load_float3(svm, specular_tint_offset), zero_float3()));
-      float anisotropic = saturatef(stack_load_float(svm, anisotropic_offset));
-      float sheen_weight = max(stack_load_float(svm, sheen_weight_offset), 0.0f);
-      float3 sheen_tint = max(stack_load_float3(svm, sheen_tint_offset), zero_float3());
-      float sheen_roughness = saturatef(stack_load_float(svm, sheen_roughness_offset));
-      float coat_weight = fmaxf(stack_load_float(svm, coat_weight_offset), 0.0f);
-      float coat_roughness = saturatef(stack_load_float(svm, coat_roughness_offset));
-      float coat_ior = fmaxf(stack_load_float(svm, coat_ior_offset), 1.0f);
-      float3 coat_tint = max(stack_load_float3(svm, coat_tint_offset), zero_float3());
-      float transmission_weight = saturatef(stack_load_float(svm, transmission_weight_offset));
-      float anisotropic_rotation = stack_load_float(svm, anisotropic_rotation_offset);
-      float ior = fmaxf(stack_load_float(svm, eta_offset), 1e-5f);
+          max(stack_load_float3(stack, specular_tint_offset), zero_float3()));
+      float anisotropic = saturatef(stack_load_float(stack, anisotropic_offset));
+      float sheen_weight = max(stack_load_float(stack, sheen_weight_offset), 0.0f);
+      float3 sheen_tint = max(stack_load_float3(stack, sheen_tint_offset), zero_float3());
+      float sheen_roughness = saturatef(stack_load_float(stack, sheen_roughness_offset));
+      float coat_weight = fmaxf(stack_load_float(stack, coat_weight_offset), 0.0f);
+      float coat_roughness = saturatef(stack_load_float(stack, coat_roughness_offset));
+      float coat_ior = fmaxf(stack_load_float(stack, coat_ior_offset), 1.0f);
+      float3 coat_tint = max(stack_load_float3(stack, coat_tint_offset), zero_float3());
+      float transmission_weight = saturatef(stack_load_float(stack, transmission_weight_offset));
+      float anisotropic_rotation = stack_load_float(stack, anisotropic_rotation_offset);
+      float ior = fmaxf(stack_load_float(stack, eta_offset), 1e-5f);
 
       ClosureType distribution = (ClosureType)data_node2.y;
 #ifdef __SUBSURFACE__
@@ -138,14 +136,14 @@ ccl_device
 
       float3 valid_reflection_N = maybe_ensure_valid_specular_reflection(sd, N);
       float3 coat_normal = stack_valid(coat_normal_offset) ?
-                               stack_load_float3(svm, coat_normal_offset) :
+                               stack_load_float3(stack, coat_normal_offset) :
                                sd->N;
       coat_normal = safe_normalize_fallback(coat_normal, sd->N);
 
       // get the base color
-      uint4 data_base_color = read_node(kg, svm);
+      uint4 data_base_color = read_node(kg, &offset);
       float3 base_color = stack_valid(data_base_color.x) ?
-                              stack_load_float3(svm, data_base_color.x) :
+                              stack_load_float3(stack, data_base_color.x) :
                               make_float3(__uint_as_float(data_base_color.y),
                                           __uint_as_float(data_base_color.z),
                                           __uint_as_float(data_base_color.w));
@@ -153,25 +151,27 @@ ccl_device
       const float3 clamped_base_color = min(base_color, one_float3());
 
       // get the subsurface scattering data
-      uint4 data_subsurf = read_node(kg, svm);
+      uint4 data_subsurf = read_node(kg, &offset);
 
-      uint4 data_alpha_emission_thin = read_node(kg, svm);
+      uint4 data_alpha_emission_thin = read_node(kg, &offset);
       svm_unpack_node_uchar4(data_alpha_emission_thin.x,
                              &alpha_offset,
                              &emission_strength_offset,
                              &emission_offset,
                              &thinfilm_thickness_offset);
-      float alpha = stack_valid(alpha_offset) ? stack_load_float(svm, alpha_offset) :
+      float alpha = stack_valid(alpha_offset) ? stack_load_float(stack, alpha_offset) :
                                                 __uint_as_float(data_alpha_emission_thin.y);
       alpha = saturatef(alpha);
 
       float emission_strength = stack_valid(emission_strength_offset) ?
-                                    stack_load_float(svm, emission_strength_offset) :
+                                    stack_load_float(stack, emission_strength_offset) :
                                     __uint_as_float(data_alpha_emission_thin.z);
-      float3 emission = stack_load_float3(svm, emission_offset) * emission_strength;
+      float3 emission = stack_load_float3(stack, emission_offset) * emission_strength;
 
-      float thinfilm_thickness = fmaxf(stack_load_float(svm, thinfilm_thickness_offset), 1e-5f);
-      float thinfilm_ior = fmaxf(stack_load_float(svm, data_alpha_emission_thin.w), 1e-5f);
+      float thinfilm_thickness = fmaxf(stack_load_float(stack, thinfilm_thickness_offset), 1e-5f);
+      float thinfilm_ior = fmaxf(stack_load_float(stack, data_alpha_emission_thin.w), 1e-5f);
+
+      Spectrum weight = closure_weight * mix_weight;
 
       float alpha_x = sqr(roughness), alpha_y = sqr(roughness);
       if (anisotropic > 0.0f) {
@@ -397,8 +397,8 @@ ccl_device
       ccl_private Bssrdf *bssrdf = bssrdf_alloc(
           sd, rgb_to_spectrum(clamped_base_color) * subsurface_weight * weight);
       if (bssrdf) {
-        float3 subsurface_radius = stack_load_float3(svm, data_subsurf.y);
-        float subsurface_scale = stack_load_float(svm, data_subsurf.z);
+        float3 subsurface_radius = stack_load_float3(stack, data_subsurf.y);
+        float subsurface_scale = stack_load_float(stack, data_subsurf.z);
 
         bssrdf->radius = rgb_to_spectrum(max(subsurface_radius * subsurface_scale, zero_float3()));
         bssrdf->albedo = rgb_to_spectrum(clamped_base_color);
@@ -407,9 +407,9 @@ ccl_device
         /* IOR is clamped to [1.01..3.8] inside bssrdf_setup */
         bssrdf->ior = eta;
         /* Anisotropy is clamped to [0.0..0.9] inside bssrdf_setup */
-        bssrdf->anisotropy = stack_load_float(svm, data_subsurf.w);
+        bssrdf->anisotropy = stack_load_float(stack, data_subsurf.w);
         if (subsurface_method == CLOSURE_BSSRDF_RANDOM_WALK_SKIN_ID) {
-          bssrdf->ior = stack_load_float(svm, data_subsurf.x);
+          bssrdf->ior = stack_load_float(stack, data_subsurf.x);
         }
 
         /* setup bsdf */
@@ -427,7 +427,8 @@ ccl_device
       if (bsdf) {
         bsdf->N = N;
 
-        const float diffuse_roughness = saturatef(stack_load_float(svm, diffuse_roughness_offset));
+        const float diffuse_roughness = saturatef(
+            stack_load_float(stack, diffuse_roughness_offset));
         /* setup bsdf */
         if (diffuse_roughness < CLOSURE_WEIGHT_CUTOFF) {
           sd->flag |= bsdf_diffuse_setup((ccl_private DiffuseBsdf *)bsdf);
@@ -441,6 +442,7 @@ ccl_device
       break;
     }
     case CLOSURE_BSDF_DIFFUSE_ID: {
+      Spectrum weight = closure_weight * mix_weight;
       ccl_private OrenNayarBsdf *bsdf = (ccl_private OrenNayarBsdf *)bsdf_alloc(
           sd, sizeof(OrenNayarBsdf), weight);
 
@@ -454,13 +456,14 @@ ccl_device
         }
         else {
           bsdf->roughness = roughness;
-          const Spectrum color = saturate(rgb_to_spectrum(stack_load_float3(svm, data_node.y)));
+          const Spectrum color = saturate(rgb_to_spectrum(stack_load_float3(stack, data_node.y)));
           sd->flag |= bsdf_oren_nayar_setup(sd, bsdf, color);
         }
       }
       break;
     }
     case CLOSURE_BSDF_TRANSLUCENT_ID: {
+      Spectrum weight = closure_weight * mix_weight;
       ccl_private DiffuseBsdf *bsdf = (ccl_private DiffuseBsdf *)bsdf_alloc(
           sd, sizeof(DiffuseBsdf), weight);
 
@@ -471,6 +474,7 @@ ccl_device
       break;
     }
     case CLOSURE_BSDF_TRANSPARENT_ID: {
+      Spectrum weight = closure_weight * mix_weight;
       bsdf_transparent_setup(sd, weight, path_flag);
       break;
     }
@@ -489,7 +493,7 @@ ccl_device
             node.z, &base_ior_offset, &edge_tint_k_offset, &rotation_offset, &tangent_offset);
 
         float3 valid_reflection_N = maybe_ensure_valid_specular_reflection(sd, N);
-        float3 T = stack_load_float3(svm, tangent_offset);
+        float3 T = stack_load_float3(stack, tangent_offset);
         const float anisotropy = saturatef(param2);
         const float roughness = saturatef(param1);
         float alpha_x = sqr(roughness), alpha_y = sqr(roughness);
@@ -497,7 +501,7 @@ ccl_device
           float aspect = sqrtf(1.0f - anisotropy * 0.9f);
           alpha_x /= aspect;
           alpha_y *= aspect;
-          float anisotropic_rotation = stack_load_float(svm, rotation_offset);
+          float anisotropic_rotation = stack_load_float(stack, rotation_offset);
           if (anisotropic_rotation != 0.0f) {
             T = rotate_around_axis(T, N, anisotropic_rotation * M_2PI_F);
           }
@@ -524,8 +528,8 @@ ccl_device
           ccl_private FresnelConductor *fresnel = (ccl_private FresnelConductor *)
               closure_alloc_extra(sd, sizeof(FresnelConductor));
 
-          const float3 n = max(stack_load_float3(svm, base_ior_offset), zero_float3());
-          const float3 k = max(stack_load_float3(svm, edge_tint_k_offset), zero_float3());
+          const float3 n = max(stack_load_float3(stack, base_ior_offset), zero_float3());
+          const float3 k = max(stack_load_float3(stack, edge_tint_k_offset), zero_float3());
 
           fresnel->n = rgb_to_spectrum(n);
           fresnel->k = rgb_to_spectrum(k);
@@ -535,8 +539,8 @@ ccl_device
           ccl_private FresnelF82Tint *fresnel = (ccl_private FresnelF82Tint *)closure_alloc_extra(
               sd, sizeof(FresnelF82Tint));
 
-          const float3 color = saturate(stack_load_float3(svm, base_ior_offset));
-          const float3 tint = saturate(stack_load_float3(svm, edge_tint_k_offset));
+          const float3 color = saturate(stack_load_float3(stack, base_ior_offset));
+          const float3 tint = saturate(stack_load_float3(stack, edge_tint_k_offset));
 
           fresnel->f0 = rgb_to_spectrum(color);
           const Spectrum f82 = rgb_to_spectrum(tint);
@@ -546,8 +550,9 @@ ccl_device
       break;
     }
     case CLOSURE_BSDF_RAY_PORTAL_ID: {
-      float3 position = stack_load_float3(svm, data_node.y);
-      float3 direction = stack_load_float3(svm, data_node.z);
+      Spectrum weight = closure_weight * mix_weight;
+      float3 position = stack_load_float3(stack, data_node.y);
+      float3 direction = stack_load_float3(stack, data_node.z);
       bsdf_ray_portal_setup(sd, weight, path_flag, position, direction);
       break;
     }
@@ -559,6 +564,7 @@ ccl_device
       if (!kernel_data.integrator.caustics_reflective && (path_flag & PATH_RAY_DIFFUSE))
         break;
 #endif
+      Spectrum weight = closure_weight * mix_weight;
       ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
           sd, sizeof(MicrofacetBsdf), weight);
 
@@ -580,10 +586,10 @@ ccl_device
         bsdf->alpha_y = roughness;
       }
       else {
-        bsdf->T = stack_load_float3(svm, data_node.w);
+        bsdf->T = stack_load_float3(stack, data_node.w);
 
         /* rotate tangent */
-        float rotation = stack_load_float(svm, data_node.y);
+        float rotation = stack_load_float(stack, data_node.y);
         if (rotation != 0.0f) {
           bsdf->T = rotate_around_axis(bsdf->T, bsdf->N, rotation * M_2PI_F);
         }
@@ -609,7 +615,7 @@ ccl_device
         sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
         if (type == CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID) {
           kernel_assert(stack_valid(data_node.z));
-          const Spectrum color = max(rgb_to_spectrum(stack_load_float3(svm, data_node.z)),
+          const Spectrum color = max(rgb_to_spectrum(stack_load_float3(stack, data_node.z)),
                                      zero_spectrum());
           bsdf_microfacet_setup_fresnel_constant(kg, bsdf, sd, color);
         }
@@ -623,6 +629,7 @@ ccl_device
       if (!kernel_data.integrator.caustics_refractive && (path_flag & PATH_RAY_DIFFUSE))
         break;
 #endif
+      Spectrum weight = closure_weight * mix_weight;
       ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
           sd, sizeof(MicrofacetBsdf), weight);
 
@@ -681,7 +688,7 @@ ccl_device
         fresnel->f0 = make_float3(F0_from_ior(ior));
         fresnel->f90 = one_spectrum();
         fresnel->exponent = -ior;
-        const float3 color = max(stack_load_float3(svm, data_node.y), zero_float3());
+        const float3 color = max(stack_load_float3(stack, data_node.y), zero_float3());
         fresnel->reflection_tint = reflective_caustics ? rgb_to_spectrum(color) : zero_spectrum();
         fresnel->transmission_tint = refractive_caustics ? rgb_to_spectrum(color) :
                                                            zero_spectrum();
@@ -701,6 +708,7 @@ ccl_device
       break;
     }
     case CLOSURE_BSDF_ASHIKHMIN_VELVET_ID: {
+      Spectrum weight = closure_weight * mix_weight;
       ccl_private VelvetBsdf *bsdf = (ccl_private VelvetBsdf *)bsdf_alloc(
           sd, sizeof(VelvetBsdf), weight);
 
@@ -713,6 +721,7 @@ ccl_device
       break;
     }
     case CLOSURE_BSDF_SHEEN_ID: {
+      Spectrum weight = closure_weight * mix_weight;
       ccl_private SheenBsdf *bsdf = (ccl_private SheenBsdf *)bsdf_alloc(
           sd, sizeof(SheenBsdf), weight);
 
@@ -731,6 +740,7 @@ ccl_device
       ATTR_FALLTHROUGH;
 #endif
     case CLOSURE_BSDF_DIFFUSE_TOON_ID: {
+      Spectrum weight = closure_weight * mix_weight;
       ccl_private ToonBsdf *bsdf = (ccl_private ToonBsdf *)bsdf_alloc(
           sd, sizeof(ToonBsdf), weight);
 
@@ -752,14 +762,16 @@ ccl_device
 #  ifdef __PRINCIPLED_HAIR__
     case CLOSURE_BSDF_HAIR_CHIANG_ID:
     case CLOSURE_BSDF_HAIR_HUANG_ID: {
-      uint4 data_node2 = read_node(kg, svm);
-      uint4 data_node3 = read_node(kg, svm);
-      uint4 data_node4 = read_node(kg, svm);
+      uint4 data_node2 = read_node(kg, &offset);
+      uint4 data_node3 = read_node(kg, &offset);
+      uint4 data_node4 = read_node(kg, &offset);
+
+      Spectrum weight = closure_weight * mix_weight;
 
       uint offset_ofs, ior_ofs, color_ofs, parametrization;
       svm_unpack_node_uchar4(data_node.y, &offset_ofs, &ior_ofs, &color_ofs, &parametrization);
-      float alpha = stack_load_float_default(svm, offset_ofs, data_node.z);
-      float ior = stack_load_float_default(svm, ior_ofs, data_node.w);
+      float alpha = stack_load_float_default(stack, offset_ofs, data_node.z);
+      float ior = stack_load_float_default(stack, ior_ofs, data_node.w);
 
       uint tint_ofs, melanin_ofs, melanin_redness_ofs, absorption_coefficient_ofs;
       svm_unpack_node_uchar4(data_node2.x,
@@ -778,7 +790,7 @@ ccl_device
         random = primitive_surface_attribute_float(kg, sd, attr_descr_random, NULL, NULL);
       }
       else {
-        random = stack_load_float_default(svm, random_ofs, data_node3.y);
+        random = stack_load_float_default(stack, random_ofs, data_node3.y);
       }
 
       /* Random factors range: [-randomization/2, +randomization/2]. */
@@ -786,23 +798,24 @@ ccl_device
       float factor_random_roughness = 1.0f + 2.0f * (random - 0.5f) * random_roughness;
       float roughness = param1 * factor_random_roughness;
       float radial_roughness = (type == CLOSURE_BSDF_HAIR_CHIANG_ID) ?
-                                   stack_load_float_default(svm, shared_ofs2, data_node4.y) *
+                                   stack_load_float_default(stack, shared_ofs2, data_node4.y) *
                                        factor_random_roughness :
                                    roughness;
 
       Spectrum sigma;
       switch (parametrization) {
         case NODE_PRINCIPLED_HAIR_DIRECT_ABSORPTION: {
-          float3 absorption_coefficient = stack_load_float3(svm, absorption_coefficient_ofs);
+          float3 absorption_coefficient = stack_load_float3(stack, absorption_coefficient_ofs);
           sigma = rgb_to_spectrum(absorption_coefficient);
           break;
         }
         case NODE_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION: {
-          float melanin = stack_load_float_default(svm, melanin_ofs, data_node2.z);
-          float melanin_redness = stack_load_float_default(svm, melanin_redness_ofs, data_node2.w);
+          float melanin = stack_load_float_default(stack, melanin_ofs, data_node2.z);
+          float melanin_redness = stack_load_float_default(
+              stack, melanin_redness_ofs, data_node2.w);
 
           /* Randomize melanin. */
-          float random_color = stack_load_float_default(svm, random_color_ofs, data_node3.z);
+          float random_color = stack_load_float_default(stack, random_color_ofs, data_node3.z);
           random_color = clamp(random_color, 0.0f, 1.0f);
           float factor_random_color = 1.0f + 2.0f * (random - 0.5f) * random_color;
           melanin *= factor_random_color;
@@ -817,7 +830,7 @@ ccl_device
                                                                                  pheomelanin);
 
           /* Optional tint. */
-          float3 tint = stack_load_float3(svm, tint_ofs);
+          float3 tint = stack_load_float3(stack, tint_ofs);
           Spectrum tint_sigma = bsdf_principled_hair_sigma_from_reflectance(rgb_to_spectrum(tint),
                                                                             radial_roughness);
 
@@ -825,7 +838,7 @@ ccl_device
           break;
         }
         case NODE_PRINCIPLED_HAIR_REFLECTANCE: {
-          float3 color = stack_load_float3(svm, color_ofs);
+          float3 color = stack_load_float3(stack, color_ofs);
           sigma = bsdf_principled_hair_sigma_from_reflectance(rgb_to_spectrum(color),
                                                               radial_roughness);
           break;
@@ -843,7 +856,7 @@ ccl_device
             sd, sizeof(ChiangHairBSDF), weight);
         if (bsdf) {
           /* Remap Coat value to [0, 100]% of Roughness. */
-          float coat = stack_load_float_default(svm, shared_ofs1, data_node3.w);
+          float coat = stack_load_float_default(stack, shared_ofs1, data_node3.w);
           float m0_roughness = 1.0f - clamp(coat, 0.0f, 1.0f);
 
           bsdf->v = roughness;
@@ -860,9 +873,9 @@ ccl_device
         kernel_assert(type == CLOSURE_BSDF_HAIR_HUANG_ID);
         uint R_ofs, TT_ofs, TRT_ofs, unused;
         svm_unpack_node_uchar4(data_node4.x, &R_ofs, &TT_ofs, &TRT_ofs, &unused);
-        float R = stack_load_float_default(svm, R_ofs, data_node4.y);
-        float TT = stack_load_float_default(svm, TT_ofs, data_node4.z);
-        float TRT = stack_load_float_default(svm, TRT_ofs, data_node4.w);
+        float R = stack_load_float_default(stack, R_ofs, data_node4.y);
+        float TT = stack_load_float_default(stack, TT_ofs, data_node4.z);
+        float TRT = stack_load_float_default(stack, TRT_ofs, data_node4.w);
         if (R <= 0.0f && TT <= 0.0f && TRT <= 0.0f) {
           break;
         }
@@ -897,7 +910,7 @@ ccl_device
             bsdf->extra->pixel_coverage = 0.5f * sd->dP / radius;
           }
 
-          bsdf->aspect_ratio = stack_load_float_default(svm, shared_ofs1, data_node3.w);
+          bsdf->aspect_ratio = stack_load_float_default(stack, shared_ofs1, data_node3.w);
           if (bsdf->aspect_ratio != 1.0f) {
             /* Align ellipse major axis with the curve normal direction. */
             const AttributeDescriptor attr_descr_normal = find_attribute(kg, sd, shared_ofs2);
@@ -917,6 +930,8 @@ ccl_device
 #  endif /* __PRINCIPLED_HAIR__ */
     case CLOSURE_BSDF_HAIR_REFLECTION_ID:
     case CLOSURE_BSDF_HAIR_TRANSMISSION_ID: {
+      Spectrum weight = closure_weight * mix_weight;
+
       ccl_private HairBsdf *bsdf = (ccl_private HairBsdf *)bsdf_alloc(
           sd, sizeof(HairBsdf), weight);
 
@@ -924,10 +939,10 @@ ccl_device
         bsdf->N = maybe_ensure_valid_specular_reflection(sd, N);
         bsdf->roughness1 = param1;
         bsdf->roughness2 = param2;
-        bsdf->offset = -stack_load_float(svm, data_node.y);
+        bsdf->offset = -stack_load_float(stack, data_node.y);
 
         if (stack_valid(data_node.w)) {
-          bsdf->T = normalize(stack_load_float3(svm, data_node.w));
+          bsdf->T = normalize(stack_load_float3(stack, data_node.w));
         }
         else if (!(sd->type & PRIMITIVE_CURVE)) {
           bsdf->T = normalize(sd->dPdv);
@@ -952,16 +967,17 @@ ccl_device
     case CLOSURE_BSSRDF_BURLEY_ID:
     case CLOSURE_BSSRDF_RANDOM_WALK_ID:
     case CLOSURE_BSSRDF_RANDOM_WALK_SKIN_ID: {
+      Spectrum weight = closure_weight * mix_weight;
       ccl_private Bssrdf *bssrdf = bssrdf_alloc(sd, weight);
 
       if (bssrdf) {
-        bssrdf->radius = max(rgb_to_spectrum(stack_load_float3(svm, data_node.y) * param1),
+        bssrdf->radius = max(rgb_to_spectrum(stack_load_float3(stack, data_node.y) * param1),
                              zero_spectrum());
-        bssrdf->albedo = svm->closure_weight;
+        bssrdf->albedo = closure_weight;
         bssrdf->N = maybe_ensure_valid_specular_reflection(sd, N);
         bssrdf->ior = param2;
-        bssrdf->alpha = saturatef(stack_load_float(svm, data_node.w));
-        bssrdf->anisotropy = stack_load_float(svm, data_node.z);
+        bssrdf->alpha = saturatef(stack_load_float(stack, data_node.w));
+        bssrdf->anisotropy = stack_load_float(stack, data_node.z);
 
         sd->flag |= bssrdf_setup(sd, bssrdf, path_flag, (ClosureType)type);
       }
@@ -972,12 +988,15 @@ ccl_device
     default:
       break;
   }
+
+  return offset;
 }
 
 template<ShaderType shader_type>
 ccl_device_noinline void svm_node_closure_volume(KernelGlobals kg,
                                                  ccl_private ShaderData *sd,
-                                                 ccl_private SVMState *svm,
+                                                 ccl_private float *stack,
+                                                 Spectrum closure_weight,
                                                  uint4 node)
 {
 #ifdef __VOLUME__
@@ -988,18 +1007,18 @@ ccl_device_noinline void svm_node_closure_volume(KernelGlobals kg,
 
   uint type, density_offset, param1_offset, mix_weight_offset;
   svm_unpack_node_uchar4(node.y, &type, &density_offset, &param1_offset, &mix_weight_offset);
-  float mix_weight = (stack_valid(mix_weight_offset) ? stack_load_float(svm, mix_weight_offset) :
+  float mix_weight = (stack_valid(mix_weight_offset) ? stack_load_float(stack, mix_weight_offset) :
                                                        1.0f);
   if (mix_weight == 0.0f) {
     return;
   }
 
-  float density = (stack_valid(density_offset)) ? stack_load_float(svm, density_offset) :
+  float density = (stack_valid(density_offset)) ? stack_load_float(stack, density_offset) :
                                                   __uint_as_float(node.z);
   density = mix_weight * fmaxf(density, 0.0f) * object_volume_density(kg, sd->object);
 
   /* Compute scattering coefficient. */
-  Spectrum weight = svm->closure_weight;
+  Spectrum weight = closure_weight;
 
   if (type == CLOSURE_VOLUME_ABSORPTION_ID) {
     weight = one_spectrum() - weight;
@@ -1014,7 +1033,7 @@ ccl_device_noinline void svm_node_closure_volume(KernelGlobals kg,
         ccl_private HenyeyGreensteinVolume *volume = (ccl_private HenyeyGreensteinVolume *)
             bsdf_alloc(sd, sizeof(HenyeyGreensteinVolume), weight);
         if (volume) {
-          volume->g = stack_valid(param1_offset) ? stack_load_float(svm, param1_offset) :
+          volume->g = stack_valid(param1_offset) ? stack_load_float(stack, param1_offset) :
                                                    __uint_as_float(node.w);
           sd->flag |= volume_henyey_greenstein_setup(volume);
         }
@@ -1023,8 +1042,8 @@ ccl_device_noinline void svm_node_closure_volume(KernelGlobals kg,
         ccl_private FournierForandVolume *volume = (ccl_private FournierForandVolume *)bsdf_alloc(
             sd, sizeof(FournierForandVolume), weight);
         if (volume) {
-          const float IOR = stack_load_float(svm, param1_offset);
-          const float B = stack_load_float(svm, node.w);
+          const float IOR = stack_load_float(stack, param1_offset);
+          const float B = stack_load_float(stack, node.w);
           sd->flag |= volume_fournier_forand_setup(volume, B, IOR);
         }
       } break;
@@ -1040,8 +1059,8 @@ ccl_device_noinline void svm_node_closure_volume(KernelGlobals kg,
         ccl_private DraineVolume *volume = (ccl_private DraineVolume *)bsdf_alloc(
             sd, sizeof(DraineVolume), weight);
         if (volume) {
-          volume->g = stack_load_float(svm, param1_offset);
-          volume->alpha = stack_load_float(svm, node.w);
+          volume->g = stack_load_float(stack, param1_offset);
+          volume->alpha = stack_load_float(stack, node.w);
           sd->flag |= volume_draine_setup(volume);
         }
       } break;
@@ -1055,7 +1074,7 @@ ccl_device_noinline void svm_node_closure_volume(KernelGlobals kg,
          * real limit is that the values need to stay within -1<g<1, 0<a and 0<mixture<1.
          * This results in the condition d > 1.67154, so we clamp it to 2 to be safe. */
         const float d = max(2.0f,
-                            stack_valid(param1_offset) ? stack_load_float(svm, param1_offset) :
+                            stack_valid(param1_offset) ? stack_load_float(stack, param1_offset) :
                                                          __uint_as_float(node.w));
         const float mixture = fast_expf(-0.599085f / (d - 0.641583f) - 0.665888f);
         ccl_private HenyeyGreensteinVolume *hg = (ccl_private HenyeyGreensteinVolume *)bsdf_alloc(
@@ -1081,34 +1100,36 @@ ccl_device_noinline void svm_node_closure_volume(KernelGlobals kg,
 }
 
 template<ShaderType shader_type>
-ccl_device_noinline void svm_node_principled_volume(KernelGlobals kg,
-                                                    ccl_private ShaderData *sd,
-                                                    ccl_private SVMState *svm,
-                                                    uint4 node,
-                                                    uint32_t path_flag)
+ccl_device_noinline int svm_node_principled_volume(KernelGlobals kg,
+                                                   ccl_private ShaderData *sd,
+                                                   ccl_private float *stack,
+                                                   Spectrum closure_weight,
+                                                   uint4 node,
+                                                   uint32_t path_flag,
+                                                   int offset)
 {
 #ifdef __VOLUME__
-  uint4 value_node = read_node(kg, svm);
-  uint4 attr_node = read_node(kg, svm);
+  uint4 value_node = read_node(kg, &offset);
+  uint4 attr_node = read_node(kg, &offset);
 
   /* Only sum extinction for volumes, variable is shared with surface transparency. */
   if (shader_type != SHADER_TYPE_VOLUME) {
-    return;
+    return offset;
   }
 
   uint density_offset, anisotropy_offset, absorption_color_offset, mix_weight_offset;
   svm_unpack_node_uchar4(
       node.y, &density_offset, &anisotropy_offset, &absorption_color_offset, &mix_weight_offset);
-  float mix_weight = (stack_valid(mix_weight_offset) ? stack_load_float(svm, mix_weight_offset) :
+  float mix_weight = (stack_valid(mix_weight_offset) ? stack_load_float(stack, mix_weight_offset) :
                                                        1.0f);
 
   if (mix_weight == 0.0f) {
-    return;
+    return offset;
   }
 
   /* Compute density. */
   float primitive_density = 1.0f;
-  float density = (stack_valid(density_offset)) ? stack_load_float(svm, density_offset) :
+  float density = (stack_valid(density_offset)) ? stack_load_float(stack, density_offset) :
                                                   __uint_as_float(value_node.x);
   density = mix_weight * fmaxf(density, 0.0f) * object_volume_density(kg, sd->object);
 
@@ -1123,7 +1144,7 @@ ccl_device_noinline void svm_node_principled_volume(KernelGlobals kg,
 
   if (density > CLOSURE_WEIGHT_CUTOFF) {
     /* Compute scattering color. */
-    Spectrum color = svm->closure_weight;
+    Spectrum color = closure_weight;
 
     const AttributeDescriptor attr_color = find_attribute(kg, sd, attr_node.y);
     if (attr_color.offset != ATTR_STD_NOT_FOUND) {
@@ -1135,14 +1156,14 @@ ccl_device_noinline void svm_node_principled_volume(KernelGlobals kg,
         sd, sizeof(HenyeyGreensteinVolume), color * density);
     if (volume) {
       float anisotropy = (stack_valid(anisotropy_offset)) ?
-                             stack_load_float(svm, anisotropy_offset) :
+                             stack_load_float(stack, anisotropy_offset) :
                              __uint_as_float(value_node.y);
       volume->g = anisotropy;
       sd->flag |= volume_henyey_greenstein_setup(volume);
     }
 
     /* Add extinction weight. */
-    float3 absorption_color = max(sqrt(stack_load_float3(svm, absorption_color_offset)),
+    float3 absorption_color = max(sqrt(stack_load_float3(stack, absorption_color_offset)),
                                   zero_float3());
 
     Spectrum zero = zero_spectrum();
@@ -1155,25 +1176,25 @@ ccl_device_noinline void svm_node_principled_volume(KernelGlobals kg,
   /* Compute emission. */
   if (path_flag & PATH_RAY_SHADOW) {
     /* Don't need emission for shadows. */
-    return;
+    return offset;
   }
 
   uint emission_offset, emission_color_offset, blackbody_offset, temperature_offset;
   svm_unpack_node_uchar4(
       node.z, &emission_offset, &emission_color_offset, &blackbody_offset, &temperature_offset);
-  float emission = (stack_valid(emission_offset)) ? stack_load_float(svm, emission_offset) :
+  float emission = (stack_valid(emission_offset)) ? stack_load_float(stack, emission_offset) :
                                                     __uint_as_float(value_node.z);
-  float blackbody = (stack_valid(blackbody_offset)) ? stack_load_float(svm, blackbody_offset) :
+  float blackbody = (stack_valid(blackbody_offset)) ? stack_load_float(stack, blackbody_offset) :
                                                       __uint_as_float(value_node.w);
 
   if (emission > CLOSURE_WEIGHT_CUTOFF) {
-    float3 emission_color = stack_load_float3(svm, emission_color_offset);
+    float3 emission_color = stack_load_float3(stack, emission_color_offset);
     emission_setup(
         sd, rgb_to_spectrum(emission * emission_color * object_volume_density(kg, sd->object)));
   }
 
   if (blackbody > CLOSURE_WEIGHT_CUTOFF) {
-    float T = stack_load_float(svm, temperature_offset);
+    float T = stack_load_float(stack, temperature_offset);
 
     /* Add flame temperature from attribute if available. */
     const AttributeDescriptor attr_temperature = find_attribute(kg, sd, attr_node.z);
@@ -1190,25 +1211,27 @@ ccl_device_noinline void svm_node_principled_volume(KernelGlobals kg,
     float intensity = sigma * mix(1.0f, T4, blackbody);
 
     if (intensity > CLOSURE_WEIGHT_CUTOFF) {
-      float3 blackbody_tint = stack_load_float3(svm, node.w);
+      float3 blackbody_tint = stack_load_float3(stack, node.w);
       float3 bb = blackbody_tint * intensity *
                   rec709_to_rgb(kg, svm_math_blackbody_color_rec709(T));
       emission_setup(sd, rgb_to_spectrum(bb * object_volume_density(kg, sd->object)));
     }
   }
 #endif
+  return offset;
 }
 
 ccl_device_noinline void svm_node_closure_emission(KernelGlobals kg,
                                                    ccl_private ShaderData *sd,
-                                                   ccl_private SVMState *svm,
+                                                   ccl_private float *stack,
+                                                   Spectrum closure_weight,
                                                    uint4 node)
 {
   uint mix_weight_offset = node.y;
-  Spectrum weight = svm->closure_weight;
+  Spectrum weight = closure_weight;
 
   if (stack_valid(mix_weight_offset)) {
-    float mix_weight = stack_load_float(svm, mix_weight_offset);
+    float mix_weight = stack_load_float(stack, mix_weight_offset);
 
     if (mix_weight == 0.0f) {
       return;
@@ -1225,14 +1248,15 @@ ccl_device_noinline void svm_node_closure_emission(KernelGlobals kg,
 }
 
 ccl_device_noinline void svm_node_closure_background(ccl_private ShaderData *sd,
-                                                     ccl_private SVMState *svm,
+                                                     ccl_private float *stack,
+                                                     Spectrum closure_weight,
                                                      uint4 node)
 {
   uint mix_weight_offset = node.y;
-  Spectrum weight = svm->closure_weight;
+  Spectrum weight = closure_weight;
 
   if (stack_valid(mix_weight_offset)) {
-    float mix_weight = stack_load_float(svm, mix_weight_offset);
+    float mix_weight = stack_load_float(stack, mix_weight_offset);
 
     if (mix_weight == 0.0f) {
       return;
@@ -1245,22 +1269,23 @@ ccl_device_noinline void svm_node_closure_background(ccl_private ShaderData *sd,
 }
 
 ccl_device_noinline void svm_node_closure_holdout(ccl_private ShaderData *sd,
-                                                  ccl_private SVMState *svm,
+                                                  ccl_private float *stack,
+                                                  Spectrum closure_weight,
                                                   uint4 node)
 {
   uint mix_weight_offset = node.y;
 
   if (stack_valid(mix_weight_offset)) {
-    float mix_weight = stack_load_float(svm, mix_weight_offset);
+    float mix_weight = stack_load_float(stack, mix_weight_offset);
 
     if (mix_weight == 0.0f) {
       return;
     }
 
-    closure_alloc(sd, sizeof(ShaderClosure), CLOSURE_HOLDOUT_ID, svm->closure_weight * mix_weight);
+    closure_alloc(sd, sizeof(ShaderClosure), CLOSURE_HOLDOUT_ID, closure_weight * mix_weight);
   }
   else {
-    closure_alloc(sd, sizeof(ShaderClosure), CLOSURE_HOLDOUT_ID, svm->closure_weight);
+    closure_alloc(sd, sizeof(ShaderClosure), CLOSURE_HOLDOUT_ID, closure_weight);
   }
 
   sd->flag |= SD_HOLDOUT;
@@ -1269,33 +1294,35 @@ ccl_device_noinline void svm_node_closure_holdout(ccl_private ShaderData *sd,
 /* Closure Nodes */
 
 ccl_device void svm_node_closure_set_weight(
-    ccl_private ShaderData *sd, ccl_private SVMState *svm, uint r, uint g, uint b)
+    ccl_private ShaderData *sd, ccl_private Spectrum *closure_weight, uint r, uint g, uint b)
 {
-  svm->closure_weight = rgb_to_spectrum(
+  *closure_weight = rgb_to_spectrum(
       make_float3(__uint_as_float(r), __uint_as_float(g), __uint_as_float(b)));
 }
 
 ccl_device void svm_node_closure_weight(ccl_private ShaderData *sd,
-                                        ccl_private SVMState *svm,
+                                        ccl_private float *stack,
+                                        ccl_private Spectrum *closure_weight,
                                         uint weight_offset)
 {
-  svm->closure_weight = rgb_to_spectrum(stack_load_float3(svm, weight_offset));
+  *closure_weight = rgb_to_spectrum(stack_load_float3(stack, weight_offset));
 }
 
 ccl_device_noinline void svm_node_emission_weight(KernelGlobals kg,
                                                   ccl_private ShaderData *sd,
-                                                  ccl_private SVMState *svm,
+                                                  ccl_private float *stack,
+                                                  ccl_private Spectrum *closure_weight,
                                                   uint4 node)
 {
   uint color_offset = node.y;
   uint strength_offset = node.z;
 
-  float strength = stack_load_float(svm, strength_offset);
-  svm->closure_weight = rgb_to_spectrum(stack_load_float3(svm, color_offset)) * strength;
+  float strength = stack_load_float(stack, strength_offset);
+  *closure_weight = rgb_to_spectrum(stack_load_float3(stack, color_offset)) * strength;
 }
 
 ccl_device_noinline void svm_node_mix_closure(ccl_private ShaderData *sd,
-                                              ccl_private SVMState *svm,
+                                              ccl_private float *stack,
                                               uint4 node)
 {
   /* fetch weight from blend input, previous mix closures,
@@ -1304,29 +1331,29 @@ ccl_device_noinline void svm_node_mix_closure(ccl_private ShaderData *sd,
   svm_unpack_node_uchar4(
       node.y, &weight_offset, &in_weight_offset, &weight1_offset, &weight2_offset);
 
-  float weight = stack_load_float(svm, weight_offset);
+  float weight = stack_load_float(stack, weight_offset);
   weight = saturatef(weight);
 
-  float in_weight = (stack_valid(in_weight_offset)) ? stack_load_float(svm, in_weight_offset) :
+  float in_weight = (stack_valid(in_weight_offset)) ? stack_load_float(stack, in_weight_offset) :
                                                       1.0f;
 
   if (stack_valid(weight1_offset))
-    stack_store_float(svm, weight1_offset, in_weight * (1.0f - weight));
+    stack_store_float(stack, weight1_offset, in_weight * (1.0f - weight));
   if (stack_valid(weight2_offset))
-    stack_store_float(svm, weight2_offset, in_weight * weight);
+    stack_store_float(stack, weight2_offset, in_weight * weight);
 }
 
 /* (Bump) normal */
 
 ccl_device void svm_node_set_normal(KernelGlobals kg,
                                     ccl_private ShaderData *sd,
-                                    ccl_private SVMState *svm,
+                                    ccl_private float *stack,
                                     uint in_direction,
                                     uint out_normal)
 {
-  float3 normal = stack_load_float3(svm, in_direction);
+  float3 normal = stack_load_float3(stack, in_direction);
   sd->N = normal;
-  stack_store_float3(svm, out_normal, normal);
+  stack_store_float3(stack, out_normal, normal);
 }
 
 CCL_NAMESPACE_END

@@ -21,13 +21,13 @@ template<uint node_feature_mask, typename ConstIntegratorGenericState>
 ccl_device void svm_node_aov_color(KernelGlobals kg,
                                    ConstIntegratorGenericState state,
                                    ccl_private ShaderData *sd,
-                                   ccl_private SVMState *svm,
+                                   ccl_private float *stack,
                                    uint4 node,
                                    ccl_global float *render_buffer)
 {
   IF_KERNEL_NODES_FEATURE(AOV)
   {
-    const float3 val = stack_load_float3(svm, node.y);
+    const float3 val = stack_load_float3(stack, node.y);
     film_write_aov_pass_color(kg, state, render_buffer, node.z, val);
   }
 }
@@ -36,13 +36,13 @@ template<uint node_feature_mask, typename ConstIntegratorGenericState>
 ccl_device void svm_node_aov_value(KernelGlobals kg,
                                    ConstIntegratorGenericState state,
                                    ccl_private ShaderData *sd,
-                                   ccl_private SVMState *svm,
+                                   ccl_private float *stack,
                                    uint4 node,
                                    ccl_global float *render_buffer)
 {
   IF_KERNEL_NODES_FEATURE(AOV)
   {
-    const float val = stack_load_float(svm, node.y);
+    const float val = stack_load_float(stack, node.y);
     film_write_aov_pass_value(kg, state, render_buffer, node.z, val);
   }
 }

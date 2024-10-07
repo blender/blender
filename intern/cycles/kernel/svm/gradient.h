@@ -53,22 +53,22 @@ ccl_device float svm_gradient(float3 p, NodeGradientType type)
 }
 
 ccl_device_noinline void svm_node_tex_gradient(ccl_private ShaderData *sd,
-                                               ccl_private SVMState *svm,
+                                               ccl_private float *stack,
                                                uint4 node)
 {
   uint type, co_offset, color_offset, fac_offset;
 
   svm_unpack_node_uchar4(node.y, &type, &co_offset, &fac_offset, &color_offset);
 
-  float3 co = stack_load_float3(svm, co_offset);
+  float3 co = stack_load_float3(stack, co_offset);
 
   float f = svm_gradient(co, (NodeGradientType)type);
   f = saturatef(f);
 
   if (stack_valid(fac_offset))
-    stack_store_float(svm, fac_offset, f);
+    stack_store_float(stack, fac_offset, f);
   if (stack_valid(color_offset))
-    stack_store_float3(svm, color_offset, make_float3(f, f, f));
+    stack_store_float3(stack, color_offset, make_float3(f, f, f));
 }
 
 CCL_NAMESPACE_END

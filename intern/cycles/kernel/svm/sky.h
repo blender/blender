@@ -196,18 +196,19 @@ ccl_device float3 sky_radiance_nishita(KernelGlobals kg,
   return xyz_to_rgb_clamped(kg, xyz);
 }
 
-ccl_device_noinline void svm_node_tex_sky(KernelGlobals kg,
-                                          ccl_private ShaderData *sd,
-                                          uint32_t path_flag,
-                                          ccl_private SVMState *svm,
-                                          uint4 node)
+ccl_device_noinline int svm_node_tex_sky(KernelGlobals kg,
+                                         ccl_private ShaderData *sd,
+                                         uint32_t path_flag,
+                                         ccl_private float *stack,
+                                         uint4 node,
+                                         int offset)
 {
   /* Load data */
   uint dir_offset = node.y;
   uint out_offset = node.z;
   int sky_model = node.w;
 
-  float3 dir = stack_load_float3(svm, dir_offset);
+  float3 dir = stack_load_float3(stack, dir_offset);
   float3 f;
 
   /* Preetham and Hosek share the same data */
@@ -216,49 +217,49 @@ ccl_device_noinline void svm_node_tex_sky(KernelGlobals kg,
     float sunphi, suntheta, radiance_x, radiance_y, radiance_z;
     float config_x[9], config_y[9], config_z[9];
 
-    float4 data = read_node_float(kg, svm);
+    float4 data = read_node_float(kg, &offset);
     sunphi = data.x;
     suntheta = data.y;
     radiance_x = data.z;
     radiance_y = data.w;
 
-    data = read_node_float(kg, svm);
+    data = read_node_float(kg, &offset);
     radiance_z = data.x;
     config_x[0] = data.y;
     config_x[1] = data.z;
     config_x[2] = data.w;
 
-    data = read_node_float(kg, svm);
+    data = read_node_float(kg, &offset);
     config_x[3] = data.x;
     config_x[4] = data.y;
     config_x[5] = data.z;
     config_x[6] = data.w;
 
-    data = read_node_float(kg, svm);
+    data = read_node_float(kg, &offset);
     config_x[7] = data.x;
     config_x[8] = data.y;
     config_y[0] = data.z;
     config_y[1] = data.w;
 
-    data = read_node_float(kg, svm);
+    data = read_node_float(kg, &offset);
     config_y[2] = data.x;
     config_y[3] = data.y;
     config_y[4] = data.z;
     config_y[5] = data.w;
 
-    data = read_node_float(kg, svm);
+    data = read_node_float(kg, &offset);
     config_y[6] = data.x;
     config_y[7] = data.y;
     config_y[8] = data.z;
     config_z[0] = data.w;
 
-    data = read_node_float(kg, svm);
+    data = read_node_float(kg, &offset);
     config_z[1] = data.x;
     config_z[2] = data.y;
     config_z[3] = data.z;
     config_z[4] = data.w;
 
-    data = read_node_float(kg, svm);
+    data = read_node_float(kg, &offset);
     config_z[5] = data.x;
     config_z[6] = data.y;
     config_z[7] = data.z;
@@ -295,18 +296,18 @@ ccl_device_noinline void svm_node_tex_sky(KernelGlobals kg,
     /* Define variables */
     float nishita_data[4];
 
-    float4 data = read_node_float(kg, svm);
+    float4 data = read_node_float(kg, &offset);
     float3 pixel_bottom = make_float3(data.x, data.y, data.z);
     float3 pixel_top;
     pixel_top.x = data.w;
 
-    data = read_node_float(kg, svm);
+    data = read_node_float(kg, &offset);
     pixel_top.y = data.x;
     pixel_top.z = data.y;
     nishita_data[0] = data.z;
     nishita_data[1] = data.w;
 
-    data = read_node_float(kg, svm);
+    data = read_node_float(kg, &offset);
     nishita_data[2] = data.x;
     nishita_data[3] = data.y;
     uint texture_id = __float_as_uint(data.z);
@@ -316,7 +317,8 @@ ccl_device_noinline void svm_node_tex_sky(KernelGlobals kg,
         kg, dir, path_flag, pixel_bottom, pixel_top, nishita_data, texture_id);
   }
 
-  stack_store_float3(svm, out_offset, f);
+  stack_store_float3(stack, out_offset, f);
+  return offset;
 }
 
 CCL_NAMESPACE_END

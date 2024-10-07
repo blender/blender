@@ -74,7 +74,7 @@ ccl_device_inline float wireframe(KernelGlobals kg,
 
 ccl_device_noinline void svm_node_wireframe(KernelGlobals kg,
                                             ccl_private ShaderData *sd,
-                                            ccl_private SVMState *svm,
+                                            ccl_private float *stack,
                                             uint4 node)
 {
   uint in_size = node.y;
@@ -83,7 +83,7 @@ ccl_device_noinline void svm_node_wireframe(KernelGlobals kg,
   svm_unpack_node_uchar2(node.w, &use_pixel_size, &bump_offset);
 
   /* Input Data */
-  float size = stack_load_float(svm, in_size);
+  float size = stack_load_float(stack, in_size);
   int pixel_size = (int)use_pixel_size;
 
   /* Calculate wireframe */
@@ -101,7 +101,7 @@ ccl_device_noinline void svm_node_wireframe(KernelGlobals kg,
   }
 
   if (stack_valid(out_fac))
-    stack_store_float(svm, out_fac, f);
+    stack_store_float(stack, out_fac, f);
 }
 
 CCL_NAMESPACE_END

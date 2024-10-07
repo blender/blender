@@ -982,7 +982,7 @@ ccl_device float fractal_voronoi_distance_to_edge(ccl_private const VoronoiParam
 }
 
 ccl_device void svm_voronoi_output(const uint4 stack_offsets,
-                                   ccl_private SVMState *svm,
+                                   ccl_private float *stack,
                                    const float distance,
                                    const float3 color,
                                    const float3 position,
@@ -998,29 +998,30 @@ ccl_device void svm_voronoi_output(const uint4 stack_offsets,
       stack_offsets.w, &position_stack_offset, &w_out_stack_offset, &radius_stack_offset);
 
   if (stack_valid(distance_stack_offset))
-    stack_store_float(svm, distance_stack_offset, distance);
+    stack_store_float(stack, distance_stack_offset, distance);
   if (stack_valid(color_stack_offset))
-    stack_store_float3(svm, color_stack_offset, color);
+    stack_store_float3(stack, color_stack_offset, color);
   if (stack_valid(position_stack_offset))
-    stack_store_float3(svm, position_stack_offset, position);
+    stack_store_float3(stack, position_stack_offset, position);
   if (stack_valid(w_out_stack_offset))
-    stack_store_float(svm, w_out_stack_offset, w);
+    stack_store_float(stack, w_out_stack_offset, w);
   if (stack_valid(radius_stack_offset))
-    stack_store_float(svm, radius_stack_offset, radius);
+    stack_store_float(stack, radius_stack_offset, radius);
 }
 
 template<uint node_feature_mask>
-ccl_device_noinline void svm_node_tex_voronoi(KernelGlobals kg,
-                                              ccl_private ShaderData *sd,
-                                              ccl_private SVMState *svm,
-                                              uint dimensions,
-                                              uint feature,
-                                              uint metric)
+ccl_device_noinline int svm_node_tex_voronoi(KernelGlobals kg,
+                                             ccl_private ShaderData *sd,
+                                             ccl_private float *stack,
+                                             uint dimensions,
+                                             uint feature,
+                                             uint metric,
+                                             int offset)
 {
   /* Read node defaults and stack offsets. */
-  uint4 stack_offsets = read_node(kg, svm);
-  uint4 defaults1 = read_node(kg, svm);
-  uint4 defaults2 = read_node(kg, svm);
+  uint4 stack_offsets = read_node(kg, &offset);
+  uint4 defaults1 = read_node(kg, &offset);
+  uint4 defaults2 = read_node(kg, &offset);
 
   uint coord_stack_offset, w_stack_offset, scale_stack_offset, detail_stack_offset;
   uint roughness_stack_offset, lacunarity_stack_offset, smoothness_stack_offset,
@@ -1040,19 +1041,19 @@ ccl_device_noinline void svm_node_tex_voronoi(KernelGlobals kg,
   svm_unpack_node_uchar2(stack_offsets.z, &randomness_stack_offset, &normalize);
 
   /* Read from stack. */
-  float3 coord = stack_load_float3(svm, coord_stack_offset);
-  float w = stack_load_float_default(svm, w_stack_offset, defaults1.x);
+  float3 coord = stack_load_float3(stack, coord_stack_offset);
+  float w = stack_load_float_default(stack, w_stack_offset, defaults1.x);
 
   VoronoiParams params;
   params.feature = (NodeVoronoiFeature)feature;
   params.metric = (NodeVoronoiDistanceMetric)metric;
-  params.scale = stack_load_float_default(svm, scale_stack_offset, defaults1.y);
-  params.detail = stack_load_float_default(svm, detail_stack_offset, defaults1.z);
-  params.roughness = stack_load_float_default(svm, roughness_stack_offset, defaults1.w);
-  params.lacunarity = stack_load_float_default(svm, lacunarity_stack_offset, defaults2.x);
-  params.smoothness = stack_load_float_default(svm, smoothness_stack_offset, defaults2.y);
-  params.exponent = stack_load_float_default(svm, exponent_stack_offset, defaults2.z);
-  params.randomness = stack_load_float_default(svm, randomness_stack_offset, defaults2.w);
+  params.scale = stack_load_float_default(stack, scale_stack_offset, defaults1.y);
+  params.detail = stack_load_float_default(stack, detail_stack_offset, defaults1.z);
+  params.roughness = stack_load_float_default(stack, roughness_stack_offset, defaults1.w);
+  params.lacunarity = stack_load_float_default(stack, lacunarity_stack_offset, defaults2.x);
+  params.smoothness = stack_load_float_default(stack, smoothness_stack_offset, defaults2.y);
+  params.exponent = stack_load_float_default(stack, exponent_stack_offset, defaults2.z);
+  params.randomness = stack_load_float_default(stack, randomness_stack_offset, defaults2.w);
   params.max_distance = 0.0f;
   params.normalize = normalize;
 
@@ -1084,7 +1085,7 @@ ccl_device_noinline void svm_node_tex_voronoi(KernelGlobals kg,
           break;
       }
 
-      svm_voronoi_output(stack_offsets, svm, distance, zero_float3(), zero_float3(), 0.0f, 0.0f);
+      svm_voronoi_output(stack_offsets, stack, distance, zero_float3(), zero_float3(), 0.0f, 0.0f);
       break;
     }
     case NODE_VORONOI_N_SPHERE_RADIUS: {
@@ -1104,7 +1105,7 @@ ccl_device_noinline void svm_node_tex_voronoi(KernelGlobals kg,
           break;
       }
 
-      svm_voronoi_output(stack_offsets, svm, 0.0f, zero_float3(), zero_float3(), 0.0f, radius);
+      svm_voronoi_output(stack_offsets, stack, 0.0f, zero_float3(), zero_float3(), 0.0f, radius);
       break;
     }
     default: {
@@ -1154,7 +1155,7 @@ ccl_device_noinline void svm_node_tex_voronoi(KernelGlobals kg,
       }
 
       svm_voronoi_output(stack_offsets,
-                         svm,
+                         stack,
                          output.distance,
                          output.color,
                          float4_to_float3(output.position),
@@ -1163,6 +1164,8 @@ ccl_device_noinline void svm_node_tex_voronoi(KernelGlobals kg,
       break;
     }
   }
+
+  return offset;
 }
 
 CCL_NAMESPACE_END
