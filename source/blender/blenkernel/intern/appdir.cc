@@ -134,7 +134,7 @@ static char *blender_version_decimal(const int version)
 const char *BKE_appdir_folder_default()
 {
 #ifndef WIN32
-  return BLI_getenv("HOME");
+  return BKE_appdir_folder_home();
 #else  /* Windows */
   static char documentfolder[FILE_MAXDIR];
 
