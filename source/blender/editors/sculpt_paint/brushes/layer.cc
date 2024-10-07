@@ -133,17 +133,28 @@ static void calc_faces(const Depsgraph &depsgraph,
   const StrokeCache &cache = *ss.cache;
 
   const Span<int> verts = node.verts();
+  const OrigPositionData orig_data = orig_position_data_get_mesh(object, node);
   const MutableSpan positions = gather_data_mesh(position_data.eval, verts, tls.positions);
 
-  calc_factors_common_mesh(depsgraph,
-                           brush,
-                           object,
-                           attribute_data,
-                           positions,
-                           vert_normals,
-                           node,
-                           tls.factors,
-                           tls.distances);
+  tls.factors.resize(verts.size());
+  const MutableSpan<float> factors = tls.factors;
+  fill_factor_from_hide_and_mask(attribute_data.hide_vert, attribute_data.mask, verts, factors);
+  filter_region_clip_factors(ss, positions, factors);
+  if (brush.flag & BRUSH_FRONTFACE) {
+    calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
+  }
+
+  tls.distances.resize(verts.size());
+  const MutableSpan<float> distances = tls.distances;
+  calc_brush_distances(
+      ss, orig_data.positions, eBrushFalloffShape(brush.falloff_shape), distances);
+  filter_distances_with_radius(cache.radius, distances, factors);
+  apply_hardness_to_distances(cache, distances);
+  calc_brush_strength_factors(cache, brush, distances, factors);
+
+  auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
+
+  calc_brush_texture_factors(ss, brush, positions, factors);
 
   if (attribute_data.mask.is_empty()) {
     tls.masks.clear();
@@ -189,8 +200,6 @@ static void calc_faces(const Depsgraph &depsgraph,
 
     scatter_data_mesh(displacement_factors.as_span(), verts, layer_displacement_factor);
 
-    const OrigPositionData orig_data = orig_position_data_get_mesh(object, node);
-
     tls.translations.resize(verts.size());
     const MutableSpan<float3> translations = tls.translations;
     calc_translations(orig_data.positions,
@@ -220,9 +229,28 @@ static void calc_grids(const Depsgraph &depsgraph,
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
   const Span<int> grids = node.grids();
+  const OrigPositionData orig_data = orig_position_data_get_grids(object, node);
   const MutableSpan positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
 
-  calc_factors_common_grids(depsgraph, brush, object, positions, node, tls.factors, tls.distances);
+  tls.factors.resize(positions.size());
+  const MutableSpan<float> factors = tls.factors;
+  fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
+  filter_region_clip_factors(ss, positions, factors);
+  if (brush.flag & BRUSH_FRONTFACE) {
+    calc_front_face(cache.view_normal_symm, subdiv_ccg, grids, factors);
+  }
+
+  tls.distances.resize(positions.size());
+  const MutableSpan<float> distances = tls.distances;
+  calc_brush_distances(
+      ss, orig_data.positions, eBrushFalloffShape(brush.falloff_shape), distances);
+  filter_distances_with_radius(cache.radius, distances, factors);
+  apply_hardness_to_distances(cache, distances);
+  calc_brush_strength_factors(cache, brush, distances, factors);
+
+  auto_mask::calc_grids_factors(depsgraph, object, cache.automasking.get(), node, grids, factors);
+
+  calc_brush_texture_factors(ss, brush, positions, factors);
 
   const MutableSpan<float> displacement_factors = gather_data_grids(
       subdiv_ccg, layer_displacement_factor.as_span(), grids, tls.displacement_factors);
@@ -238,8 +266,6 @@ static void calc_grids(const Depsgraph &depsgraph,
   clamp_displacement_factors(displacement_factors, tls.masks);
 
   scatter_data_grids(subdiv_ccg, displacement_factors.as_span(), grids, layer_displacement_factor);
-
-  const OrigPositionData orig_data = orig_position_data_get_grids(object, node);
 
   tls.translations.resize(positions.size());
   const MutableSpan<float3> translations = tls.translations;
@@ -268,9 +294,30 @@ static void calc_bmesh(const Depsgraph &depsgraph,
 
   const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
 
+  Array<float3> orig_positions(verts.size());
+  Array<float3> orig_normals(verts.size());
+  orig_position_data_gather_bmesh(*ss.bm_log, verts, orig_positions, orig_normals);
+
   const MutableSpan positions = gather_bmesh_positions(verts, tls.positions);
 
-  calc_factors_common_bmesh(depsgraph, brush, object, positions, node, tls.factors, tls.distances);
+  tls.factors.resize(verts.size());
+  const MutableSpan<float> factors = tls.factors;
+  fill_factor_from_hide_and_mask(*ss.bm, verts, factors);
+  filter_region_clip_factors(ss, positions, factors);
+  if (brush.flag & BRUSH_FRONTFACE) {
+    calc_front_face(cache.view_normal_symm, verts, factors);
+  }
+
+  tls.distances.resize(verts.size());
+  const MutableSpan<float> distances = tls.distances;
+  calc_brush_distances(ss, orig_positions, eBrushFalloffShape(brush.falloff_shape), distances);
+  filter_distances_with_radius(cache.radius, distances, factors);
+  apply_hardness_to_distances(cache, distances);
+  calc_brush_strength_factors(cache, brush, distances, factors);
+
+  auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
+
+  calc_brush_texture_factors(ss, brush, positions, factors);
 
   const MutableSpan<float> displacement_factors = gather_data_bmesh(
       layer_displacement_factor.as_span(), verts, tls.displacement_factors);
@@ -283,10 +330,6 @@ static void calc_bmesh(const Depsgraph &depsgraph,
   clamp_displacement_factors(displacement_factors, masks);
 
   scatter_data_bmesh(displacement_factors.as_span(), verts, layer_displacement_factor);
-
-  Array<float3> orig_positions(verts.size());
-  Array<float3> orig_normals(verts.size());
-  orig_position_data_gather_bmesh(*ss.bm_log, verts, orig_positions, orig_normals);
 
   tls.translations.resize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
