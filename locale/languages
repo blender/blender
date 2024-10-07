@@ -30,6 +30,7 @@
 15:Russian (Русский):ru_RU
 51:Swahili (Kiswahili):sw
 49:Tamil (தமிழ்):ta
+30:Turkish (Türkçe):tr_TR
 18:Ukrainian (Українська):uk_UA
 41:Vietnamese (Tiếng Việt):vi_VN
 14:Traditional Chinese (繁體中文):zh_HANT
@@ -66,6 +67,5 @@
 28:Serbian Latin (Srpski latinica):sr_RS@latin
 7:Swedish (Svenska):sv_SE
 46:Thai (ภาษาไทย):th_TH
-30:Turkish (Türkçe):tr_TR
 # Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #39:Uzbek Cyrillic (Ўзбек):uz_UZ@cyrillic
 # Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #38:Uzbek (Oʻzbek):uz_UZ@latin
