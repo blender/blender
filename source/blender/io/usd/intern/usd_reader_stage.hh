@@ -184,6 +184,7 @@ class USDStageReader {
    *         does not contain any point instancers.
    */
   UsdPathSet collect_point_instancer_proto_paths() const;
+  void collect_point_instancer_proto_paths(const pxr::UsdPrim &prim, UsdPathSet &r_paths) const;
 
   /**
    * Populate the instancer_proto_readers_ map for the prototype prims
