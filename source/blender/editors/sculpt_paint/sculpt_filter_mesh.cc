@@ -2397,6 +2397,11 @@ static int sculpt_mesh_filter_start(bContext *C, wmOperator *op)
 
   SculptSession &ss = *ob.sculpt;
 
+  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
+  if (filter_type == MeshFilterType::EraseDispacement && pbvh.type() != bke::pbvh::Type::Grids) {
+    return OPERATOR_CANCELLED;
+  }
+
   const eMeshFilterDeformAxis deform_axis = eMeshFilterDeformAxis(
       RNA_enum_get(op->ptr, "deform_axis"));
 
