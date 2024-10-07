@@ -131,8 +131,7 @@ static void create_quad(const int3 corners[8],
  * - The topologies of input OpenVDB grids are merged into a temporary grid.
  * - Voxels of the temporary grid are dilated to account for the padding necessary for volume
  * sampling.
- * - Quads are created on the boundary between active and inactive leaf nodes of the temporary
- * grid.
+ * - A bounding box of the temporary grid is created.
  */
 class VolumeMeshBuilder {
  public:
@@ -207,10 +206,6 @@ void VolumeMeshBuilder::create_mesh(vector<float3> &vertices,
   vector<int3> vertices_is;
   vector<QuadData> quads;
 
-  /* make sure we only have leaf nodes in the tree, as tiles are not handled by
-   * this algorithm */
-  topology_grid->tree().voxelizeActiveTiles();
-
   generate_vertices_and_quads(vertices_is, quads);
 
   convert_object_space(vertices_is, vertices, face_overlap_avoidance);
@@ -218,78 +213,39 @@ void VolumeMeshBuilder::create_mesh(vector<float3> &vertices,
   convert_quads_to_tris(quads, indices);
 }
 
-static bool is_non_empty_leaf(const openvdb::MaskGrid::TreeType &tree, const openvdb::Coord coord)
-{
-  const auto *leaf_node = tree.probeLeaf(coord);
-  return (leaf_node && !leaf_node->isEmpty());
-}
-
 void VolumeMeshBuilder::generate_vertices_and_quads(vector<ccl::int3> &vertices_is,
                                                     vector<QuadData> &quads)
 {
-  const openvdb::MaskGrid::TreeType &tree = topology_grid->tree();
-  tree.evalLeafBoundingBox(bbox);
+  bbox = topology_grid->evalActiveVoxelBoundingBox();
 
   const int3 resolution = make_int3(bbox.dim().x(), bbox.dim().y(), bbox.dim().z());
 
+  /* +1 to convert from exclusive to include bounds. */
+  bbox.max() = bbox.max().offsetBy(1);
+
+  int3 min = make_int3(bbox.min().x(), bbox.min().y(), bbox.min().z());
+  int3 max = make_int3(bbox.max().x(), bbox.max().y(), bbox.max().z());
+
+  int3 corners[8] = {
+      make_int3(min[0], min[1], min[2]),
+      make_int3(max[0], min[1], min[2]),
+      make_int3(max[0], max[1], min[2]),
+      make_int3(min[0], max[1], min[2]),
+      make_int3(min[0], min[1], max[2]),
+      make_int3(max[0], min[1], max[2]),
+      make_int3(max[0], max[1], max[2]),
+      make_int3(min[0], max[1], max[2]),
+  };
+
+  /* Create 6 quads of the bounding box. */
   unordered_map<size_t, int> used_verts;
 
-  for (auto iter = tree.cbeginLeaf(); iter; ++iter) {
-    if (iter->isEmpty()) {
-      continue;
-    }
-
-    openvdb::CoordBBox leaf_bbox = iter->getNodeBoundingBox();
-    /* +1 to convert from exclusive to include bounds. */
-    leaf_bbox.max() = leaf_bbox.max().offsetBy(1);
-
-    int3 min = make_int3(leaf_bbox.min().x(), leaf_bbox.min().y(), leaf_bbox.min().z());
-    int3 max = make_int3(leaf_bbox.max().x(), leaf_bbox.max().y(), leaf_bbox.max().z());
-
-    int3 corners[8] = {
-        make_int3(min[0], min[1], min[2]),
-        make_int3(max[0], min[1], min[2]),
-        make_int3(max[0], max[1], min[2]),
-        make_int3(min[0], max[1], min[2]),
-        make_int3(min[0], min[1], max[2]),
-        make_int3(max[0], min[1], max[2]),
-        make_int3(max[0], max[1], max[2]),
-        make_int3(min[0], max[1], max[2]),
-    };
-
-    /* Only create a quad if on the border between an active and an inactive leaf.
-     *
-     * We verify that a leaf exists by probing a coordinate that is at its center,
-     * to do so we compute the center of the current leaf and offset this coordinate
-     * by the size of a leaf in each direction.
-     */
-    static const int LEAF_DIM = openvdb::MaskGrid::TreeType::LeafNodeType::DIM;
-    auto center = leaf_bbox.min() + openvdb::Coord(LEAF_DIM / 2);
-
-    if (!is_non_empty_leaf(tree, openvdb::Coord(center.x() - LEAF_DIM, center.y(), center.z()))) {
-      create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_X_MIN);
-    }
-
-    if (!is_non_empty_leaf(tree, openvdb::Coord(center.x() + LEAF_DIM, center.y(), center.z()))) {
-      create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_X_MAX);
-    }
-
-    if (!is_non_empty_leaf(tree, openvdb::Coord(center.x(), center.y() - LEAF_DIM, center.z()))) {
-      create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_Y_MIN);
-    }
-
-    if (!is_non_empty_leaf(tree, openvdb::Coord(center.x(), center.y() + LEAF_DIM, center.z()))) {
-      create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_Y_MAX);
-    }
-
-    if (!is_non_empty_leaf(tree, openvdb::Coord(center.x(), center.y(), center.z() - LEAF_DIM))) {
-      create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_Z_MIN);
-    }
-
-    if (!is_non_empty_leaf(tree, openvdb::Coord(center.x(), center.y(), center.z() + LEAF_DIM))) {
-      create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_Z_MAX);
-    }
-  }
+  create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_X_MIN);
+  create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_X_MAX);
+  create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_Y_MIN);
+  create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_Y_MAX);
+  create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_Z_MIN);
+  create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_Z_MAX);
 }
 
 void VolumeMeshBuilder::convert_object_space(const vector<int3> &vertices,
@@ -297,7 +253,6 @@ void VolumeMeshBuilder::convert_object_space(const vector<int3> &vertices,
                                              const float face_overlap_avoidance)
 {
   /* compute the offset for the face overlap avoidance */
-  bbox = topology_grid->evalActiveVoxelBoundingBox();
   openvdb::Coord dim = bbox.dim();
 
   const float3 cell_size = make_float3(1.0f / dim.x(), 1.0f / dim.y(), 1.0f / dim.z());
