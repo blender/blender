@@ -50,8 +50,7 @@ namespace blender::gpu::shader {
     _inst_name; \
     }
 
-#  define GPU_SHADER_INTERFACE_INFO(_interface, _inst_name) \
-    namespace create_info::interface::_interface {
+#  define GPU_SHADER_INTERFACE_INFO(_interface) namespace create_info::interface::_interface {
 #  define GPU_SHADER_INTERFACE_END() }
 
 #  define GPU_SHADER_CREATE_INFO(_info) \
