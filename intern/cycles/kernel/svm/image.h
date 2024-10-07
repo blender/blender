@@ -34,14 +34,16 @@ ccl_device_inline float3 texco_remap_square(float3 co)
   return (co - make_float3(0.5f, 0.5f, 0.5f)) * 2.0f;
 }
 
-ccl_device_noinline int svm_node_tex_image(
-    KernelGlobals kg, ccl_private ShaderData *sd, ccl_private float *stack, uint4 node, int offset)
+ccl_device_noinline void svm_node_tex_image(KernelGlobals kg,
+                                            ccl_private ShaderData *sd,
+                                            ccl_private SVMState *svm,
+                                            uint4 node)
 {
   uint co_offset, out_offset, alpha_offset, flags;
 
   svm_unpack_node_uchar4(node.z, &co_offset, &out_offset, &alpha_offset, &flags);
 
-  float3 co = stack_load_float3(stack, co_offset);
+  float3 co = stack_load_float3(svm, co_offset);
   float2 tex_co;
   if (node.w == NODE_IMAGE_PROJ_SPHERE) {
     co = texco_remap_square(co);
@@ -61,7 +63,7 @@ ccl_device_noinline int svm_node_tex_image(
   int num_nodes = (int)node.y;
   if (num_nodes > 0) {
     /* Remember the offset of the node following the tile nodes. */
-    int next_offset = offset + num_nodes;
+    int next_offset = svm->offset + num_nodes;
 
     /* Find the tile that the UV lies in. */
     int tx = (int)tex_co.x;
@@ -73,7 +75,7 @@ ccl_device_noinline int svm_node_tex_image(
 
       /* Find the index of the tile. */
       for (int i = 0; i < num_nodes; i++) {
-        uint4 tile_node = read_node(kg, &offset);
+        uint4 tile_node = read_node(kg, svm);
         if (tile_node.x == tile) {
           id = tile_node.y;
           break;
@@ -92,7 +94,7 @@ ccl_device_noinline int svm_node_tex_image(
     }
 
     /* Skip over the remaining nodes. */
-    offset = next_offset;
+    svm->offset = next_offset;
   }
   else {
     id = -num_nodes;
@@ -101,15 +103,14 @@ ccl_device_noinline int svm_node_tex_image(
   float4 f = svm_image_texture(kg, id, tex_co.x, tex_co.y, flags);
 
   if (stack_valid(out_offset))
-    stack_store_float3(stack, out_offset, make_float3(f.x, f.y, f.z));
+    stack_store_float3(svm, out_offset, make_float3(f.x, f.y, f.z));
   if (stack_valid(alpha_offset))
-    stack_store_float(stack, alpha_offset, f.w);
-  return offset;
+    stack_store_float(svm, alpha_offset, f.w);
 }
 
 ccl_device_noinline void svm_node_tex_image_box(KernelGlobals kg,
                                                 ccl_private ShaderData *sd,
-                                                ccl_private float *stack,
+                                                ccl_private SVMState *svm,
                                                 uint4 node)
 {
   /* get object space normal */
@@ -184,7 +185,7 @@ ccl_device_noinline void svm_node_tex_image_box(KernelGlobals kg,
   uint co_offset, out_offset, alpha_offset, flags;
   svm_unpack_node_uchar4(node.z, &co_offset, &out_offset, &alpha_offset, &flags);
 
-  float3 co = stack_load_float3(stack, co_offset);
+  float3 co = stack_load_float3(svm, co_offset);
   uint id = node.y;
 
   float4 f = zero_float4();
@@ -204,14 +205,14 @@ ccl_device_noinline void svm_node_tex_image_box(KernelGlobals kg,
   }
 
   if (stack_valid(out_offset))
-    stack_store_float3(stack, out_offset, make_float3(f.x, f.y, f.z));
+    stack_store_float3(svm, out_offset, make_float3(f.x, f.y, f.z));
   if (stack_valid(alpha_offset))
-    stack_store_float(stack, alpha_offset, f.w);
+    stack_store_float(svm, alpha_offset, f.w);
 }
 
 ccl_device_noinline void svm_node_tex_environment(KernelGlobals kg,
                                                   ccl_private ShaderData *sd,
-                                                  ccl_private float *stack,
+                                                  ccl_private SVMState *svm,
                                                   uint4 node)
 {
   uint id = node.y;
@@ -220,7 +221,7 @@ ccl_device_noinline void svm_node_tex_environment(KernelGlobals kg,
 
   svm_unpack_node_uchar4(node.z, &co_offset, &out_offset, &alpha_offset, &flags);
 
-  float3 co = stack_load_float3(stack, co_offset);
+  float3 co = stack_load_float3(svm, co_offset);
   float2 uv;
 
   co = safe_normalize(co);
@@ -233,9 +234,9 @@ ccl_device_noinline void svm_node_tex_environment(KernelGlobals kg,
   float4 f = svm_image_texture(kg, id, uv.x, uv.y, flags);
 
   if (stack_valid(out_offset))
-    stack_store_float3(stack, out_offset, make_float3(f.x, f.y, f.z));
+    stack_store_float3(svm, out_offset, make_float3(f.x, f.y, f.z));
   if (stack_valid(alpha_offset))
-    stack_store_float(stack, alpha_offset, f.w);
+    stack_store_float(svm, alpha_offset, f.w);
 }
 
 CCL_NAMESPACE_END

@@ -12,7 +12,7 @@ CCL_NAMESPACE_BEGIN
 template<uint node_feature_mask>
 ccl_device_noinline void svm_node_set_bump(KernelGlobals kg,
                                            ccl_private ShaderData *sd,
-                                           ccl_private float *stack,
+                                           ccl_private SVMState *svm,
                                            uint4 node)
 {
   uint out_offset, bump_state_offset, dummy;
@@ -25,8 +25,7 @@ ccl_device_noinline void svm_node_set_bump(KernelGlobals kg,
     uint normal_offset, scale_offset, invert, use_object_space;
     svm_unpack_node_uchar4(node.y, &normal_offset, &scale_offset, &invert, &use_object_space);
 
-    float3 normal_in = stack_valid(normal_offset) ? stack_load_float3(stack, normal_offset) :
-                                                    sd->N;
+    float3 normal_in = stack_valid(normal_offset) ? stack_load_float3(svm, normal_offset) : sd->N;
 
     /* If we have saved bump state, read the full differential from there.
      * Just using the compact form in those cases leads to incorrect normals (see #111588). */
@@ -35,8 +34,8 @@ ccl_device_noinline void svm_node_set_bump(KernelGlobals kg,
       dP = differential_from_compact(sd->Ng, sd->dP);
     }
     else {
-      dP.dx = stack_load_float3(stack, bump_state_offset + 4);
-      dP.dy = stack_load_float3(stack, bump_state_offset + 7);
+      dP.dx = stack_load_float3(svm, bump_state_offset + 4);
+      dP.dy = stack_load_float3(svm, bump_state_offset + 7);
     }
 
     if (use_object_space) {
@@ -53,9 +52,9 @@ ccl_device_noinline void svm_node_set_bump(KernelGlobals kg,
     uint c_offset, x_offset, y_offset, strength_offset;
     svm_unpack_node_uchar4(node.z, &c_offset, &x_offset, &y_offset, &strength_offset);
 
-    float h_c = stack_load_float(stack, c_offset);
-    float h_x = stack_load_float(stack, x_offset);
-    float h_y = stack_load_float(stack, y_offset);
+    float h_c = stack_load_float(svm, c_offset);
+    float h_x = stack_load_float(svm, x_offset);
+    float h_y = stack_load_float(svm, y_offset);
 
     /* compute surface gradient and determinant */
     float det = dot(dP.dx, Rx);
@@ -63,8 +62,8 @@ ccl_device_noinline void svm_node_set_bump(KernelGlobals kg,
 
     float absdet = fabsf(det);
 
-    float strength = stack_load_float(stack, strength_offset);
-    float scale = stack_load_float(stack, scale_offset);
+    float strength = stack_load_float(svm, strength_offset);
+    float scale = stack_load_float(svm, scale_offset);
 
     if (invert)
       scale *= -1.0f;
@@ -84,10 +83,10 @@ ccl_device_noinline void svm_node_set_bump(KernelGlobals kg,
       object_normal_transform(kg, sd, &normal_out);
     }
 
-    stack_store_float3(stack, out_offset, normal_out);
+    stack_store_float3(svm, out_offset, normal_out);
   }
   else {
-    stack_store_float3(stack, out_offset, zero_float3());
+    stack_store_float3(svm, out_offset, zero_float3());
   }
 #endif
 }
@@ -97,12 +96,12 @@ ccl_device_noinline void svm_node_set_bump(KernelGlobals kg,
 template<uint node_feature_mask>
 ccl_device void svm_node_set_displacement(KernelGlobals kg,
                                           ccl_private ShaderData *sd,
-                                          ccl_private float *stack,
+                                          ccl_private SVMState *svm,
                                           uint fac_offset)
 {
   IF_KERNEL_NODES_FEATURE(BUMP)
   {
-    float3 dP = stack_load_float3(stack, fac_offset);
+    float3 dP = stack_load_float3(svm, fac_offset);
     sd->P += dP;
   }
 }
@@ -110,7 +109,7 @@ ccl_device void svm_node_set_displacement(KernelGlobals kg,
 template<uint node_feature_mask>
 ccl_device_noinline void svm_node_displacement(KernelGlobals kg,
                                                ccl_private ShaderData *sd,
-                                               ccl_private float *stack,
+                                               ccl_private SVMState *svm,
                                                uint4 node)
 {
   IF_KERNEL_NODES_FEATURE(BUMP)
@@ -119,10 +118,10 @@ ccl_device_noinline void svm_node_displacement(KernelGlobals kg,
     svm_unpack_node_uchar4(
         node.y, &height_offset, &midlevel_offset, &scale_offset, &normal_offset);
 
-    float height = stack_load_float(stack, height_offset);
-    float midlevel = stack_load_float(stack, midlevel_offset);
-    float scale = stack_load_float(stack, scale_offset);
-    float3 normal = stack_valid(normal_offset) ? stack_load_float3(stack, normal_offset) : sd->N;
+    float height = stack_load_float(svm, height_offset);
+    float midlevel = stack_load_float(svm, midlevel_offset);
+    float scale = stack_load_float(svm, scale_offset);
+    float3 normal = stack_valid(normal_offset) ? stack_load_float3(svm, normal_offset) : sd->N;
     uint space = node.w;
 
     float3 dP = normal;
@@ -138,18 +137,20 @@ ccl_device_noinline void svm_node_displacement(KernelGlobals kg,
       dP *= (height - midlevel) * scale;
     }
 
-    stack_store_float3(stack, node.z, dP);
+    stack_store_float3(svm, node.z, dP);
   }
   else {
-    stack_store_float3(stack, node.z, zero_float3());
+    stack_store_float3(svm, node.z, zero_float3());
   }
 }
 
 template<uint node_feature_mask>
-ccl_device_noinline int svm_node_vector_displacement(
-    KernelGlobals kg, ccl_private ShaderData *sd, ccl_private float *stack, uint4 node, int offset)
+ccl_device_noinline void svm_node_vector_displacement(KernelGlobals kg,
+                                                      ccl_private ShaderData *sd,
+                                                      ccl_private SVMState *svm,
+                                                      uint4 node)
 {
-  uint4 data_node = read_node(kg, &offset);
+  uint4 data_node = read_node(kg, svm);
   uint vector_offset, midlevel_offset, scale_offset, displacement_offset;
   svm_unpack_node_uchar4(
       node.y, &vector_offset, &midlevel_offset, &scale_offset, &displacement_offset);
@@ -158,9 +159,9 @@ ccl_device_noinline int svm_node_vector_displacement(
   {
     uint space = data_node.x;
 
-    float3 vector = stack_load_float3(stack, vector_offset);
-    float midlevel = stack_load_float(stack, midlevel_offset);
-    float scale = stack_load_float(stack, scale_offset);
+    float3 vector = stack_load_float3(svm, vector_offset);
+    float midlevel = stack_load_float(svm, midlevel_offset);
+    float scale = stack_load_float(svm, scale_offset);
     float3 dP = (vector - make_float3(midlevel, midlevel, midlevel)) * scale;
 
     if (space == NODE_NORMAL_MAP_TANGENT) {
@@ -192,14 +193,12 @@ ccl_device_noinline int svm_node_vector_displacement(
       object_dir_transform(kg, sd, &dP);
     }
 
-    stack_store_float3(stack, displacement_offset, dP);
+    stack_store_float3(svm, displacement_offset, dP);
   }
   else {
-    stack_store_float3(stack, displacement_offset, zero_float3());
+    stack_store_float3(svm, displacement_offset, zero_float3());
     (void)data_node;
   }
-
-  return offset;
 }
 
 CCL_NAMESPACE_END

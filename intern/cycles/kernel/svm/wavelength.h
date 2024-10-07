@@ -13,11 +13,11 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_noinline void svm_node_wavelength(KernelGlobals kg,
                                              ccl_private ShaderData *sd,
-                                             ccl_private float *stack,
+                                             ccl_private SVMState *svm,
                                              uint wavelength,
                                              uint color_out)
 {
-  float lambda_nm = stack_load_float(stack, wavelength);
+  float lambda_nm = stack_load_float(svm, wavelength);
   float ii = (lambda_nm - 380.0f) * (1.0f / 5.0f);  // scaled 0..80
   int i = float_to_int(ii);
   float3 color;
@@ -37,7 +37,7 @@ ccl_device_noinline void svm_node_wavelength(KernelGlobals kg,
   /* Clamp to zero if values are smaller */
   color = max(color, make_float3(0.0f, 0.0f, 0.0f));
 
-  stack_store_float3(stack, color_out, color);
+  stack_store_float3(svm, color_out, color);
 }
 
 CCL_NAMESPACE_END
