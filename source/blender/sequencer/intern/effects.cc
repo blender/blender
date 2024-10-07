@@ -3251,8 +3251,9 @@ static void apply_text_alignment(const TextVars *data,
       character.position += alignment;
     }
 
-    /* Get text box for line. This has to be done, because some fonts do not use descenders, but
-     * define their height. In that case, box has unwanted offset in Y axis. */
+    /* Get text box for line.
+     * This has to be done, because some fonts do not define a descender value,
+     * but define their height. In that case, box has unwanted offset in Y axis. */
     rcti line_box;
     size_t str_len = line.characters.last().str_ptr - line.characters.first().str_ptr;
     BLF_boundbox(runtime.font, line.characters.first().str_ptr, str_len, &line_box, nullptr);

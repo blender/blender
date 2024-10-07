@@ -8,8 +8,9 @@
  * The goal of this header is to make the GLSL source file compile using a modern C++ compiler.
  * This allows for linting and IDE functionalities to work.
  *
- * This file can be included inside any GLSL file to make the GLSL syntax to work. Then your IDE
- * must to be configured to associate .glsl files to C++ so that the C++ linter does the analysis.
+ * This file can be included inside any GLSL file to make the GLSL syntax to work.
+ * Then your IDE must to be configured to associate `.glsl` files to C++ so that the
+ * C++ linter does the analysis.
  *
  * This is why the implementation of each function is not needed. However, we make sure that type
  * casting is always explicit. This is because implicit casts are not always supported on all
@@ -19,9 +20,9 @@
  * issues.
  *
  * Some of the features of GLSL are omitted by design. They are either:
- * - not needed (e.g. per component matrix multiplication)
- * - against our code-style (e.g. stpq swizzle)
- * - unsupported by our Metal Shading Language layer (e.g. mixed vector-scalar matrix constructor).
+ * - Not needed (e.g. per component matrix multiplication).
+ * - Against our code-style (e.g. `stpq` swizzle).
+ * - Unsupported by our Metal Shading Language layer (e.g. mixed vector-scalar matrix constructor).
  *
  * IMPORTANT: Please ask the module team if you need some feature that are not listed in this file.
  */
@@ -629,7 +630,7 @@ template<typename T> T tanh(T) RET;
 template<typename T> T degrees(T) RET;
 template<typename T> T radians(T) RET;
 
-/* Declared explicitely to avoid type errors. */
+/* Declared explicitly to avoid type errors. */
 double mix(double, double, double) RET;
 template<int D> VecBase<double, D> mix(VecBase<double, D>, VecBase<double, D>, double) RET;
 template<typename T, int D> VecBase<T, D> mix(VecBase<T, D>, VecBase<T, D>, VecBase<bool, D>) RET;
@@ -698,7 +699,7 @@ template<int C, int R> float determinant(MatBase<C, R>) RET;
 template<int C, int R> MatBase<C, R> inverse(MatBase<C, R>) RET;
 template<int C, int R> MatBase<R, C> transpose(MatBase<C, R>) RET;
 
-/* TODO(fclem): Should be in a lib instead of being impemented by each backend. */
+/* TODO(@fclem): Should be in a lib instead of being implemented by each backend. */
 bool is_zero(vec2) RET;
 bool is_zero(vec3) RET;
 bool is_zero(vec4) RET;
@@ -767,7 +768,7 @@ const uint gl_LocalInvocationIndex;
 /* Discards the output of the current fragment shader invocation and halts its execution. */
 #define discard
 
-/* Decorate a variable in global scope that is common to all threads in a threadgroup. */
+/* Decorate a variable in global scope that is common to all threads in a thread-group. */
 #define shared
 
 namespace gl_ComputeShader {

@@ -64,7 +64,7 @@ int main(int argc, char **argv)
   while (std::getline(input_file, line)) {
     line_index++;
 
-    /* Remove licence headers (first comment). */
+    /* Remove license headers (first comment). */
     if (line.rfind("/*", 0) == 0 && first_comment) {
       first_comment = false;
       inside_comment = true;

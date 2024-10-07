@@ -768,7 +768,7 @@ static std::unique_ptr<ReferenceLifetimesInfo> make_reference_lifetimes_info(con
       tree, reference_sets, potential_data_by_socket, potential_reference_by_socket);
 
   /* Propagate data and reference from left to right. This may need to be done multiple times
-   * because there may be some backlinks. */
+   * because there may be some back-links. */
   while (pass_left_to_right(
       tree, relations_by_node, potential_data_by_socket, potential_reference_by_socket))
   {
