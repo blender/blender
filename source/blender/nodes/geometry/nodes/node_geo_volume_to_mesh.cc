@@ -94,13 +94,18 @@ static bke::VolumeToMeshResolution get_resolution_param(const GeoNodeExecParams 
 }
 
 static Mesh *create_mesh_from_volume_grids(Span<const openvdb::GridBase *> grids,
+                                           GeoNodeExecParams &params,
                                            const float threshold,
                                            const float adaptivity,
                                            const bke::VolumeToMeshResolution &resolution)
 {
-  Array<bke::OpenVDBMeshData> mesh_data(grids.size());
+  Array<bke::VolumeToMeshDataResult> mesh_data(grids.size());
   for (const int i : grids.index_range()) {
-    mesh_data[i] = bke::volume_to_mesh_data(*grids[i], resolution, threshold, adaptivity);
+    bke::VolumeToMeshDataResult &result = mesh_data[i];
+    result = bke::volume_to_mesh_data(*grids[i], resolution, threshold, adaptivity);
+    if (!result.error.empty()) {
+      params.error_message_add(NodeWarningType::Error, result.error);
+    }
   }
 
   int vert_offset = 0;
@@ -110,7 +115,7 @@ static Mesh *create_mesh_from_volume_grids(Span<const openvdb::GridBase *> grids
   Array<int> face_offsets(mesh_data.size());
   Array<int> loop_offsets(mesh_data.size());
   for (const int i : grids.index_range()) {
-    const bke::OpenVDBMeshData &data = mesh_data[i];
+    const bke::OpenVDBMeshData &data = mesh_data[i].data;
     vert_offsets[i] = vert_offset;
     face_offsets[i] = face_offset;
     loop_offsets[i] = loop_offset;
@@ -126,7 +131,7 @@ static Mesh *create_mesh_from_volume_grids(Span<const openvdb::GridBase *> grids
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
 
   for (const int i : grids.index_range()) {
-    const bke::OpenVDBMeshData &data = mesh_data[i];
+    const bke::OpenVDBMeshData &data = mesh_data[i].data;
     bke::fill_mesh_from_openvdb_data(data.verts,
                                      data.tris,
                                      data.quads,
@@ -183,6 +188,7 @@ static Mesh *create_mesh_from_volume(GeometrySet &geometry_set, GeoNodeExecParam
   }
 
   return create_mesh_from_volume_grids(grids,
+                                       params,
                                        params.get_input<float>("Threshold"),
                                        params.get_input<float>("Adaptivity"),
                                        resolution);
