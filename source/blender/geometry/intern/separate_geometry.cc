@@ -143,6 +143,7 @@ static std::optional<GreasePencil *> separate_grease_pencil_layer_selection(
 
   GreasePencil *dst_grease_pencil = BKE_grease_pencil_new_nomain();
   BKE_grease_pencil_duplicate_drawing_array(&src_grease_pencil, dst_grease_pencil);
+  BKE_grease_pencil_copy_parameters(src_grease_pencil, *dst_grease_pencil);
   selection.foreach_index([&](const int index) {
     const bke::greasepencil::Layer &src_layer = src_grease_pencil.layer(index);
     dst_grease_pencil->duplicate_layer(src_layer);
