@@ -114,7 +114,6 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
     if (GreasePencil *grease_pencil = geometry_set.get_grease_pencil_for_write()) {
       using namespace blender::bke::greasepencil;
-      Vector<Mesh *> mesh_by_layer(grease_pencil->layers().size(), nullptr);
       for (const int layer_index : grease_pencil->layers().index_range()) {
         Drawing *drawing = grease_pencil->get_eval_drawing(grease_pencil->layer(layer_index));
         if (drawing == nullptr) {
