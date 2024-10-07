@@ -166,7 +166,7 @@ def _fake_module(mod_name, mod_path, speedy=True):
             mod.bl_info = ast.literal_eval(body.value)
             mod.__file__ = mod_path
             mod.__time__ = os.path.getmtime(mod_path)
-        except:
+        except Exception:
             print("AST error parsing bl_info for:", repr(mod_path))
             import traceback
             traceback.print_exc()

@@ -1035,7 +1035,7 @@ class _GenericUI:
                     # the entire menu from drawing
                     try:
                         func(self, context)
-                    except:
+                    except Exception:
                         import traceback
                         traceback.print_exc()
 

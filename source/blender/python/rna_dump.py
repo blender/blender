@@ -58,7 +58,7 @@ def seek(r, txt, recurs):
 
     try:
         keys = r.keys()
-    except:
+    except Exception:
         keys = None
 
     if keys is not None:
@@ -67,7 +67,7 @@ def seek(r, txt, recurs):
 
     try:
         __members__ = dir(r)
-    except:
+    except Exception:
         __members__ = []
 
     for item in __members__:
@@ -93,7 +93,7 @@ def seek(r, txt, recurs):
     else:
         try:
             length = len(r)
-        except:
+        except Exception:
             length = 0
 
         if VERBOSE is False and length >= 4:

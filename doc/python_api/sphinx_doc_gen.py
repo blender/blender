@@ -2537,7 +2537,7 @@ def main():
 
     try:
         os.mkdir(SPHINX_IN_TMP)
-    except:
+    except Exception:
         pass
 
     # Copy extra files needed for theme.

@@ -548,13 +548,13 @@ def path_reference_copy(copy_set, report=print):
 
             try:
                 os.makedirs(dir_to, exist_ok=True)
-            except:
+            except Exception:
                 import traceback
                 traceback.print_exc()
 
             try:
                 shutil.copy(file_src, file_dst)
-            except:
+            except Exception:
                 import traceback
                 traceback.print_exc()
 
