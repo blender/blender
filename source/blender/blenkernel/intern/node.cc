@@ -69,8 +69,8 @@
 #include "BKE_node.hh"
 #include "BKE_node_enum.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_node_tree_anonymous_attributes.hh"
 #include "BKE_node_tree_interface.hh"
+#include "BKE_node_tree_reference_lifetimes.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_node_tree_zones.hh"
 #include "BKE_preview_image.hh"
@@ -227,24 +227,16 @@ static void ntree_copy_data(Main * /*bmain*/,
     dst_runtime.field_inferencing_interface = std::make_unique<FieldInferencingInterface>(
         *ntree_src->runtime->field_inferencing_interface);
   }
-  if (ntree_src->runtime->anonymous_attribute_inferencing) {
-    using namespace anonymous_attribute_inferencing;
-    dst_runtime.anonymous_attribute_inferencing =
-        std::make_unique<AnonymousAttributeInferencingResult>(
-            *ntree_src->runtime->anonymous_attribute_inferencing);
-    for (FieldSource &field_source :
-         dst_runtime.anonymous_attribute_inferencing->all_field_sources)
-    {
-      if (auto *socket_field_source = std::get_if<SocketFieldSource>(&field_source.data)) {
-        socket_field_source->socket = socket_map.lookup(socket_field_source->socket);
+  if (ntree_src->runtime->reference_lifetimes_info) {
+    using namespace node_tree_reference_lifetimes;
+    dst_runtime.reference_lifetimes_info = std::make_unique<ReferenceLifetimesInfo>(
+        *ntree_src->runtime->reference_lifetimes_info);
+    for (ReferenceSetInfo &reference_set : dst_runtime.reference_lifetimes_info->reference_sets) {
+      if (ELEM(reference_set.type, ReferenceSetType::LocalReferenceSet)) {
+        reference_set.socket = socket_map.lookup(reference_set.socket);
       }
-    }
-    for (GeometrySource &geometry_source :
-         dst_runtime.anonymous_attribute_inferencing->all_geometry_sources)
-    {
-      if (auto *socket_geometry_source = std::get_if<SocketGeometrySource>(&geometry_source.data))
-      {
-        socket_geometry_source->socket = socket_map.lookup(socket_geometry_source->socket);
+      for (auto &socket : reference_set.potential_data_origins) {
+        socket = socket_map.lookup(socket);
       }
     }
   }

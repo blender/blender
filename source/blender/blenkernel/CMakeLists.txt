@@ -238,10 +238,10 @@ set(SRC
   intern/node_enum_definition.cc
   intern/node_runtime.cc
   intern/node_socket_value.cc
-  intern/node_tree_anonymous_attributes.cc
   intern/node_tree_dot_export.cc
   intern/node_tree_field_inferencing.cc
   intern/node_tree_interface.cc
+  intern/node_tree_reference_lifetimes.cc
   intern/node_tree_update.cc
   intern/node_tree_zones.cc
   intern/object.cc
@@ -402,6 +402,7 @@ set(SRC
   BKE_freestyle.h
   BKE_geometry_fields.hh
   BKE_geometry_nodes_gizmos_transforms.hh
+  BKE_geometry_nodes_reference_set.hh
   BKE_geometry_set.hh
   BKE_geometry_set_instances.hh
   BKE_global.hh
@@ -469,9 +470,9 @@ set(SRC
   BKE_node_enum.hh
   BKE_node_runtime.hh
   BKE_node_socket_value.hh
-  BKE_node_tree_anonymous_attributes.hh
   BKE_node_tree_dot_export.hh
   BKE_node_tree_interface.hh
+  BKE_node_tree_reference_lifetimes.hh
   BKE_node_tree_update.hh
   BKE_node_tree_zones.hh
   BKE_object.hh

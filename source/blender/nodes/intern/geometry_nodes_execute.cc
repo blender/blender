@@ -19,6 +19,7 @@
 
 #include "BKE_compute_contexts.hh"
 #include "BKE_geometry_fields.hh"
+#include "BKE_geometry_nodes_reference_set.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_idprop.hh"
 #include "BKE_lib_id.hh"
@@ -991,10 +992,10 @@ bke::GeometrySet execute_geometry_nodes_on_geometry(const bNodeTree &btree,
   }
 
   /* No anonymous attributes have to be propagated. */
-  Array<bke::AnonymousAttributeSet> attributes_to_propagate(
-      function.inputs.attributes_to_propagate.geometry_outputs.size());
-  for (const int i : attributes_to_propagate.index_range()) {
-    param_inputs[function.inputs.attributes_to_propagate.range[i]] = &attributes_to_propagate[i];
+  Array<bke::GeometryNodesReferenceSet> references_to_propagate(
+      function.inputs.references_to_propagate.geometry_outputs.size());
+  for (const int i : references_to_propagate.index_range()) {
+    param_inputs[function.inputs.references_to_propagate.range[i]] = &references_to_propagate[i];
   }
 
   /* Prepare memory for output values. */

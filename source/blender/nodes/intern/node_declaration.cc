@@ -37,15 +37,19 @@ void build_node_declaration(const bke::bNodeType &typeinfo,
 
 void NodeDeclarationBuilder::build_remaining_anonymous_attribute_relations()
 {
+  auto is_data_socket_decl = [](const SocketDeclaration *socket_decl) {
+    return dynamic_cast<const decl::Geometry *>(socket_decl);
+  };
+
   Vector<int> geometry_inputs;
   for (const int i : declaration_.inputs.index_range()) {
-    if (dynamic_cast<decl::Geometry *>(declaration_.inputs[i])) {
+    if (is_data_socket_decl(declaration_.inputs[i])) {
       geometry_inputs.append(i);
     }
   }
   Vector<int> geometry_outputs;
   for (const int i : declaration_.outputs.index_range()) {
-    if (dynamic_cast<decl::Geometry *>(declaration_.outputs[i])) {
+    if (is_data_socket_decl(declaration_.outputs[i])) {
       geometry_outputs.append(i);
     }
   }

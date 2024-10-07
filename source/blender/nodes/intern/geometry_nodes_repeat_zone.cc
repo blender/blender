@@ -272,19 +272,11 @@ class LazyFunctionForRepeatZone : public LazyFunction {
         lf_graph.add_link(lf_node.output(body_fn_.indices.outputs.border_link_usages[i]),
                           lf_border_link_usage_or_nodes[i]->input(iter_i));
       }
-      for (const auto item : body_fn_.indices.inputs.attributes_by_field_source_index.items()) {
-        lf_graph.add_link(
-            *lf_inputs[zone_info_.indices.inputs.attributes_by_field_source_index.lookup(
-                item.key)],
-            lf_node.input(item.value));
-      }
-      for (const auto item :
-           body_fn_.indices.inputs.attributes_by_caller_propagation_index.items())
-      {
-        lf_graph.add_link(
-            *lf_inputs[zone_info_.indices.inputs.attributes_by_caller_propagation_index.lookup(
-                item.key)],
-            lf_node.input(item.value));
+
+      /* Handle reference sets. */
+      for (const auto &item : body_fn_.indices.inputs.reference_sets.items()) {
+        lf_graph.add_link(*lf_inputs[zone_info_.indices.inputs.reference_sets.lookup(item.key)],
+                          lf_node.input(item.value));
       }
     }
 
