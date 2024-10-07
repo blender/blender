@@ -46,7 +46,6 @@ void ED_operatortypes_gpencil_legacy()
   WM_operatortype_append(GPENCIL_OT_layer_annotation_add);
   WM_operatortype_append(GPENCIL_OT_layer_annotation_remove);
   WM_operatortype_append(GPENCIL_OT_layer_annotation_move);
-  WM_operatortype_append(GPENCIL_OT_blank_frame_add);
   WM_operatortype_append(GPENCIL_OT_annotation_active_frame_delete);
 
   /* Editing (Time) --------------- */

@@ -21,13 +21,7 @@ set(INC_SYS
 set(SRC
   annotate_draw.cc
   annotate_paint.cc
-  drawgpencil.cc
   editaction_gpencil.cc
-  gpencil_add_blank.cc
-  gpencil_add_lineart.cc
-  gpencil_add_monkey.cc
-  gpencil_add_stroke.cc
-  gpencil_armature.cc
   gpencil_data.cc
   gpencil_edit.cc
   gpencil_ops.cc

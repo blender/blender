@@ -1205,8 +1205,6 @@ context_type_map = {
     "edit_object": [("Object", False)],
     "edit_text": [("Text", False)],
     "editable_bones": [("EditBone", True)],
-    "editable_gpencil_layers": [("GPencilLayer", True)],
-    "editable_gpencil_strokes": [("GPencilStroke", True)],
     "editable_objects": [("Object", True)],
     "editable_fcurves": [("FCurve", True)],
     "fluid": [("FluidSimulationModifier", False)],

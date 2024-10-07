@@ -2895,18 +2895,11 @@ static int object_convert_exec(bContext *C, wmOperator *op)
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  View3D *v3d = CTX_wm_view3d(C);
   Base *basen = nullptr, *basact = nullptr;
   Object *ob1, *obact = CTX_data_active_object(C);
   const short target = RNA_enum_get(op->ptr, "target");
   bool keep_original = RNA_boolean_get(op->ptr, "keep_original");
   const bool do_merge_customdata = RNA_boolean_get(op->ptr, "merge_customdata");
-
-  const float angle = RNA_float_get(op->ptr, "angle");
-  const int thickness = RNA_int_get(op->ptr, "thickness");
-  const bool use_seams = RNA_boolean_get(op->ptr, "seams");
-  const bool use_faces = RNA_boolean_get(op->ptr, "faces");
-  const float offset = RNA_float_get(op->ptr, "offset");
 
   int mballConverted = 0;
   bool gpencilConverted = false;
@@ -3023,53 +3016,6 @@ static int object_convert_exec(bContext *C, wmOperator *op)
           ED_rigidbody_object_remove(bmain, scene, newob);
         }
       }
-    }
-    else if (ob->type == OB_MESH && target == OB_GPENCIL_LEGACY) {
-      ob->flag |= OB_DONE;
-
-      /* Create a new grease pencil object and copy transformations. */
-      ushort local_view_bits = (v3d && v3d->localvd) ? v3d->local_view_uid : 0;
-      float loc[3], size[3], rot[3][3], eul[3];
-      float matrix[4][4];
-      mat4_to_loc_rot_size(loc, rot, size, ob->object_to_world().ptr());
-      mat3_to_eul(eul, rot);
-
-      Object *ob_gpencil = ED_gpencil_add_object(C, loc, local_view_bits);
-      copy_v3_v3(ob_gpencil->loc, loc);
-      copy_v3_v3(ob_gpencil->rot, eul);
-      copy_v3_v3(ob_gpencil->scale, size);
-      unit_m4(matrix);
-      /* Set object in 3D mode. */
-      bGPdata *gpd = (bGPdata *)ob_gpencil->data;
-      gpd->draw_mode = GP_DRAWMODE_3D;
-
-      gpencilConverted |= BKE_gpencil_convert_mesh(bmain,
-                                                   depsgraph,
-                                                   scene,
-                                                   ob_gpencil,
-                                                   ob,
-                                                   angle,
-                                                   thickness,
-                                                   offset,
-                                                   matrix,
-                                                   0,
-                                                   use_seams,
-                                                   use_faces,
-                                                   true);
-
-      /* Remove unused materials. */
-      int actcol = ob_gpencil->actcol;
-      for (int slot = 1; slot <= ob_gpencil->totcol; slot++) {
-        while (slot <= ob_gpencil->totcol && !BKE_object_material_slot_used(ob_gpencil, slot)) {
-          ob_gpencil->actcol = slot;
-          BKE_object_material_slot_remove(CTX_data_main(C), ob_gpencil);
-
-          if (actcol >= slot) {
-            actcol--;
-          }
-        }
-      }
-      ob_gpencil->actcol = actcol;
     }
     else if (target == OB_CURVES) {
       ob->flag |= OB_DONE;
@@ -3419,16 +3365,6 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         /* Meshes doesn't use the "curve cache". */
         BKE_object_free_curve_cache(newob);
       }
-      else if (target == OB_GPENCIL_LEGACY) {
-        ushort local_view_bits = (v3d && v3d->localvd) ? v3d->local_view_uid : 0;
-        Object *ob_gpencil = ED_gpencil_add_object(C, newob->loc, local_view_bits);
-        copy_v3_v3(ob_gpencil->rot, newob->rot);
-        copy_v3_v3(ob_gpencil->scale, newob->scale);
-        BKE_gpencil_convert_curve(bmain, scene, ob_gpencil, newob, false, 1.0f, 0.0f);
-        gpencilConverted = true;
-        gpencilCurveConverted = true;
-        basen = nullptr;
-      }
     }
     else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
       ob->flag |= OB_DONE;
@@ -3453,23 +3389,6 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         object_data_convert_curve_to_mesh(bmain, depsgraph, newob);
         /* Meshes don't use the "curve cache". */
         BKE_object_free_curve_cache(newob);
-      }
-      else if (target == OB_GPENCIL_LEGACY) {
-        if (ob->type != OB_CURVES_LEGACY) {
-          ob->flag &= ~OB_DONE;
-          BKE_report(op->reports, RPT_ERROR, "Convert Surfaces to Grease Pencil is not supported");
-        }
-        else {
-          /* Create a new grease pencil object and copy transformations.
-           * Nurbs Surface are not supported.
-           */
-          ushort local_view_bits = (v3d && v3d->localvd) ? v3d->local_view_uid : 0;
-          Object *ob_gpencil = ED_gpencil_add_object(C, ob->loc, local_view_bits);
-          copy_v3_v3(ob_gpencil->rot, ob->rot);
-          copy_v3_v3(ob_gpencil->scale, ob->scale);
-          BKE_gpencil_convert_curve(bmain, scene, ob_gpencil, ob, false, 1.0f, 0.0f);
-          gpencilConverted = true;
-        }
       }
     }
     else if (ob->type == OB_MBALL && target == OB_MESH) {
@@ -4388,9 +4307,6 @@ static int object_join_exec(bContext *C, wmOperator *op)
   }
   else if (ob->type == OB_ARMATURE) {
     ret = ED_armature_join_objects_exec(C, op);
-  }
-  else if (ob->type == OB_GPENCIL_LEGACY) {
-    ret = ED_gpencil_join_objects_exec(C, op);
   }
   else if (ob->type == OB_GREASE_PENCIL) {
     ret = ED_grease_pencil_join_objects_exec(C, op);
