@@ -813,6 +813,8 @@ static int geometry_color_attribute_convert_exec(bContext *C, wmOperator *op)
                                 eCustomDataType(RNA_enum_get(op->ptr, "data_type")),
                                 bke::AttrDomain(RNA_enum_get(op->ptr, "domain")),
                                 op->reports);
+  DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
+  WM_main_add_notifier(NC_GEOM | ND_DATA, &mesh->id);
   return OPERATOR_FINISHED;
 }
 
