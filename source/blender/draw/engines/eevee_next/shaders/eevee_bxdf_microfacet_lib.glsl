@@ -238,7 +238,7 @@ BsdfEval bxdf_ggx_eval(vec3 N, vec3 L, vec3 V, float alpha, float eta, const boo
     vec3 Vh = normalize(vec3(alpha * Vt.xy, Vt.z));
     float G1_V = 2.0 * Vh.z / (1.0 + Vh.z);
 
-    float Ht2 = square(eta * LH + VH);
+    float Ht2 = square(-eta * LH + VH);
 
     eval.pdf = (D * G1_V * abs(VH * LH) * square(eta)) / (NV * Ht2);
 
