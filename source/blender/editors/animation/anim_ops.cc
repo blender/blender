@@ -721,59 +721,6 @@ static void ANIM_OT_scene_range_frame(wmOperatorType *ot)
 /** \name Conversion
  * \{ */
 
-static bool slot_new_for_object_poll(bContext *C)
-{
-  using namespace blender;
-
-  Object *object = CTX_data_active_object(C);
-  if (!object) {
-    return false;
-  }
-  animrig::Action *action = animrig::get_action(object->id);
-  if (!action) {
-    CTX_wm_operator_poll_msg_set(
-        C, "Creating a new Action Slot is only possible when an Action is already assigned");
-    return false;
-  }
-  return action->is_action_layered();
-}
-
-static int slot_new_for_object_exec(bContext *C, wmOperator * /*op*/)
-{
-  using namespace blender::animrig;
-
-  Object *object = CTX_data_active_object(C);
-  Action *action = get_action(object->id);
-  BLI_assert_msg(action, "The poll function should have ensured the Action is not NULL");
-
-  Slot &slot = action->slot_add_for_id(object->id);
-  { /* Assign the newly created slot. */
-    const ActionSlotAssignmentResult result = assign_action_slot(&slot, object->id);
-    BLI_assert_msg(result == ActionSlotAssignmentResult::OK,
-                   "Assigning a slot that was made for this ID should always work");
-    UNUSED_VARS_NDEBUG(result);
-  }
-
-  DEG_relations_tag_update(CTX_data_main(C));
-  WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN, nullptr);
-  return OPERATOR_FINISHED;
-}
-
-static void ANIM_OT_slot_new_for_object(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "New Slot";
-  ot->idname = "ANIM_OT_slot_new_for_object";
-  ot->description = "Create a new Slot for this object, on the Action already assigned to it";
-
-  /* api callbacks */
-  ot->exec = slot_new_for_object_exec;
-  ot->poll = slot_new_for_object_poll;
-
-  /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
 static int convert_action_exec(bContext *C, wmOperator * /*op*/)
 {
   using namespace blender;
@@ -975,7 +922,6 @@ void ED_operatortypes_anim()
 
   WM_operatortype_append(ANIM_OT_keying_set_active_set);
 
-  WM_operatortype_append(ANIM_OT_slot_new_for_object);
   WM_operatortype_append(ANIM_OT_convert_legacy_action);
   WM_operatortype_append(ANIM_OT_merge_animation);
 }
