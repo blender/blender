@@ -89,14 +89,6 @@ BsdfSample bxdf_ggx_sample_visible_normals(
   /* Normal Distribution Function. */
   float D = bxdf_ggx_D(saturate(Ht.z), a2);
 
-  float VH = dot(Vt, Ht);
-  if (VH < 0.0) {
-    BsdfSample samp;
-    samp.direction = vec3(1.0, 0.0, 0.0);
-    samp.pdf = 0.0;
-    return samp;
-  }
-
   vec3 Lt;
   float pdf;
   if (do_reflection) {
@@ -112,6 +104,7 @@ BsdfSample bxdf_ggx_sample_visible_normals(
   else {
     Lt = refract(-Vt, Ht, 1.0 / eta);
     float LH = dot(Lt, Ht);
+    float VH = dot(Vt, Ht);
     float Ht2 = square(eta * LH + VH);
     float G1_V = 2.0 * Vh.z / (1.0 + Vh.z);
     pdf = D * G1_V * abs(VH * LH) * square(eta) / (Vt.z * Ht2);
