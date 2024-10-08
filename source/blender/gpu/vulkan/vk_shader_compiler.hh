@@ -49,6 +49,8 @@ class VKShaderCompiler : public ShaderCompiler {
                              shaderc_shader_kind stage,
                              VKShaderModule &shader_module);
 
+  static void cache_dir_clear_old();
+
  private:
   static void run(TaskPool *__restrict pool, void *task_data);
 };
