@@ -625,7 +625,7 @@ void dof_slight_focus_gather(depth2D depth_tx,
   for (float s = 0.0; s < sample_count; s++) {
     vec2 rand2 = fract(hammersley_2d(s, sample_count) + noise);
     vec2 offset = sample_disk(rand2) * radius;
-    float ring_dist = sqrt(rand2.y) * radius;
+    float ring_dist = length(offset);
 
     DofGatherData pair_data[2];
     for (int i = 0; i < 2; i++) {
