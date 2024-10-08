@@ -10,7 +10,6 @@ set(INC
   ../../io/alembic
   ../../io/collada
   ../../io/common
-  ../../io/gpencil_legacy
   ../../io/grease_pencil
   ../../io/ply
   ../../io/stl
