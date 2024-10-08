@@ -1197,6 +1197,8 @@ void wm_drags_draw(bContext *C, wmWindow *win)
       CTX_wm_region_set(C, region);
     }
 
+    /* Needs zero offset here or it looks blurry. #128112. */
+    wmWindowViewport_ex(win, 0.0f);
     wm_drag_draw_default(C, win, drag, xy);
   }
   GPU_blend(GPU_BLEND_NONE);
