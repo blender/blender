@@ -227,6 +227,14 @@ double BLI_dir_free_space(const char *dir) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(
  * \note can return NULL when the size is not big enough
  */
 char *BLI_current_working_dir(char *dir, size_t maxncpy) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+
+/**
+ * Get the user's home directory, i.e.
+ * - Unix: `$HOME`
+ * - Windows: `%userprofile%`
+ */
+const char *BLI_dir_home(void);
+
 eFileAttributes BLI_file_attributes(const char *path);
 /**
  * Changes the current working directory to the provided path.

@@ -51,9 +51,6 @@
 #  endif
 /* #mkdtemp on OSX (and probably all *BSD?), not worth making specific check for this OS. */
 #  include <unistd.h>
-
-#  include <pwd.h> /* For `passwd` access. */
-
 #endif /* !WIN32 */
 
 static const char _str_null[] = "(null)";
@@ -137,7 +134,7 @@ static char *blender_version_decimal(const int version)
 const char *BKE_appdir_folder_default()
 {
 #ifndef WIN32
-  return BKE_appdir_folder_home();
+  return BLI_dir_home();
 #else  /* Windows */
   static char documentfolder[FILE_MAXDIR];
 
@@ -169,30 +166,6 @@ const char *BKE_appdir_folder_default_or_root()
   return path;
 }
 
-const char *BKE_appdir_folder_home()
-{
-  const char *home_dir = nullptr;
-
-#ifdef WIN32
-  home_dir = BLI_getenv("userprofile");
-#else
-
-#  if defined(__APPLE__)
-  home_dir = BLI_expand_tilde("~/");
-#  endif
-  if (home_dir == nullptr) {
-    home_dir = BLI_getenv("HOME");
-    if (home_dir == nullptr) {
-      if (const passwd *pwuser = getpwuid(getuid())) {
-        home_dir = pwuser->pw_dir;
-      }
-    }
-  }
-#endif
-
-  return home_dir;
-}
-
 bool BKE_appdir_folder_documents(char *dir)
 {
   dir[0] = '\0';
@@ -207,7 +180,7 @@ bool BKE_appdir_folder_documents(char *dir)
 
   /* Ghost couldn't give us a documents path, let's try if we can find it ourselves. */
 
-  const char *home_path = BKE_appdir_folder_home();
+  const char *home_path = BLI_dir_home();
   if (!home_path || !BLI_is_dir(home_path)) {
     return false;
   }

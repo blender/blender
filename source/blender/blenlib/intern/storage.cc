@@ -107,6 +107,30 @@ char *BLI_current_working_dir(char *dir, const size_t maxncpy)
 }
 #endif /* !defined (__APPLE__) */
 
+const char *BLI_dir_home()
+{
+  const char *home_dir = nullptr;
+
+#ifdef WIN32
+  home_dir = BLI_getenv("userprofile");
+#else
+
+#  if defined(__APPLE__)
+  home_dir = BLI_expand_tilde("~/");
+#  endif
+  if (home_dir == nullptr) {
+    home_dir = BLI_getenv("HOME");
+    if (home_dir == nullptr) {
+      if (const passwd *pwuser = getpwuid(getuid())) {
+        home_dir = pwuser->pw_dir;
+      }
+    }
+  }
+#endif
+
+  return home_dir;
+}
+
 double BLI_dir_free_space(const char *dir)
 {
 #ifdef WIN32
