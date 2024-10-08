@@ -29,9 +29,6 @@
 #include "BKE_main_namemap.hh"
 #include "BKE_packedFile.hh"
 
-/* Unused currently. */
-// static CLG_LogRef LOG = {.identifier = "bke.library"};
-
 struct BlendDataReader;
 
 static void library_runtime_reset(Library *lib)
@@ -237,6 +234,12 @@ static void rebuild_hierarchy_best_parent_find(Main *bmain,
 void BKE_library_main_rebuild_hierarchy(Main *bmain)
 {
   BKE_main_relations_create(bmain, 0);
+
+  /* Reset all values, they may have been set to irrelevant values by other processes (like the
+   * liboverride handling e.g., see #lib_override_libraries_index_define). */
+  LISTBASE_FOREACH (Library *, lib_iter, &bmain->libraries) {
+    lib_iter->runtime.temp_index = 0;
+  }
 
   /* Find all libraries with directly linked IDs (i.e. IDs used by local data). */
   blender::Set<Library *> directly_used_libs;

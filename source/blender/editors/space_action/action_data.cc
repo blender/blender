@@ -359,10 +359,12 @@ static int action_pushdown_exec(bContext *C, wmOperator *op)
   AnimData *adt = ED_actedit_animdata_from_context(C, &adt_id_owner);
 
   /* Do the deed... */
-  if (adt) {
+  if (adt && adt->action) {
+    blender::animrig::Action &action = adt->action->wrap();
+
     /* Perform the push-down operation
      * - This will deal with all the AnimData-side user-counts. */
-    if (!adt->action->wrap().has_keyframes(adt->slot_handle)) {
+    if (!action.has_keyframes(adt->slot_handle)) {
       /* action may not be suitable... */
       BKE_report(op->reports, RPT_WARNING, "Action must have at least one keyframe or F-Modifier");
       return OPERATOR_CANCELLED;
@@ -376,7 +378,7 @@ static int action_pushdown_exec(bContext *C, wmOperator *op)
 
     /* The action needs updating too, as FCurve modifiers are to be reevaluated. They won't extend
      * beyond the NLA strip after pushing down to the NLA. */
-    DEG_id_tag_update_ex(bmain, &adt->action->id, ID_RECALC_ANIMATION);
+    DEG_id_tag_update_ex(bmain, &action.id, ID_RECALC_ANIMATION);
 
     /* Stop displaying this action in this editor
      * NOTE: The editor itself doesn't set a user...
