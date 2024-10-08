@@ -228,7 +228,7 @@ float ltc_evaluate_disk(sampler2DArray utility_tx, vec3 N, vec3 V, mat3 Minv, ve
   float d11 = dot(V1, V1);
   float d22 = dot(V2, V2);
   float d12 = dot(V1, V2);
-  float a, b;                     /* Eigenvalues */
+  float a, inv_b;                 /* Eigenvalues */
   const float threshold = 0.0007; /* Can be adjusted. Fix artifacts. */
   if (abs(d12) / sqrt(d11 * d22) > threshold) {
     float tr = d11 + d22;
@@ -254,15 +254,15 @@ float ltc_evaluate_disk(sampler2DArray utility_tx, vec3 N, vec3 V, mat3 Minv, ve
     }
 
     a = 1.0 / e_max;
-    b = 1.0 / e_min;
+    inv_b = e_min;
     V1 = normalize(V1_);
     V2 = normalize(V2_);
   }
   else {
     a = 1.0 / d11;
-    b = 1.0 / d22;
+    inv_b = d22;
     V1 *= sqrt(a);
-    V2 *= sqrt(b);
+    V2 *= inversesqrt(inv_b);
   }
 
   /* Now find front facing ellipse with same solid angle. */
@@ -277,14 +277,17 @@ float ltc_evaluate_disk(sampler2DArray utility_tx, vec3 N, vec3 V, mat3 Minv, ve
   float x0 = dot(V1, C) * inv_L;
   float y0 = dot(V2, C) * inv_L;
 
-  float L_sqr = L * L;
-  a *= L_sqr;
-  b *= L_sqr;
-
+  float ab = a * inv_b;
+  inv_b *= square(inv_L);
   float t = 1.0 + x0 * x0;
-  float c0 = a * b;
-  float c1 = c0 * (t + y0 * y0) - a - b;
-  float c2 = (1.0 - a * t) - b * (1.0 + y0 * y0);
+
+  /* Compared to the original LTC implementation, we scale the polynomial by `b` to avoid numerical
+   * issues when light size is small.
+   * i.e., instead of solving `c0 * e^3 + c1 * e^2 + c2 * e + c3 = 0`,
+   * we solve `c0/b^3 * (be)^3 + c1/b^2 * (be)^2 + c2/b * be + c3 = 0`. */
+  float c0 = ab * inv_b;
+  float c1 = ab * (t + y0 * y0) - c0 - inv_b;
+  float c2 = inv_b - ab * t - (1.0 + y0 * y0);
   float c3 = 1.0;
 
   vec3 roots = ltc_solve_cubic(vec4(c0, c1, c2, c3));
@@ -292,7 +295,10 @@ float ltc_evaluate_disk(sampler2DArray utility_tx, vec3 N, vec3 V, mat3 Minv, ve
   float e2 = roots.y;
   float e3 = roots.z;
 
-  vec3 avg_dir = vec3(a * x0 / (a - e2), b * y0 / (b - e2), 1.0);
+  /* Scale the root back by multiplying `b`.
+   * `a * x0 / (a - b * e2)` simplifies to `a/b * x0 / (a/b - e2)`,
+   * `b * y0 / (b - b * e2)` simplifies to `y0 / (1.0 - e2)`. */
+  vec3 avg_dir = vec3(ab * x0 / (ab - e2), y0 / (1.0 - e2), 1.0);
 
   mat3 rotate = mat3(V1, V2, V3);
 
