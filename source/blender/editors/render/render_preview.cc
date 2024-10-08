@@ -105,7 +105,7 @@
 #  include "BLI_threads.h"
 #endif
 
-static void icon_copy_rect(ImBuf *ibuf, uint w, uint h, uint *rect);
+static void icon_copy_rect(const ImBuf *ibuf, uint w, uint h, uint *rect);
 
 /* -------------------------------------------------------------------- */
 /** \name Local Structs
@@ -1341,51 +1341,43 @@ static ImBuf *icon_preview_imbuf_from_brush(Brush *brush)
   return brush->icon_imbuf;
 }
 
-static void icon_copy_rect(ImBuf *ibuf, uint w, uint h, uint *rect)
+static void icon_copy_rect(const ImBuf *ibuf, uint w, uint h, uint *rect)
 {
-  ImBuf *ima;
-  uint *drect, *srect;
-  float scaledx, scaledy;
-  short ex, ey, dx, dy;
-
-  /* paranoia test */
-  if (ibuf == nullptr || (ibuf->byte_buffer.data == nullptr && ibuf->float_buffer.data == nullptr))
+  if (ibuf == nullptr ||
+      (ibuf->byte_buffer.data == nullptr && ibuf->float_buffer.data == nullptr) || rect == nullptr)
   {
     return;
   }
 
-  /* Waste of cpu cycles... but the imbuf API has no other way to scale fast (ton). */
-  ima = IMB_dupImBuf(ibuf);
-
-  if (!ima) {
-    return;
-  }
-
-  if (ima->x > ima->y) {
+  float scaledx, scaledy;
+  if (ibuf->x > ibuf->y) {
     scaledx = float(w);
-    scaledy = (float(ima->y) / float(ima->x)) * float(w);
+    scaledy = (float(ibuf->y) / float(ibuf->x)) * float(w);
   }
   else {
-    scaledx = (float(ima->x) / float(ima->y)) * float(h);
+    scaledx = (float(ibuf->x) / float(ibuf->y)) * float(h);
     scaledy = float(h);
   }
 
   /* Scaling down must never assign zero width/height, see: #89868. */
-  ex = std::max(short(1), short(scaledx));
-  ey = std::max(short(1), short(scaledy));
+  int ex = std::max<int>(1, scaledx);
+  int ey = std::max<int>(1, scaledy);
 
-  dx = (w - ex) / 2;
-  dy = (h - ey) / 2;
+  int dx = (w - ex) / 2;
+  int dy = (h - ey) / 2;
 
-  IMB_scale(ima, ex, ey, IMBScaleFilter::Nearest, false);
+  ImBuf *ima = IMB_scale_into_new(ibuf, ex, ey, IMBScaleFilter::Nearest, false);
+  if (ima == nullptr) {
+    return;
+  }
 
   /* if needed, convert to 32 bits */
   if (ima->byte_buffer.data == nullptr) {
     IMB_rect_from_float(ima);
   }
 
-  srect = reinterpret_cast<uint *>(ima->byte_buffer.data);
-  drect = rect;
+  const uint *srect = reinterpret_cast<const uint *>(ima->byte_buffer.data);
+  uint *drect = rect;
 
   drect += dy * w + dx;
   for (; ey > 0; ey--) {

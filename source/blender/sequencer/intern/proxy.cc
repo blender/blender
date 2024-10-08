@@ -284,10 +284,8 @@ static void seq_proxy_build_frame(const SeqRenderData *context,
   recty = (proxy_render_size * ibuf_tmp->y) / 100;
 
   if (ibuf_tmp->x != rectx || ibuf_tmp->y != recty) {
-    ibuf = IMB_dupImBuf(ibuf_tmp);
-    IMB_metadata_copy(ibuf, ibuf_tmp);
+    ibuf = IMB_scale_into_new(ibuf_tmp, rectx, recty, IMBScaleFilter::Nearest, true);
     IMB_freeImBuf(ibuf_tmp);
-    IMB_scale(ibuf, rectx, recty, IMBScaleFilter::Nearest, false);
   }
   else {
     ibuf = ibuf_tmp;

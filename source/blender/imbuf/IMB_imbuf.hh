@@ -425,6 +425,16 @@ bool IMB_scale(ImBuf *ibuf,
                IMBScaleFilter filter,
                bool threaded = true);
 
+/**
+ * Scale/resize image to new dimensions, into a newly created result image.
+ * Metadata of input image (if any) is copied into the result image.
+ */
+ImBuf *IMB_scale_into_new(const ImBuf *ibuf,
+                          unsigned int newx,
+                          unsigned int newy,
+                          IMBScaleFilter filter,
+                          bool threaded = true);
+
 bool IMB_saveiff(ImBuf *ibuf, const char *filepath, int flags);
 
 bool IMB_ispic(const char *filepath);
