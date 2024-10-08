@@ -1461,10 +1461,6 @@ static int sequencer_split_exec(bContext *C, wmOperator *op)
 
   SEQ_prefetch_stop(scene);
 
-  LISTBASE_FOREACH (Sequence *, seq, ed->seqbasep) {
-    seq->tmp = nullptr;
-  }
-
   LISTBASE_FOREACH_BACKWARD (Sequence *, seq, ed->seqbasep) {
     if (use_cursor_position && seq->machine != split_channel) {
       continue;
