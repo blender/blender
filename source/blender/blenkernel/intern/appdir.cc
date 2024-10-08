@@ -231,8 +231,8 @@ bool BKE_appdir_font_folder_default(char *dir, size_t dir_maxncpy)
     BLI_strncpy_wchar_as_utf8(test_dir, wpath, sizeof(test_dir));
   }
 #elif defined(__APPLE__)
-  if (const char *fonts_dir = BLI_expand_tilde("~/Library/Fonts")) {
-    STRNCPY(test_dir, fonts_dir);
+  if (const char *home_dir = BLI_dir_home()) {
+    BLI_path_join(test_dir, sizeof(test_dir), home_dir, "Library/Fonts");
   }
 #else
   STRNCPY(test_dir, "/usr/share/fonts");

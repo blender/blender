@@ -440,14 +440,6 @@ void *BLI_file_read_binary_as_mem(const char *filepath, size_t pad_bytes, size_t
  */
 void BLI_file_free_lines(struct LinkNode *lines);
 
-#ifdef __APPLE__
-/**
- * Expand the leading `~` in the given path to `/Users/$USER`.
- * This doesn't preserve the trailing path separator.
- * Giving a path without leading `~` is not an error.
- */
-const char *BLI_expand_tilde(const char *path_with_tilde);
-#endif
 /* This weirdo pops up in two places. */
 #if !defined(WIN32)
 #  ifndef O_BINARY
