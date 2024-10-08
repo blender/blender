@@ -5703,10 +5703,11 @@ class VIEW3D_MT_edit_greasepencil_stroke(Menu):
         layout.operator("grease_pencil.stroke_subdivide", text="Subdivide")
         layout.operator("grease_pencil.stroke_subdivide_smooth", text="Subdivide and Smooth")
         layout.operator("grease_pencil.stroke_simplify", text="Simplify")
+        layout.operator("grease_pencil.stroke_trim", text="Trim")
 
         layout.separator()
 
-        layout.operator("grease_pencil.stroke_trim", text="Trim")
+        layout.operator_menu_enum("grease_pencil.join_selection", "type", text="Join")
 
         layout.separator()
 
