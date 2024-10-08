@@ -1153,6 +1153,10 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
     BLI_assert_msg(0, "invalid 'retval'");
   }
 
+  /* NOTE: even if the file fails to load, keep the file in the "Recent Files" list.
+   * This is done because failure to load could be caused by the file-system being
+   * temporarily offline, see: #127825. */
+
   WM_cursor_wait(false);
 
   wm_read_callback_post_wrapper(C, filepath, success);
