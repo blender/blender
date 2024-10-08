@@ -640,6 +640,7 @@ bool VKShader::finalize_shader_module(VKShaderModule &shader_module, const char 
   shader_module.combined_sources.clear();
   shader_module.sources_hash.clear();
   shader_module.compilation_result = {};
+  shader_module.spirv_binary.clear();
   return compilation_succeeded;
 }
 
