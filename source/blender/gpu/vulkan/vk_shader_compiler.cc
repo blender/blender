@@ -43,16 +43,20 @@ struct SPIRVSidecar {
 
 static std::optional<std::string> cache_dir_get()
 {
-  char tmp_dir_buffer[FILE_MAX];
-  /* Shader builder doesn't return the correct appdir*/
-  if (!BKE_appdir_folder_caches(tmp_dir_buffer, sizeof(tmp_dir_buffer))) {
-    return std::nullopt;
+  static std::optional<std::string> result;
+  if (!result.has_value()) {
+    static char tmp_dir_buffer[FILE_MAX];
+    /* Shader builder doesn't return the correct appdir*/
+    if (!BKE_appdir_folder_caches(tmp_dir_buffer, sizeof(tmp_dir_buffer))) {
+      return std::nullopt;
+    }
+
+    std::string cache_dir = std::string(tmp_dir_buffer) + "vk-spirv-cache" + SEP_STR;
+    BLI_dir_create_recursive(cache_dir.c_str());
+    result = cache_dir;
   }
 
-  std::string cache_dir = std::string(tmp_dir_buffer) + "vk-spirv-cache" + SEP_STR;
-  BLI_dir_create_recursive(cache_dir.c_str());
-
-  return cache_dir;
+  return result;
 }
 
 static bool read_spirv_from_disk(VKShaderModule &shader_module)
