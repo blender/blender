@@ -25,6 +25,7 @@ const EnumPropertyItem rna_enum_tree_node_move_type_items[] = {
 
 #  include "BKE_attribute.hh"
 #  include "BKE_context.hh"
+#  include "BKE_curves.hh"
 #  include "BKE_grease_pencil.hh"
 #  include "BKE_report.hh"
 
@@ -44,6 +45,10 @@ static void rna_GreasePencilDrawing_add_curves(ID *grease_pencil_id,
   if (!rna_CurvesGeometry_add_curves(curves, reports, sizes, sizes_num)) {
     return;
   }
+
+  /* Default to `POLY` curves for the newly added ones. */
+  drawing.strokes_for_write().curve_types_for_write().take_back(sizes_num).fill(CURVE_TYPE_POLY);
+  drawing.strokes_for_write().update_curve_types();
 
   drawing.tag_topology_changed();
 
