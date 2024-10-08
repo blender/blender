@@ -160,9 +160,9 @@ ShaderModule::ShaderModule(const SelectionType selection_type, const bool clippi
         info.vertex_inputs_.pop_last();
       });
 
-  curve_edit_points = shader(
-      "overlay_edit_particle_point",
-      [](gpu::shader::ShaderCreateInfo &info) { shader_patch_common(info); });
+  curve_edit_points = shader("overlay_edit_curves_point", [](gpu::shader::ShaderCreateInfo &info) {
+    shader_patch_common(info);
+  });
   curve_edit_line = shader("overlay_edit_particle_strand",
                            [](gpu::shader::ShaderCreateInfo &info) { shader_patch_common(info); });
 

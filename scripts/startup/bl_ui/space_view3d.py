@@ -1053,6 +1053,8 @@ class VIEW3D_HT_header(Header):
             sub.popover(panel="VIEW3D_PT_overlay_edit_mesh", text="", icon='EDITMODE_HLT')
         if mode_string == 'EDIT_CURVE':
             sub.popover(panel="VIEW3D_PT_overlay_edit_curve", text="", icon='EDITMODE_HLT')
+        elif mode_string == 'EDIT_CURVES':
+            sub.popover(panel="VIEW3D_PT_overlay_edit_curves", text="", icon='EDITMODE_HLT')
         elif mode_string == 'SCULPT':
             sub.popover(panel="VIEW3D_PT_overlay_sculpt", text="", icon='SCULPTMODE_HLT')
         elif mode_string == 'SCULPT_CURVES':
@@ -7243,6 +7245,30 @@ class VIEW3D_PT_overlay_edit_curve(Panel):
         sub.prop(overlay, "normals_length", text="Normals")
 
 
+class VIEW3D_PT_overlay_edit_curves(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_label = "Curves Edit Mode"
+
+    @classmethod
+    def poll(cls, context):
+        return context.mode == 'EDIT_CURVES'
+
+    def draw(self, context):
+        layout = self.layout
+        view = context.space_data
+        overlay = view.overlay
+        display_all = overlay.show_overlays
+
+        layout.label(text="Curves Edit Mode Overlays")
+
+        col = layout.column()
+        col.active = display_all
+
+        row = col.row()
+        row.prop(overlay, "display_handle", text="Handles")
+
+
 class VIEW3D_PT_overlay_sculpt(Panel):
     bl_space_type = 'VIEW_3D'
     bl_context = ".sculpt_mode"
@@ -8968,6 +8994,7 @@ classes = (
     VIEW3D_PT_overlay_edit_mesh_normals,
     VIEW3D_PT_overlay_edit_mesh_freestyle,
     VIEW3D_PT_overlay_edit_curve,
+    VIEW3D_PT_overlay_edit_curves,
     VIEW3D_PT_overlay_texture_paint,
     VIEW3D_PT_overlay_vertex_paint,
     VIEW3D_PT_overlay_weight_paint,

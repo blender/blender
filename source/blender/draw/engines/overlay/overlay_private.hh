@@ -379,6 +379,7 @@ struct OVERLAY_PrivateData {
   struct {
     bool do_points;
     bool do_zbufclip;
+    int handle_display;
   } edit_curves;
   struct {
     bool use_weight;
@@ -794,6 +795,7 @@ GPUShader *OVERLAY_shader_edit_curve_handle();
 GPUShader *OVERLAY_shader_edit_curve_point();
 GPUShader *OVERLAY_shader_edit_curve_wire();
 GPUShader *OVERLAY_shader_edit_curves_handle();
+GPUShader *OVERLAY_shader_edit_curves_point();
 GPUShader *OVERLAY_shader_edit_gpencil_guide_point();
 GPUShader *OVERLAY_shader_edit_gpencil_point();
 GPUShader *OVERLAY_shader_edit_gpencil_wire();
