@@ -26,6 +26,7 @@
 #include "BKE_scene.hh"
 
 #include "RNA_access.hh"
+#include "RNA_prototypes.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -672,23 +673,49 @@ static bool bm_face_is_snap_target(BMFace *f, void * /*user_data*/)
   return true;
 }
 
-static eSnapFlag snap_flag_from_spacetype(TransInfo *t)
+short *transform_snap_flag_from_spacetype_ptr(TransInfo *t, const PropertyRNA **r_prop = nullptr)
 {
   ToolSettings *ts = t->settings;
   switch (t->spacetype) {
     case SPACE_VIEW3D:
-      return eSnapFlag(ts->snap_flag);
+      if (r_prop) {
+        *r_prop = &rna_ToolSettings_use_snap;
+      }
+      return &ts->snap_flag;
     case SPACE_NODE:
-      return eSnapFlag(ts->snap_flag_node);
+      if (r_prop) {
+        *r_prop = &rna_ToolSettings_use_snap_node;
+      }
+      return &ts->snap_flag_node;
     case SPACE_IMAGE:
-      return eSnapFlag(ts->snap_uv_flag);
+      if (r_prop) {
+        *r_prop = &rna_ToolSettings_use_snap_uv;
+      }
+      return &ts->snap_uv_flag;
     case SPACE_SEQ:
-      return eSnapFlag(ts->snap_flag_seq);
+      if (r_prop) {
+        *r_prop = &rna_ToolSettings_use_snap_sequencer;
+      }
+      return &ts->snap_flag_seq;
     case SPACE_GRAPH:
     case SPACE_ACTION:
     case SPACE_NLA:
-      return eSnapFlag(ts->snap_flag_anim);
+      if (r_prop) {
+        *r_prop = &rna_ToolSettings_use_snap_anim;
+      }
+      return &ts->snap_flag_anim;
   }
+  /* #SPACE_EMPTY.
+   * It can happen when the operator is called via a handle in `bpy.app.handlers`. */
+  return nullptr;
+}
+
+static eSnapFlag snap_flag_from_spacetype(TransInfo *t)
+{
+  if (short *snap_flag = transform_snap_flag_from_spacetype_ptr(t)) {
+    return eSnapFlag(*snap_flag);
+  }
+
   /* #SPACE_EMPTY.
    * It can happen when the operator is called via a handle in `bpy.app.handlers`. */
   return eSnapFlag(0);
