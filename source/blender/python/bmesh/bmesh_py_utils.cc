@@ -546,7 +546,7 @@ PyDoc_STRVAR(
     "   :arg edgenet: Sequence of edges.\n"
     "   :type edgenet: :class:`bmesh.types.BMEdge`\n"
     "   :return: The newly created faces.\n"
-    "   :rtype: tuple of (:class:`bmesh.types.BMFace`)\n"
+    "   :rtype: tuple of :class:`bmesh.types.BMFace`\n"
     "\n"
     "   .. note::\n"
     "\n"

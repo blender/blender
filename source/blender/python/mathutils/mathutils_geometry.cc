@@ -640,7 +640,7 @@ PyDoc_STRVAR(
     "   :arg sphere_co: The center of the sphere\n"
     "   :type sphere_co: :class:`mathutils.Vector`\n"
     "   :arg sphere_radius: Radius of the sphere\n"
-    "   :type sphere_radius: sphere_radius\n"
+    "   :type sphere_radius: float\n"
     "   :return: The intersection points as a pair of vectors or None when there is no "
     "intersection\n"
     "   :rtype: A tuple pair containing :class:`mathutils.Vector` or None\n");
@@ -731,7 +731,7 @@ PyDoc_STRVAR(
     "   :arg sphere_co: The center of the sphere\n"
     "   :type sphere_co: :class:`mathutils.Vector`\n"
     "   :arg sphere_radius: Radius of the sphere\n"
-    "   :type sphere_radius: sphere_radius\n"
+    "   :type sphere_radius: float\n"
     "   :return: The intersection points as a pair of vectors or None when there is no "
     "intersection\n"
     "   :rtype: A tuple pair containing :class:`mathutils.Vector` or None\n");

@@ -527,7 +527,7 @@ PyDoc_STRVAR(
     "      transform as a stroke.\n"
     "   :type pred: :class:`UnaryPredicate1D`\n"
     "   :arg shaders: The list of shaders used to shade the strokes.\n"
-    "   :type shaders: list of :class:`StrokeShader` objects");
+    "   :type shaders: list of :class:`StrokeShader`");
 
 static PyObject *Operators_create(BPy_Operators * /*self*/, PyObject *args, PyObject *kwds)
 {
