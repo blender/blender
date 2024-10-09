@@ -855,7 +855,7 @@ static eContextResult screen_ctx_grease_pencil_data(const bContext *C, bContextD
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obact = BKE_view_layer_active_object_get(view_layer);
-  if (obact != nullptr && obact->type == OB_GREASE_PENCIL) {
+  if (obact && obact->type == OB_GREASE_PENCIL) {
     GreasePencil *grease_pencil = static_cast<GreasePencil *>(obact->data);
     CTX_data_id_pointer_set(result, &grease_pencil->id);
     return CTX_RESULT_OK;
