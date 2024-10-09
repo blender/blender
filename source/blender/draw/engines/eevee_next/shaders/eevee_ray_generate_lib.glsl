@@ -51,7 +51,8 @@ BsdfSample ray_generate_direction(vec2 noise, ClosureUndetermined cl, vec3 V, fl
     case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID: {
       samp = bxdf_ggx_sample_reflection(random_point_on_cylinder,
                                         V * tangent_to_world,
-                                        square(to_closure_reflection(cl).roughness));
+                                        square(to_closure_reflection(cl).roughness),
+                                        true);
       break;
     }
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID: {
@@ -59,7 +60,8 @@ BsdfSample ray_generate_direction(vec2 noise, ClosureUndetermined cl, vec3 V, fl
                                         V * tangent_to_world,
                                         square(to_closure_refraction(cl).roughness),
                                         to_closure_refraction(cl).ior,
-                                        thickness);
+                                        thickness,
+                                        true);
       break;
     }
   }

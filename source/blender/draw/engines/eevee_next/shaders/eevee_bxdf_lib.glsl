@@ -20,6 +20,8 @@ struct BsdfSample {
 struct BsdfEval {
   float throughput;
   float pdf;
+  /* `throughput / pdf`. */
+  float weight;
 };
 
 struct ClosureLight {

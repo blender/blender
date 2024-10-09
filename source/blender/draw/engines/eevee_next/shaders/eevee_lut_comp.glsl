@@ -27,6 +27,7 @@ vec4 ggx_brdf_split_sum(vec3 lut_coord)
 
   float NV = clamp(1.0 - square(lut_coord.y), 1e-4, 0.9999);
   vec3 V = vec3(sqrt(1.0 - square(NV)), 0.0, NV);
+  vec3 N = vec3(0.0, 0.0, 1.0);
 
   /* Integrating BRDF. */
   float scale = 0.0;
@@ -38,15 +39,13 @@ vec4 ggx_brdf_split_sum(vec3 lut_coord)
     vec3 Xi = sample_cylinder(rand);
 
     /* Microfacet normal. */
-    vec3 R = bxdf_ggx_sample_reflection(Xi, V, roughness).direction;
-    vec3 H = normalize(V + R);
-    vec3 L = -reflect(V, H);
+    vec3 L = bxdf_ggx_sample_reflection(Xi, V, roughness, false).direction;
+    vec3 H = normalize(V + L);
     float NL = L.z;
 
     if (NL > 0.0) {
       float VH = saturate(dot(V, H));
-      /* Assuming sample visible normals, `weight = brdf * NV / (pdf * fresnel).` */
-      float weight = bxdf_ggx_smith_G1(NL, roughness_sq);
+      float weight = bxdf_ggx_eval_reflection(N, L, V, roughness, false).weight;
       /* Schlick's Fresnel. */
       float s = saturate(pow5f(1.0 - VH));
       scale += (1.0 - s) * weight;
@@ -71,7 +70,7 @@ vec4 ggx_brdf_split_sum(vec3 lut_coord)
  * `transmittance = (1 - F0) * transmission_factor`. */
 vec4 ggx_bsdf_split_sum(vec3 lut_coord)
 {
-  float ior = sqrt(lut_coord.x);
+  float ior = clamp(sqrt(lut_coord.x), 1e-4, 0.9999);
   /* ior is sin of critical angle. */
   float critical_cos = sqrt(1.0 - saturate(square(ior)));
 
@@ -90,6 +89,7 @@ vec4 ggx_bsdf_split_sum(vec3 lut_coord)
   float roughness_sq = square(roughness);
 
   vec3 V = vec3(sqrt(1.0 - square(NV)), 0.0, NV);
+  vec3 N = vec3(0.0, 0.0, 1.0);
 
   /* Integrating BSDF */
   float scale = 0.0;
@@ -100,28 +100,33 @@ vec4 ggx_bsdf_split_sum(vec3 lut_coord)
     vec2 rand = hammersley_2d(i, sample_count);
     vec3 Xi = sample_cylinder(rand);
 
-    /* Microfacet normal. */
-    vec3 R = bxdf_ggx_sample_reflection(Xi, V, roughness).direction;
-    vec3 H = normalize(V + R);
-    float HL = 1.0 - (1.0 - square(dot(V, H))) / square(ior);
-    float s = saturate(pow5f(1.0 - saturate(HL)));
-
     /* Reflection. */
+    vec3 R = bxdf_ggx_sample_reflection(Xi, V, roughness, false).direction;
     float NR = R.z;
     if (NR > 0.0) {
-      /* Assuming sample visible normals, `weight = brdf * NV / (pdf * fresnel).` */
-      float weight = bxdf_ggx_smith_G1(NR, roughness_sq);
+      vec3 H = normalize(V + R);
+      vec3 L = refract(-V, H, 1.0 / ior);
+      float HL = abs(dot(H, L));
+      /* Schlick's Fresnel. */
+      float s = saturate(pow5f(1.0 - saturate(HL)));
+
+      float weight = bxdf_ggx_eval_reflection(N, R, V, roughness, false).weight;
       scale += (1.0 - s) * weight;
       bias += s * weight;
     }
 
     /* Refraction. */
-    vec3 T = refract(-V, H, 1.0 / ior);
+    vec3 T = bxdf_ggx_sample_refraction(Xi, V, roughness, ior, 0.0, false).direction;
     float NT = T.z;
     /* In the case of TIR, `T == vec3(0)`. */
     if (NT < 0.0) {
-      /* Assuming sample visible normals, accumulating `btdf * NV / (pdf * (1 - F0)).` */
-      transmission_factor += (1.0 - s) * bxdf_ggx_smith_G1(NT, roughness_sq);
+      vec3 H = normalize(ior * T + V);
+      float HL = abs(dot(H, T));
+      /* Schlick's Fresnel. */
+      float s = saturate(pow5f(1.0 - saturate(HL)));
+
+      float weight = bxdf_ggx_eval_refraction(N, T, V, roughness, ior, 0.0, false).weight;
+      transmission_factor += (1.0 - s) * weight;
     }
   }
   transmission_factor /= float(sample_count);
@@ -141,11 +146,12 @@ vec4 ggx_bsdf_split_sum(vec3 lut_coord)
  * `transmittance = (1 - F0) * transmission_factor`. */
 vec4 ggx_btdf_gt_one(vec3 lut_coord)
 {
-  float f0 = square(lut_coord.x);
-  float inv_ior = (1.0 - f0) / (1.0 + f0);
+  float f0 = clamp(square(lut_coord.x), 1e-4, 0.9999);
+  float ior = (1.0 + f0) / (1.0 - f0);
 
   float NV = clamp(1.0 - square(lut_coord.y), 1e-4, 0.9999);
   vec3 V = vec3(sqrt(1.0 - square(NV)), 0.0, NV);
+  vec3 N = vec3(0.0, 0.0, 1.0);
 
   /* Squaring for perceptually linear roughness, see [Physically Based Shading at Disney]
    * (https://media.disneyanimation.com/uploads/production/publication_asset/48/asset/s2012_pbs_disney_brdf_notes_v3.pdf)
@@ -160,19 +166,18 @@ vec4 ggx_btdf_gt_one(vec3 lut_coord)
     vec2 rand = hammersley_2d(i, sample_count);
     vec3 Xi = sample_cylinder(rand);
 
-    /* Microfacet normal. */
-    vec3 R = bxdf_ggx_sample_reflection(Xi, V, roughness).direction;
-    vec3 H = normalize(V + R);
-
     /* Refraction. */
-    vec3 L = refract(-V, H, inv_ior);
+    vec3 L = bxdf_ggx_sample_refraction(Xi, V, roughness, ior, 0.0, false).direction;
     float NL = L.z;
 
     if (NL < 0.0) {
+      vec3 H = normalize(ior * L + V);
+      float HV = abs(dot(H, V));
       /* Schlick's Fresnel. */
-      float s = saturate(pow5f(1.0 - saturate(dot(V, H))));
-      /* Assuming sample visible normals, accumulating `btdf * NV / (pdf * (1 - F0)).` */
-      transmission_factor += (1.0 - s) * bxdf_ggx_smith_G1(NL, roughness_sq);
+      float s = saturate(pow5f(1.0 - saturate(HV)));
+
+      float weight = bxdf_ggx_eval_refraction(N, L, V, roughness, ior, 0.0, false).weight;
+      transmission_factor += (1.0 - s) * weight;
     }
   }
   transmission_factor /= float(sample_count);

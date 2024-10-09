@@ -38,12 +38,13 @@ float bxdf_ggx_smith_G1(float NX, float a2)
  *              The Z component can be biased towards 1.
  * \param Vt: View vector in tangent space.
  * \param alpha: roughness parameter.
+ * \param do_clamp: clamp for numerical stability during ray tracing.
  *
  * \return: the sampled direction and the pdf of sampling the direction.
  */
-BsdfSample bxdf_ggx_sample_reflection(vec3 rand, vec3 Vt, float alpha)
+BsdfSample bxdf_ggx_sample_reflection(vec3 rand, vec3 Vt, float alpha, const bool do_clamp)
 {
-  if (alpha < square(BSDF_ROUGHNESS_THRESHOLD)) {
+  if (do_clamp && alpha < square(BSDF_ROUGHNESS_THRESHOLD)) {
     BsdfSample samp;
     samp.pdf = 1e6;
     samp.direction = reflect(-Vt, vec3(0.0, 0.0, 1.0));
@@ -92,7 +93,7 @@ BsdfSample bxdf_ggx_sample_reflection(vec3 rand, vec3 Vt, float alpha)
 
 /* Evaluate the GGX BRDF without the Fresnel term, multiplied by the cosine foreshortening term.
  * Also evaluate the probability of sampling the reflection direction. */
-BsdfEval bxdf_ggx_eval_reflection(vec3 N, vec3 L, vec3 V, float alpha)
+BsdfEval bxdf_ggx_eval_reflection(vec3 N, vec3 L, vec3 V, float alpha, const bool do_clamp)
 {
   float NV = dot(N, V);
   if (NV <= 0.0) {
@@ -101,6 +102,7 @@ BsdfEval bxdf_ggx_eval_reflection(vec3 N, vec3 L, vec3 V, float alpha)
       BsdfEval eval;
       eval.throughput = 0.0;
       eval.pdf = 0.0;
+      eval.weight = 0.0;
       return eval;
 #endif
   }
@@ -110,11 +112,11 @@ BsdfEval bxdf_ggx_eval_reflection(vec3 N, vec3 L, vec3 V, float alpha)
   /* This threshold was computed based on precision of NVidia compiler (see #118997).
    * These drivers tend to produce NaNs in the computation of the NDF (`D`) if alpha is close to 0.
    */
-  alpha = max(1e-3, alpha);
+  if (do_clamp) {
+    alpha = max(1e-3, alpha);
+  }
 
   float a2 = square(alpha);
-  float NH = max(dot(N, H), 1e-8);
-  float D = bxdf_ggx_D(NH, a2);
 
   BsdfEval eval;
 
@@ -124,14 +126,29 @@ BsdfEval bxdf_ggx_eval_reflection(vec3 N, vec3 L, vec3 V, float alpha)
   float t = sqrt(len_ai_sqr + NV2);
   if (NV >= 0.0) {
     float k = (1.0 - a2) * s2 / (s2 + a2 * NV2);
-    eval.pdf = D / (2.0 * (k * NV + t));
+    eval.pdf = 1.0 / (2.0 * (k * NV + t));
   }
   else {
-    eval.pdf = D * (t - NV) / (2.0 * len_ai_sqr);
+    eval.pdf = (t - NV) / (2.0 * len_ai_sqr);
   }
 
-  /* TODO: But also unused for now. */
-  eval.throughput = 1.0;
+  float NH = dot(N, H);
+  float NL = dot(N, L);
+  if (do_clamp) {
+    NH = max(NH, 1e-8);
+    NL = max(NL, 1e-8);
+  }
+
+  float D = bxdf_ggx_D(NH, a2);
+  float G_V = bxdf_ggx_smith_G1(NV, a2);
+  float G_L = bxdf_ggx_smith_G1(NL, a2);
+
+  eval.throughput = (0.25f * G_V * G_L) / NV;
+  eval.weight = eval.throughput / eval.pdf;
+
+  /* Multiply `D` after computing the weighted throughput for numerical stability. */
+  eval.throughput *= D;
+  eval.pdf *= D;
 
   return eval;
 }
@@ -171,17 +188,19 @@ vec3 bxdf_ggx_sample_vndf(vec3 rand, vec3 Vt, float alpha, out float G_V)
  * \param Vt: View vector in tangent space.
  * \param alpha: roughness parameter
  * \param ior: refractive index of the material.
+ * \param do_clamp: clamp for numerical stability during ray tracing.
  *
  * \return: the sampled direction and the pdf of sampling the direction.
  */
-BsdfSample bxdf_ggx_sample_refraction(vec3 rand, vec3 Vt, float alpha, float ior, float thickness)
+BsdfSample bxdf_ggx_sample_refraction(
+    vec3 rand, vec3 Vt, float alpha, float ior, float thickness, const bool do_clamp)
 {
   if (thickness != 0.0) {
     /* The incoming ray is inside the material for the second refraction event. */
     ior = 1.0 / ior;
   }
 
-  if (alpha < square(BSDF_ROUGHNESS_THRESHOLD)) {
+  if (do_clamp && alpha < square(BSDF_ROUGHNESS_THRESHOLD)) {
     BsdfSample samp;
     samp.pdf = 1e6;
     samp.direction = refract(-Vt, vec3(0.0, 0.0, 1.0), 1.0 / ior);
@@ -209,18 +228,20 @@ BsdfSample bxdf_ggx_sample_refraction(vec3 rand, vec3 Vt, float alpha, float ior
 
 /* Evaluate the GGX BTDF without the Fresnel term, multiplied by the cosine foreshortening term.
  * Also evaluate the probability of sampling the refraction direction. */
-BsdfEval bxdf_ggx_eval_refraction(vec3 N, vec3 L, vec3 V, float alpha, float ior, float thickness)
+BsdfEval bxdf_ggx_eval_refraction(
+    vec3 N, vec3 L, vec3 V, float alpha, float ior, float thickness, const bool do_clamp)
 {
   if (thickness != 0.0) {
     ior = 1.0 / ior;
   }
 
   float LV = dot(L, V);
-  if (is_equal(ior, 1.0, 1e-4)) {
+  if (do_clamp && is_equal(ior, 1.0, 1e-4)) {
     /* Only valid when `L` and `V` point in the opposite directions. */
     BsdfEval eval;
     eval.throughput = float(is_equal(LV, -1.0, 1e-3));
     eval.pdf = 1e6;
+    eval.weight = eval.throughput;
     return eval;
   }
 
@@ -230,6 +251,7 @@ BsdfEval bxdf_ggx_eval_refraction(vec3 N, vec3 L, vec3 V, float alpha, float ior
     BsdfEval eval;
     eval.throughput = 0.0;
     eval.pdf = 0.0;
+    eval.weight = 0.0;
     return eval;
   }
 
@@ -240,14 +262,18 @@ BsdfEval bxdf_ggx_eval_refraction(vec3 N, vec3 L, vec3 V, float alpha, float ior
   H *= inv_len_H;
 
   /* For transmission, `L` lies in the opposite hemisphere as `H`, therefore negate `L`. */
-  float NL = max(dot(N, -L), 1e-8);
-  float NH = max(dot(N, H), 1e-8);
+  float NL = dot(N, -L);
+  float NH = dot(N, H);
   float NV = dot(N, V);
 
-  /* This threshold was computed based on precision of NVidia compiler (see #118997).
-   * These drivers tend to produce NaNs in the computation of the NDF (`D`) if alpha is close to 0.
-   */
-  alpha = max(1e-3, alpha);
+  if (do_clamp) {
+    NL = max(NL, 1e-8);
+    NH = max(NH, 1e-8);
+    /* This threshold was computed based on precision of NVidia compiler (see #118997).
+     * These drivers tend to produce NaNs in the computation of the NDF (`D`) if alpha is close to
+     * 0. */
+    alpha = max(1e-3, alpha);
+  }
 
   float a2 = square(alpha);
   float G_V = bxdf_ggx_smith_G1(NV, a2);
@@ -260,6 +286,7 @@ BsdfEval bxdf_ggx_eval_refraction(vec3 N, vec3 L, vec3 V, float alpha, float ior
   BsdfEval eval;
   eval.pdf = (D * G_V * VH * LH * square(ior * inv_len_H)) / NV;
   eval.throughput = eval.pdf * G_L;
+  eval.weight = G_L;
 
   return eval;
 }
