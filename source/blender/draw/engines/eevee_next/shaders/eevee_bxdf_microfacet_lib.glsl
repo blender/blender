@@ -174,22 +174,16 @@ BsdfEval bxdf_ggx_eval(vec3 N, vec3 L, vec3 V, float alpha, float eta, const boo
   }
 
   vec3 H = do_reflection ? L + V : eta * L + V;
+  /* Ensure `H` is on the same hemisphere as `V`. */
   H = (do_reflection || eta < 1.0) ? H : -H;
   float inv_len_H = safe_rcp(length(H));
   H *= inv_len_H;
 
-  float NH = max(dot(N, H), 1e-8);
-  float VH = saturate(dot(V, H));
-  float LH = saturate(dot(do_reflection ? L : -L, H));
-
   float a2 = square(alpha);
   float G_V = bxdf_ggx_smith_G1(NV, a2);
   float G_L = bxdf_ggx_smith_G1(NL, a2);
+  float NH = max(dot(N, H), 1e-8);
   float D = bxdf_ggx_D(NH, a2);
-
-  mat3 tangent_to_world = from_up_axis(N);
-  vec3 Vt = V * tangent_to_world;
-  vec3 Lt = L * tangent_to_world;
 
   BsdfEval eval;
   if (do_reflection) {
@@ -199,48 +193,27 @@ BsdfEval bxdf_ggx_eval(vec3 N, vec3 L, vec3 V, float alpha, float eta, const boo
      * https://gpuopen.com/download/publications/Bounded_VNDF_Sampling_for_Smith-GGX_Reflections.pdf
      * Listing 2.
      */
-    float s2 = square(1.0 + length(Vt.xy));
-    float len_ai_sqr = length_squared(alpha * Vt.xy);
-    float t = sqrt(len_ai_sqr + square(Vt.z));
-    if (Vt.z >= 0.0) {
-      float k = (1.0 - a2) * s2 / (s2 + a2 * square(Vt.z));
-      eval.pdf = D / (2.0 * (k * Vt.z + t));
+    float NV2 = square(NV);
+    float s2 = square(1.0 + sqrt(1.0 - NV2));
+    float len_ai_sqr = a2 * (1.0 - NV2);
+    float t = sqrt(len_ai_sqr + NV2);
+    if (NV >= 0.0) {
+      float k = (1.0 - a2) * s2 / (s2 + a2 * NV2);
+      eval.pdf = D / (2.0 * (k * NV + t));
     }
     else {
-      eval.pdf = D * (t - Vt.z) / (2.0 * len_ai_sqr);
+      eval.pdf = D * (t - NV) / (2.0 * len_ai_sqr);
     }
 
-#if 0 /* Should work without going into tangent space. But is currently wrong. */
-    float sin_theta = sqrt(1.0 - square(NV));
-    if (VH >= 0.0) {
-      float Vh_norm = length(vec2(sin_theta, NV));
-      float s2 = square(1.0 + sin_theta);
-      float k = (1.0 - a2) * s2 / (s2 + a2 * square(NV));
-      eval.pdf = D / (2.0 * (k * VH + Vh_norm));
-    }
-    else {
-      float len_Vt_alpha_sqr = square(alpha * sin_theta);
-      float t = sqrt(len_Vt_alpha_sqr + square(VH));
-      eval.pdf = D * (t - VH) / (2.0 * len_Vt_alpha_sqr);
-    }
-#endif
     /* TODO: But also unused for now. */
     eval.throughput = 1.0;
   }
   else {
-    vec3 Vh = normalize(vec3(alpha * Vt.xy, Vt.z));
-    float G1_V = 2.0 * Vh.z / (1.0 + Vh.z);
+    float VH = saturate(dot(V, H));
+    float LH = saturate(dot(-L, H));
 
-    float Ht2 = square(-eta * LH + VH);
-
-    eval.pdf = (D * G1_V * abs(VH * LH) * square(eta)) / (NV * Ht2);
-
-#if 0 /* Should work without going into tangent space. But is currently wrong. */
-    float Ht2 = square(eta * LH + VH);
-    eval.pdf = D * G_V * abs(VH * LH) * square(eta) / (NV * Ht2);
-#endif
-    /* `btdf * NL = abs(VH * LH) * ior^2 * D * G(V) * G(L) / (Ht2 * NV * NL) * NL`. */
-    eval.throughput = (D * G_V * G_L * VH * LH * square(eta * inv_len_H)) / NV;
+    eval.pdf = (D * G_V * VH * LH * square(eta * inv_len_H)) / NV;
+    eval.throughput = eval.pdf * G_L;
   }
   return eval;
 }
