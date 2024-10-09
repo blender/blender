@@ -25,59 +25,43 @@ float bxdf_ggx_smith_G1(float NX, float a2)
   return 2.0 / (1.0 + sqrt(1.0 + a2 * (1.0 / square(NX) - 1.0)));
 }
 
+/* -------------------------------------------------------------------- */
+/** "Bounded VNDF Sampling for Smith-GGX Reflections."
+ * Eto, Kenta, and Yusuke Tokuyoshi. SIGGRAPH Asia 2023 Technical Communications. 2023. 1-4.
+ * https://gpuopen.com/download/publications/Bounded_VNDF_Sampling_for_Smith-GGX_Reflections.pdf
+ * \{ */
+
 /**
- * Returns a tangent space reflection or refraction direction following the GGX distribution.
+ * Returns a tangent space reflection direction following the GGX distribution.
  *
  * \param rand: random point on the unit cylinder (result of sample_cylinder).
  *              The Z component can be biased towards 1.
- * \param alpha: roughness parameter.
  * \param Vt: View vector in tangent space.
- * \param do_reflection: true is sampling reflection.
+ * \param alpha: roughness parameter.
  *
- * \return pdf: the pdf of sampling the reflected/refracted ray. 0 if ray is invalid.
+ * \return: the sampled direction and the pdf of sampling the direction.
  */
-BsdfSample bxdf_ggx_sample_visible_normals(
-    vec3 rand, vec3 Vt, float alpha, float eta, const bool do_reflection)
+BsdfSample bxdf_ggx_sample_reflection(vec3 rand, vec3 Vt, float alpha)
 {
   if (alpha < square(BSDF_ROUGHNESS_THRESHOLD)) {
     BsdfSample samp;
     samp.pdf = 1e6;
-    if (do_reflection) {
-      samp.direction = reflect(-Vt, vec3(0.0, 0.0, 1.0));
-    }
-    else {
-      samp.direction = refract(-Vt, vec3(0.0, 0.0, 1.0), 1.0 / eta);
-    }
+    samp.direction = reflect(-Vt, vec3(0.0, 0.0, 1.0));
     return samp;
   }
-  /**
-   * "Sampling Visible GGX Normals with Spherical Caps.""
-   * Jonathan Dupuy and Anis Benyoub, HPG Vol. 42, No. 8, 2023.
-   * https://diglib.eg.org/bitstream/handle/10.1111/cgf14867/v42i8_03_14867.pdf
-   * View vector is expected to be in tangent space.
-   *
-   * "Bounded VNDF Sampling for Smith-GGX Reflections."
-   * Eto, Kenta, and Yusuke Tokuyoshi.
-   * SIGGRAPH Asia 2023 Technical Communications. 2023. 1-4.
-   * https://gpuopen.com/download/publications/Bounded_VNDF_Sampling_for_Smith-GGX_Reflections.pdf
-   */
-
-  vec2 Vt_alpha = alpha * Vt.xy;
-  float len_Vt_alpha_sqr = length_squared(Vt_alpha);
 
   /* Transforming the view direction to the hemisphere configuration. */
-  vec3 Vh = vec3(Vt_alpha, Vt.z);
+  vec2 Vt_alpha = alpha * Vt.xy;
   float Vh_norm;
-  /* Use optimal normalize code if norm is not needed.  */
-  Vh = (do_reflection) ? normalize_and_get_length(Vh, Vh_norm) : normalize(Vh);
+  vec3 Vh = normalize_and_get_length(vec3(Vt_alpha, Vt.z), Vh_norm);
 
   /* Compute the bounded cap. */
   float a2 = square(alpha);
   float s2 = square(1.0 + length(Vt.xy));
   float k = (1.0 - a2) * s2 / (s2 + a2 * square(Vt.z));
 
-  /* Sample a spherical cap in (-Vh.z, 1]. */
-  float cos_theta = mix((do_reflection) ? -Vh.z * k : -Vh.z, 1.0, rand.x);
+  /* Sample a spherical cap in (-Vh.z * k, 1]. */
+  float cos_theta = mix(-Vh.z * k, 1.0, rand.x);
   float sin_theta = sqrt(saturate(1.0 - square(cos_theta)));
   vec3 Lh = vec3(sin_theta * rand.yz, cos_theta);
 
@@ -90,62 +74,28 @@ BsdfSample bxdf_ggx_sample_visible_normals(
   /* Normal Distribution Function. */
   float D = bxdf_ggx_D(saturate(Ht.z), a2);
 
-  vec3 Lt;
   float pdf;
-  if (do_reflection) {
-    Lt = reflect(-Vt, Ht);
-    if (Vt.z >= 0.0) {
-      pdf = D / (2.0 * (k * Vt.z + Vh_norm));
-    }
-    else {
-      float t = sqrt(len_Vt_alpha_sqr + square(Vt.z));
-      pdf = D * (t - Vt.z) / (2.0 * len_Vt_alpha_sqr);
-    }
+  if (Vt.z >= 0.0) {
+    pdf = D / (2.0 * (k * Vt.z + Vh_norm));
   }
   else {
-    Lt = refract(-Vt, Ht, 1.0 / eta);
-    float LH = dot(Lt, Ht);
-    float VH = dot(Vt, Ht);
-    float Ht2 = square(eta * LH + VH);
-    float G1_V = 2.0 * Vh.z / (1.0 + Vh.z);
-    pdf = D * G1_V * abs(VH * LH) * square(eta) / (Vt.z * Ht2);
+    float len_Vt_alpha_sqr = length_squared(Vt_alpha);
+    float t = sqrt(len_Vt_alpha_sqr + square(Vt.z));
+    pdf = D * (t - Vt.z) / (2.0 * len_Vt_alpha_sqr);
   }
 
   BsdfSample samp;
-  samp.direction = Lt;
+  samp.direction = reflect(-Vt, Ht);
   samp.pdf = pdf;
   return samp;
 }
 
-BsdfSample bxdf_ggx_sample_reflection(vec3 rand, vec3 Vt, float alpha)
+/* Evaluate the GGX BRDF without the Fresnel term, multiplied by the cosine foreshortening term.
+ * Also evaluate the probability of sampling the reflection direction. */
+BsdfEval bxdf_ggx_eval_reflection(vec3 N, vec3 L, vec3 V, float alpha)
 {
-  return bxdf_ggx_sample_visible_normals(rand, Vt, alpha, 1.0, true);
-}
-
-BsdfSample bxdf_ggx_sample_transmission(
-    vec3 rand, vec3 Vt, float alpha, float ior, float thickness)
-{
-  if (thickness != 0.0) {
-    ior = 1.0 / ior;
-  }
-  return bxdf_ggx_sample_visible_normals(rand, Vt, alpha, ior, false);
-}
-
-/* Compute the GGX BxDF without the Fresnel term, multiplied by the cosine foreshortening term. */
-BsdfEval bxdf_ggx_eval(vec3 N, vec3 L, vec3 V, float alpha, float eta, const bool do_reflection)
-{
-  /* This threshold was computed based on precision of NVidia compiler (see #118997).
-   * These drivers tend to produce NaNs in the computation of the NDF (`D`) if alpha is close to 0.
-   */
-  alpha = max(1e-3, alpha);
-
-  float LV = dot(L, V);
   float NV = dot(N, V);
-  /* For transmission, `L` lies in the opposite hemisphere as `H`, therefore negate `L`. */
-  float NL = max(dot(N, do_reflection ? L : -L), 1e-8);
-
-  if (do_reflection) {
-    if (NV <= 0.0) {
+  if (NV <= 0.0) {
 #if 0 /* TODO(fclem): Creates black areas when denoising. Find out why. */
       /* Impossible configuration for reflection. */
       BsdfEval eval;
@@ -153,85 +103,168 @@ BsdfEval bxdf_ggx_eval(vec3 N, vec3 L, vec3 V, float alpha, float eta, const boo
       eval.pdf = 0.0;
       return eval;
 #endif
-    }
-  }
-  else {
-    if (is_equal(eta, 1.0, 1e-4)) {
-      /* Only valid when `L` and `V` point in the opposite directions. */
-      BsdfEval eval;
-      eval.throughput = float(is_equal(LV, -1.0, 1e-3));
-      eval.pdf = 1e6;
-      return eval;
-    }
-
-    bool valid = (eta < 1.0) ? (LV < -eta) : (LV * eta < -1.0);
-    if (!valid) {
-      /* Impossible configuration for transmission due to total internal reflection. */
-      BsdfEval eval;
-      eval.throughput = 0.0;
-      eval.pdf = 0.0;
-      return eval;
-    }
   }
 
-  vec3 H = do_reflection ? L + V : eta * L + V;
-  /* Ensure `H` is on the same hemisphere as `V`. */
-  H = (do_reflection || eta < 1.0) ? H : -H;
-  float inv_len_H = safe_rcp(length(H));
-  H *= inv_len_H;
+  vec3 H = safe_normalize(L + V);
+
+  /* This threshold was computed based on precision of NVidia compiler (see #118997).
+   * These drivers tend to produce NaNs in the computation of the NDF (`D`) if alpha is close to 0.
+   */
+  alpha = max(1e-3, alpha);
 
   float a2 = square(alpha);
-  float G_V = bxdf_ggx_smith_G1(NV, a2);
-  float G_L = bxdf_ggx_smith_G1(NL, a2);
   float NH = max(dot(N, H), 1e-8);
   float D = bxdf_ggx_D(NH, a2);
 
   BsdfEval eval;
-  if (do_reflection) {
-    /**
-     * Eto, Kenta, and Yusuke Tokuyoshi. "Bounded VNDF Sampling for Smith-GGX Reflections."
-     * SIGGRAPH Asia 2023 Technical Communications. 2023. 1-4.
-     * https://gpuopen.com/download/publications/Bounded_VNDF_Sampling_for_Smith-GGX_Reflections.pdf
-     * Listing 2.
-     */
-    float NV2 = square(NV);
-    float s2 = square(1.0 + sqrt(1.0 - NV2));
-    float len_ai_sqr = a2 * (1.0 - NV2);
-    float t = sqrt(len_ai_sqr + NV2);
-    if (NV >= 0.0) {
-      float k = (1.0 - a2) * s2 / (s2 + a2 * NV2);
-      eval.pdf = D / (2.0 * (k * NV + t));
-    }
-    else {
-      eval.pdf = D * (t - NV) / (2.0 * len_ai_sqr);
-    }
 
-    /* TODO: But also unused for now. */
-    eval.throughput = 1.0;
+  float NV2 = square(NV);
+  float s2 = square(1.0 + sqrt(1.0 - NV2));
+  float len_ai_sqr = a2 * (1.0 - NV2);
+  float t = sqrt(len_ai_sqr + NV2);
+  if (NV >= 0.0) {
+    float k = (1.0 - a2) * s2 / (s2 + a2 * NV2);
+    eval.pdf = D / (2.0 * (k * NV + t));
   }
   else {
-    float VH = saturate(dot(V, H));
-    float LH = saturate(dot(-L, H));
-
-    eval.pdf = (D * G_V * VH * LH * square(eta * inv_len_H)) / NV;
-    eval.throughput = eval.pdf * G_L;
+    eval.pdf = D * (t - NV) / (2.0 * len_ai_sqr);
   }
+
+  /* TODO: But also unused for now. */
+  eval.throughput = 1.0;
+
   return eval;
 }
+/** \} */
 
-BsdfEval bxdf_ggx_eval_reflection(vec3 N, vec3 L, vec3 V, float alpha)
+/* -------------------------------------------------------------------- */
+/** "Sampling Visible GGX Normals with Spherical Caps."
+ * Jonathan Dupuy and Anis Benyoub, HPG Vol. 42, No. 8, 2023.
+ * https://diglib.eg.org/bitstream/handle/10.1111/cgf14867/v42i8_03_14867.pdf
+ * \{ */
+
+vec3 bxdf_ggx_sample_vndf(vec3 rand, vec3 Vt, float alpha, out float G_V)
 {
-  return bxdf_ggx_eval(N, L, V, alpha, 1.0, true);
+  /* Transforming the view direction to the hemisphere configuration. */
+  vec3 Vh = normalize(vec3(alpha * Vt.xy, Vt.z));
+
+  /* Smith shadowing-masking term. */
+  G_V = 2.0 * Vh.z / (1.0 + Vh.z);
+
+  /* Sample a spherical cap in (-Vh.z, 1]. */
+  float cos_theta = mix(-Vh.z, 1.0, rand.x);
+  float sin_theta = sqrt(saturate(1.0 - square(cos_theta)));
+  vec3 Lh = vec3(sin_theta * rand.yz, cos_theta);
+
+  /* Compute unnormalized halfway direction. */
+  vec3 Hh = Vh + Lh;
+
+  /* Transforming the normal back to the ellipsoid configuration. */
+  return normalize(vec3(alpha * Hh.xy, max(0.0, Hh.z)));
 }
 
-BsdfEval bxdf_ggx_eval_transmission(
-    vec3 N, vec3 L, vec3 V, float alpha, float ior, float thickness)
+/**
+ * Returns a tangent space refraction direction following the GGX distribution.
+ *
+ * \param rand: random point on the unit cylinder (result of sample_cylinder).
+ *              The Z component can be biased towards 1.
+ * \param Vt: View vector in tangent space.
+ * \param alpha: roughness parameter
+ * \param ior: refractive index of the material.
+ *
+ * \return: the sampled direction and the pdf of sampling the direction.
+ */
+BsdfSample bxdf_ggx_sample_refraction(vec3 rand, vec3 Vt, float alpha, float ior, float thickness)
+{
+  if (thickness != 0.0) {
+    /* The incoming ray is inside the material for the second refraction event. */
+    ior = 1.0 / ior;
+  }
+
+  if (alpha < square(BSDF_ROUGHNESS_THRESHOLD)) {
+    BsdfSample samp;
+    samp.pdf = 1e6;
+    samp.direction = refract(-Vt, vec3(0.0, 0.0, 1.0), 1.0 / ior);
+    return samp;
+  }
+
+  float G_V;
+  vec3 Ht = bxdf_ggx_sample_vndf(rand, Vt, alpha, G_V);
+
+  vec3 Lt = refract(-Vt, Ht, 1.0 / ior);
+
+  /* Normal Distribution Function. */
+  float D = bxdf_ggx_D(saturate(Ht.z), square(alpha));
+
+  float VH = dot(Vt, Ht);
+  float LH = dot(Lt, Ht);
+  float Ht2 = square(ior * LH + VH);
+  float pdf = D * G_V * abs(VH * LH) * square(ior) / (Vt.z * Ht2);
+
+  BsdfSample samp;
+  samp.direction = Lt;
+  samp.pdf = pdf;
+  return samp;
+}
+
+/* Evaluate the GGX BTDF without the Fresnel term, multiplied by the cosine foreshortening term.
+ * Also evaluate the probability of sampling the refraction direction. */
+BsdfEval bxdf_ggx_eval_refraction(vec3 N, vec3 L, vec3 V, float alpha, float ior, float thickness)
 {
   if (thickness != 0.0) {
     ior = 1.0 / ior;
   }
-  return bxdf_ggx_eval(N, L, V, alpha, ior, false);
+
+  float LV = dot(L, V);
+  if (is_equal(ior, 1.0, 1e-4)) {
+    /* Only valid when `L` and `V` point in the opposite directions. */
+    BsdfEval eval;
+    eval.throughput = float(is_equal(LV, -1.0, 1e-3));
+    eval.pdf = 1e6;
+    return eval;
+  }
+
+  bool valid = (ior < 1.0) ? (LV < -ior) : (LV * ior < -1.0);
+  if (!valid) {
+    /* Impossible configuration for transmission due to total internal reflection. */
+    BsdfEval eval;
+    eval.throughput = 0.0;
+    eval.pdf = 0.0;
+    return eval;
+  }
+
+  vec3 H = ior * L + V;
+  /* Ensure `H` is on the same hemisphere as `V`. */
+  H = (ior < 1.0) ? H : -H;
+  float inv_len_H = safe_rcp(length(H));
+  H *= inv_len_H;
+
+  /* For transmission, `L` lies in the opposite hemisphere as `H`, therefore negate `L`. */
+  float NL = max(dot(N, -L), 1e-8);
+  float NH = max(dot(N, H), 1e-8);
+  float NV = dot(N, V);
+
+  /* This threshold was computed based on precision of NVidia compiler (see #118997).
+   * These drivers tend to produce NaNs in the computation of the NDF (`D`) if alpha is close to 0.
+   */
+  alpha = max(1e-3, alpha);
+
+  float a2 = square(alpha);
+  float G_V = bxdf_ggx_smith_G1(NV, a2);
+  float G_L = bxdf_ggx_smith_G1(NL, a2);
+  float D = bxdf_ggx_D(NH, a2);
+
+  float VH = saturate(dot(V, H));
+  float LH = saturate(dot(-L, H));
+
+  BsdfEval eval;
+  eval.pdf = (D * G_V * VH * LH * square(ior * inv_len_H)) / NV;
+  eval.throughput = eval.pdf * G_L;
+
+  return eval;
 }
+
+/** \} */
 
 /**
  * `roughness` is expected to be the linear (from UI) roughness.

@@ -43,7 +43,7 @@ float closure_evaluate_pdf(ClosureUndetermined cl, vec3 L, vec3 V, float thickne
     }
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID: {
       ClosureRefraction cl_ = to_closure_refraction(cl);
-      return bxdf_ggx_eval_transmission(cl.N, L, V, square(cl_.roughness), cl_.ior, thickness).pdf;
+      return bxdf_ggx_eval_refraction(cl.N, L, V, square(cl_.roughness), cl_.ior, thickness).pdf;
     }
   }
   /* TODO(fclem): Assert. */
