@@ -16,7 +16,8 @@
 
 float bxdf_ggx_D(float NH, float a2)
 {
-  return a2 / (M_PI * square((a2 - 1.0) * square(NH) + 1.0));
+  float NH2 = square(NH);
+  return a2 / (M_PI * square((1.0 - NH2) + a2 * NH2));
 }
 
 float bxdf_ggx_smith_G1(float NX, float a2)
