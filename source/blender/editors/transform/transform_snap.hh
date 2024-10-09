@@ -43,6 +43,7 @@ bool transform_snap_is_active(const TransInfo *t);
 
 bool validSnap(const TransInfo *t);
 
+void transform_snap_grid_init(const TransInfo *t, float r_snap[3], float *r_snap_precision);
 void initSnapping(TransInfo *t, wmOperator *op);
 void freeSnapping(TransInfo *t);
 void initSnapAngleIncrements(TransInfo *t);
