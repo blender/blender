@@ -6,10 +6,6 @@
  * \ingroup edtransform
  */
 
-#include <cmath>
-
-#include "MEM_guardedalloc.h"
-
 #include "DNA_gpencil_legacy_types.h"
 
 #include "BLI_blenlib.h"
@@ -38,7 +34,6 @@
 #include "ED_uvedit.hh"
 
 #include "WM_api.hh"
-#include "WM_types.hh"
 
 #include "UI_view2d.hh"
 
@@ -1261,6 +1256,7 @@ void transformViewUpdate(TransInfo *t)
   }
 
   calculateCenter2D(t);
+  transform_snap_grid_init(t, t->snap_spatial, &t->snap_spatial_precision);
   transform_input_update(t, zoom_prev / zoom_new);
 }
 
