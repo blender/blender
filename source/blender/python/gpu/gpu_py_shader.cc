@@ -406,7 +406,7 @@ PyDoc_STRVAR(
     "   :arg name: Name of the uniform variable whose value is to be changed.\n"
     "   :type name: str\n"
     "   :arg value: Value that will be used to update the specified uniform variable.\n"
-    "   :type value: single number or sequence of numbers\n");
+    "   :type value: single number or sequence of floats\n");
 static PyObject *pygpu_shader_uniform_float(BPyGPUShader *self, PyObject *args)
 {
   const char *error_prefix = "GPUShader.uniform_float";
@@ -478,7 +478,7 @@ PyDoc_STRVAR(
     "   :arg name: name of the uniform variable whose value is to be changed.\n"
     "   :type name: str\n"
     "   :arg seq: Value that will be used to update the specified uniform variable.\n"
-    "   :type seq: sequence of numbers\n");
+    "   :type seq: sequence of ints\n");
 static PyObject *pygpu_shader_uniform_int(BPyGPUShader *self, PyObject *args)
 {
   const char *error_prefix = "GPUShader.uniform_int";
@@ -947,7 +947,7 @@ PyDoc_STRVAR(
     "      - ``CLIPPED``\n"
     "   :type config: str\n"
     "   :return: Shader object corresponding to the given name.\n"
-    "   :rtype: :class:`bpy.types.GPUShader`\n");
+    "   :rtype: :class:`gpu.types.GPUShader`\n");
 static PyObject *pygpu_shader_from_builtin(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
@@ -993,7 +993,7 @@ PyDoc_STRVAR(
     "   :arg shader_info: GPUShaderCreateInfo\n"
     "   :type shader_info: :class:`bpy.types.GPUShaderCreateInfo`\n"
     "   :return: Shader object corresponding to the given name.\n"
-    "   :rtype: :class:`bpy.types.GPUShader`\n");
+    "   :rtype: :class:`gpu.types.GPUShader`\n");
 static PyObject *pygpu_shader_create_from_info(BPyGPUShader * /*self*/, BPyGPUShaderCreateInfo *o)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;

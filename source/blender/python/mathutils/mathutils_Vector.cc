@@ -3406,7 +3406,7 @@ PyDoc_STRVAR(
     "   This object gives access to Vectors in Blender.\n"
     "\n"
     "   :arg seq: Components of the vector, must be a sequence of at least two\n"
-    "   :type seq: sequence of numbers\n");
+    "   :type seq: sequence of floats\n");
 PyTypeObject vector_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "Vector",

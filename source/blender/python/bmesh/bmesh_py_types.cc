@@ -2918,7 +2918,7 @@ PyDoc_STRVAR(
     "   :arg key: The key that sets the ordering of the elements.\n"
     "   :type key: :function: returning a number\n"
     "   :arg reverse: Reverse the order of the elements\n"
-    "   :type reverse: :boolean:\n"
+    "   :type reverse: bool\n"
     "\n"
     "   .. note::\n"
     "\n"
