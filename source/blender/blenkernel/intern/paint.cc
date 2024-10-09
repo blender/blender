@@ -847,7 +847,7 @@ static void paint_brush_default_essentials_name_get(
       }
       break;
     case OB_MODE_VERTEX_PAINT:
-      name = "Paint";
+      name = "Paint Hard";
       if (brush_type) {
         switch (eBrushVertexPaintType(*brush_type)) {
           case VPAINT_BRUSH_TYPE_BLUR:
