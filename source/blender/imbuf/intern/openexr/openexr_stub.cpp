@@ -42,6 +42,7 @@ bool IMB_exr_begin_write(void * /*handle*/,
                          int /*width*/,
                          int /*height*/,
                          int /*compress*/,
+                         int /*quality*/,
                          const StampData * /*stamp*/)
 {
   return false;
