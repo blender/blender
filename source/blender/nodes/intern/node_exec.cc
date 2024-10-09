@@ -23,7 +23,14 @@
 static int node_exec_socket_use_stack(bNodeSocket *sock)
 {
   /* NOTE: INT and BOOL supported as FLOAT. Only for EEVEE. */
-  return ELEM(sock->type, SOCK_INT, SOCK_BOOLEAN, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA, SOCK_SHADER);
+  return ELEM(sock->type,
+              SOCK_INT,
+              SOCK_BOOLEAN,
+              SOCK_FLOAT,
+              SOCK_VECTOR,
+              SOCK_RGBA,
+              SOCK_SHADER,
+              SOCK_IMAGE);
 }
 
 bNodeStack *node_get_socket_stack(bNodeStack *stack, bNodeSocket *sock)

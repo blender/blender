@@ -494,7 +494,9 @@ void GPUCodegen::node_serialize(std::stringstream &eval_ss, const GPUNode *node)
         eval_ss << input->type << " " << input << "; " << input->function_call << input << ");\n";
         break;
       case GPU_SOURCE_STRUCT:
-        eval_ss << input->type << " " << input << " = CLOSURE_DEFAULT;\n";
+        eval_ss << input->type << " " << input << " = "
+                << (input->type == GPU_CLOSURE ? "CLOSURE_DEFAULT" : "TEXTURE_HANDLE_DEFAULT")
+                << ";\n ";
         break;
       case GPU_SOURCE_CONSTANT:
         eval_ss << input->type << " " << input << " = " << (GPUConstant *)input << ";\n";

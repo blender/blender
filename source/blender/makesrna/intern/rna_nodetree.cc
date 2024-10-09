@@ -4910,6 +4910,23 @@ static void def_fn_input_string(StructRNA *srna)
 
 /* -- Shader Nodes ---------------------------------------------------------- */
 
+static void def_sh_image_sample(StructRNA *srna)
+{
+  static const EnumPropertyItem offset_type_items[] = {
+      {SHD_IMG_SAMPLE_OFFSET_VIEW, "VIEW", 0, "View", "Offset in View Space coordinates"},
+      {SHD_IMG_SAMPLE_OFFSET_PIXEL, "PIXEL", 0, "Pixel", "Offset in Pixel coordinates"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  PropertyRNA *prop;
+
+  prop = RNA_def_property(srna, "offset_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "custom1");
+  RNA_def_property_enum_items(prop, offset_type_items);
+  RNA_def_property_ui_text(prop, "Type", "Type of the sampling offset.");
+  RNA_def_property_update(prop, 0, "rna_Node_update");
+}
+
 static void def_sh_output(StructRNA *srna)
 {
   PropertyRNA *prop;

@@ -34,6 +34,15 @@ vec4 g_specular_indirect;
 #define Closure float
 #define CLOSURE_DEFAULT 0.0
 
+struct TextureHandle {
+  uint type;
+  uint index;
+};
+#define TEXTURE_HANDLE_DEFAULT TextureHandle(0, 0)
+#ifndef NPR_SHADER
+#  define TextureHandle_eval(t, o, ot) vec4(0.0)
+#endif
+
 /* Maximum number of picked closure. */
 #ifndef CLOSURE_BIN_COUNT
 #  define CLOSURE_BIN_COUNT 1

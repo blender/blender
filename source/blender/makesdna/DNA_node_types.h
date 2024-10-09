@@ -2430,6 +2430,11 @@ enum {
   SHD_AO_LOCAL = 2,
 };
 
+enum {
+  SHD_IMG_SAMPLE_OFFSET_VIEW = 0,
+  SHD_IMG_SAMPLE_OFFSET_PIXEL = 1,
+};
+
 /** Mapping node vector types. */
 enum {
   NODE_MAPPING_TYPE_POINT = 0,

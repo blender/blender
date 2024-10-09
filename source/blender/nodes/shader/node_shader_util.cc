@@ -183,6 +183,9 @@ void node_gpu_stack_from_data(GPUNodeStack *gs, int type, bNodeStack *ns)
     else if (type == SOCK_SHADER) {
       gs->type = GPU_CLOSURE;
     }
+    else if (type == SOCK_IMAGE) {
+      gs->type = GPU_TEX_HANDLE;
+    }
     else {
       gs->type = GPU_NONE;
     }
@@ -218,8 +221,14 @@ static void data_from_gpu_stack_list(ListBase *sockets, bNodeStack **ns, GPUNode
 {
   int i = 0;
   LISTBASE_FOREACH (bNodeSocket *, socket, sockets) {
-    if (ELEM(
-            socket->type, SOCK_FLOAT, SOCK_INT, SOCK_BOOLEAN, SOCK_VECTOR, SOCK_RGBA, SOCK_SHADER))
+    if (ELEM(socket->type,
+             SOCK_FLOAT,
+             SOCK_INT,
+             SOCK_BOOLEAN,
+             SOCK_VECTOR,
+             SOCK_RGBA,
+             SOCK_SHADER,
+             SOCK_IMAGE))
     {
       node_data_from_gpu_stack(ns[i], &gs[i]);
       i++;

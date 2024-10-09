@@ -105,18 +105,22 @@ vec4 tangent_get(vec4 attr, mat3 normalmat)
 #define float_from_vec4(v) dot(v.rgb, vec3(0.2126, 0.7152, 0.0722))
 #define float_from_vec3(v) ((v.r + v.g + v.b) * (1.0 / 3.0))
 #define float_from_vec2(v) v.r
+#define float_from_TextureHandle(t) float_from_vec4(TextureHandle_eval(t))
 
 #define vec2_from_vec4(v) vec2(((v.r + v.g + v.b) * (1.0 / 3.0)), v.a)
 #define vec2_from_vec3(v) vec2(((v.r + v.g + v.b) * (1.0 / 3.0)), 1.0)
 #define vec2_from_float(v) vec2(v)
+#define vec2_from_TextureHandle(t) TextureHandle_eval(t).rg
 
 #define vec3_from_vec4(v) v.rgb
 #define vec3_from_vec2(v) v.rrr
 #define vec3_from_float(v) vec3(v)
+#define vec3_from_TextureHandle(t) TextureHandle_eval(t).rgb
 
 #define vec4_from_vec3(v) vec4(v, 1.0)
 #define vec4_from_vec2(v) v.rrrg
 #define vec4_from_float(v) vec4(vec3(v), 1.0)
+#define vec4_from_TextureHandle(t) TextureHandle_eval(t)
 
 /* TODO: Move to shader_shared. */
 #define RAY_TYPE_CAMERA 0

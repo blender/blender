@@ -13,6 +13,7 @@ GPU_SHADER_CREATE_INFO(npr_surface_common)
     .sampler(GBUF_HEADER_NPR_TX_SLOT, ImageType::UINT_2D, "gbuf_header_tx")
     .sampler(GBUF_CLOSURE_NPR_TX_SLOT, ImageType::FLOAT_2D_ARRAY, "gbuf_closure_tx")
     /* eevee_gbuffer_data */
+    .sampler(RADIANCE_TX_SLOT, ImageType::FLOAT_2D, "radiance_tx")
     /* eevee_deferred_combine */
     .sampler(DIRECT_RADIANCE_NPR_TX_SLOT_1 + 0, ImageType::UINT_2D, "direct_radiance_1_tx")
     .sampler(DIRECT_RADIANCE_NPR_TX_SLOT_1 + 1, ImageType::UINT_2D, "direct_radiance_2_tx")
@@ -22,14 +23,16 @@ GPU_SHADER_CREATE_INFO(npr_surface_common)
     .sampler(INDIRECT_RADIANCE_NPR_TX_SLOT_1 + 2, ImageType::FLOAT_2D, "indirect_radiance_3_tx")
     .push_constant(Type::BOOL, "use_split_radiance")
     /* eevee_deferred_combine */
+    .sampler(BACK_RADIANCE_TX_SLOT, ImageType::FLOAT_2D, "radiance_back_tx")
+    .sampler(BACK_HIZ_TX_SLOT, ImageType::FLOAT_2D, "hiz_back_tx")
     .push_constant(Type::INT, "npr_index")
     .define("NPR_SHADER")
-    .fragment_out(0, Type::VEC4, "out_color")
+    .fragment_out(0, Type::VEC4, "out_radiance", DualBlend::SRC_0)
+    .fragment_out(0, Type::VEC4, "out_transmittance", DualBlend::SRC_1)
     .additional_info("draw_view",
                      "eevee_shared",
                      "eevee_global_ubo",
                      "eevee_light_data",
-                     "eevee_lightprobe_data",
                      "eevee_shadow_data",
                      "eevee_utility_texture",
                      "eevee_sampling_data",

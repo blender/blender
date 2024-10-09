@@ -132,6 +132,10 @@ void ShadingView::render()
 
   inst_.volume.draw_prepass(main_view_);
 
+  /* TODO(NPR): This is supposed to go after deferred,
+   * but NPR needs to read the background color too. */
+  inst_.pipelines.background.render(render_view_);
+
   /* TODO(Miguel Pozo): Deferred and forward prepass should happen before the GBuffer pass. */
   inst_.pipelines.deferred.render(main_view_,
                                   render_view_,
@@ -141,8 +145,6 @@ void ShadingView::render()
                                   extent_,
                                   rt_buffer_opaque_,
                                   rt_buffer_refract_);
-
-  inst_.pipelines.background.render(render_view_);
 
   inst_.gbuffer.release();
 

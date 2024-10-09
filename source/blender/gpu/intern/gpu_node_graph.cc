@@ -143,7 +143,8 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const eGPUType
       input->layer_attr = link->layer_attr;
       break;
     case GPU_NODE_LINK_CONSTANT:
-      input->source = (type == GPU_CLOSURE) ? GPU_SOURCE_STRUCT : GPU_SOURCE_CONSTANT;
+      input->source = ELEM(type, GPU_CLOSURE, GPU_TEX_HANDLE) ? GPU_SOURCE_STRUCT :
+                                                                GPU_SOURCE_CONSTANT;
       break;
     case GPU_NODE_LINK_UNIFORM:
       input->source = GPU_SOURCE_UNIFORM;
@@ -1017,7 +1018,8 @@ void gpu_node_graph_optimize(GPUNodeGraph *graph)
         }
       }
       if (input->source == GPU_SOURCE_UNIFORM) {
-        input->source = (input->type == GPU_CLOSURE) ? GPU_SOURCE_STRUCT : GPU_SOURCE_CONSTANT;
+        input->source = ELEM(input->type, GPU_CLOSURE, GPU_TEX_HANDLE) ? GPU_SOURCE_STRUCT :
+                                                                         GPU_SOURCE_CONSTANT;
       }
     }
   }

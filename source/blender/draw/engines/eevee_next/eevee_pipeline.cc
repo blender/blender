@@ -568,10 +568,17 @@ void DeferredLayer::begin_sync()
     npr_ps_.bind_texture(GBUF_HEADER_NPR_TX_SLOT, &inst_.gbuffer.header_tx);
     npr_ps_.bind_texture(GBUF_CLOSURE_NPR_TX_SLOT, &inst_.gbuffer.closure_tx);
 #endif
+    npr_ps_.bind_texture(RADIANCE_TX_SLOT, &npr_radiance_input_tx_);
     for (int i : IndexRange(3)) {
       npr_ps_.bind_texture(DIRECT_RADIANCE_NPR_TX_SLOT_1 + i, &direct_radiance_txs_[i]);
       npr_ps_.bind_texture(INDIRECT_RADIANCE_NPR_TX_SLOT_1 + i, &indirect_result_.closures[i]);
     };
+
+    /* TODO(NPR): Use separate opaque/refraction passes. */
+    if (bool is_refraction = true) {
+      npr_ps_.bind_texture(BACK_RADIANCE_TX_SLOT, &radiance_back_tx_);
+      npr_ps_.bind_texture(BACK_HIZ_TX_SLOT, &inst_.hiz_buffer.back.ref_tx_);
+    }
 
     npr_ps_.bind_resources(inst_.uniform_data);
     npr_ps_.bind_resources(inst_.sampling);
@@ -583,7 +590,7 @@ void DeferredLayer::begin_sync()
     npr_ps_.bind_resources(inst_.sphere_probes);
     npr_ps_.bind_resources(inst_.volume_probes);
 
-    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL;
+    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM | DRW_STATE_DEPTH_EQUAL;
 
     npr_double_sided_ps_ = &npr_ps_.sub("DoubleSided");
     npr_double_sided_ps_->state_set(state);
@@ -909,6 +916,7 @@ GPUTexture *DeferredLayer::render(View &main_view,
       direct_radiance_txs_[0], indirect_result_.closures[0], closure_bits_, render_view);
 
   radiance_feedback_tx_ = rt_buffer.feedback_ensure(!use_feedback_output_, extent);
+  radiance_back_tx_ = radiance_behind_tx ? radiance_behind_tx : radiance_feedback_tx_;
 
   if (use_feedback_output_ && use_clamp_direct_) {
     /* We need to do a copy before the combine pass (otherwise we have a dependency issue) to save
@@ -919,7 +927,17 @@ GPUTexture *DeferredLayer::render(View &main_view,
   GPU_framebuffer_bind(combined_fb);
   inst_.manager->submit(combine_ps_);
 
+  TextureFromPool npr_radiance_input = "NPR Radiance Input";
+  {
+    /* TODO(NPR): There should be separate PBR/NPR combined_tx. Then this copy can be skipped.  */
+    npr_radiance_input.acquire(rb.combined_tx.size().xy(), GPU_texture_format(rb.combined_tx));
+    npr_radiance_input_tx_ = npr_radiance_input;
+    GPU_texture_copy(npr_radiance_input_tx_, rb.combined_tx);
+  }
+
   inst_.manager->submit(npr_ps_, render_view);
+
+  npr_radiance_input.release();
 
   if (use_feedback_output_ && !use_clamp_direct_) {
     /* We skip writing the radiance during the combine pass. Do a simple fast copy. */
