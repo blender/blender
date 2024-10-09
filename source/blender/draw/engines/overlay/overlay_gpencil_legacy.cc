@@ -322,65 +322,6 @@ void OVERLAY_gpencil_legacy_cache_init(OVERLAY_Data *vedata)
   }
 }
 
-static void overlay_gpencil_draw_stroke_color_name(bGPDlayer * /*gpl*/,
-                                                   bGPDframe * /*gpf*/,
-                                                   bGPDstroke *gps,
-                                                   void *thunk)
-{
-  Object *ob = (Object *)thunk;
-  Material *ma = BKE_object_material_get_eval(ob, gps->mat_nr + 1);
-  if (ma == nullptr) {
-    return;
-  }
-  MaterialGPencilStyle *gp_style = ma->gp_style;
-  /* skip stroke if it doesn't have any valid data */
-  if ((gps->points == nullptr) || (gps->totpoints < 1) || (gp_style == nullptr)) {
-    return;
-  }
-  /* check if the color is visible */
-  if (gp_style->flag & GP_MATERIAL_HIDE) {
-    return;
-  }
-  /* only if selected */
-  if (gps->flag & GP_STROKE_SELECT) {
-    for (int i = 0; i < gps->totpoints; i++) {
-      bGPDspoint *pt = &gps->points[i];
-      /* Draw name at the first selected point. */
-      if (pt->flag & GP_SPOINT_SELECT) {
-        const DRWContextState *draw_ctx = DRW_context_state_get();
-        ViewLayer *view_layer = draw_ctx->view_layer;
-
-        int theme_id = DRW_object_wire_theme_get(ob, view_layer, nullptr);
-        uchar color[4];
-        UI_GetThemeColor4ubv(theme_id, color);
-
-        float fpt[3];
-        mul_v3_m4v3(fpt, ob->object_to_world().ptr(), &pt->x);
-
-        DRWTextStore *dt = DRW_text_cache_ensure();
-        DRW_text_cache_add(dt,
-                           fpt,
-                           ma->id.name + 2,
-                           strlen(ma->id.name + 2),
-                           10,
-                           0,
-                           DRW_TEXT_CACHE_GLOBALSPACE | DRW_TEXT_CACHE_STRING_PTR,
-                           color);
-        break;
-      }
-    }
-  }
-}
-
-static void OVERLAY_gpencil_color_names(Object *ob)
-{
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  int cfra = DEG_get_ctime(draw_ctx->depsgraph);
-
-  BKE_gpencil_visible_stroke_advanced_iter(
-      nullptr, ob, nullptr, overlay_gpencil_draw_stroke_color_name, ob, false, cfra);
-}
-
 void OVERLAY_gpencil_legacy_draw(OVERLAY_Data *vedata)
 {
   OVERLAY_PassList *psl = vedata->psl;
