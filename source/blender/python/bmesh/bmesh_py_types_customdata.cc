@@ -71,67 +71,67 @@ PyDoc_STRVAR(
     bpy_bmlayeraccess_collection__float_doc,
     "Generic float custom-data layer.\n"
     "\n"
-    ":type: :class:`BMLayerCollection`");
+    ":type: :class:`BMLayerCollection` of float");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmlayeraccess_collection__int_doc,
     "Generic int custom-data layer.\n"
     "\n"
-    ":type: :class:`BMLayerCollection`");
+    ":type: :class:`BMLayerCollection` of int");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmlayeraccess_collection__float_vector_doc,
     "Generic 3D vector with float precision custom-data layer.\n"
     "\n"
     ":type: "
-    ":class:`BMLayerCollection`");
+    ":class:`BMLayerCollection` of :class:`mathutils.Vector`");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmlayeraccess_collection__float_color_doc,
     "Generic RGBA color with float precision custom-data layer.\n"
     "\n"
     ":type: "
-    ":class:`BMLayerCollection`");
+    ":class:`BMLayerCollection` of :class:`mathutils.Vector`");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmlayeraccess_collection__color_doc,
     "Generic RGBA color with 8-bit precision custom-data layer.\n"
     "\n"
     ":type: "
-    ":class:`BMLayerCollection`");
+    ":class:`BMLayerCollection` of :class:`mathutils.Vector`");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmlayeraccess_collection__string_doc,
     "Generic string custom-data layer (exposed as bytes, 255 max length).\n"
     "\n"
     ":type: "
-    ":class:`BMLayerCollection`");
+    ":class:`BMLayerCollection` of bytes");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmlayeraccess_collection__deform_doc,
     "Vertex deform weight :class:`BMDeformVert` (TODO).\n"
     "\n"
     ":type: "
-    ":class:`BMLayerCollection`" /* TYPE DOESN'T EXIST YET */
+    ":class:`BMLayerCollection` of :class:`bmesh.types.BMDeformVert`" /* TYPE DOESN'T EXIST YET */
 );
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmlayeraccess_collection__shape_doc,
     "Vertex shapekey absolute location (as a 3D Vector).\n"
     "\n"
-    ":type: :class:`BMLayerCollection`");
+    ":type: :class:`BMLayerCollection` of :class:`mathutils.Vector`");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmlayeraccess_collection__uv_doc,
     "Accessor for :class:`BMLoopUV` UV (as a 2D Vector).\n"
     "\n"
-    ":type: :class:`BMLayerCollection`");
+    ":type: :class:`BMLayerCollection` of :class:`bmesh.types.BMLoopUV`");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmlayeraccess_collection__skin_doc,
     "Accessor for skin layer.\n"
     "\n"
-    ":type: :class:`BMLayerCollection`");
+    ":type: :class:`BMLayerCollection` of :class:`bmesh.types.BMVertSkin`");
 #ifdef WITH_FREESTYLE
 PyDoc_STRVAR(
     /* Wrap. */
