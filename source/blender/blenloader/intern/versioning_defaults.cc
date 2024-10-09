@@ -513,9 +513,9 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       ToolSettings *ts = scene->toolsettings;
 
       /* Ensure new Paint modes. */
-      BKE_paint_ensure_from_paintmode(bmain, scene, PaintMode::VertexGPencil);
-      BKE_paint_ensure_from_paintmode(bmain, scene, PaintMode::SculptGPencil);
-      BKE_paint_ensure_from_paintmode(bmain, scene, PaintMode::WeightGPencil);
+      BKE_paint_ensure_from_paintmode(scene, PaintMode::VertexGPencil);
+      BKE_paint_ensure_from_paintmode(scene, PaintMode::SculptGPencil);
+      BKE_paint_ensure_from_paintmode(scene, PaintMode::WeightGPencil);
 
       /* Enable cursor. */
       if (ts->gp_paint) {

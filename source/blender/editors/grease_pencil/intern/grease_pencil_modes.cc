@@ -81,8 +81,10 @@ static int paintmode_toggle_exec(bContext *C, wmOperator *op)
   if (mode == OB_MODE_PAINT_GREASE_PENCIL) {
     /* Be sure we have brushes and Paint settings.
      * Need Draw and Vertex (used for Tint). */
-    BKE_paint_ensure(bmain, ts, (Paint **)&ts->gp_paint);
-    BKE_paint_ensure(bmain, ts, (Paint **)&ts->gp_vertexpaint);
+    BKE_paint_ensure(ts, (Paint **)&ts->gp_paint);
+    BKE_paint_brushes_ensure(bmain, &ts->gp_paint->paint);
+    BKE_paint_ensure(ts, (Paint **)&ts->gp_vertexpaint);
+    BKE_paint_brushes_ensure(bmain, &ts->gp_vertexpaint->paint);
 
     /* Ensure Palette by default. */
     BKE_gpencil_palette_ensure(bmain, CTX_data_scene(C));
@@ -188,7 +190,8 @@ static int sculptmode_toggle_exec(bContext *C, wmOperator *op)
   ob->mode = mode;
 
   if (mode == OB_MODE_SCULPT_GREASE_PENCIL) {
-    BKE_paint_ensure(bmain, ts, (Paint **)&ts->gp_sculptpaint);
+    BKE_paint_ensure(ts, (Paint **)&ts->gp_sculptpaint);
+    BKE_paint_brushes_ensure(bmain, &ts->gp_sculptpaint->paint);
     BKE_paint_brushes_validate(bmain, &ts->gp_sculptpaint->paint);
   }
 
@@ -278,13 +281,13 @@ static int weightmode_toggle_exec(bContext *C, wmOperator *op)
 
   if (mode == OB_MODE_WEIGHT_GREASE_PENCIL) {
     /* Be sure we have brushes. */
-    BKE_paint_ensure(bmain, ts, (Paint **)&ts->gp_weightpaint);
+    BKE_paint_ensure(ts, (Paint **)&ts->gp_weightpaint);
     Paint *weight_paint = BKE_paint_get_active_from_paintmode(scene, PaintMode::WeightGPencil);
 
     ED_paint_cursor_start(weight_paint, grease_pencil_poll_weight_cursor);
 
-    BKE_paint_brushes_validate(bmain, weight_paint);
     BKE_paint_init(bmain, scene, PaintMode::WeightGPencil, PAINT_CURSOR_PAINT_GREASE_PENCIL);
+    BKE_paint_brushes_validate(bmain, weight_paint);
   }
 
   GreasePencil *grease_pencil = static_cast<GreasePencil *>(ob->data);
@@ -371,10 +374,13 @@ static int vertexmode_toggle_exec(bContext *C, wmOperator *op)
   if (mode == OB_MODE_VERTEX_GREASE_PENCIL) {
     /* Be sure we have brushes.
      * Need Draw as well (used for Palettes). */
-    BKE_paint_ensure(bmain, ts, (Paint **)&ts->gp_paint);
-    BKE_paint_ensure(bmain, ts, (Paint **)&ts->gp_vertexpaint);
+    BKE_paint_ensure(ts, (Paint **)&ts->gp_paint);
+    BKE_paint_ensure(ts, (Paint **)&ts->gp_vertexpaint);
+    Paint *gp_paint = BKE_paint_get_active_from_paintmode(scene, PaintMode::GPencil);
     Paint *vertex_paint = BKE_paint_get_active_from_paintmode(scene, PaintMode::VertexGPencil);
 
+    BKE_paint_brushes_ensure(bmain, gp_paint);
+    BKE_paint_brushes_ensure(bmain, vertex_paint);
     BKE_paint_brushes_validate(bmain, vertex_paint);
 
     ED_paint_cursor_start(vertex_paint, grease_pencil_poll_vertex_cursor);
