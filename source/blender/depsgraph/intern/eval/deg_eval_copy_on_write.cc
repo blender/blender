@@ -888,14 +888,6 @@ ID *deg_update_eval_copy_datablock(const Depsgraph *depsgraph, const IDNode *id_
       update_edit_mode_pointers(depsgraph, id_orig, id_cow);
       return id_cow;
     }
-    /* In case we don't need to do a copy-on-evaluation, we can use the update cache of the grease
-     * pencil data to do an update-on-write. */
-    if (id_type == ID_GD_LEGACY && BKE_gpencil_can_avoid_full_copy_on_write(
-                                       (const ::Depsgraph *)depsgraph, (bGPdata *)id_orig))
-    {
-      BKE_gpencil_update_on_write((bGPdata *)id_orig, (bGPdata *)id_cow);
-      return id_cow;
-    }
   }
 
   RuntimeBackup backup(depsgraph);

@@ -518,9 +518,6 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
           OVERLAY_metaball_cache_populate(data, ob);
         }
         break;
-      case OB_GPENCIL_LEGACY:
-        OVERLAY_gpencil_legacy_cache_populate(data, ob);
-        break;
     }
   }
   /* Non-Meshes */

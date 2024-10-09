@@ -26,7 +26,6 @@ _modules = [
     "properties_data_curve",
     "properties_data_curves",
     "properties_data_empty",
-    "properties_data_gpencil",
     "properties_data_grease_pencil",
     "properties_data_light",
     "properties_data_lattice",
