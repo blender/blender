@@ -103,9 +103,9 @@ if(WIN32)
     TYPE SHA1 UPPER
   )
 
-  set(CPACK_WIX_TEMPLATE ${LIBDIR}/package/installer_wix/WIX.template)
-  set(CPACK_WIX_UI_BANNER ${LIBDIR}/package/installer_wix/WIX_UI_BANNER.bmp)
-  set(CPACK_WIX_UI_DIALOG ${LIBDIR}/package/installer_wix/WIX_UI_DIALOG.bmp)
+  set(CPACK_WIX_TEMPLATE ${CMAKE_SOURCE_DIR}/release/windows/installer_wix/WIX.template)
+  set(CPACK_WIX_UI_BANNER ${CMAKE_SOURCE_DIR}/release/windows/installer_wix/WIX_UI_BANNER.bmp)
+  set(CPACK_WIX_UI_DIALOG ${CMAKE_SOURCE_DIR}/release/windows/installer_wix/WIX_UI_DIALOG.bmp)
 
   set(CPACK_WIX_LIGHT_EXTRA_FLAGS -dcl:medium)
 endif()
