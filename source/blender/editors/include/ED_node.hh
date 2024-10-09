@@ -39,7 +39,7 @@ void node_insert_on_link_flags_set(SpaceNode &snode,
 /**
  * Assumes link with #NODE_LINK_INSERT_TARGET set.
  */
-void node_insert_on_link_flags(Main &bmain, SpaceNode &snode);
+void node_insert_on_link_flags(Main &bmain, SpaceNode &snode, bool is_new_node);
 void node_insert_on_link_flags_clear(bNodeTree &node_tree);
 
 /**
