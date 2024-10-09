@@ -811,10 +811,10 @@ static void ui_node_draw_node(
     using SocketIterator = blender::Span<bNodeSocket *>::iterator;
     using PanelStateIterator = blender::MutableSpan<bNodePanelState>::iterator;
 
-    ItemDeclIterator item_decl = node.declaration()->items.begin();
+    ItemDeclIterator item_decl = node.declaration()->all_items.begin();
     SocketIterator input = node.input_sockets().begin();
     PanelStateIterator panel_state = node.panel_states().begin();
-    const ItemDeclIterator item_decl_end = node.declaration()->items.end();
+    const ItemDeclIterator item_decl_end = node.declaration()->all_items.end();
 
     bool panel_collapsed = false;
     const char *panel_label = nullptr;

@@ -622,12 +622,12 @@ static Vector<NodeInterfaceItemData> node_build_item_data(bNode &node)
   BLI_assert(is_node_panels_supported(node));
   BLI_assert(node.runtime->panels.size() == node.num_panel_states);
 
-  ItemDeclIterator item_decl = node.declaration()->items.begin();
+  ItemDeclIterator item_decl = node.declaration()->all_items.begin();
   SocketIterator input = node.input_sockets().begin();
   SocketIterator output = node.output_sockets().begin();
   PanelStateIterator panel_state = node.panel_states().begin();
   PanelRuntimeIterator panel_runtime = node.runtime->panels.begin();
-  const ItemDeclIterator item_decl_end = node.declaration()->items.end();
+  const ItemDeclIterator item_decl_end = node.declaration()->all_items.end();
   const SocketIterator input_end = node.input_sockets().end();
   const SocketIterator output_end = node.output_sockets().end();
   const PanelStateIterator panel_state_end = node.panel_states().end();
@@ -635,7 +635,7 @@ static Vector<NodeInterfaceItemData> node_build_item_data(bNode &node)
   UNUSED_VARS_NDEBUG(input_end, output_end, panel_state_end, panel_runtime_end);
 
   Vector<NodeInterfaceItemData> result;
-  result.reserve(node.declaration()->items.size());
+  result.reserve(node.declaration()->all_items.size());
 
   while (item_decl != item_decl_end) {
     if (const nodes::SocketDeclaration *socket_decl =
@@ -729,7 +729,7 @@ static void node_update_panel_items_visibility_recursive(int num_items,
       const bool is_collapsed = is_parent_collapsed || item.state->is_collapsed();
 
       node_update_panel_items_visibility_recursive(
-          item.panel_decl->num_child_decls, is_collapsed, *item.state, state);
+          item.panel_decl->items.size(), is_collapsed, *item.state, state);
       if (item.panel_decl->draw_buttons) {
         item.state->flag |= NODE_PANEL_CONTENT_VISIBLE;
       }
@@ -842,7 +842,7 @@ static void add_panel_items_recursive(const bContext &C,
                                   block,
                                   locx,
                                   locy,
-                                  item.panel_decl->num_child_decls,
+                                  item.panel_decl->items.size(),
                                   is_collapsed,
                                   item.panel_decl->name.c_str(),
                                   item.runtime,
@@ -2477,7 +2477,7 @@ static void node_draw_panels_background(const bNode &node, uiBlock &block)
   float last_panel_content_y = 0.0f;
 
   int panel_i = 0;
-  for (const nodes::ItemDeclarationPtr &item_decl : decl.items) {
+  for (const nodes::ItemDeclarationPtr &item_decl : decl.all_items) {
     const nodes::PanelDeclaration *panel_decl = dynamic_cast<nodes::PanelDeclaration *>(
         item_decl.get());
     if (panel_decl == nullptr) {
@@ -2533,7 +2533,7 @@ static void node_draw_panels(bNodeTree &ntree, const bNode &node, uiBlock &block
   const rctf &rct = node.runtime->totr;
 
   int panel_i = 0;
-  for (const nodes::ItemDeclarationPtr &item_decl : decl.items) {
+  for (const nodes::ItemDeclarationPtr &item_decl : decl.all_items) {
     const nodes::PanelDeclaration *panel_decl = dynamic_cast<nodes::PanelDeclaration *>(
         item_decl.get());
     if (panel_decl == nullptr) {
