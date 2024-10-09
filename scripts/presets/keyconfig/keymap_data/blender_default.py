@@ -1014,6 +1014,7 @@ def km_user_interface(_params):
         ("ui.view_start_filter", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
         ("ui.view_scroll", {"type": 'WHEELUPMOUSE', "value": 'ANY'}, None),
         ("ui.view_scroll", {"type": 'WHEELDOWNMOUSE', "value": 'ANY'}, None),
+        ("ui.view_scroll", {"type": 'TRACKPADPAN', "value": 'ANY'}, None),
     ])
 
     return keymap
