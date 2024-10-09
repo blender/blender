@@ -164,6 +164,20 @@ template<typename T, int Size>
 
 /**
  * Return the value of x raised to the y power.
+ * The result is x if x < 0 or if x = 0 and y <= 0.
+ */
+template<typename T, int Size>
+[[nodiscard]] inline VecBase<T, Size> safe_pow(const VecBase<T, Size> &x, const T &y)
+{
+  VecBase<T, Size> result;
+  for (int i = 0; i < Size; i++) {
+    result[i] = math::safe_pow(x[i], y);
+  }
+  return result;
+}
+
+/**
+ * Return the value of x raised to the y power.
  * The result is undefined if x < 0 or if x = 0 and y <= 0.
  */
 template<typename T, int Size>
