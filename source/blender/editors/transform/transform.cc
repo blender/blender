@@ -1319,7 +1319,10 @@ int transformEvent(TransInfo *t, wmOperator *op, const wmEvent *event)
         }
         else if (event->prev_val == KM_PRESS) {
           t->modifiers |= MOD_PRECISION;
-          t->mouse.precision = true;
+          /* Mouse position during Snap to Grid is not affected by precision. */
+          if (!(validSnap(t) && t->tsnap.target_type == SCE_SNAP_TO_GRID)) {
+            t->mouse.precision = true;
+          }
 
           t->redraw |= TREDRAW_HARD;
         }

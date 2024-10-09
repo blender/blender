@@ -53,6 +53,8 @@ struct SnapObjectParams {
   eSnapTargetOP snap_target_select;
   /** Geometry for snapping in edit mode. */
   eSnapEditType edit_mode_type;
+  /** Grid unit size. "0.0" is automatic. */
+  float grid_size;
   /** Break nearest face snapping into steps to improve transformations across U-shaped targets. */
   short face_nearest_steps;
   /** Snap to the closest element, use when using more than one snap type. */
