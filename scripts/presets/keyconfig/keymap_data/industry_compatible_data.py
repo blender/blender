@@ -2589,7 +2589,6 @@ def km_paint_curve(params):
         ("transform.translate", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'}, None),
         ("transform.rotate", {"type": 'E', "value": 'PRESS'}, None),
         ("transform.resize", {"type": 'R', "value": 'PRESS'}, None),
-        op_asset_shelf_popup("VIEW3D_AST_brush_sculpt_curves", {"type": 'B', "value": 'PRESS'}),
     ])
 
     return keymap
@@ -3409,6 +3408,7 @@ def km_sculpt_curves(params):
         ("sculpt_curves.min_distance_edit", {"type": 'D', "value": 'PRESS', "ctrl": True}, {}),
         # Tools
         op_tool_cycle("builtin.annotate", {"type": 'D', "value": 'PRESS'}),
+        op_asset_shelf_popup("VIEW3D_AST_brush_sculpt_curves", {"type": 'B', "value": 'PRESS'}),
     ])
 
     return keymap

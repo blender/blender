@@ -4347,10 +4347,6 @@ def km_paint_curve(params):
         ("transform.translate", {"type": params.select_mouse, "value": 'CLICK_DRAG'}, None),
         ("transform.rotate", {"type": 'R', "value": 'PRESS'}, None),
         ("transform.resize", {"type": 'S', "value": 'PRESS'}, None),
-        op_asset_shelf_popup(
-            "VIEW3D_AST_brush_sculpt_curves",
-            {"type": 'SPACE', "value": 'PRESS', "shift": True}
-        ),
     ])
 
     return keymap
@@ -5017,6 +5013,10 @@ def km_sculpt_curves(params):
         *_template_items_select_actions(params, "curves.select_all"),
         ("sculpt_curves.min_distance_edit", {"type": 'R', "value": 'PRESS'}, {}),
         ("sculpt_curves.select_grow", {"type": 'A', "value": 'PRESS', "shift": True}, {}),
+        op_asset_shelf_popup(
+            "VIEW3D_AST_brush_sculpt_curves",
+            {"type": 'SPACE', "value": 'PRESS', "shift": True}
+        ),
     ])
 
     return keymap
