@@ -50,6 +50,7 @@ bool IMB_exr_begin_write(void *handle,
                          int width,
                          int height,
                          int compress,
+                         int quality,
                          const StampData *stamp);
 /**
  * Only used for writing temp. render results (not image files)
