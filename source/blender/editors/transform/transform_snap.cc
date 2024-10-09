@@ -1570,6 +1570,7 @@ static eSnapMode snapObjectsTransform(
 {
   SnapObjectParams snap_object_params{};
   snap_object_params.snap_target_select = t->tsnap.target_operation;
+  snap_object_params.grid_size = (t->modifiers & MOD_PRECISION) ? t->snap[1] : t->snap[0];
   snap_object_params.edit_mode_type = (t->flag & T_EDIT) != 0 ? SNAP_GEOM_EDIT : SNAP_GEOM_FINAL;
   snap_object_params.use_occlusion_test = true;
   snap_object_params.use_backface_culling = (t->tsnap.flag & SCE_SNAP_BACKFACE_CULLING) != 0;
