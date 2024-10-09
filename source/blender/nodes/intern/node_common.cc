@@ -695,7 +695,6 @@ static void group_output_declare(NodeDeclarationBuilder &b)
   if (node_tree == nullptr) {
     return;
   }
-  NodeDeclaration &r_declaration = b.declaration();
   node_tree->tree_interface.foreach_item([&](const bNodeTreeInterfaceItem &item) {
     switch (item.item_type) {
       case NODE_INTERFACE_SOCKET: {
