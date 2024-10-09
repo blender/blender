@@ -459,14 +459,13 @@ bool BLI_is_file(const char *path)
   return (mode && !S_ISDIR(mode));
 }
 
-/**
- * Use for both text and binary file reading.
- */
 void *BLI_file_read_data_as_mem_from_handle(FILE *fp,
                                             bool read_size_exact,
                                             size_t pad_bytes,
                                             size_t *r_size)
 {
+  /* NOTE: Used for both text and binary file reading. */
+
   BLI_stat_t st;
   if (BLI_fstat(fileno(fp), &st) == -1) {
     return nullptr;

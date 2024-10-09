@@ -988,14 +988,14 @@ void discard_edit_mode_pointers(ID *id_cow)
 
 }  // namespace
 
-/**
- *  Free content of the evaluated data-block.
- * Notes:
- * - Does not recurse into nested ID data-blocks.
- * - Does not free data-block itself.
- */
 void deg_free_eval_copy_datablock(ID *id_cow)
 {
+  /* Free content of the evaluated data-block.
+   * Notes:
+   * - Does not recurse into nested ID data-blocks.
+   * - Does not free data-block itself.
+   */
+
   if (!check_datablock_expanded(id_cow)) {
     /* Actual content was never copied on top of evaluated data-block, we have
      * nothing to free. */
