@@ -176,7 +176,7 @@ template<typename T, bool no_linting = false> class Preprocessor {
      *
      * }; // End of Wrapper                                     // Added at runtime by backend.
      *
-     * kernel entry_point() {                                   // Added at runtime by backend.
+     * kernel entry_point() {                                   // Added at runtime by backend.
      *
      * threadgroup float foo;                                   // MSL_SHARED_VARS_DECLARE
      * threadgroup float bar[10]                                // MSL_SHARED_VARS_DECLARE
