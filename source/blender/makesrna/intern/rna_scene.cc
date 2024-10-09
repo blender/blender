@@ -3515,6 +3515,15 @@ static void rna_def_tool_settings(BlenderRNA *brna)
       prop, "Align Rotation to Target", "Align rotation with the snapping target");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr); /* header redraw */
 
+  prop = RNA_def_property(srna, "use_snap_grid_absolute", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "snap_flag", SCE_SNAP_ABS_GRID);
+  RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
+  RNA_def_property_ui_text(
+      prop,
+      "Absolute Increment Snap",
+      "Absolute grid alignment while translating (based on the pivot center)");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr); /* header redraw */
+
   prop = RNA_def_property(srna, "snap_angle_increment_2d", PROP_FLOAT, PROP_ANGLE);
   RNA_def_property_float_sdna(prop, nullptr, "snap_angle_increment_2d");
   RNA_def_property_ui_text(
