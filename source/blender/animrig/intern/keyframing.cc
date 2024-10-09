@@ -891,14 +891,14 @@ static CombinedKeyingResult insert_key_layered_action(
     Main *bmain,
     Action &action,
     Layer &layer,
-    Slot &slot,
+    const Slot &slot,
     PropertyRNA *prop,
     const std::optional<StringRefNull> channel_group,
     const std::string &rna_path,
     const float frame,
     const Span<float> values,
     const eInsertKeyFlags insert_key_flags,
-    const KeyframeSettings key_settings,
+    const KeyframeSettings &key_settings,
     const BitSpan keying_mask)
 {
   BLI_assert(bmain != nullptr);

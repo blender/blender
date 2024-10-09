@@ -2874,7 +2874,7 @@ void file_directory_enter_handle(bContext *C, void * /*arg_unused*/, void * /*ar
     return;
   }
 
-  Main *bmain = CTX_data_main(C);
+  const Main *bmain = CTX_data_main(C);
   char old_dir[sizeof(params->dir)];
 
   STRNCPY(old_dir, params->dir);
@@ -2961,7 +2961,7 @@ void file_filename_enter_handle(bContext *C, void * /*arg_unused*/, void *arg_bu
     return;
   }
 
-  Main *bmain = CTX_data_main(C);
+  const Main *bmain = CTX_data_main(C);
   uiBut *but = static_cast<uiBut *>(arg_but);
 
   file_expand_directory(bmain, params);

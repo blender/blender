@@ -593,7 +593,7 @@ float AnimationImporter::convert_to_focal_length(float in_xfov,
 void AnimationImporter::Assign_lens_animations(const COLLADAFW::UniqueId &listid,
                                                AnimData &adt,
                                                const double aspect,
-                                               Camera *cam,
+                                               const Camera *cam,
                                                const char *anim_type,
                                                int fov_type)
 {
@@ -841,7 +841,6 @@ void AnimationImporter::translate_Animations(
   }
 
   AnimationImporter::AnimMix *animType = get_animation_type(node, FW_object_map);
-  bAction *act;
   Main *bmain = CTX_data_main(mContext);
 
   if ((animType->transform) != 0) {
