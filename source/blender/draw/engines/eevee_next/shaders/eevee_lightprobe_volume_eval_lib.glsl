@@ -170,7 +170,7 @@ SphericalHarmonicL1 lightprobe_volume_sample(
 
   VolumeProbeData grid_data = grids_infos_buf[index];
 
-  mat3x3 world_to_grid_transposed = mat3x3(grid_data.world_to_grid_transposed);
+  mat3x3 world_to_grid_transposed = to_float3x3(grid_data.world_to_grid_transposed);
   vec3 lNg = safe_normalize(Ng * world_to_grid_transposed);
   vec3 lV = safe_normalize(V * world_to_grid_transposed);
 

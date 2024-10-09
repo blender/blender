@@ -230,6 +230,7 @@ ccl_device_forceinline int __float_as_int(float x)
 #define tanf(x) sycl::native::tan(((float)(x)))
 #define logf(x) sycl::native::log(((float)(x)))
 #define expf(x) sycl::native::exp(((float)(x)))
+#define sqrtf(x) sycl::native::sqrt(((float)(x)))
 
 #define __forceinline __attribute__((always_inline))
 

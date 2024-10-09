@@ -85,12 +85,15 @@ vec2 do_tria()
   float size = (tria2) ? -tria2Size : tria1Size;
   vec2 center = (tria2) ? tria2Center : tria1Center;
 
-  vec2 arrow_pos[4] = vec2[4](vec2(0.0, 0.6), vec2(0.6, 0.0), vec2(-0.6, 0.0), vec2(0.0, -0.6));
+  vec2 arrow_pos[4] = float2_array(
+      vec2(0.0, 0.6), vec2(0.6, 0.0), vec2(-0.6, 0.0), vec2(0.0, -0.6));
   /* Rotated uv space by 45deg and mirrored. */
-  vec2 arrow_uvs[4] = vec2[4](vec2(0.0, 0.85), vec2(0.85, 0.85), vec2(0.0, 0.0), vec2(0.0, 0.85));
+  vec2 arrow_uvs[4] = float2_array(
+      vec2(0.0, 0.85), vec2(0.85, 0.85), vec2(0.0, 0.0), vec2(0.0, 0.85));
 
-  vec2 point_pos[4] = vec2[4](vec2(-1.0, -1.0), vec2(-1.0, 1.0), vec2(1.0, -1.0), vec2(1.0, 1.0));
-  vec2 point_uvs[4] = vec2[4](vec2(0.0, 0.0), vec2(0.0, 1.0), vec2(1.0, 0.0), vec2(1.0, 1.0));
+  vec2 point_pos[4] = float2_array(
+      vec2(-1.0, -1.0), vec2(-1.0, 1.0), vec2(1.0, -1.0), vec2(1.0, 1.0));
+  vec2 point_uvs[4] = float2_array(vec2(0.0, 0.0), vec2(0.0, 1.0), vec2(1.0, 0.0), vec2(1.0, 1.0));
 
   /* We reuse the SDF round-box rendering of widget to render the tria shapes.
    * This means we do clever tricks to position the rectangle the way we want using

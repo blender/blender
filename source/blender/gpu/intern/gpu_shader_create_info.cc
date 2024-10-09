@@ -25,15 +25,18 @@
 #include "gpu_shader_create_info_private.hh"
 #include "gpu_shader_dependency_private.hh"
 
+#undef GPU_SHADER_NAMED_INTERFACE_INFO
 #undef GPU_SHADER_INTERFACE_INFO
 #undef GPU_SHADER_CREATE_INFO
 
 namespace blender::gpu::shader {
 
 using CreateInfoDictionnary = Map<StringRef, ShaderCreateInfo *>;
+using CreateInfoValueDictionnary = Map<StringRef, ShaderCreateInfo>;
 using InterfaceDictionnary = Map<StringRef, StageInterfaceInfo *>;
 
 static CreateInfoDictionnary *g_create_infos = nullptr;
+static CreateInfoValueDictionnary *g_create_infos_unfinalized = nullptr;
 static InterfaceDictionnary *g_interfaces = nullptr;
 
 /* -------------------------------------------------------------------- */
@@ -94,17 +97,12 @@ bool ShaderCreateInfo::is_vulkan_compatible() const
 
 /** \} */
 
-void ShaderCreateInfo::finalize()
+void ShaderCreateInfo::finalize(const bool recursive)
 {
   if (finalized_) {
     return;
   }
   finalized_ = true;
-
-#if 0
-  /* TODO(Miguel Pozo): This triggers for image renders. */
-  BLI_assert(BLI_thread_is_main());
-#endif
 
   Set<StringRefNull> deps_merged;
 
@@ -116,8 +114,12 @@ void ShaderCreateInfo::finalize()
     const ShaderCreateInfo &info = *reinterpret_cast<const ShaderCreateInfo *>(
         gpu_shader_create_info_get(info_name.c_str()));
 
-    /* Recursive. */
-    const_cast<ShaderCreateInfo &>(info).finalize();
+    if (recursive) {
+      const_cast<ShaderCreateInfo &>(info).finalize(recursive);
+    }
+    else {
+      BLI_assert(info.finalized_);
+    }
 
     interface_names_size_ += info.interface_names_size_;
 
@@ -450,10 +452,17 @@ using namespace blender::gpu::shader;
 void gpu_shader_create_info_init()
 {
   g_create_infos = new CreateInfoDictionnary();
+  g_create_infos_unfinalized = new CreateInfoValueDictionnary();
   g_interfaces = new InterfaceDictionnary();
 
-#define GPU_SHADER_INTERFACE_INFO(_interface, _inst_name) \
-  StageInterfaceInfo *ptr_##_interface = new StageInterfaceInfo(#_interface, _inst_name); \
+#define GPU_SHADER_NAMED_INTERFACE_INFO(_interface, _inst_name) \
+  StageInterfaceInfo *ptr_##_interface = new StageInterfaceInfo(#_interface, #_inst_name); \
+  StageInterfaceInfo &_interface = *ptr_##_interface; \
+  g_interfaces->add_new(#_interface, ptr_##_interface); \
+  _interface
+
+#define GPU_SHADER_INTERFACE_INFO(_interface) \
+  StageInterfaceInfo *ptr_##_interface = new StageInterfaceInfo(#_interface); \
   StageInterfaceInfo &_interface = *ptr_##_interface; \
   g_interfaces->add_new(#_interface, ptr_##_interface); \
   _interface
@@ -578,6 +587,14 @@ void gpu_shader_create_info_init()
 #endif
   }
 
+  for (auto [key, info] : g_create_infos->items()) {
+    g_create_infos_unfinalized->add_new(key, *info);
+  }
+
+  for (ShaderCreateInfo *info : g_create_infos->values()) {
+    info->finalize(true);
+  }
+
   /* TEST */
   // gpu_shader_create_info_compile(nullptr);
 }
@@ -591,6 +608,8 @@ void gpu_shader_create_info_exit()
     delete value;
   }
   delete g_create_infos;
+
+  delete g_create_infos_unfinalized;
 
   for (auto *value : g_interfaces->values()) {
     delete value;
@@ -693,4 +712,19 @@ const GPUShaderCreateInfo *gpu_shader_create_info_get(const char *info_name)
   }
   ShaderCreateInfo *info = g_create_infos->lookup(info_name);
   return reinterpret_cast<const GPUShaderCreateInfo *>(info);
+}
+
+void gpu_shader_create_info_get_unfinalized_copy(const char *info_name,
+                                                 GPUShaderCreateInfo &r_info)
+{
+  if (g_create_infos_unfinalized->contains(info_name) == false) {
+    std::string msg = std::string("Error: Cannot find shader create info named \"") + info_name +
+                      "\"\n";
+    BLI_assert_msg(0, msg.c_str());
+  }
+  else {
+    ShaderCreateInfo &info = reinterpret_cast<ShaderCreateInfo &>(r_info);
+    info = g_create_infos_unfinalized->lookup(info_name);
+    BLI_assert(!info.finalized_);
+  }
 }

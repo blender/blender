@@ -8,6 +8,8 @@
 
 #include "common_math_lib.glsl"
 
+COMPUTE_SHADER_CREATE_INFO(draw_view_finalize)
+
 void projmat_dimensions(mat4 winmat,
                         out float r_left,
                         out float r_right,

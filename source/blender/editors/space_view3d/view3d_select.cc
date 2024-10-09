@@ -465,8 +465,7 @@ static bool view3d_selectable_data(bContext *C)
     if (ob->mode & OB_MODE_EDIT) {
       return ob->type != OB_FONT;
     }
-    if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_TEXTURE_PAINT | OB_MODE_SCULPT_GPENCIL_LEGACY))
-    {
+    if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_TEXTURE_PAINT | OB_MODE_SCULPT_GREASE_PENCIL)) {
       return BKE_paint_select_elem_test(ob);
     }
     if (ob->mode & OB_MODE_WEIGHT_PAINT) {
@@ -3130,10 +3129,18 @@ static bool ed_curves_select_pick(bContext &C, const int mval[2], const SelectPi
               };
 
           if (selection_domain == bke::AttrDomain::Point) {
-            ed::curves::foreach_selectable_point_range(curves, deformation, range_consumer);
+            ed::curves::foreach_selectable_point_range(
+                curves,
+                deformation,
+                eHandleDisplay(vc.v3d->overlay.handle_display),
+                range_consumer);
           }
           else if (selection_domain == bke::AttrDomain::Curve) {
-            ed::curves::foreach_selectable_curve_range(curves, deformation, range_consumer);
+            ed::curves::foreach_selectable_curve_range(
+                curves,
+                deformation,
+                eHandleDisplay(vc.v3d->overlay.handle_display),
+                range_consumer);
           };
         }
         return new_closest;
@@ -3284,10 +3291,18 @@ static bool ed_grease_pencil_select_pick(bContext *C,
           };
 
           if (selection_domain == bke::AttrDomain::Point) {
-            ed::curves::foreach_selectable_point_range(curves, deformation, range_consumer);
+            ed::curves::foreach_selectable_point_range(
+                curves,
+                deformation,
+                eHandleDisplay(vc.v3d->overlay.handle_display),
+                range_consumer);
           }
           else if (selection_domain == bke::AttrDomain::Curve) {
-            ed::curves::foreach_selectable_curve_range(curves, deformation, range_consumer);
+            ed::curves::foreach_selectable_curve_range(
+                curves,
+                deformation,
+                eHandleDisplay(vc.v3d->overlay.handle_display),
+                range_consumer);
           };
         }
         return new_closest;

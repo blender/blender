@@ -61,7 +61,7 @@ void main()
     thick_time = thickness * (thick_time * 2.0 - 1.0);
     /* Take object scale into account.
      * NOTE: This only works fine with uniform scaling. */
-    float scale = 1.0 / length(mat3(ModelMatrixInverse) * binor);
+    float scale = 1.0 / length(to_float3x3(ModelMatrixInverse) * binor);
     world_pos = center_wpos + binor * thick_time * scale;
   }
   else {

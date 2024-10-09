@@ -186,97 +186,6 @@ struct iterData {
   float plane[4];
 };
 
-static void gpencil_layer_cache_populate(bGPDlayer *gpl,
-                                         bGPDframe * /*gpf*/,
-                                         bGPDstroke * /*gps*/,
-                                         void *thunk)
-{
-  using namespace blender::draw;
-  iterData *iter = (iterData *)thunk;
-  bGPdata *gpd = (bGPdata *)iter->ob->data;
-
-  const bool is_screenspace = (gpd->flag & GP_DATA_STROKE_KEEPTHICKNESS) != 0;
-  const bool is_stroke_order_3d = (gpd->draw_mode == GP_DRAWMODE_3D);
-
-  float object_scale = mat4_to_scale(iter->ob->object_to_world().ptr());
-  /* Negate thickness sign to tag that strokes are in screen space.
-   * Convert to world units (by default, 1 meter = 2000 pixels). */
-  float thickness_scale = (is_screenspace) ? -1.0f : (gpd->pixfactor / 2000.0f);
-
-  blender::gpu::VertBuf *position_tx = DRW_cache_gpencil_position_buffer_get(iter->ob, iter->cfra);
-  blender::gpu::VertBuf *color_tx = DRW_cache_gpencil_color_buffer_get(iter->ob, iter->cfra);
-
-  DRWShadingGroup *grp = iter->stroke_grp = DRW_shgroup_create_sub(iter->stroke_grp);
-  DRW_shgroup_uniform_bool_copy(grp, "gpStrokeOrder3d", is_stroke_order_3d);
-  DRW_shgroup_uniform_float_copy(grp, "gpThicknessScale", object_scale);
-  DRW_shgroup_uniform_float_copy(grp, "gpThicknessOffset", float(gpl->line_change));
-  DRW_shgroup_uniform_float_copy(grp, "gpThicknessWorldScale", thickness_scale);
-  DRW_shgroup_uniform_vec4_copy(grp, "gpDepthPlane", iter->plane);
-  DRW_shgroup_buffer_texture(grp, "gp_pos_tx", position_tx);
-  DRW_shgroup_buffer_texture(grp, "gp_col_tx", color_tx);
-}
-
-static void gpencil_stroke_cache_populate(bGPDlayer * /*gpl*/,
-                                          bGPDframe * /*gpf*/,
-                                          bGPDstroke *gps,
-                                          void *thunk)
-{
-  using namespace blender::draw;
-  iterData *iter = (iterData *)thunk;
-
-  MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(iter->ob, gps->mat_nr + 1);
-
-  bool hide_material = (gp_style->flag & GP_MATERIAL_HIDE) != 0;
-  bool show_stroke = (gp_style->flag & GP_MATERIAL_STROKE_SHOW) != 0;
-  /* TODO: What about simplify Fill? */
-  bool show_fill = (gps->tot_triangles > 0) && (gp_style->flag & GP_MATERIAL_FILL_SHOW) != 0;
-
-  if (hide_material) {
-    return;
-  }
-
-  blender::gpu::Batch *geom = DRW_cache_gpencil_get(iter->ob, iter->cfra);
-
-  if (show_fill) {
-    int vfirst = gps->runtime.fill_start * 3;
-    int vcount = gps->tot_triangles * 3;
-    DRW_shgroup_call_range(iter->stroke_grp, iter->ob, geom, vfirst, vcount);
-  }
-
-  if (show_stroke) {
-    int vfirst = gps->runtime.stroke_start * 3;
-    bool is_cyclic = ((gps->flag & GP_STROKE_CYCLIC) != 0) && (gps->totpoints > 2);
-    int vcount = (gps->totpoints + int(is_cyclic)) * 2 * 3;
-    DRW_shgroup_call_range(iter->stroke_grp, iter->ob, geom, vfirst, vcount);
-  }
-}
-
-static void OVERLAY_outline_gpencil(OVERLAY_PrivateData *pd, Object *ob)
-{
-  /* No outlines in edit mode. */
-  bGPdata *gpd = (bGPdata *)ob->data;
-  if (gpd && GPENCIL_ANY_MODE(gpd)) {
-    return;
-  }
-
-  iterData iter{};
-  iter.ob = ob;
-  iter.stroke_grp = pd->outlines_gpencil_grp;
-  iter.cfra = pd->cfra;
-
-  if (gpd->draw_mode == GP_DRAWMODE_2D) {
-    gpencil_depth_plane(ob, iter.plane);
-  }
-
-  BKE_gpencil_visible_stroke_advanced_iter(nullptr,
-                                           ob,
-                                           gpencil_layer_cache_populate,
-                                           gpencil_stroke_cache_populate,
-                                           &iter,
-                                           false,
-                                           pd->cfra);
-}
-
 static void OVERLAY_outline_grease_pencil(OVERLAY_PrivateData *pd, Scene *scene, Object *ob)
 {
   using namespace blender;
@@ -410,11 +319,6 @@ void OVERLAY_outline_cache_populate(OVERLAY_Data *vedata,
 
   /* Early exit: outlines of bounding boxes are not drawn. */
   if (!draw_outline) {
-    return;
-  }
-
-  if (ob->type == OB_GPENCIL_LEGACY) {
-    OVERLAY_outline_gpencil(pd, ob);
     return;
   }
 

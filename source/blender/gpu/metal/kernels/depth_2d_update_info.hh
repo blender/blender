@@ -8,7 +8,7 @@
 
 #include "gpu_shader_create_info.hh"
 
-GPU_SHADER_INTERFACE_INFO(depth_2d_update_iface, "").smooth(Type::VEC2, "texCoord_interp");
+GPU_SHADER_INTERFACE_INFO(depth_2d_update_iface).smooth(Type::VEC2, "texCoord_interp");
 
 GPU_SHADER_CREATE_INFO(depth_2d_update_info_base)
     .vertex_in(0, Type::VEC2, "pos")

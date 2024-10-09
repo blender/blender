@@ -1031,13 +1031,17 @@ static int change_visibility_exec(bContext *C, wmOperator *op)
    * navigation. */
   if (ELEM(mode, VisibilityMode::Toggle, VisibilityMode::ShowActive)) {
     UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
-
-    float location[3];
-    copy_v3_v3(location, ss.active_vert_position(depsgraph, object));
-    mul_m4_v3(object.object_to_world().ptr(), location);
-    copy_v3_v3(ups->average_stroke_accum, location);
-    ups->average_stroke_counter = 1;
-    ups->last_stroke_valid = true;
+    if (std::holds_alternative<std::monostate>(ss.active_vert())) {
+      ups->last_stroke_valid = false;
+    }
+    else {
+      float location[3];
+      copy_v3_v3(location, ss.active_vert_position(depsgraph, object));
+      mul_m4_v3(object.object_to_world().ptr(), location);
+      copy_v3_v3(ups->average_stroke_accum, location);
+      ups->average_stroke_counter = 1;
+      ups->last_stroke_valid = true;
+    }
   }
 
   undo::push_end(object);

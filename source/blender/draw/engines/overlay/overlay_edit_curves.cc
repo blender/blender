@@ -30,6 +30,7 @@ void OVERLAY_edit_curves_init(OVERLAY_Data *vedata)
   pd->edit_curves.do_points = bke::AttrDomain(curves_id.selection_domain) ==
                               bke::AttrDomain::Point;
   pd->edit_curves.do_zbufclip = XRAY_FLAG_ENABLED(draw_ctx->v3d);
+  pd->edit_curves.handle_display = draw_ctx->v3d->overlay.handle_display;
 
   /* Create view with depth offset. */
   DRWView *default_view = (DRWView *)DRW_view_default_get();
@@ -52,11 +53,12 @@ void OVERLAY_edit_curves_cache_init(OVERLAY_Data *vedata)
   for (int i = 0; i < 2; i++) {
     if (pd->edit_curves.do_points) {
       DRW_PASS_CREATE(psl->edit_curves_points_ps[i], (state | pd->clipping_state));
-      sh = OVERLAY_shader_edit_particle_point();
+      sh = OVERLAY_shader_edit_curves_point();
       grp = pd->edit_curves_points_grp[i] = DRW_shgroup_create(sh, psl->edit_curves_points_ps[i]);
       DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
       DRW_shgroup_uniform_bool_copy(grp, "useWeight", false);
       DRW_shgroup_uniform_bool_copy(grp, "useGreasePencil", false);
+      DRW_shgroup_uniform_int_copy(grp, "curveHandleDisplay", pd->edit_curves.handle_display);
     }
     DRW_PASS_CREATE(psl->edit_curves_lines_ps[i], (state | pd->clipping_state));
     sh = OVERLAY_shader_edit_particle_strand();
@@ -71,6 +73,7 @@ void OVERLAY_edit_curves_cache_init(OVERLAY_Data *vedata)
     sh = OVERLAY_shader_edit_curves_handle();
     grp = pd->edit_curves_handles_grp = DRW_shgroup_create(sh, psl->edit_curves_handles_ps);
     DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
+    DRW_shgroup_uniform_int_copy(grp, "curveHandleDisplay", pd->edit_curves.handle_display);
     DRW_shgroup_state_enable(grp, DRW_STATE_BLEND_ALPHA);
   }
 }

@@ -2356,6 +2356,20 @@ Vector<FCurve *> fcurves_in_action_slot_filtered(bAction *act,
   return found;
 }
 
+Vector<FCurve *> fcurves_in_span_filtered(Span<FCurve *> fcurves,
+                                          FunctionRef<bool(const FCurve &fcurve)> predicate)
+{
+  Vector<FCurve *> found;
+
+  for (FCurve *fcurve : fcurves) {
+    if (predicate(*fcurve)) {
+      found.append(fcurve);
+    }
+  }
+
+  return found;
+}
+
 Vector<FCurve *> fcurves_in_listbase_filtered(ListBase /* FCurve * */ fcurves,
                                               FunctionRef<bool(const FCurve &fcurve)> predicate)
 {
@@ -2486,22 +2500,11 @@ FCurve *action_fcurve_ensure(Main *bmain,
 
 bool action_fcurve_remove(Action &action, FCurve &fcu)
 {
-  BLI_assert(action.is_action_layered());
-
-  for (Layer *layer : action.layers()) {
-    for (Strip *strip : layer->strips()) {
-      if (!(strip->type() == Strip::Type::Keyframe)) {
-        continue;
-      }
-      StripKeyframeData &strip_data = strip->data<StripKeyframeData>(action);
-      for (ChannelBag *bag : strip_data.channelbags()) {
-        const bool removed = bag->fcurve_remove(fcu);
-        if (removed) {
-          return true;
-        }
-      }
-    }
+  if (action_fcurve_detach(action, fcu)) {
+    BKE_fcurve_free(&fcu);
+    return true;
   }
+
   return false;
 }
 

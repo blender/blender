@@ -5,11 +5,12 @@
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(compositor_keying_screen)
-    .local_group_size(16, 16)
-    .push_constant(Type::FLOAT, "smoothness")
-    .push_constant(Type::INT, "number_of_markers")
-    .storage_buf(0, Qualifier::READ, "vec2", "marker_positions[]")
-    .storage_buf(1, Qualifier::READ, "vec4", "marker_colors[]")
-    .image(0, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
-    .compute_source("compositor_keying_screen.glsl")
-    .do_static_compilation(true);
+LOCAL_GROUP_SIZE(16, 16)
+PUSH_CONSTANT(FLOAT, smoothness)
+PUSH_CONSTANT(INT, number_of_markers)
+STORAGE_BUF(0, READ, vec2, marker_positions[])
+STORAGE_BUF(1, READ, vec4, marker_colors[])
+IMAGE(0, GPU_RGBA16F, WRITE, FLOAT_2D, output_img)
+COMPUTE_SOURCE("compositor_keying_screen.glsl")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()

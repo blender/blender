@@ -9,6 +9,8 @@
 #include "gpu_shader_math_matrix_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
 
+COMPUTE_SHADER_CREATE_INFO(draw_resource_finalize)
+
 void main()
 {
   uint resource_id = gl_GlobalInvocationID.x;

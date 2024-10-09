@@ -718,16 +718,6 @@ void DrawCommandBuf::finalize_commands(Vector<Header, 0> &headers,
       cmd.vertex_len = batch_vert_len;
     }
 
-#ifdef WITH_METAL_BACKEND
-    /* For SSBO vertex fetch, mutate output vertex count by ssbo vertex fetch expansion factor. */
-    if (cmd.shader) {
-      int num_input_primitives = gpu_get_prim_count_from_type(cmd.vertex_len,
-                                                              cmd.batch->prim_type);
-      cmd.vertex_len = num_input_primitives *
-                       GPU_shader_get_ssbo_vertex_fetch_num_verts_per_prim(cmd.shader);
-    }
-#endif
-
     if (cmd.handle.raw > 0) {
       /* Save correct offset to start of resource_id buffer region for this draw. */
       uint instance_first = resource_id_count;
@@ -810,21 +800,6 @@ void DrawMultiBuf::bind(RecordingState &state,
        * the indirection manually inside the shader. */
       group.base_index = -1;
     }
-
-#ifdef WITH_METAL_BACKEND
-    /* For SSBO vertex fetch, mutate output vertex count by ssbo vertex fetch expansion factor. */
-    if (group.desc.gpu_shader) {
-      int num_input_primitives = gpu_get_prim_count_from_type(group.vertex_len,
-                                                              group.desc.gpu_batch->prim_type);
-      group.vertex_len = num_input_primitives *
-                         GPU_shader_get_ssbo_vertex_fetch_num_verts_per_prim(
-                             group.desc.gpu_shader);
-      /* Override base index to -1, as all SSBO calls are submitted as non-indexed, with the
-       * index buffer indirection handled within the implementation. This is to ensure
-       * command generation can correctly assigns baseInstance in the non-indexed formatting. */
-      group.base_index = -1;
-    }
-#endif
 
     /* Reset counters to 0 for the GPU. */
     group.total_counter = group.front_facing_counter = group.back_facing_counter = 0;

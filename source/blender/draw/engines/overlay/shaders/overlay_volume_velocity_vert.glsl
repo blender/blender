@@ -178,12 +178,12 @@ void main()
 #  ifdef USE_NEEDLE
   /* NOTE(Metal): Declaring constant arrays in function scope to avoid increasing local shader
    * memory pressure. */
-  const vec3 corners[4] = vec3[4](vec3(0.0, 0.2, -0.5),
-                                  vec3(-0.2 * 0.866, -0.2 * 0.5, -0.5),
-                                  vec3(0.2 * 0.866, -0.2 * 0.5, -0.5),
-                                  vec3(0.0, 0.0, 0.5));
+  const vec3 corners[4] = float3_array(vec3(0.0, 0.2, -0.5),
+                                       vec3(-0.2 * 0.866, -0.2 * 0.5, -0.5),
+                                       vec3(0.2 * 0.866, -0.2 * 0.5, -0.5),
+                                       vec3(0.0, 0.0, 0.5));
 
-  const int indices[12] = int[12](0, 1, 1, 2, 2, 0, 0, 3, 1, 3, 2, 3);
+  const int indices[12] = int_array(0, 1, 1, 2, 2, 0, 0, 3, 1, 3, 2, 3);
 
   vec3 rotated_pos = rot_mat * corners[indices[gl_VertexID % 12]];
   pos += rotated_pos * vector_length * displaySize * cellSize;

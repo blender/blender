@@ -42,6 +42,7 @@ namespace blender::nodes {
 
 using lf::LazyFunction;
 using mf::MultiFunction;
+using ReferenceSetIndex = int;
 
 /** The structs in here describe the different possible behaviors of a simulation input node. */
 namespace sim_input {
@@ -350,7 +351,7 @@ struct GeometryNodeLazyFunctionGraphMapping {
   /* Indexed by #bNodeSocket::index_in_all_outputs. */
   Array<int> lf_input_index_for_output_bsocket_usage;
   /* Indexed by #bNodeSocket::index_in_all_outputs. */
-  Array<int> lf_input_index_for_attribute_propagation_to_output;
+  Array<int> lf_input_index_for_reference_set_for_output;
   /* Indexed by #bNodeSocket::index_in_tree. */
   Array<int> lf_index_by_bsocket;
 };
@@ -384,7 +385,7 @@ struct GeometryNodesGroupFunction {
     struct {
       IndexRange range;
       Vector<int> geometry_outputs;
-    } attributes_to_propagate;
+    } references_to_propagate;
   } inputs;
 
   struct {
@@ -520,13 +521,7 @@ struct ZoneFunctionIndices {
     Vector<int> main;
     Vector<int> border_links;
     Vector<int> output_usages;
-    /**
-     * Some attribute sets are input into the body of a zone from the outside. These two
-     * maps indicate which zone function inputs corresponds to attribute set. Attribute sets are
-     * identified by either a "field source index" or "caller propagation index".
-     */
-    Map<int, int> attributes_by_field_source_index;
-    Map<int, int> attributes_by_caller_propagation_index;
+    Map<ReferenceSetIndex, int> reference_sets;
   } inputs;
   struct {
     Vector<int> main;

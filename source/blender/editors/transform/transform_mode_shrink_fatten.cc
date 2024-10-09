@@ -75,6 +75,11 @@ static void transdata_elem_shrink_fatten_fn(void *__restrict iter_data_v,
 
 static eRedrawFlag shrinkfatten_handleEvent(TransInfo *t, const wmEvent *event)
 {
+  if (t->redraw) {
+    /* Event already handled. */
+    return TREDRAW_NOTHING;
+  }
+
   BLI_assert(t->mode == TFM_SHRINKFATTEN);
   const wmKeyMapItem *kmi = static_cast<const wmKeyMapItem *>(t->custom.mode.data);
   if (kmi && event->type == kmi->type && event->val == kmi->val) {

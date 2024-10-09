@@ -1409,14 +1409,18 @@ TEST(path_utils, PathIsAbsFromCwd)
 {
 #ifdef WIN32
   EXPECT_FALSE(BLI_path_is_abs_from_cwd("/file.txt"));
+  EXPECT_FALSE(BLI_path_is_abs_from_cwd("/"));
 
+  EXPECT_TRUE(BLI_path_is_abs_from_cwd("C:"));
   EXPECT_TRUE(BLI_path_is_abs_from_cwd("C:/file.txt"));
   EXPECT_TRUE(BLI_path_is_abs_from_cwd("C:\\file.txt"));
   EXPECT_TRUE(BLI_path_is_abs_from_cwd("\\\\host\\server\\file.txt"));
   EXPECT_TRUE(BLI_path_is_abs_from_cwd("\\\\?\\C:\\server\\file.txt"));
 #else
   EXPECT_TRUE(BLI_path_is_abs_from_cwd("/file.txt"));
+  EXPECT_TRUE(BLI_path_is_abs_from_cwd("/"));
 
+  EXPECT_FALSE(BLI_path_is_abs_from_cwd("C:"));
   EXPECT_FALSE(BLI_path_is_abs_from_cwd("C:/file.txt"));
   EXPECT_FALSE(BLI_path_is_abs_from_cwd("C:\\file.txt"));
   EXPECT_FALSE(BLI_path_is_abs_from_cwd("\\\\host\\server\\file.txt"));

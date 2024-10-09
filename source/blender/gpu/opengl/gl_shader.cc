@@ -1059,10 +1059,6 @@ static const char *glsl_patch_default_get()
   /* Array compatibility. */
   ss << "#define gpu_Array(_type) _type[]\n";
 
-  /* Derivative sign can change depending on implementation. */
-  ss << "#define DFDX_SIGN " << std::setprecision(2) << GLContext::derivative_signs[0] << "\n";
-  ss << "#define DFDY_SIGN " << std::setprecision(2) << GLContext::derivative_signs[1] << "\n";
-
   /* GLSL Backend Lib. */
   ss << datatoc_glsl_shader_defines_glsl;
 

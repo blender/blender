@@ -7,6 +7,8 @@
 # Build `glsl_preprocess` executable.
 set(SRC
   glsl_preprocess.cc
+
+  glsl_preprocess.hh
 )
 
 # `SRC_DNA_INC` is defined in the parent directory.

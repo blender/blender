@@ -97,7 +97,7 @@ static void handle_node_declaration_items(bContext *C,
     else if (const PanelDeclaration *panel_decl = dynamic_cast<const PanelDeclaration *>(
                  item_decl))
     {
-      const ItemIterator panel_item_end = item_iter + panel_decl->num_child_decls;
+      const ItemIterator panel_item_end = item_iter + panel_decl->items.size();
       BLI_assert(panel_item_end <= item_end);
 
       /* Use a root panel property to toggle open/closed state. */
@@ -138,8 +138,8 @@ void uiTemplateNodeInputs(uiLayout *layout, bContext *C, PointerRNA *ptr)
 
   if (node.declaration()) {
     /* Draw socket inputs and panel buttons in the order of declaration panels. */
-    ItemIterator item_iter = node.declaration()->items.begin();
-    const ItemIterator item_end = node.declaration()->items.end();
+    ItemIterator item_iter = node.declaration()->all_items.begin();
+    const ItemIterator item_end = node.declaration()->all_items.end();
     Panel *root_panel = uiLayoutGetRootPanel(layout);
     blender::ui::nodes::handle_node_declaration_items(
         C, root_panel, layout, ptr, item_iter, item_end);

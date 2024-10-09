@@ -353,7 +353,7 @@ PyDoc_STRVAR(
     "has exactly one normal. In a smooth surface, an SVertex can have any\n"
     "number of normals.\n"
     "\n"
-    ":type: list of :class:`mathutils.Vector` objects");
+    ":type: list of :class:`mathutils.Vector`");
 
 static PyObject *SVertex_normals_get(BPy_SVertex *self, void * /*closure*/)
 {

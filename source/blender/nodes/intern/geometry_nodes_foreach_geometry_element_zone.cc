@@ -698,19 +698,10 @@ class LazyFunctionForForeachGeometryElementZone : public LazyFunction {
               *graph_inputs[zone_info_.indices.inputs.border_links[border_link_i]],
               lf_body_node.input(body_fn_.indices.inputs.border_links[border_link_i]));
         }
-        /* Link up attribute propagation information. */
-        for (const auto item : body_fn_.indices.inputs.attributes_by_field_source_index.items()) {
+        /* Link up reference sets. */
+        for (const auto &item : body_fn_.indices.inputs.reference_sets.items()) {
           lf_graph.add_link(
-              *graph_inputs[zone_info_.indices.inputs.attributes_by_field_source_index.lookup(
-                  item.key)],
-              lf_body_node.input(item.value));
-        }
-        for (const auto item :
-             body_fn_.indices.inputs.attributes_by_caller_propagation_index.items())
-        {
-          lf_graph.add_link(
-              *graph_inputs[zone_info_.indices.inputs.attributes_by_caller_propagation_index
-                                .lookup(item.key)],
+              *graph_inputs[zone_info_.indices.inputs.reference_sets.lookup(item.key)],
               lf_body_node.input(item.value));
         }
       }

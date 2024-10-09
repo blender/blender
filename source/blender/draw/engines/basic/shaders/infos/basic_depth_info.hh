@@ -11,8 +11,9 @@
  * \{ */
 
 GPU_SHADER_CREATE_INFO(basic_conservative)
-    .geometry_layout(PrimitiveIn::TRIANGLES, PrimitiveOut::TRIANGLE_STRIP, 3)
-    .geometry_source("basic_conservative_depth_geom.glsl");
+GEOMETRY_LAYOUT(PrimitiveIn::TRIANGLES, PrimitiveOut::TRIANGLE_STRIP, 3)
+GEOMETRY_SOURCE("basic_conservative_depth_geom.glsl")
+GPU_SHADER_CREATE_END()
 
 /** \} */
 
@@ -21,28 +22,33 @@ GPU_SHADER_CREATE_INFO(basic_conservative)
  * \{ */
 
 GPU_SHADER_CREATE_INFO(basic_mesh)
-    .vertex_in(0, Type::VEC3, "pos")
-    .vertex_source("basic_depth_vert.glsl")
-    .additional_info("draw_mesh");
+VERTEX_IN(0, VEC3, pos)
+VERTEX_SOURCE("basic_depth_vert.glsl")
+ADDITIONAL_INFO(draw_mesh)
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(basic_pointcloud)
-    .vertex_source("basic_depth_pointcloud_vert.glsl")
-    .additional_info("draw_pointcloud");
+VERTEX_SOURCE("basic_depth_pointcloud_vert.glsl")
+ADDITIONAL_INFO(draw_pointcloud)
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(basic_curves)
-    .vertex_source("basic_depth_curves_vert.glsl")
-    .additional_info("draw_hair");
+VERTEX_SOURCE("basic_depth_curves_vert.glsl")
+ADDITIONAL_INFO(draw_hair)
+GPU_SHADER_CREATE_END()
 
 /* Geometry-shader alternative paths. */
 GPU_SHADER_CREATE_INFO(basic_mesh_conservative_no_geom)
-    .vertex_in(0, Type::VEC3, "pos")
-    .vertex_source("basic_depth_vert_conservative_no_geom.glsl")
-    .additional_info("draw_mesh");
+VERTEX_IN(0, VEC3, pos)
+VERTEX_SOURCE("basic_depth_vert_conservative_no_geom.glsl")
+ADDITIONAL_INFO(draw_mesh)
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(basic_pointcloud_conservative_no_geom)
-    .define("CONSERVATIVE_RASTER")
-    .vertex_source("basic_depth_pointcloud_vert.glsl")
-    .additional_info("draw_pointcloud");
+DEFINE("CONSERVATIVE_RASTER")
+VERTEX_SOURCE("basic_depth_pointcloud_vert.glsl")
+ADDITIONAL_INFO(draw_pointcloud)
+GPU_SHADER_CREATE_END()
 
 /** \} */
 
@@ -50,22 +56,19 @@ GPU_SHADER_CREATE_INFO(basic_pointcloud_conservative_no_geom)
 /** \name Variations Declaration
  * \{ */
 
-#define BASIC_FINAL_VARIATION(name, ...) \
-  GPU_SHADER_CREATE_INFO(name).additional_info(__VA_ARGS__).do_static_compilation(true);
-
 #define BASIC_CLIPPING_VARIATIONS(prefix, ...) \
-  BASIC_FINAL_VARIATION(prefix##_clipped, "drw_clipped", __VA_ARGS__) \
-  BASIC_FINAL_VARIATION(prefix, __VA_ARGS__)
+  CREATE_INFO_VARIANT(prefix##_clipped, drw_clipped, __VA_ARGS__) \
+  CREATE_INFO_VARIANT(prefix, __VA_ARGS__)
 
 #define BASIC_CONSERVATIVE_VARIATIONS(prefix, ...) \
-  BASIC_CLIPPING_VARIATIONS(prefix##_conservative, "basic_conservative", __VA_ARGS__) \
+  BASIC_CLIPPING_VARIATIONS(prefix##_conservative, basic_conservative, __VA_ARGS__) \
   BASIC_CLIPPING_VARIATIONS(prefix##_conservative_no_geom, __VA_ARGS__) \
   BASIC_CLIPPING_VARIATIONS(prefix, __VA_ARGS__)
 
 #define BASIC_OBTYPE_VARIATIONS(prefix, ...) \
-  BASIC_CONSERVATIVE_VARIATIONS(prefix##_mesh, "basic_mesh", __VA_ARGS__) \
-  BASIC_CONSERVATIVE_VARIATIONS(prefix##_pointcloud, "basic_pointcloud", __VA_ARGS__) \
-  BASIC_CLIPPING_VARIATIONS(prefix##_curves, "basic_curves", __VA_ARGS__)
+  BASIC_CONSERVATIVE_VARIATIONS(prefix##_mesh, basic_mesh, __VA_ARGS__) \
+  BASIC_CONSERVATIVE_VARIATIONS(prefix##_pointcloud, basic_pointcloud, __VA_ARGS__) \
+  BASIC_CLIPPING_VARIATIONS(prefix##_curves, basic_curves, __VA_ARGS__)
 
 /** \} */
 
@@ -73,8 +76,10 @@ GPU_SHADER_CREATE_INFO(basic_pointcloud_conservative_no_geom)
 /** \name Depth shader types.
  * \{ */
 
-GPU_SHADER_CREATE_INFO(basic_depth).fragment_source("basic_depth_frag.glsl");
+GPU_SHADER_CREATE_INFO(basic_depth)
+FRAGMENT_SOURCE("basic_depth_frag.glsl")
+GPU_SHADER_CREATE_END()
 
-BASIC_OBTYPE_VARIATIONS(basic_depth, "basic_depth", "draw_globals");
+BASIC_OBTYPE_VARIATIONS(basic_depth, basic_depth, draw_globals)
 
 /** \} */

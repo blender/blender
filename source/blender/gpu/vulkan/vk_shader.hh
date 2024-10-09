@@ -131,8 +131,6 @@ class VKShader : public Shader {
   }
 
  private:
-  Vector<uint32_t> compile_glsl_to_spirv(Span<const char *> sources, shaderc_shader_kind kind);
-  void build_shader_module(Span<uint32_t> spirv_module, VKShaderModule &r_shader_module);
   void build_shader_module(MutableSpan<const char *> sources,
                            shaderc_shader_kind stage,
                            VKShaderModule &r_shader_module);

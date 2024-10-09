@@ -11,281 +11,299 @@
 /** \name Shadow pipeline
  * \{ */
 
-/* NOTE(Metal): As this is implemented using a fundamental data type, this needs to be specified
- * explicitly as uint for code generation, as the MSLShaderGenerator needs to be able to
- * distinguish between classes and fundamental types during code generation. */
-#define SHADOW_TILE_DATA_PACKED "uint"
-#define SHADOW_PAGE_PACKED "uint"
-
 GPU_SHADER_CREATE_INFO(eevee_shadow_clipmap_clear)
-    .do_static_compilation(true)
-    .local_group_size(SHADOW_CLIPMAP_GROUP_SIZE)
-    .storage_buf(0, Qualifier::WRITE, "ShadowTileMapClip", "tilemaps_clip_buf[]")
-    .push_constant(Type::INT, "tilemaps_clip_buf_len")
-    .additional_info("eevee_shared")
-    .compute_source("eevee_shadow_clipmap_clear_comp.glsl");
+DO_STATIC_COMPILATION()
+LOCAL_GROUP_SIZE(SHADOW_CLIPMAP_GROUP_SIZE)
+STORAGE_BUF(0, WRITE, ShadowTileMapClip, tilemaps_clip_buf[])
+PUSH_CONSTANT(INT, tilemaps_clip_buf_len)
+ADDITIONAL_INFO(eevee_shared)
+COMPUTE_SOURCE("eevee_shadow_clipmap_clear_comp.glsl")
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_shadow_tilemap_bounds)
-    .do_static_compilation(true)
-    .local_group_size(SHADOW_BOUNDS_GROUP_SIZE)
-    .storage_buf(LIGHT_BUF_SLOT, Qualifier::READ_WRITE, "LightData", "light_buf[]")
-    .storage_buf(LIGHT_CULL_BUF_SLOT, Qualifier::READ, "LightCullingData", "light_cull_buf")
-    .storage_buf(4, Qualifier::READ, "uint", "casters_id_buf[]")
-    .storage_buf(5, Qualifier::READ_WRITE, "ShadowTileMapData", "tilemaps_buf[]")
-    .storage_buf(6, Qualifier::READ, "ObjectBounds", "bounds_buf[]")
-    .storage_buf(7, Qualifier::READ_WRITE, "ShadowTileMapClip", "tilemaps_clip_buf[]")
-    .push_constant(Type::INT, "resource_len")
-    .typedef_source("draw_shader_shared.hh")
-    .additional_info("eevee_shared")
-    .compute_source("eevee_shadow_tilemap_bounds_comp.glsl");
+DO_STATIC_COMPILATION()
+LOCAL_GROUP_SIZE(SHADOW_BOUNDS_GROUP_SIZE)
+STORAGE_BUF(LIGHT_BUF_SLOT, READ_WRITE, LightData, light_buf[])
+STORAGE_BUF(LIGHT_CULL_BUF_SLOT, READ, LightCullingData, light_cull_buf)
+STORAGE_BUF(4, READ, uint, casters_id_buf[])
+STORAGE_BUF(5, READ_WRITE, ShadowTileMapData, tilemaps_buf[])
+STORAGE_BUF(6, READ, ObjectBounds, bounds_buf[])
+STORAGE_BUF(7, READ_WRITE, ShadowTileMapClip, tilemaps_clip_buf[])
+PUSH_CONSTANT(INT, resource_len)
+TYPEDEF_SOURCE("draw_shader_shared.hh")
+ADDITIONAL_INFO(eevee_shared)
+COMPUTE_SOURCE("eevee_shadow_tilemap_bounds_comp.glsl")
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_shadow_tilemap_init)
-    .do_static_compilation(true)
-    .local_group_size(SHADOW_TILEMAP_RES, SHADOW_TILEMAP_RES)
-    .storage_buf(0, Qualifier::READ_WRITE, "ShadowTileMapData", "tilemaps_buf[]")
-    .storage_buf(1, Qualifier::READ_WRITE, SHADOW_TILE_DATA_PACKED, "tiles_buf[]")
-    .storage_buf(2, Qualifier::READ_WRITE, "ShadowTileMapClip", "tilemaps_clip_buf[]")
-    .storage_buf(4, Qualifier::READ_WRITE, "uvec2", "pages_cached_buf[]")
-    .additional_info("eevee_shared")
-    .compute_source("eevee_shadow_tilemap_init_comp.glsl");
+DO_STATIC_COMPILATION()
+LOCAL_GROUP_SIZE(SHADOW_TILEMAP_RES, SHADOW_TILEMAP_RES)
+STORAGE_BUF(0, READ_WRITE, ShadowTileMapData, tilemaps_buf[])
+STORAGE_BUF(1, READ_WRITE, uint, tiles_buf[])
+STORAGE_BUF(2, READ_WRITE, ShadowTileMapClip, tilemaps_clip_buf[])
+STORAGE_BUF(4, READ_WRITE, uvec2, pages_cached_buf[])
+ADDITIONAL_INFO(eevee_shared)
+COMPUTE_SOURCE("eevee_shadow_tilemap_init_comp.glsl")
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_shadow_tag_update)
-    .do_static_compilation(true)
-    .local_group_size(1, 1, 1)
-    .storage_buf(0, Qualifier::READ_WRITE, "ShadowTileMapData", "tilemaps_buf[]")
-    .storage_buf(1, Qualifier::READ_WRITE, SHADOW_TILE_DATA_PACKED, "tiles_buf[]")
-    .storage_buf(5, Qualifier::READ, "ObjectBounds", "bounds_buf[]")
-    .storage_buf(6, Qualifier::READ, "uint", "resource_ids_buf[]")
-    .additional_info("eevee_shared", "draw_view", "draw_view_culling")
-    .compute_source("eevee_shadow_tag_update_comp.glsl");
+DO_STATIC_COMPILATION()
+LOCAL_GROUP_SIZE(1, 1, 1)
+STORAGE_BUF(0, READ_WRITE, ShadowTileMapData, tilemaps_buf[])
+STORAGE_BUF(1, READ_WRITE, uint, tiles_buf[])
+STORAGE_BUF(5, READ, ObjectBounds, bounds_buf[])
+STORAGE_BUF(6, READ, uint, resource_ids_buf[])
+ADDITIONAL_INFO(eevee_shared)
+ADDITIONAL_INFO(draw_view)
+ADDITIONAL_INFO(draw_view_culling)
+COMPUTE_SOURCE("eevee_shadow_tag_update_comp.glsl")
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_shadow_tag_usage_opaque)
-    .do_static_compilation(true)
-    .local_group_size(SHADOW_DEPTH_SCAN_GROUP_SIZE, SHADOW_DEPTH_SCAN_GROUP_SIZE)
-    .storage_buf(5, Qualifier::READ_WRITE, "ShadowTileMapData", "tilemaps_buf[]")
-    .storage_buf(6, Qualifier::READ_WRITE, SHADOW_TILE_DATA_PACKED, "tiles_buf[]")
-    .push_constant(Type::IVEC2, "input_depth_extent")
-    .additional_info(
-        "eevee_shared", "draw_view", "draw_view_culling", "eevee_hiz_data", "eevee_light_data")
-    .compute_source("eevee_shadow_tag_usage_comp.glsl");
+DO_STATIC_COMPILATION()
+LOCAL_GROUP_SIZE(SHADOW_DEPTH_SCAN_GROUP_SIZE, SHADOW_DEPTH_SCAN_GROUP_SIZE)
+STORAGE_BUF(5, READ_WRITE, ShadowTileMapData, tilemaps_buf[])
+STORAGE_BUF(6, READ_WRITE, uint, tiles_buf[])
+PUSH_CONSTANT(IVEC2, input_depth_extent)
+ADDITIONAL_INFO(eevee_shared)
+ADDITIONAL_INFO(draw_view)
+ADDITIONAL_INFO(draw_view_culling)
+ADDITIONAL_INFO(eevee_hiz_data)
+ADDITIONAL_INFO(eevee_light_data)
+COMPUTE_SOURCE("eevee_shadow_tag_usage_comp.glsl")
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_shadow_tag_usage_surfels)
-    .do_static_compilation(true)
-    .local_group_size(SURFEL_GROUP_SIZE)
-    .storage_buf(6, Qualifier::READ_WRITE, "ShadowTileMapData", "tilemaps_buf[]")
-    .storage_buf(7, Qualifier::READ_WRITE, SHADOW_TILE_DATA_PACKED, "tiles_buf[]")
-    .push_constant(Type::INT, "directional_level")
-    .additional_info("eevee_shared",
-                     "draw_view",
-                     "draw_view_culling",
-                     "eevee_light_data",
-                     "eevee_global_ubo",
-                     "eevee_surfel_common")
-    .compute_source("eevee_shadow_tag_usage_surfels_comp.glsl");
+DO_STATIC_COMPILATION()
+LOCAL_GROUP_SIZE(SURFEL_GROUP_SIZE)
+STORAGE_BUF(6, READ_WRITE, ShadowTileMapData, tilemaps_buf[])
+STORAGE_BUF(7, READ_WRITE, uint, tiles_buf[])
+PUSH_CONSTANT(INT, directional_level)
+ADDITIONAL_INFO(eevee_shared)
+ADDITIONAL_INFO(draw_view)
+ADDITIONAL_INFO(draw_view_culling)
+ADDITIONAL_INFO(eevee_light_data)
+ADDITIONAL_INFO(eevee_global_ubo)
+ADDITIONAL_INFO(eevee_surfel_common)
+COMPUTE_SOURCE("eevee_shadow_tag_usage_surfels_comp.glsl")
+GPU_SHADER_CREATE_END()
 
-GPU_SHADER_INTERFACE_INFO(eevee_shadow_tag_transparent_iface, "interp")
-    .smooth(Type::VEC3, "P")
-    .smooth(Type::VEC3, "vP");
-GPU_SHADER_INTERFACE_INFO(eevee_shadow_tag_transparent_flat_iface, "interp_flat")
-    .flat(Type::VEC3, "ls_aabb_min")
-    .flat(Type::VEC3, "ls_aabb_max");
+GPU_SHADER_NAMED_INTERFACE_INFO(eevee_shadow_tag_transparent_iface, interp)
+SMOOTH(VEC3, P)
+SMOOTH(VEC3, vP)
+GPU_SHADER_NAMED_INTERFACE_END(interp)
+GPU_SHADER_NAMED_INTERFACE_INFO(eevee_shadow_tag_transparent_flat_iface, interp_flat)
+FLAT(VEC3, ls_aabb_min)
+FLAT(VEC3, ls_aabb_max)
+GPU_SHADER_NAMED_INTERFACE_END(interp_flat)
 
 GPU_SHADER_CREATE_INFO(eevee_shadow_tag_usage_transparent)
-    .do_static_compilation(true)
-    .vertex_in(0, Type::VEC3, "pos")
-    .storage_buf(4, Qualifier::READ, "ObjectBounds", "bounds_buf[]")
-    .storage_buf(5, Qualifier::READ_WRITE, "ShadowTileMapData", "tilemaps_buf[]")
-    .storage_buf(6, Qualifier::READ_WRITE, SHADOW_TILE_DATA_PACKED, "tiles_buf[]")
-    .push_constant(Type::IVEC2, "fb_resolution")
-    .push_constant(Type::INT, "fb_lod")
-    .vertex_out(eevee_shadow_tag_transparent_iface)
-    .vertex_out(eevee_shadow_tag_transparent_flat_iface)
-    .additional_info("eevee_shared",
-                     "draw_resource_id_varying",
-                     "draw_view",
-                     "draw_view_culling",
-                     "draw_modelmat_new",
-                     "eevee_hiz_data",
-                     "eevee_light_data")
-    .vertex_source("eevee_shadow_tag_usage_vert.glsl")
-    .fragment_source("eevee_shadow_tag_usage_frag.glsl");
+DO_STATIC_COMPILATION()
+VERTEX_IN(0, VEC3, pos)
+STORAGE_BUF(4, READ, ObjectBounds, bounds_buf[])
+STORAGE_BUF(5, READ_WRITE, ShadowTileMapData, tilemaps_buf[])
+STORAGE_BUF(6, READ_WRITE, uint, tiles_buf[])
+PUSH_CONSTANT(IVEC2, fb_resolution)
+PUSH_CONSTANT(INT, fb_lod)
+VERTEX_OUT(eevee_shadow_tag_transparent_iface)
+VERTEX_OUT(eevee_shadow_tag_transparent_flat_iface)
+ADDITIONAL_INFO(eevee_shared)
+ADDITIONAL_INFO(draw_resource_id_varying)
+ADDITIONAL_INFO(draw_view)
+ADDITIONAL_INFO(draw_view_culling)
+ADDITIONAL_INFO(draw_modelmat_new)
+ADDITIONAL_INFO(eevee_hiz_data)
+ADDITIONAL_INFO(eevee_light_data)
+VERTEX_SOURCE("eevee_shadow_tag_usage_vert.glsl")
+FRAGMENT_SOURCE("eevee_shadow_tag_usage_frag.glsl")
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_shadow_tag_usage_volume)
-    .do_static_compilation(true)
-    .local_group_size(VOLUME_GROUP_SIZE, VOLUME_GROUP_SIZE, VOLUME_GROUP_SIZE)
-    .storage_buf(4, Qualifier::READ_WRITE, "ShadowTileMapData", "tilemaps_buf[]")
-    .storage_buf(5, Qualifier::READ_WRITE, SHADOW_TILE_DATA_PACKED, "tiles_buf[]")
-    .additional_info("eevee_volume_properties_data",
-                     "eevee_shared",
-                     "draw_view",
-                     "draw_view_culling",
-                     "eevee_hiz_data",
-                     "eevee_light_data",
-                     "eevee_sampling_data")
-    .compute_source("eevee_shadow_tag_usage_volume_comp.glsl");
+DO_STATIC_COMPILATION()
+LOCAL_GROUP_SIZE(VOLUME_GROUP_SIZE, VOLUME_GROUP_SIZE, VOLUME_GROUP_SIZE)
+STORAGE_BUF(4, READ_WRITE, ShadowTileMapData, tilemaps_buf[])
+STORAGE_BUF(5, READ_WRITE, uint, tiles_buf[])
+ADDITIONAL_INFO(eevee_volume_properties_data)
+ADDITIONAL_INFO(eevee_shared)
+ADDITIONAL_INFO(draw_view)
+ADDITIONAL_INFO(draw_view_culling)
+ADDITIONAL_INFO(eevee_hiz_data)
+ADDITIONAL_INFO(eevee_light_data)
+ADDITIONAL_INFO(eevee_sampling_data)
+COMPUTE_SOURCE("eevee_shadow_tag_usage_volume_comp.glsl")
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_shadow_page_mask)
-    .do_static_compilation(true)
-    .local_group_size(SHADOW_TILEMAP_RES, SHADOW_TILEMAP_RES)
-    .push_constant(Type::INT, "max_view_per_tilemap")
-    .storage_buf(0, Qualifier::READ_WRITE, "ShadowTileMapData", "tilemaps_buf[]")
-    .storage_buf(1, Qualifier::READ_WRITE, SHADOW_TILE_DATA_PACKED, "tiles_buf[]")
-    .additional_info("eevee_shared")
-    .compute_source("eevee_shadow_page_mask_comp.glsl");
+DO_STATIC_COMPILATION()
+LOCAL_GROUP_SIZE(SHADOW_TILEMAP_RES, SHADOW_TILEMAP_RES)
+PUSH_CONSTANT(INT, max_view_per_tilemap)
+STORAGE_BUF(0, READ_WRITE, ShadowTileMapData, tilemaps_buf[])
+STORAGE_BUF(1, READ_WRITE, uint, tiles_buf[])
+ADDITIONAL_INFO(eevee_shared)
+COMPUTE_SOURCE("eevee_shadow_page_mask_comp.glsl")
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_shadow_page_free)
-    .do_static_compilation(true)
-    .local_group_size(SHADOW_TILEMAP_LOD0_LEN)
-    .storage_buf(0, Qualifier::READ_WRITE, "ShadowTileMapData", "tilemaps_buf[]")
-    .storage_buf(1, Qualifier::READ_WRITE, SHADOW_TILE_DATA_PACKED, "tiles_buf[]")
-    .storage_buf(2, Qualifier::READ_WRITE, "ShadowPagesInfoData", "pages_infos_buf")
-    .storage_buf(3, Qualifier::READ_WRITE, "uint", "pages_free_buf[]")
-    .storage_buf(4, Qualifier::READ_WRITE, "uvec2", "pages_cached_buf[]")
-    .additional_info("eevee_shared")
-    .compute_source("eevee_shadow_page_free_comp.glsl");
+DO_STATIC_COMPILATION()
+LOCAL_GROUP_SIZE(SHADOW_TILEMAP_LOD0_LEN)
+STORAGE_BUF(0, READ_WRITE, ShadowTileMapData, tilemaps_buf[])
+STORAGE_BUF(1, READ_WRITE, uint, tiles_buf[])
+STORAGE_BUF(2, READ_WRITE, ShadowPagesInfoData, pages_infos_buf)
+STORAGE_BUF(3, READ_WRITE, uint, pages_free_buf[])
+STORAGE_BUF(4, READ_WRITE, uvec2, pages_cached_buf[])
+ADDITIONAL_INFO(eevee_shared)
+COMPUTE_SOURCE("eevee_shadow_page_free_comp.glsl")
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_shadow_page_defrag)
-    .do_static_compilation(true)
-    .local_group_size(1)
-    .typedef_source("draw_shader_shared.hh")
-    .storage_buf(1, Qualifier::READ_WRITE, SHADOW_TILE_DATA_PACKED, "tiles_buf[]")
-    .storage_buf(2, Qualifier::READ_WRITE, "ShadowPagesInfoData", "pages_infos_buf")
-    .storage_buf(3, Qualifier::READ_WRITE, "uint", "pages_free_buf[]")
-    .storage_buf(4, Qualifier::READ_WRITE, "uvec2", "pages_cached_buf[]")
-    .storage_buf(5, Qualifier::WRITE, "DispatchCommand", "clear_dispatch_buf")
-    .storage_buf(6, Qualifier::WRITE, "DrawCommand", "tile_draw_buf")
-    .storage_buf(7, Qualifier::READ_WRITE, "ShadowStatistics", "statistics_buf")
-    .additional_info("eevee_shared")
-    .compute_source("eevee_shadow_page_defrag_comp.glsl");
+DO_STATIC_COMPILATION()
+LOCAL_GROUP_SIZE(1)
+TYPEDEF_SOURCE("draw_shader_shared.hh")
+STORAGE_BUF(1, READ_WRITE, uint, tiles_buf[])
+STORAGE_BUF(2, READ_WRITE, ShadowPagesInfoData, pages_infos_buf)
+STORAGE_BUF(3, READ_WRITE, uint, pages_free_buf[])
+STORAGE_BUF(4, READ_WRITE, uvec2, pages_cached_buf[])
+STORAGE_BUF(5, WRITE, DispatchCommand, clear_dispatch_buf)
+STORAGE_BUF(6, WRITE, DrawCommand, tile_draw_buf)
+STORAGE_BUF(7, READ_WRITE, ShadowStatistics, statistics_buf)
+ADDITIONAL_INFO(eevee_shared)
+COMPUTE_SOURCE("eevee_shadow_page_defrag_comp.glsl")
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_shadow_page_allocate)
-    .do_static_compilation(true)
-    .local_group_size(SHADOW_TILEMAP_LOD0_LEN)
-    .typedef_source("draw_shader_shared.hh")
-    .storage_buf(0, Qualifier::READ_WRITE, "ShadowTileMapData", "tilemaps_buf[]")
-    .storage_buf(1, Qualifier::READ_WRITE, SHADOW_TILE_DATA_PACKED, "tiles_buf[]")
-    .storage_buf(2, Qualifier::READ_WRITE, "ShadowPagesInfoData", "pages_infos_buf")
-    .storage_buf(3, Qualifier::READ_WRITE, "uint", "pages_free_buf[]")
-    .storage_buf(4, Qualifier::READ_WRITE, "uvec2", "pages_cached_buf[]")
-    .storage_buf(6, Qualifier::READ_WRITE, "ShadowStatistics", "statistics_buf")
-    .additional_info("eevee_shared")
-    .compute_source("eevee_shadow_page_allocate_comp.glsl");
+DO_STATIC_COMPILATION()
+LOCAL_GROUP_SIZE(SHADOW_TILEMAP_LOD0_LEN)
+TYPEDEF_SOURCE("draw_shader_shared.hh")
+STORAGE_BUF(0, READ_WRITE, ShadowTileMapData, tilemaps_buf[])
+STORAGE_BUF(1, READ_WRITE, uint, tiles_buf[])
+STORAGE_BUF(2, READ_WRITE, ShadowPagesInfoData, pages_infos_buf)
+STORAGE_BUF(3, READ_WRITE, uint, pages_free_buf[])
+STORAGE_BUF(4, READ_WRITE, uvec2, pages_cached_buf[])
+STORAGE_BUF(6, READ_WRITE, ShadowStatistics, statistics_buf)
+ADDITIONAL_INFO(eevee_shared)
+COMPUTE_SOURCE("eevee_shadow_page_allocate_comp.glsl")
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_shadow_tilemap_finalize)
-    .do_static_compilation(true)
-    .typedef_source("draw_shader_shared.hh")
-    .local_group_size(SHADOW_TILEMAP_RES, SHADOW_TILEMAP_RES)
-    .storage_buf(0, Qualifier::READ, "ShadowTileMapData", "tilemaps_buf[]")
-    .storage_buf(1, Qualifier::READ, SHADOW_TILE_DATA_PACKED, "tiles_buf[]")
-    .storage_buf(2, Qualifier::READ_WRITE, "ShadowPagesInfoData", "pages_infos_buf")
-    .storage_buf(3, Qualifier::READ_WRITE, "ShadowStatistics", "statistics_buf")
-    .storage_buf(4, Qualifier::WRITE, "ViewMatrices", "view_infos_buf[SHADOW_VIEW_MAX]")
-    .storage_buf(5, Qualifier::WRITE, "ShadowRenderView", "render_view_buf[SHADOW_VIEW_MAX]")
-    .storage_buf(6, Qualifier::READ, "ShadowTileMapClip", "tilemaps_clip_buf[]")
-    .image(0, GPU_R32UI, Qualifier::WRITE, ImageType::UINT_2D, "tilemaps_img")
-    .additional_info("eevee_shared")
-    .compute_source("eevee_shadow_tilemap_finalize_comp.glsl");
+DO_STATIC_COMPILATION()
+TYPEDEF_SOURCE("draw_shader_shared.hh")
+LOCAL_GROUP_SIZE(SHADOW_TILEMAP_RES, SHADOW_TILEMAP_RES)
+STORAGE_BUF(0, READ, ShadowTileMapData, tilemaps_buf[])
+STORAGE_BUF(1, READ, uint, tiles_buf[])
+STORAGE_BUF(2, READ_WRITE, ShadowPagesInfoData, pages_infos_buf)
+STORAGE_BUF(3, READ_WRITE, ShadowStatistics, statistics_buf)
+STORAGE_BUF(4, WRITE, ViewMatrices, view_infos_buf[SHADOW_VIEW_MAX])
+STORAGE_BUF(5, WRITE, ShadowRenderView, render_view_buf[SHADOW_VIEW_MAX])
+STORAGE_BUF(6, READ, ShadowTileMapClip, tilemaps_clip_buf[])
+IMAGE(0, GPU_R32UI, WRITE, UINT_2D, tilemaps_img)
+ADDITIONAL_INFO(eevee_shared)
+COMPUTE_SOURCE("eevee_shadow_tilemap_finalize_comp.glsl")
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_shadow_tilemap_rendermap)
-    .do_static_compilation(true)
-    .typedef_source("draw_shader_shared.hh")
-    .local_group_size(SHADOW_TILEMAP_RES, SHADOW_TILEMAP_RES)
-    .storage_buf(0, Qualifier::READ_WRITE, "ShadowStatistics", "statistics_buf")
-    .storage_buf(1, Qualifier::READ, "ShadowRenderView", "render_view_buf[SHADOW_VIEW_MAX]")
-    .storage_buf(2, Qualifier::READ_WRITE, SHADOW_TILE_DATA_PACKED, "tiles_buf[]")
-    .storage_buf(3, Qualifier::READ_WRITE, "DispatchCommand", "clear_dispatch_buf")
-    .storage_buf(4, Qualifier::READ_WRITE, "DrawCommand", "tile_draw_buf")
-    .storage_buf(5, Qualifier::WRITE, SHADOW_PAGE_PACKED, "dst_coord_buf[SHADOW_RENDER_MAP_SIZE]")
-    .storage_buf(6, Qualifier::WRITE, SHADOW_PAGE_PACKED, "src_coord_buf[SHADOW_RENDER_MAP_SIZE]")
-    .storage_buf(7, Qualifier::WRITE, SHADOW_PAGE_PACKED, "render_map_buf[SHADOW_RENDER_MAP_SIZE]")
-    .additional_info("eevee_shared")
-    .compute_source("eevee_shadow_tilemap_rendermap_comp.glsl");
+DO_STATIC_COMPILATION()
+TYPEDEF_SOURCE("draw_shader_shared.hh")
+LOCAL_GROUP_SIZE(SHADOW_TILEMAP_RES, SHADOW_TILEMAP_RES)
+STORAGE_BUF(0, READ_WRITE, ShadowStatistics, statistics_buf)
+STORAGE_BUF(1, READ, ShadowRenderView, render_view_buf[SHADOW_VIEW_MAX])
+STORAGE_BUF(2, READ_WRITE, uint, tiles_buf[])
+STORAGE_BUF(3, READ_WRITE, DispatchCommand, clear_dispatch_buf)
+STORAGE_BUF(4, READ_WRITE, DrawCommand, tile_draw_buf)
+STORAGE_BUF(5, WRITE, uint, dst_coord_buf[SHADOW_RENDER_MAP_SIZE])
+STORAGE_BUF(6, WRITE, uint, src_coord_buf[SHADOW_RENDER_MAP_SIZE])
+STORAGE_BUF(7, WRITE, uint, render_map_buf[SHADOW_RENDER_MAP_SIZE])
+ADDITIONAL_INFO(eevee_shared)
+COMPUTE_SOURCE("eevee_shadow_tilemap_rendermap_comp.glsl")
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_shadow_tilemap_amend)
-    .do_static_compilation(true)
-    .local_group_size(SHADOW_TILEMAP_RES, SHADOW_TILEMAP_RES)
-    .image(0, GPU_R32UI, Qualifier::READ_WRITE, ImageType::UINT_2D, "tilemaps_img")
-    .storage_buf(LIGHT_CULL_BUF_SLOT, Qualifier::READ, "LightCullingData", "light_cull_buf")
-    .storage_buf(LIGHT_BUF_SLOT, Qualifier::READ_WRITE, "LightData", "light_buf[]")
-    /* The call bind_resources(lights) also uses LIGHT_ZBIN_BUF_SLOT and LIGHT_TILE_BUF_SLOT. */
-    .storage_buf(4, Qualifier::READ, "ShadowTileMapData", "tilemaps_buf[]")
-    .additional_info("eevee_shared", "draw_view")
-    .compute_source("eevee_shadow_tilemap_amend_comp.glsl");
+DO_STATIC_COMPILATION()
+LOCAL_GROUP_SIZE(SHADOW_TILEMAP_RES, SHADOW_TILEMAP_RES)
+IMAGE(0, GPU_R32UI, READ_WRITE, UINT_2D, tilemaps_img)
+STORAGE_BUF(LIGHT_CULL_BUF_SLOT, READ, LightCullingData, light_cull_buf)
+STORAGE_BUF(LIGHT_BUF_SLOT, READ_WRITE, LightData, light_buf[])
+/* The call bind_resources(lights) also uses LIGHT_ZBIN_BUF_SLOT and LIGHT_TILE_BUF_SLOT. */
+STORAGE_BUF(4, READ, ShadowTileMapData, tilemaps_buf[])
+ADDITIONAL_INFO(eevee_shared)
+ADDITIONAL_INFO(draw_view)
+COMPUTE_SOURCE("eevee_shadow_tilemap_amend_comp.glsl")
+GPU_SHADER_CREATE_END()
 
 /* AtomicMin clear implementation. */
 GPU_SHADER_CREATE_INFO(eevee_shadow_page_clear)
-    .do_static_compilation(true)
-    .local_group_size(SHADOW_PAGE_CLEAR_GROUP_SIZE, SHADOW_PAGE_CLEAR_GROUP_SIZE)
-    .storage_buf(2, Qualifier::READ, "ShadowPagesInfoData", "pages_infos_buf")
-    .storage_buf(6, Qualifier::READ, SHADOW_PAGE_PACKED, "dst_coord_buf[SHADOW_RENDER_MAP_SIZE]")
-    .additional_info("eevee_shared")
-    .compute_source("eevee_shadow_page_clear_comp.glsl")
-    .image(SHADOW_ATLAS_IMG_SLOT,
-           GPU_R32UI,
-           Qualifier::READ_WRITE,
-           ImageType::UINT_2D_ARRAY_ATOMIC,
-           "shadow_atlas_img");
+DO_STATIC_COMPILATION()
+LOCAL_GROUP_SIZE(SHADOW_PAGE_CLEAR_GROUP_SIZE, SHADOW_PAGE_CLEAR_GROUP_SIZE)
+STORAGE_BUF(2, READ, ShadowPagesInfoData, pages_infos_buf)
+STORAGE_BUF(6, READ, uint, dst_coord_buf[SHADOW_RENDER_MAP_SIZE])
+ADDITIONAL_INFO(eevee_shared)
+COMPUTE_SOURCE("eevee_shadow_page_clear_comp.glsl")
+IMAGE(SHADOW_ATLAS_IMG_SLOT, GPU_R32UI, READ_WRITE, UINT_2D_ARRAY_ATOMIC, shadow_atlas_img)
+GPU_SHADER_CREATE_END()
 
 /* TBDR clear implementation. */
 GPU_SHADER_CREATE_INFO(eevee_shadow_page_tile_clear)
-    .do_static_compilation(true)
-    .define("PASS_CLEAR")
-    .additional_info("eevee_shared")
-    .builtins(BuiltinBits::VIEWPORT_INDEX | BuiltinBits::LAYER)
-    .storage_buf(8, Qualifier::READ, SHADOW_PAGE_PACKED, "src_coord_buf[SHADOW_RENDER_MAP_SIZE]")
-    .vertex_source("eevee_shadow_page_tile_vert.glsl")
-    .fragment_source("eevee_shadow_page_tile_frag.glsl")
-    .fragment_out(0, Type::FLOAT, "out_tile_depth", DualBlend::NONE, SHADOW_ROG_ID);
+DO_STATIC_COMPILATION()
+DEFINE("PASS_CLEAR")
+ADDITIONAL_INFO(eevee_shared)
+BUILTINS(BuiltinBits::VIEWPORT_INDEX | BuiltinBits::LAYER)
+STORAGE_BUF(8, READ, uint, src_coord_buf[SHADOW_RENDER_MAP_SIZE])
+VERTEX_SOURCE("eevee_shadow_page_tile_vert.glsl")
+FRAGMENT_SOURCE("eevee_shadow_page_tile_frag.glsl")
+FRAGMENT_OUT_ROG(0, FLOAT, out_tile_depth, SHADOW_ROG_ID)
+GPU_SHADER_CREATE_END()
 
 #ifdef APPLE
 /* Metal supports USHORT which saves a bit of performance here. */
-#  define PAGE_Z_TYPE Type::USHORT
+#  define PAGE_Z_TYPE USHORT
 #else
-#  define PAGE_Z_TYPE Type::UINT
+#  define PAGE_Z_TYPE UINT
 #endif
 
 /* Interface for passing precalculated values in accumulation vertex to frag. */
-GPU_SHADER_INTERFACE_INFO(eevee_shadow_page_tile_store_noperspective_iface, "interp_noperspective")
-    .no_perspective(Type::VEC2, "out_texel_xy");
-GPU_SHADER_INTERFACE_INFO(eevee_shadow_page_tile_store_flat_iface, "interp_flat")
-    .flat(PAGE_Z_TYPE, "out_page_z");
+GPU_SHADER_NAMED_INTERFACE_INFO(eevee_shadow_page_tile_store_noperspective_iface,
+                                interp_noperspective)
+NO_PERSPECTIVE(VEC2, out_texel_xy)
+GPU_SHADER_NAMED_INTERFACE_END(interp_noperspective)
+GPU_SHADER_NAMED_INTERFACE_INFO(eevee_shadow_page_tile_store_flat_iface, interp_flat)
+FLAT(PAGE_Z_TYPE, out_page_z)
+GPU_SHADER_NAMED_INTERFACE_END(interp_flat)
 
 #undef PAGE_Z_TYPE
 
 /* 2nd tile pass to store shadow depths in atlas. */
 GPU_SHADER_CREATE_INFO(eevee_shadow_page_tile_store)
-    .do_static_compilation(true)
-    .define("PASS_DEPTH_STORE")
-    .additional_info("eevee_shared")
-    .builtins(BuiltinBits::VIEWPORT_INDEX | BuiltinBits::LAYER)
-    .storage_buf(7, Qualifier::READ, SHADOW_PAGE_PACKED, "dst_coord_buf[SHADOW_RENDER_MAP_SIZE]")
-    .storage_buf(8, Qualifier::READ, SHADOW_PAGE_PACKED, "src_coord_buf[SHADOW_RENDER_MAP_SIZE]")
-    .subpass_in(0, Type::FLOAT, "in_tile_depth", SHADOW_ROG_ID)
-    .image(SHADOW_ATLAS_IMG_SLOT,
-           GPU_R32UI,
-           Qualifier::READ_WRITE,
-           ImageType::UINT_2D_ARRAY,
-           "shadow_atlas_img")
-    .vertex_out(eevee_shadow_page_tile_store_noperspective_iface)
-    .vertex_out(eevee_shadow_page_tile_store_flat_iface)
-    .vertex_source("eevee_shadow_page_tile_vert.glsl")
-    .fragment_source("eevee_shadow_page_tile_frag.glsl");
+DO_STATIC_COMPILATION()
+DEFINE("PASS_DEPTH_STORE")
+ADDITIONAL_INFO(eevee_shared)
+BUILTINS(BuiltinBits::VIEWPORT_INDEX | BuiltinBits::LAYER)
+STORAGE_BUF(7, READ, uint, dst_coord_buf[SHADOW_RENDER_MAP_SIZE])
+STORAGE_BUF(8, READ, uint, src_coord_buf[SHADOW_RENDER_MAP_SIZE])
+SUBPASS_IN(0, FLOAT, in_tile_depth, SHADOW_ROG_ID)
+IMAGE(SHADOW_ATLAS_IMG_SLOT, GPU_R32UI, READ_WRITE, UINT_2D_ARRAY, shadow_atlas_img)
+VERTEX_OUT(eevee_shadow_page_tile_store_noperspective_iface)
+VERTEX_OUT(eevee_shadow_page_tile_store_flat_iface)
+VERTEX_SOURCE("eevee_shadow_page_tile_vert.glsl")
+FRAGMENT_SOURCE("eevee_shadow_page_tile_frag.glsl")
+GPU_SHADER_CREATE_END()
 
 /* Custom visibility check pass. */
 GPU_SHADER_CREATE_INFO(eevee_shadow_view_visibility)
-    .do_static_compilation(true)
-    .typedef_source("eevee_defines.hh")
-    .typedef_source("eevee_shader_shared.hh")
-    .local_group_size(DRW_VISIBILITY_GROUP_SIZE)
-    .define("DRW_VIEW_LEN", STRINGIFY(DRW_VIEW_MAX))
-    .storage_buf(0, Qualifier::READ, "ObjectBounds", "bounds_buf[]")
-    .storage_buf(1, Qualifier::READ_WRITE, "uint", "visibility_buf[]")
-    .storage_buf(2, Qualifier::READ, "ShadowRenderView", "render_view_buf[SHADOW_VIEW_MAX]")
-    .push_constant(Type::INT, "resource_len")
-    .push_constant(Type::INT, "view_len")
-    .push_constant(Type::INT, "visibility_word_per_draw")
-    .compute_source("eevee_shadow_visibility_comp.glsl")
-    .additional_info("draw_view", "draw_view_culling", "draw_object_infos_new");
+DO_STATIC_COMPILATION()
+TYPEDEF_SOURCE("eevee_defines.hh")
+TYPEDEF_SOURCE("eevee_shader_shared.hh")
+LOCAL_GROUP_SIZE(DRW_VISIBILITY_GROUP_SIZE)
+DEFINE_VALUE("DRW_VIEW_LEN", STRINGIFY(DRW_VIEW_MAX))
+STORAGE_BUF(0, READ, ObjectBounds, bounds_buf[])
+STORAGE_BUF(1, READ_WRITE, uint, visibility_buf[])
+STORAGE_BUF(2, READ, ShadowRenderView, render_view_buf[SHADOW_VIEW_MAX])
+PUSH_CONSTANT(INT, resource_len)
+PUSH_CONSTANT(INT, view_len)
+PUSH_CONSTANT(INT, visibility_word_per_draw)
+COMPUTE_SOURCE("eevee_shadow_visibility_comp.glsl")
+ADDITIONAL_INFO(draw_view)
+ADDITIONAL_INFO(draw_view_culling)
+ADDITIONAL_INFO(draw_object_infos_new)
+GPU_SHADER_CREATE_END()
 
 /** \} */
 
@@ -294,16 +312,18 @@ GPU_SHADER_CREATE_INFO(eevee_shadow_view_visibility)
  * \{ */
 
 GPU_SHADER_CREATE_INFO(eevee_shadow_data)
-    /* SHADOW_READ_ATOMIC macro indicating shadow functions should use `usampler2DArrayAtomic` as
-     * the atlas type. */
-    .define("SHADOW_READ_ATOMIC")
-    .builtins(BuiltinBits::TEXTURE_ATOMIC)
-    .sampler(SHADOW_ATLAS_TEX_SLOT, ImageType::UINT_2D_ARRAY_ATOMIC, "shadow_atlas_tx")
-    .sampler(SHADOW_TILEMAPS_TEX_SLOT, ImageType::UINT_2D, "shadow_tilemaps_tx");
+/* SHADOW_READ_ATOMIC macro indicating shadow functions should use `usampler2DArrayAtomic` as
+ * the atlas type. */
+DEFINE("SHADOW_READ_ATOMIC")
+BUILTINS(BuiltinBits::TEXTURE_ATOMIC)
+SAMPLER(SHADOW_ATLAS_TEX_SLOT, UINT_2D_ARRAY_ATOMIC, shadow_atlas_tx)
+SAMPLER(SHADOW_TILEMAPS_TEX_SLOT, UINT_2D, shadow_tilemaps_tx)
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_shadow_data_non_atomic)
-    .sampler(SHADOW_ATLAS_TEX_SLOT, ImageType::UINT_2D_ARRAY, "shadow_atlas_tx")
-    .sampler(SHADOW_TILEMAPS_TEX_SLOT, ImageType::UINT_2D, "shadow_tilemaps_tx");
+SAMPLER(SHADOW_ATLAS_TEX_SLOT, UINT_2D_ARRAY, shadow_atlas_tx)
+SAMPLER(SHADOW_TILEMAPS_TEX_SLOT, UINT_2D, shadow_tilemaps_tx)
+GPU_SHADER_CREATE_END()
 
 /** \} */
 
@@ -312,17 +332,21 @@ GPU_SHADER_CREATE_INFO(eevee_shadow_data_non_atomic)
  * \{ */
 
 GPU_SHADER_CREATE_INFO(eevee_shadow_debug)
-    .do_static_compilation(true)
-    .additional_info("eevee_shared")
-    .storage_buf(5, Qualifier::READ, "ShadowTileMapData", "tilemaps_buf[]")
-    .storage_buf(6, Qualifier::READ, SHADOW_TILE_DATA_PACKED, "tiles_buf[]")
-    .fragment_out(0, Type::VEC4, "out_color_add", DualBlend::SRC_0)
-    .fragment_out(0, Type::VEC4, "out_color_mul", DualBlend::SRC_1)
-    .push_constant(Type::INT, "debug_mode")
-    .push_constant(Type::INT, "debug_tilemap_index")
-    .depth_write(DepthWrite::ANY)
-    .fragment_source("eevee_shadow_debug_frag.glsl")
-    .additional_info(
-        "draw_fullscreen", "draw_view", "eevee_hiz_data", "eevee_light_data", "eevee_shadow_data");
+DO_STATIC_COMPILATION()
+ADDITIONAL_INFO(eevee_shared)
+STORAGE_BUF(5, READ, ShadowTileMapData, tilemaps_buf[])
+STORAGE_BUF(6, READ, uint, tiles_buf[])
+FRAGMENT_OUT_DUAL(0, VEC4, out_color_add, SRC_0)
+FRAGMENT_OUT_DUAL(0, VEC4, out_color_mul, SRC_1)
+PUSH_CONSTANT(INT, debug_mode)
+PUSH_CONSTANT(INT, debug_tilemap_index)
+DEPTH_WRITE(DepthWrite::ANY)
+FRAGMENT_SOURCE("eevee_shadow_debug_frag.glsl")
+ADDITIONAL_INFO(draw_fullscreen)
+ADDITIONAL_INFO(draw_view)
+ADDITIONAL_INFO(eevee_hiz_data)
+ADDITIONAL_INFO(eevee_light_data)
+ADDITIONAL_INFO(eevee_shadow_data)
+GPU_SHADER_CREATE_END()
 
 /** \} */

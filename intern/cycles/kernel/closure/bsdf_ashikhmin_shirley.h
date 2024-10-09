@@ -185,13 +185,10 @@ ccl_device int bsdf_ashikhmin_shirley_sample(ccl_private const ShaderClosure *sc
   }
 
   /* get half vector in tangent space */
-  float sin_theta = sqrtf(fmaxf(0.0f, 1.0f - cos_theta * cos_theta));
-  float cos_phi = cosf(phi);
-  float sin_phi = sinf(phi); /* No `sqrt(1-cos^2)` here because it causes artifacts. */
-  float3 h = make_float3(sin_theta * cos_phi, sin_theta * sin_phi, cos_theta);
+  float3 h = spherical_cos_to_direction(cos_theta, phi);
 
   /* half vector to world space */
-  float3 H = h.x * X + h.y * Y + h.z * N;
+  float3 H = to_global(h, X, Y, N);
   float HdotI = dot(H, wi);
   if (HdotI < 0.0f)
     H = -H;

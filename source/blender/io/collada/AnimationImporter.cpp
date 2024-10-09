@@ -15,6 +15,8 @@
 
 #include "ED_keyframing.hh"
 
+#include "ANIM_action.hh"
+#include "ANIM_action_legacy.hh"
 #include "ANIM_animdata.hh"
 #include "ANIM_fcurve.hh"
 
@@ -44,6 +46,27 @@ template<class T> static const char *bc_get_joint_name(T *node)
 {
   const std::string &id = node->getName();
   return id.empty() ? node->getOriginalId().c_str() : id.c_str();
+}
+
+/**
+ * Ensures that the given ID has an action assigned to it and, for layered
+ * actions, an assigned slot.
+ */
+static void ensure_action_and_slot_for_id(Main *bmain, ID &id)
+{
+  bAction *dna_action = blender::animrig::id_action_ensure(bmain, &id);
+  BLI_assert(dna_action != nullptr);
+
+  if (blender::animrig::legacy::action_treat_as_legacy(*dna_action)) {
+    /* We don't ensure a slot for legacy actions, since they don't have slots. */
+    return;
+  }
+
+  blender::animrig::Action &action = dna_action->wrap();
+  blender::animrig::Slot *slot = blender::animrig::assign_action_ensure_slot_for_keying(action,
+                                                                                        id);
+  BLI_assert(slot != nullptr);
+  UNUSED_VARS_NDEBUG(slot);
 }
 
 FCurve *AnimationImporter::create_fcurve(int array_index, const char *rna_path)
@@ -452,9 +475,11 @@ void AnimationImporter::Assign_transform_animations(
 }
 
 void AnimationImporter::Assign_color_animations(const COLLADAFW::UniqueId &listid,
-                                                ListBase *AnimCurves,
+                                                AnimData &adt,
                                                 const char *anim_type)
 {
+  BLI_assert(adt.action != nullptr);
+
   char rna_path[100];
   STRNCPY(rna_path, anim_type);
 
@@ -500,16 +525,19 @@ void AnimationImporter::Assign_color_animations(const COLLADAFW::UniqueId &listi
     /* Add the curves of the current animation to the object */
     for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
       FCurve *fcu = *iter;
-      BLI_addtail(AnimCurves, fcu);
+      blender::animrig::action_fcurve_attach(
+          adt.action->wrap(), adt.slot_handle, *fcu, std::nullopt);
       fcurve_is_used(fcu);
     }
   }
 }
 
 void AnimationImporter::Assign_float_animations(const COLLADAFW::UniqueId &listid,
-                                                ListBase *AnimCurves,
+                                                AnimData &adt,
                                                 const char *anim_type)
 {
+  BLI_assert(adt.action != nullptr);
+
   char rna_path[100];
   if (animlist_map.find(listid) == animlist_map.end()) {
     return;
@@ -543,7 +571,8 @@ void AnimationImporter::Assign_float_animations(const COLLADAFW::UniqueId &listi
       }
       /** XXX What About animation-type "rotation" ? */
 
-      BLI_addtail(AnimCurves, fcu);
+      blender::animrig::action_fcurve_attach(
+          adt.action->wrap(), adt.slot_handle, *fcu, std::nullopt);
       fcurve_is_used(fcu);
     }
   }
@@ -562,12 +591,14 @@ float AnimationImporter::convert_to_focal_length(float in_xfov,
 }
 
 void AnimationImporter::Assign_lens_animations(const COLLADAFW::UniqueId &listid,
-                                               ListBase *AnimCurves,
+                                               AnimData &adt,
                                                const double aspect,
-                                               Camera *cam,
+                                               const Camera *cam,
                                                const char *anim_type,
                                                int fov_type)
 {
+  BLI_assert(adt.action != nullptr);
+
   char rna_path[100];
   if (animlist_map.find(listid) == animlist_map.end()) {
     return;
@@ -598,7 +629,8 @@ void AnimationImporter::Assign_lens_animations(const COLLADAFW::UniqueId &listid
             fcu->bezt[i].vec[2][1], fov_type, aspect, cam->sensor_x);
       }
 
-      BLI_addtail(AnimCurves, fcu);
+      blender::animrig::action_fcurve_attach(
+          adt.action->wrap(), adt.slot_handle, *fcu, std::nullopt);
       fcurve_is_used(fcu);
     }
   }
@@ -725,9 +757,8 @@ void AnimationImporter::apply_matrix_curves(Object *ob,
     }
   }
   Main *bmain = CTX_data_main(mContext);
-  blender::animrig::id_action_ensure(bmain, (ID *)&ob->id);
 
-  ListBase *curves = &ob->adt->action->curves;
+  ensure_action_and_slot_for_id(bmain, ob->id);
 
   /* add curves */
   for (int i = 0; i < totcu; i++) {
@@ -735,7 +766,8 @@ void AnimationImporter::apply_matrix_curves(Object *ob,
       add_bone_fcurve(ob, node, newcu[i]);
     }
     else {
-      BLI_addtail(curves, newcu[i]);
+      blender::animrig::action_fcurve_attach(
+          ob->adt->action->wrap(), ob->adt->slot_handle, *newcu[i], std::nullopt);
     }
 #if 0
     fcurve_is_used(newcu[i]); /* never added to unused */
@@ -784,19 +816,6 @@ static double get_aspect_ratio(const COLLADAFW::Camera *camera)
   return aspect;
 }
 
-static ListBase &get_animation_curves(Main *bmain, Material *ma)
-{
-  bAction *act;
-  if (!ma->adt || !ma->adt->action) {
-    act = blender::animrig::id_action_ensure(bmain, (ID *)&ma->id);
-  }
-  else {
-    act = ma->adt->action;
-  }
-
-  return act->curves;
-}
-
 void AnimationImporter::translate_Animations(
     COLLADAFW::Node *node,
     std::map<COLLADAFW::UniqueId, COLLADAFW::Node *> &root_map,
@@ -822,7 +841,6 @@ void AnimationImporter::translate_Animations(
   }
 
   AnimationImporter::AnimMix *animType = get_animation_type(node, FW_object_map);
-  bAction *act;
   Main *bmain = CTX_data_main(mContext);
 
   if ((animType->transform) != 0) {
@@ -833,15 +851,7 @@ void AnimationImporter::translate_Animations(
       armature_importer->get_rna_path_for_joint(node, joint_path, sizeof(joint_path));
     }
 
-    if (!ob->adt || !ob->adt->action) {
-      act = blender::animrig::id_action_ensure(bmain, (ID *)&ob->id);
-    }
-    else {
-      act = ob->adt->action;
-    }
-
-    /* Get the list of animation curves of the object */
-    ListBase *AnimCurves = &(act->curves);
+    ensure_action_and_slot_for_id(bmain, ob->id);
 
     const COLLADAFW::TransformationPointerArray &nodeTransforms = node->getTransformations();
 
@@ -880,8 +890,8 @@ void AnimationImporter::translate_Animations(
           /* Add the curves of the current animation to the object */
           for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
             FCurve *fcu = *iter;
-
-            BLI_addtail(AnimCurves, fcu);
+            blender::animrig::action_fcurve_attach(
+                ob->adt->action->wrap(), ob->adt->slot_handle, *fcu, std::nullopt);
             fcurve_is_used(fcu);
           }
         }
@@ -895,14 +905,8 @@ void AnimationImporter::translate_Animations(
 
   if ((animType->light) != 0) {
     Light *lamp = (Light *)ob->data;
-    if (!lamp->adt || !lamp->adt->action) {
-      act = blender::animrig::id_action_ensure(bmain, (ID *)&lamp->id);
-    }
-    else {
-      act = lamp->adt->action;
-    }
+    ensure_action_and_slot_for_id(bmain, lamp->id);
 
-    ListBase *AnimCurves = &(act->curves);
     const COLLADAFW::InstanceLightPointerArray &nodeLights = node->getInstanceLights();
 
     for (uint i = 0; i < nodeLights.getCount(); i++) {
@@ -913,19 +917,19 @@ void AnimationImporter::translate_Animations(
         const COLLADAFW::Color *col = &light->getColor();
         const COLLADAFW::UniqueId &listid = col->getAnimationList();
 
-        Assign_color_animations(listid, AnimCurves, "color");
+        Assign_color_animations(listid, *lamp->adt, "color");
       }
       if ((animType->light & LIGHT_FOA) != 0) {
         const COLLADAFW::AnimatableFloat *foa = &light->getFallOffAngle();
         const COLLADAFW::UniqueId &listid = foa->getAnimationList();
 
-        Assign_float_animations(listid, AnimCurves, "spot_size");
+        Assign_float_animations(listid, *lamp->adt, "spot_size");
       }
       if ((animType->light & LIGHT_FOE) != 0) {
         const COLLADAFW::AnimatableFloat *foe = &light->getFallOffExponent();
         const COLLADAFW::UniqueId &listid = foe->getAnimationList();
 
-        Assign_float_animations(listid, AnimCurves, "spot_blend");
+        Assign_float_animations(listid, *lamp->adt, "spot_blend");
       }
     }
   }
@@ -933,14 +937,8 @@ void AnimationImporter::translate_Animations(
   if (animType->camera != 0) {
 
     Camera *cam = (Camera *)ob->data;
-    if (!cam->adt || !cam->adt->action) {
-      act = blender::animrig::id_action_ensure(bmain, (ID *)&cam->id);
-    }
-    else {
-      act = cam->adt->action;
-    }
+    ensure_action_and_slot_for_id(bmain, cam->id);
 
-    ListBase *AnimCurves = &(act->curves);
     const COLLADAFW::InstanceCameraPointerArray &nodeCameras = node->getInstanceCameras();
 
     for (uint i = 0; i < nodeCameras.getCount(); i++) {
@@ -951,51 +949,42 @@ void AnimationImporter::translate_Animations(
         const COLLADAFW::AnimatableFloat *xfov = &camera->getXFov();
         const COLLADAFW::UniqueId &listid = xfov->getAnimationList();
         double aspect = get_aspect_ratio(camera);
-        Assign_lens_animations(listid, AnimCurves, aspect, cam, "lens", CAMERA_XFOV);
+        Assign_lens_animations(listid, *cam->adt, aspect, cam, "lens", CAMERA_XFOV);
       }
 
       else if ((animType->camera & CAMERA_YFOV) != 0) {
         const COLLADAFW::AnimatableFloat *yfov = &camera->getYFov();
         const COLLADAFW::UniqueId &listid = yfov->getAnimationList();
         double aspect = get_aspect_ratio(camera);
-        Assign_lens_animations(listid, AnimCurves, aspect, cam, "lens", CAMERA_YFOV);
+        Assign_lens_animations(listid, *cam->adt, aspect, cam, "lens", CAMERA_YFOV);
       }
 
       else if ((animType->camera & CAMERA_XMAG) != 0) {
         const COLLADAFW::AnimatableFloat *xmag = &camera->getXMag();
         const COLLADAFW::UniqueId &listid = xmag->getAnimationList();
-        Assign_float_animations(listid, AnimCurves, "ortho_scale");
+        Assign_float_animations(listid, *cam->adt, "ortho_scale");
       }
 
       else if ((animType->camera & CAMERA_YMAG) != 0) {
         const COLLADAFW::AnimatableFloat *ymag = &camera->getYMag();
         const COLLADAFW::UniqueId &listid = ymag->getAnimationList();
-        Assign_float_animations(listid, AnimCurves, "ortho_scale");
+        Assign_float_animations(listid, *cam->adt, "ortho_scale");
       }
 
       if ((animType->camera & CAMERA_ZFAR) != 0) {
         const COLLADAFW::AnimatableFloat *zfar = &camera->getFarClippingPlane();
         const COLLADAFW::UniqueId &listid = zfar->getAnimationList();
-        Assign_float_animations(listid, AnimCurves, "clip_end");
+        Assign_float_animations(listid, *cam->adt, "clip_end");
       }
 
       if ((animType->camera & CAMERA_ZNEAR) != 0) {
         const COLLADAFW::AnimatableFloat *znear = &camera->getNearClippingPlane();
         const COLLADAFW::UniqueId &listid = znear->getAnimationList();
-        Assign_float_animations(listid, AnimCurves, "clip_start");
+        Assign_float_animations(listid, *cam->adt, "clip_start");
       }
     }
   }
   if (animType->material != 0) {
-
-    Material *ma = BKE_object_material_get(ob, 1);
-    if (!ma->adt || !ma->adt->action) {
-      act = blender::animrig::id_action_ensure(bmain, (ID *)&ma->id);
-    }
-    else {
-      act = ma->adt->action;
-    }
-
     const COLLADAFW::InstanceGeometryPointerArray &nodeGeoms = node->getInstanceGeometries();
     for (uint i = 0; i < nodeGeoms.getCount(); i++) {
       const COLLADAFW::MaterialBindingArray &matBinds = nodeGeoms[i]->getMaterialBindings();
@@ -1010,31 +999,32 @@ void AnimationImporter::translate_Animations(
                     node->getName().c_str());
             continue;
           }
-          ListBase &AnimCurves = get_animation_curves(bmain, ma);
+          ensure_action_and_slot_for_id(bmain, ma->id);
+
           const COLLADAFW::CommonEffectPointerArray &commonEffects = ef->getCommonEffects();
           COLLADAFW::EffectCommon *efc = commonEffects[0];
           if ((animType->material & MATERIAL_SHININESS) != 0) {
             const COLLADAFW::FloatOrParam *shin = &efc->getShininess();
             const COLLADAFW::UniqueId &listid = shin->getAnimationList();
-            Assign_float_animations(listid, &AnimCurves, "specular_hardness");
+            Assign_float_animations(listid, *ma->adt, "specular_hardness");
           }
 
           if ((animType->material & MATERIAL_IOR) != 0) {
             const COLLADAFW::FloatOrParam *ior = &efc->getIndexOfRefraction();
             const COLLADAFW::UniqueId &listid = ior->getAnimationList();
-            Assign_float_animations(listid, &AnimCurves, "raytrace_transparency.ior");
+            Assign_float_animations(listid, *ma->adt, "raytrace_transparency.ior");
           }
 
           if ((animType->material & MATERIAL_SPEC_COLOR) != 0) {
             const COLLADAFW::ColorOrTexture *cot = &efc->getSpecular();
             const COLLADAFW::UniqueId &listid = cot->getColor().getAnimationList();
-            Assign_color_animations(listid, &AnimCurves, "specular_color");
+            Assign_color_animations(listid, *ma->adt, "specular_color");
           }
 
           if ((animType->material & MATERIAL_DIFF_COLOR) != 0) {
             const COLLADAFW::ColorOrTexture *cot = &efc->getDiffuse();
             const COLLADAFW::UniqueId &listid = cot->getColor().getAnimationList();
-            Assign_color_animations(listid, &AnimCurves, "diffuse_color");
+            Assign_color_animations(listid, *ma->adt, "diffuse_color");
           }
         }
       }
@@ -1413,31 +1403,12 @@ bool AnimationImporter::calc_joint_parent_mat_rest(float mat[4][4],
 
 void AnimationImporter::add_bone_fcurve(Object *ob, COLLADAFW::Node *node, FCurve *fcu)
 {
+  BLI_assert(ob->adt != nullptr && ob->adt->action != nullptr);
+
   const char *bone_name = bc_get_joint_name(node);
-  bAction *act = ob->adt->action;
 
-  /* try to find group */
-  bActionGroup *grp = BKE_action_group_find_name(act, bone_name);
-
-  /* no matching groups, so add one */
-  if (grp == nullptr) {
-    /* Add a new group, and make it active */
-    grp = MEM_cnew<bActionGroup>("bActionGroup");
-
-    grp->flag = AGRP_SELECTED;
-    STRNCPY(grp->name, bone_name);
-
-    BLI_addtail(&act->groups, grp);
-    BLI_uniquename(&act->groups,
-                   grp,
-                   CTX_DATA_(BLT_I18NCONTEXT_ID_ACTION, "Group"),
-                   '.',
-                   offsetof(bActionGroup, name),
-                   64);
-  }
-
-  /* add F-Curve to group */
-  action_groups_add_channel(act, grp, fcu);
+  blender::animrig::action_fcurve_attach(
+      ob->adt->action->wrap(), ob->adt->slot_handle, *fcu, bone_name);
 }
 
 void AnimationImporter::set_import_from_version(std::string import_from_version)

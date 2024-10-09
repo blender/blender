@@ -105,7 +105,8 @@ static int cachefile_open_exec(bContext *C, wmOperator *op)
       RNA_property_update(C, &pprop->ptr, pprop->prop);
     }
 
-    MEM_freeN(op->customdata);
+    op->customdata = nullptr;
+    MEM_delete(pprop);
   }
 
   return OPERATOR_FINISHED;

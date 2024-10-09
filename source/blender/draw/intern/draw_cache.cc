@@ -890,8 +890,6 @@ blender::gpu::Batch *DRW_cache_object_face_wireframe_get(const Scene *scene, Obj
       return DRW_pointcloud_batch_cache_get_dots(ob);
     case OB_VOLUME:
       return DRW_cache_volume_face_wireframe_get(ob);
-    case OB_GPENCIL_LEGACY:
-      return DRW_cache_gpencil_face_wireframe_get(ob);
     case OB_GREASE_PENCIL:
       return DRW_cache_grease_pencil_face_wireframe_get(scene, ob);
     default:
@@ -961,8 +959,6 @@ int DRW_cache_object_material_count_get(const Object *ob)
       return DRW_pointcloud_material_count_get(static_cast<const PointCloud *>(ob->data));
     case OB_VOLUME:
       return DRW_volume_material_count_get(static_cast<const Volume *>(ob->data));
-    case OB_GPENCIL_LEGACY:
-      return DRW_gpencil_material_count_get(static_cast<const bGPdata *>(ob->data));
     default:
       BLI_assert(0);
       return 0;

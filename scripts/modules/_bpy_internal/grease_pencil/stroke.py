@@ -118,7 +118,6 @@ def DefAttributeGetterSetters(attributes_list):
     ("position", "position", 'FLOAT_VECTOR', (0.0, 0.0, 0.0), "The position of the point (in local space)."),
     ("radius", "radius", 'FLOAT', 0.01, "The radius of the point."),
     ("opacity", "opacity", 'FLOAT', 0.0, "The opacity of the point."),
-    ("select", ".selection", 'BOOLEAN', True, "The selection state for this point."),
     ("vertex_color", "vertex_color", 'FLOAT_COLOR', (0.0, 0.0, 0.0, 0.0),
      "The color for this point. The alpha value is used as a mix factor with the base color of the stroke."),
     ("rotation", "rotation", 'FLOAT', 0.0, "The rotation for this point. Used to rotate textures."),
@@ -129,8 +128,31 @@ class GreasePencilStrokePoint(AttributeGetterSetter):
     A helper class to get access to stroke point data.
     """
 
-    def __init__(self, drawing, point_index):
+    def __init__(self, drawing, curve_index, point_index):
         super().__init__(drawing.attributes, point_index, 'POINT')
+        self._curve_index = curve_index
+        self._point_index = point_index
+
+    @property
+    def select(self):
+        """
+        The selection state for this point.
+        """
+        if attribute := self._attributes.get(".selection"):
+            if attribute.domain == 'CURVE':
+                return attribute.data[self._curve_index].value
+            elif attribute.domain == 'POINT':
+                return attribute.data[self._point_index].value
+        # If the attribute doesn't exist, everything is selected.
+        return True
+
+    @select.setter
+    def select(self, value):
+        if attribute := self._attributes.get(".selection", self._attributes.new(".selection", 'BOOLEAN', 'POINT')):
+            if attribute.domain == 'CURVE':
+                attribute.data[self._curve_index].value = value
+            elif attribute.domain == 'POINT':
+                attribute.data[self._point_index].value = value
 
 
 class GreasePencilStrokePointSlice(SliceHelper):
@@ -138,9 +160,10 @@ class GreasePencilStrokePointSlice(SliceHelper):
     A helper class that represents a slice of GreasePencilStrokePoint's.
     """
 
-    def __init__(self, drawing, start: int, stop: int):
+    def __init__(self, drawing, curve_index: int, start: int, stop: int):
         super().__init__(start, stop)
         self._drawing = drawing
+        self._curve_index = curve_index
 
     def __len__(self):
         return super().__len__()
@@ -148,10 +171,10 @@ class GreasePencilStrokePointSlice(SliceHelper):
     def __getitem__(self, key):
         key = super()._getitem_helper(key)
         if isinstance(key, int):
-            return GreasePencilStrokePoint(self._drawing, key)
+            return GreasePencilStrokePoint(self._drawing, self._curve_index, key)
         elif isinstance(key, tuple):
             start, stop = key
-            return GreasePencilStrokePointSlice(self._drawing, start, stop)
+            return GreasePencilStrokePointSlice(self._drawing, self._curve_index, start, stop)
 
 
 # Define the list of attributes that should be exposed as read/write properties on the class.
@@ -159,7 +182,6 @@ class GreasePencilStrokePointSlice(SliceHelper):
     # Property Name, Attribute Name, Type, Default Value, Doc-string.
     ("cyclic", "cyclic", 'BOOLEAN', False, "The closed state for this stroke."),
     ("material_index", "material_index", 'INT', 0, "The index of the material for this stroke."),
-    ("select", ".selection", 'BOOLEAN', True, "The selection state for this stroke."),
     ("softness", "softness", 'FLOAT', 0.0, "Used by the renderer to generate a soft gradient from the stroke center line to the edges."),
     ("start_cap", "start_cap", 'INT8', 0, "The type of start cap of this stroke."),
     ("end_cap", "end_cap", 'INT8', 0, "The type of end cap of this stroke."),
@@ -185,7 +207,11 @@ class GreasePencilStroke(AttributeGetterSetter):
         """
         Return a slice of points in the stroke.
         """
-        return GreasePencilStrokePointSlice(self._drawing, self._points_start_index, self._points_end_index)
+        return GreasePencilStrokePointSlice(
+            self._drawing,
+            self._curve_index,
+            self._points_start_index,
+            self._points_end_index)
 
     def add_points(self, count: int):
         """
@@ -215,6 +241,29 @@ class GreasePencilStroke(AttributeGetterSetter):
         """
         # Note: This is read-only which is why it is not part of the AttributeGetterSetters.
         return super()._get_attribute("curve_type", 'INT8', 0)
+
+    @property
+    def select(self):
+        """
+        The selection state for this stroke.
+        """
+        if attribute := self._attributes.get(".selection"):
+            if attribute.domain == 'CURVE':
+                return attribute.data[self._curve_index].value
+            elif attribute.domain == 'POINT':
+                return any([attribute.data[point_index].value for point_index in range(
+                    self._points_start_index, self._points_end_index)])
+        # If the attribute doesn't exist, everything is selected.
+        return True
+
+    @select.setter
+    def select(self, value):
+        if attribute := self._attributes.get(".selection", self._attributes.new(".selection", 'BOOLEAN', 'CURVE')):
+            if attribute.domain == 'CURVE':
+                attribute.data[self._curve_index].value = value
+            elif attribute.domain == 'POINT':
+                for point_index in range(self._points_start_index, self._points_end_index):
+                    attribute.data[point_index].value = value
 
 
 class GreasePencilStrokeSlice(SliceHelper):

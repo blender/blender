@@ -5,25 +5,29 @@
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(compositor_write_output_shared)
-    .local_group_size(16, 16)
-    .push_constant(Type::IVEC2, "lower_bound")
-    .push_constant(Type::IVEC2, "upper_bound")
-    .sampler(0, ImageType::FLOAT_2D, "input_tx")
-    .image(0, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
-    .compute_source("compositor_write_output.glsl");
+LOCAL_GROUP_SIZE(16, 16)
+PUSH_CONSTANT(IVEC2, lower_bound)
+PUSH_CONSTANT(IVEC2, upper_bound)
+SAMPLER(0, FLOAT_2D, input_tx)
+IMAGE(0, GPU_RGBA16F, WRITE, FLOAT_2D, output_img)
+COMPUTE_SOURCE("compositor_write_output.glsl")
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(compositor_write_output)
-    .additional_info("compositor_write_output_shared")
-    .define("DIRECT_OUTPUT")
-    .do_static_compilation(true);
+ADDITIONAL_INFO(compositor_write_output_shared)
+DEFINE("DIRECT_OUTPUT")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(compositor_write_output_opaque)
-    .additional_info("compositor_write_output_shared")
-    .define("OPAQUE_OUTPUT")
-    .do_static_compilation(true);
+ADDITIONAL_INFO(compositor_write_output_shared)
+DEFINE("OPAQUE_OUTPUT")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(compositor_write_output_alpha)
-    .additional_info("compositor_write_output_shared")
-    .sampler(1, ImageType::FLOAT_2D, "alpha_tx")
-    .define("ALPHA_OUTPUT")
-    .do_static_compilation(true);
+ADDITIONAL_INFO(compositor_write_output_shared)
+SAMPLER(1, FLOAT_2D, alpha_tx)
+DEFINE("ALPHA_OUTPUT")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()

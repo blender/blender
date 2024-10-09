@@ -353,6 +353,18 @@ void BKE_action_flip_with_pose(bAction *act, Object *ob_arm) ATTR_NONNULL(1, 2);
 namespace blender::bke {
 
 using FoundFCurveCallback = blender::FunctionRef<void(FCurve *fcurve, const char *bone_name)>;
-void BKE_action_find_fcurves_with_bones(const bAction *action, FoundFCurveCallback callback);
+using FoundFCurveCallbackConst =
+    blender::FunctionRef<void(const FCurve *fcurve, const char *bone_name)>;
+
+/**
+ * Calls `callback` for every fcurve in `action` that targets any bone.
+ *
+ * For layered actions this is currently limited to fcurves in the first slot of
+ * the action. This is because these functions are intended for use by pose
+ * library code, which currently (as of writing this) only use the first slot in
+ * layered actions.
+ */
+void BKE_action_find_fcurves_with_bones(bAction *action, FoundFCurveCallback callback);
+void BKE_action_find_fcurves_with_bones(const bAction *action, FoundFCurveCallbackConst callback);
 
 };  // namespace blender::bke

@@ -6,10 +6,6 @@
  * \ingroup edtransform
  */
 
-#include <cmath>
-
-#include "MEM_guardedalloc.h"
-
 #include "DNA_gpencil_legacy_types.h"
 
 #include "BLI_blenlib.h"
@@ -38,7 +34,6 @@
 #include "ED_uvedit.hh"
 
 #include "WM_api.hh"
-#include "WM_types.hh"
 
 #include "UI_view2d.hh"
 
@@ -128,7 +123,6 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   ARegion *region = CTX_wm_region(C);
   ScrArea *area = CTX_wm_area(C);
 
-  bGPdata *gpd = CTX_data_gpencil_data(C);
   PropertyRNA *prop;
 
   t->mbus = CTX_wm_message_bus(C);
@@ -217,11 +211,6 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     if (RNA_property_boolean_get(op->ptr, prop)) {
       t->remove_on_cancel = true;
     }
-  }
-
-  /* GPencil editing context. */
-  if (GPENCIL_EDIT_MODE(gpd)) {
-    t->options |= CTX_GPENCIL_STROKES;
   }
 
   /* Grease Pencil editing context. */
@@ -1267,6 +1256,7 @@ void transformViewUpdate(TransInfo *t)
   }
 
   calculateCenter2D(t);
+  transform_snap_grid_init(t, t->snap_spatial, &t->snap_spatial_precision);
   transform_input_update(t, zoom_prev / zoom_new);
 }
 

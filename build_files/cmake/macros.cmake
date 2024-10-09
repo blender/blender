@@ -1046,7 +1046,8 @@ function(glsl_to_c
     COMMAND "$<TARGET_FILE:datatoc>" ${_file_tmp} ${_file_to}
     DEPENDS ${_file_from} datatoc glsl_preprocess)
 
-  set_source_files_properties(${_file_to} PROPERTIES GENERATED TRUE)
+  set_source_files_properties(${_file_tmp} PROPERTIES GENERATED TRUE)
+  set_source_files_properties(${_file_to}  PROPERTIES GENERATED TRUE)
 endfunction()
 
 

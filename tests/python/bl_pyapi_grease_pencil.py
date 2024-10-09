@@ -93,7 +93,7 @@ class TestGreasePencilDrawing(unittest.TestCase):
 
     def test_grease_pencil_drawing_remove_all_strokes(self):
         self.drawing.remove_strokes()
-        self.assertIsNone(self.drawing.strokes)
+        self.assertEqual(len(self.drawing.strokes), 0)
 
     def test_grease_pencil_drawing_remove_strokes(self):
         self.drawing.remove_strokes(indices=[0, 2])

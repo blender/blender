@@ -390,24 +390,19 @@ static void object_defgroup_remove_edit_mode(Object *ob, bDeformGroup *dg)
 
 void BKE_object_defgroup_remove(Object *ob, bDeformGroup *defgroup)
 {
-  if (ob->type == OB_GPENCIL_LEGACY) {
-    BKE_gpencil_vgroup_remove(ob, defgroup);
+  if (BKE_object_is_in_editmode_vgroup(ob)) {
+    object_defgroup_remove_edit_mode(ob, defgroup);
   }
   else {
-    if (BKE_object_is_in_editmode_vgroup(ob)) {
-      object_defgroup_remove_edit_mode(ob, defgroup);
-    }
-    else {
-      object_defgroup_remove_object_mode(ob, defgroup);
-    }
-
-    if (ob->type == OB_GREASE_PENCIL) {
-      blender::bke::greasepencil::validate_drawing_vertex_groups(
-          *static_cast<GreasePencil *>(ob->data));
-    }
-
-    BKE_object_batch_cache_dirty_tag(ob);
+    object_defgroup_remove_object_mode(ob, defgroup);
   }
+
+  if (ob->type == OB_GREASE_PENCIL) {
+    blender::bke::greasepencil::validate_drawing_vertex_groups(
+        *static_cast<GreasePencil *>(ob->data));
+  }
+
+  BKE_object_batch_cache_dirty_tag(ob);
 }
 
 void BKE_object_defgroup_remove_all_ex(Object *ob, bool only_unlocked)

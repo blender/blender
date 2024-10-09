@@ -23,9 +23,9 @@ static void is_selection_visible(bool &r_show_points, bool &r_show_lines)
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const ToolSettings *ts = draw_ctx->scene->toolsettings;
-  const bool in_sculpt_mode = (draw_ctx->object_mode & OB_MODE_SCULPT_GPENCIL_LEGACY) != 0;
-  const bool in_weight_mode = (draw_ctx->object_mode & OB_MODE_WEIGHT_GPENCIL_LEGACY) != 0;
-  const bool in_vertex_mode = (draw_ctx->object_mode & OB_MODE_VERTEX_GPENCIL_LEGACY) != 0;
+  const bool in_sculpt_mode = (draw_ctx->object_mode & OB_MODE_SCULPT_GREASE_PENCIL) != 0;
+  const bool in_weight_mode = (draw_ctx->object_mode & OB_MODE_WEIGHT_GREASE_PENCIL) != 0;
+  const bool in_vertex_mode = (draw_ctx->object_mode & OB_MODE_VERTEX_GREASE_PENCIL) != 0;
   const bool flag_show_lines = (draw_ctx->v3d->gp_flag & V3D_GP_SHOW_EDIT_LINES) != 0;
 
   if (in_weight_mode) {
@@ -64,7 +64,7 @@ void OVERLAY_edit_grease_pencil_cache_init(OVERLAY_Data *vedata)
   OVERLAY_PassList *psl = vedata->psl;
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const bool use_weight = (draw_ctx->object_mode & OB_MODE_WEIGHT_GPENCIL_LEGACY) != 0;
+  const bool use_weight = (draw_ctx->object_mode & OB_MODE_WEIGHT_GREASE_PENCIL) != 0;
 
   GPUShader *sh;
   DRWShadingGroup *grp;

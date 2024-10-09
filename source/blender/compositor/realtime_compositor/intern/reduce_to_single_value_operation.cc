@@ -27,11 +27,19 @@ ReduceToSingleValueOperation::ReduceToSingleValueOperation(Context &context, Res
 
 void ReduceToSingleValueOperation::execute()
 {
-  /* Make sure any prior writes to the texture are reflected before downloading it. */
-  GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
+  Result &input = get_input();
 
-  const Result &input = get_input();
-  float *pixel = static_cast<float *>(GPU_texture_read(input, GPU_DATA_FLOAT, 0));
+  float *pixel = nullptr;
+  bool need_to_free_pixel = false;
+  if (context().use_gpu()) {
+    /* Make sure any prior writes to the texture are reflected before downloading it. */
+    GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
+    pixel = static_cast<float *>(GPU_texture_read(input, GPU_DATA_FLOAT, 0));
+    need_to_free_pixel = true;
+  }
+  else {
+    pixel = input.float_texture();
+  }
 
   Result &result = get_result();
   result.allocate_single_value();
@@ -51,7 +59,9 @@ void ReduceToSingleValueOperation::execute()
       break;
   }
 
-  MEM_freeN(pixel);
+  if (need_to_free_pixel) {
+    MEM_freeN(pixel);
+  }
 }
 
 SimpleOperation *ReduceToSingleValueOperation::construct_if_needed(Context &context,

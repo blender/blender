@@ -11,6 +11,8 @@
 #include "common_math_lib.glsl"
 #include "common_view_lib.glsl"
 
+COMPUTE_SHADER_CREATE_INFO(draw_visibility_compute)
+
 void mask_visibility_bit(uint view_id)
 {
   if (view_len > 1) {

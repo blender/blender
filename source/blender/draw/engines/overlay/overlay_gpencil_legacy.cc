@@ -160,7 +160,7 @@ void OVERLAY_edit_gpencil_legacy_cache_init(OVERLAY_Data *vedata)
   /* control points for primitives and speed guide */
   const bool is_cppoint = (gpd->runtime.tot_cp_points > 0);
   const bool is_speed_guide = (ts->gp_sculpt.guide.use_guide &&
-                               (draw_ctx->object_mode == OB_MODE_PAINT_GPENCIL_LEGACY));
+                               (draw_ctx->object_mode == OB_MODE_PAINT_GREASE_PENCIL));
   const bool is_show_gizmo = (((v3d->gizmo_flag & V3D_GIZMO_HIDE) == 0) &&
                               ((v3d->gizmo_flag & V3D_GIZMO_HIDE_TOOL) == 0));
 
@@ -319,135 +319,6 @@ void OVERLAY_gpencil_legacy_cache_init(OVERLAY_Data *vedata)
     DRW_shgroup_uniform_vec3_copy(grp, "origin", mat[3]);
     DRW_shgroup_uniform_int_copy(grp, "halfLineCount", line_count / 2);
     DRW_shgroup_call_procedural_lines(grp, nullptr, line_count);
-  }
-}
-
-static void OVERLAY_edit_gpencil_cache_populate(OVERLAY_Data *vedata, Object *ob)
-{
-  using namespace blender::draw;
-  OVERLAY_PrivateData *pd = vedata->stl->pd;
-  bGPdata *gpd = (bGPdata *)ob->data;
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  View3D *v3d = draw_ctx->v3d;
-
-  /* Overlay is only for active object. */
-  if (ob != draw_ctx->obact) {
-    return;
-  }
-
-  if (pd->edit_gpencil_wires_grp) {
-    DRWShadingGroup *grp = DRW_shgroup_create_sub(pd->edit_gpencil_wires_grp);
-    DRW_shgroup_uniform_vec4_copy(grp, "gpEditColor", gpd->line_color);
-
-    blender::gpu::Batch *geom = DRW_cache_gpencil_edit_lines_get(ob, pd->cfra);
-    DRW_shgroup_call_no_cull(pd->edit_gpencil_wires_grp, geom, ob);
-  }
-
-  if (pd->edit_gpencil_points_grp) {
-    const bool show_direction = (v3d->gp_flag & V3D_GP_SHOW_STROKE_DIRECTION) != 0;
-
-    DRWShadingGroup *grp = DRW_shgroup_create_sub(pd->edit_gpencil_points_grp);
-    DRW_shgroup_uniform_float_copy(grp, "doStrokeEndpoints", show_direction);
-
-    blender::gpu::Batch *geom = DRW_cache_gpencil_edit_points_get(ob, pd->cfra);
-    DRW_shgroup_call_no_cull(grp, geom, ob);
-  }
-
-  if (pd->edit_gpencil_curve_handle_grp) {
-    blender::gpu::Batch *geom = DRW_cache_gpencil_edit_curve_handles_get(ob, pd->cfra);
-    if (geom) {
-      DRW_shgroup_call_no_cull(pd->edit_gpencil_curve_handle_grp, geom, ob);
-    }
-  }
-
-  if (pd->edit_gpencil_curve_points_grp) {
-    blender::gpu::Batch *geom = DRW_cache_gpencil_edit_curve_points_get(ob, pd->cfra);
-    if (geom) {
-      DRW_shgroup_call_no_cull(pd->edit_gpencil_curve_points_grp, geom, ob);
-    }
-  }
-}
-
-static void overlay_gpencil_draw_stroke_color_name(bGPDlayer * /*gpl*/,
-                                                   bGPDframe * /*gpf*/,
-                                                   bGPDstroke *gps,
-                                                   void *thunk)
-{
-  Object *ob = (Object *)thunk;
-  Material *ma = BKE_object_material_get_eval(ob, gps->mat_nr + 1);
-  if (ma == nullptr) {
-    return;
-  }
-  MaterialGPencilStyle *gp_style = ma->gp_style;
-  /* skip stroke if it doesn't have any valid data */
-  if ((gps->points == nullptr) || (gps->totpoints < 1) || (gp_style == nullptr)) {
-    return;
-  }
-  /* check if the color is visible */
-  if (gp_style->flag & GP_MATERIAL_HIDE) {
-    return;
-  }
-  /* only if selected */
-  if (gps->flag & GP_STROKE_SELECT) {
-    for (int i = 0; i < gps->totpoints; i++) {
-      bGPDspoint *pt = &gps->points[i];
-      /* Draw name at the first selected point. */
-      if (pt->flag & GP_SPOINT_SELECT) {
-        const DRWContextState *draw_ctx = DRW_context_state_get();
-        ViewLayer *view_layer = draw_ctx->view_layer;
-
-        int theme_id = DRW_object_wire_theme_get(ob, view_layer, nullptr);
-        uchar color[4];
-        UI_GetThemeColor4ubv(theme_id, color);
-
-        float fpt[3];
-        mul_v3_m4v3(fpt, ob->object_to_world().ptr(), &pt->x);
-
-        DRWTextStore *dt = DRW_text_cache_ensure();
-        DRW_text_cache_add(dt,
-                           fpt,
-                           ma->id.name + 2,
-                           strlen(ma->id.name + 2),
-                           10,
-                           0,
-                           DRW_TEXT_CACHE_GLOBALSPACE | DRW_TEXT_CACHE_STRING_PTR,
-                           color);
-        break;
-      }
-    }
-  }
-}
-
-static void OVERLAY_gpencil_color_names(Object *ob)
-{
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  int cfra = DEG_get_ctime(draw_ctx->depsgraph);
-
-  BKE_gpencil_visible_stroke_advanced_iter(
-      nullptr, ob, nullptr, overlay_gpencil_draw_stroke_color_name, ob, false, cfra);
-}
-
-void OVERLAY_gpencil_legacy_cache_populate(OVERLAY_Data *vedata, Object *ob)
-{
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  View3D *v3d = draw_ctx->v3d;
-
-  bGPdata *gpd = (bGPdata *)ob->data;
-  if (gpd == nullptr) {
-    return;
-  }
-
-  if (GPENCIL_ANY_MODE(gpd)) {
-    OVERLAY_edit_gpencil_cache_populate(vedata, ob);
-  }
-
-  /* don't show object extras in set's */
-  if ((ob->base_flag & (BASE_FROM_SET | BASE_FROM_DUPLI)) == 0) {
-    if ((v3d->gp_flag & V3D_GP_SHOW_MATERIAL_NAME) && (ob->mode == OB_MODE_EDIT_GPENCIL_LEGACY) &&
-        DRW_state_show_text())
-    {
-      OVERLAY_gpencil_color_names(ob);
-    }
   }
 }
 

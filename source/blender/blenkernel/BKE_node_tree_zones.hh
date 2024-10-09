@@ -12,6 +12,7 @@
 
 #include "DNA_node_types.h"
 
+#include "BLI_map.hh"
 #include "BLI_vector.hh"
 
 namespace blender::bke {
@@ -50,7 +51,9 @@ class bNodeTreeZone {
 
 class bNodeTreeZones {
  public:
-  Vector<std::unique_ptr<bNodeTreeZone>> zones;
+  Vector<std::unique_ptr<bNodeTreeZone>> zones_ptrs;
+  /** Same as #zones_ptrs, but usually easier to iterate over. */
+  Vector<bNodeTreeZone *> zones;
   Vector<bNodeTreeZone *> root_zones;
   Vector<const bNode *> nodes_outside_zones;
   /**

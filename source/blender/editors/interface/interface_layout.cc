@@ -2790,7 +2790,7 @@ static void ui_rna_collection_search_arg_free_fn(void *ptr)
 {
   uiRNACollectionSearch *coll_search = static_cast<uiRNACollectionSearch *>(ptr);
   UI_butstore_free(coll_search->butstore_block, coll_search->butstore);
-  MEM_freeN(ptr);
+  MEM_delete(coll_search);
 }
 
 uiBut *ui_but_add_search(uiBut *but,
@@ -2817,8 +2817,7 @@ uiBut *ui_but_add_search(uiBut *but,
 
   /* turn button into search button */
   if (has_search_fn || searchprop) {
-    uiRNACollectionSearch *coll_search = static_cast<uiRNACollectionSearch *>(
-        MEM_mallocN(sizeof(*coll_search), __func__));
+    uiRNACollectionSearch *coll_search = MEM_new<uiRNACollectionSearch>(__func__);
     uiButSearch *search_but;
 
     but = ui_but_change_type(but, UI_BTYPE_SEARCH_MENU);

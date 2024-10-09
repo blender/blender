@@ -49,7 +49,7 @@ vec3 lightprobe_sphere_parallax(SphereProbeData probe, vec3 P, vec3 L)
   }
   /* Correct reflection ray using parallax volume intersection. */
   vec3 lP = vec4(P, 1.0) * probe.world_to_probe_transposed;
-  vec3 lL = (mat3x3(probe.world_to_probe_transposed) * L) / probe.parallax_distance;
+  vec3 lL = (to_float3x3(probe.world_to_probe_transposed) * L) / probe.parallax_distance;
 
   float dist = (probe.parallax_shape == SHAPE_ELIPSOID) ? line_unit_sphere_intersect_dist(lP, lL) :
                                                           line_unit_box_intersect_dist(lP, lL);

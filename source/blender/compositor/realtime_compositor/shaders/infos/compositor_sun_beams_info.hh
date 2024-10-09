@@ -5,10 +5,11 @@
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(compositor_sun_beams)
-    .local_group_size(16, 16)
-    .push_constant(Type::VEC2, "source")
-    .push_constant(Type::INT, "max_steps")
-    .sampler(0, ImageType::FLOAT_2D, "input_tx")
-    .image(0, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
-    .compute_source("compositor_sun_beams.glsl")
-    .do_static_compilation(true);
+LOCAL_GROUP_SIZE(16, 16)
+PUSH_CONSTANT(VEC2, source)
+PUSH_CONSTANT(INT, max_steps)
+SAMPLER(0, FLOAT_2D, input_tx)
+IMAGE(0, GPU_RGBA16F, WRITE, FLOAT_2D, output_img)
+COMPUTE_SOURCE("compositor_sun_beams.glsl")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()

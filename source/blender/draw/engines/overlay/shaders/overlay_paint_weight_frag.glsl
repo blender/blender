@@ -80,7 +80,7 @@ void main()
   /* Weights are available */
   else {
     float weight = weight_interp.x;
-    vec4 weight_color = texture(colorramp, weight, 0);
+    vec4 weight_color = texture(colorramp, weight);
     weight_color = apply_color_fac(weight_color);
 
     /* Contour display */

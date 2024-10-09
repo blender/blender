@@ -8,7 +8,7 @@
 
 #include "gpu_shader_create_info.hh"
 
-GPU_SHADER_INTERFACE_INFO(fullscreen_blit_iface, "").smooth(Type::VEC4, "uvcoordsvar");
+GPU_SHADER_INTERFACE_INFO(fullscreen_blit_iface).smooth(Type::VEC4, "uvcoordsvar");
 
 GPU_SHADER_CREATE_INFO(fullscreen_blit)
     .vertex_in(0, Type::VEC2, "pos")

@@ -57,7 +57,7 @@ translations_tuple = (
     (("Operator", "Render: Copy Settings"),
      (("bpy.types.SCENE_OT_render_copy_settings",),
       ()),
-     ("fr_FR", "Rendu : copier réglages",
+     ("fr_FR", "Rendu: copier réglages",
                (False, ())),
      ),
     (("*", "Copy render settings from current scene to others"),

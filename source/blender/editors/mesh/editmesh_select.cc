@@ -74,7 +74,7 @@ using blender::Span;
 using blender::Vector;
 
 /* -------------------------------------------------------------------- */
-/** \name Generic Poll Funcitons
+/** \name Generic Poll Functions
  * \{ */
 
 static bool edbm_vert_or_edge_select_mode_poll(bContext *C)
@@ -3960,10 +3960,8 @@ void MESH_OT_select_by_pole_count(wmOperatorType *ot)
   /* Identifiers. */
   ot->name = "Select By Pole Count";
   ot->description =
-      "Select all elements that are connected to a pole, by the pole count.\n"
-      "In vertex selection mode, each pole vertex is selected.\n"
-      "In edge selection mode, each pole vertex and all their connected edges are selected.\n"
-      "In face selection mode, each pole vertex and all their connected faces are selected.";
+      "Select vertices at poles by the number of connected edges. "
+      "In edge and face mode the geometry connected to the vertices is selected";
   ot->idname = "MESH_OT_select_by_pole_count";
 
   /* API callbacks. */

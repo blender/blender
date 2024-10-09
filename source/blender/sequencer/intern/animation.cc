@@ -47,9 +47,10 @@ void SEQ_offset_animdata(Scene *scene, Sequence *seq, int ofs)
     return;
   }
 
-  Vector<FCurve *> fcurves = animrig::fcurves_in_listbase_filtered(
-      scene->adt->action->curves,
-      [&](const FCurve &fcurve) { return SEQ_fcurve_matches(*seq, fcurve); });
+  Vector<FCurve *> fcurves = animrig::fcurves_in_action_slot_filtered(
+      scene->adt->action, scene->adt->slot_handle, [&](const FCurve &fcurve) {
+        return SEQ_fcurve_matches(*seq, fcurve);
+      });
 
   for (FCurve *fcu : fcurves) {
     uint i;
@@ -78,13 +79,14 @@ void SEQ_free_animdata(Scene *scene, Sequence *seq)
     return;
   }
 
-  Vector<FCurve *> fcurves = animrig::fcurves_in_listbase_filtered(
-      scene->adt->action->curves,
-      [&](const FCurve &fcurve) { return SEQ_fcurve_matches(*seq, fcurve); });
+  Vector<FCurve *> fcurves = animrig::fcurves_in_action_slot_filtered(
+      scene->adt->action, scene->adt->slot_handle, [&](const FCurve &fcurve) {
+        return SEQ_fcurve_matches(*seq, fcurve);
+      });
 
+  animrig::Action &action = scene->adt->action->wrap();
   for (FCurve *fcu : fcurves) {
-    BLI_remlink(&scene->adt->action->curves, fcu);
-    BKE_fcurve_free(fcu);
+    action_fcurve_remove(action, *fcu);
   }
 }
 
@@ -139,20 +141,66 @@ void SEQ_animation_restore_original(Scene *scene, SeqAnimationBackup *backup)
   }
 }
 
-static void seq_animation_duplicate(Scene *scene, Sequence *seq, ListBase *dst, ListBase *src)
+/**
+ * Duplicate the animation in `src` that matches items in `seq` into `dst`.
+ */
+static void seq_animation_duplicate(Sequence *seq,
+                                    animrig::Action &dst,
+                                    const animrig::slot_handle_t dst_slot_handle,
+                                    SeqAnimationBackup *src)
 {
   if (seq->type == SEQ_TYPE_META) {
     LISTBASE_FOREACH (Sequence *, meta_child, &seq->seqbase) {
-      seq_animation_duplicate(scene, meta_child, dst, src);
+      seq_animation_duplicate(meta_child, dst, dst_slot_handle, src);
+    }
+  }
+
+  Vector<FCurve *> fcurves = {};
+  BLI_assert_msg(BLI_listbase_is_empty(&src->curves) || src->channel_bag.fcurves().is_empty(),
+                 "SeqAnimationBackup has fcurves for both legacy and layered actions, which "
+                 "should never happen.");
+  if (BLI_listbase_is_empty(&src->curves)) {
+    fcurves = animrig::fcurves_in_span_filtered(
+        src->channel_bag.fcurves(),
+        [&](const FCurve &fcurve) { return SEQ_fcurve_matches(*seq, fcurve); });
+  }
+  else {
+    fcurves = animrig::fcurves_in_listbase_filtered(
+        src->curves, [&](const FCurve &fcurve) { return SEQ_fcurve_matches(*seq, fcurve); });
+  }
+
+  for (const FCurve *fcu : fcurves) {
+    FCurve *fcu_copy = BKE_fcurve_copy(fcu);
+
+    /* Handling groups properly requires more work, so we ignore them for now.
+     *
+     * Note that when legacy actions are deprecated, then we can handle channel
+     * groups way more easily because we know they're stored in the
+     * already-duplicated channelbag in `src`, and we therefore don't have to
+     * worry that they might have already been freed.*/
+    fcu_copy->grp = nullptr;
+
+    animrig::action_fcurve_attach(dst, dst_slot_handle, *fcu_copy, std::nullopt);
+  }
+}
+
+/**
+ * Duplicate the drivers in `src` that matches items in `seq` into `dst`.
+ */
+static void seq_drivers_duplicate(Sequence *seq, AnimData *dst, SeqAnimationBackup *src)
+{
+  if (seq->type == SEQ_TYPE_META) {
+    LISTBASE_FOREACH (Sequence *, meta_child, &seq->seqbase) {
+      seq_drivers_duplicate(meta_child, dst, src);
     }
   }
 
   Vector<FCurve *> fcurves = animrig::fcurves_in_listbase_filtered(
-      *src, [&](const FCurve &fcurve) { return SEQ_fcurve_matches(*seq, fcurve); });
+      src->drivers, [&](const FCurve &fcurve) { return SEQ_fcurve_matches(*seq, fcurve); });
 
   for (const FCurve *fcu : fcurves) {
     FCurve *fcu_cpy = BKE_fcurve_copy(fcu);
-    BLI_addtail(dst, fcu_cpy);
+    BLI_addtail(&dst->drivers, fcu_cpy);
   }
 }
 
@@ -160,10 +208,16 @@ void SEQ_animation_duplicate_backup_to_scene(Scene *scene,
                                              Sequence *seq,
                                              SeqAnimationBackup *backup)
 {
-  if (!BLI_listbase_is_empty(&backup->curves)) {
-    seq_animation_duplicate(scene, seq, &scene->adt->action->curves, &backup->curves);
+  BLI_assert(scene != nullptr);
+
+  if (!BLI_listbase_is_empty(&backup->curves) || !backup->channel_bag.fcurves().is_empty()) {
+    BLI_assert(scene->adt != nullptr);
+    BLI_assert(scene->adt->action != nullptr);
+    seq_animation_duplicate(seq, scene->adt->action->wrap(), scene->adt->slot_handle, backup);
   }
+
   if (!BLI_listbase_is_empty(&backup->drivers)) {
-    seq_animation_duplicate(scene, seq, &scene->adt->drivers, &backup->drivers);
+    BLI_assert(scene->adt != nullptr);
+    seq_drivers_duplicate(seq, scene->adt, backup);
   }
 }

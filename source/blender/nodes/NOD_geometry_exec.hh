@@ -14,6 +14,7 @@
 #include "BKE_attribute_filter.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_geometry_fields.hh"
+#include "BKE_geometry_nodes_reference_set.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_node_socket_value.hh"
 #include "BKE_volume_grid_fwd.hh"
@@ -39,6 +40,7 @@ using bke::GAttributeReader;
 using bke::GAttributeWriter;
 using bke::GeometryComponent;
 using bke::GeometryComponentEditData;
+using bke::GeometryNodesReferenceSet;
 using bke::GeometrySet;
 using bke::GreasePencilComponent;
 using bke::GSpanAttributeWriter;
@@ -60,10 +62,10 @@ using geo_eval_log::NodeWarningType;
 
 class NodeAttributeFilter : public AttributeFilter {
  private:
-  const bke::AnonymousAttributeSet &set_;
+  const GeometryNodesReferenceSet &set_;
 
  public:
-  NodeAttributeFilter(const bke::AnonymousAttributeSet &set) : set_(set) {}
+  NodeAttributeFilter(const GeometryNodesReferenceSet &set) : set_(set) {}
 
   Result filter(StringRef attribute_name) const override;
 };
@@ -301,8 +303,7 @@ class GeoNodeExecParams {
     const int lf_index =
         lf_input_for_attribute_propagation_to_output_[node_.output_by_identifier(output_identifier)
                                                           .index_in_all_outputs()];
-    const bke::AnonymousAttributeSet &set = params_.get_input<bke::AnonymousAttributeSet>(
-        lf_index);
+    const GeometryNodesReferenceSet &set = params_.get_input<GeometryNodesReferenceSet>(lf_index);
     return NodeAttributeFilter(set);
   }
 

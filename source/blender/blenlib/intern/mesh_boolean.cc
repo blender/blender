@@ -38,6 +38,10 @@
 #    include <tbb/spin_mutex.h>
 #  endif
 
+#  ifdef _WIN_32
+#    include "BLI_fileops.h"
+#  endif
+
 // #  define PERFDEBUG
 
 namespace blender::meshintersect {
@@ -627,7 +631,11 @@ static void write_obj_cell_patch(const IMesh &m,
    * This is just for developer debugging anyway,
    * and should never be called in production Blender. */
 #  ifdef _WIN_32
-  const char *objdir = BLI_getenv("HOME");
+  const char *objdir = BLI_dir_home();
+  if (objdir == nullptr) {
+    std::cout << "Could not access home directory\n";
+    return;
+  }
 #  else
   const char *objdir = "/tmp/";
 #  endif

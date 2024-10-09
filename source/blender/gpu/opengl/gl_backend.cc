@@ -427,24 +427,6 @@ static void detect_workarounds()
   {
     GLContext::unused_fb_slot_workaround = true;
   }
-  /* dFdx/dFdy calculation factors, those are dependent on driver. */
-  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY) && strstr(version, "3.3.10750"))
-  {
-    GLContext::derivative_signs[0] = 1.0;
-    GLContext::derivative_signs[1] = -1.0;
-  }
-  else if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_ANY)) {
-    if (strstr(version, "4.0.0 - Build 10.18.10.3308") ||
-        strstr(version, "4.0.0 - Build 9.18.10.3186") ||
-        strstr(version, "4.0.0 - Build 9.18.10.3165") ||
-        strstr(version, "3.1.0 - Build 9.17.10.3347") ||
-        strstr(version, "3.1.0 - Build 9.17.10.4101") ||
-        strstr(version, "3.3.0 - Build 8.15.10.2618"))
-    {
-      GLContext::derivative_signs[0] = -1.0;
-      GLContext::derivative_signs[1] = 1.0;
-    }
-  }
 
   /* Draw shader parameters are broken on Qualcomm Windows ARM64 devices
    * on Mesa version < 24.0.0 */
@@ -560,7 +542,6 @@ bool GLContext::texture_filter_anisotropic_support = false;
 bool GLContext::debug_layer_workaround = false;
 bool GLContext::unused_fb_slot_workaround = false;
 bool GLContext::generate_mipmap_workaround = false;
-float GLContext::derivative_signs[2] = {1.0f, 1.0f};
 
 void GLBackend::capabilities_init()
 {

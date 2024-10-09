@@ -488,8 +488,12 @@ int sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
   SEQ_animation_restore_original(scene_dst, &animation_backup);
 
   DEG_id_tag_update(&scene_dst->id, ID_RECALC_SEQUENCER_STRIPS);
+  if (scene_dst->adt && scene_dst->adt->action) {
+    DEG_id_tag_update(&scene_dst->adt->action->id, ID_RECALC_ANIMATION_NO_FLUSH);
+  }
   DEG_relations_tag_update(bmain_dst);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene_dst);
+  WM_event_add_notifier(C, NC_SCENE | ND_ANIMCHAN, scene_dst);
   ED_outliner_select_sync_from_sequence_tag(C);
 
   BKE_reportf(op->reports, RPT_INFO, "%d strips pasted", num_strips_to_paste);

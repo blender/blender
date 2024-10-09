@@ -17,7 +17,6 @@
 #include "gpu_shader_create_info_private.hh"
 
 #include "BLI_string_ref.hh"
-#include "BLI_threads.h"
 #include "BLI_vector.hh"
 
 #include "CLG_log.h"
@@ -46,7 +45,6 @@ bool ShaderBuilder::bake_create_infos(const char *name_starts_with_filter)
 void ShaderBuilder::init_system()
 {
   CLG_init();
-  BLI_threadapi_init();
   ghost_system_ = GHOST_CreateSystemBackground();
   GPU_backend_ghost_system_set(ghost_system_);
 }
@@ -109,7 +107,6 @@ void ShaderBuilder::exit_context()
 void ShaderBuilder::exit_system()
 {
   GHOST_DisposeSystem(ghost_system_);
-  BLI_threadapi_exit();
   CLG_exit();
 }
 

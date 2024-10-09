@@ -138,7 +138,7 @@ def _test_import(module_name, loaded_modules):
 
     try:
         mod = __import__(module_name)
-    except:
+    except Exception:
         import traceback
         traceback.print_exc()
         return None
@@ -236,7 +236,7 @@ def load_scripts(*, reload_scripts=False, refresh_scripts=False, extensions=True
         if register:
             try:
                 register()
-            except:
+            except Exception:
                 import traceback
                 traceback.print_exc()
         else:
@@ -250,7 +250,7 @@ def load_scripts(*, reload_scripts=False, refresh_scripts=False, extensions=True
         if unregister:
             try:
                 unregister()
-            except:
+            except Exception:
                 import traceback
                 traceback.print_exc()
 
@@ -264,7 +264,7 @@ def load_scripts(*, reload_scripts=False, refresh_scripts=False, extensions=True
 
         try:
             return importlib.reload(mod)
-        except:
+        except Exception:
             import traceback
             traceback.print_exc()
 
@@ -817,7 +817,7 @@ def keyconfig_set(filepath, *, report=None):
     try:
         error_msg = ""
         execfile(filepath)
-    except:
+    except Exception:
         import traceback
         error_msg = traceback.format_exc()
 
@@ -864,7 +864,7 @@ def user_resource(resource_type, *, path="", create=False):
             if not _os.path.exists(target_path):
                 try:
                     _os.makedirs(target_path)
-                except:
+                except Exception:
                     import traceback
                     traceback.print_exc()
                     target_path = ""
@@ -913,7 +913,7 @@ def extension_path_user(package, *, path="", create=False):
             if not _os.path.exists(target_path):
                 try:
                     _os.makedirs(target_path)
-                except:
+                except Exception:
                     import traceback
                     traceback.print_exc()
                     target_path = ""
@@ -1219,7 +1219,7 @@ def manual_map():
     for cb in reversed(_manual_map):
         try:
             prefix, url_manual_mapping = cb()
-        except:
+        except Exception:
             print("Error calling {!r}".format(cb))
             import traceback
             traceback.print_exc()

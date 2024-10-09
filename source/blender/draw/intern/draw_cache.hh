@@ -258,23 +258,6 @@ DRWVolumeGrid *DRW_volume_batch_cache_get_grid(Volume *volume,
 blender::gpu::Batch *DRW_cache_volume_face_wireframe_get(Object *ob);
 blender::gpu::Batch *DRW_cache_volume_selection_surface_get(Object *ob);
 
-/* GPencil (legacy) */
-
-blender::gpu::Batch *DRW_cache_gpencil_get(Object *ob, int cfra);
-gpu::VertBuf *DRW_cache_gpencil_position_buffer_get(Object *ob, int cfra);
-gpu::VertBuf *DRW_cache_gpencil_color_buffer_get(Object *ob, int cfra);
-blender::gpu::Batch *DRW_cache_gpencil_edit_lines_get(Object *ob, int cfra);
-blender::gpu::Batch *DRW_cache_gpencil_edit_points_get(Object *ob, int cfra);
-blender::gpu::Batch *DRW_cache_gpencil_edit_curve_handles_get(Object *ob, int cfra);
-blender::gpu::Batch *DRW_cache_gpencil_edit_curve_points_get(Object *ob, int cfra);
-blender::gpu::Batch *DRW_cache_gpencil_sbuffer_get(Object *ob, bool show_fill);
-gpu::VertBuf *DRW_cache_gpencil_sbuffer_position_buffer_get(Object *ob, bool show_fill);
-gpu::VertBuf *DRW_cache_gpencil_sbuffer_color_buffer_get(Object *ob, bool show_fill);
-int DRW_gpencil_material_count_get(const bGPdata *gpd);
-
-blender::gpu::Batch *DRW_cache_gpencil_face_wireframe_get(Object *ob);
-
-bGPDstroke *DRW_cache_gpencil_sbuffer_stroke_data_get(Object *ob);
 /**
  * Sbuffer batches are temporary. We need to clear it after drawing.
  */

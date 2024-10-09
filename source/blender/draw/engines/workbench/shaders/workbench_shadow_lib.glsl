@@ -10,6 +10,8 @@
 #include "gpu_shader_math_vector_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
+SHADER_LIBRARY_CREATE_INFO(workbench_shadow_common)
+
 struct VertIn {
   /* Local position. */
   vec3 lP;

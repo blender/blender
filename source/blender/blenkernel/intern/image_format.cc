@@ -118,6 +118,7 @@ int BKE_imtype_to_ftype(const char imtype, ImbFormatOptions *r_options)
     return IMB_FTYPE_TIF;
   }
   if (ELEM(imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER)) {
+    r_options->quality = 90;
     return IMB_FTYPE_OPENEXR;
   }
 #ifdef WITH_CINEON
@@ -649,6 +650,7 @@ void BKE_image_format_to_imbuf(ImBuf *ibuf, const ImageFormatData *imf)
       ibuf->foptions.flag |= OPENEXR_HALF;
     }
     ibuf->foptions.flag |= (imf->exr_codec & OPENEXR_COMPRESS);
+    ibuf->foptions.quality = quality;
   }
 #endif
 #ifdef WITH_CINEON

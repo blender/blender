@@ -6,19 +6,20 @@
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(eevee_ambient_occlusion_pass)
-    .define("HORIZON_OCCLUSION")
-    .compute_source("eevee_ambient_occlusion_pass_comp.glsl")
-    .local_group_size(AMBIENT_OCCLUSION_PASS_TILE_SIZE, AMBIENT_OCCLUSION_PASS_TILE_SIZE)
-    .image(0, GPU_RGBA16F, Qualifier::READ, ImageType::FLOAT_2D_ARRAY, "in_normal_img")
-    .push_constant(Type::INT, "in_normal_img_layer_index")
-    .image(1, GPU_R16F, Qualifier::WRITE, ImageType::FLOAT_2D_ARRAY, "out_ao_img")
-    .push_constant(Type::INT, "out_ao_img_layer_index")
-    .specialization_constant(Type::INT, "ao_slice_count", 2)
-    .specialization_constant(Type::INT, "ao_step_count", 8)
-    .additional_info("draw_view",
-                     "eevee_shared",
-                     "eevee_hiz_data",
-                     "eevee_sampling_data",
-                     "eevee_utility_texture",
-                     "eevee_global_ubo")
-    .do_static_compilation(true);
+DEFINE("HORIZON_OCCLUSION")
+COMPUTE_SOURCE("eevee_ambient_occlusion_pass_comp.glsl")
+LOCAL_GROUP_SIZE(AMBIENT_OCCLUSION_PASS_TILE_SIZE, AMBIENT_OCCLUSION_PASS_TILE_SIZE)
+IMAGE(0, GPU_RGBA16F, READ, FLOAT_2D_ARRAY, in_normal_img)
+PUSH_CONSTANT(INT, in_normal_img_layer_index)
+IMAGE(1, GPU_R16F, WRITE, FLOAT_2D_ARRAY, out_ao_img)
+PUSH_CONSTANT(INT, out_ao_img_layer_index)
+SPECIALIZATION_CONSTANT(INT, ao_slice_count, 2)
+SPECIALIZATION_CONSTANT(INT, ao_step_count, 8)
+ADDITIONAL_INFO(draw_view)
+ADDITIONAL_INFO(eevee_shared)
+ADDITIONAL_INFO(eevee_hiz_data)
+ADDITIONAL_INFO(eevee_sampling_data)
+ADDITIONAL_INFO(eevee_utility_texture)
+ADDITIONAL_INFO(eevee_global_ubo)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()

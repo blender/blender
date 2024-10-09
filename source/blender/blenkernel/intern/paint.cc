@@ -452,13 +452,13 @@ Paint *BKE_paint_get_active(Scene *sce, ViewLayer *view_layer)
           return &ts->wpaint->paint;
         case OB_MODE_TEXTURE_PAINT:
           return &ts->imapaint.paint;
-        case OB_MODE_PAINT_GPENCIL_LEGACY:
+        case OB_MODE_PAINT_GREASE_PENCIL:
           return &ts->gp_paint->paint;
-        case OB_MODE_VERTEX_GPENCIL_LEGACY:
+        case OB_MODE_VERTEX_GREASE_PENCIL:
           return &ts->gp_vertexpaint->paint;
-        case OB_MODE_SCULPT_GPENCIL_LEGACY:
+        case OB_MODE_SCULPT_GREASE_PENCIL:
           return &ts->gp_sculptpaint->paint;
-        case OB_MODE_WEIGHT_GPENCIL_LEGACY:
+        case OB_MODE_WEIGHT_GREASE_PENCIL:
           return &ts->gp_weightpaint->paint;
         case OB_MODE_SCULPT_CURVES:
           return &ts->curves_sculpt->paint;
@@ -527,7 +527,7 @@ PaintMode BKE_paintmode_get_active_from_context(const bContext *C)
       switch (obact->mode) {
         case OB_MODE_SCULPT:
           return PaintMode::Sculpt;
-        case OB_MODE_SCULPT_GPENCIL_LEGACY:
+        case OB_MODE_SCULPT_GREASE_PENCIL:
           if (obact->type == OB_GPENCIL_LEGACY) {
             return PaintMode::SculptGPencil;
           }
@@ -535,11 +535,11 @@ PaintMode BKE_paintmode_get_active_from_context(const bContext *C)
             return PaintMode::SculptGreasePencil;
           }
           return PaintMode::Invalid;
-        case OB_MODE_PAINT_GPENCIL_LEGACY:
+        case OB_MODE_PAINT_GREASE_PENCIL:
           return PaintMode::GPencil;
-        case OB_MODE_WEIGHT_GPENCIL_LEGACY:
+        case OB_MODE_WEIGHT_GREASE_PENCIL:
           return PaintMode::WeightGPencil;
-        case OB_MODE_VERTEX_GPENCIL_LEGACY:
+        case OB_MODE_VERTEX_GREASE_PENCIL:
           return PaintMode::VertexGPencil;
         case OB_MODE_VERTEX_PAINT:
           return PaintMode::Vertex;
@@ -728,13 +728,13 @@ static const char *paint_brush_essentials_asset_file_name_from_obmode(const eObj
       return "essentials_brushes-mesh_weight.blend";
     case OB_MODE_TEXTURE_PAINT:
       return "essentials_brushes-mesh_texture.blend";
-    case OB_MODE_PAINT_GPENCIL_LEGACY:
+    case OB_MODE_PAINT_GREASE_PENCIL:
       return "essentials_brushes-gp_draw.blend";
-    case OB_MODE_SCULPT_GPENCIL_LEGACY:
+    case OB_MODE_SCULPT_GREASE_PENCIL:
       return "essentials_brushes-gp_sculpt.blend";
-    case OB_MODE_WEIGHT_GPENCIL_LEGACY:
+    case OB_MODE_WEIGHT_GREASE_PENCIL:
       return "essentials_brushes-gp_weight.blend";
-    case OB_MODE_VERTEX_GPENCIL_LEGACY:
+    case OB_MODE_VERTEX_GREASE_PENCIL:
       return "essentials_brushes-gp_vertex.blend";
     case OB_MODE_SCULPT_CURVES:
       return "essentials_brushes-curve_sculpt.blend";
@@ -929,7 +929,7 @@ static void paint_brush_default_essentials_name_get(
         }
       }
       break;
-    case OB_MODE_PAINT_GPENCIL_LEGACY:
+    case OB_MODE_PAINT_GREASE_PENCIL:
       name = "Pencil";
       /* Different default brush for some brush types. */
       if (brush_type) {
@@ -948,7 +948,7 @@ static void paint_brush_default_essentials_name_get(
       }
       eraser_name = "Eraser Soft";
       break;
-    case OB_MODE_VERTEX_GPENCIL_LEGACY:
+    case OB_MODE_VERTEX_GREASE_PENCIL:
       name = "Paint";
       if (brush_type) {
         switch (eBrushGPVertexType(*brush_type)) {
@@ -974,7 +974,7 @@ static void paint_brush_default_essentials_name_get(
         }
       }
       break;
-    case OB_MODE_SCULPT_GPENCIL_LEGACY:
+    case OB_MODE_SCULPT_GREASE_PENCIL:
       name = "Smooth";
       if (brush_type) {
         switch (eBrushGPSculptType(*brush_type)) {
@@ -986,7 +986,7 @@ static void paint_brush_default_essentials_name_get(
         }
       }
       break;
-    case OB_MODE_WEIGHT_GPENCIL_LEGACY:
+    case OB_MODE_WEIGHT_GREASE_PENCIL:
       name = "Paint";
       if (brush_type) {
         switch (eBrushGPWeightType(*brush_type)) {
@@ -1215,16 +1215,16 @@ static void paint_runtime_init(const ToolSettings *ts, Paint *paint)
     paint->runtime.ob_mode = OB_MODE_WEIGHT_PAINT;
   }
   else if (ts->gp_paint && paint == &ts->gp_paint->paint) {
-    paint->runtime.ob_mode = OB_MODE_PAINT_GPENCIL_LEGACY;
+    paint->runtime.ob_mode = OB_MODE_PAINT_GREASE_PENCIL;
   }
   else if (ts->gp_vertexpaint && paint == &ts->gp_vertexpaint->paint) {
-    paint->runtime.ob_mode = OB_MODE_VERTEX_GPENCIL_LEGACY;
+    paint->runtime.ob_mode = OB_MODE_VERTEX_GREASE_PENCIL;
   }
   else if (ts->gp_sculptpaint && paint == &ts->gp_sculptpaint->paint) {
-    paint->runtime.ob_mode = OB_MODE_SCULPT_GPENCIL_LEGACY;
+    paint->runtime.ob_mode = OB_MODE_SCULPT_GREASE_PENCIL;
   }
   else if (ts->gp_weightpaint && paint == &ts->gp_weightpaint->paint) {
-    paint->runtime.ob_mode = OB_MODE_WEIGHT_GPENCIL_LEGACY;
+    paint->runtime.ob_mode = OB_MODE_WEIGHT_GREASE_PENCIL;
   }
   else if (ts->curves_sculpt && paint == &ts->curves_sculpt->paint) {
     paint->runtime.ob_mode = OB_MODE_SCULPT_CURVES;
@@ -1279,13 +1279,13 @@ std::optional<int> BKE_paint_get_brush_type_from_obmode(const Brush *brush,
       return brush->vertex_brush_type;
     case OB_MODE_WEIGHT_PAINT:
       return brush->weight_brush_type;
-    case OB_MODE_PAINT_GPENCIL_LEGACY:
+    case OB_MODE_PAINT_GREASE_PENCIL:
       return brush->gpencil_brush_type;
-    case OB_MODE_VERTEX_GPENCIL_LEGACY:
+    case OB_MODE_VERTEX_GREASE_PENCIL:
       return brush->gpencil_vertex_brush_type;
-    case OB_MODE_SCULPT_GPENCIL_LEGACY:
+    case OB_MODE_SCULPT_GREASE_PENCIL:
       return brush->gpencil_sculpt_brush_type;
-    case OB_MODE_WEIGHT_GPENCIL_LEGACY:
+    case OB_MODE_WEIGHT_GREASE_PENCIL:
       return brush->gpencil_weight_brush_type;
     case OB_MODE_SCULPT_CURVES:
       return brush->curves_sculpt_brush_type;
@@ -1613,7 +1613,7 @@ bool BKE_paint_select_grease_pencil_test(const Object *ob)
     return false;
   }
   if (ob->type == OB_GREASE_PENCIL) {
-    return (ob->mode & (OB_MODE_SCULPT_GPENCIL_LEGACY | OB_MODE_VERTEX_GPENCIL_LEGACY));
+    return (ob->mode & (OB_MODE_SCULPT_GREASE_PENCIL | OB_MODE_VERTEX_GREASE_PENCIL));
   }
   return false;
 }
@@ -1662,9 +1662,9 @@ eObjectMode BKE_paint_object_mode_from_paintmode(const PaintMode mode)
     case PaintMode::SculptCurves:
       return OB_MODE_SCULPT_CURVES;
     case PaintMode::GPencil:
-      return OB_MODE_PAINT_GPENCIL_LEGACY;
+      return OB_MODE_PAINT_GREASE_PENCIL;
     case PaintMode::SculptGreasePencil:
-      return OB_MODE_SCULPT_GPENCIL_LEGACY;
+      return OB_MODE_SCULPT_GREASE_PENCIL;
     case PaintMode::Invalid:
     default:
       return OB_MODE_OBJECT;

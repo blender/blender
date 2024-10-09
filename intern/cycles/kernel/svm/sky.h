@@ -41,7 +41,7 @@ ccl_device float3 sky_radiance_preetham(KernelGlobals kg,
   /* convert vector to spherical coordinates */
   float2 spherical = direction_to_spherical(dir);
   float theta = spherical.x;
-  float phi = spherical.y;
+  float phi = -spherical.y + M_PI_2_F;
 
   /* angle between sun direction and dir */
   float gamma = sky_angle_between(theta, phi, suntheta, sunphi);
@@ -94,7 +94,7 @@ ccl_device float3 sky_radiance_hosek(KernelGlobals kg,
   /* convert vector to spherical coordinates */
   float2 spherical = direction_to_spherical(dir);
   float theta = spherical.x;
-  float phi = spherical.y;
+  float phi = -spherical.y + M_PI_2_F;
 
   /* angle between sun direction and dir */
   float gamma = sky_angle_between(theta, phi, suntheta, sunphi);
@@ -114,7 +114,7 @@ ccl_device float3 sky_radiance_hosek(KernelGlobals kg,
 /* Nishita improved sky model */
 ccl_device float3 geographical_to_direction(float lat, float lon)
 {
-  return make_float3(cosf(lat) * cosf(lon), cosf(lat) * sinf(lon), sinf(lat));
+  return spherical_to_direction(lat - M_PI_2_F, lon - M_PI_2_F);
 }
 
 ccl_device float3 sky_radiance_nishita(KernelGlobals kg,
@@ -137,7 +137,7 @@ ccl_device float3 sky_radiance_nishita(KernelGlobals kg,
   /* render above the horizon */
   if (dir.z >= 0.0f) {
     /* definitions */
-    float3 sun_dir = geographical_to_direction(sun_elevation, sun_rotation + M_PI_2_F);
+    float3 sun_dir = geographical_to_direction(sun_elevation, sun_rotation);
     float sun_dir_angle = precise_angle(dir, sun_dir);
     float half_angular = angular_diameter * 0.5f;
     float dir_elevation = M_PI_2_F - direction.x;
@@ -171,12 +171,9 @@ ccl_device float3 sky_radiance_nishita(KernelGlobals kg,
     /* sky */
     else {
       /* sky interpolation */
-      float x = (direction.y + M_PI_F + sun_rotation) / M_2PI_F;
+      float x = fractf((-direction.y - M_PI_2_F + sun_rotation) / M_2PI_F);
       /* more pixels toward horizon compensation */
       float y = safe_sqrtf(dir_elevation / M_PI_2_F);
-      if (x > 1.0f) {
-        x -= 1.0f;
-      }
       xyz = float4_to_float3(kernel_tex_image_interp(kg, texture_id, x, y));
     }
   }
@@ -190,10 +187,7 @@ ccl_device float3 sky_radiance_nishita(KernelGlobals kg,
       float fade = 1.0f + dir.z * 2.5f;
       fade = sqr(fade) * fade;
       /* interpolation */
-      float x = (direction.y + M_PI_F + sun_rotation) / M_2PI_F;
-      if (x > 1.0f) {
-        x -= 1.0f;
-      }
+      float x = fractf((-direction.y - M_PI_2_F + sun_rotation) / M_2PI_F);
       xyz = float4_to_float3(kernel_tex_image_interp(kg, texture_id, x, -0.5)) * fade;
     }
   }

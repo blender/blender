@@ -37,7 +37,7 @@ void pointcloud_get_pos_and_radius(out vec3 outpos, out float outradius)
   int id = pointcloud_get_point_id();
   vec4 pos_rad = texelFetch(ptcloud_pos_rad_tx, id);
   outpos = point_object_to_world(pos_rad.xyz);
-  outradius = dot(abs(mat3(ModelMatrix) * pos_rad.www), vec3(1.0 / 3.0));
+  outradius = dot(abs(to_float3x3(ModelMatrix) * pos_rad.www), vec3(1.0 / 3.0));
 }
 
 /* Return world position and normal. */

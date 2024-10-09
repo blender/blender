@@ -166,8 +166,7 @@ typedef struct SequenceRuntime {
  */
 typedef struct Sequence {
   struct Sequence *next, *prev;
-  /** Temp var for duplication, pointing to the newly duplicated Sequence. */
-  void *tmp;
+  void *_pad;
   /** Needed (to be like ipo), else it will raise libdata warnings, this should never be used. */
   void *lib;
   /** SEQ_NAME_MAXSTR - name, set by default and needs to be unique, for RNA paths. */
@@ -201,7 +200,7 @@ typedef struct Sequence {
 
   /** Stream-index for movie or sound files with several streams. */
   short streamindex;
-  short _pad;
+  short _pad1;
   /** For multi-camera source selection. */
   int multicam_source;
   /** MOVIECLIP render flags. */

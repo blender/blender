@@ -43,12 +43,6 @@ const char *BKE_appdir_folder_default() ATTR_WARN_UNUSED_RESULT;
 const char *BKE_appdir_folder_root() ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
 const char *BKE_appdir_folder_default_or_root() ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
 /**
- * Get the user's home directory, i.e.
- * - Unix: `$HOME`
- * - Windows: `%userprofile%`
- */
-const char *BKE_appdir_folder_home();
-/**
  * Get the user's document directory, i.e.
  * - Linux: `$HOME/Documents`
  * - Windows: `%userprofile%/Documents`

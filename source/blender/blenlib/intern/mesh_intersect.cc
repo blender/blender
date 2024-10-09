@@ -42,6 +42,10 @@
 
 // #  define PERFDEBUG
 
+#  ifdef _WIN_32
+#    include "BLI_fileops.h"
+#  endif
+
 namespace blender::meshintersect {
 
 #  ifdef PERFDEBUG
@@ -3105,10 +3109,15 @@ void write_obj_mesh(IMesh &m, const std::string &objname)
    * This is just for developer debugging anyway,
    * and should never be called in production Blender. */
 #  ifdef _WIN_32
-  const char *objdir = BLI_getenv("HOME");
+  const char *objdir = BLI_dir_home();
+  if (objdir == nullptr) {
+    std::cout << "Could not access home directory\n";
+    return;
+  }
 #  else
   const char *objdir = "/tmp/";
 #  endif
+
   if (m.face_size() == 0) {
     return;
   }

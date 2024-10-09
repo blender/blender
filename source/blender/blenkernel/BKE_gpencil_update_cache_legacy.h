@@ -103,31 +103,6 @@ void BKE_gpencil_traverse_update_cache(GPencilUpdateCache *cache,
                                        void *user_data);
 
 /**
- * Tags an element (bGPdata, bGPDlayer, bGPDframe, or bGPDstroke) and all of its containing data to
- * be updated in the next update-on-write operation.
- *
- * The function assumes that when a parameter is NULL all of the following parameters are NULL too.
- * E.g. in order to tag a layer (gpl), the parameters would *have* to be (gpd, gpl, NULL, NULL).
- */
-void BKE_gpencil_tag_full_update(struct bGPdata *gpd,
-                                 struct bGPDlayer *gpl,
-                                 struct bGPDframe *gpf,
-                                 struct bGPDstroke *gps);
-
-/**
- * Tags an element (bGPdata, bGPDlayer, bGPDframe, or bGPDstroke) to be updated in the next
- * update-on-write operation. This function will not update any of the containing data, only the
- * struct itself.
- *
- * The function assumes that when a parameter is NULL all of the following parameters are NULL too.
- * E.g. in order to tag a layer (gpl), the parameters would *have* to be (gpd, gpl, NULL, NULL).
- */
-void BKE_gpencil_tag_light_update(struct bGPdata *gpd,
-                                  struct bGPDlayer *gpl,
-                                  struct bGPDframe *gpf,
-                                  struct bGPDstroke *gps);
-
-/**
  * Frees the GPencilUpdateCache on the gpd->runtime. This will not free the data that the cache
  * node might point to. It assumes that the cache does not own the data.
  */

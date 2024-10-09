@@ -3565,7 +3565,7 @@ PyDoc_STRVAR(
     "   dictionary function of the same name).\n"
     "\n"
     "   :return: custom property keys.\n"
-    "   :rtype: :class:`idprop.type.IDPropertyGroupViewKeys`\n"
+    "   :rtype: :class:`idprop.types.IDPropertyGroupViewKeys`\n"
     "\n" BPY_DOC_ID_PROP_TYPE_NOTE);
 static PyObject *pyrna_struct_keys(BPy_StructRNA *self)
 {
@@ -3590,7 +3590,7 @@ PyDoc_STRVAR(
     "   dictionary function of the same name).\n"
     "\n"
     "   :return: custom property key, value pairs.\n"
-    "   :rtype: :class:`idprop.type.IDPropertyGroupViewItems`\n"
+    "   :rtype: :class:`idprop.types.IDPropertyGroupViewItems`\n"
     "\n" BPY_DOC_ID_PROP_TYPE_NOTE);
 static PyObject *pyrna_struct_items(BPy_StructRNA *self)
 {
@@ -3615,7 +3615,7 @@ PyDoc_STRVAR(
     "   dictionary function of the same name).\n"
     "\n"
     "   :return: custom property values.\n"
-    "   :rtype: :class:`idprop.type.IDPropertyGroupViewValues`\n"
+    "   :rtype: :class:`idprop.types.IDPropertyGroupViewValues`\n"
     "\n" BPY_DOC_ID_PROP_TYPE_NOTE);
 static PyObject *pyrna_struct_values(BPy_StructRNA *self)
 {
@@ -4299,7 +4299,7 @@ PyDoc_STRVAR(
     ".. method:: id_properties_ensure()\n"
     "\n"
     "   :return: the parent group for an RNA struct's custom IDProperties.\n"
-    "   :rtype: :class:`bpy.types.IDPropertyGroup`\n");
+    "   :rtype: :class:`idprop.types.IDPropertyGroup`\n");
 static PyObject *pyrna_struct_id_properties_ensure(BPy_StructRNA *self)
 {
   PYRNA_STRUCT_CHECK_OBJ(self);

@@ -81,14 +81,14 @@ class DataPathBuilder:
                                     # print("base." + item_new)
                                     base_new = eval("base." + item_new)
                                     break  # found, don't keep looking
-                                except:
+                                except Exception:
                                     pass
                     item_new = "." + item_new
                 else:
                     item_new = item
                     try:
                         base_new = eval("base" + item_new)
-                    except:
+                    except Exception:
                         pass
 
                 if base_new is Ellipsis:

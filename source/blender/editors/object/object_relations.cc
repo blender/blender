@@ -735,23 +735,6 @@ bool parent_set(ReportList *reports,
 
     invert_m4_m4(ob->parentinv, BKE_object_calc_parent(depsgraph, scene, ob).ptr());
   }
-  else if (is_armature_parent && (ob->type == OB_GPENCIL_LEGACY) && (par->type == OB_ARMATURE)) {
-    if (partype == PAR_ARMATURE) {
-      ED_gpencil_add_armature(C, reports, ob, par);
-    }
-    else if (partype == PAR_ARMATURE_NAME) {
-      ED_gpencil_add_armature_weights(C, reports, ob, par, GP_PAR_ARMATURE_NAME);
-    }
-    else if (ELEM(partype, PAR_ARMATURE_AUTO, PAR_ARMATURE_ENVELOPE)) {
-      WM_cursor_wait(true);
-      ED_gpencil_add_armature_weights(C, reports, ob, par, GP_PAR_ARMATURE_AUTO);
-      WM_cursor_wait(false);
-    }
-    /* get corrected inverse */
-    ob->partype = PAROBJECT;
-
-    invert_m4_m4(ob->parentinv, BKE_object_calc_parent(depsgraph, scene, ob).ptr());
-  }
   else if (is_armature_parent && (ob->type == OB_GREASE_PENCIL) && (par->type == OB_ARMATURE)) {
     if (partype == PAR_ARMATURE_NAME) {
       ed::greasepencil::add_armature_vertex_groups(*ob, *par);

@@ -152,7 +152,7 @@ def edge_face_count_dict(mesh):
             key = edges[loops[i].edge_index].key
             try:
                 face_edge_count[key] += 1
-            except:
+            except KeyError:
                 face_edge_count[key] = 1
 
     return face_edge_count

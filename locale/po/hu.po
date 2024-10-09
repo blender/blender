@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'd52d70324d18')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'6039cb17e63e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-16 11:03+0000\n"
+"POT-Creation-Date: 2024-10-07 09:15+0000\n"
 "PO-Revision-Date: 2024-01-11 03:55+0000\n"
 "Last-Translator: Répási Dávid <hu.repasidavid@protonmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -39,10 +39,6 @@ msgstr "Szín"
 
 msgid "Value"
 msgstr "Érték"
-
-
-msgid "F-Curves"
-msgstr "F-Görbék"
 
 
 msgid "Action F-Curves"
@@ -181,42 +177,6 @@ msgid "Action group is selected"
 msgstr "Akció csoport kijelölve"
 
 
-msgid "Influence"
-msgstr "Befolyás"
-
-
-msgid "Mix Mode"
-msgstr "Keverési mód"
-
-
-msgid "Replace"
-msgstr "Lecserél"
-
-
-msgid "Offset"
-msgstr "Eltolás"
-
-
-msgid "Add"
-msgstr "Hozzáadás"
-
-
-msgid "Subtract"
-msgstr "Különbség"
-
-
-msgid "Multiply"
-msgstr "Többszörözés"
-
-
-msgid "Active"
-msgstr "Aktív"
-
-
-msgid "Keyframe"
-msgstr "Kulcsképkocka"
-
-
 msgid "Add-on"
 msgstr "Kiegészítő"
 
@@ -265,8 +225,24 @@ msgid "Action"
 msgstr "Akció"
 
 
+msgid "Replace"
+msgstr "Lecserél"
+
+
 msgid "Combine"
 msgstr "Kombinálás"
+
+
+msgid "Add"
+msgstr "Hozzáadás"
+
+
+msgid "Subtract"
+msgstr "Különbség"
+
+
+msgid "Multiply"
+msgstr "Többszörözés"
 
 
 msgid "Motion Paths"
@@ -1032,6 +1008,114 @@ msgid "Collection of window managers"
 msgstr "Ablakkezelők gyűjteménye"
 
 
+msgid "ID Type"
+msgstr "ID típus"
+
+
+msgid "Armature"
+msgstr "Csontváz"
+
+
+msgid "Brush"
+msgstr "Ecset"
+
+
+msgid "Camera"
+msgstr "Kamera"
+
+
+msgid "Curve"
+msgstr "Görbe"
+
+
+msgid "Font"
+msgstr "Betűkészlet"
+
+
+msgid "Grease Pencil v3"
+msgstr "Zsírkréta v3"
+
+
+msgid "Image"
+msgstr "Kép"
+
+
+msgid "Key"
+msgstr "Kulcs"
+
+
+msgid "Lattice"
+msgstr "Ketrec"
+
+
+msgid "Library"
+msgstr "Könyvtár"
+
+
+msgid "Light"
+msgstr "Fényforrás"
+
+
+msgid "Mask"
+msgstr "Maszk"
+
+
+msgid "Material"
+msgstr "Anyag"
+
+
+msgid "Mesh"
+msgstr "Térháló"
+
+
+msgid "Metaball"
+msgstr "Meta test"
+
+
+msgid "Paint Curve"
+msgstr "Ecset görbe"
+
+
+msgid "Particle"
+msgstr "Részecske"
+
+
+msgid "Scene"
+msgstr "Jelenet"
+
+
+msgid "Screen"
+msgstr "Képernyő"
+
+
+msgid "Sound"
+msgstr "Hang"
+
+
+msgid "Speaker"
+msgstr "Hangszóró"
+
+
+msgid "Text"
+msgstr "Szöveg"
+
+
+msgid "Texture"
+msgstr "Textúra"
+
+
+msgid "Volume"
+msgstr "Térfogat"
+
+
+msgid "Window Manager"
+msgstr "Ablakkezelő"
+
+
+msgid "World"
+msgstr "Világ"
+
+
 msgid "Speed"
 msgstr "Sebesség"
 
@@ -1062,10 +1146,6 @@ msgstr "Véletlenszerű"
 
 msgid "Average"
 msgstr "Átlag"
-
-
-msgid "Volume"
-msgstr "Térfogat"
 
 
 msgid "Automatic"
@@ -1142,8 +1222,8 @@ msgid "Mode"
 msgstr "Mód"
 
 
-msgid "Material"
-msgstr "Anyag"
+msgid "Active"
+msgstr "Aktív"
 
 
 msgid "Direction"
@@ -1222,8 +1302,8 @@ msgid "Crop"
 msgstr "Vágás"
 
 
-msgid "Image"
-msgstr "Kép"
+msgid "Offset"
+msgstr "Eltolás"
 
 
 msgid "Rotation"
@@ -1302,10 +1382,6 @@ msgid "Color space that the sequencer operates in"
 msgstr "Színtér, amiben a szekvencer működik"
 
 
-msgid "Curve"
-msgstr "Görbe"
-
-
 msgid "Color curve mapping applied before display transform"
 msgstr "Alkalmazott színgörbe letérképezés a megjelenítés transzformációja előtt"
 
@@ -1344,10 +1420,6 @@ msgstr "Sötétítés"
 
 msgid "Lighten"
 msgstr "Világosítás"
-
-
-msgid "Screen"
-msgstr "Képernyő"
 
 
 msgid "Overlay"
@@ -1441,6 +1513,10 @@ msgstr "Bemenet"
 
 msgid "Error"
 msgstr "Hiba"
+
+
+msgid "Influence"
+msgstr "Befolyás"
 
 
 msgid "Amount of influence constraint will have on the final solution"
@@ -1667,10 +1743,6 @@ msgid "Use transform property of target to look up pose for owner from an Action
 msgstr "A célobjektum átalakítási beállításának használata póz kereséséhez egy akcióból"
 
 
-msgid "Armature"
-msgstr "Csontváz"
-
-
 msgid "Child Of"
 msgstr "Gyermeke"
 
@@ -1733,6 +1805,10 @@ msgstr "Minimum"
 
 msgid "Minimum value for target channel range"
 msgstr "A célobjektum csatorna-tartományának minimum értéke"
+
+
+msgid "Mix Mode"
+msgstr "Keverési mód"
 
 
 msgid "Target object"
@@ -2169,10 +2245,6 @@ msgstr "Nyomkövető kényszerítő"
 
 msgid "Lock motion to the target motion track"
 msgstr "Mozgás rögzítése a kiválasztott mozgás-nyomhoz"
-
-
-msgid "Camera"
-msgstr "Kamera"
 
 
 msgid "Camera to which motion is parented (if empty active scene camera is used)"
@@ -2955,10 +3027,6 @@ msgid "Render"
 msgstr "Render"
 
 
-msgid "Scene"
-msgstr "Jelenet"
-
-
 msgid "Updates"
 msgstr "Frissítések"
 
@@ -3045,10 +3113,6 @@ msgstr "Fájlformátum"
 
 msgid "Resolution"
 msgstr "Felbontás"
-
-
-msgid "Texture"
-msgstr "Textúra"
 
 
 msgid "Format"
@@ -3613,6 +3677,10 @@ msgid "Size of texture mapping"
 msgstr "Textúra térképezés mérete"
 
 
+msgid "Menu"
+msgstr "Menü"
+
+
 msgid "Freestyle Line Set"
 msgstr "Freestyle vonalkészlet"
 
@@ -3993,6 +4061,10 @@ msgid "Grease Pencil Frame"
 msgstr "Zsírkréta kép"
 
 
+msgid "Keyframe"
+msgstr "Kulcsképkocka"
+
+
 msgid "Jitter"
 msgstr "Elszórás"
 
@@ -4065,72 +4137,8 @@ msgid "Blue"
 msgstr "Kék"
 
 
-msgid "Brush"
-msgstr "Ecset"
-
-
-msgid "Font"
-msgstr "Betűkészlet"
-
-
-msgid "Grease Pencil v3"
-msgstr "Zsírkréta v3"
-
-
-msgid "Key"
-msgstr "Kulcs"
-
-
-msgid "Lattice"
-msgstr "Ketrec"
-
-
-msgid "Library"
-msgstr "Könyvtár"
-
-
-msgid "Light"
-msgstr "Fényforrás"
-
-
-msgid "Mask"
-msgstr "Maszk"
-
-
-msgid "Mesh"
-msgstr "Térháló"
-
-
-msgid "Metaball"
-msgstr "Meta test"
-
-
-msgid "Paint Curve"
-msgstr "Ecset görbe"
-
-
-msgid "Particle"
-msgstr "Részecske"
-
-
-msgid "Sound"
-msgstr "Hang"
-
-
-msgid "Speaker"
-msgstr "Hangszóró"
-
-
-msgid "Text"
-msgstr "Szöveg"
-
-
-msgid "Window Manager"
-msgstr "Ablakkezelő"
-
-
-msgid "World"
-msgstr "Világ"
+msgid "F-Curves"
+msgstr "F-Görbék"
 
 
 msgid "Frame Range"
@@ -4139,10 +4147,6 @@ msgstr "Képkockasor"
 
 msgid "Groups"
 msgstr "Csoportok"
-
-
-msgid "Layers"
-msgstr "Rétegek"
 
 
 msgid "Wire"
@@ -4723,6 +4727,10 @@ msgstr "Szétválasztásminta használata"
 
 msgid "Enable chain splitting by dashed line patterns"
 msgstr "Összekapcsolások szétválasztásának engedélyezése szaggatott vonal minták átal"
+
+
+msgid "Layers"
+msgstr "Rétegek"
 
 
 msgid "Grease Pencil data-block"
@@ -6685,10 +6693,6 @@ msgid "Linear falloff"
 msgstr "Lineáris elenyészés"
 
 
-msgid "ID Type"
-msgstr "ID típus"
-
-
 msgid "Handle type"
 msgstr "Fogantyú típus"
 
@@ -6711,22 +6715,6 @@ msgstr "Tükrözés"
 
 msgid "Use Material Mask"
 msgstr "Anyagmaszk használata"
-
-
-msgid "Show/Hide"
-msgstr "Mutat/Rejt"
-
-
-msgid "Apply"
-msgstr "Elfogadás"
-
-
-msgid "Clean Up"
-msgstr "Tisztítás"
-
-
-msgid "Merge"
-msgstr "Összefésülés"
 
 
 msgid "Mirror"
@@ -6753,8 +6741,24 @@ msgid "Rigid Body"
 msgstr "Szilárd test"
 
 
+msgid "Apply"
+msgstr "Elfogadás"
+
+
 msgid "Track"
 msgstr "Nyom"
+
+
+msgid "Show/Hide"
+msgstr "Mutat/Rejt"
+
+
+msgid "Clean Up"
+msgstr "Tisztítás"
+
+
+msgid "Merge"
+msgstr "Összefésülés"
 
 
 msgctxt "MovieClip"
@@ -6772,10 +6776,6 @@ msgstr "Csatorna"
 
 msgid "Marker"
 msgstr "Jelző"
-
-
-msgid "Grease Pencil Vertex Groups"
-msgstr "Zsírkréta csúcspont csoportok"
 
 
 msgid "Smooth"
@@ -9402,10 +9402,6 @@ msgid "Y Axis"
 msgstr "Y tengely"
 
 
-msgid "Menu"
-msgstr "Menü"
-
-
 msgid "Bake"
 msgstr "Sütés"
 
@@ -10599,146 +10595,6 @@ msgid "Default fill color"
 msgstr "Alapértelmezett kitöltő szín"
 
 
-msgid "Delete the active frame for the active Grease Pencil Layer"
-msgstr "Az aktív zsírkréta réteg aktív képkockájának törlése"
-
-
-msgid "Only Selected Keyframes"
-msgstr "Csak kiválasztott kulcs-képkockák"
-
-
-msgid "New Object"
-msgstr "Új objektum"
-
-
-msgid "Convert the active Grease Pencil layer to a new Curve Object"
-msgstr "Az aktív Zsírkréta fólia konvertálása új objektummá"
-
-
-msgid "Gap Duration"
-msgstr "Rés tartam"
-
-
-msgid "Gap Randomness"
-msgstr "Rés véletlenszerűsége"
-
-
-msgid "Timing Mode"
-msgstr "Időzítés módja"
-
-
-msgid "Link Strokes"
-msgstr "Vonalak linkelése"
-
-
-msgid "Normalize Weight"
-msgstr "Súly normalizálása"
-
-
-msgctxt "Operator"
-msgid "Grease Pencil Draw"
-msgstr "Zsírkréta rajz"
-
-
-msgid "Erase Grease Pencil strokes"
-msgstr "Böngészés a linkelhető Zsírkréta adatok között"
-
-
-msgctxt "Operator"
-msgid "Isolate Material"
-msgstr "Anyag izolálása"
-
-
-msgctxt "Operator"
-msgid "Set Material"
-msgstr "Anyag beállítása"
-
-
-msgctxt "Operator"
-msgid "All"
-msgstr "Mind"
-
-
-msgctxt "Operator"
-msgid "Rotate"
-msgstr "Forgatás"
-
-
-msgctxt "Operator"
-msgid "Scale"
-msgstr "Átméretezés"
-
-
-msgctxt "Operator"
-msgid "Show All Layers"
-msgstr "Minden réteg látható"
-
-
-msgctxt "Operator"
-msgid "Select First"
-msgstr "Az első kiválasztása"
-
-
-msgid "Both"
-msgstr "Mindkettő"
-
-
-msgid "Keep Material"
-msgstr "Anyag megtartása"
-
-
-msgid "New Material"
-msgstr "Új anyag"
-
-
-msgctxt "Operator"
-msgid "Assign to Vertex Group"
-msgstr "Hozzárendelés csúcspont-csoporthoz"
-
-
-msgid "Assign the selected vertices to the active vertex group"
-msgstr "A kijelölt csúcspontok hozzárendelése az aktív csúcspont-csoporthoz"
-
-
-msgid "Deselect all selected vertices assigned to the active vertex group"
-msgstr "Kijelölés törlése minden kijelölt csúcspontnál, ami hozzá van rendelve az aktív csúcspont-csoporthoz"
-
-
-msgctxt "Operator"
-msgid "Normalize Vertex Group"
-msgstr "Csúcspont-csoport normalizálása"
-
-
-msgid "Normalize all weights of all vertex groups, so that for each vertex, the sum of all weights is 1.0"
-msgstr "Minden csúcspont-csoport minden súlyának normalizálása, szóval minden csúcspontnál az összes súly összege 1.0"
-
-
-msgid "Lock Active"
-msgstr "Aktív lezárása"
-
-
-msgid "Keep the values of the active group while normalizing others"
-msgstr "Az aktív csoport súlyainak megőrzése, a többi normalizálása alatt"
-
-
-msgctxt "Operator"
-msgid "Remove from Vertex Group"
-msgstr "Eltávolítás a csúcspont-csoportból"
-
-
-msgid "Remove the selected vertices from active or all vertex group(s)"
-msgstr "A kijelölt csúcspontok eltávolítása az aktív, vagy az összes csúcspont-csoportból"
-
-
-msgctxt "Operator"
-msgid "Select Vertex Group"
-msgstr "Csúcspont-csoport kijelölése"
-
-
-msgid "Select all the vertices assigned to the active vertex group"
-msgstr "Minden csúcspont kijelölése, ami hozzá van rendelve az aktív csúcspont-csoporthoz"
-
-
 msgctxt "Operator"
 msgid "Decimate Keyframes"
 msgstr "Kulcs-képkockák tizedelése"
@@ -10746,6 +10602,10 @@ msgstr "Kulcs-képkockák tizedelése"
 
 msgid "Remove"
 msgstr "Eltávolítás"
+
+
+msgid "Both"
+msgstr "Mindkettő"
 
 
 msgid "Jump to previous/next keyframe"
@@ -10757,8 +10617,32 @@ msgid "Shear Keyframes"
 msgstr "Kulcs-képkockák tisztítása"
 
 
+msgid "Only Selected Keyframes"
+msgstr "Csak kiválasztott kulcs-képkockák"
+
+
+msgctxt "Operator"
+msgid "Grease Pencil Draw"
+msgstr "Zsírkréta rajz"
+
+
 msgid "Flat"
 msgstr "Lapos"
+
+
+msgctxt "Operator"
+msgid "Merge"
+msgstr "Összefésülés"
+
+
+msgctxt "Operator"
+msgid "Show All Layers"
+msgstr "Minden réteg látható"
+
+
+msgctxt "Operator"
+msgid "Isolate Material"
+msgstr "Anyag izolálása"
 
 
 msgctxt "Operator"
@@ -10766,9 +10650,26 @@ msgid "Select Mode"
 msgstr "Kijelölés módja"
 
 
+msgid "New Object"
+msgstr "Új objektum"
+
+
+msgctxt "Operator"
+msgid "Normalize Vertex Group"
+msgstr "Csúcspont-csoport normalizálása"
+
+
 msgctxt "Operator"
 msgid "Normalize All Vertex Groups"
 msgstr "Minden csúcspont-csoport normalizálása"
+
+
+msgid "Lock Active"
+msgstr "Aktív lezárása"
+
+
+msgid "Keep the values of the active group while normalizing others"
+msgstr "Az aktív csoport súlyainak megőrzése, a többi normalizálása alatt"
 
 
 msgid "Relative Paths"
@@ -10981,11 +10882,6 @@ msgstr "Felület simított megjelenítése (csúcspontok normálisát használva
 
 msgid "X-Ray"
 msgstr "Röntgen"
-
-
-msgctxt "Operator"
-msgid "Merge"
-msgstr "Összefésülés"
 
 
 msgid "Collapse"
@@ -11527,6 +11423,15 @@ msgstr "Csúcspont-csoport hozzáadása az aktív objektumhoz"
 
 
 msgctxt "Operator"
+msgid "Assign to Vertex Group"
+msgstr "Hozzárendelés csúcspont-csoporthoz"
+
+
+msgid "Assign the selected vertices to the active vertex group"
+msgstr "A kijelölt csúcspontok hozzárendelése az aktív csúcspont-csoporthoz"
+
+
+msgctxt "Operator"
 msgid "Assign to New Group"
 msgstr "Hozzárendelés új csoporthoz"
 
@@ -11546,6 +11451,10 @@ msgstr "Csúcspont-csoport másolása a kijelöltekbe"
 
 msgid "Replace vertex groups of selected objects by vertex groups of active object"
 msgstr "A kijelölt objektumok csúcspont-csoportjainak felülírása az aktív objektum csúcspont-csoportjaival"
+
+
+msgid "Deselect all selected vertices assigned to the active vertex group"
+msgstr "Kijelölés törlése minden kijelölt csúcspontnál, ami hozzá van rendelve az aktív csúcspont-csoporthoz"
 
 
 msgctxt "Operator"
@@ -11611,6 +11520,10 @@ msgid "Normalize weights of the active vertex group, so that the highest ones ar
 msgstr "Súlyok normalizálása az aktív csúcspont-csoportban, az legmagasabb érték inenntől 1.0"
 
 
+msgid "Normalize all weights of all vertex groups, so that for each vertex, the sum of all weights is 1.0"
+msgstr "Minden csúcspont-csoport minden súlyának normalizálása, szóval minden csúcspontnál az összes súly összege 1.0"
+
+
 msgctxt "Operator"
 msgid "Quantize Vertex Weights"
 msgstr "Csúcspont-súlyok kvantálása"
@@ -11637,12 +11550,30 @@ msgid "Remove all vertex groups"
 msgstr "Minden csúcspont-csoport eltávolítása"
 
 
+msgctxt "Operator"
+msgid "Remove from Vertex Group"
+msgstr "Eltávolítás a csúcspont-csoportból"
+
+
+msgid "Remove the selected vertices from active or all vertex group(s)"
+msgstr "A kijelölt csúcspontok eltávolítása az aktív, vagy az összes csúcspont-csoportból"
+
+
 msgid "Remove from all groups"
 msgstr "Eltávolítás minden csoportból"
 
 
 msgid "Clear the active group"
 msgstr "Aktív csoport kitörlése"
+
+
+msgctxt "Operator"
+msgid "Select Vertex Group"
+msgstr "Csúcspont-csoport kijelölése"
+
+
+msgid "Select all the vertices assigned to the active vertex group"
+msgstr "Minden csúcspont kijelölése, ami hozzá van rendelve az aktív csúcspont-csoporthoz"
 
 
 msgctxt "Operator"
@@ -12170,6 +12101,11 @@ msgstr "Szobor"
 
 
 msgctxt "Operator"
+msgid "Scale"
+msgstr "Átméretezés"
+
+
+msgctxt "Operator"
 msgid "Filter Color"
 msgstr "Szűrő színe"
 
@@ -12562,6 +12498,11 @@ msgstr "Átméretezés"
 
 msgid "Scale (resize) selected items"
 msgstr "Kiválasztott elemek átméretezése (skálázása)"
+
+
+msgctxt "Operator"
+msgid "Rotate"
+msgstr "Forgatás"
 
 
 msgid "Rotate selected items"
@@ -13311,13 +13252,18 @@ msgstr "Rajz (szabadkézi)"
 
 
 msgctxt "Operator"
-msgid "Line"
-msgstr "Vonal"
+msgid "Erase"
+msgstr "Törlés"
 
 
 msgctxt "Operator"
 msgid "Circle"
 msgstr "Kör"
+
+
+msgctxt "Operator"
+msgid "Line"
+msgstr "Vonal"
 
 
 msgid "Edge Detection"
@@ -15633,6 +15579,11 @@ msgstr "Hanyattegér"
 
 
 msgctxt "Operator"
+msgid "All"
+msgstr "Mind"
+
+
+msgctxt "Operator"
 msgid "Report a Bug"
 msgstr "Hiba bejelentése"
 
@@ -15882,11 +15833,6 @@ msgstr "Alap vastagság"
 
 msgid "Image Border"
 msgstr "Képkeret"
-
-
-msgctxt "Operator"
-msgid "Erase"
-msgstr "Törlés"
 
 
 msgctxt "Operator"
@@ -16603,11 +16549,6 @@ msgstr "Kijelölt kulcs-képkockákon"
 
 
 msgctxt "Operator"
-msgid "Normalize Thickness"
-msgstr "Vastagság normalizálása"
-
-
-msgctxt "Operator"
 msgid "Delete Vertices"
 msgstr "Csúcspontok törlése"
 
@@ -16620,10 +16561,6 @@ msgstr "Törlés mindenhonnan"
 msgctxt "Operator"
 msgid "Adjust Focus Distance"
 msgstr "Fókusztávolság beállítása"
-
-
-msgid "Layer:"
-msgstr "Réteg:"
 
 
 msgid "KeyingSet"
@@ -16683,6 +16620,10 @@ msgid "UV/Image"
 msgstr "UV/Kép"
 
 
+msgid "No active object"
+msgstr "Nincs aktív objektum"
+
+
 msgid "No active bone set"
 msgstr "Nincs aktív csontkészlet"
 
@@ -16718,20 +16659,12 @@ msgid "Cannot paint stroke"
 msgstr "Nem lehet vonást festeni"
 
 
-msgid "No Grease Pencil data to work on"
-msgstr "Nincsenek feldolgozható Zsírkréta adatok"
-
-
 msgid "No grease pencil data"
 msgstr "Nincs Zsírkréta adat"
 
 
 msgid "No active frame to delete"
 msgstr "Nincs törölhető aktív képkocka"
-
-
-msgid "GPencil Interpolation: "
-msgstr "Zsírkréta interpolálás: "
 
 
 msgctxt "Operator"
@@ -16741,10 +16674,6 @@ msgstr "Online Python Referencia"
 
 msgid "%d items"
 msgstr "%d elem"
-
-
-msgid "Hex"
-msgstr "Hex"
 
 
 msgid "Red:"
@@ -16771,12 +16700,8 @@ msgid "Alpha:"
 msgstr "Átlátszóság:"
 
 
-msgid "Hex:"
-msgstr "Hex:"
-
-
-msgid "Hex triplet for color (#RRGGBB)"
-msgstr "Szín hexa kódja (#RRGGBB)"
+msgid "Hex"
+msgstr "Hex"
 
 
 msgid "Cancel"
@@ -17189,10 +17114,6 @@ msgid "Cannot link objects into a linked scene"
 msgstr "Nem lehet objektumot hozzáfűzni hozzáfűzött jelenethez"
 
 
-msgid "No active object"
-msgstr "Nincs aktív objektum"
-
-
 msgid "Gold"
 msgstr "Arany"
 
@@ -17227,6 +17148,10 @@ msgstr "Nincs kamera a jelenetben"
 
 msgid "Blender Render"
 msgstr "Blender Render"
+
+
+msgid "GPencil Interpolation: "
+msgstr "Zsírkréta interpolálás: "
 
 
 msgid " UVs,"
@@ -17549,6 +17474,10 @@ msgstr "Kép 1"
 
 msgid "Image 2"
 msgstr "Kép 2"
+
+
+msgid "Layer:"
+msgstr "Réteg:"
 
 
 msgid "File Subpath:"

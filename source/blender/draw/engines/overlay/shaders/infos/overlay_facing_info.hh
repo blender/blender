@@ -5,13 +5,17 @@
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(overlay_facing)
-    .do_static_compilation(true)
-    .vertex_in(0, Type::VEC3, "pos")
-    .vertex_source("overlay_facing_vert.glsl")
-    .fragment_source("overlay_facing_frag.glsl")
-    .fragment_out(0, Type::VEC4, "fragColor")
-    .additional_info("draw_mesh", "draw_globals");
+DO_STATIC_COMPILATION()
+VERTEX_IN(0, VEC3, pos)
+VERTEX_SOURCE("overlay_facing_vert.glsl")
+FRAGMENT_SOURCE("overlay_facing_frag.glsl")
+FRAGMENT_OUT(0, VEC4, fragColor)
+ADDITIONAL_INFO(draw_mesh)
+ADDITIONAL_INFO(draw_globals)
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(overlay_facing_clipped)
-    .do_static_compilation(true)
-    .additional_info("overlay_facing", "drw_clipped");
+DO_STATIC_COMPILATION()
+ADDITIONAL_INFO(overlay_facing)
+ADDITIONAL_INFO(drw_clipped)
+GPU_SHADER_CREATE_END()

@@ -5,6 +5,7 @@
 #pragma once
 
 #include "draw_view_lib.glsl"
+#include "gpu_shader_math_vector_lib.glsl"
 
 /* Similar to https://atyuwen.github.io/posts/normal-reconstruction/.
  * This samples the depth buffer 4 time for each direction to get the most correct

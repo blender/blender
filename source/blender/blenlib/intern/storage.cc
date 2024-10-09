@@ -107,6 +107,24 @@ char *BLI_current_working_dir(char *dir, const size_t maxncpy)
 }
 #endif /* !defined (__APPLE__) */
 
+const char *BLI_dir_home()
+{
+  const char *home_dir;
+
+#ifdef WIN32
+  home_dir = BLI_getenv("userprofile");
+#else
+  home_dir = BLI_getenv("HOME");
+  if (home_dir == nullptr) {
+    if (const passwd *pwuser = getpwuid(getuid())) {
+      home_dir = pwuser->pw_dir;
+    }
+  }
+#endif
+
+  return home_dir;
+}
+
 double BLI_dir_free_space(const char *dir)
 {
 #ifdef WIN32
@@ -441,14 +459,13 @@ bool BLI_is_file(const char *path)
   return (mode && !S_ISDIR(mode));
 }
 
-/**
- * Use for both text and binary file reading.
- */
 void *BLI_file_read_data_as_mem_from_handle(FILE *fp,
                                             bool read_size_exact,
                                             size_t pad_bytes,
                                             size_t *r_size)
 {
+  /* NOTE: Used for both text and binary file reading. */
+
   BLI_stat_t st;
   if (BLI_fstat(fileno(fp), &st) == -1) {
     return nullptr;

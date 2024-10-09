@@ -776,9 +776,6 @@ inline void PassBase<T>::draw(gpu::Batch *batch,
                                  vertex_first,
                                  handle,
                                  custom_id,
-#ifdef WITH_METAL_BACKEND
-                                 GPU_shader_uses_ssbo_vertex_fetch(shader_) ? shader_ : nullptr,
-#endif
                                  GPU_PRIM_NONE,
                                  0);
 }
@@ -811,9 +808,6 @@ inline void PassBase<T>::draw_expand(gpu::Batch *batch,
                                  vertex_first,
                                  handle,
                                  custom_id,
-#ifdef WITH_METAL_BACKEND
-                                 GPU_shader_uses_ssbo_vertex_fetch(shader_) ? shader_ : nullptr,
-#endif
                                  primitive_type,
                                  primitive_len);
 }

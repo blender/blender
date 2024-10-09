@@ -246,8 +246,7 @@ void Light::shape_parameters_set(const ::Light *la,
     this->local.shadow_radius = (la->radius > 0.0f) ? max_ff(1e-8f, local.shadow_radius) : 0.0f;
     /* Set to default position. */
     this->local.shadow_position = float3(0.0f);
-    /* Ensure a minimum radius/energy ratio to avoid harsh cut-offs. (See 114284) */
-    this->local.shape_radius = max(la->radius, la->energy * 2e-05f);
+    this->local.shape_radius = la->radius;
     /* Clamp to minimum value before float imprecision artifacts appear. */
     this->local.shape_radius = max(0.001f, this->local.shape_radius);
   }

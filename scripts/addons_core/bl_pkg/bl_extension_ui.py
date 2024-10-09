@@ -1726,7 +1726,7 @@ def extensions_panel_draw_impl(
 
 
 class USERPREF_PT_addons_tags(Panel):
-    bl_label = "Addon Tags"
+    bl_label = "Add-on Tags"
 
     bl_space_type = 'TOPBAR'  # dummy.
     bl_region_type = 'HEADER'
