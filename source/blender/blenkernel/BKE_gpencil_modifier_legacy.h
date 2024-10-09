@@ -26,10 +26,6 @@ typedef void (*GreasePencilIDWalkFunc)(void *user_data,
                                        struct Object *ob,
                                        struct ID **idpoin,
                                        int cb_flag);
-typedef void (*GreasePencilTexWalkFunc)(void *user_data,
-                                        struct Object *ob,
-                                        struct GpencilModifierData *md,
-                                        const char *propname);
 
 /**
  * Free grease pencil modifier data

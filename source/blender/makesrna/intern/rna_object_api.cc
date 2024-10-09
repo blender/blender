@@ -800,31 +800,6 @@ static bool rna_Object_update_from_editmode(Object *ob, Main *bmain)
   return result;
 }
 
-bool rna_Object_generate_gpencil_strokes(Object *ob,
-                                         bContext *C,
-                                         ReportList *reports,
-                                         Object *ob_gpencil,
-                                         bool use_collections,
-                                         float scale_thickness,
-                                         float sample)
-{
-  if (ob->type != OB_CURVES_LEGACY) {
-    BKE_reportf(reports,
-                RPT_ERROR,
-                "Object '%s' is not valid for this operation! Only curves are supported",
-                ob->id.name + 2);
-    return false;
-  }
-  Main *bmain = CTX_data_main(C);
-  Scene *scene = CTX_data_scene(C);
-
-  BKE_gpencil_convert_curve(
-      bmain, scene, ob_gpencil, ob, use_collections, scale_thickness, sample);
-
-  WM_main_add_notifier(NC_GPENCIL | ND_DATA, nullptr);
-
-  return true;
-}
 #else /* RNA_RUNTIME */
 
 void RNA_api_object(StructRNA *srna)
@@ -1356,25 +1331,6 @@ void RNA_api_object(StructRNA *srna)
   RNA_def_function_ui_description(func,
                                   "Release memory used by caches associated with this object. "
                                   "Intended to be used by render engines only.");
-
-  /* Convert curve object to gpencil strokes. */
-  func = RNA_def_function(srna, "generate_gpencil_strokes", "rna_Object_generate_gpencil_strokes");
-  RNA_def_function_ui_description(func, "Convert a curve object to grease pencil strokes.");
-  RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
-
-  parm = RNA_def_pointer(func,
-                         "grease_pencil_object",
-                         "Object",
-                         "",
-                         "Grease Pencil object used to create new strokes");
-  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-  parm = RNA_def_boolean(func, "use_collections", true, "", "Use Collections");
-  parm = RNA_def_float(
-      func, "scale_thickness", 1.0f, 0.0f, FLT_MAX, "", "Thickness scaling factor", 0.0f, 100.0f);
-  parm = RNA_def_float(
-      func, "sample", 0.0f, 0.0f, FLT_MAX, "", "Sample distance, zero to disable", 0.0f, 100.0f);
-  parm = RNA_def_boolean(func, "result", false, "", "Result");
-  RNA_def_function_return(func, parm);
 }
 
 #endif /* RNA_RUNTIME */

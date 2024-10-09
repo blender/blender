@@ -322,52 +322,6 @@ void OVERLAY_gpencil_legacy_cache_init(OVERLAY_Data *vedata)
   }
 }
 
-static void OVERLAY_edit_gpencil_cache_populate(OVERLAY_Data *vedata, Object *ob)
-{
-  using namespace blender::draw;
-  OVERLAY_PrivateData *pd = vedata->stl->pd;
-  bGPdata *gpd = (bGPdata *)ob->data;
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  View3D *v3d = draw_ctx->v3d;
-
-  /* Overlay is only for active object. */
-  if (ob != draw_ctx->obact) {
-    return;
-  }
-
-  if (pd->edit_gpencil_wires_grp) {
-    DRWShadingGroup *grp = DRW_shgroup_create_sub(pd->edit_gpencil_wires_grp);
-    DRW_shgroup_uniform_vec4_copy(grp, "gpEditColor", gpd->line_color);
-
-    blender::gpu::Batch *geom = DRW_cache_gpencil_edit_lines_get(ob, pd->cfra);
-    DRW_shgroup_call_no_cull(pd->edit_gpencil_wires_grp, geom, ob);
-  }
-
-  if (pd->edit_gpencil_points_grp) {
-    const bool show_direction = (v3d->gp_flag & V3D_GP_SHOW_STROKE_DIRECTION) != 0;
-
-    DRWShadingGroup *grp = DRW_shgroup_create_sub(pd->edit_gpencil_points_grp);
-    DRW_shgroup_uniform_float_copy(grp, "doStrokeEndpoints", show_direction);
-
-    blender::gpu::Batch *geom = DRW_cache_gpencil_edit_points_get(ob, pd->cfra);
-    DRW_shgroup_call_no_cull(grp, geom, ob);
-  }
-
-  if (pd->edit_gpencil_curve_handle_grp) {
-    blender::gpu::Batch *geom = DRW_cache_gpencil_edit_curve_handles_get(ob, pd->cfra);
-    if (geom) {
-      DRW_shgroup_call_no_cull(pd->edit_gpencil_curve_handle_grp, geom, ob);
-    }
-  }
-
-  if (pd->edit_gpencil_curve_points_grp) {
-    blender::gpu::Batch *geom = DRW_cache_gpencil_edit_curve_points_get(ob, pd->cfra);
-    if (geom) {
-      DRW_shgroup_call_no_cull(pd->edit_gpencil_curve_points_grp, geom, ob);
-    }
-  }
-}
-
 static void overlay_gpencil_draw_stroke_color_name(bGPDlayer * /*gpl*/,
                                                    bGPDframe * /*gpf*/,
                                                    bGPDstroke *gps,
@@ -425,30 +379,6 @@ static void OVERLAY_gpencil_color_names(Object *ob)
 
   BKE_gpencil_visible_stroke_advanced_iter(
       nullptr, ob, nullptr, overlay_gpencil_draw_stroke_color_name, ob, false, cfra);
-}
-
-void OVERLAY_gpencil_legacy_cache_populate(OVERLAY_Data *vedata, Object *ob)
-{
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  View3D *v3d = draw_ctx->v3d;
-
-  bGPdata *gpd = (bGPdata *)ob->data;
-  if (gpd == nullptr) {
-    return;
-  }
-
-  if (GPENCIL_ANY_MODE(gpd)) {
-    OVERLAY_edit_gpencil_cache_populate(vedata, ob);
-  }
-
-  /* don't show object extras in set's */
-  if ((ob->base_flag & (BASE_FROM_SET | BASE_FROM_DUPLI)) == 0) {
-    if ((v3d->gp_flag & V3D_GP_SHOW_MATERIAL_NAME) && (ob->mode == OB_MODE_EDIT_GPENCIL_LEGACY) &&
-        DRW_state_show_text())
-    {
-      OVERLAY_gpencil_color_names(ob);
-    }
-  }
 }
 
 void OVERLAY_gpencil_legacy_draw(OVERLAY_Data *vedata)

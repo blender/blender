@@ -294,9 +294,6 @@ void Instance::object_sync(Object *ob)
       case OB_CURVES:
         sync.sync_curves(ob, ob_handle, res_handle, ob_ref);
         break;
-      case OB_GREASE_PENCIL:
-        sync.sync_gpencil(ob, ob_handle, res_handle);
-        break;
       case OB_LIGHTPROBE:
         light_probes.sync_probe(ob, ob_handle);
         break;

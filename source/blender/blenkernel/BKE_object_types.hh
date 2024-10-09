@@ -101,18 +101,6 @@ struct ObjectRuntime {
   Mesh *editmesh_eval_cage = nullptr;
 
   /**
-   * Original grease pencil bGPdata pointer, before object->data was changed to point
-   * to gpd_eval.
-   * Is assigned by dependency graph's copy-on-evaluation.
-   */
-  bGPdata *gpd_orig = nullptr;
-  /**
-   * bGPdata structure created during object evaluation.
-   * It has all modifiers applied.
-   */
-  bGPdata *gpd_eval = nullptr;
-
-  /**
    * This is a mesh representation of corresponding object.
    * It created when Python calls `object.to_mesh()`.
    */

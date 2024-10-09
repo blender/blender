@@ -871,7 +871,6 @@ struct GreasePencilLineartModifierData;
 struct LineartData;
 struct Scene;
 
-void MOD_lineart_destroy_render_data(struct LineartGpencilModifierData *lmd_legacy);
 void MOD_lineart_destroy_render_data_v3(struct GreasePencilLineartModifierData *lmd);
 
 void MOD_lineart_chain_feature_lines(LineartData *ld);
@@ -902,10 +901,6 @@ void MOD_lineart_finalize_chains(LineartData *ld);
  *
  * \return True when a change is made.
  */
-bool MOD_lineart_compute_feature_lines(struct Depsgraph *depsgraph,
-                                       struct LineartGpencilModifierData *lmd_legacy,
-                                       struct LineartCache **cached_result,
-                                       bool enable_stroke_depth_offset);
 bool MOD_lineart_compute_feature_lines_v3(struct Depsgraph *depsgraph,
                                           struct GreasePencilLineartModifierData &lmd,
                                           struct LineartCache **cached_result,
@@ -920,32 +915,6 @@ LineartBoundingArea *MOD_lineart_get_parent_bounding_area(LineartData *ld, doubl
  * Wrapper for more convenience.
  */
 LineartBoundingArea *MOD_lineart_get_bounding_area(LineartData *ld, double x, double y);
-
-/**
- * Wrapper for external calls.
- */
-void MOD_lineart_gpencil_generate(LineartCache *cache,
-                                  struct Depsgraph *depsgraph,
-                                  struct Object *ob,
-                                  struct bGPDlayer *gpl,
-                                  struct bGPDframe *gpf,
-                                  int8_t source_type,
-                                  void *source_reference,
-                                  int level_start,
-                                  int level_end,
-                                  int mat_nr,
-                                  int16_t edge_types,
-                                  uint8_t mask_switches,
-                                  uint8_t material_mask_bits,
-                                  uint8_t intersection_mask,
-                                  int16_t thickness,
-                                  float opacity,
-                                  uint8_t shadow_selection,
-                                  uint8_t silhouette_mode,
-                                  const char *source_vgname,
-                                  const char *vgname,
-                                  int modifier_flags,
-                                  int modifier_calculation_flags);
 
 namespace blender::bke::greasepencil {
 class Drawing;

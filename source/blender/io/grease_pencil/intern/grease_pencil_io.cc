@@ -5,19 +5,18 @@
 #include "BLI_color.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_camera.h"
 #include "BKE_context.hh"
 #include "BKE_crazyspace.hh"
 #include "BKE_curves.hh"
-#include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_layer.hh"
 #include "BKE_material.h"
 #include "BKE_scene.hh"
 
-#include "BLI_math_vector.hh"
 #include "DNA_grease_pencil_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
@@ -126,12 +125,13 @@ int GreasePencilImporter::create_material(const StringRefNull name,
 {
   const ColorGeometry4f default_stroke_color = {0.0f, 0.0f, 0.0f, 1.0f};
   const ColorGeometry4f default_fill_color = {0.5f, 0.5f, 0.5f, 1.0f};
-  int mat_index = BKE_gpencil_object_material_index_get_by_name(object_, name.c_str());
+  int mat_index = BKE_grease_pencil_object_material_index_get_by_name(object_, name.c_str());
   /* Stroke and Fill material. */
   if (mat_index == -1) {
     Main *bmain = CTX_data_main(&context_.C);
     int new_idx;
-    Material *mat_gp = BKE_gpencil_object_material_new(bmain, object_, name.c_str(), &new_idx);
+    Material *mat_gp = BKE_grease_pencil_object_material_new(
+        bmain, object_, name.c_str(), &new_idx);
     MaterialGPencilStyle *gp_style = mat_gp->gp_style;
     gp_style->flag &= ~GP_MATERIAL_STROKE_SHOW;
     gp_style->flag &= ~GP_MATERIAL_FILL_SHOW;
