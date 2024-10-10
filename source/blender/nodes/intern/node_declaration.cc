@@ -185,6 +185,7 @@ static void assert_valid_panels_recursive(const NodeDeclaration &node_decl,
       assert_valid_panels_recursive(node_decl, panel_decl->items, r_flat_inputs, r_flat_outputs);
     }
   }
+  UNUSED_VARS(found_input, found_panel);
 }
 
 void NodeDeclaration::assert_valid() const
