@@ -383,7 +383,7 @@ static void ApplySnapTranslation(TransInfo *t, float vec[3])
 }
 static void translate_snap_increment_init(const TransInfo *t)
 {
-  if ((!t->tsnap.flag & SCE_SNAP_ABS_GRID)) {
+  if (!(t->tsnap.flag & SCE_SNAP_ABS_GRID)) {
     return;
   }
 
