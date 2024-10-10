@@ -263,7 +263,7 @@ static void bm_edge_to_quad_verts(const BMEdge *e, const BMVert *r_v_quad[4])
 /** \name Delimit processing
  * \{ */
 
-/* cache customdata delimiters */
+/** Cache custom-data delimiters. */
 struct DelimitData_CD {
   int cd_type;
   int cd_size;
@@ -287,7 +287,7 @@ struct DelimitData {
   int cdata_len;
 };
 
-/** Determines if the loop customdata is contiguous. */
+/** Determines if the loop custom-data is contiguous. */
 static bool bm_edge_is_contiguous_loop_cd_all(const BMEdge *e, const DelimitData_CD *delimit_data)
 {
   int cd_offset;
@@ -447,6 +447,23 @@ static bool bm_edge_is_delimit(const BMEdge *e, const DelimitData *delimit_data)
 
 /** \} */
 
+struct JoinEdgesNeighborItem {
+  BMEdge *e;
+  BMLoop *l;
+};
+
+struct JoinEdgesNeighborInfo {
+  /** Logically there can only ever be 8 items in this array.
+   *
+   * Since a quad has no more than 4 neighbor triangles, and each neighbor triangle has no more
+   * than two edges to consider, #reprioritize_face_neighbors can't possibly call this function
+   * more than 8 times so this can't happen. Still, it's good to safeguard against running off
+   * the end of the array.
+   */
+  JoinEdgesNeighborItem items[8];
+  int items_num;
+};
+
 /**
  * Adds edges and loops to an array of neighbors, but won't add duplicates a second time.
  *
@@ -459,31 +476,25 @@ static bool bm_edge_is_delimit(const BMEdge *e, const DelimitData *delimit_data)
  * \param count: the number of items currently in each array.
  * \param e: The new merge edge to add to the array, if it's not a duplicate.
  * \param l: The new shared loop to add to the array, if the edge isn't a duplicate
- * \return The number of items now in the array
  */
-static size_t add_without_duplicates(
-    BMEdge *merge_edges[8], BMLoop *shared_loops[8], size_t count, BMEdge *e, BMLoop *l)
+static void add_without_duplicates(JoinEdgesNeighborInfo &neighbor_info, BMEdge *e, BMLoop *l)
 {
-  /* Since a quad has no more than 4 neighbor triangles, and each neighbor triangle has no more
-   * than two edges to consider, #reprioritize_face_neighbors can't possibly call this function
-   * more than 8 times so this can't happen. Still, it's good to safeguard against running off
-   * the end of the array. */
-  BLI_assert(count < 8);
+  BLI_assert(neighbor_info.items_num < ARRAY_SIZE(neighbor_info.items));
 
   /* Don't add null pointers. Another safeguard which cannot happen. */
   BLI_assert(e != nullptr);
 
   /* Don't add duplicates. */
-  for (size_t index = 0; index < count; index++) {
-    if (merge_edges[index] == e) {
-      return count;
+  for (uint index = 0; index < neighbor_info.items_num; index++) {
+    if (neighbor_info.items[neighbor_info.items_num].e == e) {
+      return;
     }
   }
 
   /* Add the edge and increase the count by 1. */
-  merge_edges[count] = e;
-  shared_loops[count] = l;
-  return count + 1;
+  JoinEdgesNeighborItem *item = &neighbor_info.items[neighbor_info.items_num++];
+  item->e = e;
+  item->l = l;
 }
 
 /**
@@ -493,42 +504,43 @@ static size_t add_without_duplicates(
  * \param shared_loops: the array to shared loops to add to.
  * \param count: the number of items currently in each array.
  * \param l_in_quad: The loop to add the neighboring edges of, if they check out.
- * \return The number of items now in the array.
  */
-static size_t add_neighbors(BMEdge *merge_edges[8],
-                            BMLoop *shared_loops[8],
-                            size_t count,
-                            BMLoop *l_in_quad)
+static void add_neighbors(JoinEdgesNeighborInfo &neighbor_info, BMLoop *l_in_quad)
 {
   /* If the edge is not manifold, there is no neighboring face to process. */
   if (!BM_edge_is_manifold(l_in_quad->e)) {
-    return count; /* No new edges added. */
+    /* No new edges added. */
+    return;
   }
 
   BMLoop *l_in_neighbor = l_in_quad->radial_next;
 
   /* If the neighboring face is not a triangle, don't process it. */
   if (l_in_neighbor->f->len != 3) {
-    return count; /* No new edges added. */
+    /* No new edges added. */
+    return;
   }
+
+#ifndef NDEBUG
+  const int items_num_prev = neighbor_info.items_num;
+#endif
 
   /* Get the other two loops of the neighboring triangle. */
-  BMLoop *l_a = l_in_neighbor->next;
-  BMLoop *l_b = l_in_neighbor->prev;
+  BMLoop *l_other_arr[2] = {l_in_neighbor->prev, l_in_neighbor->next};
+  for (int i = 0; i < ARRAY_SIZE(l_other_arr); i++) {
+    BMLoop *l_other = l_other_arr[i];
 
-  /* If l_a is manifold, and the adjacent face is also a triangle,
-   * mark it for potential improvement. */
-  if (BM_edge_is_manifold(l_a->e) && l_a->radial_next->f->len == 3) {
-    count = add_without_duplicates(merge_edges, shared_loops, count, l_a->e, l_in_neighbor);
+    /* If `l_other` is manifold, and the adjacent face is also a triangle,
+     * mark it for potential improvement. */
+    if (BM_edge_is_manifold(l_other->e) && l_other->radial_next->f->len == 3) {
+      add_without_duplicates(neighbor_info, l_other->e, l_in_neighbor);
+    }
   }
 
-  /* If l_b is manifold, and the adjacent face is also a triangle,
-   * mark it for potential improvement. */
-  if (BM_edge_is_manifold(l_b->e) && l_b->radial_next->f->len == 3) {
-    count = add_without_duplicates(merge_edges, shared_loops, count, l_b->e, l_in_neighbor);
-  }
-
-  return count; /* added either 0, 1, or 2 edges. */
+  /* Added either 0, 1, or 2 edges. */
+#ifndef NDEBUG
+  BLI_assert(neighbor_info.items_num - items_num_prev < 3);
+#endif
 }
 
 /**
@@ -669,45 +681,35 @@ static float compute_alignment(const JoinEdgesState &s,
    * pick up the other two cases. Four extra angle tests aren't that much worse than optimal.
    * Brute forcing the math and ending up with with clear and understandable code is better. */
 
-  /* Compute the case if the quads are aligned. */
-  float error_a1 = fabsf(angle_normalized_v3v3(quad_a_vecs[0], quad_b_vecs[0]));
-  float error_a2 = fabsf(angle_normalized_v3v3(quad_a_vecs[1], quad_b_vecs[1]));
-  float error_a3 = fabsf(angle_normalized_v3v3(quad_a_vecs[2], quad_b_vecs[2]));
-  float error_a4 = fabsf(angle_normalized_v3v3(quad_a_vecs[3], quad_b_vecs[3]));
-  float error_a = error_a1 + error_a2 + error_a3 + error_a4;
+  float error[4] = {0.0f};
+  for (int i = 0; i < ARRAY_SIZE(error); i++) {
+    const float angle_a = fabsf(angle_normalized_v3v3(quad_a_vecs[i], quad_b_vecs[i]));
+    const float angle_b = fabsf(angle_normalized_v3v3(quad_a_vecs[i], quad_b_vecs[(i + 1) % 4]));
 
-  /* Compute the case if the quads are 90 degrees rotated. */
-  float error_b1 = fabsf(angle_normalized_v3v3(quad_a_vecs[0], quad_b_vecs[1]));
-  float error_b2 = fabsf(angle_normalized_v3v3(quad_a_vecs[1], quad_b_vecs[2]));
-  float error_b3 = fabsf(angle_normalized_v3v3(quad_a_vecs[2], quad_b_vecs[3]));
-  float error_b4 = fabsf(angle_normalized_v3v3(quad_a_vecs[3], quad_b_vecs[0]));
-  float error_b = error_b1 + error_b2 + error_b3 + error_b4;
+    /* Compute the case if the quads are aligned. */
+    error[0] += angle_a;
+    /* Compute the case if the quads are 90 degrees rotated. */
+    error[1] += angle_b;
 
-  /* Compute the case if the quads are 180 degrees rotated.
-   * This is error_a except each error component is individually rotated 180 degrees. */
-  float error_c1 = M_PI - error_a1;
-  float error_c2 = M_PI - error_a2;
-  float error_c3 = M_PI - error_a3;
-  float error_c4 = M_PI - error_a4;
-  float error_c = error_c1 + error_c2 + error_c3 + error_c4;
+    /* Compute the case if the quads are 180 degrees rotated.
+     * This is `error[0]` except each error component is individually rotated 180 degrees. */
+    error[2] += M_PI - angle_a;
 
-  /* Compute the case if the quads are 270 degrees rotated.
-   * This is error_b except each error component is individually rotated 180 degrees. */
-  float error_d1 = M_PI - error_b1;
-  float error_d2 = M_PI - error_b2;
-  float error_d3 = M_PI - error_b3;
-  float error_d4 = M_PI - error_b4;
-  float error_d = error_d1 + error_d2 + error_d3 + error_d4;
+    /* Compute the case if the quads are 270 degrees rotated.
+     * This is `error[1]` except each error component is individually rotated 180 degrees. */
+    error[3] += M_PI - angle_b;
+  }
 
   /* Pick the best option and average the four components. */
-  float best_error = std::min(std::min(error_a, error_b), std::min(error_c, error_d)) / 4;
+  const float best_error = std::min(std::min(error[0], error[1]), std::min(error[2], error[3])) /
+                           4.0f;
 
   ASSERT_VALID_ERROR_METRIC(best_error);
 
   /* Based on the best error, we scale how aligned we are to the range 0...1
    * `M_PI / 4` is used here because the worst case is a quad with all four edges
    * at 45 degree angles. */
-  float alignment = 1 - (best_error / (M_PI / 4));
+  float alignment = 1.0f - (best_error / (M_PI / 4.0f));
 
   /* if alignment is *truly* awful, then do nothing. Don't make a join worse. */
   if (alignment < 0.0f) {
@@ -872,9 +874,7 @@ static void reprioritize_face_neighbors(JoinEdgesState &s, BMFace *f, float f_er
    * - Some of our neighbor triangles... might have other non-manifold (un-mergable) edges.
    * - Some of our neighbor triangles' manifold edges... might have non-triangle neighbors.
    * Therefore, there can be have up to eight mergable edges, although there are often fewer. */
-  size_t neighbor_count = 0;
-  BMEdge *merge_edges[8] = {nullptr};
-  BMLoop *shared_loops[8] = {nullptr};
+  JoinEdgesNeighborInfo neighbor_info = {nullptr};
 
   /* Get the four loops around the face. */
   BMLoop *l_quad[4];
@@ -882,11 +882,11 @@ static void reprioritize_face_neighbors(JoinEdgesState &s, BMFace *f, float f_er
 
   /* Add the mergable neighbors for each of those loops. */
   for (int i = 0; i < ARRAY_SIZE(l_quad); i++) {
-    neighbor_count = add_neighbors(merge_edges, shared_loops, neighbor_count, l_quad[i]);
+    add_neighbors(neighbor_info, l_quad[i]);
   }
 
   /* Return if there is nothing to do. */
-  if (neighbor_count == 0) {
+  if (neighbor_info.items_num == 0) {
     return;
   }
 
@@ -898,14 +898,15 @@ static void reprioritize_face_neighbors(JoinEdgesState &s, BMFace *f, float f_er
   }
 
   /* Re-prioritize each neighbor. */
-  for (int i = 0; i < neighbor_count; i++) {
+  for (int i = 0; i < neighbor_info.items_num; i++) {
 #ifdef USE_JOIN_TRIANGLE_INTERACTIVE_TESTING
     s.debug_this_step = (s.debug_merge_limit > 0 && s.debug_merge_count == s.debug_merge_limit &&
                          i + 1 == s.debug_neighbor) ||
                         (++s.debug_neighbor_global_count == s.debug_neighbor &&
                          s.debug_merge_limit == 0);
 #endif
-    reprioritize_join(s, merge_edges[i], shared_loops[i], quad_vecs, f_error, f->no);
+    const JoinEdgesNeighborItem *item = &neighbor_info.items[i];
+    reprioritize_join(s, item->e, item->l, quad_vecs, f_error, f->no);
   }
 }
 /**
