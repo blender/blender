@@ -546,6 +546,11 @@ static BMOpDefine bmo_create_vert_def = {
  * Tries to intelligently join triangles according
  * to angle threshold and delimiters.
  */
+
+#if 0 /* See comments at top of bmo_join_triangles.cc */
+#  define USE_JOIN_TRIANGLE_INTERACTIVE_TESTING
+#endif
+
 static BMOpDefine bmo_join_triangles_def = {
   "join_triangles",
   /*slot_types_in*/
@@ -557,6 +562,12 @@ static BMOpDefine bmo_join_triangles_def = {
    {"cmp_materials", BMO_OP_SLOT_BOOL}, /* compare materials */
    {"angle_face_threshold", BMO_OP_SLOT_FLT},
    {"angle_shape_threshold", BMO_OP_SLOT_FLT},
+   {"topology_influence", BMO_OP_SLOT_FLT},
+   {"deselect_joined", BMO_OP_SLOT_BOOL},
+#ifdef USE_JOIN_TRIANGLE_INTERACTIVE_TESTING
+   {"merge_limit", BMO_OP_SLOT_INT},
+   {"neighbor_debug", BMO_OP_SLOT_INT},
+#endif
    {{'\0'}},
   },
   /*slot_types_out*/
