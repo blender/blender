@@ -314,20 +314,10 @@ GlobalData g_data;
 
 #ifndef GPU_FRAGMENT_SHADER
 /* Stubs. */
-vec3 dF_impl(vec3 v)
-{
-  return vec3(0.0);
-}
 
-void dF_branch(float fn, out vec2 result)
-{
-  result = vec2(0.0);
-}
-
-void dF_branch_incomplete(float fn, out vec2 result)
-{
-  result = vec2(0.0);
-}
+#  define dF_impl(a) (vec3(0.0))
+#  define dF_branch(a, b) (b = vec2(0.0))
+#  define dF_branch_incomplete(a, b) (b = vec2(0.0))
 
 #elif defined(GPU_FAST_DERIVATIVE) /* TODO(@fclem): User Option? */
 /* Fast derivatives */
