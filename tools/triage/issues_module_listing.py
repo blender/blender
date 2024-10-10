@@ -105,8 +105,8 @@ def compile_list(severity: str) -> None:
             modules[current_module_name].buglist.append(f"[#{number}]({html_url})")
             modules[current_module_name].buglist_full.append(f"* [{title}]({html_url}) - {created_at}\n")
             break
-    else:
-        uncategorized_reports.append(f"[#{number}]({html_url})")
+        else:
+            uncategorized_reports.append(f"[#{number}]({html_url})")
 
     # Print statistics
     print(f"Open {severity} Severity bugs as of {date.today()}:\n")
