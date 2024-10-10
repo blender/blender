@@ -29,6 +29,9 @@
 
 namespace blender::ed::asset {
 
+std::string asset_tooltip(const asset_system::AssetRepresentation &asset,
+                          bool include_name = true);
+
 void operatortypes_asset();
 
-}
+}  // namespace blender::ed::asset
