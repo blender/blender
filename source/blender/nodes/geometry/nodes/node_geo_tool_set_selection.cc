@@ -60,7 +60,7 @@ static GField clamp_selection(const GField &selection)
   return Field<bool>(FieldOperation::Create(clamp, {selection}));
 }
 
-static Field<float> invert_selection(const GField &selection)
+static GField invert_selection(const GField &selection)
 {
   if (selection.cpp_type().is<bool>()) {
     static auto invert = mf::build::SI1_SO<bool, bool>("Invert Selection",
