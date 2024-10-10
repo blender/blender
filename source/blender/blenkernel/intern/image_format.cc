@@ -649,7 +649,7 @@ void BKE_image_format_to_imbuf(ImBuf *ibuf, const ImageFormatData *imf)
     if (imf->depth == R_IMF_CHAN_DEPTH_16) {
       ibuf->foptions.flag |= OPENEXR_HALF;
     }
-    ibuf->foptions.flag |= (imf->exr_codec & OPENEXR_COMPRESS);
+    ibuf->foptions.flag |= (imf->exr_codec & OPENEXR_CODEC_MASK);
     ibuf->foptions.quality = quality;
   }
 #endif
@@ -801,7 +801,7 @@ void BKE_image_format_from_imbuf(ImageFormatData *im_format, const ImBuf *imbuf)
     if (custom_flags & OPENEXR_HALF) {
       im_format->depth = R_IMF_CHAN_DEPTH_16;
     }
-    if (custom_flags & OPENEXR_COMPRESS) {
+    if (custom_flags & OPENEXR_CODEC_MASK) {
       im_format->exr_codec = R_IMF_EXR_CODEC_ZIP; /* Can't determine compression */
     }
   }

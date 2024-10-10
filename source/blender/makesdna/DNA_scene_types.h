@@ -414,7 +414,7 @@ typedef struct ImageFormatData {
 
   /* --- format specific --- */
 
-  /** OpenEXR. */
+  /** OpenEXR: R_IMF_EXR_CODEC_* values in low OPENEXR_CODEC_MASK bits. */
   char exr_codec;
 
   /** CINEON. */
