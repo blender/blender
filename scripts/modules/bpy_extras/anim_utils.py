@@ -364,7 +364,7 @@ def bake_action_iter(
             atd.use_tweak_mode = False
 
         atd.action = action
-        if action.is_action_layered:
+        if bpy.context.preferences.experimental.use_animation_baklava and action.is_action_layered:
             slot = action.slots.new(for_id=obj)
             atd.action_slot = slot
 
