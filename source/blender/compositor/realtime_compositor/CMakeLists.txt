@@ -69,6 +69,7 @@ set(SRC
   COM_texture_pool.hh
   COM_utilities.hh
 
+  algorithms/intern/compute_preview.cc
   algorithms/intern/deriche_gaussian_blur.cc
   algorithms/intern/extract_alpha.cc
   algorithms/intern/jump_flooding.cc
@@ -85,6 +86,7 @@ set(SRC
   algorithms/intern/transform.cc
   algorithms/intern/van_vliet_gaussian_blur.cc
 
+  algorithms/COM_algorithm_compute_preview.hh
   algorithms/COM_algorithm_deriche_gaussian_blur.hh
   algorithms/COM_algorithm_extract_alpha.hh
   algorithms/COM_algorithm_jump_flooding.hh
