@@ -28,58 +28,26 @@ void VolumeProbeModule::init()
 {
   display_grids_enabled_ = DRW_state_draw_support();
 
+  int atlas_byte_size = 1024 * 1024 * inst_.scene->eevee.gi_irradiance_pool_size;
   /* This might become an option in the future. */
   bool use_l2_band = false;
   int sh_coef_len = use_l2_band ? 9 : 4;
-  BLI_assert(VOLUME_PROBE_FORMAT == GPU_RGBA16F);
   int texel_byte_size = 8; /* Assumes GPU_RGBA16F. */
-  uint atlas_col_count = 0;
-  uint atlas_row_count = 0;
+  int3 atlas_extent(IRRADIANCE_GRID_BRICK_SIZE);
+  atlas_extent.z *= sh_coef_len;
+  /* Add space for validity bits. */
+  atlas_extent.z += IRRADIANCE_GRID_BRICK_SIZE / 4;
 
-  if (assign_if_different(irradiance_pool_size_,
-                          (uint)inst_.scene->eevee.gi_irradiance_pool_size) ||
-      !irradiance_atlas_tx_.is_valid())
-  {
-    irradiance_atlas_tx_.free();
-    /* Find highest pool size within device limits. */
-    for (uint irradiance_pool_size = irradiance_pool_size_;
-         irradiance_pool_size >= 16 && !irradiance_atlas_tx_.is_valid();
-         irradiance_pool_size >>= 1)
-    {
-      int atlas_byte_size = 1024 * 1024 * irradiance_pool_size;
-      /* Reshape texture to improve grid occupancy within device limits. */
-      for (atlas_col_count = 128; atlas_col_count <= 16348 && !irradiance_atlas_tx_.is_valid();
-           atlas_col_count <<= 1)
-      {
-        int3 atlas_extent(IRRADIANCE_GRID_BRICK_SIZE);
-        atlas_extent.z *= sh_coef_len;
-        /* Add space for validity bits. */
-        atlas_extent.z += IRRADIANCE_GRID_BRICK_SIZE / 4;
-        atlas_extent.x *= atlas_col_count;
+  int atlas_col_count = 256;
+  atlas_extent.x *= atlas_col_count;
+  /* Determine the row count depending on the scene settings. */
+  int row_byte_size = atlas_extent.x * atlas_extent.y * atlas_extent.z * texel_byte_size;
+  int atlas_row_count = divide_ceil_u(atlas_byte_size, row_byte_size);
+  atlas_extent.y *= atlas_row_count;
 
-        /* Determine the row count depending on the scene settings. */
-        int row_byte_size = math::reduce_mul(atlas_extent) * texel_byte_size;
-        atlas_row_count = divide_ceil_u(atlas_byte_size, row_byte_size);
-        atlas_extent.y *= atlas_row_count;
-
-        constexpr eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_WRITE |
-                                           GPU_TEXTURE_USAGE_SHADER_READ |
-                                           GPU_TEXTURE_USAGE_ATTACHMENT;
-        irradiance_atlas_tx_.ensure_3d(VOLUME_PROBE_FORMAT, atlas_extent, usage);
-        if (irradiance_atlas_tx_.is_valid()) {
-          do_full_update_ = true;
-          irradiance_pool_size_alloc_ = irradiance_pool_size;
-        }
-      }
-    }
-  }
-
-  if (irradiance_pool_size_alloc_ != irradiance_pool_size_) {
-    inst_.info_append_i18n(
-        "Warning: Light probes volume pool could not be allocated. Using a pool of {} MB to "
-        "proceed. ",
-        irradiance_pool_size_alloc_);
-  }
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_WRITE | GPU_TEXTURE_USAGE_SHADER_READ |
+                           GPU_TEXTURE_USAGE_ATTACHMENT;
+  do_full_update_ = irradiance_atlas_tx_.ensure_3d(VOLUME_PROBE_FORMAT, atlas_extent, usage);
 
   if (do_full_update_) {
     do_update_world_ = true;

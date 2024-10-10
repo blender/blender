@@ -72,6 +72,7 @@ const EnumPropertyItem rna_enum_strip_type_items[] = {
      "Strip containing keyframes on F-Curves"},
     {0, nullptr, 0, nullptr, nullptr},
 };
+#endif /* WITH_ANIM_BAKLAVA */
 
 /* Cannot use rna_enum_dummy_DEFAULT_items because the UNSPECIFIED entry needs
  * to exist as it is the default. */
@@ -84,8 +85,6 @@ const EnumPropertyItem default_ActionSlot_id_root_items[] = {
      "the type of that data-block"},
     {0, nullptr, 0, nullptr, nullptr},
 };
-
-#endif /* WITH_ANIM_BAKLAVA */
 
 #ifdef RNA_RUNTIME
 
@@ -1496,36 +1495,6 @@ static std::optional<std::string> rna_DopeSheet_path(const PointerRNA *ptr)
   return "dopesheet";
 }
 
-static const EnumPropertyItem *rna_id_root_itemf(bContext * /* C */,
-                                                 PointerRNA * /* ptr */,
-                                                 PropertyRNA * /* prop */,
-                                                 bool *r_free)
-{
-  int totitem = 0;
-  EnumPropertyItem *items = nullptr;
-
-  int i = 0;
-  while (rna_enum_id_type_items[i].identifier != nullptr) {
-    EnumPropertyItem item = {0};
-    item.value = rna_enum_id_type_items[i].value;
-    item.name = rna_enum_id_type_items[i].name;
-    item.identifier = rna_enum_id_type_items[i].identifier;
-    item.icon = rna_enum_id_type_items[i].icon;
-    item.description = rna_enum_id_type_items[i].description;
-    RNA_enum_item_add(&items, &totitem, &item);
-    i++;
-  }
-
-  const EnumPropertyItem id_root_any = {0, "ANY", ICON_NONE, "Any", ""};
-  RNA_enum_item_add(&items, &totitem, &id_root_any);
-
-  RNA_enum_item_end(&items, &totitem);
-  *r_free = true;
-  return items;
-}
-
-#  ifdef WITH_ANIM_BAKLAVA
-
 static const EnumPropertyItem *rna_ActionSlot_id_root_itemf(bContext * /* C */,
                                                             PointerRNA * /* ptr */,
                                                             PropertyRNA * /* prop */,
@@ -1573,7 +1542,6 @@ static const EnumPropertyItem *rna_ActionSlot_id_root_itemf(bContext * /* C */,
 
   return items;
 }
-#  endif /* WITH_ANIM_BAKLAVA */
 
 #else
 
@@ -2702,13 +2670,6 @@ static void rna_def_action_pose_markers(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_property_ui_text(prop, "Active Pose Marker Index", "Index of active pose marker");
 }
 
-/* Cannot use rna_enum_dummy_DEFAULT_items because the OBJECT entry needs to exist as it is the
- * default. */
-const EnumPropertyItem default_id_root_items[] = {
-    {0, "OBJECT", 0, "Object", ""},
-    {0, nullptr, 0, nullptr, nullptr},
-};
-
 /* Access to 'legacy' Action features, like the top-level F-Curves, the corresponding F-Curve
  * groups, and the top-level id_root. */
 static void rna_def_action_legacy(BlenderRNA *brna, StructRNA *srna)
@@ -2732,8 +2693,9 @@ static void rna_def_action_legacy(BlenderRNA *brna, StructRNA *srna)
    * but is still available/editable in 'emergencies' */
   prop = RNA_def_property(srna, "id_root", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "idroot");
-  RNA_def_property_enum_items(prop, default_id_root_items);
-  RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_id_root_itemf");
+  RNA_def_property_enum_items(prop, default_ActionSlot_id_root_items);
+  RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_ActionSlot_id_root_itemf");
+  RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);
   RNA_def_property_ui_text(prop,
                            "ID Root Type",
                            "Type of ID block that action can be used on - "
