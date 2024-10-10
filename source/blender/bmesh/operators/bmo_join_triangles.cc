@@ -874,7 +874,7 @@ static void reprioritize_face_neighbors(JoinEdgesState &s, BMFace *f, float f_er
    * - Some of our neighbor triangles... might have other non-manifold (un-mergable) edges.
    * - Some of our neighbor triangles' manifold edges... might have non-triangle neighbors.
    * Therefore, there can be have up to eight mergable edges, although there are often fewer. */
-  JoinEdgesNeighborInfo neighbor_info = {nullptr};
+  JoinEdgesNeighborInfo neighbor_info = {};
 
   /* Get the four loops around the face. */
   BMLoop *l_quad[4];
