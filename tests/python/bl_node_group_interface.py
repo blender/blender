@@ -399,7 +399,7 @@ class ShaderNodeGroupInterfaceTest(AbstractNodeGroupInterfaceTest, NodeGroupInte
         self.do_test_socket_type("NodeSocketColor")
         self.do_test_socket_type("NodeSocketFloat")
         self.do_test_invalid_socket_type("NodeSocketGeometry")
-        self.do_test_invalid_socket_type("NodeSocketImage")
+        self.do_test_socket_type("NodeSocketImage")
         self.do_test_socket_type("NodeSocketInt")
         self.do_test_invalid_socket_type("NodeSocketMaterial")
         self.do_test_invalid_socket_type("NodeSocketObject")
