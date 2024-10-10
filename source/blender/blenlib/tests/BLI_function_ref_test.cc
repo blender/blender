@@ -126,4 +126,30 @@ TEST(function_ref, OverloadSelection)
   EXPECT_EQ(overload_test(fn_2), 2);
 }
 
+TEST(function_ref, FalsyStdFunction)
+{
+  const std::function<void()> fn1;
+  const std::function<void()> fn2 = [&]() {};
+  const FunctionRef<void()> fn_ref1(fn1);
+  const FunctionRef<void()> fn_ref2(fn2);
+  EXPECT_FALSE(fn_ref1);
+  EXPECT_TRUE(fn_ref2);
+
+  const FunctionRef<void()> fn_ref3(fn1);
+  const FunctionRef<void()> fn_ref4(fn2);
+  EXPECT_FALSE(fn_ref3);
+  EXPECT_TRUE(fn_ref4);
+}
+
+TEST(function_ref, FalsyFunctionPointer)
+{
+  using Fn = void (*)();
+  const Fn fn1 = nullptr;
+  const Fn fn2 = []() {};
+  const FunctionRef<void()> fn_ref1(fn1);
+  const FunctionRef<void()> fn_ref2(fn2);
+  EXPECT_FALSE(fn_ref1);
+  EXPECT_TRUE(fn_ref2);
+}
+
 }  // namespace blender::tests
