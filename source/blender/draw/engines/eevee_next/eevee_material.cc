@@ -303,11 +303,16 @@ Material &MaterialModule::material_sync(Object *ob,
   Material &mat = material_map_.lookup_or_add_cb(material_key, [&]() {
     Material mat;
     if (inst_.is_baking()) {
+      if (ob->visibility_flag & OB_HIDE_PROBE_VOLUME) {
+        mat.capture = MaterialPass();
+      }
+      else {
+        mat.capture = material_pass_get(ob, blender_mat, MAT_PIPE_CAPTURE, geometry_type);
+      }
       mat.prepass = MaterialPass();
       /* TODO(fclem): Still need the shading pass for correct attribute extraction. Would be better
        * to avoid this shader compilation in another context. */
       mat.shading = material_pass_get(ob, blender_mat, surface_pipe, geometry_type);
-      mat.capture = material_pass_get(ob, blender_mat, MAT_PIPE_CAPTURE, geometry_type);
       mat.overlap_masking = MaterialPass();
       mat.lightprobe_sphere_prepass = MaterialPass();
       mat.lightprobe_sphere_shading = MaterialPass();
