@@ -746,8 +746,9 @@ def pkg_manifest_from_dict_and_validate_impl(
     else:
         if (error_msg := pkg_manifest_is_valid_or_error(data, from_repo=from_repo, strict=strict)) is not None:
             error_list.append(error_msg)
-            if not all_errors:
-                return error_list
+
+    if error_list:
+        return error_list
 
     values: List[str] = []
     for key in PkgManifest._fields:
@@ -761,10 +762,6 @@ def pkg_manifest_from_dict_and_validate_impl(
 
     kw_args: Dict[str, Any] = dict(zip(PkgManifest._fields, values, strict=True))
     manifest = PkgManifest(**kw_args)
-
-    if error_list:
-        assert all_errors
-        return error_list
 
     # There could be other validation, leave these as-is.
     return manifest
