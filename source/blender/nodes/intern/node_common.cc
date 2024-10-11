@@ -402,27 +402,42 @@ static void set_default_input_field(const bNodeTreeInterfaceSocket &input, Socke
 
 static void node_group_declare_panel_recursive(DeclarationListBuilder &b,
                                                const bNodeTree &group,
-                                               const bNodeTreeInterfacePanel &io_parent_panel)
+                                               const bNodeTreeInterfacePanel &io_parent_panel,
+                                               const bool is_root)
 {
+  bool layout_added = false;
+  auto add_layout_if_needed = [&]() {
+    if (is_root && !layout_added) {
+      b.add_default_layout();
+      layout_added = true;
+    }
+  };
+
   for (const bNodeTreeInterfaceItem *item : io_parent_panel.items()) {
     switch (item->item_type) {
       case NODE_INTERFACE_SOCKET: {
         const auto &io_socket = node_interface::get_item_as<bNodeTreeInterfaceSocket>(*item);
         const eNodeSocketInOut in_out = (io_socket.flag & NODE_INTERFACE_SOCKET_INPUT) ? SOCK_IN :
                                                                                          SOCK_OUT;
+        if (in_out == SOCK_IN) {
+          add_layout_if_needed();
+        }
         build_interface_socket_declaration(group, io_socket, in_out, b);
         break;
       }
       case NODE_INTERFACE_PANEL: {
+        add_layout_if_needed();
         const auto &io_panel = node_interface::get_item_as<bNodeTreeInterfacePanel>(*item);
         auto &panel_b = b.add_panel(StringRef(io_panel.name), io_panel.identifier)
                             .description(StringRef(io_panel.description))
                             .default_closed(io_panel.flag & NODE_INTERFACE_PANEL_DEFAULT_CLOSED);
-        node_group_declare_panel_recursive(panel_b, group, io_panel);
+        node_group_declare_panel_recursive(panel_b, group, io_panel, false);
         break;
       }
     }
   }
+
+  add_layout_if_needed();
 }
 
 void node_group_declare(NodeDeclarationBuilder &b)
@@ -445,7 +460,7 @@ void node_group_declare(NodeDeclarationBuilder &b)
   /* Allow the node group interface to define the socket order. */
   r_declaration.use_custom_socket_order = true;
 
-  node_group_declare_panel_recursive(b, *group, group->tree_interface.root_panel);
+  node_group_declare_panel_recursive(b, *group, group->tree_interface.root_panel, true);
 
   if (group->type == NTREE_GEOMETRY) {
     group->ensure_interface_cache();
