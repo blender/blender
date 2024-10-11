@@ -23,9 +23,7 @@ namespace blender::gpu::shader {
  * Implementation speed is not a huge concern as we only apply this at compile time or on python
  * shaders source.
  */
-template<typename T, bool no_linting = false> class Preprocessor {
-  T &report_error;
-
+template<bool no_linting = false> class Preprocessor {
   struct SharedVar {
     std::string type;
     std::string name;
@@ -36,34 +34,29 @@ template<typename T, bool no_linting = false> class Preprocessor {
   std::stringstream output_;
 
  public:
-  Preprocessor(T &error_cb) : report_error(error_cb) {}
-
-  Preprocessor &operator<<(std::string str)
+  /* Takes a whole source file and output processed source. */
+  template<typename ReportErrorF>
+  std::string process(std::string str, const ReportErrorF &report_error)
   {
-    str = remove_comments(str);
+    str = remove_comments(str, report_error);
     threadgroup_variable_parsing(str);
-    matrix_constructor_linting(str);
-    array_constructor_linting(str);
+    matrix_constructor_linting(str, report_error);
+    array_constructor_linting(str, report_error);
     str = preprocessor_directive_mutation(str);
     str = argument_decorator_macro_injection(str);
     str = array_constructor_macro_injection(str);
-    output_ << str;
-    return *this;
+    return str + suffix();
   }
 
-  Preprocessor &operator<<(char c)
+  std::string process(const std::string &str)
   {
-    output_ << c;
-    return *this;
-  }
-
-  std::string str()
-  {
-    return output_.str() + suffix();
+    auto no_err_report = [](std::string, std::smatch, const char *) {};
+    return process(str, no_err_report);
   }
 
  private:
-  std::string remove_comments(const std::string &str)
+  template<typename ReportErrorF>
+  std::string remove_comments(const std::string &str, const ReportErrorF &report_error)
   {
     std::string out_str = str;
     {
@@ -141,7 +134,8 @@ template<typename T, bool no_linting = false> class Preprocessor {
   }
 
   /* TODO(fclem): Too many false positive and false negative to be applied to python shaders. */
-  void matrix_constructor_linting(std::string str)
+  template<typename ReportErrorF>
+  void matrix_constructor_linting(std::string str, const ReportErrorF &report_error)
   {
     if constexpr (no_linting) {
       return;
@@ -157,7 +151,8 @@ template<typename T, bool no_linting = false> class Preprocessor {
     }
   }
 
-  void array_constructor_linting(std::string str)
+  template<typename ReportErrorF>
+  void array_constructor_linting(std::string str, const ReportErrorF &report_error)
   {
     if constexpr (no_linting) {
       return;
@@ -260,9 +255,6 @@ template<typename T, bool no_linting = false> class Preprocessor {
   }
 };
 
-template<typename T> class PreprocessorPython : public Preprocessor<T, true> {
- public:
-  PreprocessorPython(T &error_cb) : Preprocessor<T, true>(error_cb){};
-};
+using PreprocessorPython = Preprocessor<true>;
 
 }  // namespace blender::gpu::shader

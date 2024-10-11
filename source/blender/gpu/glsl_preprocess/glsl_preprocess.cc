@@ -58,11 +58,9 @@ int main(int argc, char **argv)
         error++;
       };
 
-  blender::gpu::shader::Preprocessor processor(report_error);
+  blender::gpu::shader::Preprocessor processor;
 
-  processor << buffer.str();
-
-  output_file << processor.str();
+  output_file << processor.process(buffer.str(), report_error);
 
   input_file.close();
   output_file.close();
