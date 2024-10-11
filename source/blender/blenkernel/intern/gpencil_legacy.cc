@@ -36,6 +36,7 @@
 
 #include "BKE_action.hh"
 #include "BKE_anim_data.hh"
+#include "BKE_brush.hh"
 #include "BKE_collection.hh"
 #include "BKE_colortools.hh"
 #include "BKE_deform.hh"
@@ -1370,6 +1371,7 @@ void BKE_gpencil_brush_material_set(Brush *brush, Material *ma)
       id_us_plus(&ma->id);
     }
     brush->gpencil_settings->material = ma;
+    BKE_brush_tag_unsaved_changes(brush);
   }
 }
 
