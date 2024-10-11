@@ -2394,49 +2394,64 @@ FCurve *action_fcurve_ensure(Main *bmain,
     return nullptr;
   }
 
-  if (!animrig::legacy::action_treat_as_legacy(*act)) {
-    /* NOTE: for layered actions we require the following:
-     *
-     * - `ptr` is non-null.
-     * - `ptr` has an `owner_id` that already uses `act`.
-     *
-     * This isn't for any principled reason, but rather is because adding
-     * support for layered actions to this function was a fix to make Follow
-     * Path animation work properly with layered actions (see PR #124353), and
-     * those are the requirements the Follow Path code conveniently met.
-     * Moreover those requirements were also already met by the other call sites
-     * that potentially call this function with layered actions.
-     *
-     * Trying to puzzle out what "should" happen when these requirements don't
-     * hold, or if this is even the best place to handle the layered action
-     * cases at all, was leading to discussion of larger changes than made sense
-     * to tackle at that point. */
-    Action &action = act->wrap();
-
-    BLI_assert(ptr != nullptr);
-    if (ptr == nullptr || ptr->owner_id == nullptr) {
-      return nullptr;
-    }
-    ID &animated_id = *ptr->owner_id;
-    BLI_assert(get_action(animated_id) == &action);
-    if (get_action(animated_id) != &action) {
-      return nullptr;
-    }
-
-    /* Ensure the id has an assigned slot. */
-    Slot *slot = assign_action_ensure_slot_for_keying(action, animated_id);
-    if (!slot) {
-      /* This means the ID type is not animatable. */
-      return nullptr;
-    }
-
-    action.layer_keystrip_ensure();
-
-    assert_baklava_phase_1_invariants(action);
-    StripKeyframeData &strip_data = action.layer(0)->strip(0)->data<StripKeyframeData>(action);
-
-    return &strip_data.channelbag_for_slot_ensure(*slot).fcurve_ensure(bmain, fcurve_descriptor);
+  if (animrig::legacy::action_treat_as_legacy(*act)) {
+    return action_fcurve_ensure_legacy(bmain, act, group, ptr, fcurve_descriptor);
   }
+
+  /* NOTE: for layered actions we require the following:
+   *
+   * - `ptr` is non-null.
+   * - `ptr` has an `owner_id` that already uses `act`.
+   *
+   * This isn't for any principled reason, but rather is because adding
+   * support for layered actions to this function was a fix to make Follow
+   * Path animation work properly with layered actions (see PR #124353), and
+   * those are the requirements the Follow Path code conveniently met.
+   * Moreover those requirements were also already met by the other call sites
+   * that potentially call this function with layered actions.
+   *
+   * Trying to puzzle out what "should" happen when these requirements don't
+   * hold, or if this is even the best place to handle the layered action
+   * cases at all, was leading to discussion of larger changes than made sense
+   * to tackle at that point. */
+  Action &action = act->wrap();
+
+  BLI_assert(ptr != nullptr);
+  if (ptr == nullptr || ptr->owner_id == nullptr) {
+    return nullptr;
+  }
+  ID &animated_id = *ptr->owner_id;
+  BLI_assert(get_action(animated_id) == &action);
+  if (get_action(animated_id) != &action) {
+    return nullptr;
+  }
+
+  /* Ensure the id has an assigned slot. */
+  Slot *slot = assign_action_ensure_slot_for_keying(action, animated_id);
+  if (!slot) {
+    /* This means the ID type is not animatable. */
+    return nullptr;
+  }
+
+  action.layer_keystrip_ensure();
+
+  assert_baklava_phase_1_invariants(action);
+  StripKeyframeData &strip_data = action.layer(0)->strip(0)->data<StripKeyframeData>(action);
+
+  return &strip_data.channelbag_for_slot_ensure(*slot).fcurve_ensure(bmain, fcurve_descriptor);
+}
+
+FCurve *action_fcurve_ensure_legacy(Main *bmain,
+                                    bAction *act,
+                                    const char group[],
+                                    PointerRNA *ptr,
+                                    FCurveDescriptor fcurve_descriptor)
+{
+  if (!act) {
+    return nullptr;
+  }
+
+  BLI_assert(act->wrap().is_empty() || act->wrap().is_action_legacy());
 
   /* Try to find f-curve matching for this setting.
    * - add if not found and allowed to add one
@@ -2463,7 +2478,7 @@ FCurve *action_fcurve_ensure(Main *bmain,
 
   BLI_assert_msg(!fcurve_descriptor.prop_subtype.has_value(),
                  "Did not expect a prop_subtype to be passed in. This is fine, but does need some "
-                 "changes to action_fcurve_ensure() to deal with it");
+                 "changes to action_fcurve_ensure_legacy() to deal with it");
   fcu = create_fcurve_for_channel(
       {fcurve_descriptor.rna_path, fcurve_descriptor.array_index, prop_subtype});
 

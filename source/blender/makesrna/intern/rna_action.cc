@@ -1127,7 +1127,7 @@ static FCurve *rna_Action_fcurve_new(bAction *act,
                 act->id.name + 2);
     return nullptr;
   }
-  return blender::animrig::action_fcurve_ensure(
+  return blender::animrig::action_fcurve_ensure_legacy(
       bmain,
       act,
       fcurve_descriptor.channel_group ? fcurve_descriptor.channel_group->c_str() : nullptr,

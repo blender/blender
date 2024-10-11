@@ -106,6 +106,7 @@ class KeyframingTest : public testing::Test {
     object_with_nla = BKE_object_add_only_object(bmain, OB_EMPTY, "EmptyWithNLA");
     object_with_nla_rna_pointer = RNA_id_pointer_create(&object_with_nla->id);
     nla_action = static_cast<bAction *>(BKE_id_new(bmain, ID_AC, "NLAAction"));
+    this->ensure_action_is_legacy(*nla_action);
 
     cube = BKE_object_add_only_object(bmain, OB_MESH, "cube");
     cube_rna_pointer = RNA_id_pointer_create(&cube->id);
@@ -141,6 +142,40 @@ class KeyframingTest : public testing::Test {
   void TearDown() override
   {
     BKE_main_free(bmain);
+  }
+
+  /**
+   * Create a legacy Action and assign it to the ID.
+   *
+   * Use of this function indicates that the unit test should be converted to
+   * use layered Actions.
+   */
+  void ensure_legacy_action_assigned(ID &id)
+  {
+    AnimData *adt = BKE_animdata_from_id(&id);
+    BLI_assert(!adt || !adt->action);
+    UNUSED_VARS_NDEBUG(adt);
+
+    bAction &action = animrig::action_add(*bmain, "LegacyAction");
+    this->ensure_action_is_legacy(action);
+
+    const bool ok = assign_action(&action, id);
+    BLI_assert(ok);
+    UNUSED_VARS_NDEBUG(ok);
+  }
+
+  /**
+   * Add an F-Curve Group. This marks the Action as legacy. Since most tests are on F-Curves,
+   * adding a Group here is the less invasive way to make this a Legacy Action.
+   *
+   * Use of this function indicates the test should be converted to layered Actions.
+   */
+  void ensure_action_is_legacy(bAction &action)
+  {
+    bActionGroup *new_group = static_cast<bActionGroup *>(
+        MEM_callocN(sizeof(bActionGroup), __func__));
+    STRNCPY(new_group->name, "Legacy Forcer");
+    BLI_addtail(&action.groups, new_group);
   }
 };
 
@@ -978,6 +1013,7 @@ TEST_F(KeyframingTest, insert_keyframes__legacy_action__non_array_property)
   /* First time should create the AnimData, Action, and FCurve with a single
    * key. */
   object->empty_drawsize = 42.0;
+  ensure_legacy_action_assigned(object->id);
   const CombinedKeyingResult result_1 = insert_keyframes(bmain,
                                                          &object_rna_pointer,
                                                          std::nullopt,
@@ -1039,6 +1075,7 @@ TEST_F(KeyframingTest, insert_keyframes__legacy_action__optional_frame)
   AnimationEvalContext anim_eval_context = {nullptr, 5.0};
 
   object->rotmode = ROT_MODE_XYZ;
+  ensure_legacy_action_assigned(object->id);
   const CombinedKeyingResult result_1 = insert_keyframes(bmain,
                                                          &object_rna_pointer,
                                                          std::nullopt,
@@ -1075,6 +1112,7 @@ TEST_F(KeyframingTest, insert_keyframes__legacy_action__optional_channel_group)
   AnimationEvalContext anim_eval_context = {nullptr, 1.0};
 
   /* If the channel group is not explicitly passed, the default should be used. */
+  ensure_legacy_action_assigned(object->id);
   const CombinedKeyingResult result_1 = insert_keyframes(
       bmain,
       &object_rna_pointer,
@@ -1122,6 +1160,7 @@ TEST_F(KeyframingTest, insert_keyframes__single_element)
 {
   AnimationEvalContext anim_eval_context = {nullptr, 1.0};
 
+  ensure_legacy_action_assigned(object->id);
   const CombinedKeyingResult result = insert_keyframes(bmain,
                                                        &object_rna_pointer,
                                                        std::nullopt,
@@ -1143,6 +1182,7 @@ TEST_F(KeyframingTest, insert_keyframes__legacy_action__all_elements)
 {
   AnimationEvalContext anim_eval_context = {nullptr, 1.0};
 
+  ensure_legacy_action_assigned(object->id);
   const CombinedKeyingResult result = insert_keyframes(bmain,
                                                        &object_rna_pointer,
                                                        std::nullopt,
@@ -1169,6 +1209,7 @@ TEST_F(KeyframingTest, insert_keyframes__legacy_action__pose_bone_rna_pointer)
   PointerRNA pose_bone_rna_pointer = RNA_pointer_create(
       &armature_object->id, &RNA_PoseBone, pchan);
 
+  ensure_legacy_action_assigned(armature_object->id);
   const CombinedKeyingResult result = insert_keyframes(bmain,
                                                        &pose_bone_rna_pointer,
                                                        std::nullopt,
@@ -1192,6 +1233,7 @@ TEST_F(KeyframingTest, insert_keyframes__legacy_action__pose_bone_owner_id_point
 {
   AnimationEvalContext anim_eval_context = {nullptr, 1.0};
 
+  ensure_legacy_action_assigned(armature_object->id);
   const CombinedKeyingResult result = insert_keyframes(
       bmain,
       &armature_object_rna_pointer,
@@ -1216,6 +1258,7 @@ TEST_F(KeyframingTest, insert_keyframes__legacy_action__multiple_properties)
 {
   AnimationEvalContext anim_eval_context = {nullptr, 1.0};
 
+  ensure_legacy_action_assigned(object->id);
   const CombinedKeyingResult result =
 
       insert_keyframes(bmain,
@@ -1269,6 +1312,10 @@ TEST_F(KeyframingTest, insert_keyframes__legacy_action__only_available)
    * object without an action. */
   ASSERT_EQ(nullptr, object->adt->action);
 
+  /* This will create & assign an Action, which is necessary for the
+   * insert_keyframes() function to take the 'legacy Action' code path. */
+  ensure_legacy_action_assigned(object->id);
+
   /* Insert a key on two of the elements without using the flag so that there
    * will be two fcurves. */
   insert_keyframes(bmain,
@@ -1309,6 +1356,7 @@ TEST_F(KeyframingTest, insert_keyframes__legacy_action__only_replace)
   object->rot[0] = 42.0;
   object->rot[1] = 42.0;
   object->rot[2] = 42.0;
+  ensure_legacy_action_assigned(object->id);
   const CombinedKeyingResult result_1 = insert_keyframes(bmain,
                                                          &object_rna_pointer,
                                                          std::nullopt,
@@ -1397,6 +1445,7 @@ TEST_F(KeyframingTest, insert_keyframes__legacy_action__only_needed)
   AnimationEvalContext anim_eval_context = {nullptr, 1.0};
 
   /* First attempt should succeed, because there are no fcurves yet. */
+  ensure_legacy_action_assigned(object->id);
   const CombinedKeyingResult result_1 = insert_keyframes(bmain,
                                                          &object_rna_pointer,
                                                          std::nullopt,
@@ -1528,7 +1577,7 @@ TEST_F(KeyframingTest, insert_keyframes__legacy_action__quaternion_on_nla__only_
 
   /* Create an fcurve and key for a single quaternion channel. */
   PointerRNA id_rna_ptr = RNA_id_pointer_create(&object_with_nla->id);
-  FCurve *fcu = action_fcurve_ensure(
+  FCurve *fcu = action_fcurve_ensure_legacy(
       bmain, nla_action, nullptr, &id_rna_ptr, {"rotation_quaternion", 0});
   const KeyframeSettings keyframe_settings = {BEZT_KEYTYPE_KEYFRAME, HD_AUTO_ANIM, BEZT_IPO_BEZ};
   insert_vert_fcurve(fcu, {1.0, 1.0}, keyframe_settings, INSERTKEY_NOFLAGS);
@@ -1568,7 +1617,7 @@ TEST_F(KeyframingTest, insert_keyframes__legacy_action__quaternion_on_nla__only_
 
   /* Directly create an fcurve and key for a single quaternion channel. */
   PointerRNA id_rna_ptr = RNA_id_pointer_create(&object_with_nla->id);
-  FCurve *fcu = action_fcurve_ensure(
+  FCurve *fcu = action_fcurve_ensure_legacy(
       bmain, nla_action, nullptr, &id_rna_ptr, {"rotation_quaternion", 0});
   const KeyframeSettings keyframe_settings = {BEZT_KEYTYPE_KEYFRAME, HD_AUTO_ANIM, BEZT_IPO_BEZ};
   insert_vert_fcurve(fcu, {11.0, 1.0}, keyframe_settings, INSERTKEY_NOFLAGS);
