@@ -327,15 +327,15 @@ static void *sequencer_OCIO_transform_ibuf(const bContext *C,
 
     *r_data = GPU_DATA_FLOAT;
     if (ibuf->channels == 4) {
-      *r_format = GPU_RGBA16F;
+      *r_format = GPU_RGBA32F;
     }
     else if (ibuf->channels == 3) {
       /* Alpha is implicitly 1. */
-      *r_format = GPU_RGB16F;
+      *r_format = GPU_RGB32F;
     }
     else {
       BLI_assert_msg(0, "Incompatible number of channels for float buffer in sequencer");
-      *r_format = GPU_RGBA16F;
+      *r_format = GPU_RGBA32F;
       display_buffer = nullptr;
     }
 
@@ -357,8 +357,7 @@ static void *sequencer_OCIO_transform_ibuf(const bContext *C,
     display_buffer = nullptr;
   }
 
-  /* There is data to be displayed, but GLSL is not initialized
-   * properly, in this case we fallback to CPU-based display transform. */
+  /* If we need to fallback to CPU based display transform, do that here. */
   if ((ibuf->byte_buffer.data || ibuf->float_buffer.data) && !*r_glsl_used) {
     display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, r_buffer_cache_handle);
     *r_format = GPU_RGBA8;
