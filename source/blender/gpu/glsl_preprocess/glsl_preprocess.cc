@@ -38,8 +38,8 @@ int main(int argc, char **argv)
     exit(1);
   }
 
-  bool first_comment = true;
-  bool inside_comment = false;
+  std::stringstream buffer;
+  buffer << input_file.rdbuf();
 
   int error = 0;
   size_t line_index = 0;
@@ -60,29 +60,7 @@ int main(int argc, char **argv)
 
   blender::gpu::shader::Preprocessor processor(report_error);
 
-  std::string line;
-  while (std::getline(input_file, line)) {
-    line_index++;
-
-    /* Remove license headers (first comment). */
-    if (line.rfind("/*", 0) == 0 && first_comment) {
-      first_comment = false;
-      inside_comment = true;
-    }
-
-    const bool skip_line = inside_comment;
-
-    if (inside_comment && (line.find("*/") != std::string::npos)) {
-      inside_comment = false;
-    }
-
-    if (skip_line) {
-      output_file << "\n";
-    }
-    else {
-      processor << line << '\n';
-    }
-  }
+  processor << buffer.str();
 
   output_file << processor.str();
 

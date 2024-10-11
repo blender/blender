@@ -40,6 +40,7 @@ template<typename T, bool no_linting = false> class Preprocessor {
 
   Preprocessor &operator<<(std::string str)
   {
+    str = remove_comments(str);
     threadgroup_variable_parsing(str);
     matrix_constructor_linting(str);
     array_constructor_linting(str);
@@ -62,6 +63,54 @@ template<typename T, bool no_linting = false> class Preprocessor {
   }
 
  private:
+  std::string remove_comments(const std::string &str)
+  {
+    std::string out_str = str;
+    {
+      /* Multi-line comments. */
+      size_t start, end = 0;
+      while ((start = out_str.find("/*", end)) != std::string::npos) {
+        end = out_str.find("*/", start + 2);
+        if (end == std::string::npos) {
+          break;
+        }
+        for (size_t i = start; i < end + 2; ++i) {
+          if (out_str[i] != '\n') {
+            out_str[i] = ' ';
+          }
+        }
+      }
+
+      if (end == std::string::npos) {
+        /* TODO(fclem): Add line / char position to report. */
+        report_error(str, std::smatch(), "Malformed multi-line comment.");
+        return out_str;
+      }
+    }
+    {
+      /* Single-line comments. */
+      size_t start, end = 0;
+      while ((start = out_str.find("//", end)) != std::string::npos) {
+        end = out_str.find('\n', start + 2);
+        if (end == std::string::npos) {
+          break;
+        }
+        for (size_t i = start; i < end; ++i) {
+          out_str[i] = ' ';
+        }
+      }
+
+      if (end == std::string::npos) {
+        /* TODO(fclem): Add line / char position to report. */
+        report_error(str, std::smatch(), "Malformed single line comment, missing newline.");
+        return out_str;
+      }
+    }
+    /* Remove trailing whitespaces as they make the subsequent regex much slower. */
+    std::regex regex("(\\ )*?\\n");
+    return std::regex_replace(out_str, regex, "\n");
+  }
+
   std::string preprocessor_directive_mutation(const std::string &str)
   {
     /* Example: `#include "deps.glsl"` > `//include "deps.glsl"` */
