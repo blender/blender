@@ -450,6 +450,73 @@ void screen_draw_join_highlight(const wmWindow *win, ScrArea *sa1, ScrArea *sa2,
       win->eventstate->xy[0], win->eventstate->xy[1], sa1, IFACE_("Join Areas"));
 }
 
+static void rounded_corners(rctf rect, float color[4], int corners)
+{
+  GPUVertFormat *format = immVertexFormat();
+  const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+
+  const float rad = 7 * U.pixelsize;
+
+  float vec[4][2] = {
+      {0.195, 0.02},
+      {0.55, 0.169},
+      {0.831, 0.45},
+      {0.98, 0.805},
+  };
+  for (int a = 0; a < 4; a++) {
+    mul_v2_fl(vec[a], rad);
+  }
+
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+  immUniformColor4fv(color);
+
+  if (corners & UI_CNR_TOP_LEFT) {
+    immBegin(GPU_PRIM_TRI_FAN, 7);
+    immVertex2f(pos, rect.xmin - 1, rect.ymax);
+    immVertex2f(pos, rect.xmin, rect.ymax - rad);
+    for (int a = 0; a < 4; a++) {
+      immVertex2f(pos, rect.xmin + vec[a][1], rect.ymax - rad + vec[a][0]);
+    }
+    immVertex2f(pos, rect.xmin + rad, rect.ymax);
+    immEnd();
+  }
+
+  if (corners & UI_CNR_TOP_RIGHT) {
+    immBegin(GPU_PRIM_TRI_FAN, 7);
+    immVertex2f(pos, rect.xmax + 1, rect.ymax);
+    immVertex2f(pos, rect.xmax - rad, rect.ymax);
+    for (int a = 0; a < 4; a++) {
+      immVertex2f(pos, rect.xmax - rad + vec[a][0], rect.ymax - vec[a][1]);
+    }
+    immVertex2f(pos, rect.xmax, rect.ymax - rad);
+    immEnd();
+  }
+
+  if (corners & UI_CNR_BOTTOM_RIGHT) {
+    immBegin(GPU_PRIM_TRI_FAN, 7);
+    immVertex2f(pos, rect.xmax + 1, rect.ymin);
+    immVertex2f(pos, rect.xmax, rect.ymin + rad);
+    for (int a = 0; a < 4; a++) {
+      immVertex2f(pos, rect.xmax - vec[a][1], rect.ymin + rad - vec[a][0]);
+    }
+    immVertex2f(pos, rect.xmax - rad, rect.ymin);
+    immEnd();
+  }
+
+  if (corners & UI_CNR_BOTTOM_LEFT) {
+    immBegin(GPU_PRIM_TRI_FAN, 7);
+    immVertex2f(pos, rect.xmin - 1, rect.ymin);
+    immVertex2f(pos, rect.xmin + rad, rect.ymin);
+    for (int a = 0; a < 4; a++) {
+      immVertex2f(pos, rect.xmin + rad - vec[a][0], rect.ymin + vec[a][1]);
+    }
+    immVertex2f(pos, rect.xmin, rect.ymin + rad);
+    immEnd();
+  }
+
+  immUnbindProgram();
+}
+
 void screen_draw_dock_preview(
     ScrArea *source, ScrArea *target, AreaDockTarget dock_target, float factor, int x, int y)
 {
@@ -470,32 +537,38 @@ void screen_draw_dock_preview(
   BLI_rctf_rcti_copy(&remainder, &target->totrct);
 
   float split;
+  int corners = UI_CNR_NONE;
 
   if (dock_target == AreaDockTarget::Right) {
     split = std::min(dest.xmin + target->winx * (1.0f - factor),
                      dest.xmax - AREAMINX * UI_SCALE_FAC);
     dest.xmin = split + half_line_width;
     remainder.xmax = split - half_line_width;
+    corners = UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT;
   }
   else if (dock_target == AreaDockTarget::Left) {
     split = std::max(dest.xmax - target->winx * (1.0f - factor),
                      dest.xmin + AREAMINX * UI_SCALE_FAC);
     dest.xmax = split - half_line_width;
     remainder.xmin = split + half_line_width;
+    corners = UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT;
   }
   else if (dock_target == AreaDockTarget::Top) {
     split = std::min(dest.ymin + target->winy * (1.0f - factor),
                      dest.ymax - HEADERY * UI_SCALE_FAC);
     dest.ymin = split + half_line_width;
     remainder.ymax = split - half_line_width;
+    corners = UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT;
   }
   else if (dock_target == AreaDockTarget::Bottom) {
     split = std::max(dest.ymax - target->winy * (1.0f - factor),
                      dest.ymin + HEADERY * UI_SCALE_FAC);
     dest.ymax = split - half_line_width;
     remainder.ymin = split + half_line_width;
+    corners = UI_CNR_TOP_RIGHT | UI_CNR_TOP_LEFT;
   }
 
+  rounded_corners(dest, border, corners);
   UI_draw_roundbox_4fv_ex(&dest, inner, nullptr, 1.0f, outline, U.pixelsize, 6 * U.pixelsize);
 
   if (dock_target != AreaDockTarget::Center) {
@@ -545,6 +618,10 @@ void screen_draw_split_preview(ScrArea *area, const eScreenAxis dir_axis, const 
   rect.xmax = (dir_axis == SCREEN_AXIS_V) ? x - half_line_width : rect.xmax;
   rect.ymax = (dir_axis == SCREEN_AXIS_H) ? y - half_line_width : rect.ymax;
 
+  rounded_corners(rect,
+                  border,
+                  (dir_axis == SCREEN_AXIS_H) ? UI_CNR_TOP_RIGHT | UI_CNR_TOP_LEFT :
+                                                UI_CNR_BOTTOM_RIGHT | UI_CNR_TOP_RIGHT);
   UI_draw_roundbox_4fv_ex(&rect, inner, nullptr, 1.0f, outline, U.pixelsize, 7 * U.pixelsize);
 
   /* Outlined rectangle to right/below split position. */
@@ -556,6 +633,11 @@ void screen_draw_split_preview(ScrArea *area, const eScreenAxis dir_axis, const 
     rect.xmin = x + half_line_width;
     rect.xmax = area->totrct.xmax;
   }
+
+  rounded_corners(rect,
+                  border,
+                  (dir_axis == SCREEN_AXIS_H) ? UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT :
+                                                UI_CNR_BOTTOM_LEFT | UI_CNR_TOP_LEFT);
   UI_draw_roundbox_4fv_ex(&rect, inner, nullptr, 1.0f, outline, U.pixelsize, 7 * U.pixelsize);
 
   /* Darken the split position itself. */
