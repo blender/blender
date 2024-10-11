@@ -611,7 +611,10 @@ void GPENCIL_cache_populate(void *ved, Object *ob)
   if (ob->data && (ob->type == OB_GREASE_PENCIL) && (ob->dt >= OB_SOLID)) {
     GPENCIL_tObject *tgp_ob = grease_pencil_object_cache_populate(pd, txl, ob);
     gpencil_vfx_cache_populate(
-        vedata, ob, tgp_ob, ELEM(ob->mode, OB_MODE_EDIT, OB_MODE_SCULPT, OB_MODE_WEIGHT_PAINT));
+        vedata,
+        ob,
+        tgp_ob,
+        ELEM(ob->mode, OB_MODE_EDIT, OB_MODE_SCULPT_GREASE_PENCIL, OB_MODE_WEIGHT_GREASE_PENCIL));
   }
 
   if (ob->type == OB_LAMP && pd->use_lights) {
