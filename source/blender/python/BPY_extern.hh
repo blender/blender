@@ -22,6 +22,7 @@ struct bConstraintTarget; /* DNA_constraint_types.h */
 struct bContext;
 struct bContextDataResult;
 struct bPythonConstraint; /* DNA_constraint_types.h */
+struct StructRNA;
 struct wmWindowManager;
 
 #include "BLI_utildefines.h"
@@ -122,6 +123,12 @@ void BPY_context_dict_clear_members_array(void **dict_p,
                                           uint context_members_len);
 
 void BPY_id_release(ID *id);
+
+/**
+ * Free (actually dereference) the Python type object representing the given #StrucRNA type,
+ * if it is defined.
+ */
+void BPY_free_srna_pytype(StructRNA *srna);
 
 /**
  * Avoids duplicating keyword list.

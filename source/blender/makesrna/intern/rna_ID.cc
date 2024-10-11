@@ -660,6 +660,9 @@ IDProperty **rna_PropertyGroup_idprops(PointerRNA *ptr)
 
 bool rna_PropertyGroup_unregister(Main * /*bmain*/, StructRNA *type)
 {
+  /* Ensure that a potential py object representing this RNA type is properly dereferenced. */
+  BPY_free_srna_pytype(type);
+
   RNA_struct_free(&BLENDER_RNA, type);
   return true;
 }

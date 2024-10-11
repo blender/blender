@@ -789,21 +789,19 @@ void RNA_struct_free(BlenderRNA *brna, StructRNA *srna)
   PropertyRNA *prop, *nextprop;
   PropertyRNA *parm, *nextparm;
 
-#  if 0
   if (srna->flag & STRUCT_RUNTIME) {
     if (RNA_struct_py_type_get(srna)) {
       /* NOTE: Since this is called after finalizing python/BPY in WM_exit process, it may end
        * up accessing freed memory in `srna->identifier`, which will trigger an ASAN crash. */
       const char *srna_identifier = "UNKNOWN";
-#    ifndef WITH_ASAN
+#  ifndef WITH_ASAN
       srna_identifier = srna->identifier;
-#    endif
+#  endif
       fprintf(stderr,
               "RNA Struct definition '%s' freed while holding a Python reference.\n",
               srna_identifier);
     }
   }
-#  endif
 
   for (prop = static_cast<PropertyRNA *>(srna->cont.properties.first); prop; prop = nextprop) {
     nextprop = prop->next;

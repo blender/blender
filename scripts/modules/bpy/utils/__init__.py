@@ -201,6 +201,31 @@ _registered_module_names = []
 import bpy_types as _bpy_types
 
 
+def _register_module_call(mod):
+    register = getattr(mod, "register", None)
+    if register:
+        try:
+            register()
+        except Exception:
+            import traceback
+            traceback.print_exc()
+    else:
+        print(
+            "\nWarning! {!r} has no register function, "
+            "this is now a requirement for registerable scripts".format(mod.__file__)
+        )
+
+
+def _unregister_module_call(mod):
+    unregister = getattr(mod, "unregister", None)
+    if unregister:
+        try:
+            unregister()
+        except Exception:
+            import traceback
+            traceback.print_exc()
+
+
 def load_scripts(*, reload_scripts=False, refresh_scripts=False, extensions=True):
     """
     Load scripts and run each modules register function.
@@ -234,29 +259,6 @@ def load_scripts(*, reload_scripts=False, refresh_scripts=False, extensions=True
         for addon_module_name in [ext.module for ext in _preferences.addons]:
             _addon_utils.disable(addon_module_name)
 
-    def register_module_call(mod):
-        register = getattr(mod, "register", None)
-        if register:
-            try:
-                register()
-            except Exception:
-                import traceback
-                traceback.print_exc()
-        else:
-            print(
-                "\nWarning! {!r} has no register function, "
-                "this is now a requirement for registerable scripts".format(mod.__file__)
-            )
-
-    def unregister_module_call(mod):
-        unregister = getattr(mod, "unregister", None)
-        if unregister:
-            try:
-                unregister()
-            except Exception:
-                import traceback
-                traceback.print_exc()
-
     def test_reload(mod):
         import importlib
         # reloading this causes internal errors
@@ -281,7 +283,7 @@ def load_scripts(*, reload_scripts=False, refresh_scripts=False, extensions=True
             mod = test_reload(mod)
 
         if mod:
-            register_module_call(mod)
+            _register_module_call(mod)
             _registered_module_names.append(mod.__name__)
 
     if reload_scripts:
@@ -304,7 +306,7 @@ def load_scripts(*, reload_scripts=False, refresh_scripts=False, extensions=True
 
         # Loop over and unload all scripts.
         for mod in registered_modules:
-            unregister_module_call(mod)
+            _unregister_module_call(mod)
 
         for mod in registered_modules:
             test_reload(mod)
@@ -354,6 +356,22 @@ def load_scripts(*, reload_scripts=False, refresh_scripts=False, extensions=True
                 for subcls in cls.__subclasses__():
                     if not subcls.is_registered:
                         print("Warning, unregistered class: {:s}({:s})".format(subcls.__name__, cls.__name__))
+
+
+# Internal only, called on exit by `WM_exit_ex`.
+def _on_exit():
+    # Disable all add-ons.
+    _addon_utils.disable_all()
+
+    # Call `unregister` function on internal startup module.
+    # Must only be used as part of Blender 'exit' process.
+    from bpy_restrict_state import RestrictBlend
+    with RestrictBlend():
+        for mod_name in reversed(_registered_module_names):
+            if (mod := _sys.modules.get(mod_name)) is None:
+                print("Warning: module", repr(mod_name), "not found in sys.modules")
+                continue
+            _unregister_module_call(mod)
 
 
 def load_scripts_extensions(*, reload_scripts=False):

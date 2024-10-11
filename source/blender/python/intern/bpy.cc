@@ -765,10 +765,6 @@ void BPy_init_modules(bContext *C)
 
   PointerRNA ctx_ptr = RNA_pointer_create(nullptr, &RNA_Context, C);
   bpy_context_module = (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ctx_ptr);
-  /* odd that this is needed, 1 ref on creation and another for the module
-   * but without we get a crash on exit */
-  Py_INCREF(bpy_context_module);
-
   PyModule_AddObject(mod, "context", (PyObject *)bpy_context_module);
 
   /* Register methods and property get/set for RNA types. */
