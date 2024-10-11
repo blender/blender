@@ -3288,7 +3288,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
          * See #128839 for details.
          *
          * While shape-keys could be supported, this is more of a feature to consider.
-         * As there are already a `MESH_OT_blend_from_shape` operator,
+         * As there is already a `MESH_OT_blend_from_shape` operator,
          * it's not clear this is especially useful or needed. */
         if (!CustomData_has_layer(&new_mesh->vert_data, CD_SHAPEKEY)) {
           id_us_min(&ob_data_mesh->key->id);
