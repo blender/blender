@@ -795,7 +795,8 @@ class StripKeyframeData : public ::ActionStripKeyframeData {
                                      FCurveDescriptor fcurve_descriptor,
                                      float2 time_value,
                                      const KeyframeSettings &settings,
-                                     eInsertKeyFlags insert_key_flags = INSERTKEY_NOFLAGS);
+                                     eInsertKeyFlags insert_key_flags = INSERTKEY_NOFLAGS,
+                                     std::optional<float2> cycle_range = std::nullopt);
 };
 static_assert(sizeof(StripKeyframeData) == sizeof(::ActionStripKeyframeData),
               "DNA struct and its C++ wrapper must have the same size");

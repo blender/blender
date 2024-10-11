@@ -370,6 +370,15 @@ class CycleAwareKeyingTest(AbstractKeyframingTest, unittest.TestCase):
         super().setUp()
         bpy.context.scene.tool_settings.use_keyframe_cycle_aware = True
 
+        # Deselect the default cube, because this test works on a specific
+        # object. Operators that work on all selected objects shouldn't work on
+        # anything else but that object.
+        bpy.ops.object.select_all(action='DESELECT')
+
+    def tearDown(self):
+        bpy.context.scene.tool_settings.use_keyframe_cycle_aware = False
+        super().tearDown()
+
     def test_insert_by_name(self):
         # In order to make cycle aware keying work, the action needs to be created and have the
         # frame_range set plus the use_frame_range flag set to True.
@@ -399,14 +408,11 @@ class CycleAwareKeyingTest(AbstractKeyframingTest, unittest.TestCase):
         # Check that only location keys have been created.
         _fcurve_paths_match(action.fcurves, ["location"])
 
-        expected_keys = [1, 3, 5, 9, 20]
+        expected_keys = [1.0, 3.0, 5.0, 9.0, 20.0]
 
         for fcurve in action.fcurves:
-            self.assertEqual(len(fcurve.keyframe_points), len(expected_keys))
-            key_index = 0
-            for key in fcurve.keyframe_points:
-                self.assertEqual(key.co.x, expected_keys[key_index])
-                key_index += 1
+            actual_keys = [key.co.x for key in fcurve.keyframe_points]
+            self.assertEqual(expected_keys, actual_keys)
 
             # All fcurves should have a cycles modifier.
             self.assertTrue(fcurve.modifiers[0].type == "CYCLES")
@@ -432,14 +438,11 @@ class CycleAwareKeyingTest(AbstractKeyframingTest, unittest.TestCase):
             bpy.context.scene.frame_set(22)
             bpy.ops.anim.keyframe_insert()
 
-        expected_keys = [1, 3, 5, 20]
+        expected_keys = [1.0, 3.0, 5.0, 20.0]
 
         for fcurve in action.fcurves:
-            self.assertEqual(len(fcurve.keyframe_points), len(expected_keys))
-            key_index = 0
-            for key in fcurve.keyframe_points:
-                self.assertEqual(key.co.x, expected_keys[key_index])
-                key_index += 1
+            actual_keys = [key.co.x for key in fcurve.keyframe_points]
+            self.assertEqual(expected_keys, actual_keys)
 
             # All fcurves should have a cycles modifier.
             self.assertTrue(fcurve.modifiers[0].type == "CYCLES")

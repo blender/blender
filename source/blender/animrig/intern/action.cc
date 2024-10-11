@@ -1851,12 +1851,74 @@ void ChannelBag::fcurves_clear()
   }
 }
 
+static void cyclic_keying_ensure_modifier(FCurve &fcurve)
+{
+  /* BKE_fcurve_get_cycle_type() only looks at the first modifier to see if it's a Cycle modifier,
+   * so if we're going to add one, better make sure it's the first one.
+
+   * BUT: add_fmodifier() only allows adding a Cycle modifier when there are none yet, so that's
+   * all that we need to check for here.
+   */
+  if (!BLI_listbase_is_empty(&fcurve.modifiers)) {
+    return;
+  }
+
+  add_fmodifier(&fcurve.modifiers, FMODIFIER_TYPE_CYCLES, &fcurve);
+}
+
+/**
+ * Ensure there are at least two keys in this F-Curve, in order to define A cycle range.
+ *
+ * That range does NOT have to be the same as `cycle_range` -- that parameter is only used to
+ * insert a 2nd key when there is only one.
+ *
+ * \note This function ONLY does something when there is a single keyframe. If there are more, the
+ * first and last keys already define the cycle range. If that range is not the same as the
+ * `cycle_range` parameter, it's seen as an animator's choice and won't be adjusted.
+ */
+static void cyclic_keying_ensure_cycle_range_exists(FCurve &fcurve, const float2 cycle_range)
+{
+  /* This is basically a copy of the legacy function `make_new_fcurve_cyclic()`
+   * in `keyframing.cc`, except that it's limited to only one thing (ensuring
+   * two keys exist to make cycling possible). Creating the F-Curve modifier is
+   * the responsibility of another function. */
+
+  if (fcurve.totvert != 1 || fcurve.bezt == nullptr) {
+    return;
+  }
+
+  const float period = cycle_range[1] - cycle_range[0];
+  if (period < 0.1f) {
+    return;
+  }
+
+  /* Move the one existing keyframe into the cycle range. */
+  const float frame_offset = fcurve.bezt[0].vec[1][0] - cycle_range[0];
+  const float fix = floorf(frame_offset / period) * period;
+
+  fcurve.bezt[0].vec[0][0] -= fix;
+  fcurve.bezt[0].vec[1][0] -= fix;
+  fcurve.bezt[0].vec[2][0] -= fix;
+
+  /* Reallocate the array to make space for the 2nd point. */
+  fcurve.totvert++;
+  fcurve.bezt = static_cast<BezTriple *>(
+      MEM_reallocN(fcurve.bezt, sizeof(BezTriple) * fcurve.totvert));
+
+  /* Duplicate and offset the keyframe. */
+  fcurve.bezt[1] = fcurve.bezt[0];
+  fcurve.bezt[1].vec[0][0] += period;
+  fcurve.bezt[1].vec[1][0] += period;
+  fcurve.bezt[1].vec[2][0] += period;
+}
+
 SingleKeyingResult StripKeyframeData::keyframe_insert(Main *bmain,
                                                       const Slot &slot,
                                                       const FCurveDescriptor fcurve_descriptor,
                                                       const float2 time_value,
                                                       const KeyframeSettings &settings,
-                                                      const eInsertKeyFlags insert_key_flags)
+                                                      const eInsertKeyFlags insert_key_flags,
+                                                      const std::optional<float2> cycle_range)
 {
   /* Get the fcurve, or create one if it doesn't exist and the keying flags
    * allow. */
@@ -1889,6 +1951,21 @@ SingleKeyingResult StripKeyframeData::keyframe_insert(Main *bmain,
                  fcurve_descriptor.array_index,
                  slot.name);
     return SingleKeyingResult::FCURVE_NOT_KEYFRAMEABLE;
+  }
+
+  if (cycle_range && (*cycle_range)[0] < (*cycle_range)[1]) {
+    /* Cyclic keying consists of three things:
+     * - Ensure there is a Cycle modifier on the F-Curve.
+     * - Ensure the start and end of the cycle have explicit keys, so that the
+     *   cycle modifier knows how to cycle (it doesn't look at the Action, and
+     *   as long as the period is correct, the first/last keys don't have to
+     *   align with the Action start/end).
+     * - Offset the key to insert so that it falls within the cycle range.
+     */
+    cyclic_keying_ensure_modifier(*fcurve);
+    cyclic_keying_ensure_cycle_range_exists(*fcurve, *cycle_range);
+    /* Offsetting the key doesn't have to happen here, as insert_vert_fcurve()
+     * takes care of that. */
   }
 
   const SingleKeyingResult insert_vert_result = insert_vert_fcurve(
