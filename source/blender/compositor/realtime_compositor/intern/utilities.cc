@@ -3,11 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_assert.h"
-#include "BLI_function_ref.hh"
-#include "BLI_index_range.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_task.hh"
 #include "BLI_utildefines.h"
 
 #include "DNA_node_types.h"
@@ -167,17 +164,6 @@ DOutputSocket find_preview_output_socket(const DNode &node)
   }
 
   return DOutputSocket();
-}
-
-void parallel_for(const int2 range, FunctionRef<void(int2)> function)
-{
-  threading::parallel_for(IndexRange(range.y), 1, [&](const IndexRange sub_y_range) {
-    for (const int64_t y : sub_y_range) {
-      for (const int64_t x : IndexRange(range.x)) {
-        function(int2(x, y));
-      }
-    }
-  });
 }
 
 }  // namespace blender::realtime_compositor
