@@ -17,19 +17,21 @@ void write_draw_call(DrawGroup group, uint group_id)
   cmd.vertex_len = group.vertex_len;
   cmd.vertex_first = group.vertex_first;
   bool indexed_draw = group.base_index != -1;
+
+  /* Back-facing command. */
+  uint back_facing_start = group.start * view_len;
   if (indexed_draw) {
     cmd.base_index = group.base_index;
-    cmd.instance_first_indexed = group.start;
+    cmd.instance_first_indexed = back_facing_start;
   }
   else {
-    cmd._instance_first_array = group.start;
+    cmd._instance_first_array = back_facing_start;
   }
-  /* Back-facing command. */
   cmd.instance_len = group_buf[group_id].back_facing_counter;
   command_buf[group_id * 2 + 0] = cmd;
 
   /* Front-facing command. */
-  uint front_facing_start = group.start + (group.len - group.front_facing_len);
+  uint front_facing_start = (group.start + (group.len - group.front_facing_len)) * view_len;
   if (indexed_draw) {
     cmd.instance_first_indexed = front_facing_start;
   }
@@ -85,9 +87,8 @@ void main()
     return;
   }
 
-  uint back_facing_len = group.len - group.front_facing_len;
-  uint front_facing_len = group.front_facing_len;
-  uint dst_index = group.start;
+  uint back_facing_len = (group.len - group.front_facing_len) * view_len;
+  uint dst_index = group.start * view_len;
   if (is_inverted) {
     uint offset = atomicAdd(group_buf[group_id].back_facing_counter, visible_instance_len);
     dst_index += offset;
