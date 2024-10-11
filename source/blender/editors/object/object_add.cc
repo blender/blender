@@ -3279,6 +3279,22 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       }
 
       Mesh *ob_data_mesh = (Mesh *)newob->data;
+
+      if (ob_data_mesh->key) {
+        /* NOTE(@ideasman42): Clearing the shape-key is needed when the
+         * number of vertices remains unchanged. Otherwise using this operator
+         * to "Apply Visual Geometry" will evaluate using the existing shape-key
+         * which doesn't have the "evaluated" coordinates from `new_mesh`.
+         * See #128839 for details.
+         *
+         * While shape-keys could be supported, this is more of a feature to consider.
+         * As there are already a `MESH_OT_blend_from_shape` operator,
+         * it's not clear this is especially useful or needed. */
+        if (!CustomData_has_layer(&new_mesh->vert_data, CD_SHAPEKEY)) {
+          id_us_min(&ob_data_mesh->key->id);
+          ob_data_mesh->key = nullptr;
+        }
+      }
       BKE_mesh_nomain_to_mesh(new_mesh, ob_data_mesh, newob);
 
       BKE_object_free_modifiers(newob, 0); /* after derivedmesh calls! */
