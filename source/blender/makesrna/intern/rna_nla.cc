@@ -435,6 +435,30 @@ static void rna_NlaStrip_use_auto_blend_set(PointerRNA *ptr, bool value)
   }
 }
 
+static void rna_NlaStrip_action_set(PointerRNA *ptr, PointerRNA value, ReportList *reports)
+{
+  using namespace blender::animrig;
+  BLI_assert(ptr->owner_id);
+  BLI_assert(ptr->data);
+
+  ID &animated_id = *ptr->owner_id;
+  NlaStrip &strip = *static_cast<NlaStrip *>(ptr->data);
+  Action *action = static_cast<Action *>(value.data);
+
+  if (!action) {
+    nla::unassign_action(strip, animated_id);
+    return;
+  }
+
+  if (!nla::assign_action(strip, *action, animated_id)) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Could not assign action %s to NLA strip %s",
+                action->id.name + 2,
+                strip.name);
+  }
+}
+
 static int rna_NlaStrip_action_editable(const PointerRNA *ptr, const char ** /*r_info*/)
 {
   NlaStrip *strip = (NlaStrip *)ptr->data;
@@ -875,8 +899,9 @@ static void rna_def_nlastrip(BlenderRNA *brna)
   /* Action */
   prop = RNA_def_property(srna, "action", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, nullptr, "act");
-  RNA_def_property_pointer_funcs(prop, nullptr, nullptr, nullptr, "rna_Action_id_poll");
-  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
+  RNA_def_property_pointer_funcs(
+      prop, nullptr, "rna_NlaStrip_action_set", nullptr, "rna_Action_id_poll");
+  RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_editable_func(prop, "rna_NlaStrip_action_editable");
   RNA_def_property_ui_text(prop, "Action", "Action referenced by this strip");
   RNA_def_property_update(
