@@ -272,6 +272,7 @@ static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
 
   brush = reinterpret_cast<Brush *>(
       bke::asset_edit_id_from_weak_reference(*bmain, ID_BR, brush_asset_reference));
+  brush->has_unsaved_changes = false;
 
   if (!WM_toolsystem_activate_brush_and_tool(C, paint, brush)) {
     /* Note brush asset was still saved in editable asset library, so was not a no-op. */
@@ -751,6 +752,7 @@ static int brush_asset_update_exec(bContext *C, wmOperator *op)
   BLI_assert(ID_IS_ASSET(brush));
 
   bke::asset_edit_id_save(*bmain, brush->id, *op->reports);
+  brush->has_unsaved_changes = false;
 
   refresh_asset_library(C, *user_library);
   WM_main_add_notifier(NC_ASSET | ND_ASSET_LIST | NA_EDITED, nullptr);

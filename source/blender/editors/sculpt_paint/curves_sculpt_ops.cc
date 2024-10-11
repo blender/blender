@@ -1129,6 +1129,7 @@ static int min_distance_edit_modal(bContext *C, wmOperator *op, const wmEvent *e
     case LEFTMOUSE: {
       if (event->val == KM_PRESS) {
         finish();
+        BKE_brush_tag_unsaved_changes(op_data.brush);
         return OPERATOR_FINISHED;
       }
       break;

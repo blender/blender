@@ -136,9 +136,13 @@ class BrushAssetShelf:
         if not shelf_name:
             return
 
+        display_name = brush.name if (brush and show_name) else None
+        if display_name and brush.has_unsaved_changes:
+            display_name = display_name + "*"
+
         layout.template_asset_shelf_popover(
             shelf_name,
-            name=brush.name if (brush and show_name) else None,
+            name=display_name,
             icon='BRUSH_DATA' if not preview_icon_id else 'NONE',
             icon_value=preview_icon_id,
         )
@@ -301,6 +305,22 @@ class BrushPanel(UnifiedPaintPanel):
 
 class BrushSelectPanel(BrushPanel):
     bl_label = "Brush Asset"
+
+    # Use header preset function to right align the layout.
+    def draw_header_preset(self, context):
+        layout = self.layout
+
+        settings = self.paint_settings(context)
+        if settings is None:
+            return
+
+        brush = settings.brush
+        if brush is None:
+            return
+
+        if brush.has_unsaved_changes and bpy.ops.brush.asset_update.poll():
+            layout.label(text="*Unsaved Changes")
+            layout.separator()
 
     def draw(self, context):
         layout = self.layout

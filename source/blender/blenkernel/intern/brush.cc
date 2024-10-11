@@ -10,6 +10,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_ID.h"
 #include "DNA_brush_types.h"
 #include "DNA_defaults.h"
 #include "DNA_material_types.h"
@@ -364,6 +365,7 @@ static void brush_blend_read_data(BlendDataReader *reader, ID *id)
   BKE_previewimg_blend_read(reader, brush->preview);
 
   brush->icon_imbuf = nullptr;
+  brush->has_unsaved_changes = false;
 }
 
 static void brush_blend_read_after_liblink(BlendLibReader * /*reader*/, ID *id)
@@ -616,6 +618,13 @@ void BKE_brush_init_curves_sculpt_settings(Brush *brush)
   settings->curve_parameter_falloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
+void BKE_brush_tag_unsaved_changes(Brush *brush)
+{
+  if (brush && ID_IS_LINKED(brush)) {
+    brush->has_unsaved_changes = true;
+  }
+}
+
 Brush *BKE_brush_first_search(Main *bmain, const eObjectMode ob_mode)
 {
   LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
@@ -747,6 +756,7 @@ void BKE_brush_curve_preset(Brush *b, eCurveMappingPreset preset)
   cuma = b->curve->cm;
   BKE_curvemap_reset(cuma, &cumap->clipr, cumap->preset, CURVEMAP_SLOPE_NEGATIVE);
   BKE_curvemapping_changed(cumap, false);
+  BKE_brush_tag_unsaved_changes(b);
 }
 
 const MTex *BKE_brush_mask_texture_get(const Brush *brush, const eObjectMode object_mode)
@@ -1037,6 +1047,7 @@ void BKE_brush_color_set(Scene *scene, Brush *brush, const float color[3])
   }
   else {
     copy_v3_v3(brush->rgb, color);
+    BKE_brush_tag_unsaved_changes(brush);
   }
 }
 
@@ -1052,6 +1063,7 @@ void BKE_brush_size_set(Scene *scene, Brush *brush, int size)
   }
   else {
     brush->size = size;
+    BKE_brush_tag_unsaved_changes(brush);
   }
 }
 
@@ -1109,6 +1121,7 @@ void BKE_brush_unprojected_radius_set(Scene *scene, Brush *brush, float unprojec
   }
   else {
     brush->unprojected_radius = unprojected_radius;
+    BKE_brush_tag_unsaved_changes(brush);
   }
 }
 
@@ -1128,6 +1141,7 @@ void BKE_brush_alpha_set(Scene *scene, Brush *brush, float alpha)
   }
   else {
     brush->alpha = alpha;
+    BKE_brush_tag_unsaved_changes(brush);
   }
 }
 
@@ -1154,6 +1168,7 @@ void BKE_brush_weight_set(const Scene *scene, Brush *brush, float value)
   }
   else {
     brush->weight = value;
+    BKE_brush_tag_unsaved_changes(brush);
   }
 }
 
@@ -1173,6 +1188,7 @@ void BKE_brush_input_samples_set(const Scene *scene, Brush *brush, int value)
   }
   else {
     brush->input_samples = value;
+    BKE_brush_tag_unsaved_changes(brush);
   }
 }
 

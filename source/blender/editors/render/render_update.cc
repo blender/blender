@@ -27,6 +27,7 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_brush.hh"
 #include "BKE_context.hh"
 #include "BKE_icons.h"
 #include "BKE_main.hh"
@@ -336,6 +337,9 @@ void ED_render_id_flush_update(const DEGEditorUpdateContext *update_ctx, ID *id)
       break;
     case ID_SCE:
       scene_changed(bmain, (Scene *)id);
+      break;
+    case ID_BR:
+      BKE_brush_tag_unsaved_changes(reinterpret_cast<Brush *>(id));
       break;
     default:
       break;

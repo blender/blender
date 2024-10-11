@@ -18,6 +18,7 @@
 
 #include "RNA_access.hh"
 
+#include "BKE_brush.hh"
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
 #include "BKE_mask.h"
@@ -1104,6 +1105,7 @@ bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
     Brush *br = BKE_paint_brush(paint);
     PaintCurve *pc = br->paint_curve;
     copy_v3_v3(r_center, pc->points[pc->add_index - 1].bez.vec[1]);
+    BKE_brush_tag_unsaved_changes(br);
     r_center[2] = 0.0f;
     return true;
   }
