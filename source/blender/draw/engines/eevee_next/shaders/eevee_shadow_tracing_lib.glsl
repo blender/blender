@@ -240,6 +240,9 @@ ShadowRayPunctual shadow_ray_generate_punctual(LightData light, vec2 random_2d, 
   float clip_far = intBitsToFloat(light.clip_far);
   float clip_near = intBitsToFloat(light.clip_near);
   float shape_radius = light_spot_data_get(light).shadow_radius;
+  /* Clamp to a minimum value to avoid `local_ray_up` being degenerate. Could be revisited as the
+   * issue might reappear at different zoom level. */
+  shape_radius = max(0.00002, shape_radius);
 
   vec3 direction;
   if (is_area_light(light.type)) {
