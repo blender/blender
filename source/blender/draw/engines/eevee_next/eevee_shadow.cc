@@ -652,7 +652,7 @@ void ShadowModule::init()
           shadow_page_len_);
     }
     if (stats.view_needed_count > SHADOW_VIEW_MAX && enabled_) {
-      inst_.info_append_i18n("Error: Too many shadow updates, some shadow might be incorrect.");
+      inst_.info_append_i18n("Error: Too many shadow updates, some shadows might be incorrect.");
     }
   }
 
