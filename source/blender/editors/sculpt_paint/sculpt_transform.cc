@@ -41,7 +41,7 @@ void ED_sculpt_init_transform(bContext *C, Object *ob, const int mval[2], const 
 {
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   SculptSession *ss = ob->sculpt;
-  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
   copy_v3_v3(ss->init_pivot_pos, ss->pivot_pos);
   copy_v4_v4(ss->init_pivot_rot, ss->pivot_rot);
@@ -51,8 +51,8 @@ void ED_sculpt_init_transform(bContext *C, Object *ob, const int mval[2], const 
   copy_v4_v4(ss->prev_pivot_rot, ss->pivot_rot);
   copy_v3_v3(ss->prev_pivot_scale, ss->pivot_scale);
 
-  SCULPT_undo_push_begin_ex(ob, undo_name);
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false, false);
+  SCULPT_undo_push_begin_ex(ob, undo_name);
 
   ss->pivot_rot[3] = 1.0f;
 
