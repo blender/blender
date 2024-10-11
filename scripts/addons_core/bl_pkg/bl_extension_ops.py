@@ -952,7 +952,7 @@ def _extensions_wheel_filter_for_platform(wheels):
                 platform_tag.startswith("macosx_") and
                 # Ignore the MACOSX version, ensure `arm64` suffix.
                 (platform_tag.endswith("_" + platform_tag_current.rpartition("_")[2]) or
-                platform_tag.endswith("_universal2"))
+                 platform_tag.endswith("_universal2"))
         ):
             pass
         elif platform_tag_current.startswith("linux_") and (
