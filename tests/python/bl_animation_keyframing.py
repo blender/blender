@@ -151,6 +151,27 @@ class InsertKeyTest(AbstractKeyframingTest, unittest.TestCase):
         _insert_from_user_preference_test({"SCALE"}, ["scale"])
         _insert_from_user_preference_test({"LOCATION", "ROTATION", "SCALE"}, ["location", "rotation_euler", "scale"])
 
+    def test_keying_creates_default_groups(self):
+        keyed_object = _create_animation_object()
+
+        bpy.context.preferences.edit.key_insert_channels = {'LOCATION'}
+        with bpy.context.temp_override(**_get_view3d_context()):
+            bpy.ops.anim.keyframe_insert()
+
+        # Check the F-Curves paths.
+        expect_paths = ["location", "location", "location"]
+        actual_paths = [fcurve.data_path for fcurve in keyed_object.animation_data.action.fcurves]
+        self.assertEqual(actual_paths, expect_paths)
+
+        # The actual reason for this test: check that these curves have the right group.
+        expect_groups = ["Object Transforms"]
+        actual_groups = [group.name for group in keyed_object.animation_data.action.groups]
+        self.assertEqual(actual_groups, expect_groups)
+
+        expect_groups = 3 * [keyed_object.animation_data.action.groups[0]]
+        actual_groups = [fcurve.group for fcurve in keyed_object.animation_data.action.fcurves]
+        self.assertEqual(actual_groups, expect_groups)
+
     def test_insert_custom_properties(self):
         # Used to create a datablock reference property.
         ref_object = bpy.data.objects.new("ref_object", None)

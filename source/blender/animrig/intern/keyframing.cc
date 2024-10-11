@@ -1073,12 +1073,16 @@ CombinedKeyingResult insert_keyframes(Main *bmain,
        * moved out of the for-loop. */
       auto [layer, slot] = prep_action_layer_for_keying(action, *struct_pointer->owner_id);
 
+      const std::optional<blender::StringRefNull> this_rna_path_channel_group =
+          channel_group.has_value() ? *channel_group :
+                                      default_channel_group_for_path(&ptr, *rna_path_id_to_prop);
+
       result = insert_key_layered_action(bmain,
                                          action,
                                          *layer,
                                          *slot,
                                          prop,
-                                         channel_group,
+                                         this_rna_path_channel_group,
                                          *rna_path_id_to_prop,
                                          nla_frame,
                                          rna_values,
