@@ -726,7 +726,7 @@ static PyObject *bpy_bmlayercollection_get(BPy_BMLayerCollection *self, PyObject
     return BPy_BMLayerItem_CreatePyObject(self->bm, self->htype, self->type, index);
   }
 
-  return Py_INCREF_RET(def);
+  return Py_NewRef(def);
 }
 
 static PyMethodDef bpy_bmlayeritem_methods[] = {

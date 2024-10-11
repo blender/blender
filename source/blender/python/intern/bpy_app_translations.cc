@@ -440,8 +440,7 @@ static PyObject *app_translations_contexts_make()
 
 #define SetObjString(item) \
   PyStructSequence_SET_ITEM(translations_contexts, pos++, PyUnicode_FromString(item))
-#define SetObjNone() \
-  PyStructSequence_SET_ITEM(translations_contexts, pos++, Py_INCREF_RET(Py_None))
+#define SetObjNone() PyStructSequence_SET_ITEM(translations_contexts, pos++, Py_NewRef(Py_None))
 
   for (ctxt = _contexts; ctxt->c_id; ctxt++) {
     if (ctxt->value) {
@@ -575,7 +574,7 @@ static PyObject *_py_pgettext(PyObject *args,
     return nullptr;
   }
 
-  return Py_INCREF_RET(msgid);
+  return Py_NewRef(msgid);
 #endif
 }
 
@@ -644,7 +643,7 @@ static PyObject *app_translations_pgettext_n(BlenderAppTranslations * /*self*/,
     return nullptr;
   }
 
-  return Py_INCREF_RET(msgid);
+  return Py_NewRef(msgid);
 }
 
 PyDoc_STRVAR(

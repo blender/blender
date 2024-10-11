@@ -1230,7 +1230,7 @@ void PyC_RunQuicky(const char *filepath, int n, ...)
         PyErr_Print();
         PyErr_Clear();
 
-        PyList_SET_ITEM(values, i, Py_INCREF_RET(Py_None)); /* hold user */
+        PyList_SET_ITEM(values, i, Py_NewRef(Py_None)); /* hold user */
 
         sizes[i] = 0;
       }

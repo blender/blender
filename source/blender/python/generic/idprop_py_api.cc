@@ -1703,7 +1703,7 @@ static PyObject *BPy_IDGroup_pop(BPy_IDProperty *self, PyObject *args)
       PyErr_SetString(PyExc_KeyError, "item not in group");
       return nullptr;
     }
-    return Py_INCREF_RET(def);
+    return Py_NewRef(def);
   }
 
   pyform = BPy_IDGroup_MapDataToPy(idprop);
@@ -1726,7 +1726,7 @@ static void BPy_IDGroup_CorrectListLen(IDProperty *prop, PyObject *seq, int len,
 
   /* fill rest of list with valid references to None */
   for (j = len; j < prop->len; j++) {
-    PyList_SET_ITEM(seq, j, Py_INCREF_RET(Py_None));
+    PyList_SET_ITEM(seq, j, Py_NewRef(Py_None));
   }
 
   /* Set correct group length. */

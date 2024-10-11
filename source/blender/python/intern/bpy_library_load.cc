@@ -447,7 +447,7 @@ static bool bpy_lib_exit_lapp_context_items_cb(BlendfileLinkAppendContext *lapp_
 
     bpy_lib_exit_warn_idname(data.py_library, idcode_name_plural, item_idname);
 
-    py_item = Py_INCREF_RET(Py_None);
+    py_item = Py_NewRef(Py_None);
   }
 
   PyList_SET_ITEM(data.py_list, py_list_index, py_item);
@@ -519,7 +519,7 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject * /*args*/)
 
 #ifdef USE_RNA_DATABLOCKS
         /* We can replace the item immediately with `None`. */
-        PyObject *py_item = Py_INCREF_RET(Py_None);
+        PyObject *py_item = Py_NewRef(Py_None);
         PyList_SET_ITEM(ls, i, py_item);
         Py_DECREF(item_src);
 #endif
