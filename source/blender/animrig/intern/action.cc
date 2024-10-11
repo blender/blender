@@ -559,6 +559,10 @@ Slot *Action::find_suitable_slot_for(const ID &animated_id)
 {
   AnimData *adt = BKE_animdata_from_id(&animated_id);
 
+  /* The slot-finding code in assign_action_ensure_slot_for_keying() is very
+   * similar to the code here (differences are documented there). It is very
+   * likely that changes in the logic here should be applied there as well. */
+
   /* The slot handle is only valid when this action has already been
    * assigned. Otherwise it's meaningless. */
   if (adt && adt->action == this) {
@@ -576,10 +580,20 @@ Slot *Action::find_suitable_slot_for(const ID &animated_id)
     }
   }
 
-  /* As a last resort, search for the ID name. */
-  Slot *slot = this->slot_find_by_name(animated_id.name);
-  if (slot && slot->is_suitable_for(animated_id)) {
-    return slot;
+  /* Search for the ID name (which includes the ID type). */
+  {
+    Slot *slot = this->slot_find_by_name(animated_id.name);
+    if (slot && slot->is_suitable_for(animated_id)) {
+      return slot;
+    }
+  }
+
+  /* If there is only one slot, and it has never been assigned to anything, use that. */
+  if (this->slots().size() == 1) {
+    Slot *slot = this->slot(0);
+    if (!slot->has_idtype()) {
+      return slot;
+    }
   }
 
   return nullptr;
@@ -1199,13 +1213,12 @@ bool unassign_action(OwnedAnimData owned_adt)
 
 Slot *assign_action_ensure_slot_for_keying(Action &action, ID &animated_id)
 {
+  AnimData *adt = BKE_animdata_from_id(&animated_id);
   Slot *slot;
 
   /* Find a suitable slot, but be stricter when to allow searching by name than
    * action.find_suitable_slot_for(animated_id). */
   {
-    AnimData *adt = BKE_animdata_from_id(&animated_id);
-
     if (adt && adt->action == &action) {
       /* The slot handle is only valid when this action is already assigned.
        * Otherwise it's meaningless. */
@@ -1220,25 +1233,36 @@ Slot *assign_action_ensure_slot_for_keying(Action &action, ID &animated_id)
         slot = action.slot_find_by_name(adt->slot_name);
       }
       else {
-        /* As a last resort, search for the ID name. */
+        /* Search for the ID name (which includes the ID type). */
         slot = action.slot_find_by_name(animated_id.name);
       }
     }
   }
 
+  /* As a last resort, if there is only one slot and it has no ID type yet, use
+   * that. This is what gets created for the backwards compatibility RNA API,
+   * for example to allow `action.fcurves.new()`. Key insertion should use that
+   * slot as well. */
+  if (!slot && action.slots().size() == 1) {
+    Slot *first_slot = action.slot(0);
+    if (!first_slot->has_idtype()) {
+      slot = first_slot;
+    }
+  }
+
+  /* If no suitable slot was found, create a new one. */
   if (!slot || !slot->is_suitable_for(animated_id)) {
     slot = &action.slot_add_for_id(animated_id);
   }
 
   /* Only try to assign the Action to the ID if it is not already assigned.
    * Assignment can fail when the ID is in NLA Tweak mode. */
-  const std::optional<std::pair<Action *, Slot *>> assigned = get_action_slot_pair(animated_id);
-  const bool is_correct_action = assigned && assigned->first == &action;
+  const bool is_correct_action = adt && adt->action == &action;
   if (!is_correct_action && !assign_action(&action, animated_id)) {
     return nullptr;
   }
 
-  const bool is_correct_slot = assigned && assigned->second == slot;
+  const bool is_correct_slot = adt && adt->slot_handle == slot->handle;
   if (!is_correct_slot && assign_action_slot(slot, animated_id) != ActionSlotAssignmentResult::OK)
   {
     /* This should never happen, as a few lines above a new slot is created for
