@@ -731,7 +731,7 @@ static PyObject *bpy_bmdeformvert_get(BPy_BMDeformVert *self, PyObject *args)
     return PyFloat_FromDouble(dw->weight);
   }
 
-  return Py_INCREF_RET(def);
+  return Py_NewRef(def);
 }
 
 PyDoc_STRVAR(

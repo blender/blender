@@ -303,7 +303,7 @@ static PyObject *bpy_msgbus_subscribe_rna(PyObject * /*self*/, PyObject *args, P
 
   {
     PyObject *user_data = PyTuple_New(2);
-    PyTuple_SET_ITEMS(user_data, Py_INCREF_RET(callback_args), Py_INCREF_RET(callback_notify));
+    PyTuple_SET_ITEMS(user_data, Py_NewRef(callback_args), Py_NewRef(callback_notify));
     msg_val_params.user_data = user_data;
   }
 

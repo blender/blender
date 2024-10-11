@@ -277,7 +277,7 @@ static PyObject *M_Geometry_intersect_sphere_sphere_2d(PyObject * /*self*/, PyOb
       (dist < FLT_EPSILON))
   {
     /* out of range */
-    PyTuple_SET_ITEMS(ret, Py_INCREF_RET(Py_None), Py_INCREF_RET(Py_None));
+    PyTuple_SET_ITEMS(ret, Py_NewRef(Py_None), Py_NewRef(Py_None));
   }
   else {
     const float dist_delta = ((rad_a * rad_a) - (rad_b * rad_b) + (dist * dist)) / (2.0f * dist);
@@ -616,8 +616,8 @@ static PyObject *M_Geometry_intersect_plane_plane(PyObject * /*self*/, PyObject 
     ret_no = Vector_CreatePyObject(isect_no, 3, nullptr);
   }
   else {
-    ret_co = Py_INCREF_RET(Py_None);
-    ret_no = Py_INCREF_RET(Py_None);
+    ret_co = Py_NewRef(Py_None);
+    ret_no = Py_NewRef(Py_None);
   }
 
   ret = PyTuple_New(2);
@@ -709,8 +709,8 @@ static PyObject *M_Geometry_intersect_line_sphere(PyObject * /*self*/, PyObject 
   }
 
   PyTuple_SET_ITEMS(ret,
-                    use_a ? Vector_CreatePyObject(isect_a, 3, nullptr) : Py_INCREF_RET(Py_None),
-                    use_b ? Vector_CreatePyObject(isect_b, 3, nullptr) : Py_INCREF_RET(Py_None));
+                    use_a ? Vector_CreatePyObject(isect_a, 3, nullptr) : Py_NewRef(Py_None),
+                    use_b ? Vector_CreatePyObject(isect_b, 3, nullptr) : Py_NewRef(Py_None));
 
   return ret;
 }
@@ -800,8 +800,8 @@ static PyObject *M_Geometry_intersect_line_sphere_2d(PyObject * /*self*/, PyObje
   }
 
   PyTuple_SET_ITEMS(ret,
-                    use_a ? Vector_CreatePyObject(isect_a, 2, nullptr) : Py_INCREF_RET(Py_None),
-                    use_b ? Vector_CreatePyObject(isect_b, 2, nullptr) : Py_INCREF_RET(Py_None));
+                    use_a ? Vector_CreatePyObject(isect_a, 2, nullptr) : Py_NewRef(Py_None),
+                    use_b ? Vector_CreatePyObject(isect_b, 2, nullptr) : Py_NewRef(Py_None));
 
   return ret;
 }
