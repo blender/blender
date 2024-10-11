@@ -21,6 +21,7 @@
 #include "DNA_genfile.h"
 #include "DNA_sdna_types.h"
 
+#include "BLI_asan.h"
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 
@@ -791,7 +792,15 @@ void RNA_struct_free(BlenderRNA *brna, StructRNA *srna)
 #  if 0
   if (srna->flag & STRUCT_RUNTIME) {
     if (RNA_struct_py_type_get(srna)) {
-      fprintf(stderr, "%s '%s' freed while holding a Python reference.", srna->identifier);
+      /* NOTE: Since this is called after finalizing python/BPY in WM_exit process, it may end
+       * up accessing freed memory in `srna->identifier`, which will trigger an ASAN crash. */
+      const char *srna_identifier = "UNKNOWN";
+#    ifndef WITH_ASAN
+      srna_identifier = srna->identifier;
+#    endif
+      fprintf(stderr,
+              "RNA Struct definition '%s' freed while holding a Python reference.\n",
+              srna_identifier);
     }
   }
 #  endif
