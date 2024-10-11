@@ -138,7 +138,7 @@ void SEQUENCER_OT_rebuild_proxy(wmOperatorType *ot)
   /* Identifiers. */
   ot->name = "Rebuild Proxy and Timecode Indices";
   ot->idname = "SEQUENCER_OT_rebuild_proxy";
-  ot->description = "Rebuild all selected proxies and timecode indices using the job system";
+  ot->description = "Rebuild all selected proxies and timecode indices";
 
   /* Api callbacks. */
   ot->invoke = sequencer_rebuild_proxy_invoke;
