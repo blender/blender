@@ -825,7 +825,7 @@ static float get_margin_to_bottom(const Span<FlatNodeItem> items)
     case flat_item::Type::PanelContentBegin:
       break;
     case flat_item::Type::PanelContentEnd:
-      return 3 * NODE_ITEM_SPACING_Y;
+      return 1 * NODE_ITEM_SPACING_Y;
   }
   BLI_assert_unreachable();
   return 0;
@@ -853,7 +853,7 @@ static float get_margin_between_elements(const Span<FlatNodeItem> items, const i
         case Type::Layout:
           return 2 * NODE_ITEM_SPACING_Y;
         case Type::PanelHeader:
-          return 2 * NODE_ITEM_SPACING_Y;
+          return 3 * NODE_ITEM_SPACING_Y;
         case Type::PanelContentBegin:
           break;
         case Type::PanelContentEnd:
@@ -908,7 +908,7 @@ static float get_margin_between_elements(const Span<FlatNodeItem> items, const i
         case Type::PanelContentBegin:
           return 3 * NODE_ITEM_SPACING_Y;
         case Type::PanelContentEnd:
-          break;
+          return 3 * NODE_ITEM_SPACING_Y;
       }
       break;
     }
@@ -942,7 +942,7 @@ static float get_margin_between_elements(const Span<FlatNodeItem> items, const i
         case Type::PanelContentBegin:
           break;
         case Type::PanelContentEnd:
-          return NODE_ITEM_SPACING_Y;
+          return 0;
       }
       break;
     }
