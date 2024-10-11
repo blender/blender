@@ -61,41 +61,15 @@ static const char *get_realization_shader(Result &input,
   return nullptr;
 }
 
-void realize_on_domain(Context &context,
-                       Result &input,
-                       Result &output,
-                       const Domain &domain,
-                       const float3x3 &input_transformation,
-                       const RealizationOptions &realization_options)
+static void realize_on_domain_gpu(Context &context,
+                                  Result &input,
+                                  Result &output,
+                                  const Domain &domain,
+                                  const float3x3 &inverse_transformation,
+                                  const RealizationOptions &realization_options)
 {
-  const Domain input_domain = Domain(input.domain().size, input_transformation);
-  if (input_domain == domain) {
-    input.pass_through(output);
-    output.set_transformation(domain.transformation);
-    return;
-  }
-
   GPUShader *shader = context.get_shader(get_realization_shader(input, realization_options));
   GPU_shader_bind(shader);
-
-  /* Translation from lower-left corner to center of input space. */
-  float2 input_translate(-float2(input_domain.size) / 2.0f);
-
-  /* Bias translations in case of nearest interpolation to avoids the round-to-even behavior of
-   * some GPUs at pixel boundaries. */
-  if (realization_options.interpolation == Interpolation::Nearest) {
-    input_translate += std::numeric_limits<float>::epsilon() * 10e3f;
-  }
-
-  /* Transformation from input domain with 0,0 in lower-left to virtual compositing space. */
-  const float3x3 in_transformation = math::translate(input_transformation, input_translate);
-
-  /* Transformation from output domain with 0,0 in lower-left to virtual compositing space. */
-  const float3x3 out_transformation = math::translate(domain.transformation,
-                                                      -float2(domain.size) / 2.0f);
-
-  /* Concatenate to get full transform from output space to input space */
-  const float3x3 inverse_transformation = math::invert(in_transformation) * out_transformation;
 
   GPU_shader_uniform_mat3_as_mat4(shader, "inverse_transformation", inverse_transformation.ptr());
 
@@ -125,6 +99,74 @@ void realize_on_domain(Context &context,
   input.unbind_as_texture();
   output.unbind_as_image();
   GPU_shader_unbind();
+}
+
+static void realize_on_domain_cpu(Result &input,
+                                  Result &output,
+                                  const Domain &domain,
+                                  const float3x3 &inverse_transformation)
+{
+  output.allocate_texture(domain);
+
+  parallel_for(domain.size, [&](const int2 texel) {
+    /* Add 0.5 to evaluate the input sampler at the center of the pixel. */
+    float2 coordinates = float2(texel) + float2(0.5f);
+
+    /* Transform the input image by transforming the domain coordinates with the inverse of input
+     * image's transformation. The inverse transformation is an affine matrix and thus the
+     * coordinates should be in homogeneous coordinates. */
+    coordinates = (inverse_transformation * float3(coordinates, 1.0f)).xy();
+
+    /* Subtract the offset and divide by the input image size to get the relevant coordinates into
+     * the sampler's expected [0, 1] range. */
+    const int2 input_size = input.domain().size;
+    float2 normalized_coordinates = coordinates / float2(input_size);
+
+    /* TODO: Support other interpolations and wrapping modes. */
+    output.store_pixel(texel, input.sample_nearest_zero(normalized_coordinates));
+  });
+}
+
+void realize_on_domain(Context &context,
+                       Result &input,
+                       Result &output,
+                       const Domain &domain,
+                       const float3x3 &input_transformation,
+                       const RealizationOptions &realization_options)
+{
+  const Domain input_domain = Domain(input.domain().size, input_transformation);
+  if (input_domain == domain) {
+    input.pass_through(output);
+    output.set_transformation(domain.transformation);
+    return;
+  }
+
+  /* Translation from lower-left corner to center of input space. */
+  float2 input_translate(-float2(input_domain.size) / 2.0f);
+
+  /* Bias translations in case of nearest interpolation to avoids the round-to-even behavior of
+   * some GPUs at pixel boundaries. */
+  if (realization_options.interpolation == Interpolation::Nearest) {
+    input_translate += std::numeric_limits<float>::epsilon() * 10e3f;
+  }
+
+  /* Transformation from input domain with 0,0 in lower-left to virtual compositing space. */
+  const float3x3 in_transformation = math::translate(input_transformation, input_translate);
+
+  /* Transformation from output domain with 0,0 in lower-left to virtual compositing space. */
+  const float3x3 out_transformation = math::translate(domain.transformation,
+                                                      -float2(domain.size) / 2.0f);
+
+  /* Concatenate to get full transform from output space to input space */
+  const float3x3 inverse_transformation = math::invert(in_transformation) * out_transformation;
+
+  if (context.use_gpu()) {
+    realize_on_domain_gpu(
+        context, input, output, domain, inverse_transformation, realization_options);
+  }
+  else {
+    realize_on_domain_cpu(input, output, domain, inverse_transformation);
+  }
 }
 
 }  // namespace blender::realtime_compositor
