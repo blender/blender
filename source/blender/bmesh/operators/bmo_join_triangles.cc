@@ -14,11 +14,13 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_heap.h"
-#include "BLI_map.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_sort_utils.h"
+#ifndef NDEBUG
+#  include "BLI_array_utils.h" /* For #BLI_array_is_zeroed.  */
+#endif
 
 #include "BKE_customdata.hh"
 
@@ -99,8 +101,11 @@ struct JoinEdgesState {
   /** A priority queue of `BMEdge *` to be merged, in order of preference. */
   Heap *edge_queue;
 
-  /** An index that allows looking up the node from an from an edge. */
-  blender::Map<BMEdge *, HeapNode *> index;
+  /**
+   * An edge aligned array for looking up the node from the edge index.
+   * Only needed when `use_topo_influence` is true, so edges can be re-prioritized.
+   */
+  HeapNode **edge_queue_nodes;
 
   /** True when topo_influnce is not equal to zero. Allows skipping expensive processing. */
   bool use_topo_influence;
@@ -761,7 +766,8 @@ static void reprioritize_join(JoinEdgesState &s,
 
   /* If the edge wasn't found, (delimit, non-manifold, etc) then return.
    * Nothing to do here. */
-  HeapNode *node = s.index.lookup_default(e_merge, nullptr);
+  BLI_assert(BM_elem_index_get(e_merge) >= 0);
+  HeapNode *node = s.edge_queue_nodes[BM_elem_index_get(e_merge)];
   if (node == nullptr) {
     return;
   }
@@ -966,8 +972,14 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
   s.topo_influnce = BMO_slot_float_get(op->slots_in, "topology_influence");
   s.use_topo_influence = (s.topo_influnce != 0.0f);
   s.edge_queue = BLI_heap_new();
-  s.index.clear_and_shrink();
   s.select_tris_only = BMO_slot_bool_get(op->slots_in, "deselect_joined");
+#ifndef NDEBUG
+  const int edges_num_init = bm->totedge;
+#endif
+  if (s.use_topo_influence) {
+    s.edge_queue_nodes = static_cast<HeapNode **>(
+        MEM_malloc_arrayN(bm->totedge, sizeof(HeapNode *), __func__));
+  }
 
 #ifdef USE_JOIN_TRIANGLE_INTERACTIVE_TESTING
   s.debug_bm = bm;
@@ -990,11 +1002,13 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
   }
 
   /* Go through every edge in the mesh, mark edges that can be merged. */
-  BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-    BMFace *f_a, *f_b;
+  int i = 0;
+  BM_ITER_MESH_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, i) {
+    BM_elem_index_set(e, i); /* set_inline */
 
     /* If the edge is manifold, has a tagged input triangle on both sides,
      * and is *not* delimited, then it's a candidate to merge.*/
+    BMFace *f_a, *f_b;
     if (BM_edge_face_pair(e, &f_a, &f_b) && BMO_face_flag_test(bm, f_a, FACE_INPUT) &&
         BMO_face_flag_test(bm, f_b, FACE_INPUT) && !bm_edge_is_delimit(e, &delimit_data))
     {
@@ -1006,7 +1020,14 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 
       /* Record the candidate merge in both the heap, and the heap index. */
       HeapNode *node = BLI_heap_insert(s.edge_queue, merge_error, e);
-      s.index.add_new(e, node);
+      if (s.use_topo_influence) {
+        s.edge_queue_nodes[i] = node;
+      }
+    }
+    else {
+      if (s.use_topo_influence) {
+        s.edge_queue_nodes[i] = nullptr;
+      }
     }
   }
 
@@ -1016,7 +1037,7 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
    * NOTE: This unfortunately misses any quads which are not selected, but
    * which neighbor the selection. The only alternate would be to iterate the
    * whole mesh, which might be expensive for very large meshes with small selections. */
-  if (s.use_topo_influence && (s.index.is_empty() == false)) {
+  if (s.use_topo_influence && (BLI_heap_is_empty(s.edge_queue) == false)) {
     BMO_ITER (f, &siter, op->slots_in, "faces", BM_FACE) {
       if (f->len == 4) {
         BMVert *f_verts[4];
@@ -1047,7 +1068,10 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
      * Remove it from the both priority queue and the index. */
     const float f_error = BLI_heap_top_value(s.edge_queue);
     BMEdge *e = reinterpret_cast<BMEdge *>(BLI_heap_pop_min(s.edge_queue));
-    s.index.remove(e);
+    if (s.use_topo_influence) {
+      BLI_assert(BM_elem_index_get(e) >= 0);
+      s.edge_queue_nodes[BM_elem_index_get(e)] = nullptr;
+    }
 
     /* Attempt the merge. */
     BMFace *f_new = bm_faces_join_pair_by_edge(bm,
@@ -1094,19 +1118,21 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 
 #ifdef USE_JOIN_TRIANGLE_INTERACTIVE_TESTING
   /* Expect a full processing to have occurred, *only* if we didn't stop partway through. */
-  if (!(s.debug_merge_limit != -1 && s.debug_merge_count >= s.debug_merge_limit)) {
-    BLI_assert(BLI_heap_is_empty(s.edge_queue));
-    BLI_assert(s.index.is_empty());
-  }
-#else
-  /* Expect a full processing to have occurred. */
-  BLI_assert(BLI_heap_is_empty(s.edge_queue));
-  BLI_assert(s.index.is_empty());
+  if (!(s.debug_merge_limit != -1 && s.debug_merge_count >= s.debug_merge_limit))
 #endif
+  {
+    /* Expect a full processing to have occurred. */
+    BLI_assert(BLI_heap_is_empty(s.edge_queue));
+    if (s.use_topo_influence) {
+      BLI_assert(BLI_array_is_zeroed(s.edge_queue_nodes, sizeof(HeapNode *) * edges_num_init));
+    }
+  }
 
   /* Clean up. */
   BLI_heap_free(s.edge_queue, nullptr);
-  s.index.clear_and_shrink();
+  if (s.use_topo_influence) {
+    MEM_freeN(s.edge_queue_nodes);
+  }
 
   /* Return the selection results. */
   BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faces.out", BM_FACE, FACE_OUT);
