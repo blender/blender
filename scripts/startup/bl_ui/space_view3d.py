@@ -8103,6 +8103,7 @@ class VIEW3D_MT_greasepencil_edit_context_menu(Menu):
 
             col.operator_enum("grease_pencil.dissolve", "type")
 
+
 class GREASE_PENCIL_MT_Layers(Menu):
     bl_label = "Layers"
 
