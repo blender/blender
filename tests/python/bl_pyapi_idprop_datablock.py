@@ -46,18 +46,21 @@ def expect_false_or_abort(expr, msg=None):
         print_fail_msg_and_exit(msg)
 
 
-def expect_exception_or_abort(*, fn, ex):
+def expect_exception_or_abort(*, fn, ex, finalize=None):
     try:
         fn()
         exception = False
     except ex:
         exception = True
+    finally:
+        if finalize:
+            finalize()
     if exception:
         return  # OK
     print_fail_msg_and_exit("test failed")
 
 
-def expect_output_or_abort(*, fn, match_stderr=None, match_stdout=None):
+def expect_output_or_abort(*, fn, match_stderr=None, match_stdout=None, finalize=None):
 
     stdout, stderr = io.StringIO(), io.StringIO()
 
@@ -70,6 +73,9 @@ def expect_output_or_abort(*, fn, match_stderr=None, match_stdout=None):
         output = handle.getvalue()
         if not re.match(match, output):
             print_fail_msg_and_exit("%r not found in %r" % (match, output))
+
+    if finalize:
+        finalize()
 
 
 class TestClass(bpy.types.PropertyGroup):
@@ -93,6 +99,12 @@ def init():
         name="prop_array",
         type=TestClass)
     bpy.types.Object.prop = bpy.props.PointerProperty(type=bpy.types.Object)
+
+
+def finalize():
+    del bpy.types.Object.prop_array
+    del bpy.types.Object.prop
+    bpy.utils.unregister_class(TestClass)
 
 
 def make_lib():
@@ -269,7 +281,9 @@ def test_restrictions1():
     expect_output_or_abort(
         fn=lambda: bpy.utils.register_class(TEST_Op),
         match_stderr="^ValueError: bpy_struct \"SCENE_OT_test_op\" registration error:",
+        finalize=lambda: bpy.utils.unregister_class(TEST_Op),
     )
+    bpy.utils.unregister_class(TEST_PT_DatablockProp)
 
     def poll(self, value):
         return value.name in bpy.data.scenes["Scene_lib"].objects
@@ -347,10 +361,12 @@ def test_restrictions2():
     expect_exception_or_abort(
         fn=lambda: bpy.utils.register_class(TestPrefs),
         ex=ValueError,
+        finalize=lambda: bpy.utils.unregister_class(TestPrefs),
     )
     expect_exception_or_abort(
         fn=lambda: bpy.utils.register_class(TEST_UL_list),
         ex=ValueError,
+        finalize=lambda: bpy.utils.unregister_class(TEST_UL_list),
     )
 
     bpy.utils.unregister_class(TestClassCollection)
@@ -372,6 +388,7 @@ def main():
             ex=AttributeError,
         )
         test_restrictions2()
+        finalize()
 
 
 if __name__ == "__main__":
