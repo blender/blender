@@ -715,7 +715,7 @@ PACKAGES_ALL = (
                                   DISTRO_ID_ARCH: "clang",  # clang-format is part of the main clang package.
                                   },
             ),
-    Package(name="Python", is_mandatory=True, version="3.11.6", version_short="3.11", version_min="3.11", version_mex="3.13",
+    Package(name="Python", is_mandatory=True, version="3.11.9", version_short="3.11", version_min="3.11", version_mex="3.13",
             sub_packages=PYTHON_SUBPACKAGES,
             distro_package_names={DISTRO_ID_DEBIAN: "python3-dev",
                                   DISTRO_ID_FEDORA: "python3-devel",
