@@ -174,7 +174,9 @@ static asset_system::AssetCatalog &asset_library_ensure_catalog(
   return *library.catalog_service().create_catalog(path);
 }
 
-#ifdef __GNUC__ /* Suppress warning for GCC-14.2. */
+/* Suppress warning for GCC-14.2. This isn't a dangling reference
+ * because the #asset_system::AssetLibrary owns the returned value. */
+#if defined(__GNUC__) && !defined(__clang__)
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Wdangling-reference"
 #endif
@@ -191,8 +193,7 @@ static asset_system::AssetCatalog &asset_library_ensure_catalogs_in_path(
   });
   return *library.catalog_service().find_catalog_by_path(path);
 }
-
-#ifdef __GNUC__
+#if defined(__GNUC__) && !defined(__clang__)
 #  pragma GCC diagnostic pop
 #endif
 
