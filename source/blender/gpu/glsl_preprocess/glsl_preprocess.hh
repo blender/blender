@@ -23,7 +23,9 @@ namespace blender::gpu::shader {
  * Implementation speed is not a huge concern as we only apply this at compile time or on python
  * shaders source.
  */
-template<bool no_linting = false> class Preprocessor {
+class Preprocessor {
+  using uint = unsigned int;
+
   struct SharedVar {
     std::string type;
     std::string name;
@@ -36,7 +38,11 @@ template<bool no_linting = false> class Preprocessor {
  public:
   /* Takes a whole source file and output processed source. */
   template<typename ReportErrorF>
-  std::string process(std::string str, const ReportErrorF &report_error)
+  std::string process(std::string str,
+                      bool do_linting,
+                      bool do_string_mutation,
+                      bool do_include_mutation,
+                      const ReportErrorF &report_error)
   {
     str = remove_comments(str, report_error);
     threadgroup_variable_parsing(str);
@@ -48,10 +54,11 @@ template<bool no_linting = false> class Preprocessor {
     return str + suffix();
   }
 
+  /* Variant use for python shaders. */
   std::string process(const std::string &str)
   {
     auto no_err_report = [](std::string, std::smatch, const char *) {};
-    return process(str, no_err_report);
+    return process(str, false, false, false, no_err_report);
   }
 
  private:
@@ -137,9 +144,6 @@ template<bool no_linting = false> class Preprocessor {
   template<typename ReportErrorF>
   void matrix_constructor_linting(std::string str, const ReportErrorF &report_error)
   {
-    if constexpr (no_linting) {
-      return;
-    }
     /* Example: `mat4(other_mat)`. */
     std::regex regex("\\s+(mat(\\d|\\dx\\d)|float\\dx\\d)\\([^,\\s\\d]+\\)");
     for (std::smatch match; std::regex_search(str, match, regex); str = match.suffix()) {
@@ -154,9 +158,6 @@ template<bool no_linting = false> class Preprocessor {
   template<typename ReportErrorF>
   void array_constructor_linting(std::string str, const ReportErrorF &report_error)
   {
-    if constexpr (no_linting) {
-      return;
-    }
     std::regex regex("=\\s*(\\w+)\\s*\\[[^\\]]*\\]\\s*\\(");
     for (std::smatch match; std::regex_search(str, match, regex); str = match.suffix()) {
       /* This only catches some invalid usage. For the rest, the CI will catch them. */
@@ -254,7 +255,5 @@ template<bool no_linting = false> class Preprocessor {
     return suffix.str();
   }
 };
-
-using PreprocessorPython = Preprocessor<true>;
 
 }  // namespace blender::gpu::shader
