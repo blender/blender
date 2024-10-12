@@ -1197,7 +1197,7 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_gizmo(bContext *C, wm
   }
 
   /* Property Actions */
-  for (wmGizmoProperty &gz_prop : gz->target_properties) {
+  for (const wmGizmoProperty &gz_prop : gz->target_properties) {
     if (gz_prop.prop != nullptr) {
       const char *info = RNA_property_ui_description(gz_prop.prop);
       if (info && info[0]) {

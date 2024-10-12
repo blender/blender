@@ -123,9 +123,9 @@ void WM_gizmo_target_property_clear_rna(wmGizmo *gz, const char *idname)
 /** \name Property Access
  * \{ */
 
-bool WM_gizmo_target_property_is_valid_any(wmGizmo *gz)
+bool WM_gizmo_target_property_is_valid_any(const wmGizmo *gz)
 {
-  for (wmGizmoProperty &gz_prop : gz->target_properties) {
+  for (const wmGizmoProperty &gz_prop : gz->target_properties) {
     if (WM_gizmo_target_property_is_valid(&gz_prop)) {
       return true;
     }

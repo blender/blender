@@ -243,7 +243,7 @@ void WM_gizmo_target_property_def_func(wmGizmo *gz,
 void WM_gizmo_target_property_clear_rna_ptr(wmGizmo *gz, const wmGizmoPropertyType *gz_prop_type);
 void WM_gizmo_target_property_clear_rna(wmGizmo *gz, const char *idname);
 
-bool WM_gizmo_target_property_is_valid_any(wmGizmo *gz);
+bool WM_gizmo_target_property_is_valid_any(const wmGizmo *gz);
 bool WM_gizmo_target_property_is_valid(const wmGizmoProperty *gz_prop);
 float WM_gizmo_target_property_float_get(const wmGizmo *gz, wmGizmoProperty *gz_prop);
 void WM_gizmo_target_property_float_set(bContext *C,
