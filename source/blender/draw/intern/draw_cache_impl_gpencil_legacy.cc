@@ -60,8 +60,6 @@ struct GpencilBatchCache {
 
   /** Cache is dirty */
   bool is_dirty;
-  /** Last cache frame */
-  int cache_frame;
 };
 
 namespace blender::draw {
