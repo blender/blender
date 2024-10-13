@@ -4126,6 +4126,7 @@ static int area_join_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   if (event->type == WINDEACTIVATE) {
     /* This operator can close windows, which can cause it to be re-run. */
+    area_join_exit(C, op);
     return OPERATOR_FINISHED;
   }
 
