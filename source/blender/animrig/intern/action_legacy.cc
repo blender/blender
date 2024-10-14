@@ -124,6 +124,23 @@ Vector<const FCurve *> fcurves_all(const bAction *action)
                                const ChannelBag>(action->wrap());
 }
 
+Vector<FCurve *> fcurves_first_slot(bAction *action)
+{
+  if (!action) {
+    return {};
+  }
+  Action &action_wrap = action->wrap();
+
+  if (action_wrap.is_action_legacy()) {
+    return fcurves_all(action);
+  }
+
+  if (action_wrap.slots().is_empty()) {
+    return {};
+  }
+  return fcurves_for_action_slot(action, action_wrap.slot(0)->handle);
+}
+
 /* Lots of template args to support transparent non-const and const versions. */
 template<typename ActionType,
          typename FCurveType,
