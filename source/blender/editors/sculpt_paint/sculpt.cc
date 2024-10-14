@@ -1038,40 +1038,43 @@ void restore_position_from_undo_step(const Depsgraph &depsgraph, Object &object)
 
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       node_mask.foreach_index(GrainSize(1), [&](const int i) {
-        LocalData &tls = all_tls.local();
-        const OrigPositionData orig_data = *orig_position_data_lookup_mesh(object, nodes[i]);
+        threading::isolate_task([&] {
+          LocalData &tls = all_tls.local();
+          const OrigPositionData orig_data = *orig_position_data_lookup_mesh(object, nodes[i]);
 
-        const Span<int> verts = nodes[i].verts();
-        const Span<float3> undo_positions = orig_data.positions;
-        if (need_translations) {
-          tls.translations.resize(verts.size());
-          translations_from_new_positions(undo_positions, verts, positions_eval, tls.translations);
-        }
-
-        array_utils::scatter(undo_positions, verts, positions_eval);
-
-        if (positions_eval.data() != positions_orig.data()) {
-          /* When the evaluated positions and original mesh positions don't point to the same
-           * array, they must both be updated. */
-          if (ss.deform_imats.is_empty()) {
-            array_utils::scatter(undo_positions, verts, positions_orig);
+          const Span<int> verts = nodes[i].verts();
+          const Span<float3> undo_positions = orig_data.positions;
+          if (need_translations) {
+            tls.translations.resize(verts.size());
+            translations_from_new_positions(
+                undo_positions, verts, positions_eval, tls.translations);
           }
-          else {
-            /* Because brush deformation is calculated for the evaluated deformed positions,
-             * the translations have to be transformed to the original space. */
-            apply_crazyspace_to_translations(ss.deform_imats, verts, tls.translations);
-            if (ELEM(active_key, nullptr, mesh.key->refkey)) {
-              /* We only ever want to propagate changes back to the base mesh if we either have
-               * no shape key active, or we are working on the basis shape key.
-               * See #126199 for more information. */
-              apply_translations(tls.translations, verts, positions_orig);
+
+          array_utils::scatter(undo_positions, verts, positions_eval);
+
+          if (positions_eval.data() != positions_orig.data()) {
+            /* When the evaluated positions and original mesh positions don't point to the same
+             * array, they must both be updated. */
+            if (ss.deform_imats.is_empty()) {
+              array_utils::scatter(undo_positions, verts, positions_orig);
+            }
+            else {
+              /* Because brush deformation is calculated for the evaluated deformed positions,
+               * the translations have to be transformed to the original space. */
+              apply_crazyspace_to_translations(ss.deform_imats, verts, tls.translations);
+              if (ELEM(active_key, nullptr, mesh.key->refkey)) {
+                /* We only ever want to propagate changes back to the base mesh if we either have
+                 * no shape key active, or we are working on the basis shape key.
+                 * See #126199 for more information. */
+                apply_translations(tls.translations, verts, positions_orig);
+              }
             }
           }
-        }
 
-        if (active_key) {
-          update_shape_keys(object, mesh, *active_key, verts, tls.translations, positions_orig);
-        }
+          if (active_key) {
+            update_shape_keys(object, mesh, *active_key, verts, tls.translations, positions_orig);
+          }
+        });
       });
       pbvh.tag_positions_changed(node_mask);
       break;
