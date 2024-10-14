@@ -2103,7 +2103,7 @@ static void rna_GreasePencilModifier_material_set(PointerRNA *ptr,
                                                   Material **ma_target)
 {
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
-  Material *ma = reinterpret_cast<Material *>(value.owner_id);
+  Material *ma = reinterpret_cast<Material *>(value.data);
 
   if (ma == nullptr || BKE_object_material_index_get(ob, ma) != -1) {
     id_lib_extern(reinterpret_cast<ID *>(ob));
