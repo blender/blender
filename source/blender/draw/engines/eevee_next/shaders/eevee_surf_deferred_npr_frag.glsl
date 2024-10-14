@@ -172,4 +172,8 @@ void main()
   vec4 result = nodetree_npr();
   out_radiance = vec4(result.rgb * result.a, 0.0);
   out_transmittance = vec4(1.0 - result.a);
+
+  /* For AOVs */
+  /* TODO(NPR): Move AOV codegen to nodetree_npr. */
+  nodetree_surface(0.0);
 }

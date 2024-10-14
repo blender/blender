@@ -6,6 +6,7 @@
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(npr_surface_common)
+EARLY_FRAGMENT_TEST(true)
 SAMPLER(INDEX_NPR_TX_SLOT, UINT_2D, npr_index_tx)
 /* eevee_gbuffer_data */
 DEFINE("GBUFFER_LOAD")
