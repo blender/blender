@@ -658,22 +658,16 @@ void ED_animedit_unlink_action(
     }
   }
   else {
-    /* Unlink normally - Setting it to nullptr should be enough to get the old one unlinked */
+    /* Clear AnimData -> action via RNA, so that it triggers message bus updates. */
+    PointerRNA ptr = RNA_pointer_create(id, &RNA_AnimData, adt);
+    PropertyRNA *prop = RNA_struct_find_property(&ptr, "action");
+
+    RNA_property_pointer_set(&ptr, prop, PointerRNA_NULL, nullptr);
+    RNA_property_update(C, &ptr, prop);
+
+    /* Also update the Action editor legacy Action pointer. */
     if (area->spacetype == SPACE_ACTION) {
-      /* clear action editor -> action */
       actedit_change_action(C, nullptr);
-    }
-    else {
-      /* clear AnimData -> action */
-      PropertyRNA *prop;
-
-      /* create AnimData RNA pointers */
-      PointerRNA ptr = RNA_pointer_create(id, &RNA_AnimData, adt);
-      prop = RNA_struct_find_property(&ptr, "action");
-
-      /* clear... */
-      RNA_property_pointer_set(&ptr, prop, PointerRNA_NULL, nullptr);
-      RNA_property_update(C, &ptr, prop);
     }
   }
 }
