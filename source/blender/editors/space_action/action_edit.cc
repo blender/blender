@@ -274,10 +274,11 @@ static int actkeys_previewrange_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  scene = ac.scene;
-
   /* set the range directly */
-  get_keyframe_extents(&ac, &min, &max, true);
+  if (!get_keyframe_extents(&ac, &min, &max, true)) {
+    return OPERATOR_CANCELLED;
+  }
+  scene = ac.scene;
   scene->r.flag |= SCER_PRV_RANGE;
   scene->r.psfra = floorf(min);
   scene->r.pefra = ceilf(max);
