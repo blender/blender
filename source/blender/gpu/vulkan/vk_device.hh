@@ -71,7 +71,6 @@ class VKThreadData : public NonCopyable, NonMovable {
  public:
   /** Thread ID this instance belongs to. */
   pthread_t thread_id;
-  render_graph::VKRenderGraph render_graph;
   /**
    * Index of the active resource pool. Is in sync with the active swap chain image or cycled when
    * rendering.
@@ -91,16 +90,7 @@ class VKThreadData : public NonCopyable, NonMovable {
    */
   int32_t rendering_depth = 0;
 
-  /**
-   * Number of contexts registered in the current thread.
-   * Discarded resources are destroyed when all contexts are unregistered.
-   */
-  int32_t num_contexts = 0;
-
-  VKThreadData(VKDevice &device,
-               pthread_t thread_id,
-               std::unique_ptr<render_graph::VKCommandBufferInterface> command_buffer,
-               render_graph::VKResourceStateTracker &resources);
+  VKThreadData(VKDevice &device, pthread_t thread_id);
   void deinit(VKDevice &device);
 
   /**

@@ -375,7 +375,7 @@ Context *VKBackend::context_alloc(void *ghost_window, void *ghost_context)
     device.init(ghost_context);
   }
 
-  VKContext *context = new VKContext(ghost_window, ghost_context, device.current_thread_data());
+  VKContext *context = new VKContext(ghost_window, ghost_context, device.resources);
   device.context_register(*context);
   GHOST_SetVulkanSwapBuffersCallbacks((GHOST_ContextHandle)ghost_context,
                                       VKContext::swap_buffers_pre_callback,
@@ -455,20 +455,25 @@ void VKBackend::render_end()
   VKThreadData &thread_data = device.current_thread_data();
   thread_data.rendering_depth -= 1;
   BLI_assert_msg(thread_data.rendering_depth >= 0, "Unbalanced `GPU_render_begin/end`");
-
-  if (G.background || !BLI_thread_is_main()) {
-    /* When **not** running on the main thread (or doing background rendering) we assume that there
-     * is no swap chain in play. Rendering happens on a single thread and when finished all the
-     * resources have been used and are in a state that they can be discarded. It can still be that
-     * a non-main thread discards a resource that is in use by another thread. We move discarded
-     * resources to a device global discard pool (`device.orphaned_data`). The next time the main
-     * thread goes to the next swap chain image the device global discard pool will be added to the
-     * discard pool of the new swap chain image.*/
+  if (G.background) {
+    /* Garbage collection when performing background rendering. In this case the rendering is
+     * already 'thread-safe'. We move the resources to the device discard list and we destroy it
+     * the next frame. */
     if (thread_data.rendering_depth == 0) {
       VKResourcePool &resource_pool = thread_data.resource_pool_get();
-      resource_pool.discard_pool.destroy_discarded_resources(device);
+      device.orphaned_data.destroy_discarded_resources(device);
+      device.orphaned_data.move_data(resource_pool.discard_pool);
       resource_pool.reset();
-      resource_pool.discard_pool.move_data(device.orphaned_data);
+    }
+  }
+
+  else if (!BLI_thread_is_main()) {
+    /* Foreground rendering using a worker/render thread. In this case we move the resources to the
+     * device discard list and it will be cleared by the main thread. */
+    if (thread_data.rendering_depth == 0) {
+      VKResourcePool &resource_pool = thread_data.resource_pool_get();
+      device.orphaned_data.move_data(resource_pool.discard_pool);
+      resource_pool.reset();
     }
   }
 }

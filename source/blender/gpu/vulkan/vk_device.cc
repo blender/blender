@@ -333,11 +333,7 @@ std::string VKDevice::driver_version() const
 /** \name VKThreadData
  * \{ */
 
-VKThreadData::VKThreadData(VKDevice &device,
-                           pthread_t thread_id,
-                           std::unique_ptr<render_graph::VKCommandBufferInterface> command_buffer,
-                           render_graph::VKResourceStateTracker &resources)
-    : thread_id(thread_id), render_graph(std::move(command_buffer), resources)
+VKThreadData::VKThreadData(VKDevice &device, pthread_t thread_id) : thread_id(thread_id)
 {
   for (VKResourcePool &resource_pool : resource_pools) {
     resource_pool.init(device);
@@ -368,11 +364,7 @@ VKThreadData &VKDevice::current_thread_data()
     }
   }
 
-  VKThreadData *thread_data = new VKThreadData(
-      *this,
-      current_thread_id,
-      std::make_unique<render_graph::VKCommandBufferWrapper>(),
-      resources);
+  VKThreadData *thread_data = new VKThreadData(*this, current_thread_id);
   thread_data_.append(thread_data);
   return *thread_data;
 }
@@ -381,9 +373,11 @@ VKDiscardPool &VKDevice::discard_pool_for_current_thread()
 {
   std::scoped_lock mutex(resources.mutex);
   pthread_t current_thread_id = pthread_self();
-  for (VKThreadData *thread_data : thread_data_) {
-    if (pthread_equal(thread_data->thread_id, current_thread_id)) {
-      return thread_data->resource_pool_get().discard_pool;
+  if (BLI_thread_is_main()) {
+    for (VKThreadData *thread_data : thread_data_) {
+      if (pthread_equal(thread_data->thread_id, current_thread_id)) {
+        return thread_data->resource_pool_get().discard_pool;
+      }
     }
   }
 
@@ -393,19 +387,11 @@ VKDiscardPool &VKDevice::discard_pool_for_current_thread()
 void VKDevice::context_register(VKContext &context)
 {
   contexts_.append(std::reference_wrapper(context));
-  current_thread_data().num_contexts += 1;
 }
 
 void VKDevice::context_unregister(VKContext &context)
 {
   contexts_.remove(contexts_.first_index_of(std::reference_wrapper(context)));
-
-  auto &thread_data = current_thread_data();
-  thread_data.num_contexts -= 1;
-  BLI_assert(thread_data.num_contexts >= 0);
-  if (thread_data.num_contexts == 0) {
-    discard_pool_for_current_thread().destroy_discarded_resources(*this);
-  }
 }
 Span<std::reference_wrapper<VKContext>> VKDevice::contexts_get() const
 {
@@ -488,7 +474,6 @@ void VKDevice::debug_print()
     const bool is_main = pthread_equal(thread_data->thread_id, pthread_self());
     os << "ThreadData" << (is_main ? " (main-thread)" : "") << ")\n";
     os << " Rendering_depth: " << thread_data->rendering_depth << "\n";
-    os << " Number of contexts: " << thread_data->num_contexts << "\n";
     for (int resource_pool_index : IndexRange(thread_data->resource_pools.size())) {
       const VKResourcePool &resource_pool = thread_data->resource_pools[resource_pool_index];
       const bool is_active = thread_data->resource_pool_index == resource_pool_index;
