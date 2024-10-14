@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'6039cb17e63e')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'89e3ab2a4533')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-07 09:15+0000\n"
-"PO-Revision-Date: 2024-05-23 14:56+0000\n"
+"POT-Creation-Date: 2024-10-14 08:43+0000\n"
+"PO-Revision-Date: 2024-10-14 08:42+0000\n"
 "Last-Translator: leif larsen <linuxdk1978@gmail.com>\n"
 "Language-Team: Danish <https://translate.blender.org/projects/blender-ui/ui/da/>\n"
 "Language: da\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.5.2"
+"X-Generator: Weblate 5.7.2"
 
 
 msgid "Valid"
@@ -399,12 +399,68 @@ msgid "Displays glTF Material Output node in Shader Editor (Menu Add > Output)"
 msgstr "Viser glTF Material Output node i Shader Editor (Menu Tilføj > Output)"
 
 
+msgid "        Filter by Name"
+msgstr "        Filtrer efter navn"
+
+
+msgid "Show only hotkeys that have this text in their name"
+msgstr "Vis kun genvejstaster, der har denne tekst i deres navn"
+
+
+msgid "Hide Mix nodes"
+msgstr "Skjul Mix-noder"
+
+
+msgid "When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specify whether to collapse them or show the full node with options expanded"
+msgstr "Når du slår noder sammen med genvejstasten Ctrl+Numpad0 (og lignende), skal du angive, om de skal skjules eller vise hele noden med udvidede muligheder"
+
+
+msgid "Always collapse the new merge nodes"
+msgstr "Skjul altid de nye sammenfletningsknuder sammen"
+
+
+msgid "Collapse in all cases except for shaders"
+msgstr "Fold sammen i alle tilfælde undtagen shaders"
+
+
+msgid "Never"
+msgstr "Aldrig"
+
+
+msgid "Never collapse the new merge nodes"
+msgstr "Skjul aldrig de nye fletningsnoder sammen"
+
+
+msgid "When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specify the position of the new nodes"
+msgstr "Når du slår noder sammen med genvejstasten Ctrl+Numpad0 (og lignende), skal du angive placeringen af de nye noder"
+
+
 msgid "Center"
 msgstr "Centrum"
 
 
+msgid "Place the Mix node between the two nodes"
+msgstr "Placer Mix-noden mellem de to noder"
+
+
 msgid "Bottom"
 msgstr "Bund"
+
+
+msgid "Place the Mix node at the same height as the lowest node"
+msgstr "Placer Mix-noden mellem de to noder"
+
+
+msgid "Show Hotkey List"
+msgstr "Vis genvejsliste"
+
+
+msgid "Expand this box into a list of all the hotkeys for functions in this addon"
+msgstr "Udvid denne boks til en liste over alle genvejstaster til funktioner i denne tilføjelse"
+
+
+msgid "Expand this box into a list of all naming tags for principled texture setup"
+msgstr "Udvid denne boks til en liste over alle navngivningsmærker til principiel teksturopsætning"
 
 
 msgid "Fribidi Library"

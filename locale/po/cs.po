@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'6039cb17e63e')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'89e3ab2a4533')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-07 09:15+0000\n"
+"POT-Creation-Date: 2024-10-14 08:43+0000\n"
 "PO-Revision-Date: 2024-04-29 13:36+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -13813,14 +13813,6 @@ msgid "Snap"
 msgstr "Přichytit"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "Způsob útlumu"
-
-
-msgid "Mirror"
-msgstr "Zrcadlit"
-
-
 msgid "UV Mapping"
 msgstr "UV mapování"
 
@@ -13915,6 +13907,14 @@ msgstr "Kost"
 
 msgid "Pivot Point"
 msgstr "Bod pro pivot"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Způsob útlumu"
+
+
+msgid "Mirror"
+msgstr "Zrcadlit"
 
 
 msgid "Basic"
@@ -31436,6 +31436,30 @@ msgid "Restrict"
 msgstr "Omezit"
 
 
+msgid "Snapping"
+msgstr "Přichytávání"
+
+
+msgid "Transform Orientations"
+msgstr "Orientace transformací"
+
+
+msgid "Guides"
+msgstr "Vodítka"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoskopie"
+
+
+msgid "Auto-Masking"
+msgstr "Auto-Maska"
+
+
+msgid "Curve Edit Mode"
+msgstr "Editační Režim Křivky"
+
+
 msgid "Active Tool"
 msgstr "Aktivní nástroj"
 
@@ -31456,10 +31480,6 @@ msgid "Overlays"
 msgstr "Překrytí"
 
 
-msgid "Guides"
-msgstr "Vodítka"
-
-
 msgid "Motion Tracking"
 msgstr "Sledování Pohybu"
 
@@ -31470,26 +31490,6 @@ msgstr "Editační Režim Sítě"
 
 msgid "Measurement"
 msgstr "Měření"
-
-
-msgid "Curve Edit Mode"
-msgstr "Editační Režim Křivky"
-
-
-msgid "Snapping"
-msgstr "Přichytávání"
-
-
-msgid "Transform Orientations"
-msgstr "Orientace transformací"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoskopie"
-
-
-msgid "Auto-Masking"
-msgstr "Auto-Maska"
 
 
 msgid "Chain Scaling"

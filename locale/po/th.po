@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'6039cb17e63e')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'89e3ab2a4533')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-07 09:15+0000\n"
+"POT-Creation-Date: 2024-10-14 08:43+0000\n"
 "PO-Revision-Date: 2019-12-08 17:40+0700\n"
 "Last-Translator: gongpha <gongpha@gmail.com>\n"
 "Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
@@ -1911,18 +1911,6 @@ msgid "Snap"
 msgstr "ยึดติด"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "แก้ไข"
-
-
-msgid "Mask Edit"
-msgstr "การแก้ไขหน้ากาก"
-
-
-msgid "Mirror"
-msgstr "กระจกสะท้อน"
-
-
 msgid "Local View"
 msgstr "มุมมองท้องถิ่น"
 
@@ -1977,6 +1965,18 @@ msgstr "ผสาน"
 
 msgid "Pivot Point"
 msgstr "จุดหมุน"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "แก้ไข"
+
+
+msgid "Mask Edit"
+msgstr "การแก้ไขหน้ากาก"
+
+
+msgid "Mirror"
+msgstr "กระจกสะท้อน"
 
 
 msgid "Zoom"

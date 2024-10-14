@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'6039cb17e63e')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'89e3ab2a4533')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-07 09:15+0000\n"
-"PO-Revision-Date: 2024-10-04 11:56+0000\n"
+"POT-Creation-Date: 2024-10-14 08:43+0000\n"
+"PO-Revision-Date: 2024-10-13 10:56+0000\n"
 "Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hans/>\n"
 "Language: zh_HANS\n"
@@ -1981,6 +1981,10 @@ msgid "Active Attribute Index"
 msgstr "活动属性编号"
 
 
+msgid "Active attribute index or -1 when none are active"
+msgstr "当没有活动属性编号时，活动属性编号或者-1"
+
+
 msgid "Active Color"
 msgstr "活动颜色"
 
@@ -3109,8 +3113,92 @@ msgid "Collection of worlds"
 msgstr "世界环境集合"
 
 
+msgid "Blendfile Import Context"
+msgstr "Blend文件导入上下文"
+
+
+msgid "Contextual data for a blendfile library/linked-data related operation. Currently only exposed as read-only data for the pre/post blendimport handlers"
+msgstr "blend文件库/链接数据相关操作的上下文数据. 目前仅作为 blend导入 前/后 处理程序的只读数据公开"
+
+
+msgid "Options for this blendfile import operation"
+msgstr "此 blend文件 导入操作的选项"
+
+
+msgid "Only link data, instead of appending it"
+msgstr "仅关联数据，而不是追加"
+
+
+msgid "Make paths of used library blendfiles relative to current blendfile"
+msgstr "相对于当前blend文件为blend文件库创建路径"
+
+
+msgid "Generate a placeholder (empty ID) if not found in any library files"
+msgstr "如果在任何库文件中都找不到占位符，则生成占位符(空ID)"
+
+
+msgid "Force loaded ID to be tagged as indirectly linked (used in reload context only)"
+msgstr "强制加载的ID标记为间接关联（仅在重新加载上下文中使用）"
+
+
+msgid "Set fake user on appended IDs"
+msgstr "为追加的ID设置伪用户"
+
+
+msgid "Append (make local) also indirect dependencies of appended IDs coming from other libraries. NOTE: All IDs (including indirectly linked ones) coming from the same initial library are always made local"
+msgstr "追加(转为本地项)也间接依赖来自其它库的追加ID，注意：来自同一初始库的所有ID (包括间接链接的ID) 始终都转为本地项"
+
+
+msgid "Try to re-use previously appended matching IDs when appending them again, instead of creating local duplicates"
+msgstr "再次追加时尝试重新使用先前追加匹配的ID，而不是创建本地副本"
+
+
+msgid "Clear the asset data on append (it is always kept for linked data)"
+msgstr "追加时清除资产数据 (始终为关联的数据保留)"
+
+
+msgid "Automatically select imported objects"
+msgstr "自动选择导入的物体"
+
+
+msgid "Use the active Collection of the current View Layer to instantiate imported collections and objects"
+msgstr "使用当前视图层的活动集合实例化导入的集合和物体"
+
+
+msgid "Instantiate object data IDs (i.e. create objects for them if needed)"
+msgstr "实例化物体数据ID(例如需要，为他们创建物体)"
+
+
+msgid "Instantiate collections as empties, instead of linking them into the current view layer"
+msgstr "将集合实例化为空，而不是将其关联到当前视图层"
+
+
+msgid "Current stage of the import process"
+msgstr "导入过程的当前阶段"
+
+
+msgid "Blendfile import context has been initialized and filled with a list of items to import, no data has been linked or appended yet"
+msgstr "Blend文件导入上下文已初始化并填充了要导入的项目列表，没有数据被关联或追加"
+
+
+msgid "All data has been imported and is available in the list of `import_items`"
+msgstr "所有数据已被导入并在`import_items`列表中可用"
+
+
+msgid "Blendfile Import Context Item"
+msgstr "Blend文件导入上下文项目"
+
+
+msgid "Imported ID"
+msgstr "导入的ID"
+
+
 msgid "ID Type"
 msgstr "标识类型"
+
+
+msgid "ID type of the item"
+msgstr "项目的ID类型"
 
 
 msgid "Armature"
@@ -3251,6 +3339,18 @@ msgstr "工作区"
 
 msgid "World"
 msgstr "世界环境"
+
+
+msgid "Library Overridden ID"
+msgstr "库重写 ID"
+
+
+msgid "ID name of the item"
+msgstr "项目的 ID 名称"
+
+
+msgid "Source Library"
+msgstr "源库"
 
 
 msgid "Blender RNA"
@@ -5220,6 +5320,10 @@ msgid "Use tablet pressure for jitter"
 msgstr "对抖动使用数位板压力"
 
 
+msgid "Keep Caps"
+msgstr "维持端点"
+
+
 msgid "Keep the caps as they are and don't flatten them when erasing"
 msgstr "擦除时边缘不会变平，仍保持原本的端点形状"
 
@@ -5254,6 +5358,10 @@ msgstr "使用压力调节随机性"
 
 msgid "Outline"
 msgstr "轮廓"
+
+
+msgid "Convert stroke to outline"
+msgstr "将笔画转换为轮廓"
 
 
 msgid "Use Post-Process Settings"
@@ -15657,6 +15765,10 @@ msgid "Color of the corresponding socket type in the node editor"
 msgstr "节点编辑器中相应接口类型的颜色"
 
 
+msgid "Domain that the field is evaluated on"
+msgstr "解算场所在的域"
+
+
 msgid "Socket Type"
 msgstr "接口类型"
 
@@ -17119,12 +17231,28 @@ msgid "Index number for the \"Layer Index\" pass"
 msgstr "\"图层编号\" 的通道编号"
 
 
+msgid "Radius Offset"
+msgstr "半径偏移"
+
+
 msgid "Euler rotation of the layer"
 msgstr "层的欧拉旋转"
 
 
 msgid "Scale of the layer"
 msgstr "层的缩放"
+
+
+msgid "Tint Color"
+msgstr "染色颜色"
+
+
+msgid "Tint Factor"
+msgstr "染色系数"
+
+
+msgid "Factor of tinting color"
+msgstr "染色颜色的系数"
 
 
 msgid "Translation"
@@ -33591,30 +33719,6 @@ msgid "Snap"
 msgstr "吸附"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "衰减编辑的衰减方式"
-
-
-msgid "Mask Edit"
-msgstr "遮罩编辑"
-
-
-msgid "Automasking"
-msgstr "自动遮罩"
-
-
-msgid "Face Sets Edit"
-msgstr "面组编辑"
-
-
-msgid "Vertex Group Locks"
-msgstr "顶点组锁"
-
-
-msgid "Mirror"
-msgstr "镜像"
-
-
 msgid "UV Mapping"
 msgstr "UV 映射"
 
@@ -33719,6 +33823,10 @@ msgid "Hooks"
 msgstr "钩挂"
 
 
+msgid "Vertex Group Locks"
+msgstr "顶点组锁"
+
+
 msgid "Trim/Add"
 msgstr "修剪 / 添加"
 
@@ -33801,6 +33909,26 @@ msgstr "骨骼扭转"
 
 msgid "Pivot Point"
 msgstr "轴心点"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "衰减编辑的衰减方式"
+
+
+msgid "Mask Edit"
+msgstr "遮罩编辑"
+
+
+msgid "Automasking"
+msgstr "自动遮罩"
+
+
+msgid "Face Sets Edit"
+msgstr "面组编辑"
+
+
+msgid "Mirror"
+msgstr "镜像"
 
 
 msgid "Keyframe Insert Pie"
@@ -46566,6 +46694,30 @@ msgid "Return the sign of A, sign(A)"
 msgstr "返回 A 的符号，sign(A)"
 
 
+msgid "Divide Round"
+msgstr "除后四舍五入"
+
+
+msgid "Divide and round result toward zero"
+msgstr "相除后将结果向零四舍五入"
+
+
+msgid "Divide Floor"
+msgstr "除后向下取整"
+
+
+msgid "Divide and floor result, the largest integer smaller than or equal A"
+msgstr "除后并向下取整，小于或等于 A 的最大整数"
+
+
+msgid "Divide Ceiling"
+msgstr "除后向上取整"
+
+
+msgid "Divide and ceil result, the smallest integer greater than or equal A"
+msgstr "除后并向上取整，大于或等于 A 的最小整数"
+
+
 msgid "Floored Modulo"
 msgstr "向下取模"
 
@@ -46596,6 +46748,10 @@ msgstr "逆矩阵"
 
 msgid "Invert Rotation"
 msgstr "反向旋转"
+
+
+msgid "Matrix Determinant"
+msgstr "矩阵行列式"
 
 
 msgid "Multiply Matrices"
@@ -47402,6 +47558,10 @@ msgid "Zone output node that this input node is paired with"
 msgstr "区域输出节点，此输入节点已配对"
 
 
+msgid "Active Main Item Index"
+msgstr "活动主项编号"
+
+
 msgid "Inspection Index"
 msgstr "检验编号"
 
@@ -47897,6 +48057,14 @@ msgstr "合并所有接近的选中点，无论它们是否相连"
 
 msgid "Only merge mesh vertices along existing edges. This method can be much faster"
 msgstr "仅沿现有边合并网格顶点。这种方法可以快得多"
+
+
+msgid "Merge Layers"
+msgstr "合并层"
+
+
+msgid "By Group ID"
+msgstr "依据群组 ID"
 
 
 msgid "Mesh Boolean"
@@ -48831,6 +48999,10 @@ msgid "Set selection of the edited geometry, for tool execution"
 msgstr "设置已编辑几何体的选择，用于工具执行"
 
 
+msgid "Selection Type"
+msgstr "选择类型"
+
+
 msgid "Transform Geometry"
 msgstr "变换几何体"
 
@@ -49018,6 +49190,10 @@ msgstr "转接点"
 
 msgid "A single-socket organization tool that supports one input and multiple outputs"
 msgstr "支持一个输入和多个输出的单接口组织工具"
+
+
+msgid "Type of socket"
+msgstr "接口类型"
 
 
 msgid "Shader Node"
@@ -50036,8 +50212,16 @@ msgid "Squash Amount"
 msgstr "挤压量"
 
 
+msgid "Factor to adjust the brick's width for particular rows determined by the Offset Frequency"
+msgstr "根据偏移频率确定的特定行调整砖宽度的系数"
+
+
 msgid "Squash Frequency"
 msgstr "挤压频率"
+
+
+msgid "How often rows consist of \"squished\" bricks"
+msgstr "“压扁的”砖块组成行的频率"
 
 
 msgid "Texture coordinate mapping settings"
@@ -62941,19 +63125,6 @@ msgstr "添加新的标注数据块"
 
 
 msgctxt "Operator"
-msgid "Insert Blank Frame"
-msgstr "插入空白帧"
-
-
-msgid "Insert a blank frame on the current frame (all subsequently existing frames, if any, are shifted right by one frame)"
-msgstr "在当前帧插入空白帧(如已存在关键帧，后面所有现有帧向右移动一帧)"
-
-
-msgid "Create blank frame in all layers, not only active"
-msgstr "在全部层创建关键帧，而非仅活动层"
-
-
-msgctxt "Operator"
 msgid "Annotation Unlink"
 msgstr "标注取消关联"
 
@@ -64120,6 +64291,11 @@ msgstr "复制全部"
 
 msgid "Duplicate active keyframes of all layer"
 msgstr "复制所有层上的活动关键帧"
+
+
+msgctxt "Operator"
+msgid "Insert Blank Frame"
+msgstr "插入空白帧"
 
 
 msgid "Insert a blank frame on the current scene frame"
@@ -84532,12 +84708,44 @@ msgid "Unwrapping method (Angle Based usually gives better results than Conforma
 msgstr "展开方法 (基于角度的算法通常比共形模式效果更好, 但是运算速度会更慢)"
 
 
+msgid "Minimum Stretch"
+msgstr "最小拉伸"
+
+
+msgid "Prevent flipping UV's, flipping may lower distortion depending on the position of pins"
+msgstr "防止UV翻转，翻转可能会降低失真度，这取决于钉固位置"
+
+
 msgid "Use Subdivision Surface"
 msgstr "使用表面细分"
 
 
 msgid "Map UVs taking vertex position after Subdivision Surface modifier has been applied"
 msgstr "当表面细分修改器被应用后将UV映射到顶点位置"
+
+
+msgid "Importance Weights"
+msgstr "重要性权重"
+
+
+msgid "Whether to take into account per-vertex importance weights"
+msgstr "是否考虑每个顶点的重要性权重"
+
+
+msgid "Weight Factor"
+msgstr "权重系数"
+
+
+msgid "How much influence the weightmap has for weighted parameterization, 0 being no influence"
+msgstr "权重映射对加权参数化的影响程度，0 表示无影响"
+
+
+msgid "Weight Group"
+msgstr "权重组"
+
+
+msgid "Vertex group name for importance weights (modulating the deform)"
+msgstr "用于重要性权重 (调节变形) 的顶点组的名称"
 
 
 msgctxt "Operator"
@@ -86408,8 +86616,12 @@ msgid "Export strokes with fill enabled"
 msgstr "导出启用填充的笔画"
 
 
-msgid "Export strokes with constant thickness"
-msgstr "导出恒定宽度的笔画"
+msgid "Uniform Width"
+msgstr "统一宽度"
+
+
+msgid "Export strokes with uniform width"
+msgstr "使用统一的宽度导出笔画"
 
 
 msgctxt "Operator"
@@ -86425,8 +86637,8 @@ msgid "Clip Camera"
 msgstr "摄像机裁剪"
 
 
-msgid "Clip drawings to camera size when export in camera view"
-msgstr "在摄像机视图中导出时裁剪绘图到摄像机大小"
+msgid "Clip drawings to camera size when exporting in camera view"
+msgstr "当以相机视图导出时裁剪绘画到相机尺寸"
 
 
 msgctxt "Operator"
@@ -86444,18 +86656,6 @@ msgstr "生成的笔画的分辨率"
 
 msgid "Scale of the final strokes"
 msgstr "最终笔画的缩放"
-
-
-msgid "Uniform Width"
-msgstr "统一宽度"
-
-
-msgid "Export strokes with uniform width"
-msgstr "使用统一的宽度导出笔画"
-
-
-msgid "Clip drawings to camera size when exporting in camera view"
-msgstr "当以相机视图导出时裁剪绘画到相机尺寸"
 
 
 msgid "Scene Unit"
@@ -89122,6 +89322,90 @@ msgid "Panel containing UI elements"
 msgstr "面板包含用户界面元素"
 
 
+msgid "Snapping"
+msgstr "吸附"
+
+
+msgid "Transform Orientations"
+msgstr "变换坐标系"
+
+
+msgid "Stroke Placement"
+msgstr "笔画放置"
+
+
+msgid "Drawing Plane"
+msgstr "绘制平面"
+
+
+msgid "Guides"
+msgstr "引导"
+
+
+msgid "Quad View"
+msgstr "四格视图"
+
+
+msgid "Onion Skin"
+msgstr "洋葱皮"
+
+
+msgid "Stereoscopy"
+msgstr "立体视法"
+
+
+msgid "Multi Frame"
+msgstr "多次绘制"
+
+
+msgid "Auto-Masking"
+msgstr "自动遮罩"
+
+
+msgid "glTF Variants"
+msgstr "glTF 变体"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF 材质变体"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "曲线雕刻 添加曲线选项"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "曲线雕刻衰减参数"
+
+
+msgid "Curves Grow/Shrink Scaling"
+msgstr "曲线生长/收缩缩放"
+
+
+msgid "Viewport Debug"
+msgstr "视口调试"
+
+
+msgid "Curve Edit Mode"
+msgstr "曲线编辑模式"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF 动画"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR 信息"
+
+
 msgid "Active Tool"
 msgstr "活动工具"
 
@@ -89158,10 +89442,6 @@ msgid "Overlays"
 msgstr "叠加"
 
 
-msgid "Guides"
-msgstr "引导"
-
-
 msgid "Viewer Node"
 msgstr "查看器节点"
 
@@ -89176,86 +89456,6 @@ msgstr "网格编辑模式"
 
 msgid "Measurement"
 msgstr "测量"
-
-
-msgid "Curve Edit Mode"
-msgstr "曲线编辑模式"
-
-
-msgid "Snapping"
-msgstr "吸附"
-
-
-msgid "Transform Orientations"
-msgstr "变换坐标系"
-
-
-msgid "Stroke Placement"
-msgstr "笔画放置"
-
-
-msgid "Drawing Plane"
-msgstr "绘制平面"
-
-
-msgid "Quad View"
-msgstr "四格视图"
-
-
-msgid "glTF Variants"
-msgstr "glTF 变体"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF 材质变体"
-
-
-msgid "Onion Skin"
-msgstr "洋葱皮"
-
-
-msgid "Stereoscopy"
-msgstr "立体视法"
-
-
-msgid "Multi Frame"
-msgstr "多次绘制"
-
-
-msgid "Auto-Masking"
-msgstr "自动遮罩"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTF 动画"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "曲线雕刻 添加曲线选项"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "曲线雕刻衰减参数"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "曲线生长/收缩缩放"
-
-
-msgid "Viewport Debug"
-msgstr "视口调试"
-
-
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR 信息"
 
 
 msgid "Chain Scaling"
@@ -89735,6 +89935,21 @@ msgstr "断离区域"
 msgctxt "Operator"
 msgid "Grab"
 msgstr "抓起"
+
+
+msgctxt "Operator"
+msgid "Paint"
+msgstr "绘制"
+
+
+msgctxt "Operator"
+msgid "Blur"
+msgstr "模糊"
+
+
+msgctxt "Operator"
+msgid "Smear"
+msgstr "涂抹"
 
 
 msgctxt "Operator"
@@ -90682,6 +90897,26 @@ msgstr "笔刷"
 
 
 msgctxt "Operator"
+msgid "Draw Face Sets"
+msgstr "绘制面组"
+
+
+msgctxt "Operator"
+msgid "Density"
+msgstr "密度"
+
+
+msgctxt "Operator"
+msgid "Multires Displacement Eraser"
+msgstr "多精度置换擦除"
+
+
+msgctxt "Operator"
+msgid "Multires Displacement Smear"
+msgstr "多精度置换涂抹"
+
+
+msgctxt "Operator"
 msgid "Box Mask"
 msgstr "框选遮罩"
 
@@ -90779,6 +91014,11 @@ msgstr "布料滤镜"
 msgctxt "Operator"
 msgid "Color Filter"
 msgstr "色彩滤镜"
+
+
+msgctxt "Operator"
+msgid "Clone"
+msgstr "克隆"
 
 
 msgctxt "Operator"
@@ -127248,10 +127488,6 @@ msgid "Error: Shadow buffer full, may result in missing shadows and lower perfor
 msgstr "错误：阴影缓冲满了，可能导致阴影缺失和性能降低. ({} / {})"
 
 
-msgid "Error: Too many shadow updates, some shadow might be incorrect."
-msgstr "错误：阴影更新过多，某些阴影可能不正确."
-
-
 msgid "GpencilMode"
 msgstr "蜡笔模式"
 
@@ -128407,40 +128643,12 @@ msgid "Active region not set"
 msgstr "未设置活动范围"
 
 
-msgid "Skin_Light"
-msgstr "皮肤_光面"
-
-
-msgid "Skin_Shadow"
-msgstr "皮肤_阴影"
-
-
-msgid "Eyes"
-msgstr "眼睛"
-
-
-msgid "Pupils"
-msgstr "瞳孔"
-
-
-msgid "Grey"
-msgstr "灰色"
-
-
 msgid "Nowhere for grease pencil data to go"
 msgstr "蜡笔数据无地可去"
 
 
 msgid "Cannot delete locked layers"
 msgstr "无法删除锁定层"
-
-
-msgid "Apply all rotations before join objects"
-msgstr "合并物体前应用全部旋转"
-
-
-msgid "Active object is not a selected grease pencil"
-msgstr "活动的物体不是一个被选中的蜡笔"
 
 
 msgid "No grease pencil data"
@@ -128451,8 +128659,8 @@ msgid "No active frame to delete"
 msgstr "无可供删除的活动关键帧"
 
 
-msgid "Add New Layer"
-msgstr "添加新层"
+msgid "Grey"
+msgstr "灰色"
 
 
 msgid "Skin_light"
@@ -128461,6 +128669,14 @@ msgstr "皮肤_光面"
 
 msgid "Skin_shadow"
 msgstr "皮肤_阴影"
+
+
+msgid "Eyes"
+msgstr "眼睛"
+
+
+msgid "Pupils"
+msgstr "瞳孔"
 
 
 msgid "Bake Object Transform to Grease Pencil"
@@ -128501,6 +128717,10 @@ msgstr "活动层被锁定或隐藏"
 
 msgid "No Grease Pencil frame to draw on"
 msgstr "无可用于绘制的蜡笔帧"
+
+
+msgid "Active object is not a selected grease pencil"
+msgstr "活动的物体不是一个被选中的蜡笔"
 
 
 msgid "There is no layer '%s'"
@@ -128613,10 +128833,6 @@ msgstr "未能设置值"
 
 msgid "Property from path '%s' is not a float"
 msgstr "路径 '%s' 中的属性不是浮点型"
-
-
-msgid "LMB: Stroke - Shift: Fill - Shift+Ctrl: Stroke + Fill"
-msgstr "鼠标左键: 笔画 - Shift: 填充 - Shift+Ctrl: 笔画+填充"
 
 
 msgid "Current: "
@@ -130507,10 +130723,6 @@ msgstr "无法在编辑模式下创建骨架"
 
 msgid "Converting some non-editable object/object data, enforcing 'Keep Original' option to True"
 msgstr "转换一些不可编辑的物体/物体数据, 强制 '保留原有' 为真"
-
-
-msgid "Convert Surfaces to Grease Pencil is not supported"
-msgstr "目前不支持曲面转蜡笔"
 
 
 msgid "Object not found"
@@ -133137,6 +133349,10 @@ msgid "Could not rename: %s"
 msgstr "无法重命名: %s"
 
 
+msgid "Create new directory?"
+msgstr "创建新目录?"
+
+
 msgid "Delete selected files?"
 msgstr "删除选中的文件？"
 
@@ -135116,6 +135332,10 @@ msgstr "雾体积"
 
 msgid "Level Set"
 msgstr "级数集"
+
+
+msgid "(Geometry)"
+msgstr "(几何)"
 
 
 msgid "{}"
@@ -137989,10 +138209,6 @@ msgid "Object '%s' could not create internal data for finding nearest point"
 msgstr "物体 '%s' 无法创建用于寻找最近点的内部数据"
 
 
-msgid "Object '%s' is not valid for this operation! Only curves are supported"
-msgstr "此操作对物体 '%s' 无效！仅支持曲线"
-
-
 msgid "Palette '%s' does not contain color given"
 msgstr "调色板 '%s' 不包含给定颜色"
 
@@ -139835,6 +140051,10 @@ msgstr "逆矩阵，如果输入不可逆则为单位矩阵"
 
 msgid "True if the input matrix is invertible"
 msgstr "如果输入的矩阵可逆则取值为真"
+
+
+msgid "Determinant"
+msgstr "行列式"
 
 
 msgid "The string to find in the input string"
@@ -142700,6 +142920,30 @@ msgid "Temperature Attribute"
 msgstr "温度属性"
 
 
+msgid "Backscatter"
+msgstr "反向散射"
+
+
+msgid "Diameter"
+msgstr "直径"
+
+
+msgid "Directionality of the scattering. Zero is isotropic, negative is backward, positive is forward"
+msgstr "散射的方向，零表示各向同性，负数表示向后，正数表示向前"
+
+
+msgid "Index Of Refraction of the scattering particles"
+msgstr "散射粒子的折射率"
+
+
+msgid "Fraction of light that is scattered backwards"
+msgstr "向后散射的部分光线"
+
+
+msgid "Diameter of the water droplets, in micrometers"
+msgstr "水滴直径，以微米为单位"
+
+
 msgid "Patterns"
 msgstr "图案"
 
@@ -143434,6 +143678,15 @@ msgstr "不支持您的显卡或驱动程序."
 msgctxt "WindowManager"
 msgid "The program will now close."
 msgstr "程序现在将关闭。"
+
+
+msgid "Intel binary detected. Expect reduced performance."
+msgstr "检测到Intel二进制文件, 预计性能会下降."
+
+
+msgctxt "Operator"
+msgid "Learn More"
+msgstr "学习更多"
 
 
 msgid "Set Stereo 3D"

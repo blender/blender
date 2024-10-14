@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'6039cb17e63e')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'89e3ab2a4533')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-07 09:15+0000\n"
+"POT-Creation-Date: 2024-10-14 08:43+0000\n"
 "PO-Revision-Date: 2024-04-29 13:41+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -19079,22 +19079,6 @@ msgid "Snap"
 msgstr "Einrasten"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "Proportionaler Bearbeitungsabfall"
-
-
-msgid "Mask Edit"
-msgstr "Maskenbearbeitung"
-
-
-msgid "Vertex Group Locks"
-msgstr "Punktgruppen sperren"
-
-
-msgid "Mirror"
-msgstr "Spiegeln"
-
-
 msgid "Local View"
 msgstr "Lokale Ansicht"
 
@@ -19191,6 +19175,10 @@ msgid "Hooks"
 msgstr "Haken"
 
 
+msgid "Vertex Group Locks"
+msgstr "Punktgruppen sperren"
+
+
 msgid "Random Mask"
 msgstr "Zufällige Maske"
 
@@ -19241,6 +19229,18 @@ msgstr "Kerning"
 
 msgid "Pivot Point"
 msgstr "Drehpunkt"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Proportionaler Bearbeitungsabfall"
+
+
+msgid "Mask Edit"
+msgstr "Maskenbearbeitung"
+
+
+msgid "Mirror"
+msgstr "Spiegeln"
 
 
 msgid "Assets"
@@ -40446,6 +40446,46 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
+msgid "Snapping"
+msgstr "Einrasten"
+
+
+msgid "Transform Orientations"
+msgstr "Transformationsausrichtung"
+
+
+msgid "Drawing Plane"
+msgstr "Malfläche"
+
+
+msgid "Guides"
+msgstr "Hilfslinien"
+
+
+msgid "Quad View"
+msgstr "Vierfenster-Ansicht"
+
+
+msgid "Onion Skin"
+msgstr "Zwiebelhaut"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoskopie"
+
+
+msgid "Auto-Masking"
+msgstr "Automatisches Maskieren"
+
+
+msgid "Curve Edit Mode"
+msgstr "Kurven-Bearbeitungsmodus"
+
+
+msgid "VR"
+msgstr "VR"
+
+
 msgid "Active Tool"
 msgstr "Aktives Werkzeug"
 
@@ -40478,10 +40518,6 @@ msgid "Overlays"
 msgstr "Überlagerungen"
 
 
-msgid "Guides"
-msgstr "Hilfslinien"
-
-
 msgid "Motion Tracking"
 msgstr "Bewegungsverfolgung"
 
@@ -40492,42 +40528,6 @@ msgstr "Maschenbearbeitungsmodus"
 
 msgid "Measurement"
 msgstr "Messung"
-
-
-msgid "Curve Edit Mode"
-msgstr "Kurven-Bearbeitungsmodus"
-
-
-msgid "Snapping"
-msgstr "Einrasten"
-
-
-msgid "Transform Orientations"
-msgstr "Transformationsausrichtung"
-
-
-msgid "Drawing Plane"
-msgstr "Malfläche"
-
-
-msgid "Quad View"
-msgstr "Vierfenster-Ansicht"
-
-
-msgid "Onion Skin"
-msgstr "Zwiebelhaut"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoskopie"
-
-
-msgid "Auto-Masking"
-msgstr "Automatisches Maskieren"
-
-
-msgid "VR"
-msgstr "VR"
 
 
 msgid "Chain Scaling"
@@ -56439,10 +56439,6 @@ msgid "Nowhere for grease pencil data to go"
 msgstr "Keine Wasstift Daten zum fortfahren"
 
 
-msgid "Active object is not a selected grease pencil"
-msgstr "Aktives Objekt ist ausgewählter Wachsstift"
-
-
 msgid "No grease pencil data"
 msgstr "Keine Wachsstift-Daten"
 
@@ -56453,6 +56449,10 @@ msgstr "Kein aktives Einzelbild zum Löschen"
 
 msgid "Nothing selected"
 msgstr "Nichts ausgewählt"
+
+
+msgid "Active object is not a selected grease pencil"
+msgstr "Aktives Objekt ist ausgewählter Wachsstift"
 
 
 msgid "Could not resolve path '%s'"

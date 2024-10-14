@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'6039cb17e63e')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'89e3ab2a4533')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-07 09:15+0000\n"
+"POT-Creation-Date: 2024-10-14 08:43+0000\n"
 "PO-Revision-Date: 2024-09-22 23:56+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -22572,14 +22572,6 @@ msgid "Snap"
 msgstr "Aggancia"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "Decadimento Modifica Proporzionale"
-
-
-msgid "Mirror"
-msgstr "Specchia"
-
-
 msgid "UV Mapping"
 msgstr "Mappatura UV"
 
@@ -22722,6 +22714,14 @@ msgstr "Rollio Osso"
 
 msgid "Pivot Point"
 msgstr "Punto di Perno"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Decadimento Modifica Proporzionale"
+
+
+msgid "Mirror"
+msgstr "Specchia"
 
 
 msgid "Basic"
@@ -34712,11 +34712,6 @@ msgstr "Cancella Fotogramma Attivo"
 
 
 msgctxt "Operator"
-msgid "Insert Blank Frame"
-msgstr "Aggiungi Fotogramma Blank"
-
-
-msgctxt "Operator"
 msgid "Blend Offset Keyframes"
 msgstr "Fondi Offset dei Keyframe"
 
@@ -35034,6 +35029,11 @@ msgstr "Dissolvi"
 msgctxt "Operator"
 msgid "Duplicate Strokes"
 msgstr "Duplica Tratti"
+
+
+msgctxt "Operator"
+msgid "Insert Blank Frame"
+msgstr "Aggiungi Fotogramma Blank"
 
 
 msgctxt "Operator"
@@ -46329,6 +46329,22 @@ msgid "Active Palette Color"
 msgstr "Colore Tavolozza Attivo"
 
 
+msgid "Transform Orientations"
+msgstr "Assi (Orientamenti Trasformazione)"
+
+
+msgid "Stroke Placement"
+msgstr "Giacitura Tratto"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoscopia"
+
+
+msgid "Auto-Masking"
+msgstr "Auto-Mascheramento"
+
+
 msgid "Wire Color"
 msgstr "Colore Wireframe"
 
@@ -46363,22 +46379,6 @@ msgstr "Modalità Modifica Mesh"
 
 msgid "Measurement"
 msgstr "Misurazione"
-
-
-msgid "Transform Orientations"
-msgstr "Assi (Orientamenti Trasformazione)"
-
-
-msgid "Stroke Placement"
-msgstr "Giacitura Tratto"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoscopia"
-
-
-msgid "Auto-Masking"
-msgstr "Auto-Mascheramento"
 
 
 msgid "Chain Scaling"
