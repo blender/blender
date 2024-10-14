@@ -39,9 +39,9 @@ class Preprocessor {
   /* Takes a whole source file and output processed source. */
   template<typename ReportErrorF>
   std::string process(std::string str,
-                      bool do_linting,
-                      bool do_string_mutation,
-                      bool do_include_mutation,
+                      bool /*do_linting*/,
+                      bool /*do_string_mutation*/,
+                      bool /*do_include_mutation*/,
                       const ReportErrorF &report_error)
   {
     str = remove_comments(str, report_error);
