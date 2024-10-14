@@ -40,10 +40,14 @@ static VmaAllocationCreateFlags vma_allocation_flags(GPUUsageType usage)
   return VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT;
 }
 
-static VkMemoryPropertyFlags vma_preferred_flags(const bool is_host_visible)
+static VkMemoryPropertyFlags vma_preferred_flags()
 {
-  return is_host_visible ? VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT :
-                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+  return VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+}
+
+static VkMemoryPropertyFlags vma_required_flags(const bool is_host_visible)
+{
+  return is_host_visible ? VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT : 0;
 }
 
 /*
@@ -83,7 +87,8 @@ bool VKBuffer::create(size_t size_in_bytes,
   VmaAllocationCreateInfo vma_create_info = {};
   vma_create_info.flags = vma_allocation_flags(usage);
   vma_create_info.priority = 1.0f;
-  vma_create_info.preferredFlags = vma_preferred_flags(is_host_visible);
+  vma_create_info.requiredFlags = vma_required_flags(is_host_visible);
+  vma_create_info.preferredFlags = vma_preferred_flags();
   vma_create_info.usage = VMA_MEMORY_USAGE_AUTO;
 
   VkResult result = vmaCreateBuffer(
