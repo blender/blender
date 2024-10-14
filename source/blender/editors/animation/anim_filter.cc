@@ -1721,8 +1721,8 @@ static size_t animfilter_action(bAnimContext *ac,
    * underneath their animated ID anyway. */
   const bool is_action_mode = (ac->spacetype == SPACE_ACTION &&
                                ac->dopesheet_mode == SACTCONT_ACTION);
-  const bool show_all_slots = (ac->ads->filterflag & ADS_FILTER_ALL_SLOTS);
-  if (is_action_mode && show_all_slots) {
+  const bool show_active_only = (ac->ads->filterflag & ADS_FILTER_ONLY_SLOTS_OF_ACTIVE);
+  if (is_action_mode && !show_active_only) {
     return animfilter_action_slots(ac, anim_data, action, filter_mode, owner_id);
   }
 

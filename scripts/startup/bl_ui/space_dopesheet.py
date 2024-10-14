@@ -30,7 +30,7 @@ def dopesheet_filter(layout, context):
 
     row = layout.row(align=True)
     if is_action_editor and context.preferences.experimental.use_animation_baklava:
-        row.prop(dopesheet, "show_all_slots", text="")
+        row.prop(dopesheet, "show_only_slot_of_active_object", text="")
     row.prop(dopesheet, "show_only_selected", text="")
     row.prop(dopesheet, "show_hidden", text="")
 
