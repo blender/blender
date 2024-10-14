@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'6039cb17e63e')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'89e3ab2a4533')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-07 09:15+0000\n"
+"POT-Creation-Date: 2024-10-14 08:43+0000\n"
 "PO-Revision-Date: 2024-03-05 22:56+0000\n"
 "Last-Translator: 居樂行 <oscilloscope9705@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -20945,22 +20945,6 @@ msgid "Snap"
 msgstr "吸附"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "比例化編輯衰落"
-
-
-msgid "Automasking"
-msgstr "自動遮罩"
-
-
-msgid "Face Sets Edit"
-msgstr "面集編輯"
-
-
-msgid "Mirror"
-msgstr "鏡像"
-
-
 msgid "UV Mapping"
 msgstr "UV 映射處理"
 
@@ -21091,6 +21075,22 @@ msgstr "骨骼滾動"
 
 msgid "Pivot Point"
 msgstr "樞紐點"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "比例化編輯衰落"
+
+
+msgid "Automasking"
+msgstr "自動遮罩"
+
+
+msgid "Face Sets Edit"
+msgstr "面集編輯"
+
+
+msgid "Mirror"
+msgstr "鏡像"
 
 
 msgid "Basic"
@@ -33673,11 +33673,6 @@ msgstr "刪除作用中框幀"
 
 
 msgctxt "Operator"
-msgid "Insert Blank Frame"
-msgstr "插入空白框幀"
-
-
-msgctxt "Operator"
 msgid "Annotation Unlink"
 msgstr "註記取消連結"
 
@@ -33931,6 +33926,11 @@ msgstr "複製筆觸"
 msgctxt "Operator"
 msgid "Dissolve"
 msgstr "消融"
+
+
+msgctxt "Operator"
+msgid "Insert Blank Frame"
+msgstr "插入空白框幀"
 
 
 msgctxt "Operator"
@@ -44652,6 +44652,26 @@ msgid "Palette Color"
 msgstr "色版色彩"
 
 
+msgid "Transform Orientations"
+msgstr "變換方向"
+
+
+msgid "Stroke Placement"
+msgstr "筆觸放置"
+
+
+msgid "Stereoscopy"
+msgstr "立體視覺"
+
+
+msgid "Auto-Masking"
+msgstr "自動遮罩"
+
+
+msgid "VR"
+msgstr "VR"
+
+
 msgid "Active Tool"
 msgstr "作用中工具"
 
@@ -44674,26 +44694,6 @@ msgstr "疊層"
 
 msgid "Motion Tracking"
 msgstr "運動跟蹤"
-
-
-msgid "Transform Orientations"
-msgstr "變換方向"
-
-
-msgid "Stroke Placement"
-msgstr "筆觸放置"
-
-
-msgid "Stereoscopy"
-msgstr "立體視覺"
-
-
-msgid "Auto-Masking"
-msgstr "自動遮罩"
-
-
-msgid "VR"
-msgstr "VR"
 
 
 msgid "Chain Scaling"

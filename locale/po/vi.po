@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'6039cb17e63e')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'89e3ab2a4533')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-07 09:15+0000\n"
+"POT-Creation-Date: 2024-10-14 08:43+0000\n"
 "PO-Revision-Date: 2024-01-25 18:24+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -31609,30 +31609,6 @@ msgid "Snap"
 msgstr "Bám Dính"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "Suy Giảm Dần trong Biên Soạn Cân Đối"
-
-
-msgid "Mask Edit"
-msgstr "Biên Soạn Màn Chắn Lọc"
-
-
-msgid "Automasking"
-msgstr "Tự Động Chắn Lọc"
-
-
-msgid "Face Sets Edit"
-msgstr "Biên Soạn các Mặt Ấn Định"
-
-
-msgid "Vertex Group Locks"
-msgstr "Khóa của Nhóm Điểm Đỉnh"
-
-
-msgid "Mirror"
-msgstr "Phản Chiếu Đối Xứng"
-
-
 msgid "UV Mapping"
 msgstr "Ánh Xạ UV"
 
@@ -31737,6 +31713,10 @@ msgid "Hooks"
 msgstr "Móc"
 
 
+msgid "Vertex Group Locks"
+msgstr "Khóa của Nhóm Điểm Đỉnh"
+
+
 msgid "Sculpt Set Pivot"
 msgstr "Điêu Khắc: Đặt Điểm Tựa"
 
@@ -31815,6 +31795,26 @@ msgstr "Lăn Xương"
 
 msgid "Pivot Point"
 msgstr "Điểm Tựa"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Suy Giảm Dần trong Biên Soạn Cân Đối"
+
+
+msgid "Mask Edit"
+msgstr "Biên Soạn Màn Chắn Lọc"
+
+
+msgid "Automasking"
+msgstr "Tự Động Chắn Lọc"
+
+
+msgid "Face Sets Edit"
+msgstr "Biên Soạn các Mặt Ấn Định"
+
+
+msgid "Mirror"
+msgstr "Phản Chiếu Đối Xứng"
 
 
 msgid "Basic"
@@ -57513,19 +57513,6 @@ msgstr "Thêm khối dữ liệu Chú Thích (Annotation) mới"
 
 
 msgctxt "Operator"
-msgid "Insert Blank Frame"
-msgstr "Chèn Thêm Khung Hình Trống"
-
-
-msgid "Insert a blank frame on the current frame (all subsequently existing frames, if any, are shifted right by one frame)"
-msgstr "Chèn thêm một khung hình trống vào khung hình hiện tại (toàn bộ các khung hình hiện tại tiếp theo, nếu có, sẽ được dịch chuyển về bên phải một bước"
-
-
-msgid "Create blank frame in all layers, not only active"
-msgstr "Kiến Tạo khung hình trống trong toàn bộ các tầng lớp, không chỉ tầng đang hoạt động mà thôi"
-
-
-msgctxt "Operator"
 msgid "Annotation Unlink"
 msgstr "Ngắt Kết Nối với Chú Thích"
 
@@ -58596,6 +58583,11 @@ msgstr "Tô Kín hình do các nét vẽ tạo thành bằng màu"
 msgctxt "Operator"
 msgid "Delete Duplicate Frames"
 msgstr "Xóa Khung Hình Trùng Lặp"
+
+
+msgctxt "Operator"
+msgid "Insert Blank Frame"
+msgstr "Chèn Thêm Khung Hình Trống"
 
 
 msgid "Insert a blank frame on the current scene frame"
@@ -78539,10 +78531,6 @@ msgid "Export strokes with fill enabled"
 msgstr "Xuất Khẩu các nét vẽ với tính năng tô phủ kín được bật lên"
 
 
-msgid "Export strokes with constant thickness"
-msgstr "Xuất khẩu các nét vẽ với độ dày bất biến"
-
-
 msgctxt "Operator"
 msgid "Export to SVG"
 msgstr "Xuất Khẩu thành SVG"
@@ -78554,10 +78542,6 @@ msgstr "Xuất Khẩu bút chì dầu ra SVG"
 
 msgid "Clip Camera"
 msgstr "Cắt Xén Máy Quay Phim"
-
-
-msgid "Clip drawings to camera size when export in camera view"
-msgstr "Cắt xén các hình vẽ cho bằng kích thước của máy quay phim khi xuất khẩu trong góc nhìn của máy quay phim"
 
 
 msgid "Import SVG into grease pencil"
@@ -80944,66 +80928,6 @@ msgid "Panel containing UI elements"
 msgstr "Bảng có chứa các phần tử Giao Diện Người Dùng (UI)"
 
 
-msgid "Active Tool"
-msgstr "Công Cụ đang Hoạt Động"
-
-
-msgid "View Lock"
-msgstr "Khóa Góc Nhìn"
-
-
-msgid "Selectability & Visibility"
-msgstr "Khả Năng Lựa Chọn & Tính Hữu Hình"
-
-
-msgid "Wire Color"
-msgstr "Màu của Dây"
-
-
-msgid "Shadow Settings"
-msgstr "Sắp Đặt về Bóng Tối"
-
-
-msgid "SSAO Settings"
-msgstr "Sắp Đặt về SSAO"
-
-
-msgid "Render Pass"
-msgstr "Lượt Kết Xuất"
-
-
-msgid "Compositor"
-msgstr "Trình Tổng Hợp"
-
-
-msgid "Overlays"
-msgstr "Lớp Vẽ Lồng"
-
-
-msgid "Guides"
-msgstr "Hướng Dẫn"
-
-
-msgid "Viewer Node"
-msgstr "Nút Quan Sát"
-
-
-msgid "Motion Tracking"
-msgstr "Giám Sát Chuyển Động"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Chế Độ Biên Soạn Khung Lưới"
-
-
-msgid "Measurement"
-msgstr "Đo Lường"
-
-
-msgid "Curve Edit Mode"
-msgstr "Chế Độ Biên Soạn Đường Cong"
-
-
 msgid "Snapping"
 msgstr "Bám Dính"
 
@@ -81018,6 +80942,10 @@ msgstr "Phương Pháp Đặt Nét Vẽ"
 
 msgid "Drawing Plane"
 msgstr "Bề Diện Tác Họa"
+
+
+msgid "Guides"
+msgstr "Hướng Dẫn"
 
 
 msgid "Quad View"
@@ -81056,8 +80984,64 @@ msgid "Viewport Debug"
 msgstr "Hiệu Chỉnh Lỗi Cổng Nhìn"
 
 
+msgid "Curve Edit Mode"
+msgstr "Chế Độ Biên Soạn Đường Cong"
+
+
 msgid "VR"
 msgstr "Virtual Reality: Thực Tế Ảo"
+
+
+msgid "Active Tool"
+msgstr "Công Cụ đang Hoạt Động"
+
+
+msgid "View Lock"
+msgstr "Khóa Góc Nhìn"
+
+
+msgid "Selectability & Visibility"
+msgstr "Khả Năng Lựa Chọn & Tính Hữu Hình"
+
+
+msgid "Wire Color"
+msgstr "Màu của Dây"
+
+
+msgid "Shadow Settings"
+msgstr "Sắp Đặt về Bóng Tối"
+
+
+msgid "SSAO Settings"
+msgstr "Sắp Đặt về SSAO"
+
+
+msgid "Render Pass"
+msgstr "Lượt Kết Xuất"
+
+
+msgid "Compositor"
+msgstr "Trình Tổng Hợp"
+
+
+msgid "Overlays"
+msgstr "Lớp Vẽ Lồng"
+
+
+msgid "Viewer Node"
+msgstr "Nút Quan Sát"
+
+
+msgid "Motion Tracking"
+msgstr "Giám Sát Chuyển Động"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Chế Độ Biên Soạn Khung Lưới"
+
+
+msgid "Measurement"
+msgstr "Đo Lường"
 
 
 msgid "Chain Scaling"
@@ -114539,40 +114523,12 @@ msgid "Active region not set"
 msgstr "Chưa chỉ định vùng hoạt động"
 
 
-msgid "Skin_Light"
-msgstr "Ánh Sáng Da"
-
-
-msgid "Skin_Shadow"
-msgstr "Bóng Tối Da"
-
-
-msgid "Eyes"
-msgstr "Con Mắt"
-
-
-msgid "Pupils"
-msgstr "Tròng Mắt"
-
-
-msgid "Grey"
-msgstr "Màu Ghi"
-
-
 msgid "Nowhere for grease pencil data to go"
 msgstr "Không có chỗ nào để dữ liệu Bút Chì Dầu di chuyển cả"
 
 
 msgid "Cannot delete locked layers"
 msgstr "Không thể xóa các tầng lớp đã bị khóa"
-
-
-msgid "Apply all rotations before join objects"
-msgstr "Áp dụng toàn bộ các xoay chiều trước khi hội nhập các đối tượng"
-
-
-msgid "Active object is not a selected grease pencil"
-msgstr "Đối tượng đang hoạt động không phải là một phần tử Bút Chì Dầu đã chọn"
 
 
 msgid "No grease pencil data"
@@ -114583,12 +114539,24 @@ msgid "No active frame to delete"
 msgstr "Không có khung hình đang hoạt động để xóa"
 
 
+msgid "Grey"
+msgstr "Màu Ghi"
+
+
 msgid "Skin_light"
 msgstr "Ánh_sáng_của_da"
 
 
 msgid "Skin_shadow"
 msgstr "Bóng_tối_của_da"
+
+
+msgid "Eyes"
+msgstr "Con Mắt"
+
+
+msgid "Pupils"
+msgstr "Tròng Mắt"
 
 
 msgid "Nothing selected"
@@ -114605,6 +114573,10 @@ msgstr "Tầng đang hoạt động bị khóa lại hoặc bị ẩn giấu"
 
 msgid "No Grease Pencil frame to draw on"
 msgstr "Không có khung hình Bút Chì Dầu nào để vẽ lên cả"
+
+
+msgid "Active object is not a selected grease pencil"
+msgstr "Đối tượng đang hoạt động không phải là một phần tử Bút Chì Dầu đã chọn"
 
 
 msgid "Cannot add active layer as mask"
@@ -114629,10 +114601,6 @@ msgstr "Thất bại trong việc đặt giá trị"
 
 msgid "Property from path '%s' is not a float"
 msgstr "Tính chất từ đường dẫn '%s' không phải là một số thực (float)"
-
-
-msgid "LMB: Stroke - Shift: Fill - Shift+Ctrl: Stroke + Fill"
-msgstr "NCT: Nét Vẽ - Shift: Tô Kín - Shift+Ctrl: Nét Vẽ + Tô Kín"
 
 
 msgid "Press a key"
@@ -116213,10 +116181,6 @@ msgstr "Không thể kiến tạo khung rối ở chế độ biên soạn"
 
 msgid "Converting some non-editable object/object data, enforcing 'Keep Original' option to True"
 msgstr "Đang chuyển đổi một số dữ liệu đối tượng không chỉnh sửa được hoặc dữ liệu đối tượng, tôn trọng hiệu lực của tùy chọn 'Duy Trì Bản Gốc' ở trạng thái Đúng (True)"
-
-
-msgid "Convert Surfaces to Grease Pencil is not supported"
-msgstr "Không hỗ trợ sự chuyển đổi các bề mặt thành Bút Chì Dầu"
 
 
 msgid "Object not found"
@@ -122445,10 +122409,6 @@ msgstr "Đối tượng '%s' không có dữ liệu khung lưới đã tính to�
 
 msgid "Object '%s' could not create internal data for finding nearest point"
 msgstr "Đối tượng '%s' không kiến tạo được dữ liệu nội bộ dùng để lùng tìm điểm gần nhất"
-
-
-msgid "Object '%s' is not valid for this operation! Only curves are supported"
-msgstr "Đối tượng '%s' là một đối tượng không hợp lệ đối với thao tác này! Chỉ có  các đường cong là được hỗ trợ mà thôi"
 
 
 msgid "Palette '%s' does not contain color given"

@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'6039cb17e63e')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'89e3ab2a4533')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-07 09:15+0000\n"
-"PO-Revision-Date: 2024-10-04 11:56+0000\n"
+"POT-Creation-Date: 2024-10-14 08:43+0000\n"
+"PO-Revision-Date: 2024-10-09 06:36+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
 "Language: sk\n"
@@ -3111,8 +3111,128 @@ msgid "Collection of worlds"
 msgstr "Kolekcia svetov"
 
 
+msgid "Blendfile Import Context"
+msgstr "Kontext importu blend-súboru"
+
+
+msgid "Contextual data for a blendfile library/linked-data related operation. Currently only exposed as read-only data for the pre/post blendimport handlers"
+msgstr "Údaje kontextu pre operáciu súvisiacu s knižnicou blend-súboru/spojenými údajmi. V súčasnosti vystavené len ako údaje len na čítanie pre obslužné programy pred/po importe blend-súboru"
+
+
+msgid "Options for this blendfile import operation"
+msgstr "Možnosti pre túto operáciu importu blend-súboru"
+
+
+msgid "Only link data, instead of appending it"
+msgstr "Namiesto pridávania údajov iba ich prepojenie"
+
+
+msgid "Make paths of used library blendfiles relative to current blendfile"
+msgstr "Vytvoriť cesty použitých knižníc blend-súborov relatívne k aktuálnemu blend-súboru"
+
+
+msgid "Generate a placeholder (empty ID) if not found in any library files"
+msgstr "Vygenerovať zástupný symbol (prázdne ID), ak sa nenachádza v žiadnom súbore knižnice"
+
+
+msgid "Force loaded ID to be tagged as indirectly linked (used in reload context only)"
+msgstr "Vynútiť, aby načítané ID bolo označené ako nepriamo prepojené (používa sa len v kontexte opätovného načítania)"
+
+
+msgid "Set fake user on appended IDs"
+msgstr "Nastaviť falošného používateľa na pripojených ID"
+
+
+msgid "Append (make local) also indirect dependencies of appended IDs coming from other libraries. NOTE: All IDs (including indirectly linked ones) coming from the same initial library are always made local"
+msgstr "Pripojiť (vytvoriť lokálne) aj nepriame závislosti pripojených ID pochádzajúcich z iných knižníc. POZNÁMKA: Všetky ID (vrátane nepriamo prepojených) pochádzajúce z tej istej pôvodnej knižnice sú vždy lokálne"
+
+
+msgid "Try to re-use previously appended matching IDs when appending them again, instead of creating local duplicates"
+msgstr "Pri opätovnom pridávaní sa pokúsiť znovu použiť predtým pridané zhodné ID namiesto vytvárania miestnych duplikátov"
+
+
+msgid "Clear the asset data on append (it is always kept for linked data)"
+msgstr "Vymazať údaje o aktívach pri pripojení (pri prepojených údajoch sa vždy zachovávajú)"
+
+
+msgid "Automatically select imported objects"
+msgstr "Automatický výber importovaných objektov"
+
+
+msgid "Use the active Collection of the current View Layer to instantiate imported collections and objects"
+msgstr "Použiť aktívnu kolekciu aktuálnej vrstvy zobrazenia na inštanciovanie importovaných kolekcií a objektov"
+
+
+msgid "Instantiate object data IDs (i.e. create objects for them if needed)"
+msgstr "Vytvorenie inštancie ID údajov objektu (t. j. vytvorenie objektov pre nich, ak je to potrebné)"
+
+
+msgid "Instantiate collections as empties, instead of linking them into the current view layer"
+msgstr "Vytvorenie inštancie kolekcií ako prázdne, namiesto ich prepojenia s aktuálnou vrstvou zobrazenia"
+
+
+msgid "Current stage of the import process"
+msgstr "Aktuálna fáza procesu importu"
+
+
+msgid "Blendfile import context has been initialized and filled with a list of items to import, no data has been linked or appended yet"
+msgstr "Kontext importu blend-súboru bol inicializovaný a naplnený zoznamom položiek na import, zatiaľ neboli prepojené ani pripojené žiadne údaje"
+
+
+msgid "All data has been imported and is available in the list of `import_items`"
+msgstr "Všetky údaje boli importované a sú k dispozícii v zozname `import_items`"
+
+
+msgid "Blendfile Import Context Item"
+msgstr "Položka kontextu importu blend-súboru"
+
+
+msgid "An item (representing a data-block) in a BlendImportContext data. Currently only exposed as read-only data for the pre/post linking handlers"
+msgstr "Položka (predstavujúca blok údajov) v údajoch BlendImportContext. V súčasnosti je vystavená len ako údaj len na čítanie pre obslužné programy pred/po prepojení"
+
+
+msgid "Append Action"
+msgstr "Pripojiť akciu"
+
+
+msgid "How this item has been handled by the append operation. Only set if the data has been appended"
+msgstr "Určuje, ako bola táto položka spracovaná operáciou pripojenia. Nastavuje sa len vtedy, ak boli údaje pripojené"
+
+
+msgid "Not yet defined"
+msgstr "Zatiaľ nedefinované"
+
+
+msgid "ID has been kept linked"
+msgstr "ID je stále prepojené"
+
+
+msgid "An existing matching local ID has been re-used"
+msgstr "Opätovne sa použilo existujúce zodpovedajúce lokálne ID"
+
+
+msgid "The newly linked ID has been made local"
+msgstr "Novo prepojené ID bolo vytvorené ako lokálne"
+
+
+msgid "The linked ID had other unrelated usages, so it has been duplicated into a local copy"
+msgstr "Prepojené ID malo iné nesúvisiace použitia, preto bolo duplikované do lokálnej kópie"
+
+
+msgid "Imported ID"
+msgstr "Importované ID"
+
+
+msgid "The imported ID. None until it has been linked or appended. May be the same as `reusable_local_id` when appended"
+msgstr "Importované ID. Žiadne, kým nie je prepojené alebo pripojené. Môže byť rovnaké ako `reusable_local_id`, keď je pripojené"
+
+
 msgid "ID Type"
 msgstr "ID typu"
+
+
+msgid "ID type of the item"
+msgstr "Typ ID položky"
 
 
 msgid "Armature"
@@ -3253,6 +3373,86 @@ msgstr "Pracovný priestor"
 
 msgid "World"
 msgstr "Svet"
+
+
+msgid "Import Info"
+msgstr "Informácie o importe"
+
+
+msgid "Various status info about an item after it has been imported"
+msgstr "Rôzne informácie o stave položky po jej importovaní"
+
+
+msgid "That item was added for an indirectly imported ID, as a dependency of another data-block"
+msgstr "Táto položka bola pridaná pre nepriamo importované ID ako závislosť iného bloku údajov"
+
+
+msgid "That item represents an ID also used as liboverride dependency (either directly, as a liboverride reference, or indirectly, as data used by a liboverride reference). It should never be directly made local. Mutually exclusive with `LIBOVERRIDE_DEPENDENCY_ONLY`"
+msgstr "Táto položka predstavuje ID, ktoré sa používa aj ako závislosť od prepisu knižnice (buď priamo, ako odkaz na prepis knižnice, alebo nepriamo, ako údaje používané odkazom na prepis knižnice). Nikdy by nemal byť priamo lokálny. Vzájomne sa vylučuje s `LIBOVERRIDE_DEPENDENCY_ONLY`"
+
+
+msgid "That item represents an ID only used as liboverride dependency (either directly or indirectly, see `LIBOVERRIDE_DEPENDENCY` for precisions). It should not be considered during the 'make local' (append) process, and remain purely linked data. Mutually exclusive with `LIBOVERRIDE_DEPENDENCY`"
+msgstr "Táto položka predstavuje ID, ktoré sa používa len ako závislosť od prepisu knižnice (buď priamo, alebo nepriamo, presnejšie informácie nájdete v časti `LIBOVERRIDE_DEPENDENCY`). Nemala by sa brať do úvahy počas procesu 'make local' (pripojenia) a mala by zostať čisto prepojenými údajmi. Vzájomne sa vylučuje s `LIBOVERRIDE_DEPENDENCY`"
+
+
+msgid "Library Overridden ID"
+msgstr "ID prepisu knižnice"
+
+
+msgid "The library override of the linked ID. None until it has been created"
+msgstr "Prepis knižnice prepojeného ID. Žiadne, kým nie je vytvorené"
+
+
+msgid "ID name of the item"
+msgstr "ID názvu položky"
+
+
+msgid "Reusable Local ID"
+msgstr "Opakovane použiteľné lokálne ID"
+
+
+msgid "The already existing local ID that may be reused in append & reuse case. None until it has been found"
+msgstr "Už existujúce lokálne ID, ktoré sa môže opätovne použiť v prípade pripojenia a opätovného použitia. Žiadne, kým sa nenájde"
+
+
+msgid "Source Libraries"
+msgstr "Zdrojové knižnice"
+
+
+msgid "List of libraries to search and import that ID from. The ID will be imported from the first file in that list that contains it"
+msgstr "Zoznam knižníc, v ktorých sa má vyhľadávať a z ktorých sa má importovať toto ID. ID sa importuje z prvého súboru v tomto zozname, ktorý ho obsahuje"
+
+
+msgid "Source Library"
+msgstr "Zdroj knižnice"
+
+
+msgid "Library ID representing the blendfile from which the ID was imported. None until the ID has been linked or appended"
+msgstr "ID knižnice predstavujúce blend-súbor, z ktorého bol ID importovaný. Žiadne, kým sa ID neprepojí alebo nepripojí"
+
+
+msgid "Blendfile Import Context Items"
+msgstr "Položky kontextu importu blend-súboru"
+
+
+msgid "Collection of blendfile import context items"
+msgstr "Kolekcia položiek kontextu importu blend-súboru"
+
+
+msgid "Blendfile Import Context Libraries"
+msgstr "Importovať kontextové knižnice blend-súboru"
+
+
+msgid "Collection of source libraries, i.e. blendfile paths"
+msgstr "Kolekcia zdrojových knižníc, t. j. cesty k blend-súborom"
+
+
+msgid "Blendfile Import Context Library"
+msgstr "Importovať kontextovú knižnicu blend-súboru"
+
+
+msgid "Library (blendfile) reference in a BlendImportContext data. Currently only exposed as read-only data for the pre/post blendimport handlers"
+msgstr "Odkaz na knižnicu (blend-súboru) v údajoch BlendImportContext. V súčasnosti vystavené len ako údaje len na čítanie pre obslužné programy pred/po blendimporte"
 
 
 msgid "Blender RNA"
@@ -5220,6 +5420,10 @@ msgstr "Použiť chvenie tlakom"
 
 msgid "Use tablet pressure for jitter"
 msgstr "Použije tlak tabletu pre chvenie"
+
+
+msgid "Keep Caps"
+msgstr "Zachovať uzávery"
 
 
 msgid "Keep the caps as they are and don't flatten them when erasing"
@@ -17133,12 +17337,36 @@ msgid "Index number for the \"Layer Index\" pass"
 msgstr "Indexové číslo pre \"index vrstvy\" prechodu"
 
 
+msgid "Radius Offset"
+msgstr "Posuv polomeru"
+
+
+msgid "Radius change to apply to current strokes"
+msgstr "Zmena polomeru, ktorá sa použije na aktuálne ťahy"
+
+
 msgid "Euler rotation of the layer"
 msgstr "Eulerova rotácia vrstvy"
 
 
 msgid "Scale of the layer"
 msgstr "Mierka vrstvy"
+
+
+msgid "Tint Color"
+msgstr "Farba odtieňa"
+
+
+msgid "Color for tinting stroke colors"
+msgstr "Farba pre odtieň ťahu"
+
+
+msgid "Tint Factor"
+msgstr "Faktor odtieňa"
+
+
+msgid "Factor of tinting color"
+msgstr "Faktor farby odtieňa"
 
 
 msgid "Translation"
@@ -33605,30 +33833,6 @@ msgid "Snap"
 msgstr "Prichytiť"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "Dopad proporcionálnej úpravy"
-
-
-msgid "Mask Edit"
-msgstr "Úprava masky"
-
-
-msgid "Automasking"
-msgstr "Automatické maskovanie"
-
-
-msgid "Face Sets Edit"
-msgstr "Úprava nastavenia plôšok"
-
-
-msgid "Vertex Group Locks"
-msgstr "Zámky skupiny vrcholov"
-
-
-msgid "Mirror"
-msgstr "Zrkadlo"
-
-
 msgid "UV Mapping"
 msgstr "UV mapovanie"
 
@@ -33733,6 +33937,10 @@ msgid "Hooks"
 msgstr "Háky"
 
 
+msgid "Vertex Group Locks"
+msgstr "Zámky skupiny vrcholov"
+
+
 msgid "Trim/Add"
 msgstr "Orezať/Pridať"
 
@@ -33815,6 +34023,26 @@ msgstr "Kývanie kosti"
 
 msgid "Pivot Point"
 msgstr "Otočný bod"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Dopad proporcionálnej úpravy"
+
+
+msgid "Mask Edit"
+msgstr "Úprava masky"
+
+
+msgid "Automasking"
+msgstr "Automatické maskovanie"
+
+
+msgid "Face Sets Edit"
+msgstr "Úprava nastavenia plôšok"
+
+
+msgid "Mirror"
+msgstr "Zrkadlo"
 
 
 msgid "Keyframe Insert Pie"
@@ -46648,6 +46876,10 @@ msgid "Invert Rotation"
 msgstr "Inverzná rotácia"
 
 
+msgid "Matrix Determinant"
+msgstr "Vymedziť matricu"
+
+
 msgid "Multiply Matrices"
 msgstr "Viacnásobné matrice"
 
@@ -51137,6 +51369,50 @@ msgid "Scatter light as it passes through the volume, often used to add fog to a
 msgstr "Rozptyl svetla pri prechode objemom, často sa používa na pridanie hmly do scény"
 
 
+msgid "Phase function for the scattered light"
+msgstr "Fázová funkcia pre rozptýlené svetlo"
+
+
+msgid "Henyey-Greenstein"
+msgstr "Henyey-Greenstein"
+
+
+msgid "Henyey-Greenstein, default phase function for the scattering of light"
+msgstr "Henyey-Greenstein, štandardná fázová funkcia pre rozptyl svetla"
+
+
+msgid "Fournier-Forand"
+msgstr "Fournier-Forand"
+
+
+msgid "Fournier-Forand phase function, used for the scattering of light in underwater environments"
+msgstr "Fournierova-Forandova fázová funkcia, ktorá sa používa na rozptyl svetla v prostredí pod vodou"
+
+
+msgid "Draine"
+msgstr "Draine"
+
+
+msgid "Draine phase functions, mostly used for the scattering of light in interstellar dust"
+msgstr "Draineho fázové funkcie, ktoré sa väčšinou používajú na rozptyl svetla v medzihviezdnom prachu"
+
+
+msgid "Rayleigh"
+msgstr "Rayleigh"
+
+
+msgid "Rayleigh phase function, mostly used for particles smaller than the wavelength of light, such as scattering of sunlight in earth's atmosphere"
+msgstr "Rayleighova fázová funkcia, ktorá sa väčšinou používa pre častice menšie ako vlnová dĺžka svetla, napríklad rozptyl slnečného svetla v zemskej atmosfére"
+
+
+msgid "Mie"
+msgstr "Mie"
+
+
+msgid "Approximation of Mie scattering in water droplets, used for scattering in clouds and fog"
+msgstr "Aproximácia Mieho rozptylu vo vodných kvapkách, ktorá sa používa na rozptyl v oblakoch a hmle"
+
+
 msgid "Convert a wavelength value to an RGB value"
 msgstr "Konvertuje hodnoty vlnovej dĺžky na hodnotu RGB"
 
@@ -55039,6 +55315,15 @@ msgstr "Vygeneruje systémové informácie uložené do textového súboru"
 msgctxt "Operator"
 msgid "Save System Info"
 msgstr "Uložiť systémové informácie"
+
+
+msgid "Look up the most appropriate tool for the given brush type and activate that"
+msgstr "Vyhľadá najvhodnejší nástroj pre daný typ štetca a aktivuje ho"
+
+
+msgctxt "Operator"
+msgid "Set Tool by Brush Type"
+msgstr "Nastaviť nástroj podľa typu štetca"
 
 
 msgid "Set the tool by name (for key-maps)"
@@ -63127,19 +63412,6 @@ msgstr "Pridá nový blok údajov poznámky"
 
 
 msgctxt "Operator"
-msgid "Insert Blank Frame"
-msgstr "Vložiť prázdnu snímku"
-
-
-msgid "Insert a blank frame on the current frame (all subsequently existing frames, if any, are shifted right by one frame)"
-msgstr "Vloží prázdnu snímku do aktuálnej snímky (všetky následné existujúce snímky sa posunú rovno o jednu snímku)"
-
-
-msgid "Create blank frame in all layers, not only active"
-msgstr "Vytvorí prázdnu snímku vo všetkých vrstvách a nielen v aktívnej"
-
-
-msgctxt "Operator"
 msgid "Annotation Unlink"
 msgstr "Odpojiť poznámku"
 
@@ -64308,6 +64580,11 @@ msgid "Duplicate active keyframes of all layer"
 msgstr "Vytvorí kópiu aktívnych kľúčových snímok všetkých vrstiev"
 
 
+msgctxt "Operator"
+msgid "Insert Blank Frame"
+msgstr "Vložiť prázdnu snímku"
+
+
 msgid "Insert a blank frame on the current scene frame"
 msgstr "Vloží prázdnu snímku na aktuálnu snímku scény"
 
@@ -64475,12 +64752,33 @@ msgid "Elastic"
 msgstr "Elastická"
 
 
+msgctxt "Operator"
+msgid "Join Selection"
+msgstr "Pripojiť výber"
+
+
+msgid "New stroke from selected points/strokes"
+msgstr "Nový ťah z vybraných bodov/ťahov"
+
+
+msgid "Defines how the operator will behave on the selection in the active layer"
+msgstr "Definuje, ako sa bude operátor správať k výberu v aktívnej vrstve"
+
+
 msgid "Join and Copy"
 msgstr "Spojiť a kopírovať"
 
 
+msgid "Copy the selection in the new stroke"
+msgstr "Kopírovať výber v novom ťahu"
+
+
 msgid "Join"
 msgstr "Spojiť"
+
+
+msgid "Move the selection to the new stroke"
+msgstr "Presunúť výber na nový ťah"
 
 
 msgctxt "Operator"
@@ -64699,6 +64997,22 @@ msgstr "Znovu zoradí aktívnu vrstvu masky Grease Pencil v zozname nahor/nadol"
 msgctxt "Operator"
 msgid "Merge"
 msgstr "Zlúčiť"
+
+
+msgid "Combine layers based on the mode into one layer"
+msgstr "Spojiť vrstvy na základe režimu do jednej vrstvy"
+
+
+msgid "Combine the active layer with the layer just below (if it exists)"
+msgstr "Spojiť aktívnu vrstvu s vrstvou, ktorá sa nachádza tesne pod ňou (ak existuje)"
+
+
+msgid "Combine layers in the active group into a single layer"
+msgstr "Spojiť vrstvy v aktívnej skupine do jednej vrstvy"
+
+
+msgid "Combine all layers into a single layer"
+msgstr "Spojiť všetky vrstvy do jednej vrstvy"
 
 
 msgctxt "Operator"
@@ -72497,6 +72811,10 @@ msgid "Curve from Mesh or Text objects"
 msgstr "Krivka podľa objektov povrchovej siete alebo textu"
 
 
+msgid "Mesh from Curve, Surface, Metaball, or Text objects"
+msgstr "Povrchová sieť z objektov krivka, povrch, meta-guľa alebo text"
+
+
 msgid "Curves from evaluated curve data"
 msgstr "Krivky z vyhodnotených údajov krivky"
 
@@ -73653,6 +73971,14 @@ msgstr "Použiť modifikátor"
 
 msgid "Apply modifier and remove from the stack"
 msgstr "Použije modifikátor a odstráni ho zo zásobníka"
+
+
+msgid "Apply to all keyframes"
+msgstr "Použiť na všetky kľúčové snímky"
+
+
+msgid "For Grease Pencil objects, apply the modifier to all the keyframes"
+msgstr "V prípade objektov Grease Pencil použije modifikátor na všetky kľúčové snímky"
 
 
 msgid "For mesh objects, merge UV coordinates that share a vertex to account for imprecision in some modifiers"
@@ -83841,6 +84167,11 @@ msgstr "Premenuje aktívnu položku v sústave údajov pohľadu"
 
 
 msgctxt "Operator"
+msgid "View Scroll"
+msgstr "Zobraziť posúvač"
+
+
+msgctxt "Operator"
 msgid "View Filter"
 msgstr "Zobraziť filter"
 
@@ -86762,8 +87093,12 @@ msgid "Export strokes with fill enabled"
 msgstr "Export ťahov s povolenou výplňou"
 
 
-msgid "Export strokes with constant thickness"
-msgstr "Export ťahov s konštantnou hrúbkou"
+msgid "Uniform Width"
+msgstr "Jednotná šírka"
+
+
+msgid "Export strokes with uniform width"
+msgstr "Exportuje ťahy s jednotnou šírkou"
 
 
 msgctxt "Operator"
@@ -86779,8 +87114,8 @@ msgid "Clip Camera"
 msgstr "Orezať kameru"
 
 
-msgid "Clip drawings to camera size when export in camera view"
-msgstr "Orezanie vykreslenia na veľkosť kamery pri exporte v zobrazení kamery"
+msgid "Clip drawings to camera size when exporting in camera view"
+msgstr "Oreže kresby na veľkosť kamery pri exporte v pohľade kamery"
 
 
 msgctxt "Operator"
@@ -86798,18 +87133,6 @@ msgstr "Rozlíšenie vygenerovaných ťahov"
 
 msgid "Scale of the final strokes"
 msgstr "Mierka finálnych ťahov"
-
-
-msgid "Uniform Width"
-msgstr "Jednotná šírka"
-
-
-msgid "Export strokes with uniform width"
-msgstr "Exportuje ťahy s jednotnou šírkou"
-
-
-msgid "Clip drawings to camera size when exporting in camera view"
-msgstr "Oreže kresby na veľkosť kamery pri exporte v pohľade kamery"
 
 
 msgid "Scene Unit"
@@ -87973,6 +88296,10 @@ msgid "Validate Mesh"
 msgstr "Overiť povrchové siete"
 
 
+msgid "Brush type identifier for which the most appropriate tool will be looked up"
+msgstr "Identifikátor typu štetca, pre ktorý sa vyhľadá najvhodnejší nástroj"
+
+
 msgid "Set Fallback"
 msgstr "Nastaviť náhradný"
 
@@ -88497,6 +88824,30 @@ msgstr "Referencia existujúcich"
 
 msgid "If a material with the same name already exists, reference that instead of importing"
 msgstr "Ak už existuje materiál s rovnakým názvom, namiesto importu sa naňho odvoláva"
+
+
+msgid "Material Purpose"
+msgstr "Účel materiálu"
+
+
+msgid "Attempt to import materials with the given purpose. If no material with this purpose is bound to the primitive, fall back on loading any other bound material"
+msgstr "Pokúsi sa importovať materiály s daným účelom. Ak k prvotnému tvaru nie je viazaný žiadny materiál s týmto účelom, vráti sa k načítaniu akéhokoľvek iného viazaného materiálu"
+
+
+msgid "All Purpose"
+msgstr "Vše účelové"
+
+
+msgid "Attempt to import 'allPurpose' materials."
+msgstr "Pokúsi sa importovať 'vše účelové' materiály."
+
+
+msgid "Attempt to import 'preview' materials. Load 'allPurpose' materials as a fallback"
+msgstr "Pokúsi sa importovať materiály 'náhľadu'. Načíta materiály 'vše účelové' ako záložný variant"
+
+
+msgid "Attempt to import 'full' materials. Load 'allPurpose' or 'preview' materials, in that order, as a fallback"
+msgstr "Pokúsi sa importovať 'plné' materiály. Ako náhradný variant načíta materiály 'vše účelové' alebo 'náhľadu' v tomto poradí"
 
 
 msgid "Path Mask"
@@ -89476,6 +89827,94 @@ msgid "Panel containing UI elements"
 msgstr "Panel obsahujúci prvky užívateľského rozhrania"
 
 
+msgid "Snapping"
+msgstr "Prichytenie"
+
+
+msgid "Transform Orientations"
+msgstr "Orientácia transformácie"
+
+
+msgid "Stroke Placement"
+msgstr "Umiestnenie ťahu"
+
+
+msgid "Drawing Plane"
+msgstr "Rovina kreslenia"
+
+
+msgid "Guides"
+msgstr "Vodenie"
+
+
+msgid "Grease Pencil Options"
+msgstr "Možnosti Grease Pencil"
+
+
+msgid "Quad View"
+msgstr "Štvornásobné zobrazenie"
+
+
+msgid "Onion Skin"
+msgstr "Cibuľové šupky"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoskopia"
+
+
+msgid "Multi Frame"
+msgstr "Viacero snímok"
+
+
+msgid "Auto-Masking"
+msgstr "Auto maskovanie"
+
+
+msgid "glTF Variants"
+msgstr "glTF varianty"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF varianty materiálu"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Možnosti kriviek tvarovania Pridať krivku"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Parameter dopadu tvarovania kriviek"
+
+
+msgid "Curves Grow/Shrink Scaling"
+msgstr "Zmena mierky Zúžiť/Rozšíriť krivku"
+
+
+msgid "Viewport Debug"
+msgstr "Ladenie záberu"
+
+
+msgid "Curve Edit Mode"
+msgstr "Režim editácie krivky"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF animácie"
+
+
+msgid "VR"
+msgstr "Virtuálna realita VR"
+
+
+msgid "VR Info"
+msgstr "VR Info"
+
+
 msgid "Active Tool"
 msgstr "Aktívny nástroj"
 
@@ -89512,10 +89951,6 @@ msgid "Overlays"
 msgstr "Prekrytia"
 
 
-msgid "Guides"
-msgstr "Vodenie"
-
-
 msgid "Viewer Node"
 msgstr "Uzol Zobrazovač"
 
@@ -89530,90 +89965,6 @@ msgstr "Režim editácie povrchovej siete"
 
 msgid "Measurement"
 msgstr "Miera"
-
-
-msgid "Curve Edit Mode"
-msgstr "Režim editácie krivky"
-
-
-msgid "Snapping"
-msgstr "Prichytenie"
-
-
-msgid "Transform Orientations"
-msgstr "Orientácia transformácie"
-
-
-msgid "Stroke Placement"
-msgstr "Umiestnenie ťahu"
-
-
-msgid "Drawing Plane"
-msgstr "Rovina kreslenia"
-
-
-msgid "Grease Pencil Options"
-msgstr "Možnosti Grease Pencil"
-
-
-msgid "Quad View"
-msgstr "Štvornásobné zobrazenie"
-
-
-msgid "glTF Variants"
-msgstr "glTF varianty"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF varianty materiálu"
-
-
-msgid "Onion Skin"
-msgstr "Cibuľové šupky"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoskopia"
-
-
-msgid "Multi Frame"
-msgstr "Viacero snímok"
-
-
-msgid "Auto-Masking"
-msgstr "Auto maskovanie"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTF animácie"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Možnosti kriviek tvarovania Pridať krivku"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "Parameter dopadu tvarovania kriviek"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "Zmena mierky Zúžiť/Rozšíriť krivku"
-
-
-msgid "Viewport Debug"
-msgstr "Ladenie záberu"
-
-
-msgid "VR"
-msgstr "Virtuálna realita VR"
-
-
-msgid "VR Info"
-msgstr "VR Info"
 
 
 msgid "Chain Scaling"
@@ -90093,6 +90444,21 @@ msgstr "Odtrhnúť oblasť"
 msgctxt "Operator"
 msgid "Grab"
 msgstr "Uchopiť"
+
+
+msgctxt "Operator"
+msgid "Paint"
+msgstr "Maľovať"
+
+
+msgctxt "Operator"
+msgid "Blur"
+msgstr "Rozostriť"
+
+
+msgctxt "Operator"
+msgid "Smear"
+msgstr "Rozmazať"
 
 
 msgctxt "Operator"
@@ -91040,6 +91406,26 @@ msgstr "Štetec"
 
 
 msgctxt "Operator"
+msgid "Draw Face Sets"
+msgstr "Kresliť sústavy plôšok"
+
+
+msgctxt "Operator"
+msgid "Density"
+msgstr "Zhustiť"
+
+
+msgctxt "Operator"
+msgid "Multires Displacement Eraser"
+msgstr "Zmazať viacnásobným posunutím"
+
+
+msgctxt "Operator"
+msgid "Multires Displacement Smear"
+msgstr "Rozmazať viacnásobným posunutím"
+
+
+msgctxt "Operator"
 msgid "Box Mask"
 msgstr "Maska poľom"
 
@@ -91140,6 +91526,16 @@ msgstr "Filter farby"
 
 
 msgctxt "Operator"
+msgid "Clone"
+msgstr "Klonovať"
+
+
+msgctxt "Operator"
+msgid "Average"
+msgstr "Spriemerovať"
+
+
+msgctxt "Operator"
 msgid "Sample Weight"
 msgstr "Snímka váhy"
 
@@ -91187,6 +91583,11 @@ msgstr "Krivka"
 msgctxt "Operator"
 msgid "Trim"
 msgstr "Orezať"
+
+
+msgctxt "Operator"
+msgid "Selection Paint"
+msgstr "Výber maľby"
 
 
 msgid "Clone from Paint Slot"
@@ -95062,6 +95463,14 @@ msgstr "Hrubšie čiary ako predvolené"
 
 msgid "Changes the size of the fonts and widgets in the interface"
 msgstr "Zmení veľkosť písiem a miniaplikácií v rozhraní"
+
+
+msgid "Filter Brushes by Tool"
+msgstr "Filtrovať štetce podľa nástroja"
+
+
+msgid "Only show brushes applicable for the currently active tool in the asset shelf. Stored in the Preferences, which may have to be saved manually if Auto-Save Preferences is disabled"
+msgstr "Zobrazí len štetce použiteľné pre aktuálne aktívny nástroj v polici aktív. Uložené v predvoľbách, ktoré možno bude potrebné uložiť ručne, ak je zakázané automatické ukladanie predvolieb"
 
 
 msgid ""
@@ -119080,6 +119489,11 @@ msgstr "Zlúčiť s dolnou"
 
 
 msgctxt "Operator"
+msgid "Merge Group"
+msgstr "Zlúčiť skupinu"
+
+
+msgctxt "Operator"
 msgid "Merge All"
 msgstr "Zlúčiť všetko"
 
@@ -119592,6 +120006,10 @@ msgstr "Mapovanie masky"
 
 msgid "Pressure Masking"
 msgstr "Maskovanie tlakom"
+
+
+msgid "By Active Tool"
+msgstr "Podľa aktívneho nástroja"
 
 
 msgid "Falloff Opacity"
@@ -125912,6 +126330,14 @@ msgid "ADT Slot Name: -"
 msgstr "Názov zásuvky ADT: -"
 
 
+msgid "No layers"
+msgstr "Bez vrstiev"
+
+
+msgid "Layer {:d}:"
+msgstr "Vrstva {:d}:"
+
+
 msgid "Internal Name"
 msgstr "Interný názov"
 
@@ -127604,6 +128030,10 @@ msgid "Error: Too many AOVs"
 msgstr "Chyba: Príliš veľa AOV"
 
 
+msgid "Errors during render. See the System Console for more info."
+msgstr "Chyby počas prekresľovania. Viac informácií nájdete v časti Systémová konzola."
+
+
 msgid "Compiling EEVEE engine shaders"
 msgstr "Kompilácia tieňovačov mechanizmu EEVEE"
 
@@ -127676,8 +128106,8 @@ msgid "Error: Shadow buffer full, may result in missing shadows and lower perfor
 msgstr "Chyba: môže mať za následok chýbajúce tiene a nižší výkon. ({} / {})"
 
 
-msgid "Error: Too many shadow updates, some shadow might be incorrect."
-msgstr "Chyba: Príliš veľa aktualizácií tieňov, niektoré tiene môžu byť nesprávne."
+msgid "Error: Reached max shadow updates."
+msgstr "Chyba: Dosiahnuté maximálne aktualizácie tieňa."
 
 
 msgid "GpencilMode"
@@ -128863,40 +129293,12 @@ msgid "Active region not set"
 msgstr "Aktívna oblasť nie je nastavená"
 
 
-msgid "Skin_Light"
-msgstr "Osvetlenie pokožky"
-
-
-msgid "Skin_Shadow"
-msgstr "Tieň pokožky"
-
-
-msgid "Eyes"
-msgstr "Oči"
-
-
-msgid "Pupils"
-msgstr "Zrenica"
-
-
-msgid "Grey"
-msgstr "Sivá"
-
-
 msgid "Nowhere for grease pencil data to go"
 msgstr "Nikde nechodiť pre údaje Grease Pencil"
 
 
 msgid "Cannot delete locked layers"
 msgstr "Nemožno odstrániť zamknuté vrstvy"
-
-
-msgid "Apply all rotations before join objects"
-msgstr "Použiť všetky rotácie pred pripojením objektov"
-
-
-msgid "Active object is not a selected grease pencil"
-msgstr "Aktívny objekt nie je vybraná Grease Pencil"
 
 
 msgid "No grease pencil data"
@@ -128907,8 +129309,8 @@ msgid "No active frame to delete"
 msgstr "Žiadna aktívna snímka na odstránenie"
 
 
-msgid "Add New Layer"
-msgstr "Pridať novú vrstvu"
+msgid "Grey"
+msgstr "Sivá"
 
 
 msgid "Skin_light"
@@ -128917,6 +129319,14 @@ msgstr "Svetlo_pokozky"
 
 msgid "Skin_shadow"
 msgstr "Tien_pokozky"
+
+
+msgid "Eyes"
+msgstr "Oči"
+
+
+msgid "Pupils"
+msgstr "Zrenica"
 
 
 msgid "Bake Object Transform to Grease Pencil"
@@ -128959,6 +129369,10 @@ msgid "No Grease Pencil frame to draw on"
 msgstr "Žiadna snímka na kreslenie Grease Pencil"
 
 
+msgid "Active object is not a selected grease pencil"
+msgstr "Aktívny objekt nie je vybraná Grease Pencil"
+
+
 msgid "There is no layer '%s'"
 msgstr "Toto nie je vrstva '%s'"
 
@@ -128977,6 +129391,14 @@ msgstr "Kopírovaných %d vybraných bodov"
 
 msgid "Add New Grease Pencil Layer"
 msgstr "Pridať novú vrstvu Grease Pencil"
+
+
+msgid "No active layer"
+msgstr "Žiadna aktívna vrstva"
+
+
+msgid "No active group"
+msgstr "Žiadna aktívna skupina"
 
 
 msgid "Cannot add active layer as mask"
@@ -129097,10 +129519,6 @@ msgstr "Nepodarilo sa nastaviť hodnotu"
 
 msgid "Property from path '%s' is not a float"
 msgstr "Vlastnosť z cesty '%s' nie je číslo na pohyblivej čiarke"
-
-
-msgid "LMB: Stroke - Shift: Fill - Shift+Ctrl: Stroke + Fill"
-msgstr "ĽTM: Ťah - Shift: Vyplniť - Shift+Ctrl: Ťah + Vyplniť"
 
 
 msgid "Current: "
@@ -130447,6 +130865,10 @@ msgid "Rigging"
 msgstr "Výbava"
 
 
+msgid "Display Purpose"
+msgstr "Zobraziť účel"
+
+
 msgid "Particles and Instancing"
 msgstr "Častice a inštancovanie"
 
@@ -130654,6 +131076,10 @@ msgstr "Povrchová sieť objektu(ov) nemajú aktívny vrchol/hranu/plôšku"
 
 msgid "This operator requires an active vertex (last selected)"
 msgstr "Tento operátor vyžaduje aktívny vrchol (posledný vybraný)"
+
+
+msgid "An edit-mesh with vertex or edge selection mode is required"
+msgstr "Vyžaduje sa upraviteľná povrchová sieť s režimom výberu vrcholov alebo hrán"
 
 
 msgid "Must be in vertex selection mode"
@@ -130991,10 +131417,6 @@ msgstr "Nemožno vytvoriť režim editácie armatúry"
 
 msgid "Converting some non-editable object/object data, enforcing 'Keep Original' option to True"
 msgstr "Konverzia niektorých neupraviteľných objektov/ údajov objektu, vynútenie možnosti \"Zachovať pôvodný\" na hodnotu PRAVDA"
-
-
-msgid "Convert Surfaces to Grease Pencil is not supported"
-msgstr "Konvertovanie povrchov na Grease Pencil nie je podporované"
 
 
 msgid "Object not found"
@@ -133627,6 +134049,10 @@ msgstr "bajtov"
 
 msgid "Could not rename: %s"
 msgstr "Nepodarilo sa premenovať: %s"
+
+
+msgid "Create new directory?"
+msgstr "Vytvoriť nový priečinok?"
 
 
 msgid "Delete selected files?"
@@ -138513,10 +138939,6 @@ msgid "Object '%s' could not create internal data for finding nearest point"
 msgstr "Objekt '%s' nemohol vytvoriť interné údaje na vyhľadanie najbližšieho bodu"
 
 
-msgid "Object '%s' is not valid for this operation! Only curves are supported"
-msgstr "Objekt '%s' nie je platný pre túto operáciu! Podporované sú iba krivky"
-
-
 msgid "Palette '%s' does not contain color given"
 msgstr "Paleta '%s' neobsahuje danú farbu"
 
@@ -139619,6 +140041,10 @@ msgid "Bake Path"
 msgstr "Zapiecť cestu"
 
 
+msgid "Warnings ({})"
+msgstr "Upozornenia ({})"
+
+
 msgid "Output Attributes"
 msgstr "Atribúty výstupu"
 
@@ -139854,8 +140280,17 @@ msgid "Target vertices changed from %u to %u"
 msgstr "Zmena cieľových vrcholov z %u na %u"
 
 
+msgid "Apply (All Keyframes)"
+msgstr "Použiť (všetky kľúčové snímky)"
+
+
 msgid "External library data"
 msgstr "Údaje externej knižnice"
+
+
+msgctxt "Operator"
+msgid "Apply (Active Keyframe)"
+msgstr "Použiť (aktívna kľúčová snímka)"
 
 
 msgctxt "Operator"
@@ -140363,6 +140798,10 @@ msgstr "Invertovaná matrica alebo identická matrica, ak vstup nie je invertova
 
 msgid "True if the input matrix is invertible"
 msgstr "PRAVDA, ak je vstupná matrica invertovateľná"
+
+
+msgid "Determinant"
+msgstr "Vymedzovač"
 
 
 msgid "The string to find in the input string"
@@ -143358,6 +143797,30 @@ msgstr "Odtieň čierneho telesa"
 
 msgid "Temperature Attribute"
 msgstr "Atribút teploty"
+
+
+msgid "Backscatter"
+msgstr "Spätný rozptyl"
+
+
+msgid "Diameter"
+msgstr "Priemer"
+
+
+msgid "Directionality of the scattering. Zero is isotropic, negative is backward, positive is forward"
+msgstr "Smerovosť rozptylu. Nula je izotropný, záporný je spätný, kladný je priamy"
+
+
+msgid "Index Of Refraction of the scattering particles"
+msgstr "Index lomu rozptylových častíc"
+
+
+msgid "Fraction of light that is scattered backwards"
+msgstr "Podiel svetla, ktoré je rozptýlené dozadu"
+
+
+msgid "Diameter of the water droplets, in micrometers"
+msgstr "Priemer kvapiek vody v mikrometroch"
 
 
 msgid "Patterns"

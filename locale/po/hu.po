@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'6039cb17e63e')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'89e3ab2a4533')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-07 09:15+0000\n"
+"POT-Creation-Date: 2024-10-14 08:43+0000\n"
 "PO-Revision-Date: 2024-01-11 03:55+0000\n"
 "Last-Translator: Répási Dávid <hu.repasidavid@protonmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -6717,10 +6717,6 @@ msgid "Use Material Mask"
 msgstr "Anyagmaszk használata"
 
 
-msgid "Mirror"
-msgstr "Tükrözés"
-
-
 msgid "Local View"
 msgstr "Helyi nézet"
 
@@ -6759,6 +6755,10 @@ msgstr "Tisztítás"
 
 msgid "Merge"
 msgstr "Összefésülés"
+
+
+msgid "Mirror"
+msgstr "Tükrözés"
 
 
 msgctxt "MovieClip"

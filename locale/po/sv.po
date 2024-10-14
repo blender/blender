@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'6039cb17e63e')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'89e3ab2a4533')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-07 09:15+0000\n"
+"POT-Creation-Date: 2024-10-14 08:43+0000\n"
 "PO-Revision-Date: 2024-01-17 19:22+0000\n"
 "Last-Translator: Peter Simonsson <peter@simonsson.com>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -5329,10 +5329,6 @@ msgid "Snap"
 msgstr "Snäpp"
 
 
-msgid "Mirror"
-msgstr "Spegla"
-
-
 msgid "Local View"
 msgstr "Lokal vy"
 
@@ -5387,6 +5383,10 @@ msgstr "Namn"
 
 msgid "Pivot Point"
 msgstr "Fast punkt"
+
+
+msgid "Mirror"
+msgstr "Spegla"
 
 
 msgid "Catalog"

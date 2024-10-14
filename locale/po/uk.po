@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'6039cb17e63e')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'89e3ab2a4533')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-07 09:15+0000\n"
+"POT-Creation-Date: 2024-10-14 08:43+0000\n"
 "PO-Revision-Date: 2024-03-13 11:04+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -26967,30 +26967,6 @@ msgid "Snap"
 msgstr "Підхоп"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "Спад Пропорційного Редагування"
-
-
-msgid "Mask Edit"
-msgstr "Редагування Маски"
-
-
-msgid "Automasking"
-msgstr "Автомаскування"
-
-
-msgid "Face Sets Edit"
-msgstr "Редагування Наборів Граней"
-
-
-msgid "Vertex Group Locks"
-msgstr "Блокування Груп Вершин"
-
-
-msgid "Mirror"
-msgstr "Дзеркалення"
-
-
 msgid "UV Mapping"
 msgstr "Розкладання UV"
 
@@ -27095,6 +27071,10 @@ msgid "Hooks"
 msgstr "Гачки"
 
 
+msgid "Vertex Group Locks"
+msgstr "Блокування Груп Вершин"
+
+
 msgid "Sculpt Set Pivot"
 msgstr "Ліплення Задати Опертя"
 
@@ -27165,6 +27145,26 @@ msgstr "Прокручення Кістки"
 
 msgid "Pivot Point"
 msgstr "Точка Опертя"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Спад Пропорційного Редагування"
+
+
+msgid "Mask Edit"
+msgstr "Редагування Маски"
+
+
+msgid "Automasking"
+msgstr "Автомаскування"
+
+
+msgid "Face Sets Edit"
+msgstr "Редагування Наборів Граней"
+
+
+msgid "Mirror"
+msgstr "Дзеркалення"
 
 
 msgid "Basic"
@@ -45585,19 +45585,6 @@ msgstr "Додати новий блок даних Анотації"
 
 
 msgctxt "Operator"
-msgid "Insert Blank Frame"
-msgstr "Вставити порожній кадр"
-
-
-msgid "Insert a blank frame on the current frame (all subsequently existing frames, if any, are shifted right by one frame)"
-msgstr "Вставити порожній кадр на місці поточного (всі наявні наступні кадри зсуваються вправо на один кадр)"
-
-
-msgid "Create blank frame in all layers, not only active"
-msgstr "Створити порожній кадр на всіх шарах, а не тільки активному"
-
-
-msgctxt "Operator"
 msgid "Annotation Unlink"
 msgstr "Відв'язання Анотації"
 
@@ -46176,6 +46163,11 @@ msgstr "Заповнення Нарисним Олівцем"
 
 msgid "Fill with color the shape formed by strokes"
 msgstr "Заповнити кольором форму, утворювану штрихами"
+
+
+msgctxt "Operator"
+msgid "Insert Blank Frame"
+msgstr "Вставити порожній кадр"
 
 
 msgctxt "Operator"
@@ -64038,6 +64030,54 @@ msgid "Panel containing UI elements"
 msgstr "Панель, що містить елементи Інтерфейсу Користувача"
 
 
+msgid "Snapping"
+msgstr "Підхоплення"
+
+
+msgid "Transform Orientations"
+msgstr "Орієнтації Трансформ"
+
+
+msgid "Stroke Placement"
+msgstr "Розміщення Штриха"
+
+
+msgid "Drawing Plane"
+msgstr "Площина Рисування"
+
+
+msgid "Guides"
+msgstr "Напрямні"
+
+
+msgid "Quad View"
+msgstr "Чотирибічний Огляд"
+
+
+msgid "Onion Skin"
+msgstr "Покрив Калькою"
+
+
+msgid "Stereoscopy"
+msgstr "Стереоскопія"
+
+
+msgid "Multi Frame"
+msgstr "Багато Кадр"
+
+
+msgid "Auto-Masking"
+msgstr "Авто-Маскування"
+
+
+msgid "Curve Edit Mode"
+msgstr "Режим Редагування Кривої"
+
+
+msgid "VR"
+msgstr "ВР"
+
+
 msgid "Active Tool"
 msgstr "Активний Засіб"
 
@@ -64066,10 +64106,6 @@ msgid "Overlays"
 msgstr "Накладки"
 
 
-msgid "Guides"
-msgstr "Напрямні"
-
-
 msgid "Motion Tracking"
 msgstr "Відстеження руху"
 
@@ -64080,50 +64116,6 @@ msgstr "Режим Редагування Сіті"
 
 msgid "Measurement"
 msgstr "Вимірювання"
-
-
-msgid "Curve Edit Mode"
-msgstr "Режим Редагування Кривої"
-
-
-msgid "Snapping"
-msgstr "Підхоплення"
-
-
-msgid "Transform Orientations"
-msgstr "Орієнтації Трансформ"
-
-
-msgid "Stroke Placement"
-msgstr "Розміщення Штриха"
-
-
-msgid "Drawing Plane"
-msgstr "Площина Рисування"
-
-
-msgid "Quad View"
-msgstr "Чотирибічний Огляд"
-
-
-msgid "Onion Skin"
-msgstr "Покрив Калькою"
-
-
-msgid "Stereoscopy"
-msgstr "Стереоскопія"
-
-
-msgid "Multi Frame"
-msgstr "Багато Кадр"
-
-
-msgid "Auto-Masking"
-msgstr "Авто-Маскування"
-
-
-msgid "VR"
-msgstr "ВР"
 
 
 msgid "Chain Scaling"
@@ -88015,14 +88007,6 @@ msgid "Cannot delete locked layers"
 msgstr "Неможливо видалити заблоковані шари"
 
 
-msgid "Apply all rotations before join objects"
-msgstr "Застосувати всі обертання перед сполученням об'єктів"
-
-
-msgid "Active object is not a selected grease pencil"
-msgstr "Активний об'єкт не є вибраним нарисним олівцем"
-
-
 msgid "No grease pencil data"
 msgstr "Немає даних нарисного олівця"
 
@@ -88037,6 +88021,10 @@ msgstr "Нічого не вибрано"
 
 msgid "Active layer is locked or hidden"
 msgstr "Активний шар заблоковано або сховано"
+
+
+msgid "Active object is not a selected grease pencil"
+msgstr "Активний об'єкт не є вибраним нарисним олівцем"
 
 
 msgid "Cannot add active layer as mask"
@@ -88061,10 +88049,6 @@ msgstr "Не вдалося встановити значення"
 
 msgid "Property from path '%s' is not a float"
 msgstr "Властивість зі шляху '%s' має бути з рухомою крапкою"
-
-
-msgid "LMB: Stroke - Shift: Fill - Shift+Ctrl: Stroke + Fill"
-msgstr "LMB: Штрих - Shift: Заповнення - Shift+Ctrl: Штрих + Заповнення"
 
 
 msgid "Error evaluating number, see Info editor for details"
@@ -89247,10 +89231,6 @@ msgstr "Поле"
 
 msgid "Cannot create editmode armature"
 msgstr "Неможливо створити арматуру в режимі редагування"
-
-
-msgid "Convert Surfaces to Grease Pencil is not supported"
-msgstr "Конвертування Поверхонь у Нарисний Олівець не підтримується"
 
 
 msgid "Object not found"
@@ -93036,10 +93016,6 @@ msgstr "Об'єкт '%s' немає жодних обчислених даних
 
 msgid "Object '%s' could not create internal data for finding nearest point"
 msgstr "об'єкт '%s' не може створити внутрішніх даних для пошуку найближчої точки"
-
-
-msgid "Object '%s' is not valid for this operation! Only curves are supported"
-msgstr "Об'єкт '%s' не дійсний для цієї операції! Лише криві підтримуються"
 
 
 msgid "Palette '%s' does not contain color given"
