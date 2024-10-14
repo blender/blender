@@ -1002,7 +1002,9 @@ bool rna_AnimaData_override_apply(Main *bmain, RNAPropertyOverrideApplyContext &
     id_us_min(reinterpret_cast<ID *>(adt_dst->tmpact));
 #  ifdef WITH_ANIM_BAKLAVA
     adt_dst->slot_handle = adt_src->slot_handle;
+    adt_dst->tmp_slot_handle = adt_src->tmp_slot_handle;
     STRNCPY(adt_dst->slot_name, adt_src->slot_name);
+    STRNCPY(adt_dst->tmp_slot_name, adt_src->tmp_slot_name);
 #  endif
     adt_dst->tmpact = adt_src->tmpact;
     id_us_plus(reinterpret_cast<ID *>(adt_dst->tmpact));
