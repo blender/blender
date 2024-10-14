@@ -27,6 +27,7 @@
 #include <cstdio>
 #include <cstring>
 #include <iostream>
+#include <mutex>
 #include <optional>
 #include <sstream>
 
@@ -135,6 +136,9 @@ class GHOST_DeviceVK {
   VkPhysicalDeviceVulkan12Features features_12 = {};
 
   int users = 0;
+
+  /** Mutex to externally synchronize access to queue. */
+  std::mutex queue_mutex;
 
  public:
   GHOST_DeviceVK(VkInstance vk_instance, VkPhysicalDevice vk_physical_device)
@@ -420,7 +424,7 @@ static GHOST_TSuccess ensure_vulkan_device(VkInstance vk_instance,
     return GHOST_kFailure;
   }
 
-  vulkan_device = std::make_optional<GHOST_DeviceVK>(vk_instance, best_physical_device);
+  vulkan_device.emplace(vk_instance, best_physical_device);
 
   return GHOST_kSuccess;
 }
@@ -564,7 +568,11 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
   present_info.pImageIndices = &s_currentImage;
   present_info.pResults = nullptr;
 
-  VkResult result = vkQueuePresentKHR(m_present_queue, &present_info);
+  VkResult result = VK_SUCCESS;
+  {
+    std::scoped_lock lock(vulkan_device->queue_mutex);
+    result = vkQueuePresentKHR(m_present_queue, &present_info);
+  }
   if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
     /* Swap-chain is out of date. Recreate swap-chain and skip this frame. */
     destroySwapchain();
@@ -608,7 +616,8 @@ GHOST_TSuccess GHOST_ContextVK::getVulkanHandles(void *r_instance,
                                                  void *r_physical_device,
                                                  void *r_device,
                                                  uint32_t *r_graphic_queue_family,
-                                                 void *r_queue)
+                                                 void *r_queue,
+                                                 void **r_queue_mutex)
 {
   *((VkInstance *)r_instance) = VK_NULL_HANDLE;
   *((VkPhysicalDevice *)r_physical_device) = VK_NULL_HANDLE;
@@ -619,6 +628,8 @@ GHOST_TSuccess GHOST_ContextVK::getVulkanHandles(void *r_instance,
     *((VkPhysicalDevice *)r_physical_device) = vulkan_device->physical_device;
     *((VkDevice *)r_device) = vulkan_device->device;
     *r_graphic_queue_family = vulkan_device->generic_queue_family;
+    std::mutex **queue_mutex = (std::mutex **)r_queue_mutex;
+    *queue_mutex = &vulkan_device->queue_mutex;
   }
 
   *((VkQueue *)r_queue) = m_graphic_queue;

@@ -76,13 +76,24 @@ void VKRenderGraph::submit_buffer_for_read(VkBuffer vk_buffer)
 
 void VKRenderGraph::submit()
 {
+  /* Using `VK_NULL_HANDLE` will select the default VkFence of the command buffer. */
+  submit_synchronization_event(VK_NULL_HANDLE);
+  wait_synchronization_event(VK_NULL_HANDLE);
+}
+
+void VKRenderGraph::submit_synchronization_event(VkFence vk_fence)
+{
   std::scoped_lock lock(resources_.mutex);
   Span<NodeHandle> node_handles = scheduler_.select_nodes(*this);
   command_builder_.build_nodes(*this, *command_buffer_, node_handles);
-  command_buffer_->submit_with_cpu_synchronization();
+  command_buffer_->submit_with_cpu_synchronization(vk_fence);
   submission_id.next();
   remove_nodes(node_handles);
-  command_buffer_->wait_for_cpu_synchronization();
+}
+
+void VKRenderGraph::wait_synchronization_event(VkFence vk_fence)
+{
+  command_buffer_->wait_for_cpu_synchronization(vk_fence);
 }
 
 /** \} */
