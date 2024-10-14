@@ -10311,6 +10311,8 @@ static void rna_def_modifier_grease_pencil_simplify(BlenderRNA *brna)
   rna_def_modifier_grease_pencil_vertex_group(
       srna, "rna_GreasePencilSimplifyModifier_vertex_group_name_set");
 
+  rna_def_modifier_panel_open_prop(srna, "open_influence_panel", 0);
+
   prop = RNA_def_property(srna, "factor", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, nullptr, "factor");
   RNA_def_property_range(prop, 0, 100.0);
