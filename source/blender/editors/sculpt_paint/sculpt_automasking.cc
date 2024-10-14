@@ -887,7 +887,7 @@ void calc_grids_factors(const Depsgraph &depsgraph,
 
   for (const int i : grids.index_range()) {
     const int grid_face_set = face_sets.is_empty() ?
-                                  1 :
+                                  SCULPT_FACE_SET_NONE :
                                   face_sets[subdiv_ccg.grid_to_face_map[grids[i]]];
     const int node_start = i * key.grid_area;
     const int grids_start = grids[i] * key.grid_area;
