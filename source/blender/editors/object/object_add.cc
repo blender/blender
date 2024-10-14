@@ -1638,7 +1638,7 @@ struct CollectionAddInfo {
   /* The transform that should be applied to the collection, determined through operator properties
    * if set (e.g. to place the collection under the cursor), otherwise through context (e.g. 3D
    * cursor location). */
-  float loc[3], rot[3];
+  float loc[3], rot[3], scale[3];
 };
 
 static std::optional<CollectionAddInfo> collection_add_info_get_from_op(bContext *C,
@@ -1680,7 +1680,7 @@ static std::optional<CollectionAddInfo> collection_add_info_get_from_op(bContext
                        'Z',
                        add_info.loc,
                        add_info.rot,
-                       nullptr,
+                       add_info.scale,
                        nullptr,
                        &add_info.local_view_bits,
                        nullptr);
@@ -1710,6 +1710,8 @@ static int collection_instance_add_exec(bContext *C, wmOperator *op)
                         add_info->rot,
                         false,
                         add_info->local_view_bits);
+  /* `add_type()` does not have scale argument so copy that value separately. */
+  copy_v3_v3(ob->scale, add_info->scale);
   ob->instance_collection = add_info->collection;
   ob->empty_drawsize = U.collection_instance_empty_size;
   ob->transflag |= OB_DUPLICOLLECTION;
