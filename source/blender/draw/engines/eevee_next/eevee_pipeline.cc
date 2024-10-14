@@ -580,6 +580,10 @@ void DeferredLayer::begin_sync()
       npr_ps_.bind_texture(BACK_HIZ_TX_SLOT, &inst_.hiz_buffer.back.ref_tx_);
     }
 
+    /* Images. */
+    npr_ps_.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
+    npr_ps_.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
+
     npr_ps_.bind_resources(inst_.uniform_data);
     npr_ps_.bind_resources(inst_.sampling);
 

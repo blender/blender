@@ -11,21 +11,24 @@
 #include "eevee_ambient_occlusion_lib.glsl"
 #include "eevee_deferred_combine_lib.glsl"
 #include "eevee_nodetree_lib.glsl"
+#include "eevee_renderpass_lib.glsl"
 #include "eevee_sampling_lib.glsl"
 #include "eevee_surf_lib.glsl"
 
 #define TEX_HANDLE_NULL 0u
-#define TEX_HANDLE_COMBINED_COLOR 1u
-#define TEX_HANDLE_DIFFUSE_COLOR 2u
-#define TEX_HANDLE_DIFFUSE_DIRECT 3u
-#define TEX_HANDLE_DIFFUSE_INDIRECT 4u
-#define TEX_HANDLE_SPECULAR_COLOR 5u
-#define TEX_HANDLE_SPECULAR_DIRECT 6u
-#define TEX_HANDLE_SPECULAR_INDIRECT 7u
-#define TEX_HANDLE_POSITION 8u
-#define TEX_HANDLE_NORMAL 9u
-#define TEX_HANDLE_BACK_COMBINED_COLOR 10u
-#define TEX_HANDLE_BACK_POSITION 11u
+#define TEX_HANDLE_RP_COLOR 1u
+#define TEX_HANDLE_RP_VALUE 2u
+#define TEX_HANDLE_COMBINED_COLOR 10u
+#define TEX_HANDLE_DIFFUSE_COLOR 11u
+#define TEX_HANDLE_DIFFUSE_DIRECT 12u
+#define TEX_HANDLE_DIFFUSE_INDIRECT 13u
+#define TEX_HANDLE_SPECULAR_COLOR 14u
+#define TEX_HANDLE_SPECULAR_DIRECT 15u
+#define TEX_HANDLE_SPECULAR_INDIRECT 16u
+#define TEX_HANDLE_POSITION 17u
+#define TEX_HANDLE_NORMAL 18u
+#define TEX_HANDLE_BACK_COMBINED_COLOR 19u
+#define TEX_HANDLE_BACK_POSITION 20u
 
 vec4 closure_to_rgba(Closure cl)
 {
@@ -59,6 +62,22 @@ void npr_refraction_impl(out TextureHandle combined_color, out TextureHandle pos
   position = TextureHandle(TEX_HANDLE_BACK_POSITION, 0);
 }
 
+void input_aov_impl(uint hash, out TextureHandle color, out TextureHandle value)
+{
+  /* Don't use TEX_HANDLE_NULL for the type even when the aov index is not found.
+   * Eases the static compilation of the TextureHandle_eval_impl switch.  */
+  color = TextureHandle(TEX_HANDLE_RP_COLOR, aov_color_index(hash));
+  color.index += color.index >= 0 ? uniform_buf.render_pass.color_len : 0;
+  value = TextureHandle(TEX_HANDLE_RP_VALUE, aov_value_index(hash));
+  value.index += value.index >= 0 ? uniform_buf.render_pass.value_len : 0;
+}
+
+float4 swap_alpha(vec4 v)
+{
+  v.a = 1.0 - saturate(v.a);
+  return v;
+}
+
 vec4 TextureHandle_eval_impl(TextureHandle tex, vec2 offset, bool texel_offset)
 {
   if (tex.type == TEX_HANDLE_NULL) {
@@ -82,6 +101,10 @@ vec4 TextureHandle_eval_impl(TextureHandle tex, vec2 offset, bool texel_offset)
   vec2 screen_uv = vec2(texel) / uniform_buf.film.render_extent;
 
   switch (tex.type) {
+    case TEX_HANDLE_RP_COLOR:
+      return swap_alpha(imageLoad(rp_color_img, ivec3(texel, tex.index)));
+    case TEX_HANDLE_RP_VALUE:
+      return vec4(imageLoad(rp_value_img, ivec3(texel, tex.index)).rrr, 0.0);
     case TEX_HANDLE_COMBINED_COLOR:
       return texelFetch(radiance_tx, texel, 0);
     case TEX_HANDLE_BACK_COMBINED_COLOR:
@@ -134,9 +157,7 @@ vec4 TextureHandle_eval_impl(TextureHandle tex, vec2 offset, bool texel_offset)
 
 vec4 TextureHandle_eval(TextureHandle tex, vec2 offset, bool texel_offset)
 {
-  vec4 result = TextureHandle_eval_impl(tex, offset, texel_offset);
-  result.a = 1.0 - saturate(result.a);
-  return result;
+  return swap_alpha(TextureHandle_eval_impl(tex, offset, texel_offset));
 }
 
 vec4 TextureHandle_eval(TextureHandle tex)

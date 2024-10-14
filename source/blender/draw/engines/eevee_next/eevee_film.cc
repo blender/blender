@@ -42,7 +42,7 @@ void Film::init_aovs(const Set<std::string> &passes_used_by_viewport_compositor)
   aovs_info.display_is_value = false;
   aovs_info.value_len = aovs_info.color_len = 0;
 
-  if (inst_.is_viewport()) {
+  if (inst_.is_viewport() && !inst_.npr_enabled()) {
     /* Viewport case. */
     if (inst_.v3d->shading.render_pass == EEVEE_RENDER_PASS_AOV) {
       /* AOV display, request only a single AOV. */
@@ -71,7 +71,8 @@ void Film::init_aovs(const Set<std::string> &passes_used_by_viewport_compositor)
     }
   }
   else {
-    /* Render case. */
+    /* Render & NPR case. */
+    /*TODO(NPR): Detect passes and enable them for RenderBuffers only. */
     LISTBASE_FOREACH (ViewLayerAOV *, aov, &inst_.view_layer->aovs) {
       aovs.append(aov);
     }

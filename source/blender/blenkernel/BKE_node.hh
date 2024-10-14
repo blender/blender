@@ -1002,6 +1002,7 @@ void node_tree_remove_layer_n(bNodeTree *ntree, Scene *scene, int layer_index);
 #define SH_NODE_NPR_OUTPUT 718
 #define SH_NODE_NPR_REFRACTION 719
 #define SH_NODE_NPR_IMAGE_SAMPLE 720
+#define SH_NODE_INPUT_AOV 721
 
 /** \} */
 

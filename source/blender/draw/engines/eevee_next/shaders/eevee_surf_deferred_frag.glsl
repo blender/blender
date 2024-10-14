@@ -34,7 +34,9 @@ vec4 closure_to_rgba(Closure cl)
 void main()
 {
   /* Clear AOVs first. In case the material renders to them. */
+#ifndef MAT_REFRACTION
   clear_aovs();
+#endif
 
   init_globals();
 

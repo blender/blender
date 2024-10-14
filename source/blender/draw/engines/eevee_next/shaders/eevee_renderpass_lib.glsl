@@ -36,24 +36,42 @@ void clear_aovs()
 #endif
 }
 
-void output_aov(vec4 color, float value, uint hash)
+int aov_color_index(uint hash)
 {
 #if defined(MAT_RENDER_PASS_SUPPORT) && defined(GPU_FRAGMENT_SHADER)
   for (int i = 0; i < AOV_MAX && i < uniform_buf.render_pass.aovs.color_len; i++) {
     if (uniform_buf.render_pass.aovs.hash_color[i].x == hash) {
-      imageStoreFast(rp_color_img,
-                     ivec3(ivec2(gl_FragCoord.xy), uniform_buf.render_pass.color_len + i),
-                     color);
-      return;
+      return i;
     }
   }
+#endif
+  return -1;
+}
+
+int aov_value_index(uint hash)
+{
+#if defined(MAT_RENDER_PASS_SUPPORT) && defined(GPU_FRAGMENT_SHADER)
   for (int i = 0; i < AOV_MAX && i < uniform_buf.render_pass.aovs.value_len; i++) {
     if (uniform_buf.render_pass.aovs.hash_value[i].x == hash) {
-      imageStoreFast(rp_value_img,
-                     ivec3(ivec2(gl_FragCoord.xy), uniform_buf.render_pass.value_len + i),
-                     vec4(value));
-      return;
+      return i;
     }
+  }
+#endif
+  return -1;
+}
+
+void output_aov(vec4 color, float value, uint hash)
+{
+#if defined(MAT_RENDER_PASS_SUPPORT) && defined(GPU_FRAGMENT_SHADER)
+  int color_index = aov_color_index(hash);
+  if (color_index >= 0) {
+    output_renderpass_color(uniform_buf.render_pass.color_len + color_index, color);
+    return;
+  }
+
+  int value_index = aov_value_index(hash);
+  if (value_index >= 0) {
+    output_renderpass_value(uniform_buf.render_pass.value_len + value_index, value);
   }
 #endif
 }

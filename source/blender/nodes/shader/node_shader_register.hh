@@ -49,6 +49,7 @@ void register_node_type_sh_geometry();
 void register_node_type_sh_hair_info();
 void register_node_type_sh_holdout();
 void register_node_type_sh_hue_sat();
+void register_node_type_sh_input_aov();
 void register_node_type_sh_invert();
 void register_node_type_sh_layer_weight();
 void register_node_type_sh_light_falloff();

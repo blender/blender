@@ -95,6 +95,7 @@ class NODE_MT_category_shader_input(Menu):
         node_add_menu.add_node_type(layout, "ShaderNodeWireframe")
         node_add_menu.add_node_type(layout, "ShaderNodeNPR_Input", poll=npr_shader_nodes_poll(context))
         node_add_menu.add_node_type(layout, "ShaderNodeNPR_Refraction", poll=npr_shader_nodes_poll(context))
+        node_add_menu.add_node_type(layout, "ShaderNodeInputAOV", poll=npr_shader_nodes_poll(context))
 
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 

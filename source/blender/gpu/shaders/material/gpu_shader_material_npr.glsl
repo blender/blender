@@ -67,3 +67,13 @@ void npr_refraction(out TextureHandle combined_color, out TextureHandle position
   position = TEXTURE_HANDLE_DEFAULT;
 #endif
 }
+
+void node_input_aov(float hash, out TextureHandle color, out TextureHandle value)
+{
+#if defined(NPR_SHADER) && defined(GPU_FRAGMENT_SHADER)
+  input_aov_impl(floatBitsToUint(hash), color, value);
+#else
+  color = TEXTURE_HANDLE_DEFAULT;
+  value = TEXTURE_HANDLE_DEFAULT;
+#endif
+}

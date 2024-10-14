@@ -37,6 +37,7 @@ ADDITIONAL_INFO(eevee_shadow_data)
 ADDITIONAL_INFO(eevee_utility_texture)
 ADDITIONAL_INFO(eevee_sampling_data)
 ADDITIONAL_INFO(eevee_hiz_data)
+ADDITIONAL_INFO(eevee_render_pass_inout)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_surf_npr)
