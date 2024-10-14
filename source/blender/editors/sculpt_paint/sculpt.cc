@@ -2204,6 +2204,10 @@ static float brush_strength(const Sculpt &sd,
     case SCULPT_BRUSH_TYPE_POSE:
     case SCULPT_BRUSH_TYPE_BOUNDARY:
       return root_alpha * feather;
+    case SCULPT_BRUSH_TYPE_SIMPLIFY:
+      /* The Dyntopo Density brush does not use a normal brush workflow to calculate the effect,
+       * and this strength value is unused. */
+      return 0.0f;
   }
   BLI_assert_unreachable();
   return 0.0f;
