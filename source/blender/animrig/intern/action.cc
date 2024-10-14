@@ -559,6 +559,10 @@ Slot *Action::find_suitable_slot_for(const ID &animated_id)
 {
   AnimData *adt = BKE_animdata_from_id(&animated_id);
 
+  /* The slot-finding code in assign_action_ensure_slot_for_keying() is very
+   * similar to the code here (differences are documented there). It is very
+   * likely that changes in the logic here should be applied there as well. */
+
   /* The slot handle is only valid when this action has already been
    * assigned. Otherwise it's meaningless. */
   if (adt && adt->action == this) {
@@ -576,10 +580,20 @@ Slot *Action::find_suitable_slot_for(const ID &animated_id)
     }
   }
 
-  /* As a last resort, search for the ID name. */
-  Slot *slot = this->slot_find_by_name(animated_id.name);
-  if (slot && slot->is_suitable_for(animated_id)) {
-    return slot;
+  /* Search for the ID name (which includes the ID type). */
+  {
+    Slot *slot = this->slot_find_by_name(animated_id.name);
+    if (slot && slot->is_suitable_for(animated_id)) {
+      return slot;
+    }
+  }
+
+  /* If there is only one slot, and it has never been assigned to anything, use that. */
+  if (this->slots().size() == 1) {
+    Slot *slot = this->slot(0);
+    if (!slot->has_idtype()) {
+      return slot;
+    }
   }
 
   return nullptr;
@@ -1199,13 +1213,12 @@ bool unassign_action(OwnedAnimData owned_adt)
 
 Slot *assign_action_ensure_slot_for_keying(Action &action, ID &animated_id)
 {
+  AnimData *adt = BKE_animdata_from_id(&animated_id);
   Slot *slot;
 
   /* Find a suitable slot, but be stricter when to allow searching by name than
    * action.find_suitable_slot_for(animated_id). */
   {
-    AnimData *adt = BKE_animdata_from_id(&animated_id);
-
     if (adt && adt->action == &action) {
       /* The slot handle is only valid when this action is already assigned.
        * Otherwise it's meaningless. */
@@ -1220,25 +1233,36 @@ Slot *assign_action_ensure_slot_for_keying(Action &action, ID &animated_id)
         slot = action.slot_find_by_name(adt->slot_name);
       }
       else {
-        /* As a last resort, search for the ID name. */
+        /* Search for the ID name (which includes the ID type). */
         slot = action.slot_find_by_name(animated_id.name);
       }
     }
   }
 
+  /* As a last resort, if there is only one slot and it has no ID type yet, use
+   * that. This is what gets created for the backwards compatibility RNA API,
+   * for example to allow `action.fcurves.new()`. Key insertion should use that
+   * slot as well. */
+  if (!slot && action.slots().size() == 1) {
+    Slot *first_slot = action.slot(0);
+    if (!first_slot->has_idtype()) {
+      slot = first_slot;
+    }
+  }
+
+  /* If no suitable slot was found, create a new one. */
   if (!slot || !slot->is_suitable_for(animated_id)) {
     slot = &action.slot_add_for_id(animated_id);
   }
 
   /* Only try to assign the Action to the ID if it is not already assigned.
    * Assignment can fail when the ID is in NLA Tweak mode. */
-  const std::optional<std::pair<Action *, Slot *>> assigned = get_action_slot_pair(animated_id);
-  const bool is_correct_action = assigned && assigned->first == &action;
+  const bool is_correct_action = adt && adt->action == &action;
   if (!is_correct_action && !assign_action(&action, animated_id)) {
     return nullptr;
   }
 
-  const bool is_correct_slot = assigned && assigned->second == slot;
+  const bool is_correct_slot = adt && adt->slot_handle == slot->handle;
   if (!is_correct_slot && assign_action_slot(slot, animated_id) != ActionSlotAssignmentResult::OK)
   {
     /* This should never happen, as a few lines above a new slot is created for
@@ -1851,12 +1875,74 @@ void ChannelBag::fcurves_clear()
   }
 }
 
+static void cyclic_keying_ensure_modifier(FCurve &fcurve)
+{
+  /* BKE_fcurve_get_cycle_type() only looks at the first modifier to see if it's a Cycle modifier,
+   * so if we're going to add one, better make sure it's the first one.
+
+   * BUT: add_fmodifier() only allows adding a Cycle modifier when there are none yet, so that's
+   * all that we need to check for here.
+   */
+  if (!BLI_listbase_is_empty(&fcurve.modifiers)) {
+    return;
+  }
+
+  add_fmodifier(&fcurve.modifiers, FMODIFIER_TYPE_CYCLES, &fcurve);
+}
+
+/**
+ * Ensure there are at least two keys in this F-Curve, in order to define A cycle range.
+ *
+ * That range does NOT have to be the same as `cycle_range` -- that parameter is only used to
+ * insert a 2nd key when there is only one.
+ *
+ * \note This function ONLY does something when there is a single keyframe. If there are more, the
+ * first and last keys already define the cycle range. If that range is not the same as the
+ * `cycle_range` parameter, it's seen as an animator's choice and won't be adjusted.
+ */
+static void cyclic_keying_ensure_cycle_range_exists(FCurve &fcurve, const float2 cycle_range)
+{
+  /* This is basically a copy of the legacy function `make_new_fcurve_cyclic()`
+   * in `keyframing.cc`, except that it's limited to only one thing (ensuring
+   * two keys exist to make cycling possible). Creating the F-Curve modifier is
+   * the responsibility of another function. */
+
+  if (fcurve.totvert != 1 || fcurve.bezt == nullptr) {
+    return;
+  }
+
+  const float period = cycle_range[1] - cycle_range[0];
+  if (period < 0.1f) {
+    return;
+  }
+
+  /* Move the one existing keyframe into the cycle range. */
+  const float frame_offset = fcurve.bezt[0].vec[1][0] - cycle_range[0];
+  const float fix = floorf(frame_offset / period) * period;
+
+  fcurve.bezt[0].vec[0][0] -= fix;
+  fcurve.bezt[0].vec[1][0] -= fix;
+  fcurve.bezt[0].vec[2][0] -= fix;
+
+  /* Reallocate the array to make space for the 2nd point. */
+  fcurve.totvert++;
+  fcurve.bezt = static_cast<BezTriple *>(
+      MEM_reallocN(fcurve.bezt, sizeof(BezTriple) * fcurve.totvert));
+
+  /* Duplicate and offset the keyframe. */
+  fcurve.bezt[1] = fcurve.bezt[0];
+  fcurve.bezt[1].vec[0][0] += period;
+  fcurve.bezt[1].vec[1][0] += period;
+  fcurve.bezt[1].vec[2][0] += period;
+}
+
 SingleKeyingResult StripKeyframeData::keyframe_insert(Main *bmain,
                                                       const Slot &slot,
                                                       const FCurveDescriptor fcurve_descriptor,
                                                       const float2 time_value,
                                                       const KeyframeSettings &settings,
-                                                      const eInsertKeyFlags insert_key_flags)
+                                                      const eInsertKeyFlags insert_key_flags,
+                                                      const std::optional<float2> cycle_range)
 {
   /* Get the fcurve, or create one if it doesn't exist and the keying flags
    * allow. */
@@ -1889,6 +1975,21 @@ SingleKeyingResult StripKeyframeData::keyframe_insert(Main *bmain,
                  fcurve_descriptor.array_index,
                  slot.name);
     return SingleKeyingResult::FCURVE_NOT_KEYFRAMEABLE;
+  }
+
+  if (cycle_range && (*cycle_range)[0] < (*cycle_range)[1]) {
+    /* Cyclic keying consists of three things:
+     * - Ensure there is a Cycle modifier on the F-Curve.
+     * - Ensure the start and end of the cycle have explicit keys, so that the
+     *   cycle modifier knows how to cycle (it doesn't look at the Action, and
+     *   as long as the period is correct, the first/last keys don't have to
+     *   align with the Action start/end).
+     * - Offset the key to insert so that it falls within the cycle range.
+     */
+    cyclic_keying_ensure_modifier(*fcurve);
+    cyclic_keying_ensure_cycle_range_exists(*fcurve, *cycle_range);
+    /* Offsetting the key doesn't have to happen here, as insert_vert_fcurve()
+     * takes care of that. */
   }
 
   const SingleKeyingResult insert_vert_result = insert_vert_fcurve(
@@ -2394,49 +2495,64 @@ FCurve *action_fcurve_ensure(Main *bmain,
     return nullptr;
   }
 
-  if (!animrig::legacy::action_treat_as_legacy(*act)) {
-    /* NOTE: for layered actions we require the following:
-     *
-     * - `ptr` is non-null.
-     * - `ptr` has an `owner_id` that already uses `act`.
-     *
-     * This isn't for any principled reason, but rather is because adding
-     * support for layered actions to this function was a fix to make Follow
-     * Path animation work properly with layered actions (see PR #124353), and
-     * those are the requirements the Follow Path code conveniently met.
-     * Moreover those requirements were also already met by the other call sites
-     * that potentially call this function with layered actions.
-     *
-     * Trying to puzzle out what "should" happen when these requirements don't
-     * hold, or if this is even the best place to handle the layered action
-     * cases at all, was leading to discussion of larger changes than made sense
-     * to tackle at that point. */
-    Action &action = act->wrap();
-
-    BLI_assert(ptr != nullptr);
-    if (ptr == nullptr || ptr->owner_id == nullptr) {
-      return nullptr;
-    }
-    ID &animated_id = *ptr->owner_id;
-    BLI_assert(get_action(animated_id) == &action);
-    if (get_action(animated_id) != &action) {
-      return nullptr;
-    }
-
-    /* Ensure the id has an assigned slot. */
-    Slot *slot = assign_action_ensure_slot_for_keying(action, animated_id);
-    if (!slot) {
-      /* This means the ID type is not animatable. */
-      return nullptr;
-    }
-
-    action.layer_keystrip_ensure();
-
-    assert_baklava_phase_1_invariants(action);
-    StripKeyframeData &strip_data = action.layer(0)->strip(0)->data<StripKeyframeData>(action);
-
-    return &strip_data.channelbag_for_slot_ensure(*slot).fcurve_ensure(bmain, fcurve_descriptor);
+  if (animrig::legacy::action_treat_as_legacy(*act)) {
+    return action_fcurve_ensure_legacy(bmain, act, group, ptr, fcurve_descriptor);
   }
+
+  /* NOTE: for layered actions we require the following:
+   *
+   * - `ptr` is non-null.
+   * - `ptr` has an `owner_id` that already uses `act`.
+   *
+   * This isn't for any principled reason, but rather is because adding
+   * support for layered actions to this function was a fix to make Follow
+   * Path animation work properly with layered actions (see PR #124353), and
+   * those are the requirements the Follow Path code conveniently met.
+   * Moreover those requirements were also already met by the other call sites
+   * that potentially call this function with layered actions.
+   *
+   * Trying to puzzle out what "should" happen when these requirements don't
+   * hold, or if this is even the best place to handle the layered action
+   * cases at all, was leading to discussion of larger changes than made sense
+   * to tackle at that point. */
+  Action &action = act->wrap();
+
+  BLI_assert(ptr != nullptr);
+  if (ptr == nullptr || ptr->owner_id == nullptr) {
+    return nullptr;
+  }
+  ID &animated_id = *ptr->owner_id;
+  BLI_assert(get_action(animated_id) == &action);
+  if (get_action(animated_id) != &action) {
+    return nullptr;
+  }
+
+  /* Ensure the id has an assigned slot. */
+  Slot *slot = assign_action_ensure_slot_for_keying(action, animated_id);
+  if (!slot) {
+    /* This means the ID type is not animatable. */
+    return nullptr;
+  }
+
+  action.layer_keystrip_ensure();
+
+  assert_baklava_phase_1_invariants(action);
+  StripKeyframeData &strip_data = action.layer(0)->strip(0)->data<StripKeyframeData>(action);
+
+  return &strip_data.channelbag_for_slot_ensure(*slot).fcurve_ensure(bmain, fcurve_descriptor);
+}
+
+FCurve *action_fcurve_ensure_legacy(Main *bmain,
+                                    bAction *act,
+                                    const char group[],
+                                    PointerRNA *ptr,
+                                    FCurveDescriptor fcurve_descriptor)
+{
+  if (!act) {
+    return nullptr;
+  }
+
+  BLI_assert(act->wrap().is_empty() || act->wrap().is_action_legacy());
 
   /* Try to find f-curve matching for this setting.
    * - add if not found and allowed to add one
@@ -2463,7 +2579,7 @@ FCurve *action_fcurve_ensure(Main *bmain,
 
   BLI_assert_msg(!fcurve_descriptor.prop_subtype.has_value(),
                  "Did not expect a prop_subtype to be passed in. This is fine, but does need some "
-                 "changes to action_fcurve_ensure() to deal with it");
+                 "changes to action_fcurve_ensure_legacy() to deal with it");
   fcu = create_fcurve_for_channel(
       {fcurve_descriptor.rna_path, fcurve_descriptor.array_index, prop_subtype});
 

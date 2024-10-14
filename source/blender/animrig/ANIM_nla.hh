@@ -22,7 +22,7 @@ namespace blender::animrig::nla {
  *
  * \see blender::animrig::assign_action
  *
- * \returns whether a slot was automatically assigned.
+ * \returns whether the assignment was ok.
  */
 bool assign_action(NlaStrip &strip, Action &action, ID &animated_id);
 

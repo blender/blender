@@ -4950,7 +4950,7 @@ def km_sculpt(params):
                          ("relative_asset_identifier", "brushes/essentials_brushes-mesh_sculpt.blend/Brush/Clay Strips")]}),
         ("brush.asset_activate", {"type": 'C', "value": 'PRESS', "shift": True},
          {"properties": [("asset_library_type", 'ESSENTIALS'),
-                         ("relative_asset_identifier", "brushes/essentials_brushes-mesh_sculpt.blend/Brush/Crease")]}),
+                         ("relative_asset_identifier", "brushes/essentials_brushes-mesh_sculpt.blend/Brush/Crease Polish")]}),
         ("brush.asset_activate", {"type": 'K', "value": 'PRESS'},
          {"properties": [("asset_library_type", 'ESSENTIALS'),
                          ("relative_asset_identifier", "brushes/essentials_brushes-mesh_sculpt.blend/Brush/Snake Hook")]}),

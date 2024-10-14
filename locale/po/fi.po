@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'6039cb17e63e')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'89e3ab2a4533')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-07 09:15+0000\n"
+"POT-Creation-Date: 2024-10-14 08:43+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -8550,16 +8550,16 @@ msgid "Nothing to erase"
 msgstr "Mitään ei pyyhittävissä"
 
 
+msgid "Grey"
+msgstr "Harnaa"
+
+
 msgid "Eyes"
 msgstr "Silmät"
 
 
 msgid "Pupils"
 msgstr "Pupillit"
-
-
-msgid "Grey"
-msgstr "Harnaa"
 
 
 msgid "Nothing selected"

@@ -479,7 +479,7 @@ static bool imb_save_openexr_half(ImBuf *ibuf, const char *filepath, const int f
     Header header(width, height);
 
     openexr_header_compression(
-        &header, ibuf->foptions.flag & OPENEXR_COMPRESS, ibuf->foptions.quality);
+        &header, ibuf->foptions.flag & OPENEXR_CODEC_MASK, ibuf->foptions.quality);
     openexr_header_metadata(&header, ibuf);
 
     /* create channels */
@@ -581,7 +581,7 @@ static bool imb_save_openexr_float(ImBuf *ibuf, const char *filepath, const int 
     Header header(width, height);
 
     openexr_header_compression(
-        &header, ibuf->foptions.flag & OPENEXR_COMPRESS, ibuf->foptions.quality);
+        &header, ibuf->foptions.flag & OPENEXR_CODEC_MASK, ibuf->foptions.quality);
     openexr_header_metadata(&header, ibuf);
 
     /* create channels */

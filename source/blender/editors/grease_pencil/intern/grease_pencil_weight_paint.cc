@@ -567,6 +567,7 @@ static int toggle_weight_tool_direction(bContext *C, wmOperator * /*op*/)
   /* Toggle direction flag. */
   brush->flag ^= BRUSH_DIR_IN;
 
+  BKE_brush_tag_unsaved_changes(brush);
   /* Update brush settings in UI. */
   WM_main_add_notifier(NC_BRUSH | NA_EDITED, nullptr);
 

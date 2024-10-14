@@ -104,6 +104,8 @@ static void node_declare(NodeDeclarationBuilder &b)
   const bNode *node = b.node_or_null();
   const bNodeTree *tree = b.tree_or_null();
 
+  b.add_default_layout();
+
   if (!node || !tree) {
     return;
   }

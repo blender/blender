@@ -303,10 +303,8 @@ GPUShader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info)
 
 static std::string preprocess_source(StringRefNull original)
 {
-  auto no_err_report = [](std::string, std::smatch, const char *) {};
-  gpu::shader::PreprocessorPython processor(no_err_report);
-  processor << std::string(original);
-  return processor.str();
+  gpu::shader::Preprocessor processor;
+  return processor.process(original);
 };
 
 GPUShader *GPU_shader_create_from_info_python(const GPUShaderCreateInfo *_info)

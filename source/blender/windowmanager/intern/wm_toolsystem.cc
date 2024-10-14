@@ -330,7 +330,7 @@ static void toolsystem_brush_activate_from_toolref_for_object_paint(const bConte
       continue;
     }
     Scene *scene = WM_window_get_active_scene(win);
-    BKE_paint_ensure_from_paintmode(bmain, scene, paint_mode);
+    BKE_paint_ensure_from_paintmode(scene, paint_mode);
     Paint *paint = BKE_paint_get_active_from_paintmode(scene, paint_mode);
 
     /* Attempt to re-activate a brush remembered for this brush type, as stored in a brush

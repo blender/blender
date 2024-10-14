@@ -619,7 +619,7 @@ char BaseMathObject_owner_doc[] = "The item this is wrapping or None  (read-only
 PyObject *BaseMathObject_owner_get(BaseMathObject *self, void * /*closure*/)
 {
   PyObject *ret = self->cb_user ? self->cb_user : Py_None;
-  return Py_INCREF_RET(ret);
+  return Py_NewRef(ret);
 }
 
 char BaseMathObject_is_wrapped_doc[] =
@@ -660,7 +660,7 @@ PyObject *BaseMathObject_freeze(BaseMathObject *self)
 
   self->flag |= BASE_MATH_FLAG_IS_FROZEN;
 
-  return Py_INCREF_RET((PyObject *)self);
+  return Py_NewRef(self);
 }
 
 int BaseMathObject_traverse(BaseMathObject *self, visitproc visit, void *arg)

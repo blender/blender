@@ -39,6 +39,7 @@ set(SRC
   intern/asset_shelf_settings.cc
   intern/asset_temp_id_consumer.cc
   intern/asset_type.cc
+  intern/asset_ui_utils.cc
 
   ED_asset_catalog.hh
   ED_asset_filter.hh

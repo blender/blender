@@ -327,7 +327,7 @@ void mode_enter_generic(
     const PaintMode paint_mode = PaintMode::Vertex;
     ED_mesh_color_ensure(mesh, nullptr);
 
-    BKE_paint_ensure(&bmain, scene.toolsettings, (Paint **)&scene.toolsettings->vpaint);
+    BKE_paint_ensure(scene.toolsettings, (Paint **)&scene.toolsettings->vpaint);
     Paint *paint = BKE_paint_get_active_from_paintmode(&scene, paint_mode);
     ED_paint_cursor_start(paint, vertex_paint_poll);
     BKE_paint_init(&bmain, &scene, paint_mode, PAINT_CURSOR_VERTEX_PAINT);
@@ -335,7 +335,7 @@ void mode_enter_generic(
   else if (mode_flag == OB_MODE_WEIGHT_PAINT) {
     const PaintMode paint_mode = PaintMode::Weight;
 
-    BKE_paint_ensure(&bmain, scene.toolsettings, (Paint **)&scene.toolsettings->wpaint);
+    BKE_paint_ensure(scene.toolsettings, (Paint **)&scene.toolsettings->wpaint);
     Paint *paint = BKE_paint_get_active_from_paintmode(&scene, paint_mode);
     ED_paint_cursor_start(paint, weight_paint_poll);
     BKE_paint_init(&bmain, &scene, paint_mode, PAINT_CURSOR_WEIGHT_PAINT);

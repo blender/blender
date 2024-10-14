@@ -23,6 +23,7 @@
 #include "DNA_material_types.h"
 #include "DNA_space_types.h"
 
+#include "BKE_brush.hh"
 #include "BKE_context.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_lib_id.hh"
@@ -292,6 +293,7 @@ static void eyedropper_set_brush_color(bContext *C, const float3 &col_conv)
   }
 
   copy_v3_v3(brush->rgb, col_conv);
+  BKE_brush_tag_unsaved_changes(brush);
 }
 
 /* Set the material or the palette color. */

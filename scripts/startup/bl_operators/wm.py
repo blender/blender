@@ -1410,7 +1410,7 @@ rna_custom_property_subtype_vector_items = (
 )
 
 rna_id_type_items = tuple((item.identifier, item.name, item.description, item.icon, item.value)
-                          for item in bpy.types.Action.bl_rna.properties["id_root"].enum_items)
+                          for item in bpy.types.ID.bl_rna.properties["id_type"].enum_items)
 
 
 class WM_OT_properties_edit(Operator):
@@ -2809,7 +2809,7 @@ class WM_OT_batch_rename(Operator):
     @classmethod
     def _data_from_context(cls, context, data_type, only_selected, *, check_context=False):
         def _is_editable(data):
-            return data.is_editable and not data.override_library
+            return data.id_data.is_editable and not data.id_data.override_library
 
         mode = context.mode
         scene = context.scene
@@ -3008,7 +3008,7 @@ class WM_OT_batch_rename(Operator):
                     "name",
                     descr,
                 )
-        data = ([id for id in data[0] if _is_editable(id)], data[1], data[2])
+        data = ([it for it in data[0] if _is_editable(it)], data[1], data[2])
 
         return data
 

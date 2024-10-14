@@ -89,6 +89,17 @@ class KeyingScreenOperation : public NodeOperation {
 
   void execute() override
   {
+    /* Not yet supported on CPU. */
+    if (!context().use_gpu()) {
+      for (const bNodeSocket *output : this->node()->output_sockets()) {
+        Result &output_result = get_result(output->identifier);
+        if (output_result.should_compute()) {
+          output_result.allocate_invalid();
+        }
+      }
+      return;
+    }
+
     Result &keying_screen = get_result("Screen");
     MovieTrackingObject *movie_tracking_object = get_movie_tracking_object();
     if (!movie_tracking_object) {

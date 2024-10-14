@@ -38,8 +38,8 @@ int main(int argc, char **argv)
     exit(1);
   }
 
-  bool first_comment = true;
-  bool inside_comment = false;
+  std::stringstream buffer;
+  buffer << input_file.rdbuf();
 
   int error = 0;
   size_t line_index = 0;
@@ -58,33 +58,18 @@ int main(int argc, char **argv)
         error++;
       };
 
-  blender::gpu::shader::Preprocessor processor(report_error);
+  const bool is_info = std::string(output_file_name).find("info.hh") != std::string::npos;
+  const bool is_glsl = std::string(output_file_name).find(".glsl") != std::string::npos;
 
-  std::string line;
-  while (std::getline(input_file, line)) {
-    line_index++;
-
-    /* Remove license headers (first comment). */
-    if (line.rfind("/*", 0) == 0 && first_comment) {
-      first_comment = false;
-      inside_comment = true;
-    }
-
-    const bool skip_line = inside_comment;
-
-    if (inside_comment && (line.find("*/") != std::string::npos)) {
-      inside_comment = false;
-    }
-
-    if (skip_line) {
-      output_file << "\n";
-    }
-    else {
-      processor << line << '\n';
-    }
+  if (is_info) {
+    std::cerr << "File " << output_file_name
+              << " is a create info file and should not be processed as glsl" << std::endl;
+    return 1;
   }
 
-  output_file << processor.str();
+  blender::gpu::shader::Preprocessor processor;
+
+  output_file << processor.process(buffer.str(), true, is_glsl, is_glsl, report_error);
 
   input_file.close();
   output_file.close();

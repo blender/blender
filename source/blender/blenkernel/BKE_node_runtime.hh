@@ -262,16 +262,19 @@ class bNodeSocketRuntime : NonCopyable, NonMovable {
   int index_in_inout_sockets = -1;
 };
 
+struct bNodePanelExtent {
+  float min_y;
+  float max_y;
+  bool fill_node_end = false;
+};
+
 class bNodePanelRuntime : NonCopyable, NonMovable {
  public:
   /* The vertical location of the panel in the tree, calculated while drawing the nodes and invalid
    * if the node tree hasn't been drawn yet. In the node tree's "world space" (the same as
    * #bNode::runtime::totr). */
-  float location_y;
-  /* Vertical start location of the panel content. */
-  float min_content_y;
-  /* Vertical end location of the panel content. */
-  float max_content_y;
+  std::optional<float> header_center_y;
+  std::optional<bNodePanelExtent> content_extent;
 };
 
 /**

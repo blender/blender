@@ -379,11 +379,11 @@ void bpy_app_generic_callback(Main * /*main*/,
           args_all, i, pyrna_struct_CreatePyObject_with_primitive_support(pointers[i]));
     }
     for (int i = pointers_num; i < num_arguments; ++i) {
-      PyTuple_SET_ITEM(args_all, i, Py_INCREF_RET(Py_None));
+      PyTuple_SET_ITEM(args_all, i, Py_NewRef(Py_None));
     }
 
     if (pointers_num == 0) {
-      PyTuple_SET_ITEM(args_single, 0, Py_INCREF_RET(Py_None));
+      PyTuple_SET_ITEM(args_single, 0, Py_NewRef(Py_None));
     }
     else {
       PyTuple_SET_ITEM(

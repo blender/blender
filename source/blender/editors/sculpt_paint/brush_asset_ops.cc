@@ -174,6 +174,13 @@ static asset_system::AssetCatalog &asset_library_ensure_catalog(
   return *library.catalog_service().create_catalog(path);
 }
 
+/* Suppress warning for GCC-14.2. This isn't a dangling reference
+ * because the #asset_system::AssetLibrary owns the returned value. */
+#if defined(__GNUC__) && !defined(__clang__)
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wdangling-reference"
+#endif
+
 static asset_system::AssetCatalog &asset_library_ensure_catalogs_in_path(
     asset_system::AssetLibrary &library, const asset_system::AssetCatalogPath &path)
 {
@@ -186,6 +193,9 @@ static asset_system::AssetCatalog &asset_library_ensure_catalogs_in_path(
   });
   return *library.catalog_service().find_catalog_by_path(path);
 }
+#if defined(__GNUC__) && !defined(__clang__)
+#  pragma GCC diagnostic pop
+#endif
 
 static void show_catalog_in_asset_shelf(const bContext &C, const StringRefNull catalog_path)
 {
@@ -262,6 +272,7 @@ static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
 
   brush = reinterpret_cast<Brush *>(
       bke::asset_edit_id_from_weak_reference(*bmain, ID_BR, brush_asset_reference));
+  brush->has_unsaved_changes = false;
 
   if (!WM_toolsystem_activate_brush_and_tool(C, paint, brush)) {
     /* Note brush asset was still saved in editable asset library, so was not a no-op. */
@@ -741,6 +752,7 @@ static int brush_asset_update_exec(bContext *C, wmOperator *op)
   BLI_assert(ID_IS_ASSET(brush));
 
   bke::asset_edit_id_save(*bmain, brush->id, *op->reports);
+  brush->has_unsaved_changes = false;
 
   refresh_asset_library(C, *user_library);
   WM_main_add_notifier(NC_ASSET | ND_ASSET_LIST | NA_EDITED, nullptr);

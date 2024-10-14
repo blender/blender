@@ -712,6 +712,67 @@ static void rna_ActionConstraint_minmax_range(
   }
 }
 
+static void rna_ActionConstraint_action_set(PointerRNA *ptr, PointerRNA value, ReportList *reports)
+{
+  using namespace blender::animrig;
+  BLI_assert(ptr->owner_id);
+  BLI_assert(ptr->data);
+
+  ID &animated_id = *ptr->owner_id;
+  bConstraint *con = static_cast<bConstraint *>(ptr->data);
+  bActionConstraint *acon = static_cast<bActionConstraint *>(con->data);
+
+  Action *action = static_cast<Action *>(value.data);
+
+  if (!action) {
+    const bool ok = generic_assign_action(
+        animated_id, nullptr, acon->act, acon->action_slot_handle, acon->action_slot_name);
+    BLI_assert_msg(ok, "Un-assigning an Action from an Action Constraint should always work.");
+    UNUSED_VARS_NDEBUG(ok);
+    return;
+  }
+
+  const bool ok = generic_assign_action(
+      animated_id, action, acon->act, acon->action_slot_handle, acon->action_slot_name);
+  if (!ok) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Could not assign action %s to Action Constraint %s",
+                action->id.name + 2,
+                con->name);
+    return;
+  }
+
+  /* For the Action Constraint, the auto slot selection gets one more fallback
+   * option (compared to the generic code). This is to support the following
+   * scenario, which used to be necessary as a workaround for a bug in Blender (#127976):
+   *
+   * - Python script creates an Action,
+   * - assigns it to the animated object,
+   * - unassigns it from that object,
+   * - and assigns it to the object's Action Constraint.
+   *
+   * The generic code doesn't work for this. The first assignment would see the slot
+   * `XXSlot`, and because it has never been used, just use it. This would change its name to
+   * `OBSlot`. The assignment to the Action Constraint would not see a 'virgin' slot, and thus not
+   * auto-select `OBSlot`. This behaviour makes sense when assigning Actions in the Action editor
+   * (it shouldn't automatically pick the first slot of matching ID type), but for the Action
+   * Constraint I (Sybren) feel that it could be a bit more 'enthousiastic' in auto-picking a slot.
+   *
+   * Note that this is the same behaviour as for NLA strips, albeit for a slightly different
+   * reason. Because of that it's not sharing code with the NLA.
+   */
+  if (acon->action_slot_handle == Slot::unassigned && action->slots().size() == 1) {
+    Slot *first_slot = action->slot(0);
+    if (first_slot->is_suitable_for(animated_id)) {
+      const ActionSlotAssignmentResult result = generic_assign_action_slot(
+          first_slot, animated_id, acon->act, acon->action_slot_handle, acon->action_slot_name);
+      BLI_assert(result == ActionSlotAssignmentResult::OK);
+      UNUSED_VARS_NDEBUG(result);
+    }
+  }
+}
+
 #  ifdef WITH_ANIM_BAKLAVA
 static void rna_ActionConstraint_action_slot_handle_set(
     PointerRNA *ptr, const blender::animrig::slot_handle_t new_slot_handle)
@@ -1902,9 +1963,10 @@ static void rna_def_constraint_action(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "action", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, nullptr, "act");
-  RNA_def_property_pointer_funcs(prop, nullptr, nullptr, nullptr, "rna_Action_id_poll");
+  RNA_def_property_pointer_funcs(
+      prop, nullptr, "rna_ActionConstraint_action_set", nullptr, "rna_Action_id_poll");
   RNA_def_property_ui_text(prop, "Action", "The constraining action");
-  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
+  RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
 #  ifdef WITH_ANIM_BAKLAVA

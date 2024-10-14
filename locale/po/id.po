@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'6039cb17e63e')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'89e3ab2a4533')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-07 09:15+0000\n"
+"POT-Creation-Date: 2024-10-14 08:43+0000\n"
 "PO-Revision-Date: 2024-09-18 23:56+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -15016,10 +15016,6 @@ msgid "Snap"
 msgstr "Jepret"
 
 
-msgid "Mirror"
-msgstr "Cermin"
-
-
 msgid "Navigation"
 msgstr "Navigasi"
 
@@ -15058,6 +15054,10 @@ msgstr "Nama"
 
 msgid "Merge"
 msgstr "Menggabungkan"
+
+
+msgid "Mirror"
+msgstr "Cermin"
 
 
 msgctxt "MovieClip"
@@ -25301,12 +25301,12 @@ msgid "Restrict painting to vertices in the group"
 msgstr "Membatasi lukisan ke simpul di kelompok"
 
 
-msgid "Wire Color"
-msgstr "Warna Kabel"
-
-
 msgid "Snapping"
 msgstr "Gertakan"
+
+
+msgid "Wire Color"
+msgstr "Warna Kabel"
 
 
 msgid "Custom Shape"

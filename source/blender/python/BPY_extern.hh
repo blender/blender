@@ -56,6 +56,14 @@ void BPY_thread_restore(BPy_ThreadStatePtr tstate);
   } \
   (void)0
 
+/**
+ * Print the Python backtrace of the current thread state.
+ *
+ * Should be safe to call from anywhere at any point, may not output anything if there is no valid
+ * python thread state available.
+ */
+void BPY_thread_backtrace_print();
+
 void BPY_text_free_code(Text *text);
 /**
  * Needed so the #Main pointer in `bpy.data` doesn't become out of date.

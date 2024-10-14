@@ -190,6 +190,9 @@ class SocketDeclaration : public ItemDeclaration {
   /** Puts this socket on the same line as the previous one in the UI. */
   bool align_with_previous_socket = false;
 
+  /** Index in the list of inputs or outputs of the node. */
+  int index = -1;
+
   InputSocketFieldType input_field_type = InputSocketFieldType::None;
   OutputFieldDependency output_field_dependency;
 
@@ -257,8 +260,6 @@ class PanelDeclarationBuilder;
 
 class BaseSocketDeclarationBuilder {
  protected:
-  /* Index of the socket in the list of inputs or outputs. */
-  int index_ = -1;
   bool reference_pass_all_ = false;
   bool field_on_all_ = false;
   bool propagate_from_all_ = false;
@@ -414,9 +415,19 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
 
 using SocketDeclarationPtr = std::unique_ptr<SocketDeclaration>;
 
-using PanelDrawButtonsFunction = void (*)(uiLayout *, bContext *, PointerRNA *);
+using DrawNodeLayoutFn = void(uiLayout *, bContext *, PointerRNA *);
 
 class SeparatorDeclaration : public ItemDeclaration {};
+
+class LayoutDeclaration : public ItemDeclaration {
+ public:
+  std::function<DrawNodeLayoutFn> draw;
+  /**
+   * Sometimes the default layout has special handling (e.g. choose between #draw_buttons and
+   * #draw_buttons_ex).
+   */
+  bool is_default = false;
+};
 
 /**
  * Describes a panel containing sockets or other panels.
@@ -428,8 +439,10 @@ class PanelDeclaration : public ItemDeclaration {
   std::string description;
   std::string translation_context;
   bool default_collapsed = false;
-  PanelDrawButtonsFunction draw_buttons = nullptr;
   Vector<ItemDeclaration *> items;
+  /** Index in the list of panels on the node. */
+  int index = -1;
+  PanelDeclaration *parent_panel = nullptr;
 
  private:
   friend NodeDeclarationBuilder;
@@ -441,6 +454,8 @@ class PanelDeclaration : public ItemDeclaration {
   void build(bNodePanelState &panel) const;
   bool matches(const bNodePanelState &panel) const;
   void update_or_build(const bNodePanelState &old_panel, bNodePanelState &new_panel) const;
+
+  int depth() const;
 };
 
 /**
@@ -451,6 +466,7 @@ class DeclarationListBuilder {
  public:
   NodeDeclarationBuilder &node_decl_builder;
   Vector<ItemDeclaration *> &items;
+  PanelDeclaration *parent_panel_decl = nullptr;
 
   DeclarationListBuilder(NodeDeclarationBuilder &node_decl_builder,
                          Vector<ItemDeclaration *> &items)
@@ -484,6 +500,8 @@ class DeclarationListBuilder {
   PanelDeclarationBuilder &add_panel(StringRef name, int identifier = -1);
 
   void add_separator();
+  void add_default_layout();
+  void add_layout(std::function<void(uiLayout *, bContext *, PointerRNA *)> draw);
 };
 
 class PanelDeclarationBuilder : public DeclarationListBuilder {
@@ -497,11 +515,11 @@ class PanelDeclarationBuilder : public DeclarationListBuilder {
   PanelDeclarationBuilder(NodeDeclarationBuilder &node_builder, PanelDeclaration &decl)
       : DeclarationListBuilder(node_builder, decl.items), decl_(&decl)
   {
+    this->parent_panel_decl = &decl;
   }
 
   Self &description(std::string value = "");
   Self &default_closed(bool closed);
-  Self &draw_buttons(PanelDrawButtonsFunction func);
 };
 
 using PanelDeclarationPtr = std::unique_ptr<PanelDeclaration>;
@@ -515,6 +533,7 @@ class NodeDeclaration {
   /* All input and output socket declarations. */
   Vector<SocketDeclaration *> inputs;
   Vector<SocketDeclaration *> outputs;
+  Vector<PanelDeclaration *> panels;
   std::unique_ptr<aal::RelationsInNode> anonymous_attribute_relations_;
 
   /** Leave the sockets in place, even if they don't match the declaration. Used for dynamic
@@ -553,6 +572,7 @@ class NodeDeclaration {
 
 class NodeDeclarationBuilder : public DeclarationListBuilder {
  private:
+  const bke::bNodeType &typeinfo_;
   NodeDeclaration &declaration_;
   const bNodeTree *ntree_ = nullptr;
   const bNode *node_ = nullptr;
@@ -566,7 +586,8 @@ class NodeDeclarationBuilder : public DeclarationListBuilder {
   friend DeclarationListBuilder;
 
  public:
-  NodeDeclarationBuilder(NodeDeclaration &declaration,
+  NodeDeclarationBuilder(const bke::bNodeType &typeinfo,
+                         NodeDeclaration &declaration,
                          const bNodeTree *ntree = nullptr,
                          const bNode *node = nullptr);
 
@@ -686,12 +707,12 @@ inline typename DeclType::Builder &DeclarationListBuilder::add_socket(StringRef 
 
   if (in_out == SOCK_IN) {
     this->node_decl_builder.input_socket_builders_.append(&socket_decl_builder);
-    socket_decl_builder.index_ = this->node_decl_builder.declaration_.inputs.append_and_get_index(
+    socket_decl.index = this->node_decl_builder.declaration_.inputs.append_and_get_index(
         &socket_decl);
   }
   else {
     this->node_decl_builder.output_socket_builders_.append(&socket_decl_builder);
-    socket_decl_builder.index_ = this->node_decl_builder.declaration_.outputs.append_and_get_index(
+    socket_decl.index = this->node_decl_builder.declaration_.outputs.append_and_get_index(
         &socket_decl);
   }
   return socket_decl_builder;
@@ -705,7 +726,7 @@ inline typename DeclType::Builder &DeclarationListBuilder::add_socket(StringRef 
 
 inline int BaseSocketDeclarationBuilder::index() const
 {
-  return index_;
+  return decl_base_->index;
 }
 
 inline bool BaseSocketDeclarationBuilder::is_input() const

@@ -23,8 +23,8 @@ namespace blender::gpu::shader {
  * Implementation speed is not a huge concern as we only apply this at compile time or on python
  * shaders source.
  */
-template<typename T, bool no_linting = false> class Preprocessor {
-  T &report_error;
+class Preprocessor {
+  using uint = unsigned int;
 
   struct SharedVar {
     std::string type;
@@ -36,32 +36,81 @@ template<typename T, bool no_linting = false> class Preprocessor {
   std::stringstream output_;
 
  public:
-  Preprocessor(T &error_cb) : report_error(error_cb) {}
-
-  Preprocessor &operator<<(std::string str)
+  /* Takes a whole source file and output processed source. */
+  template<typename ReportErrorF>
+  std::string process(std::string str,
+                      bool /*do_linting*/,
+                      bool /*do_string_mutation*/,
+                      bool /*do_include_mutation*/,
+                      const ReportErrorF &report_error)
   {
+    str = remove_comments(str, report_error);
     threadgroup_variable_parsing(str);
-    matrix_constructor_linting(str);
-    array_constructor_linting(str);
+    matrix_constructor_linting(str, report_error);
+    array_constructor_linting(str, report_error);
     str = preprocessor_directive_mutation(str);
     str = argument_decorator_macro_injection(str);
     str = array_constructor_macro_injection(str);
-    output_ << str;
-    return *this;
+    return str + suffix();
   }
 
-  Preprocessor &operator<<(char c)
+  /* Variant use for python shaders. */
+  std::string process(const std::string &str)
   {
-    output_ << c;
-    return *this;
-  }
-
-  std::string str()
-  {
-    return output_.str() + suffix();
+    auto no_err_report = [](std::string, std::smatch, const char *) {};
+    return process(str, false, false, false, no_err_report);
   }
 
  private:
+  template<typename ReportErrorF>
+  std::string remove_comments(const std::string &str, const ReportErrorF &report_error)
+  {
+    std::string out_str = str;
+    {
+      /* Multi-line comments. */
+      size_t start, end = 0;
+      while ((start = out_str.find("/*", end)) != std::string::npos) {
+        end = out_str.find("*/", start + 2);
+        if (end == std::string::npos) {
+          break;
+        }
+        for (size_t i = start; i < end + 2; ++i) {
+          if (out_str[i] != '\n') {
+            out_str[i] = ' ';
+          }
+        }
+      }
+
+      if (end == std::string::npos) {
+        /* TODO(fclem): Add line / char position to report. */
+        report_error(str, std::smatch(), "Malformed multi-line comment.");
+        return out_str;
+      }
+    }
+    {
+      /* Single-line comments. */
+      size_t start, end = 0;
+      while ((start = out_str.find("//", end)) != std::string::npos) {
+        end = out_str.find('\n', start + 2);
+        if (end == std::string::npos) {
+          break;
+        }
+        for (size_t i = start; i < end; ++i) {
+          out_str[i] = ' ';
+        }
+      }
+
+      if (end == std::string::npos) {
+        /* TODO(fclem): Add line / char position to report. */
+        report_error(str, std::smatch(), "Malformed single line comment, missing newline.");
+        return out_str;
+      }
+    }
+    /* Remove trailing whitespaces as they make the subsequent regex much slower. */
+    std::regex regex("(\\ )*?\\n");
+    return std::regex_replace(out_str, regex, "\n");
+  }
+
   std::string preprocessor_directive_mutation(const std::string &str)
   {
     /* Example: `#include "deps.glsl"` > `//include "deps.glsl"` */
@@ -92,11 +141,9 @@ template<typename T, bool no_linting = false> class Preprocessor {
   }
 
   /* TODO(fclem): Too many false positive and false negative to be applied to python shaders. */
-  void matrix_constructor_linting(std::string str)
+  template<typename ReportErrorF>
+  void matrix_constructor_linting(std::string str, const ReportErrorF &report_error)
   {
-    if constexpr (no_linting) {
-      return;
-    }
     /* Example: `mat4(other_mat)`. */
     std::regex regex("\\s+(mat(\\d|\\dx\\d)|float\\dx\\d)\\([^,\\s\\d]+\\)");
     for (std::smatch match; std::regex_search(str, match, regex); str = match.suffix()) {
@@ -108,11 +155,9 @@ template<typename T, bool no_linting = false> class Preprocessor {
     }
   }
 
-  void array_constructor_linting(std::string str)
+  template<typename ReportErrorF>
+  void array_constructor_linting(std::string str, const ReportErrorF &report_error)
   {
-    if constexpr (no_linting) {
-      return;
-    }
     std::regex regex("=\\s*(\\w+)\\s*\\[[^\\]]*\\]\\s*\\(");
     for (std::smatch match; std::regex_search(str, match, regex); str = match.suffix()) {
       /* This only catches some invalid usage. For the rest, the CI will catch them. */
@@ -209,11 +254,6 @@ template<typename T, bool no_linting = false> class Preprocessor {
 
     return suffix.str();
   }
-};
-
-template<typename T> class PreprocessorPython : public Preprocessor<T, true> {
- public:
-  PreprocessorPython(T &error_cb) : Preprocessor<T, true>(error_cb){};
 };
 
 }  // namespace blender::gpu::shader

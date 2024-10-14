@@ -179,7 +179,7 @@ static void do_versions_image_settings_2_60(Scene *sce)
   imf->depth = R_IMF_CHAN_DEPTH_8;
 
   /* openexr */
-  imf->exr_codec = rd->quality & 7; /* strange but true! 0-4 are valid values, OPENEXR_COMPRESS */
+  imf->exr_codec = rd->quality & 7; /* 0-4 were valid values back then */
 
   switch (imf->imtype) {
     case R_IMF_IMTYPE_OPENEXR:

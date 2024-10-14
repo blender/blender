@@ -489,6 +489,9 @@ typedef struct bNode {
   const bNodeSocket &output_by_identifier(blender::StringRef identifier) const;
   bNodeSocket &input_by_identifier(blender::StringRef identifier);
   bNodeSocket &output_by_identifier(blender::StringRef identifier);
+  /** Lookup socket by its declaration. */
+  const bNodeSocket &socket_by_decl(const blender::nodes::SocketDeclaration &decl) const;
+  bNodeSocket &socket_by_decl(const blender::nodes::SocketDeclaration &decl);
   /** If node is frame, will return all children nodes. */
   blender::Span<bNode *> direct_children_in_frame() const;
   blender::Span<bNodePanelState> panel_states() const;

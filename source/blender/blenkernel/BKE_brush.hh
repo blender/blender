@@ -50,6 +50,19 @@ void BKE_brush_init_gpencil_settings(Brush *brush);
 
 void BKE_brush_init_curves_sculpt_settings(Brush *brush);
 
+/**
+ * Tag a linked brush as having changed settings so an indicator can be displayed to the user,
+ * showing that the brush settings differ from the state of the imported brush asset. Call
+ * everytime a user visible change to the brush is done.
+ *
+ * Since this is meant to indicate brushes that are known to differ from the linked source file,
+ * tagging is only performed for linked brushes. File local brushes are normal data-blocks that get
+ * saved with the file, and don't need special attention by the user.
+ *
+ * For convenience, null may be passed for \a brush.
+ */
+void BKE_brush_tag_unsaved_changes(Brush *brush);
+
 Brush *BKE_brush_first_search(Main *bmain, eObjectMode ob_mode);
 
 void BKE_brush_jitter_pos(const Scene &scene,

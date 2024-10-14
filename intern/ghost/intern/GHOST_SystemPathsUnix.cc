@@ -27,9 +27,9 @@ static const char *static_path = PREFIX "/share";
 static const char *static_path = nullptr;
 #endif
 
-GHOST_SystemPathsUnix::GHOST_SystemPathsUnix() {}
+GHOST_SystemPathsUnix::GHOST_SystemPathsUnix() = default;
 
-GHOST_SystemPathsUnix::~GHOST_SystemPathsUnix() {}
+GHOST_SystemPathsUnix::~GHOST_SystemPathsUnix() = default;
 
 const char *GHOST_SystemPathsUnix::getSystemDir(int /*version*/, const char *versionstr) const
 {
@@ -84,7 +84,7 @@ const char *GHOST_SystemPathsUnix::getUserDir(int version, const char *versionst
       user_path = string(home) + "/blender/" + versionstr;
     }
     else {
-      const char *home = home_dir_get();
+      home = home_dir_get();
       if (home) {
         user_path = string(home) + "/.config/blender/" + versionstr;
       }

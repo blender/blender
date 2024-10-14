@@ -1638,7 +1638,7 @@ struct CollectionAddInfo {
   /* The transform that should be applied to the collection, determined through operator properties
    * if set (e.g. to place the collection under the cursor), otherwise through context (e.g. 3D
    * cursor location). */
-  float loc[3], rot[3];
+  float loc[3], rot[3], scale[3];
 };
 
 static std::optional<CollectionAddInfo> collection_add_info_get_from_op(bContext *C,
@@ -1680,7 +1680,7 @@ static std::optional<CollectionAddInfo> collection_add_info_get_from_op(bContext
                        'Z',
                        add_info.loc,
                        add_info.rot,
-                       nullptr,
+                       add_info.scale,
                        nullptr,
                        &add_info.local_view_bits,
                        nullptr);
@@ -1710,6 +1710,8 @@ static int collection_instance_add_exec(bContext *C, wmOperator *op)
                         add_info->rot,
                         false,
                         add_info->local_view_bits);
+  /* `add_type()` does not have scale argument so copy that value separately. */
+  copy_v3_v3(ob->scale, add_info->scale);
   ob->instance_collection = add_info->collection;
   ob->empty_drawsize = U.collection_instance_empty_size;
   ob->transflag |= OB_DUPLICOLLECTION;
@@ -3279,6 +3281,22 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       }
 
       Mesh *ob_data_mesh = (Mesh *)newob->data;
+
+      if (ob_data_mesh->key) {
+        /* NOTE(@ideasman42): Clearing the shape-key is needed when the
+         * number of vertices remains unchanged. Otherwise using this operator
+         * to "Apply Visual Geometry" will evaluate using the existing shape-key
+         * which doesn't have the "evaluated" coordinates from `new_mesh`.
+         * See #128839 for details.
+         *
+         * While shape-keys could be supported, this is more of a feature to consider.
+         * As there is already a `MESH_OT_blend_from_shape` operator,
+         * it's not clear this is especially useful or needed. */
+        if (!CustomData_has_layer(&new_mesh->vert_data, CD_SHAPEKEY)) {
+          id_us_min(&ob_data_mesh->key->id);
+          ob_data_mesh->key = nullptr;
+        }
+      }
       BKE_mesh_nomain_to_mesh(new_mesh, ob_data_mesh, newob);
 
       BKE_object_free_modifiers(newob, 0); /* after derivedmesh calls! */

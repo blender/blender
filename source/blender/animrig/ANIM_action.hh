@@ -795,7 +795,8 @@ class StripKeyframeData : public ::ActionStripKeyframeData {
                                      FCurveDescriptor fcurve_descriptor,
                                      float2 time_value,
                                      const KeyframeSettings &settings,
-                                     eInsertKeyFlags insert_key_flags = INSERTKEY_NOFLAGS);
+                                     eInsertKeyFlags insert_key_flags = INSERTKEY_NOFLAGS,
+                                     std::optional<float2> cycle_range = std::nullopt);
 };
 static_assert(sizeof(StripKeyframeData) == sizeof(::ActionStripKeyframeData),
               "DNA struct and its C++ wrapper must have the same size");
@@ -1342,10 +1343,8 @@ Span<const FCurve *> fcurves_for_action_slot(const Action &action, slot_handle_t
  * previously-unanimated depsgraph component may become animated now.
  *
  * \param ptr: RNA pointer for the struct the fcurve is being looked up/created
- * for. For legacy actions this is optional and may be null, but if provided is
- * used to do things like set the fcurve color properly. For layered actions
- * this parameter is required, and is used to create and assign an appropriate
- * slot if needed when creating the fcurve.
+ * for. It is used to create and assign an appropriate slot if needed when
+ * creating the fcurve, and set the fcurve color properly
  *
  * \param fcurve_descriptor: description of the fcurve to lookup/create. Note
  * that this is *not* relative to `ptr` (e.g. if `ptr` is not an ID). It should
@@ -1356,6 +1355,21 @@ FCurve *action_fcurve_ensure(Main *bmain,
                              const char group[],
                              PointerRNA *ptr,
                              FCurveDescriptor fcurve_descriptor);
+
+/**
+ * Same as above, but creates a legacy Action.
+ *
+ * \note this function should ONLY be used in unit tests, in order to create
+ * legacy Actions for testing. Or in the very rare cases where handling of
+ * legacy Actions is still necessary AND you have no PointerRNA. In all other
+ * cases, just call #action_fcurve_ensure, it'll do the right thing
+ * transparently on whatever Action you give it.
+ */
+FCurve *action_fcurve_ensure_legacy(Main *bmain,
+                                    bAction *act,
+                                    const char group[],
+                                    PointerRNA *ptr,
+                                    FCurveDescriptor fcurve_descriptor);
 
 /**
  * Find the F-Curve in the given Action.

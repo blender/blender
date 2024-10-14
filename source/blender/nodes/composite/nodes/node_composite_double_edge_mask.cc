@@ -56,6 +56,17 @@ class DoubleEdgeMaskOperation : public NodeOperation {
 
   void execute() override
   {
+    /* Not yet supported on CPU. */
+    if (!context().use_gpu()) {
+      for (const bNodeSocket *output : this->node()->output_sockets()) {
+        Result &output_result = get_result(output->identifier);
+        if (output_result.should_compute()) {
+          output_result.allocate_invalid();
+        }
+      }
+      return;
+    }
+
     Result &inner_mask = get_input("Inner Mask");
     Result &outer_mask = get_input("Outer Mask");
     Result &output = get_result("Mask");

@@ -317,7 +317,7 @@ void BKE_paint_reset_overlay_invalid(ePaintOverlayControlFlags flag)
   overlay_flags &= ~(flag);
 }
 
-bool BKE_paint_ensure_from_paintmode(Main *bmain, Scene *sce, PaintMode mode)
+bool BKE_paint_ensure_from_paintmode(Scene *sce, PaintMode mode)
 {
   ToolSettings *ts = sce->toolsettings;
   Paint **paint_ptr = nullptr;
@@ -362,7 +362,7 @@ bool BKE_paint_ensure_from_paintmode(Main *bmain, Scene *sce, PaintMode mode)
       break;
   }
   if (paint_ptr) {
-    BKE_paint_ensure(bmain, ts, paint_ptr);
+    BKE_paint_ensure(ts, paint_ptr);
     return true;
   }
   return false;
@@ -847,7 +847,7 @@ static void paint_brush_default_essentials_name_get(
       }
       break;
     case OB_MODE_VERTEX_PAINT:
-      name = "Paint";
+      name = "Paint Hard";
       if (brush_type) {
         switch (eBrushVertexPaintType(*brush_type)) {
           case VPAINT_BRUSH_TYPE_BLUR:
@@ -1671,7 +1671,7 @@ eObjectMode BKE_paint_object_mode_from_paintmode(const PaintMode mode)
   }
 }
 
-bool BKE_paint_ensure(Main *bmain, ToolSettings *ts, Paint **r_paint)
+bool BKE_paint_ensure(ToolSettings *ts, Paint **r_paint)
 {
   Paint *paint = nullptr;
   if (*r_paint) {
@@ -1680,8 +1680,6 @@ bool BKE_paint_ensure(Main *bmain, ToolSettings *ts, Paint **r_paint)
       BLI_assert(ELEM(*r_paint, (Paint *)&ts->imapaint));
 
       paint_runtime_init(ts, *r_paint);
-      BKE_paint_brush_set_default(bmain, *r_paint);
-      BKE_paint_eraser_brush_set_default(bmain, *r_paint);
     }
     else {
       BLI_assert(ELEM(*r_paint,
@@ -1703,8 +1701,6 @@ bool BKE_paint_ensure(Main *bmain, ToolSettings *ts, Paint **r_paint)
       BLI_assert(paint_test.runtime.ob_mode == (*r_paint)->runtime.ob_mode);
 #endif
     }
-    paint_brush_update_from_asset_reference(bmain, *r_paint);
-    paint_eraser_brush_set_from_asset_reference(bmain, *r_paint);
     return true;
   }
 
@@ -1748,18 +1744,38 @@ bool BKE_paint_ensure(Main *bmain, ToolSettings *ts, Paint **r_paint)
   *r_paint = paint;
 
   paint_runtime_init(ts, paint);
-  BKE_paint_brush_set_default(bmain, paint);
-  BKE_paint_eraser_brush_set_default(bmain, paint);
 
   return false;
 }
 
-void BKE_paint_init(Main *bmain, Scene *sce, PaintMode mode, const uchar col[3])
+void BKE_paint_brushes_ensure(Main *bmain, Paint *paint)
+{
+  if (paint->brush_asset_reference) {
+    paint_brush_update_from_asset_reference(bmain, paint);
+  }
+  if (paint->eraser_brush_asset_reference) {
+    paint_eraser_brush_set_from_asset_reference(bmain, paint);
+  }
+
+  if (!paint->brush) {
+    BKE_paint_brush_set_default(bmain, paint);
+  }
+  if (!paint->eraser_brush) {
+    BKE_paint_eraser_brush_set_default(bmain, paint);
+  }
+}
+
+void BKE_paint_init(
+    Main *bmain, Scene *sce, PaintMode mode, const uchar col[3], const bool ensure_brushes)
 {
   UnifiedPaintSettings *ups = &sce->toolsettings->unified_paint_settings;
 
-  BKE_paint_ensure_from_paintmode(bmain, sce, mode);
+  BKE_paint_ensure_from_paintmode(sce, mode);
   Paint *paint = BKE_paint_get_active_from_paintmode(sce, mode);
+
+  if (ensure_brushes) {
+    BKE_paint_brushes_ensure(bmain, paint);
+  }
 
   copy_v3_v3_uchar(paint->paint_cursor_col, col);
   paint->paint_cursor_col[3] = 128;
@@ -2649,7 +2665,8 @@ void BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
 
 void BKE_sculpt_toolsettings_data_ensure(Main *bmain, Scene *scene)
 {
-  BKE_paint_ensure(bmain, scene->toolsettings, (Paint **)&scene->toolsettings->sculpt);
+  BKE_paint_ensure(scene->toolsettings, (Paint **)&scene->toolsettings->sculpt);
+  BKE_paint_brushes_ensure(bmain, &scene->toolsettings->sculpt->paint);
 
   Sculpt *sd = scene->toolsettings->sculpt;
 

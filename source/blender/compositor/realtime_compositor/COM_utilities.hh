@@ -4,8 +4,9 @@
 
 #pragma once
 
-#include "BLI_function_ref.hh"
+#include "BLI_index_range.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_task.hh"
 
 #include "NOD_derived_node_tree.hh"
 
@@ -70,12 +71,21 @@ bool is_node_preview_needed(const DNode &node);
 /* Returns the node output that will be used to generate previews. */
 DOutputSocket find_preview_output_socket(const DNode &node);
 
-/* Computes a lower resolution version of the given result and sets it as a preview for the given
- * node after applying the appropriate color management specified in the given context. */
-void compute_preview_from_result(Context &context, const DNode &node, Result &input_result);
+/* -------------------------------------------------------------------- */
+/* Inline Functions.
+ */
 
 /* Executes the given function in parallel over the given 2D range. The given function gets the
  * texel coordinates of the element of the range as an argument. */
-void parallel_for(const int2 range, FunctionRef<void(int2)> function);
+template<typename Function> inline void parallel_for(const int2 range, const Function &function)
+{
+  threading::parallel_for(IndexRange(range.y), 1, [&](const IndexRange sub_y_range) {
+    for (const int64_t y : sub_y_range) {
+      for (const int64_t x : IndexRange(range.x)) {
+        function(int2(x, y));
+      }
+    }
+  });
+}
 
 }  // namespace blender::realtime_compositor

@@ -81,12 +81,10 @@ static void node_declare(NodeDeclarationBuilder &b)
 #define SOCK_DIFFUSE_ROUGHNESS_ID 7
 
   /* Panel for Subsurface scattering settings. */
-  PanelDeclarationBuilder &sss =
-      b.add_panel("Subsurface")
-          .default_closed(true)
-          .draw_buttons([](uiLayout *layout, bContext * /*C*/, PointerRNA *ptr) {
-            uiItemR(layout, ptr, "subsurface_method", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-          });
+  PanelDeclarationBuilder &sss = b.add_panel("Subsurface").default_closed(true);
+  sss.add_layout([](uiLayout *layout, bContext * /*C*/, PointerRNA *ptr) {
+    uiItemR(layout, ptr, "subsurface_method", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  });
   sss.add_input<decl::Float>("Subsurface Weight")
       .default_value(0.0f)
       .min(0.0f)
@@ -134,12 +132,10 @@ static void node_declare(NodeDeclarationBuilder &b)
 #define SOCK_SUBSURFACE_ANISOTROPY_ID 12
 
   /* Panel for Specular settings. */
-  PanelDeclarationBuilder &spec =
-      b.add_panel("Specular")
-          .default_closed(true)
-          .draw_buttons([](uiLayout *layout, bContext * /*C*/, PointerRNA *ptr) {
-            uiItemR(layout, ptr, "distribution", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-          });
+  PanelDeclarationBuilder &spec = b.add_panel("Specular").default_closed(true);
+  spec.add_layout([](uiLayout *layout, bContext * /*C*/, PointerRNA *ptr) {
+    uiItemR(layout, ptr, "distribution", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  });
   spec.add_input<decl::Float>("Specular IOR Level")
       .default_value(0.5f)
       .min(0.0f)

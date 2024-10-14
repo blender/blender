@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'6039cb17e63e')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'89e3ab2a4533')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2024-10-07 09:15+0000\n"
-"PO-Revision-Date: 2024-10-07 00:56+0000\n"
+"POT-Creation-Date: 2024-10-14 08:43+0000\n"
+"PO-Revision-Date: 2024-10-11 18:43+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -3114,8 +3114,128 @@ msgid "Collection of worlds"
 msgstr "Colecção de ambientes."
 
 
+msgid "Blendfile Import Context"
+msgstr "Contexto de Importação de Ficheiro Blend"
+
+
+msgid "Contextual data for a blendfile library/linked-data related operation. Currently only exposed as read-only data for the pre/post blendimport handlers"
+msgstr "Dados contextuais para operação relacionada com os dados de biblioteca/vinculados de  um ficheiro Blend. Actualmente exposto apenas como dados apenas de leitura para os encarregados pre/pos importação de ficheiros blend"
+
+
+msgid "Options for this blendfile import operation"
+msgstr "Opções para a operação de importação deste ficheiro blend"
+
+
+msgid "Only link data, instead of appending it"
+msgstr "Apenas vincular dados, em vez de apor"
+
+
+msgid "Make paths of used library blendfiles relative to current blendfile"
+msgstr "Tornar os caminhos dos ficheiros blend biblioteca relativos em relação ao actual ficheiro blend"
+
+
+msgid "Generate a placeholder (empty ID) if not found in any library files"
+msgstr "Gerar um substituto (ID vazio) se não encontrado nos ficheiros biblioteca"
+
+
+msgid "Force loaded ID to be tagged as indirectly linked (used in reload context only)"
+msgstr "ID carregado forçosamente será etiquetado como vinculado indirectamente (usado no contexto de recarregamento)"
+
+
+msgid "Set fake user on appended IDs"
+msgstr "Atribuir utilizador falso a IDs apostos"
+
+
+msgid "Append (make local) also indirect dependencies of appended IDs coming from other libraries. NOTE: All IDs (including indirectly linked ones) coming from the same initial library are always made local"
+msgstr "Apor também (tornar local) dependências indirectas dos IDs apostos provenientes de outras bibliotecas. Atenção: Todos os IDs (incluindo os vinculados indirectamente) provenientes da mesma biblioteca inicial serão sempre tornados locais"
+
+
+msgid "Try to re-use previously appended matching IDs when appending them again, instead of creating local duplicates"
+msgstr "Tentar reutilizar IDs correspondentes anteriormente apostos quando apondo outra vez, em vez de criar duplicados locais"
+
+
+msgid "Clear the asset data on append (it is always kept for linked data)"
+msgstr "Limpar dados de recurso ao apor (são sempre mantidos para dados vinculados)"
+
+
+msgid "Automatically select imported objects"
+msgstr "Seleccionar automaticamente objectos importados"
+
+
+msgid "Use the active Collection of the current View Layer to instantiate imported collections and objects"
+msgstr "Usar a colecção activa da actual Camada de Visualização para instanciar objectos e colecções importados"
+
+
+msgid "Instantiate object data IDs (i.e. create objects for them if needed)"
+msgstr "Instanciar IDs de dados do objecto (ou seja criar objectos para os mesmos se necessário)"
+
+
+msgid "Instantiate collections as empties, instead of linking them into the current view layer"
+msgstr "Instanciar colecções como vazios, e, vez de vinculá-los à actual camada de visualização"
+
+
+msgid "Current stage of the import process"
+msgstr "Actual etapa do processo de importação"
+
+
+msgid "Blendfile import context has been initialized and filled with a list of items to import, no data has been linked or appended yet"
+msgstr "Contexto de importação de ficheiro Blend foi inicializado e preenchido com itens a importar, nenhuns dados foram ainda vinculados ou apostos"
+
+
+msgid "All data has been imported and is available in the list of `import_items`"
+msgstr "Todos os dados foram importados e estão disponíveis na lista de `import_items`"
+
+
+msgid "Blendfile Import Context Item"
+msgstr "Item de Contexto de Importação de ficheiro Blend"
+
+
+msgid "An item (representing a data-block) in a BlendImportContext data. Currently only exposed as read-only data for the pre/post linking handlers"
+msgstr "Um item (representando um bloco de dados) nuns dados de contexto de importação de ficheiro Blend. Actualmente exposto como dados apenas de leitura para encarregados de pré/pós vinculação"
+
+
+msgid "Append Action"
+msgstr "Acção de Aposição"
+
+
+msgid "How this item has been handled by the append operation. Only set if the data has been appended"
+msgstr "Como este item foi processado pela operação de aposição. Apenas se os dados foram apostos"
+
+
+msgid "Not yet defined"
+msgstr "Ainda não definido"
+
+
+msgid "ID has been kept linked"
+msgstr "O ID foi mantido como vinculado"
+
+
+msgid "An existing matching local ID has been re-used"
+msgstr "Um ID local existente foi reutilizado"
+
+
+msgid "The newly linked ID has been made local"
+msgstr "O ID recentemente vinculado foi tornado local"
+
+
+msgid "The linked ID had other unrelated usages, so it has been duplicated into a local copy"
+msgstr "O ID vinculado tinha outras utilizações não relacionadas, como tal foi duplicado como cópia local"
+
+
+msgid "Imported ID"
+msgstr "ID Importado"
+
+
+msgid "The imported ID. None until it has been linked or appended. May be the same as `reusable_local_id` when appended"
+msgstr "O ID Importado. Nenhum  até ter sido vinculado ou aposto. Pode ser o mesmo que `reusable_local_id` quando aposto."
+
+
 msgid "ID Type"
 msgstr "Tipo de identificador"
+
+
+msgid "ID type of the item"
+msgstr "Tipo de ID do item"
 
 
 msgid "Armature"
@@ -3256,6 +3376,10 @@ msgstr "Área de Trabalho"
 
 msgid "World"
 msgstr "Ambiente"
+
+
+msgid "Import Info"
+msgstr "Informação de Importação"
 
 
 msgid "Blender RNA"
@@ -33608,30 +33732,6 @@ msgid "Snap"
 msgstr "Atrair"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "Tipo de decaimento para edição proporcional"
-
-
-msgid "Mask Edit"
-msgstr "Edição de Máscara"
-
-
-msgid "Automasking"
-msgstr "Auto Máscara"
-
-
-msgid "Face Sets Edit"
-msgstr "Edições de Conjuntos de Faces"
-
-
-msgid "Vertex Group Locks"
-msgstr "Bloqueios de Grupos de Vértices"
-
-
-msgid "Mirror"
-msgstr "Espelhar"
-
-
 msgid "UV Mapping"
 msgstr "Mapeamento UV"
 
@@ -33736,6 +33836,10 @@ msgid "Hooks"
 msgstr "Ganchos"
 
 
+msgid "Vertex Group Locks"
+msgstr "Bloqueios de Grupos de Vértices"
+
+
 msgid "Trim/Add"
 msgstr "Aparar/Adicionar"
 
@@ -33818,6 +33922,26 @@ msgstr "Rolagem do osso"
 
 msgid "Pivot Point"
 msgstr "Pontos de pivô"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Tipo de decaimento para edição proporcional"
+
+
+msgid "Mask Edit"
+msgstr "Edição de Máscara"
+
+
+msgid "Automasking"
+msgstr "Auto Máscara"
+
+
+msgid "Face Sets Edit"
+msgstr "Edições de Conjuntos de Faces"
+
+
+msgid "Mirror"
+msgstr "Espelhar"
 
 
 msgid "Keyframe Insert Pie"
@@ -61390,19 +61514,6 @@ msgstr "Apagar o fotograma activo"
 
 
 msgctxt "Operator"
-msgid "Insert Blank Frame"
-msgstr "Inserir fotograma em branco"
-
-
-msgid "Insert a blank frame on the current frame (all subsequently existing frames, if any, are shifted right by one frame)"
-msgstr "Insere um fotograma em branco no fotograma actual (todos os fotogramas subsequenciais existentes, caso existam, serão deslocados à direita em um fotograma)."
-
-
-msgid "Create blank frame in all layers, not only active"
-msgstr "Cria um fotograma em branco em todas as camadas, e não somente na ativa."
-
-
-msgctxt "Operator"
 msgid "Click-Insert Keyframes"
 msgstr "Clique para inserção de fotogramas chave"
 
@@ -61740,6 +61851,11 @@ msgstr "Duplicar traços"
 
 msgid "Make copies of the selected Grease Pencil strokes and move them"
 msgstr "Cria cópias dos traços seleccionados de lápis de cera e permite movê-los."
+
+
+msgctxt "Operator"
+msgid "Insert Blank Frame"
+msgstr "Inserir fotograma em branco"
 
 
 msgctxt "Operator"
@@ -74156,18 +74272,6 @@ msgid "Active Palette Color"
 msgstr "Cor activa da paleta"
 
 
-msgid "Wire Color"
-msgstr "Cor dos cabos"
-
-
-msgid "Render Pass"
-msgstr "Passo de renderização"
-
-
-msgid "Motion Tracking"
-msgstr "Captura de movimentos"
-
-
 msgid "Snapping"
 msgstr "Atracção"
 
@@ -74178,6 +74282,18 @@ msgstr "Orientações de transformação"
 
 msgid "Stereoscopy"
 msgstr "Estereoscopia"
+
+
+msgid "Wire Color"
+msgstr "Cor dos cabos"
+
+
+msgid "Render Pass"
+msgstr "Passo de renderização"
+
+
+msgid "Motion Tracking"
+msgstr "Captura de movimentos"
 
 
 msgid "Bone Constraints"

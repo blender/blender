@@ -284,14 +284,16 @@ static void curves_sculptmode_enter(bContext *C)
   wmMsgBus *mbus = CTX_wm_message_bus(C);
 
   Object *ob = CTX_data_active_object(C);
-  BKE_paint_ensure(
-      CTX_data_main(C), scene->toolsettings, (Paint **)&scene->toolsettings->curves_sculpt);
+  BKE_paint_ensure(scene->toolsettings, (Paint **)&scene->toolsettings->curves_sculpt);
   CurvesSculpt *curves_sculpt = scene->toolsettings->curves_sculpt;
 
   ob->mode = OB_MODE_SCULPT_CURVES;
 
-  /* Setup cursor color. BKE_paint_init() could be used, but creates an additional brush. */
   Paint *paint = BKE_paint_get_active_from_paintmode(scene, PaintMode::SculptCurves);
+
+  BKE_paint_brushes_ensure(CTX_data_main(C), paint);
+
+  /* Setup cursor color. BKE_paint_init() could be used, but creates an additional brush. */
   copy_v3_v3_uchar(paint->paint_cursor_col, PAINT_CURSOR_SCULPT_CURVES);
   paint->paint_cursor_col[3] = 128;
 
@@ -1127,6 +1129,7 @@ static int min_distance_edit_modal(bContext *C, wmOperator *op, const wmEvent *e
     case LEFTMOUSE: {
       if (event->val == KM_PRESS) {
         finish();
+        BKE_brush_tag_unsaved_changes(op_data.brush);
         return OPERATOR_FINISHED;
       }
       break;

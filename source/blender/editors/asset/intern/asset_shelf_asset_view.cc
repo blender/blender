@@ -20,8 +20,7 @@
 #include "DNA_asset_types.h"
 #include "DNA_screen_types.h"
 
-#include "ED_asset_handle.hh"
-#include "ED_asset_list.hh"
+#include "ED_asset.hh"
 #include "ED_asset_menu_utils.hh"
 #include "ED_asset_shelf.hh"
 
@@ -221,6 +220,7 @@ void AssetViewItem::build_grid_tile(uiLayout &layout) const
 {
   const AssetView &asset_view = reinterpret_cast<const AssetView &>(this->get_view());
   const AssetShelfType &shelf_type = *asset_view.shelf_.type;
+  const asset_system::AssetRepresentation *asset = handle_get_representation(&asset_);
 
   PointerRNA file_ptr = RNA_pointer_create(
       nullptr,
@@ -234,7 +234,7 @@ void AssetViewItem::build_grid_tile(uiLayout &layout) const
 
   uiBut *item_but = reinterpret_cast<uiBut *>(this->view_item_button());
   if (std::optional<wmOperatorCallParams> activate_op = create_activate_operator_params(
-          shelf_type.activate_operator, *handle_get_representation(&asset_)))
+          shelf_type.activate_operator, *asset))
   {
     /* Attach the operator, but don't call it through the button. We call it using
      * #on_activate(). */
@@ -248,6 +248,16 @@ void AssetViewItem::build_grid_tile(uiLayout &layout) const
    * opaque background. */
   UI_but_view_item_draw_size_set(
       item_but, style.tile_width + 2 * U.pixelsize, style.tile_height + 2 * U.pixelsize);
+
+  UI_but_func_tooltip_set(
+      item_but,
+      [](bContext * /*C*/, void *argN, const char * /*tip*/) {
+        const asset_system::AssetRepresentation *asset =
+            static_cast<const asset_system::AssetRepresentation *>(argN);
+        return asset_tooltip(*asset, /*include_name=*/false);
+      },
+      const_cast<asset_system::AssetRepresentation *>(asset),
+      nullptr);
 
   ui::PreviewGridItem::build_grid_tile_button(layout);
 }

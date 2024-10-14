@@ -238,7 +238,7 @@ static PyObject *bpy_cli_command_register(PyObject * /*self*/, PyObject *args, P
   const char *id = PyUnicode_AsUTF8(py_id);
 
   std::unique_ptr<CommandHandler> cmd_ptr = std::make_unique<BPyCommandHandler>(
-      std::string(id), Py_INCREF_RET(py_exec_fn));
+      std::string(id), Py_NewRef(py_exec_fn));
   void *cmd_p = cmd_ptr.get();
 
   BKE_blender_cli_command_register(std::move(cmd_ptr));

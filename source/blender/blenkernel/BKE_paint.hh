@@ -181,8 +181,12 @@ PaintCurve *BKE_paint_curve_add(Main *bmain, const char *name);
 /**
  * Call when entering each respective paint mode.
  */
-bool BKE_paint_ensure(Main *bmain, ToolSettings *ts, Paint **r_paint);
-void BKE_paint_init(Main *bmain, Scene *sce, PaintMode mode, const uchar col[3]);
+bool BKE_paint_ensure(ToolSettings *ts, Paint **r_paint);
+/**
+ * \param ensure_brushes: Call #BKE_paint_brushes_ensure().
+ */
+void BKE_paint_init(
+    Main *bmain, Scene *sce, PaintMode mode, const uchar col[3], bool ensure_brushes = true);
 void BKE_paint_free(Paint *paint);
 /**
  * Called when copying scene settings, so even if 'src' and 'tar' are the same still do a
@@ -194,7 +198,7 @@ void BKE_paint_copy(const Paint *src, Paint *dst, int flag);
 void BKE_paint_cavity_curve_preset(Paint *paint, int preset);
 
 eObjectMode BKE_paint_object_mode_from_paintmode(PaintMode mode);
-bool BKE_paint_ensure_from_paintmode(Main *bmain, Scene *sce, PaintMode mode);
+bool BKE_paint_ensure_from_paintmode(Scene *sce, PaintMode mode);
 Paint *BKE_paint_get_active_from_paintmode(Scene *sce, PaintMode mode);
 const EnumPropertyItem *BKE_paint_get_tool_enum_from_paintmode(PaintMode mode);
 uint BKE_paint_get_brush_type_offset_from_paintmode(PaintMode mode);
@@ -246,6 +250,17 @@ bool BKE_paint_brush_set_essentials(Main *bmain, Paint *paint, const char *name)
 std::optional<AssetWeakReference> BKE_paint_brush_type_default_reference(
     eObjectMode ob_mode, std::optional<int> brush_type);
 void BKE_paint_brushes_set_default_references(ToolSettings *ts);
+/**
+ * Make sure the active brush asset is available as active brush, importing it if necessary. If
+ * there is no user set active brush, the default one is used/imported from the essentials asset
+ * library.
+ *
+ * It's good to avoid this until the user actually shows intentions to use brushes, to avoid unused
+ * brushes in files. E.g. use this when entering a paint mode, but not for versioning.
+ *
+ * Also handles the active eraser brush asset.
+ */
+void BKE_paint_brushes_ensure(Main *bmain, Paint *paint);
 void BKE_paint_brushes_validate(Main *bmain, Paint *paint);
 
 /* Secondary eraser brush. */

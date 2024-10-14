@@ -672,7 +672,12 @@ void BKE_armature_deform_coords_with_mesh(const Object *ob_arm,
                                           const char *defgrp_name,
                                           const Mesh *me_target)
 {
-  const ListBase *defbase = BKE_id_defgroup_list_get(static_cast<const ID *>(ob_target->data));
+  /* Note armature modifier on legacy curves calls this, so vertex groups are not guaranteed to
+   * exist. */
+  const ID *id_target = static_cast<const ID *>(ob_target->data);
+  const ListBase *defbase = BKE_id_supports_vertex_groups(id_target) ?
+                                BKE_id_defgroup_list_get(id_target) :
+                                nullptr;
   blender::Span<MDeformVert> dverts;
   if (ob_target->type == OB_MESH) {
     if (me_target == nullptr) {

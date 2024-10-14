@@ -12,6 +12,7 @@
 #include "BLI_task.hh"
 
 #include "NOD_geometry_nodes_lazy_function.hh"
+#include "NOD_node_declaration.hh"
 
 namespace blender::bke::node_tree_runtime {
 
@@ -650,4 +651,14 @@ const bNode *bNodeTree::find_nested_node(const int32_t nested_node_id,
     return nullptr;
   }
   return group->find_nested_node(ref->path.id_in_node, r_tree);
+}
+
+const bNodeSocket &bNode::socket_by_decl(const blender::nodes::SocketDeclaration &decl) const
+{
+  return decl.in_out == SOCK_IN ? this->input_socket(decl.index) : this->output_socket(decl.index);
+}
+
+bNodeSocket &bNode::socket_by_decl(const blender::nodes::SocketDeclaration &decl)
+{
+  return decl.in_out == SOCK_IN ? this->input_socket(decl.index) : this->output_socket(decl.index);
 }

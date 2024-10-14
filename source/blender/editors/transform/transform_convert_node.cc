@@ -277,7 +277,8 @@ static void special_aftertrans_update__node(bContext *C, TransInfo *t)
   if (!canceled) {
     ED_node_post_apply_transform(C, snode->edittree);
     if (t->modifiers & MOD_NODE_ATTACH) {
-      space_node::node_insert_on_link_flags(*bmain, *snode);
+      const TransCustomDataNode &customdata = *(TransCustomDataNode *)t->custom.type.data;
+      space_node::node_insert_on_link_flags(*bmain, *snode, customdata.is_new_node);
     }
   }
 

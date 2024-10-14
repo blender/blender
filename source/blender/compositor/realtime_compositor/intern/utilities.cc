@@ -3,16 +3,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_assert.h"
-#include "BLI_function_ref.hh"
-#include "BLI_index_range.hh"
-#include "BLI_math_color.h"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_task.hh"
 #include "BLI_utildefines.h"
-
-#include "IMB_colormanagement.hh"
-#include "IMB_imbuf.hh"
 
 #include "DNA_node_types.h"
 
@@ -171,93 +164,6 @@ DOutputSocket find_preview_output_socket(const DNode &node)
   }
 
   return DOutputSocket();
-}
-
-/* Given the size of a result, compute a lower resolution size for a preview. The greater dimension
- * will be assigned an arbitrarily chosen size of 128, while the other dimension will get the size
- * that maintains the same aspect ratio. */
-static int2 compute_preview_size(int2 size)
-{
-  const int greater_dimension_size = 128;
-  if (size.x > size.y) {
-    return int2(greater_dimension_size, int(greater_dimension_size * (float(size.y) / size.x)));
-  }
-  else {
-    return int2(int(greater_dimension_size * (float(size.x) / size.y)), greater_dimension_size);
-  }
-}
-
-void compute_preview_from_result(Context &context, const DNode &node, Result &input_result)
-{
-  /* Initialize node tree previews if not already initialized. */
-  bNodeTree *root_tree = const_cast<bNodeTree *>(
-      &node.context()->derived_tree().root_context().btree());
-  if (!root_tree->previews) {
-    root_tree->previews = bke::node_instance_hash_new("node previews");
-  }
-
-  const int2 preview_size = compute_preview_size(input_result.domain().size);
-  node->runtime->preview_xsize = preview_size.x;
-  node->runtime->preview_ysize = preview_size.y;
-
-  bNodePreview *preview = bke::node_preview_verify(
-      root_tree->previews, node.instance_key(), preview_size.x, preview_size.y, true);
-
-  GPUShader *shader = context.get_shader("compositor_compute_preview");
-  GPU_shader_bind(shader);
-
-  if (input_result.type() == ResultType::Float) {
-    GPU_texture_swizzle_set(input_result, "rrr1");
-  }
-
-  input_result.bind_as_texture(shader, "input_tx");
-
-  Result preview_result = context.create_result(ResultType::Color);
-  preview_result.allocate_texture(Domain(preview_size));
-  preview_result.bind_as_image(shader, "preview_img");
-
-  compute_dispatch_threads_at_least(shader, preview_size);
-
-  input_result.unbind_as_texture();
-  preview_result.unbind_as_image();
-  GPU_shader_unbind();
-
-  GPU_memory_barrier(GPU_BARRIER_TEXTURE_FETCH);
-  float *preview_pixels = static_cast<float *>(
-      GPU_texture_read(preview_result, GPU_DATA_FLOAT, 0));
-  preview_result.release();
-
-  ColormanageProcessor *color_processor = IMB_colormanagement_display_processor_new(
-      &context.get_scene().view_settings, &context.get_scene().display_settings);
-
-  threading::parallel_for(IndexRange(preview_size.y), 1, [&](const IndexRange sub_y_range) {
-    for (const int64_t y : sub_y_range) {
-      for (const int64_t x : IndexRange(preview_size.x)) {
-        const int index = (y * preview_size.x + x) * 4;
-        IMB_colormanagement_processor_apply_v4(color_processor, preview_pixels + index);
-        rgba_float_to_uchar(preview->ibuf->byte_buffer.data + index, preview_pixels + index);
-      }
-    }
-  });
-
-  /* Restore original swizzle mask set above. */
-  if (input_result.type() == ResultType::Float) {
-    GPU_texture_swizzle_set(input_result, "rgba");
-  }
-
-  IMB_colormanagement_processor_free(color_processor);
-  MEM_freeN(preview_pixels);
-}
-
-void parallel_for(const int2 range, FunctionRef<void(int2)> function)
-{
-  threading::parallel_for(IndexRange(range.y), 1, [&](const IndexRange sub_y_range) {
-    for (const int64_t y : sub_y_range) {
-      for (const int64_t x : IndexRange(range.x)) {
-        function(int2(x, y));
-      }
-    }
-  });
 }
 
 }  // namespace blender::realtime_compositor

@@ -590,11 +590,6 @@ struct GWL_DataOffer {
 
   struct {
     /**
-     * Prevents freeing after #wl_data_device_listener.leave,
-     * before #wl_data_device_listener.drop.
-     */
-    bool in_use = false;
-    /**
      * Bit-mask with available drop options.
      * #WL_DATA_DEVICE_MANAGER_DND_ACTION_COPY, #WL_DATA_DEVICE_MANAGER_DND_ACTION_MOVE.. etc.
      * The application that initializes the drag may set these depending on modifiers held
@@ -3172,13 +3167,14 @@ static char *read_buffer_from_data_offer(GWL_DataOffer *data_offer,
     CLOG_WARN(LOG, "error creating pipe: %s", std::strerror(errno));
   }
 
-  /* Only for DND (A no-op to disable for clipboard data-offer). */
-  data_offer->dnd.in_use = false;
-
   if (mutex) {
     mutex->unlock();
   }
-  /* WARNING: `data_offer` may be freed from now on. */
+  /* NOTE: Regarding `data_offer`:
+   * - In the case of the clipboard - unlocking the `mutex` means, it may be feed from now on.
+   * - In the case of drag & drop - the caller owns & no locking is needed
+   *   (locking is performed while transferring the ownership).
+   */
   char *buf = nullptr;
   if (pipefd_ok) {
     buf = read_file_as_buffer(pipefd[0], nil_terminate, r_len);
@@ -3432,7 +3428,6 @@ static void data_device_handle_enter(void *data,
   /* Transfer ownership of the `data_offer`. */
   seat->data_offer_dnd = data_offer;
 
-  data_offer->dnd.in_use = true;
   data_offer->dnd.xy[0] = x;
   data_offer->dnd.xy[1] = y;
 
@@ -3468,7 +3463,7 @@ static void data_device_handle_leave(void *data, wl_data_device * /*wl_data_devi
   dnd_events(seat, GHOST_kEventDraggingExited, event_ms);
   seat->wl.surface_window_focus_dnd = nullptr;
 
-  if (seat->data_offer_dnd && !seat->data_offer_dnd->dnd.in_use) {
+  if (seat->data_offer_dnd) {
     wl_data_offer_destroy(seat->data_offer_dnd->wl.id);
     delete seat->data_offer_dnd;
     seat->data_offer_dnd = nullptr;

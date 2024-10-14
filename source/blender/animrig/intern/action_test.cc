@@ -823,8 +823,8 @@ TEST_F(ActionLayersTest, action_slot_get_id_for_keying__empty_action)
   /* Double-check that the action is considered empty for the test. */
   EXPECT_TRUE(action->is_empty());
 
-  /* A `primary_id` that uses the action should get returned. Every other case
-   * should return nullptr. */
+  /* None should return an ID, since there are no slots yet which could have this ID assigned.
+   * Assignment of the Action itself (cube) shouldn't matter. */
   EXPECT_EQ(&cube->id, action_slot_get_id_for_keying(*bmain, *action, 0, &cube->id));
   EXPECT_EQ(nullptr, action_slot_get_id_for_keying(*bmain, *action, 0, nullptr));
   EXPECT_EQ(nullptr, action_slot_get_id_for_keying(*bmain, *action, 0, &suzanne->id));
@@ -832,7 +832,7 @@ TEST_F(ActionLayersTest, action_slot_get_id_for_keying__empty_action)
 
 TEST_F(ActionLayersTest, action_slot_get_id_for_keying__legacy_action)
 {
-  FCurve *fcurve = action_fcurve_ensure(bmain, action, nullptr, nullptr, {"location", 0});
+  FCurve *fcurve = action_fcurve_ensure_legacy(bmain, action, nullptr, nullptr, {"location", 0});
   EXPECT_FALSE(fcurve == nullptr);
 
   EXPECT_TRUE(assign_action(action, cube->id));
@@ -877,8 +877,10 @@ TEST_F(ActionLayersTest, action_slot_get_id_for_keying__layered_action)
 TEST_F(ActionLayersTest, conversion_to_layered)
 {
   EXPECT_TRUE(action->is_empty());
-  FCurve *legacy_fcu_0 = action_fcurve_ensure(bmain, action, "Test", nullptr, {"location", 0});
-  FCurve *legacy_fcu_1 = action_fcurve_ensure(bmain, action, "Test", nullptr, {"location", 1});
+  FCurve *legacy_fcu_0 = action_fcurve_ensure_legacy(
+      bmain, action, "Test", nullptr, {"location", 0});
+  FCurve *legacy_fcu_1 = action_fcurve_ensure_legacy(
+      bmain, action, "Test", nullptr, {"location", 1});
 
   KeyframeSettings settings;
   settings.handle = HD_AUTO;
@@ -910,7 +912,7 @@ TEST_F(ActionLayersTest, conversion_to_layered)
 
   Action *long_name_action = static_cast<Action *>(BKE_id_new(
       bmain, ID_AC, "name_for_an_action_that_is_exactly_64_chars_which_is_MAX_ID_NAME"));
-  action_fcurve_ensure(bmain, long_name_action, "Long", nullptr, {"location", 0});
+  action_fcurve_ensure_legacy(bmain, long_name_action, "Long", nullptr, {"location", 0});
   converted = convert_to_layered_action(*bmain, *long_name_action);
   /* AC gets added automatically by Blender, the long name is shortened to make space for
    * "_layered". */
@@ -921,11 +923,11 @@ TEST_F(ActionLayersTest, conversion_to_layered)
 TEST_F(ActionLayersTest, conversion_to_layered_action_groups)
 {
   EXPECT_TRUE(action->is_empty());
-  action_fcurve_ensure(bmain, action, "Test", nullptr, {"location", 0});
-  action_fcurve_ensure(bmain, action, "Test", nullptr, {"rotation_euler", 1});
-  action_fcurve_ensure(bmain, action, "Test_Two", nullptr, {"scale", 1});
-  action_fcurve_ensure(bmain, action, "Test_Three", nullptr, {"show_name", 1});
-  action_fcurve_ensure(bmain, action, "Test_Rename", nullptr, {"show_axis", 1});
+  action_fcurve_ensure_legacy(bmain, action, "Test", nullptr, {"location", 0});
+  action_fcurve_ensure_legacy(bmain, action, "Test", nullptr, {"rotation_euler", 1});
+  action_fcurve_ensure_legacy(bmain, action, "Test_Two", nullptr, {"scale", 1});
+  action_fcurve_ensure_legacy(bmain, action, "Test_Three", nullptr, {"show_name", 1});
+  action_fcurve_ensure_legacy(bmain, action, "Test_Rename", nullptr, {"show_axis", 1});
 
   bActionGroup *rename_group = static_cast<bActionGroup *>(BLI_findlink(&action->groups, 3));
   ASSERT_NE(rename_group, nullptr);

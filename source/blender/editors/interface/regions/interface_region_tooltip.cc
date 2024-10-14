@@ -1197,16 +1197,11 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_gizmo(bContext *C, wm
   }
 
   /* Property Actions */
-  if (gz->type->target_property_defs_len) {
-    wmGizmoProperty *gz_prop_array = WM_gizmo_target_property_array(gz);
-    for (int i = 0; i < gz->type->target_property_defs_len; i++) {
-      /* TODO(@ideasman42): function callback descriptions. */
-      wmGizmoProperty *gz_prop = &gz_prop_array[i];
-      if (gz_prop->prop != nullptr) {
-        const char *info = RNA_property_ui_description(gz_prop->prop);
-        if (info && info[0]) {
-          UI_tooltip_text_field_add(*data, info, {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_VALUE, true);
-        }
+  for (const wmGizmoProperty &gz_prop : gz->target_properties) {
+    if (gz_prop.prop != nullptr) {
+      const char *info = RNA_property_ui_description(gz_prop.prop);
+      if (info && info[0]) {
+        UI_tooltip_text_field_add(*data, info, {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_VALUE, true);
       }
     }
   }

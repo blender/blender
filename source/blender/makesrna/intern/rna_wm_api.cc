@@ -807,7 +807,7 @@ void RNA_api_window(StructRNA *srna)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   RNA_def_function_ui_description(func, "Set the cursor, so the previous cursor can be restored");
 
-  RNA_def_function(srna, "cursor_modal_restore", "WM_cursor_modal_restore");
+  func = RNA_def_function(srna, "cursor_modal_restore", "WM_cursor_modal_restore");
   RNA_def_function_ui_description(
       func, "Restore the previous cursor after calling ``cursor_modal_set``");
 
