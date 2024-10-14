@@ -106,6 +106,17 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   if (!extensions.contains(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME)) {
     missing_capabilities.append(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
   }
+  /* VK_EXT_dynamic_rendering_unused_attachments are required for correct working. Renderdoc hides
+   * this extension, but most platforms do work. However when the Windows Intel driver crashes when
+   * using iGPUs; they don't support this extension at all.
+   *
+   * TODO(jbakker): Make dynamic rendering optional to allow running on Windows/Intel iGPU.
+   */
+  if (!bool(G.debug & G_DEBUG_GPU_RENDERDOC)) {
+    if (!extensions.contains(VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME)) {
+      missing_capabilities.append(VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME);
+    }
+  }
 
   return missing_capabilities;
 }
