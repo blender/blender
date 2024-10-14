@@ -2854,6 +2854,7 @@ void MATERIAL_OT_paste(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = paste_material_exec;
+  ot->poll = object_materials_supported_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
