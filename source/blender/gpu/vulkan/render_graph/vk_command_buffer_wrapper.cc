@@ -15,7 +15,6 @@ VKCommandBufferWrapper::VKCommandBufferWrapper()
 {
   vk_command_pool_create_info_ = {};
   vk_command_pool_create_info_.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-  vk_command_pool_create_info_.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
   vk_command_pool_create_info_.queueFamilyIndex = 0;
 
   vk_command_buffer_allocate_info_ = {};
@@ -26,6 +25,7 @@ VKCommandBufferWrapper::VKCommandBufferWrapper()
 
   vk_command_buffer_begin_info_ = {};
   vk_command_buffer_begin_info_.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+  vk_command_buffer_begin_info_.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
   vk_fence_create_info_ = {};
   vk_fence_create_info_.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
@@ -73,14 +73,9 @@ void VKCommandBufferWrapper::begin_recording()
   if (vk_fence_ == VK_NULL_HANDLE) {
     vkCreateFence(device.vk_handle(), &vk_fence_create_info_, vk_allocation_callbacks, &vk_fence_);
   }
-
-  if (vk_command_buffer_ == VK_NULL_HANDLE) {
-    vkAllocateCommandBuffers(
-        device.vk_handle(), &vk_command_buffer_allocate_info_, &vk_command_buffer_);
-  }
-  else {
-    vkResetCommandBuffer(vk_command_buffer_, 0);
-  }
+  BLI_assert(vk_command_buffer_ == VK_NULL_HANDLE);
+  vkAllocateCommandBuffers(
+      device.vk_handle(), &vk_command_buffer_allocate_info_, &vk_command_buffer_);
 
   vkBeginCommandBuffer(vk_command_buffer_, &vk_command_buffer_begin_info_);
 }
@@ -101,6 +96,7 @@ void VKCommandBufferWrapper::submit_with_cpu_synchronization(VkFence vk_fence)
     std::scoped_lock lock(device.queue_mutex_get());
     vkQueueSubmit(device.queue_get(), 1, &vk_submit_info_, vk_fence);
   }
+  vk_command_buffer_ = nullptr;
 }
 
 void VKCommandBufferWrapper::wait_for_cpu_synchronization(VkFence vk_fence)
