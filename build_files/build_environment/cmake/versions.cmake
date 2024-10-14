@@ -287,11 +287,9 @@ set(CYTHON_VERSION 0.29.30)
 # but built against ZSTD 1.5.1, while we use 1.5.0.
 set(ZSTANDARD_VERSION 0.16.0)
 # Auto-format Python source (developer tool, not used by Blender at run-time).
-set(AUTOPEP8_VERSION 1.6.0)
+set(AUTOPEP8_VERSION 2.3.1)
 # Needed by: `autopep8` (so the version doesn't change on rebuild).
-set(PYCODESTYLE_VERSION 2.8.0)
-# Needed by: `autopep8` (so the version doesn't change on rebuild).
-set(TOML_VERSION 0.10.2)
+set(PYCODESTYLE_VERSION 2.12.1)
 # Build system for other packages (not used by Blender at run-time).
 set(MESON_VERSION 0.63.0)
 
