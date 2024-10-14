@@ -404,6 +404,7 @@ void do_surface_smooth_brush(const Depsgraph &depsgraph,
       break;
     }
   }
+  pbvh.tag_positions_changed(node_mask);
   bke::pbvh::update_bounds(depsgraph, object, pbvh);
 }
 
