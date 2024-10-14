@@ -134,6 +134,7 @@ class VKDevice : public NonCopyable {
   VkDevice vk_device_ = VK_NULL_HANDLE;
   uint32_t vk_queue_family_ = 0;
   VkQueue vk_queue_ = VK_NULL_HANDLE;
+  std::mutex *queue_mutex_ = nullptr;
 
   VKSamplers samplers_;
   VKDescriptorSetLayouts descriptor_set_layouts_;
@@ -232,6 +233,10 @@ class VKDevice : public NonCopyable {
   VkQueue queue_get() const
   {
     return vk_queue_;
+  }
+  std::mutex &queue_mutex_get()
+  {
+    return *queue_mutex_;
   }
 
   const uint32_t queue_family_get() const

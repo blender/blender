@@ -75,12 +75,15 @@ bool VKDevice::is_initialized() const
 void VKDevice::init(void *ghost_context)
 {
   BLI_assert(!is_initialized());
+  void *queue_mutex = nullptr;
   GHOST_GetVulkanHandles((GHOST_ContextHandle)ghost_context,
                          &vk_instance_,
                          &vk_physical_device_,
                          &vk_device_,
                          &vk_queue_family_,
-                         &vk_queue_);
+                         &vk_queue_,
+                         &queue_mutex);
+  queue_mutex_ = static_cast<std::mutex *>(queue_mutex);
 
   init_physical_device_properties();
   init_physical_device_memory_properties();

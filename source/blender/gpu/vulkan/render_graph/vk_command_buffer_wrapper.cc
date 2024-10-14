@@ -94,7 +94,10 @@ void VKCommandBufferWrapper::submit_with_cpu_synchronization()
 {
   VKDevice &device = VKBackend::get().device;
   vkResetFences(device.vk_handle(), 1, &vk_fence_);
-  vkQueueSubmit(device.queue_get(), 1, &vk_submit_info_, vk_fence_);
+  {
+    std::scoped_lock lock(device.queue_mutex_get());
+    vkQueueSubmit(device.queue_get(), 1, &vk_submit_info_, vk_fence_);
+  }
 }
 
 void VKCommandBufferWrapper::wait_for_cpu_synchronization()
