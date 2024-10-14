@@ -1081,10 +1081,10 @@ static void wm_drag_draw_tooltip(bContext *C, wmWindow *win, wmDrag *drag, const
   }
   int iconsize = UI_ICON_SIZE;
   int padding = 4 * UI_SCALE_FAC;
-  std::string &tooltip = drag->drop_state.tooltip;
+  blender::StringRef tooltip = drag->drop_state.tooltip;
   const bool has_disabled_info = drag->drop_state.disabled_info &&
                                  drag->drop_state.disabled_info[0];
-  if (tooltip.empty() && !has_disabled_info) {
+  if (tooltip.is_empty() && !has_disabled_info) {
     return;
   }
 
@@ -1114,7 +1114,7 @@ static void wm_drag_draw_tooltip(bContext *C, wmWindow *win, wmDrag *drag, const
     }
   }
 
-  if (!tooltip.empty()) {
+  if (!tooltip.is_empty()) {
     wm_drop_operator_draw(tooltip, x, y);
   }
   else if (has_disabled_info) {
