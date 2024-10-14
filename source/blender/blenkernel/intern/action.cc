@@ -24,6 +24,7 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_endian_switch.h"
 #include "BLI_ghash.h"
 #include "BLI_math_color.h"
 #include "BLI_math_matrix.h"
@@ -34,6 +35,8 @@
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
+
+#include "BLO_read_write.hh"
 
 #include "BKE_action.hh"
 #include "BKE_anim_data.hh"
@@ -674,6 +677,13 @@ static void read_slots(BlendDataReader *reader, animrig::Action &action)
 static void action_blend_read_data(BlendDataReader *reader, ID *id)
 {
   animrig::Action &action = reinterpret_cast<bAction *>(id)->wrap();
+
+  /* Undo generic endian switching (careful, only the two least significant bytes of the int32 must
+   * be swapped back here, since this value is actually an int16). */
+  if (BLO_read_requires_endian_switch(reader)) {
+    bAction *act = reinterpret_cast<bAction *>(id);
+    BLI_endian_switch_int16(reinterpret_cast<short *>(&act->idroot));
+  }
 
 #ifdef WITH_ANIM_BAKLAVA
   read_strip_keyframe_data_array(reader, action);
