@@ -378,7 +378,8 @@ struct GPUSource {
     for (auto dependency_name : dependencies_names) {
       GPUSource *dependency_source = dict.lookup_default(dependency_name, nullptr);
       if (dependency_source == nullptr) {
-        print_error(source, 0, "Dependency not found");
+        std::string error = std::string("Dependency not found : ") + dependency_name;
+        print_error(source, 0, error.c_str());
         return 1;
       }
 
