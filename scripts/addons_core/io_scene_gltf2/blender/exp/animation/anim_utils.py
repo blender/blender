@@ -22,7 +22,7 @@ def link_samplers(animation: gltf2_io.Animation, export_settings):
 
     After gathering, samplers are stored in the channels properties of the animation and need to be moved
     to their own list while storing an index into this list at the position where they previously were.
-    This behaviour is similar to that of the glTFExporter that traverses all nodes
+    This behavior is similar to that of the glTFExporter that traverses all nodes
     :param animation:
     :param export_settings:
     :return:
