@@ -748,7 +748,7 @@ static void rna_def_grease_pencil_layer_masks(BlenderRNA *brna, PropertyRNA *cpr
   srna = RNA_def_struct(brna, "GreasePencilLayerMasks", nullptr);
   RNA_def_struct_sdna(srna, "GreasePencilLayer");
   RNA_def_struct_ui_text(
-      srna, "Grease Pencil Mask Layers", "Collection of grease pencil masking layers");
+      srna, "Grease Pencil Mask Layers", "Collection of Grease Pencil masking layers");
 
   prop = RNA_def_property(srna, "active_mask_index", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -1259,7 +1259,7 @@ static void rna_def_grease_pencil_data(BlenderRNA *brna)
   PropertyRNA *prop;
 
   static EnumPropertyItem prop_stroke_depth_order_items[] = {
-      {0, "2D", 0, "2D Layers", "Display strokes using grease pencil layers to define order"},
+      {0, "2D", 0, "2D Layers", "Display strokes using Grease Pencil layers to define order"},
       {GREASE_PENCIL_STROKE_ORDER_3D,
        "3D",
        0,

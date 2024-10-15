@@ -521,7 +521,7 @@ static void OBJECT_OT_lineart_clear(wmOperatorType *ot)
   ot->poll = blender::ed::greasepencil::active_grease_pencil_poll;
   ot->exec = lineart_gpencil_clear_strokes_exec;
 
-  RNA_def_boolean(ot->srna, "clear_all", false, "Clear All", "Clear all line art modifier bakes");
+  RNA_def_boolean(ot->srna, "clear_all", false, "Clear All", "Clear all Line Art modifier bakes");
 }
 
 void ED_operatortypes_grease_pencil_lineart()

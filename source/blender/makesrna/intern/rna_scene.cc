@@ -3847,7 +3847,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
   RNA_def_property_struct_type(prop, "GPencilInterpolateSettings");
   RNA_def_property_ui_text(
-      prop, "Grease Pencil Interpolate", "Settings for grease pencil interpolation tools");
+      prop, "Grease Pencil Interpolate", "Settings for Grease Pencil interpolation tools");
 
   /* Grease Pencil - 3D View Stroke Placement */
   prop = RNA_def_property(srna, "gpencil_stroke_placement_view3d", PROP_ENUM, PROP_NONE);

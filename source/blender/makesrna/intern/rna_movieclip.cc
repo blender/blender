@@ -384,7 +384,7 @@ static void rna_def_movieclip(BlenderRNA *brna)
   RNA_def_property_pointer_funcs(
       prop, nullptr, nullptr, nullptr, "rna_GPencil_datablocks_annotations_poll");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
-  RNA_def_property_ui_text(prop, "Grease Pencil", "Grease pencil data for this movie clip");
+  RNA_def_property_ui_text(prop, "Grease Pencil", "Grease Pencil data for this movie clip");
   RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, nullptr);
 
   /* start_frame */

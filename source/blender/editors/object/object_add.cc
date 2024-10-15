@@ -1357,7 +1357,7 @@ static EnumPropertyItem rna_enum_gpencil_add_stroke_depth_order_items[] = {
      "2D",
      0,
      "2D Layers",
-     "Display strokes using grease pencil layers to define order"},
+     "Display strokes using Grease Pencil layers to define order"},
     {GP_DRAWMODE_3D, "3D", 0, "3D Location", "Display strokes using real 3D position in 3D space"},
     {0, nullptr, 0, nullptr, nullptr},
 };
@@ -1516,7 +1516,7 @@ void OBJECT_OT_grease_pencil_add(wmOperatorType *ot)
                   "use_in_front",
                   true,
                   "Show In Front",
-                  "Show Line Art grease pencil in front of everything");
+                  "Show Line Art Grease Pencil in front of everything");
   RNA_def_float(ot->srna,
                 "stroke_depth_offset",
                 0.05f,
@@ -1527,7 +1527,7 @@ void OBJECT_OT_grease_pencil_add(wmOperatorType *ot)
                 0.0f,
                 0.5f);
   RNA_def_boolean(
-      ot->srna, "use_lights", false, "Use Lights", "Use lights for this grease pencil object");
+      ot->srna, "use_lights", false, "Use Lights", "Use lights for this Grease Pencil object");
   RNA_def_enum(
       ot->srna,
       "stroke_depth_order",
@@ -3104,7 +3104,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       else {
         BKE_reportf(op->reports,
                     RPT_WARNING,
-                    "Object '%s' has no evaluated grease pencil data",
+                    "Object '%s' has no evaluated Grease Pencil data",
                     ob->id.name + 2);
       }
     }
@@ -3569,7 +3569,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       else {
         BKE_reportf(op->reports,
                     RPT_WARNING,
-                    "Object '%s' has no evaluated grease pencil or curves data",
+                    "Object '%s' has no evaluated Grease Pencil or curves data",
                     ob->id.name + 2);
       }
 

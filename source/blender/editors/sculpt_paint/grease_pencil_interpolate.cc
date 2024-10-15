@@ -851,7 +851,7 @@ static void GREASE_PENCIL_OT_interpolate(wmOperatorType *ot)
 {
   ot->name = "Grease Pencil Interpolation";
   ot->idname = "GREASE_PENCIL_OT_interpolate";
-  ot->description = "Interpolate grease pencil strokes between frames";
+  ot->description = "Interpolate Grease Pencil strokes between frames";
 
   ot->invoke = grease_pencil_interpolate_invoke;
   ot->modal = grease_pencil_interpolate_modal;
@@ -1311,7 +1311,7 @@ static void GREASE_PENCIL_OT_interpolate_sequence(wmOperatorType *ot)
       rna_enum_beztriple_interpolation_easing_items,
       BEZT_IPO_LIN,
       "Easing",
-      "Which ends of the segment between the preceding and following grease pencil frames "
+      "Which ends of the segment between the preceding and following Grease Pencil frames "
       "easing interpolation is applied to");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_GPENCIL);
 

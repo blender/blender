@@ -1015,12 +1015,12 @@ void RNA_def_main_materials(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "create_gpencil_data", "rna_Main_materials_gpencil_data");
-  RNA_def_function_ui_description(func, "Add grease pencil material settings");
+  RNA_def_function_ui_description(func, "Add Grease Pencil material settings");
   parm = RNA_def_pointer(func, "material", "Material", "", "Material");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
 
   func = RNA_def_function(srna, "remove_gpencil_data", "rna_Main_materials_gpencil_remove");
-  RNA_def_function_ui_description(func, "Remove grease pencil material settings");
+  RNA_def_function_ui_description(func, "Remove Grease Pencil material settings");
   parm = RNA_def_pointer(func, "material", "Material", "", "Material");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
 
@@ -1596,7 +1596,7 @@ void RNA_def_main_brushes(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
   func = RNA_def_function(srna, "create_gpencil_data", "rna_Main_brush_gpencil_data");
-  RNA_def_function_ui_description(func, "Add grease pencil brush settings");
+  RNA_def_function_ui_description(func, "Add Grease Pencil brush settings");
   parm = RNA_def_pointer(func, "brush", "Brush", "", "Brush");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
 }
@@ -2066,37 +2066,37 @@ void RNA_def_main_grease_pencil(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_property_srna(cprop, "BlendDataGreasePencilsV3");
   srna = RNA_def_struct(brna, "BlendDataGreasePencilsV3", nullptr);
   RNA_def_struct_sdna(srna, "Main");
-  RNA_def_struct_ui_text(srna, "Main Grease Pencils", "Collection of grease pencils");
+  RNA_def_struct_ui_text(srna, "Main Grease Pencils", "Collection of Grease Pencils");
 
   func = RNA_def_function(srna, "tag", "rna_Main_grease_pencils_tag");
   parm = RNA_def_boolean(func, "value", false, "Value", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
   func = RNA_def_function(srna, "new", "rna_Main_grease_pencils_new");
-  RNA_def_function_ui_description(func, "Add a new grease pencil datablock to the main database");
+  RNA_def_function_ui_description(func, "Add a new Grease Pencil datablock to the main database");
   parm = RNA_def_string(func, "name", "GreasePencil", 0, "", "New name for the data-block");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   /* return type */
   parm = RNA_def_pointer(
-      func, "grease_pencil", "GreasePencilv3", "", "New grease pencil data-block");
+      func, "grease_pencil", "GreasePencilv3", "", "New Grease Pencil data-block");
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_Main_ID_remove");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   RNA_def_function_ui_description(func,
-                                  "Remove a grease pencil instance from the current blendfile");
+                                  "Remove a Grease Pencil instance from the current blendfile");
   parm = RNA_def_pointer(func, "grease_pencil", "GreasePencilv3", "", "Grease Pencil to remove");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
   RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
   RNA_def_boolean(
-      func, "do_unlink", true, "", "Unlink all usages of this grease pencil before deleting it");
+      func, "do_unlink", true, "", "Unlink all usages of this Grease Pencil before deleting it");
   RNA_def_boolean(func,
                   "do_id_user",
                   true,
                   "",
-                  "Decrement user counter of all datablocks used by this grease pencil");
+                  "Decrement user counter of all datablocks used by this Grease Pencil");
   RNA_def_boolean(
-      func, "do_ui_user", true, "", "Make sure interface does not reference this grease pencil");
+      func, "do_ui_user", true, "", "Make sure interface does not reference this Grease Pencil");
 }
 
 void RNA_def_main_movieclips(BlenderRNA *brna, PropertyRNA *cprop)

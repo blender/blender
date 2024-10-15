@@ -670,7 +670,7 @@ static int actkeys_paste_exec(bContext *C, wmOperator *op)
     /* FIXME: support this case. */
     BKE_report(op->reports,
                RPT_ERROR,
-               "Keyframe pasting is not available for grease pencil or mask mode");
+               "Keyframe pasting is not available for Grease Pencil or mask mode");
     return OPERATOR_CANCELLED;
   }
   else {

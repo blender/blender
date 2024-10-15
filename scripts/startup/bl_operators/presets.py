@@ -949,7 +949,7 @@ class AddPresetGpencilBrush(AddPresetBase, Operator):
 
 
 class AddPresetGpencilMaterial(AddPresetBase, Operator):
-    """Add or remove grease pencil material preset"""
+    """Add or remove Grease Pencil material preset"""
     bl_idname = "scene.gpencil_material_preset_add"
     bl_label = "Add Grease Pencil Material Preset"
     preset_menu = "MATERIAL_PT_gpencil_material_presets"

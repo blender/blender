@@ -160,7 +160,7 @@ static int gpencil_actframe_delete_exec(bContext *C, wmOperator *op)
 
   /* if there's no existing Grease-Pencil data there, add some */
   if (gpd == nullptr) {
-    BKE_report(op->reports, RPT_ERROR, "No grease pencil data");
+    BKE_report(op->reports, RPT_ERROR, "No Grease Pencil data");
     return OPERATOR_CANCELLED;
   }
   if (ELEM(nullptr, gpl, gpf)) {

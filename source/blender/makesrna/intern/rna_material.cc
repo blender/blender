@@ -1149,13 +1149,13 @@ void RNA_def_material(BlenderRNA *brna)
   prop = RNA_def_property(srna, "grease_pencil", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, nullptr, "gp_style");
   RNA_def_property_ui_text(
-      prop, "Grease Pencil Settings", "Grease pencil color settings for material");
+      prop, "Grease Pencil Settings", "Grease Pencil color settings for material");
 
   prop = RNA_def_property(srna, "is_grease_pencil", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(prop, "rna_is_grease_pencil_get", nullptr);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(
-      prop, "Is Grease Pencil", "True if this material has grease pencil data");
+      prop, "Is Grease Pencil", "True if this material has Grease Pencil data");
 
   /* line art */
   prop = RNA_def_property(srna, "lineart", PROP_POINTER, PROP_NONE);

@@ -342,8 +342,8 @@ static void unlink_texture_fn(bContext * /*C*/,
      * for example) so there's no data to unlink from. */
     BKE_reportf(reports,
                 RPT_WARNING,
-                "Cannot unlink texture '%s'. It's not clear which freestyle line style it should "
-                "be unlinked from, there's no freestyle line style as parent in the Outliner tree",
+                "Cannot unlink texture '%s'. It's not clear which Freestyle line style it should "
+                "be unlinked from, there's no Freestyle line style as parent in the Outliner tree",
                 tselem->id->name + 2);
     return;
   }
