@@ -602,8 +602,9 @@ static void waveform_draw_one(const float *waveform, int waveform_num, const flo
   /* TODO: store the #blender::gpu::Batch inside the scope. */
   blender::gpu::Batch *batch = GPU_batch_create_ex(
       GPU_PRIM_POINTS, vbo, nullptr, GPU_BATCH_OWNS_VBO);
-  GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_UNIFORM_COLOR);
+  GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
   GPU_batch_uniform_4f(batch, "color", col[0], col[1], col[2], 1.0f);
+  GPU_batch_uniform_1f(batch, "size", 1.0f);
   GPU_batch_draw(batch);
 
   GPU_batch_discard(batch);
