@@ -1044,6 +1044,11 @@ static int apply_objects_internal(bContext *C,
       la->area_size *= rsmat[0][0];
       la->area_sizey *= rsmat[1][1];
       la->area_sizez *= rsmat[2][2];
+
+      /* Explicit tagging is required for Lamp ID because, unlike Geometry IDs like Mesh,
+       * it is not covered by the `ID_RECALC_GEOMETRY` flag applied to the object at the end
+       * of this loop. */
+      DEG_id_tag_update(&la->id, ID_RECALC_PARAMETERS);
     }
     else {
       continue;
