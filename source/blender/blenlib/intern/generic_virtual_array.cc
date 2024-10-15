@@ -515,13 +515,15 @@ class GVArrayImpl_For_SlicedGVArray : public GVArrayImpl {
   {
     IndexMaskMemory memory;
     const IndexMask shifted_mask = mask.shift(offset_, memory);
-    varray_.materialize(shifted_mask, dst);
+    void *shifted_dst = POINTER_OFFSET(dst, -offset_ * type_->size());
+    varray_.materialize(shifted_mask, shifted_dst);
   }
   void materialize_to_uninitialized(const IndexMask &mask, void *dst) const final
   {
     IndexMaskMemory memory;
     const IndexMask shifted_mask = mask.shift(offset_, memory);
-    varray_.materialize_to_uninitialized(shifted_mask, dst);
+    void *shifted_dst = POINTER_OFFSET(dst, -offset_ * type_->size());
+    varray_.materialize_to_uninitialized(shifted_mask, shifted_dst);
   }
   void materialize_compressed(const IndexMask &mask, void *dst) const final
   {
