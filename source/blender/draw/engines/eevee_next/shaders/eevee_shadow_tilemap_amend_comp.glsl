@@ -81,7 +81,7 @@ void main()
 
           tile_prev_packed = shadow_sampling_tile_pack(tile_prev);
           /* Replace the missing page with the one from the lower LOD. */
-          imageStore(tilemaps_img, ivec2(atlas_texel), uvec4(tile_prev_packed));
+          imageStoreFast(tilemaps_img, ivec2(atlas_texel), uvec4(tile_prev_packed));
           /* Push this amended tile to the local tiles. */
           tile_packed = tile_prev_packed;
           tile.is_valid = true;

@@ -21,8 +21,8 @@ void main()
     return;
   }
 
-  vec3 extinction = imageLoad(in_extinction_img, froxel).rgb;
-  vec3 scattering = imageLoad(in_scattering_img, froxel).rgb;
+  vec3 extinction = imageLoadFast(in_extinction_img, froxel).rgb;
+  vec3 scattering = imageLoadFast(in_scattering_img, froxel).rgb;
 
   if (is_zero(extinction) || is_zero(scattering)) {
     return;

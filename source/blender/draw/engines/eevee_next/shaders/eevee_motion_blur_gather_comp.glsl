@@ -219,5 +219,5 @@ void main()
   out_color.rg += max_motion.xy;
 #endif
 
-  imageStore(out_color_img, texel, out_color);
+  imageStoreFast(out_color_img, texel, out_color);
 }

@@ -89,18 +89,18 @@ void write_froxel(ivec3 froxel, VolumeProperties prop)
 #ifndef MAT_GEOM_WORLD
   /* Additive Blending. No race condition since we have a barrier between each conflicting
    * invocations. */
-  prop.scattering += imageLoad(out_scattering_img, froxel).rgb;
-  prop.emission += imageLoad(out_emissive_img, froxel).rgb;
-  extinction += imageLoad(out_extinction_img, froxel).rgb;
-  phase.x += imageLoad(out_phase_img, froxel).r;
-  phase.y += imageLoad(out_phase_weight_img, froxel).r;
+  prop.scattering += imageLoadFast(out_scattering_img, froxel).rgb;
+  prop.emission += imageLoadFast(out_emissive_img, froxel).rgb;
+  extinction += imageLoadFast(out_extinction_img, froxel).rgb;
+  phase.x += imageLoadFast(out_phase_img, froxel).r;
+  phase.y += imageLoadFast(out_phase_weight_img, froxel).r;
 #endif
 
-  imageStore(out_scattering_img, froxel, prop.scattering.xyzz);
-  imageStore(out_extinction_img, froxel, extinction.xyzz);
-  imageStore(out_emissive_img, froxel, prop.emission.xyzz);
-  imageStore(out_phase_img, froxel, phase.xxxx);
-  imageStore(out_phase_weight_img, froxel, phase.yyyy);
+  imageStoreFast(out_scattering_img, froxel, prop.scattering.xyzz);
+  imageStoreFast(out_extinction_img, froxel, extinction.xyzz);
+  imageStoreFast(out_emissive_img, froxel, prop.emission.xyzz);
+  imageStoreFast(out_phase_img, froxel, phase.xxxx);
+  imageStoreFast(out_phase_weight_img, froxel, phase.yyyy);
 }
 
 void main()

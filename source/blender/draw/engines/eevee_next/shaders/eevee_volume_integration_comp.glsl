@@ -74,7 +74,7 @@ void main()
     scattering += transmittance * froxel_scattering;
     transmittance *= froxel_transmittance;
 
-    imageStore(out_scattering_img, froxel, vec4(scattering, 1.0));
-    imageStore(out_transmittance_img, froxel, vec4(transmittance, 1.0));
+    imageStoreFast(out_scattering_img, froxel, vec4(scattering, 1.0));
+    imageStoreFast(out_transmittance_img, froxel, vec4(transmittance, 1.0));
   }
 }
