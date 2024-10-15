@@ -36,7 +36,7 @@ void main()
 
   ivec4 ma1 = floatBitsToInt(texelFetch(gp_pos_tx, gpencil_stroke_point_id() * 3 + 1));
   gpMaterial gp_mat = gp_materials[ma1.x + gpMaterialOffset];
-  gpMaterialFlag gp_flag = floatBitsToUint(gp_mat._flag);
+  gpMaterialFlag gp_flag = gpMaterialFlag(floatBitsToUint(gp_mat._flag));
 
   gl_Position = gpencil_vertex(vec4(viewportSize, 1.0 / viewportSize),
                                gp_flag,

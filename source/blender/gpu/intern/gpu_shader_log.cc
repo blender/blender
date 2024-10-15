@@ -125,9 +125,6 @@ void Shader::print_log(Span<const char *> sources,
     if (log_item.cursor.row == -1) {
       found_line_id = false;
     }
-    else if (log_item.source_base_row && log_item.cursor.source > 0) {
-      log_item.cursor.row += sources_end_line[log_item.cursor.source - 1];
-    }
 
     const char *src_line = sources_combined;
 
@@ -146,8 +143,7 @@ void Shader::print_log(Span<const char *> sources,
     {
       const char *src_line_end;
       found_line_id = false;
-      /* error_line is 1 based in this case. */
-      int src_line_index = 1;
+      int src_line_index = 0;
       while ((src_line_end = strchr(src_line, '\n'))) {
         if (src_line_index >= log_item.cursor.row) {
           found_line_id = true;

@@ -19,7 +19,6 @@ GPUShader *DRW_shader_hair_refine_get(ParticleRefineShader refinement);
 
 GPUShader *DRW_shader_curves_refine_get(blender::draw::CurvesEvalShader type);
 
-GPUShader *DRW_shader_debug_print_display_get();
 GPUShader *DRW_shader_debug_draw_display_get();
 GPUShader *DRW_shader_draw_visibility_compute_get();
 GPUShader *DRW_shader_draw_view_finalize_get();

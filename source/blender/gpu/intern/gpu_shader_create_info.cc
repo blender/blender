@@ -580,9 +580,6 @@ void gpu_shader_create_info_init()
     if ((info->builtins_ & BuiltinBits::USE_DEBUG_DRAW) == BuiltinBits::USE_DEBUG_DRAW) {
       info->additional_info("draw_debug_draw");
     }
-    if ((info->builtins_ & BuiltinBits::USE_DEBUG_PRINT) == BuiltinBits::USE_DEBUG_PRINT) {
-      info->additional_info("draw_debug_print");
-    }
 #endif
   }
 

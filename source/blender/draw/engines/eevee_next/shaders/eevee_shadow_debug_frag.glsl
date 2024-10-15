@@ -37,9 +37,14 @@ vec3 debug_random_color(int v)
 void debug_tile_print(ShadowTileData tile, ivec4 tile_coord)
 {
 #ifdef DRW_DEBUG_PRINT
-  drw_print("Tile (", tile_coord.x, ",", tile_coord.y, ") in Tilemap ", tile_coord.z, " : ");
-  drw_print(tile.page);
-  drw_print(tile.cache_index);
+  printf("Tile (%u, %u) in Tilemap %u: page(%u, %u, %u), cache_index %u",
+         tile_coord.x,
+         tile_coord.y,
+         tile_coord.z,
+         tile.page.x,
+         tile.page.y,
+         tile.page.z,
+         tile.cache_index);
 #endif
 }
 

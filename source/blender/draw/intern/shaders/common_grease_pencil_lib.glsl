@@ -387,7 +387,7 @@ vec4 gpencil_vertex(vec4 viewport_size,
                     out float out_hardness)
 {
   return gpencil_vertex(viewport_size,
-                        0u,
+                        gpMaterialFlag(0u),
                         vec2(1.0, 0.0),
                         out_P,
                         out_N,

@@ -218,18 +218,8 @@ void MTLShader::fragment_shader_from_glsl(MutableSpan<const char *> sources)
   std::stringstream ss;
   int i;
   for (i = 0; i < sources.size(); i++) {
-    /* Output preprocessor directive to improve shader log. */
-    StringRefNull name = shader::gpu_shader_dependency_get_filename_from_source_string(sources[i]);
-    if (name.is_empty()) {
-      ss << "#line 1 \"generated_code_" << i << "\"\n";
-    }
-    else {
-      ss << "#line 1 \"" << name << "\"\n";
-    }
-
     ss << sources[i] << '\n';
   }
-  ss << "#line 1 \"msl_wrapper_code\"\n";
   shd_builder_->glsl_fragment_source_ = ss.str();
 }
 
@@ -245,14 +235,6 @@ void MTLShader::compute_shader_from_glsl(MutableSpan<const char *> sources)
   /* Consolidate GLSL compute sources. */
   std::stringstream ss;
   for (int i = 0; i < sources.size(); i++) {
-    /* Output preprocessor directive to improve shader log. */
-    StringRefNull name = shader::gpu_shader_dependency_get_filename_from_source_string(sources[i]);
-    if (name.is_empty()) {
-      ss << "#line 1 \"generated_code_" << i << "\"\n";
-    }
-    else {
-      ss << "#line 1 \"" << name << "\"\n";
-    }
     ss << sources[i] << std::endl;
   }
   shd_builder_->glsl_compute_source_ = ss.str();

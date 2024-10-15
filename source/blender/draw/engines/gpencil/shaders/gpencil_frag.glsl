@@ -23,7 +23,7 @@ vec3 gpencil_lighting(void)
     }
     vec3 L = gp_lights[i]._position - gp_interp.pos;
     float vis = 1.0;
-    gpLightType type = floatBitsToUint(gp_lights[i]._type);
+    gpLightType type = gpLightType(floatBitsToUint(gp_lights[i]._type));
     /* Spot Attenuation. */
     if (type == GP_LIGHT_TYPE_SPOT) {
       mat3 rot_scale = mat3(gp_lights[i]._right, gp_lights[i]._up, gp_lights[i]._forward);
