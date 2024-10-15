@@ -24,16 +24,21 @@ class AttributeGetterSetter:
                 raise Exception("Unknown type {!r}".format(type))
         return default
 
+    def _set_attribute_value(self, attribute, type, value):
+        if type in {'FLOAT', 'INT', 'STRING', 'BOOLEAN', 'INT8', 'INT32_2D', 'QUATERNION', 'FLOAT4X4'}:
+            attribute.data[self._index].value = value
+        elif type == 'FLOAT_VECTOR':
+            attribute.data[self._index].vector = value
+        elif type in {'FLOAT_COLOR', 'BYTE_COLOR'}:
+            attribute.data[self._index].color = value
+        else:
+            raise Exception("Unknown type {!r}".format(type))
+
     def _set_attribute(self, name, type, value):
-        if attribute := self._attributes.get(name, self._attributes.new(name, type, self._domain)):
-            if type in {'FLOAT', 'INT', 'STRING', 'BOOLEAN', 'INT8', 'INT32_2D', 'QUATERNION', 'FLOAT4X4'}:
-                attribute.data[self._index].value = value
-            elif type == 'FLOAT_VECTOR':
-                attribute.data[self._index].vector = value
-            elif type in {'FLOAT_COLOR', 'BYTE_COLOR'}:
-                attribute.data[self._index].color = value
-            else:
-                raise Exception("Unknown type {!r}".format(type))
+        if attribute := self._attributes.get(name):
+            self._set_attribute_value(attribute, type, value)
+        elif attribute := self._attributes.new(name, type, self._domain):
+            self._set_attribute_value(attribute, type, value)
         else:
             raise Exception(
                 "Could not create attribute {:s} of type {!r}".format(name, type))
@@ -152,11 +157,13 @@ class GreasePencilStrokePoint(AttributeGetterSetter):
 
     @select.setter
     def select(self, value):
-        if attribute := self._attributes.get(".selection", self._attributes.new(".selection", 'BOOLEAN', 'POINT')):
+        if attribute := self._attributes.get(".selection"):
             if attribute.domain == 'CURVE':
                 attribute.data[self._curve_index].value = value
             elif attribute.domain == 'POINT':
                 attribute.data[self._point_index].value = value
+        elif attribute := self._attributes.new(".selection", 'BOOLEAN', 'POINT'):
+            attribute.data[self._point_index].value = value
 
 
 class GreasePencilStrokePointSlice(SliceHelper):
@@ -269,12 +276,14 @@ class GreasePencilStroke(AttributeGetterSetter):
 
     @select.setter
     def select(self, value):
-        if attribute := self._attributes.get(".selection", self._attributes.new(".selection", 'BOOLEAN', 'CURVE')):
+        if attribute := self._attributes.get(".selection"):
             if attribute.domain == 'CURVE':
                 attribute.data[self._curve_index].value = value
             elif attribute.domain == 'POINT':
                 for point_index in range(self._points_start_index, self._points_end_index):
                     attribute.data[point_index].value = value
+        elif attribute := self._attributes.new(".selection", 'BOOLEAN', 'CURVE'):
+            attribute.data[self._curve_index].value = value
 
 
 class GreasePencilStrokeSlice(SliceHelper):
