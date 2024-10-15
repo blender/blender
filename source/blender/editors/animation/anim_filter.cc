@@ -2212,8 +2212,10 @@ static size_t animdata_filter_grease_pencil_data(bAnimContext *ac,
    */
   if (filter_mode & ANIMFILTER_ANIMDATA) {
     /* Just add data block container. */
-    ANIMCHANNEL_NEW_CHANNEL(
-        ac->bmain, grease_pencil, ANIMTYPE_GREASE_PENCIL_DATABLOCK, grease_pencil, nullptr);
+    if (grease_pencil->adt != nullptr) {
+      ANIMCHANNEL_NEW_CHANNEL(
+          ac->bmain, grease_pencil, ANIMTYPE_GREASE_PENCIL_DATABLOCK, grease_pencil, nullptr);
+    }
   }
   else {
     ListBase tmp_data = {nullptr, nullptr};
