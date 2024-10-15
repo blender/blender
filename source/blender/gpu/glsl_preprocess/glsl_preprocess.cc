@@ -31,7 +31,7 @@ int main(int argc, char **argv)
   }
 
   /* Open the output file for writing */
-  std::ofstream output_file(output_file_name);
+  std::ofstream output_file(output_file_name, std::ofstream::out | std::ofstream::binary);
   if (!output_file) {
     std::cerr << "Error: Could not open output file " << output_file_name << std::endl;
     input_file.close();
