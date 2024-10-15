@@ -349,17 +349,23 @@ class Preprocessor {
         str, regex, [&](const std::smatch &match) { static_strings_.insert(match[0].str()); });
   }
 
+  /* String hash are outputted inside GLSL and needs to fit 32 bits. */
+  static uint64_t hash_string(const std::string &str)
+  {
+    uint64_t hash_64 = hash(str);
+    uint32_t hash_32 = uint32_t(hash_64 ^ (hash_64 >> 32));
+    return hash_32;
+  }
+
   std::string static_strings_mutation(std::string str)
   {
     /* Replaces all matches by the respective string hash. */
     for (const std::string &str_var : static_strings_) {
       std::regex escape_regex(R"([\\\.\^\$\+\(\)\[\]\{\}\|\?\*])");
       std::string str_regex = std::regex_replace(str_var, escape_regex, "\\$&");
-      uint64_t hash_64 = hash(str_var);
-      uint32_t hash_32 = uint32_t(hash_64 ^ (hash_64 >> 32));
 
       std::regex regex(str_regex);
-      str = std::regex_replace(str, regex, std::to_string(hash_32) + 'u');
+      str = std::regex_replace(str, regex, std::to_string(hash_string(str_var)) + 'u');
     }
     return str;
   }
@@ -371,7 +377,7 @@ class Preprocessor {
     }
     std::stringstream suffix;
     for (const std::string &str_var : static_strings_) {
-      suffix << "// " << hash("string") << " " << hash(str_var) << " " << str_var << "\n";
+      suffix << "// " << hash("string") << " " << hash_string(str_var) << " " << str_var << "\n";
     }
     return suffix.str();
   }

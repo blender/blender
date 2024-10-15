@@ -290,7 +290,7 @@ struct GPUSource {
 
     StringRef hash = pop_token(line);
     StringRef string = line;
-    add_format(uint32_t(std::stol(hash)), string);
+    add_format(uint32_t(std::stoul(hash)), string);
   }
 
   void parse_function(StringRef line, GPUFunctionDictionnary *g_functions)
