@@ -37,6 +37,7 @@
 static CLG_LogRef LOG = {"gpu.vulkan"};
 
 namespace blender::gpu {
+static const char *KNOWN_CRASHING_DRIVER = "instable driver";
 
 static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physical_device)
 {
@@ -100,6 +101,36 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   }
   if (!extensions.contains(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME)) {
     missing_capabilities.append(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
+  }
+
+  /* Check for known faulty drivers. */
+  VkPhysicalDeviceProperties2 vk_physical_device_properties = {};
+  VkPhysicalDeviceDriverProperties vk_physical_device_driver_properties = {};
+  vk_physical_device_properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+  vk_physical_device_driver_properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES;
+  vk_physical_device_properties.pNext = &vk_physical_device_driver_properties;
+  vkGetPhysicalDeviceProperties2(vk_physical_device, &vk_physical_device_properties);
+
+  /* Check for drivers that are known to crash. */
+
+  /* Intel IRIS on 10th gen CPU crashes due to issues when using dynamic rendering. It seems like
+   * when vkCmdBeginRendering is called some requirements need to be met, that can only be met when
+   * actually calling a vkCmdDraw command. As driver versions are not easy accessible we check
+   * against the latest conformance test version.
+   *
+   * This should be revisited when dynamic rendering is fully optional.
+   */
+  uint32_t conformance_version = VK_MAKE_API_VERSION(
+      vk_physical_device_driver_properties.conformanceVersion.major,
+      vk_physical_device_driver_properties.conformanceVersion.minor,
+      vk_physical_device_driver_properties.conformanceVersion.subminor,
+      vk_physical_device_driver_properties.conformanceVersion.patch);
+  if (vk_physical_device_driver_properties.driverID == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS &&
+      vk_physical_device_properties.properties.deviceType ==
+          VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU &&
+      conformance_version < VK_MAKE_API_VERSION(1, 3, 2, 0))
+  {
+    missing_capabilities.append(KNOWN_CRASHING_DRIVER);
   }
 
   return missing_capabilities;
