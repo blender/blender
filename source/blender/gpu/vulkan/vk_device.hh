@@ -60,6 +60,12 @@ struct VKWorkarounds {
    * If set to true, the backend would inject a geometry shader to produce barycentric coordinates.
    */
   bool fragment_shader_barycentric = false;
+
+  /**
+   * Is the workarounds for devices that don't support VK_EXT_dynamic_rendering_unused_attachments
+   * enabled.
+   */
+  bool dynamic_rendering_unused_attachments = false;
 };
 
 /**
