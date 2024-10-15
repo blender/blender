@@ -545,13 +545,17 @@ struct PaintOperationExecutor {
         "cyclic", bke::AttrDomain::Curve);
     bke::SpanAttributeWriter<float> softness = attributes.lookup_or_add_for_write_span<float>(
         "softness", bke::AttrDomain::Curve);
+    bke::SpanAttributeWriter<float> u_scale = attributes.lookup_or_add_for_write_span<float>(
+        "u_scale", bke::AttrDomain::Curve);
     cyclic.span[active_curve] = false;
     materials.span[active_curve] = material_index;
     softness.span[active_curve] = softness_;
-    curve_attributes_to_skip.add_multiple({"material_index", "cyclic", "softness"});
+    u_scale.span[active_curve] = 1.0f;
+    curve_attributes_to_skip.add_multiple({"material_index", "cyclic", "softness", "u_scale"});
     cyclic.finish();
     materials.finish();
     softness.finish();
+    u_scale.finish();
 
     if (settings_->uv_random > 0.0f || attributes.contains("rotation")) {
       bke::SpanAttributeWriter<float> rotations = attributes.lookup_or_add_for_write_span<float>(

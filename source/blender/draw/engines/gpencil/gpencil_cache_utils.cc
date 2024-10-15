@@ -543,8 +543,11 @@ GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_PrivateData *pd,
   const bool is_in_front = (ob->dtx & OB_DRAW_IN_FRONT);
 
   const bool override_vertcol = (pd->v3d_color_type != -1);
+  /* In draw mode and vertex paint mode it's possible to draw vertex colors so we want to make sure
+   * to render them. Otherwise this can lead to unexpected behavior. */
   const bool is_vert_col_mode = (pd->v3d_color_type == V3D_SHADING_VERTEX_COLOR) ||
-                                (ob->mode == OB_MODE_VERTEX_PAINT) || pd->is_render;
+                                (ob->mode & OB_MODE_VERTEX_PAINT) != 0 ||
+                                (ob->mode & OB_MODE_PAINT_GREASE_PENCIL) != 0 || pd->is_render;
   const bool is_viewlayer_render = pd->is_render && !layer.view_layer_name().is_empty() &&
                                    STREQ(pd->view_layer->name, layer.view_layer_name().c_str());
   const bool disable_masks_render = is_viewlayer_render &&
