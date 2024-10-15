@@ -995,18 +995,20 @@ class VIEW3D_HT_header(Header):
             row.popover(panel="VIEW3D_PT_slots_color_attributes", icon='GROUP_VCOL')
         elif object_mode == 'VERTEX_GREASE_PENCIL':
             draw_topbar_grease_pencil_layer_panel(context, layout)
-        elif object_mode in {'WEIGHT_PAINT', 'WEIGHT_GREASE_PENCIL'}:
+        elif object_mode == 'WEIGHT_PAINT':
+            row = layout.row()
+            row.popover(panel="VIEW3D_PT_slots_vertex_groups", icon='GROUP_VERTEX')
+
+            layout.popover(
+                panel="VIEW3D_PT_sculpt_snapping",
+                icon="SNAP_INCREMENT",
+                text="",
+                translate=False,
+            )
+        elif object_mode == 'WEIGHT_GREASE_PENCIL':
             row = layout.row()
             row.popover(panel="VIEW3D_PT_slots_vertex_groups", icon='GROUP_VERTEX')
             draw_topbar_grease_pencil_layer_panel(context, row)
-
-            if object_mode != 'WEIGHT_GREASE_PENCIL':
-                layout.popover(
-                    panel="VIEW3D_PT_sculpt_snapping",
-                    icon="SNAP_INCREMENT",
-                    text="",
-                    translate=False,
-                )
 
         elif object_mode == 'TEXTURE_PAINT':
             tool_mode = tool_settings.image_paint.mode
