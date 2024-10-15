@@ -180,6 +180,9 @@ void BVHEmbree::build(Progress &progress,
 
 const char *BVHEmbree::get_error_string(RTCError error_code)
 {
+#  if RTC_VERSION >= 40303
+  return rtcGetErrorString(error_code);
+#  else
   switch (error_code) {
     case RTC_ERROR_NONE:
       return "no error";
@@ -199,6 +202,7 @@ const char *BVHEmbree::get_error_string(RTCError error_code)
       /* We should never end here unless enum for RTC errors would change. */
       return "unknown error";
   }
+#  endif
 }
 
 #  if defined(WITH_EMBREE_GPU) && RTC_VERSION >= 40302
