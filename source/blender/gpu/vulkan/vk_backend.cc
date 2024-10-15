@@ -47,12 +47,7 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
 
   features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
   dynamic_rendering.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES;
-  VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT
-      dynamic_rendering_unused_attachments = {};
-  dynamic_rendering_unused_attachments.sType =
-      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_FEATURES_EXT;
   features.pNext = &dynamic_rendering;
-  dynamic_rendering.pNext = &dynamic_rendering_unused_attachments;
 
   vkGetPhysicalDeviceFeatures2(vk_physical_device, &features);
 #ifndef __APPLE__
@@ -105,17 +100,6 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   }
   if (!extensions.contains(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME)) {
     missing_capabilities.append(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
-  }
-  /* VK_EXT_dynamic_rendering_unused_attachments are required for correct working. Renderdoc hides
-   * this extension, but most platforms do work. However when the Windows Intel driver crashes when
-   * using iGPUs; they don't support this extension at all.
-   *
-   * TODO(jbakker): Make dynamic rendering optional to allow running on Windows/Intel iGPU.
-   */
-  if (!bool(G.debug & G_DEBUG_GPU_RENDERDOC)) {
-    if (!extensions.contains(VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME)) {
-      missing_capabilities.append(VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME);
-    }
   }
 
   return missing_capabilities;
@@ -301,6 +285,7 @@ void VKBackend::detect_workarounds(VKDevice &device)
     workarounds.shader_output_viewport_index = true;
     workarounds.vertex_formats.r8g8b8 = true;
     workarounds.fragment_shader_barycentric = true;
+    workarounds.dynamic_rendering_unused_attachments = true;
 
     device.workarounds_ = workarounds;
     return;
@@ -326,6 +311,9 @@ void VKBackend::detect_workarounds(VKDevice &device)
 
   workarounds.fragment_shader_barycentric = !device.supports_extension(
       VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME);
+
+  workarounds.dynamic_rendering_unused_attachments = !device.supports_extension(
+      VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME);
 
   device.workarounds_ = workarounds;
 }
