@@ -674,6 +674,63 @@ inline auto SI1_SO2(const char *name,
       name, element_fn, exec_preset, TypeSequence<In1>());
 }
 
+/** Build multi-function with 2 single-input and 2 single-output parameter. */
+template<typename In1,
+         typename In2,
+         typename Out1,
+         typename Out2,
+         typename ElementFn,
+         typename ExecPreset = exec_presets::Materialized>
+inline auto SI2_SO2(const char *name,
+                    const ElementFn element_fn,
+                    const ExecPreset exec_preset = exec_presets::Materialized())
+{
+  return detail::build_multi_function_with_n_inputs_two_outputs<Out1, Out2>(
+      name, element_fn, exec_preset, TypeSequence<In1, In2>());
+}
+
+/** Build multi-function with 1 single-input and 3 single output parameter. */
+template<typename In1,
+         typename Out1,
+         typename Out2,
+         typename Out3,
+         typename ElementFn,
+         typename ExecPreset = exec_presets::Materialized>
+inline auto SI1_SO3(const char *name,
+                    const ElementFn element_fn,
+                    const ExecPreset exec_preset = exec_presets::Materialized())
+{
+  constexpr auto param_tags = TypeSequence<ParamTag<ParamCategory::SingleInput, In1>,
+                                           ParamTag<ParamCategory::SingleOutput, Out1>,
+                                           ParamTag<ParamCategory::SingleOutput, Out2>,
+                                           ParamTag<ParamCategory::SingleOutput, Out3>>();
+  auto call_fn = detail::build_multi_function_call_from_element_fn(
+      element_fn, exec_preset, param_tags);
+  return detail::CustomMF(name, call_fn, param_tags);
+}
+
+/** Build multi-function with 1 single-input and 4 single output parameter. */
+template<typename In1,
+         typename Out1,
+         typename Out2,
+         typename Out3,
+         typename Out4,
+         typename ElementFn,
+         typename ExecPreset = exec_presets::Materialized>
+inline auto SI1_SO4(const char *name,
+                    const ElementFn element_fn,
+                    const ExecPreset exec_preset = exec_presets::Materialized())
+{
+  constexpr auto param_tags = TypeSequence<ParamTag<ParamCategory::SingleInput, In1>,
+                                           ParamTag<ParamCategory::SingleOutput, Out1>,
+                                           ParamTag<ParamCategory::SingleOutput, Out2>,
+                                           ParamTag<ParamCategory::SingleOutput, Out3>,
+                                           ParamTag<ParamCategory::SingleOutput, Out4>>();
+  auto call_fn = detail::build_multi_function_call_from_element_fn(
+      element_fn, exec_preset, param_tags);
+  return detail::CustomMF(name, call_fn, param_tags);
+}
+
 }  // namespace blender::fn::multi_function::build
 
 namespace blender::fn::multi_function {

@@ -7,6 +7,11 @@
  */
 
 #include "BLI_assert.h"
+#include "BLI_math_vector_types.hh"
+
+#include "FN_multi_function_builder.hh"
+
+#include "NOD_multi_function.hh"
 
 #include "IMB_colormanagement.hh"
 
@@ -126,6 +131,19 @@ static ShaderNode *get_compositor_shader_node(DNode node)
   return new ColorRampShaderNode(node);
 }
 
+static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+{
+  /* Not yet implemented. Return zero. */
+  static auto function = mf::build::SI1_SO2<float, float4, float>(
+      "Color Ramp",
+      [](const float /*factor*/, float4 &color, float &alpha) -> void {
+        color = float4(0.0f);
+        alpha = 0.0f;
+      },
+      mf::build::exec_presets::AllSpanOrSingle());
+  builder.set_matching_fn(function);
+}
+
 }  // namespace blender::nodes::node_composite_color_ramp_cc
 
 void register_node_type_cmp_valtorgb()
@@ -141,6 +159,7 @@ void register_node_type_cmp_valtorgb()
   blender::bke::node_type_storage(
       &ntype, "ColorBand", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
+  ntype.build_multi_function = file_ns::node_build_multi_function;
 
   blender::bke::node_register_type(&ntype);
 }
@@ -185,6 +204,16 @@ static ShaderNode *get_compositor_shader_node(DNode node)
   return new RGBToBWShaderNode(node);
 }
 
+static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+{
+  /* Not yet implemented. Return zero. */
+  static auto function = mf::build::SI1_SO<float4, float>(
+      "RGB to BW",
+      [](const float4 & /*color*/) -> float { return 0.0f; },
+      mf::build::exec_presets::AllSpanOrSingle());
+  builder.set_matching_fn(function);
+}
+
 }  // namespace blender::nodes::node_composite_rgb_to_bw_cc
 
 void register_node_type_cmp_rgbtobw()
@@ -197,6 +226,7 @@ void register_node_type_cmp_rgbtobw()
   ntype.declare = file_ns::cmp_node_rgbtobw_declare;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Default);
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
+  ntype.build_multi_function = file_ns::node_build_multi_function;
 
   blender::bke::node_register_type(&ntype);
 }
