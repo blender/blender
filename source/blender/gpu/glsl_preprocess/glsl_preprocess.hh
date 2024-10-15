@@ -587,6 +587,8 @@ class Preprocessor {
 
   std::string line_directive_prefix(const std::string &filepath)
   {
+    std::string filename = std::regex_replace(filepath, std::regex(R"((?:.*)\/(.*))"), "$1");
+
     std::stringstream suffix;
     suffix << "#line 1 ";
 #ifdef __APPLE__
@@ -595,12 +597,11 @@ class Preprocessor {
     /* TODO(fclem): We could make it work using a macro to choose between the filename and the hash
      * at runtime. i.e.: `FILENAME_MACRO(12546546541, 'filename.glsl')` This should work for both
      * MSL and GLSL. */
-    std::string filename = std::regex_replace(filepath, std::regex(R"((?:.*)\/(.*))"), "$1");
     if (!filename.empty()) {
       suffix << "\"" << filename << "\"";
     }
 #else
-    uint64_t hash_value = hash(filepath);
+    uint64_t hash_value = hash(filename);
     /* Fold the value so it fits the GLSL spec. */
     hash_value = (hash_value ^ (hash_value >> 32)) & (~uint64_t(0) >> 33);
     suffix << std::to_string(uint64_t(hash_value));
