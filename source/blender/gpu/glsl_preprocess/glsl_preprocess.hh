@@ -167,7 +167,7 @@ class Preprocessor {
       }
     }
     /* Remove trailing white space as they make the subsequent regex much slower. */
-    std::regex regex("(\\ )*?\\n");
+    std::regex regex(R"((\ )*?\n)");
     return std::regex_replace(out_str, regex, "\n");
   }
 
@@ -212,7 +212,7 @@ class Preprocessor {
 
   void threadgroup_variables_parsing(const std::string &str)
   {
-    std::regex regex("shared\\s+(\\w+)\\s+(\\w+)([^;]*);");
+    std::regex regex(R"(shared\s+(\w+)\s+(\w+)([^;]*);)");
     regex_global_search(str, regex, [&](const std::smatch &match) {
       shared_vars_.push_back({match[1].str(), match[2].str(), match[3].str()});
     });
@@ -331,11 +331,11 @@ class Preprocessor {
       out_str = std::regex_replace(out_str, regex, "{int c_ = print_header($1, ");
     }
     {
-      std::regex regex("\\@");
+      std::regex regex(R"(\@)");
       out_str = std::regex_replace(out_str, regex, "); c_ = print_data(c_,");
     }
     {
-      std::regex regex("\\$");
+      std::regex regex(R"(\$)");
       out_str = std::regex_replace(out_str, regex, "; }");
     }
     return out_str;
@@ -426,23 +426,22 @@ class Preprocessor {
   std::string argument_decorator_macro_injection(const std::string &str)
   {
     /* Example: `out float var[2]` > `out float _out_sta var _out_end[2]` */
-    std::regex regex("(out|inout|in|shared)\\s+(\\w+)\\s+(\\w+)");
+    std::regex regex(R"((out|inout|in|shared)\s+(\w+)\s+(\w+))");
     return std::regex_replace(str, regex, "$1 $2 _$1_sta $3 _$1_end");
   }
 
   std::string array_constructor_macro_injection(const std::string &str)
   {
     /* Example: `= float[2](0.0, 0.0)` > `= ARRAY_T(float) ARRAY_V(0.0, 0.0)` */
-    std::regex regex("=\\s*(\\w+)\\s*\\[[^\\]]*\\]\\s*\\(");
+    std::regex regex(R"(=\s*(\w+)\s*\[[^\]]*\]\s*\()");
     return std::regex_replace(str, regex, "= ARRAY_T($1) ARRAY_V(");
   }
 
   /* TODO(fclem): Too many false positive and false negative to be applied to python shaders. */
-  template<typename ReportErrorF>
-  void matrix_constructor_linting(const std::string &str, const ReportErrorF &report_error)
+  void matrix_constructor_linting(const std::string &str, report_callback report_error)
   {
     /* Example: `mat4(other_mat)`. */
-    std::regex regex("\\s+(mat(\\d|\\dx\\d)|float\\dx\\d)\\([^,\\s\\d]+\\)");
+    std::regex regex(R"(\s+(mat(\d|\dx\d)|float\dx\d)\([^,\s\d]+\))");
     regex_global_search(str, regex, [&](const std::smatch &match) {
       /* This only catches some invalid usage. For the rest, the CI will catch them. */
       const char *msg =
@@ -472,7 +471,7 @@ class Preprocessor {
   template<typename ReportErrorF>
   void array_constructor_linting(const std::string &str, const ReportErrorF &report_error)
   {
-    std::regex regex("=\\s*(\\w+)\\s*\\[[^\\]]*\\]\\s*\\(");
+    std::regex regex(R"(=\s*(\w+)\s*\[[^\]]*\]\s*\()");
     regex_global_search(str, regex, [&](const std::smatch &match) {
       /* This only catches some invalid usage. For the rest, the CI will catch them. */
       const char *msg =
