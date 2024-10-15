@@ -2683,7 +2683,7 @@ def fbx_data_from_scene(scene, depsgraph, settings):
             eval_mats = tuple(slot.material.original if slot.material else None
                               for slot in ob_to_convert.material_slots)
             if orig_mats != eval_mats:
-                # Override the default behaviour of getting materials from ob_obj.bdata.material_slots.
+                # Override the default behavior of getting materials from `ob_obj.bdata.material_slots`.
                 ob_obj.override_materials = eval_mats
         elif do_convert:
             tmp_me = bpy.data.meshes.new_from_object(ob, preserve_all_data_layers=True, depsgraph=depsgraph)
@@ -3038,7 +3038,7 @@ def fbx_data_from_scene(scene, depsgraph, settings):
             idx = _objs_indices[ob_obj] = _objs_indices.get(ob_obj, -1) + 1
             # XXX If a mesh has multiple material slots with the same material, they are combined into one slot.
             # Even if duplicate materials were exported without combining them into one slot, keeping duplicate
-            # materials separated does not appear to be common behaviour of external software when importing FBX.
+            # materials separated does not appear to be common behavior of external software when importing FBX.
             mesh_material_indices.setdefault(me, {})[ma] = idx
     del _objs_indices
 

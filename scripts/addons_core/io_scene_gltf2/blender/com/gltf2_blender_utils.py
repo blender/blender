@@ -18,11 +18,11 @@ def fast_structured_np_unique(arr, *args, **kwargs):
 
     Float field caveats:
     All elements of -0.0 in the input array will be replaced with 0.0 to ensure that both values are collapsed into one.
-    NaN values can have lots of different byte representations (e.g. signalling/quiet and custom payloads). Only the
+    NaN values can have lots of different byte representations (e.g. signaling/quiet and custom payloads). Only the
     duplicates of each unique byte representation will be collapsed into one.
 
     Nested structured dtypes are not supported.
-    The behaviour of structured dtypes with overlapping fields is undefined.
+    The behavior of structured dtypes with overlapping fields is undefined.
     """
     structured_dtype = arr.dtype
     fields = structured_dtype.fields
