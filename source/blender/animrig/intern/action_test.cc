@@ -825,7 +825,7 @@ TEST_F(ActionLayersTest, action_slot_get_id_for_keying__empty_action)
 
   /* None should return an ID, since there are no slots yet which could have this ID assigned.
    * Assignment of the Action itself (cube) shouldn't matter. */
-  EXPECT_EQ(&cube->id, action_slot_get_id_for_keying(*bmain, *action, 0, &cube->id));
+  EXPECT_EQ(nullptr, action_slot_get_id_for_keying(*bmain, *action, 0, &cube->id));
   EXPECT_EQ(nullptr, action_slot_get_id_for_keying(*bmain, *action, 0, nullptr));
   EXPECT_EQ(nullptr, action_slot_get_id_for_keying(*bmain, *action, 0, &suzanne->id));
 }
@@ -976,9 +976,6 @@ TEST_F(ActionLayersTest, empty_to_layered)
 
 TEST_F(ActionLayersTest, action_move_slot)
 {
-  U.flag |= USER_DEVELOPER_UI;
-  U.experimental.use_animation_baklava = 1;
-
   Action *action_2 = static_cast<Action *>(BKE_id_new(bmain, ID_AC, "Action 2"));
   EXPECT_TRUE(action->is_empty());
 
@@ -1060,15 +1057,11 @@ static void add_keyframe(FCurve &fcu, float x, float y)
 
 static void add_fcurve_to_action(Action &action, FCurve &fcu)
 {
-#ifdef WITH_ANIM_BAKLAVA
   Slot &slot = action.slot_array_num > 0 ? *action.slot(0) : action.slot_add();
   action.layer_keystrip_ensure();
   StripKeyframeData &strip_data = action.layer(0)->strip(0)->data<StripKeyframeData>(action);
   ChannelBag &cbag = strip_data.channelbag_for_slot_ensure(slot);
   cbag.fcurve_append(fcu);
-#else
-  BLI_addhead(&action.curves, &fcu);
-#endif /* WITH_ANIM_BAKLAVA */
 }
 
 class ActionQueryTest : public testing::Test {
@@ -1882,7 +1875,6 @@ TEST_F(ActionFCurveMoveTest, test_fcurve_move_legacy)
       << "Destination Action should have its original and the moved F-Curve";
 }
 
-#ifdef WITH_ANIM_BAKLAVA
 TEST_F(ActionFCurveMoveTest, test_fcurve_move_layered)
 {
   Action &action_src = action_add(*this->bmain, "SourceAction");
@@ -1931,6 +1923,5 @@ TEST_F(ActionFCurveMoveTest, test_fcurve_move_layered)
   ASSERT_NE(nullptr, group_dst) << "Expected channel group to be created";
   ASSERT_EQ(group_dst, fcurve_to_move.grp) << "Expected group membership to move as well";
 }
-#endif
 
 }  // namespace blender::animrig::tests

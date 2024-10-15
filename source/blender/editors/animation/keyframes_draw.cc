@@ -774,9 +774,7 @@ void ED_add_action_channel(ChannelDrawList *channel_list,
                            float yscale_fac,
                            int saction_flag)
 {
-#ifdef WITH_ANIM_BAKLAVA
   BLI_assert(!act || act->wrap().is_action_legacy());
-#endif
 
   const bool locked = (act && (!ID_IS_EDITABLE(act) || ID_IS_OVERRIDE_LIBRARY(act)));
   saction_flag &= ~SACTION_SHOW_EXTREMES;

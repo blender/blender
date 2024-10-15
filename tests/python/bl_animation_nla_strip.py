@@ -13,16 +13,6 @@ import sys
 import unittest
 
 
-def enable_experimental_animation_baklava():
-    bpy.context.preferences.view.show_developer_ui = True
-    bpy.context.preferences.experimental.use_animation_baklava = True
-
-
-def disable_experimental_animation_baklava():
-    bpy.context.preferences.view.show_developer_ui = False
-    bpy.context.preferences.experimental.use_animation_baklava = False
-
-
 class AbstractNlaStripTest(unittest.TestCase):
     """ Sets up a series of strips in one NLA track. """
 
@@ -124,15 +114,6 @@ class NlaStripBoundaryTest(AbstractNlaStripTest):
 
 
 class NLAStripActionSlotSelectionTest(AbstractNlaStripTest):
-
-    def setUp(self):
-        enable_experimental_animation_baklava()
-        return super().setUp()
-
-    def tearDown(self) -> None:
-        disable_experimental_animation_baklava()
-        return super().tearDown()
-
     def test_two_strips_for_same_action(self):
         action = bpy.data.actions.new("StripAction")
         action.slots.new()

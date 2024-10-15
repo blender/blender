@@ -7590,20 +7590,6 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
                            "Recompute all ID usercounts before saving to a blendfile. Allows to "
                            "work around invalid usercount handling in code that may lead to loss "
                            "of data due to wrongly detected unused data-blocks");
-
-  prop = RNA_def_property(srna, "use_animation_baklava", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "use_animation_baklava", 1);
-  RNA_def_property_ui_text(
-      prop,
-      "Multi-Slot Actions",
-      "The new 'layered' Action can contain the animation for multiple data-blocks at once");
-#  ifndef WITH_ANIM_BAKLAVA
-  /* Only allow setting this to 'true' when actually built with Baklava. Some of the Baklava code
-   * is not guarded with `WITH_ANIM_BAKLAVA`, but rather assumes that this flag is always 'false'
-   * then. */
-  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-#  endif
-  RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 
 static void rna_def_userdef_addon_collection(BlenderRNA *brna, PropertyRNA *cprop)

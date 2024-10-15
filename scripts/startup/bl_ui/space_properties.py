@@ -124,9 +124,6 @@ class PropertiesAnimationMixin:
 
         layout.template_action(animated_id, new="action.new", unlink="action.unlink")
 
-        if not context.preferences.experimental.use_animation_baklava:
-            return
-
         adt = animated_id.animation_data
         if not adt or not adt.action:
             return

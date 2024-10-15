@@ -871,10 +871,6 @@ static float2 get_frame_range_of_fcurves(Span<const FCurve *> fcurves,
 
       foundmod = true;
     }
-
-    /* This block is here just so that editors/IDEs do not get confused about the two opening
-     * curly braces in the `#ifdef WITH_ANIM_BAKLAVA` block above, but one closing curly brace
-     * here. */
   }
 
   if (foundvert || foundmod) {

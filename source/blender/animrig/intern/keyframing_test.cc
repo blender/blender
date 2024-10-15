@@ -72,20 +72,11 @@ class KeyframingTest : public testing::Test {
 
   static void TearDownTestSuite()
   {
-    /* Ensure experimental baklava flag is turned off after all tests are run. */
-    U.flag &= ~USER_DEVELOPER_UI;
-    U.experimental.use_animation_baklava = 0;
-
     CLG_exit();
   }
 
   void SetUp() override
   {
-    /* Ensure experimental baklava flag is turned off first (to be enabled
-     * selectively in the layered action tests. */
-    U.flag &= ~USER_DEVELOPER_UI;
-    U.experimental.use_animation_baklava = 0;
-
     bmain = BKE_main_new();
 
     object = BKE_object_add_only_object(bmain, OB_EMPTY, "Empty");
@@ -186,10 +177,6 @@ class KeyframingTest : public testing::Test {
 /* Keying a non-array property. */
 TEST_F(KeyframingTest, insert_keyframes__layered_action__non_array_property)
 {
-  /* Turn on Baklava experimental flag. */
-  U.flag |= USER_DEVELOPER_UI;
-  U.experimental.use_animation_baklava = 1;
-
   AnimationEvalContext anim_eval_context = {nullptr, 1.0};
 
   /* First time should create:
@@ -281,10 +268,6 @@ TEST_F(KeyframingTest, insert_keyframes__layered_action__non_array_property)
 
 TEST_F(KeyframingTest, insert_keyframes__layered_action__action_reuse)
 {
-  /* Turn on Baklava experimental flag. */
-  U.flag |= USER_DEVELOPER_UI;
-  U.experimental.use_animation_baklava = 1;
-
   AnimationEvalContext anim_eval_context = {nullptr, 1.0};
   CombinedKeyingResult result_ob;
   result_ob = insert_keyframes(bmain,
@@ -323,16 +306,10 @@ TEST_F(KeyframingTest, insert_keyframes__layered_action__action_reuse)
   for (Slot *slot : action.slots()) {
     ASSERT_TRUE(slot->idtype == ID_AR || slot->idtype == ID_OB);
   }
-
-  U.experimental.use_animation_baklava = 0;
-  U.flag &= ~USER_DEVELOPER_UI;
 }
 
 TEST_F(KeyframingTest, insert_keyframes__layered_action__action_reuse_material)
 {
-  U.flag |= USER_DEVELOPER_UI;
-  U.experimental.use_animation_baklava = 1;
-
   AnimationEvalContext anim_eval_context = {nullptr, 1.0};
   CombinedKeyingResult result_ob;
 
@@ -394,16 +371,10 @@ TEST_F(KeyframingTest, insert_keyframes__layered_action__action_reuse_material)
     ASSERT_TRUE(slot->idtype == ID_ME || slot->idtype == ID_OB);
     ASSERT_NE(slot->idtype, ID_MA);
   }
-
-  U.experimental.use_animation_baklava = 0;
-  U.flag &= ~USER_DEVELOPER_UI;
 }
 
 TEST_F(KeyframingTest, insert_keyframes__layered_action__action_reuse_multiuser)
 {
-  U.flag |= USER_DEVELOPER_UI;
-  U.experimental.use_animation_baklava = 1;
-
   Object *another_object = BKE_object_add_only_object(bmain, OB_MESH, "another_object");
   PointerRNA another_object_rna_pointer = RNA_id_pointer_create(&another_object->id);
   BKE_mesh_assign_object(bmain, another_object, cube_mesh);
@@ -458,18 +429,11 @@ TEST_F(KeyframingTest, insert_keyframes__layered_action__action_reuse_multiuser)
   /* Given that those two objects are connected by a mesh (which due to this has two users) the
    * action shouldn't be reused between them. */
   ASSERT_NE(cube->adt->action, another_object->adt->action);
-
-  U.experimental.use_animation_baklava = 0;
-  U.flag &= ~USER_DEVELOPER_UI;
 }
 
 /* Keying a single element of an array property. */
 TEST_F(KeyframingTest, insert_keyframes__layered_action__single_element)
 {
-  /* Turn on Baklava experimental flag. */
-  U.flag |= USER_DEVELOPER_UI;
-  U.experimental.use_animation_baklava = 1;
-
   AnimationEvalContext anim_eval_context = {nullptr, 1.0};
 
   const CombinedKeyingResult result = insert_keyframes(bmain,
@@ -499,10 +463,6 @@ TEST_F(KeyframingTest, insert_keyframes__layered_action__single_element)
 /* Keying all elements of an array property. */
 TEST_F(KeyframingTest, insert_keyframes__layered_action__all_elements)
 {
-  /* Turn on Baklava experimental flag. */
-  U.flag |= USER_DEVELOPER_UI;
-  U.experimental.use_animation_baklava = 1;
-
   AnimationEvalContext anim_eval_context = {nullptr, 1.0};
 
   const CombinedKeyingResult result = insert_keyframes(bmain,
@@ -534,10 +494,6 @@ TEST_F(KeyframingTest, insert_keyframes__layered_action__all_elements)
 /* Keying a pose bone from its own RNA pointer. */
 TEST_F(KeyframingTest, insert_keyframes__layered_action__pose_bone_rna_pointer)
 {
-  /* Turn on Baklava experimental flag. */
-  U.flag |= USER_DEVELOPER_UI;
-  U.experimental.use_animation_baklava = 1;
-
   AnimationEvalContext anim_eval_context = {nullptr, 1.0};
   bPoseChannel *pchan = BKE_pose_channel_find_name(armature_object->pose, "Bone");
   PointerRNA pose_bone_rna_pointer = RNA_pointer_create(
@@ -570,10 +526,6 @@ TEST_F(KeyframingTest, insert_keyframes__layered_action__pose_bone_rna_pointer)
 /* Keying a pose bone from its owning ID's RNA pointer. */
 TEST_F(KeyframingTest, insert_keyframes__pose_bone_owner_id_pointer)
 {
-  /* Turn on Baklava experimental flag. */
-  U.flag |= USER_DEVELOPER_UI;
-  U.experimental.use_animation_baklava = 1;
-
   AnimationEvalContext anim_eval_context = {nullptr, 1.0};
 
   const CombinedKeyingResult result = insert_keyframes(
@@ -604,10 +556,6 @@ TEST_F(KeyframingTest, insert_keyframes__pose_bone_owner_id_pointer)
 /* Keying multiple elements of multiple properties at once. */
 TEST_F(KeyframingTest, insert_keyframes__layered_action__multiple_properties)
 {
-  /* Turn on Baklava experimental flag. */
-  U.flag |= USER_DEVELOPER_UI;
-  U.experimental.use_animation_baklava = 1;
-
   AnimationEvalContext anim_eval_context = {nullptr, 1.0};
 
   const CombinedKeyingResult result = insert_keyframes(bmain,
@@ -647,10 +595,6 @@ TEST_F(KeyframingTest, insert_keyframes__layered_action__multiple_properties)
 /* Keying more than one ID on the same action. */
 TEST_F(KeyframingTest, insert_keyframes__layered_action__multiple_ids)
 {
-  /* Turn on Baklava experimental flag. */
-  U.flag |= USER_DEVELOPER_UI;
-  U.experimental.use_animation_baklava = 1;
-
   AnimationEvalContext anim_eval_context = {nullptr, 1.0};
 
   /* First object should crate the action and get a slot and channel bag. */
@@ -718,25 +662,17 @@ TEST_F(KeyframingTest, insert_keyframes__baklava_legacy_action)
 {
   AnimationEvalContext anim_eval_context = {nullptr, 1.0};
 
-  /* Insert a key with the experimental flag off to create a legacy action. */
-  const CombinedKeyingResult result_1 = insert_keyframes(bmain,
-                                                         &object_rna_pointer,
-                                                         std::nullopt,
-                                                         {{"empty_display_size"}},
-                                                         1.0,
-                                                         anim_eval_context,
-                                                         BEZT_KEYTYPE_KEYFRAME,
-                                                         INSERTKEY_NOFLAGS);
-  EXPECT_EQ(1, result_1.get_count(SingleKeyingResult::SUCCESS));
+  /* Create a legacy Action and assign it the legacy way. */
+  {
+    bAction *action = reinterpret_cast<bAction *>(BKE_id_new(bmain, ID_AC, "LegacyAction"));
+    action_fcurve_ensure_legacy(bmain, action, nullptr, nullptr, {"testprop", 47});
+    BKE_animdata_ensure_id(&object->id)->action = action;
+  }
 
   bAction *action = object->adt->action;
   EXPECT_TRUE(action->wrap().is_action_legacy());
   EXPECT_FALSE(action->wrap().is_action_layered());
   EXPECT_EQ(1, BLI_listbase_count(&action->curves));
-
-  /* Turn on Baklava experimental flag. */
-  U.flag |= USER_DEVELOPER_UI;
-  U.experimental.use_animation_baklava = 1;
 
   /* Insert more keys, which should also get inserted as part of the same legacy
    * action, not a layered action. */
@@ -759,10 +695,6 @@ TEST_F(KeyframingTest, insert_keyframes__baklava_legacy_action)
 /* Keying with the "Only Insert Available" flag. */
 TEST_F(KeyframingTest, insert_keyframes__layered_action__only_available)
 {
-  /* Turn on Baklava experimental flag. */
-  U.flag |= USER_DEVELOPER_UI;
-  U.experimental.use_animation_baklava = 1;
-
   AnimationEvalContext anim_eval_context = {nullptr, 1.0};
 
   /* First attempt should fail, because there are no fcurves yet. */
@@ -832,10 +764,6 @@ TEST_F(KeyframingTest, insert_keyframes__layered_action__only_available)
 /* Keying with the "Only Replace" flag. */
 TEST_F(KeyframingTest, insert_keyframes__layered_action__only_replace)
 {
-  /* Turn on Baklava experimental flag. */
-  U.flag |= USER_DEVELOPER_UI;
-  U.experimental.use_animation_baklava = 1;
-
   AnimationEvalContext anim_eval_context = {nullptr, 1.0};
 
   /* First attempt should fail, because there are no fcurves yet. */
@@ -931,10 +859,6 @@ TEST_F(KeyframingTest, insert_keyframes__layered_action__only_replace)
 /* Keying with the "Only Insert Needed" flag. */
 TEST_F(KeyframingTest, insert_keyframes__layered_action__only_needed)
 {
-  /* Turn on Baklava experimental flag. */
-  U.flag |= USER_DEVELOPER_UI;
-  U.experimental.use_animation_baklava = 1;
-
   AnimationEvalContext anim_eval_context = {nullptr, 1.0};
 
   /* First attempt should succeed, because there are no fcurves yet. */

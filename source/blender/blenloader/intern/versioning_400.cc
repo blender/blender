@@ -1255,9 +1255,7 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
     version_node_socket_index_animdata(bmain, NTREE_SHADER, SH_NODE_BSDF_PRINCIPLED, 7, 1, 30);
   }
 
-  /* Keeping this block is without a `MAIN_VERSION_FILE_ATLEAST` until the experimental flag is
-   * removed. */
-  if (USER_EXPERIMENTAL_TEST(&U, use_animation_baklava)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 2)) {
     version_legacy_actions_to_layered(bmain);
   }
 

@@ -13,22 +13,11 @@ blender -b --factory-startup --python tests/python/bl_animation_action.py
 """
 
 
-def enable_experimental_animation_baklava():
-    bpy.context.preferences.view.show_developer_ui = True
-    bpy.context.preferences.experimental.use_animation_baklava = True
-
-
-def disable_experimental_animation_baklava():
-    bpy.context.preferences.view.show_developer_ui = False
-    bpy.context.preferences.experimental.use_animation_baklava = False
-
-
 class ActionSlotAssignmentTest(unittest.TestCase):
     """Test assigning actions & check reference counts."""
 
     def setUp(self) -> None:
         bpy.ops.wm.read_homefile(use_factory_startup=True)
-        enable_experimental_animation_baklava()
 
     def test_action_assignment(self):
         # Create new Action.
@@ -154,7 +143,6 @@ class LegacyAPIOnLayeredActionTest(unittest.TestCase):
 
     def setUp(self) -> None:
         bpy.ops.wm.read_homefile(use_factory_startup=True)
-        enable_experimental_animation_baklava()
 
         self.action = bpy.data.actions.new('LayeredAction')
 
@@ -249,35 +237,6 @@ class LegacyAPIOnLayeredActionTest(unittest.TestCase):
         self.action.groups.remove(group)
         self.assertNotIn(group, self.action.groups[:], "A group should be removable via the legacy API")
         self.assertNotIn(group, channelbag.groups[:], "A group should be removable via the legacy API")
-
-
-class TestLegacyLayered(unittest.TestCase):
-    """Test boundaries between legacy & layered Actions.
-
-    Layered functionality should not be available on legacy actions.
-    """
-
-    def test_legacy_action(self) -> None:
-        """Test layered operations on a legacy Action"""
-
-        # Disable Baklava's backward-compatibility with the legacy API to create an actual legacy Action.
-        disable_experimental_animation_baklava()
-
-        act = bpy.data.actions.new('LegacyAction')
-        act.fcurves.new("location", index=0)  # Add an FCurve to make this a non-empty legacy Action.
-        self.assertTrue(act.is_action_legacy)
-        self.assertFalse(act.is_action_layered)
-        self.assertFalse(act.is_empty)
-
-        # Adding a layer should be prevented.
-        with self.assertRaises(RuntimeError):
-            act.layers.new("laagje")
-        self.assertSequenceEqual([], act.layers)
-
-        # Adding a slot should be prevented.
-        with self.assertRaises(RuntimeError):
-            act.slots.new()
-        self.assertSequenceEqual([], act.slots)
 
 
 class ChannelBagsTest(unittest.TestCase):
@@ -435,11 +394,7 @@ class DataPathTest(unittest.TestCase):
 
 class VersioningTest(unittest.TestCase):
     def setUp(self):
-        enable_experimental_animation_baklava()
         bpy.ops.wm.open_mainfile(filepath=str(args.testdir / "layered_action_versioning_42.blend"), load_ui=False)
-
-    def tearDown(self) -> None:
-        disable_experimental_animation_baklava()
 
     def test_nla_conversion(self):
         nla_object = bpy.data.objects["nla_object"]

@@ -86,7 +86,6 @@ TEST_F(ActionLegacyTest, fcurves_all)
   }
 }
 
-#ifdef WITH_ANIM_BAKLAVA
 TEST_F(ActionLegacyTest, fcurves_all_layered)
 {
   Action &action = create_empty_action()->wrap();
@@ -103,7 +102,6 @@ TEST_F(ActionLegacyTest, fcurves_all_layered)
   Vector<FCurve *> fcurves_expect = {&fcurve1, &fcurve2};
   EXPECT_EQ(fcurves_expect, legacy::fcurves_all(&action));
 }
-#endif /* WITH_ANIM_BAKLAVA */
 
 TEST_F(ActionLegacyTest, fcurves_for_action_slot)
 {
@@ -130,7 +128,6 @@ TEST_F(ActionLegacyTest, fcurves_for_action_slot)
   }
 }
 
-#ifdef WITH_ANIM_BAKLAVA
 TEST_F(ActionLegacyTest, fcurves_for_action_slot_layered)
 {
   Action &action = create_empty_action()->wrap();
@@ -149,7 +146,6 @@ TEST_F(ActionLegacyTest, fcurves_for_action_slot_layered)
   EXPECT_EQ(fcurve1_expect, legacy::fcurves_for_action_slot(&action, slot1.handle));
   EXPECT_EQ(fcurve2_expect, legacy::fcurves_for_action_slot(&action, slot2.handle));
 }
-#endif /* WITH_ANIM_BAKLAVA */
 
 TEST_F(ActionLegacyTest, action_fcurves_remove_legacy)
 {
@@ -171,7 +167,6 @@ TEST_F(ActionLegacyTest, action_fcurves_remove_legacy)
   }
 }
 
-#ifdef WITH_ANIM_BAKLAVA
 TEST_F(ActionLegacyTest, action_fcurves_remove_layered)
 {
   /* Create an Action with two slots, to check that the 2nd slot is not affected
@@ -205,7 +200,5 @@ TEST_F(ActionLegacyTest, action_fcurves_remove_layered)
   EXPECT_EQ(4, bag_2.fcurves().size())
       << "Expected all F-Curves for slot 2 to be there after manipulating slot 1";
 }
-
-#endif /* WITH_ANIM_BAKLAVA */
 
 }  // namespace blender::animrig::tests

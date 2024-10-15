@@ -29,10 +29,8 @@
 
 #include "ED_object.hh"
 
-#ifdef WITH_ANIM_BAKLAVA
-#  include "ANIM_action.hh"
-#  include "rna_action_tools.hh"
-#endif
+#include "ANIM_action.hh"
+#include "rna_action_tools.hh"
 
 /* Please keep the names in sync with `constraint.cc`. */
 const EnumPropertyItem rna_enum_constraint_type_items[] = {
@@ -773,7 +771,6 @@ static void rna_ActionConstraint_action_set(PointerRNA *ptr, PointerRNA value, R
   }
 }
 
-#  ifdef WITH_ANIM_BAKLAVA
 static void rna_ActionConstraint_action_slot_handle_set(
     PointerRNA *ptr, const blender::animrig::slot_handle_t new_slot_handle)
 {
@@ -814,7 +811,6 @@ static void rna_iterator_ActionConstraint_action_slots_begin(CollectionPropertyI
 
   rna_iterator_generic_action_slots_begin(iter, acon->act);
 }
-#  endif /* WITH_ANIM_BAKLAVA */
 
 static int rna_SplineIKConstraint_joint_bindings_get_length(const PointerRNA *ptr,
                                                             int length[RNA_MAX_ARRAY_DIMENSION])
@@ -1969,7 +1965,6 @@ static void rna_def_constraint_action(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
-#  ifdef WITH_ANIM_BAKLAVA
   /* This property is not necessary for the Python API (that is better off using
    * slot references/pointers directly), but it is needed for library overrides
    * to work. */
@@ -2032,7 +2027,6 @@ static void rna_def_constraint_action(BlenderRNA *brna)
                                     nullptr);
   RNA_def_property_ui_text(
       prop, "Action Slots", "The list of action slots suitable for this NLA strip");
-#  endif /* WITH_ANIM_BAKLAVA */
 
   prop = RNA_def_property(srna, "use_bone_object_action", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", ACTCON_BONE_USE_OBJECT_ACTION);
