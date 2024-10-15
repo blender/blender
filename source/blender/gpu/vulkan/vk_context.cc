@@ -11,7 +11,6 @@
 #include "vk_backend.hh"
 #include "vk_framebuffer.hh"
 #include "vk_immediate.hh"
-#include "vk_memory.hh"
 #include "vk_shader.hh"
 #include "vk_shader_interface.hh"
 #include "vk_state_manager.hh"

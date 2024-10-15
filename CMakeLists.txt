@@ -892,19 +892,10 @@ endif()
 
 # Vulkan
 option(WITH_VULKAN_BACKEND "Enable Vulkan as graphics backend (experimental)" ON)
-option(WITH_VULKAN_GUARDEDALLOC "\
-Use guardedalloc for host allocations done inside Vulkan (development option)"
-  OFF
-)
-mark_as_advanced(
-  WITH_VULKAN_BACKEND
-  WITH_VULKAN_GUARDEDALLOC
-)
+mark_as_advanced(WITH_VULKAN_BACKEND)
 if(APPLE)
   option(WITH_VULKAN_MOLTENVK "Enable Vulkan over MoltenVK (development option)" OFF)
-  mark_as_advanced(
-    WITH_VULKAN_MOLTENVK
-  )
+  mark_as_advanced(WITH_VULKAN_MOLTENVK)
 endif()
 
 if(APPLE AND NOT WITH_VULKAN_MOLTENVK)

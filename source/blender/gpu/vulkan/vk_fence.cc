@@ -10,16 +10,14 @@
 #include "vk_backend.hh"
 #include "vk_common.hh"
 #include "vk_context.hh"
-#include "vk_memory.hh"
 
 namespace blender::gpu {
 
 VKFence::~VKFence()
 {
   if (vk_fence_ != VK_NULL_HANDLE) {
-    VK_ALLOCATION_CALLBACKS
     VKDevice &device = VKBackend::get().device;
-    vkDestroyFence(device.vk_handle(), vk_fence_, vk_allocation_callbacks);
+    vkDestroyFence(device.vk_handle(), vk_fence_, nullptr);
     vk_fence_ = VK_NULL_HANDLE;
   }
 }
@@ -27,12 +25,11 @@ VKFence::~VKFence()
 void VKFence::signal()
 {
   if (vk_fence_ == VK_NULL_HANDLE) {
-    VK_ALLOCATION_CALLBACKS
     VKDevice &device = VKBackend::get().device;
     VkFenceCreateInfo vk_fence_create_info = {};
     vk_fence_create_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     vk_fence_create_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-    vkCreateFence(device.vk_handle(), &vk_fence_create_info, vk_allocation_callbacks, &vk_fence_);
+    vkCreateFence(device.vk_handle(), &vk_fence_create_info, nullptr, &vk_fence_);
   }
   VKContext &context = *VKContext::get();
   context.rendering_end();

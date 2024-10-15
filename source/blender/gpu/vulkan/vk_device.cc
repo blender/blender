@@ -11,7 +11,6 @@
 #include "vk_backend.hh"
 #include "vk_context.hh"
 #include "vk_device.hh"
-#include "vk_memory.hh"
 #include "vk_state_manager.hh"
 #include "vk_storage_buffer.hh"
 #include "vk_texture.hh"
@@ -185,13 +184,11 @@ bool VKDevice::supports_extension(const char *extension_name) const
 
 void VKDevice::init_memory_allocator()
 {
-  VK_ALLOCATION_CALLBACKS;
   VmaAllocatorCreateInfo info = {};
   info.vulkanApiVersion = VK_API_VERSION_1_2;
   info.physicalDevice = vk_physical_device_;
   info.device = vk_device_;
   info.instance = vk_instance_;
-  info.pAllocationCallbacks = vk_allocation_callbacks;
   vmaCreateAllocator(&info, &mem_allocator_);
 }
 

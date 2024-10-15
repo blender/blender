@@ -9,7 +9,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "vk_data_conversion.hh"
-#include "vk_memory.hh"
 #include "vk_shader.hh"
 #include "vk_shader_interface.hh"
 #include "vk_staging_buffer.hh"
@@ -56,10 +55,8 @@ void VKVertexBuffer::ensure_buffer_view()
   buffer_view_info.format = to_vk_format(texture_format);
   buffer_view_info.range = buffer_.size_in_bytes();
 
-  VK_ALLOCATION_CALLBACKS;
   const VKDevice &device = VKBackend::get().device;
-  vkCreateBufferView(
-      device.vk_handle(), &buffer_view_info, vk_allocation_callbacks, &vk_buffer_view_);
+  vkCreateBufferView(device.vk_handle(), &buffer_view_info, nullptr, &vk_buffer_view_);
   debug::object_label(vk_buffer_view_, "VertexBufferView");
 }
 
@@ -111,8 +108,7 @@ void VKVertexBuffer::release_data()
 {
   if (vk_buffer_view_ != VK_NULL_HANDLE) {
     const VKDevice &device = VKBackend::get().device;
-    VK_ALLOCATION_CALLBACKS;
-    vkDestroyBufferView(device.vk_handle(), vk_buffer_view_, vk_allocation_callbacks);
+    vkDestroyBufferView(device.vk_handle(), vk_buffer_view_, nullptr);
     vk_buffer_view_ = VK_NULL_HANDLE;
   }
 

@@ -9,7 +9,6 @@
 #include "vk_framebuffer.hh"
 #include "vk_backend.hh"
 #include "vk_context.hh"
-#include "vk_memory.hh"
 #include "vk_state_manager.hh"
 #include "vk_texture.hh"
 

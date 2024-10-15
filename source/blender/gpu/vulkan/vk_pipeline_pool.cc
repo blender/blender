@@ -14,7 +14,6 @@
 #include "CLG_log.h"
 
 #include "vk_backend.hh"
-#include "vk_memory.hh"
 #include "vk_pipeline_pool.hh"
 
 #ifdef WITH_BUILDINFO
@@ -129,14 +128,11 @@ VKPipelinePool::VKPipelinePool()
 }
 void VKPipelinePool::init()
 {
-  VK_ALLOCATION_CALLBACKS;
   VKDevice &device = VKBackend::get().device;
   VkPipelineCacheCreateInfo create_info = {};
   create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
-  vkCreatePipelineCache(
-      device.vk_handle(), &create_info, vk_allocation_callbacks, &vk_pipeline_cache_static_);
-  vkCreatePipelineCache(
-      device.vk_handle(), &create_info, vk_allocation_callbacks, &vk_pipeline_cache_non_static_);
+  vkCreatePipelineCache(device.vk_handle(), &create_info, nullptr, &vk_pipeline_cache_static_);
+  vkCreatePipelineCache(device.vk_handle(), &create_info, nullptr, &vk_pipeline_cache_non_static_);
 }
 
 VkSpecializationInfo *VKPipelinePool::specialization_info_update(
@@ -190,7 +186,6 @@ VkPipeline VKPipelinePool::get_or_create_compute_pipeline(VKComputeInfo &compute
   /* Build pipeline. */
   VKBackend &backend = VKBackend::get();
   VKDevice &device = backend.device;
-  VK_ALLOCATION_CALLBACKS;
 
   VkPipeline pipeline = VK_NULL_HANDLE;
   vkCreateComputePipelines(device.vk_handle(),
@@ -198,7 +193,7 @@ VkPipeline VKPipelinePool::get_or_create_compute_pipeline(VKComputeInfo &compute
                                               vk_pipeline_cache_non_static_,
                            1,
                            &vk_compute_pipeline_create_info_,
-                           vk_allocation_callbacks,
+                           nullptr,
                            &pipeline);
   compute_pipelines_.add(compute_info, pipeline);
 
@@ -547,7 +542,6 @@ VkPipeline VKPipelinePool::get_or_create_graphics_pipeline(VKGraphicsInfo &graph
   /* Build pipeline. */
   VKBackend &backend = VKBackend::get();
   VKDevice &device = backend.device;
-  VK_ALLOCATION_CALLBACKS;
 
   VkPipeline pipeline = VK_NULL_HANDLE;
   vkCreateGraphicsPipelines(device.vk_handle(),
@@ -555,7 +549,7 @@ VkPipeline VKPipelinePool::get_or_create_graphics_pipeline(VKGraphicsInfo &graph
                                                vk_pipeline_cache_non_static_,
                             1,
                             &vk_graphics_pipeline_create_info_,
-                            vk_allocation_callbacks,
+                            nullptr,
                             &pipeline);
   graphic_pipelines_.add(graphics_info, pipeline);
 
@@ -627,9 +621,8 @@ void VKPipelinePool::remove(Span<VkShaderModule> vk_shader_modules)
   });
 
   VKDevice &device = VKBackend::get().device;
-  VK_ALLOCATION_CALLBACKS;
   for (VkPipeline vk_pipeline : pipelines_to_destroy) {
-    vkDestroyPipeline(device.vk_handle(), vk_pipeline, vk_allocation_callbacks);
+    vkDestroyPipeline(device.vk_handle(), vk_pipeline, nullptr);
   }
 }
 
@@ -637,19 +630,17 @@ void VKPipelinePool::free_data()
 {
   std::scoped_lock lock(mutex_);
   VKDevice &device = VKBackend::get().device;
-  VK_ALLOCATION_CALLBACKS;
   for (VkPipeline &vk_pipeline : graphic_pipelines_.values()) {
-    vkDestroyPipeline(device.vk_handle(), vk_pipeline, vk_allocation_callbacks);
+    vkDestroyPipeline(device.vk_handle(), vk_pipeline, nullptr);
   }
   graphic_pipelines_.clear();
   for (VkPipeline &vk_pipeline : compute_pipelines_.values()) {
-    vkDestroyPipeline(device.vk_handle(), vk_pipeline, vk_allocation_callbacks);
+    vkDestroyPipeline(device.vk_handle(), vk_pipeline, nullptr);
   }
   compute_pipelines_.clear();
 
-  vkDestroyPipelineCache(device.vk_handle(), vk_pipeline_cache_static_, vk_allocation_callbacks);
-  vkDestroyPipelineCache(
-      device.vk_handle(), vk_pipeline_cache_non_static_, vk_allocation_callbacks);
+  vkDestroyPipelineCache(device.vk_handle(), vk_pipeline_cache_static_, nullptr);
+  vkDestroyPipelineCache(device.vk_handle(), vk_pipeline_cache_non_static_, nullptr);
 }
 
 /* -------------------------------------------------------------------- */

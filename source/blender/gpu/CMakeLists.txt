@@ -220,7 +220,6 @@ set(VULKAN_SRC
   vulkan/vk_image_view.cc
   vulkan/vk_immediate.cc
   vulkan/vk_index_buffer.cc
-  vulkan/vk_memory.cc
   vulkan/vk_memory_layout.cc
   vulkan/vk_pipeline_pool.cc
   vulkan/vk_pixel_buffer.cc
@@ -269,7 +268,6 @@ set(VULKAN_SRC
   vulkan/vk_image_view.hh
   vulkan/vk_immediate.hh
   vulkan/vk_index_buffer.hh
-  vulkan/vk_memory.hh
   vulkan/vk_memory_layout.hh
   vulkan/vk_pipeline_pool.hh
   vulkan/vk_pixel_buffer.hh
@@ -436,10 +434,6 @@ if(WITH_VULKAN_BACKEND)
   )
 
   add_definitions(-DWITH_VULKAN_BACKEND)
-endif()
-
-if(WITH_VULKAN_GUARDEDALLOC)
-  add_definitions(-DWITH_VULKAN_GUARDEDALLOC)
 endif()
 
 set(MSL_SRC

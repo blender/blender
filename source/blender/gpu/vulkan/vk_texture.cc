@@ -12,7 +12,6 @@
 #include "vk_context.hh"
 #include "vk_data_conversion.hh"
 #include "vk_framebuffer.hh"
-#include "vk_memory.hh"
 #include "vk_pixel_buffer.hh"
 #include "vk_shader.hh"
 #include "vk_shader_interface.hh"
