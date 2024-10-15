@@ -38,10 +38,10 @@ class BVHEmbree : public BVH {
   void refit(Progress &progress);
 
 #  if defined(WITH_EMBREE_GPU) && RTC_VERSION >= 40302
-  bool offload_scenes_to_gpu(const vector<RTCScene> &scenes);
+  RTCError offload_scenes_to_gpu(const vector<RTCScene> &scenes);
 #  endif
 
-  const char *get_last_error_message();
+  const char *get_error_string(RTCError error_code);
 
   RTCScene scene;
 
