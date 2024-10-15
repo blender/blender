@@ -6,6 +6,7 @@ class AttributeGetterSetter:
     """
     Helper class to get and set attributes at an index for a domain.
     """
+    __slots__ = ("_attributes", "_index", "_domain")
 
     def __init__(self, attributes, index, domain):
         self._attributes = attributes
@@ -48,6 +49,7 @@ class SliceHelper:
     """
     Helper class to handle custom slicing.
     """
+    __slots__ = ("_start", "_stop", "_size")
 
     def __init__(self, start: int, stop: int):
         self._start = start
@@ -136,6 +138,7 @@ class GreasePencilStrokePoint(AttributeGetterSetter):
     """
     A helper class to get access to stroke point data.
     """
+    __slots__ = ("_curve_index", "_point_index")
 
     def __init__(self, drawing, curve_index, point_index):
         super().__init__(drawing.attributes, point_index, 'POINT')
@@ -170,6 +173,7 @@ class GreasePencilStrokePointSlice(SliceHelper):
     """
     A helper class that represents a slice of GreasePencilStrokePoint's.
     """
+    __slots__ = ("_drawing", "_curve_index")
 
     def __init__(self, drawing, curve_index: int, start: int, stop: int):
         super().__init__(start, stop)
@@ -210,6 +214,7 @@ class GreasePencilStroke(AttributeGetterSetter):
     """
     A helper class to get access to stroke data.
     """
+    __slots__ = ("_drawing", "_curve_index", "_points_start_index", "_points_end_index")
 
     def __init__(self, drawing, curve_index: int, points_start_index: int, points_end_index: int):
         super().__init__(drawing.attributes, curve_index, 'CURVE')
@@ -290,6 +295,7 @@ class GreasePencilStrokeSlice(SliceHelper):
     """
     A helper class that represents a slice of GreasePencilStroke's.
     """
+    __slots__ = ("_drawing", "_curve_offsets")
 
     def __init__(self, drawing, start: int, stop: int):
         super().__init__(start, stop)
