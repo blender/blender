@@ -85,6 +85,7 @@ class Preprocessor {
       str = remove_quotes(str);
     }
     if (do_linting) {
+      global_scope_constant_linting(str, report_error);
       matrix_constructor_linting(str, report_error);
       array_constructor_linting(str, report_error);
     }
@@ -448,6 +449,23 @@ class Preprocessor {
           "Matrix constructor is not cross API compatible. "
           "Use to_floatNxM to reshape the matrix or use other constructors instead.";
       report_error(match, msg);
+    });
+  }
+
+  /* Assume formatted source with our code style. Cannot be applied to python shaders. */
+  template<typename ReportErrorF>
+  void global_scope_constant_linting(std::string str, const ReportErrorF &report_error)
+  {
+    /* Example: `const uint global_var = 1u;`. Matches if not indented (i.e. inside a scope). */
+    std::regex regex(R"(const \w+ \w+ =)");
+    regex_global_search(str, regex, [&](const std::smatch &match) {
+      /* Positive lookbehind is not supported in std::regex. Do it manually. */
+      if (match.prefix().str().back() == '\n') {
+        const char *msg =
+            "Global scope constant expression found. These get allocated per-thread in MSL. "
+            "Use Macro's or uniforms instead.";
+        report_error(match, msg);
+      }
     });
   }
 
