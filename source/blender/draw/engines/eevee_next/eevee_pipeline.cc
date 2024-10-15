@@ -591,8 +591,6 @@ void DeferredLayer::begin_sync()
 
     npr_ps_.bind_resources(inst_.lights);
     npr_ps_.bind_resources(inst_.shadows);
-    npr_ps_.bind_resources(inst_.sphere_probes);
-    npr_ps_.bind_resources(inst_.volume_probes);
 
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM | DRW_STATE_DEPTH_EQUAL;
 
