@@ -755,11 +755,11 @@ static void rna_ActionConstraint_action_set(PointerRNA *ptr, PointerRNA value, R
    * The generic code doesn't work for this. The first assignment would see the slot
    * `XXSlot`, and because it has never been used, just use it. This would change its name to
    * `OBSlot`. The assignment to the Action Constraint would not see a 'virgin' slot, and thus not
-   * auto-select `OBSlot`. This behaviour makes sense when assigning Actions in the Action editor
+   * auto-select `OBSlot`. This behavior makes sense when assigning Actions in the Action editor
    * (it shouldn't automatically pick the first slot of matching ID type), but for the Action
    * Constraint I (Sybren) feel that it could be a bit more 'enthousiastic' in auto-picking a slot.
    *
-   * Note that this is the same behaviour as for NLA strips, albeit for a slightly different
+   * Note that this is the same behavior as for NLA strips, albeit for a slightly different
    * reason. Because of that it's not sharing code with the NLA.
    */
   if (acon->action_slot_handle == Slot::unassigned && action->slots().size() == 1) {
