@@ -74,6 +74,9 @@ class PixelOperation : public Operation {
   /* A map that associates the identifier of each input of the operation with the output socket it
    * is linked to. This is needed to help the compiler establish links between operations. */
   Map<std::string, DOutputSocket> inputs_to_linked_outputs_map_;
+  /* A map that associates the output socket of a node that is not part of the pixel operation to
+   * the identifier of the input of the operation that was declared for it. */
+  Map<DOutputSocket, std::string> outputs_to_declared_inputs_map_;
   /* A map that associates the output socket that provides the result of an output of the operation
    * with the identifier of that output. This is needed to help the compiler establish links
    * between operations. */
@@ -84,6 +87,17 @@ class PixelOperation : public Operation {
 
  public:
   PixelOperation(Context &context, PixelCompileUnit &compile_unit, const Schedule &schedule);
+
+  /* Create one of the concrete subclasses based on the context. Deleting the operation is the
+   * caller's responsibility. */
+  static PixelOperation *create_operation(Context &context,
+                                          PixelCompileUnit &compile_unit,
+                                          const Schedule &schedule);
+
+  /* Returns the maximum number of outputs that the PixelOperation can have. Pixel compile units
+   * need to be split into smaller units if the numbers of outputs they have is more than the
+   * number returned by this method. */
+  static int maximum_number_of_outputs(Context &context);
 
   /* Compute a node preview for all nodes in the pixel operations if the node requires a preview.
    *

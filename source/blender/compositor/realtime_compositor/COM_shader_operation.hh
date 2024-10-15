@@ -26,10 +26,6 @@ namespace blender::realtime_compositor {
 
 using namespace nodes::derived_node_tree_types;
 
-/* A type representing a contiguous subset of the node execution schedule that will be compiled
- * into a Pixel Operation. */
-using PixelCompileUnit = VectorSet<DNode>;
-
 /* ------------------------------------------------------------------------------------------------
  * Shader Operation
  *
@@ -70,9 +66,6 @@ class ShaderOperation : public PixelOperation {
    * the attribute that was created for it. This is used to share the same attribute with all
    * inputs that are linked to the same output socket. */
   Map<DOutputSocket, GPUNodeLink *> output_to_material_attribute_map_;
-  /* A map that associates the output socket of a node that is not part of the shader operation to
-   * the identifier of the input of the operation that was declared for it. */
-  Map<DOutputSocket, std::string> outputs_to_declared_inputs_map_;
 
  public:
   /* Construct and compile a GPU material from the given shader compile unit and execution schedule

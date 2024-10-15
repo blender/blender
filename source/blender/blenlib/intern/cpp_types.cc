@@ -50,6 +50,7 @@ BLI_CPP_TYPE_MAKE(bool, CPPTypeFlags::BasicType)
 BLI_CPP_TYPE_MAKE(float, CPPTypeFlags::BasicType)
 BLI_CPP_TYPE_MAKE(blender::float2, CPPTypeFlags::BasicType)
 BLI_CPP_TYPE_MAKE(blender::float3, CPPTypeFlags::BasicType)
+BLI_CPP_TYPE_MAKE(blender::float4, CPPTypeFlags::BasicType)
 BLI_CPP_TYPE_MAKE(blender::float4x4, CPPTypeFlags::BasicType)
 
 BLI_CPP_TYPE_MAKE(int8_t, CPPTypeFlags::BasicType)

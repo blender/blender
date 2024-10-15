@@ -540,6 +540,19 @@ inline auto build_multi_function_with_n_inputs_one_output(const char *name,
   return CustomMF(name, call_fn, param_tags);
 }
 
+template<typename Out1, typename Out2, typename... In, typename ElementFn, typename ExecPreset>
+inline auto build_multi_function_with_n_inputs_two_outputs(const char *name,
+                                                           const ElementFn element_fn,
+                                                           const ExecPreset exec_preset,
+                                                           TypeSequence<In...> /*in_types*/)
+{
+  constexpr auto param_tags = TypeSequence<ParamTag<ParamCategory::SingleInput, In>...,
+                                           ParamTag<ParamCategory::SingleOutput, Out1>,
+                                           ParamTag<ParamCategory::SingleOutput, Out2>>();
+  auto call_fn = build_multi_function_call_from_element_fn(element_fn, exec_preset, param_tags);
+  return CustomMF(name, call_fn, param_tags);
+}
+
 }  // namespace detail
 
 /** Build multi-function with 1 single-input and 1 single-output parameter. */
@@ -645,6 +658,20 @@ inline auto SM(const char *name,
   auto call_fn = detail::build_multi_function_call_from_element_fn(
       element_fn, exec_preset, param_tags);
   return detail::CustomMF(name, call_fn, param_tags);
+}
+
+/** Build multi-function with 1 single-input and 2 single-output parameter. */
+template<typename In1,
+         typename Out1,
+         typename Out2,
+         typename ElementFn,
+         typename ExecPreset = exec_presets::Materialized>
+inline auto SI1_SO2(const char *name,
+                    const ElementFn element_fn,
+                    const ExecPreset exec_preset = exec_presets::Materialized())
+{
+  return detail::build_multi_function_with_n_inputs_two_outputs<Out1, Out2>(
+      name, element_fn, exec_preset, TypeSequence<In1>());
 }
 
 }  // namespace blender::fn::multi_function::build

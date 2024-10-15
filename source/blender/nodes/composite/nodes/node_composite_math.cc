@@ -11,6 +11,7 @@
 #include "COM_shader_node.hh"
 
 #include "NOD_math_functions.hh"
+#include "NOD_multi_function.hh"
 #include "NOD_socket_search_link.hh"
 
 #include "RNA_enum_types.hh"
@@ -129,6 +130,7 @@ void register_node_type_cmp_math()
   ntype.labelfunc = node_math_label;
   ntype.updatefunc = node_math_update;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
+  ntype.build_multi_function = blender::nodes::node_math_build_multi_function;
   ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
 
   blender::bke::node_register_type(&ntype);

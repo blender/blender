@@ -9,6 +9,7 @@ set(INC
   ../../blenkernel
   ../../blentranslation
   ../../draw
+  ../../functions
   ../../gpu
   ../../imbuf
   ../../makesrna
@@ -29,6 +30,7 @@ set(SRC
   intern/evaluator.cc
   intern/input_single_value_operation.cc
   intern/meta_data.cc
+  intern/multi_function_procedure_operation.cc
   intern/node_operation.cc
   intern/operation.cc
   intern/pixel_operation.cc
@@ -53,6 +55,7 @@ set(SRC
   COM_input_descriptor.hh
   COM_input_single_value_operation.hh
   COM_meta_data.hh
+  COM_multi_function_procedure_operation.hh
   COM_node_operation.hh
   COM_operation.hh
   COM_pixel_operation.hh
@@ -146,6 +149,7 @@ set(LIB
   bf_render
   PRIVATE bf::blenlib
   bf_blenkernel
+  bf_functions
 )
 
 set(GLSL_SRC

@@ -163,7 +163,7 @@ void Evaluator::compile_and_evaluate_pixel_compile_unit(CompileState &compile_st
 {
   PixelCompileUnit &compile_unit = compile_state.get_pixel_compile_unit();
 
-  /* GPUs have hardware limitations on the number of output images shaders can have, so we might
+  /* Pixel operations might have limitations on the number of outputs they can have, so we might
    * have to split the compile unit into smaller units to workaround this limitation. In practice,
    * splitting will almost always never happen due to the scheduling strategy we use, so the base
    * case remains fast. */
@@ -172,9 +172,7 @@ void Evaluator::compile_and_evaluate_pixel_compile_unit(CompileState &compile_st
     const DNode node = compile_unit[i];
     number_of_outputs += compile_state.compute_pixel_node_operation_outputs_count(node);
 
-    /* The GPU module currently only supports up to 8 output images in shaders, but once this
-     * limitation is lifted, we can replace that with GPU_max_images(). */
-    if (number_of_outputs <= 8) {
+    if (number_of_outputs <= PixelOperation::maximum_number_of_outputs(context_)) {
       continue;
     }
 
@@ -202,7 +200,7 @@ void Evaluator::compile_and_evaluate_pixel_compile_unit(CompileState &compile_st
   }
 
   const Schedule &schedule = compile_state.get_schedule();
-  PixelOperation *operation = new ShaderOperation(context_, compile_unit, schedule);
+  PixelOperation *operation = PixelOperation::create_operation(context_, compile_unit, schedule);
 
   for (DNode node : compile_unit) {
     compile_state.map_node_to_pixel_operation(node, operation);
