@@ -21,41 +21,41 @@
 #endif
 
 #ifdef DOF_RESOLVE_PASS
-const bool is_resolve = true;
+#  define IS_RESOLVE true
 #else
-const bool is_resolve = false;
+#  define IS_RESOLVE false
 #endif
 #ifdef DOF_FOREGROUND_PASS
-const bool is_foreground = DOF_FOREGROUND_PASS;
+#  define IS_FOREGROUND DOF_FOREGROUND_PASS
 #else
-const bool is_foreground = false;
+#  define IS_FOREGROUND false
 #endif
 /* Debug options */
-const bool debug_gather_perf = false;
-const bool debug_scatter_perf = false;
-const bool debug_resolve_perf = false;
+#define debug_gather_perf false
+#define debug_scatter_perf false
+#define debug_resolve_perf false
 
-const bool no_smooth_intersection = false;
-const bool no_gather_occlusion = false;
-const bool no_gather_mipmaps = false;
-const bool no_gather_random = false;
-const bool no_gather_filtering = false;
-const bool no_scatter_occlusion = false;
-const bool no_scatter_pass = false;
-const bool no_foreground_pass = false;
-const bool no_background_pass = false;
-const bool no_slight_focus_pass = false;
-const bool no_focus_pass = false;
-const bool no_hole_fill_pass = false;
+#define no_smooth_intersection false
+#define no_gather_occlusion false
+#define no_gather_mipmaps false
+#define no_gather_random false
+#define no_gather_filtering false
+#define no_scatter_occlusion false
+#define no_scatter_pass false
+#define no_foreground_pass false
+#define no_background_pass false
+#define no_slight_focus_pass false
+#define no_focus_pass false
+#define no_hole_fill_pass false
 
 /* Distribute weights between near/slight-focus/far fields (slide 117). */
-const float dof_layer_threshold = 4.0;
+#define dof_layer_threshold 4.0
 /* Make sure it overlaps. */
-const float dof_layer_offset_fg = 0.5 + 1.0;
+#define dof_layer_offset_fg 0.5 + 1.0
 /* Extra offset for convolution layers to avoid light leaking from background. */
-const float dof_layer_offset = 0.5 + 0.5;
+#define dof_layer_offset 0.5 + 0.5
 
-const int dof_max_slight_focus_radius = DOF_MAX_SLIGHT_FOCUS_RADIUS;
+#define dof_max_slight_focus_radius DOF_MAX_SLIGHT_FOCUS_RADIUS
 
 const uvec2 quad_offsets_u[4] = uint2_array(uvec2(0, 1), uvec2(1, 1), uvec2(1, 0), uvec2(0, 0));
 const vec2 quad_offsets[4] = float2_array(
@@ -135,7 +135,7 @@ float dof_coc_from_depth(DepthOfFieldData dof_data, vec2 uv, float depth)
 float dof_layer_weight(float coc, const bool is_foreground)
 {
   /* NOTE: These are full-resolution pixel CoC value. */
-  if (is_resolve) {
+  if (IS_RESOLVE) {
     return saturate(-abs(coc) + dof_layer_threshold + dof_layer_offset) *
            float(is_foreground ? (coc <= 0.5) : (coc > -0.5));
   }
@@ -193,7 +193,7 @@ struct CocTile {
 };
 
 /* WATCH: Might have to change depending on the texture format. */
-const float dof_tile_large_coc = 1024.0;
+#define dof_tile_large_coc 1024.0
 
 /* Init a CoC tile for reduction algorithms. */
 CocTile dof_coc_tile_init()

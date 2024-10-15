@@ -28,8 +28,8 @@ void main()
 
 #elif defined(COLORIZE)
 
-const mat3 sepia_mat = mat3(
-    vec3(0.393, 0.349, 0.272), vec3(0.769, 0.686, 0.534), vec3(0.189, 0.168, 0.131));
+#  define sepia_mat \
+    mat3(vec3(0.393, 0.349, 0.272), vec3(0.769, 0.686, 0.534), vec3(0.189, 0.168, 0.131))
 
 #  define MODE_GRAYSCALE 0
 #  define MODE_SEPIA 1

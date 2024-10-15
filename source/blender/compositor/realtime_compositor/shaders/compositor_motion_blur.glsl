@@ -15,7 +15,7 @@
 #include "gpu_shader_compositor_motion_blur_lib.glsl"
 #include "gpu_shader_compositor_texture_utilities.glsl"
 
-const float g_depth_scale = 100.0;
+#define g_depth_scale 100.0
 
 /* Interleaved gradient noise by Jorge Jimenez
  * http://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare. */

@@ -2,10 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-const float diagonal_scale = sqrt(0.5);
+#define diagonal_scale sqrt(0.5)
 
-const float minmax_bias = 0.7;
-const float minmax_scale = sqrt(1.0 / (1.0 + 1.0 / minmax_bias));
+#define minmax_bias 0.7
+#define minmax_scale sqrt(1.0 / (1.0 + 1.0 / minmax_bias))
 
 bool test(uint bit)
 {

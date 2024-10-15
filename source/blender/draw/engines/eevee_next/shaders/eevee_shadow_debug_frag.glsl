@@ -16,7 +16,7 @@
 #include "gpu_shader_debug_gradients_lib.glsl"
 
 /** Control the scaling of the tile-map splat. */
-const float pixel_scale = 4.0;
+#define pixel_scale float(4.0)
 
 ShadowSamplingTile shadow_tile_data_get(usampler2D tilemaps_tx, ShadowCoordinates coord)
 {

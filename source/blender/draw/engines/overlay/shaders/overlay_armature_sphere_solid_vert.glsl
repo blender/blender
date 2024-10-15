@@ -7,7 +7,7 @@
 #include "select_lib.glsl"
 
 /* Sphere radius */
-const float rad = 0.05;
+#define rad 0.05
 
 void main()
 {

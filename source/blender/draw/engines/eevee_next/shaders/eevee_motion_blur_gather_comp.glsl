@@ -18,7 +18,7 @@
 #include "eevee_sampling_lib.glsl"
 #include "eevee_velocity_lib.glsl"
 
-const int gather_sample_count = 8;
+#define gather_sample_count 8
 
 /* Converts uv velocity into pixel space. Assumes velocity_tx is the same resolution as the
  * target post-FX frame-buffer. */
