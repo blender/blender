@@ -19,12 +19,22 @@ set(INC
   ../editors/include
 
   # For `*_info.hh` includes.
-  ../compositor/realtime_compositor
+  ../compositor/realtime_compositor/shaders/infos
+  ../draw/engines/basic/shaders/infos
   ../draw/engines/eevee_next
+  ../draw/engines/eevee_next/shaders/infos
   ../draw/engines/gpencil
+  ../draw/engines/gpencil/shaders/infos
+  ../draw/engines/image/shaders/infos
+  ../draw/engines/overlay/shaders/infos
   ../draw/engines/select
+  ../draw/engines/select/shaders/infos
   ../draw/engines/workbench
+  ../draw/engines/workbench/shaders/infos
   ../draw/intern
+  ../draw/intern/shaders
+  metal/kernels
+  shaders/infos
 
   # For node muting stuff.
   ../nodes
@@ -729,124 +739,6 @@ file(GENERATE OUTPUT ${glsl_source_list_file} CONTENT "${GLSL_SOURCE_CONTENT}")
 list(APPEND SRC ${glsl_source_list_file})
 list(APPEND INC ${CMAKE_CURRENT_BINARY_DIR})
 
-set(SRC_SHADER_CREATE_INFOS
-  ../draw/engines/basic/shaders/infos/basic_depth_info.hh
-  ../draw/engines/eevee_next/shaders/infos/eevee_ambient_occlusion_info.hh
-  ../draw/engines/eevee_next/shaders/infos/eevee_deferred_info.hh
-  ../draw/engines/eevee_next/shaders/infos/eevee_depth_of_field_info.hh
-  ../draw/engines/eevee_next/shaders/infos/eevee_film_info.hh
-  ../draw/engines/eevee_next/shaders/infos/eevee_hiz_info.hh
-  ../draw/engines/eevee_next/shaders/infos/eevee_light_culling_info.hh
-  ../draw/engines/eevee_next/shaders/infos/eevee_lightprobe_sphere_info.hh
-  ../draw/engines/eevee_next/shaders/infos/eevee_lightprobe_volume_info.hh
-  ../draw/engines/eevee_next/shaders/infos/eevee_lookdev_info.hh
-  ../draw/engines/eevee_next/shaders/infos/eevee_lut_info.hh
-  ../draw/engines/eevee_next/shaders/infos/eevee_material_info.hh
-  ../draw/engines/eevee_next/shaders/infos/eevee_motion_blur_info.hh
-  ../draw/engines/eevee_next/shaders/infos/eevee_shadow_info.hh
-  ../draw/engines/eevee_next/shaders/infos/eevee_subsurface_info.hh
-  ../draw/engines/eevee_next/shaders/infos/eevee_tracing_info.hh
-  ../draw/engines/eevee_next/shaders/infos/eevee_velocity_info.hh
-  ../draw/engines/eevee_next/shaders/infos/eevee_volume_info.hh
-  ../draw/engines/gpencil/shaders/infos/gpencil_info.hh
-  ../draw/engines/gpencil/shaders/infos/gpencil_vfx_info.hh
-  ../draw/engines/overlay/shaders/infos/overlay_antialiasing_info.hh
-  ../draw/engines/overlay/shaders/infos/overlay_armature_info.hh
-  ../draw/engines/overlay/shaders/infos/overlay_background_info.hh
-  ../draw/engines/overlay/shaders/infos/overlay_edit_mode_info.hh
-  ../draw/engines/overlay/shaders/infos/overlay_extra_info.hh
-  ../draw/engines/overlay/shaders/infos/overlay_facing_info.hh
-  ../draw/engines/overlay/shaders/infos/overlay_grid_info.hh
-  ../draw/engines/overlay/shaders/infos/overlay_outline_info.hh
-  ../draw/engines/overlay/shaders/infos/overlay_paint_info.hh
-  ../draw/engines/overlay/shaders/infos/overlay_sculpt_curves_info.hh
-  ../draw/engines/overlay/shaders/infos/overlay_sculpt_info.hh
-  ../draw/engines/overlay/shaders/infos/overlay_viewer_attribute_info.hh
-  ../draw/engines/overlay/shaders/infos/overlay_volume_info.hh
-  ../draw/engines/overlay/shaders/infos/overlay_wireframe_info.hh
-  ../draw/engines/select/shaders/infos/select_id_info.hh
-  ../draw/engines/workbench/shaders/infos/workbench_composite_info.hh
-  ../draw/engines/workbench/shaders/infos/workbench_depth_info.hh
-  ../draw/engines/workbench/shaders/infos/workbench_effect_antialiasing_info.hh
-  ../draw/engines/workbench/shaders/infos/workbench_effect_dof_info.hh
-  ../draw/engines/workbench/shaders/infos/workbench_effect_outline_info.hh
-  ../draw/engines/workbench/shaders/infos/workbench_prepass_info.hh
-  ../draw/engines/workbench/shaders/infos/workbench_shadow_info.hh
-  ../draw/engines/workbench/shaders/infos/workbench_transparent_resolve_info.hh
-  ../draw/engines/workbench/shaders/infos/workbench_volume_info.hh
-
-  ../draw/engines/image/shaders/infos/engine_image_info.hh
-  ../draw/intern/shaders/draw_debug_info.hh
-  ../draw/intern/shaders/draw_fullscreen_info.hh
-  ../draw/intern/shaders/draw_hair_refine_info.hh
-  ../draw/intern/shaders/draw_object_infos_info.hh
-  ../draw/intern/shaders/draw_view_info.hh
-
-  shaders/infos/gpu_clip_planes_info.hh
-  shaders/infos/gpu_index_load_info.hh
-  shaders/infos/gpu_shader_2D_area_borders_info.hh
-  shaders/infos/gpu_shader_2D_checker_info.hh
-  shaders/infos/gpu_shader_2D_diag_stripes_info.hh
-  shaders/infos/gpu_shader_2D_image_desaturate_color_info.hh
-  shaders/infos/gpu_shader_2D_image_info.hh
-  shaders/infos/gpu_shader_2D_image_overlays_merge_info.hh
-  shaders/infos/gpu_shader_2D_image_overlays_stereo_merge_info.hh
-  shaders/infos/gpu_shader_2D_image_rect_color_info.hh
-  shaders/infos/gpu_shader_2D_image_shuffle_color_info.hh
-  shaders/infos/gpu_shader_2D_nodelink_info.hh
-  shaders/infos/gpu_shader_2D_point_uniform_size_uniform_color_aa_info.hh
-  shaders/infos/gpu_shader_2D_point_uniform_size_uniform_color_outline_aa_info.hh
-  shaders/infos/gpu_shader_2D_point_varying_size_varying_color_info.hh
-  shaders/infos/gpu_shader_2D_widget_info.hh
-  shaders/infos/gpu_shader_3D_depth_only_info.hh
-  shaders/infos/gpu_shader_3D_flat_color_info.hh
-  shaders/infos/gpu_shader_3D_image_info.hh
-  shaders/infos/gpu_shader_3D_point_info.hh
-  shaders/infos/gpu_shader_3D_polyline_info.hh
-  shaders/infos/gpu_shader_3D_smooth_color_info.hh
-  shaders/infos/gpu_shader_3D_uniform_color_info.hh
-  shaders/infos/gpu_shader_gpencil_stroke_info.hh
-  shaders/infos/gpu_shader_icon_info.hh
-  shaders/infos/gpu_shader_index_info.hh
-  shaders/infos/gpu_shader_instance_varying_color_varying_size_info.hh
-  shaders/infos/gpu_shader_keyframe_shape_info.hh
-  shaders/infos/gpu_shader_line_dashed_uniform_color_info.hh
-  shaders/infos/gpu_shader_print_info.hh
-  shaders/infos/gpu_shader_sequencer_info.hh
-  shaders/infos/gpu_shader_simple_lighting_info.hh
-  shaders/infos/gpu_shader_text_info.hh
-  shaders/infos/gpu_srgb_to_framebuffer_space_info.hh
-)
-
-set(SRC_SHADER_CREATE_INFOS_TEST
-  shaders/infos/gpu_shader_test_info.hh
-)
-
-
-set(SRC_SHADER_CREATE_INFOS_MTL
-  metal/kernels/depth_2d_update_info.hh
-  metal/kernels/gpu_shader_fullscreen_blit_info.hh
-)
-
-if(WITH_GTESTS)
-  if(WITH_GPU_DRAW_TESTS)
-    list(APPEND SRC_SHADER_CREATE_INFOS ${SRC_SHADER_CREATE_INFOS_TEST})
-  endif()
-endif()
-
-if(WITH_METAL_BACKEND)
-  list(APPEND SRC_SHADER_CREATE_INFOS ${SRC_SHADER_CREATE_INFOS_MTL})
-endif()
-
-
-set(SHADER_CREATE_INFOS_CONTENT "")
-foreach(DESCRIPTOR_FILE ${SRC_SHADER_CREATE_INFOS})
-  string(APPEND SHADER_CREATE_INFOS_CONTENT "#include \"${DESCRIPTOR_FILE}\"\n")
-endforeach()
-
-set(shader_create_info_list_file "${CMAKE_CURRENT_BINARY_DIR}/gpu_shader_create_info_list.hh")
-file(GENERATE OUTPUT ${shader_create_info_list_file} CONTENT "${SHADER_CREATE_INFOS_CONTENT}")
-
 if(WITH_MOD_FLUID)
   add_definitions(-DWITH_FLUID)
 endif()
@@ -893,7 +785,6 @@ if(WITH_GPU_BUILDTIME_SHADER_BUILDER)
   add_executable(shader_builder
     intern/gpu_shader_builder.cc
     intern/gpu_shader_builder_stubs.cc
-    ${shader_create_info_list_file}
     ${_manifest}
   )
   unset(_manifest)
