@@ -26,6 +26,7 @@
 
 #include "DNA_grease_pencil_types.h"
 
+#include "ED_curves.hh"
 #include "ED_grease_pencil.hh"
 #include "ED_numinput.hh"
 #include "ED_screen.hh"
@@ -241,6 +242,7 @@ static void find_curve_mapping_from_index(const GreasePencil &grease_pencil,
                                           const bke::greasepencil::Layer &layer,
                                           const int current_frame,
                                           const bool exclude_breakdowns,
+                                          const bool only_selected,
                                           InterpolationPairs &pairs)
 {
   using bke::greasepencil::Drawing;
@@ -256,17 +258,31 @@ static void find_curve_mapping_from_index(const GreasePencil &grease_pencil,
   const Drawing &from_drawing = *grease_pencil.get_drawing_at(layer, interval->first);
   const Drawing &to_drawing = *grease_pencil.get_drawing_at(layer, interval->second);
 
-  const int pairs_num = std::min(from_drawing.strokes().curves_num(),
-                                 to_drawing.strokes().curves_num());
+  IndexMaskMemory memory;
+  IndexMask from_selection, to_selection;
+  if (only_selected) {
+    from_selection = ed::curves::retrieve_selected_curves(from_drawing.strokes(), memory);
+    to_selection = ed::curves::retrieve_selected_curves(to_drawing.strokes(), memory);
+  }
+  else {
+    from_selection = from_drawing.strokes().curves_range();
+    to_selection = to_drawing.strokes().curves_range();
+  }
+
+  const int pairs_num = std::min(from_selection.size(), to_selection.size());
 
   const int old_pairs_num = pairs.from_frames.size();
   pairs.from_frames.append_n_times(interval->first, pairs_num);
   pairs.to_frames.append_n_times(interval->second, pairs_num);
   pairs.from_curves.resize(old_pairs_num + pairs_num);
   pairs.to_curves.resize(old_pairs_num + pairs_num);
-  array_utils::fill_index_range(
-      pairs.from_curves.as_mutable_span().slice(old_pairs_num, pairs_num));
-  array_utils::fill_index_range(pairs.to_curves.as_mutable_span().slice(old_pairs_num, pairs_num));
+
+  /* Write source indices into the pair data. The drawing with fewer curves will discard some based
+   * on index. */
+  from_selection.slice(0, pairs_num)
+      .to_indices(pairs.from_curves.as_mutable_span().slice(old_pairs_num, pairs_num));
+  to_selection.slice(0, pairs_num)
+      .to_indices(pairs.to_curves.as_mutable_span().slice(old_pairs_num, pairs_num));
 }
 
 InterpolateOpData *InterpolateOpData::from_operator(const bContext &C, const wmOperator &op)
@@ -313,8 +329,13 @@ InterpolateOpData *InterpolateOpData::from_operator(const bContext &C, const wmO
     InterpolateOpData::LayerData &layer_data = data->layer_data[layer_index];
 
     /* Pair from/to curves by index. */
-    find_curve_mapping_from_index(
-        grease_pencil, layer, current_frame, data->exclude_breakdowns, layer_data.curve_pairs);
+    const bool only_selected = true;
+    find_curve_mapping_from_index(grease_pencil,
+                                  layer,
+                                  current_frame,
+                                  data->exclude_breakdowns,
+                                  only_selected,
+                                  layer_data.curve_pairs);
   });
 
   const std::optional<FramesMapKeyIntervalT> active_layer_interval = find_frames_interval(
@@ -501,10 +522,11 @@ static bke::CurvesGeometry interpolate_between_curves(const GreasePencil &grease
     const IndexRange from_curves = from_drawing->strokes().curves_range();
     const IndexRange to_curves = to_drawing->strokes().curves_range();
 
-    /* Subset of target curves that are filled by this frame pair. */
     IndexMaskMemory selection_memory;
-    const IndexMask selection = IndexMask::from_indices(sorted_pairs.as_span().slice(pair_range),
-                                                        selection_memory);
+    /* Subset of target curves that are filled by this frame pair. Selection is built from pair
+     * indices, which correspond to dst curve indices. */
+    const IndexMask dst_curve_mask = IndexMask::from_indices(
+        sorted_pairs.as_span().slice(pair_range), selection_memory);
     MutableSpan<int> pair_from_indices = sorted_from_curve_indices.as_mutable_span().slice(
         pair_range);
     MutableSpan<int> pair_to_indices = sorted_to_curve_indices.as_mutable_span().slice(pair_range);
@@ -519,7 +541,7 @@ static bke::CurvesGeometry interpolate_between_curves(const GreasePencil &grease
                                  to_drawing->strokes(),
                                  pair_from_indices,
                                  pair_to_indices,
-                                 selection,
+                                 dst_curve_mask,
                                  dst_curve_flip,
                                  mix_factor,
                                  dst_curves);

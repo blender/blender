@@ -1779,7 +1779,7 @@ void PartialWriteContext::make_local(ID *ctx_id, const int make_local_flags)
   /* Making an ID local typically resets its session UID, here we want to keep the same value. */
   const uint ctx_id_session_uid = ctx_id->session_uid;
   BKE_main_idmap_remove_id(this->bmain.id_map, ctx_id);
-  BKE_main_idmap_insert_id(matching_uid_map_, ctx_id);
+  BKE_main_idmap_remove_id(matching_uid_map_, ctx_id);
 
   BKE_lib_id_make_local(&this->bmain, ctx_id, make_local_flags);
 

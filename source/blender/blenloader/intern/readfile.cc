@@ -2088,10 +2088,6 @@ static void direct_link_id_common(
     id->session_uid = MAIN_ID_SESSION_UID_UNSET;
   }
 
-  if ((id_tag & ID_TAG_TEMP_MAIN) == 0) {
-    BKE_lib_libblock_session_uid_ensure(id);
-  }
-
   id->lib = current_library;
   if (id->lib) {
     /* Always fully clear fake user flag for linked data. */
@@ -2109,6 +2105,10 @@ static void direct_link_id_common(
   }
   else {
     id->tag = id_tag;
+  }
+
+  if ((id_tag & ID_TAG_TEMP_MAIN) == 0) {
+    BKE_lib_libblock_session_uid_ensure(id);
   }
 
   if (ID_IS_LINKED(id)) {
