@@ -133,7 +133,7 @@ void Instance::begin_sync()
     layer.fluids.begin_sync(resources, state);
     layer.grease_pencil.begin_sync(resources, state, view);
     layer.lattices.begin_sync(resources, state);
-    layer.lights.begin_sync();
+    layer.lights.begin_sync(state);
     layer.light_probes.begin_sync(resources, state);
     layer.metaballs.begin_sync();
     layer.meshes.begin_sync(resources, state, view);

@@ -36,11 +36,18 @@ class Lights {
     LightInstanceBuf area_square_buf = {selection_type_, "area_square_buf"};
   } call_buffers_{selection_type_};
 
+  bool enabled_ = false;
+
  public:
   Lights(const SelectionType selection_type) : selection_type_(selection_type){};
 
-  void begin_sync()
+  void begin_sync(const State &state)
   {
+    enabled_ = state.space_type == SPACE_VIEW3D;
+    if (!enabled_) {
+      return;
+    }
+
     call_buffers_.ground_line_buf.clear();
     call_buffers_.icon_inner_buf.clear();
     call_buffers_.icon_outer_buf.clear();
@@ -56,6 +63,10 @@ class Lights {
 
   void object_sync(const ObjectRef &ob_ref, Resources &res, const State &state)
   {
+    if (!enabled_) {
+      return;
+    }
+
     ExtraInstanceData data(ob_ref.object->object_to_world(),
                            float4(res.object_wire_color(ob_ref, state).xyz(), 1.0f),
                            1.0f);
@@ -143,6 +154,10 @@ class Lights {
 
   void end_sync(Resources &res, ShapeCache &shapes, const State &state)
   {
+    if (!enabled_) {
+      return;
+    }
+
     const DRWState pass_state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
                                 DRW_STATE_DEPTH_LESS_EQUAL;
     ps_.init();
@@ -190,6 +205,10 @@ class Lights {
 
   void draw(Framebuffer &framebuffer, Manager &manager, View &view)
   {
+    if (!enabled_) {
+      return;
+    }
+
     GPU_framebuffer_bind(framebuffer);
     manager.submit(ps_, view);
   }
