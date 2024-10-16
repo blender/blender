@@ -63,6 +63,7 @@ class Preprocessor {
   std::string process(std::string str,
                       const std::string &filename,
                       bool do_linting,
+                      bool do_parse_function,
                       bool do_string_mutation,
                       bool do_include_mutation,
                       bool do_small_type_linting,
@@ -71,7 +72,7 @@ class Preprocessor {
     str = remove_comments(str, report_error);
     threadgroup_variables_parsing(str);
     parse_builtins(str);
-    if (true) {
+    if (do_parse_function) {
       parse_library_functions(str);
     }
     if (do_include_mutation) {
@@ -104,7 +105,7 @@ class Preprocessor {
   std::string process(const std::string &str)
   {
     auto no_err_report = [](std::smatch, const char *) {};
-    return process(str, "", false, false, false, false, no_err_report);
+    return process(str, "", false, false, false, false, false, no_err_report);
   }
 
  private:
