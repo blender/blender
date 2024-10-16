@@ -444,6 +444,11 @@ void Instance::draw(Manager &manager)
   regular.cameras.draw_background_images(resources.overlay_color_only_fb, manager, view);
   infront.cameras.draw_background_images(resources.overlay_color_only_fb, manager, view);
 
+  /* TODO(fclem): Would be better to have a v2d overlay class instead of this condition. */
+  if (state.space_type == SPACE_IMAGE) {
+    grid.draw(resources.overlay_color_only_fb, manager, view);
+  }
+
   regular.empties.draw_images(resources.overlay_fb, manager, view);
 
   regular.prepass.draw(resources.overlay_line_fb, manager, view);
@@ -498,7 +503,9 @@ void Instance::draw(Manager &manager)
 
   motion_paths.draw_color_only(resources.overlay_color_only_fb, manager, view);
   xray_fade.draw(resources.overlay_color_only_fb, manager, view);
-  grid.draw(resources.overlay_color_only_fb, manager, view);
+  if (state.space_type != SPACE_IMAGE) {
+    grid.draw(resources.overlay_color_only_fb, manager, view);
+  }
 
   draw_layer_color_only(regular, resources.overlay_color_only_fb);
   draw_layer_color_only(infront, resources.overlay_color_only_fb);
