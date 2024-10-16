@@ -1721,8 +1721,8 @@ def export_panel_gltfpack(layout, operator):
         col.prop(operator, 'export_gltfpack_vc')
         col = body.column(heading="Vertex positions", align=True)
         col.prop(operator, 'export_gltfpack_vpi')
-        #col = body.column(heading = "Animations", align = True)
-        #col = body.column(heading = "Scene", align = True)
+        # col = body.column(heading = "Animations", align = True)
+        # col = body.column(heading = "Scene", align = True)
         col = body.column(heading="Miscellaneous", align=True)
         col.prop(operator, 'export_gltfpack_noq')
 
