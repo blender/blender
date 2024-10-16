@@ -3558,7 +3558,7 @@ static int grease_pencil_set_curve_resolution_exec(bContext *C, wmOperator *op)
     }
 
     index_mask::masked_fill(curves.resolution_for_write(), resolution, editable_strokes);
-    info.drawing.tag_positions_changed();
+    info.drawing.tag_topology_changed();
     changed = true;
   });
 
