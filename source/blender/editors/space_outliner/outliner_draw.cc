@@ -3892,7 +3892,6 @@ static void outliner_draw_tree(uiBlock *block,
                                TreeElement **te_edit)
 {
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
-  int starty, startx;
 
   /* Move the tree a unit left in view layer mode */
   short columns_offset = (use_mode_column && (space_outliner->outlinevis == SO_SCENES)) ?
@@ -3910,50 +3909,56 @@ static void outliner_draw_tree(uiBlock *block,
 
   if (space_outliner->outlinevis == SO_DATA_API) {
     /* struct marks */
-    starty = int(region->v2d.tot.ymax) - UI_UNIT_Y - OL_Y_OFFSET;
+    int starty = int(region->v2d.tot.ymax) - UI_UNIT_Y - OL_Y_OFFSET;
     outliner_draw_struct_marks(region, space_outliner, &space_outliner->tree, &starty);
   }
 
   /* Draw highlights before hierarchy. */
-  starty = int(region->v2d.tot.ymax) - UI_UNIT_Y - OL_Y_OFFSET;
-  startx = 0;
-  outliner_draw_highlights(region, space_outliner, startx, &starty);
-
-  /* Set scissor so tree elements or lines can't overlap restriction icons. */
   int scissor[4] = {0};
-  if (right_column_width > 0.0f) {
-    int mask_x = BLI_rcti_size_x(&region->v2d.mask) - int(right_column_width) + 1;
-    CLAMP_MIN(mask_x, 0);
+  {
+    int starty = int(region->v2d.tot.ymax) - UI_UNIT_Y - OL_Y_OFFSET;
+    int startx = 0;
+    outliner_draw_highlights(region, space_outliner, startx, &starty);
 
-    GPU_scissor_get(scissor);
-    GPU_scissor(0, 0, mask_x, region->winy);
+    /* Set scissor so tree elements or lines can't overlap restriction icons. */
+    if (right_column_width > 0.0f) {
+      int mask_x = BLI_rcti_size_x(&region->v2d.mask) - int(right_column_width) + 1;
+      CLAMP_MIN(mask_x, 0);
+
+      GPU_scissor_get(scissor);
+      GPU_scissor(0, 0, mask_x, region->winy);
+    }
   }
 
   /* Draw hierarchy lines for collections and object children. */
-  starty = int(region->v2d.tot.ymax) - OL_Y_OFFSET;
-  startx = columns_offset + UI_UNIT_X / 2 - (U.pixelsize + 1) / 2;
-  outliner_draw_hierarchy_lines(space_outliner, &space_outliner->tree, tvc, startx, &starty);
-
-  /* Items themselves. */
-  starty = int(region->v2d.tot.ymax) - UI_UNIT_Y - OL_Y_OFFSET;
-  startx = columns_offset;
-  LISTBASE_FOREACH (TreeElement *, te, &space_outliner->tree) {
-    outliner_draw_tree_element(block,
-                               fstyle,
-                               tvc,
-                               region,
-                               space_outliner,
-                               te,
-                               (te->flag & TE_DRAGGING) != 0,
-                               startx,
-                               &starty,
-                               right_column_width,
-                               te_edit);
+  {
+    int starty = int(region->v2d.tot.ymax) - OL_Y_OFFSET;
+    int startx = columns_offset + UI_UNIT_X / 2 - (U.pixelsize + 1) / 2;
+    outliner_draw_hierarchy_lines(space_outliner, &space_outliner->tree, tvc, startx, &starty);
   }
 
-  if (right_column_width > 0.0f) {
-    /* Reset scissor. */
-    GPU_scissor(UNPACK4(scissor));
+  /* Items themselves. */
+  {
+    int starty = int(region->v2d.tot.ymax) - UI_UNIT_Y - OL_Y_OFFSET;
+    int startx = columns_offset;
+    LISTBASE_FOREACH (TreeElement *, te, &space_outliner->tree) {
+      outliner_draw_tree_element(block,
+                                 fstyle,
+                                 tvc,
+                                 region,
+                                 space_outliner,
+                                 te,
+                                 (te->flag & TE_DRAGGING) != 0,
+                                 startx,
+                                 &starty,
+                                 right_column_width,
+                                 te_edit);
+    }
+
+    if (right_column_width > 0.0f) {
+      /* Reset scissor. */
+      GPU_scissor(UNPACK4(scissor));
+    }
   }
 }
 
