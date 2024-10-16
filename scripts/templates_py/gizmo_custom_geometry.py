@@ -125,7 +125,7 @@ class MyCustomShapeWidgetGroup(GizmoGroup):
         return (ob and ob.type == 'LIGHT')
 
     def setup(self, context):
-        # Assign the 'offset' target property to the light energy.
+        # Assign the `offset` target property to the light energy.
         ob = context.object
         gz = self.gizmos.new(MyCustomShapeWidget.bl_idname)
         gz.target_set_prop("offset", ob.data, "energy")

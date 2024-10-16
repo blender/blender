@@ -23,7 +23,7 @@ class MyLightWidgetGroup(GizmoGroup):
         return (ob and ob.type == 'LIGHT')
 
     def setup(self, context):
-        # Arrow gizmo has one 'offset' property we can assign to the light energy.
+        # Arrow gizmo has one `offset` property we can assign to the light energy.
         ob = context.object
         gz = self.gizmos.new("GIZMO_GT_arrow_3d")
         gz.target_set_prop("offset", ob.data, "energy")

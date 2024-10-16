@@ -694,7 +694,7 @@ class USERPREF_PT_system_display_graphics(SystemPanel, CenterAlignMixIn, Panel):
 
         import gpu
         if system.gpu_backend != gpu.platform.backend_type_get():
-            layout.label(text="A restart of Blender is required", icon="INFO")
+            layout.label(text="A restart of Blender is required", icon='INFO')
 
         if system.gpu_backend == gpu.platform.backend_type_get() == 'VULKAN':
             col = layout.column()
@@ -702,9 +702,9 @@ class USERPREF_PT_system_display_graphics(SystemPanel, CenterAlignMixIn, Panel):
 
         if system.gpu_backend == 'VULKAN':
             col = layout.column()
-            col.label(text="The Vulkan backend is experimental:", icon="INFO")
-            col.label(text="\u2022 OpenXR and GPU subdivision are not supported", icon="BLANK1")
-            col.label(text="\u2022 Expect reduced performance", icon="BLANK1")
+            col.label(text="The Vulkan backend is experimental:", icon='INFO')
+            col.label(text="\u2022 OpenXR and GPU subdivision are not supported", icon='BLANK1')
+            col.label(text="\u2022 Expect reduced performance", icon='BLANK1')
 
 
 class USERPREF_PT_system_os_settings(SystemPanel, CenterAlignMixIn, Panel):
