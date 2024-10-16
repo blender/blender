@@ -2953,16 +2953,9 @@ static std::optional<std::string> rna_FFmpegSettings_path(const PointerRNA * /*p
 static void rna_FFmpegSettings_codec_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   FFMpegCodecData *codec_data = (FFMpegCodecData *)ptr->data;
-  if (!ELEM(codec_data->codec,
-            AV_CODEC_ID_H264,
-            AV_CODEC_ID_MPEG4,
-            AV_CODEC_ID_VP9,
-            AV_CODEC_ID_DNXHD))
-  {
-    /* Constant Rate Factor (CRF) setting is only available for H264,
-     * MPEG4 and WEBM/VP9 codecs. So changing encoder quality mode to
-     * CBR as CRF is not supported.
-     */
+  if (!BKE_ffmpeg_codec_supports_crf(codec_data->codec)) {
+    /* Constant Rate Factor (CRF) setting is only available for some codecs. Change encoder quality
+     * mode to CBR for others. */
     codec_data->constant_rate_factor = FFM_CRF_NONE;
   }
 }

@@ -1968,6 +1968,11 @@ bool BKE_ffmpeg_alpha_channel_is_supported(const RenderData *rd)
               AV_CODEC_ID_HUFFYUV);
 }
 
+bool BKE_ffmpeg_codec_supports_crf(int av_codec_id)
+{
+  return ELEM(av_codec_id, AV_CODEC_ID_H264, AV_CODEC_ID_MPEG4, AV_CODEC_ID_VP9, AV_CODEC_ID_AV1);
+}
+
 void *BKE_ffmpeg_context_create()
 {
   /* New FFMPEG data struct. */
