@@ -467,7 +467,7 @@ void Instance::draw(Manager &manager)
 
   auto draw_layer = [&](OverlayLayer &layer, Framebuffer &framebuffer) {
     layer.bounds.draw(framebuffer, manager, view);
-    layer.wireframe.draw(framebuffer, manager, view);
+    layer.wireframe.draw(framebuffer, resources, manager, view);
     layer.cameras.draw(framebuffer, manager, view);
     layer.empties.draw(framebuffer, manager, view);
     layer.force_fields.draw(framebuffer, manager, view);
