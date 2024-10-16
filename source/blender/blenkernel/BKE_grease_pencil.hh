@@ -1047,6 +1047,8 @@ void BKE_grease_pencil_copy_layer_group_parameters(
 void BKE_grease_pencil_nomain_to_grease_pencil(GreasePencil *grease_pencil_src,
                                                GreasePencil *grease_pencil_dst);
 
+void BKE_grease_pencil_vgroup_name_update(Object *ob, const char *old_name, const char *new_name);
+
 void BKE_grease_pencil_data_update(Depsgraph *depsgraph, Scene *scene, Object *object);
 void BKE_grease_pencil_duplicate_drawing_array(const GreasePencil *grease_pencil_src,
                                                GreasePencil *grease_pencil_dst);
