@@ -2,6 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+ /* ​​Changes from Qualcomm Innovation Center, Inc.are provided under the following license :
+    Copyright(c) 2024 Qualcomm Innovation Center, Inc.All rights reserved.
+    SPDX - License - Identifier : BSD - 3 - Clause - Clear
+ */
+
 /** \file
  * \ingroup gpu
  */
@@ -93,6 +98,27 @@ void VKDescriptorSetTracker::bind_image_resource(const VKStateManager &state_man
                              to_vk_image_aspect_flag_bits(texture.device_format_get()),
                              layer_base,
                              layer_count});
+}
+
+void VKDescriptorSetTracker::bind_input_attachment_resource(const VKStateManager& state_manager,
+  const VKResourceBinding& resource_binding,
+  render_graph::VKResourceAccessInfo& access_info)
+{
+  VKTexture* texture = state_manager.images_.get(resource_binding.binding);
+  BLI_assert(texture);
+  bind_image(VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
+    VK_NULL_HANDLE,
+    texture->image_view_get(resource_binding.arrayed).vk_handle(),
+    VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR,
+    resource_binding.location);
+  /* Update access info. */
+  uint32_t layer_base = 0;
+  uint32_t layer_count = VK_REMAINING_ARRAY_LAYERS;
+  access_info.images.append({ texture->vk_image_handle(),
+                             resource_binding.access_mask,
+                             to_vk_image_aspect_flag_bits(texture->device_format_get()),
+                             layer_base,
+                             layer_count });
 }
 
 void VKDescriptorSetTracker::bind_texture_resource(const VKDevice &device,
@@ -249,6 +275,9 @@ void VKDescriptorSetTracker::bind_shader_resources(const VKDevice &device,
       case shader::ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER:
         bind_uniform_buffer_resource(state_manager, resource_binding, access_info);
         break;
+      case shader::ShaderCreateInfo::Resource::BindType::INPUT_ATTACHMENT:
+        bind_input_attachment_resource(state_manager, resource_binding, access_info);
+        break;
     }
   }
 
@@ -296,6 +325,7 @@ void VKDescriptorSetTracker::upload_descriptor_sets()
     switch (vk_write_descriptor_set.descriptorType) {
       case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
       case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+      case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:
         vk_write_descriptor_set.pImageInfo = &vk_descriptor_image_infos_[image_index++];
         break;
 

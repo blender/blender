@@ -2,6 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+ /* ​​Changes from Qualcomm Innovation Center, Inc.are provided under the following license :
+    Copyright(c) 2024 Qualcomm Innovation Center, Inc.All rights reserved.
+    SPDX - License - Identifier : BSD - 3 - Clause - Clear
+ */
+
 /** \file
  * \ingroup gpu
  *
@@ -221,6 +226,8 @@ void ShaderCreateInfo::finalize()
         case Resource::BindType::IMAGE:
           res.slot = images++;
           break;
+        case Resource::BindType::INPUT_ATTACHMENT:
+          break;
       }
     };
 
@@ -337,6 +344,8 @@ void ShaderCreateInfo::validate_merge(const ShaderCreateInfo &other_info)
           return ubos.add(res.slot);
         case Resource::BindType::IMAGE:
           return ssbos.add(res.slot);
+        case Resource::BindType::INPUT_ATTACHMENT:
+          return true;
         default:
           return false;
       }
@@ -356,6 +365,8 @@ void ShaderCreateInfo::validate_merge(const ShaderCreateInfo &other_info)
             break;
           case Resource::BindType::IMAGE:
             std::cout << "Image " << res.image.name;
+            break;
+          case Resource::BindType::INPUT_ATTACHMENT:
             break;
           default:
             std::cout << "Unknown Type";

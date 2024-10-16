@@ -2,6 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+ /* ​​Changes from Qualcomm Innovation Center, Inc.are provided under the following license :
+    Copyright(c) 2024 Qualcomm Innovation Center, Inc.All rights reserved.
+    SPDX - License - Identifier : BSD - 3 - Clause - Clear
+ */
+
 /** \file
  * \ingroup gpu
  */
@@ -122,9 +127,11 @@ class VKCommandBuilder {
   void build_pipeline_barriers(VKRenderGraph &render_graph,
                                VKCommandBufferInterface &command_buffer,
                                NodeHandle node_handle,
-                               VkPipelineStageFlags pipeline_stage);
+                               VkPipelineStageFlags pipeline_stage,
+                               bool within_rendering = false);
   void reset_barriers();
-  void send_pipeline_barriers(VKCommandBufferInterface &command_buffer);
+  void send_pipeline_barriers(VKCommandBufferInterface &command_buffer,
+                              bool within_rendering);
 
   void add_buffer_barriers(VKRenderGraph &render_graph,
                            NodeHandle node_handle,
@@ -141,7 +148,8 @@ class VKCommandBuilder {
 
   void add_image_barriers(VKRenderGraph &render_graph,
                           NodeHandle node_handle,
-                          VkPipelineStageFlags node_stages);
+                          VkPipelineStageFlags node_stages,
+                          bool within_rendering);
   void add_image_barrier(VkImage vk_image,
                          VkAccessFlags src_access_mask,
                          VkAccessFlags dst_access_mask,
@@ -152,10 +160,12 @@ class VKCommandBuilder {
                          uint32_t layer_count = VK_REMAINING_ARRAY_LAYERS);
   void add_image_read_barriers(VKRenderGraph &render_graph,
                                NodeHandle node_handle,
-                               VkPipelineStageFlags node_stages);
+                               VkPipelineStageFlags node_stages,
+                               bool within_rendering);
   void add_image_write_barriers(VKRenderGraph &render_graph,
                                 NodeHandle node_handle,
-                                VkPipelineStageFlags node_stages);
+                                VkPipelineStageFlags node_stages,
+                                bool within_rendering);
 
   /**
    * Ensure that the debug group associated with the given node_handle is activated.
@@ -201,6 +211,8 @@ class VKCommandBuilder {
    * textures to be kept for when the rendering is resumed.
    */
   void layer_tracking_end(VKCommandBufferInterface &command_buffer, bool suspend);
+
+  bool node_has_input_attachments(const VKRenderGraph& render_graph, NodeHandle node);
 };
 
 }  // namespace blender::gpu::render_graph

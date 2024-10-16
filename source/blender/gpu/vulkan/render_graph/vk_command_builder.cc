@@ -2,6 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+ /* ​​Changes from Qualcomm Innovation Center, Inc.are provided under the following license :
+    Copyright(c) 2024 Qualcomm Innovation Center, Inc.All rights reserved.
+    SPDX - License - Identifier : BSD - 3 - Clause - Clear
+ */
+
 /** \file
  * \ingroup gpu
  */
@@ -82,6 +87,20 @@ void VKCommandBuilder::build_nodes(VKRenderGraph &render_graph,
   command_buffer.end_recording();
 }
 
+bool VKCommandBuilder::node_has_input_attachments(const VKRenderGraph& render_graph, NodeHandle node)
+{
+  const auto & links = render_graph.links_[node];
+  const auto & inputs = links.inputs;
+  for (const auto& input : inputs)
+    {
+    if (input.vk_access_flags & VK_ACCESS_INPUT_ATTACHMENT_READ_BIT)
+      {
+      return true;
+      }
+    }
+  return false;
+}
+
 void VKCommandBuilder::build_node_group(VKRenderGraph &render_graph,
                                         VKCommandBufferInterface &command_buffer,
                                         Span<NodeHandle> node_group,
@@ -97,7 +116,7 @@ void VKCommandBuilder::build_node_group(VKRenderGraph &render_graph,
 #if 0
     render_graph.debug_print(node_handle);
 #endif
-    build_pipeline_barriers(render_graph, command_buffer, node_handle, node.pipeline_stage_get());
+    build_pipeline_barriers(render_graph, command_buffer, node_handle, node.pipeline_stage_get(), false);
     if (node.type == VKNodeType::BEGIN_RENDERING) {
       layer_tracking_begin(render_graph, node_handle);
     }
@@ -133,6 +152,10 @@ void VKCommandBuilder::build_node_group(VKRenderGraph &render_graph,
         rendering_node.begin_rendering.vk_rendering_info.flags = VK_RENDERING_RESUMING_BIT;
         rendering_node.build_commands(command_buffer, state_.active_pipelines);
         is_rendering = true;
+      }
+      else if (node_has_input_attachments(render_graph, node_handle))
+      {
+        build_pipeline_barriers(render_graph, command_buffer, node_handle, node.pipeline_stage_get(), true);
       }
     }
 #if 0
@@ -230,12 +253,13 @@ void VKCommandBuilder::finish_debug_groups(VKCommandBufferInterface &command_buf
 void VKCommandBuilder::build_pipeline_barriers(VKRenderGraph &render_graph,
                                                VKCommandBufferInterface &command_buffer,
                                                NodeHandle node_handle,
-                                               VkPipelineStageFlags pipeline_stage)
+                                               VkPipelineStageFlags pipeline_stage,
+                                               bool within_rendering)
 {
   reset_barriers();
-  add_image_barriers(render_graph, node_handle, pipeline_stage);
+  add_image_barriers(render_graph, node_handle, pipeline_stage, within_rendering);
   add_buffer_barriers(render_graph, node_handle, pipeline_stage);
-  send_pipeline_barriers(command_buffer);
+  send_pipeline_barriers(command_buffer, within_rendering);
 }
 
 /** \} */
@@ -252,7 +276,7 @@ void VKCommandBuilder::reset_barriers()
   state_.dst_stage_mask = VK_PIPELINE_STAGE_NONE;
 }
 
-void VKCommandBuilder::send_pipeline_barriers(VKCommandBufferInterface &command_buffer)
+void VKCommandBuilder::send_pipeline_barriers(VKCommandBufferInterface &command_buffer, bool within_rendering)
 {
   if (vk_image_memory_barriers_.is_empty() && vk_buffer_memory_barriers_.is_empty()) {
     reset_barriers();
@@ -266,8 +290,23 @@ void VKCommandBuilder::send_pipeline_barriers(VKCommandBufferInterface &command_
     state_.src_stage_mask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
   }
 
-  command_buffer.pipeline_barrier(state_.src_stage_mask,
-                                  state_.dst_stage_mask,
+  VkPipelineStageFlags src_stage_mask;
+  VkPipelineStageFlags dst_stage_mask;
+  if (within_rendering)
+  {
+    // see: VUID-vkCmdPipelineBarrier-srcStageMask-09556
+    // If vkCmdPipelineBarrier is called within a render pass instance started with vkCmdBeginRendering,
+    // this command must only specify framebuffer-space stages in srcStageMask and dstStageMask
+    src_stage_mask = dst_stage_mask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
+      VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+  }
+  else
+  {
+    src_stage_mask = state_.src_stage_mask;
+    dst_stage_mask = state_.dst_stage_mask;
+  }
+  command_buffer.pipeline_barrier(src_stage_mask,
+                                  dst_stage_mask,
                                   VK_DEPENDENCY_BY_REGION_BIT,
                                   0,
                                   nullptr,
@@ -385,15 +424,17 @@ void VKCommandBuilder::add_buffer_barrier(VkBuffer vk_buffer,
 
 void VKCommandBuilder::add_image_barriers(VKRenderGraph &render_graph,
                                           NodeHandle node_handle,
-                                          VkPipelineStageFlags node_stages)
+                                          VkPipelineStageFlags node_stages,
+                                          bool within_rendering)
 {
-  add_image_read_barriers(render_graph, node_handle, node_stages);
-  add_image_write_barriers(render_graph, node_handle, node_stages);
+  add_image_read_barriers(render_graph, node_handle, node_stages, within_rendering);
+  add_image_write_barriers(render_graph, node_handle, node_stages, within_rendering);
 }
 
 void VKCommandBuilder::add_image_read_barriers(VKRenderGraph &render_graph,
                                                NodeHandle node_handle,
-                                               VkPipelineStageFlags node_stages)
+                                               VkPipelineStageFlags node_stages,
+                                               bool within_rendering)
 {
   for (const VKRenderGraphLink &link : render_graph.links_[node_handle].inputs) {
     const ResourceWithStamp &versioned_resource = link.resource;
@@ -411,6 +452,12 @@ void VKCommandBuilder::add_image_read_barriers(VKRenderGraph &render_graph,
         resource_state.image_layout == link.vk_image_layout)
     {
       /* Has already been covered in previous barrier no need to add this one. */
+      continue;
+    }
+    if (within_rendering &&
+      link.vk_image_layout != VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR)
+    {
+      // allow only local read barriers inside rendering scope
       continue;
     }
 
@@ -451,7 +498,8 @@ void VKCommandBuilder::add_image_read_barriers(VKRenderGraph &render_graph,
 
 void VKCommandBuilder::add_image_write_barriers(VKRenderGraph &render_graph,
                                                 NodeHandle node_handle,
-                                                VkPipelineStageFlags node_stages)
+                                                VkPipelineStageFlags node_stages,
+                                                bool within_rendering)
 {
   for (const VKRenderGraphLink link : render_graph.links_[node_handle].outputs) {
     const ResourceWithStamp &versioned_resource = link.resource;
@@ -463,7 +511,12 @@ void VKCommandBuilder::add_image_write_barriers(VKRenderGraph &render_graph,
     }
     VKResourceBarrierState &resource_state = resource.barrier_state;
     const VkAccessFlags wait_access = resource_state.vk_access;
-
+    if (within_rendering &&
+      link.vk_image_layout != VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR)
+    {
+      // allow only local read barriers inside rendering scope
+      continue;
+    }
     if (state_.layered_attachments.contains(resource.image.vk_image) &&
         resource_state.image_layout != link.vk_image_layout)
     {
@@ -618,12 +671,13 @@ void VKCommandBuilder::layer_tracking_end(VKCommandBufferInterface &command_buff
               VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
               VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT,
           binding.vk_image_layout,
-          VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+          // support usage as both a color attachment and input attachment
+          VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR,
           VK_IMAGE_ASPECT_COLOR_BIT,
           binding.layer,
           binding.layer_count);
     }
-    send_pipeline_barriers(command_buffer);
+    send_pipeline_barriers(command_buffer, false);
   }
   state_.layered_bindings.clear();
   if (!suspend) {

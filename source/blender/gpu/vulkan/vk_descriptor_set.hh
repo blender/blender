@@ -2,6 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+ /* ​​Changes from Qualcomm Innovation Center, Inc.are provided under the following license :
+    Copyright(c) 2024 Qualcomm Innovation Center, Inc.All rights reserved.
+    SPDX - License - Identifier : BSD - 3 - Clause - Clear
+ */
+
 /** \file
  * \ingroup gpu
  */
@@ -109,6 +114,9 @@ class VKDescriptorSetTracker {
   void bind_image_resource(const VKStateManager &state_manager,
                            const VKResourceBinding &resource_binding,
                            render_graph::VKResourceAccessInfo &access_info);
+  void bind_input_attachment_resource(const VKStateManager& state_manager,
+                                      const VKResourceBinding& resource_binding,
+                                      render_graph::VKResourceAccessInfo& access_info);
   void bind_texture_resource(const VKDevice &device,
                              const VKStateManager &state_manager,
                              const VKResourceBinding &resource_binding,

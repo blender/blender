@@ -2,6 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+ /* ​​Changes from Qualcomm Innovation Center, Inc.are provided under the following license :
+    Copyright(c) 2024 Qualcomm Innovation Center, Inc.All rights reserved.
+    SPDX - License - Identifier : BSD - 3 - Clause - Clear
+ */
+
 /** \file
  * \ingroup gpu
  *
@@ -507,6 +512,7 @@ struct ShaderCreateInfo {
       STORAGE_BUFFER,
       SAMPLER,
       IMAGE,
+      INPUT_ATTACHMENT,
     };
 
     BindType bind_type;
@@ -544,6 +550,8 @@ struct ShaderCreateInfo {
           TEST_EQUAL(*this, b, image.type);
           TEST_EQUAL(*this, b, image.qualifiers);
           TEST_EQUAL(*this, b, image.name);
+          break;
+        case INPUT_ATTACHMENT:
           break;
       }
       return true;
@@ -1104,6 +1112,9 @@ struct ShaderCreateInfo {
           break;
         case Resource::BindType::IMAGE:
           stream << "IMAGE(" << res.slot << ", " << res.image.name << ")" << std::endl;
+          break;
+        case Resource::BindType::INPUT_ATTACHMENT:
+          stream << "INPUT_ATTACHMENT(" << res.slot << ", " << res.image.name << ")" << std::endl;
           break;
       }
     };

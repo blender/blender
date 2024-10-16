@@ -2,6 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+ /* ​​Changes from Qualcomm Innovation Center, Inc.are provided under the following license :
+    Copyright(c) 2024 Qualcomm Innovation Center, Inc.All rights reserved.
+    SPDX - License - Identifier : BSD - 3 - Clause - Clear
+ */
+
 /** \file
  * \ingroup gpu
  */
@@ -86,6 +91,10 @@ static bool compile_ex(shaderc::Compiler &compiler,
       shader_module.combined_sources, stage, full_name.c_str(), options);
   bool compilation_succeeded = shader_module.compilation_result.GetCompilationStatus() ==
                                shaderc_compilation_status_success;
+  if (!compilation_succeeded)
+  {
+    fprintf(stderr, "compile failed, error: %s", shader_module.compilation_result.GetErrorMessage().c_str());
+  }
   return compilation_succeeded;
 }
 

@@ -2,6 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+ /* ​​Changes from Qualcomm Innovation Center, Inc.are provided under the following license :
+    Copyright(c) 2024 Qualcomm Innovation Center, Inc.All rights reserved.
+    SPDX - License - Identifier : BSD - 3 - Clause - Clear
+ */
+
 /** \file
  * \ingroup gpu
  */
@@ -51,8 +56,11 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
       dynamic_rendering_unused_attachments = {};
   dynamic_rendering_unused_attachments.sType =
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_FEATURES_EXT;
+  VkPhysicalDeviceDynamicRenderingLocalReadFeaturesKHR dynamic_rendering_local_read = {};
+  dynamic_rendering_local_read.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_LOCAL_READ_FEATURES_KHR;
   features.pNext = &dynamic_rendering;
   dynamic_rendering.pNext = &dynamic_rendering_unused_attachments;
+  dynamic_rendering_unused_attachments.pNext = &dynamic_rendering_local_read;
 
   vkGetPhysicalDeviceFeatures2(vk_physical_device, &features);
 #ifndef __APPLE__
@@ -87,6 +95,9 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   if (dynamic_rendering.dynamicRendering == VK_FALSE) {
     missing_capabilities.append("dynamic rendering");
   }
+  if (dynamic_rendering_local_read.dynamicRenderingLocalRead == VK_FALSE) {
+    missing_capabilities.append("dynamic rendering local read");
+  }
 
   /* Check device extensions. */
   uint32_t vk_extension_count;
@@ -105,6 +116,12 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   }
   if (!extensions.contains(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME)) {
     missing_capabilities.append(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
+  }
+  if (!extensions.contains(VK_KHR_DYNAMIC_RENDERING_LOCAL_READ_EXTENSION_NAME)) {
+    missing_capabilities.append(VK_KHR_DYNAMIC_RENDERING_LOCAL_READ_EXTENSION_NAME);
+  }
+  if (!extensions.contains(VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME)) {
+    missing_capabilities.append(VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME);
   }
 
   return missing_capabilities;
