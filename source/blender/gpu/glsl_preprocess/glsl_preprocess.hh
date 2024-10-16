@@ -78,6 +78,7 @@ class Preprocessor {
     if (do_include_parsing) {
       include_parse(str);
     }
+    str = preprocessor_directive_mutation(str);
     if (do_string_mutation) {
       static_strings_parsing(str);
       str = static_strings_mutation(str);
@@ -92,7 +93,6 @@ class Preprocessor {
     if (do_small_type_linting) {
       small_type_linting(str, report_error);
     }
-    str = preprocessor_directive_mutation(str);
     str = remove_quotes(str);
     str = enum_macro_injection(str);
     str = argument_decorator_macro_injection(str);
