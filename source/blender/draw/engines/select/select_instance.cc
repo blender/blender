@@ -60,6 +60,7 @@ static void SELECT_next_cache_populate(void *vedata, Object *object)
   ref.object = object;
   ref.dupli_object = DRW_object_get_dupli(object);
   ref.dupli_parent = DRW_object_get_dupli_parent(object);
+  ref.handle.raw = 0;
 
   reinterpret_cast<Instance *>(reinterpret_cast<OVERLAY_Data *>(vedata)->instance)
       ->object_sync(ref, *DRW_manager_get());
