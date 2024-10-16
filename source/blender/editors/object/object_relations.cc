@@ -2448,6 +2448,9 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
         }
       }
     }
+    /* Also tag the Scene itself for remapping when creating overrides (includes the scene's master
+     * collection too). */
+    scene->id.tag |= ID_TAG_DOIT;
   }
 
   ID *id_root_override;
