@@ -4041,7 +4041,7 @@ static void outliner_update_viewable_area(ARegion *region,
  * Draw contents of Outliner editor.
  * \{ */
 
-void draw_outliner(const bContext *C)
+void draw_outliner(const bContext *C, bool do_rebuild)
 {
   Main *mainvar = CTX_data_main(C);
   ARegion *region = CTX_wm_region(C);
@@ -4053,22 +4053,32 @@ void draw_outliner(const bContext *C)
   TreeViewContext tvc;
   outliner_viewcontext_init(C, &tvc);
 
-  outliner_build_tree(mainvar, tvc.scene, tvc.view_layer, space_outliner, region); /* Always. */
+  /* FIXME(@ideasman42): There is an order of initialization problem here between
+   * `v2d->cur` & `v2d->tot` where this function reads from `v2d->cur` for the scroll position
+   * but may reset the scroll position *without* drawing into the clamped position.
+   *
+   * The `on_scroll` argument is used for an optional second draw pass.
+   *
+   * See `USE_OUTLINER_DRAW_CLAMPS_SCROLL_HACK` & #128346 for a full description. */
 
-  /* If global sync select is dirty, flag other outliners. */
-  if (ED_outliner_select_sync_is_dirty(C)) {
-    ED_outliner_select_sync_flag_outliners(C);
-  }
+  if (do_rebuild) {
+    outliner_build_tree(mainvar, tvc.scene, tvc.view_layer, space_outliner, region); /* Always. */
 
-  /* Sync selection state from view layer. */
-  if (!ELEM(space_outliner->outlinevis,
-            SO_LIBRARIES,
-            SO_OVERRIDES_LIBRARY,
-            SO_DATA_API,
-            SO_ID_ORPHANS) &&
-      space_outliner->flag & SO_SYNC_SELECT)
-  {
-    outliner_sync_selection(C, space_outliner);
+    /* If global sync select is dirty, flag other outliners. */
+    if (ED_outliner_select_sync_is_dirty(C)) {
+      ED_outliner_select_sync_flag_outliners(C);
+    }
+
+    /* Sync selection state from view layer. */
+    if (!ELEM(space_outliner->outlinevis,
+              SO_LIBRARIES,
+              SO_OVERRIDES_LIBRARY,
+              SO_DATA_API,
+              SO_ID_ORPHANS) &&
+        space_outliner->flag & SO_SYNC_SELECT)
+    {
+      outliner_sync_selection(C, space_outliner);
+    }
   }
 
   /* Force display to pixel coords. */
