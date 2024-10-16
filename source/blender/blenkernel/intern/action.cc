@@ -1380,6 +1380,12 @@ void BKE_pose_channel_copy_data(bPoseChannel *pchan, const bPoseChannel *pchan_f
   copy_v3_v3(pchan->custom_rotation_euler, pchan_from->custom_rotation_euler);
   pchan->custom_shape_wire_width = pchan_from->custom_shape_wire_width;
 
+  pchan->color.palette_index = pchan_from->color.palette_index;
+  copy_v4_v4_uchar(pchan->color.custom.active, pchan_from->color.custom.active);
+  copy_v4_v4_uchar(pchan->color.custom.select, pchan_from->color.custom.select);
+  copy_v4_v4_uchar(pchan->color.custom.solid, pchan_from->color.custom.solid);
+  pchan->color.custom.flag = pchan_from->color.custom.flag;
+
   pchan->drawflag = pchan_from->drawflag;
 }
 
