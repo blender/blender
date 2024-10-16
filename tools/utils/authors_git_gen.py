@@ -294,6 +294,9 @@ class Credits:
             self.write_object(fh, use_metadata=use_metadata)
 
 
+# -----------------------------------------------------------------------------
+# Argument Parser
+
 def argparse_create() -> argparse.ArgumentParser:
 
     # When --help or no args are given, print this help
@@ -350,6 +353,9 @@ def argparse_create() -> argparse.ArgumentParser:
 
     return parser
 
+
+# -----------------------------------------------------------------------------
+# Main Function
 
 def main() -> None:
 
