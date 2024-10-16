@@ -6401,26 +6401,32 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 #  ifdef WITH_FFMPEG
   /* Container types */
   static const EnumPropertyItem ffmpeg_format_items[] = {
+      {FFMPEG_MPEG4, "MPEG4", 0, "MPEG-4", ""},
+      {FFMPEG_MKV, "MKV", 0, "Matroska", ""},
+      {FFMPEG_WEBM, "WEBM", 0, "WebM", ""},
+      /* Legacy containers. */
+      RNA_ENUM_ITEM_SEPR,
+      {FFMPEG_AVI, "AVI", 0, "AVI", ""},
+      {FFMPEG_DV, "DV", 0, "DV", ""},
+      {FFMPEG_FLV, "FLASH", 0, "Flash", ""},
       {FFMPEG_MPEG1, "MPEG1", 0, "MPEG-1", ""},
       {FFMPEG_MPEG2, "MPEG2", 0, "MPEG-2", ""},
-      {FFMPEG_MPEG4, "MPEG4", 0, "MPEG-4", ""},
-      {FFMPEG_AVI, "AVI", 0, "AVI", ""},
-      {FFMPEG_MOV, "QUICKTIME", 0, "QuickTime", ""},
-      {FFMPEG_DV, "DV", 0, "DV", ""},
       {FFMPEG_OGG, "OGG", 0, "Ogg", ""},
-      {FFMPEG_MKV, "MKV", 0, "Matroska", ""},
-      {FFMPEG_FLV, "FLASH", 0, "Flash", ""},
-      {FFMPEG_WEBM, "WEBM", 0, "WebM", ""},
+      {FFMPEG_MOV, "QUICKTIME", 0, "QuickTime", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
   static const EnumPropertyItem ffmpeg_codec_items[] = {
       {AV_CODEC_ID_NONE, "NONE", 0, "No Video", "Disables video output, for audio-only renders"},
+      {AV_CODEC_ID_AV1, "AV1", 0, "AV1", ""},
+      {AV_CODEC_ID_H264, "H264", 0, "H.264", ""},
+      {AV_CODEC_ID_VP9, "WEBM", 0, "WebM / VP9", ""},
+      /* Legacy / rare codecs. */
+      RNA_ENUM_ITEM_SEPR,
       {AV_CODEC_ID_DNXHD, "DNXHD", 0, "DNxHD", ""},
       {AV_CODEC_ID_DVVIDEO, "DV", 0, "DV", ""},
       {AV_CODEC_ID_FFV1, "FFV1", 0, "FFmpeg video codec #1", ""},
       {AV_CODEC_ID_FLV1, "FLASH", 0, "Flash Video", ""},
-      {AV_CODEC_ID_H264, "H264", 0, "H.264", ""},
       {AV_CODEC_ID_HUFFYUV, "HUFFYUV", 0, "HuffYUV", ""},
       {AV_CODEC_ID_MPEG1VIDEO, "MPEG1", 0, "MPEG-1", ""},
       {AV_CODEC_ID_MPEG2VIDEO, "MPEG2", 0, "MPEG-2", ""},
@@ -6428,8 +6434,6 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
       {AV_CODEC_ID_PNG, "PNG", 0, "PNG", ""},
       {AV_CODEC_ID_QTRLE, "QTRLE", 0, "QuickTime Animation", ""},
       {AV_CODEC_ID_THEORA, "THEORA", 0, "Theora", ""},
-      {AV_CODEC_ID_VP9, "WEBM", 0, "WebM / VP9", ""},
-      {AV_CODEC_ID_AV1, "AV1", 0, "AV1", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
