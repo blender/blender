@@ -3620,7 +3620,7 @@ class VIEW3D_MT_sculpt(Menu):
             ('RELAX_FACE_SETS', iface_("Relax Face Sets")),
             ('SHARPEN', iface_("Sharpen")),
             ('ENHANCE_DETAILS', iface_("Enhance Details")),
-            ('ERASE_DISCPLACEMENT', iface_("Erase Multires Displacement")),
+            ('ERASE_DISPLACEMENT', iface_("Erase Multires Displacement")),
             ('RANDOM', iface_("Randomize")),
         ]
 
