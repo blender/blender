@@ -10,10 +10,10 @@
 #          --save="/tmp/hello.blend"
 #
 # Notice:
-# '--factory-startup' is used to avoid the user default settings from
+# `--factory-startup` is used to avoid the user default settings from
 #                     interfering with automated scene generation.
 #
-# '--' causes blender to ignore all following arguments so python can use them.
+# `--` causes blender to ignore all following arguments so python can use them.
 #
 # See blender --help for details.
 

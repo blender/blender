@@ -116,7 +116,7 @@ def _read_blend_rend_chunk_from_file(blendfile, filepath):
 
             scene_name = scene_name[:scene_name.index(b'\0')]
             # It's possible old blend files are not UTF8 compliant, use `surrogateescape`.
-            scene_name = scene_name.decode("utf8", errors='surrogateescape')
+            scene_name = scene_name.decode("utf8", errors="surrogateescape")
 
             scenes.append((start_frame, end_frame, scene_name))
 
