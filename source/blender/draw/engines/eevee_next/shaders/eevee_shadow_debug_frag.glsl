@@ -36,15 +36,17 @@ vec3 debug_random_color(int v)
 
 void debug_tile_print(ShadowTileData tile, ivec4 tile_coord)
 {
-#ifdef DRW_DEBUG_PRINT
-  printf("Tile (%u, %u) in Tilemap %u: page(%u, %u, %u), cache_index %u",
-         tile_coord.x,
-         tile_coord.y,
-         tile_coord.z,
-         tile.page.x,
-         tile.page.y,
-         tile.page.z,
-         tile.cache_index);
+#if 0
+  /* Should be printf, but out current printf injection is based on string detection and doesn't
+   * check preprocessor directives. */
+  print f("Tile (%u, %u) in Tilemap %u: page(%u, %u, %u), cache_index %u",
+          tile_coord.x,
+          tile_coord.y,
+          tile_coord.z,
+          tile.page.x,
+          tile.page.y,
+          tile.page.z,
+          tile.cache_index);
 #endif
 }
 
