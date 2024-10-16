@@ -672,10 +672,13 @@ if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
       set(hip_flags)
     endif()
 
-    # There's a bug in the compiler causing some scenes to fail to render on Vega cards
-    # A workaround currently is to set -O1 opt level during kernel compilation for these
-    # cards Remove this when a newer compiler is available with fixes.
-    if(WIN32 AND (${arch} MATCHES "gfx90[a-z0-9]+"))
+    # There's a few bugs in the HIP compiler causing some scenes to fail to render,
+    # or render improperly with specific combinations of device and/or compiler.
+    # - Vega (gfx90x) fails to render some scenes
+    # - Other GPUs (E.g. RDNA3) render volumes improperly with HIP 6.1.40252
+    # A workaround is to set -O1 opt level during kernel compilation for these
+    # configurations.
+    if(WIN32 AND ((${arch} MATCHES "gfx90[a-z0-9]+") OR (${HIP_VERSION} STREQUAL "6.1.40252")))
       set(hip_opt_flags "-O1")
     else()
       set(hip_opt_flags)
@@ -758,6 +761,10 @@ if(WITH_CYCLES_DEVICE_HIPRT)
 
   if(WITH_CYCLES_DEBUG)
     set(hiprt_compile_flags ${hiprt_compile_flags} -D WITH_CYCLES_DEBUG)
+  endif()
+
+  if(WIN32 AND (${HIP_VERSION} STREQUAL "6.1.40252"))
+    message(WARNING "HIP SDK ${HIP_VERSION} has known rendering artifacts with HIPRT. 5.7 is recommended instead")
   endif()
 
   set(hiprt_compile_flags_bvh

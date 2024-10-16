@@ -12,6 +12,7 @@
 
 #include "BLI_function_ref.hh"
 #include "BLI_iterator.h"
+#include "BLI_set.hh"
 #include "BLI_utildefines.h"
 
 #include "DEG_depsgraph.hh"
@@ -199,6 +200,12 @@ struct DEGObjectIterSettings {
    * geometry for the viewer path included in the iterator.
    */
   const ViewerPath *viewer_path;
+
+  /**
+   * If not empty, the iterator should only return objects that are in this list (or their
+   * instances are in it). Pointers in this span should be the original data-block.
+   */
+  blender::Set<const Object *> *included_objects;
 };
 
 /**

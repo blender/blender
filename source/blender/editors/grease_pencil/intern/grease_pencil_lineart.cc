@@ -40,7 +40,7 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "MOD_lineart.h"
+#include "MOD_lineart.hh"
 
 namespace blender::ed::greasepencil {
 
