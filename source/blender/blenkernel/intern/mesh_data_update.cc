@@ -1316,7 +1316,7 @@ void mesh_get_mapped_verts_coords(Mesh *mesh_eval, MutableSpan<float3> r_cos)
     MEM_freeN(user_data.vertex_visit);
   }
   else {
-    r_cos.copy_from(mesh_eval->vert_positions());
+    r_cos.copy_from(BKE_mesh_wrapper_vert_coords(mesh_eval));
   }
 }
 
