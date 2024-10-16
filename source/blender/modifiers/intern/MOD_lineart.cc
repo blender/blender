@@ -27,7 +27,7 @@
 #include "UI_resources.hh"
 
 #include "MOD_grease_pencil_util.hh"
-#include "MOD_lineart.h"
+#include "MOD_lineart.hh"
 #include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
 
@@ -82,6 +82,32 @@ static void init_data(ModifierData *md)
 static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
 {
   BKE_modifier_copydata_generic(md, target, flag);
+
+  const GreasePencilLineartModifierData *source_lmd =
+      reinterpret_cast<const GreasePencilLineartModifierData *>(md);
+  const LineartModifierRuntime *source_runtime = reinterpret_cast<const LineartModifierRuntime *>(
+      source_lmd->runtime);
+
+  GreasePencilLineartModifierData *target_lmd =
+      reinterpret_cast<GreasePencilLineartModifierData *>(target);
+
+  target_lmd->runtime = MEM_new<LineartModifierRuntime>(__func__);
+  LineartModifierRuntime *target_runtime = reinterpret_cast<LineartModifierRuntime *>(
+      target_lmd->runtime);
+
+  blender::Set<const Object *> *object_dependencies = source_runtime->object_dependencies.get();
+  target_runtime->object_dependencies.reset(
+      new blender::Set<const Object *>(*object_dependencies));
+}
+
+static void free_data(ModifierData *md)
+{
+  GreasePencilLineartModifierData *lmd = reinterpret_cast<GreasePencilLineartModifierData *>(md);
+  if (lmd->runtime) {
+    LineartModifierRuntime *runtime = reinterpret_cast<LineartModifierRuntime *>(lmd->runtime);
+    MEM_delete(runtime);
+    lmd->runtime = nullptr;
+  }
 }
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
@@ -107,7 +133,8 @@ static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_re
 
 static void add_this_collection(Collection &collection,
                                 const ModifierUpdateDepsgraphContext *ctx,
-                                const int mode)
+                                const int mode,
+                                Set<const Object *> &object_dependencies)
 {
   bool default_add = true;
   /* Do not do nested collection usage check, this is consistent with lineart calculation, because
@@ -124,13 +151,15 @@ static void add_this_collection(Collection &collection,
       {
         DEG_add_object_relation(ctx->node, ob, DEG_OB_COMP_GEOMETRY, "Line Art Modifier");
         DEG_add_object_relation(ctx->node, ob, DEG_OB_COMP_TRANSFORM, "Line Art Modifier");
+        object_dependencies.add(ob);
       }
     }
     if (ob->type == OB_EMPTY && (ob->transflag & OB_DUPLICOLLECTION)) {
       if (!ob->instance_collection) {
         continue;
       }
-      add_this_collection(*ob->instance_collection, ctx, mode);
+      add_this_collection(*ob->instance_collection, ctx, mode, object_dependencies);
+      object_dependencies.add(ob);
     }
   }
   FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;
@@ -147,8 +176,24 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 
   /* Do we need to distinguish DAG_EVAL_VIEWPORT or DAG_EVAL_RENDER here? */
 
-  add_this_collection(*ctx->scene->master_collection, ctx, DAG_EVAL_VIEWPORT);
+  LineartModifierRuntime *runtime = reinterpret_cast<LineartModifierRuntime *>(lmd->runtime);
+  if (!runtime) {
+    runtime = MEM_new<LineartModifierRuntime>(__func__);
+    lmd->runtime = runtime;
+    runtime->object_dependencies = nullptr;
+  }
+  Set<const Object *> *object_dependencies = runtime->object_dependencies.get();
+  if (!object_dependencies) {
+    runtime->object_dependencies = std::make_unique<Set<const Object *>>();
+    object_dependencies = runtime->object_dependencies.get();
+  }
 
+  object_dependencies->clear();
+  add_this_collection(
+      *ctx->scene->master_collection, ctx, DAG_EVAL_VIEWPORT, *object_dependencies);
+
+  /* No need to add any non-geometry objects into `lmd->object_dependencies` because we won't be
+   * loading */
   if (lmd->calculation_flags & MOD_LINEART_USE_CUSTOM_CAMERA && lmd->source_camera) {
     DEG_add_object_relation(
         ctx->node, lmd->source_camera, DEG_OB_COMP_TRANSFORM, "Line Art Modifier");
@@ -852,7 +897,7 @@ ModifierTypeInfo modifierType_GreasePencilLineart = {
 
     /*init_data*/ blender::init_data,
     /*required_data_mask*/ nullptr,
-    /*free_data*/ nullptr,
+    /*free_data*/ blender::free_data,
     /*is_disabled*/ blender::is_disabled,
     /*update_depsgraph*/ blender::update_depsgraph,
     /*depends_on_time*/ nullptr,
