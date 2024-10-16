@@ -2574,7 +2574,7 @@ static void radial_control_update_header(wmOperator *op, bContext *C)
   ED_area_status_text(area, msg);
 }
 
-static void radial_control_set_initial_mouse(bContext *C, RadialControl *rc, const wmEvent *event)
+static void radial_control_set_initial_mouse(RadialControl *rc, const wmEvent *event)
 {
   float d[2] = {0, 0};
   float zoom[2] = {1, 1};
@@ -3158,7 +3158,7 @@ static int radial_control_invoke(bContext *C, wmOperator *op, const wmEvent *eve
   }
 
   rc->current_value = rc->initial_value;
-  radial_control_set_initial_mouse(C, rc, event);
+  radial_control_set_initial_mouse(rc, event);
   radial_control_set_tex(rc);
 
   rc->init_event = WM_userdef_event_type_from_keymap_type(event->type);
