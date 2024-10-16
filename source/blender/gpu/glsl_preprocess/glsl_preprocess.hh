@@ -330,7 +330,7 @@ class Preprocessor {
     /* Example: `pri$$1(2@ b)$` > `{int c_ = print_header(1, 2); c_ = print_data(c_, b); }` */
     {
       std::regex regex(R"(pri\$\$?(\d{1,2})\()");
-      out_str = std::regex_replace(out_str, regex, "{int c_ = print_header($1, ");
+      out_str = std::regex_replace(out_str, regex, "{uint c_ = print_header($1u, ");
     }
     {
       std::regex regex(R"(\@)");
@@ -379,7 +379,8 @@ class Preprocessor {
     }
     std::stringstream suffix;
     for (const std::string &str_var : static_strings_) {
-      suffix << "// " << hash("string") << " " << hash_string(str_var) << " " << str_var << "\n";
+      std::string no_quote = str_var.substr(1, str_var.size() - 2);
+      suffix << "// " << hash("string") << " " << hash_string(str_var) << " " << no_quote << "\n";
     }
     return suffix.str();
   }
