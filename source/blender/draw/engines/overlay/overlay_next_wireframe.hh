@@ -41,7 +41,7 @@ class Wireframe {
       return;
     }
 
-    show_wire_ = (state.overlay.flag & V3D_OVERLAY_WIREFRAMES);
+    show_wire_ = state.is_wireframe_mode || (state.overlay.flag & V3D_OVERLAY_WIREFRAMES);
 
     const bool do_smooth_lines = (U.gpu_flag & USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE) != 0;
     const bool is_transform = (G.moving & G_TRANSFORM_OBJ) != 0;
