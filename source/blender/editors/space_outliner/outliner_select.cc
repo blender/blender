@@ -966,16 +966,17 @@ static eOLDrawState tree_element_posechannel_state_get(const Object *ob_pose,
   return OL_DRAWSEL_NONE;
 }
 
-static eOLDrawState tree_element_viewlayer_state_get(const bContext *C, const TreeElement *te)
+static eOLDrawState tree_element_viewlayer_state_get(const ViewLayer *view_layer,
+                                                     const TreeElement *te)
 {
   /* paranoia check */
   if (te->idcode != ID_SCE) {
     return OL_DRAWSEL_NONE;
   }
 
-  const ViewLayer *view_layer = static_cast<ViewLayer *>(te->directdata);
+  const ViewLayer *te_view_layer = static_cast<ViewLayer *>(te->directdata);
 
-  if (CTX_data_view_layer(C) == view_layer) {
+  if (view_layer == te_view_layer) {
     return OL_DRAWSEL_NORMAL;
   }
   return OL_DRAWSEL_NONE;
@@ -1034,22 +1035,19 @@ static eOLDrawState tree_element_grease_pencil_node_state_get(const TreeElement 
   return OL_DRAWSEL_NONE;
 }
 
-static eOLDrawState tree_element_master_collection_state_get(const bContext *C)
+static eOLDrawState tree_element_master_collection_state_get(
+    const ViewLayer *view_layer, const LayerCollection *layer_collection)
 {
-  const ViewLayer *view_layer = CTX_data_view_layer(C);
-  const LayerCollection *active = CTX_data_layer_collection(C);
-
-  if (active == view_layer->layer_collections.first) {
+  if (layer_collection == view_layer->layer_collections.first) {
     return OL_DRAWSEL_NORMAL;
   }
   return OL_DRAWSEL_NONE;
 }
 
-static eOLDrawState tree_element_layer_collection_state_get(const bContext *C,
-                                                            const TreeElement *te)
+static eOLDrawState tree_element_layer_collection_state_get(
+    const LayerCollection *layer_collection, const TreeElement *te)
 {
-  const LayerCollection *active = CTX_data_layer_collection(C);
-  if (active == te->directdata) {
+  if (layer_collection == te->directdata) {
     return OL_DRAWSEL_NORMAL;
   }
   return OL_DRAWSEL_NONE;
@@ -1143,8 +1141,7 @@ eOLDrawState tree_element_active_state_get(const TreeViewContext *tvc,
   return OL_DRAWSEL_NONE;
 }
 
-eOLDrawState tree_element_type_active_state_get(const bContext *C,
-                                                const TreeViewContext *tvc,
+eOLDrawState tree_element_type_active_state_get(const TreeViewContext *tvc,
                                                 const TreeElement *te,
                                                 const TreeStoreElem *tselem)
 {
@@ -1171,7 +1168,7 @@ eOLDrawState tree_element_type_active_state_get(const bContext *C,
     case TSE_CONSTRAINT:
       return OL_DRAWSEL_NONE;
     case TSE_R_LAYER:
-      return tree_element_viewlayer_state_get(C, te);
+      return tree_element_viewlayer_state_get(tvc->view_layer, te);
     case TSE_SEQUENCE:
       return tree_element_sequence_state_get(tvc->scene, te);
     case TSE_SEQUENCE_DUP:
@@ -1181,9 +1178,9 @@ eOLDrawState tree_element_type_active_state_get(const bContext *C,
     case TSE_GREASE_PENCIL_NODE:
       return tree_element_grease_pencil_node_state_get(te);
     case TSE_VIEW_COLLECTION_BASE:
-      return tree_element_master_collection_state_get(C);
+      return tree_element_master_collection_state_get(tvc->view_layer, tvc->layer_collection);
     case TSE_LAYER_COLLECTION:
-      return tree_element_layer_collection_state_get(C, te);
+      return tree_element_layer_collection_state_get(tvc->layer_collection, te);
     case TSE_BONE_COLLECTION:
       return tree_element_bone_collection_state_get(te, tselem);
   }

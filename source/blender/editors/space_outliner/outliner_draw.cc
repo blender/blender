@@ -3178,8 +3178,7 @@ struct MergedIconRow {
   TreeElement *tree_element[INDEX_ID_MAX + OB_TYPE_MAX];
 };
 
-static void outliner_draw_iconrow(bContext *C,
-                                  uiBlock *block,
+static void outliner_draw_iconrow(uiBlock *block,
                                   const uiFontStyle *fstyle,
                                   const TreeViewContext *tvc,
                                   SpaceOutliner *space_outliner,
@@ -3225,7 +3224,7 @@ static void outliner_draw_iconrow(bContext *C,
         }
       }
       else {
-        active = tree_element_type_active_state_get(C, tvc, te, tselem);
+        active = tree_element_type_active_state_get(tvc, te, tselem);
       }
 
       if (!ELEM(tselem->type,
@@ -3275,8 +3274,7 @@ static void outliner_draw_iconrow(bContext *C,
     if (!ELEM(tselem->type, TSE_R_LAYER, TSE_BONE, TSE_EBONE, TSE_POSE_CHANNEL) ||
         in_bone_hierarchy || in_grease_pencil_node_hierarchy)
     {
-      outliner_draw_iconrow(C,
-                            block,
+      outliner_draw_iconrow(block,
                             fstyle,
                             tvc,
                             space_outliner,
@@ -3381,8 +3379,7 @@ static bool element_should_draw_faded(const TreeViewContext *tvc,
   return false;
 }
 
-static void outliner_draw_tree_element(bContext *C,
-                                       uiBlock *block,
+static void outliner_draw_tree_element(uiBlock *block,
                                        const uiFontStyle *fstyle,
                                        const TreeViewContext *tvc,
                                        ARegion *region,
@@ -3459,7 +3456,7 @@ static void outliner_draw_tree_element(bContext *C,
       }
     }
     else {
-      active = tree_element_type_active_state_get(C, tvc, te, tselem);
+      active = tree_element_type_active_state_get(tvc, te, tselem);
     }
 
     /* Active circle. */
@@ -3558,8 +3555,7 @@ static void outliner_draw_tree_element(bContext *C,
           GPU_blend(GPU_BLEND_ALPHA);
 
           MergedIconRow merged{};
-          outliner_draw_iconrow(C,
-                                block,
+          outliner_draw_iconrow(block,
                                 fstyle,
                                 tvc,
                                 space_outliner,
@@ -3590,8 +3586,7 @@ static void outliner_draw_tree_element(bContext *C,
       /* Check if element needs to be drawn grayed out, but also gray out
        * children of a grayed out parent (pass on draw_grayed_out to children). */
       bool draw_children_grayed_out = draw_grayed_out || (ten->flag & TE_DRAGGING);
-      outliner_draw_tree_element(C,
-                                 block,
+      outliner_draw_tree_element(block,
                                  fstyle,
                                  tvc,
                                  region,
@@ -3887,8 +3882,7 @@ static void outliner_draw_highlights(ARegion *region,
   GPU_blend(GPU_BLEND_NONE);
 }
 
-static void outliner_draw_tree(bContext *C,
-                               uiBlock *block,
+static void outliner_draw_tree(uiBlock *block,
                                const TreeViewContext *tvc,
                                ARegion *region,
                                SpaceOutliner *space_outliner,
@@ -3944,8 +3938,7 @@ static void outliner_draw_tree(bContext *C,
   starty = int(region->v2d.tot.ymax) - UI_UNIT_Y - OL_Y_OFFSET;
   startx = columns_offset;
   LISTBASE_FOREACH (TreeElement *, te, &space_outliner->tree) {
-    outliner_draw_tree_element(C,
-                               block,
+    outliner_draw_tree_element(block,
                                fstyle,
                                tvc,
                                region,
@@ -4070,14 +4063,15 @@ void draw_outliner(const bContext *C, bool do_rebuild)
     }
 
     /* Sync selection state from view layer. */
-    if (!ELEM(space_outliner->outlinevis,
-              SO_LIBRARIES,
-              SO_OVERRIDES_LIBRARY,
-              SO_DATA_API,
-              SO_ID_ORPHANS) &&
-        space_outliner->flag & SO_SYNC_SELECT)
-    {
-      outliner_sync_selection(C, space_outliner);
+    if (space_outliner->flag & SO_SYNC_SELECT) {
+      if (!ELEM(space_outliner->outlinevis,
+                SO_LIBRARIES,
+                SO_OVERRIDES_LIBRARY,
+                SO_DATA_API,
+                SO_ID_ORPHANS))
+      {
+        outliner_sync_selection(C, &tvc, space_outliner);
+      }
     }
   }
 
@@ -4094,8 +4088,7 @@ void draw_outliner(const bContext *C, bool do_rebuild)
   const float right_column_width = outliner_right_columns_width(space_outliner);
   outliner_back(region);
   block = UI_block_begin(C, region, __func__, UI_EMBOSS);
-  outliner_draw_tree((bContext *)C,
-                     block,
+  outliner_draw_tree(block,
                      &tvc,
                      region,
                      space_outliner,

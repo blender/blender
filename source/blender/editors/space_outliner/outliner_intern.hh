@@ -236,6 +236,7 @@ struct TreeViewContext {
   /* Scene level. */
   Scene *scene;
   ViewLayer *view_layer;
+  LayerCollection *layer_collection;
 
   /* Object level. */
   /** Avoid `BKE_view_layer_active_object_get` everywhere. */
@@ -330,8 +331,7 @@ void tree_element_type_active_set(bContext *C,
 /**
  * Generic call for non-id data to check the active state in UI.
  */
-eOLDrawState tree_element_type_active_state_get(const bContext *C,
-                                                const TreeViewContext *tvc,
+eOLDrawState tree_element_type_active_state_get(const TreeViewContext *tvc,
                                                 const TreeElement *te,
                                                 const TreeStoreElem *tselem);
 /**
@@ -661,7 +661,9 @@ void outliner_tag_redraw_avoid_rebuild_on_open_change(const SpaceOutliner *space
 /**
  * If outliner is dirty sync selection from view layer and sequencer.
  */
-void outliner_sync_selection(const bContext *C, SpaceOutliner *space_outliner);
+void outliner_sync_selection(const bContext *C,
+                             const TreeViewContext *tvc,
+                             SpaceOutliner *space_outliner);
 
 /* `outliner_context.cc` */
 
