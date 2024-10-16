@@ -61,8 +61,8 @@ void main()
       uv_offset.x = 0.0;
     }
 
-    depth_min = min(depth_min, texture(depthTex, uv - texel_uv_size).r);
-    depth_min = min(depth_min, texture(depthTex, uv + texel_uv_size).r);
+    depth_min = min(depth_min, texture(depthTex, uv - uv_offset).r);
+    depth_min = min(depth_min, texture(depthTex, uv + uv_offset).r);
 
     float delta = abs(depth_occluder - depth_min);
 
