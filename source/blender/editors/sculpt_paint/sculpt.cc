@@ -4946,7 +4946,11 @@ static void restore_from_undo_step_if_necessary(const Depsgraph &depsgraph,
     undo::restore_from_undo_step(depsgraph, sd, ob);
 
     if (ss.cache) {
+      /* Temporary data within the StrokeCache that is usually cleared at the end of the stroke
+       * needs to be invalidated here so that the brushes do not accumulate and apply extra data.
+       * See #129069. */
       ss.cache->layer_displacement_factor = {};
+      ss.cache->paint_brush.mix_colors = {};
     }
   }
 }
