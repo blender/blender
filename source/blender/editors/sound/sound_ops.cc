@@ -749,8 +749,8 @@ static void SOUND_OT_mixdown(wmOperatorType *ot)
               48000,
               8000,
               192000,
-              "Samplerate",
-              "Samplerate in samples/s",
+              "Sample Rate",
+              "Sample rate in samples/s",
               8000,
               192000);
   RNA_def_int(ot->srna, "bitrate", 192, 32, 512, "Bitrate", "Bitrate in kbit/s", 32, 512);

@@ -509,7 +509,7 @@ static void OBJECT_OT_lineart_bake_strokes(wmOperatorType *ot)
   ot->exec = lineart_bake_strokes_exec;
   ot->modal = lineart_bake_strokes_common_modal;
 
-  RNA_def_boolean(ot->srna, "bake_all", false, "Bake All", "Bake all line art modifiers");
+  RNA_def_boolean(ot->srna, "bake_all", false, "Bake All", "Bake all Line Art modifiers");
 }
 
 static void OBJECT_OT_lineart_clear(wmOperatorType *ot)

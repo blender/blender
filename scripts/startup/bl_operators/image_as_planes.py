@@ -1091,7 +1091,7 @@ class IMAGE_OT_convert_to_mesh_plane(MaterialProperties_MixIn, TextureProperties
         name="Name After",
         items=[
             ('OBJECT', "Source Object", "Name after object source with a suffix"),
-            ('IMAGE', "Source Image", "name from laoded image"),
+            ('IMAGE', "Source Image", "Name from loaded image"),
         ],
         default='OBJECT',
         description="Name for new mesh object and material",

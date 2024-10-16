@@ -1985,7 +1985,7 @@ static void rna_def_action_slot(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop,
                            "Slot Handle",
-                           "Number specific to this Slot, unique within the Action"
+                           "Number specific to this Slot, unique within the Action.\n"
                            "This is used, for example, on a ActionKeyframeStrip to look up the "
                            "ActionChannelBag for this Slot");
 

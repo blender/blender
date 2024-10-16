@@ -477,7 +477,7 @@ static void PREFERENCES_OT_extension_repo_add(wmOperatorType *ot)
        "REMOTE",
        ICON_INTERNET,
        "Add Remote Repository",
-       "Add a repository referencing an remote repository "
+       "Add a repository referencing a remote repository "
        "with support for listing and updating extensions"},
       {int(bUserExtensionRepoAddType::Local),
        "LOCAL",
