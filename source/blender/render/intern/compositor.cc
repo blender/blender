@@ -292,40 +292,53 @@ class Context : public realtime_compositor::Context {
       return nullptr;
     }
 
-    Render *re = RE_GetSceneRender(scene);
-    RenderResult *rr = nullptr;
-    GPUTexture *input_texture = nullptr;
-
-    if (re) {
-      rr = RE_AcquireResultRead(re);
+    ViewLayer *view_layer = static_cast<ViewLayer *>(
+        BLI_findlink(&scene->view_layers, view_layer_id));
+    if (!view_layer) {
+      return nullptr;
     }
 
-    if (rr) {
-      ViewLayer *view_layer = (ViewLayer *)BLI_findlink(&scene->view_layers, view_layer_id);
-      if (view_layer) {
-        RenderLayer *rl = RE_GetRenderLayer(rr, view_layer->name);
-        if (rl) {
-          RenderPass *rpass = RE_pass_find_by_name(rl, pass_name, get_view_name().data());
-
-          if (rpass && rpass->ibuf && rpass->ibuf->float_buffer.data) {
-            input_texture = RE_pass_ensure_gpu_texture_cache(re, rpass);
-
-            if (input_texture) {
-              /* Don't assume render keeps texture around, add our own reference. */
-              GPU_texture_ref(input_texture);
-              textures_.append(input_texture);
-            }
-          }
-        }
-      }
+    Render *render = RE_GetSceneRender(scene);
+    if (!render) {
+      return nullptr;
     }
 
-    if (re) {
-      RE_ReleaseResult(re);
-      re = nullptr;
+    RenderResult *render_result = RE_AcquireResultRead(render);
+    if (!render_result) {
+      RE_ReleaseResult(render);
+      return nullptr;
     }
 
-    return input_texture;
+    RenderLayer *render_layer = RE_GetRenderLayer(render_result, view_layer->name);
+    if (!render_layer) {
+      RE_ReleaseResult(render);
+      return nullptr;
+    }
+
+    RenderPass *render_pass = RE_pass_find_by_name(
+        render_layer, pass_name, this->get_view_name().data());
+    if (!render_pass) {
+      RE_ReleaseResult(render);
+      return nullptr;
+    }
+
+    if (!render_pass || !render_pass->ibuf || !render_pass->ibuf->float_buffer.data) {
+      RE_ReleaseResult(render);
+      return nullptr;
+    }
+
+    GPUTexture *texture = RE_pass_ensure_gpu_texture_cache(render, render_pass);
+    if (!texture) {
+      RE_ReleaseResult(render);
+      return nullptr;
+    }
+
+    /* Don't assume render keeps texture around, add our own reference. */
+    GPU_texture_ref(texture);
+    textures_.append(texture);
+
+    RE_ReleaseResult(render);
+    return texture;
   }
 
   StringRef get_view_name() const override
