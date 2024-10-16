@@ -654,12 +654,20 @@ bool Instance::object_is_in_front(const Object *object, const State &state)
 
 bool Instance::object_needs_prepass(const ObjectRef &ob_ref, bool in_paint_mode)
 {
+  if (selection_type_ != SelectionType::DISABLED) {
+    /* Selection always need a prepass. Except if it is in xray mode. */
+    return !state.xray_enabled;
+  }
+
   if (in_paint_mode) {
     /* Allow paint overlays to draw with depth equal test. */
     return object_is_rendered_transparent(ob_ref.object, state);
   }
 
-  if (!state.xray_enabled || (selection_type_ != SelectionType::DISABLED)) {
+  if (!state.xray_enabled) {
+    /* Only workbench ensures the depth buffer is matching overlays.
+     * Force depth prepass for other render engines. */
+    /* TODO(fclem): Make an exception for EEVEE if not using mixed resolution. */
     return ob_ref.object->dt >= OB_SOLID;
   }
 
