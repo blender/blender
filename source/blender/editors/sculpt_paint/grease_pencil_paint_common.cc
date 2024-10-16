@@ -297,7 +297,7 @@ IndexMask point_selection_mask(const GreasePencilStrokeParams &params,
 {
 
   return (use_masking ? ed::greasepencil::retrieve_editable_and_selected_points(
-                            params.ob_eval, params.drawing, params.layer_index, memory) :
+                            params.ob_orig, params.drawing, params.layer_index, memory) :
                         params.drawing.strokes().points_range());
 }
 
@@ -307,7 +307,7 @@ IndexMask stroke_selection_mask(const GreasePencilStrokeParams &params,
 {
 
   return (use_masking ? ed::greasepencil::retrieve_editable_and_selected_strokes(
-                            params.ob_eval, params.drawing, params.layer_index, memory) :
+                            params.ob_orig, params.drawing, params.layer_index, memory) :
                         params.drawing.strokes().curves_range());
 }
 
@@ -316,7 +316,7 @@ IndexMask fill_selection_mask(const GreasePencilStrokeParams &params,
                               IndexMaskMemory &memory)
 {
   return (use_masking ? ed::greasepencil::retrieve_editable_and_selected_fill_strokes(
-                            params.ob_eval, params.drawing, params.layer_index, memory) :
+                            params.ob_orig, params.drawing, params.layer_index, memory) :
                         params.drawing.strokes().curves_range());
 }
 
