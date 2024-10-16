@@ -559,15 +559,6 @@ static const AVCodec *get_av1_encoder(
           ffmpeg_dict_set_int(opts, "speed", 6);
           break;
       }
-      if (context->ffmpeg_crf >= 0) {
-        /* librav1e does not use `-crf`, but uses `-qp` in the range of 0-255.
-         * Calculates the roughly equivalent float, and truncates it to an integer. */
-        uint qp_value = float(context->ffmpeg_crf) * 255.0f / 51.0f;
-        if (qp_value > 255) {
-          qp_value = 255;
-        }
-        ffmpeg_dict_set_int(opts, "qp", qp_value);
-      }
       /* Set gop_size as rav1e's "--keyint". */
       char buffer[64];
       SNPRINTF(buffer, "keyint=%d", context->ffmpeg_gop_size);
@@ -588,11 +579,6 @@ static const AVCodec *get_av1_encoder(
         default:
           ffmpeg_dict_set_int(opts, "preset", 5);
           break;
-      }
-      if (context->ffmpeg_crf >= 0) {
-        /* `libsvtav1` does not support CRF until FFMPEG builds since 2022-02-24,
-         * use `qp` as fallback. */
-        ffmpeg_dict_set_int(opts, "qp", context->ffmpeg_crf);
       }
     }
     else if (STREQ(codec->name, "libaom-av1")) {
@@ -691,9 +677,6 @@ static const AVCodec *get_av1_encoder(
           ffmpeg_dict_set_int(opts, "cpu-used", 6);
           break;
       }
-
-      /* CRF related settings is similar to H264 for libaom-av1, so we will rely on those settings
-       * applied later. */
     }
   }
 
@@ -883,6 +866,64 @@ void BKE_ffmpeg_sws_scale_frame(SwsContext *ctx, AVFrame *dst, const AVFrame *sr
 #  endif
 }
 
+static void set_quality_rate_options(const FFMpegContext *context,
+                                     const AVCodecID codec_id,
+                                     const RenderData *rd,
+                                     AVDictionary **opts)
+{
+  AVCodecContext *c = context->video_codec;
+
+  /* Handle constant bit rate (CBR) case. */
+  if (!BKE_ffmpeg_codec_supports_crf(codec_id) || context->ffmpeg_crf < 0) {
+    c->bit_rate = context->ffmpeg_video_bitrate * 1000;
+    c->rc_max_rate = rd->ffcodecdata.rc_max_rate * 1000;
+    c->rc_min_rate = rd->ffcodecdata.rc_min_rate * 1000;
+    c->rc_buffer_size = rd->ffcodecdata.rc_buffer_size * 1024;
+    return;
+  }
+
+  /* For VP9 bit rate must be set to zero to get CRF mode, just set it to zero for all codecs:
+   * https://trac.ffmpeg.org/wiki/Encode/VP9 */
+  c->bit_rate = 0;
+
+  const bool av1_librav1e = codec_id == AV_CODEC_ID_AV1 && STREQ(c->codec->name, "librav1e");
+  const bool av1_libsvtav1 = codec_id == AV_CODEC_ID_AV1 && STREQ(c->codec->name, "libsvtav1");
+
+  /* Handle "lossless" case. */
+  if (context->ffmpeg_crf == FFM_CRF_LOSSLESS) {
+    if (codec_id == AV_CODEC_ID_VP9) {
+      /* VP9 needs "lossless": https://trac.ffmpeg.org/wiki/Encode/VP9#LosslessVP9 */
+      ffmpeg_dict_set_int(opts, "lossless", 1);
+    }
+    else if (codec_id == AV_CODEC_ID_AV1 && (av1_librav1e || av1_libsvtav1)) {
+      /* AV1 in some encoders needs qp=0 for lossless. */
+      ffmpeg_dict_set_int(opts, "qp", 0);
+    }
+    else {
+      /* For others crf=0 means lossless. */
+      ffmpeg_dict_set_int(opts, "crf", 0);
+    }
+    return;
+  }
+
+  /* Handle CRF setting cases. */
+  int crf = context->ffmpeg_crf;
+
+  if (av1_librav1e) {
+    /* Remap crf 0..51 to qp 0..255 for AV1 librav1e. */
+    int qp = int(float(crf) / 51.0f * 255.0f);
+    qp = clamp_i(qp, 0, 255);
+    ffmpeg_dict_set_int(opts, "qp", qp);
+  }
+  else if (av1_libsvtav1) {
+    /* libsvtav1 used to take CRF as "qp" parameter, do that. */
+    ffmpeg_dict_set_int(opts, "qp", crf);
+  }
+  else {
+    ffmpeg_dict_set_int(opts, "crf", crf);
+  }
+}
+
 /* prepare a video stream for the output file */
 
 static AVStream *alloc_video_stream(FFMpegContext *context,
@@ -964,23 +1005,7 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
   c->gop_size = context->ffmpeg_gop_size;
   c->max_b_frames = context->ffmpeg_max_b_frames;
 
-  if (codec_id == AV_CODEC_ID_VP9 && context->ffmpeg_crf == 0) {
-    ffmpeg_dict_set_int(&opts, "lossless", 1);
-  }
-  else if (context->ffmpeg_crf >= 0) {
-    /* As per https://trac.ffmpeg.org/wiki/Encode/VP9 we must set the bit rate to zero when
-     * encoding with VP9 in CRF mode.
-     * Set this to always be zero for other codecs as well.
-     * We don't care about bit rate in CRF mode. */
-    c->bit_rate = 0;
-    ffmpeg_dict_set_int(&opts, "crf", context->ffmpeg_crf);
-  }
-  else {
-    c->bit_rate = context->ffmpeg_video_bitrate * 1000;
-    c->rc_max_rate = rd->ffcodecdata.rc_max_rate * 1000;
-    c->rc_min_rate = rd->ffcodecdata.rc_min_rate * 1000;
-    c->rc_buffer_size = rd->ffcodecdata.rc_buffer_size * 1024;
-  }
+  set_quality_rate_options(context, codec_id, rd, &opts);
 
   if (context->ffmpeg_preset) {
     /* 'preset' is used by h.264, 'deadline' is used by WEBM/VP9. I'm not
