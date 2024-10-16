@@ -46,7 +46,7 @@ class ImBufTest(AbstractImBufTest):
             if s == "color_depth":
                 name += str(settings[s]).rjust(2, '0') + "-"
             # do not embed exr quality into test file name
-            elif not(s == "quality" and ext == "exr"):
+            elif not (s == "quality" and ext == "exr"):
                 name += str(settings[s]) + "-"
 
             setattr(image_settings, s, settings[s])
