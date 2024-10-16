@@ -179,7 +179,7 @@ ccl_device void light_tree_importance(const float3 N_or_D,
   float cos_theta_o, sin_theta_o;
   fast_sincosf(bcone.theta_o, &sin_theta_o, &cos_theta_o);
 
-  /* Minimum angle an emitter’s axis would form with the direction to the shading point,
+  /* Minimum angle an emitter's axis would form with the direction to the shading point,
    * cos(theta') in the paper. */
   float cos_min_outgoing_angle;
   if ((cos_theta >= cos_theta_u) || (cos_theta_minus_theta_u >= cos_theta_o)) {
