@@ -65,7 +65,7 @@ class Preprocessor {
                       bool do_linting,
                       bool do_parse_function,
                       bool do_string_mutation,
-                      bool do_include_mutation,
+                      bool do_include_parsing,
                       bool do_small_type_linting,
                       report_callback report_error)
   {
@@ -75,15 +75,14 @@ class Preprocessor {
     if (do_parse_function) {
       parse_library_functions(str);
     }
-    if (do_include_mutation) {
-      preprocessor_parse(str);
-      str = preprocessor_directive_mutation(str);
+    if (do_include_parsing) {
+      include_parse(str);
     }
     if (do_string_mutation) {
       static_strings_parsing(str);
       str = static_strings_mutation(str);
       str = printf_processing(str, report_error);
-      str = remove_quotes(str);
+      quote_linting(str, report_error);
     }
     if (do_linting) {
       global_scope_constant_linting(str, report_error);
@@ -93,6 +92,8 @@ class Preprocessor {
     if (do_small_type_linting) {
       small_type_linting(str, report_error);
     }
+    str = preprocessor_directive_mutation(str);
+    str = remove_quotes(str);
     str = enum_macro_injection(str);
     str = argument_decorator_macro_injection(str);
     str = array_constructor_macro_injection(str);
@@ -177,7 +178,7 @@ class Preprocessor {
     return std::regex_replace(str, std::regex(R"(["'])"), " ");
   }
 
-  void preprocessor_parse(const std::string &str)
+  void include_parse(const std::string &str)
   {
     /* Parse include directive before removing them. */
     std::regex regex(R"(#\s*include\s*\"(\w+\.\w+)\")");
@@ -472,6 +473,16 @@ class Preprocessor {
             "Use Macro's or uniforms instead.";
         report_error(match, msg);
       }
+    });
+  }
+
+  void quote_linting(const std::string &str, report_callback report_error)
+  {
+    std::regex regex(R"(["'])");
+    regex_global_search(str, regex, [&](const std::smatch &match) {
+      /* This only catches some invalid usage. For the rest, the CI will catch them. */
+      const char *msg = "Quotes are forbidden in GLSL.";
+      report_error(match, msg);
     });
   }
 
