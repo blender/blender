@@ -27,8 +27,9 @@ from typing import (
     Optional,
 )
 
+# Temporary, until all platforms update to 2.3.1.
 VERSION_MIN = (1, 6, 0)
-VERSION_MAX_RECOMMENDED = (1, 6, 0)
+VERSION_MAX_RECOMMENDED = (2, 3, 1)
 AUTOPEP8_FORMAT_CMD = "autopep8"
 AUTOPEP8_FORMAT_DEFAULT_ARGS = (
     # Operate on all directories recursively.
