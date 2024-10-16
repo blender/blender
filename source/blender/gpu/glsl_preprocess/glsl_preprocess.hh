@@ -345,7 +345,7 @@ class Preprocessor {
 
   void static_strings_parsing(const std::string &str)
   {
-    /* Matches any character inside a pair of unescaped quote. */
+    /* Matches any character inside a pair of un-escaped quote. */
     std::regex regex(R"("(?:[^"])*")");
     regex_global_search(
         str, regex, [&](const std::smatch &match) { static_strings_.insert(match[0].str()); });
@@ -466,7 +466,7 @@ class Preprocessor {
     /* Example: `const uint global_var = 1u;`. Matches if not indented (i.e. inside a scope). */
     std::regex regex(R"(const \w+ \w+ =)");
     regex_global_search(str, regex, [&](const std::smatch &match) {
-      /* Positive lookbehind is not supported in std::regex. Do it manually. */
+      /* Positive look-behind is not supported in #std::regex. Do it manually. */
       if (match.prefix().str().back() == '\n') {
         const char *msg =
             "Global scope constant expression found. These get allocated per-thread in MSL. "
@@ -604,7 +604,7 @@ class Preprocessor {
     std::stringstream suffix;
     suffix << "#line 1 ";
 #ifdef __APPLE__
-    /* For now, only Metal supports filname in line directive.
+    /* For now, only Metal supports filename in line directive.
      * There is no way to know the actual backend, so we assume Apple uses Metal. */
     /* TODO(fclem): We could make it work using a macro to choose between the filename and the hash
      * at runtime. i.e.: `FILENAME_MACRO(12546546541, 'filename.glsl')` This should work for both

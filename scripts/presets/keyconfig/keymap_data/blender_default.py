@@ -4002,7 +4002,7 @@ def km_grease_pencil_sculpt_mode(params):
         # Active layer
         op_menu("GREASE_PENCIL_MT_layer_active", {"type": 'Y', "value": 'PRESS'}),
 
-        # Automasking menu
+        # Auto-masking menu.
         op_menu_pie("VIEW3D_MT_grease_pencil_sculpt_automasking_pie", {
                     "type": 'A', "value": 'PRESS', "shift": True, "alt": True}),
 

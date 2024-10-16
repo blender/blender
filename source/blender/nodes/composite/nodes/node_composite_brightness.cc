@@ -80,7 +80,7 @@ static ShaderNode *get_compositor_shader_node(DNode node)
   return new BrightContrastShaderNode(node);
 }
 
-/* The algorithm is by Werner D. Streidt, extracted of OpenCV demhist.c:
+/* The algorithm is by Werner D. Streidt, extracted of OpenCV `demhist.c`:
  *   http://visca.com/ffactory/archives/5-99/msg00021.html */
 template<bool UsePremultiply>
 static float4 brightness_and_contrast(const float4 &color,

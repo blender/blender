@@ -87,7 +87,7 @@ typedef enum eFFMpegPreset {
 } eFFMpegPreset;
 
 /**
- * Mapping from easily-understandable quality (Costant Rate Factor - CRF) descriptions
+ * Mapping from easily-understandable quality (Constant Rate Factor - CRF) descriptions
  * to H.264 8-bit CRF values. https://trac.ffmpeg.org/wiki/Encode/H.264#a1.ChooseaCRFvalue
  * For other video codecs these values might need to be remapped.
  */
