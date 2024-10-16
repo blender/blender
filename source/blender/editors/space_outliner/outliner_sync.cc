@@ -138,7 +138,7 @@ static void outliner_sync_select_from_outliner_set_types(bContext *C,
  * This is to ensure sync flag data is not lost on sync in the wrong display mode.
  * Returns true if a sync is needed.
  */
-static bool outliner_sync_select_to_outliner_set_types(const TreeViewContext *tvc,
+static bool outliner_sync_select_to_outliner_set_types(const TreeViewContext &tvc,
                                                        SpaceOutliner *space_outliner,
                                                        SyncSelectTypes *sync_types)
 {
@@ -146,10 +146,10 @@ static bool outliner_sync_select_to_outliner_set_types(const TreeViewContext *tv
 
   sync_types->object = !sequence_view &&
                        (space_outliner->sync_select_dirty & WM_OUTLINER_SYNC_SELECT_FROM_OBJECT);
-  sync_types->edit_bone = !sequence_view && (tvc->ob_edit && tvc->ob_edit->type == OB_ARMATURE) &&
+  sync_types->edit_bone = !sequence_view && (tvc.ob_edit && tvc.ob_edit->type == OB_ARMATURE) &&
                           (space_outliner->sync_select_dirty &
                            WM_OUTLINER_SYNC_SELECT_FROM_EDIT_BONE);
-  sync_types->pose_bone = !sequence_view && (tvc->ob_pose && tvc->ob_pose->mode == OB_MODE_POSE) &&
+  sync_types->pose_bone = !sequence_view && (tvc.ob_pose && tvc.ob_pose->mode == OB_MODE_POSE) &&
                           (space_outliner->sync_select_dirty &
                            WM_OUTLINER_SYNC_SELECT_FROM_POSE_BONE);
   sync_types->sequence = sequence_view && (space_outliner->sync_select_dirty &
@@ -555,7 +555,7 @@ static void get_sync_select_active_data(const bContext *C, SyncSelectActiveData 
 }
 
 void outliner_sync_selection(const bContext *C,
-                             const TreeViewContext *tvc,
+                             const TreeViewContext &tvc,
                              SpaceOutliner *space_outliner)
 {
   /* Set which types of data to sync from sync dirty flag and outliner display mode */
@@ -568,8 +568,8 @@ void outliner_sync_selection(const bContext *C,
     SyncSelectActiveData active_data;
     get_sync_select_active_data(C, &active_data);
 
-    outliner_sync_selection_to_outliner(tvc->scene,
-                                        tvc->view_layer,
+    outliner_sync_selection_to_outliner(tvc.scene,
+                                        tvc.view_layer,
                                         space_outliner,
                                         &space_outliner->tree,
                                         &active_data,
