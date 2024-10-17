@@ -17,10 +17,6 @@
 #include "BLI_math_geom.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
-#include "BLI_sort_utils.h"
-#ifndef NDEBUG
-#  include "BLI_array_utils.h" /* For #BLI_array_is_zeroed.  */
-#endif
 
 #include "BKE_customdata.hh"
 
