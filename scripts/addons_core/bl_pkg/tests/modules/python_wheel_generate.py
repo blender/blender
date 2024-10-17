@@ -17,14 +17,11 @@ import tempfile
 
 from typing import (
     Callable,
-    Dict,
-    List,
-    Tuple,
 )
 
 
 def _contents_to_filesystem(
-        contents: Dict[str, bytes],
+        contents: dict[str, bytes],
         directory: str,
 ) -> None:
     swap_slash = os.sep == "\\"
@@ -41,7 +38,7 @@ def _contents_to_filesystem(
             fh.write(value)
 
 
-def search_impl(directory: str, fn: Callable[[os.DirEntry[str]], bool], result: List[str]) -> None:
+def search_impl(directory: str, fn: Callable[[os.DirEntry[str]], bool], result: list[str]) -> None:
     for entry in os.scandir(directory):
         if entry.is_dir():
             search_impl(entry.path, fn, result)
@@ -49,8 +46,8 @@ def search_impl(directory: str, fn: Callable[[os.DirEntry[str]], bool], result: 
             result.append(entry.path)
 
 
-def search(directory: str, fn: Callable[[os.DirEntry[str]], bool]) -> List[str]:
-    result: List[str] = []
+def search(directory: str, fn: Callable[[os.DirEntry[str]], bool]) -> list[str]:
+    result: list[str] = []
     search_impl(directory, fn, result)
     return result
 
@@ -59,8 +56,8 @@ def generate_from_file_data(
         *,
         module_name: str,
         version: str,
-        package_contents: Dict[str, bytes],
-) -> Tuple[str, bytes]:
+        package_contents: dict[str, bytes],
+) -> tuple[str, bytes]:
     """
     :arg package_contents:
        The package contents.
@@ -70,7 +67,7 @@ def generate_from_file_data(
     Return filename & data.
     """
 
-    setup_contents: Dict[str, bytes] = {
+    setup_contents: dict[str, bytes] = {
         "setup.py": """
 from setuptools import setup
 
@@ -132,7 +129,7 @@ def generate_from_source(
         module_name: str,
         version: str,
         source: str,
-) -> Tuple[str, bytes]:
+) -> tuple[str, bytes]:
     """
     Return filename & data.
     """
