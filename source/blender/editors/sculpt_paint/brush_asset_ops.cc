@@ -695,7 +695,7 @@ static int brush_asset_delete_invoke(bContext *C, wmOperator *op, const wmEvent 
       IFACE_("Delete Brush Asset"),
       ID_IS_LINKED(brush) ?
           IFACE_("Permanently delete brush asset blend file. This cannot be undone.") :
-          IFACE_("Premanently delete brush. This cannot be undone."),
+          IFACE_("Permanently delete brush. This cannot be undone."),
       IFACE_("Delete"),
       ALERT_ICON_WARNING,
       false);
