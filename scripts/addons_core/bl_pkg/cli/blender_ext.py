@@ -27,14 +27,10 @@ import zipfile
 
 from typing import (
     Any,
-    Dict,
     Generator,
     IO,
     Optional,
     Sequence,
-    List,
-    Set,
-    Tuple,
     Callable,
     NamedTuple,
     Union,
@@ -198,11 +194,11 @@ del _ArgsDefaultOverride
 
 
 # pylint: disable-next=redefined-builtin
-def print(*args: Any, **kw: Dict[str, Any]) -> None:
+def print(*args: Any, **kw: dict[str, Any]) -> None:
     raise Exception("Illegal print(*({!r}), **{{{!r}}})".format(args, kw))
 
 # # Useful for testing.
-# def print(*args: Any, **kw: Dict[str, Any]):
+# def print(*args: Any, **kw: dict[str, Any]):
 #     __builtins__["print"](*args, **kw, file=open('/tmp/output.txt', 'a'))
 
 
@@ -267,7 +263,7 @@ def force_exit_ok_enable() -> None:
 # -----------------------------------------------------------------------------
 # Generic Functions
 
-def execfile(filepath: str) -> Dict[str, Any]:
+def execfile(filepath: str) -> dict[str, Any]:
     global_namespace = {"__file__": filepath, "__name__": "__main__"}
     with open(filepath, "rb") as fh:
         # pylint: disable-next=exec-used
@@ -326,22 +322,22 @@ class CleanupPathsContext:
 
 class PkgRepoData(NamedTuple):
     version: str
-    blocklist: List[Dict[str, Any]]
-    data: List[Dict[str, Any]]
+    blocklist: list[dict[str, Any]]
+    data: list[dict[str, Any]]
 
 
 class PkgManifest_Build(NamedTuple):
     """Package Build Information (for the "build" sub-command)."""
-    paths: Optional[List[str]]
-    paths_exclude_pattern: Optional[List[str]]
+    paths: Optional[list[str]]
+    paths_exclude_pattern: Optional[list[str]]
 
     @staticmethod
     def _from_dict_impl(
-            manifest_build_dict: Dict[str, Any],
+            manifest_build_dict: dict[str, Any],
             *,
             extra_paths: Sequence[str],
             all_errors: bool,
-    ) -> Union["PkgManifest_Build", List[str]]:
+    ) -> Union["PkgManifest_Build", list[str]]:
         # TODO: generalize the type checks, see: `pkg_manifest_is_valid_or_error_impl`.
         error_list = []
         if value := manifest_build_dict.get("paths"):
@@ -381,9 +377,9 @@ class PkgManifest_Build(NamedTuple):
 
     @staticmethod
     def from_dict_all_errors(
-            manifest_build_dict: Dict[str, Any],
+            manifest_build_dict: dict[str, Any],
             extra_paths: Sequence[str],
-    ) -> Union["PkgManifest_Build", List[str]]:
+    ) -> Union["PkgManifest_Build", list[str]]:
         return PkgManifest_Build._from_dict_impl(
             manifest_build_dict,
             extra_paths=extra_paths,
@@ -400,17 +396,17 @@ class PkgManifest(NamedTuple):
     version: str
     type: str
     maintainer: str
-    license: List[str]
+    license: list[str]
     blender_version_min: str
 
     # Optional (set all defaults).
     blender_version_max: Optional[str] = None
     website: Optional[str] = None
-    copyright: Optional[List[str]] = None
-    permissions: Optional[List[str]] = None
-    tags: Optional[List[str]] = None
-    platforms: Optional[List[str]] = None
-    wheels: Optional[List[str]] = None
+    copyright: Optional[list[str]] = None
+    permissions: Optional[list[str]] = None
+    tags: Optional[list[str]] = None
+    platforms: Optional[list[str]] = None
+    wheels: Optional[list[str]] = None
 
 
 class PkgManifest_Archive(NamedTuple):
@@ -425,7 +421,7 @@ class PkgManifest_Archive(NamedTuple):
 class PkgServerRepoConfig(NamedTuple):
     """Server configuration (for generating repositories)."""
     schema_version: str
-    blocklist: List[Dict[str, Any]]
+    blocklist: list[dict[str, Any]]
 
 
 # -----------------------------------------------------------------------------
@@ -485,7 +481,7 @@ def sha256_from_file_or_error(
         filepath: str,
         block_size: int = 1 << 20,
         hash_prefix: bool = False,
-) -> Union[Tuple[int, str], str]:
+) -> Union[tuple[int, str], str]:
     """
     Returns an arbitrary sized unique ASCII string based on the file contents.
     (exact hashing method may change).
@@ -518,7 +514,7 @@ def scandir_recursive_impl(
         path: str,
         *,
         filter_fn: Callable[[str, bool], bool],
-) -> Generator[Tuple[str, str], None, None]:
+) -> Generator[tuple[str, str], None, None]:
     """Recursively yield DirEntry objects for given directory."""
     for entry in os.scandir(path):
         if entry.is_symlink():
@@ -544,7 +540,7 @@ def scandir_recursive_impl(
 def scandir_recursive(
         path: str,
         filter_fn: Callable[[str, bool], bool],
-) -> Generator[Tuple[str, str], None, None]:
+) -> Generator[tuple[str, str], None, None]:
     yield from scandir_recursive_impl(path, path, filter_fn=filter_fn)
 
 
@@ -619,7 +615,7 @@ def rmtree_with_fallback_or_error(
 def rmtree_with_fallback_or_error_pseudo_atomic(
         path: str,
         *,
-        temp_prefix_and_suffix: Tuple[str, str],
+        temp_prefix_and_suffix: tuple[str, str],
         remove_file: bool = True,
         remove_link: bool = True,
 ) -> Optional[str]:
@@ -686,7 +682,7 @@ def rmtree_with_fallback_or_error_pseudo_atomic(
 def build_paths_expand_iter(
         path: str,
         path_list: Sequence[str],
-) -> Generator[Tuple[str, str], None, None]:
+) -> Generator[tuple[str, str], None, None]:
     """
     Expand paths from a path list which always uses "/" slashes.
     """
@@ -732,12 +728,12 @@ def filepath_skip_compress(filepath: str) -> bool:
 
 
 def pkg_manifest_from_dict_and_validate_impl(
-        data: Dict[Any, Any],
+        data: dict[Any, Any],
         *,
         from_repo: bool,
         all_errors: bool,
         strict: bool,
-) -> Union[PkgManifest, List[str]]:
+) -> Union[PkgManifest, list[str]]:
     error_list = []
     # Validate the dictionary.
     if all_errors:
@@ -750,7 +746,7 @@ def pkg_manifest_from_dict_and_validate_impl(
     if error_list:
         return error_list
 
-    values: List[str] = []
+    values: list[str] = []
     for key in PkgManifest._fields:
         val = data.get(key, ...)
         if val is ...:
@@ -760,7 +756,7 @@ def pkg_manifest_from_dict_and_validate_impl(
         assert val is not ...
         values.append(val)
 
-    kw_args: Dict[str, Any] = dict(zip(PkgManifest._fields, values, strict=True))
+    kw_args: dict[str, Any] = dict(zip(PkgManifest._fields, values, strict=True))
     manifest = PkgManifest(**kw_args)
 
     # There could be other validation, leave these as-is.
@@ -768,7 +764,7 @@ def pkg_manifest_from_dict_and_validate_impl(
 
 
 def pkg_manifest_from_dict_and_validate(
-        data: Dict[Any, Any],
+        data: dict[Any, Any],
         from_repo: bool,
         strict: bool,
 ) -> Union[PkgManifest, str]:
@@ -779,10 +775,10 @@ def pkg_manifest_from_dict_and_validate(
 
 
 def pkg_manifest_from_dict_and_validate_all_errros(
-        data: Dict[Any, Any],
+        data: dict[Any, Any],
         from_repo: bool,
         strict: bool,
-) -> Union[PkgManifest, List[str]]:
+) -> Union[PkgManifest, list[str]]:
     """
     Validate the manifest and return all errors.
     """
@@ -790,7 +786,7 @@ def pkg_manifest_from_dict_and_validate_all_errros(
 
 
 def pkg_manifest_archive_from_dict_and_validate(
-        data: Dict[Any, Any],
+        data: dict[Any, Any],
         strict: bool,
 ) -> Union[PkgManifest_Archive, str]:
     manifest = pkg_manifest_from_dict_and_validate(data, from_repo=True, strict=strict)
@@ -811,7 +807,7 @@ def pkg_manifest_archive_from_dict_and_validate(
 def pkg_manifest_from_toml_and_validate_all_errors(
         filepath: str,
         strict: bool,
-) -> Union[PkgManifest, List[str]]:
+) -> Union[PkgManifest, list[str]]:
     """
     This function is responsible for not letting invalid manifest from creating packages with ID names
     or versions that would not properly install.
@@ -862,7 +858,7 @@ def pkg_manifest_from_zipfile_and_validate_impl(
         archive_subdir: str,
         all_errors: bool,
         strict: bool,
-) -> Union[PkgManifest, List[str]]:
+) -> Union[PkgManifest, list[str]]:
     """
     Validate the manifest and return all errors.
     """
@@ -914,7 +910,7 @@ def pkg_manifest_from_zipfile_and_validate_all_errors(
         zip_fh: zipfile.ZipFile,
         archive_subdir: str,
         strict: bool,
-) -> Union[PkgManifest, List[str]]:
+) -> Union[PkgManifest, list[str]]:
     return pkg_manifest_from_zipfile_and_validate_impl(
         zip_fh,
         archive_subdir,
@@ -1119,8 +1115,8 @@ class PathPatternMatch:
         "_regex_list",
     )
 
-    def __init__(self, path_patterns: List[str]):
-        self._regex_list: List[Tuple[bool, re.Pattern[str]]] = PathPatternMatch._pattern_match_as_regex(path_patterns)
+    def __init__(self, path_patterns: list[str]):
+        self._regex_list: list[tuple[bool, re.Pattern[str]]] = PathPatternMatch._pattern_match_as_regex(path_patterns)
 
     def test_path(self, path: str) -> bool:
         assert not path.startswith("/")
@@ -1255,9 +1251,9 @@ class PathPatternMatch:
         return pattern
 
     @staticmethod
-    def _pattern_match_as_regex(path_patterns: Sequence[str]) -> List[Tuple[bool, re.Pattern[str]]]:
+    def _pattern_match_as_regex(path_patterns: Sequence[str]) -> list[tuple[bool, re.Pattern[str]]]:
         # First group negative-positive expressions.
-        pattern_groups: List[Tuple[bool, List[str]]] = []
+        pattern_groups: list[tuple[bool, list[str]]] = []
         for pattern in path_patterns:
             if pattern.startswith("!"):
                 pattern = pattern.lstrip("!")
@@ -1276,7 +1272,7 @@ class PathPatternMatch:
             else:
                 pattern_groups.append((negate, [pattern_regex]))
 
-        result: List[Tuple[bool, re.Pattern[str]]] = []
+        result: list[tuple[bool, re.Pattern[str]]] = []
         for negate, pattern_list in pattern_groups:
             result.append((negate, re.compile("(?:{:s})".format("|".join(pattern_list)), re.MULTILINE)))
         # print(result)
@@ -1291,10 +1287,10 @@ def url_retrieve_to_data_iter(
         url: str,
         *,
         data: Optional[Any] = None,
-        headers: Dict[str, str],
+        headers: dict[str, str],
         chunk_size: int,
         timeout_in_seconds: float,
-) -> Generator[Tuple[bytes, int, Any], None, None]:
+) -> Generator[tuple[bytes, int, Any], None, None]:
     """
     Retrieve a URL into a temporary location on disk.
 
@@ -1358,11 +1354,11 @@ def url_retrieve_to_filepath_iter(
         url: str,
         filepath: str,
         *,
-        headers: Dict[str, str],
+        headers: dict[str, str],
         data: Optional[Any] = None,
         chunk_size: int,
         timeout_in_seconds: float,
-) -> Generator[Tuple[int, int, Any], None, None]:
+) -> Generator[tuple[int, int, Any], None, None]:
     # Handle temporary file setup.
     with open(filepath, 'wb') as fh_output:
         for block, size, response_headers in url_retrieve_to_data_iter(
@@ -1382,7 +1378,7 @@ def filepath_retrieve_to_filepath_iter(
         *,
         chunk_size: int,
         timeout_in_seconds: float,
-) -> Generator[Tuple[int, int], None, None]:
+) -> Generator[tuple[int, int], None, None]:
     # TODO: `timeout_in_seconds`.
     # Handle temporary file setup.
     _ = timeout_in_seconds
@@ -1396,7 +1392,7 @@ def filepath_retrieve_to_filepath_iter(
 
 def url_retrieve_to_data_iter_or_filesystem(
         url: str,
-        headers: Dict[str, str],
+        headers: dict[str, str],
         chunk_size: int,
         timeout_in_seconds: float,
 ) -> Generator[bytes, None, None]:
@@ -1421,10 +1417,10 @@ def url_retrieve_to_data_iter_or_filesystem(
 def url_retrieve_to_filepath_iter_or_filesystem(
         url: str,
         filepath: str,
-        headers: Dict[str, str],
+        headers: dict[str, str],
         chunk_size: int,
         timeout_in_seconds: float,
-) -> Generator[Tuple[int, int], None, None]:
+) -> Generator[tuple[int, int], None, None]:
     """
     Callers should catch: ``(Exception, KeyboardInterrupt)`` and convert them to message using:
     ``url_retrieve_exception_as_message``.
@@ -1523,7 +1519,7 @@ def pkg_manifest_validate_terse_description_or_error(value: str) -> Optional[str
 
 def pkg_manifest_tags_load_valid_map_from_python(
         valid_tags_filepath: str,
-) -> Union[str, Dict[str, Set[str]]]:
+) -> Union[str, dict[str, set[str]]]:
     try:
         data = execfile(valid_tags_filepath)
     except Exception as ex:
@@ -1546,7 +1542,7 @@ def pkg_manifest_tags_load_valid_map_from_python(
 
 def pkg_manifest_tags_load_valid_map_from_json(
         valid_tags_filepath: str,
-) -> Union[str, Dict[str, Set[str]]]:
+) -> Union[str, dict[str, set[str]]]:
     try:
         with open(valid_tags_filepath, "rb") as fh:
             data = json.load(fh)
@@ -1573,7 +1569,7 @@ def pkg_manifest_tags_load_valid_map_from_json(
 
 def pkg_manifest_tags_load_valid_map(
         valid_tags_filepath: str,
-) -> Union[str, Dict[str, Set[str]]]:
+) -> Union[str, dict[str, set[str]]]:
     # Allow Python data (Blender stores this internally).
     if valid_tags_filepath.endswith(".py"):
         return pkg_manifest_tags_load_valid_map_from_python(valid_tags_filepath)
@@ -1581,9 +1577,9 @@ def pkg_manifest_tags_load_valid_map(
 
 
 def pkg_manifest_tags_valid_or_error(
-        valid_tags_data: Dict[str, Any],
+        valid_tags_data: dict[str, Any],
         manifest_type: str,
-        manifest_tags: List[str],
+        manifest_tags: list[str],
 ) -> Optional[str]:
     valid_tags = valid_tags_data[manifest_type]
     for tag in manifest_tags:
@@ -1641,7 +1637,7 @@ def pkg_manifest_validate_field_any_non_empty_string_stripped_no_control_chars(
     return None
 
 
-def pkg_manifest_validate_field_any_list_of_non_empty_strings(value: List[Any], strict: bool) -> Optional[str]:
+def pkg_manifest_validate_field_any_list_of_non_empty_strings(value: list[Any], strict: bool) -> Optional[str]:
     _ = strict
     for i, tag in enumerate(value):
         if not isinstance(tag, str):
@@ -1652,7 +1648,7 @@ def pkg_manifest_validate_field_any_list_of_non_empty_strings(value: List[Any], 
 
 
 def pkg_manifest_validate_field_any_non_empty_list_of_non_empty_strings(
-        value: List[Any],
+        value: list[Any],
         strict: bool,
 ) -> Optional[str]:
     if not value:
@@ -1746,7 +1742,7 @@ def pkg_manifest_validate_field_tagline(value: str, strict: bool) -> Optional[st
 
 
 def pkg_manifest_validate_field_copyright(
-        value: List[str],
+        value: list[str],
         strict: bool,
 ) -> Optional[str]:
     if strict:
@@ -1774,10 +1770,10 @@ def pkg_manifest_validate_field_copyright(
 
 def pkg_manifest_validate_field_permissions(
         value: Union[
-            # `Dict[str, str]` is expected but at this point it's only guaranteed to be a dict.
-            Dict[Any, Any],
+            # `dict[str, str]` is expected but at this point it's only guaranteed to be a dict.
+            dict[Any, Any],
             # Kept for old files.
-            List[Any],
+            list[Any],
         ],
         strict: bool,
 ) -> Optional[str]:
@@ -1828,9 +1824,9 @@ def pkg_manifest_validate_field_permissions(
     return None
 
 
-def pkg_manifest_validate_field_build_path_list(value: List[Any], strict: bool) -> Optional[str]:
+def pkg_manifest_validate_field_build_path_list(value: list[Any], strict: bool) -> Optional[str]:
     _ = strict
-    value_duplicate_check: Set[str] = set()
+    value_duplicate_check: set[str] = set()
 
     for item in value:
         if not isinstance(item, str):
@@ -1870,7 +1866,7 @@ def pkg_manifest_validate_field_build_path_list(value: List[Any], strict: bool) 
 
 
 def pkg_manifest_validate_field_wheels(
-        value: List[Any],
+        value: list[Any],
         strict: bool,
 ) -> Optional[str]:
     if (error := pkg_manifest_validate_field_any_list_of_non_empty_strings(value, strict)) is not None:
@@ -1935,8 +1931,8 @@ def pkg_manifest_validate_field_archive_hash(
 
 # Keep in sync with `PkgManifest`.
 # key, type, check_fn.
-pkg_manifest_known_keys_and_types: Tuple[
-    Tuple[str, Union[type, Tuple[type, ...]], Callable[[Any, bool], Optional[str]]],
+pkg_manifest_known_keys_and_types: tuple[
+    tuple[str, Union[type, tuple[type, ...]], Callable[[Any, bool], Optional[str]]],
     ...,
 ] = (
     ("id", str, pkg_manifest_validate_field_idname),
@@ -1961,8 +1957,8 @@ pkg_manifest_known_keys_and_types: Tuple[
 )
 
 # Keep in sync with `PkgManifest_Archive`.
-pkg_manifest_known_keys_and_types_from_repo: Tuple[
-    Tuple[str, type, Callable[[Any, bool], Optional[str]]],
+pkg_manifest_known_keys_and_types_from_repo: tuple[
+    tuple[str, type, Callable[[Any, bool], Optional[str]]],
     ...,
 ] = (
     ("archive_size", int, pkg_manifest_validate_field_archive_size),
@@ -1975,12 +1971,12 @@ pkg_manifest_known_keys_and_types_from_repo: Tuple[
 # Manifest Validation
 
 def pkg_manifest_is_valid_or_error_impl(
-        data: Dict[str, Any],
+        data: dict[str, Any],
         *,
         from_repo: bool,
         all_errors: bool,
         strict: bool,
-) -> Optional[List[str]]:
+) -> Optional[list[str]]:
     if not isinstance(data, dict):
         return ["Expected value to be a dict, not a {!r}".format(type(data))]
 
@@ -1990,7 +1986,7 @@ def pkg_manifest_is_valid_or_error_impl(
 
     error_list = []
 
-    value_extract: Dict[str, Optional[object]] = {}
+    value_extract: dict[str, Optional[object]] = {}
     for known_types in (
             (pkg_manifest_known_keys_and_types, pkg_manifest_known_keys_and_types_from_repo) if from_repo else
             (pkg_manifest_known_keys_and_types, )
@@ -2047,7 +2043,7 @@ def pkg_manifest_is_valid_or_error_impl(
 
 
 def pkg_manifest_is_valid_or_error(
-        data: Dict[str, Any],
+        data: dict[str, Any],
         *,
         from_repo: bool,
         strict: bool,
@@ -2064,11 +2060,11 @@ def pkg_manifest_is_valid_or_error(
 
 
 def pkg_manifest_is_valid_or_error_all(
-        data: Dict[str, Any],
+        data: dict[str, Any],
         *,
         from_repo: bool,
         strict: bool,
-) -> Optional[List[str]]:
+) -> Optional[list[str]]:
     return pkg_manifest_is_valid_or_error_impl(
         data,
         from_repo=from_repo,
@@ -2080,7 +2076,7 @@ def pkg_manifest_is_valid_or_error_all(
 # -----------------------------------------------------------------------------
 # Manifest Utilities
 
-def pkg_manifest_dict_apply_build_generated_table(manifest_dict: Dict[str, Any]) -> None:
+def pkg_manifest_dict_apply_build_generated_table(manifest_dict: dict[str, Any]) -> None:
     # Swap in values from `[build.generated]` if it exists:
     if (build_generated := manifest_dict.get("build", {}).get("generated")) is None:
         return
@@ -2192,14 +2188,14 @@ def blender_platform_compatible_with_wheel_platform_from_filepath(platform: str,
 
 
 def paths_filter_wheels_by_platform(
-        wheels: List[str],
+        wheels: list[str],
         platform: str,
-) -> List[str]:
+) -> list[str]:
     """
     All paths are wheels with filenames that follow the wheel spec.
     Return wheels which are compatible with the ``platform``.
     """
-    wheels_result: List[str] = []
+    wheels_result: list[str] = []
 
     for wheel_filepath in wheels:
         if blender_platform_compatible_with_wheel_platform_from_filepath(platform, wheel_filepath):
@@ -2209,14 +2205,14 @@ def paths_filter_wheels_by_platform(
 
 
 def build_paths_filter_wheels_by_platform(
-        build_paths: List[Tuple[str, str]],
+        build_paths: list[tuple[str, str]],
         platform: str,
-) -> List[Tuple[str, str]]:
+) -> list[tuple[str, str]]:
     """
     All paths are wheels with filenames that follow the wheel spec.
     Return wheels which are compatible with the ``platform``.
     """
-    build_paths_for_platform: List[Tuple[str, str]] = []
+    build_paths_for_platform: list[tuple[str, str]] = []
 
     for item in build_paths:
         if blender_platform_compatible_with_wheel_platform_from_filepath(platform, item[1]):
@@ -2226,10 +2222,10 @@ def build_paths_filter_wheels_by_platform(
 
 
 def build_paths_filter_by_platform(
-        build_paths: List[Tuple[str, str]],
-        wheel_range: Tuple[int, int],
-        platforms: Tuple[str, ...],
-) -> Generator[Tuple[List[Tuple[str, str]], str], None, None]:
+        build_paths: list[tuple[str, str]],
+        wheel_range: tuple[int, int],
+        platforms: tuple[str, ...],
+) -> Generator[tuple[list[tuple[str, str]], str], None, None]:
     if not platforms:
         yield (build_paths, "")
         return
@@ -2258,9 +2254,9 @@ def build_paths_filter_by_platform(
 
 
 def repository_filter_skip(
-        item: Dict[str, Any],
+        item: dict[str, Any],
         *,
-        filter_blender_version: Tuple[int, int, int],
+        filter_blender_version: tuple[int, int, int],
         filter_platform: str,
         # When `skip_message_fn` is set, returning true must call the `skip_message_fn` function.
         skip_message_fn: Optional[Callable[[str], None]],
@@ -2326,9 +2322,9 @@ def repository_filter_skip(
     return False
 
 
-def blender_version_parse_or_error(version: str) -> Union[Tuple[int, int, int], str]:
+def blender_version_parse_or_error(version: str) -> Union[tuple[int, int, int], str]:
     try:
-        version_tuple: Tuple[int, ...] = tuple(int(x) for x in version.split("."))
+        version_tuple: tuple[int, ...] = tuple(int(x) for x in version.split("."))
     except Exception as ex:
         return "unable to parse blender version: {:s}, {:s}".format(version, str(ex))
 
@@ -2342,7 +2338,7 @@ def blender_version_parse_or_error(version: str) -> Union[Tuple[int, int, int], 
     )
 
 
-def blender_version_parse_any_or_error(version: Any) -> Union[Tuple[int, int, int], str]:
+def blender_version_parse_any_or_error(version: Any) -> Union[tuple[int, int, int], str]:
     if not isinstance(version, str):
         return "blender version should be a string, found a: {:s}".format(str(type(version)))
 
@@ -2351,7 +2347,7 @@ def blender_version_parse_any_or_error(version: Any) -> Union[Tuple[int, int, in
     return result
 
 
-def url_request_headers_create(*, accept_json: bool, user_agent: str, access_token: str) -> Dict[str, str]:
+def url_request_headers_create(*, accept_json: bool, user_agent: str, access_token: str) -> dict[str, str]:
     headers = {}
     if accept_json:
         # Default for JSON requests this allows top-level URL's to be used.
@@ -2417,7 +2413,7 @@ def repo_json_is_valid_or_error(filepath: str) -> Optional[str]:
     return None
 
 
-def pkg_manifest_toml_is_valid_or_error(filepath: str, strict: bool) -> Tuple[Optional[str], Dict[str, Any]]:
+def pkg_manifest_toml_is_valid_or_error(filepath: str, strict: bool) -> tuple[Optional[str], dict[str, Any]]:
     if not os.path.exists(filepath):
         return "File missing: " + filepath, {}
 
@@ -2433,7 +2429,7 @@ def pkg_manifest_toml_is_valid_or_error(filepath: str, strict: bool) -> Tuple[Op
     return None, result
 
 
-def pkg_manifest_detect_duplicates(pkg_items: List[PkgManifest]) -> Optional[str]:
+def pkg_manifest_detect_duplicates(pkg_items: list[PkgManifest]) -> Optional[str]:
     """
     When a repository includes multiple packages with the same ID, ensure they don't conflict.
 
@@ -2448,7 +2444,7 @@ def pkg_manifest_detect_duplicates(pkg_items: List[PkgManifest]) -> Optional[str
     dummy_verion_min = 0, 0, 0
     dummy_verion_max = 1000, 0, 0
 
-    def parse_version_or_default(version: Optional[str], default: Tuple[int, int, int]) -> Tuple[int, int, int]:
+    def parse_version_or_default(version: Optional[str], default: tuple[int, int, int]) -> tuple[int, int, int]:
         if version is None:
             return default
         if isinstance(version_parsed := blender_version_parse_or_error(version), str):
@@ -2457,7 +2453,7 @@ def pkg_manifest_detect_duplicates(pkg_items: List[PkgManifest]) -> Optional[str
             return default
         return version_parsed
 
-    def version_range_as_str(version_min: Tuple[int, int, int], version_max: Tuple[int, int, int]) -> str:
+    def version_range_as_str(version_min: tuple[int, int, int], version_max: tuple[int, int, int]) -> str:
         dummy_min = version_min == dummy_verion_min
         dummy_max = version_max == dummy_verion_max
         if dummy_min and dummy_max:
@@ -2473,7 +2469,7 @@ def pkg_manifest_detect_duplicates(pkg_items: List[PkgManifest]) -> Optional[str
         for platform in (manifest.platforms or ())
     )))
 
-    manifest_per_platform: Dict[str, List[PkgManifest]] = {platform: [] for platform in platforms_all}
+    manifest_per_platform: dict[str, list[PkgManifest]] = {platform: [] for platform in platforms_all}
     if platforms_all:
         for manifest in pkg_items:
             # No platforms means all platforms.
@@ -2490,7 +2486,7 @@ def pkg_manifest_detect_duplicates(pkg_items: List[PkgManifest]) -> Optional[str
         if len(pkg_items_platform) == 1:
             continue
 
-        version_ranges: List[Tuple[Tuple[int, int, int], Tuple[int, int, int]]] = []
+        version_ranges: list[tuple[tuple[int, int, int], tuple[int, int, int]]] = []
         for manifest in pkg_items_platform:
             version_ranges.append((
                 parse_version_or_default(manifest.blender_version_min, dummy_verion_min),
@@ -2534,7 +2530,7 @@ def pkg_manifest_detect_duplicates(pkg_items: List[PkgManifest]) -> Optional[str
     return None
 
 
-def toml_from_bytes_or_error(data: bytes) -> Union[Dict[str, Any], str]:
+def toml_from_bytes_or_error(data: bytes) -> Union[dict[str, Any], str]:
     try:
         result = tomllib.loads(data.decode('utf-8'))
         assert isinstance(result, dict)
@@ -2543,7 +2539,7 @@ def toml_from_bytes_or_error(data: bytes) -> Union[Dict[str, Any], str]:
         return str(ex)
 
 
-def toml_from_filepath_or_error(filepath: str) -> Union[Dict[str, Any], str]:
+def toml_from_filepath_or_error(filepath: str) -> Union[dict[str, Any], str]:
     try:
         with open(filepath, "rb") as fh:
             data = fh.read()
@@ -2710,7 +2706,7 @@ def repo_sync_from_remote(
     return True
 
 
-def repo_pkginfo_from_local_as_dict_or_error(*, local_dir: str) -> Union[Dict[str, Any], str]:
+def repo_pkginfo_from_local_as_dict_or_error(*, local_dir: str) -> Union[dict[str, Any], str]:
     """
     Load package cache.
     """
@@ -2730,7 +2726,7 @@ def repo_pkginfo_from_local_as_dict_or_error(*, local_dir: str) -> Union[Dict[st
     return result
 
 
-def pkg_repo_data_from_json_or_error(json_data: Dict[str, Any]) -> Union[PkgRepoData, str]:
+def pkg_repo_data_from_json_or_error(json_data: dict[str, Any]) -> Union[PkgRepoData, str]:
     if not isinstance((version := json_data.get("version", "v1")), str):
         return "expected \"version\" to be a string"
 
@@ -2794,7 +2790,7 @@ def arg_handle_str_as_package_names(value: str) -> Sequence[str]:
     return result
 
 
-def arg_handle_str_as_temp_prefix_and_suffix(value: str) -> Tuple[str, str]:
+def arg_handle_str_as_temp_prefix_and_suffix(value: str) -> tuple[str, str]:
     if (value.count("/") != 1) and (len(value) > 1):
         raise argparse.ArgumentTypeError("Must contain a \"/\" character with a prefix and/or suffix")
     a, b = value.split("/", 1)
@@ -3225,7 +3221,7 @@ class subcmd_server:
             msglog: MessageLogger,
             *,
             repo_dir: str,
-            repo_data: List[Dict[str, Any]],
+            repo_data: list[dict[str, Any]],
             html_template_filepath: str,
     ) -> bool:
         import html
@@ -3240,7 +3236,7 @@ class subcmd_server:
         fh = io.StringIO()
 
         # Group extensions by their type.
-        repo_data_by_type: Dict[str, List[Dict[str, Any]]] = {}
+        repo_data_by_type: dict[str, list[dict[str, Any]]] = {}
 
         for manifest_dict in repo_data:
             manifest_type = manifest_dict["type"]
@@ -3403,8 +3399,8 @@ class subcmd_server:
                 return False
         assert repo_config is None or isinstance(repo_config, PkgServerRepoConfig)
 
-        repo_data_idname_map: Dict[str, List[PkgManifest]] = {}
-        repo_data: List[Dict[str, Any]] = []
+        repo_data_idname_map: dict[str, list[PkgManifest]] = {}
+        repo_data: list[dict[str, Any]] = []
 
         # Write package meta-data into each directory.
         repo_gen_dict = {
@@ -3560,7 +3556,7 @@ class subcmd_client:
             return False
         del result_dict
 
-        items: List[Dict[str, Any]] = repo_gen_dict.data
+        items: list[dict[str, Any]] = repo_gen_dict.data
         items.sort(key=lambda elem: elem.get("id", ""))
 
         request_exit = False
@@ -3609,9 +3605,9 @@ class subcmd_client:
             *,
             local_dir: str,
             filepath_archive: str,
-            blender_version_tuple: Tuple[int, int, int],
+            blender_version_tuple: tuple[int, int, int],
             manifest_compare: Optional[PkgManifest],
-            temp_prefix_and_suffix: Tuple[str, str],
+            temp_prefix_and_suffix: tuple[str, str],
     ) -> bool:
         # NOTE: Don't use `FATAL_ERROR` because other packages will attempt to install.
 
@@ -3619,7 +3615,7 @@ class subcmd_client:
         # Used for installing from local cache as well as installing a local package from a file.
 
         # Remove `filepath_local_pkg_temp` if this block exits.
-        directories_to_clean: List[str] = []
+        directories_to_clean: list[str] = []
         with CleanupPathsContext(files=(), directories=directories_to_clean):
             try:
                 # pylint: disable-next=consider-using-with
@@ -3732,7 +3728,7 @@ class subcmd_client:
             local_dir: str,
             package_files: Sequence[str],
             blender_version: str,
-            temp_prefix_and_suffix: Tuple[str, str],
+            temp_prefix_and_suffix: tuple[str, str],
     ) -> bool:
         if not os.path.exists(local_dir):
             msglog.fatal_error("destination directory \"{:s}\" does not exist".format(local_dir))
@@ -3744,7 +3740,7 @@ class subcmd_client:
         assert isinstance(blender_version_tuple, tuple)
 
         # This is a simple file extraction, the main difference is that it validates the manifest before installing.
-        directories_to_clean: List[str] = []
+        directories_to_clean: list[str] = []
         with CleanupPathsContext(files=(), directories=directories_to_clean):
             for filepath_archive in package_files:
                 if not subcmd_client._install_package_from_file_impl(
@@ -3773,7 +3769,7 @@ class subcmd_client:
             blender_version: str,
             access_token: str,
             timeout_in_seconds: float,
-            temp_prefix_and_suffix: Tuple[str, str],
+            temp_prefix_and_suffix: tuple[str, str],
     ) -> bool:
 
         # Validate arguments.
@@ -3817,7 +3813,7 @@ class subcmd_client:
         ]
 
         # Narrow down:
-        json_data_pkg_info_map: Dict[str, List[Dict[str, Any]]] = {pkg_idname: [] for pkg_idname in packages}
+        json_data_pkg_info_map: dict[str, list[dict[str, Any]]] = {pkg_idname: [] for pkg_idname in packages}
         for pkg_info in json_data_pkg_info:
             json_data_pkg_info_map[pkg_info["id"]].append(pkg_info)
 
@@ -3832,7 +3828,7 @@ class subcmd_client:
         platform_this = platform_from_this_system()
 
         has_fatal_error = False
-        packages_info: List[PkgManifest_Archive] = []
+        packages_info: list[PkgManifest_Archive] = []
         for pkg_idname, pkg_info_list in json_data_pkg_info_map.items():
             if not pkg_info_list:
                 msglog.fatal_error("Package \"{:s}\", not found".format(pkg_idname))
@@ -3886,7 +3882,7 @@ class subcmd_client:
         request_exit = False
 
         # Ensure all cache is cleared (when `local_cache` is disabled) no matter the cause of exiting.
-        files_to_clean: List[str] = []
+        files_to_clean: list[str] = []
         with CleanupPathsContext(files=files_to_clean, directories=()):
             for manifest_archive in packages_info:
                 pkg_idname = manifest_archive.manifest.id
@@ -4013,7 +4009,7 @@ class subcmd_client:
             local_dir: str,
             user_dir: str,
             packages: Sequence[str],
-            temp_prefix_and_suffix: Tuple[str, str],
+            temp_prefix_and_suffix: tuple[str, str],
     ) -> bool:
         if not os.path.isdir(local_dir):
             msglog.fatal_error("Missing local \"{:s}\"".format(local_dir))
@@ -4059,7 +4055,7 @@ class subcmd_client:
         if has_fatal_error:
             return False
 
-        files_to_clean: List[str] = []
+        files_to_clean: list[str] = []
         with CleanupPathsContext(files=files_to_clean, directories=()):
             for pkg_idname in packages_valid:
                 filepath_local_pkg = os.path.join(local_dir, pkg_idname)
@@ -4205,7 +4201,7 @@ class subcmd_author:
         if manifest_build.paths_exclude_pattern is not None:
             build_paths_exclude_pattern = PathPatternMatch(manifest_build.paths_exclude_pattern)
 
-        build_paths: List[Tuple[str, str]] = []
+        build_paths: list[tuple[str, str]] = []
 
         # Manifest & wheels.
         if build_paths_extra:
@@ -4223,7 +4219,7 @@ class subcmd_author:
                 return filepath_rel
 
             # Use lowercase to prevent duplicates on MS-Windows.
-            build_paths_extra_canonical: Set[str] = set(
+            build_paths_extra_canonical: set[str] = set(
                 filepath_canonical_from_relative(f).lower()
                 for f in build_paths_extra
             )
@@ -5130,7 +5126,7 @@ def msglog_from_args(args: argparse.Namespace) -> MessageLogger:
 # Main Function
 
 def main(
-        argv: Optional[List[str]] = None,
+        argv: Optional[list[str]] = None,
         args_internal: bool = True,
         args_extra_subcommands_fn: Optional[ArgsSubparseFn] = None,
         prog: Optional[str] = None,

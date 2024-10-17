@@ -21,19 +21,15 @@ import zipfile
 from typing import (
     Any,
     Sequence,
-    Dict,
-    List,
     NamedTuple,
     Optional,
-    Set,
-    Tuple,
     Union,
 )
 
 # A tree of files.
-FileTree = Dict[str, Union["FileTree", bytes]]
+FileTree = dict[str, Union["FileTree", bytes]]
 
-JSON_OutputElem = Tuple[str, Any]
+JSON_OutputElem = tuple[str, Any]
 
 # For more useful output that isn't clipped.
 # pylint: disable-next=protected-access
@@ -124,7 +120,7 @@ def rmdir_contents(directory: str) -> None:
             os.unlink(filepath)
 
 
-def manifest_dict_from_archive(filepath: str) -> Dict[str, Any]:
+def manifest_dict_from_archive(filepath: str) -> dict[str, Any]:
     with zipfile.ZipFile(filepath, mode="r") as zip_fh:
         manifest_data = zip_fh.read(PKG_MANIFEST_FILENAME_TOML)
         manifest_dict = tomllib.loads(manifest_data.decode("utf-8"))
@@ -154,9 +150,9 @@ def my_create_package(
         dirpath: str,
         filename: str,
         *,
-        metadata: Dict[str, Any],
+        metadata: dict[str, Any],
         files: FileTree,
-        build_args_extra: Tuple[str, ...],
+        build_args_extra: tuple[str, ...],
 ) -> Sequence[JSON_OutputElem]:
     """
     Create a package using the command line interface.
@@ -255,14 +251,14 @@ def my_generate_repo(
 
 def command_output_filter_include(
         output_json: Sequence[JSON_OutputElem],
-        include_types: Set[str],
+        include_types: set[str],
 ) -> Sequence[JSON_OutputElem]:
     return [(a, b) for a, b in output_json if a in include_types]
 
 
 def command_output_filter_exclude(
         output_json: Sequence[JSON_OutputElem],
-        exclude_types: Set[str],
+        exclude_types: set[str],
 ) -> Sequence[JSON_OutputElem]:
     return [(a, b) for a, b in output_json if a not in exclude_types]
 
@@ -287,7 +283,7 @@ def command_output(
 def command_output_from_json_0(
         args: Sequence[str],
         *,
-        exclude_types: Optional[Set[str]] = None,
+        exclude_types: Optional[set[str]] = None,
         expected_returncode: int = 0,
 ) -> Sequence[JSON_OutputElem]:
     result = []
@@ -391,7 +387,7 @@ class TestCLI_Build(unittest.TestCase):
             include_types={'STATUS'},
         )
 
-        packages: List[Tuple[str, List[JSON_OutputElem]]] = [("", [])]
+        packages: list[tuple[str, list[JSON_OutputElem]]] = [("", [])]
         for _, message in output_json:
             if message.startswith("building: "):
                 assert not packages[-1][0]

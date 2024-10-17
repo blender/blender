@@ -18,10 +18,7 @@ import sys
 
 from typing import (
     Any,
-    Dict,
-    List,
     Optional,
-    Tuple,
     Union,
 )
 
@@ -106,10 +103,10 @@ class subcmd_utils:
 
     @staticmethod
     def _expand_package_ids(
-            packages: List[str],
+            packages: list[str],
             *,
             use_local: bool,
-    ) -> Union[List[Tuple[int, str]], str]:
+    ) -> Union[list[tuple[int, str]], str]:
         # Takes a terse lists of package names and expands to repo index and name list,
         # returning an error string if any can't be resolved.
         from . import repo_cache_store_ensure
@@ -173,11 +170,11 @@ class subcmd_utils:
         return repos_and_packages
 
     @staticmethod
-    def expand_package_ids_from_remote(packages: List[str]) -> Union[List[Tuple[int, str]], str]:
+    def expand_package_ids_from_remote(packages: list[str]) -> Union[list[tuple[int, str]], str]:
         return subcmd_utils._expand_package_ids(packages, use_local=False)
 
     @staticmethod
-    def expand_package_ids_from_local(packages: List[str]) -> Union[List[Tuple[int, str]], str]:
+    def expand_package_ids_from_local(packages: list[str]) -> Union[list[tuple[int, str]], str]:
         return subcmd_utils._expand_package_ids(packages, use_local=True)
 
 
@@ -200,7 +197,7 @@ class subcmd_query:
                 item_local: Optional[PkgManifest_Normalized],
                 item_remote: Optional[PkgManifest_Normalized],
                 has_remote: bool,
-                item_warnings: List[str],
+                item_warnings: list[str],
         ) -> None:
             # Both can't be None.
             assert item_remote is not None or item_local is not None
@@ -267,7 +264,7 @@ class subcmd_query:
         import addon_utils  # type: ignore
 
         # pylint: disable-next=protected-access
-        extensions_warnings: Dict[str, List[str]] = addon_utils._extensions_warnings_get()
+        extensions_warnings: dict[str, list[str]] = addon_utils._extensions_warnings_get()
         assert isinstance(extensions_warnings, dict)
 
         # Blocked and installed.
@@ -339,7 +336,7 @@ class subcmd_pkg:
     def install(
             *,
             sync: bool,
-            packages: List[str],
+            packages: list[str],
             enable_on_install: bool,
             no_prefs: bool,
     ) -> bool:
@@ -375,7 +372,7 @@ class subcmd_pkg:
     @staticmethod
     def remove(
             *,
-            packages: List[str],
+            packages: list[str],
             no_prefs: bool,
     ) -> bool:
         # Expand all package ID's.
@@ -920,7 +917,7 @@ def cli_extension_args_extra(subparsers: "argparse._SubParsersAction[argparse.Ar
     cli_extension_args_repo_remove(subparsers)
 
 
-def cli_extension_handler(args: List[str]) -> int:
+def cli_extension_handler(args: list[str]) -> int:
     from .cli import blender_ext
 
     # Override the default valid tags with a file which Blender includes.
