@@ -194,8 +194,11 @@ def modules_from_path(path, loaded_modules):
     return modules
 
 
-_global_loaded_modules = []  # store loaded module names for reloading.
-import bpy_types as _bpy_types  # keep for comparisons, never ever reload this.
+# Store registered module names for reloading.
+# Currently used for "startup" modules.
+_registered_module_names = []
+# Keep for comparisons, never ever reload this.
+import bpy_types as _bpy_types
 
 
 def load_scripts(*, reload_scripts=False, refresh_scripts=False, extensions=True):
@@ -279,30 +282,33 @@ def load_scripts(*, reload_scripts=False, refresh_scripts=False, extensions=True
 
         if mod:
             register_module_call(mod)
-            _global_loaded_modules.append(mod.__name__)
+            _registered_module_names.append(mod.__name__)
 
     if reload_scripts:
         # Module names -> modules.
         #
         # Reverse the modules so they are unregistered in the reverse order they're registered.
         # While this isn't essential for the most part, it ensures any inter-dependencies can be handled properly.
-        global_modules = [mod for mod in map(_sys.modules.get, reversed(_global_loaded_modules)) if mod is not None]
+        registered_modules = [
+            mod for mod in map(_sys.modules.get, reversed(_registered_module_names))
+            if mod is not None
+        ]
 
         # This should never happen, only report this to notify developers that something unexpected happened.
-        if len(global_modules) != len(_global_loaded_modules):
+        if len(registered_modules) != len(_registered_module_names):
             print(
                 "Warning: globally loaded modules not found in sys.modules:",
-                [mod_name for mod_name in _global_loaded_modules if mod_name not in _sys.modules]
+                [mod_name for mod_name in _registered_module_names if mod_name not in _sys.modules]
             )
-        _global_loaded_modules.clear()
+        _registered_module_names.clear()
 
         # Loop over and unload all scripts.
-        for mod in global_modules:
+        for mod in registered_modules:
             unregister_module_call(mod)
 
-        for mod in global_modules:
+        for mod in registered_modules:
             test_reload(mod)
-        del global_modules
+        del registered_modules
 
         # Update key-maps to account for operators no longer existing.
         # Typically unloading operators would refresh the event system (such as disabling an add-on)
