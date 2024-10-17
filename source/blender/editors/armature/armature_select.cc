@@ -180,6 +180,9 @@ static void *ed_armature_pick_bone_from_selectbuffer_impl(const bool is_editmode
       if (is_editmode == false) {
         base = ED_armature_base_and_pchan_from_select_buffer(bases, hit_id, &pchan);
         if (pchan != nullptr) {
+          if (pchan->bone->flag & BONE_UNSELECTABLE) {
+            continue;
+          }
           if (findunsel) {
             sel = (pchan->bone->flag & BONE_SELECTED);
           }
@@ -196,6 +199,9 @@ static void *ed_armature_pick_bone_from_selectbuffer_impl(const bool is_editmode
       }
       else {
         base = ED_armature_base_and_ebone_from_select_buffer(bases, hit_id, &ebone);
+        if (ebone->flag & BONE_UNSELECTABLE) {
+          continue;
+        }
         if (findunsel) {
           sel = (ebone->flag & BONE_SELECTED);
         }
@@ -673,14 +679,15 @@ static EditBone *get_nearest_editbonepoint(
   view3d_opengl_select_cache_begin();
 
   {
-    const int select_mode = (do_nearest ? VIEW3D_SELECT_PICK_NEAREST : VIEW3D_SELECT_PICK_ALL);
     const eV3DSelectObjectFilter select_filter = VIEW3D_SELECT_FILTER_NOP;
 
     GPUSelectStorage &storage = buffer.storage;
     rcti rect;
     BLI_rcti_init_pt_radius(&rect, vc->mval, 12);
+    /* VIEW3D_SELECT_PICK_ALL needs to be used or unselectable bones can block selectability of
+     * bones further back. See #123963.  */
     const int hits12 = view3d_opengl_select_with_id_filter(
-        vc, &buffer, &rect, eV3DSelectMode(select_mode), select_filter, select_id_ignore);
+        vc, &buffer, &rect, VIEW3D_SELECT_PICK_ALL, select_filter, select_id_ignore);
 
     if (hits12 == 1) {
       hits = selectbuffer_ret_hits_12(storage.as_mutable_span(), hits12);
@@ -689,7 +696,7 @@ static EditBone *get_nearest_editbonepoint(
     else if (hits12 > 0) {
       BLI_rcti_init_pt_radius(&rect, vc->mval, 5);
       const int hits5 = view3d_opengl_select_with_id_filter(
-          vc, &buffer, &rect, eV3DSelectMode(select_mode), select_filter, select_id_ignore);
+          vc, &buffer, &rect, VIEW3D_SELECT_PICK_ALL, select_filter, select_id_ignore);
 
       if (hits5 == 1) {
         hits = selectbuffer_ret_hits_5(storage.as_mutable_span(), hits12, hits5);
@@ -754,14 +761,20 @@ cache_end:
         cycle_order.best.as_u32 = 0;
       }
 
+      int min_depth = INT_MAX;
       for (int i = 0; i < hits; i++) {
-        const uint hitresult = buffer.storage[i].id;
+        const GPUSelectResult &result = buffer.storage[i];
+        const uint hitresult = result.id;
 
         Base *base = nullptr;
         EditBone *ebone;
         base = ED_armature_base_and_ebone_from_select_buffer(bases, hitresult, &ebone);
         /* If this fails, selection code is setting the selection ID's incorrectly. */
         BLI_assert(base && ebone);
+
+        if (ebone->flag & BONE_UNSELECTABLE) {
+          continue;
+        }
 
         /* Prioritized selection. */
         {
@@ -805,6 +818,14 @@ cache_end:
             result_bias.hitresult = hitresult;
             result_bias.base = base;
             result_bias.ebone = ebone;
+          }
+          else if (bias == bias_max && do_nearest) {
+            if (min_depth > result.depth) {
+              min_depth = result.depth;
+              result_bias.hitresult = hitresult;
+              result_bias.base = base;
+              result_bias.ebone = ebone;
+            }
           }
         }
 
