@@ -32,7 +32,8 @@ import unittest
 from typing import (
     Any,
     NamedTuple,
-    Optional,
+)
+from collections.abc import (
     Sequence,
 )
 
@@ -170,12 +171,12 @@ def create_package(
         pkg_idname: str,
 
         # Optional.
-        wheel_params: Optional[WheelModuleParams] = None,
-        platforms: Optional[tuple[str, ...]] = None,
-        blender_version_min: Optional[str] = None,
-        blender_version_max: Optional[str] = None,
-        python_script: Optional[str] = None,
-        file_contents: Optional[dict[str, bytes]] = None,
+        wheel_params: WheelModuleParams | None = None,
+        platforms: tuple[str, ...] | None = None,
+        blender_version_min: str | None = None,
+        blender_version_max: str | None = None,
+        python_script: str | None = None,
+        file_contents: dict[str, bytes] | None = None,
 ) -> None:
     pkg_name = pkg_idname.replace("_", " ").title()
 
@@ -407,15 +408,15 @@ class TestWithTempBlenderUser_MixIn(unittest.TestCase):
             self,
             *,
             pkg_idname: str,
-            wheel_params: Optional[WheelModuleParams] = None,
+            wheel_params: WheelModuleParams | None = None,
 
             # Optional.
-            pkg_filename: Optional[str] = None,
-            platforms: Optional[tuple[str, ...]] = None,
-            blender_version_min: Optional[str] = None,
-            blender_version_max: Optional[str] = None,
-            python_script: Optional[str] = None,
-            file_contents: Optional[dict[str, bytes]] = None,
+            pkg_filename: str | None = None,
+            platforms: tuple[str, ...] | None = None,
+            blender_version_min: str | None = None,
+            blender_version_max: str | None = None,
+            python_script: str | None = None,
+            file_contents: dict[str, bytes] | None = None,
     ) -> None:
         if pkg_filename is None:
             pkg_filename = pkg_idname

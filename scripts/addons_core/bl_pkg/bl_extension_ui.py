@@ -1247,12 +1247,12 @@ def extension_draw_item(
         layout,
         *,
         pkg_id,  # `str`
-        item_local,  # `Optional[PkgManifest_Normalized]`
-        item_remote,  # `Optional[PkgManifest_Normalized]`
+        item_local,  # `PkgManifest_Normalized | None`
+        item_remote,  # `PkgManifest_Normalized | None`
         is_enabled,  # `bool`
         is_outdated,  # `bool`
         show,  # `bool`.
-        mark,  # `Optional[bool]`.
+        mark,  # `bool | None`.
 
         # General vars.
         repo_index,  # `int`

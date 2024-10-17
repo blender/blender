@@ -10,8 +10,9 @@ import os
 
 from typing import (
     Any,
+)
+from collections.abc import (
     Sequence,
-    Union,
 )
 
 
@@ -37,7 +38,7 @@ class TestPathMatch_MixIn:
     def match_paths(
             self,
             expected_paths: list[tuple[bool, str]],
-            path_pattern: Union[Sequence[str], PathPatternMatch],  # type: ignore
+            path_pattern: Sequence[str] | PathPatternMatch,  # type: ignore
     ) -> list[tuple[bool, str]]:
         result = []
         if not isinstance(path_pattern, PathPatternMatch):
@@ -53,7 +54,7 @@ class TestPathMatch_MixIn:
     def match_paths_for_cmp(
             self,
             expected_paths: list[tuple[bool, str]],
-            path_pattern: Union[Sequence[str], PathPatternMatch],  # type: ignore
+            path_pattern: Sequence[str] | PathPatternMatch,  # type: ignore
     ) -> tuple[
         list[tuple[bool, str]],
         list[tuple[bool, str]],

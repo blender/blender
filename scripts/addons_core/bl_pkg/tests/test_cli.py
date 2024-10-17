@@ -20,14 +20,14 @@ import zipfile
 
 from typing import (
     Any,
-    Sequence,
     NamedTuple,
-    Optional,
-    Union,
+)
+from collections.abc import (
+    Sequence,
 )
 
 # A tree of files.
-FileTree = dict[str, Union["FileTree", bytes]]
+FileTree = dict[str, "FileTree | bytes"]
 
 JSON_OutputElem = tuple[str, Any]
 
@@ -283,7 +283,7 @@ def command_output(
 def command_output_from_json_0(
         args: Sequence[str],
         *,
-        exclude_types: Optional[set[str]] = None,
+        exclude_types: set[str] | None = None,
         expected_returncode: int = 0,
 ) -> Sequence[JSON_OutputElem]:
     result = []
