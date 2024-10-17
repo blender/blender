@@ -169,6 +169,10 @@ class Result {
   /* Construct a result of the given type and precision within the given context. */
   Result(Context &context, ResultType type, ResultPrecision precision);
 
+  /* Construct a result of an appropriate type and precision based on the given GPU texture format
+   * within the given context. */
+  Result(Context &context, eGPUTextureFormat format);
+
   /* Returns the appropriate GPU texture format based on the given result type and precision. */
   static eGPUTextureFormat gpu_texture_format(ResultType type, ResultPrecision precision);
 

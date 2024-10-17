@@ -572,8 +572,7 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
       const int cryptomatte_layers_count = int(math::ceil(view_layer->cryptomatte_levels / 2.0f));
       for (int i = 0; i < cryptomatte_layers_count; i++) {
         const std::string pass_name = fmt::format("{}{:02}", cryptomatte_type, i);
-        GPUTexture *pass_texture = context().get_input_texture(
-            scene, view_layer_index, pass_name.c_str());
+        GPUTexture *pass_texture = context().get_pass(scene, view_layer_index, pass_name.c_str());
 
         /* If this Cryptomatte layer wasn't found, then all later Cryptomatte layers can't be used
          * even if they were found. */
