@@ -3774,9 +3774,11 @@ def km_grease_pencil_paint_mode(params):
          "ctrl": True, "shift": True}, {"properties": [("mode", 'ACTIVE')]}),
 
         op_tool_optional(
-            ("grease_pencil.interpolate", {"type": 'E', "value": 'PRESS', "ctrl": True}, None),
+            ("grease_pencil.interpolate", {"type": 'E', "value": 'PRESS',
+             "ctrl": True}, {"properties": [("use_selection", False)]}),
             (op_tool_cycle, "builtin.interpolate"), params),
-        ("grease_pencil.interpolate_sequence", {"type": 'E', "value": 'PRESS', "shift": True, "ctrl": True}, None),
+        ("grease_pencil.interpolate_sequence", {"type": 'E', "value": 'PRESS',
+         "shift": True, "ctrl": True}, None),
 
         op_asset_shelf_popup(
             "VIEW3D_AST_brush_gpencil_paint",
@@ -3932,9 +3934,11 @@ def km_grease_pencil_edit_mode(params):
         ("grease_pencil.set_handle_type", {"type": 'V', "value": 'PRESS'}, None),
 
         op_tool_optional(
-            ("grease_pencil.interpolate", {"type": 'E', "value": 'PRESS', "ctrl": True}, None),
+            ("grease_pencil.interpolate", {"type": 'E', "value": 'PRESS',
+             "ctrl": True}, {"properties": [("use_selection", True)]}),
             (op_tool_cycle, "builtin.interpolate"), params),
-        ("grease_pencil.interpolate_sequence", {"type": 'E', "value": 'PRESS', "shift": True, "ctrl": True}, None),
+        ("grease_pencil.interpolate_sequence", {"type": 'E', "value": 'PRESS',
+         "shift": True, "ctrl": True}, None),
     ])
 
     return keymap
@@ -8133,7 +8137,7 @@ def km_3d_view_tool_edit_grease_pencil_interpolate(params):
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
             ("grease_pencil.interpolate", params.tool_maybe_tweak_event,
-             None),
+             {"properties": [("use_selection", True)]}),
         ]},
     )
 
@@ -8144,7 +8148,7 @@ def km_3d_view_tool_paint_grease_pencil_interpolate(params):
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
             ("grease_pencil.interpolate", params.tool_maybe_tweak_event,
-             None),
+             {"properties": [("use_selection", False)]}),
         ]},
     )
 
