@@ -16,9 +16,7 @@ __all__ = (
 )
 
 
-from typing import (
-    Dict,
-    List,
+from collections.abc import (
     Sequence,
 )
 
@@ -68,10 +66,10 @@ class StaleFiles:
         base_directory = os.path.normpath(base_directory)
         self._base_directory = base_directory if base_directory.endswith(sep) else (base_directory + sep)
         self._stale_filename = stale_filename
-        self._paths: List[str] = []
+        self._paths: list[str] = []
         self._debug: bool = debug
 
-        self._index_cache: Dict[str, int] = {}
+        self._index_cache: dict[str, int] = {}
         self._is_modified: bool = True
 
     def is_empty(self) -> bool:
