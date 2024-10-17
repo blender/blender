@@ -4508,6 +4508,19 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
   const bool prior_label = but->prev && but->prev->type == UI_BTYPE_LABEL && but->prev->str[0] &&
                            but->prev->alignnr == but->alignnr;
 
+  /* When true, store a copy of the description and use the tool-tip callback to return that copy.
+   * This way, further calls to #EnumPropertyRNA::item_fn which occur when evaluating shortcuts
+   * don't cause strings to be freed. See #ui_but_event_property_operator_string, see: #129151.
+   *
+   * - This is *not* a generic fix for #126541,
+   *   references to strings still need to be held by Python.
+   *
+   * - Duplicating descriptions in most UI logic should be avoided.
+   *   Make an exception for menus as they aren't typically refreshed during animation
+   *   playback or other situations where the overhead would be noticeable.
+   */
+  bool use_enum_copy_description = free && (RNA_property_py_data_get(but->rnaprop) != nullptr);
+
   if (title && title[0] && (categories == 0) && (!but->str[0] || !prior_label)) {
     /* Show title when no categories and calling button has no text or prior label. */
     uiDefBut(
@@ -4577,6 +4590,8 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
     }
     else {
       int icon = item->icon;
+      const char *description_static = use_enum_copy_description ? nullptr : item->description;
+
       /* Use blank icon if there is none for this item (but for some other one) to make sure labels
        * align. */
       if (icon == ICON_NONE && has_item_with_icon) {
@@ -4597,7 +4612,7 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
                                      &handle->retvalue,
                                      item->value,
                                      0.0,
-                                     item->description);
+                                     description_static);
       }
       else {
         item_but = uiDefButI(block,
@@ -4611,10 +4626,23 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
                              &handle->retvalue,
                              item->value,
                              0.0,
-                             item->description);
+                             description_static);
       }
       if (item->value == current_value) {
         item_but->flag |= UI_SELECT_DRAW;
+      }
+
+      if (use_enum_copy_description) {
+        if (item->description && item->description[0]) {
+          char *description_copy = BLI_strdup(item->description);
+          UI_but_func_tooltip_set(
+              item_but,
+              [](bContext * /*C*/, void *argN, const char * /*tip*/) -> std::string {
+                return static_cast<const char *>(argN);
+              },
+              description_copy,
+              MEM_freeN);
+        }
       }
     }
   }
