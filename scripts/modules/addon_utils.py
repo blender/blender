@@ -898,10 +898,10 @@ def _extension_repos_module_to_directory_map():
 
 
 def _extension_compat_cache_update_needed(
-        cache_data,  # `Dict[str, Any]`
-        blender_id,  # `Tuple[Any, ...]`
-        extensions_enabled,  # `Set[Tuple[str, str]]`
-        print_debug,  # `Optional[Callable[[Any], None]]`
+        cache_data,  # `dict[str, Any]`
+        blender_id,  # `tuple[Any, ...]`
+        extensions_enabled,  # `set[tuple[str, str]]`
+        print_debug,  # `Callable[[Any], None] | None`
 ):  # `-> bool`
 
     # Detect when Blender itself changes.
@@ -973,11 +973,11 @@ def _extension_compat_cache_update_needed(
 # This function should not run every startup, so it can afford to be slower,
 # although users should not have to wait for it either.
 def _extension_compat_cache_create(
-        blender_id,  # `Tuple[Any, ...]`
-        extensions_enabled,  # `Set[Tuple[str, str]]`
-        wheel_list,  # `List[Tuple[str, List[str]]]`
-        print_debug,  # `Optional[Callable[[Any], None]]`
-):  # `-> Dict[str, Any]`
+        blender_id,  # `tuple[Any, ...]`
+        extensions_enabled,  # `set[tuple[str, str]]`
+        wheel_list,  # `list[tuple[str, List[str]]]`
+        print_debug,  # `Callable[[Any], None] | None`
+):  # `-> dict[str, Any]`
     import os
     from os.path import join
 
@@ -1134,7 +1134,7 @@ def _initialize_extensions_compat_data(
         extensions_directory,  # `str`
         *,
         ensure_wheels,  # `bool`
-        addon_modules_pending,  # `Optional[Sequence[str]]`
+        addon_modules_pending,  # `Sequence[str] | None`
         use_startup_fastpath,  # `bool`
 ):
     # WARNING: this function must *never* raise an exception because it would interfere with low level initialization.

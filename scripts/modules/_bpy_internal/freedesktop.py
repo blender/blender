@@ -22,10 +22,8 @@ import subprocess
 import sys
 import tempfile
 
-from typing import (
+from collections.abc import (
     Callable,
-    Tuple,
-    Optional,
 )
 
 VERBOSE = True
@@ -116,7 +114,7 @@ def filepath_ensure_removed(path: str) -> bool:
 # On registration when handlers return False this causes registration to fail and unregister to be called.
 # Non fatal errors should print a message and return True instead.
 
-def handle_bin(do_register: bool, all_users: bool) -> Optional[str]:
+def handle_bin(do_register: bool, all_users: bool) -> str | None:
     if all_users:
         dirpath_dst = os.path.join(SYSTEM_PREFIX, "bin")
     else:
@@ -170,7 +168,7 @@ def handle_bin(do_register: bool, all_users: bool) -> Optional[str]:
     return None
 
 
-def handle_desktop_file(do_register: bool, all_users: bool) -> Optional[str]:
+def handle_desktop_file(do_register: bool, all_users: bool) -> str | None:
     # `cp ./blender.desktop ~/.local/share/applications/`
 
     filename = BLENDER_DESKTOP
@@ -212,7 +210,7 @@ def handle_desktop_file(do_register: bool, all_users: bool) -> Optional[str]:
     return None
 
 
-def handle_thumbnailer(do_register: bool, all_users: bool) -> Optional[str]:
+def handle_thumbnailer(do_register: bool, all_users: bool) -> str | None:
     filename = "blender.thumbnailer"
 
     if all_users:
@@ -258,7 +256,7 @@ def handle_thumbnailer(do_register: bool, all_users: bool) -> Optional[str]:
     return None
 
 
-def handle_mime_association_xml(do_register: bool, all_users: bool) -> Optional[str]:
+def handle_mime_association_xml(do_register: bool, all_users: bool) -> str | None:
     # `xdg-mime install x-blender.xml`
     filename = "x-blender.xml"
 
@@ -331,7 +329,7 @@ def handle_mime_association_xml(do_register: bool, all_users: bool) -> Optional[
     return None
 
 
-def handle_mime_association_default(do_register: bool, all_users: bool) -> Optional[str]:
+def handle_mime_association_default(do_register: bool, all_users: bool) -> str | None:
     # `xdg-mime default blender.desktop application/x-blender`
 
     if VERBOSE:
@@ -353,7 +351,7 @@ def handle_mime_association_default(do_register: bool, all_users: bool) -> Optio
     return None
 
 
-def handle_icon(do_register: bool, all_users: bool) -> Optional[str]:
+def handle_icon(do_register: bool, all_users: bool) -> str | None:
     filename = "blender.svg"
     if all_users:
         base_dir = os.path.join(SYSTEM_PREFIX, "share")
@@ -397,14 +395,14 @@ def handle_icon(do_register: bool, all_users: bool) -> Optional[str]:
 def main_run_as_root(
         do_register: bool,
         *,
-        python_args: Tuple[str, ...],
-) -> Optional[str]:
+        python_args: tuple[str, ...],
+) -> str | None:
     # If the system prefix doesn't exist, fail with an error because it's highly likely that the
     # system won't use this when it has not been created.
     if not os.path.exists(SYSTEM_PREFIX):
         return "Error: system path does not exist {!r}".format(SYSTEM_PREFIX)
 
-    prog: Optional[str] = shutil.which("pkexec")
+    prog: str | None = shutil.which("pkexec")
     if prog is None:
         return "Error: command \"pkexec\" not found"
 
@@ -446,11 +444,11 @@ def main_run_as_root(
 # Handle these cases gracefully.
 
 def call_handle_checked(
-        fn: Callable[[bool, bool], Optional[str]],
+        fn: Callable[[bool, bool], str | None],
         *,
         do_register: bool,
         all_users: bool,
-) -> Optional[str]:
+) -> str | None:
     try:
         result = fn(do_register, all_users)
     except Exception as ex:
@@ -462,7 +460,7 @@ def call_handle_checked(
 # -----------------------------------------------------------------------------
 # Main Registration Functions
 
-def register_impl(do_register: bool, all_users: bool) -> Optional[str]:
+def register_impl(do_register: bool, all_users: bool) -> str | None:
     # A non-empty string indicates an error (which is forwarded to the user), otherwise None for success.
 
     global BLENDER_BIN
@@ -540,12 +538,12 @@ def register_impl(do_register: bool, all_users: bool) -> Optional[str]:
     return error_or_none
 
 
-def register(all_users: bool = False) -> Optional[str]:
+def register(all_users: bool = False) -> str | None:
     # Return an empty string for success.
     return register_impl(True, all_users)
 
 
-def unregister(all_users: bool = False) -> Optional[str]:
+def unregister(all_users: bool = False) -> str | None:
     # Return an empty string for success.
     return register_impl(False, all_users)
 
