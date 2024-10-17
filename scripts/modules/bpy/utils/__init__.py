@@ -282,20 +282,27 @@ def load_scripts(*, reload_scripts=False, refresh_scripts=False, extensions=True
             _global_loaded_modules.append(mod.__name__)
 
     if reload_scripts:
+        # Module names -> modules.
+        #
+        # Reverse the modules so they are unregistered in the reverse order they're registered.
+        # While this isn't essential for the most part, it ensures any inter-dependencies can be handled properly.
+        global_modules = [mod for mod in map(_sys.modules.get, reversed(_global_loaded_modules)) if mod is not None]
 
-        # module names -> modules
-        _global_loaded_modules[:] = [_sys.modules[mod_name]
-                                     for mod_name in _global_loaded_modules]
+        # This should never happen, only report this to notify developers that something unexpected happened.
+        if len(global_modules) != len(_global_loaded_modules):
+            print(
+                "Warning: globally loaded modules not found in sys.modules:",
+                [mod_name for mod_name in _global_loaded_modules if mod_name not in _sys.modules]
+            )
+        _global_loaded_modules.clear()
 
-        # loop over and unload all scripts
-        _global_loaded_modules.reverse()
-        for mod in _global_loaded_modules:
+        # Loop over and unload all scripts.
+        for mod in global_modules:
             unregister_module_call(mod)
 
-        for mod in _global_loaded_modules:
+        for mod in global_modules:
             test_reload(mod)
-
-        del _global_loaded_modules[:]
+        del global_modules
 
         # Update key-maps to account for operators no longer existing.
         # Typically unloading operators would refresh the event system (such as disabling an add-on)
