@@ -327,6 +327,7 @@ Drawing::Drawing(const Drawing &other)
   /* Initialize runtime data. */
   this->runtime = MEM_new<bke::greasepencil::DrawingRuntime>(__func__);
 
+  this->runtime->triangle_offsets_cache = other.runtime->triangle_offsets_cache;
   this->runtime->triangles_cache = other.runtime->triangles_cache;
   this->runtime->curve_plane_normals_cache = other.runtime->curve_plane_normals_cache;
   this->runtime->curve_texture_matrices = other.runtime->curve_texture_matrices;
@@ -372,7 +373,30 @@ Drawing::~Drawing()
   this->runtime = nullptr;
 }
 
-Span<uint3> Drawing::triangles() const
+OffsetIndices<int> Drawing::triangle_offsets() const
+{
+  this->runtime->triangle_offsets_cache.ensure([&](Vector<int> &r_offsets) {
+    const CurvesGeometry &curves = this->strokes();
+    const OffsetIndices<int> points_by_curve = curves.evaluated_points_by_curve();
+
+    int offset = 0;
+    r_offsets.reinitialize(curves.curves_num() + 1);
+    for (const int curve_i : points_by_curve.index_range()) {
+      const IndexRange points = points_by_curve[curve_i];
+      r_offsets[curve_i] = offset;
+      offset += std::max(int(points.size() - 2), 0);
+    }
+    r_offsets.last() = offset;
+  });
+  return this->runtime->triangle_offsets_cache.data().as_span();
+}
+
+static void update_triangle_cache(const Span<float3> positions,
+                                  const Span<float3> normals,
+                                  const OffsetIndices<int> points_by_curve,
+                                  const OffsetIndices<int> triangle_offsets,
+                                  const IndexMask &curve_mask,
+                                  MutableSpan<uint3> triangles)
 {
   struct LocalMemArena {
     MemArena *pf_arena = nullptr;
@@ -385,100 +409,99 @@ Span<uint3> Drawing::triangles() const
       }
     }
   };
-  this->runtime->triangles_cache.ensure([&](Vector<uint3> &r_data) {
-    const CurvesGeometry &curves = this->strokes();
-    const Span<float3> positions = curves.evaluated_positions();
-    const Span<float3> normals = this->curve_plane_normals();
-    const OffsetIndices<int> points_by_curve = curves.evaluated_points_by_curve();
-
-    int total_triangles = 0;
-    Array<int> tris_offests(curves.curves_num());
-    for (int curve_i : curves.curves_range()) {
-      IndexRange points = points_by_curve[curve_i];
-      if (points.size() > 2) {
-        tris_offests[curve_i] = total_triangles;
-        total_triangles += points.size() - 2;
+  threading::EnumerableThreadSpecific<LocalMemArena> all_local_mem_arenas;
+  curve_mask.foreach_segment(GrainSize(32), [&](const IndexMaskSegment mask_segment) {
+    MemArena *pf_arena = all_local_mem_arenas.local().pf_arena;
+    for (const int curve_i : mask_segment) {
+      const IndexRange points = points_by_curve[curve_i];
+      if (points.size() < 3) {
+        continue;
       }
+      MutableSpan<uint3> r_tris = triangles.slice(triangle_offsets[curve_i]);
+
+      float(*projverts)[2] = static_cast<float(*)[2]>(
+          BLI_memarena_alloc(pf_arena, sizeof(*projverts) * size_t(points.size())));
+
+      float3x3 axis_mat;
+      axis_dominant_v3_to_m3(axis_mat.ptr(), normals[curve_i]);
+
+      for (const int i : IndexRange(points.size())) {
+        mul_v2_m3v3(projverts[i], axis_mat.ptr(), positions[points[i]]);
+      }
+
+      BLI_polyfill_calc_arena(
+          projverts, points.size(), 0, reinterpret_cast<uint32_t(*)[3]>(r_tris.data()), pf_arena);
+      BLI_memarena_clear(pf_arena);
     }
+  });
+}
 
+Span<uint3> Drawing::triangles() const
+{
+  const CurvesGeometry &curves = this->strokes();
+  const OffsetIndices<int> triangle_offsets = this->triangle_offsets();
+  this->runtime->triangles_cache.ensure([&](Vector<uint3> &r_data) {
+    const int total_triangles = triangle_offsets.total_size();
     r_data.resize(total_triangles);
-    MutableSpan<uint3> triangles = r_data.as_mutable_span();
-    threading::EnumerableThreadSpecific<LocalMemArena> all_local_mem_arenas;
-    threading::parallel_for(curves.curves_range(), 32, [&](const IndexRange range) {
-      MemArena *pf_arena = all_local_mem_arenas.local().pf_arena;
-      for (const int curve_i : range) {
-        const IndexRange points = points_by_curve[curve_i];
-        if (points.size() < 3) {
-          continue;
-        }
 
-        const int num_triangles = points.size() - 2;
-        MutableSpan<uint3> r_tris = triangles.slice(tris_offests[curve_i], num_triangles);
-
-        float(*projverts)[2] = static_cast<float(*)[2]>(
-            BLI_memarena_alloc(pf_arena, sizeof(*projverts) * size_t(points.size())));
-
-        float3x3 axis_mat;
-        axis_dominant_v3_to_m3(axis_mat.ptr(), normals[curve_i]);
-
-        for (const int i : IndexRange(points.size())) {
-          mul_v2_m3v3(projverts[i], axis_mat.ptr(), positions[points[i]]);
-        }
-
-        BLI_polyfill_calc_arena(projverts,
-                                points.size(),
-                                0,
-                                reinterpret_cast<uint32_t(*)[3]>(r_tris.data()),
-                                pf_arena);
-        BLI_memarena_clear(pf_arena);
-      }
-    });
+    update_triangle_cache(curves.evaluated_positions(),
+                          this->curve_plane_normals(),
+                          curves.evaluated_points_by_curve(),
+                          triangle_offsets,
+                          curves.curves_range(),
+                          r_data.as_mutable_span());
   });
 
   return this->runtime->triangles_cache.data().as_span();
+}
+
+static void update_curve_plane_normal_cache(const Span<float3> positions,
+                                            const OffsetIndices<int> points_by_curve,
+                                            const IndexMask &curve_mask,
+                                            MutableSpan<float3> normals)
+{
+  curve_mask.foreach_index(GrainSize(512), [&](const int curve_i) {
+    const IndexRange points = points_by_curve[curve_i];
+    if (points.size() < 2) {
+      normals[curve_i] = float3(1.0f, 0.0f, 0.0f);
+      return;
+    }
+
+    /* Calculate normal using Newell's method. */
+    float3 normal(0.0f);
+    float3 prev_point = positions[points.last()];
+    for (const int point_i : points) {
+      const float3 curr_point = positions[point_i];
+      add_newell_cross_v3_v3v3(normal, prev_point, curr_point);
+      prev_point = curr_point;
+    }
+
+    float length;
+    normal = math::normalize_and_get_length(normal, length);
+    /* Check for degenerate case where the points are on a line. */
+    if (math::is_zero(length)) {
+      for (const int point_i : points.drop_back(1)) {
+        float3 segment_vec = positions[point_i] - positions[point_i + 1];
+        if (math::length_squared(segment_vec) != 0.0f) {
+          normal = math::normalize(float3(segment_vec.y, -segment_vec.x, 0.0f));
+          break;
+        }
+      }
+    }
+
+    normals[curve_i] = normal;
+  });
 }
 
 Span<float3> Drawing::curve_plane_normals() const
 {
   this->runtime->curve_plane_normals_cache.ensure([&](Vector<float3> &r_data) {
     const CurvesGeometry &curves = this->strokes();
-    const Span<float3> positions = curves.positions();
-    const OffsetIndices<int> points_by_curve = curves.points_by_curve();
-
     r_data.reinitialize(curves.curves_num());
-    threading::parallel_for(curves.curves_range(), 512, [&](const IndexRange range) {
-      for (const int curve_i : range) {
-        const IndexRange points = points_by_curve[curve_i];
-        if (points.size() < 2) {
-          r_data[curve_i] = float3(1.0f, 0.0f, 0.0f);
-          continue;
-        }
-
-        /* Calculate normal using Newell's method. */
-        float3 normal(0.0f);
-        float3 prev_point = positions[points.last()];
-        for (const int point_i : points) {
-          const float3 curr_point = positions[point_i];
-          add_newell_cross_v3_v3v3(normal, prev_point, curr_point);
-          prev_point = curr_point;
-        }
-
-        float length;
-        normal = math::normalize_and_get_length(normal, length);
-        /* Check for degenerate case where the points are on a line. */
-        if (math::is_zero(length)) {
-          for (const int point_i : points.drop_back(1)) {
-            float3 segment_vec = positions[point_i] - positions[point_i + 1];
-            if (math::length_squared(segment_vec) != 0.0f) {
-              normal = math::normalize(float3(segment_vec.y, -segment_vec.x, 0.0f));
-              break;
-            }
-          }
-        }
-
-        r_data[curve_i] = normal;
-      }
-    });
+    update_curve_plane_normal_cache(curves.positions(),
+                                    curves.points_by_curve(),
+                                    curves.curves_range(),
+                                    r_data.as_mutable_span());
   });
   return this->runtime->curve_plane_normals_cache.data().as_span();
 }
@@ -754,15 +777,118 @@ void Drawing::tag_texture_matrices_changed()
 void Drawing::tag_positions_changed()
 {
   this->strokes_for_write().tag_positions_changed();
-  this->runtime->triangles_cache.tag_dirty();
   this->runtime->curve_plane_normals_cache.tag_dirty();
+  this->runtime->triangles_cache.tag_dirty();
+  this->tag_texture_matrices_changed();
+}
+
+void Drawing::tag_positions_changed(const IndexMask &changed_curves)
+{
+  if (changed_curves.is_empty()) {
+    return;
+  }
+  /* If more than half of the curves have changed, update the entire cache instead.
+   * The assumption here is that it's better to lazily compute the caches if more than half of the
+   * curves need to be updated.
+   * TODO: This could probably be a bit more rigorous once this function gets used in more places.
+   */
+  if (changed_curves.size() > this->strokes().curves_num() / 2) {
+    this->tag_positions_changed();
+    return;
+  }
+  if (!this->runtime->triangles_cache.is_cached() ||
+      !this->runtime->curve_plane_normals_cache.is_cached())
+  {
+    this->tag_positions_changed();
+    return;
+  }
+  /* Positions needs to be tagged first, because the triangle cache updates just after need the
+   * positions to be up-to-date. */
+  this->strokes_for_write().tag_positions_changed();
+  this->runtime->curve_plane_normals_cache.update([&](Vector<float3> &normals) {
+    const CurvesGeometry &curves = this->strokes();
+    update_curve_plane_normal_cache(
+        curves.positions(), curves.points_by_curve(), changed_curves, normals);
+  });
+  this->runtime->triangles_cache.update([&](Vector<uint3> &triangles) {
+    const CurvesGeometry &curves = this->strokes();
+    update_triangle_cache(curves.evaluated_positions(),
+                          this->curve_plane_normals(),
+                          curves.evaluated_points_by_curve(),
+                          this->triangle_offsets(),
+                          curves.curves_range(),
+                          triangles);
+  });
   this->tag_texture_matrices_changed();
 }
 
 void Drawing::tag_topology_changed()
 {
+  this->runtime->triangle_offsets_cache.tag_dirty();
   this->tag_positions_changed();
   this->strokes_for_write().tag_topology_changed();
+}
+
+void Drawing::tag_topology_changed(const IndexMask &changed_curves)
+{
+  if (changed_curves.is_empty()) {
+    return;
+  }
+  /* If more than half of the curves have changed, update the entire cache instead.
+   * The assumption here is that it's better to lazily compute the caches if more than half of the
+   * curves need to be updated.
+   * TODO: This could probably be a bit more rigorous once this function gets used in more places.
+   */
+  if (changed_curves.size() > this->strokes().curves_num() / 2) {
+    this->tag_topology_changed();
+    return;
+  }
+  if (!this->runtime->triangles_cache.is_cached() ||
+      !this->runtime->curve_plane_normals_cache.is_cached())
+  {
+    this->tag_topology_changed();
+    return;
+  }
+  /* Positions needs to be tagged first, because the triangle cache updates just after need the
+   * positions to be up-to-date. */
+  this->strokes_for_write().tag_positions_changed();
+  this->runtime->curve_plane_normals_cache.update([&](Vector<float3> &normals) {
+    const CurvesGeometry &curves = this->strokes();
+    update_curve_plane_normal_cache(
+        curves.positions(), curves.points_by_curve(), changed_curves, normals);
+  });
+  /* Copy the current triangle offsets. These are used to copy over the triangle data for curves
+   * that don't need to be updated. */
+  const Array<int> src_triangle_offset_data(this->triangle_offsets().data());
+  const OffsetIndices<int> src_triangle_offsets = src_triangle_offset_data.as_span();
+  /* Tag the `triangle_offsets_cache` so that the `triangles_cache` update can use the up-to-date
+   * triangle offsets. */
+  this->runtime->triangle_offsets_cache.tag_dirty();
+
+  this->runtime->triangles_cache.update([&](Vector<uint3> &triangles) {
+    const CurvesGeometry &curves = this->strokes();
+    const OffsetIndices<int> dst_triangle_offsets = this->triangle_offsets();
+
+    IndexMaskMemory memory;
+    const IndexMask curves_to_copy = changed_curves.complement(curves.curves_range(), memory);
+
+    const Vector<uint3> src_triangles(triangles);
+    triangles.reinitialize(dst_triangle_offsets.total_size());
+    /* Copy groups to groups. */
+    curves_to_copy.foreach_index(GrainSize(1024), [&](const int i) {
+      triangles.as_mutable_span()
+          .slice(dst_triangle_offsets[i])
+          .copy_from(src_triangles.as_span().slice(src_triangle_offsets[i]));
+    });
+
+    update_triangle_cache(curves.evaluated_positions(),
+                          this->curve_plane_normals(),
+                          curves.evaluated_points_by_curve(),
+                          dst_triangle_offsets,
+                          changed_curves,
+                          triangles);
+  });
+  this->tag_texture_matrices_changed();
 }
 
 DrawingReference::DrawingReference()
