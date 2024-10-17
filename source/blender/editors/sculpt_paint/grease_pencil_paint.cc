@@ -980,8 +980,15 @@ struct PaintOperationExecutor {
 
   void execute(PaintOperation &self, const bContext &C, const InputSample &extension_sample)
   {
+    const Scene *scene = CTX_data_scene(&C);
+    const bool on_back = (scene->toolsettings->gpencil_flags & GP_TOOL_FLAG_PAINT_ONBACK) != 0;
+
     this->process_extension_sample(self, C, extension_sample);
-    drawing_->tag_topology_changed();
+
+    const bke::CurvesGeometry &curves = drawing_->strokes();
+    const int active_curve = on_back ? curves.curves_range().first() :
+                                       curves.curves_range().last();
+    drawing_->tag_topology_changed(IndexRange::from_single(active_curve));
   }
 };
 

@@ -52,6 +52,10 @@ constexpr float LEGACY_RADIUS_CONVERSION_FACTOR = 1.0f / 2000.0f;
 class DrawingRuntime {
  public:
   /**
+   * Triangle offset cache for all the strokes in the drawing.
+   */
+  mutable SharedCache<Vector<int>> triangle_offsets_cache;
+  /**
    * Triangle cache for all the strokes in the drawing.
    */
   mutable SharedCache<Vector<uint3>> triangles_cache;
@@ -87,16 +91,28 @@ class Drawing : public ::GreasePencilDrawing {
   const bke::CurvesGeometry &strokes() const;
   bke::CurvesGeometry &strokes_for_write();
   /**
-   * The triangles for all the fills in the geometry.
+   * The triangles for fill geometry. Grouped by each stroke.
    */
   Span<uint3> triangles() const;
   /**
    * Normal vectors for a plane that fits the stroke.
    */
   Span<float3> curve_plane_normals() const;
+
   void tag_texture_matrices_changed();
+
   void tag_positions_changed();
+  /**
+   * Tag only the positions of some curves.
+   */
+  void tag_positions_changed(const IndexMask &changed_curves);
+
   void tag_topology_changed();
+  /**
+   * Tag only some curves for a topology change.
+   * Do not call this if curves have been added or removed.
+   */
+  void tag_topology_changed(const IndexMask &changed_curves);
 
   /**
    * Returns the matrices that transform from a 3D point in layer-space to a 2D point in
@@ -159,6 +175,12 @@ class Drawing : public ::GreasePencilDrawing {
    * Return the number of users (keyframes) of this drawing.
    */
   int user_count() const;
+
+ private:
+  /**
+   * The offset indices for each stroke in the flat triangle cache.
+   */
+  OffsetIndices<int> triangle_offsets() const;
 };
 static_assert(sizeof(Drawing) == sizeof(::GreasePencilDrawing));
 
