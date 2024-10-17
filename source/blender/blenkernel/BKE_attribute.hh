@@ -429,6 +429,7 @@ class AttributeIter {
     return get_fn_();
   }
 
+  /** Same as above, but may perform type and domain interpolation. This may return none. */
   GAttributeReader get(std::optional<AttrDomain> domain,
                        std::optional<eCustomDataType> data_type) const;
 
