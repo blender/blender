@@ -168,7 +168,7 @@ IDTypeInfo IDType_ID_CV = {
     /*lib_override_apply_post*/ nullptr,
 };
 
-void *BKE_curves_add(Main *bmain, const char *name)
+Curves *BKE_curves_add(Main *bmain, const char *name)
 {
   Curves *curves = static_cast<Curves *>(BKE_id_new(bmain, ID_CV, name));
 

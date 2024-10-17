@@ -33,7 +33,7 @@ bool USDPointsReader::valid() const
 
 void USDPointsReader::create_object(Main *bmain, double /*motionSampleTime*/)
 {
-  PointCloud *point_cloud = static_cast<PointCloud *>(BKE_pointcloud_add(bmain, name_.c_str()));
+  PointCloud *point_cloud = BKE_pointcloud_add(bmain, name_.c_str());
   object_ = BKE_object_add_only_object(bmain, OB_POINTCLOUD, name_.c_str());
   object_->data = point_cloud;
 }

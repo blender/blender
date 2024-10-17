@@ -50,7 +50,7 @@ bool USDPointInstancerReader::valid() const
 
 void USDPointInstancerReader::create_object(Main *bmain, const double /*motionSampleTime*/)
 {
-  void *point_cloud = BKE_pointcloud_add(bmain, name_.c_str());
+  PointCloud *point_cloud = BKE_pointcloud_add(bmain, name_.c_str());
   this->object_ = BKE_object_add_only_object(bmain, OB_POINTCLOUD, name_.c_str());
   this->object_->data = point_cloud;
 }

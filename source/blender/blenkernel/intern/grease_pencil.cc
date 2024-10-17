@@ -1895,7 +1895,7 @@ bool BKE_grease_pencil_drawing_attribute_required(const GreasePencilDrawing * /*
   return STREQ(name, ATTR_POSITION);
 }
 
-void *BKE_grease_pencil_add(Main *bmain, const char *name)
+GreasePencil *BKE_grease_pencil_add(Main *bmain, const char *name)
 {
   GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(BKE_id_new(bmain, ID_GP, name));
 

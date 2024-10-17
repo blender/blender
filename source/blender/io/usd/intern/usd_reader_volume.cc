@@ -25,7 +25,7 @@ namespace blender::io::usd {
 
 void USDVolumeReader::create_object(Main *bmain, const double /*motionSampleTime*/)
 {
-  Volume *volume = (Volume *)BKE_volume_add(bmain, name_.c_str());
+  Volume *volume = BKE_volume_add(bmain, name_.c_str());
 
   object_ = BKE_object_add_only_object(bmain, OB_VOLUME, name_.c_str());
   object_->data = volume;

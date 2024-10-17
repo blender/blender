@@ -104,7 +104,7 @@ void BKE_lightprobe_type_set(LightProbe *probe, const short lightprobe_type)
   }
 }
 
-void *BKE_lightprobe_add(Main *bmain, const char *name)
+LightProbe *BKE_lightprobe_add(Main *bmain, const char *name)
 {
   LightProbe *probe;
 

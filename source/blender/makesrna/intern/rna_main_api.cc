@@ -156,12 +156,12 @@ static Camera *rna_Main_cameras_new(Main *bmain, const char *name)
   char safe_name[MAX_ID_NAME - 2];
   rna_idname_validate(name, safe_name);
 
-  ID *id = static_cast<ID *>(BKE_camera_add(bmain, safe_name));
-  id_us_min(id);
+  Camera *camera = BKE_camera_add(bmain, safe_name);
+  id_us_min(&camera->id);
 
   WM_main_add_notifier(NC_ID | NA_ADDED, nullptr);
 
-  return (Camera *)id;
+  return camera;
 }
 
 static Scene *rna_Main_scenes_new(Main *bmain, const char *name)
@@ -549,7 +549,7 @@ static Speaker *rna_Main_speakers_new(Main *bmain, const char *name)
   char safe_name[MAX_ID_NAME - 2];
   rna_idname_validate(name, safe_name);
 
-  Speaker *speaker = static_cast<Speaker *>(BKE_speaker_add(bmain, safe_name));
+  Speaker *speaker = BKE_speaker_add(bmain, safe_name);
   id_us_min(&speaker->id);
 
   WM_main_add_notifier(NC_ID | NA_ADDED, nullptr);
@@ -728,7 +728,7 @@ static LightProbe *rna_Main_lightprobe_new(Main *bmain, const char *name, int ty
   char safe_name[MAX_ID_NAME - 2];
   rna_idname_validate(name, safe_name);
 
-  LightProbe *probe = static_cast<LightProbe *>(BKE_lightprobe_add(bmain, safe_name));
+  LightProbe *probe = BKE_lightprobe_add(bmain, safe_name);
 
   BKE_lightprobe_type_set(probe, type);
 
@@ -757,8 +757,7 @@ static GreasePencil *rna_Main_grease_pencils_new(Main *bmain, const char *name)
   char safe_name[MAX_ID_NAME - 2];
   rna_idname_validate(name, safe_name);
 
-  GreasePencil *grease_pencil = static_cast<GreasePencil *>(
-      BKE_grease_pencil_add(bmain, safe_name));
+  GreasePencil *grease_pencil = BKE_grease_pencil_add(bmain, safe_name);
   id_us_min(&grease_pencil->id);
 
   WM_main_add_notifier(NC_ID | NA_ADDED, nullptr);
@@ -771,7 +770,7 @@ static Curves *rna_Main_hair_curves_new(Main *bmain, const char *name)
   char safe_name[MAX_ID_NAME - 2];
   rna_idname_validate(name, safe_name);
 
-  Curves *curves = static_cast<Curves *>(BKE_curves_add(bmain, safe_name));
+  Curves *curves = BKE_curves_add(bmain, safe_name);
   id_us_min(&curves->id);
 
   WM_main_add_notifier(NC_ID | NA_ADDED, nullptr);
@@ -784,7 +783,7 @@ static PointCloud *rna_Main_pointclouds_new(Main *bmain, const char *name)
   char safe_name[MAX_ID_NAME - 2];
   rna_idname_validate(name, safe_name);
 
-  PointCloud *pointcloud = static_cast<PointCloud *>(BKE_pointcloud_add(bmain, safe_name));
+  PointCloud *pointcloud = BKE_pointcloud_add(bmain, safe_name);
   id_us_min(&pointcloud->id);
 
   WM_main_add_notifier(NC_ID | NA_ADDED, nullptr);
@@ -797,7 +796,7 @@ static Volume *rna_Main_volumes_new(Main *bmain, const char *name)
   char safe_name[MAX_ID_NAME - 2];
   rna_idname_validate(name, safe_name);
 
-  Volume *volume = static_cast<Volume *>(BKE_volume_add(bmain, safe_name));
+  Volume *volume = BKE_volume_add(bmain, safe_name);
   id_us_min(&volume->id);
 
   WM_main_add_notifier(NC_ID | NA_ADDED, nullptr);
