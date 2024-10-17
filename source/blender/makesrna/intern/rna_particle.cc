@@ -488,22 +488,26 @@ static const EnumPropertyItem *rna_Particle_Material_itemf(bContext *C,
 
   /* The context object might not be what we want when doing this from python. */
   Object *ob_found = nullptr;
-  Object *ob_context = static_cast<Object *>(CTX_data_pointer_get(C, "object").data);
 
-  LISTBASE_FOREACH (ParticleSystem *, psys, &ob_context->particlesystem) {
-    if (psys->part == part) {
-      ob_found = ob_context;
+  if (Object *ob_context = static_cast<Object *>(CTX_data_pointer_get(C, "object").data)) {
+    LISTBASE_FOREACH (ParticleSystem *, psys, &ob_context->particlesystem) {
+      if (psys->part == part) {
+        ob_found = ob_context;
+        break;
+      }
     }
   }
 
   if (ob_found == nullptr) {
     /* Iterating over all object is slow, but no better solution exists at the moment. */
-    for (Object *ob = static_cast<Object *>(CTX_data_main(C)->objects.first); ob;
+    for (Object *ob = static_cast<Object *>(CTX_data_main(C)->objects.first);
+         ob && (ob_found == nullptr);
          ob = static_cast<Object *>(ob->id.next))
     {
       LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
         if (psys->part == part) {
           ob_found = ob;
+          break;
         }
       }
     }
