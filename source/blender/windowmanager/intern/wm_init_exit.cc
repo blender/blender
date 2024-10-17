@@ -534,7 +534,7 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
    */
   if (C && CTX_py_init_get(C)) {
     /* Calls `addon_utils.disable_all()` as well as unregistering all "startup" modules.  */
-    const char *imports[] = {"bpy.utils", nullptr};
+    const char *imports[] = {"bpy", "bpy.utils", nullptr};
     BPY_run_string_eval(C, imports, "bpy.utils._on_exit()");
   }
 #endif
