@@ -1113,12 +1113,21 @@ static void fill_topology_automasking_factors_mesh(const Depsgraph &depsgraph,
 
   float3 location = vert_positions[active_vert];
 
-  flood.execute(ob, vert_to_face_map, [&](int from_v, int to_v) {
-    factors[from_v] = 1.0f;
-    factors[to_v] = 1.0f;
-    return (use_radius || SCULPT_is_vertex_inside_brush_radius_symm(
-                              vert_positions[to_v], location, radius, symm));
-  });
+  if (use_radius) {
+    flood.execute(ob, vert_to_face_map, [&](int from_v, int to_v) {
+      factors[from_v] = 1.0f;
+      factors[to_v] = 1.0f;
+      return SCULPT_is_vertex_inside_brush_radius_symm(
+          vert_positions[to_v], location, radius, symm);
+    });
+  }
+  else {
+    flood.execute(ob, vert_to_face_map, [&](int from_v, int to_v) {
+      factors[from_v] = 1.0f;
+      factors[to_v] = 1.0f;
+      return true;
+    });
+  }
 }
 
 static void fill_topology_automasking_factors_grids(const Sculpt &sd,
@@ -1145,13 +1154,23 @@ static void fill_topology_automasking_factors_grids(const Sculpt &sd,
 
   float3 location = positions[active_vert];
 
-  flood.execute(
-      ob, subdiv_ccg, [&](SubdivCCGCoord from_v, SubdivCCGCoord to_v, bool /*is_duplicate*/) {
-        factors[from_v.to_index(key)] = 1.0f;
-        factors[to_v.to_index(key)] = 1.0f;
-        return (use_radius || SCULPT_is_vertex_inside_brush_radius_symm(
-                                  positions[to_v.to_index(key)], location, radius, symm));
-      });
+  if (use_radius) {
+    flood.execute(
+        ob, subdiv_ccg, [&](SubdivCCGCoord from_v, SubdivCCGCoord to_v, bool /*is_duplicate*/) {
+          factors[from_v.to_index(key)] = 1.0f;
+          factors[to_v.to_index(key)] = 1.0f;
+          return SCULPT_is_vertex_inside_brush_radius_symm(
+              positions[to_v.to_index(key)], location, radius, symm);
+        });
+  }
+  else {
+    flood.execute(
+        ob, subdiv_ccg, [&](SubdivCCGCoord from_v, SubdivCCGCoord to_v, bool /*is_duplicate*/) {
+          factors[from_v.to_index(key)] = 1.0f;
+          factors[to_v.to_index(key)] = 1.0f;
+          return true;
+        });
+  }
 }
 
 static void fill_topology_automasking_factors_bmesh(const Sculpt &sd,
@@ -1174,12 +1193,20 @@ static void fill_topology_automasking_factors_bmesh(const Sculpt &sd,
 
   float3 location = active_vert->co;
 
-  flood.execute(ob, [&](BMVert *from_v, BMVert *to_v) {
-    factors[BM_elem_index_get(from_v)] = 1.0f;
-    factors[BM_elem_index_get(to_v)] = 1.0f;
-    return (use_radius ||
-            SCULPT_is_vertex_inside_brush_radius_symm(active_vert->co, location, radius, symm));
-  });
+  if (use_radius) {
+    flood.execute(ob, [&](BMVert *from_v, BMVert *to_v) {
+      factors[BM_elem_index_get(from_v)] = 1.0f;
+      factors[BM_elem_index_get(to_v)] = 1.0f;
+      return SCULPT_is_vertex_inside_brush_radius_symm(to_v->co, location, radius, symm);
+    });
+  }
+  else {
+    flood.execute(ob, [&](BMVert *from_v, BMVert *to_v) {
+      factors[BM_elem_index_get(from_v)] = 1.0f;
+      factors[BM_elem_index_get(to_v)] = 1.0f;
+      return true;
+    });
+  }
 }
 
 static void fill_topology_automasking_factors(const Depsgraph &depsgraph,
