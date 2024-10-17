@@ -21,10 +21,9 @@ Attribute::Attribute(
     : name(name), std(ATTR_STD_NONE), type(type), element(element), flags(0), modified(true)
 {
   /* string and matrix not supported! */
-  assert(type == TypeDesc::TypeFloat || type == TypeDesc::TypeColor ||
-         type == TypeDesc::TypePoint || type == TypeDesc::TypeVector ||
-         type == TypeDesc::TypeNormal || type == TypeDesc::TypeMatrix || type == TypeFloat2 ||
-         type == TypeFloat4 || type == TypeRGBA);
+  assert(type == TypeFloat || type == TypeColor || type == TypePoint || type == TypeVector ||
+         type == TypeNormal || type == TypeMatrix || type == TypeFloat2 || type == TypeFloat4 ||
+         type == TypeRGBA);
 
   if (element == ATTR_ELEMENT_VOXEL) {
     buffer.resize(sizeof(ImageHandle));
@@ -170,18 +169,18 @@ size_t Attribute::data_sizeof() const
   else if (element == ATTR_ELEMENT_CORNER_BYTE) {
     return sizeof(uchar4);
   }
-  else if (type == TypeDesc::TypeFloat) {
+  else if (type == TypeFloat) {
     return sizeof(float);
   }
   else if (type == TypeFloat2) {
     return sizeof(float2);
   }
-  else if (type == TypeDesc::TypeMatrix) {
+  else if (type == TypeMatrix) {
     return sizeof(Transform);
     // The float3 type is not interchangeable with float4
     // as it is now a packed type.
   }
-  else if (type == TypeDesc::TypeFloat4) {
+  else if (type == TypeFloat4) {
     return sizeof(float4);
   }
   else if (type == TypeRGBA) {
@@ -293,12 +292,8 @@ bool Attribute::same_storage(TypeDesc a, TypeDesc b)
     return true;
   }
 
-  if (a == TypeDesc::TypeColor || a == TypeDesc::TypePoint || a == TypeDesc::TypeVector ||
-      a == TypeDesc::TypeNormal)
-  {
-    if (b == TypeDesc::TypeColor || b == TypeDesc::TypePoint || b == TypeDesc::TypeVector ||
-        b == TypeDesc::TypeNormal)
-    {
+  if (a == TypeColor || a == TypePoint || a == TypeVector || a == TypeNormal) {
+    if (b == TypeColor || b == TypePoint || b == TypeVector || b == TypeNormal) {
       return true;
     }
   }
@@ -317,13 +312,13 @@ void Attribute::add_with_weight(void *dst, void *src, float weight)
       ((uchar *)dst)[i] += uchar(((uchar *)src)[i] * weight);
     }
   }
-  else if (same_storage(type, TypeDesc::TypeFloat)) {
+  else if (same_storage(type, TypeFloat)) {
     *((float *)dst) += *((float *)src) * weight;
   }
   else if (same_storage(type, TypeFloat2)) {
     *((float2 *)dst) += *((float2 *)src) * weight;
   }
-  else if (same_storage(type, TypeDesc::TypeVector)) {
+  else if (same_storage(type, TypeVector)) {
     // Points are float3s and not float4s
     *((float3 *)dst) += *((float3 *)src) * weight;
   }
@@ -425,7 +420,7 @@ AttrKernelDataType Attribute::kernel_type(const Attribute &attr)
     return AttrKernelDataType::UCHAR4;
   }
 
-  if (attr.type == TypeDesc::TypeFloat) {
+  if (attr.type == TypeFloat) {
     return AttrKernelDataType::FLOAT;
   }
 
@@ -433,7 +428,7 @@ AttrKernelDataType Attribute::kernel_type(const Attribute &attr)
     return AttrKernelDataType::FLOAT2;
   }
 
-  if (attr.type == TypeFloat4 || attr.type == TypeRGBA || attr.type == TypeDesc::TypeMatrix) {
+  if (attr.type == TypeFloat4 || attr.type == TypeRGBA || attr.type == TypeMatrix) {
     return AttrKernelDataType::FLOAT4;
   }
 
@@ -537,19 +532,19 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
   if (geometry->geometry_type == Geometry::MESH) {
     switch (std) {
       case ATTR_STD_VERTEX_NORMAL:
-        attr = add(name, TypeDesc::TypeNormal, ATTR_ELEMENT_VERTEX);
+        attr = add(name, TypeNormal, ATTR_ELEMENT_VERTEX);
         break;
       case ATTR_STD_FACE_NORMAL:
-        attr = add(name, TypeDesc::TypeNormal, ATTR_ELEMENT_FACE);
+        attr = add(name, TypeNormal, ATTR_ELEMENT_FACE);
         break;
       case ATTR_STD_UV:
         attr = add(name, TypeFloat2, ATTR_ELEMENT_CORNER);
         break;
       case ATTR_STD_UV_TANGENT:
-        attr = add(name, TypeDesc::TypeVector, ATTR_ELEMENT_CORNER);
+        attr = add(name, TypeVector, ATTR_ELEMENT_CORNER);
         break;
       case ATTR_STD_UV_TANGENT_SIGN:
-        attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_CORNER);
+        attr = add(name, TypeFloat, ATTR_ELEMENT_CORNER);
         break;
       case ATTR_STD_VERTEX_COLOR:
         attr = add(name, TypeRGBA, ATTR_ELEMENT_CORNER_BYTE);
@@ -557,28 +552,28 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
       case ATTR_STD_GENERATED:
       case ATTR_STD_POSITION_UNDEFORMED:
       case ATTR_STD_POSITION_UNDISPLACED:
-        attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_VERTEX);
+        attr = add(name, TypePoint, ATTR_ELEMENT_VERTEX);
         break;
       case ATTR_STD_MOTION_VERTEX_POSITION:
-        attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_VERTEX_MOTION);
+        attr = add(name, TypePoint, ATTR_ELEMENT_VERTEX_MOTION);
         break;
       case ATTR_STD_MOTION_VERTEX_NORMAL:
-        attr = add(name, TypeDesc::TypeNormal, ATTR_ELEMENT_VERTEX_MOTION);
+        attr = add(name, TypeNormal, ATTR_ELEMENT_VERTEX_MOTION);
         break;
       case ATTR_STD_PTEX_FACE_ID:
-        attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_FACE);
+        attr = add(name, TypeFloat, ATTR_ELEMENT_FACE);
         break;
       case ATTR_STD_PTEX_UV:
-        attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_VERTEX);
+        attr = add(name, TypePoint, ATTR_ELEMENT_VERTEX);
         break;
       case ATTR_STD_GENERATED_TRANSFORM:
-        attr = add(name, TypeDesc::TypeMatrix, ATTR_ELEMENT_MESH);
+        attr = add(name, TypeMatrix, ATTR_ELEMENT_MESH);
         break;
       case ATTR_STD_POINTINESS:
-        attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_VERTEX);
+        attr = add(name, TypeFloat, ATTR_ELEMENT_VERTEX);
         break;
       case ATTR_STD_RANDOM_PER_ISLAND:
-        attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_FACE);
+        attr = add(name, TypeFloat, ATTR_ELEMENT_FACE);
         break;
       default:
         assert(0);
@@ -591,16 +586,16 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
         attr = add(name, TypeFloat2, ATTR_ELEMENT_VERTEX);
         break;
       case ATTR_STD_GENERATED:
-        attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_VERTEX);
+        attr = add(name, TypePoint, ATTR_ELEMENT_VERTEX);
         break;
       case ATTR_STD_MOTION_VERTEX_POSITION:
-        attr = add(name, TypeDesc::TypeFloat4, ATTR_ELEMENT_VERTEX_MOTION);
+        attr = add(name, TypeFloat4, ATTR_ELEMENT_VERTEX_MOTION);
         break;
       case ATTR_STD_POINT_RANDOM:
-        attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_VERTEX);
+        attr = add(name, TypeFloat, ATTR_ELEMENT_VERTEX);
         break;
       case ATTR_STD_GENERATED_TRANSFORM:
-        attr = add(name, TypeDesc::TypeMatrix, ATTR_ELEMENT_MESH);
+        attr = add(name, TypeMatrix, ATTR_ELEMENT_MESH);
         break;
       default:
         assert(0);
@@ -610,10 +605,10 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
   else if (geometry->geometry_type == Geometry::VOLUME) {
     switch (std) {
       case ATTR_STD_VERTEX_NORMAL:
-        attr = add(name, TypeDesc::TypeNormal, ATTR_ELEMENT_VERTEX);
+        attr = add(name, TypeNormal, ATTR_ELEMENT_VERTEX);
         break;
       case ATTR_STD_FACE_NORMAL:
-        attr = add(name, TypeDesc::TypeNormal, ATTR_ELEMENT_FACE);
+        attr = add(name, TypeNormal, ATTR_ELEMENT_FACE);
         break;
       case ATTR_STD_VOLUME_DENSITY:
       case ATTR_STD_VOLUME_FLAME:
@@ -622,13 +617,13 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
       case ATTR_STD_VOLUME_VELOCITY_X:
       case ATTR_STD_VOLUME_VELOCITY_Y:
       case ATTR_STD_VOLUME_VELOCITY_Z:
-        attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_VOXEL);
+        attr = add(name, TypeFloat, ATTR_ELEMENT_VOXEL);
         break;
       case ATTR_STD_VOLUME_COLOR:
-        attr = add(name, TypeDesc::TypeColor, ATTR_ELEMENT_VOXEL);
+        attr = add(name, TypeColor, ATTR_ELEMENT_VOXEL);
         break;
       case ATTR_STD_VOLUME_VELOCITY:
-        attr = add(name, TypeDesc::TypeVector, ATTR_ELEMENT_VOXEL);
+        attr = add(name, TypeVector, ATTR_ELEMENT_VOXEL);
         break;
       default:
         assert(0);
@@ -638,37 +633,37 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
   else if (geometry->geometry_type == Geometry::HAIR) {
     switch (std) {
       case ATTR_STD_VERTEX_NORMAL:
-        attr = add(name, TypeDesc::TypeNormal, ATTR_ELEMENT_CURVE_KEY);
+        attr = add(name, TypeNormal, ATTR_ELEMENT_CURVE_KEY);
         break;
       case ATTR_STD_UV:
         attr = add(name, TypeFloat2, ATTR_ELEMENT_CURVE);
         break;
       case ATTR_STD_GENERATED:
-        attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CURVE);
+        attr = add(name, TypePoint, ATTR_ELEMENT_CURVE);
         break;
       case ATTR_STD_MOTION_VERTEX_POSITION:
-        attr = add(name, TypeDesc::TypeFloat4, ATTR_ELEMENT_CURVE_KEY_MOTION);
+        attr = add(name, TypeFloat4, ATTR_ELEMENT_CURVE_KEY_MOTION);
         break;
       case ATTR_STD_CURVE_INTERCEPT:
-        attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_CURVE_KEY);
+        attr = add(name, TypeFloat, ATTR_ELEMENT_CURVE_KEY);
         break;
       case ATTR_STD_CURVE_LENGTH:
-        attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_CURVE);
+        attr = add(name, TypeFloat, ATTR_ELEMENT_CURVE);
         break;
       case ATTR_STD_CURVE_RANDOM:
-        attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_CURVE);
+        attr = add(name, TypeFloat, ATTR_ELEMENT_CURVE);
         break;
       case ATTR_STD_GENERATED_TRANSFORM:
-        attr = add(name, TypeDesc::TypeMatrix, ATTR_ELEMENT_MESH);
+        attr = add(name, TypeMatrix, ATTR_ELEMENT_MESH);
         break;
       case ATTR_STD_POINTINESS:
-        attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_VERTEX);
+        attr = add(name, TypeFloat, ATTR_ELEMENT_VERTEX);
         break;
       case ATTR_STD_RANDOM_PER_ISLAND:
-        attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_FACE);
+        attr = add(name, TypeFloat, ATTR_ELEMENT_FACE);
         break;
       case ATTR_STD_SHADOW_TRANSPARENCY:
-        attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_CURVE_KEY);
+        attr = add(name, TypeFloat, ATTR_ELEMENT_CURVE_KEY);
         break;
       default:
         assert(0);
@@ -838,12 +833,12 @@ AttributeRequest::AttributeRequest(ustring name_)
   name = name_;
   std = ATTR_STD_NONE;
 
-  type = TypeDesc::TypeFloat;
+  type = TypeFloat;
   desc.element = ATTR_ELEMENT_NONE;
   desc.offset = 0;
   desc.type = NODE_ATTR_FLOAT;
 
-  subd_type = TypeDesc::TypeFloat;
+  subd_type = TypeFloat;
   subd_desc.element = ATTR_ELEMENT_NONE;
   subd_desc.offset = 0;
   subd_desc.type = NODE_ATTR_FLOAT;
@@ -854,12 +849,12 @@ AttributeRequest::AttributeRequest(AttributeStandard std_)
   name = ustring();
   std = std_;
 
-  type = TypeDesc::TypeFloat;
+  type = TypeFloat;
   desc.element = ATTR_ELEMENT_NONE;
   desc.offset = 0;
   desc.type = NODE_ATTR_FLOAT;
 
-  subd_type = TypeDesc::TypeFloat;
+  subd_type = TypeFloat;
   subd_desc.element = ATTR_ELEMENT_NONE;
   subd_desc.offset = 0;
   subd_desc.type = NODE_ATTR_FLOAT;

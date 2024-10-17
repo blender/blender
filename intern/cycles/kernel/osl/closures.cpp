@@ -138,7 +138,7 @@ void osl_eval_nodes<SHADER_TYPE_SURFACE>(const KernelGlobalsCPU *kg,
         bool found = kg->osl->services->get_attribute(sd,
                                                       true,
                                                       OSLRenderServices::u_empty,
-                                                      TypeDesc::TypeVector,
+                                                      TypeVector,
                                                       OSLRenderServices::u_geom_undisplaced,
                                                       data);
         (void)found;

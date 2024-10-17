@@ -201,7 +201,7 @@ static void mikk_compute_tangents(
     attr = attributes.add(ATTR_STD_UV_TANGENT, name);
   }
   else {
-    attr = attributes.add(name, TypeDesc::TypeVector, ATTR_ELEMENT_CORNER);
+    attr = attributes.add(name, TypeVector, ATTR_ELEMENT_CORNER);
   }
   float3 *tangent = attr->data_float3();
   /* Create bitangent sign attribute. */
@@ -220,7 +220,7 @@ static void mikk_compute_tangents(
       attr_sign = attributes.add(ATTR_STD_UV_TANGENT_SIGN, name_sign);
     }
     else {
-      attr_sign = attributes.add(name_sign, TypeDesc::TypeFloat, ATTR_ELEMENT_CORNER);
+      attr_sign = attributes.add(name_sign, TypeFloat, ATTR_ELEMENT_CORNER);
     }
     tangent_sign = attr_sign->data_float();
   }

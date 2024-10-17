@@ -131,7 +131,7 @@ class NamedSampleCountStats {
   string full_report(int indent_level = 0);
   void add(const ustring &name, uint64_t samples, uint64_t hits);
 
-  typedef unordered_map<ustring, NamedSampleCountPair, ustringHash> entry_map;
+  typedef unordered_map<ustring, NamedSampleCountPair> entry_map;
   entry_map entries;
 };
 
