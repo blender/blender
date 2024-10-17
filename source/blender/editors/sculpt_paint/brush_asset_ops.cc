@@ -712,7 +712,7 @@ void BRUSH_OT_asset_delete(wmOperatorType *ot)
   ot->poll = brush_asset_delete_poll;
 }
 
-static bool brush_asset_update_poll(bContext *C)
+static bool brush_asset_save_poll(bContext *C)
 {
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = (paint) ? BKE_paint_brush(paint) : nullptr;
@@ -736,7 +736,7 @@ static bool brush_asset_update_poll(bContext *C)
   return true;
 }
 
-static int brush_asset_update_exec(bContext *C, wmOperator *op)
+static int brush_asset_save_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Paint *paint = BKE_paint_get_active_from_context(C);
@@ -761,14 +761,14 @@ static int brush_asset_update_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void BRUSH_OT_asset_update(wmOperatorType *ot)
+void BRUSH_OT_asset_save(wmOperatorType *ot)
 {
-  ot->name = "Update Brush Asset";
+  ot->name = "Save Brush Asset";
   ot->description = "Update the active brush asset in the asset library with current settings";
-  ot->idname = "BRUSH_OT_asset_update";
+  ot->idname = "BRUSH_OT_asset_save";
 
-  ot->exec = brush_asset_update_exec;
-  ot->poll = brush_asset_update_poll;
+  ot->exec = brush_asset_save_exec;
+  ot->poll = brush_asset_save_poll;
 }
 
 static bool brush_asset_revert_poll(bContext *C)
