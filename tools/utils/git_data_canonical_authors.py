@@ -41,6 +41,7 @@ def canonical_author_map() -> Dict[str, str]:
         ),
         "Alaska <alaskayou01@gmail.com>": (
             "Alaska <Alaska>",
+            "Alaska <Alaskayou01@gmail.com>",
             "Alaska <alaska@noreply.localhost>",
         ),
         "Aleksandr Zinovev <roaoao@gmail.com>": (
@@ -156,6 +157,9 @@ def canonical_author_map() -> Dict[str, str]:
         "Charlie Jolly <mistajolly@gmail.com>": (
             "Charlie Jolly <charlie>",
             "charlie <mistajolly@gmail.com>",
+        ),
+        "Chris Clyne <chris@lateasusual.com>": (
+            "Chris Clyne <lateasusual>",
         ),
         "Christian Brinkmann <hallo@zblur.de>": (
             "christian brinkmann <>",
@@ -650,6 +654,9 @@ def canonical_author_map() -> Dict[str, str]:
             "Scurest <scurest@noreply.localhost>",
             "scurest <scurest@users.noreply.github.com>",
         ),
+        "Sean <seantommurray@gmail.com>": (
+            "sean-murray <sean-murray@noreply.localhost>",
+        ),
         "Sean Kim <SeanCTKim@protonmail.com>": (
             "Sean Kim <sean-kim@noreply.localhost>",
         ),
@@ -710,7 +717,7 @@ def canonical_author_map() -> Dict[str, str]:
             "Sun Kim <persun@noreply.localhost>",
         ),
         "Sybren A. Stüvel <sybren@blender.org>": (
-            "Sybren A. StÃ\x83Â¼vel <sybren@stuvel.eu>",
+            "Sybren A. St\xC3\x83\xC2\xBCvel <sybren@stuvel.eu>",
             "Sybren A. Stüvel <sybren>",
             "Sybren A. Stüvel <sybren@stuvel.eu>",
         ),
@@ -718,6 +725,9 @@ def canonical_author_map() -> Dict[str, str]:
             "Thomas Dinges <blender@dingto.org>",
             "Thomas Dinges <dingto>",
             "Thomas Dinges <thomasdinges@noreply.localhost>",
+        ),
+        "Thomas Lachmann <tl@bunker-werk.net>": (
+            "Thomas Lachmann <TL>",
         ),
         "Thomas Szepe <HG1_public@gmx.net>": (
             "HG1 <HG1_public@gmx.net>",
@@ -748,7 +758,7 @@ def canonical_author_map() -> Dict[str, str]:
             "Vitor Boschi da Silva <vitorboschi>"
         ),
         "Vuk Gardašević <lijenstina>": (
-            "Vuk GardaÅ¡eviÄ\x87 <lijenstina>",
+            "Vuk Garda\xC5¡evi\xC4\x87 <lijenstina>",
         ),
         "Wannes Malfait <wannes.malfait@gmail.com>": (
             "Wannes Malfait <Wannes>",
