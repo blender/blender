@@ -546,7 +546,7 @@ def pkg_manifest_params_compatible_or_error_for_this_system(
     blender_version_min,  # `str`
     blender_version_max,  # `str`
     platforms,  # `list[str]`
-):  # `Optional[str]`
+):  # `str | None`
     # Return true if the parameters are compatible with this system.
     from .bl_extension_utils import (
         pkg_manifest_params_compatible_or_error,
@@ -3113,7 +3113,7 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
             *,
             context,  # `bpy.types.Context`
             op_notify,  # `OperatorNonBlockingSyncHelper`
-            remote_url,  # `Optional[str]`
+            remote_url,  # `str | None`
             repo_from_url_name,  # `str`
             url,  # `str`
     ):
@@ -3139,7 +3139,7 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
             self,
             *,
             context,  # `bpy.types.Context`
-            remote_url,   # `Optional[str]`
+            remote_url,   # `str | None`
             repo_from_url_name,  # `str`
             url,  # `str`
     ):

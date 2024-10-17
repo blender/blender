@@ -15,7 +15,7 @@ import subprocess
 import sys
 import tempfile
 
-from typing import (
+from collections.abc import (
     Callable,
 )
 

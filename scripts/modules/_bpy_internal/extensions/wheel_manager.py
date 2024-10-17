@@ -19,9 +19,8 @@ import shutil
 import sys
 import zipfile
 
-from typing import (
+from collections.abc import (
     Callable,
-    Optional,
 )
 
 WheelSource = tuple[
@@ -106,7 +105,7 @@ def _wheels_from_dir(dirpath: str) -> tuple[
     return result, paths_unused_list
 
 
-def _wheel_info_dir_from_zip(filepath_wheel: str) -> Optional[tuple[str, list[str]]]:
+def _wheel_info_dir_from_zip(filepath_wheel: str) -> tuple[str, list[str]] | None:
     """
     Return:
     - The "*-info" directory name which contains meta-data.
@@ -141,7 +140,7 @@ def _wheel_info_dir_from_zip(filepath_wheel: str) -> Optional[tuple[str, list[st
     return dir_info, toplevel_paths_list
 
 
-def _rmtree_safe(dir_remove: str, expected_root: str) -> Optional[Exception]:
+def _rmtree_safe(dir_remove: str, expected_root: str) -> Exception | None:
     if not dir_remove.startswith(expected_root):
         raise Exception("Expected prefix not found")
 
@@ -165,7 +164,7 @@ def _rmtree_safe(dir_remove: str, expected_root: str) -> Optional[Exception]:
     return ex_result
 
 
-def _remove_safe(file_remove: str) -> Optional[Exception]:
+def _remove_safe(file_remove: str) -> Exception | None:
     ex_result = None
 
     try:
@@ -389,7 +388,7 @@ def apply_action(
             if debug:
                 print("removing wheel:", filepath_rel)
 
-            ex: Optional[Exception] = None
+            ex: Exception | None = None
             if os.path.isdir(filepath_abs):
                 ex = _rmtree_safe(filepath_abs, local_dir)
                 # For symbolic-links, use remove as a fallback.
