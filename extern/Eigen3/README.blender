@@ -1,5 +1,7 @@
-Project: Eigen, template library for linear algebra: matrices, vectors, numerical solvers, and related algorithms
+Project: Eigen
+Description: Template library for linear algebra: matrices, vectors, numerical solvers, and related algorithms
 URL: http://eigen.tuxfamily.org/index.php?title=Main_Page
-License: MPL 2.0
+License: SPDX:MPL-2.0
 Upstream version: 3.4.0
 Local modifications: None
+Copyright: Copyright (C) 2008-2010 Gael Guennebaud <gael.guennebaud@inria.fr>. Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com

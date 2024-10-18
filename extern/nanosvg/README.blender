@@ -1,6 +1,7 @@
 Project: NanoSVG
 URL: https://github.com/memononen/nanosvg
-License: zlib
+License: SPDX:Zlib
+Copyright: Copyright (c) 2013-14 Mikko Mononen memon@inside.org
 Upstream SHA: 9da543e8329fdd81b64eb48742d8ccb09377aed1
 GPG key ID: 4AEE18F83AFDEB23
 Last Commit: "Merge pull request #236 from sezero/signed-char"

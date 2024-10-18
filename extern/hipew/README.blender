@@ -1,5 +1,6 @@
-Project: Blender
+Project: HIP Extension Wrangler Library (HIPEW)
 URL: https://projects.blender.org/blender/blender.git
-License: Apache 2.0
+License: SPDX:Apache-2.0
+Copyright: Copyright 2011-2023 Blender Foundation
 Upstream version: N/A
 Local modifications: None

@@ -1,5 +1,6 @@
 Project: Audaspace
-URL: https://github.com/audaspace/audaspace
-License: Apache 2.0
+URL: https://audaspace.github.io/
+License: SPDX:Apache-2.0
 Upstream version: 1.4+ (ae29ce2, 2024 Feb 26)
+Copyright: "Copyright © 2009-2015 Jörg Müller. All rights reserved."
 Local modifications: none
