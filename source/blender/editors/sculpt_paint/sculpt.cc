@@ -872,7 +872,7 @@ static void restore_mask_from_undo_step(Object &object)
                                                                                     nodes[i]))
         {
           const Span<int> verts = nodes[i].verts();
-          array_utils::scatter(*orig_data, verts, mask.span);
+          scatter_data_mesh(*orig_data, verts, mask.span);
           bke::pbvh::node_update_mask_mesh(mask.span, nodes[i]);
           node_changed[i] = true;
         }
@@ -1050,13 +1050,13 @@ void restore_position_from_undo_step(const Depsgraph &depsgraph, Object &object)
                 undo_positions, verts, positions_eval, tls.translations);
           }
 
-          array_utils::scatter(undo_positions, verts, positions_eval);
+          scatter_data_mesh(undo_positions, verts, positions_eval);
 
           if (positions_eval.data() != positions_orig.data()) {
             /* When the evaluated positions and original mesh positions don't point to the same
              * array, they must both be updated. */
             if (ss.deform_imats.is_empty()) {
-              array_utils::scatter(undo_positions, verts, positions_orig);
+              scatter_data_mesh(undo_positions, verts, positions_orig);
             }
             else {
               /* Because brush deformation is calculated for the evaluated deformed positions,
