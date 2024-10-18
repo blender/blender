@@ -1498,6 +1498,20 @@ UserDef *BKE_blendfile_userdef_from_defaults()
         userdef, "VIEW3D_AST_brush_sculpt", "Brushes/Mesh Sculpt/General");
     BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(
         userdef, "VIEW3D_AST_brush_sculpt", "Brushes/Mesh Sculpt/Paint");
+
+    BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(
+        userdef, "VIEW3D_AST_brush_gpencil_paint", "Brushes/Grease Pencil Draw/Draw");
+    BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(
+        userdef, "VIEW3D_AST_brush_gpencil_paint", "Brushes/Grease Pencil Draw/Erase");
+    BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(
+        userdef, "VIEW3D_AST_brush_gpencil_paint", "Brushes/Grease Pencil Draw/Utilities");
+
+    BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(
+        userdef, "VIEW3D_AST_brush_gpencil_sculpt", "Brushes/Grease Pencil Sculpt/Contrast");
+    BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(
+        userdef, "VIEW3D_AST_brush_gpencil_sculpt", "Brushes/Grease Pencil Sculpt/Transform");
+    BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(
+        userdef, "VIEW3D_AST_brush_gpencil_sculpt", "Brushes/Grease Pencil Sculpt/Utilities");
   }
 
   return userdef;
