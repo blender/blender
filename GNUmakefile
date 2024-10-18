@@ -123,6 +123,10 @@ Utilities
 
         make format PATHS="source/blender/blenlib source/blender/blenkernel"
 
+   * license:
+     Create a combined file with all the license information relative to the libraries and other
+     code depedencies.
+
 Environment Variables
 
    * BUILD_CMAKE_ARGS:      Arguments passed to CMake.
@@ -584,6 +588,8 @@ format: .FORCE
 	@PATH="${LIBDIR}/llvm/bin/:$(PATH)" $(PYTHON) tools/utils_maintenance/clang_format_paths.py $(PATHS)
 	@$(PYTHON) tools/utils_maintenance/autopep8_format_paths.py --autopep8-command="$(AUTOPEP8)" $(PATHS)
 
+license: .FORCE
+	@$(PYTHON) tools/utils_maintenance/make_license.py
 
 # -----------------------------------------------------------------------------
 # Documentation

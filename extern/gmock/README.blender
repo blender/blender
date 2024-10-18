@@ -1,5 +1,6 @@
-Project: Google C++ Testing Framework
+Project: GoogleTest (GoogleMock)
 URL: https://github.com/google/googletest
-License: BSD 3-Clause
+License: SPDX:BSD-3-Clause
 Upstream version: 1.15.2 (b514bdc898e2951020cbdca1304b75f5950d1f59)
 Local modifications: None
+Copyright: Copyright 2007, Google Inc. All rights reserved.

@@ -1,7 +1,8 @@
 Project: Google Flags
 URL: https://github.com/gflags/gflags
-License: BSD 3-Clause
+License: SPDX:BSD-3-Clause
 Upstream version: 2.2.1 (46f73f88b18)
+Copyright: Copyright (c) 1999, Google Inc. All rights reserved.
 Local modifications:
 
 - Flattened the tree and only included files needed for Blender.

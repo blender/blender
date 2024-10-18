@@ -265,13 +265,9 @@ bool selection_update(const ViewContext *vc,
 
         /* Modes that un-set all elements not in the mask. */
         if (ELEM(sel_op, SEL_OP_SET, SEL_OP_AND)) {
-          ed::curves::foreach_selection_attribute_writer(
-              curves, selection_domain, [&](bke::GSpanAttributeWriter &writer) {
-                for (const int element_i : IndexRange(writer.span.size())) {
-                  ed::curves::apply_selection_operation_at_index(
-                      writer.span, element_i, SEL_OP_SUB);
-                }
-              });
+          bke::GSpanAttributeWriter selection =
+              curves.attributes_for_write().lookup_for_write_span(attribute_name);
+          ed::curves::fill_selection_false(selection.span);
         }
 
         if (use_segment_selection) {
