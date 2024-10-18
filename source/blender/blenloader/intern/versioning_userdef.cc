@@ -1064,8 +1064,8 @@ void blo_do_versions_userdef(UserDef *userdef)
     userdef->sequencer_editor_flag |= USER_SEQ_ED_CONNECT_STRIPS_BY_DEFAULT;
   }
 
-  if (!USER_VERSION_ATLEAST(403, 30)) {
-    userdef->uiflag |= USER_FILTER_BRUSHES_BY_TOOL;
+  if (!USER_VERSION_ATLEAST(403, 32)) {
+    userdef->uiflag &= ~USER_FILTER_BRUSHES_BY_TOOL;
   }
 
   /**
