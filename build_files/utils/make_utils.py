@@ -4,7 +4,15 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
-Utility functions for make update and make tests.
+Utility functions for make update and make tests
+
+WARNING:
+Python 3.9 is used on the built-bot.
+Take care *not* to use features from the Python version used by Blender!
+
+NOTE:
+Some type annotations are quoted to avoid errors in Python 3.9.
+These can be unquoted eventually.
 """
 
 import re
@@ -24,7 +32,7 @@ def call(
         cmd: Sequence[str],
         exit_on_error: bool = True,
         silent: bool = False,
-        env: dict[str, str] | None = None,
+        env: "dict[str, str] | None" = None,
 ) -> int:
     if not silent:
         cmd_str = ""
@@ -122,14 +130,14 @@ def git_branch(git_command: str) -> str:
     return branch.strip().decode('utf8')
 
 
-def git_get_config(git_command: str, key: str, file: str | None = None) -> str:
+def git_get_config(git_command: str, key: str, file: "str | None" = None) -> str:
     if file:
         return check_output([git_command, "config", "--file", file, "--get", key])
 
     return check_output([git_command, "config", "--get", key])
 
 
-def git_set_config(git_command: str, key: str, value: str, file: str | None = None) -> str:
+def git_set_config(git_command: str, key: str, value: str, file: "str | None" = None) -> str:
     if file:
         return check_output([git_command, "config", "--file", file, key, value])
 

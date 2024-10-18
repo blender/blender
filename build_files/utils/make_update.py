@@ -9,6 +9,14 @@ tests, and Blender git repository.
 
 For release branches, this will check out the appropriate branches of
 submodules and libraries.
+
+WARNING:
+Python 3.9 is used on the built-bot.
+Take care *not* to use features from the Python version used by Blender!
+
+NOTE:
+Some type annotations are quoted to avoid errors in Python 3.9.
+These can be unquoted eventually.
 """
 
 import argparse
@@ -91,7 +99,7 @@ def get_effective_architecture(args: argparse.Namespace) -> str:
     NOTE: When cross-compiling the architecture is coming from the command line
     argument.
     """
-    architecture: str | None = args.architecture
+    architecture: "str | None" = args.architecture
     if architecture:
         assert isinstance(architecture, str)
     elif "ARM64" in platform.version():
@@ -336,7 +344,7 @@ def floating_checkout_initialize_if_needed(
         args: argparse.Namespace,
         repo_name: str,
         directory: Path,
-        old_submodules_dir: Path | None = None,
+        old_submodules_dir: "Path | None" = None,
 ) -> None:
     """Initialize checkout of an external repository"""
 
@@ -432,8 +440,8 @@ def floating_checkout_update(
         args: argparse.Namespace,
         repo_name: str,
         directory: Path,
-        branch: str | None,
-        old_submodules_dir: Path | None = None,
+        branch: "str | None",
+        old_submodules_dir: "Path | None" = None,
         only_update: bool = False,
 ) -> str:
     """Update a single external checkout with the given name in the scripts folder"""
@@ -516,7 +524,7 @@ def external_scripts_update(
         args: argparse.Namespace,
         repo_name: str,
         directory_name: str,
-        branch: str | None,
+        branch: "str | None",
 ) -> str:
     return floating_checkout_update(
         args,
@@ -527,7 +535,7 @@ def external_scripts_update(
     )
 
 
-def floating_libraries_update(args: argparse.Namespace, branch: str | None) -> str:
+def floating_libraries_update(args: argparse.Namespace, branch: "str | None") -> str:
     """Update libraries checkouts which are floating (not attached as Git submodules)"""
     msg = ""
 
@@ -580,7 +588,7 @@ def add_submodule_push_url(args: argparse.Namespace) -> None:
         make_utils.git_set_config(args.git_command, "remote.origin.pushURL", push_url, str(config))
 
 
-def submodules_lib_update(args: argparse.Namespace, branch: str | None) -> str:
+def submodules_lib_update(args: argparse.Namespace, branch: "str | None") -> str:
     print_stage("Updating Libraries")
 
     msg = ""
