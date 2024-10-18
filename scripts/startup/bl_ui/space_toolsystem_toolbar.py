@@ -1975,7 +1975,6 @@ class _defs_texture_paint:
             idname="builtin.brush",
             label="Paint",
             icon="brush.sculpt.paint",
-            cursor='PAINT_CROSS',
             options={'USE_BRUSHES'},
         )
 
