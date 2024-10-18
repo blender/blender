@@ -1444,7 +1444,7 @@ static void paint_2d_canvas_free(ImagePaintState *s)
 
   if (s->blurkernel) {
     paint_delete_blur_kernel(s->blurkernel);
-    MEM_freeN(s->blurkernel);
+    MEM_delete(s->blurkernel);
   }
 }
 
