@@ -1996,7 +1996,7 @@ static void object_init(Object *ob, const short ob_type)
     ob->upflag = OB_POSY;
   }
 
-  if (ob->type == OB_GPENCIL_LEGACY) {
+  if (ob->type == OB_GREASE_PENCIL) {
     ob->dtx |= OB_USE_GPENCIL_LIGHTS;
   }
 
