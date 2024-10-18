@@ -184,7 +184,6 @@ static CLG_LogRef LOG_UNDO = {"blo.readfile.undo"};
 static void read_libraries(FileData *basefd, ListBase *mainlist);
 static void *read_struct(FileData *fd, BHead *bh, const char *blockname, const int id_type_index);
 static BHead *find_bhead_from_code_name(FileData *fd, const short idcode, const char *name);
-static BHead *find_bhead_from_idname(FileData *fd, const char *idname);
 
 struct BHeadN {
   BHeadN *next, *prev;
