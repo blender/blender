@@ -136,20 +136,25 @@ static PyObject *bpy_lib_write(BPy_PropertyRNA *self, PyObject *args, PyObject *
       PartialWriteContext::IDAddOperations::ADD_DEPENDENCIES |
       (use_fake_user ? PartialWriteContext::IDAddOperations::SET_FAKE_USER : 0))};
 
-  Py_ssize_t pos, hash;
-  PyObject *key;
-  ID *id = nullptr;
-
-  pos = hash = 0;
-  while (_PySet_NextEntry(datablocks, &pos, &key, &hash)) {
-    if (!pyrna_id_FromPyObject(key, &id)) {
-      PyErr_Format(PyExc_TypeError, "Expected an ID type, not %.200s", Py_TYPE(key)->tp_name);
-      return nullptr;
-    }
-    else {
+  if (PySet_GET_SIZE(datablocks) > 0) {
+    PyObject *it = PyObject_GetIter(datablocks);
+    PyObject *key;
+    while ((key = PyIter_Next(it))) {
+      /* Borrow from the set. */
+      Py_DECREF(key);
+      ID *id;
+      if (!pyrna_id_FromPyObject(key, &id)) {
+        PyErr_Format(PyExc_TypeError, "Expected an ID type, not %.200s", Py_TYPE(key)->tp_name);
+        break;
+      }
       partial_write_ctx.id_add(id, add_options, nullptr);
     }
+    Py_DECREF(it);
+    if (key) {
+      return nullptr;
+    }
   }
+
   BLI_assert(partial_write_ctx.is_valid());
 
   /* write blend */
