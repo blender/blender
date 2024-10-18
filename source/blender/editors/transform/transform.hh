@@ -167,7 +167,7 @@ enum eTModifier {
   MOD_SNAP_FORCED = 1 << 6,
   MOD_EDIT_SNAP_SOURCE = 1 << 7,
 };
-ENUM_OPERATORS(eTModifier, MOD_NODE_ATTACH)
+ENUM_OPERATORS(eTModifier, MOD_EDIT_SNAP_SOURCE)
 
 /** #TransSnap.status */
 enum eTSnap {
