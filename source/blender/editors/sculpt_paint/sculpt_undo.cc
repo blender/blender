@@ -1520,6 +1520,9 @@ void push_nodes(const Depsgraph &depsgraph,
                 const Type type)
 {
   SculptSession &ss = *object.sculpt;
+
+  ss.needs_flush_to_id = 1;
+
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   if (ss.bm || ELEM(type, Type::DyntopoBegin, Type::DyntopoEnd)) {
     const Span<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
@@ -1571,8 +1574,6 @@ void push_nodes(const Depsgraph &depsgraph,
       break;
     }
   }
-
-  ss.needs_flush_to_id = 1;
 }
 
 static void save_active_attribute(Object &object, SculptAttrRef *attr)
