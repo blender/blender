@@ -488,7 +488,7 @@ static int run_node_group_exec(bContext *C, wmOperator *op)
   for (ID *id : input_ids.values()) {
     /* Skip IDs that are already fully evaluated in the active depsgraph. */
     if (!DEG_id_is_fully_evaluated(depsgraph_active, id)) {
-      return extra_ids.add(id);
+      extra_ids.add(id);
     }
   }
 
