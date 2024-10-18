@@ -260,7 +260,9 @@ static void find_curve_mapping_from_index(const GreasePencil &grease_pencil,
 
   IndexMaskMemory memory;
   IndexMask from_selection, to_selection;
-  if (only_selected) {
+  if (only_selected && ed::curves::has_anything_selected(from_drawing.strokes()) &&
+      ed::curves::has_anything_selected(to_drawing.strokes()))
+  {
     from_selection = ed::curves::retrieve_selected_curves(from_drawing.strokes(), memory);
     to_selection = ed::curves::retrieve_selected_curves(to_drawing.strokes(), memory);
   }
