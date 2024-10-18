@@ -4290,26 +4290,12 @@ static void SCREEN_OT_area_join(wmOperatorType *ot)
   ot->flag = OPTYPE_BLOCKING;
 
   /* rna */
-  RNA_def_int_vector(ot->srna,
-                     "source_xy",
-                     2,
-                     nullptr,
-                     INT_MIN,
-                     INT_MAX,
-                     "Source location",
-                     "",
-                     INT_MIN,
-                     INT_MAX);
-  RNA_def_int_vector(ot->srna,
-                     "target_xy",
-                     2,
-                     nullptr,
-                     INT_MIN,
-                     INT_MAX,
-                     "Target location",
-                     "",
-                     INT_MIN,
-                     INT_MAX);
+  const int def[2] = {-100, -100};
+
+  RNA_def_int_vector(
+      ot->srna, "source_xy", 2, def, INT_MIN, INT_MAX, "Source location", "", INT_MIN, INT_MAX);
+  RNA_def_int_vector(
+      ot->srna, "target_xy", 2, def, INT_MIN, INT_MAX, "Target location", "", INT_MIN, INT_MAX);
 }
 
 /** \} */
