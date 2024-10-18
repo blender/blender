@@ -894,7 +894,8 @@ void calc_grids_factors(const Depsgraph &depsgraph,
     for (const int offset : IndexRange(key.grid_area)) {
       const int node_vert = node_start + offset;
       const int vert = grids_start + offset;
-      const float3 &normal = orig_normals.is_empty() ? subdiv_ccg.normals[vert] : orig_normals[i];
+      const float3 &normal = orig_normals.is_empty() ? subdiv_ccg.normals[vert] :
+                                                       orig_normals[node_vert];
 
       /* Since brush normal mode depends on the current mirror symmetry pass
        * it is not folded into the factor cache (when it exists). */
