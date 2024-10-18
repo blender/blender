@@ -623,17 +623,28 @@ class RealtimeCompositor {
   std::unique_ptr<TexturePool> texture_pool_;
   std::unique_ptr<Context> context_;
 
+  /* Stores the execution device and precision used in the last evaluation of the compositor. Those
+   * might be different from the current values returned by the context, since the user might have
+   * changed them since the last evaluation. See the needs_to_be_recreated method for more info on
+   * why those are needed. */
+  bool uses_gpu_;
+  realtime_compositor::ResultPrecision used_precision_;
+
  public:
   RealtimeCompositor(Render &render, const ContextInputData &input_data) : render_(render)
   {
     texture_pool_ = std::make_unique<TexturePool>();
     context_ = std::make_unique<Context>(input_data, *texture_pool_);
+
+    uses_gpu_ = context_->use_gpu();
+    used_precision_ = context_->get_precision();
   }
 
   ~RealtimeCompositor()
   {
-    const bool use_gpu = context_->use_gpu();
-    if (use_gpu) {
+    /* Use uses_gpu_ instead of context_->use_gpu() because we are freeing resources from the last
+     * evaluation. See uses_gpu_ for more information. */
+    if (uses_gpu_) {
       /* Free resources with GPU context enabled. Cleanup may happen from the
        * main thread, and we must use the main context there. */
       if (BLI_thread_is_main()) {
@@ -647,7 +658,8 @@ class RealtimeCompositor {
     context_.reset();
     texture_pool_.reset();
 
-    if (use_gpu) {
+    /* See comment above on context enabling. */
+    if (uses_gpu_) {
       if (BLI_thread_is_main()) {
         DRW_gpu_context_disable();
       }
@@ -657,11 +669,13 @@ class RealtimeCompositor {
     }
   }
 
-  /* Evaluate the compositor and output to the scene render result. */
-  void execute(const ContextInputData &input_data)
+  void update_input_data(const ContextInputData &input_data)
   {
     context_->update_input_data(input_data);
+  }
 
+  void execute()
+  {
     if (context_->use_gpu()) {
       /* For main thread rendering in background mode, blocking rendering, or when we do not have a
        * render system GPU context, use the DRW context directly, while for threaded rendering when
@@ -706,6 +720,17 @@ class RealtimeCompositor {
       }
     }
   }
+
+  /* Returns true if the compositor should be freed and reconstructed, which is needed when the
+   * compositor execution device or precision changed, because we either need to update all cached
+   * and pooled resources for the new execution device and precision, or we simply recreate the
+   * entire compositor, since it is much easier and safer. */
+  bool needs_to_be_recreated()
+  {
+    /* See uses_gpu_ and used_precision_ for more information what how they are different from the
+     * ones returned from the context. */
+    return context_->use_gpu() != uses_gpu_ || context_->get_precision() != used_precision_;
+  }
 };
 
 }  // namespace blender::render
@@ -722,11 +747,21 @@ void Render::compositor_execute(const Scene &scene,
   blender::render::ContextInputData input_data(
       scene, render_data, node_tree, view_name, render_context, profiler);
 
-  if (this->compositor == nullptr) {
+  if (this->compositor) {
+    this->compositor->update_input_data(input_data);
+
+    if (this->compositor->needs_to_be_recreated()) {
+      /* Free it here and it will be recreated in the check below. */
+      delete this->compositor;
+      this->compositor = nullptr;
+    }
+  }
+
+  if (!this->compositor) {
     this->compositor = new blender::render::RealtimeCompositor(*this, input_data);
   }
 
-  this->compositor->execute(input_data);
+  this->compositor->execute();
 }
 
 void Render::compositor_free()
