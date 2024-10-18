@@ -874,6 +874,13 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
 
   BLO_write_struct(writer, GreasePencilLineartModifierData, lmd);
 }
+
+static void blend_read(BlendDataReader * /*reader*/, ModifierData *md)
+{
+  GreasePencilLineartModifierData *lmd = reinterpret_cast<GreasePencilLineartModifierData *>(md);
+  lmd->runtime = MEM_new<LineartModifierRuntime>(__func__);
+}
+
 }  // namespace blender
 
 ModifierTypeInfo modifierType_GreasePencilLineart = {
@@ -907,5 +914,5 @@ ModifierTypeInfo modifierType_GreasePencilLineart = {
     /*free_runtime_data*/ nullptr,
     /*panel_register*/ blender::panel_register,
     /*blend_write*/ blender::blend_write,
-    /*blend_read*/ nullptr,
+    /*blend_read*/ blender::blend_read,
 };
