@@ -141,8 +141,8 @@ class Library:
         # Add exception indicator in the name.
         name += library_license.get_exception_suffix(self.exception)
         raw_data = (
-                f'| {name} '
-                f'| {version} '
+            f'| {name} '
+            f'| {version} '
         )
 
         if not library_license.copyright_exemption:
