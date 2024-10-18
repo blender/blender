@@ -220,9 +220,8 @@ void main(void)
   for (int i = 0; i < 4; i++) {
     finalPos[i] = ModelViewProjectionMatrix *
                   vec4(vertex_fetch_attribute(input_prim_id + i, pos, vec3).xyz, 1.0);
-    /* Color attribute uses GPU_FETCH_INT_TO_FLOAT_UNIT with GPU_COMP_U8. */
-    finalColor[i] = uchar4_to_normalized_vec4(
-        vertex_fetch_attribute(input_prim_id + i, color, uchar4));
+    /* Attribute is expected to be in the float4 format. */
+    finalColor[i] = vertex_fetch_attribute(input_prim_id + i, color, float4);
     float in_thickness = vertex_fetch_attribute(input_prim_id + i, thickness, float);
 
     if (gpencil_stroke_data.keep_size) {

@@ -16,7 +16,6 @@ from bl_i18n_utils import (
     settings,
     utils_rtl,
 )
-from typing import Dict
 
 
 ##### Misc Utils #####
@@ -1334,7 +1333,7 @@ class I18n:
 
     def __init__(self, kind=None, src=None, langs=set(), settings=settings):
         self.settings = settings
-        self.trans: Dict[str, I18nMessages] = {}
+        self.trans: dict[str, I18nMessages] = {}
         self.src = {}  # Should have the same keys as self.trans (plus PARSER_PY_ID for py file)!
         self.dst = self._dst  # A callable that transforms src_path into dst_path!
         if kind and src:

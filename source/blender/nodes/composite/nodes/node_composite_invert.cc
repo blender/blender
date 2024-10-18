@@ -6,6 +6,12 @@
  * \ingroup cmpnodes
  */
 
+#include "BLI_math_vector_types.hh"
+
+#include "FN_multi_function_builder.hh"
+
+#include "NOD_multi_function.hh"
+
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
@@ -86,6 +92,16 @@ static ShaderNode *get_compositor_shader_node(DNode node)
   return new InvertShaderNode(node);
 }
 
+static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+{
+  /* Not yet implemented. Return zero. */
+  static auto function = mf::build::SI2_SO<float, float4, float4>(
+      "Invert",
+      [](const float /*factor*/, const float4 & /*color*/) -> float4 { return float4(0.0f); },
+      mf::build::exec_presets::SomeSpanOrSingle<1>());
+  builder.set_matching_fn(function);
+}
+
 }  // namespace blender::nodes::node_composite_invert_cc
 
 void register_node_type_cmp_invert()
@@ -99,6 +115,7 @@ void register_node_type_cmp_invert()
   ntype.draw_buttons = file_ns::node_composit_buts_invert;
   ntype.initfunc = file_ns::node_composit_init_invert;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
+  ntype.build_multi_function = file_ns::node_build_multi_function;
 
   blender::bke::node_register_type(&ntype);
 }

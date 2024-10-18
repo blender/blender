@@ -172,7 +172,7 @@ void main()
 
   int closest_surfel_id = find_closest_surfel(grid_coord, P);
   if (closest_surfel_id == -1) {
-    imageStore(virtual_offset_img, grid_coord, vec4(0.0));
+    imageStoreFast(virtual_offset_img, grid_coord, vec4(0.0));
     return;
   }
 
@@ -190,5 +190,5 @@ void main()
 
   vec3 virtual_offset = offset_direction * offset_length;
 
-  imageStore(virtual_offset_img, grid_coord, vec4(virtual_offset, 0.0));
+  imageStoreFast(virtual_offset_img, grid_coord, vec4(virtual_offset, 0.0));
 }

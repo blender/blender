@@ -1,5 +1,6 @@
 Project: TinyGLTF
 URL: https://github.com/syoyo/tinygltf
-License: MIT
+License: SPDX:MIT
+Copyright: Copyright (c) 2017 Syoyo Fujita, Aurélien Chatelain and many contributors
 Upstream version: 2.8.21, 4bfc1fc1807e
 Local modifications: None

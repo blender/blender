@@ -24,7 +24,7 @@ static Vector<NodesModifierBakeFile> pack_files_from_directory(const StringRefNu
                                                                ReportList *reports)
 {
   if (!BLI_is_dir(directory.c_str())) {
-    BKE_reportf(reports, RPT_ERROR, "%s is no directory", directory.c_str());
+    BKE_reportf(reports, RPT_ERROR, "%s is not a directory", directory.c_str());
     return {};
   }
 
@@ -82,13 +82,13 @@ bool unpack_bake_to_disk(const NodesModifierPackedBake &packed_bake,
     char file_path[FILE_MAX];
     BLI_path_join(file_path, sizeof(file_path), directory.c_str(), bake_file.name);
     if (!BLI_file_ensure_parent_dir_exists(file_path)) {
-      BKE_reportf(reports, RPT_ERROR, "Can't ensure directory: %s", directory.c_str());
+      BKE_reportf(reports, RPT_ERROR, "Cannot ensure directory: %s", directory.c_str());
       return false;
     }
     fstream fs(file_path, std::ios::out);
     fs.write(static_cast<const char *>(bake_file.packed_file->data), bake_file.packed_file->size);
     if (fs.bad()) {
-      BKE_reportf(reports, RPT_ERROR, "Can't write file : %s", file_path);
+      BKE_reportf(reports, RPT_ERROR, "Cannot write file: %s", file_path);
       return false;
     }
     return true;

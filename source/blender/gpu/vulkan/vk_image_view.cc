@@ -10,7 +10,6 @@
 #include "vk_backend.hh"
 #include "vk_debug.hh"
 #include "vk_device.hh"
-#include "vk_memory.hh"
 #include "vk_texture.hh"
 
 namespace blender::gpu {
@@ -43,7 +42,6 @@ VKImageView::VKImageView(VKTexture &texture, const VKImageViewInfo &info, String
     vk_format_ = to_non_srgb_format(vk_format_);
   }
 
-  VK_ALLOCATION_CALLBACKS
   VkImageViewCreateInfo image_view_info = {};
   image_view_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
   image_view_info.image = texture.vk_image_handle();
@@ -60,8 +58,7 @@ VKImageView::VKImageView(VKTexture &texture, const VKImageViewInfo &info, String
   image_view_info.subresourceRange.layerCount = info.layer_range.size();
 
   const VKDevice &device = VKBackend::get().device;
-  vkCreateImageView(
-      device.vk_handle(), &image_view_info, vk_allocation_callbacks, &vk_image_view_);
+  vkCreateImageView(device.vk_handle(), &image_view_info, nullptr, &vk_image_view_);
   debug::object_label(vk_image_view_, name.c_str());
 }
 

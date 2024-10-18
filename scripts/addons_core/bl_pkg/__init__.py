@@ -97,7 +97,7 @@ def manifest_compatible_with_wheel_data_or_error(
         repo_module,  # `str`
         pkg_id,  # `str`
         repo_directory,  # `str`
-        wheel_list,  # `List[Tuple[str, List[str]]]`
+        wheel_list,  # `list[tuple[str, list[str]]]`
 ):  # `Optional[str]`
     from bl_pkg.bl_extension_utils import (
         pkg_manifest_dict_is_valid_or_error,

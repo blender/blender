@@ -1170,3 +1170,9 @@ RESHAPE(float3x3, float3x4, m[0].xyz, m[1].xyz, m[2].xyz)
 #define VERTEX_SHADER_CREATE_INFO(a)
 #define FRAGMENT_SHADER_CREATE_INFO(a)
 #define COMPUTE_SHADER_CREATE_INFO(a)
+
+#define _enum_type(name) name
+#define _enum_decl(name) enum name {
+#define _enum_end \
+  } \
+  ;

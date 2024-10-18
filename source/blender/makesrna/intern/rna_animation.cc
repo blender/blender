@@ -165,7 +165,6 @@ static PointerRNA rna_AnimData_action_get(PointerRNA *ptr)
 
 static void rna_AnimData_action_set(PointerRNA *ptr, PointerRNA value, ReportList *reports)
 {
-#  ifdef WITH_ANIM_BAKLAVA
   using namespace blender::animrig;
   BLI_assert(ptr->owner_id);
   ID &animated_id = *ptr->owner_id;
@@ -174,11 +173,6 @@ static void rna_AnimData_action_set(PointerRNA *ptr, PointerRNA value, ReportLis
   if (!assign_action(action, animated_id)) {
     BKE_report(reports, RPT_ERROR, "Could not change action");
   }
-  UNUSED_VARS(reports);
-#  else
-  ID *ownerId = ptr->owner_id;
-  BKE_animdata_set_action(reports, ownerId, static_cast<bAction *>(value.data));
-#  endif
 }
 
 static void rna_AnimData_tmpact_set(PointerRNA *ptr, PointerRNA value, ReportList *reports)
@@ -231,7 +225,6 @@ bool rna_AnimData_tweakmode_override_apply(Main * /*bmain*/,
   return true;
 }
 
-#  ifdef WITH_ANIM_BAKLAVA
 void rna_generic_action_slot_handle_set(blender::animrig::slot_handle_t slot_handle_to_assign,
                                         ID &animated_id,
                                         bAction *&action_ptr_ref,
@@ -406,8 +399,6 @@ static void rna_iterator_animdata_action_slots_begin(CollectionPropertyIterator 
 {
   rna_iterator_generic_action_slots_begin(iter, rna_animdata(ptr).action);
 }
-
-#  endif /* WITH_ANIM_BAKLAVA */
 
 /* ****************************** */
 
@@ -1000,10 +991,11 @@ bool rna_AnimaData_override_apply(Main *bmain, RNAPropertyOverrideApplyContext &
     adt_dst->action = adt_src->action;
     id_us_plus(reinterpret_cast<ID *>(adt_dst->action));
     id_us_min(reinterpret_cast<ID *>(adt_dst->tmpact));
-#  ifdef WITH_ANIM_BAKLAVA
+
     adt_dst->slot_handle = adt_src->slot_handle;
+    adt_dst->tmp_slot_handle = adt_src->tmp_slot_handle;
     STRNCPY(adt_dst->slot_name, adt_src->slot_name);
-#  endif
+    STRNCPY(adt_dst->tmp_slot_name, adt_src->tmp_slot_name);
     adt_dst->tmpact = adt_src->tmpact;
     id_us_plus(reinterpret_cast<ID *>(adt_dst->tmpact));
     adt_dst->act_blendmode = adt_src->act_blendmode;
@@ -1685,7 +1677,6 @@ static void rna_def_animdata(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Pin in Graph Editor", "");
   RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);
 
-#  ifdef WITH_ANIM_BAKLAVA
   /* This property is not necessary for the Python API (that is better off using
    * slot references/pointers directly), but it is needed for library overrides
    * to work. */
@@ -1744,7 +1735,6 @@ static void rna_def_animdata(BlenderRNA *brna)
                                     nullptr,
                                     nullptr);
   RNA_def_property_ui_text(prop, "Slots", "The list of slots in this animation data-block");
-#  endif /* WITH_ANIM_BAKLAVA */
 
   RNA_define_lib_overridable(false);
 

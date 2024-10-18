@@ -1471,7 +1471,7 @@ static bool modifier_apply_obdata(ReportList *reports,
   }
   else if (ob->type == OB_GREASE_PENCIL) {
     if (mti->modify_geometry_set == nullptr) {
-      BKE_report(reports, RPT_ERROR, "Cannot apply this modifier to grease pencil geometry");
+      BKE_report(reports, RPT_ERROR, "Cannot apply this modifier to Grease Pencil geometry");
       return false;
     }
     GreasePencil &grease_pencil_orig = *static_cast<GreasePencil *>(ob->data);
@@ -1486,7 +1486,7 @@ static bool modifier_apply_obdata(ReportList *reports,
     if (!success) {
       BKE_report(reports,
                  RPT_ERROR,
-                 "Evaluated geometry from modifier does not contain grease pencil geometry");
+                 "Evaluated geometry from modifier does not contain Grease Pencil geometry");
       return false;
     }
   }

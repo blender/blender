@@ -603,7 +603,7 @@ static void flushTransSeq(TransInfo *t)
       }
       case SEQ_LEFTSEL: { /* No vertical transform. */
         /* Update right handle first if both handles are selected and the new_frame is right of
-         * the old one to avoid unexpected left handle clamping when cancelling. See #126191. */
+         * the old one to avoid unexpected left handle clamping when canceling. See #126191. */
         bool both_handles_selected = (tdsq->flag & (SEQ_LEFTSEL | SEQ_RIGHTSEL)) ==
                                      (SEQ_LEFTSEL | SEQ_RIGHTSEL);
         if (both_handles_selected && new_frame > SEQ_time_left_handle_frame_get(scene, seq)) {

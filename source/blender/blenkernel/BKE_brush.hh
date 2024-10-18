@@ -53,7 +53,7 @@ void BKE_brush_init_curves_sculpt_settings(Brush *brush);
 /**
  * Tag a linked brush as having changed settings so an indicator can be displayed to the user,
  * showing that the brush settings differ from the state of the imported brush asset. Call
- * everytime a user visible change to the brush is done.
+ * every time a user visible change to the brush is done.
  *
  * Since this is meant to indicate brushes that are known to differ from the linked source file,
  * tagging is only performed for linked brushes. File local brushes are normal data-blocks that get

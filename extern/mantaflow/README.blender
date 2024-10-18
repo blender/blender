@@ -1,6 +1,7 @@
 Project: Mantaflow
 URL: http://mantaflow.com/
-License: Apache 2.0
+License: SPDX:Apache-2.0
+Copyright: Copyright 2011 Tobias Pfaff, Nils Thuerey
 Upstream version: 0.13
 Local modifications:
 * ./patches/local_namespace.diff to support loading MANTA variables into an isolated __main__ name-space.

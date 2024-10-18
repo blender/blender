@@ -16,7 +16,7 @@
 #include "gpu_shader_debug_gradients_lib.glsl"
 
 /** Control the scaling of the tile-map splat. */
-const float pixel_scale = 4.0;
+#define pixel_scale float(4.0)
 
 ShadowSamplingTile shadow_tile_data_get(usampler2D tilemaps_tx, ShadowCoordinates coord)
 {
@@ -36,11 +36,9 @@ vec3 debug_random_color(int v)
 
 void debug_tile_print(ShadowTileData tile, ivec4 tile_coord)
 {
-#ifdef DRW_DEBUG_PRINT
-  drw_print("Tile (", tile_coord.x, ",", tile_coord.y, ") in Tilemap ", tile_coord.z, " : ");
-  drw_print(tile.page);
-  drw_print(tile.cache_index);
-#endif
+  /* Printf injection is based on string literal detection. Comment it out unless needed. */
+  /* printf("Tile (%u, %u) in Tilemap %u: page(%u, %u, %u), cache_index %u", tile_coord.x,
+   * tile_coord.y, tile_coord.z, tile.page.x, tile.page.y, tile.page.z, tile.cache_index); */
 }
 
 vec3 debug_tile_state_color(ShadowTileData tile)

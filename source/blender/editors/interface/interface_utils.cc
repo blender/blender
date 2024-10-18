@@ -458,17 +458,13 @@ void ui_rna_collection_search_update_fn(
           has_sep_char = ID_IS_LINKED(id);
         }
       }
-#ifdef WITH_ANIM_BAKLAVA
       else if (itemptr.type == &RNA_ActionSlot) {
         PropertyRNA *prop = RNA_struct_find_property(&itemptr, "name_display");
         name = RNA_property_string_get_alloc(&itemptr, prop, name_buf, sizeof(name_buf), nullptr);
       }
       else {
-#endif /* WITH_ANIM_BAKLAVA */
         name = RNA_struct_name_get_alloc(&itemptr, name_buf, sizeof(name_buf), nullptr);
-#ifdef WITH_ANIM_BAKLAVA
       }
-#endif /* WITH_ANIM_BAKLAVA */
 
       if (name) {
         auto cis = std::make_unique<CollItemSearch>();

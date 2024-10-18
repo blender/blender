@@ -95,7 +95,7 @@ void main()
                                                   grid_coord);
 
   /* Add virtual offset to avoid baking inside of geometry as much as possible. */
-  P += imageLoad(virtual_offset_img, grid_coord).xyz;
+  P += imageLoadFast(virtual_offset_img, grid_coord).xyz;
 
   /* Project to get ray linked list. */
   float irradiance_sample_ray_distance;
@@ -116,11 +116,11 @@ void main()
   vec3 sky_L = drw_world_incident_vector(P);
 
   SphericalHarmonicL1 sh;
-  sh.L0.M0 = imageLoad(irradiance_L0_img, grid_coord);
-  sh.L1.Mn1 = imageLoad(irradiance_L1_a_img, grid_coord);
-  sh.L1.M0 = imageLoad(irradiance_L1_b_img, grid_coord);
-  sh.L1.Mp1 = imageLoad(irradiance_L1_c_img, grid_coord);
-  float validity = imageLoad(validity_img, grid_coord).r;
+  sh.L0.M0 = imageLoadFast(irradiance_L0_img, grid_coord);
+  sh.L1.Mn1 = imageLoadFast(irradiance_L1_a_img, grid_coord);
+  sh.L1.M0 = imageLoadFast(irradiance_L1_b_img, grid_coord);
+  sh.L1.Mp1 = imageLoadFast(irradiance_L1_c_img, grid_coord);
+  float validity = imageLoadFast(validity_img, grid_coord).r;
 
   /* Un-normalize for accumulation. */
   float weight_captured = capture_info_buf.sample_index * 2.0;
@@ -158,9 +158,9 @@ void main()
   sh.L1.Mp1 /= weight_captured;
   validity /= weight_captured;
 
-  imageStore(irradiance_L0_img, grid_coord, sh.L0.M0);
-  imageStore(irradiance_L1_a_img, grid_coord, sh.L1.Mn1);
-  imageStore(irradiance_L1_b_img, grid_coord, sh.L1.M0);
-  imageStore(irradiance_L1_c_img, grid_coord, sh.L1.Mp1);
-  imageStore(validity_img, grid_coord, vec4(validity));
+  imageStoreFast(irradiance_L0_img, grid_coord, sh.L0.M0);
+  imageStoreFast(irradiance_L1_a_img, grid_coord, sh.L1.Mn1);
+  imageStoreFast(irradiance_L1_b_img, grid_coord, sh.L1.M0);
+  imageStoreFast(irradiance_L1_c_img, grid_coord, sh.L1.Mp1);
+  imageStoreFast(validity_img, grid_coord, vec4(validity));
 }

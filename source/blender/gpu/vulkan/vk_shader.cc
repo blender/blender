@@ -14,7 +14,6 @@
 
 #include "vk_backend.hh"
 #include "vk_framebuffer.hh"
-#include "vk_memory.hh"
 #include "vk_shader_interface.hh"
 #include "vk_shader_log.hh"
 #include "vk_state_manager.hh"
@@ -652,8 +651,6 @@ bool VKShader::is_ready() const
 bool VKShader::finalize_pipeline_layout(VkDevice vk_device,
                                         const VKShaderInterface &shader_interface)
 {
-  VK_ALLOCATION_CALLBACKS
-
   const uint32_t layout_count = vk_descriptor_set_layout_ == VK_NULL_HANDLE ? 0 : 1;
   VkPipelineLayoutCreateInfo pipeline_info = {};
   VkPushConstantRange push_constant_range = {};
@@ -674,8 +671,8 @@ bool VKShader::finalize_pipeline_layout(VkDevice vk_device,
     pipeline_info.pPushConstantRanges = &push_constant_range;
   }
 
-  if (vkCreatePipelineLayout(
-          vk_device, &pipeline_info, vk_allocation_callbacks, &vk_pipeline_layout) != VK_SUCCESS)
+  if (vkCreatePipelineLayout(vk_device, &pipeline_info, nullptr, &vk_pipeline_layout) !=
+      VK_SUCCESS)
   {
     return false;
   };

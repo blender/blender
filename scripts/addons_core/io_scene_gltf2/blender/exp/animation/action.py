@@ -55,7 +55,7 @@ def gather_actions_animations(export_settings):
         # Fake an animation with all animations of the scene
         merged_tracks = {}
         merged_tracks_name = 'Animation'
-        if(len(export_settings['gltf_nla_strips_merged_animation_name']) > 0):
+        if (len(export_settings['gltf_nla_strips_merged_animation_name']) > 0):
             merged_tracks_name = export_settings['gltf_nla_strips_merged_animation_name']
         merged_tracks[merged_tracks_name] = []
         for idx, animation in enumerate(animations):
@@ -490,7 +490,7 @@ def gather_action_animations(obj_uuid: int,
                 and export_settings['gltf_morph_anim'] \
                 and blender_object.type == "MESH" \
                 and blender_object.data is not None \
-            and blender_object.data.shape_keys is not None:
+        and blender_object.data.shape_keys is not None:
             if export_settings['gltf_bake_animation'] is True and export_settings['gltf_force_sampling'] is True:
                 # We need to check that this mesh is not driven by armature parent
                 # In that case, no need to bake, because animation is already baked by driven sk armature

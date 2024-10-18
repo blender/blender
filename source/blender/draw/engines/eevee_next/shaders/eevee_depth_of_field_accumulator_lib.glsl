@@ -24,15 +24,15 @@
 /* Quality options */
 #ifdef DOF_HOLEFILL_PASS
 /* No need for very high density for hole_fill. */
-const int gather_ring_count = 3;
-const int gather_ring_density = 3;
-const int gather_max_density_change = 0;
-const int gather_density_change_ring = 1;
+#  define gather_ring_count int(3)
+#  define gather_ring_density int(3)
+#  define gather_max_density_change int(0)
+#  define gather_density_change_ring int(1)
 #else
-const int gather_ring_count = DOF_GATHER_RING_COUNT;
-const int gather_ring_density = 3;
-const int gather_max_density_change = 50; /* Dictates the maximum good quality blur. */
-const int gather_density_change_ring = 1;
+#  define gather_ring_count int(DOF_GATHER_RING_COUNT)
+#  define gather_ring_density int(3)
+#  define gather_max_density_change int(50) /* Dictates the maximum good quality blur. */
+#  define gather_density_change_ring int(1)
 #endif
 
 /** \} */
@@ -41,14 +41,14 @@ const int gather_density_change_ring = 1;
 /** \name Constants.
  * \{ */
 
-const float unit_ring_radius = 1.0 / float(gather_ring_count);
-const float unit_sample_radius = 1.0 / float(gather_ring_count + 0.5);
-const float large_kernel_radius = 0.5 + float(gather_ring_count);
-const float smaller_kernel_radius = 0.5 + float(gather_ring_count - gather_density_change_ring);
+#define unit_ring_radius float(1.0 / float(gather_ring_count))
+#define unit_sample_radius float(1.0 / float(gather_ring_count + 0.5))
+#define large_kernel_radius float(0.5 + float(gather_ring_count))
+#define smaller_kernel_radius float(0.5 + float(gather_ring_count - gather_density_change_ring))
 /* NOTE(fclem) the bias is reducing issues with density change visible transition. */
-const float radius_downscale_factor = smaller_kernel_radius / large_kernel_radius;
-const int change_density_at_ring = (gather_ring_count - gather_density_change_ring + 1);
-const float coc_radius_error = 2.0;
+#define radius_downscale_factor float(smaller_kernel_radius / large_kernel_radius)
+#define change_density_at_ring int((gather_ring_count - gather_density_change_ring + 1))
+#define coc_radius_error float(2.0)
 
 /** \} */
 
@@ -231,7 +231,7 @@ void dof_gather_accumulate_sample_ring(DofGatherData ring_data,
    * cases. We might need to make it a parameter or find a relative bias. */
   float accum_occlu = saturate((ring_avg_coc - accum_avg_coc) * 0.1 - 1.0);
 
-  if (is_resolve) {
+  if (IS_RESOLVE) {
     ring_occlu = accum_occlu = 0.0;
   }
 
@@ -352,7 +352,7 @@ void dof_gather_accumulate_resolve(int total_sample_count,
   out_col = accum_data.color * weight_inv;
   out_occlusion = vec2(abs(accum_data.coc), accum_data.coc_sqr) * weight_inv;
 
-  if (is_foreground) {
+  if (IS_FOREGROUND) {
     out_weight = 1.0 - accum_data.transparency;
   }
   else if (accum_data.weight > 0.0) {
@@ -492,7 +492,7 @@ void dof_gather_accumulator(sampler2D color_tx,
         if (DOF_BOKEH_TEXTURE) {
           /* Scaling to 0.25 for speed. Improves texture cache hit. */
           offset_co = texture(bkh_lut_tx, offset_co * 0.25 + 0.5).rg;
-          offset_co *= (is_foreground) ? -dof_buf.bokeh_anisotropic_scale :
+          offset_co *= (IS_FOREGROUND) ? -dof_buf.bokeh_anisotropic_scale :
                                          dof_buf.bokeh_anisotropic_scale;
         }
         vec2 sample_co = center_co + offset_co * ring_radius;
@@ -512,12 +512,12 @@ void dof_gather_accumulator(sampler2D color_tx,
                                         isect_mul,
                                         first_ring,
                                         do_fast_gather,
-                                        is_foreground,
+                                        IS_FOREGROUND,
                                         ring_data,
                                         accum_data);
     }
 
-    if (is_foreground) {
+    if (IS_FOREGROUND) {
       /* Reduce issue with closer foreground over distant foreground. */
       /* TODO(fclem) this seems to not be completely correct as the issue remains. */
       float ring_area = (square(float(ring) + 0.5 + coc_radius_error) -
@@ -527,7 +527,7 @@ void dof_gather_accumulator(sampler2D color_tx,
     }
 
     dof_gather_accumulate_sample_ring(
-        ring_data, sample_pair_count * 2, first_ring, do_fast_gather, is_foreground, accum_data);
+        ring_data, sample_pair_count * 2, first_ring, do_fast_gather, IS_FOREGROUND, accum_data);
 
     first_ring = false;
 
@@ -541,7 +541,7 @@ void dof_gather_accumulator(sampler2D color_tx,
          * For that multiply old kernel data by its area divided by the new kernel area. */
         const float outer_rings_weight = 1.0 / (radius_downscale_factor * radius_downscale_factor);
         /* Samples are already weighted per ring in foreground pass. */
-        if (!is_foreground) {
+        if (!IS_FOREGROUND) {
           dof_gather_amend_weight(accum_data, outer_rings_weight);
         }
         /* Re-init kernel position & sampling parameters. */
@@ -568,7 +568,7 @@ void dof_gather_accumulator(sampler2D color_tx,
     float bordering_radius = (0.5 + coc_radius_error) * base_radius * unit_sample_radius;
 
     dof_gather_accumulate_center_sample(
-        center_data, bordering_radius, 0, do_fast_gather, is_foreground, false, accum_data);
+        center_data, bordering_radius, 0, do_fast_gather, IS_FOREGROUND, false, accum_data);
   }
 
   int total_sample_count = dof_gather_total_sample_count_with_density_change(

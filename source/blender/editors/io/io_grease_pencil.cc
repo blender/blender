@@ -196,7 +196,7 @@ static bool grease_pencil_import_svg_poll(bContext *C)
 void WM_OT_grease_pencil_import_svg(wmOperatorType *ot)
 {
   ot->name = "Import SVG as Grease Pencil";
-  ot->description = "Import SVG into grease pencil";
+  ot->description = "Import SVG into Grease Pencil";
   ot->idname = "WM_OT_grease_pencil_import_svg";
 
   ot->invoke = blender::ed::io::filesel_drop_import_invoke;
@@ -369,7 +369,7 @@ static bool grease_pencil_export_svg_poll(bContext *C)
 void WM_OT_grease_pencil_export_svg(wmOperatorType *ot)
 {
   ot->name = "Export to SVG";
-  ot->description = "Export grease pencil to SVG";
+  ot->description = "Export Grease Pencil to SVG";
   ot->idname = "WM_OT_grease_pencil_export_svg";
 
   ot->invoke = blender::ed::io::grease_pencil_export_svg_invoke;
@@ -536,7 +536,7 @@ static bool grease_pencil_export_pdf_poll(bContext *C)
 void WM_OT_grease_pencil_export_pdf(wmOperatorType *ot)
 {
   ot->name = "Export to PDF";
-  ot->description = "Export grease pencil to PDF";
+  ot->description = "Export Grease Pencil to PDF";
   ot->idname = "WM_OT_grease_pencil_export_pdf";
 
   ot->invoke = blender::ed::io::grease_pencil_export_pdf_invoke;

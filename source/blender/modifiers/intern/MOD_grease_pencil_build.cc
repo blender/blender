@@ -112,11 +112,13 @@ static Array<int> point_counts_to_keep_concurrent(const bke::CurvesGeometry &cur
 {
   const int stroke_count = curves.curves_num();
   const OffsetIndices<int> points_by_curve = curves.points_by_curve();
+  const VArray<bool> cyclic = curves.cyclic();
 
   curves.ensure_evaluated_lengths();
   float max_length = 0;
   for (const int stroke : curves.curves_range()) {
-    const float len = curves.evaluated_length_total_for_curve(stroke, false);
+    const bool stroke_cyclic = cyclic[stroke];
+    const float len = curves.evaluated_length_total_for_curve(stroke, stroke_cyclic);
     max_length = math::max(max_length, len);
   }
 
@@ -128,7 +130,9 @@ static Array<int> point_counts_to_keep_concurrent(const bke::CurvesGeometry &cur
   }
 
   auto get_stroke_factor = [&](const float factor, const int index) {
-    const float max_factor = max_length / curves.evaluated_length_total_for_curve(index, false);
+    const bool stroke_cyclic = cyclic[index];
+    const float max_factor = max_length /
+                             curves.evaluated_length_total_for_curve(index, stroke_cyclic);
     if (time_alignment == MOD_GREASE_PENCIL_BUILD_TIMEALIGN_START) {
       if (clamp_points) {
         return std::clamp(factor * max_factor, 0.0f, 1.0f);

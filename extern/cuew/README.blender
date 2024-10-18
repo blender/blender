@@ -1,5 +1,6 @@
 Project: Cuda Wrangler
 URL: https://github.com/CudaWrangler/cuew
-License: Apache 2.0
+License: SPDX:Apache-2.0
 Upstream version: cbf465b
+Copyright: Copyright 2011-2014 Blender Foundation
 Local modifications: None

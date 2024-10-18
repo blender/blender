@@ -43,6 +43,9 @@ Array<Mesh *> extract_mesh_vertices(const Mesh &mesh,
       return;
     }
     const bke::GAttributeReader src_attribute = iter.get(AttrDomain::Point);
+    if (!src_attribute) {
+      return;
+    }
     propagation_attributes.append({iter.name, iter.data_type, AttrDomain::Point, *src_attribute});
   });
 

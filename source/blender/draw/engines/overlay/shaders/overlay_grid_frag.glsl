@@ -203,7 +203,7 @@ void main()
     }
   }
 
-  float scene_depth = texelFetch(depth_tx, ivec2(gl_FragCoord.xy), 0).r;
+  float scene_depth = texture(depth_tx, gl_FragCoord.xy / vec2(textureSize(depth_tx, 0)), 0).r;
   if (flag_test(grid_flag, GRID_BACK)) {
     fade *= (scene_depth == 1.0) ? 1.0 : 0.0;
   }

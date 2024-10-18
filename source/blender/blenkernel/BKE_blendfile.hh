@@ -236,6 +236,11 @@ class PartialWriteContext : NonCopyable, NonMovable {
      *
      * \warning By default, when #ADD_DEPENDENCIES is defined, this will also apply to all
      * dependencies as well.
+     *
+     * \note Often required when only a small subset of the ID dependencies are also added to the
+     * context (i.e. many of the added data's ID pointers are set to `nullptr`). Otherwise, some
+     * areas not expecting nullptr (like LibOverride data) may assert or error on load of the
+     * partial written blendfile.
      */
     MAKE_LOCAL = 1 << 0,
     /**

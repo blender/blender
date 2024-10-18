@@ -35,7 +35,7 @@ bool assign_action(NlaStrip &strip, Action &action, ID &animated_id)
    * The generic code doesn't work for this. The first strip assignment would see the slot
    * `XXSlot`, and because it has never been used, just use it. This would change its name to, for
    * example, `OBSlot`. The second strip assignment would not see a 'virgin' slot, and thus not
-   * auto-select `OBSlot`. This behaviour makes sense when assigning Actions in the Action editor
+   * auto-select `OBSlot`. This behavior makes sense when assigning Actions in the Action editor
    * (it shouldn't automatically pick the first slot of matching ID type), but for the NLA I
    * (Sybren) feel that it could be a bit more 'enthousiastic' in auto-picking a slot.
    */

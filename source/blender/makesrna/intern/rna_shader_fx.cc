@@ -659,7 +659,7 @@ void RNA_def_shader_fx(BlenderRNA *brna)
 
   /* data */
   srna = RNA_def_struct(brna, "ShaderFx", nullptr);
-  RNA_def_struct_ui_text(srna, "ShaderFx", "Effect affecting the grease pencil object");
+  RNA_def_struct_ui_text(srna, "ShaderFx", "Effect affecting the Grease Pencil object");
   RNA_def_struct_refine_func(srna, "rna_ShaderFx_refine");
   RNA_def_struct_path_func(srna, "rna_ShaderFx_path");
   RNA_def_struct_sdna(srna, "ShaderFxData");

@@ -647,7 +647,7 @@ static void determine_visible_panels_impl_recursive(const bNode &node,
   r_result[panel_decl.index] = true;
   const bNodePanelState &panel_state = node.panel_states_array[panel_decl.index];
   if (panel_state.is_collapsed()) {
-    /* The subpanels can't be visible if this panel is collapsed. */
+    /* The sub-panels can't be visible if this panel is collapsed. */
     return;
   }
   for (const nodes::ItemDeclaration *item_decl : panel_decl.items) {

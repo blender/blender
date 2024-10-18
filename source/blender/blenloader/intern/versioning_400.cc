@@ -47,6 +47,7 @@
 #include "BLI_set.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
+#include "BLI_string_utf8.h"
 
 #include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
@@ -62,6 +63,7 @@
 #include "BKE_grease_pencil.hh"
 #include "BKE_idprop.hh"
 #include "BKE_image_format.h"
+#include "BKE_lib_query.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_mesh_legacy_convert.hh"
@@ -120,9 +122,17 @@ static void convert_action_in_place(blender::animrig::Action &action)
   if (action.is_action_layered()) {
     return;
   }
-  Slot &slot = action.slot_add();
-  slot.idtype = action.idroot;
+
+  /* Store this ahead of time, because adding the slot sets the action's idroot
+   * to 0. We also set the action's idroot to 0 manually, just to be defensive
+   * so we don't depend on esoteric behavior in `slot_add()`. */
+  const int16_t idtype = action.idroot;
   action.idroot = 0;
+
+  Slot &slot = action.slot_add();
+  slot.idtype = idtype;
+  slot.name_ensure_prefix();
+
   Layer &layer = action.layer_add("Layer");
   blender::animrig::Strip &strip = layer.strip_add(action,
                                                    blender::animrig::Strip::Type::Keyframe);
@@ -180,8 +190,10 @@ static void version_legacy_actions_to_layered(Main *bmain)
 
   ID *id;
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    auto callback =
-        [&](bAction *&action_ptr_ref, slot_handle_t &slot_handle_ref, char *slot_name) -> bool {
+    auto callback = [&](ID &animated_id,
+                        bAction *&action_ptr_ref,
+                        slot_handle_t &slot_handle_ref,
+                        char *slot_name) -> bool {
       blender::Vector<ActionUserInfo> *action_user_vector = action_users.lookup_ptr(
           action_ptr_ref);
       /* Only actions that need to be converted are in this map. */
@@ -189,7 +201,7 @@ static void version_legacy_actions_to_layered(Main *bmain)
         return true;
       }
       ActionUserInfo user_info;
-      user_info.id = id;
+      user_info.id = &animated_id;
       user_info.action_ptr_ptr = &action_ptr_ref;
       user_info.slot_handle = &slot_handle_ref;
       user_info.slot_name = slot_name;
@@ -197,7 +209,33 @@ static void version_legacy_actions_to_layered(Main *bmain)
       return true;
     };
 
+    auto embedded_id_callback = [&](LibraryIDLinkCallbackData *cb_data) -> int {
+      ID *linked_id = *cb_data->id_pointer;
+
+      /* We only process embedded IDs with this callback. */
+      if (!linked_id || (linked_id->flag & ID_FLAG_EMBEDDED_DATA) == 0) {
+        return IDWALK_RET_STOP_RECURSION;
+      }
+
+      foreach_action_slot_use_with_references(*linked_id, callback);
+
+      return IDWALK_RET_NOP;
+    };
+
+    /* Process the main ID itself. */
     foreach_action_slot_use_with_references(*id, callback);
+
+    /* Process embedded IDs, as these are not listed in bmain, but still can
+     * have their own Action+Slot. */
+    BKE_library_foreach_ID_link(
+        bmain,
+        id,
+        embedded_id_callback,
+        nullptr,
+        IDWALK_RECURSE | IDWALK_READONLY |
+            /* This is more about "we don't care" than "must be ignored". We don't pass an owner
+             * ID, and it's not used in the callback either, so don't bother looking it up.  */
+            IDWALK_IGNORE_MISSING_OWNER_ID);
   }
   FOREACH_MAIN_ID_END;
 
@@ -223,31 +261,26 @@ static void version_legacy_actions_to_layered(Main *bmain)
         case ActionSlotAssignmentResult::OK:
           break;
         case ActionSlotAssignmentResult::SlotNotSuitable:
-          /* The slot assignment can fail in the following scenario, when dealing
-           * with "old Blender" (only supporting legacy Actions) and "new Blender"
-           * (versions supporting slotted/layered Actions).
+          /* If the slot wasn't suitable for the ID, we force assignment anyway,
+           * but with a warning.
            *
-           * - New Blender: create an action with two slots, ME and KE, and assign
-           *   to respectively a Mesh and a Shape Key. Save the file.
-           * - Old Blender: load the file. This will load the legacy data, but still
-           *   keep the assignments. This means that the Shape Key will get a ME
-           *   Action assigned, which is incompatible. Save the file.
-           * - New Blender: upgrades the Action (this code here), and tries to
-           *   assign the first (and by now only) slot. This will fail for the shape
-           *   key, as the ID type doesn't match.
-           *
-           * The failure is in itself okay, as there was actual data loss in this
-           * scenario, and so issuing a warning is the right way to go about this.
-           * The Action is still assigned, but the data-block won't get a slot
-           * assigned.
+           * This happens when the legacy action assigned to the ID had a
+           * mismatched idroot, and therefore the created slot does as well.
+           * This mismatch can happen in a variety of ways, and we opt to
+           * preserve this unusual (but technically valid) state of affairs.
            */
+          *action_user.slot_handle = slot_to_assign.handle;
+          BLI_strncpy_utf8(action_user.slot_name, slot_to_assign.name, Slot::name_length_max);
+
           printf(
-              "Warning: while upgrading legacy Action \"%s\", its slot \"%s\" could not be "
-              "assigned to data-block \"%s\" because it was meant for ID type \"%s\". The Action "
-              "assignment will be kept, but \"%s\" will not be animated.\n",
+              "Warning: legacy action \"%s\" is assigned to \"%s\", which does not match the "
+              "action's id_root \"%s\". The action has been upgraded to a slotted action with "
+              "slot \"%s\" with an id_type \"%s\", which has also been assigned to \"%s\" despite "
+              "this type mismatch. This likely indicates something odd about the blend file.\n",
               action.id.name + 2,
-              slot_to_assign.name_without_prefix().c_str(),
               action_user.id->name,
+              slot_to_assign.name_prefix_for_idtype().c_str(),
+              slot_to_assign.name_without_prefix().c_str(),
               slot_to_assign.name_prefix_for_idtype().c_str(),
               action_user.id->name);
           break;
@@ -1222,9 +1255,7 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
     version_node_socket_index_animdata(bmain, NTREE_SHADER, SH_NODE_BSDF_PRINCIPLED, 7, 1, 30);
   }
 
-  /* Keeping this block is without a `MAIN_VERSION_FILE_ATLEAST` until the experimental flag is
-   * removed. */
-  if (USER_EXPERIMENTAL_TEST(&U, use_animation_baklava)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 2)) {
     version_legacy_actions_to_layered(bmain);
   }
 
@@ -4940,6 +4971,17 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
         if (md->type == eModifierType_Nodes) {
           md->layout_panel_open_flag |= 1 << NODES_MODIFIER_PANEL_WARNINGS;
         }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 403, 31)) {
+    LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspaces) {
+      LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
+        if (tref->space_type != SPACE_SEQ) {
+          continue;
+        }
+        STRNCPY(tref->idname, "builtin.select_box");
       }
     }
   }

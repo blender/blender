@@ -18,7 +18,7 @@ void main()
 
   if (depth == 1.0) {
     /* Do not trace for background */
-    imageStore(out_ao_img, ivec3(texel, out_ao_img_layer_index), vec4(0.0));
+    imageStoreFast(out_ao_img, ivec3(texel, out_ao_img_layer_index), vec4(0.0));
     return;
   }
 
@@ -42,5 +42,5 @@ void main()
                                              false,
                                              true);
 
-  imageStore(out_ao_img, ivec3(texel, out_ao_img_layer_index), vec4(saturate(scan.result)));
+  imageStoreFast(out_ao_img, ivec3(texel, out_ao_img_layer_index), vec4(saturate(scan.result)));
 }

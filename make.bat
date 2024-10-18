@@ -39,6 +39,11 @@ if "%FORMAT%" == "1" (
 	goto EOF
 )
 
+if "%LICENSE%" == "1" (
+	call "%BLENDER_DIR%\build_files\windows\license.cmd"
+	goto EOF
+)
+
 call "%BLENDER_DIR%\build_files\windows\detect_architecture.cmd"
 if errorlevel 1 goto EOF
 

@@ -310,7 +310,6 @@ static void action_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
-#ifdef WITH_ANIM_BAKLAVA
 static void write_channelbag(BlendWriter *writer, animrig::ChannelBag &channelbag)
 {
   BLO_write_struct(writer, ActionChannelBag, &channelbag);
@@ -487,13 +486,11 @@ static void action_blend_write_clear_legacy_fcurves_listbase(ListBase &listbase)
 
   BLI_listbase_clear(&listbase);
 }
-#endif /* WITH_ANIM_BAKLAVA */
 
 static void action_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   animrig::Action &action = reinterpret_cast<bAction *>(id)->wrap();
 
-#ifdef WITH_ANIM_BAKLAVA
   /* Create legacy data for Layered Actions: the F-Curves from the first Slot,
    * bottom layer, first Keyframe strip. */
   const bool do_write_forward_compat = !BLO_write_is_undo(writer) && action.slot_array_num > 0 &&
@@ -517,28 +514,10 @@ static void action_blend_write(BlendWriter *writer, ID *id, const void *id_addre
       action_blend_write_make_legacy_channel_groups_listbase(action.groups, bag->channel_groups());
     }
   }
-#else
-  /* Built without Baklava, so ensure that the written data is clean. This should not change
-   * anything, as the reading code below also ensures these fields are empty, and the APIs to add
-   * those should be unavailable. */
-  BLI_assert_msg(action.layer_array == nullptr,
-                 "Action should not have layers, built without Baklava experimental feature");
-  BLI_assert_msg(action.layer_array_num == 0,
-                 "Action should not have layers, built without Baklava experimental feature");
-  BLI_assert_msg(action.slot_array == nullptr,
-                 "Action should not have slots, built without Baklava experimental feature");
-  BLI_assert_msg(action.slot_array_num == 0,
-                 "Action should not have slots, built without Baklava experimental feature");
-  action.layer_array = nullptr;
-  action.layer_array_num = 0;
-  action.slot_array = nullptr;
-  action.slot_array_num = 0;
-#endif /* WITH_ANIM_BAKLAVA */
 
   BLO_write_id_struct(writer, bAction, id_address, &action.id);
   BKE_id_blend_write(writer, &action.id);
 
-#ifdef WITH_ANIM_BAKLAVA
   /* Write layered Action data. */
   write_strip_keyframe_data_array(writer, action.strip_keyframe_data());
   write_layers(writer, action.layers());
@@ -560,7 +539,6 @@ static void action_blend_write(BlendWriter *writer, ID *id, const void *id_addre
     action_blend_write_clear_legacy_channel_groups_listbase(action.groups);
     action_blend_write_clear_legacy_fcurves_listbase(action.curves);
   }
-#endif /* WITH_ANIM_BAKLAVA */
 
   /* Write legacy F-Curves & Groups. */
   BKE_fcurve_blend_write_listbase(writer, &action.curves);
@@ -574,8 +552,6 @@ static void action_blend_write(BlendWriter *writer, ID *id, const void *id_addre
 
   BKE_previewimg_blend_write(writer, action.preview);
 }
-
-#ifdef WITH_ANIM_BAKLAVA
 
 static void read_channelbag(BlendDataReader *reader, animrig::ChannelBag &channelbag)
 {
@@ -680,7 +656,6 @@ static void read_slots(BlendDataReader *reader, animrig::Action &action)
     action.slot_array[i]->wrap().blend_read_post();
   }
 }
-#endif /* WITH_ANIM_BAKLAVA */
 
 static void action_blend_read_data(BlendDataReader *reader, ID *id)
 {
@@ -693,21 +668,9 @@ static void action_blend_read_data(BlendDataReader *reader, ID *id)
     BLI_endian_switch_int16(reinterpret_cast<short *>(&act->idroot));
   }
 
-#ifdef WITH_ANIM_BAKLAVA
   read_strip_keyframe_data_array(reader, action);
   read_layers(reader, action);
   read_slots(reader, action);
-#else
-  /* Built without Baklava, so do not read the layers, strips, slots, etc.
-   * This ensures the F-Curves in the legacy `curves` ListBase are read & used
-   * (these are written by future Blender versions for forward compatibility). */
-  action.layer_array = nullptr;
-  action.layer_array_num = 0;
-  action.slot_array = nullptr;
-  action.slot_array_num = 0;
-  action.strip_keyframe_data_array = nullptr;
-  action.strip_keyframe_data_array_num = 0;
-#endif /* WITH_ANIM_BAKLAVA */
 
   if (action.is_action_layered()) {
     /* Clear the forward-compatible storage (see action_blend_write_data()). */
@@ -731,12 +694,6 @@ static void action_blend_read_data(BlendDataReader *reader, ID *id)
     LISTBASE_FOREACH (bActionGroup *, agrp, &action.groups) {
       BLO_read_struct(reader, FCurve, &agrp->channels.first);
       BLO_read_struct(reader, FCurve, &agrp->channels.last);
-#ifndef WITH_ANIM_BAKLAVA
-      /* Ensure that the group's 'channelbag' pointer is nullptr. This is used to distinguish
-       * groups from legacy vs layered Actions, and since this Blender is built without layered
-       * Actions support, the Action should be treated as legacy. */
-      agrp->channel_bag = nullptr;
-#endif
     }
   }
 
@@ -1686,6 +1643,12 @@ void BKE_pose_channel_copy_data(bPoseChannel *pchan, const bPoseChannel *pchan_f
   copy_v3_v3(pchan->custom_translation, pchan_from->custom_translation);
   copy_v3_v3(pchan->custom_rotation_euler, pchan_from->custom_rotation_euler);
   pchan->custom_shape_wire_width = pchan_from->custom_shape_wire_width;
+
+  pchan->color.palette_index = pchan_from->color.palette_index;
+  copy_v4_v4_uchar(pchan->color.custom.active, pchan_from->color.custom.active);
+  copy_v4_v4_uchar(pchan->color.custom.select, pchan_from->color.custom.select);
+  copy_v4_v4_uchar(pchan->color.custom.solid, pchan_from->color.custom.solid);
+  pchan->color.custom.flag = pchan_from->color.custom.flag;
 
   pchan->drawflag = pchan_from->drawflag;
 }

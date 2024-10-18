@@ -41,10 +41,6 @@ set(LIB
   PRIVATE bf::animrig
 )
 
-if(WITH_EXPERIMENTAL_FEATURES)
-  add_definitions(-DWITH_ANIM_BAKLAVA)
-endif()
-
 blender_add_lib(bf_editor_space_action "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 # RNA_prototypes.hh dna_type_offsets.h

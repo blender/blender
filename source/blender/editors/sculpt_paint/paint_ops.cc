@@ -999,7 +999,7 @@ void ED_operatortypes_paint()
   WM_operatortype_append(BRUSH_OT_asset_edit_metadata);
   WM_operatortype_append(BRUSH_OT_asset_load_preview);
   WM_operatortype_append(BRUSH_OT_asset_delete);
-  WM_operatortype_append(BRUSH_OT_asset_update);
+  WM_operatortype_append(BRUSH_OT_asset_save);
   WM_operatortype_append(BRUSH_OT_asset_revert);
 
   /* image */

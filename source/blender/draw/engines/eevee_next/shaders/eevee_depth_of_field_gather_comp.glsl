@@ -25,7 +25,7 @@ void main()
 
   float base_radius, min_radius, min_intersectable_radius;
   bool can_early_out;
-  if (is_foreground) {
+  if (IS_FOREGROUND) {
     base_radius = -coc_tile.fg_min_coc;
     min_radius = -coc_tile.fg_max_coc;
     min_intersectable_radius = -coc_tile.fg_max_intersectable_coc;
@@ -38,7 +38,7 @@ void main()
     can_early_out = !prediction.do_background;
   }
 
-  bool do_fast_gather = dof_do_fast_gather(base_radius, min_radius, is_foreground);
+  bool do_fast_gather = dof_do_fast_gather(base_radius, min_radius, IS_FOREGROUND);
 
   /* Gather at half resolution. Divide CoC by 2. */
   base_radius *= 0.5;

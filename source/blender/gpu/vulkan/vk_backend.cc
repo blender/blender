@@ -37,6 +37,7 @@
 static CLG_LogRef LOG = {"gpu.vulkan"};
 
 namespace blender::gpu {
+static const char *KNOWN_CRASHING_DRIVER = "instable driver";
 
 static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physical_device)
 {
@@ -47,12 +48,7 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
 
   features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
   dynamic_rendering.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES;
-  VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT
-      dynamic_rendering_unused_attachments = {};
-  dynamic_rendering_unused_attachments.sType =
-      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_FEATURES_EXT;
   features.pNext = &dynamic_rendering;
-  dynamic_rendering.pNext = &dynamic_rendering_unused_attachments;
 
   vkGetPhysicalDeviceFeatures2(vk_physical_device, &features);
 #ifndef __APPLE__
@@ -105,6 +101,36 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   }
   if (!extensions.contains(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME)) {
     missing_capabilities.append(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
+  }
+
+  /* Check for known faulty drivers. */
+  VkPhysicalDeviceProperties2 vk_physical_device_properties = {};
+  VkPhysicalDeviceDriverProperties vk_physical_device_driver_properties = {};
+  vk_physical_device_properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+  vk_physical_device_driver_properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES;
+  vk_physical_device_properties.pNext = &vk_physical_device_driver_properties;
+  vkGetPhysicalDeviceProperties2(vk_physical_device, &vk_physical_device_properties);
+
+  /* Check for drivers that are known to crash. */
+
+  /* Intel IRIS on 10th gen CPU crashes due to issues when using dynamic rendering. It seems like
+   * when vkCmdBeginRendering is called some requirements need to be met, that can only be met when
+   * actually calling a vkCmdDraw command. As driver versions are not easy accessible we check
+   * against the latest conformance test version.
+   *
+   * This should be revisited when dynamic rendering is fully optional.
+   */
+  uint32_t conformance_version = VK_MAKE_API_VERSION(
+      vk_physical_device_driver_properties.conformanceVersion.major,
+      vk_physical_device_driver_properties.conformanceVersion.minor,
+      vk_physical_device_driver_properties.conformanceVersion.subminor,
+      vk_physical_device_driver_properties.conformanceVersion.patch);
+  if (vk_physical_device_driver_properties.driverID == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS &&
+      vk_physical_device_properties.properties.deviceType ==
+          VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU &&
+      conformance_version < VK_MAKE_API_VERSION(1, 3, 2, 0))
+  {
+    missing_capabilities.append(KNOWN_CRASHING_DRIVER);
   }
 
   return missing_capabilities;
@@ -290,6 +316,7 @@ void VKBackend::detect_workarounds(VKDevice &device)
     workarounds.shader_output_viewport_index = true;
     workarounds.vertex_formats.r8g8b8 = true;
     workarounds.fragment_shader_barycentric = true;
+    workarounds.dynamic_rendering_unused_attachments = true;
 
     device.workarounds_ = workarounds;
     return;
@@ -315,6 +342,9 @@ void VKBackend::detect_workarounds(VKDevice &device)
 
   workarounds.fragment_shader_barycentric = !device.supports_extension(
       VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME);
+
+  workarounds.dynamic_rendering_unused_attachments = !device.supports_extension(
+      VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME);
 
   device.workarounds_ = workarounds;
 }
@@ -375,7 +405,7 @@ Context *VKBackend::context_alloc(void *ghost_window, void *ghost_context)
     device.init(ghost_context);
   }
 
-  VKContext *context = new VKContext(ghost_window, ghost_context, device.current_thread_data());
+  VKContext *context = new VKContext(ghost_window, ghost_context, device.resources);
   device.context_register(*context);
   GHOST_SetVulkanSwapBuffersCallbacks((GHOST_ContextHandle)ghost_context,
                                       VKContext::swap_buffers_pre_callback,
@@ -455,20 +485,25 @@ void VKBackend::render_end()
   VKThreadData &thread_data = device.current_thread_data();
   thread_data.rendering_depth -= 1;
   BLI_assert_msg(thread_data.rendering_depth >= 0, "Unbalanced `GPU_render_begin/end`");
-
-  if (G.background || !BLI_thread_is_main()) {
-    /* When **not** running on the main thread (or doing background rendering) we assume that there
-     * is no swap chain in play. Rendering happens on a single thread and when finished all the
-     * resources have been used and are in a state that they can be discarded. It can still be that
-     * a non-main thread discards a resource that is in use by another thread. We move discarded
-     * resources to a device global discard pool (`device.orphaned_data`). The next time the main
-     * thread goes to the next swap chain image the device global discard pool will be added to the
-     * discard pool of the new swap chain image.*/
+  if (G.background) {
+    /* Garbage collection when performing background rendering. In this case the rendering is
+     * already 'thread-safe'. We move the resources to the device discard list and we destroy it
+     * the next frame. */
     if (thread_data.rendering_depth == 0) {
       VKResourcePool &resource_pool = thread_data.resource_pool_get();
-      resource_pool.discard_pool.destroy_discarded_resources(device);
+      device.orphaned_data.destroy_discarded_resources(device);
+      device.orphaned_data.move_data(resource_pool.discard_pool);
       resource_pool.reset();
-      resource_pool.discard_pool.move_data(device.orphaned_data);
+    }
+  }
+
+  else if (!BLI_thread_is_main()) {
+    /* Foreground rendering using a worker/render thread. In this case we move the resources to the
+     * device discard list and it will be cleared by the main thread. */
+    if (thread_data.rendering_depth == 0) {
+      VKResourcePool &resource_pool = thread_data.resource_pool_get();
+      device.orphaned_data.move_data(resource_pool.discard_pool);
+      resource_pool.reset();
     }
   }
 }

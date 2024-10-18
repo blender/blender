@@ -9,6 +9,7 @@ set(INC
   ../../blenkernel
   ../../blentranslation
   ../../draw
+  ../../functions
   ../../gpu
   ../../imbuf
   ../../makesrna
@@ -29,6 +30,7 @@ set(SRC
   intern/evaluator.cc
   intern/input_single_value_operation.cc
   intern/meta_data.cc
+  intern/multi_function_procedure_operation.cc
   intern/node_operation.cc
   intern/operation.cc
   intern/pixel_operation.cc
@@ -53,6 +55,7 @@ set(SRC
   COM_input_descriptor.hh
   COM_input_single_value_operation.hh
   COM_meta_data.hh
+  COM_multi_function_procedure_operation.hh
   COM_node_operation.hh
   COM_operation.hh
   COM_pixel_operation.hh
@@ -146,6 +149,7 @@ set(LIB
   bf_render
   PRIVATE bf::blenlib
   bf_blenkernel
+  bf_functions
 )
 
 set(GLSL_SRC
@@ -304,75 +308,6 @@ list(APPEND SRC ${glsl_source_list_file})
 list(APPEND INC ${CMAKE_CURRENT_BINARY_DIR})
 
 target_include_directories(bf_compositor_shaders PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
-
-set(SRC_SHADER_CREATE_INFOS
-  shaders/infos/compositor_alpha_crop_info.hh
-  shaders/infos/compositor_bilateral_blur_info.hh
-  shaders/infos/compositor_bokeh_blur_info.hh
-  shaders/infos/compositor_bokeh_blur_variable_size_info.hh
-  shaders/infos/compositor_bokeh_image_info.hh
-  shaders/infos/compositor_box_mask_info.hh
-  shaders/infos/compositor_compute_preview_info.hh
-  shaders/infos/compositor_convert_info.hh
-  shaders/infos/compositor_cryptomatte_info.hh
-  shaders/infos/compositor_defocus_info.hh
-  shaders/infos/compositor_deriche_gaussian_blur_info.hh
-  shaders/infos/compositor_despeckle_info.hh
-  shaders/infos/compositor_directional_blur_info.hh
-  shaders/infos/compositor_displace_info.hh
-  shaders/infos/compositor_double_edge_mask_info.hh
-  shaders/infos/compositor_edge_filter_info.hh
-  shaders/infos/compositor_ellipse_mask_info.hh
-  shaders/infos/compositor_filter_info.hh
-  shaders/infos/compositor_flip_info.hh
-  shaders/infos/compositor_glare_info.hh
-  shaders/infos/compositor_id_mask_info.hh
-  shaders/infos/compositor_image_crop_info.hh
-  shaders/infos/compositor_inpaint_info.hh
-  shaders/infos/compositor_jump_flooding_info.hh
-  shaders/infos/compositor_keying_info.hh
-  shaders/infos/compositor_keying_screen_info.hh
-  shaders/infos/compositor_kuwahara_info.hh
-  shaders/infos/compositor_map_uv_info.hh
-  shaders/infos/compositor_morphological_blur_info.hh
-  shaders/infos/compositor_morphological_distance_feather_info.hh
-  shaders/infos/compositor_morphological_distance_info.hh
-  shaders/infos/compositor_morphological_distance_threshold_info.hh
-  shaders/infos/compositor_morphological_step_info.hh
-  shaders/infos/compositor_motion_blur_info.hh
-  shaders/infos/compositor_movie_distortion_info.hh
-  shaders/infos/compositor_normalize_info.hh
-  shaders/infos/compositor_parallel_reduction_info.hh
-  shaders/infos/compositor_pixelate_info.hh
-  shaders/infos/compositor_plane_deform_info.hh
-  shaders/infos/compositor_premultiply_alpha_info.hh
-  shaders/infos/compositor_projector_lens_distortion_info.hh
-  shaders/infos/compositor_read_input_info.hh
-  shaders/infos/compositor_realize_on_domain_info.hh
-  shaders/infos/compositor_scale_variable_info.hh
-  shaders/infos/compositor_screen_lens_distortion_info.hh
-  shaders/infos/compositor_smaa_info.hh
-  shaders/infos/compositor_split_info.hh
-  shaders/infos/compositor_summed_area_table_info.hh
-  shaders/infos/compositor_sun_beams_info.hh
-  shaders/infos/compositor_symmetric_blur_info.hh
-  shaders/infos/compositor_symmetric_blur_variable_size_info.hh
-  shaders/infos/compositor_symmetric_separable_blur_info.hh
-  shaders/infos/compositor_symmetric_separable_blur_variable_size_info.hh
-  shaders/infos/compositor_tone_map_photoreceptor_info.hh
-  shaders/infos/compositor_tone_map_simple_info.hh
-  shaders/infos/compositor_van_vliet_gaussian_blur_info.hh
-  shaders/infos/compositor_write_output_info.hh
-  shaders/infos/compositor_z_combine_info.hh
-)
-
-set(SHADER_CREATE_INFOS_CONTENT "")
-foreach(DESCRIPTOR_FILE ${SRC_SHADER_CREATE_INFOS})
-  string(APPEND SHADER_CREATE_INFOS_CONTENT "#include \"${DESCRIPTOR_FILE}\"\n")
-endforeach()
-
-set(shader_create_info_list_file "${CMAKE_CURRENT_BINARY_DIR}/compositor_shader_create_info_list.hh")
-file(GENERATE OUTPUT ${shader_create_info_list_file} CONTENT "${SHADER_CREATE_INFOS_CONTENT}")
 
 if(WITH_TBB)
   if(WIN32)

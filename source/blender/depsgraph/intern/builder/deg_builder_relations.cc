@@ -1702,7 +1702,6 @@ void DepsgraphRelationBuilder::build_animdata_action_targets(ID *id,
     return;
   }
 
-#ifdef WITH_ANIM_BAKLAVA
   const animrig::Slot *slot = action.slot_for_handle(slot_handle);
   if (slot == nullptr) {
     /* If there's no matching slot, there's no Action dependency. */
@@ -1729,9 +1728,6 @@ void DepsgraphRelationBuilder::build_animdata_action_targets(ID *id,
       }
     }
   }
-#else
-  UNUSED_VARS(slot_handle);
-#endif
 }
 
 void DepsgraphRelationBuilder::build_animdata_nlastrip_targets(ID *id,
@@ -1843,13 +1839,6 @@ void DepsgraphRelationBuilder::build_action(bAction *dna_action)
   build_idproperties(dna_action->id.properties);
 
   blender::animrig::Action &action = dna_action->wrap();
-#ifndef WITH_ANIM_BAKLAVA
-  /* Prevent evaluation of data introduced by Project Baklava. */
-  if (action.is_action_layered()) {
-    return;
-  }
-#endif
-
   if (!action.is_empty()) {
     TimeSourceKey time_src_key;
     ComponentKey animation_key(&dna_action->id, NodeType::ANIMATION);

@@ -31,11 +31,10 @@ import unittest
 
 from typing import (
     Any,
-    Dict,
     NamedTuple,
-    Optional,
+)
+from collections.abc import (
     Sequence,
-    Tuple,
 )
 
 
@@ -55,7 +54,7 @@ if BLENDER_BIN is None:
     raise Exception("BLENDER_BIN: environment variable not defined")
 
 BLENDER_VERSION_STR = subprocess.check_output([BLENDER_BIN, "--version"]).split()[1].decode('ascii')
-BLENDER_VERSION: Tuple[int, int, int] = tuple(int(x) for x in BLENDER_VERSION_STR.split("."))  # type: ignore
+BLENDER_VERSION: tuple[int, int, int] = tuple(int(x) for x in BLENDER_VERSION_STR.split("."))  # type: ignore
 assert len(BLENDER_VERSION) == 3
 
 
@@ -71,7 +70,7 @@ import python_wheel_generate  # noqa: E402
 
 
 # Don't import as module, instead load the class.
-def execfile(filepath: str, *, name: str = "__main__") -> Dict[str, Any]:
+def execfile(filepath: str, *, name: str = "__main__") -> dict[str, Any]:
     global_namespace = {"__file__": filepath, "__name__": name}
     with open(filepath, encoding="utf-8") as fh:
         # pylint: disable-next=exec-used
@@ -105,7 +104,7 @@ USE_PAUSE_BEFORE_EXIT = False
 
 # Generate different version numbers as strings, used for automatically creating versions
 # which are known to be compatible or incompatible with the current version.
-def blender_version_relative(version_offset: Tuple[int, int, int]) -> str:
+def blender_version_relative(version_offset: tuple[int, int, int]) -> str:
     version_new = (
         BLENDER_VERSION[0] + version_offset[0],
         BLENDER_VERSION[1] + version_offset[1],
@@ -149,7 +148,7 @@ def pause_until_keyboard_interrupt() -> None:
 
 
 def contents_to_filesystem(
-        contents: Dict[str, bytes],
+        contents: dict[str, bytes],
         directory: str,
 ) -> None:
     swap_slash = os.sep == "\\"
@@ -172,12 +171,12 @@ def create_package(
         pkg_idname: str,
 
         # Optional.
-        wheel_params: Optional[WheelModuleParams] = None,
-        platforms: Optional[Tuple[str, ...]] = None,
-        blender_version_min: Optional[str] = None,
-        blender_version_max: Optional[str] = None,
-        python_script: Optional[str] = None,
-        file_contents: Optional[Dict[str, bytes]] = None,
+        wheel_params: WheelModuleParams | None = None,
+        platforms: tuple[str, ...] | None = None,
+        blender_version_min: str | None = None,
+        blender_version_max: str | None = None,
+        python_script: str | None = None,
+        file_contents: dict[str, bytes] | None = None,
 ) -> None:
     pkg_name = pkg_idname.replace("_", " ").title()
 
@@ -236,7 +235,7 @@ def create_package(
 def run_blender(
         args: Sequence[str],
         force_script_and_pause: bool = False,
-) -> Tuple[int, str, str]:
+) -> tuple[int, str, str]:
     """
     :arg force_script_and_pause:
        When true, write out a shell script and wait,
@@ -244,7 +243,7 @@ def run_blender(
        are removed once the test finished.
     """
     assert BLENDER_BIN is not None
-    cmd: Tuple[str, ...] = (
+    cmd: tuple[str, ...] = (
         BLENDER_BIN,
         # Needed while extensions is experimental.
         *BLENDER_ENABLE_EXTENSION_ARGS,
@@ -340,7 +339,7 @@ def run_blender_no_errors(
 def run_blender_extensions(
         args: Sequence[str],
         force_script_and_pause: bool = False,
-) -> Tuple[int, str, str]:
+) -> tuple[int, str, str]:
     return run_blender(("--command", "extension", *args,), force_script_and_pause=force_script_and_pause)
 
 
@@ -360,7 +359,7 @@ TEMP_DIR_LOCAL = ""
 # Instead, have a test-local temporary directly which is removed when the test finishes.
 TEMP_DIR_TMPDIR = ""
 
-user_dirs: Tuple[str, ...] = (
+user_dirs: tuple[str, ...] = (
     "config",
     "datafiles",
     "extensions",
@@ -409,15 +408,15 @@ class TestWithTempBlenderUser_MixIn(unittest.TestCase):
             self,
             *,
             pkg_idname: str,
-            wheel_params: Optional[WheelModuleParams] = None,
+            wheel_params: WheelModuleParams | None = None,
 
             # Optional.
-            pkg_filename: Optional[str] = None,
-            platforms: Optional[Tuple[str, ...]] = None,
-            blender_version_min: Optional[str] = None,
-            blender_version_max: Optional[str] = None,
-            python_script: Optional[str] = None,
-            file_contents: Optional[Dict[str, bytes]] = None,
+            pkg_filename: str | None = None,
+            platforms: tuple[str, ...] | None = None,
+            blender_version_min: str | None = None,
+            blender_version_max: str | None = None,
+            python_script: str | None = None,
+            file_contents: dict[str, bytes] | None = None,
     ) -> None:
         if pkg_filename is None:
             pkg_filename = pkg_idname

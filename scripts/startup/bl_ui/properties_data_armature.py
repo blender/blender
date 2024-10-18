@@ -398,7 +398,7 @@ class POSE_MT_selection_set_create(Menu):
 
 
 class POSE_MT_selection_sets_select(Menu):
-    bl_label = 'Select Selection Set'
+    bl_label = "Select Selection Set"
 
     @classmethod
     def poll(cls, context):

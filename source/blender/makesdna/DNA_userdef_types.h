@@ -759,9 +759,8 @@ typedef struct UserDef_Experimental {
   char use_new_volume_nodes;
   char use_new_file_import_nodes;
   char use_shader_node_previews;
-  char use_animation_baklava;
   char enable_new_cpu_compositor;
-  char _pad[2];
+  char _pad[3];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 

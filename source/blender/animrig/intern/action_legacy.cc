@@ -68,16 +68,13 @@ template<typename ActionType,
          typename ChannelBagType>
 static Vector<FCurveType *> fcurves_all_templated(ActionType &action)
 {
-#ifdef WITH_ANIM_BAKLAVA
   /* Legacy Action. */
   if (action.is_action_legacy()) {
-#endif /* WITH_ANIM_BAKLAVA */
     Vector<FCurveType *> legacy_fcurves;
     LISTBASE_FOREACH (FCurveType *, fcurve, &action.curves) {
       legacy_fcurves.append(fcurve);
     }
     return legacy_fcurves;
-#ifdef WITH_ANIM_BAKLAVA
   }
 
   /* Layered Action. */
@@ -99,7 +96,6 @@ static Vector<FCurveType *> fcurves_all_templated(ActionType &action)
     }
   }
   return all_fcurves;
-#endif /* WITH_ANIM_BAKLAVA */
 }
 
 Vector<FCurve *> fcurves_all(bAction *action)
@@ -124,6 +120,23 @@ Vector<const FCurve *> fcurves_all(const bAction *action)
                                const ChannelBag>(action->wrap());
 }
 
+Vector<FCurve *> fcurves_first_slot(bAction *action)
+{
+  if (!action) {
+    return {};
+  }
+  Action &action_wrap = action->wrap();
+
+  if (action_wrap.is_action_legacy()) {
+    return fcurves_all(action);
+  }
+
+  if (action_wrap.slots().is_empty()) {
+    return {};
+  }
+  return fcurves_for_action_slot(action, action_wrap.slot(0)->handle);
+}
+
 /* Lots of template args to support transparent non-const and const versions. */
 template<typename ActionType,
          typename FCurveType,
@@ -134,22 +147,14 @@ template<typename ActionType,
 static Vector<FCurveType *> fcurves_for_action_slot_templated(ActionType &action,
                                                               const slot_handle_t slot_handle)
 {
-#ifndef WITH_ANIM_BAKLAVA
-  UNUSED_VARS(slot_handle);
-#endif /* !WITH_ANIM_BAKLAVA */
-
-#ifdef WITH_ANIM_BAKLAVA
   /* Legacy Action. */
   if (action.is_action_legacy()) {
-#endif /* WITH_ANIM_BAKLAVA */
     return listbase_to_vector<FCurveType>(action.curves);
-#ifdef WITH_ANIM_BAKLAVA
   }
 
   /* Layered Action. */
   Vector<FCurveType *> as_vector(animrig::fcurves_for_action_slot(action, slot_handle));
   return as_vector;
-#endif /* WITH_ANIM_BAKLAVA */
 }
 
 Vector<FCurve *> fcurves_for_action_slot(bAction *action, const slot_handle_t slot_handle)
@@ -217,16 +222,13 @@ Vector<bActionGroup *> channel_groups_all(bAction *action)
 
   Action &action_wrap = action->wrap();
 
-#ifdef WITH_ANIM_BAKLAVA
   /* Legacy Action. */
   if (action_wrap.is_action_legacy()) {
-#endif /* WITH_ANIM_BAKLAVA */
     Vector<bActionGroup *> legacy_groups;
     LISTBASE_FOREACH (bActionGroup *, group, &action_wrap.groups) {
       legacy_groups.append(group);
     }
     return legacy_groups;
-#ifdef WITH_ANIM_BAKLAVA
   }
 
   /* Layered Action. */
@@ -244,7 +246,6 @@ Vector<bActionGroup *> channel_groups_all(bAction *action)
     }
   }
   return all_groups;
-#endif /* WITH_ANIM_BAKLAVA */
 }
 
 Vector<bActionGroup *> channel_groups_for_assigned_slot(AnimData *adt)
@@ -272,12 +273,12 @@ Vector<bActionGroup *> channel_groups_for_assigned_slot(AnimData *adt)
 
 bool action_treat_as_legacy(const bAction &action)
 {
-  const Action &action_wrap = action.wrap();
-  if (action_wrap.is_empty()) {
-    const bool may_do_layered = USER_EXPERIMENTAL_TEST(&U, use_animation_baklava);
-    return !may_do_layered;
-  }
-  return action_wrap.is_action_legacy();
+  /* At runtime, legacy Actions should have been versioned to layered/slotted Actions. However,
+   * unit tests can still create legacy Actions, and so this function still has to distinguish
+   * between them.
+   *
+   * Note that empty Actions also count as 'layered'. */
+  return !action.wrap().is_action_layered();
 }
 
 bool action_fcurves_remove(bAction &action,

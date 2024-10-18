@@ -12,7 +12,7 @@
 
 namespace blender::gpu {
 
-const char *GLLogParser::parse_line(const char * /*source_combined*/,
+const char *GLLogParser::parse_line(const char *source_combined,
                                     const char *log_line,
                                     GPULogItem &log_item)
 {
@@ -54,10 +54,30 @@ const char *GLLogParser::parse_line(const char * /*source_combined*/,
       log_item.cursor.source = log_item.cursor.row;
       log_item.cursor.row = log_item.cursor.column;
       log_item.cursor.column = -1;
-      log_item.source_base_row = true;
     }
     else {
       /* line:char */
+    }
+  }
+
+  /* TODO: Temporary fix for new line directive. Eventually this whole parsing should be done in
+   * C++ with regex for simplicity. */
+  if (log_item.cursor.source != -1) {
+    StringRefNull src(source_combined);
+    std::string needle = std::string("#line 1 ") + std::to_string(log_item.cursor.source);
+
+    int64_t file_start = src.find(needle);
+    if (file_start == -1) {
+      /* Can be generated code or wrapper code outside of the main sources. */
+      log_item.cursor.row = -1;
+    }
+    else {
+      StringRef previous_sources(source_combined, file_start);
+      for (const char c : previous_sources) {
+        if (c == '\n') {
+          log_item.cursor.row++;
+        }
+      }
     }
   }
 

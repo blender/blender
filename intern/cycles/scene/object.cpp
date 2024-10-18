@@ -1117,7 +1117,7 @@ string ObjectManager::get_cryptomatte_objects(Scene *scene)
 {
   string manifest = "{";
 
-  unordered_set<ustring, ustringHash> objects;
+  unordered_set<ustring> objects;
   foreach (Object *object, scene->objects) {
     if (objects.count(object->name)) {
       continue;
@@ -1133,7 +1133,7 @@ string ObjectManager::get_cryptomatte_objects(Scene *scene)
 string ObjectManager::get_cryptomatte_assets(Scene *scene)
 {
   string manifest = "{";
-  unordered_set<ustring, ustringHash> assets;
+  unordered_set<ustring> assets;
   foreach (Object *ob, scene->objects) {
     if (assets.count(ob->asset_name)) {
       continue;

@@ -8,7 +8,6 @@
 
 #include "vk_resource_pool.hh"
 #include "vk_backend.hh"
-#include "vk_memory.hh"
 
 namespace blender::gpu {
 
@@ -82,11 +81,10 @@ void VKDiscardPool::discard_pipeline_layout(VkPipelineLayout vk_pipeline_layout)
 void VKDiscardPool::destroy_discarded_resources(VKDevice &device)
 {
   std::scoped_lock mutex(mutex_);
-  VK_ALLOCATION_CALLBACKS
 
   while (!image_views_.is_empty()) {
     VkImageView vk_image_view = image_views_.pop_last();
-    vkDestroyImageView(device.vk_handle(), vk_image_view, vk_allocation_callbacks);
+    vkDestroyImageView(device.vk_handle(), vk_image_view, nullptr);
   }
 
   while (!images_.is_empty()) {
@@ -104,12 +102,12 @@ void VKDiscardPool::destroy_discarded_resources(VKDevice &device)
 
   while (!pipeline_layouts_.is_empty()) {
     VkPipelineLayout vk_pipeline_layout = pipeline_layouts_.pop_last();
-    vkDestroyPipelineLayout(device.vk_handle(), vk_pipeline_layout, vk_allocation_callbacks);
+    vkDestroyPipelineLayout(device.vk_handle(), vk_pipeline_layout, nullptr);
   }
 
   while (!shader_modules_.is_empty()) {
     VkShaderModule vk_shader_module = shader_modules_.pop_last();
-    vkDestroyShaderModule(device.vk_handle(), vk_shader_module, vk_allocation_callbacks);
+    vkDestroyShaderModule(device.vk_handle(), vk_shader_module, nullptr);
   }
 }
 

@@ -103,83 +103,6 @@ static int gpu_shader_math(GPUMaterial *mat,
   return 0;
 }
 
-static const mf::MultiFunction *get_base_multi_function(const bNode &node)
-{
-  const int mode = node.custom1;
-  const mf::MultiFunction *base_fn = nullptr;
-
-  try_dispatch_float_math_fl_to_fl(
-      mode, [&](auto devi_fn, auto function, const FloatMathOperationInfo &info) {
-        static auto fn = mf::build::SI1_SO<float, float>(
-            info.title_case_name.c_str(), function, devi_fn);
-        base_fn = &fn;
-      });
-  if (base_fn != nullptr) {
-    return base_fn;
-  }
-
-  try_dispatch_float_math_fl_fl_to_fl(
-      mode, [&](auto devi_fn, auto function, const FloatMathOperationInfo &info) {
-        static auto fn = mf::build::SI2_SO<float, float, float>(
-            info.title_case_name.c_str(), function, devi_fn);
-        base_fn = &fn;
-      });
-  if (base_fn != nullptr) {
-    return base_fn;
-  }
-
-  try_dispatch_float_math_fl_fl_fl_to_fl(
-      mode, [&](auto devi_fn, auto function, const FloatMathOperationInfo &info) {
-        static auto fn = mf::build::SI3_SO<float, float, float, float>(
-            info.title_case_name.c_str(), function, devi_fn);
-        base_fn = &fn;
-      });
-  if (base_fn != nullptr) {
-    return base_fn;
-  }
-
-  return nullptr;
-}
-
-class ClampWrapperFunction : public mf::MultiFunction {
- private:
-  const mf::MultiFunction &fn_;
-
- public:
-  ClampWrapperFunction(const mf::MultiFunction &fn) : fn_(fn)
-  {
-    this->set_signature(&fn.signature());
-  }
-
-  void call(const IndexMask &mask, mf::Params params, mf::Context context) const override
-  {
-    fn_.call(mask, params, context);
-
-    /* Assumes the output parameter is the last one. */
-    const int output_param_index = this->param_amount() - 1;
-    /* This has actually been initialized in the call above. */
-    MutableSpan<float> results = params.uninitialized_single_output<float>(output_param_index);
-
-    mask.foreach_index_optimized<int>([&](const int i) {
-      float &value = results[i];
-      CLAMP(value, 0.0f, 1.0f);
-    });
-  }
-};
-
-static void sh_node_math_build_multi_function(NodeMultiFunctionBuilder &builder)
-{
-  const mf::MultiFunction *base_function = get_base_multi_function(builder.node());
-
-  const bool clamp_output = builder.node().custom2 != 0;
-  if (clamp_output) {
-    builder.construct_and_set_matching_fn<ClampWrapperFunction>(*base_function);
-  }
-  else {
-    builder.set_matching_fn(base_function);
-  }
-}
-
 static void node_eval_elem(value_elem::ElemEvalParams &params)
 {
   using namespace value_elem;
@@ -444,7 +367,7 @@ void register_node_type_sh_math()
   ntype.labelfunc = node_math_label;
   ntype.gpu_fn = file_ns::gpu_shader_math;
   ntype.updatefunc = node_math_update;
-  ntype.build_multi_function = file_ns::sh_node_math_build_multi_function;
+  ntype.build_multi_function = blender::nodes::node_math_build_multi_function;
   ntype.gather_link_search_ops = file_ns::sh_node_math_gather_link_searches;
   ntype.materialx_fn = file_ns::node_shader_materialx;
   ntype.eval_elem = file_ns::node_eval_elem;

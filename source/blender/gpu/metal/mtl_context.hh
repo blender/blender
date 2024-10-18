@@ -548,8 +548,8 @@ class MTLCommandBufferManager {
   friend class MTLContext;
 
  public:
-  /* Counter for active command buffers. */
-  static int num_active_cmd_bufs;
+  /* Counter for all active command buffers. */
+  static volatile std::atomic<int> num_active_cmd_bufs_in_system;
 
  private:
   /* Associated Context and properties. */
@@ -559,6 +559,7 @@ class MTLCommandBufferManager {
   /* CommandBuffer tracking. */
   id<MTLCommandBuffer> active_command_buffer_ = nil;
   id<MTLCommandBuffer> last_submitted_command_buffer_ = nil;
+  volatile std::atomic<int> num_active_cmd_bufs = 0;
 
   /* Active MTLCommandEncoders. */
   enum {
@@ -652,6 +653,24 @@ class MTLCommandBufferManager {
   /* Debug. */
   void push_debug_group(const char *name, int index);
   void pop_debug_group();
+
+  void inc_active_command_buffer_count()
+  {
+    num_active_cmd_bufs_in_system++;
+    num_active_cmd_bufs++;
+  }
+
+  void dec_active_command_buffer_count()
+  {
+    BLI_assert(num_active_cmd_bufs_in_system > 0 && num_active_cmd_bufs > 0);
+    num_active_cmd_bufs_in_system--;
+    num_active_cmd_bufs--;
+  }
+
+  int get_active_command_buffer_count()
+  {
+    return num_active_cmd_bufs;
+  }
 
  private:
   /* Begin new command buffer. */

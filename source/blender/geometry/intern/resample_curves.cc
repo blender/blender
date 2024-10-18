@@ -5,6 +5,7 @@
 #include "BLI_array_utils.hh"
 #include "BLI_math_color.hh"
 #include "BLI_math_quaternion.hh"
+#include "BLI_math_vector.hh"
 
 #include "BLI_length_parameterize.hh"
 #include "BLI_task.hh"

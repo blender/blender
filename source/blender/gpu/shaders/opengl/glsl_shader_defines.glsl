@@ -157,3 +157,8 @@ bool is_zero(vec4 A)
 #define _inout_end
 #define _shared_sta
 #define _shared_end
+
+#define _enum_dummy /* Needed to please `glslang`. */
+#define _enum_type(name) uint
+#define _enum_decl(name) const uint
+#define _enum_end _enum_dummy;

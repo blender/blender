@@ -711,16 +711,24 @@ class Slot : public ::ActionSlot {
    */
   static void users_invalidate(Main &bmain);
 
- protected:
-  friend Action;
-
   /**
    * Ensure the first two characters of the name match the ID type.
    *
-   * \note This does NOT ensure name uniqueness within the Action. That is
-   * the responsibility of the caller.
+   * This typically should not be called directly. Prefer assigning to an ID to
+   * get the idtype and name prefix properly set. Prefer calling
+   * `Action::slot_name_set()` if you want to set the slot name. Both of those
+   * approaches take care of ensuring uniqueness and other invariants.
+   *
+   * \note This does NOT ensure name uniqueness within the Action. That is the
+   * responsibility of the caller.
+   *
+   * \see #assign_action_slot
+   * \see #Action::slot_name_set
    */
   void name_ensure_prefix();
+
+ protected:
+  friend Action;
 
   /**
    * Set the 'Active' flag. Only allowed to be called by Action.

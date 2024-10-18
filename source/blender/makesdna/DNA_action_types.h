@@ -895,7 +895,7 @@ typedef enum eDopeSheet_FilterFlag {
    * Show all Action slots; if not set, only show the Slot of the
    * data-block that's being animated by the Action.
    */
-  ADS_FILTER_ALL_SLOTS = (1 << 5),
+  ADS_FILTER_ONLY_SLOTS_OF_ACTIVE = (1 << 5),
 
   /* datatype-based filtering */
   ADS_FILTER_NOSHAPEKEYS = (1 << 6),

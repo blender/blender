@@ -26,6 +26,11 @@ Result::Result(Context &context, ResultType type, ResultPrecision precision)
 {
 }
 
+Result::Result(Context &context, eGPUTextureFormat format)
+    : context_(&context), type_(Result::type(format)), precision_(Result::precision(format))
+{
+}
+
 eGPUTextureFormat Result::gpu_texture_format(ResultType type, ResultPrecision precision)
 {
   switch (precision) {

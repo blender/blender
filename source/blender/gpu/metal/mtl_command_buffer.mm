@@ -20,7 +20,7 @@ using namespace blender::gpu;
 namespace blender::gpu {
 
 /* Counter for active command buffers. */
-int MTLCommandBufferManager::num_active_cmd_bufs = 0;
+volatile std::atomic<int> MTLCommandBufferManager::num_active_cmd_bufs_in_system = 0;
 
 /* -------------------------------------------------------------------- */
 /** \name MTLCommandBuffer initialization and render coordination.
@@ -50,7 +50,7 @@ id<MTLCommandBuffer> MTLCommandBufferManager::ensure_begin()
      *
      * NOTE: We currently stall until completion of GPU work upon ::submit if we have reached the
      * in-flight command buffer limit. */
-    BLI_assert(MTLCommandBufferManager::num_active_cmd_bufs <
+    BLI_assert(MTLCommandBufferManager::num_active_cmd_bufs_in_system <
                GHOST_ContextCGL::max_command_buffer_count);
 
     if (G.debug & G_DEBUG_GPU) {
@@ -68,7 +68,7 @@ id<MTLCommandBuffer> MTLCommandBufferManager::ensure_begin()
     }
 
     [active_command_buffer_ retain];
-    MTLCommandBufferManager::num_active_cmd_bufs++;
+    context_.main_command_buffer.inc_active_command_buffer_count();
 
     /* Ensure we begin new Scratch Buffer if we are on a new frame. */
     MTLScratchBufferManager &mem = context_.memory_manager;
@@ -90,6 +90,12 @@ bool MTLCommandBufferManager::submit(bool wait)
 {
   /* Skip submission if command buffer is empty. */
   if (empty_ || active_command_buffer_ == nil) {
+    if (wait) {
+      /* Wait for any previously submitted work on this context to complete. */
+      while (context_.main_command_buffer.get_active_command_buffer_count()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+      }
+    }
     return false;
   }
 
@@ -123,7 +129,7 @@ bool MTLCommandBufferManager::submit(bool wait)
     [cmd_buffer_ref release];
 
     /* Decrement count. */
-    MTLCommandBufferManager::num_active_cmd_bufs--;
+    context_.main_command_buffer.dec_active_command_buffer_count();
   }];
 
   /* Submit command buffer to GPU. */
@@ -131,7 +137,7 @@ bool MTLCommandBufferManager::submit(bool wait)
 
   /* If we have too many active command buffers in flight, wait until completed to avoid running
    * out. We can increase */
-  if (MTLCommandBufferManager::num_active_cmd_bufs >=
+  if (MTLCommandBufferManager::num_active_cmd_bufs_in_system >=
       (GHOST_ContextCGL::max_command_buffer_count - 1))
   {
     wait = true;

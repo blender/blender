@@ -1,5 +1,8 @@
-Project: VulkanMemoryAllocator
+Project: Vulkan Memory Allocator
 URL: https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator
-License: MIT
-Upstream version: a6bfc23
+License: SPDX:MIT
+Copyright: "Copyright (c) 2017-2024 Advanced Micro Devices, Inc. All rights reserved."
+Upstream version: 009ecd1
 Local modifications: None
+
+

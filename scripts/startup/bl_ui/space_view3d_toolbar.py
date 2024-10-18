@@ -55,7 +55,7 @@ class VIEW3D_MT_brush_context_menu(Menu):
 
             layout.operator("brush.asset_edit_metadata", text="Edit Metadata...")
             layout.operator("brush.asset_load_preview", text="Edit Preview Image...")
-            layout.operator("brush.asset_update", text="Update Asset")
+            layout.operator("brush.asset_save", text="Save Changes to Asset")
             layout.operator("brush.asset_revert", text="Revert to Asset")
         else:
             layout.operator("brush.asset_save_as", text="Save As Asset...", icon='FILE_TICK')

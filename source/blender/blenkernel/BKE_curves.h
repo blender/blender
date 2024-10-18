@@ -21,7 +21,7 @@ struct Main;
 struct Object;
 struct Scene;
 
-void *BKE_curves_add(struct Main *bmain, const char *name);
+struct Curves *BKE_curves_add(struct Main *bmain, const char *name);
 
 bool BKE_curves_attribute_required(const struct Curves *curves, const char *name);
 

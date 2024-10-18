@@ -1303,8 +1303,6 @@ static bAnimChannelType ACF_NLACURVE = {
 
 /* Object Animation Expander  ------------------------------------------- */
 
-#ifdef WITH_ANIM_BAKLAVA
-
 /* TODO: just get this from RNA? */
 static int acf_fillanim_icon(bAnimListElem * /*ale*/)
 {
@@ -1492,8 +1490,6 @@ static bAnimChannelType ACF_ACTION_SLOT = {
     /*setting_flag*/ acf_action_slot_setting_flag,
     /*setting_ptr*/ acf_action_slot_setting_ptr,
 };
-
-#endif  // WITH_ANIM_BAKLAVA
 
 /* Object Action Expander  ------------------------------------------- */
 
@@ -4542,13 +4538,8 @@ static void ANIM_init_channel_typeinfo_data()
     animchannelTypeInfo[type++] = &ACF_NLACONTROLS; /* NLA Control FCurve Expander */
     animchannelTypeInfo[type++] = &ACF_NLACURVE;    /* NLA Control FCurve Channel */
 
-#ifdef WITH_ANIM_BAKLAVA
     animchannelTypeInfo[type++] = &ACF_FILLANIM;    /* Object's Layered Action Expander */
     animchannelTypeInfo[type++] = &ACF_ACTION_SLOT; /* Action Slot Expander */
-#else
-    animchannelTypeInfo[type++] = nullptr;
-    animchannelTypeInfo[type++] = nullptr;
-#endif
     animchannelTypeInfo[type++] = &ACF_FILLACTD;    /* Object Action Expander */
     animchannelTypeInfo[type++] = &ACF_FILLDRIVERS; /* Drivers Expander */
 
@@ -4589,12 +4580,10 @@ static void ANIM_init_channel_typeinfo_data()
     animchannelTypeInfo[type++] = &ACF_NLATRACK;  /* NLA Track */
     animchannelTypeInfo[type++] = &ACF_NLAACTION; /* NLA Action */
 
-#ifdef WITH_ANIM_BAKLAVA
     BLI_assert_msg(animchannelTypeInfo[ANIMTYPE_FILLACT_LAYERED] == &ACF_FILLANIM,
                    "ANIMTYPE_FILLACT_LAYERED does not match ACF_FILLANIM");
     BLI_assert_msg(animchannelTypeInfo[ANIMTYPE_ACTION_SLOT] == &ACF_ACTION_SLOT,
                    "ANIMTYPE_ACTION_SLOT does not match ACF_ACTION_SLOT");
-#endif
   }
 }
 
@@ -6069,13 +6058,11 @@ void ANIM_channel_draw_widgets(const bContext *C,
         UI_block_emboss_set(block, UI_EMBOSS_NONE);
       }
 
-#ifdef WITH_ANIM_BAKLAVA
       /* Slot ID type indicator. */
       if (ale->type == ANIMTYPE_ACTION_SLOT) {
         offset -= ICON_WIDTH;
         UI_icon_draw(offset, ymid, acf_action_slot_idtype_icon(ale));
       }
-#endif /* WITH_ANIM_BAKLAVA */
     }
 
     /* Draw slider:

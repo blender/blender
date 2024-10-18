@@ -975,6 +975,17 @@ static void updateDuplicateCustomBoneShapes(bContext *C, EditBone *dup_bone, Obj
   }
 }
 
+/* Properties should be added on a case by case basis whenever needed to avoid mirroring things
+ * that shouldn't be mirrored. */
+static void mirror_pose_bone(Object &ob, EditBone &ebone)
+{
+  bPoseChannel *pose_bone = BKE_pose_channel_find_name(ob.pose, ebone.name);
+  BLI_assert(pose_bone);
+  float limit_min = pose_bone->limitmin[2];
+  pose_bone->limitmin[2] = -pose_bone->limitmax[2];
+  pose_bone->limitmax[2] = -limit_min;
+}
+
 static void copy_pchan(EditBone *src_bone, EditBone *dst_bone, Object *src_ob, Object *dst_ob)
 {
   /* copy the ID property */
@@ -1399,6 +1410,8 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
         updateDuplicateConstraintSettings(ebone, ebone_iter, obedit);
         /* Mirror bone shapes if possible */
         updateDuplicateCustomBoneShapes(C, ebone, obedit);
+        /* Mirror any settings on the pose bone. */
+        mirror_pose_bone(*obedit, *ebone);
       }
     }
 

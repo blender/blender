@@ -239,14 +239,16 @@ void select_from_group(GreasePencil &grease_pencil,
         threading::parallel_for(curves.curves_range(), 1024, [&](const IndexRange range) {
           for (const int curve_i : range) {
             const IndexRange points = points_by_curve[curve_i];
-            bool any_point_selected = false;
+            bool any_point_in_group = false;
             for (const int point_i : points) {
               if (BKE_defvert_find_index(&dverts[point_i], def_nr)) {
-                any_point_selected = true;
+                any_point_in_group = true;
                 break;
               }
             }
-            selection.span[curve_i] = any_point_selected;
+            if (any_point_in_group) {
+              selection.span[curve_i] = select;
+            }
           }
         });
         break;

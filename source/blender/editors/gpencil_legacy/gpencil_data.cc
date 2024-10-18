@@ -86,7 +86,7 @@ static int gpencil_data_add_exec(bContext *C, wmOperator *op)
   bGPdata **gpd_ptr = ED_annotation_data_get_pointers(C, &gpd_owner);
 
   if (gpd_ptr == nullptr) {
-    BKE_report(op->reports, RPT_ERROR, "Nowhere for grease pencil data to go");
+    BKE_report(op->reports, RPT_ERROR, "Nowhere for Grease Pencil data to go");
     return OPERATOR_CANCELLED;
   }
 
@@ -155,7 +155,7 @@ static int gpencil_data_unlink_exec(bContext *C, wmOperator *op)
   bGPdata **gpd_ptr = ED_annotation_data_get_pointers(C, nullptr);
 
   if (gpd_ptr == nullptr) {
-    BKE_report(op->reports, RPT_ERROR, "Nowhere for grease pencil data to go");
+    BKE_report(op->reports, RPT_ERROR, "Nowhere for Grease Pencil data to go");
     return OPERATOR_CANCELLED;
   }
   /* just unlink datablock now, decreasing its user count */
@@ -202,7 +202,7 @@ static int gpencil_layer_add_exec(bContext *C, wmOperator *op)
     bGPdata **gpd_ptr = ED_annotation_data_get_pointers(C, &gpd_owner);
     /* if there's no existing Grease-Pencil data there, add some */
     if (gpd_ptr == nullptr) {
-      BKE_report(op->reports, RPT_ERROR, "Nowhere for grease pencil data to go");
+      BKE_report(op->reports, RPT_ERROR, "Nowhere for Grease Pencil data to go");
       return OPERATOR_CANCELLED;
     }
     /* Annotations */

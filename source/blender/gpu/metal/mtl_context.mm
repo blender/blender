@@ -2706,7 +2706,7 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
    * possible. This command buffer is separate as it does not utilize the global state
    * for rendering as the main context does. */
   id<MTLCommandBuffer> cmdbuf = [ctx->queue commandBuffer];
-  MTLCommandBufferManager::num_active_cmd_bufs++;
+  ctx->main_command_buffer.inc_active_command_buffer_count();
 
   /* Do Present Call and final Blit to MTLDrawable. */
   id<MTLRenderCommandEncoder> enc = [cmdbuf renderCommandEncoderWithDescriptor:blit_descriptor];
@@ -2739,8 +2739,10 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
     [cmd_buffer_ref release];
 
     /* Decrement count */
-    MTLCommandBufferManager::num_active_cmd_bufs--;
-    MTL_LOG_INFO("Active command buffers: %d", MTLCommandBufferManager::num_active_cmd_bufs);
+    ctx->main_command_buffer.dec_active_command_buffer_count();
+
+    MTL_LOG_INFO("Active command buffers: %d",
+                 int(MTLCommandBufferManager::num_active_cmd_bufs_in_system));
 
     /* Drawable count and latency management. */
     MTLContext::max_drawables_in_flight--;

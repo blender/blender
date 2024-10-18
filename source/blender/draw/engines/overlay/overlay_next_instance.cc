@@ -133,7 +133,7 @@ void Instance::begin_sync()
     layer.fluids.begin_sync(resources, state);
     layer.grease_pencil.begin_sync(resources, state, view);
     layer.lattices.begin_sync(resources, state);
-    layer.lights.begin_sync();
+    layer.lights.begin_sync(state);
     layer.light_probes.begin_sync(resources, state);
     layer.metaballs.begin_sync();
     layer.meshes.begin_sync(resources, state, view);
@@ -444,6 +444,11 @@ void Instance::draw(Manager &manager)
   regular.cameras.draw_background_images(resources.overlay_color_only_fb, manager, view);
   infront.cameras.draw_background_images(resources.overlay_color_only_fb, manager, view);
 
+  /* TODO(fclem): Would be better to have a v2d overlay class instead of this condition. */
+  if (state.space_type == SPACE_IMAGE) {
+    grid.draw(resources.overlay_color_only_fb, manager, view);
+  }
+
   regular.empties.draw_images(resources.overlay_fb, manager, view);
 
   regular.prepass.draw(resources.overlay_line_fb, manager, view);
@@ -462,7 +467,7 @@ void Instance::draw(Manager &manager)
 
   auto draw_layer = [&](OverlayLayer &layer, Framebuffer &framebuffer) {
     layer.bounds.draw(framebuffer, manager, view);
-    layer.wireframe.draw(framebuffer, manager, view);
+    layer.wireframe.draw(framebuffer, resources, manager, view);
     layer.cameras.draw(framebuffer, manager, view);
     layer.empties.draw(framebuffer, manager, view);
     layer.force_fields.draw(framebuffer, manager, view);
@@ -498,7 +503,9 @@ void Instance::draw(Manager &manager)
 
   motion_paths.draw_color_only(resources.overlay_color_only_fb, manager, view);
   xray_fade.draw(resources.overlay_color_only_fb, manager, view);
-  grid.draw(resources.overlay_color_only_fb, manager, view);
+  if (state.space_type != SPACE_IMAGE) {
+    grid.draw(resources.overlay_color_only_fb, manager, view);
+  }
 
   draw_layer_color_only(regular, resources.overlay_color_only_fb);
   draw_layer_color_only(infront, resources.overlay_color_only_fb);
@@ -647,12 +654,20 @@ bool Instance::object_is_in_front(const Object *object, const State &state)
 
 bool Instance::object_needs_prepass(const ObjectRef &ob_ref, bool in_paint_mode)
 {
+  if (selection_type_ != SelectionType::DISABLED) {
+    /* Selection always need a prepass. Except if it is in xray mode. */
+    return !state.xray_enabled;
+  }
+
   if (in_paint_mode) {
     /* Allow paint overlays to draw with depth equal test. */
     return object_is_rendered_transparent(ob_ref.object, state);
   }
 
-  if (!state.xray_enabled || (selection_type_ != SelectionType::DISABLED)) {
+  if (!state.xray_enabled) {
+    /* Only workbench ensures the depth buffer is matching overlays.
+     * Force depth prepass for other render engines. */
+    /* TODO(fclem): Make an exception for EEVEE if not using mixed resolution. */
     return ob_ref.object->dt >= OB_SOLID;
   }
 

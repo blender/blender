@@ -2,10 +2,6 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-from typing import Dict, Set
-import bpy
-from bpy.types import ID
-
 
 __all__ = (
     "get_id_reference_map",
@@ -13,8 +9,10 @@ __all__ = (
 )
 
 
-def get_id_reference_map() -> Dict[ID, Set[ID]]:
+def get_id_reference_map():  # `-> dict[bpy.types.ID, set[bpy.types.ID]]`
     """Return a dictionary of direct datablock references for every datablock in the blend file."""
+    import bpy
+
     inv_map = {}
     for key, values in bpy.data.user_map().items():
         for value in values:
@@ -26,8 +24,11 @@ def get_id_reference_map() -> Dict[ID, Set[ID]]:
 
 
 def recursive_get_referenced_ids(
-    ref_map: Dict[ID, Set[ID]], id: ID, referenced_ids: Set, visited: Set
-):
+        ref_map,  # `dict[bpy.types.ID, set[bpy.types.ID]]`
+        id,  # `bpy.types.ID`
+        referenced_ids,  # `set`
+        visited,  # `set`
+):  # `-> None`
     """Recursively populate referenced_ids with IDs referenced by id."""
     if id in visited:
         # Avoid infinite recursion from circular references.
@@ -40,7 +41,10 @@ def recursive_get_referenced_ids(
         )
 
 
-def get_all_referenced_ids(id: ID, ref_map: Dict[ID, Set[ID]]) -> Set[ID]:
+def get_all_referenced_ids(
+        id,  # `bpy.types.ID`
+        ref_map,  # `dict[bpy.types.ID, set[bpy.types.ID]]`
+):  # `-> set[bpy.types.ID]`
     """Return a set of IDs directly or indirectly referenced by id."""
     referenced_ids = set()
     recursive_get_referenced_ids(

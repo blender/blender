@@ -5187,8 +5187,6 @@ static void ANIM_OT_channels_bake(wmOperatorType *ot)
                   "Bake Modifiers into keyframes and delete them after");
 }
 
-#ifdef WITH_ANIM_BAKLAVA
-
 static int slot_channels_move_to_new_action_exec(bContext *C, wmOperator * /* op */)
 {
   using namespace blender::animrig;
@@ -5347,8 +5345,6 @@ static void ANIM_OT_separate_slots(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
-
-#endif /* WITH_ANIM_BAKLAVA */
 
 /**
  *  Find a Graph Editor area and set the context arguments accordingly.
@@ -5732,10 +5728,8 @@ void ED_operatortypes_animchannels()
 
   WM_operatortype_append(ANIM_OT_channels_bake);
 
-#ifdef WITH_ANIM_BAKLAVA
   WM_operatortype_append(ANIM_OT_slot_channels_move_to_new_action);
   WM_operatortype_append(ANIM_OT_separate_slots);
-#endif
 }
 
 void ED_keymap_animchannels(wmKeyConfig *keyconf)

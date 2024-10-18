@@ -1,5 +1,6 @@
-Project: Renderdoc APP
+Project: RenderDoc
 URL: https://github.com/baldurk/renderdoc/
-License: MIT
+License: SPDX:MIT
 Upstream version: d47e79ae079783935b8857d6a1730440eafb0b38
 Local modifications: None
+Copyright: Copyright (c) 2015-2024 Baldur Karlsson; Copyright (c) 2014 Crytek

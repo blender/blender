@@ -694,7 +694,7 @@ class USERPREF_PT_system_display_graphics(SystemPanel, CenterAlignMixIn, Panel):
 
         import gpu
         if system.gpu_backend != gpu.platform.backend_type_get():
-            layout.label(text="A restart of Blender is required", icon="INFO")
+            layout.label(text="A restart of Blender is required", icon='INFO')
 
         if system.gpu_backend == gpu.platform.backend_type_get() == 'VULKAN':
             col = layout.column()
@@ -702,9 +702,9 @@ class USERPREF_PT_system_display_graphics(SystemPanel, CenterAlignMixIn, Panel):
 
         if system.gpu_backend == 'VULKAN':
             col = layout.column()
-            col.label(text="The Vulkan backend is experimental:", icon="INFO")
-            col.label(text="\u2022 OpenXR and GPU subdivision are not supported", icon="BLANK1")
-            col.label(text="\u2022 Expect reduced performance", icon="BLANK1")
+            col.label(text="The Vulkan backend is experimental:", icon='INFO')
+            col.label(text="\u2022 OpenXR and GPU subdivision are not supported", icon='BLANK1')
+            col.label(text="\u2022 Expect reduced performance", icon='BLANK1')
 
 
 class USERPREF_PT_system_os_settings(SystemPanel, CenterAlignMixIn, Panel):
@@ -2896,7 +2896,6 @@ class USERPREF_PT_experimental_prototypes(ExperimentalPanel, Panel):
                 ({"property": "use_new_point_cloud_type"}, ("blender/blender/issues/75717", "#75717")),
                 ({"property": "use_sculpt_texture_paint"}, ("blender/blender/issues/96225", "#96225")),
                 ({"property": "enable_overlay_next"}, ("blender/blender/issues/102179", "#102179")),
-                ({"property": "use_animation_baklava"}, ("/blender/blender/issues/120406", "#120406")),
                 ({"property": "enable_new_cpu_compositor"}, ("/blender/blender/issues/125968", "#125968")),
             ),
         )

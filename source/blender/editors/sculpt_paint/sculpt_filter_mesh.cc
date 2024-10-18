@@ -238,7 +238,7 @@ enum class MeshFilterType {
   SurfaceSmooth = 7,
   Sharpen = 8,
   EnhanceDetails = 9,
-  EraseDispacement = 10,
+  EraseDisplacement = 10,
 };
 
 static EnumPropertyItem prop_mesh_filter_types[] = {
@@ -264,8 +264,8 @@ static EnumPropertyItem prop_mesh_filter_types[] = {
      0,
      "Enhance Details",
      "Enhance the high frequency surface detail"},
-    {int(MeshFilterType::EraseDispacement),
-     "ERASE_DISCPLACEMENT",
+    {int(MeshFilterType::EraseDisplacement),
+     "ERASE_DISPLACEMENT",
      0,
      "Erase Displacement",
      "Deletes the displacement of the Multires Modifier"},
@@ -2165,7 +2165,7 @@ static void sculpt_mesh_filter_apply(bContext *C, wmOperator *op)
     case MeshFilterType::EnhanceDetails:
       calc_enhance_details_filter(depsgraph, sd, strength, ob, node_mask);
       break;
-    case MeshFilterType::EraseDispacement:
+    case MeshFilterType::EraseDisplacement:
       calc_erase_displacement_filter(depsgraph, sd, strength, ob, node_mask);
       break;
   }
@@ -2358,7 +2358,7 @@ static void sculpt_filter_specific_init(const Depsgraph &depsgraph,
           depsgraph, object, ss.filter_cache->node_mask, ss.filter_cache->detail_directions);
       break;
     }
-    case MeshFilterType::EraseDispacement: {
+    case MeshFilterType::EraseDisplacement: {
       ss.filter_cache->limit_surface_co.reinitialize(SCULPT_vertex_count_get(object));
       calc_limit_surface_positions(object, ss.filter_cache->limit_surface_co);
       break;
@@ -2398,7 +2398,7 @@ static int sculpt_mesh_filter_start(bContext *C, wmOperator *op)
   SculptSession &ss = *ob.sculpt;
 
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
-  if (filter_type == MeshFilterType::EraseDispacement && pbvh.type() != bke::pbvh::Type::Grids) {
+  if (filter_type == MeshFilterType::EraseDisplacement && pbvh.type() != bke::pbvh::Type::Grids) {
     return OPERATOR_CANCELLED;
   }
 

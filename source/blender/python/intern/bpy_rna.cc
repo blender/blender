@@ -8639,7 +8639,7 @@ static int bpy_class_validate_recursive(PointerRNA *dummy_ptr,
       continue;
     }
 
-    /* TODO(@ideasman42): Use Python3.7x _PyObject_LookupAttr(), also in the macro below. */
+    /* TODO(@ideasman42): Use #PyObject_GetOptionalAttr(), also in the macro below. */
     identifier = RNA_property_identifier(prop);
     item = PyObject_GetAttrString(py_class, identifier);
 
@@ -9096,26 +9096,14 @@ void pyrna_alloc_types()
 #endif /* !NDEBUG */
 }
 
-void pyrna_free_types()
+void BPY_free_srna_pytype(StructRNA *srna)
 {
-  PropertyRNA *prop;
+  void *py_ptr = RNA_struct_py_type_get(srna);
 
-  /* Avoid doing this lookup for every getattr. */
-  PointerRNA ptr = RNA_blender_rna_pointer_create();
-  prop = RNA_struct_find_property(&ptr, "structs");
-
-  RNA_PROP_BEGIN (&ptr, itemptr, prop) {
-    StructRNA *srna = srna_from_ptr(&itemptr);
-    void *py_ptr = RNA_struct_py_type_get(srna);
-
-    if (py_ptr) {
-#if 0 /* XXX: should be able to do this, but makes Python crash on exit. */
-      bpy_class_free(py_ptr);
-#endif
-      RNA_struct_py_type_set(srna, nullptr);
-    }
+  if (py_ptr) {
+    bpy_class_free(py_ptr);
+    RNA_struct_py_type_set(srna, nullptr);
   }
-  RNA_PROP_END;
 }
 
 /**
@@ -9255,11 +9243,13 @@ static PyObject *pyrna_register_class(PyObject * /*self*/, PyObject *py_class)
   pyrna_subtype_set_rna(py_class, srna_new);
 
   /* Old srna still references us, keep the check in case registering somehow can free it. */
-  if (RNA_struct_py_type_get(srna)) {
+  if (PyObject *old_py_class = static_cast<PyObject *>(RNA_struct_py_type_get(srna))) {
     RNA_struct_py_type_set(srna, nullptr);
 #if 0
     /* Should be able to do this XXX since the old RNA adds a new ref. */
-    Py_DECREF(py_class);
+    Py_DECREF(old_py_class);
+#else
+    UNUSED_VARS(old_py_class);
 #endif
   }
 
@@ -9273,7 +9263,7 @@ static PyObject *pyrna_register_class(PyObject * /*self*/, PyObject *py_class)
 
   /* Call classed register method.
    * Note that zero falls through, no attribute, no error. */
-  switch (_PyObject_LookupAttr(py_class, bpy_intern_str_register, &py_cls_meth)) {
+  switch (PyObject_GetOptionalAttr(py_class, bpy_intern_str_register, &py_cls_meth)) {
     case 1: {
       PyObject *ret = PyObject_CallObject(py_cls_meth, nullptr);
       Py_DECREF(py_cls_meth);
@@ -9388,7 +9378,7 @@ static PyObject *pyrna_unregister_class(PyObject * /*self*/, PyObject *py_class)
 
   /* Call classed unregister method.
    * Note that zero falls through, no attribute, no error. */
-  switch (_PyObject_LookupAttr(py_class, bpy_intern_str_unregister, &py_cls_meth)) {
+  switch (PyObject_GetOptionalAttr(py_class, bpy_intern_str_unregister, &py_cls_meth)) {
     case 1: {
       PyObject *ret = PyObject_CallObject(py_cls_meth, nullptr);
       Py_DECREF(py_cls_meth);

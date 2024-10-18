@@ -55,7 +55,7 @@ bool rna_CurvesGeometry_remove_curves(blender::bke::CurvesGeometry &curves,
       return false;
     }
     if (!std::is_sorted(indices.begin(), indices.end())) {
-      BKE_report(reports, RPT_ERROR, "Indices must be sorted in acending order");
+      BKE_report(reports, RPT_ERROR, "Indices must be sorted in ascending order");
       return false;
     }
     if (std::adjacent_find(indices.begin(), indices.end(), std::greater_equal<int>()) !=
@@ -105,7 +105,7 @@ bool rna_CurvesGeometry_resize_curves(blender::bke::CurvesGeometry &curves,
       return false;
     }
     if (!std::is_sorted(indices.begin(), indices.end())) {
-      BKE_report(reports, RPT_ERROR, "Indices must be sorted in acending order");
+      BKE_report(reports, RPT_ERROR, "Indices must be sorted in ascending order");
       return false;
     }
     if (std::adjacent_find(indices.begin(), indices.end(), std::greater_equal<int>()) !=

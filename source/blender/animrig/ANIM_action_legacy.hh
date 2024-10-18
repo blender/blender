@@ -50,6 +50,14 @@ Vector<const FCurve *> fcurves_all(const bAction *action);
 Vector<FCurve *> fcurves_all(bAction *action);
 
 /**
+ * Return the F-Curves for the first slot of this Action.
+ *
+ * This works for both legacy and layered Actions. For the former, it will
+ * return all F-Curves in the Action.
+ */
+Vector<FCurve *> fcurves_first_slot(bAction *action);
+
+/**
  * Return the F-Curves for this specific slot handle.
  *
  * On a legacy Action, this returns all F-Curves, and ignores the slot handle.

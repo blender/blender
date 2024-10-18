@@ -976,7 +976,7 @@ static int grease_pencil_layer_group_color_tag_exec(bContext *C, wmOperator *op)
 static void GREASE_PENCIL_OT_layer_group_color_tag(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Grease Pencil group color tag";
+  ot->name = "Grease Pencil Group Color Tag";
   ot->idname = "GREASE_PENCIL_OT_layer_group_color_tag";
   ot->description = "Change layer group icon";
 
@@ -985,7 +985,7 @@ static void GREASE_PENCIL_OT_layer_group_color_tag(wmOperatorType *ot)
 
   ot->flag = OPTYPE_UNDO;
 
-  ot->prop = RNA_def_enum(ot->srna, "color_tag", enum_layergroup_color_items, 0, "color tag", "");
+  ot->prop = RNA_def_enum(ot->srna, "color_tag", enum_layergroup_color_items, 0, "Color Tag", "");
 }
 
 enum class DuplicateCopyMode {

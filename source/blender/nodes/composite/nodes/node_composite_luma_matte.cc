@@ -6,6 +6,12 @@
  * \ingroup cmpnodes
  */
 
+#include "BLI_math_vector_types.hh"
+
+#include "FN_multi_function_builder.hh"
+
+#include "NOD_multi_function.hh"
+
 #include "IMB_colormanagement.hh"
 
 #include "UI_interface.hh"
@@ -93,6 +99,19 @@ static ShaderNode *get_compositor_shader_node(DNode node)
   return new LuminanceMatteShaderNode(node);
 }
 
+static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+{
+  /* Not yet implemented. Return zero. */
+  static auto function = mf::build::SI1_SO2<float4, float4, float>(
+      "Luminance Key",
+      [](const float4 & /*color*/, float4 &output_color, float &matte) -> void {
+        output_color = float4(0.0f);
+        matte = 0.0f;
+      },
+      mf::build::exec_presets::AllSpanOrSingle());
+  builder.set_matching_fn(function);
+}
+
 }  // namespace blender::nodes::node_composite_luma_matte_cc
 
 void register_node_type_cmp_luma_matte()
@@ -109,6 +128,7 @@ void register_node_type_cmp_luma_matte()
   blender::bke::node_type_storage(
       &ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
+  ntype.build_multi_function = file_ns::node_build_multi_function;
 
   blender::bke::node_register_type(&ntype);
 }

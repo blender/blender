@@ -474,7 +474,6 @@ void gpu_shader_create_info_init()
   _info
 
 /* Declare, register and construct the infos. */
-#include "compositor_shader_create_info_list.hh"
 #include "gpu_shader_create_info_list.hh"
 
 /* Baked shader data appended to create infos. */
@@ -580,9 +579,6 @@ void gpu_shader_create_info_init()
     /* Automatically amend the create info for ease of use of the debug feature. */
     if ((info->builtins_ & BuiltinBits::USE_DEBUG_DRAW) == BuiltinBits::USE_DEBUG_DRAW) {
       info->additional_info("draw_debug_draw");
-    }
-    if ((info->builtins_ & BuiltinBits::USE_DEBUG_PRINT) == BuiltinBits::USE_DEBUG_PRINT) {
-      info->additional_info("draw_debug_print");
     }
 #endif
   }

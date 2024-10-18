@@ -129,6 +129,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  bf_functions
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::extern::fmtlib
   bf_realtime_compositor

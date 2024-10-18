@@ -1,0 +1,104 @@
+{
+  "Arev-Fonts": {
+    "name": "Arev Fonts License",
+    "url": "http://tavmjong.free.fr/FONTS/ArevCopyright.txt"
+  },
+  "ICS": {
+    "name": "WC Width License",
+    "url": "https://www.cl.cam.ac.uk/~mgk25/ucs/wcwidth.c"
+  },
+  "LLVM-exception": {
+    "name": "LLVM Exception",
+    "url": "https://spdx.org/licenses/LLVM-exception.html"
+  },
+  "Public Domain": {
+    "name": "Public Domain",
+    "url": "https://spdx.org/licenses/LLVM-exception.html",
+    "copyright_exemption": "Public domain projects have no specific license or requirements in regards to copyright enforcement."
+  },
+  "SPDX:Apache-2.0": {
+    "name": "Apache License 2.0",
+    "url": "https://spdx.org/licenses/Apache-2.0.html"
+  },
+  "SPDX:Bitstream-Vera": {
+    "name": "Bistream Vera Font License",
+    "url": "https://spdx.org/licenses/Bitstream-Vera.html"
+  },
+  "SPDX:BSL-1.0": {
+    "name": "Boost Software License 1.0",
+    "url": "https://spdx.org/licenses/BSL-1.0.html",
+    "copyright_exemption": "The Boost license encourages both commercial and non-commercial use and does not require attribution for binary use."
+  },
+  "SPDX:BSD-2-Clause": {
+    "name": "BSD 2-Clause \"Simplified\" License",
+    "url": "https://spdx.org/licenses/BSD-2-Clause.html"
+  },
+  "SPDX:BSD-3-Clause": {
+    "name": "BSD 3-Clause \"New\" or \"Revised\" License",
+    "url": "https://spdx.org/licenses/BSD-3-Clause.html"
+  },
+  "SPDX:bzip2-1.0.6": {
+    "name": "bzip2 and libbzip2 License v1.0.6",
+    "url": "https://spdx.org/licenses/bzip2-1.0.6.html"
+  },
+  "SPDX:FTL": {
+    "name": "Freetype Project License",
+    "url": "https://spdx.org/licenses/FTL.html"
+  },  
+  "SPDX:GPL-2.0-or-later": {
+    "name": "GNU General Public License v2.0 or later",
+    "url": "https://spdx.org/licenses/GPL-2.0-or-later.html"
+  },
+  "SPDX:GPL-3.0-or-later": {
+    "name": "GNU General Public License v3.0 or later",
+    "url": "https://spdx.org/licenses/GPL-3.0-or-later.html"
+  },
+  "SPDX:libpng-2.0": {
+    "name": "libpng 2.0 License",
+    "url": "https://spdx.org/licenses/libpng-2.0.html"
+  },
+  "SPDX:libtiff": {
+    "name": "libtiff License",
+    "url": "https://spdx.org/licenses/libtiff.html"
+  },
+  "SPDX:LGPL-2.1-or-later": {
+    "name": "GNU Lesser General Public License v2.1 or later",
+    "url": "https://spdx.org/licenses/LGPL-2.1-or-later.html"
+  },
+  "SPDX:MIT": {
+    "name": "MIT",
+    "url": "https://spdx.org/licenses/MIT.html"
+  },
+  "SPDX:MIT-Khronos-old": {
+    "name": "MIT Khronos - old variant",
+    "url": "https://spdx.org/licenses/MIT-Khronos-old.html"
+  },
+  "SPDX:MPL-2.0": {
+    "name": "Mozilla Public License 2.0",
+    "url": "https://spdx.org/licenses/MPL-2.0.html"
+  },
+  "SPDX:NCSA": {
+    "name": "University of Illinois/NCSA Open Source License",
+    "url": "https://spdx.org/licenses/NCSA.html"
+  },
+  "SPDX:OFL-1.1": {
+    "name": "SIL Open Font License 1.1",
+    "url": "https://spdx.org/licenses/OFL-1.1.html"
+  },
+  "SPDX:Python-2.0": {
+    "name": "Python License 2.0",
+    "url": "https://spdx.org/licenses/Python-2.0.html"
+  },
+  "SPDX:SGI-B-2.0": {
+    "name": "SGI Free Software License B v2.0",
+    "url": "https://spdx.org/licenses/SGI-B-2.0.html"
+  },
+  "SPDX:Zlib": {
+    "name": "Zlib License",
+    "url": "https://spdx.org/licenses/Zlib.html"
+  },
+  "TOST-1.0": {
+    "name": "Tomorrow Open Source Technology License 1.0",
+    "url": "https://disneystreaming.github.io/TOST-1.0.txt"
+  }
+}

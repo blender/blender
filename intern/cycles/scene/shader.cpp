@@ -819,7 +819,7 @@ float3 ShaderManager::rec709_to_scene_linear(float3 c)
 string ShaderManager::get_cryptomatte_materials(Scene *scene)
 {
   string manifest = "{";
-  unordered_set<ustring, ustringHash> materials;
+  unordered_set<ustring> materials;
   foreach (Shader *shader, scene->shaders) {
     if (materials.count(shader->name)) {
       continue;

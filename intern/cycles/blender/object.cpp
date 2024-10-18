@@ -443,7 +443,7 @@ bool BlenderSync::sync_object_attributes(BL::DepsgraphObjectInstance &b_instance
       }
 
       /* Replace or add the value. */
-      ParamValue new_param(name, TypeDesc::TypeFloat4, 1, &value);
+      ParamValue new_param(name, TypeFloat4, 1, &value);
       assert(new_param.datasize() == sizeof(value));
 
       if (!param) {

@@ -6,6 +6,10 @@
  * \ingroup cmpnodes
  */
 
+#include "FN_multi_function_builder.hh"
+
+#include "NOD_multi_function.hh"
+
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
@@ -89,6 +93,20 @@ static ShaderNode *get_compositor_shader_node(DNode node)
   return new MapRangeShaderNode(node);
 }
 
+static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+{
+  /* Not yet implemented. Return zero. */
+  static auto function = mf::build::SI5_SO<float, float, float, float, float, float>(
+      "Map Range",
+      [](const float /*value*/,
+         const float /*from_min*/,
+         const float /*from_max*/,
+         const float /*to_min*/,
+         const float /*to_max*/) -> float { return 0.0f; },
+      mf::build::exec_presets::SomeSpanOrSingle<0>());
+  builder.set_matching_fn(function);
+}
+
 }  // namespace blender::nodes::node_composite_map_range_cc
 
 void register_node_type_cmp_map_range()
@@ -101,6 +119,7 @@ void register_node_type_cmp_map_range()
   ntype.declare = file_ns::cmp_node_map_range_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_map_range;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
+  ntype.build_multi_function = file_ns::node_build_multi_function;
 
   blender::bke::node_register_type(&ntype);
 }

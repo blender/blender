@@ -16,9 +16,9 @@
 
 #include "BLI_math_matrix.h"
 
-#include "MOD_lineart.h"
+#include "MOD_lineart.hh"
 
-#include "lineart_intern.h"
+#include "lineart_intern.hh"
 
 /* Line art memory and list helper */
 

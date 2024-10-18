@@ -23,7 +23,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Bool>("Screen Space")
       .default_value(true)
       .description(
-          "If true, true gizmo is displayed in screen space. Otherwise it's in object space");
+          "If true, the gizmo is displayed in screen space. Otherwise it's in object space");
   b.add_input<decl::Float>("Radius").default_value(1.0f);
   b.add_output<decl::Geometry>("Transform");
 }

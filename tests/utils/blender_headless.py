@@ -20,7 +20,13 @@ Environment Variables:
 
 - ``BLENDER_BIN``: the Blender binary to run.
   (defaults to ``blender`` which must be in the ``PATH``).
-
+- ``USE_WINDOW``: When nonzero:
+  Show the window (not actually headless).
+  Useful for troubleshooting so it's possible to see the contents of the window.
+  Note that using a window causes WAYLAND to define a "seat",
+  where the headless session doesn't define a seat.
+- ``USE_DEBUG``: When nonzero:
+  Run Blender in a debugger.
 
 WAYLAND Environment Variables:
 
@@ -52,14 +58,23 @@ from typing import (
 # -----------------------------------------------------------------------------
 # Constants
 
-# For debugging, print out all information.
-VERBOSE = False
+def environ_nonzero(var: str) -> bool:
+    return os.environ.get(var, "").lstrip("0") != ""
+
 
 BLENDER_BIN = os.environ.get("BLENDER_BIN", "blender")
+
+# For debugging, print out all information.
+VERBOSE = environ_nonzero("VERBOSE")
+
+# Show the window in the foreground.
+USE_WINDOW = environ_nonzero("USE_WINDOW")
+USE_DEBUG = environ_nonzero("USE_DEBUG")
 
 
 # -----------------------------------------------------------------------------
 # Generic Utilities
+
 
 def scantree(path: str) -> Iterator[os.DirEntry[str]]:
     """Recursively yield DirEntry objects for given directory."""
@@ -242,7 +257,7 @@ class backend_wayland(backend_base):
         cmd = [
             weston_bin,
             "--socket={:s}".format(socket),
-            "--backend=headless",
+            *(() if USE_WINDOW else ("--backend=headless",)),
             "--width=800",
             "--height=600",
             # `--config={..}` is added to point to a temp file.
@@ -297,6 +312,10 @@ class backend_wayland(backend_base):
                     BLENDER_BIN,
                     *blender_args,
                 ]
+
+                if USE_DEBUG:
+                    cmd = ["gdb", BLENDER_BIN, "--ex=run", "--args", *cmd]
+
                 if VERBOSE:
                     print("Env:", blender_env)
                     print("Run:", cmd)

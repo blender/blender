@@ -103,7 +103,7 @@ TEST_F(ActionFilterTest, slots_expanded_or_not)
   SpaceAction saction = {nullptr};
   saction.action = action;
   saction.action_slot_handle = slot_cube.handle;
-  saction.ads.filterflag = ADS_FILTER_ALL_SLOTS;
+  saction.ads.filterflag = eDopeSheet_FilterFlag(0);
 
   bAnimContext ac = {nullptr};
   ac.bmain = bmain;
@@ -260,7 +260,7 @@ TEST_F(ActionFilterTest, layered_action_active_fcurves)
   SpaceAction saction = {nullptr};
   saction.action = action;
   saction.action_slot_handle = slot_cube.handle;
-  saction.ads.filterflag = ADS_FILTER_ALL_SLOTS;
+  saction.ads.filterflag = eDopeSheet_FilterFlag(0);
 
   bAnimContext ac = {nullptr};
   ac.bmain = bmain;

@@ -2205,16 +2205,12 @@ static void template_search_add_button_name(uiBlock *block,
   }
 
   PropertyRNA *name_prop;
-#ifdef WITH_ANIM_BAKLAVA
   if (type == &RNA_ActionSlot) {
     name_prop = RNA_struct_find_property(active_ptr, "name_display");
   }
   else {
-#endif /* WITH_ANIM_BAKLAVA */
     name_prop = RNA_struct_name_property(type);
-#ifdef WITH_ANIM_BAKLAVA
   }
-#endif /* WITH_ANIM_BAKLAVA */
 
   const int width = template_search_textbut_width(active_ptr, name_prop);
   const int height = template_search_textbut_height();

@@ -2171,7 +2171,7 @@ static void GREASE_PENCIL_OT_separate(wmOperatorType *ot)
 {
   ot->name = "Separate";
   ot->idname = "GREASE_PENCIL_OT_separate";
-  ot->description = "Separate the selected geometry into a new grease pencil object";
+  ot->description = "Separate the selected geometry into a new Grease Pencil object";
 
   ot->invoke = WM_menu_invoke;
   ot->exec = grease_pencil_separate_exec;
@@ -3473,9 +3473,16 @@ static int grease_pencil_set_handle_type_exec(bContext *C, wmOperator *op)
   const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
     bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
+    if (!curves.has_curve_with_type(CURVE_TYPE_BEZIER)) {
+      return;
+    }
+    IndexMaskMemory memory;
+    const IndexMask editable_strokes = ed::greasepencil::retrieve_editable_and_selected_strokes(
+        *object, info.drawing, info.layer_index, memory);
+    const IndexMask bezier_curves = curves.indices_for_curve_type(
+        CURVE_TYPE_BEZIER, editable_strokes, memory);
 
     const bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
-
     const VArraySpan<bool> selection = *attributes.lookup_or_default<bool>(
         ".selection", bke::AttrDomain::Point, true);
     const VArraySpan<bool> selection_left = *attributes.lookup_or_default<bool>(
@@ -3483,11 +3490,12 @@ static int grease_pencil_set_handle_type_exec(bContext *C, wmOperator *op)
     const VArraySpan<bool> selection_right = *attributes.lookup_or_default<bool>(
         ".selection_handle_right", bke::AttrDomain::Point, true);
 
+    const OffsetIndices<int> points_by_curve = curves.points_by_curve();
     MutableSpan<int8_t> handle_types_left = curves.handle_types_left_for_write();
     MutableSpan<int8_t> handle_types_right = curves.handle_types_right_for_write();
-
-    threading::parallel_for(curves.points_range(), 4096, [&](const IndexRange range) {
-      for (const int point_i : range) {
+    bezier_curves.foreach_index(GrainSize(256), [&](const int curve_i) {
+      const IndexRange points = points_by_curve[curve_i];
+      for (const int point_i : points) {
         if (selection_left[point_i] || selection[point_i]) {
           handle_types_left[point_i] = int8_t(dst_handle_type);
         }
@@ -3558,7 +3566,7 @@ static int grease_pencil_set_curve_resolution_exec(bContext *C, wmOperator *op)
     }
 
     index_mask::masked_fill(curves.resolution_for_write(), resolution, editable_strokes);
-    info.drawing.tag_positions_changed();
+    info.drawing.tag_topology_changed();
     changed = true;
   });
 
@@ -4054,7 +4062,7 @@ int ED_grease_pencil_join_objects_exec(bContext *C, wmOperator *op)
   CTX_DATA_END;
   /* Active object must always selected. */
   if (ok == false) {
-    BKE_report(op->reports, RPT_WARNING, "Active object is not a selected grease pencil");
+    BKE_report(op->reports, RPT_WARNING, "Active object is not a selected Grease Pencil");
     return OPERATOR_CANCELLED;
   }
 

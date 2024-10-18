@@ -773,6 +773,7 @@ static void rna_FCurve_modifiers_remove(FCurve *fcu, ReportList *reports, Pointe
   }
 
   remove_fmodifier(&fcu->modifiers, fcm);
+  DEG_id_tag_update(fcm_ptr->owner_id, ID_RECALC_ANIMATION);
   RNA_POINTER_INVALIDATE(fcm_ptr);
 }
 

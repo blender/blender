@@ -56,6 +56,7 @@ void RNA_define_fallback_property_update(int noteflag, const char *updatefunc);
 void RNA_define_lib_overridable(bool make_overridable);
 
 void RNA_init();
+void RNA_bpy_exit();
 void RNA_exit();
 
 /* Struct */

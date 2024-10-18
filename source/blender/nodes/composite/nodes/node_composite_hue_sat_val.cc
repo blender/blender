@@ -6,6 +6,12 @@
  * \ingroup cmpnodes
  */
 
+#include "BLI_math_vector_types.hh"
+
+#include "FN_multi_function_builder.hh"
+
+#include "NOD_multi_function.hh"
+
 #include "GPU_material.hh"
 
 #include "COM_shader_node.hh"
@@ -69,6 +75,20 @@ static ShaderNode *get_compositor_shader_node(DNode node)
   return new HueSaturationValueShaderNode(node);
 }
 
+static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+{
+  /* Not yet implemented. Return zero. */
+  static auto function = mf::build::SI5_SO<float4, float, float, float, float, float4>(
+      "Hue Saturation Value",
+      [](const float4 & /*color*/,
+         const float /*hue*/,
+         const float /*saturation*/,
+         const float /*value*/,
+         const float /*factor*/) -> float4 { return float4(0.0f); },
+      mf::build::exec_presets::SomeSpanOrSingle<0>());
+  builder.set_matching_fn(function);
+}
+
 }  // namespace blender::nodes::node_composite_hue_sat_val_cc
 
 void register_node_type_cmp_hue_sat()
@@ -80,6 +100,7 @@ void register_node_type_cmp_hue_sat()
   cmp_node_type_base(&ntype, CMP_NODE_HUE_SAT, "Hue/Saturation/Value", NODE_CLASS_OP_COLOR);
   ntype.declare = file_ns::cmp_node_huesatval_declare;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
+  ntype.build_multi_function = file_ns::node_build_multi_function;
 
   blender::bke::node_register_type(&ntype);
 }

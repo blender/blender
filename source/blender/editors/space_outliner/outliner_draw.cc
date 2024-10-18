@@ -811,7 +811,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           char newname[sizeof(bone->name)];
 
           /* always make current object active */
-          tree_element_activate(C, &tvc, te, OL_SETSEL_NORMAL, true);
+          tree_element_activate(C, tvc, te, OL_SETSEL_NORMAL, true);
 
           /* restore bone name */
           STRNCPY(newname, bone->name);
@@ -833,7 +833,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           char newname[sizeof(pchan->name)];
 
           /* always make current pose-bone active */
-          tree_element_activate(C, &tvc, te, OL_SETSEL_NORMAL, true);
+          tree_element_activate(C, tvc, te, OL_SETSEL_NORMAL, true);
 
           BLI_assert(ob->type == OB_ARMATURE);
 
@@ -2201,12 +2201,12 @@ static void outliner_mode_toggle_fn(bContext *C, void *tselem_poin, void * /*arg
 
   wmWindow *win = CTX_wm_window(C);
   const bool do_extend = (win->eventstate->modifier & KM_CTRL) && !object_data_shared;
-  outliner_item_mode_toggle(C, &tvc, te, do_extend);
+  outliner_item_mode_toggle(C, tvc, te, do_extend);
 }
 
 /* Draw icons for adding and removing objects from the current interaction mode. */
 static void outliner_draw_mode_column_toggle(uiBlock *block,
-                                             TreeViewContext *tvc,
+                                             const TreeViewContext &tvc,
                                              TreeElement *te,
                                              const bool lock_object_modes)
 {
@@ -2216,7 +2216,7 @@ static void outliner_draw_mode_column_toggle(uiBlock *block,
   }
 
   Object *ob = (Object *)tselem->id;
-  Object *ob_active = tvc->obact;
+  Object *ob_active = tvc.obact;
 
   /* Not all objects support particle systems. */
   if (ob_active->mode == OB_MODE_PARTICLE_EDIT && !psys_get_current(ob)) {
@@ -2252,7 +2252,7 @@ static void outliner_draw_mode_column_toggle(uiBlock *block,
    * allow multi-object editing, these other objects should still show be viewed as not in the
    * mode. Otherwise multiple objects show the same mode icon in the outliner even though only
    * one object is actually editable in the mode. */
-  if (!lock_object_modes && ob != ob_active && !(tvc->ob_edit || tvc->ob_pose)) {
+  if (!lock_object_modes && ob != ob_active && !(tvc.ob_edit || tvc.ob_pose)) {
     draw_active_icon = false;
   }
 
@@ -2299,13 +2299,13 @@ static void outliner_draw_mode_column_toggle(uiBlock *block,
 }
 
 static void outliner_draw_mode_column(uiBlock *block,
-                                      TreeViewContext *tvc,
+                                      TreeViewContext &tvc,
                                       SpaceOutliner *space_outliner)
 {
-  const bool lock_object_modes = tvc->scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK;
+  const bool lock_object_modes = tvc.scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK;
 
   tree_iterator::all_open(*space_outliner, [&](TreeElement *te) {
-    if (tvc->obact && tvc->obact->mode != OB_MODE_OBJECT) {
+    if (tvc.obact && tvc.obact->mode != OB_MODE_OBJECT) {
       outliner_draw_mode_column_toggle(block, tvc, te, lock_object_modes);
     }
   });
@@ -3178,10 +3178,9 @@ struct MergedIconRow {
   TreeElement *tree_element[INDEX_ID_MAX + OB_TYPE_MAX];
 };
 
-static void outliner_draw_iconrow(bContext *C,
-                                  uiBlock *block,
+static void outliner_draw_iconrow(uiBlock *block,
                                   const uiFontStyle *fstyle,
-                                  const TreeViewContext *tvc,
+                                  const TreeViewContext &tvc,
                                   SpaceOutliner *space_outliner,
                                   ListBase *lb,
                                   int level,
@@ -3215,9 +3214,9 @@ static void outliner_draw_iconrow(bContext *C,
       /* active blocks get white circle */
       if (tselem->type == TSE_SOME_ID) {
         if (te->idcode == ID_OB) {
-          active = (tvc->obact == (Object *)tselem->id) ? OL_DRAWSEL_NORMAL : OL_DRAWSEL_NONE;
+          active = (tvc.obact == (Object *)tselem->id) ? OL_DRAWSEL_NORMAL : OL_DRAWSEL_NONE;
         }
-        else if (is_object_data_in_editmode(tselem->id, tvc->obact)) {
+        else if (is_object_data_in_editmode(tselem->id, tvc.obact)) {
           active = OL_DRAWSEL_ACTIVE;
         }
         else {
@@ -3225,7 +3224,7 @@ static void outliner_draw_iconrow(bContext *C,
         }
       }
       else {
-        active = tree_element_type_active_state_get(C, tvc, te, tselem);
+        active = tree_element_type_active_state_get(tvc, te, tselem);
       }
 
       if (!ELEM(tselem->type,
@@ -3275,8 +3274,7 @@ static void outliner_draw_iconrow(bContext *C,
     if (!ELEM(tselem->type, TSE_R_LAYER, TSE_BONE, TSE_EBONE, TSE_POSE_CHANNEL) ||
         in_bone_hierarchy || in_grease_pencil_node_hierarchy)
     {
-      outliner_draw_iconrow(C,
-                            block,
+      outliner_draw_iconrow(block,
                             fstyle,
                             tvc,
                             space_outliner,
@@ -3330,7 +3328,7 @@ static void outliner_set_subtree_coords(const TreeElement *te)
   });
 }
 
-static bool element_should_draw_faded(const TreeViewContext *tvc,
+static bool element_should_draw_faded(const TreeViewContext &tvc,
                                       const TreeElement *te,
                                       const TreeStoreElem *tselem)
 {
@@ -3339,10 +3337,10 @@ static bool element_should_draw_faded(const TreeViewContext *tvc,
       case ID_OB: {
         const Object *ob = (const Object *)tselem->id;
         /* Lookup in view layer is logically const as it only checks a cache. */
-        BKE_view_layer_synced_ensure(tvc->scene, tvc->view_layer);
-        const Base *base = (te->directdata) ? (const Base *)te->directdata :
-                                              BKE_view_layer_base_find(
-                                                  (ViewLayer *)tvc->view_layer, (Object *)ob);
+        BKE_view_layer_synced_ensure(tvc.scene, tvc.view_layer);
+        const Base *base = (te->directdata) ?
+                               (const Base *)te->directdata :
+                               BKE_view_layer_base_find((ViewLayer *)tvc.view_layer, (Object *)ob);
         const bool is_visible = (base != nullptr) &&
                                 (base->flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT);
 
@@ -3381,10 +3379,9 @@ static bool element_should_draw_faded(const TreeViewContext *tvc,
   return false;
 }
 
-static void outliner_draw_tree_element(bContext *C,
-                                       uiBlock *block,
+static void outliner_draw_tree_element(uiBlock *block,
                                        const uiFontStyle *fstyle,
-                                       const TreeViewContext *tvc,
+                                       const TreeViewContext &tvc,
                                        ARegion *region,
                                        SpaceOutliner *space_outliner,
                                        TreeElement *te,
@@ -3422,17 +3419,17 @@ static void outliner_draw_tree_element(bContext *C,
     if (tselem->type == TSE_SOME_ID) {
       if (te->idcode == ID_OB) {
         Object *ob = (Object *)tselem->id;
-        BKE_view_layer_synced_ensure(tvc->scene, tvc->view_layer);
+        BKE_view_layer_synced_ensure(tvc.scene, tvc.view_layer);
         Base *base = (te->directdata) ? (Base *)te->directdata :
-                                        BKE_view_layer_base_find(tvc->view_layer, ob);
+                                        BKE_view_layer_base_find(tvc.view_layer, ob);
         const bool is_selected = (base != nullptr) && ((base->flag & BASE_SELECTED) != 0);
 
-        if (ob == tvc->obact) {
+        if (ob == tvc.obact) {
           active = OL_DRAWSEL_ACTIVE;
         }
 
         if (is_selected) {
-          if (ob == tvc->obact) {
+          if (ob == tvc.obact) {
             /* Active selected object. */
             UI_GetThemeColor3ubv(TH_ACTIVE_OBJECT, text_color);
             text_color[3] = 255;
@@ -3444,7 +3441,7 @@ static void outliner_draw_tree_element(bContext *C,
           }
         }
       }
-      else if (is_object_data_in_editmode(tselem->id, tvc->obact)) {
+      else if (is_object_data_in_editmode(tselem->id, tvc.obact)) {
         /* Objects being edited. */
         UI_GetThemeColor4fv(TH_EDITED_OBJECT, icon_bgcolor);
         icon_border[3] = 0.3f;
@@ -3459,7 +3456,7 @@ static void outliner_draw_tree_element(bContext *C,
       }
     }
     else {
-      active = tree_element_type_active_state_get(C, tvc, te, tselem);
+      active = tree_element_type_active_state_get(tvc, te, tselem);
     }
 
     /* Active circle. */
@@ -3558,8 +3555,7 @@ static void outliner_draw_tree_element(bContext *C,
           GPU_blend(GPU_BLEND_ALPHA);
 
           MergedIconRow merged{};
-          outliner_draw_iconrow(C,
-                                block,
+          outliner_draw_iconrow(block,
                                 fstyle,
                                 tvc,
                                 space_outliner,
@@ -3590,8 +3586,7 @@ static void outliner_draw_tree_element(bContext *C,
       /* Check if element needs to be drawn grayed out, but also gray out
        * children of a grayed out parent (pass on draw_grayed_out to children). */
       bool draw_children_grayed_out = draw_grayed_out || (ten->flag & TE_DRAGGING);
-      outliner_draw_tree_element(C,
-                                 block,
+      outliner_draw_tree_element(block,
                                  fstyle,
                                  tvc,
                                  region,
@@ -3641,7 +3636,7 @@ static void outliner_draw_hierarchy_line(
 static void outliner_draw_hierarchy_lines_recursive(uint pos,
                                                     SpaceOutliner *space_outliner,
                                                     ListBase *lb,
-                                                    const TreeViewContext *tvc,
+                                                    const TreeViewContext &tvc,
                                                     int startx,
                                                     const uchar col[4],
                                                     bool draw_grayed_out,
@@ -3715,7 +3710,7 @@ static void outliner_draw_hierarchy_lines_recursive(uint pos,
 
 static void outliner_draw_hierarchy_lines(SpaceOutliner *space_outliner,
                                           ListBase *lb,
-                                          const TreeViewContext *tvc,
+                                          const TreeViewContext &tvc,
                                           int startx,
                                           int *starty)
 {
@@ -3887,9 +3882,8 @@ static void outliner_draw_highlights(ARegion *region,
   GPU_blend(GPU_BLEND_NONE);
 }
 
-static void outliner_draw_tree(bContext *C,
-                               uiBlock *block,
-                               const TreeViewContext *tvc,
+static void outliner_draw_tree(uiBlock *block,
+                               const TreeViewContext &tvc,
                                ARegion *region,
                                SpaceOutliner *space_outliner,
                                const float right_column_width,
@@ -3898,7 +3892,6 @@ static void outliner_draw_tree(bContext *C,
                                TreeElement **te_edit)
 {
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
-  int starty, startx;
 
   /* Move the tree a unit left in view layer mode */
   short columns_offset = (use_mode_column && (space_outliner->outlinevis == SO_SCENES)) ?
@@ -3916,51 +3909,56 @@ static void outliner_draw_tree(bContext *C,
 
   if (space_outliner->outlinevis == SO_DATA_API) {
     /* struct marks */
-    starty = int(region->v2d.tot.ymax) - UI_UNIT_Y - OL_Y_OFFSET;
+    int starty = int(region->v2d.tot.ymax) - UI_UNIT_Y - OL_Y_OFFSET;
     outliner_draw_struct_marks(region, space_outliner, &space_outliner->tree, &starty);
   }
 
   /* Draw highlights before hierarchy. */
-  starty = int(region->v2d.tot.ymax) - UI_UNIT_Y - OL_Y_OFFSET;
-  startx = 0;
-  outliner_draw_highlights(region, space_outliner, startx, &starty);
-
-  /* Set scissor so tree elements or lines can't overlap restriction icons. */
   int scissor[4] = {0};
-  if (right_column_width > 0.0f) {
-    int mask_x = BLI_rcti_size_x(&region->v2d.mask) - int(right_column_width) + 1;
-    CLAMP_MIN(mask_x, 0);
+  {
+    int starty = int(region->v2d.tot.ymax) - UI_UNIT_Y - OL_Y_OFFSET;
+    int startx = 0;
+    outliner_draw_highlights(region, space_outliner, startx, &starty);
 
-    GPU_scissor_get(scissor);
-    GPU_scissor(0, 0, mask_x, region->winy);
+    /* Set scissor so tree elements or lines can't overlap restriction icons. */
+    if (right_column_width > 0.0f) {
+      int mask_x = BLI_rcti_size_x(&region->v2d.mask) - int(right_column_width) + 1;
+      CLAMP_MIN(mask_x, 0);
+
+      GPU_scissor_get(scissor);
+      GPU_scissor(0, 0, mask_x, region->winy);
+    }
   }
 
   /* Draw hierarchy lines for collections and object children. */
-  starty = int(region->v2d.tot.ymax) - OL_Y_OFFSET;
-  startx = columns_offset + UI_UNIT_X / 2 - (U.pixelsize + 1) / 2;
-  outliner_draw_hierarchy_lines(space_outliner, &space_outliner->tree, tvc, startx, &starty);
-
-  /* Items themselves. */
-  starty = int(region->v2d.tot.ymax) - UI_UNIT_Y - OL_Y_OFFSET;
-  startx = columns_offset;
-  LISTBASE_FOREACH (TreeElement *, te, &space_outliner->tree) {
-    outliner_draw_tree_element(C,
-                               block,
-                               fstyle,
-                               tvc,
-                               region,
-                               space_outliner,
-                               te,
-                               (te->flag & TE_DRAGGING) != 0,
-                               startx,
-                               &starty,
-                               right_column_width,
-                               te_edit);
+  {
+    int starty = int(region->v2d.tot.ymax) - OL_Y_OFFSET;
+    int startx = columns_offset + UI_UNIT_X / 2 - (U.pixelsize + 1) / 2;
+    outliner_draw_hierarchy_lines(space_outliner, &space_outliner->tree, tvc, startx, &starty);
   }
 
-  if (right_column_width > 0.0f) {
-    /* Reset scissor. */
-    GPU_scissor(UNPACK4(scissor));
+  /* Items themselves. */
+  {
+    int starty = int(region->v2d.tot.ymax) - UI_UNIT_Y - OL_Y_OFFSET;
+    int startx = columns_offset;
+    LISTBASE_FOREACH (TreeElement *, te, &space_outliner->tree) {
+      outliner_draw_tree_element(block,
+                                 fstyle,
+                                 tvc,
+                                 region,
+                                 space_outliner,
+                                 te,
+                                 (te->flag & TE_DRAGGING) != 0,
+                                 startx,
+                                 &starty,
+                                 right_column_width,
+                                 te_edit);
+    }
+
+    if (right_column_width > 0.0f) {
+      /* Reset scissor. */
+      GPU_scissor(UNPACK4(scissor));
+    }
   }
 }
 
@@ -4041,7 +4039,7 @@ static void outliner_update_viewable_area(ARegion *region,
  * Draw contents of Outliner editor.
  * \{ */
 
-void draw_outliner(const bContext *C)
+void draw_outliner(const bContext *C, bool do_rebuild)
 {
   Main *mainvar = CTX_data_main(C);
   ARegion *region = CTX_wm_region(C);
@@ -4053,22 +4051,33 @@ void draw_outliner(const bContext *C)
   TreeViewContext tvc;
   outliner_viewcontext_init(C, &tvc);
 
-  outliner_build_tree(mainvar, tvc.scene, tvc.view_layer, space_outliner, region); /* Always. */
+  /* FIXME(@ideasman42): There is an order of initialization problem here between
+   * `v2d->cur` & `v2d->tot` where this function reads from `v2d->cur` for the scroll position
+   * but may reset the scroll position *without* drawing into the clamped position.
+   *
+   * The `on_scroll` argument is used for an optional second draw pass.
+   *
+   * See `USE_OUTLINER_DRAW_CLAMPS_SCROLL_HACK` & #128346 for a full description. */
 
-  /* If global sync select is dirty, flag other outliners. */
-  if (ED_outliner_select_sync_is_dirty(C)) {
-    ED_outliner_select_sync_flag_outliners(C);
-  }
+  if (do_rebuild) {
+    outliner_build_tree(mainvar, tvc.scene, tvc.view_layer, space_outliner, region); /* Always. */
 
-  /* Sync selection state from view layer. */
-  if (!ELEM(space_outliner->outlinevis,
-            SO_LIBRARIES,
-            SO_OVERRIDES_LIBRARY,
-            SO_DATA_API,
-            SO_ID_ORPHANS) &&
-      space_outliner->flag & SO_SYNC_SELECT)
-  {
-    outliner_sync_selection(C, space_outliner);
+    /* If global sync select is dirty, flag other outliners. */
+    if (ED_outliner_select_sync_is_dirty(C)) {
+      ED_outliner_select_sync_flag_outliners(C);
+    }
+
+    /* Sync selection state from view layer. */
+    if (space_outliner->flag & SO_SYNC_SELECT) {
+      if (!ELEM(space_outliner->outlinevis,
+                SO_LIBRARIES,
+                SO_OVERRIDES_LIBRARY,
+                SO_DATA_API,
+                SO_ID_ORPHANS))
+      {
+        outliner_sync_selection(C, tvc, space_outliner);
+      }
+    }
   }
 
   /* Force display to pixel coords. */
@@ -4084,9 +4093,8 @@ void draw_outliner(const bContext *C)
   const float right_column_width = outliner_right_columns_width(space_outliner);
   outliner_back(region);
   block = UI_block_begin(C, region, __func__, UI_EMBOSS);
-  outliner_draw_tree((bContext *)C,
-                     block,
-                     &tvc,
+  outliner_draw_tree(block,
+                     tvc,
                      region,
                      space_outliner,
                      right_column_width,
@@ -4143,7 +4151,7 @@ void draw_outliner(const bContext *C)
 
   /* Draw mode icons */
   if (use_mode_column) {
-    outliner_draw_mode_column(block, &tvc, space_outliner);
+    outliner_draw_mode_column(block, tvc, space_outliner);
   }
 
   /* Draw warning icons */

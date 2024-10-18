@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "overlay_next_grease_pencil.hh"
 #include "overlay_next_private.hh"
 
 #include "draw_common.hh"

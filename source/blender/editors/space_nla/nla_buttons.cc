@@ -483,7 +483,6 @@ static void nla_panel_actclip(const bContext *C, Panel *panel)
   column = uiLayoutColumn(layout, true);
   uiItemR(column, &strip_ptr, "action", UI_ITEM_NONE, nullptr, ICON_ACTION);
 
-#ifdef WITH_ANIM_BAKLAVA
   NlaStrip *strip = static_cast<NlaStrip *>(strip_ptr.data);
   if (strip->act) {
     BLI_assert(strip_ptr.owner_id);
@@ -505,7 +504,6 @@ static void nla_panel_actclip(const bContext *C, Panel *panel)
                        "Slot");
     }
   }
-#endif
 
   /* action extents */
   column = uiLayoutColumn(layout, true);

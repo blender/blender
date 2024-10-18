@@ -64,7 +64,7 @@ bool AbcCameraReader::accepts_object_type(
 
 void AbcCameraReader::readObjectData(Main *bmain, const ISampleSelector &sample_sel)
 {
-  Camera *bcam = static_cast<Camera *>(BKE_camera_add(bmain, m_data_name.c_str()));
+  Camera *bcam = BKE_camera_add(bmain, m_data_name.c_str());
 
   CameraSample cam_sample;
   m_schema.get(cam_sample, sample_sel);

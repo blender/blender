@@ -339,7 +339,7 @@ static void sync_volume_object(BL::BlendData &b_data,
     {
       Attribute *attr = (std != ATTR_STD_NONE) ?
                             volume->attributes.add(std) :
-                            volume->attributes.add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_VOXEL);
+                            volume->attributes.add(name, TypeFloat, ATTR_ELEMENT_VOXEL);
 
       ImageLoader *loader = new BlenderVolumeLoader(
           b_data, b_volume, name.string(), b_render.precision());

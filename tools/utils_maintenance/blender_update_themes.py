@@ -34,13 +34,13 @@ def update(filepath):
 
 def update_default(filepath):
     with open(filepath, 'w', encoding='utf-8') as fh:
-        fh.write('''<bpy>
+        fh.write("""<bpy>
   <Theme>
   </Theme>
   <ThemeStyle>
   </ThemeStyle>
 </bpy>
-''')
+""")
 
 
 def main():

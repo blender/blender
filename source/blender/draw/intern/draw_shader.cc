@@ -59,14 +59,6 @@ GPUShader *DRW_shader_curves_refine_get(blender::draw::CurvesEvalShader type)
   return e_data.hair_refine_sh[type];
 }
 
-GPUShader *DRW_shader_debug_print_display_get()
-{
-  if (e_data.debug_print_display_sh == nullptr) {
-    e_data.debug_print_display_sh = GPU_shader_create_from_info_name("draw_debug_print_display");
-  }
-  return e_data.debug_print_display_sh;
-}
-
 GPUShader *DRW_shader_debug_draw_display_get()
 {
   if (e_data.debug_draw_display_sh == nullptr) {

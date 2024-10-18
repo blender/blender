@@ -9,7 +9,6 @@
 #include "vk_query.hh"
 #include "vk_backend.hh"
 #include "vk_context.hh"
-#include "vk_memory.hh"
 
 #include "GPU_debug.hh"
 
@@ -19,11 +18,10 @@ VKQueryPool::~VKQueryPool()
 {
   VKBackend &backend = VKBackend::get();
   const VKDevice &device = backend.device;
-  VK_ALLOCATION_CALLBACKS;
 
   while (!vk_query_pools_.is_empty()) {
     VkQueryPool vk_query_pool = vk_query_pools_.pop_last();
-    vkDestroyQueryPool(device.vk_handle(), vk_query_pool, vk_allocation_callbacks);
+    vkDestroyQueryPool(device.vk_handle(), vk_query_pool, nullptr);
   }
 }
 
@@ -49,7 +47,6 @@ void VKQueryPool::begin_query()
 
   if (pool_index == vk_query_pools_.size()) {
     BLI_assert(is_new_pool);
-    VK_ALLOCATION_CALLBACKS;
 
     VkQueryPoolCreateInfo create_info = {};
     create_info.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
@@ -57,7 +54,7 @@ void VKQueryPool::begin_query()
     create_info.queryCount = query_chunk_len_;
 
     VkQueryPool vk_query_pool = VK_NULL_HANDLE;
-    vkCreateQueryPool(device.vk_handle(), &create_info, vk_allocation_callbacks, &vk_query_pool);
+    vkCreateQueryPool(device.vk_handle(), &create_info, nullptr, &vk_query_pool);
     vk_query_pools_.append(vk_query_pool);
   }
   BLI_assert(pool_index < vk_query_pools_.size());
