@@ -314,7 +314,7 @@ static void face_sets_update(const Depsgraph &depsgraph,
       }
 
       undo::push_node(depsgraph, object, &nodes[i], undo::Type::FaceSet);
-      array_utils::scatter(new_face_sets.as_span(), faces, face_sets.span);
+      scatter_data_mesh(new_face_sets.as_span(), faces, face_sets.span);
       node_changed[i] = true;
     });
   }
@@ -334,7 +334,7 @@ static void face_sets_update(const Depsgraph &depsgraph,
       }
 
       undo::push_node(depsgraph, object, &nodes[i], undo::Type::FaceSet);
-      array_utils::scatter(new_face_sets.as_span(), faces, face_sets.span);
+      scatter_data_mesh(new_face_sets.as_span(), faces, face_sets.span);
       node_changed[i] = true;
     });
   }
@@ -896,7 +896,7 @@ static void face_hide_update(const Depsgraph &depsgraph,
       }
 
       undo::push_node(depsgraph, object, &nodes[i], undo::Type::HideFace);
-      array_utils::scatter(new_hide.as_span(), faces, hide_poly.span);
+      scatter_data_mesh(new_hide.as_span(), faces, hide_poly.span);
       node_changed[i] = true;
     });
   }
@@ -916,7 +916,7 @@ static void face_hide_update(const Depsgraph &depsgraph,
       }
 
       undo::push_node(depsgraph, object, &nodes[i], undo::Type::HideFace);
-      array_utils::scatter(new_hide.as_span(), faces, hide_poly.span);
+      scatter_data_mesh(new_hide.as_span(), faces, hide_poly.span);
       node_changed[i] = true;
     });
   }
