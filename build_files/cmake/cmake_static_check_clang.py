@@ -21,11 +21,9 @@ import sys
 
 from typing import (
     Any,
-    Dict,
-    List,
-    Type,
+)
+from collections.abc import (
     Sequence,
-    Tuple,
 )
 
 
@@ -95,7 +93,7 @@ class ClangChecker:
     """
     __slots__ = ()
 
-    def __new__(cls, *args: Tuple[Any], **kwargs: Dict[str, Any]) -> Any:
+    def __new__(cls, *args: tuple[Any], **kwargs: dict[str, Any]) -> Any:
         raise RuntimeError("%s should not be instantiated" % cls)
 
     @staticmethod
@@ -104,7 +102,7 @@ class ClangChecker:
             _file_data: bytes,
             _tu: ClangTranslationUnit,
             _shared_check_data: Any,
-    ) -> List[str]:
+    ) -> list[str]:
         raise RuntimeError("This function must be overridden by it's subclass!")
         return []
 
@@ -150,9 +148,9 @@ class clang_checkers:
                 node_parent: ClangNode,
                 level: int,
                 # Used to build data.
-                struct_decl_map: Dict[str, ClangNode],
-                struct_type_map: Dict[str, str],
-                output: List[str],
+                struct_decl_map: dict[str, ClangNode],
+                struct_type_map: dict[str, str],
+                output: list[str],
         ) -> None:
 
             # Needed to read back the node.
@@ -344,11 +342,11 @@ class clang_checkers:
                 filepath: str,
                 file_data: bytes,
                 tu: ClangTranslationUnit,
-                _shared_check_data: Any) -> List[str]:
-            output: List[str] = []
+                _shared_check_data: Any) -> list[str]:
+            output: list[str] = []
 
-            struct_decl_map: Dict[str, Any] = {}
-            struct_type_map: Dict[str, str] = {}
+            struct_decl_map: dict[str, Any] = {}
+            struct_type_map: dict[str, str] = {}
             clang_checkers.struct_comments._struct_check_comments_recursive(
                 filepath, file_data,
                 tu.cursor, None, 0,
@@ -361,7 +359,7 @@ class clang_checkers:
 # -----------------------------------------------------------------------------
 # Checker Class Access
 
-def check_function_get_all() -> List[str]:
+def check_function_get_all() -> list[str]:
     checkers = []
     for name in dir(clang_checkers):
         value = getattr(clang_checkers, name)
@@ -371,7 +369,7 @@ def check_function_get_all() -> List[str]:
     return checkers
 
 
-def check_class_from_id(name: str) -> Type[ClangChecker]:
+def check_class_from_id(name: str) -> type[ClangChecker]:
     result = getattr(clang_checkers, name)
     assert issubclass(result, ClangChecker)
     # MYPY 0.812 doesn't recognize the assert above.
@@ -402,7 +400,7 @@ def check_source_file(
     with open(filepath, "rb") as fh:
         file_data = fh.read()
 
-    output: List[str] = []
+    output: list[str] = []
 
     # we don't really care what we are looking at, just scan entire file for
     # function calls.
@@ -415,14 +413,14 @@ def check_source_file(
     return "\n".join(output)
 
 
-def check_source_file_for_imap(args: Tuple[str, Sequence[str], Sequence[str], Sequence[Any]]) -> str:
+def check_source_file_for_imap(args: tuple[str, Sequence[str], Sequence[str], Sequence[Any]]) -> str:
     return check_source_file(*args)
 
 
 def source_info_filter(
-        source_info: List[Tuple[str, List[str], List[str]]],
+        source_info: list[tuple[str, list[str], list[str]]],
         regex_list: Sequence[re.Pattern[str]],
-) -> List[Tuple[str, List[str], List[str]]]:
+) -> list[tuple[str, list[str], list[str]]]:
     source_dir = project_source_info.SOURCE_DIR
     if not source_dir.endswith(os.sep):
         source_dir += os.sep

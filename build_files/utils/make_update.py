@@ -22,11 +22,6 @@ from pathlib import Path
 from make_utils import call, check_output
 from urllib.parse import urljoin, urlsplit
 
-from typing import (
-    Optional,
-    Tuple,
-)
-
 
 def print_stage(text: str) -> None:
     print("")
@@ -96,7 +91,7 @@ def get_effective_architecture(args: argparse.Namespace) -> str:
     NOTE: When cross-compiling the architecture is coming from the command line
     argument.
     """
-    architecture: Optional[str] = args.architecture
+    architecture: str | None = args.architecture
     if architecture:
         assert isinstance(architecture, str)
     elif "ARM64" in platform.version():
@@ -117,7 +112,7 @@ def get_effective_architecture(args: argparse.Namespace) -> str:
     return architecture
 
 
-def get_submodule_directories(args: argparse.Namespace) -> Tuple[Path, ...]:
+def get_submodule_directories(args: argparse.Namespace) -> tuple[Path, ...]:
     """
     Get list of all configured submodule directories.
     """
@@ -341,7 +336,7 @@ def floating_checkout_initialize_if_needed(
         args: argparse.Namespace,
         repo_name: str,
         directory: Path,
-        old_submodules_dir: Optional[Path] = None,
+        old_submodules_dir: Path | None = None,
 ) -> None:
     """Initialize checkout of an external repository"""
 
@@ -437,8 +432,8 @@ def floating_checkout_update(
         args: argparse.Namespace,
         repo_name: str,
         directory: Path,
-        branch: Optional[str],
-        old_submodules_dir: Optional[Path] = None,
+        branch: str | None,
+        old_submodules_dir: Path | None = None,
         only_update: bool = False,
 ) -> str:
     """Update a single external checkout with the given name in the scripts folder"""
@@ -521,7 +516,7 @@ def external_scripts_update(
         args: argparse.Namespace,
         repo_name: str,
         directory_name: str,
-        branch: Optional[str],
+        branch: str | None,
 ) -> str:
     return floating_checkout_update(
         args,
@@ -532,7 +527,7 @@ def external_scripts_update(
     )
 
 
-def floating_libraries_update(args: argparse.Namespace, branch: Optional[str]) -> str:
+def floating_libraries_update(args: argparse.Namespace, branch: str | None) -> str:
     """Update libraries checkouts which are floating (not attached as Git submodules)"""
     msg = ""
 
@@ -585,7 +580,7 @@ def add_submodule_push_url(args: argparse.Namespace) -> None:
         make_utils.git_set_config(args.git_command, "remote.origin.pushURL", push_url, str(config))
 
 
-def submodules_lib_update(args: argparse.Namespace, branch: Optional[str]) -> str:
+def submodules_lib_update(args: argparse.Namespace, branch: str | None) -> str:
     print_stage("Updating Libraries")
 
     msg = ""

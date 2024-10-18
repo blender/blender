@@ -28,12 +28,10 @@ __all__ = (
 )
 
 from typing import (
-    Callable,
     Generator,
-    List,
-    Optional,
-    Union,
-    Tuple,
+)
+from collections.abc import (
+    Callable,
 )
 
 
@@ -86,7 +84,7 @@ def init(cmake_path: str) -> bool:
 
 def source_list(
         path: str,
-        filename_check: Optional[Callable[[str], bool]] = None,
+        filename_check: Callable[[str], bool] | None = None,
 ) -> Generator[str, None, None]:
     for dirpath, dirnames, filenames in os.walk(path):
         # skip '.git'
@@ -138,7 +136,10 @@ def is_project_file(filename: str) -> bool:
     return (is_c_any(filename) or is_cmake(filename) or is_glsl(filename))  # and is_svn_file(filename)
 
 
-def cmake_advanced_info() -> Union[Tuple[List[str], List[Tuple[str, str]]], Tuple[None, None]]:
+def cmake_advanced_info() -> (
+        tuple[list[str], list[tuple[str, str]]] |
+        tuple[None, None]
+):
     """ Extract includes and defines from cmake.
     """
 
@@ -219,7 +220,7 @@ def cmake_advanced_info() -> Union[Tuple[List[str], List[Tuple[str, str]]], Tupl
     return includes, defines
 
 
-def cmake_cache_var(var: str) -> Optional[str]:
+def cmake_cache_var(var: str) -> str | None:
     with open(os.path.join(CMAKE_DIR, "CMakeCache.txt"), encoding='utf-8') as cache_file:
         lines = [
             l_strip for l in cache_file
@@ -233,7 +234,7 @@ def cmake_cache_var(var: str) -> Optional[str]:
     return None
 
 
-def cmake_compiler_defines() -> Optional[List[str]]:
+def cmake_compiler_defines() -> list[str] | None:
     compiler = cmake_cache_var("CMAKE_C_COMPILER")  # could do CXX too
 
     if compiler is None:
@@ -255,5 +256,5 @@ def cmake_compiler_defines() -> Optional[List[str]]:
     return lines
 
 
-def project_name_get() -> Optional[str]:
+def project_name_get() -> str | None:
     return cmake_cache_var("CMAKE_PROJECT_NAME")
