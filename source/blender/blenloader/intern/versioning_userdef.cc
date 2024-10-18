@@ -1064,7 +1064,7 @@ void blo_do_versions_userdef(UserDef *userdef)
     userdef->sequencer_editor_flag |= USER_SEQ_ED_CONNECT_STRIPS_BY_DEFAULT;
   }
 
-  if (!USER_VERSION_ATLEAST(403, 32)) {
+  if (!USER_VERSION_ATLEAST(404, 3)) {
     userdef->uiflag &= ~USER_FILTER_BRUSHES_BY_TOOL;
 
     BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(
