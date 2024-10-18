@@ -1,5 +1,6 @@
 Project: Draco
 URL: https://google.github.io/draco/
-License: Apache 2.0
+License: SPDX:Apache-2.0
 Upstream version: 1.5.2
 Local modifications: Apply patches/blender.patch
+Copyright: Copyright 2018 The Draco Authors

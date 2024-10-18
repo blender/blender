@@ -1,5 +1,5 @@
 Project: JSON
 URL: https://github.com/nlohmann/json/
-License: MIT License
+License: SPDX:MIT
 Upstream version: 3.11.2
-Local modifications: None
+Copyright: Copyright (c) 2013-2021 Niels Lohmann

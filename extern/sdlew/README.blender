@@ -1,5 +1,6 @@
 Project: SDL Extension Wrangler
 URL: https://github.com/SDLWrangler/sdlew
-License: Apache 2.0
+License: SPDX:Apache-2.0
 Upstream version: 15edf8e 
 Local modifications: None
+Copyright: Copyright 2014 Blender Foundation

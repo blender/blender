@@ -1,6 +1,7 @@
 Project: WC Width
 URL: http://www.cl.cam.ac.uk/~mgk25/ucs/wcwidth.c
 License: ICS
+Copyright: "Markus Kuhn -- 2007-05-26 (Unicode 5.0)"
 Upstream version: 2007-05-26
 Local modifications:
 * Fix T33192

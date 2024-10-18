@@ -1,5 +1,6 @@
 Project: Bullet Continuous Collision Detection and Physics Library
 URL: http://bulletphysics.org
-License: zlib
+License: SPDX:Zlib
 Upstream version: 3.07
 Local modifications: Fixed inertia
+Copyright: Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
