@@ -294,9 +294,17 @@ enum {
 
 /**
  * Keyboard scan-codes.
+ *
+ * From `linux/input-event-codes.h`.
  */
 enum {
   KEY_GRAVE = 41,
+  /**
+   * Sometimes called OEM 102, used for German `GrLess` key.
+   * For the common case this key will be mapped using #XKB_KEY_less.
+   * Use a scan-code to prevent the key being unknown.
+   */
+  KEY_102ND = 86,
 
 #ifdef USE_NON_LATIN_KB_WORKAROUND
   KEY_1 = 2,
@@ -2133,6 +2141,7 @@ static GHOST_TKey xkb_map_gkey(const xkb_keysym_t sym)
 
       /* Uses the same physical key as #XKB_KEY_KP_Decimal for QWERTZ layout, see: #102287. */
       GXMAP(gkey, XKB_KEY_KP_Separator, GHOST_kKeyNumpadPeriod);
+      GXMAP(gkey, XKB_KEY_less, GHOST_kKeyGrLess);
 
       default:
         /* Rely on #xkb_map_gkey_or_scan_code to report when no key can be found. */
@@ -2160,6 +2169,10 @@ static GHOST_TKey xkb_map_gkey_or_scan_code(const xkb_keysym_t sym, const uint32
     switch (key) {
       case KEY_GRAVE: {
         gkey = GHOST_kKeyAccentGrave;
+        break;
+      }
+      case KEY_102ND: {
+        gkey = GHOST_kKeyGrLess;
         break;
       }
       default: {
