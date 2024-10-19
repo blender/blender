@@ -62,7 +62,6 @@ They work together as a stack.
 """
 
 
-from collections import defaultdict
 from typing import Generator, Union
 import json
 import re
@@ -74,7 +73,7 @@ LICENSES_NOT_NEEDED = {
     '',
 }
 
-LicenseDict = defaultdict[str, defaultdict[str, dict[str, str]]]
+LicenseDict = dict[str, list[dict[str, str]]]
 
 
 def int_to_superscript(num: int) -> str:
@@ -254,12 +253,13 @@ def initialize_licenses() -> dict[str, License]:
 
 def add_libraries_to_licenses(
         licenses_data: LicenseDict,
-        libraries_raw: dict[str, dict[str, str]]) -> None:
+        libraries_raw: list[dict[str, str]]) -> None:
 
-    for _library, details in libraries_raw.items():
+    for details in libraries_raw:
         license_name = details.get("license") or NO_LICENSE
-        name = details["name"]
-        licenses_data[license_name][name] = details
+        if (libraries_data := licenses_data.get(license_name)) is None:
+            libraries_data = licenses_data[license_name] = []
+        libraries_data.append(details)
 
 
 def get_license_exception(library_license: str) -> tuple[str, str]:
@@ -368,11 +368,11 @@ def process_versions_cmake(licenses_data: LicenseDict) -> None:
     # If there is no hash we assume it is not a real library but some other information on the file.
     # Also remove any library which is only used during build time and have no
     # artifact included in the final Blender binary.
-    libraries_clean = {
-        key: {k: v for k, v in data.items() if k not in {"build_time_only", "hash"}}
+    libraries_clean = [
+        {k: v for k, v in data.items() if k not in {"build_time_only", "hash"}}
         for key, data in libraries_raw.items()
         if data["hash"] and not data["build_time_only"]
-    }
+    ]
 
     add_libraries_to_licenses(licenses_data, libraries_clean)
 
@@ -405,7 +405,7 @@ def process_readme_blender(licenses_data: LicenseDict) -> None:
         "Copyright": "copyright"
     }
 
-    libraries_raw = {}
+    libraries_raw = []
     for readme in iterate_readme_files(Filepaths.extern_libraries):
         lines = readme.strip().split("\n")
 
@@ -445,7 +445,7 @@ def process_readme_blender(licenses_data: LicenseDict) -> None:
             "copyright": project_fields.get("copyright", "")
         }
 
-        libraries_raw[project_name] = project_data
+        libraries_raw.append(project_data)
 
     add_libraries_to_licenses(licenses_data, libraries_raw)
 
@@ -453,7 +453,7 @@ def process_readme_blender(licenses_data: LicenseDict) -> None:
 def fetch_libraries_licenses(licenses: dict[str, License]) -> None:
     """Populate the licenses dict with its corresponding libraries and copyrights"""
 
-    licenses_data: LicenseDict = defaultdict(lambda: defaultdict(dict))
+    licenses_data: LicenseDict = {}
     # Get data from versions.cmake.
     process_versions_cmake(licenses_data)
     # Get data from README.blender files.
@@ -464,9 +464,9 @@ def fetch_libraries_licenses(licenses: dict[str, License]) -> None:
         if license_key in licenses:
             license_obj = licenses[license_key]
 
-            for lib_name, lib_info in libraries_data.items():
+            for lib_info in libraries_data:
                 library = Library(
-                    name=lib_name,
+                    name=lib_info["name"],
                     version=lib_info["version"],
                     homepage=lib_info["homepage"],
                     library_copyright=lib_info["copyright"],
@@ -475,8 +475,8 @@ def fetch_libraries_licenses(licenses: dict[str, License]) -> None:
                 license_obj.libraries.append(library)
         elif license_key == NO_LICENSE:
             print('Warning: The following libraries have no license:')
-            for lib_name, _lib_info in libraries_data.items():
-                print(f' * {lib_name}')
+            for lib_info in libraries_data:
+                print(f' * {lib_info["name"]}')
         elif license_key in LICENSES_NOT_NEEDED:
             # Do nothing about these licenses.
             pass
@@ -572,6 +572,7 @@ def generate_license_file(licenses: dict[str, License]) -> None:
                     continue
 
                 fh.write(exception_license.dump(i + 1))
+        fh.write("\n")
 
         fh.write("\n")
 
