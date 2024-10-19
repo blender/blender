@@ -207,6 +207,15 @@ class License:
         with open(self.filepath, 'r', encoding="utf8") as fh:
             license_raw = fh.read()
 
+        # Strip trailing space as this has a special meaning for mark-down,
+        # avoid editing the original texts as any edits may be overwritten
+        # when updating the licenses.
+        #
+        # This also removes page breaks "\x0C" or ^L.
+        # These could be replaced with sometime similar in markdown,
+        # unless this has some benefit, leave as-is.
+        license_raw = "\n".join(line.rstrip() for line in license_raw.split("\n"))
+
         # Debug option commented out.
         # This is useful if you want a human-inspectionable document without the licenses.
         # license_raw = "# Debug"
@@ -563,6 +572,8 @@ def generate_license_file(licenses: dict[str, License]) -> None:
                     continue
 
                 fh.write(exception_license.dump(i + 1))
+
+        fh.write("\n")
 
     print(f'\nLicense file successfully generated: "{filepath}"')
     print("Remember to commit the file to the Blender repository.\n")
