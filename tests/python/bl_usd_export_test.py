@@ -301,6 +301,7 @@ class USDExportTest(AbstractUSDTest):
         self.check_primvar(prim, "f_float", "VtArray<float>", "uniform", 1)
         self.check_primvar(prim, "f_color", "VtArray<GfVec4f>", "uniform", 1)
         self.check_primvar(prim, "f_byte_color", "VtArray<GfVec4f>", "uniform", 1)
+        self.check_primvar(prim, "displayColor", "VtArray<GfVec3f>", "uniform", 1)
         self.check_primvar(prim, "f_vec2", "VtArray<GfVec2f>", "uniform", 1)
         self.check_primvar(prim, "f_vec3", "VtArray<GfVec3f>", "uniform", 1)
         self.check_primvar(prim, "f_quat", "VtArray<GfQuatf>", "uniform", 1)

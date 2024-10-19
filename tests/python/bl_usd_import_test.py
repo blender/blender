@@ -911,6 +911,7 @@ class USDImportTest(AbstractUSDTest):
         self.check_attribute(mesh, "fc_float", 'CORNER', 'FLOAT', 4)
         self.check_attribute(mesh, "fc_byte_color", 'CORNER', 'FLOAT_COLOR', 4)
         self.check_attribute(mesh, "fc_color", 'CORNER', 'FLOAT_COLOR', 4)
+        self.check_attribute(mesh, "displayColor", 'CORNER', 'FLOAT_COLOR', 4)
         self.check_attribute(mesh, "fc_vec2", 'CORNER', 'FLOAT2', 4)
         self.check_attribute(mesh, "fc_vec3", 'CORNER', 'FLOAT_VECTOR', 4)
         self.check_attribute_missing(mesh, "fc_quat")
