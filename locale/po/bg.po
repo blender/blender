@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'89e3ab2a4533')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'58c660c9615d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-14 08:43+0000\n"
+"POT-Creation-Date: 2024-10-20 15:55+0000\n"
 "PO-Revision-Date: 2024-04-29 13:31+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -36,6 +36,22 @@ msgid "Select"
 msgstr "Избор"
 
 
+msgid "Replace"
+msgstr "Замени"
+
+
+msgid "Add"
+msgstr "Добави"
+
+
+msgid "Subtract"
+msgstr "Основа"
+
+
+msgid "Multiply"
+msgstr "Умножение"
+
+
 msgid "Module"
 msgstr "Модул"
 
@@ -58,22 +74,6 @@ msgstr "Дъно"
 
 msgid "Action"
 msgstr "Действие"
-
-
-msgid "Replace"
-msgstr "Замени"
-
-
-msgid "Add"
-msgstr "Добави"
-
-
-msgid "Subtract"
-msgstr "Основа"
-
-
-msgid "Multiply"
-msgstr "Умножение"
 
 
 msgid "Nothing"
@@ -476,6 +476,10 @@ msgid "Region Type"
 msgstr "Тип на Региона"
 
 
+msgid "Layers"
+msgstr "Слоеве"
+
+
 msgid "Wire"
 msgstr "Мрежа"
 
@@ -522,10 +526,6 @@ msgstr "Мин"
 
 msgid "Max"
 msgstr "Макс"
-
-
-msgid "Layers"
-msgstr "Слоеве"
 
 
 msgid "Render polygon transparent, depending on alpha channel of the texture"
@@ -700,28 +700,28 @@ msgid "Click"
 msgstr "Клик"
 
 
+msgid "In-Betweens"
+msgstr "Междинни Кадри"
+
+
 msgid "UV Mapping"
 msgstr "UV Картиране"
-
-
-msgid "Rigid Body"
-msgstr "Твърдо тяло"
-
-
-msgid "Apply"
-msgstr "Прилагане"
-
-
-msgid "Make Single User"
-msgstr "Направи с Единствен Потребител"
 
 
 msgid "Hooks"
 msgstr "Куки"
 
 
-msgid "In-Betweens"
-msgstr "Междинни Кадри"
+msgid "Make Single User"
+msgstr "Направи с Единствен Потребител"
+
+
+msgid "Apply"
+msgstr "Прилагане"
+
+
+msgid "Rigid Body"
+msgstr "Твърдо тяло"
 
 
 msgid "Merge"
@@ -1097,10 +1097,6 @@ msgstr "Вмъкване на текст"
 msgctxt "Operator"
 msgid "Unlink"
 msgstr "Развържи"
-
-
-msgid "Remove"
-msgstr "Премахване"
 
 
 msgid "Both"
@@ -1529,6 +1525,10 @@ msgstr "Делта X"
 msgctxt "Operator"
 msgid "Zoom Camera 1:1"
 msgstr "Увеличи Камера 1:1"
+
+
+msgid "Remove"
+msgstr "Премахване"
 
 
 msgid "Doc ID"

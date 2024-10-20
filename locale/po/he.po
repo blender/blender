@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'89e3ab2a4533')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'58c660c9615d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-14 08:43+0000\n"
+"POT-Creation-Date: 2024-10-20 15:55+0000\n"
 "PO-Revision-Date: 2023-10-06 09:54+0000\n"
 "Last-Translator: Eitan Traurig <eitant13@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
@@ -59,30 +59,6 @@ msgid "Select"
 msgstr "רחוב"
 
 
-msgid "Module"
-msgstr "לודומ"
-
-
-msgid "Module name"
-msgstr "לודומה םש"
-
-
-msgid "Off"
-msgstr "יובכ"
-
-
-msgid "Full"
-msgstr "אלמ"
-
-
-msgid "Center"
-msgstr "זכרמ"
-
-
-msgid "Animation Data"
-msgstr "היצמינא ינותנ"
-
-
 msgid "Replace"
 msgstr "ףלחה"
 
@@ -97,30 +73,6 @@ msgstr "ריסחהל"
 
 msgid "Multiply"
 msgstr "ליפכהל"
-
-
-msgid "Hold"
-msgstr "קיזחהל"
-
-
-msgid "Heads"
-msgstr "םישאר"
-
-
-msgid "Tails"
-msgstr "תובנז"
-
-
-msgid "After Current"
-msgstr "יחכונה ירחא"
-
-
-msgid "Before Current"
-msgstr "יחכונה ינפל"
-
-
-msgid "Width"
-msgstr "בחור"
 
 
 msgctxt "ID"
@@ -146,6 +98,54 @@ msgstr "טסקט"
 msgctxt "ID"
 msgid "Texture"
 msgstr "םקרמ"
+
+
+msgid "Module"
+msgstr "לודומ"
+
+
+msgid "Module name"
+msgstr "לודומה םש"
+
+
+msgid "Off"
+msgstr "יובכ"
+
+
+msgid "Full"
+msgstr "אלמ"
+
+
+msgid "Center"
+msgstr "זכרמ"
+
+
+msgid "Animation Data"
+msgstr "היצמינא ינותנ"
+
+
+msgid "Hold"
+msgstr "קיזחהל"
+
+
+msgid "Heads"
+msgstr "םישאר"
+
+
+msgid "Tails"
+msgstr "תובנז"
+
+
+msgid "After Current"
+msgstr "יחכונה ירחא"
+
+
+msgid "Before Current"
+msgstr "יחכונה ינפל"
+
+
+msgid "Width"
+msgstr "בחור"
 
 
 msgid "Data Type"
@@ -599,20 +599,20 @@ msgid "Grease Pencil Color"
 msgstr "Grease Pencil יאבצ"
 
 
-msgid "Apply"
-msgstr "לחה"
-
-
-msgid "Convert"
-msgstr "רמה"
-
-
 msgid "Face Data"
 msgstr "האפ ינותנ"
 
 
 msgid "Mirror"
 msgstr "הארמ"
+
+
+msgid "Convert"
+msgstr "רמה"
+
+
+msgid "Apply"
+msgstr "לחה"
 
 
 msgid "Languages..."
@@ -716,10 +716,6 @@ msgid "Eraser"
 msgstr "קחמ"
 
 
-msgid "Remove"
-msgstr "רסה"
-
-
 msgid "Both"
 msgstr "םהינש"
 
@@ -767,6 +763,10 @@ msgstr "ףילחהל"
 
 msgid "Select All"
 msgstr "לכה רחוב"
+
+
+msgid "Remove"
+msgstr "רסה"
 
 
 msgid "Header Text"

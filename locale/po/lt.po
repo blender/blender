@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'89e3ab2a4533')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'58c660c9615d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-14 08:43+0000\n"
+"POT-Creation-Date: 2024-10-20 15:55+0000\n"
 "PO-Revision-Date: 2024-10-18 23:56+0000\n"
 "Last-Translator: Džiugas Januševičius <dziugas1959@hotmail.com>\n"
 "Language-Team: Lithuanian <https://translate.blender.org/projects/blender-ui/ui/lt/>\n"
@@ -155,48 +155,8 @@ msgid "Expanded"
 msgstr "Išplėsta/-s"
 
 
-msgid "Add-on"
-msgstr "Priedas"
-
-
-msgid "Module"
-msgstr "Modulis"
-
-
-msgid "Full"
-msgstr "Pilna/-s"
-
-
-msgid "MetalRT"
-msgstr "„MetalRT“"
-
-
-msgid "Auto"
-msgstr "Automatinis/-iškas"
-
-
-msgid "Always"
-msgstr "Visada"
-
-
-msgid "Never"
-msgstr "Niekada"
-
-
-msgid "Bottom"
-msgstr "Apačia"
-
-
-msgid "Action"
-msgstr "Veiksmas"
-
-
 msgid "Replace"
 msgstr "Pakeisti"
-
-
-msgid "Combine"
-msgstr "Sujungti"
 
 
 msgid "Add"
@@ -209,58 +169,6 @@ msgstr "Atimti"
 
 msgid "Multiply"
 msgstr "Dauginti"
-
-
-msgid "Hold"
-msgstr "Laikyti"
-
-
-msgid "Height"
-msgstr "Aukštis"
-
-
-msgid "Regions"
-msgstr "Regionai"
-
-
-msgid "Spaces"
-msgstr "Tarpai"
-
-
-msgid "Empty"
-msgstr "Tuščia/-s"
-
-
-msgid "Info"
-msgstr "Informacija"
-
-
-msgid "Properties"
-msgstr "Ypatybės"
-
-
-msgid "Width"
-msgstr "Plotis"
-
-
-msgid "Author"
-msgstr "Autorius/-ė"
-
-
-msgid "Copyright"
-msgstr "Autorių teisės"
-
-
-msgid "Description"
-msgstr "Aprašas/-ymas"
-
-
-msgid "License"
-msgstr "Licencija"
-
-
-msgid "Tags"
-msgstr "Žymės"
 
 
 msgctxt "ID"
@@ -321,6 +229,98 @@ msgstr "Tū̃ris"
 msgctxt "ID"
 msgid "World"
 msgstr "Pasaulis"
+
+
+msgid "Add-on"
+msgstr "Priedas"
+
+
+msgid "Module"
+msgstr "Modulis"
+
+
+msgid "Full"
+msgstr "Pilna/-s"
+
+
+msgid "MetalRT"
+msgstr "„MetalRT“"
+
+
+msgid "Auto"
+msgstr "Automatinis/-iškas"
+
+
+msgid "Always"
+msgstr "Visada"
+
+
+msgid "Never"
+msgstr "Niekada"
+
+
+msgid "Bottom"
+msgstr "Apačia"
+
+
+msgid "Action"
+msgstr "Veiksmas"
+
+
+msgid "Combine"
+msgstr "Sujungti"
+
+
+msgid "Hold"
+msgstr "Laikyti"
+
+
+msgid "Height"
+msgstr "Aukštis"
+
+
+msgid "Regions"
+msgstr "Regionai"
+
+
+msgid "Spaces"
+msgstr "Tarpai"
+
+
+msgid "Empty"
+msgstr "Tuščia/-s"
+
+
+msgid "Info"
+msgstr "Informacija"
+
+
+msgid "Properties"
+msgstr "Ypatybės"
+
+
+msgid "Width"
+msgstr "Plotis"
+
+
+msgid "Author"
+msgstr "Autorius/-ė"
+
+
+msgid "Copyright"
+msgstr "Autorių teisės"
+
+
+msgid "Description"
+msgstr "Aprašas/-ymas"
+
+
+msgid "License"
+msgstr "Licencija"
+
+
+msgid "Tags"
+msgstr "Žymės"
 
 
 msgid "Options"
@@ -918,16 +918,20 @@ msgid "Buffersize"
 msgstr "Buferio dydis"
 
 
+msgid "AV1"
+msgstr "„AV1“"
+
+
+msgid "H.264"
+msgstr "„H.264“"
+
+
 msgid "DNxHD"
 msgstr "„DNxHD“"
 
 
 msgid "DV"
 msgstr "„DV“"
-
-
-msgid "H.264"
-msgstr "„H.264“"
 
 
 msgid "HuffYUV"
@@ -946,10 +950,6 @@ msgid "Theora"
 msgstr "„Theora“"
 
 
-msgid "AV1"
-msgstr "„AV1“"
-
-
 msgid "Slowest"
 msgstr "Lėčiausias"
 
@@ -966,28 +966,28 @@ msgid "MPEG-4"
 msgstr "„MPEG-4“"
 
 
-msgid "AVI"
-msgstr "„AVI“"
-
-
-msgid "QuickTime"
-msgstr "„QuickTime“"
-
-
-msgid "Ogg"
-msgstr "„Ogg“"
-
-
 msgid "Matroska"
 msgstr "„Matroska“"
+
+
+msgid "WebM"
+msgstr "„WebM“"
+
+
+msgid "AVI"
+msgstr "„AVI“"
 
 
 msgid "Flash"
 msgstr "„Flash“"
 
 
-msgid "WebM"
-msgstr "„WebM“"
+msgid "Ogg"
+msgstr "„Ogg“"
+
+
+msgid "QuickTime"
+msgstr "„QuickTime“"
 
 
 msgctxt "Action"
@@ -1240,6 +1240,10 @@ msgid "Groups"
 msgstr "Grupės"
 
 
+msgid "Layers"
+msgstr "Sluoksniai"
+
+
 msgid "Box"
 msgstr "Dėžė"
 
@@ -1318,10 +1322,6 @@ msgstr "Pirma/-s"
 
 msgid "Last"
 msgstr "Paskutinė/-is"
-
-
-msgid "Layers"
-msgstr "Sluoksniai"
 
 
 msgid "BMP"
@@ -1721,16 +1721,16 @@ msgid "Paths"
 msgstr "Keliai"
 
 
-msgid "Apply"
-msgstr "Pritaikyti"
+msgid "Show/Hide"
+msgstr "Rodyti/Slėpti"
 
 
 msgid "Track"
 msgstr "Sekti"
 
 
-msgid "Show/Hide"
-msgstr "Rodyti/Slėpti"
+msgid "Apply"
+msgstr "Pritaikyti"
 
 
 msgid "Animals"

@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'89e3ab2a4533')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'58c660c9615d')\n"
 "Report-Msgid-Bugs-To: \n"
 "PO-Revision-Date: 2024-04-29 13:23+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
@@ -25,10 +25,6 @@ msgstr "Ацҵара"
 
 msgid "Subtract"
 msgstr "Ацхра"
-
-
-msgid "Empty"
-msgstr "Аҭацәы"
 
 
 msgctxt "ID"
@@ -69,6 +65,10 @@ msgstr "Метампыл"
 msgctxt "ID"
 msgid "Speaker"
 msgstr "Абжьы Ахыҵхырҭа"
+
+
+msgid "Empty"
+msgstr "Аҭацәы"
 
 
 msgid "Edge"
@@ -701,9 +701,4 @@ msgstr "Аԥшра"
 
 msgid "cursor"
 msgstr "Ахырхага"
-
-
-msgctxt "Action"
-msgid "Group"
-msgstr "Агәыԥ"
 

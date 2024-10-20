@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'89e3ab2a4533')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'58c660c9615d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-14 08:43+0000\n"
+"POT-Creation-Date: 2024-10-20 15:55+0000\n"
 "PO-Revision-Date: 2024-03-13 11:04+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -57,6 +57,10 @@ msgstr "Список ДВЗ"
 
 msgid "Collection of AOVs"
 msgstr "Колекція ДВЗ"
+
+
+msgid "F-Curves"
+msgstr "Ф-Криві"
 
 
 msgid "Action F-Curves"
@@ -239,6 +243,38 @@ msgid "Collection of action groups"
 msgstr "Колекція груп дій"
 
 
+msgid "Influence"
+msgstr "Вплив"
+
+
+msgid "Mix Mode"
+msgstr "Режим Мішання"
+
+
+msgid "Replace"
+msgstr "Замінити"
+
+
+msgid "Offset"
+msgstr "Зсув"
+
+
+msgid "Add"
+msgstr "Додання"
+
+
+msgid "Subtract"
+msgstr "Відняти"
+
+
+msgid "Multiply"
+msgstr "Множення"
+
+
+msgid "Strips"
+msgstr "Смужки"
+
+
 msgid "Action Pose Markers"
 msgstr "Мітки поз дій"
 
@@ -261,6 +297,203 @@ msgstr "Індекс активної мітки пози"
 
 msgid "Index of active pose marker"
 msgstr "Індекс активної мітки пози"
+
+
+msgid "Active"
+msgstr "Активний"
+
+
+msgctxt "ID"
+msgid "ID Root Type"
+msgstr "Тип кореневого ID"
+
+
+msgctxt "ID"
+msgid "Action"
+msgstr "Дія"
+
+
+msgctxt "ID"
+msgid "Armature"
+msgstr "Арматура"
+
+
+msgctxt "ID"
+msgid "Brush"
+msgstr "Пензель"
+
+
+msgctxt "ID"
+msgid "Cache File"
+msgstr "Файл кешу"
+
+
+msgctxt "ID"
+msgid "Camera"
+msgstr "Камера"
+
+
+msgctxt "ID"
+msgid "Collection"
+msgstr "Колекція"
+
+
+msgctxt "ID"
+msgid "Curve"
+msgstr "Крива"
+
+
+msgctxt "ID"
+msgid "Font"
+msgstr "Шрифт"
+
+
+msgctxt "ID"
+msgid "Grease Pencil"
+msgstr "Нарисний олівець"
+
+
+msgctxt "ID"
+msgid "Image"
+msgstr "Зображення"
+
+
+msgctxt "ID"
+msgid "Key"
+msgstr "Ключ"
+
+
+msgctxt "ID"
+msgid "Lattice"
+msgstr "Ґратка"
+
+
+msgctxt "ID"
+msgid "Library"
+msgstr "Бібліотека"
+
+
+msgctxt "ID"
+msgid "Light"
+msgstr "Освітлювач"
+
+
+msgctxt "ID"
+msgid "Light Probe"
+msgstr "Проба Освітлення"
+
+
+msgctxt "ID"
+msgid "Line Style"
+msgstr "Стиль лінії"
+
+
+msgctxt "ID"
+msgid "Mask"
+msgstr "Маска"
+
+
+msgctxt "ID"
+msgid "Material"
+msgstr "Матеріал"
+
+
+msgctxt "ID"
+msgid "Mesh"
+msgstr "Сіть"
+
+
+msgctxt "ID"
+msgid "Metaball"
+msgstr "Метакуля"
+
+
+msgctxt "ID"
+msgid "Movie Clip"
+msgstr "Відеокліп"
+
+
+msgctxt "ID"
+msgid "Node Tree"
+msgstr "Дерево вузлів"
+
+
+msgctxt "ID"
+msgid "Object"
+msgstr "Об'єкт"
+
+
+msgctxt "ID"
+msgid "Paint Curve"
+msgstr "Крива малювання"
+
+
+msgctxt "ID"
+msgid "Palette"
+msgstr "Палітра"
+
+
+msgctxt "ID"
+msgid "Particle"
+msgstr "Частинка"
+
+
+msgctxt "ID"
+msgid "Point Cloud"
+msgstr "Хмара Точок"
+
+
+msgctxt "ID"
+msgid "Scene"
+msgstr "Сцена"
+
+
+msgctxt "ID"
+msgid "Sound"
+msgstr "Звук"
+
+
+msgctxt "ID"
+msgid "Speaker"
+msgstr "Гучномовець"
+
+
+msgctxt "ID"
+msgid "Text"
+msgstr "Текст"
+
+
+msgctxt "ID"
+msgid "Texture"
+msgstr "Текстура"
+
+
+msgctxt "ID"
+msgid "Volume"
+msgstr "Об'єм"
+
+
+msgctxt "ID"
+msgid "Window Manager"
+msgstr "Віконний менеджер"
+
+
+msgctxt "ID"
+msgid "Workspace"
+msgstr "Робпростір"
+
+
+msgctxt "ID"
+msgid "World"
+msgstr "Світ"
+
+
+msgid "Show Expanded"
+msgstr "Показати розгорнутим"
+
+
+msgid "Keyframe"
+msgstr "Ключкадр"
 
 
 msgid "Add-on"
@@ -411,10 +644,6 @@ msgid "Method used for combining Active Action's result with result of NLA stack
 msgstr "Метод, який використовується для об'єднання результаті активних дій з результатом стосу НЛА"
 
 
-msgid "Replace"
-msgstr "Замінити"
-
-
 msgid "The strip values replace the accumulated results by amount specified by influence"
 msgstr "Значення смужки замінюють накопичені результати в обсязі, визначеному впливом"
 
@@ -427,24 +656,12 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "Значення смужки комбінуються з накопиченими результатами шляхом відповідного використання додання, множення або математики кватерніонів, базуючись на типі каналу"
 
 
-msgid "Add"
-msgstr "Додання"
-
-
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "Виважений результат смужки додається до накопичених результатів"
 
 
-msgid "Subtract"
-msgstr "Відняти"
-
-
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "Виважений результат смужки вилучається з накопичених результатів"
-
-
-msgid "Multiply"
-msgstr "Множення"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -969,186 +1186,6 @@ msgstr "Значники"
 
 msgid "Custom tags (name tokens) for the asset, used for filtering and general asset management"
 msgstr "Власні значники (ознаки імен) для активу, що використовуються для фільтрування та загального керування активом"
-
-
-msgctxt "ID"
-msgid "Action"
-msgstr "Дія"
-
-
-msgctxt "ID"
-msgid "Armature"
-msgstr "Арматура"
-
-
-msgctxt "ID"
-msgid "Brush"
-msgstr "Пензель"
-
-
-msgctxt "ID"
-msgid "Cache File"
-msgstr "Файл кешу"
-
-
-msgctxt "ID"
-msgid "Camera"
-msgstr "Камера"
-
-
-msgctxt "ID"
-msgid "Collection"
-msgstr "Колекція"
-
-
-msgctxt "ID"
-msgid "Curve"
-msgstr "Крива"
-
-
-msgctxt "ID"
-msgid "Font"
-msgstr "Шрифт"
-
-
-msgctxt "ID"
-msgid "Grease Pencil"
-msgstr "Нарисний олівець"
-
-
-msgctxt "ID"
-msgid "Image"
-msgstr "Зображення"
-
-
-msgctxt "ID"
-msgid "Key"
-msgstr "Ключ"
-
-
-msgctxt "ID"
-msgid "Lattice"
-msgstr "Ґратка"
-
-
-msgctxt "ID"
-msgid "Library"
-msgstr "Бібліотека"
-
-
-msgctxt "ID"
-msgid "Light"
-msgstr "Освітлювач"
-
-
-msgctxt "ID"
-msgid "Light Probe"
-msgstr "Проба Освітлення"
-
-
-msgctxt "ID"
-msgid "Line Style"
-msgstr "Стиль лінії"
-
-
-msgctxt "ID"
-msgid "Mask"
-msgstr "Маска"
-
-
-msgctxt "ID"
-msgid "Material"
-msgstr "Матеріал"
-
-
-msgctxt "ID"
-msgid "Mesh"
-msgstr "Сіть"
-
-
-msgctxt "ID"
-msgid "Metaball"
-msgstr "Метакуля"
-
-
-msgctxt "ID"
-msgid "Movie Clip"
-msgstr "Відеокліп"
-
-
-msgctxt "ID"
-msgid "Node Tree"
-msgstr "Дерево вузлів"
-
-
-msgctxt "ID"
-msgid "Object"
-msgstr "Об'єкт"
-
-
-msgctxt "ID"
-msgid "Paint Curve"
-msgstr "Крива малювання"
-
-
-msgctxt "ID"
-msgid "Palette"
-msgstr "Палітра"
-
-
-msgctxt "ID"
-msgid "Particle"
-msgstr "Частинка"
-
-
-msgctxt "ID"
-msgid "Point Cloud"
-msgstr "Хмара Точок"
-
-
-msgctxt "ID"
-msgid "Scene"
-msgstr "Сцена"
-
-
-msgctxt "ID"
-msgid "Sound"
-msgstr "Звук"
-
-
-msgctxt "ID"
-msgid "Speaker"
-msgstr "Гучномовець"
-
-
-msgctxt "ID"
-msgid "Text"
-msgstr "Текст"
-
-
-msgctxt "ID"
-msgid "Texture"
-msgstr "Текстура"
-
-
-msgctxt "ID"
-msgid "Volume"
-msgstr "Об'єм"
-
-
-msgctxt "ID"
-msgid "Window Manager"
-msgstr "Віконний менеджер"
-
-
-msgctxt "ID"
-msgid "Workspace"
-msgstr "Робпростір"
-
-
-msgctxt "ID"
-msgid "World"
-msgstr "Світ"
 
 
 msgid "Asset Metadata"
@@ -2125,10 +2162,6 @@ msgstr "Колекція шрифтів"
 
 msgid "Main Grease Pencils"
 msgstr "Основні нарисні олівці"
-
-
-msgid "Collection of grease pencils"
-msgstr "Колекція нарисних олівців"
 
 
 msgid "Main Images"
@@ -3481,10 +3514,6 @@ msgid "Grease Pencil Brush Settings"
 msgstr "Параметри пензля нарисного олівця"
 
 
-msgid "Settings for grease pencil brush"
-msgstr "Параметри пензля нарисного олівця"
-
-
 msgid "Active Smooth"
 msgstr "Активне Згладжування"
 
@@ -3519,10 +3548,6 @@ msgstr "Режим"
 
 msgid "Preselected mode when using this brush"
 msgstr "Передвибраний режим, коли використовується цей пензель"
-
-
-msgid "Active"
-msgstr "Активний"
 
 
 msgid "Use current mode"
@@ -4121,10 +4146,6 @@ msgid "Parameters defining which layer, pass and frame of the image is displayed
 msgstr "Параметри, що визначають, який шар, прохід і кадр зображення показано"
 
 
-msgid "Offset"
-msgstr "Зсув"
-
-
 msgid "Rotation"
 msgstr "Обертання"
 
@@ -4147,10 +4168,6 @@ msgstr "Показати фонове зображення"
 
 msgid "Show this image as background"
 msgstr "Показати зображення в якості фону"
-
-
-msgid "Show Expanded"
-msgstr "Показати розгорнутим"
 
 
 msgid "Show On Foreground"
@@ -5470,10 +5487,6 @@ msgid "Amount of residual error in radians for constraints that work on orientat
 msgstr "Величина залишкової похибки в радіанах для примусів, що працюють з орієнтацією"
 
 
-msgid "Influence"
-msgstr "Вплив"
-
-
 msgid "Amount of influence constraint will have on the final solution"
 msgstr "Рівень впливу примусу на фінальне обчислення"
 
@@ -5824,10 +5837,6 @@ msgstr "Мінімум"
 
 msgid "Minimum value for target channel range"
 msgstr "Найменше значення діапазону цільового каналу"
-
-
-msgid "Mix Mode"
-msgstr "Режим Мішання"
 
 
 msgid "Specify how existing transformations and the action channels are combined"
@@ -9917,6 +9926,10 @@ msgid "Disables video output, for audio-only renders"
 msgstr "Вимикає вивід відео, лише для рендерів аудіо"
 
 
+msgid "H.264"
+msgstr "H.264"
+
+
 msgid "DNxHD"
 msgstr "DNxHD"
 
@@ -9927,10 +9940,6 @@ msgstr "FFmpeg відео кодек #1"
 
 msgid "Flash Video"
 msgstr "Флеш-відео"
-
-
-msgid "H.264"
-msgstr "H.264"
 
 
 msgid "HuffYUV"
@@ -10041,20 +10050,20 @@ msgid "MPEG-4"
 msgstr "MPEG-4"
 
 
-msgid "Ogg"
-msgstr "Ogg"
-
-
 msgid "Matroska"
 msgstr "Matroska"
+
+
+msgid "WebM"
+msgstr "WebM"
 
 
 msgid "Flash"
 msgstr "Флеш"
 
 
-msgid "WebM"
-msgstr "WebM"
+msgid "Ogg"
+msgstr "Ogg"
 
 
 msgid "Keyframe Interval"
@@ -11052,10 +11061,6 @@ msgstr "Шрифти"
 
 msgid "Show Font data-blocks"
 msgstr "Показ блоків даних Шрифту"
-
-
-msgid "Show Grease pencil data-blocks"
-msgstr "Показ блоків даних Нарисного олівця"
 
 
 msgid "Show Image data-blocks"
@@ -14168,10 +14173,6 @@ msgid "Type of keyframe"
 msgstr "Тип ключкадру"
 
 
-msgid "Keyframe"
-msgstr "Ключкадр"
-
-
 msgid "Normal keyframe, e.g. for key poses"
 msgstr "Звичайний ключкадр, наприклад для ключових поз"
 
@@ -14310,10 +14311,6 @@ msgstr "Назва шару маски"
 
 msgid "Grease Pencil Mask Layers"
 msgstr "Шари Маски Нарисного Олівця"
-
-
-msgid "Collection of grease pencil masking layers"
-msgstr "Колекція шарів маскування нарисного олівця"
 
 
 msgid "Active Layer Mask Index"
@@ -14488,10 +14485,6 @@ msgid "A collection of F-Curves for animation"
 msgstr "Колекція Ф-Кривих для анімації"
 
 
-msgid "F-Curves"
-msgstr "Ф-Криві"
-
-
 msgid "The individual F-Curves that make up the action"
 msgstr "Окремі Ф-Криві, які створюють дію"
 
@@ -14508,13 +14501,12 @@ msgid "Convenient groupings of F-Curves"
 msgstr "Зручне групування Ф-Кривих"
 
 
-msgctxt "ID"
-msgid "ID Root Type"
-msgstr "Тип кореневого ID"
-
-
 msgid "Type of ID block that action can be used on - DO NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING"
 msgstr "Тип ID-блока, до якого може бути застосована дія. НЕ ЗМІНЮЙТЕ, ЯКЩО НЕ РОЗУМІЄТЕ, ЩО РОБИТЕ"
+
+
+msgid "Layers"
+msgstr "Шари"
 
 
 msgid "Pose Markers"
@@ -15933,10 +15925,6 @@ msgid "Use Paint"
 msgstr "Вжити Малювання"
 
 
-msgid "Use this brush in grease pencil drawing mode"
-msgstr "Використовує цей пензель у режимі рисування нарисного олівця"
-
-
 msgid "Use this brush in texture paint mode"
 msgstr "Використати цей пензель у режимі малювання текстури"
 
@@ -16099,10 +16087,6 @@ msgstr "Наладнати Силу для Інтервалу"
 
 msgid "Automatically adjust strength to give consistent results for different spacings"
 msgstr "Автоматично наладнувати силу, щоб узгодити результати для різних інтервалів"
-
-
-msgid "Use this brush in grease pencil vertex color mode"
-msgstr "Вжити цей пензель у режимі кольору вершин нарисного олівця"
 
 
 msgid "Use Pressure for Wet Mix"
@@ -17773,10 +17757,6 @@ msgid "Freehand annotation sketchbook"
 msgstr "Блокнот для нарисів та нотаток"
 
 
-msgid "Layers"
-msgstr "Шари"
-
-
 msgid "Grease Pencil data-block"
 msgstr "Блоки даних нарисного олівця"
 
@@ -17839,10 +17819,6 @@ msgstr "Визначає те, як штрихи впорядковуються 
 
 msgid "2D Layers"
 msgstr "2D Шари"
-
-
-msgid "Display strokes using grease pencil layers to define order"
-msgstr "Показ штрихів використовує шари нарисного олівця для визначення порядку"
 
 
 msgid "3D Location"
@@ -18879,16 +18855,8 @@ msgid "Grease Pencil Settings"
 msgstr "Параметри Нарисного Олівця"
 
 
-msgid "Grease pencil color settings for material"
-msgstr "Устави кольору Нарисного олівця для матеріалу"
-
-
 msgid "Is Grease Pencil"
 msgstr "Є Нарисним Олівцем"
-
-
-msgid "True if this material has grease pencil data"
-msgstr "Вірно, якщо цей матеріал має дані нарисного олівця"
 
 
 msgid "Line Color"
@@ -19373,10 +19341,6 @@ msgstr "Зсув першого кадру фільмоматеріалу від
 
 msgid "Global scene frame number at which this movie starts playing (affects all data associated with a clip)"
 msgstr "Глобальний номер кадру сцени, на якому цей кліп починає відтворюватись (впливає на всі пов'язані з кліпом дані)"
-
-
-msgid "Grease pencil data for this movie clip"
-msgstr "Дані нарисного олівця для цього відеокліпу"
 
 
 msgid "Where the clip comes from"
@@ -20268,10 +20232,6 @@ msgstr "Вжити альфа"
 
 msgid "Use alpha blending instead of alpha test (can produce sorting artifacts)"
 msgstr "Вжити змішування альфа замість тесту альфа (може продукувати артефакти сортування)"
-
-
-msgid "Lights affect grease pencil object"
-msgstr "Освітлювачі впливають на об'єкт нарисного олівця"
 
 
 msgid "Scale to Face Sizes"
@@ -23564,28 +23524,16 @@ msgid "Codec"
 msgstr "Кодек"
 
 
-msgid "Codec settings for OpenEXR"
-msgstr "Параметри кодеку для OpenEXR"
+msgid "No compression"
+msgstr "Без стиснення"
+
+
+msgid "DWAA (lossy)"
+msgstr "DWAA (з втратами)"
 
 
 msgid "Pxr24 (lossy)"
 msgstr "Pxr24 (з втратами)"
-
-
-msgid "ZIP (lossless)"
-msgstr "ZIP (без втрат)"
-
-
-msgid "PIZ (lossless)"
-msgstr "PIZ (без втрат)"
-
-
-msgid "RLE (lossless)"
-msgstr "RLE (без втрат)"
-
-
-msgid "ZIPS (lossless)"
-msgstr "ZIPS (без втрат)"
 
 
 msgid "B44 (lossy)"
@@ -23594,10 +23542,6 @@ msgstr "B44 ()"
 
 msgid "B44A (lossy)"
 msgstr "B44A (з втратами)"
-
-
-msgid "DWAA (lossy)"
-msgstr "DWAA (з втратами)"
 
 
 msgid "File format to save the rendered images as"
@@ -26963,172 +26907,164 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
-msgid "Snap"
-msgstr "Підхоп"
-
-
-msgid "UV Mapping"
-msgstr "Розкладання UV"
-
-
-msgid "Local View"
-msgstr "Огляд Локально"
-
-
-msgid "Viewpoint"
-msgstr "Точка зору"
-
-
-msgid "Navigation"
-msgstr "Навігація"
-
-
-msgid "Align View"
-msgstr "Вирівняти Огляд"
-
-
-msgid "Align View to Active"
-msgstr "Вирівняти Огляд за Активним"
-
-
-msgid "View Regions"
-msgstr "Регіони Огляду"
-
-
-msgid "Select More/Less"
-msgstr "Вибрати більше/менше"
-
-
-msgid "Select Similar"
-msgstr "Вибрати подібні"
-
-
-msgid "Select All by Trait"
-msgstr "Вибрати все за рисою"
-
-
-msgid "Select Linked"
-msgstr "Виділити пов'язане"
-
-
-msgid "Select Loops"
-msgstr "Виділити петлі"
-
-
-msgid "Assign Material"
-msgstr "Призначити Матеріал"
-
-
-msgid "Add Image"
-msgstr "Додати Зображення"
-
-
-msgid "Relations"
-msgstr "Зв'язки"
-
-
-msgid "Rigid Body"
-msgstr "Тверде тіло"
-
-
-msgid "Apply"
-msgstr "Застосувати"
-
-
-msgid "Track"
-msgstr "Стеження"
-
-
-msgid "Quick Effects"
-msgstr "Швидкі ефекти"
-
-
-msgid "Show/Hide"
-msgstr "Показати/приховати"
-
-
-msgid "Clean Up"
-msgstr "Вичищення"
-
-
-msgid "Asset"
-msgstr "Актив"
-
-
-msgid "Make Single User"
-msgstr "Зробити однокористувацьким"
-
-
-msgid "Convert"
-msgstr "Конвертування"
-
-
-msgid "Link/Transfer Data"
-msgstr "Пов'язати/Перенести Дані"
-
-
-msgid "Hooks"
-msgstr "Гачки"
-
-
-msgid "Vertex Group Locks"
-msgstr "Блокування Груп Вершин"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "Ліплення Задати Опертя"
-
-
-msgid "Face Sets Init"
-msgstr "Ініціація Наборів Граней"
-
-
-msgid "Clear Transform"
-msgstr "Зчистити трансформації"
-
-
-msgid "In-Betweens"
-msgstr "У проміжках"
+msgid "Names"
+msgstr "Назви"
 
 
 msgid "Propagate"
 msgstr "Поширити"
 
 
-msgid "Names"
-msgstr "Назви"
+msgid "In-Betweens"
+msgstr "У проміжках"
 
 
-msgid "Toggle Bone Options"
-msgstr "Перемкнути параметри кісток"
-
-
-msgid "Enable Bone Options"
-msgstr "Увімкнути параметри кісток"
-
-
-msgid "Disable Bone Options"
-msgstr "Відключити параметри кісток"
-
-
-msgid "Mesh Select Mode"
-msgstr "Режим Вибору Сіті"
-
-
-msgid "Face Data"
-msgstr "Дані граней"
-
-
-msgid "Select by Face Strength"
-msgstr "Вибрати за Силою Грані"
+msgid "Clear Transform"
+msgstr "Зчистити трансформації"
 
 
 msgid "Set Face Strength"
 msgstr "Задати Силу Грані"
 
 
-msgid "Merge"
-msgstr "Об'єднання"
+msgid "Select by Face Strength"
+msgstr "Вибрати за Силою Грані"
+
+
+msgid "Align View"
+msgstr "Вирівняти Огляд"
+
+
+msgid "Face Data"
+msgstr "Дані граней"
+
+
+msgid "Mesh Select Mode"
+msgstr "Режим Вибору Сіті"
+
+
+msgid "Navigation"
+msgstr "Навігація"
+
+
+msgid "Disable Bone Options"
+msgstr "Відключити параметри кісток"
+
+
+msgid "Viewpoint"
+msgstr "Точка зору"
+
+
+msgid "Enable Bone Options"
+msgstr "Увімкнути параметри кісток"
+
+
+msgid "Local View"
+msgstr "Огляд Локально"
+
+
+msgid "Toggle Bone Options"
+msgstr "Перемкнути параметри кісток"
+
+
+msgid "Show/Hide"
+msgstr "Показати/приховати"
+
+
+msgid "UV Mapping"
+msgstr "Розкладання UV"
+
+
+msgid "Assign Material"
+msgstr "Призначити Матеріал"
+
+
+msgid "Snap"
+msgstr "Підхоп"
+
+
+msgid "Mirror"
+msgstr "Дзеркалення"
+
+
+msgid "Face Sets Init"
+msgstr "Ініціація Наборів Граней"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Ліплення Задати Опертя"
+
+
+msgid "Vertex Group Locks"
+msgstr "Блокування Груп Вершин"
+
+
+msgid "Hooks"
+msgstr "Гачки"
+
+
+msgid "Link/Transfer Data"
+msgstr "Пов'язати/Перенести Дані"
+
+
+msgid "Convert"
+msgstr "Конвертування"
+
+
+msgid "Make Single User"
+msgstr "Зробити однокористувацьким"
+
+
+msgid "Asset"
+msgstr "Актив"
+
+
+msgid "Clean Up"
+msgstr "Вичищення"
+
+
+msgid "Quick Effects"
+msgstr "Швидкі ефекти"
+
+
+msgid "Track"
+msgstr "Стеження"
+
+
+msgid "Apply"
+msgstr "Застосувати"
+
+
+msgid "Rigid Body"
+msgstr "Тверде тіло"
+
+
+msgid "Relations"
+msgstr "Зв'язки"
+
+
+msgid "Add Image"
+msgstr "Додати Зображення"
+
+
+msgid "Select Similar"
+msgstr "Вибрати подібні"
+
+
+msgid "Select More/Less"
+msgstr "Вибрати більше/менше"
+
+
+msgid "Select Loops"
+msgstr "Виділити петлі"
+
+
+msgid "Select Linked"
+msgstr "Виділити пов'язане"
+
+
+msgid "Select All by Trait"
+msgstr "Вибрати все за рисою"
 
 
 msgid "Special Characters"
@@ -27141,6 +27077,18 @@ msgstr "Кернінг"
 
 msgid "Bone Roll"
 msgstr "Прокручення Кістки"
+
+
+msgid "View Regions"
+msgstr "Регіони Огляду"
+
+
+msgid "Align View to Active"
+msgstr "Вирівняти Огляд за Активним"
+
+
+msgid "Merge"
+msgstr "Об'єднання"
 
 
 msgid "Pivot Point"
@@ -27161,10 +27109,6 @@ msgstr "Автомаскування"
 
 msgid "Face Sets Edit"
 msgstr "Редагування Наборів Граней"
-
-
-msgid "Mirror"
-msgstr "Дзеркалення"
 
 
 msgid "Basic"
@@ -33884,10 +33828,6 @@ msgid "Use Mask"
 msgstr "Вжити маску"
 
 
-msgid "Use a grease pencil data-block as a mask to use only specified areas of pattern when tracking"
-msgstr "Використати блок даних нарисного олівця як маску на основі лише обведених штрихами Нарисного Олівця ділянок області патерну міток у ході відстеження"
-
-
 msgid "Normalize"
 msgstr "Нормалізація"
 
@@ -34114,10 +34054,6 @@ msgstr "Колір стежки у Редакторі відеокліпів т�
 
 msgid "Minimal value of correlation between matched pattern and reference that is still treated as successful tracking"
 msgstr "Мінімальне значення кореляції між узгодженим патерном та орієнтиром, що раніше був визначений як успішно відстежений"
-
-
-msgid "Grease pencil data for this track"
-msgstr "Дані нарисного олівця для цієї доріжки"
 
 
 msgid "Has Bundle"
@@ -39310,10 +39246,6 @@ msgstr "Додати або вилучити передуставу пензля
 msgctxt "Operator"
 msgid "Add Grease Pencil Brush Preset"
 msgstr "Додати Передуставу Пензля Нарисного Олівця"
-
-
-msgid "Add or remove grease pencil material preset"
-msgstr "Додати або вилучити передуставу матеріалу нарисного олівця"
 
 
 msgctxt "Operator"
@@ -45663,14 +45595,6 @@ msgid "Decimate F-Curves by removing keyframes that influence the curve shape th
 msgstr "Спростити Ф-Криві шляхом вилучення ключкадрів, що впливають на форму кривої найменше"
 
 
-msgid "Remove"
-msgstr "Вилучення"
-
-
-msgid "The ratio of remaining keyframes after the operation"
-msgstr "Співвідношення ключкадрів, що залишилися після операції"
-
-
 msgid "Which mode to use for decimation"
 msgstr "Який режим використовувати для спрощення"
 
@@ -46175,10 +46099,6 @@ msgid "Grease Pencil Interpolation"
 msgstr "Інтерполяція Нарисного олівця"
 
 
-msgid "Interpolate grease pencil strokes between frames"
-msgstr "Інтерполювати штрихи Нарисного олівця між кадрами"
-
-
 msgid "Flip Mode"
 msgstr "Режим Переверту"
 
@@ -46210,18 +46130,6 @@ msgstr "Інтерполювати відеоряд"
 
 msgid "Generate 'in-betweens' to smoothly interpolate between Grease Pencil frames"
 msgstr "Генерувати 'між-кадри' для згладженого інтерполювання між кадрами Нарисного олівця"
-
-
-msgid "Which ends of the segment between the preceding and following grease pencil frames easing interpolation is applied to"
-msgstr "Кінці сегмента між попереднім і наступним ключовими кадрами, до яких застосовується ослаблення"
-
-
-msgid "Only Selected"
-msgstr "Лише вибране"
-
-
-msgid "Interpolate only selected strokes"
-msgstr "Інтерполювати лише вибрані штрихи"
 
 
 msgid "Number of frames between generated interpolated frames"
@@ -46457,26 +46365,14 @@ msgid "Grease Pencil Curve Shape"
 msgstr "Форма Кривою Нарисного Олівця"
 
 
-msgid "Create predefined grease pencil stroke curve shapes"
-msgstr "Створити передвизначені форми кривою штриха нарисного олівця"
-
-
 msgctxt "Operator"
 msgid "Grease Pencil Line Shape"
 msgstr "Форма Лінією Нарисного Олівця"
 
 
-msgid "Create predefined grease pencil stroke lines"
-msgstr "Створити передвизначені форми лінією штриха нарисного олівця"
-
-
 msgctxt "Operator"
 msgid "Grease Pencil Polyline Shape"
 msgstr "Форма Полілінією Нарисного Олівця"
-
-
-msgid "Create predefined grease pencil stroke polylines"
-msgstr "Створити передвизначені форми полілінією штриха нарисного олівця"
 
 
 msgid "Bring to Front"
@@ -46669,10 +46565,6 @@ msgstr "Кінець Y"
 
 msgid "Y Start"
 msgstr "Початок Y"
-
-
-msgid "Target grease pencil"
-msgstr "Цільовий нарисний олівець"
 
 
 msgid "New Object"
@@ -49082,6 +48974,10 @@ msgid "Cut new topology"
 msgstr "Нарізати нову топологію"
 
 
+msgid "Only Selected"
+msgstr "Лише вибране"
+
+
 msgid "Only cut selected geometry"
 msgstr "Розрізати лише вибрану геометрію"
 
@@ -49933,15 +49829,6 @@ msgid "Aligned Axis"
 msgstr "Вирівняні осі"
 
 
-msgctxt "Operator"
-msgid "Select Faces by Sides"
-msgstr "Вибрати грані за сторонами"
-
-
-msgid "Number of Vertices"
-msgstr "Кількість вершин"
-
-
 msgid "Type of comparison to make"
 msgstr "Тип порівняння"
 
@@ -49952,6 +49839,15 @@ msgstr "Дорівнює"
 
 msgid "Not Equal To"
 msgstr "Не дорівнює"
+
+
+msgctxt "Operator"
+msgid "Select Faces by Sides"
+msgstr "Вибрати грані за сторонами"
+
+
+msgid "Number of Vertices"
+msgstr "Кількість вершин"
 
 
 msgctxt "Operator"
@@ -52049,10 +51945,6 @@ msgid "Add a Grease Pencil object to the scene"
 msgstr "Додати об'єкт Нарисного Олівця у сцену"
 
 
-msgid "Create an empty grease pencil object"
-msgstr "Створити порожній об'єкт нарисного олівця"
-
-
 msgid "Create a simple stroke with basic colors"
 msgstr "Створити простий штрих з базовими кольорами"
 
@@ -52060,10 +51952,6 @@ msgstr "Створити простий штрих з базовими коль�
 msgctxt "Operator"
 msgid "Monkey"
 msgstr "Мавпочка"
-
-
-msgid "Construct a Suzanne grease pencil object"
-msgstr "Сконструювати об'єкт нарисного олівця у вигляді Сюзанни"
 
 
 msgctxt "Operator"
@@ -53386,10 +53274,6 @@ msgstr "Перемістити ефект уверх у стеку"
 msgctxt "Operator"
 msgid "Remove Grease Pencil Effect"
 msgstr "Вилучити Ефект Нарисного Олівця"
-
-
-msgid "Remove a effect from the active grease pencil object"
-msgstr "Вилучити ефект з активного об'єкта нарисного олівця"
 
 
 msgctxt "Operator"
@@ -58623,10 +58507,6 @@ msgid "Reassign the inputs for the effect strip"
 msgstr "Перепризначити вводи для смужки ефекту"
 
 
-msgid "Rebuild all selected proxies and timecode indices using the job system"
-msgstr "Перебудувати всі вибрані проксі та індекси часових кодів за допомогою системи задач"
-
-
 msgctxt "Operator"
 msgid "Refresh Sequencer"
 msgstr "Оновити відеорядник"
@@ -62225,6 +62105,10 @@ msgid "Keep Open"
 msgstr "Утримати Відкрито"
 
 
+msgid "Remove"
+msgstr "Вилучення"
+
+
 msgid "Save a Collada file"
 msgstr "Зберегти файл Collada"
 
@@ -64030,6 +63914,46 @@ msgid "Panel containing UI elements"
 msgstr "Панель, що містить елементи Інтерфейсу Користувача"
 
 
+msgid "Wire Color"
+msgstr "Колір зв'язку"
+
+
+msgid "Shadow Settings"
+msgstr "Устави Тіні"
+
+
+msgid "SSAO Settings"
+msgstr "Устави Загороди Оточення Простору Екрану"
+
+
+msgid "Render Pass"
+msgstr "Прохід Рендера"
+
+
+msgid "Overlays"
+msgstr "Накладки"
+
+
+msgid "Guides"
+msgstr "Напрямні"
+
+
+msgid "Motion Tracking"
+msgstr "Відстеження руху"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Режим Редагування Сіті"
+
+
+msgid "Measurement"
+msgstr "Вимірювання"
+
+
+msgid "Curve Edit Mode"
+msgstr "Режим Редагування Кривої"
+
+
 msgid "Snapping"
 msgstr "Підхоплення"
 
@@ -64044,10 +63968,6 @@ msgstr "Розміщення Штриха"
 
 msgid "Drawing Plane"
 msgstr "Площина Рисування"
-
-
-msgid "Guides"
-msgstr "Напрямні"
 
 
 msgid "Quad View"
@@ -64070,10 +63990,6 @@ msgid "Auto-Masking"
 msgstr "Авто-Маскування"
 
 
-msgid "Curve Edit Mode"
-msgstr "Режим Редагування Кривої"
-
-
 msgid "VR"
 msgstr "ВР"
 
@@ -64084,38 +64000,6 @@ msgstr "Активний Засіб"
 
 msgid "View Lock"
 msgstr "Блокувати Огляд"
-
-
-msgid "Wire Color"
-msgstr "Колір зв'язку"
-
-
-msgid "Shadow Settings"
-msgstr "Устави Тіні"
-
-
-msgid "SSAO Settings"
-msgstr "Устави Загороди Оточення Простору Екрану"
-
-
-msgid "Render Pass"
-msgstr "Прохід Рендера"
-
-
-msgid "Overlays"
-msgstr "Накладки"
-
-
-msgid "Motion Tracking"
-msgstr "Відстеження руху"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Режим Редагування Сіті"
-
-
-msgid "Measurement"
-msgstr "Вимірювання"
 
 
 msgid "Chain Scaling"
@@ -64842,10 +64726,6 @@ msgstr "Устави замісника"
 
 msgid "Sequencer Overlays"
 msgstr "Накладки Секвенсера"
-
-
-msgid "Strips"
-msgstr "Смужки"
 
 
 msgid "Strip Cache"
@@ -66148,10 +66028,6 @@ msgstr "Активний кеш точок для симуляцій фізик�
 
 msgid "Cache Compression"
 msgstr "Стиснення кешу"
-
-
-msgid "No compression"
-msgstr "Без стиснення"
 
 
 msgid "Lite"
@@ -72331,16 +72207,8 @@ msgid "Align X"
 msgstr "Вирівняти за X"
 
 
-msgid "Align the text along the X axis, relative to the text bounds"
-msgstr "Вирівняти текст уздовж осі X, відносно країв тексту"
-
-
-msgid "Align Y"
-msgstr "Вирівняти за Y"
-
-
-msgid "Align the text along the Y axis, relative to the text bounds"
-msgstr "Вирівняти текст уздовж осі Y, відносно країв тексту"
+msgid "Anchor X"
+msgstr "Кріплення X"
 
 
 msgid "Box Color"
@@ -73118,10 +72986,6 @@ msgstr "Індивідуальні опорні точки"
 
 msgid "Collection of Sequences"
 msgstr "Колекція послідовностей"
-
-
-msgid "Effect affecting the grease pencil object"
-msgstr "Ефект впливає на об'єкт нарисного олівця"
 
 
 msgid "Effect name"
@@ -74493,10 +74357,6 @@ msgstr "Z-буфер"
 
 msgid "Display Z-buffer associated with image (mapped from camera clip start to end)"
 msgstr "Показувати Z-буфер, асоційований із зображенням (розкладеним від початку до кінця відсікання камери)"
-
-
-msgid "Grease pencil data for this space"
-msgstr "Дані нарисного олівця для цього простору"
 
 
 msgid "View the image"
@@ -79341,10 +79201,6 @@ msgid "Use Grid"
 msgstr "Вжити Сітку"
 
 
-msgid "Display a grid over grease pencil paper"
-msgstr "Показувати сітку над папером нарисного олівця"
-
-
 msgid "Lines Only"
 msgstr "Лише Лінії"
 
@@ -80994,66 +80850,6 @@ msgid "Options:"
 msgstr "Опції:"
 
 
-msgid "Save to PO File"
-msgstr "Зберегти в PO Файл"
-
-
-msgid "Rebuild MO File"
-msgstr "Перебудувати MO Файл"
-
-
-msgid "Erase Local MO files"
-msgstr "Стерти Локальні MO файли"
-
-
-msgid "invoke() needs to be called before execute()"
-msgstr "Вимагається виклик invoke() перед execute()"
-
-
-msgid "    RNA Path: bpy.types."
-msgstr "    RNA Шлях: bpy.types."
-
-
-msgid "    RNA Context: "
-msgstr "    RNA Контекст: "
-
-
-msgid "Labels:"
-msgstr "Позначки:"
-
-
-msgid "Tool Tips:"
-msgstr "Підказки Засобів:"
-
-
-msgid "Button Label:"
-msgstr "Позначка Кнопки:"
-
-
-msgid "RNA Label:"
-msgstr "Позначка RNA:"
-
-
-msgid "Enum Item Label:"
-msgstr "Позначка Елемента Переліку:"
-
-
-msgid "Button Tip:"
-msgstr "Підказка Кнопки:"
-
-
-msgid "RNA Tip:"
-msgstr "Підказка RNA:"
-
-
-msgid "Enum Item Tip:"
-msgstr "Підказка Елемента Переліку:"
-
-
-msgid "Could not write to po file ({})"
-msgstr "Неможливо записати у po файл ({})"
-
-
 msgid "WARNING: preferences are lost when add-on is disabled, be sure to use \"Save Persistent\" if you want to keep your settings!"
 msgstr "ПОПЕРЕДЖЕННЯ: при вимиканні додатку уподобання будуть втрачені; щоб зберегти налаштування скористайтесь функцією збереження на постійно \"Save Persistent\""
 
@@ -81760,26 +81556,6 @@ msgid "Only Axis Aligned"
 msgstr "Лише Вирівняно по Осі"
 
 
-msgid "View in Render"
-msgstr "Огляд У Рендері"
-
-
-msgid "Thickness Scale"
-msgstr "Масштаб Товщини"
-
-
-msgid "Edit Line Color"
-msgstr "Колір Лінії Редагування"
-
-
-msgid "Keyframes Before"
-msgstr "Ключкадри Перед"
-
-
-msgid "Keyframes After"
-msgstr "Ключкадри Після"
-
-
 msgid "Stroke Thickness"
 msgstr "Товщина Штриха"
 
@@ -81815,6 +81591,14 @@ msgstr "Розблокувати Все"
 msgctxt "Operator"
 msgid "Merge Down"
 msgstr "Об'єднати вниз"
+
+
+msgid "Keyframes Before"
+msgstr "Ключкадри Перед"
+
+
+msgid "Keyframes After"
+msgstr "Ключкадри Після"
 
 
 msgid "Interpolation U"
@@ -82013,6 +81797,16 @@ msgstr "Вибрання до Курсора"
 msgctxt "Operator"
 msgid "Selection to Cursor (Keep Offset)"
 msgstr "Вибрання до Курсора (Утримати Зсув)"
+
+
+msgctxt "Operator"
+msgid "Delete Active Keyframe (Active Layer)"
+msgstr "Видалити Активний Ключкадр (Активний Шар)"
+
+
+msgctxt "Operator"
+msgid "Delete Active Keyframes (All Layers)"
+msgstr "Видалити Активні Ключкадри (Усі Шари)"
 
 
 msgid "Show Fill Color While Drawing"
@@ -84219,10 +84013,6 @@ msgid "Slip Strip Contents"
 msgstr "Сковзнути Вміст Смужки"
 
 
-msgid "Anchor X"
-msgstr "Кріплення X"
-
-
 msgid "Position X"
 msgstr "Позиція X"
 
@@ -86254,16 +86044,6 @@ msgstr "Гострі Вершини"
 
 
 msgctxt "Operator"
-msgid "Delete Active Keyframe (Active Layer)"
-msgstr "Видалити Активний Ключкадр (Активний Шар)"
-
-
-msgctxt "Operator"
-msgid "Delete Active Keyframes (All Layers)"
-msgstr "Видалити Активні Ключкадри (Усі Шари)"
-
-
-msgctxt "Operator"
 msgid "Delete Segment"
 msgstr "Видалити Сегмент"
 
@@ -87999,16 +87779,8 @@ msgid "Active region not set"
 msgstr "Активну область не задано"
 
 
-msgid "Nowhere for grease pencil data to go"
-msgstr "Немає місця для зберігання даних нарисного олівця"
-
-
 msgid "Cannot delete locked layers"
 msgstr "Неможливо видалити заблоковані шари"
-
-
-msgid "No grease pencil data"
-msgstr "Немає даних нарисного олівця"
 
 
 msgid "No active frame to delete"
@@ -88021,10 +87793,6 @@ msgstr "Нічого не вибрано"
 
 msgid "Active layer is locked or hidden"
 msgstr "Активний шар заблоковано або сховано"
-
-
-msgid "Active object is not a selected grease pencil"
-msgstr "Активний об'єкт не є вибраним нарисним олівцем"
 
 
 msgid "Cannot add active layer as mask"
@@ -90386,10 +90154,6 @@ msgid "Trace"
 msgstr "Простеження"
 
 
-msgid "Target object not a grease pencil, ignoring!"
-msgstr "Цільовий об'єкт не є нарисним олівцем, ігнорування!"
-
-
 msgid "Target object library-data, ignoring!"
 msgstr "Цільовий об'єкт є даними бібліотеки, ігнорування!"
 
@@ -90572,10 +90336,6 @@ msgstr "Дія '%s' не буде збережена, створіть для н
 
 msgid "Keyframe pasting is not available for mask mode"
 msgstr "Вставляння ключових кадрів у режимі маски неможливе"
-
-
-msgid "Keyframe pasting is not available for grease pencil or mask mode"
-msgstr "Вставляння ключових кадрів неможливе у режимі нарисного олівця або маски"
 
 
 msgid "No selected F-Curves to paste into"
@@ -92486,11 +92246,6 @@ msgstr "Freestyle: Створення карти вигляду"
 
 msgid "Freestyle: Stroke rendering"
 msgstr "Freestyle: Рендеринг штриха"
-
-
-msgctxt "Action"
-msgid "Group"
-msgstr "Група"
 
 
 msgid "Index out of range"
