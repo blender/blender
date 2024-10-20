@@ -459,23 +459,25 @@ inline void execute_element_fn_as_multi_function(const ElementFn element_fn,
     }
     else {
       /* This fallback is slower because it uses virtual method calls for every element. */
-      execute_array(
-          TypeSequence<ParamTags...>(), std::index_sequence<I...>(), element_fn, mask, [&]() {
-            /* Use `typedef` instead of `using` to work around a compiler bug. */
-            typedef ParamTags ParamTag;
-            typedef typename ParamTag::base_type T;
-            if constexpr (ParamTag::category == ParamCategory::SingleInput) {
-              const GVArrayImpl &varray_impl = *std::get<I>(loaded_params);
-              return GVArray(&varray_impl).typed<T>();
-            }
-            else if constexpr (ELEM(ParamTag::category,
-                                    ParamCategory::SingleOutput,
-                                    ParamCategory::SingleMutable))
-            {
-              T *ptr = std::get<I>(loaded_params);
-              return ptr;
-            }
-          }()...);
+      mask.foreach_segment([&](const IndexMaskSegment segment) {
+        execute_array(
+            TypeSequence<ParamTags...>(), std::index_sequence<I...>(), element_fn, segment, [&]() {
+              /* Use `typedef` instead of `using` to work around a compiler bug. */
+              typedef ParamTags ParamTag;
+              typedef typename ParamTag::base_type T;
+              if constexpr (ParamTag::category == ParamCategory::SingleInput) {
+                const GVArrayImpl &varray_impl = *std::get<I>(loaded_params);
+                return GVArray(&varray_impl).typed<T>();
+              }
+              else if constexpr (ELEM(ParamTag::category,
+                                      ParamCategory::SingleOutput,
+                                      ParamCategory::SingleMutable))
+              {
+                T *ptr = std::get<I>(loaded_params);
+                return ptr;
+              }
+            }()...);
+      });
     }
   }
 }
