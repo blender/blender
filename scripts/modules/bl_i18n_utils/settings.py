@@ -93,6 +93,7 @@ LANGUAGES = (
     (54, "Slovenian (Slovenščina)", "sl"),
     # Using the utf8 flipped form of Urdu (اُردُو).
     (55, "Urdu (وُدرُا)", "ur"),
+    (56, "Lithuanian (Lietuviškai)", "lt"),
 )
 
 # Default context, in py (keep in sync with `BLT_translation.hh`)!
