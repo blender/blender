@@ -6420,6 +6420,7 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
       {AV_CODEC_ID_NONE, "NONE", 0, "No Video", "Disables video output, for audio-only renders"},
       {AV_CODEC_ID_AV1, "AV1", 0, "AV1", ""},
       {AV_CODEC_ID_H264, "H264", 0, "H.264", ""},
+      {AV_CODEC_ID_H265, "H265", 0, "H.265 / HEVC", ""},
       {AV_CODEC_ID_VP9, "WEBM", 0, "WebM / VP9", ""},
       /* Legacy / rare codecs. */
       RNA_ENUM_ITEM_SEPR,

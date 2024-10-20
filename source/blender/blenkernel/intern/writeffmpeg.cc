@@ -866,6 +866,27 @@ void BKE_ffmpeg_sws_scale_frame(SwsContext *ctx, AVFrame *dst, const AVFrame *sr
 #  endif
 }
 
+/* Remap H.264 CRF to H.265 CRF: 17..32 range (23 default) to 20..37 range (28 default).
+ * https://trac.ffmpeg.org/wiki/Encode/H.265 */
+static int remap_crf_to_h265_crf(int crf)
+{
+  switch (crf) {
+    case FFM_CRF_PERC_LOSSLESS:
+      return 20;
+    case FFM_CRF_HIGH:
+      return 24;
+    case FFM_CRF_MEDIUM:
+      return 28;
+    case FFM_CRF_LOW:
+      return 31;
+    case FFM_CRF_VERYLOW:
+      return 34;
+    case FFM_CRF_LOWEST:
+      return 37;
+  }
+  return crf;
+}
+
 static void set_quality_rate_options(const FFMpegContext *context,
                                      const AVCodecID codec_id,
                                      const RenderData *rd,
@@ -895,6 +916,10 @@ static void set_quality_rate_options(const FFMpegContext *context,
       /* VP9 needs "lossless": https://trac.ffmpeg.org/wiki/Encode/VP9#LosslessVP9 */
       ffmpeg_dict_set_int(opts, "lossless", 1);
     }
+    else if (codec_id == AV_CODEC_ID_H265) {
+      /* H.265 needs "lossless" in private params; also make it much less verbose. */
+      av_dict_set(opts, "x265-params", "log-level=1:lossless=1", 0);
+    }
     else if (codec_id == AV_CODEC_ID_AV1 && (av1_librav1e || av1_libsvtav1)) {
       /* AV1 in some encoders needs qp=0 for lossless. */
       ffmpeg_dict_set_int(opts, "qp", 0);
@@ -908,6 +933,12 @@ static void set_quality_rate_options(const FFMpegContext *context,
 
   /* Handle CRF setting cases. */
   int crf = context->ffmpeg_crf;
+
+  if (codec_id == AV_CODEC_ID_H265) {
+    crf = remap_crf_to_h265_crf(crf);
+    /* Make H.265 much less verbose. */
+    av_dict_set(opts, "x265-params", "log-level=1", 0);
+  }
 
   if (av1_librav1e) {
     /* Remap crf 0..51 to qp 0..255 for AV1 librav1e. */
@@ -1085,7 +1116,9 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
   if (codec_id == AV_CODEC_ID_VP9 && rd->im_format.planes == R_IMF_PLANES_RGBA) {
     c->pix_fmt = AV_PIX_FMT_YUVA420P;
   }
-  else if (ELEM(codec_id, AV_CODEC_ID_H264, AV_CODEC_ID_VP9) && (context->ffmpeg_crf == 0)) {
+  else if (ELEM(codec_id, AV_CODEC_ID_H264, AV_CODEC_ID_H265, AV_CODEC_ID_VP9) &&
+           (context->ffmpeg_crf == 0))
+  {
     /* Use 4:4:4 instead of 4:2:0 pixel format for lossless rendering. */
     c->pix_fmt = AV_PIX_FMT_YUV444P;
   }
@@ -1995,7 +2028,12 @@ bool BKE_ffmpeg_alpha_channel_is_supported(const RenderData *rd)
 
 bool BKE_ffmpeg_codec_supports_crf(int av_codec_id)
 {
-  return ELEM(av_codec_id, AV_CODEC_ID_H264, AV_CODEC_ID_MPEG4, AV_CODEC_ID_VP9, AV_CODEC_ID_AV1);
+  return ELEM(av_codec_id,
+              AV_CODEC_ID_H264,
+              AV_CODEC_ID_H265,
+              AV_CODEC_ID_MPEG4,
+              AV_CODEC_ID_VP9,
+              AV_CODEC_ID_AV1);
 }
 
 void *BKE_ffmpeg_context_create()
