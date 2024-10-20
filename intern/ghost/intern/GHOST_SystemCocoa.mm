@@ -2040,7 +2040,7 @@ void GHOST_SystemCocoa::putClipboard(const char *buffer, bool selection) const
 
 static NSURL *NSPasteboardGetImageFile()
 {
-  NSURL *pasteboardImageFile = Nil;
+  NSURL *pasteboardImageFile = nil;
 
   @autoreleasepool {
     NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
@@ -2053,7 +2053,7 @@ static NSURL *NSPasteboardGetImageFile()
                                                            options:pasteboardFilteringOptions];
 
     if (!pasteboardMatches || !pasteboardMatches.count) {
-      return Nil;
+      return nil;
     }
 
     pasteboardImageFile = [[pasteboardMatches firstObject] copy];
@@ -2077,7 +2077,7 @@ GHOST_TSuccess GHOST_SystemCocoa::hasClipboardImage() const
 
     /* If we got a file, ensure it's an image file. */
     if ([pasteboard availableTypeFromArray:@[ NSPasteboardTypeFileURL ]] &&
-        NSPasteboardGetImageFile() == Nil)
+        NSPasteboardGetImageFile() == nil)
     {
       return GHOST_kFailure;
     }
@@ -2095,8 +2095,8 @@ uint *GHOST_SystemCocoa::getClipboardImage(int *r_width, int *r_height) const
   @autoreleasepool {
     NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
 
-    NSImage *clipboardImage = Nil;
-    if (NSURL *pasteboardImageFile = NSPasteboardGetImageFile(); pasteboardImageFile != Nil) {
+    NSImage *clipboardImage = nil;
+    if (NSURL *pasteboardImageFile = NSPasteboardGetImageFile(); pasteboardImageFile != nil) {
       /* Image file. */
       clipboardImage = [[[NSImage alloc] initWithContentsOfURL:pasteboardImageFile] autorelease];
     }
