@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'89e3ab2a4533')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'58c660c9615d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-14 08:43+0000\n"
+"POT-Creation-Date: 2024-10-20 15:55+0000\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -175,6 +175,14 @@ msgid "Expanded"
 msgstr "विस्तृत"
 
 
+msgid "Influence"
+msgstr "प्रभाव"
+
+
+msgid "Add"
+msgstr "जोड़ें"
+
+
 msgid "Off"
 msgstr "बंद"
 
@@ -241,10 +249,6 @@ msgstr "अनुप्राणन सामग्री"
 
 msgid "Action"
 msgstr "कार्य"
-
-
-msgid "Add"
-msgstr "जोड़ें"
 
 
 msgid "Nothing"
@@ -914,10 +918,6 @@ msgid "Error"
 msgstr "त्रुटि"
 
 
-msgid "Influence"
-msgstr "प्रभाव"
-
-
 msgid "Copy Location"
 msgstr "स्थिति की प्रतिलिपि बनाएँ"
 
@@ -1339,12 +1339,12 @@ msgid "Realtime"
 msgstr "ससमय"
 
 
-msgid "Ogg"
-msgstr "ओजीजी"
-
-
 msgid "Flash"
 msgstr "फ्लैश"
+
+
+msgid "Ogg"
+msgstr "ओजीजी"
 
 
 msgid "Lossless Output"
@@ -1655,6 +1655,10 @@ msgid "Users"
 msgstr "प्रयोक्ता"
 
 
+msgid "Layers"
+msgstr "परतें"
+
+
 msgid "Stick"
 msgstr "छड़ी"
 
@@ -1913,10 +1917,6 @@ msgstr "अधिकतम"
 
 msgid "Rounds"
 msgstr "दौर"
-
-
-msgid "Layers"
-msgstr "परतें"
 
 
 msgid "Fade"
@@ -2672,60 +2672,60 @@ msgid "Flip"
 msgstr "पलटें"
 
 
-msgid "Snap"
-msgstr "स्नैप"
-
-
-msgid "Rigid Body"
-msgstr "कठोर-पदार्थ"
-
-
-msgid "Apply"
-msgstr "लागू करें"
-
-
-msgid "Track"
-msgstr "ट्रैक"
-
-
-msgid "Quick Effects"
-msgstr "त्वरित प्रभाव"
-
-
-msgid "Show/Hide"
-msgstr "छुपाएँ / दिखाएँ"
-
-
-msgid "Make Single User"
-msgstr "एकल प्रयोक्ता बनाएँ"
-
-
-msgid "Hooks"
-msgstr "खूँटी"
-
-
 msgid "Names"
 msgstr "नाम"
-
-
-msgid "Toggle Bone Options"
-msgstr "हड्डी विकल्प बंद/बुझ"
 
 
 msgid "Enable Bone Options"
 msgstr "हड्डी विकल्प को सक्षम करें"
 
 
-msgid "Merge"
-msgstr "विलय करें"
+msgid "Toggle Bone Options"
+msgstr "हड्डी विकल्प बंद/बुझ"
+
+
+msgid "Show/Hide"
+msgstr "छुपाएँ / दिखाएँ"
+
+
+msgid "Snap"
+msgstr "स्नैप"
+
+
+msgid "Mirror"
+msgstr "दर्पण"
+
+
+msgid "Hooks"
+msgstr "खूँटी"
+
+
+msgid "Make Single User"
+msgstr "एकल प्रयोक्ता बनाएँ"
+
+
+msgid "Quick Effects"
+msgstr "त्वरित प्रभाव"
+
+
+msgid "Track"
+msgstr "ट्रैक"
+
+
+msgid "Apply"
+msgstr "लागू करें"
+
+
+msgid "Rigid Body"
+msgstr "कठोर-पदार्थ"
 
 
 msgid "Bone Roll"
 msgstr "हड्डी पंजी"
 
 
-msgid "Mirror"
-msgstr "दर्पण"
+msgid "Merge"
+msgstr "विलय करें"
 
 
 msgid "Basic"
@@ -3774,10 +3774,6 @@ msgid "Italic"
 msgstr "तिर्यगक्षर"
 
 
-msgid "Remove"
-msgstr "हटाएँ"
-
-
 msgid "Flatten"
 msgstr "समतल"
 
@@ -3804,10 +3800,6 @@ msgstr "समतल"
 
 msgid "Limit"
 msgstr "सीमा"
-
-
-msgid "Only Selected"
-msgstr "केवल चयनित"
 
 
 msgctxt "Operator"
@@ -3926,6 +3918,10 @@ msgstr "अदला-बदली"
 msgctxt "Operator"
 msgid "Knife Project"
 msgstr "चाकू प्रक्षेपण"
+
+
+msgid "Only Selected"
+msgstr "केवल चयनित"
 
 
 msgid "X-Ray"
@@ -4461,6 +4457,10 @@ msgid "Pan Right"
 msgstr "दाएँ पैन करें"
 
 
+msgid "Remove"
+msgstr "हटाएँ"
+
+
 msgid "Open a Blender file"
 msgstr "एक ब्लेंडर संचिका खोलें"
 
@@ -4569,12 +4569,12 @@ msgid "Lock Y"
 msgstr "तालाबंदी y"
 
 
-msgid "Transform Orientations"
-msgstr "दिक् विन्यास संरचनांतरण"
-
-
 msgid "Motion Tracking"
 msgstr "गति मार्गन"
+
+
+msgid "Transform Orientations"
+msgstr "दिक् विन्यास संरचनांतरण"
 
 
 msgid "Predefined tracking camera intrinsics"
@@ -5259,54 +5259,6 @@ msgstr "लागू करें"
 
 msgid "Options:"
 msgstr "विकल्प:"
-
-
-msgid "Save to PO File"
-msgstr "PO फाइल को बचाने के लिए"
-
-
-msgid "Rebuild MO File"
-msgstr "एमओ संचिका के पुनर्निर्माण"
-
-
-msgid "Erase Local MO files"
-msgstr "स्थानीय MO संचिकाें मिटाएँ"
-
-
-msgid "    RNA Path: bpy.types."
-msgstr "    आर एन ए पथ: bpy.types."
-
-
-msgid "    RNA Context: "
-msgstr "    आर एन ए संदर्भ: "
-
-
-msgid "Button Label:"
-msgstr "बटन सूचक पत्र:"
-
-
-msgid "RNA Label:"
-msgstr "आर एन ए सूचक पत्र:"
-
-
-msgid "Enum Item Label:"
-msgstr "Enum आइटम सूचक पत्र:"
-
-
-msgid "Button Tip:"
-msgstr "बटन युक्ति:"
-
-
-msgid "RNA Tip:"
-msgstr "आर एन ए टिप:"
-
-
-msgid "Enum Item Tip:"
-msgstr "Enum आइटम टिप:"
-
-
-msgid "Could not write to po file ({})"
-msgstr "पो संचिका (()) करने के लिए नहीं लिख सकता है"
 
 
 msgctxt "Operator"
@@ -6707,11 +6659,6 @@ msgstr "रिक्त स्थान"
 
 msgid "Overwrite %s"
 msgstr "अधिलेखित करें %s"
-
-
-msgctxt "Action"
-msgid "Group"
-msgstr "समूह"
 
 
 msgid "Flame"

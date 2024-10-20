@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'89e3ab2a4533')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'58c660c9615d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-14 08:43+0000\n"
+"POT-Creation-Date: 2024-10-20 15:55+0000\n"
 "PO-Revision-Date: 2017-12-25 14:01+0100\n"
 "Last-Translator: UMAR HARUNA ABDULLAHI <umarbrowser20@gmail.com>\n"
 "Language-Team: BlenderNigeria <pyc0der@outlook.com>\n"

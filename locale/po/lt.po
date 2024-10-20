@@ -1,0 +1,1931 @@
+
+msgid ""
+msgstr ""
+"Project-Id-Version: Blender 4.4.0 Alpha (b'58c660c9615d')\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-10-20 15:55+0000\n"
+"PO-Revision-Date: 2024-10-18 23:56+0000\n"
+"Last-Translator: Džiugas Januševičius <dziugas1959@hotmail.com>\n"
+"Language-Team: Lithuanian <https://translate.blender.org/projects/blender-ui/ui/lt/>\n"
+"Language: lt\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n % 10 == 1 && (n % 100 < 11 || n % 100 > 19)) ? 0 : ((n % 10 >= 2 && n % 10 <= 9 && (n % 100 < 11 || n % 100 > 19)) ? 1 : 2);\n"
+"X-Generator: Weblate 5.7.2"
+
+
+msgid "Valid"
+msgstr "Tinkama/-s"
+
+
+msgid "Name"
+msgstr "Vardas/Pavadinimas"
+
+
+msgid "Type"
+msgstr "Tipas"
+
+
+msgid "Color"
+msgstr "Spalva"
+
+
+msgid "Value"
+msgstr "Reikšmė"
+
+
+msgid "Action F-Curves"
+msgstr "Veiksmo „F“-kreivės"
+
+
+msgid "Collection of action F-Curves"
+msgstr "Veiksmo „F“-kreivių rinkinys"
+
+
+msgid "Groups of F-Curves"
+msgstr "„F“-kreivių grupės"
+
+
+msgid "Channels"
+msgstr "Kanalai"
+
+
+msgid "Default Colors"
+msgstr "Numatytos/-ios spalvos"
+
+
+msgid "01 - Theme Color Set"
+msgstr "01 – Apipavidalinimo spalvos/-ų rinkinys"
+
+
+msgid "02 - Theme Color Set"
+msgstr "02 – Apipavidalinimo spalvos/-ų rinkinys"
+
+
+msgid "03 - Theme Color Set"
+msgstr "03 – Apipavidalinimo spalvos/-ų rinkinys"
+
+
+msgid "04 - Theme Color Set"
+msgstr "04 – Apipavidalinimo spalvos/-ų rinkinys"
+
+
+msgid "05 - Theme Color Set"
+msgstr "05 – Apipavidalinimo spalvos/-ų rinkinys"
+
+
+msgid "06 - Theme Color Set"
+msgstr "06 – Apipavidalinimo spalvos/-ų rinkinys"
+
+
+msgid "07 - Theme Color Set"
+msgstr "07 – Apipavidalinimo spalvos/-ų rinkinys"
+
+
+msgid "08 - Theme Color Set"
+msgstr "08 – Apipavidalinimo spalvos/-ų rinkinys"
+
+
+msgid "09 - Theme Color Set"
+msgstr "09 – Apipavidalinimo spalvos/-ų rinkinys"
+
+
+msgid "10 - Theme Color Set"
+msgstr "10 – Apipavidalinimo spalvos/-ų rinkinys"
+
+
+msgid "11 - Theme Color Set"
+msgstr "11 – Apipavidalinimo spalvos/-ų rinkinys"
+
+
+msgid "12 - Theme Color Set"
+msgstr "12 – Apipavidalinimo spalvos/-ų rinkinys"
+
+
+msgid "13 - Theme Color Set"
+msgstr "13 – Apipavidalinimo spalvos/-ų rinkinys"
+
+
+msgid "14 - Theme Color Set"
+msgstr "14 – Apipavidalinimo spalvos/-ų rinkinys"
+
+
+msgid "15 - Theme Color Set"
+msgstr "15 – Apipavidalinimo spalvos/-ų rinkinys"
+
+
+msgid "16 - Theme Color Set"
+msgstr "16 – Apipavidalinimo spalvos/-ų rinkinys"
+
+
+msgid "17 - Theme Color Set"
+msgstr "17 – Apipavidalinimo spalvos/-ų rinkinys"
+
+
+msgid "18 - Theme Color Set"
+msgstr "18 – Apipavidalinimo spalvos/-ų rinkinys"
+
+
+msgid "19 - Theme Color Set"
+msgstr "19 – Apipavidalinimo spalvos/-ų rinkinys"
+
+
+msgid "20 - Theme Color Set"
+msgstr "20 – Apipavidalinimo spalvos/-ų rinkinys"
+
+
+msgid "Custom Color Set"
+msgstr "Pasirinktinis apipavidalinimo spalvos/-ų rinkinys"
+
+
+msgid "Colors"
+msgstr "Spalvos"
+
+
+msgid "Lock"
+msgstr "Užrakinti"
+
+
+msgid "Mute"
+msgstr "Užtildyti"
+
+
+msgid "Expanded"
+msgstr "Išplėsta/-s"
+
+
+msgid "Replace"
+msgstr "Pakeisti"
+
+
+msgid "Add"
+msgstr "Pridėti"
+
+
+msgid "Subtract"
+msgstr "Atimti"
+
+
+msgid "Multiply"
+msgstr "Dauginti"
+
+
+msgctxt "ID"
+msgid "Action"
+msgstr "Veiksmas"
+
+
+msgctxt "ID"
+msgid "Camera"
+msgstr "Kamera/Fotoaparatas"
+
+
+msgctxt "ID"
+msgid "Font"
+msgstr "Šriftas"
+
+
+msgctxt "ID"
+msgid "Key"
+msgstr "Raktas"
+
+
+msgctxt "ID"
+msgid "Library"
+msgstr "Biblioteka"
+
+
+msgctxt "ID"
+msgid "Material"
+msgstr "Medžiaga"
+
+
+msgctxt "ID"
+msgid "Screen"
+msgstr "Ekranas"
+
+
+msgctxt "ID"
+msgid "Sound"
+msgstr "Garsas"
+
+
+msgctxt "ID"
+msgid "Speaker"
+msgstr "Garsiakalbis"
+
+
+msgctxt "ID"
+msgid "Text"
+msgstr "Tekstas"
+
+
+msgctxt "ID"
+msgid "Volume"
+msgstr "Tū̃ris"
+
+
+msgctxt "ID"
+msgid "World"
+msgstr "Pasaulis"
+
+
+msgid "Add-on"
+msgstr "Priedas"
+
+
+msgid "Module"
+msgstr "Modulis"
+
+
+msgid "Full"
+msgstr "Pilna/-s"
+
+
+msgid "MetalRT"
+msgstr "„MetalRT“"
+
+
+msgid "Auto"
+msgstr "Automatinis/-iškas"
+
+
+msgid "Always"
+msgstr "Visada"
+
+
+msgid "Never"
+msgstr "Niekada"
+
+
+msgid "Bottom"
+msgstr "Apačia"
+
+
+msgid "Action"
+msgstr "Veiksmas"
+
+
+msgid "Combine"
+msgstr "Sujungti"
+
+
+msgid "Hold"
+msgstr "Laikyti"
+
+
+msgid "Height"
+msgstr "Aukštis"
+
+
+msgid "Regions"
+msgstr "Regionai"
+
+
+msgid "Spaces"
+msgstr "Tarpai"
+
+
+msgid "Empty"
+msgstr "Tuščia/-s"
+
+
+msgid "Info"
+msgstr "Informacija"
+
+
+msgid "Properties"
+msgstr "Ypatybės"
+
+
+msgid "Width"
+msgstr "Plotis"
+
+
+msgid "Author"
+msgstr "Autorius/-ė"
+
+
+msgid "Copyright"
+msgstr "Autorių teisės"
+
+
+msgid "Description"
+msgstr "Aprašas/-ymas"
+
+
+msgid "License"
+msgstr "Licencija"
+
+
+msgid "Tags"
+msgstr "Žymės"
+
+
+msgid "Options"
+msgstr "Parinktys"
+
+
+msgid "Face"
+msgstr "Veidas"
+
+
+msgid "Instance"
+msgstr "Egzempliorius"
+
+
+msgid "Layer"
+msgstr "Sluoksnis"
+
+
+msgid "Extend"
+msgstr "Pratę̃sti"
+
+
+msgid "+X"
+msgstr "+ X"
+
+
+msgid "+Y"
+msgstr "+ Y"
+
+
+msgid "+Z"
+msgstr "+ Z"
+
+
+msgid "-X"
+msgstr "- X"
+
+
+msgid "-Y"
+msgstr "- Y"
+
+
+msgid "-Z"
+msgstr "- Z"
+
+
+msgid "Object"
+msgstr "Objektas"
+
+
+msgid "None"
+msgstr "Joks/-ia"
+
+
+msgid "Direct"
+msgstr "Tiesioginis"
+
+
+msgid "Indirect"
+msgstr "Netiesioginis"
+
+
+msgid "Transmission"
+msgstr "Perdavimas"
+
+
+msgid "Internal"
+msgstr "Vidinis/-ė"
+
+
+msgid "External"
+msgstr "Išorinis/-ė"
+
+
+msgid "Free"
+msgstr "Laisva/-s"
+
+
+msgid "Aligned"
+msgstr "Lygiuotas"
+
+
+msgid "Hide"
+msgstr "Paslėpti"
+
+
+msgid "Weight"
+msgstr "Svoris"
+
+
+msgid "Actions"
+msgstr "Veiksmai"
+
+
+msgid "Cameras"
+msgstr "Kameros/Fotoaparatai"
+
+
+msgid "Filename"
+msgstr "Failo pavadinimas"
+
+
+msgid "Libraries"
+msgstr "Bibliotekos"
+
+
+msgid "Materials"
+msgstr "Medžiagos"
+
+
+msgid "Objects"
+msgstr "Objektai"
+
+
+msgid "Screens"
+msgstr "Ekranai"
+
+
+msgid "Sounds"
+msgstr "Garsai"
+
+
+msgid "Speakers"
+msgstr "Garsiakalbiai"
+
+
+msgid "Texts"
+msgstr "Tekstai"
+
+
+msgid "Version"
+msgstr "Versija"
+
+
+msgid "Volumes"
+msgstr "Garsumai"
+
+
+msgid "Worlds"
+msgstr "Pasauliai"
+
+
+msgid "Not yet defined"
+msgstr "Dar nėra apibrėžtas"
+
+
+msgid "Imported ID"
+msgstr "Importuotas ID"
+
+
+msgid "ID Type"
+msgstr "ID tipas"
+
+
+msgid "Camera"
+msgstr "Kamera/Fotoaparatas"
+
+
+msgid "Font"
+msgstr "Šriftas"
+
+
+msgid "Key"
+msgstr "Raktas"
+
+
+msgid "Library"
+msgstr "Biblioteka"
+
+
+msgid "Material"
+msgstr "Medžiaga"
+
+
+msgid "Screen"
+msgstr "Ekranas"
+
+
+msgid "Sound"
+msgstr "Garsas"
+
+
+msgid "Speaker"
+msgstr "Garsiakalbis"
+
+
+msgid "Text"
+msgstr "Tekstas"
+
+
+msgid "Volume"
+msgstr "Tū̃ris"
+
+
+msgid "World"
+msgstr "Pasaulis"
+
+
+msgid "Avoid"
+msgstr "Vengti"
+
+
+msgid "Separate"
+msgstr "Atskirti"
+
+
+msgid "Level"
+msgstr "Lygis"
+
+
+msgid "Speed"
+msgstr "Greitis"
+
+
+msgid "Predict"
+msgstr "Nuspėti"
+
+
+msgid "Distance"
+msgstr "Atstumas"
+
+
+msgid "Accuracy"
+msgstr "Tikslumas"
+
+
+msgid "Health"
+msgstr "Sveikata"
+
+
+msgid "Range"
+msgstr "Diapazonas"
+
+
+msgid "Strength"
+msgstr "Stiprumas"
+
+
+msgid "Random"
+msgstr "Atsitiktinis/-ė"
+
+
+msgid "Average"
+msgstr "Vidutinis/-ė"
+
+
+msgid "Automatic"
+msgstr "Automatinis/-iškas"
+
+
+msgid "Length"
+msgstr "Ilgis"
+
+
+msgid "Connected"
+msgstr "Prijungta/-s"
+
+
+msgid "Bones"
+msgstr "Kaulai"
+
+
+msgid "Index"
+msgstr "Indeksas"
+
+
+msgid "Visible"
+msgstr "Matoma/-s"
+
+
+msgctxt "Operator"
+msgid "Auto"
+msgstr "Automatinis/-iškas"
+
+
+msgctxt "Operator"
+msgid "Add"
+msgstr "Pridėti"
+
+
+msgctxt "Operator"
+msgid "Remove"
+msgstr "Pašalinti"
+
+
+msgid "Mode"
+msgstr "Veiksena"
+
+
+msgctxt "GPencil"
+msgid "Mode"
+msgstr "Veiksena"
+
+
+msgid "Direction"
+msgstr "Kryptis"
+
+
+msgid "All"
+msgstr "Visi"
+
+
+msgid "Simplify"
+msgstr "Supaprastinti"
+
+
+msgid "Threshold"
+msgstr "Slenkstis"
+
+
+msgid "Hardness"
+msgstr "Kietumas"
+
+
+msgid "Thickness"
+msgstr "Storis"
+
+
+msgid "Fill"
+msgstr "Užpildyti"
+
+
+msgctxt "File browser"
+msgid "Path"
+msgstr "Kelias"
+
+
+msgctxt "Camera"
+msgid "Depth"
+msgstr "Gylis"
+
+
+msgid "Stretch"
+msgstr "Ištempti"
+
+
+msgid "Fit"
+msgstr "Talpinti"
+
+
+msgid "Left"
+msgstr "Kairė"
+
+
+msgid "Right"
+msgstr "Dešinė"
+
+
+msgid "Gravity"
+msgstr "Gravitacija"
+
+
+msgid "Quality"
+msgstr "Kokybė"
+
+
+msgid "Include"
+msgstr "Įtraukti"
+
+
+msgid "Exclude"
+msgstr "Išskirti"
+
+
+msgid "ACES2065-1"
+msgstr "„ACES2065-1“"
+
+
+msgid "ACEScg"
+msgstr "„ACEScg“"
+
+
+msgid "Rec.1886"
+msgstr "„Rec.1886“"
+
+
+msgid "Rec.2020"
+msgstr "„Rec.2020“"
+
+
+msgid "Temperature"
+msgstr "Temperatūra"
+
+
+msgid "Mix"
+msgstr "Maišyti"
+
+
+msgid "Darken"
+msgstr "Tamsinti"
+
+
+msgid "Lighten"
+msgstr "Šviesinti"
+
+
+msgid "Difference"
+msgstr "Skirtumas"
+
+
+msgid "Divide"
+msgstr "Dalinti"
+
+
+msgid "RGB"
+msgstr "RŽM"
+
+
+msgid "HSV"
+msgstr "„HSV“"
+
+
+msgid "HSL"
+msgstr "„HSL“"
+
+
+msgid "Elements"
+msgstr "Elementai"
+
+
+msgid "Output"
+msgstr "Išvestis"
+
+
+msgid "Input"
+msgstr "Įvestis"
+
+
+msgid "Error"
+msgstr "Klaida"
+
+
+msgid "X"
+msgstr "„X“"
+
+
+msgid "Y"
+msgstr "„Y“"
+
+
+msgid "Z"
+msgstr "„Z“"
+
+
+msgid "Inside"
+msgstr "Viduje"
+
+
+msgid "Outside"
+msgstr "Išorėje"
+
+
+msgid "Bone"
+msgstr "Kaulas"
+
+
+msgid "Script"
+msgstr "Skriptas"
+
+
+msgid "XZ"
+msgstr "„XZ“"
+
+
+msgid "ZX"
+msgstr "„ZX“"
+
+
+msgid "Location"
+msgstr "Vietovė"
+
+
+msgid "Depth"
+msgstr "Gylis"
+
+
+msgid "Surface"
+msgstr "Paviršius"
+
+
+msgid "IDs"
+msgstr "Identifikatoriai"
+
+
+msgid "Updates"
+msgstr "Atnaujinimai"
+
+
+msgid "ID"
+msgstr "ID"
+
+
+msgid "Geometry"
+msgstr "Geometrija"
+
+
+msgid "Source"
+msgstr "Šaltinis"
+
+
+msgid "Variables"
+msgstr "Kintamieji"
+
+
+msgid "Z-Axis"
+msgstr "„Z“ ašis"
+
+
+msgid "PNG"
+msgstr "„PNG“"
+
+
+msgid "OpenEXR"
+msgstr "„OpenEXR“"
+
+
+msgid "Resolution"
+msgstr "Skiriamoji geba"
+
+
+msgid "Format"
+msgstr "Formatas"
+
+
+msgid "Paint"
+msgstr "Piešti"
+
+
+msgid "Dry"
+msgstr "Sausa/-s"
+
+
+msgid "Lennard-Jones"
+msgstr "Lenardas-Džonas"
+
+
+msgid "Magnetic"
+msgstr "Magnetinis"
+
+
+msgid "Identifier"
+msgstr "Identifikatorius"
+
+
+msgid "Group"
+msgstr "Grupė"
+
+
+msgid "Muted"
+msgstr "Užtildytas"
+
+
+msgid "Bitrate"
+msgstr "Bitų dažnis"
+
+
+msgid "AAC"
+msgstr "„AAC“"
+
+
+msgid "AC3"
+msgstr "„AC3“"
+
+
+msgid "FLAC"
+msgstr "„FLAC“"
+
+
+msgid "MP2"
+msgstr "„MP2“"
+
+
+msgid "MP3"
+msgstr "„MP3“"
+
+
+msgid "Opus"
+msgstr "„Opus“"
+
+
+msgid "PCM"
+msgstr "„PCM“"
+
+
+msgid "Vorbis"
+msgstr "„Vorbis“"
+
+
+msgctxt "Sound"
+msgid "Volume"
+msgstr "Garsumas"
+
+
+msgid "Buffersize"
+msgstr "Buferio dydis"
+
+
+msgid "AV1"
+msgstr "„AV1“"
+
+
+msgid "H.264"
+msgstr "„H.264“"
+
+
+msgid "DNxHD"
+msgstr "„DNxHD“"
+
+
+msgid "DV"
+msgstr "„DV“"
+
+
+msgid "HuffYUV"
+msgstr "„HuffYUV“"
+
+
+msgid "MPEG-1"
+msgstr "„MPEG-1“"
+
+
+msgid "MPEG-2"
+msgstr "„MPEG-2“"
+
+
+msgid "Theora"
+msgstr "„Theora“"
+
+
+msgid "Slowest"
+msgstr "Lėčiausias"
+
+
+msgid "Good"
+msgstr "Geras"
+
+
+msgid "Realtime"
+msgstr "Tikru laiku"
+
+
+msgid "MPEG-4"
+msgstr "„MPEG-4“"
+
+
+msgid "Matroska"
+msgstr "„Matroska“"
+
+
+msgid "WebM"
+msgstr "„WebM“"
+
+
+msgid "AVI"
+msgstr "„AVI“"
+
+
+msgid "Flash"
+msgstr "„Flash“"
+
+
+msgid "Ogg"
+msgstr "„Ogg“"
+
+
+msgid "QuickTime"
+msgstr "„QuickTime“"
+
+
+msgctxt "Action"
+msgid "Type"
+msgstr "Tipas"
+
+
+msgid "Amount"
+msgstr "Kiekis"
+
+
+msgctxt "ParticleSettings"
+msgid "None"
+msgstr "Joks/-ia"
+
+
+msgid "Size"
+msgstr "Dydis"
+
+
+msgid "2D"
+msgstr "„2D“"
+
+
+msgid "Weights"
+msgstr "Svoriai/Svarmenys"
+
+
+msgid "Fonts"
+msgstr "Šriftai"
+
+
+msgid "Save"
+msgstr "Išsaugoti"
+
+
+msgid "Operator"
+msgstr "Operatorius"
+
+
+msgid "FBX"
+msgstr "„FBX“"
+
+
+msgid "Animations"
+msgstr "Animacijos"
+
+
+msgid "Environment"
+msgstr "Aplinka"
+
+
+msgid "Directory"
+msgstr "Katalogas"
+
+
+msgid "Tiny"
+msgstr "Mažytis"
+
+
+msgid "Small"
+msgstr "Mažas"
+
+
+msgid "Medium"
+msgstr "Vidutinis"
+
+
+msgid "Big"
+msgstr "Didelis"
+
+
+msgid "Large"
+msgstr "Didžiulis"
+
+
+msgid "CFL"
+msgstr "„CFL“"
+
+
+msgid "Field"
+msgstr "Laukas"
+
+
+msgid "Closest"
+msgstr "Arčiausias"
+
+
+msgid "Gas"
+msgstr "Dujos"
+
+
+msgid "Smoke"
+msgstr "Dūmas"
+
+
+msgid "Nearest"
+msgstr "Arčiausia/-s"
+
+
+msgid "Final"
+msgstr "Galutinis/-ė"
+
+
+msgid "Preview"
+msgstr "Peržiūra"
+
+
+msgid "Time"
+msgstr "Laikas"
+
+
+msgid "Zip"
+msgstr "„Zip“"
+
+
+msgid "Blosc"
+msgstr "„Blosc“"
+
+
+msgctxt "Amount"
+msgid "Number"
+msgstr "Skaičius"
+
+
+msgid "Randomness"
+msgstr "Atsitiktinumas"
+
+
+msgid "FLIP"
+msgstr "„FLIP“"
+
+
+msgid "APIC"
+msgstr "„APIC“"
+
+
+msgid "Delete"
+msgstr "Ištrinti"
+
+
+msgid "p0"
+msgstr "„p0“"
+
+
+msgid "Bubble"
+msgstr "Burbulas"
+
+
+msgid "Density"
+msgstr "Tankumas"
+
+
+msgid "Fire"
+msgstr "Ugnis"
+
+
+msgctxt "Texture"
+msgid "UV"
+msgstr "„UV“"
+
+
+msgid "Initial"
+msgstr "Pradinis"
+
+
+msgid "Menu"
+msgstr "Meniu"
+
+
+msgid "Visibility"
+msgstr "Matomumas"
+
+
+msgid "Use"
+msgstr "Naudoti"
+
+
+msgid "Ruler"
+msgstr "Liniuotė"
+
+
+msgid "Locked"
+msgstr "Užrakinta/-s"
+
+
+msgid "Temporary"
+msgstr "Laikina/-s"
+
+
+msgid "Tools"
+msgstr "Įrankiai"
+
+
+msgid "XR"
+msgstr "„XR“"
+
+
+msgctxt "Color"
+msgid "Mode"
+msgstr "Veiksena"
+
+
+msgctxt "Color"
+msgid "RGB"
+msgstr "RŽM"
+
+
+msgctxt "Color"
+msgid "R"
+msgstr "R"
+
+
+msgid "Red"
+msgstr "Raudona/-s"
+
+
+msgctxt "Color"
+msgid "G"
+msgstr "Ž"
+
+
+msgid "Green"
+msgstr "Žalia/-s"
+
+
+msgctxt "Color"
+msgid "B"
+msgstr "M"
+
+
+msgid "Blue"
+msgstr "Mėlyna/-s"
+
+
+msgctxt "Color"
+msgid "A"
+msgstr "A"
+
+
+msgid "Editable"
+msgstr "Redaguojama/-s"
+
+
+msgid "Users"
+msgstr "Vartotojai/Naudotojai"
+
+
+msgid "Groups"
+msgstr "Grupės"
+
+
+msgid "Layers"
+msgstr "Sluoksniai"
+
+
+msgid "Box"
+msgstr "Dėžė"
+
+
+msgctxt "Brush"
+msgid "Simplify"
+msgstr "Supaprastinti"
+
+
+msgctxt "Brush"
+msgid "Paint"
+msgstr "Piešti"
+
+
+msgid "Dots"
+msgstr "Taškai"
+
+
+msgid "Edge-to-Edge"
+msgstr "Kraštas prie krašto"
+
+
+msgctxt "Unit"
+msgid "Second"
+msgstr "Sekundė"
+
+
+msgctxt "Unit"
+msgid "Frame"
+msgstr "Kadras"
+
+
+msgid "Millimeters"
+msgstr "Milimetrai"
+
+
+msgid "Thirds"
+msgstr "Trečdaliai"
+
+
+msgid "Usage"
+msgstr "Naudojimas/Vartojimas"
+
+
+msgid "Profile"
+msgstr "Profilis"
+
+
+msgid "Path"
+msgstr "Kelias"
+
+
+msgid "Follow"
+msgstr "Sekti"
+
+
+msgid "Justify"
+msgstr "Teisinti"
+
+
+msgid "Middle"
+msgstr "Vidurys"
+
+
+msgid "Textboxes"
+msgstr "Teksto laukai"
+
+
+msgid "Square"
+msgstr "Kvadratas"
+
+
+msgid "First"
+msgstr "Pirma/-s"
+
+
+msgid "Last"
+msgstr "Paskutinė/-is"
+
+
+msgid "BMP"
+msgstr "„BMP“"
+
+
+msgid "Iris"
+msgstr "„Iris“"
+
+
+msgid "JPEG"
+msgstr "„JPEG“"
+
+
+msgid "Targa"
+msgstr "„Targa“"
+
+
+msgid "Cineon"
+msgstr "„Cineon“"
+
+
+msgid "DPX"
+msgstr "„DPX“"
+
+
+msgid "TIFF"
+msgstr "„TIFF“"
+
+
+msgid "WebP"
+msgstr "„WebP“"
+
+
+msgid "Pixels"
+msgstr "Pikseliai"
+
+
+msgctxt "Image"
+msgid "Source"
+msgstr "Šaltinis"
+
+
+msgctxt "Image"
+msgid "Viewer"
+msgstr "Žiūrovas/-ė"
+
+
+msgid "Multilayer"
+msgstr "Daugiasluoksnis"
+
+
+msgid "User"
+msgstr "Naudotojas/Vartotojas"
+
+
+msgid "U"
+msgstr "„U“"
+
+
+msgid "V"
+msgstr "„V“"
+
+
+msgid "W"
+msgstr "„W“"
+
+
+msgctxt "Light"
+msgid "Type"
+msgstr "Tipas"
+
+
+msgctxt "Material"
+msgid "Hair"
+msgstr "Plaukai"
+
+
+msgctxt "Material"
+msgid "Cloth"
+msgstr "Audinys"
+
+
+msgctxt "Material"
+msgid "Fluid"
+msgstr "Skystis"
+
+
+msgid "Adaptivity"
+msgstr "Prisitaikomumas"
+
+
+msgid "Edit"
+msgstr "Redaguoti"
+
+
+msgid "Tool"
+msgstr "Įrankis"
+
+
+msgctxt "ID"
+msgid "Type"
+msgstr "Tipas"
+
+
+msgctxt "ID"
+msgid "Empty"
+msgstr "Tuščia/-s"
+
+
+msgid "Degrees"
+msgstr "Laipsniai"
+
+
+msgid "Pixel"
+msgstr "Pikselis"
+
+
+msgid "RK4"
+msgstr "„RK4“"
+
+
+msgid "Start/End"
+msgstr "Pradžia/Pabaiga"
+
+
+msgid "EEVEE"
+msgstr "„EEVEE“"
+
+
+msgctxt "World"
+msgid "World"
+msgstr "Pasaulis"
+
+
+msgctxt "Text"
+msgid "Modified"
+msgstr "Redaguota/-s"
+
+
+msgid "EWA"
+msgstr "„EWA“"
+
+
+msgid "FELINE"
+msgstr "„FELINE“"
+
+
+msgid "fBM"
+msgstr "„fBM“"
+
+
+msgid "Community"
+msgstr "Bendruomenė"
+
+
+msgid "Themes"
+msgstr "Apipavidalinimai"
+
+
+msgid "Operators"
+msgstr "Operatoriai"
+
+
+msgid "Windows"
+msgstr "„Windows“"
+
+
+msgid "iTaSC"
+msgstr "„iTaSC“"
+
+
+msgid "bItasc"
+msgstr "„bItasc“"
+
+
+msgid "SDLS"
+msgstr "„SDLS“"
+
+
+msgid "DLS"
+msgstr "„DLS“"
+
+
+msgid "BW"
+msgstr "Juod./Balt."
+
+
+msgid "RGBA"
+msgstr "RŽMA"
+
+
+msgid "JP2"
+msgstr "„JP2“"
+
+
+msgid "J2K"
+msgstr "„J2K“"
+
+
+msgid "LZW"
+msgstr "„LZW“"
+
+
+msgid "YCC"
+msgstr "„YCC“"
+
+
+msgid "Owner"
+msgstr "Savininkas/-ė"
+
+
+msgid "North"
+msgstr "Šiaurė"
+
+
+msgid "North-East"
+msgstr "Šiaurės rytai"
+
+
+msgid "East"
+msgstr "Rytai"
+
+
+msgid "South-East"
+msgstr "Pietryčiai"
+
+
+msgid "South"
+msgstr "Pietūs"
+
+
+msgid "South-West"
+msgstr "Pietvakariai"
+
+
+msgid "West"
+msgstr "Vakarai"
+
+
+msgid "North-West"
+msgstr "Šiaurės vakarai"
+
+
+msgid "WhUp"
+msgstr "Ratukas aukštyn"
+
+
+msgid "WhDown"
+msgstr "Ratukas žemyn"
+
+
+msgid "WhIn"
+msgstr "Ratukas pelėje"
+
+
+msgid "WhOut"
+msgstr "Ratukas iš pelės"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "A"
+msgstr "„A“"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "B"
+msgstr "„B“"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "C"
+msgstr "„C“"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "D"
+msgstr "„D“"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "E"
+msgstr "„E“"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "F"
+msgstr "„F“"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "G"
+msgstr "„G“"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "H"
+msgstr "„H“"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "I"
+msgstr "„I“"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "J"
+msgstr "„J“"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "K"
+msgstr "„K“"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "L"
+msgstr "„L“"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "M"
+msgstr "„M“"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "N"
+msgstr "„N“"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "O"
+msgstr "„O“"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "P"
+msgstr "„P“"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Q"
+msgstr "„Q“"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "R"
+msgstr "„R“"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "S"
+msgstr "„S“"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "T"
+msgstr "„T“"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "U"
+msgstr "„U“"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "V"
+msgstr "„V“"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "W"
+msgstr "„W“"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "X"
+msgstr "„X“"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Y"
+msgstr "„Y“"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Z"
+msgstr "„Z“"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Type"
+msgstr "Tipas"
+
+
+msgid "Paths"
+msgstr "Keliai"
+
+
+msgid "Show/Hide"
+msgstr "Rodyti/Slėpti"
+
+
+msgid "Track"
+msgstr "Sekti"
+
+
+msgid "Apply"
+msgstr "Pritaikyti"
+
+
+msgid "Animals"
+msgstr "Gyvūnai"
+
+
+msgid "Languages..."
+msgstr "Kalbos..."
+
+
+msgid "Files"
+msgstr "Failai"
+
+
+msgid "NLA"
+msgstr "„NLA“"
+
+
+msgid "Layout"
+msgstr "Išdėstymas"
+
+
+msgid "Python"
+msgstr "„Python“"
+
+
+msgid "Blender"
+msgstr "„Blender“"
+
+
+msgid "System"
+msgstr "Sistema"
+
+
+msgid "File"
+msgstr "Failas"
+
+
+msgid "Defaults"
+msgstr "Numatytieji"
+
+
+msgid "Export"
+msgstr "Eksportuoti"
+
+
+msgid "Recover"
+msgstr "Atkurti"
+
+
+msgid "Help"
+msgstr "Pagalba"
+
+
+msgid "About"
+msgstr "Apie"
+
+
+msgctxt "ID"
+msgid "Output"
+msgstr "Išvestis"
+
+
+msgctxt "ID"
+msgid "Data"
+msgstr "Duomenys"
+
+
+msgctxt "ID"
+msgid "Bone"
+msgstr "Kaulas"
+
+
+msgid "3D"
+msgstr "„3D“"
+
+
+msgid "Icon"
+msgstr "Piktograma"
+
+
+msgctxt "Texture"
+msgid "Object"
+msgstr "Objektas"
+
+
+msgid "Wires"
+msgstr "Laidai"
+
+
+msgid "Changed"
+msgstr "Pakeista/-s"
+
+
+msgid "Layered"
+msgstr "Sluoksniuota/-s"
+
+
+msgid "Metric"
+msgstr "Metrinė"
+
+
+msgid "Imperial"
+msgstr "Imperinė"
+
+
+msgctxt "File browser"
+msgid "Directory"
+msgstr "Katalogas"
+
+
+msgctxt "File browser"
+msgid "URL"
+msgstr "„URL“ – Saitas"
+
+
+msgctxt "View3D"
+msgid "Background"
+msgstr "Fonas"
+
+
+msgctxt "View3D"
+msgid "Screen"
+msgstr "Ekranas"
+
+
+msgctxt "View3D"
+msgid "Both"
+msgstr "Abu/-i"
+
+
+msgid "AOV"
+msgstr "„AOV“"
+
+
+msgctxt "Screen"
+msgid "Screen"
+msgstr "Ekranas"
+
+
+msgid "Vibration"
+msgstr "Vibracija"
+
+
+msgctxt "WindowManager"
+msgid "Screen"
+msgstr "Ekranas"
+
+
+msgctxt "WindowManager"
+msgid "Font"
+msgstr "Šriftas"
+
+
+msgctxt "WindowManager"
+msgid "Cancel"
+msgstr "Atšaukti"
+
+
+msgctxt "WindowManager"
+msgid "Confirm"
+msgstr "Patvirtinti"
+
+
+msgctxt "WindowManager"
+msgid "Info"
+msgstr "Informacija"
+
+
+msgctxt "WindowManager"
+msgid "Text"
+msgstr "Tekstas"
+
+
+msgctxt "WindowManager"
+msgid "Animation"
+msgstr "Animacija"
+
+
+msgctxt "WindowManager"
+msgid "Add"
+msgstr "Pridėti"
+
+
+msgctxt "WindowManager"
+msgid "Subtract"
+msgstr "Atimti"
+
+
+msgctxt "WindowManager"
+msgid "Size"
+msgstr "Dydis"
+
+
+msgctxt "WindowManager"
+msgid "Apply"
+msgstr "Pritaikyti"
+
