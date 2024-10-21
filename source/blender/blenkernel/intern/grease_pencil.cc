@@ -2483,11 +2483,12 @@ void BKE_grease_pencil_material_remap(GreasePencil *grease_pencil, const uint *r
     }
     greasepencil::Drawing &drawing = reinterpret_cast<GreasePencilDrawing *>(base)->wrap();
     MutableAttributeAccessor attributes = drawing.strokes_for_write().attributes_for_write();
-    SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_span<int>(
-        "material_index", AttrDomain::Curve);
+    SpanAttributeWriter<int> material_indices = attributes.lookup_for_write_span<int>(
+        "material_index");
     if (!material_indices) {
-      return;
+      continue;
     }
+    BLI_assert(material_indices.domain == AttrDomain::Curve);
     for (const int i : material_indices.span.index_range()) {
       BLI_assert(blender::IndexRange(totcol).contains(remap[material_indices.span[i]]));
       UNUSED_VARS_NDEBUG(totcol);
@@ -2497,7 +2498,7 @@ void BKE_grease_pencil_material_remap(GreasePencil *grease_pencil, const uint *r
   }
 }
 
-void BKE_grease_pencil_material_index_remove(GreasePencil *grease_pencil, int index)
+void BKE_grease_pencil_material_index_remove(GreasePencil *grease_pencil, const int index)
 {
   using namespace blender;
   using namespace blender::bke;
@@ -2506,21 +2507,19 @@ void BKE_grease_pencil_material_index_remove(GreasePencil *grease_pencil, int in
     if (base->type != GP_DRAWING) {
       continue;
     }
-
     greasepencil::Drawing &drawing = reinterpret_cast<GreasePencilDrawing *>(base)->wrap();
     MutableAttributeAccessor attributes = drawing.strokes_for_write().attributes_for_write();
-    AttributeWriter<int> material_indices = attributes.lookup_for_write<int>("material_index");
+    SpanAttributeWriter<int> material_indices = attributes.lookup_for_write_span<int>(
+        "material_index");
     if (!material_indices) {
-      return;
+      continue;
     }
-
-    MutableVArraySpan<int> indices_span(material_indices.varray);
-    for (const int i : indices_span.index_range()) {
-      if (indices_span[i] > 0 && indices_span[i] >= index) {
-        indices_span[i]--;
+    BLI_assert(material_indices.domain == AttrDomain::Curve);
+    for (const int i : material_indices.span.index_range()) {
+      if (material_indices.span[i] > 0 && material_indices.span[i] >= index) {
+        material_indices.span[i]--;
       }
     }
-    indices_span.save();
     material_indices.finish();
   }
 }
