@@ -114,8 +114,8 @@ class Manager {
   /** Number of sync done by managers. Used for fingerprint. */
   static std::atomic<uint32_t> global_sync_counter_;
 
-  /* Local sync counter. Used for fingerprint. */
-  uint32_t sync_counter_ = 0;
+  /* Local sync counter. Used for fingerprint. Must never be null. */
+  uint32_t sync_counter_ = 1;
 
   /** Number of resource handle recorded. */
   uint resource_len_ = 0;
