@@ -19,7 +19,7 @@ from typing import (
 # -----------------------------------------------------------------------------
 # Path Constants
 
-ROOT_DIR = Path(os.path.abspath(Path(os.path.dirname(__file__)) / "../../"))
+ROOT_DIR = Path(__file__).parent.parent.parent
 
 DIRPATH_LICENSES: Path = ROOT_DIR / "release/license/"
 DIRPATH_EXTERN_LIBRARIES: Path = ROOT_DIR / "extern"
