@@ -200,7 +200,6 @@ class LazyFunctionForGeometryNode : public LazyFunction {
 
     GeoNodesLFUserData *user_data = dynamic_cast<GeoNodesLFUserData *>(context.user_data);
     BLI_assert(user_data != nullptr);
-    const auto &local_user_data = *static_cast<GeoNodesLFLocalUserData *>(context.local_user_data);
 
     bool used_non_attribute_output_exists = false;
     for (const int output_bsocket_index : node_.output_sockets().index_range()) {
