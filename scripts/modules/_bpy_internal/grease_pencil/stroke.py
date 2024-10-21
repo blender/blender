@@ -123,8 +123,6 @@ def DefAttributeGetterSetters(attributes_list):
 # Define the list of attributes that should be exposed as read/write properties on the class.
 @DefAttributeGetterSetters([
     # Property Name, Attribute Name, Type, Default Value, Doc-string.
-    ("position", "position", 'FLOAT_VECTOR', (0.0, 0.0, 0.0),
-     "The position of the point (in local space)."),
     ("radius", "radius", 'FLOAT', 0.01, "The radius of the point."),
     ("opacity", "opacity", 'FLOAT', 0.0, "The opacity of the point."),
     ("vertex_color", "vertex_color", 'FLOAT_COLOR', (0.0, 0.0, 0.0, 0.0),
@@ -138,12 +136,31 @@ class GreasePencilStrokePoint(AttributeGetterSetter):
     """
     A helper class to get access to stroke point data.
     """
-    __slots__ = ("_curve_index", "_point_index")
+    __slots__ = ("_drawing", "_curve_index", "_point_index")
 
     def __init__(self, drawing, curve_index, point_index):
         super().__init__(drawing.attributes, point_index, 'POINT')
+        self._drawing = drawing
         self._curve_index = curve_index
         self._point_index = point_index
+
+    @property
+    def position(self):
+        """
+        The position of the point (in local space).
+        """
+        if attribute := self._attributes.get("position"):
+            return attribute.data[self._point_index].vector
+        # Position attribute should always exist, but return default just in case.
+        return (0.0, 0.0, 0.0)
+
+    @position.setter
+    def position(self, value):
+        # Position attribute should always exist
+        if attribute := self._attributes.get("position"):
+            attribute.data[self._point_index].vector = value
+            # Tag the positions of the drawing.
+            self._drawing.tag_positions_changed()
 
     @property
     def select(self):
