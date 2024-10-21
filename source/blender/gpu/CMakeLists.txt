@@ -773,61 +773,6 @@ if(CXX_WARN_NO_SUGGEST_OVERRIDE)
 endif()
 
 
-
-if(WITH_GPU_BUILDTIME_SHADER_BUILDER)
-  set(_manifest)
-  if(WIN32)
-    # We can re-use the manifest from `tests.exe` here since it's
-    # rather generic and just selects the appropriate common
-    # controls version.
-    set(_manifest "${CMAKE_BINARY_DIR}/tests.exe.manifest")
-  endif()
-  add_executable(shader_builder
-    intern/gpu_shader_builder.cc
-    intern/gpu_shader_builder_stubs.cc
-    ${_manifest}
-  )
-  unset(_manifest)
-  setup_platform_linker_flags(shader_builder)
-
-  if(WITH_BUILD_INFO)
-    target_link_libraries(shader_builder PRIVATE buildinfoobj)
-    add_definitions(-DWITH_BUILD_INFO)
-  endif()
-  target_link_libraries(shader_builder PRIVATE
-    bf_gpu
-    bf_intern_clog
-    bf_blenlib
-    bf_intern_ghost
-    ${PLATFORM_LINKLIBS}
-    PRIVATE bf::intern::guardedalloc
-  )
-  target_include_directories(shader_builder SYSTEM PRIVATE ${INC_SYS})
-  target_include_directories(shader_builder PRIVATE ${INC} ${CMAKE_CURRENT_BINARY_DIR})
-
-  set(SRC_BAKED_CREATE_INFOS_FILE ${CMAKE_CURRENT_BINARY_DIR}/shader_baked.hh)
-
-  add_custom_command(
-    OUTPUT
-    ${SRC_BAKED_CREATE_INFOS_FILE}
-    COMMAND
-      ${CMAKE_COMMAND} -E env ${PLATFORM_ENV_BUILD}
-      $<TARGET_FILE:shader_builder> ${SRC_BAKED_CREATE_INFOS_FILE}
-    DEPENDS shader_builder
-  )
-  set(GPU_SHADER_INFO_SRC
-    intern/gpu_shader_info_baked.cc
-    ${SRC_BAKED_CREATE_INFOS_FILE}
-
-    # For project files to be aware of these headers.
-    ${SRC_SHADER_CREATE_INFOS}
-    shaders/infos/gpu_interface_info.hh
-  )
-
-  blender_add_lib(bf_gpu_shader_infos "${GPU_SHADER_INFO_SRC}" "" "" "")
-endif()
-
-
 if(WITH_GTESTS)
   set(TEST_SRC)
   set(TEST_INC)

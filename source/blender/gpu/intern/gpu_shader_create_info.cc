@@ -476,13 +476,6 @@ void gpu_shader_create_info_init()
 /* Declare, register and construct the infos. */
 #include "gpu_shader_create_info_list.hh"
 
-/* Baked shader data appended to create infos. */
-/* TODO(jbakker): should call a function with a callback. so we could switch implementations.
- * We cannot compile bf_gpu twice. */
-#ifdef GPU_RUNTIME
-#  include "gpu_shader_baked.hh"
-#endif
-
   /* WORKAROUND: Replace draw_mesh info with the legacy one for systems that have problems with UBO
    * indexing. */
   if (GPU_type_matches_ex(GPU_DEVICE_INTEL | GPU_DEVICE_INTEL_UHD,
