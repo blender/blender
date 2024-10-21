@@ -8248,7 +8248,9 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_volumetric_shadows", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", SCE_EEVEE_VOLUMETRIC_SHADOWS);
   RNA_def_property_ui_text(
-      prop, "Volumetric Shadows", "Generate shadows from volumetric material (Very expensive)");
+      prop,
+      "Volumetric Shadows",
+      "Cast shadows from volumetric materials onto volumetric materials (Very expensive)");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 
