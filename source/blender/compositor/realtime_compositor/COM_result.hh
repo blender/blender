@@ -339,6 +339,10 @@ class Result {
    * it. If this result have a master result, the master result is released instead. */
   void release();
 
+  /* Frees the result data. If the result is not allocated or wraps external data, then this does
+   * nothing. If this result have a master result, the master result is freed instead. */
+  void free();
+
   /* Returns true if this result should be computed and false otherwise. The result should be
    * computed if its reference count is not zero, that is, its result is used by at least one
    * operation. */

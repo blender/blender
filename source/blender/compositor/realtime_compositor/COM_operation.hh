@@ -104,6 +104,12 @@ class Operation {
    * establish links between different operations. */
   void map_input_to_result(StringRef identifier, Result *result);
 
+  /* Free the results of the operation. Note that normally, operation results aren't freed by the
+   * operation itself, but by the operations that consume those results, see the release_inputs
+   * method. But this is used to force free results in cases like canceled evaluations where later
+   * operations will not get evaluated and thus will not free the results it consumes. */
+  void free_results();
+
  protected:
   /* Compute the operation domain of this operation. By default, this implements a default logic
    * that infers the operation domain from the inputs, which may be overridden for a different

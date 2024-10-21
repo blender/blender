@@ -53,6 +53,13 @@ void Operation::map_input_to_result(StringRef identifier, Result *result)
   results_mapped_to_inputs_.add_new(identifier, result);
 }
 
+void Operation::free_results()
+{
+  for (Result &result : results_.values()) {
+    result.free();
+  }
+}
+
 Domain Operation::compute_domain()
 {
   /* Default to an identity domain in case no domain input was found, most likely because all

@@ -628,6 +628,17 @@ void Result::release()
     return;
   }
 
+  this->free();
+}
+
+void Result::free()
+{
+  /* If there is a master result, free it instead. */
+  if (master_) {
+    master_->free();
+    return;
+  }
+
   if (is_external_) {
     return;
   }

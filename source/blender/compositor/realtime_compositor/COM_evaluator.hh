@@ -168,6 +168,12 @@ class Evaluator {
   /* Map each input of the pixel operation to the result of the output linked to it. */
   void map_pixel_operation_inputs_to_their_results(PixelOperation *operation,
                                                    CompileState &compile_state);
+
+  /* Cancels the evaluation by informing the static cache manager of the cancellation and freeing
+   * the results of the operations that were already evaluated, that's because later operations
+   * that use the already allocated results will not be evaluated, so they consequently will not
+   * release the results that they use and we need to free them manually. */
+  void cancel_evaluation();
 };
 
 }  // namespace blender::realtime_compositor
