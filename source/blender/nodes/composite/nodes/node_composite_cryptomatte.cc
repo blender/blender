@@ -623,7 +623,9 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
       image_user_for_layer.layer = layer_index;
       LISTBASE_FOREACH (RenderPass *, render_pass, &render_layer->passes) {
         /* If the combined pass name doesn't start with the Cryptomatte type name, then it is not a
-         * Cryptomatte layer. */
+         * Cryptomatte layer. Furthermore, if it is equal to the Cryptomatte type name with no
+         * suffix, then it can be ignored, because it is a deprecated Cryptomatte preview layer
+         * according to the "EXR File: Layer Naming" section of the Cryptomatte specification. */
         const std::string combined_name = get_combined_layer_pass_name(render_layer, render_pass);
         if (combined_name == type_name || !StringRef(combined_name).startswith(type_name)) {
           continue;
