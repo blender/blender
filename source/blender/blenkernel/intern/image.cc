@@ -1367,8 +1367,8 @@ static bool image_memorypack_imbuf(
   }
 
   ImagePackedFile *imapf;
-  PackedFile *pf = BKE_packedfile_new_from_memory(IMB_steal_encoded_buffer(ibuf),
-                                                  ibuf->encoded_size);
+  const int encoded_size = ibuf->encoded_size;
+  PackedFile *pf = BKE_packedfile_new_from_memory(IMB_steal_encoded_buffer(ibuf), encoded_size);
 
   imapf = static_cast<ImagePackedFile *>(MEM_mallocN(sizeof(ImagePackedFile), "Image PackedFile"));
   STRNCPY(imapf->filepath, filepath);
