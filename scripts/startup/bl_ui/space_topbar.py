@@ -594,7 +594,10 @@ class TOPBAR_MT_help(Menu):
 
         layout.separator()
 
-        layout.operator("wm.url_open_preset", text="Report a Bug (NPR-Prototype specific bugs only!)", icon='URL').type = 'BUG'
+        layout.operator(
+            "wm.url_open_preset",
+            text="Report a Bug (NPR-Prototype specific bugs only!)",
+            icon='URL').type = 'BUG'
         layout.operator("wm.sysinfo")
 
 

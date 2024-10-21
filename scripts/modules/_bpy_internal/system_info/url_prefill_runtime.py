@@ -8,8 +8,9 @@ __all__ = (
     "url_from_blender",
 )
 
-# Use this to open reports of experimental branches out of the main tracker
+
 def custom_gitea_report(repo, template_path, query_params):
+    ''' Use this to open reports of experimental branches out of the main tracker '''
     import urllib.parse
 
     # A reconstruction of the expected data to go on the report
@@ -31,6 +32,7 @@ def custom_gitea_report(repo, template_path, query_params):
     full_url += f"{urllib.parse.quote_plus(body_string)}"
 
     return full_url
+
 
 def url_from_blender(*, addon_info=None):
     import bpy
@@ -74,7 +76,7 @@ def url_from_blender(*, addon_info=None):
         addon_info_lines = addon_info.splitlines()
         query_params["addon_name"] = addon_info_lines[0].removeprefix("Name: ")
         query_params["addon_author"] = addon_info_lines[1].removeprefix("Author: ")
-    
+
     if addon_info is None:
         # Report npr-prototype bugs on a separate tracker.
         return custom_gitea_report("pragma37/npr-tracker", ".gitea/issue_template/bug.yaml", query_params)
