@@ -347,7 +347,7 @@ static void OVERLAY_edit_gpencil_cache_populate(OVERLAY_Data *vedata, Object *ob
     const bool show_direction = (v3d->gp_flag & V3D_GP_SHOW_STROKE_DIRECTION) != 0;
 
     DRWShadingGroup *grp = DRW_shgroup_create_sub(pd->edit_gpencil_points_grp);
-    DRW_shgroup_uniform_float_copy(grp, "doStrokeEndpoints", show_direction);
+    DRW_shgroup_uniform_bool_copy(grp, "doStrokeEndpoints", show_direction);
 
     blender::gpu::Batch *geom = DRW_cache_gpencil_edit_points_get(ob, pd->cfra);
     DRW_shgroup_call_no_cull(grp, geom, ob);
