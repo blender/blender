@@ -26,6 +26,7 @@
 #include "draw_sculpt.hh"
 #include "draw_view.hh"
 
+#include <atomic>
 #include <string>
 
 namespace blender::draw {
@@ -110,6 +111,12 @@ class Manager {
   Vector<GPUTexture *> acquired_textures;
 
  private:
+  /** Number of sync done by managers. Used for fingerprint. */
+  static std::atomic<uint32_t> global_sync_counter_;
+
+  /* Local sync counter. Used for fingerprint. */
+  uint32_t sync_counter_ = 0;
+
   /** Number of resource handle recorded. */
   uint resource_len_ = 0;
   /** Number of object attribute recorded. */
@@ -193,8 +200,72 @@ class Manager {
   void register_layer_attributes(GPUMaterial *material);
 
   /**
+   * Compute <-> Graphic queue transition is quite slow on some backend. To avoid unecessary
+   * switching, it is better to dispatch all visibility computation as soon as possible before any
+   * graphic work.
+   *
+   * Grouping the calls to `compute_visibility()` together is also beneficial for PSO switching
+   * overhead. Same thing applies to `generate_commands()`.
+   *
+   * IMPORTANT: Generated commands are stored inside #PassMain and overrides commands generated for
+   * a previous view.
+   *
+   * Before:
+   * \code{.cpp}
+   * manager.submit(pass1, view1);
+   * manager.submit(pass2, view1);
+   * manager.submit(pass1, view2);
+   * manager.submit(pass2, view2);
+   * \endcode
+   *
+   * After:
+   * \code{.cpp}
+   * manager.compute_visibility(view1);
+   * manager.compute_visibility(view2);
+   *
+   * manager.generate_commands(pass1, view1);
+   * manager.generate_commands(pass2, view1);
+   *
+   * manager.submit(pass1, view1);
+   * manager.submit(pass2, view1);
+   *
+   * manager.generate_commands(pass1, view2);
+   * manager.generate_commands(pass2, view2);
+   *
+   * manager.submit(pass1, view2);
+   * manager.submit(pass2, view2);
+   * \endcode
+   */
+
+  /**
+   * Compute visibility of #ResourceHandle for the given #View.
+   * The commands needs to be regenerated for any change inside the #Manager or in the #View.
+   * Avoids just in time computation of visibility.
+   */
+  void compute_visibility(View &view);
+  /**
+   * Generate commands for #ResourceHandle for the given #View and #PassMain.
+   * The commands needs to be regenerated for any change inside the #Manager, the #PassMain or in
+   * the #View. Avoids just in time commmand generation.
+   *
+   * IMPORTANT: Generated commands are stored inside #PassMain and overrides commands previously
+   * generated for a previous view.
+   */
+  void generate_commands(PassMain &pass, View &view);
+  /**
+   * Generate commands on CPU. Doesn't have the GPU compute dispatch overhead.
+   */
+  void generate_commands(PassSimple &pass);
+
+  /**
    * Submit a pass for drawing. All resource reference will be dereferenced and commands will be
-   * sent to GPU.
+   * sent to GPU. Visibility and command generation **must** have already been done explicitely
+   * using `compute_visibility` and `generate_commands`.
+   */
+  void submit_only(PassMain &pass, View &view);
+  /**
+   * Submit a pass for drawing. All resource reference will be dereferenced and commands will be
+   * sent to GPU. Visibility and command generation are run JIT if needed.
    */
   void submit(PassSimple &pass, View &view);
   void submit(PassMain &pass, View &view);
@@ -202,7 +273,7 @@ class Manager {
   /**
    * Variant without any view. Must not contain any shader using `draw_view` create info.
    */
-  void submit(PassSimple &pass);
+  void submit(PassSimple &pass, bool inverted_view = false);
 
   /**
    * Submit a pass for drawing but read back all data buffers for inspection.
@@ -242,6 +313,10 @@ class Manager {
 
  private:
   void sync_layer_attributes();
+
+  /* Fingerprint of the manager in a certain state. Assured to not be 0.
+   * Not reliable enough for general update detection. Only to be used for debugging assertion. */
+  uint64_t fingerprint_get();
 };
 
 inline ResourceHandle Manager::unique_handle(const ObjectRef &ref)

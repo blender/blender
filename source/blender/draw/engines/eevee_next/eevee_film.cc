@@ -581,7 +581,7 @@ void Film::init_pass(PassSimple &pass, GPUShader *sh)
   pass.bind_image("color_accum_img", &color_accum_tx_);
   pass.bind_image("value_accum_img", &value_accum_tx_);
   pass.bind_image("cryptomatte_img", &cryptomatte_tx_);
-  copy_ps_.bind_resources(inst_.uniform_data);
+  pass.bind_resources(inst_.uniform_data);
 }
 
 void Film::end_sync()

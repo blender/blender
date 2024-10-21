@@ -552,10 +552,11 @@ class DrawCommandBuf {
                             handle};
   }
 
-  void bind(RecordingState &state,
-            Vector<Header, 0> &headers,
-            Vector<Undetermined, 0> &commands,
-            SubPassVector &sub_passes);
+  void generate_commands(Vector<Header, 0> &headers,
+                         Vector<Undetermined, 0> &commands,
+                         SubPassVector &sub_passes);
+
+  void bind(RecordingState &state);
 
  private:
   static void finalize_commands(Vector<Header, 0> &headers,
@@ -720,13 +721,14 @@ class DrawMultiBuf {
     }
   }
 
-  void bind(RecordingState &state,
-            Vector<Header, 0> &headers,
-            Vector<Undetermined, 0> &commands,
-            VisibilityBuf &visibility_buf,
-            int visibility_word_per_draw,
-            int view_len,
-            bool use_custom_ids);
+  void generate_commands(Vector<Header, 0> &headers,
+                         Vector<Undetermined, 0> &commands,
+                         VisibilityBuf &visibility_buf,
+                         int visibility_word_per_draw,
+                         int view_len,
+                         bool use_custom_ids);
+
+  void bind(RecordingState &state);
 };
 
 /** \} */
