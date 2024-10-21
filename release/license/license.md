@@ -737,7 +737,7 @@ Fonts, only if the fonts are renamed to names not containing either
 the words "Tavmjong Bah" or the word "Arev".
 
 This License becomes null and void to the extent applicable to Fonts
-or Font Software that has been modified and is distributed under the 
+or Font Software that has been modified and is distributed under the
 "Tavmjong Bah Arev" names.
 
 The Font Software may be sold as part of a larger software package but
@@ -808,7 +808,7 @@ Foundation, and Bitstream Inc., shall not be used in advertising or
 otherwise to promote the sale, use or other dealings in this Font Software
 without prior written authorization from the Gnome Foundation or Bitstream
 Inc., respectively. For further information, contact: fonts at gnome dot
-org. 
+org.
 </details>
 <details>
 <summary>SIL Open Font License 1.1</summary>
@@ -899,6 +899,7 @@ Provided by SIL’s Non-Roman Script Initiative. Contact us at nrsi@sil.org.
 | [RangeTree](https://github.com/ideasman42/rangetree-c) | 40ebed8aa20 | `Copyright (c) 2016, Campbell Barton` |
 | [ShaderC](https://github.com/google/shaderc) | v2022.3 | `Copyright 2015 The Shaderc Authors. All rights reserved.` |
 | [Shaderc Glslang](https://github.com/KhronosGroup/glslang) | 89db4e1caa2 | `Copyright 2020 The Khronos Group Inc. Copyright (C) 2015-2018 Google, Inc.` |
+| [SPIR-V Tools](https://github.com/KhronosGroup/SPIRV-Tools/) | v2023.6.rc1 | `Copyright (c) 2015-2016 The Khronos Group Inc.` |
 | [SPIR-V Tools](https://github.com/KhronosGroup/SPIRV-Tools/) | eb0a36633d2 | `Copyright (c) 2015-2016 The Khronos Group Inc.` |
 | [Unified Memory Framework](https://github.com/oneapi-src/unified-memory-framework)¹ | 9bf7a0dc4df | `Copyright (C) 2023-2024 Intel Corporation` |
 | [Unified Runtime](https://github.com/oneapi-src/unified-runtime)¹ | ec634ff05b0 | `Copyright (C) 2019-2024 Intel Corporation` |
@@ -1580,7 +1581,7 @@ above, provided that you also meet all of these conditions:
     License.  (Exception: if the Program itself is interactive but
     does not normally print such an announcement, your work based on
     the Program is not required to print an announcement.)
-
+
 These requirements apply to the modified work as a whole.  If
 identifiable sections of that work are not derived from the Program,
 and can be reasonably considered independent and separate works in
@@ -1638,7 +1639,7 @@ access to copy from a designated place, then offering equivalent
 access to copy the source code from the same place counts as
 distribution of the source code, even though third parties are not
 compelled to copy the source along with the object code.
-
+
   4. You may not copy, modify, sublicense, or distribute the Program
 except as expressly provided under this License.  Any attempt
 otherwise to copy, modify, sublicense or distribute the Program is
@@ -1695,7 +1696,7 @@ impose that choice.
 
 This section is intended to make thoroughly clear what is believed to
 be a consequence of the rest of this License.
-
+
   8. If the distribution and/or use of the Program is restricted in
 certain countries either by patents or by copyrighted interfaces, the
 original copyright holder who places the Program under this License
@@ -1748,7 +1749,7 @@ PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
-
+
 	    How to Apply These Terms to Your New Programs
 
   If you develop a new program, and you want it to be of the greatest
@@ -2566,7 +2567,7 @@ modified by someone else and passed on, the recipients should know
 that what they have is not the original version, so that the original
 author's reputation will not be affected by problems that might be
 introduced by others.
-
+
   Finally, software patents pose a constant threat to the existence of
 any free program.  We wish to make sure that a company cannot
 effectively restrict the users of a free program by obtaining a
@@ -2622,7 +2623,7 @@ modification follow.  Pay close attention to the difference between a
 "work based on the library" and a "work that uses the library".  The
 former contains code derived from the library, whereas the latter must
 be combined with the library in order to run.
-
+
                   GNU LESSER GENERAL PUBLIC LICENSE
    TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
 
@@ -2669,7 +2670,7 @@ Library.
   You may charge a fee for the physical act of transferring a copy,
 and you may at your option offer warranty protection in exchange for a
 fee.
-
+
   2. You may modify your copy or copies of the Library or any portion
 of it, thus forming a work based on the Library, and copy and
 distribute such modifications or work under the terms of Section 1
@@ -2727,7 +2728,7 @@ instead of to this License.  (If a newer version than version 2 of the
 ordinary GNU General Public License has appeared, then you can specify
 that version instead if you wish.)  Do not make any other change in
 these notices.
-
+
   Once this change is made in a given copy, it is irreversible for
 that copy, so the ordinary GNU General Public License applies to all
 subsequent copies and derivative works made from that copy.
@@ -2778,7 +2779,7 @@ Library will still fall under Section 6.)
 distribute the object code for the work under the terms of Section 6.
 Any executables containing that work also fall under Section 6,
 whether or not they are linked directly with the Library itself.
-
+
   6. As an exception to the Sections above, you may also combine or
 link a "work that uses the Library" with the Library to produce a
 work containing portions of the Library, and distribute that work
@@ -2840,7 +2841,7 @@ restrictions of other proprietary libraries that do not normally
 accompany the operating system.  Such a contradiction means you cannot
 use both them and the Library together in an executable that you
 distribute.
-
+
   7. You may place library facilities that are a work based on the
 Library side-by-side in a single library together with other library
 facilities not covered by this License, and distribute such a combined
@@ -2881,7 +2882,7 @@ subject to these terms and conditions.  You may not impose any further
 restrictions on the recipients' exercise of the rights granted herein.
 You are not responsible for enforcing compliance by third parties with
 this License.
-
+
   11. If, as a consequence of a court judgment or allegation of patent
 infringement or for any other reason (not limited to patent issues),
 conditions are imposed on you (whether by court order, agreement or
@@ -2933,7 +2934,7 @@ conditions either of that version or of any later version published by
 the Free Software Foundation.  If the Library does not specify a
 license version number, you may choose any version ever published by
 the Free Software Foundation.
-
+
   14. If you wish to incorporate parts of the Library into other free
 programs whose distribution conditions are incompatible with these,
 write to the author to ask for permission.  For software which is
@@ -2967,7 +2968,7 @@ SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGES.
 
                      END OF TERMS AND CONDITIONS
-
+
            How to Apply These Terms to Your New Libraries
 
   If you develop a new library, and you want it to be of the greatest
@@ -3155,7 +3156,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 MODIFICATIONS TO THIS FILE MAY MEAN IT NO LONGER ACCURATELY REFLECTS KHRONOS STANDARDS. THE UNMODIFIED, NORMATIVE VERSIONS OF KHRONOS SPECIFICATIONS AND HEADER INFORMATION ARE LOCATED AT https://www.khronos.org/registry/
 
-THE MATERIALS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,OUT OF OR IN CONNECTION WITH THE MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS. 
+THE MATERIALS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,OUT OF OR IN CONNECTION WITH THE MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 </details>
 
 ## [Mozilla Public License 2.0](https://spdx.org/licenses/MPL-2.0.html)
@@ -3577,7 +3578,7 @@ prepare derivative works, distribute, and otherwise use Python
 alone or in any derivative version, provided, however, that PSF's
 License Agreement and PSF's notice of copyright, i.e., "Copyright (c)
 2001, 2002, 2003, 2004, 2005, 2006 Python Software Foundation; All Rights
-Reserved" are retained in Python alone or in any derivative version 
+Reserved" are retained in Python alone or in any derivative version
 prepared by Licensee.
 
 3. In the event Licensee prepares a derivative work that is based on
