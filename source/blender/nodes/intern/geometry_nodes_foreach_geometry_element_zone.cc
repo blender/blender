@@ -324,6 +324,8 @@ class LazyFunctionForForeachGeometryElementZone : public LazyFunction {
 
   void execute_impl(lf::Params &params, const lf::Context &context) const override
   {
+    const ScopedNodeTimer node_timer{context, output_bnode_};
+
     auto &user_data = *static_cast<GeoNodesLFUserData *>(context.user_data);
     auto &local_user_data = *static_cast<GeoNodesLFLocalUserData *>(context.local_user_data);
 
@@ -331,16 +333,6 @@ class LazyFunctionForForeachGeometryElementZone : public LazyFunction {
         output_bnode_.storage);
     auto &eval_storage = *static_cast<ForeachGeometryElementEvalStorage *>(context.storage);
     geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger(user_data);
-
-    /* Measure execution time of the entire zone. */
-    const geo_eval_log::TimePoint start_time = geo_eval_log::Clock::now();
-    BLI_SCOPED_DEFER([&]() {
-      if (tree_logger) {
-        const geo_eval_log::TimePoint end_time = geo_eval_log::Clock::now();
-        tree_logger->node_execution_times.append(*tree_logger->allocator,
-                                                 {output_bnode_.identifier, start_time, end_time});
-      }
-    });
 
     if (!eval_storage.graph_executor) {
       /* Create the execution graph in the first evaluation. */

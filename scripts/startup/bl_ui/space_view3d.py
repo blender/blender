@@ -8630,6 +8630,13 @@ class TOPBAR_PT_grease_pencil_vertex_color(Panel):
         if paint.palette:
             layout.template_palette(paint, "palette", color=True)
 
+        gp_settings = brush.gpencil_settings
+        if brush.gpencil_tool in {'DRAW', 'FILL'}:
+            row = layout.row(align=True)
+            row.prop(gp_settings, "vertex_mode", text="Mode")
+            row = layout.row(align=True)
+            row.prop(gp_settings, "vertex_color_factor", slider=True, text="Mix Factor")
+
 
 class VIEW3D_PT_curves_sculpt_add_shape(Panel):
     # Only for popover, these are dummy values.

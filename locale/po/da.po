@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'89e3ab2a4533')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'58c660c9615d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-14 08:43+0000\n"
+"POT-Creation-Date: 2024-10-20 15:55+0000\n"
 "PO-Revision-Date: 2024-10-14 08:42+0000\n"
 "Last-Translator: leif larsen <linuxdk1978@gmail.com>\n"
 "Language-Team: Danish <https://translate.blender.org/projects/blender-ui/ui/da/>\n"
@@ -53,6 +53,10 @@ msgstr "Liste over AOVs"
 
 msgid "Collection of AOVs"
 msgstr "Samling af AOVs"
+
+
+msgid "F-Curves"
+msgstr "F-curves"
 
 
 msgid "Action F-Curves"
@@ -239,6 +243,34 @@ msgid "Collection of action groups"
 msgstr "Samling af handlingsgrupper"
 
 
+msgid "Influence"
+msgstr "Indflydelse"
+
+
+msgid "Mix Mode"
+msgstr "Blandingstilstand"
+
+
+msgid "Replace"
+msgstr "Udskift"
+
+
+msgid "Add"
+msgstr "Tilføj"
+
+
+msgid "Subtract"
+msgstr "Fratrække"
+
+
+msgid "Multiply"
+msgstr "Gange"
+
+
+msgid "Strips"
+msgstr "stimmel"
+
+
 msgid "Action Pose Markers"
 msgstr "Handling poserings markøre"
 
@@ -261,6 +293,128 @@ msgstr "Aktiv poséringsmarkør indeks"
 
 msgid "Index of active pose marker"
 msgstr "Indeks for aktive poséringsmarkører"
+
+
+msgid "Active"
+msgstr "Aktiv"
+
+
+msgctxt "ID"
+msgid "Brush"
+msgstr "pensel"
+
+
+msgctxt "ID"
+msgid "Cache File"
+msgstr "Cache fil"
+
+
+msgctxt "ID"
+msgid "Collection"
+msgstr "samling"
+
+
+msgctxt "ID"
+msgid "Curve"
+msgstr "kurve"
+
+
+msgctxt "ID"
+msgid "Curves"
+msgstr "kurver"
+
+
+msgctxt "ID"
+msgid "Grease Pencil"
+msgstr "Fedt blyant"
+
+
+msgctxt "ID"
+msgid "Grease Pencil v3"
+msgstr "Fedt blyant v3"
+
+
+msgctxt "ID"
+msgid "Library"
+msgstr "bibliotek"
+
+
+msgctxt "ID"
+msgid "Light"
+msgstr "lys"
+
+
+msgctxt "ID"
+msgid "Light Probe"
+msgstr "lys probe"
+
+
+msgctxt "ID"
+msgid "Line Style"
+msgstr "linje stil"
+
+
+msgctxt "ID"
+msgid "Mask"
+msgstr "maske"
+
+
+msgctxt "ID"
+msgid "Metaball"
+msgstr "metabold"
+
+
+msgctxt "ID"
+msgid "Node Tree"
+msgstr "node træ"
+
+
+msgctxt "ID"
+msgid "Paint Curve"
+msgstr "male kurve"
+
+
+msgctxt "ID"
+msgid "Palette"
+msgstr "palette"
+
+
+msgctxt "ID"
+msgid "Particle"
+msgstr "partikle"
+
+
+msgctxt "ID"
+msgid "Point Cloud"
+msgstr "point sky"
+
+
+msgctxt "ID"
+msgid "Speaker"
+msgstr "højtaler"
+
+
+msgctxt "ID"
+msgid "Window Manager"
+msgstr "windue håndtering"
+
+
+msgctxt "ID"
+msgid "Workspace"
+msgstr "arbejds område"
+
+
+msgctxt "ID"
+msgid "World"
+msgstr "verden"
+
+
+msgid "Show Expanded"
+msgstr "Vis udvidet"
+
+
+msgid "Keyframe"
+msgstr "Nøglebillede"
 
 
 msgid "Add-on"
@@ -547,10 +701,6 @@ msgid "Method used for combining Active Action's result with result of NLA stack
 msgstr "Metode brugt til at kombinere Active Actions resultat med resultat af NLA stak"
 
 
-msgid "Replace"
-msgstr "Udskift"
-
-
 msgid "The strip values replace the accumulated results by amount specified by influence"
 msgstr "Stripværdierne erstatter de akkumulerede resultater med mængde specificeret ved indflydelse"
 
@@ -563,24 +713,12 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "Stripværdierne kombineres med akkumulerede resultater ved passende at bruge addition, multiplikation eller quaternion matematik baseret på kanaltype"
 
 
-msgid "Add"
-msgstr "Tilføj"
-
-
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "Det vægtede resultat af strimlen føjes til de akkumulerede resultater"
 
 
-msgid "Subtract"
-msgstr "Fratrække"
-
-
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "Det vægtede resultat af strimlen fjernes fra de akkumulerede resultater"
-
-
-msgid "Multiply"
-msgstr "Gange"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -1226,116 +1364,6 @@ msgstr "Data-blok type"
 
 msgid "The type of the data-block, if the asset represents one ('NONE' otherwise)"
 msgstr "Typen af datablok, hvis aktivet repræsenterer en ('INGEN' ellers)"
-
-
-msgctxt "ID"
-msgid "Brush"
-msgstr "pensel"
-
-
-msgctxt "ID"
-msgid "Cache File"
-msgstr "Cache fil"
-
-
-msgctxt "ID"
-msgid "Collection"
-msgstr "samling"
-
-
-msgctxt "ID"
-msgid "Curve"
-msgstr "kurve"
-
-
-msgctxt "ID"
-msgid "Curves"
-msgstr "kurver"
-
-
-msgctxt "ID"
-msgid "Grease Pencil"
-msgstr "Fedt blyant"
-
-
-msgctxt "ID"
-msgid "Grease Pencil v3"
-msgstr "Fedt blyant v3"
-
-
-msgctxt "ID"
-msgid "Library"
-msgstr "bibliotek"
-
-
-msgctxt "ID"
-msgid "Light"
-msgstr "lys"
-
-
-msgctxt "ID"
-msgid "Light Probe"
-msgstr "lys probe"
-
-
-msgctxt "ID"
-msgid "Line Style"
-msgstr "linje stil"
-
-
-msgctxt "ID"
-msgid "Mask"
-msgstr "maske"
-
-
-msgctxt "ID"
-msgid "Metaball"
-msgstr "metabold"
-
-
-msgctxt "ID"
-msgid "Node Tree"
-msgstr "node træ"
-
-
-msgctxt "ID"
-msgid "Paint Curve"
-msgstr "male kurve"
-
-
-msgctxt "ID"
-msgid "Palette"
-msgstr "palette"
-
-
-msgctxt "ID"
-msgid "Particle"
-msgstr "partikle"
-
-
-msgctxt "ID"
-msgid "Point Cloud"
-msgstr "point sky"
-
-
-msgctxt "ID"
-msgid "Speaker"
-msgstr "højtaler"
-
-
-msgctxt "ID"
-msgid "Window Manager"
-msgstr "windue håndtering"
-
-
-msgctxt "ID"
-msgid "Workspace"
-msgstr "arbejds område"
-
-
-msgctxt "ID"
-msgid "World"
-msgstr "verden"
 
 
 msgid "The local data-block this asset represents; only valid if that is a data-block in this file"
@@ -2090,10 +2118,6 @@ msgid "Mode"
 msgstr "tilstand"
 
 
-msgid "Active"
-msgstr "Aktiv"
-
-
 msgid "Direction"
 msgstr "Retning"
 
@@ -2206,10 +2230,6 @@ msgid "Show this image as background"
 msgstr "Vis dette billede som baggrund"
 
 
-msgid "Show Expanded"
-msgstr "Vis udvidet"
-
-
 msgid "Show On Foreground"
 msgstr "Vis på forgrunden"
 
@@ -2294,10 +2314,6 @@ msgid "Temperature"
 msgstr "Temperatur"
 
 
-msgid "Influence"
-msgstr "Indflydelse"
-
-
 msgid "Disable"
 msgstr "Deaktivere"
 
@@ -2340,10 +2356,6 @@ msgstr "Klem til"
 
 msgid "Locked Track"
 msgstr "Låst spor"
-
-
-msgid "Mix Mode"
-msgstr "Blandingstilstand"
 
 
 msgid "Target object"
@@ -2439,20 +2451,12 @@ msgid "Visibility"
 msgstr "Synlighed"
 
 
-msgid "Keyframe"
-msgstr "Nøglebillede"
-
-
 msgid "Blend Mode"
 msgstr "Blandings måde"
 
 
 msgid "Ping Pong"
 msgstr "Ping pong"
-
-
-msgid "F-Curves"
-msgstr "F-curves"
 
 
 msgid "B-Bone"
@@ -2528,24 +2532,16 @@ msgid "Bit depth per channel"
 msgstr "Bit dybde pr kanal"
 
 
+msgid "DWAA (lossy)"
+msgstr "DWAA (ej tabsfri)"
+
+
+msgid "DWAB (lossy)"
+msgstr "DWAD (ej tabsfri)"
+
+
 msgid "Pxr24 (lossy)"
 msgstr "Pxr24 (ej tabsfri)"
-
-
-msgid "ZIP (lossless)"
-msgstr "ZIP (tabsfri)"
-
-
-msgid "PIZ (lossless)"
-msgstr "PIZ (tabsfri)"
-
-
-msgid "RLE (lossless)"
-msgstr "RLE (tabsfri)"
-
-
-msgid "ZIPS (lossless)"
-msgstr "ZIPS (tabsfri)"
 
 
 msgid "B44 (lossy)"
@@ -2554,14 +2550,6 @@ msgstr "B44 (ej tabsfri)"
 
 msgid "B44A (lossy)"
 msgstr "B44A (ej tabsfri)"
-
-
-msgid "DWAA (lossy)"
-msgstr "DWAA (ej tabsfri)"
-
-
-msgid "DWAB (lossy)"
-msgstr "DWAD (ej tabsfri)"
 
 
 msgid "File format to save the rendered images as"
@@ -2782,10 +2770,6 @@ msgstr "Følsomhed"
 
 msgid "Dynamics"
 msgstr "dynamik"
-
-
-msgid "Strips"
-msgstr "stimmel"
 
 
 msgid "Timeline"

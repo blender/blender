@@ -108,6 +108,7 @@
 #include "SEQ_utils.hh"
 
 #include "readfile.hh"
+#include "versioning_common.hh"
 
 /* Make preferences read-only. */
 #define U (*((const UserDef *)&U))
@@ -3932,9 +3933,27 @@ static BHead *find_bhead_from_code_name(FileData *fd, const short idcode, const 
 static BHead *find_bhead_from_idname(FileData *fd, const char *idname)
 {
 #ifdef USE_GHASH_BHEAD
-  return static_cast<BHead *>(BLI_ghash_lookup(fd->bhead_idname_hash, idname));
+  BHead *bhead = static_cast<BHead *>(BLI_ghash_lookup(fd->bhead_idname_hash, idname));
 #else
-  return find_bhead_from_code_name(fd, GS(idname), idname + 2);
+  BHead *bhead = find_bhead_from_code_name(fd, GS(idname), idname + 2);
+#endif
+  if (LIKELY(bhead)) {
+    return bhead;
+  }
+
+  /* Expected ID was not found, attempt to load the same name, but for an older, deprecated and
+   * converted ID type. */
+  const short id_code_old = do_versions_new_to_old_idcode_get(GS(idname));
+  if (id_code_old == ID_LINK_PLACEHOLDER) {
+    return bhead;
+  }
+#ifdef USE_GHASH_BHEAD
+  char id_name_old[MAX_ID_NAME];
+  BLI_strncpy(id_name_old, idname, sizeof(id_name_old));
+  *reinterpret_cast<short *>(id_name_old) = id_code_old;
+  return static_cast<BHead *>(BLI_ghash_lookup(fd->bhead_idname_hash, id_name_old));
+#else
+  return find_bhead_from_code_name(fd, id_code_old, idname + 2);
 #endif
 }
 

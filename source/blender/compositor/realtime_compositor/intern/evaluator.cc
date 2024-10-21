@@ -35,7 +35,7 @@ void Evaluator::evaluate()
   else {
     for (const std::unique_ptr<Operation> &operation : operations_stream_) {
       if (context_.is_canceled()) {
-        context_.cache_manager().skip_next_reset();
+        this->cancel_evaluation();
         break;
       }
       operation->evaluate();
@@ -79,7 +79,7 @@ void Evaluator::compile_and_evaluate()
   }
 
   if (context_.is_canceled()) {
-    context_.cache_manager().skip_next_reset();
+    this->cancel_evaluation();
     reset();
     return;
   }
@@ -90,7 +90,7 @@ void Evaluator::compile_and_evaluate()
 
   for (const DNode &node : schedule) {
     if (context_.is_canceled()) {
-      context_.cache_manager().skip_next_reset();
+      this->cancel_evaluation();
       reset();
       return;
     }
@@ -223,6 +223,14 @@ void Evaluator::map_pixel_operation_inputs_to_their_results(PixelOperation *oper
   for (const auto item : operation->get_inputs_to_linked_outputs_map().items()) {
     Result &result = compile_state.get_result_from_output_socket(item.value);
     operation->map_input_to_result(item.key, &result);
+  }
+}
+
+void Evaluator::cancel_evaluation()
+{
+  context_.cache_manager().skip_next_reset();
+  for (const std::unique_ptr<Operation> &operation : operations_stream_) {
+    operation->free_results();
   }
 }
 

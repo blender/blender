@@ -54,8 +54,6 @@ class RepeatBodyNodeExecuteWrapper : public lf::GraphExecutorNodeExecuteWrapper 
 
     GeoNodesLFLocalUserData body_local_user_data{body_user_data};
     lf::Context body_context{context.storage, &body_user_data, &body_local_user_data};
-
-    ScopedComputeContextTimer timer(body_context);
     fn.execute(params, body_context);
   }
 };
@@ -148,6 +146,8 @@ class LazyFunctionForRepeatZone : public LazyFunction {
 
   void execute_impl(lf::Params &params, const lf::Context &context) const override
   {
+    const ScopedNodeTimer node_timer{context, repeat_output_bnode_};
+
     auto &user_data = *static_cast<GeoNodesLFUserData *>(context.user_data);
     auto &local_user_data = *static_cast<GeoNodesLFLocalUserData *>(context.local_user_data);
 

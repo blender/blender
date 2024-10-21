@@ -71,12 +71,13 @@ void PulseAudioDevice::updateRingBuffer()
 			}
 			else
 			{
-				if(m_ring_buffer.getReadSize() == 0)
+				if(m_ring_buffer.getReadSize() == 0 && !m_corked)
 				{
 					AUD_pa_threaded_mainloop_lock(m_mainloop);
 					AUD_pa_stream_cork(m_stream, 1, nullptr, nullptr);
 					AUD_pa_stream_flush(m_stream, nullptr, nullptr);
 					AUD_pa_threaded_mainloop_unlock(m_mainloop);
+					m_corked = true;
 				}
 			}
 		}
@@ -140,12 +141,14 @@ void PulseAudioDevice::playing(bool playing)
 		AUD_pa_threaded_mainloop_lock(m_mainloop);
 		AUD_pa_stream_cork(m_stream, 0, nullptr, nullptr);
 		AUD_pa_threaded_mainloop_unlock(m_mainloop);
+		m_corked = false;
 	}
 }
 
 PulseAudioDevice::PulseAudioDevice(const std::string &name, DeviceSpecs specs, int buffersize) :
 	m_synchronizer(this),
 	m_playback(false),
+	m_corked(true),
 	m_state(PA_CONTEXT_UNCONNECTED),
 	m_valid(true),
 	m_underflows(0)

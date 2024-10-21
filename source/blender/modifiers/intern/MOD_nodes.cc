@@ -2244,6 +2244,21 @@ static NodesModifierPanel *find_panel_by_id(NodesModifierData &nmd, const int id
   return nullptr;
 }
 
+static bool interace_panel_has_socket(const bNodeTreeInterfacePanel &interface_panel)
+{
+  for (const bNodeTreeInterfaceItem *item : interface_panel.items()) {
+    if (item->item_type == NODE_INTERFACE_SOCKET) {
+      return true;
+    }
+    if (item->item_type == NODE_INTERFACE_PANEL) {
+      if (interace_panel_has_socket(*reinterpret_cast<const bNodeTreeInterfacePanel *>(item))) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 static void draw_interface_panel_content(const bContext *C,
                                          uiLayout *layout,
                                          PointerRNA *modifier_ptr,
@@ -2256,6 +2271,9 @@ static void draw_interface_panel_content(const bContext *C,
   for (const bNodeTreeInterfaceItem *item : interface_panel.items()) {
     if (item->item_type == NODE_INTERFACE_PANEL) {
       const auto &sub_interface_panel = *reinterpret_cast<const bNodeTreeInterfacePanel *>(item);
+      if (!interace_panel_has_socket(sub_interface_panel)) {
+        continue;
+      }
       NodesModifierPanel *panel = find_panel_by_id(nmd, sub_interface_panel.identifier);
       PointerRNA panel_ptr = RNA_pointer_create(
           modifier_ptr->owner_id, &RNA_NodesModifierPanel, panel);

@@ -17,6 +17,8 @@
 
 namespace blender::draw {
 
+std::atomic<uint32_t> View::global_sync_counter_ = 1;
+
 void View::sync(const float4x4 &view_mat, const float4x4 &win_mat, int view_id)
 {
   data_[view_id].viewmat = view_mat;
@@ -31,6 +33,9 @@ void View::sync(const float4x4 &view_mat, const float4x4 &win_mat, int view_id)
   frustum_culling_sphere_calc(view_id);
 
   dirty_ = true;
+  manager_fingerprint_ = 0;
+  /* Add 2 to always have a non-null number even in case of overflow. */
+  sync_counter_ = (global_sync_counter_ += 2);
 }
 
 void View::sync(const DRWView *view)
@@ -232,6 +237,11 @@ void View::bind()
 
 void View::compute_procedural_bounds()
 {
+  /* Sync happens on the GPU. This is called after each sync. */
+  manager_fingerprint_ = 0;
+  /* Add 2 to always have a non-null number even in case of overflow. */
+  sync_counter_ = (global_sync_counter_ += 2);
+
   GPU_debug_group_begin("View.compute_procedural_bounds");
 
   GPUShader *shader = DRW_shader_draw_view_finalize_get();

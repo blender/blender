@@ -40,6 +40,7 @@
  * if any of these reference becomes invalid.
  */
 
+#include "BLI_assert.h"
 #include "BLI_listbase_wrapper.hh"
 #include "BLI_vector.hh"
 
@@ -59,6 +60,7 @@
 
 #include "intern/gpu_codegen.hh"
 
+#include <cstdint>
 #include <sstream>
 
 namespace blender::draw {
@@ -138,6 +140,9 @@ class PassBase {
   SubPassVector<PassBase<DrawCommandBufType>> &sub_passes_;
   /** Currently bound shader. Used for interface queries. */
   GPUShader *shader_;
+
+  uint64_t manager_fingerprint_ = 0;
+  uint64_t view_fingerprint_ = 0;
 
  public:
   const char *debug_name;
@@ -455,6 +460,14 @@ class PassBase {
   command::Undetermined &create_command(command::Type type);
 
   void submit(command::RecordingState &state) const;
+
+  bool has_generated_commands() const
+  {
+    /* NOTE: Even though manager fingerprint is not enough to check for update, it is still
+     * guaranteed to not be 0. So we can check wether or not this pass has generated commands
+     * after sync. Asserts will catch invalid usage . */
+    return manager_fingerprint_ != 0;
+  }
 };
 
 template<typename DrawCommandBufType> class Pass : public detail::PassBase<DrawCommandBufType> {
@@ -473,6 +486,8 @@ template<typename DrawCommandBufType> class Pass : public detail::PassBase<DrawC
 
   void init()
   {
+    this->manager_fingerprint_ = 0;
+    this->view_fingerprint_ = 0;
     this->headers_.clear();
     this->commands_.clear();
     this->sub_passes_.clear();
@@ -575,6 +590,9 @@ namespace detail {
 
 template<class T> inline command::Undetermined &PassBase<T>::create_command(command::Type type)
 {
+  /* After render commands have been generated, the pass is read only.
+   * Call `init()` to be able modify it again. */
+  BLI_assert_msg(this->has_generated_commands() == false, "Command added after submission");
   int64_t index = commands_.append_and_get_index({});
   headers_.append({type, uint(index)});
   return commands_[index];

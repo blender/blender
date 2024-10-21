@@ -52,9 +52,13 @@ class LayerNodeDropTarget : public TreeViewItemDropTarget {
 
   bool can_drop(const wmDrag &drag, const char ** /*r_disabled_hint*/) const override
   {
+    if (!ELEM(drag.type, WM_DRAG_GREASE_PENCIL_LAYER, WM_DRAG_GREASE_PENCIL_GROUP)) {
+      return false;
+    }
+
     wmDragGreasePencilLayer *active_drag_node = static_cast<wmDragGreasePencilLayer *>(drag.poin);
     if (active_drag_node->node->wrap().is_layer()) {
-      return drag.type == WM_DRAG_GREASE_PENCIL_LAYER;
+      return true;
     }
 
     LayerGroup &group = active_drag_node->node->wrap().as_group();

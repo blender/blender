@@ -196,9 +196,10 @@ class LazyFunctionForGeometryNode : public LazyFunction {
 
   void execute_impl(lf::Params &params, const lf::Context &context) const override
   {
+    const ScopedNodeTimer node_timer{context, node_};
+
     GeoNodesLFUserData *user_data = dynamic_cast<GeoNodesLFUserData *>(context.user_data);
     BLI_assert(user_data != nullptr);
-    const auto &local_user_data = *static_cast<GeoNodesLFLocalUserData *>(context.local_user_data);
 
     bool used_non_attribute_output_exists = false;
     for (const int output_bsocket_index : node_.output_sockets().index_range()) {
@@ -254,15 +255,7 @@ class LazyFunctionForGeometryNode : public LazyFunction {
         own_lf_graph_info_.mapping.lf_input_index_for_reference_set_for_output,
         get_anonymous_attribute_name};
 
-    geo_eval_log::TimePoint start_time = geo_eval_log::Clock::now();
     node_.typeinfo->geometry_node_execute(geo_params);
-    geo_eval_log::TimePoint end_time = geo_eval_log::Clock::now();
-
-    if (geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger(*user_data))
-    {
-      tree_logger->node_execution_times.append(*tree_logger->allocator,
-                                               {node_.identifier, start_time, end_time});
-    }
   }
 
   std::string input_name(const int index) const override
@@ -1134,6 +1127,7 @@ class LazyFunctionForGroupNode : public LazyFunction {
 
   void execute_impl(lf::Params &params, const lf::Context &context) const override
   {
+    const ScopedNodeTimer node_timer{context, group_node_};
     GeoNodesLFUserData *user_data = dynamic_cast<GeoNodesLFUserData *>(context.user_data);
     BLI_assert(user_data != nullptr);
 
@@ -1470,6 +1464,7 @@ class LazyFunctionForSimulationZone : public LazyFunction {
 
   void execute_impl(lf::Params &params, const lf::Context &context) const override
   {
+    ScopedNodeTimer node_timer{context, sim_output_bnode_};
     GeoNodesLFUserData &user_data = *static_cast<GeoNodesLFUserData *>(context.user_data);
 
     bke::SimulationZoneComputeContext compute_context{user_data.compute_context,
@@ -1482,8 +1477,6 @@ class LazyFunctionForSimulationZone : public LazyFunction {
 
     GeoNodesLFLocalUserData zone_local_user_data{zone_user_data};
     lf::Context zone_context{context.storage, &zone_user_data, &zone_local_user_data};
-
-    ScopedComputeContextTimer timer(zone_context);
     fn_.execute(params, zone_context);
   }
 

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'89e3ab2a4533')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'58c660c9615d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-14 08:43+0000\n"
+"POT-Creation-Date: 2024-10-20 15:55+0000\n"
 "PO-Revision-Date: 2024-04-29 13:44+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Greek <https://translate.blender.org/projects/blender-ui/ui/el/>\n"
@@ -35,6 +35,14 @@ msgid "Select"
 msgstr "Επιλογή"
 
 
+msgid "Add"
+msgstr "Προσθήκη"
+
+
+msgid "Subtract"
+msgstr "Αφαίρεση"
+
+
 msgid "On"
 msgstr "Ενεργό"
 
@@ -49,14 +57,6 @@ msgstr "Κεντράρισμα"
 
 msgid "Action"
 msgstr "Δράση"
-
-
-msgid "Add"
-msgstr "Προσθήκη"
-
-
-msgid "Subtract"
-msgstr "Αφαίρεση"
 
 
 msgid "Hold"
@@ -555,32 +555,32 @@ msgid "Snap"
 msgstr "Προσκόλληση"
 
 
-msgid "Select Linked"
-msgstr "Επιλογή Συνδεδεμένων"
-
-
-msgid "Rigid Body"
-msgstr "Rigid Body"
-
-
-msgid "Apply"
-msgstr "Εφαρμογή"
-
-
-msgid "Track"
-msgstr "Ανίχνευση"
+msgid "Mirror"
+msgstr "Καθρέφτισμα"
 
 
 msgid "Make Single User"
 msgstr "Ορισμός Ενός Χρήστη"
 
 
+msgid "Track"
+msgstr "Ανίχνευση"
+
+
+msgid "Apply"
+msgstr "Εφαρμογή"
+
+
+msgid "Rigid Body"
+msgstr "Rigid Body"
+
+
+msgid "Select Linked"
+msgstr "Επιλογή Συνδεδεμένων"
+
+
 msgid "Merge"
 msgstr "Συγχώνευση"
-
-
-msgid "Mirror"
-msgstr "Καθρέφτισμα"
 
 
 msgid "Import"
@@ -746,10 +746,6 @@ msgstr "Λάμπα"
 
 msgid "Open"
 msgstr "Άνοιγμα"
-
-
-msgid "Remove"
-msgstr "Remove"
 
 
 msgid "Both"
@@ -932,6 +928,10 @@ msgstr "Polar ZY"
 
 msgid "Pan"
 msgstr "Ολίσθηση προβολής"
+
+
+msgid "Remove"
+msgstr "Remove"
 
 
 msgctxt "Operator"
