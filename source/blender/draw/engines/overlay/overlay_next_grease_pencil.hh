@@ -58,6 +58,7 @@ class GreasePencil {
     const bke::AttrDomain selection_domain_edit = ED_grease_pencil_edit_selection_domain_get(ts);
     const bool show_edit_point = selection_domain_edit == bke::AttrDomain::Point;
     const bool show_lines = (v3d->gp_flag & V3D_GP_SHOW_EDIT_LINES);
+    const bool show_direction = (v3d->gp_flag & V3D_GP_SHOW_STROKE_DIRECTION);
 
     show_points_ = show_lines_ = show_weight_ = false;
 
@@ -106,6 +107,7 @@ class GreasePencil {
         sub.bind_texture("weightTex", &res.weight_ramp_tx);
         sub.push_constant("useWeight", show_weight_);
         sub.push_constant("useGreasePencil", true);
+        sub.push_constant("doStrokeEndpoints", show_direction);
         edit_points_ = &sub;
       }
 

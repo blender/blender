@@ -767,6 +767,11 @@ GPU_SHADER_CREATE_INFO(overlay_edit_particle_point)
     .push_constant(Type::BOOL, "useWeight")
     .push_constant(Type::BOOL, "useGreasePencil")
     .fragment_out(0, Type::VEC4, "fragColor")
+#if 1 /* TODO(fclem): Required for legacy gpencil overlay. To be moved to specialized shader. */
+    .typedef_source("overlay_shader_shared.h")
+    .vertex_in(3, Type::UINT, "vflag")
+    .push_constant(Type::BOOL, "doStrokeEndpoints")
+#endif
     .vertex_source("overlay_edit_particle_point_vert.glsl")
     .fragment_source("overlay_point_varying_color_frag.glsl")
     .additional_info("draw_mesh", "draw_globals");
