@@ -537,9 +537,6 @@ void gpu_shader_create_info_init()
     /* Edit UV Edges. */
     overlay_edit_uv_edges = overlay_edit_uv_edges_no_geom;
 
-    /* GPencil stroke. */
-    gpu_shader_gpencil_stroke = gpu_shader_gpencil_stroke_no_geom;
-
     /* NOTE: As atomic data types can alter shader gen if native atomics are unsupported, we need
      * to use differing create info's to handle the tile optimized check. This does prevent
      * the shadow techniques from being dynamically switchable. */

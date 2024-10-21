@@ -158,6 +158,13 @@ struct SeqContextDrawData {
 };
 BLI_STATIC_ASSERT_ALIGN(SeqContextDrawData, 16)
 
+struct GreasePencilStrokeData {
+  packed_float3 position;
+  float stroke_thickness;
+  float4 stroke_color;
+};
+BLI_STATIC_ASSERT_ALIGN(GreasePencilStrokeData, 16)
+
 enum TestStatus : uint32_t {
   TEST_STATUS_NONE = 0u,
   TEST_STATUS_PASSED = 1u,
