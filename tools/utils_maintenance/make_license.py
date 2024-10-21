@@ -8,8 +8,8 @@ from pathlib import Path
 import os
 
 
-CURRENT_DIR = Path(os.path.dirname(__file__))
-ROOT = Path(os.path.abspath(CURRENT_DIR / "../../"))
+CURRENT_DIR = Path(__file__).parent
+ROOT = CURRENT_DIR.resolve().parent.parent
 
 
 @dataclass
