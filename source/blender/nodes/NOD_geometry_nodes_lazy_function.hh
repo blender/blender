@@ -502,6 +502,34 @@ class ScopedComputeContextTimer {
   }
 };
 
+/**
+ * Utility to measure the time that is spend in a specific node during geometry nodes evaluation.
+ */
+class ScopedNodeTimer {
+ private:
+  const lf::Context &context_;
+  const bNode &node_;
+  geo_eval_log::TimePoint start_;
+
+ public:
+  ScopedNodeTimer(const lf::Context &context, const bNode &node) : context_(context), node_(node)
+  {
+    start_ = geo_eval_log::Clock::now();
+  }
+
+  ~ScopedNodeTimer()
+  {
+    const geo_eval_log::TimePoint end = geo_eval_log::Clock::now();
+    auto &user_data = static_cast<GeoNodesLFUserData &>(*context_.user_data);
+    auto &local_user_data = static_cast<GeoNodesLFLocalUserData &>(*context_.local_user_data);
+    if (geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger(user_data))
+    {
+      tree_logger->node_execution_times.append(*tree_logger->allocator,
+                                               {node_.identifier, start_, end});
+    }
+  }
+};
+
 bool should_log_socket_values_for_context(const GeoNodesLFUserData &user_data,
                                           const ComputeContextHash hash);
 
