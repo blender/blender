@@ -425,6 +425,9 @@ UpdateActiveGeometryNodesViewerResult update_active_geometry_nodes_viewer(const 
         if (snode.edittree->type != NTREE_GEOMETRY) {
           continue;
         }
+        if (!snode.id) {
+          continue;
+        }
         snode.edittree->ensure_topology_cache();
         const bNode *viewer_node = snode.edittree->node_by_id(viewer_node_id);
         if (viewer_node == nullptr) {
