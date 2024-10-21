@@ -208,7 +208,7 @@ class FormatHandler : NonCopyable, NonMovable {
     }
   }
 
-  template<typename... T> void write_impl(const char *fmt, T &&...args)
+  template<typename... T> void write_impl(fmt::format_string<T...> fmt, T &&...args)
   {
     /* Format into a local buffer. */
     fmt::memory_buffer buf;
