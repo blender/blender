@@ -47,6 +47,17 @@
 using blender::Map;
 using blender::StringRef;
 
+short do_versions_new_to_old_idcode_get(const short id_code_new)
+{
+  switch (id_code_new) {
+    case ID_GP:
+      /* ID_GD_LEGACY (Grease Pencil v2) is now converted to ID_GP (Grease Pencil v3). */
+      return ID_GD_LEGACY;
+    default:
+      return ID_LINK_PLACEHOLDER;
+  }
+}
+
 ARegion *do_versions_add_region_if_not_found(ListBase *regionbase,
                                              int region_type,
                                              const char *allocname,
