@@ -39,7 +39,7 @@
 #  include "BLI_math_base.h" /* isfinite() */
 #endif
 
-#if PY_VERSION_HEX <= 0x030c0000 /* <=3.12 */
+#if PY_VERSION_HEX < 0x030d0000 /* <3.13 */
 #  define PyLong_AsInt _PyLong_AsInt
 #  define PyUnicode_CompareWithASCIIString _PyUnicode_EqualToASCIIString
 #endif

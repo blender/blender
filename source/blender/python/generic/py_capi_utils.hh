@@ -339,7 +339,7 @@ uint64_t PyC_Long_AsU64(PyObject *value);
 /* inline so type signatures match as expected */
 Py_LOCAL_INLINE(int32_t) PyC_Long_AsI32(PyObject *value)
 {
-#if PY_VERSION_HEX <= 0x030c0000 /* <=3.12 */
+#if PY_VERSION_HEX < 0x030d0000 /* <3.13 */
   return (int32_t)_PyLong_AsInt(value);
 #else
   return (int32_t)PyLong_AsInt(value);
