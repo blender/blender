@@ -830,6 +830,11 @@ DEFINE("CURVES_POINT")
 VERTEX_IN(0, VEC3, pos)
 VERTEX_IN(1, UINT, data)
 VERTEX_IN(2, FLOAT, selection)
+#if 1 /* TODO(fclem): Required for legacy gpencil overlay. To be moved to specialized shader. */
+TYPEDEF_SOURCE("gpencil_shader_shared.h")
+VERTEX_IN(3, UINT, vflag)
+PUSH_CONSTANT(BOOL, doStrokeEndpoints)
+#endif
 VERTEX_OUT(overlay_edit_flat_color_iface)
 SAMPLER(0, FLOAT_1D, weightTex)
 PUSH_CONSTANT(BOOL, useWeight)
@@ -928,6 +933,7 @@ PUSH_CONSTANT(BOOL, useGreasePencil)
 FRAGMENT_OUT(0, VEC4, fragColor)
 #if 1 /* TODO(fclem): Required for legacy gpencil overlay. To be moved to specialized shader. */
 TYPEDEF_SOURCE("gpencil_shader_shared.h")
+TYPEDEF_SOURCE("overlay_shader_shared.h")
 VERTEX_IN(3, UINT, vflag)
 PUSH_CONSTANT(BOOL, doStrokeEndpoints)
 #endif
