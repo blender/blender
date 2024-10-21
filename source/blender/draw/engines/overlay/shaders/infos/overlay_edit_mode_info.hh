@@ -926,6 +926,11 @@ SAMPLER(0, FLOAT_1D, weightTex)
 PUSH_CONSTANT(BOOL, useWeight)
 PUSH_CONSTANT(BOOL, useGreasePencil)
 FRAGMENT_OUT(0, VEC4, fragColor)
+#if 1 /* TODO(fclem): Required for legacy gpencil overlay. To be moved to specialized shader. */
+TYPEDEF_SOURCE("gpencil_shader_shared.h")
+VERTEX_IN(3, UINT, vflag)
+PUSH_CONSTANT(BOOL, doStrokeEndpoints)
+#endif
 VERTEX_SOURCE("overlay_edit_particle_point_vert.glsl")
 FRAGMENT_SOURCE("overlay_point_varying_color_frag.glsl")
 ADDITIONAL_INFO(draw_mesh)

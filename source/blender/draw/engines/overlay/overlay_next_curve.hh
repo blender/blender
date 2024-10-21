@@ -90,6 +90,7 @@ class Curves {
         sub.bind_texture("weightTex", &res.weight_ramp_tx);
         sub.push_constant("useWeight", false);
         sub.push_constant("useGreasePencil", false);
+        sub.push_constant("doStrokeEndpoints", false);
         sub.push_constant("curveHandleDisplay", int(state.overlay.handle_display));
         edit_curves_points_ = &sub;
       }
@@ -142,6 +143,8 @@ class Curves {
         sub.bind_ubo("globalsBlock", &res.globals_buf);
         sub.push_constant("showCurveHandles", state.overlay.handle_display != CURVE_HANDLE_NONE);
         sub.push_constant("curveHandleDisplay", int(state.overlay.handle_display));
+        sub.push_constant("useGreasePencil", false);
+        sub.push_constant("doStrokeEndpoints", false);
         edit_legacy_curve_points_ = &sub;
       }
     }
