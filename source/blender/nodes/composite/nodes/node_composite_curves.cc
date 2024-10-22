@@ -13,6 +13,8 @@
 
 #include "NOD_multi_function.hh"
 
+#include "DNA_color_types.h"
+
 #include "BKE_colortools.hh"
 
 #include "UI_interface.hh"
@@ -191,12 +193,19 @@ static ShaderNode *get_compositor_shader_node(DNode node)
 
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  /* Not yet implemented. Return zero. */
-  static auto function = mf::build::SI1_SO<float4, float4>(
-      "Vector Curves",
-      [](const float4 & /*vector*/) -> float4 { return float4(0.0f); },
-      mf::build::exec_presets::AllSpanOrSingle());
-  builder.set_matching_fn(function);
+  CurveMapping *curve_mapping = static_cast<CurveMapping *>(builder.node().storage);
+  BKE_curvemapping_init(curve_mapping);
+
+  builder.construct_and_set_matching_fn_cb([=]() {
+    return mf::build::SI1_SO<float4, float4>(
+        "Vector Curves",
+        [=](const float4 &vector) -> float4 {
+          float4 output_vector = float4(0.0f);
+          BKE_curvemapping_evaluate3F(curve_mapping, output_vector, vector);
+          return output_vector;
+        },
+        mf::build::exec_presets::AllSpanOrSingle());
+  });
 }
 
 }  // namespace blender::nodes::node_composite_vector_curves_cc
