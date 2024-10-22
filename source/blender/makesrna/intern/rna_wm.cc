@@ -1930,7 +1930,10 @@ static void rna_Operator_bl_idname_set(PointerRNA *ptr, const char *value)
   wmOperator *data = (wmOperator *)(ptr->data);
   char *str = (char *)data->type->idname;
   if (!str[0]) {
-    BLI_strncpy(str, value, OP_MAX_TYPENAME); /* utf8 already ensured */
+    /* Calling UTF8 copy is disputable since registering ensures the value isn't truncated.
+     * Use a UTF8 copy to ensure truncating never causes an incomplete UTF8 sequence,
+     * even before registration. */
+    BLI_strncpy_utf8(str, value, OP_MAX_TYPENAME);
   }
   else {
     BLI_assert_msg(0, "setting the bl_idname on a non-builtin operator");
@@ -1942,7 +1945,7 @@ static void rna_Operator_bl_label_set(PointerRNA *ptr, const char *value)
   wmOperator *data = (wmOperator *)(ptr->data);
   char *str = (char *)data->type->name;
   if (!str[0]) {
-    BLI_strncpy(str, value, OP_MAX_TYPENAME); /* utf8 already ensured */
+    BLI_strncpy_utf8(str, value, OP_MAX_TYPENAME);
   }
   else {
     BLI_assert_msg(0, "setting the bl_label on a non-builtin operator");
@@ -1960,12 +1963,10 @@ static void rna_Operator_bl_label_set(PointerRNA *ptr, const char *value)
       wmOperator *data = (wmOperator *)(ptr->data); \
       char *str = (char *)data->type->attr; \
       if (str && !str[0]) { \
-        BLI_strncpy(str, value, attr_maxncpy); /* utf8 already ensured */ \
+        BLI_strncpy_utf8(str, value, attr_maxncpy); \
       } \
       else { \
-        BLI_assert_msg( \
-            false, \
-            "setting the bl_" STRINGIFY(translation_context) " on a non-builtin operator"); \
+        BLI_assert_msg(false, "setting the bl_" #attr " on a non-builtin operator"); \
       } \
     } \
     static void rna_Operator_bl_##attr##_get(PointerRNA *ptr, char *value) \

@@ -647,9 +647,7 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_world_normals.glsl
 
   shaders/gpu_shader_gpencil_stroke_vert.glsl
-  shaders/gpu_shader_gpencil_stroke_vert_no_geom.glsl
   shaders/gpu_shader_gpencil_stroke_frag.glsl
-  shaders/gpu_shader_gpencil_stroke_geom.glsl
 
   shaders/gpu_shader_display_fallback_vert.glsl
   shaders/gpu_shader_display_fallback_frag.glsl

@@ -103,7 +103,7 @@ static void deform_verts(ModifierData *md,
 
   /* Silly that defaxis and BKE_curve_deform_coords are off by 1
    * but leave for now to save having to call do_versions */
-
+  const int defaxis = std::clamp(cmd->defaxis - 1, 0, 5);
   BKE_curve_deform_coords(cmd->object,
                           ctx->object,
                           reinterpret_cast<float(*)[3]>(positions.data()),
@@ -111,7 +111,7 @@ static void deform_verts(ModifierData *md,
                           dvert,
                           defgrp_index,
                           cmd->flag,
-                          cmd->defaxis - 1);
+                          defaxis);
 }
 
 static void deform_verts_EM(ModifierData *md,
@@ -136,6 +136,7 @@ static void deform_verts_EM(ModifierData *md,
     }
   }
 
+  const int defaxis = std::clamp(cmd->defaxis - 1, 0, 5);
   if (use_dverts) {
     BKE_curve_deform_coords_with_editmesh(cmd->object,
                                           ctx->object,
@@ -143,7 +144,7 @@ static void deform_verts_EM(ModifierData *md,
                                           positions.size(),
                                           defgrp_index,
                                           cmd->flag,
-                                          cmd->defaxis - 1,
+                                          defaxis,
                                           em);
   }
   else {
@@ -154,7 +155,7 @@ static void deform_verts_EM(ModifierData *md,
                             nullptr,
                             defgrp_index,
                             cmd->flag,
-                            cmd->defaxis - 1);
+                            defaxis);
   }
 }
 

@@ -1337,7 +1337,7 @@ static void rna_Panel_bl_description_set(PointerRNA *ptr, const char *value)
   Panel *data = (Panel *)(ptr->data);
   char *str = (char *)data->type->description;
   if (!str[0]) {
-    BLI_strncpy(str, value, RNA_DYN_DESCR_MAX); /* utf8 already ensured */
+    BLI_strncpy_utf8(str, value, RNA_DYN_DESCR_MAX);
   }
   else {
     BLI_assert_msg(0, "setting the bl_description on a non-builtin panel");
@@ -1349,7 +1349,7 @@ static void rna_Menu_bl_description_set(PointerRNA *ptr, const char *value)
   Menu *data = (Menu *)(ptr->data);
   char *str = (char *)data->type->description;
   if (!str[0]) {
-    BLI_strncpy(str, value, RNA_DYN_DESCR_MAX); /* utf8 already ensured */
+    BLI_strncpy_utf8(str, value, RNA_DYN_DESCR_MAX);
   }
   else {
     BLI_assert_msg(0, "setting the bl_description on a non-builtin menu");

@@ -12,12 +12,8 @@ __all__ = (
     "canonical_author_map",
 )
 
-from typing import (
-    Dict,
-)
 
-
-def canonical_author_map() -> Dict[str, str]:
+def canonical_author_map() -> dict[str, str]:
     """
     Return a map of authors to their canonical author & email.
     """

@@ -23,17 +23,14 @@ import iso8601
 
 from typing import (
     cast,
-    Callable,
-    Dict,
-    Iterable,
-    List,
     NewType,
-    Optional,
-    Tuple,
-    Type,
     TypeVar,
-    Union,
 )
+from collections.abc import (
+    Callable,
+    Iterable,
+)
+
 from requests.structures import CaseInsensitiveDict
 
 logger = logging.getLogger(__file__)
@@ -65,7 +62,7 @@ retry: Callable[[F], F] = retry_decorator(
     tries=10, delay=1, backoff=2, logger=logger)
 
 
-def assert_cast(typ: Type[T], obj: object) -> T:
+def assert_cast(typ: type[T], obj: object) -> T:
     assert isinstance(obj, typ), f'object is not of type {typ}: {obj}'
     # NOTE: MYPY warns the cast is redundant, we might consider removing it.
     return cast(T, obj)  # type: ignore
@@ -80,7 +77,7 @@ def get_date_object(date_string: str) -> datetime.datetime:
 results_per_page = 25
 
 
-def get_next_page(headers: CaseInsensitiveDict[str], page: Page) -> Optional[Page]:
+def get_next_page(headers: CaseInsensitiveDict[str], page: Page) -> Page | None:
     """
     Parse the header looking for reference to next.
     """
@@ -100,9 +97,9 @@ def fetch_single(
     api_url: yarl.URL,
     api_token: str,
     method: str,
-    data: Dict[str, str],
+    data: dict[str, str],
     page: Page,
-) -> Tuple[List[object], Optional[Page]]:
+) -> tuple[list[object], Page | None]:
     """Generic function to query a single item from the API.
 
     Returns:
@@ -113,7 +110,7 @@ def fetch_single(
         'Authorization': 'token ' + api_token,
     }
 
-    params: Dict[str, Union[str, int]] = {
+    params: dict[str, str | int] = {
         'limit': results_per_page,
         'page': page,
         **data,
@@ -132,14 +129,14 @@ def fetch_all(
     api_url: yarl.URL,
     api_token: str,
     method: str,
-    data: Dict[str, str],
+    data: dict[str, str],
 ) -> Iterable[object]:
     """Generic function to query lists from API.
 
     Yields:
         response_data - the result of fetch_single()
     """
-    page = Page(1)
+    page: Page | None = Page(1)
     while page is not None:
         response_data, page = fetch_single(api_url, api_token, method, data, page)
         yield from response_data if response_data is not None else ()
@@ -150,7 +147,7 @@ def fetch_team_members(
     api_token: str,
     organization_name: str,
     team_name: str,
-) -> List[TeamMember]:
+) -> list[TeamMember]:
     """Query API for all the members of a team.
 
     Yields:
@@ -161,7 +158,7 @@ def fetch_team_members(
     team_id = None
 
     for team in cast(
-        Iterable[Dict[object, object]],
+        Iterable[dict[object, object]],
         fetch_all(
             api_url,
             api_token,
@@ -183,7 +180,7 @@ def fetch_team_members(
     users = list()
 
     for member in cast(
-        Iterable[Dict[object, object]],
+        Iterable[dict[object, object]],
         fetch_all(
             api_url,
             api_token,
