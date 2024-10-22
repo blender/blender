@@ -94,6 +94,14 @@ ccl_device float phase_draine(float cos_theta, float g, float alpha)
 /* Adapted from the HLSL code provided in https://research.nvidia.com/labs/rtr/approximate-mie/ */
 ccl_device float phase_draine_sample_cos(float g, float alpha, float rand)
 {
+  if (fabsf(g) < 1e-2f) {
+    /* Special case to prevent division by zero.
+     * The sample technique is similar as in https://doi.org/10.1364/JOSAA.28.002436. */
+    const float inv_alpha = 1.0f / alpha;
+    const float b_2 = (3 + alpha) * inv_alpha * (0.5f - rand);
+    const float inv_u = -fast_inv_cbrtf(b_2 + sqrtf(sqr(b_2) + sqr(inv_alpha) * inv_alpha));
+    return 1 / inv_u - inv_u / alpha;
+  }
   const float g2 = sqr(g), g3 = g * g2, g4 = sqr(g2), g6 = g2 * g4;
   const float pgp1_2 = sqr(1 + g2);
   const float T1a = alpha * (g4 - 1), T1a3 = sqr(T1a) * T1a;
