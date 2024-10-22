@@ -468,6 +468,11 @@ static int object_transfer_mode_invoke(bContext *C, wmOperator *op, const wmEven
   }
 
   Object *ob_dst = base_dst->object;
+
+  if (ob_src == ob_dst) {
+    return OPERATOR_CANCELLED;
+  }
+
   BLI_assert(ob_dst->id.orig_id == nullptr);
   if (!ID_IS_EDITABLE(ob_dst) || !ID_IS_EDITABLE(ob_src)) {
     BKE_reportf(op->reports,
