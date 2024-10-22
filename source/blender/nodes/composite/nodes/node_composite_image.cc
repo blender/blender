@@ -473,7 +473,8 @@ class ImageOperation : public NodeOperation {
       extract_alpha(context(), *cached_image, result);
     }
     else {
-      cached_image->pass_through(result);
+      result.set_precision(cached_image->precision());
+      result.wrap_external(*cached_image);
     }
   }
 
