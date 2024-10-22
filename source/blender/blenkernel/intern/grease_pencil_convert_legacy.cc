@@ -1064,7 +1064,10 @@ static void legacy_gpencil_to_grease_pencil(ConversionData &conversion_data,
 
     new_layer.parent = gpl->parent;
     new_layer.set_parent_bone_name(gpl->parsubstr);
-    copy_m4_m4(new_layer.parentinv, gpl->inverse);
+    /* GPv2 parent inverse matrix is only valid when parent is set. */
+    if (gpl->parent) {
+      copy_m4_m4(new_layer.parentinv, gpl->inverse);
+    }
 
     copy_v3_v3(new_layer.translation, gpl->location);
     copy_v3_v3(new_layer.rotation, gpl->rotation);
