@@ -221,7 +221,10 @@ static void rna_Gizmo_bl_idname_set(PointerRNA *ptr, const char *value)
   wmGizmo *data = static_cast<wmGizmo *>(ptr->data);
   char *str = (char *)data->type->idname;
   if (!str[0]) {
-    BLI_strncpy(str, value, MAX_NAME); /* utf8 already ensured */
+    /* Calling UTF8 copy is disputable since registering ensures the value isn't truncated.
+     * Use a UTF8 copy to ensure truncating never causes an incomplete UTF8 sequence,
+     * even before registration. */
+    BLI_strncpy_utf8(str, value, MAX_NAME);
   }
   else {
     BLI_assert_msg(0, "setting the bl_idname on a non-builtin operator");
@@ -642,7 +645,10 @@ static void rna_GizmoGroup_bl_idname_set(PointerRNA *ptr, const char *value)
   wmGizmoGroup *data = static_cast<wmGizmoGroup *>(ptr->data);
   char *str = (char *)data->type->idname;
   if (!str[0]) {
-    BLI_strncpy(str, value, MAX_NAME); /* utf8 already ensured */
+    /* Calling UTF8 copy is disputable since registering ensures the value isn't truncated.
+     * Use a UTF8 copy to ensure truncating never causes an incomplete UTF8 sequence,
+     * even before registration. */
+    BLI_strncpy_utf8(str, value, MAX_NAME);
   }
   else {
     BLI_assert_msg(0, "setting the bl_idname on a non-builtin operator");
@@ -654,7 +660,7 @@ static void rna_GizmoGroup_bl_label_set(PointerRNA *ptr, const char *value)
   wmGizmoGroup *data = static_cast<wmGizmoGroup *>(ptr->data);
   char *str = (char *)data->type->name;
   if (!str[0]) {
-    BLI_strncpy(str, value, MAX_NAME); /* utf8 already ensured */
+    BLI_strncpy_utf8(str, value, MAX_NAME);
   }
   else {
     BLI_assert_msg(0, "setting the bl_label on a non-builtin operator");
