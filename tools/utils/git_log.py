@@ -9,14 +9,6 @@ import subprocess
 import datetime
 import re
 
-from typing import (
-    List,
-    Union,
-    Optional,
-    Tuple,
-)
-
-
 _GIT_COMMIT_COAUTHORS_RE = re.compile(r"^Co-authored-by:[ \t]*([^\n]+)$", re.MULTILINE)
 
 
@@ -39,12 +31,12 @@ class GitCommit:
         self.sha1 = sha1
         self._git_dir = git_dir
 
-        self._author: Optional[str] = None
-        self._date: Optional[datetime.datetime] = None
-        self._body: Optional[str] = None
-        self._files: Optional[List[bytes]] = None
-        self._files_status: Optional[List[List[bytes]]] = None
-        self._diff: Optional[str] = None
+        self._author: str | None = None
+        self._date: datetime.datetime | None = None
+        self._body: str | None = None
+        self._files: list[bytes] | None = None
+        self._files_status: list[list[bytes]] | None = None
+        self._diff: str | None = None
 
     def cache(self) -> None:
         """
@@ -61,11 +53,11 @@ class GitCommit:
             self,
             format: str,
             *,
-            args_prefix: Tuple[Union[str, bytes], ...] = (),
-            args_suffix: Tuple[Union[str, bytes], ...] = (),
+            args_prefix: tuple[str | bytes, ...] = (),
+            args_suffix: tuple[str | bytes, ...] = (),
     ) -> bytes:
         # sha1 = self.sha1.decode('ascii')
-        cmd: Tuple[Union[str, bytes], ...] = (
+        cmd: tuple[str | bytes, ...] = (
             "git",
             *args_prefix,
             "--git-dir",
@@ -113,7 +105,7 @@ class GitCommit:
         return ret
 
     @property
-    def co_authors(self) -> List[str]:
+    def co_authors(self) -> list[str]:
         authors = []
         for author in _GIT_COMMIT_COAUTHORS_RE.findall(self.body):
             if not ("<" in author and ">" in author):
@@ -145,7 +137,7 @@ class GitCommit:
         return self.body.lstrip().partition("\n")[0]
 
     @property
-    def files(self) -> List[bytes]:
+    def files(self) -> list[bytes]:
         ret = self._files
         if ret is None:
             ret = [
@@ -159,7 +151,7 @@ class GitCommit:
         return ret
 
     @property
-    def files_status(self) -> List[List[bytes]]:
+    def files_status(self) -> list[list[bytes]]:
         ret = self._files_status
         if ret is None:
             ret = [
@@ -199,7 +191,7 @@ class GitCommitIter:
         self._path = path
         self._git_dir = os.path.join(path, ".git")
         self._sha1_range = sha1_range
-        self._process: Optional[subprocess.Popen[bytes]] = None
+        self._process: subprocess.Popen[bytes] | None = None
 
     def __iter__(self) -> "GitCommitIter":
         cmd = (

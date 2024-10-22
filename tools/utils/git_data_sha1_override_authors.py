@@ -12,13 +12,8 @@ __all__ = (
     "sha1_authors_map",
 )
 
-from typing import (
-    Dict,
-    Tuple,
-)
 
-
-def sha1_authors_map() -> Dict[bytes, Tuple[str, ...]]:
+def sha1_authors_map() -> dict[bytes, tuple[str, ...]]:
     """
     Return SHA1 to authors map.
     """
