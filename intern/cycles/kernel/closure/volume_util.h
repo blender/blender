@@ -61,7 +61,7 @@ ccl_device float3 phase_rayleigh_sample(float3 D, float2 rand, ccl_private float
   const float a = 2 - 4 * rand.x;
   /* Metal doesn't have cbrtf, but since we compute u - 1/u anyways, we can just as well
    * use the inverse cube root for which there is a simple Quake-style fast implementation.*/
-  const float inv_u = -fast_inv_cbrtf(sqrtf(1 + sqr(a)) - a);
+  const float inv_u = -fast_inv_cbrtf(sqrtf(1 + sqr(a)) + a);
   const float cos_theta = 1 / inv_u - inv_u;
   *pdf = phase_rayleigh(cos_theta);
 
