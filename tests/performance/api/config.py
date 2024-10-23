@@ -7,7 +7,6 @@ import json
 import pathlib
 
 from dataclasses import dataclass, field
-from typing import Dict, List
 
 from .test import TestCollection
 
@@ -25,7 +24,7 @@ class TestEntry:
     category: str = ''
     revision: str = ''
     git_hash: str = ''
-    environment: Dict = field(default_factory=dict)
+    environment: dict = field(default_factory=dict)
     executable: str = ''
     date: int = 0
     device_type: str = 'CPU'
@@ -33,10 +32,10 @@ class TestEntry:
     device_name: str = 'Unknown CPU'
     status: str = 'queued'
     error_msg: str = ''
-    output: Dict = field(default_factory=dict)
+    output: dict = field(default_factory=dict)
     benchmark_type: str = 'comparison'
 
-    def to_json(self) -> Dict:
+    def to_json(self) -> dict:
         json_dict = {}
         for field in self.__dataclass_fields__:
             json_dict[field] = getattr(self, field)
@@ -65,7 +64,7 @@ class TestQueue:
                 entry.from_json(json_entry)
                 self.entries.append(entry)
 
-    def rows(self, use_revision_columns: bool) -> List:
+    def rows(self, use_revision_columns: bool) -> list:
         # Generate rows of entries for printing and running.
         entries = sorted(
             self.entries,
@@ -92,7 +91,7 @@ class TestQueue:
 
             return [value for _, value in sorted(rows.items())]
 
-    def find(self, revision: str, test: str, category: str, device_id: str) -> Dict:
+    def find(self, revision: str, test: str, category: str, device_id: str) -> dict:
         for entry in self.entries:
             if entry.revision == revision and \
                entry.test == test and \
@@ -133,7 +132,7 @@ class TestConfig:
 
         self._update_queue(env)
 
-    def revision_names(self) -> List:
+    def revision_names(self) -> list:
         return sorted(list(self.revisions.keys()) + list(self.builds.keys()))
 
     def device_name(self, device_id: str) -> str:
@@ -162,7 +161,7 @@ class TestConfig:
             f.write(default_config)
 
     @staticmethod
-    def read_blender_executables(env, name) -> List:
+    def read_blender_executables(env, name) -> list:
         config = TestConfig._read_config_module(env.base_dir / name)
         builds = getattr(config, 'builds', {})
         executables = []
@@ -182,7 +181,7 @@ class TestConfig:
         spec.loader.exec_module(mod)
         return mod
 
-    def _update_devices(self, env, device_filters: List) -> None:
+    def _update_devices(self, env, device_filters: list) -> None:
         # Find devices matching the filters.
         need_gpus = device_filters != ['CPU']
         machine = env.get_machine(need_gpus)

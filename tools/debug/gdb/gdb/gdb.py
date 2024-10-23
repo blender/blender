@@ -4,7 +4,10 @@
 
 from __future__ import annotations
 import enum
-import typing as t
+
+from collections.abc import (
+    Sequence,
+)
 
 
 # Does not actually exist.
@@ -50,11 +53,11 @@ class Type:
     sizeof: int
     code: TypeCode
     dynamic: bool
-    name: t.Optional[str]
-    tag: t.Optional[str]
-    objfile: t.Optional[Objfile]
+    name: str | None
+    tag: str | None
+    objfile: Objfile | None
 
-    def fields(self) -> t.List[Field]:
+    def fields(self) -> list[Field]:
         pass
 
     def array(self, n1, n2=None) -> Type:
@@ -87,7 +90,7 @@ class Type:
     def target(self) -> Type:
         pass
 
-    def template_argument(self, n, block=None) -> t.Union[Type, Value]:
+    def template_argument(self, n, block=None) -> type | Value:
         pass
 
     def optimized_out(self) -> Value:
@@ -97,7 +100,7 @@ class Type:
 class Field:
     bitpos: int
     enumval: int
-    name: t.Optional[str]
+    name: str | None
     artificial: bool
     is_base_class: bool
     bitsize: int
@@ -107,7 +110,7 @@ class Field:
 
 class Value:
     type: Type
-    address: t.Optional[Value]
+    address: Value | None
     is_optimized_out: bool
     dynamic_type: Type
     is_lazy: bool
@@ -142,7 +145,7 @@ class Value:
     def reinterpret_cast(self, type: Type) -> Value:
         pass
 
-    def __getitem__(self, subscript: t.Union[int, str]) -> Value:
+    def __getitem__(self, subscript: int | str) -> Value:
         pass
 
 
@@ -184,7 +187,7 @@ class Command:
     def invoke(self, argument: str, from_tty: bool):
         pass
 
-    def complete(self, text: str, word: str) -> t.Union[t.Sequence[str], CompleteCode]:
+    def complete(self, text: str, word: str) -> Sequence[str] | CompleteCode:
         pass
 
 

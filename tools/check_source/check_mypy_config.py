@@ -5,11 +5,9 @@
 import os
 from typing import (
     Any,
-    Tuple,
-    Dict,
 )
 
-PATHS: Tuple[Tuple[str, Tuple[Any, ...], Dict[str, str]], ...] = (
+PATHS: tuple[tuple[str, tuple[Any, ...], dict[str, str]], ...] = (
     ("build_files/cmake/", (), {'MYPYPATH': "modules"}),
     ("build_files/utils/", (), {'MYPYPATH': "modules"}),
     ("doc/manpage/blender.1.py", (), {}),

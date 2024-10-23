@@ -13,17 +13,12 @@ import urllib.request
 
 from typing import (
     Any,
-    Dict,
-    List,
-    Optional,
-    Set,
-    Union,
 )
 
 BASE_API_URL = "https://projects.blender.org/api/v1"
 
 
-def url_json_get(url: str) -> Optional[Union[Dict[str, Any], List[Dict[str, Any]]]]:
+def url_json_get(url: str) -> dict[str, Any] | list[dict[str, Any]] | None:
     try:
         # Make the HTTP request and store the response in a 'response' object
         response = urllib.request.urlopen(url)
@@ -41,8 +36,8 @@ def url_json_get(url: str) -> Optional[Union[Dict[str, Any], List[Dict[str, Any]
 def url_json_get_all_pages(
         url: str,
         verbose: bool = False,
-) -> List[Dict[str, Any]]:
-    result: List[Dict[str, Any]] = []
+) -> list[dict[str, Any]]:
+    result: list[dict[str, Any]] = []
     page = 1
     while True:
         if verbose:
@@ -67,7 +62,7 @@ def url_json_get_all_pages(
     return result
 
 
-def gitea_user_get(username: str) -> Dict[str, Any]:
+def gitea_user_get(username: str) -> dict[str, Any]:
     """
     Get the user data as JSON from the user name. https://docs.gitea.com/api/next/#tag/user/operation/userGet
     """
@@ -78,7 +73,7 @@ def gitea_user_get(username: str) -> Dict[str, Any]:
     return result
 
 
-def gitea_json_issue_get(issue_fullname: str) -> Dict[str, Any]:
+def gitea_json_issue_get(issue_fullname: str) -> dict[str, Any]:
     """
     Get issue/pull JSON data.
     :param issue_fullname: string in the format "{owner}/{repo}/issues/{number}"
@@ -89,7 +84,7 @@ def gitea_json_issue_get(issue_fullname: str) -> Dict[str, Any]:
     return result
 
 
-def gitea_json_activities_get(username: str, date: str) -> List[Dict[str, Any]]:
+def gitea_json_activities_get(username: str, date: str) -> list[dict[str, Any]]:
     """
     List a user's activity feeds.
     :param username: username of user.
@@ -102,16 +97,16 @@ def gitea_json_activities_get(username: str, date: str) -> List[Dict[str, Any]]:
 
 
 def gitea_json_issues_search(
-        type: Optional[str] = None,
-        since: Optional[str] = None,
-        before: Optional[str] = None,
+        type: str | None = None,
+        since: str | None = None,
+        before: str | None = None,
         state: str = 'all',
-        labels: Optional[str] = None,
+        labels: str | None = None,
         created: bool = False,
         reviewed: bool = False,
-        access_token: Optional[str] = None,
+        access_token: str | None = None,
         verbose: bool = True,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Search for issues across the repositories that the user has access to.
     :param type: filter by type (issues / pulls) if set.
@@ -154,12 +149,12 @@ def gitea_json_issues_search(
 
 def gitea_json_issue_events_filter(
         issue_fullname: str,
-        date_start: Optional[datetime.datetime] = None,
-        date_end: Optional[datetime.datetime] = None,
-        username: Optional[str] = None,
-        labels: Optional[Set[str]] = None,
-        event_type: Set[str] = set(),
-) -> List[Dict[str, Any]]:
+        date_start: datetime.datetime | None = None,
+        date_end: datetime.datetime | None = None,
+        username: str | None = None,
+        labels: set[str] | None = None,
+        event_type: set[str] = set(),
+) -> list[dict[str, Any]]:
     """
     Filter all comments and events on the issue list.
     :param issue_fullname: string in the format "{owner}/{repo}/issues/{number}"
@@ -203,7 +198,7 @@ def gitea_json_issue_events_filter(
 # WORKAROUND: This function doesn't involve GITEA, and the obtained username may not match the username used in GITEA.
 # However, it provides an option to fetch the configured username from the local Git,
 # in case the user does not explicitly supply the username.
-def git_username_detect() -> Optional[str]:
+def git_username_detect() -> str | None:
     import os
     import subprocess
 

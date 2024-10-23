@@ -19,7 +19,6 @@ import subprocess
 import time
 
 from typing import (
-    Dict,
     TextIO,
 )
 
@@ -32,7 +31,7 @@ def man_format(data: str) -> str:
     return data
 
 
-def blender_extract_info(blender_bin: str) -> Dict[str, str]:
+def blender_extract_info(blender_bin: str) -> dict[str, str]:
     blender_env = {
         "ASAN_OPTIONS": (
             os.environ.get("ASAN_OPTIONS", "") +

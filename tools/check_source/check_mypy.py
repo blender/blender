@@ -10,14 +10,13 @@ from check_mypy_config import PATHS, PATHS_EXCLUDE
 
 from typing import (
     Any,
+)
+from collections.abc import (
     Callable,
-    Generator,
-    Optional,
-    Tuple,
-    Dict,
+    Iterator,
 )
 
-FileAndArgs = Tuple[str, Tuple[Any, ...], Dict[str, str]]
+FileAndArgs = tuple[str, tuple[Any, ...], dict[str, str]]
 
 # print(PATHS)
 SOURCE_EXT = (
@@ -32,8 +31,8 @@ def is_source(filename: str) -> bool:
 
 def path_iter(
         path: str,
-        filename_check: Optional[Callable[[str], bool]] = None,
-) -> Generator[str, None, None]:
+        filename_check: Callable[[str], bool] | None = None,
+) -> Iterator[str]:
     for dirpath, dirnames, filenames in os.walk(path):
         # skip ".git"
         dirnames[:] = [d for d in dirnames if not d.startswith(".")]
@@ -47,9 +46,9 @@ def path_iter(
 
 
 def path_expand_with_args(
-        paths_and_args: Tuple[FileAndArgs, ...],
-        filename_check: Optional[Callable[[str], bool]] = None,
-) -> Generator[FileAndArgs, None, None]:
+        paths_and_args: tuple[FileAndArgs, ...],
+        filename_check: Callable[[str], bool] | None = None,
+) -> Iterator[FileAndArgs]:
     for f_and_args in paths_and_args:
         f, f_args = f_and_args[0], f_and_args[1:]
         if not os.path.exists(f):
