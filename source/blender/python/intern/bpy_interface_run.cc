@@ -65,19 +65,6 @@ static void bpy_text_filepath_get(char *filepath,
                text->id.name + 2);
 }
 
-/* Very annoying! Undo #_PyModule_Clear(), see #23871. */
-#define PYMODULE_CLEAR_WORKAROUND
-
-#ifdef PYMODULE_CLEAR_WORKAROUND
-/* bad!, we should never do this, but currently only safe way I could find to keep namespace.
- * from being cleared. - campbell */
-struct PyModuleObject {
-  PyObject_HEAD
-  PyObject *md_dict;
-  /* omit other values, we only want the dict. */
-};
-#endif
-
 /**
  * Compatibility wrapper for #PyRun_FileExFlags.
  */
@@ -227,20 +214,6 @@ static bool python_script_exec(
   }
   else {
     Py_DECREF(py_result);
-  }
-
-  if (py_dict) {
-#ifdef PYMODULE_CLEAR_WORKAROUND
-    PyModuleObject *mmod = (PyModuleObject *)PyDict_GetItem(PyImport_GetModuleDict(),
-                                                            bpy_intern_str___main__);
-    PyObject *dict_back = mmod->md_dict;
-    /* freeing the module will clear the namespace,
-     * gives problems running classes defined in this namespace being used later. */
-    mmod->md_dict = nullptr;
-    Py_DECREF(dict_back);
-#endif
-
-#undef PYMODULE_CLEAR_WORKAROUND
   }
 
   PyC_MainModule_Restore(main_mod);
