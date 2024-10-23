@@ -885,6 +885,10 @@ endif()
 
 
 if(WITH_GPU_BUILDTIME_SHADER_BUILDER)
+  set(GPU_SHADER_BUILDER_SRC
+    intern/gpu_shader_builder.cc
+    intern/gpu_shader_builder_stubs.cc
+  )
   set(_manifest)
   if(WIN32)
     # We can re-use the manifest from `tests.exe` here since it's
@@ -893,11 +897,11 @@ if(WITH_GPU_BUILDTIME_SHADER_BUILDER)
     set(_manifest "${CMAKE_BINARY_DIR}/tests.exe.manifest")
   endif()
   add_executable(shader_builder
-    intern/gpu_shader_builder.cc
-    intern/gpu_shader_builder_stubs.cc
+    ${GPU_SHADER_BUILDER_SRC}
     ${shader_create_info_list_file}
     ${_manifest}
   )
+  unset(GPU_SHADER_BUILDER_SRC)
   unset(_manifest)
   setup_platform_linker_flags(shader_builder)
 
