@@ -65,12 +65,13 @@ import tomllib
 
 from typing import (
     Any,
-    Generator,
     IO,
     NamedTuple,
 )
 from collections.abc import (
     Callable,
+    Generator,
+    Iterator,
     Sequence,
 )
 
@@ -184,7 +185,7 @@ def file_mtime_or_none_with_error_fn(
     return None
 
 
-def scandir_with_demoted_errors(path: str) -> Generator[os.DirEntry[str], None, None]:
+def scandir_with_demoted_errors(path: str) -> Iterator[os.DirEntry[str]]:
     try:
         yield from os.scandir(path)
     except Exception as ex:
@@ -310,7 +311,7 @@ def repository_iter_package_dirs(
         *,
         error_fn: Callable[[Exception], None],
         ignore_missing: bool = False,
-) -> Generator[os.DirEntry[str], None, None]:
+) -> Iterator[os.DirEntry[str]]:
     try:
         dir_entries = os.scandir(directory)
     except Exception as ex:
@@ -547,7 +548,7 @@ def repo_sync(
         dry_run: bool = False,
         demote_connection_errors_to_status: bool = False,
         extension_override: str = "",
-) -> Generator[InfoItemSeq, None, None]:
+) -> Iterator[InfoItemSeq]:
     """
     Implementation:
     ``bpy.ops.ext.repo_sync(directory)``.
@@ -579,7 +580,7 @@ def repo_upgrade(
         access_token: str,
         use_idle: bool,
         python_args: Sequence[str],
-) -> Generator[InfoItemSeq, None, None]:
+) -> Iterator[InfoItemSeq]:
     """
     Implementation:
     ``bpy.ops.ext.repo_upgrade(directory)``.
@@ -598,7 +599,7 @@ def repo_upgrade(
 def repo_listing(
         *,
         repos: Sequence[str],
-) -> Generator[InfoItemSeq, None, None]:
+) -> Iterator[InfoItemSeq]:
     """
     Implementation:
     ``bpy.ops.ext.repo_listing(directory)``.
@@ -621,7 +622,7 @@ def pkg_install_files(
         blender_version: tuple[int, int, int],
         use_idle: bool,
         python_args: Sequence[str],
-) -> Generator[InfoItemSeq, None, None]:
+) -> Iterator[InfoItemSeq]:
     """
     Implementation:
     ``bpy.ops.ext.pkg_install_files(directory, files)``.
@@ -647,7 +648,7 @@ def pkg_install(
         use_cache: bool,
         use_idle: bool,
         python_args: Sequence[str],
-) -> Generator[InfoItemSeq, None, None]:
+) -> Iterator[InfoItemSeq]:
     """
     Implementation:
     ``bpy.ops.ext.pkg_install(directory, pkg_id)``.
@@ -673,7 +674,7 @@ def pkg_uninstall(
         pkg_id_sequence: Sequence[str],
         use_idle: bool,
         python_args: Sequence[str],
-) -> Generator[InfoItemSeq, None, None]:
+) -> Iterator[InfoItemSeq]:
     """
     Implementation:
     ``bpy.ops.ext.pkg_uninstall(directory, pkg_id)``.
@@ -2055,7 +2056,7 @@ class RepoCacheStore:
             check_files: bool = False,
             ignore_missing: bool = False,
             directory_subset: set[str] | None = None,
-    ) -> Generator[dict[str, PkgManifest_Normalized] | None, None, None]:
+    ) -> Iterator[dict[str, PkgManifest_Normalized] | None]:
         for repo_entry in self._repos:
             if directory_subset is not None:
                 if repo_entry.directory not in directory_subset:
@@ -2080,7 +2081,7 @@ class RepoCacheStore:
             check_files: bool = False,
             ignore_missing: bool = False,
             directory_subset: set[str] | None = None,
-    ) -> Generator[dict[str, PkgManifest_Normalized] | None, None, None]:
+    ) -> Iterator[dict[str, PkgManifest_Normalized] | None]:
         for repo_entry in self._repos:
             if directory_subset is not None:
                 if repo_entry.directory not in directory_subset:
