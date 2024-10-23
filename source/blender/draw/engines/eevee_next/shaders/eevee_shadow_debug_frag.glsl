@@ -36,9 +36,12 @@ vec3 debug_random_color(int v)
 
 void debug_tile_print(ShadowTileData tile, ivec4 tile_coord)
 {
-  /* Printf injection is based on string literal detection. Comment it out unless needed. */
-  /* printf("Tile (%u, %u) in Tilemap %u: page(%u, %u, %u), cache_index %u", tile_coord.x,
-   * tile_coord.y, tile_coord.z, tile.page.x, tile.page.y, tile.page.z, tile.cache_index); */
+  /* This `printf` injection is based on string literal detection. Comment it out unless needed. */
+#if 0
+  printf("Tile (%u, %u) in Tilemap %u: page(%u, %u, %u), cache_index %u",
+         tile_coord.x, tile_coord.y, tile_coord.z, tile.page.x, tile.page.y, tile.page.z,
+         tile.cache_index);
+#endif
 }
 
 vec3 debug_tile_state_color(ShadowTileData tile)

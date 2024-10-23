@@ -464,7 +464,7 @@ class PassBase {
   bool has_generated_commands() const
   {
     /* NOTE: Even though manager fingerprint is not enough to check for update, it is still
-     * guaranteed to not be 0. So we can check wether or not this pass has generated commands
+     * guaranteed to not be 0. So we can check weather or not this pass has generated commands
      * after sync. Asserts will catch invalid usage . */
     return manager_fingerprint_ != 0;
   }

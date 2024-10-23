@@ -30,10 +30,10 @@ using blender::FunctionRef;
  * This is used by linking code, when a directly linked data comes from a library where it exists
  * as an older, different type of ID.
  *
- * Since the current blendfile will convert that older ID type to the new one as part of its
+ * Since the current blend-file will convert that older ID type to the new one as part of its
  * versioning process, when saved, it will store a reference to that linked ID using the _new_ ID
- * type, which will not be found on next blendfile opening/reloading when searching for that ID in
- * the library blendfile.
+ * type, which will not be found on next blend-file opening/reloading when searching for that ID in
+ * the library blend-file.
  *
  * \returns The old, deprecated ID type code if any matches the given `id_code_new` one, otherwise
  * `ID_LINK_PLACEHOLDER`.

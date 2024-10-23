@@ -200,7 +200,7 @@ class Manager {
   void register_layer_attributes(GPUMaterial *material);
 
   /**
-   * Compute <-> Graphic queue transition is quite slow on some backend. To avoid unecessary
+   * Compute <-> Graphic queue transition is quite slow on some backend. To avoid unnecessary
    * switching, it is better to dispatch all visibility computation as soon as possible before any
    * graphic work.
    *
@@ -246,7 +246,7 @@ class Manager {
   /**
    * Generate commands for #ResourceHandle for the given #View and #PassMain.
    * The commands needs to be regenerated for any change inside the #Manager, the #PassMain or in
-   * the #View. Avoids just in time commmand generation.
+   * the #View. Avoids just in time command generation.
    *
    * IMPORTANT: Generated commands are stored inside #PassMain and overrides commands previously
    * generated for a previous view.
@@ -259,7 +259,7 @@ class Manager {
 
   /**
    * Submit a pass for drawing. All resource reference will be dereferenced and commands will be
-   * sent to GPU. Visibility and command generation **must** have already been done explicitely
+   * sent to GPU. Visibility and command generation **must** have already been done explicitly
    * using `compute_visibility` and `generate_commands`.
    */
   void submit_only(PassMain &pass, View &view);
