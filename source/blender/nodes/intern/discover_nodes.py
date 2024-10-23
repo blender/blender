@@ -22,7 +22,7 @@ import re
 import sys
 
 
-def filepath_is_older(filepath_test, filepath_compare):
+def filepath_is_older(filepath_test: str, filepath_compare: tuple[str, ...]) -> bool:
     import stat
     mtime = os.stat(filepath_test)[stat.ST_MTIME]
     for filepath_other in filepath_compare:
@@ -52,9 +52,9 @@ source_cc_files = [
 macro_name = "NOD_REGISTER_NODE"
 discover_suffix = "_discover"
 
-include_lines = []
-decl_lines = []
-func_lines = []
+include_lines: list[str] = []
+decl_lines: list[str] = []
+func_lines: list[str] = []
 
 # Add forward declaration to avoid warning.
 func_lines.append(f"void {function_to_generate}();")
@@ -75,7 +75,7 @@ for path in source_cc_files:
         code = fh.read()
 
     # Keeps track of the current name-space we're in.
-    namespace_parts = []
+    namespace_parts: list[str] = []
 
     for match in re_all_compiled.finditer(code):
         if entered_namespace := match.group(2):

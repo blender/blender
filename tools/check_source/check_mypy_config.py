@@ -15,6 +15,7 @@ PATHS: tuple[tuple[str, tuple[Any, ...], dict[str, str]], ...] = (
     ("scripts/modules/_bpy_internal/extensions/junction_module.py", (), {}),
     ("scripts/modules/_bpy_internal/extensions/wheel_manager.py", (), {}),
     ("scripts/modules/_bpy_internal/freedesktop.py", (), {}),
+    ("source/blender/nodes/intern/discover_nodes.py", (), {}),
     ("tools/check_blender_release/", (), {}),
     ("tools/check_docs/", (), {}),
     ("tools/check_source/", (), {'MYPYPATH': "modules"}),
