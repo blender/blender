@@ -32,44 +32,46 @@ static char *pyop_poll_message_get_fn(bContext * /*C*/, void *user_data)
   PyObject *py_args = static_cast<PyObject *>(user_data);
   PyObject *py_func_or_msg = PyTuple_GET_ITEM(py_args, 0);
 
+  char *msg = nullptr;
+
   if (PyUnicode_Check(py_func_or_msg)) {
     Py_ssize_t msg_len;
-    const char *msg = PyUnicode_AsUTF8AndSize(py_func_or_msg, &msg_len);
-    return BLI_strdupn(msg, msg_len);
-  }
-
-  PyObject *py_args_after_first = PyTuple_GetSlice(py_args, 1, PY_SSIZE_T_MAX);
-  PyObject *py_msg = PyObject_CallObject(py_func_or_msg, py_args_after_first);
-  Py_DECREF(py_args_after_first);
-
-  char *msg = nullptr;
-  bool error = false;
-
-  /* nullptr for no string. */
-  if (py_msg == nullptr) {
-    error = true;
+    const char *msg_src = PyUnicode_AsUTF8AndSize(py_func_or_msg, &msg_len);
+    msg = BLI_strdupn(msg_src, msg_len);
   }
   else {
-    if (py_msg == Py_None) {
-      /* pass */
-    }
-    else if (PyUnicode_Check(py_msg)) {
-      Py_ssize_t msg_src_len;
-      const char *msg_src = PyUnicode_AsUTF8AndSize(py_msg, &msg_src_len);
-      msg = BLI_strdupn(msg_src, msg_src_len);
-    }
-    else {
-      PyErr_Format(PyExc_TypeError,
-                   "poll_message_set(function, ...): expected string or None, got %.200s",
-                   Py_TYPE(py_msg)->tp_name);
+    PyObject *py_args_after_first = PyTuple_GetSlice(py_args, 1, PY_SSIZE_T_MAX);
+    PyObject *py_msg = PyObject_CallObject(py_func_or_msg, py_args_after_first);
+    Py_DECREF(py_args_after_first);
+
+    bool error = false;
+
+    /* Null for no string. */
+    if (py_msg == nullptr) {
       error = true;
     }
-    Py_DECREF(py_msg);
-  }
+    else {
+      if (py_msg == Py_None) {
+        /* Pass. */
+      }
+      else if (PyUnicode_Check(py_msg)) {
+        Py_ssize_t msg_src_len;
+        const char *msg_src = PyUnicode_AsUTF8AndSize(py_msg, &msg_src_len);
+        msg = BLI_strdupn(msg_src, msg_src_len);
+      }
+      else {
+        PyErr_Format(PyExc_TypeError,
+                     "poll_message_set(function, ...): expected string or None, got %.200s",
+                     Py_TYPE(py_msg)->tp_name);
+        error = true;
+      }
+      Py_DECREF(py_msg);
+    }
 
-  if (error) {
-    PyErr_Print();
-    PyErr_Clear();
+    if (error) {
+      PyErr_Print();
+      PyErr_Clear();
+    }
   }
 
   PyGILState_Release(gilstate);
