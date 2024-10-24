@@ -757,6 +757,10 @@ static PVert *p_vert_copy(ParamHandle *handle, PVert *v)
   nv->edge = v->edge;
   nv->flag = v->flag;
 
+  nv->weight = v->weight;
+  nv->on_boundary_flag = v->on_boundary_flag;
+  nv->slim_id = v->slim_id;
+
   return nv;
 }
 
