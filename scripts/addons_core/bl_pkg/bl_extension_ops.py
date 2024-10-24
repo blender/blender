@@ -1083,13 +1083,20 @@ def _extensions_repo_refresh_on_change(repo_cache_store, *, extensions_enabled, 
 
     if compat_calc:
         # NOTE: `extensions_enabled` may contain add-ons which are not yet enabled (these are pending).
-        # These will *not* have their compatibility information refreshed here.
-        # This is acceptable because:
-        # - Installing & enabling an extension relies on the extension being compatible,
-        #   so it can be assumed to already be the compatible.
-        # - If the add-on existed and was incompatible it *will* have it's compatibility recalculated.
-        # - Any missing cache entries will cause cache to be re-generated on next start or from an explicit refresh.
-        addon_utils.extensions_refresh(ensure_wheels=False)
+        # They *must* have their compatibility information refreshed here,
+        # even though compatibility is guaranteed based on the code-path that calls this function.
+        #
+        # Without updating compatibility information, un-installing the extensions won't detect the
+        # add-on as having been removed and won't remove any wheels the extension may use, see #125958.
+        addon_modules_pending = None if extensions_enabled is None else ([
+            "{:s}{:s}.{:s}".format(_ext_base_pkg_idname_with_dot, repo_module, pkg_id)
+            for repo_module, pkg_id in extensions_enabled
+        ])
+
+        addon_utils.extensions_refresh(
+            ensure_wheels=False,
+            addon_modules_pending=addon_modules_pending,
+        )
 
     if stats_calc:
         repo_stats_calc()
@@ -3377,7 +3384,7 @@ class EXTENSIONS_OT_package_uninstall(Operator, _ExtCmdMixIn):
 
         _extensions_repo_refresh_on_change(
             repo_cache_store,
-            extensions_enabled=None,
+            extensions_enabled=_extensions_enabled(),
             compat_calc=True,
             stats_calc=True,
         )
