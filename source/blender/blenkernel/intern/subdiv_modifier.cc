@@ -101,6 +101,12 @@ static bool is_subdivision_evaluation_possible_on_gpu()
     return false;
   }
 
+  /* Now that we know it is OpenGL, check for Qualcomm GPUs,
+   * which GPU subdiv is broken on some of (#124515) */
+  if (GPU_type_matches(GPU_DEVICE_QUALCOMM, GPU_OS_WIN, GPU_DRIVER_ANY)) {
+    return false;
+  }
+
   if (GPU_max_compute_shader_storage_blocks() < MAX_GPU_SUBDIV_SSBOS) {
     return false;
   }
