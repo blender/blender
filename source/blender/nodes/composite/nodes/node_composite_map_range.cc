@@ -65,6 +65,11 @@ static void node_composit_buts_map_range(uiLayout *layout, bContext * /*C*/, Poi
 
 using namespace blender::realtime_compositor;
 
+static bool get_should_clamp(const bNode &node)
+{
+  return node.custom1;
+}
+
 class MapRangeShaderNode : public ShaderNode {
  public:
   using ShaderNode::ShaderNode;
@@ -74,7 +79,7 @@ class MapRangeShaderNode : public ShaderNode {
     GPUNodeStack *inputs = get_inputs_array();
     GPUNodeStack *outputs = get_outputs_array();
 
-    const float should_clamp = get_should_clamp();
+    const float should_clamp = get_should_clamp(bnode());
 
     GPU_stack_link(material,
                    &bnode(),
@@ -82,11 +87,6 @@ class MapRangeShaderNode : public ShaderNode {
                    inputs,
                    outputs,
                    GPU_constant(&should_clamp));
-  }
-
-  bool get_should_clamp()
-  {
-    return bnode().custom1;
   }
 };
 
@@ -158,7 +158,7 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
       },
       mf::build::exec_presets::SomeSpanOrSingle<0>());
 
-  const bool should_clamp = builder.node().custom1;
+  const bool should_clamp = get_should_clamp(builder.node());
   if (should_clamp) {
     builder.set_matching_fn(clamp_function);
   }

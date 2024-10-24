@@ -67,6 +67,16 @@ static void node_composit_buts_map_value(uiLayout *layout, bContext * /*C*/, Poi
 
 using namespace blender::realtime_compositor;
 
+static bool get_use_min(const bNode &node)
+{
+  return node_storage(node).flag & TEXMAP_CLIP_MIN;
+}
+
+static bool get_use_max(const bNode &node)
+{
+  return node_storage(node).flag & TEXMAP_CLIP_MAX;
+}
+
 class MapValueShaderNode : public ShaderNode {
  public:
   using ShaderNode::ShaderNode;
@@ -78,8 +88,8 @@ class MapValueShaderNode : public ShaderNode {
 
     const TexMapping &texture_mapping = node_storage(bnode());
 
-    const float use_min = get_use_min();
-    const float use_max = get_use_max();
+    const float use_min = get_use_min(bnode());
+    const float use_max = get_use_max(bnode());
 
     GPU_stack_link(material,
                    &bnode(),
@@ -92,16 +102,6 @@ class MapValueShaderNode : public ShaderNode {
                    GPU_uniform(texture_mapping.min),
                    GPU_constant(&use_max),
                    GPU_uniform(texture_mapping.max));
-  }
-
-  bool get_use_min()
-  {
-    return node_storage(bnode()).flag & TEXMAP_CLIP_MIN;
-  }
-
-  bool get_use_max()
-  {
-    return node_storage(bnode()).flag & TEXMAP_CLIP_MAX;
   }
 };
 
@@ -138,8 +138,8 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
   const float size = texture_mapping.size[0];
   const float min = texture_mapping.min[0];
   const float max = texture_mapping.max[0];
-  const bool use_min = texture_mapping.flag & TEXMAP_CLIP_MIN;
-  const bool use_max = texture_mapping.flag & TEXMAP_CLIP_MAX;
+  const bool use_min = get_use_min(builder.node());
+  const bool use_max = get_use_max(builder.node());
 
   if (use_min) {
     if (use_max) {

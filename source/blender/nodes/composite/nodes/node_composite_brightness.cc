@@ -50,6 +50,11 @@ static void node_composit_buts_brightcontrast(uiLayout *layout, bContext * /*C*/
 
 using namespace blender::realtime_compositor;
 
+static bool get_use_premultiply(const bNode &node)
+{
+  return node.custom1;
+}
+
 class BrightContrastShaderNode : public ShaderNode {
  public:
   using ShaderNode::ShaderNode;
@@ -59,7 +64,7 @@ class BrightContrastShaderNode : public ShaderNode {
     GPUNodeStack *inputs = get_inputs_array();
     GPUNodeStack *outputs = get_outputs_array();
 
-    const float use_premultiply = get_use_premultiply();
+    const float use_premultiply = get_use_premultiply(bnode());
 
     GPU_stack_link(material,
                    &bnode(),
@@ -67,11 +72,6 @@ class BrightContrastShaderNode : public ShaderNode {
                    inputs,
                    outputs,
                    GPU_constant(&use_premultiply));
-  }
-
-  bool get_use_premultiply()
-  {
-    return bnode().custom1;
   }
 };
 
@@ -131,7 +131,7 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
       },
       mf::build::exec_presets::SomeSpanOrSingle<0>());
 
-  const bool use_premultiply = builder.node().custom1;
+  const bool use_premultiply = get_use_premultiply(builder.node());
   if (use_premultiply) {
     builder.set_matching_fn(premultiply_used_function);
   }
