@@ -410,9 +410,20 @@ void WM_main_remove_notifier_reference(const void *reference)
         const bool removed = BLI_gset_remove(wm->notifier_queue_set, note, nullptr);
         BLI_assert(removed);
         UNUSED_VARS_NDEBUG(removed);
-        /* Don't remove because this causes problems for #wm_event_do_notifiers
-         * which may be looping on the data (deleting screens). */
-        wm_notifier_clear(note);
+
+        /* Remove unless this is being iterated over by the caller.
+         * This is done to prevent `wm->notifier_queue` accumulating notifiers
+         * that aren't handled which can happen when notifiers are added from Python scripts.
+         * see #129323. */
+        if (wm->notifier_current == note) {
+          /* Don't remove because this causes problems for #wm_event_do_notifiers
+           * which may be looping on the data (deleting screens). */
+          wm_notifier_clear(note);
+        }
+        else {
+          BLI_remlink(&wm->notifier_queue, note);
+          MEM_freeN(note);
+        }
       }
     }
 
@@ -570,7 +581,20 @@ void wm_event_do_notifiers(bContext *C)
 
     CTX_wm_window_set(C, win);
 
-    LISTBASE_FOREACH_MUTABLE (const wmNotifier *, note, &wm->notifier_queue) {
+    BLI_assert(wm->notifier_current == nullptr);
+    for (const wmNotifier *note = static_cast<const wmNotifier *>(wm->notifier_queue.first),
+                          *note_next = nullptr;
+         note;
+         note = note_next)
+    {
+      if (wm_notifier_is_clear(note)) {
+        note_next = note->next;
+        MEM_freeN((void *)note);
+        continue;
+      }
+
+      wm->notifier_current = note;
+
       if (note->category == NC_WM) {
         if (ELEM(note->data, ND_FILEREAD, ND_FILESAVE)) {
           wm->file_saved = 1;
@@ -640,6 +664,14 @@ void wm_event_do_notifiers(bContext *C)
       if (ELEM(note->category, NC_SCENE, NC_OBJECT, NC_GEOM, NC_WM)) {
         clear_info_stats = true;
       }
+
+      wm->notifier_current = nullptr;
+
+      note_next = note->next;
+      if (wm_notifier_is_clear(note)) {
+        BLI_remlink(&wm->notifier_queue, (void *)note);
+        MEM_freeN((void *)note);
+      }
     }
 
     if (clear_info_stats) {
@@ -662,6 +694,8 @@ void wm_event_do_notifiers(bContext *C)
     }
   }
 
+  BLI_assert(wm->notifier_current == nullptr);
+
   /* The notifiers are sent without context, to keep it clean. */
   while (
       const wmNotifier *note = static_cast<const wmNotifier *>(BLI_pophead(&wm->notifier_queue)))
@@ -670,6 +704,8 @@ void wm_event_do_notifiers(bContext *C)
       MEM_freeN((void *)note);
       continue;
     }
+    /* NOTE: no need to set `wm->notifier_current` since it's been removed from the queue. */
+
     const bool removed = BLI_gset_remove(wm->notifier_queue_set, note, nullptr);
     BLI_assert(removed);
     UNUSED_VARS_NDEBUG(removed);
