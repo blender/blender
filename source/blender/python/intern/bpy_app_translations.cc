@@ -867,9 +867,13 @@ static PyObject *app_translations_new(PyTypeObject *type, PyObject * /*args*/, P
   return (PyObject *)_translations;
 }
 
-static void app_translations_free(void *obj)
+static void app_translations_free(BlenderAppTranslations *self)
 {
-  PyObject_Del(obj);
+  Py_DECREF(self->contexts);
+  Py_DECREF(self->contexts_C_to_py);
+  Py_DECREF(self->py_messages);
+
+  PyObject_Del(self);
 #ifdef WITH_INTERNATIONAL
   _clear_translations_cache();
 #endif
@@ -921,7 +925,7 @@ static PyTypeObject BlenderAppTranslationsType = {
     /*tp_init*/ nullptr,
     /*tp_alloc*/ nullptr,
     /*tp_new*/ (newfunc)app_translations_new,
-    /*tp_free*/ app_translations_free,
+    /*tp_free*/ (freefunc)app_translations_free,
     /*tp_is_gc*/ nullptr,
     /*tp_bases*/ nullptr,
     /*tp_mro*/ nullptr,
