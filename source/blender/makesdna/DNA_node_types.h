@@ -2202,15 +2202,6 @@ enum {
   NODE_PROXY_AUTOTYPE = 1,
 };
 
-/* Comp channel matte. */
-
-enum {
-  CMP_NODE_CHANNEL_MATTE_CS_RGB = 1,
-  CMP_NODE_CHANNEL_MATTE_CS_HSV = 2,
-  CMP_NODE_CHANNEL_MATTE_CS_YUV = 3,
-  CMP_NODE_CHANNEL_MATTE_CS_YCC = 4,
-};
-
 /* Conductive fresnel types */
 enum {
   SHD_PHYSICAL_CONDUCTOR = 0,
@@ -2827,6 +2818,14 @@ typedef enum CMPNodeCryptomatteSource {
   CMP_NODE_CRYPTOMATTE_SOURCE_RENDER = 0,
   CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE = 1,
 } CMPNodeCryptomatteSource;
+
+/* Channel Matte node, stored in custom1. */
+typedef enum CMPNodeChannelMatteColorSpace {
+  CMP_NODE_CHANNEL_MATTE_CS_RGB = 1,
+  CMP_NODE_CHANNEL_MATTE_CS_HSV = 2,
+  CMP_NODE_CHANNEL_MATTE_CS_YUV = 3,
+  CMP_NODE_CHANNEL_MATTE_CS_YCC = 4,
+} CMPNodeChannelMatteColorSpace;
 
 /* Point Density shader node */
 
