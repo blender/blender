@@ -6,6 +6,8 @@
  * \ingroup cmpnodes
  */
 
+#include "BLI_math_base.hh"
+#include "BLI_math_color.h"
 #include "BLI_math_vector_types.hh"
 
 #include "FN_multi_function_builder.hh"
@@ -69,6 +71,22 @@ static void node_composit_buts_color_matte(uiLayout *layout, bContext * /*C*/, P
 
 using namespace blender::realtime_compositor;
 
+static float get_hue_epsilon(const bNode &node)
+{
+  /* Divide by 2 because the hue wraps around. */
+  return node_storage(node).t1 / 2.0f;
+}
+
+static float get_saturation_epsilon(const bNode &node)
+{
+  return node_storage(node).t2;
+}
+
+static float get_value_epsilon(const bNode &node)
+{
+  return node_storage(node).t3;
+}
+
 class ColorMatteShaderNode : public ShaderNode {
  public:
   using ShaderNode::ShaderNode;
@@ -78,9 +96,9 @@ class ColorMatteShaderNode : public ShaderNode {
     GPUNodeStack *inputs = get_inputs_array();
     GPUNodeStack *outputs = get_outputs_array();
 
-    const float hue_epsilon = get_hue_epsilon();
-    const float saturation_epsilon = get_saturation_epsilon();
-    const float value_epsilon = get_value_epsilon();
+    const float hue_epsilon = get_hue_epsilon(bnode());
+    const float saturation_epsilon = get_saturation_epsilon(bnode());
+    const float value_epsilon = get_value_epsilon(bnode());
 
     GPU_stack_link(material,
                    &bnode(),
@@ -91,22 +109,6 @@ class ColorMatteShaderNode : public ShaderNode {
                    GPU_uniform(&saturation_epsilon),
                    GPU_uniform(&value_epsilon));
   }
-
-  float get_hue_epsilon()
-  {
-    /* Divide by 2 because the hue wraps around. */
-    return node_storage(bnode()).t1 / 2.0f;
-  }
-
-  float get_saturation_epsilon()
-  {
-    return node_storage(bnode()).t2;
-  }
-
-  float get_value_epsilon()
-  {
-    return node_storage(bnode()).t3;
-  }
 };
 
 static ShaderNode *get_compositor_shader_node(DNode node)
@@ -114,20 +116,52 @@ static ShaderNode *get_compositor_shader_node(DNode node)
   return new ColorMatteShaderNode(node);
 }
 
+static void color_matte(const float4 color,
+                        const float4 key,
+                        const float hue_epsilon,
+                        const float saturation_epsilon,
+                        const float value_epsilon,
+                        float4 &result,
+                        float &matte)
+{
+  float3 color_hsva;
+  rgb_to_hsv_v(color, color_hsva);
+  float3 key_hsva;
+  rgb_to_hsv_v(key, key_hsva);
+
+  bool is_within_saturation = math::distance(color_hsva.y, key_hsva.y) < saturation_epsilon;
+  bool is_within_value = math::distance(color_hsva.z, key_hsva.z) < value_epsilon;
+  bool is_within_hue = math::distance(color_hsva.x, key_hsva.x) < hue_epsilon;
+  /* Hue wraps around, so check the distance around the boundary. */
+  float min_hue = math::min(color_hsva.x, key_hsva.x);
+  float max_hue = math::max(color_hsva.x, key_hsva.x);
+  is_within_hue = is_within_hue || ((min_hue + (1.0f - max_hue)) < hue_epsilon);
+
+  matte = (is_within_hue && is_within_saturation && is_within_value) ? 0.0f : color.w;
+  result = color * matte;
+}
+
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  /* Not yet implemented. Return zero. */
-  static auto function = mf::build::SI2_SO2<float4, float4, float4, float>(
-      "Color Key",
-      [](const float4 & /*color*/,
-         const float4 & /*key_color*/,
-         float4 &output_color,
-         float &matte) -> void {
-        output_color = float4(0.0f);
-        matte = 0.0f;
-      },
-      mf::build::exec_presets::AllSpanOrSingle());
-  builder.set_matching_fn(function);
+  const float hue_epsilon = get_hue_epsilon(builder.node());
+  const float saturation_epsilon = get_saturation_epsilon(builder.node());
+  const float value_epsilon = get_value_epsilon(builder.node());
+
+  builder.construct_and_set_matching_fn_cb([=]() {
+    return mf::build::SI2_SO2<float4, float4, float4, float>(
+        "Color Key",
+        [=](const float4 &color, const float4 &key_color, float4 &output_color, float &matte)
+            -> void {
+          color_matte(color,
+                      key_color,
+                      hue_epsilon,
+                      saturation_epsilon,
+                      value_epsilon,
+                      output_color,
+                      matte);
+        },
+        mf::build::exec_presets::AllSpanOrSingle());
+  });
 }
 
 }  // namespace blender::nodes::node_composite_color_matte_cc
