@@ -54,6 +54,13 @@
 #define STR_MB_ALPHA_3 "\xe0\xa0\x80"
 #define STR_MB_ALPHA_4 "\xf0\x90\x80\x80"
 
+/* These don't decode into valid code-points and wont work in all UTF8 functions.
+ * Use them for functions which support up to #BLI_UTF8_MAX, where failure to test
+ * 5 & 6 byte sequences would cause test coverage to be incomplete.
+ * See https://stackoverflow.com/a/35027139 for details. */
+#define STR_MB_ALPHA_5 "\xf8\x80\x80\x80\x80"
+#define STR_MB_ALPHA_6 "\xfc\x80\x80\x80\x80\x80"
+
 /* -------------------------------------------------------------------- */
 /** \name Test #BLI_str_utf8_invalid_strip
  * \{ */
@@ -328,6 +335,66 @@ TEST(string, Utf8InvalidBytes)
     EXPECT_EQ(errors_found_num, errors_num);
     EXPECT_STREQ(buff, tst_stripped);
   }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Test #BLI_strnlen_utf8
+ * \{ */
+
+TEST(string, StringNLenUTF8)
+{
+  EXPECT_EQ(BLI_strnlen_utf8("", 0), 0);
+  EXPECT_EQ(BLI_strnlen_utf8("", 1), 0);
+  EXPECT_EQ(BLI_strnlen_utf8(STR_MB_ALPHA_6, 6), 1);
+}
+
+TEST(string, StringNLenUTF8_Incomplete)
+{
+  const char *ref_str =
+      STR_MB_ALPHA_1 STR_MB_ALPHA_2 STR_MB_ALPHA_3 STR_MB_ALPHA_4 STR_MB_ALPHA_5 STR_MB_ALPHA_6;
+  char buf[22];
+  const size_t ref_str_len = 21;
+
+#define EXPECT_BYTE_OFFSET(truncate_ofs, expect_nchars) \
+  { \
+    size_t buf_ofs = 0; \
+    strcpy(buf, ref_str); \
+    buf[truncate_ofs] = '\0'; \
+    EXPECT_EQ(BLI_strnlen_utf8_ex(buf, ref_str_len, &buf_ofs), expect_nchars); \
+    EXPECT_EQ(buf_ofs, truncate_ofs); \
+  }
+
+  EXPECT_BYTE_OFFSET(0, 0);
+  EXPECT_BYTE_OFFSET(1, 1);
+
+  EXPECT_BYTE_OFFSET(2, 2);
+  EXPECT_BYTE_OFFSET(3, 2);
+
+  EXPECT_BYTE_OFFSET(4, 3);
+  EXPECT_BYTE_OFFSET(5, 3);
+  EXPECT_BYTE_OFFSET(6, 3);
+
+  EXPECT_BYTE_OFFSET(7, 4);
+  EXPECT_BYTE_OFFSET(8, 4);
+  EXPECT_BYTE_OFFSET(9, 4);
+  EXPECT_BYTE_OFFSET(10, 4);
+
+  EXPECT_BYTE_OFFSET(11, 5);
+  EXPECT_BYTE_OFFSET(12, 5);
+  EXPECT_BYTE_OFFSET(13, 5);
+  EXPECT_BYTE_OFFSET(14, 5);
+  EXPECT_BYTE_OFFSET(15, 5);
+
+  EXPECT_BYTE_OFFSET(16, 6);
+  EXPECT_BYTE_OFFSET(17, 6);
+  EXPECT_BYTE_OFFSET(18, 6);
+  EXPECT_BYTE_OFFSET(19, 6);
+  EXPECT_BYTE_OFFSET(20, 6);
+  EXPECT_BYTE_OFFSET(21, 6);
+
+#undef EXPECT_BYTE_OFFSET
 }
 
 /** \} */
