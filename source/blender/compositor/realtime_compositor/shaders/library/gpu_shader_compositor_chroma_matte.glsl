@@ -21,7 +21,7 @@ void node_composite_chroma_matte(vec4 color,
 
   /* Normalize the CrCb components into the [-1, 1] range. */
   vec2 color_cc = color_ycca.yz * 2.0 - 1.0;
-  vec2 key_cc = key_ycca.yz * 2.0 - 1.0;
+  vec2 key_cc = normalize(key_ycca.yz * 2.0 - 1.0);
 
   /* Rotate the color onto the space of the key such that x axis of the color space passes through
    * the key color. */

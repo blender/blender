@@ -221,6 +221,12 @@ template<typename MatT, typename RotationT, int ScaleDim>
                                       const VecBase<typename MatT::base_type, ScaleDim> &scale);
 
 /**
+ * Create a rotation matrix with the angle that the given direction makes with the x axis. Assumes
+ * the direction vector is normalized.
+ */
+template<typename T> [[nodiscard]] MatBase<T, 2, 2> from_direction(const VecBase<T, 2> &direction);
+
+/**
  * Create a rotation matrix from 2 basis vectors.
  * The matrix determinant is given to be positive and it can be converted to other rotation types.
  * \note `forward` and `up` must be normalized.
@@ -1423,6 +1429,13 @@ template<typename MatT, int ScaleDim>
   MatT mat = MatT(from_scale<MatT>(scale));
   mat.location() = location;
   return mat;
+}
+
+template<typename T> MatBase<T, 2, 2> from_direction(const VecBase<T, 2> &direction)
+{
+  BLI_assert(is_unit_scale(direction));
+  return MatBase<T, 2, 2>(direction,
+                          VecBase<T, 2>(direction.y, direction.x) * VecBase<T, 2>(-1, 1));
 }
 
 template<typename MatT, typename VectorT>
