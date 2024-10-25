@@ -145,7 +145,6 @@ static bool leaf_needs_material_split(const Span<int> faces, const Span<int> mat
   const int first = material_indices[faces.first()];
   return std::any_of(
       faces.begin(), faces.end(), [&](const int face) { return material_indices[face] != first; });
-  return false;
 }
 
 static void build_nodes_recursive_mesh(const Span<int> material_indices,
