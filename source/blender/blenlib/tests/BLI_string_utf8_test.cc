@@ -340,6 +340,66 @@ TEST(string, Utf8InvalidBytes)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Test #BLI_strnlen_utf8
+ * \{ */
+
+TEST(string, StringNLenUTF8)
+{
+  EXPECT_EQ(BLI_strnlen_utf8("", 0), 0);
+  EXPECT_EQ(BLI_strnlen_utf8("", 1), 0);
+  EXPECT_EQ(BLI_strnlen_utf8(STR_MB_ALPHA_6, 6), 1);
+}
+
+TEST(string, StringNLenUTF8_Incomplete)
+{
+  const char *ref_str =
+      STR_MB_ALPHA_1 STR_MB_ALPHA_2 STR_MB_ALPHA_3 STR_MB_ALPHA_4 STR_MB_ALPHA_5 STR_MB_ALPHA_6;
+  char buf[22];
+  const size_t ref_str_len = 21;
+
+#define EXPECT_BYTE_OFFSET(truncate_ofs, expect_nchars) \
+  { \
+    size_t buf_ofs = 0; \
+    strcpy(buf, ref_str); \
+    buf[truncate_ofs] = '\0'; \
+    EXPECT_EQ(BLI_strnlen_utf8_ex(buf, ref_str_len, &buf_ofs), expect_nchars); \
+    EXPECT_EQ(buf_ofs, truncate_ofs); \
+  }
+
+  EXPECT_BYTE_OFFSET(0, 0);
+  EXPECT_BYTE_OFFSET(1, 1);
+
+  EXPECT_BYTE_OFFSET(2, 2);
+  EXPECT_BYTE_OFFSET(3, 2);
+
+  EXPECT_BYTE_OFFSET(4, 3);
+  EXPECT_BYTE_OFFSET(5, 3);
+  EXPECT_BYTE_OFFSET(6, 3);
+
+  EXPECT_BYTE_OFFSET(7, 4);
+  EXPECT_BYTE_OFFSET(8, 4);
+  EXPECT_BYTE_OFFSET(9, 4);
+  EXPECT_BYTE_OFFSET(10, 4);
+
+  EXPECT_BYTE_OFFSET(11, 5);
+  EXPECT_BYTE_OFFSET(12, 5);
+  EXPECT_BYTE_OFFSET(13, 5);
+  EXPECT_BYTE_OFFSET(14, 5);
+  EXPECT_BYTE_OFFSET(15, 5);
+
+  EXPECT_BYTE_OFFSET(16, 6);
+  EXPECT_BYTE_OFFSET(17, 6);
+  EXPECT_BYTE_OFFSET(18, 6);
+  EXPECT_BYTE_OFFSET(19, 6);
+  EXPECT_BYTE_OFFSET(20, 6);
+  EXPECT_BYTE_OFFSET(21, 6);
+
+#undef EXPECT_BYTE_OFFSET
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Test #BLI_strncpy_utf8
  * \{ */
 
