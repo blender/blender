@@ -867,11 +867,11 @@ def dump_src_messages(msgs, reports, settings):
     forced = set()
     if os.path.isfile(settings.SRC_POTFILES):
         with open(settings.SRC_POTFILES, encoding="utf8") as src:
-            for l in src:
-                if l[0] == '-':
-                    forbidden.add(l[1:].rstrip('\n'))
-                elif l[0] != '#':
-                    forced.add(l.rstrip('\n'))
+            for line in src:
+                if line[0] == '-':
+                    forbidden.add(line[1:].rstrip('\n'))
+                elif line[0] != '#':
+                    forced.add(line.rstrip('\n'))
     for root, dirs, files in os.walk(settings.POTFILES_SOURCE_DIR):
         if "/.git" in root:
             continue

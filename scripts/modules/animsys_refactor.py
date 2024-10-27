@@ -102,11 +102,12 @@ class DataPathBuilder:
 
 
 def id_iter():
-    type_iter = type(bpy.data.objects)
+    from bpy.types import bpy_prop_collection
+    assert isinstance(bpy.data.objects, bpy_prop_collection)
 
     for attr in dir(bpy.data):
         data_iter = getattr(bpy.data, attr, None)
-        if type(data_iter) == type_iter:
+        if isinstance(data_iter, bpy_prop_collection):
             for id_data in data_iter:
                 if id_data.library is None:
                     yield id_data

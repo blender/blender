@@ -43,7 +43,7 @@ def _keymap_fn_from_seq(keymap_data):
 
 
 def _item_is_fn(item):
-    return (not (type(item) is ToolDef) and callable(item))
+    return ((type(item) is not ToolDef) and callable(item))
 
 
 from collections import namedtuple
