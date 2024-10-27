@@ -76,7 +76,7 @@ import blendfile
 def json_default(o):
     if isinstance(o, bytes):
         return repr(o)[2:-1]
-    elif i is ...:
+    elif o is ...:
         return "<...>"
     return o
 
