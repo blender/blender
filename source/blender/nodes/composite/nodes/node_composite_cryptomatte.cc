@@ -708,33 +708,6 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
     return Domain::identity();
   }
 
-  /* In case of a render source, the domain should be centered with the same size as the render. In
-   * case of an invalid render, fallback to the domain inferred from the input. */
-  Domain compute_render_domain()
-  {
-    BLI_assert(get_source() == CMP_NODE_CRYPTOMATTE_SOURCE_RENDER);
-
-    Scene *scene = get_scene();
-    if (!scene) {
-      return NodeOperation::compute_domain();
-    }
-
-    Render *render = RE_GetSceneRender(scene);
-    if (!render) {
-      return NodeOperation::compute_domain();
-    }
-
-    RenderResult *render_result = RE_AcquireResultRead(render);
-    if (!render_result) {
-      RE_ReleaseResult(render);
-      return NodeOperation::compute_domain();
-    }
-
-    const int2 render_size = int2(render_result->rectx, render_result->rectx);
-    RE_ReleaseResult(render);
-    return Domain(render_size);
-  }
-
   /* In case of an image source, the domain should be centered with the same size as the source
    * image. In case of an invalid image, fallback to the domain inferred from the input. */
   Domain compute_image_domain()
