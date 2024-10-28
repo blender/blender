@@ -7738,7 +7738,10 @@ static const char *system_clipboard_text_mime_type(
   return nullptr;
 }
 
-static char *system_clipboard_get_primary_selection(GWL_Display *display)
+static char *system_clipboard_get_primary_selection(GWL_Display *display,
+                                                    const bool nil_terminate,
+                                                    const char *mime_receive_override,
+                                                    size_t *r_data_len)
 {
   GWL_Seat *seat = gwl_display_seat_active_get(display);
   if (UNLIKELY(!seat)) {
@@ -7753,30 +7756,35 @@ static char *system_clipboard_get_primary_selection(GWL_Display *display)
 
   GWL_PrimarySelection_DataOffer *data_offer = primary->data_offer;
   if (data_offer != nullptr) {
-    const char *mime_receive = system_clipboard_text_mime_type(data_offer->types);
+    const char *mime_receive = mime_receive_override ?
+                                   mime_receive_override :
+                                   system_clipboard_text_mime_type(data_offer->types);
     if (mime_receive) {
       /* Receive the clipboard in a thread, performing round-trips while waiting.
        * This is needed so pasting contents from our own `primary->data_source` doesn't hang. */
       struct ThreadResult {
         char *data = nullptr;
+        size_t data_len = 0;
         std::atomic<bool> done = false;
       } thread_result;
       auto read_clipboard_fn = [](GWL_PrimarySelection_DataOffer *data_offer,
+                                  const bool nil_terminate,
                                   const char *mime_receive,
                                   std::mutex *mutex,
                                   ThreadResult *thread_result) {
-        size_t data_len = 0;
         thread_result->data = read_buffer_from_primary_selection_offer(
-            data_offer, mime_receive, mutex, true, &data_len);
+            data_offer, mime_receive, mutex, nil_terminate, &thread_result->data_len);
         thread_result->done = true;
       };
-      std::thread read_thread(read_clipboard_fn, data_offer, mime_receive, &mutex, &thread_result);
+      std::thread read_thread(
+          read_clipboard_fn, data_offer, nil_terminate, mime_receive, &mutex, &thread_result);
       read_thread.detach();
 
       while (!thread_result.done) {
         wl_display_roundtrip(display->wl.display);
       }
       data = thread_result.data;
+      *r_data_len = thread_result.data_len;
 
       /* Reading the data offer unlocks the mutex. */
       mutex_locked = false;
@@ -7788,7 +7796,10 @@ static char *system_clipboard_get_primary_selection(GWL_Display *display)
   return data;
 }
 
-static char *system_clipboard_get(GWL_Display *display)
+static char *system_clipboard_get(GWL_Display *display,
+                                  bool nil_terminate,
+                                  const char *mime_receive_override,
+                                  size_t *r_data_len)
 {
   GWL_Seat *seat = gwl_display_seat_active_get(display);
   if (UNLIKELY(!seat)) {
@@ -7802,30 +7813,35 @@ static char *system_clipboard_get(GWL_Display *display)
 
   GWL_DataOffer *data_offer = seat->data_offer_copy_paste;
   if (data_offer != nullptr) {
-    const char *mime_receive = system_clipboard_text_mime_type(data_offer->types);
+    const char *mime_receive = mime_receive_override ?
+                                   mime_receive_override :
+                                   system_clipboard_text_mime_type(data_offer->types);
     if (mime_receive) {
       /* Receive the clipboard in a thread, performing round-trips while waiting.
        * This is needed so pasting contents from our own `seat->data_source` doesn't hang. */
       struct ThreadResult {
         char *data = nullptr;
+        size_t data_len = 0;
         std::atomic<bool> done = false;
       } thread_result;
       auto read_clipboard_fn = [](GWL_DataOffer *data_offer,
+                                  const bool nil_terminate,
                                   const char *mime_receive,
                                   std::mutex *mutex,
                                   ThreadResult *thread_result) {
-        size_t data_len = 0;
         thread_result->data = read_buffer_from_data_offer(
-            data_offer, mime_receive, mutex, true, &data_len);
+            data_offer, mime_receive, mutex, nil_terminate, &thread_result->data_len);
         thread_result->done = true;
       };
-      std::thread read_thread(read_clipboard_fn, data_offer, mime_receive, &mutex, &thread_result);
+      std::thread read_thread(
+          read_clipboard_fn, data_offer, nil_terminate, mime_receive, &mutex, &thread_result);
       read_thread.detach();
 
       while (!thread_result.done) {
         wl_display_roundtrip(display->wl.display);
       }
       data = thread_result.data;
+      *r_data_len = thread_result.data_len;
 
       /* Reading the data offer unlocks the mutex. */
       mutex_locked = false;
@@ -7843,12 +7859,14 @@ char *GHOST_SystemWayland::getClipboard(bool selection) const
   std::lock_guard lock_server_guard{*server_mutex};
 #endif
 
+  const bool nil_terminate = true;
   char *data = nullptr;
+  size_t data_len = 0;
   if (selection) {
-    data = system_clipboard_get_primary_selection(display_);
+    data = system_clipboard_get_primary_selection(display_, nil_terminate, nullptr, &data_len);
   }
   else {
-    data = system_clipboard_get(display_);
+    data = system_clipboard_get(display_, nil_terminate, nullptr, &data_len);
   }
   return data;
 }
@@ -7965,69 +7983,37 @@ uint *GHOST_SystemWayland::getClipboardImage(int *r_width, int *r_height) const
     return nullptr;
   }
 
-  std::mutex &mutex = seat->data_offer_copy_paste_mutex;
-  mutex.lock();
-  bool mutex_locked = true;
-
   uint *rgba = nullptr;
 
   GWL_DataOffer *data_offer = seat->data_offer_copy_paste;
   if (data_offer) {
+    ImBuf *ibuf = nullptr;
+
     /* Check if the source offers a supported mime type.
      * This check could be skipped, because the paste option is not supposed to be enabled
      * otherwise. */
     if (data_offer->types.count(ghost_wl_mime_img_png)) {
-      /* Receive the clipboard in a thread, performing round-trips while waiting,
-       * so pasting content from own `primary->data_source` doesn't hang. */
-      struct ThreadResult {
-        char *data = nullptr;
-        size_t data_len = 0;
-        std::atomic<bool> done = false;
-      } thread_result;
+      size_t data_len = 0;
+      char *data = system_clipboard_get(display_, false, ghost_wl_mime_img_png, &data_len);
 
-      auto read_clipboard_fn = [](GWL_DataOffer *data_offer,
-                                  const char *mime_receive,
-                                  std::mutex *mutex,
-                                  ThreadResult *thread_result) {
-        thread_result->data = read_buffer_from_data_offer(
-            data_offer, mime_receive, mutex, false, &thread_result->data_len);
-        thread_result->done = true;
-      };
-      std::thread read_thread(
-          read_clipboard_fn, data_offer, ghost_wl_mime_img_png, &mutex, &thread_result);
-      read_thread.detach();
-
-      while (!thread_result.done) {
-        wl_display_roundtrip(display_->wl.display);
-      }
-
-      if (thread_result.data) {
+      if (data) {
         /* Generate the image buffer with the received data. */
-        ImBuf *ibuf = IMB_ibImageFromMemory((uint8_t *)thread_result.data,
-                                            thread_result.data_len,
-                                            IB_rect,
-                                            nullptr,
-                                            "<clipboard>");
-        free(thread_result.data);
-
-        if (ibuf) {
-          *r_width = ibuf->x;
-          *r_height = ibuf->y;
-          const size_t byte_count = size_t(ibuf->x) * size_t(ibuf->y) * 4;
-          rgba = (uint *)malloc(byte_count);
-          std::memcpy(rgba, ibuf->byte_buffer.data, byte_count);
-          IMB_freeImBuf(ibuf);
-        }
+        ibuf = IMB_ibImageFromMemory(
+            (const uint8_t *)data, data_len, IB_rect, nullptr, "<clipboard>");
+        free(data);
       }
+    }
 
-      /* After reading the data offer, the mutex gets unlocked. */
-      mutex_locked = false;
+    if (ibuf) {
+      *r_width = ibuf->x;
+      *r_height = ibuf->y;
+      const size_t byte_count = size_t(ibuf->x) * size_t(ibuf->y) * 4;
+      rgba = (uint *)malloc(byte_count);
+      std::memcpy(rgba, ibuf->byte_buffer.data, byte_count);
+      IMB_freeImBuf(ibuf);
     }
   }
 
-  if (mutex_locked) {
-    mutex.unlock();
-  }
   return rgba;
 }
 
