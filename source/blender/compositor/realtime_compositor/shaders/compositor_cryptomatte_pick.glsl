@@ -30,7 +30,7 @@ void main()
 
   /* Each layer stores two ranks, each rank contains a pair, the identifier and the coverage of
    * the entity identified by the identifier. */
-  vec2 first_rank = texture_load(first_layer_tx, texel).xy;
+  vec2 first_rank = texture_load(first_layer_tx, texel + lower_bound).xy;
   float id_of_first_rank = first_rank.x;
 
   /* There is no logic to this, we just compute arbitrary compressed versions of the identifier in
