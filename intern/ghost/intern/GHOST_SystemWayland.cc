@@ -2316,6 +2316,47 @@ static const char *ghost_wl_mime_send[] = {
     "text/plain",
 };
 
+/**
+ * Return a list of URI ranges (without the `file://` prefix),
+ * the result should be decoded via #GHOST_URL_decode_alloc before passed to the file-system.
+ */
+static std::vector<std::string_view> gwl_clipboard_uri_ranges(const char *data_buf,
+                                                              size_t data_buf_len)
+{
+  std::vector<std::string_view> uris;
+  const char file_proto[] = "file://";
+  /* NOTE: some applications CRLF (`\r\n`) GTK3 for e.g. & others don't `pcmanfm-qt`.
+   * So support both, once `\n` is found, strip the preceding `\r` if found. */
+  const char lf = '\n';
+
+  const std::string_view data = std::string_view(data_buf, data_buf_len);
+
+  size_t pos = 0;
+  while (pos != std::string::npos) {
+    pos = data.find(file_proto, pos);
+    if (pos == std::string::npos) {
+      break;
+    }
+    const size_t start = pos + sizeof(file_proto) - 1;
+    pos = data.find(lf, pos);
+
+    size_t end = pos;
+    if (UNLIKELY(end == std::string::npos)) {
+      /* Note that most well behaved file managers will add a trailing newline,
+       * Gnome's web browser (44.3) doesn't, so support reading up until the last byte. */
+      end = data.size();
+    }
+    /* Account for 'CRLF' case. */
+    if (data[end - 1] == '\r') {
+      end -= 1;
+    }
+
+    std::string_view data_substr = data.substr(start, end - start);
+    uris.push_back(data_substr);
+  }
+  return uris;
+}
+
 #ifdef USE_EVENT_BACKGROUND_THREAD
 static void pthread_set_min_priority(pthread_t handle)
 {
@@ -3572,43 +3613,7 @@ static void data_device_handle_drop(void *data, wl_data_device * /*wl_data_devic
 
       /* Failure to receive drop data. */
       if (mime_receive == ghost_wl_mime_text_uri) {
-        const char file_proto[] = "file://";
-        /* NOTE: some applications CRLF (`\r\n`) GTK3 for e.g. & others don't `pcmanfm-qt`.
-         * So support both, once `\n` is found, strip the preceding `\r` if found. */
-        const char lf = '\n';
-
-        const std::string_view data = std::string_view(data_buf, data_buf_len);
-        std::vector<std::string_view> uris;
-
-        size_t pos = 0;
-        while (pos != std::string::npos) {
-          pos = data.find(file_proto, pos);
-          if (pos == std::string::npos) {
-            break;
-          }
-          const size_t start = pos + sizeof(file_proto) - 1;
-          pos = data.find(lf, pos);
-
-          size_t end = pos;
-          if (UNLIKELY(end == std::string::npos)) {
-            /* Note that most well behaved file managers will add a trailing newline,
-             * Gnome's web browser (44.3) doesn't, so support reading up until the last byte. */
-            end = data.size();
-          }
-          /* Account for 'CRLF' case. */
-          if (data[end - 1] == '\r') {
-            end -= 1;
-          }
-
-          std::string_view data_substr = data.substr(start, end - start);
-          uris.push_back(data_substr);
-          CLOG_INFO(LOG,
-                    2,
-                    "read_drop_data pos=%zu, text_uri=\"%.*s\"",
-                    start,
-                    int(data_substr.size()),
-                    data_substr.data());
-        }
+        std::vector<std::string_view> uris = gwl_clipboard_uri_ranges(data_buf, data_buf_len);
 
         GHOST_TStringArray *flist = static_cast<GHOST_TStringArray *>(
             malloc(sizeof(GHOST_TStringArray)));
