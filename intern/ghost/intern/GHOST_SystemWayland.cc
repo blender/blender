@@ -7829,6 +7829,8 @@ uint *GHOST_SystemWayland::getClipboardImage(int *r_width, int *r_height) const
                                             IB_rect,
                                             nullptr,
                                             "<clipboard>");
+        free(thread_result.data);
+
         if (ibuf) {
           *r_width = ibuf->x;
           *r_height = ibuf->y;
