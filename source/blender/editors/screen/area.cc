@@ -1411,7 +1411,7 @@ bool ED_region_is_overlap(int spacetype, int regiontype)
   }
   if (U.uiflag2 & USER_REGION_OVERLAP) {
     if (spacetype == SPACE_NODE) {
-      if (regiontype == RGN_TYPE_TOOLS) {
+      if (ELEM(regiontype, RGN_TYPE_TOOLS, RGN_TYPE_UI)) {
         return true;
       }
     }
