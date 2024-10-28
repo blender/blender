@@ -7967,6 +7967,28 @@ GHOST_TSuccess GHOST_SystemWayland::hasClipboardImage(void) const
     if (data_offer->types.count(ghost_wl_mime_img_png)) {
       return GHOST_kSuccess;
     }
+    if (data_offer->types.count(ghost_wl_mime_text_uri)) {
+      const bool nil_terminate = true;
+      size_t data_buf_len = 0;
+      char *data = system_clipboard_get(
+          display_, nil_terminate, ghost_wl_mime_text_uri, &data_buf_len);
+
+      GHOST_TSuccess result = GHOST_kFailure;
+
+      if (data) {
+        std::vector<std::string_view> uris = gwl_clipboard_uri_ranges(data, data_buf_len);
+        if (!uris.empty()) {
+          const std::string_view &uri = uris.front();
+          char *filepath = GHOST_URL_decode_alloc(uri.data(), uri.size());
+          if (IMB_ispic(filepath)) {
+            result = GHOST_kSuccess;
+          }
+          free(filepath);
+        }
+        free(data);
+      }
+      return result;
+    }
   }
 
   return GHOST_kFailure;
@@ -8000,6 +8022,23 @@ uint *GHOST_SystemWayland::getClipboardImage(int *r_width, int *r_height) const
         /* Generate the image buffer with the received data. */
         ibuf = IMB_ibImageFromMemory(
             (const uint8_t *)data, data_len, IB_rect, nullptr, "<clipboard>");
+        free(data);
+      }
+    }
+    else if (data_offer->types.count(ghost_wl_mime_text_uri)) {
+      const bool nil_terminate = true;
+      size_t data_len = 0;
+      char *data = system_clipboard_get(
+          display_, nil_terminate, ghost_wl_mime_text_uri, &data_len);
+
+      if (data) {
+        std::vector<std::string_view> uris = gwl_clipboard_uri_ranges(data, data_len);
+        if (!uris.empty()) {
+          const std::string_view &uri = uris.front();
+          char *filepath = GHOST_URL_decode_alloc(uri.data(), uri.size());
+          ibuf = IMB_loadiffname(filepath, IB_rect, nullptr);
+          free(filepath);
+        }
         free(data);
       }
     }
