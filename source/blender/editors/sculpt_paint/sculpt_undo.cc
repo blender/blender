@@ -1005,7 +1005,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
         const IndexMask changed_nodes = IndexMask::from_predicate(
             node_mask, GrainSize(1), memory, [&](const int i) {
-              return indices_contain_true(modified_faces, nodes[i].all_verts());
+              return indices_contain_true(modified_faces, nodes[i].faces());
             });
         pbvh.tag_face_sets_changed(changed_nodes);
       }
@@ -1037,7 +1037,6 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
 
       restore_geometry(step_data, object);
       BKE_sculptsession_free_deformMats(&ss);
-      BKE_sculpt_update_object_for_edit(depsgraph, &object, false);
       if (SubdivCCG *subdiv_ccg = ss.subdiv_ccg) {
         refine_subdiv(depsgraph, ss, object, subdiv_ccg->subdiv);
       }
