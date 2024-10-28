@@ -22,7 +22,11 @@ class USDSkeletonReader : public USDXformReader {
   {
   }
 
-  bool valid() const override;
+  bool valid() const override
+  {
+    return bool(skel_);
+  }
+
   void create_object(Main *bmain, double motionSampleTime) override;
   void read_object_data(Main *bmain, double motionSampleTime) override;
 };

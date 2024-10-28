@@ -645,6 +645,10 @@ CacheReader *CacheReader_open_usd_object(CacheArchiveHandle *handle,
     /* This object is not supported. */
     return nullptr;
   }
+  if (!usd_reader->valid()) {
+    /* This object is invalid for some reason. */
+    return nullptr;
+  }
   usd_reader->object(object);
   usd_reader->incref();
 

@@ -13,22 +13,17 @@
 
 namespace blender::io::usd {
 
-bool USDSkeletonReader::valid() const
-{
-  return skel_ && USDXformReader::valid();
-}
-
 void USDSkeletonReader::create_object(Main *bmain, const double /*motionSampleTime*/)
 {
-  object_ = BKE_object_add_only_object(bmain, OB_ARMATURE, name_.c_str());
-
   bArmature *arm = BKE_armature_add(bmain, name_.c_str());
+
+  object_ = BKE_object_add_only_object(bmain, OB_ARMATURE, name_.c_str());
   object_->data = arm;
 }
 
 void USDSkeletonReader::read_object_data(Main *bmain, const double motionSampleTime)
 {
-  if (!object_ || !object_->data || !skel_) {
+  if (!object_ || !object_->data) {
     return;
   }
 

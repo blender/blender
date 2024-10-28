@@ -5,6 +5,8 @@
 
 #include "usd_reader_xform.hh"
 
+#include <pxr/usd/usdGeom/pointInstancer.h>
+
 struct Collection;
 
 namespace blender::io::usd {
@@ -12,13 +14,21 @@ namespace blender::io::usd {
 /* Wraps the UsdGeomPointInstancer schema. Creates a Blender point cloud object. */
 
 class USDPointInstancerReader : public USDXformReader {
+ private:
+  pxr::UsdGeomPointInstancer point_instancer_prim_;
 
  public:
   USDPointInstancerReader(const pxr::UsdPrim &prim,
                           const USDImportParams &import_params,
-                          const ImportSettings &settings);
+                          const ImportSettings &settings)
+      : USDXformReader(prim, import_params, settings), point_instancer_prim_(prim)
+  {
+  }
 
-  bool valid() const override;
+  bool valid() const override
+  {
+    return bool(point_instancer_prim_);
+  }
 
   void create_object(Main *bmain, double motionSampleTime) override;
 
