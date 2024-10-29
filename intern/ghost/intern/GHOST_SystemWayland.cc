@@ -7763,6 +7763,10 @@ static char *system_clipboard_get_primary_selection(GWL_Display *display,
     const char *mime_receive = mime_receive_override ?
                                    mime_receive_override :
                                    system_clipboard_text_mime_type(data_offer->types);
+    GHOST_ASSERT((mime_receive_override == nullptr) ||
+                     data_offer->types.count(mime_receive_override) != 0,
+                 "Mime type override not found in data offer, caller must check");
+
     if (mime_receive) {
       /* Receive the clipboard in a thread, performing round-trips while waiting.
        * This is needed so pasting contents from our own `primary->data_source` doesn't hang. */
@@ -7820,6 +7824,10 @@ static char *system_clipboard_get(GWL_Display *display,
     const char *mime_receive = mime_receive_override ?
                                    mime_receive_override :
                                    system_clipboard_text_mime_type(data_offer->types);
+    GHOST_ASSERT((mime_receive_override == nullptr) ||
+                     data_offer->types.count(mime_receive_override) != 0,
+                 "Mime type override not found in data offer, caller must check");
+
     if (mime_receive) {
       /* Receive the clipboard in a thread, performing round-trips while waiting.
        * This is needed so pasting contents from our own `seat->data_source` doesn't hang. */
