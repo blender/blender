@@ -570,8 +570,13 @@ static Mesh *subdivide_edit_mesh(const Object *object,
   BKE_mesh_ensure_default_orig_index_customdata(me_from_em);
 
   bke::subdiv::Settings settings = BKE_subsurf_modifier_settings_init(smd, false);
+  /* A zero level must be prevented by #modifier_unwrap_state
+   * since necessary data won't be available, see: #128958. */
+  BLI_assert(settings.level > 0);
+
+  /* Level 1 causes disconnected triangles, force level 2 to prevent this, see: #129503. */
   if (settings.level == 1) {
-    return me_from_em;
+    settings.level = 2;
   }
 
   bke::subdiv::ToMeshSettings mesh_settings;
