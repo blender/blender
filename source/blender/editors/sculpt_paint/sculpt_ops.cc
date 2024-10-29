@@ -275,8 +275,6 @@ static int symmetrize_exec(bContext *C, wmOperator *op)
       return OPERATOR_CANCELLED;
   }
 
-  islands::invalidate(ss);
-
   BKE_sculptsession_free_pbvh(ob);
   DEG_id_tag_update(&ob.id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, &ob);
