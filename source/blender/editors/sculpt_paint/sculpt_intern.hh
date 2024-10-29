@@ -164,15 +164,6 @@ struct StrokeCache {
   } mirror_modifier_clip;
   float2 initial_mouse;
 
-  /**
-   * Some brushes change behavior drastically depending on the directional value (i.e. the smooth
-   * and enhance details functionality being bound to the Smooth brush).
-   *
-   * Storing the initial direction allows discerning the behavior without checking the sign of the
-   * brush direction at every step, which would have ambiguity at 0.
-   */
-  bool initial_direction_flipped;
-
   /* Variants */
   float radius;
   float radius_squared;
