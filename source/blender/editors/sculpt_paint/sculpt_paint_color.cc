@@ -762,25 +762,25 @@ static void do_smear_brush_task(const Depsgraph &depsgraph,
      * costly.
      */
 
-    for (const int neigbor : vert_neighbors_get_mesh(
+    for (const int neighbor : vert_neighbors_get_mesh(
              faces, corner_verts, vert_to_face_map, attribute_data.hide_poly, vert, neighbors))
     {
-      const float3 &nco = vert_positions[neigbor];
+      const float3 &nco = vert_positions[neighbor];
       for (const int neighbor_neighbor : vert_neighbors_get_mesh(faces,
                                                                  corner_verts,
                                                                  vert_to_face_map,
                                                                  attribute_data.hide_poly,
-                                                                 neigbor,
+                                                                 neighbor,
                                                                  neighbor_neighbors))
       {
         if (neighbor_neighbor == vert) {
           continue;
         }
 
-        float3 vertex_disp = vert_positions[neighbor_neighbor] - vert_positions[vert];
+        float3 vert_disp = vert_positions[neighbor_neighbor] - vert_positions[vert];
 
         /* Weight by how close we are to our target distance from vd.co. */
-        float w = (1.0f + fabsf(math::length(vertex_disp) / strength - 1.0f));
+        float w = (1.0f + fabsf(math::length(vert_disp) / strength - 1.0f));
 
         /* TODO: use cotangents (or at least face areas) here. */
         float len = math::distance(vert_positions[neighbor_neighbor], nco);
@@ -798,15 +798,15 @@ static void do_smear_brush_task(const Depsgraph &depsgraph,
         /* Build directional weight. */
 
         /* Project into vertex plane. */
-        vertex_disp += no * -math::dot(no, vertex_disp);
-        const float3 vertex_disp_norm = math::normalize(vertex_disp);
+        vert_disp += no * -math::dot(no, vert_disp);
+        const float3 vert_disp_norm = math::normalize(vert_disp);
 
-        if (math::dot(current_disp_norm, vertex_disp_norm) >= 0.0f) {
+        if (math::dot(current_disp_norm, vert_disp_norm) >= 0.0f) {
           continue;
         }
 
         const float4 &neighbor_color = ss.cache->paint_brush.prev_colors[neighbor_neighbor];
-        float color_interp = -math::dot(current_disp_norm, vertex_disp_norm);
+        float color_interp = -math::dot(current_disp_norm, vert_disp_norm);
 
         /* Square directional weight to get a somewhat sharper result. */
         w *= color_interp * color_interp;
