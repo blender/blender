@@ -125,6 +125,7 @@ namespace blender::ed::sculpt_paint::undo {
 
 struct Node {
   Array<float3, 0> position;
+  Array<float3, 0> orig_position;
   Array<float3, 0> normal;
   Array<float4, 0> col;
   Array<float, 0> mask;
@@ -323,33 +324,141 @@ static bool restore_active_shape_key(bContext &C,
   return true;
 }
 
+static void update_shapekeys(const Object &ob, KeyBlock *kb, const Span<float3> new_positions)
+{
+  const Mesh &mesh = *static_cast<Mesh *>(ob.data);
+  const int kb_act_idx = ob.shapenr - 1;
+
+  /* For relative keys editing of base should update other keys. */
+  if (std::optional<Array<bool>> dependent = BKE_keyblock_get_dependent_keys(mesh.key, kb_act_idx))
+  {
+    float(*offsets)[3] = BKE_keyblock_convert_to_vertcos(&ob, kb);
+
+    /* Calculate key coord offsets (from previous location). */
+    for (int i = 0; i < mesh.verts_num; i++) {
+      sub_v3_v3v3(offsets[i], new_positions[i], offsets[i]);
+    }
+
+    int currkey_i;
+    /* Apply offsets on other keys. */
+    LISTBASE_FOREACH_INDEX (KeyBlock *, currkey, &mesh.key->block, currkey_i) {
+      if ((currkey != kb) && (*dependent)[currkey_i]) {
+        BKE_keyblock_update_from_offset(&ob, currkey, offsets);
+      }
+    }
+
+    MEM_freeN(offsets);
+  }
+
+  /* Apply new coords on active key block, no need to re-allocate kb->data here! */
+  BKE_keyblock_update_from_vertcos(
+      &ob, kb, reinterpret_cast<const float(*)[3]>(new_positions.data()));
+}
+
 static void restore_position_mesh(const Depsgraph &depsgraph,
                                   Object &object,
                                   const Span<std::unique_ptr<Node>> unodes,
                                   MutableSpan<bool> modified_verts)
 {
-  PositionDeformData position_data(depsgraph, object);
-  threading::EnumerableThreadSpecific<Vector<float3>> all_tls;
-  threading::parallel_for(unodes.index_range(), 1, [&](const IndexRange range) {
-    Vector<float3> &translations = all_tls.local();
-    for (const int i : range) {
-      Node &unode = *unodes[i];
-      const Span<int> verts = unode.vert_indices.as_span().take_front(unode.unique_verts_num);
-      translations.resize(verts.size());
-      translations_from_new_positions(unode.position.as_span().take_front(unode.unique_verts_num),
-                                      verts,
-                                      position_data.eval,
-                                      translations);
+  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  const SculptSession &ss = *object.sculpt;
 
-      gather_data_mesh(position_data.eval,
-                       verts,
-                       unode.position.as_mutable_span().take_front(unode.unique_verts_num));
+  /* Ideally, we would use the PositionDeformData#deform method to perform the reverse deformation
+   * based on the evaluated positions, hwoever this causes odd behavior. For now, this is a
+   * modified version of older code that depends on an extra `orig_position` array stored inside
+   * the `Node` to perform swaps correctly.
+   *
+   * See #128859 for more detail.
+   */
+  if (ss.deform_modifiers_active) {
+    MutableSpan eval_mut = bke::pbvh::vert_positions_eval_for_write(depsgraph, object);
+    MutableSpan orig_positions = mesh.vert_positions_for_write();
+    if (ss.shapekey_active) {
+      threading::parallel_for(unodes.index_range(), 1, [&](const IndexRange range) {
+        for (const int node_i : range) {
+          Node &unode = *unodes[node_i];
+          const Span<int> verts = unode.vert_indices.as_span().take_front(unode.unique_verts_num);
+          for (const int i : verts.index_range()) {
+            std::swap(unode.position[i], eval_mut[verts[i]]);
+          }
 
-      position_data.deform(translations, verts);
+          modified_verts.fill_indices(verts, true);
+        }
+      });
 
-      modified_verts.fill_indices(verts, true);
+      float(*vertCos)[3] = BKE_keyblock_convert_to_vertcos(&object, ss.shapekey_active);
+      MutableSpan key_positions(reinterpret_cast<float3 *>(vertCos), ss.shapekey_active->totelem);
+
+      threading::parallel_for(unodes.index_range(), 1, [&](const IndexRange range) {
+        for (const int node_i : range) {
+          Node &unode = *unodes[node_i];
+          const Span<int> verts = unode.vert_indices.as_span().take_front(unode.unique_verts_num);
+          for (const int i : verts.index_range()) {
+            std::swap(unode.orig_position[i], key_positions[verts[i]]);
+          }
+        }
+      });
+
+      update_shapekeys(object, ss.shapekey_active, key_positions);
+
+      if (ss.shapekey_active == mesh.key->refkey) {
+        mesh.vert_positions_for_write().copy_from(key_positions);
+      }
+
+      MEM_freeN(vertCos);
     }
-  });
+    else {
+      threading::parallel_for(unodes.index_range(), 1, [&](const IndexRange range) {
+        for (const int node_i : range) {
+          Node &unode = *unodes[node_i];
+          const Span<int> verts = unode.vert_indices.as_span().take_front(unode.unique_verts_num);
+          for (const int i : verts.index_range()) {
+            std::swap(unode.position[i], eval_mut[verts[i]]);
+          }
+
+          modified_verts.fill_indices(verts, true);
+        }
+      });
+
+      if (orig_positions.data() != eval_mut.data()) {
+        threading::parallel_for(unodes.index_range(), 1, [&](const IndexRange range) {
+          for (const int node_i : range) {
+            Node &unode = *unodes[node_i];
+            const Span<int> verts = unode.vert_indices.as_span().take_front(
+                unode.unique_verts_num);
+            for (const int i : verts.index_range()) {
+              std::swap(unode.orig_position[i], orig_positions[verts[i]]);
+            }
+          }
+        });
+      }
+    }
+  }
+  else {
+    PositionDeformData position_data(depsgraph, object);
+    threading::EnumerableThreadSpecific<Vector<float3>> all_tls;
+    threading::parallel_for(unodes.index_range(), 1, [&](const IndexRange range) {
+      Vector<float3> &translations = all_tls.local();
+      for (const int i : range) {
+        Node &unode = *unodes[i];
+        const Span<int> verts = unode.vert_indices.as_span().take_front(unode.unique_verts_num);
+        translations.resize(verts.size());
+        translations_from_new_positions(
+            unode.position.as_span().take_front(unode.unique_verts_num),
+            verts,
+            position_data.eval,
+            translations);
+
+        gather_data_mesh(position_data.eval,
+                         verts,
+                         unode.position.as_mutable_span().take_front(unode.unique_verts_num));
+
+        position_data.deform(translations, verts);
+
+        modified_verts.fill_indices(verts, true);
+      }
+    });
+  }
 }
 
 static void restore_position_grids(MutableSpan<float3> positions,
@@ -1091,12 +1200,24 @@ static void store_vert_visibility_grids(const SubdivCCG &subdiv_ccg,
 
 static void store_positions_mesh(const Depsgraph &depsgraph, const Object &object, Node &unode)
 {
+  const SculptSession &ss = *object.sculpt;
   gather_data_mesh(bke::pbvh::vert_positions_eval(depsgraph, object),
                    unode.vert_indices.as_span(),
                    unode.position.as_mutable_span());
   gather_data_mesh(bke::pbvh::vert_normals_eval(depsgraph, object),
                    unode.vert_indices.as_span(),
                    unode.normal.as_mutable_span());
+
+  if (ss.deform_modifiers_active) {
+    const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+    const Span<float3> orig_positions = ss.shapekey_active ? Span(static_cast<const float3 *>(
+                                                                      ss.shapekey_active->data),
+                                                                  mesh.verts_num) :
+                                                             mesh.vert_positions();
+
+    gather_data_mesh(
+        orig_positions, unode.vert_indices.as_span(), unode.orig_position.as_mutable_span());
+  }
 }
 
 static void store_positions_grids(const SubdivCCG &subdiv_ccg, Node &unode)
@@ -1227,6 +1348,7 @@ static void fill_node_data_mesh(const Depsgraph &depsgraph,
                                 const Type type,
                                 Node &unode)
 {
+  const SculptSession &ss = *object.sculpt;
   const Mesh &mesh = *static_cast<Mesh *>(object.data);
 
   unode.vert_indices = node.all_verts();
@@ -1247,6 +1369,9 @@ static void fill_node_data_mesh(const Depsgraph &depsgraph,
       unode.position.reinitialize(verts_num);
       /* Needed for original data lookup. */
       unode.normal.reinitialize(verts_num);
+      if (ss.deform_modifiers_active) {
+        unode.orig_position.reinitialize(verts_num);
+      }
       store_positions_mesh(depsgraph, object, unode);
       break;
     }
@@ -1650,6 +1775,7 @@ static size_t node_size_in_bytes(const Node &node)
 {
   size_t size = sizeof(Node);
   size += node.position.as_span().size_in_bytes();
+  size += node.orig_position.as_span().size_in_bytes();
   size += node.normal.as_span().size_in_bytes();
   size += node.col.as_span().size_in_bytes();
   size += node.mask.as_span().size_in_bytes();
