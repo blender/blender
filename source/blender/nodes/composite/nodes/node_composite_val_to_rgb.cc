@@ -7,6 +7,7 @@
  */
 
 #include "BLI_assert.h"
+#include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 
 #include "FN_multi_function_builder.hh"
@@ -207,12 +208,17 @@ static ShaderNode *get_compositor_shader_node(DNode node)
 
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  /* Not yet implemented. Return zero. */
-  static auto function = mf::build::SI1_SO<float4, float>(
-      "RGB to BW",
-      [](const float4 & /*color*/) -> float { return 0.0f; },
-      mf::build::exec_presets::AllSpanOrSingle());
-  builder.set_matching_fn(function);
+  float3 luminance_coefficients;
+  IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
+
+  builder.construct_and_set_matching_fn_cb([=]() {
+    return mf::build::SI1_SO<float4, float>(
+        "RGB to BW",
+        [=](const float4 &color) -> float {
+          return math::dot(color.xyz(), luminance_coefficients);
+        },
+        mf::build::exec_presets::AllSpanOrSingle());
+  });
 }
 
 }  // namespace blender::nodes::node_composite_rgb_to_bw_cc
