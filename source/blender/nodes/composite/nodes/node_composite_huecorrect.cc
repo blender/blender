@@ -6,6 +6,9 @@
  * \ingroup cmpnodes
  */
 
+#include "BLI_math_base.hh"
+#include "BLI_math_color.h"
+#include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 
 #include "FN_multi_function_builder.hh"
@@ -56,6 +59,11 @@ static void node_composit_init_huecorrect(bNodeTree * /*ntree*/, bNode *node)
 
 using namespace blender::realtime_compositor;
 
+static CurveMapping *get_curve_mapping(const bNode &node)
+{
+  return static_cast<CurveMapping *>(node.storage);
+}
+
 class HueCorrectShaderNode : public ShaderNode {
  public:
   using ShaderNode::ShaderNode;
@@ -65,7 +73,7 @@ class HueCorrectShaderNode : public ShaderNode {
     GPUNodeStack *inputs = get_inputs_array();
     GPUNodeStack *outputs = get_outputs_array();
 
-    CurveMapping *curve_mapping = const_cast<CurveMapping *>(get_curve_mapping());
+    CurveMapping *curve_mapping = get_curve_mapping(bnode());
 
     BKE_curvemapping_init(curve_mapping);
     float *band_values;
@@ -89,11 +97,6 @@ class HueCorrectShaderNode : public ShaderNode {
                    GPU_uniform(range_minimums),
                    GPU_uniform(range_dividers));
   }
-
-  const CurveMapping *get_curve_mapping()
-  {
-    return static_cast<const CurveMapping *>(bnode().storage);
-  }
 };
 
 static ShaderNode *get_compositor_shader_node(DNode node)
@@ -101,14 +104,47 @@ static ShaderNode *get_compositor_shader_node(DNode node)
   return new HueCorrectShaderNode(node);
 }
 
+static float4 hue_correct(const float factor, const float4 &color, const CurveMapping *curve_map)
+{
+  float3 hsv;
+  rgb_to_hsv_v(color, hsv);
+
+  /* We parameterize the curve using the hue value. */
+  float parameter = hsv.x;
+
+  /* Adjust each of the Hue, Saturation, and Values accordingly to the following rules. A curve map
+   * value of 0.5 means no change in hue, so adjust the value to get an identity at 0.5. Since the
+   * identity of addition is 0, we subtract 0.5 (0.5 - 0.5 = 0). A curve map value of 0.5 means no
+   * change in saturation or value, so adjust the value to get an identity at 0.5. Since the
+   * identity of multiplication is 1, we multiply by 2 (0.5 * 2 = 1). */
+  hsv.x += BKE_curvemapping_evaluateF(curve_map, 0, parameter) - 0.5f;
+  hsv.y *= BKE_curvemapping_evaluateF(curve_map, 1, parameter) * 2.0f;
+  hsv.z *= BKE_curvemapping_evaluateF(curve_map, 2, parameter) * 2.0f;
+
+  /* Sanitize the new hue and saturation values. */
+  hsv.x = math::fract(hsv.x);
+  hsv.y = math::clamp(hsv.y, 0.0f, 1.0f);
+
+  float3 rgb_result;
+  hsv_to_rgb_v(hsv, rgb_result);
+  float4 result = float4(math::max(rgb_result, float3(0.0f)), color.w);
+
+  return math::interpolate(color, result, factor);
+}
+
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  /* Not yet implemented. Return zero. */
-  static auto function = mf::build::SI2_SO<float, float4, float4>(
-      "Hue Correct",
-      [](const float /*factor*/, const float4 & /*color*/) -> float4 { return float4(0.0f); },
-      mf::build::exec_presets::SomeSpanOrSingle<1>());
-  builder.set_matching_fn(function);
+  CurveMapping *curve_mapping = get_curve_mapping(builder.node());
+  BKE_curvemapping_init(curve_mapping);
+
+  builder.construct_and_set_matching_fn_cb([=]() {
+    return mf::build::SI2_SO<float, float4, float4>(
+        "Hue Correct",
+        [=](const float factor, const float4 &color) -> float4 {
+          return hue_correct(factor, color, curve_mapping);
+        },
+        mf::build::exec_presets::SomeSpanOrSingle<1>());
+  });
 }
 
 }  // namespace blender::nodes::node_composite_huecorrect_cc
