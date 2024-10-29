@@ -47,9 +47,7 @@
 #include <algorithm>
 #include <atomic>
 #include <optional>
-#include <stdexcept>
 #include <thread>
-#include <unordered_map>
 #include <unordered_set>
 
 #ifdef WITH_GHOST_WAYLAND_DYNLOAD
@@ -7977,7 +7975,7 @@ void GHOST_SystemWayland::putClipboard(const char *buffer, bool selection) const
 
 static constexpr const char *ghost_wl_mime_img_png = "image/png";
 
-GHOST_TSuccess GHOST_SystemWayland::hasClipboardImage(void) const
+GHOST_TSuccess GHOST_SystemWayland::hasClipboardImage() const
 {
 #ifdef USE_EVENT_BACKGROUND_THREAD
   std::lock_guard lock_server_guard{*server_mutex};
