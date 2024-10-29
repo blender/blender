@@ -625,7 +625,7 @@ static int compare_asset_catalog(void *user_data, const void *a1, const void *a2
     order = -1;
   }
   else if (catalog1 && catalog2) {
-    order = BLI_strcasecmp_natural(catalog1->path.name().c_str(), catalog2->path.name().c_str());
+    order = BLI_strcasecmp_natural(catalog1->path.c_str(), catalog2->path.c_str());
   }
 
   if (!order) {
