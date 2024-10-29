@@ -827,8 +827,8 @@ static void grease_pencil_edit_batch_ensure(Object &object,
               positions_eval, range, layer_space_to_object_space, positions_eval_slice);
         });
 
-    for (const int curve_i : points_by_curve_eval.index_range()) {
-      const IndexRange range = points_by_curve_eval[curve_i];
+    for (const int curve_i : points_by_curve.index_range()) {
+      const IndexRange range = points_by_curve[curve_i];
       edit_points_vflag[range.first()] |= GREASE_PENCIL_EDIT_STROKE_START;
       edit_points_vflag[range.last()] |= GREASE_PENCIL_EDIT_STROKE_END;
     }
