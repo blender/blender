@@ -6,6 +6,9 @@
  * \ingroup cmpnodes
  */
 
+#include "BLI_math_base.hh"
+#include "BLI_math_color.h"
+#include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 
 #include "FN_multi_function_builder.hh"
@@ -77,14 +80,26 @@ static ShaderNode *get_compositor_shader_node(DNode node)
 
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  /* Not yet implemented. Return zero. */
   static auto function = mf::build::SI5_SO<float4, float, float, float, float, float4>(
       "Hue Saturation Value",
-      [](const float4 & /*color*/,
-         const float /*hue*/,
-         const float /*saturation*/,
-         const float /*value*/,
-         const float /*factor*/) -> float4 { return float4(0.0f); },
+      [](const float4 &color,
+         const float hue,
+         const float saturation,
+         const float value,
+         const float factor) -> float4 {
+        float3 hsv;
+        rgb_to_hsv_v(color, hsv);
+
+        hsv.x = math::fract(hsv.x + hue + 0.5f);
+        hsv.y = hsv.y * saturation;
+        hsv.z = hsv.z * value;
+
+        float3 rgb_result;
+        hsv_to_rgb_v(hsv, rgb_result);
+        rgb_result = math::max(rgb_result, float3(0.0f));
+
+        return float4(math::interpolate(color.xyz(), rgb_result, factor), color.w);
+      },
       mf::build::exec_presets::SomeSpanOrSingle<0>());
   builder.set_matching_fn(function);
 }
