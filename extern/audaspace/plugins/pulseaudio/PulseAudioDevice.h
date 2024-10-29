@@ -60,6 +60,8 @@ private:
 	 */
 	volatile bool m_playback;
 
+	bool m_corked;
+
 	pa_threaded_mainloop* m_mainloop;
 	pa_context* m_context;
 	pa_stream* m_stream;
