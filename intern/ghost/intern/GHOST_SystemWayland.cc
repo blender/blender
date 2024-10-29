@@ -46,6 +46,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <optional>
 #include <stdexcept>
 #include <thread>
 #include <unordered_map>
@@ -1187,6 +1188,13 @@ struct GWL_Seat {
   /** Copy & Paste. */
   GWL_DataOffer *data_offer_copy_paste = nullptr;
   std::mutex data_offer_copy_paste_mutex;
+
+  /**
+   * Cache the result of #GHOST_SystemWayland::hasClipboardImage as checking the file
+   * header every time will be expensive, especially if this happens on redraw.
+   * Reset whenever the data offer changes.
+   */
+  std::optional<GHOST_TSuccess> data_offer_copy_paste_has_image = std::nullopt;
 
   GWL_DataSource *data_source = nullptr;
   std::mutex data_source_mutex;
@@ -3677,6 +3685,7 @@ static void data_device_handle_selection(void *data,
     wl_data_offer_destroy(seat->data_offer_copy_paste->wl.id);
     delete seat->data_offer_copy_paste;
     seat->data_offer_copy_paste = nullptr;
+    seat->data_offer_copy_paste_has_image = std::nullopt;
   }
   /* Clearing complete. */
 
@@ -3690,6 +3699,7 @@ static void data_device_handle_selection(void *data,
   GWL_DataOffer *data_offer = static_cast<GWL_DataOffer *>(wl_data_offer_get_user_data(id));
   /* Transfer ownership of the `data_offer`. */
   seat->data_offer_copy_paste = data_offer;
+  seat->data_offer_copy_paste_has_image = std::nullopt;
 }
 
 static const wl_data_device_listener data_device_listener = {
@@ -7978,18 +7988,22 @@ GHOST_TSuccess GHOST_SystemWayland::hasClipboardImage(void) const
     return GHOST_kFailure;
   }
 
+  if (seat->data_offer_copy_paste_has_image.has_value()) {
+    return *seat->data_offer_copy_paste_has_image;
+  }
+
+  GHOST_TSuccess result = GHOST_kFailure;
+
   GWL_DataOffer *data_offer = seat->data_offer_copy_paste;
   if (data_offer) {
     if (data_offer->types.count(ghost_wl_mime_img_png)) {
-      return GHOST_kSuccess;
+      result = GHOST_kSuccess;
     }
-    if (data_offer->types.count(ghost_wl_mime_text_uri_list)) {
+    else if (data_offer->types.count(ghost_wl_mime_text_uri_list)) {
       const bool nil_terminate = true;
       size_t data_buf_len = 0;
       char *data = system_clipboard_get(
           display_, nil_terminate, ghost_wl_mime_text_uri_list, &data_buf_len);
-
-      GHOST_TSuccess result = GHOST_kFailure;
 
       if (data) {
         std::vector<std::string_view> uris = gwl_clipboard_uri_ranges(data, data_buf_len);
@@ -8003,11 +8017,12 @@ GHOST_TSuccess GHOST_SystemWayland::hasClipboardImage(void) const
         }
         free(data);
       }
-      return result;
     }
   }
 
-  return GHOST_kFailure;
+  seat->data_offer_copy_paste_has_image = result;
+
+  return result;
 }
 
 uint *GHOST_SystemWayland::getClipboardImage(int *r_width, int *r_height) const
