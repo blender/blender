@@ -730,6 +730,10 @@ static PVert *p_vert_add(
   v->edge = e;
   v->flag = 0;
 
+  /* Unused, prevent uninitialized memory access on duplication. */
+  v->on_boundary_flag = false;
+  v->slim_id = 0;
+
   phash_insert(handle->hash_verts, (PHashLink *)v);
 
   return v;
