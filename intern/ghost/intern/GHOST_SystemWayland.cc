@@ -2293,10 +2293,10 @@ static const GWL_Cursor_ShapeInfo ghost_wl_cursors = []() -> GWL_Cursor_ShapeInf
 
 static constexpr const char *ghost_wl_mime_text_plain = "text/plain";
 static constexpr const char *ghost_wl_mime_text_utf8 = "text/plain;charset=utf-8";
-static constexpr const char *ghost_wl_mime_text_uri = "text/uri-list";
+static constexpr const char *ghost_wl_mime_text_uri_list = "text/uri-list";
 
 static const char *ghost_wl_mime_preference_order[] = {
-    ghost_wl_mime_text_uri,
+    ghost_wl_mime_text_uri_list,
     ghost_wl_mime_text_utf8,
     ghost_wl_mime_text_plain,
 };
@@ -3595,7 +3595,7 @@ static void data_device_handle_drop(void *data, wl_data_device * /*wl_data_devic
     const uint64_t event_ms = seat->system->getMilliSeconds();
     const wl_fixed_t xy[2] = {UNPACK2(data_offer->dnd.xy)};
 
-    const bool nil_terminate = (mime_receive != ghost_wl_mime_text_uri);
+    const bool nil_terminate = (mime_receive != ghost_wl_mime_text_uri_list);
     size_t data_buf_len = 0;
     const char *data_buf = read_buffer_from_data_offer(
         data_offer, mime_receive, nullptr, nil_terminate, &data_buf_len);
@@ -3615,7 +3615,7 @@ static void data_device_handle_drop(void *data, wl_data_device * /*wl_data_devic
       void *ghost_dnd_data = nullptr;
 
       /* Failure to receive drop data. */
-      if (mime_receive == ghost_wl_mime_text_uri) {
+      if (mime_receive == ghost_wl_mime_text_uri_list) {
         std::vector<std::string_view> uris = gwl_clipboard_uri_ranges(data_buf, data_buf_len);
 
         GHOST_TStringArray *flist = static_cast<GHOST_TStringArray *>(
@@ -7971,11 +7971,11 @@ GHOST_TSuccess GHOST_SystemWayland::hasClipboardImage(void) const
     if (data_offer->types.count(ghost_wl_mime_img_png)) {
       return GHOST_kSuccess;
     }
-    if (data_offer->types.count(ghost_wl_mime_text_uri)) {
+    if (data_offer->types.count(ghost_wl_mime_text_uri_list)) {
       const bool nil_terminate = true;
       size_t data_buf_len = 0;
       char *data = system_clipboard_get(
-          display_, nil_terminate, ghost_wl_mime_text_uri, &data_buf_len);
+          display_, nil_terminate, ghost_wl_mime_text_uri_list, &data_buf_len);
 
       GHOST_TSuccess result = GHOST_kFailure;
 
@@ -8029,11 +8029,11 @@ uint *GHOST_SystemWayland::getClipboardImage(int *r_width, int *r_height) const
         free(data);
       }
     }
-    else if (data_offer->types.count(ghost_wl_mime_text_uri)) {
+    else if (data_offer->types.count(ghost_wl_mime_text_uri_list)) {
       const bool nil_terminate = true;
       size_t data_len = 0;
       char *data = system_clipboard_get(
-          display_, nil_terminate, ghost_wl_mime_text_uri, &data_len);
+          display_, nil_terminate, ghost_wl_mime_text_uri_list, &data_len);
 
       if (data) {
         std::vector<std::string_view> uris = gwl_clipboard_uri_ranges(data, data_len);
