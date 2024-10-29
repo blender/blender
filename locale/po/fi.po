@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'58c660c9615d')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'28a8486e2b3f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-20 15:55+0000\n"
+"POT-Creation-Date: 2024-10-29 10:02+0000\n"
 "PO-Revision-Date: 2024-10-16 00:56+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -57,10 +57,6 @@ msgstr "AOV-lista"
 
 msgid "Collection of AOVs"
 msgstr "AOV-kokoelam"
-
-
-msgid "F-Curves"
-msgstr "F-Käyrät"
 
 
 msgid "Action F-Curves"
@@ -247,235 +243,8 @@ msgid "Collection of action groups"
 msgstr "Toimintaryhmäkokoelma"
 
 
-msgid "Mix Mode"
-msgstr "Sekoitustila"
-
-
-msgid "Replace"
-msgstr "Korvaa"
-
-
-msgid "Offset"
-msgstr "Siirros"
-
-
-msgid "Add"
-msgstr "Lisää"
-
-
-msgid "Subtract"
-msgstr "Vähennä"
-
-
-msgid "Multiply"
-msgstr "Kerro"
-
-
 msgid "Action Pose Markers"
 msgstr "Toiminto-asentomerkit"
-
-
-msgid "Active"
-msgstr "Aktiivinen"
-
-
-msgctxt "ID"
-msgid "Action"
-msgstr "Toiminto"
-
-
-msgctxt "ID"
-msgid "Armature"
-msgstr "Luuranko"
-
-
-msgctxt "ID"
-msgid "Brush"
-msgstr "Sivellin"
-
-
-msgctxt "ID"
-msgid "Cache File"
-msgstr "Välimuistitiedosto"
-
-
-msgctxt "ID"
-msgid "Camera"
-msgstr "Kamera"
-
-
-msgctxt "ID"
-msgid "Collection"
-msgstr "Kokoelma"
-
-
-msgctxt "ID"
-msgid "Curve"
-msgstr "Käyrä"
-
-
-msgctxt "ID"
-msgid "Curves"
-msgstr "Käyrät"
-
-
-msgctxt "ID"
-msgid "Font"
-msgstr "Fontti"
-
-
-msgctxt "ID"
-msgid "Grease Pencil"
-msgstr "Öljykynä"
-
-
-msgctxt "ID"
-msgid "Grease Pencil v3"
-msgstr "Öljykynä v3"
-
-
-msgctxt "ID"
-msgid "Image"
-msgstr "Kuva"
-
-
-msgctxt "ID"
-msgid "Key"
-msgstr "Avain"
-
-
-msgctxt "ID"
-msgid "Lattice"
-msgstr "Säleikkö"
-
-
-msgctxt "ID"
-msgid "Library"
-msgstr "Kirjasto"
-
-
-msgctxt "ID"
-msgid "Light"
-msgstr "Valo"
-
-
-msgctxt "ID"
-msgid "Light Probe"
-msgstr "Valoluotain"
-
-
-msgctxt "ID"
-msgid "Line Style"
-msgstr "Viivatyyli"
-
-
-msgctxt "ID"
-msgid "Mask"
-msgstr "Maski"
-
-
-msgctxt "ID"
-msgid "Material"
-msgstr "Materiaali"
-
-
-msgctxt "ID"
-msgid "Mesh"
-msgstr "Muoto"
-
-
-msgctxt "ID"
-msgid "Metaball"
-msgstr "Metapallo"
-
-
-msgctxt "ID"
-msgid "Movie Clip"
-msgstr "Elokuvaklippi"
-
-
-msgctxt "ID"
-msgid "Node Tree"
-msgstr "Noodipuu"
-
-
-msgctxt "ID"
-msgid "Object"
-msgstr "Objekti"
-
-
-msgctxt "ID"
-msgid "Paint Curve"
-msgstr "Maalikäyrä"
-
-
-msgctxt "ID"
-msgid "Palette"
-msgstr "Paletti"
-
-
-msgctxt "ID"
-msgid "Particle"
-msgstr "Partikkeli"
-
-
-msgctxt "ID"
-msgid "Point Cloud"
-msgstr "Pistepilvi"
-
-
-msgctxt "ID"
-msgid "Scene"
-msgstr "Kohtaus"
-
-
-msgctxt "ID"
-msgid "Screen"
-msgstr "Näyttö"
-
-
-msgctxt "ID"
-msgid "Sound"
-msgstr "Ääni"
-
-
-msgctxt "ID"
-msgid "Speaker"
-msgstr "Kaiutin"
-
-
-msgctxt "ID"
-msgid "Text"
-msgstr "Teksti"
-
-
-msgctxt "ID"
-msgid "Texture"
-msgstr "Tekstuuri"
-
-
-msgctxt "ID"
-msgid "Volume"
-msgstr "Volyymi"
-
-
-msgctxt "ID"
-msgid "Window Manager"
-msgstr "Ikkunamanageri"
-
-
-msgctxt "ID"
-msgid "Workspace"
-msgstr "Työtila"
-
-
-msgctxt "ID"
-msgid "World"
-msgstr "Maailma"
-
-
-msgid "Show Expanded"
-msgstr "Näytä laajennettu"
 
 
 msgid "Add-on"
@@ -566,8 +335,24 @@ msgid "Active Action for this data-block"
 msgstr "Aktiiviset toiminnot tälle data-palikalle"
 
 
+msgid "Replace"
+msgstr "Korvaa"
+
+
 msgid "Combine"
 msgstr "Yhdistä"
+
+
+msgid "Add"
+msgstr "Lisää"
+
+
+msgid "Subtract"
+msgstr "Vähennä"
+
+
+msgid "Multiply"
+msgstr "Kerro"
 
 
 msgid "Nothing"
@@ -917,6 +702,201 @@ msgstr "Täysi polku"
 msgctxt "ID"
 msgid "Data-block Type"
 msgstr "Data-palikkatyyppi"
+
+
+msgctxt "ID"
+msgid "Action"
+msgstr "Toiminto"
+
+
+msgctxt "ID"
+msgid "Armature"
+msgstr "Luuranko"
+
+
+msgctxt "ID"
+msgid "Brush"
+msgstr "Sivellin"
+
+
+msgctxt "ID"
+msgid "Cache File"
+msgstr "Välimuistitiedosto"
+
+
+msgctxt "ID"
+msgid "Camera"
+msgstr "Kamera"
+
+
+msgctxt "ID"
+msgid "Collection"
+msgstr "Kokoelma"
+
+
+msgctxt "ID"
+msgid "Curve"
+msgstr "Käyrä"
+
+
+msgctxt "ID"
+msgid "Curves"
+msgstr "Käyrät"
+
+
+msgctxt "ID"
+msgid "Font"
+msgstr "Fontti"
+
+
+msgctxt "ID"
+msgid "Grease Pencil"
+msgstr "Öljykynä"
+
+
+msgctxt "ID"
+msgid "Grease Pencil v3"
+msgstr "Öljykynä v3"
+
+
+msgctxt "ID"
+msgid "Image"
+msgstr "Kuva"
+
+
+msgctxt "ID"
+msgid "Key"
+msgstr "Avain"
+
+
+msgctxt "ID"
+msgid "Lattice"
+msgstr "Säleikkö"
+
+
+msgctxt "ID"
+msgid "Library"
+msgstr "Kirjasto"
+
+
+msgctxt "ID"
+msgid "Light"
+msgstr "Valo"
+
+
+msgctxt "ID"
+msgid "Light Probe"
+msgstr "Valoluotain"
+
+
+msgctxt "ID"
+msgid "Line Style"
+msgstr "Viivatyyli"
+
+
+msgctxt "ID"
+msgid "Mask"
+msgstr "Maski"
+
+
+msgctxt "ID"
+msgid "Material"
+msgstr "Materiaali"
+
+
+msgctxt "ID"
+msgid "Mesh"
+msgstr "Muoto"
+
+
+msgctxt "ID"
+msgid "Metaball"
+msgstr "Metapallo"
+
+
+msgctxt "ID"
+msgid "Movie Clip"
+msgstr "Elokuvaklippi"
+
+
+msgctxt "ID"
+msgid "Node Tree"
+msgstr "Noodipuu"
+
+
+msgctxt "ID"
+msgid "Object"
+msgstr "Objekti"
+
+
+msgctxt "ID"
+msgid "Paint Curve"
+msgstr "Maalikäyrä"
+
+
+msgctxt "ID"
+msgid "Palette"
+msgstr "Paletti"
+
+
+msgctxt "ID"
+msgid "Particle"
+msgstr "Partikkeli"
+
+
+msgctxt "ID"
+msgid "Point Cloud"
+msgstr "Pistepilvi"
+
+
+msgctxt "ID"
+msgid "Scene"
+msgstr "Kohtaus"
+
+
+msgctxt "ID"
+msgid "Screen"
+msgstr "Näyttö"
+
+
+msgctxt "ID"
+msgid "Sound"
+msgstr "Ääni"
+
+
+msgctxt "ID"
+msgid "Speaker"
+msgstr "Kaiutin"
+
+
+msgctxt "ID"
+msgid "Text"
+msgstr "Teksti"
+
+
+msgctxt "ID"
+msgid "Texture"
+msgstr "Tekstuuri"
+
+
+msgctxt "ID"
+msgid "Volume"
+msgstr "Volyymi"
+
+
+msgctxt "ID"
+msgid "Window Manager"
+msgstr "Ikkunamanageri"
+
+
+msgctxt "ID"
+msgid "Workspace"
+msgstr "Työtila"
+
+
+msgctxt "ID"
+msgid "World"
+msgstr "Maailma"
 
 
 msgid "All Libraries"
@@ -2863,6 +2843,10 @@ msgid "Mode"
 msgstr "Tila"
 
 
+msgid "Active"
+msgstr "Aktiivinen"
+
+
 msgid "Use current mode"
 msgstr "Käytä nykyistä tilaa"
 
@@ -3332,6 +3316,10 @@ msgid "Override Background Image"
 msgstr "Ohita taustakuva"
 
 
+msgid "Offset"
+msgstr "Siirros"
+
+
 msgid "Rotation"
 msgstr "Kierto"
 
@@ -3350,6 +3338,10 @@ msgstr "Näytä taustakuva"
 
 msgid "Show this image as background"
 msgstr "Näytä tämä kuva taustana"
+
+
+msgid "Show Expanded"
+msgstr "Näytä laajennettu"
 
 
 msgid "Show the details in the user interface"
@@ -3775,6 +3767,10 @@ msgstr "Maksimi"
 
 msgid "Minimum"
 msgstr "Minimi"
+
+
+msgid "Mix Mode"
+msgstr "Sekoitustila"
 
 
 msgid "Target object"
@@ -5216,18 +5212,6 @@ msgid "No Video"
 msgstr "Ei videota"
 
 
-msgid "AV1"
-msgstr "AV1"
-
-
-msgid "H.264"
-msgstr "H.264"
-
-
-msgid "WebM / VP9"
-msgstr "WebM / VP9"
-
-
 msgid "DNxHD"
 msgstr "DNxHD"
 
@@ -5242,6 +5226,10 @@ msgstr "FFmpeg video codec #1"
 
 msgid "Flash Video"
 msgstr "Flash Video"
+
+
+msgid "H.264"
+msgstr "H.264"
 
 
 msgid "HuffYUV"
@@ -5268,6 +5256,14 @@ msgid "Theora"
 msgstr "Theora"
 
 
+msgid "WebM / VP9"
+msgstr "WebM / VP9"
+
+
+msgid "AV1"
+msgstr "AV1"
+
+
 msgid "Output Quality"
 msgstr "Tulosteen laatu"
 
@@ -5280,28 +5276,28 @@ msgid "MPEG-4"
 msgstr "MPEG-4"
 
 
-msgid "Matroska"
-msgstr "Matroska"
-
-
-msgid "WebM"
-msgstr "WebM"
-
-
 msgid "AVI"
 msgstr "AVI"
 
 
-msgid "Flash"
-msgstr "Flash"
+msgid "QuickTime"
+msgstr "QuickTime"
 
 
 msgid "Ogg"
 msgstr "Ogg"
 
 
-msgid "QuickTime"
-msgstr "QuickTime"
+msgid "Matroska"
+msgstr "Matroska"
+
+
+msgid "Flash"
+msgstr "Flash"
+
+
+msgid "WebM"
+msgstr "WebM"
 
 
 msgid "F-Modifier"
@@ -6031,8 +6027,8 @@ msgid "Users"
 msgstr "Käyttäjät"
 
 
-msgid "Layers"
-msgstr "Tasot"
+msgid "F-Curves"
+msgstr "F-Käyrät"
 
 
 msgid "Rest Position"
@@ -6434,6 +6430,10 @@ msgstr "Pienet kirjaimet"
 
 msgid "Normals"
 msgstr "Normaalit"
+
+
+msgid "Layers"
+msgstr "Tasot"
 
 
 msgid "2D Layers"
@@ -7431,52 +7431,52 @@ msgid "Vector Font"
 msgstr "Vektorifontti"
 
 
-msgid "Names"
-msgstr "Nimet"
-
-
-msgid "Random Mask"
-msgstr "Satunnainen maski"
-
-
-msgid "Mesh Select Mode"
-msgstr "Muodon valintatila"
-
-
-msgid "Show/Hide"
-msgstr "Näytä/Piilota"
-
-
 msgid "UV Mapping"
 msgstr "UV-kartoittaminen"
-
-
-msgid "Hooks"
-msgstr "Koukut"
-
-
-msgid "Track"
-msgstr "Raide"
-
-
-msgid "Add Image"
-msgstr "Lisää kuva"
-
-
-msgid "Select Similar"
-msgstr "Valitse samankaltainen"
 
 
 msgid "Select More/Less"
 msgstr "Valitse enemmän/vähemmän"
 
 
-msgid "Select Loops"
-msgstr "Valitse silmukat"
+msgid "Select Similar"
+msgstr "Valitse samankaltainen"
 
 
 msgid "Select All by Trait"
 msgstr "Valitse kaikki piirteen mukaan"
+
+
+msgid "Select Loops"
+msgstr "Valitse silmukat"
+
+
+msgid "Add Image"
+msgstr "Lisää kuva"
+
+
+msgid "Track"
+msgstr "Raide"
+
+
+msgid "Show/Hide"
+msgstr "Näytä/Piilota"
+
+
+msgid "Hooks"
+msgstr "Koukut"
+
+
+msgid "Random Mask"
+msgstr "Satunnainen maski"
+
+
+msgid "Names"
+msgstr "Nimet"
+
+
+msgid "Mesh Select Mode"
+msgstr "Muodon valintatila"
 
 
 msgid "Basic"
@@ -10133,6 +10133,10 @@ msgid "Only Curves"
 msgstr "Vain käyriä"
 
 
+msgid "Remove"
+msgstr "Poista"
+
+
 msgid "Handle Length"
 msgstr "Kahvan pituus"
 
@@ -10430,10 +10434,6 @@ msgstr "Satunnainen"
 
 msgid "Column"
 msgstr "Sarake"
-
-
-msgid "Remove"
-msgstr "Poista"
 
 
 msgid "Scene Unit"

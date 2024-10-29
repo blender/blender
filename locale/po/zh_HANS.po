@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'58c660c9615d')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'28a8486e2b3f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-20 15:55+0000\n"
-"PO-Revision-Date: 2024-10-20 06:24+0000\n"
+"POT-Creation-Date: 2024-10-29 10:02+0000\n"
+"PO-Revision-Date: 2024-10-26 01:56+0000\n"
 "Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hans/>\n"
 "Language: zh_HANS\n"
@@ -59,10 +59,6 @@ msgstr "AOV列表"
 
 msgid "Collection of AOVs"
 msgstr "AOV集合"
-
-
-msgid "F-Curves"
-msgstr "函数曲线"
 
 
 msgid "Action F-Curves"
@@ -249,38 +245,6 @@ msgid "Collection of action groups"
 msgstr "动作组集合"
 
 
-msgid "Influence"
-msgstr "影响"
-
-
-msgid "Mix Mode"
-msgstr "混合模式"
-
-
-msgid "Replace"
-msgstr "替换"
-
-
-msgid "Offset"
-msgstr "偏移量"
-
-
-msgid "Add"
-msgstr "相加"
-
-
-msgid "Subtract"
-msgstr "相减"
-
-
-msgid "Multiply"
-msgstr "正片叠底(相乘)"
-
-
-msgid "Strips"
-msgstr "片段"
-
-
 msgid "Action Pose Markers"
 msgstr "动作姿态标记"
 
@@ -303,227 +267,6 @@ msgstr "活动姿态标记编号"
 
 msgid "Index of active pose marker"
 msgstr "活动姿态标记编号"
-
-
-msgid "Active"
-msgstr "活动项"
-
-
-msgctxt "ID"
-msgid "ID Root Type"
-msgstr "ID根类型"
-
-
-msgctxt "ID"
-msgid "Action"
-msgstr "动作"
-
-
-msgctxt "ID"
-msgid "Armature"
-msgstr "骨架"
-
-
-msgctxt "ID"
-msgid "Brush"
-msgstr "笔刷"
-
-
-msgctxt "ID"
-msgid "Cache File"
-msgstr "缓存文件"
-
-
-msgctxt "ID"
-msgid "Camera"
-msgstr "摄像机"
-
-
-msgctxt "ID"
-msgid "Collection"
-msgstr "集合"
-
-
-msgctxt "ID"
-msgid "Curve"
-msgstr "曲线"
-
-
-msgctxt "ID"
-msgid "Curves"
-msgstr "曲线"
-
-
-msgctxt "ID"
-msgid "Font"
-msgstr "字体"
-
-
-msgctxt "ID"
-msgid "Grease Pencil"
-msgstr "蜡笔"
-
-
-msgctxt "ID"
-msgid "Grease Pencil v3"
-msgstr "蜡笔V3版"
-
-
-msgctxt "ID"
-msgid "Image"
-msgstr "图像"
-
-
-msgctxt "ID"
-msgid "Key"
-msgstr "按键"
-
-
-msgctxt "ID"
-msgid "Lattice"
-msgstr "晶格"
-
-
-msgctxt "ID"
-msgid "Library"
-msgstr "库"
-
-
-msgctxt "ID"
-msgid "Light"
-msgstr "灯光"
-
-
-msgctxt "ID"
-msgid "Light Probe"
-msgstr "光照探头"
-
-
-msgctxt "ID"
-msgid "Line Style"
-msgstr "线条样式"
-
-
-msgctxt "ID"
-msgid "Mask"
-msgstr "遮罩"
-
-
-msgctxt "ID"
-msgid "Material"
-msgstr "材质"
-
-
-msgctxt "ID"
-msgid "Mesh"
-msgstr "网格"
-
-
-msgctxt "ID"
-msgid "Metaball"
-msgstr "融球"
-
-
-msgctxt "ID"
-msgid "Movie Clip"
-msgstr "影片剪辑"
-
-
-msgctxt "ID"
-msgid "Node Tree"
-msgstr "节点树"
-
-
-msgctxt "ID"
-msgid "Object"
-msgstr "物体"
-
-
-msgctxt "ID"
-msgid "Paint Curve"
-msgstr "绘制曲线"
-
-
-msgctxt "ID"
-msgid "Palette"
-msgstr "调色板"
-
-
-msgctxt "ID"
-msgid "Particle"
-msgstr "粒子"
-
-
-msgctxt "ID"
-msgid "Point Cloud"
-msgstr "点云"
-
-
-msgctxt "ID"
-msgid "Scene"
-msgstr "场景"
-
-
-msgctxt "ID"
-msgid "Screen"
-msgstr "屏幕"
-
-
-msgctxt "ID"
-msgid "Sound"
-msgstr "声音"
-
-
-msgctxt "ID"
-msgid "Speaker"
-msgstr "扬声器"
-
-
-msgctxt "ID"
-msgid "Text"
-msgstr "文本"
-
-
-msgctxt "ID"
-msgid "Texture"
-msgstr "纹理"
-
-
-msgctxt "ID"
-msgid "Volume"
-msgstr "体积"
-
-
-msgctxt "ID"
-msgid "Window Manager"
-msgstr "窗口管理器"
-
-
-msgctxt "ID"
-msgid "Workspace"
-msgstr "工作区"
-
-
-msgctxt "ID"
-msgid "World"
-msgstr "世界环境"
-
-
-msgctxt "ID"
-msgid "Unspecified"
-msgstr "未指定"
-
-
-msgid "Not yet specified. When this slot is first assigned to a data-block, this will be set to the type of that data-block"
-msgstr "尚未指定。当此插槽首次分配给数据块时，它将被设置为该数据块的类型"
-
-
-msgid "Show Expanded"
-msgstr "扩展显示"
-
-
-msgid "Keyframe"
-msgstr "关键帧"
 
 
 msgid "Add-on"
@@ -834,6 +577,10 @@ msgid "Method used for combining Active Action's result with result of NLA stack
 msgstr "用于合并活动动作和 NLA 堆结果的方法"
 
 
+msgid "Replace"
+msgstr "替换"
+
+
 msgid "The strip values replace the accumulated results by amount specified by influence"
 msgstr "使用片段数值替换影响力指定的量累积结果"
 
@@ -846,12 +593,24 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "根据通道类型，适当地使用加法、乘法或四元数运算，将片段值与累积结果合并"
 
 
+msgid "Add"
+msgstr "相加"
+
+
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "将片段的加权结果添加到累积结果中"
 
 
+msgid "Subtract"
+msgstr "相减"
+
+
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "从累积结果中移除片段的加权结果"
+
+
+msgid "Multiply"
+msgstr "正片叠底(相乘)"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -1545,6 +1304,201 @@ msgstr "数据块类型"
 
 msgid "The type of the data-block, if the asset represents one ('NONE' otherwise)"
 msgstr "数据块的类型，如果资产代表一个（否则为“NONE”）"
+
+
+msgctxt "ID"
+msgid "Action"
+msgstr "动作"
+
+
+msgctxt "ID"
+msgid "Armature"
+msgstr "骨架"
+
+
+msgctxt "ID"
+msgid "Brush"
+msgstr "笔刷"
+
+
+msgctxt "ID"
+msgid "Cache File"
+msgstr "缓存文件"
+
+
+msgctxt "ID"
+msgid "Camera"
+msgstr "摄像机"
+
+
+msgctxt "ID"
+msgid "Collection"
+msgstr "集合"
+
+
+msgctxt "ID"
+msgid "Curve"
+msgstr "曲线"
+
+
+msgctxt "ID"
+msgid "Curves"
+msgstr "曲线"
+
+
+msgctxt "ID"
+msgid "Font"
+msgstr "字体"
+
+
+msgctxt "ID"
+msgid "Grease Pencil"
+msgstr "蜡笔"
+
+
+msgctxt "ID"
+msgid "Grease Pencil v3"
+msgstr "蜡笔V3版"
+
+
+msgctxt "ID"
+msgid "Image"
+msgstr "图像"
+
+
+msgctxt "ID"
+msgid "Key"
+msgstr "按键"
+
+
+msgctxt "ID"
+msgid "Lattice"
+msgstr "晶格"
+
+
+msgctxt "ID"
+msgid "Library"
+msgstr "库"
+
+
+msgctxt "ID"
+msgid "Light"
+msgstr "灯光"
+
+
+msgctxt "ID"
+msgid "Light Probe"
+msgstr "光照探头"
+
+
+msgctxt "ID"
+msgid "Line Style"
+msgstr "线条样式"
+
+
+msgctxt "ID"
+msgid "Mask"
+msgstr "遮罩"
+
+
+msgctxt "ID"
+msgid "Material"
+msgstr "材质"
+
+
+msgctxt "ID"
+msgid "Mesh"
+msgstr "网格"
+
+
+msgctxt "ID"
+msgid "Metaball"
+msgstr "融球"
+
+
+msgctxt "ID"
+msgid "Movie Clip"
+msgstr "影片剪辑"
+
+
+msgctxt "ID"
+msgid "Node Tree"
+msgstr "节点树"
+
+
+msgctxt "ID"
+msgid "Object"
+msgstr "物体"
+
+
+msgctxt "ID"
+msgid "Paint Curve"
+msgstr "绘制曲线"
+
+
+msgctxt "ID"
+msgid "Palette"
+msgstr "调色板"
+
+
+msgctxt "ID"
+msgid "Particle"
+msgstr "粒子"
+
+
+msgctxt "ID"
+msgid "Point Cloud"
+msgstr "点云"
+
+
+msgctxt "ID"
+msgid "Scene"
+msgstr "场景"
+
+
+msgctxt "ID"
+msgid "Screen"
+msgstr "屏幕"
+
+
+msgctxt "ID"
+msgid "Sound"
+msgstr "声音"
+
+
+msgctxt "ID"
+msgid "Speaker"
+msgstr "扬声器"
+
+
+msgctxt "ID"
+msgid "Text"
+msgstr "文本"
+
+
+msgctxt "ID"
+msgid "Texture"
+msgstr "纹理"
+
+
+msgctxt "ID"
+msgid "Volume"
+msgstr "体积"
+
+
+msgctxt "ID"
+msgid "Window Manager"
+msgstr "窗口管理器"
+
+
+msgctxt "ID"
+msgid "Workspace"
+msgstr "工作区"
+
+
+msgctxt "ID"
+msgid "World"
+msgstr "世界环境"
 
 
 msgid "The local data-block this asset represents; only valid if that is a data-block in this file"
@@ -4961,6 +4915,10 @@ msgid "Preselected mode when using this brush"
 msgstr "使用此笔刷时的预选模式"
 
 
+msgid "Active"
+msgstr "活动项"
+
+
 msgid "Use current mode"
 msgstr "使用当前模式"
 
@@ -5766,6 +5724,10 @@ msgid "In a local override camera, whether this background image comes from the 
 msgstr "在本地重写摄像机中，此背景图像是来自关联的参考摄像机，还是来自重写的本地"
 
 
+msgid "Offset"
+msgstr "偏移量"
+
+
 msgid "Rotation"
 msgstr "旋转"
 
@@ -5788,6 +5750,10 @@ msgstr "显示背景图"
 
 msgid "Show this image as background"
 msgstr "将此图像作为背景图显示"
+
+
+msgid "Show Expanded"
+msgstr "扩展显示"
 
 
 msgid "Show the details in the user interface"
@@ -7419,6 +7385,10 @@ msgid "Amount of residual error in radians for constraints that work on orientat
 msgstr "轴向上的约束器残留误差量, 以弧度计"
 
 
+msgid "Influence"
+msgstr "影响"
+
+
 msgid "Amount of influence constraint will have on the final solution"
 msgstr "最终结果的约束影响数量"
 
@@ -7789,6 +7759,10 @@ msgstr "最小值"
 
 msgid "Minimum value for target channel range"
 msgstr "目标通道范围的最小值"
+
+
+msgid "Mix Mode"
+msgstr "混合模式"
 
 
 msgid "Specify how existing transformations and the action channels are combined"
@@ -12326,18 +12300,6 @@ msgid "Disables video output, for audio-only renders"
 msgstr "禁用视频输出, 仅供音频渲染"
 
 
-msgid "AV1"
-msgstr "AV1"
-
-
-msgid "H.264"
-msgstr "H.264"
-
-
-msgid "WebM / VP9"
-msgstr "WebM / VP9"
-
-
 msgid "DNxHD"
 msgstr "DNxHD"
 
@@ -12352,6 +12314,10 @@ msgstr "FFmpeg 视频编码 #1"
 
 msgid "Flash Video"
 msgstr "Flash 视频"
+
+
+msgid "H.264"
+msgstr "H.264"
 
 
 msgid "HuffYUV"
@@ -12376,6 +12342,14 @@ msgstr "QuickTime 动画"
 
 msgid "Theora"
 msgstr "Theora"
+
+
+msgid "WebM / VP9"
+msgstr "WebM / VP9"
+
+
+msgid "AV1"
+msgstr "AV1"
 
 
 msgid "Output Quality"
@@ -12466,28 +12440,28 @@ msgid "MPEG-4"
 msgstr "MPEG-4"
 
 
-msgid "Matroska"
-msgstr "Matroska (MKV)"
-
-
-msgid "WebM"
-msgstr "WebM"
-
-
 msgid "AVI"
 msgstr "AVI"
 
 
-msgid "Flash"
-msgstr "Flash"
+msgid "QuickTime"
+msgstr "QuickTime"
 
 
 msgid "Ogg"
 msgstr "Ogg"
 
 
-msgid "QuickTime"
-msgstr "QuickTime"
+msgid "Matroska"
+msgstr "Matroska (MKV)"
+
+
+msgid "Flash"
+msgstr "Flash"
+
+
+msgid "WebM"
+msgstr "WebM"
 
 
 msgid "Keyframe Interval"
@@ -17189,6 +17163,10 @@ msgid "Type of keyframe"
 msgstr "关键帧的类型"
 
 
+msgid "Keyframe"
+msgstr "关键帧"
+
+
 msgid "Normal keyframe, e.g. for key poses"
 msgstr "常规关键帧 - 例如: 用于关键姿态"
 
@@ -17318,7 +17296,7 @@ msgstr "父级骨骼"
 
 
 msgid "Name of parent bone. Only used when the parent object is an armature."
-msgstr "父级骨骼的名称。仅当父级物体为骨架时使用."
+msgstr "父级骨骼的名称。仅当父级物体为骨架时使用。"
 
 
 msgid "Parent Layer Group"
@@ -17431,6 +17409,14 @@ msgstr "保护图层不受后续编辑与/或帧变动的影响"
 
 msgid "Group name"
 msgstr "组名称"
+
+
+msgid "Parent Group"
+msgstr "父级组"
+
+
+msgid "The parent group this group is part of"
+msgstr "此组所属的父组"
 
 
 msgid "The visibility of drawings in the layers in this group is affected by the layers in the masks lists"
@@ -17792,6 +17778,10 @@ msgid "The combined frame range of all F-Curves within this action"
 msgstr "该动作中所有函数曲线的组合帧范围"
 
 
+msgid "F-Curves"
+msgstr "函数曲线"
+
+
 msgid "The individual F-Curves that make up the action"
 msgstr "组成动作的各条函数曲线"
 
@@ -17820,12 +17810,22 @@ msgid "Convenient groupings of F-Curves"
 msgstr "函数曲线的便捷群组"
 
 
+msgctxt "ID"
+msgid "ID Root Type"
+msgstr "ID根类型"
+
+
 msgid "Type of ID block that action can be used on - DO NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING"
 msgstr "可供该动作使用的ID数据块类型 - 除非了解用途，否则请勿改动"
 
 
-msgid "Layers"
-msgstr "层"
+msgctxt "ID"
+msgid "Unspecified"
+msgstr "未指定"
+
+
+msgid "Not yet specified. When this slot is first assigned to a data-block, this will be set to the type of that data-block"
+msgstr "尚未指定。当此插槽首次分配给数据块时，它将被设置为该数据块的类型"
 
 
 msgid "Pose Markers"
@@ -22263,6 +22263,10 @@ msgstr "启用或禁用纹理笔画"
 
 msgid "Freehand annotation sketchbook"
 msgstr "自由画线簿"
+
+
+msgid "Layers"
+msgstr "层"
 
 
 msgid "Grease Pencil data-block"
@@ -29713,18 +29717,6 @@ msgid "Codec"
 msgstr "编码器"
 
 
-msgid "No compression"
-msgstr "无压缩"
-
-
-msgid "DWAA (lossy)"
-msgstr "DWAA (有损)"
-
-
-msgid "DWAB (lossy)"
-msgstr "DWAB (有损)"
-
-
 msgid "Pxr24 (lossy)"
 msgstr "Pxr24 (有损)"
 
@@ -29735,6 +29727,14 @@ msgstr "B44 (有损)"
 
 msgid "B44A (lossy)"
 msgstr "PB44A (有损)"
+
+
+msgid "DWAA (lossy)"
+msgstr "DWAA (有损)"
+
+
+msgid "DWAB (lossy)"
+msgstr "DWAB (有损)"
 
 
 msgid "File format to save the rendered images as"
@@ -33776,176 +33776,188 @@ msgid "Editor menu containing buttons"
 msgstr "包含按钮的编辑器菜单"
 
 
-msgid "Names"
-msgstr "名称"
-
-
-msgid "Bone Collections"
-msgstr "骨骼集合"
-
-
-msgid "Propagate"
-msgstr "传导"
-
-
-msgid "In-Betweens"
-msgstr "间帧调整"
-
-
-msgid "Clear Transform"
-msgstr "清空变换"
-
-
-msgid "Random Mask"
-msgstr "随机遮罩"
-
-
-msgid "Set Face Strength"
-msgstr "设置面强度"
-
-
-msgid "Select by Face Strength"
-msgstr "按面强度选择"
-
-
-msgid "Align View"
-msgstr "对齐视图"
-
-
-msgid "Face Data"
-msgstr "面数据"
-
-
-msgid "Mesh Select Mode"
-msgstr "网格选择模式"
-
-
-msgid "Navigation"
-msgstr "视图切换"
-
-
-msgid "Disable Bone Options"
-msgstr "禁用骨骼设置"
-
-
-msgid "Viewpoint"
-msgstr "视图"
-
-
-msgid "Enable Bone Options"
-msgstr "启用骨骼设置"
-
-
-msgid "Local View"
-msgstr "局部视图"
-
-
-msgid "Toggle Bone Options"
-msgstr "切换骨骼设置"
-
-
-msgid "Show/Hide"
-msgstr "显示 / 隐藏"
-
-
-msgid "UV Mapping"
-msgstr "UV 映射"
-
-
-msgid "Assign Material"
-msgstr "指定材质"
+msgid "Mirror"
+msgstr "镜像"
 
 
 msgid "Snap"
 msgstr "吸附"
 
 
-msgid "Mirror"
-msgstr "镜像"
+msgid "UV Mapping"
+msgstr "UV 映射"
 
 
-msgid "Face Sets Init"
-msgstr "面组初始化"
+msgid "Local View"
+msgstr "局部视图"
 
 
-msgid "Sculpt Set Pivot"
-msgstr "雕刻集轴心点"
+msgid "Viewpoint"
+msgstr "视图"
 
 
-msgid "Trim/Add"
-msgstr "修剪 / 添加"
+msgid "Navigation"
+msgstr "视图切换"
 
 
-msgid "Vertex Group Locks"
-msgstr "顶点组锁"
+msgid "Align View"
+msgstr "对齐视图"
 
 
-msgid "Hooks"
-msgstr "钩挂"
+msgid "Align View to Active"
+msgstr "视图对齐活动项"
 
 
-msgid "Link/Transfer Data"
-msgstr "关联/传递数据"
-
-
-msgid "Convert"
-msgstr "转换"
-
-
-msgid "Make Single User"
-msgstr "使其独立化"
-
-
-msgid "Asset"
-msgstr "资产"
-
-
-msgid "Clean Up"
-msgstr "清理"
-
-
-msgid "Quick Effects"
-msgstr "快速效果"
-
-
-msgid "Track"
-msgstr "追踪"
-
-
-msgid "Apply"
-msgstr "应用"
-
-
-msgid "Rigid Body"
-msgstr "刚体"
-
-
-msgid "Relations"
-msgstr "关系"
-
-
-msgid "Add Image"
-msgstr "添加图像"
-
-
-msgid "Select Similar"
-msgstr "选择相似"
+msgid "View Regions"
+msgstr "视图框"
 
 
 msgid "Select More/Less"
 msgstr "扩展/缩减选择"
 
 
-msgid "Select Loops"
-msgstr "选择循环"
+msgid "Select Similar"
+msgstr "选择相似"
+
+
+msgid "Select All by Trait"
+msgstr "按特征全选"
 
 
 msgid "Select Linked"
 msgstr "选择相连元素"
 
 
-msgid "Select All by Trait"
-msgstr "按特征全选"
+msgid "Select Loops"
+msgstr "选择循环"
+
+
+msgid "Assign Material"
+msgstr "指定材质"
+
+
+msgid "Add Image"
+msgstr "添加图像"
+
+
+msgid "Relations"
+msgstr "关系"
+
+
+msgid "Rigid Body"
+msgstr "刚体"
+
+
+msgid "Apply"
+msgstr "应用"
+
+
+msgid "Track"
+msgstr "追踪"
+
+
+msgid "Quick Effects"
+msgstr "快速效果"
+
+
+msgid "Show/Hide"
+msgstr "显示 / 隐藏"
+
+
+msgid "Clean Up"
+msgstr "清理"
+
+
+msgid "Asset"
+msgstr "资产"
+
+
+msgid "Make Single User"
+msgstr "使其独立化"
+
+
+msgid "Convert"
+msgstr "转换"
+
+
+msgid "Link/Transfer Data"
+msgstr "关联/传递数据"
+
+
+msgid "Hooks"
+msgstr "钩挂"
+
+
+msgid "Vertex Group Locks"
+msgstr "顶点组锁"
+
+
+msgid "Trim/Add"
+msgstr "修剪 / 添加"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "雕刻集轴心点"
+
+
+msgid "Face Sets Init"
+msgstr "面组初始化"
+
+
+msgid "Random Mask"
+msgstr "随机遮罩"
+
+
+msgid "Clear Transform"
+msgstr "清空变换"
+
+
+msgid "In-Betweens"
+msgstr "间帧调整"
+
+
+msgid "Propagate"
+msgstr "传导"
+
+
+msgid "Bone Collections"
+msgstr "骨骼集合"
+
+
+msgid "Names"
+msgstr "名称"
+
+
+msgid "Toggle Bone Options"
+msgstr "切换骨骼设置"
+
+
+msgid "Enable Bone Options"
+msgstr "启用骨骼设置"
+
+
+msgid "Disable Bone Options"
+msgstr "禁用骨骼设置"
+
+
+msgid "Mesh Select Mode"
+msgstr "网格选择模式"
+
+
+msgid "Face Data"
+msgstr "面数据"
+
+
+msgid "Select by Face Strength"
+msgstr "按面强度选择"
+
+
+msgid "Set Face Strength"
+msgstr "设置面强度"
+
+
+msgid "Merge"
+msgstr "合并"
 
 
 msgid "Special Characters"
@@ -33958,18 +33970,6 @@ msgstr "字距"
 
 msgid "Bone Roll"
 msgstr "骨骼扭转"
-
-
-msgid "View Regions"
-msgstr "视图框"
-
-
-msgid "Align View to Active"
-msgstr "视图对齐活动项"
-
-
-msgid "Merge"
-msgstr "合并"
 
 
 msgid "Pivot Point"
@@ -54887,7 +54887,7 @@ msgstr "批量重命名"
 
 
 msgid "Check and fix all strings in current .blend file to be valid UTF-8 Unicode (needed for some old, 2.4x area files)"
-msgstr "检查当前 .blend 文件中所有字符串，并修复为有效的 UTF-8 Unicode编码(一些旧的, 2.4x 区域文件需要)"
+msgstr "检查当前 .blend 文件中所有字符串，并修复为有效的 UTF-8 Unicode 编码 (一些旧的, 2.4x 区域文件需要)"
 
 
 msgctxt "Operator"
@@ -56454,7 +56454,7 @@ msgstr "插入关键帧"
 
 
 msgid "Insert keyframes on the current frame using either the active keying set, or the user preferences if no keying set is active"
-msgstr "使用活动插帧集在当前帧上插入关键帧，如果没有插帧集处于激活状态，则使用用户首选项插入关键帧"
+msgstr "使用活动插帧集在当前帧上插入关键帧，如果没有插帧集处于激活状态，则使用用户偏好设置插入关键帧"
 
 
 msgctxt "Operator"
@@ -57719,6 +57719,11 @@ msgstr "恢复笔刷资产"
 
 msgid "Revert the active brush settings to the default values from the asset library"
 msgstr "将活动笔刷设置恢复到资产库的默认值"
+
+
+msgctxt "Operator"
+msgid "Save Brush Asset"
+msgstr "保存笔刷资产"
 
 
 msgid "Update the active brush asset in the asset library with current settings"
@@ -63490,6 +63495,10 @@ msgid "Decimate F-Curves by removing keyframes that influence the curve shape th
 msgstr "通过删除影响曲线形状最少的关键帧来精简函数曲线"
 
 
+msgid "Remove"
+msgstr "删除"
+
+
 msgid "Which mode to use for decimation"
 msgstr "用于精简的模式"
 
@@ -64494,6 +64503,14 @@ msgid "Amount of smoothing to apply to interpolated strokes, to reduce jitter/no
 msgstr "对插值笔画应用的平滑程度，用于降低抖动/噪波"
 
 
+msgid "Use Selection"
+msgstr "使用选中项"
+
+
+msgid "Use only selected strokes for interpolating"
+msgstr "仅使用选定的笔画进行插值"
+
+
 msgctxt "Operator"
 msgid "Interpolate Sequence"
 msgstr "插值顺序"
@@ -64607,6 +64624,10 @@ msgstr "并入选区"
 
 msgid "New stroke from selected points/strokes"
 msgstr "从选定的点/笔画来创建新笔画"
+
+
+msgid "Defines how the operator will behave on the selection in the active layer"
+msgstr "定义活动层选中项上如何操作"
 
 
 msgid "Join and Copy"
@@ -69471,18 +69492,6 @@ msgid "Select elements based on the active boolean attribute"
 msgstr "基于活动布尔属性选择元素"
 
 
-msgid "Type of comparison to make"
-msgstr "比较类型"
-
-
-msgid "Equal To"
-msgstr "等于"
-
-
-msgid "Not Equal To"
-msgstr "不等于"
-
-
 msgctxt "Operator"
 msgid "Select Faces by Sides"
 msgstr "按边数选面"
@@ -69494,6 +69503,18 @@ msgstr "按面的边数选择顶点或面"
 
 msgid "Number of Vertices"
 msgstr "顶点数"
+
+
+msgid "Type of comparison to make"
+msgstr "比较类型"
+
+
+msgid "Equal To"
+msgstr "等于"
+
+
+msgid "Not Equal To"
+msgstr "不等于"
 
 
 msgctxt "Operator"
@@ -70831,9 +70852,8 @@ msgid "Zoom in/out the background image"
 msgstr "缩放背景图像"
 
 
-msgctxt "Operator"
-msgid "Add Item"
-msgstr "添加项目"
+msgid "Add bake item"
+msgstr "添加烘焙项目"
 
 
 msgid "Move direction"
@@ -71072,8 +71092,9 @@ msgid "Toggle hiding of selected nodes"
 msgstr "切换隐藏的已选节点"
 
 
-msgid "Add bake item"
-msgstr "添加烘焙项目"
+msgctxt "Operator"
+msgid "Add Item"
+msgstr "添加项目"
 
 
 msgid "Remove an item from the index switch"
@@ -86089,10 +86110,6 @@ msgid "Clear the recent files list"
 msgstr "清空近期文件列表"
 
 
-msgid "Remove"
-msgstr "删除"
-
-
 msgid "All Items"
 msgstr "所有项目"
 
@@ -89358,38 +89375,6 @@ msgid "Panel containing UI elements"
 msgstr "面板包含用户界面元素"
 
 
-msgid "Wire Color"
-msgstr "线框颜色"
-
-
-msgid "Shadow Settings"
-msgstr "阴影设置"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO设置"
-
-
-msgid "Render Pass"
-msgstr "渲染通道"
-
-
-msgid "Compositor"
-msgstr "合成器"
-
-
-msgid "Overlays"
-msgstr "叠加"
-
-
-msgid "Guides"
-msgstr "引导"
-
-
-msgid "Viewer Node"
-msgstr "查看器节点"
-
-
 msgid "Motion Tracking"
 msgstr "运动追踪"
 
@@ -89420,6 +89405,10 @@ msgstr "笔画放置"
 
 msgid "Drawing Plane"
 msgstr "绘制平面"
+
+
+msgid "Guides"
+msgstr "引导"
 
 
 msgid "Grease Pencil Options"
@@ -89496,6 +89485,34 @@ msgstr "视图锁定"
 
 msgid "Selectability & Visibility"
 msgstr "可选择性 & 可见性"
+
+
+msgid "Wire Color"
+msgstr "线框颜色"
+
+
+msgid "Shadow Settings"
+msgstr "阴影设置"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO设置"
+
+
+msgid "Render Pass"
+msgstr "渲染通道"
+
+
+msgid "Compositor"
+msgstr "合成器"
+
+
+msgid "Overlays"
+msgstr "叠加"
+
+
+msgid "Viewer Node"
+msgstr "查看器节点"
 
 
 msgid "Chain Scaling"
@@ -90407,6 +90424,10 @@ msgstr "代理设置"
 
 msgid "Sequencer Overlays"
 msgstr "序列编辑器叠加层"
+
+
+msgid "Strips"
+msgstr "片段"
 
 
 msgid "Waveforms"
@@ -91959,6 +91980,10 @@ msgstr "用于物理模拟的点缓存"
 
 msgid "Cache Compression"
 msgstr "压缩缓存"
+
+
+msgid "No compression"
+msgstr "无压缩"
 
 
 msgid "Lite"
@@ -97611,7 +97636,7 @@ msgstr "手掌旋转轴"
 
 
 msgid "Replace the parent with a different bone after all bones are created. Using simply CTRL, DEF or MCH will replace the prefix instead"
-msgstr "创建所有骨骼后用其他骨骼替换父骨骼，只需使用 CTRL, DEF 或者 MCH 即可替换前缀"
+msgstr "创建所有骨骼后用其他骨骼替换父骨骼，只需使用 CTRL、DEF 或 MCH 即可替换前缀"
 
 
 msgid "pivot_position"
@@ -97679,7 +97704,7 @@ msgstr "重新链接约束"
 
 
 msgid "For constraints with names formed like 'base@bonename', use the part after '@' as the new subtarget after all bones are created. Use '@CTRL', '@DEF' or '@MCH' to simply replace the prefix"
-msgstr "约束名称的形式比如'base@bonename'，在所有骨骼创建后使用'@' 后的部分作为新的子目标，使用 '@CTRL', '@DEF' 或者 '@MCH'简单地替换前缀"
+msgstr "约束名称的形式比如 'base@bonename'，在所有骨骼创建后使用 '@' 后的部分作为新的子目标，使用 '@CTRL'、'@DEF' 或 '@MCH' 简单地替换前缀"
 
 
 msgid "Bone roll alignment"
@@ -100874,10 +100899,6 @@ msgid "Enable scene light interactions with volumetrics"
 msgstr "开启场景灯光与体积的交互"
 
 
-msgid "Generate shadows from volumetric material (Very expensive)"
-msgstr "从体积材质生成阴影(非常消耗资源)"
-
-
 msgid "End distance of the volumetric effect"
 msgstr "体积效果的结束距离"
 
@@ -101095,7 +101116,7 @@ msgstr "伽玛过渡"
 
 
 msgid "Over Drop"
-msgstr "向下覆盖"
+msgstr "覆盖叠加"
 
 
 msgid "Y position of the sequence strip"
@@ -101220,7 +101241,7 @@ msgstr "过渡"
 
 msgctxt "Sequence"
 msgid "Over Drop"
-msgstr "向下覆盖"
+msgstr "覆盖叠加"
 
 
 msgid "Cache Composite"
@@ -101561,10 +101582,6 @@ msgstr "用于创建的序列片段"
 
 msgid "Align X"
 msgstr "对齐到 X 轴"
-
-
-msgid "Anchor X"
-msgstr "锚点 X"
 
 
 msgid "Box Color"
@@ -111682,6 +111699,10 @@ msgid "Work Space Tool"
 msgstr "工作区工具"
 
 
+msgid "If the tool uses brushes and is limited to a specific brush type, the identifier of the brush type"
+msgstr "如果工具使用画笔并且仅限于特定的画笔类型，画笔类型的标识符"
+
+
 msgid "Has Data-Block"
 msgstr "含有数据块"
 
@@ -114616,6 +114637,16 @@ msgstr "序列容器常态"
 msgctxt "WindowManager"
 msgid "Sequencer"
 msgstr "序列容器"
+
+
+msgctxt "WindowManager"
+msgid "Sequencer Timeline Tool: Select Box"
+msgstr "序列时间线工具: 框选"
+
+
+msgctxt "WindowManager"
+msgid "Sequencer Timeline Tool: Select Box (fallback)"
+msgstr "序列时间线工具: 框选(回退)"
 
 
 msgctxt "WindowManager"
@@ -118844,6 +118875,14 @@ msgid "Only Axis Aligned"
 msgstr "仅轴向对齐"
 
 
+msgid "Keyframes Before"
+msgstr "关键帧前"
+
+
+msgid "Keyframes After"
+msgstr "关键帧后"
+
+
 msgid "Stroke Thickness"
 msgstr "笔画宽度"
 
@@ -118904,14 +118943,6 @@ msgstr "全部复制到选中项"
 msgctxt "Operator"
 msgid "Delete Group"
 msgstr "删除组"
-
-
-msgid "Keyframes Before"
-msgstr "关键帧前"
-
-
-msgid "Keyframes After"
-msgstr "关键帧后"
 
 
 msgid "Interpolation U"
@@ -122043,6 +122074,10 @@ msgid "Slip Strip Contents"
 msgstr "滑动片段内容"
 
 
+msgid "Anchor X"
+msgstr "锚点 X"
+
+
 msgctxt "Sound"
 msgid "Strip Volume"
 msgstr "片段音量"
@@ -123293,7 +123328,7 @@ msgstr "需要重新启动 Blender"
 
 
 msgid "The Vulkan backend is experimental:"
-msgstr "Vulkan 后端是实验性的:"
+msgstr "Vulkan 后端尚在实验中:"
 
 
 msgid "• OpenXR and GPU subdivision are not supported"
@@ -124481,7 +124516,7 @@ msgstr "查看所选"
 
 
 msgid "Show Gizmos"
-msgstr "显示控制器"
+msgstr "显示操控器"
 
 
 msgid "Toggle Overlays"
@@ -125121,12 +125156,12 @@ msgstr "设置扭转"
 
 msgctxt "Operator"
 msgid "Insert Blank Keyframe (All Layers)"
-msgstr "在全部层插入空白帧"
+msgstr "插入空白帧(所有层)"
 
 
 msgctxt "Operator"
 msgid "Duplicate Active Keyframe (Active Layer)"
-msgstr "复制活动层的活动帧"
+msgstr "复制活动关键帧(活动层)"
 
 
 msgctxt "Operator"
@@ -125197,13 +125232,13 @@ msgstr "无材质"
 
 
 msgctxt "Operator"
-msgid "Set as Active Material"
-msgstr "设为活动材质"
+msgid "Smooth Points"
+msgstr "平滑点"
 
 
 msgctxt "Operator"
-msgid "Smooth Points"
-msgstr "平滑点"
+msgid "Set as Active Material"
+msgstr "设为活动材质"
 
 
 msgid "Multiframe"
@@ -125654,6 +125689,11 @@ msgstr "编辑元数据..."
 msgctxt "Operator"
 msgid "Edit Preview Image..."
 msgstr "编辑预览图像..."
+
+
+msgctxt "Operator"
+msgid "Save Changes to Asset"
+msgstr "保存对资产的更改"
 
 
 msgctxt "Operator"
@@ -132570,6 +132610,14 @@ msgid "Delete Brush Asset"
 msgstr "删除笔刷资产"
 
 
+msgid "Permanently delete brush asset blend file. This cannot be undone."
+msgstr "永久删除笔刷资产blend文件. 此动作不可撤销."
+
+
+msgid "Permanently delete brush. This cannot be undone."
+msgstr "永久删除笔刷. 此操作不可撤销."
+
+
 msgid "Unable to activate brush, wrong object mode"
 msgstr "无法激活笔刷, 物体模式错误"
 
@@ -132846,7 +132894,7 @@ msgstr "采样模式"
 
 
 msgid "Move the mouse to change the dyntopo detail size. LMB: confirm size, ESC/RMB: cancel, SHIFT: precision mode, CTRL: sample detail size"
-msgstr "移动鼠标以更改动态拓扑细节大小. LMB: 确认大小, ESC/RMB: 取消, SHIFT: 精确模式, CTRL: 采样细节尺寸"
+msgstr "移动鼠标以更改动态拓扑细节大小. 鼠标左键: 确认大小, ESC/鼠标右键: 取消, SHIFT: 精确模式, CTRL: 采样细节尺寸"
 
 
 msgid "Warning!"
@@ -138793,7 +138841,7 @@ msgstr "未知操控器类型 '%s'"
 
 
 msgid "GizmoType '%s' is for a 3D gizmo-group. The 'draw_select' callback is set where only 'test_select' will be used."
-msgstr "操控器类型 '%s' 用于三维操控器组. 在将用到 'test_select' 的位置设置了 'draw_select' 回调。"
+msgstr "操控器类型 '%s' 用于三维操控器组。在将用到 'test_select' 的位置设置了 'draw_select' 回调。"
 
 
 msgid "%s area type does not support gizmos"
@@ -140899,6 +140947,10 @@ msgid "Result of joining generated geometries from each iteration"
 msgstr "合并每次迭代生成的几何结果"
 
 
+msgid "Field that will be stored as attribute on the geometry above"
+msgstr "将在上方几何体上作为属性存储的场"
+
+
 msgid "Local rotation of the gizmo. Only used if the local transforms are used in the 3D view"
 msgstr "操控器的局部旋转. 仅当3D视图中用到局部变换时使用"
 
@@ -142066,6 +142118,10 @@ msgid "Is Orthographic"
 msgstr "是否正交"
 
 
+msgid "Transforms points in view space to region space (\"clip space\" or \"normalized device coordinates\")"
+msgstr "将视图空间中的点转换为区域空间（“裁剪空间”或“规格化设备坐标”）"
+
+
 msgid "Transforms points from object space to view space using the viewport's location and rotation"
 msgstr "使用视口的位置和旋转，从物体空间转换到视图空间的变换点"
 
@@ -142110,10 +142166,6 @@ msgid "Number of voxels in the Z axis"
 msgstr "Z 轴上的体素数"
 
 
-msgid "Input geometry has no elements in the iteration domain."
-msgstr "输入几何体在迭代域中没有元素。"
-
-
 msgid "\"{}\" from {}"
 msgstr "\"{}\" 来自 {}"
 
@@ -142124,6 +142176,10 @@ msgstr "组 '{}' ({})"
 
 msgid "Inspection index is out of range"
 msgstr "检查编号超出范围"
+
+
+msgid "Input geometry has no elements in the iteration domain."
+msgstr "输入几何体在迭代域中没有元素。"
 
 
 msgid "Missing Data-Block"
@@ -144986,6 +145042,10 @@ msgstr "斯洛文尼亚语 (Slovenščina)"
 
 msgid "Urdu (وُدرُا)"
 msgstr "乌尔都语 (وُدرُا)"
+
+
+msgid "Lithuanian (Lietuviškai)"
+msgstr "立陶宛语 (Lietuviškai)"
 
 
 msgid "Complete"

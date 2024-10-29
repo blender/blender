@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'58c660c9615d')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'28a8486e2b3f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-20 15:55+0000\n"
-"PO-Revision-Date: 2024-09-18 23:56+0000\n"
+"POT-Creation-Date: 2024-10-29 10:02+0000\n"
+"PO-Revision-Date: 2024-10-26 01:56+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
 "Language: id\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n!=1);\n"
-"X-Generator: Weblate 5.5.2\n"
+"X-Generator: Weblate 5.7.2\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Bookmarks: -1,-1,-1,-1,-1,-1,-1,-1,-1,4"
 
@@ -59,10 +59,6 @@ msgstr "Daftar AOVs"
 
 msgid "Collection of AOVs"
 msgstr "Koleksi AOVs"
-
-
-msgid "F-Curves"
-msgstr "Kurva-F"
 
 
 msgid "Action F-Curves"
@@ -249,38 +245,6 @@ msgid "Collection of action groups"
 msgstr "Koleksi kelompok aksi"
 
 
-msgid "Influence"
-msgstr "Pengaruh"
-
-
-msgid "Mix Mode"
-msgstr "Mode Campur"
-
-
-msgid "Replace"
-msgstr "Menggantikan"
-
-
-msgid "Offset"
-msgstr "Offset"
-
-
-msgid "Add"
-msgstr "Baru"
-
-
-msgid "Subtract"
-msgstr "Mengurangi"
-
-
-msgid "Multiply"
-msgstr "Mengalikan/kalikan"
-
-
-msgid "Strips"
-msgstr "Strip"
-
-
 msgid "Action Pose Markers"
 msgstr "Penanda Pose Aksi"
 
@@ -303,218 +267,6 @@ msgstr "Indeks Penanda Pose Aktif"
 
 msgid "Index of active pose marker"
 msgstr "Indeks penanda pose aktif"
-
-
-msgid "Active"
-msgstr "Aktif"
-
-
-msgctxt "ID"
-msgid "ID Root Type"
-msgstr "Tipe Akar ID"
-
-
-msgctxt "ID"
-msgid "Action"
-msgstr "Aksi"
-
-
-msgctxt "ID"
-msgid "Armature"
-msgstr "Kerangka"
-
-
-msgctxt "ID"
-msgid "Brush"
-msgstr "Kuas"
-
-
-msgctxt "ID"
-msgid "Cache File"
-msgstr "Dokumen Cache"
-
-
-msgctxt "ID"
-msgid "Camera"
-msgstr "Kamera"
-
-
-msgctxt "ID"
-msgid "Collection"
-msgstr "Koleksi"
-
-
-msgctxt "ID"
-msgid "Curve"
-msgstr "Kurva"
-
-
-msgctxt "ID"
-msgid "Curves"
-msgstr "Kurva"
-
-
-msgctxt "ID"
-msgid "Font"
-msgstr "Font"
-
-
-msgctxt "ID"
-msgid "Grease Pencil"
-msgstr "Pensil Grease"
-
-
-msgctxt "ID"
-msgid "Grease Pencil v3"
-msgstr "Pensil Grease v3"
-
-
-msgctxt "ID"
-msgid "Image"
-msgstr "Gambar"
-
-
-msgctxt "ID"
-msgid "Key"
-msgstr "Kunci"
-
-
-msgctxt "ID"
-msgid "Lattice"
-msgstr "Kisi"
-
-
-msgctxt "ID"
-msgid "Library"
-msgstr "Perpustakaan"
-
-
-msgctxt "ID"
-msgid "Light"
-msgstr "Cahaya"
-
-
-msgctxt "ID"
-msgid "Light Probe"
-msgstr "Probe cahaya"
-
-
-msgctxt "ID"
-msgid "Line Style"
-msgstr "Gaya Garis"
-
-
-msgctxt "ID"
-msgid "Mask"
-msgstr "Masker"
-
-
-msgctxt "ID"
-msgid "Material"
-msgstr "Bahan"
-
-
-msgctxt "ID"
-msgid "Mesh"
-msgstr "Mesh"
-
-
-msgctxt "ID"
-msgid "Metaball"
-msgstr "Metabola"
-
-
-msgctxt "ID"
-msgid "Movie Clip"
-msgstr "Klip Film"
-
-
-msgctxt "ID"
-msgid "Node Tree"
-msgstr "Pohon Node"
-
-
-msgctxt "ID"
-msgid "Object"
-msgstr "Benda"
-
-
-msgctxt "ID"
-msgid "Paint Curve"
-msgstr "Kurva Cat"
-
-
-msgctxt "ID"
-msgid "Palette"
-msgstr "Palet"
-
-
-msgctxt "ID"
-msgid "Particle"
-msgstr "Partikel"
-
-
-msgctxt "ID"
-msgid "Point Cloud"
-msgstr "Titik Awan"
-
-
-msgctxt "ID"
-msgid "Scene"
-msgstr "Adegan"
-
-
-msgctxt "ID"
-msgid "Screen"
-msgstr "Layar"
-
-
-msgctxt "ID"
-msgid "Sound"
-msgstr "Suara"
-
-
-msgctxt "ID"
-msgid "Speaker"
-msgstr "Pengeras Suara"
-
-
-msgctxt "ID"
-msgid "Text"
-msgstr "Teks"
-
-
-msgctxt "ID"
-msgid "Texture"
-msgstr "Tekstur"
-
-
-msgctxt "ID"
-msgid "Volume"
-msgstr "Volume"
-
-
-msgctxt "ID"
-msgid "Window Manager"
-msgstr "Pengelola Jendela"
-
-
-msgctxt "ID"
-msgid "Workspace"
-msgstr "Spasi Kerja"
-
-
-msgctxt "ID"
-msgid "World"
-msgstr "Dunia"
-
-
-msgid "Show Expanded"
-msgstr "Tampilkan yang Diekspansi"
-
-
-msgid "Keyframe"
-msgstr "Frame Kunci"
 
 
 msgid "Add-on"
@@ -721,6 +473,18 @@ msgid "Place the Mix node at the same height as the lowest node"
 msgstr "Menaruh simpul Campur di ketinggian yang sama dengan simpul terendah"
 
 
+msgid "Show Hotkey List"
+msgstr "Tampilkan Daftar Tombol Pintas"
+
+
+msgid "Expand this box into a list of all the hotkeys for functions in this addon"
+msgstr "Ekspansi kotak ini menjadi daftar semua tombol pintas untuk fungsi-fungsi dalam addon ini"
+
+
+msgid "Show Principled naming tags"
+msgstr "Tampilkan Tag penamaan berprinsip"
+
+
 msgid "Fribidi Library"
 msgstr "Perpustakaan Fribidi"
 
@@ -805,6 +569,10 @@ msgid "Method used for combining Active Action's result with result of NLA stack
 msgstr "Metode yang digunakan untuk menggabungkan hasil Aksi Aktif dengan hasil stack NLA"
 
 
+msgid "Replace"
+msgstr "Menggantikan"
+
+
 msgid "The strip values replace the accumulated results by amount specified by influence"
 msgstr "Nilai strip menggantikan hasil akumulasi dengan jumlah yang ditentukan oleh pengaruh"
 
@@ -817,12 +585,24 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "Nilai strip digabungkan dengan hasil akumulasi dengan tepat menggunakan pertambahan, perkalian, atau matematika kuaternion, berdasarkan tipe saluran"
 
 
+msgid "Add"
+msgstr "Baru"
+
+
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "Hasil tertimbang strip ditambahkan ke hasil akumulasi"
 
 
+msgid "Subtract"
+msgstr "Mengurangi"
+
+
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "Hasil tertimbang strip dihapus dari hasil akumulasi"
+
+
+msgid "Multiply"
+msgstr "Mengalikan/kalikan"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -1500,6 +1280,201 @@ msgstr "Jenis Data-Blok"
 
 msgid "The type of the data-block, if the asset represents one ('NONE' otherwise)"
 msgstr "Tipe data-blok, jika aset merepresentasikan satu ('TIDAK ADA' jika tidak)"
+
+
+msgctxt "ID"
+msgid "Action"
+msgstr "Aksi"
+
+
+msgctxt "ID"
+msgid "Armature"
+msgstr "Kerangka"
+
+
+msgctxt "ID"
+msgid "Brush"
+msgstr "Kuas"
+
+
+msgctxt "ID"
+msgid "Cache File"
+msgstr "Dokumen Cache"
+
+
+msgctxt "ID"
+msgid "Camera"
+msgstr "Kamera"
+
+
+msgctxt "ID"
+msgid "Collection"
+msgstr "Koleksi"
+
+
+msgctxt "ID"
+msgid "Curve"
+msgstr "Kurva"
+
+
+msgctxt "ID"
+msgid "Curves"
+msgstr "Kurva"
+
+
+msgctxt "ID"
+msgid "Font"
+msgstr "Font"
+
+
+msgctxt "ID"
+msgid "Grease Pencil"
+msgstr "Pensil Grease"
+
+
+msgctxt "ID"
+msgid "Grease Pencil v3"
+msgstr "Pensil Grease v3"
+
+
+msgctxt "ID"
+msgid "Image"
+msgstr "Gambar"
+
+
+msgctxt "ID"
+msgid "Key"
+msgstr "Kunci"
+
+
+msgctxt "ID"
+msgid "Lattice"
+msgstr "Kisi"
+
+
+msgctxt "ID"
+msgid "Library"
+msgstr "Perpustakaan"
+
+
+msgctxt "ID"
+msgid "Light"
+msgstr "Cahaya"
+
+
+msgctxt "ID"
+msgid "Light Probe"
+msgstr "Probe cahaya"
+
+
+msgctxt "ID"
+msgid "Line Style"
+msgstr "Gaya Garis"
+
+
+msgctxt "ID"
+msgid "Mask"
+msgstr "Masker"
+
+
+msgctxt "ID"
+msgid "Material"
+msgstr "Bahan"
+
+
+msgctxt "ID"
+msgid "Mesh"
+msgstr "Mesh"
+
+
+msgctxt "ID"
+msgid "Metaball"
+msgstr "Metabola"
+
+
+msgctxt "ID"
+msgid "Movie Clip"
+msgstr "Klip Film"
+
+
+msgctxt "ID"
+msgid "Node Tree"
+msgstr "Pohon Node"
+
+
+msgctxt "ID"
+msgid "Object"
+msgstr "Benda"
+
+
+msgctxt "ID"
+msgid "Paint Curve"
+msgstr "Kurva Cat"
+
+
+msgctxt "ID"
+msgid "Palette"
+msgstr "Palet"
+
+
+msgctxt "ID"
+msgid "Particle"
+msgstr "Partikel"
+
+
+msgctxt "ID"
+msgid "Point Cloud"
+msgstr "Titik Awan"
+
+
+msgctxt "ID"
+msgid "Scene"
+msgstr "Adegan"
+
+
+msgctxt "ID"
+msgid "Screen"
+msgstr "Layar"
+
+
+msgctxt "ID"
+msgid "Sound"
+msgstr "Suara"
+
+
+msgctxt "ID"
+msgid "Speaker"
+msgstr "Pengeras Suara"
+
+
+msgctxt "ID"
+msgid "Text"
+msgstr "Teks"
+
+
+msgctxt "ID"
+msgid "Texture"
+msgstr "Tekstur"
+
+
+msgctxt "ID"
+msgid "Volume"
+msgstr "Volume"
+
+
+msgctxt "ID"
+msgid "Window Manager"
+msgstr "Pengelola Jendela"
+
+
+msgctxt "ID"
+msgid "Workspace"
+msgstr "Spasi Kerja"
+
+
+msgctxt "ID"
+msgid "World"
+msgstr "Dunia"
 
 
 msgid "The local data-block this asset represents; only valid if that is a data-block in this file"
@@ -4632,6 +4607,10 @@ msgid "Preselected mode when using this brush"
 msgstr "Mode yang telah dipilih sebelumnya saat menggunakan kuas ini"
 
 
+msgid "Active"
+msgstr "Aktif"
+
+
 msgid "Use current mode"
 msgstr "Gunakan mode sekarang"
 
@@ -5377,6 +5356,10 @@ msgid "Override Background Image"
 msgstr "Menimpa Gambar Latar Belakang"
 
 
+msgid "Offset"
+msgstr "Offset"
+
+
 msgid "Rotation"
 msgstr "Rotasi"
 
@@ -5399,6 +5382,10 @@ msgstr "Tampilkan Gambar Latar Belakang"
 
 msgid "Show this image as background"
 msgstr "Tampilkan gambar ini sebagai latar belakang"
+
+
+msgid "Show Expanded"
+msgstr "Tampilkan yang Diekspansi"
 
 
 msgid "Show the details in the user interface"
@@ -6414,6 +6401,10 @@ msgid "Rotation error"
 msgstr "Rotasi error"
 
 
+msgid "Influence"
+msgstr "Pengaruh"
+
+
 msgid "Disable"
 msgstr "Matikan"
 
@@ -6608,6 +6599,10 @@ msgstr "Minimum"
 
 msgid "Minimum value for target channel range"
 msgstr "Nilai minimum untuk jarak saluran target"
+
+
+msgid "Mix Mode"
+msgstr "Mode Campur"
 
 
 msgid "Before Original (Full)"
@@ -9288,14 +9283,6 @@ msgid "Buffersize"
 msgstr "Ukuran buffer"
 
 
-msgid "AV1"
-msgstr "AV1"
-
-
-msgid "H.264"
-msgstr "H.264"
-
-
 msgid "DNxHD"
 msgstr "DNxHD"
 
@@ -9306,6 +9293,10 @@ msgstr "DV"
 
 msgid "Flash Video"
 msgstr "Video Flash"
+
+
+msgid "H.264"
+msgstr "H.264"
 
 
 msgid "HuffYUV"
@@ -9326,6 +9317,10 @@ msgstr "MPEG-4 (divx)"
 
 msgid "Theora"
 msgstr "Theora"
+
+
+msgid "AV1"
+msgstr "AV1"
 
 
 msgid "Output Quality"
@@ -9376,28 +9371,28 @@ msgid "MPEG-4"
 msgstr "MPEG-4"
 
 
-msgid "Matroska"
-msgstr "Matroska"
-
-
-msgid "WebM"
-msgstr "WebM"
-
-
 msgid "AVI"
 msgstr "AVI"
 
 
-msgid "Flash"
-msgstr "Flash"
+msgid "QuickTime"
+msgstr "Quicktime"
 
 
 msgid "Ogg"
 msgstr "Ogg"
 
 
-msgid "QuickTime"
-msgstr "Quicktime"
+msgid "Matroska"
+msgstr "Matroska"
+
+
+msgid "Flash"
+msgstr "Flash"
+
+
+msgid "WebM"
+msgstr "WebM"
 
 
 msgid "Lossless Output"
@@ -11010,6 +11005,10 @@ msgid "Type of keyframe"
 msgstr "Tipe keyframe"
 
 
+msgid "Keyframe"
+msgstr "Frame Kunci"
+
+
 msgid "Breakdown"
 msgstr "Rincian (Breakdown)"
 
@@ -11232,6 +11231,10 @@ msgid "Users"
 msgstr "Pengguna"
 
 
+msgid "F-Curves"
+msgstr "Kurva-F"
+
+
 msgid "Frame Range"
 msgstr "Dalam Jarak"
 
@@ -11240,8 +11243,18 @@ msgid "Groups"
 msgstr "Kelompok-kelompok"
 
 
-msgid "Layers"
-msgstr "Layer"
+msgctxt "ID"
+msgid "ID Root Type"
+msgstr "Tipe Akar ID"
+
+
+msgctxt "ID"
+msgid "Unspecified"
+msgstr "Tidak ditentukan"
+
+
+msgid "Not yet specified. When this slot is first assigned to a data-block, this will be set to the type of that data-block"
+msgstr "Belum ditentukan. Saat slot ini ditetapkan untuk pertama kalinya ke data-blok, ini akan diset ke tipe data-blok tersebut"
 
 
 msgid "Feature Set"
@@ -12265,6 +12278,10 @@ msgstr "Penyortiran"
 
 msgid "Use Textures"
 msgstr "Gunakan Tekstur"
+
+
+msgid "Layers"
+msgstr "Layer"
 
 
 msgid "Selected"
@@ -13336,10 +13353,6 @@ msgid "Codec"
 msgstr "Codec"
 
 
-msgid "DWAA (lossy)"
-msgstr "DWAA (kehilangan kualitas)"
-
-
 msgid "Pxr24 (lossy)"
 msgstr "Pxr24 (kehilangan kualitas)"
 
@@ -13350,6 +13363,10 @@ msgstr "B44 (kehilangan kualitas)"
 
 msgid "B44A (lossy)"
 msgstr "B44A (kehilangan kualitas)"
+
+
+msgid "DWAA (lossy)"
+msgstr "DWAA (kehilangan kualitas)"
 
 
 msgid "Settings for stereo 3D"
@@ -14984,48 +15001,48 @@ msgid "Use Material Mask"
 msgstr "Gunakan Masker Bahan"
 
 
-msgid "Names"
-msgstr "Nama"
-
-
-msgid "Navigation"
-msgstr "Navigasi"
-
-
-msgid "Assign Material"
-msgstr "Tugaskan Bahan"
+msgid "Mirror"
+msgstr "Cermin"
 
 
 msgid "Snap"
 msgstr "Jepret"
 
 
-msgid "Mirror"
-msgstr "Cermin"
+msgid "Navigation"
+msgstr "Navigasi"
 
 
-msgid "Hooks"
-msgstr "Kait"
+msgid "Select Linked"
+msgstr "Seleksi yang Terhubung"
 
 
-msgid "Asset"
-msgstr "Aset"
-
-
-msgid "Track"
-msgstr "Lacak"
-
-
-msgid "Apply"
-msgstr "Tetapkan"
+msgid "Assign Material"
+msgstr "Tugaskan Bahan"
 
 
 msgid "Add Image"
 msgstr "Tambah Gambar"
 
 
-msgid "Select Linked"
-msgstr "Seleksi yang Terhubung"
+msgid "Apply"
+msgstr "Tetapkan"
+
+
+msgid "Track"
+msgstr "Lacak"
+
+
+msgid "Asset"
+msgstr "Aset"
+
+
+msgid "Hooks"
+msgstr "Kait"
+
+
+msgid "Names"
+msgstr "Nama"
 
 
 msgid "Merge"
@@ -20421,6 +20438,10 @@ msgid "Set Cursor"
 msgstr "Set Kursor"
 
 
+msgid "Remove"
+msgstr "Hapus"
+
+
 msgid "Replace Existing"
 msgstr "Menggantikan yang Ada"
 
@@ -24709,10 +24730,6 @@ msgid "Call Menu"
 msgstr "Seleksi"
 
 
-msgid "Remove"
-msgstr "Hapus"
-
-
 msgid "Save a Collada file"
 msgstr "Situs Blender"
 
@@ -25269,12 +25286,12 @@ msgid "Restrict painting to vertices in the group"
 msgstr "Membatasi lukisan ke simpul di kelompok"
 
 
-msgid "Wire Color"
-msgstr "Warna Kabel"
-
-
 msgid "Snapping"
 msgstr "Gertakan"
+
+
+msgid "Wire Color"
+msgstr "Warna Kabel"
 
 
 msgid "Custom Shape"
@@ -25465,6 +25482,10 @@ msgstr "Audio"
 
 msgid "Video"
 msgstr "Video"
+
+
+msgid "Strips"
+msgstr "Strip"
 
 
 msgid "Extra Options"
@@ -27887,6 +27908,14 @@ msgid "Only Axis Aligned"
 msgstr "Hanya Sumbu yang Disejajarkan"
 
 
+msgid "Keyframes Before"
+msgstr "Keyframe Sebelum"
+
+
+msgid "Keyframes After"
+msgstr "Keyframe Setelah"
+
+
 msgid "Autolock Inactive Layers"
 msgstr "Autoblok Layer Tidak Aktif"
 
@@ -27923,14 +27952,6 @@ msgstr "Salin Layer ke Terpilih"
 msgctxt "Operator"
 msgid "Copy All Layers to Selected"
 msgstr "Salin Semua Layer ke Terseleksi"
-
-
-msgid "Keyframes Before"
-msgstr "Keyframe Sebelum"
-
-
-msgid "Keyframes After"
-msgstr "Keyframe Setelah"
 
 
 msgid "Interpolation U"
