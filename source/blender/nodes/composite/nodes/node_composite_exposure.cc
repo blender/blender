@@ -58,7 +58,7 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
   static auto function = mf::build::SI2_SO<float4, float, float4>(
       "Exposure",
       [](const float4 &color, const float exposure) -> float4 {
-        return float4(color.xyz() * exp2(exposure), color.w);
+        return float4(color.xyz() * std::exp2(exposure), color.w);
       },
       mf::build::exec_presets::SomeSpanOrSingle<0>());
   builder.set_matching_fn(function);
