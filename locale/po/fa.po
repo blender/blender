@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'58c660c9615d')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'28a8486e2b3f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-20 15:55+0000\n"
+"POT-Creation-Date: 2024-10-29 10:02+0000\n"
 "PO-Revision-Date: 2024-05-03 12:13+0000\n"
 "Last-Translator: Nooby Noober <iamanoobynoober@gmail.com>\n"
 "Language-Team: Persian <https://translate.blender.org/projects/blender-ui/ui/fa/>\n"
@@ -246,34 +246,6 @@ msgid "Collection of action groups"
 msgstr "ﻡﺍﺪﻗﺍ ﯼﺎﻫ‌ﻩﻭﺮﮔ ﻪﻋﻮﻤﺠﻣ"
 
 
-msgid "Influence"
-msgstr "ﺫﻮﻔﻧ"
-
-
-msgid "Mix Mode"
-msgstr "ﯽﺒﯿﮐﺮﺗ ﺖﻟﺎﺣ"
-
-
-msgid "Replace"
-msgstr "ﻦﯾﺰﮕﯾﺎﺟ"
-
-
-msgid "Offset"
-msgstr "ﺖﺴﻓﺍ"
-
-
-msgid "Add"
-msgstr "ﻥﺩﺮﮐ‌ﻪﻓﺎﺿﺍ"
-
-
-msgid "Subtract"
-msgstr "ﻥﺩﺮﮐ‌ﻖﯾﺮﻔﺗ"
-
-
-msgid "Multiply"
-msgstr "ﺏﺮﺿ"
-
-
 msgid "Action Pose Markers"
 msgstr "ﻞﻤﻋ ﺖﺳﮊ ﯼﺎﻫﺮﮕﻧﺎﺸﻧ"
 
@@ -296,19 +268,6 @@ msgstr "ﻝﺎﻌﻓ ﺖﺳﮊ ﺮﮕﻧﺎﺸﻧ ﺺﺧﺎﺷ"
 
 msgid "Index of active pose marker"
 msgstr "ﺖﺳﺍ ﻝﺎﻌﻓ ﻪﮐ ﯽﺘﺳﮊ ﺮﮕﻧﺎﺸﻧ ﺺﺧﺎﺷ"
-
-
-msgid "Active"
-msgstr "ﻝﺎﻌﻓ"
-
-
-msgctxt "ID"
-msgid "Grease Pencil v3"
-msgstr "v3 ﯽﻨﻏﻭﺭ ﺩﺍﺪﻣ"
-
-
-msgid "Show Expanded"
-msgstr "ﻩﺩﺮﺘﺴﮔ ﺶﯾﺎﻤﻧ"
 
 
 msgid "Add-on"
@@ -539,6 +498,10 @@ msgid "Method used for combining Active Action's result with result of NLA stack
 msgstr "NLA ﻪﺘﺳﺩ ﻪﺠﯿﺘﻧ ﺎﺑ ﻝﺎﻌﻓ ﻡﺍﺪﻗﺍ ﻪﺠﯿﺘﻧ ﺐﯿﮐﺮﺗ ﯼﺍﺮﺑ ﻩﺩﺎﻔﺘﺳﺍ ﺩﺭﻮﻣ ﺵﻭﺭ"
 
 
+msgid "Replace"
+msgstr "ﻦﯾﺰﮕﯾﺎﺟ"
+
+
 msgid "The strip values replace the accumulated results by amount specified by influence"
 msgstr "ﺩﻮﺷ ﯽﻣ ﺮﯿﺛﺄﺗ ﻂﺳﻮﺗ ﻩﺪﺷ ﺺﺨﺸﻣ ﺭﺍﺪﻘﻣ ﺎﺑ ﻩﺪﺷ ﯼﺭﻭﺁ ﻊﻤﺟ ﺞﯾﺎﺘﻧ ﻦﯾﺰﮕﯾﺎﺟ ﺭﺍﻮﻧ ﺮﯾﺩﺎﻘﻣ"
 
@@ -551,12 +514,24 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "ﺪﻧﻮﺷ ﯽﻣ ﺐﯿﮐﺮﺗ ﻝﺎﻧﺎﮐ ﻉﻮﻧ ﺱﺎﺳﺍ ﺮﺑ ﻂﻠﺘﺨﻣ ﺩﺍﺪﻋﺍ ﺎﯾ ﺏﺮﺿ ،ﻊﻤﺟ ﺕﺎﯿﺿﺎﯾﺭ ﺯﺍ ﺐﺳﺎﻨﻣ ﻩﺩﺎﻔﺘﺳﺍ ﺎﺑ ﻩﺪﺷ ﯼﺭﻭﺁ ﻊﻤﺟ ﺞﯾﺎﺘﻧ ﺎﺑ ﺭﺍﻮﻧ ﺮﯾﺩﺎﻘﻣ"
 
 
+msgid "Add"
+msgstr "ﻥﺩﺮﮐ‌ﻪﻓﺎﺿﺍ"
+
+
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "ﺩﻮﺷ‌ﯽﻣ ﻪﻓﺎﺿﺍ ﻩﺪﺷ ﯼﺭﻭﺁ ﻊﻤﺟ ﺞﯾﺎﺘﻧ ﻪﺑ ﺭﺍﻮﻧ ﯽﻧﺯﻭ ﻪﺠﯿﺘﻧ"
 
 
+msgid "Subtract"
+msgstr "ﻥﺩﺮﮐ‌ﻖﯾﺮﻔﺗ"
+
+
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "ﺩﻮﺷ ﯽﻣ ﻑﺬﺣ ﻩﺪﺷ ﯼﺭﻭﺁ ﻊﻤﺟ ﺞﯾﺎﺘﻧ ﺯﺍ ﺭﺍﻮﻧ ﯽﻧﺯﻭ ﻪﺠﯿﺘﻧ"
+
+
+msgid "Multiply"
+msgstr "ﺏﺮﺿ"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -1027,6 +1002,11 @@ msgid "Full Path"
 msgstr "ﻞﻣﺎﮐ ﺮﯿﺴﻣ"
 
 
+msgctxt "ID"
+msgid "Grease Pencil v3"
+msgstr "v3 ﯽﻨﻏﻭﺭ ﺩﺍﺪﻣ"
+
+
 msgid "Show Names"
 msgstr "ﺎﻫ‌ﻡﺎﻧ ﺶﯾﺎﻤﻧ"
 
@@ -1359,6 +1339,10 @@ msgid "Mode"
 msgstr "ﺖﻟﺎﺣ"
 
 
+msgid "Active"
+msgstr "ﻝﺎﻌﻓ"
+
+
 msgctxt "GPencil"
 msgid "Round"
 msgstr "ﺩﺮﮔ"
@@ -1407,12 +1391,20 @@ msgid "Stretch"
 msgstr "ﺶﺸﮐ"
 
 
+msgid "Offset"
+msgstr "ﺖﺴﻓﺍ"
+
+
 msgid "Rotation"
 msgstr "ﻥﺍﺭﻭﺩ"
 
 
 msgid "Scale"
 msgstr "ﺲﻧﺎﺠﺗ"
+
+
+msgid "Show Expanded"
+msgstr "ﻩﺩﺮﺘﺴﮔ ﺶﯾﺎﻤﻧ"
 
 
 msgid "Left"
@@ -1755,6 +1747,10 @@ msgid "Input"
 msgstr "ﯼﺩﻭﺭﻭ"
 
 
+msgid "Influence"
+msgstr "ﺫﻮﻔﻧ"
+
+
 msgid "Disable"
 msgstr "ﻝﺎﻌﻓﺮﯿﻏ"
 
@@ -1805,6 +1801,10 @@ msgstr "ﻪﺑ ﻩﺮﯿﮔ"
 
 msgid "Follow Path"
 msgstr "ﺮﯿﺴﻣ ﻩﺪﻨﻨﮐ ﻝﺎﺒﻧﺩ"
+
+
+msgid "Mix Mode"
+msgstr "ﯽﺒﯿﮐﺮﺗ ﺖﻟﺎﺣ"
 
 
 msgid "X Location"
@@ -2367,10 +2367,6 @@ msgid "Blue"
 msgstr "ﯽﺑﺁ"
 
 
-msgid "Layers"
-msgstr "ﺎﻫ‌ﻪﯾﻻ﻿"
-
-
 msgid "Feature Set"
 msgstr "ﯽﮔﮋﯾﻭ ﻪﻋﻮﻤﺠﻣ"
 
@@ -2623,6 +2619,10 @@ msgstr "ﻪﻨﯿﻤﮐ"
 
 msgid "Max"
 msgstr "ﻪﻨﯿﺸﯿﺑ"
+
+
+msgid "Layers"
+msgstr "ﺎﻫ‌ﻪﯾﻻ﻿"
 
 
 msgid "U"
@@ -3007,20 +3007,20 @@ msgid "Mirror"
 msgstr "ﻪﻨﯾﺁ"
 
 
-msgid "Convert"
-msgstr "ﻞﯾﺪﺒﺗ"
-
-
-msgid "Apply"
-msgstr "ﻝﺎﻤﻋﺍ"
+msgid "Add Image"
+msgstr "ﺮﯾﻮﺼﺗ ﻥﺩﺮﮐ‌ﻪﻓﺎﺿﺍ"
 
 
 msgid "Relations"
 msgstr "ﻂﺑﺍﻭﺭ"
 
 
-msgid "Add Image"
-msgstr "ﺮﯾﻮﺼﺗ ﻥﺩﺮﮐ‌ﻪﻓﺎﺿﺍ"
+msgid "Apply"
+msgstr "ﻝﺎﻤﻋﺍ"
+
+
+msgid "Convert"
+msgstr "ﻞﯾﺪﺒﺗ"
 
 
 msgid "Pivot Point"
@@ -3916,6 +3916,10 @@ msgid "Play"
 msgstr "ﺶﺨﭘ"
 
 
+msgid "Remove"
+msgstr "ﻑﺬﺣ"
+
+
 msgid "Both"
 msgstr "ﻭﺩ ﺮﻫ"
 
@@ -4259,10 +4263,6 @@ msgstr "ءﯽﺷ ﺏﺎﺨﺘﻧﺍ ﻮﻨﻣ"
 
 msgid "Object Name"
 msgstr "ءﯽﺷ ﻡﺎﻧ"
-
-
-msgid "Remove"
-msgstr "ﻑﺬﺣ"
 
 
 msgid "State"
