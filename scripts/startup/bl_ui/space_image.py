@@ -215,7 +215,7 @@ class IMAGE_MT_image(Menu):
         layout.separator()
 
         has_image_clipboard = False
-        if sys.platform[:3] in {"win", "dar"}:
+        if (sys.platform[:3] == "win") or (sys.platform == "darwin"):
             has_image_clipboard = True
         else:
             from _bpy import _ghost_backend
