@@ -237,7 +237,7 @@ static void cmp_node_rgbcurves_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Float>("Fac")
       .default_value(1.0f)
-      .min(-1.0f)
+      .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
       .compositor_domain_priority(1)
