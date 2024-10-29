@@ -226,6 +226,8 @@ void main()
       case DEBUG_SHADOW_TILEMAP_RANDOM_COLOR:
         debug_random_tilemap_color(P, light);
         break;
+      default:
+        break;
     }
   }
 }

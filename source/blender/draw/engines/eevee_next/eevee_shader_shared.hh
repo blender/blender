@@ -706,7 +706,7 @@ struct DepthOfFieldData {
   float4 filter_samples_weight;
   float filter_center_weight;
   /** Max number of sprite in the scatter pass for each ground. */
-  int scatter_max_rect;
+  uint scatter_max_rect;
 
   int _pad0, _pad1;
 };
