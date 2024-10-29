@@ -12,8 +12,10 @@ import sys
 from pathlib import Path
 
 from typing import (
-    Iterator,
     NamedTuple,
+)
+from collections.abc import (
+    Iterator,
 )
 
 # -----------------------------------------------------------------------------
@@ -242,7 +244,7 @@ class License:
         license_raw = "\n".join(line.rstrip() for line in license_raw.split("\n"))
 
         # Debug option commented out.
-        # This is useful if you want a human-inspectionable document without the licenses.
+        # This is useful if you want a document for human inspection without the licenses.
         # license_raw = "# Debug"
 
         summary_prefix = f"{int_to_superscript(index)} " if index else ""
@@ -527,10 +529,10 @@ def extract_licenses(text: str) -> set[str]:
 
     For example, for the input:
      * <SPDX:GPL-3.0-or-later|link>
-     * <Arev-Fonts>
+     * <Example-Fonts>
 
    The output would be:
-     {"SPDX:GPL-3.0-or-later", "Arev-Fonts"}
+     {"SPDX:GPL-3.0-or-later", "Example-Fonts"}
     """
     # Remove multi-line comments (<!-- ... -->).
     text = re.sub(r"<!--.*?-->", "", text, flags=re.DOTALL)

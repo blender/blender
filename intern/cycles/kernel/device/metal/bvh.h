@@ -330,9 +330,6 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
     MetalRTIntersectionLocalPayload_single_hit payload;
     payload.self_prim = ray->self.prim - primitive_id_offset;
 
-    /* We know we are going to get max one hit, so we can optimize and accept the first hit. */
-    metalrt_intersect.accept_any_intersection(true);
-
     /* We only need custom intersection filtering (i.e. non_opaque) if we are performing a
      * self-primitive intersection check. */
     metalrt_intersect.force_opacity((ray->self.prim == PRIM_NONE) ?

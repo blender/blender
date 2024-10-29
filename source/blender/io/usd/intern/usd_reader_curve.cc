@@ -132,10 +132,10 @@ static std::optional<bke::AttrDomain> convert_usd_interp_to_blender(const pxr::T
 
 void USDCurvesReader::create_object(Main *bmain, const double /*motionSampleTime*/)
 {
-  curve_ = BKE_curves_add(bmain, name_.c_str());
+  Curves *curve = BKE_curves_add(bmain, name_.c_str());
 
   object_ = BKE_object_add_only_object(bmain, OB_CURVES, name_.c_str());
-  object_->data = curve_;
+  object_->data = curve;
 }
 
 void USDCurvesReader::read_object_data(Main *bmain, double motionSampleTime)
@@ -152,11 +152,6 @@ void USDCurvesReader::read_object_data(Main *bmain, double motionSampleTime)
 
 void USDCurvesReader::read_curve_sample(Curves *curves_id, const double motionSampleTime)
 {
-  curve_prim_ = pxr::UsdGeomBasisCurves(prim_);
-  if (!curve_prim_) {
-    return;
-  }
-
   pxr::UsdAttribute widthsAttr = curve_prim_.GetWidthsAttr();
   pxr::UsdAttribute vertexAttr = curve_prim_.GetCurveVertexCountsAttr();
   pxr::UsdAttribute pointsAttr = curve_prim_.GetPointsAttr();
@@ -324,10 +319,6 @@ void USDCurvesReader::read_geometry(bke::GeometrySet &geometry_set,
                                     const USDMeshReadParams params,
                                     const char ** /*r_err_str*/)
 {
-  if (!curve_prim_) {
-    return;
-  }
-
   if (!geometry_set.has_curves()) {
     return;
   }

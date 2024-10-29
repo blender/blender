@@ -6,6 +6,10 @@
  * \ingroup cmpnodes
  */
 
+#include "BLI_math_base.hh"
+#include "BLI_math_color.h"
+#include "BLI_math_matrix_types.hh"
+#include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 
 #include "FN_multi_function_builder.hh"
@@ -206,6 +210,31 @@ static void node_composit_buts_colorbalance_ex(uiLayout *layout, bContext * /*C*
 
 using namespace blender::realtime_compositor;
 
+static CMPNodeColorBalanceMethod get_color_balance_method(const bNode &node)
+{
+  return static_cast<CMPNodeColorBalanceMethod>(node.custom1);
+}
+
+static float3 get_sanitized_gamma(const float3 gamma)
+{
+  return float3(gamma.x == 0.0f ? 1e-6f : gamma.x,
+                gamma.y == 0.0f ? 1e-6f : gamma.y,
+                gamma.z == 0.0f ? 1e-6f : gamma.z);
+}
+
+static float3x3 get_white_point_matrix(const bNode &node)
+{
+  const NodeColorBalance &node_color_balance = node_storage(node);
+  const float3x3 scene_to_xyz = IMB_colormanagement_get_scene_linear_to_xyz();
+  const float3x3 xyz_to_scene = IMB_colormanagement_get_xyz_to_scene_linear();
+  const float3 input = blender::math::whitepoint_from_temp_tint(
+      node_color_balance.input_temperature, node_color_balance.input_tint);
+  const float3 output = blender::math::whitepoint_from_temp_tint(
+      node_color_balance.output_temperature, node_color_balance.output_tint);
+  const float3x3 adaption = blender::math::chromatic_adaption_matrix(input, output);
+  return xyz_to_scene * adaption * scene_to_xyz;
+}
+
 class ColorBalanceShaderNode : public ShaderNode {
  public:
   using ShaderNode::ShaderNode;
@@ -217,37 +246,38 @@ class ColorBalanceShaderNode : public ShaderNode {
 
     const NodeColorBalance &node_color_balance = node_storage(bnode());
 
-    if (get_color_balance_method() == CMP_NODE_COLOR_BALANCE_LGG) {
+    if (get_color_balance_method(bnode()) == CMP_NODE_COLOR_BALANCE_LGG) {
+      const float3 lift = node_color_balance.lift;
+      const float3 gamma = node_color_balance.gamma;
+      const float3 gain = node_color_balance.gain;
+      const float3 sanitized_gamma = get_sanitized_gamma(gamma);
+
       GPU_stack_link(material,
                      &bnode(),
                      "node_composite_color_balance_lgg",
                      inputs,
                      outputs,
-                     GPU_uniform(node_color_balance.lift),
-                     GPU_uniform(node_color_balance.gamma),
-                     GPU_uniform(node_color_balance.gain));
+                     GPU_uniform(lift),
+                     GPU_uniform(sanitized_gamma),
+                     GPU_uniform(gain));
     }
-    else if (get_color_balance_method() == CMP_NODE_COLOR_BALANCE_ASC_CDL) {
+    else if (get_color_balance_method(bnode()) == CMP_NODE_COLOR_BALANCE_ASC_CDL) {
+      const float3 offset = node_color_balance.offset;
+      const float3 power = node_color_balance.power;
+      const float3 slope = node_color_balance.slope;
+      const float3 full_offset = node_color_balance.offset_basis + offset;
+
       GPU_stack_link(material,
                      &bnode(),
                      "node_composite_color_balance_asc_cdl",
                      inputs,
                      outputs,
-                     GPU_uniform(node_color_balance.offset),
-                     GPU_uniform(node_color_balance.power),
-                     GPU_uniform(node_color_balance.slope),
-                     GPU_uniform(&node_color_balance.offset_basis));
+                     GPU_uniform(full_offset),
+                     GPU_uniform(power),
+                     GPU_uniform(slope));
     }
-    else if (get_color_balance_method() == CMP_NODE_COLOR_BALANCE_WHITEPOINT) {
-      float3x3 scene_to_xyz = IMB_colormanagement_get_scene_linear_to_xyz();
-      float3x3 xyz_to_scene = IMB_colormanagement_get_xyz_to_scene_linear();
-      float3 input = blender::math::whitepoint_from_temp_tint(node_color_balance.input_temperature,
-                                                              node_color_balance.input_tint);
-      float3 output = blender::math::whitepoint_from_temp_tint(
-          node_color_balance.output_temperature, node_color_balance.output_tint);
-      float3x3 adaption = blender::math::chromatic_adaption_matrix(input, output);
-      float3x3 matrix = xyz_to_scene * adaption * scene_to_xyz;
-
+    else if (get_color_balance_method(bnode()) == CMP_NODE_COLOR_BALANCE_WHITEPOINT) {
+      const float3x3 matrix = get_white_point_matrix(bnode());
       GPU_stack_link(material,
                      &bnode(),
                      "node_composite_color_balance_whitepoint",
@@ -256,11 +286,6 @@ class ColorBalanceShaderNode : public ShaderNode {
                      GPU_uniform(blender::float4x4(matrix).base_ptr()));
     }
   }
-
-  CMPNodeColorBalanceMethod get_color_balance_method()
-  {
-    return (CMPNodeColorBalanceMethod)bnode().custom1;
-  }
 };
 
 static ShaderNode *get_compositor_shader_node(DNode node)
@@ -268,14 +293,88 @@ static ShaderNode *get_compositor_shader_node(DNode node)
   return new ColorBalanceShaderNode(node);
 }
 
+static float4 color_balance_lgg(const float factor,
+                                const float4 &color,
+                                const float3 &lift,
+                                const float3 &gamma,
+                                const float3 &gain)
+{
+  float3 inverse_lift = 2.0f - lift;
+  float3 srgb_color;
+  linearrgb_to_srgb_v3_v3(srgb_color, color);
+  float3 lift_balanced = ((srgb_color - 1.0f) * inverse_lift) + 1.0f;
+
+  float3 gain_balanced = lift_balanced * gain;
+  gain_balanced = math::max(gain_balanced, float3(0.0f));
+
+  float3 linear_color;
+  srgb_to_linearrgb_v3_v3(linear_color, gain_balanced);
+  float3 gamma_balanced = math::pow(linear_color, 1.0f / gamma);
+
+  return float4(math::interpolate(color.xyz(), gamma_balanced, math::min(factor, 1.0f)), color.w);
+}
+
+static float4 color_balance_asc_cdl(const float factor,
+                                    const float4 &color,
+                                    const float3 &offset,
+                                    const float3 &power,
+                                    const float3 &slope)
+{
+  float3 balanced = color.xyz() * slope + offset;
+  balanced = math::pow(math::max(balanced, float3(0.0f)), power);
+  return float4(math::interpolate(color.xyz(), balanced, math::min(factor, 1.0f)), color.w);
+}
+
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  /* Not yet implemented. Return zero. */
-  static auto function = mf::build::SI2_SO<float, float4, float4>(
-      "Color Balance",
-      [](const float /*factor*/, const float4 & /*color*/) -> float4 { return float4(0.0f); },
-      mf::build::exec_presets::SomeSpanOrSingle<1>());
-  builder.set_matching_fn(function);
+  const NodeColorBalance &node_color_balance = node_storage(builder.node());
+
+  switch (get_color_balance_method(builder.node())) {
+    case CMP_NODE_COLOR_BALANCE_LGG: {
+      const float3 lift = node_color_balance.lift;
+      const float3 gamma = node_color_balance.gamma;
+      const float3 gain = node_color_balance.gain;
+      const float3 sanitized_gamma = get_sanitized_gamma(gamma);
+
+      builder.construct_and_set_matching_fn_cb([=]() {
+        return mf::build::SI2_SO<float, float4, float4>(
+            "Color Balance LGG",
+            [=](const float factor, const float4 &color) -> float4 {
+              return color_balance_lgg(factor, color, lift, sanitized_gamma, gain);
+            },
+            mf::build::exec_presets::SomeSpanOrSingle<1>());
+      });
+      break;
+    }
+    case CMP_NODE_COLOR_BALANCE_ASC_CDL: {
+      const float3 offset = node_color_balance.offset;
+      const float3 power = node_color_balance.power;
+      const float3 slope = node_color_balance.slope;
+      const float3 full_offset = node_color_balance.offset_basis + offset;
+
+      builder.construct_and_set_matching_fn_cb([=]() {
+        return mf::build::SI2_SO<float, float4, float4>(
+            "Color Balance ASC CDL",
+            [=](const float factor, const float4 &color) -> float4 {
+              return color_balance_asc_cdl(factor, color, full_offset, power, slope);
+            },
+            mf::build::exec_presets::SomeSpanOrSingle<1>());
+      });
+      break;
+    }
+    case CMP_NODE_COLOR_BALANCE_WHITEPOINT: {
+      const float4x4 matrix = float4x4(get_white_point_matrix(builder.node()));
+      builder.construct_and_set_matching_fn_cb([=]() {
+        return mf::build::SI2_SO<float, float4, float4>(
+            "Color Balance White Point",
+            [=](const float factor, const float4 &color) -> float4 {
+              return math::interpolate(color, matrix * color, math::min(factor, 1.0f));
+            },
+            mf::build::exec_presets::SomeSpanOrSingle<1>());
+      });
+      break;
+    }
+  }
 }
 
 }  // namespace blender::nodes::node_composite_colorbalance_cc

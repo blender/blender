@@ -271,13 +271,13 @@ void CachedImageContainer::reset()
   }
 }
 
-Result *CachedImageContainer::get(Context &context,
-                                  Image *image,
-                                  const ImageUser *image_user,
-                                  const char *pass_name)
+Result CachedImageContainer::get(Context &context,
+                                 Image *image,
+                                 const ImageUser *image_user,
+                                 const char *pass_name)
 {
   if (!image || !image_user) {
-    return nullptr;
+    return Result(context);
   }
 
   /* Compute the effective frame number of the image if it was animated. */
@@ -300,7 +300,7 @@ Result *CachedImageContainer::get(Context &context,
   });
 
   cached_image.needed = true;
-  return &cached_image.result;
+  return cached_image.result;
 }
 
 }  // namespace blender::realtime_compositor

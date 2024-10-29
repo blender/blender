@@ -14,18 +14,16 @@ import bpy
 from bpy.types import Action
 from dataclasses import dataclass
 
-from typing import (
-    List,
+from collections.abc import (
     Mapping,
     Sequence,
-    Tuple,
 )
 
 from rna_prop_ui import (
     rna_idprop_value_to_python,
 )
 
-FCurveKey = Tuple[
+FCurveKey = tuple[
     # `fcurve.data_path`.
     str,
     # `fcurve.array_index`.
@@ -33,7 +31,7 @@ FCurveKey = Tuple[
 ]
 
 # List of `[frame0, value0, frame1, value1, ...]` pairs.
-ListKeyframes = List[float]
+ListKeyframes = list[float]
 
 
 @dataclass

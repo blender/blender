@@ -12,7 +12,10 @@ import platform
 import pickle
 import subprocess
 import sys
-from typing import Callable, Dict, List
+
+from collections.abc import (
+    Callable,
+)
 
 from .config import TestConfig
 from .device import TestMachine
@@ -121,7 +124,7 @@ class TestEnvironment:
         self._init_default_blender_executable()
         return True
 
-    def set_blender_executable(self, executable_path: pathlib.Path, environment: Dict = {}) -> None:
+    def set_blender_executable(self, executable_path: pathlib.Path, environment: dict = {}) -> None:
         if executable_path.is_dir():
             executable_path = self._blender_executable_from_path(executable_path)
 
@@ -183,7 +186,7 @@ class TestEnvironment:
     def unset_log_file(self) -> None:
         self.log_file = None
 
-    def call(self, args: List[str], cwd: pathlib.Path, silent: bool = False, environment: Dict = {}) -> List[str]:
+    def call(self, args: list[str], cwd: pathlib.Path, silent: bool = False, environment: dict = {}) -> list[str]:
         # Execute command with arguments in specified directory,
         # and return combined stdout and stderr output.
 
@@ -224,7 +227,7 @@ class TestEnvironment:
 
         return lines
 
-    def call_blender(self, args: List[str], foreground=False) -> List[str]:
+    def call_blender(self, args: list[str], foreground=False) -> list[str]:
         # Execute Blender command with arguments.
         common_args = ['--factory-startup', '-noaudio', '--enable-autoexec', '--python-exit-code', '1']
         if foreground:
@@ -236,10 +239,10 @@ class TestEnvironment:
                          environment=self.blender_executable_environment)
 
     def run_in_blender(self,
-                       function: Callable[[Dict], Dict],
-                       args: Dict,
-                       blender_args: List = [],
-                       foreground=False) -> Dict:
+                       function: Callable[[dict], dict],
+                       args: dict,
+                       blender_args: list = [],
+                       foreground=False) -> dict:
         # Run function in a Blender instance. Arguments and return values are
         # passed as a Python object that must be serializable with pickle.
 
@@ -272,7 +275,7 @@ class TestEnvironment:
 
         return {}, lines
 
-    def find_blend_files(self, dirpath: pathlib.Path) -> List:
+    def find_blend_files(self, dirpath: pathlib.Path) -> list:
         # Find .blend files in subdirectories of the given directory in the
         # lib/benchmarks directory.
         dirpath = self.benchmarks_dir / dirpath
@@ -281,7 +284,7 @@ class TestEnvironment:
             filepaths.append(pathlib.Path(filename))
         return filepaths
 
-    def get_config_names(self) -> List:
+    def get_config_names(self) -> list:
         names = []
 
         if self.base_dir.exists():
@@ -292,7 +295,7 @@ class TestEnvironment:
 
         return names
 
-    def get_configs(self, name: str = None, names_only: bool = False) -> List:
+    def get_configs(self, name: str = None, names_only: bool = False) -> list:
         # Get list of configurations in the benchmarks directory.
         configs = []
 

@@ -114,22 +114,22 @@ def _fake_module(mod_name, mod_path, speedy=True):
         if speedy:
             lines = []
             line_iter = iter(file_mod)
-            l = ""
-            while not l.startswith("bl_info"):
+            line = ""
+            while not line.startswith("bl_info"):
                 try:
-                    l = line_iter.readline()
+                    line = line_iter.readline()
                 except UnicodeDecodeError as ex:
                     if not error_encoding:
                         error_encoding = True
                         print("Error reading file as UTF-8:", mod_path, ex)
                     return None
 
-                if len(l) == 0:
+                if len(line) == 0:
                     break
-            while l.rstrip():
-                lines.append(l)
+            while line.rstrip():
+                lines.append(line)
                 try:
-                    l = line_iter.readline()
+                    line = line_iter.readline()
                 except UnicodeDecodeError as ex:
                     if not error_encoding:
                         error_encoding = True
@@ -975,7 +975,7 @@ def _extension_compat_cache_update_needed(
 def _extension_compat_cache_create(
         blender_id,  # `tuple[Any, ...]`
         extensions_enabled,  # `set[tuple[str, str]]`
-        wheel_list,  # `list[tuple[str, List[str]]]`
+        wheel_list,  # `list[tuple[str, list[str]]]`
         print_debug,  # `Callable[[Any], None] | None`
 ):  # `-> dict[str, Any]`
     import os
@@ -1311,7 +1311,7 @@ def _fake_module_from_extension(mod_name, mod_path):
 def _extension_sync_wheels(
         *,
         local_dir,  # `str`
-        wheel_list,  # `List[WheelSource]`
+        wheel_list,  # `list[WheelSource]`
         debug,           # `bool`
 ):  # `-> None`
     import os

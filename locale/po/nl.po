@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'58c660c9615d')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'28a8486e2b3f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-20 15:55+0000\n"
+"POT-Creation-Date: 2024-10-29 10:02+0000\n"
 "PO-Revision-Date: 2023-12-21 01:55+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -231,89 +231,6 @@ msgid "Collection of action groups"
 msgstr "Collectie van actiegroepen"
 
 
-msgid "Influence"
-msgstr "Invloed"
-
-
-msgid "Mix Mode"
-msgstr "Mixmodus"
-
-
-msgid "Replace"
-msgstr "Vervangen"
-
-
-msgid "Add"
-msgstr "Toevoegen"
-
-
-msgid "Subtract"
-msgstr "Aftrekken"
-
-
-msgid "Multiply"
-msgstr "Vermenigvuldigen"
-
-
-msgid "Active"
-msgstr "Actief"
-
-
-msgctxt "ID"
-msgid "Collection"
-msgstr "Collectie"
-
-
-msgctxt "ID"
-msgid "Object"
-msgstr "Object"
-
-
-msgctxt "ID"
-msgid "Palette"
-msgstr "Palet"
-
-
-msgctxt "ID"
-msgid "Particle"
-msgstr "Deeltje"
-
-
-msgctxt "ID"
-msgid "Scene"
-msgstr "Scene"
-
-
-msgctxt "ID"
-msgid "Sound"
-msgstr "Geluid"
-
-
-msgctxt "ID"
-msgid "Speaker"
-msgstr "Luidspreker"
-
-
-msgctxt "ID"
-msgid "Text"
-msgstr "Tekst"
-
-
-msgctxt "ID"
-msgid "Volume"
-msgstr "Volume"
-
-
-msgctxt "ID"
-msgid "Workspace"
-msgstr "Werkomgeving"
-
-
-msgctxt "ID"
-msgid "World"
-msgstr "Wereld"
-
-
 msgid "Module"
 msgstr "Module"
 
@@ -350,8 +267,24 @@ msgid "Action"
 msgstr "Actie"
 
 
+msgid "Replace"
+msgstr "Vervangen"
+
+
 msgid "Combine"
 msgstr "Combineer"
+
+
+msgid "Add"
+msgstr "Toevoegen"
+
+
+msgid "Subtract"
+msgstr "Aftrekken"
+
+
+msgid "Multiply"
+msgstr "Vermenigvuldigen"
 
 
 msgid "Nothing"
@@ -484,6 +417,61 @@ msgstr "Auteur"
 
 msgid "Description"
 msgstr "Beschrijving"
+
+
+msgctxt "ID"
+msgid "Collection"
+msgstr "Collectie"
+
+
+msgctxt "ID"
+msgid "Object"
+msgstr "Object"
+
+
+msgctxt "ID"
+msgid "Palette"
+msgstr "Palet"
+
+
+msgctxt "ID"
+msgid "Particle"
+msgstr "Deeltje"
+
+
+msgctxt "ID"
+msgid "Scene"
+msgstr "Scene"
+
+
+msgctxt "ID"
+msgid "Sound"
+msgstr "Geluid"
+
+
+msgctxt "ID"
+msgid "Speaker"
+msgstr "Luidspreker"
+
+
+msgctxt "ID"
+msgid "Text"
+msgstr "Tekst"
+
+
+msgctxt "ID"
+msgid "Volume"
+msgstr "Volume"
+
+
+msgctxt "ID"
+msgid "Workspace"
+msgstr "Werkomgeving"
+
+
+msgctxt "ID"
+msgid "World"
+msgstr "Wereld"
 
 
 msgid "Custom"
@@ -944,6 +932,10 @@ msgid "Mode"
 msgstr "Modus"
 
 
+msgid "Active"
+msgstr "Actief"
+
+
 msgid "Use current mode"
 msgstr "Gebruik huidige modus"
 
@@ -1145,6 +1137,10 @@ msgid "Rotation error"
 msgstr "Rotatiefout"
 
 
+msgid "Influence"
+msgstr "Invloed"
+
+
 msgid "Disable"
 msgstr "Uitzetten"
 
@@ -1187,6 +1183,10 @@ msgstr "Transformatie"
 
 msgid "Floor"
 msgstr "Vloer"
+
+
+msgid "Mix Mode"
+msgstr "Mixmodus"
 
 
 msgid "Active Clip"
@@ -1873,10 +1873,6 @@ msgid "Users"
 msgstr "Gebruikers"
 
 
-msgid "Layers"
-msgstr "Lagen"
-
-
 msgid "X-Axis Mirror"
 msgstr "X-As Spiegel"
 
@@ -2131,6 +2127,10 @@ msgstr "Rondes"
 
 msgid "Use Nodes"
 msgstr "Gebruik Nodes"
+
+
+msgid "Layers"
+msgstr "Lagen"
 
 
 msgid "Only selected keyframes"
@@ -2682,52 +2682,16 @@ msgid "Active Point"
 msgstr "Actieve Punt"
 
 
-msgid "Names"
-msgstr "Namen"
-
-
-msgid "Clear Transform"
-msgstr "Maak Transformatie Leeg"
-
-
-msgid "Navigation"
-msgstr "Navigatie"
+msgid "Mirror"
+msgstr "Spiegel"
 
 
 msgid "Local View"
 msgstr "Lokale Scherm"
 
 
-msgid "Show/Hide"
-msgstr "Toon/Verberg"
-
-
-msgid "Mirror"
-msgstr "Spiegel"
-
-
-msgid "Hooks"
-msgstr "Haken"
-
-
-msgid "Convert"
-msgstr "Converteer"
-
-
-msgid "Quick Effects"
-msgstr "Snelle Effecten"
-
-
-msgid "Rigid Body"
-msgstr "Star Lichaam"
-
-
-msgid "Relations"
-msgstr "Relaties"
-
-
-msgid "Add Image"
-msgstr "Voeg Afbeelding Toe"
+msgid "Navigation"
+msgstr "Navigatie"
 
 
 msgid "Select Similar"
@@ -2736,6 +2700,42 @@ msgstr "Selecteer Vergelijkbaar"
 
 msgid "Select Linked"
 msgstr "Selecteer Aaneengesloten"
+
+
+msgid "Add Image"
+msgstr "Voeg Afbeelding Toe"
+
+
+msgid "Relations"
+msgstr "Relaties"
+
+
+msgid "Rigid Body"
+msgstr "Star Lichaam"
+
+
+msgid "Quick Effects"
+msgstr "Snelle Effecten"
+
+
+msgid "Show/Hide"
+msgstr "Toon/Verberg"
+
+
+msgid "Convert"
+msgstr "Converteer"
+
+
+msgid "Hooks"
+msgstr "Haken"
+
+
+msgid "Clear Transform"
+msgstr "Maak Transformatie Leeg"
+
+
+msgid "Names"
+msgstr "Namen"
 
 
 msgctxt "MovieClip"
@@ -4273,6 +4273,10 @@ msgstr "Verwijder actieve Annotatielaag"
 msgctxt "Operator"
 msgid "Set Cursor"
 msgstr "Zet Cursor"
+
+
+msgid "Remove"
+msgstr "Verwijder"
 
 
 msgctxt "Operator"
@@ -6129,10 +6133,6 @@ msgstr "Naam van het taartmenu"
 
 msgid "Keep Open"
 msgstr "Hou Open"
-
-
-msgid "Remove"
-msgstr "Verwijder"
 
 
 msgid "Key Type"

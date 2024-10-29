@@ -459,21 +459,22 @@ class ImageOperation : public NodeOperation {
       return;
     }
 
-    Result *cached_image = context().cache_manager().cached_images.get(
+    Result cached_image = context().cache_manager().cached_images.get(
         context(), get_image(), get_image_user(), get_pass_name(identifier));
 
     Result &result = get_result(identifier);
-    if (!cached_image || !cached_image->is_allocated()) {
+    if (!cached_image.is_allocated()) {
       result.allocate_invalid();
       return;
     }
 
     /* Alpha is not an actual pass, but one that is extracted from the combined pass. */
     if (identifier == "Alpha") {
-      extract_alpha(context(), *cached_image, result);
+      extract_alpha(context(), cached_image, result);
     }
     else {
-      cached_image->pass_through(result);
+      result.set_precision(cached_image.precision());
+      result.wrap_external(cached_image);
     }
   }
 

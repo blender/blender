@@ -7,6 +7,7 @@
  */
 
 #include "BLI_assert.h"
+#include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 
 #include "FN_multi_function_builder.hh"
@@ -46,6 +47,11 @@ static void node_composit_init_valtorgb(bNodeTree * /*ntree*/, bNode *node)
 
 using namespace blender::realtime_compositor;
 
+static ColorBand *get_color_band(const bNode &node)
+{
+  return static_cast<ColorBand *>(node.storage);
+}
+
 class ColorRampShaderNode : public ShaderNode {
  public:
   using ShaderNode::ShaderNode;
@@ -55,7 +61,7 @@ class ColorRampShaderNode : public ShaderNode {
     GPUNodeStack *inputs = get_inputs_array();
     GPUNodeStack *outputs = get_outputs_array();
 
-    ColorBand *color_band = get_color_band();
+    ColorBand *color_band = get_color_band(bnode());
 
     /* Common / easy case optimization. */
     if ((color_band->tot <= 2) && (color_band->color_mode == COLBAND_BLEND_RGB)) {
@@ -119,11 +125,6 @@ class ColorRampShaderNode : public ShaderNode {
 
     GPU_stack_link(material, &bnode(), "valtorgb", inputs, outputs, tex, GPU_constant(&layer));
   }
-
-  ColorBand *get_color_band()
-  {
-    return static_cast<ColorBand *>(bnode().storage);
-  }
 };
 
 static ShaderNode *get_compositor_shader_node(DNode node)
@@ -133,15 +134,16 @@ static ShaderNode *get_compositor_shader_node(DNode node)
 
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  /* Not yet implemented. Return zero. */
-  static auto function = mf::build::SI1_SO2<float, float4, float>(
-      "Color Ramp",
-      [](const float /*factor*/, float4 &color, float &alpha) -> void {
-        color = float4(0.0f);
-        alpha = 0.0f;
-      },
-      mf::build::exec_presets::AllSpanOrSingle());
-  builder.set_matching_fn(function);
+  ColorBand *color_band = get_color_band(builder.node());
+  builder.construct_and_set_matching_fn_cb([=]() {
+    return mf::build::SI1_SO2<float, float4, float>(
+        "Color Ramp",
+        [=](const float factor, float4 &color, float &alpha) -> void {
+          BKE_colorband_evaluate(color_band, factor, color);
+          alpha = color.w;
+        },
+        mf::build::exec_presets::AllSpanOrSingle());
+  });
 }
 
 }  // namespace blender::nodes::node_composite_color_ramp_cc
@@ -206,12 +208,17 @@ static ShaderNode *get_compositor_shader_node(DNode node)
 
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  /* Not yet implemented. Return zero. */
-  static auto function = mf::build::SI1_SO<float4, float>(
-      "RGB to BW",
-      [](const float4 & /*color*/) -> float { return 0.0f; },
-      mf::build::exec_presets::AllSpanOrSingle());
-  builder.set_matching_fn(function);
+  float3 luminance_coefficients;
+  IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
+
+  builder.construct_and_set_matching_fn_cb([=]() {
+    return mf::build::SI1_SO<float4, float>(
+        "RGB to BW",
+        [=](const float4 &color) -> float {
+          return math::dot(color.xyz(), luminance_coefficients);
+        },
+        mf::build::exec_presets::AllSpanOrSingle());
+  });
 }
 
 }  // namespace blender::nodes::node_composite_rgb_to_bw_cc

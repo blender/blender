@@ -33,6 +33,7 @@ typedef struct WindowManagerRuntimeHandle WindowManagerRuntimeHandle;
 
 /* Defined here: */
 
+struct wmNotifier;
 struct wmWindow;
 struct wmWindowManager;
 
@@ -182,7 +183,9 @@ typedef struct wmWindowManager {
    * \note keep in sync with `notifier_queue` adding/removing elements must also update this set.
    */
   struct GSet *notifier_queue_set;
-  void *_pad1;
+
+  /** The current notifier in the `notifier_queue` being handled (clear instead of freeing). */
+  const struct wmNotifier *notifier_current;
 
   /** Available/pending extensions updates. */
   int extensions_updates;

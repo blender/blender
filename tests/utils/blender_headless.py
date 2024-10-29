@@ -47,11 +47,10 @@ import tempfile
 
 from typing import (
     Any,
-    Dict,
+)
+from collections.abc import (
     Iterator,
-    Optional,
     Sequence,
-    Tuple,
 )
 
 
@@ -123,9 +122,9 @@ class backend_wayland(backend_base):
     @staticmethod
     def _weston_env_and_ini_from_portable(
             *,
-            wayland_root_dir: Optional[str],
-            weston_root_dir: Optional[str],
-    ) -> Tuple[Optional[Dict[str, str]], str]:
+            wayland_root_dir: str | None,
+            weston_root_dir: str | None,
+    ) -> tuple[dict[str, str] | None, str]:
         """
         Construct a portable environment to run WESTON in.
         """
@@ -212,7 +211,7 @@ class backend_wayland(backend_base):
         )
 
     @staticmethod
-    def _weston_env_and_ini_from_system() -> Tuple[Optional[Dict[str, str]], str]:
+    def _weston_env_and_ini_from_system() -> tuple[dict[str, str] | None, str]:
         weston_env = None
         weston_ini = [
             "[shell]",
@@ -227,7 +226,7 @@ class backend_wayland(backend_base):
         )
 
     @staticmethod
-    def _weston_env_and_ini() -> Tuple[Optional[Dict[str, str]], str]:
+    def _weston_env_and_ini() -> tuple[dict[str, str] | None, str]:
         wayland_root_dir = os.environ.get("WAYLAND_ROOT_DIR")
         weston_root_dir = os.environ.get("WESTON_ROOT_DIR")
 
@@ -262,7 +261,7 @@ class backend_wayland(backend_base):
             "--height=600",
             # `--config={..}` is added to point to a temp file.
         ]
-        cmd_kw: Dict[str, Any] = {}
+        cmd_kw: dict[str, Any] = {}
         if weston_env is not None:
             cmd_kw["env"] = weston_env
         if not VERBOSE:

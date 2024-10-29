@@ -2222,9 +2222,8 @@ def km_spreadsheet_generic(_params):
     )
 
     items.extend([
-        *_template_space_region_type_toggle(
-            channels_key={"type": 'T', "value": 'PRESS'},
-        ),
+        ("wm.context_toggle", {"type": 'LEFT_BRACKET', "value": 'PRESS', "ctrl": True},
+         {"properties": [("data_path", "space_data.show_region_toolbar")]}),
         ("wm.context_toggle", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "ctrl": True},
          {"properties": [("data_path", "space_data.show_region_ui")]}),
     ])
@@ -3741,6 +3740,7 @@ def generate_keymaps_impl(params=None):
         km_clip_editor(params),
         km_clip_graph_editor(params),
         km_clip_dopesheet_editor(params),
+        km_spreadsheet_generic(params),
 
         # Animation.
         km_frames(params),

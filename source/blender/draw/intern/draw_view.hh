@@ -193,7 +193,7 @@ class View {
   bool has_computed_visibility() const
   {
     /* NOTE: Even though manager fingerprint is not enough to check for update, it is still
-     * guaranteed to not be 0. So we can check wether or not this view has computed visibility
+     * guaranteed to not be 0. So we can check weather or not this view has computed visibility
      * after sync. Asserts will catch invalid usage . */
     return manager_fingerprint_ != 0;
   }

@@ -7184,8 +7184,8 @@ static void def_cmp_distance_matte(StructRNA *srna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem color_space_items[] = {
-      {1, "RGB", 0, "RGB", "RGB color space"},
-      {2, "YCC", 0, "YCC", "YCbCr suppression"},
+      {CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_RGBA, "RGB", 0, "RGB", "RGB color space"},
+      {CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_YCCA, "YCC", 0, "YCC", "YCbCr suppression"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -7886,7 +7886,7 @@ static void def_cmp_glare(StructRNA *srna)
 
   prop = RNA_def_property(srna, "threshold", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "threshold");
-  RNA_def_property_range(prop, 0.0f, 1000.0f);
+  RNA_def_property_range(prop, 0.0f, FLT_MAX);
   RNA_def_property_ui_text(
       prop,
       "Threshold",

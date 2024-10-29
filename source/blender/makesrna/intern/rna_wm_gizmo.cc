@@ -1271,8 +1271,10 @@ static void rna_def_gizmo(BlenderRNA *brna, PropertyRNA *cprop)
   prop = RNA_def_property(srna, "use_draw_scale", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(
       prop, "rna_Gizmo_flag_use_draw_scale_get", "rna_Gizmo_flag_use_draw_scale_set");
+  RNA_def_property_boolean_default(prop, true);
   RNA_def_property_ui_text(prop, "Scale", "Use scale when calculating the matrix");
   RNA_def_property_update(prop, 0, "rna_Gizmo_update_redraw");
+
   /* WM_GIZMO_SELECT_BACKGROUND */
   prop = RNA_def_property(srna, "use_select_background", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(prop,
@@ -1306,6 +1308,7 @@ static void rna_def_gizmo(BlenderRNA *brna, PropertyRNA *cprop)
   prop = RNA_def_property(srna, "use_tooltip", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(
       prop, "rna_Gizmo_flag_use_tooltip_get", "rna_Gizmo_flag_use_tooltip_set");
+  RNA_def_property_boolean_default(prop, true);
   RNA_def_property_ui_text(prop, "Use Tooltip", "Use tooltips when hovering over this gizmo");
   /* No update needed. */
 

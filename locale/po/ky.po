@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'58c660c9615d')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'28a8486e2b3f')\n"
 "(b'0000000000000000000000000000000000000000')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-20 15:55+0000\n"
+"POT-Creation-Date: 2024-10-29 10:02+0000\n"
 "PO-Revision-Date: 2013-11-05 13:47+0600\n"
 "Last-Translator: Chyngyz Dzhumaliev <kyrgyzl10n@gmail.com>\n"
 "Language-Team: Kirghiz <kyrgyzl10n@gmail.com>\n"
@@ -45,26 +45,6 @@ msgid "Select"
 msgstr "Тандоо"
 
 
-msgid "Influence"
-msgstr "Таасир"
-
-
-msgid "Replace"
-msgstr "Алмаштыруу"
-
-
-msgid "Add"
-msgstr "Кошуу"
-
-
-msgid "Subtract"
-msgstr "Алуу"
-
-
-msgid "Multiply"
-msgstr "Көбөйтүү"
-
-
 msgid "Module"
 msgstr "Модуль"
 
@@ -99,6 +79,22 @@ msgstr "Анимация маалыматтары"
 
 msgid "Action"
 msgstr "Аракет"
+
+
+msgid "Replace"
+msgstr "Алмаштыруу"
+
+
+msgid "Add"
+msgstr "Кошуу"
+
+
+msgid "Subtract"
+msgstr "Алуу"
+
+
+msgid "Multiply"
+msgstr "Көбөйтүү"
 
 
 msgid "Nothing"
@@ -552,6 +548,10 @@ msgid "Error"
 msgstr "Ката"
 
 
+msgid "Influence"
+msgstr "Таасир"
+
+
 msgid "Floor"
 msgstr "Пол"
 
@@ -749,16 +749,16 @@ msgid "Audio volume"
 msgstr "Үн катуулугу"
 
 
-msgid "H.264"
-msgstr "H.264"
-
-
 msgid "DNxHD"
 msgstr "DNxHD"
 
 
 msgid "Flash Video"
 msgstr "Flash-видео"
+
+
+msgid "H.264"
+msgstr "H.264"
 
 
 msgid "HuffYUV"
@@ -785,16 +785,16 @@ msgid "MPEG-4"
 msgstr "MPEG-4"
 
 
+msgid "Ogg"
+msgstr "Ogg"
+
+
 msgid "Matroska"
 msgstr "Matroska"
 
 
 msgid "Flash"
 msgstr "Flash"
-
-
-msgid "Ogg"
-msgstr "Ogg"
 
 
 msgid "Frame"
@@ -1973,6 +1973,10 @@ msgid "Eraser"
 msgstr "Өчүргүч"
 
 
+msgid "Remove"
+msgstr "Өчүрүү"
+
+
 msgid "Sigma"
 msgstr "Сигма"
 
@@ -2550,10 +2554,6 @@ msgstr "Түшүрүү"
 
 msgid "Island"
 msgstr "Арал"
-
-
-msgid "Remove"
-msgstr "Өчүрүү"
 
 
 msgid "Save a Collada file"

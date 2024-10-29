@@ -41,6 +41,14 @@ static void cmp_node_normal_declare(NodeDeclarationBuilder &b)
 
 using namespace blender::realtime_compositor;
 
+/* The vector value is stored in the default value of the output socket. */
+static float3 get_vector_value(const bNode &node)
+{
+  const bNodeSocket &normal_output = node.output_by_identifier("Normal");
+  const float3 node_normal = normal_output.default_value_typed<bNodeSocketValueVector>()->value;
+  return math::normalize(node_normal);
+}
+
 class NormalShaderNode : public ShaderNode {
  public:
   using ShaderNode::ShaderNode;
@@ -55,16 +63,7 @@ class NormalShaderNode : public ShaderNode {
                    "node_composite_normal",
                    inputs,
                    outputs,
-                   GPU_uniform(get_vector_value()));
-  }
-
-  /* The vector value is stored in the default value of the output socket. */
-  const float *get_vector_value()
-  {
-    return node()
-        .output_by_identifier("Normal")
-        ->default_value_typed<bNodeSocketValueVector>()
-        ->value;
+                   GPU_uniform(get_vector_value(bnode())));
   }
 };
 
@@ -75,9 +74,7 @@ static ShaderNode *get_compositor_shader_node(DNode node)
 
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  const bNodeSocket &normal_output = builder.node().output_by_identifier("Normal");
-  const float3 node_normal = normal_output.default_value_typed<bNodeSocketValueVector>()->value;
-  const float3 normalized_node_normal = math::normalize(node_normal);
+  const float3 normalized_node_normal = get_vector_value(builder.node());
 
   builder.construct_and_set_matching_fn_cb([=]() {
     return mf::build::SI1_SO2<float4, float4, float>(

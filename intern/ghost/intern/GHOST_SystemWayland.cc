@@ -46,9 +46,8 @@
 
 #include <algorithm>
 #include <atomic>
-#include <stdexcept>
+#include <optional>
 #include <thread>
-#include <unordered_map>
 #include <unordered_set>
 
 #ifdef WITH_GHOST_WAYLAND_DYNLOAD
@@ -1188,6 +1187,13 @@ struct GWL_Seat {
   GWL_DataOffer *data_offer_copy_paste = nullptr;
   std::mutex data_offer_copy_paste_mutex;
 
+  /**
+   * Cache the result of #GHOST_SystemWayland::hasClipboardImage as checking the file
+   * header every time will be expensive, especially if this happens on redraw.
+   * Reset whenever the data offer changes.
+   */
+  std::optional<GHOST_TSuccess> data_offer_copy_paste_has_image = std::nullopt;
+
   GWL_DataSource *data_source = nullptr;
   std::mutex data_source_mutex;
 
@@ -1559,8 +1565,10 @@ static void gwl_display_destroy(GWL_Display *display)
   }
 
 #ifdef WITH_OPENGL_BACKEND
-  if (eglGetDisplay) {
-    ::eglTerminate(eglGetDisplay(EGLNativeDisplayType(display->wl.display)));
+  if (display->wl.display) {
+    if (eglGetDisplay) {
+      ::eglTerminate(eglGetDisplay(EGLNativeDisplayType(display->wl.display)));
+    }
   }
 #endif
 
@@ -2291,10 +2299,10 @@ static const GWL_Cursor_ShapeInfo ghost_wl_cursors = []() -> GWL_Cursor_ShapeInf
 
 static constexpr const char *ghost_wl_mime_text_plain = "text/plain";
 static constexpr const char *ghost_wl_mime_text_utf8 = "text/plain;charset=utf-8";
-static constexpr const char *ghost_wl_mime_text_uri = "text/uri-list";
+static constexpr const char *ghost_wl_mime_text_uri_list = "text/uri-list";
 
 static const char *ghost_wl_mime_preference_order[] = {
-    ghost_wl_mime_text_uri,
+    ghost_wl_mime_text_uri_list,
     ghost_wl_mime_text_utf8,
     ghost_wl_mime_text_plain,
 };
@@ -2313,6 +2321,47 @@ static const char *ghost_wl_mime_send[] = {
     "text/plain;charset=utf-8",
     "text/plain",
 };
+
+/**
+ * Return a list of URI ranges (without the `file://` prefix),
+ * the result should be decoded via #GHOST_URL_decode_alloc before passed to the file-system.
+ */
+static std::vector<std::string_view> gwl_clipboard_uri_ranges(const char *data_buf,
+                                                              size_t data_buf_len)
+{
+  std::vector<std::string_view> uris;
+  const char file_proto[] = "file://";
+  /* NOTE: some applications CRLF (`\r\n`) GTK3 for e.g. & others don't `pcmanfm-qt`.
+   * So support both, once `\n` is found, strip the preceding `\r` if found. */
+  const char lf = '\n';
+
+  const std::string_view data = std::string_view(data_buf, data_buf_len);
+
+  size_t pos = 0;
+  while (pos != std::string::npos) {
+    pos = data.find(file_proto, pos);
+    if (pos == std::string::npos) {
+      break;
+    }
+    const size_t start = pos + sizeof(file_proto) - 1;
+    pos = data.find(lf, pos);
+
+    size_t end = pos;
+    if (UNLIKELY(end == std::string::npos)) {
+      /* Note that most well behaved file managers will add a trailing newline,
+       * Gnome's web browser (44.3) doesn't, so support reading up until the last byte. */
+      end = data.size();
+    }
+    /* Account for 'CRLF' case. */
+    if (data[end - 1] == '\r') {
+      end -= 1;
+    }
+
+    std::string_view data_substr = data.substr(start, end - start);
+    uris.push_back(data_substr);
+  }
+  return uris;
+}
 
 #ifdef USE_EVENT_BACKGROUND_THREAD
 static void pthread_set_min_priority(pthread_t handle)
@@ -3353,6 +3402,7 @@ static void data_offer_handle_offer(void *data,
                                     wl_data_offer * /*wl_data_offer*/,
                                     const char *mime_type)
 {
+  /* NOTE: locking isn't needed as the #GWL_DataOffer wont have been assigned to the #GWL_Seat. */
   CLOG_INFO(LOG, 2, "offer (mime_type=%s)", mime_type);
   GWL_DataOffer *data_offer = static_cast<GWL_DataOffer *>(data);
   data_offer->types.insert(mime_type);
@@ -3362,6 +3412,7 @@ static void data_offer_handle_source_actions(void *data,
                                              wl_data_offer * /*wl_data_offer*/,
                                              const uint32_t source_actions)
 {
+  /* NOTE: locking isn't needed as the #GWL_DataOffer wont have been assigned to the #GWL_Seat. */
   CLOG_INFO(LOG, 2, "source_actions (%u)", source_actions);
   GWL_DataOffer *data_offer = static_cast<GWL_DataOffer *>(data);
   data_offer->dnd.source_actions = (enum wl_data_device_manager_dnd_action)source_actions;
@@ -3371,6 +3422,7 @@ static void data_offer_handle_action(void *data,
                                      wl_data_offer * /*wl_data_offer*/,
                                      const uint32_t dnd_action)
 {
+  /* NOTE: locking isn't needed as the #GWL_DataOffer wont have been assigned to the #GWL_Seat. */
   CLOG_INFO(LOG, 2, "actions (%u)", dnd_action);
   GWL_DataOffer *data_offer = static_cast<GWL_DataOffer *>(data);
   data_offer->dnd.action = (enum wl_data_device_manager_dnd_action)dnd_action;
@@ -3549,7 +3601,7 @@ static void data_device_handle_drop(void *data, wl_data_device * /*wl_data_devic
     const uint64_t event_ms = seat->system->getMilliSeconds();
     const wl_fixed_t xy[2] = {UNPACK2(data_offer->dnd.xy)};
 
-    const bool nil_terminate = (mime_receive != ghost_wl_mime_text_uri);
+    const bool nil_terminate = (mime_receive != ghost_wl_mime_text_uri_list);
     size_t data_buf_len = 0;
     const char *data_buf = read_buffer_from_data_offer(
         data_offer, mime_receive, nullptr, nil_terminate, &data_buf_len);
@@ -3569,44 +3621,8 @@ static void data_device_handle_drop(void *data, wl_data_device * /*wl_data_devic
       void *ghost_dnd_data = nullptr;
 
       /* Failure to receive drop data. */
-      if (mime_receive == ghost_wl_mime_text_uri) {
-        const char file_proto[] = "file://";
-        /* NOTE: some applications CRLF (`\r\n`) GTK3 for e.g. & others don't `pcmanfm-qt`.
-         * So support both, once `\n` is found, strip the preceding `\r` if found. */
-        const char lf = '\n';
-
-        const std::string_view data = std::string_view(data_buf, data_buf_len);
-        std::vector<std::string_view> uris;
-
-        size_t pos = 0;
-        while (pos != std::string::npos) {
-          pos = data.find(file_proto, pos);
-          if (pos == std::string::npos) {
-            break;
-          }
-          const size_t start = pos + sizeof(file_proto) - 1;
-          pos = data.find(lf, pos);
-
-          size_t end = pos;
-          if (UNLIKELY(end == std::string::npos)) {
-            /* Note that most well behaved file managers will add a trailing newline,
-             * Gnome's web browser (44.3) doesn't, so support reading up until the last byte. */
-            end = data.size();
-          }
-          /* Account for 'CRLF' case. */
-          if (data[end - 1] == '\r') {
-            end -= 1;
-          }
-
-          std::string_view data_substr = data.substr(start, end - start);
-          uris.push_back(data_substr);
-          CLOG_INFO(LOG,
-                    2,
-                    "read_drop_data pos=%zu, text_uri=\"%.*s\"",
-                    start,
-                    int(data_substr.size()),
-                    data_substr.data());
-        }
+      if (mime_receive == ghost_wl_mime_text_uri_list) {
+        std::vector<std::string_view> uris = gwl_clipboard_uri_ranges(data_buf, data_buf_len);
 
         GHOST_TStringArray *flist = static_cast<GHOST_TStringArray *>(
             malloc(sizeof(GHOST_TStringArray)));
@@ -3667,6 +3683,7 @@ static void data_device_handle_selection(void *data,
     wl_data_offer_destroy(seat->data_offer_copy_paste->wl.id);
     delete seat->data_offer_copy_paste;
     seat->data_offer_copy_paste = nullptr;
+    seat->data_offer_copy_paste_has_image = std::nullopt;
   }
   /* Clearing complete. */
 
@@ -3680,6 +3697,7 @@ static void data_device_handle_selection(void *data,
   GWL_DataOffer *data_offer = static_cast<GWL_DataOffer *>(wl_data_offer_get_user_data(id));
   /* Transfer ownership of the `data_offer`. */
   seat->data_offer_copy_paste = data_offer;
+  seat->data_offer_copy_paste_has_image = std::nullopt;
 }
 
 static const wl_data_device_listener data_device_listener = {
@@ -5585,6 +5603,7 @@ static void primary_selection_offer_offer(void *data,
                                           zwp_primary_selection_offer_v1 *id,
                                           const char *type)
 {
+  /* NOTE: locking isn't needed as the #GWL_DataOffer wont have been assigned to the #GWL_Seat. */
   GWL_PrimarySelection_DataOffer *data_offer = static_cast<GWL_PrimarySelection_DataOffer *>(data);
   if (data_offer->wp.id != id) {
     CLOG_INFO(LOG, 2, "offer: %p: offer for unknown selection %p of %s (skipped)", data, id, type);
@@ -5640,7 +5659,7 @@ static void primary_selection_device_handle_selection(
     return;
   }
   CLOG_INFO(LOG, 2, "selection");
-  /* Get new data offer. */
+  /* Transfer ownership of the `data_offer`. */
   GWL_PrimarySelection_DataOffer *data_offer = static_cast<GWL_PrimarySelection_DataOffer *>(
       zwp_primary_selection_offer_v1_get_user_data(id));
   primary->data_offer = data_offer;
@@ -7731,7 +7750,10 @@ static const char *system_clipboard_text_mime_type(
   return nullptr;
 }
 
-static char *system_clipboard_get_primary_selection(GWL_Display *display)
+static char *system_clipboard_get_primary_selection(GWL_Display *display,
+                                                    const bool nil_terminate,
+                                                    const char *mime_receive_override,
+                                                    size_t *r_data_len)
 {
   GWL_Seat *seat = gwl_display_seat_active_get(display);
   if (UNLIKELY(!seat)) {
@@ -7746,30 +7768,39 @@ static char *system_clipboard_get_primary_selection(GWL_Display *display)
 
   GWL_PrimarySelection_DataOffer *data_offer = primary->data_offer;
   if (data_offer != nullptr) {
-    const char *mime_receive = system_clipboard_text_mime_type(data_offer->types);
+    const char *mime_receive = mime_receive_override ?
+                                   mime_receive_override :
+                                   system_clipboard_text_mime_type(data_offer->types);
+    GHOST_ASSERT((mime_receive_override == nullptr) ||
+                     data_offer->types.count(mime_receive_override) != 0,
+                 "Mime type override not found in data offer, caller must check");
+
     if (mime_receive) {
       /* Receive the clipboard in a thread, performing round-trips while waiting.
        * This is needed so pasting contents from our own `primary->data_source` doesn't hang. */
       struct ThreadResult {
         char *data = nullptr;
+        size_t data_len = 0;
         std::atomic<bool> done = false;
       } thread_result;
       auto read_clipboard_fn = [](GWL_PrimarySelection_DataOffer *data_offer,
+                                  const bool nil_terminate,
                                   const char *mime_receive,
                                   std::mutex *mutex,
                                   ThreadResult *thread_result) {
-        size_t data_len = 0;
         thread_result->data = read_buffer_from_primary_selection_offer(
-            data_offer, mime_receive, mutex, true, &data_len);
+            data_offer, mime_receive, mutex, nil_terminate, &thread_result->data_len);
         thread_result->done = true;
       };
-      std::thread read_thread(read_clipboard_fn, data_offer, mime_receive, &mutex, &thread_result);
+      std::thread read_thread(
+          read_clipboard_fn, data_offer, nil_terminate, mime_receive, &mutex, &thread_result);
       read_thread.detach();
 
       while (!thread_result.done) {
         wl_display_roundtrip(display->wl.display);
       }
       data = thread_result.data;
+      *r_data_len = thread_result.data_len;
 
       /* Reading the data offer unlocks the mutex. */
       mutex_locked = false;
@@ -7781,7 +7812,10 @@ static char *system_clipboard_get_primary_selection(GWL_Display *display)
   return data;
 }
 
-static char *system_clipboard_get(GWL_Display *display)
+static char *system_clipboard_get(GWL_Display *display,
+                                  bool nil_terminate,
+                                  const char *mime_receive_override,
+                                  size_t *r_data_len)
 {
   GWL_Seat *seat = gwl_display_seat_active_get(display);
   if (UNLIKELY(!seat)) {
@@ -7795,30 +7829,39 @@ static char *system_clipboard_get(GWL_Display *display)
 
   GWL_DataOffer *data_offer = seat->data_offer_copy_paste;
   if (data_offer != nullptr) {
-    const char *mime_receive = system_clipboard_text_mime_type(data_offer->types);
+    const char *mime_receive = mime_receive_override ?
+                                   mime_receive_override :
+                                   system_clipboard_text_mime_type(data_offer->types);
+    GHOST_ASSERT((mime_receive_override == nullptr) ||
+                     data_offer->types.count(mime_receive_override) != 0,
+                 "Mime type override not found in data offer, caller must check");
+
     if (mime_receive) {
       /* Receive the clipboard in a thread, performing round-trips while waiting.
        * This is needed so pasting contents from our own `seat->data_source` doesn't hang. */
       struct ThreadResult {
         char *data = nullptr;
+        size_t data_len = 0;
         std::atomic<bool> done = false;
       } thread_result;
       auto read_clipboard_fn = [](GWL_DataOffer *data_offer,
+                                  const bool nil_terminate,
                                   const char *mime_receive,
                                   std::mutex *mutex,
                                   ThreadResult *thread_result) {
-        size_t data_len = 0;
         thread_result->data = read_buffer_from_data_offer(
-            data_offer, mime_receive, mutex, true, &data_len);
+            data_offer, mime_receive, mutex, nil_terminate, &thread_result->data_len);
         thread_result->done = true;
       };
-      std::thread read_thread(read_clipboard_fn, data_offer, mime_receive, &mutex, &thread_result);
+      std::thread read_thread(
+          read_clipboard_fn, data_offer, nil_terminate, mime_receive, &mutex, &thread_result);
       read_thread.detach();
 
       while (!thread_result.done) {
         wl_display_roundtrip(display->wl.display);
       }
       data = thread_result.data;
+      *r_data_len = thread_result.data_len;
 
       /* Reading the data offer unlocks the mutex. */
       mutex_locked = false;
@@ -7836,12 +7879,14 @@ char *GHOST_SystemWayland::getClipboard(bool selection) const
   std::lock_guard lock_server_guard{*server_mutex};
 #endif
 
+  const bool nil_terminate = true;
   char *data = nullptr;
+  size_t data_len = 0;
   if (selection) {
-    data = system_clipboard_get_primary_selection(display_);
+    data = system_clipboard_get_primary_selection(display_, nil_terminate, nullptr, &data_len);
   }
   else {
-    data = system_clipboard_get(display_);
+    data = system_clipboard_get(display_, nil_terminate, nullptr, &data_len);
   }
   return data;
 }
@@ -7930,21 +7975,52 @@ void GHOST_SystemWayland::putClipboard(const char *buffer, bool selection) const
 
 static constexpr const char *ghost_wl_mime_img_png = "image/png";
 
-GHOST_TSuccess GHOST_SystemWayland::hasClipboardImage(void) const
+GHOST_TSuccess GHOST_SystemWayland::hasClipboardImage() const
 {
+#ifdef USE_EVENT_BACKGROUND_THREAD
+  std::lock_guard lock_server_guard{*server_mutex};
+#endif
+
   GWL_Seat *seat = gwl_display_seat_active_get(display_);
   if (UNLIKELY(!seat)) {
     return GHOST_kFailure;
   }
 
+  if (seat->data_offer_copy_paste_has_image.has_value()) {
+    return *seat->data_offer_copy_paste_has_image;
+  }
+
+  GHOST_TSuccess result = GHOST_kFailure;
+
   GWL_DataOffer *data_offer = seat->data_offer_copy_paste;
   if (data_offer) {
     if (data_offer->types.count(ghost_wl_mime_img_png)) {
-      return GHOST_kSuccess;
+      result = GHOST_kSuccess;
+    }
+    else if (data_offer->types.count(ghost_wl_mime_text_uri_list)) {
+      const bool nil_terminate = true;
+      size_t data_buf_len = 0;
+      char *data = system_clipboard_get(
+          display_, nil_terminate, ghost_wl_mime_text_uri_list, &data_buf_len);
+
+      if (data) {
+        std::vector<std::string_view> uris = gwl_clipboard_uri_ranges(data, data_buf_len);
+        if (!uris.empty()) {
+          const std::string_view &uri = uris.front();
+          char *filepath = GHOST_URL_decode_alloc(uri.data(), uri.size());
+          if (IMB_ispic(filepath)) {
+            result = GHOST_kSuccess;
+          }
+          free(filepath);
+        }
+        free(data);
+      }
     }
   }
 
-  return GHOST_kFailure;
+  seat->data_offer_copy_paste_has_image = result;
+
+  return result;
 }
 
 uint *GHOST_SystemWayland::getClipboardImage(int *r_width, int *r_height) const
@@ -7958,67 +8034,54 @@ uint *GHOST_SystemWayland::getClipboardImage(int *r_width, int *r_height) const
     return nullptr;
   }
 
-  std::mutex &mutex = seat->data_offer_copy_paste_mutex;
-  mutex.lock();
-  bool mutex_locked = true;
-
   uint *rgba = nullptr;
 
   GWL_DataOffer *data_offer = seat->data_offer_copy_paste;
   if (data_offer) {
+    ImBuf *ibuf = nullptr;
+
     /* Check if the source offers a supported mime type.
      * This check could be skipped, because the paste option is not supposed to be enabled
      * otherwise. */
     if (data_offer->types.count(ghost_wl_mime_img_png)) {
-      /* Receive the clipboard in a thread, performing round-trips while waiting,
-       * so pasting content from own `primary->data_source` doesn't hang. */
-      struct ThreadResult {
-        char *data = nullptr;
-        size_t data_len = 0;
-        std::atomic<bool> done = false;
-      } thread_result;
+      size_t data_len = 0;
+      char *data = system_clipboard_get(display_, false, ghost_wl_mime_img_png, &data_len);
 
-      auto read_clipboard_fn = [](GWL_DataOffer *data_offer,
-                                  const char *mime_receive,
-                                  std::mutex *mutex,
-                                  ThreadResult *thread_result) {
-        thread_result->data = read_buffer_from_data_offer(
-            data_offer, mime_receive, mutex, false, &thread_result->data_len);
-        thread_result->done = true;
-      };
-      std::thread read_thread(
-          read_clipboard_fn, data_offer, ghost_wl_mime_img_png, &mutex, &thread_result);
-      read_thread.detach();
-
-      while (!thread_result.done) {
-        wl_display_roundtrip(display_->wl.display);
-      }
-
-      if (thread_result.data) {
+      if (data) {
         /* Generate the image buffer with the received data. */
-        ImBuf *ibuf = IMB_ibImageFromMemory((uint8_t *)thread_result.data,
-                                            thread_result.data_len,
-                                            IB_rect,
-                                            nullptr,
-                                            "<clipboard>");
-        if (ibuf) {
-          *r_width = ibuf->x;
-          *r_height = ibuf->y;
-          const size_t byte_count = size_t(ibuf->x) * size_t(ibuf->y) * 4;
-          rgba = (uint *)malloc(byte_count);
-          std::memcpy(rgba, ibuf->byte_buffer.data, byte_count);
-          IMB_freeImBuf(ibuf);
-        }
+        ibuf = IMB_ibImageFromMemory(
+            (const uint8_t *)data, data_len, IB_rect, nullptr, "<clipboard>");
+        free(data);
       }
+    }
+    else if (data_offer->types.count(ghost_wl_mime_text_uri_list)) {
+      const bool nil_terminate = true;
+      size_t data_len = 0;
+      char *data = system_clipboard_get(
+          display_, nil_terminate, ghost_wl_mime_text_uri_list, &data_len);
 
-      /* After reading the data offer, the mutex gets unlocked. */
-      mutex_locked = false;
+      if (data) {
+        std::vector<std::string_view> uris = gwl_clipboard_uri_ranges(data, data_len);
+        if (!uris.empty()) {
+          const std::string_view &uri = uris.front();
+          char *filepath = GHOST_URL_decode_alloc(uri.data(), uri.size());
+          ibuf = IMB_loadiffname(filepath, IB_rect, nullptr);
+          free(filepath);
+        }
+        free(data);
+      }
+    }
+
+    if (ibuf) {
+      *r_width = ibuf->x;
+      *r_height = ibuf->y;
+      const size_t byte_count = size_t(ibuf->x) * size_t(ibuf->y) * 4;
+      rgba = (uint *)malloc(byte_count);
+      std::memcpy(rgba, ibuf->byte_buffer.data, byte_count);
+      IMB_freeImBuf(ibuf);
     }
   }
 
-  if (mutex_locked) {
-    mutex.unlock();
-  }
   return rgba;
 }
 

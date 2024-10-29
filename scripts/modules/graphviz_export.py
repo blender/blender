@@ -57,9 +57,10 @@ def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=Tr
             if key.startswith("_"):
                 continue
 
-            if type(value) == float:
+            value_type = type(value)
+            if value_type is float:
                 value = "{:.3f}".format(value)
-            elif type(value) == str:
+            elif value_type is str:
                 value = compat_str(value)
 
             label.append("{:s} = {:s}".format(key, value))

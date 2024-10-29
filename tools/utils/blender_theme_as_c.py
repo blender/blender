@@ -95,7 +95,7 @@ def dna_rename_defs(blend):
     )
 
     re_dna_struct_rename_elem = re.compile(
-        r'DNA_STRUCT_RENAME_ELEM+\('
+        r'DNA_STRUCT_RENAME_MEMBER+\('
         r'([a-zA-Z0-9_]+)' r',\s*'
         r'([a-zA-Z0-9_]+)' r',\s*'
         r'([a-zA-Z0-9_]+)' r'\)',

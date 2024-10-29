@@ -37,7 +37,7 @@
 static CLG_LogRef LOG = {"gpu.vulkan"};
 
 namespace blender::gpu {
-static const char *KNOWN_CRASHING_DRIVER = "instable driver";
+static const char *KNOWN_CRASHING_DRIVER = "unstable driver";
 
 static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physical_device)
 {

@@ -66,8 +66,6 @@ def sysinfo_print():
 
 
 def sysinfo_command(argv):
-    import tempfile
-
     if argv and argv[0] == "--help":
         print("Print system information & exit!")
         return 0

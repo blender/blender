@@ -4167,6 +4167,11 @@ def km_grease_pencil_vertex_paint(params):
         *_template_paint_radial_control("gpencil_vertex_paint"),
         # Context menu
         *_template_items_context_panel("VIEW3D_PT_greasepencil_vertex_paint_context_menu", params.context_menu_event),
+
+        op_asset_shelf_popup(
+            "VIEW3D_AST_brush_gpencil_vertex",
+            {"type": 'SPACE', "value": 'PRESS', "shift": True}
+        ),
     ])
 
     return keymap

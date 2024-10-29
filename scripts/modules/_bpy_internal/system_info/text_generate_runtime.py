@@ -197,8 +197,8 @@ def write(output):
 
         glext = sorted(gpu.capabilities.extensions_get())
 
-        for l in glext:
-            output.write("\t{:s}\n".format(l))
+        for line in glext:
+            output.write("\t{:s}\n".format(line))
 
         output.write(title("Implementation Dependent GPU Limits"))
         output.write("Maximum Batch Vertices:\t{:d}\n".format(

@@ -6,6 +6,8 @@
  * \ingroup cmpnodes
  */
 
+#include "BLI_math_base.hh"
+
 #include "FN_multi_function_builder.hh"
 
 #include "NOD_multi_function.hh"
@@ -63,6 +65,11 @@ static void node_composit_buts_map_range(uiLayout *layout, bContext * /*C*/, Poi
 
 using namespace blender::realtime_compositor;
 
+static bool get_should_clamp(const bNode &node)
+{
+  return node.custom1;
+}
+
 class MapRangeShaderNode : public ShaderNode {
  public:
   using ShaderNode::ShaderNode;
@@ -72,7 +79,7 @@ class MapRangeShaderNode : public ShaderNode {
     GPUNodeStack *inputs = get_inputs_array();
     GPUNodeStack *outputs = get_outputs_array();
 
-    const float should_clamp = get_should_clamp();
+    const float should_clamp = get_should_clamp(bnode());
 
     GPU_stack_link(material,
                    &bnode(),
@@ -81,11 +88,6 @@ class MapRangeShaderNode : public ShaderNode {
                    outputs,
                    GPU_constant(&should_clamp));
   }
-
-  bool get_should_clamp()
-  {
-    return bnode().custom1;
-  }
 };
 
 static ShaderNode *get_compositor_shader_node(DNode node)
@@ -93,18 +95,76 @@ static ShaderNode *get_compositor_shader_node(DNode node)
   return new MapRangeShaderNode(node);
 }
 
+/* An arbitrary value determined by Blender. */
+#define BLENDER_ZMAX 10000.0f
+
+template<bool ShouldClamp>
+static float map_range(const float value,
+                       const float from_min,
+                       const float from_max,
+                       const float to_min,
+                       const float to_max)
+{
+  if (math::abs(from_max - from_min) < 1e-6f) {
+    return 0.0f;
+  }
+
+  float result = 0.0f;
+  if (value >= -BLENDER_ZMAX && value <= BLENDER_ZMAX) {
+    result = (value - from_min) / (from_max - from_min);
+    result = to_min + result * (to_max - to_min);
+  }
+  else if (value > BLENDER_ZMAX) {
+    result = to_max;
+  }
+  else {
+    result = to_min;
+  }
+
+  if constexpr (ShouldClamp) {
+    if (to_max > to_min) {
+      result = math::clamp(result, to_min, to_max);
+    }
+    else {
+      result = math::clamp(result, to_max, to_min);
+    }
+  }
+
+  return result;
+}
+
+#undef BLENDER_ZMAX
+
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  /* Not yet implemented. Return zero. */
-  static auto function = mf::build::SI5_SO<float, float, float, float, float, float>(
-      "Map Range",
-      [](const float /*value*/,
-         const float /*from_min*/,
-         const float /*from_max*/,
-         const float /*to_min*/,
-         const float /*to_max*/) -> float { return 0.0f; },
+  static auto no_clamp_function = mf::build::SI5_SO<float, float, float, float, float, float>(
+      "Map Range No CLamp",
+      [](const float value,
+         const float from_min,
+         const float from_max,
+         const float to_min,
+         const float to_max) -> float {
+        return map_range<false>(value, from_min, from_max, to_min, to_max);
+      },
       mf::build::exec_presets::SomeSpanOrSingle<0>());
-  builder.set_matching_fn(function);
+  static auto clamp_function = mf::build::SI5_SO<float, float, float, float, float, float>(
+      "Map Range Clamp",
+      [](const float value,
+         const float from_min,
+         const float from_max,
+         const float to_min,
+         const float to_max) -> float {
+        return map_range<true>(value, from_min, from_max, to_min, to_max);
+      },
+      mf::build::exec_presets::SomeSpanOrSingle<0>());
+
+  const bool should_clamp = get_should_clamp(builder.node());
+  if (should_clamp) {
+    builder.set_matching_fn(clamp_function);
+  }
+  else {
+    builder.set_matching_fn(no_clamp_function);
+  }
 }
 
 }  // namespace blender::nodes::node_composite_map_range_cc

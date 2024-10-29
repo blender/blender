@@ -67,6 +67,16 @@ static void node_composit_buts_map_value(uiLayout *layout, bContext * /*C*/, Poi
 
 using namespace blender::realtime_compositor;
 
+static bool get_use_min(const bNode &node)
+{
+  return node_storage(node).flag & TEXMAP_CLIP_MIN;
+}
+
+static bool get_use_max(const bNode &node)
+{
+  return node_storage(node).flag & TEXMAP_CLIP_MAX;
+}
+
 class MapValueShaderNode : public ShaderNode {
  public:
   using ShaderNode::ShaderNode;
@@ -78,8 +88,8 @@ class MapValueShaderNode : public ShaderNode {
 
     const TexMapping &texture_mapping = node_storage(bnode());
 
-    const float use_min = get_use_min();
-    const float use_max = get_use_max();
+    const float use_min = get_use_min(bnode());
+    const float use_max = get_use_max(bnode());
 
     GPU_stack_link(material,
                    &bnode(),
@@ -93,16 +103,6 @@ class MapValueShaderNode : public ShaderNode {
                    GPU_constant(&use_max),
                    GPU_uniform(texture_mapping.max));
   }
-
-  bool get_use_min()
-  {
-    return node_storage(bnode()).flag & TEXMAP_CLIP_MIN;
-  }
-
-  bool get_use_max()
-  {
-    return node_storage(bnode()).flag & TEXMAP_CLIP_MAX;
-  }
 };
 
 static ShaderNode *get_compositor_shader_node(DNode node)
@@ -110,14 +110,81 @@ static ShaderNode *get_compositor_shader_node(DNode node)
   return new MapValueShaderNode(node);
 }
 
+template<bool UseMin, bool UseMax>
+static float map_value(
+    const float value, const float offset, const float size, const float min, const float max)
+{
+  float result = (value + offset) * size;
+
+  if constexpr (UseMin) {
+    if (result < min) {
+      result = min;
+    }
+  }
+
+  if constexpr (UseMax) {
+    if (result > max) {
+      result = max;
+    }
+  }
+
+  return result;
+}
+
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  /* Not yet implemented. Return zero. */
-  static auto function = mf::build::SI1_SO<float, float>(
-      "Map Value",
-      [](const float /*value*/) -> float { return 0.0f; },
-      mf::build::exec_presets::AllSpanOrSingle());
-  builder.set_matching_fn(function);
+  const TexMapping &texture_mapping = node_storage(builder.node());
+  const float offset = texture_mapping.loc[0];
+  const float size = texture_mapping.size[0];
+  const float min = texture_mapping.min[0];
+  const float max = texture_mapping.max[0];
+  const bool use_min = get_use_min(builder.node());
+  const bool use_max = get_use_max(builder.node());
+
+  if (use_min) {
+    if (use_max) {
+      builder.construct_and_set_matching_fn_cb([=]() {
+        return mf::build::SI1_SO<float, float>(
+            "Map Value With Min With Max",
+            [=](const float value) -> float {
+              return map_value<true, true>(value, offset, size, min, max);
+            },
+            mf::build::exec_presets::AllSpanOrSingle());
+      });
+    }
+    else {
+      builder.construct_and_set_matching_fn_cb([=]() {
+        return mf::build::SI1_SO<float, float>(
+            "Map Value With Min No Max",
+            [=](const float value) -> float {
+              return map_value<true, false>(value, offset, size, min, max);
+            },
+            mf::build::exec_presets::AllSpanOrSingle());
+      });
+    }
+  }
+  else {
+    if (use_max) {
+      builder.construct_and_set_matching_fn_cb([=]() {
+        return mf::build::SI1_SO<float, float>(
+            "Map Value No Min With Max",
+            [=](const float value) -> float {
+              return map_value<false, true>(value, offset, size, min, max);
+            },
+            mf::build::exec_presets::AllSpanOrSingle());
+      });
+    }
+    else {
+      builder.construct_and_set_matching_fn_cb([=]() {
+        return mf::build::SI1_SO<float, float>(
+            "Map Value No Min No Max",
+            [=](const float value) -> float {
+              return map_value<false, false>(value, offset, size, min, max);
+            },
+            mf::build::exec_presets::AllSpanOrSingle());
+      });
+    }
+  }
 }
 
 }  // namespace blender::nodes::node_composite_map_value_cc

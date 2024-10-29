@@ -395,11 +395,23 @@ size_t BLI_wstrlen_utf8(const wchar_t *src)
 
 size_t BLI_strlen_utf8_ex(const char *strc, size_t *r_len_bytes)
 {
-  size_t len;
+  size_t len = 0;
   const char *strc_orig = strc;
 
-  for (len = 0; *strc; len++) {
-    strc += BLI_str_utf8_size_safe(strc);
+  while (*strc) {
+    int step = BLI_str_utf8_size_safe(strc);
+
+    /* Detect null bytes within multi-byte sequences.
+     * This matches the behavior of #BLI_strncpy_utf8 for incomplete byte sequences. */
+    for (int i = 1; i < step; i++) {
+      if (UNLIKELY(strc[i] == '\0')) {
+        step = i;
+        break;
+      }
+    }
+
+    strc += step;
+    len++;
   }
 
   *r_len_bytes = size_t(strc - strc_orig);
@@ -418,10 +430,19 @@ size_t BLI_strnlen_utf8_ex(const char *strc, const size_t strc_maxlen, size_t *r
   const char *strc_orig = strc;
   const char *strc_end = strc + strc_maxlen;
 
-  while (true) {
-    size_t step = size_t(BLI_str_utf8_size_safe(strc));
-    if (!*strc || strc + step > strc_end) {
+  while (*strc) {
+    int step = BLI_str_utf8_size_safe(strc);
+    if (strc + step > strc_end) {
       break;
+    }
+
+    /* Detect null bytes within multi-byte sequences.
+     * This matches the behavior of #BLI_strncpy_utf8 for incomplete byte sequences. */
+    for (int i = 1; i < step; i++) {
+      if (UNLIKELY(strc[i] == '\0')) {
+        step = i;
+        break;
+      }
     }
     strc += step;
     len++;

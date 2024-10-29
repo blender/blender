@@ -755,7 +755,7 @@ inline const char *to_string(const shader::Interpolation &interp)
       return "noperspective";
     default:
       BLI_assert(false);
-      return "unkown";
+      return "unknown";
   }
 }
 
@@ -842,7 +842,7 @@ inline const char *to_string(const shader::Type &type)
       return "short4";
     default:
       BLI_assert(false);
-      return "unkown";
+      return "unknown";
   }
 }
 

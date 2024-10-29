@@ -187,7 +187,7 @@ clean_name._trans_cache = {}
 
 
 def _clean_utf8(name):
-    if type(name) == bytes:
+    if type(name) is bytes:
         return name.decode("utf8", "replace")
     else:
         return name.encode("utf8", "replace").decode("utf8")

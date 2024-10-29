@@ -238,6 +238,13 @@ class BaseCryptoMatteOperation : public NodeOperation {
   /* Should returns all the Cryptomatte layers in order. */
   virtual Vector<GPUTexture *> get_layers() = 0;
 
+  /* If only a subset area of the Cryptomatte layers is to be considered, this method should return
+   * the lower bound of that area. The upper bound will be derived from the operation domain. */
+  virtual int2 get_layers_lower_bound()
+  {
+    return int2(0);
+  }
+
   void execute() override
   {
     /* Not yet supported on CPU. */
@@ -308,6 +315,9 @@ class BaseCryptoMatteOperation : public NodeOperation {
     GPUShader *shader = context().get_shader("compositor_cryptomatte_pick", ResultPrecision::Full);
     GPU_shader_bind(shader);
 
+    const int2 lower_bound = this->get_layers_lower_bound();
+    GPU_shader_uniform_2iv(shader, "lower_bound", lower_bound);
+
     GPUTexture *first_layer = layers[0];
     const int input_unit = GPU_shader_get_sampler_binding(shader, "first_layer_tx");
     GPU_texture_bind(first_layer, input_unit);
@@ -352,6 +362,8 @@ class BaseCryptoMatteOperation : public NodeOperation {
     GPUShader *shader = context().get_shader("compositor_cryptomatte_matte");
     GPU_shader_bind(shader);
 
+    const int2 lower_bound = this->get_layers_lower_bound();
+    GPU_shader_uniform_2iv(shader, "lower_bound", lower_bound);
     GPU_shader_uniform_1i(shader, "identifiers_count", identifiers.size());
     GPU_shader_uniform_1f_array(shader, "identifiers", identifiers.size(), identifiers.data());
 
@@ -631,9 +643,9 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
           continue;
         }
 
-        Result *pass_result = context().cache_manager().cached_images.get(
+        Result pass_result = context().cache_manager().cached_images.get(
             context(), image, &image_user_for_layer, render_pass->name);
-        layers.append(*pass_result);
+        layers.append(pass_result);
       }
 
       /* If we already found Cryptomatte layers, no need to check other render layers. */
@@ -666,46 +678,34 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
     return std::string(type_name);
   }
 
+  int2 get_layers_lower_bound() override
+  {
+    switch (get_source()) {
+      case CMP_NODE_CRYPTOMATTE_SOURCE_RENDER: {
+        const rcti compositing_region = this->context().get_compositing_region();
+        return int2(compositing_region.xmin, compositing_region.ymin);
+      }
+      case CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE:
+        return int2(0);
+    }
+
+    BLI_assert_unreachable();
+    return int2(0);
+  }
+
   /* The domain should be centered with the same size as the source. In case of invalid source,
    * fallback to the domain inferred from the input. */
   Domain compute_domain() override
   {
     switch (get_source()) {
       case CMP_NODE_CRYPTOMATTE_SOURCE_RENDER:
-        return Domain(context().get_render_size());
+        return Domain(context().get_compositing_region_size());
       case CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE:
         return compute_image_domain();
     }
 
     BLI_assert_unreachable();
     return Domain::identity();
-  }
-
-  /* In case of a render source, the domain should be centered with the same size as the render. In
-   * case of an invalid render, fallback to the domain inferred from the input. */
-  Domain compute_render_domain()
-  {
-    BLI_assert(get_source() == CMP_NODE_CRYPTOMATTE_SOURCE_RENDER);
-
-    Scene *scene = get_scene();
-    if (!scene) {
-      return NodeOperation::compute_domain();
-    }
-
-    Render *render = RE_GetSceneRender(scene);
-    if (!render) {
-      return NodeOperation::compute_domain();
-    }
-
-    RenderResult *render_result = RE_AcquireResultRead(render);
-    if (!render_result) {
-      RE_ReleaseResult(render);
-      return NodeOperation::compute_domain();
-    }
-
-    const int2 render_size = int2(render_result->rectx, render_result->rectx);
-    RE_ReleaseResult(render);
-    return Domain(render_size);
   }
 
   /* In case of an image source, the domain should be centered with the same size as the source

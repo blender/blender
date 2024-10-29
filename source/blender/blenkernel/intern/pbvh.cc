@@ -145,7 +145,6 @@ static bool leaf_needs_material_split(const Span<int> faces, const Span<int> mat
   const int first = material_indices[faces.first()];
   return std::any_of(
       faces.begin(), faces.end(), [&](const int face) { return material_indices[face] != first; });
-  return false;
 }
 
 static void build_nodes_recursive_mesh(const Span<int> material_indices,
@@ -441,10 +440,12 @@ Tree Tree::from_grids(const Mesh &base_mesh, const SubdivCCG &subdiv_ccg)
   pbvh.prim_indices_.reinitialize(faces.total_size());
   {
     int offset = 0;
-    for (const int face : face_indices) {
-      for (const int corner : faces[face]) {
-        pbvh.prim_indices_[offset] = corner;
-        offset++;
+    for (const int i : nodes.index_range()) {
+      for (const int face : nodes[i].prim_indices_) {
+        for (const int corner : faces[face]) {
+          pbvh.prim_indices_[offset] = corner;
+          offset++;
+        }
       }
     }
   }

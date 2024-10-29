@@ -103,6 +103,7 @@ struct Global {
    *   *    666: Use quicker batch delete for outliners' delete hierarchy (01/2019).
    *   *    777: Enable UI node panel's sockets polling (11/2011).
    *   *    799: Enable some mysterious new depsgraph behavior (05/2015).
+   *   *    889: Enable PBVH visualization in Solid / XRay rendering mode (09/2019)
    *   *   1112: Disable new Cloth internal springs handling (09/2014).
    *   *   1234: Disable new dyntopo code fixing skinny faces generation (04/2015).
    *   *   3001: Enable additional Fluid modifier (Mantaflow) options (02/2020).

@@ -730,6 +730,10 @@ static PVert *p_vert_add(
   v->edge = e;
   v->flag = 0;
 
+  /* Unused, prevent uninitialized memory access on duplication. */
+  v->on_boundary_flag = false;
+  v->slim_id = 0;
+
   phash_insert(handle->hash_verts, (PHashLink *)v);
 
   return v;
@@ -756,6 +760,10 @@ static PVert *p_vert_copy(ParamHandle *handle, PVert *v)
   nv->u.key = v->u.key;
   nv->edge = v->edge;
   nv->flag = v->flag;
+
+  nv->weight = v->weight;
+  nv->on_boundary_flag = v->on_boundary_flag;
+  nv->slim_id = v->slim_id;
 
   return nv;
 }

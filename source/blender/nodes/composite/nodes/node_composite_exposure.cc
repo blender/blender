@@ -6,6 +6,8 @@
  * \ingroup cmpnodes
  */
 
+#include <cmath>
+
 #include "BLI_math_vector_types.hh"
 
 #include "FN_multi_function_builder.hh"
@@ -53,10 +55,11 @@ static ShaderNode *get_compositor_shader_node(DNode node)
 
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  /* Not yet implemented. Return zero. */
   static auto function = mf::build::SI2_SO<float4, float, float4>(
       "Exposure",
-      [](const float4 & /*color*/, const float /*exposure*/) -> float4 { return float4(0.0f); },
+      [](const float4 &color, const float exposure) -> float4 {
+        return float4(color.xyz() * std::exp2(exposure), color.w);
+      },
       mf::build::exec_presets::SomeSpanOrSingle<0>());
   builder.set_matching_fn(function);
 }

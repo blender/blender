@@ -72,7 +72,7 @@ class CachedImageContainer : CachedResourceContainer {
    * CachedImage cached resource with the given image user and pass_name in the container, if one
    * exists, return it, otherwise, return a newly created one and add it to the container. In both
    * cases, tag the cached resource as needed to keep it cached for the next evaluation. */
-  Result *get(Context &context, Image *image, const ImageUser *image_user, const char *pass_name);
+  Result get(Context &context, Image *image, const ImageUser *image_user, const char *pass_name);
 };
 
 }  // namespace blender::realtime_compositor

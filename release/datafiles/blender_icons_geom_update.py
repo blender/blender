@@ -8,16 +8,13 @@ import os
 import subprocess
 import sys
 
-from typing import (
-    Dict,
-    Generator,
-    Optional,
+from collections.abc import (
+    Iterator,
     Sequence,
-    Tuple,
 )
 
 
-def run(cmd: Sequence[str], *, env: Optional[Dict[str, str]] = None) -> None:
+def run(cmd: Sequence[str], *, env: dict[str, str] | None = None) -> None:
     print("   ", " ".join(cmd))
     subprocess.check_call(cmd, env=env)
 
@@ -61,7 +58,7 @@ icons_blend = (
 )
 
 
-def names_and_time_from_path(path: str) -> Generator[Tuple[str, float], None, None]:
+def names_and_time_from_path(path: str) -> Iterator[tuple[str, float]]:
     for entry in os.scandir(path):
         name = entry.name
         if name.endswith(".dat"):

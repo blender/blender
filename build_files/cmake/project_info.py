@@ -27,11 +27,9 @@ __all__ = (
     "init",
 )
 
-from typing import (
-    Generator,
-)
 from collections.abc import (
     Callable,
+    Iterator,
 )
 
 
@@ -85,7 +83,7 @@ def init(cmake_path: str) -> bool:
 def source_list(
         path: str,
         filename_check: Callable[[str], bool] | None = None,
-) -> Generator[str, None, None]:
+) -> Iterator[str]:
     for dirpath, dirnames, filenames in os.walk(path):
         # skip '.git'
         dirnames[:] = [d for d in dirnames if not d.startswith(".")]
