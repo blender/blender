@@ -2002,10 +2002,14 @@ void MSLGeneratorInterface::generate_msl_uniforms_input_string(std::stringstream
   /* Storage buffers. */
   for (const MSLBufferBlock &ssbo : this->storage_blocks) {
     if (bool(ssbo.stage & stage)) {
+      out << parameter_delimiter(is_first_parameter) << "\n\t";
+      if (bool(stage & ShaderStage::VERTEX)) {
+        out << "const ";
+      }
       /* For literal/existing global types, we do not need the class name-space accessor. */
       bool writeable = (ssbo.qualifiers & shader::Qualifier::WRITE) == shader::Qualifier::WRITE;
       const char *memory_scope = ((writeable) ? "device " : "constant ");
-      out << parameter_delimiter(is_first_parameter) << "\n\t" << memory_scope;
+      out << memory_scope;
       if (!is_builtin_type(ssbo.type_name)) {
         out << get_stage_class_name(stage) << "::";
       }
@@ -2595,7 +2599,24 @@ std::string MSLGeneratorInterface::generate_msl_uniform_block_population(ShaderS
       if (!ssbo.is_array) {
         out << "_local";
       }
-      out << " = " << ssbo.name << ";" << std::endl;
+      out << " = ";
+
+      if (bool(stage & ShaderStage::VERTEX)) {
+        bool writeable = bool(ssbo.qualifiers & shader::Qualifier::WRITE);
+        const char *memory_scope = ((writeable) ? "device " : "constant ");
+
+        out << "const_cast<" << memory_scope;
+
+        if (!is_builtin_type(ssbo.type_name)) {
+          out << get_stage_class_name(stage) << "::";
+        }
+        out << ssbo.type_name << "*>(";
+      }
+      out << ssbo.name;
+      if (bool(stage & ShaderStage::VERTEX)) {
+        out << ")";
+      }
+      out << ";" << std::endl;
     }
   }
 
