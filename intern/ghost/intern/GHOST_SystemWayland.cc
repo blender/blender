@@ -7760,6 +7760,10 @@ static constexpr const char *ghost_wl_mime_img_png = "image/png";
 
 GHOST_TSuccess GHOST_SystemWayland::hasClipboardImage(void) const
 {
+#ifdef USE_EVENT_BACKGROUND_THREAD
+  std::lock_guard lock_server_guard{*server_mutex};
+#endif
+
   GWL_Seat *seat = gwl_display_seat_active_get(display_);
   if (UNLIKELY(!seat)) {
     return GHOST_kFailure;
