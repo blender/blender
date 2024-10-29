@@ -447,6 +447,11 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   if (ts->unified_paint_settings.input_samples == 0) {
     ts->unified_paint_settings.input_samples = 1;
   }
+
+  const UnifiedPaintSettings &default_ups = *DNA_struct_default_get(UnifiedPaintSettings);
+  ts->unified_paint_settings.flag = default_ups.flag;
+  copy_v3_v3(ts->unified_paint_settings.rgb, default_ups.rgb);
+  copy_v3_v3(ts->unified_paint_settings.secondary_rgb, default_ups.secondary_rgb);
 }
 
 void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
