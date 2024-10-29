@@ -40,6 +40,11 @@ static void node_composit_buts_premulkey(uiLayout *layout, bContext * /*C*/, Poi
 
 using namespace blender::realtime_compositor;
 
+static CMPNodeAlphaConvertMode get_mode(const bNode &node)
+{
+  return static_cast<CMPNodeAlphaConvertMode>(node.custom1);
+}
+
 class AlphaConvertShaderNode : public ShaderNode {
  public:
   using ShaderNode::ShaderNode;
@@ -49,17 +54,12 @@ class AlphaConvertShaderNode : public ShaderNode {
     GPUNodeStack *inputs = get_inputs_array();
     GPUNodeStack *outputs = get_outputs_array();
 
-    if (get_mode() == 0) {
+    if (get_mode(bnode()) == CMP_NODE_ALPHA_CONVERT_PREMULTIPLY) {
       GPU_stack_link(material, &bnode(), "color_alpha_premultiply", inputs, outputs);
       return;
     }
 
     GPU_stack_link(material, &bnode(), "color_alpha_unpremultiply", inputs, outputs);
-  }
-
-  CMPNodeAlphaConvertMode get_mode()
-  {
-    return (CMPNodeAlphaConvertMode)bnode().custom1;
   }
 };
 
@@ -70,12 +70,29 @@ static ShaderNode *get_compositor_shader_node(DNode node)
 
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  /* Not yet implemented. Return zero. */
-  static auto function = mf::build::SI1_SO<float4, float4>(
-      "Alpha Convert",
-      [](const float4 & /*color*/) -> float4 { return float4(0.0f); },
+  static auto premultiply_function = mf::build::SI1_SO<float4, float4>(
+      "Alpha Convert Premultiply",
+      [](const float4 &color) -> float4 { return float4(color.xyz() * color.w, color.w); },
       mf::build::exec_presets::AllSpanOrSingle());
-  builder.set_matching_fn(function);
+
+  static auto unpremultiply_function = mf::build::SI1_SO<float4, float4>(
+      "Alpha Convert Unpremultiply",
+      [](const float4 &color) -> float4 {
+        if (color.w == 0.0f || color.w == 1.0f) {
+          return color;
+        }
+        return float4(color.xyz() / color.w, color.w);
+      },
+      mf::build::exec_presets::AllSpanOrSingle());
+
+  switch (get_mode(builder.node())) {
+    case CMP_NODE_ALPHA_CONVERT_PREMULTIPLY:
+      builder.set_matching_fn(premultiply_function);
+      break;
+    case CMP_NODE_ALPHA_CONVERT_UNPREMULTIPLY:
+      builder.set_matching_fn(unpremultiply_function);
+      break;
+  }
 }
 
 }  // namespace blender::nodes::node_composite_premulkey_cc
