@@ -297,6 +297,9 @@ bool OptiXDenoiser::denoise_configure_if_needed(DenoiseContext &context)
       denoiser_device_,
       optixDenoiserComputeMemoryResources(optix_denoiser_, tile_size.x, tile_size.y, &sizes_));
 
+  const bool tiled = tile_size.x < context.buffer_params.width ||
+                     tile_size.y < context.buffer_params.height;
+
   /* Allocate denoiser state if tile size has changed since last setup. */
   state_.device = denoiser_device_;
   state_.alloc_to_device(sizes_.stateSizeInBytes + sizes_.withOverlapScratchSizeInBytes);
@@ -306,8 +309,8 @@ bool OptiXDenoiser::denoise_configure_if_needed(DenoiseContext &context)
       optix_denoiser_,
       0, /* Work around bug in r495 drivers that causes artifacts when denoiser setup is called
           * on a stream that is not the default stream. */
-      tile_size.x + sizes_.overlapWindowSizeInPixels * 2,
-      tile_size.y + sizes_.overlapWindowSizeInPixels * 2,
+      tile_size.x + (tiled ? sizes_.overlapWindowSizeInPixels * 2 : 0),
+      tile_size.y + (tiled ? sizes_.overlapWindowSizeInPixels * 2 : 0),
       state_.device_pointer,
       sizes_.stateSizeInBytes,
       state_.device_pointer + sizes_.stateSizeInBytes,
