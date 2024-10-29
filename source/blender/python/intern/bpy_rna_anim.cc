@@ -375,7 +375,7 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
      * not have any effect.
      */
 
-    PointerRNA ptr = self->ptr;
+    PointerRNA &ptr = self->ptr;
     PropertyRNA *prop = nullptr;
     const char *prop_name;
 
