@@ -3634,9 +3634,12 @@ def save(operator, context,
         if use_visible:
             ctx_objects = tuple(obj for obj in ctx_objects if obj.visible_get())
 
+        # Sort exported objects by their names.
+        ctx_objects = sorted(ctx_objects, key=lambda ob: ob.name)
+
         # Ensure no Objects are in Edit mode.
         # Copy to a tuple for safety, to avoid the risk of modifying ctx_objects while iterating.
-        for obj in tuple(ctx_objects):
+        for obj in ctx_objects:
             if not ensure_object_not_in_edit_mode(context, obj):
                 operator.report({'ERROR'}, "%s could not be set out of Edit Mode, so cannot be exported" % obj.name)
                 return {'CANCELLED'}
