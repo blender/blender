@@ -293,11 +293,11 @@ static ShaderNode *get_compositor_shader_node(DNode node)
   return new ColorBalanceShaderNode(node);
 }
 
-float4 color_balance_lgg(const float factor,
-                         const float4 &color,
-                         const float3 &lift,
-                         const float3 &gamma,
-                         const float3 &gain)
+static float4 color_balance_lgg(const float factor,
+                                const float4 &color,
+                                const float3 &lift,
+                                const float3 &gamma,
+                                const float3 &gain)
 {
   float3 inverse_lift = 2.0f - lift;
   float3 srgb_color;
