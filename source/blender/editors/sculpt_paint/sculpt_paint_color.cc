@@ -724,8 +724,10 @@ static void do_smear_brush_task(const Depsgraph &depsgraph,
   Vector<int> neighbor_neighbors;
 
   for (const int i : verts.index_range()) {
+    if (factors[i] == 0.0f) {
+      continue;
+    }
     const int vert = verts[i];
-
     const float3 &no = vert_normals[vert];
 
     float3 current_disp;
