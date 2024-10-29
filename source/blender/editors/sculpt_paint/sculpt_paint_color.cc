@@ -770,7 +770,7 @@ static void do_smear_brush_task(const Depsgraph &depsgraph,
                                                                  corner_verts,
                                                                  vert_to_face_map,
                                                                  attribute_data.hide_poly,
-                                                                 vert,
+                                                                 neigbor,
                                                                  neighbor_neighbors))
       {
         if (neighbor_neighbor == vert) {
