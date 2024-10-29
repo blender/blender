@@ -3396,6 +3396,7 @@ static void data_offer_handle_offer(void *data,
                                     wl_data_offer * /*wl_data_offer*/,
                                     const char *mime_type)
 {
+  /* NOTE: locking isn't needed as the #GWL_DataOffer wont have been assigned to the #GWL_Seat. */
   CLOG_INFO(LOG, 2, "offer (mime_type=%s)", mime_type);
   GWL_DataOffer *data_offer = static_cast<GWL_DataOffer *>(data);
   data_offer->types.insert(mime_type);
@@ -3405,6 +3406,7 @@ static void data_offer_handle_source_actions(void *data,
                                              wl_data_offer * /*wl_data_offer*/,
                                              const uint32_t source_actions)
 {
+  /* NOTE: locking isn't needed as the #GWL_DataOffer wont have been assigned to the #GWL_Seat. */
   CLOG_INFO(LOG, 2, "source_actions (%u)", source_actions);
   GWL_DataOffer *data_offer = static_cast<GWL_DataOffer *>(data);
   data_offer->dnd.source_actions = (enum wl_data_device_manager_dnd_action)source_actions;
@@ -3414,6 +3416,7 @@ static void data_offer_handle_action(void *data,
                                      wl_data_offer * /*wl_data_offer*/,
                                      const uint32_t dnd_action)
 {
+  /* NOTE: locking isn't needed as the #GWL_DataOffer wont have been assigned to the #GWL_Seat. */
   CLOG_INFO(LOG, 2, "actions (%u)", dnd_action);
   GWL_DataOffer *data_offer = static_cast<GWL_DataOffer *>(data);
   data_offer->dnd.action = (enum wl_data_device_manager_dnd_action)dnd_action;
@@ -5592,6 +5595,7 @@ static void primary_selection_offer_offer(void *data,
                                           zwp_primary_selection_offer_v1 *id,
                                           const char *type)
 {
+  /* NOTE: locking isn't needed as the #GWL_DataOffer wont have been assigned to the #GWL_Seat. */
   GWL_PrimarySelection_DataOffer *data_offer = static_cast<GWL_PrimarySelection_DataOffer *>(data);
   if (data_offer->wp.id != id) {
     CLOG_INFO(LOG, 2, "offer: %p: offer for unknown selection %p of %s (skipped)", data, id, type);
@@ -5647,7 +5651,7 @@ static void primary_selection_device_handle_selection(
     return;
   }
   CLOG_INFO(LOG, 2, "selection");
-  /* Get new data offer. */
+  /* Transfer ownership of the `data_offer`. */
   GWL_PrimarySelection_DataOffer *data_offer = static_cast<GWL_PrimarySelection_DataOffer *>(
       zwp_primary_selection_offer_v1_get_user_data(id));
   primary->data_offer = data_offer;
