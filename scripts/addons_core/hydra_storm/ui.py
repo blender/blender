@@ -232,14 +232,24 @@ def get_panels():
         'EEVEE_MATERIAL_PT_context_material',
         'EEVEE_MATERIAL_PT_surface',
         'EEVEE_MATERIAL_PT_volume',
+        # TODO: move to `EEVEE_NEXT_MATERIAL_PT_settings`.
         'EEVEE_MATERIAL_PT_settings',
         'EEVEE_WORLD_PT_surface',
     }
 
     for panel_cls in bpy.types.Panel.__subclasses__():
-        if hasattr(panel_cls, 'COMPAT_ENGINES') and (
-            ('BLENDER_RENDER' in panel_cls.COMPAT_ENGINES and panel_cls.__name__ not in exclude_panels) or
-            ('BLENDER_EEVEE' in panel_cls.COMPAT_ENGINES and panel_cls.__name__ in include_eevee_panels)
+        if (compat_engines := getattr(panel_cls, 'COMPAT_ENGINES', None)) is None:
+            continue
+
+        if (
+            (
+                'BLENDER_RENDER' in compat_engines and
+                panel_cls.__name__ not in exclude_panels
+            ) or (
+                # NOTE: once `EEVEE_NEXT_MATERIAL_PT_settings` has been removed, `BLENDER_EEVEE` can be removed too.
+                ('BLENDER_EEVEE' in compat_engines or 'BLENDER_EEVEE_NEXT' in compat_engines) and
+                panel_cls.__name__ in include_eevee_panels
+            )
         ):
             yield panel_cls
 
