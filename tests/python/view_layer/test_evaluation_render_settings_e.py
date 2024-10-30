@@ -8,7 +8,11 @@
 
 import unittest
 
-from view_layer_common import *
+from view_layer_common import (
+    Clay,
+    ViewLayerTesting,
+    setup_extra_arguments,
+)
 
 
 # ############################################################
