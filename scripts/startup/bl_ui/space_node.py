@@ -20,7 +20,6 @@ from bl_ui.space_toolsystem_common import (
     ToolActivePanelHelper,
 )
 from bl_ui.properties_material import (
-    EEVEE_MATERIAL_PT_settings,
     EEVEE_NEXT_MATERIAL_PT_settings,
     EEVEE_NEXT_MATERIAL_PT_settings_surface,
     EEVEE_NEXT_MATERIAL_PT_settings_volume,
@@ -1110,7 +1109,6 @@ classes = (
     NODE_PT_overlay,
     NODE_PT_active_node_properties,
 
-    node_panel(EEVEE_MATERIAL_PT_settings),
     node_panel(EEVEE_NEXT_MATERIAL_PT_settings),
     node_panel(EEVEE_NEXT_MATERIAL_PT_settings_surface),
     node_panel(EEVEE_NEXT_MATERIAL_PT_settings_volume),

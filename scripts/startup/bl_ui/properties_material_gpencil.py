@@ -215,17 +215,6 @@ class MATERIAL_PT_gpencil_fillcolor(GPMaterialButtonsPanel, Panel):
             col.prop(gpcolor, "texture_clamp", text="Clip Image")
 
 
-class MATERIAL_PT_gpencil_preview(GPMaterialButtonsPanel, Panel):
-    bl_label = "Preview"
-    COMPAT_ENGINES = {'BLENDER_EEVEE'}
-    bl_options = {'DEFAULT_CLOSED'}
-
-    def draw(self, context):
-        ma = context.material
-        self.layout.label(text=ma.name)
-        self.layout.template_preview(ma)
-
-
 class MATERIAL_PT_gpencil_animation(GPMaterialButtonsPanel, PropertiesAnimationMixin, PropertyPanel, Panel):
     _animated_id_context_property = "material"
 
@@ -261,7 +250,6 @@ classes = (
     GPENCIL_UL_matslots,
     GPENCIL_MT_material_context_menu,
     MATERIAL_PT_gpencil_slots,
-    MATERIAL_PT_gpencil_preview,
     MATERIAL_PT_gpencil_material_presets,
     MATERIAL_PT_gpencil_surface,
     MATERIAL_PT_gpencil_strokecolor,
