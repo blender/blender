@@ -989,8 +989,6 @@ class RENDER_PT_simplify_greasepencil(RenderButtonsPanel, Panel, GreasePencilSim
     bl_parent_id = "RENDER_PT_simplify"
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
-        'BLENDER_GAME',
-        'BLENDER_CLAY',
         'BLENDER_EEVEE_NEXT',
         'BLENDER_WORKBENCH',
     }
