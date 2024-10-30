@@ -1447,7 +1447,6 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintS
   bool first_dab = false;
   bool first_modal = false;
   bool redraw = false;
-  float pressure;
 
   if (event->type == INBETWEEN_MOUSEMOVE && !paint_tool_require_inbetween_mouse_events(*br, mode))
   {
@@ -1455,9 +1454,9 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintS
   }
 
   /* see if tablet affects event. Line, anchored and drag dot strokes do not support pressure */
-  pressure = ((br->flag & (BRUSH_LINE | BRUSH_ANCHORED | BRUSH_DRAG_DOT)) ?
-                  1.0f :
-                  WM_event_tablet_data(event, &stroke->pen_flip, nullptr));
+  const float tablet_pressure = WM_event_tablet_data(event, &stroke->pen_flip, nullptr);
+  float pressure = ((br->flag & (BRUSH_LINE | BRUSH_ANCHORED | BRUSH_DRAG_DOT)) ? 1.0f :
+                                                                                  tablet_pressure);
 
   /* When processing a timer event the pressure from the event is 0, so use the last valid
    * pressure. */
