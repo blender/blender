@@ -452,9 +452,9 @@ class PREFERENCES_OT_keyconfig_remove(Operator):
 # Add-on Operators
 
 class PREFERENCES_OT_addon_enable(Operator):
-    """Turn on this extension"""
+    """Turn on this add-on"""
     bl_idname = "preferences.addon_enable"
-    bl_label = "Enable Extension"
+    bl_label = "Enable Add-on"
 
     module: StringProperty(
         name="Module",
@@ -523,9 +523,9 @@ class PREFERENCES_OT_addon_enable(Operator):
 
 
 class PREFERENCES_OT_addon_disable(Operator):
-    """Turn off this extension"""
+    """Turn off this add-on"""
     bl_idname = "preferences.addon_disable"
-    bl_label = "Disable Extension"
+    bl_label = "Disable Add-on"
 
     module: StringProperty(
         name="Module",
