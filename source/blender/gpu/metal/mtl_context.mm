@@ -45,9 +45,8 @@ using namespace blender::gpu;
 #  define MTL_DEBUG_SINGLE_DISPATCH_PER_ENCODER 1
 #endif
 
-/* Debug option to bind null buffer for missing UBOs.
- * Enabled by default. TODO: Ensure all required UBO bindings are present. */
-#define DEBUG_BIND_NULL_BUFFER_FOR_MISSING_UBO 1
+/* Debug option to bind null buffer for missing UBOs. */
+#define DEBUG_BIND_NULL_BUFFER_FOR_MISSING_UBO 0
 
 /* Debug option to bind null buffer for missing SSBOs. NOTE: This is unsafe if replacing a
  * write-enabled SSBO and should only be used for debugging to identify binding-related issues. */

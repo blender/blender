@@ -639,18 +639,6 @@ void gpu::MTLTexture::update_sub(
 
     /* Debug and verification. */
     if (!can_use_direct_blit) {
-      MTL_LOG_WARNING(
-          "gpu::MTLTexture::update_sub supplied bpp is %lu bytes (%d components per "
-          "pixel), but backing texture bpp is %lu bytes (%d components per pixel) "
-          "(TODO(Metal): Channel Conversion needed) (w: %d, h: %d, d: %d)",
-          input_bytes_per_pixel,
-          num_channels,
-          expected_dst_bytes_per_pixel,
-          destination_num_channels,
-          w_,
-          h_,
-          d_);
-
       /* Check mip compatibility. */
       if (mip != 0) {
         MTL_LOG_ERROR(
@@ -1265,7 +1253,7 @@ void gpu::MTLTexture::generate_mipmap()
   BLI_assert_msg(is_baked_ && texture_, "MTLTexture is not valid");
 
   if (mipmaps_ == 1 || mtl_max_mips_ == 1) {
-    MTL_LOG_WARNING("Call to generate mipmaps on texture with 'mipmaps_=1'");
+    /* Nothing to do. */
     return;
   }
 

@@ -1010,13 +1010,13 @@ MTLRenderPipelineStateInstance *MTLShader::bake_pipeline_state(
          * https://developer.apple.com/documentation/metal/mtlvertexattributedescriptor/1516081-format?language=objc
          */
         if (attribute_desc.format == MTLVertexFormatInvalid) {
-          /* If attributes are non-contiguous, we can skip over gaps. */
+#if 0 /* Disable warning as it is too verbose and is supported. */
           MTL_LOG_WARNING(
               "MTLShader: baking pipeline state for '%s'- skipping input attribute at "
               "index '%d' but none was specified in the current vertex state",
               mtl_interface->get_name(),
               i);
-
+#endif
           /* Write out null conversion constant if attribute unused. */
           int MTL_attribute_conversion_mode = 0;
           [values setConstantValue:&MTL_attribute_conversion_mode

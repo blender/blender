@@ -154,17 +154,6 @@ int MTLBatch::prepare_vertex_binding(MTLVertBuf *verts,
       const ShaderInput *input = interface->attr_get(name);
 
       if (input == nullptr || input->location == -1) {
-        /* Vertex/instance buffers provided have attribute data for attributes which are not needed
-         * by this particular shader. This shader only needs binding information for the attributes
-         * has in the shader interface. */
-        if (StringRefNull(name) != "dummy") {
-          MTL_LOG_WARNING(
-              "MTLBatch: Could not find attribute with name '%s' (defined in active vertex "
-              "format) "
-              "in the shader interface for shader '%s'",
-              name,
-              interface->get_name());
-        }
         continue;
       }
 

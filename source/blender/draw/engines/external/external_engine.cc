@@ -164,6 +164,7 @@ static void external_cache_init(void *vedata)
     psl->depth_pass = DRW_pass_create("Depth Pass",
                                       DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL);
     stl->g_data->depth_shgrp = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass);
+    DRW_shgroup_uniform_block(stl->g_data->depth_shgrp, "globalsBlock", G_draw.block_ubo);
   }
 
   if (v3d != nullptr) {
