@@ -2298,7 +2298,7 @@ static void init_gaussian_blur_effect(Sequence *seq)
     MEM_freeN(seq->effectdata);
   }
 
-  seq->effectdata = MEM_callocN(sizeof(WipeVars), "wipevars");
+  seq->effectdata = MEM_callocN(sizeof(GaussianBlurVars), "gaussianblurvars");
 }
 
 static int num_inputs_gaussian_blur()
