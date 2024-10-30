@@ -296,6 +296,7 @@ def draw_material_settings(self, context):
     draw_material_volume_settings(layout, mat, False)
 
 
+# TODO: used by `./scripts/addons_core/hydra_storm/ui.py`, move to `EEVEE_NEXT_MATERIAL_PT_settings`.
 class EEVEE_MATERIAL_PT_settings(MaterialButtonsPanel, Panel):
     bl_label = "Settings"
     bl_context = "material"
