@@ -237,7 +237,7 @@ class Tree {
 
   /** \todo Remove and store elsewhere. */
   float planes_[6][4];
-  int num_planes_;
+  int num_planes_ = 0;
 
   pixels::PBVHData *pixels_ = nullptr;
 
