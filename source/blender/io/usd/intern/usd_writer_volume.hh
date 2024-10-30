@@ -27,7 +27,7 @@ class USDVolumeWriter : public USDAbstractWriter {
    * mean that `resolve_vdb_file` method will try to export volume data to a new `.vdb` file.
    * If successful, this method returns absolute file path to the resolved `.vdb` file, if not,
    * returns `std::nullopt`. */
-  std::optional<std::string> resolve_vdb_file(const Volume *volume) const;
+  std::optional<std::string> resolve_vdb_file(const Volume *volume, bool has_modifiers) const;
 
   std::optional<std::string> construct_vdb_file_path(const Volume *volume) const;
   std::optional<std::string> construct_vdb_relative_file_path(
