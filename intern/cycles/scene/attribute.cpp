@@ -206,20 +206,20 @@ size_t Attribute::element_size(Geometry *geom, AttributePrimitive prim) const
       size = 1;
       break;
     case ATTR_ELEMENT_VERTEX:
-      if (geom->geometry_type == Geometry::MESH || geom->geometry_type == Geometry::VOLUME) {
+      if (geom->is_mesh() || geom->is_volume()) {
         Mesh *mesh = static_cast<Mesh *>(geom);
         size = mesh->get_verts().size() + mesh->get_num_ngons();
         if (prim == ATTR_PRIM_SUBD) {
           size -= mesh->get_num_subd_verts();
         }
       }
-      else if (geom->geometry_type == Geometry::POINTCLOUD) {
+      else if (geom->is_pointcloud()) {
         PointCloud *pointcloud = static_cast<PointCloud *>(geom);
         size = pointcloud->num_points();
       }
       break;
     case ATTR_ELEMENT_VERTEX_MOTION:
-      if (geom->geometry_type == Geometry::MESH) {
+      if (geom->is_mesh()) {
         Mesh *mesh = static_cast<Mesh *>(geom);
         DCHECK_GT(mesh->get_motion_steps(), 0);
         size = (mesh->get_verts().size() + mesh->get_num_ngons()) * (mesh->get_motion_steps() - 1);
@@ -227,13 +227,13 @@ size_t Attribute::element_size(Geometry *geom, AttributePrimitive prim) const
           size -= mesh->get_num_subd_verts() * (mesh->get_motion_steps() - 1);
         }
       }
-      else if (geom->geometry_type == Geometry::POINTCLOUD) {
+      else if (geom->is_pointcloud()) {
         PointCloud *pointcloud = static_cast<PointCloud *>(geom);
         size = pointcloud->num_points() * (pointcloud->get_motion_steps() - 1);
       }
       break;
     case ATTR_ELEMENT_FACE:
-      if (geom->geometry_type == Geometry::MESH || geom->geometry_type == Geometry::VOLUME) {
+      if (geom->is_mesh() || geom->is_volume()) {
         Mesh *mesh = static_cast<Mesh *>(geom);
         if (prim == ATTR_PRIM_GEOMETRY) {
           size = mesh->num_triangles();
@@ -245,7 +245,7 @@ size_t Attribute::element_size(Geometry *geom, AttributePrimitive prim) const
       break;
     case ATTR_ELEMENT_CORNER:
     case ATTR_ELEMENT_CORNER_BYTE:
-      if (geom->geometry_type == Geometry::MESH) {
+      if (geom->is_mesh()) {
         Mesh *mesh = static_cast<Mesh *>(geom);
         if (prim == ATTR_PRIM_GEOMETRY) {
           size = mesh->num_triangles() * 3;
@@ -256,19 +256,19 @@ size_t Attribute::element_size(Geometry *geom, AttributePrimitive prim) const
       }
       break;
     case ATTR_ELEMENT_CURVE:
-      if (geom->geometry_type == Geometry::HAIR) {
+      if (geom->is_hair()) {
         Hair *hair = static_cast<Hair *>(geom);
         size = hair->num_curves();
       }
       break;
     case ATTR_ELEMENT_CURVE_KEY:
-      if (geom->geometry_type == Geometry::HAIR) {
+      if (geom->is_hair()) {
         Hair *hair = static_cast<Hair *>(geom);
         size = hair->get_curve_keys().size();
       }
       break;
     case ATTR_ELEMENT_CURVE_KEY_MOTION:
-      if (geom->geometry_type == Geometry::HAIR) {
+      if (geom->is_hair()) {
         Hair *hair = static_cast<Hair *>(geom);
         DCHECK_GT(hair->get_motion_steps(), 0);
         size = hair->get_curve_keys().size() * (hair->get_motion_steps() - 1);
@@ -529,7 +529,7 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
     name = Attribute::standard_name(std);
   }
 
-  if (geometry->geometry_type == Geometry::MESH) {
+  if (geometry->is_mesh()) {
     switch (std) {
       case ATTR_STD_VERTEX_NORMAL:
         attr = add(name, TypeNormal, ATTR_ELEMENT_VERTEX);
@@ -580,7 +580,7 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
         break;
     }
   }
-  else if (geometry->geometry_type == Geometry::POINTCLOUD) {
+  else if (geometry->is_pointcloud()) {
     switch (std) {
       case ATTR_STD_UV:
         attr = add(name, TypeFloat2, ATTR_ELEMENT_VERTEX);
@@ -602,7 +602,7 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
         break;
     }
   }
-  else if (geometry->geometry_type == Geometry::VOLUME) {
+  else if (geometry->is_volume()) {
     switch (std) {
       case ATTR_STD_VERTEX_NORMAL:
         attr = add(name, TypeNormal, ATTR_ELEMENT_VERTEX);
@@ -630,7 +630,7 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
         break;
     }
   }
-  else if (geometry->geometry_type == Geometry::HAIR) {
+  else if (geometry->is_hair()) {
     switch (std) {
       case ATTR_STD_VERTEX_NORMAL:
         attr = add(name, TypeNormal, ATTR_ELEMENT_CURVE_KEY);

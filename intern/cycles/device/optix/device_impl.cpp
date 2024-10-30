@@ -1166,7 +1166,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
 
     /* Build bottom level acceleration structures (BLAS). */
     Geometry *const geom = bvh->geometry[0];
-    if (geom->geometry_type == Geometry::HAIR) {
+    if (geom->is_hair()) {
       /* Build BLAS for curve primitives. */
       Hair *const hair = static_cast<Hair *const>(geom);
       if (hair->num_segments() == 0) {
@@ -1365,7 +1365,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
         progress.set_error("Failed to build OptiX acceleration structure");
       }
     }
-    else if (geom->geometry_type == Geometry::MESH || geom->geometry_type == Geometry::VOLUME) {
+    else if (geom->is_mesh() || geom->is_volume()) {
       /* Build BLAS for triangle primitives. */
       Mesh *const mesh = static_cast<Mesh *const>(geom);
       if (mesh->num_triangles() == 0) {
@@ -1433,7 +1433,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
         progress.set_error("Failed to build OptiX acceleration structure");
       }
     }
-    else if (geom->geometry_type == Geometry::POINTCLOUD) {
+    else if (geom->is_pointcloud()) {
       /* Build BLAS for points primitives. */
       PointCloud *const pointcloud = static_cast<PointCloud *const>(geom);
       const size_t num_points = pointcloud->num_points();
@@ -1608,7 +1608,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
         instance.visibilityMask = 0xFF;
       }
 
-      if (ob->get_geometry()->geometry_type == Geometry::HAIR &&
+      if (ob->get_geometry()->is_hair() &&
           static_cast<const Hair *>(ob->get_geometry())->curve_shape == CURVE_THICK)
       {
         if (pipeline_options.usesMotionBlur && ob->get_geometry()->has_motion_blur()) {
@@ -1616,7 +1616,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
           instance.sbtOffset = PG_HITD_MOTION - PG_HITD;
         }
       }
-      else if (ob->get_geometry()->geometry_type == Geometry::POINTCLOUD) {
+      else if (ob->get_geometry()->is_pointcloud()) {
         /* Use the hit group that has an intersection program for point clouds. */
         instance.sbtOffset = PG_HITD_POINTCLOUD - PG_HITD;
 
