@@ -9334,8 +9334,11 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
       py_class_instance = py_srna;
 
 #else
+#  ifdef USE_PEDANTIC_WRITE
       const int prev_write = rna_disallow_writes;
-      rna_disallow_writes = true;
+      rna_disallow_writes = is_readonly_init ? false :
+                                               true; /* Only operators can write on __init__. */
+#  endif
 
 /* 'almost' all the time calling the class isn't needed.
  * We could just do... */
@@ -9350,7 +9353,9 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
        */
       py_class_instance = PyObject_CallOneArg(reinterpret_cast<PyObject *>(py_class), py_srna);
 
+#  ifdef USE_PEDANTIC_WRITE
       rna_disallow_writes = prev_write;
+#  endif
 
 #endif
 
