@@ -26,7 +26,6 @@ class UnitTesting(ViewLayerTesting):
         """
         import bpy
 
-        scene = bpy.context.scene
         layer = bpy.context.view_layer
 
         original_cube = layer.objects.get('Cube')

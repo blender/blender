@@ -48,7 +48,7 @@ class UnitTesting(ViewLayerTesting):
         # instance the group
         empty = bpy.data.objects.new("Empty", None)
         bpy.context.scene_collection.objects.link(empty)
-        layer_collection = bpy.context.layer_collection
+        _layer_collection = bpy.context.layer_collection
         empty.instance_type = 'GROUP'
         empty.instance_collection = group
 
