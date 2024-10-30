@@ -2361,10 +2361,18 @@ static void gaussian_blur_x(const Span<float> gaussian,
         accum_weight += weight;
       }
       accum *= (1.0f / accum_weight);
-      dst[0] = accum[0];
-      dst[1] = accum[1];
-      dst[2] = accum[2];
-      dst[3] = accum[3];
+      if constexpr (math::is_math_float_type<T>) {
+        dst[0] = accum[0];
+        dst[1] = accum[1];
+        dst[2] = accum[2];
+        dst[3] = accum[3];
+      }
+      else {
+        dst[0] = accum[0] + 0.5f;
+        dst[1] = accum[1] + 0.5f;
+        dst[2] = accum[2] + 0.5f;
+        dst[3] = accum[3] + 0.5f;
+      }
       dst += 4;
     }
   }
@@ -2394,10 +2402,18 @@ static void gaussian_blur_y(const Span<float> gaussian,
         accum_weight += weight;
       }
       accum *= (1.0f / accum_weight);
-      dst[0] = accum[0];
-      dst[1] = accum[1];
-      dst[2] = accum[2];
-      dst[3] = accum[3];
+      if constexpr (math::is_math_float_type<T>) {
+        dst[0] = accum[0];
+        dst[1] = accum[1];
+        dst[2] = accum[2];
+        dst[3] = accum[3];
+      }
+      else {
+        dst[0] = accum[0] + 0.5f;
+        dst[1] = accum[1] + 0.5f;
+        dst[2] = accum[2] + 0.5f;
+        dst[3] = accum[3] + 0.5f;
+      }
       dst += 4;
     }
   }
