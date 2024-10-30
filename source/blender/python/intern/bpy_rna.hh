@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <optional>
+
 /* --- bpy build options --- */
 #include "intern/rna_internal_types.hh"
 #ifdef WITH_PYTHON_SAFETY
@@ -103,8 +105,8 @@ extern PyTypeObject pyrna_func_Type;
   } \
   (void)0
 
-#define PYRNA_STRUCT_IS_VALID(pysrna) (LIKELY(((BPy_StructRNA *)(pysrna))->ptr.type != NULL))
-#define PYRNA_PROP_IS_VALID(pysrna) (LIKELY(((BPy_PropertyRNA *)(pysrna))->ptr.type != NULL))
+#define PYRNA_STRUCT_IS_VALID(pysrna) (LIKELY(((BPy_StructRNA *)(pysrna))->ptr->type != NULL))
+#define PYRNA_PROP_IS_VALID(pysrna) (LIKELY(((BPy_PropertyRNA *)(pysrna))->ptr->type != NULL))
 
 /* 'in_weakreflist' MUST be aligned */
 
@@ -113,7 +115,8 @@ struct BPy_DummyPointerRNA {
 #ifdef USE_WEAKREFS
   PyObject *in_weakreflist;
 #endif
-  PointerRNA ptr;
+
+  std::optional<PointerRNA> ptr;
 };
 
 struct BPy_StructRNA {
@@ -121,7 +124,9 @@ struct BPy_StructRNA {
 #ifdef USE_WEAKREFS
   PyObject *in_weakreflist;
 #endif
-  PointerRNA ptr;
+
+  std::optional<PointerRNA> ptr;
+
 #ifdef USE_PYRNA_STRUCT_REFERENCE
   /* generic PyObject we hold a reference to, example use:
    * hold onto the collection iterator to prevent it from freeing allocated data we may use */
@@ -139,17 +144,24 @@ struct BPy_PropertyRNA {
 #ifdef USE_WEAKREFS
   PyObject *in_weakreflist;
 #endif
-  PointerRNA ptr;
+
+  std::optional<PointerRNA> ptr;
   PropertyRNA *prop;
 };
 
 struct BPy_PropertyArrayRNA {
   PyObject_HEAD /* Required Python macro. */
+
+  /* START Must match #BPy_PropertyRNA. */
+
 #ifdef USE_WEAKREFS
   PyObject *in_weakreflist;
 #endif
-  PointerRNA ptr;
+
+  std::optional<PointerRNA> ptr;
   PropertyRNA *prop;
+
+  /* END Must match #BPy_PropertyRNA. */
 
   /* Arystan: this is a hack to allow sub-item r/w access like: face.uv[n][m] */
   /** Array dimension, e.g: 0 for face.uv, 2 for face.uv[n][m], etc. */
@@ -165,7 +177,7 @@ struct BPy_PropertyCollectionIterRNA {
 #endif
 
   /* collection iterator specific parts */
-  CollectionPropertyIterator iter;
+  std::optional<CollectionPropertyIterator> iter;
 };
 
 struct BPy_FunctionRNA {
@@ -173,7 +185,8 @@ struct BPy_FunctionRNA {
 #ifdef USE_WEAKREFS
   PyObject *in_weakreflist;
 #endif
-  PointerRNA ptr;
+
+  std::optional<PointerRNA> ptr;
   FunctionRNA *func;
 };
 

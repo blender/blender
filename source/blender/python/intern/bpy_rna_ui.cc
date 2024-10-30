@@ -28,7 +28,7 @@ PyDoc_STRVAR(
 static PyObject *bpy_rna_uilayout_introspect(PyObject *self)
 {
   BPy_StructRNA *pyrna = (BPy_StructRNA *)self;
-  uiLayout *layout = static_cast<uiLayout *>(pyrna->ptr.data);
+  uiLayout *layout = static_cast<uiLayout *>(pyrna->ptr->data);
 
   const char *expr = UI_layout_introspect(layout);
   PyObject *main_mod = PyC_MainModule_Backup();

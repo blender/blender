@@ -61,7 +61,7 @@ PyDoc_STRVAR(
 static PyObject *bpy_rna_region_as_string(PyObject *self, PyObject *args, PyObject *kwds)
 {
   BPy_StructRNA *pyrna = (BPy_StructRNA *)self;
-  Text *text = static_cast<Text *>(pyrna->ptr.data);
+  Text *text = static_cast<Text *>(pyrna->ptr->data);
   /* Parse the region range. */
   TextRegion region;
 
@@ -128,7 +128,7 @@ PyDoc_STRVAR(
 static PyObject *bpy_rna_region_from_string(PyObject *self, PyObject *args, PyObject *kwds)
 {
   BPy_StructRNA *pyrna = (BPy_StructRNA *)self;
-  Text *text = static_cast<Text *>(pyrna->ptr.data);
+  Text *text = static_cast<Text *>(pyrna->ptr->data);
 
   /* Parse the region range. */
   const char *buf;

@@ -33,7 +33,8 @@ class NODE_OT_connect_to_output(Operator, NodeEditorBase):
         default=True,
     )
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.shader_output_idname = ""
 
     @classmethod

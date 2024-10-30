@@ -71,14 +71,14 @@ static int py_msgbus_rna_key_from_py(PyObject *py_sub,
   if (BPy_PropertyRNA_Check(py_sub)) {
     BPy_PropertyRNA *data_prop = (BPy_PropertyRNA *)py_sub;
     PYRNA_PROP_CHECK_INT(data_prop);
-    msg_key_params->ptr = data_prop->ptr;
+    msg_key_params->ptr = *data_prop->ptr;
     msg_key_params->prop = data_prop->prop;
   }
   else if (BPy_StructRNA_Check(py_sub)) {
     /* NOTE: this isn't typically used since we don't edit structs directly. */
     BPy_StructRNA *data_srna = (BPy_StructRNA *)py_sub;
     PYRNA_STRUCT_CHECK_INT(data_srna);
-    msg_key_params->ptr = data_srna->ptr;
+    msg_key_params->ptr = *data_srna->ptr;
   }
   /* TODO: property / type, not instance. */
   else if (PyType_Check(py_sub)) {

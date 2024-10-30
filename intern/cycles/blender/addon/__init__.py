@@ -49,7 +49,8 @@ class CyclesRender(bpy.types.RenderEngine):
     bl_use_custom_freestyle = True
     bl_use_alembic_procedural = True
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.session = None
 
     def __del__(self):
