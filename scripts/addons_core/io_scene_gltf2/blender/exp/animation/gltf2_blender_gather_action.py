@@ -4,6 +4,7 @@
 
 import bpy
 import typing
+from math import ceil
 from ....io.com import gltf2_io
 from ....io.exp.gltf2_io_user_extensions import export_user_extensions
 from ....blender.com.gltf2_blender_conversion import get_gltf_interpolation
@@ -65,10 +66,26 @@ def gather_actions_animations(export_settings):
 
     return new_animations
 
+# We need to align if step is not 1
+# For example, cache will get frame 1/4/7/10 if step is 3, with an action starting at frame 1
+# If all backing is enabled, and scene start at 0, we will get frame 0/3/6/9 => Cache will fail
+# Set the reference frame from the first action retrieve, and align all actions to this frame
+def _align_frame_start(reference_frame_start, frame, export_settings):
+
+    if reference_frame_start is None:
+        return frame
+
+    if export_settings['gltf_frame_step'] == 1:
+        return frame
+
+    return reference_frame_start + export_settings['gltf_frame_step'] * ceil((frame - reference_frame_start) / export_settings['gltf_frame_step'])
+
 
 def prepare_actions_range(export_settings):
 
     track_slide = {}
+
+    start_frame_reference = None
 
     vtree = export_settings['vtree']
     for obj_uuid in vtree.get_all_objects():
@@ -114,8 +131,16 @@ def prepare_actions_range(export_settings):
                 start_frame = max(bpy.context.scene.frame_start, start_frame)
                 end_frame = min(bpy.context.scene.frame_end, end_frame)
 
-            export_settings['ranges'][obj_uuid][blender_action.name]['start'] = start_frame
+            export_settings['ranges'][obj_uuid][blender_action.name]['start'] = _align_frame_start(start_frame_reference, start_frame, export_settings)
             export_settings['ranges'][obj_uuid][blender_action.name]['end'] = end_frame
+
+            if start_frame_reference is None:
+                start_frame_reference = start_frame
+
+                # Recheck all actions to align to this frame
+                for obj_uuid_tmp in export_settings['ranges'].keys():
+                    for action_name_tmp in export_settings['ranges'][obj_uuid_tmp].keys():
+                        export_settings['ranges'][obj_uuid_tmp][action_name_tmp]['start'] = _align_frame_start(start_frame_reference, export_settings['ranges'][obj_uuid_tmp][action_name_tmp]['start'], export_settings)
 
             if export_settings['gltf_negative_frames'] == "SLIDE":
                 if track is not None:
@@ -153,7 +178,7 @@ def prepare_actions_range(export_settings):
 
             if type_ == "SHAPEKEY" and export_settings['gltf_bake_animation']:
                 export_settings['ranges'][obj_uuid][obj_uuid] = {}
-                export_settings['ranges'][obj_uuid][obj_uuid]['start'] = bpy.context.scene.frame_start
+                export_settings['ranges'][obj_uuid][obj_uuid]['start'] = _align_frame_start(start_frame_reference, bpy.context.scene.frame_start, export_settings)
                 export_settings['ranges'][obj_uuid][obj_uuid]['end'] = bpy.context.scene.frame_end
 
             # For baking drivers
@@ -163,7 +188,7 @@ def prepare_actions_range(export_settings):
                     if obj_dr not in export_settings['ranges']:
                         export_settings['ranges'][obj_dr] = {}
                     export_settings['ranges'][obj_dr][obj_uuid + "_" + blender_action.name] = {}
-                    export_settings['ranges'][obj_dr][obj_uuid + "_" + blender_action.name]['start'] = start_frame
+                    export_settings['ranges'][obj_dr][obj_uuid + "_" + blender_action.name]['start'] = _align_frame_start(start_frame_reference, start_frame, export_settings)
                     export_settings['ranges'][obj_dr][obj_uuid + "_" + blender_action.name]['end'] = end_frame
 
         if len(blender_actions) == 0 and export_settings['gltf_bake_animation']:
@@ -171,7 +196,7 @@ def prepare_actions_range(export_settings):
             # In case of baking animation, we will use scene frame range
             # Will be calculated later if max range. Can be set here if scene frame range
             export_settings['ranges'][obj_uuid][obj_uuid] = {}
-            export_settings['ranges'][obj_uuid][obj_uuid]['start'] = bpy.context.scene.frame_start
+            export_settings['ranges'][obj_uuid][obj_uuid]['start'] = _align_frame_start(start_frame_reference, bpy.context.scene.frame_start, export_settings)
             export_settings['ranges'][obj_uuid][obj_uuid]['end'] = bpy.context.scene.frame_end
 
             # For baking drivers
@@ -182,7 +207,7 @@ def prepare_actions_range(export_settings):
                         export_settings['ranges'][obj_dr] = {}
                     export_settings['ranges'][obj_dr][obj_uuid + "_" + obj_uuid] = {}
                     export_settings['ranges'][obj_dr][obj_uuid + "_" +
-                                                      obj_uuid]['start'] = bpy.context.scene.frame_start
+                                                      obj_uuid]['start'] = _align_frame_start(start_frame_reference, bpy.context.scene.frame_start, export_settings)
                     export_settings['ranges'][obj_dr][obj_uuid + "_" + obj_uuid]['end'] = bpy.context.scene.frame_end
 
     if (export_settings['gltf_negative_frames'] == "SLIDE"
