@@ -386,6 +386,9 @@ static void wm_file_read_setup_wm_use_new(bContext *C,
   wm->init_flag = 0;
   wm->winactive = nullptr;
 
+  /* Clearing drawable of old WM before deleting any context to avoid clearing the wrong wm. */
+  wm_window_clear_drawable(old_wm);
+
   bool has_match = false;
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     LISTBASE_FOREACH (wmWindow *, old_win, &old_wm->windows) {
@@ -403,9 +406,6 @@ static void wm_file_read_setup_wm_use_new(bContext *C,
                                                 static_cast<wmWindow *>(old_wm->windows.first),
                                                 static_cast<wmWindow *>(wm->windows.first));
   }
-
-  /* Clearing drawable of old WM before deleting any context to avoid clearing the wrong wm. */
-  wm_window_clear_drawable(old_wm);
 
   wm_setup_data->old_wm = nullptr;
   wm_close_and_free(C, old_wm);
