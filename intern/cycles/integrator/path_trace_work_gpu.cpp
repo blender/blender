@@ -400,7 +400,12 @@ void PathTraceWorkGPU::render_samples(RenderStatistics &statistics,
     ++num_iterations;
   }
 
-  statistics.occupancy = static_cast<float>(num_busy_accum) / num_iterations / max_num_paths_;
+  if (num_iterations) {
+    statistics.occupancy = float(num_busy_accum) / num_iterations / max_num_paths_;
+  }
+  else {
+    statistics.occupancy = 0.0f;
+  }
 }
 
 DeviceKernel PathTraceWorkGPU::get_most_queued_kernel() const
@@ -1096,6 +1101,10 @@ int PathTraceWorkGPU::adaptive_sampling_convergence_check_count_active(float thr
   queue_->zero_to_device(num_active_pixels);
 
   const int work_size = effective_buffer_params_.width * effective_buffer_params_.height;
+  if (!work_size) {
+    return 0;
+  }
+
   const int reset_int = reset; /* No bool kernel arguments. */
 
   DeviceKernelArguments args(&buffers_->buffer.device_pointer,
@@ -1120,6 +1129,7 @@ int PathTraceWorkGPU::adaptive_sampling_convergence_check_count_active(float thr
 void PathTraceWorkGPU::enqueue_adaptive_sampling_filter_x()
 {
   const int work_size = effective_buffer_params_.height;
+  DCHECK_GT(work_size, 0);
 
   DeviceKernelArguments args(&buffers_->buffer.device_pointer,
                              &effective_buffer_params_.full_x,
@@ -1135,6 +1145,7 @@ void PathTraceWorkGPU::enqueue_adaptive_sampling_filter_x()
 void PathTraceWorkGPU::enqueue_adaptive_sampling_filter_y()
 {
   const int work_size = effective_buffer_params_.width;
+  DCHECK_GT(work_size, 0);
 
   DeviceKernelArguments args(&buffers_->buffer.device_pointer,
                              &effective_buffer_params_.full_x,
@@ -1150,6 +1161,9 @@ void PathTraceWorkGPU::enqueue_adaptive_sampling_filter_y()
 void PathTraceWorkGPU::cryptomatte_postproces()
 {
   const int work_size = effective_buffer_params_.width * effective_buffer_params_.height;
+  if (!work_size) {
+    return;
+  }
 
   DeviceKernelArguments args(&buffers_->buffer.device_pointer,
                              &work_size,
