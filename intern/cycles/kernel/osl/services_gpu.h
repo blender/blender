@@ -319,13 +319,16 @@ ccl_device_extern void osl_blackbody_vf(ccl_private ShaderGlobals *sg,
   *result = color_rgb;
 }
 
-#if 0
 ccl_device_extern void osl_wavelength_color_vf(ccl_private ShaderGlobals *sg,
-                                                   ccl_private float3 *result,
-                                                   float wavelength)
+                                               ccl_private float3 *result,
+                                               float lambda_nm)
 {
+  float3 color = xyz_to_rgb(nullptr, svm_math_wavelength_color_xyz(lambda_nm));
+  color *= 1.0f / 2.52f;  // Empirical scale from lg to make all comps <= 1
+
+  /* Clamp to zero if values are smaller */
+  *result = max(color, make_float3(0.0f, 0.0f, 0.0f));
 }
-#endif
 
 ccl_device_extern void osl_luminance_fv(ccl_private ShaderGlobals *sg,
                                         ccl_private float *result,
