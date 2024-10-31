@@ -2431,6 +2431,7 @@ void OBJECT_OT_modifier_apply_as_shapekey(wmOperatorType *ot)
       ot->srna, "keep_modifier", false, "Keep Modifier", "Do not remove the modifier from stack");
   edit_modifier_properties(ot);
   edit_modifier_report_property(ot);
+  modifier_register_use_selected_objects_prop(ot);
 }
 
 /** \} */
