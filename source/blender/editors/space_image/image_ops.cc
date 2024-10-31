@@ -1285,7 +1285,7 @@ static Image *image_open_single(Main *bmain,
 
   if (!ima) {
     if (op->customdata) {
-      MEM_freeN(op->customdata);
+      MEM_delete(static_cast<ImageOpenData *>(op->customdata));
     }
     BKE_reportf(op->reports,
                 RPT_ERROR,
