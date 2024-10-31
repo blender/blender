@@ -63,7 +63,7 @@ static inline bool hipSupportsDevice(const int hipDevId)
   hipDeviceGetAttribute(&major, hipDeviceAttributeComputeCapabilityMajor, hipDevId);
   hipDeviceGetAttribute(&minor, hipDeviceAttributeComputeCapabilityMinor, hipDevId);
 
-  return (major >= 9);
+  return (major >= 10);
 }
 
 static inline bool hipSupportsDeviceOIDN(const int hipDevId)
