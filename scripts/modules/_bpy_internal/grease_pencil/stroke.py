@@ -25,21 +25,25 @@ class AttributeGetterSetter:
                 raise Exception("Unknown type {!r}".format(type))
         return default
 
-    def _set_attribute_value(self, attribute, type, value):
+    def _set_attribute_value(self, attribute, index, type, value):
         if type in {'FLOAT', 'INT', 'STRING', 'BOOLEAN', 'INT8', 'INT32_2D', 'QUATERNION', 'FLOAT4X4'}:
-            attribute.data[self._index].value = value
+            attribute.data[index].value = value
         elif type == 'FLOAT_VECTOR':
-            attribute.data[self._index].vector = value
+            attribute.data[index].vector = value
         elif type in {'FLOAT_COLOR', 'BYTE_COLOR'}:
-            attribute.data[self._index].color = value
+            attribute.data[index].color = value
         else:
             raise Exception("Unknown type {!r}".format(type))
 
-    def _set_attribute(self, name, type, value):
+    def _set_attribute(self, name, type, value, default):
         if attribute := self._attributes.get(name):
-            self._set_attribute_value(attribute, type, value)
+            self._set_attribute_value(attribute, self._index, type, value)
         elif attribute := self._attributes.new(name, type, self._domain):
-            self._set_attribute_value(attribute, type, value)
+            # Fill attribute with default value
+            num = self._attributes.domain_size(self._domain)
+            for i in range(num):
+                self._set_attribute_value(attribute, i, type, default)
+            self._set_attribute_value(attribute, self._index, type, value)
         else:
             raise Exception(
                 "Could not create attribute {:s} of type {!r}".format(name, type))
@@ -101,7 +105,7 @@ def def_prop_for_attribute(attr_name, type, default, doc):
 
     def fset(self, value):
         # Define `setter` callback for property.
-        self._set_attribute(attr_name, type, value)
+        self._set_attribute(attr_name, type, value, default)
 
     prop = property(fget=fget, fset=fset, doc=doc)
     return prop
