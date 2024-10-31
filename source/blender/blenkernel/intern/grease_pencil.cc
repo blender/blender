@@ -3470,8 +3470,6 @@ blender::bke::greasepencil::LayerGroup &GreasePencil::add_layer_group(
                                                    name.c_str();
   bke::greasepencil::LayerGroup *new_group = MEM_new<bke::greasepencil::LayerGroup>(__func__,
                                                                                     unique_name);
-  /* Hide masks by default. */
-  new_group->base.flag |= GP_LAYER_TREE_NODE_HIDE_MASKS;
   return parent_group.add_node(new_group->as_node()).as_group();
 }
 
