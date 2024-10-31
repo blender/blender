@@ -131,7 +131,7 @@ static void bm_rotate_edges_shared(
         BMEdge *e = edges[i];
         BLI_assert(eheap_table[i] == nullptr);
 
-        bool ok = BM_edge_rotate_check(e);
+        bool ok = (BM_elem_index_get(e) != -1) && BM_edge_rotate_check(e);
 
         if (ok) {
           if (pass_type == PASS_TYPE_BOUNDARY) {
