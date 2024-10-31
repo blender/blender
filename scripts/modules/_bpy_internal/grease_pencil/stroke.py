@@ -264,7 +264,7 @@ class GreasePencilStroke(AttributeGetterSetter):
         self._drawing.resize_strokes(
             sizes=[new_size], indices=[self._curve_index])
         self._points_end_index = self._points_start_index + new_size
-        return GreasePencilStrokePointSlice(self._drawing, previous_end, self._points_end_index)
+        return GreasePencilStrokePointSlice(self._drawing, self._curve_index, previous_end, self._points_end_index)
 
     def remove_points(self, count: int):
         """
