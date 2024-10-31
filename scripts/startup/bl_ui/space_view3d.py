@@ -5832,6 +5832,10 @@ class VIEW3D_MT_edit_curves_context_menu(Menu):
         layout.operator("curves.subdivide")
         layout.operator("curves.extrude_move")
 
+        layout.separator()
+
+        layout.operator_menu_enum("curves.handle_type_set", "type")
+
 
 class VIEW3D_MT_edit_pointcloud(Menu):
     bl_label = "Point Cloud"
