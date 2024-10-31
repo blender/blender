@@ -29,6 +29,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
+#include "BKE_global.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
@@ -458,6 +459,10 @@ static int kill_selection(Object *obedit, int ins) /* ins == new character len *
 
 static void font_select_update_primary_clipboard(Object *obedit)
 {
+  if (G.background) {
+    return;
+  }
+
   if ((WM_capabilities_flag() & WM_CAPABILITY_PRIMARY_CLIPBOARD) == 0) {
     return;
   }
