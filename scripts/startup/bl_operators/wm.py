@@ -2411,7 +2411,12 @@ class WM_OT_tool_set_by_brush_type(Operator):
         if self.properties.is_property_set("space_type"):
             space_type = self.space_type
         else:
-            space_type = context.space_data.type
+            # Unlikely may be called in an unexpected context.
+            if (space := context.space_data) is None:
+                self.report({'WARNING'}, rpt_("Tool {!r} set without a space").format(tool_id))
+                return {'CANCELLED'}
+            space_type = space.type
+            del space
 
         tool_helper_cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
         # Lookup a tool with a matching brush type (ignoring some specific ones).
