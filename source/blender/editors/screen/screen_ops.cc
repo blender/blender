@@ -3646,11 +3646,20 @@ static bool area_join_init(bContext *C, wmOperator *op, ScrArea *sa1, ScrArea *s
 {
   if (sa1 == nullptr && sa2 == nullptr) {
     /* Get areas from cursor location if not specified. */
+    PropertyRNA *prop;
     int cursor[2];
-    RNA_int_get_array(op->ptr, "source_xy", cursor);
-    sa1 = BKE_screen_find_area_xy(CTX_wm_screen(C), SPACE_TYPE_ANY, cursor);
-    RNA_int_get_array(op->ptr, "target_xy", cursor);
-    sa2 = BKE_screen_find_area_xy(CTX_wm_screen(C), SPACE_TYPE_ANY, cursor);
+
+    prop = RNA_struct_find_property(op->ptr, "source_xy");
+    if (RNA_property_is_set(op->ptr, prop)) {
+      RNA_property_int_get_array(op->ptr, prop, cursor);
+      sa1 = BKE_screen_find_area_xy(CTX_wm_screen(C), SPACE_TYPE_ANY, cursor);
+    }
+
+    prop = RNA_struct_find_property(op->ptr, "target_xy");
+    if (RNA_property_is_set(op->ptr, prop)) {
+      RNA_property_int_get_array(op->ptr, prop, cursor);
+      sa2 = BKE_screen_find_area_xy(CTX_wm_screen(C), SPACE_TYPE_ANY, cursor);
+    }
   }
   if (sa1 == nullptr) {
     return false;
@@ -4290,12 +4299,26 @@ static void SCREEN_OT_area_join(wmOperatorType *ot)
   ot->flag = OPTYPE_BLOCKING;
 
   /* rna */
-  const int def[2] = {-100, -100};
-
-  RNA_def_int_vector(
-      ot->srna, "source_xy", 2, def, INT_MIN, INT_MAX, "Source location", "", INT_MIN, INT_MAX);
-  RNA_def_int_vector(
-      ot->srna, "target_xy", 2, def, INT_MIN, INT_MAX, "Target location", "", INT_MIN, INT_MAX);
+  RNA_def_int_vector(ot->srna,
+                     "source_xy",
+                     2,
+                     nullptr,
+                     INT_MIN,
+                     INT_MAX,
+                     "Source location",
+                     "",
+                     INT_MIN,
+                     INT_MAX);
+  RNA_def_int_vector(ot->srna,
+                     "target_xy",
+                     2,
+                     nullptr,
+                     INT_MIN,
+                     INT_MAX,
+                     "Target location",
+                     "",
+                     INT_MIN,
+                     INT_MAX);
 }
 
 /** \} */
