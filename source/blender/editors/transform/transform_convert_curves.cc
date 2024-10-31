@@ -32,6 +32,52 @@
 
 namespace blender::ed::transform::curves {
 
+static void create_aligned_handles_masks(
+    const bke::CurvesGeometry &curves,
+    const blender::Span<blender::IndexMask> points_to_transform_per_attr,
+    TransCustomData &custom_data)
+{
+  if (points_to_transform_per_attr.size() == 1) {
+    return;
+  }
+  const VArraySpan<int8_t> handle_types_left = curves.handle_types_left();
+  const VArraySpan<int8_t> handle_types_right = curves.handle_types_right();
+  CurvesTransformData &transform_data = *static_cast<CurvesTransformData *>(custom_data.data);
+
+  IndexMaskMemory memory;
+  /* When control point is selected both handles are treaded as selected and transformed together.
+   * So these will be excluded from alignment. */
+  const IndexMask &selected_points = points_to_transform_per_attr[0];
+  const IndexMask selected_left_handles = IndexMask::from_difference(
+      points_to_transform_per_attr[1], selected_points, memory);
+  index_mask::ExprBuilder builder;
+  /* Left are excluded here to align only one handle when both are selected. */
+  const IndexMask selected_right_handles = evaluate_expression(
+      builder.subtract({&points_to_transform_per_attr[2]},
+                       {&selected_left_handles, &selected_points}),
+      memory);
+
+  const IndexMask &affected_handles = IndexMask::from_union(
+      selected_left_handles, selected_right_handles, memory);
+
+  auto aligned_handles_to_selection = [&](const VArraySpan<int8_t> &handle_types) {
+    return IndexMask::from_predicate(
+        affected_handles, GrainSize(4096), memory, [&](const int64_t i) {
+          return handle_types[i] == BEZIER_HANDLE_ALIGN;
+        });
+  };
+
+  const IndexMask both_aligned = IndexMask::from_intersection(
+      aligned_handles_to_selection(handle_types_left),
+      aligned_handles_to_selection(handle_types_right),
+      memory);
+
+  transform_data.aligned_with_left = IndexMask::from_intersection(
+      selected_left_handles, both_aligned, transform_data.memory);
+  transform_data.aligned_with_right = IndexMask::from_intersection(
+      selected_right_handles, both_aligned, transform_data.memory);
+}
+
 static void calculate_curve_point_distances_for_proportional_editing(
     const Span<float3> positions, MutableSpan<float> r_distances)
 {
@@ -276,10 +322,30 @@ static void createTransCurvesVerts(bContext * /*C*/, TransInfo *t)
                                       curves.curves_range(),
                                       use_connected_only,
                                       bezier_curves[i]);
+    create_aligned_handles_masks(curves, points_to_transform_per_attribute[i], tc.custom.type);
 
     /* TODO: This is wrong. The attribute writer should live at least as long as the span. */
     attribute_writer.finish();
   }
+}
+
+static void calculate_aligned_handles(const TransCustomData &custom_data,
+                                      bke::CurvesGeometry &curves)
+{
+  if (ed::curves::get_curves_selection_attribute_names(curves).size() == 1) {
+    return;
+  }
+  const CurvesTransformData &transform_data = *static_cast<const CurvesTransformData *>(
+      custom_data.data);
+
+  const Span<float3> positions = curves.positions();
+  MutableSpan<float3> handle_positions_left = curves.handle_positions_left_for_write();
+  MutableSpan<float3> handle_positions_right = curves.handle_positions_right_for_write();
+
+  bke::curves::bezier::calculate_aligned_handles(
+      transform_data.aligned_with_left, positions, handle_positions_left, handle_positions_right);
+  bke::curves::bezier::calculate_aligned_handles(
+      transform_data.aligned_with_right, positions, handle_positions_right, handle_positions_left);
 }
 
 static void recalcData_curves(TransInfo *t)
@@ -307,6 +373,7 @@ static void recalcData_curves(TransInfo *t)
       }
       curves.tag_positions_changed();
       curves.calculate_bezier_auto_handles();
+      calculate_aligned_handles(tc.custom.type, curves);
     }
     DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
   }
