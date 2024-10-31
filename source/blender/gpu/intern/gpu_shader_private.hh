@@ -20,8 +20,7 @@
 #include <mutex>
 #include <string>
 
-namespace blender {
-namespace gpu {
+namespace blender::gpu {
 
 class GPULogParser;
 class Context;
@@ -123,7 +122,7 @@ class Shader {
   virtual bool get_uses_ssbo_vertex_fetch() const = 0;
   virtual int get_ssbo_vertex_fetch_output_num_verts() const = 0;
 
-  inline const char *const name_get() const
+  inline const char *name_get() const
   {
     return name;
   }
@@ -174,7 +173,7 @@ class ShaderCompiler {
   };
 
  public:
-  virtual ~ShaderCompiler(){};
+  virtual ~ShaderCompiler() = default;
 
   Shader *compile(const shader::ShaderCreateInfo &info, bool is_batch_compilation);
 
@@ -209,11 +208,11 @@ class ShaderCompilerGeneric : public ShaderCompiler {
   Map<BatchHandle, Batch> batches;
 
  public:
-  virtual ~ShaderCompilerGeneric() override;
+  ~ShaderCompilerGeneric() override;
 
-  virtual BatchHandle batch_compile(Span<const shader::ShaderCreateInfo *> &infos) override;
-  virtual bool batch_is_ready(BatchHandle handle) override;
-  virtual Vector<Shader *> batch_finalize(BatchHandle &handle) override;
+  BatchHandle batch_compile(Span<const shader::ShaderCreateInfo *> &infos) override;
+  bool batch_is_ready(BatchHandle handle) override;
+  Vector<Shader *> batch_finalize(BatchHandle &handle) override;
 };
 
 enum class Severity {
@@ -259,8 +258,7 @@ class GPULogParser {
 void printf_begin(Context *ctx);
 void printf_end(Context *ctx);
 
-}  // namespace gpu
-}  // namespace blender
+}  // namespace blender::gpu
 
 /* XXX do not use it. Special hack to use OCIO with batch API. */
 GPUShader *immGetShader();

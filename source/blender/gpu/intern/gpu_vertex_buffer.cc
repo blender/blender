@@ -17,8 +17,6 @@
 
 #include "gpu_context_private.hh" /* TODO: remove. */
 
-#include "GPU_vertex_buffer.hh"
-
 #include <cstring>
 
 /* -------------------------------------------------------------------- */

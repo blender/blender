@@ -26,10 +26,10 @@ struct GPUShader;
 
 /* Hardware limit is 16. Position attribute is always needed so we reduce to 15.
  * This makes sure the GPUVertexFormat name buffer does not overflow. */
-#define GPU_MAX_ATTR 15
+constexpr static int GPU_MAX_ATTR = 15;
 
 /* Determined by the maximum uniform buffer size divided by chunk size. */
-#define GPU_MAX_UNIFORM_ATTR 8
+constexpr static int GPU_MAX_UNIFORM_ATTR = 8;
 
 /* -------------------------------------------------------------------- */
 /** \name Creation

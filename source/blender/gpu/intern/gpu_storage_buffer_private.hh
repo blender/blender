@@ -13,8 +13,7 @@
 
 struct GPUStorageBuf;
 
-namespace blender {
-namespace gpu {
+namespace blender::gpu {
 
 class VertBuf;
 
@@ -67,5 +66,4 @@ static inline const StorageBuf *unwrap(const GPUStorageBuf *storage_buf)
 
 #undef DEBUG_NAME_LEN
 
-}  // namespace gpu
-}  // namespace blender
+}  // namespace blender::gpu

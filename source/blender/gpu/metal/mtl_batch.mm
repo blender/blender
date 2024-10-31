@@ -741,10 +741,7 @@ void MTLBatch::prepare_vertex_descriptor_and_bindings(MTLVertBuf **buffers, int 
 
 void MTLBatch::draw_advanced(int v_first, int v_count, int i_first, int i_count)
 {
-
-#if TRUST_NO_ONE
   BLI_assert(v_count > 0 && i_count > 0);
-#endif
 
   /* Setup RenderPipelineState for batch. */
   MTLContext *ctx = MTLContext::get();

@@ -279,7 +279,7 @@ bool GPU_backend_type_selection_is_overridden()
 bool GPU_backend_type_selection_detect()
 {
   blender::VectorSet<eGPUBackendType> backends_to_check;
-  if (GPU_backend_type_selection_is_overridden()) {
+  if (g_backend_type_override.has_value()) {
     backends_to_check.add(*g_backend_type_override);
   }
 #if defined(WITH_OPENGL_BACKEND)

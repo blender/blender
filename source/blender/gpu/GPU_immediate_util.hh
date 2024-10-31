@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include "BLI_sys_types.h"
+
 /* Draw 2D rectangles (replaces glRect functions) */
 /* caller is responsible for vertex format & shader */
 void immRectf(uint pos, float x1, float y1, float x2, float y2);

@@ -12,8 +12,7 @@
 
 #include "GPU_drawlist.hh"
 
-namespace blender {
-namespace gpu {
+namespace blender::gpu {
 
 /**
  * Implementation of Multi Draw Indirect.
@@ -21,7 +20,7 @@ namespace gpu {
  */
 class DrawList {
  public:
-  virtual ~DrawList(){};
+  virtual ~DrawList() = default;
 
   virtual void append(Batch *batch, int i_first, int i_count) = 0;
   virtual void submit() = 0;
@@ -41,5 +40,4 @@ static inline const DrawList *unwrap(const GPUDrawList *vert)
   return reinterpret_cast<const DrawList *>(vert);
 }
 
-}  // namespace gpu
-}  // namespace blender
+}  // namespace blender::gpu

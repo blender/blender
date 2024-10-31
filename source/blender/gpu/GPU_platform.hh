@@ -66,13 +66,13 @@ enum GPUArchitectureType {
   GPU_ARCHITECTURE_TBDR = 1,
 };
 
-typedef struct GPUDevice {
+struct GPUDevice {
   std::string identifier;
   int index;
   uint32_t vendor_id;
   uint32_t device_id;
   std::string name;
-} GPUDevice;
+};
 
 /* GPU Types */
 /* TODO: Verify all use-cases of GPU_type_matches to determine which graphics API it should apply

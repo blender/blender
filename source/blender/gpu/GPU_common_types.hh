@@ -191,7 +191,7 @@ struct SpecializationConstant {
   StringRefNull name;
   Value value;
 
-  SpecializationConstant() {}
+  SpecializationConstant() = default;
 
   SpecializationConstant(const char *name, uint32_t value) : type(Type::UINT), name(name)
   {

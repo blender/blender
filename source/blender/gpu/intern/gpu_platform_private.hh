@@ -30,7 +30,6 @@ class GPUPlatformGlobal {
   GPUArchitectureType architecture_type = GPU_ARCHITECTURE_IMR;
   Vector<GPUDevice> devices;
 
- public:
   void init(eGPUDeviceType gpu_device,
             eGPUOSType os_type,
             eGPUDriverType driver_type,

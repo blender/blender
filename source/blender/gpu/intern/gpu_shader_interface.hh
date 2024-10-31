@@ -77,7 +77,6 @@ class ShaderInterface {
    */
   uint8_t attr_types_[GPU_VERT_ATTR_MAX_LEN];
 
- public:
   ShaderInterface();
   virtual ~ShaderInterface();
 

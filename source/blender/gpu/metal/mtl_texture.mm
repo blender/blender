@@ -504,11 +504,9 @@ void gpu::MTLTexture::update_sub(
   this->ensure_baked();
 
   /* Safety checks. */
-#if TRUST_NO_ONE
   BLI_assert(mip >= mip_min_ && mip <= mip_max_);
   BLI_assert(mip < texture_.mipmapLevelCount);
   BLI_assert(texture_.mipmapLevelCount >= mip_max_);
-#endif
 
   /* DEPTH FLAG - Depth formats cannot use direct BLIT - pass off to their own routine which will
    * do a depth-only render. */

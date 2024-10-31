@@ -9,6 +9,7 @@
  */
 
 #include "GPU_vertex_format.hh"
+#include "BLI_assert.h"
 #include "GPU_capabilities.hh"
 
 #include "gpu_shader_create_info.hh"
@@ -33,7 +34,7 @@ using namespace blender::gpu::shader;
 
 void GPU_vertformat_clear(GPUVertFormat *format)
 {
-#if TRUST_NO_ONE
+#ifndef NDEBUG
   memset(format, 0, sizeof(GPUVertFormat));
 #else
   format->attr_len = 0;
@@ -56,9 +57,7 @@ void GPU_vertformat_copy(GPUVertFormat *dest, const GPUVertFormat &src)
 
 static uint comp_size(GPUVertCompType type)
 {
-#if TRUST_NO_ONE
-  assert(type <= GPU_COMP_F32); /* other types have irregular sizes (not bytes) */
-#endif
+  BLI_assert(type <= GPU_COMP_F32); /* other types have irregular sizes (not bytes) */
   const uint sizes[] = {1, 1, 2, 2, 4, 4, 4};
   return sizes[type];
 }
@@ -89,9 +88,7 @@ static uint attr_align(const GPUVertAttr *a, uint minimum_stride)
 
 uint vertex_buffer_size(const GPUVertFormat *format, uint vertex_len)
 {
-#if TRUST_NO_ONE
-  assert(format->packed && format->stride > 0);
-#endif
+  BLI_assert(format->packed && format->stride > 0);
   return format->stride * vertex_len;
 }
 
@@ -112,12 +109,9 @@ static uchar copy_attr_name(GPUVertFormat *format, const char *name)
       break;
     }
   }
-#if TRUST_NO_ONE
-  assert(terminated);
-  assert(format->name_offset <= GPU_VERT_ATTR_NAMES_BUF_LEN);
-#else
-  (void)terminated;
-#endif
+  BLI_assert(terminated);
+  BLI_assert(format->name_offset <= GPU_VERT_ATTR_NAMES_BUF_LEN);
+  UNUSED_VARS_NDEBUG(terminated);
   return name_offset;
 }
 
@@ -127,33 +121,33 @@ uint GPU_vertformat_attr_add(GPUVertFormat *format,
                              uint comp_len,
                              GPUVertFetchMode fetch_mode)
 {
-#if TRUST_NO_ONE
-  assert(format->name_len < GPU_VERT_FORMAT_MAX_NAMES); /* there's room for more */
-  assert(format->attr_len < GPU_VERT_ATTR_MAX_LEN);     /* there's room for more */
-  assert(!format->packed);                              /* packed means frozen/locked */
-  assert((comp_len >= 1 && comp_len <= 4) || comp_len == 8 || comp_len == 12 || comp_len == 16);
+  BLI_assert(format->name_len < GPU_VERT_FORMAT_MAX_NAMES); /* there's room for more */
+  BLI_assert(format->attr_len < GPU_VERT_ATTR_MAX_LEN);     /* there's room for more */
+  BLI_assert(!format->packed);                              /* packed means frozen/locked */
+  BLI_assert((comp_len >= 1 && comp_len <= 4) || comp_len == 8 || comp_len == 12 ||
+             comp_len == 16);
 
   switch (comp_type) {
     case GPU_COMP_F32:
       /* float type can only kept as float */
-      assert(fetch_mode == GPU_FETCH_FLOAT);
+      BLI_assert(fetch_mode == GPU_FETCH_FLOAT);
       break;
     case GPU_COMP_I10:
       /* 10_10_10 format intended for normals (XYZ) or colors (RGB)
        * extra component packed.w can be manually set to { -2, -1, 0, 1 } */
-      assert(ELEM(comp_len, 3, 4));
+      BLI_assert(ELEM(comp_len, 3, 4));
 
       /* Not strictly required, may relax later. */
-      assert(fetch_mode == GPU_FETCH_INT_TO_FLOAT_UNIT);
+      BLI_assert(fetch_mode == GPU_FETCH_INT_TO_FLOAT_UNIT);
 
       break;
     default:
       /* integer types can be kept as int or converted/normalized to float */
-      assert(fetch_mode != GPU_FETCH_FLOAT);
+      BLI_assert(fetch_mode != GPU_FETCH_FLOAT);
       /* only support float matrices (see Batch_update_program_bindings) */
-      assert(!ELEM(comp_len, 8, 12, 16));
+      BLI_assert(!ELEM(comp_len, 8, 12, 16));
   }
-#endif
+
   format->name_len++; /* Multi-name support. */
 
   const uint attr_id = format->attr_len++;
@@ -174,10 +168,8 @@ uint GPU_vertformat_attr_add(GPUVertFormat *format,
 void GPU_vertformat_alias_add(GPUVertFormat *format, const char *alias)
 {
   GPUVertAttr *attr = &format->attrs[format->attr_len - 1];
-#if TRUST_NO_ONE
-  assert(format->name_len < GPU_VERT_FORMAT_MAX_NAMES); /* there's room for more */
-  assert(attr->name_len < GPU_VERT_ATTR_MAX_NAMES);
-#endif
+  BLI_assert(format->name_len < GPU_VERT_FORMAT_MAX_NAMES); /* there's room for more */
+  BLI_assert(attr->name_len < GPU_VERT_ATTR_MAX_NAMES);
   format->name_len++; /* Multi-name support. */
   attr->names[attr->name_len++] = copy_attr_name(format, alias);
 }

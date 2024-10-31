@@ -22,7 +22,7 @@
 
 using namespace blender::gpu;
 
-#define MATRIX_STACK_DEPTH 32
+constexpr static int MATRIX_STACK_DEPTH = 32;
 
 using Mat4 = float[4][4];
 using Mat3 = float[3][3];

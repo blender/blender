@@ -260,9 +260,9 @@ static inline GPUTexture *gpu_texture_create(const char *name,
                                              const eGPUTextureType type,
                                              int mip_len,
                                              eGPUTextureFormat tex_format,
-                                             eGPUDataFormat data_format,
                                              eGPUTextureUsage usage,
-                                             const void *pixels)
+                                             const void *pixels,
+                                             eGPUDataFormat data_format = GPU_DATA_FLOAT)
 {
   BLI_assert(mip_len > 0);
   Texture *tex = GPUBackend::get()->texture_alloc(name);
@@ -300,100 +300,97 @@ static inline GPUTexture *gpu_texture_create(const char *name,
 }
 
 GPUTexture *GPU_texture_create_1d(const char *name,
-                                  int w,
+                                  int width,
                                   int mip_len,
                                   eGPUTextureFormat format,
                                   eGPUTextureUsage usage,
                                   const float *data)
 {
-  return gpu_texture_create(
-      name, w, 0, 0, GPU_TEXTURE_1D, mip_len, format, GPU_DATA_FLOAT, usage, data);
+  return gpu_texture_create(name, width, 0, 0, GPU_TEXTURE_1D, mip_len, format, usage, data);
 }
 
 GPUTexture *GPU_texture_create_1d_array(const char *name,
-                                        int w,
-                                        int h,
+                                        int width,
+                                        int layer_len,
                                         int mip_len,
                                         eGPUTextureFormat format,
                                         eGPUTextureUsage usage,
                                         const float *data)
 {
   return gpu_texture_create(
-      name, w, h, 0, GPU_TEXTURE_1D_ARRAY, mip_len, format, GPU_DATA_FLOAT, usage, data);
+      name, width, layer_len, 0, GPU_TEXTURE_1D_ARRAY, mip_len, format, usage, data);
 }
 
 GPUTexture *GPU_texture_create_2d(const char *name,
-                                  int w,
-                                  int h,
+                                  int width,
+                                  int height,
                                   int mip_len,
                                   eGPUTextureFormat format,
                                   eGPUTextureUsage usage,
                                   const float *data)
 {
-  return gpu_texture_create(
-      name, w, h, 0, GPU_TEXTURE_2D, mip_len, format, GPU_DATA_FLOAT, usage, data);
+  return gpu_texture_create(name, width, height, 0, GPU_TEXTURE_2D, mip_len, format, usage, data);
 }
 
 GPUTexture *GPU_texture_create_2d_array(const char *name,
-                                        int w,
-                                        int h,
-                                        int d,
+                                        int width,
+                                        int height,
+                                        int layer_len,
                                         int mip_len,
                                         eGPUTextureFormat format,
                                         eGPUTextureUsage usage,
                                         const float *data)
 {
   return gpu_texture_create(
-      name, w, h, d, GPU_TEXTURE_2D_ARRAY, mip_len, format, GPU_DATA_FLOAT, usage, data);
+      name, width, height, layer_len, GPU_TEXTURE_2D_ARRAY, mip_len, format, usage, data);
 }
 
 GPUTexture *GPU_texture_create_3d(const char *name,
-                                  int w,
-                                  int h,
-                                  int d,
+                                  int width,
+                                  int height,
+                                  int depth,
                                   int mip_len,
                                   eGPUTextureFormat texture_format,
                                   eGPUTextureUsage usage,
                                   const void *data)
 {
   return gpu_texture_create(
-      name, w, h, d, GPU_TEXTURE_3D, mip_len, texture_format, GPU_DATA_FLOAT, usage, data);
+      name, width, height, depth, GPU_TEXTURE_3D, mip_len, texture_format, usage, data);
 }
 
 GPUTexture *GPU_texture_create_cube(const char *name,
-                                    int w,
+                                    int width,
                                     int mip_len,
                                     eGPUTextureFormat format,
                                     eGPUTextureUsage usage,
                                     const float *data)
 {
-  return gpu_texture_create(
-      name, w, w, 0, GPU_TEXTURE_CUBE, mip_len, format, GPU_DATA_FLOAT, usage, data);
+  return gpu_texture_create(name, width, width, 0, GPU_TEXTURE_CUBE, mip_len, format, usage, data);
 }
 
 GPUTexture *GPU_texture_create_cube_array(const char *name,
-                                          int w,
-                                          int d,
+                                          int width,
+                                          int layer_len,
                                           int mip_len,
                                           eGPUTextureFormat format,
                                           eGPUTextureUsage usage,
                                           const float *data)
 {
   return gpu_texture_create(
-      name, w, w, d, GPU_TEXTURE_CUBE_ARRAY, mip_len, format, GPU_DATA_FLOAT, usage, data);
+      name, width, width, layer_len, GPU_TEXTURE_CUBE_ARRAY, mip_len, format, usage, data);
 }
 
 GPUTexture *GPU_texture_create_compressed_2d(const char *name,
-                                             int w,
-                                             int h,
-                                             int miplen,
+                                             int width,
+                                             int height,
+                                             int mip_len,
                                              eGPUTextureFormat tex_format,
                                              eGPUTextureUsage usage,
                                              const void *data)
 {
   Texture *tex = GPUBackend::get()->texture_alloc(name);
   tex->usage_set(usage);
-  bool success = tex->init_2D(w, h, 0, miplen, tex_format);
+  bool success = tex->init_2D(width, height, 0, mip_len, tex_format);
 
   if (!success) {
     delete tex;
@@ -401,7 +398,7 @@ GPUTexture *GPU_texture_create_compressed_2d(const char *name,
   }
   if (data) {
     size_t ofs = 0;
-    for (int mip = 0; mip < miplen; mip++) {
+    for (int mip = 0; mip < mip_len; mip++) {
       int extent[3], offset[3] = {0, 0, 0};
       tex->mip_size_get(mip, extent);
 
@@ -445,21 +442,13 @@ GPUTexture *GPU_texture_create_error(int dimension, bool is_array)
   type = (dimension == 2) ? (is_array ? GPU_TEXTURE_2D_ARRAY : GPU_TEXTURE_2D) : type;
   type = (dimension == 1) ? (is_array ? GPU_TEXTURE_1D_ARRAY : GPU_TEXTURE_1D) : type;
 
-  return gpu_texture_create("invalid_tex",
-                            w,
-                            h,
-                            d,
-                            type,
-                            1,
-                            GPU_RGBA8,
-                            GPU_DATA_FLOAT,
-                            GPU_TEXTURE_USAGE_GENERAL,
-                            pixel);
+  return gpu_texture_create(
+      "invalid_tex", w, h, d, type, 1, GPU_RGBA8, GPU_TEXTURE_USAGE_GENERAL, pixel);
 }
 
 GPUTexture *GPU_texture_create_view(const char *name,
-                                    GPUTexture *src,
-                                    eGPUTextureFormat format,
+                                    GPUTexture *source_texture,
+                                    eGPUTextureFormat view_format,
                                     int mip_start,
                                     int mip_len,
                                     int layer_start,
@@ -469,17 +458,18 @@ GPUTexture *GPU_texture_create_view(const char *name,
 {
   BLI_assert(mip_len > 0);
   BLI_assert(layer_len > 0);
-  BLI_assert_msg(use_stencil == false || (GPU_texture_usage(src) & GPU_TEXTURE_USAGE_FORMAT_VIEW),
+  BLI_assert_msg(use_stencil == false ||
+                     (GPU_texture_usage(source_texture) & GPU_TEXTURE_USAGE_FORMAT_VIEW),
                  "Source texture of TextureView must have GPU_TEXTURE_USAGE_FORMAT_VIEW usage "
                  "flag if view texture uses stencil texturing.");
-  BLI_assert_msg((format == GPU_texture_format(src)) ||
-                     (GPU_texture_usage(src) & GPU_TEXTURE_USAGE_FORMAT_VIEW),
+  BLI_assert_msg((view_format == GPU_texture_format(source_texture)) ||
+                     (GPU_texture_usage(source_texture) & GPU_TEXTURE_USAGE_FORMAT_VIEW),
                  "Source texture of TextureView must have GPU_TEXTURE_USAGE_FORMAT_VIEW usage "
                  "flag if view texture format is different.");
   Texture *view = GPUBackend::get()->texture_alloc(name);
-  view->init_view(src,
-                  format,
-                  unwrap(src)->type_get(),
+  view->init_view(source_texture,
+                  view_format,
+                  unwrap(source_texture)->type_get(),
                   mip_start,
                   mip_len,
                   layer_start,
@@ -498,15 +488,14 @@ eGPUTextureUsage GPU_texture_usage(const GPUTexture *texture_)
 
 /* ------ Update ------ */
 
-void GPU_texture_update_mipmap(GPUTexture *tex_,
-                               int miplvl,
+void GPU_texture_update_mipmap(GPUTexture *texture,
+                               int mip_level,
                                eGPUDataFormat data_format,
                                const void *pixels)
 {
-  Texture *tex = reinterpret_cast<Texture *>(tex_);
   int extent[3] = {1, 1, 1}, offset[3] = {0, 0, 0};
-  tex->mip_size_get(miplvl, extent);
-  reinterpret_cast<Texture *>(tex)->update_sub(miplvl, offset, extent, data_format, pixels);
+  unwrap(texture)->mip_size_get(mip_level, extent);
+  unwrap(texture)->update_sub(mip_level, offset, extent, data_format, pixels);
 }
 
 void GPU_texture_update_sub(GPUTexture *tex,
@@ -521,12 +510,12 @@ void GPU_texture_update_sub(GPUTexture *tex,
 {
   int offset[3] = {offset_x, offset_y, offset_z};
   int extent[3] = {width, height, depth};
-  reinterpret_cast<Texture *>(tex)->update_sub(0, offset, extent, data_format, pixels);
+  unwrap(tex)->update_sub(0, offset, extent, data_format, pixels);
 }
 
-void GPU_texture_update_sub_from_pixel_buffer(GPUTexture *tex,
+void GPU_texture_update_sub_from_pixel_buffer(GPUTexture *texture,
                                               eGPUDataFormat data_format,
-                                              GPUPixelBuffer *pix_buf,
+                                              GPUPixelBuffer *pixel_buf,
                                               int offset_x,
                                               int offset_y,
                                               int offset_z,
@@ -536,28 +525,27 @@ void GPU_texture_update_sub_from_pixel_buffer(GPUTexture *tex,
 {
   int offset[3] = {offset_x, offset_y, offset_z};
   int extent[3] = {width, height, depth};
-  reinterpret_cast<Texture *>(tex)->update_sub(offset, extent, data_format, pix_buf);
+  unwrap(texture)->update_sub(offset, extent, data_format, pixel_buf);
 }
 
-void *GPU_texture_read(GPUTexture *tex_, eGPUDataFormat data_format, int miplvl)
+void *GPU_texture_read(GPUTexture *texture, eGPUDataFormat data_format, int mip_level)
 {
-  Texture *tex = reinterpret_cast<Texture *>(tex_);
   BLI_assert_msg(
-      GPU_texture_usage(tex_) & GPU_TEXTURE_USAGE_HOST_READ,
+      GPU_texture_usage(texture) & GPU_TEXTURE_USAGE_HOST_READ,
       "The host-read usage flag must be specified up-front. Only textures which require data "
-      "reads should be flagged, allowing the backend to make certain optimisations.");
-  return tex->read(miplvl, data_format);
+      "reads should be flagged, allowing the backend to make certain optimizations.");
+  return unwrap(texture)->read(mip_level, data_format);
 }
 
 void GPU_texture_clear(GPUTexture *tex, eGPUDataFormat data_format, const void *data)
 {
   BLI_assert(data != nullptr); /* Do not accept nullptr as parameter. */
-  reinterpret_cast<Texture *>(tex)->clear(data_format, data);
+  unwrap(tex)->clear(data_format, data);
 }
 
 void GPU_texture_update(GPUTexture *tex, eGPUDataFormat data_format, const void *data)
 {
-  reinterpret_cast<Texture *>(tex)->update(data_format, data);
+  unwrap(tex)->update(data_format, data);
 }
 
 void GPU_unpack_row_length_set(uint len)
@@ -567,22 +555,22 @@ void GPU_unpack_row_length_set(uint len)
 
 /* ------ Binding ------ */
 
-void GPU_texture_bind_ex(GPUTexture *tex_, GPUSamplerState state, int unit)
+void GPU_texture_bind_ex(GPUTexture *texture, GPUSamplerState state, int unit)
 {
-  Texture *tex = reinterpret_cast<Texture *>(tex_);
+  Texture *tex = unwrap(texture);
   state = (state.type == GPU_SAMPLER_STATE_TYPE_INTERNAL) ? tex->sampler_state : state;
   Context::get()->state_manager->texture_bind(tex, state, unit);
 }
 
-void GPU_texture_bind(GPUTexture *tex_, int unit)
+void GPU_texture_bind(GPUTexture *texture, int unit)
 {
-  Texture *tex = reinterpret_cast<Texture *>(tex_);
+  Texture *tex = unwrap(texture);
   Context::get()->state_manager->texture_bind(tex, tex->sampler_state, unit);
 }
 
-void GPU_texture_unbind(GPUTexture *tex_)
+void GPU_texture_unbind(GPUTexture *texture)
 {
-  Texture *tex = reinterpret_cast<Texture *>(tex_);
+  Texture *tex = unwrap(texture);
   Context::get()->state_manager->texture_unbind(tex);
 }
 
@@ -608,19 +596,19 @@ void GPU_texture_image_unbind_all()
 
 void GPU_texture_update_mipmap_chain(GPUTexture *tex)
 {
-  reinterpret_cast<Texture *>(tex)->generate_mipmap();
+  unwrap(tex)->generate_mipmap();
 }
 
 void GPU_texture_copy(GPUTexture *dst_, GPUTexture *src_)
 {
-  Texture *src = reinterpret_cast<Texture *>(src_);
-  Texture *dst = reinterpret_cast<Texture *>(dst_);
+  Texture *src = unwrap(src_);
+  Texture *dst = unwrap(dst_);
   src->copy_to(dst);
 }
 
-void GPU_texture_compare_mode(GPUTexture *tex_, bool use_compare)
+void GPU_texture_compare_mode(GPUTexture *texture, bool use_compare)
 {
-  Texture *tex = reinterpret_cast<Texture *>(tex_);
+  Texture *tex = unwrap(texture);
   /* Only depth formats does support compare mode. */
   BLI_assert(!(use_compare) || (tex->format_flag_get() & GPU_FORMAT_DEPTH));
 
@@ -629,18 +617,18 @@ void GPU_texture_compare_mode(GPUTexture *tex_, bool use_compare)
   tex->sampler_state.custom_type = GPU_SAMPLER_CUSTOM_COMPARE;
 }
 
-void GPU_texture_filter_mode(GPUTexture *tex_, bool use_filter)
+void GPU_texture_filter_mode(GPUTexture *texture, bool use_filter)
 {
-  Texture *tex = reinterpret_cast<Texture *>(tex_);
+  Texture *tex = unwrap(texture);
   /* Stencil and integer format does not support filtering. */
   BLI_assert(!(use_filter) ||
              !(tex->format_flag_get() & (GPU_FORMAT_STENCIL | GPU_FORMAT_INTEGER)));
   tex->sampler_state.set_filtering_flag_from_test(GPU_SAMPLER_FILTERING_LINEAR, use_filter);
 }
 
-void GPU_texture_mipmap_mode(GPUTexture *tex_, bool use_mipmap, bool use_filter)
+void GPU_texture_mipmap_mode(GPUTexture *texture, bool use_mipmap, bool use_filter)
 {
-  Texture *tex = reinterpret_cast<Texture *>(tex_);
+  Texture *tex = unwrap(texture);
   /* Stencil and integer format does not support filtering. */
   BLI_assert(!(use_filter || use_mipmap) ||
              !(tex->format_flag_get() & (GPU_FORMAT_STENCIL | GPU_FORMAT_INTEGER)));
@@ -648,42 +636,39 @@ void GPU_texture_mipmap_mode(GPUTexture *tex_, bool use_mipmap, bool use_filter)
   tex->sampler_state.set_filtering_flag_from_test(GPU_SAMPLER_FILTERING_LINEAR, use_filter);
 }
 
-void GPU_texture_anisotropic_filter(GPUTexture *tex_, bool use_aniso)
+void GPU_texture_anisotropic_filter(GPUTexture *texture, bool use_aniso)
 {
-  Texture *tex = reinterpret_cast<Texture *>(tex_);
+  Texture *tex = unwrap(texture);
   /* Stencil and integer format does not support filtering. */
   BLI_assert(!(use_aniso) ||
              !(tex->format_flag_get() & (GPU_FORMAT_STENCIL | GPU_FORMAT_INTEGER)));
   tex->sampler_state.set_filtering_flag_from_test(GPU_SAMPLER_FILTERING_ANISOTROPIC, use_aniso);
 }
 
-void GPU_texture_extend_mode_x(GPUTexture *tex_, GPUSamplerExtendMode extend_mode)
+void GPU_texture_extend_mode_x(GPUTexture *texture, GPUSamplerExtendMode extend_mode)
 {
-  Texture *tex = reinterpret_cast<Texture *>(tex_);
-  tex->sampler_state.extend_x = extend_mode;
+  unwrap(texture)->sampler_state.extend_x = extend_mode;
 }
 
-void GPU_texture_extend_mode_y(GPUTexture *tex_, GPUSamplerExtendMode extend_mode)
+void GPU_texture_extend_mode_y(GPUTexture *texture, GPUSamplerExtendMode extend_mode)
 {
-  Texture *tex = reinterpret_cast<Texture *>(tex_);
-  tex->sampler_state.extend_yz = extend_mode;
+  unwrap(texture)->sampler_state.extend_yz = extend_mode;
 }
 
-void GPU_texture_extend_mode(GPUTexture *tex_, GPUSamplerExtendMode extend_mode)
+void GPU_texture_extend_mode(GPUTexture *texture, GPUSamplerExtendMode extend_mode)
 {
-  Texture *tex = reinterpret_cast<Texture *>(tex_);
-  tex->sampler_state.extend_x = extend_mode;
-  tex->sampler_state.extend_yz = extend_mode;
+  unwrap(texture)->sampler_state.extend_x = extend_mode;
+  unwrap(texture)->sampler_state.extend_yz = extend_mode;
 }
 
-void GPU_texture_swizzle_set(GPUTexture *tex, const char swizzle[4])
+void GPU_texture_swizzle_set(GPUTexture *texture, const char swizzle[4])
 {
-  reinterpret_cast<Texture *>(tex)->swizzle_set(swizzle);
+  unwrap(texture)->swizzle_set(swizzle);
 }
 
-void GPU_texture_free(GPUTexture *tex_)
+void GPU_texture_free(GPUTexture *texture)
 {
-  Texture *tex = reinterpret_cast<Texture *>(tex_);
+  Texture *tex = unwrap(texture);
   tex->refcount--;
 
   if (tex->refcount < 0) {
@@ -695,14 +680,14 @@ void GPU_texture_free(GPUTexture *tex_)
   }
 }
 
-void GPU_texture_ref(GPUTexture *tex)
+void GPU_texture_ref(GPUTexture *texture)
 {
-  reinterpret_cast<Texture *>(tex)->refcount++;
+  unwrap(texture)->refcount++;
 }
 
-int GPU_texture_dimensions(const GPUTexture *tex_)
+int GPU_texture_dimensions(const GPUTexture *texture)
 {
-  eGPUTextureType type = reinterpret_cast<const Texture *>(tex_)->type_get();
+  eGPUTextureType type = unwrap(texture)->type_get();
   if (type & GPU_TEXTURE_1D) {
     return 1;
   }
@@ -719,51 +704,50 @@ int GPU_texture_dimensions(const GPUTexture *tex_)
   return 1;
 }
 
-int GPU_texture_width(const GPUTexture *tex)
+int GPU_texture_width(const GPUTexture *texture)
 {
-  return reinterpret_cast<const Texture *>(tex)->width_get();
+  return unwrap(texture)->width_get();
 }
 
-int GPU_texture_height(const GPUTexture *tex)
+int GPU_texture_height(const GPUTexture *texture)
 {
-  return reinterpret_cast<const Texture *>(tex)->height_get();
+  return unwrap(texture)->height_get();
 }
 
-int GPU_texture_depth(const GPUTexture *tex)
+int GPU_texture_depth(const GPUTexture *texture)
 {
-  return reinterpret_cast<const Texture *>(tex)->depth_get();
+  return unwrap(texture)->depth_get();
 }
 
-int GPU_texture_layer_count(const GPUTexture *tex)
+int GPU_texture_layer_count(const GPUTexture *texture)
 {
-  return reinterpret_cast<const Texture *>(tex)->layer_count();
+  return unwrap(texture)->layer_count();
 }
 
-int GPU_texture_mip_count(const GPUTexture *tex)
+int GPU_texture_mip_count(const GPUTexture *texture)
 {
-  return reinterpret_cast<const Texture *>(tex)->mip_count();
+  return unwrap(texture)->mip_count();
 }
 
-int GPU_texture_original_width(const GPUTexture *tex)
+int GPU_texture_original_width(const GPUTexture *texture)
 {
-  return reinterpret_cast<const Texture *>(tex)->src_w;
+  return unwrap(texture)->src_w;
 }
 
-int GPU_texture_original_height(const GPUTexture *tex)
+int GPU_texture_original_height(const GPUTexture *texture)
 {
-  return reinterpret_cast<const Texture *>(tex)->src_h;
+  return unwrap(texture)->src_h;
 }
 
-void GPU_texture_original_size_set(GPUTexture *tex_, int w, int h)
+void GPU_texture_original_size_set(GPUTexture *texture, int w, int h)
 {
-  Texture *tex = reinterpret_cast<Texture *>(tex_);
-  tex->src_w = w;
-  tex->src_h = h;
+  unwrap(texture)->src_w = w;
+  unwrap(texture)->src_h = h;
 }
 
-eGPUTextureFormat GPU_texture_format(const GPUTexture *tex)
+eGPUTextureFormat GPU_texture_format(const GPUTexture *texture)
 {
-  return reinterpret_cast<const Texture *>(tex)->format_get();
+  return unwrap(texture)->format_get();
 }
 
 const char *GPU_texture_format_name(eGPUTextureFormat texture_format)
@@ -909,69 +893,68 @@ const char *GPU_texture_format_name(eGPUTextureFormat texture_format)
   return "";
 }
 
-bool GPU_texture_has_depth_format(const GPUTexture *tex)
+bool GPU_texture_has_depth_format(const GPUTexture *texture)
 {
-  return (reinterpret_cast<const Texture *>(tex)->format_flag_get() & GPU_FORMAT_DEPTH) != 0;
+  return (unwrap(texture)->format_flag_get() & GPU_FORMAT_DEPTH) != 0;
 }
 
-bool GPU_texture_has_stencil_format(const GPUTexture *tex)
+bool GPU_texture_has_stencil_format(const GPUTexture *texture)
 {
-  return (reinterpret_cast<const Texture *>(tex)->format_flag_get() & GPU_FORMAT_STENCIL) != 0;
+  return (unwrap(texture)->format_flag_get() & GPU_FORMAT_STENCIL) != 0;
 }
 
-bool GPU_texture_has_integer_format(const GPUTexture *tex)
+bool GPU_texture_has_integer_format(const GPUTexture *texture)
 {
-  return (reinterpret_cast<const Texture *>(tex)->format_flag_get() & GPU_FORMAT_INTEGER) != 0;
+  return (unwrap(texture)->format_flag_get() & GPU_FORMAT_INTEGER) != 0;
 }
 
-bool GPU_texture_has_float_format(const GPUTexture *tex)
+bool GPU_texture_has_float_format(const GPUTexture *texture)
 {
-  return (reinterpret_cast<const Texture *>(tex)->format_flag_get() & GPU_FORMAT_FLOAT) != 0;
+  return (unwrap(texture)->format_flag_get() & GPU_FORMAT_FLOAT) != 0;
 }
 
-bool GPU_texture_has_normalized_format(const GPUTexture *tex)
+bool GPU_texture_has_normalized_format(const GPUTexture *texture)
 {
-  return (reinterpret_cast<const Texture *>(tex)->format_flag_get() &
-          GPU_FORMAT_NORMALIZED_INTEGER) != 0;
+  return (unwrap(texture)->format_flag_get() & GPU_FORMAT_NORMALIZED_INTEGER) != 0;
 }
 
-bool GPU_texture_has_signed_format(const GPUTexture *tex)
+bool GPU_texture_has_signed_format(const GPUTexture *texture)
 {
-  return (reinterpret_cast<const Texture *>(tex)->format_flag_get() & GPU_FORMAT_SIGNED) != 0;
+  return (unwrap(texture)->format_flag_get() & GPU_FORMAT_SIGNED) != 0;
 }
 
-bool GPU_texture_is_cube(const GPUTexture *tex)
+bool GPU_texture_is_cube(const GPUTexture *texture)
 {
-  return (reinterpret_cast<const Texture *>(tex)->type_get() & GPU_TEXTURE_CUBE) != 0;
+  return (unwrap(texture)->type_get() & GPU_TEXTURE_CUBE) != 0;
 }
 
-bool GPU_texture_is_array(const GPUTexture *tex)
+bool GPU_texture_is_array(const GPUTexture *texture)
 {
-  return (reinterpret_cast<const Texture *>(tex)->type_get() & GPU_TEXTURE_ARRAY) != 0;
+  return (unwrap(texture)->type_get() & GPU_TEXTURE_ARRAY) != 0;
 }
 
 #ifndef GPU_NO_USE_PY_REFERENCES
-void **GPU_texture_py_reference_get(GPUTexture *tex)
+void **GPU_texture_py_reference_get(GPUTexture *texture)
 {
-  return unwrap(tex)->py_ref;
+  return unwrap(texture)->py_ref;
 }
 
-void GPU_texture_py_reference_set(GPUTexture *tex, void **py_ref)
+void GPU_texture_py_reference_set(GPUTexture *texture, void **py_ref)
 {
-  BLI_assert(py_ref == nullptr || unwrap(tex)->py_ref == nullptr);
-  unwrap(tex)->py_ref = py_ref;
+  BLI_assert(py_ref == nullptr || unwrap(texture)->py_ref == nullptr);
+  unwrap(texture)->py_ref = py_ref;
 }
 #endif
 
 /* TODO: remove. */
-int GPU_texture_opengl_bindcode(const GPUTexture *tex)
+int GPU_texture_opengl_bindcode(const GPUTexture *texture)
 {
-  return reinterpret_cast<const Texture *>(tex)->gl_bindcode_get();
+  return unwrap(texture)->gl_bindcode_get();
 }
 
-void GPU_texture_get_mipmap_size(GPUTexture *tex, int lvl, int *r_size)
+void GPU_texture_get_mipmap_size(GPUTexture *texture, int mip_level, int *r_size)
 {
-  return reinterpret_cast<Texture *>(tex)->mip_size_get(lvl, r_size);
+  return unwrap(texture)->mip_size_get(mip_level, r_size);
 }
 
 /** \} */
@@ -995,30 +978,30 @@ GPUPixelBuffer *GPU_pixel_buffer_create(size_t size)
   return wrap(pixbuf);
 }
 
-void GPU_pixel_buffer_free(GPUPixelBuffer *pix_buf)
+void GPU_pixel_buffer_free(GPUPixelBuffer *pixel_buf)
 {
-  PixelBuffer *handle = unwrap(pix_buf);
+  PixelBuffer *handle = unwrap(pixel_buf);
   delete handle;
 }
 
-void *GPU_pixel_buffer_map(GPUPixelBuffer *pix_buf)
+void *GPU_pixel_buffer_map(GPUPixelBuffer *pixel_buf)
 {
-  return reinterpret_cast<PixelBuffer *>(pix_buf)->map();
+  return unwrap(pixel_buf)->map();
 }
 
-void GPU_pixel_buffer_unmap(GPUPixelBuffer *pix_buf)
+void GPU_pixel_buffer_unmap(GPUPixelBuffer *pixel_buf)
 {
-  reinterpret_cast<PixelBuffer *>(pix_buf)->unmap();
+  unwrap(pixel_buf)->unmap();
 }
 
-size_t GPU_pixel_buffer_size(GPUPixelBuffer *pix_buf)
+size_t GPU_pixel_buffer_size(GPUPixelBuffer *pixel_buf)
 {
-  return reinterpret_cast<PixelBuffer *>(pix_buf)->get_size();
+  return unwrap(pixel_buf)->get_size();
 }
 
-int64_t GPU_pixel_buffer_get_native_handle(GPUPixelBuffer *pix_buf)
+int64_t GPU_pixel_buffer_get_native_handle(GPUPixelBuffer *pixel_buf)
 {
-  return reinterpret_cast<PixelBuffer *>(pix_buf)->get_native_handle();
+  return unwrap(pixel_buf)->get_native_handle();
 }
 
 /** \} */

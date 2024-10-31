@@ -12,8 +12,7 @@
 
 #include "GPU_vertex_buffer.hh"
 
-namespace blender {
-namespace gpu {
+namespace blender::gpu {
 
 class Context;
 
@@ -64,5 +63,4 @@ class GPUBackend {
   virtual void render_step() = 0;
 };
 
-}  // namespace gpu
-}  // namespace blender
+}  // namespace blender::gpu
