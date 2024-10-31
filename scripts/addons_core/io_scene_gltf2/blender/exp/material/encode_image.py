@@ -185,6 +185,16 @@ class ExportImage:
 
             for fill in self.fills.values():
                 return fill.image
+
+        if self.__on_happy_path_udim():
+            # Store that this image is fully exported (used to export or not not used images)
+            for fill in self.fills.values():
+                export_settings['exported_images'][fill.image.name] = 1  # Fully used
+                break
+
+            for fill in self.fills.values():
+                return fill.image
+
         return None
 
     def __on_happy_path(self) -> bool:
@@ -421,6 +431,8 @@ class ExportImage:
                     return data
 
         # We don't manage UDIM packed image, so this could not happen to be here
+        # Lets display an error
+        export_settings['log'].error("UDIM packed images are not supported for export. Please unpack them before exporting.")
 
 
 def _encode_temp_image(tmp_image: bpy.types.Image, file_format: str, export_settings) -> bytes:
