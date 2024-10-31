@@ -827,14 +827,16 @@ static void grease_pencil_edit_batch_ensure(Object &object,
               positions_eval, range, layer_space_to_object_space, positions_eval_slice);
         });
 
-    for (const int curve_i : points_by_curve.index_range()) {
-      const IndexRange range = points_by_curve[curve_i];
-      edit_points_vflag[range.first()] |= GREASE_PENCIL_EDIT_STROKE_START;
-      edit_points_vflag[range.last()] |= GREASE_PENCIL_EDIT_STROKE_END;
-    }
-
     /* Do not show selection for locked layers. */
     if (!layer.is_locked()) {
+
+      /* Flag the start and end points. */
+      for (const int curve_i : curves.curves_range()) {
+        const IndexRange points = points_by_curve[curve_i].shift(drawing_start_offset);
+        edit_points_vflag[points.first()] |= GREASE_PENCIL_EDIT_STROKE_START;
+        edit_points_vflag[points.last()] |= GREASE_PENCIL_EDIT_STROKE_END;
+      }
+
       const IndexMask selected_editable_points =
           ed::greasepencil::retrieve_editable_and_selected_points(
               object, info.drawing, info.layer_index, memory);
