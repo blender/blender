@@ -42,6 +42,7 @@ struct UvNearestHit {
 
 UvNearestHit uv_nearest_hit_init_dist_px(const View2D *v2d, float dist_px);
 UvNearestHit uv_nearest_hit_init_max(const View2D *v2d);
+UvNearestHit uv_nearest_hit_init_max_default();
 
 bool uv_find_nearest_vert(
     Scene *scene, Object *obedit, const float co[2], float penalty_dist, UvNearestHit *hit);

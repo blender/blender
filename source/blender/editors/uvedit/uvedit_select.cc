@@ -824,6 +824,15 @@ UvNearestHit uv_nearest_hit_init_max(const View2D *v2d)
   return hit;
 }
 
+UvNearestHit uv_nearest_hit_init_max_default()
+{
+  UvNearestHit hit = {nullptr};
+  hit.dist_sq = FLT_MAX;
+  hit.scale[0] = 1.0f;
+  hit.scale[1] = 1.0f;
+  return hit;
+}
+
 bool uv_find_nearest_edge(
     Scene *scene, Object *obedit, const float co[2], const float penalty, UvNearestHit *hit)
 {
@@ -2429,7 +2438,8 @@ static bool uv_mouse_select_multi(bContext *C,
   const ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
   const ToolSettings *ts = scene->toolsettings;
-  UvNearestHit hit = uv_nearest_hit_init_dist_px(&region->v2d, 75.0f);
+  UvNearestHit hit = region ? uv_nearest_hit_init_dist_px(&region->v2d, 75.0f) :
+                              uv_nearest_hit_init_max_default();
   int selectmode, sticky;
   bool found_item = false;
   /* 0 == don't flush, 1 == sel, -1 == deselect;  only use when selection sync is enabled. */
@@ -2741,7 +2751,8 @@ static int uv_mouse_select_loop_generic_multi(bContext *C,
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
   const ToolSettings *ts = scene->toolsettings;
-  UvNearestHit hit = uv_nearest_hit_init_max(&region->v2d);
+  UvNearestHit hit = region ? uv_nearest_hit_init_max(&region->v2d) :
+                              uv_nearest_hit_init_max_default();
   bool found_item = false;
   /* 0 == don't flush, 1 == sel, -1 == deselect;  only use when selection sync is enabled. */
   int flush = 0;
@@ -2948,7 +2959,8 @@ static int uv_select_linked_internal(bContext *C, wmOperator *op, const wmEvent 
   bool deselect = false;
   bool select_faces = (ts->uv_flag & UV_SYNC_SELECTION) && (ts->selectmode & SCE_SELECT_FACE);
 
-  UvNearestHit hit = uv_nearest_hit_init_max(&region->v2d);
+  UvNearestHit hit = region ? uv_nearest_hit_init_max(&region->v2d) :
+                              uv_nearest_hit_init_max_default();
 
   if (pick) {
     extend = RNA_boolean_get(op->ptr, "extend");
