@@ -450,7 +450,8 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
 #  if OPTIX_ABI_VERSION >= 55
       builtin_options.builtinISModuleType = OPTIX_PRIMITIVE_TYPE_ROUND_CATMULLROM;
       builtin_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE |
-                                   OPTIX_BUILD_FLAG_ALLOW_COMPACTION;
+                                   OPTIX_BUILD_FLAG_ALLOW_COMPACTION |
+                                   OPTIX_BUILD_FLAG_ALLOW_UPDATE;
       builtin_options.curveEndcapFlags = OPTIX_CURVE_ENDCAP_DEFAULT; /* Disable end-caps. */
 #  else
       builtin_options.builtinISModuleType = OPTIX_PRIMITIVE_TYPE_ROUND_CUBIC_BSPLINE;
@@ -1031,17 +1032,20 @@ bool OptiXDevice::build_optix_bvh(BVHOptiX *bvh,
 
   const CUDAContextScope scope(this);
 
-  const bool use_fast_trace_bvh = (bvh->params.bvh_type == BVH_TYPE_STATIC);
+  bool use_fast_trace_bvh = (bvh->params.bvh_type == BVH_TYPE_STATIC);
 
   /* Compute memory usage. */
   OptixAccelBufferSizes sizes = {};
   OptixAccelBuildOptions options = {};
   options.operation = operation;
-  if (use_fast_trace_bvh ||
-      /* The build flags have to match the ones used to query the built-in curve intersection
-       * program (see optixBuiltinISModuleGet above) */
-      build_input.type == OPTIX_BUILD_INPUT_TYPE_CURVES)
-  {
+  if (build_input.type == OPTIX_BUILD_INPUT_TYPE_CURVES) {
+    /* The build flags have to match the ones used to query the built-in curve intersection
+     * program (see optixBuiltinISModuleGet above) */
+    options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE | OPTIX_BUILD_FLAG_ALLOW_COMPACTION |
+                         OPTIX_BUILD_FLAG_ALLOW_UPDATE;
+    use_fast_trace_bvh = true;
+  }
+  else if (use_fast_trace_bvh) {
     VLOG_INFO << "Using fast to trace OptiX BVH";
     options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE | OPTIX_BUILD_FLAG_ALLOW_COMPACTION;
   }
