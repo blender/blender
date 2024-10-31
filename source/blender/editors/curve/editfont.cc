@@ -1003,7 +1003,7 @@ static int toggle_style_exec(bContext *C, wmOperator *op)
     clear = (cu->curinfo.flag & style) == 0;
     return set_style(C, style, clear);
   }
-  return true;
+  return OPERATOR_CANCELLED;
 }
 
 void FONT_OT_style_toggle(wmOperatorType *ot)
