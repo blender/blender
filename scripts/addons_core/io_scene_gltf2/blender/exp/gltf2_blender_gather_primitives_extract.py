@@ -700,6 +700,10 @@ class PrimitiveCreator:
                         indices = np.where((self.dots[uvmap_name + '0'] >= u) & (self.dots[uvmap_name + '0'] <= (u + 1)) & (
                             self.dots[uvmap_name + '1'] <= (1 - v)) & (self.dots[uvmap_name + '1'] >= 1 - (v + 1)))[0]
 
+                    # If no vertex in this tile, continue
+                    if indices.shape[0] == 0:
+                        continue
+
                     # Reset UVMap to 0-1 : reset to Blener UVMAP => slide to 0-1 => go to glTF UVMap
                     self.dots[uvmap_name + '1'][indices] -= 1
                     self.dots[uvmap_name + '1'][indices] *= -1
