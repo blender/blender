@@ -294,7 +294,7 @@ def __gather_animation_fcurve_channel(obj_uuid: str,
         )
 
         blender_object = export_settings['vtree'].nodes[obj_uuid].blender_object
-        export_user_extensions('animation_gather_fcurve_channel_target', export_settings, blender_object, bone)
+        export_user_extensions('animation_gather_fcurve_channel', export_settings, blender_object, bone, channel_group)
 
         return animation_channel
     return None
