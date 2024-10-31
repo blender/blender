@@ -235,10 +235,6 @@ class Tree {
    */
   BitVector<> visibility_dirty_;
 
-  /** \todo Remove and store elsewhere. */
-  float planes_[6][4];
-  int num_planes_ = 0;
-
   pixels::PBVHData *pixels_ = nullptr;
 
   std::unique_ptr<DrawCache> draw_data;
@@ -394,10 +390,6 @@ bool find_nearest_to_ray_node(Tree &pbvh,
                               const float ray_normal[3],
                               float *depth,
                               float *dist_sq);
-
-/* Drawing */
-void set_frustum_planes(Tree &pbvh, PBVHFrustumPlanes *planes);
-void get_frustum_planes(const Tree &pbvh, PBVHFrustumPlanes *planes);
 
 /**
  * Get the Tree root's bounding box.

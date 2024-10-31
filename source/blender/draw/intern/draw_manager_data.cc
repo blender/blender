@@ -1330,7 +1330,6 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
 
   const DRWContextState *drwctx = DRW_context_state_get();
   RegionView3D *rv3d = drwctx->rv3d;
-  const bool navigating = rv3d && (rv3d->rflag & RV3D_NAVIGATING);
 
   Paint *paint = nullptr;
   if (drwctx->evil_C != nullptr) {
@@ -1338,27 +1337,8 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
   }
 
   /* Frustum planes to show only visible pbvh::Tree nodes. */
-  float update_planes[6][4];
   float draw_planes[6][4];
-  PBVHFrustumPlanes update_frustum;
   PBVHFrustumPlanes draw_frustum;
-
-  if (paint && (paint->flags & PAINT_SCULPT_DELAY_UPDATES)) {
-    update_frustum.planes = update_planes;
-    update_frustum.num_planes = 6;
-    bke::pbvh::get_frustum_planes(*pbvh, &update_frustum);
-    if (!navigating) {
-      drw_sculpt_get_frustum_planes(scd->ob, update_planes);
-      update_frustum.planes = update_planes;
-      update_frustum.num_planes = 6;
-      bke::pbvh::set_frustum_planes(*pbvh, &update_frustum);
-    }
-  }
-  else {
-    drw_sculpt_get_frustum_planes(scd->ob, update_planes);
-    update_frustum.planes = update_planes;
-    update_frustum.num_planes = 6;
-  }
 
   drw_sculpt_get_frustum_planes(scd->ob, draw_planes);
   draw_frustum.planes = draw_planes;

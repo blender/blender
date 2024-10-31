@@ -2405,22 +2405,6 @@ void BKE_pbvh_vert_coords_apply(blender::bke::pbvh::Tree &pbvh,
 
 namespace blender::bke::pbvh {
 
-void set_frustum_planes(Tree &pbvh, PBVHFrustumPlanes *planes)
-{
-  pbvh.num_planes_ = planes->num_planes;
-  for (int i = 0; i < pbvh.num_planes_; i++) {
-    copy_v4_v4(pbvh.planes_[i], planes->planes[i]);
-  }
-}
-
-void get_frustum_planes(const Tree &pbvh, PBVHFrustumPlanes *planes)
-{
-  planes->num_planes = pbvh.num_planes_;
-  for (int i = 0; i < planes->num_planes; i++) {
-    copy_v4_v4(planes->planes[i], pbvh.planes_[i]);
-  }
-}
-
 static Span<float3> vert_positions_eval(const Object &object_orig, const Object &object_eval)
 {
   const SculptSession &ss = *object_orig.sculpt;

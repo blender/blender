@@ -59,8 +59,6 @@ static Vector<SculptBatch> sculpt_batches_get_ex(const Object *ob,
   /* Frustum planes to show only visible pbvh::Tree nodes. */
   float4 draw_planes[6];
   PBVHFrustumPlanes draw_frustum = {reinterpret_cast<float(*)[4]>(draw_planes), 6};
-  float4 update_planes[6];
-  PBVHFrustumPlanes update_frustum = {reinterpret_cast<float(*)[4]>(update_planes), 6};
 
   /* TODO: take into account partial redraw for clipping planes. */
   DRW_view_frustum_planes_get(DRW_view_default_get(), draw_frustum.planes);
@@ -70,16 +68,6 @@ static Vector<SculptBatch> sculpt_batches_get_ex(const Object *ob,
   float4x4 tmat = math::transpose(ob->object_to_world());
   for (int i : IndexRange(6)) {
     draw_planes[i] = tmat * draw_planes[i];
-    update_planes[i] = draw_planes[i];
-  }
-
-  if (paint && (paint->flags & PAINT_SCULPT_DELAY_UPDATES)) {
-    if (navigating) {
-      bke::pbvh::get_frustum_planes(*pbvh, &update_frustum);
-    }
-    else {
-      bke::pbvh::set_frustum_planes(*pbvh, &update_frustum);
-    }
   }
 
   /* Fast mode to show low poly multires while navigating. */
