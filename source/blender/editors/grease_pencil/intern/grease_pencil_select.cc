@@ -265,15 +265,17 @@ bool selection_update(const ViewContext *vc,
 
         /* Modes that un-set all elements not in the mask. */
         if (ELEM(sel_op, SEL_OP_SET, SEL_OP_AND)) {
-          bke::GSpanAttributeWriter selection =
-              curves.attributes_for_write().lookup_for_write_span(attribute_name);
-          ed::curves::fill_selection_false(selection.span);
+          if (bke::GSpanAttributeWriter selection =
+                  curves.attributes_for_write().lookup_for_write_span(attribute_name))
+          {
+            ed::curves::fill_selection_false(selection.span);
+            selection.finish();
+          }
         }
 
         if (use_segment_selection) {
           /* Range of points in tree data matching this curve, for re-using screen space
-           * positions.
-           */
+           * positions. */
           const IndexRange tree_data_range = tree_data_by_drawing[i_drawing];
           changed |= ed::greasepencil::apply_mask_as_segment_selection(curves,
                                                                        changed_element_mask,
