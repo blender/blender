@@ -1334,6 +1334,10 @@ static bool duplicate_particle_systems_poll(bContext *C)
   if (BLI_listbase_is_empty(&ob->particlesystem)) {
     return false;
   }
+  if (ob->mode != OB_MODE_OBJECT) {
+    CTX_wm_operator_poll_msg_set(C, "Object must be in object mode");
+    return false;
+  }
   return true;
 }
 
