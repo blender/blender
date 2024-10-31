@@ -82,25 +82,31 @@ def gather_data_sampled_keyframes(
 
             if export_settings['KHR_animation_pointer']['materials'][blender_id]['paths'][channel][
                     'path'] == "/materials/XXX/extensions/KHR_materials_emissive_strength/emissiveStrength":
-                # We need to retrieve the emissive factor
-                factor = get_cache_data(
-                    'value',
-                    blender_id,
-                    export_settings['KHR_animation_pointer']['materials'][blender_id]['paths'][channel]['factor_channel'],
-                    action_name,
-                    frame,
-                    step,
-                    export_settings
-                )
 
-                factor = [f * value for f in factor]
-                if any([i > 1.0 for i in factor or []]):
-                    # Clamp to range [0,1]
-                    # Official glTF clamp to range [0,1]
-                    # If we are outside, we need to use extension KHR_materials_emissive_strength
-                    value = max(factor)
+                if export_settings['KHR_animation_pointer']['materials'][blender_id]['paths'][channel]['factor_channel'] is not None:
+                    factor = get_cache_data(
+                        'value',
+                        blender_id,
+                        export_settings['KHR_animation_pointer']['materials'][blender_id]['paths'][channel]['factor_channel'],
+                        action_name,
+                        frame,
+                        step,
+                        export_settings
+                    )
+
+                    factor = [f * value for f in factor]
+                    if any([i > 1.0 for i in factor or []]):
+                        # Clamp to range [0,1]
+                        # Official glTF clamp to range [0,1]
+                        # If we are outside, we need to use extension KHR_materials_emissive_strength
+                        value = max(factor)
+                    else:
+                        value = 1.0  # no need to have an emissiveStrength extension for this frame
                 else:
-                    value = 1.0  # no need to have an emissiveStrength extension for this frame
+                    # No factor exists, so set it as 1.0 / 1.0 / 1.0
+                    # This is because the emission is linked to a texture, without a factor
+                    # No need to change the value
+                    factor = [1.0, 1.0, 1.0]
 
             # For specularFactor and specularColorFactor, we already multiplied it by 2.0, and clamp it to 1.0 (and adapt specularColor accordingly)
             # This is done in cache retrieval
