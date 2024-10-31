@@ -412,7 +412,7 @@ def __get_image_data_grayscale_anisotropy(sockets, results, export_settings) -> 
 
 
 def __is_blender_image_a_jpeg(image: bpy.types.Image) -> bool:
-    if image.source != 'FILE':
+    if image.source not in ['FILE', 'TILED']:
         return False
     if image.filepath_raw == '' and image.packed_file:
         return image.packed_file.data[:3] == b'\xff\xd8\xff'
@@ -422,7 +422,7 @@ def __is_blender_image_a_jpeg(image: bpy.types.Image) -> bool:
 
 
 def __is_blender_image_a_webp(image: bpy.types.Image) -> bool:
-    if image.source != 'FILE':
+    if image.source not in ['FILE', 'TILED']:
         return False
     if image.filepath_raw == '' and image.packed_file:
         return image.packed_file.data[8:12] == b'WEBP'
