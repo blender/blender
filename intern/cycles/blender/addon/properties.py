@@ -1743,7 +1743,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                 if sys.platform[:3] == "win":
                     driver_version = "21.Q4"
                     col.label(
-                        text=rpt_("Requires AMD GPU with Vega or RDNA architecture"),
+                        text=rpt_("Requires AMD GPU with RDNA architecture"),
                         icon='BLANK1',
                         translate=False)
                     col.label(text=rpt_("and AMD Radeon Pro %s driver or newer") % driver_version,
@@ -1751,7 +1751,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                 elif sys.platform.startswith("linux"):
                     driver_version = "22.10"
                     col.label(
-                        text=rpt_("Requires AMD GPU with Vega or RDNA architecture"),
+                        text=rpt_("Requires AMD GPU with RDNA architecture"),
                         icon='BLANK1',
                         translate=False)
                     col.label(text=rpt_("and AMD driver version %s or newer") % driver_version, icon='BLANK1',
