@@ -11,7 +11,7 @@
   gl_Position = vec4(0.0); \
   return;
 
-uint outline_colorid_get(void)
+uint outline_colorid_get()
 {
 #ifdef OBINFO_NEW
   eObjectInfoFlag ob_flag = eObjectInfoFlag(floatBitsToUint(drw_infos[resource_id].infos.w));

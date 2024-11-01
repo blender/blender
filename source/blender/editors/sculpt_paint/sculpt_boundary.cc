@@ -21,7 +21,7 @@
 #include "BKE_ccg.hh"
 #include "BKE_colortools.hh"
 #include "BKE_paint.hh"
-#include "BKE_pbvh_api.hh"
+#include "BKE_paint_bvh.hh"
 
 #include "brushes/types.hh"
 #include "mesh_brush_common.hh"
@@ -33,6 +33,8 @@
 
 #include "GPU_immediate.hh"
 #include "GPU_state.hh"
+
+#include "bmesh.hh"
 
 #include <cstdlib>
 
@@ -3127,11 +3129,11 @@ static void init_boundary_grids(Object &object,
 
   std::optional<SubdivCCGCoord> initial_vert;
   if (ss.cache->mirror_symmetry_pass == 0) {
-    initial_vert = std::get<SubdivCCGCoord>(initial_vert_ref);
+    initial_vert = SubdivCCGCoord::from_index(key, std::get<int>(initial_vert_ref));
   }
   else {
-    const SubdivCCGCoord active_vert = std::get<SubdivCCGCoord>(initial_vert_ref);
-    float3 location = symmetry_flip(positions[active_vert.to_index(key)], symm_area);
+    const int active_vert = std::get<int>(initial_vert_ref);
+    float3 location = symmetry_flip(positions[active_vert], symm_area);
     initial_vert = nearest_vert_calc_grids(
         pbvh, subdiv_ccg, location, ss.cache->radius_squared, false);
   }
@@ -3581,9 +3583,13 @@ std::unique_ptr<SculptBoundaryPreview> preview_data_init(const Depsgraph &depsgr
     case bke::pbvh::Type::Mesh:
       boundary = data_init_mesh(depsgraph, object, brush, std::get<int>(initial_vert), radius);
       break;
-    case bke::pbvh::Type::Grids:
-      boundary = data_init_grids(object, brush, std::get<SubdivCCGCoord>(initial_vert), radius);
+    case bke::pbvh::Type::Grids: {
+      const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+      const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+      boundary = data_init_grids(
+          object, brush, SubdivCCGCoord::from_index(key, std::get<int>(initial_vert)), radius);
       break;
+    }
     case bke::pbvh::Type::BMesh:
       boundary = data_init_bmesh(object, brush, std::get<BMVert *>(initial_vert), radius);
       break;

@@ -15,7 +15,7 @@
 #include "BLI_struct_equality_utils.hh"
 #include "BLI_vector.hh"
 
-#include "BKE_pbvh_api.hh"
+#include "BKE_paint_bvh.hh"
 
 #include "DNA_customdata_types.h"
 

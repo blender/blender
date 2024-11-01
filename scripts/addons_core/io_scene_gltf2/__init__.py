@@ -5,8 +5,8 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (4, 4, 0),
-    'blender': (4, 2, 0),
+    "version": (4, 4, 12),
+    'blender': (4, 3, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
     'warning': '',
@@ -981,6 +981,12 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
         default=False
     )
 
+    export_loglevel: IntProperty(
+        name='Log Level',
+        description="Log Level",
+        default=-1,
+    )
+
     # Custom scene property for saving settings
     scene_key = "glTF2ExportSettings"
 
@@ -1066,7 +1072,11 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
         # All custom export settings are stored in this container.
         export_settings = {}
 
-        export_settings['loglevel'] = set_debug_log()
+        # Get log level from parameters
+        # If not set, get it from Blender app debug value
+        export_settings['gltf_loglevel'] = self.export_loglevel
+        if export_settings['gltf_loglevel'] < 0:
+            export_settings['loglevel'] = set_debug_log()
 
         export_settings['exported_images'] = {}
         export_settings['exported_texture_nodes'] = []

@@ -8,7 +8,12 @@
 
 import unittest
 
-from view_layer_common import *
+from view_layer_common import (
+    ViewLayerTesting,
+    get_layers,
+    get_scene_collections,
+    setup_extra_arguments,
+)
 
 
 # ############################################################

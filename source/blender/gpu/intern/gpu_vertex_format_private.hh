@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include "GPU_vertex_buffer.hh"
+
 struct GPUVertFormat;
 
 void VertexFormat_pack(GPUVertFormat *format);

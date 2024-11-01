@@ -21,7 +21,7 @@ class TestRNAIDTypes(unittest.TestCase):
             "textures": {'type': 'NONE'},
         }
         for container_id in dir(bpy.data):
-            if container_id.startswith("rna") or container_id.startswith("__") or container_id.startswith("version"):
+            if container_id.startswith(("rna", "__", "version")):
                 continue
             container = getattr(bpy.data, container_id)
             if callable(container):

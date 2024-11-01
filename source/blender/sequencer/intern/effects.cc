@@ -1012,13 +1012,11 @@ static void do_blend_mode_effect(const SeqRenderData *context,
 
 static void init_colormix_effect(Sequence *seq)
 {
-  ColorMixVars *data;
-
   if (seq->effectdata) {
     MEM_freeN(seq->effectdata);
   }
   seq->effectdata = MEM_callocN(sizeof(ColorMixVars), "colormixvars");
-  data = (ColorMixVars *)seq->effectdata;
+  ColorMixVars *data = (ColorMixVars *)seq->effectdata;
   data->blend_effect = SEQ_TYPE_OVERLAY;
   data->factor = 1.0f;
 }
@@ -1434,15 +1432,13 @@ static ImBuf *do_wipe_effect(const SeqRenderData *context,
 
 static void init_transform_effect(Sequence *seq)
 {
-  TransformVars *transform;
-
   if (seq->effectdata) {
     MEM_freeN(seq->effectdata);
   }
 
   seq->effectdata = MEM_callocN(sizeof(TransformVars), "transformvars");
 
-  transform = (TransformVars *)seq->effectdata;
+  TransformVars *transform = (TransformVars *)seq->effectdata;
 
   transform->ScalexIni = 1.0f;
   transform->ScaleyIni = 1.0f;
@@ -1711,15 +1707,13 @@ static void blur_isolate_highlights(const float4 *in,
 
 static void init_glow_effect(Sequence *seq)
 {
-  GlowVars *glow;
-
   if (seq->effectdata) {
     MEM_freeN(seq->effectdata);
   }
 
   seq->effectdata = MEM_callocN(sizeof(GlowVars), "glowvars");
 
-  glow = (GlowVars *)seq->effectdata;
+  GlowVars *glow = (GlowVars *)seq->effectdata;
   glow->fMini = 0.25;
   glow->fClamp = 1.0;
   glow->fBoost = 0.5;
@@ -1853,15 +1847,13 @@ static ImBuf *do_glow_effect(const SeqRenderData *context,
 
 static void init_solid_color(Sequence *seq)
 {
-  SolidColorVars *cv;
-
   if (seq->effectdata) {
     MEM_freeN(seq->effectdata);
   }
 
   seq->effectdata = MEM_callocN(sizeof(SolidColorVars), "solidcolor");
 
-  cv = (SolidColorVars *)seq->effectdata;
+  SolidColorVars *cv = (SolidColorVars *)seq->effectdata;
   cv->col[0] = cv->col[1] = cv->col[2] = 0.5;
 }
 
@@ -2065,15 +2057,13 @@ static ImBuf *do_adjustment(const SeqRenderData *context,
 
 static void init_speed_effect(Sequence *seq)
 {
-  SpeedControlVars *v;
-
   if (seq->effectdata) {
     MEM_freeN(seq->effectdata);
   }
 
   seq->effectdata = MEM_callocN(sizeof(SpeedControlVars), "speedcontrolvars");
 
-  v = (SpeedControlVars *)seq->effectdata;
+  SpeedControlVars *v = (SpeedControlVars *)seq->effectdata;
   v->speed_control_type = SEQ_SPEED_STRETCH;
   v->speed_fader = 1.0f;
   v->speed_fader_length = 0.0f;
@@ -2298,7 +2288,7 @@ static void init_gaussian_blur_effect(Sequence *seq)
     MEM_freeN(seq->effectdata);
   }
 
-  seq->effectdata = MEM_callocN(sizeof(WipeVars), "wipevars");
+  seq->effectdata = MEM_callocN(sizeof(GaussianBlurVars), "gaussianblurvars");
 }
 
 static int num_inputs_gaussian_blur()
@@ -2371,10 +2361,18 @@ static void gaussian_blur_x(const Span<float> gaussian,
         accum_weight += weight;
       }
       accum *= (1.0f / accum_weight);
-      dst[0] = accum[0];
-      dst[1] = accum[1];
-      dst[2] = accum[2];
-      dst[3] = accum[3];
+      if constexpr (math::is_math_float_type<T>) {
+        dst[0] = accum[0];
+        dst[1] = accum[1];
+        dst[2] = accum[2];
+        dst[3] = accum[3];
+      }
+      else {
+        dst[0] = accum[0] + 0.5f;
+        dst[1] = accum[1] + 0.5f;
+        dst[2] = accum[2] + 0.5f;
+        dst[3] = accum[3] + 0.5f;
+      }
       dst += 4;
     }
   }
@@ -2404,10 +2402,18 @@ static void gaussian_blur_y(const Span<float> gaussian,
         accum_weight += weight;
       }
       accum *= (1.0f / accum_weight);
-      dst[0] = accum[0];
-      dst[1] = accum[1];
-      dst[2] = accum[2];
-      dst[3] = accum[3];
+      if constexpr (math::is_math_float_type<T>) {
+        dst[0] = accum[0];
+        dst[1] = accum[1];
+        dst[2] = accum[2];
+        dst[3] = accum[3];
+      }
+      else {
+        dst[0] = accum[0] + 0.5f;
+        dst[1] = accum[1] + 0.5f;
+        dst[2] = accum[2] + 0.5f;
+        dst[3] = accum[3] + 0.5f;
+      }
       dst += 4;
     }
   }
@@ -2502,13 +2508,12 @@ static ImBuf *do_gaussian_blur_effect(const SeqRenderData *context,
 
 static void init_text_effect(Sequence *seq)
 {
-  TextVars *data;
-
   if (seq->effectdata) {
     MEM_freeN(seq->effectdata);
   }
 
-  data = static_cast<TextVars *>(seq->effectdata = MEM_callocN(sizeof(TextVars), "textvars"));
+  TextVars *data = static_cast<TextVars *>(
+      seq->effectdata = MEM_callocN(sizeof(TextVars), "textvars"));
   data->text_font = nullptr;
   data->text_blf_id = -1;
   data->text_size = 60.0f;

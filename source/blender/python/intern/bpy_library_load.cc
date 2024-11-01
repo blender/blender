@@ -185,7 +185,7 @@ PyDoc_STRVAR(
 static PyObject *bpy_lib_load(BPy_PropertyRNA *self, PyObject *args, PyObject *kw)
 {
   Main *bmain_base = CTX_data_main(BPY_context_get());
-  Main *bmain = static_cast<Main *>(self->ptr.data); /* Typically #G_MAIN */
+  Main *bmain = static_cast<Main *>(self->ptr->data); /* Typically #G_MAIN */
   BPy_Library *ret;
   PyC_UnicodeAsBytesAndSize_Data filepath_data = {nullptr};
   bool is_rel = false, is_link = false, use_assets_only = false;

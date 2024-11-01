@@ -82,7 +82,7 @@ void BakeManager::device_update(Device * /*device*/,
     int object_index = 0;
     foreach (Object *object, scene->objects) {
       const Geometry *geom = object->get_geometry();
-      if (object->name == object_name && geom->geometry_type == Geometry::MESH) {
+      if (object->name == object_name && geom->is_mesh()) {
         kbake->object_index = object_index;
         kbake->tri_offset = geom->prim_offset;
         break;

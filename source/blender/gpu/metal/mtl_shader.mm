@@ -119,16 +119,12 @@ MTLShader::~MTLShader()
       push_constant_data_ = nullptr;
     }
 
-    /* Free Metal resources. */
-    if (shader_library_vert_ != nil) {
-      [shader_library_vert_ release];
-      shader_library_vert_ = nil;
-    }
-    if (shader_library_frag_ != nil) {
-      [shader_library_frag_ release];
-      shader_library_frag_ = nil;
-    }
-
+    /* Free Metal resources.
+     * This is done in the order of:
+     * 1. Pipelinestate objects
+     * 2. MTLFunctions
+     * 3. MTLLibraries
+     * So that each object releases it's references to the one following it. */
     if (pso_descriptor_ != nil) {
       [pso_descriptor_ release];
       pso_descriptor_ = nil;
@@ -137,14 +133,17 @@ MTLShader::~MTLShader()
     /* Free Pipeline Cache. */
     pso_cache_lock_.lock();
     for (const MTLRenderPipelineStateInstance *pso_inst : pso_cache_.values()) {
+      /* Free pipeline state object. */
+      if (pso_inst->pso) {
+        [pso_inst->pso release];
+      }
+      /* Free vertex function. */
       if (pso_inst->vert) {
         [pso_inst->vert release];
       }
+      /* Free fragment function. */
       if (pso_inst->frag) {
         [pso_inst->frag release];
-      }
-      if (pso_inst->pso) {
-        [pso_inst->pso release];
       }
       delete pso_inst;
     }
@@ -152,15 +151,31 @@ MTLShader::~MTLShader()
 
     /* Free Compute pipeline cache. */
     for (const MTLComputePipelineStateInstance *pso_inst : compute_pso_cache_.values()) {
-      if (pso_inst->compute) {
-        [pso_inst->compute release];
-      }
+      /* Free pipeline state object. */
       if (pso_inst->pso) {
         [pso_inst->pso release];
+      }
+      /* Free compute function. */
+      if (pso_inst->compute) {
+        [pso_inst->compute release];
       }
     }
     compute_pso_cache_.clear();
     pso_cache_lock_.unlock();
+
+    /* Free shader libraries. */
+    if (shader_library_vert_ != nil) {
+      [shader_library_vert_ release];
+      shader_library_vert_ = nil;
+    }
+    if (shader_library_frag_ != nil) {
+      [shader_library_frag_ release];
+      shader_library_frag_ = nil;
+    }
+    if (shader_library_compute_ != nil) {
+      [shader_library_compute_ release];
+      shader_library_compute_ = nil;
+    }
 
     /* NOTE(Metal): #ShaderInterface deletion is handled in the super destructor `~Shader()`. */
   }
@@ -183,7 +198,7 @@ void MTLShader::init(const shader::ShaderCreateInfo & /*info*/, bool is_batch_co
 /** \name Shader stage creation.
  * \{ */
 
-void MTLShader::vertex_shader_from_glsl(MutableSpan<const char *> sources)
+void MTLShader::vertex_shader_from_glsl(MutableSpan<StringRefNull> sources)
 {
   /* Flag source as not being compiled from native MSL. */
   BLI_assert(shd_builder_ != nullptr);
@@ -200,12 +215,12 @@ void MTLShader::vertex_shader_from_glsl(MutableSpan<const char *> sources)
   shd_builder_->glsl_vertex_source_ = ss.str();
 }
 
-void MTLShader::geometry_shader_from_glsl(MutableSpan<const char *> /*sources*/)
+void MTLShader::geometry_shader_from_glsl(MutableSpan<StringRefNull> /*sources*/)
 {
   MTL_LOG_ERROR("MTLShader::geometry_shader_from_glsl - Geometry shaders unsupported!");
 }
 
-void MTLShader::fragment_shader_from_glsl(MutableSpan<const char *> sources)
+void MTLShader::fragment_shader_from_glsl(MutableSpan<StringRefNull> sources)
 {
   /* Flag source as not being compiled from native MSL. */
   BLI_assert(shd_builder_ != nullptr);
@@ -223,7 +238,7 @@ void MTLShader::fragment_shader_from_glsl(MutableSpan<const char *> sources)
   shd_builder_->glsl_fragment_source_ = ss.str();
 }
 
-void MTLShader::compute_shader_from_glsl(MutableSpan<const char *> sources)
+void MTLShader::compute_shader_from_glsl(MutableSpan<StringRefNull> sources)
 {
   /* Flag source as not being compiled from native MSL. */
   BLI_assert(shd_builder_ != nullptr);
@@ -244,7 +259,7 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
 {
   /* Check if Shader has already been finalized. */
   if (this->is_valid()) {
-    MTL_LOG_ERROR("Shader (%p) '%s' has already been finalized!", this, this->name_get());
+    MTL_LOG_ERROR("Shader (%p) '%s' has already been finalized!", this, this->name_get().c_str());
   }
 
   /* Compute shaders. */
@@ -265,7 +280,7 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
       BLI_assert_msg(false, "Shader translation from GLSL to MSL has failed. \n");
 
       /* Create empty interface to allow shader to be silently used. */
-      MTLShaderInterface *mtl_interface = new MTLShaderInterface(this->name_get());
+      MTLShaderInterface *mtl_interface = new MTLShaderInterface(this->name_get().c_str());
       this->set_interface(mtl_interface);
 
       /* Release temporary compilation resources. */
@@ -373,15 +388,11 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
             NSNotFound)
         {
           const char *errors_c_str = [[error localizedDescription] UTF8String];
-          const char *sources_c_str = (is_compute) ? shd_builder_->glsl_compute_source_.c_str() :
-                                                     shd_builder_->glsl_fragment_source_.c_str();
+          const StringRefNull source = (is_compute) ? shd_builder_->glsl_compute_source_ :
+                                                      shd_builder_->glsl_fragment_source_;
 
           MTLLogParser parser;
-          print_log(Span<const char *>(&sources_c_str, 1),
-                    errors_c_str,
-                    to_string(src_stage),
-                    true,
-                    &parser);
+          print_log({source}, errors_c_str, to_string(src_stage), true, &parser);
 
           /* Release temporary compilation resources. */
           delete shd_builder_;
@@ -394,21 +405,18 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
 
       switch (src_stage) {
         case ShaderStage::VERTEX: {
-          /* Retain generated library and assign debug name. */
+          /* Store generated library and assign debug name. */
           shader_library_vert_ = library;
-          [shader_library_vert_ retain];
           shader_library_vert_.label = [NSString stringWithUTF8String:this->name];
         } break;
         case ShaderStage::FRAGMENT: {
-          /* Retain generated library for fragment shader and assign debug name. */
+          /* Store generated library for fragment shader and assign debug name. */
           shader_library_frag_ = library;
-          [shader_library_frag_ retain];
           shader_library_frag_.label = [NSString stringWithUTF8String:this->name];
         } break;
         case ShaderStage::COMPUTE: {
-          /* Retain generated library for fragment shader and assign debug name. */
+          /* Store generated library for fragment shader and assign debug name. */
           shader_library_compute_ = library;
-          [shader_library_compute_ retain];
           shader_library_compute_.label = [NSString stringWithUTF8String:this->name];
         } break;
         case ShaderStage::ANY: {
@@ -433,7 +441,6 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
     if (!is_compute) {
       /* Prepare Render pipeline descriptor. */
       pso_descriptor_ = [[MTLRenderPipelineDescriptor alloc] init];
-      [pso_descriptor_ retain];
       pso_descriptor_.label = [NSString stringWithUTF8String:this->name];
     }
 
@@ -506,7 +513,7 @@ void MTLShader::bind()
     MTL_LOG_WARNING(
         "MTLShader::bind - Shader '%s' has no valid implementation in Metal, draw calls will be "
         "skipped.",
-        this->name_get());
+        this->name_get().c_str());
   }
   ctx->pipeline_state.active_shader = this;
 }
@@ -525,7 +532,8 @@ void MTLShader::uniform_float(int location, int comp_len, int array_size, const 
   }
   MTLShaderInterface *mtl_interface = get_interface();
   if (location < 0 || location >= mtl_interface->get_total_uniforms()) {
-    MTL_LOG_WARNING("Uniform location %d is not valid in Shader %s", location, this->name_get());
+    MTL_LOG_WARNING(
+        "Uniform location %d is not valid in Shader %s", location, this->name_get().c_str());
     return;
   }
 
@@ -640,7 +648,8 @@ void MTLShader::uniform_int(int location, int comp_len, int array_size, const in
   }
 
   if (location < 0 || location >= mtl_interface->get_total_uniforms()) {
-    MTL_LOG_WARNING("Uniform is not valid at location %d - Shader %s", location, this->name_get());
+    MTL_LOG_WARNING(
+        "Uniform is not valid at location %d - Shader %s", location, this->name_get().c_str());
     return;
   }
 
@@ -1010,13 +1019,13 @@ MTLRenderPipelineStateInstance *MTLShader::bake_pipeline_state(
          * https://developer.apple.com/documentation/metal/mtlvertexattributedescriptor/1516081-format?language=objc
          */
         if (attribute_desc.format == MTLVertexFormatInvalid) {
-          /* If attributes are non-contiguous, we can skip over gaps. */
+#if 0 /* Disable warning as it is too verbose and is supported. */
           MTL_LOG_WARNING(
               "MTLShader: baking pipeline state for '%s'- skipping input attribute at "
               "index '%d' but none was specified in the current vertex state",
               mtl_interface->get_name(),
               i);
-
+#endif
           /* Write out null conversion constant if attribute unused. */
           int MTL_attribute_conversion_mode = 0;
           [values setConstantValue:&MTL_attribute_conversion_mode
@@ -1216,11 +1225,10 @@ MTLRenderPipelineStateInstance *MTLShader::bake_pipeline_state(
           NSNotFound);
 
       const char *errors_c_str = [[error localizedDescription] UTF8String];
-      const char *sources_c_str = shd_builder_->glsl_fragment_source_.c_str();
+      const StringRefNull source = shd_builder_->glsl_fragment_source_.c_str();
 
       MTLLogParser parser;
-      print_log(
-          Span<const char *>(&sources_c_str, 1), errors_c_str, "VertShader", has_error, &parser);
+      print_log({source}, errors_c_str, "VertShader", has_error, &parser);
 
       /* Only exit out if genuine error and not warning */
       if (has_error) {
@@ -1239,11 +1247,10 @@ MTLRenderPipelineStateInstance *MTLShader::bake_pipeline_state(
             NSNotFound);
 
         const char *errors_c_str = [[error localizedDescription] UTF8String];
-        const char *sources_c_str = shd_builder_->glsl_fragment_source_.c_str();
+        const StringRefNull source = shd_builder_->glsl_fragment_source_;
 
         MTLLogParser parser;
-        print_log(
-            Span<const char *>(&sources_c_str, 1), errors_c_str, "FragShader", has_error, &parser);
+        print_log({source}, errors_c_str, "FragShader", has_error, &parser);
 
         /* Only exit out if genuine error and not warning */
         if (has_error) {
@@ -1429,10 +1436,6 @@ MTLRenderPipelineStateInstance *MTLShader::bake_pipeline_state(
       }
     }
 
-    [pso_inst->vert retain];
-    [pso_inst->frag retain];
-    [pso_inst->pso retain];
-
     /* Insert into pso cache. */
     pso_cache_lock_.lock();
     pso_inst->shader_pso_index = pso_cache_.size();
@@ -1601,13 +1604,14 @@ MTLComputePipelineStateInstance *MTLShader::bake_compute_pipeline_state(
 #endif
     }
 
+    [desc release];
+
     /* Gather reflection data and create MTLComputePipelineStateInstance to store results. */
     MTLComputePipelineStateInstance *compute_pso_instance = new MTLComputePipelineStateInstance();
-    compute_pso_instance->compute = [compute_function retain];
-    compute_pso_instance->pso = [pso retain];
+    compute_pso_instance->compute = compute_function;
+    compute_pso_instance->pso = pso;
     compute_pso_instance->base_uniform_buffer_index = MTL_uniform_buffer_base_index;
     compute_pso_instance->base_storage_buffer_index = MTL_storage_buffer_base_index;
-
     pso_cache_lock_.lock();
     compute_pso_instance->shader_pso_index = compute_pso_cache_.size();
     compute_pso_cache_.add(compute_pipeline_descriptor, compute_pso_instance);
@@ -1762,7 +1766,7 @@ void MTLShader::ssbo_vertex_fetch_bind_attributes_end(
         MTL_LOG_WARNING(
             "Unassigned Shader attribute: %s, Attr Name: %s -- Binding NULL BUFFER to "
             "slot %d",
-            this->name_get(),
+            this->name_get().c_str(),
             mtl_interface->get_name_at_offset(mtl_shader_attribute->name_offset),
             null_attr_buffer_slot);
       }

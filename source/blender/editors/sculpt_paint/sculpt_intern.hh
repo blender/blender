@@ -13,7 +13,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_paint.hh"
-#include "BKE_pbvh_api.hh"
+#include "BKE_paint_bvh.hh"
 #include "BKE_subdiv_ccg.hh"
 
 #include "BLI_array.hh"
@@ -163,6 +163,15 @@ struct StrokeCache {
     float4x4 mat_inv;
   } mirror_modifier_clip;
   float2 initial_mouse;
+
+  /**
+   * Some brushes change behavior drastically depending on the directional value (i.e. the smooth
+   * and enhance details functionality being bound to the Smooth brush).
+   *
+   * Storing the initial direction allows discerning the behavior without checking the sign of the
+   * brush direction at every step, which would have ambiguity at 0.
+   */
+  bool initial_direction_flipped;
 
   /* Variants */
   float radius;

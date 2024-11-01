@@ -25,7 +25,7 @@
 #include "BKE_layer.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
-#include "BKE_pbvh_api.hh"
+#include "BKE_paint_bvh.hh"
 #include "BKE_screen.hh"
 
 #include "GPU_immediate.hh"
@@ -55,6 +55,8 @@
 
 #include <cmath>
 #include <cstdlib>
+
+#include "bmesh.hh"
 
 namespace blender::ed::sculpt_paint::dyntopo {
 

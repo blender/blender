@@ -3124,6 +3124,10 @@ static bool grease_pencil_snap_compute_centroid(const Scene &scene,
 
   const Vector<DrawingInfo> drawings = retrieve_visible_drawings(scene, grease_pencil, false);
   for (const DrawingInfo &drawing_info : drawings) {
+    const Layer &layer = grease_pencil.layer(drawing_info.layer_index);
+    if (layer.is_locked()) {
+      continue;
+    }
     const bke::CurvesGeometry &curves = drawing_info.drawing.strokes();
     if (curves.curves_num() == 0) {
       continue;
@@ -3135,8 +3139,6 @@ static bool grease_pencil_snap_compute_centroid(const Scene &scene,
     IndexMaskMemory selected_points_memory;
     const IndexMask selected_points = ed::curves::retrieve_selected_points(curves,
                                                                            selected_points_memory);
-
-    const Layer &layer = grease_pencil.layer(drawing_info.layer_index);
     const float4x4 layer_to_world = layer.to_world_space(object);
 
     Span<float3> positions = curves.positions();

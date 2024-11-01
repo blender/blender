@@ -14,6 +14,7 @@ set(SRC
   opensubdiv_capi_type.hh
   opensubdiv_converter_capi.hh
   opensubdiv_evaluator_capi.hh
+  opensubdiv_evaluator.hh
   opensubdiv_topology_refiner_capi.hh
 )
 
@@ -53,7 +54,6 @@ if(WITH_OPENSUBDIV)
     internal/evaluator/evaluator_cache_impl.h
     internal/evaluator/evaluator_capi.cc
     internal/evaluator/evaluator_impl.cc
-    internal/evaluator/evaluator_impl.h
     internal/evaluator/gl_compute_evaluator.cc
     internal/evaluator/gl_compute_evaluator.h
     internal/evaluator/patch_map.cc

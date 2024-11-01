@@ -64,7 +64,7 @@ Shader::~Shader()
   delete interface;
 }
 
-static void standard_defines(Vector<const char *> &sources)
+static void standard_defines(Vector<StringRefNull> &sources)
 {
   BLI_assert(sources.is_empty());
   /* Version and specialization constants needs to be first.
@@ -118,26 +118,26 @@ static void standard_defines(Vector<const char *> &sources)
   }
 }
 
-GPUShader *GPU_shader_create_ex(const char *vertcode,
-                                const char *fragcode,
-                                const char *geomcode,
-                                const char *computecode,
-                                const char *libcode,
-                                const char *defines,
+GPUShader *GPU_shader_create_ex(const std::optional<StringRefNull> vertcode,
+                                const std::optional<StringRefNull> fragcode,
+                                const std::optional<StringRefNull> geomcode,
+                                const std::optional<StringRefNull> computecode,
+                                const std::optional<StringRefNull> libcode,
+                                const std::optional<StringRefNull> defines,
                                 const eGPUShaderTFBType tf_type,
                                 const char **tf_names,
                                 const int tf_count,
-                                const char *shname)
+                                const StringRefNull shname)
 {
   /* At least a vertex shader and a fragment shader are required, or only a compute shader. */
-  BLI_assert(((fragcode != nullptr) && (vertcode != nullptr) && (computecode == nullptr)) ||
-             ((fragcode == nullptr) && (vertcode == nullptr) && (geomcode == nullptr) &&
-              (computecode != nullptr)));
+  BLI_assert((fragcode.has_value() && vertcode.has_value() && !computecode.has_value()) ||
+             (!fragcode.has_value() && !vertcode.has_value() && !geomcode.has_value() &&
+              computecode.has_value()));
 
-  Shader *shader = GPUBackend::get()->shader_alloc(shname);
+  Shader *shader = GPUBackend::get()->shader_alloc(shname.c_str());
 
   if (vertcode) {
-    Vector<const char *> sources;
+    Vector<StringRefNull> sources;
     standard_defines(sources);
     sources.append("#define GPU_VERTEX_SHADER\n");
     sources.append("#define IN_OUT out\n");
@@ -145,15 +145,15 @@ GPUShader *GPU_shader_create_ex(const char *vertcode,
       sources.append("#define USE_GEOMETRY_SHADER\n");
     }
     if (defines) {
-      sources.append(defines);
+      sources.append(*defines);
     }
-    sources.append(vertcode);
+    sources.append(*vertcode);
 
     shader->vertex_shader_from_glsl(sources);
   }
 
   if (fragcode) {
-    Vector<const char *> sources;
+    Vector<StringRefNull> sources;
     standard_defines(sources);
     sources.append("#define GPU_FRAGMENT_SHADER\n");
     sources.append("#define IN_OUT in\n");
@@ -161,39 +161,39 @@ GPUShader *GPU_shader_create_ex(const char *vertcode,
       sources.append("#define USE_GEOMETRY_SHADER\n");
     }
     if (defines) {
-      sources.append(defines);
+      sources.append(*defines);
     }
     if (libcode) {
-      sources.append(libcode);
+      sources.append(*libcode);
     }
-    sources.append(fragcode);
+    sources.append(*fragcode);
 
     shader->fragment_shader_from_glsl(sources);
   }
 
   if (geomcode) {
-    Vector<const char *> sources;
+    Vector<StringRefNull> sources;
     standard_defines(sources);
     sources.append("#define GPU_GEOMETRY_SHADER\n");
     if (defines) {
-      sources.append(defines);
+      sources.append(*defines);
     }
-    sources.append(geomcode);
+    sources.append(*geomcode);
 
     shader->geometry_shader_from_glsl(sources);
   }
 
   if (computecode) {
-    Vector<const char *> sources;
+    Vector<StringRefNull> sources;
     standard_defines(sources);
     sources.append("#define GPU_COMPUTE_SHADER\n");
     if (defines) {
-      sources.append(defines);
+      sources.append(*defines);
     }
     if (libcode) {
-      sources.append(libcode);
+      sources.append(*libcode);
     }
-    sources.append(computecode);
+    sources.append(*computecode);
 
     shader->compute_shader_from_glsl(sources);
   }
@@ -222,17 +222,17 @@ void GPU_shader_free(GPUShader *shader)
 /** \name Creation utils
  * \{ */
 
-GPUShader *GPU_shader_create(const char *vertcode,
-                             const char *fragcode,
-                             const char *geomcode,
-                             const char *libcode,
-                             const char *defines,
-                             const char *shname)
+GPUShader *GPU_shader_create(const std::optional<StringRefNull> vertcode,
+                             const std::optional<StringRefNull> fragcode,
+                             const std::optional<StringRefNull> geomcode,
+                             const std::optional<StringRefNull> libcode,
+                             const std::optional<StringRefNull> defines,
+                             const StringRefNull shname)
 {
   return GPU_shader_create_ex(vertcode,
                               fragcode,
                               geomcode,
-                              nullptr,
+                              std::nullopt,
                               libcode,
                               defines,
                               GPU_SHADER_TFB_NONE,
@@ -241,14 +241,14 @@ GPUShader *GPU_shader_create(const char *vertcode,
                               shname);
 }
 
-GPUShader *GPU_shader_create_compute(const char *computecode,
-                                     const char *libcode,
-                                     const char *defines,
-                                     const char *shname)
+GPUShader *GPU_shader_create_compute(const std::optional<StringRefNull> computecode,
+                                     const std::optional<StringRefNull> libcode,
+                                     const std::optional<StringRefNull> defines,
+                                     const StringRefNull shname)
 {
-  return GPU_shader_create_ex(nullptr,
-                              nullptr,
-                              nullptr,
+  return GPU_shader_create_ex(std::nullopt,
+                              std::nullopt,
+                              std::nullopt,
                               computecode,
                               libcode,
                               defines,
@@ -288,7 +288,7 @@ GPUShader *GPU_shader_create_from_info_name(const char *info_name)
   const GPUShaderCreateInfo *_info = gpu_shader_create_info_get(info_name);
   const ShaderCreateInfo &info = *reinterpret_cast<const ShaderCreateInfo *>(_info);
   if (!info.do_static_compilation_) {
-    std::cerr << "Warning: Trying to compile \"" << info.name_.c_str()
+    std::cerr << "Warning: Trying to compile \"" << info.name_
               << "\" which was not marked for static compilation.\n";
   }
   return GPU_shader_create_from_info(_info);
@@ -333,20 +333,21 @@ GPUShader *GPU_shader_create_from_info_python(const GPUShaderCreateInfo *_info)
   return result;
 }
 
-GPUShader *GPU_shader_create_from_python(const char *vertcode,
-                                         const char *fragcode,
-                                         const char *geomcode,
-                                         const char *libcode,
-                                         const char *defines,
-                                         const char *name)
+GPUShader *GPU_shader_create_from_python(std::optional<StringRefNull> vertcode,
+                                         std::optional<StringRefNull> fragcode,
+                                         std::optional<StringRefNull> geomcode,
+                                         std::optional<StringRefNull> libcode,
+                                         const std::optional<StringRefNull> defines,
+                                         const std::optional<StringRefNull> name)
 {
-  char *libcodecat = nullptr;
+  std::string libcodecat;
 
-  if (libcode == nullptr) {
+  if (!libcode) {
     libcode = datatoc_gpu_shader_colorspace_lib_glsl;
   }
   else {
-    libcode = libcodecat = BLI_strdupcat(libcode, datatoc_gpu_shader_colorspace_lib_glsl);
+    libcodecat = *libcode + datatoc_gpu_shader_colorspace_lib_glsl;
+    libcode = libcodecat;
   }
 
   std::string vertex_source_processed;
@@ -354,30 +355,30 @@ GPUShader *GPU_shader_create_from_python(const char *vertcode,
   std::string geometry_source_processed;
   std::string library_source_processed;
 
-  if (vertcode != nullptr) {
-    vertex_source_processed = preprocess_source(vertcode);
-    vertcode = vertex_source_processed.c_str();
+  if (vertcode.has_value()) {
+    vertex_source_processed = preprocess_source(*vertcode);
+    vertcode = vertex_source_processed;
   }
-  if (fragcode != nullptr) {
-    fragment_source_processed = preprocess_source(fragcode);
-    fragcode = fragment_source_processed.c_str();
+  if (fragcode.has_value()) {
+    fragment_source_processed = preprocess_source(*fragcode);
+    fragcode = fragment_source_processed;
   }
-  if (geomcode != nullptr) {
-    geometry_source_processed = preprocess_source(geomcode);
-    geomcode = geometry_source_processed.c_str();
+  if (geomcode.has_value()) {
+    geometry_source_processed = preprocess_source(*geomcode);
+    geomcode = geometry_source_processed;
   }
-  if (libcode != nullptr) {
-    library_source_processed = preprocess_source(libcode);
-    libcode = library_source_processed.c_str();
+  if (libcode.has_value()) {
+    library_source_processed = preprocess_source(*libcode);
+    libcode = library_source_processed;
   }
 
   /* Use pyGPUShader as default name for shader. */
-  const char *shname = name != nullptr ? name : "pyGPUShader";
+  blender::StringRefNull shname = name.value_or("pyGPUShader");
 
   GPUShader *sh = GPU_shader_create_ex(vertcode,
                                        fragcode,
                                        geomcode,
-                                       nullptr,
+                                       std::nullopt,
                                        libcode,
                                        defines,
                                        GPU_SHADER_TFB_NONE,
@@ -385,7 +386,6 @@ GPUShader *GPU_shader_create_from_python(const char *vertcode,
                                        0,
                                        shname);
 
-  MEM_SAFE_FREE(libcodecat);
   return sh;
 }
 
@@ -485,7 +485,7 @@ GPUShader *GPU_shader_get_bound()
 
 const char *GPU_shader_get_name(GPUShader *shader)
 {
-  return unwrap(shader)->name_get();
+  return unwrap(shader)->name_get().c_str();
 }
 
 /** \} */
@@ -872,7 +872,7 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
 
   const std::string error = info.check_error();
   if (!error.empty()) {
-    std::cerr << error.c_str() << "\n";
+    std::cerr << error << "\n";
     BLI_assert(false);
   }
 
@@ -887,34 +887,34 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
     defines += "#define USE_GPU_SHADER_CREATE_INFO\n";
   }
 
-  Vector<const char *> typedefs;
+  Vector<StringRefNull> typedefs;
   if (!info.typedef_sources_.is_empty() || !info.typedef_source_generated.empty()) {
     typedefs.append(gpu_shader_dependency_get_source("GPU_shader_shared_utils.hh").c_str());
   }
   if (!info.typedef_source_generated.empty()) {
-    typedefs.append(info.typedef_source_generated.c_str());
+    typedefs.append(info.typedef_source_generated);
   }
   for (auto filename : info.typedef_sources_) {
-    typedefs.append(gpu_shader_dependency_get_source(filename).c_str());
+    typedefs.append(gpu_shader_dependency_get_source(filename));
   }
 
   if (!info.vertex_source_.is_empty()) {
     auto code = gpu_shader_dependency_get_resolved_source(info.vertex_source_);
     std::string interface = shader->vertex_interface_declare(info);
 
-    Vector<const char *> sources;
+    Vector<StringRefNull> sources;
     standard_defines(sources);
     sources.append("#define GPU_VERTEX_SHADER\n");
     if (!info.geometry_source_.is_empty()) {
       sources.append("#define USE_GEOMETRY_SHADER\n");
     }
-    sources.append(defines.c_str());
+    sources.append(defines);
     sources.extend(typedefs);
-    sources.append(resources.c_str());
-    sources.append(interface.c_str());
+    sources.append(resources);
+    sources.append(interface);
     sources.extend(code);
     sources.extend(info.dependencies_generated);
-    sources.append(info.vertex_source_generated.c_str());
+    sources.append(info.vertex_source_generated);
 
     shader->vertex_shader_from_glsl(sources);
   }
@@ -923,19 +923,19 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
     auto code = gpu_shader_dependency_get_resolved_source(info.fragment_source_);
     std::string interface = shader->fragment_interface_declare(info);
 
-    Vector<const char *> sources;
+    Vector<StringRefNull> sources;
     standard_defines(sources);
     sources.append("#define GPU_FRAGMENT_SHADER\n");
     if (!info.geometry_source_.is_empty()) {
       sources.append("#define USE_GEOMETRY_SHADER\n");
     }
-    sources.append(defines.c_str());
+    sources.append(defines);
     sources.extend(typedefs);
-    sources.append(resources.c_str());
-    sources.append(interface.c_str());
+    sources.append(resources);
+    sources.append(interface);
     sources.extend(code);
     sources.extend(info.dependencies_generated);
-    sources.append(info.fragment_source_generated.c_str());
+    sources.append(info.fragment_source_generated);
 
     shader->fragment_shader_from_glsl(sources);
   }
@@ -945,15 +945,15 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
     std::string layout = shader->geometry_layout_declare(info);
     std::string interface = shader->geometry_interface_declare(info);
 
-    Vector<const char *> sources;
+    Vector<StringRefNull> sources;
     standard_defines(sources);
     sources.append("#define GPU_GEOMETRY_SHADER\n");
-    sources.append(defines.c_str());
+    sources.append(defines);
     sources.extend(typedefs);
-    sources.append(resources.c_str());
-    sources.append(layout.c_str());
-    sources.append(interface.c_str());
-    sources.append(info.geometry_source_generated.c_str());
+    sources.append(resources);
+    sources.append(layout);
+    sources.append(interface);
+    sources.append(info.geometry_source_generated);
     sources.extend(code);
 
     shader->geometry_shader_from_glsl(sources);
@@ -963,16 +963,16 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
     auto code = gpu_shader_dependency_get_resolved_source(info.compute_source_);
     std::string layout = shader->compute_layout_declare(info);
 
-    Vector<const char *> sources;
+    Vector<StringRefNull> sources;
     standard_defines(sources);
     sources.append("#define GPU_COMPUTE_SHADER\n");
-    sources.append(defines.c_str());
+    sources.append(defines);
     sources.extend(typedefs);
-    sources.append(resources.c_str());
-    sources.append(layout.c_str());
+    sources.append(resources);
+    sources.append(layout);
     sources.extend(code);
     sources.extend(info.dependencies_generated);
-    sources.append(info.compute_source_generated.c_str());
+    sources.append(info.compute_source_generated);
 
     shader->compute_shader_from_glsl(sources);
   }

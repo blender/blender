@@ -12,22 +12,16 @@
 
 #include "BLI_array.hh"
 #include "BLI_bit_vector.hh"
-#include "BLI_map.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
-#include "BLI_ordered_edge.hh"
-#include "BLI_set.hh"
 #include "BLI_shared_cache.hh"
 #include "BLI_utility_mixins.hh"
+#include "BLI_vector.hh"
 
 #include "DNA_brush_enums.h"
-#include "DNA_customdata_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_enums.h"
-
-#include "BKE_pbvh.hh"
-#include "BKE_subdiv_ccg.hh"
 
 struct AssetWeakReference;
 struct BMFace;
@@ -37,7 +31,6 @@ struct BMesh;
 struct BlendDataReader;
 struct BlendWriter;
 struct Brush;
-struct CustomDataLayer;
 struct CurveMapping;
 struct Depsgraph;
 struct EnumPropertyItem;
@@ -373,7 +366,7 @@ struct SculptTopologyIslandCache {
   blender::Array<uint8_t> vert_island_ids;
 };
 
-using ActiveVert = std::variant<std::monostate, int, SubdivCCGCoord, BMVert *>;
+using ActiveVert = std::variant<std::monostate, int, BMVert *>;
 
 struct SculptSession : blender::NonCopyable, blender::NonMovable {
   /* Mesh data (not copied) can come either directly from a Mesh, or from a MultiresDM */

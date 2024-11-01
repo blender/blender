@@ -124,6 +124,13 @@ GHOST_ContextCGL::~GHOST_ContextCGL()
       m_metalLayer = nil;
     }
   }
+  assert(s_sharedCount);
+
+  s_sharedCount--;
+  [s_sharedMetalCommandQueue release];
+  if (s_sharedCount == 0) {
+    s_sharedMetalCommandQueue = nil;
+  }
 }
 
 GHOST_TSuccess GHOST_ContextCGL::swapBuffers()
@@ -230,6 +237,7 @@ void GHOST_ContextCGL::metalInit()
     }
     /* Ensure active GHOSTContext retains a reference to the shared context. */
     [s_sharedMetalCommandQueue retain];
+    s_sharedCount++;
 
     /* Create shaders for blit operation. */
     NSString *source = @R"msl(
@@ -308,6 +316,9 @@ void GHOST_ContextCGL::metalInit()
           "GHOST_ContextCGL::metalInit: newRenderPipelineStateWithDescriptor:error: failed (when "
           "creating the Metal overlay pipeline)!");
     }
+
+    [desc.fragmentFunction release];
+    [desc.vertexFunction release];
   }
 }
 
@@ -315,11 +326,13 @@ void GHOST_ContextCGL::metalFree()
 {
   if (m_metalRenderPipeline) {
     [m_metalRenderPipeline release];
+    m_metalRenderPipeline = nil;
   }
 
   for (int i = 0; i < METAL_SWAPCHAIN_SIZE; i++) {
     if (m_defaultFramebufferMetalTexture[i].texture) {
       [m_defaultFramebufferMetalTexture[i].texture release];
+      m_defaultFramebufferMetalTexture[i].texture = nil;
     }
   }
 }

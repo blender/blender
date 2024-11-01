@@ -52,7 +52,7 @@ struct SubRectStride {
 };
 
 /** We may want to change back to float if `uint` isn't well supported. */
-typedef uint depth_t;
+using depth_t = uint;
 
 /**
  * Calculate values needed for looping over a sub-region (smaller buffer within a larger buffer).

@@ -499,18 +499,8 @@ void ANIM_deselect_keys_in_animation_editors(bContext *C)
         continue;
       }
       ListBase anim_data = {nullptr, nullptr};
-      int filter = 0;
-      if (ac.spacetype == SPACE_GRAPH) {
-        SpaceGraph *graph_editor = (SpaceGraph *)ac.sl;
-        filter = graph_editor->ads->filterflag;
-      }
-      else {
-        BLI_assert(ac.spacetype == SPACE_ACTION);
-        SpaceAction *action_editor = (SpaceAction *)ac.sl;
-        filter = action_editor->ads.filterflag;
-      }
-      ANIM_animdata_filter(
-          &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
+      eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FCURVESONLY);
+      ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
       LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
         if (!ale->adt || !ale->adt->action) {
           continue;

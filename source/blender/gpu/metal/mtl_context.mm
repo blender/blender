@@ -45,9 +45,8 @@ using namespace blender::gpu;
 #  define MTL_DEBUG_SINGLE_DISPATCH_PER_ENCODER 1
 #endif
 
-/* Debug option to bind null buffer for missing UBOs.
- * Enabled by default. TODO: Ensure all required UBO bindings are present. */
-#define DEBUG_BIND_NULL_BUFFER_FOR_MISSING_UBO 1
+/* Debug option to bind null buffer for missing UBOs. */
+#define DEBUG_BIND_NULL_BUFFER_FOR_MISSING_UBO 0
 
 /* Debug option to bind null buffer for missing SSBOs. NOTE: This is unsafe if replacing a
  * write-enabled SSBO and should only be used for debugging to identify binding-related issues. */
@@ -2724,9 +2723,6 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
       MTLContext::get_global_memory_manager()->get_current_safe_list();
   BLI_assert(cmd_free_buffer_list);
 
-  id<MTLCommandBuffer> cmd_buffer_ref = cmdbuf;
-  [cmd_buffer_ref retain];
-
   /* Increment drawables in flight limiter. */
   MTLContext::max_drawables_in_flight++;
   std::chrono::time_point submission_time = std::chrono::high_resolution_clock::now();
@@ -2736,7 +2732,6 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
   [cmdbuf addCompletedHandler:^(id<MTLCommandBuffer> /*cb*/) {
     /* Flag freed buffers associated with this CMD buffer as ready to be freed. */
     cmd_free_buffer_list->decrement_reference();
-    [cmd_buffer_ref release];
 
     /* Decrement count */
     ctx->main_command_buffer.dec_active_command_buffer_count();

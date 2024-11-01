@@ -10,10 +10,9 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_kelvinlet.h"
-#include "BKE_key.hh"
 #include "BKE_mesh.hh"
 #include "BKE_paint.hh"
-#include "BKE_pbvh.hh"
+#include "BKE_paint_bvh.hh"
 #include "BKE_subdiv_ccg.hh"
 
 #include "BLI_array.hh"
@@ -23,12 +22,13 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
-#include "BLI_task.h"
 #include "BLI_task.hh"
 
 #include "editors/sculpt_paint/mesh_brush_common.hh"
 #include "editors/sculpt_paint/sculpt_automask.hh"
 #include "editors/sculpt_paint/sculpt_intern.hh"
+
+#include "bmesh.hh"
 
 namespace blender::ed::sculpt_paint {
 

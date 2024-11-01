@@ -37,7 +37,7 @@
 #include "BKE_mesh_mapping.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
-#include "BKE_pbvh_api.hh"
+#include "BKE_paint_bvh.hh"
 #include "BKE_subdiv_ccg.hh"
 
 #include "DEG_depsgraph_query.hh"
@@ -161,7 +161,7 @@ static void build_nodes_recursive_mesh(const Span<int> material_indices,
   if (below_leaf_limit) {
     if (!leaf_needs_material_split(faces, material_indices)) {
       MeshNode &node = nodes[node_index];
-      node.flag_ |= PBVH_Leaf;
+      node.flag_ |= Node::Leaf;
       node.face_indices_ = faces;
       return;
     }
@@ -314,7 +314,7 @@ static void build_nodes_recursive_grids(const Span<int> material_indices,
   if (below_leaf_limit) {
     if (!leaf_needs_material_split(faces, material_indices)) {
       GridsNode &node = nodes[node_index];
-      node.flag_ |= PBVH_Leaf;
+      node.flag_ |= Node::Leaf;
       node.prim_indices_ = faces;
       return;
     }
@@ -535,7 +535,7 @@ Tree::~Tree()
   std::visit(
       [](auto &nodes) {
         for (Node &node : nodes) {
-          if (node.flag_ & (PBVH_Leaf | PBVH_TexLeaf)) {
+          if (node.flag_ & (Node::Leaf | Node::TexLeaf)) {
             node_pixels_free(&node);
           }
         }
@@ -626,7 +626,7 @@ static void pbvh_iter_begin(PBVHIter *iter, Tree &pbvh, FunctionRef<bool(Node &)
   iter->stack.push({&first_node(pbvh), false});
 }
 
-static Node *pbvh_iter_next(PBVHIter *iter, PBVHNodeFlags leaf_flag)
+static Node *pbvh_iter_next(PBVHIter *iter, Node::Flags leaf_flag)
 {
   /* purpose here is to traverse tree, visiting child nodes before their
    * parents, this order is necessary for e.g. computing bounding boxes */
@@ -687,7 +687,7 @@ static Node *pbvh_iter_next_occluded(PBVHIter *iter)
       continue; /* don't traverse, outside of search zone */
     }
 
-    if (node->flag_ & PBVH_Leaf) {
+    if (node->flag_ & Node::Leaf) {
       /* immediately hit leaf node */
       return node;
     }
@@ -783,7 +783,7 @@ static void search_callback_occluded(Tree &pbvh,
   pbvh_iter_begin(&iter, pbvh, scb);
 
   while ((node = pbvh_iter_next_occluded(&iter))) {
-    if (node->flag_ & PBVH_Leaf) {
+    if (node->flag_ & Node::Leaf) {
       node_tree *new_node = static_cast<node_tree *>(malloc(sizeof(node_tree)));
 
       new_node->data = node;
@@ -1114,7 +1114,7 @@ static BoundsMergeInfo merge_child_bounds(MutableSpan<NodeT> nodes,
                                           const int node_index)
 {
   NodeT &node = nodes[node_index];
-  if (node.flag_ & PBVH_Leaf) {
+  if (node.flag_ & Node::Leaf) {
     const bool update = node_index < dirty.size() && dirty[node_index];
     return {node.bounds_, update};
   }
@@ -1222,8 +1222,8 @@ void node_update_mask_mesh(const Span<float> mask, MeshNode &node)
       verts.begin(), verts.end(), [&](const int vert) { return mask[vert] == 1.0f; });
   const bool fully_unmasked = std::all_of(
       verts.begin(), verts.end(), [&](const int vert) { return mask[vert] <= 0.0f; });
-  SET_FLAG_FROM_TEST(node.flag_, fully_masked, PBVH_FullyMasked);
-  SET_FLAG_FROM_TEST(node.flag_, fully_unmasked, PBVH_FullyUnmasked);
+  SET_FLAG_FROM_TEST(node.flag_, fully_masked, Node::FullyMasked);
+  SET_FLAG_FROM_TEST(node.flag_, fully_unmasked, Node::FullyUnmasked);
 }
 
 void update_mask_mesh(const Mesh &mesh, const IndexMask &node_mask, Tree &pbvh)
@@ -1233,8 +1233,8 @@ void update_mask_mesh(const Mesh &mesh, const IndexMask &node_mask, Tree &pbvh)
   const VArraySpan<float> mask = *attributes.lookup<float>(".sculpt_mask", AttrDomain::Point);
   if (mask.is_empty()) {
     node_mask.foreach_index([&](const int i) {
-      nodes[i].flag_ &= ~PBVH_FullyMasked;
-      nodes[i].flag_ |= PBVH_FullyUnmasked;
+      nodes[i].flag_ &= ~Node::FullyMasked;
+      nodes[i].flag_ |= Node::FullyUnmasked;
     });
     return;
   }
@@ -1253,8 +1253,8 @@ void node_update_mask_grids(const CCGKey &key, const Span<float> masks, GridsNod
       fully_unmasked &= mask <= 0.0f;
     }
   }
-  SET_FLAG_FROM_TEST(node.flag_, fully_masked, PBVH_FullyMasked);
-  SET_FLAG_FROM_TEST(node.flag_, fully_unmasked, PBVH_FullyUnmasked);
+  SET_FLAG_FROM_TEST(node.flag_, fully_masked, Node::FullyMasked);
+  SET_FLAG_FROM_TEST(node.flag_, fully_unmasked, Node::FullyUnmasked);
 }
 
 void update_mask_grids(const SubdivCCG &subdiv_ccg, const IndexMask &node_mask, Tree &pbvh)
@@ -1263,8 +1263,8 @@ void update_mask_grids(const SubdivCCG &subdiv_ccg, const IndexMask &node_mask, 
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
   if (subdiv_ccg.masks.is_empty()) {
     node_mask.foreach_index([&](const int i) {
-      nodes[i].flag_ &= ~PBVH_FullyMasked;
-      nodes[i].flag_ |= PBVH_FullyUnmasked;
+      nodes[i].flag_ &= ~Node::FullyMasked;
+      nodes[i].flag_ |= Node::FullyUnmasked;
     });
     return;
   }
@@ -1286,8 +1286,8 @@ void node_update_mask_bmesh(const int mask_offset, BMeshNode &node)
     fully_masked &= BM_ELEM_CD_GET_FLOAT(vert, mask_offset) == 1.0f;
     fully_unmasked &= BM_ELEM_CD_GET_FLOAT(vert, mask_offset) <= 0.0f;
   }
-  SET_FLAG_FROM_TEST(node.flag_, fully_masked, PBVH_FullyMasked);
-  SET_FLAG_FROM_TEST(node.flag_, fully_unmasked, PBVH_FullyUnmasked);
+  SET_FLAG_FROM_TEST(node.flag_, fully_masked, Node::FullyMasked);
+  SET_FLAG_FROM_TEST(node.flag_, fully_unmasked, Node::FullyUnmasked);
 }
 
 void update_mask_bmesh(const BMesh &bm, const IndexMask &node_mask, Tree &pbvh)
@@ -1296,8 +1296,8 @@ void update_mask_bmesh(const BMesh &bm, const IndexMask &node_mask, Tree &pbvh)
   const int offset = CustomData_get_offset_named(&bm.vdata, CD_PROP_FLOAT, ".sculpt_mask");
   if (offset == -1) {
     node_mask.foreach_index([&](const int i) {
-      nodes[i].flag_ &= ~PBVH_FullyMasked;
-      nodes[i].flag_ |= PBVH_FullyUnmasked;
+      nodes[i].flag_ &= ~Node::FullyMasked;
+      nodes[i].flag_ |= Node::FullyUnmasked;
     });
     return;
   }
@@ -1312,7 +1312,7 @@ void node_update_visibility_mesh(const Span<bool> hide_vert, MeshNode &node)
   const Span<int> verts = node.all_verts();
   const bool fully_hidden = std::all_of(
       verts.begin(), verts.end(), [&](const int vert) { return hide_vert[vert]; });
-  SET_FLAG_FROM_TEST(node.flag_, fully_hidden, PBVH_FullyHidden);
+  SET_FLAG_FROM_TEST(node.flag_, fully_hidden, Node::FullyHidden);
 }
 
 static void update_visibility_faces(const Mesh &mesh,
@@ -1322,7 +1322,7 @@ static void update_visibility_faces(const Mesh &mesh,
   const AttributeAccessor attributes = mesh.attributes();
   const VArraySpan<bool> hide_vert = *attributes.lookup<bool>(".hide_vert", AttrDomain::Point);
   if (hide_vert.is_empty()) {
-    node_mask.foreach_index([&](const int i) { nodes[i].flag_ &= ~PBVH_FullyHidden; });
+    node_mask.foreach_index([&](const int i) { nodes[i].flag_ &= ~Node::FullyHidden; });
     return;
   }
 
@@ -1337,7 +1337,7 @@ void node_update_visibility_grids(const BitGroupVector<> &grid_hidden, GridsNode
       node.prim_indices_.begin(), node.prim_indices_.end(), [&](const int grid) {
         return bits::any_bit_unset(grid_hidden[grid]);
       });
-  SET_FLAG_FROM_TEST(node.flag_, fully_hidden, PBVH_FullyHidden);
+  SET_FLAG_FROM_TEST(node.flag_, fully_hidden, Node::FullyHidden);
 }
 
 static void update_visibility_grids(const SubdivCCG &subdiv_ccg,
@@ -1346,7 +1346,7 @@ static void update_visibility_grids(const SubdivCCG &subdiv_ccg,
 {
   const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
   if (grid_hidden.is_empty()) {
-    node_mask.foreach_index([&](const int i) { nodes[i].flag_ &= ~PBVH_FullyHidden; });
+    node_mask.foreach_index([&](const int i) { nodes[i].flag_ &= ~Node::FullyHidden; });
     return;
   }
 
@@ -1364,7 +1364,7 @@ void node_update_visibility_bmesh(BMeshNode &node)
       node.bm_other_verts_.begin(), node.bm_other_verts_.end(), [&](const BMVert *vert) {
         return BM_elem_flag_test(vert, BM_ELEM_HIDDEN);
       });
-  SET_FLAG_FROM_TEST(node.flag_, unique_hidden && other_hidden, PBVH_FullyHidden);
+  SET_FLAG_FROM_TEST(node.flag_, unique_hidden && other_hidden, Node::FullyHidden);
 }
 
 static void update_visibility_bmesh(const MutableSpan<BMeshNode> nodes, const IndexMask &node_mask)
@@ -1447,8 +1447,8 @@ blender::Bounds<blender::float3> BKE_pbvh_redraw_BB(const blender::bke::pbvh::Tr
   PBVHIter iter;
   pbvh_iter_begin(&iter, const_cast<blender::bke::pbvh::Tree &>(pbvh), {});
   Node *node;
-  while ((node = pbvh_iter_next(&iter, PBVH_Leaf))) {
-    if (node->flag_ & PBVH_UpdateRedraw) {
+  while ((node = pbvh_iter_next(&iter, Node::Leaf))) {
+    if (node->flag_ & Node::UpdateRedraw) {
       bounds = bounds::merge(bounds, node->bounds_);
     }
   }
@@ -1510,7 +1510,7 @@ int BKE_pbvh_get_grid_num_faces(const Object &object)
 
 void BKE_pbvh_node_mark_update(blender::bke::pbvh::Node &node)
 {
-  node.flag_ |= PBVH_RebuildPixels;
+  node.flag_ |= blender::bke::pbvh::Node::RebuildPixels;
 }
 
 void BKE_pbvh_mark_rebuild_pixels(blender::bke::pbvh::Tree &pbvh)
@@ -1518,8 +1518,8 @@ void BKE_pbvh_mark_rebuild_pixels(blender::bke::pbvh::Tree &pbvh)
   std::visit(
       [](auto &nodes) {
         for (blender::bke::pbvh::Node &node : nodes) {
-          if (node.flag_ & PBVH_Leaf) {
-            node.flag_ |= PBVH_RebuildPixels;
+          if (node.flag_ & blender::bke::pbvh::Node::Leaf) {
+            node.flag_ |= blender::bke::pbvh::Node::RebuildPixels;
           }
         }
       },
@@ -1528,53 +1528,56 @@ void BKE_pbvh_mark_rebuild_pixels(blender::bke::pbvh::Tree &pbvh)
 
 void BKE_pbvh_node_fully_hidden_set(blender::bke::pbvh::Node &node, int fully_hidden)
 {
-  BLI_assert(node.flag_ & PBVH_Leaf);
+  BLI_assert(node.flag_ & blender::bke::pbvh::Node::Leaf);
 
   if (fully_hidden) {
-    node.flag_ |= PBVH_FullyHidden;
+    node.flag_ |= blender::bke::pbvh::Node::FullyHidden;
   }
   else {
-    node.flag_ &= ~PBVH_FullyHidden;
+    node.flag_ &= ~blender::bke::pbvh::Node::FullyHidden;
   }
 }
 
 bool BKE_pbvh_node_fully_hidden_get(const blender::bke::pbvh::Node &node)
 {
-  return (node.flag_ & PBVH_Leaf) && (node.flag_ & PBVH_FullyHidden);
+  return (node.flag_ & blender::bke::pbvh::Node::Leaf) &&
+         (node.flag_ & blender::bke::pbvh::Node::FullyHidden);
 }
 
 void BKE_pbvh_node_fully_masked_set(blender::bke::pbvh::Node &node, int fully_masked)
 {
-  BLI_assert(node.flag_ & PBVH_Leaf);
+  BLI_assert(node.flag_ & blender::bke::pbvh::Node::Leaf);
 
   if (fully_masked) {
-    node.flag_ |= PBVH_FullyMasked;
+    node.flag_ |= blender::bke::pbvh::Node::FullyMasked;
   }
   else {
-    node.flag_ &= ~PBVH_FullyMasked;
+    node.flag_ &= ~blender::bke::pbvh::Node::FullyMasked;
   }
 }
 
 bool BKE_pbvh_node_fully_masked_get(const blender::bke::pbvh::Node &node)
 {
-  return (node.flag_ & PBVH_Leaf) && (node.flag_ & PBVH_FullyMasked);
+  return (node.flag_ & blender::bke::pbvh::Node::Leaf) &&
+         (node.flag_ & blender::bke::pbvh::Node::FullyMasked);
 }
 
 void BKE_pbvh_node_fully_unmasked_set(blender::bke::pbvh::Node &node, int fully_masked)
 {
-  BLI_assert(node.flag_ & PBVH_Leaf);
+  BLI_assert(node.flag_ & blender::bke::pbvh::Node::Leaf);
 
   if (fully_masked) {
-    node.flag_ |= PBVH_FullyUnmasked;
+    node.flag_ |= blender::bke::pbvh::Node::FullyUnmasked;
   }
   else {
-    node.flag_ &= ~PBVH_FullyUnmasked;
+    node.flag_ &= ~blender::bke::pbvh::Node::FullyUnmasked;
   }
 }
 
 bool BKE_pbvh_node_fully_unmasked_get(const blender::bke::pbvh::Node &node)
 {
-  return (node.flag_ & PBVH_Leaf) && (node.flag_ & PBVH_FullyUnmasked);
+  return (node.flag_ & blender::bke::pbvh::Node::Leaf) &&
+         (node.flag_ & blender::bke::pbvh::Node::FullyUnmasked);
 }
 
 namespace blender::bke::pbvh {
@@ -2274,7 +2277,7 @@ bool find_nearest_to_ray_node(Tree &pbvh,
                               float *depth,
                               float *dist_sq)
 {
-  if (node.flag_ & PBVH_FullyHidden) {
+  if (node.flag_ & Node::FullyHidden) {
     return false;
   }
   switch (pbvh.type()) {
@@ -2318,16 +2321,15 @@ enum PlaneAABBIsect {
  * (ok, not a real frustum), false otherwise.
  */
 static PlaneAABBIsect test_frustum_aabb(const Bounds<float3> &bounds,
-                                        const PBVHFrustumPlanes *frustum)
+                                        const Span<float4> frustum_planes)
 {
   PlaneAABBIsect ret = ISECT_INSIDE;
-  const float(*planes)[4] = frustum->planes;
 
-  for (int i = 0; i < frustum->num_planes; i++) {
+  for (const int i : frustum_planes.index_range()) {
     float vmin[3], vmax[3];
 
     for (int axis = 0; axis < 3; axis++) {
-      if (planes[i][axis] < 0) {
+      if (frustum_planes[i][axis] < 0) {
         vmin[axis] = bounds.min[axis];
         vmax[axis] = bounds.max[axis];
       }
@@ -2337,10 +2339,10 @@ static PlaneAABBIsect test_frustum_aabb(const Bounds<float3> &bounds,
       }
     }
 
-    if (dot_v3v3(planes[i], vmin) + planes[i][3] < 0) {
+    if (dot_v3v3(frustum_planes[i], vmin) + frustum_planes[i][3] < 0) {
       return ISECT_OUTSIDE;
     }
-    if (dot_v3v3(planes[i], vmax) + planes[i][3] <= 0) {
+    if (dot_v3v3(frustum_planes[i], vmax) + frustum_planes[i][3] <= 0) {
       ret = ISECT_INTERSECT;
     }
   }
@@ -2348,37 +2350,29 @@ static PlaneAABBIsect test_frustum_aabb(const Bounds<float3> &bounds,
   return ret;
 }
 
+bool node_frustum_contain_aabb(const Node &node, const Span<float4> frustum_planes)
+{
+  return test_frustum_aabb(node.bounds_, frustum_planes) != ISECT_OUTSIDE;
+}
+
+bool node_frustum_exclude_aabb(const Node &node, const Span<float4> frustum_planes)
+{
+  return test_frustum_aabb(node.bounds_, frustum_planes) != ISECT_INSIDE;
+}
+
 }  // namespace blender::bke::pbvh
 
-bool BKE_pbvh_node_frustum_contain_AABB(const blender::bke::pbvh::Node *node,
-                                        const PBVHFrustumPlanes *data)
-{
-  return blender::bke::pbvh::test_frustum_aabb(node->bounds_, data) !=
-         blender::bke::pbvh::ISECT_OUTSIDE;
-}
-
-bool BKE_pbvh_node_frustum_exclude_AABB(const blender::bke::pbvh::Node *node,
-                                        const PBVHFrustumPlanes *data)
-{
-  return blender::bke::pbvh::test_frustum_aabb(node->bounds_, data) !=
-         blender::bke::pbvh::ISECT_INSIDE;
-}
-
 void BKE_pbvh_draw_debug_cb(blender::bke::pbvh::Tree &pbvh,
-                            void (*draw_fn)(blender::bke::pbvh::Node *node,
-                                            void *user_data,
-                                            const float bmin[3],
-                                            const float bmax[3],
-                                            PBVHNodeFlags flag),
+                            void (*draw_fn)(blender::bke::pbvh::Node *node, void *user_data),
                             void *user_data)
 {
-  PBVHNodeFlags flag = PBVH_Leaf;
+  blender::bke::pbvh::Node::Flags flag = blender::bke::pbvh::Node::Leaf;
 
   std::visit(
       [&](auto &nodes) {
         for (blender::bke::pbvh::Node &node : nodes) {
-          if (node.flag_ & PBVH_TexLeaf) {
-            flag = PBVH_TexLeaf;
+          if (node.flag_ & blender::bke::pbvh::Node::TexLeaf) {
+            flag = blender::bke::pbvh::Node::TexLeaf;
             break;
           }
         }
@@ -2388,7 +2382,7 @@ void BKE_pbvh_draw_debug_cb(blender::bke::pbvh::Tree &pbvh,
             continue;
           }
 
-          draw_fn(&node, user_data, node.bounds_.min, node.bounds_.max, node.flag_);
+          draw_fn(&node, user_data);
         }
       },
       pbvh.nodes_);
@@ -2404,22 +2398,6 @@ void BKE_pbvh_vert_coords_apply(blender::bke::pbvh::Tree &pbvh,
 }
 
 namespace blender::bke::pbvh {
-
-void set_frustum_planes(Tree &pbvh, PBVHFrustumPlanes *planes)
-{
-  pbvh.num_planes_ = planes->num_planes;
-  for (int i = 0; i < pbvh.num_planes_; i++) {
-    copy_v4_v4(pbvh.planes_[i], planes->planes[i]);
-  }
-}
-
-void get_frustum_planes(const Tree &pbvh, PBVHFrustumPlanes *planes)
-{
-  planes->num_planes = pbvh.num_planes_;
-  for (int i = 0; i < planes->num_planes; i++) {
-    copy_v4_v4(planes->planes[i], pbvh.planes_[i]);
-  }
-}
 
 static Span<float3> vert_positions_eval(const Object &object_orig, const Object &object_eval)
 {
@@ -2606,7 +2584,7 @@ IndexMask all_leaf_nodes(const Tree &pbvh, IndexMaskMemory &memory)
       [&](const auto &nodes) {
         return IndexMask::from_predicate(
             nodes.index_range(), GrainSize(1024), memory, [&](const int i) {
-              return (nodes[i].flag_ & PBVH_Leaf) != 0;
+              return (nodes[i].flag_ & Node::Leaf) != 0;
             });
       },
       pbvh.nodes_);
@@ -2614,7 +2592,7 @@ IndexMask all_leaf_nodes(const Tree &pbvh, IndexMaskMemory &memory)
 
 static Vector<Node *> search_gather(Tree &pbvh,
                                     const FunctionRef<bool(Node &)> scb,
-                                    PBVHNodeFlags leaf_flag)
+                                    Node::Flags leaf_flag)
 {
   if (tree_is_empty(pbvh)) {
     return {};
@@ -2640,7 +2618,7 @@ IndexMask search_nodes(const Tree &pbvh,
                        FunctionRef<bool(const Node &)> filter_fn)
 {
   Vector<Node *> nodes = search_gather(
-      const_cast<Tree &>(pbvh), [&](Node &node) { return filter_fn(node); }, PBVH_Leaf);
+      const_cast<Tree &>(pbvh), [&](Node &node) { return filter_fn(node); }, Node::Leaf);
   Array<int> indices(nodes.size());
   std::visit(
       [&](const auto &pbvh_nodes) {

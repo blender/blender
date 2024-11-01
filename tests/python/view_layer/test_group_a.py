@@ -8,7 +8,10 @@
 
 import unittest
 
-from view_layer_common import *
+from view_layer_common import (
+    ViewLayerTesting,
+    setup_extra_arguments,
+)
 
 
 # ############################################################
@@ -33,7 +36,7 @@ class UnitTesting(ViewLayerTesting):
             scene.view_layers.remove(scene.view_layers[1])
 
         # create group
-        group = layer_collection.create_group()
+        _group = layer_collection.create_group()
 
         # update depsgraph
         bpy.context.view_layer.update()

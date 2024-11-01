@@ -14,7 +14,7 @@
 
 void main()
 {
-  int index = int(gl_GlobalInvocationID.x);
+  uint index = gl_GlobalInvocationID.x;
   if (index >= capture_info_buf.surfel_len) {
     return;
   }

@@ -9,6 +9,7 @@
 #pragma once
 
 #include "BKE_curves.hh"
+#include "BKE_customdata.hh"
 #include "BKE_geometry_set.hh"
 #include "DNA_curve_types.h"
 #include "DNA_pointcloud_types.h"

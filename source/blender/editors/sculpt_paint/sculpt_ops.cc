@@ -36,7 +36,7 @@
 #include "BKE_multires.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
-#include "BKE_pbvh_api.hh"
+#include "BKE_paint_bvh.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 #include "BKE_subdiv_ccg.hh"
@@ -274,8 +274,6 @@ static int symmetrize_exec(bContext *C, wmOperator *op)
     case bke::pbvh::Type::Grids:
       return OPERATOR_CANCELLED;
   }
-
-  islands::invalidate(ss);
 
   BKE_sculptsession_free_pbvh(ob);
   DEG_id_tag_update(&ob.id, ID_RECALC_GEOMETRY);

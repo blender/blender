@@ -27,6 +27,9 @@
 #include "BKE_subdiv_mesh.hh"
 
 #include "opensubdiv_converter_capi.hh"
+#ifdef WITH_OPENSUBDIV
+#  include "opensubdiv_evaluator.hh"
+#endif
 #include "opensubdiv_evaluator_capi.hh"
 
 #include "atomic_ops.h"
@@ -1079,9 +1082,9 @@ static void reshape_subdiv_refine(const MultiresReshapeSmoothContext *reshape_sm
     const Vertex *vertex = &reshape_smooth_context->geometry.vertices[i];
     float P[3];
     coarse_position_cb(reshape_smooth_context, vertex, P);
-    reshape_subdiv->evaluator->setCoarsePositions(reshape_subdiv->evaluator, P, i, 1);
+    reshape_subdiv->evaluator->eval_output->setCoarsePositions(P, i, 1);
   }
-  reshape_subdiv->evaluator->refine(reshape_subdiv->evaluator);
+  reshape_subdiv->evaluator->eval_output->refine();
 }
 
 BLI_INLINE const GridCoord *reshape_subdiv_refine_vertex_grid_coord(const Vertex *vertex)

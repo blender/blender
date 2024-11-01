@@ -37,7 +37,7 @@ namespace blender::gpu {
  */
 #define DEBUG_DEPENDENCIES 0
 
-void Shader::print_log(Span<const char *> sources,
+void Shader::print_log(Span<StringRefNull> sources,
                        const char *log,
                        const char *stage,
                        const bool error,
@@ -63,7 +63,7 @@ void Shader::print_log(Span<const char *> sources,
 #endif
 
   Vector<int64_t> sources_end_line;
-  for (StringRefNull src : sources) {
+  for (StringRef src : sources) {
     int64_t cursor = 0, line_count = 0;
     while ((cursor = src.find('\n', cursor) + 1)) {
       line_count++;

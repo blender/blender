@@ -63,7 +63,7 @@ class NodeTreeSearchResult:
 
 # TODO: cache these searches
 def from_socket(start_socket: NodeTreeSearchResult,
-                shader_node_filter: typing.Union[Filter, typing.Callable]) -> typing.List[NodeTreeSearchResult]:
+                shader_node_filter):
     """
     Find shader nodes where the filter expression is true.
 

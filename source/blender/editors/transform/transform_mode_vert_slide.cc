@@ -50,6 +50,13 @@ struct VertSlideData {
   void update_proj_mat(TransInfo *t, const TransDataContainer *tc)
   {
     ARegion *region = t->region;
+
+    if (UNLIKELY(region == nullptr)) {
+      this->win_half = {1.0f, 1.0f};
+      this->proj_mat = float4x4::identity();
+      return;
+    }
+
     this->win_half = {region->winx / 2.0f, region->winy / 2.0f};
 
     if (t->spacetype == SPACE_VIEW3D) {

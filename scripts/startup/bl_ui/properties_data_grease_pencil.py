@@ -441,12 +441,6 @@ class GREASE_PENCIL_UL_attributes(UIList):
 class DATA_PT_grease_pencil_attributes(DataButtonsPanel, Panel):
     bl_label = "Attributes"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {
-        'BLENDER_RENDER',
-        'BLENDER_EEVEE',
-        'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH',
-    }
 
     def draw(self, context):
         grease_pencil = context.grease_pencil

@@ -4,6 +4,7 @@
 
 #include "usd_reader_volume.hh"
 
+#include "BLI_path_utils.hh"
 #include "BLI_string.h"
 
 #include "BKE_object.hh"
@@ -53,23 +54,25 @@ void USDVolumeReader::read_object_data(Main *bmain, const double motionSampleTim
       pxr::SdfAssetPath fp;
       filepathAttr.Get(&fp, motionSampleTime);
 
+      const std::string filepath = fp.GetResolvedPath();
+      STRNCPY(volume->filepath, filepath.c_str());
+
       if (filepathAttr.ValueMightBeTimeVarying()) {
         std::vector<double> filePathTimes;
         filepathAttr.GetTimeSamples(&filePathTimes);
 
         if (!filePathTimes.empty()) {
-          int start = int(filePathTimes.front());
-          int end = int(filePathTimes.back());
+          const int start = int(filePathTimes.front());
+          const int end = int(filePathTimes.back());
+          const int offset = BLI_path_sequence_decode(
+              volume->filepath, nullptr, 0, nullptr, 0, nullptr);
 
           volume->is_sequence = char(true);
           volume->frame_start = start;
           volume->frame_duration = (end - start) + 1;
+          volume->frame_offset = offset - 1;
         }
       }
-
-      std::string filepath = fp.GetResolvedPath();
-
-      STRNCPY(volume->filepath, filepath.c_str());
     }
   }
 

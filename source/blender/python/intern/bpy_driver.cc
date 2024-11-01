@@ -229,7 +229,7 @@ static void bpy_pydriver_namespace_update_depsgraph(Depsgraph *depsgraph)
   }
 
   if ((g_pydriver_state_prev.depsgraph == nullptr) ||
-      (depsgraph != g_pydriver_state_prev.depsgraph->ptr.data))
+      (depsgraph != g_pydriver_state_prev.depsgraph->ptr->data))
   {
     PyObject *item = bpy_pydriver_depsgraph_as_pyobject(depsgraph);
     PyDict_SetItem(bpy_pydriver_Dict, bpy_intern_str_depsgraph, item);

@@ -51,9 +51,8 @@ class Immediate {
   /** Uniform color: Kept here to update the wide-line shader just before #immBegin. */
   float uniform_color[4];
 
- public:
-  Immediate(){};
-  virtual ~Immediate(){};
+  Immediate() = default;
+  virtual ~Immediate() = default;
 
   virtual uchar *begin() = 0;
   virtual void end() = 0;

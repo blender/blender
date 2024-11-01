@@ -121,7 +121,7 @@ static void fileselect_ensure_updated_asset_params(SpaceFile *sfile)
   base_params->filter |= FILE_TYPE_BLENDERLIB;
   base_params->filter_id = FILTER_ID_ALL;
   base_params->display = FILE_IMGDISPLAY;
-  base_params->sort = FILE_SORT_ALPHA;
+  base_params->sort = FILE_SORT_ASSET_CATALOG;
   /* Asset libraries include all sub-directories, so enable maximal recursion. */
   base_params->recursion_level = FILE_SELECT_MAX_RECURSIONS;
   /* 'SMALL' size by default. More reasonable since this is typically used as regular editor,

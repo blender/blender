@@ -6,6 +6,7 @@
  * \ingroup cmpnodes
  */
 
+#include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 
 #include "FN_multi_function_builder.hh"
@@ -60,6 +61,16 @@ static void node_composit_buts_alphaover(uiLayout *layout, bContext * /*C*/, Poi
 
 using namespace blender::realtime_compositor;
 
+static bool get_use_premultiply(const bNode &node)
+{
+  return node.custom1;
+}
+
+static float get_premultiply_factor(const bNode &node)
+{
+  return node_storage(node).x;
+}
+
 class AlphaOverShaderNode : public ShaderNode {
  public:
   using ShaderNode::ShaderNode;
@@ -69,7 +80,7 @@ class AlphaOverShaderNode : public ShaderNode {
     GPUNodeStack *inputs = get_inputs_array();
     GPUNodeStack *outputs = get_outputs_array();
 
-    const float premultiply_factor = get_premultiply_factor();
+    const float premultiply_factor = get_premultiply_factor(bnode());
     if (premultiply_factor != 0.0f) {
       GPU_stack_link(material,
                      &bnode(),
@@ -80,22 +91,12 @@ class AlphaOverShaderNode : public ShaderNode {
       return;
     }
 
-    if (get_use_premultiply()) {
+    if (get_use_premultiply(bnode())) {
       GPU_stack_link(material, &bnode(), "node_composite_alpha_over_key", inputs, outputs);
       return;
     }
 
     GPU_stack_link(material, &bnode(), "node_composite_alpha_over_premultiply", inputs, outputs);
-  }
-
-  bool get_use_premultiply()
-  {
-    return bnode().custom1;
-  }
-
-  float get_premultiply_factor()
-  {
-    return node_storage(bnode()).x;
   }
 };
 
@@ -104,16 +105,88 @@ static ShaderNode *get_compositor_shader_node(DNode node)
   return new AlphaOverShaderNode(node);
 }
 
+static float4 alpha_over_mixed(const float factor,
+                               const float4 &color,
+                               const float4 &over_color,
+                               const float premultiply_factor)
+{
+  if (over_color.w <= 0.0f) {
+    return color;
+  }
+
+  if (factor == 1.0f && over_color.w >= 1.0f) {
+    return over_color;
+  }
+
+  float add_factor = 1.0f - premultiply_factor + over_color.w * premultiply_factor;
+  float premultiplier = factor * add_factor;
+  float multiplier = 1.0f - factor * over_color.w;
+
+  return multiplier * color + float4(float3(premultiplier), factor) * over_color;
+}
+
+static float4 alpha_over_key(const float factor, const float4 &color, const float4 &over_color)
+{
+  if (over_color.w <= 0.0f) {
+    return color;
+  }
+
+  if (factor == 1.0f && over_color.w >= 1.0f) {
+    return over_color;
+  }
+
+  return math::interpolate(color, float4(over_color.xyz(), 1.0f), factor * over_color.w);
+}
+
+static float4 alpha_over_premultiply(const float factor,
+                                     const float4 &color,
+                                     const float4 &over_color)
+{
+  if (over_color.w < 0.0f) {
+    return color;
+  }
+
+  if (factor == 1.0f && over_color.w >= 1.0f) {
+    return over_color;
+  }
+
+  float multiplier = 1.0f - factor * over_color.w;
+  return multiplier * color + factor * over_color;
+}
+
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  /* Not yet implemented. Return zero. */
-  static auto function = mf::build::SI3_SO<float, float4, float4, float4>(
-      "Alpha Over",
-      [](const float /*factor*/,
-         const float4 & /*color*/,
-         const float4 & /*over_color*/) -> float4 { return float4(0.0f); },
+  static auto key_function = mf::build::SI3_SO<float, float4, float4, float4>(
+      "Alpha Over Key",
+      [=](const float factor, const float4 &color, const float4 &over_color) -> float4 {
+        return alpha_over_key(factor, color, over_color);
+      },
       mf::build::exec_presets::SomeSpanOrSingle<1, 2>());
-  builder.set_matching_fn(function);
+
+  static auto premultiply_function = mf::build::SI3_SO<float, float4, float4, float4>(
+      "Alpha Over Premultiply",
+      [=](const float factor, const float4 &color, const float4 &over_color) -> float4 {
+        return alpha_over_premultiply(factor, color, over_color);
+      },
+      mf::build::exec_presets::SomeSpanOrSingle<1, 2>());
+
+  const float premultiply_factor = get_premultiply_factor(builder.node());
+  if (premultiply_factor != 0.0f) {
+    builder.construct_and_set_matching_fn_cb([=]() {
+      return mf::build::SI3_SO<float, float4, float4, float4>(
+          "Alpha Over Mixed",
+          [=](const float factor, const float4 &color, const float4 &over_color) -> float4 {
+            return alpha_over_mixed(factor, color, over_color, premultiply_factor);
+          },
+          mf::build::exec_presets::SomeSpanOrSingle<1, 2>());
+    });
+  }
+  else if (get_use_premultiply(builder.node())) {
+    builder.set_matching_fn(key_function);
+  }
+  else {
+    builder.set_matching_fn(premultiply_function);
+  }
 }
 
 }  // namespace blender::nodes::node_composite_alpha_over_cc

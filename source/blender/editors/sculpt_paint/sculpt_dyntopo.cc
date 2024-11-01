@@ -22,8 +22,8 @@
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
+#include "BKE_paint_bvh.hh"
 #include "BKE_particle.h"
-#include "BKE_pbvh_api.hh"
 #include "BKE_pointcache.h"
 #include "BKE_scene.hh"
 

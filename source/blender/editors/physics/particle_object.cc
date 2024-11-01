@@ -1012,6 +1012,7 @@ static void copy_particle_edit(Depsgraph *depsgraph,
   psys->edit = edit;
 
   edit->pathcache = nullptr;
+  edit->mirror_cache = nullptr;
   BLI_listbase_clear(&edit->pathcachebufs);
 
   edit->emitter_field = nullptr;
@@ -1331,6 +1332,10 @@ static bool duplicate_particle_systems_poll(bContext *C)
   }
   Object *ob = blender::ed::object::context_active_object(C);
   if (BLI_listbase_is_empty(&ob->particlesystem)) {
+    return false;
+  }
+  if (ob->mode != OB_MODE_OBJECT) {
+    CTX_wm_operator_poll_msg_set(C, "Object must be in object mode");
     return false;
   }
   return true;

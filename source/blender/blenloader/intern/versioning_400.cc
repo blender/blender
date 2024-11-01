@@ -4995,6 +4995,22 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 4)) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype != SPACE_FILE) {
+            continue;
+          }
+          SpaceFile *sfile = reinterpret_cast<SpaceFile *>(sl);
+          if (sfile->asset_params) {
+            sfile->asset_params->base_params.sort = FILE_SORT_ASSET_CATALOG;
+          }
+        }
+      }
+    }
+  }
+
   /* Always run this versioning; meshes are written with the legacy format which always needs to
    * be converted to the new format on file load. Can be moved to a subversion check in a larger
    * breaking release. */

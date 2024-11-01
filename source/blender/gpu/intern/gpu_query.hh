@@ -20,7 +20,7 @@ enum GPUQueryType {
 
 class QueryPool {
  public:
-  virtual ~QueryPool(){};
+  virtual ~QueryPool() = default;
 
   /**
    * Will start and end the query at this index inside the pool. The pool will resize

@@ -355,6 +355,10 @@ static const EnumPropertyItem multiview_camera_items[] = {
 #undef V3D_S3D_CAMERA_S3D
 #undef V3D_S3D_CAMERA_VIEWS
 
+/**
+ * This will be split to give different items in file than in asset browsing mode, see
+ * #rna_FileSelectParams_sort_method_itemf().
+ */
 const EnumPropertyItem rna_enum_fileselect_params_sort_items[] = {
     {FILE_SORT_ALPHA, "FILE_SORT_ALPHA", ICON_NONE, "Name", "Sort the file list alphabetically"},
     {FILE_SORT_EXTENSION,
@@ -368,6 +372,13 @@ const EnumPropertyItem rna_enum_fileselect_params_sort_items[] = {
      "Modified Date",
      "Sort files by modification time"},
     {FILE_SORT_SIZE, "FILE_SORT_SIZE", ICON_NONE, "Size", "Sort files by size"},
+    {FILE_SORT_ASSET_CATALOG,
+     "ASSET_CATALOG",
+     0,
+     "Asset Catalog",
+     "Sort the asset list so that assets in the same catalog are kept together. Within a single "
+     "catalog, assets are ordered by name. The catalogs are in order of the flattened catalog "
+     "hierarchy."},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -2918,6 +2929,43 @@ static const EnumPropertyItem *rna_FileSelectParams_recursion_level_itemf(bConte
 
   *r_free = false;
   return fileselectparams_recursion_level_items;
+}
+
+static const EnumPropertyItem *rna_FileSelectParams_sort_method_itemf(bContext * /*C*/,
+                                                                      PointerRNA *ptr,
+                                                                      PropertyRNA * /*prop*/,
+                                                                      bool *r_free)
+{
+  EnumPropertyItem *items = nullptr;
+  int totitem = 0;
+
+  if (RNA_struct_is_a(ptr->type, &RNA_FileAssetSelectParams)) {
+    /* Only expose sorting by name and asset catalog for asset browsing. */
+
+    RNA_enum_items_add_value(
+        &items, &totitem, rna_enum_fileselect_params_sort_items, FILE_SORT_ALPHA);
+    /* Address small annoyance: Tooltip talks about "file list", override to be "asset list"
+     * instead. */
+    items[0].description = N_("Sort the asset list alphabetically");
+
+    RNA_enum_items_add_value(
+        &items, &totitem, rna_enum_fileselect_params_sort_items, FILE_SORT_ASSET_CATALOG);
+  }
+  else {
+    /* Remove asset catalog from the items. */
+    for (const EnumPropertyItem *item = rna_enum_fileselect_params_sort_items; item->identifier;
+         item++)
+    {
+      if (item->value != FILE_SORT_ASSET_CATALOG) {
+        RNA_enum_item_add(&items, &totitem, item);
+      }
+    }
+  }
+
+  RNA_enum_item_end(&items, &totitem);
+
+  *r_free = true;
+  return items;
 }
 
 static void rna_FileSelectPrams_filter_glob_set(PointerRNA *ptr, const char *value)
@@ -7107,6 +7155,7 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
   prop = RNA_def_property(srna, "sort_method", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "sort");
   RNA_def_property_enum_items(prop, rna_enum_fileselect_params_sort_items);
+  RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_FileSelectParams_sort_method_itemf");
   RNA_def_property_ui_text(prop, "Sort", "");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_PARAMS, nullptr);
 

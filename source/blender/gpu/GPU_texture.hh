@@ -977,17 +977,17 @@ bool GPU_texture_has_integer_format(const GPUTexture *texture);
 /**
  * Return true if the texture format is a float type.
  */
-bool GPU_texture_has_float_format(const GPUTexture *tex);
+bool GPU_texture_has_float_format(const GPUTexture *texture);
 
 /**
  * Return true if the texture format is an integer normalized type.
  */
-bool GPU_texture_has_normalized_format(const GPUTexture *tex);
+bool GPU_texture_has_normalized_format(const GPUTexture *texture);
 
 /**
  * Return true if the texture format is a signed type.
  */
-bool GPU_texture_has_signed_format(const GPUTexture *tex);
+bool GPU_texture_has_signed_format(const GPUTexture *texture);
 
 /**
  * Returns the pixel dimensions of a texture's mip-map level.

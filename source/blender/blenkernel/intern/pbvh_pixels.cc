@@ -5,8 +5,8 @@
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
-#include "BKE_pbvh_api.hh"
-#include "BKE_pbvh_pixels.hh"
+#include "BKE_paint_bvh.hh"
+#include "BKE_paint_bvh_pixels.hh"
 
 #include "DNA_image_types.h"
 #include "DNA_object_types.h"
@@ -217,13 +217,13 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
 
 static bool should_pixels_be_updated(const Node &node)
 {
-  if ((node.flag_ & (PBVH_Leaf | PBVH_TexLeaf)) == 0) {
+  if ((node.flag_ & (Node::Leaf | Node::TexLeaf)) == 0) {
     return false;
   }
   if (node.children_offset_ != 0) {
     return false;
   }
-  if ((node.flag_ & PBVH_RebuildPixels) != 0) {
+  if ((node.flag_ & Node::RebuildPixels) != 0) {
     return true;
   }
   NodeData *node_data = static_cast<NodeData *>(node.pixels_);
@@ -277,7 +277,7 @@ static bool find_nodes_to_update(Tree &pbvh, Vector<MeshNode *> &r_nodes_to_upda
       continue;
     }
     r_nodes_to_update.append(&node);
-    node.flag_ = static_cast<PBVHNodeFlags>(node.flag_ | PBVH_RebuildPixels);
+    node.flag_ = static_cast<Node::Flags>(node.flag_ | Node::RebuildPixels);
 
     if (node.pixels_ == nullptr) {
       NodeData *node_data = MEM_new<NodeData>(__func__);
@@ -303,7 +303,7 @@ static void apply_watertight_check(Tree &pbvh, Image &image, ImageUser &image_us
       continue;
     }
     for (Node &node : pbvh.nodes<MeshNode>()) {
-      if ((node.flag_ & PBVH_Leaf) == 0) {
+      if ((node.flag_ & Node::Leaf) == 0) {
         continue;
       }
       NodeData *node_data = static_cast<NodeData *>(node.pixels_);
@@ -403,13 +403,13 @@ static bool update_pixels(const Depsgraph &depsgraph,
 
   /* Clear the UpdatePixels flag. */
   for (Node *node : nodes_to_update) {
-    node->flag_ = static_cast<PBVHNodeFlags>(node->flag_ & ~PBVH_RebuildPixels);
+    node->flag_ &= ~Node::RebuildPixels;
   }
 
-  /* Add PBVH_TexLeaf flag */
+  /* Add Node::TexLeaf flag */
   for (Node &node : pbvh.nodes<MeshNode>()) {
-    if (node.flag_ & PBVH_Leaf) {
-      node.flag_ = (PBVHNodeFlags)(int(node.flag_) | int(PBVH_TexLeaf));
+    if (node.flag_ & Node::Leaf) {
+      node.flag_ |= Node::TexLeaf;
     }
   }
 
@@ -421,7 +421,7 @@ static bool update_pixels(const Depsgraph &depsgraph,
     int num_pixels = 0;
     for (int n = 0; n < pbvh->totnode; n++) {
       Node *node = &pbvh->nodes[n];
-      if ((node->flag & PBVH_Leaf) == 0) {
+      if ((node->flag & Node::Leaf) == 0) {
         continue;
       }
       NodeData *node_data = static_cast<NodeData *>(node->pixels.node_data);

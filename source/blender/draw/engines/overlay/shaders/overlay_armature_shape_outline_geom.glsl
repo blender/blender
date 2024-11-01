@@ -4,7 +4,7 @@
 
 #include "common_view_clipping_lib.glsl"
 
-void main(void)
+void main()
 {
   finalColor = vec4(geom_in[0].vColSize.rgb, 1.0);
 

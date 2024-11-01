@@ -88,7 +88,13 @@ static void bm_rotate_edges_shared(
   Heap *heap = BLI_heap_new_ex(edges_len);
   HeapNode **eheap_table = static_cast<HeapNode **>(
       MEM_mallocN(sizeof(*eheap_table) * edges_len, __func__));
+
+  BMEdge **edges = reinterpret_cast<BMEdge **>(
+      BMO_SLOT_AS_BUFFER(BMO_slot_get(op->slots_in, "edges")));
   int edges_len_rotate = 0;
+
+  /* Never read edges with this value in the `eheap_table` since they have been freed. */
+  HeapNode *edge_free_id = reinterpret_cast<HeapNode *>(uintptr_t(-1));
 
   {
     BMIter iter;
@@ -99,14 +105,10 @@ static void bm_rotate_edges_shared(
     bm->elem_index_dirty |= BM_EDGE;
   }
 
-  {
-    BMOIter siter;
-    BMEdge *e;
-    uint i;
-    BMO_ITER_INDEX (e, &siter, op->slots_in, "edges", BM_EDGE, i) {
-      BM_elem_index_set(e, BM_edge_is_manifold(e) ? i : -1); /* set_dirty! */
-      eheap_table[i] = nullptr;
-    }
+  for (int i = 0; i < edges_len; i++) {
+    BMEdge *e = edges[i];
+    BM_elem_index_set(e, BM_edge_is_manifold(e) ? i : -1); /* set_dirty! */
+    eheap_table[i] = nullptr;
   }
 
   /* First operate on boundary edges, this is often all that's needed,
@@ -121,10 +123,12 @@ static void bm_rotate_edges_shared(
   while ((pass_type != PASS_TYPE_DONE) && (edges_len_rotate != edges_len)) {
     BLI_assert(BLI_heap_is_empty(heap));
     {
-      BMOIter siter;
-      BMEdge *e;
-      uint i;
-      BMO_ITER_INDEX (e, &siter, op->slots_in, "edges", BM_EDGE, i) {
+      for (int i = 0; i < edges_len; i++) {
+        if (eheap_table[i] == edge_free_id) {
+          /* `e` is freed. */
+          continue;
+        }
+        BMEdge *e = edges[i];
         BLI_assert(eheap_table[i] == nullptr);
 
         bool ok = (BM_elem_index_get(e) != -1) && BM_edge_rotate_check(e);
@@ -165,7 +169,8 @@ static void bm_rotate_edges_shared(
     const int edges_len_rotate_prev = edges_len_rotate;
     while (!BLI_heap_is_empty(heap)) {
       BMEdge *e_best = static_cast<BMEdge *>(BLI_heap_pop_min(heap));
-      eheap_table[BM_elem_index_get(e_best)] = nullptr;
+      const int e_best_index = BM_elem_index_get(e_best);
+      eheap_table[e_best_index] = nullptr;
 
       /* No problem if this fails, re-evaluate if faces connected to this edge are touched. */
       if (BM_edge_rotate_check(e_best)) {
@@ -175,6 +180,8 @@ static void bm_rotate_edges_shared(
 
           /* invalidate so we don't try touch this again. */
           BM_elem_index_set(e_rotate, -1); /* set_dirty! */
+          /* If rotate succeeds, the edge has been freed. */
+          eheap_table[e_best_index] = edge_free_id;
 
           edges_len_rotate += 1;
 
@@ -194,6 +201,8 @@ static void bm_rotate_edges_shared(
               BMEdge *e_iter = l_iter->e;
               const int e_iter_index = BM_elem_index_get(e_iter);
               if ((e_iter_index != -1) && (eheap_table[e_iter_index] == nullptr)) {
+                /* Once freed, they cannot be accessed via connected geometry. */
+                BLI_assert((eheap_table[e_iter_index] != edge_free_id));
                 if (BM_edge_rotate_check(e_iter)) {
                   /* Previously degenerate, now valid. */
                   float cost = bm_edge_calc_rotate_cost(e_iter);

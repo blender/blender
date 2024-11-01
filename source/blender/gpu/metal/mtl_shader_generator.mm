@@ -215,7 +215,7 @@ static bool extract_ssbo_pragma_info(const MTLShader *shader,
     }
     else {
       MTL_LOG_ERROR("Unsupported output primitive type for SSBO VERTEX FETCH MODE. Shader: %s",
-                    shader->name_get());
+                    shader->name_get().c_str());
       return false;
     }
 
@@ -426,7 +426,7 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
   if (!uses_create_info) {
     MTL_LOG_WARNING("Unable to compile shader %p '%s' as no create-info was provided!",
                     this,
-                    this->name_get());
+                    this->name_get().c_str());
     valid_ = false;
     return false;
   }
@@ -1635,7 +1635,7 @@ bool MSLGeneratorInterface::use_argument_buffer_for_samplers() const
         "Compiled Shader '%s' is falling back to bindless via argument buffers due to having a "
         "texture sampler of Index: %u Which exceeds the limit of 15+1. However shader only uses "
         "%d textures. Consider optimising bind points with .auto_resource_location(true).",
-        parent_shader_.name_get(),
+        parent_shader_.name_get().c_str(),
         max_tex_bind_index,
         (int)texture_samplers.size());
   }
@@ -2002,10 +2002,14 @@ void MSLGeneratorInterface::generate_msl_uniforms_input_string(std::stringstream
   /* Storage buffers. */
   for (const MSLBufferBlock &ssbo : this->storage_blocks) {
     if (bool(ssbo.stage & stage)) {
+      out << parameter_delimiter(is_first_parameter) << "\n\t";
+      if (bool(stage & ShaderStage::VERTEX)) {
+        out << "const ";
+      }
       /* For literal/existing global types, we do not need the class name-space accessor. */
       bool writeable = (ssbo.qualifiers & shader::Qualifier::WRITE) == shader::Qualifier::WRITE;
       const char *memory_scope = ((writeable) ? "device " : "constant ");
-      out << parameter_delimiter(is_first_parameter) << "\n\t" << memory_scope;
+      out << memory_scope;
       if (!is_builtin_type(ssbo.type_name)) {
         out << get_stage_class_name(stage) << "::";
       }
@@ -2595,7 +2599,24 @@ std::string MSLGeneratorInterface::generate_msl_uniform_block_population(ShaderS
       if (!ssbo.is_array) {
         out << "_local";
       }
-      out << " = " << ssbo.name << ";" << std::endl;
+      out << " = ";
+
+      if (bool(stage & ShaderStage::VERTEX)) {
+        bool writeable = bool(ssbo.qualifiers & shader::Qualifier::WRITE);
+        const char *memory_scope = ((writeable) ? "device " : "constant ");
+
+        out << "const_cast<" << memory_scope;
+
+        if (!is_builtin_type(ssbo.type_name)) {
+          out << get_stage_class_name(stage) << "::";
+        }
+        out << ssbo.type_name << "*>(";
+      }
+      out << ssbo.name;
+      if (bool(stage & ShaderStage::VERTEX)) {
+        out << ")";
+      }
+      out << ";" << std::endl;
     }
   }
 
@@ -3008,8 +3029,25 @@ std::string MSLGeneratorInterface::generate_msl_texture_vars(ShaderStage shader_
       if (tex_buf_id != -1) {
         MSLBufferBlock &ssbo = this->storage_blocks[tex_buf_id];
         out << "\t" << get_shader_stage_instance_name(shader_stage) << "."
-            << this->texture_samplers[i].name << ".atomic.buffer = " << ssbo.name << ";"
-            << std::endl;
+            << this->texture_samplers[i].name << ".atomic.buffer = ";
+
+        if (bool(shader_stage & ShaderStage::VERTEX)) {
+          bool writeable = bool(ssbo.qualifiers & shader::Qualifier::WRITE);
+          const char *memory_scope = ((writeable) ? "device " : "constant ");
+
+          out << "const_cast<" << memory_scope;
+
+          if (!is_builtin_type(ssbo.type_name)) {
+            out << get_stage_class_name(shader_stage) << "::";
+          }
+          out << ssbo.type_name << "*>(";
+        }
+        out << ssbo.name;
+        if (bool(shader_stage & ShaderStage::VERTEX)) {
+          out << ")";
+        }
+        out << ";" << std::endl;
+
         out << "\t" << get_shader_stage_instance_name(shader_stage) << "."
             << this->texture_samplers[i].name << ".atomic.aligned_width = uniforms->"
             << this->texture_samplers[i].name << "_metadata.w;" << std::endl;
@@ -3081,7 +3119,7 @@ void MSLGeneratorInterface::resolve_input_attribute_locations()
       /* Error if could not assign attribute. */
       MTL_LOG_ERROR("Could not assign attribute location to attribute %s for shader %s",
                     attr.name.c_str(),
-                    this->parent_shader_.name_get());
+                    this->parent_shader_.name_get().c_str());
     }
   }
 }

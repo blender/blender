@@ -14,7 +14,7 @@
 
 shared uint has_visible_sss;
 
-void main(void)
+void main()
 {
   ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
 

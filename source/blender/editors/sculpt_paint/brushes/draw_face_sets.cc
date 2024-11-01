@@ -9,7 +9,7 @@
 #include "DNA_brush_types.h"
 
 #include "BKE_mesh.hh"
-#include "BKE_pbvh.hh"
+#include "BKE_paint_bvh.hh"
 #include "BKE_subdiv_ccg.hh"
 
 #include "BLI_enumerable_thread_specific.hh"
@@ -19,6 +19,8 @@
 #include "editors/sculpt_paint/sculpt_face_set.hh"
 #include "editors/sculpt_paint/sculpt_intern.hh"
 #include "editors/sculpt_paint/sculpt_undo.hh"
+
+#include "bmesh.hh"
 
 namespace blender::ed::sculpt_paint {
 inline namespace draw_face_sets_cc {

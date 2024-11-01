@@ -71,12 +71,12 @@ void MTLImmediate::end()
         active_mtl_shader->get_interface() == nullptr)
     {
 
-      const char *ptr = (active_mtl_shader) ? active_mtl_shader->name_get() : nullptr;
+      const StringRefNull ptr = (active_mtl_shader) ? active_mtl_shader->name_get() : "";
       MTL_LOG_WARNING(
           "MTLImmediate::end -- cannot perform draw as active shader is NULL or invalid (likely "
           "unimplemented) (shader %p '%s')",
           active_mtl_shader,
-          ptr);
+          ptr.c_str());
       return;
     }
 

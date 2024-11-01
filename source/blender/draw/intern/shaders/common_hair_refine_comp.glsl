@@ -17,7 +17,7 @@ layout(std430, binding = 0) writeonly buffer hairPointOutputBuffer
 out_vertbuf;
 #endif
 
-void main(void)
+void main()
 {
   float interp_time;
   vec4 data0, data1, data2, data3;

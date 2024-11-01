@@ -442,6 +442,56 @@ class USDImportTest(AbstractUSDTest):
         self.assertAlmostEqual(ob_arm2_side_a.matrix_world.to_euler('XYZ').z, 1.5708, 5)
         self.assertAlmostEqual(ob_arm2_side_b.matrix_world.to_euler('XYZ').z, 1.5708, 5)
 
+    def test_import_volumes(self):
+        """Validate volume import."""
+
+        # Use the existing volume test file to create the USD file
+        # for import. It is validated as part of the bl_usd_export test.
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_volumes.blend"))
+        # Ensure the simulation zone data is baked for all relevant frames...
+        for frame in range(4, 15):
+            bpy.context.scene.frame_set(frame)
+        bpy.context.scene.frame_set(4)
+
+        testfile = str(self.tempdir / "usd_volumes.usda")
+        res = bpy.ops.wm.usd_export(filepath=testfile, export_animation=True, evaluation_mode="RENDER")
+        self.assertEqual({'FINISHED'}, res, f"Unable to export to {testfile}")
+
+        # Reload the empty file and import back in
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
+        res = bpy.ops.wm.usd_import(filepath=testfile)
+        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {testfile}")
+
+        # Validate that all volumes are properly configured.
+        vol_displace = bpy.data.objects["vol_displace"]
+        vol_filesequence = bpy.data.objects["vol_filesequence"]
+        vol_mesh2vol = bpy.data.objects["vol_mesh2vol"]
+        vol_sim = bpy.data.objects["Volume"]
+
+        def check_sequence(ob, frames, start, offset):
+            self.assertTrue(ob.data.is_sequence)
+            self.assertEqual(ob.data.frame_duration, frames)
+            self.assertEqual(ob.data.frame_start, start)
+            self.assertEqual(ob.data.frame_offset, offset)
+
+        check_sequence(vol_displace, 11, 4, 3)
+        check_sequence(vol_filesequence, 6, 8, 13)
+        check_sequence(vol_mesh2vol, 11, 4, 3)
+        check_sequence(vol_sim, 11, 4, 3)
+
+        # Validate that their object dimensions are changing by spot checking 2 interesting frames
+        bpy.context.scene.frame_set(8)
+        dim_displace = vol_displace.dimensions.copy()
+        dim_filesequence = vol_filesequence.dimensions.copy()
+        dim_mesh2vol = vol_mesh2vol.dimensions.copy()
+        dim_sim = vol_sim.dimensions.copy()
+
+        bpy.context.scene.frame_set(12)
+        self.assertTrue(vol_displace.dimensions != dim_displace)
+        self.assertTrue(vol_filesequence.dimensions != dim_filesequence)
+        self.assertTrue(vol_mesh2vol.dimensions != dim_mesh2vol)
+        self.assertTrue(vol_sim.dimensions != dim_sim)
+
     def test_import_usd_blend_shapes(self):
         """Test importing USD blend shapes with animated weights."""
 

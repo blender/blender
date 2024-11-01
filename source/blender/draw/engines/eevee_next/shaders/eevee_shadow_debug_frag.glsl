@@ -112,6 +112,10 @@ LightData debug_light_get()
     }
   }
   LIGHT_FOREACH_END
+
+  /* TODO Assert. */
+  /* Silence compiler warning. */
+  return light_buf[0];
 }
 
 /** Return true if a pixel was written. */
@@ -225,6 +229,8 @@ void main()
         break;
       case DEBUG_SHADOW_TILEMAP_RANDOM_COLOR:
         debug_random_tilemap_color(P, light);
+        break;
+      default:
         break;
     }
   }

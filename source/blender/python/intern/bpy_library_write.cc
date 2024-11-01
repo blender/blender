@@ -119,7 +119,7 @@ static PyObject *bpy_lib_write(BPy_PropertyRNA *self, PyObject *args, PyObject *
     return nullptr;
   }
 
-  Main *bmain_src = static_cast<Main *>(self->ptr.data); /* Typically #G_MAIN */
+  Main *bmain_src = static_cast<Main *>(self->ptr->data); /* Typically #G_MAIN */
   int write_flags = 0;
 
   if (use_compress) {

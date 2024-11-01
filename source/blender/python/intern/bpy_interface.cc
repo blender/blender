@@ -240,12 +240,12 @@ void BPY_modules_update()
 
 bContext *BPY_context_get()
 {
-  return static_cast<bContext *>(bpy_context_module->ptr.data);
+  return static_cast<bContext *>(bpy_context_module->ptr->data);
 }
 
 void BPY_context_set(bContext *C)
 {
-  bpy_context_module->ptr.data = (void *)C;
+  bpy_context_module->ptr->data = (void *)C;
 }
 
 #ifdef WITH_FLUID
@@ -754,7 +754,7 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
     done = true;
   }
   else if (BPy_StructRNA_Check(item)) {
-    ptr = &(((BPy_StructRNA *)item)->ptr);
+    ptr = &reinterpret_cast<BPy_StructRNA *>(item)->ptr.value();
 
     // result->ptr = ((BPy_StructRNA *)item)->ptr;
     CTX_data_pointer_set_ptr(result, ptr);
@@ -776,7 +776,7 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
         PyObject *list_item = seq_fast_items[i];
 
         if (BPy_StructRNA_Check(list_item)) {
-          ptr = &(((BPy_StructRNA *)list_item)->ptr);
+          ptr = &reinterpret_cast<BPy_StructRNA *>(list_item)->ptr.value();
           CTX_data_list_add_ptr(result, ptr);
         }
         else {

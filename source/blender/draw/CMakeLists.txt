@@ -844,6 +844,7 @@ if(WITH_DRAW_DEBUG)
 endif()
 
 if(WITH_OPENSUBDIV)
+  add_definitions(-DWITH_OPENSUBDIV)
   list(APPEND INC_SYS
     ${OPENSUBDIV_INCLUDE_DIRS}
   )

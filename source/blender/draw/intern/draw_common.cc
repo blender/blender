@@ -503,6 +503,13 @@ static GPUTexture *DRW_create_weight_colorramp_texture()
     pixels[i][3] = 1.0f;
   }
 
-  return GPU_texture_create_1d(
-      "weight_color_ramp", 256, 1, GPU_SRGB8_A8, GPU_TEXTURE_USAGE_SHADER_READ, pixels[0]);
+  uchar4 pixels_ubyte[256];
+  for (int i = 0; i < 256; i++) {
+    unit_float_to_uchar_clamp_v4(pixels_ubyte[i], pixels[i]);
+  }
+
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ;
+  GPUTexture *tx = GPU_texture_create_1d("weight_ramp", 256, 1, GPU_SRGB8_A8, usage, nullptr);
+  GPU_texture_update(tx, GPU_DATA_UBYTE, pixels_ubyte);
+  return tx;
 }

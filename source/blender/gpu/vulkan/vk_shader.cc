@@ -24,6 +24,8 @@
 
 #include "BKE_global.hh"
 
+#include <fmt/format.h>
+
 using namespace blender::gpu::shader;
 
 namespace blender::gpu {
@@ -379,14 +381,14 @@ static void print_resource(std::ostream &os,
     case ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER:
       array_offset = res.uniformbuf.name.find_first_of("[");
       name_no_array = (array_offset == -1) ? res.uniformbuf.name :
-                                             StringRef(res.uniformbuf.name.c_str(), array_offset);
+                                             StringRef(res.uniformbuf.name.data(), array_offset);
       os << "uniform _" << name_no_array << " { " << res.uniformbuf.type_name << " "
          << res.uniformbuf.name << "; };\n";
       break;
     case ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER:
       array_offset = res.storagebuf.name.find_first_of("[");
       name_no_array = (array_offset == -1) ? res.storagebuf.name :
-                                             StringRef(res.storagebuf.name.c_str(), array_offset);
+                                             StringRef(res.storagebuf.name.data(), array_offset);
       print_qualifier(os, res.storagebuf.qualifiers);
       os << "buffer _";
       os << name_no_array << " { " << res.storagebuf.type_name << " " << res.storagebuf.name
@@ -481,12 +483,9 @@ static std::string main_function_wrapper(std::string &pre_main, std::string &pos
   return ss.str();
 }
 
-static std::string combine_sources(Span<const char *> sources)
+static std::string combine_sources(Span<StringRefNull> sources)
 {
-  char *sources_combined = BLI_string_join_arrayN((const char **)sources.data(), sources.size());
-  std::string result(sources_combined);
-  MEM_freeN(sources_combined);
-  return result;
+  return fmt::to_string(fmt::join(sources, ""));
 }
 
 VKShader::VKShader(const char *name) : Shader(name)
@@ -517,7 +516,7 @@ VKShader::~VKShader()
   vk_descriptor_set_layout_ = VK_NULL_HANDLE;
 }
 
-void VKShader::build_shader_module(MutableSpan<const char *> sources,
+void VKShader::build_shader_module(MutableSpan<StringRefNull> sources,
                                    shaderc_shader_kind stage,
                                    VKShaderModule &r_shader_module)
 {
@@ -537,22 +536,22 @@ void VKShader::build_shader_module(MutableSpan<const char *> sources,
   }
 }
 
-void VKShader::vertex_shader_from_glsl(MutableSpan<const char *> sources)
+void VKShader::vertex_shader_from_glsl(MutableSpan<StringRefNull> sources)
 {
   build_shader_module(sources, shaderc_vertex_shader, vertex_module);
 }
 
-void VKShader::geometry_shader_from_glsl(MutableSpan<const char *> sources)
+void VKShader::geometry_shader_from_glsl(MutableSpan<StringRefNull> sources)
 {
   build_shader_module(sources, shaderc_geometry_shader, geometry_module);
 }
 
-void VKShader::fragment_shader_from_glsl(MutableSpan<const char *> sources)
+void VKShader::fragment_shader_from_glsl(MutableSpan<StringRefNull> sources)
 {
   build_shader_module(sources, shaderc_fragment_shader, fragment_module);
 }
 
-void VKShader::compute_shader_from_glsl(MutableSpan<const char *> sources)
+void VKShader::compute_shader_from_glsl(MutableSpan<StringRefNull> sources)
 {
   build_shader_module(sources, shaderc_compute_shader, compute_module);
 }
@@ -573,9 +572,9 @@ bool VKShader::finalize(const shader::ShaderCreateInfo *info)
 
   if (do_geometry_shader_injection(info)) {
     std::string source = workaround_geometry_shader_source_create(*info);
-    Vector<const char *> sources;
+    Vector<StringRefNull> sources;
     sources.append("version");
-    sources.append(source.c_str());
+    sources.append(source);
     geometry_shader_from_glsl(sources);
   }
 
@@ -626,8 +625,7 @@ bool VKShader::finalize_shader_module(VKShaderModule &shader_module, const char 
   if (bool(shader_module.compilation_result.GetNumWarnings() +
            shader_module.compilation_result.GetNumErrors()))
   {
-    const char *sources = shader_module.combined_sources.c_str();
-    print_log(Span<const char *>(&sources, 1),
+    print_log({shader_module.combined_sources},
               shader_module.compilation_result.GetErrorMessage().c_str(),
               stage_name,
               bool(shader_module.compilation_result.GetNumErrors()),

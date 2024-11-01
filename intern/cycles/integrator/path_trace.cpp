@@ -15,6 +15,7 @@
 #include "session/tile.h"
 #include "util/algorithm.h"
 #include "util/log.h"
+#include "util/math.h"
 #include "util/progress.h"
 #include "util/tbb.h"
 #include "util/time.h"
@@ -404,6 +405,8 @@ void PathTrace::path_trace(RenderWork &render_work)
                                     render_work.path_trace.start_sample,
                                     num_samples,
                                     render_work.path_trace.sample_offset);
+
+    DCHECK(isfinite(statistics.occupancy));
 
     const double work_time = time_dt() - work_start_time;
     work_balance_infos_[i].time_spent += work_time;

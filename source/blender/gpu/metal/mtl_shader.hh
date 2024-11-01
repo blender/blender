@@ -287,10 +287,10 @@ class MTLShader : public Shader {
   void init(const shader::ShaderCreateInfo & /*info*/, bool is_batch_compilation) override;
 
   /* Assign GLSL source. */
-  void vertex_shader_from_glsl(MutableSpan<const char *> sources) override;
-  void geometry_shader_from_glsl(MutableSpan<const char *> sources) override;
-  void fragment_shader_from_glsl(MutableSpan<const char *> sources) override;
-  void compute_shader_from_glsl(MutableSpan<const char *> sources) override;
+  void vertex_shader_from_glsl(MutableSpan<StringRefNull> sources) override;
+  void geometry_shader_from_glsl(MutableSpan<StringRefNull> sources) override;
+  void fragment_shader_from_glsl(MutableSpan<StringRefNull> sources) override;
+  void compute_shader_from_glsl(MutableSpan<StringRefNull> sources) override;
 
   /* Compile and build - Return true if successful. */
   bool finalize(const shader::ShaderCreateInfo *info = nullptr) override;
@@ -448,7 +448,7 @@ class MTLParallelShaderCompiler {
   void add_parallel_item_to_queue(ParallelWork *add_parallel_item_to_queuework_item,
                                   BatchHandle batch_handle);
 
-  std::atomic<int> ref_count;
+  std::atomic<int> ref_count = 1;
 
  public:
   MTLParallelShaderCompiler();
@@ -469,6 +469,7 @@ class MTLParallelShaderCompiler {
   }
   void decrement_ref_count()
   {
+    BLI_assert(ref_count > 0);
     ref_count--;
   }
   int get_ref_count()

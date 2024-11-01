@@ -29,16 +29,10 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
-#include "DNA_customdata_types.h"
-
-/* For embedding CCGKey in iterator. */
-#include "BKE_ccg.hh"
-#include "BKE_pbvh.hh"
-
-#include "bmesh.hh"
-
+struct BMFace;
 struct BMLog;
 struct BMesh;
+struct BMVert;
 struct CCGKey;
 struct Depsgraph;
 struct IsectRayPrecalc;
@@ -71,6 +65,22 @@ class Node {
   friend Tree;
 
  public:
+  enum Flags : uint32_t {
+    Leaf = 1 << 0,
+
+    UpdateRedraw = 1 << 5,
+
+    FullyHidden = 1 << 10,
+    FullyMasked = 1 << 11,
+    FullyUnmasked = 1 << 12,
+
+    UpdateTopology = 1 << 13,
+    RebuildPixels = 1 << 15,
+    TexLeaf = 1 << 16,
+    /** Used internally by `pbvh_bmesh.cc`. */
+    TopologyUpdated = 1 << 17,
+  };
+
   /** Axis aligned min and max of all vertex positions in the node. */
   Bounds<float3> bounds_ = {};
   /** Bounds from the start of current brush stroke. */
@@ -82,7 +92,7 @@ class Node {
 
   /* Indicates whether this node is a leaf or not; also used for
    * marking various updates that need to be applied. */
-  PBVHNodeFlags flag_ = PBVH_UpdateRedraw;
+  Flags flag_ = UpdateRedraw;
 
   /**
    * Used for ray-casting: how close the bounding-box is to the ray point.
@@ -100,6 +110,8 @@ class Node {
   /** \todo Move storage of image painting data to #Tree or elsewhere. */
   pixels::NodeData *pixels_ = nullptr;
 };
+
+ENUM_OPERATORS(Node::Flags, Node::Flags::TopologyUpdated);
 
 struct MeshNode : public Node {
   /**
@@ -122,24 +134,19 @@ struct MeshNode : public Node {
   Span<int> face_indices_;
 
   /**
-   * Array of indices into the mesh's vertex array. Contains the
-   * indices of all vertices used by faces that are within this
-   * node's bounding box.
+   * Array of indices into the mesh's vertex array. Contains the indices of all vertices used by
+   * faces that are within this node's bounding box. Also contains a mapping from global vertex
+   * index to indices within only the node.
    *
-   * Note that a vertex might be used by a multiple faces, and
-   * these faces might be in different leaf nodes. Such a vertex
-   * will appear in the vert_indices array of each of those leaf
-   * nodes.
+   * Vertices might be used by a multiple faces, and these faces might be in different leaf nodes.
+   * Such vertices will appear in the vertex indices array of each of those leaf nodes.
    *
-   * In order to support cases where you want access to multiple
-   * nodes' vertices without duplication, the vert_indices array
-   * is ordered such that the first part of the array, up to
-   * index 'uniq_verts', contains "unique" vertex indices. These
-   * vertices might not be truly unique to this node, but if
-   * they appear in another node's vert_indices array, they will
-   * be above that node's 'uniq_verts' value.
+   * In order to support accessing to multiple nodes' vertices without duplication, the array is
+   * ordered such that the first part of the array, up to index #unique_verts_num_, contains
+   * "unique" vertex indices. These vertices might not be truly unique to this node, but if they
+   * appear in another node's vertex indices, they will not be in the first "unique" section.
    *
-   * Used for leaf nodes.
+   * Used for leaf nodes. Accessed with #verts() and #all_verts().
    *
    * \todo Find a way to disable the #VectorSet inline buffer.
    */
@@ -175,16 +182,22 @@ struct GridsNode : public Node {
 };
 
 struct BMeshNode : public Node {
-  /* Set of pointers to the BMFaces used by this node.
-   * NOTE: Type::BMesh only. Faces are always triangles
-   * (dynamic topology forcibly triangulates the mesh).
+  /**
+   * Set of pointers to the faces used by this node. Faces are always triangles (dynamic topology
+   * forcibly triangulates the mesh).
    */
   Set<BMFace *, 0> bm_faces_;
+  /** See description of #MeshNode::vert_indices_. */
   Set<BMVert *, 0> bm_unique_verts_;
+  /** See description of #MeshNode::vert_indices_. */
   Set<BMVert *, 0> bm_other_verts_;
 
-  /* Stores original coordinates of triangles. */
+  /** Stores original coordinates of triangles, typically before some brush stroke operation. */
   Array<float3, 0> orig_positions_;
+  /**
+   * Original triangulation, referencing #orig_positions_ and #orig_verts_ elements. Storing this
+   * allows topology changes during strokes.
+   */
   Array<int3, 0> orig_tris_;
   Array<BMVert *, 0> orig_verts_;
 };
@@ -198,6 +211,12 @@ class DrawCache {
   virtual void tag_face_sets_changed(const IndexMask &node_mask) = 0;
   virtual void tag_masks_changed(const IndexMask &node_mask) = 0;
   virtual void tag_attribute_changed(const IndexMask &node_mask, StringRef attribute_name) = 0;
+};
+
+enum class Type {
+  Mesh,
+  Grids,
+  BMesh,
 };
 
 /**
@@ -234,10 +253,6 @@ class Tree {
    * \note The vector's size may not match the size of the nodes array.
    */
   BitVector<> visibility_dirty_;
-
-  /** \todo Remove and store elsewhere. */
-  float planes_[6][4];
-  int num_planes_;
 
   pixels::PBVHData *pixels_ = nullptr;
 
@@ -295,17 +310,6 @@ class Tree {
  private:
   explicit Tree(Type type);
 };
-
-}  // namespace blender::bke::pbvh
-
-struct PBVHFrustumPlanes {
-  float (*planes)[4];
-  int num_planes;
-};
-
-/* Callbacks */
-
-namespace blender::bke::pbvh {
 
 void build_pixels(const Depsgraph &depsgraph, Object &object, Image &image, ImageUser &image_user);
 
@@ -395,14 +399,20 @@ bool find_nearest_to_ray_node(Tree &pbvh,
                               float *depth,
                               float *dist_sq);
 
-/* Drawing */
-void set_frustum_planes(Tree &pbvh, PBVHFrustumPlanes *planes);
-void get_frustum_planes(const Tree &pbvh, PBVHFrustumPlanes *planes);
-
 /**
  * Get the Tree root's bounding box.
  */
 Bounds<float3> bounds_get(const Tree &pbvh);
+
+/**
+ * Test if AABB is at least partially inside the #PBVHFrustumPlanes volume.
+ */
+bool node_frustum_contain_aabb(const Node &node, Span<float4> frustum_planes);
+
+/**
+ * Test if AABB is at least partially outside the #PBVHFrustumPlanes volume.
+ */
+bool node_frustum_exclude_aabb(const Node &node, Span<float4> frustum_planes);
 
 }  // namespace blender::bke::pbvh
 
@@ -479,17 +489,6 @@ blender::Bounds<blender::float3> BKE_pbvh_node_get_original_BB(
     const blender::bke::pbvh::Node *node);
 
 float BKE_pbvh_node_get_tmin(const blender::bke::pbvh::Node *node);
-
-/**
- * Test if AABB is at least partially inside the #PBVHFrustumPlanes volume.
- */
-bool BKE_pbvh_node_frustum_contain_AABB(const blender::bke::pbvh::Node *node,
-                                        const PBVHFrustumPlanes *frustum);
-/**
- * Test if AABB is at least partially outside the #PBVHFrustumPlanes volume.
- */
-bool BKE_pbvh_node_frustum_exclude_AABB(const blender::bke::pbvh::Node *node,
-                                        const PBVHFrustumPlanes *frustum);
 
 const blender::Set<BMVert *, 0> &BKE_pbvh_bmesh_node_unique_verts(
     blender::bke::pbvh::BMeshNode *node);
@@ -585,6 +584,10 @@ Span<float3> face_normals_eval_from_eval(const Object &object_eval);
 }  // namespace blender::bke::pbvh
 
 int BKE_pbvh_debug_draw_gen_get(blender::bke::pbvh::Node &node);
+
+void BKE_pbvh_draw_debug_cb(blender::bke::pbvh::Tree &pbvh,
+                            void (*draw_fn)(blender::bke::pbvh::Node *node, void *user_data),
+                            void *user_data);
 
 namespace blender::bke::pbvh {
 

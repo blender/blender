@@ -12,12 +12,15 @@
 #include "overlay_private.hh"
 
 #include "BKE_attribute.hh"
+#include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 #include "BKE_paint.hh"
-#include "BKE_pbvh_api.hh"
+#include "BKE_paint_bvh.hh"
 #include "BKE_subdiv_ccg.hh"
 
 #include "DEG_depsgraph_query.hh"
+
+#include "bmesh.hh"
 
 void OVERLAY_sculpt_cache_init(OVERLAY_Data *vedata)
 {

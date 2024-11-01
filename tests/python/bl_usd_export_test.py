@@ -8,7 +8,7 @@ import pprint
 import sys
 import tempfile
 import unittest
-from pxr import Gf, Sdf, Usd, UsdGeom, UsdShade, UsdSkel, UsdUtils
+from pxr import Gf, Sdf, Usd, UsdGeom, UsdShade, UsdSkel, UsdUtils, UsdVol
 
 import bpy
 
@@ -604,6 +604,61 @@ class USDExportTest(AbstractUSDTest):
         anim = UsdSkel.Animation(prim_skel.GetAnimationSource())
         weight_samples = anim.GetBlendShapeWeightsAttr().GetTimeSamples()
         self.assertEqual(weight_samples, [1.0, 2.0, 3.0, 4.0, 5.0])
+
+    def test_export_volumes(self):
+        """Test various combinations of volume export including with all supported volume modifiers."""
+
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_volumes.blend"))
+        # Ensure the simulation zone data is baked for all relevant frames...
+        for frame in range(4, 15):
+            bpy.context.scene.frame_set(frame)
+        bpy.context.scene.frame_set(4)
+
+        export_path = self.tempdir / "usd_volumes.usda"
+        self.export_and_validate(filepath=str(export_path), export_animation=True, evaluation_mode="RENDER")
+
+        stage = Usd.Stage.Open(str(export_path))
+
+        # Validate that we see some form of time varyability across the Volume prim's extents and
+        # file paths. The data should be sparse so it should only be written on the frames which
+        # change.
+
+        # File sequence
+        vol_fileseq = UsdVol.Volume(stage.GetPrimAtPath("/root/vol_filesequence/vol_filesequence"))
+        density = UsdVol.OpenVDBAsset(stage.GetPrimAtPath("/root/vol_filesequence/vol_filesequence/density_noise"))
+        flame = UsdVol.OpenVDBAsset(stage.GetPrimAtPath("/root/vol_filesequence/vol_filesequence/flame_noise"))
+        self.assertEqual(vol_fileseq.GetExtentAttr().GetTimeSamples(), [10.0, 11.0])
+        self.assertEqual(density.GetFieldNameAttr().GetTimeSamples(), [])
+        self.assertEqual(density.GetFilePathAttr().GetTimeSamples(), [8.0, 9.0, 10.0, 11.0, 12.0, 13.0])
+        self.assertEqual(flame.GetFieldNameAttr().GetTimeSamples(), [])
+        self.assertEqual(flame.GetFilePathAttr().GetTimeSamples(), [8.0, 9.0, 10.0, 11.0, 12.0, 13.0])
+
+        # Mesh To Volume
+        vol_mesh2vol = UsdVol.Volume(stage.GetPrimAtPath("/root/vol_mesh2vol/vol_mesh2vol"))
+        density = UsdVol.OpenVDBAsset(stage.GetPrimAtPath("/root/vol_mesh2vol/vol_mesh2vol/density"))
+        self.assertEqual(vol_mesh2vol.GetExtentAttr().GetTimeSamples(),
+                         [6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0])
+        self.assertEqual(density.GetFieldNameAttr().GetTimeSamples(), [])
+        self.assertEqual(density.GetFilePathAttr().GetTimeSamples(),
+                         [4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0])
+
+        # Volume Displace
+        vol_displace = UsdVol.Volume(stage.GetPrimAtPath("/root/vol_displace/vol_displace"))
+        unnamed = UsdVol.OpenVDBAsset(stage.GetPrimAtPath("/root/vol_displace/vol_displace/_"))
+        self.assertEqual(vol_displace.GetExtentAttr().GetTimeSamples(),
+                         [5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0])
+        self.assertEqual(unnamed.GetFieldNameAttr().GetTimeSamples(), [])
+        self.assertEqual(unnamed.GetFilePathAttr().GetTimeSamples(),
+                         [4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0])
+
+        # Geometry Node simulation
+        vol_sim = UsdVol.Volume(stage.GetPrimAtPath("/root/vol_sim/Volume"))
+        density = UsdVol.OpenVDBAsset(stage.GetPrimAtPath("/root/vol_sim/Volume/density"))
+        self.assertEqual(vol_sim.GetExtentAttr().GetTimeSamples(),
+                         [4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0])
+        self.assertEqual(density.GetFieldNameAttr().GetTimeSamples(), [])
+        self.assertEqual(density.GetFilePathAttr().GetTimeSamples(),
+                         [4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0])
 
     def test_export_xform_ops(self):
         """Test exporting different xform operation modes."""

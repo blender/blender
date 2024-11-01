@@ -8,8 +8,6 @@
 
 #pragma once
 
-#include <stdbool.h>
-
 #include "DNA_scene_types.h"
 #include "DNA_vec_types.h"
 

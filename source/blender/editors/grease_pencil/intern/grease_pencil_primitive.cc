@@ -29,6 +29,8 @@
 
 #include "DEG_depsgraph_query.hh"
 
+#include "DNA_material_types.h"
+
 #include "ED_grease_pencil.hh"
 #include "ED_screen.hh"
 #include "ED_space_api.hh"
@@ -121,12 +123,14 @@ struct PrimitiveToolOperation {
   DrawingPlacement placement;
 
   bke::greasepencil::Drawing *drawing;
+  Brush *brush;
   BrushGpencilSettings *settings;
   std::optional<ColorGeometry4f> vertex_color;
   std::optional<ColorGeometry4f> fill_color;
   int material_index;
+  bool use_fill;
   float softness;
-  Brush *brush;
+  float fill_opacity;
   float4x2 texture_space;
 
   OperatorMode mode;
@@ -422,43 +426,11 @@ static int grease_pencil_primitive_curve_points_number(PrimitiveToolOperation &p
   return 0;
 }
 
-/* Attributes that are defined explicitly and should not be copied from original geometry. */
-static Set<std::string> skipped_attribute_ids(const PrimitiveToolOperation &ptd,
-                                              const bke::AttrDomain domain)
-{
-  switch (domain) {
-    case bke::AttrDomain::Point:
-      if (ptd.vertex_color) {
-        return {"position", "radius", "opacity", "vertex_color"};
-      }
-      else {
-        return {"position", "radius", "opacity"};
-      }
-    case bke::AttrDomain::Curve:
-      if (ptd.fill_color) {
-        return {"curve_type",
-                "material_index",
-                "cyclic",
-                "softness",
-                "start_cap",
-                "end_cap",
-                "fill_color"};
-      }
-      else {
-        return {"curve_type", "material_index", "cyclic", "softness", "start_cap", "end_cap"};
-      }
-    default:
-      return {};
-  }
-  return {};
-}
-
 static void grease_pencil_primitive_update_curves(PrimitiveToolOperation &ptd)
 {
   bke::CurvesGeometry &curves = ptd.drawing->strokes_for_write();
 
   const int last_points_num = curves.points_by_curve()[curves.curves_range().last()].size();
-
   const int new_points_num = grease_pencil_primitive_curve_points_number(ptd);
 
   curves.resize(curves.points_num() - last_points_num + new_points_num, curves.curves_num());
@@ -471,12 +443,10 @@ static void grease_pencil_primitive_update_curves(PrimitiveToolOperation &ptd)
   primitive_calulate_curve_positions_2d(ptd, positions_2d);
   ptd.placement.project(positions_2d, positions_3d);
 
+  Set<std::string> point_attributes_to_skip;
+
   MutableSpan<float> new_radii = ptd.drawing->radii_for_write().slice(curve_points);
   MutableSpan<float> new_opacities = ptd.drawing->opacities_for_write().slice(curve_points);
-
-  if (ptd.vertex_color) {
-    ptd.drawing->vertex_colors_for_write().slice(curve_points).fill(*ptd.vertex_color);
-  }
 
   const ToolSettings *ts = ptd.vc.scene->toolsettings;
   const GP_Sculpt_Settings *gset = &ts->gp_sculpt;
@@ -502,19 +472,19 @@ static void grease_pencil_primitive_update_curves(PrimitiveToolOperation &ptd)
     new_radii[point] = radius;
     new_opacities[point] = opacity;
   }
+  point_attributes_to_skip.add_multiple({"position", "radius", "opacity"});
+
+  if (ptd.vertex_color) {
+    ptd.drawing->vertex_colors_for_write().slice(curve_points).fill(*ptd.vertex_color);
+    point_attributes_to_skip.add("vertex_color");
+  }
 
   /* Initialize the rest of the attributes with default values. */
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
-  bke::fill_attribute_range_default(
-      attributes,
-      bke::AttrDomain::Point,
-      bke::attribute_filter_from_skip_ref(skipped_attribute_ids(ptd, bke::AttrDomain::Point)),
-      curve_points);
-  bke::fill_attribute_range_default(
-      attributes,
-      bke::AttrDomain::Curve,
-      bke::attribute_filter_from_skip_ref(skipped_attribute_ids(ptd, bke::AttrDomain::Curve)),
-      curves.curves_range().take_back(1));
+  bke::fill_attribute_range_default(attributes,
+                                    bke::AttrDomain::Point,
+                                    bke::attribute_filter_from_skip_ref(point_attributes_to_skip),
+                                    curve_points);
 
   ptd.drawing->tag_topology_changed();
   ptd.drawing->set_texture_matrices({ptd.texture_space},
@@ -528,6 +498,8 @@ static void grease_pencil_primitive_init_curves(PrimitiveToolOperation &ptd)
   const int num_old_points = curves.points_num();
   curves.resize(curves.points_num() + 1, curves.curves_num() + 1);
   curves.offsets_for_write().last(1) = num_old_points;
+
+  Set<std::string> curve_attributes_to_skip;
 
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
   bke::SpanAttributeWriter<int> materials = attributes.lookup_or_add_for_write_span<int>(
@@ -543,6 +515,7 @@ static void grease_pencil_primitive_init_curves(PrimitiveToolOperation &ptd)
         "start_cap", bke::AttrDomain::Curve);
     start_caps.span.last() = ptd.settings->caps_type;
     start_caps.finish();
+    curve_attributes_to_skip.add("start_cap");
   }
 
   if (ptd.settings->caps_type != GP_STROKE_CAP_TYPE_ROUND || attributes.contains("end_cap")) {
@@ -550,6 +523,7 @@ static void grease_pencil_primitive_init_curves(PrimitiveToolOperation &ptd)
         "end_cap", bke::AttrDomain::Curve);
     end_caps.span.last() = ptd.settings->caps_type;
     end_caps.finish();
+    curve_attributes_to_skip.add("end_cap");
   }
 
   const bool is_cyclic = ELEM(ptd.type, PrimitiveType::Box, PrimitiveType::Circle);
@@ -557,29 +531,36 @@ static void grease_pencil_primitive_init_curves(PrimitiveToolOperation &ptd)
   materials.span.last() = ptd.material_index;
   softness.span.last() = ptd.softness;
 
+  if (ptd.use_fill && (ptd.fill_opacity < 1.0f || attributes.contains("fill_opacity"))) {
+    bke::SpanAttributeWriter<float> fill_opacities =
+        attributes.lookup_or_add_for_write_span<float>(
+            "fill_opacity",
+            bke::AttrDomain::Curve,
+            bke::AttributeInitVArray(VArray<float>::ForSingle(1.0f, curves.curves_num())));
+    fill_opacities.span.last() = ptd.fill_opacity;
+    fill_opacities.finish();
+    curve_attributes_to_skip.add("fill_opacity");
+  }
+
   if (ptd.fill_color) {
     ptd.drawing->fill_colors_for_write().last() = *ptd.fill_color;
+    curve_attributes_to_skip.add("fill_color");
   }
 
   cyclic.finish();
   materials.finish();
   softness.finish();
+  curve_attributes_to_skip.add_multiple({"material_index", "cyclic", "softness"});
 
   curves.curve_types_for_write().last() = CURVE_TYPE_POLY;
   curves.update_curve_types();
+  curve_attributes_to_skip.add("curve_type");
 
   /* Initialize the rest of the attributes with default values. */
-  bke::fill_attribute_range_default(
-      attributes,
-      bke::AttrDomain::Point,
-      bke::attribute_filter_from_skip_ref(skipped_attribute_ids(ptd, bke::AttrDomain::Point)),
-      curves.points_range().take_back(1));
-  bke::fill_attribute_range_default(
-      attributes,
-      bke::AttrDomain::Curve,
-      bke::attribute_filter_from_skip_ref(skipped_attribute_ids(ptd, bke::AttrDomain::Curve)),
-      curves.curves_range().take_back(1));
-
+  bke::fill_attribute_range_default(attributes,
+                                    bke::AttrDomain::Curve,
+                                    bke::attribute_filter_from_skip_ref(curve_attributes_to_skip),
+                                    curves.curves_range().take_back(1));
   grease_pencil_primitive_update_curves(ptd);
 }
 
@@ -757,6 +738,7 @@ static int grease_pencil_primitive_invoke(bContext *C, wmOperator *op, const wmE
   Material *material = BKE_grease_pencil_object_material_ensure_from_active_input_brush(
       CTX_data_main(C), vc.obact, ptd.brush);
   ptd.material_index = BKE_object_material_index_get(vc.obact, material);
+  ptd.use_fill = (material->gp_style->flag & GP_MATERIAL_FILL_SHOW) != 0;
 
   const bool use_vertex_color = (vc.scene->toolsettings->gp_paint->mode ==
                                  GPPAINT_FLAG_USE_VERTEXCOLOR);
@@ -776,6 +758,7 @@ static int grease_pencil_primitive_invoke(bContext *C, wmOperator *op, const wmE
     ptd.fill_color = std::nullopt;
   }
 
+  ptd.fill_opacity = ptd.brush->alpha;
   ptd.softness = 1.0 - ptd.settings->hardness;
 
   ptd.texture_space = ed::greasepencil::calculate_texture_space(

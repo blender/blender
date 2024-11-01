@@ -223,5 +223,5 @@ int GPU_matrix_stack_level_get_projection();
 
 /* Not part of the GPU_matrix API,
  * however we need to check these limits in code that calls into these API's. */
-#define GPU_MATRIX_ORTHO_CLIP_NEAR_DEFAULT (-100)
-#define GPU_MATRIX_ORTHO_CLIP_FAR_DEFAULT (100)
+constexpr static int GPU_MATRIX_ORTHO_CLIP_NEAR_DEFAULT = -100;
+constexpr static int GPU_MATRIX_ORTHO_CLIP_FAR_DEFAULT = 100;

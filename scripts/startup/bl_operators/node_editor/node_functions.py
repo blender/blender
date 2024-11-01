@@ -7,7 +7,7 @@ from bpy.app.translations import pgettext_tip as tip_
 
 def node_editor_poll(cls, context):
     space = context.space_data
-    if space.type != 'NODE_EDITOR':
+    if space is None or (space.type != 'NODE_EDITOR'):
         cls.poll_message_set("Active editor is not a node editor.")
         return False
     if space.node_tree is None:
