@@ -222,17 +222,12 @@ static void createTransCurvesVerts(bContext * /*C*/, TransInfo *t)
                                                      CURVE_TYPE_BEZIER,
                                                      curves.curves_range(),
                                                      curves_transform_data->memory);
-    Vector<index_mask::IndexMask::Initializer> bezier_point_ranges(bezier_curves[i].size());
-    OffsetIndices<int> points_by_curve = curves.points_by_curve();
-    bezier_curves[i].foreach_index(
-        GrainSize(512), [&](const int curve_i, const int bezier_curve_i) {
-          bezier_point_ranges[bezier_curve_i] = points_by_curve[curve_i];
-        });
-    const IndexMask bezier_points = IndexMask::from_initializers(bezier_point_ranges,
-                                                                 curves_transform_data->memory);
+
+    const IndexMask bezier_points = bke::curves::curve_to_point_selection(
+        curves.points_by_curve(), bezier_curves[i], curves_transform_data->memory);
 
     /* Alter selection as in legacy curves bezt_select_to_transform_triple_flag(). */
-    if (bezier_points.size() > 0) {
+    if (!bezier_points.is_empty()) {
       blender::IndexMaskMemory memory;
       /* Selected handles, but not the control point. */
       const IndexMask selected_left = IndexMask::from_difference(

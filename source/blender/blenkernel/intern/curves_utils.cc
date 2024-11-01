@@ -11,6 +11,17 @@
 
 namespace blender::bke::curves {
 
+IndexMask curve_to_point_selection(OffsetIndices<int> points_by_curve,
+                                   const IndexMask &curve_selection,
+                                   IndexMaskMemory &memory)
+{
+  Array<index_mask::IndexMask::Initializer> point_ranges(curve_selection.size());
+  curve_selection.foreach_index(GrainSize(2048), [&](const int curve, const int pos) {
+    point_ranges[pos] = points_by_curve[curve];
+  });
+  return IndexMask::from_initializers(point_ranges, memory);
+}
+
 void fill_points(const OffsetIndices<int> points_by_curve,
                  const IndexMask &curve_selection,
                  const GPointer value,

@@ -140,22 +140,13 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
       }
 
       if (use_proportional_edit) {
-        Array<int> bezier_point_offset_data(bezier_curves[layer_offset].size() + 1);
-        const OffsetIndices<int> bezier_offsets = offset_indices::gather_selected_offsets(
-            curves.points_by_curve(), bezier_curves[layer_offset], bezier_point_offset_data);
+        const IndexMask bezier_points = bke::curves::curve_to_point_selection(
+            curves.points_by_curve(), bezier_curves[layer_offset], curves_transform_data->memory);
 
-        const int bezier_point_count = bezier_offsets.total_size();
-        tc.data_len += curves.points_num() + 2 * bezier_point_count;
+        tc.data_len += curves.points_num() + 2 * bezier_points.size();
         points_to_transform_per_attribute[layer_offset].append(curves.points_range());
 
-        if (bezier_point_count > 0) {
-          Vector<index_mask::IndexMask::Initializer> bezier_point_ranges;
-          const OffsetIndices<int> points_by_curve = curves.points_by_curve();
-          bezier_curves[layer_offset].foreach_index(GrainSize(512), [&](const int bezier_curve_i) {
-            bezier_point_ranges.append(points_by_curve[bezier_curve_i]);
-          });
-          IndexMask bezier_points = IndexMask::from_initializers(bezier_point_ranges,
-                                                                 curves_transform_data->memory);
+        if (!bezier_points.is_empty()) {
           points_to_transform_per_attribute[layer_offset].append(bezier_points);
           points_to_transform_per_attribute[layer_offset].append(bezier_points);
         }
