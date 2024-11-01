@@ -29,7 +29,6 @@
 #include "gpu_shader_gpencil_stroke_info.hh"
 #include "gpu_shader_icon_info.hh"
 #include "gpu_shader_index_info.hh"
-#include "gpu_shader_instance_varying_color_varying_size_info.hh"
 #include "gpu_shader_keyframe_shape_info.hh"
 #include "gpu_shader_line_dashed_uniform_color_info.hh"
 #include "gpu_shader_print_info.hh"

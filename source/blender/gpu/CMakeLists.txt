@@ -471,8 +471,6 @@ set(GLSL_SRC
   shaders/gpu_shader_diag_stripes_frag.glsl
   shaders/gpu_shader_simple_lighting_frag.glsl
   shaders/gpu_shader_flat_color_frag.glsl
-  shaders/gpu_shader_flat_color_alpha_test_0_frag.glsl
-  shaders/gpu_shader_flat_id_frag.glsl
   shaders/gpu_shader_2D_vert.glsl
   shaders/gpu_shader_2D_area_borders_vert.glsl
   shaders/gpu_shader_2D_area_borders_frag.glsl
@@ -505,14 +503,10 @@ set(GLSL_SRC
   shaders/gpu_shader_3D_polyline_vert_no_geom.glsl
   shaders/gpu_shader_3D_smooth_color_vert.glsl
   shaders/gpu_shader_3D_smooth_color_frag.glsl
-  shaders/gpu_shader_3D_passthrough_vert.glsl
   shaders/gpu_shader_3D_clipped_uniform_color_vert.glsl
-
-  shaders/gpu_shader_instance_variying_size_variying_color_vert.glsl
 
   shaders/gpu_shader_point_uniform_color_aa_frag.glsl
   shaders/gpu_shader_point_uniform_color_outline_aa_frag.glsl
-  shaders/gpu_shader_point_varying_color_varying_outline_aa_frag.glsl
   shaders/gpu_shader_point_varying_color_frag.glsl
   shaders/gpu_shader_3D_point_varying_size_varying_color_vert.glsl
   shaders/gpu_shader_3D_point_uniform_size_aa_vert.glsl
