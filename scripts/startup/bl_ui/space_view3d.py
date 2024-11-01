@@ -964,7 +964,15 @@ class VIEW3D_HT_header(Header):
             # If the active tool supports it, show the canvas selector popover.
             from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
             tool = ToolSelectPanelHelper.tool_active_from_context(context)
-            is_paint_tool = tool and tool.use_paint_canvas
+
+            is_paint_tool = False
+            if tool.use_brushes:
+                paint = tool_settings.sculpt
+                brush = paint.brush
+                if brush:
+                    is_paint_tool = brush.sculpt_tool in {'PAINT', 'SMEAR'}
+            else:
+                is_paint_tool = tool and tool.use_paint_canvas
 
             shading = VIEW3D_PT_shading.get_shading(context)
             color_type = shading.color_type
