@@ -15,8 +15,8 @@
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
 #include "BKE_paint.hh"
+#include "BKE_paint_bvh.hh"
 #include "BKE_particle.h"
-#include "BKE_pbvh_api.hh"
 
 #include "BLI_alloca.h"
 

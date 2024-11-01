@@ -26,7 +26,7 @@
 #include "BKE_mesh_mapping.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
-#include "BKE_pbvh_api.hh"
+#include "BKE_paint_bvh.hh"
 
 #include "paint_intern.hh"
 #include "sculpt_geodesic.hh"

@@ -14,8 +14,8 @@
 #include "IMB_imbuf_types.hh"
 
 #include "BKE_image_wrappers.hh"
-#include "BKE_pbvh_api.hh"
-#include "BKE_pbvh_pixels.hh"
+#include "BKE_paint_bvh.hh"
+#include "BKE_paint_bvh_pixels.hh"
 
 #include "pbvh_intern.hh"
 #include "pbvh_pixels_copy.hh"

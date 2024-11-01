@@ -48,7 +48,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
-#include "BKE_pbvh_api.hh"
+#include "BKE_paint_bvh.hh"
 #include "BKE_scene.hh"
 #include "BKE_subdiv_ccg.hh"
 #include "BKE_subdiv_modifier.hh"

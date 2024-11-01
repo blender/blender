@@ -12,7 +12,7 @@
 #include "BLI_math_vector.hh"
 #include "BLI_set.hh"
 
-#include "BKE_pbvh_api.hh"
+#include "BKE_paint_bvh.hh"
 
 struct Brush;
 struct Scene;

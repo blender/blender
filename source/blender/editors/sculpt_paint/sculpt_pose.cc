@@ -24,7 +24,7 @@
 #include "BKE_colortools.hh"
 #include "BKE_mesh.hh"
 #include "BKE_paint.hh"
-#include "BKE_pbvh_api.hh"
+#include "BKE_paint_bvh.hh"
 
 #include "mesh_brush_common.hh"
 #include "paint_intern.hh"

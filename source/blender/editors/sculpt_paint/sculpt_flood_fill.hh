@@ -14,7 +14,7 @@
 #include "BLI_function_ref.hh"
 #include "BLI_offset_indices.hh"
 
-#include "BKE_pbvh_api.hh"
+#include "BKE_paint_bvh.hh"
 #include "BKE_subdiv_ccg.hh"
 
 struct BMVert;

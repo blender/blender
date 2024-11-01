@@ -25,7 +25,7 @@
 
 #include "BKE_colortools.hh"
 #include "BKE_paint.hh"
-#include "BKE_pbvh_api.hh"
+#include "BKE_paint_bvh.hh"
 #include "BKE_subdiv_ccg.hh"
 
 #include "mesh_brush_common.hh"

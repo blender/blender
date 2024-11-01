@@ -6,7 +6,7 @@
 
 #include "BKE_mesh.hh"
 #include "BKE_paint.hh"
-#include "BKE_pbvh_api.hh"
+#include "BKE_paint_bvh.hh"
 #include "BKE_subdiv_ccg.hh"
 #include "DNA_brush_types.h"
 #include "DNA_mesh_types.h"

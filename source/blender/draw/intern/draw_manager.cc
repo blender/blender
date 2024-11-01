@@ -8,7 +8,7 @@
 
 #include "BKE_global.hh"
 #include "BKE_paint.hh"
-#include "BKE_pbvh_api.hh"
+#include "BKE_paint_bvh.hh"
 
 #include "BLI_math_base.h"
 #include "GPU_compute.hh"

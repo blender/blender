@@ -482,9 +482,9 @@ set(SRC
   BKE_outliner_treehash.hh
   BKE_packedFile.hh
   BKE_paint.hh
+  BKE_paint_bvh.hh
+  BKE_paint_bvh_pixels.hh
   BKE_particle.h
-  BKE_pbvh_api.hh
-  BKE_pbvh_pixels.hh
   BKE_pointcache.h
   BKE_pointcloud.hh
   BKE_pose_backup.h

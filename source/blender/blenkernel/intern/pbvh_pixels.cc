@@ -5,8 +5,8 @@
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
-#include "BKE_pbvh_api.hh"
-#include "BKE_pbvh_pixels.hh"
+#include "BKE_paint_bvh.hh"
+#include "BKE_paint_bvh_pixels.hh"
 
 #include "DNA_image_types.h"
 #include "DNA_object_types.h"
