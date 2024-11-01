@@ -190,7 +190,7 @@ class PixelNodesTileData : public Vector<std::reference_wrapper<UDIMTilePixels>>
   static bool should_add_node(blender::bke::pbvh::Node &node,
                               const image::ImageTileWrapper &image_tile)
   {
-    if ((node.flag_ & PBVH_Leaf) == 0) {
+    if ((node.flag_ & Node::Leaf) == 0) {
       return false;
     }
     if (node.pixels_ == nullptr) {

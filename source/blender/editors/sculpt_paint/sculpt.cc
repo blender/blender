@@ -4408,7 +4408,7 @@ static void sculpt_raycast_cb(blender::bke::pbvh::Node &node, SculptRaycastData 
     }
   }
 
-  if (node.flag_ & PBVH_FullyHidden) {
+  if (node.flag_ & bke::pbvh::Node::FullyHidden) {
     return;
   }
 

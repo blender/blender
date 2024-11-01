@@ -58,23 +58,6 @@ struct NodeData;
 }  // namespace bke::pbvh
 }  // namespace blender
 
-enum PBVHNodeFlags : uint32_t {
-  PBVH_Leaf = 1 << 0,
-
-  PBVH_UpdateRedraw = 1 << 5,
-
-  PBVH_FullyHidden = 1 << 10,
-  PBVH_FullyMasked = 1 << 11,
-  PBVH_FullyUnmasked = 1 << 12,
-
-  PBVH_UpdateTopology = 1 << 13,
-  PBVH_RebuildPixels = 1 << 15,
-  PBVH_TexLeaf = 1 << 16,
-  /** Used internally by `pbvh_bmesh.cc`. */
-  PBVH_TopologyUpdated = 1 << 17,
-};
-ENUM_OPERATORS(PBVHNodeFlags, PBVH_TopologyUpdated);
-
 namespace blender::bke::pbvh {
 
 class Tree;
@@ -87,6 +70,22 @@ class Node {
   friend Tree;
 
  public:
+  enum Flags : uint32_t {
+    Leaf = 1 << 0,
+
+    UpdateRedraw = 1 << 5,
+
+    FullyHidden = 1 << 10,
+    FullyMasked = 1 << 11,
+    FullyUnmasked = 1 << 12,
+
+    UpdateTopology = 1 << 13,
+    RebuildPixels = 1 << 15,
+    TexLeaf = 1 << 16,
+    /** Used internally by `pbvh_bmesh.cc`. */
+    TopologyUpdated = 1 << 17,
+  };
+
   /** Axis aligned min and max of all vertex positions in the node. */
   Bounds<float3> bounds_ = {};
   /** Bounds from the start of current brush stroke. */
@@ -98,7 +97,7 @@ class Node {
 
   /* Indicates whether this node is a leaf or not; also used for
    * marking various updates that need to be applied. */
-  PBVHNodeFlags flag_ = PBVH_UpdateRedraw;
+  Flags flag_ = UpdateRedraw;
 
   /**
    * Used for ray-casting: how close the bounding-box is to the ray point.
@@ -116,6 +115,8 @@ class Node {
   /** \todo Move storage of image painting data to #Tree or elsewhere. */
   pixels::NodeData *pixels_ = nullptr;
 };
+
+ENUM_OPERATORS(Node::Flags, Node::Flags::TopologyUpdated);
 
 struct MeshNode : public Node {
   /**
