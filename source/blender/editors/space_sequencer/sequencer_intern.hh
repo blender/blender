@@ -94,6 +94,7 @@ struct StripDrawContext {
   float strip_length;
 
   bool can_draw_text_overlay;
+  bool can_draw_retiming_overlay;
   bool can_draw_strip_content;
   bool strip_is_too_small; /* Shorthand for (!can_draw_text_overlay && !can_draw_strip_content). */
   bool is_active_strip;
