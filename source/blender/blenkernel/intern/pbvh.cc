@@ -2365,11 +2365,7 @@ bool BKE_pbvh_node_frustum_exclude_AABB(const blender::bke::pbvh::Node *node,
 }
 
 void BKE_pbvh_draw_debug_cb(blender::bke::pbvh::Tree &pbvh,
-                            void (*draw_fn)(blender::bke::pbvh::Node *node,
-                                            void *user_data,
-                                            const float bmin[3],
-                                            const float bmax[3],
-                                            PBVHNodeFlags flag),
+                            void (*draw_fn)(blender::bke::pbvh::Node *node, void *user_data),
                             void *user_data)
 {
   PBVHNodeFlags flag = PBVH_Leaf;
@@ -2388,7 +2384,7 @@ void BKE_pbvh_draw_debug_cb(blender::bke::pbvh::Tree &pbvh,
             continue;
           }
 
-          draw_fn(&node, user_data, node.bounds_.min, node.bounds_.max, node.flag_);
+          draw_fn(&node, user_data);
         }
       },
       pbvh.nodes_);

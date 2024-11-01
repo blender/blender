@@ -1273,31 +1273,21 @@ static void draw_pbvh_nodes(const Object &object,
   });
 }
 
-void DRW_sculpt_debug_cb(blender::bke::pbvh::Node *node,
-                         void *user_data,
-                         const float bmin[3],
-                         const float bmax[3],
-                         PBVHNodeFlags flag)
+void DRW_sculpt_debug_cb(blender::bke::pbvh::Node *node, void *user_data)
 {
   int *debug_node_nr = (int *)user_data;
   BoundBox bb;
-  BKE_boundbox_init_from_minmax(&bb, bmin, bmax);
+  BKE_boundbox_init_from_minmax(&bb, node->bounds_.min, node->bounds_.max);
 
 #if 0 /* Nodes hierarchy. */
-  if (flag & PBVH_Leaf) {
     DRW_debug_bbox(&bb, blender::float4{0.0f, 1.0f, 0.0f, 1.0f});
-  }
-  else {
-    DRW_debug_bbox(&bb, blender::float4{0.5f, 0.5f, 0.5f, 0.6f});
-  }
-#else /* Color coded leaf bounds. */
-  if (flag & (PBVH_Leaf | PBVH_TexLeaf)) {
-    DRW_debug_bbox(&bb, SCULPT_DEBUG_COLOR((*debug_node_nr)++));
-    int color = (*debug_node_nr)++;
-    color += BKE_pbvh_debug_draw_gen_get(*node);
 
-    DRW_debug_bbox(&bb, SCULPT_DEBUG_COLOR(color));
-  }
+#else /* Color coded leaf bounds. */
+  DRW_debug_bbox(&bb, SCULPT_DEBUG_COLOR((*debug_node_nr)++));
+  int color = (*debug_node_nr)++;
+  color += BKE_pbvh_debug_draw_gen_get(*node);
+
+  DRW_debug_bbox(&bb, SCULPT_DEBUG_COLOR(color));
 #endif
 }
 
@@ -1394,12 +1384,7 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
   if (SCULPT_DEBUG_BUFFERS) {
     int debug_node_nr = 0;
     DRW_debug_modelmat(object.object_to_world().ptr());
-    BKE_pbvh_draw_debug_cb(
-        *pbvh,
-        (void (*)(
-            bke::pbvh::Node *n, void *d, const float min[3], const float max[3], PBVHNodeFlags f))
-            DRW_sculpt_debug_cb,
-        &debug_node_nr);
+    BKE_pbvh_draw_debug_cb(*pbvh, DRW_sculpt_debug_cb, &debug_node_nr);
   }
 }
 
