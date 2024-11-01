@@ -188,7 +188,8 @@ static bool retiming_key_add_new_for_seq(bContext *C,
                                          const int timeline_frame)
 {
   Scene *scene = CTX_data_scene(C);
-  const int frame_index = BKE_scene_frame_get(scene) - SEQ_time_start_frame_get(seq);
+  const float frame_index = (BKE_scene_frame_get(scene) - SEQ_time_start_frame_get(seq)) *
+                            SEQ_time_media_playback_rate_factor_get(scene, seq);
   const SeqRetimingKey *key = SEQ_retiming_find_segment_start_key(seq, frame_index);
 
   if (key != nullptr && SEQ_retiming_key_is_transition_start(key)) {
