@@ -122,24 +122,19 @@ struct MeshNode : public Node {
   Span<int> face_indices_;
 
   /**
-   * Array of indices into the mesh's vertex array. Contains the
-   * indices of all vertices used by faces that are within this
-   * node's bounding box.
+   * Array of indices into the mesh's vertex array. Contains the indices of all vertices used by
+   * faces that are within this node's bounding box. Also contains a mapping from global vertex
+   * index to indices within only the node.
    *
-   * Note that a vertex might be used by a multiple faces, and
-   * these faces might be in different leaf nodes. Such a vertex
-   * will appear in the vert_indices array of each of those leaf
-   * nodes.
+   * Vertices might be used by a multiple faces, and these faces might be in different leaf nodes.
+   * Such vertices will appear in the vertex indices array of each of those leaf nodes.
    *
-   * In order to support cases where you want access to multiple
-   * nodes' vertices without duplication, the vert_indices array
-   * is ordered such that the first part of the array, up to
-   * index 'uniq_verts', contains "unique" vertex indices. These
-   * vertices might not be truly unique to this node, but if
-   * they appear in another node's vert_indices array, they will
-   * be above that node's 'uniq_verts' value.
+   * In order to support accessing to multiple nodes' vertices without duplication, the array is
+   * ordered such that the first part of the array, up to index #unique_verts_num_, contains
+   * "unique" vertex indices. These vertices might not be truly unique to this node, but if they
+   * appear in another node's vertex indices, they will not be in the first "unique" section.
    *
-   * Used for leaf nodes.
+   * Used for leaf nodes. Accessed with #verts() and #all_verts().
    *
    * \todo Find a way to disable the #VectorSet inline buffer.
    */
@@ -175,16 +170,22 @@ struct GridsNode : public Node {
 };
 
 struct BMeshNode : public Node {
-  /* Set of pointers to the BMFaces used by this node.
-   * NOTE: Type::BMesh only. Faces are always triangles
-   * (dynamic topology forcibly triangulates the mesh).
+  /**
+   * Set of pointers to the faces used by this node. Faces are always triangles (dynamic topology
+   * forcibly triangulates the mesh).
    */
   Set<BMFace *, 0> bm_faces_;
+  /** See description of #MeshNode::vert_indices_. */
   Set<BMVert *, 0> bm_unique_verts_;
+  /** See description of #MeshNode::vert_indices_. */
   Set<BMVert *, 0> bm_other_verts_;
 
-  /* Stores original coordinates of triangles. */
+  /** Stores original coordinates of triangles, typically before some brush stroke operation. */
   Array<float3, 0> orig_positions_;
+  /**
+   * Original triangulation, referencing #orig_positions_ and #orig_verts_ elements. Storing this
+   * allows topology changes during strokes.
+   */
   Array<int3, 0> orig_tris_;
   Array<BMVert *, 0> orig_verts_;
 };
