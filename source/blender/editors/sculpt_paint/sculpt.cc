@@ -4461,7 +4461,8 @@ static void sculpt_raycast_cb(blender::bke::pbvh::Node &node, SculptRaycastData 
                                           srd.active_face_grid_index,
                                           srd.face_normal);
       if (hit) {
-        srd.active_vertex = grids_active_vert;
+        srd.active_vertex = grids_active_vert.to_index(
+            BKE_subdiv_ccg_key_top_level(*srd.subdiv_ccg));
       }
       break;
     }
