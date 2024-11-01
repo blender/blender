@@ -700,7 +700,7 @@ void DRW_view_frustum_corners_get(const DRWView *view, BoundBox *corners);
  * \return world space frustum sides as planes.
  * See #draw_frustum_culling_planes_calc() for the plane order.
  */
-void DRW_view_frustum_planes_get(const DRWView *view, float planes[6][4]);
+std::array<float4, 6> DRW_view_frustum_planes_get(const DRWView *view);
 
 /**
  * These are in view-space, so negative if in perspective.

@@ -1292,19 +1292,20 @@ void DRW_sculpt_debug_cb(blender::bke::pbvh::Node *node, void *user_data)
 #endif
 }
 
-static void drw_sculpt_get_frustum_planes(const Object *ob, float planes[6][4])
+static std::array<float4, 6> drw_sculpt_get_frustum_planes(const Object *ob)
 {
   /* TODO: take into account partial redraw for clipping planes. */
-  DRW_view_frustum_planes_get(DRW_view_default_get(), planes);
+  std::array<float4, 6> planes = DRW_view_frustum_planes_get(DRW_view_default_get());
 
   /* Transform clipping planes to object space. Transforming a plane with a
    * 4x4 matrix is done by multiplying with the transpose inverse.
    * The inverse cancels out here since we transform by inverse(obmat). */
   float tmat[4][4];
   transpose_m4_m4(tmat, ob->object_to_world().ptr());
-  for (int i = 0; i < 6; i++) {
+  for (const int i : blender::IndexRange(planes.size())) {
     mul_m4_v4(tmat, planes[i]);
   }
+  return planes;
 }
 
 static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
@@ -1328,12 +1329,7 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
   }
 
   /* Frustum planes to show only visible pbvh::Tree nodes. */
-  float draw_planes[6][4];
-  PBVHFrustumPlanes draw_frustum;
-
-  drw_sculpt_get_frustum_planes(scd->ob, draw_planes);
-  draw_frustum.planes = draw_planes;
-  draw_frustum.num_planes = 6;
+  const std::array<float4, 6> draw_frustum_planes = drw_sculpt_get_frustum_planes(scd->ob);
 
   /* Fast mode to show low poly multires while navigating. */
   scd->fast_mode = false;
@@ -1356,7 +1352,7 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
   const IndexMask visible_nodes = bke::pbvh::search_nodes(
       *pbvh, memory, [&](const bke::pbvh::Node &node) {
         return !BKE_pbvh_node_fully_hidden_get(node) &&
-               BKE_pbvh_node_frustum_contain_AABB(&node, &draw_frustum);
+               bke::pbvh::node_frustum_contain_aabb(node, draw_frustum_planes);
       });
 
   const IndexMask nodes_to_update = update_only_visible ? visible_nodes :
@@ -2322,9 +2318,13 @@ void DRW_view_frustum_corners_get(const DRWView *view, BoundBox *corners)
   memcpy(corners, &view->frustum_corners, sizeof(view->frustum_corners));
 }
 
-void DRW_view_frustum_planes_get(const DRWView *view, float planes[6][4])
+std::array<float4, 6> DRW_view_frustum_planes_get(const DRWView *view)
 {
-  memcpy(planes, &view->frustum_planes, sizeof(view->frustum_planes));
+  std::array<float4, 6> planes;
+  const blender::Span<float4> view_planes(reinterpret_cast<const float4 *>(&view->frustum_planes),
+                                          6);
+  std::copy(view_planes.begin(), view_planes.end(), planes.begin());
+  return planes;
 }
 
 bool DRW_view_is_persp_get(const DRWView *view)
