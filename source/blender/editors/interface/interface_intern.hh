@@ -605,9 +605,7 @@ struct uiBlock {
   int (*block_event_func)(const bContext *C, uiBlock *, const wmEvent *);
 
   /** Custom extra draw function for custom blocks. */
-  void (*drawextra)(const bContext *C, void *idv, void *arg1, void *arg2, rcti *rect);
-  void *drawextra_arg1;
-  void *drawextra_arg2;
+  std::function<void(const bContext *, rcti *)> drawextra;
 
   int flag;
   short alignnr;
