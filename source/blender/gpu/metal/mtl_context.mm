@@ -2724,9 +2724,6 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
       MTLContext::get_global_memory_manager()->get_current_safe_list();
   BLI_assert(cmd_free_buffer_list);
 
-  id<MTLCommandBuffer> cmd_buffer_ref = cmdbuf;
-  [cmd_buffer_ref retain];
-
   /* Increment drawables in flight limiter. */
   MTLContext::max_drawables_in_flight++;
   std::chrono::time_point submission_time = std::chrono::high_resolution_clock::now();
@@ -2736,7 +2733,6 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
   [cmdbuf addCompletedHandler:^(id<MTLCommandBuffer> /*cb*/) {
     /* Flag freed buffers associated with this CMD buffer as ready to be freed. */
     cmd_free_buffer_list->decrement_reference();
-    [cmd_buffer_ref release];
 
     /* Decrement count */
     MTLCommandBufferManager::num_active_cmd_bufs--;
