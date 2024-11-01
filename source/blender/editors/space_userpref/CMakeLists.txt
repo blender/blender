@@ -4,7 +4,6 @@
 
 set(INC
   ../include
-  ../../asset_system
   ../../blenkernel
   ../../blenloader
   ../../blentranslation
