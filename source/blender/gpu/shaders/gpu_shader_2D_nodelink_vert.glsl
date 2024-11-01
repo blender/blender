@@ -14,7 +14,7 @@
 
 #define MID_VERTEX 65
 
-void main(void)
+void main()
 {
   const float start_gradient_threshold = 0.35;
   const float end_gradient_threshold = 0.65;

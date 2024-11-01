@@ -26,7 +26,7 @@ float linear_zdepth(float depth, mat4 proj_mat)
  * McGuire and Bavoil, Weighted Blended Order-Independent Transparency, Journal of
  * Computer Graphics Techniques (JCGT), vol. 2, no. 2, 122–141, 2013
  */
-float calculate_transparent_weight(void)
+float calculate_transparent_weight()
 {
   float z = linear_zdepth(gl_FragCoord.z, drw_view.winmat);
 #if 0

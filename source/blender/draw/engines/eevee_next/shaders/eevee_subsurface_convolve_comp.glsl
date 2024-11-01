@@ -78,7 +78,7 @@ SubSurfaceSample sample_neighborhood(vec2 sample_uv)
   return samp;
 }
 
-void main(void)
+void main()
 {
   const uint tile_size = SUBSURFACE_GROUP_SIZE;
   uvec2 tile_coord = unpackUvec2x16(tiles_coord_buf[gl_WorkGroupID.x]);

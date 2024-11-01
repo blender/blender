@@ -14,7 +14,7 @@ float length_squared(vec3 v)
   return dot(v, v);
 }
 
-vec3 gpencil_lighting(void)
+vec3 gpencil_lighting()
 {
   vec3 light_accum = vec3(0.0);
   for (int i = 0; i < GPENCIL_LIGHT_BUFFER_LEN; i++) {

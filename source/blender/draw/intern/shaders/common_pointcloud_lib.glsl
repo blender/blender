@@ -123,7 +123,7 @@ vec4 pointcloud_get_customdata_vec4(const samplerBuffer cd_buf)
   return texelFetch(cd_buf, id).rgba;
 }
 
-vec2 pointcloud_get_barycentric(void)
+vec2 pointcloud_get_barycentric()
 {
   /* TODO: To be implemented. */
   return vec2(0.0);

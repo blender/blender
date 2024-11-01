@@ -146,12 +146,12 @@ void hair_get_interp_attrs(
 
 #  if !defined(HAIR_PHASE_SUBDIV) && defined(GPU_VERTEX_SHADER)
 
-int hair_get_strand_id(void)
+int hair_get_strand_id()
 {
   return gl_VertexID / (hairStrandsRes * hairThicknessRes);
 }
 
-int hair_get_base_id(void)
+int hair_get_base_id()
 {
   return gl_VertexID / hairThicknessRes;
 }
@@ -270,13 +270,13 @@ vec4 hair_get_customdata_vec4(const samplerBuffer cd_buf)
   return texelFetch(cd_buf, id).rgba;
 }
 
-vec3 hair_get_strand_pos(void)
+vec3 hair_get_strand_pos()
 {
   int id = hair_get_strand_id() * hairStrandsRes;
   return texelFetch(hairPointBuffer, id).point_position;
 }
 
-vec2 hair_get_barycentric(void)
+vec2 hair_get_barycentric()
 {
   /* To match cycles without breaking into individual segment we encode if we need to invert
    * the first component into the second component. We invert if the barycentricTexCo.y

@@ -7,7 +7,7 @@
 /* 4x4 bayer matrix prepared for 8bit UNORM precision error. */
 #define P(x) (((x + 0.5) * (1.0 / 16.0) - 0.5) * (1.0 / 255.0))
 
-float dither(void)
+float dither()
 {
   /* NOTE(Metal): Declaring constant array in function scope to avoid increasing local shader
    * memory pressure. */

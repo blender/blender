@@ -12,7 +12,7 @@ vec2 compute_dir(vec2 v0, vec2 v1)
   return dir;
 }
 
-void main(void)
+void main()
 {
   vec2 t;
   vec2 edge_dir = compute_dir(interp_flat[0].ss_pos, interp_flat[1].ss_pos) * sizeViewportInv;
