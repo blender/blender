@@ -75,7 +75,7 @@ using BatchHandle = int64_t;
  * Request the creation of multiple shaders at once, allowing the backend to use multithreaded
  * compilation. Returns a handle that can be used to poll if all shaders have been compiled, and to
  * retrieve the compiled shaders.
- * NOTE: This function is asynchronous on OpenGL, but it's blocking on Vulkan and Metal.
+ * NOTE: This function is asynchronous on OpenGL, but it's blocking on Vulkan.
  * WARNING: The GPUShaderCreateInfo pointers should be valid until `GPU_shader_batch_finalize` has
  * returned.
  */
