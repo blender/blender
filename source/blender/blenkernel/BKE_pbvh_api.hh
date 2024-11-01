@@ -29,15 +29,10 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
-#include "DNA_customdata_types.h"
-
-/* For embedding CCGKey in iterator. */
-#include "BKE_ccg.hh"
-
-#include "bmesh.hh"
-
+struct BMFace;
 struct BMLog;
 struct BMesh;
+struct BMVert;
 struct CCGKey;
 struct Depsgraph;
 struct IsectRayPrecalc;

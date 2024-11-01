@@ -13,6 +13,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_curve.hh"
+#include "BKE_customdata.hh"
 #include "BKE_duplilist.hh"
 #include "BKE_global.hh"
 #include "BKE_image.h"

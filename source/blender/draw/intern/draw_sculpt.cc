@@ -11,6 +11,7 @@
 #include "draw_attributes.hh"
 
 #include "BKE_attribute.hh"
+#include "BKE_customdata.hh"
 #include "BKE_mesh_types.hh"
 #include "BKE_paint.hh"
 

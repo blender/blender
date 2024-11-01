@@ -14,9 +14,6 @@
  * \note It is currently work in progress and should replace the old global draw manager.
  */
 
-#include "BKE_paint.hh"
-#include "BKE_pbvh_api.hh"
-
 #include "BLI_map.hh"
 #include "BLI_sys_types.h"
 
@@ -165,14 +162,7 @@ class Manager {
    */
   ResourceHandle resource_handle_for_psys(const ObjectRef &ref, const float4x4 &model_matrix);
 
-  ResourceHandle resource_handle_for_sculpt(const ObjectRef &ref)
-  {
-    /* TODO(fclem): Deduplicate with other engine. */
-    const blender::Bounds<float3> bounds = bke::pbvh::bounds_get(*ref.object->sculpt->pbvh);
-    const float3 center = math::midpoint(bounds.min, bounds.max);
-    const float3 half_extent = bounds.max - center;
-    return resource_handle(ref, nullptr, &center, &half_extent);
-  }
+  ResourceHandle resource_handle_for_sculpt(const ObjectRef &ref);
 
   /** Update the bounds of an already created handle. */
   void update_handle_bounds(ResourceHandle handle,

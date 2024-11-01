@@ -34,6 +34,8 @@
 #include "GPU_immediate.hh"
 #include "GPU_state.hh"
 
+#include "bmesh.hh"
+
 #include <cstdlib>
 
 namespace blender::ed::sculpt_paint::boundary {

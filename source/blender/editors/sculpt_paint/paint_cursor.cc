@@ -62,6 +62,8 @@
 #include "sculpt_intern.hh"
 #include "sculpt_pose.hh"
 
+#include "bmesh.hh"
+
 /* TODOs:
  *
  * Some of the cursor drawing code is doing non-draw stuff

@@ -56,6 +56,8 @@
 #include <cmath>
 #include <cstdlib>
 
+#include "bmesh.hh"
+
 namespace blender::ed::sculpt_paint::dyntopo {
 
 static CLG_LogRef LOG = {"sculpt.detail"};
