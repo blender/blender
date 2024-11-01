@@ -4509,8 +4509,7 @@ static void widget_draw_extra_mask(const bContext *C, uiBut *but, uiWidgetType *
 
   if (but->block->drawextra) {
     /* NOTE: drawextra can change rect +1 or -1, to match round errors of existing previews. */
-    but->block->drawextra(
-        C, but->poin, but->block->drawextra_arg1, but->block->drawextra_arg2, rect);
+    but->block->drawextra(C, rect);
 
     const uint pos = GPU_vertformat_attr_add(
         immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);

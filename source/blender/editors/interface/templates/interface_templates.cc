@@ -3407,7 +3407,13 @@ void uiTemplatePreview(uiLayout *layout,
     ui_preview = MEM_cnew<uiPreview>(__func__);
     STRNCPY(ui_preview->preview_id, preview_id);
     ui_preview->height = short(UI_UNIT_Y * 7.6f);
+    ui_preview->id_session_uid = pid->session_uid;
+    ui_preview->tag = UI_PREVIEW_TAG_DIRTY;
     BLI_addtail(&region->ui_previews, ui_preview);
+  }
+  else if (ui_preview->id_session_uid != pid->session_uid) {
+    ui_preview->id_session_uid = pid->session_uid;
+    ui_preview->tag |= UI_PREVIEW_TAG_DIRTY;
   }
 
   if (ui_preview->height < UI_UNIT_Y) {
@@ -3426,7 +3432,10 @@ void uiTemplatePreview(uiLayout *layout,
   /* add preview */
   uiDefBut(
       block, UI_BTYPE_EXTRA, 0, "", 0, 0, UI_UNIT_X * 10, ui_preview->height, pid, 0.0, 0.0, "");
-  UI_but_func_drawextra_set(block, ED_preview_draw, pparent, slot);
+  UI_but_func_drawextra_set(block,
+                            [pid, pparent, slot, ui_preview](const bContext *C, rcti *rect) {
+                              ED_preview_draw(C, pid, pparent, slot, ui_preview, rect);
+                            });
   UI_block_func_handle_set(block, do_preview_buttons, nullptr);
 
   uiDefIconButS(block,

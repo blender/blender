@@ -334,8 +334,18 @@ typedef struct uiPreview {
   /** Defined as #BKE_ST_MAXNAME. */
   char preview_id[64];
   short height;
-  char _pad1[6];
+
+  /* Unset on file read. */
+  short tag; /* #uiPreviewTag */
+
+  /** #ID.session_uid of the ID this preview is made for. Unset on file read. */
+  unsigned int id_session_uid;
 } uiPreview;
+
+typedef enum uiPreviewTag {
+  /** Preview needs rerendering, handled in #ED_preview_draw(). */
+  UI_PREVIEW_TAG_DIRTY = (1 << 0),
+} uiPreviewTag;
 
 typedef struct ScrGlobalAreaData {
   /**
