@@ -97,7 +97,7 @@ static GPUShader *g_subdiv_shaders[NUM_SHADERS];
 static GPUShader
     *g_subdiv_custom_data_shaders[SHADER_CUSTOM_DATA_INTERP_MAX_DIMENSIONS][GPU_COMP_MAX];
 
-static const char *get_shader_code(int shader_type)
+static StringRefNull get_shader_code(int shader_type)
 {
   switch (shader_type) {
     case SHADER_BUFFER_LINES:
@@ -147,7 +147,7 @@ static const char *get_shader_code(int shader_type)
   return nullptr;
 }
 
-static const char *get_shader_name(int shader_type)
+static StringRefNull get_shader_name(int shader_type)
 {
   switch (shader_type) {
     case SHADER_BUFFER_LINES: {
@@ -215,9 +215,9 @@ static const char *get_shader_name(int shader_type)
 static GPUShader *get_patch_evaluation_shader(int shader_type)
 {
   if (g_subdiv_shaders[shader_type] == nullptr) {
-    const char *compute_code = get_shader_code(shader_type);
+    const StringRefNull compute_code = get_shader_code(shader_type);
 
-    const char *defines = nullptr;
+    std::optional<StringRefNull> defines;
     if (shader_type == SHADER_PATCH_EVALUATION) {
       defines =
           "#define OSD_PATCH_BASIS_GLSL\n"
@@ -253,12 +253,11 @@ static GPUShader *get_patch_evaluation_shader(int shader_type)
     }
 
     /* Merge OpenSubdiv library code with our own library code. */
-    const char *patch_basis_source = openSubdiv_getGLSLPatchBasisSource();
-    const char *subdiv_lib_code = datatoc_common_subdiv_lib_glsl;
-    char *library_code = BLI_string_joinN(patch_basis_source, subdiv_lib_code);
+    const StringRefNull patch_basis_source = openSubdiv_getGLSLPatchBasisSource();
+    const StringRefNull subdiv_lib_code = datatoc_common_subdiv_lib_glsl;
+    std::string library_code = patch_basis_source + subdiv_lib_code;
     g_subdiv_shaders[shader_type] = GPU_shader_create_compute(
         compute_code, library_code, defines, get_shader_name(shader_type));
-    MEM_freeN(library_code);
   }
 
   return g_subdiv_shaders[shader_type];
@@ -282,8 +281,8 @@ static GPUShader *get_subdiv_shader(int shader_type)
                    SHADER_COMP_CUSTOM_DATA_INTERP_4D));
 
   if (g_subdiv_shaders[shader_type] == nullptr) {
-    const char *compute_code = get_shader_code(shader_type);
-    const char *defines = nullptr;
+    const StringRefNull compute_code = get_shader_code(shader_type);
+    std::optional<StringRefNull> defines;
 
     if (ELEM(shader_type,
              SHADER_BUFFER_LINES,
@@ -326,7 +325,8 @@ static GPUShader *get_subdiv_custom_data_shader(int comp_type, int dimensions)
   GPUShader *&shader = g_subdiv_custom_data_shaders[dimensions - 1][comp_type];
 
   if (shader == nullptr) {
-    const char *compute_code = get_shader_code(SHADER_COMP_CUSTOM_DATA_INTERP_1D + dimensions - 1);
+    const StringRefNull compute_code = get_shader_code(SHADER_COMP_CUSTOM_DATA_INTERP_1D +
+                                                       dimensions - 1);
 
     int shader_type = SHADER_COMP_CUSTOM_DATA_INTERP_1D + dimensions - 1;
 
@@ -347,10 +347,8 @@ static GPUShader *get_subdiv_custom_data_shader(int comp_type, int dimensions)
         break;
     }
 
-    shader = GPU_shader_create_compute(compute_code,
-                                       datatoc_common_subdiv_lib_glsl,
-                                       defines.c_str(),
-                                       get_shader_name(shader_type));
+    shader = GPU_shader_create_compute(
+        compute_code, datatoc_common_subdiv_lib_glsl, defines, get_shader_name(shader_type));
   }
   return shader;
 }

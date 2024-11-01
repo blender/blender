@@ -1007,12 +1007,12 @@ bool GLShader::do_geometry_shader_injection(const shader::ShaderCreateInfo *info
 /** \name Shader stage creation
  * \{ */
 
-static const char *glsl_patch_default_get()
+static StringRefNull glsl_patch_default_get()
 {
   /** Used for shader patching. Init once. */
   static std::string patch;
   if (!patch.empty()) {
-    return patch.c_str();
+    return patch;
   }
 
   std::stringstream ss;
@@ -1063,15 +1063,15 @@ static const char *glsl_patch_default_get()
   ss << datatoc_glsl_shader_defines_glsl;
 
   patch = ss.str();
-  return patch.c_str();
+  return patch;
 }
 
-static const char *glsl_patch_compute_get()
+static StringRefNull glsl_patch_compute_get()
 {
   /** Used for shader patching. Init once. */
   static std::string patch;
   if (!patch.empty()) {
-    return patch.c_str();
+    return patch;
   }
 
   std::stringstream ss;
@@ -1085,10 +1085,10 @@ static const char *glsl_patch_compute_get()
   ss << datatoc_glsl_shader_defines_glsl;
 
   patch = ss.str();
-  return patch.c_str();
+  return patch;
 }
 
-const char *GLShader::glsl_patch_get(GLenum gl_stage)
+StringRefNull GLShader::glsl_patch_get(GLenum gl_stage)
 {
   if (gl_stage == GL_COMPUTE_SHADER) {
     return glsl_patch_compute_get();
@@ -1097,12 +1097,12 @@ const char *GLShader::glsl_patch_get(GLenum gl_stage)
 }
 
 GLuint GLShader::create_shader_stage(GLenum gl_stage,
-                                     MutableSpan<const char *> sources,
+                                     MutableSpan<StringRefNull> sources,
                                      GLSources &gl_sources)
 {
   /* Patch the shader sources to include specialization constants. */
   std::string constants_source;
-  Vector<const char *> recreated_sources;
+  Vector<StringRefNull> recreated_sources;
   const bool has_specialization_constants = !constants.types.is_empty();
   if (has_specialization_constants) {
     constants_source = constants_declare();
@@ -1114,7 +1114,7 @@ GLuint GLShader::create_shader_stage(GLenum gl_stage,
 
   /* Patch the shader code using the first source slot. */
   sources[SOURCES_INDEX_VERSION] = glsl_patch_get(gl_stage);
-  sources[SOURCES_INDEX_SPECIALIZATION_CONSTANTS] = constants_source.c_str();
+  sources[SOURCES_INDEX_SPECIALIZATION_CONSTANTS] = constants_source;
 
   if (async_compilation_) {
     gl_sources[SOURCES_INDEX_VERSION].source = std::string(sources[SOURCES_INDEX_VERSION]);
@@ -1141,7 +1141,7 @@ GLuint GLShader::create_shader_stage(GLenum gl_stage,
     }
 
     debug_source += "\n\n----------" + source_type + "----------\n\n";
-    for (const char *source : sources) {
+    for (StringRefNull source : sources) {
       debug_source.append(source);
     }
   }
@@ -1157,7 +1157,11 @@ GLuint GLShader::create_shader_stage(GLenum gl_stage,
     return 0;
   }
 
-  glShaderSource(shader, sources.size(), sources.data(), nullptr);
+  Array<const char *, 16> c_str_sources(sources.size());
+  for (const int i : sources.index_range()) {
+    c_str_sources[i] = sources[i].c_str();
+  }
+  glShaderSource(shader, c_str_sources.size(), c_str_sources.data(), nullptr);
   glCompileShader(shader);
 
   GLint status;
@@ -1194,7 +1198,7 @@ GLuint GLShader::create_shader_stage(GLenum gl_stage,
 }
 
 void GLShader::update_program_and_sources(GLSources &stage_sources,
-                                          MutableSpan<const char *> sources)
+                                          MutableSpan<StringRefNull> sources)
 {
   const bool store_sources = !constants.types.is_empty() || async_compilation_;
   if (store_sources && stage_sources.is_empty()) {
@@ -1204,28 +1208,28 @@ void GLShader::update_program_and_sources(GLSources &stage_sources,
   init_program();
 }
 
-void GLShader::vertex_shader_from_glsl(MutableSpan<const char *> sources)
+void GLShader::vertex_shader_from_glsl(MutableSpan<StringRefNull> sources)
 {
   update_program_and_sources(vertex_sources_, sources);
   program_active_->vert_shader = this->create_shader_stage(
       GL_VERTEX_SHADER, sources, vertex_sources_);
 }
 
-void GLShader::geometry_shader_from_glsl(MutableSpan<const char *> sources)
+void GLShader::geometry_shader_from_glsl(MutableSpan<StringRefNull> sources)
 {
   update_program_and_sources(geometry_sources_, sources);
   program_active_->geom_shader = this->create_shader_stage(
       GL_GEOMETRY_SHADER, sources, geometry_sources_);
 }
 
-void GLShader::fragment_shader_from_glsl(MutableSpan<const char *> sources)
+void GLShader::fragment_shader_from_glsl(MutableSpan<StringRefNull> sources)
 {
   update_program_and_sources(fragment_sources_, sources);
   program_active_->frag_shader = this->create_shader_stage(
       GL_FRAGMENT_SHADER, sources, fragment_sources_);
 }
 
-void GLShader::compute_shader_from_glsl(MutableSpan<const char *> sources)
+void GLShader::compute_shader_from_glsl(MutableSpan<StringRefNull> sources)
 {
   update_program_and_sources(compute_sources_, sources);
   program_active_->compute_shader = this->create_shader_stage(
@@ -1240,10 +1244,10 @@ bool GLShader::finalize(const shader::ShaderCreateInfo *info)
 
   if (info && do_geometry_shader_injection(info)) {
     std::string source = workaround_geometry_shader_source_create(*info);
-    Vector<const char *> sources;
+    Vector<StringRefNull> sources;
     sources.append("version");
     sources.append("/* Specialization Constants. */\n");
-    sources.append(source.c_str());
+    sources.append(source);
     geometry_shader_from_glsl(sources);
   }
 
@@ -1418,7 +1422,7 @@ int GLShader::program_handle_get() const
 /* -------------------------------------------------------------------- */
 /** \name Sources
  * \{ */
-GLSource::GLSource(const char *other)
+GLSource::GLSource(StringRefNull other)
 {
   if (!gpu_shader_dependency_get_filename_from_source_string(other).is_empty()) {
     source = "";
@@ -1426,19 +1430,19 @@ GLSource::GLSource(const char *other)
   }
   else {
     source = other;
-    source_ref = nullptr;
+    source_ref = std::nullopt;
   }
 }
 
-GLSources &GLSources::operator=(Span<const char *> other)
+GLSources &GLSources::operator=(Span<StringRefNull> other)
 {
   clear();
   reserve(other.size());
 
-  for (const char *other_source : other) {
+  for (StringRefNull other_source : other) {
     /* Don't store empty string as compilers can optimize these away and result in pointing to a
      * string that isn't c-str compliant anymore. */
-    if (other_source[0] == '\0') {
+    if (other_source.is_empty()) {
       continue;
     }
     append(GLSource(other_source));
@@ -1447,17 +1451,17 @@ GLSources &GLSources::operator=(Span<const char *> other)
   return *this;
 }
 
-Vector<const char *> GLSources::sources_get() const
+Vector<StringRefNull> GLSources::sources_get() const
 {
-  Vector<const char *> result;
+  Vector<StringRefNull> result;
   result.reserve(size());
 
   for (const GLSource &source : *this) {
     if (source.source_ref) {
-      result.append(source.source_ref);
+      result.append(*source.source_ref);
     }
     else {
-      result.append(source.source.c_str());
+      result.append(source.source);
     }
   }
   return result;
@@ -1468,7 +1472,7 @@ std::string GLSources::to_string() const
   std::string result;
   for (const GLSource &source : *this) {
     if (source.source_ref) {
-      result.append(source.source_ref);
+      result.append(*source.source_ref);
     }
     else {
       result.append(source.source);
@@ -1540,9 +1544,8 @@ bool GLShader::check_link_status()
   if (!status) {
     char log[5000];
     glGetProgramInfoLog(program_id, sizeof(log), nullptr, log);
-    Span<const char *> sources = {debug_source.c_str()};
     GLLogParser parser;
-    print_log(sources, log, "Linking", true, &parser);
+    print_log({debug_source}, log, "Linking", true, &parser);
   }
 
   return bool(status);
@@ -1578,7 +1581,7 @@ GLuint GLShader::program_get()
 
   program_active_ = &program_cache_.lookup_or_add_default(constants.values);
   if (!program_active_->program_id) {
-    MutableSpan<const char *> no_sources;
+    MutableSpan<StringRefNull> no_sources;
     if (!vertex_sources_.is_empty()) {
       program_active_->vert_shader = create_shader_stage(
           GL_VERTEX_SHADER, no_sources, vertex_sources_);

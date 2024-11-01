@@ -35,15 +35,15 @@ namespace blender::gpu {
  */
 struct GLSource {
   std::string source;
-  const char *source_ref;
+  std::optional<StringRefNull> source_ref;
 
   GLSource() = default;
-  GLSource(const char *other_source);
+  GLSource(StringRefNull other_source);
 };
 class GLSources : public Vector<GLSource> {
  public:
-  GLSources &operator=(Span<const char *> other);
-  Vector<const char *> sources_get() const;
+  GLSources &operator=(Span<StringRefNull> other);
+  Vector<StringRefNull> sources_get() const;
   std::string to_string() const;
 };
 
@@ -131,7 +131,7 @@ class GLShader : public Shader {
    */
   void init_program();
 
-  void update_program_and_sources(GLSources &stage_sources, MutableSpan<const char *> sources);
+  void update_program_and_sources(GLSources &stage_sources, MutableSpan<StringRefNull> sources);
 
   /**
    * Link the active program.
@@ -159,10 +159,10 @@ class GLShader : public Shader {
   void init(const shader::ShaderCreateInfo &info, bool is_batch_compilation) override;
 
   /** Return true on success. */
-  void vertex_shader_from_glsl(MutableSpan<const char *> sources) override;
-  void geometry_shader_from_glsl(MutableSpan<const char *> sources) override;
-  void fragment_shader_from_glsl(MutableSpan<const char *> sources) override;
-  void compute_shader_from_glsl(MutableSpan<const char *> sources) override;
+  void vertex_shader_from_glsl(MutableSpan<StringRefNull> sources) override;
+  void geometry_shader_from_glsl(MutableSpan<StringRefNull> sources) override;
+  void fragment_shader_from_glsl(MutableSpan<StringRefNull> sources) override;
+  void compute_shader_from_glsl(MutableSpan<StringRefNull> sources) override;
   bool finalize(const shader::ShaderCreateInfo *info = nullptr) override;
   bool post_finalize(const shader::ShaderCreateInfo *info = nullptr);
   void warm_cache(int /*limit*/) override{};
@@ -214,11 +214,11 @@ class GLShader : public Shader {
   GLSourcesBaked get_sources();
 
  private:
-  const char *glsl_patch_get(GLenum gl_stage);
+  StringRefNull glsl_patch_get(GLenum gl_stage);
 
   /** Create, compile and attach the shader stage to the shader program. */
   GLuint create_shader_stage(GLenum gl_stage,
-                             MutableSpan<const char *> sources,
+                             MutableSpan<StringRefNull> sources,
                              GLSources &gl_sources);
 
   /**

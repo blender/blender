@@ -215,7 +215,7 @@ static bool extract_ssbo_pragma_info(const MTLShader *shader,
     }
     else {
       MTL_LOG_ERROR("Unsupported output primitive type for SSBO VERTEX FETCH MODE. Shader: %s",
-                    shader->name_get());
+                    shader->name_get().c_str());
       return false;
     }
 
@@ -426,7 +426,7 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
   if (!uses_create_info) {
     MTL_LOG_WARNING("Unable to compile shader %p '%s' as no create-info was provided!",
                     this,
-                    this->name_get());
+                    this->name_get().c_str());
     valid_ = false;
     return false;
   }
@@ -1635,7 +1635,7 @@ bool MSLGeneratorInterface::use_argument_buffer_for_samplers() const
         "Compiled Shader '%s' is falling back to bindless via argument buffers due to having a "
         "texture sampler of Index: %u Which exceeds the limit of 15+1. However shader only uses "
         "%d textures. Consider optimising bind points with .auto_resource_location(true).",
-        parent_shader_.name_get(),
+        parent_shader_.name_get().c_str(),
         max_tex_bind_index,
         (int)texture_samplers.size());
   }
@@ -3119,7 +3119,7 @@ void MSLGeneratorInterface::resolve_input_attribute_locations()
       /* Error if could not assign attribute. */
       MTL_LOG_ERROR("Could not assign attribute location to attribute %s for shader %s",
                     attr.name.c_str(),
-                    this->parent_shader_.name_get());
+                    this->parent_shader_.name_get().c_str());
     }
   }
 }

@@ -287,10 +287,10 @@ class MTLShader : public Shader {
   void init(const shader::ShaderCreateInfo & /*info*/, bool is_batch_compilation) override;
 
   /* Assign GLSL source. */
-  void vertex_shader_from_glsl(MutableSpan<const char *> sources) override;
-  void geometry_shader_from_glsl(MutableSpan<const char *> sources) override;
-  void fragment_shader_from_glsl(MutableSpan<const char *> sources) override;
-  void compute_shader_from_glsl(MutableSpan<const char *> sources) override;
+  void vertex_shader_from_glsl(MutableSpan<StringRefNull> sources) override;
+  void geometry_shader_from_glsl(MutableSpan<StringRefNull> sources) override;
+  void fragment_shader_from_glsl(MutableSpan<StringRefNull> sources) override;
+  void compute_shader_from_glsl(MutableSpan<StringRefNull> sources) override;
 
   /* Compile and build - Return true if successful. */
   bool finalize(const shader::ShaderCreateInfo *info = nullptr) override;

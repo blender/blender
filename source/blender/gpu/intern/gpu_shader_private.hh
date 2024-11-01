@@ -82,10 +82,10 @@ class Shader {
    * `GPU_shader_batch`. Backends that use the `ShaderCompilerGeneric` can ignore it. */
   virtual void init(const shader::ShaderCreateInfo &info, bool is_batch_compilation) = 0;
 
-  virtual void vertex_shader_from_glsl(MutableSpan<const char *> sources) = 0;
-  virtual void geometry_shader_from_glsl(MutableSpan<const char *> sources) = 0;
-  virtual void fragment_shader_from_glsl(MutableSpan<const char *> sources) = 0;
-  virtual void compute_shader_from_glsl(MutableSpan<const char *> sources) = 0;
+  virtual void vertex_shader_from_glsl(MutableSpan<StringRefNull> sources) = 0;
+  virtual void geometry_shader_from_glsl(MutableSpan<StringRefNull> sources) = 0;
+  virtual void fragment_shader_from_glsl(MutableSpan<StringRefNull> sources) = 0;
+  virtual void compute_shader_from_glsl(MutableSpan<StringRefNull> sources) = 0;
   virtual bool finalize(const shader::ShaderCreateInfo *info = nullptr) = 0;
   /* Pre-warms PSOs using parent shader's cached PSO descriptors. Limit specifies maximum PSOs to
    * warm. If -1, compiles all PSO permutations in parent shader.
@@ -122,7 +122,7 @@ class Shader {
   virtual bool get_uses_ssbo_vertex_fetch() const = 0;
   virtual int get_ssbo_vertex_fetch_output_num_verts() const = 0;
 
-  inline const char *name_get() const
+  inline StringRefNull name_get() const
   {
     return name;
   }
@@ -142,7 +142,7 @@ class Shader {
   static void set_framebuffer_srgb_target(int use_srgb_to_linear);
 
  protected:
-  void print_log(Span<const char *> sources,
+  void print_log(Span<StringRefNull> sources,
                  const char *log,
                  const char *stage,
                  bool error,

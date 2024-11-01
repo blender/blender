@@ -10,8 +10,12 @@
 
 #pragma once
 
+#include <optional>
+
 #include "BLI_span.hh"
+#include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
+
 #include "GPU_common_types.hh"
 #include "GPU_shader_builtin.hh"
 
@@ -271,32 +275,32 @@ enum eGPUShaderTFBType {
   GPU_SHADER_TFB_TRIANGLES = 3,
 };
 
-GPUShader *GPU_shader_create(const char *vertcode,
-                             const char *fragcode,
-                             const char *geomcode,
-                             const char *libcode,
-                             const char *defines,
-                             const char *shname);
-GPUShader *GPU_shader_create_compute(const char *computecode,
-                                     const char *libcode,
-                                     const char *defines,
-                                     const char *shname);
-GPUShader *GPU_shader_create_from_python(const char *vertcode,
-                                         const char *fragcode,
-                                         const char *geomcode,
-                                         const char *libcode,
-                                         const char *defines,
-                                         const char *name);
-GPUShader *GPU_shader_create_ex(const char *vertcode,
-                                const char *fragcode,
-                                const char *geomcode,
-                                const char *computecode,
-                                const char *libcode,
-                                const char *defines,
+GPUShader *GPU_shader_create(std::optional<blender::StringRefNull> vertcode,
+                             std::optional<blender::StringRefNull> fragcode,
+                             std::optional<blender::StringRefNull> geomcode,
+                             std::optional<blender::StringRefNull> libcode,
+                             std::optional<blender::StringRefNull> defines,
+                             blender::StringRefNull shname);
+GPUShader *GPU_shader_create_compute(std::optional<blender::StringRefNull> computecode,
+                                     std::optional<blender::StringRefNull> libcode,
+                                     std::optional<blender::StringRefNull> defines,
+                                     blender::StringRefNull shname);
+GPUShader *GPU_shader_create_from_python(std::optional<blender::StringRefNull> vertcode,
+                                         std::optional<blender::StringRefNull> fragcode,
+                                         std::optional<blender::StringRefNull> geomcode,
+                                         std::optional<blender::StringRefNull> libcode,
+                                         std::optional<blender::StringRefNull> defines,
+                                         std::optional<blender::StringRefNull> name);
+GPUShader *GPU_shader_create_ex(std::optional<blender::StringRefNull> vertcode,
+                                std::optional<blender::StringRefNull> fragcode,
+                                std::optional<blender::StringRefNull> geomcode,
+                                std::optional<blender::StringRefNull> computecode,
+                                std::optional<blender::StringRefNull> libcode,
+                                std::optional<blender::StringRefNull> defines,
                                 eGPUShaderTFBType tf_type,
                                 const char **tf_names,
                                 int tf_count,
-                                const char *shname);
+                                blender::StringRefNull shname);
 
 /**
  * Returns true if transform feedback was successfully enabled.
