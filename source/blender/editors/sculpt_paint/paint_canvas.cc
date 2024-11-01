@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_compiler_compat.h"
+#include "BLI_string_ref.hh"
 
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"

@@ -15,6 +15,7 @@
 #include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.hh"
+#include "BLI_ordered_edge.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
