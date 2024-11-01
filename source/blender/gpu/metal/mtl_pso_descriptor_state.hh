@@ -7,12 +7,14 @@
  */
 #pragma once
 
+#include "GPU_batch.hh"
 #include "GPU_vertex_format.hh"
 
 #include <Metal/Metal.h>
 
 #include "BLI_vector.hh"
 
+#include "gpu_framebuffer_private.hh"
 #include "gpu_shader_private.hh"
 
 namespace blender::gpu {
@@ -83,7 +85,7 @@ struct MTLSSBOAttribute {
   int attribute_format;
   bool is_instance;
 
-  MTLSSBOAttribute(){};
+  MTLSSBOAttribute() = default;
   MTLSSBOAttribute(
       int attribute_ind, int vertexbuffer_ind, int offset, int stride, int format, bool instanced)
       : mtl_attribute_index(attribute_ind),
@@ -97,7 +99,10 @@ struct MTLSSBOAttribute {
 
   bool operator==(const MTLSSBOAttribute &other) const
   {
-    return (memcmp(this, &other, sizeof(MTLSSBOAttribute)) == 0);
+    return (mtl_attribute_index == other.mtl_attribute_index && vbo_id == other.vbo_id &&
+            attribute_offset == other.attribute_offset &&
+            per_vertex_stride == other.per_vertex_stride &&
+            attribute_format == other.attribute_format && is_instance == other.is_instance);
   }
 
   void reset()
@@ -347,7 +352,7 @@ struct MTLComputePipelineStateDescriptor {
   /* Specialization constants map. */
   SpecializationStateDescriptor specialization_state;
 
-  MTLComputePipelineStateDescriptor() {}
+  MTLComputePipelineStateDescriptor() = default;
   MTLComputePipelineStateDescriptor(Vector<Shader::Constants::Value> values)
   {
     specialization_state.values = values;

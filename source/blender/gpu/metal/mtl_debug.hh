@@ -21,9 +21,7 @@
 /* Whether empty debug groups should be hidden. */
 #define METAL_DEBUG_CAPTURE_HIDE_EMPTY 0
 
-namespace blender {
-namespace gpu {
-namespace debug {
+namespace blender::gpu::debug {
 
 extern CLG_LogRef LOG;
 
@@ -55,6 +53,4 @@ void mtl_debug_init();
     } \
   }
 
-}  // namespace debug
-}  // namespace gpu
-}  // namespace blender
+}  // namespace blender::gpu::debug

@@ -306,15 +306,15 @@ static int get_num_performance_cpu_cores(id<MTLDevice> device)
 
   if (is_apple_sillicon(device)) {
     /* On Apple Silicon query the number of performance cores */
-    if (sysctlbyname("hw.perflevel0.logicalcpu", &sysctl_buffer, &sysctl_buffer_length, NULL, 0) ==
-        0)
+    if (sysctlbyname(
+            "hw.perflevel0.logicalcpu", &sysctl_buffer, &sysctl_buffer_length, nullptr, 0) == 0)
     {
       num_performance_cores = sysctl_buffer[0];
     }
   }
   else {
     /* On Intel just return the logical core count */
-    if (sysctlbyname("hw.logicalcpu", &sysctl_buffer, &sysctl_buffer_length, NULL, 0) == 0) {
+    if (sysctlbyname("hw.logicalcpu", &sysctl_buffer, &sysctl_buffer_length, nullptr, 0) == 0) {
       num_performance_cores = sysctl_buffer[0];
     }
   }
@@ -330,8 +330,8 @@ static int get_num_efficiency_cpu_cores(id<MTLDevice> device)
     int num_efficiency_cores = -1;
     unsigned char sysctl_buffer[SYSCTL_BUF_LENGTH];
     size_t sysctl_buffer_length = SYSCTL_BUF_LENGTH;
-    if (sysctlbyname("hw.perflevel1.logicalcpu", &sysctl_buffer, &sysctl_buffer_length, NULL, 0) ==
-        0)
+    if (sysctlbyname(
+            "hw.perflevel1.logicalcpu", &sysctl_buffer, &sysctl_buffer_length, nullptr, 0) == 0)
     {
       num_efficiency_cores = sysctl_buffer[0];
     }
@@ -339,9 +339,7 @@ static int get_num_efficiency_cpu_cores(id<MTLDevice> device)
     BLI_assert(num_efficiency_cores != -1);
     return num_efficiency_cores;
   }
-  else {
-    return 0;
-  }
+  return 0;
 }
 
 bool MTLBackend::metal_is_supported()

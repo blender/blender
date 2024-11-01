@@ -8,18 +8,20 @@
 
 #pragma once
 
+#include "BLI_assert.h"
+#include "BLI_map.hh"
+#include "GPU_texture.hh"
+#include "MEM_guardedalloc.h"
+
+#include "gpu_texture_private.hh"
+
+#include <mutex>
+#include <string>
+#include <thread>
+
 #include <Cocoa/Cocoa.h>
 #include <Metal/Metal.h>
 #include <QuartzCore/QuartzCore.h>
-
-#include "BLI_assert.h"
-#include "MEM_guardedalloc.h"
-#include "gpu_texture_private.hh"
-
-#include "BLI_map.hh"
-#include "GPU_texture.hh"
-#include <mutex>
-#include <thread>
 
 @class CAMetalLayer;
 @class MTLCommandQueue;
@@ -265,7 +267,7 @@ class MTLTexture : public Texture {
              eGPUTextureFormat format,
              eGPUTextureType type,
              id<MTLTexture> metal_texture);
-  ~MTLTexture();
+  ~MTLTexture() override;
 
   void update_sub(
       int mip, int offset[3], int extent[3], eGPUDataFormat type, const void *data) override;
@@ -309,7 +311,7 @@ class MTLTexture : public Texture {
 
   MTLStorageBuf *get_storagebuf();
 
-  const int *get_texture_metdata_ptr() const
+  const int *get_texture_metadata_ptr() const
   {
     return tex_buffer_metadata_;
   }
@@ -363,7 +365,7 @@ class MTLTexture : public Texture {
             uint src_z_offset,
             uint src_slice,
             uint src_mip,
-            gpu::MTLTexture *dest,
+            gpu::MTLTexture *dst,
             uint dst_x_offset,
             uint dst_y_offset,
             uint dst_z_offset,
@@ -372,7 +374,7 @@ class MTLTexture : public Texture {
             uint width,
             uint height,
             uint depth);
-  void blit(gpu::MTLTexture *dest,
+  void blit(gpu::MTLTexture *dst,
             uint src_x_offset,
             uint src_y_offset,
             uint dst_x_offset,

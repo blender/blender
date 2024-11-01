@@ -31,7 +31,7 @@ class MTLQueryPool : public QueryPool {
 
  public:
   MTLQueryPool();
-  ~MTLQueryPool();
+  ~MTLQueryPool() override;
 
   void init(GPUQueryType type) override;
 

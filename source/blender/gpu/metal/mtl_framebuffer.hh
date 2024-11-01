@@ -15,6 +15,7 @@
 
 #include "gpu_framebuffer_private.hh"
 #include "mtl_texture.hh"
+
 #include <Metal/Metal.h>
 
 namespace blender::gpu {
@@ -89,12 +90,13 @@ class MTLFrameBuffer : public FrameBuffer {
    * load-store configuration for optimal bandwidth utilization.
    * -- We cache these different configs to avoid re-generation --
    */
-  typedef enum {
+  enum {
     MTL_FB_CONFIG_CLEAR = 0,
     MTL_FB_CONFIG_LOAD = 1,
-    MTL_FB_CONFIG_CUSTOM = 2
-  } MTL_FB_CONFIG;
-#define MTL_FB_CONFIG_MAX (MTL_FB_CONFIG_CUSTOM + 1)
+    MTL_FB_CONFIG_CUSTOM = 2,
+
+    MTL_FB_CONFIG_MAX = (MTL_FB_CONFIG_CUSTOM + 1),
+  };
 
   MTLRenderPassDescriptor *framebuffer_descriptor_[MTL_FB_CONFIG_MAX];
   MTLRenderPassColorAttachmentDescriptor
@@ -122,7 +124,7 @@ class MTLFrameBuffer : public FrameBuffer {
    */
   MTLFrameBuffer(MTLContext *ctx, const char *name);
 
-  ~MTLFrameBuffer();
+  ~MTLFrameBuffer() override;
 
   void bind(bool enabled_srgb) override;
 

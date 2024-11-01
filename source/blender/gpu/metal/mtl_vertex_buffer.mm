@@ -60,7 +60,7 @@ void MTLVertBuf::release_data()
 
 void MTLVertBuf::duplicate_data(VertBuf *dst_)
 {
-  BLI_assert(MTLContext::get() != NULL);
+  BLI_assert(MTLContext::get() != nullptr);
   MTLVertBuf *src = this;
   MTLVertBuf *dst = static_cast<MTLVertBuf *>(dst_);
 
