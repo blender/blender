@@ -709,7 +709,7 @@ MetalDevice::MetalMem *MetalDevice::generic_alloc(device_memory &mem)
     mem.device_size = metal_buffer.allocatedSize;
     stats.mem_alloc(mem.device_size);
 
-    metal_buffer.label = [[NSString alloc] initWithFormat:@"%s", mem.name];
+    metal_buffer.label = [NSString stringWithFormat:@"%s", mem.name];
 
     std::lock_guard<std::recursive_mutex> lock(metal_mem_map_mutex);
 

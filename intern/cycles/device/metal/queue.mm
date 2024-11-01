@@ -437,10 +437,10 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
 
     if (label_command_encoders_) {
       /* Add human-readable labels if we're doing any form of debugging / profiling. */
-      mtlComputeCommandEncoder.label = [[NSString alloc]
-          initWithFormat:@"Metal queue launch %s, work_size %d",
-                         device_kernel_as_string(kernel),
-                         work_size];
+      mtlComputeCommandEncoder.label = [NSString
+          stringWithFormat:@"Metal queue launch %s, work_size %d",
+                           device_kernel_as_string(kernel),
+                           work_size];
     }
 
     /* this relies on IntegratorStateGPU layout being contiguous device_ptrs. */

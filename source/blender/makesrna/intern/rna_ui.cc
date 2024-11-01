@@ -211,30 +211,24 @@ static bool rna_Panel_unregister(Main *bmain, StructRNA *type)
     child_pt->parent = nullptr;
   }
 
-  const char space_type = pt->space_type;
-  BLI_freelistN(&pt->children);
-  BLI_freelinkN(&art->paneltypes, pt);
-
   LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-        if (sl->spacetype == space_type) {
-          ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                 &sl->regionbase;
-          LISTBASE_FOREACH (ARegion *, region, regionbase) {
-            if (region->type == art) {
-              LISTBASE_FOREACH (Panel *, panel, &region->panels) {
-                panel_type_clear_recursive(panel, pt);
-              }
-            }
-            /* The unregistered panel might have had a template that added instanced panels,
-             * so remove them just in case. They can be re-added on redraw anyway. */
-            UI_panels_free_instanced(nullptr, region);
+        ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase : &sl->regionbase;
+        LISTBASE_FOREACH (ARegion *, region, regionbase) {
+          LISTBASE_FOREACH (Panel *, panel, &region->panels) {
+            panel_type_clear_recursive(panel, pt);
           }
+          /* The unregistered panel might have had a template that added instanced panels,
+           * so remove them just in case. They can be re-added on redraw anyway. */
+          UI_panels_free_instanced(nullptr, region);
         }
       }
     }
   }
+
+  BLI_freelistN(&pt->children);
+  BLI_freelinkN(&art->paneltypes, pt);
 
   /* update while blender is running */
   WM_main_add_notifier(NC_WINDOW, nullptr);
