@@ -144,6 +144,15 @@ void ED_node_tree_pop(SpaceNode *snode)
 
   /* don't remove root */
   if (path == snode->treepath.first) {
+    if (ED_node_is_shader(snode)) {
+      if (snode->shaderfrom == SNODE_SHADER_OBJECT) {
+        snode->shaderfrom = SNODE_SHADER_NPR;
+      }
+      else if (snode->shaderfrom == SNODE_SHADER_NPR) {
+        snode->shaderfrom = SNODE_SHADER_OBJECT;
+      }
+    }
+
     return;
   }
 

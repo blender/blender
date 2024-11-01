@@ -177,10 +177,6 @@ static int node_group_edit_exec(bContext *C, wmOperator *op)
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
   bNode *gnode = node_group_get_active(C, node_idname);
-  if (!gnode) {
-    /* TODO(NPR): This should change eSpaceNode_ShaderFrom too. */
-    gnode = node_group_get_active(C, "ShaderNodeNPR");
-  }
 
   if (gnode && !exit) {
     bNodeTree *ngroup = (bNodeTree *)gnode->id;
