@@ -253,7 +253,7 @@ bool SEQ_retiming_key_is_freeze_frame(const SeqRetimingKey *key)
 static bool seq_retiming_transition_is_linear(const Sequence *seq, const SeqRetimingKey *key)
 {
   const float prev_speed = SEQ_retiming_key_speed_get(seq, key - 1);
-  const float next_speed = SEQ_retiming_key_speed_get(seq, key + 1);
+  const float next_speed = SEQ_retiming_key_speed_get(seq, key + 2);
 
   return abs(prev_speed - next_speed) < 0.01f;
 }
