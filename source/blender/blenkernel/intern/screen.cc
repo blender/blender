@@ -1182,6 +1182,10 @@ static void direct_link_region(BlendDataReader *reader, ARegion *region, int spa
   }
 
   BLO_read_struct_list(reader, uiPreview, &region->ui_previews);
+  LISTBASE_FOREACH (uiPreview *, ui_preview, &region->ui_previews) {
+    ui_preview->id_session_uid = MAIN_ID_SESSION_UID_UNSET;
+    ui_preview->tag = 0;
+  }
 
   if (spacetype == SPACE_EMPTY) {
     /* unknown space type, don't leak regiondata */

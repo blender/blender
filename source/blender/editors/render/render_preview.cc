@@ -712,7 +712,8 @@ static bool ed_preview_draw_rect(
   return ok;
 }
 
-void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, rcti *rect)
+void ED_preview_draw(
+    const bContext *C, void *idp, void *parentp, void *slotp, uiPreview *ui_preview, rcti *rect)
 {
   if (idp) {
     Scene *scene = CTX_data_scene(C);
@@ -749,7 +750,7 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, r
     /* start a new preview render job if signaled through sbuts->preview,
      * if no render result was found and no preview render job is running,
      * or if the job is running and the size of preview changed */
-    if ((sbuts != nullptr && sbuts->preview) ||
+    if ((sbuts != nullptr && sbuts->preview) || (ui_preview->tag & UI_PREVIEW_TAG_DIRTY) ||
         (!ok && !WM_jobs_test(wm, area, WM_JOB_TYPE_RENDER_PREVIEW)) ||
         (sp && (abs(sp->sizex - newx) >= 2 || abs(sp->sizey - newy) > 2)))
     {
@@ -757,6 +758,22 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, r
         sbuts->preview = 0;
       }
       ED_preview_shader_job(C, area, id, parent, slot, newx, newy, PR_BUTS_RENDER);
+      ui_preview->tag &= ~UI_PREVIEW_TAG_DIRTY;
+    }
+  }
+}
+
+void ED_previews_tag_dirty_by_id(const Main &bmain, const ID &id)
+{
+  LISTBASE_FOREACH (const bScreen *, screen, &bmain.screens) {
+    LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
+      LISTBASE_FOREACH (const ARegion *, region, &area->regionbase) {
+        LISTBASE_FOREACH (uiPreview *, preview, &region->ui_previews) {
+          if (preview->id_session_uid == id.session_uid) {
+            preview->tag |= UI_PREVIEW_TAG_DIRTY;
+          }
+        }
+      }
     }
   }
 }

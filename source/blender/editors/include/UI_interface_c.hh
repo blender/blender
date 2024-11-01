@@ -1753,9 +1753,7 @@ void UI_but_funcN_set(uiBut *but, uiButHandleNFunc funcN, void *argN, void *arg2
 void UI_but_func_complete_set(uiBut *but, uiButCompleteFunc func, void *arg);
 
 void UI_but_func_drawextra_set(uiBlock *block,
-                               void (*func)(const bContext *C, void *, void *, void *, rcti *rect),
-                               void *arg1,
-                               void *arg2);
+                               std::function<void(const bContext *C, rcti *rect)> func);
 
 void UI_but_func_menu_step_set(uiBut *but, uiMenuStepFunc func);
 

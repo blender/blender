@@ -5831,15 +5831,10 @@ void UI_but_func_rename_set(uiBut *but, uiButHandleRenameFunc func, void *arg1)
   but->rename_arg1 = arg1;
 }
 
-void UI_but_func_drawextra_set(
-    uiBlock *block,
-    void (*func)(const bContext *C, void *idv, void *arg1, void *arg2, rcti *rect),
-    void *arg1,
-    void *arg2)
+void UI_but_func_drawextra_set(uiBlock *block,
+                               std::function<void(const bContext *C, rcti *rect)> func)
 {
   block->drawextra = func;
-  block->drawextra_arg1 = arg1;
-  block->drawextra_arg2 = arg2;
 }
 
 void UI_but_func_set(uiBut *but, uiButHandleFunc func, void *arg1, void *arg2)

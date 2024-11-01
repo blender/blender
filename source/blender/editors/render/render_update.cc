@@ -233,16 +233,18 @@ void ED_render_view_layer_changed(Main *bmain, bScreen *screen)
  * we can get rid of the manual dependency checks.
  * \{ */
 
-static void material_changed(Main * /*bmain*/, Material *ma)
+static void material_changed(Main *bmain, Material *ma)
 {
   /* icons */
   BKE_icon_changed(BKE_icon_id_ensure(&ma->id));
+  ED_previews_tag_dirty_by_id(*bmain, ma->id);
 }
 
-static void lamp_changed(Main * /*bmain*/, Light *la)
+static void lamp_changed(Main *bmain, Light *la)
 {
   /* icons */
   BKE_icon_changed(BKE_icon_id_ensure(&la->id));
+  ED_previews_tag_dirty_by_id(*bmain, la->id);
 }
 
 static void texture_changed(Main *bmain, Tex *tex)
@@ -251,6 +253,7 @@ static void texture_changed(Main *bmain, Tex *tex)
 
   /* icons */
   BKE_icon_changed(BKE_icon_id_ensure(&tex->id));
+  ED_previews_tag_dirty_by_id(*bmain, tex->id);
 
   for (scene = static_cast<Scene *>(bmain->scenes.first); scene;
        scene = static_cast<Scene *>(scene->id.next))
@@ -270,10 +273,11 @@ static void texture_changed(Main *bmain, Tex *tex)
   }
 }
 
-static void world_changed(Main * /*bmain*/, World *wo)
+static void world_changed(Main *bmain, World *wo)
 {
   /* icons */
   BKE_icon_changed(BKE_icon_id_ensure(&wo->id));
+  ED_previews_tag_dirty_by_id(*bmain, wo->id);
 }
 
 static void image_changed(Main *bmain, Image *ima)
@@ -282,6 +286,7 @@ static void image_changed(Main *bmain, Image *ima)
 
   /* icons */
   BKE_icon_changed(BKE_icon_id_ensure(&ima->id));
+  ED_previews_tag_dirty_by_id(*bmain, ima->id);
 
   /* textures */
   for (tex = static_cast<Tex *>(bmain->textures.first); tex;
