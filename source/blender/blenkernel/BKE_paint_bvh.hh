@@ -311,12 +311,6 @@ class Tree {
   explicit Tree(Type type);
 };
 
-}  // namespace blender::bke::pbvh
-
-/* Callbacks */
-
-namespace blender::bke::pbvh {
-
 void build_pixels(const Depsgraph &depsgraph, Object &object, Image &image, ImageUser &image_user);
 
 /* Ray-cast
