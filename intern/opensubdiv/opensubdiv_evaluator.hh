@@ -19,7 +19,7 @@
 #include "opensubdiv_capi_type.hh"
 
 struct OpenSubdiv_Buffer;
-struct OpenSubdiv_EvaluatorCacheImpl;
+struct OpenSubdiv_EvaluatorCache;
 struct OpenSubdiv_EvaluatorSettings;
 struct OpenSubdiv_PatchCoord;
 
@@ -30,10 +30,6 @@ class PatchMap;
 
 // Wrapper around implementation, which defines API which we are capable to
 // provide over the implementation.
-//
-// TODO(sergey):  It is almost the same as C-API object, so ideally need to
-// merge them somehow, but how to do this and keep files with all the templates
-// and such separate?
 class EvalOutputAPI {
  public:
   // Anonymous forward declaration of actual evaluator implementation.
@@ -184,23 +180,20 @@ class EvalOutputAPI {
 
 }  // namespace blender::opensubdiv
 
-struct OpenSubdiv_EvaluatorImpl {
- public:
-  OpenSubdiv_EvaluatorImpl();
-  ~OpenSubdiv_EvaluatorImpl();
-
+struct OpenSubdiv_Evaluator {
   blender::opensubdiv::EvalOutputAPI *eval_output;
   const blender::opensubdiv::PatchMap *patch_map;
   const OpenSubdiv::Far::PatchTable *patch_table;
 
-  MEM_CXX_CLASS_ALLOC_FUNCS("OpenSubdiv_EvaluatorImpl");
+  eOpenSubdivEvaluator type;
+
+  OpenSubdiv_Evaluator();
+  ~OpenSubdiv_Evaluator();
 };
 
-OpenSubdiv_EvaluatorImpl *openSubdiv_createEvaluatorInternal(
+OpenSubdiv_Evaluator *openSubdiv_createEvaluatorFromTopologyRefiner(
     blender::opensubdiv::TopologyRefinerImpl *topology_refiner,
     eOpenSubdivEvaluator evaluator_type,
-    OpenSubdiv_EvaluatorCacheImpl *evaluator_cache_descr);
-
-void openSubdiv_deleteEvaluatorInternal(OpenSubdiv_EvaluatorImpl *evaluator);
+    OpenSubdiv_EvaluatorCache *evaluator_cache_descr);
 
 #endif  // OPENSUBDIV_EVALUATOR_IMPL_H_

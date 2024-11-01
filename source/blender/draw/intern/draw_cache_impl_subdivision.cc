@@ -41,6 +41,7 @@
 #include "opensubdiv_converter_capi.hh"
 #include "opensubdiv_evaluator_capi.hh"
 #ifdef WITH_OPENSUBDIV
+#  include "opensubdiv_evaluator.hh"
 #  include "opensubdiv_topology_refiner_capi.hh"
 #endif
 
@@ -360,6 +361,8 @@ static GPUShader *get_subdiv_custom_data_shader(int comp_type, int dimensions)
  * Used for data transfer from OpenSubdiv, and for data processing on our side.
  * \{ */
 
+#ifdef WITH_OPENSUBDIV
+
 static const GPUVertFormat &get_uvs_format()
 {
   static GPUVertFormat format = {0};
@@ -466,6 +469,8 @@ static const GPUVertFormat &get_blender_patch_coords_format()
   return format;
 }
 
+#endif
+
 static const GPUVertFormat &get_origindex_format()
 {
   static GPUVertFormat format;
@@ -491,6 +496,8 @@ const GPUVertFormat &draw_subdiv_get_pos_nor_format()
 /* -------------------------------------------------------------------- */
 /** \name Utilities to initialize a OpenSubdiv_Buffer for a gpu::VertBuf.
  * \{ */
+
+#ifdef WITH_OPENSUBDIV
 
 static void vertbuf_bind_gpu(const OpenSubdiv_Buffer *buffer)
 {
@@ -548,6 +555,8 @@ static gpu::VertBuf *create_buffer_and_interface(OpenSubdiv_Buffer *interface,
   return buffer;
 }
 
+#endif
+
 /** \} */
 
 // --------------------------------------------------------
@@ -586,6 +595,8 @@ gpu::VertBuf *draw_subdiv_build_origindex_buffer(int *vert_origindex, uint num_l
 /** \name Utilities for DRWPatchMap.
  * \{ */
 
+#ifdef WITH_OPENSUBDIV
+
 static void draw_patch_map_build(DRWPatchMap *gpu_patch_map, bke::subdiv::Subdiv *subdiv)
 {
   gpu::VertBuf *patch_map_handles = GPU_vertbuf_calloc();
@@ -606,13 +617,12 @@ static void draw_patch_map_build(DRWPatchMap *gpu_patch_map, bke::subdiv::Subdiv
   int patches_are_triangular = 0;
 
   OpenSubdiv_Evaluator *evaluator = subdiv->evaluator;
-  evaluator->getPatchMap(evaluator,
-                         &patch_map_handles_interface,
-                         &patch_map_quad_tree_interface,
-                         &min_patch_face,
-                         &max_patch_face,
-                         &max_depth,
-                         &patches_are_triangular);
+  evaluator->eval_output->getPatchMap(&patch_map_handles_interface,
+                                      &patch_map_quad_tree_interface,
+                                      &min_patch_face,
+                                      &max_patch_face,
+                                      &max_depth,
+                                      &patches_are_triangular);
 
   gpu_patch_map->patch_map_handles = patch_map_handles;
   gpu_patch_map->patch_map_quadtree = patch_map_quadtree;
@@ -621,6 +631,8 @@ static void draw_patch_map_build(DRWPatchMap *gpu_patch_map, bke::subdiv::Subdiv
   gpu_patch_map->max_depth = max_depth;
   gpu_patch_map->patches_are_triangular = patches_are_triangular;
 }
+
+#endif
 
 static void draw_patch_map_free(DRWPatchMap *gpu_patch_map)
 {
@@ -835,6 +847,8 @@ static DRWSubdivCache &mesh_batch_cache_ensure_subdiv_cache(MeshBatchCache &mbc)
   return *subdiv_cache;
 }
 
+#ifdef WITH_OPENSUBDIV
+
 static void draw_subdiv_invalidate_evaluator_for_orco(bke::subdiv::Subdiv *subdiv,
                                                       const Mesh *mesh)
 {
@@ -843,17 +857,15 @@ static void draw_subdiv_invalidate_evaluator_for_orco(bke::subdiv::Subdiv *subdi
   }
 
   const bool has_orco = CustomData_has_layer(&mesh->vert_data, CD_ORCO);
-  if (has_orco && !subdiv->evaluator->hasVertexData(subdiv->evaluator)) {
+  if (has_orco && !subdiv->evaluator->eval_output->hasVertexData()) {
     /* If we suddenly have/need original coordinates, recreate the evaluator if the extra
      * source was not created yet. The refiner also has to be recreated as refinement for source
      * and vertex data is done only once. */
-    openSubdiv_deleteEvaluator(subdiv->evaluator);
+    delete subdiv->evaluator;
     subdiv->evaluator = nullptr;
 
-#ifdef WITH_OPENSUBDIV
     delete subdiv->topology_refiner;
     subdiv->topology_refiner = nullptr;
-#endif
   }
 }
 
@@ -1276,6 +1288,8 @@ static bool draw_subdiv_build_cache(DRWSubdivCache &cache,
   return true;
 }
 
+#endif
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1446,6 +1460,7 @@ void draw_subdiv_extract_pos_nor(const DRWSubdivCache &cache,
                                  gpu::VertBuf *pos_nor,
                                  gpu::VertBuf *orco)
 {
+#ifdef WITH_OPENSUBDIV
   if (!draw_subdiv_cache_need_face_data(cache)) {
     /* Happens on meshes with only loose geometry. */
     return;
@@ -1457,30 +1472,30 @@ void draw_subdiv_extract_pos_nor(const DRWSubdivCache &cache,
   OpenSubdiv_Buffer src_buffer_interface;
   gpu::VertBuf *src_buffer = create_buffer_and_interface(&src_buffer_interface,
                                                          get_subdiv_vertex_format());
-  evaluator->wrapSrcBuffer(evaluator, &src_buffer_interface);
+  evaluator->eval_output->wrapSrcBuffer(&src_buffer_interface);
 
   gpu::VertBuf *src_extra_buffer = nullptr;
   if (orco) {
     OpenSubdiv_Buffer src_extra_buffer_interface;
     src_extra_buffer = create_buffer_and_interface(&src_extra_buffer_interface,
                                                    get_subdiv_vertex_format());
-    evaluator->wrapSrcVertexDataBuffer(evaluator, &src_extra_buffer_interface);
+    evaluator->eval_output->wrapSrcVertexDataBuffer(&src_extra_buffer_interface);
   }
 
   OpenSubdiv_Buffer patch_arrays_buffer_interface;
   gpu::VertBuf *patch_arrays_buffer = create_buffer_and_interface(&patch_arrays_buffer_interface,
                                                                   get_patch_array_format());
-  evaluator->fillPatchArraysBuffer(evaluator, &patch_arrays_buffer_interface);
+  evaluator->eval_output->fillPatchArraysBuffer(&patch_arrays_buffer_interface);
 
   OpenSubdiv_Buffer patch_index_buffer_interface;
   gpu::VertBuf *patch_index_buffer = create_buffer_and_interface(&patch_index_buffer_interface,
                                                                  get_patch_index_format());
-  evaluator->wrapPatchIndexBuffer(evaluator, &patch_index_buffer_interface);
+  evaluator->eval_output->wrapPatchIndexBuffer(&patch_index_buffer_interface);
 
   OpenSubdiv_Buffer patch_param_buffer_interface;
   gpu::VertBuf *patch_param_buffer = create_buffer_and_interface(&patch_param_buffer_interface,
                                                                  get_patch_param_format());
-  evaluator->wrapPatchParamBuffer(evaluator, &patch_param_buffer_interface);
+  evaluator->eval_output->wrapPatchParamBuffer(&patch_param_buffer_interface);
 
   GPUShader *shader = get_patch_evaluation_shader(orco ? SHADER_PATCH_EVALUATION_ORCO :
                                                          SHADER_PATCH_EVALUATION);
@@ -1521,6 +1536,9 @@ void draw_subdiv_extract_pos_nor(const DRWSubdivCache &cache,
   GPU_vertbuf_discard(patch_arrays_buffer);
   GPU_vertbuf_discard(src_buffer);
   GPU_VERTBUF_DISCARD_SAFE(src_extra_buffer);
+#else
+  UNUSED_VARS(cache, flags_buffer, pos_nor, orco);
+#endif
 }
 
 void draw_subdiv_extract_uvs(const DRWSubdivCache &cache,
@@ -1528,6 +1546,7 @@ void draw_subdiv_extract_uvs(const DRWSubdivCache &cache,
                              const int face_varying_channel,
                              const int dst_offset)
 {
+#ifdef WITH_OPENSUBDIV
   if (!draw_subdiv_cache_need_face_data(cache)) {
     /* Happens on meshes with only loose geometry. */
     return;
@@ -1538,25 +1557,25 @@ void draw_subdiv_extract_uvs(const DRWSubdivCache &cache,
 
   OpenSubdiv_Buffer src_buffer_interface;
   gpu::VertBuf *src_buffer = create_buffer_and_interface(&src_buffer_interface, get_uvs_format());
-  evaluator->wrapFVarSrcBuffer(evaluator, face_varying_channel, &src_buffer_interface);
+  evaluator->eval_output->wrapFVarSrcBuffer(face_varying_channel, &src_buffer_interface);
 
   OpenSubdiv_Buffer patch_arrays_buffer_interface;
   gpu::VertBuf *patch_arrays_buffer = create_buffer_and_interface(&patch_arrays_buffer_interface,
                                                                   get_patch_array_format());
-  evaluator->fillFVarPatchArraysBuffer(
-      evaluator, face_varying_channel, &patch_arrays_buffer_interface);
+  evaluator->eval_output->fillFVarPatchArraysBuffer(face_varying_channel,
+                                                    &patch_arrays_buffer_interface);
 
   OpenSubdiv_Buffer patch_index_buffer_interface;
   gpu::VertBuf *patch_index_buffer = create_buffer_and_interface(&patch_index_buffer_interface,
                                                                  get_patch_index_format());
-  evaluator->wrapFVarPatchIndexBuffer(
-      evaluator, face_varying_channel, &patch_index_buffer_interface);
+  evaluator->eval_output->wrapFVarPatchIndexBuffer(face_varying_channel,
+                                                   &patch_index_buffer_interface);
 
   OpenSubdiv_Buffer patch_param_buffer_interface;
   gpu::VertBuf *patch_param_buffer = create_buffer_and_interface(&patch_param_buffer_interface,
                                                                  get_patch_param_format());
-  evaluator->wrapFVarPatchParamBuffer(
-      evaluator, face_varying_channel, &patch_param_buffer_interface);
+  evaluator->eval_output->wrapFVarPatchParamBuffer(face_varying_channel,
+                                                   &patch_param_buffer_interface);
 
   GPUShader *shader = get_patch_evaluation_shader(SHADER_PATCH_EVALUATION_FVAR);
   GPU_shader_bind(shader);
@@ -1590,6 +1609,9 @@ void draw_subdiv_extract_uvs(const DRWSubdivCache &cache,
   GPU_vertbuf_discard(patch_param_buffer);
   GPU_vertbuf_discard(patch_arrays_buffer);
   GPU_vertbuf_discard(src_buffer);
+#else
+  UNUSED_VARS(cache, uvs, face_varying_channel, dst_offset);
+#endif
 }
 
 void draw_subdiv_interp_custom_data(const DRWSubdivCache &cache,
@@ -1778,6 +1800,7 @@ void draw_subdiv_build_fdots_buffers(const DRWSubdivCache &cache,
                                      gpu::VertBuf *fdots_nor,
                                      gpu::IndexBuf *fdots_indices)
 {
+#ifdef WITH_OPENSUBDIV
   if (!draw_subdiv_cache_need_face_data(cache)) {
     /* Happens on meshes with only loose geometry. */
     return;
@@ -1789,23 +1812,23 @@ void draw_subdiv_build_fdots_buffers(const DRWSubdivCache &cache,
   OpenSubdiv_Buffer src_buffer_interface;
   gpu::VertBuf *src_buffer = create_buffer_and_interface(&src_buffer_interface,
                                                          get_subdiv_vertex_format());
-  evaluator->wrapSrcBuffer(evaluator, &src_buffer_interface);
+  evaluator->eval_output->wrapSrcBuffer(&src_buffer_interface);
 
   OpenSubdiv_Buffer patch_arrays_buffer_interface;
   gpu::VertBuf *patch_arrays_buffer = create_buffer_and_interface(&patch_arrays_buffer_interface,
                                                                   get_patch_array_format());
   opensubdiv_gpu_buffer_init(&patch_arrays_buffer_interface, patch_arrays_buffer);
-  evaluator->fillPatchArraysBuffer(evaluator, &patch_arrays_buffer_interface);
+  evaluator->eval_output->fillPatchArraysBuffer(&patch_arrays_buffer_interface);
 
   OpenSubdiv_Buffer patch_index_buffer_interface;
   gpu::VertBuf *patch_index_buffer = create_buffer_and_interface(&patch_index_buffer_interface,
                                                                  get_patch_index_format());
-  evaluator->wrapPatchIndexBuffer(evaluator, &patch_index_buffer_interface);
+  evaluator->eval_output->wrapPatchIndexBuffer(&patch_index_buffer_interface);
 
   OpenSubdiv_Buffer patch_param_buffer_interface;
   gpu::VertBuf *patch_param_buffer = create_buffer_and_interface(&patch_param_buffer_interface,
                                                                  get_patch_param_format());
-  evaluator->wrapPatchParamBuffer(evaluator, &patch_param_buffer_interface);
+  evaluator->eval_output->wrapPatchParamBuffer(&patch_param_buffer_interface);
 
   GPUShader *shader = get_patch_evaluation_shader(
       fdots_nor ? SHADER_PATCH_EVALUATION_FACE_DOTS_WITH_NORMALS :
@@ -1844,6 +1867,9 @@ void draw_subdiv_build_fdots_buffers(const DRWSubdivCache &cache,
   GPU_vertbuf_discard(patch_param_buffer);
   GPU_vertbuf_discard(patch_arrays_buffer);
   GPU_vertbuf_discard(src_buffer);
+#else
+  UNUSED_VARS(cache, fdots_pos, fdots_nor, fdots_indices);
+#endif
 }
 
 void draw_subdiv_build_lines_buffer(const DRWSubdivCache &cache, gpu::IndexBuf *lines_indices)
@@ -2130,7 +2156,9 @@ static bool draw_subdiv_create_requested_buffers(Object &ob,
     bm = mesh.runtime->edit_mesh->bm;
   }
 
+#ifdef WITH_OPENSUBDIV
   draw_subdiv_invalidate_evaluator_for_orco(runtime_data->subdiv_gpu, mesh_eval);
+#endif
 
   bke::subdiv::Subdiv *subdiv = BKE_subsurf_modifier_subdiv_descriptor_ensure(
       runtime_data, mesh_eval, true);
@@ -2161,9 +2189,11 @@ static bool draw_subdiv_create_requested_buffers(Object &ob,
   draw_cache.mesh = mesh_eval;
   draw_cache.subdiv = subdiv;
 
+#ifdef WITH_OPENSUBDIV
   if (!draw_subdiv_build_cache(draw_cache, subdiv, mesh_eval, runtime_data)) {
     return false;
   }
+#endif
 
   draw_cache.num_subdiv_triangles = tris_count_from_number_of_loops(draw_cache.num_subdiv_loops);
 
@@ -2337,8 +2367,10 @@ void DRW_cache_free_old_subdiv()
   while (gpu_subdiv_free_queue != nullptr) {
     bke::subdiv::Subdiv *subdiv = static_cast<bke::subdiv::Subdiv *>(
         BLI_linklist_pop(&gpu_subdiv_free_queue));
+#ifdef WITH_OPENSUBDIV
     /* Set the type to CPU so that we do actually free the cache. */
     subdiv->evaluator->type = OPENSUBDIV_EVALUATOR_CPU;
+#endif
     bke::subdiv::free(subdiv);
   }
 
