@@ -33,7 +33,6 @@
 
 /* For embedding CCGKey in iterator. */
 #include "BKE_ccg.hh"
-#include "BKE_pbvh.hh"
 
 #include "bmesh.hh"
 
@@ -58,6 +57,23 @@ struct NodeData;
 }  // namespace pixels
 }  // namespace bke::pbvh
 }  // namespace blender
+
+enum PBVHNodeFlags : uint32_t {
+  PBVH_Leaf = 1 << 0,
+
+  PBVH_UpdateRedraw = 1 << 5,
+
+  PBVH_FullyHidden = 1 << 10,
+  PBVH_FullyMasked = 1 << 11,
+  PBVH_FullyUnmasked = 1 << 12,
+
+  PBVH_UpdateTopology = 1 << 13,
+  PBVH_RebuildPixels = 1 << 15,
+  PBVH_TexLeaf = 1 << 16,
+  /** Used internally by `pbvh_bmesh.cc`. */
+  PBVH_TopologyUpdated = 1 << 17,
+};
+ENUM_OPERATORS(PBVHNodeFlags, PBVH_TopologyUpdated);
 
 namespace blender::bke::pbvh {
 
@@ -199,6 +215,12 @@ class DrawCache {
   virtual void tag_face_sets_changed(const IndexMask &node_mask) = 0;
   virtual void tag_masks_changed(const IndexMask &node_mask) = 0;
   virtual void tag_attribute_changed(const IndexMask &node_mask, StringRef attribute_name) = 0;
+};
+
+enum class Type {
+  Mesh,
+  Grids,
+  BMesh,
 };
 
 /**
@@ -578,6 +600,14 @@ Span<float3> face_normals_eval_from_eval(const Object &object_eval);
 }  // namespace blender::bke::pbvh
 
 int BKE_pbvh_debug_draw_gen_get(blender::bke::pbvh::Node &node);
+
+void BKE_pbvh_draw_debug_cb(blender::bke::pbvh::Tree &pbvh,
+                            void (*draw_fn)(blender::bke::pbvh::Node *node,
+                                            void *user_data,
+                                            const float bmin[3],
+                                            const float bmax[3],
+                                            PBVHNodeFlags flag),
+                            void *user_data);
 
 namespace blender::bke::pbvh {
 

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "BKE_pbvh.hh"
+#include "BKE_pbvh_api.hh"
 
 /** \file
  * \ingroup bke

@@ -18,7 +18,6 @@
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
 #include "BKE_material.h"
-#include "BKE_pbvh.hh"
 #include "BKE_scene.hh"
 
 #include "BLT_translation.hh"
@@ -79,6 +78,10 @@ class TextureFromPool;
 struct DRW_Attributes;
 struct DRW_MeshCDMask;
 }  // namespace blender::draw
+namespace blender::bke::pbvh {
+class Node;
+}
+enum PBVHNodeFlags : uint32_t;
 
 typedef struct DRWCallBuffer DRWCallBuffer;
 typedef struct DRWInterface DRWInterface;

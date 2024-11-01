@@ -12,7 +12,7 @@
 #include "BKE_key.hh"
 #include "BKE_mesh.hh"
 #include "BKE_paint.hh"
-#include "BKE_pbvh.hh"
+#include "BKE_pbvh_api.hh"
 #include "BKE_subdiv_ccg.hh"
 
 #include "BLI_array.hh"

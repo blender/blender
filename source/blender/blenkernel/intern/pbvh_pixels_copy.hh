@@ -9,7 +9,7 @@
 #include "IMB_imbuf_types.hh"
 
 #include "BKE_image_wrappers.hh"
-#include "BKE_pbvh.hh"
+#include "BKE_pbvh_api.hh"
 #include "BKE_pbvh_pixels.hh"
 
 #include "pbvh_uv_islands.hh"

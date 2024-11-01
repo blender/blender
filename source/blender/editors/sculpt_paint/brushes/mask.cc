@@ -9,7 +9,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_pbvh.hh"
+#include "BKE_pbvh_api.hh"
 #include "BKE_subdiv_ccg.hh"
 
 #include "BLI_array.hh"

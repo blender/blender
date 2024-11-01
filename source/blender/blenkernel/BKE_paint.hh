@@ -26,7 +26,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_enums.h"
 
-#include "BKE_pbvh.hh"
+#include "BKE_pbvh_api.hh"
 #include "BKE_subdiv_ccg.hh"
 
 struct AssetWeakReference;
