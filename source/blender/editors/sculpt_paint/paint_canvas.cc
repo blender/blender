@@ -5,10 +5,12 @@
 #include "BLI_compiler_compat.h"
 #include "BLI_string_ref.hh"
 
+#include "DNA_brush_types.h"
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_workspace_types.h"
 
+#include "BKE_context.hh"
 #include "BKE_material.h"
 #include "BKE_paint.hh"
 
@@ -38,10 +40,21 @@ static TexPaintSlot *get_active_slot(Object &ob)
 
 using namespace blender::ed::sculpt_paint::canvas;
 
-/* Does the paint tool with the given idname uses a canvas. */
-static bool image_paint_brush_type_uses_canvas(blender::StringRef idname)
+/* Does the paint tool with the given idname use a canvas. */
+static bool image_paint_tool_uses_canvas(blender::StringRef idname)
 {
-  return ELEM(idname, "builtin_brush.Paint", "builtin_brush.Smear", "builtin.color_filter");
+  return ELEM(idname, "builtin.color_filter");
+}
+
+static bool image_paint_brush_uses_canvas(bContext *C)
+{
+  const Paint *paint = BKE_paint_get_active_from_context(C);
+  const Brush *brush = BKE_paint_brush_for_read(paint);
+  if (brush == nullptr) {
+    return false;
+  }
+
+  return ELEM(brush->sculpt_brush_type, SCULPT_BRUSH_TYPE_PAINT, SCULPT_BRUSH_TYPE_SMEAR);
 }
 
 static bool image_paint_brush_type_shading_color_follows_last_used(blender::StringRef idname)
@@ -65,7 +78,8 @@ void ED_image_paint_brush_type_update_sticky_shading_color(bContext *C, Object *
     return;
   }
 
-  ob->sculpt->sticky_shading_color = image_paint_brush_type_uses_canvas(tref->idname);
+  ob->sculpt->sticky_shading_color = image_paint_tool_uses_canvas(tref->idname) ||
+                                     image_paint_brush_uses_canvas(C);
 }
 
 static bool image_paint_brush_type_shading_color_follows_last_used_tool(bContext *C, Object *ob)
@@ -91,7 +105,7 @@ bool ED_image_paint_brush_type_use_canvas(bContext *C, bToolRef *tref)
     return false;
   }
 
-  return image_paint_brush_type_uses_canvas(tref->idname);
+  return image_paint_tool_uses_canvas(tref->idname) || image_paint_brush_uses_canvas(C);
 }
 
 eV3DShadingColorType ED_paint_shading_color_override(bContext *C,
