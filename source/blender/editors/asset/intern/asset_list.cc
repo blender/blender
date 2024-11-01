@@ -34,6 +34,7 @@
 
 #include "ED_asset_indexer.hh"
 #include "ED_asset_list.hh"
+#include "ED_fileselect.hh"
 #include "ED_screen.hh"
 #include "asset_library_reference.hh"
 
@@ -458,6 +459,35 @@ void clear(const AssetLibraryReference *library_reference, const bContext *C)
   if (list) {
     list->clear(C);
   }
+
+  wmWindowManager *wm = CTX_wm_manager(C);
+  LISTBASE_FOREACH (const wmWindow *, win, &wm->windows) {
+    const bScreen *screen = WM_window_get_active_screen(win);
+    LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
+      /* Only needs to cover visible file/asset browsers, since others are already cleared through
+       * area exiting. */
+      if (area->spacetype == SPACE_FILE) {
+        SpaceFile *sfile = reinterpret_cast<SpaceFile *>(area->spacedata.first);
+        if (sfile->browse_mode == FILE_BROWSE_MODE_ASSETS) {
+          if (sfile->asset_params && sfile->asset_params->asset_library_ref == *library_reference)
+          {
+            ED_fileselect_clear(wm, sfile);
+          }
+        }
+      }
+    }
+  }
+
+  /* Always clear the all library when clearing a nested one. */
+  if (library_reference->type != ASSET_LIBRARY_ALL) {
+    clear_all_library(C);
+  }
+}
+
+void clear_all_library(const bContext *C)
+{
+  const AssetLibraryReference all_lib_ref = asset_system::all_library_reference();
+  clear(&all_lib_ref, C);
 }
 
 bool storage_has_list_for_library(const AssetLibraryReference *library_reference)
