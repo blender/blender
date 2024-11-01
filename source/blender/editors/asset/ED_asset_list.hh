@@ -60,7 +60,18 @@ void iterate(const AssetLibraryReference &library_reference, AssetListIterFn fn)
 void storage_fetch(const AssetLibraryReference *library_reference, const bContext *C);
 bool is_loaded(const AssetLibraryReference *library_reference);
 void ensure_previews_job(const AssetLibraryReference *library_reference, const bContext *C);
+/**
+ * Clears this asset library and the "All" asset library for reload in both the static asset list
+ * storage, as well as for all open asset browsers. Call this whenever the content of the given
+ * asset library changed in a way that a reload is necessary.
+ */
 void clear(const AssetLibraryReference *library_reference, const bContext *C);
+/**
+ * Clears the all asset library for reload in both the static asset list storage, as well as for
+ * all open asset browsers. Call this whenever any asset library content changed in a way that a
+ * reload is necessary.
+ */
+void clear_all_library(const bContext *C);
 bool storage_has_list_for_library(const AssetLibraryReference *library_reference);
 /**
  * Tag all asset lists in the storage that show main data as needing an update (re-fetch).
