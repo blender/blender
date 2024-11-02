@@ -260,8 +260,10 @@ class PHYSICS_PT_rigid_body_dynamics(PHYSICS_PT_rigidbody_panel, Panel):
         obj = context.object
         if obj.parent is not None and obj.parent.rigid_body is not None:
             return False
-        return (obj and obj.rigid_body and obj.rigid_body.type == 'ACTIVE'
-                and (context.engine in cls.COMPAT_ENGINES))
+        return (
+            obj and obj.rigid_body and obj.rigid_body.type == 'ACTIVE' and
+            (context.engine in cls.COMPAT_ENGINES)
+        )
 
     def draw(self, context):
         layout = self.layout
@@ -295,9 +297,11 @@ class PHYSICS_PT_rigid_body_dynamics_deactivation(PHYSICS_PT_rigidbody_panel, Pa
     @classmethod
     def poll(cls, context):
         obj = context.object
-        return (obj and obj.rigid_body
-                and obj.rigid_body.type == 'ACTIVE'
-                and (context.engine in cls.COMPAT_ENGINES))
+        return (
+            obj and obj.rigid_body and
+            obj.rigid_body.type == 'ACTIVE' and
+            (context.engine in cls.COMPAT_ENGINES)
+        )
 
     def draw_header(self, context):
         ob = context.object

@@ -37,10 +37,12 @@ class ShaderScriptImport(bpy.types.Operator, ImportHelper):
 
     @classmethod
     def poll(cls, context):
-        return (context.region and context.region.type == 'WINDOW'
-                and context.area and context.area.ui_type == 'ShaderNodeTree'
-                and context.object and context.object.type == 'MESH'
-                and context.material)
+        return (
+            context.region and context.region.type == 'WINDOW' and
+            context.area and context.area.ui_type == 'ShaderNodeTree' and
+            context.object and context.object.type == 'MESH' and
+            context.material
+        )
 
     def execute(self, context):
         """ The directory property need to be set. """
@@ -91,8 +93,10 @@ class SHADER_FH_script_import(bpy.types.FileHandler):
 
     @classmethod
     def poll_drop(cls, context):
-        return (context.region and context.region.type == 'WINDOW'
-                and context.area and context.area.ui_type == 'ShaderNodeTree')
+        return (
+            context.region and context.region.type == 'WINDOW' and
+            context.area and context.area.ui_type == 'ShaderNodeTree'
+        )
 
 
 bpy.utils.register_class(ShaderScriptImport)
