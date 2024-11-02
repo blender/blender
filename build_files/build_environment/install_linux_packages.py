@@ -1161,7 +1161,7 @@ class PackageInstaller:
 
     def package_find(self, package, package_distro_name):
         """
-        Generic euristics to try and find 'best macthing version' for a given package.
+        Generic heuristics to try and find 'best matching version' for a given package.
         For most packages it just ensures given package name version matches the exact version from the `package`,
         or at least fits within the [version_min, version_mex[ range.
         But some, like e.g. python, llvm or boost, can have packages available for several versions,
