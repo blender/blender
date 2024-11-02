@@ -355,11 +355,6 @@ void printf_end(Context *ctx)
   if (data_len == 0) {
     return;
   }
-  if (data_len >= GPU_SHADER_PRINTF_MAX_CAPACITY) {
-    printf("Printf buffer overflow.\n");
-    /* TODO(fclem): We can still read the uncorrupted part. */
-    return;
-  }
 
   int cursor = 1;
   while (cursor < data_len + 1) {
@@ -367,6 +362,11 @@ void printf_end(Context *ctx)
 
     const shader::PrintfFormat &format = shader::gpu_shader_dependency_get_printf_format(
         format_hash);
+
+    if (cursor + format.format_blocks.size() >= GPU_SHADER_PRINTF_MAX_CAPACITY) {
+      printf("Printf buffer overflow.\n");
+      break;
+    }
 
     for (const shader::PrintfFormat::Block &block : format.format_blocks) {
       switch (block.type) {
