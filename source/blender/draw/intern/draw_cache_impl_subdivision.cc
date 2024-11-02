@@ -307,7 +307,9 @@ static GPUShader *get_subdiv_shader(SubdivShaderType shader_type)
     else if (shader_type == SHADER_BUFFER_EDGE_FAC) {
       /* No separate shader for the AMD driver case as we assume that the GPU will not change
        * during the execution of the program. */
-      defines = GPU_crappy_amd_driver() ? "#define GPU_AMD_DRIVER_BYTE_BUG\n" : nullptr;
+      if (GPU_crappy_amd_driver()) {
+        defines = "#define GPU_AMD_DRIVER_BYTE_BUG\n";
+      }
     }
     else if (shader_type == SHADER_BUFFER_CUSTOM_NORMALS_FINALIZE) {
       defines = "#define CUSTOM_NORMALS\n";
