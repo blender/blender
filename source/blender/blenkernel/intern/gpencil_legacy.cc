@@ -1369,54 +1369,6 @@ void BKE_gpencil_brush_material_set(Brush *brush, Material *ma)
   }
 }
 
-void BKE_gpencil_frame_range_selected(bGPDlayer *gpl, int *r_initframe, int *r_endframe)
-{
-  *r_initframe = gpl->actframe->framenum;
-  *r_endframe = gpl->actframe->framenum;
-
-  LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
-    if (gpf->flag & GP_FRAME_SELECT) {
-      if (gpf->framenum < *r_initframe) {
-        *r_initframe = gpf->framenum;
-      }
-      if (gpf->framenum > *r_endframe) {
-        *r_endframe = gpf->framenum;
-      }
-    }
-  }
-}
-
-float BKE_gpencil_multiframe_falloff_calc(
-    bGPDframe *gpf, int actnum, int f_init, int f_end, CurveMapping *cur_falloff)
-{
-  float fnum = 0.5f; /* default mid curve */
-  float value;
-
-  /* check curve is available */
-  if (cur_falloff == nullptr) {
-    return 1.0f;
-  }
-
-  /* frames to the right of the active frame */
-  if (gpf->framenum < actnum) {
-    fnum = float(gpf->framenum - f_init) / (actnum - f_init);
-    fnum *= 0.5f;
-    value = BKE_curvemapping_evaluateF(cur_falloff, 0, fnum);
-  }
-  /* frames to the left of the active frame */
-  else if (gpf->framenum > actnum) {
-    fnum = float(gpf->framenum - actnum) / (f_end - actnum);
-    fnum *= 0.5f;
-    value = BKE_curvemapping_evaluateF(cur_falloff, 0, fnum + 0.5f);
-  }
-  else {
-    /* Center of the curve. */
-    value = BKE_curvemapping_evaluateF(cur_falloff, 0, 0.5f);
-  }
-
-  return value;
-}
-
 void BKE_gpencil_palette_ensure(Main *bmain, Scene *scene)
 {
   const char *hexcol[] = {

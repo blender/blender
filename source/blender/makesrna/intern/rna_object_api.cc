@@ -22,7 +22,6 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_gpencil_curve_legacy.h"
 #include "BKE_layer.hh"
 
 #include "DEG_depsgraph.hh"

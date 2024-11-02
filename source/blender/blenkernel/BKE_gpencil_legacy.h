@@ -314,26 +314,6 @@ void BKE_gpencil_brush_material_set(struct Brush *brush, struct Material *materi
 void BKE_gpencil_stroke_weights_duplicate(struct bGPDstroke *gps_src, struct bGPDstroke *gps_dst);
 
 /**
- * Get range of selected frames in layer.
- * Always the active frame is considered as selected, so if no more selected the range
- * will be equal to the current active frame.
- * \param gpl: Layer.
- * \param r_initframe: Number of first selected frame.
- * \param r_endframe: Number of last selected frame.
- */
-void BKE_gpencil_frame_range_selected(struct bGPDlayer *gpl, int *r_initframe, int *r_endframe);
-/**
- * Get Falloff factor base on frame range
- * \param gpf: Frame.
- * \param actnum: Number of active frame in layer.
- * \param f_init: Number of first selected frame.
- * \param f_end: Number of last selected frame.
- * \param cur_falloff: Curve with falloff factors.
- */
-float BKE_gpencil_multiframe_falloff_calc(
-    struct bGPDframe *gpf, int actnum, int f_init, int f_end, struct CurveMapping *cur_falloff);
-
-/**
  * Create a default palette.
  * \param bmain: Main pointer
  * \param scene: Scene

@@ -130,10 +130,6 @@ bool ED_gpencil_data_owner_is_annotation(PointerRNA *owner_ptr);
  * TODO: do we need additional flags for screen-space vs data-space?.
  */
 bool ED_gpencil_stroke_can_use_direct(const ScrArea *area, const bGPDstroke *gps);
-/** Check whether given stroke can be edited in the current context */
-bool ED_gpencil_stroke_can_use(const bContext *C, const bGPDstroke *gps);
-/** Check whether given stroke can be edited for the current color */
-bool ED_gpencil_stroke_material_editable(Object *ob, const bGPDlayer *gpl, const bGPDstroke *gps);
 
 /* ----------- Grease Pencil Operators ----------------- */
 

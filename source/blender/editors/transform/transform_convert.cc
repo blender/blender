@@ -718,7 +718,6 @@ static void init_proportional_edit(TransInfo *t)
              &TransConvertType_Curve,
              &TransConvertType_Curves,
              &TransConvertType_Graph,
-             &TransConvertType_GPencil,
              &TransConvertType_GreasePencil,
              &TransConvertType_Lattice,
              &TransConvertType_Mask,
@@ -789,7 +788,6 @@ static void init_TransDataContainers(TransInfo *t, Object *obact, Span<Object *>
             &TransConvertType_EditArmature,
             &TransConvertType_Curve,
             &TransConvertType_Curves,
-            &TransConvertType_GPencil,
             &TransConvertType_GreasePencil,
             &TransConvertType_Lattice,
             &TransConvertType_MBall,
@@ -806,8 +804,7 @@ static void init_TransDataContainers(TransInfo *t, Object *obact, Span<Object *>
   const eObjectMode object_mode = eObjectMode(obact ? obact->mode : OB_MODE_OBJECT);
   const short object_type = obact ? obact->type : -1;
 
-  if ((object_mode & OB_MODE_EDIT) || (t->data_type == &TransConvertType_GPencil) ||
-      (t->data_type == &TransConvertType_GreasePencil) ||
+  if ((object_mode & OB_MODE_EDIT) || (t->data_type == &TransConvertType_GreasePencil) ||
       ((object_mode & OB_MODE_POSE) && (object_type == OB_ARMATURE)))
   {
     if (t->data_container) {
@@ -849,9 +846,6 @@ static void init_TransDataContainers(TransInfo *t, Object *obact, Span<Object *>
       }
       else if (object_mode & OB_MODE_POSE) {
         tc->poseobj = objects[i];
-        tc->use_local_mat = true;
-      }
-      else if (t->data_type == &TransConvertType_GPencil) {
         tc->use_local_mat = true;
       }
       else if (t->data_type == &TransConvertType_GreasePencil) {
@@ -905,9 +899,6 @@ static TransConvertTypeInfo *convert_type_get(const TransInfo *t, Object **r_obj
   if (t->options & CTX_GPENCIL_STROKES) {
     if (t->obedit_type == OB_GREASE_PENCIL) {
       return &TransConvertType_GreasePencil;
-    }
-    else if (t->obedit_type == OB_GPENCIL_LEGACY) {
-      return &TransConvertType_GPencil;
     }
     return nullptr;
   }
