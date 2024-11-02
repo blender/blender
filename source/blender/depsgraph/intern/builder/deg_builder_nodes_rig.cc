@@ -64,7 +64,6 @@ void DepsgraphNodeBuilder::build_pose_constraints(Object *object,
                      });
 }
 
-/* IK Solver Eval Steps */
 void DepsgraphNodeBuilder::build_ik_pose(Object *object, bPoseChannel *pchan, bConstraint *con)
 {
   bKinematicConstraint *data = (bKinematicConstraint *)con->data;
@@ -96,7 +95,6 @@ void DepsgraphNodeBuilder::build_ik_pose(Object *object, bPoseChannel *pchan, bC
                      });
 }
 
-/* Spline IK Eval Steps */
 void DepsgraphNodeBuilder::build_splineik_pose(Object *object,
                                                bPoseChannel *pchan,
                                                bConstraint *con)

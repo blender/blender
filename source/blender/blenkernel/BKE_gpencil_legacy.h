@@ -68,7 +68,7 @@ bool BKE_gpencil_free_strokes(struct bGPDframe *gpf);
 void BKE_gpencil_free_frames(struct bGPDlayer *gpl);
 /** Free all of the gp-layers for a viewport (list should be `&gpd->layers` or so). */
 void BKE_gpencil_free_layers(struct ListBase *list);
-/** Free all of the palettes (list should be `&gpd->palettes` or so). */
+/** Free all of the palettes & colors (list should be `&gpd->palettes` or so). */
 void BKE_gpencil_free_legacy_palette_data(struct ListBase *list);
 /** Free (or release) any data used by this grease pencil (does not free the gpencil itself). */
 void BKE_gpencil_free_data(struct bGPdata *gpd, bool free_all);

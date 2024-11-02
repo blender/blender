@@ -448,7 +448,6 @@ void BKE_gpencil_free_layers(ListBase *list)
   }
 }
 
-/* Free all of the gp-palettes and colors. */
 void BKE_gpencil_free_legacy_palette_data(ListBase *list)
 {
   LISTBASE_FOREACH_MUTABLE (bGPDpalette *, palette, list) {

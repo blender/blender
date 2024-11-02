@@ -354,10 +354,15 @@ class Instance {
   }
 
  private:
+  /** Wrapper to use with #DRW_render_object_iter. */
   static void object_sync_render(void *instance_,
                                  Object *ob,
                                  RenderEngine *engine,
                                  Depsgraph *depsgraph);
+  /**
+   * Conceptually renders one sample per pixel.
+   * Everything based on random sampling should be done here (i.e: DRWViews jitter)
+   */
   void render_sample();
   void render_read_result(RenderLayer *render_layer, const char *view_name);
 

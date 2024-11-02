@@ -222,7 +222,6 @@ void init_stroke(Depsgraph &depsgraph, Object &ob)
   }
 }
 
-/* Toggle operator for turning vertex paint mode on or off (copied from sculpt.cc) */
 void init_session(
     Main &bmain, Depsgraph &depsgraph, Scene &scene, Object &ob, eObjectMode object_mode)
 {
@@ -436,7 +435,6 @@ void smooth_brush_toggle_off(const bContext *C, Paint *paint, StrokeCache *cache
     cache->saved_active_brush = nullptr;
   }
 }
-/* Initialize the stroke cache invariants from operator properties */
 void update_cache_invariants(
     bContext *C, VPaint &vp, SculptSession &ss, wmOperator *op, const float mval[2])
 {
@@ -506,7 +504,6 @@ void update_cache_invariants(
   cache->accum = true;
 }
 
-/* Initialize the stroke cache variants from operator properties */
 void update_cache_variants(bContext *C, VPaint &vp, Object &ob, PointerRNA *ptr)
 {
   using namespace blender;
@@ -577,6 +574,7 @@ void last_stroke_update(Scene &scene, const float location[3])
 }
 
 /* -------------------------------------------------------------------- */
+
 void smooth_brush_toggle_on(const bContext *C, Paint *paint, StrokeCache *cache)
 {
   Main *bmain = CTX_data_main(C);

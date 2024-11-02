@@ -387,6 +387,7 @@ static blender::gpu::VertBuf *sphere_wire_vbo(const float rad, int flag)
 }
 
 /* Quads */
+
 blender::gpu::Batch *DRW_cache_fullscreen_quad_get()
 {
   if (!SHC.drw_fullscreen_quad) {

@@ -3537,12 +3537,6 @@ static IMesh polymesh_from_trimesh_with_dissolve(const IMesh &tm_out,
   return imesh_out;
 }
 
-/**
- * This function does a boolean operation on a TriMesh with nshapes inputs.
- * All the shapes are combined in tm_in.
- * The shape_fn function should take a triangle index in tm_in and return
- * a number in the range 0 to `nshapes-1`, to say which shape that triangle is in.
- */
 IMesh boolean_trimesh(IMesh &tm_in,
                       BoolOpType op,
                       int nshapes,

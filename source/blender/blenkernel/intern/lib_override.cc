@@ -304,10 +304,10 @@ static ID *lib_override_library_create_from(Main *bmain,
   return local_id;
 }
 
-/* TODO: This could be simplified by storing a flag in #IDOverrideLibrary
- * during the diffing process? */
 bool BKE_lib_override_library_is_user_edited(const ID *id)
 {
+  /* TODO: This could be simplified by storing a flag in #IDOverrideLibrary
+   * during the diffing process? */
 
   if (!ID_IS_OVERRIDE_LIBRARY(id)) {
     return false;
@@ -511,8 +511,6 @@ static void lib_override_remapper_overrides_add(id::IDRemapper &id_remapper,
   }
 }
 
-/* TODO: Make this static local function instead? API is becoming complex, and it's not used
- * outside of this file anyway. */
 bool BKE_lib_override_library_create_from_tag(Main *bmain,
                                               Library *owner_library,
                                               const ID *id_root_reference,
@@ -521,6 +519,9 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
                                               const bool do_no_main,
                                               const bool do_fully_editable)
 {
+  /* TODO: Make this static local function instead?
+   * API is becoming complex, and it's not used outside of this file anyway. */
+
   BLI_assert(id_root_reference != nullptr && ID_IS_LINKED(id_root_reference));
   /* If we do not have any hierarchy root given, then the root reference must be tagged for
    * override. */

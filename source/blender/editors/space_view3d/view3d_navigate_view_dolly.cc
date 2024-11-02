@@ -27,9 +27,10 @@
  * which avoids #RegionView3D.dist approaching zero.
  * \{ */
 
-/* This is an exact copy of #viewzoom_modal_keymap. */
 void viewdolly_modal_keymap(wmKeyConfig *keyconf)
 {
+  /* NOTE: This is an exact copy of #viewzoom_modal_keymap. */
+
   static const EnumPropertyItem modal_items[] = {
       {VIEW_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
       {VIEW_MODAL_CONFIRM, "CONFIRM", 0, "Confirm", ""},

@@ -41,10 +41,17 @@ struct NestedTreePreviews {
 };
 
 void free_previews(wmWindowManager &wm, SpaceNode &snode);
+/**
+ * \note #node_release_preview_ibuf should be called after this.
+ */
 ImBuf *node_preview_acquire_ibuf(bNodeTree &ntree,
                                  NestedTreePreviews &tree_previews,
                                  const bNode &node);
 void node_release_preview_ibuf(NestedTreePreviews &tree_previews);
+/**
+ * This function returns the `NestedTreePreviews *` for the node-tree shown in the #SpaceNode.
+ * This is the first function in charge of the previews by calling `ensure_nodetree_previews`.
+ */
 NestedTreePreviews *get_nested_previews(const bContext &C, SpaceNode &snode);
 
 }  // namespace blender::ed::space_node

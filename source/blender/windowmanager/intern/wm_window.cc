@@ -2981,11 +2981,10 @@ bool WM_window_is_temp_screen(const wmWindow *win)
  * \{ */
 
 #ifdef WITH_INPUT_IME
-/**
- * \note Keep in mind #wm_window_IME_begin is also used to reposition the IME window.
- */
 void wm_window_IME_begin(wmWindow *win, int x, int y, int w, int h, bool complete)
 {
+  /* NOTE: Keep in mind #wm_window_IME_begin is also used to reposition the IME window. */
+
   BLI_assert(win);
   if ((WM_capabilities_flag() & WM_CAPABILITY_INPUT_IME) == 0) {
     return;

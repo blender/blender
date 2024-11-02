@@ -33,6 +33,7 @@
 /**
  * Colors & Constant.
  */
+
 DRW_Global G_draw{};
 
 static bool weight_ramp_custom = false;
@@ -295,9 +296,10 @@ DRWView *DRW_view_create_with_zoffset(const DRWView *parent_view,
 
 /* ******************************************** COLOR UTILS ************************************ */
 
-/* TODO: FINISH. */
 int DRW_object_wire_theme_get(Object *ob, ViewLayer *view_layer, float **r_color)
 {
+  /* TODO: FINISH. */
+
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const bool is_edit = (draw_ctx->object_mode & OB_MODE_EDIT) && (ob->mode & OB_MODE_EDIT);
   BKE_view_layer_synced_ensure(draw_ctx->scene, view_layer);
@@ -388,9 +390,10 @@ int DRW_object_wire_theme_get(Object *ob, ViewLayer *view_layer, float **r_color
   return theme_id;
 }
 
-/* XXX This is very stupid, better find something more general. */
 float *DRW_color_background_blend_get(int theme_id)
 {
+  /* XXX This is very stupid, better find something more general. */
+
   static float colors[11][4];
   float *ret;
 

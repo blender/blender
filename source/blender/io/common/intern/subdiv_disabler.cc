@@ -20,17 +20,18 @@
 
 namespace blender::io {
 
-/* Returns the last subdiv modifier associated with an object,
- * if that modifier should be disabled.
- * We do not disable the subdiv modifier if other modifiers are
- * applied after it, with the sole exception of particle modifiers,
- * which are allowed.
- * Returns nullptr if there is not any subdiv modifier to disable.
- */
 ModifierData *SubdivModifierDisabler::get_subdiv_modifier(Scene *scene,
                                                           const Object *ob,
                                                           ModifierMode mode)
 {
+  /* Returns the last subdiv modifier associated with an object,
+   * if that modifier should be disabled.
+   * We do not disable the subdiv modifier if other modifiers are
+   * applied after it, with the sole exception of particle modifiers,
+   * which are allowed.
+   * Returns nullptr if there is not any subdiv modifier to disable.
+   */
+
   ModifierData *md = static_cast<ModifierData *>(ob->modifiers.last);
 
   for (; md; md = md->prev) {
