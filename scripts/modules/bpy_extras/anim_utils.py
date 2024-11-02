@@ -96,8 +96,9 @@ def _ensure_channelbag_exists(action: Action, slot: ActionSlot):
 def bake_action(
         obj,
         *,
-        action, frames,
-        bake_options: BakeOptions,
+        action,
+        frames,
+        bake_options,
 ):
     """
     :arg obj: Object to bake.
@@ -107,7 +108,8 @@ def bake_action(
     :type action: :class:`bpy.types.Action` or None
     :arg frames: Frames to bake.
     :type frames: iterable of int
-
+    :arg bake_options: Options for baking.
+    :type bake_options: :class:`anim_utils.BakeOptions`
     :return: an action or None
     :rtype: :class:`bpy.types.Action`
     """
@@ -126,13 +128,15 @@ def bake_action_objects(
         object_action_pairs,
         *,
         frames,
-        bake_options: BakeOptions
+        bake_options,
 ):
     """
     A version of :func:`bake_action_objects_iter` that takes frames and returns the output.
 
     :arg frames: Frames to bake.
     :type frames: iterable of int
+    :arg bake_options: Options for baking.
+    :type bake_options: :class:`anim_utils.BakeOptions`
 
     :return: A sequence of Action or None types (aligned with `object_action_pairs`)
     :rtype: sequence of :class:`bpy.types.Action`
@@ -149,7 +153,7 @@ def bake_action_objects(
 
 def bake_action_objects_iter(
         object_action_pairs,
-        bake_options: BakeOptions
+        bake_options,
 ):
     """
     An coroutine that bakes actions for multiple objects.
@@ -157,6 +161,8 @@ def bake_action_objects_iter(
     :arg object_action_pairs: Sequence of object action tuples,
        action is the destination for the baked data. When None a new action will be created.
     :type object_action_pairs: Sequence of (:class:`bpy.types.Object`, :class:`bpy.types.Action`)
+    :arg bake_options: Options for baking.
+    :type bake_options: :class:`anim_utils.BakeOptions`
     """
     scene = bpy.context.scene
     frame_back = scene.frame_current
@@ -183,7 +189,7 @@ def bake_action_iter(
         obj,
         *,
         action,
-        bake_options: BakeOptions
+        bake_options,
 ):
     """
     An coroutine that bakes action for a single object.
@@ -194,7 +200,7 @@ def bake_action_iter(
        to be created.
     :type action: :class:`bpy.types.Action` or None
     :arg bake_options: Boolean options of what to include into the action bake.
-    :type bake_options: :class: `anim_utils.BakeOptions`
+    :type bake_options: :class:`anim_utils.BakeOptions`
 
     :return: an action or None
     :rtype: :class:`bpy.types.Action`
