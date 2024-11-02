@@ -343,7 +343,7 @@ typedef struct uiPreview {
 } uiPreview;
 
 typedef enum uiPreviewTag {
-  /** Preview needs rerendering, handled in #ED_preview_draw(). */
+  /** Preview needs re-rendering, handled in #ED_preview_draw(). */
   UI_PREVIEW_TAG_DIRTY = (1 << 0),
 } uiPreviewTag;
 

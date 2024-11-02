@@ -643,7 +643,7 @@ PyDoc_STRVAR(
     "\n"
     "   :arg vertices: float triplets each representing ``(x, y, z)``\n"
     "   :type vertices: float triplet sequence\n"
-    "   :arg polygons: Sequence of polyugons, each containing indices to the vertices argument.\n"
+    "   :arg polygons: Sequence of polygons, each containing indices to the vertices argument.\n"
     "   :type polygons: Sequence of sequences containing ints\n"
     "   :arg all_triangles: Use when all **polygons** are triangles for more efficient "
     "conversion.\n"

@@ -62,7 +62,7 @@ static std::optional<std::string> cache_dir_get()
 static bool read_spirv_from_disk(VKShaderModule &shader_module)
 {
   if (G.debug & G_DEBUG_GPU_RENDERDOC) {
-    /* Renderdoc uses spirv shaders including debug information. */
+    /* RenderDoc uses spirv shaders including debug information. */
     return false;
   }
   std::optional<std::string> cache_dir = cache_dir_get();

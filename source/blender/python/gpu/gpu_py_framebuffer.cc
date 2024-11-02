@@ -367,9 +367,8 @@ static PyObject *pygpu_framebuffer__tp_new(PyTypeObject * /*self*/, PyObject *ar
     if (PySequence_Check(color_attachements)) {
       color_attachements_len = PySequence_Size(color_attachements);
       if (color_attachements_len > BPYGPU_FB_MAX_COLOR_ATTACHMENT) {
-        PyErr_SetString(
-            PyExc_AttributeError,
-            "too many attachements, max is " STRINGIFY(BPYGPU_FB_MAX_COLOR_ATTACHMENT));
+        PyErr_SetString(PyExc_AttributeError,
+                        "too many attachments, max is " STRINGIFY(BPYGPU_FB_MAX_COLOR_ATTACHMENT));
         return nullptr;
       }
 

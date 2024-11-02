@@ -363,10 +363,10 @@ static void restore_position_mesh(const Depsgraph &depsgraph,
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   const SculptSession &ss = *object.sculpt;
 
-  /* Ideally, we would use the PositionDeformData#deform method to perform the reverse deformation
-   * based on the evaluated positions, hwoever this causes odd behavior. For now, this is a
-   * modified version of older code that depends on an extra `orig_position` array stored inside
-   * the `Node` to perform swaps correctly.
+  /* Ideally, we would use the #PositionDeformData::deform method to perform the reverse
+   * deformation based on the evaluated positions, however this causes odd behavior.
+   * For now, this is a modified version of older code that depends on an extra `orig_position`
+   * array stored inside the #Node to perform swaps correctly.
    *
    * See #128859 for more detail.
    */
