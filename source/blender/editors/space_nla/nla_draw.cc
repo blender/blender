@@ -117,7 +117,6 @@ static void nla_action_draw_keyframes(
   immUnbindProgram();
 
   /* Count keys before drawing. */
-  /* NOTE: It's safe to cast #DLRBT_Tree, as it's designed to degrade down to a #ListBase. */
   const ListBase *keys = ED_keylist_listbase(keylist);
   uint key_len = BLI_listbase_count(keys);
 
