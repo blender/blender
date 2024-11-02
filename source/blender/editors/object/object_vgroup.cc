@@ -3643,38 +3643,15 @@ static int vgroup_do_remap(Object *ob, const char *name_array, wmOperator *op)
   }
   else {
     int dvert_tot = 0;
-    /* Grease pencil stores vertex groups separately for each stroke,
-     * so remap each stroke's weights separately. */
-    if (ob->type == OB_GPENCIL_LEGACY) {
-      bGPdata *gpd = static_cast<bGPdata *>(ob->data);
-      LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-        LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
-          LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-            dvert = gps->dvert;
-            dvert_tot = gps->totpoints;
-            if (dvert) {
-              while (dvert_tot--) {
-                if (dvert->totweight) {
-                  BKE_defvert_remap(dvert, sort_map, defbase_tot);
-                }
-                dvert++;
-              }
-            }
-          }
-        }
-      }
-    }
-    else {
-      BKE_object_defgroup_array_get(static_cast<ID *>(ob->data), &dvert, &dvert_tot);
+    BKE_object_defgroup_array_get(static_cast<ID *>(ob->data), &dvert, &dvert_tot);
 
-      /* Create as necessary. */
-      if (dvert) {
-        while (dvert_tot--) {
-          if (dvert->totweight) {
-            BKE_defvert_remap(dvert, sort_map, defbase_tot);
-          }
-          dvert++;
+    /* Create as necessary. */
+    if (dvert) {
+      while (dvert_tot--) {
+        if (dvert->totweight) {
+          BKE_defvert_remap(dvert, sort_map, defbase_tot);
         }
+        dvert++;
       }
     }
   }

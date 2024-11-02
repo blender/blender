@@ -924,7 +924,6 @@ static eSnapMode snap_obj_fn(SnapObjectContext *sctx,
       break;
     case OB_FONT:
     case OB_EMPTY:
-    case OB_GPENCIL_LEGACY:
     case OB_LAMP:
       retval = snap_object_center(sctx, ob_eval, obmat, sctx->runtime.snap_to_flag);
       break;
