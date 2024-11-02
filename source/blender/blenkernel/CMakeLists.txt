@@ -148,7 +148,6 @@ set(SRC
   intern/gpencil_geom_legacy.cc
   intern/gpencil_legacy.cc
   intern/gpencil_modifier_legacy.cc
-  intern/gpencil_update_cache_legacy.cc
   intern/grease_pencil.cc
   intern/grease_pencil_convert_legacy.cc
   intern/grease_pencil_vertex_groups.cc
@@ -410,7 +409,6 @@ set(SRC
   BKE_gpencil_geom_legacy.h
   BKE_gpencil_legacy.h
   BKE_gpencil_modifier_legacy.h
-  BKE_gpencil_update_cache_legacy.h
   BKE_grease_pencil.h
   BKE_grease_pencil.hh
   BKE_grease_pencil_legacy_convert.hh

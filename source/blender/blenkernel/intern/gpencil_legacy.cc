@@ -42,7 +42,6 @@
 #include "BKE_deform.hh"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
-#include "BKE_gpencil_update_cache_legacy.h"
 #include "BKE_icons.h"
 #include "BKE_idtype.hh"
 #include "BKE_image.h"
@@ -146,7 +145,6 @@ static void greasepencil_blend_write(BlendWriter *writer, ID *id, const void *id
   gpd->runtime.sbuffer_used = 0;
   gpd->runtime.sbuffer_size = 0;
   gpd->runtime.tot_cp_points = 0;
-  gpd->runtime.update_cache = nullptr;
 
   /* write gpd data block to file */
   BLO_write_id_struct(writer, bGPdata, id_address, &gpd->id);
@@ -202,7 +200,6 @@ void BKE_gpencil_blend_read_data(BlendDataReader *reader, bGPdata *gpd)
   gpd->runtime.sbuffer_used = 0;
   gpd->runtime.sbuffer_size = 0;
   gpd->runtime.tot_cp_points = 0;
-  gpd->runtime.update_cache = nullptr;
 
   /* Relink palettes (old palettes deprecated, only to convert old files). */
   BLO_read_struct_list(reader, bGPDpalette, &gpd->palettes);
@@ -467,8 +464,6 @@ void BKE_gpencil_free_data(bGPdata *gpd, bool free_all)
   MEM_SAFE_FREE(gpd->mat);
 
   BLI_freelistN(&gpd->vertex_group_names);
-
-  BKE_gpencil_free_update_cache(gpd);
 
   /* free all data */
   if (free_all) {
