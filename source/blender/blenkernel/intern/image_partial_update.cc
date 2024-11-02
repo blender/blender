@@ -542,9 +542,10 @@ extern "C" {
 
 using namespace blender::bke::image::partial_update;
 
-/* TODO(@jbakker): cleanup parameter. */
 PartialUpdateUser *BKE_image_partial_update_create(const Image *image)
 {
+  /* TODO(@jbakker): cleanup parameter. */
+
   PartialUpdateUserImpl *user_impl = MEM_new<PartialUpdateUserImpl>(__func__);
 
 #ifdef NDEBUG

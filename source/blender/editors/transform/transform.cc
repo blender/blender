@@ -60,7 +60,6 @@ using namespace blender;
 /** \name General Utils
  * \{ */
 
-/* Calculates projection vector based on a location. */
 void transform_view_vector_calc(const TransInfo *t, const float focus[3], float r_vec[3])
 {
   if (t->persp != RV3D_ORTHO) {

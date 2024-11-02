@@ -130,10 +130,6 @@ static std::optional<ComputeContextHash> get_compute_context_hash_for_node_edito
   return compute_context_builder.hash();
 }
 
-/*
- * This function returns the `NestedTreePreviews *` for the nodetree shown in the SpaceNode.
- * This is the first function in charge of the previews by calling `ensure_nodetree_previews`.
- */
 NestedTreePreviews *get_nested_previews(const bContext &C, SpaceNode &snode)
 {
   if (snode.id == nullptr || GS(snode.id->name) != ID_MA) {
@@ -306,7 +302,6 @@ static ImBuf *get_image_from_viewlayer_and_pass(RenderResult &rr,
   return ibuf;
 }
 
-/* `node_release_preview_ibuf` should be called after this. */
 ImBuf *node_preview_acquire_ibuf(bNodeTree &ntree,
                                  NestedTreePreviews &tree_previews,
                                  const bNode &node)

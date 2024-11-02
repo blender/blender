@@ -274,6 +274,10 @@ struct ObjectAttribute {
   uint hash_code;
 
 #if !defined(GPU_SHADER) && defined(__cplusplus)
+  /**
+   * Go through all possible source of the given object uniform attribute.
+   * Returns true if the attribute was correctly filled.
+   */
   bool sync(const blender::draw::ObjectRef &ref, const GPUUniformAttr &attr);
 #endif
 };

@@ -187,12 +187,6 @@ static void calc_translations_bmesh(const bke::pbvh::BMeshNode &node,
 
 }  // namespace enhance_details_cc
 
-/**
- * The brush uses translations calculated at the beginning of the stroke. They can't be calculated
- * dynamically because changing positions will influence neighboring translations. However we can
- * reduce the cost in some cases by skipping initializing values for vertices in hidden or masked
- * nodes.
- */
 void calc_smooth_translations(const Depsgraph &depsgraph,
                               const Object &object,
                               const IndexMask &node_mask,

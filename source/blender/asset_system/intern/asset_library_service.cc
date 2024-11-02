@@ -347,13 +347,14 @@ std::string AssetLibraryService::normalize_asset_weak_reference_relative_asset_i
                                    group_name_sep_pos + 1);
 }
 
-/* TODO currently only works for asset libraries on disk (custom or essentials asset libraries).
- * Once there is a proper registry of asset libraries, this could contain an asset library locator
- * and/or identifier, so a full path (not necessarily file path) can be built for all asset
- * libraries. */
 std::string AssetLibraryService::resolve_asset_weak_reference_to_full_path(
     const AssetWeakReference &asset_reference)
 {
+  /* TODO currently only works for asset libraries on disk (custom or essentials asset libraries).
+   * Once there is a proper registry of asset libraries, this could contain an asset library
+   * locator and/or identifier, so a full path (not necessarily file path) can be built for all
+   * asset libraries. */
+
   if (asset_reference.relative_asset_identifier[0] == '\0') {
     return "";
   }

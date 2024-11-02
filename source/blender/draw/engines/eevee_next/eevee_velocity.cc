@@ -303,10 +303,6 @@ void VelocityModule::geometry_steps_fill()
   geometry_map.clear();
 }
 
-/**
- * In Render, moves the next frame data to previous frame data. Nullify next frame data.
- * In Viewport, the current frame data will be used as previous frame data in the next frame.
- */
 void VelocityModule::step_swap()
 {
   auto swap_steps = [&](eVelocityStep step_a, eVelocityStep step_b) {
@@ -346,7 +342,6 @@ void VelocityModule::begin_sync()
   object_steps_usage[step_] = 0;
 }
 
-/* This is the end of the current frame sync. Not the step_sync. */
 void VelocityModule::end_sync()
 {
   Vector<ObjectKey, 0> deleted_obj;

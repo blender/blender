@@ -188,6 +188,10 @@ class DepthOfField {
   void hole_fill_pass_sync();
   void resolve_pass_sync();
 
+  /**
+   * Similar to #Film::update_sample_table()
+   * but with constant filter radius and constant sample count.
+   */
   void update_sample_table();
 };
 

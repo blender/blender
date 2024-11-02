@@ -303,7 +303,6 @@ void Instance::object_sync(Object *ob)
   }
 }
 
-/* Wrapper to use with DRW_render_object_iter. */
 void Instance::object_sync_render(void *instance_,
                                   Object *ob,
                                   RenderEngine *engine,
@@ -395,10 +394,6 @@ bool Instance::do_planar_probe_sync() const
 /** \name Rendering
  * \{ */
 
-/**
- * Conceptually renders one sample per pixel.
- * Everything based on random sampling should be done here (i.e: DRWViews jitter)
- */
 void Instance::render_sample()
 {
   if (sampling.finished_viewport()) {

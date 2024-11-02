@@ -321,9 +321,10 @@ void VKTexture::update_sub(int offset_[3],
   update_sub(0, offset_, extent_, format, pixel_buffer.map());
 }
 
-/* TODO(fclem): Legacy. Should be removed at some point. */
 uint VKTexture::gl_bindcode_get() const
 {
+  /* TODO(fclem): Legacy. Should be removed at some point. */
+
   return 0;
 }
 

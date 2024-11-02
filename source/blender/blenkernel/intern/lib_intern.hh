@@ -17,4 +17,7 @@ extern BKE_library_remap_editor_id_reference_cb remap_editor_id_reference_cb;
 struct ID;
 struct Main;
 
+/**
+ * Ensure new (copied) ID is fully made local.
+ */
 void lib_id_copy_ensure_local(Main *bmain, const ID *old_id, ID *new_id, const int flags);

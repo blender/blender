@@ -898,11 +898,10 @@ ID *deg_update_eval_copy_datablock(const Depsgraph *depsgraph, const IDNode *id_
   return id_cow;
 }
 
-/**
- * \note Depsgraph is supposed to have ID node already.
- */
 ID *deg_update_eval_copy_datablock(const Depsgraph *depsgraph, ID *id_orig)
 {
+  /* NOTE: Depsgraph is supposed to have ID node already. */
+
   IDNode *id_node = depsgraph->find_id_node(id_orig);
   BLI_assert(id_node != nullptr);
   return deg_update_eval_copy_datablock(depsgraph, id_node);

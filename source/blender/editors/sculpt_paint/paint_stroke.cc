@@ -283,7 +283,6 @@ static bool image_paint_brush_type_require_inbetween_mouse_events(const Brush &b
   return true;
 }
 
-/* Initialize the stroke cache variants from operator properties */
 bool paint_brush_update(bContext *C,
                         const Brush &brush,
                         PaintMode mode,

@@ -95,9 +95,10 @@ void TreeViewItemContainer::foreach_parent(ItemIterFn iter_fn) const
 
 /* ---------------------------------------------------------------------- */
 
-/* Implementation for the base class virtual function. More specialized iterators below. */
 void AbstractTreeView::foreach_view_item(FunctionRef<void(AbstractViewItem &)> iter_fn) const
 {
+  /* Implementation for the base class virtual function. More specialized iterators below. */
+
   this->foreach_item_recursive(iter_fn);
 }
 

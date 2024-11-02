@@ -50,16 +50,17 @@ static VkMemoryPropertyFlags vma_required_flags(const bool is_host_visible)
   return is_host_visible ? VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT : 0;
 }
 
-/*
- * TODO: Check which memory is selected and adjust the creation flag to add mapping. This way the
- * staging buffer can be skipped, or in case of a vertex buffer an intermediate buffer can be
- * removed.
- */
 bool VKBuffer::create(size_t size_in_bytes,
                       GPUUsageType usage,
                       VkBufferUsageFlags buffer_usage,
                       const bool is_host_visible)
 {
+  /*
+   * TODO: Check which memory is selected and adjust the creation flag to add mapping. This way the
+   * staging buffer can be skipped, or in case of a vertex buffer an intermediate buffer can be
+   * removed.
+   */
+
   BLI_assert(!is_allocated());
   BLI_assert(vk_buffer_ == VK_NULL_HANDLE);
   BLI_assert(mapped_memory_ == nullptr);

@@ -45,9 +45,10 @@ AbstractGridViewItem &AbstractGridView::add_item(std::unique_ptr<AbstractGridVie
   return added_item;
 }
 
-/* Implementation for the base class virtual function. More specialized iterators below. */
 void AbstractGridView::foreach_view_item(FunctionRef<void(AbstractViewItem &)> iter_fn) const
 {
+  /* Implementation for the base class virtual function. More specialized iterators below. */
+
   for (const auto &item_ptr : items_) {
     iter_fn(*item_ptr);
   }

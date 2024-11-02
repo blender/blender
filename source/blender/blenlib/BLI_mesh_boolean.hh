@@ -56,6 +56,11 @@ IMesh boolean_mesh(IMesh &imesh,
  * This is like boolean, but operates on #IMesh's whose faces are all triangles.
  * It is exposed mainly for unit testing, at the moment: boolean_mesh() uses
  * it to do most of its work.
+ *
+ * This function does a boolean operation on a #TriMesh with `nshapes` inputs.
+ * All the shapes are combined in `tm_in`.
+ * The shape_fn function should take a triangle index in `tm_in` and return
+ * a number in the range 0 to `nshapes - 1`, to say which shape that triangle is in.
  */
 IMesh boolean_trimesh(IMesh &tm_in,
                       BoolOpType op,
