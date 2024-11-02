@@ -957,6 +957,7 @@ static void seq_retiming_fix_transition(const Scene *scene, Sequence *seq, SeqRe
   SeqRetimingKey *orig_key = seq_retiming_remove_transition(scene, seq, key);
   SEQ_retiming_add_transition(scene, seq, orig_key, transition_duration);
   BLI_assert(keys_num == seq->retiming_keys_num);
+  UNUSED_VARS_NDEBUG(keys_num);
 }
 
 static void seq_retiming_fix_transitions(const Scene *scene, Sequence *seq, SeqRetimingKey *key)
