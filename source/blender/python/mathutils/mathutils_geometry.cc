@@ -1448,8 +1448,8 @@ static void boxPack_ToPyObject(PyObject *value, const BoxPack *boxarray)
   for (i = 0; i < len; i++) {
     const BoxPack *box = &boxarray[i];
     list_item = PyList_GET_ITEM(value, box->index);
-    PyList_SET_ITEM(list_item, 0, PyFloat_FromDouble(box->x));
-    PyList_SET_ITEM(list_item, 1, PyFloat_FromDouble(box->y));
+    PyList_SetItem(list_item, 0, PyFloat_FromDouble(box->x));
+    PyList_SetItem(list_item, 1, PyFloat_FromDouble(box->y));
   }
 }
 
