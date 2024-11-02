@@ -19,11 +19,18 @@ namespace blender::nodes::node_geo_transform_geometry_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  auto enable_components = [](bNode &node) { node.custom1 = GEO_NODE_TRANSFORM_MODE_COMPONENTS; };
+  auto enable_matrix = [](bNode &node) { node.custom1 = GEO_NODE_TRANSFORM_MODE_MATRIX; };
+
   b.add_input<decl::Geometry>("Geometry");
-  auto &translation = b.add_input<decl::Vector>("Translation").subtype(PROP_TRANSLATION);
-  auto &rotation = b.add_input<decl::Rotation>("Rotation");
-  auto &scale = b.add_input<decl::Vector>("Scale").default_value({1, 1, 1}).subtype(PROP_XYZ);
-  auto &transform = b.add_input<decl::Matrix>("Transform");
+  auto &translation = b.add_input<decl::Vector>("Translation")
+                          .subtype(PROP_TRANSLATION)
+                          .make_available(enable_components);
+  auto &rotation = b.add_input<decl::Rotation>("Rotation").make_available(enable_components);
+  auto &scale =
+      b.add_input<decl::Vector>("Scale").default_value({1, 1, 1}).subtype(PROP_XYZ).make_available(
+          enable_components);
+  auto &transform = b.add_input<decl::Matrix>("Transform").make_available(enable_matrix);
   b.add_output<decl::Geometry>("Geometry").propagate_all();
 
   const bNode *node = b.node_or_null();
