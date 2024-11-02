@@ -805,9 +805,11 @@ class PHYSICS_PT_dp_brush_source_color_ramp(PhysicButtonsPanel, Panel):
             return False
 
         brush = context.dynamic_paint.brush_settings
-        return ((brush.paint_source in {'DISTANCE', 'VOLUME_DISTANCE', 'POINT'})
-                and (brush.proximity_falloff == 'RAMP')
-                and (context.engine in cls.COMPAT_ENGINES))
+        return (
+            (brush.paint_source in {'DISTANCE', 'VOLUME_DISTANCE', 'POINT'}) and
+            (brush.proximity_falloff == 'RAMP') and
+            (context.engine in cls.COMPAT_ENGINES)
+        )
 
     def draw(self, context):
         layout = self.layout
