@@ -3556,8 +3556,6 @@ std::optional<blender::Bounds<blender::float3>> BKE_object_boundbox_get(const Ob
       return BKE_lattice_minmax(static_cast<const Lattice *>(ob->data));
     case OB_ARMATURE:
       return BKE_armature_min_max(ob);
-    case OB_GPENCIL_LEGACY:
-      return BKE_gpencil_data_minmax(static_cast<const bGPdata *>(ob->data));
     case OB_CURVES:
       return static_cast<const Curves *>(ob->data)->geometry.wrap().bounds_min_max();
     case OB_POINTCLOUD:

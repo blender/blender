@@ -307,11 +307,6 @@ typedef struct bGPDstroke {
   /** Factor of opacity for Fill color (used by opacity modifier). */
   float fill_opacity_fac;
 
-  /** Min of the bound box used to speedup painting operators. */
-  float boundbox_min[3];
-  /** Max of the bound box used to speedup painting operators. */
-  float boundbox_max[3];
-
   /** UV rotation */
   float uv_rotation;
   /** UV translation (X and Y axis) */

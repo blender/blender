@@ -19,41 +19,6 @@ struct bGPDspoint;
 struct bGPDstroke;
 struct bGPdata;
 
-/* Object bound-box. */
-
-/**
- * Get min/max bounds of all strokes in grease pencil data-block.
- * \param gpd: Grease pencil data-block
- * \param r_min: Result minimum coordinates
- * \param r_max: Result maximum coordinates
- * \return True if it was possible to calculate
- */
-std::optional<blender::Bounds<blender::float3>> BKE_gpencil_data_minmax(const struct bGPdata *gpd);
-/**
- * Get min/max coordinate bounds for single stroke.
- * \param gps: Grease pencil stroke
- * \param use_select: Include only selected points
- * \param r_min: Result minimum coordinates
- * \param r_max: Result maximum coordinates
- * \return True if it was possible to calculate
- */
-bool BKE_gpencil_stroke_minmax(const struct bGPDstroke *gps,
-                               bool use_select,
-                               float r_min[3],
-                               float r_max[3]);
-
-/**
- * Compute center of bounding box.
- * \param gpd: Grease pencil data-block
- * \param r_centroid: Location of the center
- */
-void BKE_gpencil_centroid_3d(struct bGPdata *gpd, float r_centroid[3]);
-/**
- * Compute stroke bounding box.
- * \param gps: Grease pencil Stroke
- */
-void BKE_gpencil_stroke_boundingbox_calc(struct bGPDstroke *gps);
-
 /* Stroke geometry utilities. */
 
 /**
@@ -84,13 +49,6 @@ void BKE_gpencil_stroke_geometry_update(struct bGPdata *gpd, struct bGPDstroke *
  * \param gps: Grease pencil stroke
  */
 void BKE_gpencil_stroke_uv_update(struct bGPDstroke *gps);
-
-/**
- * Apply grease pencil Transforms.
- * \param gpd: Grease pencil data-block
- * \param mat: Transformation matrix
- */
-void BKE_gpencil_transform(struct bGPdata *gpd, const float mat[4][4]);
 
 typedef struct GPencilPointCoordinates {
   /* This is used when doing "move only origin" in object_data_transform.cc.

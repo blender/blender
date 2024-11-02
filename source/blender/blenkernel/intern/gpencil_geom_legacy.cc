@@ -50,81 +50,6 @@
 using blender::float3;
 using blender::Span;
 
-/* -------------------------------------------------------------------- */
-/** \name Grease Pencil Object: Bound-box Support
- * \{ */
-
-bool BKE_gpencil_stroke_minmax(const bGPDstroke *gps,
-                               const bool use_select,
-                               float r_min[3],
-                               float r_max[3])
-{
-  if (gps == nullptr) {
-    return false;
-  }
-
-  bool changed = false;
-  if (use_select) {
-    for (const bGPDspoint &pt : Span(gps->points, gps->totpoints)) {
-      if (pt.flag & GP_SPOINT_SELECT) {
-        minmax_v3v3_v3(r_min, r_max, &pt.x);
-        changed = true;
-      }
-    }
-  }
-  else {
-    for (const bGPDspoint &pt : Span(gps->points, gps->totpoints)) {
-      minmax_v3v3_v3(r_min, r_max, &pt.x);
-      changed = true;
-    }
-  }
-
-  return changed;
-}
-
-std::optional<blender::Bounds<blender::float3>> BKE_gpencil_data_minmax(const bGPdata *gpd)
-{
-  bool changed = false;
-
-  float3 min;
-  float3 max;
-  INIT_MINMAX(min, max);
-  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-    bGPDframe *gpf = gpl->actframe;
-
-    if (gpf != nullptr) {
-      LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-        changed |= BKE_gpencil_stroke_minmax(gps, false, min, max);
-      }
-    }
-  }
-
-  if (!changed) {
-    return std::nullopt;
-  }
-
-  return blender::Bounds<blender::float3>{min, max};
-}
-
-void BKE_gpencil_centroid_3d(bGPdata *gpd, float r_centroid[3])
-{
-  using namespace blender;
-  const Bounds<float3> bounds = BKE_gpencil_data_minmax(gpd).value_or(Bounds(float3(0)));
-  copy_v3_v3(r_centroid, math::midpoint(bounds.min, bounds.max));
-}
-
-void BKE_gpencil_stroke_boundingbox_calc(bGPDstroke *gps)
-{
-  INIT_MINMAX(gps->boundbox_min, gps->boundbox_max);
-  BKE_gpencil_stroke_minmax(gps, false, gps->boundbox_min, gps->boundbox_max);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Stroke Smooth Positions
- * \{ */
-
 void BKE_gpencil_stroke_2d_flat(const bGPDspoint *points,
                                 int totpoints,
                                 float (*points2d)[2],
@@ -334,42 +259,6 @@ void BKE_gpencil_stroke_geometry_update(bGPdata * /*gpd*/, bGPDstroke *gps)
 
   /* calc uv data along the stroke */
   BKE_gpencil_stroke_uv_update(gps);
-
-  /* Calc stroke bounding box. */
-  BKE_gpencil_stroke_boundingbox_calc(gps);
-}
-
-void BKE_gpencil_transform(bGPdata *gpd, const float mat[4][4])
-{
-  if (gpd == nullptr) {
-    return;
-  }
-
-  const float scalef = mat4_to_scale(mat);
-  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-    /* FIXME: For now, we just skip parented layers.
-     * Otherwise, we have to update each frame to find
-     * the current parent position/effects.
-     */
-    if (gpl->parent) {
-      continue;
-    }
-
-    LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
-      LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-        bGPDspoint *pt;
-        int i;
-
-        for (pt = gps->points, i = 0; i < gps->totpoints; pt++, i++) {
-          mul_m4_v3(mat, &pt->x);
-          pt->pressure *= scalef;
-        }
-
-        /* Distortion may mean we need to re-triangulate. */
-        BKE_gpencil_stroke_geometry_update(gpd, gps);
-      }
-    }
-  }
 }
 
 int BKE_gpencil_stroke_point_count(const bGPdata *gpd)
