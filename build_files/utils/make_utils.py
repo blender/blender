@@ -15,7 +15,12 @@ import subprocess
 import sys
 from pathlib import Path
 
+from types import (
+    TracebackType,
+)
 from typing import (
+    Any,
+    Callable,
     Dict,
     Sequence,
     Optional,
@@ -279,9 +284,12 @@ def remove_directory(directory: Path) -> None:
     Takes care of clearing read-only attributes which might prevent deletion on
     Windows.
     """
-
-    def remove_readonly(func, path, _):
-        "Clear the readonly bit and reattempt the removal"
+    def remove_readonly(
+            func: Callable[..., Any],
+            path: str,
+            _: tuple[type[BaseException], BaseException, TracebackType],
+    ) -> None:
+        "Clear the read-only bit and reattempt the removal."
         os.chmod(path, stat.S_IWRITE)
         func(path)
 
