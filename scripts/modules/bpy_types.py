@@ -860,7 +860,7 @@ class Gizmo(_StructRNA):
         :type matrix: :class:`mathutils.Matrix`
         :arg select_id: The selection id.
            Only use when drawing within :class:`Gizmo.draw_select`.
-        :type select_it: int
+        :type select_id: int
         """
         import gpu
 
@@ -899,8 +899,6 @@ class Gizmo(_StructRNA):
         :type type: string
         :arg verts: Coordinates.
         :type verts: sequence of 2D or 3D coordinates.
-        :arg display_name: Optional callback that takes the full path, returns the name to display.
-        :type display_name: Callable that takes a string and returns a string.
         :return: The newly created shape.
         :rtype: Undefined (it may change).
         """

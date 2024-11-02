@@ -164,6 +164,7 @@ PyDoc_STRVAR(
     "   :type v3: :class:`mathutils.Vector`\n"
     "   :arg v4: Second point of the second line\n"
     "   :type v4: :class:`mathutils.Vector`\n"
+    "   :return: The intersection on each line or None when the lines are co-linear.\n"
     "   :rtype: tuple of :class:`mathutils.Vector`'s\n");
 static PyObject *M_Geometry_intersect_line_line(PyObject * /*self*/, PyObject *args)
 {
@@ -242,6 +243,7 @@ PyDoc_STRVAR(
     "   :type p_b: :class:`mathutils.Vector`\n"
     "   :arg radius_b: Radius of the second circle\n"
     "   :type radius_b: float\n"
+    "   :return: 2 points on between intersecting circles or None when there is no intersection.\n"
     "   :rtype: tuple of :class:`mathutils.Vector`'s or None when there is no intersection\n");
 static PyObject *M_Geometry_intersect_sphere_sphere_2d(PyObject * /*self*/, PyObject *args)
 {
@@ -1616,7 +1618,7 @@ PyDoc_STRVAR(
     "   For edges, the orig indices start with the input edges and then continue\n"
     "   with the edges implied by each of the faces (n of them for an n-gon).\n"
     "   If the need_ids argument is supplied, and False, then the code skips the preparation\n"
-    "   of the orig arrays, which may save some time."
+    "   of the orig arrays, which may save some time.\n"
     "\n"
     "   :arg vert_coords: Vertex coordinates (2d)\n"
     "   :type vert_coords: list of :class:`mathutils.Vector`\n"
@@ -1630,7 +1632,7 @@ PyDoc_STRVAR(
     "3 => like 2 but detect holes and omit them from output. "
     "4 => like 2 but with extra edges to make valid BMesh faces. "
     "5 => like 4 but detect holes and omit them from output.\n"
-    "   :type output_type: int\\n"
+    "   :type output_type: int\n"
     "   :arg epsilon: For nearness tests; should not be zero\n"
     "   :type epsilon: float\n"
     "   :arg need_ids: are the orig output arrays needed?\n"
