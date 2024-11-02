@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include <iostream>
+#include <fmt/core.h>
 
 #include "IO_subdiv_disabler.hh"
 #include "usd.hh"
@@ -192,9 +192,9 @@ static void report_job_duration(const ExportJobData *data)
 {
   timeit::Nanoseconds duration = timeit::Clock::now() - data->start_time;
   const char *export_filepath = data->export_filepath();
-  std::cout << "USD export of '" << export_filepath << "' took ";
+  fmt::print("USD export of '{}' took ", export_filepath);
   timeit::print_duration(duration);
-  std::cout << '\n';
+  fmt::print("\n");
 }
 
 static void process_usdz_textures(const ExportJobData *data, const char *path)
