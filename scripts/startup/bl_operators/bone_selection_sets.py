@@ -308,33 +308,31 @@ class POSE_OT_selection_set_paste(_PoseModeOnlyMixin, Operator):
 
 
 def _uniqify(name, other_names):
-    """
-    :arg name: The name to make unique.
-    :type name: str
-    :arg other_names: The name to make unique.
-    :type other_names: str
-    :return: Return a unique name with ``.xxx`` suffix if necessary.
-    :rtype: str
-
-    Example usage:
-
-    >>> _uniqify('hey', ['there'])
-    'hey'
-    >>> _uniqify('hey', ['hey.001', 'hey.005'])
-    'hey'
-    >>> _uniqify('hey', ['hey', 'hey.001', 'hey.005'])
-    'hey.002'
-    >>> _uniqify('hey', ['hey', 'hey.005', 'hey.001'])
-    'hey.002'
-    >>> _uniqify('hey', ['hey', 'hey.005', 'hey.001', 'hey.left'])
-    'hey.002'
-    >>> _uniqify('hey', ['hey', 'hey.001', 'hey.002'])
-    'hey.003'
-
-    It also works with a dict_keys object:
-    >>> _uniqify('hey', {'hey': 1, 'hey.005': 1, 'hey.001': 1}.keys())
-    'hey.002'
-    """
+    # :arg name: The name to make unique.
+    # :type name: str
+    # :arg other_names: The name to make unique.
+    # :type other_names: str
+    # :return: Return a unique name with ``.xxx`` suffix if necessary.
+    # :rtype: str
+    #
+    # Example usage:
+    #
+    # >>> _uniqify('hey', ['there'])
+    # 'hey'
+    # >>> _uniqify('hey', ['hey.001', 'hey.005'])
+    # 'hey'
+    # >>> _uniqify('hey', ['hey', 'hey.001', 'hey.005'])
+    # 'hey.002'
+    # >>> _uniqify('hey', ['hey', 'hey.005', 'hey.001'])
+    # 'hey.002'
+    # >>> _uniqify('hey', ['hey', 'hey.005', 'hey.001', 'hey.left'])
+    # 'hey.002'
+    # >>> _uniqify('hey', ['hey', 'hey.001', 'hey.002'])
+    # 'hey.003'
+    #
+    # It also works with a dict_keys object:
+    # >>> _uniqify('hey', {'hey': 1, 'hey.005': 1, 'hey.001': 1}.keys())
+    # 'hey.002'
 
     if name not in other_names:
         return name
@@ -356,14 +354,13 @@ def _uniqify(name, other_names):
 
 
 def _to_json(context):
-    """Convert the selected Selection Sets of the current rig to JSON.
-
-    Selected Sets are the active_selection_set determined by the UIList
-    plus any with the is_selected checkbox on.
-
-    :return: The selection as JSON data.
-    :rtype: str
-    """
+    # Convert the selected Selection Sets of the current rig to JSON.
+    #
+    # Selected Sets are the active_selection_set determined by the UIList
+    # plus any with the is_selected checkbox on.
+    #
+    # :return: The selection as JSON data.
+    # :rtype: str
     import json
 
     arm = context.object
@@ -379,11 +376,10 @@ def _to_json(context):
 
 
 def _from_json(context, as_json):
-    """Add the selection sets (one or more) from JSON to the current rig.
-
-    :arg as_json: The JSON contents to load.
-    :type as_json: str
-    """
+    # Add the selection sets (one or more) from JSON to the current rig.
+    #
+    # :arg as_json: The JSON contents to load.
+    # :type as_json: str
     import json
 
     json_obj = json.loads(as_json)

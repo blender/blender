@@ -1377,14 +1377,13 @@ _ext_manifest_filename_toml = "blender_manifest.toml"
 
 
 def _extension_module_name_decompose(package):
-    """
-    Returns the repository module name and the extensions ID from an extensions module name (``__package__``).
+    # Returns the repository module name and the extensions ID from an extensions module name (``__package__``).
+    #
+    # :arg module_name: The extensions module name.
+    # :type module_name: str
+    # :return: (repo_module_name, extension_id)
+    # :rtype: tuple[str, str]
 
-    :arg module_name: The extensions module name.
-    :type module_name: str
-    :return: (repo_module_name, extension_id)
-    :rtype: tuple[str, str]
-    """
     if not package.startswith(_ext_base_pkg_idname_with_dot):
         raise ValueError("The \"package\" does not name an extension")
 

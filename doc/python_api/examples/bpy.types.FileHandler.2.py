@@ -72,14 +72,12 @@ class ShaderScriptImport(bpy.types.Operator, ImportHelper):
                 y -= 20.0
         return {'FINISHED'}
 
-    """
-    Use ImportHelper's invoke_popup() to handle the invocation so that this operator's properties
-    are shown in a popup. This allows the user to configure additional settings on the operator like
-    the `set_label` property. Consider having a draw() method on the operator in order to layout the
-    properties in the UI appropriately.
-
-    If filepath information is not provided the file select window will be invoked instead.
-    """
+    # Use ImportHelper's invoke_popup() to handle the invocation so that this operator's properties
+    # are shown in a popup. This allows the user to configure additional settings on the operator like
+    # the `set_label` property. Consider having a draw() method on the operator in order to layout the
+    # properties in the UI appropriately.
+    #
+    # If filepath information is not provided the file select window will be invoked instead.
 
     def invoke(self, context, event):
         return self.invoke_popup(context)
