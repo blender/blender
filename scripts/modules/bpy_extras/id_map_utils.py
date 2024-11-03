@@ -2,19 +2,18 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-from typing import Dict, Set
-import bpy
-from bpy.types import ID
-
-
 __all__ = (
     "get_id_reference_map",
     "get_all_referenced_ids",
 )
 
 
-def get_id_reference_map() -> Dict[ID, Set[ID]]:
-    """Return a dictionary of direct datablock references for every datablock in the blend file."""
+def get_id_reference_map():
+    """
+    :return: Return a dictionary of direct data-block references for every data-block in the blend file.
+    :rtype: dict[:class:`bpy.types.ID`, set[:class:`bpy.types.ID`]]
+    """
+    import bpy
     inv_map = {}
     for key, values in bpy.data.user_map().items():
         for value in values:
@@ -25,25 +24,35 @@ def get_id_reference_map() -> Dict[ID, Set[ID]]:
     return inv_map
 
 
-def recursive_get_referenced_ids(
-    ref_map: Dict[ID, Set[ID]], id: ID, referenced_ids: Set, visited: Set
-):
-    """Recursively populate referenced_ids with IDs referenced by id."""
+# Recursively populate referenced_ids with IDs referenced by `id`.
+def _recursive_get_referenced_ids(
+        ref_map,  # `dict[ID, set[ID]]`
+        id,  # `ID`
+        referenced_ids,  # `set[ID]`
+        visited,  # `set[ID]`
+):  # `-> None`
     if id in visited:
         # Avoid infinite recursion from circular references.
         return
     visited.add(id)
     for ref in ref_map.get(id, []):
         referenced_ids.add(ref)
-        recursive_get_referenced_ids(
+        _recursive_get_referenced_ids(
             ref_map=ref_map, id=ref, referenced_ids=referenced_ids, visited=visited
         )
 
 
-def get_all_referenced_ids(id: ID, ref_map: Dict[ID, Set[ID]]) -> Set[ID]:
-    """Return a set of IDs directly or indirectly referenced by id."""
+def get_all_referenced_ids(id, ref_map):
+    """
+    :arg id: The ID to lookup.
+    :type id: :class:`bpy.types.ID`
+    :arg ref_map: The ID to lookup.
+    :type ref_map:  dict[:class:`bpy.types.ID`, set[:class:`bpy.types.ID`]]
+    :return: A set of IDs directly or indirectly referenced by ``id``.
+    :rtype: set[:class:`bpy.types.ID`]
+    """
     referenced_ids = set()
-    recursive_get_referenced_ids(
+    _recursive_get_referenced_ids(
         ref_map=ref_map, id=id, referenced_ids=referenced_ids, visited=set()
     )
     return referenced_ids
