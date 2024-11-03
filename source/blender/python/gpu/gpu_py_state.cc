@@ -77,6 +77,7 @@ PyDoc_STRVAR(
     "   Defines the fixed pipeline blending equation.\n"
     "\n"
     "   :arg mode: The type of blend mode.\n"
+    "\n"
     "      * ``NONE`` No blending.\n"
     "      * ``ALPHA`` The original color channels are interpolated according to the alpha "
     "value.\n"

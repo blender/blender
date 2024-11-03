@@ -8,7 +8,8 @@ def draw_circle_2d(position, color, radius, *, segments=None):
 
     :arg position: 2D position where the circle will be drawn.
     :type position: Sequence[float]
-    :arg color: Color of the circle (RGBA). To use transparency GL_BLEND has to be enabled.
+    :arg color: Color of the circle (RGBA).
+       To use transparency blend must be set to ``ALPHA``, see: :func:`gpu.state.blend_set`.
     :type color: Sequence[float]
     :arg radius: Radius of the circle.
     :type radius: float
