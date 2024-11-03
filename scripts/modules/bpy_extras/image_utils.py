@@ -52,7 +52,7 @@ def load_image(
        (based on file path).
     :type check_existing: bool
     :arg force_reload: If true,
-       force reloading of image (only useful when `check_existing`
+       force reloading of image (only useful when ``check_existing``
        is also enabled).
     :type force_reload: bool
     :return: an image or None

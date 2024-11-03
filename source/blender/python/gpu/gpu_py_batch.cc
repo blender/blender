@@ -317,8 +317,8 @@ PyDoc_STRVAR(
     pygpu_batch_draw_range_doc,
     ".. method:: draw_range(program, *, elem_start=0, elem_count=0)\n"
     "\n"
-    "   Run the drawing program with the parameters assigned to the batch. Only draw\n"
-    "   the `elem_count` elements of the index buffer starting at `elem_start` \n"
+    "   Run the drawing program with the parameters assigned to the batch. "
+    "Only draw the ``elem_count`` elements of the index buffer starting at ``elem_start``.\n"
     "\n"
     "   :arg program: Program that performs the drawing operations.\n"
     "   :type program: :class:`gpu.types.GPUShader`\n"
@@ -326,7 +326,7 @@ PyDoc_STRVAR(
     "      will start from the first element of the index buffer.\n"
     "   :type elem_start: int\n"
     "   :arg elem_count: Number of elements of the index buffer to draw. When not\n"
-    "      provided or set to 0 all elements from `elem_start` to the end of the\n"
+    "      provided or set to 0 all elements from ``elem_start`` to the end of the\n"
     "      index buffer will be drawn.\n"
     "   :type elem_count: int\n");
 static PyObject *pygpu_batch_draw_range(BPyGPUBatch *self, PyObject *args, PyObject *kw)

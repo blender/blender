@@ -21,7 +21,7 @@ id_type = bpy.types.Scene
 
 def seq_items_xform(data, xform_fn):
     """
-    Recursively expand items using `xform_fn`.
+    Recursively expand items using ``xform_fn``.
     """
     if hasattr(data, "__len__"):
         return tuple(seq_items_xform(v, xform_fn) for v in data)

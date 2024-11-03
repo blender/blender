@@ -9,7 +9,7 @@ def set_view3d_context_override(context_override):
     """
     Set context override to become the first viewport in the active workspace
 
-    The `context_override` is expected to be a copy of an actual current context
+    The ``context_override`` is expected to be a copy of an actual current context
     obtained by `context.copy()`
     """
 

@@ -73,7 +73,7 @@ def get_doc(obj):
 def get_argspec(func, *, strip_self=True, doc=None, source=None):
     """Get argument specifications.
 
-    :arg strip_self: strip `self` from argspec
+    :arg strip_self: strip ``self`` from argspec
     :type strip_self: bool
     :arg doc: doc string of func (optional)
     :type doc: str

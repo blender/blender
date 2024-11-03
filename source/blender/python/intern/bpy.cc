@@ -452,7 +452,7 @@ PyDoc_STRVAR(
     ".. function:: unescape_identifier(string)\n"
     "\n"
     "   Simple string un-escape function used for animation paths.\n"
-    "   This performs the reverse of `escape_identifier`.\n"
+    "   This performs the reverse of :func:`escape_identifier`.\n"
     "\n"
     "   :arg string: text\n"
     "   :type string: str\n"

@@ -2372,7 +2372,7 @@ void RNA_api_ui_layout(StructRNA *srna)
                  0,
                  "",
                  "Name of a custom operator to invoke when starting to drag an item. Never "
-                 "invoked together with the `active_operator` (if set), it's either the drag or "
+                 "invoked together with the ``active_operator`` (if set), it's either the drag or "
                  "the activate one");
   parm = RNA_def_pointer(
       func,
@@ -2427,7 +2427,7 @@ void RNA_api_ui_layout(StructRNA *srna)
                         nullptr,
                         0,
                         "",
-                        "Identifier of the asset shelf to display (`bl_idname`)");
+                        "Identifier of the asset shelf to display (``bl_idname``)");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_string(
       func, "name", nullptr, 0, "", "Optional name to indicate the active asset");
