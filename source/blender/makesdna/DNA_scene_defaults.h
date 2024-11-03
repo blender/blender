@@ -322,7 +322,7 @@
     .weight = 0.5f, \
     .rgb = {0.0f, 0.0f, 0.0f}, \
     .secondary_rgb = {1.0f, 1.0f, 1.0f}, \
-    .flag = UNIFIED_PAINT_SIZE | UNIFIED_PAINT_ALPHA | UNIFIED_PAINT_COLOR, \
+    .flag = UNIFIED_PAINT_SIZE | UNIFIED_PAINT_COLOR, \
   }
 
 #define _DNA_DEFAULTS_ParticleEditSettings \
