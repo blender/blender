@@ -4,7 +4,7 @@ Getter/Setter Example
 
 Getter/setter functions can be used for boolean, int, float, string and enum properties.
 If these callbacks are defined the property will not be stored in the ID properties
-automatically. Instead, the `get` and `set` functions will be called when the property
+automatically. Instead, the ``get`` and ``set`` functions will be called when the property
 is respectively read or written from the API.
 
 .. warning::

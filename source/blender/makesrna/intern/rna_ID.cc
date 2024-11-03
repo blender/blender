@@ -2152,7 +2152,7 @@ static void rna_def_ID_override_library(BlenderRNA *brna)
                          "view_layer",
                          "ViewLayer",
                          "",
-                         "The view layer to operate in (same usage as the `scene` data, in case "
+                         "The view layer to operate in (same usage as the ``scene`` data, in case "
                          "it is not provided the scene's collection will be used instead)");
   parm = RNA_def_pointer(
       func,

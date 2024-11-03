@@ -1209,7 +1209,7 @@ class I18nMessages:
         """
         Update or create a single PO file (specified by a filepath) from the given POT `I18nMessages` data.
 
-        Callback usable in a context where Blender specific modules (like `bpy`) are not available.
+        Callback usable in a context where Blender specific modules (like ``bpy``) are not available.
         """
         import sys
         sys.stdout.reconfigure(encoding="utf-8")
@@ -1229,7 +1229,7 @@ class I18nMessages:
         """
         Cleanup a single PO file (specified by a filepath).
 
-        Callback usable in a context where Blender specific modules (like `bpy`) are not available.
+        Callback usable in a context where Blender specific modules (like ``bpy``) are not available.
         """
         import sys
         sys.stdout.reconfigure(encoding="utf-8")
@@ -1249,7 +1249,7 @@ class I18nMessages:
         """
         Cleanup and write a single PO file (specified by a filepath) into the relevant Blender source 'compact' PO file.
 
-        Callback usable in a context where Blender specific modules (like `bpy`) are not available.
+        Callback usable in a context where Blender specific modules (like ``bpy``) are not available.
         """
         import sys
         sys.stdout.reconfigure(encoding="utf-8")

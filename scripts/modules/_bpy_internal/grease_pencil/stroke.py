@@ -114,7 +114,7 @@ def def_prop_for_attribute(attr_name, type, default, doc):
 def DefAttributeGetterSetters(attributes_list):
     """
     A class decorator that reads a list of attribute information &
-    creates properties on the class with `getters` & `setters`.
+    creates properties on the class with ``getters`` & ``setters``.
     """
     def wrapper(cls):
         for prop_name, attr_name, type, default, doc in attributes_list:
