@@ -97,6 +97,14 @@ static int pygpu_shader_uniform_location_get(GPUShader *shader,
 /** \name Shader Type
  * \{ */
 
+static std::optional<blender::StringRefNull> c_str_to_stringref_opt(const char *str)
+{
+  if (!str) {
+    return std::nullopt;
+  }
+  return blender::StringRefNull(str);
+}
+
 static PyObject *pygpu_shader__tp_new(PyTypeObject * /*type*/, PyObject *args, PyObject *kwds)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
@@ -138,12 +146,12 @@ static PyObject *pygpu_shader__tp_new(PyTypeObject * /*type*/, PyObject *args, P
     return nullptr;
   }
 
-  GPUShader *shader = GPU_shader_create_from_python(params.vertexcode,
-                                                    params.fragcode,
-                                                    params.geocode,
-                                                    params.libcode,
-                                                    params.defines,
-                                                    params.name);
+  GPUShader *shader = GPU_shader_create_from_python(c_str_to_stringref_opt(params.vertexcode),
+                                                    c_str_to_stringref_opt(params.fragcode),
+                                                    c_str_to_stringref_opt(params.geocode),
+                                                    c_str_to_stringref_opt(params.libcode),
+                                                    c_str_to_stringref_opt(params.defines),
+                                                    c_str_to_stringref_opt(params.name));
 
   if (shader == nullptr) {
     PyErr_SetString(PyExc_Exception, "Shader Compile Error, see console for more details");
