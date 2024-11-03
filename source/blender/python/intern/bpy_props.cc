@@ -2788,7 +2788,9 @@ static int bpy_struct_id_used(StructRNA *srna, char *identifier)
 PyDoc_STRVAR(
     /* Wrap. */
     BPy_BoolProperty_doc,
-    ".. function:: BoolProperty(name=\"\", "
+    ".. function:: BoolProperty("
+    "*, "
+    "name=\"\", "
     "description=\"\", "
     "translation_context=\"*\", "
     "default=False, "
@@ -2940,7 +2942,9 @@ static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 PyDoc_STRVAR(
     /* Wrap. */
     BPy_BoolVectorProperty_doc,
-    ".. function:: BoolVectorProperty(name=\"\", "
+    ".. function:: BoolVectorProperty("
+    "*, "
+    "name=\"\", "
     "description=\"\", "
     "translation_context=\"*\", "
     "default=(False, False, False), "
@@ -3129,7 +3133,9 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
 PyDoc_STRVAR(
     /* Wrap. */
     BPy_IntProperty_doc,
-    ".. function:: IntProperty(name=\"\", "
+    ".. function:: IntProperty("
+    "*, "
+    "name=\"\", "
     "description=\"\", "
     "translation_context=\"*\", "
     "default=0, "
@@ -3305,7 +3311,9 @@ static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 PyDoc_STRVAR(
     /* Wrap. */
     BPy_IntVectorProperty_doc,
-    ".. function:: IntVectorProperty(name=\"\", "
+    ".. function:: IntVectorProperty("
+    "*, "
+    "name=\"\", "
     "description=\"\", "
     "translation_context=\"*\", "
     "default=(0, 0, 0), min=-2**31, max=2**31-1, "
@@ -3504,7 +3512,9 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
 PyDoc_STRVAR(
     /* Wrap. */
     BPy_FloatProperty_doc,
-    ".. function:: FloatProperty(name=\"\", "
+    ".. function:: FloatProperty("
+    "*, "
+    "name=\"\", "
     "description=\"\", "
     "translation_context=\"*\", "
     "default=0.0, "
@@ -3681,7 +3691,9 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 PyDoc_STRVAR(
     /* Wrap. */
     BPy_FloatVectorProperty_doc,
-    ".. function:: FloatVectorProperty(name=\"\", "
+    ".. function:: FloatVectorProperty("
+    "*, "
+    "name=\"\", "
     "description=\"\", "
     "translation_context=\"*\", "
     "default=(0.0, 0.0, 0.0), "
@@ -3898,7 +3910,9 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
 PyDoc_STRVAR(
     /* Wrap. */
     BPy_StringProperty_doc,
-    ".. function:: StringProperty(name=\"\", "
+    ".. function:: StringProperty("
+    "*, "
+    "name=\"\", "
     "description=\"\", "
     "translation_context=\"*\", "
     "default=\"\", "
@@ -4081,7 +4095,9 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
 PyDoc_STRVAR(
     /* Wrap. */
     BPy_EnumProperty_doc,
-    ".. function:: EnumProperty(items, "
+    ".. function:: EnumProperty("
+    "items, "
+    "*, "
     "name=\"\", "
     "description=\"\", "
     "translation_context=\"*\", "
@@ -4369,7 +4385,9 @@ StructRNA *pointer_type_from_py(PyObject *value, const char *error_prefix)
 PyDoc_STRVAR(
     /* Wrap. */
     BPy_PointerProperty_doc,
-    ".. function:: PointerProperty(type=None, "
+    ".. function:: PointerProperty("
+    "type=None, "
+    "*, "
     "name=\"\", "
     "description=\"\", "
     "translation_context=\"*\", "
@@ -4520,7 +4538,9 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
 PyDoc_STRVAR(
     /* Wrap. */
     BPy_CollectionProperty_doc,
-    ".. function:: CollectionProperty(type=None, "
+    ".. function:: CollectionProperty("
+    "type=None, "
+    "*, "
     "name=\"\", "
     "description=\"\", "
     "translation_context=\"*\", "

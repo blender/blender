@@ -1892,7 +1892,8 @@ def pyrna2sphinx(basepath):
 
             for op in ops_mod:
                 args_str = ", ".join(prop.get_arg_default(force=True) for prop in op.args)
-                fw(".. function:: {:s}({:s})\n\n".format(op.func_name, args_str))
+                # All operator arguments are keyword only (denoted by the leading `*`).
+                fw(".. function:: {:s}(*, {:s})\n\n".format(op.func_name, args_str))
 
                 # If the description isn't valid, we output the standard warning
                 # with a link to the wiki so that people can help.
