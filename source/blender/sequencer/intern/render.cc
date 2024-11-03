@@ -271,26 +271,21 @@ Vector<Sequence *> seq_get_shown_sequences(const Scene *scene,
                                            const int timeline_frame,
                                            const int chanshown)
 {
-  Vector<Sequence *> result;
   VectorSet strips = SEQ_query_rendered_strips(
       scene, channels, seqbase, timeline_frame, chanshown);
   const int strip_count = strips.size();
 
   if (UNLIKELY(strip_count > SEQ_MAX_CHANNELS)) {
     BLI_assert_msg(0, "Too many strips, this shouldn't happen");
-    return result;
+    return {};
   }
 
-  result.reserve(strips.size());
-  for (Sequence *seq : strips) {
-    result.append(seq);
-  }
-
+  Vector<Sequence *> strips_vec = strips.extract_vector();
   /* Sort strips by channel. */
-  std::sort(result.begin(), result.end(), [](const Sequence *a, const Sequence *b) {
+  std::sort(strips_vec.begin(), strips_vec.end(), [](const Sequence *a, const Sequence *b) {
     return a->machine < b->machine;
   });
-  return result;
+  return strips_vec;
 }
 
 StripScreenQuad get_strip_screen_quad(const SeqRenderData *context, const Sequence *seq)
