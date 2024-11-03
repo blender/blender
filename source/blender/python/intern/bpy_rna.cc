@@ -7664,6 +7664,8 @@ static PyObject *pyrna_prop_collection_iter_CreatePyObject(PointerRNA *ptr, Prop
 
 #  ifdef USE_WEAKREFS
   self_property->in_weakreflist = nullptr;
+#  else
+  UNUSED_VARS_NDEBUG(self_property);
 #  endif
 
   return self;
