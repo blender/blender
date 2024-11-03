@@ -89,12 +89,12 @@ def object_data_add(context, obdata, operator=None, name=None):
 
     :arg context: The context to use.
     :type context: :class:`bpy.types.Context`
-    :arg obdata: the data used for the new object.
-    :type obdata: valid object data type or None.
+    :arg obdata: Valid object data to used for the new object or None.
+    :type obdata: :class:`bpy.types.ID` | None
     :arg operator: The operator, checked for location and rotation properties.
     :type operator: :class:`bpy.types.Operator`
     :arg name: Optional name
-    :type name: string
+    :type name: str
     :return: the newly created object in the scene.
     :rtype: :class:`bpy.types.Object`
     """

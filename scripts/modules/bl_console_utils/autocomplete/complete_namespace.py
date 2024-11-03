@@ -32,7 +32,7 @@ def complete_names(word, namespace):
     :arg word: word to be completed
     :type word: str
     :arg namespace: namespace
-    :type namespace: dict
+    :type namespace: dict[str, Any]
     :returns: completion matches
     :rtype: list of str
 

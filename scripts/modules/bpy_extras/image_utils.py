@@ -26,10 +26,10 @@ def load_image(
 
     :arg filepath: The image filename
        If a path precedes it, this will be searched as well.
-    :type filepath: string
+    :type filepath: str
     :arg dirname: is the directory where the image may be located - any file at
        the end will be ignored.
-    :type dirname: string
+    :type dirname: str
     :arg place_holder: if True a new place holder image will be created.
        this is useful so later you can relink the image to its original data.
     :type place_holder: bool
@@ -46,7 +46,7 @@ def load_image(
        For formats blender can read, simply return the path that is given.
     :type convert_callback: function
     :arg relpath: If not None, make the file relative to this path.
-    :type relpath: None or string
+    :type relpath: str | None
     :arg check_existing: If true,
        returns already loaded image datablock if possible
        (based on file path).
@@ -56,7 +56,7 @@ def load_image(
        is also enabled).
     :type force_reload: bool
     :return: an image or None
-    :rtype: :class:`bpy.types.Image`
+    :rtype: :class:`bpy.types.Image` | None
     """
     import os
     import bpy

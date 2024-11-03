@@ -85,19 +85,19 @@ PyDoc_STRVAR(
     bpy_bmloopuv_pin_uv_doc,
     "UV pin state.\n"
     "\n"
-    ":type: boolean");
+    ":type: bool");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmloopuv_select_doc,
     "UV select state.\n"
     "\n"
-    ":type: boolean");
+    ":type: bool");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmloopuv_select_edge_doc,
     "UV edge select state.\n"
     "\n"
-    ":type: boolean");
+    ":type: bool");
 
 static PyObject *bpy_bmloopuv_pin_uv_get(BPy_BMLoopUV *self, void * /*closure*/)
 {
@@ -284,13 +284,13 @@ PyDoc_STRVAR(
     bpy_bmvertskin_flag__use_root_doc,
     "Use as root vertex. Setting this flag does not clear other roots in the same mesh island.\n"
     "\n"
-    ":type: boolean");
+    ":type: bool");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmvertskin_flag__use_loose_doc,
     "Use loose vertex.\n"
     "\n"
-    ":type: boolean");
+    ":type: bool");
 
 static PyObject *bpy_bmvertskin_flag_get(BPy_BMVertSkin *self, void *flag_p)
 {
@@ -637,7 +637,7 @@ PyDoc_STRVAR(
     "   (matching Python's dict.keys() functionality).\n"
     "\n"
     "   :return: the deform group this vertex uses\n"
-    "   :rtype: list of ints\n");
+    "   :rtype: list[int]\n");
 static PyObject *bpy_bmdeformvert_keys(BPy_BMDeformVert *self)
 {
   PyObject *ret;
@@ -661,7 +661,7 @@ PyDoc_STRVAR(
     "   (matching Python's dict.values() functionality).\n"
     "\n"
     "   :return: The weights that influence this vertex\n"
-    "   :rtype: list of floats\n");
+    "   :rtype: list[float]\n");
 static PyObject *bpy_bmdeformvert_values(BPy_BMDeformVert *self)
 {
   PyObject *ret;
@@ -685,7 +685,7 @@ PyDoc_STRVAR(
     "   (matching Python's dict.items() functionality).\n"
     "\n"
     "   :return: (key, value) pairs for each deform weight of this vertex.\n"
-    "   :rtype: list of tuples\n");
+    "   :rtype: list[tuple[int, float]]\n");
 static PyObject *bpy_bmdeformvert_items(BPy_BMDeformVert *self)
 {
   PyObject *ret;
@@ -715,7 +715,7 @@ PyDoc_STRVAR(
     "   :type key: int\n"
     "   :arg default: Optional argument for the value to return if\n"
     "      *key* is not found.\n"
-    "   :type default: Undefined\n");
+    "   :type default: Any\n");
 static PyObject *bpy_bmdeformvert_get(BPy_BMDeformVert *self, PyObject *args)
 {
   int key;

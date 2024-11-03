@@ -51,7 +51,7 @@ PyDoc_STRVAR(
     "      already been chained must be ignored ot not.\n"
     "   :type restrict_to_unvisited: bool\n"
     "   :arg begin: The ViewEdge from which to start the chain.\n"
-    "   :type begin: :class:`ViewEdge` or None\n"
+    "   :type begin: :class:`ViewEdge` | None\n"
     "   :arg orientation: The direction to follow to explore the graph. If\n"
     "      true, the direction indicated by the first ViewEdge is used.\n"
     "   :type orientation: bool\n"
@@ -146,7 +146,7 @@ PyDoc_STRVAR(
     "      restriction rules by only iterating over the valid ViewEdges.\n"
     "   :type it: :class:`AdjacencyIterator`\n"
     "   :return: Returns the next ViewEdge to follow, or None if chaining ends.\n"
-    "   :rtype: :class:`ViewEdge` or None");
+    "   :rtype: :class:`ViewEdge` | None");
 
 static PyObject *ChainingIterator_traverse(BPy_ChainingIterator *self,
                                            PyObject *args,

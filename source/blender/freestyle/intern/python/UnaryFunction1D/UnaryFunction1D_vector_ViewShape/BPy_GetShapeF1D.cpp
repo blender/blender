@@ -39,7 +39,7 @@ PyDoc_STRVAR(
     "   :arg inter: An Interface1D object.\n"
     "   :type inter: :class:`freestyle.types.Interface1D`\n"
     "   :return: A list of shapes covered by the Interface1D.\n"
-    "   :rtype: list of :class:`freestyle.types.ViewShape`\n");
+    "   :rtype: list[:class:`freestyle.types.ViewShape`]\n");
 
 static int GetShapeF1D___init__(BPy_GetShapeF1D *self, PyObject *args, PyObject *kwds)
 {

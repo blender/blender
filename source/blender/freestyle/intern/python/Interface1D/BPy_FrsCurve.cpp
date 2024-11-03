@@ -80,7 +80,7 @@ PyDoc_STRVAR(
     "   Adds a single vertex at the end of the Curve.\n"
     "\n"
     "   :arg vertex: A vertex object.\n"
-    "   :type vertex: :class:`SVertex` or :class:`CurvePoint`");
+    "   :type vertex: :class:`SVertex` | :class:`CurvePoint`");
 
 static PyObject *FrsCurve_push_vertex_back(BPy_FrsCurve *self, PyObject *args, PyObject *kwds)
 {
@@ -112,7 +112,7 @@ PyDoc_STRVAR(
     "   Adds a single vertex at the front of the Curve.\n"
     "\n"
     "   :arg vertex: A vertex object.\n"
-    "   :type vertex: :class:`SVertex` or :class:`CurvePoint`");
+    "   :type vertex: :class:`SVertex` | :class:`CurvePoint`");
 
 static PyObject *FrsCurve_push_vertex_front(BPy_FrsCurve *self, PyObject *args, PyObject *kwds)
 {

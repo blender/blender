@@ -106,9 +106,9 @@ PyDoc_STRVAR(
     "   :arg mesh: The editmode mesh.\n"
     "   :type mesh: :class:`bpy.types.Mesh`\n"
     "   :arg loop_triangles: Option to recalculate n-gon tessellation.\n"
-    "   :type loop_triangles: boolean\n"
+    "   :type loop_triangles: bool\n"
     "   :arg destructive: Use when geometry has been added or removed.\n"
-    "   :type destructive: boolean\n");
+    "   :type destructive: bool\n");
 static PyObject *bpy_bm_update_edit_mesh(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
   static const char *kwlist[] = {"mesh", "loop_triangles", "destructive", nullptr};

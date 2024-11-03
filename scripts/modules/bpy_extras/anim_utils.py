@@ -105,13 +105,13 @@ def bake_action(
     :type obj: :class:`bpy.types.Object`
     :arg action: An action to bake the data into, or None for a new action
        to be created.
-    :type action: :class:`bpy.types.Action` or None
+    :type action: :class:`bpy.types.Action` | None
     :arg frames: Frames to bake.
-    :type frames: iterable of int
+    :type frames: int
     :arg bake_options: Options for baking.
     :type bake_options: :class:`anim_utils.BakeOptions`
-    :return: an action or None
-    :rtype: :class:`bpy.types.Action`
+    :return: Action or None.
+    :rtype: :class:`bpy.types.Action` | None
     """
     if not (bake_options.do_pose or bake_options.do_object):
         return None
@@ -139,7 +139,7 @@ def bake_action_objects(
     :type bake_options: :class:`anim_utils.BakeOptions`
 
     :return: A sequence of Action or None types (aligned with `object_action_pairs`)
-    :rtype: sequence of :class:`bpy.types.Action`
+    :rtype: Sequence[:class:`bpy.types.Action`]
     """
     if not (bake_options.do_pose or bake_options.do_object):
         return []
@@ -198,7 +198,7 @@ def bake_action_iter(
     :type obj: :class:`bpy.types.Object`
     :arg action: An action to bake the data into, or None for a new action
        to be created.
-    :type action: :class:`bpy.types.Action` or None
+    :type action: :class:`bpy.types.Action` | None
     :arg bake_options: Boolean options of what to include into the action bake.
     :type bake_options: :class:`anim_utils.BakeOptions`
 

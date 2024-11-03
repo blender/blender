@@ -135,7 +135,7 @@ PyDoc_STRVAR(
     "\n"
     "   :arg filepath: The file path for the newly temporary data. "
     "When None, the path of the currently open file is used.\n"
-    "   :type filepath: str, bytes or NoneType\n"
+    "   :type filepath: str | bytes | None\n"
     "\n"
     "   :return: Blend file data which is freed once the context exists.\n"
     "   :rtype: :class:`bpy.types.BlendData`\n");

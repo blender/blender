@@ -76,7 +76,7 @@ PyDoc_STRVAR(
     "   Returns the border.\n"
     "\n"
     "   :return: A tuple of 4 numbers (xmin, ymin, xmax, ymax).\n"
-    "   :rtype: tuple\n");
+    "   :rtype: tuple[int, int, int, int]\n");
 
 static PyObject *ContextFunctions_get_border(PyObject * /*self*/)
 {

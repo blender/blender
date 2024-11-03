@@ -310,11 +310,11 @@ class POSE_OT_selection_set_paste(_PoseModeOnlyMixin, Operator):
 def _uniqify(name, other_names):
     """
     :arg name: The name to make unique.
-    :type name: string
+    :type name: str
     :arg other_names: The name to make unique.
-    :type other_names: string
+    :type other_names: str
     :return: Return a unique name with ``.xxx`` suffix if necessary.
-    :rtype: string
+    :rtype: str
 
     Example usage:
 
@@ -362,7 +362,7 @@ def _to_json(context):
     plus any with the is_selected checkbox on.
 
     :return: The selection as JSON data.
-    :rtype: string
+    :rtype: str
     """
     import json
 
@@ -382,7 +382,7 @@ def _from_json(context, as_json):
     """Add the selection sets (one or more) from JSON to the current rig.
 
     :arg as_json: The JSON contents to load.
-    :type as_json: string
+    :type as_json: str
     """
     import json
 

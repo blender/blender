@@ -623,21 +623,20 @@ PyObject *BaseMathObject_owner_get(BaseMathObject *self, void * /*closure*/)
 }
 
 char BaseMathObject_is_wrapped_doc[] =
-    "True when this object wraps external data (read-only).\n\n:type: boolean";
+    "True when this object wraps external data (read-only).\n\n:type: bool";
 PyObject *BaseMathObject_is_wrapped_get(BaseMathObject *self, void * /*closure*/)
 {
   return PyBool_FromLong((self->flag & BASE_MATH_FLAG_IS_WRAP) != 0);
 }
 
 char BaseMathObject_is_frozen_doc[] =
-    "True when this object has been frozen (read-only).\n\n:type: boolean";
+    "True when this object has been frozen (read-only).\n\n:type: bool";
 PyObject *BaseMathObject_is_frozen_get(BaseMathObject *self, void * /*closure*/)
 {
   return PyBool_FromLong((self->flag & BASE_MATH_FLAG_IS_FROZEN) != 0);
 }
 
-char BaseMathObject_is_valid_doc[] =
-    "True when the owner of this data is valid.\n\n:type: boolean";
+char BaseMathObject_is_valid_doc[] = "True when the owner of this data is valid.\n\n:type: bool";
 PyObject *BaseMathObject_is_valid_get(BaseMathObject *self, void * /*closure*/)
 {
   return PyBool_FromLong(BaseMath_CheckCallback(self) == 0);

@@ -248,9 +248,9 @@ def check(module_name):
     Returns the loaded state of the addon.
 
     :arg module_name: The name of the addon and module.
-    :type module_name: string
+    :type module_name: str
     :return: (loaded_default, loaded_state)
-    :rtype: tuple of booleans
+    :rtype: tuple[bool, bool]
     """
     import sys
     loaded_default = module_name in _preferences.addons
@@ -309,15 +309,15 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
     Enables an addon by name.
 
     :arg module_name: the name of the addon and module.
-    :type module_name: string
+    :type module_name: str
     :arg default_set: Set the user-preference.
     :type default_set: bool
     :arg persistent: Ensure the addon is enabled for the entire session (after loading new files).
     :type persistent: bool
     :arg handle_error: Called in the case of an error, taking an exception argument.
-    :type handle_error: function
+    :type handle_error: Callable[[Exception], None] | None
     :return: the loaded module or None on failure.
-    :rtype: module
+    :rtype: ModuleType
     """
 
     import os
@@ -511,11 +511,11 @@ def disable(module_name, *, default_set=False, handle_error=None):
     Disables an addon by name.
 
     :arg module_name: The name of the addon and module.
-    :type module_name: string
+    :type module_name: str
     :arg default_set: Set the user-preference.
     :type default_set: bool
     :arg handle_error: Called in the case of an error, taking an exception argument.
-    :type handle_error: function
+    :type handle_error: Callable[[Exception], None] | None
     """
     import sys
 
@@ -1381,9 +1381,9 @@ def _extension_module_name_decompose(package):
     Returns the repository module name and the extensions ID from an extensions module name (``__package__``).
 
     :arg module_name: The extensions module name.
-    :type module_name: string
+    :type module_name: str
     :return: (repo_module_name, extension_id)
-    :rtype: tuple of strings
+    :rtype: tuple[str, str]
     """
     if not package.startswith(_ext_base_pkg_idname_with_dot):
         raise ValueError("The \"package\" does not name an extension")

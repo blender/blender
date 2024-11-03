@@ -182,7 +182,7 @@ static PyObject *bpy_bmlayercollection_active_get(BPy_BMLayerItem *self, void * 
 PyDoc_STRVAR(bpy_bmlayercollection_is_singleton_doc,
              "True if there can exists only one layer of this type (read-only).\n"
              "\n"
-             ":type: boolean");
+             ":type: bool");
 static PyObject *bpy_bmlayercollection_is_singleton_get(BPy_BMLayerItem *self, void * /*flag*/)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -195,7 +195,7 @@ PyDoc_STRVAR(
     bpy_bmlayercollection_name_doc,
     "The layers unique name (read-only).\n"
     "\n"
-    ":type: string");
+    ":type: str");
 static PyObject *bpy_bmlayeritem_name_get(BPy_BMLayerItem *self, void * /*flag*/)
 {
   CustomDataLayer *layer;
@@ -506,7 +506,7 @@ PyDoc_STRVAR(
     "   Create a new layer\n"
     "\n"
     "   :arg name: Optional name argument (will be made unique).\n"
-    "   :type name: string\n"
+    "   :type name: str\n"
     "   :return: The newly created layer.\n"
     "   :rtype: :class:`BMLayerItem`\n");
 static PyObject *bpy_bmlayercollection_new(BPy_BMLayerCollection *self, PyObject *args)
@@ -593,7 +593,7 @@ PyDoc_STRVAR(
     "   (matching Python's dict.keys() functionality).\n"
     "\n"
     "   :return: the identifiers for each member of this collection.\n"
-    "   :rtype: list of strings\n");
+    "   :rtype: list[str]\n");
 static PyObject *bpy_bmlayercollection_keys(BPy_BMLayerCollection *self)
 {
   PyObject *ret;
@@ -630,7 +630,7 @@ PyDoc_STRVAR(
     "   (matching Python's dict.items() functionality).\n"
     "\n"
     "   :return: (key, value) pairs for each member of this collection.\n"
-    "   :rtype: list of tuples\n");
+    "   :rtype: list[tuple[str, :class:`BMLayerItem`]]\n");
 static PyObject *bpy_bmlayercollection_items(BPy_BMLayerCollection *self)
 {
   PyObject *ret;
@@ -667,7 +667,7 @@ PyDoc_STRVAR(
     "   (matching Python's dict.values() functionality).\n"
     "\n"
     "   :return: the members of this collection.\n"
-    "   :rtype: list\n");
+    "   :rtype: list[:class:`BMLayerItem`]\n");
 static PyObject *bpy_bmlayercollection_values(BPy_BMLayerCollection *self)
 {
   PyObject *ret;
@@ -701,10 +701,10 @@ PyDoc_STRVAR(
     "   when not found (matches Python's dictionary function of the same name).\n"
     "\n"
     "   :arg key: The key associated with the layer.\n"
-    "   :type key: string\n"
+    "   :type key: str\n"
     "   :arg default: Optional argument for the value to return if\n"
     "      *key* is not found.\n"
-    "   :type default: Undefined\n");
+    "   :type default: Any\n");
 static PyObject *bpy_bmlayercollection_get(BPy_BMLayerCollection *self, PyObject *args)
 {
   const char *key;

@@ -37,10 +37,12 @@
   "   :arg key: Represents the type of data being subscribed to\n" \
   "\n" \
   "      Arguments include\n" \
-  "      - :class:`bpy.types.Property` instance.\n" \
-  "      - :class:`bpy.types.Struct` type.\n" \
-  "      - (:class:`bpy.types.Struct`, str) type and property name.\n" \
-  "   :type key: Multiple\n"
+  "      - A property instance.\n" \
+  "      - A struct type.\n" \
+  "      - A tuple representing a (struct, property name) pair.\n" \
+  "   :type key: :class:`bpy.types.Property` | " \
+  ":class:`bpy.types.Struct` | " \
+  "tuple[:class:`bpy.types.Struct`, str]\n"
 
 /**
  * There are multiple ways we can get RNA from Python,
@@ -198,12 +200,12 @@ PyDoc_STRVAR(
     "   loaded, or can be cleared explicitly via :func:`bpy.msgbus.clear_by_owner`.\n"
     "\n" BPY_MSGBUS_RNA_MSGKEY_DOC
     "   :arg owner: Handle for this subscription (compared by identity).\n"
-    "   :type owner: Any type.\n"
+    "   :type owner: Any\n"
     "   :arg options: Change the behavior of the subscriber.\n"
     "\n"
     "      - ``PERSISTENT`` when set, the subscriber will be kept when remapping ID data.\n"
     "\n"
-    "   :type options: set of str.\n"
+    "   :type options: set[str]\n"
     "\n"
     ".. note::\n"
     "\n"

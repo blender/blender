@@ -58,7 +58,7 @@ def is_island_uv_selected(island, uv_layer, any_edge):
     Returns True if the island is UV selected.
 
     :arg island: list of faces to query.
-    :type island: sequence of :class:`BMFace`.
+    :type island: Sequence[:class:`BMFace`]
     :arg uv_layer: the UV layer to source UVs from.
     :type bmesh: :class:`BMLayerItem`
     :arg any_edge: use edge selection instead of vertex selection.
@@ -77,10 +77,10 @@ def island_uv_bounds(island, uv_layer):
     The UV bounds of UV island.
 
     :arg island: list of faces to query.
-    :type island: sequence of :class:`BMFace`.
+    :type island: Sequence[:class:`BMFace`]
     :arg uv_layer: the UV layer to source UVs from.
     :return: U-min, V-min, U-max, V-max.
-    :rtype: list
+    :rtype: list[float]
     """
     minmax = [1e30, 1e30, -1e30, -1e30]
     for face in island:
@@ -98,10 +98,10 @@ def island_uv_bounds_center(island, uv_layer):
     The UV bounds center of UV island.
 
     :arg island: list of faces to query.
-    :type island: sequence of :class:`BMFace`.
+    :type island: Sequence[:class:`BMFace`]
     :arg uv_layer: the UV layer to source UVs from.
     :return: U, V center.
-    :rtype: tuple
+    :rtype: tuple[float, float]
     """
     minmax = island_uv_bounds(island, uv_layer)
     return (

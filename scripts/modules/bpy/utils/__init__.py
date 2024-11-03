@@ -91,9 +91,9 @@ def execfile(filepath, *, mod=None):
     Execute a file path as a Python script.
 
     :arg filepath: Path of the script to execute.
-    :type filepath: string
+    :type filepath: str
     :arg mod: Optional cached module, the result of a previous execution.
-    :type mod: Module or None
+    :type mod: ModuleType | None
     :return: The module which can be passed back in as ``mod``.
     :rtype: ModuleType
     """
@@ -177,12 +177,12 @@ def modules_from_path(path, loaded_modules):
     Load all modules in a path and return them as a list.
 
     :arg path: this path is scanned for scripts and packages.
-    :type path: string
+    :type path: str
     :arg loaded_modules: already loaded module names, files matching these
        names will be ignored.
-    :type loaded_modules: set
+    :type loaded_modules: set[ModuleType]
     :return: all loaded modules.
-    :rtype: list
+    :rtype: list[ModuleType]
     """
     modules = []
 
@@ -427,7 +427,7 @@ def script_paths(*, subdir=None, user_pref=True, check_all=False, use_user=True,
     Returns a list of valid script paths.
 
     :arg subdir: Optional subdir.
-    :type subdir: string
+    :type subdir: str
     :arg user_pref: Include the user preference script paths.
     :type user_pref: bool
     :arg check_all: Include local, user and system paths rather just the paths Blender uses.
@@ -437,7 +437,7 @@ def script_paths(*, subdir=None, user_pref=True, check_all=False, use_user=True,
     :arg use_system_environment: Include BLENDER_SYSTEM_SCRIPTS variable path
     :type use_system_environment: bool
     :return: script paths.
-    :rtype: list
+    :rtype: list[str]
     """
 
     if check_all or use_user:
@@ -518,9 +518,9 @@ def app_template_paths(*, path=None):
     Returns valid application template paths.
 
     :arg path: Optional subdir.
-    :type path: string
-    :return: app template paths.
-    :rtype: generator
+    :type path: str
+    :return: App template paths.
+    :rtype: Iterator[str]
     """
     subdir_args = (path,) if path is not None else ()
     # Note: keep in sync with: Blender's 'BKE_appdir_app_template_any'.
@@ -546,9 +546,9 @@ def preset_paths(subdir):
     Returns a list of paths for a specific preset.
 
     :arg subdir: preset subdirectory (must not be an absolute path).
-    :type subdir: string
-    :return: script paths.
-    :rtype: list
+    :type subdir: str
+    :return: Script paths.
+    :rtype: list[str]
     """
     dirs = []
     for path in script_paths(subdir="presets"):
@@ -584,7 +584,7 @@ def register_preset_path(path):
        When the ``__init__.py`` is in the same location as a ``presets`` directory.
        For example an operators preset would be located under: ``presets/operator/{operator.id}/``
        where ``operator.id`` is the ``bl_idname`` of the operator.
-    :type path: string
+    :type path: str
     :return: success
     :rtype: bool
     """
@@ -603,7 +603,7 @@ def unregister_preset_path(path):
     :arg path: preset directory (must be an absolute path).
 
        This must match the registered path exactly.
-    :type path: string
+    :type path: str
     :return: success
     :rtype: bool
     """
@@ -695,9 +695,9 @@ def smpte_from_seconds(time, *, fps=None, fps_base=None):
     If *fps* and *fps_base* are not given the current scene is used.
 
     :arg time: time in seconds.
-    :type time: int, float or ``datetime.timedelta``.
+    :type time: int | float | datetime.timedelta
     :return: the frame string.
-    :rtype: string
+    :rtype: str
     """
 
     return smpte_from_frame(
@@ -715,9 +715,9 @@ def smpte_from_frame(frame, *, fps=None, fps_base=None):
     If *fps* and *fps_base* are not given the current scene is used.
 
     :arg frame: frame number.
-    :type frame: int or float.
+    :type frame: int | float
     :return: the frame string.
-    :rtype: string
+    :rtype: str
     """
 
     if fps is None:
@@ -748,7 +748,7 @@ def time_from_frame(frame, *, fps=None, fps_base=None):
     If *fps* and *fps_base* are not given the current scene is used.
 
     :arg frame: number.
-    :type frame: int or float.
+    :type frame: int | float
     :return: the time in seconds.
     :rtype: datetime.timedelta
     """
@@ -774,9 +774,9 @@ def time_to_frame(time, *, fps=None, fps_base=None):
     If *fps* and *fps_base* are not given the current scene is used.
 
     :arg time: time in seconds.
-    :type time: number or a ``datetime.timedelta`` object
-    :return: the frame.
-    :rtype: float
+    :type time: float | int | datetime.timedelta
+    :return: The frame.
+    :rtype: float | int | datetime.timedelta
     """
 
     if fps is None:
@@ -877,13 +877,13 @@ def user_resource(resource_type, *, path="", create=False):
     Return a user resource path (normally from the users home directory).
 
     :arg resource_type: Resource type in ['DATAFILES', 'CONFIG', 'SCRIPTS', 'EXTENSIONS'].
-    :type resource_type: string
+    :type resource_type: str
     :arg path: Optional subdirectory.
-    :type path: string
+    :type path: str
     :arg create: Treat the path as a directory and create it if its not existing.
-    :type create: boolean
+    :type create: bool
     :return: a path.
-    :rtype: string
+    :rtype: str
     """
 
     target_path = _user_resource(resource_type, path=path)
@@ -919,13 +919,13 @@ def extension_path_user(package, *, path="", create=False):
        to the repository (typically "System" repositories).
 
     :arg package: The ``__package__`` of the extension.
-    :type package: string
+    :type package: str
     :arg path: Optional subdirectory.
-    :type path: string
+    :type path: str
     :arg create: Treat the path as a directory and create it if its not existing.
-    :type create: boolean
+    :type create: bool
     :return: a path.
-    :rtype: string
+    :rtype: str
     """
     from addon_utils import _extension_module_name_decompose
 
@@ -983,11 +983,11 @@ def register_submodule_factory(module_name, submodule_names):
        unregistered in reverse order.
 
     :arg module_name: The module name, typically ``__name__``.
-    :type module_name: string
+    :type module_name: str
     :arg submodule_names: List of submodule names to load and unload.
-    :type submodule_names: list of strings
+    :type submodule_names: list[str]
     :return: register and unregister functions.
-    :rtype: tuple pair of functions
+    :rtype: tuple[Callable[[], None], Callable[[], None]]
     """
 
     module = None
@@ -1020,9 +1020,9 @@ def register_tool(tool_cls, *, after=None, separator=False, group=False):
     Register a tool in the toolbar.
 
     :arg tool_cls: A tool subclass.
-    :type tool_cls: :class:`bpy.types.WorkSpaceTool` subclass.
+    :type tool_cls: :class:`bpy.types.WorkSpaceTool`
     :arg after: Optional identifiers this tool will be added after.
-    :type after: collection of strings or None.
+    :type after: Sequence[str] | None
     :arg separator: When true, add a separator before this tool.
     :type separator: bool
     :arg group: When true, add a new nested group of tools.
@@ -1335,15 +1335,15 @@ def make_rna_paths(struct_name, prop_name, enum_name):
     Create RNA "paths" from given names.
 
     :arg struct_name: Name of a RNA struct (like e.g. "Scene").
-    :type struct_name: string
+    :type struct_name: str
     :arg prop_name: Name of a RNA struct's property.
-    :type prop_name: string
+    :type prop_name: str
     :arg enum_name: Name of a RNA enum identifier.
-    :type enum_name: string
+    :type enum_name: str
     :return: A triple of three "RNA paths"
        (most_complete_path, "struct.prop", "struct.prop:'enum'").
        If no enum_name is given, the third element will always be void.
-    :rtype: tuple of strings
+    :rtype: tuple[str, str, str]
     """
     src = src_rna = src_enum = ""
     if struct_name:
