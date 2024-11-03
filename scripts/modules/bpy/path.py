@@ -47,12 +47,12 @@ def abspath(path, *, start=None, library=None):
 
     :arg start: Relative to this path,
        when not set the current filename is used.
-    :type start: string or bytes
+    :type start: str | bytes
     :arg library: The library this path is from. This is only included for
        convenience, when the library is not None its path replaces *start*.
     :type library: :class:`bpy.types.Library`
     :return: The absolute path.
-    :rtype: string
+    :rtype: str
     """
     if isinstance(path, bytes):
         if path.startswith(b"//"):
@@ -83,12 +83,12 @@ def relpath(path, *, start=None):
     Returns the path relative to the current blend file using the "//" prefix.
 
     :arg path: An absolute path.
-    :type path: string or bytes
+    :type path: str | bytes
     :arg start: Relative to this path,
        when not set the current filename is used.
-    :type start: string or bytes
+    :type start: str | bytes
     :return: The relative path.
-    :rtype: string
+    :rtype: str
     """
     if isinstance(path, bytes):
         if not path.startswith(b"//"):
@@ -110,9 +110,9 @@ def is_subdir(path, directory):
     Both paths must be absolute.
 
     :arg path: An absolute path.
-    :type path: string or bytes
+    :type path: str | bytes
     :return: Whether or not the path is a subdirectory.
-    :rtype: boolean
+    :rtype: bool
     """
     from os.path import normpath, normcase, sep
     path = normpath(normcase(path))
@@ -134,11 +134,11 @@ def clean_name(name, *, replace="_"):
     or the *replace* argument if defined.
 
     :arg name: The path name.
-    :type name: string or bytes
+    :type name: str | bytes
     :arg replace: The replacement for non-valid characters.
-    :type replace: string
+    :type replace: str
     :return: The cleaned name.
-    :rtype: string
+    :rtype: str
     """
 
     if replace != "_":
@@ -206,13 +206,13 @@ def display_name(name, *, has_ext=True, title_case=True):
     Intended for use with filenames and module names.
 
     :arg name: The name to be used for displaying the user interface.
-    :type name: string
+    :type name: str
     :arg has_ext: Remove file extension from name.
-    :type has_ext: boolean
+    :type has_ext: bool
     :arg title_case: Convert lowercase names to title case.
-    :type title_case: boolean
+    :type title_case: bool
     :return: The display string.
-    :rtype: string
+    :rtype: str
     """
 
     if has_ext:
@@ -239,9 +239,9 @@ def display_name_to_filepath(name):
     which aren't supported in a filepath.
 
     :arg name: The display name to convert.
-    :type name: string
+    :type name: str
     :return: The file path.
-    :rtype: string
+    :rtype: str
     """
     for disp_value, file_value in _display_name_literals.items():
         name = name.replace(disp_value, file_value)
@@ -254,9 +254,9 @@ def display_name_from_filepath(name):
     ensured to be utf8 compatible.
 
     :arg name: The file path to convert.
-    :type name: string
+    :type name: str
     :return: The display name.
-    :rtype: string
+    :rtype: str
     """
 
     name = _os.path.splitext(basename(name))[0]
@@ -270,9 +270,9 @@ def resolve_ncase(path):
     returning a string with the path if found else return the original path.
 
     :arg path: The path name to resolve.
-    :type path: string
+    :type path: str
     :return: The resolved path.
-    :rtype: string
+    :rtype: str
     """
 
     def _ncase_path_found(path):
@@ -335,14 +335,14 @@ def ensure_ext(filepath, ext, *, case_sensitive=False):
     Return the path with the extension added if it is not already set.
 
     :arg filepath: The file path.
-    :type filepath: string
+    :type filepath: str
     :arg ext: The extension to check for, can be a compound extension. Should
               start with a dot, such as '.blend' or '.tar.gz'.
-    :type ext: string
+    :type ext: str
     :arg case_sensitive: Check for matching case when comparing extensions.
-    :type case_sensitive: boolean
+    :type case_sensitive: bool
     :return: The file path with the given extension.
-    :rtype: string
+    :rtype: str
     """
 
     if case_sensitive:
@@ -360,13 +360,13 @@ def module_names(path, *, recursive=False, package=""):
     Return a list of modules which can be imported from *path*.
 
     :arg path: a directory to scan.
-    :type path: string
+    :type path: str
     :arg recursive: Also return submodule names for packages.
     :type recursive: bool
     :arg package: Optional string, used as the prefix for module names (without the trailing ".").
-    :type package: string
+    :type package: str
     :return: a list of string pairs (module_name, module_file).
-    :rtype: list of strings
+    :rtype: list[str]
     """
 
     from os.path import join, isfile
@@ -404,7 +404,7 @@ def basename(path):
     Use for Windows compatibility.
 
     :return: The base name of the given path.
-    :rtype: string
+    :rtype: str
     """
     return _os.path.basename(path[2:] if path[:2] in {"//", b"//"} else path)
 
@@ -414,9 +414,9 @@ def native_pathsep(path):
     Replace the path separator with the systems native ``os.sep``.
 
     :arg path: The path to replace.
-    :type path: string
+    :type path: str
     :return: The path with system native separators.
-    :rtype: string
+    :rtype: str
     """
     if type(path) is str:
         if _os.sep == "/":
@@ -443,9 +443,9 @@ def reduce_dirs(dirs):
     (Useful for recursive path searching).
 
     :arg dirs: Sequence of directory paths.
-    :type dirs: sequence of strings
+    :type dirs: Sequence[str]
     :return: A unique list of paths.
-    :rtype: list of strings
+    :rtype: list[str]
     """
     dirs = list({_os.path.normpath(_os.path.abspath(d)) for d in dirs})
     dirs.sort(key=lambda d: len(d))

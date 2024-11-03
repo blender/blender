@@ -150,11 +150,11 @@ PyDoc_STRVAR(
     "   :arg type: Ramp blend type.\n"
     "   :type type: int\n"
     "   :arg color1: 1st color.\n"
-    "   :type color1: :class:`mathutils.Vector`, list or tuple of 3 real numbers\n"
+    "   :type color1: :class:`mathutils.Vector` | tuple[float, float, float] | list[float]\n"
     "   :arg fac: Blend factor.\n"
     "   :type fac: float\n"
     "   :arg color2: 1st color.\n"
-    "   :type color2: :class:`mathutils.Vector`, list or tuple of 3 real numbers\n"
+    "   :type color2: :class:`mathutils.Vector` | tuple[float, float, float] | list[float]\n"
     "   :return: Blended color in RGB format.\n"
     "   :rtype: :class:`mathutils.Vector`\n");
 

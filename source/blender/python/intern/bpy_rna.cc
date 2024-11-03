@@ -3645,9 +3645,9 @@ PyDoc_STRVAR(
     "\n"
     "      In rare cases you may want to set this option to false.\n"
     "\n"
-    "   :type ghost: boolean\n"
+    "   :type ghost: bool\n"
     "   :return: True when the property has been set.\n"
-    "   :rtype: boolean\n");
+    "   :rtype: bool\n");
 static PyObject *pyrna_struct_is_property_set(BPy_StructRNA *self, PyObject *args, PyObject *kw)
 {
   PropertyRNA *prop;
@@ -3719,7 +3719,7 @@ PyDoc_STRVAR(
     "   Check if a property is hidden.\n"
     "\n"
     "   :return: True when the property is hidden.\n"
-    "   :rtype: boolean\n");
+    "   :rtype: bool\n");
 static PyObject *pyrna_struct_is_property_hidden(BPy_StructRNA *self, PyObject *args)
 {
   PropertyRNA *prop;
@@ -3750,7 +3750,7 @@ PyDoc_STRVAR(
     "   Check if a property is readonly.\n"
     "\n"
     "   :return: True when the property is readonly (not writable).\n"
-    "   :rtype: boolean\n");
+    "   :rtype: bool\n");
 static PyObject *pyrna_struct_is_property_readonly(BPy_StructRNA *self, PyObject *args)
 {
   PropertyRNA *prop;
@@ -3781,7 +3781,7 @@ PyDoc_STRVAR(
     "   Check if a property is overridable.\n"
     "\n"
     "   :return: True when the property is overridable.\n"
-    "   :rtype: boolean\n");
+    "   :rtype: bool\n");
 static PyObject *pyrna_struct_is_property_overridable_library(BPy_StructRNA *self, PyObject *args)
 {
   PropertyRNA *prop;
@@ -3812,7 +3812,7 @@ PyDoc_STRVAR(
     "   Define a property as overridable or not (only for custom properties!).\n"
     "\n"
     "   :return: True when the overridable status of the property was successfully set.\n"
-    "   :rtype: boolean\n");
+    "   :rtype: bool\n");
 static PyObject *pyrna_struct_property_overridable_library_set(BPy_StructRNA *self, PyObject *args)
 {
   PropertyRNA *prop;
@@ -3845,10 +3845,10 @@ PyDoc_STRVAR(
     "   Returns the property from the path, raise an exception when not found.\n"
     "\n"
     "   :arg path: path which this property resolves.\n"
-    "   :type path: string\n"
+    "   :type path: str\n"
     "   :arg coerce: optional argument, when True, the property will be converted\n"
     "      into its Python representation.\n"
-    "   :type coerce: boolean\n");
+    "   :type coerce: bool\n");
 static PyObject *pyrna_struct_path_resolve(BPy_StructRNA *self, PyObject *args)
 {
   const char *path;
@@ -3903,7 +3903,7 @@ PyDoc_STRVAR(
     "\n"
     "   :arg property: Optional property name which can be used if the path is\n"
     "      to a property of this object.\n"
-    "   :type property: string\n"
+    "   :type property: str\n"
     "   :return: The path from :class:`bpy.types.bpy_struct.id_data`\n"
     "      to this struct and property (when given).\n"
     "   :rtype: str\n");
@@ -4046,7 +4046,7 @@ PyDoc_STRVAR(
     "   such as textures can be changed at runtime.\n"
     "\n"
     "   :return: a new instance of this object with the type initialized again.\n"
-    "   :rtype: subclass of :class:`bpy.types.bpy_struct`\n");
+    "   :rtype: :class:`bpy.types.bpy_struct`\n");
 static PyObject *pyrna_struct_type_recast(BPy_StructRNA *self)
 {
 
@@ -4099,7 +4099,7 @@ PyDoc_STRVAR(
     ".. classmethod:: bl_rna_get_subclass_py(id, default=None)\n"
     "\n"
     "   :arg id: The RNA type identifier.\n"
-    "   :type id: string\n"
+    "   :type id: str\n"
     "   :return: The class or default when not found.\n"
     "   :rtype: type\n");
 static PyObject *pyrna_struct_bl_rna_get_subclass_py(PyObject *cls, PyObject *args)
@@ -4123,7 +4123,7 @@ PyDoc_STRVAR(
     ".. classmethod:: bl_rna_get_subclass(id, default=None)\n"
     "\n"
     "   :arg id: The RNA type identifier.\n"
-    "   :type id: string\n"
+    "   :type id: str\n"
     "   :return: The RNA type or default when not found.\n"
     "   :rtype: :class:`bpy.types.Struct` subclass\n");
 static PyObject *pyrna_struct_bl_rna_get_subclass(PyObject *cls, PyObject *args)
@@ -5043,7 +5043,7 @@ PyDoc_STRVAR(
     "   (matching Python's dict.keys() functionality).\n"
     "\n"
     "   :return: the identifiers for each member of this collection.\n"
-    "   :rtype: list of strings\n");
+    "   :rtype: list[str]\n");
 static PyObject *pyrna_prop_collection_keys(BPy_PropertyRNA *self)
 {
   PyObject *ret = PyList_New(0);
@@ -5075,7 +5075,7 @@ PyDoc_STRVAR(
     "   (matching Python's dict.items() functionality).\n"
     "\n"
     "   :return: (key, value) pairs for each member of this collection.\n"
-    "   :rtype: list of tuples\n");
+    "   :rtype: list[tuple[str, :class:`bpy.types.bpy_struct`]]\n");
 static PyObject *pyrna_prop_collection_items(BPy_PropertyRNA *self)
 {
   PyObject *ret = PyList_New(0);
@@ -5119,8 +5119,8 @@ PyDoc_STRVAR(
     "   Return the values of collection\n"
     "   (matching Python's dict.values() functionality).\n"
     "\n"
-    "   :return: the members of this collection.\n"
-    "   :rtype: list\n");
+    "   :return: The members of this collection.\n"
+    "   :rtype: list[:class:`bpy.types.bpy_struct`]\n");
 static PyObject *pyrna_prop_collection_values(BPy_PropertyRNA *self)
 {
   /* Re-use slice. */
@@ -5136,10 +5136,10 @@ PyDoc_STRVAR(
     "   when not found (matches Python's dictionary function of the same name).\n"
     "\n"
     "   :arg key: The key associated with the custom property.\n"
-    "   :type key: string\n"
+    "   :type key: str\n"
     "   :arg default: Optional argument for the value to return if\n"
     "      *key* is not found.\n"
-    "   :type default: Undefined\n"
+    "   :type default: Any\n"
     "\n" BPY_DOC_ID_PROP_TYPE_NOTE);
 static PyObject *pyrna_struct_get(BPy_StructRNA *self, PyObject *args)
 {
@@ -5181,10 +5181,10 @@ PyDoc_STRVAR(
     "   when not found (matches Python's dictionary function of the same name).\n"
     "\n"
     "   :arg key: The key associated with the custom property.\n"
-    "   :type key: string\n"
+    "   :type key: str\n"
     "   :arg default: Optional argument for the value to return if\n"
     "      *key* is not found.\n"
-    "   :type default: Undefined\n"
+    "   :type default: Any\n"
     "\n" BPY_DOC_ID_PROP_TYPE_NOTE);
 static PyObject *pyrna_struct_pop(BPy_StructRNA *self, PyObject *args)
 {
@@ -5254,10 +5254,10 @@ PyDoc_STRVAR(
     "   (matches Python's dictionary function of the same name).\n"
     "\n"
     "   :arg key: The identifier for the collection member.\n"
-    "   :type key: string\n"
+    "   :type key: str\n"
     "   :arg default: Optional argument for the value to return if\n"
     "      *key* is not found.\n"
-    "   :type default: Undefined\n");
+    "   :type default: Any\n");
 static PyObject *pyrna_prop_collection_get(BPy_PropertyRNA *self, PyObject *args)
 {
   PointerRNA newptr;
@@ -5308,7 +5308,7 @@ PyDoc_STRVAR(
     "   (matches Python's string find function of the same name).\n"
     "\n"
     "   :arg key: The identifier for the collection member.\n"
-    "   :type key: string\n"
+    "   :type key: str\n"
     "   :return: index of the key.\n"
     "   :rtype: int\n");
 static PyObject *pyrna_prop_collection_find(BPy_PropertyRNA *self, PyObject *key_ob)
@@ -9142,7 +9142,7 @@ PyDoc_STRVAR(
     "      :class:`bpy.types.Operator`, :class:`bpy.types.KeyingSetInfo`,\n"
     "      :class:`bpy.types.RenderEngine`, :class:`bpy.types.AssetShelf`,\n"
     "      :class:`bpy.types.FileHandler`\n"
-    "   :type cls: class\n"
+    "   :type cls: type\n"
     "   :raises ValueError:\n"
     "      if the class is not a subclass of a registerable blender class.\n"
     "\n"
@@ -9327,7 +9327,7 @@ PyDoc_STRVAR(
     "   :arg cls: Blender type class, \n"
     "      see :mod:`bpy.utils.register_class` for classes which can \n"
     "      be registered.\n"
-    "   :type cls: class\n"
+    "   :type cls: type\n"
     "\n"
     "   .. note::\n"
     "\n"

@@ -35,9 +35,12 @@ PyDoc_STRVAR(
     "\n"
     "   Calculate barycentric weights for a point on a polygon.\n"
     "\n"
-    "   :arg veclist: list of vectors\n"
-    "   :arg pt: point"
-    "   :rtype: list of per-vector weights\n");
+    "   :arg veclist: Sequence of 3D positions.\n"
+    "   :type veclist: Sequence[Sequence[float]]\n"
+    "   :arg pt: 2D or 3D position."
+    "   :type pt: Sequence[float]"
+    "   :return: list of per-vector weights.\n"
+    "   :rtype: list[float]\n");
 static PyObject *M_Interpolate_poly_3d_calc(PyObject * /*self*/, PyObject *args)
 {
   float fp[3];

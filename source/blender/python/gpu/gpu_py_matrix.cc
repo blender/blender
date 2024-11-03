@@ -370,8 +370,8 @@ PyDoc_STRVAR(
     "\n"
     "   Scale the current stack matrix.\n"
     "\n"
-    "   :arg scale: Scale the current stack matrix.\n"
-    "   :type scale: sequence of 2 or 3 floats\n");
+    "   :arg scale: Scale the current stack matrix with 2 or 3 floats.\n"
+    "   :type scale: Sequence[float]\n");
 static PyObject *pygpu_matrix_scale(PyObject * /*self*/, PyObject *value)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
@@ -419,8 +419,8 @@ PyDoc_STRVAR(
     "\n"
     "   Scale the current stack matrix.\n"
     "\n"
-    "   :arg offset: Translate the current stack matrix.\n"
-    "   :type offset: sequence of 2 or 3 floats\n");
+    "   :arg offset: Translate the current stack matrix with 2 or 3 floats.\n"
+    "   :type offset: Sequence[float]\n");
 static PyObject *pygpu_matrix_translate(PyObject * /*self*/, PyObject *value)
 {
   float offset[3];

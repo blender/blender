@@ -296,7 +296,7 @@ char pyrna_struct_keyframe_insert_doc[] =
     "necessary.\n"
     "\n"
     "   :arg data_path: path to the property to key, analogous to the fcurve's data path.\n"
-    "   :type data_path: string\n"
+    "   :type data_path: str\n"
     "   :arg index: array index of the property to key.\n"
     "      Defaults to -1 which will key all indices or a single channel if the property is not "
     "an array.\n"
@@ -319,12 +319,12 @@ char pyrna_struct_keyframe_insert_doc[] =
     "      - ``INSERTKEY_AVAILABLE`` Only insert into already existing F-Curves.\n"
     "      - ``INSERTKEY_CYCLE_AWARE`` Take cyclic extrapolation into account "
     "(Cycle-Aware Keying option).\n"
-    "   :type options: set\n"
+    "   :type options: set[str]\n"
     "   :arg keytype: Type of the key: 'KEYFRAME', 'BREAKDOWN', 'MOVING_HOLD', 'EXTREME', "
     "'JITTER', or 'GENERATED'\n"
-    "   :type keytype: string\n"
+    "   :type keytype: str\n"
     "   :return: Success of keyframe insertion.\n"
-    "   :rtype: boolean\n";
+    "   :rtype: bool\n";
 PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyObject *kw)
 {
   using namespace blender::animrig;
@@ -455,7 +455,7 @@ char pyrna_struct_keyframe_delete_doc[] =
     "\n"
     "   :arg data_path: path to the property to remove a key, analogous to the fcurve's data "
     "path.\n"
-    "   :type data_path: string\n"
+    "   :type data_path: str\n"
     "   :arg index: array index of the property to remove a key. Defaults to -1 removing all "
     "indices or a single channel if the property is not an array.\n"
     "   :type index: int\n"
@@ -465,7 +465,7 @@ char pyrna_struct_keyframe_delete_doc[] =
     "yet.\n"
     "   :type group: str\n"
     "   :return: Success of keyframe deletion.\n"
-    "   :rtype: boolean\n";
+    "   :rtype: bool\n";
 PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyObject *kw)
 {
   /* args, pyrna_struct_keyframe_parse handles these */
@@ -575,12 +575,12 @@ char pyrna_struct_driver_add_doc[] =
     "   Adds driver(s) to the given property\n"
     "\n"
     "   :arg path: path to the property to drive, analogous to the fcurve's data path.\n"
-    "   :type path: string\n"
+    "   :type path: str\n"
     "   :arg index: array index of the property drive. Defaults to -1 for all indices or a single "
     "channel if the property is not an array.\n"
     "   :type index: int\n"
-    "   :return: The driver(s) added.\n"
-    "   :rtype: :class:`bpy.types.FCurve` or list if index is -1 with an array property.\n";
+    "   :return: The driver added or a list of drivers when index is -1.\n"
+    "   :rtype: :class:`bpy.types.FCurve` | list[:class:`bpy.types.FCurve`]\n";
 PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
 {
   const char *path, *path_full;
@@ -659,12 +659,12 @@ char pyrna_struct_driver_remove_doc[] =
     "   Remove driver(s) from the given property\n"
     "\n"
     "   :arg path: path to the property to drive, analogous to the fcurve's data path.\n"
-    "   :type path: string\n"
+    "   :type path: str\n"
     "   :arg index: array index of the property drive. Defaults to -1 for all indices or a single "
     "channel if the property is not an array.\n"
     "   :type index: int\n"
     "   :return: Success of driver removal.\n"
-    "   :rtype: boolean\n";
+    "   :rtype: bool\n";
 PyObject *pyrna_struct_driver_remove(BPy_StructRNA *self, PyObject *args)
 {
   const char *path, *path_full;

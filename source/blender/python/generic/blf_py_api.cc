@@ -150,7 +150,7 @@ PyDoc_STRVAR(
     "font use 0.\n"
     "   :type fontid: int\n"
     "   :arg text: the text to draw.\n"
-    "   :type text: string\n");
+    "   :type text: str\n");
 static PyObject *py_blf_draw(PyObject * /*self*/, PyObject *args)
 {
   const char *text;
@@ -177,9 +177,9 @@ PyDoc_STRVAR(
     "font use 0.\n"
     "   :type fontid: int\n"
     "   :arg text: the text to draw.\n"
-    "   :type text: string\n"
+    "   :type text: str\n"
     "   :return: the width and height of the text.\n"
-    "   :rtype: tuple of 2 floats\n");
+    "   :rtype: tuple[float, float]\n");
 static PyObject *py_blf_dimensions(PyObject * /*self*/, PyObject *args)
 {
   const char *text;
@@ -408,9 +408,9 @@ PyDoc_STRVAR(
     "   Load a new font.\n"
     "\n"
     "   :arg filepath: the filepath of the font.\n"
-    "   :type filepath: string or bytes\n"
+    "   :type filepath: str | bytes\n"
     "   :return: the new font's fontid or -1 if there was an error.\n"
-    "   :rtype: integer\n");
+    "   :rtype: int\n");
 static PyObject *py_blf_load(PyObject * /*self*/, PyObject *args)
 {
   PyC_UnicodeAsBytesAndSize_Data filepath_data = {nullptr};
@@ -436,7 +436,7 @@ PyDoc_STRVAR(
     "   Unload an existing font.\n"
     "\n"
     "   :arg filepath: the filepath of the font.\n"
-    "   :type filepath: string or bytes\n");
+    "   :type filepath: str | bytes\n");
 static PyObject *py_blf_unload(PyObject * /*self*/, PyObject *args)
 {
   PyC_UnicodeAsBytesAndSize_Data filepath_data = {nullptr};

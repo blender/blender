@@ -113,7 +113,7 @@ PyDoc_STRVAR(
     pyrna_WindowManager_clipboard_doc,
     "Clipboard text storage.\n"
     "\n"
-    ":type: string");
+    ":type: str");
 static PyObject *pyrna_WindowManager_clipboard_get(PyObject * /*self*/, void * /*flag*/)
 {
   int text_len = 0;
@@ -158,9 +158,9 @@ PyDoc_STRVAR(
     "      A function that will be called when the cursor is drawn.\n"
     "      It gets the specified arguments as input with the mouse position (tuple) as last "
     "argument.\n"
-    "   :type callback: function\n"
+    "   :type callback: Callable[[Any, ..., tuple[int, int]], Any]\n"
     "   :arg args: Arguments that will be passed to the callback.\n"
-    "   :type args: tuple\n"
+    "   :type args: tuple[Any, ...]\n"
     "   :arg space_type: The space type the callback draws in; for example ``VIEW_3D``. "
     "(:class:`bpy.types.Space.type`)\n"
     "   :type space_type: str\n"
@@ -229,10 +229,10 @@ PyDoc_STRVAR(
     "\n"
     "   :arg callback:\n"
     "      A function that will be called when the region is drawn.\n"
-    "      It gets the specified arguments as input.\n"
-    "   :type callback: function\n"
+    "      It gets the specified arguments as input, it's return value is ignored.\n"
+    "   :type callback: Callable[[Any, ...], Any]\n"
     "   :arg args: Arguments that will be passed to the callback.\n"
-    "   :type args: tuple\n"
+    "   :type args: tuple[Any, ...]\n"
     "   :arg region_type: The region type the callback draws in; usually ``WINDOW``. "
     "(:class:`bpy.types.Region.type`)\n"
     "   :type region_type: str\n"

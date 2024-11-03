@@ -247,7 +247,7 @@ PyDoc_STRVAR(
     "   Get supported extensions in the current context.\n"
     "\n"
     "   :return: Extensions.\n"
-    "   :rtype: tuple of string\n");
+    "   :rtype: tuple[str]\n");
 static PyObject *pygpu_extensions_get(PyObject * /*self*/)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;

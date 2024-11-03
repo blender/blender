@@ -138,9 +138,9 @@ def complete(line, cursor, namespace):
     :arg cursor: current character position
     :type cursor: int
     :arg namespace: namespace
-    :type namespace: dict
+    :type namespace: dict[str, Any]
     :returns: (matches, world, scrollback)
-    :rtype: (list of str, str, str)
+    :rtype: tuple[str, str, str]
 
     >>> import os
     >>> complete('os.path.isdir(', 14, {'os': os})[-1]

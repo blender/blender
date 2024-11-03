@@ -692,7 +692,7 @@ PyDoc_STRVAR(
     "read or written. Possible values are:\n"
     "" PYDOC_QUALIFIERS
     ""
-    "   :type qualifiers: set\n");
+    "   :type qualifiers: set[str]\n");
 static PyObject *pygpu_shader_info_image(BPyGPUShaderCreateInfo *self,
                                          PyObject *args,
                                          PyObject *kwds)
@@ -891,9 +891,8 @@ PyDoc_STRVAR(
     "   :type type: str\n"
     "   :arg name: Name of the constant.\n"
     "   :type name: str\n"
-    "   :arg size: If not zero, indicates that the constant is an array with the "
-    "specified size.\n"
-    "   :type size: uint\n");
+    "   :arg size: If not zero, indicates that the constant is an array with the specified size.\n"
+    "   :type size: int\n");
 static PyObject *pygpu_shader_info_push_constant(BPyGPUShaderCreateInfo *self,
                                                  PyObject *args,
                                                  PyObject *kwds)

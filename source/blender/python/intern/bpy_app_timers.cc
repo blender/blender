@@ -81,7 +81,7 @@ PyDoc_STRVAR(
     "   ``functools.partial`` can be used to assign some parameters.\n"
     "\n"
     "   :arg function: The function that should called.\n"
-    "   :type function: Callable[[], Union[float, None]]\n"
+    "   :type function: Callable[[], float | None]\n"
     "   :arg first_interval: Seconds until the callback should be called the first time.\n"
     "   :type first_interval: float\n"
     "   :arg persistent: Don't remove timer when a new file is loaded.\n"
@@ -128,7 +128,7 @@ PyDoc_STRVAR(
     "   Unregister timer.\n"
     "\n"
     "   :arg function: Function to unregister.\n"
-    "   :type function: Callable[[], Union[float, None]]\n");
+    "   :type function: Callable[[], float | None]\n");
 static PyObject *bpy_app_timers_unregister(PyObject * /*self*/, PyObject *function)
 {
   if (!BLI_timer_unregister(intptr_t(function))) {
@@ -146,7 +146,7 @@ PyDoc_STRVAR(
     "   Check if this function is registered as a timer.\n"
     "\n"
     "   :arg function: Function to check.\n"
-    "   :type function: Callable[[], Union[float, None]]\n"
+    "   :type function: Callable[[], float | None]\n"
     "   :return: True when this function is registered, otherwise False.\n"
     "   :rtype: bool\n");
 static PyObject *bpy_app_timers_is_registered(PyObject * /*self*/, PyObject *function)

@@ -416,7 +416,10 @@ def main():
                 fw("        **type** {:s}\n".format(tp))
 
             fw("\n")
-            fw("   :rtype: dict with string keys\n")
+            # TODO: Any is not quite correct here,
+            # the exact type depends on output args used by BMesh.
+            # This should really be a type alias.
+            fw("   :rtype: dict[str, Any]\n")
 
         fw("\n\n")
 
