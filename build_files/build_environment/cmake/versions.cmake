@@ -1288,9 +1288,9 @@ Roozbeh Pournader <roozbeh@gnu.org>,
 Khaled Hosny <khaledhosny@eglug.org>
 ]=])
 
-set(HARFBUZZ_VERSION 5.1.0)
+set(HARFBUZZ_VERSION 10.0.1)
 set(HARFBUZZ_URI https://github.com/harfbuzz/harfbuzz/archive/refs/tags/${HARFBUZZ_VERSION}.tar.gz)
-set(HARFBUZZ_HASH 5352ff2eec538ea9a63a485cf01ad8332a3f63aa79921c5a2e301cef185caea1)
+set(HARFBUZZ_HASH e7358ea86fe10fb9261931af6f010d4358dac64f7074420ca9bc94aae2bdd542)
 set(HARFBUZZ_HASH_TYPE SHA256)
 set(HARFBUZZ_FILE harfbuzz-${HARFBUZZ_VERSION}.tar.gz)
 set(HARFBUZZ_DEPSBUILDTIMEONLY "UI module asked for preliminary libs so they could work on integrating it")
