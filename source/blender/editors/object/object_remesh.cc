@@ -133,6 +133,8 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
   }
 
   if (ob->mode == OB_MODE_SCULPT) {
+    Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+    BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
     sculpt_paint::undo::geometry_begin(scene, *ob, op);
   }
 
