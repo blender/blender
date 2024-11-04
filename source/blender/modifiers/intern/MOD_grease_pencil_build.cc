@@ -674,10 +674,22 @@ static void modify_geometry_set(ModifierData *md,
 
   threading::parallel_for_each(
       drawing_infos, [&](modifier::greasepencil::LayerDrawingInfo drawing_info) {
+        const bke::greasepencil::Layer &layer = *layers[drawing_info.layer_index];
         const bke::greasepencil::Drawing *prev_drawing = grease_pencil.get_drawing_at(
-            *layers[drawing_info.layer_index], eval_frame - 1);
-        build_drawing(
-            *mmd, *ctx->object, *drawing_info.drawing, prev_drawing, eval_frame, scene_fps);
+            layer, eval_frame - 1);
+
+        /* This will always return a valid start frame because we're iterating over the valid
+         * drawings on `eval_frame`. Each drawing will have a start frame. */
+        const int start_frame = *layer.start_frame_at(eval_frame);
+        BLI_assert(start_frame <= eval_frame);
+
+        const int relative_start_frame = eval_frame - start_frame;
+        build_drawing(*mmd,
+                      *ctx->object,
+                      *drawing_info.drawing,
+                      prev_drawing,
+                      relative_start_frame,
+                      scene_fps);
       });
 }
 
