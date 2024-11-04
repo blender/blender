@@ -997,7 +997,11 @@ void RE_system_gpu_context_ensure(Render *re)
   if (re->system_gpu_context == nullptr) {
     /* Needs to be created in the main thread. */
     re->system_gpu_context = WM_system_gpu_context_create();
-    /* So we activate the window's one afterwards. */
+    /* The context is activated during creation, so release it here since the function should not
+     * have context activation as a side effect. Then activate the drawable's context below. */
+    if (re->system_gpu_context) {
+      WM_system_gpu_context_release(re->system_gpu_context);
+    }
     wm_window_reset_drawable();
   }
 }
