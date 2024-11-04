@@ -1139,7 +1139,9 @@ bool SEQ_retiming_selection_has_whole_transition(const Editing *ed, SeqRetimingK
   SeqRetimingKey *key_end = key_start + 1;
   bool has_start = false, has_end = false;
 
-  for (auto item : SEQ_retiming_selection_get(ed).items()) {
+  blender::Map<SeqRetimingKey *, Sequence *> selection = SEQ_retiming_selection_get(ed);
+
+  for (auto item : selection.items()) {
     if (item.key == key_start) {
       has_start = true;
     }
