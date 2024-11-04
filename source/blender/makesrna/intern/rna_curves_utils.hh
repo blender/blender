@@ -35,4 +35,10 @@ bool rna_CurvesGeometry_resize_curves(blender::bke::CurvesGeometry &curves,
                                       const int *indices_ptr,
                                       int indices_num);
 
+bool rna_CurvesGeometry_set_types(blender::bke::CurvesGeometry &curves,
+                                  ReportList *reports,
+                                  int type,
+                                  const int *indices_ptr,
+                                  int indices_num);
+
 #endif
