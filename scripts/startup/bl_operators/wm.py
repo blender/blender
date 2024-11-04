@@ -2307,16 +2307,26 @@ class WM_OT_tool_set_by_id(Operator):
 
     space_type: rna_space_type_prop
 
+    @staticmethod
+    def space_type_from_operator(op, context):
+        if op.properties.is_property_set("space_type"):
+            space_type = op.space_type
+        else:
+            space = context.space_data
+            if space is None:
+                op.report({'WARNING'}, rpt_("Tool cannot be set with an empty space"))
+                return None
+            space_type = space.type
+        return space_type
+
     def execute(self, context):
         from bl_ui.space_toolsystem_common import (
             activate_by_id,
             activate_by_id_or_cycle,
         )
 
-        if self.properties.is_property_set("space_type"):
-            space_type = self.space_type
-        else:
-            space_type = context.space_data.type
+        if (space_type := WM_OT_tool_set_by_id.space_type_from_operator(self, context)) is None:
+            return {'CANCELLED'}
 
         fn = activate_by_id_or_cycle if self.cycle else activate_by_id
         if fn(context, space_type, self.name, as_fallback=self.as_fallback):
@@ -2367,10 +2377,8 @@ class WM_OT_tool_set_by_index(Operator):
             item_from_flat_index,
         )
 
-        if self.properties.is_property_set("space_type"):
-            space_type = self.space_type
-        else:
-            space_type = context.space_data.type
+        if (space_type := WM_OT_tool_set_by_id.space_type_from_operator(self, context)) is None:
+            return {'CANCELLED'}
 
         fn = item_from_flat_index if self.expand else item_from_index_active
         item = fn(context, space_type, self.index)
@@ -2408,15 +2416,8 @@ class WM_OT_tool_set_by_brush_type(Operator):
             activate_by_id
         )
 
-        if self.properties.is_property_set("space_type"):
-            space_type = self.space_type
-        else:
-            # Unlikely may be called in an unexpected context.
-            if (space := context.space_data) is None:
-                self.report({'WARNING'}, rpt_("Tool {!r} set without a space").format(tool_id))
-                return {'CANCELLED'}
-            space_type = space.type
-            del space
+        if (space_type := WM_OT_tool_set_by_id.space_type_from_operator(self, context)) is None:
+            return {'CANCELLED'}
 
         tool_helper_cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
         # Lookup a tool with a matching brush type (ignoring some specific ones).

@@ -3006,6 +3006,9 @@ static PyObject *bpy_bmelemseq_sort(BPy_BMElemSeq *self, PyObject *args, PyObjec
     {
       return nullptr;
     }
+    if (keyfunc == Py_None) {
+      keyfunc = nullptr;
+    }
   }
 
   if (keyfunc != nullptr && !PyCallable_Check(keyfunc)) {
