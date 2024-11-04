@@ -120,6 +120,9 @@ void importer_main(Main *bmain,
   BLI_path_extension_strip(ob_name);
 
   Mesh *mesh = read_stl_file(import_params);
+  if (!mesh) {
+    return;
+  }
 
   Mesh *mesh_in_main = BKE_mesh_add(bmain, ob_name);
   BKE_mesh_nomain_to_mesh(mesh, mesh_in_main, nullptr);
