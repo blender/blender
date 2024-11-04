@@ -432,7 +432,8 @@ static void draw_keyframes(bAnimContext *ac,
         break;
       case ALE_GREASE_PENCIL_DATA:
         ED_add_grease_pencil_datablock_channel(draw_list,
-                                               ads,
+                                               ac,
+                                               ale->adt,
                                                static_cast<const GreasePencil *>(ale->data),
                                                ycenter,
                                                scale_factor,
