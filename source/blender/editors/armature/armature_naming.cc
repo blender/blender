@@ -262,6 +262,12 @@ void ED_armature_bone_rename(Main *bmain,
         bDeformGroup *dg = BKE_object_defgroup_find_name(ob, oldname);
         if (dg) {
           STRNCPY(dg->name, newname);
+
+          if (ob->type == OB_GREASE_PENCIL) {
+            /* Update vgroup names stored in CurvesGeometry */
+            BKE_grease_pencil_vgroup_name_update(ob, oldname, dg->name);
+          }
+
           DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_GEOMETRY);
         }
       }

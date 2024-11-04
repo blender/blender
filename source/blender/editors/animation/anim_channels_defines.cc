@@ -3589,7 +3589,7 @@ static void acf_gpd_color(bAnimContext * /*ac*/, bAnimListElem * /*ale*/, float 
 /* TODO: just get this from RNA? */
 static int acf_gpd_icon(bAnimListElem * /*ale*/)
 {
-  return ICON_OUTLINER_OB_GREASEPENCIL;
+  return ICON_OUTLINER_DATA_GREASEPENCIL;
 }
 
 /* check if some setting exists for this channel */
