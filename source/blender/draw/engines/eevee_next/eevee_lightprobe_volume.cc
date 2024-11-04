@@ -397,8 +397,11 @@ void VolumeProbeModule::set_view(View & /*view*/)
     grid_upload_ps_.bind_texture("visibility_c_tx", use_vis ? &visibility_c_tx : &irradiance_c_tx);
     grid_upload_ps_.bind_texture("visibility_d_tx", use_vis ? &visibility_d_tx : &irradiance_d_tx);
 
+    /* Runtime grid is padded for blending with surrounding probes. */
+    int3 grid_size_with_padding = grid_size + 2;
     /* Note that we take into account the padding border of each brick. */
-    int3 grid_size_in_bricks = math::divide_ceil(grid_size, int3(IRRADIANCE_GRID_BRICK_SIZE - 1));
+    int3 grid_size_in_bricks = math::divide_ceil(grid_size_with_padding,
+                                                 int3(IRRADIANCE_GRID_BRICK_SIZE - 1));
     grid_upload_ps_.dispatch(grid_size_in_bricks);
     /* Sync with next load. */
     grid_upload_ps_.barrier(GPU_BARRIER_TEXTURE_FETCH);
