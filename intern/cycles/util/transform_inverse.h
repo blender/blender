@@ -81,4 +81,5 @@ ccl_device_forceinline Transform transform_inverse_impl(const Transform tfm)
 
   return itfm;
 }
+
 CCL_NAMESPACE_END

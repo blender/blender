@@ -82,6 +82,14 @@ typedef struct PerspectiveMotionTransform {
   ProjectionTransform post;
 } PerspectiveMotionTransform;
 
+CCL_NAMESPACE_END
+
+#if !defined(__KERNEL_METAL__)
+#  include "util/projection_inverse.h"
+#endif
+
+CCL_NAMESPACE_BEGIN
+
 /* Functions */
 
 ccl_device_inline float3 transform_perspective(ccl_private const ProjectionTransform *t,
@@ -103,40 +111,6 @@ ccl_device_inline float3 transform_perspective_direction(ccl_private const Proje
 
   return c;
 }
-
-#ifndef __KERNEL_GPU__
-
-ccl_device_inline Transform projection_to_transform(const ProjectionTransform &a)
-{
-  Transform tfm = {a.x, a.y, a.z};
-  return tfm;
-}
-
-ccl_device_inline ProjectionTransform projection_transpose(const ProjectionTransform &a)
-{
-  ProjectionTransform t;
-
-  t.x.x = a.x.x;
-  t.x.y = a.y.x;
-  t.x.z = a.z.x;
-  t.x.w = a.w.x;
-  t.y.x = a.x.y;
-  t.y.y = a.y.y;
-  t.y.z = a.z.y;
-  t.y.w = a.w.y;
-  t.z.x = a.x.z;
-  t.z.y = a.y.z;
-  t.z.z = a.z.z;
-  t.z.w = a.w.z;
-  t.w.x = a.x.w;
-  t.w.y = a.y.w;
-  t.w.z = a.z.w;
-  t.w.w = a.w.w;
-
-  return t;
-}
-
-ProjectionTransform projection_inverse(const ProjectionTransform &a);
 
 ccl_device_inline ProjectionTransform make_projection(float a,
                                                       float b,
@@ -176,6 +150,7 @@ ccl_device_inline ProjectionTransform make_projection(float a,
 
   return t;
 }
+
 ccl_device_inline ProjectionTransform projection_identity()
 {
   return make_projection(1.0f,
@@ -196,8 +171,58 @@ ccl_device_inline ProjectionTransform projection_identity()
                          1.0f);
 }
 
-ccl_device_inline ProjectionTransform operator*(const ProjectionTransform &a,
-                                                const ProjectionTransform &b)
+#ifndef __KERNEL_GPU__
+ccl_device_inline Transform projection_to_transform(const ProjectionTransform &a)
+{
+  Transform tfm = {a.x, a.y, a.z};
+  return tfm;
+}
+#endif
+
+ccl_device_inline ProjectionTransform projection_transpose(const ProjectionTransform a)
+{
+  ProjectionTransform t;
+
+  t.x.x = a.x.x;
+  t.x.y = a.y.x;
+  t.x.z = a.z.x;
+  t.x.w = a.w.x;
+  t.y.x = a.x.y;
+  t.y.y = a.y.y;
+  t.y.z = a.z.y;
+  t.y.w = a.w.y;
+  t.z.x = a.x.z;
+  t.z.y = a.y.z;
+  t.z.z = a.z.z;
+  t.z.w = a.w.z;
+  t.w.x = a.x.w;
+  t.w.y = a.y.w;
+  t.w.z = a.z.w;
+  t.w.w = a.w.w;
+
+  return t;
+}
+
+#if !defined(__KERNEL_METAL__)
+ccl_device_inline ProjectionTransform projection_inverse(const ProjectionTransform tfm)
+{
+  ProjectionTransform tfmR = projection_identity();
+  float M[4][4], R[4][4];
+
+  memcpy(R, &tfmR, sizeof(R));
+  memcpy(M, &tfm, sizeof(M));
+
+  if (UNLIKELY(!projection_inverse_impl(R, M))) {
+    return projection_identity();
+  }
+
+  memcpy(&tfmR, R, sizeof(R));
+
+  return tfmR;
+}
+
+ccl_device_inline ProjectionTransform operator*(const ProjectionTransform a,
+                                                const ProjectionTransform b)
 {
   ProjectionTransform c = projection_transpose(b);
   ProjectionTransform t;
@@ -209,6 +234,9 @@ ccl_device_inline ProjectionTransform operator*(const ProjectionTransform &a,
 
   return t;
 }
+#endif
+
+#ifndef __KERNEL_GPU__
 
 ccl_device_inline ProjectionTransform operator*(const ProjectionTransform &a, const Transform &b)
 {
