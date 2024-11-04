@@ -97,18 +97,20 @@ static void mix_attributes(bke::MutableAttributeAccessor attributes_a,
     if (sharing_info_equal(attribute_a.sharing_info, attribute_b.sharing_info)) {
       continue;
     }
-    bke::GSpanAttributeWriter dst = attributes_a.lookup_for_write_span(id);
     if (!index_map.is_empty()) {
+      bke::GSpanAttributeWriter dst = attributes_a.lookup_for_write_span(id);
       /* If there's an ID attribute, use its values to mix with potentially changed indices. */
       mix_with_indices(dst.span, *attribute_b, index_map, factor);
+      dst.finish();
     }
     else if (attributes_a.domain_size(domain) == b_attributes.domain_size(domain)) {
+      bke::GSpanAttributeWriter dst = attributes_a.lookup_for_write_span(id);
       /* With no ID attribute to find matching elements, we can only support mixing when the domain
        * size (topology) is the same. Other options like mixing just the start of arrays might work
        * too, but give bad results too. */
       mix(dst.span, attribute_b.varray, factor);
+      dst.finish();
     }
-    dst.finish();
   }
 }
 
