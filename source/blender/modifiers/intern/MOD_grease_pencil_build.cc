@@ -735,7 +735,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiItemR(layout, ptr, "object", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   if (uiLayout *panel = uiLayoutPanelProp(
-          C, layout, ptr, "open_frame_range_panel", "Effective Range"))
+          C, layout, ptr, "open_frame_range_panel", IFACE_("Effective Range")))
   {
     uiLayoutSetPropSep(panel, true);
     uiItemR(
@@ -748,7 +748,7 @@ static void panel_draw(const bContext *C, Panel *panel)
     uiItemR(col, ptr, "frame_end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
   }
 
-  if (uiLayout *panel = uiLayoutPanelProp(C, layout, ptr, "open_fading_panel", "Fading")) {
+  if (uiLayout *panel = uiLayoutPanelProp(C, layout, ptr, "open_fading_panel", IFACE_("Fading"))) {
     uiLayoutSetPropSep(panel, true);
     uiItemR(panel, ptr, "use_fading", UI_ITEM_NONE, IFACE_("Fade"), ICON_NONE);
 
@@ -772,7 +772,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   }
 
   if (uiLayout *influence_panel = uiLayoutPanelProp(
-          C, layout, ptr, "open_influence_panel", "Influence"))
+          C, layout, ptr, "open_influence_panel", IFACE_("Influence")))
   {
     modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
     modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);
