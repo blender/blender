@@ -83,6 +83,7 @@ class Vector {
   using iterator = T *;
   using const_iterator = const T *;
   using size_type = int64_t;
+  using allocator_type = Allocator;
 
  private:
   /**
