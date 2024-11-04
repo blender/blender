@@ -294,27 +294,6 @@ IDTypeInfo IDType_ID_GD_LEGACY = {
 };
 
 /* ************************************************** */
-/* Draw Engine */
-
-void (*BKE_gpencil_batch_cache_dirty_tag_cb)(bGPdata *gpd) = nullptr;
-void (*BKE_gpencil_batch_cache_free_cb)(bGPdata *gpd) = nullptr;
-
-void BKE_gpencil_batch_cache_dirty_tag(bGPdata *gpd)
-{
-  if (gpd) {
-    DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
-    BKE_gpencil_batch_cache_dirty_tag_cb(gpd);
-  }
-}
-
-void BKE_gpencil_batch_cache_free(bGPdata *gpd)
-{
-  if (gpd) {
-    BKE_gpencil_batch_cache_free_cb(gpd);
-  }
-}
-
-/* ************************************************** */
 /* Memory Management */
 
 void BKE_gpencil_free_point_weights(MDeformVert *dvert)
@@ -454,7 +433,7 @@ void BKE_gpencil_free_legacy_palette_data(ListBase *list)
   BLI_listbase_clear(list);
 }
 
-void BKE_gpencil_free_data(bGPdata *gpd, bool free_all)
+void BKE_gpencil_free_data(bGPdata *gpd, bool /*free_all*/)
 {
   /* free layers */
   BKE_gpencil_free_layers(&gpd->layers);
@@ -464,12 +443,6 @@ void BKE_gpencil_free_data(bGPdata *gpd, bool free_all)
   MEM_SAFE_FREE(gpd->mat);
 
   BLI_freelistN(&gpd->vertex_group_names);
-
-  /* free all data */
-  if (free_all) {
-    /* clear cache */
-    BKE_gpencil_batch_cache_free(gpd);
-  }
 }
 
 void BKE_gpencil_tag(bGPdata *gpd)

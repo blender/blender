@@ -236,9 +236,6 @@ void GPENCIL_cache_init(void *ved)
   }
 
   {
-    pd->sbuffer_stroke = nullptr;
-    pd->sbuffer_gpd = nullptr;
-    pd->sbuffer_layer = nullptr;
     pd->stroke_batch = nullptr;
     pd->fill_batch = nullptr;
     pd->do_fast_drawing = false;
@@ -736,11 +733,6 @@ static void GPENCIL_draw_scene_depth_only(void *ved)
   }
 
   pd->gp_object_pool = pd->gp_layer_pool = pd->gp_vfx_pool = pd->gp_maskbit_pool = nullptr;
-
-  /* Free temp stroke buffers. */
-  if (pd->sbuffer_gpd) {
-    DRW_cache_gpencil_sbuffer_clear(pd->obact);
-  }
 }
 
 static void gpencil_draw_mask(GPENCIL_Data *vedata, GPENCIL_tObject *ob, GPENCIL_tLayer *layer)
@@ -933,11 +925,6 @@ void GPENCIL_draw_scene(void *ved)
   }
 
   pd->gp_object_pool = pd->gp_layer_pool = pd->gp_vfx_pool = pd->gp_maskbit_pool = nullptr;
-
-  /* Free temp stroke buffers. */
-  if (pd->sbuffer_gpd) {
-    DRW_cache_gpencil_sbuffer_clear(pd->obact);
-  }
 }
 
 static void GPENCIL_engine_free()

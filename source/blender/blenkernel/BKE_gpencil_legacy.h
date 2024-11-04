@@ -80,9 +80,6 @@ void BKE_gpencil_free_layer_masks(struct bGPDlayer *gpl);
  */
 void BKE_gpencil_tag(struct bGPdata *gpd);
 
-void BKE_gpencil_batch_cache_dirty_tag(struct bGPdata *gpd);
-void BKE_gpencil_batch_cache_free(struct bGPdata *gpd);
-
 /**
  * Add a new gp-frame to the given layer.
  * \param gpl: Grease pencil layer
@@ -293,9 +290,6 @@ void BKE_gpencil_stroke_weights_duplicate(struct bGPDstroke *gps_src, struct bGP
  * \param scene: Scene
  */
 void BKE_gpencil_palette_ensure(struct Main *bmain, struct Scene *scene);
-
-extern void (*BKE_gpencil_batch_cache_dirty_tag_cb)(struct bGPdata *gpd);
-extern void (*BKE_gpencil_batch_cache_free_cb)(struct bGPdata *gpd);
 
 /**
  * Update original pointers in evaluated frame.

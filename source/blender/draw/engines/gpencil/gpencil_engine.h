@@ -266,12 +266,6 @@ typedef struct GPENCIL_PrivateData {
 
   /* Active object. */
   Object *obact;
-  /* Object being in draw mode. */
-  struct bGPdata *sbuffer_gpd;
-  /* Layer to append the temp stroke to. */
-  struct bGPDlayer *sbuffer_layer;
-  /* Temporary stroke currently being drawn. */
-  struct bGPDstroke *sbuffer_stroke;
   /* List of temp objects containing the stroke. */
   struct {
     GPENCIL_tObject *first, *last;
