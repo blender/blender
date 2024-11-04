@@ -115,12 +115,18 @@ template<typename T, int Sz> struct VecOp {
 
   INT_OP friend VecT operator<<(VecT, VecT) RET;
   INT_OP friend VecT operator>>(VecT, VecT) RET;
+  INT_OP friend VecT operator<<=(VecT, VecT) RET;
+  INT_OP friend VecT operator>>=(VecT, VecT) RET;
 
   INT_OP friend VecT operator<<(T, VecT) RET;
   INT_OP friend VecT operator>>(T, VecT) RET;
+  INT_OP friend VecT operator<<=(T, VecT) RET;
+  INT_OP friend VecT operator>>=(T, VecT) RET;
 
   INT_OP friend VecT operator<<(VecT, T) RET;
   INT_OP friend VecT operator>>(VecT, T) RET;
+  INT_OP friend VecT operator<<=(VecT, T) RET;
+  INT_OP friend VecT operator>>=(VecT, T) RET;
 
 #undef INT_OP
 };
@@ -362,6 +368,9 @@ template<int C, int R> struct MatOp {
     return *reinterpret_cast<ColT *>(this);
   }
 
+  MatT operator+() RET;
+  MatT operator-() RET;
+
   MatT operator*(MatT) const RET;
 
   friend ColT operator*(RowT, MatT) RET;
@@ -430,6 +439,25 @@ using mat4 = float4x4;
 
 using MAT4 = float4x4;
 using MAT3 = float3x3;
+
+/* Matrix reshaping functions. */
+#define RESHAPE(mat_to, mat_from, ...) \
+  mat_to to_##mat_to(mat_from m) \
+  { \
+    return mat_to(__VA_ARGS__); \
+  }
+
+/* clang-format off */
+RESHAPE(float2x2, float3x3, m[0].xy, m[1].xy)
+RESHAPE(float2x2, float4x4, m[0].xy, m[1].xy)
+RESHAPE(float3x3, float4x4, m[0].xyz, m[1].xyz, m[2].xyz)
+RESHAPE(float3x3, float2x2, m[0].x, m[0].y, 0, m[1].x, m[1].y, 0, 0, 0, 1)
+RESHAPE(float4x4, float2x2, m[0].x, m[0].y, 0, 0, m[1].x, m[1].y, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)
+RESHAPE(float4x4, float3x3, m[0].x, m[0].y, m[0].z, 0, m[1].x, m[1].y, m[1].z, 0, m[2].x, m[2].y, m[2].z, 0, 0, 0, 0, 1)
+/* clang-format on */
+/* TODO(fclem): Remove. Use Transform instead. */
+RESHAPE(float3x3, float3x4, m[0].xyz, m[1].xyz, m[2].xyz)
+#undef RESHAPE
 
 /** \} */
 
@@ -606,10 +634,11 @@ static inline int findMSB(uint) RET;
 
 /* Math Functions. */
 template<typename T> T abs(T) RET;
-template<typename T> T clamp(T, T, T) RET;
 template<typename T> T max(T, T) RET;
 template<typename T> T min(T, T) RET;
 template<typename T> T sign(T) RET;
+template<typename T> T clamp(T, T, T) RET;
+template<typename T> T clamp(T, double, double) RET;
 template<typename T, typename U> T clamp(T, U, U) RET;
 template<typename T, typename U> T max(T, U) RET;
 template<typename T, typename U> T min(T, U) RET;
@@ -619,6 +648,7 @@ template<typename T> T exp(T) RET;
 template<typename T> T exp2(T) RET;
 template<typename T> T floor(T) RET;
 template<typename T> T fma(T, T, T) RET;
+double fma(double, double, double) RET;
 template<typename T> T fract(T) RET;
 template<typename T> T frexp(T, T) RET;
 template<typename T> T inversesqrt(T) RET;
