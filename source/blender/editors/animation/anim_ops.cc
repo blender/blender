@@ -679,6 +679,56 @@ static void ANIM_OT_previewrange_clear(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Debug operator: channel list
+ * \{ */
+
+#ifndef NDEBUG
+static int debug_channel_list_exec(bContext *C, wmOperator * /*op*/)
+{
+  bAnimContext ac;
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  ListBase anim_data = {nullptr, nullptr};
+  /* Same filter flags as in action_channel_region_draw() in
+   * `source/blender/editors/space_action/space_action.cc`. */
+  const eAnimFilter_Flags filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
+                                   ANIMFILTER_LIST_CHANNELS;
+  ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
+
+  printf("==============================================\n");
+  printf("Animation Channel List:\n");
+  printf("----------------------------------------------\n");
+
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+    ANIM_channel_debug_print_info(ale, 1);
+  }
+
+  printf("==============================================\n");
+
+  ANIM_animdata_freelist(&anim_data);
+  return OPERATOR_FINISHED;
+}
+
+static void ANIM_OT_debug_channel_list(wmOperatorType *ot)
+{
+  ot->name = "Debug Channel List";
+  ot->idname = "ANIM_OT_debug_channel_list";
+  ot->description =
+      "Log the channel list info in the terminal. This operator is only available in debug builds "
+      "of Blender";
+
+  ot->exec = debug_channel_list_exec;
+  ot->poll = ED_operator_animview_active;
+
+  ot->flag = OPTYPE_REGISTER;
+}
+#endif /* !NDEBUG */
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Frame Scene/Preview Range Operator
  * \{ */
 
@@ -893,6 +943,10 @@ void ED_operatortypes_anim()
   WM_operatortype_append(ANIM_OT_previewrange_clear);
 
   WM_operatortype_append(ANIM_OT_scene_range_frame);
+
+#ifndef NDEBUG
+  WM_operatortype_append(ANIM_OT_debug_channel_list);
+#endif
 
   /* Entire UI --------------------------------------- */
   WM_operatortype_append(ANIM_OT_keyframe_insert);
