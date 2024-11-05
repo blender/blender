@@ -297,8 +297,27 @@ eGPUDeviceType VKDevice::device_type() const
 
 eGPUDriverType VKDevice::driver_type() const
 {
-  /* It is unclear how to determine the driver type, but it is required to extract the correct
-   * driver version. */
+  switch (vk_physical_device_driver_properties_.driverID) {
+    case VK_DRIVER_ID_AMD_PROPRIETARY:
+    case VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS:
+    case VK_DRIVER_ID_NVIDIA_PROPRIETARY:
+    case VK_DRIVER_ID_QUALCOMM_PROPRIETARY:
+      return GPU_DRIVER_OFFICIAL;
+
+    case VK_DRIVER_ID_MOLTENVK:
+    case VK_DRIVER_ID_AMD_OPEN_SOURCE:
+    case VK_DRIVER_ID_MESA_RADV:
+    case VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA:
+    case VK_DRIVER_ID_MESA_NVK:
+      return GPU_DRIVER_OPENSOURCE;
+
+    case VK_DRIVER_ID_MESA_LLVMPIPE:
+      return GPU_DRIVER_SOFTWARE;
+
+    default:
+      return GPU_DRIVER_ANY;
+  }
+
   return GPU_DRIVER_ANY;
 }
 

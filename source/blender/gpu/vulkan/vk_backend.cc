@@ -275,8 +275,8 @@ void VKBackend::platform_init(const VKDevice &device)
   const VkPhysicalDeviceProperties &properties = device.physical_device_properties_get();
 
   eGPUDeviceType device_type = device.device_type();
+  eGPUDriverType driver = device.driver_type();
   eGPUOSType os = determine_os_type();
-  eGPUDriverType driver = GPU_DRIVER_ANY;
   eGPUSupportLevel support_level = GPU_SUPPORT_LEVEL_SUPPORTED;
 
   std::string vendor_name = device.vendor_name();
