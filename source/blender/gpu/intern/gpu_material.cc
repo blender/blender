@@ -138,8 +138,6 @@ struct GPUMaterial {
   GPUTexture *sss_tex_profile; /* Texture containing SSS profile. */
   bool sss_enabled;
   float sss_radii[3];
-  int sss_samples;
-  bool sss_dirty;
 
   uint32_t refcount;
 
@@ -391,196 +389,6 @@ struct GPUSssKernelData {
 
 BLI_STATIC_ASSERT_ALIGN(GPUSssKernelData, 16)
 
-static void sss_calculate_offsets(GPUSssKernelData *kd, int count, float exponent)
-{
-  float step = 2.0f / float(count - 1);
-  for (int i = 0; i < count; i++) {
-    float o = float(i) * step - 1.0f;
-    float sign = (o < 0.0f) ? -1.0f : 1.0f;
-    float ofs = sign * fabsf(powf(o, exponent));
-    kd->kernel[i][3] = ofs;
-  }
-}
-
-#  define BURLEY_TRUNCATE 16.0f
-#  define BURLEY_TRUNCATE_CDF 0.9963790093708328f  // cdf(BURLEY_TRUNCATE)
-static float burley_profile(float r, float d)
-{
-  float exp_r_3_d = expf(-r / (3.0f * d));
-  float exp_r_d = exp_r_3_d * exp_r_3_d * exp_r_3_d;
-  return (exp_r_d + exp_r_3_d) / (4.0f * d);
-}
-
-static float eval_profile(float r, float param)
-{
-  r = fabsf(r);
-  return burley_profile(r, param) / BURLEY_TRUNCATE_CDF;
-}
-
-/* Resolution for each sample of the precomputed kernel profile */
-#  define INTEGRAL_RESOLUTION 32
-static float eval_integral(float x0, float x1, float param)
-{
-  const float range = x1 - x0;
-  const float step = range / INTEGRAL_RESOLUTION;
-  float integral = 0.0f;
-
-  for (int i = 0; i < INTEGRAL_RESOLUTION; i++) {
-    float x = x0 + range * (float(i) + 0.5f) / float(INTEGRAL_RESOLUTION);
-    float y = eval_profile(x, param);
-    integral += y * step;
-  }
-
-  return integral;
-}
-#  undef INTEGRAL_RESOLUTION
-
-static void compute_sss_kernel(GPUSssKernelData *kd, const float radii[3], int sample_len)
-{
-  float rad[3];
-  /* Minimum radius */
-  rad[0] = std::max(radii[0], 1e-15f);
-  rad[1] = std::max(radii[1], 1e-15f);
-  rad[2] = std::max(radii[2], 1e-15f);
-
-  kd->avg_inv_radius = 3.0f / (rad[0] + rad[1] + rad[2]);
-
-  /* Christensen-Burley fitting */
-  float l[3], d[3];
-
-  mul_v3_v3fl(l, rad, 0.25f * M_1_PI);
-  const float A = 1.0f;
-  const float s = 1.9f - A + 3.5f * (A - 0.8f) * (A - 0.8f);
-  /* XXX 0.6f Out of nowhere to match cycles! Empirical! Can be tweak better. */
-  mul_v3_v3fl(d, l, 0.6f / s);
-  mul_v3_v3fl(rad, d, BURLEY_TRUNCATE);
-  kd->max_radius = std::max({rad[0], rad[1], rad[2]});
-
-  copy_v3_v3(kd->param, d);
-
-  /* Compute samples locations on the 1d kernel [-1..1] */
-  sss_calculate_offsets(kd, sample_len, SSS_EXPONENT);
-
-  /* Weights sum for normalization */
-  float sum[3] = {0.0f, 0.0f, 0.0f};
-
-  /* Compute integral of each sample footprint */
-  for (int i = 0; i < sample_len; i++) {
-    float x0, x1;
-
-    if (i == 0) {
-      x0 = kd->kernel[0][3] - fabsf(kd->kernel[0][3] - kd->kernel[1][3]) / 2.0f;
-    }
-    else {
-      x0 = (kd->kernel[i - 1][3] + kd->kernel[i][3]) / 2.0f;
-    }
-
-    if (i == sample_len - 1) {
-      x1 = kd->kernel[sample_len - 1][3] +
-           fabsf(kd->kernel[sample_len - 2][3] - kd->kernel[sample_len - 1][3]) / 2.0f;
-    }
-    else {
-      x1 = (kd->kernel[i][3] + kd->kernel[i + 1][3]) / 2.0f;
-    }
-
-    x0 *= kd->max_radius;
-    x1 *= kd->max_radius;
-
-    kd->kernel[i][0] = eval_integral(x0, x1, kd->param[0]);
-    kd->kernel[i][1] = eval_integral(x0, x1, kd->param[1]);
-    kd->kernel[i][2] = eval_integral(x0, x1, kd->param[2]);
-
-    sum[0] += kd->kernel[i][0];
-    sum[1] += kd->kernel[i][1];
-    sum[2] += kd->kernel[i][2];
-  }
-
-  for (int i = 0; i < 3; i++) {
-    if (sum[i] > 0.0f) {
-      /* Normalize */
-      for (int j = 0; j < sample_len; j++) {
-        kd->kernel[j][i] /= sum[i];
-      }
-    }
-    else {
-      /* Avoid 0 kernel sum. */
-      kd->kernel[sample_len / 2][i] = 1.0f;
-    }
-  }
-
-  /* Put center sample at the start of the array (to sample first) */
-  float tmpv[4];
-  copy_v4_v4(tmpv, kd->kernel[sample_len / 2]);
-  for (int i = sample_len / 2; i > 0; i--) {
-    copy_v4_v4(kd->kernel[i], kd->kernel[i - 1]);
-  }
-  copy_v4_v4(kd->kernel[0], tmpv);
-
-  kd->samples = sample_len;
-}
-
-#  define INTEGRAL_RESOLUTION 512
-static void compute_sss_translucence_kernel(const GPUSssKernelData *kd,
-                                            int resolution,
-                                            float **output)
-{
-  float(*texels)[4];
-  texels = static_cast<float(*)[4]>(
-      MEM_callocN(sizeof(float[4]) * resolution, "compute_sss_translucence_kernel"));
-  *output = (float *)texels;
-
-  /* Last texel should be black, hence the - 1. */
-  for (int i = 0; i < resolution - 1; i++) {
-    /* Distance from surface. */
-    float d = kd->max_radius * (float(i) + 0.00001f) / float(resolution);
-
-    /* For each distance d we compute the radiance incoming from an hypothetical parallel plane. */
-    /* Compute radius of the footprint on the hypothetical plane. */
-    float r_fp = sqrtf(kd->max_radius * kd->max_radius - d * d);
-    float r_step = r_fp / INTEGRAL_RESOLUTION;
-    float area_accum = 0.0f;
-    for (float r = 0.0f; r < r_fp; r += r_step) {
-      /* Compute distance to the "shading" point through the medium. */
-      /* r_step * 0.5f to put sample between the area borders */
-      float dist = hypotf(r + r_step * 0.5f, d);
-
-      float profile[3];
-      profile[0] = eval_profile(dist, kd->param[0]);
-      profile[1] = eval_profile(dist, kd->param[1]);
-      profile[2] = eval_profile(dist, kd->param[2]);
-
-      /* Since the profile and configuration are radially symmetrical we
-       * can just evaluate it once and weight it accordingly */
-      float r_next = r + r_step;
-      float disk_area = (M_PI * r_next * r_next) - (M_PI * r * r);
-
-      mul_v3_fl(profile, disk_area);
-      add_v3_v3(texels[i], profile);
-      area_accum += disk_area;
-    }
-    /* Normalize over the disk. */
-    mul_v3_fl(texels[i], 1.0f / (area_accum));
-  }
-
-  /* Normalize */
-  for (int j = resolution - 2; j > 0; j--) {
-    texels[j][0] /= (texels[0][0] > 0.0f) ? texels[0][0] : 1.0f;
-    texels[j][1] /= (texels[0][1] > 0.0f) ? texels[0][1] : 1.0f;
-    texels[j][2] /= (texels[0][2] > 0.0f) ? texels[0][2] : 1.0f;
-  }
-
-  /* First texel should be white */
-  texels[0][0] = (texels[0][0] > 0.0f) ? 1.0f : 0.0f;
-  texels[0][1] = (texels[0][1] > 0.0f) ? 1.0f : 0.0f;
-  texels[0][2] = (texels[0][2] > 0.0f) ? 1.0f : 0.0f;
-
-  /* dim the last few texels for smoother transition */
-  mul_v3_fl(texels[resolution - 2], 0.25f);
-  mul_v3_fl(texels[resolution - 3], 0.5f);
-  mul_v3_fl(texels[resolution - 4], 0.75f);
-}
-#  undef INTEGRAL_RESOLUTION
-
 bool GPU_material_sss_profile_create(GPUMaterial *material, float radii[3])
 {
   /* Enable only once. */
@@ -588,7 +396,6 @@ bool GPU_material_sss_profile_create(GPUMaterial *material, float radii[3])
     return false;
   }
   copy_v3_v3(material->sss_radii, radii);
-  material->sss_dirty = true;
   material->sss_enabled = true;
 
   /* Update / Create UBO */
@@ -596,54 +403,6 @@ bool GPU_material_sss_profile_create(GPUMaterial *material, float radii[3])
     material->sss_profile = GPU_uniformbuf_create(sizeof(GPUSssKernelData));
   }
   return true;
-}
-
-GPUUniformBuf *GPU_material_sss_profile_get(GPUMaterial *material,
-                                            int sample_len,
-                                            GPUTexture **tex_profile)
-{
-  if (!material->sss_enabled) {
-    return nullptr;
-  }
-
-  if (material->sss_dirty || (material->sss_samples != sample_len)) {
-    GPUSssKernelData kd;
-
-    compute_sss_kernel(&kd, material->sss_radii, sample_len);
-
-    /* Update / Create UBO */
-    GPU_uniformbuf_update(material->sss_profile, &kd);
-
-    /* Update / Create Tex */
-    float *translucence_profile;
-    compute_sss_translucence_kernel(&kd, 64, &translucence_profile);
-
-    if (material->sss_tex_profile != nullptr) {
-      GPU_texture_free(material->sss_tex_profile);
-    }
-
-    material->sss_tex_profile = GPU_texture_create_1d("sss_tex_profile",
-                                                      64,
-                                                      1,
-                                                      GPU_RGBA16F,
-                                                      GPU_TEXTURE_USAGE_SHADER_READ,
-                                                      translucence_profile);
-
-    MEM_freeN(translucence_profile);
-
-    material->sss_samples = sample_len;
-    material->sss_dirty = false;
-  }
-
-  if (tex_profile != nullptr) {
-    *tex_profile = material->sss_tex_profile;
-  }
-  return material->sss_profile;
-}
-
-GPUUniformBuf *GPU_material_create_sss_profile_ubo()
-{
-  return GPU_uniformbuf_create(sizeof(GPUSssKernelData));
 }
 
 #  undef SSS_EXPONENT

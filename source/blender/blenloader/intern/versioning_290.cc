@@ -1773,7 +1773,6 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
     if (!DNA_struct_member_exists(fd->filesdna, "SceneEEVEE", "float", "bokeh_overblur")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         scene->eevee.bokeh_neighbor_max = 10.0f;
-        scene->eevee.bokeh_denoise_fac = 0.75f;
         scene->eevee.bokeh_overblur = 5.0f;
       }
     }
