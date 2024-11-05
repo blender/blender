@@ -47,7 +47,8 @@ namespace blender::bke {
 static ID *asset_link_id(Main &global_main,
                          const ID_Type id_type,
                          const char *filepath,
-                         const char *asset_name)
+                         const char *asset_name,
+                         ReportList *reports = nullptr)
 {
   /* Load asset from asset library. */
   LibraryLink_Params lapp_params{};
@@ -63,7 +64,7 @@ static ID *asset_link_id(Main &global_main,
 
   BKE_blendfile_link_append_context_init_done(lapp_context);
 
-  BKE_blendfile_link(lapp_context, nullptr);
+  BKE_blendfile_link(lapp_context, reports);
 
   BKE_blendfile_link_append_context_finalize(lapp_context);
 
@@ -248,24 +249,23 @@ static bool asset_write_in_library(Main &bmain,
   return success;
 }
 
-static void asset_reload(Main &global_main, Library *lib, ReportList &reports)
+static ID *asset_reload(Main &global_main, ID &id, ReportList *reports)
 {
-  /* Fill fresh main database with same datablock as before. */
-  LibraryLink_Params lapp_params{};
-  lapp_params.bmain = &global_main;
-  BlendfileLinkAppendContext *lapp_context = BKE_blendfile_link_append_context_new(&lapp_params);
-  BKE_blendfile_link_append_context_flag_set(
-      lapp_context, BLO_LIBLINK_FORCE_INDIRECT | BLO_LIBLINK_USE_PLACEHOLDERS, true);
+  BLI_assert(ID_IS_LINKED(&id));
 
-  BKE_blendfile_link_append_context_library_add(lapp_context, lib->runtime.filepath_abs, nullptr);
-  BKE_blendfile_library_relocate(lapp_context, &reports, lib, true);
-  BKE_blendfile_link_append_context_free(lapp_context);
+  const std::string name = BKE_id_name(id);
+  const std::string filepath = id.lib->runtime.filepath_abs;
+  const ID_Type id_type = GS(id.name);
 
-  /* Clear temporary tag from relocation. */
-  BKE_main_id_tag_all(&global_main, ID_TAG_PRE_EXISTING, false);
+  /* TODO: There's no API to reload a single data block (and its dependencies) yet. For now
+   * deleting the brush and re-linking it is the best way to get reloading to work. */
+  BKE_id_delete(&global_main, &id);
+  ID *new_id = asset_link_id(global_main, id_type, filepath.c_str(), name.c_str(), reports);
 
   /* Recreate dependency graph to include new IDs. */
   DEG_relations_tag_update(&global_main);
+
+  return new_id;
 }
 
 static AssetWeakReference asset_weak_reference_for_user_library(
@@ -357,17 +357,13 @@ bool asset_edit_id_save(Main &global_main, const ID &id, ReportList &reports)
   return true;
 }
 
-bool asset_edit_id_revert(Main &global_main, ID &id, ReportList &reports)
+ID *asset_edit_id_revert(Main &global_main, ID &id, ReportList &reports)
 {
   if (!asset_edit_id_is_editable(id)) {
-    return false;
+    return nullptr;
   }
 
-  /* Reload entire main, including texture dependencies. This relies on there
-   * being only a single asset per blend file. */
-  asset_reload(global_main, id.lib, reports);
-
-  return true;
+  return asset_reload(global_main, id, &reports);
 }
 
 bool asset_edit_id_delete(Main &global_main, ID &id, ReportList &reports)
