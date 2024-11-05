@@ -3619,13 +3619,22 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
         bhead->code = ID_SCR;
         /* pass on to default */
         ATTR_FALLTHROUGH;
-      default:
-        if (fd->skip_flags & BLO_READ_SKIP_DATA) {
-          bhead = blo_bhead_next(fd, bhead);
+      default: {
+        if (blo_bhead_is_id_valid_type(bhead)) {
+          /* BHead is a valid known ID type one, read the whole ID and its sub-data, unless reading
+           * actual data is skipped. */
+          if (fd->skip_flags & BLO_READ_SKIP_DATA) {
+            bhead = blo_bhead_next(fd, bhead);
+          }
+          else {
+            bhead = read_libblock(fd, bfd->main, bhead, ID_TAG_LOCAL, false, nullptr);
+          }
         }
         else {
-          bhead = read_libblock(fd, bfd->main, bhead, ID_TAG_LOCAL, false, nullptr);
+          /* Unknown BHead type (or ID type), ignore it and skip to next BHead. */
+          bhead = blo_bhead_next(fd, bhead);
         }
+      }
     }
 
     if (bfd->main->is_read_invalid) {
