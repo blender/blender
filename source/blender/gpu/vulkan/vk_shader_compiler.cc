@@ -208,6 +208,11 @@ static bool compile_ex(shaderc::Compiler &compiler,
     options.SetGenerateDebugInfo();
   }
 
+  /* WORKAROUND: Qualcomm driver can crash when handling optimized SPIR-V. */
+  if (GPU_type_matches(GPU_DEVICE_QUALCOMM, GPU_OS_ANY, GPU_DRIVER_ANY)) {
+    options.SetOptimizationLevel(shaderc_optimization_level_zero);
+  }
+
   std::string full_name = std::string(shader.name_get()) + "_" + to_stage_name(stage);
   shader_module.compilation_result = compiler.CompileGlslToSpv(
       shader_module.combined_sources, stage, full_name.c_str(), options);
