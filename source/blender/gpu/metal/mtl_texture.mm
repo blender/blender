@@ -2040,7 +2040,8 @@ bool gpu::MTLTexture::init_internal()
   this->prepare_internal();
   /* TODO(jbakker): Other limit checks should be added as well. When a texture violates a limit it
    * is not backed by a texture and will crash when used. */
-  if (type_ == GPU_TEXTURE_3D && d_ > GPU_max_texture_3d_size()) {
+  const int limit = GPU_max_texture_3d_size();
+  if ((type_ == GPU_TEXTURE_3D) && (w_ > limit || h_ > limit || d_ > limit)) {
     return false;
   }
   return true;

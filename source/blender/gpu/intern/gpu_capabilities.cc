@@ -167,6 +167,11 @@ bool GPU_clear_viewport_workaround()
   return GCaps.clear_viewport_workaround;
 }
 
+bool GPU_stencil_clasify_buffer_workaround()
+{
+  return GCaps.stencil_clasify_buffer_workaround;
+}
+
 bool GPU_geometry_shader_support()
 {
   return GCaps.geometry_shader_support;

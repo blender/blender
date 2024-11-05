@@ -788,7 +788,15 @@ static int brush_asset_revert_exec(bContext *C, wmOperator *op)
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
 
-  bke::asset_edit_id_revert(*bmain, brush->id, *op->reports);
+  if (ID *reverted_id = bke::asset_edit_id_revert(*bmain, brush->id, *op->reports)) {
+    BLI_assert(GS(reverted_id->name) == ID_BR);
+    BKE_paint_brush_set(paint, reinterpret_cast<Brush *>(reverted_id));
+  }
+  else {
+    /* bke::asset_edit_id_revert() deleted the brush for sure, even on failure. Fallback to the
+     * default. */
+    BKE_paint_brush_set_default(bmain, paint);
+  }
 
   WM_main_add_notifier(NC_BRUSH | NA_EDITED, nullptr);
   WM_main_add_notifier(NC_TEXTURE | ND_NODES, nullptr);
