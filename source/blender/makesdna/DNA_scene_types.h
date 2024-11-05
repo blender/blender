@@ -1903,13 +1903,13 @@ typedef struct SceneEEVEE {
   int volumetric_ray_depth;
 
   float gtao_distance;
-  float gtao_quality;
   float gtao_thickness;
   float gtao_focus;
   int gtao_resolution;
 
   int fast_gi_step_count;
   int fast_gi_ray_count;
+  float fast_gi_quality;
   float fast_gi_distance;
   float fast_gi_thickness_near;
   float fast_gi_thickness_far;
