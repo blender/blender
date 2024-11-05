@@ -318,7 +318,7 @@ class BrushSelectPanel(BrushPanel):
         if brush is None:
             return
 
-        if brush.has_unsaved_changes and bpy.ops.brush.asset_save.poll():
+        if brush.has_unsaved_changes:
             layout.label(text="*Unsaved Changes")
             layout.separator()
 
