@@ -29,20 +29,32 @@ void VolumeModule::init()
   const Scene *scene_eval = inst_.scene;
 
   const int2 extent = inst_.film.render_extent_get();
-  const int tile_size = scene_eval->eevee.volumetric_tile_size;
+  int tile_size = clamp_i(scene_eval->eevee.volumetric_tile_size, 1, 16);
+
+  int3 tex_size;
+  /* Try to match resolution setting but fallback to lower resolution
+   * if it doesn't fit the hardware limits. */
+  for (; tile_size <= 16; tile_size *= 2) {
+    /* Find Froxel Texture resolution. */
+    tex_size = int3(math::divide_ceil(extent, int2(tile_size)), 0);
+    tex_size.z = std::max(1, scene_eval->eevee.volumetric_samples);
+
+    if (math::reduce_max(tex_size) < GPU_max_texture_3d_size()) {
+      /* Fits hardware limits. */
+      break;
+    }
+  }
+
+  if (tile_size != scene_eval->eevee.volumetric_tile_size) {
+    inst_.info_append_i18n(
+        "Warning: Volume rendering data could not be allocated. Now using a resolution of 1:{} "
+        "instead of 1:{}.",
+        tile_size,
+        scene_eval->eevee.volumetric_tile_size);
+  }
 
   data_.tile_size = tile_size;
   data_.tile_size_lod = int(log2(tile_size));
-
-  /* Find Froxel Texture resolution. */
-  int3 tex_size = int3(math::divide_ceil(extent, int2(tile_size)), 0);
-  tex_size.z = std::max(1, scene_eval->eevee.volumetric_samples);
-
-  /* Clamp 3D texture size based on device maximum. */
-  int3 max_size = int3(GPU_max_texture_3d_size());
-  BLI_assert(tex_size == math::min(tex_size, max_size));
-  tex_size = math::min(tex_size, max_size);
-
   data_.coord_scale = float2(extent) / float2(tile_size * tex_size);
   data_.main_view_extent = float2(extent);
   data_.main_view_extent_inv = 1.0f / float2(extent);
