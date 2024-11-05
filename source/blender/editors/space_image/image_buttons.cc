@@ -940,6 +940,9 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, bool color_ma
 {
   ImageFormatData *imf = static_cast<ImageFormatData *>(imfptr->data);
   ID *id = imfptr->owner_id;
+  /* Note: this excludes any video formats; for them the image template does
+   * not show the color depth. Color depth instead is shown as part of encoding UI block,
+   * which is less confusing. */
   const int depth_ok = BKE_imtype_valid_depths(imf->imtype);
   /* some settings depend on this being a scene that's rendered */
   const bool is_render_out = (id && GS(id->name) == ID_SCE);

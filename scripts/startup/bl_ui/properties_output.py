@@ -445,6 +445,13 @@ class RENDER_PT_encoding_video(RenderOutputButtonsPanel, Panel):
         if needs_codec and ffmpeg.codec == 'NONE':
             return
 
+        # Color depth. List of codecs needs to be in sync with
+        # `BKE_ffmpeg_valid_bit_depths` in source code.
+        use_bpp = needs_codec and ffmpeg.codec in {'H264', 'H265', 'AV1'}
+        if use_bpp:
+            image_settings = context.scene.render.image_settings
+            layout.prop(image_settings, "color_depth", expand=True)
+
         if ffmpeg.codec == 'DNXHD':
             layout.prop(ffmpeg, "use_lossless_output")
 

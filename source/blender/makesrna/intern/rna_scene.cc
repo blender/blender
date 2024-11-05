@@ -1307,6 +1307,27 @@ static bool rna_RenderSettings_is_movie_format_get(PointerRNA *ptr)
   return BKE_imtype_is_movie(rd->im_format.imtype);
 }
 
+static int get_first_valid_depth(const int valid_depths)
+{
+  /* set first available depth */
+  const char depth_ls[] = {
+      R_IMF_CHAN_DEPTH_32,
+      R_IMF_CHAN_DEPTH_24,
+      R_IMF_CHAN_DEPTH_16,
+      R_IMF_CHAN_DEPTH_12,
+      R_IMF_CHAN_DEPTH_10,
+      R_IMF_CHAN_DEPTH_8,
+      R_IMF_CHAN_DEPTH_1,
+      0,
+  };
+  for (int i = 0; depth_ls[i]; i++) {
+    if (valid_depths & depth_ls[i]) {
+      return depth_ls[i];
+    }
+  }
+  return R_IMF_CHAN_DEPTH_8;
+}
+
 static void rna_ImageFormatSettings_file_format_set(PointerRNA *ptr, int value)
 {
   ImageFormatData *imf = (ImageFormatData *)ptr->data;
@@ -1330,25 +1351,7 @@ static void rna_ImageFormatSettings_file_format_set(PointerRNA *ptr, int value)
   {
     const int depth_ok = BKE_imtype_valid_depths(imf->imtype);
     if ((imf->depth & depth_ok) == 0) {
-      /* set first available depth */
-      char depth_ls[] = {
-          R_IMF_CHAN_DEPTH_32,
-          R_IMF_CHAN_DEPTH_24,
-          R_IMF_CHAN_DEPTH_16,
-          R_IMF_CHAN_DEPTH_12,
-          R_IMF_CHAN_DEPTH_10,
-          R_IMF_CHAN_DEPTH_8,
-          R_IMF_CHAN_DEPTH_1,
-          0,
-      };
-      int i;
-
-      for (i = 0; depth_ls[i]; i++) {
-        if (depth_ok & depth_ls[i]) {
-          imf->depth = depth_ls[i];
-          break;
-        }
-      }
+      imf->depth = get_first_valid_depth(depth_ok);
     }
   }
 
@@ -1444,7 +1447,7 @@ static const EnumPropertyItem *rna_ImageFormatSettings_color_depth_itemf(bContex
     return rna_enum_image_color_depth_items;
   }
   else {
-    const int depth_ok = BKE_imtype_valid_depths(imf->imtype);
+    const int depth_ok = BKE_imtype_valid_depths_with_video(imf->imtype, ptr->owner_id);
     const int is_float = ELEM(
         imf->imtype, R_IMF_IMTYPE_RADHDR, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER);
 
@@ -2957,6 +2960,17 @@ static void rna_FFmpegSettings_codec_update(Main * /*bmain*/, Scene * /*scene*/,
     /* Constant Rate Factor (CRF) setting is only available for some codecs. Change encoder quality
      * mode to CBR for others. */
     codec_data->constant_rate_factor = FFM_CRF_NONE;
+  }
+
+  /* Ensure valid color depth when changing the codec. */
+  const ID *id = ptr->owner_id;
+  const bool is_render = (id && GS(id->name) == ID_SCE);
+  if (is_render) {
+    Scene *scene = (Scene *)ptr->owner_id;
+    const int valid_depths = BKE_imtype_valid_depths_with_video(scene->r.im_format.imtype, id);
+    if ((scene->r.im_format.depth & valid_depths) == 0) {
+      scene->r.im_format.depth = get_first_valid_depth(valid_depths);
+    }
   }
 }
 #  endif
