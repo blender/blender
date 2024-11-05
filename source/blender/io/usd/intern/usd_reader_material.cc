@@ -925,10 +925,7 @@ static IntermediateNode add_oneminus(bNodeTree *ntree, int column, NodePlacement
   return oneminus;
 }
 
-static void configure_displacement(const pxr::UsdShadeShader &usd_shader,
-                                   bNode *displacement_node,
-                                   int column,
-                                   NodePlacementContext *r_ctx)
+static void configure_displacement(const pxr::UsdShadeShader &usd_shader, bNode *displacement_node)
 {
   /* Transform the scale-bias values into something that the Displacement node
    * can understand. */
@@ -1012,7 +1009,7 @@ bool USDMaterialReader::follow_connection(const pxr::UsdShadeInput &usd_input,
     /* Create a Scale-Bias adjustment node or fill in Displacement settings if necessary. */
     IntermediateNode scale_bias{};
     if (STREQ(dest_socket_name, "Height")) {
-      configure_displacement(source_shader, dest_node, column + shift, r_ctx);
+      configure_displacement(source_shader, dest_node);
     }
     else {
       scale_bias = add_scale_bias(source_shader, ntree, column + shift, is_normal_map, r_ctx);
