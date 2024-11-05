@@ -287,12 +287,6 @@ std::string ShaderCreateInfo::check_error() const
     return error;
   }
 
-  /*
-   * The next check has been disabled. 'eevee_legacy_surface_common_iface' is known to fail.
-   * The check was added to validate if shader would be able to compile on Vulkan.
-   * TODO(jbakker): Enable the check after EEVEE is replaced by EEVEE-Next.
-   */
-#if 0
   if (bool(this->builtins_ &
            (BuiltinBits::BARYCENTRIC_COORD | BuiltinBits::VIEWPORT_INDEX | BuiltinBits::LAYER)))
   {
@@ -304,7 +298,6 @@ std::string ShaderCreateInfo::check_error() const
       }
     }
   }
-#endif
 
   if (!this->is_vulkan_compatible()) {
     error += this->name_ +
