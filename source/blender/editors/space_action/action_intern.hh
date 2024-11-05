@@ -37,7 +37,10 @@ void draw_channel_names(bContext *C,
 /**
  * Draw keyframes in each channel.
  */
-void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region);
+void draw_channel_strips(bAnimContext *ac,
+                         SpaceAction *saction,
+                         ARegion *region,
+                         ListBase /* bAnimListElem */ *anim_data);
 
 void timeline_draw_cache(const SpaceAction *saction, const Object *ob, const Scene *scene);
 
