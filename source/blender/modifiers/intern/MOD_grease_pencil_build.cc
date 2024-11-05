@@ -550,6 +550,7 @@ static void build_drawing(const GreasePencilBuildModifierData &mmd,
                           const int current_time,
                           const float scene_fps)
 {
+  modifier::greasepencil::ensure_no_bezier_curves(drawing);
   bke::CurvesGeometry &curves = drawing.strokes_for_write();
 
   if (curves.points_num() == 0) {
