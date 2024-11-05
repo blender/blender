@@ -112,6 +112,10 @@ class USDMaterialReader {
                                   bNodeTree *ntree,
                                   const pxr::UsdShadeShader &usd_shader) const;
 
+  bool set_displacement_node_inputs(bNodeTree *ntree,
+                                    bNode *output,
+                                    const pxr::UsdShadeShader &usd_shader) const;
+
   /** Convert the given USD shader input to an input on the given Blender node. */
   bool set_node_input(const pxr::UsdShadeInput &usd_input,
                       bNode *dest_node,

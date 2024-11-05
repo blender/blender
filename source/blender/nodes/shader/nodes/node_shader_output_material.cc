@@ -55,6 +55,15 @@ NODE_SHADER_MATERIALX_BEGIN
                             {{"bsdf", bsdf}, {"edf", edf}, {"opacity", opacity}});
     }
   }
+
+  /* Displacement cannot be enabled just yet.
+   * - Verify coordinate system for Tangent Space displacement maps
+   * - Wait on fix for scalar displacement (present in USD 2408+)
+   */
+  // NodeItem displacement = get_input_link("Displacement", NodeItem::Type::DisplacementShader);
+  // return create_node("surfacematerial",
+  //                    NodeItem::Type::Material,
+  //                    {{"surfaceshader", surface}, {"displacementshader", displacement}});
   return create_node("surfacematerial", NodeItem::Type::Material, {{"surfaceshader", surface}});
 }
 #endif
