@@ -22,7 +22,7 @@ import shutil
 
 # how many lines to read into the file, pep8 comment
 # should be directly after the license header, ~20 in most cases
-SKIP_PREFIX = "./tools", "./config", "./extern"
+SKIP_PREFIX = "./tools/", "./extern/", "./lib/"
 SKIP_ADDONS = True
 FORCE_PEP8_ALL = False
 
