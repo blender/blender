@@ -49,11 +49,11 @@
 #define no_hole_fill_pass false
 
 /* Distribute weights between near/slight-focus/far fields (slide 117). */
-#define dof_layer_threshold 4.0
+#define dof_layer_threshold (4.0)
 /* Make sure it overlaps. */
-#define dof_layer_offset_fg 0.5 + 1.0
+#define dof_layer_offset_fg (0.5 + 1.0)
 /* Extra offset for convolution layers to avoid light leaking from background. */
-#define dof_layer_offset 0.5 + 0.5
+#define dof_layer_offset (0.5 + 0.5)
 
 #define dof_max_slight_focus_radius DOF_MAX_SLIGHT_FOCUS_RADIUS
 
