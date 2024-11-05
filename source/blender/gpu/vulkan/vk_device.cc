@@ -327,6 +327,7 @@ std::string VKDevice::vendor_name() const
   if (vk_physical_device_properties_.vendorID < 0x10000) {
     switch (vk_physical_device_properties_.vendorID) {
       case PCI_ID_AMD:
+      case PCI_ID_ATI:
         return "Advanced Micro Devices";
       case PCI_ID_NVIDIA:
         return "NVIDIA Corporation";
