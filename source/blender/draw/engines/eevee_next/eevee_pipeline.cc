@@ -596,7 +596,7 @@ void DeferredLayer::end_sync(bool is_first_pass,
                               GPU_ATTACHMENT_IGNORE});
       sub.shader_set(sh);
       if (GPU_stencil_clasify_buffer_workaround()) {
-        /* Binding any buffer to satify the binding. The buffer is not actually used. */
+        /* Binding any buffer to satisfy the binding. The buffer is not actually used. */
         sub.bind_ssbo("dummy_workaround_buf", &inst_.film.aovs_info);
       }
       sub.state_set(DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_ALWAYS);
