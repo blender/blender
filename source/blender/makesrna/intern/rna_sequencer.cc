@@ -202,8 +202,10 @@ static void rna_Sequence_scene_switch_update(Main *bmain, Scene *scene, PointerR
   DEG_relations_tag_update(bmain);
 }
 
-static void rna_Sequence_use_sequence(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Sequence_use_sequence(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
+  Scene *scene = reinterpret_cast<Scene *>(ptr->owner_id);
+
   /* General update callback. */
   rna_Sequence_invalidate_raw_update(bmain, scene, ptr);
   /* Changing recursion changes set of IDs which needs to be remapped by the copy-on-evaluation.
