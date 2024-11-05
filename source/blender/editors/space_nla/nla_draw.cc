@@ -882,6 +882,11 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
               break;
             }
             case NLASTRIP_EXTEND_HOLD_FORWARD: {
+              if (ale->data == nullptr) {
+                /* This can happen if the object itself has no action attached anymore (e.g. after
+                 * using "push down"). */
+                break;
+              }
               const animrig::Action &action = static_cast<bAction *>(ale->data)->wrap();
               float2 frame_range = action.get_frame_range();
               BKE_nla_clip_length_ensure_nonzero(&frame_range[0], &frame_range[1]);
