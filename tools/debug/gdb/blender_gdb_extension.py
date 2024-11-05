@@ -436,8 +436,8 @@ class ErrorHandlingPrinter:
         try:
             with ensure_unwind_on_signal():
                 return self.printer.to_string()
-        except Exception as e:
-            return "Error"
+        except Exception as ex:
+            return f"Error: {ex!s}"
 
     def children(self):
         try:
