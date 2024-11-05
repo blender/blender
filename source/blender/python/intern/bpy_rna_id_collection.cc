@@ -119,21 +119,20 @@ PyDoc_STRVAR(
     ".. method:: user_map(subset, key_types, value_types)\n"
     "\n"
     "   Returns a mapping of all ID data-blocks in current ``bpy.data`` to a set of all "
-    "datablocks using them.\n"
+    "data-blocks using them.\n"
     "\n"
     "   For list of valid set members for key_types & value_types, see: "
     ":class:`bpy.types.KeyingSetPath.id_type`.\n"
     "\n"
     "   :arg subset: When passed, only these data-blocks and their users will be "
     "included as keys/values in the map.\n"
-    "   :type subset: sequence\n"
+    "   :type subset: Sequence[:class:`bpy.types.ID`]\n"
     "   :arg key_types: Filter the keys mapped by ID types.\n"
-    "   :type key_types: set of strings\n"
+    "   :type key_types: set[str]\n"
     "   :arg value_types: Filter the values in the set by ID types.\n"
-    "   :type value_types: set of strings\n"
-    "   :return: dictionary of :class:`bpy.types.ID` instances, with sets of ID's as "
-    "their values.\n"
-    "   :rtype: dict\n");
+    "   :type value_types: set[str]\n"
+    "   :return: dictionary that maps data-blocks ID's to their users.\n"
+    "   :rtype: dict[:class:`bpy.types.ID`, set[:class:`bpy.types.ID`]]\n");
 static PyObject *bpy_user_map(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 {
 #if 0 /* If someone knows how to get a proper 'self' in that case... */
@@ -287,8 +286,8 @@ PyDoc_STRVAR(
     "   ID collections), but less safe/versatile (it can break Blender, e.g. by removing "
     "all scenes...).\n"
     "\n"
-    "   :arg ids: Iterables of IDs (types can be mixed).\n"
-    "   :type subset: sequence\n");
+    "   :arg ids: Sequence of IDs (types can be mixed).\n"
+    "   :type ids: Sequence[:class:`bpy.types.ID`]\n");
 static PyObject *bpy_batch_remove(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 {
 #if 0 /* If someone knows how to get a proper 'self' in that case... */

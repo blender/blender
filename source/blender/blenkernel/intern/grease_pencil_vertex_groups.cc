@@ -134,7 +134,6 @@ void assign_to_vertex_group(GreasePencil &grease_pencil, const StringRef name, c
   }
 }
 
-/** Remove selected vertices from the vertex group. */
 bool remove_from_vertex_group(GreasePencil &grease_pencil,
                               const StringRef name,
                               const bool use_selection)

@@ -347,16 +347,18 @@ static void find_nearest_faces(const Span<int> src_tri_faces,
   };
   threading::EnumerableThreadSpecific<TLS> all_tls;
   threading::parallel_for(dst_faces.index_range(), 512, [&](const IndexRange range) {
-    TLS &tls = all_tls.local();
-    Vector<float3> &face_centers = tls.face_centers;
-    face_centers.reinitialize(range.size());
-    calc_face_centers(dst_positions, dst_faces.slice(range), dst_corner_verts, face_centers);
+    threading::isolate_task([&] {
+      TLS &tls = all_tls.local();
+      Vector<float3> &face_centers = tls.face_centers;
+      face_centers.reinitialize(range.size());
+      calc_face_centers(dst_positions, dst_faces.slice(range), dst_corner_verts, face_centers);
 
-    Vector<int> &tri_indices = tls.tri_indices;
-    tri_indices.reinitialize(range.size());
-    find_nearest_tris(face_centers, bvhtree, tri_indices);
+      Vector<int> &tri_indices = tls.tri_indices;
+      tri_indices.reinitialize(range.size());
+      find_nearest_tris(face_centers, bvhtree, tri_indices);
 
-    array_utils::gather(src_tri_faces, tri_indices.as_span(), nearest_faces.slice(range));
+      array_utils::gather(src_tri_faces, tri_indices.as_span(), nearest_faces.slice(range));
+    });
   });
 }
 
@@ -410,41 +412,43 @@ static void find_nearest_edges(const Span<float3> src_positions,
   };
   threading::EnumerableThreadSpecific<TLS> all_tls;
   threading::parallel_for(nearest_edges.index_range(), 512, [&](const IndexRange range) {
-    TLS &tls = all_tls.local();
-    Vector<float3> &edge_centers = tls.edge_centers;
-    edge_centers.reinitialize(range.size());
-    calc_edge_centers(dst_positions, dst_edges.slice(range), edge_centers);
+    threading::isolate_task([&] {
+      TLS &tls = all_tls.local();
+      Vector<float3> &edge_centers = tls.edge_centers;
+      edge_centers.reinitialize(range.size());
+      calc_edge_centers(dst_positions, dst_edges.slice(range), edge_centers);
 
-    Vector<int> &tri_indices = tls.tri_indices;
-    tri_indices.reinitialize(range.size());
-    find_nearest_tris_parallel(edge_centers, bvhtree, tri_indices);
+      Vector<int> &tri_indices = tls.tri_indices;
+      tri_indices.reinitialize(range.size());
+      find_nearest_tris_parallel(edge_centers, bvhtree, tri_indices);
 
-    Vector<int> &face_indices = tls.face_indices;
-    face_indices.reinitialize(range.size());
-    array_utils::gather(src_tri_faces, tri_indices.as_span(), face_indices.as_mutable_span());
+      Vector<int> &face_indices = tls.face_indices;
+      face_indices.reinitialize(range.size());
+      array_utils::gather(src_tri_faces, tri_indices.as_span(), face_indices.as_mutable_span());
 
-    /* Find the source edge that's closest to the destination edge in the nearest face. Search
-     * through the whole face instead of just the triangle because the triangle has edges that
-     * might not be actual mesh edges. */
-    Vector<float, 64> distances;
-    for (const int i : range.index_range()) {
-      const int dst_edge = range[i];
-      const float3 &dst_position = edge_centers[i];
+      /* Find the source edge that's closest to the destination edge in the nearest face. Search
+       * through the whole face instead of just the triangle because the triangle has edges that
+       * might not be actual mesh edges. */
+      Vector<float, 64> distances;
+      for (const int i : range.index_range()) {
+        const int dst_edge = range[i];
+        const float3 &dst_position = edge_centers[i];
 
-      const int src_face = face_indices[i];
-      const Span<int> src_face_edges = src_corner_edges.slice(src_faces[src_face]);
+        const int src_face = face_indices[i];
+        const Span<int> src_face_edges = src_corner_edges.slice(src_faces[src_face]);
 
-      distances.reinitialize(src_face_edges.size());
-      for (const int i : src_face_edges.index_range()) {
-        const int2 src_edge = src_edges[src_face_edges[i]];
-        const float3 src_center = math::midpoint(src_positions[src_edge[0]],
-                                                 src_positions[src_edge[1]]);
-        distances[i] = math::distance_squared(src_center, dst_position);
+        distances.reinitialize(src_face_edges.size());
+        for (const int i : src_face_edges.index_range()) {
+          const int2 src_edge = src_edges[src_face_edges[i]];
+          const float3 src_center = math::midpoint(src_positions[src_edge[0]],
+                                                   src_positions[src_edge[1]]);
+          distances[i] = math::distance_squared(src_center, dst_position);
+        }
+
+        const int min = std::min_element(distances.begin(), distances.end()) - distances.begin();
+        nearest_edges[dst_edge] = src_face_edges[min];
       }
-
-      const int min = std::min_element(distances.begin(), distances.end()) - distances.begin();
-      nearest_edges[dst_edge] = src_face_edges[min];
-    }
+    });
   });
 }
 

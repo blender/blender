@@ -12,9 +12,10 @@ namespace blender::workbench {
 
 MeshPass::MeshPass(const char *name) : PassMain(name){};
 
-/* Move to draw::Pass */
 bool MeshPass::is_empty() const
 {
+  /* TODO: Move to #draw::Pass. */
+
   return is_empty_;
 }
 

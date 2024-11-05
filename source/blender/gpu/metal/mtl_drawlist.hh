@@ -46,7 +46,7 @@ class MTLDrawList : public DrawList {
 
  public:
   MTLDrawList(int length);
-  ~MTLDrawList();
+  ~MTLDrawList() override;
 
   void append(Batch *batch, int i_first, int i_count) override;
   void submit() override;

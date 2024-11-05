@@ -259,24 +259,31 @@ constexpr int32_t PCI_ID_APPLE = 0x106b;
 
 eGPUDeviceType VKDevice::device_type() const
 {
-  /* According to the vulkan specifications:
-   *
-   * If the vendor has a PCI vendor ID, the low 16 bits of vendorID must contain that PCI vendor
-   * ID, and the remaining bits must be set to zero. Otherwise, the value returned must be a valid
-   * Khronos vendor ID.
-   */
-  switch (vk_physical_device_properties_.vendorID) {
-    case PCI_ID_NVIDIA:
-      return GPU_DEVICE_NVIDIA;
-    case PCI_ID_INTEL:
-      return GPU_DEVICE_INTEL;
-    case PCI_ID_AMD:
-    case PCI_ID_ATI:
+  switch (vk_physical_device_driver_properties_.driverID) {
+    case VK_DRIVER_ID_AMD_PROPRIETARY:
+    case VK_DRIVER_ID_AMD_OPEN_SOURCE:
+    case VK_DRIVER_ID_MESA_RADV:
       return GPU_DEVICE_ATI;
-    case PCI_ID_APPLE:
+
+    case VK_DRIVER_ID_NVIDIA_PROPRIETARY:
+    case VK_DRIVER_ID_MESA_NVK:
+      return GPU_DEVICE_NVIDIA;
+
+    case VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS:
+    case VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA:
+      return GPU_DEVICE_INTEL;
+
+    case VK_DRIVER_ID_QUALCOMM_PROPRIETARY:
+      return GPU_DEVICE_QUALCOMM;
+
+    case VK_DRIVER_ID_MOLTENVK:
       return GPU_DEVICE_APPLE;
+
+    case VK_DRIVER_ID_MESA_LLVMPIPE:
+      return GPU_DEVICE_SOFTWARE;
+
     default:
-      break;
+      return GPU_DEVICE_UNKNOWN;
   }
 
   return GPU_DEVICE_UNKNOWN;
@@ -284,8 +291,27 @@ eGPUDeviceType VKDevice::device_type() const
 
 eGPUDriverType VKDevice::driver_type() const
 {
-  /* It is unclear how to determine the driver type, but it is required to extract the correct
-   * driver version. */
+  switch (vk_physical_device_driver_properties_.driverID) {
+    case VK_DRIVER_ID_AMD_PROPRIETARY:
+    case VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS:
+    case VK_DRIVER_ID_NVIDIA_PROPRIETARY:
+    case VK_DRIVER_ID_QUALCOMM_PROPRIETARY:
+      return GPU_DRIVER_OFFICIAL;
+
+    case VK_DRIVER_ID_MOLTENVK:
+    case VK_DRIVER_ID_AMD_OPEN_SOURCE:
+    case VK_DRIVER_ID_MESA_RADV:
+    case VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA:
+    case VK_DRIVER_ID_MESA_NVK:
+      return GPU_DRIVER_OPENSOURCE;
+
+    case VK_DRIVER_ID_MESA_LLVMPIPE:
+      return GPU_DRIVER_SOFTWARE;
+
+    default:
+      return GPU_DRIVER_ANY;
+  }
+
   return GPU_DRIVER_ANY;
 }
 
@@ -295,6 +321,7 @@ std::string VKDevice::vendor_name() const
   if (vk_physical_device_properties_.vendorID < 0x10000) {
     switch (vk_physical_device_properties_.vendorID) {
       case PCI_ID_AMD:
+      case PCI_ID_ATI:
         return "Advanced Micro Devices";
       case PCI_ID_NVIDIA:
         return "NVIDIA Corporation";

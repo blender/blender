@@ -304,10 +304,11 @@ void ShadowDirectional::cascade_tilemaps_distribution_near_far_points(const Came
       light.object_to_world, camera.position() - camera.forward() * cam_data.clip_near);
 }
 
-/* \note All tile-maps are meant to have the same LOD but we still return a range starting at the
- * unique LOD. */
 IndexRange ShadowDirectional::cascade_level_range(const Light &light, const Camera &camera)
 {
+  /* NOTE: All tile-maps are meant to have the same LOD
+   * but we still return a range starting at the unique LOD. */
+
   using namespace blender::math;
 
   /* 16 is arbitrary. To avoid too much tile-map per directional lights. */
@@ -342,10 +343,6 @@ IndexRange ShadowDirectional::cascade_level_range(const Light &light, const Came
   return IndexRange(lod_level, tilemap_len);
 }
 
-/**
- * Distribute tile-maps in a linear pattern along camera forward vector instead of a clipmap
- * centered on camera position.
- */
 void ShadowDirectional::cascade_tilemaps_distribution(Light &light, const Camera &camera)
 {
   using namespace blender::math;
@@ -1142,7 +1139,6 @@ void ShadowModule::debug_end_sync()
   debug_draw_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
 }
 
-/* Compute approximate screen pixel density (as world space radius). */
 float ShadowModule::screen_pixel_radius(const float4x4 &wininv,
                                         bool is_perspective,
                                         const int2 &extent)
@@ -1230,7 +1226,6 @@ int ShadowModule::max_view_per_tilemap()
   return max_view_count;
 }
 
-/* Special culling pass to take shadow linking into consideration. */
 void ShadowModule::ShadowView::compute_visibility(ObjectBoundsBuf &bounds,
                                                   ObjectInfosBuf &infos,
                                                   uint resource_len,

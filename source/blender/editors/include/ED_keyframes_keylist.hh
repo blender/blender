@@ -62,8 +62,6 @@ struct ActKeyColumn {
   ActKeyColumn *left, *right;
   /** parent of this node in the tree */
   ActKeyColumn *parent;
-  /** DLRB_BLACK or DLRB_RED */
-  char tree_col;
 
   /* keyframe info */
   eBezTriple_KeyframeType key_type;

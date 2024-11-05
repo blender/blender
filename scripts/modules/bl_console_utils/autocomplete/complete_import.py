@@ -40,7 +40,7 @@ def get_root_modules():
     folders of the python-path.
 
     :returns: modules
-    :rtype: list
+    :rtype: list[ModuleType]
     """
     global ROOT_MODULES
     modules = []
@@ -80,7 +80,7 @@ def module_list(path):
     :arg path: folder path
     :type path: str
     :returns: modules
-    :rtype: list
+    :rtype: list[ModuleType]
     """
 
     if os.path.isdir(path):
@@ -117,7 +117,7 @@ def complete(line):
 
     :type line: str
     :returns: list of completion possibilities
-    :rtype: list
+    :rtype: list[str]
 
     >>> complete('import weak')
     ['weakref']

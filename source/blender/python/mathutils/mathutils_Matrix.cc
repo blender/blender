@@ -692,7 +692,7 @@ PyDoc_STRVAR(
     "   :type size: int\n"
     "   :arg axis: a string in ['X', 'Y', 'Z'] or a 3D Vector Object\n"
     "      (optional when size is 2).\n"
-    "   :type axis: string or :class:`Vector`\n"
+    "   :type axis: str | :class:`Vector`\n"
     "   :return: A new rotation matrix.\n"
     "   :rtype: :class:`Matrix`\n");
 static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
@@ -928,7 +928,7 @@ PyDoc_STRVAR(
     "   :arg axis: Can be any of the following: ['X', 'Y', 'XY', 'XZ', 'YZ'],\n"
     "      where a single axis is for a 2D matrix.\n"
     "      Or a vector for an arbitrary axis\n"
-    "   :type axis: string or :class:`Vector`\n"
+    "   :type axis: str | :class:`Vector`\n"
     "   :arg size: The size of the projection matrix to construct [2, 4].\n"
     "   :type size: int\n"
     "   :return: A new projection matrix.\n"
@@ -1049,12 +1049,13 @@ PyDoc_STRVAR(
     "\n"
     "   :arg plane: Can be any of the following: ['X', 'Y', 'XY', 'XZ', 'YZ'],\n"
     "      where a single axis is for a 2D matrix only.\n"
-    "   :type plane: string\n"
+    "   :type plane: str\n"
     "   :arg size: The size of the shear matrix to construct [2, 4].\n"
     "   :type size: int\n"
-    "   :arg factor: The factor of shear to apply. For a 3 or 4 *size* matrix\n"
-    "      pass a pair of floats corresponding with the *plane* axis.\n"
-    "   :type factor: float or float pair\n"
+    "   :arg factor: The factor of shear to apply. "
+    "For a 2 *size* matrix use a single float. "
+    "For a 3 or 4 *size* matrix pass a pair of floats corresponding with the *plane* axis.\n"
+    "   :type factor: float | Sequence[float]\n"
     "   :return: A new shear matrix.\n"
     "   :rtype: :class:`Matrix`\n");
 static PyObject *C_Matrix_Shear(PyObject *cls, PyObject *args)
@@ -1152,13 +1153,14 @@ PyDoc_STRVAR(
     "   Any of the inputs may be replaced with None if not needed.\n"
     "\n"
     "   :arg location: The translation component.\n"
-    "   :type location: :class:`Vector` or None\n"
-    "   :arg rotation: The rotation component.\n"
-    "   :type rotation: 3x3 :class:`Matrix`, :class:`Quaternion`, :class:`Euler` or None\n"
+    "   :type location: :class:`Vector` | None\n"
+    "   :arg rotation: The rotation component as a "
+    "3x3 matrix, quaternion, euler or None for no rotation.\n"
+    "   :type rotation: :class:`Matrix` | :class:`Quaternion` | :class:`Euler` | None\n"
     "   :arg scale: The scale component.\n"
-    "   :type scale: :class:`Vector` or None\n"
-    "   :return: Combined transformation matrix. \n"
-    "   :rtype: 4x4 :class:`Matrix`\n");
+    "   :type scale: :class:`Vector` | None\n"
+    "   :return: Combined transformation as a 4x4 matrix. \n"
+    "   :rtype: :class:`Matrix`\n");
 static PyObject *C_Matrix_LocRotScale(PyObject *cls, PyObject *args)
 {
   PyObject *loc_obj, *rot_obj, *scale_obj;
@@ -1297,7 +1299,7 @@ PyDoc_STRVAR(
     "\n"
     "   :arg order: Optional rotation order argument in\n"
     "      ['XYZ', 'XZY', 'YXZ', 'YZX', 'ZXY', 'ZYX'].\n"
-    "   :type order: string\n"
+    "   :type order: str\n"
     "   :arg euler_compat: Optional euler argument the new euler will be made\n"
     "      compatible with (no axis flipping between them).\n"
     "      Useful for converting a series of matrices to animation curves.\n"
@@ -1695,9 +1697,9 @@ PyDoc_STRVAR(
     "\n"
     "   :arg fallback: return this when the inverse can't be calculated\n"
     "      (instead of raising a :exc:`ValueError`).\n"
-    "   :type fallback: any\n"
-    "   :return: the inverted matrix or fallback when given.\n"
-    "   :rtype: :class:`Matrix`\n");
+    "   :type fallback: Any\n"
+    "   :return: The inverted matrix or fallback when given.\n"
+    "   :rtype: :class:`Matrix` | Any\n");
 static PyObject *Matrix_inverted(MatrixObject *self, PyObject *args)
 {
   float mat[MATRIX_MAX_DIM * MATRIX_MAX_DIM];
@@ -1877,7 +1879,7 @@ PyDoc_STRVAR(
     "   Rotates the matrix by another mathutils value.\n"
     "\n"
     "   :arg other: rotation component of mathutils value\n"
-    "   :type other: :class:`Euler`, :class:`Quaternion` or :class:`Matrix`\n"
+    "   :type other: :class:`Euler` | :class:`Quaternion` | :class:`Matrix`\n"
     "\n"
     "   .. note:: If any of the columns are not unit length this may not have desired results.\n");
 static PyObject *Matrix_rotate(MatrixObject *self, PyObject *value)
@@ -1921,8 +1923,8 @@ PyDoc_STRVAR(
     "\n"
     "   Return the translation, rotation, and scale components of this matrix.\n"
     "\n"
-    "   :return: tuple of translation, rotation, and scale\n"
-    "   :rtype: (:class:`Vector`, :class:`Quaternion`, :class:`Vector`)");
+    "   :return: Tuple of translation, rotation, and scale.\n"
+    "   :rtype: tuple[:class:`Vector`, :class:`Quaternion`, :class:`Vector`]");
 static PyObject *Matrix_decompose(MatrixObject *self)
 {
   PyObject *ret;
@@ -3107,7 +3109,7 @@ PyDoc_STRVAR(
     Matrix_translation_doc,
     "The translation component of the matrix.\n"
     "\n"
-    ":type: Vector");
+    ":type: :class:`Vector`");
 static PyObject *Matrix_translation_get(MatrixObject *self, void * /*closure*/)
 {
   PyObject *ret;
@@ -3457,7 +3459,7 @@ PyDoc_STRVAR(
     "   matrices from 2x2 up to 4x4.\n"
     "\n"
     "   :arg rows: Sequence of rows. When omitted, a 4x4 identity matrix is constructed.\n"
-    "   :type rows: 2d number sequence\n");
+    "   :type rows: Sequence[Sequence[float]]\n");
 PyTypeObject matrix_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "Matrix",

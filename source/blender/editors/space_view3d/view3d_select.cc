@@ -3378,17 +3378,6 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
   Object *obedit = CTX_data_edit_object(C);
   Object *obact = CTX_data_active_object(C);
 
-  if (obact && obact->type == OB_GPENCIL_LEGACY && GPENCIL_ANY_MODE((bGPdata *)obact->data) &&
-      (BKE_object_pose_armature_get_with_wpaint_check(obact) == nullptr))
-  {
-    /* Prevent acting on Grease Pencil (when not in object mode -- or not in weight-paint + pose
-     * selection), it implements its own selection operator in other modes. We might still fall
-     * trough to here (because that operator uses OPERATOR_PASS_THROUGH to make tweak work) but if
-     * we don't stop here code below assumes we are in object mode it might falsely toggle object
-     * selection. Alternatively, this could be put in the poll function instead. */
-    return OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED;
-  }
-
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   const ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 

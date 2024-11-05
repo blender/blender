@@ -412,10 +412,11 @@ static IDProperty *IDP_CopyString(const IDProperty *prop, const int flag)
   return newp;
 }
 
-/* FIXME: This function is broken for bytes (in case there are null chars in it), needs a
- * dedicated function which takes directly the size of the byte buffer. */
 void IDP_AssignStringMaxSize(IDProperty *prop, const char *st, const size_t st_maxncpy)
 {
+  /* FIXME: This function is broken for bytes (in case there are null chars in it),
+   * needs a dedicated function which takes directly the size of the byte buffer. */
+
   BLI_assert(prop->type == IDP_STRING);
   const bool is_byte = prop->subtype == IDP_STRING_SUB_BYTE;
   const int stlen = int((st_maxncpy > 0) ? BLI_strnlen(st, st_maxncpy - 1) : strlen(st)) +
@@ -429,9 +430,10 @@ void IDP_AssignStringMaxSize(IDProperty *prop, const char *st, const size_t st_m
   }
 }
 
-/* FIXME: Should never be called for `byte` subtype, needs an assert. */
 void IDP_AssignString(IDProperty *prop, const char *st)
 {
+  /* FIXME: Should never be called for `byte` subtype, needs an assert. */
+
   IDP_AssignStringMaxSize(prop, st, 0);
 }
 

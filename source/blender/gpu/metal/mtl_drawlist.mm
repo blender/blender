@@ -147,8 +147,6 @@ void MTLDrawList::append(Batch *gpu_batch, int i_first, int i_count)
   if (command_offset_ + command_size > buffer_size_) {
     this->submit();
   }
-
-  return;
 }
 
 void MTLDrawList::submit()

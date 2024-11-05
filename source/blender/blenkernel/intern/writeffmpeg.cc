@@ -398,9 +398,12 @@ static bool write_video_frame(FFMpegContext *context, AVFrame *frame, ReportList
 /* read and encode a frame of video from the buffer */
 static AVFrame *generate_video_frame(FFMpegContext *context, const ImBuf *image)
 {
-  /* For now only 8-bit/channel images are supported. */
   const uint8_t *pixels = image->byte_buffer.data;
-  if (pixels == nullptr) {
+  const float *pixels_fl = image->float_buffer.data;
+  /* Use float input if needed. */
+  const bool use_float = context->img_convert_frame != nullptr &&
+                         context->img_convert_frame->format != AV_PIX_FMT_RGBA;
+  if ((!use_float && (pixels == nullptr)) || (use_float && (pixels_fl == nullptr))) {
     return nullptr;
   }
 
@@ -421,31 +424,57 @@ static AVFrame *generate_video_frame(FFMpegContext *context, const ImBuf *image)
    * shared (i.e. not writable). */
   av_frame_make_writable(rgb_frame);
 
-  /* Copy the Blender pixels into the FFMPEG data-structure, taking care of endianness and flipping
-   * the image vertically. */
-  int linesize = rgb_frame->linesize[0];
-  int linesize_src = rgb_frame->width * 4;
-  for (int y = 0; y < height; y++) {
-    uint8_t *target = rgb_frame->data[0] + linesize * (height - y - 1);
-    const uint8_t *src = pixels + linesize_src * y;
+  const size_t linesize_dst = rgb_frame->linesize[0];
+  if (use_float) {
+    /* Float image: need to split up the image into a planar format,
+     * because libswscale does not support RGBA->YUV conversions from
+     * packed float formats. */
+    BLI_assert_msg(rgb_frame->linesize[1] == linesize_dst &&
+                       rgb_frame->linesize[2] == linesize_dst &&
+                       rgb_frame->linesize[3] == linesize_dst,
+                   "ffmpeg frame should be 4 same size planes for a floating point image case");
+    for (int y = 0; y < height; y++) {
+      size_t dst_offset = linesize_dst * (height - y - 1);
+      float *dst_g = reinterpret_cast<float *>(rgb_frame->data[0] + dst_offset);
+      float *dst_b = reinterpret_cast<float *>(rgb_frame->data[1] + dst_offset);
+      float *dst_r = reinterpret_cast<float *>(rgb_frame->data[2] + dst_offset);
+      float *dst_a = reinterpret_cast<float *>(rgb_frame->data[3] + dst_offset);
+      const float *src = pixels_fl + image->x * y * 4;
+      for (int x = 0; x < image->x; x++) {
+        *dst_r++ = src[0];
+        *dst_g++ = src[1];
+        *dst_b++ = src[2];
+        *dst_a++ = src[3];
+        src += 4;
+      }
+    }
+  }
+  else {
+    /* Byte image: flip the image vertically, possibly with endian
+     * conversion. */
+    const size_t linesize_src = rgb_frame->width * 4;
+    for (int y = 0; y < height; y++) {
+      uint8_t *target = rgb_frame->data[0] + linesize_dst * (height - y - 1);
+      const uint8_t *src = pixels + linesize_src * y;
 
 #  if ENDIAN_ORDER == L_ENDIAN
-    memcpy(target, src, linesize_src);
+      memcpy(target, src, linesize_src);
 
 #  elif ENDIAN_ORDER == B_ENDIAN
-    const uint8_t *end = src + linesize_src;
-    while (src != end) {
-      target[3] = src[0];
-      target[2] = src[1];
-      target[1] = src[2];
-      target[0] = src[3];
+      const uint8_t *end = src + linesize_src;
+      while (src != end) {
+        target[3] = src[0];
+        target[2] = src[1];
+        target[1] = src[2];
+        target[0] = src[3];
 
-      target += 4;
-      src += 4;
-    }
+        target += 4;
+        src += 4;
+      }
 #  else
 #    error ENDIAN_ORDER should either be L_ENDIAN or B_ENDIAN.
 #  endif
+    }
   }
 
   /* Convert to the output pixel format, if it's different that Blender's internal one. */
@@ -868,22 +897,33 @@ void BKE_ffmpeg_sws_scale_frame(SwsContext *ctx, AVFrame *dst, const AVFrame *sr
 
 /* Remap H.264 CRF to H.265 CRF: 17..32 range (23 default) to 20..37 range (28 default).
  * https://trac.ffmpeg.org/wiki/Encode/H.265 */
-static int remap_crf_to_h265_crf(int crf)
+static int remap_crf_to_h265_crf(int crf, bool is_10_or_12_bpp)
 {
+  /* 10/12 bit videos seem to need slightly lower CRF value for similar quality. */
+  const int bias = is_10_or_12_bpp ? -3 : 0;
   switch (crf) {
     case FFM_CRF_PERC_LOSSLESS:
-      return 20;
+      return 20 + bias;
     case FFM_CRF_HIGH:
-      return 24;
+      return 24 + bias;
     case FFM_CRF_MEDIUM:
-      return 28;
+      return 28 + bias;
     case FFM_CRF_LOW:
-      return 31;
+      return 31 + bias;
     case FFM_CRF_VERYLOW:
-      return 34;
+      return 34 + bias;
     case FFM_CRF_LOWEST:
-      return 37;
+      return 37 + bias;
   }
+  return crf;
+}
+
+/* 10bpp H264: remap 0..51 range to -12..51 range
+ * https://trac.ffmpeg.org/wiki/Encode/H.264#a1.ChooseaCRFvalue */
+static int remap_crf_to_h264_10bpp_crf(int crf)
+{
+  crf = int(-12.0f + (crf / 51.0f) * 63.0f);
+  crf = max_ii(crf, 0);
   return crf;
 }
 
@@ -907,6 +947,8 @@ static void set_quality_rate_options(const FFMpegContext *context,
    * https://trac.ffmpeg.org/wiki/Encode/VP9 */
   c->bit_rate = 0;
 
+  const bool is_10_bpp = rd->im_format.depth == R_IMF_CHAN_DEPTH_10;
+  const bool is_12_bpp = rd->im_format.depth == R_IMF_CHAN_DEPTH_12;
   const bool av1_librav1e = codec_id == AV_CODEC_ID_AV1 && STREQ(c->codec->name, "librav1e");
   const bool av1_libsvtav1 = codec_id == AV_CODEC_ID_AV1 && STREQ(c->codec->name, "libsvtav1");
 
@@ -915,6 +957,10 @@ static void set_quality_rate_options(const FFMpegContext *context,
     if (codec_id == AV_CODEC_ID_VP9) {
       /* VP9 needs "lossless": https://trac.ffmpeg.org/wiki/Encode/VP9#LosslessVP9 */
       ffmpeg_dict_set_int(opts, "lossless", 1);
+    }
+    else if (codec_id == AV_CODEC_ID_H264 && is_10_bpp) {
+      /* 10bpp H264 needs "qp": https://trac.ffmpeg.org/wiki/Encode/H.264#a1.ChooseaCRFvalue */
+      ffmpeg_dict_set_int(opts, "qp", 0);
     }
     else if (codec_id == AV_CODEC_ID_H265) {
       /* H.265 needs "lossless" in private params; also make it much less verbose. */
@@ -934,8 +980,11 @@ static void set_quality_rate_options(const FFMpegContext *context,
   /* Handle CRF setting cases. */
   int crf = context->ffmpeg_crf;
 
-  if (codec_id == AV_CODEC_ID_H265) {
-    crf = remap_crf_to_h265_crf(crf);
+  if (codec_id == AV_CODEC_ID_H264 && is_10_bpp) {
+    crf = remap_crf_to_h264_10bpp_crf(crf);
+  }
+  else if (codec_id == AV_CODEC_ID_H265) {
+    crf = remap_crf_to_h265_crf(crf, is_10_bpp || is_12_bpp);
     /* Make H.265 much less verbose. */
     av_dict_set(opts, "x265-params", "log-level=1", 0);
   }
@@ -1080,6 +1129,15 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
     c->pix_fmt = AV_PIX_FMT_YUV422P;
   }
 
+  const bool is_10_bpp = rd->im_format.depth == R_IMF_CHAN_DEPTH_10;
+  const bool is_12_bpp = rd->im_format.depth == R_IMF_CHAN_DEPTH_12;
+  if (is_10_bpp) {
+    c->pix_fmt = AV_PIX_FMT_YUV420P10LE;
+  }
+  else if (is_12_bpp) {
+    c->pix_fmt = AV_PIX_FMT_YUV420P12LE;
+  }
+
   if (context->ffmpeg_type == FFMPEG_XVID) {
     /* Alas! */
     c->pix_fmt = AV_PIX_FMT_YUV420P;
@@ -1121,6 +1179,12 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
   {
     /* Use 4:4:4 instead of 4:2:0 pixel format for lossless rendering. */
     c->pix_fmt = AV_PIX_FMT_YUV444P;
+    if (is_10_bpp) {
+      c->pix_fmt = AV_PIX_FMT_YUV444P10LE;
+    }
+    else if (is_12_bpp) {
+      c->pix_fmt = AV_PIX_FMT_YUV444P12LE;
+    }
   }
 
   if (codec_id == AV_CODEC_ID_PNG) {
@@ -1178,9 +1242,10 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
   }
   else {
     /* Output pixel format is different, allocate frame for conversion. */
-    context->img_convert_frame = alloc_picture(AV_PIX_FMT_RGBA, c->width, c->height);
+    AVPixelFormat src_format = is_10_bpp || is_12_bpp ? AV_PIX_FMT_GBRAPF32LE : AV_PIX_FMT_RGBA;
+    context->img_convert_frame = alloc_picture(src_format, c->width, c->height);
     context->img_convert_ctx = BKE_ffmpeg_sws_get_context(
-        c->width, c->height, AV_PIX_FMT_RGBA, c->width, c->height, c->pix_fmt, SWS_BICUBIC);
+        c->width, c->height, src_format, c->width, c->height, c->pix_fmt, SWS_BICUBIC);
   }
 
   avcodec_parameters_from_context(st->codecpar, c);
@@ -2034,6 +2099,19 @@ bool BKE_ffmpeg_codec_supports_crf(int av_codec_id)
               AV_CODEC_ID_MPEG4,
               AV_CODEC_ID_VP9,
               AV_CODEC_ID_AV1);
+}
+
+int BKE_ffmpeg_valid_bit_depths(int av_codec_id)
+{
+  int bit_depths = R_IMF_CHAN_DEPTH_8;
+  /* Note: update properties_output.py `use_bpp` when changing this function. */
+  if (ELEM(av_codec_id, AV_CODEC_ID_H264, AV_CODEC_ID_H265, AV_CODEC_ID_AV1)) {
+    bit_depths |= R_IMF_CHAN_DEPTH_10;
+  }
+  if (ELEM(av_codec_id, AV_CODEC_ID_H265, AV_CODEC_ID_AV1)) {
+    bit_depths |= R_IMF_CHAN_DEPTH_12;
+  }
+  return bit_depths;
 }
 
 void *BKE_ffmpeg_context_create()

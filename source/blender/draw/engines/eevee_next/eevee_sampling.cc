@@ -315,8 +315,6 @@ void Sampling::dof_disk_sample_get(float *r_radius, float *r_theta) const
 /** \name Cumulative Distribution Function (CDF)
  * \{ */
 
-/* Creates a discrete cumulative distribution function table from a given curvemapping.
- * Output cdf vector is expected to already be sized according to the wanted resolution. */
 void Sampling::cdf_from_curvemapping(const CurveMapping &curve, Vector<float> &cdf)
 {
   BLI_assert(cdf.size() > 1);
@@ -334,8 +332,6 @@ void Sampling::cdf_from_curvemapping(const CurveMapping &curve, Vector<float> &c
   cdf.last() = 1.0f;
 }
 
-/* Inverts a cumulative distribution function.
- * Output vector is expected to already be sized according to the wanted resolution. */
 void Sampling::cdf_invert(Vector<float> &cdf, Vector<float> &inverted_cdf)
 {
   BLI_assert(cdf.first() == 0.0f && cdf.last() == 1.0f);

@@ -10,7 +10,9 @@
 
 #include "GPU_index_buffer.hh"
 #include "MEM_guardedalloc.h"
+
 #include "mtl_context.hh"
+
 #include <Cocoa/Cocoa.h>
 #include <Metal/Metal.h>
 #include <QuartzCore/QuartzCore.h>
@@ -51,7 +53,7 @@ class MTLIndexBuf : public IndexBuf {
   bool can_optimize_ = true;
 
  public:
-  ~MTLIndexBuf();
+  ~MTLIndexBuf() override;
 
   void bind_as_ssbo(uint32_t binding) override;
   void read(uint32_t *data) const override;

@@ -40,7 +40,6 @@ set(SRC
   intern/BLI_mmap.c
   intern/BLI_subprocess.cc
   intern/BLI_timer.c
-  intern/DLRB_tree.c
   intern/array_store.cc
   intern/array_store_utils.cc
   intern/array_utils.c
@@ -221,7 +220,6 @@ set(SRC
   BLI_devirtualize_parameters.hh
   BLI_dial_2d.h
   BLI_disjoint_set.hh
-  BLI_dlrbTree.h
   BLI_dot_export.hh
   BLI_dot_export_attribute_enums.hh
   BLI_dynlib.h

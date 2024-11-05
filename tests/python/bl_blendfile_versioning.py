@@ -115,7 +115,7 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
             if self.skip_path_check(bfp):
                 continue
             if not self.args.is_quiet:
-                print(f"Trying to open {bfp}")
+                print(f"Trying to open {bfp}", flush=True)
             bpy.ops.wm.read_homefile(use_empty=True, use_factory_startup=True)
             bpy.ops.wm.open_mainfile(filepath=bfp, load_ui=False)
 
@@ -128,11 +128,11 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
             with bpy.data.libraries.load(bfp, link=do_link) as (lib_in, lib_out):
                 if len(lib_in.collections):
                     if not self.args.is_quiet:
-                        print(f"Trying to {operation_name} {bfp}/Collection/{lib_in.collections[0]}")
+                        print(f"Trying to {operation_name} {bfp}/Collection/{lib_in.collections[0]}", flush=True)
                     lib_out.collections.append(lib_in.collections[0])
                 elif len(lib_in.objects):
                     if not self.args.is_quiet:
-                        print(f"Trying to {operation_name} {bfp}/Object/{lib_in.objects[0]}")
+                        print(f"Trying to {operation_name} {bfp}/Object/{lib_in.objects[0]}", flush=True)
                     lib_out.objects.append(lib_in.objects[0])
 
     def test_link(self):

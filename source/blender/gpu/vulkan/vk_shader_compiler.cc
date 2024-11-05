@@ -62,7 +62,7 @@ static std::optional<std::string> cache_dir_get()
 static bool read_spirv_from_disk(VKShaderModule &shader_module)
 {
   if (G.debug & G_DEBUG_GPU_RENDERDOC) {
-    /* Renderdoc uses spirv shaders including debug information. */
+    /* RenderDoc uses spirv shaders including debug information. */
     return false;
   }
   std::optional<std::string> cache_dir = cache_dir_get();
@@ -206,6 +206,11 @@ static bool compile_ex(shaderc::Compiler &compiler,
   if (G.debug & G_DEBUG_GPU_RENDERDOC) {
     options.SetOptimizationLevel(shaderc_optimization_level_zero);
     options.SetGenerateDebugInfo();
+  }
+
+  /* WORKAROUND: Qualcomm driver can crash when handling optimized SPIR-V. */
+  if (GPU_type_matches(GPU_DEVICE_QUALCOMM, GPU_OS_ANY, GPU_DRIVER_ANY)) {
+    options.SetOptimizationLevel(shaderc_optimization_level_zero);
   }
 
   std::string full_name = std::string(shader.name_get()) + "_" + to_stage_name(stage);

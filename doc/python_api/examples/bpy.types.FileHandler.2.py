@@ -37,10 +37,12 @@ class ShaderScriptImport(bpy.types.Operator, ImportHelper):
 
     @classmethod
     def poll(cls, context):
-        return (context.region and context.region.type == 'WINDOW'
-                and context.area and context.area.ui_type == 'ShaderNodeTree'
-                and context.object and context.object.type == 'MESH'
-                and context.material)
+        return (
+            context.region and context.region.type == 'WINDOW' and
+            context.area and context.area.ui_type == 'ShaderNodeTree' and
+            context.object and context.object.type == 'MESH' and
+            context.material
+        )
 
     def execute(self, context):
         """ The directory property need to be set. """
@@ -70,14 +72,12 @@ class ShaderScriptImport(bpy.types.Operator, ImportHelper):
                 y -= 20.0
         return {'FINISHED'}
 
-    """
-    Use ImportHelper's invoke_popup() to handle the invocation so that this operator's properties
-    are shown in a popup. This allows the user to configure additional settings on the operator like
-    the `set_label` property. Consider having a draw() method on the operator in order to layout the
-    properties in the UI appropriately.
-
-    If filepath information is not provided the file select window will be invoked instead.
-    """
+    # Use ImportHelper's invoke_popup() to handle the invocation so that this operator's properties
+    # are shown in a popup. This allows the user to configure additional settings on the operator like
+    # the `set_label` property. Consider having a draw() method on the operator in order to layout the
+    # properties in the UI appropriately.
+    #
+    # If filepath information is not provided the file select window will be invoked instead.
 
     def invoke(self, context, event):
         return self.invoke_popup(context)
@@ -91,8 +91,10 @@ class SHADER_FH_script_import(bpy.types.FileHandler):
 
     @classmethod
     def poll_drop(cls, context):
-        return (context.region and context.region.type == 'WINDOW'
-                and context.area and context.area.ui_type == 'ShaderNodeTree')
+        return (
+            context.region and context.region.type == 'WINDOW' and
+            context.area and context.area.ui_type == 'ShaderNodeTree'
+        )
 
 
 bpy.utils.register_class(ShaderScriptImport)

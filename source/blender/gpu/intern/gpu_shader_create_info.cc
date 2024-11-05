@@ -287,12 +287,6 @@ std::string ShaderCreateInfo::check_error() const
     return error;
   }
 
-  /*
-   * The next check has been disabled. 'eevee_legacy_surface_common_iface' is known to fail.
-   * The check was added to validate if shader would be able to compile on Vulkan.
-   * TODO(jbakker): Enable the check after EEVEE is replaced by EEVEE-Next.
-   */
-#if 0
   if (bool(this->builtins_ &
            (BuiltinBits::BARYCENTRIC_COORD | BuiltinBits::VIEWPORT_INDEX | BuiltinBits::LAYER)))
   {
@@ -304,7 +298,6 @@ std::string ShaderCreateInfo::check_error() const
       }
     }
   }
-#endif
 
   if (!this->is_vulkan_compatible()) {
     error += this->name_ +
@@ -490,6 +483,12 @@ void gpu_shader_create_info_init()
   if (GPU_shader_draw_parameters_support() == false) {
     draw_resource_id_new = draw_resource_id_fallback;
     draw_resource_with_custom_id_new = draw_resource_with_custom_id_fallback;
+  }
+
+  if (GPU_stencil_clasify_buffer_workaround()) {
+    /* WORKAROUND: Adding a dummy buffer that isn't used fixes a bug inside the Qualcom driver. */
+    eevee_deferred_tile_classify.storage_buf(
+        12, Qualifier::READ_WRITE, "uint", "dummy_workaround_buf[]");
   }
 
 #ifdef WITH_METAL_BACKEND

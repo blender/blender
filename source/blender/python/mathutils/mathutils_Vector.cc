@@ -764,7 +764,7 @@ PyDoc_STRVAR(
     "   :arg precision: The number to round the value to in [-1, 21].\n"
     "   :type precision: int\n"
     "   :return: the values of the vector rounded by *precision*\n"
-    "   :rtype: tuple\n");
+    "   :rtype: tuple[float]\n");
 static PyObject *Vector_to_tuple(VectorObject *self, PyObject *args)
 {
   int ndigits = 0;
@@ -805,9 +805,9 @@ PyDoc_STRVAR(
     "   Return a quaternion rotation from the vector and the track and up axis.\n"
     "\n"
     "   :arg track: Track axis in ['X', 'Y', 'Z', '-X', '-Y', '-Z'].\n"
-    "   :type track: string\n"
+    "   :type track: str\n"
     "   :arg up: Up axis in ['X', 'Y', 'Z'].\n"
-    "   :type up: string\n"
+    "   :type up: str\n"
     "   :return: rotation from the vector and the track and up axis.\n"
     "   :rtype: :class:`Quaternion`\n");
 static PyObject *Vector_to_track_quat(VectorObject *self, PyObject *args)
@@ -1031,8 +1031,8 @@ PyDoc_STRVAR(
     "\n"
     "   :arg other: The other vector to perform the cross product with.\n"
     "   :type other: :class:`Vector`\n"
-    "   :return: The cross product.\n"
-    "   :rtype: :class:`Vector` or float when 2D vectors are used\n"
+    "   :return: The cross product as a vector or a float when 2D vectors are used.\n"
+    "   :rtype: :class:`Vector` | float\n"
     "\n"
     "   .. note:: both vectors must be 2D or 3D\n");
 static PyObject *Vector_cross(VectorObject *self, PyObject *value)
@@ -1121,9 +1121,9 @@ PyDoc_STRVAR(
     "   :type other: :class:`Vector`\n"
     "   :arg fallback: return this when the angle can't be calculated (zero length vector),\n"
     "      (instead of raising a :exc:`ValueError`).\n"
-    "   :type fallback: any\n"
+    "   :type fallback: Any\n"
     "   :return: angle in radians or fallback when given\n"
-    "   :rtype: float\n");
+    "   :rtype: float | Any\n");
 static PyObject *Vector_angle(VectorObject *self, PyObject *args)
 {
   const int vec_num = std::min(self->vec_num, 3); /* 4D angle makes no sense */
@@ -1194,9 +1194,9 @@ PyDoc_STRVAR(
     "   :type other: :class:`Vector`\n"
     "   :arg fallback: return this when the angle can't be calculated (zero length vector),\n"
     "      (instead of raising a :exc:`ValueError`).\n"
-    "   :type fallback: any\n"
+    "   :type fallback: Any\n"
     "   :return: angle in radians or fallback when given\n"
-    "   :rtype: float\n");
+    "   :rtype: float | Any\n");
 static PyObject *Vector_angle_signed(VectorObject *self, PyObject *args)
 {
   float tvec[2];
@@ -1400,7 +1400,7 @@ PyDoc_STRVAR(
     "   :arg fallback: return this when the vector can't be calculated (zero length "
     "vector or direct opposites),\n"
     "      (instead of raising a :exc:`ValueError`).\n"
-    "   :type fallback: any\n"
+    "   :type fallback: Any\n"
     "   :return: The interpolated vector.\n"
     "   :rtype: :class:`Vector`\n");
 static PyObject *Vector_slerp(VectorObject *self, PyObject *args)
@@ -1491,7 +1491,7 @@ PyDoc_STRVAR(
     "   .. note:: 2D vectors are a special case that can only be rotated by a 2x2 matrix.\n"
     "\n"
     "   :arg other: rotation component of mathutils value\n"
-    "   :type other: :class:`Euler`, :class:`Quaternion` or :class:`Matrix`\n");
+    "   :type other: :class:`Euler` | :class:`Quaternion` | :class:`Matrix`\n");
 static PyObject *Vector_rotate(VectorObject *self, PyObject *value)
 {
   if (BaseMath_ReadCallback_ForWrite(self) == -1) {
@@ -3405,8 +3405,8 @@ PyDoc_STRVAR(
     "\n"
     "   This object gives access to Vectors in Blender.\n"
     "\n"
-    "   :arg seq: Components of the vector, must be a sequence of at least two\n"
-    "   :type seq: sequence of floats\n");
+    "   :arg seq: Components of the vector, must be a sequence of at least two.\n"
+    "   :type seq: Sequence[float]\n");
 PyTypeObject vector_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "Vector",

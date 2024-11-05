@@ -957,6 +957,7 @@ static void seq_retiming_fix_transition(const Scene *scene, Sequence *seq, SeqRe
   SeqRetimingKey *orig_key = seq_retiming_remove_transition(scene, seq, key);
   SEQ_retiming_add_transition(scene, seq, orig_key, transition_duration);
   BLI_assert(keys_num == seq->retiming_keys_num);
+  UNUSED_VARS_NDEBUG(keys_num);
 }
 
 static void seq_retiming_fix_transitions(const Scene *scene, Sequence *seq, SeqRetimingKey *key)
@@ -1138,7 +1139,9 @@ bool SEQ_retiming_selection_has_whole_transition(const Editing *ed, SeqRetimingK
   SeqRetimingKey *key_end = key_start + 1;
   bool has_start = false, has_end = false;
 
-  for (auto item : SEQ_retiming_selection_get(ed).items()) {
+  blender::Map<SeqRetimingKey *, Sequence *> selection = SEQ_retiming_selection_get(ed);
+
+  for (auto item : selection.items()) {
     if (item.key == key_start) {
       has_start = true;
     }

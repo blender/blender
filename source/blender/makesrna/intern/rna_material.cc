@@ -884,22 +884,6 @@ void RNA_def_material(BlenderRNA *brna)
        "Render polygon transparent, depending on alpha channel of the texture"},
       {0, nullptr, 0, nullptr, nullptr},
   };
-
-  static EnumPropertyItem prop_eevee_blend_shadow_items[] = {
-      {MA_BS_NONE, "NONE", 0, "None", "Material will cast no shadow"},
-      {MA_BS_SOLID, "OPAQUE", 0, "Opaque", "Material will cast shadows without transparency"},
-      {MA_BS_CLIP,
-       "CLIP",
-       0,
-       "Alpha Clip",
-       "Use the alpha threshold to clip the visibility (binary visibility)"},
-      {MA_BS_HASHED,
-       "HASHED",
-       0,
-       "Alpha Hashed",
-       "Use noise to dither the binary visibility and use filtering to reduce the noise"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
 #  endif
 
   static EnumPropertyItem prop_eevee_surface_render_method_items[] = {
@@ -969,12 +953,6 @@ void RNA_def_material(BlenderRNA *brna)
   RNA_def_property_enum_funcs(
       prop, "rna_Material_blend_method_get", "rna_Material_blend_method_set", nullptr);
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MATERIAL);
-  RNA_def_property_update(prop, 0, "rna_Material_draw_update");
-
-  prop = RNA_def_property(srna, "shadow_method", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "blend_shadow");
-  RNA_def_property_enum_items(prop, prop_eevee_blend_shadow_items);
-  RNA_def_property_ui_text(prop, "Shadow Mode", "Shadow mapping method");
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
   prop = RNA_def_property(srna, "alpha_threshold", PROP_FLOAT, PROP_FACTOR);

@@ -8,8 +8,7 @@
 
 #pragma once
 
-namespace blender {
-namespace gpu {
+namespace blender::gpu {
 
 /*** Derived from: https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf ***/
 /** Upper Bound/Fixed Limits **/
@@ -63,5 +62,4 @@ struct MTLCapabilities {
   int num_efficiency_cores = -1;
 };
 
-}  // namespace gpu
-}  // namespace blender
+}  // namespace blender::gpu

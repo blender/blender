@@ -1109,7 +1109,7 @@ static int min_distance_edit_modal(bContext *C, wmOperator *op, const wmEvent *e
     wm->paintcursors = op_data.orig_paintcursors;
 
     ED_region_tag_redraw(region);
-    MEM_freeN(&op_data);
+    MEM_delete(&op_data);
   };
 
   switch (event->type) {
@@ -1128,8 +1128,8 @@ static int min_distance_edit_modal(bContext *C, wmOperator *op, const wmEvent *e
     }
     case LEFTMOUSE: {
       if (event->val == KM_PRESS) {
-        finish();
         BKE_brush_tag_unsaved_changes(op_data.brush);
+        finish();
         return OPERATOR_FINISHED;
       }
       break;

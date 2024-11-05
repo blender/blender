@@ -477,9 +477,6 @@ void BKE_lib_id_expand_local(Main *bmain, ID *id, const int flags)
       bmain, id, lib_id_expand_local_cb, POINTER_FROM_INT(flags), IDWALK_READONLY);
 }
 
-/**
- * Ensure new (copied) ID is fully made local.
- */
 void lib_id_copy_ensure_local(Main *bmain, const ID *old_id, ID *new_id, const int flags)
 {
   if (ID_IS_LINKED(old_id)) {

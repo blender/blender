@@ -21,6 +21,10 @@
 #include "BKE_colortools.hh"
 #include "BKE_image_format.h"
 
+#ifdef WITH_FFMPEG
+#  include "BKE_writeffmpeg.hh"
+#endif
+
 /* Init/Copy/Free */
 
 void BKE_image_format_init(ImageFormatData *imf, const bool render)
@@ -318,6 +322,22 @@ char BKE_imtype_valid_depths(const char imtype)
     default:
       return R_IMF_CHAN_DEPTH_8;
   }
+}
+
+char BKE_imtype_valid_depths_with_video(char imtype, const ID *owner_id)
+{
+  int depths = BKE_imtype_valid_depths(imtype);
+#ifdef WITH_FFMPEG
+  /* Depending on video codec selected, valid color bit depths might vary. */
+  if (imtype == R_IMF_IMTYPE_FFMPEG) {
+    const bool is_render_out = (owner_id && GS(owner_id->name) == ID_SCE);
+    if (is_render_out) {
+      const Scene *scene = (const Scene *)owner_id;
+      depths |= BKE_ffmpeg_valid_bit_depths(scene->r.ffcodecdata.codec);
+    }
+  }
+#endif
+  return depths;
 }
 
 char BKE_imtype_from_arg(const char *imtype_arg)

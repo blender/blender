@@ -226,10 +226,6 @@ extern TransConvertTypeInfo TransConvertType_Curves;
 
 extern TransConvertTypeInfo TransConvertType_Graph;
 
-/* `transform_convert_gpencil_legacy.cc` */
-
-extern TransConvertTypeInfo TransConvertType_GPencil;
-
 /* `transform_convert_greasepencil.cc` */
 
 extern TransConvertTypeInfo TransConvertType_GreasePencil;

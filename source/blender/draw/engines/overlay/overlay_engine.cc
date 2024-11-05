@@ -200,15 +200,6 @@ static void OVERLAY_cache_init(void *vedata)
     case CTX_MODE_SCULPT:
       OVERLAY_sculpt_cache_init(data);
       break;
-    case CTX_MODE_EDIT_GPENCIL_LEGACY:
-      OVERLAY_edit_gpencil_legacy_cache_init(data);
-      break;
-    case CTX_MODE_PAINT_GPENCIL_LEGACY:
-    case CTX_MODE_SCULPT_GPENCIL_LEGACY:
-    case CTX_MODE_VERTEX_GPENCIL_LEGACY:
-    case CTX_MODE_WEIGHT_GPENCIL_LEGACY:
-      OVERLAY_edit_gpencil_legacy_cache_init(data);
-      break;
     case CTX_MODE_EDIT_CURVES:
       OVERLAY_edit_curves_cache_init(data);
       break;
@@ -231,7 +222,6 @@ static void OVERLAY_cache_init(void *vedata)
   OVERLAY_extra_cache_init(data);
   OVERLAY_facing_cache_init(data);
   OVERLAY_grease_pencil_cache_init(data);
-  OVERLAY_gpencil_legacy_cache_init(data);
   OVERLAY_grid_cache_init(data);
   OVERLAY_image_cache_init(data);
   OVERLAY_metaball_cache_init(data);
@@ -699,7 +689,6 @@ static void OVERLAY_draw_scene(void *vedata)
   OVERLAY_armature_draw(data);
   OVERLAY_particle_draw(data);
   OVERLAY_metaball_draw(data);
-  OVERLAY_gpencil_legacy_draw(data);
   OVERLAY_grease_pencil_draw(data);
   OVERLAY_extra_draw(data);
   if (pd->overlay.flag & V3D_OVERLAY_VIEWER_ATTRIBUTE) {
@@ -766,15 +755,6 @@ static void OVERLAY_draw_scene(void *vedata)
       break;
     case CTX_MODE_PARTICLE:
       OVERLAY_edit_particle_draw(data);
-      break;
-    case CTX_MODE_EDIT_GPENCIL_LEGACY:
-      OVERLAY_edit_gpencil_legacy_draw(data);
-      break;
-    case CTX_MODE_PAINT_GPENCIL_LEGACY:
-    case CTX_MODE_SCULPT_GPENCIL_LEGACY:
-    case CTX_MODE_VERTEX_GPENCIL_LEGACY:
-    case CTX_MODE_WEIGHT_GPENCIL_LEGACY:
-      OVERLAY_edit_gpencil_legacy_draw(data);
       break;
     case CTX_MODE_SCULPT_CURVES:
       break;

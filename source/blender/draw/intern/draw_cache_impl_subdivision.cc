@@ -65,31 +65,30 @@ extern "C" char datatoc_common_subdiv_vbo_edituv_strech_area_comp_glsl[];
 
 namespace blender::draw {
 
-enum {
-  SHADER_BUFFER_LINES,
-  SHADER_BUFFER_LINES_LOOSE,
-  SHADER_BUFFER_EDGE_FAC,
-  SHADER_BUFFER_LNOR,
-  SHADER_BUFFER_TRIS,
-  SHADER_BUFFER_TRIS_MULTIPLE_MATERIALS,
-  SHADER_BUFFER_NORMALS_ACCUMULATE,
-  SHADER_BUFFER_NORMALS_FINALIZE,
-  SHADER_BUFFER_CUSTOM_NORMALS_FINALIZE,
-  SHADER_PATCH_EVALUATION,
-  SHADER_PATCH_EVALUATION_FVAR,
-  SHADER_PATCH_EVALUATION_FACE_DOTS,
-  SHADER_PATCH_EVALUATION_FACE_DOTS_WITH_NORMALS,
-  SHADER_PATCH_EVALUATION_ORCO,
-  SHADER_COMP_CUSTOM_DATA_INTERP_1D,
-  SHADER_COMP_CUSTOM_DATA_INTERP_2D,
-  SHADER_COMP_CUSTOM_DATA_INTERP_3D,
-  SHADER_COMP_CUSTOM_DATA_INTERP_4D,
-  SHADER_BUFFER_SCULPT_DATA,
-  SHADER_BUFFER_UV_STRETCH_ANGLE,
-  SHADER_BUFFER_UV_STRETCH_AREA,
-
-  NUM_SHADERS,
+enum SubdivShaderType {
+  SHADER_BUFFER_LINES = 0,
+  SHADER_BUFFER_LINES_LOOSE = 1,
+  SHADER_BUFFER_EDGE_FAC = 2,
+  SHADER_BUFFER_LNOR = 3,
+  SHADER_BUFFER_TRIS = 4,
+  SHADER_BUFFER_TRIS_MULTIPLE_MATERIALS = 5,
+  SHADER_BUFFER_NORMALS_ACCUMULATE = 6,
+  SHADER_BUFFER_NORMALS_FINALIZE = 7,
+  SHADER_BUFFER_CUSTOM_NORMALS_FINALIZE = 8,
+  SHADER_PATCH_EVALUATION = 9,
+  SHADER_PATCH_EVALUATION_FVAR = 10,
+  SHADER_PATCH_EVALUATION_FACE_DOTS = 11,
+  SHADER_PATCH_EVALUATION_FACE_DOTS_WITH_NORMALS = 12,
+  SHADER_PATCH_EVALUATION_ORCO = 13,
+  SHADER_COMP_CUSTOM_DATA_INTERP_1D = 14,
+  SHADER_COMP_CUSTOM_DATA_INTERP_2D = 15,
+  SHADER_COMP_CUSTOM_DATA_INTERP_3D = 16,
+  SHADER_COMP_CUSTOM_DATA_INTERP_4D = 17,
+  SHADER_BUFFER_SCULPT_DATA = 18,
+  SHADER_BUFFER_UV_STRETCH_ANGLE = 19,
+  SHADER_BUFFER_UV_STRETCH_AREA = 20,
 };
+constexpr int NUM_SHADERS = 21;
 
 static GPUShader *g_subdiv_shaders[NUM_SHADERS];
 
@@ -97,7 +96,7 @@ static GPUShader *g_subdiv_shaders[NUM_SHADERS];
 static GPUShader
     *g_subdiv_custom_data_shaders[SHADER_CUSTOM_DATA_INTERP_MAX_DIMENSIONS][GPU_COMP_MAX];
 
-static StringRefNull get_shader_code(int shader_type)
+static StringRefNull get_shader_code(SubdivShaderType shader_type)
 {
   switch (shader_type) {
     case SHADER_BUFFER_LINES:
@@ -144,10 +143,11 @@ static StringRefNull get_shader_code(int shader_type)
       return datatoc_common_subdiv_vbo_edituv_strech_area_comp_glsl;
     }
   }
-  return nullptr;
+  BLI_assert_unreachable();
+  return "";
 }
 
-static StringRefNull get_shader_name(int shader_type)
+static StringRefNull get_shader_name(SubdivShaderType shader_type)
 {
   switch (shader_type) {
     case SHADER_BUFFER_LINES: {
@@ -171,6 +171,9 @@ static StringRefNull get_shader_name(int shader_type)
     }
     case SHADER_BUFFER_NORMALS_FINALIZE: {
       return "subdiv normals finalize";
+    }
+    case SHADER_BUFFER_CUSTOM_NORMALS_FINALIZE: {
+      return "subdiv custom normals finalize";
     }
     case SHADER_PATCH_EVALUATION: {
       return "subdiv patch evaluation";
@@ -209,10 +212,11 @@ static StringRefNull get_shader_name(int shader_type)
       return "subdiv uv stretch area";
     }
   }
-  return nullptr;
+  BLI_assert_unreachable();
+  return "";
 }
 
-static GPUShader *get_patch_evaluation_shader(int shader_type)
+static GPUShader *get_patch_evaluation_shader(SubdivShaderType shader_type)
 {
   if (g_subdiv_shaders[shader_type] == nullptr) {
     const StringRefNull compute_code = get_shader_code(shader_type);
@@ -263,7 +267,7 @@ static GPUShader *get_patch_evaluation_shader(int shader_type)
   return g_subdiv_shaders[shader_type];
 }
 
-static GPUShader *get_subdiv_shader(int shader_type)
+static GPUShader *get_subdiv_shader(SubdivShaderType shader_type)
 {
   if (ELEM(shader_type,
            SHADER_PATCH_EVALUATION,
@@ -303,7 +307,9 @@ static GPUShader *get_subdiv_shader(int shader_type)
     else if (shader_type == SHADER_BUFFER_EDGE_FAC) {
       /* No separate shader for the AMD driver case as we assume that the GPU will not change
        * during the execution of the program. */
-      defines = GPU_crappy_amd_driver() ? "#define GPU_AMD_DRIVER_BYTE_BUG\n" : nullptr;
+      if (GPU_crappy_amd_driver()) {
+        defines = "#define GPU_AMD_DRIVER_BYTE_BUG\n";
+      }
     }
     else if (shader_type == SHADER_BUFFER_CUSTOM_NORMALS_FINALIZE) {
       defines = "#define CUSTOM_NORMALS\n";
@@ -325,10 +331,9 @@ static GPUShader *get_subdiv_custom_data_shader(int comp_type, int dimensions)
   GPUShader *&shader = g_subdiv_custom_data_shaders[dimensions - 1][comp_type];
 
   if (shader == nullptr) {
-    const StringRefNull compute_code = get_shader_code(SHADER_COMP_CUSTOM_DATA_INTERP_1D +
-                                                       dimensions - 1);
-
-    int shader_type = SHADER_COMP_CUSTOM_DATA_INTERP_1D + dimensions - 1;
+    SubdivShaderType shader_type = SubdivShaderType(SHADER_COMP_CUSTOM_DATA_INTERP_1D +
+                                                    dimensions - 1);
+    const StringRefNull compute_code = get_shader_code(shader_type);
 
     std::string defines = "#define SUBDIV_POLYGON_OFFSET\n";
     defines += "#define DIMENSIONS " + std::to_string(dimensions) + "\n";

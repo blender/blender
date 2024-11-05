@@ -136,6 +136,7 @@ void paint_stroke_jitter_pos(Scene &scene,
 bool paint_brush_tool_poll(bContext *C);
 /** Returns true if the brush cursor should be activated. */
 bool paint_brush_cursor_poll(bContext *C);
+/** Initialize the stroke cache variants from operator properties. */
 bool paint_brush_update(bContext *C,
                         const Brush &brush,
                         PaintMode mode,
@@ -545,6 +546,7 @@ void get_brush_alpha_data(const Scene &scene,
 
 void init_stroke(Depsgraph &depsgraph, Object &ob);
 void init_session_data(const ToolSettings &ts, Object &ob);
+/** Toggle operator for turning vertex paint mode on or off (copied from `sculpt.cc`) */
 void init_session(
     Main &bmain, Depsgraph &depsgraph, Scene &scene, Object &ob, eObjectMode object_mode);
 
@@ -562,7 +564,9 @@ bool mode_toggle_poll_test(bContext *C);
 void smooth_brush_toggle_off(const bContext *C, Paint *paint, StrokeCache *cache);
 void smooth_brush_toggle_on(const bContext *C, Paint *paint, StrokeCache *cache);
 
+/** Initialize the stroke cache variants from operator properties. */
 void update_cache_variants(bContext *C, VPaint &vp, Object &ob, PointerRNA *ptr);
+/** Initialize the stroke cache invariants from operator properties. */
 void update_cache_invariants(
     bContext *C, VPaint &vp, SculptSession &ss, wmOperator *op, const float mval[2]);
 void last_stroke_update(Scene &scene, const float location[3]);

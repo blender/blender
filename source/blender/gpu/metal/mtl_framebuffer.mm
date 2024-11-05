@@ -1305,11 +1305,16 @@ bool MTLFrameBuffer::set_color_attachment_clear_color(uint slot, const float cle
 
   /* Only mark as dirty if values have changed. */
   bool changed = mtl_color_attachments_[slot].load_action != GPU_LOADACTION_CLEAR;
-  changed = changed || (memcmp(mtl_color_attachments_[slot].clear_value.color,
-                               clear_color,
-                               sizeof(float) * 4) != 0);
+  float *attachment_clear_color = mtl_color_attachments_[slot].clear_value.color;
+  changed = changed || (attachment_clear_color[0] != clear_color[0] ||
+                        attachment_clear_color[1] != clear_color[1] ||
+                        attachment_clear_color[2] != clear_color[2] ||
+                        attachment_clear_color[3] != clear_color[3]);
   if (changed) {
-    memcpy(mtl_color_attachments_[slot].clear_value.color, clear_color, sizeof(float) * 4);
+    attachment_clear_color[0] = clear_color[0];
+    attachment_clear_color[1] = clear_color[1];
+    attachment_clear_color[2] = clear_color[2];
+    attachment_clear_color[3] = clear_color[3];
   }
   mtl_color_attachments_[slot].load_action = GPU_LOADACTION_CLEAR;
 

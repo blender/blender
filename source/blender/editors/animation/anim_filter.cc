@@ -2202,29 +2202,38 @@ static size_t animdata_filter_grease_pencil_data(bAnimContext *ac,
 
   size_t items = 0;
 
+  /* The Grease Pencil mode is not supposed to show channels for regular F-Curves from regular
+   * Actions. At some point this might be desirable, but it would also require changing the
+   * filtering flags for pretty much all operators running there.  */
+  const bool show_animdata = grease_pencil->adt && (ac->datatype != ANIMCONT_GPENCIL);
+
   /* When asked from "AnimData" blocks (i.e. the top-level containers for normal animation),
    * for convenience, this will return grease pencil data-blocks instead.
    * This may cause issues down the track, but for now, this will do.
    */
   if (filter_mode & ANIMFILTER_ANIMDATA) {
-    /* Just add data block container. */
-    if (grease_pencil->adt != nullptr) {
-      ANIMCHANNEL_NEW_CHANNEL(
-          ac->bmain, grease_pencil, ANIMTYPE_GREASE_PENCIL_DATABLOCK, grease_pencil, nullptr);
+    if (show_animdata) {
+      items += animfilter_block_data(ac, anim_data, (ID *)grease_pencil, filter_mode);
     }
+    ANIMCHANNEL_NEW_CHANNEL(
+        ac->bmain, grease_pencil, ANIMTYPE_GREASE_PENCIL_DATABLOCK, grease_pencil, nullptr);
   }
   else {
     ListBase tmp_data = {nullptr, nullptr};
     size_t tmp_items = 0;
 
-    if (!(filter_mode & ANIMFILTER_FCURVESONLY)) {
-      /* Add grease pencil layer channels. */
-      BEGIN_ANIMFILTER_SUBCHANNELS (grease_pencil->flag &GREASE_PENCIL_ANIM_CHANNEL_EXPANDED) {
+    /* Add grease pencil layer channels. */
+    BEGIN_ANIMFILTER_SUBCHANNELS (grease_pencil->flag &GREASE_PENCIL_ANIM_CHANNEL_EXPANDED) {
+      if (show_animdata) {
+        tmp_items += animfilter_block_data(ac, &tmp_data, (ID *)grease_pencil, filter_mode);
+      }
+
+      if (!(filter_mode & ANIMFILTER_FCURVESONLY)) {
         tmp_items += animdata_filter_grease_pencil_layers_data(
             ac, &tmp_data, grease_pencil, filter_mode);
       }
-      END_ANIMFILTER_SUBCHANNELS;
     }
+    END_ANIMFILTER_SUBCHANNELS;
 
     if (tmp_items == 0) {
       /* If no sub-channels, return early. */

@@ -121,7 +121,7 @@ MTLShader::~MTLShader()
 
     /* Free Metal resources.
      * This is done in the order of:
-     * 1. Pipelinestate objects
+     * 1. PipelineState objects
      * 2. MTLFunctions
      * 3. MTLLibraries
      * So that each object releases it's references to the one following it. */

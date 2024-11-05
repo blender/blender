@@ -60,7 +60,6 @@ using namespace blender;
 /** \name General Utils
  * \{ */
 
-/* Calculates projection vector based on a location. */
 void transform_view_vector_calc(const TransInfo *t, const float focus[3], float r_vec[3])
 {
   if (t->persp != RV3D_ORTHO) {
@@ -77,8 +76,7 @@ bool transdata_check_local_islands(TransInfo *t, short around)
   if (t->options & (CTX_CURSOR | CTX_TEXTURE_SPACE)) {
     return false;
   }
-  return ((around == V3D_AROUND_LOCAL_ORIGINS) &&
-          ELEM(t->obedit_type, OB_MESH, OB_GPENCIL_LEGACY));
+  return ((around == V3D_AROUND_LOCAL_ORIGINS) && ELEM(t->obedit_type, OB_MESH));
 }
 
 /** \} */
@@ -435,13 +433,6 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
   if (t->options & CTX_GPENCIL_STROKES) {
     if (t->obedit_type == OB_GREASE_PENCIL) {
       WM_event_add_notifier(C, NC_GEOM | ND_DATA, nullptr);
-    }
-    else if (t->obedit_type == OB_GPENCIL_LEGACY) {
-      bGPdata *gpd = ED_gpencil_data_get_active(C);
-      if (gpd) {
-        DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
-      }
-      WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
     }
   }
   else if (t->spacetype == SPACE_VIEW3D) {

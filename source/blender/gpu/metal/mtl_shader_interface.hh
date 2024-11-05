@@ -219,7 +219,7 @@ class MTLShaderInterface : public ShaderInterface {
 
  public:
   MTLShaderInterface(const char *name);
-  ~MTLShaderInterface();
+  ~MTLShaderInterface() override;
 
   void init();
   void add_input_attribute(uint32_t name_offset,

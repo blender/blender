@@ -53,18 +53,17 @@ ImageSpec = namedtuple(
 
 
 def find_image_sequences(files):
-    """From a group of files, detect image sequences.
+    # From a group of files, detect image sequences.
+    #
+    # This returns a generator of tuples, which contain the filename,
+    # start frame, and length of the detected sequence
+    #
+    # >>> list(find_image_sequences([
+    # ...     "test2-001.jp2", "test2-002.jp2",
+    # ...     "test3-003.jp2", "test3-004.jp2", "test3-005.jp2", "test3-006.jp2",
+    # ...     "blah"]))
+    # [("blah", 1, 1), ("test2-001.jp2", 1, 2), ("test3-003.jp2", 3, 4)]
 
-    This returns a generator of tuples, which contain the filename,
-    start frame, and length of the detected sequence
-
-    >>> list(find_image_sequences([
-    ...     "test2-001.jp2", "test2-002.jp2",
-    ...     "test3-003.jp2", "test3-004.jp2", "test3-005.jp2", "test3-006.jp2",
-    ...     "blah"]))
-    [("blah", 1, 1), ("test2-001.jp2", 1, 2), ("test3-003.jp2", 3, 4)]
-
-    """
     from itertools import count
     import re
     num_regex = re.compile("[0-9]")  # Find a single number.
@@ -123,11 +122,10 @@ def find_image_sequences(files):
 
 
 def load_images(filenames, directory, force_reload=False, frame_start=1, find_sequences=False):
-    """Wrapper for `bpy_extras.image_utils.load_image`.
+    # Wrapper for `bpy_extras.image_utils.load_image`.
 
-    Loads a set of images, movies, or even image sequences
-    Returns a generator of ImageSpec wrapper objects later used for texture setup
-    """
+    # Loads a set of images, movies, or even image sequences
+    # Returns a generator of ImageSpec wrapper objects later used for texture setup
     import os
     from itertools import repeat
     from bpy_extras.image_utils import load_image
@@ -163,14 +161,13 @@ def load_images(filenames, directory, force_reload=False, frame_start=1, find_se
 # Position & Size Helpers
 
 def offset_planes(planes, gap, axis):
-    """Offset planes from each other by `gap` amount along a _local_ vector `axis`
-
-    For example, offset_planes([obj1, obj2], 0.5, Vector(0, 0, 1)) will place
-    obj2 0.5 blender units away from obj1 along the local positive Z axis.
-
-    This is in local space, not world space, so all planes should share
-    a common scale and rotation.
-    """
+    # Offset planes from each other by `gap` amount along a _local_ vector `axis`
+    #
+    # For example, offset_planes([obj1, obj2], 0.5, Vector(0, 0, 1)) will place
+    # obj2 0.5 blender units away from obj1 along the local positive Z axis.
+    #
+    # This is in local space, not world space, so all planes should share
+    # a common scale and rotation.
     prior = planes[0]
     offset = Vector()
     for current in planes[1:]:
@@ -183,7 +180,7 @@ def offset_planes(planes, gap, axis):
 
 
 def compute_camera_size(context, center, fill_mode, aspect):
-    """Determine how large an object needs to be to fit or fill the camera's field of view."""
+    # Determine how large an object needs to be to fit or fill the camera's field of view.
     scene = context.scene
     camera = scene.camera
     view_frame = camera.data.view_frame(scene=scene)
@@ -218,7 +215,7 @@ def compute_camera_size(context, center, fill_mode, aspect):
 
 
 def center_in_camera(camera, ob, axis=(1, 1)):
-    """Center object along specified axis of the camera"""
+    # Center object along specified axis of the camera.
     camera_matrix_col = camera.matrix_world.col
     location = ob.location
 
@@ -483,7 +480,8 @@ def create_cycles_material(self, context, img_spec, name):
 
 
 def get_input_nodes(node, links):
-    """Get nodes that are a inputs to the given node"""
+    # Get nodes that are a inputs to the given node.
+
     # Get all links going to node.
     input_links = {lnk for lnk in links if lnk.to_node == node}
     # Sort those links, get their input nodes (and avoid doubles!).
@@ -505,7 +503,8 @@ def get_input_nodes(node, links):
 
 
 def auto_align_nodes(node_tree):
-    """Given a shader node tree, arrange nodes neatly relative to the output node."""
+    # Given a shader node tree, arrange nodes neatly relative to the output node.
+
     x_gap = 200
     y_gap = 180
     nodes = node_tree.nodes
@@ -532,10 +531,10 @@ def auto_align_nodes(node_tree):
 
 
 def clean_node_tree(node_tree):
-    """Clear all nodes in a shader node tree except the output.
+    # Clear all nodes in a shader node tree except the output.
+    #
+    # Returns the output node
 
-    Returns the output node
-    """
     nodes = node_tree.nodes
     for node in list(nodes):  # Copy to avoid altering the loop's data source.
         if not node.type == 'OUTPUT_MATERIAL':
@@ -545,7 +544,7 @@ def clean_node_tree(node_tree):
 
 
 def get_shadeless_node(dest_node_tree):
-    """Return a "shadeless" cycles/EEVEE node, creating a node group if nonexistent"""
+    # Return a "shadeless" cycles/EEVEE node, creating a node group if nonexistent.
 
     # WARNING: using a hard coded name isn't fool proof!
     # Users could have this name already in a node-tree (albeit unlikely).
@@ -742,7 +741,8 @@ class IMAGE_OT_import_as_mesh_planes(AddObjectHelper, ImportHelper, MaterialProp
     # -----------------
     # Properties - Size
     def update_size_mode(self, _context):
-        """If sizing relative to the camera, always face the camera"""
+        # If sizing relative to the camera, always face the camera.
+
         if self.size_mode == 'CAMERA':
             self.prev_align_axis = self.align_axis
             self.align_axis = 'CAM'
@@ -996,7 +996,8 @@ class IMAGE_OT_import_as_mesh_planes(AddObjectHelper, ImportHelper, MaterialProp
         return plane
 
     def compute_plane_size(self, context, img_spec):
-        """Given the image size in pixels and location, determine size of plane"""
+        # Given the image size in pixels and location, determine size of plane.
+
         px, py = img_spec.size
 
         # Can't load data.
@@ -1026,7 +1027,8 @@ class IMAGE_OT_import_as_mesh_planes(AddObjectHelper, ImportHelper, MaterialProp
         return x, y
 
     def align_plane(self, context, plane):
-        """Pick an axis and align the plane to it"""
+        # Pick an axis and align the plane to it.
+
         from math import pi
         if 'CAM' in self.align_axis:
             # Camera-aligned.

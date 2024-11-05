@@ -28,8 +28,6 @@ MTLImmediate::MTLImmediate(MTLContext *ctx)
   context_ = ctx;
 }
 
-MTLImmediate::~MTLImmediate() {}
-
 uchar *MTLImmediate::begin()
 {
   BLI_assert(!has_begun_);

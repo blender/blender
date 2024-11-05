@@ -669,7 +669,6 @@ static void curvemap_make_table(const CurveMapping *cumap, CurveMap *cuma)
   /* default rect also is table range */
   cuma->mintable = clipr->xmin;
   cuma->maxtable = clipr->xmax;
-  float table_range = cuma->maxtable - cuma->mintable;
   const int bezt_totpoint = max_ii(cuma->totpoint, 2);
 
   /* Rely on Blender interpolation for bezier curves, support extra functionality here as well. */
@@ -717,6 +716,7 @@ static void curvemap_make_table(const CurveMapping *cumap, CurveMap *cuma)
 
   BezTriple *bezt_post_ptr;
 
+  float table_range = cuma->maxtable - cuma->mintable;
   if (use_wrapping) {
     /* Handle location of pre and post points for wrapping curves. */
     bezt_pre.h1 = bezt_pre.h2 = bezt[bezt_totpoint - 1].h2;

@@ -2031,8 +2031,8 @@ static void rna_def_armature_collections(BlenderRNA *brna, PropertyRNA *cprop)
       "collections, which may not be in the order you expect. Root collections are listed first, "
       "and siblings are always sequential. Apart from that, bone collections can be in any order, "
       "and thus incrementing or decrementing this index can make the active bone collection jump "
-      "around in unexpected ways. For a more predictable interface, use `active` or "
-      "`active_name`.");
+      "around in unexpected ways. For a more predictable interface, use ``active`` or "
+      "``active_name``.");
   RNA_def_property_int_funcs(prop,
                              "rna_BoneCollections_active_index_get",
                              "rna_BoneCollections_active_index_set",

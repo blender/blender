@@ -247,7 +247,7 @@ PyDoc_STRVAR(
     pygpu_interface_info_smooth_doc,
     ".. method:: smooth(type, name)\n"
     "\n"
-    "   Add an attribute with qualifier of type `smooth` to the interface block.\n"
+    "   Add an attribute with qualifier of type *smooth* to the interface block.\n"
     "\n"
     "   :arg type: One of these types:\n"
     "\n" PYDOC_TYPE_LIST
@@ -273,7 +273,7 @@ PyDoc_STRVAR(
     pygpu_interface_info_flat_doc,
     ".. method:: flat(type, name)\n"
     "\n"
-    "   Add an attribute with qualifier of type `flat` to the interface block.\n"
+    "   Add an attribute with qualifier of type ``flat`` to the interface block.\n"
     "\n"
     "   :arg type: One of these types:\n"
     "\n" PYDOC_TYPE_LIST
@@ -299,7 +299,7 @@ PyDoc_STRVAR(
     pygpu_interface_info_no_perspective_doc,
     ".. method:: no_perspective(type, name)\n"
     "\n"
-    "   Add an attribute with qualifier of type `no_perspective` to the interface block.\n"
+    "   Add an attribute with qualifier of type ``no_perspective`` to the interface block.\n"
     "\n"
     "   :arg type: One of these types:\n"
     "\n" PYDOC_TYPE_LIST
@@ -638,12 +638,14 @@ PyDoc_STRVAR(
     pygpu_shader_info_uniform_buf_doc,
     ".. method:: uniform_buf(slot, type_name, name)\n"
     "\n"
-    "   Specify a uniform variable whose type can be one of those declared in `typedef_source`.\n"
+    "   Specify a uniform variable whose type can be one of those declared in "
+    ":meth:`gpu.types.GPUShaderCreateInfo.typedef_source`.\n"
     "\n"
     "   :arg slot: The uniform variable index.\n"
     "   :type slot: int\n"
-    "   :arg type_name: Name of the data type. It can be a struct type defined in the source "
-    "passed through the :meth:`gpu.types.GPUShaderCreateInfo.typedef_source`.\n"
+    "   :arg type_name: Name of the data type. "
+    "It can be a struct type defined in the source passed through the "
+    ":meth:`gpu.types.GPUShaderCreateInfo.typedef_source`.\n"
     "   :type type_name: str\n"
     "   :arg name: The uniform variable name.\n"
     "   :type name: str\n");
@@ -692,7 +694,7 @@ PyDoc_STRVAR(
     "read or written. Possible values are:\n"
     "" PYDOC_QUALIFIERS
     ""
-    "   :type qualifiers: set\n");
+    "   :type qualifiers: set[str]\n");
 static PyObject *pygpu_shader_info_image(BPyGPUShaderCreateInfo *self,
                                          PyObject *args,
                                          PyObject *kwds)
@@ -891,9 +893,8 @@ PyDoc_STRVAR(
     "   :type type: str\n"
     "   :arg name: Name of the constant.\n"
     "   :type name: str\n"
-    "   :arg size: If not zero, indicates that the constant is an array with the "
-    "specified size.\n"
-    "   :type size: uint\n");
+    "   :arg size: If not zero, indicates that the constant is an array with the specified size.\n"
+    "   :type size: int\n");
 static PyObject *pygpu_shader_info_push_constant(BPyGPUShaderCreateInfo *self,
                                                  PyObject *args,
                                                  PyObject *kwds)

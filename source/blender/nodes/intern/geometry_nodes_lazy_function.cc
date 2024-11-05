@@ -2700,8 +2700,7 @@ struct GeometryNodesLazyFunctionBuilder {
     for (const bNodeTreeInterfaceSocket *interface_input : interface_inputs) {
       const bke::bNodeSocketType *typeinfo = interface_input->socket_typeinfo();
       lf::GraphInputSocket &lf_socket = lf_graph.add_input(
-          *typeinfo->geometry_nodes_cpp_type,
-          interface_input->name ? interface_input->name : nullptr);
+          *typeinfo->geometry_nodes_cpp_type, interface_input->name ? interface_input->name : "");
       group_input_sockets_.append(&lf_socket);
     }
   }

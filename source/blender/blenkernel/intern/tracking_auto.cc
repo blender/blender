@@ -819,10 +819,11 @@ void BKE_autotrack_context_sync(AutoTrackContext *context)
   }
 }
 
-/* TODO(sergey): Find a way to avoid this, somehow making all needed logic in
- * #BKE_autotrack_context_sync(). */
 void BKE_autotrack_context_sync_user(AutoTrackContext *context, MovieClipUser *user)
 {
+  /* TODO(sergey): Find a way to avoid this function,
+   * somehow making all needed logic in #BKE_autotrack_context_sync(). */
+
   user->framenr = context->synchronized_scene_frame;
 }
 

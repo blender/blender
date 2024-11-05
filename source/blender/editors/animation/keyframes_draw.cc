@@ -30,6 +30,7 @@
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
 
+#include "ED_anim_api.hh"
 #include "ED_keyframes_draw.hh"
 #include "ED_keyframes_keylist.hh"
 
@@ -479,6 +480,9 @@ static void build_channel_keylist(ChannelListElement *elem, blender::float2 rang
       break;
     }
     case ChannelType::GREASE_PENCIL_DATA: {
+      if (elem->ac->datatype != ANIMCONT_GPENCIL && elem->adt) {
+        action_to_keylist(elem->adt, elem->adt->action, elem->keylist, elem->saction_flag, range);
+      }
       grease_pencil_data_block_to_keylist(
           elem->adt, elem->grease_pencil, elem->keylist, elem->saction_flag, false);
       break;
@@ -787,7 +791,8 @@ void ED_add_action_channel(ChannelDrawList *channel_list,
 }
 
 void ED_add_grease_pencil_datablock_channel(ChannelDrawList *channel_list,
-                                            bDopeSheet * /*ads*/,
+                                            bAnimContext *ac,
+                                            AnimData *adt,
                                             const GreasePencil *grease_pencil,
                                             const float ypos,
                                             const float yscale_fac,
@@ -798,7 +803,12 @@ void ED_add_grease_pencil_datablock_channel(ChannelDrawList *channel_list,
                                                            ypos,
                                                            yscale_fac,
                                                            eSAction_Flag(saction_flag));
+  /* GreasePencil properties can be animated via an Action, so the GP-related
+   * animation data is not limited to GP drawings. */
+  draw_elem->adt = adt;
+  draw_elem->act = adt ? adt->action : nullptr;
   draw_elem->grease_pencil = grease_pencil;
+  draw_elem->ac = ac;
 }
 
 void ED_add_grease_pencil_cels_channel(ChannelDrawList *channel_list,

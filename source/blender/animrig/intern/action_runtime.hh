@@ -37,7 +37,7 @@ class SlotRuntime {
 namespace internal {
 
 /**
- * Rebuild the SlotRuntime::users cache of all Slots in all Actions.
+ * Rebuild the #SlotRuntime::users cache of all Slots in all Action for a specific `bmain`.
  *
  * The reason that all slot users are re-cached at once is two-fold:
  *

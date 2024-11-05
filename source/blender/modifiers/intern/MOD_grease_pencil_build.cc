@@ -550,6 +550,7 @@ static void build_drawing(const GreasePencilBuildModifierData &mmd,
                           const int current_time,
                           const float scene_fps)
 {
+  modifier::greasepencil::ensure_no_bezier_curves(drawing);
   bke::CurvesGeometry &curves = drawing.strokes_for_write();
 
   if (curves.points_num() == 0) {
@@ -674,10 +675,22 @@ static void modify_geometry_set(ModifierData *md,
 
   threading::parallel_for_each(
       drawing_infos, [&](modifier::greasepencil::LayerDrawingInfo drawing_info) {
+        const bke::greasepencil::Layer &layer = *layers[drawing_info.layer_index];
         const bke::greasepencil::Drawing *prev_drawing = grease_pencil.get_drawing_at(
-            *layers[drawing_info.layer_index], eval_frame - 1);
-        build_drawing(
-            *mmd, *ctx->object, *drawing_info.drawing, prev_drawing, eval_frame, scene_fps);
+            layer, eval_frame - 1);
+
+        /* This will always return a valid start frame because we're iterating over the valid
+         * drawings on `eval_frame`. Each drawing will have a start frame. */
+        const int start_frame = *layer.start_frame_at(eval_frame);
+        BLI_assert(start_frame <= eval_frame);
+
+        const int relative_start_frame = eval_frame - start_frame;
+        build_drawing(*mmd,
+                      *ctx->object,
+                      *drawing_info.drawing,
+                      prev_drawing,
+                      relative_start_frame,
+                      scene_fps);
       });
 }
 
@@ -735,7 +748,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiItemR(layout, ptr, "object", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   if (uiLayout *panel = uiLayoutPanelProp(
-          C, layout, ptr, "open_frame_range_panel", "Effective Range"))
+          C, layout, ptr, "open_frame_range_panel", IFACE_("Effective Range")))
   {
     uiLayoutSetPropSep(panel, true);
     uiItemR(
@@ -748,7 +761,7 @@ static void panel_draw(const bContext *C, Panel *panel)
     uiItemR(col, ptr, "frame_end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
   }
 
-  if (uiLayout *panel = uiLayoutPanelProp(C, layout, ptr, "open_fading_panel", "Fading")) {
+  if (uiLayout *panel = uiLayoutPanelProp(C, layout, ptr, "open_fading_panel", IFACE_("Fading"))) {
     uiLayoutSetPropSep(panel, true);
     uiItemR(panel, ptr, "use_fading", UI_ITEM_NONE, IFACE_("Fade"), ICON_NONE);
 
@@ -772,7 +785,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   }
 
   if (uiLayout *influence_panel = uiLayoutPanelProp(
-          C, layout, ptr, "open_influence_panel", "Influence"))
+          C, layout, ptr, "open_influence_panel", IFACE_("Influence")))
   {
     modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
     modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);

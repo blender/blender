@@ -933,9 +933,6 @@ std::string get_tex_image_asset_filepath(Image *ima,
   return get_tex_image_asset_filepath(path, stage_path, export_params);
 }
 
-/* Return a USD asset path referencing the given texture file. The resulting path
- * may be absolute, relative to the USD file, or in a 'textures' directory
- * in the same directory as the USD file, depending on the export parameters. */
 std::string get_tex_image_asset_filepath(const std::string &path,
                                          const std::string &stage_path,
                                          const USDExportParams &export_params)

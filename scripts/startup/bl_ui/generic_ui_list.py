@@ -63,7 +63,7 @@ def draw_ui_list(
     :type menu_class_name: str
 
     :returns: The right side column.
-    :rtype: :class:`UILayout`.
+    :rtype: :class:`UILayout`
 
     Additional keyword arguments are passed to :class:`UIList.template_list`.
     """

@@ -9,6 +9,7 @@
 #pragma once
 
 #include "MEM_guardedalloc.h"
+
 #include "gpu_uniform_buffer_private.hh"
 
 #include "mtl_context.hh"
@@ -40,7 +41,7 @@ class MTLUniformBuf : public UniformBuf {
 
  public:
   MTLUniformBuf(size_t size, const char *name);
-  ~MTLUniformBuf();
+  ~MTLUniformBuf() override;
 
   void update(const void *data) override;
   void bind(int slot) override;

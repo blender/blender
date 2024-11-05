@@ -13,8 +13,7 @@
 
 #include "mtl_context.hh"
 
-namespace blender {
-namespace gpu {
+namespace blender::gpu {
 
 class MTLUniformBuf;
 class MTLVertBuf;
@@ -62,11 +61,11 @@ class MTLStorageBuf : public StorageBuf {
 
  public:
   MTLStorageBuf(size_t size, GPUUsageType usage, const char *name);
-  ~MTLStorageBuf();
+  ~MTLStorageBuf() override;
 
   MTLStorageBuf(MTLUniformBuf *uniform_buf, size_t size);
-  MTLStorageBuf(MTLVertBuf *uniform_buf, size_t size);
-  MTLStorageBuf(MTLIndexBuf *uniform_buf, size_t size);
+  MTLStorageBuf(MTLVertBuf *vert_buf, size_t size);
+  MTLStorageBuf(MTLIndexBuf *index_buf, size_t size);
   MTLStorageBuf(MTLTexture *texture, size_t size);
 
   void update(const void *data) override;
@@ -91,5 +90,4 @@ class MTLStorageBuf : public StorageBuf {
   MEM_CXX_CLASS_ALLOC_FUNCS("MTLStorageBuf");
 };
 
-}  // namespace gpu
-}  // namespace blender
+}  // namespace blender::gpu

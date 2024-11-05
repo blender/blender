@@ -148,7 +148,7 @@ def keymap_item_property_clean(value: Any) -> Any:
             # Convert to `dict` to de-duplicate.
             dict([(k, keymap_item_property_clean(v)) for k, v in value]).items(),
             # Ignore type checking, these are strings which we know can be sorted.
-            key=lambda item: item[0],  # type: ignore
+            key=lambda item: item[0],
         )
     return value
 
@@ -271,8 +271,7 @@ def main() -> None:
     relaxed = "--relaxed" in argv
 
     # NOTE(@ideasman42): Disable add-on items as they may cause differences in the key-map.
-    import addon_utils
-    addon_utils.disable_all()
+    __import__("addon_utils").disable_all()
 
     has_error = False
 

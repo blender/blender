@@ -102,6 +102,14 @@ void InstancesComponent::replace(Instances *instances, GeometryOwnershipType own
   ownership_ = ownership;
 }
 
+Instances *InstancesComponent::release()
+{
+  BLI_assert(this->is_mutable());
+  Instances *instance = instances_;
+  instances_ = nullptr;
+  return instance;
+}
+
 void InstancesComponent::count_memory(MemoryCounter &memory) const
 {
   if (instances_) {

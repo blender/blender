@@ -53,31 +53,31 @@ using blender::Array;
 
 #define BPY_PROPDEF_OPTIONS_DOC \
   "   :arg options: Enumerator in :ref:`rna_enum_property_flag_items`.\n" \
-  "   :type options: set\n"
+  "   :type options: set[str]\n"
 
 #define BPY_PROPDEF_OPTIONS_ENUM_DOC \
   "   :arg options: Enumerator in :ref:`rna_enum_property_flag_enum_items`.\n" \
-  "   :type options: set\n"
+  "   :type options: set[str]\n"
 
 #define BPY_PROPDEF_OPTIONS_OVERRIDE_DOC \
   "   :arg override: Enumerator in :ref:`rna_enum_property_override_flag_items`.\n" \
-  "   :type override: set\n"
+  "   :type override: set[str]\n"
 
 #define BPY_PROPDEF_OPTIONS_OVERRIDE_COLLECTION_DOC \
   "   :arg override: Enumerator in :ref:`rna_enum_property_override_flag_collection_items`.\n" \
-  "   :type override: set\n"
+  "   :type override: set[str]\n"
 
 #define BPY_PROPDEF_SUBTYPE_STRING_DOC \
   "   :arg subtype: Enumerator in :ref:`rna_enum_property_subtype_string_items`.\n" \
-  "   :type subtype: string\n"
+  "   :type subtype: str\n"
 
 #define BPY_PROPDEF_SUBTYPE_NUMBER_DOC \
   "   :arg subtype: Enumerator in :ref:`rna_enum_property_subtype_number_items`.\n" \
-  "   :type subtype: string\n"
+  "   :type subtype: str\n"
 
 #define BPY_PROPDEF_SUBTYPE_NUMBER_ARRAY_DOC \
   "   :arg subtype: Enumerator in :ref:`rna_enum_property_subtype_number_array_items`.\n" \
-  "   :type subtype: string\n"
+  "   :type subtype: str\n"
 
 /** \} */
 
@@ -2648,40 +2648,49 @@ static int bpy_prop_arg_parse_tag_defines(PyObject *o, void *p)
 
 #define BPY_PROPDEF_NAME_DOC \
   "   :arg name: Name used in the user interface.\n" \
-  "   :type name: string\n"
+  "   :type name: str\n"
 
 #define BPY_PROPDEF_DESC_DOC \
   "   :arg description: Text used for the tooltip and api documentation.\n" \
-  "   :type description: string\n"
+  "   :type description: str\n"
 
 #define BPY_PROPDEF_CTXT_DOC \
   "   :arg translation_context: Text used as context to disambiguate translations.\n" \
-  "   :type translation_context: string\n"
+  "   :type translation_context: str\n"
 
 #define BPY_PROPDEF_UNIT_DOC \
   "   :arg unit: Enumerator in :ref:`rna_enum_property_unit_items`.\n" \
-  "   :type unit: string\n"
+  "   :type unit: str\n"
 
-#define BPY_PROPDEF_NUM_MIN_DOC \
+#define BPY_PROPDEF_NUM_MIN_DOC_(ty) \
   "   :arg min: Hard minimum, trying to assign a value below will silently assign this minimum " \
-  "instead.\n"
+  "instead.\n" \
+  "   :type min: " ty "\n"
 
-#define BPY_PROPDEF_NUM_MAX_DOC \
+#define BPY_PROPDEF_NUM_MAX_DOC_(ty) \
   "   :arg max: Hard maximum, trying to assign a value above will silently assign this maximum " \
-  "instead.\n"
+  "instead.\n" \
+  "   :type max: " ty "\n"
 
-#define BPY_PROPDEF_NUM_SOFTMIN_DOC \
-  "   :arg soft_min: Soft minimum (>= *min*), user won't be able to drag the widget below this " \
-  "value in the UI.\n"
+#define BPY_PROPDEF_NUM_MINMAX_DOC(ty) BPY_PROPDEF_NUM_MIN_DOC_(ty) BPY_PROPDEF_NUM_MAX_DOC_(ty)
 
-#define BPY_PROPDEF_NUM_SOFTMAX_DOC \
-  "   :arg soft_max: Soft maximum (<= *max*), user won't be able to drag the widget above this " \
-  "value in the UI.\n"
+#define BPY_PROPDEF_NUM_SOFT_MIN_DOC_(ty) \
+  "   :arg soft_min: Soft minimum (>= *min*), " \
+  "user won't be able to drag the widget below this value in the UI.\n" \
+  "   :type soft_min: " ty "\n"
+
+#define BPY_PROPDEF_NUM_SOFT_MAX_DOC_(ty) \
+  "   :arg soft_max: Soft maximum (<= *max*), " \
+  "user won't be able to drag the widget above this value in the UI.\n" \
+  "   :type soft_max: " ty "\n"
+
+#define BPY_PROPDEF_NUM_SOFT_MINMAX_DOC(ty) \
+  BPY_PROPDEF_NUM_SOFT_MIN_DOC_(ty) BPY_PROPDEF_NUM_SOFT_MAX_DOC_(ty)
 
 #define BPY_PROPDEF_VECSIZE_DOC \
   "   :arg size: Vector dimensions in [1, " STRINGIFY(PYRNA_STACK_ARRAY) "]. " \
 "An int sequence can be used to define multi-dimension arrays.\n" \
-"   :type size: int or int sequence\n"
+"   :type size: int | Sequence[int]\n"
 
 #define BPY_PROPDEF_INT_STEP_DOC \
   "   :arg step: Step of increment/decrement in UI, in [1, 100], defaults to 1 (WARNING: unused " \
@@ -2703,23 +2712,25 @@ static int bpy_prop_arg_parse_tag_defines(PyObject *o, void *p)
   "   :arg update: Function to be called when this value is modified,\n" \
   "      This function must take 2 values (self, context) and return None.\n" \
   "      *Warning* there are no safety checks to avoid infinite recursion.\n" \
-  "   :type update: function\n"
+  "   :type update: Callable[[:class:`bpy.types.bpy_struct`, :class:`bpy.types.Context`], " \
+  "None]\n"
 
 #define BPY_PROPDEF_POLL_DOC \
   "   :arg poll: function to be called to determine whether an item is valid for this " \
   "property.\n" \
   "              The function must take 2 values (self, object) and return Bool.\n" \
-  "   :type poll: function\n"
+  "   :type poll: Callable[[:class:`bpy.types.bpy_struct`, :class:`bpy.types.bpy_struct`], " \
+  "bool]\n"
 
-#define BPY_PROPDEF_GET_DOC \
+#define BPY_PROPDEF_GET_DOC(ty) \
   "   :arg get: Function to be called when this value is 'read',\n" \
   "      This function must take 1 value (self) and return the value of the property.\n" \
-  "   :type get: function\n"
+  "   :type get: Callable[[:class:`bpy.types.bpy_struct`], " ty "]\n"
 
-#define BPY_PROPDEF_SET_DOC \
+#define BPY_PROPDEF_SET_DOC(ty) \
   "   :arg set: Function to be called when this value is 'written',\n" \
   "      This function must take 2 values (self, value) and return None.\n" \
-  "   :type set: function\n"
+  "   :type set: Callable[[:class:`bpy.types.bpy_struct`, " ty "], None]\n"
 
 #define BPY_PROPDEF_SEARCH_DOC \
   "   :arg search: Function to be called to show candidates for this string (shown in the UI).\n" \
@@ -2729,7 +2740,9 @@ static int bpy_prop_arg_parse_tag_defines(PyObject *o, void *p)
   "      - A single string (representing a candidate to display).\n" \
   "      - A tuple-pair of strings, where the first is a candidate and the second\n" \
   "        is additional information about the candidate.\n" \
-  "   :type search: function\n" \
+  "   :type search: Callable[[:class:`bpy.types.bpy_struct`, :class:`bpy.types.Context`, str], " \
+  "Iterable[str | tuple[str, str]]" \
+  "]\n" \
   "   :arg search_options: Set of strings in:\n" \
   "\n" \
   "      - 'SORT' sorts the resulting items.\n" \
@@ -2737,19 +2750,19 @@ static int bpy_prop_arg_parse_tag_defines(PyObject *o, void *p)
   "        **WARNING** disabling this flag causes the search callback to run on redraw,\n" \
   "        so only disable this flag if it's not likely to cause performance issues.\n" \
   "\n" \
-  "   :type search_options: set\n"
+  "   :type search_options: set[str]\n"
 
 #define BPY_PROPDEF_POINTER_TYPE_DOC \
-  "   :arg type: A subclass of :class:`bpy.types.PropertyGroup` or :class:`bpy.types.ID`.\n" \
-  "   :type type: class\n"
+  "   :arg type: A subclass of a property group or ID types.\n" \
+  "   :type type: :class:`bpy.types.PropertyGroup` | :class:`bpy.types.ID`\n"
 
 #define BPY_PROPDEF_COLLECTION_TYPE_DOC \
-  "   :arg type: A subclass of :class:`bpy.types.PropertyGroup`.\n" \
-  "   :type type: class\n"
+  "   :arg type: A subclass of a property group.\n" \
+  "   :type type: :class:`bpy.types.PropertyGroup`\n"
 
 #define BPY_PROPDEF_TAGS_DOC \
   "   :arg tags: Enumerator of tags that are defined by parent class.\n" \
-  "   :type tags: set\n"
+  "   :type tags: set[str]\n"
 
 #if 0
 static int bpy_struct_id_used(StructRNA *srna, char *identifier)
@@ -2775,7 +2788,9 @@ static int bpy_struct_id_used(StructRNA *srna, char *identifier)
 PyDoc_STRVAR(
     /* Wrap. */
     BPy_BoolProperty_doc,
-    ".. function:: BoolProperty(name=\"\", "
+    ".. function:: BoolProperty("
+    "*, "
+    "name=\"\", "
     "description=\"\", "
     "translation_context=\"*\", "
     "default=False, "
@@ -2790,7 +2805,7 @@ PyDoc_STRVAR(
     "   Returns a new boolean property definition.\n"
     "\n" BPY_PROPDEF_NAME_DOC BPY_PROPDEF_DESC_DOC BPY_PROPDEF_CTXT_DOC BPY_PROPDEF_OPTIONS_DOC
         BPY_PROPDEF_OPTIONS_OVERRIDE_DOC BPY_PROPDEF_TAGS_DOC BPY_PROPDEF_SUBTYPE_NUMBER_DOC
-            BPY_PROPDEF_UPDATE_DOC BPY_PROPDEF_GET_DOC BPY_PROPDEF_SET_DOC);
+            BPY_PROPDEF_UPDATE_DOC BPY_PROPDEF_GET_DOC("bool") BPY_PROPDEF_SET_DOC("bool"));
 static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
   StructRNA *srna;
@@ -2927,7 +2942,9 @@ static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 PyDoc_STRVAR(
     /* Wrap. */
     BPy_BoolVectorProperty_doc,
-    ".. function:: BoolVectorProperty(name=\"\", "
+    ".. function:: BoolVectorProperty("
+    "*, "
+    "name=\"\", "
     "description=\"\", "
     "translation_context=\"*\", "
     "default=(False, False, False), "
@@ -2943,9 +2960,10 @@ PyDoc_STRVAR(
     "   Returns a new vector boolean property definition.\n"
     "\n" BPY_PROPDEF_NAME_DOC BPY_PROPDEF_DESC_DOC BPY_PROPDEF_CTXT_DOC
     "   :arg default: sequence of booleans the length of *size*.\n"
-    "   :type default: sequence\n" BPY_PROPDEF_OPTIONS_DOC BPY_PROPDEF_OPTIONS_OVERRIDE_DOC
+    "   :type default: Sequence[bool]\n" BPY_PROPDEF_OPTIONS_DOC BPY_PROPDEF_OPTIONS_OVERRIDE_DOC
         BPY_PROPDEF_TAGS_DOC BPY_PROPDEF_SUBTYPE_NUMBER_ARRAY_DOC BPY_PROPDEF_VECSIZE_DOC
-            BPY_PROPDEF_UPDATE_DOC BPY_PROPDEF_GET_DOC BPY_PROPDEF_SET_DOC);
+            BPY_PROPDEF_UPDATE_DOC BPY_PROPDEF_GET_DOC("Sequence[bool]")
+                BPY_PROPDEF_SET_DOC("tuple[bool]"));
 static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
   StructRNA *srna;
@@ -3115,7 +3133,9 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
 PyDoc_STRVAR(
     /* Wrap. */
     BPy_IntProperty_doc,
-    ".. function:: IntProperty(name=\"\", "
+    ".. function:: IntProperty("
+    "*, "
+    "name=\"\", "
     "description=\"\", "
     "translation_context=\"*\", "
     "default=0, "
@@ -3131,12 +3151,11 @@ PyDoc_STRVAR(
     "set=None)\n"
     "\n"
     "   Returns a new int property definition.\n"
-    "\n" BPY_PROPDEF_NAME_DOC BPY_PROPDEF_DESC_DOC BPY_PROPDEF_CTXT_DOC BPY_PROPDEF_NUM_MIN_DOC
-    "   :type min: int\n" BPY_PROPDEF_NUM_MAX_DOC "   :type max: int\n" BPY_PROPDEF_NUM_SOFTMAX_DOC
-    "   :type soft_min: int\n" BPY_PROPDEF_NUM_SOFTMIN_DOC
-    "   :type soft_max: int\n" BPY_PROPDEF_INT_STEP_DOC BPY_PROPDEF_OPTIONS_DOC
-        BPY_PROPDEF_OPTIONS_OVERRIDE_DOC BPY_PROPDEF_TAGS_DOC BPY_PROPDEF_SUBTYPE_NUMBER_DOC
-            BPY_PROPDEF_UPDATE_DOC BPY_PROPDEF_GET_DOC BPY_PROPDEF_SET_DOC);
+    "\n" BPY_PROPDEF_NAME_DOC BPY_PROPDEF_DESC_DOC BPY_PROPDEF_CTXT_DOC
+        BPY_PROPDEF_NUM_MINMAX_DOC("int") BPY_PROPDEF_NUM_SOFT_MINMAX_DOC("int")
+            BPY_PROPDEF_INT_STEP_DOC BPY_PROPDEF_OPTIONS_DOC BPY_PROPDEF_OPTIONS_OVERRIDE_DOC
+                BPY_PROPDEF_TAGS_DOC BPY_PROPDEF_SUBTYPE_NUMBER_DOC BPY_PROPDEF_UPDATE_DOC
+                    BPY_PROPDEF_GET_DOC("int") BPY_PROPDEF_SET_DOC("int"));
 static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
   StructRNA *srna;
@@ -3292,7 +3311,9 @@ static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 PyDoc_STRVAR(
     /* Wrap. */
     BPy_IntVectorProperty_doc,
-    ".. function:: IntVectorProperty(name=\"\", "
+    ".. function:: IntVectorProperty("
+    "*, "
+    "name=\"\", "
     "description=\"\", "
     "translation_context=\"*\", "
     "default=(0, 0, 0), min=-2**31, max=2**31-1, "
@@ -3311,13 +3332,12 @@ PyDoc_STRVAR(
     "   Returns a new vector int property definition.\n"
     "\n" BPY_PROPDEF_NAME_DOC BPY_PROPDEF_DESC_DOC BPY_PROPDEF_CTXT_DOC
     "   :arg default: sequence of ints the length of *size*.\n"
-    "   :type default: sequence\n" BPY_PROPDEF_NUM_MIN_DOC
-    "   :type min: int\n" BPY_PROPDEF_NUM_MAX_DOC "   :type max: int\n" BPY_PROPDEF_NUM_SOFTMIN_DOC
-    "   :type soft_min: int\n" BPY_PROPDEF_NUM_SOFTMAX_DOC
-    "   :type soft_max: int\n" BPY_PROPDEF_INT_STEP_DOC BPY_PROPDEF_OPTIONS_DOC
-        BPY_PROPDEF_OPTIONS_OVERRIDE_DOC BPY_PROPDEF_TAGS_DOC BPY_PROPDEF_SUBTYPE_NUMBER_ARRAY_DOC
-            BPY_PROPDEF_VECSIZE_DOC BPY_PROPDEF_UPDATE_DOC BPY_PROPDEF_GET_DOC
-                BPY_PROPDEF_SET_DOC);
+    "   :type default: Sequence[int]\n" BPY_PROPDEF_NUM_MINMAX_DOC("int")
+        BPY_PROPDEF_NUM_SOFT_MINMAX_DOC("int")
+            BPY_PROPDEF_INT_STEP_DOC BPY_PROPDEF_OPTIONS_DOC BPY_PROPDEF_OPTIONS_OVERRIDE_DOC
+                BPY_PROPDEF_TAGS_DOC BPY_PROPDEF_SUBTYPE_NUMBER_ARRAY_DOC BPY_PROPDEF_VECSIZE_DOC
+                    BPY_PROPDEF_UPDATE_DOC BPY_PROPDEF_GET_DOC("Sequence[int]")
+                        BPY_PROPDEF_SET_DOC("tuple[int]"));
 static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
   StructRNA *srna;
@@ -3492,7 +3512,9 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
 PyDoc_STRVAR(
     /* Wrap. */
     BPy_FloatProperty_doc,
-    ".. function:: FloatProperty(name=\"\", "
+    ".. function:: FloatProperty("
+    "*, "
+    "name=\"\", "
     "description=\"\", "
     "translation_context=\"*\", "
     "default=0.0, "
@@ -3510,14 +3532,12 @@ PyDoc_STRVAR(
     "set=None)\n"
     "\n"
     "   Returns a new float (single precision) property definition.\n"
-    "\n" BPY_PROPDEF_NAME_DOC BPY_PROPDEF_DESC_DOC BPY_PROPDEF_CTXT_DOC BPY_PROPDEF_NUM_MIN_DOC
-    "   :type min: float\n" BPY_PROPDEF_NUM_MAX_DOC
-    "   :type max: float\n" BPY_PROPDEF_NUM_SOFTMIN_DOC
-    "   :type soft_min: float\n" BPY_PROPDEF_NUM_SOFTMAX_DOC
-    "   :type soft_max: float\n" BPY_PROPDEF_FLOAT_STEP_DOC BPY_PROPDEF_FLOAT_PREC_DOC
-        BPY_PROPDEF_OPTIONS_DOC BPY_PROPDEF_OPTIONS_OVERRIDE_DOC BPY_PROPDEF_TAGS_DOC
-            BPY_PROPDEF_SUBTYPE_NUMBER_DOC BPY_PROPDEF_UNIT_DOC BPY_PROPDEF_UPDATE_DOC
-                BPY_PROPDEF_GET_DOC BPY_PROPDEF_SET_DOC);
+    "\n" BPY_PROPDEF_NAME_DOC BPY_PROPDEF_DESC_DOC BPY_PROPDEF_CTXT_DOC BPY_PROPDEF_NUM_MINMAX_DOC(
+        "float") BPY_PROPDEF_NUM_SOFT_MINMAX_DOC("float")
+        BPY_PROPDEF_FLOAT_STEP_DOC BPY_PROPDEF_FLOAT_PREC_DOC BPY_PROPDEF_OPTIONS_DOC
+            BPY_PROPDEF_OPTIONS_OVERRIDE_DOC BPY_PROPDEF_TAGS_DOC BPY_PROPDEF_SUBTYPE_NUMBER_DOC
+                BPY_PROPDEF_UNIT_DOC BPY_PROPDEF_UPDATE_DOC BPY_PROPDEF_GET_DOC("float")
+                    BPY_PROPDEF_SET_DOC("float"));
 static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
   StructRNA *srna;
@@ -3671,7 +3691,9 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 PyDoc_STRVAR(
     /* Wrap. */
     BPy_FloatVectorProperty_doc,
-    ".. function:: FloatVectorProperty(name=\"\", "
+    ".. function:: FloatVectorProperty("
+    "*, "
+    "name=\"\", "
     "description=\"\", "
     "translation_context=\"*\", "
     "default=(0.0, 0.0, 0.0), "
@@ -3691,15 +3713,14 @@ PyDoc_STRVAR(
     "\n"
     "   Returns a new vector float property definition.\n"
     "\n" BPY_PROPDEF_NAME_DOC BPY_PROPDEF_DESC_DOC BPY_PROPDEF_CTXT_DOC
-    "   :arg default: sequence of floats the length of *size*.\n"
-    "   :type default: sequence\n" BPY_PROPDEF_NUM_MIN_DOC
-    "   :type min: float\n" BPY_PROPDEF_NUM_MAX_DOC
-    "   :type max: float\n" BPY_PROPDEF_NUM_SOFTMIN_DOC
-    "   :type soft_min: float\n" BPY_PROPDEF_NUM_SOFTMAX_DOC
-    "   :type soft_max: float\n" BPY_PROPDEF_OPTIONS_DOC BPY_PROPDEF_OPTIONS_OVERRIDE_DOC
-        BPY_PROPDEF_TAGS_DOC BPY_PROPDEF_FLOAT_STEP_DOC BPY_PROPDEF_FLOAT_PREC_DOC
-            BPY_PROPDEF_SUBTYPE_NUMBER_ARRAY_DOC BPY_PROPDEF_UNIT_DOC BPY_PROPDEF_VECSIZE_DOC
-                BPY_PROPDEF_UPDATE_DOC BPY_PROPDEF_GET_DOC BPY_PROPDEF_SET_DOC);
+    "   :arg default: Sequence of floats the length of *size*.\n"
+    "   :type default: Sequence[float]\n" BPY_PROPDEF_NUM_MINMAX_DOC(
+        "float") BPY_PROPDEF_NUM_SOFT_MINMAX_DOC("float")
+        BPY_PROPDEF_OPTIONS_DOC BPY_PROPDEF_OPTIONS_OVERRIDE_DOC BPY_PROPDEF_TAGS_DOC
+            BPY_PROPDEF_FLOAT_STEP_DOC BPY_PROPDEF_FLOAT_PREC_DOC
+                BPY_PROPDEF_SUBTYPE_NUMBER_ARRAY_DOC BPY_PROPDEF_UNIT_DOC BPY_PROPDEF_VECSIZE_DOC
+                    BPY_PROPDEF_UPDATE_DOC BPY_PROPDEF_GET_DOC("Sequence[float]")
+                        BPY_PROPDEF_SET_DOC("tuple[float]"));
 static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
   StructRNA *srna;
@@ -3889,7 +3910,9 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
 PyDoc_STRVAR(
     /* Wrap. */
     BPy_StringProperty_doc,
-    ".. function:: StringProperty(name=\"\", "
+    ".. function:: StringProperty("
+    "*, "
+    "name=\"\", "
     "description=\"\", "
     "translation_context=\"*\", "
     "default=\"\", "
@@ -3907,11 +3930,11 @@ PyDoc_STRVAR(
     "   Returns a new string property definition.\n"
     "\n" BPY_PROPDEF_NAME_DOC BPY_PROPDEF_DESC_DOC BPY_PROPDEF_CTXT_DOC
     "   :arg default: initializer string.\n"
-    "   :type default: string\n"
+    "   :type default: str\n"
     "   :arg maxlen: maximum length of the string.\n"
     "   :type maxlen: int\n" BPY_PROPDEF_OPTIONS_DOC BPY_PROPDEF_OPTIONS_OVERRIDE_DOC
         BPY_PROPDEF_TAGS_DOC BPY_PROPDEF_SUBTYPE_STRING_DOC BPY_PROPDEF_UPDATE_DOC
-            BPY_PROPDEF_GET_DOC BPY_PROPDEF_SET_DOC BPY_PROPDEF_SEARCH_DOC);
+            BPY_PROPDEF_GET_DOC("str") BPY_PROPDEF_SET_DOC("str") BPY_PROPDEF_SEARCH_DOC);
 static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
   StructRNA *srna;
@@ -4072,7 +4095,9 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
 PyDoc_STRVAR(
     /* Wrap. */
     BPy_EnumProperty_doc,
-    ".. function:: EnumProperty(items, "
+    ".. function:: EnumProperty("
+    "items, "
+    "*, "
     "name=\"\", "
     "description=\"\", "
     "translation_context=\"*\", "
@@ -4115,17 +4140,28 @@ PyDoc_STRVAR(
     "         Python must keep a reference to the strings returned by the callback or Blender\n"
     "         will misbehave or even crash."
     "\n"
-    "   :type items: sequence of string tuples or a function\n" BPY_PROPDEF_NAME_DOC
-        BPY_PROPDEF_DESC_DOC BPY_PROPDEF_CTXT_DOC
+    "   :type items: Sequence["
+    "tuple[str, str, str] | "
+    "tuple[str, str, str, int] | "
+    "tuple[str, str, str, int, int] | "
+    "None] | "
+    "Callable[[:class:`bpy.types.bpy_struct`, :class:`bpy.types.Context` | None], "
+    /* NOTE(@ideasman42): a type alias would be useful here (same as above). */
+    "Sequence["
+    "tuple[str, str, str] | "
+    "tuple[str, str, str, int] | "
+    "tuple[str, str, str, int, int] | "
+    "None]"
+    "]\n" BPY_PROPDEF_NAME_DOC BPY_PROPDEF_DESC_DOC BPY_PROPDEF_CTXT_DOC
     "   :arg default: The default value for this enum, a string from the identifiers used in "
     "*items*, or integer matching an item number.\n"
     "      If the *ENUM_FLAG* option is used this must be a set of such string identifiers "
     "instead.\n"
     "      WARNING: Strings cannot be specified for dynamic enums\n"
     "      (i.e. if a callback function is given as *items* parameter).\n"
-    "   :type default: string, integer or set\n" BPY_PROPDEF_OPTIONS_ENUM_DOC
+    "   :type default: str | int | set[str]\n" BPY_PROPDEF_OPTIONS_ENUM_DOC
         BPY_PROPDEF_OPTIONS_OVERRIDE_DOC BPY_PROPDEF_TAGS_DOC BPY_PROPDEF_UPDATE_DOC
-            BPY_PROPDEF_GET_DOC BPY_PROPDEF_SET_DOC);
+            BPY_PROPDEF_GET_DOC("int") BPY_PROPDEF_SET_DOC("int"));
 static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
   StructRNA *srna;
@@ -4349,7 +4385,9 @@ StructRNA *pointer_type_from_py(PyObject *value, const char *error_prefix)
 PyDoc_STRVAR(
     /* Wrap. */
     BPy_PointerProperty_doc,
-    ".. function:: PointerProperty(type=None, "
+    ".. function:: PointerProperty("
+    "type=None, "
+    "*, "
     "name=\"\", "
     "description=\"\", "
     "translation_context=\"*\", "
@@ -4500,7 +4538,9 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
 PyDoc_STRVAR(
     /* Wrap. */
     BPy_CollectionProperty_doc,
-    ".. function:: CollectionProperty(type=None, "
+    ".. function:: CollectionProperty("
+    "type=None, "
+    "*, "
     "name=\"\", "
     "description=\"\", "
     "translation_context=\"*\", "
@@ -4640,7 +4680,7 @@ PyDoc_STRVAR(
     "   :arg cls: The class containing the property (must be a positional argument).\n"
     "   :type cls: type\n"
     "   :arg attr: Property name (must be passed as a keyword).\n"
-    "   :type attr: string\n"
+    "   :type attr: str\n"
     "\n"
     ".. note:: Typically this function doesn't need to be accessed directly.\n"
     "   Instead use ``del cls.attr``\n");

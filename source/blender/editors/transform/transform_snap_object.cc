@@ -845,12 +845,13 @@ static eSnapMode snap_edge_points(SnapObjectContext *sctx, const float dist_px_s
       sctx, sctx->ret.ob, sctx->ret.data, sctx->ret.obmat, dist_px_sq_orig, sctx->ret.index);
 }
 
-/* May extend later (for now just snaps to empty or camera center). */
 eSnapMode snap_object_center(SnapObjectContext *sctx,
                              const Object *ob_eval,
                              const float4x4 &obmat,
                              eSnapMode snap_to_flag)
 {
+  /* May extend later (for now just snaps to empty or camera center). */
+
   if (ob_eval->transflag & OB_DUPLI) {
     return SCE_SNAP_TO_NONE;
   }
@@ -923,7 +924,6 @@ static eSnapMode snap_obj_fn(SnapObjectContext *sctx,
       break;
     case OB_FONT:
     case OB_EMPTY:
-    case OB_GPENCIL_LEGACY:
     case OB_LAMP:
       retval = snap_object_center(sctx, ob_eval, obmat, sctx->runtime.snap_to_flag);
       break;

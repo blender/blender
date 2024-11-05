@@ -489,10 +489,8 @@ bool MTLCommandBufferManager::do_break_submission()
     return ((current_draw_call_count_ > 30000) || (vertex_submitted_count_ > 100000000) ||
             (encoder_count_ > 25));
   }
-  else {
-    /* Apple Silicon is less efficient if splitting submissions. */
-    return false;
-  }
+  /* Apple Silicon is less efficient if splitting submissions. */
+  return false;
 }
 
 /** \} */
@@ -516,7 +514,7 @@ void MTLCommandBufferManager::push_debug_group(const char *name, int /*index*/)
       end_active_command_encoder();
     }
 
-    debug_group_stack.push_back(std::string(name));
+    debug_group_stack.emplace_back(name);
   }
 }
 
@@ -540,12 +538,12 @@ void MTLCommandBufferManager::pop_debug_group()
 #endif
 
     /* If we have pending debug groups, first pop the last pending one. */
-    if (debug_group_stack.size() > 0) {
+    if (!debug_group_stack.empty()) {
       debug_group_stack.pop_back();
     }
     else {
       /* Otherwise, close last active pushed group. */
-      if (debug_group_pushed_stack.size() > 0) {
+      if (!debug_group_pushed_stack.empty()) {
         debug_group_pushed_stack.pop_back();
 
         if (debug_group_pushed_stack.size() < uint(METAL_DEBUG_CAPTURE_MAX_NESTED_GROUPS)) {
@@ -595,10 +593,8 @@ bool MTLCommandBufferManager::insert_memory_barrier(eGPUBarrier barrier_bits,
       end_active_command_encoder();
       return true;
     }
-    else {
-      /* Skip all barriers for compute and blit passes as Metal will resolve these dependencies. */
-      return false;
-    }
+    /* Skip all barriers for compute and blit passes as Metal will resolve these dependencies. */
+    return false;
   }
 
   /* Resolve scope. */

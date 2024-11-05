@@ -68,7 +68,7 @@ bool BKE_gpencil_free_strokes(struct bGPDframe *gpf);
 void BKE_gpencil_free_frames(struct bGPDlayer *gpl);
 /** Free all of the gp-layers for a viewport (list should be `&gpd->layers` or so). */
 void BKE_gpencil_free_layers(struct ListBase *list);
-/** Free all of the palettes (list should be `&gpd->palettes` or so). */
+/** Free all of the palettes & colors (list should be `&gpd->palettes` or so). */
 void BKE_gpencil_free_legacy_palette_data(struct ListBase *list);
 /** Free (or release) any data used by this grease pencil (does not free the gpencil itself). */
 void BKE_gpencil_free_data(struct bGPdata *gpd, bool free_all);
@@ -79,9 +79,6 @@ void BKE_gpencil_free_layer_masks(struct bGPDlayer *gpl);
  * \param gpd: Grease pencil data-block.
  */
 void BKE_gpencil_tag(struct bGPdata *gpd);
-
-void BKE_gpencil_batch_cache_dirty_tag(struct bGPdata *gpd);
-void BKE_gpencil_batch_cache_free(struct bGPdata *gpd);
 
 /**
  * Add a new gp-frame to the given layer.
@@ -151,28 +148,6 @@ struct bGPDstroke *BKE_gpencil_stroke_duplicate(struct bGPDstroke *gps_src,
 struct bGPdata *BKE_gpencil_data_duplicate(struct Main *bmain,
                                            const struct bGPdata *gpd,
                                            bool internal_copy);
-
-/**
- * Create a new stroke, with pre-allocated data buffers.
- * \param mat_idx: Index of the material
- * \param totpoints: Total points
- * \param thickness: Stroke thickness
- * \return Pointer to new stroke
- */
-struct bGPDstroke *BKE_gpencil_stroke_new(int mat_idx, int totpoints, short thickness);
-/**
- * Create a new stroke and add to frame.
- * \param gpf: Grease pencil frame
- * \param mat_idx: Material index
- * \param totpoints: Total points
- * \param thickness: Stroke thickness
- * \param insert_at_head: Add to the head of the strokes list
- * \return Pointer to new stroke
- */
-struct bGPDstroke *BKE_gpencil_stroke_add(
-    struct bGPDframe *gpf, int mat_idx, int totpoints, short thickness, bool insert_at_head);
-
-struct bGPDcurve *BKE_gpencil_stroke_editcurve_new(int tot_curve_points);
 
 /* Stroke and Fill - Alpha Visibility Threshold */
 #define GPENCIL_ALPHA_OPACITY_THRESH 0.001f
@@ -285,10 +260,6 @@ void BKE_gpencil_layer_mask_sort_all(struct bGPdata *gpd);
  * Make a copy of a given gpencil mask layers.
  */
 void BKE_gpencil_layer_mask_copy(const struct bGPDlayer *gpl_src, struct bGPDlayer *gpl_dst);
-/**
- * Clean any invalid mask layer.
- */
-void BKE_gpencil_layer_mask_cleanup(struct bGPdata *gpd, struct bGPDlayer *gpl);
 
 /**
  * Sort grease pencil frames.
@@ -314,50 +285,11 @@ void BKE_gpencil_brush_material_set(struct Brush *brush, struct Material *materi
 void BKE_gpencil_stroke_weights_duplicate(struct bGPDstroke *gps_src, struct bGPDstroke *gps_dst);
 
 /**
- * Get range of selected frames in layer.
- * Always the active frame is considered as selected, so if no more selected the range
- * will be equal to the current active frame.
- * \param gpl: Layer.
- * \param r_initframe: Number of first selected frame.
- * \param r_endframe: Number of last selected frame.
- */
-void BKE_gpencil_frame_range_selected(struct bGPDlayer *gpl, int *r_initframe, int *r_endframe);
-/**
- * Get Falloff factor base on frame range
- * \param gpf: Frame.
- * \param actnum: Number of active frame in layer.
- * \param f_init: Number of first selected frame.
- * \param f_end: Number of last selected frame.
- * \param cur_falloff: Curve with falloff factors.
- */
-float BKE_gpencil_multiframe_falloff_calc(
-    struct bGPDframe *gpf, int actnum, int f_init, int f_end, struct CurveMapping *cur_falloff);
-
-/**
  * Create a default palette.
  * \param bmain: Main pointer
  * \param scene: Scene
  */
 void BKE_gpencil_palette_ensure(struct Main *bmain, struct Scene *scene);
-/* Iterators */
-/**
- * Frame & stroke are NULL if it is a layer callback.
- */
-typedef void (*gpIterCb)(struct bGPDlayer *layer,
-                         struct bGPDframe *frame,
-                         struct bGPDstroke *stroke,
-                         void *thunk);
-
-void BKE_gpencil_visible_stroke_advanced_iter(struct ViewLayer *view_layer,
-                                              struct Object *ob,
-                                              gpIterCb layer_cb,
-                                              gpIterCb stroke_cb,
-                                              void *thunk,
-                                              bool do_onion,
-                                              int cfra);
-
-extern void (*BKE_gpencil_batch_cache_dirty_tag_cb)(struct bGPdata *gpd);
-extern void (*BKE_gpencil_batch_cache_free_cb)(struct bGPdata *gpd);
 
 /**
  * Update original pointers in evaluated frame.
@@ -388,33 +320,6 @@ void BKE_gpencil_update_orig_pointers(const struct Object *ob_orig, const struct
  */
 void BKE_gpencil_data_update_orig_pointers(const struct bGPdata *gpd_orig,
                                            const struct bGPdata *gpd_eval);
-
-/**
- * Get parent matrix, including layer parenting.
- * \param depsgraph: Depsgraph
- * \param obact: Grease pencil object
- * \param gpl: Grease pencil layer
- * \param diff_mat: Result parent matrix
- */
-void BKE_gpencil_layer_transform_matrix_get(const struct Depsgraph *depsgraph,
-                                            struct Object *obact,
-                                            struct bGPDlayer *gpl,
-                                            float diff_mat[4][4]);
-
-/**
- * Update parent matrix and local transforms.
- * \param depsgraph: Depsgraph
- * \param ob: Grease pencil object
- */
-void BKE_gpencil_update_layer_transforms(const struct Depsgraph *depsgraph, struct Object *ob);
-
-/**
- * Find material by name prefix.
- * \param ob: Object pointer
- * \param name_prefix: Prefix name of the material
- * \return  Index
- */
-int BKE_gpencil_material_find_index_by_name_prefix(struct Object *ob, const char *name_prefix);
 
 void BKE_gpencil_blend_read_data(struct BlendDataReader *reader, struct bGPdata *gpd);
 

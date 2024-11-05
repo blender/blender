@@ -295,7 +295,7 @@ PyDoc_STRVAR(
     pygpu_texture_width_doc,
     "Width of the texture.\n"
     "\n"
-    ":type: `int`");
+    ":type: int");
 static PyObject *pygpu_texture_width_get(BPyGPUTexture *self, void * /*type*/)
 {
   BPYGPU_TEXTURE_CHECK_OBJ(self);
@@ -307,7 +307,7 @@ PyDoc_STRVAR(
     pygpu_texture_height_doc,
     "Height of the texture.\n"
     "\n"
-    ":type: `int`");
+    ":type: int");
 static PyObject *pygpu_texture_height_get(BPyGPUTexture *self, void * /*type*/)
 {
   BPYGPU_TEXTURE_CHECK_OBJ(self);
@@ -319,7 +319,7 @@ PyDoc_STRVAR(
     pygpu_texture_format_doc,
     "Format of the texture.\n"
     "\n"
-    ":type: `str`");
+    ":type: str");
 static PyObject *pygpu_texture_format_get(BPyGPUTexture *self, void * /*type*/)
 {
   BPYGPU_TEXTURE_CHECK_OBJ(self);
@@ -337,8 +337,8 @@ PyDoc_STRVAR(
     "   :arg format: The format that describes the content of a single item.\n"
     "      Possible values are `FLOAT`, `INT`, `UINT`, `UBYTE`, `UINT_24_8` and `10_11_11_REV`.\n"
     "   :type format: str\n"
-    "   :arg value: sequence each representing the value to fill.\n"
-    "   :type value: sequence of 1, 2, 3 or 4 values\n");
+    "   :arg value: Sequence each representing the value to fill. Sizes 1..4 are supported.\n"
+    "   :type value: Sequence[float]\n");
 static PyObject *pygpu_texture_clear(BPyGPUTexture *self, PyObject *args, PyObject *kwds)
 {
   BPYGPU_TEXTURE_CHECK_OBJ(self);
@@ -540,7 +540,7 @@ PyDoc_STRVAR(
     "   This object gives access to off GPU textures.\n"
     "\n"
     "   :arg size: Dimensions of the texture 1D, 2D, 3D or cubemap.\n"
-    "   :type size: tuple or int\n"
+    "   :type size: int | Sequence[int]\n"
     "   :arg layers: Number of layers in texture array or number of cubemaps in cubemap array\n"
     "   :type layers: int\n"
     "   :arg is_cubemap: Indicates the creation of a cubemap texture.\n"

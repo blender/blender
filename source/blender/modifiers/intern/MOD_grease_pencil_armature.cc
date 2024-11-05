@@ -107,6 +107,7 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 static void modify_curves(ModifierData &md, const ModifierEvalContext &ctx, Drawing &drawing)
 {
   auto &amd = reinterpret_cast<GreasePencilArmatureModifierData &>(md);
+  modifier::greasepencil::ensure_no_bezier_curves(drawing);
   bke::CurvesGeometry &curves = drawing.strokes_for_write();
 
   /* The influence flag is where the "invert" flag is stored,

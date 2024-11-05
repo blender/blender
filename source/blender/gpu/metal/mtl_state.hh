@@ -100,7 +100,7 @@ class MTLFence : public Fence {
 
  public:
   MTLFence() : Fence(){};
-  ~MTLFence();
+  ~MTLFence() override;
 
   void signal() override;
   void wait() override;

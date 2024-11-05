@@ -379,6 +379,7 @@ static int grease_pencil_layer_group_add_exec(bContext *C, wmOperator *op)
   }
 
   MEM_SAFE_FREE(new_layer_group_name);
+  grease_pencil.set_active_node(&new_group.as_node());
 
   DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);

@@ -63,10 +63,10 @@ class ViewLayerFreestyleButtonsPanel:
         with_freestyle = bpy.app.build_options.freestyle
 
         return (
-            scene
-            and with_freestyle
-            and rd.use_freestyle
-            and (context.engine in cls.COMPAT_ENGINES)
+            scene and
+            with_freestyle and
+            rd.use_freestyle and
+            (context.engine in cls.COMPAT_ENGINES)
         )
 
 
@@ -79,9 +79,9 @@ class ViewLayerFreestyleEditorButtonsPanel(ViewLayerFreestyleButtonsPanel):
             return False
         view_layer = context.view_layer
         return (
-            view_layer
-            and view_layer.use_freestyle
-            and view_layer.freestyle_settings.mode == 'EDITOR'
+            view_layer and
+            view_layer.use_freestyle and
+            view_layer.freestyle_settings.mode == 'EDITOR'
         )
 
 
@@ -1284,11 +1284,11 @@ class MaterialFreestyleButtonsPanel:
         material = context.material
         with_freestyle = bpy.app.build_options.freestyle
         return (
-            with_freestyle
-            and material
-            and scene
-            and scene.render.use_freestyle
-            and (context.engine in cls.COMPAT_ENGINES)
+            with_freestyle and
+            material and
+            scene and
+            scene.render.use_freestyle and
+            (context.engine in cls.COMPAT_ENGINES)
         )
 
 

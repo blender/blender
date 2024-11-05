@@ -71,9 +71,6 @@ struct OVERLAY_PassList {
   DRWPass *clipping_frustum_ps;
   DRWPass *edit_curve_wire_ps[2];
   DRWPass *edit_curve_handle_ps;
-  DRWPass *edit_gpencil_ps;
-  DRWPass *edit_gpencil_gizmos_ps;
-  DRWPass *edit_gpencil_curve_ps;
   DRWPass *edit_grease_pencil_ps;
   DRWPass *edit_lattice_ps;
   DRWPass *edit_mesh_depth_ps[2];
@@ -102,7 +99,6 @@ struct OVERLAY_PassList {
   DRWPass *extra_blend_ps;
   DRWPass *extra_centers_ps;
   DRWPass *extra_grid_ps;
-  DRWPass *gpencil_canvas_ps;
   DRWPass *grease_pencil_canvas_ps;
   DRWPass *facing_ps[2];
   DRWPass *fade_ps[2];
@@ -606,11 +602,6 @@ void OVERLAY_edit_curve_cache_populate(OVERLAY_Data *vedata, Object *ob);
 void OVERLAY_edit_surf_cache_populate(OVERLAY_Data *vedata, Object *ob);
 void OVERLAY_edit_curve_draw(OVERLAY_Data *vedata);
 
-void OVERLAY_edit_gpencil_legacy_cache_init(OVERLAY_Data *vedata);
-void OVERLAY_gpencil_legacy_cache_init(OVERLAY_Data *vedata);
-void OVERLAY_gpencil_legacy_draw(OVERLAY_Data *vedata);
-void OVERLAY_edit_gpencil_legacy_draw(OVERLAY_Data *vedata);
-
 void OVERLAY_grease_pencil_cache_init(OVERLAY_Data *vedata);
 void OVERLAY_edit_grease_pencil_cache_init(OVERLAY_Data *vedata);
 void OVERLAY_edit_grease_pencil_cache_populate(OVERLAY_Data *vedata, Object *ob);
@@ -795,9 +786,6 @@ GPUShader *OVERLAY_shader_edit_curve_point();
 GPUShader *OVERLAY_shader_edit_curve_wire();
 GPUShader *OVERLAY_shader_edit_curves_handle();
 GPUShader *OVERLAY_shader_edit_curves_point();
-GPUShader *OVERLAY_shader_edit_gpencil_guide_point();
-GPUShader *OVERLAY_shader_edit_gpencil_point();
-GPUShader *OVERLAY_shader_edit_gpencil_wire();
 GPUShader *OVERLAY_shader_edit_lattice_point();
 GPUShader *OVERLAY_shader_edit_lattice_wire();
 GPUShader *OVERLAY_shader_edit_mesh_analysis();

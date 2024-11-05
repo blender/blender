@@ -24,10 +24,6 @@ bool outliner_shows_mode_column(const SpaceOutliner &space_outliner)
   return tree_display.supports_mode_column() && (space_outliner.flag & SO_MODE_COLUMN);
 }
 
-/**
- * Iterate over the entire tree (including collapsed sub-elements), probing if any of the elements
- * has a warning to be displayed.
- */
 bool outliner_has_element_warnings(const SpaceOutliner &space_outliner)
 {
   std::function<bool(const ListBase &)> recursive_fn;

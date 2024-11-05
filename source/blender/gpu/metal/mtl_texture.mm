@@ -323,7 +323,7 @@ void gpu::MTLTexture::blit(id<MTLBlitCommandEncoder> blit_encoder,
                            uint src_z_offset,
                            uint src_slice,
                            uint src_mip,
-                           gpu::MTLTexture *dest,
+                           gpu::MTLTexture *dst,
                            uint dst_x_offset,
                            uint dst_y_offset,
                            uint dst_z_offset,
@@ -334,13 +334,13 @@ void gpu::MTLTexture::blit(id<MTLBlitCommandEncoder> blit_encoder,
                            uint depth)
 {
 
-  BLI_assert(dest);
+  BLI_assert(dst);
   BLI_assert(width > 0 && height > 0 && depth > 0);
   MTLSize src_size = MTLSizeMake(width, height, depth);
   MTLOrigin src_origin = MTLOriginMake(src_x_offset, src_y_offset, src_z_offset);
   MTLOrigin dst_origin = MTLOriginMake(dst_x_offset, dst_y_offset, dst_z_offset);
 
-  if (this->format_get() != dest->format_get()) {
+  if (this->format_get() != dst->format_get()) {
     MTL_LOG_WARNING(
         "gpu::MTLTexture: Cannot copy between two textures of different types using a "
         "blit encoder. TODO: Support this operation");
@@ -354,7 +354,7 @@ void gpu::MTLTexture::blit(id<MTLBlitCommandEncoder> blit_encoder,
                     sourceLevel:src_mip
                    sourceOrigin:src_origin
                      sourceSize:src_size
-                      toTexture:dest->get_metal_handle_base()
+                      toTexture:dst->get_metal_handle_base()
                destinationSlice:dst_slice
                destinationLevel:dst_mip
               destinationOrigin:dst_origin];
@@ -1265,7 +1265,6 @@ void gpu::MTLTexture::generate_mipmap()
   }
 
   @autoreleasepool {
-
     /* Fetch active BlitCommandEncoder. */
     id<MTLBlitCommandEncoder> enc = ctx->main_command_buffer.ensure_begin_blit_encoder();
     if (G.debug & G_DEBUG_GPU) {
@@ -1274,7 +1273,6 @@ void gpu::MTLTexture::generate_mipmap()
     [enc generateMipmapsForTexture:texture_];
     has_generated_mips_ = true;
   }
-  return;
 }
 
 void gpu::MTLTexture::copy_to(Texture *dst)
@@ -2042,7 +2040,8 @@ bool gpu::MTLTexture::init_internal()
   this->prepare_internal();
   /* TODO(jbakker): Other limit checks should be added as well. When a texture violates a limit it
    * is not backed by a texture and will crash when used. */
-  if (type_ == GPU_TEXTURE_3D && d_ > GPU_max_texture_3d_size()) {
+  const int limit = GPU_max_texture_3d_size();
+  if ((type_ == GPU_TEXTURE_3D) && (w_ > limit || h_ > limit || d_ > limit)) {
     return false;
   }
   return true;

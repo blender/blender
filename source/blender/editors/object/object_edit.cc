@@ -1957,11 +1957,6 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
   eObjectMode mode = eObjectMode(RNA_enum_get(op->ptr, "mode"));
   const bool toggle = RNA_boolean_get(op->ptr, "toggle");
 
-  /* by default the operator assume is a mesh, but if gp object change mode */
-  if ((ob->type == OB_GPENCIL_LEGACY) && (mode == OB_MODE_EDIT)) {
-    mode = OB_MODE_EDIT_GPENCIL_LEGACY;
-  }
-
   if (!mode_compat_test(ob, mode)) {
     return OPERATOR_PASS_THROUGH;
   }

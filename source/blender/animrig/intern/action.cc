@@ -400,12 +400,13 @@ static void slot_name_ensure_unique(Action &action, Slot &slot)
   BLI_uniquename_cb(check_name_is_used, &check_data, "", '.', slot.name, sizeof(slot.name));
 }
 
-/* TODO: maybe this function should only set the 'name without prefix' aka the 'display name'. That
- * way only `this->id_type` is responsible for the prefix. I (Sybren) think that's easier to
- * determine when the code is a bit more mature, and we can see what the majority of the calls to
- * this function actually do/need. */
 void Action::slot_name_set(Main &bmain, Slot &slot, const StringRefNull new_name)
 {
+  /* TODO: maybe this function should only set the 'name without prefix' aka the 'display name'.
+   * That way only `this->id_type` is responsible for the prefix. I (Sybren) think that's easier to
+   * determine when the code is a bit more mature, and we can see what the majority of the calls to
+   * this function actually do/need. */
+
   this->slot_name_define(slot, new_name);
   this->slot_name_propagate(bmain, slot);
 }
@@ -1481,7 +1482,6 @@ ActionSlotAssignmentResult assign_tmpaction_and_slot_handle(bAction *action,
                                            owned_adt.adt.tmp_slot_name);
 }
 
-/* TODO: rename to get_action(). */
 Action *get_action(ID &animated_id)
 {
   AnimData *adt = BKE_animdata_from_id(&animated_id);

@@ -2518,7 +2518,6 @@ static int get_main_socket_priority(const bNodeSocket *socket)
   return -1;
 }
 
-/** Get the "main" socket based on the node declaration or an heuristic. */
 bNodeSocket *get_main_socket(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out)
 {
   ListBase *sockets = (in_out == SOCK_IN) ? &node.inputs : &node.outputs;

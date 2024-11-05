@@ -117,7 +117,6 @@ static void nla_action_draw_keyframes(
   immUnbindProgram();
 
   /* Count keys before drawing. */
-  /* NOTE: It's safe to cast #DLRBT_Tree, as it's designed to degrade down to a #ListBase. */
   const ListBase *keys = ED_keylist_listbase(keylist);
   uint key_len = BLI_listbase_count(keys);
 
@@ -883,6 +882,11 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
               break;
             }
             case NLASTRIP_EXTEND_HOLD_FORWARD: {
+              if (ale->data == nullptr) {
+                /* This can happen if the object itself has no action attached anymore (e.g. after
+                 * using "push down"). */
+                break;
+              }
               const animrig::Action &action = static_cast<bAction *>(ale->data)->wrap();
               float2 frame_range = action.get_frame_range();
               BKE_nla_clip_length_ensure_nonzero(&frame_range[0], &frame_range[1]);

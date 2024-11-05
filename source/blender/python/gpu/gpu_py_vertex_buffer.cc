@@ -270,9 +270,10 @@ PyDoc_STRVAR(
     "   Insert data into the buffer for a single attribute.\n"
     "\n"
     "   :arg id: Either the name or the id of the attribute.\n"
-    "   :type id: int or str\n"
-    "   :arg data: Sequence of data that should be stored in the buffer\n"
-    "   :type data: sequence of floats, ints, vectors or matrices\n");
+    "   :type id: int | str\n"
+    "   :arg data: Buffer or sequence of data that should be stored in the buffer\n"
+    "   :type data: Buffer | "
+    "Sequence[float] | Sequence[int] | Sequence[Sequence[float]] | Sequence[Sequence[int]]\n");
 static PyObject *pygpu_vertbuf_attr_fill(BPyGPUVertBuf *self, PyObject *args, PyObject *kwds)
 {
   PyObject *data;

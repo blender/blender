@@ -15,7 +15,6 @@
 struct AnimData;
 struct Curve;
 struct Curve;
-struct GPencilUpdateCache;
 struct MDeformVert;
 #ifdef __cplusplus
 namespace blender::gpu {
@@ -307,11 +306,6 @@ typedef struct bGPDstroke {
 
   /** Factor of opacity for Fill color (used by opacity modifier). */
   float fill_opacity_fac;
-
-  /** Min of the bound box used to speedup painting operators. */
-  float boundbox_min[3];
-  /** Max of the bound box used to speedup painting operators. */
-  float boundbox_max[3];
 
   /** UV rotation */
   float uv_rotation;
@@ -662,8 +656,6 @@ typedef struct bGPdata_Runtime {
   Brush *sbuffer_brush;
   struct GpencilBatchCache *gpencil_cache;
   struct LineartCache *lineart_cache;
-
-  struct GPencilUpdateCache *update_cache;
 } bGPdata_Runtime;
 
 /* grid configuration */

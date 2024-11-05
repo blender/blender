@@ -377,8 +377,8 @@ static void rna_def_blendfile_import_item(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop,
                            "Imported ID",
-                           "The imported ID. None until it has been linked or appended. May be "
-                           "the same as `reusable_local_id` when appended");
+                           "The imported ID. None until it has been linked or appended. "
+                           "May be the same as ``reusable_local_id`` when appended");
   RNA_def_property_pointer_funcs(
       prop, "rna_BlendImportContextItem_id_get", nullptr, nullptr, nullptr);
 
@@ -534,7 +534,7 @@ static void rna_def_blendfile_import_context(BlenderRNA *brna)
        "DONE",
        0,
        "",
-       "All data has been imported and is available in the list of `import_items`"},
+       "All data has been imported and is available in the list of ``import_items``"},
       {0, nullptr, 0, nullptr, nullptr},
   };
   prop = RNA_def_property(srna, "process_stage", PROP_ENUM, PROP_NONE);

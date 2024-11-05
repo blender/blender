@@ -73,7 +73,7 @@ def get_doc(obj):
 def get_argspec(func, *, strip_self=True, doc=None, source=None):
     """Get argument specifications.
 
-    :arg strip_self: strip `self` from argspec
+    :arg strip_self: strip ``self`` from argspec
     :type strip_self: bool
     :arg doc: doc string of func (optional)
     :type doc: str
@@ -138,9 +138,9 @@ def complete(line, cursor, namespace):
     :arg cursor: current character position
     :type cursor: int
     :arg namespace: namespace
-    :type namespace: dict
+    :type namespace: dict[str, Any]
     :returns: (matches, world, scrollback)
-    :rtype: (list of str, str, str)
+    :rtype: tuple[str, str, str]
 
     >>> import os
     >>> complete('os.path.isdir(', 14, {'os': os})[-1]

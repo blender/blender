@@ -166,7 +166,7 @@ PyDoc_STRVAR(
     "   Each object has attributes matching bpy.data which are lists of strings to be linked.\n"
     "\n"
     "   :arg filepath: The path to a blend file.\n"
-    "   :type filepath: string or bytes\n"
+    "   :type filepath: str | bytes\n"
     "   :arg link: When False reference to the original file is lost.\n"
     "   :type link: bool\n"
     "   :arg relative: When True the path is stored relative to the open blend file.\n"

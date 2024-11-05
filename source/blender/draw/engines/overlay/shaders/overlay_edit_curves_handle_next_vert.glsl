@@ -131,12 +131,9 @@ void geometry_main(VertOut geom_in[2],
     return;
   }
 
-  bool is_selected_bezier_handle = is_bezier_handle && is_active;
-  bool is_nurbs = (geom_in[0].flag & EDIT_CURVES_NURBS_CONTROL_POINT) != 0u;
-
   /* If handle type is only selected and the edge is not selected, don't show.
-   * Nurbs must show the handles always. */
-  if ((uint(curveHandleDisplay) != CURVE_HANDLE_ALL) && !is_selected_bezier_handle && !is_nurbs) {
+   * Nurbs and other curves must show the handles always. */
+  if ((uint(curveHandleDisplay) == CURVE_HANDLE_SELECTED) && is_bezier_handle && !is_active) {
     return;
   }
 

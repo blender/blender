@@ -10,6 +10,7 @@
 
 #include "UI_resources.hh"
 
+#include "GEO_join_geometries.hh"
 #include "GEO_randomize.hh"
 
 #include "node_geometry_util.hh"
@@ -70,13 +71,7 @@ static void grease_pencil_to_mesh(GeometrySet &geometry_set,
     return;
   }
 
-  InstancesComponent &instances_component =
-      geometry_set.get_component_for_write<InstancesComponent>();
-  bke::Instances *instances = instances_component.get_for_write();
-  if (instances == nullptr) {
-    instances = new bke::Instances();
-    instances_component.replace(instances);
-  }
+  bke::Instances *instances = new bke::Instances();
   for (Mesh *mesh : mesh_by_layer) {
     if (!mesh) {
       /* Add an empty reference so the number of layers and instances match.
@@ -92,8 +87,14 @@ static void grease_pencil_to_mesh(GeometrySet &geometry_set,
   }
   GeometrySet::propagate_attributes_from_layer_to_instances(
       geometry_set.get_grease_pencil()->attributes(),
-      geometry_set.get_instances_for_write()->attributes_for_write(),
+      instances->attributes_for_write(),
       attribute_filter);
+  InstancesComponent &dst_component = geometry_set.get_component_for_write<InstancesComponent>();
+  GeometrySet new_instances = geometry::join_geometries(
+      {GeometrySet::from_instances(dst_component.release()),
+       GeometrySet::from_instances(instances)},
+      attribute_filter);
+  dst_component.replace(new_instances.get_component_for_write<InstancesComponent>().release());
   geometry_set.replace_grease_pencil(nullptr);
 }
 
