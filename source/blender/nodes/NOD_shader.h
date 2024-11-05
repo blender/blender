@@ -36,9 +36,10 @@ bNodeTree *npr_tree_get(struct Material *material);
 /**
  * This one needs to work on a local tree.
  */
-void ntreeGPUMaterialNodes(struct bNodeTree *localtree,
-                           struct GPUMaterial *mat,
-                           bool is_npr_shader);
+void ntreeGPUMaterialNodes(struct bNodeTree *localtree, struct GPUMaterial *mat);
+
+/* Thre returned tree is local and must be released. */
+struct bNodeTree *ntreeGPUNPRNodes(struct bNodeTree *material_tree, struct GPUMaterial *mat);
 
 #ifdef __cplusplus
 }

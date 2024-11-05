@@ -5,8 +5,10 @@
 set(INC
   .
   ..
+  include
   ../intern
   ../../blenkernel
+  ../../blenloader
   ../../blentranslation
   ../../editors/include
   ../../functions
@@ -65,6 +67,7 @@ set(SRC
   nodes/node_shader_layer_weight.cc
   nodes/node_shader_light_falloff.cc
   nodes/node_shader_light_path.cc
+  nodes/node_shader_light_loop.cc
   nodes/node_shader_map_range.cc
   nodes/node_shader_mapping.cc
   nodes/node_shader_math.cc
@@ -85,6 +88,7 @@ set(SRC
   nodes/node_shader_output_world.cc
   nodes/node_shader_particle_info.cc
   nodes/node_shader_point_info.cc
+  nodes/node_shader_repeat.cc
   nodes/node_shader_rgb.cc
   nodes/node_shader_rgb_to_bw.cc
   nodes/node_shader_script.cc
@@ -131,6 +135,8 @@ set(SRC
 
   node_shader_register.hh
   node_shader_util.hh
+
+  include/NOD_sh_zones.hh
 )
 
 set(LIB

@@ -814,3 +814,15 @@ vec4 attr_load_uniform(vec4 attr, const uint attr_hash)
 }
 
 /** \} */
+
+#define REPEAT_BEGIN(count, var) \
+  for (var = 0.0; round(var) < round(count); var += 1.0) {
+
+#define REPEAT_END() }
+
+#if !defined(NPR_SHADER) || !defined(GPU_FRAGMENT_SHADER)
+#  define LIGHT_LOOP_BEGIN( \
+      N, out_color, out_vector, out_distance, out_attenuation, out_shadow_mask)
+
+#  define LIGHT_LOOP_END()
+#endif

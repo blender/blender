@@ -10,6 +10,7 @@
 #include "draw_view_lib.glsl"
 #include "eevee_ambient_occlusion_lib.glsl"
 #include "eevee_deferred_combine_lib.glsl"
+#include "eevee_light_eval_lib.glsl"
 #include "eevee_nodetree_lib.glsl"
 #include "eevee_renderpass_lib.glsl"
 #include "eevee_sampling_lib.glsl"
@@ -164,6 +165,83 @@ vec4 TextureHandle_eval(TextureHandle tex)
 {
   return TextureHandle_eval(tex, vec2(0.0), true);
 }
+
+bool light_loop_setup(uint l_idx,
+                      bool is_directional,
+                      vec3 N,
+                      out vec4 out_color,
+                      out vec3 out_vector,
+                      out float out_distance,
+                      out float out_attenuation,
+                      out float out_shadow_mask)
+{
+  LightData light = light_buf[l_idx];
+  if (light.color == vec3(0.0)) {
+    return false;
+  }
+
+  ObjectInfos object_infos = drw_infos[resource_id];
+  uchar receiver_light_set = receiver_light_set_get(object_infos);
+  if (!light_linking_affects_receiver(light.light_set_membership, receiver_light_set)) {
+    return false;
+  }
+
+  LightVector lv = light_vector_get(light, is_directional, g_data.P);
+
+  float attenuation = light_attenuation_volume(light, is_directional, lv);
+  if (attenuation < LIGHT_ATTENUATION_THRESHOLD) {
+    return false;
+  }
+  vec3 V = drw_world_incident_vector(g_data.P);
+  /* TODO(NPR): specular ? */
+  vec4 ltc_mat = vec4(1.0, 0.0, 0.0, 1.0); /* No transform, just plain cosine distribution. */
+  /* Make the normal point into the light direction, so the diffuse term can be customized. */
+  float ltc = light_ltc(utility_tx, light, lv.L, V, lv, ltc_mat);
+  attenuation *= ltc * light_power_get(light, LIGHT_DIFFUSE);
+  if (attenuation < LIGHT_ATTENUATION_THRESHOLD) {
+    return false;
+  }
+
+  float shadow_mask = 1.0;
+  if (light.tilemap_index != LIGHT_NO_SHADOW) {
+    int ray_count = uniform_buf.shadow.ray_count;
+    int ray_step_count = uniform_buf.shadow.step_count;
+    shadow_mask = shadow_eval(
+        light, is_directional, false, false, 0.0, g_data.P, N, ray_count, ray_step_count);
+    shadow_mask *= dot(N, lv.L) > 0.0 ? 1.0 : 0.0;
+  }
+
+  out_color = vec4(light.color, 1.0);
+  out_vector = lv.L;
+  out_distance = lv.dist;
+  out_attenuation = attenuation;
+  out_shadow_mask = shadow_mask;
+
+  return true;
+}
+
+#define LIGHT_LOOP_BEGIN( \
+    N, out_color, out_vector, out_distance, out_attenuation, out_shadow_mask) \
+  LIGHT_FOREACH_ALL_BEGIN(light_cull_buf, \
+                          light_zbin_buf, \
+                          light_tile_buf, \
+                          gl_FragCoord.xy, \
+                          drw_point_world_to_view(g_data.P).z, \
+                          l_idx, \
+                          is_local) \
+  if (!light_loop_setup(l_idx, \
+                        !is_local, \
+                        N, \
+                        out_color, \
+                        out_vector, \
+                        out_distance, \
+                        out_attenuation, \
+                        out_shadow_mask)) \
+  { \
+    continue; \
+  }
+
+#define LIGHT_LOOP_END() LIGHT_FOREACH_ALL_END()
 
 void main()
 {

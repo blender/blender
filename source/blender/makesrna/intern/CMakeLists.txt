@@ -253,6 +253,7 @@ set(INC
   ../../modifiers
   ../../nodes
   ../../nodes/geometry/include
+  ../../nodes/shader/include
   ../../sequencer
   ../../simulation
   ../../windowmanager

@@ -56,6 +56,7 @@ void register_shader_nodes()
   register_node_type_sh_layer_weight();
   register_node_type_sh_light_falloff();
   register_node_type_sh_light_path();
+  register_node_type_sh_light_loop();
   register_node_type_sh_map_range();
   register_node_type_sh_mapping();
   register_node_type_sh_math();
@@ -76,6 +77,7 @@ void register_shader_nodes()
   register_node_type_sh_output_world();
   register_node_type_sh_particle_info();
   register_node_type_sh_point_info();
+  register_node_type_sh_repeat();
   register_node_type_sh_rgb();
   register_node_type_sh_rgbtobw();
   register_node_type_sh_script();

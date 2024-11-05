@@ -17,6 +17,7 @@ set(INC
   ../modifiers
   ../nodes
   ../nodes/geometry/include
+  ../nodes/shader/include
   ../render
   ../sequencer
   ../shader_fx

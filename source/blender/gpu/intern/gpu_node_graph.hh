@@ -76,6 +76,11 @@ struct GPUNode {
 
   ListBase inputs;
   ListBase outputs;
+
+  /* Zones. */
+  int zone_index;
+  bool is_zone_end;
+  bool skip_call;
 };
 
 struct GPUNodeLink {
@@ -111,6 +116,10 @@ struct GPUOutput {
   eGPUType type;     /* data type = length of vector/matrix */
   GPUNodeLink *link; /* output link */
   int id;            /* unique id as created by code generator */
+
+  /* Zones. */
+  bool is_zone_io;
+  bool is_duplicate;
 };
 
 struct GPUInput {
@@ -138,6 +147,10 @@ struct GPUInput {
     /* GPU_SOURCE_FUNCTION_CALL */
     char function_call[64];
   };
+
+  /* Zones. */
+  bool is_zone_io;
+  bool is_duplicate;
 };
 
 struct GPUNodeGraphOutputLink {
