@@ -771,9 +771,6 @@ static void writedata(WriteData *wd, int filecode, size_t len, const void *adr)
     return;
   }
 
-  /* Align to 4 (writes uninitialized bytes in some cases). */
-  len = (len + 3) & ~size_t(3);
-
   if (len > INT_MAX) {
     BLI_assert_msg(0, "Cannot write chunks bigger than INT_MAX.");
     return;
