@@ -178,6 +178,8 @@ static void modify_drawing(const GreasePencilOutlineModifierData &omd,
                            bke::greasepencil::Drawing &drawing,
                            const float4x4 &viewmat)
 {
+  modifier::greasepencil::ensure_no_bezier_curves(drawing);
+
   if (drawing.strokes().curve_num == 0) {
     return;
   }

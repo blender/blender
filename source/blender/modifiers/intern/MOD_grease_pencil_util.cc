@@ -31,6 +31,8 @@
 
 #include "UI_interface.hh"
 
+#include "GEO_resample_curves.hh"
+
 namespace blender::modifier::greasepencil {
 
 using bke::greasepencil::Drawing;
@@ -381,6 +383,18 @@ Vector<FrameDrawingInfo> get_drawing_infos_by_frame(GreasePencil &grease_pencil,
     }
   });
   return drawing_infos;
+}
+
+void ensure_no_bezier_curves(Drawing &drawing)
+{
+  const bke::CurvesGeometry &curves = drawing.strokes();
+  IndexMaskMemory memory;
+  const IndexMask bezier_selection = curves.indices_for_curve_type(CURVE_TYPE_BEZIER, memory);
+  if (bezier_selection.is_empty()) {
+    return;
+  }
+  drawing.strokes_for_write() = geometry::resample_to_evaluated(curves, bezier_selection);
+  drawing.tag_topology_changed();
 }
 
 }  // namespace blender::modifier::greasepencil
