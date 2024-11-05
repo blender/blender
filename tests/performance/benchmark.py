@@ -369,7 +369,9 @@ def main():
         sys.exit(0)
 
     if not env.base_dir.exists():
-        sys.stderr.write('Error: benchmark directory not initialized\n')
+        sys.stderr.write(
+            'Error: benchmark directory not initialized. '
+            'Run the \"init\" command to create the directory and a default configuration.\n')
         sys.exit(1)
 
     if args.command == 'list':
