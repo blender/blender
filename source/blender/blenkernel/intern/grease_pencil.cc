@@ -3341,10 +3341,6 @@ blender::bke::greasepencil::TreeNode *GreasePencil::get_active_node()
 void GreasePencil::set_active_node(blender::bke::greasepencil::TreeNode *node)
 {
   this->active_node = reinterpret_cast<GreasePencilLayerTreeNode *>(node);
-
-  if (this->flag & GREASE_PENCIL_AUTOLOCK_LAYERS) {
-    this->autolock_inactive_layers();
-  }
 }
 
 static blender::VectorSet<blender::StringRefNull> get_node_names(const GreasePencil &grease_pencil)
