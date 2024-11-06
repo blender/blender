@@ -872,8 +872,15 @@ endif()
 # GPU Module
 option(WITH_RENDERDOC "Use Renderdoc API to capture frames" OFF)
 
+option(WITH_GPU_SHADER_ASSERT "\
+Globally enable in-shader asserts.
+(Requires a debug build or setting GPU_FORCE_ENABLE_SHADER_PRINTF to 1)"
+  OFF
+)
+
 mark_as_advanced(
   WITH_RENDERDOC
+  WITH_GPU_SHADER_ASSERT
 )
 
 # OpenGL

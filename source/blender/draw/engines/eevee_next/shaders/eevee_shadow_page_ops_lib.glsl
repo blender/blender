@@ -29,11 +29,6 @@
 
 #include "eevee_shadow_tilemap_lib.glsl"
 
-/* TODO(@fclem): Implement. */
-#ifndef GPU_METAL
-#  define assert(check)
-#endif
-
 /* Remove page ownership from the tile and append it to the cache. */
 void shadow_page_free(inout ShadowTileData tile)
 {
