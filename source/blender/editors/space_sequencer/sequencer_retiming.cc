@@ -6,6 +6,7 @@
  * \ingroup spseq
  */
 
+#include "BLI_map.hh"
 #include "MEM_guardedalloc.h"
 
 #include "BLI_set.hh"
@@ -359,7 +360,9 @@ static bool freeze_frame_add_from_retiming_selection(const bContext *C,
   Scene *scene = CTX_data_scene(C);
   bool success = false;
 
-  for (auto item : SEQ_retiming_selection_get(SEQ_editing_get(scene)).items()) {
+  blender::Map selection = SEQ_retiming_selection_get(SEQ_editing_get(scene));
+
+  for (auto item : selection.items()) {
     const int timeline_frame = SEQ_retiming_key_timeline_frame_get(scene, item.value, item.key);
     success |= freeze_frame_add_new_for_seq(C, op, item.value, timeline_frame, duration);
     SEQ_relations_invalidate_cache_raw(scene, item.value);
@@ -463,7 +466,9 @@ static bool transition_add_from_retiming_selection(const bContext *C,
   Scene *scene = CTX_data_scene(C);
   bool success = false;
 
-  for (auto item : SEQ_retiming_selection_get(SEQ_editing_get(scene)).items()) {
+  blender::Map selection = SEQ_retiming_selection_get(SEQ_editing_get(scene));
+
+  for (auto item : selection.items()) {
     const int timeline_frame = SEQ_retiming_key_timeline_frame_get(scene, item.value, item.key);
     success |= transition_add_new_for_seq(C, op, item.value, timeline_frame, duration);
   }
