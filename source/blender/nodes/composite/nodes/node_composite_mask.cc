@@ -76,17 +76,6 @@ class MaskOperation : public NodeOperation {
 
   void execute() override
   {
-    /* Not yet supported on CPU. */
-    if (!context().use_gpu()) {
-      for (const bNodeSocket *output : this->node()->output_sockets()) {
-        Result &output_result = get_result(output->identifier);
-        if (output_result.should_compute()) {
-          output_result.allocate_invalid();
-        }
-      }
-      return;
-    }
-
     Result &output_mask = get_result("Mask");
     if (!get_mask() || (!is_fixed_size() && !context().is_valid_compositing_region())) {
       output_mask.allocate_invalid();
@@ -94,16 +83,15 @@ class MaskOperation : public NodeOperation {
     }
 
     const Domain domain = compute_domain();
-    CachedMask &cached_mask = context().cache_manager().cached_masks.get(
-        context(),
-        get_mask(),
-        domain.size,
-        get_aspect_ratio(),
-        get_use_feather(),
-        get_motion_blur_samples(),
-        get_motion_blur_shutter());
+    Result &cached_mask = context().cache_manager().cached_masks.get(context(),
+                                                                     get_mask(),
+                                                                     domain.size,
+                                                                     get_aspect_ratio(),
+                                                                     get_use_feather(),
+                                                                     get_motion_blur_samples(),
+                                                                     get_motion_blur_shutter());
 
-    output_mask.wrap_external(cached_mask.texture());
+    output_mask.wrap_external(cached_mask);
   }
 
   Domain compute_domain() override

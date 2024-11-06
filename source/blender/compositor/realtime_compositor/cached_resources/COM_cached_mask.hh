@@ -17,6 +17,7 @@
 #include "DNA_scene_types.h"
 
 #include "COM_cached_resource.hh"
+#include "COM_result.hh"
 
 namespace blender::realtime_compositor {
 
@@ -47,11 +48,14 @@ bool operator==(const CachedMaskKey &a, const CachedMaskKey &b);
 /* -------------------------------------------------------------------------------------------------
  * Cached Mask.
  *
- * A cached resource that computes and caches a GPU texture containing the result of evaluating the
+ * A cached resource that computes and caches a result containing the result of evaluating the
  * given mask ID on a space that spans the given size, parameterized by the given parameters. */
 class CachedMask : public CachedResource {
  private:
-  GPUTexture *texture_ = nullptr;
+  Array<float> evaluated_mask_;
+
+ public:
+  Result result;
 
  public:
   CachedMask(Context &context,
@@ -64,8 +68,6 @@ class CachedMask : public CachedResource {
              float motion_blur_shutter);
 
   ~CachedMask();
-
-  GPUTexture *texture();
 };
 
 /* ------------------------------------------------------------------------------------------------
@@ -84,13 +86,13 @@ class CachedMaskContainer : CachedResourceContainer {
    * CachedMask cached resource with the given parameters in the container, if one exists, return
    * it, otherwise, return a newly created one and add it to the container. In both cases, tag the
    * cached resource as needed to keep it cached for the next evaluation. */
-  CachedMask &get(Context &context,
-                  Mask *mask,
-                  int2 size,
-                  float aspect_ratio,
-                  bool use_feather,
-                  int motion_blur_samples,
-                  float motion_blur_shutter);
+  Result &get(Context &context,
+              Mask *mask,
+              int2 size,
+              float aspect_ratio,
+              bool use_feather,
+              int motion_blur_samples,
+              float motion_blur_shutter);
 };
 
 }  // namespace blender::realtime_compositor
