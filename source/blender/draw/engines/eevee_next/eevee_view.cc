@@ -378,7 +378,12 @@ void CaptureView::render_probes()
 
       GPU_framebuffer_bind(combined_fb_);
       GPU_framebuffer_clear_color_depth(combined_fb_, float4(0.0f, 0.0f, 0.0f, 1.0f), 1.0f);
-      inst_.pipelines.probe.render(view, prepass_fb, combined_fb_, gbuffer_fb_, extent);
+      inst_.pipelines.probe.render(view,
+                                   prepass_fb,
+                                   combined_fb_,
+                                   gbuffer_fb_,
+                                   extent,
+                                   inst_.sphere_probes.cubemap_face_views_[face]);
     }
 
     inst_.render_buffers.release();

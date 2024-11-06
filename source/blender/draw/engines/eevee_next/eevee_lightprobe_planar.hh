@@ -41,6 +41,7 @@ class PlanarProbeModule {
   std::array<PlanarResources, PLANAR_PROBE_MAX> resources_;
 
   Texture radiance_tx_ = {"planar.radiance_tx"};
+  Vector<GPUTexture *> radiance_views_;
   Texture depth_tx_ = {"planar.depth_tx"};
 
   ClipPlaneBuf world_clip_buf_ = {"world_clip_buf"};
@@ -55,6 +56,12 @@ class PlanarProbeModule {
 
  public:
   PlanarProbeModule(Instance &instance) : inst_(instance) {}
+  ~PlanarProbeModule()
+  {
+    for (GPUTexture *view : radiance_views_) {
+      GPU_TEXTURE_FREE_SAFE(view);
+    }
+  }
 
   void init();
   void end_sync();

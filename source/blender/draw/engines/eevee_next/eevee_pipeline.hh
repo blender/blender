@@ -245,6 +245,7 @@ struct DeferredLayerBase {
   }
 
   void gbuffer_pass_sync(Instance &inst);
+  template<typename F> void npr_pass_sync(Instance &inst, F callback);
 };
 
 class DeferredPipeline;
@@ -531,6 +532,9 @@ class DeferredProbePipeline {
 
   PassSimple eval_light_ps_ = {"EvalLights"};
 
+  Texture dummy_black_ = {"dummy_black"};
+  GPUTexture *npr_radiance_input_tx_ = nullptr;
+
  public:
   DeferredProbePipeline(Instance &inst) : inst_(inst){};
 
@@ -539,12 +543,14 @@ class DeferredProbePipeline {
 
   PassMain::Sub *prepass_add(::Material *material, GPUMaterial *gpumat);
   PassMain::Sub *material_add(::Material *material, GPUMaterial *gpumat);
+  PassMain::Sub *npr_add(::Material *blender_mat, GPUMaterial *gpumat);
 
   void render(View &view,
               Framebuffer &prepass_fb,
               Framebuffer &combined_fb,
               Framebuffer &gbuffer_fb,
-              int2 extent);
+              int2 extent,
+              GPUTexture *combined_tx);
 
   /* Return the maximum amount of gbuffer layer needed. */
   int closure_layer_count() const
@@ -571,6 +577,9 @@ class PlanarProbePipeline : DeferredLayerBase {
 
   PassSimple eval_light_ps_ = {"EvalLights"};
 
+  Texture dummy_black_ = {"dummy_black"};
+  GPUTexture *npr_radiance_input_tx_ = nullptr;
+
  public:
   PlanarProbePipeline(Instance &inst) : inst_(inst){};
 
@@ -579,12 +588,14 @@ class PlanarProbePipeline : DeferredLayerBase {
 
   PassMain::Sub *prepass_add(::Material *material, GPUMaterial *gpumat);
   PassMain::Sub *material_add(::Material *material, GPUMaterial *gpumat);
+  PassMain::Sub *npr_add(::Material *blender_mat, GPUMaterial *gpumat);
 
   void render(View &view,
               GPUTexture *depth_layer_tx,
               Framebuffer &gbuffer,
               Framebuffer &combined_fb,
-              int2 extent);
+              int2 extent,
+              GPUTexture *combined_tx);
 };
 
 /** \} */
@@ -757,6 +768,8 @@ class PipelineModule {
           return probe.prepass_add(blender_mat, gpumat);
         case MAT_PIPE_DEFERRED:
           return probe.material_add(blender_mat, gpumat);
+        case MAT_PIPE_DEFERRED_NPR:
+          return probe.npr_add(blender_mat, gpumat);
         default:
           BLI_assert_unreachable();
           break;
@@ -768,6 +781,8 @@ class PipelineModule {
           return planar.prepass_add(blender_mat, gpumat);
         case MAT_PIPE_DEFERRED:
           return planar.material_add(blender_mat, gpumat);
+        case MAT_PIPE_DEFERRED_NPR:
+          return planar.npr_add(blender_mat, gpumat);
         default:
           BLI_assert_unreachable();
           break;

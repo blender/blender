@@ -149,6 +149,10 @@ bool Texture::init_view(GPUTexture *src_,
   d_ = src->d_;
   layer_start = min_ii(layer_start, src->layer_count() - 1);
   layer_len = min_ii(layer_len, (src->layer_count() - layer_start));
+  if (cube_as_array) {
+    BLI_assert(type & GPU_TEXTURE_CUBE);
+    type = (type & ~GPU_TEXTURE_CUBE) | GPU_TEXTURE_2D_ARRAY;
+  }
   switch (type) {
     case GPU_TEXTURE_1D_ARRAY:
       h_ = layer_len;
@@ -160,8 +164,11 @@ bool Texture::init_view(GPUTexture *src_,
       d_ = layer_len;
       break;
     default:
-      BLI_assert(layer_len == 1 && layer_start == 0);
+      BLI_assert((layer_len == 1 || layer_len == 0) && layer_start == 0);
       break;
+  }
+  if (layer_len == 0) {
+    type &= ~GPU_TEXTURE_ARRAY;
   }
   mip_start = min_ii(mip_start, src->mipmaps_ - 1);
   mip_len = min_ii(mip_len, (src->mipmaps_ - mip_start));
@@ -169,10 +176,6 @@ bool Texture::init_view(GPUTexture *src_,
   format_ = format;
   format_flag_ = to_format_flag(format);
   type_ = type;
-  if (cube_as_array) {
-    BLI_assert(type_ & GPU_TEXTURE_CUBE);
-    type_ = (type_ & ~GPU_TEXTURE_CUBE) | GPU_TEXTURE_2D_ARRAY;
-  }
   sampler_state = src->sampler_state;
   return this->init_internal(src_, mip_start, layer_start, use_stencil);
 }
@@ -457,7 +460,7 @@ GPUTexture *GPU_texture_create_view(const char *name,
                                     bool use_stencil)
 {
   BLI_assert(mip_len > 0);
-  BLI_assert(layer_len > 0);
+  BLI_assert(layer_len >= 0);
   BLI_assert_msg(use_stencil == false ||
                      (GPU_texture_usage(source_texture) & GPU_TEXTURE_USAGE_FORMAT_VIEW),
                  "Source texture of TextureView must have GPU_TEXTURE_USAGE_FORMAT_VIEW usage "

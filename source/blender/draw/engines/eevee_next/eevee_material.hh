@@ -341,8 +341,10 @@ struct Material {
   MaterialPass capture;
   MaterialPass lightprobe_sphere_prepass;
   MaterialPass lightprobe_sphere_shading;
+  MaterialPass lightprobe_sphere_npr;
   MaterialPass planar_probe_prepass;
   MaterialPass planar_probe_shading;
+  MaterialPass planar_probe_npr;
   MaterialPass volume_occupancy;
   MaterialPass volume_material;
 };

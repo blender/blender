@@ -86,6 +86,7 @@ vec4 TextureHandle_eval_impl(TextureHandle tex, vec2 offset, bool texel_offset)
   }
 
   ivec2 texel = ivec2(gl_FragCoord.xy);
+  ivec2 extent = textureSize(radiance_tx, 0);
   if (texel_offset) {
     texel += ivec2(offset);
   }
@@ -93,13 +94,13 @@ vec4 TextureHandle_eval_impl(TextureHandle tex, vec2 offset, bool texel_offset)
     /* View-space offset. */
     vec3 vP = drw_point_world_to_view(g_data.P);
     vec2 uv = drw_point_view_to_screen(vP + vec3(offset, 0.0)).xy;
-    texel = ivec2(uv * uniform_buf.film.render_extent);
+    texel = ivec2(uv * extent);
   }
 
-  texel = clamp(texel, ivec2(0), uniform_buf.film.render_extent - ivec2(1));
+  texel = clamp(texel, ivec2(0), extent - ivec2(1));
 
   float depth = texelFetch(hiz_tx, texel, 0).r;
-  vec2 screen_uv = vec2(texel) / uniform_buf.film.render_extent;
+  vec2 screen_uv = vec2(texel) / extent;
 
   switch (tex.type) {
     case TEX_HANDLE_RP_COLOR:
@@ -247,9 +248,7 @@ void main()
 {
   init_globals();
 
-  vec4 result = nodetree_npr();
-  out_radiance = vec4(result.rgb * result.a, 0.0);
-  out_transmittance = vec4(1.0 - result.a);
+  out_radiance = swap_alpha(nodetree_npr());
 
   /* For AOVs */
   /* TODO(NPR): Move AOV codegen to nodetree_npr. */

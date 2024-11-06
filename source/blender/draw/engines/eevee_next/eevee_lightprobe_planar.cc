@@ -75,7 +75,17 @@ void PlanarProbeModule::set_view(const draw::View &main_view, int2 main_view_ext
   }
 
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ;
-  radiance_tx_.ensure_2d_array(GPU_R11F_G11F_B10F, extent, layer_count, usage);
+  if (radiance_tx_.ensure_2d_array(GPU_RGBA16F, extent, layer_count, usage)) {
+    for (GPUTexture *view : radiance_views_) {
+      GPU_TEXTURE_FREE_SAFE(view);
+    }
+    radiance_views_.clear();
+    for (int i : IndexRange(layer_count)) {
+      radiance_views_.append(GPU_texture_create_view(
+          "planar.radiance_tx.view", radiance_tx_, GPU_RGBA16F, 0, 1, i, 0, false, false));
+    }
+  }
+  radiance_tx_.clear(float4(0.0f, 0.0f, 0.0f, 1.0f));
   depth_tx_.ensure_2d_array(GPU_DEPTH_COMPONENT32F, extent, layer_count, usage);
   depth_tx_.ensure_layer_views();
 
@@ -107,15 +117,25 @@ void PlanarProbeModule::set_view(const draw::View &main_view, int2 main_view_ext
     res.combined_fb.ensure(GPU_ATTACHMENT_TEXTURE_LAYER(depth_tx_, resource_index),
                            GPU_ATTACHMENT_TEXTURE_LAYER(radiance_tx_, resource_index));
 
+    GPUAttachment npr_index_attachment = GPU_ATTACHMENT_NONE;
+    if (inst_.render_buffers.npr_index_tx.is_valid()) {
+      npr_index_attachment = GPU_ATTACHMENT_TEXTURE(inst_.render_buffers.npr_index_tx);
+    }
+
     res.gbuffer_fb.ensure(GPU_ATTACHMENT_TEXTURE_LAYER(depth_tx_, resource_index),
                           GPU_ATTACHMENT_TEXTURE_LAYER(radiance_tx_, resource_index),
                           GPU_ATTACHMENT_TEXTURE(gbuf.header_tx),
                           GPU_ATTACHMENT_TEXTURE_LAYER(gbuf.normal_tx.layer_view(0), 0),
                           GPU_ATTACHMENT_TEXTURE_LAYER(gbuf.closure_tx.layer_view(0), 0),
-                          GPU_ATTACHMENT_TEXTURE_LAYER(gbuf.closure_tx.layer_view(1), 0));
+                          GPU_ATTACHMENT_TEXTURE_LAYER(gbuf.closure_tx.layer_view(1), 0),
+                          npr_index_attachment);
 
-    inst_.pipelines.planar.render(
-        res.view, depth_tx_.layer_view(resource_index), res.gbuffer_fb, res.combined_fb, extent);
+    inst_.pipelines.planar.render(res.view,
+                                  depth_tx_.layer_view(resource_index),
+                                  res.gbuffer_fb,
+                                  res.combined_fb,
+                                  extent,
+                                  radiance_views_[resource_index]);
 
     if (do_display_draw_ && probe.viewport_display) {
       display_data_buf_.get_or_resize(display_index++) = {probe.plane_to_world, resource_index};

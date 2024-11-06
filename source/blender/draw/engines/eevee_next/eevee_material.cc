@@ -378,10 +378,22 @@ Material &MaterialModule::material_sync(Object *ob,
             ob, blender_mat, MAT_PIPE_PREPASS_DEFERRED, geometry_type, MAT_PROBE_REFLECTION);
         mat.lightprobe_sphere_shading = material_pass_get(
             ob, blender_mat, MAT_PIPE_DEFERRED, geometry_type, MAT_PROBE_REFLECTION);
+        if (mat.npr_index) {
+          mat.lightprobe_sphere_npr = material_pass_get(ob,
+                                                        blender_mat,
+                                                        MAT_PIPE_DEFERRED_NPR,
+                                                        geometry_type,
+                                                        MAT_PROBE_REFLECTION,
+                                                        mat.npr_index);
+        }
+        else {
+          mat.lightprobe_sphere_npr = MaterialPass();
+        }
       }
       else {
         mat.lightprobe_sphere_prepass = MaterialPass();
         mat.lightprobe_sphere_shading = MaterialPass();
+        mat.lightprobe_sphere_npr = MaterialPass();
       }
 
       if (inst_.needs_planar_probe_passes() && !(ob->visibility_flag & OB_HIDE_PROBE_PLANAR)) {
@@ -389,10 +401,22 @@ Material &MaterialModule::material_sync(Object *ob,
             ob, blender_mat, MAT_PIPE_PREPASS_PLANAR, geometry_type, MAT_PROBE_PLANAR);
         mat.planar_probe_shading = material_pass_get(
             ob, blender_mat, MAT_PIPE_DEFERRED, geometry_type, MAT_PROBE_PLANAR);
+        if (mat.npr_index) {
+          mat.planar_probe_npr = material_pass_get(ob,
+                                                   blender_mat,
+                                                   MAT_PIPE_DEFERRED_NPR,
+                                                   geometry_type,
+                                                   MAT_PROBE_PLANAR,
+                                                   mat.npr_index);
+        }
+        else {
+          mat.planar_probe_npr = MaterialPass();
+        }
       }
       else {
         mat.planar_probe_prepass = MaterialPass();
         mat.planar_probe_shading = MaterialPass();
+        mat.planar_probe_npr = MaterialPass();
       }
 
       mat.has_surface = GPU_material_has_surface_output(mat.shading.gpumat);
