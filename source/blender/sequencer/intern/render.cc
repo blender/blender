@@ -868,8 +868,14 @@ static ImBuf *seq_render_effect_strip_impl(const SeqRenderData *context,
       for (i = 0; i < 2; i++) {
         /* Speed effect requires time remapping of `timeline_frame` for input(s). */
         if (input[0] && seq->type == SEQ_TYPE_SPEED) {
-          int target_frame = floor(
-              seq_speed_effect_target_frame_get(scene, seq, timeline_frame, i));
+          float target_frame = seq_speed_effect_target_frame_get(scene, seq, timeline_frame, i);
+
+          /* Only convert to int when interpolation is not used. */
+          SpeedControlVars *s = reinterpret_cast<SpeedControlVars *>(seq->effectdata);
+          if ((s->flags & SEQ_SPEED_USE_INTERPOLATION) != 0) {
+            target_frame = std::floor(target_frame);
+          }
+
           ibuf[i] = seq_render_strip(context, state, input[0], target_frame);
         }
         else { /* Other effects. */
