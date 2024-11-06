@@ -187,12 +187,7 @@ void clear_vertex_groups(GreasePencil &grease_pencil)
   }
 }
 
-<<<<<<< HEAD
-void select_from_group(GreasePencil & /*grease_pencil*/,
-                       Drawing &drawing,
-=======
 void select_from_group(Drawing &drawing,
->>>>>>> blender-v4.3-release
                        const AttrDomain selection_domain,
                        const StringRef name,
                        const bool select)
