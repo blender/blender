@@ -190,7 +190,7 @@ constexpr int RIGHT_COL_WIDTH_UNITS_DEFAULT = 50;
  */
 static int layout_width_units_clamped(const wmWindow *win)
 {
-  const int max_units_x = (win->sizex / UI_UNIT_X) - 2;
+  const int max_units_x = (WM_window_native_pixel_x(win) / UI_UNIT_X) - 2;
   return std::min(LEFT_COL_WIDTH_UNITS + RIGHT_COL_WIDTH_UNITS_DEFAULT, max_units_x);
 }
 
