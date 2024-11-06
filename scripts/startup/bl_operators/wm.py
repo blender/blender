@@ -3384,6 +3384,16 @@ class WM_MT_splash(Menu):
         layout.operator_context = 'EXEC_DEFAULT'
         layout.emboss = 'PULLDOWN_MENU'
 
+        col = layout.column(align=True)
+
+        col.operator("wm.url_open", text="NPR Prototype: Info & Feedback",
+                     icon='URL').url = "https://devtalk.blender.org/t/eevee-npr-prototype-feedback/37098"
+        col.label(text="This is an expertimental build.")
+        col.label(text="It can be unstable and break your files. Use at your own risk.")
+        col.label(text="BACKWARD COMPATIBILITY IS NOT GUARANTEED.")
+
+        layout.separator()
+
         split = layout.split()
 
         # Templates
