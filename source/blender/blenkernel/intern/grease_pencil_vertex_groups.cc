@@ -95,7 +95,7 @@ void assign_to_vertex_group_from_mask(bke::CurvesGeometry &curves,
   });
 }
 
-void assign_to_vertex_group(GreasePencil &grease_pencil,
+void assign_to_vertex_group(GreasePencil & /*grease_pencil*/,
                             Drawing &drawing,
                             const StringRef name,
                             const float weight)
@@ -190,7 +190,7 @@ void clear_vertex_groups(GreasePencil &grease_pencil)
   }
 }
 
-void select_from_group(GreasePencil &grease_pencil,
+void select_from_group(GreasePencil & /*grease_pencil*/,
                        Drawing &drawing,
                        const AttrDomain selection_domain,
                        const StringRef name,
