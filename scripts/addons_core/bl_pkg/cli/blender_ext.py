@@ -3445,6 +3445,10 @@ class subcmd_server:
                 if value is None:
                     del manifest_dict[key]
 
+            # Don't include these in the server listing.
+            for key in ("wheels", ):
+                manifest_dict.pop(key, None)
+
             # These are added, ensure they don't exist.
             has_key_error = False
             for key in ("archive_url", "archive_size", "archive_hash"):
