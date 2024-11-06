@@ -1106,7 +1106,7 @@ static void vgroup_select_verts(const ToolSettings &tool_settings,
       Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, *grease_pencil);
       for (MutableDrawingInfo info : drawings) {
         bke::greasepencil::select_from_group(
-            *grease_pencil, info.drawing, selection_domain, def_group->name, bool(select));
+            info.drawing, selection_domain, def_group->name, bool(select));
       }
     }
     DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
@@ -2317,8 +2317,7 @@ static void vgroup_assign_verts(Object *ob, Scene &scene, const float weight)
       using namespace ed::greasepencil;
       Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, *grease_pencil);
       for (MutableDrawingInfo info : drawings) {
-        bke::greasepencil::assign_to_vertex_group(
-            *grease_pencil, info.drawing, defgroup->name, weight);
+        bke::greasepencil::assign_to_vertex_group(info.drawing, defgroup->name, weight);
       }
     }
   }
