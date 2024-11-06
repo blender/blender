@@ -48,6 +48,7 @@
 #include "GPU_texture.hh"
 
 #include "COM_node_operation.hh"
+#include "COM_utilities.hh"
 
 #include "NOD_socket_search_link.hh"
 
@@ -711,13 +712,8 @@ class FileOutputOperation : public NodeOperation {
             size_t(size.x) * size.y, sizeof(float), "File Output Inflated Buffer."));
 
         const float value = result.get_float_value();
-        threading::parallel_for(IndexRange(size.y), 1, [&](const IndexRange sub_y_range) {
-          for (const int64_t y : sub_y_range) {
-            for (const int64_t x : IndexRange(size.x)) {
-              buffer[y * size.x + x] = value;
-            }
-          }
-        });
+        parallel_for(
+            size, [&](const int2 texel) { buffer[int64_t(texel.y) * size.x + texel.x] = value; });
         return buffer;
       }
       case ResultType::Vector:
@@ -727,12 +723,8 @@ class FileOutputOperation : public NodeOperation {
 
         const float4 value = result.type() == ResultType::Color ? result.get_color_value() :
                                                                   result.get_vector_value();
-        threading::parallel_for(IndexRange(size.y), 1, [&](const IndexRange sub_y_range) {
-          for (const int64_t y : sub_y_range) {
-            for (const int64_t x : IndexRange(size.x)) {
-              copy_v4_v4(buffer + ((y * size.x + x) * 4), value);
-            }
-          }
+        parallel_for(size, [&](const int2 texel) {
+          copy_v4_v4(buffer + ((int64_t(texel.y) * size.x + texel.x) * 4), value);
         });
         return buffer;
       }
@@ -779,14 +771,10 @@ class FileOutputOperation : public NodeOperation {
     float *float3_image = static_cast<float *>(MEM_malloc_arrayN(
         size_t(size.x) * size.y, sizeof(float[3]), "File Output Vector Buffer."));
 
-    threading::parallel_for(IndexRange(size.y), 1, [&](const IndexRange sub_y_range) {
-      for (const int64_t y : sub_y_range) {
-        for (const int64_t x : IndexRange(size.x)) {
-          for (int i = 0; i < 3; i++) {
-            const int pixel_index = y * size.x + x;
-            float3_image[pixel_index * 3 + i] = float4_image[pixel_index * 4 + i];
-          }
-        }
+    parallel_for(size, [&](const int2 texel) {
+      for (int i = 0; i < 3; i++) {
+        const int64_t pixel_index = int64_t(texel.y) * size.x + texel.x;
+        float3_image[pixel_index * 3 + i] = float4_image[pixel_index * 4 + i];
       }
     });
 
