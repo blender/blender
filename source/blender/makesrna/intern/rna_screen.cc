@@ -19,6 +19,7 @@
 #include "DNA_workspace_types.h"
 
 #include "ED_info.hh"
+#include "ED_node.hh"
 
 const EnumPropertyItem rna_enum_region_type_items[] = {
     {RGN_TYPE_WINDOW, "WINDOW", 0, "Window", ""},
@@ -170,6 +171,9 @@ static void rna_Area_type_update(bContext *C, PointerRNA *ptr)
       /* It is possible that new layers becomes visible. */
       if (area->spacetype == SPACE_VIEW3D) {
         DEG_tag_on_visible_update(CTX_data_main(C), false);
+      }
+      else if (area->spacetype == SPACE_NODE) {
+        blender::ed::space_node::snode_set_context(*C);
       }
 
       CTX_wm_window_set(C, prevwin);

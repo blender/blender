@@ -43,6 +43,7 @@ static const pxr::TfToken bias("bias", pxr::TfToken::Immortal);
 static const pxr::TfToken clearcoat("clearcoat", pxr::TfToken::Immortal);
 static const pxr::TfToken clearcoatRoughness("clearcoatRoughness", pxr::TfToken::Immortal);
 static const pxr::TfToken diffuseColor("diffuseColor", pxr::TfToken::Immortal);
+static const pxr::TfToken displacement("displacement", pxr::TfToken::Immortal);
 static const pxr::TfToken emissiveColor("emissiveColor", pxr::TfToken::Immortal);
 static const pxr::TfToken file("file", pxr::TfToken::Immortal);
 static const pxr::TfToken g("g", pxr::TfToken::Immortal);
@@ -525,6 +526,10 @@ void USDMaterialReader::import_usd_preview(Material *mtl,
   /* Recursively create the principled shader input networks. */
   set_principled_node_inputs(principled, ntree, usd_shader);
 
+  if (set_displacement_node_inputs(ntree, output, usd_shader)) {
+    mtl->displacement_method = MA_DISPLACEMENT_BOTH;
+  }
+
   blender::bke::node_set_active(ntree, output);
 
   BKE_ntree_update_main_tree(bmain_, ntree, nullptr);
@@ -606,6 +611,53 @@ void USDMaterialReader::set_principled_node_inputs(bNode *principled,
   if (pxr::UsdShadeInput normal_input = usd_shader.GetInput(usdtokens::normal)) {
     set_node_input(normal_input, principled, "Normal", ntree, column, &context);
   }
+}
+
+bool USDMaterialReader::set_displacement_node_inputs(bNodeTree *ntree,
+                                                     bNode *output,
+                                                     const pxr::UsdShadeShader &usd_shader) const
+{
+  /* Only continue if this UsdPreviewSurface has displacement to process. */
+  pxr::UsdShadeInput displacement_input = usd_shader.GetInput(usdtokens::displacement);
+  if (!displacement_input) {
+    return false;
+  }
+
+  bNode *displacement_node = add_node(nullptr, ntree, SH_NODE_DISPLACEMENT, 0.0f, -100.0f);
+  if (!displacement_node) {
+    CLOG_ERROR(&LOG,
+               "Couldn't create SH_NODE_DISPLACEMENT node for USD shader %s",
+               usd_shader.GetPath().GetAsString().c_str());
+    return false;
+  }
+
+  /* The context struct keeps track of the locations for adding
+   * input nodes. */
+  NodePlacementContext context(0.0f, -100.0f);
+
+  /* The column index, from right to left relative to the output node. */
+  int column = 0;
+
+  const char *sock_name = "Height";
+  ExtraLinkInfo extra;
+  extra.is_color_corrected = false;
+  set_node_input(displacement_input, displacement_node, sock_name, ntree, column, &context, extra);
+
+  /* If the displacement input is not connected, then this is "constant" displacement.
+   * We need to adjust the Height input by our default Midlevel value of 0.5. */
+  if (!displacement_input.HasConnectedSource()) {
+    bNodeSocket *sock = blender::bke::node_find_socket(displacement_node, SOCK_IN, sock_name);
+    if (!sock) {
+      CLOG_ERROR(&LOG, "Couldn't get destination node socket %s", sock_name);
+      return false;
+    }
+
+    ((bNodeSocketValueFloat *)sock->default_value)->value += 0.5f;
+  }
+
+  /* Connect the Displacement node to the output node. */
+  link_nodes(ntree, displacement_node, "Displacement", output, "Displacement");
+  return true;
 }
 
 bool USDMaterialReader::set_node_input(const pxr::UsdShadeInput &usd_input,
@@ -873,6 +925,32 @@ static IntermediateNode add_oneminus(bNodeTree *ntree, int column, NodePlacement
   return oneminus;
 }
 
+static void configure_displacement(const pxr::UsdShadeShader &usd_shader, bNode *displacement_node)
+{
+  /* Transform the scale-bias values into something that the Displacement node
+   * can understand. */
+  pxr::UsdShadeInput scale_input = usd_shader.GetInput(usdtokens::scale);
+  pxr::UsdShadeInput bias_input = usd_shader.GetInput(usdtokens::bias);
+  pxr::GfVec4f scale(1.0f, 1.0f, 1.0f, 1.0f);
+  pxr::GfVec4f bias(0.0f, 0.0f, 0.0f, 0.0f);
+
+  pxr::VtValue val;
+  if (scale_input.Get(&val) && val.CanCast<pxr::GfVec4f>()) {
+    scale = pxr::VtValue::Cast<pxr::GfVec4f>(val).UncheckedGet<pxr::GfVec4f>();
+  }
+  if (bias_input.Get(&val) && val.CanCast<pxr::GfVec4f>()) {
+    bias = pxr::VtValue::Cast<pxr::GfVec4f>(val).UncheckedGet<pxr::GfVec4f>();
+  }
+
+  const float scale_avg = (scale[0] + scale[1] + scale[2]) / 3.0f;
+  const float bias_avg = (bias[0] + bias[1] + bias[2]) / 3.0f;
+
+  bNodeSocket *sock_mid = blender::bke::node_find_socket(displacement_node, SOCK_IN, "Midlevel");
+  bNodeSocket *sock_scale = blender::bke::node_find_socket(displacement_node, SOCK_IN, "Scale");
+  ((bNodeSocketValueFloat *)sock_mid->default_value)->value = -1.0f * (bias_avg / scale_avg);
+  ((bNodeSocketValueFloat *)sock_scale->default_value)->value = scale_avg;
+}
+
 bool USDMaterialReader::follow_connection(const pxr::UsdShadeInput &usd_input,
                                           bNode *dest_node,
                                           const char *dest_socket_name,
@@ -928,9 +1006,14 @@ bool USDMaterialReader::follow_connection(const pxr::UsdShadeInput &usd_input,
       shift++;
     }
 
-    /* Create a Scale-Bias adjustment node if necessary. */
-    IntermediateNode scale_bias = add_scale_bias(
-        source_shader, ntree, column + shift, is_normal_map, r_ctx);
+    /* Create a Scale-Bias adjustment node or fill in Displacement settings if necessary. */
+    IntermediateNode scale_bias{};
+    if (STREQ(dest_socket_name, "Height")) {
+      configure_displacement(source_shader, dest_node);
+    }
+    else {
+      scale_bias = add_scale_bias(source_shader, ntree, column + shift, is_normal_map, r_ctx);
+    }
 
     /* Wire up any intermediate nodes that are present. Keep track of the
      * final "target" destination for the Image link. */

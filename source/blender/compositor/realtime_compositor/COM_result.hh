@@ -397,13 +397,13 @@ class Result {
    * initialized with the template float4(0, 0, 0, 1). */
   float4 sample_nearest_zero(const float2 coordinates) const;
 
+  /* Computes the number of channels of the result based on its type. */
+  int64_t channels_count() const;
+
  private:
   /* Allocates the texture data for the given size, either on the GPU or CPU based on the result's
    * context. See the allocate_texture method for information about the from_pool argument. */
   void allocate_data(int2 size, bool from_pool);
-
-  /* Computes the number of channels of the result based on its type. */
-  int64_t channels_count() const;
 
   /* Get a pointer to the float pixel at the given texel position. */
   float *get_float_pixel(const int2 &texel) const;
@@ -437,6 +437,23 @@ inline float4 Result::sample_nearest_zero(const float2 coordinates) const
   return pixel_value;
 }
 
+inline int64_t Result::channels_count() const
+{
+  switch (type_) {
+    case ResultType::Float:
+      return 1;
+    case ResultType::Float2:
+    case ResultType::Int2:
+      return 2;
+    case ResultType::Float3:
+      return 3;
+    case ResultType::Vector:
+    case ResultType::Color:
+      return 4;
+  }
+  return 4;
+}
+
 inline const Domain &Result::domain() const
 {
   return domain_;
@@ -463,23 +480,6 @@ inline float4 Result::load_pixel(const int2 &texel) const
 inline void Result::store_pixel(const int2 &texel, const float4 &pixel_value)
 {
   this->copy_pixel(this->get_float_pixel(texel), pixel_value);
-}
-
-inline int64_t Result::channels_count() const
-{
-  switch (type_) {
-    case ResultType::Float:
-      return 1;
-    case ResultType::Float2:
-    case ResultType::Int2:
-      return 2;
-    case ResultType::Float3:
-      return 3;
-    case ResultType::Vector:
-    case ResultType::Color:
-      return 4;
-  }
-  return 4;
 }
 
 inline float *Result::get_float_pixel(const int2 &texel) const

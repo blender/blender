@@ -53,9 +53,13 @@ static int gpu_shader_vector_displacement(GPUMaterial *mat,
 NODE_SHADER_MATERIALX_BEGIN
 #ifdef WITH_MATERIALX
 {
-  /* NOTE: Mid-level input and Space feature don't have an implementation in MaterialX. */
-  // NodeItem midlevel = get_input_value("midlevel", NodeItem::Type::Float);
-  NodeItem vector = get_input_link("Vector", NodeItem::Type::Vector3);
+  if (to_type_ != NodeItem::Type::DisplacementShader) {
+    return empty();
+  }
+
+  /* NOTE: The Space feature doesn't have an implementation in MaterialX. */
+  NodeItem midlevel = get_input_value("Midlevel", NodeItem::Type::Float);
+  NodeItem vector = get_input_link("Vector", NodeItem::Type::Vector3) - midlevel;
   NodeItem scale = get_input_value("Scale", NodeItem::Type::Float);
 
   return create_node("displacement",

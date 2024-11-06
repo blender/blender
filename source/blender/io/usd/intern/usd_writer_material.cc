@@ -67,6 +67,7 @@ static const pxr::TfToken specular("specular", pxr::TfToken::Immortal);
 static const pxr::TfToken opacity("opacity", pxr::TfToken::Immortal);
 static const pxr::TfToken opacityThreshold("opacityThreshold", pxr::TfToken::Immortal);
 static const pxr::TfToken surface("surface", pxr::TfToken::Immortal);
+static const pxr::TfToken displacement("displacement", pxr::TfToken::Immortal);
 static const pxr::TfToken perspective("perspective", pxr::TfToken::Immortal);
 static const pxr::TfToken orthographic("orthographic", pxr::TfToken::Immortal);
 static const pxr::TfToken rgb("rgb", pxr::TfToken::Immortal);
@@ -129,6 +130,7 @@ static void create_uv_input(const USDExporterContext &usd_export_context,
                             ReportList *reports);
 static void export_texture(const USDExporterContext &usd_export_context, bNode *node);
 static bNode *find_bsdf_node(Material *material);
+static bNode *find_displacement_node(Material *material);
 static void get_absolute_path(const Image *ima, char *r_path);
 static std::string get_tex_image_asset_filepath(const USDExporterContext &usd_export_context,
                                                 bNode *node);
@@ -151,32 +153,33 @@ void create_input(pxr::UsdShadeShader &shader,
   shader.CreateInput(spec.input_name, spec.input_type).Set(scale * T2(cast_value->value));
 }
 
-static void create_usd_preview_surface_material(const USDExporterContext &usd_export_context,
-                                                Material *material,
-                                                pxr::UsdShadeMaterial &usd_material,
-                                                const std::string &active_uvmap_name,
-                                                ReportList *reports)
+static void set_scale_bias(pxr::UsdShadeShader &usd_shader,
+                           const pxr::GfVec4f scale,
+                           const pxr::GfVec4f bias)
 {
-  if (!material) {
-    return;
+  pxr::UsdShadeInput scale_attr = usd_shader.GetInput(usdtokens::scale);
+  if (!scale_attr) {
+    scale_attr = usd_shader.CreateInput(usdtokens::scale, pxr::SdfValueTypeNames->Float4);
   }
+  scale_attr.Set(scale);
 
-  /* We only handle the first instance of either principled or
-   * diffuse bsdf nodes in the material's node tree, because
-   * USD Preview Surface has no concept of layering materials. */
-  bNode *node = find_bsdf_node(material);
-  if (!node) {
-    return;
+  pxr::UsdShadeInput bias_attr = usd_shader.GetInput(usdtokens::bias);
+  if (!bias_attr) {
+    bias_attr = usd_shader.CreateInput(usdtokens::bias, pxr::SdfValueTypeNames->Float4);
   }
+  bias_attr.Set(bias);
+}
 
-  pxr::UsdShadeShader preview_surface = create_usd_preview_shader(
-      usd_export_context, usd_material, node);
-
+static void process_inputs(const USDExporterContext &usd_export_context,
+                           pxr::UsdShadeMaterial &usd_material,
+                           pxr::UsdShadeShader &shader,
+                           const bNode *node,
+                           const std::string &active_uvmap_name,
+                           ReportList *reports)
+{
   const InputSpecMap &input_map = preview_surface_input_map();
 
-  /* Set the preview surface inputs. */
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-
     /* Check if this socket is mapped to a USD preview shader input. */
     const InputSpec *spec = input_map.lookup_ptr(sock->name);
     if (spec == nullptr) {
@@ -191,15 +194,13 @@ static void create_usd_preview_surface_material(const USDExporterContext &usd_ex
 
     if (input_spec.input_name == usdtokens::emissive_color) {
       /* Don't export emission color if strength is zero. */
-      bNodeSocket *emission_strength_sock = bke::node_find_socket(
+      const bNodeSocket *emission_strength_sock = bke::node_find_socket(
           node, SOCK_IN, "Emission Strength");
-
       if (!emission_strength_sock) {
         continue;
       }
 
       input_scale = ((bNodeSocketValueFloat *)emission_strength_sock->default_value)->value;
-
       if (input_scale == 0.0f) {
         continue;
       }
@@ -243,7 +244,7 @@ static void create_usd_preview_surface_material(const USDExporterContext &usd_ex
       /* Create the preview surface input and connect it to the shader. */
       pxr::UsdShadeConnectionSourceInfo source_info(
           usd_shader.ConnectableAPI(), source_name, pxr::UsdShadeAttributeType::Output);
-      preview_surface.CreateInput(input_spec.input_name, input_spec.input_type)
+      shader.CreateInput(input_spec.input_name, input_spec.input_type)
           .ConnectToSource(source_info);
 
       set_normal_texture_range(usd_shader, input_spec);
@@ -253,43 +254,51 @@ static void create_usd_preview_surface_material(const USDExporterContext &usd_ex
         export_texture(usd_export_context, input_node);
       }
 
-      /* If a Vector Math node was detected ahead of the texture node, and it has
-       * the correct type, NODE_VECTOR_MATH_MULTIPLY_ADD, assume it's meant to be
-       * used for scale-bias. */
-      bNodeLink *scale_link = traverse_channel(sock, SH_NODE_VECTOR_MATH);
-      if (scale_link) {
-        bNode *vector_math_node = scale_link->fromnode;
-        if (vector_math_node->custom1 == NODE_VECTOR_MATH_MULTIPLY_ADD) {
-          /* Attempt one more traversal in case the current node is not the
-           * correct NODE_VECTOR_MATH_MULTIPLY_ADD (see code in usd_reader_material). */
-          bNodeSocket *sock_current = bke::node_find_socket(vector_math_node, SOCK_IN, "Vector");
-          bNodeLink *temp_link = traverse_channel(sock_current, SH_NODE_VECTOR_MATH);
-          if (temp_link && temp_link->fromnode->custom1 == NODE_VECTOR_MATH_MULTIPLY_ADD) {
-            vector_math_node = temp_link->fromnode;
+      /* Scale-Bias processing.
+       * Ordinary: If a Vector Math node was detected ahead of the texture node, and it has
+       *   the correct type, NODE_VECTOR_MATH_MULTIPLY_ADD, assume it's meant to be
+       *   used for scale-bias.
+       * Displacement: The scale-bias values come from the Midlevel and Scale sockets.
+       */
+      if (input_spec.input_name != usdtokens::displacement) {
+        bNodeLink *scale_link = traverse_channel(sock, SH_NODE_VECTOR_MATH);
+        if (scale_link) {
+          bNode *vector_math_node = scale_link->fromnode;
+          if (vector_math_node->custom1 == NODE_VECTOR_MATH_MULTIPLY_ADD) {
+            /* Attempt one more traversal in case the current node is not the
+             * correct NODE_VECTOR_MATH_MULTIPLY_ADD (see code in usd_reader_material). */
+            bNodeSocket *sock_current = bke::node_find_socket(vector_math_node, SOCK_IN, "Vector");
+            bNodeLink *temp_link = traverse_channel(sock_current, SH_NODE_VECTOR_MATH);
+            if (temp_link && temp_link->fromnode->custom1 == NODE_VECTOR_MATH_MULTIPLY_ADD) {
+              vector_math_node = temp_link->fromnode;
+            }
+
+            bNodeSocket *sock_scale = bke::node_find_socket(
+                vector_math_node, SOCK_IN, "Vector_001");
+            bNodeSocket *sock_bias = bke::node_find_socket(
+                vector_math_node, SOCK_IN, "Vector_002");
+            const float *scale_value =
+                static_cast<bNodeSocketValueVector *>(sock_scale->default_value)->value;
+            const float *bias_value =
+                static_cast<bNodeSocketValueVector *>(sock_bias->default_value)->value;
+
+            const pxr::GfVec4f scale(scale_value[0], scale_value[1], scale_value[2], 1.0f);
+            const pxr::GfVec4f bias(bias_value[0], bias_value[1], bias_value[2], 0.0f);
+            set_scale_bias(usd_shader, scale, bias);
           }
-
-          bNodeSocket *sock_scale = bke::node_find_socket(vector_math_node, SOCK_IN, "Vector_001");
-          bNodeSocket *sock_bias = bke::node_find_socket(vector_math_node, SOCK_IN, "Vector_002");
-          const float *scale_value =
-              static_cast<bNodeSocketValueVector *>(sock_scale->default_value)->value;
-          const float *bias_value =
-              static_cast<bNodeSocketValueVector *>(sock_bias->default_value)->value;
-
-          const pxr::GfVec4f scale(scale_value[0], scale_value[1], scale_value[2], 1.0f);
-          const pxr::GfVec4f bias(bias_value[0], bias_value[1], bias_value[2], 0.0f);
-
-          pxr::UsdShadeInput scale_attr = usd_shader.GetInput(usdtokens::scale);
-          if (!scale_attr) {
-            scale_attr = usd_shader.CreateInput(usdtokens::scale, pxr::SdfValueTypeNames->Float4);
-          }
-          scale_attr.Set(scale);
-
-          pxr::UsdShadeInput bias_attr = usd_shader.GetInput(usdtokens::bias);
-          if (!bias_attr) {
-            bias_attr = usd_shader.CreateInput(usdtokens::bias, pxr::SdfValueTypeNames->Float4);
-          }
-          bias_attr.Set(bias);
         }
+      }
+      else {
+        const bNodeSocket *sock_midlevel = bke::node_find_socket(node, SOCK_IN, "Midlevel");
+        const bNodeSocket *sock_scale = bke::node_find_socket(node, SOCK_IN, "Scale");
+        const float midlevel_value =
+            sock_midlevel->default_value_typed<bNodeSocketValueFloat>()->value;
+        const float scale_value = sock_scale->default_value_typed<bNodeSocketValueFloat>()->value;
+
+        const float adjusted_bias = -midlevel_value * scale_value;
+        const pxr::GfVec4f scale(scale_value, scale_value, scale_value, 1.0f);
+        const pxr::GfVec4f bias(adjusted_bias, adjusted_bias, adjusted_bias, 0.0f);
+        set_scale_bias(usd_shader, scale, bias);
       }
 
       /* Look for a connected uvmap node. */
@@ -335,7 +344,7 @@ static void create_usd_preview_surface_material(const USDExporterContext &usd_ex
         }
 
         if (threshold > 0.0f) {
-          pxr::UsdShadeInput opacity_threshold_input = preview_surface.CreateInput(
+          pxr::UsdShadeInput opacity_threshold_input = shader.CreateInput(
               usdtokens::opacityThreshold, pxr::SdfValueTypeNames->Float);
           opacity_threshold_input.GetAttr().Set(pxr::VtValue(threshold));
         }
@@ -347,19 +356,86 @@ static void create_usd_preview_surface_material(const USDExporterContext &usd_ex
       switch (sock->type) {
         case SOCK_FLOAT: {
           create_input<bNodeSocketValueFloat, float>(
-              preview_surface, input_spec, sock->default_value, input_scale);
+              shader, input_spec, sock->default_value, input_scale);
         } break;
         case SOCK_VECTOR: {
           create_input<bNodeSocketValueVector, pxr::GfVec3f>(
-              preview_surface, input_spec, sock->default_value, input_scale);
+              shader, input_spec, sock->default_value, input_scale);
         } break;
         case SOCK_RGBA: {
           create_input<bNodeSocketValueRGBA, pxr::GfVec3f>(
-              preview_surface, input_spec, sock->default_value, input_scale);
+              shader, input_spec, sock->default_value, input_scale);
         } break;
         default:
           break;
       }
+    }
+  }
+}
+
+static void create_usd_preview_surface_material(const USDExporterContext &usd_export_context,
+                                                Material *material,
+                                                pxr::UsdShadeMaterial &usd_material,
+                                                const std::string &active_uvmap_name,
+                                                ReportList *reports)
+{
+  if (!material) {
+    return;
+  }
+
+  /* We only handle the first instance of either principled or
+   * diffuse bsdf nodes in the material's node tree, because
+   * USD Preview Surface has no concept of layering materials. */
+  bNode *surface_node = find_bsdf_node(material);
+  if (!surface_node) {
+    return;
+  }
+
+  pxr::UsdShadeShader preview_surface = create_usd_preview_shader(
+      usd_export_context, usd_material, surface_node);
+
+  /* Handle the primary "surface" output. */
+  process_inputs(
+      usd_export_context, usd_material, preview_surface, surface_node, active_uvmap_name, reports);
+
+  /* Handle the "displacement" output if it meets our requirements. */
+  if (bNode *displacement_node = find_displacement_node(material)) {
+    if (displacement_node->custom1 != SHD_SPACE_OBJECT) {
+      CLOG_WARN(&LOG,
+                "Skipping displacement. Only Object Space displacement is supported by the "
+                "UsdPreviewSurface.");
+      return;
+    }
+
+    bNodeSocket *sock_mid = bke::node_find_socket(displacement_node, SOCK_IN, "Midlevel");
+    bNodeSocket *sock_scale = bke::node_find_socket(displacement_node, SOCK_IN, "Scale");
+    if (sock_mid->link || sock_scale->link) {
+      CLOG_WARN(&LOG, "Skipping displacement. Midlevel and Scale must be constants.");
+      return;
+    }
+
+    usd_material.CreateDisplacementOutput().ConnectToSource(preview_surface.ConnectableAPI(),
+                                                            usdtokens::displacement);
+
+    bNodeSocket *sock_height = bke::node_find_socket(displacement_node, SOCK_IN, "Height");
+    if (sock_height->link) {
+      process_inputs(usd_export_context,
+                     usd_material,
+                     preview_surface,
+                     displacement_node,
+                     active_uvmap_name,
+                     reports);
+    }
+    else {
+      /* The Height itself was also a constant. Odd but still valid. As there's only 1 value that
+       * can be written to USD, this will be a lossy conversion upon reading back in. The reader
+       * will calculate the node's parameters assuming default values for Midlevel and Scale. */
+      const float mid_value = sock_mid->default_value_typed<bNodeSocketValueFloat>()->value;
+      const float scale_value = sock_scale->default_value_typed<bNodeSocketValueFloat>()->value;
+      const float height_value = sock_height->default_value_typed<bNodeSocketValueFloat>()->value;
+      const float displacement_value = (height_value - mid_value) * scale_value;
+      const InputSpec &spec = preview_surface_input_map().lookup("Height");
+      preview_surface.CreateInput(spec.input_name, spec.input_type).Set(displacement_value);
     }
   }
 }
@@ -441,6 +517,7 @@ static const InputSpecMap &preview_surface_input_map()
     map.add_new("Coat Weight", {usdtokens::clearcoat, pxr::SdfValueTypeNames->Float, true});
     map.add_new("Coat Roughness",
                 {usdtokens::clearcoatRoughness, pxr::SdfValueTypeNames->Float, true});
+    map.add_new("Height", {usdtokens::displacement, pxr::SdfValueTypeNames->Float, false});
     return map;
   }();
 
@@ -795,6 +872,20 @@ static bNode *find_bsdf_node(Material *material)
 {
   for (bNode *node : material->nodetree->all_nodes()) {
     if (ELEM(node->type, SH_NODE_BSDF_PRINCIPLED, SH_NODE_BSDF_DIFFUSE)) {
+      return node;
+    }
+  }
+
+  return nullptr;
+}
+
+/* Returns the first occurrence of a scalar Displacment node found in the given
+ * material's node tree. Vector Displacement is not supported in the UsdPreviewSurface.
+ * Returns null if no instance of either type was found. */
+static bNode *find_displacement_node(Material *material)
+{
+  for (bNode *node : material->nodetree->all_nodes()) {
+    if (node->type == SH_NODE_DISPLACEMENT) {
       return node;
     }
   }

@@ -138,7 +138,7 @@ def bake_action_objects(
     :arg bake_options: Options for baking.
     :type bake_options: :class:`anim_utils.BakeOptions`
 
-    :return: A sequence of Action or None types (aligned with `object_action_pairs`)
+    :return: A sequence of Action or None types (aligned with ``object_action_pairs``)
     :rtype: Sequence[:class:`bpy.types.Action`]
     """
     if not (bake_options.do_pose or bake_options.do_object):

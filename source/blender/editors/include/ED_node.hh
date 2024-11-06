@@ -25,6 +25,9 @@ struct uiLayout;
 
 namespace blender::ed::space_node {
 
+/** Update the active node tree based on the context. */
+void snode_set_context(const bContext &C);
+
 VectorSet<bNode *> get_selected_nodes(bNodeTree &node_tree);
 
 /**

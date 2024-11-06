@@ -709,7 +709,9 @@ static float paint_space_stroke_spacing(const bContext *C,
   spacing *= stroke->zoom_2d;
 
   if (paint_stroke_use_scene_spacing(brush, mode)) {
-    return size_clamp * spacing / 50.0f;
+    /* Low pressure on size (with tablets) can cause infinite recursion in paint_space_stroke(),
+     * see #129853. */
+    return max_ff(FLT_EPSILON, size_clamp * spacing / 50.0f);
   }
   return max_ff(stroke->zoom_2d, size_clamp * spacing / 50.0f);
 }
@@ -840,6 +842,7 @@ static int paint_space_stroke(bContext *C,
   while (length > 0.0f) {
     const float spacing = paint_space_stroke_spacing_variable(
         C, scene, stroke, pressure, pressure_delta, length);
+    BLI_assert(spacing >= 0.0f);
 
     if (length >= spacing) {
       float2 mouse;

@@ -1901,13 +1901,13 @@ typedef struct SceneEEVEE {
   int volumetric_ray_depth;
 
   float gtao_distance;
-  float gtao_quality;
   float gtao_thickness;
   float gtao_focus;
   int gtao_resolution;
 
   int fast_gi_step_count;
   int fast_gi_ray_count;
+  float fast_gi_quality;
   float fast_gi_distance;
   float fast_gi_thickness_near;
   float fast_gi_thickness_far;
@@ -2469,6 +2469,7 @@ enum {
   SEQ_SNAP_TO_CURRENT_FRAME = 1 << 1,
   SEQ_SNAP_TO_STRIP_HOLD = 1 << 2,
   SEQ_SNAP_TO_MARKERS = 1 << 3,
+  SEQ_SNAP_TO_RETIMING = 1 << 4,
 
   /* Preview snapping. */
   SEQ_SNAP_TO_PREVIEW_BORDERS = 1 << 4,

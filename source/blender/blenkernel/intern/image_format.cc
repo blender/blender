@@ -326,6 +326,8 @@ char BKE_imtype_valid_depths(const char imtype)
 
 char BKE_imtype_valid_depths_with_video(char imtype, const ID *owner_id)
 {
+  UNUSED_VARS(owner_id); /* Might be unused depending on build options. */
+
   int depths = BKE_imtype_valid_depths(imtype);
 #ifdef WITH_FFMPEG
   /* Depending on video codec selected, valid color bit depths might vary. */

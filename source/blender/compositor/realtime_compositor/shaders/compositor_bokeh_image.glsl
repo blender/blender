@@ -42,6 +42,10 @@ vec2 closest_point_on_line(vec2 point, vec2 line_start, vec2 line_end)
  * at the edges, it returns a narrow band gradient as a form of anti-aliasing. */
 float bokeh(vec2 point, float circumradius)
 {
+  if (circumradius == 0.0) {
+    return 0.0;
+  }
+
   /* Get the index of the vertex of the regular polygon whose polar angle is maximum but less than
    * the polar angle of the given point, taking rotation into account. This essentially finds the
    * vertex closest to the given point in the clock-wise direction. */
@@ -103,7 +107,7 @@ void main()
    * that are shifted by an amount that is proportional to the "lens_shift" value. The alpha
    * channel of the output is the average of all three values. */
   float min_shift = abs(lens_shift * circumradius);
-  float min = mix(bokeh(point, circumradius - min_shift), 0.0, min_shift == circumradius);
+  float min = bokeh(point, circumradius - min_shift);
 
   float median_shift = min_shift / 2.0;
   float median = bokeh(point, circumradius - median_shift);
@@ -114,7 +118,7 @@ void main()
   /* If the lens shift is negative, swap the min and max bokeh values, which are stored in the red
    * and blue channels respectively. Note that we take the absolute value of the lens shift above,
    * so the sign of the lens shift only controls this swap. */
-  if (lens_shift < 0) {
+  if (lens_shift < 0.0) {
     bokeh = bokeh.zyxw;
   }
 

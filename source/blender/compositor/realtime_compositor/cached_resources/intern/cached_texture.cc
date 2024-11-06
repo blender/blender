@@ -26,6 +26,7 @@
 #include "COM_cached_texture.hh"
 #include "COM_context.hh"
 #include "COM_result.hh"
+#include "COM_utilities.hh"
 
 namespace blender::realtime_compositor {
 
@@ -58,12 +59,14 @@ CachedTexture::CachedTexture(Context &context,
                              int2 size,
                              float3 offset,
                              float3 scale)
+    : color_result(context.create_result(ResultType::Color)),
+      value_result(context.create_result(ResultType::Float))
 {
   ImagePool *image_pool = BKE_image_pool_new();
   BKE_texture_fetch_images_for_pool(texture, image_pool);
 
-  Array<float4> color_pixels(size.x * size.y);
-  Array<float> value_pixels(size.x * size.y);
+  color_pixels_ = Array<float4>(size.x * size.y);
+  value_pixels_ = Array<float>(size.x * size.y);
   threading::parallel_for(IndexRange(size.y), 1, [&](const IndexRange sub_y_range) {
     for (const int64_t y : sub_y_range) {
       for (const int64_t x : IndexRange(size.x)) {
@@ -83,47 +86,34 @@ CachedTexture::CachedTexture(Context &context,
           copy_v3_fl(color, color.w);
         }
 
-        color_pixels[y * size.x + x] = color;
-        value_pixels[y * size.x + x] = color.w;
+        color_pixels_[y * size.x + x] = color;
+        value_pixels_[y * size.x + x] = color.w;
       }
     }
   });
 
   BKE_image_pool_free(image_pool);
 
-  color_texture_ = GPU_texture_create_2d(
-      "Cached Color Texture",
-      size.x,
-      size.y,
-      1,
-      Result::gpu_texture_format(ResultType::Color, context.get_precision()),
-      GPU_TEXTURE_USAGE_SHADER_READ,
-      *color_pixels.data());
+  if (context.use_gpu()) {
+    this->color_result.allocate_texture(Domain(size), false);
+    this->value_result.allocate_texture(Domain(size), false);
+    GPU_texture_update(this->color_result, GPU_DATA_FLOAT, color_pixels_.data());
+    GPU_texture_update(this->value_result, GPU_DATA_FLOAT, value_pixels_.data());
 
-  value_texture_ = GPU_texture_create_2d(
-      "Cached Value Texture",
-      size.x,
-      size.y,
-      1,
-      Result::gpu_texture_format(ResultType::Float, context.get_precision()),
-      GPU_TEXTURE_USAGE_SHADER_READ,
-      value_pixels.data());
+    /* CPU-side data no longer needed, so free it. */
+    color_pixels_ = Array<float4>();
+    value_pixels_ = Array<float>();
+  }
+  else {
+    this->color_result.wrap_external(&color_pixels_.data()[0].x, size);
+    this->value_result.wrap_external(value_pixels_.data(), size);
+  }
 }
 
 CachedTexture::~CachedTexture()
 {
-  GPU_texture_free(color_texture_);
-  GPU_texture_free(value_texture_);
-}
-
-GPUTexture *CachedTexture::color_texture()
-{
-  return color_texture_;
-}
-
-GPUTexture *CachedTexture::value_texture()
-{
-  return value_texture_;
+  this->color_result.release();
+  this->value_result.release();
 }
 
 /* --------------------------------------------------------------------

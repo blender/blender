@@ -22,7 +22,7 @@ void validate_drawing_vertex_groups(GreasePencil &grease_pencil);
 int ensure_vertex_group(const StringRef name, ListBase &vertex_group_names);
 
 /** Assign selected vertices to the vertex group. */
-void assign_to_vertex_group(GreasePencil &grease_pencil, StringRef name, float weight);
+void assign_to_vertex_group(Drawing &drawing, StringRef name, float weight);
 
 void assign_to_vertex_group_from_mask(CurvesGeometry &curves,
                                       const IndexMask &mask,
@@ -39,7 +39,7 @@ bool remove_from_vertex_group(GreasePencil &grease_pencil, StringRef name, bool 
 void clear_vertex_groups(GreasePencil &grease_pencil);
 
 /** Select or deselect vertices assigned to this group. */
-void select_from_group(GreasePencil &grease_pencil,
+void select_from_group(Drawing &drawing,
                        const AttrDomain selection_domain,
                        StringRef name,
                        bool select);

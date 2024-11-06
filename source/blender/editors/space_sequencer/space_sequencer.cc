@@ -893,6 +893,8 @@ static void sequencer_preview_region_draw(const bContext *C, ARegion *region)
     BLF_shadow(font_id, FontShadowType::Outline, shadow_color);
 
     ED_scene_draw_fps(scene, xoffset, &yoffset);
+
+    BLF_disable(font_id, BLF_SHADOW);
   }
 }
 

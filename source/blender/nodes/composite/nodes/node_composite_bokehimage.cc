@@ -64,17 +64,6 @@ class BokehImageOperation : public NodeOperation {
 
   void execute() override
   {
-    /* Not yet supported on CPU. */
-    if (!context().use_gpu()) {
-      for (const bNodeSocket *output : this->node()->output_sockets()) {
-        Result &output_result = get_result(output->identifier);
-        if (output_result.should_compute()) {
-          output_result.allocate_invalid();
-        }
-      }
-      return;
-    }
-
     const Domain domain = compute_domain();
 
     const Result &bokeh_kernel = context().cache_manager().bokeh_kernels.get(

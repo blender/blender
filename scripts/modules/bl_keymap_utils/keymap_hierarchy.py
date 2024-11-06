@@ -141,7 +141,6 @@ _km_hierarchy = [
         ('NLA Tracks', 'NLA_EDITOR', 'WINDOW', []),
         ('NLA Generic', 'NLA_EDITOR', 'WINDOW', []),
     ]),
-    ('Timeline', 'TIMELINE', 'WINDOW', []),
 
     ('Image', 'IMAGE_EDITOR', 'WINDOW', [
         # Image (reverse order, UVEdit before Image).

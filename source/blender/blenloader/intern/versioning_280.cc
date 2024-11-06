@@ -3441,7 +3441,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
         scene->eevee.volumetric_shadow_samples = 16;
 
         scene->eevee.gtao_distance = 0.2f;
-        scene->eevee.gtao_quality = 0.25f;
+        scene->eevee.fast_gi_quality = 0.25f;
 
         scene->eevee.bokeh_max_size = 100.0f;
         scene->eevee.bokeh_threshold = 1.0f;
@@ -3550,7 +3550,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
 
         // EEVEE_GET_FLOAT(props, gtao_distance);
         // EEVEE_GET_FLOAT(props, gtao_factor);
-        EEVEE_GET_FLOAT(props, gtao_quality);
+        EEVEE_GET_FLOAT(props, fast_gi_quality);
 
         EEVEE_GET_FLOAT(props, bokeh_max_size);
         EEVEE_GET_FLOAT(props, bokeh_threshold);

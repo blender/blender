@@ -48,6 +48,7 @@
 #include "GPU_texture.hh"
 
 #include "COM_node_operation.hh"
+#include "COM_utilities.hh"
 
 #include "NOD_socket_search_link.hh"
 
@@ -518,17 +519,6 @@ class FileOutputOperation : public NodeOperation {
 
   void execute() override
   {
-    /* Not yet supported on CPU. */
-    if (!context().use_gpu()) {
-      for (const bNodeSocket *output : this->node()->output_sockets()) {
-        Result &output_result = get_result(output->identifier);
-        if (output_result.should_compute()) {
-          output_result.allocate_invalid();
-        }
-      }
-      return;
-    }
-
     if (is_multi_layer()) {
       execute_multi_layer();
     }
@@ -646,8 +636,8 @@ class FileOutputOperation : public NodeOperation {
     }
   }
 
-  /* Read the data stored in the GPU texture of the given result and add a pass of the given name,
-   * view, and read buffer. The pass channel identifiers follows the EXR conventions. */
+  /* Read the data stored in the given result and add a pass of the given name, view, and read
+   * buffer. The pass channel identifiers follows the EXR conventions. */
   void add_pass_for_result(FileOutput &file_output,
                            const Result &result,
                            const char *pass_name,
@@ -665,8 +655,21 @@ class FileOutputOperation : public NodeOperation {
       buffer = this->inflate_result(result, size);
     }
     else {
-      GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
-      buffer = static_cast<float *>(GPU_texture_read(result, GPU_DATA_FLOAT, 0));
+      if (context().use_gpu()) {
+        GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
+        buffer = static_cast<float *>(GPU_texture_read(result, GPU_DATA_FLOAT, 0));
+      }
+      else {
+        /* Copy the result into a new buffer. */
+        const int64_t buffer_size = int64_t(size.x) * size.y * result.channels_count();
+        buffer = static_cast<float *>(
+            MEM_malloc_arrayN(buffer_size, sizeof(float), "File Output Buffer Copy."));
+        threading::parallel_for(IndexRange(buffer_size), 1024, [&](const IndexRange sub_range) {
+          for (const int64_t i : sub_range) {
+            buffer[i] = result.float_texture()[i];
+          }
+        });
+      }
     }
 
     switch (result.type()) {
@@ -711,13 +714,8 @@ class FileOutputOperation : public NodeOperation {
             size_t(size.x) * size.y, sizeof(float), "File Output Inflated Buffer."));
 
         const float value = result.get_float_value();
-        threading::parallel_for(IndexRange(size.y), 1, [&](const IndexRange sub_y_range) {
-          for (const int64_t y : sub_y_range) {
-            for (const int64_t x : IndexRange(size.x)) {
-              buffer[y * size.x + x] = value;
-            }
-          }
-        });
+        parallel_for(
+            size, [&](const int2 texel) { buffer[int64_t(texel.y) * size.x + texel.x] = value; });
         return buffer;
       }
       case ResultType::Vector:
@@ -727,12 +725,8 @@ class FileOutputOperation : public NodeOperation {
 
         const float4 value = result.type() == ResultType::Color ? result.get_color_value() :
                                                                   result.get_vector_value();
-        threading::parallel_for(IndexRange(size.y), 1, [&](const IndexRange sub_y_range) {
-          for (const int64_t y : sub_y_range) {
-            for (const int64_t x : IndexRange(size.x)) {
-              copy_v4_v4(buffer + ((y * size.x + x) * 4), value);
-            }
-          }
+        parallel_for(size, [&](const int2 texel) {
+          copy_v4_v4(buffer + ((int64_t(texel.y) * size.x + texel.x) * 4), value);
         });
         return buffer;
       }
@@ -745,14 +739,28 @@ class FileOutputOperation : public NodeOperation {
     return nullptr;
   }
 
-  /* Read the data stored in the GPU texture of the given result and add a view of the given name
-   * and read buffer. */
+  /* Read the data stored the given result and add a view of the given name and read buffer. */
   void add_view_for_result(FileOutput &file_output, const Result &result, const char *view_name)
   {
     /* The image buffer in the file output will take ownership of this buffer and freeing it will
      * be its responsibility. */
-    GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
-    float *buffer = static_cast<float *>(GPU_texture_read(result, GPU_DATA_FLOAT, 0));
+    float *buffer = nullptr;
+    if (context().use_gpu()) {
+      GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
+      buffer = static_cast<float *>(GPU_texture_read(result, GPU_DATA_FLOAT, 0));
+    }
+    else {
+      /* Copy the result into a new buffer. */
+      const int2 size = result.domain().size;
+      const int64_t buffer_size = int64_t(size.x) * size.y * result.channels_count();
+      buffer = static_cast<float *>(
+          MEM_malloc_arrayN(buffer_size, sizeof(float), "File Output Buffer Copy."));
+      threading::parallel_for(IndexRange(buffer_size), 1024, [&](const IndexRange sub_range) {
+        for (const int64_t i : sub_range) {
+          buffer[i] = result.float_texture()[i];
+        }
+      });
+    }
 
     const int2 size = result.domain().size;
     switch (result.type()) {
@@ -779,14 +787,10 @@ class FileOutputOperation : public NodeOperation {
     float *float3_image = static_cast<float *>(MEM_malloc_arrayN(
         size_t(size.x) * size.y, sizeof(float[3]), "File Output Vector Buffer."));
 
-    threading::parallel_for(IndexRange(size.y), 1, [&](const IndexRange sub_y_range) {
-      for (const int64_t y : sub_y_range) {
-        for (const int64_t x : IndexRange(size.x)) {
-          for (int i = 0; i < 3; i++) {
-            const int pixel_index = y * size.x + x;
-            float3_image[pixel_index * 3 + i] = float4_image[pixel_index * 4 + i];
-          }
-        }
+    parallel_for(size, [&](const int2 texel) {
+      for (int i = 0; i < 3; i++) {
+        const int64_t pixel_index = int64_t(texel.y) * size.x + texel.x;
+        float3_image[pixel_index * 3 + i] = float4_image[pixel_index * 4 + i];
       }
     });
 

@@ -78,8 +78,8 @@ static void transform_snap_anim_flush_data_ex(
 
   AnimData *adt = nullptr;
   if (!ELEM(t->spacetype, SPACE_NLA, SPACE_SEQ) && !(td->flag & TD_GREASE_PENCIL_FRAME)) {
-    /* TD_GREASE_PENCIL_FRAME stores blender::bke::greasepencil::Layer* in
-     * td->extra, and not the AnimData. */
+    /* #TD_GREASE_PENCIL_FRAME stores #blender::bke::greasepencil::Layer* in
+     * `td->extra`, and not the #AnimData. */
     adt = static_cast<AnimData *>(td->extra);
   }
 

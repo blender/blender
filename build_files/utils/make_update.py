@@ -11,11 +11,13 @@ For release branches, this will check out the appropriate branches of
 submodules and libraries.
 
 WARNING:
-Python 3.9 is used on the built-bot.
+- Python 3.6 is used on the Linux VM (Rocky8) to run "make update" to checkout LFS.
+- Python 3.9 is used on the built-bot.
+
 Take care *not* to use features from the Python version used by Blender!
 
 NOTE:
-Some type annotations are quoted to avoid errors in Python 3.9.
+Some type annotations are quoted to avoid errors in older Python versions.
 These can be unquoted eventually.
 """
 
@@ -120,7 +122,8 @@ def get_effective_architecture(args: argparse.Namespace) -> str:
     return architecture
 
 
-def get_submodule_directories(args: argparse.Namespace) -> tuple[Path, ...]:
+# NOTE: unquote "tuple" once Python 3.6x is dropped.
+def get_submodule_directories(args: argparse.Namespace) -> "tuple[Path, ...]":
     """
     Get list of all configured submodule directories.
     """

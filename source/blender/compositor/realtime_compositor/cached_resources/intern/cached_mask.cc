@@ -22,6 +22,7 @@
 #include "COM_cached_mask.hh"
 #include "COM_context.hh"
 #include "COM_result.hh"
+#include "COM_utilities.hh"
 
 namespace blender::realtime_compositor {
 
@@ -110,51 +111,45 @@ CachedMask::CachedMask(Context &context,
                        bool use_feather,
                        int motion_blur_samples,
                        float motion_blur_shutter)
+    : result(context.create_result(ResultType::Float))
 {
   Vector<MaskRasterHandle *> handles = get_mask_raster_handles(
       mask, size, frame, use_feather, motion_blur_samples, motion_blur_shutter);
 
-  Array<float> evaluated_mask(size.x * size.y);
-  threading::parallel_for(IndexRange(size.y), 1, [&](const IndexRange sub_y_range) {
-    for (const int64_t y : sub_y_range) {
-      for (const int64_t x : IndexRange(size.x)) {
-        /* Compute the coordinates in the [0, 1] range and add 0.5 to evaluate the mask at the
-         * center of pixels. */
-        float2 coordinates = (float2(x, y) + 0.5f) / float2(size);
-        /* Do aspect ratio correction around the center 0.5 point. */
-        coordinates = (coordinates - float2(0.5)) * float2(1.0, aspect_ratio) + float2(0.5);
+  evaluated_mask_ = Array<float>(size.x * size.y);
+  parallel_for(size, [&](const int2 texel) {
+    /* Compute the coordinates in the [0, 1] range and add 0.5 to evaluate the mask at the
+     * center of pixels. */
+    float2 coordinates = (float2(texel) + 0.5f) / float2(size);
+    /* Do aspect ratio correction around the center 0.5 point. */
+    coordinates = (coordinates - float2(0.5)) * float2(1.0, aspect_ratio) + float2(0.5);
 
-        float mask_value = 0.0f;
-        for (MaskRasterHandle *handle : handles) {
-          mask_value += BKE_maskrasterize_handle_sample(handle, coordinates);
-        }
-        evaluated_mask[y * size.x + x] = mask_value / handles.size();
-      }
+    float mask_value = 0.0f;
+    for (MaskRasterHandle *handle : handles) {
+      mask_value += BKE_maskrasterize_handle_sample(handle, coordinates);
     }
+    evaluated_mask_[texel.y * size.x + texel.x] = mask_value / handles.size();
   });
 
   for (MaskRasterHandle *handle : handles) {
     BKE_maskrasterize_handle_free(handle);
   }
 
-  texture_ = GPU_texture_create_2d(
-      "Cached Mask",
-      size.x,
-      size.y,
-      1,
-      Result::gpu_texture_format(ResultType::Float, context.get_precision()),
-      GPU_TEXTURE_USAGE_SHADER_READ,
-      evaluated_mask.data());
+  if (context.use_gpu()) {
+    this->result.allocate_texture(Domain(size), false);
+    GPU_texture_update(this->result, GPU_DATA_FLOAT, evaluated_mask_.data());
+
+    /* CPU-side data no longer needed, so free it. */
+    evaluated_mask_ = Array<float>();
+  }
+  else {
+    this->result.wrap_external(evaluated_mask_.data(), size);
+  }
 }
 
 CachedMask::~CachedMask()
 {
-  GPU_texture_free(texture_);
-}
-
-GPUTexture *CachedMask::texture()
-{
-  return texture_;
+  this->result.release();
 }
 
 /* --------------------------------------------------------------------
@@ -178,13 +173,13 @@ void CachedMaskContainer::reset()
   }
 }
 
-CachedMask &CachedMaskContainer::get(Context &context,
-                                     Mask *mask,
-                                     int2 size,
-                                     float aspect_ratio,
-                                     bool use_feather,
-                                     int motion_blur_samples,
-                                     float motion_blur_shutter)
+Result &CachedMaskContainer::get(Context &context,
+                                 Mask *mask,
+                                 int2 size,
+                                 float aspect_ratio,
+                                 bool use_feather,
+                                 int motion_blur_samples,
+                                 float motion_blur_shutter)
 {
   const CachedMaskKey key(
       size, aspect_ratio, use_feather, motion_blur_samples, motion_blur_shutter);
@@ -210,7 +205,7 @@ CachedMask &CachedMaskContainer::get(Context &context,
   });
 
   cached_mask.needed = true;
-  return cached_mask;
+  return cached_mask.result;
 }
 
 }  // namespace blender::realtime_compositor

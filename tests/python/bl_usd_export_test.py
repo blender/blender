@@ -251,6 +251,53 @@ class USDExportTest(AbstractUSDTest):
         geom_subsets = UsdGeom.Subset.GetGeomSubsets(dynamic_mesh_prim)
         self.assertEqual(len(geom_subsets), 0)
 
+    def test_export_material_displacement(self):
+        """Validate correct export of Displacement information for the UsdPreviewSurface"""
+
+        # Use the common materials .blend file
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_materials_displace.blend"))
+        export_path = self.tempdir / "material_displace.usda"
+        self.export_and_validate(filepath=str(export_path), export_materials=True)
+
+        stage = Usd.Stage.Open(str(export_path))
+
+        # Verify "constant" displacement
+        shader_surface = UsdShade.Shader(stage.GetPrimAtPath("/root/_materials/constant/Principled_BSDF"))
+        self.assertEqual(shader_surface.GetIdAttr().Get(), "UsdPreviewSurface")
+        input_displacement = shader_surface.GetInput('displacement')
+        self.assertEqual(input_displacement.HasConnectedSource(), False, "Displacement input should not be connected")
+        self.assertAlmostEqual(input_displacement.Get(), 0.45, 5)
+
+        # Validate various Midlevel and Scale scenarios
+        def validate_displacement(mat_name, expected_scale, expected_bias):
+            shader_surface = UsdShade.Shader(stage.GetPrimAtPath(f"/root/_materials/{mat_name}/Principled_BSDF"))
+            shader_image = UsdShade.Shader(stage.GetPrimAtPath(f"/root/_materials/{mat_name}/Image_Texture"))
+            self.assertEqual(shader_surface.GetIdAttr().Get(), "UsdPreviewSurface")
+            self.assertEqual(shader_image.GetIdAttr().Get(), "UsdUVTexture")
+            input_displacement = shader_surface.GetInput('displacement')
+            input_colorspace = shader_image.GetInput('sourceColorSpace')
+            input_scale = shader_image.GetInput('scale')
+            input_bias = shader_image.GetInput('bias')
+            self.assertEqual(input_displacement.HasConnectedSource(), True, "Displacement input should be connected")
+            self.assertEqual(input_colorspace.Get(), 'raw')
+            self.assertEqual(self.round_vector(input_scale.Get()), expected_scale)
+            self.assertEqual(self.round_vector(input_bias.Get()), expected_bias)
+
+        validate_displacement("mid_0_0", [1.0, 1.0, 1.0, 1.0], [0, 0, 0, 0])
+        validate_displacement("mid_0_5", [1.0, 1.0, 1.0, 1.0], [-0.5, -0.5, -0.5, 0])
+        validate_displacement("mid_1_0", [1.0, 1.0, 1.0, 1.0], [-1, -1, -1, 0])
+        validate_displacement("mid_0_0_scale_0_3", [0.3, 0.3, 0.3, 1.0], [0, 0, 0, 0])
+        validate_displacement("mid_0_5_scale_0_3", [0.3, 0.3, 0.3, 1.0], [-0.15, -0.15, -0.15, 0])
+        validate_displacement("mid_1_0_scale_0_3", [0.3, 0.3, 0.3, 1.0], [-0.3, -0.3, -0.3, 0])
+
+        # Validate that no displacement occurs for scenarios USD doesn't support
+        shader_surface = UsdShade.Shader(stage.GetPrimAtPath(f"/root/_materials/bad_wrong_space/Principled_BSDF"))
+        input_displacement = shader_surface.GetInput('displacement')
+        self.assertTrue(input_displacement.Get() is None)
+        shader_surface = UsdShade.Shader(stage.GetPrimAtPath(f"/root/_materials/bad_non_const/Principled_BSDF"))
+        input_displacement = shader_surface.GetInput('displacement')
+        self.assertTrue(input_displacement.Get() is None)
+
     def check_primvar(self, prim, pv_name, pv_typeName, pv_interp, elements_len):
         pv = UsdGeom.PrimvarsAPI(prim).GetPrimvar(pv_name)
         self.assertTrue(pv.HasValue())

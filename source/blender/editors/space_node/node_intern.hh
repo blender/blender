@@ -336,8 +336,6 @@ float2 node_link_calculate_multi_input_position(const float2 &socket_position,
 
 float node_socket_calculate_height(const bNodeSocket &socket);
 
-void snode_set_context(const bContext &C);
-
 bool composite_node_active(bContext *C);
 /** Operator poll callback. */
 bool composite_node_editable(bContext *C);
