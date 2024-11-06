@@ -16,6 +16,7 @@
 #include "DNA_texture_types.h"
 
 #include "COM_cached_resource.hh"
+#include "COM_result.hh"
 
 namespace blender::realtime_compositor {
 
@@ -44,8 +45,12 @@ bool operator==(const CachedTextureKey &a, const CachedTextureKey &b);
  * given texture ID on a space that spans the given size, parameterized by the given parameters. */
 class CachedTexture : public CachedResource {
  private:
-  GPUTexture *color_texture_ = nullptr;
-  GPUTexture *value_texture_ = nullptr;
+  Array<float4> color_pixels_;
+  Array<float> value_pixels_;
+
+ public:
+  Result color_result;
+  Result value_result;
 
  public:
   CachedTexture(Context &context,
