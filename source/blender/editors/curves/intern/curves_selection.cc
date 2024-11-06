@@ -771,7 +771,7 @@ static std::optional<FindClosestData> find_closest_point_to_screen_co(
     const float4x4 &projection,
     const IndexMask &points_mask,
     const float2 mouse_pos,
-    float radius,
+    const float radius,
     const FindClosestData &initial_closest)
 {
   const float radius_sq = pow2f(radius);
@@ -781,8 +781,7 @@ static std::optional<FindClosestData> find_closest_point_to_screen_co(
       initial_closest,
       [&](const IndexRange range, const FindClosestData &init) {
         FindClosestData best_match = init;
-        for (const int index : range) {
-          const int point = points_mask[index];
+        points_mask.slice(range).foreach_index([&](const int point) {
           const float3 &pos = positions[point];
           const float2 pos_proj = ED_view3d_project_float_v2_m4(region, pos, projection);
 
@@ -791,11 +790,11 @@ static std::optional<FindClosestData> find_closest_point_to_screen_co(
               distance_proj_sq > best_match.distance * best_match.distance)
           {
             /* Ignore the point because it's too far away or there is already a better point. */
-            continue;
+            return;
           }
 
           best_match = {point, std::sqrt(distance_proj_sq)};
-        }
+        });
         return best_match;
       },
       closer_elem);
