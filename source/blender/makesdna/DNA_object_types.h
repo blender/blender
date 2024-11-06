@@ -327,10 +327,11 @@ typedef struct Object {
 
   /** Custom index, for render-passes. */
   short index;
+  /** The refraction layer this object is rendered in, for EEVEE. */
+  short refraction_layer_index;
   /** Current deformation group, NOTE: index starts at 1. */
   unsigned short actdef DNA_DEPRECATED;
-  /** Current face map, NOTE: index starts at 1. */
-  char _pad2[4];
+  char _pad2[2];
   /** Object color (in most cases the material color is used for drawing). */
   float color[4];
 

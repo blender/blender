@@ -92,11 +92,15 @@ void main()
 
   ScreenTraceHitData hit;
   hit.valid = false;
+
   /* This huge branch is likely to be a huge issue for performance.
    * We could split the shader but that would mean to dispatch some area twice for the same closure
    * index. Another idea is to put both HiZ buffer int he same texture and dynamically access one
    * or the other. But that might also impact performance. */
-  if (is_reflection) {
+
+  /* Always trace against back layer in refraction layers,
+   * since we don't have a valid radiance feedback texture. */
+  if (is_reflection && !trace_refraction) {
     hit = raytrace_screen(uniform_buf.raytrace,
                           uniform_buf.hiz,
                           hiz_front_tx,

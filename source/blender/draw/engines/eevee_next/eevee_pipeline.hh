@@ -21,6 +21,8 @@
 #include "eevee_raytrace.hh"
 #include "eevee_subsurface.hh"
 
+#include <map>
+
 namespace blender::eevee {
 
 class Instance;
@@ -340,10 +342,11 @@ class DeferredPipeline {
   friend DeferredLayer;
 
  private:
+  Instance &inst_;
   /* Gbuffer filling passes. We could have an arbitrary number of them but for now we just have
    * a hardcoded number of them. */
   DeferredLayer opaque_layer_;
-  DeferredLayer refraction_layer_;
+  std::map<short, std::unique_ptr<DeferredLayer>> refraction_layers_;
   DeferredLayer volumetric_layer_;
 
   PassSimple debug_draw_ps_ = {"debug_gbuffer"};
@@ -351,15 +354,17 @@ class DeferredPipeline {
   bool use_combined_lightprobe_eval;
 
  public:
-  DeferredPipeline(Instance &inst)
-      : opaque_layer_(inst), refraction_layer_(inst), volumetric_layer_(inst){};
+  DeferredPipeline(Instance &inst) : inst_(inst), opaque_layer_(inst), volumetric_layer_(inst){};
 
   void begin_sync();
   void end_sync();
 
-  PassMain::Sub *prepass_add(::Material *material, GPUMaterial *gpumat, bool has_motion);
-  PassMain::Sub *material_add(::Material *material, GPUMaterial *gpumat);
-  PassMain::Sub *npr_add(::Material *blender_mat, GPUMaterial *gpumat);
+  PassMain::Sub *prepass_add(::Material *material,
+                             GPUMaterial *gpumat,
+                             bool has_motion,
+                             short refraction_layer);
+  PassMain::Sub *material_add(::Material *material, GPUMaterial *gpumat, short refraction_layer);
+  PassMain::Sub *npr_add(::Material *blender_mat, GPUMaterial *gpumat, short refraction_layer);
 
   void render(View &main_view,
               View &render_view,
@@ -373,24 +378,33 @@ class DeferredPipeline {
   /* Return the maximum amount of gbuffer layer needed. */
   int closure_layer_count() const
   {
-    return max_ii(opaque_layer_.closure_layer_count(), refraction_layer_.closure_layer_count());
+    int max_count = opaque_layer_.closure_layer_count();
+    for (auto &[index, layer] : refraction_layers_) {
+      max_count = math::max(max_count, layer->closure_layer_count());
+    }
+    return max_count;
   }
 
   /* Return the maximum amount of gbuffer layer needed. */
   int normal_layer_count() const
   {
-    return max_ii(opaque_layer_.normal_layer_count(), refraction_layer_.normal_layer_count());
+    int max_count = opaque_layer_.normal_layer_count();
+    for (auto &[index, layer] : refraction_layers_) {
+      max_count = math::max(max_count, layer->normal_layer_count());
+    }
+    return max_count;
   }
 
   void debug_draw(draw::View &view, GPUFrameBuffer *combined_fb);
 
   bool is_empty() const
   {
-    return opaque_layer_.is_empty() && refraction_layer_.is_empty();
+    return opaque_layer_.is_empty() && refraction_layers_.empty();
   }
 
  private:
   void debug_pass_sync();
+  DeferredLayer &get_refraction_layer(short index);
 };
 
 /** \} */
@@ -734,7 +748,8 @@ class PipelineModule {
                               ::Material *blender_mat,
                               GPUMaterial *gpumat,
                               eMaterialPipeline pipeline_type,
-                              eMaterialProbe probe_capture)
+                              eMaterialProbe probe_capture,
+                              short refraction_layer)
   {
     if (probe_capture == MAT_PROBE_REFLECTION) {
       switch (pipeline_type) {
@@ -761,7 +776,7 @@ class PipelineModule {
 
     switch (pipeline_type) {
       case MAT_PIPE_PREPASS_DEFERRED:
-        return deferred.prepass_add(blender_mat, gpumat, false);
+        return deferred.prepass_add(blender_mat, gpumat, false, refraction_layer);
       case MAT_PIPE_PREPASS_FORWARD:
         return forward.prepass_opaque_add(blender_mat, gpumat, false);
       case MAT_PIPE_PREPASS_OVERLAP:
@@ -769,14 +784,14 @@ class PipelineModule {
         return nullptr;
 
       case MAT_PIPE_PREPASS_DEFERRED_VELOCITY:
-        return deferred.prepass_add(blender_mat, gpumat, true);
+        return deferred.prepass_add(blender_mat, gpumat, true, refraction_layer);
       case MAT_PIPE_PREPASS_FORWARD_VELOCITY:
         return forward.prepass_opaque_add(blender_mat, gpumat, true);
 
       case MAT_PIPE_DEFERRED:
-        return deferred.material_add(blender_mat, gpumat);
+        return deferred.material_add(blender_mat, gpumat, refraction_layer);
       case MAT_PIPE_DEFERRED_NPR:
-        return deferred.npr_add(blender_mat, gpumat);
+        return deferred.npr_add(blender_mat, gpumat, refraction_layer);
       case MAT_PIPE_FORWARD:
         return forward.material_opaque_add(blender_mat, gpumat);
       case MAT_PIPE_SHADOW:

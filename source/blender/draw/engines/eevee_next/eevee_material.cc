@@ -238,12 +238,16 @@ MaterialPass MaterialModule::material_pass_get(Object *ob,
     matpass.sub_pass = nullptr;
   }
   else {
-    ShaderKey shader_key(matpass.gpumat, blender_mat, probe_capture);
+    ShaderKey shader_key(matpass.gpumat, blender_mat, probe_capture, ob->refraction_layer_index);
 
     PassMain::Sub *shader_sub = shader_map_.lookup_or_add_cb(shader_key, [&]() {
       /* First time encountering this shader. Create a sub that will contain materials using it. */
-      return inst_.pipelines.material_add(
-          ob, blender_mat, matpass.gpumat, pipeline_type, probe_capture);
+      return inst_.pipelines.material_add(ob,
+                                          blender_mat,
+                                          matpass.gpumat,
+                                          pipeline_type,
+                                          probe_capture,
+                                          ob->refraction_layer_index);
     });
 
     if (shader_sub != nullptr) {
@@ -271,7 +275,7 @@ Material &MaterialModule::material_sync(Object *ob,
 
   if (geometry_type == MAT_GEOM_VOLUME) {
     MaterialKey material_key(
-        blender_mat, geometry_type, MAT_PIPE_VOLUME_MATERIAL, ob->visibility_flag);
+        blender_mat, geometry_type, MAT_PIPE_VOLUME_MATERIAL, ob->visibility_flag, 0);
     Material &mat = material_map_.lookup_or_add_cb(material_key, [&]() {
       Material mat = {};
       mat.volume_occupancy = material_pass_get(
@@ -310,7 +314,8 @@ Material &MaterialModule::material_sync(Object *ob,
     prepass_pipe = has_motion ? MAT_PIPE_PREPASS_DEFERRED_VELOCITY : MAT_PIPE_PREPASS_DEFERRED;
   }
 
-  MaterialKey material_key(blender_mat, geometry_type, surface_pipe, ob->visibility_flag);
+  MaterialKey material_key(
+      blender_mat, geometry_type, surface_pipe, ob->visibility_flag, ob->refraction_layer_index);
 
   Material &mat = material_map_.lookup_or_add_cb(material_key, [&]() {
     Material mat;

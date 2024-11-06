@@ -509,7 +509,7 @@ RayTraceResultTexture RayTraceModule::trace(
   const bool use_spatial_denoise = (options.denoise_stages & RAYTRACE_EEVEE_DENOISE_SPATIAL) &&
                                    use_denoise;
   const bool use_temporal_denoise = (options.denoise_stages & RAYTRACE_EEVEE_DENOISE_TEMPORAL) &&
-                                    use_spatial_denoise;
+                                    !data_.trace_refraction && use_spatial_denoise;
   const bool use_bilateral_denoise = (options.denoise_stages & RAYTRACE_EEVEE_DENOISE_BILATERAL) &&
                                      use_temporal_denoise;
 

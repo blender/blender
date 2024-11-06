@@ -617,6 +617,8 @@ void DeferredLayer::end_sync(bool is_first_pass,
                     (sce_eevee.flag & SCE_EEVEE_SSR_ENABLED) != 0;
 
   use_clamp_direct_ = sce_eevee.clamp_surface_direct != 0.0f;
+  /* TODO(NPR): Clamp Direct doesn't work with NPR */
+  use_clamp_direct_ = false;
   use_clamp_indirect_ = sce_eevee.clamp_surface_indirect != 0.0f;
 
   /* The first pass will never have any surfaces behind it. Nothing is refracted except the
@@ -627,6 +629,9 @@ void DeferredLayer::end_sync(bool is_first_pass,
   use_split_radiance_ = use_raytracing_ || (use_clamp_direct_ || use_clamp_indirect_);
   use_feedback_output_ = (use_raytracing_ || is_layer_refracted) &&
                          (!is_last_pass || use_screen_reflection_);
+  /* TODO(NPR): Required for multi-layer refraction,
+   * since radiance_behind_tx is the previous layer radiance_feedback_tx. */
+  use_feedback_output_ = use_feedback_output_ || !is_first_pass;
 
   {
     RenderBuffersInfoData &rbuf_data = inst_.render_buffers.data;
@@ -978,13 +983,19 @@ void DeferredPipeline::begin_sync()
   use_combined_lightprobe_eval = !use_raytracing;
 
   opaque_layer_.begin_sync();
-  refraction_layer_.begin_sync();
+  refraction_layers_.clear();
 }
 
 void DeferredPipeline::end_sync()
 {
-  opaque_layer_.end_sync(true, refraction_layer_.is_empty(), refraction_layer_.has_transmission());
-  refraction_layer_.end_sync(opaque_layer_.is_empty(), true, false);
+  opaque_layer_.end_sync(true, refraction_layers_.empty(), !refraction_layers_.empty());
+
+  if (!refraction_layers_.empty()) {
+    const short last_index = refraction_layers_.rbegin()->first;
+    for (auto &[index, layer] : refraction_layers_) {
+      layer->end_sync(opaque_layer_.is_empty(), index == last_index, index != last_index);
+    }
+  }
 
   debug_pass_sync();
 }
@@ -1036,30 +1047,35 @@ void DeferredPipeline::debug_draw(draw::View &view, GPUFrameBuffer *combined_fb)
 
 PassMain::Sub *DeferredPipeline::prepass_add(::Material *blender_mat,
                                              GPUMaterial *gpumat,
-                                             bool has_motion)
+                                             bool has_motion,
+                                             short refraction_layer)
 {
   if (!use_combined_lightprobe_eval && (blender_mat->blend_flag & MA_BL_SS_REFRACTION)) {
-    return refraction_layer_.prepass_add(blender_mat, gpumat, has_motion);
+    return get_refraction_layer(refraction_layer).prepass_add(blender_mat, gpumat, has_motion);
   }
   else {
     return opaque_layer_.prepass_add(blender_mat, gpumat, has_motion);
   }
 }
 
-PassMain::Sub *DeferredPipeline::material_add(::Material *blender_mat, GPUMaterial *gpumat)
+PassMain::Sub *DeferredPipeline::material_add(::Material *blender_mat,
+                                              GPUMaterial *gpumat,
+                                              short refraction_layer)
 {
   if (!use_combined_lightprobe_eval && (blender_mat->blend_flag & MA_BL_SS_REFRACTION)) {
-    return refraction_layer_.material_add(blender_mat, gpumat);
+    return get_refraction_layer(refraction_layer).material_add(blender_mat, gpumat);
   }
   else {
     return opaque_layer_.material_add(blender_mat, gpumat);
   }
 }
 
-PassMain::Sub *DeferredPipeline::npr_add(::Material *blender_mat, GPUMaterial *gpumat)
+PassMain::Sub *DeferredPipeline::npr_add(::Material *blender_mat,
+                                         GPUMaterial *gpumat,
+                                         short refraction_layer)
 {
   if (!use_combined_lightprobe_eval && (blender_mat->blend_flag & MA_BL_SS_REFRACTION)) {
-    return refraction_layer_.npr_add(blender_mat, gpumat);
+    return get_refraction_layer(refraction_layer).npr_add(blender_mat, gpumat);
   }
   else {
     return opaque_layer_.npr_add(blender_mat, gpumat);
@@ -1089,15 +1105,26 @@ void DeferredPipeline::render(View &main_view,
   DRW_stats_group_end();
 
   DRW_stats_group_start("Deferred.Refract");
-  feedback_tx = refraction_layer_.render(main_view,
-                                         render_view,
-                                         prepass_fb,
-                                         combined_fb,
-                                         gbuffer_fb,
-                                         extent,
-                                         rt_buffer_refract_layer,
-                                         feedback_tx);
+  for (auto &[index, layer] : refraction_layers_) {
+    feedback_tx = layer->render(main_view,
+                                render_view,
+                                prepass_fb,
+                                combined_fb,
+                                gbuffer_fb,
+                                extent,
+                                rt_buffer_refract_layer,
+                                feedback_tx);
+  }
   DRW_stats_group_end();
+}
+
+DeferredLayer &DeferredPipeline::get_refraction_layer(short index)
+{
+  if (refraction_layers_.find(index) == refraction_layers_.end()) {
+    refraction_layers_[index] = std::make_unique<DeferredLayer>(inst_);
+    refraction_layers_[index]->begin_sync();
+  }
+  return *refraction_layers_[index].get();
 }
 
 /** \} */
