@@ -279,12 +279,12 @@ float seq_retiming_evaluate(const Sequence *seq, const float frame_index)
 
   if (!SEQ_retiming_key_is_transition_start(start_key)) {
     const float segment_step = seq_retiming_segment_step_get(start_key);
-    return start_key->retiming_factor + segment_step * segment_frame_index;
+    return std::min(1.0f, start_key->retiming_factor + segment_step * segment_frame_index);
   }
 
   if (seq_retiming_transition_is_linear(seq, start_key)) {
     const float segment_step = seq_retiming_segment_step_get(start_key - 1);
-    return start_key->retiming_factor + segment_step * segment_frame_index;
+    return std::min(1.0f, start_key->retiming_factor + segment_step * segment_frame_index);
   }
 
   /* Sanity check for transition type. */
@@ -292,7 +292,7 @@ float seq_retiming_evaluate(const Sequence *seq, const float frame_index)
   BLI_assert(start_key_index < seq->retiming_keys_num - 1);
   UNUSED_VARS_NDEBUG(start_key_index);
 
-  return seq_retiming_evaluate_arc_segment(start_key, frame_index);
+  return std::min(1.0f, seq_retiming_evaluate_arc_segment(start_key, frame_index));
 }
 
 static SeqRetimingKey *seq_retiming_add_key(const Scene *scene, Sequence *seq, float frame_index)
@@ -301,9 +301,7 @@ static SeqRetimingKey *seq_retiming_add_key(const Scene *scene, Sequence *seq, f
   if (frame_index <= 0) {
     return &seq->retiming_keys[0];
   }
-  if (frame_index >=
-      SEQ_time_strip_length_get(scene, seq) * SEQ_time_media_playback_rate_factor_get(scene, seq))
-  {
+  if (frame_index >= SEQ_retiming_last_key_get(seq)->strip_frame_index) {
     return SEQ_retiming_last_key_get(seq); /* This is expected for strips with no offsets. */
   }
 
@@ -1055,7 +1053,8 @@ void SEQ_retiming_key_speed_set(
   const int frame_retimed_prev = round_fl_to_int(key_prev->retiming_factor * frame_index_max);
   const int frame_retimed = round_fl_to_int(key->retiming_factor * frame_index_max);
 
-  const int segment_duration = frame_retimed - frame_retimed_prev;
+  const int segment_duration = (frame_retimed - frame_retimed_prev) /
+                               SEQ_time_media_playback_rate_factor_get(scene, seq);
   const int new_duration = segment_duration * speed_fac;
 
   const int orig_timeline_frame = SEQ_retiming_key_timeline_frame_get(scene, seq, key);
