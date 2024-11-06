@@ -231,6 +231,7 @@ class NODE_OT_add_foreach_geometry_element_zone(NodeAddZoneOperator, Operator):
     output_node_type = "GeometryNodeForeachGeometryElementOutput"
     add_default_geometry_link = False
 
+
 class NODE_OT_add_shader_repeat_zone(NodeAddZoneOperator, Operator):
     """Add a repeat zone that allows executing nodes a dynamic number of times"""
     bl_idname = "node.add_shader_repeat_zone"
@@ -241,6 +242,7 @@ class NODE_OT_add_shader_repeat_zone(NodeAddZoneOperator, Operator):
     output_node_type = "ShaderNodeRepeatOutput"
     add_default_geometry_link = False
 
+
 class NODE_OT_add_shader_light_loop_zone(NodeAddZoneOperator, Operator):
     """Add a light loop zone that allows executing nodes for each light"""
     bl_idname = "node.add_shader_light_loop_zone"
@@ -250,6 +252,7 @@ class NODE_OT_add_shader_light_loop_zone(NodeAddZoneOperator, Operator):
     input_node_type = "ShaderNodeLightLoopInput"
     output_node_type = "ShaderNodeLightLoopOutput"
     add_default_geometry_link = False
+
 
 class NODE_OT_collapse_hide_unused_toggle(Operator):
     """Toggle collapsed nodes and hide unused sockets"""

@@ -380,6 +380,7 @@ class NODE_MT_category_shader_group(Menu):
         node_add_menu.draw_node_group_add_menu(context, layout)
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
+
 class NODE_MT_category_shader_zones(Menu):
     bl_idname = "NODE_MT_category_shader_zones"
     bl_label = "Zones"
@@ -388,6 +389,7 @@ class NODE_MT_category_shader_zones(Menu):
         layout = self.layout
         node_add_menu.add_shader_repeat_zone(layout, label="Repeat")
         node_add_menu.add_shader_light_loop_zone(layout, label="Light Loop")
+
 
 class NODE_MT_shader_node_add_all(Menu):
     bl_idname = "NODE_MT_shader_node_add_all"
