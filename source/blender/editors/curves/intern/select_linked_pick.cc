@@ -65,7 +65,7 @@ static ClosestCurveDataBlock find_closest_curve(const Depsgraph &depsgraph,
         return new_closest;
       },
       [](const ClosestCurveDataBlock &a, const ClosestCurveDataBlock &b) {
-        return (a.elem.distance < b.elem.distance) ? a : b;
+        return (a.elem.distance_sq < b.elem.distance_sq) ? a : b;
       });
 }
 

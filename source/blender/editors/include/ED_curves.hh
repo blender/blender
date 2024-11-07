@@ -304,7 +304,7 @@ void select_adjacent(bke::CurvesGeometry &curves, const IndexMask &curves_mask, 
  */
 struct FindClosestData {
   int index = -1;
-  float distance = FLT_MAX;
+  float distance_sq = FLT_MAX;
 };
 
 /**
