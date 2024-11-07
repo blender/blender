@@ -62,6 +62,8 @@ struct GpencilBatchCache {
   bool is_dirty;
   /** Last cache frame */
   int cache_frame;
+  /** Store multiedit state to refresh if only the multi-edit changes (see #129183). */
+  bool is_multiedit;
 };
 
 namespace blender::draw {
@@ -94,6 +96,11 @@ static bool gpencil_batch_cache_valid(GpencilBatchCache *cache, bGPdata *gpd, in
     valid = false;
   }
 
+  const bool is_multiedit = (GPENCIL_MULTIEDIT_SESSIONS_ON(gpd) && !GPENCIL_PLAY_ON(gpd));
+  if (cache->is_multiedit != is_multiedit) {
+    valid = false;
+  }
+
   return valid;
 }
 
@@ -113,6 +120,7 @@ static GpencilBatchCache *gpencil_batch_cache_init(Object *ob, int cfra)
 
   cache->is_dirty = true;
   cache->cache_frame = cfra;
+  cache->is_multiedit = (GPENCIL_MULTIEDIT_SESSIONS_ON(gpd) && !GPENCIL_PLAY_ON(gpd));
 
   return cache;
 }
