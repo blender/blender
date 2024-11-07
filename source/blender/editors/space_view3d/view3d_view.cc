@@ -32,7 +32,6 @@
 #include "UI_resources.hh"
 
 #include "GPU_matrix.hh"
-#include "GPU_platform.hh"
 #include "GPU_select.hh"
 #include "GPU_state.hh"
 
@@ -559,12 +558,7 @@ int view3d_opengl_select_ex(const ViewContext *vc,
   BKE_view_layer_synced_ensure(scene, vc->view_layer);
   const bool use_obedit_skip = (BKE_view_layer_edit_object_get(vc->view_layer) != nullptr) &&
                                (vc->obedit == nullptr);
-  /* WORKAROUND: GPU depth picking is not working on AMD/NVIDIA official Vulkan drivers. */
-  const bool is_pick_select = (!GPU_type_matches_ex(GPU_DEVICE_ATI | GPU_DEVICE_NVIDIA,
-                                                    GPU_OS_ANY,
-                                                    GPU_DRIVER_OFFICIAL,
-                                                    GPU_BACKEND_VULKAN)) &&
-                              (U.gpu_flag & USER_GPU_FLAG_NO_DEPT_PICK) == 0;
+  const bool is_pick_select = (U.gpu_flag & USER_GPU_FLAG_NO_DEPT_PICK) == 0;
   const bool do_passes = ((is_pick_select == false) &&
                           (select_mode == VIEW3D_SELECT_PICK_NEAREST));
   const bool use_nearest = (is_pick_select && select_mode == VIEW3D_SELECT_PICK_NEAREST);
