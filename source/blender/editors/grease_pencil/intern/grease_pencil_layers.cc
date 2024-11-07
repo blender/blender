@@ -724,7 +724,7 @@ static int grease_pencil_merge_layer_exec(bContext *C, wmOperator *op)
     /* Map all the other layers to their own index. */
     const Span<const Layer *> layers = grease_pencil.layers();
     for (const int layer_i : layers.index_range()) {
-      if (layer_i != prev_layer_index && layer_i != active_layer_index) {
+      if (!ELEM(layer_i, prev_layer_index, active_layer_index)) {
         src_layer_indices_by_dst_layer.append({layer_i});
       }
     }

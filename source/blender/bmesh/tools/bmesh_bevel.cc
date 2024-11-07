@@ -7579,12 +7579,12 @@ static float geometry_collide_offset(BevelParams *bp, EdgeHalf *eb)
       bool first = true;
       while (exterior_angle < 0.0001f) {
         if (first) {
-          exterior_angle = (float)M_PI - th1;
+          exterior_angle = float(M_PI) - th1;
           first = false;
         }
         else {
           la = la->prev;
-          exterior_angle += (float)M_PI -
+          exterior_angle += float(M_PI) -
                             angle_v3v3v3(la->v->co, la->next->v->co, la->next->next->v->co);
         }
         A_side_slide += BM_edge_calc_length(la->e) * sinf(exterior_angle);
@@ -7604,12 +7604,12 @@ static float geometry_collide_offset(BevelParams *bp, EdgeHalf *eb)
       bool first = true;
       while (exterior_angle < 0.0001f) {
         if (first) {
-          exterior_angle = (float)M_PI - th2;
+          exterior_angle = float(M_PI) - th2;
           first = false;
         }
         else {
           lc = lc->next;
-          exterior_angle += (float)M_PI -
+          exterior_angle += float(M_PI) -
                             angle_v3v3v3(lc->prev->v->co, lc->v->co, lc->next->v->co);
         }
         C_side_slide += BM_edge_calc_length(lc->e) * sinf(exterior_angle);
