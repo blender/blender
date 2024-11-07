@@ -295,7 +295,9 @@ float seq_retiming_evaluate(const Sequence *seq, const float frame_index)
   return std::min(1.0f, seq_retiming_evaluate_arc_segment(start_key, frame_index));
 }
 
-static SeqRetimingKey *seq_retiming_add_key(const Scene *scene, Sequence *seq, float frame_index)
+static SeqRetimingKey *seq_retiming_add_key(const Scene * /*scene*/,
+                                            Sequence *seq,
+                                            float frame_index)
 {
   /* Clamp timeline frame to strip content range. */
   if (frame_index <= 0) {
