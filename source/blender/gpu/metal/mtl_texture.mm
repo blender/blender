@@ -88,7 +88,8 @@ gpu::MTLTexture::MTLTexture(const char *name,
   /* Assign MTLTexture. */
   texture_ = metal_texture;
   [texture_ retain];
-  gpu_image_usage_flags_ = gpu_usage_from_mtl(metal_texture.usage);
+  internal_gpu_image_usage_flags_ = gpu_usage_from_mtl(metal_texture.usage);
+  gpu_image_usage_flags_ = internal_gpu_image_usage_flags_;
 
   /* Flag as Baked. */
   is_baked_ = true;
@@ -197,7 +198,7 @@ void gpu::MTLTexture::bake_mip_swizzle_view()
      * rendering. */
     BLI_assert_msg(
         (texture_view_pixel_format == texture_.pixelFormat) ||
-            (gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_FORMAT_VIEW),
+            (internal_gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_FORMAT_VIEW),
         "Usage Flag GPU_TEXTURE_USAGE_FORMAT_VIEW must be specified if a texture view is "
         "created with a different format to its source texture.");
 
@@ -703,7 +704,7 @@ void gpu::MTLTexture::update_sub(
        * format is unwritable, if our texture has not been initialized with
        * texture view support, use a staging texture. */
       if ((compatible_write_format != destination_format) &&
-          !(gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_FORMAT_VIEW))
+          !(internal_gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_FORMAT_VIEW))
       {
         use_staging_texture = true;
       }
@@ -715,11 +716,11 @@ void gpu::MTLTexture::update_sub(
       /* For compute, we should use a stating texture to avoid texture write usage,
        * if it has not been specified for the texture. Using shader-write disables
        * lossless texture compression, so this is best to avoid where possible. */
-      if (!(gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_SHADER_WRITE)) {
+      if (!(internal_gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_SHADER_WRITE)) {
         use_staging_texture = true;
       }
       if (compatible_write_format != destination_format) {
-        if (!(gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_FORMAT_VIEW)) {
+        if (!(internal_gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_FORMAT_VIEW)) {
           use_staging_texture = true;
         }
       }
@@ -744,7 +745,7 @@ void gpu::MTLTexture::update_sub(
     else {
       /* Use texture view. */
       if (compatible_write_format != destination_format) {
-        BLI_assert(gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_FORMAT_VIEW);
+        BLI_assert(internal_gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_FORMAT_VIEW);
         texture_handle = [texture_ newTextureViewWithPixelFormat:compatible_write_format];
       }
       else {
@@ -1726,7 +1727,7 @@ void gpu::MTLTexture::read_internal(int mip,
     }
     /* Create Texture View for SRGB special case to bypass internal type conversion. */
     if (format_ == GPU_SRGB8_A8) {
-      BLI_assert(gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_FORMAT_VIEW);
+      BLI_assert(internal_gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_FORMAT_VIEW);
       read_texture = [read_texture newTextureViewWithPixelFormat:MTLPixelFormatRGBA8Unorm];
     }
 
@@ -2184,7 +2185,7 @@ bool gpu::MTLTexture::init_internal(GPUTexture *src,
   texture_view_dirty_flags_ |= TEXTURE_VIEW_MIP_DIRTY;
 
   /* Assign usage. */
-  gpu_image_usage_flags_ = GPU_texture_usage(src);
+  internal_gpu_image_usage_flags_ = GPU_texture_usage(src);
 
   /* Assign texture as view. */
   gpu::MTLTexture *mtltex = static_cast<gpu::MTLTexture *>(unwrap(src));
@@ -2223,6 +2224,10 @@ bool gpu::MTLTexture::texture_is_baked()
 /* Prepare texture parameters after initialization, but before baking. */
 void gpu::MTLTexture::prepare_internal()
 {
+  /* Take a copy of the flags so that any modifications we make won't effect the texture
+   * cache/pool match finding test. */
+  internal_gpu_image_usage_flags_ = gpu_image_usage_flags_;
+
   /* Metal: Texture clearing is done using frame-buffer clear. This has no performance impact or
    * bandwidth implications for lossless compression and is considered best-practice.
    *
@@ -2230,10 +2235,11 @@ void gpu::MTLTexture::prepare_internal()
    * NOTE: Emulated atomic textures cannot support render-target usage. For clearing, the backing
    * buffer is cleared instead.
    */
-  if (!((gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_ATOMIC) &&
+  if (!((internal_gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_ATOMIC) &&
         !MTLBackend::get_capabilities().supports_texture_atomics))
   {
-    gpu_image_usage_flags_ |= GPU_TEXTURE_USAGE_ATTACHMENT;
+    /* Force attachment usage - see comment above. */
+    internal_gpu_image_usage_flags_ |= GPU_TEXTURE_USAGE_ATTACHMENT;
   }
 
   /* Derive maximum number of mip levels by default.
@@ -2277,7 +2283,7 @@ void gpu::MTLTexture::ensure_baked()
      * disabled. Enabling the texture_view or texture_read usage flags disables lossless
      * compression, so the situations in which it is used should be limited. */
     if (format_ == GPU_SRGB8_A8) {
-      gpu_image_usage_flags_ = gpu_image_usage_flags_ | GPU_TEXTURE_USAGE_FORMAT_VIEW;
+      internal_gpu_image_usage_flags_ |= GPU_TEXTURE_USAGE_FORMAT_VIEW;
     }
 
     /* Create texture descriptor. */
@@ -2296,7 +2302,7 @@ void gpu::MTLTexture::ensure_baked()
         texture_descriptor_.depth = 1;
         texture_descriptor_.arrayLength = (type_ == GPU_TEXTURE_1D_ARRAY) ? h_ : 1;
         texture_descriptor_.mipmapLevelCount = (mtl_max_mips_ > 0) ? mtl_max_mips_ : 1;
-        texture_descriptor_.usage = mtl_usage_from_gpu(gpu_image_usage_flags_);
+        texture_descriptor_.usage = mtl_usage_from_gpu(internal_gpu_image_usage_flags_);
         texture_descriptor_.storageMode = MTLStorageModePrivate;
         texture_descriptor_.sampleCount = 1;
         texture_descriptor_.cpuCacheMode = MTLCPUCacheModeDefaultCache;
@@ -2316,7 +2322,7 @@ void gpu::MTLTexture::ensure_baked()
         texture_descriptor_.depth = 1;
         texture_descriptor_.arrayLength = (type_ == GPU_TEXTURE_2D_ARRAY) ? d_ : 1;
         texture_descriptor_.mipmapLevelCount = (mtl_max_mips_ > 0) ? mtl_max_mips_ : 1;
-        texture_descriptor_.usage = mtl_usage_from_gpu(gpu_image_usage_flags_);
+        texture_descriptor_.usage = mtl_usage_from_gpu(internal_gpu_image_usage_flags_);
         texture_descriptor_.storageMode = MTLStorageModePrivate;
         texture_descriptor_.sampleCount = 1;
         texture_descriptor_.cpuCacheMode = MTLCPUCacheModeDefaultCache;
@@ -2334,7 +2340,7 @@ void gpu::MTLTexture::ensure_baked()
         texture_descriptor_.depth = d_;
         texture_descriptor_.arrayLength = 1;
         texture_descriptor_.mipmapLevelCount = (mtl_max_mips_ > 0) ? mtl_max_mips_ : 1;
-        texture_descriptor_.usage = mtl_usage_from_gpu(gpu_image_usage_flags_);
+        texture_descriptor_.usage = mtl_usage_from_gpu(internal_gpu_image_usage_flags_);
         texture_descriptor_.storageMode = MTLStorageModePrivate;
         texture_descriptor_.sampleCount = 1;
         texture_descriptor_.cpuCacheMode = MTLCPUCacheModeDefaultCache;
@@ -2357,7 +2363,7 @@ void gpu::MTLTexture::ensure_baked()
         texture_descriptor_.depth = 1;
         texture_descriptor_.arrayLength = (type_ == GPU_TEXTURE_CUBE_ARRAY) ? d_ / 6 : 1;
         texture_descriptor_.mipmapLevelCount = (mtl_max_mips_ > 0) ? mtl_max_mips_ : 1;
-        texture_descriptor_.usage = mtl_usage_from_gpu(gpu_image_usage_flags_);
+        texture_descriptor_.usage = mtl_usage_from_gpu(internal_gpu_image_usage_flags_);
         texture_descriptor_.storageMode = MTLStorageModePrivate;
         texture_descriptor_.sampleCount = 1;
         texture_descriptor_.cpuCacheMode = MTLCPUCacheModeDefaultCache;
@@ -2374,7 +2380,7 @@ void gpu::MTLTexture::ensure_baked()
         texture_descriptor_.depth = 1;
         texture_descriptor_.arrayLength = 1;
         texture_descriptor_.mipmapLevelCount = (mtl_max_mips_ > 0) ? mtl_max_mips_ : 1;
-        texture_descriptor_.usage = mtl_usage_from_gpu(gpu_image_usage_flags_);
+        texture_descriptor_.usage = mtl_usage_from_gpu(internal_gpu_image_usage_flags_);
         texture_descriptor_.storageMode = MTLStorageModePrivate;
         texture_descriptor_.sampleCount = 1;
         texture_descriptor_.cpuCacheMode = MTLCPUCacheModeDefaultCache;
@@ -2392,7 +2398,7 @@ void gpu::MTLTexture::ensure_baked()
 
     /* Override storage mode if memoryless attachments are being used.
      * NOTE: Memoryless textures can only be supported on TBDR GPUs. */
-    if (gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_MEMORYLESS) {
+    if (internal_gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_MEMORYLESS) {
       const bool is_tile_based_arch = (GPU_platform_architecture() == GPU_ARCHITECTURE_TBDR);
       if (is_tile_based_arch) {
         texture_descriptor_.storageMode = MTLStorageModeMemoryless;
@@ -2404,7 +2410,7 @@ void gpu::MTLTexture::ensure_baked()
      * allocate a buffer-backed 2D texture and perform atomic operations on this instead. Support
      * for 2D Array textures and 3D textures is achieved via packing layers into the 2D texture. */
     bool native_texture_atomics = MTLBackend::get_capabilities().supports_texture_atomics;
-    if ((gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_ATOMIC) && !native_texture_atomics) {
+    if ((internal_gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_ATOMIC) && !native_texture_atomics) {
 
       /* Validate format support. */
       BLI_assert_msg(ELEM(type_, GPU_TEXTURE_2D, GPU_TEXTURE_2D_ARRAY, GPU_TEXTURE_3D),
@@ -2447,7 +2453,7 @@ void gpu::MTLTexture::ensure_baked()
       size_t total_bytes = bytes_per_row * texture_descriptor_.height;
 
       backing_buffer_ = MTLContext::get_global_memory_manager()->allocate(
-          total_bytes, (gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_HOST_READ));
+          total_bytes, (internal_gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_HOST_READ));
       BLI_assert(backing_buffer_ != nullptr);
 
       /* NOTE: Fallback buffer-backed texture always set to Texture2D. */
@@ -2484,7 +2490,7 @@ void gpu::MTLTexture::ensure_baked()
       texture_ = [ctx->device newTextureWithDescriptor:texture_descriptor_];
 
 #ifndef NDEBUG
-      if (gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_MEMORYLESS) {
+      if (internal_gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_MEMORYLESS) {
         texture_.label = [NSString stringWithFormat:@"MemorylessTexture_%s", this->get_name()];
       }
       else {
