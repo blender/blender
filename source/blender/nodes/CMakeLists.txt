@@ -53,6 +53,7 @@ set(INC
   intern
   shader
   texture
+  ../animrig
   ../editors/include
   ../blenkernel
   ../blenloader
