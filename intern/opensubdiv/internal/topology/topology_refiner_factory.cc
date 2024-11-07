@@ -8,8 +8,6 @@
 #  include <iso646.h>
 #endif
 
-#include "internal/topology/topology_refiner_impl.h"
-
 #include <cassert>
 #include <cstdio>
 
@@ -19,6 +17,7 @@
 #include "internal/topology/mesh_topology.h"
 
 #include "opensubdiv_converter_capi.hh"
+#include "opensubdiv_topology_refiner.hh"
 
 struct TopologyRefinerData {
   const OpenSubdiv_Converter *converter;

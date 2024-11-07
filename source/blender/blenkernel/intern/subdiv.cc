@@ -23,7 +23,7 @@
 #include "opensubdiv_converter_capi.hh"
 #ifdef WITH_OPENSUBDIV
 #  include "opensubdiv_evaluator.hh"
-#  include "opensubdiv_topology_refiner_capi.hh"
+#  include "opensubdiv_topology_refiner.hh"
 #endif
 
 namespace blender::bke::subdiv {

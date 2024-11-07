@@ -42,7 +42,7 @@
 #include "opensubdiv_evaluator_capi.hh"
 #ifdef WITH_OPENSUBDIV
 #  include "opensubdiv_evaluator.hh"
-#  include "opensubdiv_topology_refiner_capi.hh"
+#  include "opensubdiv_topology_refiner.hh"
 #endif
 
 #include "draw_cache_extract.hh"

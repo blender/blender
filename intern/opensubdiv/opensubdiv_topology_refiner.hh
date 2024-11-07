@@ -15,7 +15,6 @@
 
 #include "internal/base/memory.h"
 #include "internal/topology/mesh_topology.h"
-#include "opensubdiv_topology_refiner_capi.hh"
 
 // Those settings don't really belong to OpenSubdiv's topology refiner, but
 // we are keeping track of them on our side of topology refiner. This is to
