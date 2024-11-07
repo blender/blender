@@ -109,6 +109,8 @@ typedef struct GPENCIL_tLayer {
   BLI_bitmap *mask_invert_bits;
   /** Index in the layer list. Used as id for masking. */
   int layer_id;
+  /** True if this pass is part of the onion skinning. */
+  bool is_onion;
 } GPENCIL_tLayer;
 
 typedef struct GPENCIL_tObject {
@@ -333,7 +335,9 @@ GPENCIL_tLayer *gpencil_layer_cache_add(GPENCIL_PrivateData *pd,
                                         const bGPDlayer *gpl,
                                         const bGPDframe *gpf,
                                         GPENCIL_tObject *tgp_ob);
-GPENCIL_tLayer *gpencil_layer_cache_get(GPENCIL_tObject *tgp_ob, int number);
+GPENCIL_tLayer *grease_pencil_layer_cache_get(GPENCIL_tObject *tgp_ob,
+                                              int layer_id,
+                                              bool skip_onion);
 
 GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_PrivateData *pd,
                                               const Object *ob,
