@@ -550,17 +550,17 @@ vec4 safe_normalize_and_get_length(vec4 vector, out float out_length)
 
 vec2 safe_normalize(vec2 vector)
 {
-  float unused_length;
+  float unused_length = 0.0;
   return safe_normalize_and_get_length(vector, unused_length);
 }
 vec3 safe_normalize(vec3 vector)
 {
-  float unused_length;
+  float unused_length = 0.0;
   return safe_normalize_and_get_length(vector, unused_length);
 }
 vec4 safe_normalize(vec4 vector)
 {
-  float unused_length;
+  float unused_length = 0.0;
   return safe_normalize_and_get_length(vector, unused_length);
 }
 
