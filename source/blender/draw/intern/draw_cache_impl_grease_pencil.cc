@@ -1349,10 +1349,11 @@ static void grease_pencil_wire_batch_ensure(Object &object,
 
   /* Get the visible drawings. */
   const Vector<ed::greasepencil::DrawingInfo> drawings =
-      ed::greasepencil::retrieve_visible_drawings(scene, grease_pencil, false);
+      ed::greasepencil::retrieve_visible_drawings(scene, grease_pencil, true);
 
   Vector<int> index_start_per_curve;
   Vector<bool> cyclic_per_curve;
+  Vector<bool> is_onion_per_curve;
 
   int index_len = 0;
   for (const ed::greasepencil::DrawingInfo &info : drawings) {
@@ -1370,8 +1371,10 @@ static void grease_pencil_wire_batch_ensure(Object &object,
       const bool is_cyclic = cyclic[curve_i] && (point_len > 2);
       /* Count the primitive restart. */
       index_len += point_len + (is_cyclic ? 1 : 0) + 1;
+      /* Don't draw the onion frames in wireframe mode. */
       index_start_per_curve.append(point_start);
       cyclic_per_curve.append(is_cyclic);
+      is_onion_per_curve.append(info.onion_id != 0);
     });
   }
   index_start_per_curve.append(index_len);
@@ -1389,11 +1392,21 @@ static void grease_pencil_wire_batch_ensure(Object &object,
       /* Shift the range by `curve` to account for the second padding vertices.
        * The first one is already accounted for during counting (as primitive restart). */
       const IndexRange index_range = offset_range.shift(curve + 1);
-      for (const int i : offset_range.index_range()) {
-        indices[offset_range[i]] = index_range[i];
+      if (is_onion_per_curve[curve]) {
+        for (const int i : offset_range.index_range()) {
+          indices[offset_range[i]] = gpu::RESTART_INDEX;
+        }
+        if (cyclic_per_curve[curve]) {
+          indices[offset_range.last()] = gpu::RESTART_INDEX;
+        }
       }
-      if (cyclic_per_curve[curve]) {
-        indices[offset_range.last()] = index_range.first();
+      else {
+        for (const int i : offset_range.index_range()) {
+          indices[offset_range[i]] = index_range[i];
+        }
+        if (cyclic_per_curve[curve]) {
+          indices[offset_range.last()] = index_range.first();
+        }
       }
       indices[offset_range.one_after_last()] = gpu::RESTART_INDEX;
     }
