@@ -4961,6 +4961,8 @@ static void force_activate_view_item_but(bContext *C,
 {
   if (but->active) {
     ui_apply_but(C, but->block, but, but->active, true);
+    ED_region_tag_redraw_no_rebuild(region);
+    ED_region_tag_refresh_ui(region);
   }
   else {
     UI_but_execute(C, region, but);
