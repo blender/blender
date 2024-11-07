@@ -3358,7 +3358,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
           for (ob1 = static_cast<Object *>(bmain->objects.first); ob1;
                ob1 = static_cast<Object *>(ob1->id.next))
           {
-            if (ob1->data == ob->data) {
+            if (ob1->data == ob->data && ob1 != ob) {
               ob1->type = OB_CURVES_LEGACY;
               DEG_id_tag_update(&ob1->id,
                                 ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
