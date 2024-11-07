@@ -77,10 +77,10 @@ void VolumeProbeModule::init()
       }
     }
   }
-
   if (irradiance_pool_size_alloc_ != irradiance_pool_size_) {
     inst_.info_append_i18n(
-        "Warning: Light probes volume pool could not be allocated. Now using a pool of {} MB.",
+        "Warning: Could not allocate light probes volume pool of {} MB, using {} MB instead.",
+        irradiance_pool_size_,
         irradiance_pool_size_alloc_);
   }
 
