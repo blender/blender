@@ -252,6 +252,9 @@ class MTLTexture : public Texture {
   int mtl_max_mips_ = 1;
   bool has_generated_mips_ = false;
 
+  /* We may modify the requested usage flags so store them separately. */
+  eGPUTextureUsage internal_gpu_image_usage_flags_;
+
   /* VBO. */
   MTLVertBuf *vert_buffer_;
   id<MTLBuffer> vert_buffer_mtl_;
