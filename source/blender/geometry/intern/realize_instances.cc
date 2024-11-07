@@ -2163,6 +2163,8 @@ static void execute_realize_grease_pencil_tasks(
 
   /* Allocate new grease pencil. */
   GreasePencil *dst_grease_pencil = BKE_grease_pencil_new_nomain();
+  BKE_grease_pencil_copy_parameters(*tasks.first().grease_pencil_info->grease_pencil,
+                                    *dst_grease_pencil);
   r_realized_geometry.replace_grease_pencil(dst_grease_pencil);
 
   /* Allocate all layers. */
@@ -2170,6 +2172,7 @@ static void execute_realize_grease_pencil_tasks(
 
   /* Transfer material pointers. The material indices are updated for each task separately. */
   if (!all_grease_pencils_info.materials.is_empty()) {
+    MEM_SAFE_FREE(dst_grease_pencil->material_array);
     dst_grease_pencil->material_array_num = all_grease_pencils_info.materials.size();
     dst_grease_pencil->material_array = MEM_cnew_array<Material *>(
         dst_grease_pencil->material_array_num, __func__);
