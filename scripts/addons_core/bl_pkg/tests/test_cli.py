@@ -33,7 +33,7 @@ JSON_OutputElem = tuple[str, Any]
 
 # For more useful output that isn't clipped.
 # pylint: disable-next=protected-access
-unittest.util._MAX_LENGTH = 10_000
+unittest.util._MAX_LENGTH = 10_000  # type: ignore
 
 IS_WIN32 = sys.platform == "win32"
 

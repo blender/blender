@@ -70,8 +70,13 @@ _ext_base_pkg_idname_with_dot = _ext_base_pkg_idname + "."
 
 
 def url_append_defaults(url):
+    import sys
     from .bl_extension_utils import url_append_query_for_blender
-    return url_append_query_for_blender(url, blender_version=bpy.app.version)
+    return url_append_query_for_blender(
+        url=url,
+        blender_version=bpy.app.version,
+        python_version=sys.version_info[:3],
+    )
 
 
 def url_normalize(url):
@@ -546,8 +551,10 @@ def pkg_manifest_params_compatible_or_error_for_this_system(
     blender_version_min,  # `str`
     blender_version_max,  # `str`
     platforms,  # `list[str]`
+    python_versions,  # `list[str]`
 ):  # `str | None`
     # Return true if the parameters are compatible with this system.
+    import sys
     from .bl_extension_utils import (
         pkg_manifest_params_compatible_or_error,
         platform_from_this_system,
@@ -557,8 +564,10 @@ def pkg_manifest_params_compatible_or_error_for_this_system(
         blender_version_min=blender_version_min,
         blender_version_max=blender_version_max,
         platforms=platforms,
+        python_versions=python_versions,
         # This system.
         this_platform=platform_from_this_system(),
+        this_python_version=sys.version_info,
         this_blender_version=bpy.app.version,
         error_fn=print,
     )
@@ -913,7 +922,7 @@ def _pkg_marked_by_repo(repo_cache_store, pkg_manifest_all):
 # Wheel Handling
 #
 
-def _extensions_wheel_filter_for_platform(wheels):
+def _extensions_wheel_filter_for_this_system(wheels):
 
     # Copied from `wheel.bwheel_dist.get_platform(..)` which isn't part of Python.
     # This misses some additional checks which aren't supported by official Blender builds,
@@ -921,6 +930,13 @@ def _extensions_wheel_filter_for_platform(wheels):
     # (e.g. `linux-i686` on 64 bit systems & `linux-armv7l`).
     import sysconfig
     platform_tag_current = sysconfig.get_platform().replace("-", "_")
+
+    import sys
+    from .bl_extension_utils import (
+        python_versions_from_wheel_python_tag,
+    )
+
+    python_version_current = sys.version_info[:2]
 
     # https://packaging.python.org/en/latest/specifications/binary-distribution-format/#file-name-convention
     # This also defines the name spec:
@@ -942,9 +958,10 @@ def _extensions_wheel_filter_for_platform(wheels):
         if not (5 <= len(wheel_filename_split) <= 6):
             print("Error: wheel doesn't follow naming spec \"{:s}\"".format(wheel_filename))
             continue
-        # TODO: Match Python & ABI tags.
-        _python_tag, _abi_tag, platform_tag = wheel_filename_split[-3:]
+        # TODO: Match ABI tags.
+        python_tag, _abi_tag, platform_tag = wheel_filename_split[-3:]
 
+        # Perform Platform Checks.
         if platform_tag in {"any", platform_tag_current}:
             pass
         elif platform_tag_current.startswith("macosx_") and (
@@ -973,7 +990,35 @@ def _extensions_wheel_filter_for_platform(wheels):
             )
             continue
 
+        # Perform Python Version Checks.
+        if isinstance(python_versions := python_versions_from_wheel_python_tag(python_tag), str):
+            print("Error: wheel \"{:s}\" unable to parse Python version {:s}".format(wheel_filename, python_versions))
+        else:
+            python_version_is_compat = False
+            for python_version in python_versions:
+                if len(python_version) == 1:
+                    if python_version_current[0] == python_version[0]:
+                        python_version_is_compat = True
+                        break
+                    if python_version_current == python_version:
+                        python_version_is_compat = True
+                        break
+            if not python_version_is_compat:
+                # Useful to know, can quiet print in the future.
+                print(
+                    "Skipping wheel for other Python version",
+                    "({:s}=>({:s}) not in {:d}.{:d}):".format(
+                        python_tag,
+                        ", ".join([".".join(str(i) for i in v) for v in python_versions]),
+                        python_version_current[0],
+                        python_version_current[1],
+                    ),
+                    wheel_filename,
+                )
+                continue
+
         wheels_compatible.append(wheel)
+
     return wheels_compatible
 
 
@@ -984,7 +1029,7 @@ def pkg_wheel_filter(
         wheels_rel,  # `list[str]`
 ):  # `-> tuple[str, list[str]]`
     # Filter only the wheels for this platform.
-    wheels_rel = _extensions_wheel_filter_for_platform(wheels_rel)
+    wheels_rel = _extensions_wheel_filter_for_this_system(wheels_rel)
     if not wheels_rel:
         return None
 
@@ -1884,6 +1929,7 @@ class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
         return ""  # Default.
 
     def exec_command_iter(self, is_modal):
+        import sys
         from . import bl_extension_utils
         # pylint: disable-next=attribute-defined-outside-init
         self._repo_directories = set()
@@ -1974,6 +2020,7 @@ class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
                     pkg_id_sequence=pkg_id_sequence_iter,
                     online_user_agent=online_user_agent_from_blender(),
                     blender_version=bpy.app.version,
+                    python_version=sys.version_info[:3],
                     access_token=repo_item.access_token,
                     timeout=prefs.system.network_timeout,
                     use_cache=repo_item.use_cache,
@@ -2055,6 +2102,7 @@ class EXTENSIONS_OT_package_install_marked(Operator, _ExtCmdMixIn):
     enable_on_install: rna_prop_enable_on_install
 
     def exec_command_iter(self, is_modal):
+        import sys
         from . import bl_extension_utils
 
         repos_all = extension_repos_read()
@@ -2096,6 +2144,7 @@ class EXTENSIONS_OT_package_install_marked(Operator, _ExtCmdMixIn):
                     pkg_id_sequence=pkg_id_sequence_iter,
                     online_user_agent=online_user_agent_from_blender(),
                     blender_version=bpy.app.version,
+                    python_version=sys.version_info[:3],
                     access_token=repo_item.access_token,
                     timeout=prefs.system.network_timeout,
                     use_cache=repo_item.use_cache,
@@ -2383,6 +2432,7 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
     url: rna_prop_url
 
     def exec_command_iter(self, is_modal):
+        import sys
         from . import bl_extension_utils
         from .bl_extension_utils import (
             pkg_manifest_dict_from_archive_or_error,
@@ -2497,6 +2547,7 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
                     directory=directory,
                     files=pkg_files,
                     blender_version=bpy.app.version,
+                    python_version=sys.version_info[:3],
                     use_idle=is_modal,
                     python_args=bpy.app.python_args,
                 )
@@ -2825,6 +2876,7 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
         return True
 
     def exec_command_iter(self, is_modal):
+        import sys
         from . import bl_extension_utils
 
         if not self._is_ready_to_execute():
@@ -2879,6 +2931,7 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
                     pkg_id_sequence=(pkg_id,),
                     online_user_agent=online_user_agent_from_blender(),
                     blender_version=bpy.app.version,
+                    python_version=sys.version_info[:3],
                     access_token=repo_item.access_token,
                     timeout=prefs.system.network_timeout,
                     use_cache=repo_item.use_cache,
@@ -3006,6 +3059,10 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
                 blender_version_min=url_params.get("blender_version_min", ""),
                 blender_version_max=url_params.get("blender_version_max", ""),
                 platforms=[platform for platform in url_params.get("platforms", "").split(",") if platform],
+                python_versions=[
+                    python_version for python_version in url_params.get("python_versions", "").split(",")
+                    if python_version
+                ],
         ), str):
             self.report({'ERROR'}, iface_("The extension is incompatible with this system:\n{:s}").format(error))
             return {'CANCELLED'}
