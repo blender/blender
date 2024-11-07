@@ -1567,7 +1567,7 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext *pcontext)
         const float3 location = placement.project(float2(pcontext->x, pcontext->y));
         pcontext->pixel_radius = project_brush_radius(
             &pcontext->vc, brush->unprojected_radius, location);
-        brush->size = pcontext->pixel_radius;
+        brush->size = std::max(pcontext->pixel_radius, 1);
       }
       else {
         pcontext->pixel_radius = brush->size;
