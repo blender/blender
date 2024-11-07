@@ -95,6 +95,7 @@
 #include "UI_resources.hh"
 
 #include "GPU_matrix.hh"
+#include "GPU_platform.hh"
 #include "GPU_select.hh"
 
 #include "DEG_depsgraph.hh"
@@ -2095,6 +2096,12 @@ static int mixed_bones_object_selectbuffer(const ViewContext *vc,
     if ((U.gpu_flag & USER_GPU_FLAG_NO_DEPT_PICK) == 0) {
       select_mode = VIEW3D_SELECT_PICK_ALL;
     }
+  }
+  /* WORKAROUND: GPU depth picking is not working on AMD/NVIDIA official Vulkan drivers. */
+  if (GPU_type_matches_ex(
+          GPU_DEVICE_ATI | GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_OFFICIAL, GPU_BACKEND_VULKAN))
+  {
+    select_mode = VIEW3D_SELECT_PICK_ALL;
   }
 
   /* we _must_ end cache before return, use 'goto finally' */
