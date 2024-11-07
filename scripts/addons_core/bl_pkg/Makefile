@@ -94,7 +94,7 @@ test: FORCE
 watch_test: FORCE
 	@cd "$(BASE_DIR)" && \
 	while true; do \
-		$(MAKE) test_cli; \
+		$(MAKE) test; \
 		inotifywait -q -e close_write $(EXTRA_WATCH_FILES) $(PY_FILES) ; \
 		tput clear; \
 	done
