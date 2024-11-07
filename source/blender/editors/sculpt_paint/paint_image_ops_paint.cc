@@ -327,7 +327,7 @@ static std::unique_ptr<PaintOperation> texture_paint_init(bContext *C,
 }
 
 static void paint_stroke_update_step(bContext *C,
-                                     wmOperator * /*op*/,
+                                     wmOperator *op,
                                      PaintStroke *stroke,
                                      PointerRNA *itemptr)
 {
@@ -350,7 +350,7 @@ static void paint_stroke_update_step(bContext *C,
 
   RNA_float_get_array(itemptr, "mouse", mouse);
   pressure = RNA_float_get(itemptr, "pressure");
-  eraser = RNA_boolean_get(itemptr, "pen_flip");
+  eraser = RNA_boolean_get(op->ptr, "pen_flip");
   size = RNA_float_get(itemptr, "size");
 
   /* stroking with fill tool only acts on stroke end */
