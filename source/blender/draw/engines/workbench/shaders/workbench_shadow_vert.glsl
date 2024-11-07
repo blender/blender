@@ -17,6 +17,10 @@
  * execute the vertex shader code on each of the input primitive's vertices.
  */
 
+#include "infos/workbench_shadow_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(workbench_shadow_common)
+
 #include "workbench_shadow_lib.glsl"
 
 void extrude_edge(

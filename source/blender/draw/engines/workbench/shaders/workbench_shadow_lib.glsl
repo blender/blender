@@ -4,14 +4,16 @@
 
 #pragma once
 
+#include "infos/workbench_shadow_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(workbench_shadow_common)
+
 #include "draw_model_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "gpu_shader_attribute_load_lib.glsl"
 #include "gpu_shader_index_load_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
-
-SHADER_LIBRARY_CREATE_INFO(workbench_shadow_common)
 
 struct VertIn {
   /* Local position. */

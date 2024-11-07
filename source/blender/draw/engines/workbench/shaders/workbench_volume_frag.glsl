@@ -2,6 +2,14 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/workbench_volume_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(workbench_volume)
+FRAGMENT_SHADER_CREATE_INFO(workbench_volume_slice)
+FRAGMENT_SHADER_CREATE_INFO(workbench_volume_coba)
+FRAGMENT_SHADER_CREATE_INFO(workbench_volume_cubic)
+FRAGMENT_SHADER_CREATE_INFO(workbench_volume_smoke)
+
 #include "draw_model_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"

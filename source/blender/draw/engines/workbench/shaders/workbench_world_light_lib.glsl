@@ -4,6 +4,12 @@
 
 #pragma once
 
+#include "infos/workbench_prepass_info.hh"
+
+#ifdef GPU_LIBRARY_SHADER
+SHADER_LIBRARY_CREATE_INFO(workbench_prepass)
+#endif
+
 /* [Drobot2014a] Low Level Optimizations for GCN */
 vec4 fast_rcp(vec4 v)
 {

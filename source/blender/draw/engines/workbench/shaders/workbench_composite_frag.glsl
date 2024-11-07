@@ -2,6 +2,13 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/workbench_composite_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(workbench_composite)
+FRAGMENT_SHADER_CREATE_INFO(workbench_resolve_opaque_matcap)
+FRAGMENT_SHADER_CREATE_INFO(workbench_resolve_curvature)
+FRAGMENT_SHADER_CREATE_INFO(workbench_resolve_shadow)
+
 #include "draw_view_lib.glsl"
 #include "workbench_cavity_lib.glsl"
 #include "workbench_common_lib.glsl"
@@ -11,7 +18,7 @@
 
 void main()
 {
-  vec2 uv = uvcoordsvar.st;
+  vec2 uv = uvcoordsvar.xy;
 
   float depth = texture(depth_tx, uv).r;
   if (depth == 1.0) {

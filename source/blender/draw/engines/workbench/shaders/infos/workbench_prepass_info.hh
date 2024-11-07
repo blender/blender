@@ -2,6 +2,31 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#ifdef GPU_SHADER
+#  pragma once
+
+#  include "BLI_utildefines_variadic.h"
+
+#  include "gpu_glsl_cpp_stubs.hh"
+
+#  include "draw_object_infos_info.hh"
+#  include "draw_view_info.hh"
+
+#  include "workbench_shader_shared.h"
+#  define WORKBENCH_COLOR_MATERIAL
+#  define WORKBENCH_COLOR_TEXTURE
+#  define WORKBENCH_TEXTURE_IMAGE_ARRAY
+#  define WORKBENCH_COLOR_MATERIAL
+#  define WORKBENCH_COLOR_VERTEX
+#  define WORKBENCH_LIGHTING_MATCAP
+
+#  define HAIR_SHADER
+#  define DRW_HAIR_INFO
+
+#  define POINTCLOUD_SHADER
+#  define DRW_POINTCLOUD_INFO
+#endif
+
 #include "gpu_shader_create_info.hh"
 #include "workbench_defines.hh"
 
@@ -92,7 +117,6 @@ DEFINE("WORKBENCH_COLOR_VERTEX")
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(workbench_prepass)
-DEFINE("WORKBENCH_NEXT")
 UNIFORM_BUF(WB_WORLD_SLOT, WorldData, world_data)
 VERTEX_OUT(workbench_material_iface)
 ADDITIONAL_INFO(draw_view)

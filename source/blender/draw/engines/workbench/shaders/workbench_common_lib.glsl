@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "gpu_glsl_cpp_stubs.hh"
+
 #define EPSILON 0.00001
 
 #define CAVITY_BUFFER_RANGE 4.0

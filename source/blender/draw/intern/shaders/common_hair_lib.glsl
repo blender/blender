@@ -151,6 +151,7 @@ void hair_get_interp_attrs(
  */
 
 #  if !defined(HAIR_PHASE_SUBDIV) && defined(GPU_VERTEX_SHADER)
+VERTEX_SHADER_CREATE_INFO(draw_hair_new)
 
 int hair_get_strand_id()
 {

@@ -9,6 +9,15 @@
 #  include "draw_shader_shared.hh"
 
 #  include "draw_view_info.hh"
+
+#  define HAIR_SHADER
+
+#  define OrcoTexCoFactors (drw_infos[resource_id].orco_mul_bias)
+#  define ObjectInfo (drw_infos[resource_id].infos)
+#  define ObjectColor (drw_infos[resource_id].ob_color)
+
+#  define ObjectAttributeStart (drw_infos[resource_id].orco_mul_bias[0].w)
+#  define ObjectAttributeLen (drw_infos[resource_id].orco_mul_bias[1].w)
 #endif
 
 #include "draw_defines.hh"

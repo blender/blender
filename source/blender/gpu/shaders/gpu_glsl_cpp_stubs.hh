@@ -265,6 +265,8 @@ template<> struct VecBase<bool, 2> : VecSwizzle2<bool> {
   VecBase() = default;
   explicit VecBase(bool) {}
   explicit VecBase(bool, bool) {}
+  /* Should be forbidden, but is used by SMAA. */
+  explicit VecBase(VecBase<double, 2>) {}
 };
 
 template<> struct VecBase<bool, 3> : VecSwizzle3<bool> {
@@ -492,6 +494,7 @@ TEX_TEMPLATE DataVec texture(T, FltCoord, double /*bias*/ = 0.0) RET;
 TEX_TEMPLATE DataVec textureGather(T, FltCoord) RET;
 TEX_TEMPLATE DataVec textureGrad(T, FltCoord, DerivVec, DerivVec) RET;
 TEX_TEMPLATE DataVec textureLod(T, FltCoord, double) RET;
+TEX_TEMPLATE DataVec textureLodOffset(T, FltCoord, double, IntCoord) RET;
 
 #undef TEX_TEMPLATE
 
@@ -675,7 +678,8 @@ template<typename T, typename U> T pow(T, U) RET;
 template<typename T> T round(T) RET;
 template<typename T> T smoothstep(T, T, T) RET;
 template<typename T> T sqrt(T) RET;
-template<typename T> T step(T, T) RET;
+template<int D> VecBase<double, D> step(VecBase<double, D>, VecBase<double, D>) RET;
+template<int D> VecBase<double, D> step(double, VecBase<double, D>) RET;
 template<typename T> T trunc(T) RET;
 template<typename T, typename U> T ldexp(T, U) RET;
 double smoothstep(double, double, double) RET;
@@ -729,9 +733,10 @@ template<typename T> T fwidth(T) RET;
 }  // namespace gl_FragmentShader
 
 /* Geometric functions. */
-template<typename T, int D> float faceforward(VecBase<T, D>, VecBase<T, D>, VecBase<T, D>) RET;
-template<typename T, int D> float reflect(VecBase<T, D>, VecBase<T, D>) RET;
-template<typename T, int D> float refract(VecBase<T, D>, VecBase<T, D>, double) RET;
+template<typename T, int D>
+VecBase<T, D> faceforward(VecBase<T, D>, VecBase<T, D>, VecBase<T, D>) RET;
+template<typename T, int D> VecBase<T, D> reflect(VecBase<T, D>, VecBase<T, D>) RET;
+template<typename T, int D> VecBase<T, D> refract(VecBase<T, D>, VecBase<T, D>, double) RET;
 
 /* Atomic operations. */
 int atomicAdd(int &, int) RET;
@@ -786,7 +791,8 @@ namespace gl_VertexShader {
 const int gl_VertexID = 0;
 const int gl_InstanceID = 0;
 const int gl_BaseVertex = 0;
-const int gl_BaseInstance = 0;
+const int gpu_BaseInstance = 0;
+const int gpu_InstanceIndex = 0;
 float4 gl_Position = float4(0);
 double gl_PointSize = 0;
 float gl_ClipDistance[6] = {0};

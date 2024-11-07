@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/workbench_effect_antialiasing_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(workbench_taa)
+
 void main()
 {
   vec2 texel_size = 1.0 / vec2(textureSize(colorBuffer, 0));

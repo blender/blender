@@ -4,6 +4,10 @@
 
 #pragma once
 
+#include "infos/workbench_prepass_info.hh"
+
+SHADER_LIBRARY_CREATE_INFO(workbench_color_texture)
+
 /* TODO(fclem): deduplicate code. */
 bool node_tex_tile_lookup(inout vec3 co, sampler2DArray ima, sampler1DArray map)
 {

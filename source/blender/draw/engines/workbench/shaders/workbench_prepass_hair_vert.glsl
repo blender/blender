@@ -2,8 +2,16 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/workbench_prepass_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(workbench_prepass)
+VERTEX_SHADER_CREATE_INFO(workbench_lighting_flat)
+VERTEX_SHADER_CREATE_INFO(workbench_transparent_accum)
+VERTEX_SHADER_CREATE_INFO(workbench_curves)
+
 #include "common_hair_lib.glsl"
-#include "common_view_clipping_lib.glsl"
+#include "draw_model_lib.glsl"
+#include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "workbench_common_lib.glsl"
 #include "workbench_image_lib.glsl"
@@ -51,7 +59,7 @@ void main()
   float time, thick_time, thickness;
   vec3 world_pos, tan, binor;
   hair_get_pos_tan_binor_time(is_persp,
-                              ModelMatrixInverse,
+                              drw_modelinv(),
                               drw_view.viewinv[3].xyz,
                               drw_view.viewinv[2].xyz,
                               world_pos,
@@ -70,7 +78,7 @@ void main()
 
   uv_interp = hair_get_customdata_vec2(au);
 
-  normal_interp = normalize(normal_world_to_view(nor));
+  normal_interp = normalize(drw_normal_world_to_view(nor));
 
   workbench_material_data_get(int(drw_CustomID),
                               hair_get_customdata_vec3(ac),
