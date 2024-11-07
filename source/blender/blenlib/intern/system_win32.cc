@@ -12,11 +12,13 @@
 #include <shlwapi.h>
 #include <tlhelp32.h>
 
-#include "BLI_string.h"
-
 #include "MEM_guardedalloc.h"
 
-static EXCEPTION_POINTERS *current_exception = NULL;
+#include "BLI_string.h"
+
+#include "BLI_system.h" /* Own include. */
+
+static EXCEPTION_POINTERS *current_exception = nullptr;
 
 static const char *bli_windows_get_exception_description(const DWORD exceptioncode)
 {
@@ -70,7 +72,9 @@ static void bli_windows_get_module_name(LPVOID address, PCHAR buffer, size_t siz
 {
   HMODULE mod;
   buffer[0] = 0;
-  if (GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, address, &mod)) {
+  if (GetModuleHandleEx(
+          GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, static_cast<LPCSTR>(address), &mod))
+  {
     if (GetModuleFileName(mod, buffer, size)) {
       PathStripPath(buffer);
     }
@@ -82,7 +86,7 @@ static void bli_windows_get_module_version(const char *file, char *buffer, size_
   buffer[0] = 0;
   DWORD verHandle = 0;
   UINT size = 0;
-  LPBYTE lpBuffer = NULL;
+  LPBYTE lpBuffer = nullptr;
   DWORD verSize = GetFileVersionInfoSize(file, &verHandle);
   if (verSize != 0) {
     LPSTR verData = (LPSTR)MEM_callocN(verSize, "crash module version");
@@ -138,8 +142,8 @@ static bool BLI_windows_system_backtrace_run_trace(FILE *fp, HANDLE hThread, PCO
 
   bool result = true;
 
-  PSYMBOL_INFO symbolinfo = MEM_callocN(sizeof(SYMBOL_INFO) + max_symbol_length * sizeof(char),
-                                        "crash Symbol table");
+  PSYMBOL_INFO symbolinfo = static_cast<PSYMBOL_INFO>(
+      MEM_callocN(sizeof(SYMBOL_INFO) + max_symbol_length * sizeof(char), "crash Symbol table"));
   symbolinfo->MaxNameLen = max_symbol_length - 1;
   symbolinfo->SizeOfStruct = sizeof(SYMBOL_INFO);
 
@@ -169,7 +173,7 @@ static bool BLI_windows_system_backtrace_run_trace(FILE *fp, HANDLE hThread, PCO
                     hThread,
                     &frame,
                     context,
-                    NULL,
+                    nullptr,
                     SymFunctionTableAccess64,
                     SymGetModuleBase64,
                     0))
@@ -326,7 +330,7 @@ static bool bli_private_symbols_loaded()
 {
   IMAGEHLP_MODULE64 m64;
   m64.SizeOfStruct = sizeof(m64);
-  if (SymGetModuleInfo64(GetCurrentProcess(), (DWORD64)GetModuleHandle(NULL), &m64)) {
+  if (SymGetModuleInfo64(GetCurrentProcess(), (DWORD64)GetModuleHandle(nullptr), &m64)) {
     return m64.GlobalSymbols;
   }
   return false;
@@ -342,13 +346,13 @@ static void bli_load_symbols()
   char pdb_file[MAX_PATH] = {0};
 
   /* get the currently executing image */
-  if (GetModuleFileNameA(NULL, pdb_file, sizeof(pdb_file))) {
+  if (GetModuleFileNameA(nullptr, pdb_file, sizeof(pdb_file))) {
     /* remove the filename */
     PathRemoveFileSpecA(pdb_file);
     /* append blender.pdb */
     PathAppendA(pdb_file, "blender.pdb");
     if (PathFileExistsA(pdb_file)) {
-      HMODULE mod = GetModuleHandle(NULL);
+      HMODULE mod = GetModuleHandle(nullptr);
       if (mod) {
         WIN32_FILE_ATTRIBUTE_DATA file_data;
         if (GetFileAttributesExA(pdb_file, GetFileExInfoStandard, &file_data)) {
@@ -357,9 +361,9 @@ static void bli_load_symbols()
           SymUnloadModule64(GetCurrentProcess(), (DWORD64)mod);
 
           DWORD64 module_base = SymLoadModule(GetCurrentProcess(),
-                                              NULL,
+                                              nullptr,
                                               pdb_file,
-                                              NULL,
+                                              nullptr,
                                               (DWORD64)mod,
                                               (DWORD)file_data.nFileSizeLow);
           if (module_base == 0) {
@@ -381,7 +385,7 @@ static void bli_load_symbols()
  */
 void BLI_system_backtrace(FILE *fp)
 {
-  SymInitialize(GetCurrentProcess(), NULL, TRUE);
+  SymInitialize(GetCurrentProcess(), nullptr, TRUE);
   bli_load_symbols();
   if (current_exception) {
     bli_windows_system_backtrace_exception_record(fp, current_exception->ExceptionRecord);
@@ -394,16 +398,17 @@ void BLI_system_backtrace(FILE *fp)
   bli_windows_system_backtrace_modules(fp);
 }
 
-void BLI_windows_handle_exception(EXCEPTION_POINTERS *exception)
+void BLI_windows_handle_exception(void *exception)
 {
-  current_exception = exception;
+  current_exception = static_cast<EXCEPTION_POINTERS *>(exception);
   if (current_exception) {
-    fprintf(stderr,
-            "Error   : %s\n",
-            bli_windows_get_exception_description(exception->ExceptionRecord->ExceptionCode));
+    fprintf(
+        stderr,
+        "Error   : %s\n",
+        bli_windows_get_exception_description(current_exception->ExceptionRecord->ExceptionCode));
     fflush(stderr);
 
-    LPVOID address = exception->ExceptionRecord->ExceptionAddress;
+    LPVOID address = current_exception->ExceptionRecord->ExceptionAddress;
     fprintf(stderr, "Address : 0x%p\n", address);
 
     CHAR modulename[MAX_PATH];
