@@ -421,6 +421,9 @@ class Instance {
       GPU_framebuffer_clear_depth_stencil(resources.clear_in_front_fb, 1.0f, 0x00);
     }
 
+    resources.depth_tx.wrap(depth_tx);
+    resources.color_tx.wrap(color_tx);
+
     if (scene_state.render_finished) {
       /* Just copy back the already rendered result */
       anti_aliasing_ps.draw(manager, view, scene_state, resources, depth_in_front_tx);
@@ -429,8 +432,6 @@ class Instance {
 
     anti_aliasing_ps.setup_view(view, scene_state);
 
-    resources.depth_tx.wrap(depth_tx);
-    resources.color_tx.wrap(color_tx);
     GPUAttachment id_attachment = GPU_ATTACHMENT_NONE;
     if (scene_state.draw_object_id) {
       resources.object_id_tx.acquire(
