@@ -18,8 +18,6 @@
 
 #include "BLI_system.h" /* Own include. */
 
-static EXCEPTION_POINTERS *current_exception = nullptr;
-
 static const char *bli_windows_get_exception_description(const DWORD exceptioncode)
 {
   switch (exceptioncode) {
@@ -310,14 +308,14 @@ static void bli_windows_system_backtrace_threads(FILE *fp)
   CloseHandle(hThreadSnap);
 }
 
-static bool BLI_windows_system_backtrace_stack(FILE *fp)
+static bool bli_windows_system_backtrace_stack(FILE *fp, const EXCEPTION_POINTERS *exception_info)
 {
   fprintf(fp, "Stack trace:\n");
   /* If we are handling an exception use the context record from that. */
-  if (current_exception && current_exception->ExceptionRecord->ExceptionAddress) {
+  if (exception_info && exception_info->ExceptionRecord->ExceptionAddress) {
     /* The back trace code will write to the context record, to protect the original record from
      * modifications give the backtrace a copy to work on. */
-    CONTEXT TempContext = *current_exception->ContextRecord;
+    CONTEXT TempContext = *exception_info->ContextRecord;
     return BLI_windows_system_backtrace_run_trace(fp, GetCurrentThread(), &TempContext);
   }
   else {
@@ -383,14 +381,15 @@ static void bli_load_symbols()
 /**
  * Write a backtrace into a file for systems which support it.
  */
-void BLI_system_backtrace(FILE *fp)
+void BLI_system_backtrace_with_os_info(FILE *fp, const void *os_info)
 {
+  const EXCEPTION_POINTERS *exception_info = static_cast<const EXCEPTION_POINTERS *>(os_info);
   SymInitialize(GetCurrentProcess(), nullptr, TRUE);
   bli_load_symbols();
-  if (current_exception) {
-    bli_windows_system_backtrace_exception_record(fp, current_exception->ExceptionRecord);
+  if (exception_info) {
+    bli_windows_system_backtrace_exception_record(fp, exception_info->ExceptionRecord);
   }
-  if (BLI_windows_system_backtrace_stack(fp)) {
+  if (bli_windows_system_backtrace_stack(fp, exception_info)) {
     /* When the blender symbols are missing the stack traces will be unreliable
      * so only run if the previous step completed successfully. */
     bli_windows_system_backtrace_threads(fp);
@@ -400,15 +399,14 @@ void BLI_system_backtrace(FILE *fp)
 
 void BLI_windows_handle_exception(void *exception)
 {
-  current_exception = static_cast<EXCEPTION_POINTERS *>(exception);
-  if (current_exception) {
-    fprintf(
-        stderr,
-        "Error   : %s\n",
-        bli_windows_get_exception_description(current_exception->ExceptionRecord->ExceptionCode));
+  const EXCEPTION_POINTERS *exception_info = static_cast<EXCEPTION_POINTERS *>(exception);
+  if (exception_info) {
+    fprintf(stderr,
+            "Error   : %s\n",
+            bli_windows_get_exception_description(exception_info->ExceptionRecord->ExceptionCode));
     fflush(stderr);
 
-    LPVOID address = current_exception->ExceptionRecord->ExceptionAddress;
+    LPVOID address = exception_info->ExceptionRecord->ExceptionAddress;
     fprintf(stderr, "Address : 0x%p\n", address);
 
     CHAR modulename[MAX_PATH];

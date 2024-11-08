@@ -60,7 +60,7 @@ int BLI_cpu_support_sse2(void)
 
 /* Windows stack-walk lives in system_win32.cc */
 #if !defined(_MSC_VER)
-void BLI_system_backtrace(FILE *fp)
+void BLI_system_backtrace_with_os_info(FILE *fp, const void * /*os_info*/)
 {
   /* ----------------------- */
   /* If system as execinfo.h */
@@ -97,7 +97,12 @@ void BLI_system_backtrace(FILE *fp)
 #  endif
 }
 #endif
-/* end BLI_system_backtrace */
+/* end BLI_system_backtrace_with_os_info */
+
+void BLI_system_backtrace(FILE *fp)
+{
+  BLI_system_backtrace_with_os_info(fp, NULL);
+}
 
 /* NOTE: The code for CPU brand string is adopted from Cycles. */
 
