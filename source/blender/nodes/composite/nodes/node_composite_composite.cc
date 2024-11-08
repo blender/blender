@@ -83,8 +83,9 @@ class CompositeOperation : public NodeOperation {
   /* Executes when the alpha channel of the image is ignored. */
   void execute_ignore_alpha()
   {
-    GPUShader *shader = context().get_shader("compositor_write_output_opaque",
-                                             ResultPrecision::Half);
+    GPUTexture *output_texture = context().get_output_texture();
+    GPUShader *shader = context().get_shader(
+        "compositor_write_output_opaque", Result::precision(GPU_texture_format(output_texture)));
     GPU_shader_bind(shader);
 
     /* The compositing space might be limited to a subset of the output texture, so only write into
@@ -98,7 +99,6 @@ class CompositeOperation : public NodeOperation {
     const Result &image = get_input("Image");
     image.bind_as_texture(shader, "input_tx");
 
-    GPUTexture *output_texture = context().get_output_texture();
     const int image_unit = GPU_shader_get_sampler_binding(shader, "output_img");
     GPU_texture_image_bind(output_texture, image_unit);
 
@@ -114,7 +114,9 @@ class CompositeOperation : public NodeOperation {
    * to the output texture. */
   void execute_copy()
   {
-    GPUShader *shader = context().get_shader("compositor_write_output", ResultPrecision::Half);
+    GPUTexture *output_texture = context().get_output_texture();
+    GPUShader *shader = context().get_shader(
+        "compositor_write_output", Result::precision(GPU_texture_format(output_texture)));
     GPU_shader_bind(shader);
 
     /* The compositing space might be limited to a subset of the output texture, so only write into
@@ -128,7 +130,6 @@ class CompositeOperation : public NodeOperation {
     const Result &image = get_input("Image");
     image.bind_as_texture(shader, "input_tx");
 
-    GPUTexture *output_texture = context().get_output_texture();
     const int image_unit = GPU_shader_get_sampler_binding(shader, "output_img");
     GPU_texture_image_bind(output_texture, image_unit);
 
@@ -143,8 +144,9 @@ class CompositeOperation : public NodeOperation {
   /* Executes when the alpha channel of the image is set as the value of the input alpha. */
   void execute_set_alpha()
   {
-    GPUShader *shader = context().get_shader("compositor_write_output_alpha",
-                                             ResultPrecision::Half);
+    GPUTexture *output_texture = context().get_output_texture();
+    GPUShader *shader = context().get_shader(
+        "compositor_write_output_alpha", Result::precision(GPU_texture_format(output_texture)));
     GPU_shader_bind(shader);
 
     /* The compositing space might be limited to a subset of the output texture, so only write into
@@ -161,7 +163,6 @@ class CompositeOperation : public NodeOperation {
     const Result &alpha = get_input("Alpha");
     alpha.bind_as_texture(shader, "alpha_tx");
 
-    GPUTexture *output_texture = context().get_output_texture();
     const int image_unit = GPU_shader_get_sampler_binding(shader, "output_img");
     GPU_texture_image_bind(output_texture, image_unit);
 
