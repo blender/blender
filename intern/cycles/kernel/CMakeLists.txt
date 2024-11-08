@@ -1408,6 +1408,7 @@ endmacro()
 cycles_add_gpu_kernel_dependencies(cycles_kernel_cuda)
 cycles_add_gpu_kernel_dependencies(cycles_kernel_optix)
 cycles_add_gpu_kernel_dependencies(cycles_kernel_hip)
+cycles_add_gpu_kernel_dependencies(cycles_kernel_hiprt)
 cycles_add_gpu_kernel_dependencies(cycles_kernel_oneapi)
 
 # Install kernel source for runtime compilation
