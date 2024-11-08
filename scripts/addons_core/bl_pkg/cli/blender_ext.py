@@ -4502,11 +4502,14 @@ class subcmd_author:
             *(manifest.wheels or ()),
         )
         build_paths_wheel_range = 1, 1 + len(manifest.wheels or ())
+        # Exclude when checking file listing because the extra paths are mixed with user defined paths,
+        # and including the manifest raises an error.
+        build_paths_extra_skip_index = 1
 
         if manifest_build_data is not None:
             manifest_build_test = PkgManifest_Build.from_dict_all_errors(
                 manifest_build_data,
-                extra_paths=build_paths_extra,
+                extra_paths=build_paths_extra[build_paths_extra_skip_index:],
             )
             if isinstance(manifest_build_test, list):
                 for error_msg in manifest_build_test:
