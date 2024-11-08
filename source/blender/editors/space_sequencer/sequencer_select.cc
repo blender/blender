@@ -2179,15 +2179,19 @@ static int sequencer_box_select_invoke(bContext *C, wmOperator *op, const wmEven
     return OPERATOR_CANCELLED;
   }
 
-  int mval[2];
-  float mouse_co[2];
-  WM_event_drag_start_mval(event, region, mval);
-  UI_view2d_region_to_view(v2d, mval[0], mval[1], &mouse_co[0], &mouse_co[1]);
+  const bool tweak = RNA_boolean_get(op->ptr, "tweak");
 
-  StripSelection selection = ED_sequencer_pick_strip_and_handle(scene, v2d, mouse_co);
+  if (tweak) {
+    int mval[2];
+    float mouse_co[2];
+    WM_event_drag_start_mval(event, region, mval);
+    UI_view2d_region_to_view(v2d, mval[0], mval[1], &mouse_co[0], &mouse_co[1]);
 
-  if (selection.seq1 != nullptr) {
-    return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
+    StripSelection selection = ED_sequencer_pick_strip_and_handle(scene, v2d, mouse_co);
+
+    if (selection.seq1 != nullptr) {
+      return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
+    }
   }
 
   return WM_gesture_box_invoke(C, op, event);
@@ -2216,6 +2220,14 @@ void SEQUENCER_OT_select_box(wmOperatorType *ot)
   /* Properties. */
   WM_operator_properties_gesture_box(ot);
   WM_operator_properties_select_operation_simple(ot);
+
+  prop = RNA_def_boolean(
+      ot->srna,
+      "tweak",
+      false,
+      "Tweak",
+      "Make box select pass through to sequence slide when the cursor is hovering on a strip");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   prop = RNA_def_boolean(
       ot->srna, "include_handles", false, "Select Handles", "Select the strips and their handles");
