@@ -463,7 +463,7 @@ void gpu_shader_dependency_init()
     /* Detect if there is any printf in node lib files.
      * See gpu_shader_dependency_force_gpu_print_injection(). */
     for (auto *value : g_sources->values()) {
-      if ((value->builtins & shader::BuiltinBits::USE_PRINTF) != shader::BuiltinBits::USE_PRINTF) {
+      if (bool(value->builtins & shader::BuiltinBits::USE_PRINTF)) {
         if (value->filename.startswith("gpu_shader_material_")) {
           force_printf_injection = true;
           break;

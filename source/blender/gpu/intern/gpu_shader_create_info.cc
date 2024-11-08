@@ -556,8 +556,9 @@ void gpu_shader_create_info_init()
     info->builtins_ |= gpu_shader_dependency_get_builtins(info->compute_source_);
 
 #if GPU_SHADER_PRINTF_ENABLE
+    const bool is_material_shader = info->name_.startswith("eevee_surf_");
     if ((info->builtins_ & BuiltinBits::USE_PRINTF) == BuiltinBits::USE_PRINTF ||
-        gpu_shader_dependency_force_gpu_print_injection())
+        (gpu_shader_dependency_force_gpu_print_injection() && is_material_shader))
     {
       info->additional_info("gpu_print");
     }
