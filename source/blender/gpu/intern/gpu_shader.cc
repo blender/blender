@@ -451,8 +451,8 @@ void GPU_shader_bind(GPUShader *gpu_shader)
     }
   }
 #if GPU_SHADER_PRINTF_ENABLE
-  if (ctx->printf_buf) {
-    GPU_storagebuf_bind(ctx->printf_buf, GPU_SHADER_PRINTF_SLOT);
+  if (!ctx->printf_buf.is_empty()) {
+    GPU_storagebuf_bind(ctx->printf_buf.last(), GPU_SHADER_PRINTF_SLOT);
   }
 #endif
 }
