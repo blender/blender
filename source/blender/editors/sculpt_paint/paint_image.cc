@@ -363,6 +363,7 @@ bool paint_use_opacity_masking(Brush *brush)
 }
 
 void paint_brush_color_get(Scene *scene,
+                           const Paint *paint,
                            Brush *br,
                            bool color_correction,
                            bool invert,
@@ -372,7 +373,7 @@ void paint_brush_color_get(Scene *scene,
                            float r_color[3])
 {
   if (invert) {
-    copy_v3_v3(r_color, BKE_brush_secondary_color_get(scene, br));
+    copy_v3_v3(r_color, BKE_brush_secondary_color_get(scene, paint, br));
   }
   else {
     if (br->flag & BRUSH_USE_GRADIENT) {
@@ -396,7 +397,7 @@ void paint_brush_color_get(Scene *scene,
       IMB_colormanagement_scene_linear_to_srgb_v3(r_color, color_gr);
     }
     else {
-      copy_v3_v3(r_color, BKE_brush_color_get(scene, br));
+      copy_v3_v3(r_color, BKE_brush_color_get(scene, paint, br));
     }
   }
   if (color_correction) {
@@ -685,7 +686,7 @@ static int sample_color_invoke(bContext *C, wmOperator *op, const wmEvent *event
 
   data->launch_event = WM_userdef_event_type_from_keymap_type(event->type);
   data->show_cursor = ((paint->flags & PAINT_SHOW_BRUSH) != 0);
-  copy_v3_v3(data->initcolor, BKE_brush_color_get(scene, brush));
+  copy_v3_v3(data->initcolor, BKE_brush_color_get(scene, paint, brush));
   data->sample_palette = false;
   op->customdata = data;
   paint->flags &= ~PAINT_SHOW_BRUSH;
@@ -725,7 +726,7 @@ static int sample_color_modal(bContext *C, wmOperator *op, const wmEvent *event)
     }
 
     if (data->sample_palette) {
-      BKE_brush_color_set(scene, brush, data->initcolor);
+      BKE_brush_color_set(scene, paint, brush, data->initcolor);
       RNA_boolean_set(op->ptr, "palette", true);
     }
     WM_cursor_modal_restore(CTX_wm_window(C));
@@ -1030,12 +1031,12 @@ void PAINT_OT_texture_paint_toggle(wmOperatorType *ot)
 static int brush_colors_flip_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene &scene = *CTX_data_scene(C);
-  UnifiedPaintSettings &ups = scene.toolsettings->unified_paint_settings;
 
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *br = BKE_paint_brush(paint);
 
-  if (ups.flag & UNIFIED_PAINT_COLOR) {
+  if (BKE_paint_use_unified_color(scene.toolsettings, paint)) {
+    UnifiedPaintSettings &ups = scene.toolsettings->unified_paint_settings;
     swap_v3_v3(ups.rgb, ups.secondary_rgb);
   }
   else if (br) {
