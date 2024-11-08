@@ -792,6 +792,7 @@ static int grease_pencil_merge_layer_exec(bContext *C, wmOperator *op)
   }
 
   GreasePencil *merged_grease_pencil = BKE_grease_pencil_new_nomain();
+  BKE_grease_pencil_copy_parameters(grease_pencil, *merged_grease_pencil);
   ed::greasepencil::merge_layers(
       grease_pencil, src_layer_indices_by_dst_layer, *merged_grease_pencil);
   BKE_grease_pencil_nomain_to_grease_pencil(merged_grease_pencil, &grease_pencil);
