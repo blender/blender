@@ -201,11 +201,9 @@ void MTLImmediate::end()
          *   and will generate an appropriate conversion function when reading the vertex attribute
          *   value into local shader storage.
          *   (If no explicit conversion is needed, the function specialize to a pass-through). */
-        MTLVertexFormat converted_format;
-        bool can_convert = mtl_vertex_format_resize(
-            mtl_shader_attribute.format, attr->comp_len, &converted_format);
-        desc.vertex_descriptor.attributes[i].format = (can_convert) ? converted_format :
-                                                                      mtl_shader_attribute.format;
+        MTLVertexFormat converted_format = format_resize_comp(mtl_shader_attribute.format,
+                                                              attr->comp_len);
+        desc.vertex_descriptor.attributes[i].format = converted_format;
         desc.vertex_descriptor.attributes[i].format_conversion_mode = (GPUVertFetchMode)
                                                                           attr->fetch_mode;
         BLI_assert(desc.vertex_descriptor.attributes[i].format != MTLVertexFormatInvalid);

@@ -327,12 +327,8 @@ int MTLBatch::prepare_vertex_binding(MTLVertBuf *verts,
              *
              * NOTE: Even if full conversion is not supported, we may still partially perform an
              * implicit conversion where possible, such as vector truncation or expansion. */
-            MTLVertexFormat converted_format;
-            bool can_convert = mtl_vertex_format_resize(
-                mtl_attr.format, a->comp_len, &converted_format);
-            desc.vertex_descriptor.attributes[mtl_attr.location].format = can_convert ?
-                                                                              converted_format :
-                                                                              mtl_attr.format;
+            MTLVertexFormat converted_format = format_resize_comp(mtl_attr.format, a->comp_len);
+            desc.vertex_descriptor.attributes[mtl_attr.location].format = converted_format;
             desc.vertex_descriptor.attributes[mtl_attr.location].format_conversion_mode =
                 (GPUVertFetchMode)a->fetch_mode;
             BLI_assert(desc.vertex_descriptor.attributes[mtl_attr.location].format !=
