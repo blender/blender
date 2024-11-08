@@ -1603,7 +1603,7 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext *pcontext)
   }
   else if (pcontext->mode == PaintMode::VertexGPencil) {
     pcontext->pixel_radius = BKE_brush_size_get(pcontext->vc.scene, brush);
-    color = BKE_brush_color_get(pcontext->vc.scene, brush);
+    color = BKE_brush_color_get(pcontext->vc.scene, paint, brush);
   }
 
   GPU_line_width(1.0f);

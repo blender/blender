@@ -210,6 +210,7 @@ Paint *BKE_paint_get_active(Scene *sce, ViewLayer *view_layer);
 Paint *BKE_paint_get_active_from_context(const bContext *C);
 PaintMode BKE_paintmode_get_active_from_context(const bContext *C);
 PaintMode BKE_paintmode_get_from_tool(const bToolRef *tref);
+bool BKE_paint_use_unified_color(const ToolSettings *tool_settings, const Paint *paint);
 
 /* Paint brush retrieval and assignment. */
 

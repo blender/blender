@@ -265,6 +265,7 @@ struct ProjPaintState {
   float paint_color_linear[3];
   float dither;
 
+  const Paint *paint;
   Brush *brush;
 
   /**
@@ -5749,6 +5750,7 @@ static void paint_proj_stroke_ps(const bContext * /*C*/,
                                  ProjPaintState *ps)
 {
   ProjStrokeHandle *ps_handle = static_cast<ProjStrokeHandle *>(ps_handle_p);
+  const Paint *paint = ps->paint;
   Brush *brush = ps->brush;
   Scene *scene = ps->scene;
 
@@ -5761,6 +5763,7 @@ static void paint_proj_stroke_ps(const bContext * /*C*/,
   /* handle gradient and inverted stroke color here */
   if (ELEM(ps->brush_type, IMAGE_PAINT_BRUSH_TYPE_DRAW, IMAGE_PAINT_BRUSH_TYPE_FILL)) {
     paint_brush_color_get(scene,
+                          paint,
                           brush,
                           false,
                           ps->mode == BRUSH_STROKE_INVERT,
@@ -5836,6 +5839,7 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps, int 
 
   /* brush */
   ps->mode = BrushStrokeMode(mode);
+  ps->paint = BKE_paint_get_active_from_context(C);
   ps->brush = BKE_paint_brush(&settings->imapaint.paint);
   if (ps->brush) {
     Brush *brush = ps->brush;

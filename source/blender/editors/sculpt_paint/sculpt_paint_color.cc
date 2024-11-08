@@ -347,6 +347,7 @@ static void do_paint_brush_task(const Scene &scene,
                                 const Span<int> corner_verts,
                                 const GroupedSpan<int> vert_to_face_map,
                                 const MeshAttributeData &attribute_data,
+                                const Paint &paint,
                                 const Brush &brush,
                                 const float4x4 &mat,
                                 const float4 wet_mix_sampled_color,
@@ -409,8 +410,9 @@ static void do_paint_brush_task(const Scene &scene,
     }
   }
 
-  const float3 brush_color_rgb = ss.cache->invert ? BKE_brush_secondary_color_get(&scene, &brush) :
-                                                    BKE_brush_color_get(&scene, &brush);
+  const float3 brush_color_rgb = ss.cache->invert ?
+                                     BKE_brush_secondary_color_get(&scene, &paint, &brush) :
+                                     BKE_brush_color_get(&scene, &paint, &brush);
   float4 brush_color(brush_color_rgb, 1.0f);
   IMB_colormanagement_srgb_to_scene_linear_v3(brush_color, brush_color);
 
@@ -660,6 +662,7 @@ void do_paint_brush(const Scene &scene,
                         corner_verts,
                         vert_to_face_map,
                         attribute_data,
+                        sd.paint,
                         brush,
                         mat,
                         wet_color,

@@ -1026,23 +1026,28 @@ float BKE_brush_sample_masktex(
  * In any case, a better solution is needed to prevent
  * inconsistency. */
 
-const float *BKE_brush_color_get(const Scene *scene, const Brush *brush)
+const float *BKE_brush_color_get(const Scene *scene, const Paint *paint, const Brush *brush)
 {
-  UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
-  return (ups->flag & UNIFIED_PAINT_COLOR) ? ups->rgb : brush->rgb;
+  if (BKE_paint_use_unified_color(scene->toolsettings, paint)) {
+    return scene->toolsettings->unified_paint_settings.rgb;
+  }
+  return brush->rgb;
 }
 
-const float *BKE_brush_secondary_color_get(const Scene *scene, const Brush *brush)
+const float *BKE_brush_secondary_color_get(const Scene *scene,
+                                           const Paint *paint,
+                                           const Brush *brush)
 {
-  UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
-  return (ups->flag & UNIFIED_PAINT_COLOR) ? ups->secondary_rgb : brush->secondary_rgb;
+  if (BKE_paint_use_unified_color(scene->toolsettings, paint)) {
+    return scene->toolsettings->unified_paint_settings.secondary_rgb;
+  }
+  return brush->secondary_rgb;
 }
 
-void BKE_brush_color_set(Scene *scene, Brush *brush, const float color[3])
+void BKE_brush_color_set(Scene *scene, const Paint *paint, Brush *brush, const float color[3])
 {
-  UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
-
-  if (ups->flag & UNIFIED_PAINT_COLOR) {
+  if (BKE_paint_use_unified_color(scene->toolsettings, paint)) {
+    UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
     copy_v3_v3(ups->rgb, color);
   }
   else {

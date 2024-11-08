@@ -331,7 +331,7 @@ static int grease_pencil_vertex_paint_set_exec(bContext *C, wmOperator *op)
   const float factor = RNA_float_get(op->ptr, "factor");
 
   float3 color_linear;
-  srgb_to_linearrgb_v3_v3(color_linear, BKE_brush_color_get(&scene, &brush));
+  srgb_to_linearrgb_v3_v3(color_linear, BKE_brush_color_get(&scene, &paint, &brush));
   const ColorGeometry4f target_color(color_linear[0], color_linear[1], color_linear[2], 1.0f);
 
   std::atomic<bool> any_changed;

@@ -75,6 +75,7 @@ struct BrushPainterCache {
 
 struct BrushPainter {
   Scene *scene;
+  const Paint *paint;
   Brush *brush;
 
   bool firsttouch; /* first paint op */
@@ -134,12 +135,16 @@ struct ImagePaintState {
   BlurKernel *blurkernel;
 };
 
-static BrushPainter *brush_painter_2d_new(Scene *scene, Brush *brush, bool invert)
+static BrushPainter *brush_painter_2d_new(Scene *scene,
+                                          const Paint *paint,
+                                          Brush *brush,
+                                          bool invert)
 {
   BrushPainter *painter = MEM_cnew<BrushPainter>(__func__);
 
   painter->brush = brush;
   painter->scene = scene;
+  painter->paint = paint;
   painter->firsttouch = true;
   painter->cache_invert = invert;
 
@@ -369,6 +374,7 @@ static ImBuf *brush_painter_imbuf_new(
     BrushPainter *painter, ImagePaintTile *tile, const int size, float pressure, float distance)
 {
   Scene *scene = painter->scene;
+  const Paint *paint = painter->paint;
   Brush *brush = painter->brush;
   BrushPainterCache *cache = &tile->cache;
 
@@ -390,8 +396,15 @@ static ImBuf *brush_painter_imbuf_new(
 
   /* get brush color */
   if (brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_DRAW) {
-    paint_brush_color_get(
-        scene, brush, use_color_correction, cache->invert, distance, pressure, display, brush_rgb);
+    paint_brush_color_get(scene,
+                          paint,
+                          brush,
+                          use_color_correction,
+                          cache->invert,
+                          distance,
+                          pressure,
+                          display,
+                          brush_rgb);
   }
   else {
     brush_rgb[0] = 1.0f;
@@ -451,6 +464,7 @@ static void brush_painter_imbuf_update(BrushPainter *painter,
                                        int yt)
 {
   Scene *scene = painter->scene;
+  const Paint *paint = painter->paint;
   Brush *brush = painter->brush;
   const MTex *mtex = &brush->mtex;
   BrushPainterCache *cache = &tile->cache;
@@ -475,7 +489,7 @@ static void brush_painter_imbuf_update(BrushPainter *painter,
   /* get brush color */
   if (brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_DRAW) {
     paint_brush_color_get(
-        scene, brush, use_color_correction, cache->invert, 0.0f, 1.0f, display, brush_rgb);
+        scene, paint, brush, use_color_correction, cache->invert, 0.0f, 1.0f, display, brush_rgb);
   }
   else {
     brush_rgb[0] = 1.0f;
@@ -1565,6 +1579,7 @@ void *paint_2d_new_stroke(bContext *C, wmOperator *op, int mode)
   Scene *scene = CTX_data_scene(C);
   SpaceImage *sima = CTX_wm_space_image(C);
   ToolSettings *settings = scene->toolsettings;
+  const Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(&settings->imapaint.paint);
 
   ImagePaintState *s = MEM_cnew<ImagePaintState>(__func__);
@@ -1645,7 +1660,7 @@ void *paint_2d_new_stroke(bContext *C, wmOperator *op, int mode)
   paint_brush_init_tex(s->brush);
 
   /* create painter */
-  s->painter = brush_painter_2d_new(scene, s->brush, mode == BRUSH_STROKE_INVERT);
+  s->painter = brush_painter_2d_new(scene, paint, s->brush, mode == BRUSH_STROKE_INVERT);
 
   return s;
 }

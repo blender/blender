@@ -44,7 +44,7 @@ void VertexPaintOperation::on_stroke_extended(const bContext &C,
   const bool do_fill = do_vertex_color_fill(brush);
 
   float color_linear[3];
-  srgb_to_linearrgb_v3_v3(color_linear, BKE_brush_color_get(&scene, &brush));
+  srgb_to_linearrgb_v3_v3(color_linear, BKE_brush_color_get(&scene, &paint, &brush));
   const ColorGeometry4f mix_color(color_linear[0], color_linear[1], color_linear[2], 1.0f);
 
   this->foreach_editable_drawing(C, GrainSize(1), [&](const GreasePencilStrokeParams &params) {

@@ -405,7 +405,7 @@ void paint_sample_color(
                 }
                 else {
                   linearrgb_to_srgb_v3_v3(rgba_f, rgba_f);
-                  BKE_brush_color_set(scene, br, rgba_f);
+                  BKE_brush_color_set(scene, paint, br, rgba_f);
                 }
               }
               else {
@@ -418,7 +418,7 @@ void paint_sample_color(
                 else {
                   float rgba_f[3];
                   rgb_uchar_to_float(rgba_f, rgba);
-                  BKE_brush_color_set(scene, br, rgba_f);
+                  BKE_brush_color_set(scene, paint, br, rgba_f);
                 }
               }
               BKE_image_release_ibuf(image, ibuf, nullptr);
@@ -445,7 +445,7 @@ void paint_sample_color(
         copy_v3_v3(color->rgb, rgba_f);
       }
       else {
-        BKE_brush_color_set(scene, br, rgba_f);
+        BKE_brush_color_set(scene, paint, br, rgba_f);
       }
       return;
     }
@@ -462,7 +462,7 @@ void paint_sample_color(
       copy_v3_v3(color->rgb, rgb_fl);
     }
     else {
-      BKE_brush_color_set(scene, br, rgb_fl);
+      BKE_brush_color_set(scene, paint, br, rgb_fl);
     }
   }
 }

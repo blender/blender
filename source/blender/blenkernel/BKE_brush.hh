@@ -22,6 +22,7 @@ struct ImBuf;
 struct ImagePool;
 struct Main;
 struct MTex;
+struct Paint;
 struct Scene;
 struct UnifiedPaintSettings;
 
@@ -141,9 +142,11 @@ ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br, bool secondary, bool displa
 
 /* Unified strength size and color. */
 
-const float *BKE_brush_color_get(const Scene *scene, const Brush *brush);
-const float *BKE_brush_secondary_color_get(const Scene *scene, const Brush *brush);
-void BKE_brush_color_set(Scene *scene, Brush *brush, const float color[3]);
+const float *BKE_brush_color_get(const Scene *scene, const Paint *paint, const Brush *brush);
+const float *BKE_brush_secondary_color_get(const Scene *scene,
+                                           const Paint *paint,
+                                           const Brush *brush);
+void BKE_brush_color_set(Scene *scene, const Paint *paint, Brush *brush, const float color[3]);
 
 int BKE_brush_size_get(const Scene *scene, const Brush *brush);
 void BKE_brush_size_set(Scene *scene, Brush *brush, int size);

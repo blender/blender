@@ -61,6 +61,7 @@ class AbstractPaintMode {
   virtual void paint_stroke_done(void *stroke_handle) = 0;
   virtual void paint_gradient_fill(const bContext *C,
                                    const Scene *scene,
+                                   const Paint *paint,
                                    Brush *brush,
                                    PaintStroke *stroke,
                                    void *stroke_handle,
@@ -68,6 +69,7 @@ class AbstractPaintMode {
                                    float mouse_end[2]) = 0;
   virtual void paint_bucket_fill(const bContext *C,
                                  const Scene *scene,
+                                 const Paint *paint,
                                  Brush *brush,
                                  PaintStroke *stroke,
                                  void *stroke_handle,
@@ -107,6 +109,7 @@ class ImagePaintMode : public AbstractPaintMode {
 
   void paint_gradient_fill(const bContext *C,
                            const Scene * /*scene*/,
+                           const Paint * /*paint*/,
                            Brush *brush,
                            PaintStroke * /*stroke*/,
                            void *stroke_handle,
@@ -118,6 +121,7 @@ class ImagePaintMode : public AbstractPaintMode {
 
   void paint_bucket_fill(const bContext *C,
                          const Scene *scene,
+                         const Paint *paint,
                          Brush *brush,
                          PaintStroke *stroke,
                          void *stroke_handle,
@@ -126,10 +130,10 @@ class ImagePaintMode : public AbstractPaintMode {
   {
     float color[3];
     if (paint_stroke_inverted(stroke)) {
-      srgb_to_linearrgb_v3_v3(color, BKE_brush_secondary_color_get(scene, brush));
+      srgb_to_linearrgb_v3_v3(color, BKE_brush_secondary_color_get(scene, paint, brush));
     }
     else {
-      srgb_to_linearrgb_v3_v3(color, BKE_brush_color_get(scene, brush));
+      srgb_to_linearrgb_v3_v3(color, BKE_brush_color_get(scene, paint, brush));
     }
     paint_2d_bucket_fill(C, color, brush, mouse_start, mouse_end, stroke_handle);
   }
@@ -167,29 +171,32 @@ class ProjectionPaintMode : public AbstractPaintMode {
 
   void paint_gradient_fill(const bContext *C,
                            const Scene *scene,
+                           const Paint *paint,
                            Brush *brush,
                            PaintStroke *stroke,
                            void *stroke_handle,
                            float mouse_start[2],
                            float mouse_end[2]) override
   {
-    paint_fill(C, scene, brush, stroke, stroke_handle, mouse_start, mouse_end);
+    paint_fill(C, scene, paint, brush, stroke, stroke_handle, mouse_start, mouse_end);
   }
 
   void paint_bucket_fill(const bContext *C,
                          const Scene *scene,
+                         const Paint *paint,
                          Brush *brush,
                          PaintStroke *stroke,
                          void *stroke_handle,
                          float mouse_start[2],
                          float mouse_end[2]) override
   {
-    paint_fill(C, scene, brush, stroke, stroke_handle, mouse_start, mouse_end);
+    paint_fill(C, scene, paint, brush, stroke, stroke_handle, mouse_start, mouse_end);
   }
 
  private:
   void paint_fill(const bContext *C,
                   const Scene *scene,
+                  const Paint * /*paint*/,
                   Brush *brush,
                   PaintStroke *stroke,
                   void *stroke_handle,
@@ -391,6 +398,7 @@ static void paint_stroke_done(const bContext *C, PaintStroke *stroke)
   Scene *scene = CTX_data_scene(C);
   ToolSettings *toolsettings = scene->toolsettings;
   PaintOperation *pop = static_cast<PaintOperation *>(paint_stroke_mode_data(stroke));
+  const Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(&toolsettings->imapaint.paint);
 
   toolsettings->imapaint.flag &= ~IMAGEPAINT_DRAWING;
@@ -398,11 +406,11 @@ static void paint_stroke_done(const bContext *C, PaintStroke *stroke)
   if (brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_FILL) {
     if (brush->flag & BRUSH_USE_GRADIENT) {
       pop->mode->paint_gradient_fill(
-          C, scene, brush, stroke, pop->stroke_handle, pop->startmouse, pop->prevmouse);
+          C, scene, paint, brush, stroke, pop->stroke_handle, pop->startmouse, pop->prevmouse);
     }
     else {
       pop->mode->paint_bucket_fill(
-          C, scene, brush, stroke, pop->stroke_handle, pop->startmouse, pop->prevmouse);
+          C, scene, paint, brush, stroke, pop->stroke_handle, pop->startmouse, pop->prevmouse);
     }
   }
   pop->mode->paint_stroke_done(pop->stroke_handle);
