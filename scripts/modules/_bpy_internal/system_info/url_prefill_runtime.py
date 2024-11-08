@@ -39,6 +39,10 @@ def url_from_blender(*, addon_info=None):
         gpu.platform.version_get(),
     )
 
+    gpu_backend = gpu.platform.backend_type_get()
+    if gpu_backend not in {'NONE', 'UNKNOWN', 'METAL'}:
+        query_params["gpu"] += (" {:s} Backend".format(gpu_backend.title()))
+
     query_params["broken_version"] = "{:s}, branch: {:s}, commit date: {:s} {:s}, hash: `{:s}`".format(
         bpy.app.version_string,
         bpy.app.build_branch.decode('utf-8', 'replace'),
