@@ -277,7 +277,7 @@ static float4 grease_pencil_layer_final_tint_and_alpha_get(const GPENCIL_Private
                                                            float *r_alpha)
 {
   const bool use_onion = (onion_id != 0);
-  if (use_onion) {
+  if (use_onion && pd->do_onion) {
     const bool use_onion_custom_col = (grease_pencil.onion_skinning_settings.flag &
                                        GP_ONION_SKINNING_USE_CUSTOM_COLORS) != 0;
     const bool use_onion_fade = (grease_pencil.onion_skinning_settings.flag &
