@@ -55,6 +55,7 @@
 #include "SEQ_sequencer.hh"
 
 #include "WM_api.hh"
+#include "WM_message.hh"
 #include "WM_types.hh"
 
 #include "UI_interface.hh"
@@ -498,7 +499,31 @@ static void tree_element_grease_pencil_node_activate(bContext *C,
   GreasePencil &grease_pencil = *(GreasePencil *)tselem->id;
   bke::greasepencil::TreeNode &node = tree_element_cast<TreeElementGreasePencilNode>(te)->node();
 
+  if (node.is_layer()) {
+    if (grease_pencil.has_active_group()) {
+      WM_msg_publish_rna_prop(CTX_wm_message_bus(C),
+                              &grease_pencil.id,
+                              &grease_pencil,
+                              GreasePencilv3LayerGroup,
+                              active);
+    }
+    WM_msg_publish_rna_prop(
+        CTX_wm_message_bus(C), &grease_pencil.id, &grease_pencil, GreasePencilv3Layers, active);
+  }
+  if (node.is_group()) {
+    if (grease_pencil.has_active_layer()) {
+      WM_msg_publish_rna_prop(
+          CTX_wm_message_bus(C), &grease_pencil.id, &grease_pencil, GreasePencilv3Layers, active);
+    }
+    WM_msg_publish_rna_prop(CTX_wm_message_bus(C),
+                            &grease_pencil.id,
+                            &grease_pencil,
+                            GreasePencilv3LayerGroup,
+                            active);
+  }
+
   grease_pencil.set_active_node(&node);
+
   DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, &grease_pencil);
 }
