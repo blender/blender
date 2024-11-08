@@ -989,11 +989,17 @@ static void remove_invalid_attribute_strings(Mesh &mesh)
 
 static void apply_eval_grease_pencil_data(const GreasePencil &src_grease_pencil,
                                           const int eval_frame,
-                                          const IndexMask &orig_layers_to_apply,
+                                          const IndexMask &orig_layers,
                                           GreasePencil &orig_grease_pencil)
 {
   using namespace bke;
   using namespace bke::greasepencil;
+  /* Build a set of pointers to the layers that we want to apply. */
+  Set<const Layer *> orig_layers_to_apply;
+  orig_layers.foreach_index([&](const int layer_i) {
+    const Layer &layer = orig_grease_pencil.layer(layer_i);
+    orig_layers_to_apply.add(&layer);
+  });
 
   /* Ensure that the layer names are unique by merging layers with the same name. */
   const int old_layers_num = src_grease_pencil.layers().size();
@@ -1014,33 +1020,39 @@ static void apply_eval_grease_pencil_data(const GreasePencil &src_grease_pencil,
      * the same order as the original. This is better than using the layer cache since it avoids
      * updating the cache every time a new layer is added. */
     Map<const LayerGroup *, TreeNode *> last_node_by_group;
-    /* Set of newly added layers that require a new drawing after layer setup. */
-    Set<Layer *> new_layers;
+    /* Set of orig layers that require the drawing on `eval_frame` to be cleared. These are layers
+     * that existed in original geometry but were removed during the modifier evaluation. */
+    Set<Layer *> orig_layers_to_clear(orig_grease_pencil.layers_for_write());
     for (const TreeNode *node_eval : merged_layers_grease_pencil.nodes()) {
       /* Check if the original geometry has a layer with the same name. */
       TreeNode *node_orig = orig_grease_pencil.find_node_by_name(node_eval->name());
 
+      BLI_assert(node_eval != nullptr);
       if (node_eval->is_layer()) {
         /* If the orig layer isn't valid then a new layer with a unique name will be generated. */
         const bool has_valid_orig_layer = (node_orig != nullptr && node_orig->is_layer());
         if (!has_valid_orig_layer) {
           /* Note: This name might be empty! This has to be resolved at a later stage! */
           Layer &layer_orig = orig_grease_pencil.add_layer(node_eval->name(), true);
-          new_layers.add_new(&layer_orig);
+          orig_layers_to_apply.add(&layer_orig);
           /* Make sure to add a new keyframe with a new drawing. */
           orig_grease_pencil.insert_frame(layer_orig, eval_frame);
           node_orig = &layer_orig.as_node();
         }
-
-        /* Copy layer properties to original geometry. */
         BLI_assert(node_orig != nullptr);
-        const Layer &layer_eval = node_eval->as_layer();
         Layer &layer_orig = node_orig->as_layer();
-        layer_orig.opacity = layer_eval.opacity;
-        layer_orig.set_local_transform(layer_eval.local_transform());
+        /* This layer has a matching evaluated layer, so don't clear its keyframe. */
+        orig_layers_to_clear.remove(&layer_orig);
+        /* Only map layers in `eval_to_orig_layer_map` that we want to apply. */
+        if (orig_layers_to_apply.contains(&layer_orig)) {
+          /* Copy layer properties to original geometry. */
+          const Layer &layer_eval = node_eval->as_layer();
+          layer_orig.opacity = layer_eval.opacity;
+          layer_orig.set_local_transform(layer_eval.local_transform());
 
-        /* Add new mapping for layer_eval -> layer_orig*/
-        eval_to_orig_layer_map.add_new(&layer_eval, &layer_orig);
+          /* Add new mapping for layer_eval -> layer_orig*/
+          eval_to_orig_layer_map.add_new(&layer_eval, &layer_orig);
+        }
       }
 
       /* Insert the updated node after the last node in the same group.
@@ -1059,8 +1071,9 @@ static void apply_eval_grease_pencil_data(const GreasePencil &src_grease_pencil,
       }
     }
 
-    /* Insert a keyframe in new layers. */
-    for (Layer *layer_orig : new_layers) {
+    /* Clear the keyframe of all the original layers that don't have a matching evaluated layer,
+     * e.g. the ones that were "deleted" in the modifier. */
+    for (Layer *layer_orig : orig_layers_to_clear) {
       /* Try inserting a frame. */
       Drawing *drawing_orig = orig_grease_pencil.insert_frame(*layer_orig, eval_frame);
       if (drawing_orig == nullptr) {
