@@ -2161,7 +2161,6 @@ GHOST_TSuccess GHOST_SystemCocoa::putClipboardImage(uint *rgba, int width, int h
       memcpy(dstBuffer + dstOff, srcBuffer + srcOff, rowByteCount);
     }
 
-
     NSImage *image = [[[NSImage alloc] initWithSize:NSMakeSize(width, height)] autorelease];
     [image addRepresentation:imageRep];
 
