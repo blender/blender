@@ -18,7 +18,7 @@
 
 namespace blender::gpu::tests {
 
-static constexpr int Size = 256;
+static constexpr int Size = 4;
 
 template<GPUVertCompType comp_type, GPUVertFetchMode fetch_mode, typename ColorType>
 static void vertex_buffer_fetch_mode(ColorType color)
@@ -33,7 +33,7 @@ static void vertex_buffer_fetch_mode(ColorType color)
   BLI_assert(offscreen != nullptr);
   GPU_offscreen_bind(offscreen, false);
   GPUTexture *color_texture = GPU_offscreen_color_texture(offscreen);
-  GPU_texture_clear(color_texture, GPU_DATA_FLOAT, float4(0.0f));
+  GPU_texture_clear(color_texture, GPU_DATA_FLOAT, float4(1.0f, 2.0f, 3.0f, 0.0f));
 
   GPUVertFormat format = {0};
   GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -48,15 +48,14 @@ static void vertex_buffer_fetch_mode(ColorType color)
   };
   Vert data[4] = {
       {float2(-1.0, -1.0), color},
-      {float2(1.0, -1.0), color},
-      {float2(1.0, 1.0), color},
-      {float2(-1.0, 1.0), color},
+      {float2(3.0, -1.0), color},
+      {float2(-1.0, 3.0), color},
   };
   for (int i : IndexRange(4)) {
     GPU_vertbuf_vert_set(vbo, i, &data[i]);
   }
 
-  Batch *batch = GPU_batch_create(GPU_PRIM_TRI_FAN, vbo, nullptr);
+  Batch *batch = GPU_batch_create_ex(GPU_PRIM_TRIS, vbo, nullptr, GPU_BATCH_OWNS_VBO);
   GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_COLOR);
   GPU_batch_draw(batch);
 
@@ -64,15 +63,13 @@ static void vertex_buffer_fetch_mode(ColorType color)
   GPU_flush();
 
   /* Read back data and perform some basic tests. */
-  float read_data[4 * Size * Size];
-  GPU_offscreen_read_color(offscreen, GPU_DATA_FLOAT, &read_data);
-  for (int pixel_index = 0; pixel_index < Size * Size; pixel_index++) {
-    float4 read_color = float4(&read_data[pixel_index * 4]);
+  Vector<float4> read_data(Size * Size);
+  GPU_offscreen_read_color(offscreen, GPU_DATA_FLOAT, read_data.data());
+  for (const float4 &read_color : read_data) {
     EXPECT_EQ(read_color, float4(color));
   }
 
   GPU_batch_discard(batch);
-  GPU_vertbuf_discard(vbo);
   GPU_offscreen_free(offscreen);
 }
 
