@@ -484,9 +484,6 @@ class PREFERENCES_OT_addon_enable(Operator):
 
         # Ensure any wheels are setup before enabling.
         module_name = self.module
-        is_extension = addon_utils.check_extension(module_name)
-        if is_extension:
-            addon_utils.extensions_refresh(ensure_wheels=True, addon_modules_pending=[module_name])
 
         mod = addon_utils.enable(module_name, default_set=True, handle_error=err_cb)
 
@@ -510,10 +507,6 @@ class PREFERENCES_OT_addon_enable(Operator):
 
             if err_str:
                 self.report({'ERROR'}, err_str)
-
-            if is_extension:
-                # Since the add-on didn't work, remove any wheels it may have installed.
-                addon_utils.extensions_refresh(ensure_wheels=True)
 
             result = {'CANCELLED'}
 
@@ -552,8 +545,6 @@ class PREFERENCES_OT_addon_disable(Operator):
         module_name = self.module
         is_extension = addon_utils.check_extension(module_name)
         addon_utils.disable(module_name, default_set=True, handle_error=err_cb)
-        if is_extension:
-            addon_utils.extensions_refresh(ensure_wheels=True)
 
         if err_str:
             self.report({'ERROR'}, err_str)
