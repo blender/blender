@@ -31,7 +31,7 @@ def set_from_cli(addons_as_string):
 
     for m in addon_modules:
         if check(m)[1] is False:
-            if enable(m, persistent=True) is None:
+            if enable(m, persistent=True, refresh_handled=True) is None:
                 if check_extension(m):
                     addon_modules_extensions_has_failure = True
 

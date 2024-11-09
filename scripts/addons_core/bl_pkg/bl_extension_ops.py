@@ -675,7 +675,12 @@ def _preferences_ensure_disabled(
             if not hasattr(repo_module, pkg_id):
                 print("Repo module \"{:s}.{:s}\" not a sub-module!".format(".".join(module_base_elem), pkg_id))
 
-        addon_utils.disable(addon_module_name, default_set=default_set, handle_error=error_fn)
+        addon_utils.disable(
+            addon_module_name,
+            default_set=default_set,
+            refresh_handled=True,
+            handle_error=error_fn,
+        )
 
         modules_clear.append(pkg_id)
 
@@ -725,7 +730,12 @@ def _preferences_ensure_enabled(*, repo_item, pkg_id_sequence, result, handle_er
         if not loaded_state:
             continue
 
-        addon_utils.enable(addon_module_name, default_set=loaded_default, handle_error=handle_error)
+        addon_utils.enable(
+            addon_module_name,
+            default_set=loaded_default,
+            refresh_handled=True,
+            handle_error=handle_error,
+        )
 
 
 def _preferences_ensure_enabled_all(*, addon_restore, handle_error):
@@ -766,7 +776,13 @@ def _preferences_install_post_enable_on_install(
                 continue
 
             addon_module_name = "{:s}.{:s}.{:s}".format(_ext_base_pkg_idname, repo_item.module, pkg_id)
-            addon_utils.enable(addon_module_name, default_set=True, handle_error=handle_error)
+            addon_utils.enable(
+                addon_module_name,
+                default_set=True,
+                # Handled by `_extensions_repo_sync_wheels`.
+                refresh_handled=True,
+                handle_error=handle_error,
+            )
         elif item_local.type == "theme":
             if has_theme:
                 continue
