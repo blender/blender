@@ -1658,7 +1658,18 @@ def pyrna2sphinx(basepath):
         del key, descr
 
         for func in struct.functions:
-            args_str = ", ".join(prop.get_arg_default(force=False) for prop in func.args)
+            args_kw_only_index = next((i for i in i, prop in enumerate(func.args) if not prop.is_required), -1)
+            if args_kw_only_index == -1:
+                args_str = ", ".join(prop.get_arg_default(force=False) for prop in func.args)
+            else:
+                args_str = ", ".join([
+                    *[prop.get_arg_default(force=False) for prop in func.args[:args_kw_only_index]],
+                    # Keyword only.
+                    "*",
+                    *[prop.get_arg_default(force=False) for prop in func.args[args_kw_only_index:]],
+
+                ])
+            del args_kw_only_index
 
             fw("   .. {:s}:: {:s}({:s})\n\n".format(
                 "classmethod" if func.is_classmethod else "method",
