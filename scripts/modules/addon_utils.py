@@ -1560,11 +1560,21 @@ def _initialize_extension_repos_post_addons_restore(addons_to_enable):
     if not addons_to_enable:
         return
 
+    # Important to refresh wheels & compatibility data before enabling.
+    extensions_refresh(addon_modules_pending=[module_name_next for (module_name_next, _, _, _) in addons_to_enable])
+
+    any_failed = False
     for (module_name_next, addon, default_set, persistent) in addons_to_enable:
         # Ensure the preferences are kept.
         if addon is not None:
             addon.module = module_name_next
-        enable(module_name_next, default_set=default_set, persistent=persistent)
+        if enable(module_name_next, default_set=default_set, persistent=persistent) is None:
+            any_failed = True
+
+    # Remove wheels for any add-ons that failed to enable.
+    if any_failed:
+        extensions_refresh()
+
     # Needed for module rename.
     _is_first_reset()
 
