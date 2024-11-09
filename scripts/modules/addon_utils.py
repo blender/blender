@@ -1819,6 +1819,16 @@ def _initialize_extensions_repos_once():
 # Extension Public API
 
 def extensions_refresh(ensure_wheels=True, addon_modules_pending=None):
+    """
+    Ensure data relating to extensions is up to date.
+    This should be called after extensions on the file-system have changed.
+
+    :arg ensure_wheels: When true, refresh installed wheels with wheels used by extensions.
+    :type ensure_wheels: bool
+    :arg addon_modules_pending: Refresh these add-ons by listing their package names, as if they are enabled.
+       This is needed so wheels can be setup before the add-on is enabled.
+    :type addon_modules_pending: Sequence[str] | None
+    """
 
     # Ensure any changes to extensions refresh `_extensions_incompatible`.
     _initialize_extensions_compat_data(
