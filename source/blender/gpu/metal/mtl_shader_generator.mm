@@ -2776,7 +2776,7 @@ std::string MSLGeneratorInterface::generate_msl_vertex_output_population()
         out << "\toutput." << v_out.instance_name << "_" << v_out.name << i << " = "
             << shader_stage_inst_name << ".";
 
-        if (v_out.instance_name != "") {
+        if (v_out.instance_name.empty() == false) {
           out << v_out.instance_name << ".";
         }
 
@@ -2791,7 +2791,7 @@ std::string MSLGeneratorInterface::generate_msl_vertex_output_population()
           out << "\toutput." << v_out.instance_name << "__matrix_" << v_out.name << elem << " = "
               << shader_stage_inst_name << ".";
 
-          if (v_out.instance_name != "") {
+          if (v_out.instance_name.empty() == false) {
             out << v_out.instance_name << ".";
           }
 
@@ -2816,7 +2816,7 @@ std::string MSLGeneratorInterface::generate_msl_vertex_output_population()
           out << "\toutput." << v_out.instance_name << "_" << v_out.name << " = "
               << shader_stage_inst_name << ".";
 
-          if (v_out.instance_name != "") {
+          if (v_out.instance_name.empty() == false) {
             out << v_out.instance_name << ".";
           }
 
@@ -2919,7 +2919,7 @@ std::string MSLGeneratorInterface::generate_msl_fragment_input_population()
       for (int i = 0; i < this->fragment_input_varyings[f_input].array_elems; i++) {
         out << "\t" << shader_stage_inst_name << ".";
 
-        if (this->fragment_input_varyings[f_input].instance_name != "") {
+        if (this->fragment_input_varyings[f_input].instance_name.empty() == false) {
           out << this->fragment_input_varyings[f_input].instance_name << ".";
         }
 
@@ -2933,7 +2933,7 @@ std::string MSLGeneratorInterface::generate_msl_fragment_input_population()
       if (is_matrix_type(this->fragment_input_varyings[f_input].type)) {
         out << "\t" << shader_stage_inst_name << ".";
 
-        if (this->fragment_input_varyings[f_input].instance_name != "") {
+        if (this->fragment_input_varyings[f_input].instance_name.empty() == false) {
           out << this->fragment_input_varyings[f_input].instance_name << ".";
         }
 
@@ -2951,7 +2951,7 @@ std::string MSLGeneratorInterface::generate_msl_fragment_input_population()
       else {
         out << "\t" << shader_stage_inst_name << ".";
 
-        if (this->fragment_input_varyings[f_input].instance_name != "") {
+        if (this->fragment_input_varyings[f_input].instance_name.empty() == false) {
           out << this->fragment_input_varyings[f_input].instance_name << ".";
         }
 
