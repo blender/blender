@@ -13,6 +13,7 @@
 #include "BLI_assert.h"
 #include "BLI_compiler_compat.h"
 #include "BLI_math_geom.h"
+#include "BLI_math_vector_types.hh"
 #include "GPU_common.hh"
 
 struct GPUShader;
@@ -153,6 +154,15 @@ struct GPUPackedNormal {
   int y : 10;
   int z : 10;
   int w : 2; /* 0 by default, can manually set to { -2, -1, 0, 1 } */
+
+  GPUPackedNormal() = default;
+  GPUPackedNormal(int _x, int _y, int _z, int _w = 0) : x(_x), y(_y), z(_z), w(_w) {}
+
+  /* Cast from int to float. */
+  operator blender::float4()
+  {
+    return blender::float4(x, y, z, w);
+  }
 };
 
 struct GPUNormal {
