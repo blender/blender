@@ -185,7 +185,7 @@ In the examples above, the classes don't define an ``__init__(self)`` function.
 In general, defining custom constructors or destructors should not be needed, and is not recommended.
 
 The lifetime of class instances is usually very short (also see the
-:ref:`dedicated section <_blender_py_objects_life_time>`), a panel for example will
+:ref:`dedicated section <blender_py_objects_life_time>`), a panel for example will
 have a new instance for every redraw.
 Some other types, like :class:`bpy.types.Operator`, have an even more complex internal handling,
 which can lead to several instantiations for a single operator execution.
