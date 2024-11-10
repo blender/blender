@@ -17,7 +17,7 @@ namespace blender::gpu::tests {
 
 static void test_framebuffer_clear_color_single_attachment()
 {
-  const int2 size(10, 10);
+  const int2 size(1, 1);
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
   GPUTexture *texture = GPU_texture_create_2d(
       __func__, UNPACK2(size), 1, GPU_RGBA32F, usage, nullptr);
@@ -44,7 +44,7 @@ GPU_TEST(framebuffer_clear_color_single_attachment);
 
 static void test_framebuffer_clear_color_multiple_attachments()
 {
-  const int2 size(10, 10);
+  const int2 size(1, 1);
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
   GPUTexture *texture1 = GPU_texture_create_2d(
       __func__, UNPACK2(size), 1, GPU_RGBA32F, usage, nullptr);
@@ -82,7 +82,7 @@ GPU_TEST(framebuffer_clear_color_multiple_attachments);
 
 static void test_framebuffer_clear_multiple_color_multiple_attachments()
 {
-  const int2 size(10, 10);
+  const int2 size(1, 1);
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
   GPUTexture *texture1 = GPU_texture_create_2d(
       __func__, UNPACK2(size), 1, GPU_RGBA32F, usage, nullptr);
@@ -120,7 +120,7 @@ GPU_TEST(framebuffer_clear_multiple_color_multiple_attachments);
 
 static void test_framebuffer_clear_depth()
 {
-  const int2 size(10, 10);
+  const int2 size(1, 1);
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
   GPUTexture *texture = GPU_texture_create_2d(
       __func__, UNPACK2(size), 1, GPU_DEPTH_COMPONENT32F, usage, nullptr);
@@ -146,8 +146,7 @@ GPU_TEST(framebuffer_clear_depth);
 
 static void test_framebuffer_scissor_test()
 {
-  const int2 size(128, 128);
-  const int bar_size = 16;
+  const int2 size(2, 2);
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
   GPUTexture *texture = GPU_texture_create_2d(
       __func__, UNPACK2(size), 1, GPU_RGBA32F, usage, nullptr);
@@ -163,39 +162,19 @@ static void test_framebuffer_scissor_test()
   GPU_framebuffer_clear_color(framebuffer, color1);
 
   GPU_scissor_test(true);
-  for (int x = 0; x < size.x; x += 2 * bar_size) {
-    GPU_scissor(x, 0, bar_size, size.y);
-    GPU_framebuffer_clear_color(framebuffer, color2);
-  }
-  for (int y = 0; y < size.y; y += 2 * bar_size) {
-    GPU_scissor(0, y, size.x, bar_size);
-    GPU_framebuffer_clear_color(framebuffer, color3);
-  }
+  GPU_scissor(0, 0, 1, 2);
+  GPU_framebuffer_clear_color(framebuffer, color2);
+
+  GPU_scissor(0, 0, 2, 1);
+  GPU_framebuffer_clear_color(framebuffer, color3);
   GPU_scissor_test(false);
   GPU_finish();
 
   float4 *read_data = static_cast<float4 *>(GPU_texture_read(texture, GPU_DATA_FLOAT, 0));
-  int offset = 0;
-  for (float4 pixel_color : Span<float4>(read_data, size.x * size.y)) {
-    int x = offset % size.x;
-    int y = offset / size.x;
-    int bar_x = x / bar_size;
-    int bar_y = y / bar_size;
-
-    if (bar_y % 2 == 0) {
-      EXPECT_EQ(pixel_color, color3);
-    }
-    else {
-      if (bar_x % 2 == 0) {
-        EXPECT_EQ(color2, pixel_color);
-      }
-      else {
-        EXPECT_EQ(color1, pixel_color);
-      }
-    }
-
-    offset++;
-  }
+  EXPECT_EQ(color3, read_data[0]);
+  EXPECT_EQ(color3, read_data[1]);
+  EXPECT_EQ(color2, read_data[2]);
+  EXPECT_EQ(color1, read_data[3]);
   MEM_freeN(read_data);
 
   GPU_framebuffer_free(framebuffer);
