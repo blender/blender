@@ -455,7 +455,7 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
 
   if (transform_feedback_type_ != GPU_SHADER_TFB_NONE) {
     /* Ensure #TransformFeedback is configured correctly. */
-    BLI_assert(tf_output_name_list_.is_empty());
+    BLI_assert(tf_output_name_list_.is_empty() == false);
     msl_iface.uses_transform_feedback = true;
   }
 
@@ -836,7 +836,7 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
 
     /* Generate global structs */
     ss_fragment << msl_iface.generate_msl_vertex_out_struct(ShaderStage::FRAGMENT);
-    if (msl_iface.fragment_tile_inputs.is_empty()) {
+    if (msl_iface.fragment_tile_inputs.is_empty() == false) {
       ss_fragment << msl_iface.generate_msl_fragment_struct(true);
     }
     ss_fragment << msl_iface.generate_msl_fragment_struct(false);
