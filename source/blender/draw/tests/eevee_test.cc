@@ -258,7 +258,11 @@ static void test_eevee_shadow_tag_update()
   pass.dispatch(int3(curr_casters_updated.size(), 1, tilemaps_data.size()));
   pass.barrier(GPU_BARRIER_BUFFER_UPDATE);
 
-  manager.submit(pass);
+  draw::View view("Test");
+  view.sync(float4x4::identity(),
+            math::projection::orthographic(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f));
+
+  manager.submit(pass, view);
 
   tiles_data.read();
 
@@ -1266,12 +1270,14 @@ static void test_eevee_shadow_tilemap_amend()
   /* Needed for validation. But not used since we use directionals. */
   LightCullingZbinBuf culling_zbin_buf = {"LightCull_zbin"};
   LightCullingTileBuf culling_tile_buf = {"LightCull_tile"};
+  ShadowTileMapDataBuf tilemaps_data = {"tilemaps_data"};
 
   GPUShader *sh = GPU_shader_create_from_info_name("eevee_shadow_tilemap_amend");
 
   PassSimple pass("Test");
   pass.shader_set(sh);
   pass.bind_image("tilemaps_img", tilemap_tx);
+  pass.bind_ssbo("tilemaps_buf", tilemaps_data);
   pass.bind_ssbo(LIGHT_CULL_BUF_SLOT, culling_data_buf);
   pass.bind_ssbo(LIGHT_BUF_SLOT, culling_light_buf);
   pass.bind_ssbo(LIGHT_ZBIN_BUF_SLOT, culling_zbin_buf);
@@ -1279,8 +1285,12 @@ static void test_eevee_shadow_tilemap_amend()
   pass.dispatch(int3(1));
   pass.barrier(GPU_BARRIER_TEXTURE_UPDATE);
 
+  draw::View view("Test");
+  view.sync(float4x4::identity(),
+            math::projection::orthographic(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f));
+
   Manager manager;
-  manager.submit(pass);
+  manager.submit(pass, view);
 
   {
     uint *pixels = tilemap_tx.read<uint32_t>(GPU_DATA_UINT);
