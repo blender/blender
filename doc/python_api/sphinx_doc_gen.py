@@ -415,6 +415,13 @@ INFO_DOCS = (
 INFO_DOCS_OTHER = (
     # Included by: `info_advanced.rst`.
     "info_advanced_blender_as_bpy.rst",
+    # Included by: `info_gotcha.rst`.
+    "info_gotchas_crashes.rst",
+    "info_gotchas_internal_data_and_python_objects.rst",
+    "info_gotchas_operators.rst",
+    "info_gotchas_meshes.rst",
+    "info_gotchas_armatures_and_bones.rst",
+    "info_gotchas_file_paths_and_encoding.rst",
 )
 
 # Hide the actual TOC, use a separate list that links to the items.
