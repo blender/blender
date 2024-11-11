@@ -779,12 +779,18 @@ static int grease_pencil_merge_layer_exec(bContext *C, wmOperator *op)
     /* Map all the other layers to their own index. */
     const Span<const Layer *> layers = grease_pencil.layers();
     for (const int layer_i : layers.index_range()) {
-      if (layer_i != prev_layer_index && layer_i != active_layer_index) {
+      if (layer_i == active_layer_index) {
+        /* Active layer is merged into previous, skip. */
+      }
+      else if (layer_i == prev_layer_index) {
+        /* Previous layer merges itself and the active layer. */
+        src_layer_indices_by_dst_layer.append({prev_layer_index, active_layer_index});
+      }
+      else {
+        /* Other layers remain unchanged. */
         src_layer_indices_by_dst_layer.append({layer_i});
       }
     }
-    /* Map the two layers to one index so they will be merged. */
-    src_layer_indices_by_dst_layer.append({prev_layer_index, active_layer_index});
 
     /* Store the name of the current active layer as the name of the merged layer. */
     merged_layer_name = grease_pencil.layer(prev_layer_index).name();
