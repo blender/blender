@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'28a8486e2b3f')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'1c8669f8c9c1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-29 10:02+0000\n"
+"POT-Creation-Date: 2024-11-11 09:42+0000\n"
 "PO-Revision-Date: 2024-03-13 11:04+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -18443,40 +18443,8 @@ msgid "Directional area Light"
 msgstr "Направлений площинний Освітлювач"
 
 
-msgid "Contact Shadow Bias"
-msgstr "Відхил Тіні Контакту"
-
-
-msgid "Bias to avoid self shadowing"
-msgstr "Відхил для запобігання самозатіненню"
-
-
-msgid "Contact Shadow Distance"
-msgstr "Відстань Тіні Контакту"
-
-
-msgid "World space distance in which to search for screen space occluder"
-msgstr "Відстань у просторі світу, на якій шукається перепиняч екранного простору"
-
-
-msgid "Contact Shadow Thickness"
-msgstr "Товщина Тіні Контакту"
-
-
-msgid "Pixel thickness used to detect occlusion"
-msgstr "Товщина у пікселях, використовувана для визначення перепинання "
-
-
 msgid "Light energy emitted over the entire area of the light in all directions"
 msgstr "Енергія світла, емітована на всю область освітлювача у всіх напрямках"
-
-
-msgid "Shadow Buffer Bias"
-msgstr "Похибка тіньового буфера"
-
-
-msgid "Bias for reducing self shadowing"
-msgstr "Відхил для скорочення самозатінення"
 
 
 msgid "Shadow Buffer Clip Start"
@@ -18485,14 +18453,6 @@ msgstr "Початок відсікання для буфера тіні"
 
 msgid "Shadow map clip start, below which objects will not generate shadows"
 msgstr "Ближня межа відсікання для тіньового буфера, нижче від якої об'єкти не будуть генерувати тіні"
-
-
-msgid "Shadow Color"
-msgstr "Колір тіні"
-
-
-msgid "Color of shadows cast by the light"
-msgstr "Колір тіней, відкиданих цим освітлювачем"
 
 
 msgid "Shadow Soft Size"
@@ -18529,10 +18489,6 @@ msgstr "Розмір Y"
 
 msgid "Size of the area of the area light in the Y direction for rectangle shapes"
 msgstr "Розмір площини площинного освітлювача у напрямку Y для прямокутних форм"
-
-
-msgid "Contact Shadow"
-msgstr "Тінь Контакту"
 
 
 msgid "Point Light"
@@ -18937,38 +18893,6 @@ msgstr "Шорсткість"
 
 msgid "Roughness of the material"
 msgstr "Шорсткість матеріалу"
-
-
-msgid "Shadow Mode"
-msgstr "Режим Тіні"
-
-
-msgid "Shadow mapping method"
-msgstr "Метод розкладання тіні"
-
-
-msgid "Material will cast no shadow"
-msgstr "Матеріал не буде відкидати жодних тіней"
-
-
-msgid "Opaque"
-msgstr "Непрозорий"
-
-
-msgid "Material will cast shadows without transparency"
-msgstr "Матеріал буде відкидати тіні без прозорості"
-
-
-msgid "Alpha Clip"
-msgstr "Альфа-обрізка"
-
-
-msgid "Alpha Hashed"
-msgstr "Альфа Кришено"
-
-
-msgid "Use noise to dither the binary visibility and use filtering to reduce the noise"
-msgstr "Використання шуму для спотворення двійкової видимості та використання фільтрування для скорочення шуму"
 
 
 msgid "Show Backface"
@@ -26899,52 +26823,16 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
-msgid "Mirror"
-msgstr "Дзеркалення"
-
-
-msgid "Snap"
-msgstr "Підхоп"
-
-
-msgid "UV Mapping"
-msgstr "Розкладання UV"
-
-
-msgid "Local View"
-msgstr "Огляд Локально"
-
-
-msgid "Viewpoint"
-msgstr "Точка зору"
-
-
-msgid "Navigation"
-msgstr "Навігація"
-
-
-msgid "Align View"
-msgstr "Вирівняти Огляд"
-
-
-msgid "Align View to Active"
-msgstr "Вирівняти Огляд за Активним"
-
-
-msgid "View Regions"
-msgstr "Регіони Огляду"
-
-
-msgid "Select More/Less"
-msgstr "Вибрати більше/менше"
-
-
 msgid "Select Similar"
 msgstr "Вибрати подібні"
 
 
 msgid "Select All by Trait"
 msgstr "Вибрати все за рисою"
+
+
+msgid "Select More/Less"
+msgstr "Вибрати більше/менше"
 
 
 msgid "Select Linked"
@@ -27087,6 +26975,10 @@ msgid "Pivot Point"
 msgstr "Точка Опертя"
 
 
+msgid "Snap"
+msgstr "Підхоп"
+
+
 msgid "Proportional Editing Falloff"
 msgstr "Спад Пропорційного Редагування"
 
@@ -27101,6 +26993,38 @@ msgstr "Автомаскування"
 
 msgid "Face Sets Edit"
 msgstr "Редагування Наборів Граней"
+
+
+msgid "Mirror"
+msgstr "Дзеркалення"
+
+
+msgid "UV Mapping"
+msgstr "Розкладання UV"
+
+
+msgid "Local View"
+msgstr "Огляд Локально"
+
+
+msgid "Viewpoint"
+msgstr "Точка зору"
+
+
+msgid "Navigation"
+msgstr "Навігація"
+
+
+msgid "Align View"
+msgstr "Вирівняти Огляд"
+
+
+msgid "Align View to Active"
+msgstr "Вирівняти Огляд за Активним"
+
+
+msgid "View Regions"
+msgstr "Регіони Огляду"
 
 
 msgid "Basic"
@@ -38969,6 +38893,16 @@ msgid "Add Hair Dynamics Preset"
 msgstr "Додати передустановку динаміки волосся"
 
 
+msgctxt "Operator"
+msgid "Disable Add-on"
+msgstr "Вимкнути додаток"
+
+
+msgctxt "Operator"
+msgid "Enable Add-on"
+msgstr "Увімкнути додаток"
+
+
 msgid "Display information and preferences for this add-on"
 msgstr "Показати інформацію та налаштунки для цього додатку"
 
@@ -39651,16 +39585,6 @@ msgstr "Додати або вилучити передустановку опе
 msgctxt "Operator"
 msgid "Operator Preset"
 msgstr "Передустановка оператора"
-
-
-msgctxt "Operator"
-msgid "Disable Add-on"
-msgstr "Вимкнути додаток"
-
-
-msgctxt "Operator"
-msgid "Enable Add-on"
-msgstr "Увімкнути додаток"
 
 
 msgid "Open a path in a file browser"
@@ -44492,6 +44416,10 @@ msgid "Export directional, point, and spot lights. Uses \"KHR_lights_punctual\" 
 msgstr "Експортувати напрямлені, точкові та прожекторні освітлювачі. Використовує glTF розширення \"KHR_lights_punctual\""
 
 
+msgid "Log Level"
+msgstr "Рівень Протоколу"
+
+
 msgid "Export all materials used by included objects"
 msgstr "Експорт всіх матеріалів, що використовуються включеними об'єктами"
 
@@ -47313,10 +47241,6 @@ msgstr "Вжити Дані Нормалі"
 
 msgid "Flat Shading"
 msgstr "Плоске Відтінення"
-
-
-msgid "Log Level"
-msgstr "Рівень Протоколу"
 
 
 msgid "The glTF format requires discontinuous normals, UVs, and other vertex attributes to be stored as separate vertices, as required for rendering on typical graphics hardware. This option attempts to combine co-located vertices where possible. Currently cannot combine verts with different normals"
@@ -50525,10 +50449,6 @@ msgstr "Після запікання кривих вилучити зайві �
 
 msgid "Clear Constraints"
 msgstr "Зчистити примуси"
-
-
-msgid "Remove all constraints from keyed object/bones, and do 'visual' keying"
-msgstr "Вилучити всі примуси з ключованих об'єктів/кісток і розпочати 'візуальне' ключування"
 
 
 msgid "Clear Parents"
@@ -63906,38 +63826,6 @@ msgid "Panel containing UI elements"
 msgstr "Панель, що містить елементи Інтерфейсу Користувача"
 
 
-msgid "Motion Tracking"
-msgstr "Відстеження руху"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Режим Редагування Сіті"
-
-
-msgid "Measurement"
-msgstr "Вимірювання"
-
-
-msgid "Curve Edit Mode"
-msgstr "Режим Редагування Кривої"
-
-
-msgid "Snapping"
-msgstr "Підхоплення"
-
-
-msgid "Transform Orientations"
-msgstr "Орієнтації Трансформ"
-
-
-msgid "Stroke Placement"
-msgstr "Розміщення Штриха"
-
-
-msgid "Drawing Plane"
-msgstr "Площина Рисування"
-
-
 msgid "Guides"
 msgstr "Напрямні"
 
@@ -63992,6 +63880,38 @@ msgstr "Прохід Рендера"
 
 msgid "Overlays"
 msgstr "Накладки"
+
+
+msgid "Motion Tracking"
+msgstr "Відстеження руху"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Режим Редагування Сіті"
+
+
+msgid "Measurement"
+msgstr "Вимірювання"
+
+
+msgid "Curve Edit Mode"
+msgstr "Режим Редагування Кривої"
+
+
+msgid "Snapping"
+msgstr "Підхоплення"
+
+
+msgid "Transform Orientations"
+msgstr "Орієнтації Трансформ"
+
+
+msgid "Stroke Placement"
+msgstr "Розміщення Штриха"
+
+
+msgid "Drawing Plane"
+msgstr "Площина Рисування"
 
 
 msgid "Chain Scaling"
@@ -64188,14 +64108,6 @@ msgstr "Прохід імли"
 
 msgid "Custom Distance"
 msgstr "Власна відстань"
-
-
-msgid "Cascaded Shadow Map"
-msgstr "Розкладка Каскадної Тіні"
-
-
-msgid "Contact Shadows"
-msgstr "Тіні Контакту"
 
 
 msgid "Composition Guides"
@@ -64636,32 +64548,12 @@ msgid "White Balance"
 msgstr "Баланс білого"
 
 
-msgid "Indirect Lighting"
-msgstr "Відбите світло"
-
-
 msgid "Denoising"
 msgstr "Знешумлення"
 
 
 msgid "Shadows"
 msgstr "Тіні"
-
-
-msgid "Screen Space Reflections"
-msgstr "Відбиття простору екрана"
-
-
-msgid "Volumetrics"
-msgstr "Об'ємне"
-
-
-msgid "Volumetric Lighting"
-msgstr "Освітлювання Об'ємних"
-
-
-msgid "Volumetric Shadows"
-msgstr "Тіні Об'ємних"
 
 
 msgid "Encoding"
@@ -71314,18 +71206,6 @@ msgid "Method of anti-aliasing when rendering 3d viewport"
 msgstr "Метод загладжування при рендерингу вікна 3D-огляду"
 
 
-msgid "Knee"
-msgstr "Коліно"
-
-
-msgid "Denoise Amount"
-msgstr "Величина Знешумлення"
-
-
-msgid "Amount of flicker removal applied to bokeh highlights"
-msgstr "Величина усунення мерехтіння, застосовуваного до підсвіток боке"
-
-
 msgid "Max Size"
 msgstr "Макс розмір"
 
@@ -71362,14 +71242,6 @@ msgid "Trace Precision"
 msgstr "Точність простеження"
 
 
-msgid "Cubemap Display Size"
-msgstr "Розмір показу куброзкладки"
-
-
-msgid "Size of the cubemap spheres to debug captured light"
-msgstr "Розмір сфер куброзкладки для зневадження захопленого освітлення"
-
-
 msgid "Cubemap Size"
 msgstr "Розмір куброзкладки"
 
@@ -71402,44 +71274,8 @@ msgid "4096 px"
 msgstr "4096 px"
 
 
-msgid "Filter Quality"
-msgstr "Фільтр якості"
-
-
-msgid "Take more samples during cubemap filtering to remove artifacts"
-msgstr "Брати більше вибірок уході фільтрування куброзкладки для вилучення артефактів"
-
-
 msgid "Clamp Glossy"
 msgstr "Затиск Глянцю"
-
-
-msgid "Irradiance Display Size"
-msgstr "Розмір показу опроміненості"
-
-
-msgid "Size of the irradiance sample spheres to debug captured light"
-msgstr "Розмір сфер вибірок опроміненості для зневадження захопленого освітлення"
-
-
-msgid "Irradiance Smoothing"
-msgstr "Згладжування опроміненості"
-
-
-msgid "Show Cubemap Cache"
-msgstr "Показ кешу куброзкладки"
-
-
-msgid "Display captured cubemaps in the viewport"
-msgstr "Показувати захоплені куброзкладки у вікні огляду"
-
-
-msgid "Show Irradiance Cache"
-msgstr "Показ кешу опроміненості"
-
-
-msgid "Display irradiance samples in the viewport"
-msgstr "Показувати вибірки опроміненості у вікні огляду"
 
 
 msgid "Irradiance Visibility Size"
@@ -71468,10 +71304,6 @@ msgstr "64 px"
 
 msgid "Distance of object that contribute to the ambient occlusion effect"
 msgstr "Відстань об'єкта, що бере участь в ефектів загороди оточення"
-
-
-msgid "Factor for ambient occlusion blending"
-msgstr "Коефіцієнт змішування впливу оточення (АО)"
 
 
 msgid "Precision of the horizon search"
@@ -71510,60 +71342,12 @@ msgid "Percentage of render size to add as overscan to the internal render buffe
 msgstr "Відсоток розміру рендера для додання як понадпрогляду для внутрішніх буферів рендера"
 
 
-msgid "Directional Shadows Resolution"
-msgstr "Роздільність напрямлених тіней"
-
-
-msgid "Cube Shadows Resolution"
-msgstr "Роздільність кубічних тіней"
-
-
-msgid "Edge Fading"
-msgstr "Зникання краю"
-
-
-msgid "Screen percentage used to fade the SSR"
-msgstr "Відсоток екрана, використовуваний для зникання відбиттів простору екрана"
-
-
-msgid "Max Roughness"
-msgstr "Макс шорсткість"
-
-
-msgid "Do not raytrace reflections for roughness above this value"
-msgstr "Не промінь-простежувати відбиття для шорсткості вище цього значення"
-
-
-msgid "Pixel thickness used to detect intersection"
-msgstr "Товщина пікселя, використовувана для виявлення перетинання"
-
-
-msgid "Jitter Threshold"
-msgstr "Поріг тремтіння"
-
-
-msgid "Rotate samples that are below this threshold"
-msgstr "Вибірки обертання, що є нижче за цей поріг"
-
-
-msgid "Number of samples to compute the scattering effect"
-msgstr "Кількість вибірок для обчислення ефект розсіювання"
-
-
 msgid "Render Samples"
 msgstr "Вибірки рендера"
 
 
 msgid "Number of samples, unlimited if 0"
 msgstr "Кількість вибірок, необмежена якщо 0"
-
-
-msgid "High Quality Slight Defocus"
-msgstr "Висока Якість Слабкого Розфокусу"
-
-
-msgid "Sample all pixels in almost in-focus regions to eliminate noise"
-msgstr "Вибирати всі пікселі в регіонах, що майже у фокусі, для усунення шуму"
 
 
 msgid "Jitter Camera"
@@ -71574,60 +71358,8 @@ msgid "Enable ambient occlusion to simulate medium scale indirect shadowing"
 msgstr "Увімкнути загороду оточення для симуляції шкали побічного затінення середовища"
 
 
-msgid "Bent Normals"
-msgstr "Зігнуті нормалі"
-
-
-msgid "Compute main non occluded direction to sample the environment"
-msgstr "Обчислити головний не загороджений напрямок для вибирання середовища"
-
-
-msgid "Bounces Approximation"
-msgstr "Приблизність відскоків"
-
-
-msgid "An approximation to simulate light bounces giving less occlusion on brighter objects"
-msgstr "Приблизність для симулювання відскоків освітлення дає менше загородження на яскравіших об'єктах"
-
-
 msgid "Internally render past the image border to avoid screen-space effects disappearing"
 msgstr "Внутрішньо рендерити границю останнього зображення для запобігання зникненню ефектів простору екрана"
-
-
-msgid "High Bit Depth"
-msgstr "Висока Бітова Глибина"
-
-
-msgid "Use 32-bit shadows"
-msgstr "Вжити 32-бітні тіні"
-
-
-msgid "Soft Shadows"
-msgstr "М'які тіні"
-
-
-msgid "Randomize shadowmaps origin to create soft shadows"
-msgstr "Рандомізувати початок розкладок тіней для створення м'яких тіней"
-
-
-msgid "Enable screen space reflection"
-msgstr "Увімкнути відбиття простору екрана"
-
-
-msgid "Half Res Trace"
-msgstr "Простеження в пів роздільності"
-
-
-msgid "Raytrace at a lower resolution"
-msgstr "Простеження променя у нижчій роздільності"
-
-
-msgid "Screen Space Refractions"
-msgstr "Рефракції простору екрана"
-
-
-msgid "Enable screen space Refractions"
-msgstr "Увімкнути рефракції простору екрана"
 
 
 msgid "Viewport Denoising"
@@ -71638,8 +71370,8 @@ msgid "Denoise image using temporal reprojection (can leave some ghosting)"
 msgstr "Знешумити зображення, використовуючи тимчасове перепроєктування (може залишати деяке привиддя) "
 
 
-msgid "Enable scene light interactions with volumetrics"
-msgstr "Увімкнути взаємодії освітлювачів сцени з об'ємами"
+msgid "Volumetric Shadows"
+msgstr "Тіні Об'ємних"
 
 
 msgid "End distance of the volumetric effect"
@@ -72233,6 +71965,10 @@ msgstr "Колір контуру"
 
 msgid "Outline Width"
 msgstr "Ширина обведення"
+
+
+msgid "Shadow Color"
+msgstr "Колір тіні"
 
 
 msgid "Text that will be displayed"
@@ -79881,6 +79617,10 @@ msgid "Lighting for a World data-block"
 msgstr "Світло для блока даних світу"
 
 
+msgid "Factor for ambient occlusion blending"
+msgstr "Коефіцієнт змішування впливу оточення (АО)"
+
+
 msgid "Length of rays, defines how far away other faces give occlusion effect"
 msgstr "Довжина променів; визначає, на якій відстані грані дають ефект оклюзії"
 
@@ -80332,11 +80072,6 @@ msgstr "Редактор НЛА"
 msgctxt "WindowManager"
 msgid "NLA Generic"
 msgstr "Узагальнене НЛА"
-
-
-msgctxt "WindowManager"
-msgid "Timeline"
-msgstr "Шкала часу"
 
 
 msgctxt "WindowManager"
@@ -81548,14 +81283,6 @@ msgid "Only Axis Aligned"
 msgstr "Лише Вирівняно по Осі"
 
 
-msgid "Keyframes Before"
-msgstr "Ключкадри Перед"
-
-
-msgid "Keyframes After"
-msgstr "Ключкадри Після"
-
-
 msgid "Stroke Thickness"
 msgstr "Товщина Штриха"
 
@@ -81591,6 +81318,14 @@ msgstr "Розблокувати Все"
 msgctxt "Operator"
 msgid "Merge Down"
 msgstr "Об'єднати вниз"
+
+
+msgid "Keyframes Before"
+msgstr "Ключкадри Перед"
+
+
+msgid "Keyframes After"
+msgstr "Ключкадри Після"
 
 
 msgid "Interpolation U"
@@ -82704,26 +82439,6 @@ msgstr "Мін Розмір Кроку"
 
 msgid "Auto-Step"
 msgstr "Авто-Крок"
-
-
-msgid "Light Clamping"
-msgstr "Затискання Освітлення"
-
-
-msgid "Refraction"
-msgstr "Заломлення"
-
-
-msgid "Cascade Size"
-msgstr "Розмір Каскаду"
-
-
-msgid "Diffuse Occlusion"
-msgstr "Загородження Розсіяння"
-
-
-msgid "Irradiance Size"
-msgstr "Розмір Опроміненості"
 
 
 msgid "Max Child Particles"
@@ -86618,10 +86333,6 @@ msgid "Total files %d | Changed %d | Failed %d"
 msgstr "Всього файлів %d | Змінено %d | Не вдалося %d"
 
 
-msgid "Path '%s' not found"
-msgstr "Шлях '%s' не знайдено"
-
-
 msgid "Could not find '%s' in '%s'"
 msgstr "Не знайдено '%s' у '%s'"
 
@@ -87059,10 +86770,6 @@ msgstr "Неможливо відкрити файл blend <пам'ять>"
 
 msgid "Failed to read blend file '%s': %s"
 msgstr "Не вдалось прочитати blend-файл '%s': %s"
-
-
-msgid "Failed to read blend file '%s', not a blend file"
-msgstr "Неможливо прочитати blend-файл: '%s' не є blend-файлом"
 
 
 msgid "Unable to read '%s': %s"

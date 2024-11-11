@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'28a8486e2b3f')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'1c8669f8c9c1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-29 10:02+0000\n"
+"POT-Creation-Date: 2024-11-11 09:42+0000\n"
 "PO-Revision-Date: 2024-10-16 00:56+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -6714,10 +6714,6 @@ msgid "Roughness"
 msgstr "Karheus"
 
 
-msgid "Shadow Mode"
-msgstr "Varjotila"
-
-
 msgid "Blended"
 msgstr "Sekoitettu"
 
@@ -7431,20 +7427,16 @@ msgid "Vector Font"
 msgstr "Vektorifontti"
 
 
-msgid "UV Mapping"
-msgstr "UV-kartoittaminen"
-
-
-msgid "Select More/Less"
-msgstr "Valitse enemmän/vähemmän"
-
-
 msgid "Select Similar"
 msgstr "Valitse samankaltainen"
 
 
 msgid "Select All by Trait"
 msgstr "Valitse kaikki piirteen mukaan"
+
+
+msgid "Select More/Less"
+msgstr "Valitse enemmän/vähemmän"
 
 
 msgid "Select Loops"
@@ -7477,6 +7469,10 @@ msgstr "Nimet"
 
 msgid "Mesh Select Mode"
 msgstr "Muodon valintatila"
+
+
+msgid "UV Mapping"
+msgstr "UV-kartoittaminen"
 
 
 msgid "Basic"
@@ -8743,6 +8739,11 @@ msgid "Float to Integer"
 msgstr "Liukuluku kokonaisluvuksi"
 
 
+msgctxt "NodeTree"
+msgid "Modulo"
+msgstr "Jakojäännös"
+
+
 msgid "Random Value"
 msgstr "Satunnainen arvo"
 
@@ -9650,11 +9651,6 @@ msgstr "Skaala"
 msgctxt "NodeTree"
 msgid "Normalize"
 msgstr "Normalisoi"
-
-
-msgctxt "NodeTree"
-msgid "Modulo"
-msgstr "Jakojäännös"
 
 
 msgid "Vector Rotate"
@@ -12399,11 +12395,6 @@ msgstr "NLA-Editori"
 msgctxt "WindowManager"
 msgid "NLA Tracks"
 msgstr "NLA-Raiteet"
-
-
-msgctxt "WindowManager"
-msgid "Timeline"
-msgstr "Aikajana"
 
 
 msgctxt "WindowManager"

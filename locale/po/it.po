@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'28a8486e2b3f')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'1c8669f8c9c1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-29 10:02+0000\n"
+"POT-Creation-Date: 2024-11-11 09:42+0000\n"
 "PO-Revision-Date: 2024-10-26 17:56+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -4143,10 +4143,6 @@ msgstr "Raccolta di ossa attive dell'Armatura"
 
 msgid "Active Collection Index"
 msgstr "Indice delle Raccolte Attive"
-
-
-msgid "The index of the Armature's active bone collection; -1 when there is no active collection. Note that this is indexing the underlying array of bone collections, which may not be in the order you expect. Root collections are listed first, and siblings are always sequential. Apart from that, bone collections can be in any order, and thus incrementing or decrementing this index can make the active bone collection jump around in unexpected ways. For a more predictable interface, use `active` or `active_name`."
-msgstr "L'indice della raccolta di ossa attiva dell'armatura; -1 quando non c'è una raccolta attiva. Nota che questo indicizza la sequenza sottostante delle raccolte di ossa, la quale potrebbe non essere nell'ordine che ti aspetteresti. Le raccolte alla radice sono elencate per prime, e i fratelli sono sempre sequenziali. A parte questo, le raccolte di ossa possono trovarsi in qualunque ordine, e di conseguenza incrementare o decrementare questo indice può far saltare in giro la raccolta di ossa attiva in modi inaspettati. Per un interfaccia più prevedibile, utilizza `active` o `active_name`."
 
 
 msgid "Active Collection Name"
@@ -16734,33 +16730,13 @@ msgid "Directional area Light"
 msgstr "Luce area direzionale"
 
 
-msgid "Contact Shadow Distance"
-msgstr "Distanza Ombre di Contatto"
-
-
-msgid "Contact Shadow Thickness"
-msgstr "Spessore Ombre di Contatto"
-
-
 msgctxt "Light"
 msgid "Power"
 msgstr "Potenza"
 
 
-msgid "Shadow Buffer Bias"
-msgstr "Influenza Buffer Ombra"
-
-
 msgid "Shadow Buffer Clip Start"
 msgstr "Taglio Iniziale Buffer Ombra"
-
-
-msgid "Shadow Color"
-msgstr "Colore Ombra"
-
-
-msgid "Color of shadows cast by the light"
-msgstr "Colore dell'ombra proiettata dalla luce"
 
 
 msgid "Shadow Filter Radius"
@@ -16805,10 +16781,6 @@ msgstr "Dimensione Y"
 
 msgid "Size of the area of the area light in the Y direction for rectangle shapes"
 msgstr "Dimensione dell'area per la luce area, direzione Y per la forma rettangolare"
-
-
-msgid "Contact Shadow"
-msgstr "Ombra di Contatto"
 
 
 msgid "Point Light"
@@ -17172,22 +17144,6 @@ msgstr "Profondità Rifrazione"
 
 msgid "Roughness"
 msgstr "Rugosità"
-
-
-msgid "Shadow Mode"
-msgstr "Modalità Ombra"
-
-
-msgid "Shadow mapping method"
-msgstr "Metodo mappatura ombre"
-
-
-msgid "Opaque"
-msgstr "Opaco"
-
-
-msgid "Alpha Clip"
-msgstr "Taglio Alfa"
 
 
 msgid "Show Backface"
@@ -22938,52 +22894,16 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
-msgid "Mirror"
-msgstr "Specchia"
-
-
-msgid "Snap"
-msgstr "Aggancia"
-
-
-msgid "UV Mapping"
-msgstr "Mappatura UV"
-
-
-msgid "Local View"
-msgstr "Vista Locale"
-
-
-msgid "Viewpoint"
-msgstr "Punto di vista"
-
-
-msgid "Navigation"
-msgstr "Navigazione"
-
-
-msgid "Align View"
-msgstr "Allinea Vista"
-
-
-msgid "Align View to Active"
-msgstr "Allinea Vista a Attivo"
-
-
-msgid "View Regions"
-msgstr "Regione Vista"
-
-
-msgid "Select More/Less"
-msgstr "Seleziona Più/Meno"
-
-
 msgid "Select Similar"
 msgstr "Seleziona Simili"
 
 
 msgid "Select All by Trait"
 msgstr "Seleziona Tutto per Caratteristica"
+
+
+msgid "Select More/Less"
+msgstr "Seleziona Più/Meno"
 
 
 msgid "Select Linked"
@@ -23090,8 +23010,44 @@ msgid "Pivot Point"
 msgstr "Punto di Perno"
 
 
+msgid "Snap"
+msgstr "Aggancia"
+
+
 msgid "Proportional Editing Falloff"
 msgstr "Decadimento Modifica Proporzionale"
+
+
+msgid "Mirror"
+msgstr "Specchia"
+
+
+msgid "UV Mapping"
+msgstr "Mappatura UV"
+
+
+msgid "Local View"
+msgstr "Vista Locale"
+
+
+msgid "Viewpoint"
+msgstr "Punto di vista"
+
+
+msgid "Navigation"
+msgstr "Navigazione"
+
+
+msgid "Align View"
+msgstr "Allinea Vista"
+
+
+msgid "Align View to Active"
+msgstr "Allinea Vista a Attivo"
+
+
+msgid "View Regions"
+msgstr "Regione Vista"
 
 
 msgid "Basic"
@@ -29185,6 +29141,7 @@ msgid "Input value used for unconnected socket"
 msgstr "Valore d'ingresso utilizzato per connettore non collegato"
 
 
+msgctxt "NodeTree"
 msgid "Modulo"
 msgstr "Modulo"
 
@@ -29864,11 +29821,6 @@ msgstr "UV Lungo il Tratto"
 
 msgid "UV coordinates to be used for mapping"
 msgstr "Coordinate UV da usare per la mappatura"
-
-
-msgctxt "NodeTree"
-msgid "Modulo"
-msgstr "Modulo"
 
 
 msgid "Z Axis"
@@ -30582,6 +30534,16 @@ msgid "Add Hair Dynamics Preset"
 msgstr "Aggiungi Preimpostazioni Dinamica Capelli"
 
 
+msgctxt "Operator"
+msgid "Disable Add-on"
+msgstr "Disabilita Add-on"
+
+
+msgctxt "Operator"
+msgid "Enable Add-on"
+msgstr "Abilita Add-on"
+
+
 msgid "Display information and preferences for this add-on"
 msgstr "Mostra maggiori informazioni su questo add-on"
 
@@ -30907,16 +30869,6 @@ msgstr "Aggiunge o rimuove una Preimpostazione Operatore"
 msgctxt "Operator"
 msgid "Operator Preset"
 msgstr "Preimpostazione Operatore"
-
-
-msgctxt "Operator"
-msgid "Disable Add-on"
-msgstr "Disabilita Add-on"
-
-
-msgctxt "Operator"
-msgid "Enable Add-on"
-msgstr "Abilita Add-on"
 
 
 msgid "Open a path in a file browser"
@@ -38884,6 +38836,10 @@ msgid "Exponent"
 msgstr "Esponente"
 
 
+msgid "Modulo"
+msgstr "Modulo"
+
+
 msgid "Wrap"
 msgstr "Ricomincia"
 
@@ -46719,26 +46675,6 @@ msgid "Active Palette Color"
 msgstr "Colore Tavolozza Attivo"
 
 
-msgid "Motion Tracking"
-msgstr "Tracciatura Movimento"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Modalità Modifica Mesh"
-
-
-msgid "Measurement"
-msgstr "Misurazione"
-
-
-msgid "Transform Orientations"
-msgstr "Assi (Orientamenti Trasformazione)"
-
-
-msgid "Stroke Placement"
-msgstr "Giacitura Tratto"
-
-
 msgid "Stereoscopy"
 msgstr "Stereoscopia"
 
@@ -46769,6 +46705,26 @@ msgstr "Compositore"
 
 msgid "Overlays"
 msgstr "Sovrapposizioni"
+
+
+msgid "Motion Tracking"
+msgstr "Tracciatura Movimento"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Modalità Modifica Mesh"
+
+
+msgid "Measurement"
+msgstr "Misurazione"
+
+
+msgid "Transform Orientations"
+msgstr "Assi (Orientamenti Trasformazione)"
+
+
+msgid "Stroke Placement"
+msgstr "Giacitura Tratto"
 
 
 msgid "Chain Scaling"
@@ -46925,10 +46881,6 @@ msgstr "Passata Foschia"
 
 msgid "Custom Distance"
 msgstr "Distanza Personalizzata"
-
-
-msgid "Contact Shadows"
-msgstr "Ombre di Contatto"
 
 
 msgid "Composition Guides"
@@ -47209,32 +47161,12 @@ msgid "White Balance"
 msgstr "Bilanciamento del Bianco"
 
 
-msgid "Indirect Lighting"
-msgstr "Illuminazione Indiretta"
-
-
 msgid "Denoising"
 msgstr "Riduzione Rumore"
 
 
 msgid "Shadows"
 msgstr "Ombre"
-
-
-msgid "Screen Space Reflections"
-msgstr "Riflessioni Spazio Schermo"
-
-
-msgid "Volumetrics"
-msgstr "Volumetrie"
-
-
-msgid "Volumetric Lighting"
-msgstr "Illuminazione Volumetrica"
-
-
-msgid "Volumetric Shadows"
-msgstr "Ombre Volumetriche"
 
 
 msgid "Encoding"
@@ -51483,40 +51415,16 @@ msgid "If non-zero, the maximum value for indirect lighting in volumes. Higher v
 msgstr "Se diverso da zero, il valore massimo per l'illuminazione indiretta in volumi. I valori più alti saranno ridimensionati per evitare troppo rumore e una convergenza lenta a scapito della precisione. Utilizzato dalle light-probes."
 
 
-msgid "Factor for ambient occlusion blending"
-msgstr "Fattore di fusione dell'occlusione ambientale"
-
-
 msgid "Light Threshold"
 msgstr "Soglia Luce"
 
 
-msgid "Max Roughness"
-msgstr "Rugosità Max"
-
-
-msgid "Use 32-bit shadows"
-msgstr "Utilizza ombre a 32-bit"
-
-
-msgid "Soft Shadows"
-msgstr "Ombre Morbide"
-
-
-msgid "Enable screen space reflection"
-msgstr "Abilita le riflessioni spazio schermo"
-
-
-msgid "Screen Space Refractions"
-msgstr "Rifrazioni Spazio Schermo"
-
-
-msgid "Enable screen space Refractions"
-msgstr "Abilita le rifrazioni spazio schermo"
-
-
 msgid "Viewport Denoising"
 msgstr "Riduzione del Rumore nel Viewport"
+
+
+msgid "Volumetric Shadows"
+msgstr "Ombre Volumetriche"
 
 
 msgid "Scene Objects"
@@ -51810,6 +51718,10 @@ msgstr "Posizione del testo"
 
 msgid "Outline Width"
 msgstr "Spessore Contorno"
+
+
+msgid "Shadow Color"
+msgstr "Colore Ombra"
 
 
 msgid "Text that will be displayed"
@@ -55820,6 +55732,10 @@ msgid "Lighting for a World data-block"
 msgstr "Illuminazione per un blocco-dati Mondo"
 
 
+msgid "Factor for ambient occlusion blending"
+msgstr "Fattore di fusione dell'occlusione ambientale"
+
+
 msgid "Length of rays, defines how far away other faces give occlusion effect"
 msgstr "Lunghezza dei raggi, definisce quanto sono lontane le altre facce che danno l'effetto di occlusione"
 
@@ -56064,11 +55980,6 @@ msgstr "Editor NLA"
 msgctxt "WindowManager"
 msgid "NLA Generic"
 msgstr "NLA Generico"
-
-
-msgctxt "WindowManager"
-msgid "Timeline"
-msgstr "Timeline"
 
 
 msgctxt "WindowManager"
@@ -56683,10 +56594,6 @@ msgid "Custom..."
 msgstr "Personalizzato..."
 
 
-msgid "Keyframes Before"
-msgstr "Keyframe Precedenti"
-
-
 msgid "Stroke Thickness"
 msgstr "Spessore Tratto"
 
@@ -56704,6 +56611,10 @@ msgstr "Blocca Tutto"
 msgctxt "Operator"
 msgid "Merge Down"
 msgstr "Unisci col Sottostante"
+
+
+msgid "Keyframes Before"
+msgstr "Keyframe Precedenti"
 
 
 msgid "Bleed Bias"
@@ -57198,10 +57109,6 @@ msgstr "Maiuscolo"
 
 msgid "Auto-Step"
 msgstr "Passo Automatico"
-
-
-msgid "Refraction"
-msgstr "Rifrazione"
 
 
 msgid "Render Engine"
@@ -59683,10 +59590,6 @@ msgid "Total files %d | Changed %d | Failed %d"
 msgstr "Files totali %d | Modificati %d | Falliti %d"
 
 
-msgid "Path '%s' not found"
-msgstr "Percorso '%s' non trovato"
-
-
 msgid "Could not find '%s' in '%s'"
 msgstr "Impossibile trovare '%s' in '%s'"
 
@@ -59982,10 +59885,6 @@ msgstr "Impossibile aprire blend <memory>"
 
 msgid "Failed to read blend file '%s': %s"
 msgstr "Impossibile leggere il file blend '%s', '%s'"
-
-
-msgid "Failed to read blend file '%s', not a blend file"
-msgstr "Impossibile leggere il file blend '%s', non è un file blend"
 
 
 msgid "Unable to open '%s': %s"

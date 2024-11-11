@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'28a8486e2b3f')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'1c8669f8c9c1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-29 10:02+0000\n"
+"POT-Creation-Date: 2024-11-11 09:42+0000\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -6248,10 +6248,6 @@ msgid "Roughness"
 msgstr "Храпавост"
 
 
-msgid "Opaque"
-msgstr "Непровидно"
-
-
 msgid "Texture Slot Images"
 msgstr "Слике слота текстура"
 
@@ -8724,30 +8720,6 @@ msgid "Material slot name"
 msgstr "Назив слота материјала"
 
 
-msgid "Mirror"
-msgstr "Огледало"
-
-
-msgid "Snap"
-msgstr "Лепљење"
-
-
-msgid "UV Mapping"
-msgstr "UV Мапирање"
-
-
-msgid "Local View"
-msgstr "Локални поглед"
-
-
-msgid "Navigation"
-msgstr "Навигација"
-
-
-msgid "Align View"
-msgstr "Поравнај поглед"
-
-
 msgid "Select Linked"
 msgstr "Изабери повезано"
 
@@ -8822,6 +8794,30 @@ msgstr "Специјални знаци"
 
 msgid "Bone Roll"
 msgstr "Ролна костију"
+
+
+msgid "Snap"
+msgstr "Лепљење"
+
+
+msgid "Mirror"
+msgstr "Огледало"
+
+
+msgid "UV Mapping"
+msgstr "UV Мапирање"
+
+
+msgid "Local View"
+msgstr "Локални поглед"
+
+
+msgid "Navigation"
+msgstr "Навигација"
+
+
+msgid "Align View"
+msgstr "Поравнај поглед"
 
 
 msgid "Basic"
@@ -16045,10 +16041,6 @@ msgid "Bake object transformations"
 msgstr "Без трансформација"
 
 
-msgid "Remove all constraints from keyed object/bones, and do 'visual' keying"
-msgstr "Уклони сва IK ограничења са изабраних костију"
-
-
 msgid "Clear Parents"
 msgstr "Обриши родитељске везе"
 
@@ -20174,10 +20166,6 @@ msgid "Self Collision"
 msgstr "Самоодбијање"
 
 
-msgid "Indirect Lighting"
-msgstr "Индиректно осветљење"
-
-
 msgid "Shadows"
 msgstr "Сенке"
 
@@ -23689,11 +23677,6 @@ msgstr "NLA Уређивач"
 msgctxt "WindowManager"
 msgid "NLA Generic"
 msgstr "Почетни NLA"
-
-
-msgctxt "WindowManager"
-msgid "Timeline"
-msgstr "Временска линија"
 
 
 msgctxt "WindowManager"

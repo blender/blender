@@ -523,7 +523,7 @@ static void unpin_file_local_grease_pencil_brush_materials(const ReuseOldBMainDa
     const Brush *brush = reinterpret_cast<Brush *>(old_id_iter);
     if (brush->gpencil_settings && brush->gpencil_settings->material &&
         /* Don't unpin if this material is linked, then it can be preserved for the new file. */
-        !ID_IS_LINKED(&brush->gpencil_settings->material))
+        !ID_IS_LINKED(brush->gpencil_settings->material))
     {
       /* Unpin material and clear pointer. */
       brush->gpencil_settings->flag &= ~GP_BRUSH_MATERIAL_PINNED;
