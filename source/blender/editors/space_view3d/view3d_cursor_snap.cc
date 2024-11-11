@@ -622,7 +622,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
     snap_data->is_snap_invert = v3d_cursor_is_snap_invert(data_intern, event_modifier);
 #endif
 
-    if (snap_data->is_snap_invert != ((tool_settings->snap_flag & SCE_SNAP) == 0) {
+    if (snap_data->is_snap_invert != ((tool_settings->snap_flag & SCE_SNAP) == 0)) {
       snap_data->is_enabled = false;
       if (!calc_plane_omat) {
         snap_data->type_target = SCE_SNAP_TO_NONE;
