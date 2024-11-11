@@ -195,7 +195,7 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   data->next_identifier = 0;
 
   data->items = MEM_cnew_array<NodeShaderLightLoopItem>(1, __func__);
-  data->items[0].name = BLI_strdup(DATA_("Color"));
+  data->items[0].name = BLI_strdup(DATA_("Zone IO"));
   data->items[0].socket_type = SOCK_RGBA;
   data->items[0].identifier = data->next_identifier++;
   data->items_num = 1;
