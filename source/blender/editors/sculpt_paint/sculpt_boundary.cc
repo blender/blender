@@ -2966,8 +2966,8 @@ static void init_falloff_grids(const SubdivCCG &subdiv_ccg,
   for (const int grid : IndexRange(subdiv_ccg.grids_num)) {
     for (const int index : bke::ccg::grid_range(key, grid)) {
       if (boundary.edit_info.propagation_steps_num[index] != BOUNDARY_STEPS_NONE) {
-        const float mask_factor = subdiv_ccg.masks.is_empty() ? 1.0f - subdiv_ccg.masks[index] :
-                                                                1.0f;
+        const float mask_factor = subdiv_ccg.masks.is_empty() ? 1.0f :
+                                                                1.0f - subdiv_ccg.masks[index];
         boundary.edit_info.strength_factor[index] =
             mask_factor * BKE_brush_curve_strength(&brush,
                                                    boundary.edit_info.propagation_steps_num[index],
