@@ -332,7 +332,7 @@ static void indices_init_mesh(Object &object,
   flood_fill::FillDataMesh flood_fill(vert_positions.size());
 
   Set<int, BOUNDARY_INDICES_BLOCK_SIZE> included_verts;
-  add_index(boundary, initial_boundary_vert, 1.0f, included_verts);
+  add_index(boundary, initial_boundary_vert, 0.0f, included_verts);
   flood_fill.add_initial(initial_boundary_vert);
 
   flood_fill.execute(object, vert_to_face, [&](const int from_v, const int to_v) {
