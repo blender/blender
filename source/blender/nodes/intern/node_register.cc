@@ -130,7 +130,7 @@ class ShaderLightLoopZoneType : public blender::bke::bNodeZoneType {
     this->input_type = SH_NODE_LIGHT_LOOP_INPUT;
     this->output_type = SH_NODE_LIGHT_LOOP_OUTPUT;
     // TODO(NPR)
-    this->theme_id = TH_NODE_ZONE_REPEAT;
+    this->theme_id = TH_NODE_ZONE_FOREACH_GEOMETRY_ELEMENT;
   }
 
   const int &get_corresponding_output_id(const bNode &input_bnode) const override
