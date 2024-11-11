@@ -3894,10 +3894,11 @@ static void join_object_with_active(Main &bmain,
   const IndexRange new_drawings_src = IndexRange::from_begin_size(
       grease_pencil_dst.drawing_array_num, grease_pencil_src.drawing_array_num);
 
-  new_drawings.slice(new_drawings_dst).copy_from(grease_pencil_dst.drawings());
-  new_drawings.slice(new_drawings_src).copy_from(grease_pencil_src.drawings());
+  copy_drawing_array(grease_pencil_dst.drawings(), new_drawings.slice(new_drawings_dst));
+  copy_drawing_array(grease_pencil_src.drawings(), new_drawings.slice(new_drawings_src));
 
-  MEM_SAFE_FREE(grease_pencil_dst.drawing_array);
+  /* Free existing drawings array. */
+  grease_pencil_dst.resize_drawings(0);
   grease_pencil_dst.drawing_array = new_drawing_array;
   grease_pencil_dst.drawing_array_num = new_drawing_array_num;
 
