@@ -529,12 +529,20 @@ static float get_build_factor(const GreasePencilBuildTimeMode time_mode,
                               const float max_gap,
                               const float fade)
 {
+  const float build_factor_frames = math::clamp(
+                                        float(current_frame - start_frame) / length, 0.0f, 1.0f) *
+                                    (1.0f + fade);
   switch (time_mode) {
     case MOD_GREASE_PENCIL_BUILD_TIMEMODE_FRAMES:
-      return math::clamp(float(current_frame - start_frame) / length, 0.0f, 1.0f) * (1.0f + fade);
+      return build_factor_frames;
     case MOD_GREASE_PENCIL_BUILD_TIMEMODE_PERCENTAGE:
       return percentage * (1.0f + fade);
     case MOD_GREASE_PENCIL_BUILD_TIMEMODE_DRAWSPEED:
+      /* The "drawing speed" is written as an attribute called 'delta_time' (for each point). If
+       * this attribute doesn't exist, we fallback to the "frames" mode. */
+      if (!curves.attributes().contains("delta_time")) {
+        return build_factor_frames;
+      }
       return get_factor_from_draw_speed(
                  curves, float(current_frame) / scene_fps, speed_fac, max_gap) *
              (1.0f + fade);
