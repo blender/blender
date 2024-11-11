@@ -341,40 +341,6 @@ static void swap_indexed_data(MutableSpan<T> full, const Span<int> indices, Muta
   }
 }
 
-struct ShapeKeyData {
-  MutableSpan<float3> active_key_data;
-  bool basis_key_active;
-  Vector<MutableSpan<float3>> dependent_keys;
-
-  static std::optional<ShapeKeyData> from_object(Object &object)
-  {
-    Mesh &mesh = *static_cast<Mesh *>(object.data);
-    Key *keys = mesh.key;
-    if (!keys) {
-      return std::nullopt;
-    }
-    const int active_index = object.shapenr - 1;
-    const KeyBlock *active_key = BKE_keyblock_find_by_index(keys, active_index);
-    if (!active_key) {
-      return std::nullopt;
-    }
-    ShapeKeyData data;
-    data.active_key_data = {static_cast<float3 *>(active_key->data), active_key->totelem};
-    data.basis_key_active = active_key == keys->refkey;
-    if (const std::optional<Array<bool>> dependent = BKE_keyblock_get_dependent_keys(keys,
-                                                                                     active_index))
-    {
-      int i;
-      LISTBASE_FOREACH_INDEX (KeyBlock *, other_key, &keys->block, i) {
-        if ((other_key != active_key) && (*dependent)[i]) {
-          data.dependent_keys.append({static_cast<float3 *>(other_key->data), other_key->totelem});
-        }
-      }
-    }
-    return data;
-  }
-};
-
 static void restore_position_mesh(Object &object,
                                   const Span<std::unique_ptr<Node>> unodes,
                                   const MutableSpan<bool> modified_verts)
