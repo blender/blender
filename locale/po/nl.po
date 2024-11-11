@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'28a8486e2b3f')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'1c8669f8c9c1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-29 10:02+0000\n"
+"POT-Creation-Date: 2024-11-11 09:42+0000\n"
 "PO-Revision-Date: 2023-12-21 01:55+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -2169,10 +2169,6 @@ msgid "Power"
 msgstr "Kracht"
 
 
-msgid "Shadow Color"
-msgstr "Schaduwkleur"
-
-
 msgid "Size Y"
 msgstr "Grote Y"
 
@@ -2199,10 +2195,6 @@ msgstr "Ruwheid"
 
 msgid "Roughness of the material"
 msgstr "Ruwheid van het materiaal"
-
-
-msgid "Shadow Mode"
-msgstr "Schaduwmodus"
 
 
 msgid "Converter"
@@ -2682,18 +2674,6 @@ msgid "Active Point"
 msgstr "Actieve Punt"
 
 
-msgid "Mirror"
-msgstr "Spiegel"
-
-
-msgid "Local View"
-msgstr "Lokale Scherm"
-
-
-msgid "Navigation"
-msgstr "Navigatie"
-
-
 msgid "Select Similar"
 msgstr "Selecteer Vergelijkbaar"
 
@@ -2736,6 +2716,18 @@ msgstr "Maak Transformatie Leeg"
 
 msgid "Names"
 msgstr "Namen"
+
+
+msgid "Mirror"
+msgstr "Spiegel"
+
+
+msgid "Local View"
+msgstr "Lokale Scherm"
+
+
+msgid "Navigation"
+msgstr "Navigatie"
 
 
 msgctxt "MovieClip"
@@ -6716,10 +6708,6 @@ msgid "Bounciness"
 msgstr "Veerkrachtigheid"
 
 
-msgid "Max Roughness"
-msgstr "Maximale Ruwheid"
-
-
 msgid "Alpha Under"
 msgstr "Alpha Onder"
 
@@ -6766,6 +6754,10 @@ msgstr "Kruisovergang"
 
 msgid "Add Sequence"
 msgstr "Voeg Sequentie Toe"
+
+
+msgid "Shadow Color"
+msgstr "Schaduwkleur"
 
 
 msgid "Use Annotations"
@@ -7090,11 +7082,6 @@ msgstr "Beeldhouwen"
 msgctxt "WindowManager"
 msgid "Particle"
 msgstr "Deeltje"
-
-
-msgctxt "WindowManager"
-msgid "Timeline"
-msgstr "Tijdslijn"
 
 
 msgctxt "WindowManager"

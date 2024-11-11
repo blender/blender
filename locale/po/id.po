@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'28a8486e2b3f')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'1c8669f8c9c1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-29 10:02+0000\n"
+"POT-Creation-Date: 2024-11-11 09:42+0000\n"
 "PO-Revision-Date: 2024-10-26 01:56+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -12393,10 +12393,6 @@ msgid "Area"
 msgstr "Daerah"
 
 
-msgid "Shadow Color"
-msgstr "Warna"
-
-
 msgid "Blur shadow aliasing using Percentage Closer Filtering"
 msgstr "Buramkan aliasing bayangan menggunakan Persentase Pemfilteran Lebih Dekat"
 
@@ -12468,10 +12464,6 @@ msgstr "Cairan"
 
 msgid "Roughness"
 msgstr "Kekasaran"
-
-
-msgid "Opaque"
-msgstr "Keburaman"
 
 
 msgid "Specular"
@@ -15001,18 +14993,6 @@ msgid "Use Material Mask"
 msgstr "Gunakan Masker Bahan"
 
 
-msgid "Mirror"
-msgstr "Cermin"
-
-
-msgid "Snap"
-msgstr "Jepret"
-
-
-msgid "Navigation"
-msgstr "Navigasi"
-
-
 msgid "Select Linked"
 msgstr "Seleksi yang Terhubung"
 
@@ -15047,6 +15027,18 @@ msgstr "Nama"
 
 msgid "Merge"
 msgstr "Menggabungkan"
+
+
+msgid "Snap"
+msgstr "Jepret"
+
+
+msgid "Mirror"
+msgstr "Cermin"
+
+
+msgid "Navigation"
+msgstr "Navigasi"
 
 
 msgctxt "MovieClip"
@@ -25286,12 +25278,12 @@ msgid "Restrict painting to vertices in the group"
 msgstr "Membatasi lukisan ke simpul di kelompok"
 
 
-msgid "Snapping"
-msgstr "Gertakan"
-
-
 msgid "Wire Color"
 msgstr "Warna Kabel"
+
+
+msgid "Snapping"
+msgstr "Gertakan"
 
 
 msgid "Custom Shape"
@@ -26113,10 +26105,6 @@ msgid "4096 px"
 msgstr "4096 px"
 
 
-msgid "Filter Quality"
-msgstr "Kualitas Filter"
-
-
 msgid "8 px"
 msgstr "8 px"
 
@@ -26311,6 +26299,10 @@ msgstr "Lokasi teks"
 
 msgid "Shadow Blur"
 msgstr "Bayangan Buram"
+
+
+msgid "Shadow Color"
+msgstr "Warna"
 
 
 msgid "Blur Width"
@@ -27908,14 +27900,6 @@ msgid "Only Axis Aligned"
 msgstr "Hanya Sumbu yang Disejajarkan"
 
 
-msgid "Keyframes Before"
-msgstr "Keyframe Sebelum"
-
-
-msgid "Keyframes After"
-msgstr "Keyframe Setelah"
-
-
 msgid "Autolock Inactive Layers"
 msgstr "Autoblok Layer Tidak Aktif"
 
@@ -27952,6 +27936,14 @@ msgstr "Salin Layer ke Terpilih"
 msgctxt "Operator"
 msgid "Copy All Layers to Selected"
 msgstr "Salin Semua Layer ke Terseleksi"
+
+
+msgid "Keyframes Before"
+msgstr "Keyframe Sebelum"
+
+
+msgid "Keyframes After"
+msgstr "Keyframe Setelah"
 
 
 msgid "Interpolation U"

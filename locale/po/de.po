@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'28a8486e2b3f')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'1c8669f8c9c1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-29 10:02+0000\n"
+"POT-Creation-Date: 2024-11-11 09:42+0000\n"
 "PO-Revision-Date: 2024-04-29 13:41+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -13757,14 +13757,6 @@ msgid "Power"
 msgstr "Power"
 
 
-msgid "Shadow Buffer Bias"
-msgstr "Schattenpuffer-Tendenz"
-
-
-msgid "Shadow Color"
-msgstr "Schattenfarbe"
-
-
 msgid "Disk"
 msgstr "Scheibe"
 
@@ -13775,10 +13767,6 @@ msgstr "Ellipse"
 
 msgid "Size Y"
 msgstr "Y-Größe"
-
-
-msgid "Contact Shadow"
-msgstr "Kontaktschatten"
 
 
 msgid "Point Light"
@@ -19027,48 +19015,16 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
-msgid "Mirror"
-msgstr "Spiegeln"
-
-
-msgid "Snap"
-msgstr "Einrasten"
-
-
-msgid "Local View"
-msgstr "Lokale Ansicht"
-
-
-msgid "Viewpoint"
-msgstr "Ansicht"
-
-
-msgid "Navigation"
-msgstr "Navigation"
-
-
-msgid "Align View"
-msgstr "Ansicht ausrichten"
-
-
-msgid "Align View to Active"
-msgstr "Ansicht auf Aktiv ausrichten"
-
-
-msgid "View Regions"
-msgstr "Vierfenster Ansicht"
-
-
-msgid "Select More/Less"
-msgstr "Mehr/weniger anzeigen"
-
-
 msgid "Select Similar"
 msgstr "Ähnliche auswählen"
 
 
 msgid "Select All by Trait"
 msgstr "Alles nach Merkmal auswählen"
+
+
+msgid "Select More/Less"
+msgstr "Mehr/weniger anzeigen"
 
 
 msgid "Select Linked"
@@ -19187,12 +19143,44 @@ msgid "Pivot Point"
 msgstr "Drehpunkt"
 
 
+msgid "Snap"
+msgstr "Einrasten"
+
+
 msgid "Proportional Editing Falloff"
 msgstr "Proportionaler Bearbeitungsabfall"
 
 
 msgid "Mask Edit"
 msgstr "Maskenbearbeitung"
+
+
+msgid "Mirror"
+msgstr "Spiegeln"
+
+
+msgid "Local View"
+msgstr "Lokale Ansicht"
+
+
+msgid "Viewpoint"
+msgstr "Ansicht"
+
+
+msgid "Navigation"
+msgstr "Navigation"
+
+
+msgid "Align View"
+msgstr "Ansicht ausrichten"
+
+
+msgid "Align View to Active"
+msgstr "Ansicht auf Aktiv ausrichten"
+
+
+msgid "View Regions"
+msgstr "Vierfenster Ansicht"
 
 
 msgid "Assets"
@@ -24753,6 +24741,11 @@ msgid "Input value used for unconnected socket"
 msgstr "Eingabewert, der für die nicht verbundene Buchse verwendet wird"
 
 
+msgctxt "NodeTree"
+msgid "Modulo"
+msgstr "Modulo"
+
+
 msgid "Replace String"
 msgstr "String ersetzen"
 
@@ -25682,11 +25675,6 @@ msgid "Normalize A"
 msgstr "Normalisiere A"
 
 
-msgctxt "NodeTree"
-msgid "Modulo"
-msgstr "Modulo"
-
-
 msgid "Vector Rotate"
 msgstr "Vektor Rotieren"
 
@@ -26405,6 +26393,16 @@ msgid "Select Bones"
 msgstr "Knochenauswahl"
 
 
+msgctxt "Operator"
+msgid "Disable Add-on"
+msgstr "Add-On deaktivieren"
+
+
+msgctxt "Operator"
+msgid "Enable Add-on"
+msgstr "Add-On aktivieren"
+
+
 msgid "Display information and preferences for this add-on"
 msgstr "Anzeigen von Informationen und Einstellungen für dieses Add-On"
 
@@ -26740,16 +26738,6 @@ msgstr "Operator-Voreinstellung hinzufügen/entfernen"
 msgctxt "Operator"
 msgid "Operator Preset"
 msgstr "Operator-Voreinstellung"
-
-
-msgctxt "Operator"
-msgid "Disable Add-on"
-msgstr "Add-On deaktivieren"
-
-
-msgctxt "Operator"
-msgid "Enable Add-on"
-msgstr "Add-On aktivieren"
 
 
 msgid "Open a path in a file browser"
@@ -40386,34 +40374,6 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
-msgid "Motion Tracking"
-msgstr "Bewegungsverfolgung"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Maschenbearbeitungsmodus"
-
-
-msgid "Measurement"
-msgstr "Messung"
-
-
-msgid "Curve Edit Mode"
-msgstr "Kurven-Bearbeitungsmodus"
-
-
-msgid "Snapping"
-msgstr "Einrasten"
-
-
-msgid "Transform Orientations"
-msgstr "Transformationsausrichtung"
-
-
-msgid "Drawing Plane"
-msgstr "Malfläche"
-
-
 msgid "Guides"
 msgstr "Hilfslinien"
 
@@ -40468,6 +40428,34 @@ msgstr "Setzer"
 
 msgid "Overlays"
 msgstr "Überlagerungen"
+
+
+msgid "Motion Tracking"
+msgstr "Bewegungsverfolgung"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Maschenbearbeitungsmodus"
+
+
+msgid "Measurement"
+msgstr "Messung"
+
+
+msgid "Curve Edit Mode"
+msgstr "Kurven-Bearbeitungsmodus"
+
+
+msgid "Snapping"
+msgstr "Einrasten"
+
+
+msgid "Transform Orientations"
+msgstr "Transformationsausrichtung"
+
+
+msgid "Drawing Plane"
+msgstr "Malfläche"
 
 
 msgid "Chain Scaling"
@@ -40648,10 +40636,6 @@ msgstr "Dunstdurchgänge"
 
 msgid "Custom Distance"
 msgstr "Benutzerdefinierter Abstand"
-
-
-msgid "Contact Shadows"
-msgstr "Kontaktschatten"
 
 
 msgid "Texture Space"
@@ -40980,10 +40964,6 @@ msgstr "Diagnostik"
 
 msgid "Helpers"
 msgstr "Helfer"
-
-
-msgid "Indirect Lighting"
-msgstr "Indirekte Beleuchtung"
 
 
 msgid "Denoising"
@@ -45387,16 +45367,8 @@ msgid "Shadow Shift"
 msgstr "Schatten tauschen"
 
 
-msgid "Denoise Amount"
-msgstr "Entrauschmenge"
-
-
 msgid "Max Size"
 msgstr "Maximale Größe"
-
-
-msgid "Cubemap Display Size"
-msgstr "Cubemap-Anzeigegröße"
 
 
 msgid "Cubemap Size"
@@ -45427,10 +45399,6 @@ msgid "4096 px"
 msgstr "4096 px"
 
 
-msgid "Filter Quality"
-msgstr "Filterqualität"
-
-
 msgid "8 px"
 msgstr "8 px"
 
@@ -45447,10 +45415,6 @@ msgid "64 px"
 msgstr "64 px"
 
 
-msgid "Factor for ambient occlusion blending"
-msgstr "Faktor für Ambient Occlusion Überblendung"
-
-
 msgid "Light Threshold"
 msgstr "Lichtschwellwert"
 
@@ -45459,28 +45423,12 @@ msgid "Motion steps"
 msgstr "Bewegungsschritte"
 
 
-msgid "Max Roughness"
-msgstr "Maximale Rauhaut"
-
-
 msgid "Render Samples"
 msgstr "Beispiele rendern"
 
 
 msgid "Jitter Camera"
 msgstr "Jitter Kamera"
-
-
-msgid "High Bit Depth"
-msgstr "Hohe Bittiefe"
-
-
-msgid "Use 32-bit shadows"
-msgstr "Verwende 32-bit Schatten"
-
-
-msgid "Soft Shadows"
-msgstr "Weiche Schatten"
 
 
 msgid "Viewport Denoising"
@@ -45761,6 +45709,10 @@ msgstr "Position des Textes"
 
 msgid "Outline Color"
 msgstr "Konturfarbe"
+
+
+msgid "Shadow Color"
+msgstr "Schattenfarbe"
 
 
 msgid "Transform Sequence"
@@ -49767,6 +49719,10 @@ msgid "Tool Mode"
 msgstr "Werkzeugmodus"
 
 
+msgid "Factor for ambient occlusion blending"
+msgstr "Faktor für Ambient Occlusion Überblendung"
+
+
 msgid "Length of rays, defines how far away other faces give occlusion effect"
 msgstr "Strahlenlänge, definiert wie weit weg andere Flächen  den Verdeckungseffekt abgeben"
 
@@ -50243,11 +50199,6 @@ msgstr "NLA-Editor"
 msgctxt "WindowManager"
 msgid "NLA Generic"
 msgstr "NLA-Allgemein"
-
-
-msgctxt "WindowManager"
-msgid "Timeline"
-msgstr "Zeitleiste"
 
 
 msgctxt "WindowManager"
@@ -51424,14 +51375,6 @@ msgid "Only Axis Aligned"
 msgstr "Nur Achsen ausgerichtet"
 
 
-msgid "Keyframes Before"
-msgstr "Schlüsselbild zuvor"
-
-
-msgid "Keyframes After"
-msgstr "Schlüsselbild danach"
-
-
 msgid "Stroke Thickness"
 msgstr "Strichdicke"
 
@@ -51482,6 +51425,14 @@ msgstr "Ebene in ausgewählte kopieren"
 msgctxt "Operator"
 msgid "Copy All Layers to Selected"
 msgstr "Alle Ebenen in ausgewählte Ebenen kopieren"
+
+
+msgid "Keyframes Before"
+msgstr "Schlüsselbild zuvor"
+
+
+msgid "Keyframes After"
+msgstr "Schlüsselbild danach"
 
 
 msgid "Interpolation U"
@@ -52317,14 +52268,6 @@ msgid "Auto-Step"
 msgstr "Auto-Schritt"
 
 
-msgid "Refraction"
-msgstr "Strahlenbrechnung"
-
-
-msgid "Irradiance Size"
-msgstr "Bestrahlungsstärke"
-
-
 msgid "Max Child Particles"
 msgstr "Maximale Kindpartikel"
 
@@ -52408,10 +52351,6 @@ msgstr "Benutze zum rendern"
 
 msgid "Conflicts with another render pass with the same name"
 msgstr "Konflikt mit einem anderen Renderverfahren mit dem selben Namen"
-
-
-msgid "Accurate Mode"
-msgstr "Genauigkeitsmodus"
 
 
 msgid "Unknown add-ons"
@@ -55694,10 +55633,6 @@ msgid "Total files %d | Changed %d | Failed %d"
 msgstr "Gesamt Dateien %d | Geänderte %d | Fehlgeschlagene %d"
 
 
-msgid "Path '%s' not found"
-msgstr "Pfad '%s' nicht gefunden"
-
-
 msgid "Could not open the directory '%s'"
 msgstr "Verzeichnis '%s' kann nicht geöffnet werden"
 
@@ -55991,10 +55926,6 @@ msgstr "Blenddatei kann nicht geöffnet werden <speicher>"
 
 msgid "Failed to read blend file '%s': %s"
 msgstr "Blend-Datei '%s' kann nicht gelesen werden: %s"
-
-
-msgid "Failed to read blend file '%s', not a blend file"
-msgstr "Fehler beim Lesen der Blend Datei '%s', keine Blend Datei"
 
 
 msgid "Unable to read '%s': %s"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'28a8486e2b3f')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'1c8669f8c9c1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-29 10:02+0000\n"
+"POT-Creation-Date: 2024-11-11 09:42+0000\n"
 "PO-Revision-Date: 2023-11-14 19:14+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -16173,52 +16173,12 @@ msgid "Directional area Light"
 msgstr "지향성 영역 라이트"
 
 
-msgid "Contact Shadow Bias"
-msgstr "접촉 섀도우 성향"
-
-
-msgid "Bias to avoid self shadowing"
-msgstr "자기 섀도우를 피하는 성향"
-
-
-msgid "Contact Shadow Distance"
-msgstr "접촉 섀도우 거리"
-
-
-msgid "World space distance in which to search for screen space occluder"
-msgstr "화면 공간 폐색를 검색 할 월드 공간 거리"
-
-
-msgid "Contact Shadow Thickness"
-msgstr "접촉 섀도우 두께"
-
-
-msgid "Pixel thickness used to detect occlusion"
-msgstr "폐색을 감지하는 데 사용되는 픽셀 두께"
-
-
-msgid "Shadow Buffer Bias"
-msgstr "섀도우 버퍼 성향"
-
-
-msgid "Bias for reducing self shadowing"
-msgstr "자기 섀도우를 줄이기 위한 성향"
-
-
 msgid "Shadow Buffer Clip Start"
 msgstr "섀도우 버퍼 클립 시작"
 
 
 msgid "Shadow map clip start, below which objects will not generate shadows"
 msgstr "섀도우맵 클립 시작, 그 아래에 오브젝트는 섀도우를 생성하지 않음"
-
-
-msgid "Shadow Color"
-msgstr "섀도우 컬러"
-
-
-msgid "Color of shadows cast by the light"
-msgstr "라이트에 의해 드리우는 섀도우의 컬러"
 
 
 msgid "Shadow Soft Size"
@@ -16255,10 +16215,6 @@ msgstr "크기 Y"
 
 msgid "Size of the area of the area light in the Y direction for rectangle shapes"
 msgstr "직사각형 셰이프의 Y 방향 에서 영역 라이트의 영역의 크기"
-
-
-msgid "Contact Shadow"
-msgstr "접촉 섀도우"
 
 
 msgid "Point Light"
@@ -16655,38 +16611,6 @@ msgstr "거칠기"
 
 msgid "Roughness of the material"
 msgstr "매테리얼의 거칠기"
-
-
-msgid "Shadow Mode"
-msgstr "섀도우 모드"
-
-
-msgid "Shadow mapping method"
-msgstr "섀도우 매핑 메서드"
-
-
-msgid "Material will cast no shadow"
-msgstr "매테리얼은 섀도우를 캐스트하지 않습니다"
-
-
-msgid "Opaque"
-msgstr "불투명"
-
-
-msgid "Material will cast shadows without transparency"
-msgstr "투명도가없는 매테리얼로 섀도우가 생깁니다"
-
-
-msgid "Alpha Clip"
-msgstr "알파 클립"
-
-
-msgid "Alpha Hashed"
-msgstr "알파 해시드"
-
-
-msgid "Use noise to dither the binary visibility and use filtering to reduce the noise"
-msgstr "노이즈를 사용하여 바이너리 가시성을 떨어트리고 필터링을 사용하여 노이즈를 줄입니다"
 
 
 msgid "Show Backface"
@@ -24109,52 +24033,16 @@ msgid "Material slot name"
 msgstr "매테리얼 슬롯 이름"
 
 
-msgid "Mirror"
-msgstr "미러"
-
-
-msgid "Snap"
-msgstr "스냅"
-
-
-msgid "UV Mapping"
-msgstr "UV 맵핑"
-
-
-msgid "Local View"
-msgstr "로컬 뷰"
-
-
-msgid "Viewpoint"
-msgstr "뷰포트"
-
-
-msgid "Navigation"
-msgstr "네비게이션"
-
-
-msgid "Align View"
-msgstr "뷰를 정렬"
-
-
-msgid "Align View to Active"
-msgstr "뷰를 활성에 정렬"
-
-
-msgid "View Regions"
-msgstr "뷰 지역"
-
-
-msgid "Select More/Less"
-msgstr "선택 증가/감소"
-
-
 msgid "Select Similar"
 msgstr "유사한 선택"
 
 
 msgid "Select All by Trait"
 msgstr "형질로 모두 선택"
+
+
+msgid "Select More/Less"
+msgstr "선택 증가/감소"
 
 
 msgid "Select Linked"
@@ -24281,12 +24169,48 @@ msgid "Pivot Point"
 msgstr "피벗 포인트"
 
 
+msgid "Snap"
+msgstr "스냅"
+
+
 msgid "Proportional Editing Falloff"
 msgstr "비례 편집 감소"
 
 
 msgid "Mask Edit"
 msgstr "마스크 편집"
+
+
+msgid "Mirror"
+msgstr "미러"
+
+
+msgid "UV Mapping"
+msgstr "UV 맵핑"
+
+
+msgid "Local View"
+msgstr "로컬 뷰"
+
+
+msgid "Viewpoint"
+msgstr "뷰포트"
+
+
+msgid "Navigation"
+msgstr "네비게이션"
+
+
+msgid "Align View"
+msgstr "뷰를 정렬"
+
+
+msgid "Align View to Active"
+msgstr "뷰를 활성에 정렬"
+
+
+msgid "View Regions"
+msgstr "뷰 지역"
 
 
 msgid "Basic"
@@ -34367,6 +34291,16 @@ msgid "Add Hair Dynamics Preset"
 msgstr "헤어 역학 프리셋을 추가"
 
 
+msgctxt "Operator"
+msgid "Disable Add-on"
+msgstr "애드온을 사용 중지"
+
+
+msgctxt "Operator"
+msgid "Enable Add-on"
+msgstr "애드온을 사용"
+
+
 msgid "Display information and preferences for this add-on"
 msgstr "이 애드온에 대한 환경 설정및 정보를 표시"
 
@@ -34966,16 +34900,6 @@ msgstr "작업자 프리셋을 추가 또는 제거"
 msgctxt "Operator"
 msgid "Operator Preset"
 msgstr "작업자 프리셋"
-
-
-msgctxt "Operator"
-msgid "Disable Add-on"
-msgstr "애드온을 사용 중지"
-
-
-msgctxt "Operator"
-msgid "Enable Add-on"
-msgstr "애드온을 사용"
 
 
 msgid "Open a path in a file browser"
@@ -39387,6 +39311,10 @@ msgid "Export directional, point, and spot lights. Uses \"KHR_lights_punctual\" 
 msgstr "방향, 포인트 및 스폿 라이트를 내 보냅니다. \"KHR_lights_punctual\" glTF 확장자 사용"
 
 
+msgid "Log Level"
+msgstr "로그 레벨"
+
+
 msgid "Export shape keys (morph targets)"
 msgstr "셰이프 키를 내보내기 (모프 타겟)"
 
@@ -41681,10 +41609,6 @@ msgstr "노멀 데이터를 사용"
 
 msgid "Flat Shading"
 msgstr "플랫 셰이딩"
-
-
-msgid "Log Level"
-msgstr "로그 레벨"
 
 
 msgctxt "Operator"
@@ -44587,10 +44511,6 @@ msgstr "오브젝트 변환을 베이크"
 
 msgid "Clear Constraints"
 msgstr "제약을 지우기"
-
-
-msgid "Remove all constraints from keyed object/bones, and do 'visual' keying"
-msgstr "키가 있는 오브젝트/본에서 모든 제약을 제거하고 '시각' 키잉을 합니다"
 
 
 msgid "Clear Parents"
@@ -55779,38 +55699,6 @@ msgid "Panel containing UI elements"
 msgstr "UI 요소가 포함된 패널"
 
 
-msgid "Motion Tracking"
-msgstr "모션 트래킹"
-
-
-msgid "Mesh Edit Mode"
-msgstr "메쉬 에디트 모드"
-
-
-msgid "Measurement"
-msgstr "측정"
-
-
-msgid "Curve Edit Mode"
-msgstr "커브 에디트 모드"
-
-
-msgid "Snapping"
-msgstr "스냅하기"
-
-
-msgid "Transform Orientations"
-msgstr "변환 오리엔테이션"
-
-
-msgid "Stroke Placement"
-msgstr "스트로크 배치"
-
-
-msgid "Drawing Plane"
-msgstr "드로잉 평면"
-
-
 msgid "Guides"
 msgstr "가이드"
 
@@ -55857,6 +55745,38 @@ msgstr "렌더 패스"
 
 msgid "Overlays"
 msgstr "오버레이"
+
+
+msgid "Motion Tracking"
+msgstr "모션 트래킹"
+
+
+msgid "Mesh Edit Mode"
+msgstr "메쉬 에디트 모드"
+
+
+msgid "Measurement"
+msgstr "측정"
+
+
+msgid "Curve Edit Mode"
+msgstr "커브 에디트 모드"
+
+
+msgid "Snapping"
+msgstr "스냅하기"
+
+
+msgid "Transform Orientations"
+msgstr "변환 오리엔테이션"
+
+
+msgid "Stroke Placement"
+msgstr "스트로크 배치"
+
+
+msgid "Drawing Plane"
+msgstr "드로잉 평면"
 
 
 msgid "Bone Constraints"
@@ -56041,14 +55961,6 @@ msgstr "안개 패스"
 
 msgid "Custom Distance"
 msgstr "커스텀 거리"
-
-
-msgid "Cascaded Shadow Map"
-msgstr "계단식 섀도우 맵"
-
-
-msgid "Contact Shadows"
-msgstr "접촉 섀도우"
 
 
 msgid "Composition Guides"
@@ -56461,32 +56373,12 @@ msgid "White Balance"
 msgstr "화이트 밸런스"
 
 
-msgid "Indirect Lighting"
-msgstr "간접 라이트닝"
-
-
 msgid "Denoising"
 msgstr "노이즈 제거"
 
 
 msgid "Shadows"
 msgstr "섀도우"
-
-
-msgid "Screen Space Reflections"
-msgstr "화면 공간 반사"
-
-
-msgid "Volumetrics"
-msgstr "볼륨메트릭"
-
-
-msgid "Volumetric Lighting"
-msgstr "볼륨메트릭 라이트닝"
-
-
-msgid "Volumetric Shadows"
-msgstr "볼륨메트릭 섀도우"
 
 
 msgid "Encoding"
@@ -62510,10 +62402,6 @@ msgid "Method of anti-aliasing when rendering 3d viewport"
 msgstr "3D 뷰포트를 렌더링 할 때 앨리어싱 제거 방법"
 
 
-msgid "Knee"
-msgstr "굽은 구조"
-
-
 msgid "Max Size"
 msgstr "최대 크기"
 
@@ -62534,14 +62422,6 @@ msgid "Trace Precision"
 msgstr "추적 정밀도"
 
 
-msgid "Cubemap Display Size"
-msgstr "큐브맵 표시 크기"
-
-
-msgid "Size of the cubemap spheres to debug captured light"
-msgstr "캡처된 라이트를 디버그하기 위한 큐브 맵 구체의 크기"
-
-
 msgid "Cubemap Size"
 msgstr "큐브맵 크기"
 
@@ -62550,44 +62430,8 @@ msgid "Size of every cubemaps"
 msgstr "모든 큐브 맵의 크기"
 
 
-msgid "Filter Quality"
-msgstr "필터 품질"
-
-
-msgid "Take more samples during cubemap filtering to remove artifacts"
-msgstr "큐브 맵 필터링 중에 더 많은 샘플을 가져와 부자연스러움을 제거합니다"
-
-
 msgid "Clamp Glossy"
 msgstr "광택을 클램프"
-
-
-msgid "Irradiance Display Size"
-msgstr "방사 조도 표시 크기"
-
-
-msgid "Size of the irradiance sample spheres to debug captured light"
-msgstr "포착된 빛을 디버그하기 위한 방사 샘플 구체의 크기"
-
-
-msgid "Irradiance Smoothing"
-msgstr "방사 조도 스무딩"
-
-
-msgid "Show Cubemap Cache"
-msgstr "큐브맵 캐시를 표시합니다"
-
-
-msgid "Display captured cubemaps in the viewport"
-msgstr "뷰포트에 캡쳐된 큐브 맵을 표시"
-
-
-msgid "Show Irradiance Cache"
-msgstr "방사 조도 캐시를 표시합니다"
-
-
-msgid "Display irradiance samples in the viewport"
-msgstr "뷰포트에 방사 조도 샘플을 표시"
 
 
 msgid "Irradiance Visibility Size"
@@ -62600,10 +62444,6 @@ msgstr "각 방사 조도 샘플에 적용된 그림자지도의 크기"
 
 msgid "Distance of object that contribute to the ambient occlusion effect"
 msgstr "주변 폐색 효과에 기여하는 대상의 거리"
-
-
-msgid "Factor for ambient occlusion blending"
-msgstr "주변 폐색 블렌딩에 대한 팩터"
 
 
 msgid "Precision of the horizon search"
@@ -62626,46 +62466,6 @@ msgid "Percentage of render size to add as overscan to the internal render buffe
 msgstr "내부 렌더 버퍼에 오버스캔으로 추가 할 렌더 크기의 백분율"
 
 
-msgid "Directional Shadows Resolution"
-msgstr "방향성 섀도우 해상도"
-
-
-msgid "Cube Shadows Resolution"
-msgstr "큐브 섀도우 해상도"
-
-
-msgid "Edge Fading"
-msgstr "에지 페이딩"
-
-
-msgid "Screen percentage used to fade the SSR"
-msgstr "SSR을 페이드하는 데 사용되는 화면 비율"
-
-
-msgid "Max Roughness"
-msgstr "최대 거칠기"
-
-
-msgid "Do not raytrace reflections for roughness above this value"
-msgstr "이 값보다 큰 거칠기에 대한 반사를 광선 추적하지 마십시오"
-
-
-msgid "Pixel thickness used to detect intersection"
-msgstr "교차점을 감지하는 데 사용되는 픽셀 두께"
-
-
-msgid "Jitter Threshold"
-msgstr "지터 임계 값"
-
-
-msgid "Rotate samples that are below this threshold"
-msgstr "이 임계 값보다 낮은 샘플을 회전"
-
-
-msgid "Number of samples to compute the scattering effect"
-msgstr "산란 효과를 계산하기위한 샘플의 수"
-
-
 msgid "Render Samples"
 msgstr "렌더 샘플"
 
@@ -62678,52 +62478,8 @@ msgid "Enable ambient occlusion to simulate medium scale indirect shadowing"
 msgstr "중간 정도의 간접적인 섀도우를 시뮬레이트하기 위해 주변 폐색을 활성화"
 
 
-msgid "Bent Normals"
-msgstr "구부러진 노멀"
-
-
-msgid "Compute main non occluded direction to sample the environment"
-msgstr "환경을 샘플링하기 위해 주요 비 폐색 방향을 계산합니다"
-
-
-msgid "Bounces Approximation"
-msgstr "바운스 근사치"
-
-
-msgid "An approximation to simulate light bounces giving less occlusion on brighter objects"
-msgstr "밝은 바운스를 시뮬레이트하는 근사는 더 밝은 오브젝트에서 더 적은 폐색을 제공합니다"
-
-
 msgid "Internally render past the image border to avoid screen-space effects disappearing"
 msgstr "공간 공간 이펙트가 사라지지 않도록 내부적으로 이미지 테두리를 렌더링합니다"
-
-
-msgid "Soft Shadows"
-msgstr "소프트 섀도우"
-
-
-msgid "Randomize shadowmaps origin to create soft shadows"
-msgstr "섀도우 맵 원본을 무작위로 만들어 부드러운 그림자를 만듭니다"
-
-
-msgid "Enable screen space reflection"
-msgstr "화면 공간 반사를 사용"
-
-
-msgid "Half Res Trace"
-msgstr "절반 해상도 추적"
-
-
-msgid "Raytrace at a lower resolution"
-msgstr "해상도가 낮은 레이 트레이스"
-
-
-msgid "Screen Space Refractions"
-msgstr "화면 공간 반사"
-
-
-msgid "Enable screen space Refractions"
-msgstr "화면 공간 굴절을 사용합니다"
 
 
 msgid "Viewport Denoising"
@@ -62734,8 +62490,8 @@ msgid "Denoise image using temporal reprojection (can leave some ghosting)"
 msgstr "일시적인 재투영을 사용한 디노이즈 이미지 (일부 고스트를 남길 수 있음)"
 
 
-msgid "Enable scene light interactions with volumetrics"
-msgstr "볼륨메트릭과 라이트 라이트 상호 작용을 사용"
+msgid "Volumetric Shadows"
+msgstr "볼륨메트릭 섀도우"
 
 
 msgid "End distance of the volumetric effect"
@@ -63281,6 +63037,10 @@ msgstr "윤곽선 컬러"
 
 msgid "Outline Width"
 msgstr "윤곽선 폭"
+
+
+msgid "Shadow Color"
+msgstr "섀도우 컬러"
 
 
 msgid "Text that will be displayed"
@@ -69811,6 +69571,10 @@ msgid "Lighting for a World data-block"
 msgstr "월드 데이터 블록에 대한 라이트닝"
 
 
+msgid "Factor for ambient occlusion blending"
+msgstr "주변 폐색 블렌딩에 대한 팩터"
+
+
 msgid "Length of rays, defines how far away other faces give occlusion effect"
 msgstr "광선의 길이, 떨어진 다른 면에 폐색 효과를 주는 정도를 정의"
 
@@ -70160,11 +69924,6 @@ msgstr "NLA 에디터"
 msgctxt "WindowManager"
 msgid "NLA Generic"
 msgstr "NLA 일반"
-
-
-msgctxt "WindowManager"
-msgid "Timeline"
-msgstr "타임라인"
 
 
 msgctxt "WindowManager"
@@ -70947,14 +70706,6 @@ msgid "Interpolation Tilt"
 msgstr "보간 틸트"
 
 
-msgid "Keyframes Before"
-msgstr "키 프레임 이전"
-
-
-msgid "Keyframes After"
-msgstr "키 프레임 이후"
-
-
 msgid "Stroke Thickness"
 msgstr "스트로크 두께"
 
@@ -70976,6 +70727,14 @@ msgstr "모두 잠금"
 msgctxt "Operator"
 msgid "Merge Down"
 msgstr "아래로 병합"
+
+
+msgid "Keyframes Before"
+msgstr "키 프레임 이전"
+
+
+msgid "Keyframes After"
+msgstr "키 프레임 이후"
 
 
 msgid "Interpolation U"
@@ -71956,26 +71715,6 @@ msgstr "단계 크기 최소"
 
 msgid "Auto-Step"
 msgstr "자동-단계"
-
-
-msgid "Light Clamping"
-msgstr "라이트 클램핑"
-
-
-msgid "Refraction"
-msgstr "굴절"
-
-
-msgid "Cascade Size"
-msgstr "캐스케이드 크기"
-
-
-msgid "Diffuse Occlusion"
-msgstr "확산 폐색"
-
-
-msgid "Irradiance Size"
-msgstr "방사 조도 크기"
 
 
 msgid "Max Child Particles"
@@ -75069,10 +74808,6 @@ msgid "Total files %d | Changed %d | Failed %d"
 msgstr "전체 파일 %d | 바뀜 %d | 실패됨 %d"
 
 
-msgid "Path '%s' not found"
-msgstr "경로 '%s' 찾을 수 없습니다"
-
-
 msgid "Could not find '%s' in '%s'"
 msgstr "'%s'를 다음 '%s'에서 찾을 수 없습니다"
 
@@ -75486,10 +75221,6 @@ msgstr "블렌드 열 수 없음 <memory>"
 
 msgid "Failed to read blend file '%s': %s"
 msgstr "blend 파일 '%s'을 읽지 못했습니다: %s"
-
-
-msgid "Failed to read blend file '%s', not a blend file"
-msgstr "Blend 파일 '%s' 을 읽기 실패, Blend 파일이 아님"
 
 
 msgid "Unable to read '%s': %s"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'28a8486e2b3f')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'1c8669f8c9c1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-29 10:02+0000\n"
+"POT-Creation-Date: 2024-11-11 09:42+0000\n"
 "PO-Revision-Date: 2024-01-17 19:22+0000\n"
 "Last-Translator: Peter Simonsson <peter@simonsson.com>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -5321,26 +5321,6 @@ msgid "Texture"
 msgstr "Textur"
 
 
-msgid "Mirror"
-msgstr "Spegla"
-
-
-msgid "Snap"
-msgstr "Snäpp"
-
-
-msgid "Local View"
-msgstr "Lokal vy"
-
-
-msgid "Align View"
-msgstr "Justera vy"
-
-
-msgid "Align View to Active"
-msgstr "Justera vy till aktiv"
-
-
 msgid "Select More/Less"
 msgstr "Markera mera/mindre"
 
@@ -5383,6 +5363,26 @@ msgstr "Namn"
 
 msgid "Pivot Point"
 msgstr "Fast punkt"
+
+
+msgid "Snap"
+msgstr "Snäpp"
+
+
+msgid "Mirror"
+msgstr "Spegla"
+
+
+msgid "Local View"
+msgstr "Lokal vy"
+
+
+msgid "Align View"
+msgstr "Justera vy"
+
+
+msgid "Align View to Active"
+msgstr "Justera vy till aktiv"
 
 
 msgid "Catalog"
@@ -5793,6 +5793,11 @@ msgstr "Rotera"
 
 msgid "Map values to colors with the use of a gradient"
 msgstr "Mappa värden till färger med användning av en gradient"
+
+
+msgctxt "NodeTree"
+msgid "Modulo"
+msgstr "Modulo"
 
 
 msgid "Invert Rotation"
@@ -6935,11 +6940,6 @@ msgid "Normalize A"
 msgstr "Normalisera A"
 
 
-msgctxt "NodeTree"
-msgid "Modulo"
-msgstr "Modulo"
-
-
 msgid "Vector Rotate"
 msgstr "Vektor rotera"
 
@@ -7684,6 +7684,16 @@ msgid "Subdivision Set"
 msgstr "Uppdelningssats"
 
 
+msgctxt "Operator"
+msgid "Disable Add-on"
+msgstr "Inaktivera tillägg"
+
+
+msgctxt "Operator"
+msgid "Enable Add-on"
+msgstr "Aktivera tillägg"
+
+
 msgid "Display information and preferences for this add-on"
 msgstr "Visa information och inställningar för detta tillägg"
 
@@ -7779,18 +7789,8 @@ msgid "Disable add-on for workspace"
 msgstr "Inaktivera tillägg för arbetsyta"
 
 
-msgctxt "Operator"
-msgid "Disable Add-on"
-msgstr "Inaktivera tillägg"
-
-
 msgid "Enable add-on for workspace"
 msgstr "Aktivera tillägg för arbetsyta"
-
-
-msgctxt "Operator"
-msgid "Enable Add-on"
-msgstr "Aktivera tillägg"
 
 
 msgid "Internal use (edit a property data_path)"
@@ -13465,11 +13465,6 @@ msgstr "Rotera"
 
 
 msgctxt "WindowManager"
-msgid "Timeline"
-msgstr "Tidslinje"
-
-
-msgctxt "WindowManager"
 msgid "Image"
 msgstr "Bild"
 
@@ -14356,10 +14351,6 @@ msgstr "Maxdjup"
 
 msgid "Rays"
 msgstr "Strålar"
-
-
-msgid "Cascade Size"
-msgstr "Kaskadstorlek"
 
 
 msgid "Dimension"
@@ -15970,10 +15961,6 @@ msgstr "Inställningar sparade"
 
 msgid "Saving preferences failed"
 msgstr "Spara inställningar misslyckades"
-
-
-msgid "Path '%s' not found"
-msgstr "Sökväg '%s' hittas inte"
 
 
 msgid "No missing files"

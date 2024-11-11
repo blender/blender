@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'28a8486e2b3f')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'1c8669f8c9c1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-29 10:02+0000\n"
+"POT-Creation-Date: 2024-11-11 09:42+0000\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -6248,10 +6248,6 @@ msgid "Roughness"
 msgstr "Hrapavost"
 
 
-msgid "Opaque"
-msgstr "Neprovidno"
-
-
 msgid "Texture Slot Images"
 msgstr "Slike slota tekstura"
 
@@ -8724,30 +8720,6 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
-msgid "Mirror"
-msgstr "Ogledalo"
-
-
-msgid "Snap"
-msgstr "Lepljenje"
-
-
-msgid "UV Mapping"
-msgstr "UV Mapiranje"
-
-
-msgid "Local View"
-msgstr "Lokalni pogled"
-
-
-msgid "Navigation"
-msgstr "Navigacija"
-
-
-msgid "Align View"
-msgstr "Poravnaj pogled"
-
-
 msgid "Select Linked"
 msgstr "Izaberi povezano"
 
@@ -8822,6 +8794,30 @@ msgstr "Specijalni znaci"
 
 msgid "Bone Roll"
 msgstr "Rolna kostiju"
+
+
+msgid "Snap"
+msgstr "Lepljenje"
+
+
+msgid "Mirror"
+msgstr "Ogledalo"
+
+
+msgid "UV Mapping"
+msgstr "UV Mapiranje"
+
+
+msgid "Local View"
+msgstr "Lokalni pogled"
+
+
+msgid "Navigation"
+msgstr "Navigacija"
+
+
+msgid "Align View"
+msgstr "Poravnaj pogled"
 
 
 msgid "Basic"
@@ -16045,10 +16041,6 @@ msgid "Bake object transformations"
 msgstr "Bez transformacija"
 
 
-msgid "Remove all constraints from keyed object/bones, and do 'visual' keying"
-msgstr "Ukloni sva IK ograničenja sa izabranih kostiju"
-
-
 msgid "Clear Parents"
 msgstr "Obriši roditeljske veze"
 
@@ -20174,10 +20166,6 @@ msgid "Self Collision"
 msgstr "Samoodbijanje"
 
 
-msgid "Indirect Lighting"
-msgstr "Indirektno osvetljenje"
-
-
 msgid "Shadows"
 msgstr "Senke"
 
@@ -23689,11 +23677,6 @@ msgstr "NLA Uređivač"
 msgctxt "WindowManager"
 msgid "NLA Generic"
 msgstr "Početni NLA"
-
-
-msgctxt "WindowManager"
-msgid "Timeline"
-msgstr "Vremenska linija"
 
 
 msgctxt "WindowManager"

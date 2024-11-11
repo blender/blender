@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'28a8486e2b3f')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'1c8669f8c9c1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-29 10:02+0000\n"
+"POT-Creation-Date: 2024-11-11 09:42+0000\n"
 "PO-Revision-Date: 2024-04-29 13:54+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Basque <https://translate.blender.org/projects/blender-ui/ui/eu/>\n"
@@ -1784,11 +1784,6 @@ msgstr "AEL (Animazio Ez-Lineala) Editorea"
 
 
 msgctxt "WindowManager"
-msgid "Timeline"
-msgstr "Denbora-lerroa"
-
-
-msgctxt "WindowManager"
 msgid "Outliner"
 msgstr "Laburpena"
 
@@ -1856,10 +1851,6 @@ msgstr "Baxua"
 
 msgid "Upper"
 msgstr "Altua"
-
-
-msgid "Refraction"
-msgstr "Errefrakzioa"
 
 
 msgctxt "Operator"
