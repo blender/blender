@@ -60,7 +60,8 @@ class Context {
   static int context_counter;
   int context_id = 0;
 
-  GPUStorageBuf *printf_buf = nullptr;
+  /* Used as a stack. Each render_begin/end pair will push pop from the stack. */
+  Vector<GPUStorageBuf *> printf_buf;
 
  protected:
   /** Thread on which this context is active. */

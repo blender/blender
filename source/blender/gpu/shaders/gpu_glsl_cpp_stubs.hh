@@ -523,6 +523,16 @@ using samplerCubeArray = SamplerBase<double, 2, true, true>;
 using isamplerCubeArray = SamplerBase<int, 2, true, true>;
 using usamplerCubeArray = SamplerBase<uint, 2, true, true>;
 
+using depth2D = sampler2D;
+using depth2DArray = sampler2DArray;
+using depthCube = samplerCube;
+using depthCubeArray = samplerCubeArray;
+
+/* Sampler Buffers do not have LOD. */
+float4 texelFetch(samplerBuffer, int) RET;
+int4 texelFetch(isamplerBuffer, int) RET;
+uint4 texelFetch(usamplerBuffer, int) RET;
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

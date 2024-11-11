@@ -390,9 +390,13 @@ static void test_draw_visibility()
   drw.resource_handle(obmat_2, float3(0), float3(1)); /* Inside view. */
   drw.end_sync();
 
+  Texture tex;
+  tex.ensure_2d(GPU_RGBA16F, int2(1));
+
   PassMain pass = {"test.visibility"};
   pass.init();
   pass.shader_set(GPU_shader_get_builtin_shader(GPU_SHADER_3D_IMAGE_COLOR));
+  pass.bind_texture("image", tex);
   pass.draw_procedural(GPU_PRIM_TRIS, 1, -1);
 
   Manager::SubmitDebugOutput debug = drw.submit_debug(pass, view);

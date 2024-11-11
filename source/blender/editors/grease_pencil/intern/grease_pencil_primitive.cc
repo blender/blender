@@ -609,9 +609,10 @@ static void grease_pencil_primitive_status_indicators(bContext *C,
     return WM_modalkeymap_operator_items_to_string(op->type, int(id), true).value_or("");
   };
 
-  header += fmt::format(IFACE_("{}: confirm, {}: cancel, Shift: align"),
+  header += fmt::format(IFACE_("{}: confirm, {}: cancel, {}: panning, Shift: align"),
                         get_modal_key_str(ModalKeyMode::Confirm),
-                        get_modal_key_str(ModalKeyMode::Cancel));
+                        get_modal_key_str(ModalKeyMode::Cancel),
+                        get_modal_key_str(ModalKeyMode::Panning));
 
   header += fmt::format(IFACE_(", {}/{}: adjust subdivisions: {}"),
                         get_modal_key_str(ModalKeyMode::IncreaseSubdivision),
@@ -1272,6 +1273,27 @@ static void grease_pencil_primitive_operator_update(PrimitiveToolOperation &ptd,
 static int grease_pencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   PrimitiveToolOperation &ptd = *reinterpret_cast<PrimitiveToolOperation *>(op->customdata);
+
+  /* Check for confirm before navigation. */
+  if (event->type == EVT_MODAL_MAP) {
+    if (event->val == int(ModalKeyMode::Confirm)) {
+      grease_pencil_primitive_exit(C, op);
+
+      return OPERATOR_FINISHED;
+    }
+  }
+
+  const float3 pos = ptd.control_points.first();
+  if (ED_view3d_navigation_do(C, ptd.vod, event, pos)) {
+    if (ptd.vc.rv3d->rflag & RV3D_NAVIGATING) {
+      ptd.projection = ED_view3d_ob_project_mat_get(ptd.vc.rv3d, ptd.vc.obact);
+
+      grease_pencil_primitive_update_curves(ptd);
+      grease_pencil_primitive_update_view(C, ptd);
+
+      return OPERATOR_RUNNING_MODAL;
+    }
+  }
 
   ptd.projection = ED_view3d_ob_project_mat_get(ptd.vc.rv3d, ptd.vc.obact);
   grease_pencil_primitive_cursor_update(C, ptd, event);

@@ -1236,7 +1236,7 @@ static void draw_gizmo_pin_icon(uiLayout *layout, PointerRNA *socket_ptr)
   uiItemR(layout, socket_ptr, "pin_gizmo", UI_ITEM_NONE, "", ICON_GIZMO);
 }
 
-static void draw_node_socket_without_value(uiLayout *layout, bNodeSocket *sock, const char *text)
+static void draw_node_socket_name_editable(uiLayout *layout, bNodeSocket *sock, const char *text)
 {
   if (sock->runtime->declaration) {
     if (sock->runtime->declaration->socket_name_rna) {
@@ -1251,6 +1251,11 @@ static void draw_node_socket_without_value(uiLayout *layout, bNodeSocket *sock, 
     }
   }
   uiItemL(layout, text, ICON_NONE);
+}
+
+static void draw_node_socket_without_value(uiLayout *layout, bNodeSocket *sock, const char *text)
+{
+  draw_node_socket_name_editable(layout, sock, text);
 }
 
 static void std_node_socket_draw(
@@ -1338,7 +1343,7 @@ static void std_node_socket_draw(
           uiLayout *column = uiLayoutColumn(layout, false);
           {
             uiLayout *row = uiLayoutRow(column, true);
-            uiItemL(row, text, ICON_NONE);
+            draw_node_socket_name_editable(row, sock, text);
             if (has_gizmo) {
               draw_gizmo_pin_icon(row, ptr);
               gizmo_handled = true;
@@ -1352,7 +1357,7 @@ static void std_node_socket_draw(
       uiLayout *column = uiLayoutColumn(layout, false);
       {
         uiLayout *row = uiLayoutRow(column, true);
-        uiItemL(row, text, ICON_NONE);
+        draw_node_socket_name_editable(row, sock, text);
         if (has_gizmo) {
           draw_gizmo_pin_icon(row, ptr);
           gizmo_handled = true;
@@ -1362,7 +1367,7 @@ static void std_node_socket_draw(
       break;
     }
     case SOCK_MATRIX: {
-      uiItemL(layout, text, ICON_NONE);
+      draw_node_socket_name_editable(layout, sock, text);
       break;
     }
     case SOCK_RGBA: {

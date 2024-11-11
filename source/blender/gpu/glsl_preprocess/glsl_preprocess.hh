@@ -80,6 +80,7 @@ class Preprocessor {
     }
     str = preprocessor_directive_mutation(str);
     if (do_string_mutation) {
+      str = assert_processing(str, filename);
       static_strings_parsing(str);
       str = static_strings_mutation(str);
       str = printf_processing(str, report_error);
@@ -260,6 +261,9 @@ class Preprocessor {
         "gl_WorkGroupID|"
         "gl_WorkGroupSize|"
         "drw_debug_|"
+#ifdef WITH_GPU_SHADER_ASSERT
+        "assert|"
+#endif
         "printf"
         ")");
     regex_global_search(
@@ -341,6 +345,22 @@ class Preprocessor {
       out_str = std::regex_replace(out_str, regex, "; }");
     }
     return out_str;
+  }
+
+  std::string assert_processing(const std::string &str, const std::string &filepath)
+  {
+    std::string filename = std::regex_replace(filepath, std::regex(R"((?:.*)\/(.*))"), "$1");
+    /* Example: `assert(i < 0)` > `if (!(i < 0)) { printf(...); }` */
+    std::regex regex(R"(\bassert\(([^;]*)\))");
+    std::string replacement;
+#ifdef WITH_GPU_SHADER_ASSERT
+    replacement = "if (!($1)) { printf(\"Assertion failed: ($1), file " + filename +
+                  ", line %d, thread (%u,%u,%u).\\n\", __LINE__, GPU_THREAD.x, GPU_THREAD.y, "
+                  "GPU_THREAD.z); }";
+#else
+    (void)filename;
+#endif
+    return std::regex_replace(str, regex, replacement);
   }
 
   void static_strings_parsing(const std::string &str)
@@ -644,6 +664,7 @@ enum Builtin : uint64_t {
   WorkGroupSize = Preprocessor::hash("gl_WorkGroupSize"),
   drw_debug = Preprocessor::hash("drw_debug_"),
   printf = Preprocessor::hash("printf"),
+  assert = Preprocessor::hash("assert"),
 };
 
 enum Qualifier : uint64_t {

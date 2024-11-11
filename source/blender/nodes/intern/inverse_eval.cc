@@ -11,6 +11,7 @@
 #include "NOD_value_elem_eval.hh"
 
 #include "BKE_compute_contexts.hh"
+#include "BKE_context.hh"
 #include "BKE_idprop.hh"
 #include "BKE_modifier.hh"
 #include "BKE_node.hh"
@@ -32,6 +33,8 @@
 #include "RNA_path.hh"
 
 #include "MOD_nodes.hh"
+
+#include "ANIM_keyframing.hh"
 
 namespace blender::nodes::inverse_eval {
 
@@ -378,6 +381,10 @@ static bool set_rna_property(bContext &C,
   const PropertyType dst_type = RNA_property_type(prop);
   const int array_len = RNA_property_array_length(&value_ptr, prop);
 
+  Scene *scene = CTX_data_scene(&C);
+  const bool only_when_keyed = blender::animrig::is_keying_flag(scene,
+                                                                AUTOKEY_FLAG_INSERTAVAILABLE);
+
   switch (dst_type) {
     case PROP_FLOAT: {
       float value = std::visit([](auto v) { return float(v); }, value_variant);
@@ -387,11 +394,15 @@ static bool set_rna_property(bContext &C,
       if (array_len == 0) {
         RNA_property_float_set(&value_ptr, prop, value);
         RNA_property_update(&C, &value_ptr, prop);
+        animrig::autokeyframe_property(
+            &C, scene, &value_ptr, prop, 0, scene->r.cfra, only_when_keyed);
         return true;
       }
       if (index >= 0 && index < array_len) {
         RNA_property_float_set_index(&value_ptr, prop, index, value);
         RNA_property_update(&C, &value_ptr, prop);
+        animrig::autokeyframe_property(
+            &C, scene, &value_ptr, prop, index, scene->r.cfra, only_when_keyed);
         return true;
       }
       break;
@@ -404,11 +415,15 @@ static bool set_rna_property(bContext &C,
       if (array_len == 0) {
         RNA_property_int_set(&value_ptr, prop, value);
         RNA_property_update(&C, &value_ptr, prop);
+        animrig::autokeyframe_property(
+            &C, scene, &value_ptr, prop, 0, scene->r.cfra, only_when_keyed);
         return true;
       }
       if (index >= 0 && index < array_len) {
         RNA_property_int_set_index(&value_ptr, prop, index, value);
         RNA_property_update(&C, &value_ptr, prop);
+        animrig::autokeyframe_property(
+            &C, scene, &value_ptr, prop, index, scene->r.cfra, only_when_keyed);
         return true;
       }
       break;
@@ -418,11 +433,15 @@ static bool set_rna_property(bContext &C,
       if (array_len == 0) {
         RNA_property_boolean_set(&value_ptr, prop, value);
         RNA_property_update(&C, &value_ptr, prop);
+        animrig::autokeyframe_property(
+            &C, scene, &value_ptr, prop, 0, scene->r.cfra, only_when_keyed);
         return true;
       }
       if (index >= 0 && index < array_len) {
         RNA_property_boolean_set_index(&value_ptr, prop, index, value);
         RNA_property_update(&C, &value_ptr, prop);
+        animrig::autokeyframe_property(
+            &C, scene, &value_ptr, prop, index, scene->r.cfra, only_when_keyed);
         return true;
       }
       break;

@@ -488,7 +488,7 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
   else if (in_sculpt_curve_mode) {
     OVERLAY_sculpt_curves_cache_populate(data, ob);
   }
-  else if (in_grease_pencil_sculpt_mode) {
+  else if (in_grease_pencil_sculpt_mode && !pd->hide_overlays) {
     OVERLAY_sculpt_grease_pencil_cache_populate(data, ob);
   }
 

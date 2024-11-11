@@ -134,6 +134,7 @@ bool curves_poll(bContext *C);
 void CURVES_OT_attribute_set(wmOperatorType *ot);
 void CURVES_OT_draw(wmOperatorType *ot);
 void CURVES_OT_extrude(wmOperatorType *ot);
+void CURVES_OT_select_linked_pick(wmOperatorType *ot);
 
 /** \} */
 
@@ -303,7 +304,7 @@ void select_adjacent(bke::CurvesGeometry &curves, const IndexMask &curves_mask, 
  */
 struct FindClosestData {
   int index = -1;
-  float distance = FLT_MAX;
+  float distance_sq = FLT_MAX;
 };
 
 /**

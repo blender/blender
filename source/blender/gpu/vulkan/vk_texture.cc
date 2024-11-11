@@ -6,6 +6,8 @@
  * \ingroup gpu
  */
 
+#include "GPU_capabilities.hh"
+
 #include "vk_texture.hh"
 
 #include "vk_buffer.hh"
@@ -449,12 +451,19 @@ bool VKTexture::allocate()
   BLI_assert(vk_image_ == VK_NULL_HANDLE);
   BLI_assert(!is_texture_view());
 
+  VkExtent3D vk_extent = vk_extent_3d(0);
+  const uint32_t limit = (type_ == GPU_TEXTURE_3D) ? GPU_max_texture_3d_size() :
+                                                     GPU_max_texture_size();
+  if (vk_extent.depth > limit || vk_extent.height > limit || vk_extent.depth > limit) {
+    return false;
+  }
+
   VKDevice &device = VKBackend::get().device;
   VkImageCreateInfo image_info = {};
   image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
   image_info.flags = to_vk_image_create(type_, format_flag_, usage_get());
   image_info.imageType = to_vk_image_type(type_);
-  image_info.extent = vk_extent_3d(0);
+  image_info.extent = vk_extent;
   image_info.mipLevels = max_ii(mipmaps_, 1);
   image_info.arrayLayers = vk_layer_count(1);
   image_info.format = to_vk_format(device_format_);

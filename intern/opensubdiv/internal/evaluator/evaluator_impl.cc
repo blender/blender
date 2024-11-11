@@ -24,10 +24,9 @@
 #include "internal/evaluator/eval_output_gpu.h"
 #include "internal/evaluator/evaluator_cache_impl.h"
 #include "internal/evaluator/patch_map.h"
-#include "internal/topology/topology_refiner_impl.h"
 #include "opensubdiv_evaluator.hh"
 #include "opensubdiv_evaluator_capi.hh"
-#include "opensubdiv_topology_refiner_capi.hh"
+#include "opensubdiv_topology_refiner.hh"
 
 using OpenSubdiv::Far::PatchTable;
 using OpenSubdiv::Far::PatchTableFactory;

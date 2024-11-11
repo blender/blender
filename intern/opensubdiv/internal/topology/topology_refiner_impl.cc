@@ -4,7 +4,7 @@
  *
  * Author: Sergey Sharybin. */
 
-#include "internal/topology/topology_refiner_impl.h"
+#include "opensubdiv_topology_refiner.hh"
 
 namespace blender::opensubdiv {
 

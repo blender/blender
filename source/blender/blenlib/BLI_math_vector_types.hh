@@ -588,6 +588,7 @@ using char2 = blender::VecBase<int8_t, 2>;
 using char3 = blender::VecBase<int8_t, 3>;
 using char4 = blender::VecBase<int8_t, 4>;
 
+using uchar2 = blender::VecBase<uint8_t, 2>;
 using uchar3 = blender::VecBase<uint8_t, 3>;
 using uchar4 = blender::VecBase<uint8_t, 4>;
 

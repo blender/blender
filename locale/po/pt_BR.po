@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'28a8486e2b3f')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'1c8669f8c9c1')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2024-10-29 10:02+0000\n"
+"POT-Creation-Date: 2024-11-11 09:42+0000\n"
 "PO-Revision-Date: 2024-04-15 06:56+0000\n"
 "Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -14249,20 +14249,12 @@ msgid "Directional area light source"
 msgstr "Fonte de luz com área direcional."
 
 
-msgid "Shadow Buffer Bias"
-msgstr "Ajuste fino para sombras contingenciadas"
-
-
 msgid "Shadow Buffer Clip Start"
 msgstr "Limite inicial das sombras contingenciadas"
 
 
 msgid "Shadow map clip start, below which objects will not generate shadows"
 msgstr "O limite inicial do mapa de sombras (distância), abaixo do qual os objetos não irão gerar sombras."
-
-
-msgid "Shadow Color"
-msgstr "Cor de sombras"
 
 
 msgid "Shadow Soft Size"
@@ -14507,18 +14499,6 @@ msgstr "Rugosidade"
 
 msgid "Roughness of the material"
 msgstr "Rugosidade do material"
-
-
-msgid "Shadow Mode"
-msgstr "Modo de Sombra"
-
-
-msgid "Opaque"
-msgstr "Opaco"
-
-
-msgid "Alpha Clip"
-msgstr "Limite de corte de alfa"
 
 
 msgid "Specular Color"
@@ -21487,52 +21467,16 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Mirror"
-msgstr "Espelhar"
-
-
-msgid "Snap"
-msgstr "Atrair"
-
-
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
-
-
-msgid "Local View"
-msgstr "Visão local"
-
-
-msgid "Viewpoint"
-msgstr "Ponto de visualização"
-
-
-msgid "Navigation"
-msgstr "Navegação"
-
-
-msgid "Align View"
-msgstr "Alinhar visualização"
-
-
-msgid "Align View to Active"
-msgstr "Alinhar vista para o ativo"
-
-
-msgid "View Regions"
-msgstr "Visualizar Regiões"
-
-
-msgid "Select More/Less"
-msgstr "Selecionar mais ou menos"
-
-
 msgid "Select Similar"
 msgstr "Selecionar por similaridades"
 
 
 msgid "Select All by Trait"
 msgstr "Selecionar todos por características..."
+
+
+msgid "Select More/Less"
+msgstr "Selecionar mais ou menos"
 
 
 msgid "Select Linked"
@@ -21643,8 +21587,44 @@ msgid "Pivot Point"
 msgstr "Pontos de pivô"
 
 
+msgid "Snap"
+msgstr "Atrair"
+
+
 msgid "Proportional Editing Falloff"
 msgstr "Tipo de decaimento para edição proporcional"
+
+
+msgid "Mirror"
+msgstr "Espelhar"
+
+
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
+
+
+msgid "Local View"
+msgstr "Visão local"
+
+
+msgid "Viewpoint"
+msgstr "Ponto de visualização"
+
+
+msgid "Navigation"
+msgstr "Navegação"
+
+
+msgid "Align View"
+msgstr "Alinhar visualização"
+
+
+msgid "Align View to Active"
+msgstr "Alinhar vista para o ativo"
+
+
+msgid "View Regions"
+msgstr "Visualizar Regiões"
 
 
 msgid "Basic"
@@ -30587,6 +30567,16 @@ msgid "Create Pose Asset"
 msgstr "Criar Recurso de Pose"
 
 
+msgctxt "Operator"
+msgid "Disable Add-on"
+msgstr "Desabilitar complemento"
+
+
+msgctxt "Operator"
+msgid "Enable Add-on"
+msgstr "Habilitar complemento"
+
+
 msgid "Display information and preferences for this add-on"
 msgstr "Exibe as informações e preferências para este complemento."
 
@@ -31138,16 +31128,6 @@ msgstr "Permite adicionar ou remover uma predefinição de operador."
 msgctxt "Operator"
 msgid "Operator Preset"
 msgstr "Predefinições para operador"
-
-
-msgctxt "Operator"
-msgid "Disable Add-on"
-msgstr "Desabilitar complemento"
-
-
-msgctxt "Operator"
-msgid "Enable Add-on"
-msgstr "Habilitar complemento"
 
 
 msgid "Open a path in a file browser"
@@ -40039,10 +40019,6 @@ msgstr "Gera e grava as transformações dos objetos."
 
 msgid "Clear Constraints"
 msgstr "Limpar restrições"
-
-
-msgid "Remove all constraints from keyed object/bones, and do 'visual' keying"
-msgstr "Remove todas as restrições dos objetos ou ossos com chaves de interpolação, e executa a inserção de chaves \"visuais\"."
 
 
 msgid "Clear Parents"
@@ -50312,14 +50288,6 @@ msgid "Active Palette Color"
 msgstr "Cor ativa da paleta"
 
 
-msgid "Motion Tracking"
-msgstr "Captura de movimentos"
-
-
-msgid "Transform Orientations"
-msgstr "Orientações de transformação"
-
-
 msgid "Quad View"
 msgstr "Exibição Quadrante"
 
@@ -50334,6 +50302,14 @@ msgstr "Cor dos cabos"
 
 msgid "Render Pass"
 msgstr "Passo de renderização"
+
+
+msgid "Motion Tracking"
+msgstr "Captura de movimentos"
+
+
+msgid "Transform Orientations"
+msgstr "Orientações de transformação"
 
 
 msgid "Bone Constraints"
@@ -50752,24 +50728,12 @@ msgid "White Balance"
 msgstr "Balanço dos tons brancos"
 
 
-msgid "Indirect Lighting"
-msgstr "Iluminação indireta"
-
-
 msgid "Denoising"
 msgstr "Redução de ruídos"
 
 
 msgid "Shadows"
 msgstr "Sombras"
-
-
-msgid "Volumetrics"
-msgstr "Volumétricas"
-
-
-msgid "Volumetric Shadows"
-msgstr "Sombras Volumétricas"
 
 
 msgid "Encoding"
@@ -56049,14 +56013,6 @@ msgid "Method of anti-aliasing when rendering 3d viewport"
 msgstr "Método de anti serrilhado quando renderizar na janela de exibição 3D"
 
 
-msgid "Knee"
-msgstr "Joelho"
-
-
-msgid "Denoise Amount"
-msgstr "Quantidade da Redução de Ruído"
-
-
 msgid "Max Size"
 msgstr "Tamanho Máximo"
 
@@ -56093,14 +56049,6 @@ msgid "4096 px"
 msgstr "4096 px"
 
 
-msgid "Filter Quality"
-msgstr "Qualidade do Filtro"
-
-
-msgid "Irradiance Smoothing"
-msgstr "Suavização da Irradiação"
-
-
 msgid "8 px"
 msgstr "8 px"
 
@@ -56117,28 +56065,16 @@ msgid "64 px"
 msgstr "64 px"
 
 
-msgid "Factor for ambient occlusion blending"
-msgstr "Fator para a mesclagem de oclusão ambiente."
-
-
 msgid "Precision of the horizon search"
 msgstr "Precisão da busca do horizonte"
 
 
-msgid "Bent Normals"
-msgstr "Normais Dobradas"
-
-
-msgid "Compute main non occluded direction to sample the environment"
-msgstr "Calcular a direção principal não obstruída para amostrar o ambiente"
-
-
-msgid "Bounces Approximation"
-msgstr "Aproximação de Rebatidas"
-
-
 msgid "Viewport Denoising"
 msgstr "Redução de Ruídos na Janela de Exibição"
+
+
+msgid "Volumetric Shadows"
+msgstr "Sombras Volumétricas"
 
 
 msgid "Scene Objects"
@@ -56616,6 +56552,10 @@ msgstr "Localização do texto."
 
 msgid "Outline Width"
 msgstr "Largura dos contornos"
+
+
+msgid "Shadow Color"
+msgstr "Cor de sombras"
 
 
 msgid "Text that will be displayed"
@@ -61488,6 +61428,10 @@ msgid "Lighting for a World data-block"
 msgstr "Iluminação para um bloco de dados de ambiente (mundo)"
 
 
+msgid "Factor for ambient occlusion blending"
+msgstr "Fator para a mesclagem de oclusão ambiente."
+
+
 msgid "Length of rays, defines how far away other faces give occlusion effect"
 msgstr "Comprimento dos raios, define com que distância as outras faces causam o efeito de oclusão."
 
@@ -61822,11 +61766,6 @@ msgstr "Editor de animação não linear"
 msgctxt "WindowManager"
 msgid "NLA Generic"
 msgstr "Animação não linear em geral"
-
-
-msgctxt "WindowManager"
-msgid "Timeline"
-msgstr "Linha do tempo"
 
 
 msgctxt "WindowManager"
@@ -62943,10 +62882,6 @@ msgstr "Superior"
 
 msgid "Auto-Step"
 msgstr "Passos automáticos"
-
-
-msgid "Refraction"
-msgstr "Refração"
 
 
 msgid "Render Engine"
@@ -65544,10 +65479,6 @@ msgid "Total files %d | Changed %d | Failed %d"
 msgstr "Arquivos totais %d | Alterados %d | Falhos %d"
 
 
-msgid "Path '%s' not found"
-msgstr "Caminho '%s' não encontrado"
-
-
 msgid "Could not find '%s' in '%s'"
 msgstr "Não é possível encontrar '%s' dentro de '%s'"
 
@@ -65921,10 +65852,6 @@ msgstr "Não foi possível abrir o arquivo blend <memória>"
 
 msgid "Failed to read blend file '%s': %s"
 msgstr "Falha ao ler arquivo blend '%s', %s"
-
-
-msgid "Failed to read blend file '%s', not a blend file"
-msgstr "Falha ao ler arquivo .blend: '%s', não é um arquivo blend"
 
 
 msgid "Unable to open '%s': %s"

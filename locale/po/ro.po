@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'28a8486e2b3f')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'1c8669f8c9c1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-29 10:02+0000\n"
+"POT-Creation-Date: 2024-11-11 09:42+0000\n"
 "PO-Revision-Date: 2024-03-23 04:06+0000\n"
 "Last-Translator: Alexandru Buhnici <in@alexm.ro>\n"
 "Language-Team: Romanian <https://translate.blender.org/projects/blender-ui/ui/ro/>\n"

@@ -1569,7 +1569,7 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext *pcontext)
         const float3 location = placement.project(float2(pcontext->x, pcontext->y));
         pcontext->pixel_radius = project_brush_radius(
             &pcontext->vc, brush->unprojected_radius, location);
-        brush->size = pcontext->pixel_radius;
+        brush->size = std::max(pcontext->pixel_radius, 1);
       }
       else {
         pcontext->pixel_radius = brush->size;
@@ -1605,7 +1605,7 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext *pcontext)
   }
   else if (pcontext->mode == PaintMode::VertexGPencil) {
     pcontext->pixel_radius = BKE_brush_size_get(pcontext->vc.scene, brush);
-    color = BKE_brush_color_get(pcontext->vc.scene, brush);
+    color = BKE_brush_color_get(pcontext->vc.scene, paint, brush);
   }
 
   GPU_line_width(1.0f);
@@ -2133,6 +2133,12 @@ static void paint_draw_cursor(bContext *C, int x, int y, void * /*unused*/)
   }
 
   if (!paint_cursor_is_brush_cursor_enabled(&pcontext)) {
+    /* For Grease Pencil draw mode, we want to we only render a small mouse cursor (dot) if the
+     * paint cursor is disabled so that the default mouse cursor doesn't get in the way of tablet
+     * users. See #130089. */
+    if (pcontext.mode == PaintMode::GPencil) {
+      WM_cursor_set(pcontext.win, WM_CURSOR_DOT);
+    }
     return;
   }
   if (paint_cursor_is_3d_view_navigating(&pcontext)) {

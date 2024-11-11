@@ -83,7 +83,6 @@ def generate_stroke(context):
         "name": "stroke",
         "mouse": (0.0, 0.0),
         "mouse_event": (0, 0),
-        "pen_flip": False,
         "is_start": True,
         "location": (0, 0, 0),
         "pressure": 1.0,

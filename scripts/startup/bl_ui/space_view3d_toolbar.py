@@ -2159,16 +2159,25 @@ class VIEW3D_PT_tools_grease_pencil_brush_vertex_color(View3DPanel, Panel):
         tool_settings = context.tool_settings
         settings = tool_settings.gpencil_vertex_paint
         brush = settings.brush
+        use_unified_paint = (context.object.mode != 'PAINT_GREASE_PENCIL')
+        ups = context.tool_settings.unified_paint_settings
+        prop_owner = ups if use_unified_paint and ups.use_unified_color else brush
 
         col = layout.column()
 
-        col.template_color_picker(brush, "color", value_slider=True)
+        col.template_color_picker(prop_owner, "color", value_slider=True)
 
         sub_row = col.row(align=True)
-        sub_row.prop(brush, "color", text="")
-        sub_row.prop(brush, "secondary_color", text="")
+        if use_unified_paint:
+            UnifiedPaintPanel.prop_unified_color(sub_row, context, brush, "color", text="")
+            UnifiedPaintPanel.prop_unified_color(sub_row, context, brush, "secondary_color", text="")
+        else:
+            sub_row.prop(brush, "color", text="")
+            sub_row.prop(brush, "secondary_color", text="")
 
-        sub_row.operator("gpencil.tint_flip", icon='FILE_REFRESH', text="")
+        sub_row.operator("paint.brush_colors_flip", icon='FILE_REFRESH', text="")
+        if use_unified_paint:
+            sub_row.prop(ups, "use_unified_color", text="", icon='BRUSHES_ALL')
 
 
 class VIEW3D_PT_tools_grease_pencil_brush_vertex_falloff(GreasePencilBrushFalloff, Panel, View3DPaintPanel):
@@ -2272,7 +2281,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_mixcolor(View3DPanel, Panel):
         sub_row.prop(brush, "color", text="")
         sub_row.prop(brush, "secondary_color", text="")
 
-        sub_row.operator("gpencil.tint_flip", icon='FILE_REFRESH', text="")
+        sub_row.operator("paint.brush_colors_flip", icon='FILE_REFRESH', text="")
 
         if brush.gpencil_tool in {'DRAW', 'FILL'}:
             col.prop(gp_settings, "vertex_mode", text="Mode")
@@ -2778,6 +2787,9 @@ class VIEW3D_PT_tools_grease_pencil_v3_brush_mixcolor(View3DPanel, Panel):
         settings = tool_settings.gpencil_paint
         brush = settings.brush
         gp_settings = brush.gpencil_settings
+        use_unified_paint = (context.object.mode != 'PAINT_GREASE_PENCIL')
+        ups = context.tool_settings.unified_paint_settings
+        prop_owner = ups if use_unified_paint and ups.use_unified_color else brush
 
         row = layout.row()
         row.prop(settings, "color_mode", expand=True)
@@ -2787,11 +2799,16 @@ class VIEW3D_PT_tools_grease_pencil_v3_brush_mixcolor(View3DPanel, Panel):
         col = layout.column()
         col.enabled = settings.color_mode == 'VERTEXCOLOR'
 
-        col.template_color_picker(brush, "color", value_slider=True)
+        # This panel is only used for Draw mode, which does not use unified paint settings.
+        col.template_color_picker(prop_owner, "color", value_slider=True)
 
         sub_row = col.row(align=True)
-        UnifiedPaintPanel.prop_unified_color(sub_row, context, brush, "color", text="")
-        UnifiedPaintPanel.prop_unified_color(sub_row, context, brush, "secondary_color", text="")
+        if use_unified_paint:
+            UnifiedPaintPanel.prop_unified_color(sub_row, context, brush, "color", text="")
+            UnifiedPaintPanel.prop_unified_color(sub_row, context, brush, "secondary_color", text="")
+        else:
+            sub_row.prop(brush, "color", text="")
+            sub_row.prop(brush, "secondary_color", text="")
 
         sub_row.operator("paint.brush_colors_flip", icon='FILE_REFRESH', text="")
 

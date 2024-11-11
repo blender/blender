@@ -254,6 +254,7 @@ static BitVector<> init_uv_primitives_brush_test(SculptSession &ss,
 static void do_paint_pixels(const Scene &scene,
                             const Depsgraph &depsgraph,
                             Object &object,
+                            const Paint &paint,
                             const Brush &brush,
                             ImageData image_data,
                             bke::pbvh::Node &node)
@@ -281,8 +282,8 @@ static void do_paint_pixels(const Scene &scene,
   brush_color[2] = float((hash >> 16) & 255) / 255.0f;
 #else
   copy_v3_v3(brush_color,
-             ss.cache->invert ? BKE_brush_secondary_color_get(&scene, &brush) :
-                                BKE_brush_color_get(&scene, &brush));
+             ss.cache->invert ? BKE_brush_secondary_color_get(&scene, &paint, &brush) :
+                                BKE_brush_color_get(&scene, &paint, &brush));
 #endif
 
   brush_color[3] = 1.0f;
@@ -520,7 +521,7 @@ void SCULPT_do_paint_brush_image(const Scene &scene,
     do_push_undo_tile(*image_data.image, *image_data.image_user, nodes[i]);
   });
   node_mask.foreach_index(GrainSize(1), [&](const int i) {
-    do_paint_pixels(scene, depsgraph, ob, *brush, image_data, nodes[i]);
+    do_paint_pixels(scene, depsgraph, ob, sd.paint, *brush, image_data, nodes[i]);
   });
 
   fix_non_manifold_seam_bleeding(ob, *image_data.image, *image_data.image_user, nodes, node_mask);

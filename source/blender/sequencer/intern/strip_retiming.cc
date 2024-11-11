@@ -940,7 +940,7 @@ static int seq_retiming_clamp_timeline_frame(const Scene *scene,
  * Alternative solution is to find where in arc segment the `y` value is closest to key
  * retiming factor, then trim transition to that point. This would change transition length. */
 
-static void seq_retiming_fix_transition(const Scene *scene, Sequence *seq, SeqRetimingKey *key)
+static void seq_retiming_fix_transition(Sequence *seq, SeqRetimingKey *key)
 {
   const int keys_num = seq->retiming_keys_num;
 
@@ -951,7 +951,7 @@ static void seq_retiming_fix_transition(const Scene *scene, Sequence *seq, SeqRe
   UNUSED_VARS_NDEBUG(keys_num);
 }
 
-static void seq_retiming_fix_transitions(const Scene *scene, Sequence *seq, SeqRetimingKey *key)
+static void seq_retiming_fix_transitions(Sequence *seq, SeqRetimingKey *key)
 {
   if (SEQ_retiming_key_index_get(seq, key) <= 1) {
     return;
@@ -964,7 +964,7 @@ static void seq_retiming_fix_transitions(const Scene *scene, Sequence *seq, SeqR
 
   SeqRetimingKey *prev_key = key - 2;
   if (SEQ_retiming_key_is_transition_start(prev_key)) {
-    seq_retiming_fix_transition(scene, seq, prev_key);
+    seq_retiming_fix_transition(seq, prev_key);
   }
 
   if (is_last_key) {
@@ -973,7 +973,7 @@ static void seq_retiming_fix_transitions(const Scene *scene, Sequence *seq, SeqR
 
   SeqRetimingKey *next_key = &SEQ_retiming_keys_get(seq)[key_index + 1];
   if (SEQ_retiming_key_is_transition_start(next_key)) {
-    seq_retiming_fix_transition(scene, seq, next_key);
+    seq_retiming_fix_transition(seq, next_key);
   }
 }
 
@@ -987,7 +987,7 @@ static void seq_retiming_key_offset(const Scene *scene,
   }
   else {
     key->strip_frame_index += offset * SEQ_time_media_playback_rate_factor_get(scene, seq);
-    seq_retiming_fix_transitions(scene, seq, key);
+    seq_retiming_fix_transitions(seq, key);
   }
 }
 

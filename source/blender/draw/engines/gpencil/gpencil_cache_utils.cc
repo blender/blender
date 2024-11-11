@@ -277,7 +277,7 @@ static float4 grease_pencil_layer_final_tint_and_alpha_get(const GPENCIL_Private
                                                            float *r_alpha)
 {
   const bool use_onion = (onion_id != 0);
-  if (use_onion) {
+  if (use_onion && pd->do_onion) {
     const bool use_onion_custom_col = (grease_pencil.onion_skinning_settings.flag &
                                        GP_ONION_SKINNING_USE_CUSTOM_COLORS) != 0;
     const bool use_onion_fade = (grease_pencil.onion_skinning_settings.flag &
@@ -515,15 +515,17 @@ GPENCIL_tLayer *gpencil_layer_cache_add(GPENCIL_PrivateData *pd,
   return tgp_layer;
 }
 
-GPENCIL_tLayer *gpencil_layer_cache_get(GPENCIL_tObject *tgp_ob, int number)
+GPENCIL_tLayer *grease_pencil_layer_cache_get(GPENCIL_tObject *tgp_ob,
+                                              int layer_id,
+                                              const bool skip_onion)
 {
-  if (number >= 0) {
-    GPENCIL_tLayer *layer = tgp_ob->layers.first;
-    while (layer != nullptr) {
-      if (layer->layer_id == number) {
-        return layer;
-      }
-      layer = layer->next;
+  BLI_assert(layer_id >= 0);
+  for (GPENCIL_tLayer *layer = tgp_ob->layers.first; layer != nullptr; layer = layer->next) {
+    if (skip_onion && layer->is_onion) {
+      continue;
+    }
+    if (layer->layer_id == layer_id) {
+      return layer;
     }
   }
   return nullptr;
@@ -576,6 +578,7 @@ GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_PrivateData *pd,
   GPENCIL_tLayer *tgp_layer = static_cast<GPENCIL_tLayer *>(BLI_memblock_alloc(pd->gp_layer_pool));
   BLI_LINKS_APPEND(&tgp_ob->layers, tgp_layer);
   tgp_layer->layer_id = *grease_pencil.get_layer_index(layer);
+  tgp_layer->is_onion = onion_id != 0;
   tgp_layer->mask_bits = nullptr;
   tgp_layer->mask_invert_bits = nullptr;
   tgp_layer->blend_ps = nullptr;

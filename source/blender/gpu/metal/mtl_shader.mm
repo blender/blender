@@ -264,7 +264,7 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
 
   /* Compute shaders. */
   bool is_compute = false;
-  if (shd_builder_->glsl_compute_source_.size() > 0) {
+  if (shd_builder_->glsl_compute_source_.empty() == false) {
     BLI_assert_msg(info != nullptr, "Compute shaders must use CreateInfo.\n");
     BLI_assert_msg(!shd_builder_->source_from_msl_, "Compute shaders must compile from GLSL.");
     is_compute = true;
@@ -333,7 +333,7 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
     /* Raster order groups for tile data in struct require Metal 2.3.
      * Retaining Metal 2.2. for old shaders to maintain backwards
      * compatibility for existing features. */
-    if (info->subpass_inputs_.size() > 0) {
+    if (info->subpass_inputs_.is_empty() == false) {
       options.languageVersion = MTLLanguageVersion2_3;
     }
 #if defined(MAC_OS_VERSION_14_0)

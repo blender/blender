@@ -1544,6 +1544,8 @@ LayerGroup::LayerGroup(const LayerGroup &other) : LayerGroup()
       }
     }
   }
+
+  this->color_tag = other.color_tag;
 }
 
 LayerGroup::~LayerGroup()
@@ -2918,16 +2920,16 @@ void GreasePencil::remove_drawings_with_no_users()
   Array<int> drawing_index_map(drawings.size(), unchanged_index);
 
   int first_unused_drawing = -1;
-  int last_used_drawing = drawings.size();
+  int last_used_drawing = drawings.size() - 1;
   /* Advance head and tail iterators to the next unused/used drawing respectively.
    * Returns true if an index pair was found that needs to be swapped. */
   auto find_next_swap_index = [&]() -> bool {
     do {
       ++first_unused_drawing;
-    } while (first_unused_drawing < last_used_drawing && is_drawing_used(first_unused_drawing));
-    do {
+    } while (first_unused_drawing <= last_used_drawing && is_drawing_used(first_unused_drawing));
+    while (last_used_drawing >= 0 && !is_drawing_used(last_used_drawing)) {
       --last_used_drawing;
-    } while (first_unused_drawing < last_used_drawing && !is_drawing_used(last_used_drawing));
+    }
 
     return first_unused_drawing < last_used_drawing;
   };
@@ -2938,10 +2940,25 @@ void GreasePencil::remove_drawings_with_no_users()
     drawing_index_map[last_used_drawing] = first_unused_drawing;
   }
 
+  /* `last_used_drawing` is expected to be exactly the item before the first unused drawing, once
+   * the loop above is fully done and all unused drawings are supposed to be at the end of the
+   * array. */
+  BLI_assert(last_used_drawing == first_unused_drawing - 1);
+#ifndef NDEBUG
+  for (const int i : drawings.index_range()) {
+    if (i < first_unused_drawing) {
+      BLI_assert(is_drawing_used(i));
+    }
+    else {
+      BLI_assert(!is_drawing_used(i));
+    }
+  }
+#endif
+
   /* Tail range of unused drawings that can be removed. */
   const IndexRange drawings_to_remove = (first_unused_drawing > 0) ?
-                                            drawings.index_range().drop_front(last_used_drawing +
-                                                                              1) :
+                                            drawings.index_range().drop_front(
+                                                first_unused_drawing) :
                                             drawings.index_range();
   if (drawings_to_remove.is_empty()) {
     return;
@@ -2983,16 +3000,15 @@ void GreasePencil::update_drawing_users_for_layer(const blender::bke::greasepenc
 {
   using namespace blender;
   for (auto [key, value] : layer.frames().items()) {
-    if (value.drawing_index > 0 && value.drawing_index < this->drawings().size()) {
-      GreasePencilDrawingBase *drawing_base = this->drawing(value.drawing_index);
-      if (drawing_base->type != GP_DRAWING) {
-        continue;
-      }
-      bke::greasepencil::Drawing &drawing =
-          reinterpret_cast<GreasePencilDrawing *>(drawing_base)->wrap();
-      if (!drawing.has_users()) {
-        drawing.add_user();
-      }
+    BLI_assert(this->drawings().index_range().contains(value.drawing_index));
+    GreasePencilDrawingBase *drawing_base = this->drawing(value.drawing_index);
+    if (drawing_base->type != GP_DRAWING) {
+      continue;
+    }
+    bke::greasepencil::Drawing &drawing =
+        reinterpret_cast<GreasePencilDrawing *>(drawing_base)->wrap();
+    if (!drawing.has_users()) {
+      drawing.add_user();
     }
   }
 }

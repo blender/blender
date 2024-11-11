@@ -7,6 +7,7 @@
  */
 #pragma once
 
+#include "BLI_math_bits.h"
 #include "GPU_batch.hh"
 #include "GPU_vertex_format.hh"
 
@@ -319,7 +320,7 @@ struct MTLRenderPipelineStateDescriptor {
     }
 
     hash |= uint64_t((this->blending_enabled && (this->num_color_attachments > 0)) ? 1 : 0) << 62;
-    hash ^= uint64_t(this->point_size);
+    hash ^= uint64_t(float_as_uint(this->point_size));
 
     /* Clipping plane enablement. */
     hash ^= uint64_t(clipping_plane_enable_mask) << 20;

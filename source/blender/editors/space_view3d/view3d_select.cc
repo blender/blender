@@ -3146,7 +3146,7 @@ static bool ed_curves_select_pick(bContext &C, const int mval[2], const SelectPi
         return new_closest;
       },
       [](const ClosestCurveDataBlock &a, const ClosestCurveDataBlock &b) {
-        return (a.elem.distance < b.elem.distance) ? a : b;
+        return (a.elem.distance_sq < b.elem.distance_sq) ? a : b;
       });
 
   std::atomic<bool> deselected = false;
@@ -3308,7 +3308,7 @@ static bool ed_grease_pencil_select_pick(bContext *C,
         return new_closest;
       },
       [](const ClosestGreasePencilDrawing &a, const ClosestGreasePencilDrawing &b) {
-        return (a.elem.distance < b.elem.distance) ? a : b;
+        return (a.elem.distance_sq < b.elem.distance_sq) ? a : b;
       });
 
   std::atomic<bool> deselected = false;

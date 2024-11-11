@@ -767,7 +767,7 @@ static void gpencil_draw_mask(GPENCIL_Data *vedata, GPENCIL_tObject *ob, GPENCIL
       GPU_framebuffer_clear_color_depth(fbl->mask_fb, clear_col, clear_depth);
     }
 
-    GPENCIL_tLayer *mask_layer = gpencil_layer_cache_get(ob, i);
+    GPENCIL_tLayer *mask_layer = grease_pencil_layer_cache_get(ob, i, true);
     /* When filtering by view-layer, the mask could be null and must be ignored. */
     if (mask_layer == nullptr) {
       continue;

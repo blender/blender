@@ -532,7 +532,6 @@ std::unique_ptr<MeshRenderData> mesh_render_data_create(Object &object,
                                                         Mesh &mesh,
                                                         const bool is_editmode,
                                                         const bool is_paint_mode,
-                                                        const bool edit_mode_active,
                                                         const float4x4 &object_to_world,
                                                         const bool do_final,
                                                         const bool do_uvedit,
@@ -555,7 +554,7 @@ std::unique_ptr<MeshRenderData> mesh_render_data_create(Object &object,
     mr->bm = mesh.runtime->edit_mesh->bm;
     mr->edit_bmesh = mesh.runtime->edit_mesh.get();
     mr->mesh = (do_final) ? editmesh_eval_final : editmesh_eval_cage;
-    mr->edit_data = edit_mode_active ? mr->mesh->runtime->edit_data.get() : nullptr;
+    mr->edit_data = is_editmode ? mr->mesh->runtime->edit_data.get() : nullptr;
 
     /* If there is no distinct cage, hide unmapped edges that can't be selected. */
     mr->hide_unmapped_edges = !do_final || editmesh_eval_final == editmesh_eval_cage;
@@ -592,7 +591,7 @@ std::unique_ptr<MeshRenderData> mesh_render_data_create(Object &object,
     /* Use bmesh directly when the object is in edit mode unchanged by any modifiers.
      * For non-final UVs, always use original bmesh since the UV editor does not support
      * using the cage mesh with deformed coordinates. */
-    if ((edit_mode_active && mr->mesh->runtime->is_original_bmesh &&
+    if ((is_editmode && mr->mesh->runtime->is_original_bmesh &&
          mr->mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH) ||
         (do_uvedit && !do_final))
     {
@@ -602,7 +601,7 @@ std::unique_ptr<MeshRenderData> mesh_render_data_create(Object &object,
       mr->extract_type = MR_EXTRACT_MESH;
 
       /* Use mapping from final to original mesh when the object is in edit mode. */
-      if (edit_mode_active && do_final) {
+      if (is_editmode && do_final) {
         mr->orig_index_vert = static_cast<const int *>(
             CustomData_get_layer(&mr->mesh->vert_data, CD_ORIGINDEX));
         mr->orig_index_edge = static_cast<const int *>(
@@ -665,7 +664,7 @@ std::unique_ptr<MeshRenderData> mesh_render_data_create(Object &object,
 
     mr->material_indices = *attributes.lookup<int>("material_index", bke::AttrDomain::Face);
 
-    if (edit_mode_active || is_paint_mode) {
+    if (is_editmode || is_paint_mode) {
       if (use_hide) {
         mr->hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
         mr->hide_edge = *attributes.lookup<bool>(".hide_edge", bke::AttrDomain::Edge);

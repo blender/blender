@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'28a8486e2b3f')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'1c8669f8c9c1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-29 10:02+0000\n"
+"POT-Creation-Date: 2024-11-11 09:42+0000\n"
 "PO-Revision-Date: 2024-03-05 22:56+0000\n"
 "Last-Translator: 居樂行 <oscilloscope9705@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -14809,20 +14809,12 @@ msgid "Power"
 msgstr "次方"
 
 
-msgid "Shadow Buffer Bias"
-msgstr "陰影緩衝偏差"
-
-
 msgid "Shadow Buffer Clip Start"
 msgstr "陰影緩衝剪輯開始"
 
 
 msgid "Shadow map clip start, below which objects will not generate shadows"
 msgstr "陰影映射剪輯結束，沒到這裡物體不會生成陰影"
-
-
-msgid "Shadow Color"
-msgstr "陰影色彩"
 
 
 msgid "Shadow Soft Size"
@@ -15028,22 +15020,6 @@ msgstr "折射深度"
 
 msgid "Roughness"
 msgstr "粗糙度"
-
-
-msgid "Shadow Mode"
-msgstr "陰影模式"
-
-
-msgid "Opaque"
-msgstr "不透明"
-
-
-msgid "Alpha Clip"
-msgstr "Alpha 剪輯"
-
-
-msgid "Alpha Hashed"
-msgstr "Alpha 雜湊化"
 
 
 msgid "Show Backface"
@@ -20913,44 +20889,12 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
-msgid "Mirror"
-msgstr "鏡像"
-
-
-msgid "Snap"
-msgstr "吸附"
-
-
-msgid "UV Mapping"
-msgstr "UV 映射處理"
-
-
-msgid "Local View"
-msgstr "區域視圖"
-
-
-msgid "Viewpoint"
-msgstr "視點"
-
-
-msgid "Navigation"
-msgstr "導覽"
-
-
-msgid "Align View"
-msgstr "對齊視圖"
-
-
-msgid "Align View to Active"
-msgstr "對齊視圖至作用項"
+msgid "Select Similar"
+msgstr "選取相似者"
 
 
 msgid "Select More/Less"
 msgstr "較多/較少選取"
-
-
-msgid "Select Similar"
-msgstr "選取相似者"
 
 
 msgid "Select Linked"
@@ -21053,6 +20997,10 @@ msgid "Pivot Point"
 msgstr "樞紐點"
 
 
+msgid "Snap"
+msgstr "吸附"
+
+
 msgid "Proportional Editing Falloff"
 msgstr "比例化編輯衰落"
 
@@ -21063,6 +21011,34 @@ msgstr "自動遮罩"
 
 msgid "Face Sets Edit"
 msgstr "面集編輯"
+
+
+msgid "Mirror"
+msgstr "鏡像"
+
+
+msgid "UV Mapping"
+msgstr "UV 映射處理"
+
+
+msgid "Local View"
+msgstr "區域視圖"
+
+
+msgid "Viewpoint"
+msgstr "視點"
+
+
+msgid "Navigation"
+msgstr "導覽"
+
+
+msgid "Align View"
+msgstr "對齊視圖"
+
+
+msgid "Align View to Active"
+msgstr "對齊視圖至作用項"
 
 
 msgid "Basic"
@@ -29001,6 +28977,16 @@ msgid "Add Hair Dynamics Preset"
 msgstr "添加毛髮動力學預設置"
 
 
+msgctxt "Operator"
+msgid "Disable Add-on"
+msgstr "停用附加元件"
+
+
+msgctxt "Operator"
+msgid "Enable Add-on"
+msgstr "啟用附加元件"
+
+
 msgid "Display information and preferences for this add-on"
 msgstr "顯示此附加元件的資訊和偏好設定"
 
@@ -29479,16 +29465,6 @@ msgstr "添加或移除操作器預設置"
 msgctxt "Operator"
 msgid "Operator Preset"
 msgstr "操作器預設置"
-
-
-msgctxt "Operator"
-msgid "Disable Add-on"
-msgstr "停用附加元件"
-
-
-msgctxt "Operator"
-msgid "Enable Add-on"
-msgstr "啟用附加元件"
 
 
 msgid "Open a path in a file browser"
@@ -36499,10 +36475,6 @@ msgstr "烘焙物體變換"
 
 msgid "Clear Constraints"
 msgstr "清除約束"
-
-
-msgid "Remove all constraints from keyed object/bones, and do 'visual' keying"
-msgstr "從鍵處理的物體/骨骼移除所有約束，並執行「視覺」鍵處理"
 
 
 msgid "Clear Parents"
@@ -44616,18 +44588,6 @@ msgid "Palette Color"
 msgstr "色版色彩"
 
 
-msgid "Motion Tracking"
-msgstr "運動跟蹤"
-
-
-msgid "Transform Orientations"
-msgstr "變換方向"
-
-
-msgid "Stroke Placement"
-msgstr "筆觸放置"
-
-
 msgid "Stereoscopy"
 msgstr "立體視覺"
 
@@ -44658,6 +44618,18 @@ msgstr "合成器"
 
 msgid "Overlays"
 msgstr "疊層"
+
+
+msgid "Motion Tracking"
+msgstr "運動跟蹤"
+
+
+msgid "Transform Orientations"
+msgstr "變換方向"
+
+
+msgid "Stroke Placement"
+msgstr "筆觸放置"
 
 
 msgid "Chain Scaling"
@@ -45050,10 +45022,6 @@ msgstr "診斷"
 
 msgid "Helpers"
 msgstr "輔助器"
-
-
-msgid "Indirect Lighting"
-msgstr "間接光照"
 
 
 msgid "Shadows"
@@ -49189,20 +49157,8 @@ msgid "Over-blur"
 msgstr "過度模糊"
 
 
-msgid "Factor for ambient occlusion blending"
-msgstr "周遭遮擋其混合的係數"
-
-
 msgid "Screen-Trace"
 msgstr "畫面追蹤"
-
-
-msgid "Screen Space Refractions"
-msgstr "螢幕空間折射"
-
-
-msgid "Enable screen space Refractions"
-msgstr "啟用螢幕空間折射"
 
 
 msgid "USD"
@@ -49616,6 +49572,10 @@ msgstr "減去序段"
 
 msgid "Align X"
 msgstr "對齊 X"
+
+
+msgid "Shadow Color"
+msgstr "陰影色彩"
 
 
 msgctxt "Sequence"
@@ -54190,6 +54150,10 @@ msgid "Multiplication factor when using the fast or slow modifiers"
 msgstr "當使用快速或慢速修改器時的相乘係數"
 
 
+msgid "Factor for ambient occlusion blending"
+msgstr "周遭遮擋其混合的係數"
+
+
 msgid "Length of rays, defines how far away other faces give occlusion effect"
 msgstr "光線長度，定義其他表面生成遮擋效果的距離有多遠"
 
@@ -54610,11 +54574,6 @@ msgstr "NLA 編輯器"
 msgctxt "WindowManager"
 msgid "NLA Generic"
 msgstr "NLA 通用"
-
-
-msgctxt "WindowManager"
-msgid "Timeline"
-msgstr "時間軸"
 
 
 msgctxt "WindowManager"
@@ -55594,10 +55553,6 @@ msgstr "大寫"
 
 msgid "Auto-Step"
 msgstr "自動步進"
-
-
-msgid "Refraction"
-msgstr "折射"
 
 
 msgid "Paths:"
@@ -57333,10 +57288,6 @@ msgid "Total files %d | Changed %d | Failed %d"
 msgstr "總計檔案 %d | 更動 %d | 失敗 %d"
 
 
-msgid "Path '%s' not found"
-msgstr "找不到路徑「%s」"
-
-
 msgid "Could not find '%s' in '%s'"
 msgstr "找不到「%s」於「%s」中"
 
@@ -57617,10 +57568,6 @@ msgstr "找不到庫「%s」"
 
 msgid "Unable to open blend <memory>"
 msgstr "無法開啟 blend <記憶體>"
-
-
-msgid "Failed to read blend file '%s', not a blend file"
-msgstr "無法讀取 blend 檔「%s」，並非 blend 檔"
 
 
 msgid "Unable to open '%s': %s"

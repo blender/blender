@@ -538,6 +538,14 @@ void region_layout(const bContext *C, ARegion *region)
 
   region_resize_to_preferred(CTX_wm_area(C), region);
 
+  /* View2D matrix might have changed due to dynamic sized regions.
+   * Without this, tooltips jump around, see #129347. Reason is that #UI_but_tooltip_refresh() is
+   * called as part of #UI_block_end(), so the block's window matrix needs to be up-to-date. */
+  {
+    UI_view2d_view_ortho(&region->v2d);
+    UI_blocklist_update_window_matrix(C, &region->uiblocks);
+  }
+
   UI_block_end(C, block);
 }
 

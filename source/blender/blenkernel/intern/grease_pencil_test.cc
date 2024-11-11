@@ -91,6 +91,36 @@ TEST(greasepencil, remove_drawings)
             expected_frames_pairs_layer0[1][1]);
 }
 
+TEST(greasepencil, remove_drawings_last_unused)
+{
+  GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(
+      BKE_id_new_nomain(ID_GP, "Grease Pencil test"));
+
+  /* Regression test for #129900: unused drawing at the end causes crash. */
+
+  grease_pencil->add_empty_drawings(2);
+  reinterpret_cast<const GreasePencilDrawing *>(grease_pencil->drawing(0))->wrap().remove_user();
+  reinterpret_cast<const GreasePencilDrawing *>(grease_pencil->drawing(1))->wrap().remove_user();
+
+  Layer &layer_a = grease_pencil->add_layer("LayerA");
+  layer_a.add_frame(10)->drawing_index = 0;
+  const GreasePencilDrawingBase *used_drawing = grease_pencil->drawings()[0];
+  grease_pencil->update_drawing_users_for_layer(layer_a);
+
+  EXPECT_EQ(layer_a.frames().size(), 1);
+  EXPECT_EQ(layer_a.frames().lookup(10).drawing_index, 0);
+  /* Test DNA storage data too. */
+  layer_a.prepare_for_dna_write();
+  EXPECT_EQ(layer_a.frames_storage.num, 1);
+  EXPECT_EQ(layer_a.frames_storage.values[0].drawing_index, 0);
+
+  grease_pencil->remove_drawings_with_no_users();
+  EXPECT_EQ(grease_pencil->drawings().size(), 1);
+  EXPECT_EQ(grease_pencil->drawings()[0], used_drawing);
+
+  BKE_id_free(nullptr, grease_pencil);
+}
+
 /* --------------------------------------------------------------------------------------------- */
 /* Layer Tree Tests. */
 

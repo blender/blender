@@ -4961,6 +4961,8 @@ static void force_activate_view_item_but(bContext *C,
 {
   if (but->active) {
     ui_apply_but(C, but->block, but, but->active, true);
+    ED_region_tag_redraw_no_rebuild(region);
+    ED_region_tag_refresh_ui(region);
   }
   else {
     UI_but_execute(C, region, but);
@@ -5002,10 +5004,13 @@ static int ui_do_but_VIEW_ITEM(bContext *C,
            * example). */
           return WM_UI_HANDLER_CONTINUE;
         case KM_DBL_CLICK:
-          data->cancel = true;
-          UI_view_item_begin_rename(*view_item_but->view_item);
-          ED_region_tag_redraw(CTX_wm_region(C));
-          return WM_UI_HANDLER_BREAK;
+          if (UI_view_item_can_rename(*view_item_but->view_item)) {
+            data->cancel = true;
+            UI_view_item_begin_rename(*view_item_but->view_item);
+            ED_region_tag_redraw(CTX_wm_region(C));
+            return WM_UI_HANDLER_BREAK;
+          }
+          return WM_UI_HANDLER_CONTINUE;
       }
     }
   }
@@ -6516,13 +6521,13 @@ static int ui_do_but_COLOR(bContext *C, uiBut *but, uiHandleButtonData *data, co
 
               if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA) {
                 RNA_property_float_get_array(&but->rnapoin, but->rnaprop, color);
-                BKE_brush_color_set(scene, brush, color);
+                BKE_brush_color_set(scene, paint, brush, color);
                 updated = true;
               }
               else if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR) {
                 RNA_property_float_get_array(&but->rnapoin, but->rnaprop, color);
                 IMB_colormanagement_scene_linear_to_srgb_v3(color, color);
-                BKE_brush_color_set(scene, brush, color);
+                BKE_brush_color_set(scene, paint, brush, color);
                 updated = true;
               }
 

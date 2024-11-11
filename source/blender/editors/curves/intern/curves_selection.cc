@@ -759,7 +759,7 @@ void apply_selection_operation_at_index(GMutableSpan selection,
 
 static FindClosestData closer_elem(const FindClosestData &a, const FindClosestData &b)
 {
-  if (a.distance < b.distance) {
+  if (a.distance_sq < b.distance_sq) {
     return a;
   }
   return b;
@@ -786,20 +786,17 @@ static std::optional<FindClosestData> find_closest_point_to_screen_co(
           const float2 pos_proj = ED_view3d_project_float_v2_m4(region, pos, projection);
 
           const float distance_proj_sq = math::distance_squared(pos_proj, mouse_pos);
-          if (distance_proj_sq > radius_sq ||
-              distance_proj_sq > best_match.distance * best_match.distance)
-          {
-            /* Ignore the point because it's too far away or there is already a better point. */
+          if (distance_proj_sq > radius_sq || distance_proj_sq > best_match.distance_sq) {
             return;
           }
 
-          best_match = {point, std::sqrt(distance_proj_sq)};
+          best_match = {point, distance_proj_sq};
         });
         return best_match;
       },
       closer_elem);
 
-  if (new_closest_data.distance < initial_closest.distance) {
+  if (new_closest_data.distance_sq < initial_closest.distance_sq) {
     return new_closest_data;
   }
 
@@ -833,9 +830,7 @@ static std::optional<FindClosestData> find_closest_curve_to_screen_co(
             const float2 pos_proj = ED_view3d_project_float_v2_m4(region, pos, projection);
 
             const float distance_proj_sq = math::distance_squared(pos_proj, mouse_pos);
-            if (distance_proj_sq > radius_sq ||
-                distance_proj_sq > best_match.distance * best_match.distance)
-            {
+            if (distance_proj_sq > radius_sq || distance_proj_sq > best_match.distance_sq) {
               return;
             }
 
@@ -851,9 +846,7 @@ static std::optional<FindClosestData> find_closest_curve_to_screen_co(
 
             const float distance_proj_sq = dist_squared_to_line_segment_v2(
                 mouse_pos, pos1_proj, pos2_proj);
-            if (distance_proj_sq > radius_sq ||
-                distance_proj_sq > best_match.distance * best_match.distance)
-            {
+            if (distance_proj_sq > radius_sq || distance_proj_sq > best_match.distance_sq) {
               return;
             }
 
@@ -870,7 +863,7 @@ static std::optional<FindClosestData> find_closest_curve_to_screen_co(
       },
       closer_elem);
 
-  if (new_closest_data.distance < initial_closest.distance) {
+  if (new_closest_data.distance_sq < initial_closest.distance_sq) {
     return new_closest_data;
   }
 

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'28a8486e2b3f')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'1c8669f8c9c1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-29 10:02+0000\n"
+"POT-Creation-Date: 2024-11-11 09:42+0000\n"
 "PO-Revision-Date: 2024-01-11 03:55+0000\n"
 "Last-Translator: Répási Dávid <hu.repasidavid@protonmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -6657,22 +6657,6 @@ msgid "Use Material Mask"
 msgstr "Anyagmaszk használata"
 
 
-msgid "Mirror"
-msgstr "Tükrözés"
-
-
-msgid "Local View"
-msgstr "Helyi nézet"
-
-
-msgid "Navigation"
-msgstr "Navigáció"
-
-
-msgid "Align View"
-msgstr "Nézet igazítása"
-
-
 msgid "Relations"
 msgstr "Kapcsolatok"
 
@@ -6699,6 +6683,22 @@ msgstr "Tisztítás"
 
 msgid "Merge"
 msgstr "Összefésülés"
+
+
+msgid "Mirror"
+msgstr "Tükrözés"
+
+
+msgid "Local View"
+msgstr "Helyi nézet"
+
+
+msgid "Navigation"
+msgstr "Navigáció"
+
+
+msgid "Align View"
+msgstr "Nézet igazítása"
 
 
 msgctxt "MovieClip"
@@ -13006,12 +13006,12 @@ msgid "Detail Size"
 msgstr "Részlet mérete"
 
 
-msgid "Motion Tracking"
-msgstr "Mozgáskövetés"
-
-
 msgid "Render Pass"
 msgstr "Render vezeték"
+
+
+msgid "Motion Tracking"
+msgstr "Mozgáskövetés"
 
 
 msgid "Chain Scaling"
@@ -13080,10 +13080,6 @@ msgstr "Hullámok"
 
 msgid "Deactivation"
 msgstr "Deaktiválás"
-
-
-msgid "Indirect Lighting"
-msgstr "Indirekt megvilágítás"
 
 
 msgid "Shadows"
@@ -14398,10 +14394,6 @@ msgid "Reduce extra velocity that can build up when objects collide (lowers simu
 msgstr "Extra sebesség csökkentése, ami termelődhet az objektumok ütözésekor (alacsonyabb szimulációs stabilitás, csak akkor ajánlott, ha feltétlenül szükséges)"
 
 
-msgid "Factor for ambient occlusion blending"
-msgstr "Faktor a Környezeti elnyelődés keveréséhez"
-
-
 msgid "Alpha Under"
 msgstr "Alfa takarás"
 
@@ -15259,6 +15251,10 @@ msgid "Render stylized strokes in this Layer"
 msgstr "A rétegen lévő stilizált vonások renderelése"
 
 
+msgid "Factor for ambient occlusion blending"
+msgstr "Faktor a Környezeti elnyelődés keveréséhez"
+
+
 msgid "Length of rays, defines how far away other faces give occlusion effect"
 msgstr "Sugarak hossza, meghatározza, milyen távol adjanak más oldallapok elnyelődés effektet"
 
@@ -15422,11 +15418,6 @@ msgstr "Kulcstábla"
 msgctxt "WindowManager"
 msgid "NLA Editor"
 msgstr "Akciószerkesztő (NLA)"
-
-
-msgctxt "WindowManager"
-msgid "Timeline"
-msgstr "Idővonal"
 
 
 msgctxt "WindowManager"
@@ -15832,10 +15823,6 @@ msgstr "Ecset hozzáadás"
 
 msgid "Surface Thickness"
 msgstr "Felületvastagság"
-
-
-msgid "Refraction"
-msgstr "Fénytörés"
 
 
 msgid "Paths:"

@@ -478,7 +478,7 @@ if(WIN32)
     dxgi
   )
   list(APPEND SRC
-    intern/system_win32.c
+    intern/system_win32.cc
   )
 endif()
 

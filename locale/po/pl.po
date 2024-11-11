@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'28a8486e2b3f')\n"
+"Project-Id-Version: Blender 4.3.0 Beta (b'1c8669f8c9c1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-29 10:02+0000\n"
+"POT-Creation-Date: 2024-11-11 09:42+0000\n"
 "PO-Revision-Date: 2024-09-20 01:56+0000\n"
 "Last-Translator: Kamil <uhkamil@gmail.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -9738,10 +9738,6 @@ msgid "Roughness of the material"
 msgstr "Szorstkość materiału"
 
 
-msgid "Shadow Mode"
-msgstr "Tryb cienia"
-
-
 msgid "Specular Color"
 msgstr "Kolor refleksu"
 
@@ -11234,26 +11230,6 @@ msgid "Use Material Mask"
 msgstr "Używa maski materiału"
 
 
-msgid "Mirror"
-msgstr "Odbicie lustrzane"
-
-
-msgid "Snap"
-msgstr "Przyciągaj"
-
-
-msgid "Local View"
-msgstr "Widok lokalny"
-
-
-msgid "Viewpoint"
-msgstr "Punkt obserwacji"
-
-
-msgid "Navigation"
-msgstr "Nawigacja"
-
-
 msgid "Select Linked"
 msgstr "Zaznacz powiązane"
 
@@ -11306,8 +11282,28 @@ msgid "Merge"
 msgstr "Scal"
 
 
+msgid "Snap"
+msgstr "Przyciągaj"
+
+
 msgid "Proportional Editing Falloff"
 msgstr "Proporcjonalne edytowanie spadku"
+
+
+msgid "Mirror"
+msgstr "Odbicie lustrzane"
+
+
+msgid "Local View"
+msgstr "Widok lokalny"
+
+
+msgid "Viewpoint"
+msgstr "Punkt obserwacji"
+
+
+msgid "Navigation"
+msgstr "Nawigacja"
 
 
 msgid "Catalog"
@@ -12334,6 +12330,11 @@ msgid "Input value used for unconnected socket"
 msgstr "Wartość wejściowa używana dla niepodłączonego złącza"
 
 
+msgctxt "NodeTree"
+msgid "Modulo"
+msgstr "Reszta z dzielenia"
+
+
 msgid "Replace String"
 msgstr "Zastąp łańcuch znaków"
 
@@ -12741,11 +12742,6 @@ msgid "Scale"
 msgstr "Skala"
 
 
-msgctxt "NodeTree"
-msgid "Modulo"
-msgstr "Reszta z dzielenia"
-
-
 msgid "Z Axis"
 msgstr "Oś Z"
 
@@ -12969,6 +12965,16 @@ msgid "Select Bones"
 msgstr "Zaznacz kości"
 
 
+msgctxt "Operator"
+msgid "Disable Add-on"
+msgstr "Wyłącz wtyczkę"
+
+
+msgctxt "Operator"
+msgid "Enable Add-on"
+msgstr "Włącz wtyczkę"
+
+
 msgid "Install an add-on"
 msgstr "Instaluje wtyczkę"
 
@@ -13037,16 +13043,6 @@ msgstr "Transformuj ustawienie Gizmo"
 
 msgid "List all the operators in a text-block, useful for scripting"
 msgstr "Lista wszystkich operatorów w bloku tekstowym, przydatna w skryptach"
-
-
-msgctxt "Operator"
-msgid "Disable Add-on"
-msgstr "Wyłącz wtyczkę"
-
-
-msgctxt "Operator"
-msgid "Enable Add-on"
-msgstr "Włącz wtyczkę"
 
 
 msgctxt "Operator"
@@ -16410,6 +16406,18 @@ msgid "Palette Color"
 msgstr "Kolor palety"
 
 
+msgid "Active Tool"
+msgstr "Aktywne narzędzie"
+
+
+msgid "Shadow Settings"
+msgstr "Ustawienia cienia"
+
+
+msgid "Compositor"
+msgstr "Kompozytor"
+
+
 msgid "Motion Tracking"
 msgstr "Śledzenie ruchu"
 
@@ -16432,18 +16440,6 @@ msgstr "Przyciąganie"
 
 msgid "Transform Orientations"
 msgstr "Orientacje przekształcenia"
-
-
-msgid "Active Tool"
-msgstr "Aktywne narzędzie"
-
-
-msgid "Shadow Settings"
-msgstr "Ustawienia cienia"
-
-
-msgid "Compositor"
-msgstr "Kompozytor"
 
 
 msgid "Aperture"
@@ -16614,32 +16610,12 @@ msgid "Dynamics"
 msgstr "Dynamika"
 
 
-msgid "Indirect Lighting"
-msgstr "Oświetlenie pośrednie"
-
-
 msgid "Denoising"
 msgstr "Odszumianie"
 
 
 msgid "Shadows"
 msgstr "Cienie"
-
-
-msgid "Screen Space Reflections"
-msgstr "Odbicia przestrzeni ekranu"
-
-
-msgid "Volumetrics"
-msgstr "Wolumetria"
-
-
-msgid "Volumetric Lighting"
-msgstr "Oświetlenie wolumetryczne"
-
-
-msgid "Volumetric Shadows"
-msgstr "Cienie wolumetryczne"
 
 
 msgid "Encoding"
@@ -17526,10 +17502,6 @@ msgid "Number of samples"
 msgstr "Liczba próbek"
 
 
-msgid "Knee"
-msgstr "Stopniowanie"
-
-
 msgid "Max Size"
 msgstr "Maksymalny rozmiar"
 
@@ -17546,10 +17518,6 @@ msgid "Precision of the horizon search"
 msgstr "Precyzja wyszukiwania horyzontalnego"
 
 
-msgid "Max Roughness"
-msgstr "Maksymalna szorstkość"
-
-
 msgid "Render Samples"
 msgstr "Próbki renderowania"
 
@@ -17562,12 +17530,12 @@ msgid "Number of samples, unlimited if 0"
 msgstr "Liczba próbek - nieograniczona, jeśli 0"
 
 
-msgid "Bent Normals"
-msgstr "Pochylone wektory normalne"
-
-
 msgid "Viewport Denoising"
 msgstr "Odszumianie rzutni"
+
+
+msgid "Volumetric Shadows"
+msgstr "Cienie wolumetryczne"
 
 
 msgid "Render settings"
@@ -18726,11 +18694,6 @@ msgstr "Edytor wykresów"
 
 
 msgctxt "WindowManager"
-msgid "Timeline"
-msgstr "Oś czasu"
-
-
-msgctxt "WindowManager"
 msgid "Image"
 msgstr "Obraz"
 
@@ -19406,10 +19369,6 @@ msgstr "Dodaj rozdzielczość"
 
 msgid "Bake Selected"
 msgstr "Wypal zaznaczenie"
-
-
-msgid "Light Clamping"
-msgstr "Ograniczenie światła"
 
 
 msgid "Render Engine"
@@ -21744,10 +21703,6 @@ msgstr "Nie odnaleziono biblioteki '%s'"
 
 msgid "Unable to open blend <memory>"
 msgstr "Otwarcie pliku blend niemożliwe <pamięć>"
-
-
-msgid "Failed to read blend file '%s', not a blend file"
-msgstr "Odczyt pliku blend '%s' nie powiódł się, to nie jest plik blend"
 
 
 msgid "Unable to open '%s': %s"

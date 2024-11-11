@@ -520,7 +520,7 @@ static int weight_sample_invoke(bContext *C, wmOperator * /*op*/, const wmEvent 
         return new_closest;
       },
       [](const ClosestGreasePencilDrawing &a, const ClosestGreasePencilDrawing &b) {
-        return (a.elem.distance < b.elem.distance) ? a : b;
+        return (a.elem.distance_sq < b.elem.distance_sq) ? a : b;
       });
 
   if (!closest.drawing) {

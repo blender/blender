@@ -2737,8 +2737,7 @@ void ED_uvedit_live_unwrap(const Scene *scene, const Span<Object *> objects)
     options.topology_from_uvs = false;
     options.only_selected_faces = false;
     options.only_selected_uvs = false;
-    options.fill_holes = (scene->toolsettings->uvcalc_flag & UVCALC_FILLHOLES) != 0;
-    options.correct_aspect = (scene->toolsettings->uvcalc_flag & UVCALC_NO_ASPECT_CORRECT) == 0;
+
     uvedit_unwrap_multi(scene, objects, &options, nullptr);
 
     blender::geometry::UVPackIsland_Params pack_island_params;
@@ -2772,8 +2771,6 @@ static int unwrap_exec(bContext *C, wmOperator *op)
   options.topology_from_uvs = false;
   options.only_selected_faces = true;
   options.only_selected_uvs = false;
-  options.fill_holes = RNA_boolean_get(op->ptr, "fill_holes");
-  options.correct_aspect = RNA_boolean_get(op->ptr, "correct_aspect");
 
   /* We will report an error unless at least one object
    * has the subsurf modifier in the right place. */

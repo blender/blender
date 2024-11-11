@@ -104,6 +104,9 @@ RE_MANIFEST_SEMVER = re.compile(
 # Ensure names (for example), don't contain control characters.
 RE_CONTROL_CHARS = re.compile(r'[\x00-\x1f\x7f-\x9f]')
 
+# Use to extract a Python version tag: `py3`, `cp311` etc, from a wheel's filename.
+RE_PYTHON_WHEEL_VERSION_TAG = re.compile("([a-zA-Z]+)([0-9]+)")
+
 # Progress updates are displayed after each chunk of this size is downloaded.
 # Small values add unnecessary overhead showing progress, large values will make
 # progress not update often enough.
@@ -116,6 +119,11 @@ CHUNK_SIZE_DEFAULT = 1 << 14
 # Short descriptions for the UI:
 # Used for project tag-line & permissions values.
 TERSE_DESCRIPTION_MAX_LENGTH = 64
+
+# Enforce naming spec:
+# https://packaging.python.org/en/latest/specifications/binary-distribution-format/#file-name-convention
+# This also defines the name spec:
+WHEEL_FILENAME_SPEC = "{distribution}-{version}(-{build tag})?-{python tag}-{abi tag}-{platform tag}.whl"
 
 # Default HTML for `server-generate`.
 # Intentionally very basic, users may define their own `--html-template`.
@@ -1830,34 +1838,34 @@ def pkg_manifest_validate_field_build_path_list(value: list[Any], strict: bool) 
 
     for item in value:
         if not isinstance(item, str):
-            return "Expected \"paths\" to be a list of strings, found {:s}".format(str(type(item)))
+            return "Expected \"paths\" to be a list of strings, found \"{:s}\"".format(str(type(item)))
         if not item:
             return "Expected \"paths\" items to be a non-empty string"
         if "\\" in item:
-            return "Expected \"paths\" items to use \"/\" slashes, found: {:s}".format(item)
+            return "Expected \"paths\" items to use \"/\" slashes, found: \"{:s}\"".format(item)
         if "\n" in item:
-            return "Expected \"paths\" items to contain single lines, found: {:s}".format(item)
+            return "Expected \"paths\" items to contain single lines, found: \"{:s}\"".format(item)
         # TODO: properly handle WIN32 absolute paths.
         if item.startswith("/"):
-            return "Expected \"paths\" to be relative, found: {:s}".format(item)
+            return "Expected \"paths\" to be relative, found: \"{:s}\"".format(item)
 
         # Disallow references to `../../path` as this wont map into a the archive properly.
         # Further it may provide a security problem.
         item_native = os.path.normpath(item if os.sep == "/" else item.replace("/", "\\"))
         if item_native.startswith(".." + os.sep):
-            return "Expected \"paths\" items to reference paths within a directory, found: {:s}".format(item)
+            return "Expected \"paths\" items to reference paths within a directory, found: \"{:s}\"".format(item)
 
         # Disallow duplicate names (when lower-case) to avoid collisions on case insensitive file-systems.
         item_native_lower = item_native.lower()
         len_prev = len(value_duplicate_check)
         value_duplicate_check.add(item_native_lower)
         if len_prev == len(value_duplicate_check):
-            return "Expected \"paths\" to contain unique paths, duplicate found: {:s}".format(item)
+            return "Expected \"paths\" to contain unique paths, duplicate found: \"{:s}\"".format(item)
 
         # Having to support this optionally ends up being reasonably complicated.
         # Simply throw an error if it's included, so it can be added at build time.
         if item_native == PKG_MANIFEST_FILENAME_TOML:
-            return "Expected \"paths\" not to contain the manifest, found: {:s}".format(item)
+            return "Expected \"paths\" not to contain the manifest, found: \"{:s}\"".format(item)
 
         # NOTE: other checks could be added here, (exclude control characters for example).
         # Such cases are quite unlikely so supporting them isn't so important.
@@ -1871,10 +1879,6 @@ def pkg_manifest_validate_field_wheels(
 ) -> str | None:
     if (error := pkg_manifest_validate_field_any_list_of_non_empty_strings(value, strict)) is not None:
         return error
-    # Enforce naming spec:
-    # https://packaging.python.org/en/latest/specifications/binary-distribution-format/#file-name-convention
-    # This also defines the name spec:
-    filename_spec = "{distribution}-{version}(-{build tag})?-{python tag}-{abi tag}-{platform tag}.whl"
 
     for wheel in value:
         if "\"" in wheel:
@@ -1894,7 +1898,10 @@ def pkg_manifest_validate_field_wheels(
         wheel_filename_split = wheel_filename.split("-")
         # pylint: disable-next=superfluous-parens
         if not (5 <= len(wheel_filename_split) <= 6):
-            return "wheel filename must follow the spec \"{:s}\", found {!r}".format(filename_spec, wheel_filename)
+            return "wheel filename must follow the spec \"{:s}\", found {!r}".format(
+                WHEEL_FILENAME_SPEC,
+                wheel_filename,
+            )
 
     return None
 
@@ -2191,6 +2198,99 @@ def blender_platform_compatible_with_wheel_platform_from_filepath(platform: str,
     return blender_platform_compatible_with_wheel_platform(platform, wheel_platform)
 
 
+def python_versions_from_wheel_python_tag(python_tag: str) -> set[tuple[int] | tuple[int, int]] | str:
+    """
+    Return Python versions from a wheels ``python_tag``.
+    """
+    # Index backwards to skip the optional build tag.
+    # The version may be:
+    # `cp312` for CPython 3.12
+    # `py2.py3` for both Python 2 & 3.
+    versions_string = python_tag.split(".")
+
+    # Based on the documentation as of 2024 and wheels used by existing extensions,
+    # these are the only valid prefix values.
+    version_prefix_known = {"py", "cp"}
+
+    versions: set[tuple[int] | tuple[int, int]] = set()
+
+    for version_string in versions_string:
+        m = RE_PYTHON_WHEEL_VERSION_TAG.match(version_string)
+        if m is None:
+            return "wheel filename version could not be extracted from: \"{:s}\"".format(
+                version_string,
+            )
+
+        version_prefix = m.group(1).lower()
+        version_number = m.group(2)
+
+        if version_prefix in version_prefix_known:
+            if len(version_number) > 1:
+                # Convert: `"311"` to `(3, 11)`.
+                version: tuple[int, int] | tuple[int] = (int(version_number[:1]), int(version_number[1:]))
+            else:
+                # Common for "py3".
+                version = (int(version_number), )
+            versions.add(version)
+        else:
+            return (
+                "wheel filename version prefix failed to be extracted "
+                "found \"{:s}\" int \"{:s}\", expected a value in ({:s})"
+            ).format(
+                version_prefix,
+                python_tag,
+                ", ".join(sorted(version_prefix_known)),
+            )
+
+    return versions
+
+
+def python_versions_from_wheel(wheel_filename: str) -> set[tuple[int] | tuple[int, int]] | str:
+    """
+    Extract a set of Python versions from a list of wheels or return an error string.
+    """
+    wheel_filename_split = wheel_filename.split("-")
+
+    # pylint: disable-next=superfluous-parens
+    if not (5 <= len(wheel_filename_split) <= 6):
+        return "wheel filename must follow the spec \"{:s}\", found {!r}".format(WHEEL_FILENAME_SPEC, wheel_filename)
+
+    return python_versions_from_wheel_python_tag(wheel_filename_split[-3])
+
+
+def python_versions_from_wheels(wheel_files: Sequence[str]) -> set[tuple[int] | tuple[int, int]] | str:
+    if not wheel_files:
+        assert False, "unreachable"
+        return ()
+
+    version_major_only: set[tuple[int]] = set()
+    version_major_minor: set[tuple[int, int]] = set()
+    for filepath in wheel_files:
+        if isinstance(result := python_versions_from_wheel(os.path.basename(filepath)), str):
+            return result
+        # Check for an empty set - no version info.
+        if not result:
+            continue
+
+        for v in result:
+            # Exclude support for historic Python versions.
+            # While including this info is technically correct, it's *never* useful to include this info.
+            # So listing this information in every server JSON listing is redundant.
+            if v[0] <= 2:
+                continue
+
+            if len(v) == 1:
+                version_major_only.add(v)
+            else:
+                version_major_minor.add(v)
+
+    # Clean the versions, exclude `(3,)` when `(3, 11)` is present.
+    for v in version_major_minor:
+        version_major_only.discard((v[0],))
+
+    return version_major_only | version_major_minor
+
+
 def paths_filter_wheels_by_platform(
         wheels: list[str],
         platform: str,
@@ -2262,6 +2362,7 @@ def repository_filter_skip(
         *,
         filter_blender_version: tuple[int, int, int],
         filter_platform: str,
+        filter_python_version: tuple[int, int, int],
         # When `skip_message_fn` is set, returning true must call the `skip_message_fn` function.
         skip_message_fn: Callable[[str], None] | None,
         error_fn: Callable[[Exception], None],
@@ -2277,6 +2378,47 @@ def repository_filter_skip(
                     ", ".join(platforms),
                 ))
             return True
+
+    if filter_python_version != (0, 0, 0):
+        if (python_versions := item.get("python_versions")) is not None:
+            if not isinstance(python_versions, list):
+                # Possibly noisy, but this should *not* be happening on a regular basis.
+                error_fn(TypeError("python_versions is not a list, found a: {:s}".format(str(type(python_versions)))))
+            elif python_versions:
+                ok = True
+                python_versions_as_set: set[str] = set()
+                for v in python_versions:
+                    if not isinstance(v, str):
+                        error_fn(TypeError((
+                            "python_versions is not a list of strings, "
+                            "found an item of type: {:s}"
+                        ).format(str(type(v)))))
+                        ok = False
+                        break
+                    # The full Python version isn't explicitly disallowed,
+                    # ignore trailing values only check major/minor.
+                    if v.count(".") > 1:
+                        v = ".".join(v.split(".")[:2])
+                    python_versions_as_set.add(v)
+
+                if ok:
+                    # There is no need to do any complex extraction and comparison.
+                    # Simply check if the `{major}.{minor}` or `{major}` exists in the set.
+                    python_versions_as_set = set(python_versions)
+                    filter_python_version_major_minor = "{:d}.{:d}".format(*filter_python_version[:2])
+                    filter_python_version_major_only = "{:d}".format(filter_python_version[0])
+                    if not (
+                            filter_python_version_major_minor in python_versions_as_set or
+                            filter_python_version_major_only in python_versions_as_set
+                    ):
+                        if skip_message_fn is not None:
+                            skip_message_fn("This Python version ({:s}) isn't compatible with ({:s})".format(
+                                filter_python_version_major_minor,
+                                ", ".join(python_versions),
+                            ))
+
+                        return True
+                    del filter_python_version_major_minor, filter_python_version_major_only, python_versions_as_set
 
     if filter_blender_version != (0, 0, 0):
         version_min_str = item.get("blender_version_min")
@@ -2326,20 +2468,28 @@ def repository_filter_skip(
     return False
 
 
-def blender_version_parse_or_error(version: str) -> tuple[int, int, int] | str:
+def generic_version_triple_parse_or_error(version: str, identifier: str) -> tuple[int, int, int] | str:
     try:
         version_tuple: tuple[int, ...] = tuple(int(x) for x in version.split("."))
     except Exception as ex:
-        return "unable to parse blender version: {:s}, {:s}".format(version, str(ex))
+        return "unable to parse {:s} version: {:s}, {:s}".format(identifier, version, str(ex))
 
     if not version_tuple:
-        return "unable to parse empty blender version: {:s}".format(version)
+        return "unable to parse empty {:s} version: {:s}".format(identifier, version)
 
     # `mypy` can't detect that this is guaranteed to be 3 items.
     return (
         version_tuple if (len(version_tuple) == 3) else
         (*version_tuple, 0, 0)[:3]  # type: ignore
     )
+
+
+def blender_version_parse_or_error(version: str) -> tuple[int, int, int] | str:
+    return generic_version_triple_parse_or_error(version, "Blender")
+
+
+def python_version_parse_or_error(version: str) -> tuple[int, int, int] | str:
+    return generic_version_triple_parse_or_error(version, "Python")
 
 
 def blender_version_parse_any_or_error(version: Any) -> tuple[int, int, int] | str:
@@ -2433,13 +2583,20 @@ def pkg_manifest_toml_is_valid_or_error(filepath: str, strict: bool) -> tuple[st
     return None, result
 
 
-def pkg_manifest_detect_duplicates(pkg_items: list[PkgManifest]) -> str | None:
+def pkg_manifest_detect_duplicates(
+        pkg_items: list[tuple[
+            PkgManifest,
+            str,
+            list[tuple[int] | tuple[int, int]],
+        ]],
+) -> str | None:
     """
     When a repository includes multiple packages with the same ID, ensure they don't conflict.
 
     Ensure packages have non-overlapping:
     - Platforms.
     - Blender versions.
+    - Python versions.
 
     Return an error if they do, otherwise None.
     """
@@ -2447,6 +2604,9 @@ def pkg_manifest_detect_duplicates(pkg_items: list[PkgManifest]) -> str | None:
     # Dummy ranges for the purpose of valid comparisons.
     dummy_verion_min = 0, 0, 0
     dummy_verion_max = 1000, 0, 0
+
+    dummy_platform = ""
+    dummy_python_version = (0,)
 
     def parse_version_or_default(version: str | None, default: tuple[int, int, int]) -> tuple[int, int, int]:
         if version is None:
@@ -2466,68 +2626,175 @@ def pkg_manifest_detect_duplicates(pkg_items: list[PkgManifest]) -> str | None:
         version_max_str = "..." if dummy_max else "{:d}.{:d}.{:d}".format(*version_max)
         return "[{:s} -> {:s}]".format(version_min_str, version_max_str)
 
-    # Sort for predictable output.
-    platforms_all = tuple(sorted(set(
-        platform
-        for manifest in pkg_items
-        for platform in (manifest.platforms or ())
-    )))
+    def ordered_int_pair(a: int, b: int) -> tuple[int, int]:
+        assert a != b
+        if a > b:
+            return b, a
+        return a, b
 
-    manifest_per_platform: dict[str, list[PkgManifest]] = {platform: [] for platform in platforms_all}
-    if platforms_all:
-        for manifest in pkg_items:
-            # No platforms means all platforms.
-            for platform in (manifest.platforms or platforms_all):
-                manifest_per_platform[platform].append(manifest)
-    else:
-        manifest_per_platform[""] = pkg_items
+    class PkgManifest_DupeInfo:
+        __slots__ = (
+            "manifest",
+            "filename",
+            "python_versions",
+            "index",
 
-    # Packages have been split by platform, now detect version overlap.
-    platform_dupliates = {}
-    for platform, pkg_items_platform in manifest_per_platform.items():
-        # Must never be empty.
-        assert pkg_items_platform
-        if len(pkg_items_platform) == 1:
-            continue
+            # Version range (min, max) or defaults.
+            "blender_version_range",
 
-        version_ranges: list[tuple[tuple[int, int, int], tuple[int, int, int]]] = []
-        for manifest in pkg_items_platform:
-            version_ranges.append((
+            # Expand values so duplicates can be detected by comparing literal overlaps.
+            "expanded_platforms",
+            "expanded_python_versions",
+        )
+
+        def __init__(
+                self,
+                *,
+                manifest: PkgManifest,
+                filename: str,
+                python_versions: list[tuple[int] | tuple[int, int]],
+                index: int,
+        ):
+            self.manifest = manifest
+            self.filename = filename
+            self.python_versions: list[tuple[int] | tuple[int, int]] = python_versions
+            self.index = index
+
+            # NOTE: this assignment could be deferred as it's only needed in the case potential duplicates are found.
+            self.blender_version_range = (
                 parse_version_or_default(manifest.blender_version_min, dummy_verion_min),
                 parse_version_or_default(manifest.blender_version_max, dummy_verion_max),
-            ))
-        # Sort by the version range so overlaps can be detected between adjacent members.
-        version_ranges.sort()
+            )
 
-        duplicates_found = []
-        item_prev = version_ranges[0]
-        for i in range(1, len(version_ranges)):
-            item_curr = version_ranges[i]
+            self.expanded_platforms: list[str] = []
+            self.expanded_python_versions: list[tuple[int] | tuple[int, int]] = []
+
+    pkg_items_dup = [
+        PkgManifest_DupeInfo(
+            manifest=manifest,
+            filename=filename,
+            python_versions=python_versions,
+            index=i,
+        ) for i, (manifest, filename, python_versions) in enumerate(pkg_items)
+    ]
+
+    # Store all configurations.
+    platforms_all = set()
+    python_versions_all = set()
+
+    for item_dup in pkg_items_dup:
+        item = item_dup.manifest
+        if item.platforms:
+            platforms_all.update(item.platforms)
+
+        if item_dup.python_versions:
+            python_versions_all.update(item_dup.python_versions)
+        del item
+
+    # Expand values.
+    for item_dup in pkg_items_dup:
+        item = item_dup.manifest
+        if platforms_all:
+            item_dup.expanded_platforms[:] = item.platforms or platforms_all
+        else:
+            item_dup.expanded_platforms[:] = [dummy_platform]
+
+        if python_versions_all:
+            item_dup.expanded_python_versions[:] = item_dup.python_versions or python_versions_all
+        else:
+            item_dup.expanded_python_versions[:] = [dummy_python_version]
+        del item
+
+    # Expand Python "major only" versions.
+    # Some wheels define "py3" only, this will be something we have to deal with
+    # when Python moves to Python 4.
+    # It's important that Python 3.11 detects as conflicting with Python 3.
+    python_versions_all_map_major_to_full: dict[int, list[tuple[int, int]]] = {}
+    for python_version in python_versions_all:
+        if len(python_version) != 2:
+            continue
+        python_version_major = python_version[0]
+        if (python_version_major,) not in python_versions_all:
+            continue
+
+        if (python_versions := python_versions_all_map_major_to_full.get(python_version_major)) is None:
+            python_versions = python_versions_all_map_major_to_full[python_version_major] = []
+        python_versions.append(python_version)
+        del python_versions
+
+    for item_dup in pkg_items_dup:
+        for python_version in item_dup.python_versions:
+            if len(python_version) != 1:
+                continue
+            python_version_major = python_version[0]
+
+            expanded_python_versions_set = set(item_dup.expanded_python_versions)
+            if (python_versions_full := python_versions_all_map_major_to_full.get(python_version_major)) is not None:
+                # Expand major to major-minor versions.
+                item_dup.expanded_python_versions.extend([
+                    v for v in python_versions_full
+                    if v not in expanded_python_versions_set
+                ])
+            del python_versions_full
+
+    # This can be expanded with additional values as needed.
+    # We could in principle have ABI flags (debug/release) for e.g.
+    PkgCfgKey = tuple[
+        # Platform.
+        str,
+        # Python Version.
+        tuple[int] | tuple[int, int],
+    ]
+
+    pkg_items_dup_per_cfg: dict[PkgCfgKey, list[PkgManifest_DupeInfo]] = {}
+
+    for item_dup in pkg_items_dup:
+        for platform in item_dup.expanded_platforms:
+            for python_version in item_dup.expanded_python_versions:
+                key = (platform, python_version)
+                if (pkg_items_cfg := pkg_items_dup_per_cfg.get(key)) is None:
+                    pkg_items_cfg = pkg_items_dup_per_cfg[key] = []
+                pkg_items_cfg.append(item_dup)
+                del pkg_items_cfg
+
+    # Don't report duplicates more than once.
+    duplicate_indices: set[tuple[int, int]] = set()
+
+    # Packages have been split by configuration, now detect version overlap.
+    duplicates_found = []
+
+    # NOTE: we might want to include the `key` in the message,
+    # after all, it's useful to know if the conflict occurs between specific platforms or Python versions.
+
+    for pkg_items_cfg in pkg_items_dup_per_cfg.values():
+        # Must never be empty.
+        assert pkg_items_cfg
+        if len(pkg_items_cfg) == 1:
+            continue
+
+        # Sort by the version range so overlaps can be detected between adjacent members.
+        pkg_items_cfg.sort(key=lambda item_dup: item_dup.blender_version_range)
+
+        item_prev = pkg_items_cfg[0]
+        for i in range(1, len(pkg_items_cfg)):
+            item_curr = pkg_items_cfg[i]
 
             # Previous maximum is less than or equal to the current minimum, no overlap.
-            if item_prev[1] > item_curr[0]:
-                duplicates_found.append("{:s} & {:s}".format(
-                    version_range_as_str(*item_prev),
-                    version_range_as_str(*item_curr),
-                ))
+            if item_prev.blender_version_range[1] > item_curr.blender_version_range[0]:
+                # Don't report multiple times.
+                dup_key = ordered_int_pair(item_prev.index, item_curr.index)
+                if dup_key not in duplicate_indices:
+                    duplicate_indices.add(dup_key)
+                    duplicates_found.append("{:s}={:s} & {:s}={:s}".format(
+                        item_prev.filename, version_range_as_str(*item_prev.blender_version_range),
+                        item_curr.filename, version_range_as_str(*item_curr.blender_version_range),
+                    ))
             item_prev = item_curr
 
-        if duplicates_found:
-            platform_dupliates[platform] = duplicates_found
-
-    if platform_dupliates:
-        # Simpler, no platforms.
-        if platforms_all:
-            error_text = ", ".join([
-                "\"{:s}\": ({:s})".format(platform, ", ".join(errors))
-                for platform, errors in platform_dupliates.items()
-            ])
-        else:
-            error_text = ", ".join(platform_dupliates[""])
-
+    if duplicates_found:
         return "{:d} duplicate(s) found, conflicting blender versions {:s}".format(
-            sum(map(len, platform_dupliates.values())),
-            error_text,
+            len(duplicates_found),
+            ", ".join(duplicates_found),
         )
 
     # No collisions found.
@@ -3020,6 +3287,19 @@ def generic_arg_blender_version(subparse: argparse.ArgumentParser) -> None:
     )
 
 
+def generic_arg_python_version(subparse: argparse.ArgumentParser) -> None:
+    subparse.add_argument(
+        "--python-version",
+        dest="python_version",
+        default="0.0.0",
+        type=str,
+        help=(
+            "The version of Python used for selecting packages."
+        ),
+        required=False,
+    )
+
+
 def generic_arg_temp_prefix_and_suffix(subparse: argparse.ArgumentParser) -> None:
     subparse.add_argument(
         "--temp-prefix-and-suffix",
@@ -3262,6 +3542,7 @@ class subcmd_server:
             fh.write("    <th>Description</th>\n")
             fh.write("    <th>Website</th>\n")
             fh.write("    <th>Blender Versions</th>\n")
+            fh.write("    <th>Python Versions</th>\n")
             fh.write("    <th>Platforms</th>\n")
             fh.write("    <th>Size</th>\n")
             fh.write("  </tr>\n")
@@ -3273,6 +3554,7 @@ class subcmd_server:
                 fh.write("  <tr>\n")
 
                 platforms = manifest_dict.get("platforms", [])
+                python_versions = manifest_dict.get("python_versions", [])
 
                 # Parse the URL and add parameters use for drag & drop.
                 parsed_url = urllib.parse.urlparse(manifest_dict["archive_url"])
@@ -3285,6 +3567,8 @@ class subcmd_server:
                     query["blender_version_max"] = value
                 if platforms:
                     query["platforms"] = ",".join(platforms)
+                if python_versions:
+                    query["python_versions"] = ",".join(python_versions)
                 del value
 
                 id_and_link = "<a href=\"{:s}\">{:s}</a>".format(
@@ -3317,7 +3601,14 @@ class subcmd_server:
                     )
                 else:
                     blender_version_str = "all"
+
+                if python_versions:
+                    python_version_str = ", ".join(python_versions)
+                else:
+                    python_version_str = "all"
+
                 fh.write("    <td>{:s}</td>\n".format(html.escape(blender_version_str)))
+                fh.write("    <td>{:s}</td>\n".format(html.escape(python_version_str)))
                 fh.write("    <td>{:s}</td>\n".format(html.escape(", ".join(platforms) if platforms else "all")))
                 fh.write("    <td>{:s}</td>\n".format(html.escape(size_as_fmt_string(manifest_dict["archive_size"]))))
                 fh.write("  </tr>\n")
@@ -3403,7 +3694,7 @@ class subcmd_server:
                 return False
         assert repo_config is None or isinstance(repo_config, PkgServerRepoConfig)
 
-        repo_data_idname_map: dict[str, list[PkgManifest]] = {}
+        repo_data_idname_map: dict[str, list[tuple[PkgManifest, str, list[tuple[int] | tuple[int, int]]]]] = {}
         repo_data: list[dict[str, Any]] = []
 
         # Write package meta-data into each directory.
@@ -3436,9 +3727,6 @@ class subcmd_server:
             manifest_dict = manifest._asdict()
 
             pkg_idname = manifest_dict["id"]
-            if (pkg_items := repo_data_idname_map.get(pkg_idname)) is None:
-                pkg_items = repo_data_idname_map[pkg_idname] = []
-            pkg_items.append(manifest)
 
             # Call all optional keys so the JSON never contains `null` items.
             for key, value in list(manifest_dict.items()):
@@ -3446,8 +3734,27 @@ class subcmd_server:
                     del manifest_dict[key]
 
             # Don't include these in the server listing.
-            for key in ("wheels", ):
-                manifest_dict.pop(key, None)
+            wheels: list[str] = manifest_dict.pop("wheels", [])
+
+            # Extract the `python_versions` from wheels.
+            python_versions_final: list[tuple[int] | tuple[int, int]] = []
+            if wheels:
+                if isinstance(python_versions := python_versions_from_wheels(wheels), str):
+                    msglog.warn("unable to parse Python version from \"wheels\" ({:s}): {:s}".format(
+                        python_versions,
+                        filepath,
+                    ))
+                else:
+                    python_versions_final[:] = sorted(python_versions)
+
+                    manifest_dict["python_versions"] = [
+                        ".".join(str(v) for v in version)
+                        for version in python_versions_final
+                    ]
+
+            if (pkg_items := repo_data_idname_map.get(pkg_idname)) is None:
+                pkg_items = repo_data_idname_map[pkg_idname] = []
+            pkg_items.append((manifest, filename, python_versions_final))
 
             # These are added, ensure they don't exist.
             has_key_error = False
@@ -3476,6 +3783,8 @@ class subcmd_server:
         for pkg_idname, pkg_items in repo_data_idname_map.items():
             if len(pkg_items) == 1:
                 continue
+            # Sort for predictable output.
+            pkg_items.sort(key=lambda pkg_item_ext: pkg_item_ext[1])
             if (error := pkg_manifest_detect_duplicates(pkg_items)) is not None:
                 msglog.warn("archive found with duplicates for id {:s}: {:s}".format(pkg_idname, error))
 
@@ -3614,6 +3923,7 @@ class subcmd_client:
             local_dir: str,
             filepath_archive: str,
             blender_version_tuple: tuple[int, int, int],
+            python_version_tuple: tuple[int, int, int],
             manifest_compare: PkgManifest | None,
             temp_prefix_and_suffix: tuple[str, str],
     ) -> bool:
@@ -3670,6 +3980,7 @@ class subcmd_client:
                     manifest._asdict(),
                     filter_blender_version=blender_version_tuple,
                     filter_platform=platform_from_this_system(),
+                    filter_python_version=python_version_tuple,
                     skip_message_fn=lambda message: any_as_none(
                         msglog.error("{:s}: {:s}".format(manifest.id, message))
                     ),
@@ -3736,6 +4047,7 @@ class subcmd_client:
             local_dir: str,
             package_files: Sequence[str],
             blender_version: str,
+            python_version: str,
             temp_prefix_and_suffix: tuple[str, str],
     ) -> bool:
         if not os.path.exists(local_dir):
@@ -3747,6 +4059,11 @@ class subcmd_client:
             return False
         assert isinstance(blender_version_tuple, tuple)
 
+        if isinstance(python_version_tuple := python_version_parse_or_error(python_version), str):
+            msglog.fatal_error(python_version_tuple)
+            return False
+        assert isinstance(python_version_tuple, tuple)
+
         # This is a simple file extraction, the main difference is that it validates the manifest before installing.
         directories_to_clean: list[str] = []
         with CleanupPathsContext(files=(), directories=directories_to_clean):
@@ -3756,6 +4073,7 @@ class subcmd_client:
                         local_dir=local_dir,
                         filepath_archive=filepath_archive,
                         blender_version_tuple=blender_version_tuple,
+                        python_version_tuple=python_version_tuple,
                         # There is no manifest from the repository, leave this unset.
                         manifest_compare=None,
                         temp_prefix_and_suffix=temp_prefix_and_suffix,
@@ -3775,6 +4093,7 @@ class subcmd_client:
             packages: Sequence[str],
             online_user_agent: str,
             blender_version: str,
+            python_version: str,
             access_token: str,
             timeout_in_seconds: float,
             temp_prefix_and_suffix: tuple[str, str],
@@ -3789,6 +4108,11 @@ class subcmd_client:
             msglog.fatal_error(blender_version_tuple)
             return False
         assert isinstance(blender_version_tuple, tuple)
+
+        if isinstance(python_version_tuple := python_version_parse_or_error(python_version), str):
+            msglog.fatal_error(python_version_tuple)
+            return False
+        assert isinstance(python_version_tuple, tuple)
 
         # Extract...
         if isinstance((pkg_repo_data := repo_pkginfo_from_local_or_none(local_dir=local_dir)), str):
@@ -3854,6 +4178,7 @@ class subcmd_client:
                     pkg_info,
                     filter_blender_version=blender_version_tuple,
                     filter_platform=platform_this,
+                    filter_python_version=python_version_tuple,
                     skip_message_fn=None,
                     error_fn=lambda ex: any_as_none(
                         # pylint: disable-next=cell-var-from-loop
@@ -4002,6 +4327,7 @@ class subcmd_client:
                         local_dir=local_dir,
                         filepath_archive=filepath_local_cache_archive,
                         blender_version_tuple=blender_version_tuple,
+                        python_version_tuple=python_version_tuple,
                         manifest_compare=manifest_archive.manifest,
                         temp_prefix_and_suffix=temp_prefix_and_suffix,
                 ):
@@ -4176,11 +4502,14 @@ class subcmd_author:
             *(manifest.wheels or ()),
         )
         build_paths_wheel_range = 1, 1 + len(manifest.wheels or ())
+        # Exclude when checking file listing because the extra paths are mixed with user defined paths,
+        # and including the manifest raises an error.
+        build_paths_extra_skip_index = 1
 
         if manifest_build_data is not None:
             manifest_build_test = PkgManifest_Build.from_dict_all_errors(
                 manifest_build_data,
-                extra_paths=build_paths_extra,
+                extra_paths=build_paths_extra[build_paths_extra_skip_index:],
             )
             if isinstance(manifest_build_test, list):
                 for error_msg in manifest_build_test:
@@ -4371,6 +4700,9 @@ class subcmd_author:
                                 zip_fh.writestr(filepath_rel, zip_data_override, compress_type=compress_type)
                             else:
                                 zip_fh.write(filepath_abs, filepath_rel, compress_type=compress_type)
+                        except FileNotFoundError:
+                            msglog.fatal_error("Error adding to archive, file not found: \"{:s}\"".format(filepath_rel))
+                            return False
                         except Exception as ex:
                             msglog.fatal_error("Error adding to archive \"{:s}\"".format(str(ex)))
                             return False
@@ -4813,6 +5145,7 @@ def argparse_create_client_install_files(subparsers: "argparse._SubParsersAction
 
     generic_arg_local_dir(subparse)
     generic_arg_blender_version(subparse)
+    generic_arg_python_version(subparse)
 
     generic_arg_temp_prefix_and_suffix(subparse)
 
@@ -4824,6 +5157,7 @@ def argparse_create_client_install_files(subparsers: "argparse._SubParsersAction
             local_dir=args.local_dir,
             package_files=args.files,
             blender_version=args.blender_version,
+            python_version=args.python_version,
             temp_prefix_and_suffix=args.temp_prefix_and_suffix,
         ),
     )
@@ -4843,6 +5177,7 @@ def argparse_create_client_install(subparsers: "argparse._SubParsersAction[argpa
     generic_arg_local_cache(subparse)
     generic_arg_online_user_agent(subparse)
     generic_arg_blender_version(subparse)
+    generic_arg_python_version(subparse)
     generic_arg_access_token(subparse)
 
     generic_arg_temp_prefix_and_suffix(subparse)
@@ -4859,6 +5194,7 @@ def argparse_create_client_install(subparsers: "argparse._SubParsersAction[argpa
             packages=args.packages.split(","),
             online_user_agent=args.online_user_agent,
             blender_version=args.blender_version,
+            python_version=args.python_version,
             access_token=args.access_token,
             timeout_in_seconds=args.timeout,
             temp_prefix_and_suffix=args.temp_prefix_and_suffix,

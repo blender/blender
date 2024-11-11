@@ -602,6 +602,16 @@ PaintMode BKE_paintmode_get_from_tool(const bToolRef *tref)
   return PaintMode::Invalid;
 }
 
+bool BKE_paint_use_unified_color(const ToolSettings *tool_settings, const Paint *paint)
+{
+  /* Grease pencil draw mode never uses unified paint. */
+  if (paint->runtime.ob_mode == OB_MODE_PAINT_GREASE_PENCIL) {
+    return false;
+  }
+
+  return tool_settings->unified_paint_settings.flag & UNIFIED_PAINT_COLOR;
+}
+
 /**
  * After changing #Paint.brush_asset_reference, call this to activate the matching brush, importing
  * it if necessary. Has no effect if #Paint.brush is set already.

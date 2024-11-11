@@ -454,7 +454,7 @@ struct MTLStorageBufferBinding {
 };
 
 struct MTLContextGlobalShaderPipelineState {
-  bool initialised;
+  bool initialised = false;
 
   /* Whether the pipeline state has been modified since application.
    * `dirty_flags` is a bitmask of the types of state which have been updated.
@@ -462,14 +462,14 @@ struct MTLContextGlobalShaderPipelineState {
    * Some state parameters are dynamically applied on the RenderCommandEncoder,
    * others may be encapsulated in GPU-resident state objects such as
    * MTLDepthStencilState or MTLRenderPipelineState. */
-  bool dirty;
-  MTLPipelineStateDirtyFlag dirty_flags;
+  bool dirty = true;
+  MTLPipelineStateDirtyFlag dirty_flags = MTL_PIPELINE_STATE_NULL_FLAG;
 
   /* Shader resources. */
-  MTLShader *null_shader;
+  MTLShader *null_shader = nullptr;
 
   /* Active Shader State. */
-  MTLShader *active_shader;
+  MTLShader *active_shader = nullptr;
 
   /* Global Uniform Buffers. */
   MTLUniformBufferBinding ubo_bindings[MTL_MAX_BUFFER_BINDINGS];

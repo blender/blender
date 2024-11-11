@@ -24,6 +24,7 @@ set(LIB
 # See: `make icons_geom` and the script `./release/datafiles/blender_icons_geom_update.py`.
 set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   # BEGIN ICON_GEOM_NAMES
+  brush.generic
   brush.gpencil_draw.erase
   brush.gpencil_draw.fill
   brush.paint_texture.clone

@@ -44,15 +44,15 @@ mat4x4 mat4x4_all(float v)
   return mat4x4(vec4(v), vec4(v), vec4(v), vec4(v));
 }
 
-mat2x2 mat2x2_zero(float v)
+mat2x2 mat2x2_zero()
 {
   return mat2x2_all(0.0);
 }
-mat3x3 mat3x3_zero(float v)
+mat3x3 mat3x3_zero()
 {
   return mat3x3_all(0.0);
 }
-mat4x4 mat4x4_zero(float v)
+mat4x4 mat4x4_zero()
 {
   return mat4x4_all(0.0);
 }
@@ -574,7 +574,7 @@ mat4x4 normalize(mat4x4 mat)
 
 mat2x2 normalize_and_get_size(mat2x2 mat, out vec2 r_size)
 {
-  float size_x, size_y;
+  float size_x = 0.0, size_y = 0.0;
   mat2x2 ret;
   ret[0] = normalize_and_get_length(mat[0], size_x);
   ret[1] = normalize_and_get_length(mat[1], size_y);
@@ -583,7 +583,7 @@ mat2x2 normalize_and_get_size(mat2x2 mat, out vec2 r_size)
 }
 mat2x3 normalize_and_get_size(mat2x3 mat, out vec2 r_size)
 {
-  float size_x, size_y;
+  float size_x = 0.0, size_y = 0.0;
   mat2x3 ret;
   ret[0] = normalize_and_get_length(mat[0], size_x);
   ret[1] = normalize_and_get_length(mat[1], size_y);
@@ -592,7 +592,7 @@ mat2x3 normalize_and_get_size(mat2x3 mat, out vec2 r_size)
 }
 mat2x4 normalize_and_get_size(mat2x4 mat, out vec2 r_size)
 {
-  float size_x, size_y;
+  float size_x = 0.0, size_y = 0.0;
   mat2x4 ret;
   ret[0] = normalize_and_get_length(mat[0], size_x);
   ret[1] = normalize_and_get_length(mat[1], size_y);
@@ -601,7 +601,7 @@ mat2x4 normalize_and_get_size(mat2x4 mat, out vec2 r_size)
 }
 mat3x2 normalize_and_get_size(mat3x2 mat, out vec3 r_size)
 {
-  float size_x, size_y, size_z;
+  float size_x = 0.0, size_y = 0.0, size_z = 0.0;
   mat3x2 ret;
   ret[0] = normalize_and_get_length(mat[0], size_x);
   ret[1] = normalize_and_get_length(mat[1], size_y);
@@ -611,7 +611,7 @@ mat3x2 normalize_and_get_size(mat3x2 mat, out vec3 r_size)
 }
 mat3x3 normalize_and_get_size(mat3x3 mat, out vec3 r_size)
 {
-  float size_x, size_y, size_z;
+  float size_x = 0.0, size_y = 0.0, size_z = 0.0;
   mat3x3 ret;
   ret[0] = normalize_and_get_length(mat[0], size_x);
   ret[1] = normalize_and_get_length(mat[1], size_y);
@@ -621,7 +621,7 @@ mat3x3 normalize_and_get_size(mat3x3 mat, out vec3 r_size)
 }
 mat3x4 normalize_and_get_size(mat3x4 mat, out vec3 r_size)
 {
-  float size_x, size_y, size_z;
+  float size_x = 0.0, size_y = 0.0, size_z = 0.0;
   mat3x4 ret;
   ret[0] = normalize_and_get_length(mat[0], size_x);
   ret[1] = normalize_and_get_length(mat[1], size_y);
@@ -631,7 +631,7 @@ mat3x4 normalize_and_get_size(mat3x4 mat, out vec3 r_size)
 }
 mat4x2 normalize_and_get_size(mat4x2 mat, out vec4 r_size)
 {
-  float size_x, size_y, size_z, size_w;
+  float size_x = 0.0, size_y = 0.0, size_z = 0.0, size_w = 0.0;
   mat4x2 ret;
   ret[0] = normalize_and_get_length(mat[0], size_x);
   ret[1] = normalize_and_get_length(mat[1], size_y);
@@ -642,7 +642,7 @@ mat4x2 normalize_and_get_size(mat4x2 mat, out vec4 r_size)
 }
 mat4x3 normalize_and_get_size(mat4x3 mat, out vec4 r_size)
 {
-  float size_x, size_y, size_z, size_w;
+  float size_x = 0.0, size_y = 0.0, size_z = 0.0, size_w = 0.0;
   mat4x3 ret;
   ret[0] = normalize_and_get_length(mat[0], size_x);
   ret[1] = normalize_and_get_length(mat[1], size_y);
@@ -653,7 +653,7 @@ mat4x3 normalize_and_get_size(mat4x3 mat, out vec4 r_size)
 }
 mat4x4 normalize_and_get_size(mat4x4 mat, out vec4 r_size)
 {
-  float size_x, size_y, size_z, size_w;
+  float size_x = 0.0, size_y = 0.0, size_z = 0.0, size_w = 0.0;
   mat4x4 ret;
   ret[0] = normalize_and_get_length(mat[0], size_x);
   ret[1] = normalize_and_get_length(mat[1], size_y);

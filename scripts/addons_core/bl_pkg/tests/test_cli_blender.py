@@ -40,7 +40,8 @@ from collections.abc import (
 
 # For more useful output that isn't clipped.
 # pylint: disable-next=protected-access
-unittest.util._MAX_LENGTH = 10_000
+unittest.util._MAX_LENGTH = 10_000  # type: ignore
+
 
 PKG_EXT = ".zip"
 
@@ -131,6 +132,8 @@ class WheelModuleParams(NamedTuple):
     module_name: str
     module_version: str
 
+    filename: str | None = None
+
 
 def path_to_url(path: str) -> str:
     from urllib.parse import urljoin
@@ -171,7 +174,7 @@ def create_package(
         pkg_idname: str,
 
         # Optional.
-        wheel_params: WheelModuleParams | None = None,
+        wheel_params: Sequence[WheelModuleParams] = (),
         platforms: tuple[str, ...] | None = None,
         blender_version_min: str | None = None,
         blender_version_max: str | None = None,
@@ -180,22 +183,28 @@ def create_package(
 ) -> None:
     pkg_name = pkg_idname.replace("_", " ").title()
 
-    if wheel_params is not None:
-        wheel_filename, wheel_filedata = python_wheel_generate.generate_from_source(
-            module_name=wheel_params.module_name,
-            version=wheel_params.module_version,
-            source=(
-                "__version__ = {!r}\n"
-                "print(\"The wheel has been found\")\n"
-            ).format(wheel_params.module_version),
-        )
+    wheel_filenames = []
+    if wheel_params:
+        for w in wheel_params:
+            wheel_filename, wheel_filedata = python_wheel_generate.generate_from_source(
+                module_name=w.module_name,
+                version=w.module_version,
+                source=(
+                    "__version__ = {!r}\n"
+                    "print(\"The wheel has been found\")\n"
+                ).format(w.module_version),
+            )
+            if w.filename is not None:
+                wheel_filename = w.filename
 
-        wheel_dir = os.path.join(pkg_src_dir, "wheels")
-        os.makedirs(wheel_dir, exist_ok=True)
+            wheel_dir = os.path.join(pkg_src_dir, "wheels")
+            os.makedirs(wheel_dir, exist_ok=True)
 
-        wheel_path = os.path.join(wheel_dir, wheel_filename)
-        with open(wheel_path, "wb") as fh:
-            fh.write(wheel_filedata)
+            wheel_path = os.path.join(wheel_dir, wheel_filename)
+            with open(wheel_path, "wb") as fh:
+                fh.write(wheel_filedata)
+
+            wheel_filenames.append(wheel_filename)
 
     with open(os.path.join(pkg_src_dir, PKG_MANIFEST_FILENAME_TOML), "w", encoding="utf-8") as fh:
         fh.write('''# Example\n''')
@@ -213,15 +222,18 @@ def create_package(
             fh.write('''blender_version_max = "{:s}"\n'''.format(blender_version_max))
         fh.write('''\n''')
 
-        if wheel_params is not None:
-            fh.write('''wheels = ["./wheels/{:s}"]\n'''.format(wheel_filename))
+        if wheel_filenames:
+            fh.write('''wheels = [''')
+            for wheel_filename in wheel_filenames:
+                fh.write('''    "./wheels/{:s}",\n'''.format(wheel_filename))
+            fh.write(''']\n''')
 
         if platforms is not None:
             fh.write('''platforms = [{:s}]\n'''.format(", ".join(["\"{:s}\"".format(x) for x in platforms])))
 
     with open(os.path.join(pkg_src_dir, "__init__.py"), "w", encoding="utf-8") as fh:
-        if wheel_params is not None:
-            fh.write("import {:s}\n".format(wheel_params.module_name))
+        for w in wheel_params:
+            fh.write("import {:s}\n".format(w.module_name))
 
         if python_script is not None:
             fh.write(python_script)
@@ -408,7 +420,7 @@ class TestWithTempBlenderUser_MixIn(unittest.TestCase):
             self,
             *,
             pkg_idname: str,
-            wheel_params: WheelModuleParams | None = None,
+            wheel_params: Sequence[WheelModuleParams] = (),
 
             # Optional.
             pkg_filename: str | None = None,
@@ -467,9 +479,11 @@ class TestSimple(TestWithTempBlenderUser_MixIn, unittest.TestCase):
         pkg_idname = "my_test_pkg"
         self.build_package(
             pkg_idname=pkg_idname,
-            wheel_params=WheelModuleParams(
-                module_name=wheel_module_name,
-                module_version="1.0.1",
+            wheel_params=(
+                WheelModuleParams(
+                    module_name=wheel_module_name,
+                    module_version="1.0.1",
+                ),
             ),
         )
 
@@ -554,9 +568,11 @@ class TestSimple(TestWithTempBlenderUser_MixIn, unittest.TestCase):
             packages_to_install.append(pkg_idname)
             self.build_package(
                 pkg_idname=pkg_idname,
-                wheel_params=WheelModuleParams(
-                    module_name=wheel_module_name,
-                    module_version=wheel_module_version,
+                wheel_params=(
+                    WheelModuleParams(
+                        module_name=wheel_module_name,
+                        module_version=wheel_module_version,
+                    ),
                 ),
             )
 
@@ -755,21 +771,148 @@ class TestPlatform(TestWithTempBlenderUser_MixIn, unittest.TestCase):
             "--repo-dir", TEMP_DIR_REMOTE,
         ))
         self.assertEqual(stdout, (
-            '''WARN: archive found with duplicates for id {pkg_idname:s}: '''
-            '''3 duplicate(s) found, conflicting blender versions \"{platform:s}\": '''
-            '''([undefined] & [{version_a:s} -> {version_b:s}], '''
-            '''[{version_a:s} -> {version_b:s}] & [{version_a:s} -> {version_e:s}], '''
-            '''[{version_a:s} -> {version_e:s}] & [{version_c:s} -> {version_d:s}])\n'''
+            '''WARN: archive found with duplicates for id my_platform_test: '''
+            '''3 duplicate(s) found, conflicting blender versions '''
+            '''my_platform_test-linux_x64_conflict_no_version.zip=[undefined] & '''
+            '''my_platform_test-linux_x64_no_conflict_old.zip=[2.3.0 -> 3.3.0], '''
+            '''my_platform_test-linux_x64_no_conflict_old.zip=[2.3.0 -> 3.3.0] & '''
+            '''my_platform_test-linux_x64_conflict.zip=[2.3.0 -> 4.5.0], '''
+            '''my_platform_test-linux_x64_conflict.zip=[2.3.0 -> 4.5.0] & '''
+            '''my_platform_test-linux_x64.zip=[4.3.0 -> 4.4.0]\n'''
             '''found 7 packages.\n'''
-        ).format(
-            pkg_idname=pkg_idname,
-            platform=platform_this,
-            version_a=version_a,
-            version_b=version_b,
-            version_c=version_c_this,
-            version_d=version_d,
-            version_e=version_e,
         ))
+
+
+# While other tests use this command, focus on testing specific behaviors work as expected.
+class TestPythonVersions(TestWithTempBlenderUser_MixIn, unittest.TestCase):
+
+    def test_server_generate_version_with_dupes(self) -> None:
+        repo_id = "test_repo_blocklist"
+        repo_name = "MyTestRepoServerGenerate"
+
+        self.repo_add(repo_id=repo_id, repo_name=repo_name)
+
+        pkg_idnames = (
+            ("my_test_pkg", "my_test_a", "example-1.2.3-cp311-cp311-any.whl"),
+            ("my_test_pkg", "my_test_b", "example-1.2.3-cp311-cp311-any.whl"),
+            ("my_test_pkg", "my_test_c", "example-1.2.3-cp311-cp311-any.whl"),
+        )
+
+        # Create a package contents.
+        for pkg_idname, pkg_filename, wheel_filename in pkg_idnames:
+            self.build_package(
+                pkg_idname=pkg_idname,
+                pkg_filename=pkg_filename,
+                blender_version_min="4.2.0",
+                blender_version_max="4.3.0",
+                wheel_params=(
+                    WheelModuleParams(
+                        module_name="example",
+                        module_version="1.0.1",
+                        filename=wheel_filename,
+                    ),
+                ),
+            )
+
+        # Generate the repository.
+        returncode, stdout, stderr = run_blender_extensions((
+            "server-generate",
+            "--repo-dir", TEMP_DIR_REMOTE,
+        ))
+        self.assertEqual(stderr, "")
+        self.assertEqual(returncode, 0)
+        self.assertEqual(
+            stdout,
+            (
+                '''WARN: archive found with duplicates for id my_test_pkg: '''
+                '''2 duplicate(s) found, conflicting blender versions '''
+                '''my_test_a.zip=[4.2.0 -> 4.3.0] & my_test_b.zip=[4.2.0 -> 4.3.0], '''
+                '''my_test_b.zip=[4.2.0 -> 4.3.0] & my_test_c.zip=[4.2.0 -> 4.3.0]\n'''
+                '''found 3 packages.\n'''
+            ),
+        )
+
+    def test_server_generate_version_with_dupes_major_only_mix(self) -> None:
+        repo_id = "test_repo_blocklist"
+        repo_name = "MyTestRepoServerGenerate"
+
+        self.repo_add(repo_id=repo_id, repo_name=repo_name)
+
+        pkg_idnames = (
+            ("my_test_pkg", "my_test_a", "example-1.2.3-cp311-cp311-any.whl"),
+            ("my_test_pkg", "my_test_b", "example-1.2.3-py3.py4-py3.py4-any.whl"),
+        )
+
+        # Create a package contents.
+        for pkg_idname, pkg_filename, wheel_filename in pkg_idnames:
+            self.build_package(
+                pkg_idname=pkg_idname,
+                pkg_filename=pkg_filename,
+                blender_version_min="4.2.0",
+                blender_version_max="4.3.0",
+                wheel_params=(
+                    WheelModuleParams(
+                        module_name="example",
+                        module_version="1.0.1",
+                        filename=wheel_filename,
+                    ),
+                ),
+            )
+
+        # Generate the repository.
+        returncode, stdout, stderr = run_blender_extensions((
+            "server-generate",
+            "--repo-dir", TEMP_DIR_REMOTE,
+        ))
+        self.assertEqual(stderr, "")
+        self.assertEqual(returncode, 0)
+        self.assertEqual(
+            stdout,
+            (
+                '''WARN: archive found with duplicates for id my_test_pkg: '''
+                '''1 duplicate(s) found, conflicting blender versions '''
+                '''my_test_a.zip=[4.2.0 -> 4.3.0] & my_test_b.zip=[4.2.0 -> 4.3.0]\n'''
+                '''found 2 packages.\n'''
+            ),
+        )
+
+    def test_server_generate_version_without_dupes(self) -> None:
+        # The different Python versions in the wheels cause the packages not to conflict.
+        repo_id = "test_repo_blocklist"
+        repo_name = "MyTestRepoServerGenerate"
+
+        self.repo_add(repo_id=repo_id, repo_name=repo_name)
+
+        pkg_idnames = (
+            ("my_test_pkg", "my_test_a", "example-1.2.3-cp311-cp311-any.whl"),
+            ("my_test_pkg", "my_test_b", "example-1.2.3-cp312-cp312-any.whl"),
+            ("my_test_pkg", "my_test_c", "example-1.2.3-cp313-cp313-any.whl"),
+        )
+
+        # Create a package contents.
+        for pkg_idname, pkg_filename, wheel_filename in pkg_idnames:
+            self.build_package(
+                pkg_idname=pkg_idname,
+                pkg_filename=pkg_filename,
+                blender_version_min="4.2.0",
+                blender_version_max="4.3.0",
+                wheel_params=(
+                    WheelModuleParams(
+                        module_name="example",
+                        module_version="1.0.1",
+                        filename=wheel_filename,
+                    ),
+                ),
+            )
+
+        # Generate the repository.
+        returncode, stdout, stderr = run_blender_extensions((
+            "server-generate",
+            "--repo-dir", TEMP_DIR_REMOTE,
+        ))
+        self.assertEqual(returncode, 0)
+        self.assertEqual(stderr, "")
+        self.assertEqual(stdout, '''found 3 packages.\n''')
 
 
 class TestModuleViolation(TestWithTempBlenderUser_MixIn, unittest.TestCase):
