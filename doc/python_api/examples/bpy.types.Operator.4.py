@@ -1,55 +1,40 @@
 """
-Custom Drawing
-++++++++++++++
+Dialog Box
+++++++++++
 
-By default operator properties use an automatic user interface layout.
-If you need more control you can create your own layout with a
-:class:`Operator.draw` function.
-
-This works like the :class:`Panel` and :class:`Menu` draw functions, its used
-for dialogs and file selectors.
+This operator uses its :class:`Operator.invoke` function to call a popup.
 """
 import bpy
 
 
-class CustomDrawOperator(bpy.types.Operator):
-    bl_idname = "object.custom_draw"
-    bl_label = "Simple Modal Operator"
+class DialogOperator(bpy.types.Operator):
+    bl_idname = "object.dialog_operator"
+    bl_label = "Simple Dialog Operator"
 
-    filepath: bpy.props.StringProperty(subtype="FILE_PATH")
-
-    my_float: bpy.props.FloatProperty(name="Float")
+    my_float: bpy.props.FloatProperty(name="Some Floating Point")
     my_bool: bpy.props.BoolProperty(name="Toggle Option")
     my_string: bpy.props.StringProperty(name="String Value")
 
     def execute(self, context):
-        print("Test", self)
+        message = "Popup Values: {:f}, {:d}, '{:s}'".format(
+            self.my_float, self.my_bool, self.my_string,
+        )
+        self.report({'INFO'}, message)
         return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
-    def draw(self, context):
-        layout = self.layout
-        col = layout.column()
-        col.label(text="Custom Interface!")
-
-        row = col.row()
-        row.prop(self, "my_float")
-        row.prop(self, "my_bool")
-
-        col.prop(self, "my_string")
-
 
 # Only needed if you want to add into a dynamic menu.
 def menu_func(self, context):
-    self.layout.operator(CustomDrawOperator.bl_idname, text="Custom Draw Operator")
+    self.layout.operator(DialogOperator.bl_idname, text="Dialog Operator")
 
 
-# Register and add to the object menu (required to also use F3 search "Custom Draw Operator" for quick access).
-bpy.utils.register_class(CustomDrawOperator)
+# Register and add to the object menu (required to also use F3 search "Dialog Operator" for quick access)
+bpy.utils.register_class(DialogOperator)
 bpy.types.VIEW3D_MT_object.append(menu_func)
 
-# test call
-bpy.ops.object.custom_draw('INVOKE_DEFAULT')
+# Test call.
+bpy.ops.object.dialog_operator('INVOKE_DEFAULT')

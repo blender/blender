@@ -9,9 +9,7 @@ user input.
 
 The function should return ``{'FINISHED'}`` or ``{'CANCELLED'}``, the latter
 meaning that operator execution was aborted without making any changes, and
-saving an undo entry isn't neccesary. If an error is detected after some changes
-have already been made, use the ``{'FINISHED'}`` return code, or the behavior
-of undo will be confusing for the user.
+that no undo step will created (see next example for more info about undo).
 
 .. note::
 
