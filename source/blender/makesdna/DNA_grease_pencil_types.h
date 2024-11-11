@@ -557,6 +557,9 @@ typedef struct GreasePencil {
   blender::bke::greasepencil::Layer &duplicate_layer(
       blender::bke::greasepencil::LayerGroup &parent_group,
       const blender::bke::greasepencil::Layer &duplicate_layer);
+  /** Add new layer group into the root group. */
+  blender::bke::greasepencil::LayerGroup &add_layer_group(blender::StringRefNull name,
+                                                          bool check_name_is_unique = true);
   blender::bke::greasepencil::LayerGroup &add_layer_group(
       blender::bke::greasepencil::LayerGroup &parent_group,
       blender::StringRefNull name,
