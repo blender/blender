@@ -3479,16 +3479,25 @@ blender::bke::greasepencil::Layer &GreasePencil::duplicate_layer(
 }
 
 blender::bke::greasepencil::LayerGroup &GreasePencil::add_layer_group(
-    blender::bke::greasepencil::LayerGroup &parent_group,
-    const blender::StringRefNull name,
-    const bool check_name_is_unique)
+    const blender::StringRefNull name, const bool check_name_is_unique)
 {
   using namespace blender;
   std::string unique_name = check_name_is_unique ? unique_layer_group_name(*this, name) :
                                                    name.c_str();
   bke::greasepencil::LayerGroup *new_group = MEM_new<bke::greasepencil::LayerGroup>(__func__,
                                                                                     unique_name);
-  return parent_group.add_node(new_group->as_node()).as_group();
+  return root_group().add_node(new_group->as_node()).as_group();
+}
+
+blender::bke::greasepencil::LayerGroup &GreasePencil::add_layer_group(
+    blender::bke::greasepencil::LayerGroup &parent_group,
+    const blender::StringRefNull name,
+    const bool check_name_is_unique)
+{
+  using namespace blender;
+  bke::greasepencil::LayerGroup &new_group = this->add_layer_group(name, check_name_is_unique);
+  move_node_into(new_group.as_node(), parent_group);
+  return new_group;
 }
 
 static void reorder_customdata(CustomData &data, const Span<int> new_by_old_map)
