@@ -16,4 +16,3 @@ that can be troublesome and avoid practices that are known to cause instability.
    info_gotchas_meshes.rst
    info_gotchas_armatures_and_bones.rst
    info_gotchas_file_paths_and_encoding.rst
-

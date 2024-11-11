@@ -1,61 +1,63 @@
 """
-Invoke Function
-+++++++++++++++
+.. _operator_modifying_blender_data_undo:
 
-:class:`Operator.invoke` is used to initialize the operator from the context
-at the moment the operator is called.
-invoke() is typically used to assign properties which are then used by
-execute().
-Some operators don't have an execute() function, removing the ability to be
-repeated from a script or macro.
+Modifying Blender Data & Undo
++++++++++++++++++++++++++++++
 
-This example shows how to define an operator which gets mouse input to
-execute a function and that this operator can be invoked or executed from
-the python api.
+Any operator modifying Blender data should enable the ``'UNDO'`` option.
+This will make Blender automatically create an undo step when the operator
+finishes its ``execute`` (or ``invoke``, see below) functions, and returns
+``{'FINISHED'}``.
 
-Also notice this operator defines its own properties, these are different
-to typical class properties because blender registers them with the
-operator, to use as arguments when called, saved for operator undo/redo and
-automatically added into the user interface.
+Otherwise, no undo step will be created, which will at best corrupt the
+undo stack and confuse the user (since modifications done by the operator
+may either not be undoable, or be undone together with other edits done
+before). In many cases, this can even lead to data corruption and crashes.
+
+Note that when an operator returns ``{'CANCELLED'}``, no undo step will be
+created. This means that if an error occurs *after* modifying some data
+already, it is better to return ``{'FINISHED'}``, unless it is possible to
+fully undo the changes before returning.
+
+.. note::
+
+   Most examples in this page do not do any edit to Blender data, which is
+   why it is safe to keep the default ``bl_options`` value for these operators.
+
+.. note::
+
+   In some complex cases, the automatic undo step created on operator exit may
+   not be enough. For example, if the operator does mode switching, or calls
+   other operators that should create an extra undo step, etc.
+
+   Such manual undo push is possible using the :class:`bpy.ops.ed.undo_push`
+   function. Be careful though, this is considered an advanced feature and
+   requires some understanding of the actual undo system in Blender code.
+
 """
 import bpy
 
 
-class SimpleMouseOperator(bpy.types.Operator):
-    """ This operator shows the mouse location,
-        this string is used for the tooltip and API docs
-    """
-    bl_idname = "wm.mouse_position"
-    bl_label = "Invoke Mouse Operator"
-
-    x: bpy.props.IntProperty()
-    y: bpy.props.IntProperty()
+class DataEditOperator(bpy.types.Operator):
+    bl_idname = "object.data_edit"
+    bl_label = "Data Editing Operator"
+    # The default value is only 'REGISTER', 'UNDO' is mandatory when Blender data is modified
+    # (and does require 'REGISTER' as well).
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        # rather than printing, use the report function,
-        # this way the message appears in the header,
-        self.report({'INFO'}, "Mouse coords are {:d} {:d}".format(self.x, self.y))
+        context.object.location.x += 1.0
         return {'FINISHED'}
-
-    def invoke(self, context, event):
-        self.x = event.mouse_x
-        self.y = event.mouse_y
-        return self.execute(context)
 
 
 # Only needed if you want to add into a dynamic menu.
 def menu_func(self, context):
-    self.layout.operator(SimpleMouseOperator.bl_idname, text="Simple Mouse Operator")
+    self.layout.operator(DataEditOperator.bl_idname, text="Blender Data Editing Operator")
 
 
-# Register and add to the view menu (required to also use F3 search "Simple Mouse Operator" for quick access)
-bpy.utils.register_class(SimpleMouseOperator)
+# Register.
+bpy.utils.register_class(DataEditOperator)
 bpy.types.VIEW3D_MT_view.append(menu_func)
 
 # Test call to the newly defined operator.
-# Here we call the operator and invoke it, meaning that the settings are taken
-# from the mouse.
-bpy.ops.wm.mouse_position('INVOKE_DEFAULT')
-
-# Another test call, this time call execute() directly with pre-defined settings.
-bpy.ops.wm.mouse_position('EXEC_DEFAULT', x=20, y=66)
+bpy.ops.object.data_edit()
