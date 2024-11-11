@@ -137,14 +137,27 @@ static void engine_depsgraph_free(RenderEngine *engine)
     /* Need GPU context since this might free GPU buffers. */
     const bool use_gpu_context = (engine->type->flag & RE_USE_GPU_CONTEXT);
     if (use_gpu_context) {
-      DRW_render_context_enable(engine->re);
+      /* This function can be called on the main thread before RenderEngine is destroyed.
+       * In this case, just bind the main draw context to gather the deleted GPU buffers.
+       * Binding the same GPU context as the render engine is not needed (see #129019). */
+      if (BLI_thread_is_main()) {
+        DRW_gpu_context_enable();
+      }
+      else {
+        DRW_render_context_enable(engine->re);
+      }
     }
 
     DEG_graph_free(engine->depsgraph);
     engine->depsgraph = nullptr;
 
     if (use_gpu_context) {
-      DRW_render_context_disable(engine->re);
+      if (BLI_thread_is_main()) {
+        DRW_gpu_context_disable();
+      }
+      else {
+        DRW_render_context_disable(engine->re);
+      }
     }
   }
 }
