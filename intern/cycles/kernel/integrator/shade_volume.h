@@ -335,41 +335,6 @@ ccl_device_inline bool volume_equiangular_valid_ray_segment(KernelGlobals kg,
   return true;
 }
 
-/* Distance sampling */
-
-ccl_device float volume_distance_sample(float max_t,
-                                        Spectrum sigma_t,
-                                        int channel,
-                                        float xi,
-                                        ccl_private Spectrum *transmittance,
-                                        ccl_private Spectrum *pdf)
-{
-  /* xi is [0, 1[ so log(0) should never happen, division by zero is
-   * avoided because sample_sigma_t > 0 when SD_SCATTER is set */
-  float sample_sigma_t = volume_channel_get(sigma_t, channel);
-  Spectrum full_transmittance = volume_color_transmittance(sigma_t, max_t);
-  float sample_transmittance = volume_channel_get(full_transmittance, channel);
-
-  float sample_t = min(max_t, -logf(1.0f - xi * (1.0f - sample_transmittance)) / sample_sigma_t);
-
-  *transmittance = volume_color_transmittance(sigma_t, sample_t);
-  *pdf = safe_divide_color(sigma_t * *transmittance, one_spectrum() - full_transmittance);
-
-  /* todo: optimization: when taken together with hit/miss decision,
-   * the full_transmittance cancels out drops out and xi does not
-   * need to be remapped */
-
-  return sample_t;
-}
-
-ccl_device Spectrum volume_distance_pdf(float max_t, Spectrum sigma_t, float sample_t)
-{
-  Spectrum full_transmittance = volume_color_transmittance(sigma_t, max_t);
-  Spectrum transmittance = volume_color_transmittance(sigma_t, sample_t);
-
-  return safe_divide_color(sigma_t * transmittance, one_spectrum() - full_transmittance);
-}
-
 /* Emission */
 
 ccl_device Spectrum volume_emission_integrate(ccl_private VolumeShaderCoefficients *coeff,
