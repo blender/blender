@@ -23,7 +23,6 @@ struct PTCacheEdit;
 struct ParticleSystem;
 struct Volume;
 struct bGPDstroke;
-struct bGPdata;
 struct Scene;
 
 /**

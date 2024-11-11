@@ -13,7 +13,6 @@
 
 #include "DNA_customdata_types.h" /* #CustomData_MeshMasks. */
 
-struct bGPdata;
 struct Curve;
 struct CurveCache;
 struct ID;

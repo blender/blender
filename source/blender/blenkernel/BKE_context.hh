@@ -22,7 +22,6 @@ struct ARegion;
 struct AssetLibraryReference;
 struct AssetWeakReference;
 struct Base;
-struct bGPdata;
 struct bGPDframe;
 struct bGPDlayer;
 struct bPoseChannel;
