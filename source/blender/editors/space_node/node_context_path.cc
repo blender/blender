@@ -88,7 +88,7 @@ static void get_context_path_node_shader(const bContext &C,
       Material *material = BKE_object_material_get(object, object->actcol);
       ui::context_path_add_generic(path, RNA_Material, material);
       if (snode.shaderfrom == SNODE_SHADER_NPR) {
-        bNodeTree *nprtree = npr_tree_get(material);
+        bNodeTree *nprtree = npr_tree_get_from_mat(material);
         ui::context_path_add_generic(path, RNA_NodeTree, nprtree);
       }
     }

@@ -89,7 +89,7 @@ static void shader_get_from_context(const bContext *C,
           *r_id = &ma->id;
           *r_ntree = ma->nodetree;
           if (snode->shaderfrom == SNODE_SHADER_NPR) {
-            bNodeTree *nprtree = npr_tree_get(ma);
+            bNodeTree *nprtree = npr_tree_get_from_mat(ma);
             *r_id = &nprtree->id;
             *r_ntree = nprtree;
           }
@@ -1346,7 +1346,7 @@ static void ntree_shader_pruned_unused(bNodeTree *ntree, bNode *output_node)
   }
 }
 
-static bNodeTree *npr_tree_get(bNodeTree *ntree)
+bNodeTree *npr_tree_get(bNodeTree *ntree)
 {
   if (!ntree) {
     return nullptr;
@@ -1357,7 +1357,7 @@ static bNodeTree *npr_tree_get(bNodeTree *ntree)
   return nullptr;
 }
 
-bNodeTree *npr_tree_get(Material *material)
+bNodeTree *npr_tree_get_from_mat(Material *material)
 {
   if (!material) {
     return nullptr;

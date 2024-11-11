@@ -40,7 +40,7 @@ int NPRModule::sync_material(::Material *material)
     return 0;
   }
 
-  bNodeTree *ntree = npr_tree_get(material);
+  bNodeTree *ntree = npr_tree_get_from_mat(material);
   if (!ntree) {
     return 0;
   }
