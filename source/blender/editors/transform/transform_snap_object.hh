@@ -67,9 +67,10 @@ struct SnapObjectContext {
     /* Read/write. */
     uint object_index;
 
+    eSnapOcclusionTest occlusion_test_edit;
+
     bool has_occlusion_plane;
     bool has_occlusion_plane_in_front;
-    bool use_occlusion_test_edit;
   } runtime;
 
   /* Output. */
