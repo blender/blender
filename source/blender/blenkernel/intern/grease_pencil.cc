@@ -2217,10 +2217,12 @@ void BKE_grease_pencil_duplicate_drawing_array(const GreasePencil *grease_pencil
 {
   using namespace blender;
   grease_pencil_dst->drawing_array_num = grease_pencil_src->drawing_array_num;
-  grease_pencil_dst->drawing_array = MEM_cnew_array<GreasePencilDrawingBase *>(
-      grease_pencil_src->drawing_array_num, __func__);
-  bke::greasepencil::copy_drawing_array(grease_pencil_src->drawings(),
-                                        grease_pencil_dst->drawings());
+  if (grease_pencil_dst->drawing_array_num > 0) {
+    grease_pencil_dst->drawing_array = MEM_cnew_array<GreasePencilDrawingBase *>(
+        grease_pencil_src->drawing_array_num, __func__);
+    bke::greasepencil::copy_drawing_array(grease_pencil_src->drawings(),
+                                          grease_pencil_dst->drawings());
+  }
 }
 
 /** \} */
