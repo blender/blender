@@ -10,8 +10,11 @@
 #include "GPU_texture.hh"
 
 #include "COM_cached_resource.hh"
+#include "COM_result.hh"
 
 namespace blender::realtime_compositor {
+
+class Context;
 
 /* -------------------------------------------------------------------------------------------------
  * SMAA Precomputed Textures.
@@ -19,12 +22,19 @@ namespace blender::realtime_compositor {
  * A cached resource that caches the precomputed textures needed by the SMAA algorithm. The
  * precomputed textures are constants, so this is a parameterless cached resource. */
 class SMAAPrecomputedTextures : public CachedResource {
+ public:
+  /* CPU storage, unused for GPU execution device. We can't store the GPU textures in the result
+   * because it requires special data types that are not supported by the Result class. */
+  Result search_texture;
+  Result area_texture;
+
  private:
+  /* GPU storage, unused for CPU execution device. */
   GPUTexture *search_texture_ = nullptr;
   GPUTexture *area_texture_ = nullptr;
 
  public:
-  SMAAPrecomputedTextures();
+  SMAAPrecomputedTextures(Context &context);
 
   ~SMAAPrecomputedTextures();
 
@@ -35,6 +45,11 @@ class SMAAPrecomputedTextures : public CachedResource {
   void bind_area_texture(GPUShader *shader, const char *sampler_name) const;
 
   void unbind_area_texture() const;
+
+ private:
+  void compute_gpu();
+
+  void compute_cpu();
 };
 
 /* ------------------------------------------------------------------------------------------------
@@ -50,7 +65,7 @@ class SMAAPrecomputedTexturesContainer : public CachedResourceContainer {
   /* Check if a cached SMAA precomputed texture exists, if it does, return it, otherwise, return
    * a newly created one and store it in the container. In both cases, tag the cached resource as
    * needed to keep it cached for the next evaluation. */
-  SMAAPrecomputedTextures &get();
+  SMAAPrecomputedTextures &get(Context &context);
 };
 
 }  // namespace blender::realtime_compositor
