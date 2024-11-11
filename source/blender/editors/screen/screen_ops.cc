@@ -2075,6 +2075,10 @@ static int area_move_modal(bContext *C, wmOperator *op, const wmEvent *event)
       area_move_apply(C, op);
       break;
     }
+    case RIGHTMOUSE: {
+      area_move_cancel(C, op);
+      return OPERATOR_CANCELLED;
+    }
     case EVT_MODAL_MAP: {
       switch (event->val) {
         case KM_MODAL_APPLY:

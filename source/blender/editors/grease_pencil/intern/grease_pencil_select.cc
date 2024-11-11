@@ -777,12 +777,13 @@ static void GREASE_PENCIL_OT_select_similar(wmOperatorType *ot)
   ot->idname = "GREASE_PENCIL_OT_select_similar";
   ot->description = "Select all strokes with similar characteristics";
 
+  ot->invoke = WM_menu_invoke;
   ot->exec = select_similar_exec;
   ot->poll = editable_grease_pencil_point_selection_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_enum(
+  ot->prop = RNA_def_enum(
       ot->srna, "mode", select_similar_mode_items, int(SelectSimilarMode::LAYER), "Mode", "");
 
   RNA_def_float(ot->srna, "threshold", 0.1f, 0.0f, FLT_MAX, "Threshold", "", 0.0f, 10.0f);
