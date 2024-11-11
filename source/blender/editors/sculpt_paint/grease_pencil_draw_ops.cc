@@ -1428,7 +1428,8 @@ static bool grease_pencil_apply_fill(bContext &C, wmOperator &op, const wmEvent 
   WM_cursor_modal_restore(&win);
 
   /* Save extend value for next operation. */
-  brush.gpencil_settings->fill_extend_fac = op_data.extension_length;
+  brush.gpencil_settings->fill_extend_fac = op_data.extension_length /
+                                            bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
   BKE_brush_tag_unsaved_changes(&brush);
 
   return true;
