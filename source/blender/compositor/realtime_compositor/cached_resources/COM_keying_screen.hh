@@ -18,6 +18,7 @@
 #include "DNA_tracking_types.h"
 
 #include "COM_cached_resource.hh"
+#include "COM_result.hh"
 
 namespace blender::realtime_compositor {
 
@@ -44,22 +45,26 @@ bool operator==(const KeyingScreenKey &a, const KeyingScreenKey &b);
  * A cached resource that computes and caches a GPU texture containing the keying screen computed
  * by interpolating the markers of the given movie tracking object in the given movie clip. */
 class KeyingScreen : public CachedResource {
- private:
-  GPUTexture *texture_ = nullptr;
+ public:
+  Result result;
 
  public:
   KeyingScreen(Context &context,
                MovieClip *movie_clip,
                MovieTrackingObject *movie_tracking_object,
-               float smoothness);
+               const float smoothness);
 
   ~KeyingScreen();
 
-  void bind_as_texture(GPUShader *shader, const char *texture_name) const;
+ private:
+  void compute_gpu(Context &context,
+                   const float smoothness,
+                   Vector<float2> &marker_positions,
+                   const Vector<float4> &marker_colors);
 
-  void unbind_as_texture() const;
-
-  GPUTexture *texture() const;
+  void compute_cpu(const float smoothness,
+                   const Vector<float2> &marker_positions,
+                   const Vector<float4> &marker_colors);
 };
 
 /* ------------------------------------------------------------------------------------------------
@@ -78,10 +83,10 @@ class KeyingScreenContainer : CachedResourceContainer {
    * KeyingScreen cached resource with the given parameters in the container, if one exists, return
    * it, otherwise, return a newly created one and add it to the container. In both cases, tag the
    * cached resource as needed to keep it cached for the next evaluation. */
-  KeyingScreen &get(Context &context,
-                    MovieClip *movie_clip,
-                    MovieTrackingObject *movie_tracking_object,
-                    float smoothness);
+  Result &get(Context &context,
+              MovieClip *movie_clip,
+              MovieTrackingObject *movie_tracking_object,
+              float smoothness);
 };
 
 }  // namespace blender::realtime_compositor
