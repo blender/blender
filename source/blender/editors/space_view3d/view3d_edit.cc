@@ -915,7 +915,7 @@ void ED_view3d_cursor3d_position_rotation(bContext *C,
     SnapObjectParams params{};
     params.snap_target_select = SCE_SNAP_TARGET_ALL;
     params.edit_mode_type = SNAP_GEOM_FINAL;
-    params.use_occlusion_test = true;
+    params.occlusion_test = SNAP_OCCLUSION_AS_SEEM;
     if (ED_transform_snap_object_project_view3d_ex(snap_context,
                                                    CTX_data_ensure_evaluated_depsgraph(C),
                                                    region,
