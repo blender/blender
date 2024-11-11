@@ -395,7 +395,25 @@ class Result {
    * conditions. The coordinates are thus expected to have half-pixels offsets. A float4 is always
    * returned regardless of the number of channels of the buffer, the remaining channels will be
    * initialized with the template float4(0, 0, 0, 1). */
-  float4 sample_nearest_zero(const float2 coordinates) const;
+  float4 sample_nearest_zero(const float2 &coordinates) const;
+
+  /* Equivalent to the GLSL texture() function with bilinear interpolation and zero boundary
+   * conditions. The coordinates are thus expected to have half-pixels offsets. A float4 is always
+   * returned regardless of the number of channels of the buffer, the remaining channels will be
+   * initialized with the template float4(0, 0, 0, 1). */
+  float4 sample_bilinear_zero(const float2 &coordinates) const;
+
+  /* Equivalent to the GLSL texture() function with nearest interpolation and extended boundary
+   * conditions. The coordinates are thus expected to have half-pixels offsets. A float4 is always
+   * returned regardless of the number of channels of the buffer, the remaining channels will be
+   * initialized with the template float4(0, 0, 0, 1). */
+  float4 sample_nearest_extended(const float2 &coordinates) const;
+
+  /* Equivalent to the GLSL texture() function with bilinear interpolation and extended boundary
+   * conditions. The coordinates are thus expected to have half-pixels offsets. A float4 is always
+   * returned regardless of the number of channels of the buffer, the remaining channels will be
+   * initialized with the template float4(0, 0, 0, 1). */
+  float4 sample_bilinear_extended(const float2 &coordinates) const;
 
   /* Computes the number of channels of the result based on its type. */
   int64_t channels_count() const;
@@ -416,7 +434,7 @@ class Result {
 /* Inline Methods.
  */
 
-inline float4 Result::sample_nearest_zero(const float2 coordinates) const
+inline float4 Result::sample_nearest_zero(const float2 &coordinates) const
 {
   float4 pixel_value = float4(0.0f, 0.0f, 0.0f, 1.0f);
   if (is_single_value_) {
@@ -434,6 +452,69 @@ inline float4 Result::sample_nearest_zero(const float2 coordinates) const
                                       this->channels_count(),
                                       texel_coordinates.x,
                                       texel_coordinates.y);
+  return pixel_value;
+}
+
+inline float4 Result::sample_bilinear_zero(const float2 &coordinates) const
+{
+  float4 pixel_value = float4(0.0f, 0.0f, 0.0f, 1.0f);
+  if (is_single_value_) {
+    this->copy_pixel(pixel_value, float_texture_);
+    return pixel_value;
+  }
+
+  const int2 size = domain_.size;
+  const float2 texel_coordinates = (coordinates * float2(size)) - 0.5f;
+
+  math::interpolate_bilinear_border_fl(this->float_texture(),
+                                       pixel_value,
+                                       size.x,
+                                       size.y,
+                                       this->channels_count(),
+                                       texel_coordinates.x,
+                                       texel_coordinates.y);
+  return pixel_value;
+}
+
+inline float4 Result::sample_nearest_extended(const float2 &coordinates) const
+{
+  float4 pixel_value = float4(0.0f, 0.0f, 0.0f, 1.0f);
+  if (is_single_value_) {
+    this->copy_pixel(pixel_value, float_texture_);
+    return pixel_value;
+  }
+
+  const int2 size = domain_.size;
+  const float2 texel_coordinates = coordinates * float2(size);
+
+  math::interpolate_nearest_fl(this->float_texture(),
+                               pixel_value,
+                               size.x,
+                               size.y,
+                               this->channels_count(),
+                               texel_coordinates.x,
+                               texel_coordinates.y);
+  return pixel_value;
+}
+
+inline float4 Result::sample_bilinear_extended(const float2 &coordinates) const
+{
+  float4 pixel_value = float4(0.0f, 0.0f, 0.0f, 1.0f);
+  if (is_single_value_) {
+    this->copy_pixel(pixel_value, float_texture_);
+    return pixel_value;
+  }
+
+  const int2 size = domain_.size;
+  const float2 texel_coordinates = (coordinates * float2(size)) - 0.5f;
+
+  math::interpolate_bilinear_fl(this->float_texture(),
+                                pixel_value,
+                                size.x,
+                                size.y,
+                                this->channels_count(),
+                                texel_coordinates.x,
+                                texel_coordinates.y);
   return pixel_value;
 }
 
