@@ -212,6 +212,19 @@ void Sampling::step()
     data_.dimensions[SAMPLING_SSS_U] = r[0];
     data_.dimensions[SAMPLING_SSS_V] = r[1];
   }
+  {
+    /* Don't leave unused data undefined. */
+    data_.dimensions[SAMPLING_UNUSED_0] = 0.0f;
+    data_.dimensions[SAMPLING_UNUSED_1] = 0.0f;
+    data_.dimensions[SAMPLING_UNUSED_2] = 0.0f;
+  }
+
+  for (int i : IndexRange(SAMPLING_DIMENSION_COUNT)) {
+    /* These numbers are often fed to `sqrt`. Make sure their values are in the expected range. */
+    BLI_assert(data_.dimensions[i] >= 0.0f);
+    BLI_assert(data_.dimensions[i] < 1.0f);
+    UNUSED_VARS_NDEBUG(i);
+  }
 
   data_.push_update();
 

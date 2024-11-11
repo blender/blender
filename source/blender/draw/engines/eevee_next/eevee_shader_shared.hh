@@ -262,6 +262,9 @@ enum eSamplingDimension : uint32_t {
   SAMPLING_SHADOW_I = 26u,
   SAMPLING_SHADOW_J = 27u,
   SAMPLING_SHADOW_K = 28u,
+  SAMPLING_UNUSED_0 = 29u,
+  SAMPLING_UNUSED_1 = 30u,
+  SAMPLING_UNUSED_2 = 31u,
 };
 
 /**
