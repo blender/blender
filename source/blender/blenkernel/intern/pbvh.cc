@@ -2433,6 +2433,10 @@ static Span<float3> vert_positions_eval(const Object &object_orig, const Object 
         return mesh_eval->vert_positions();
       }
     }
+    if (!ss.deform_cos.is_empty()) {
+      BLI_assert(ss.deform_cos.size() == mesh_orig.verts_num);
+      return ss.deform_cos;
+    }
     if (const Mesh *mesh_eval = BKE_object_get_mesh_deform_eval(&object_eval)) {
       return mesh_eval->vert_positions();
     }
@@ -2456,6 +2460,10 @@ static MutableSpan<float3> vert_positions_eval_for_write(Object &object_orig, Ob
         Mesh *mesh_eval_mut = const_cast<Mesh *>(mesh_eval);
         return mesh_eval_mut->vert_positions_for_write();
       }
+    }
+    if (!ss.deform_cos.is_empty()) {
+      BLI_assert(ss.deform_cos.size() == mesh_orig.verts_num);
+      return ss.deform_cos;
     }
     if (const Mesh *mesh_eval = BKE_object_get_mesh_deform_eval(&object_eval)) {
       Mesh *mesh_eval_mut = const_cast<Mesh *>(mesh_eval);
