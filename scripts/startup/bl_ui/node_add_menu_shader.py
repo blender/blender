@@ -385,10 +385,11 @@ class NODE_MT_category_shader_zones(Menu):
     bl_idname = "NODE_MT_category_shader_zones"
     bl_label = "Zones"
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
         node_add_menu.add_shader_repeat_zone(layout, label="Repeat")
-        node_add_menu.add_shader_light_loop_zone(layout, label="Light Loop")
+        if npr_shader_nodes_poll(context):
+            node_add_menu.add_shader_light_loop_zone(layout, label="Light Loop")
 
 
 class NODE_MT_shader_node_add_all(Menu):
