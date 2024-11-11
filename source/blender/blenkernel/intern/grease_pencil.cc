@@ -3840,37 +3840,27 @@ static void shrink_customdata(CustomData &data, const int index_to_remove, const
   data = new_data;
 }
 
-static void update_active_node(GreasePencil &grease_pencil,
-                               const blender::bke::greasepencil::TreeNode &node)
+static void update_active_node_from_node_to_remove(
+    GreasePencil &grease_pencil, const blender::bke::greasepencil::TreeNode &node)
 {
   using namespace blender::bke::greasepencil;
-  if (grease_pencil.get_active_node() == nullptr) {
-    return;
+  /* 1. Try setting the node below (within the same group) to be active. */
+  if (node.prev != nullptr) {
+    grease_pencil.set_active_node(reinterpret_cast<TreeNode *>(node.prev));
   }
-  TreeNode &active_node = *grease_pencil.get_active_node();
-  if (&active_node != &node) {
-    return;
+  /* 2. If there is no node below, try setting the node above (within the same group) to be the
+   * active one.*/
+  else if (node.next != nullptr) {
+    grease_pencil.set_active_node(reinterpret_cast<TreeNode *>(node.next));
   }
-
-  if (node.is_group()) {
-    grease_pencil.set_active_layer(nullptr);
-    return;
+  /* 3. If this is the only node within its parent group and the parent group is not the root
+   * group, try setting the parent to be active. */
+  else if (node.parent != grease_pencil.root_group_ptr) {
+    grease_pencil.set_active_node(&node.parent->wrap().as_node());
   }
-
-  Span<Layer *> layers = grease_pencil.layers_for_write();
-  /* If there is no other layer available, unset the active layer. */
-  if (layers.size() == 1) {
-    grease_pencil.set_active_layer(nullptr);
-  }
+  /* 4. Otherwise, clear the active node. */
   else {
-    /* Make the layer below active (if possible). */
-    if (&active_node.as_layer() == layers.first()) {
-      grease_pencil.set_active_layer(layers[1]);
-    }
-    else {
-      const int active_index = *grease_pencil.get_layer_index(active_node.as_layer());
-      grease_pencil.set_active_layer(layers[active_index - 1]);
-    }
+    grease_pencil.set_active_node(nullptr);
   }
 }
 
@@ -3878,7 +3868,9 @@ void GreasePencil::remove_layer(blender::bke::greasepencil::Layer &layer)
 {
   using namespace blender::bke::greasepencil;
   /* If the layer is active, update the active layer. */
-  update_active_node(*this, layer.as_node());
+  if (&layer.as_node() == this->get_active_node()) {
+    update_active_node_from_node_to_remove(*this, layer.as_node());
+  }
 
   /* Remove all the layer attributes and shrink the `CustomData`. */
   const int layer_index = *this->get_layer_index(layer);
@@ -3908,7 +3900,15 @@ void GreasePencil::remove_group(blender::bke::greasepencil::LayerGroup &group,
 {
   using namespace blender::bke::greasepencil;
   /* If the group is active, update the active layer. */
-  update_active_node(*this, group.as_node());
+  if (&group.as_node() == this->get_active_node()) {
+    /* If we keep the children and there is at least one child, make it the active node. */
+    if (keep_children && !group.is_empty()) {
+      this->set_active_node(reinterpret_cast<TreeNode *>(group.children.last));
+    }
+    else {
+      update_active_node_from_node_to_remove(*this, group.as_node());
+    }
+  }
 
   if (!keep_children) {
     /* Recursively remove groups and layers. */
