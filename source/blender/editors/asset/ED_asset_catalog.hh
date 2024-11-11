@@ -25,6 +25,10 @@
 
 struct Main;
 
+namespace blender::asset_system {
+class AssetLibrary;
+}
+
 namespace blender::ed::asset {
 
 void catalogs_save_from_main_path(asset_system::AssetLibrary *library, const Main *bmain);
