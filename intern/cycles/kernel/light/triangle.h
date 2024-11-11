@@ -296,7 +296,7 @@ ccl_device_forceinline bool triangle_light_tree_parameters(
     const float3 centroid,
     const float3 P,
     const float3 N,
-    const BoundingCone bcone,
+    const KernelBoundingCone bcone,
     ccl_private float &cos_theta_u,
     ccl_private float2 &distance,
     ccl_private float3 &point_to_centroid)

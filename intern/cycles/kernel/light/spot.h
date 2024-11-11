@@ -286,7 +286,7 @@ template<bool in_volume_segment>
 ccl_device_forceinline bool spot_light_tree_parameters(const ccl_global KernelLight *klight,
                                                        const float3 centroid,
                                                        const float3 P,
-                                                       const ccl_private BoundingCone &bcone,
+                                                       const ccl_private KernelBoundingCone &bcone,
                                                        ccl_private float &cos_theta_u,
                                                        ccl_private float2 &distance,
                                                        ccl_private float3 &point_to_centroid,
