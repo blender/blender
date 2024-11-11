@@ -2131,6 +2131,12 @@ static void paint_draw_cursor(bContext *C, int x, int y, void * /*unused*/)
   }
 
   if (!paint_cursor_is_brush_cursor_enabled(&pcontext)) {
+    /* For Grease Pencil draw mode, we want to we only render a small mouse cursor (dot) if the
+     * paint cursor is disabled so that the default mouse cursor doesn't get in the way of tablet
+     * users. See #130089. */
+    if (pcontext.mode == PaintMode::GPencil) {
+      WM_cursor_set(pcontext.win, WM_CURSOR_DOT);
+    }
     return;
   }
   if (paint_cursor_is_3d_view_navigating(&pcontext)) {
