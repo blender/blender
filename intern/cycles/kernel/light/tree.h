@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 /* This code implements a modified version of the paper [Importance Sampling of Many Lights with
- * Adaptive Tree Splitting](http://www.aconty.com/pdf/many-lights-hpg2018.pdf) by Alejandro Conty
- * Estevez, Christopher Kulla.
+ * Adaptive Tree Splitting](https://fpsunflower.github.io/ckulla/data/many-lights-hpg2018.pdf)
+ * by Alejandro Conty Estevez and Christopher Kulla.
  * The original paper traverses both children when the variance of a node is too high (called
  * splitting). However, Cycles does not support multiple lights per shading point. Therefore, we
  * adjust the importance computation: instead of using a conservative measure (i.e., the maximal
