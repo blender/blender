@@ -712,7 +712,7 @@ static void grease_pencil_fill_extension_cut(const bContext &C,
 
   /* Upper bound for segment count. Arrays are sized for easy index mapping, exact count isn't
    * necessary. Not all entries are added to the BVH tree. */
-  const int max_bvh_lines = bvh_curve_offsets.total_size();
+  const int max_bvh_lines = bvh_curve_offsets.data().last();
   /* Cached view positions for lines. */
   Array<float2> view_starts(max_bvh_lines);
   Array<float2> view_ends(max_bvh_lines);
