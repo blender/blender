@@ -693,12 +693,19 @@ static void modify_geometry_set(ModifierData *md,
         BLI_assert(start_frame <= eval_frame);
 
         const int relative_start_frame = eval_frame - start_frame;
-        build_drawing(*mmd,
-                      *ctx->object,
-                      *drawing_info.drawing,
-                      prev_drawing,
-                      relative_start_frame,
-                      scene_fps);
+
+        const int frame_index = layer.sorted_keys_index_at(eval_frame);
+        BLI_assert(frame_index != -1);
+
+        int time = relative_start_frame;
+        if (frame_index != layer.sorted_keys().index_range().last()) {
+          const int next_frame = layer.sorted_keys()[frame_index + 1];
+          const int frame_duration = math::distance(start_frame, next_frame);
+          time = math::round(float(relative_start_frame) /
+                             math::min(float(frame_duration), mmd->length) * mmd->length);
+        }
+
+        build_drawing(*mmd, *ctx->object, *drawing_info.drawing, prev_drawing, time, scene_fps);
       });
 }
 
