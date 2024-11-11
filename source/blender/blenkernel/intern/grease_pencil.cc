@@ -3911,20 +3911,26 @@ void GreasePencil::remove_group(blender::bke::greasepencil::LayerGroup &group,
   update_active_node(*this, group.as_node());
 
   if (!keep_children) {
-    /* Recursively remove sub groups. */
-    for (LayerGroup *sub_group : group.groups_for_write()) {
-      this->remove_group(*sub_group, false);
+    /* Recursively remove groups and layers. */
+    LISTBASE_FOREACH_MUTABLE (GreasePencilLayerTreeNode *, child, &group.children) {
+      switch (child->type) {
+        case GP_LAYER_TREE_LEAF: {
+          this->remove_layer(reinterpret_cast<GreasePencilLayer *>(child)->wrap());
+          break;
+        }
+        case GP_LAYER_TREE_GROUP: {
+          this->remove_group(reinterpret_cast<GreasePencilLayerTreeGroup *>(child)->wrap(), false);
+          break;
+        }
+        default:
+          BLI_assert_unreachable();
+      }
     }
-
-    /* Remove all the layers. */
-    for (Layer *layer : group.layers_for_write()) {
-      this->remove_layer(*layer);
-    }
+    BLI_assert(BLI_listbase_is_empty(&group.children));
   }
-  /* Unlink the group. Keep the children if we want to keep them. */
-  group.as_node().parent_group()->unlink_node(group.as_node(), keep_children);
 
-  /* Delete the group. */
+  /* Unlink then delete active group node. */
+  group.as_node().parent_group()->unlink_node(group.as_node(), true);
   MEM_delete(&group);
 }
 
