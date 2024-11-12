@@ -12,6 +12,11 @@ void main()
   vec2 coordinates = (vec2(texel) + vec2(0.5)) / output_size;
 
   vec3 transformed_coordinates = to_float3x3(homography_matrix) * vec3(coordinates, 1.0);
+  /* Point is at infinity and will be zero when sampled, so early exit. */
+  if (transformed_coordinates.z == 0.0) {
+    imageStore(output_img, texel, vec4(0.0));
+    return;
+  }
   vec2 projected_coordinates = transformed_coordinates.xy / transformed_coordinates.z;
 
   /* The derivatives of the projected coordinates with respect to x and y are the first and
