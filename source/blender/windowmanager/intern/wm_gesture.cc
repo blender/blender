@@ -406,7 +406,7 @@ static void draw_start_vertex_circle(const wmGesture &gt, const uint shdr_pos)
   const float dist = len_v2v2(start_pos, current_pos);
   const float limit = pow2f(blender::wm::gesture::POLYLINE_CLICK_RADIUS * UI_SCALE_FAC);
 
-  if (dist < limit && numverts > 2) {
+  if (dist < limit && numverts > 3) {
     const float u = smoothstep(0.0f, limit, dist);
     const float radius = interpf(
         1.0f * UI_SCALE_FAC, blender::wm::gesture::POLYLINE_CLICK_RADIUS * UI_SCALE_FAC, u);
