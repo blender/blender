@@ -1090,12 +1090,12 @@ template<typename T> struct Interval {
   T min;
   T max;
 
-  bool is_empty() const
+  ccl_device_inline_method bool is_empty() const
   {
     return min >= max;
   }
 
-  bool contains(T value) const
+  ccl_device_inline_method bool contains(T value) const
   {
     return value >= min && value <= max;
   }
