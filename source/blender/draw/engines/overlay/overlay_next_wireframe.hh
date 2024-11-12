@@ -53,7 +53,9 @@ class Wireframe {
 
     GPUTexture **depth_tex = (state.xray_enabled) ? &res.depth_tx : &tmp_depth_tx_;
 
-    do_depth_copy_workaround_ = (depth_tex == &tmp_depth_tx_);
+    /* Note: Depth buffer has different format when doing selection. Avoid copy in this case. */
+    do_depth_copy_workaround_ = (res.selection_type == SelectionType::DISABLED) &&
+                                (depth_tex == &tmp_depth_tx_);
 
     {
       auto &pass = wireframe_ps_;
