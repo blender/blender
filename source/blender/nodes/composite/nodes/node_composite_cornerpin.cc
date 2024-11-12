@@ -60,17 +60,6 @@ class CornerPinOperation : public NodeOperation {
 
   void execute() override
   {
-    /* Not yet supported on CPU. */
-    if (!context().use_gpu()) {
-      for (const bNodeSocket *output : this->node()->output_sockets()) {
-        Result &output_result = get_result(output->identifier);
-        if (output_result.should_compute()) {
-          output_result.allocate_invalid();
-        }
-      }
-      return;
-    }
-
     const float3x3 homography_matrix = compute_homography_matrix();
 
     Result &input_image = get_input("Image");
@@ -106,6 +95,16 @@ class CornerPinOperation : public NodeOperation {
 
   void compute_plane(const float3x3 &homography_matrix, Result &plane_mask)
   {
+    if (this->context().use_gpu()) {
+      this->compute_plane_gpu(homography_matrix, plane_mask);
+    }
+    else {
+      this->compute_plane_cpu(homography_matrix, plane_mask);
+    }
+  }
+
+  void compute_plane_gpu(const float3x3 &homography_matrix, Result &plane_mask)
+  {
     GPUShader *shader = context().get_shader("compositor_plane_deform");
     GPU_shader_bind(shader);
 
@@ -132,7 +131,53 @@ class CornerPinOperation : public NodeOperation {
     GPU_shader_unbind();
   }
 
+  void compute_plane_cpu(const float3x3 &homography_matrix, Result &plane_mask)
+  {
+    Result &input = get_input("Image");
+
+    const Domain domain = compute_domain();
+    Result &output = get_result("Image");
+    output.allocate_texture(domain);
+
+    const int2 size = domain.size;
+    parallel_for(size, [&](const int2 texel) {
+      float2 coordinates = (float2(texel) + float2(0.5f)) / float2(size);
+
+      float3 transformed_coordinates = float3x3(homography_matrix) * float3(coordinates, 1.0f);
+      /* Point is at infinity and will be zero when sampled, so early exit. */
+      if (transformed_coordinates.z == 0.0f) {
+        output.store_pixel(texel, float4(0.0f));
+        return;
+      }
+      float2 projected_coordinates = transformed_coordinates.xy() / transformed_coordinates.z;
+
+      /* The derivatives of the projected coordinates with respect to x and y are the first and
+       * second columns respectively, divided by the z projection factor as can be shown by
+       * differentiating the above matrix multiplication with respect to x and y. Divide by the
+       * output size since sample_ewa assumes derivatives with respect to texel coordinates. */
+      float2 x_gradient = (homography_matrix[0].xy() / transformed_coordinates.z) / size.x;
+      float2 y_gradient = (homography_matrix[1].xy() / transformed_coordinates.z) / size.y;
+
+      float4 sampled_color = input.sample_ewa_extended(
+          projected_coordinates, x_gradient, y_gradient);
+
+      /* Premultiply the mask value as an alpha. */
+      float4 plane_color = sampled_color * plane_mask.load_pixel(texel).x;
+
+      output.store_pixel(texel, plane_color);
+    });
+  }
+
   Result compute_plane_mask(const float3x3 &homography_matrix)
+  {
+    if (this->context().use_gpu()) {
+      return this->compute_plane_mask_gpu(homography_matrix);
+    }
+
+    return this->compute_plane_mask_cpu(homography_matrix);
+  }
+
+  Result compute_plane_mask_gpu(const float3x3 &homography_matrix)
   {
     GPUShader *shader = context().get_shader("compositor_plane_deform_mask");
     GPU_shader_bind(shader);
@@ -148,6 +193,34 @@ class CornerPinOperation : public NodeOperation {
 
     plane_mask.unbind_as_image();
     GPU_shader_unbind();
+
+    return plane_mask;
+  }
+
+  Result compute_plane_mask_cpu(const float3x3 &homography_matrix)
+  {
+    const Domain domain = compute_domain();
+    Result plane_mask = context().create_result(ResultType::Float);
+    plane_mask.allocate_texture(domain);
+
+    const int2 size = domain.size;
+    parallel_for(size, [&](const int2 texel) {
+      float2 coordinates = (float2(texel) + float2(0.5f)) / float2(size);
+
+      float3 transformed_coordinates = float3x3(homography_matrix) * float3(coordinates, 1.0f);
+      /* Point is at infinity and will be zero when sampled, so early exit. */
+      if (transformed_coordinates.z == 0.0f) {
+        plane_mask.store_pixel(texel, float4(0.0f));
+        return;
+      }
+      float2 projected_coordinates = transformed_coordinates.xy() / transformed_coordinates.z;
+
+      bool is_inside_plane = projected_coordinates.x >= 0.0f && projected_coordinates.y >= 0.0f &&
+                             projected_coordinates.x <= 1.0f && projected_coordinates.y <= 1.0f;
+      float mask_value = is_inside_plane ? 1.0f : 0.0f;
+
+      plane_mask.store_pixel(texel, float4(mask_value));
+    });
 
     return plane_mask;
   }
