@@ -54,7 +54,7 @@ void register_node_type_sh_invert();
 void register_node_type_sh_layer_weight();
 void register_node_type_sh_light_falloff();
 void register_node_type_sh_light_path();
-void register_node_type_sh_light_loop();
+void register_node_type_sh_foreach_light();
 void register_node_type_sh_map_range();
 void register_node_type_sh_mapping();
 void register_node_type_sh_math();

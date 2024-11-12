@@ -167,14 +167,14 @@ vec4 TextureHandle_eval(TextureHandle tex)
   return TextureHandle_eval(tex, vec2(0.0), true);
 }
 
-bool light_loop_setup(uint l_idx,
-                      bool is_directional,
-                      vec3 N,
-                      out vec4 out_color,
-                      out vec3 out_vector,
-                      out float out_distance,
-                      out float out_attenuation,
-                      out float out_shadow_mask)
+bool foreach_light_setup(uint l_idx,
+                         bool is_directional,
+                         vec3 N,
+                         out vec4 out_color,
+                         out vec3 out_vector,
+                         out float out_distance,
+                         out float out_attenuation,
+                         out float out_shadow_mask)
 {
   LightData light = light_buf[l_idx];
   if (light.color == vec3(0.0)) {
@@ -221,7 +221,7 @@ bool light_loop_setup(uint l_idx,
   return true;
 }
 
-#define LIGHT_LOOP_BEGIN( \
+#define FOREACH_LIGHT_BEGIN( \
     N, out_color, out_vector, out_distance, out_attenuation, out_shadow_mask) \
   LIGHT_FOREACH_ALL_BEGIN(light_cull_buf, \
                           light_zbin_buf, \
@@ -230,19 +230,19 @@ bool light_loop_setup(uint l_idx,
                           drw_point_world_to_view(g_data.P).z, \
                           l_idx, \
                           is_local) \
-  if (!light_loop_setup(l_idx, \
-                        !is_local, \
-                        N, \
-                        out_color, \
-                        out_vector, \
-                        out_distance, \
-                        out_attenuation, \
-                        out_shadow_mask)) \
+  if (!foreach_light_setup(l_idx, \
+                           !is_local, \
+                           N, \
+                           out_color, \
+                           out_vector, \
+                           out_distance, \
+                           out_attenuation, \
+                           out_shadow_mask)) \
   { \
     continue; \
   }
 
-#define LIGHT_LOOP_END() LIGHT_FOREACH_ALL_END()
+#define FOREACH_LIGHT_END() LIGHT_FOREACH_ALL_END()
 
 void main()
 {

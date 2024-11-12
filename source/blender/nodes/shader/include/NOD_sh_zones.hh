@@ -11,7 +11,8 @@
 namespace blender::nodes {
 
 /**
- * Makes it possible to use various functions (e.g. the ones in `NOD_socket_items.hh`).
+ * Makes it possible to use various functions (e.g. the ones in `NOD_socket_items.hh`) with
+ * NodeItemTs.
  */
 template<typename NodeOutputT, typename NodeItemT> struct ShZoneItemsAccessorBase {
   using ItemT = NodeItemT;
@@ -69,10 +70,6 @@ template<typename NodeOutputT, typename NodeItemT> struct ShZoneItemsAccessorBas
   }
 };
 
-/**
- * Makes it possible to use various functions (e.g. the ones in `NOD_socket_items.hh`) with
- * repeat items.
- */
 struct ShRepeatItemsAccessor
     : ShZoneItemsAccessorBase<NodeShaderRepeatOutput, NodeShaderRepeatItem> {
   static constexpr const char *node_idname = "ShaderNodeRepeatOutput";
@@ -96,26 +93,22 @@ struct ShRepeatItemsAccessor
   static void blend_read_data_item(BlendDataReader *reader, ItemT &item);
 };
 
-/**
- * Makes it possible to use various functions (e.g. the ones in `NOD_socket_items.hh`) with
- * light loop items.
- */
-struct ShLightLoopItemsAccessor
-    : ShZoneItemsAccessorBase<NodeShaderLightLoopOutput, NodeShaderLightLoopItem> {
-  static constexpr const char *node_idname = "ShaderNodeLightLoopOutput";
+struct ShForeachLightItemsAccessor
+    : ShZoneItemsAccessorBase<NodeShaderForeachLightOutput, NodeShaderForeachLightItem> {
+  static constexpr const char *node_idname = "ShaderNodeForeachLightOutput";
   struct operator_idnames {
-    static constexpr const char *add_item = "NODE_OT_sh_light_loop_zone_item_add";
-    static constexpr const char *remove_item = "NODE_OT_sh_light_loop_zone_item_remove";
-    static constexpr const char *move_item = "NODE_OT_sh_light_loop_zone_item_move";
+    static constexpr const char *add_item = "NODE_OT_sh_foreach_light_zone_item_add";
+    static constexpr const char *remove_item = "NODE_OT_sh_foreach_light_zone_item_remove";
+    static constexpr const char *move_item = "NODE_OT_sh_foreach_light_zone_item_move";
   };
   struct ui_idnames {
-    static constexpr const char *list = "DATA_UL_sh_light_loop_zone_state";
+    static constexpr const char *list = "DATA_UL_sh_foreach_light_zone_state";
   };
   struct rna_names {
-    static constexpr const char *items = "light_loop_items";
+    static constexpr const char *items = "foreach_light_items";
     static constexpr const char *active_index = "active_index";
   };
-  /* Defined in node_shader_light_loop.cc */
+  /* Defined in node_shader_foreach_light.cc */
   static StructRNA *item_srna;
   static int node_type;
   static int item_dna_type;

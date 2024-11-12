@@ -665,7 +665,7 @@ using blender::nodes::ForeachGeometryElementMainItemsAccessor;
 using blender::nodes::IndexSwitchItemsAccessor;
 using blender::nodes::MenuSwitchItemsAccessor;
 using blender::nodes::RepeatItemsAccessor;
-using blender::nodes::ShLightLoopItemsAccessor;
+using blender::nodes::ShForeachLightItemsAccessor;
 using blender::nodes::ShRepeatItemsAccessor;
 using blender::nodes::SimulationItemsAccessor;
 
@@ -10605,47 +10605,47 @@ static void def_sh_repeat_output(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE, "rna_Node_update");
 }
 
-static void def_sh_light_loop_input(StructRNA *srna)
+static void def_sh_foreach_light_input(StructRNA *srna)
 {
-  RNA_def_struct_sdna_from(srna, "NodeShaderLightLoopInput", "storage");
+  RNA_def_struct_sdna_from(srna, "NodeShaderForeachLightInput", "storage");
 
   def_common_sh_zone_input(srna);
 }
 
-static void rna_def_sh_light_loop_item(BlenderRNA *brna)
+static void rna_def_sh_foreach_light_item(BlenderRNA *brna)
 {
-  StructRNA *srna = RNA_def_struct(brna, "ShaderLightLoopItem", nullptr);
-  RNA_def_struct_ui_text(srna, "LightLoop Item", "");
-  RNA_def_struct_sdna(srna, "NodeShaderLightLoopItem");
+  StructRNA *srna = RNA_def_struct(brna, "ShaderForeachLightItem", nullptr);
+  RNA_def_struct_ui_text(srna, "ForeachLight Item", "");
+  RNA_def_struct_sdna(srna, "NodeShaderForeachLightItem");
 
-  rna_def_node_item_array_socket_item_common(srna, "ShLightLoopItemsAccessor", true);
+  rna_def_node_item_array_socket_item_common(srna, "ShForeachLightItemsAccessor", true);
 }
 
-static void rna_def_sh_light_loop_output_items(BlenderRNA *brna)
+static void rna_def_sh_foreach_light_output_items(BlenderRNA *brna)
 {
   StructRNA *srna;
 
-  srna = RNA_def_struct(brna, "NodeShaderLightLoopOutputItems", nullptr);
+  srna = RNA_def_struct(brna, "NodeShaderForeachLightOutputItems", nullptr);
   RNA_def_struct_sdna(srna, "bNode");
-  RNA_def_struct_ui_text(srna, "Items", "Collection of light loop items");
+  RNA_def_struct_ui_text(srna, "Items", "Collection of For Each Light items");
 
   rna_def_node_item_array_new_with_socket_and_name(
-      srna, "ShaderLightLoopItem", "ShLightLoopItemsAccessor");
+      srna, "ShaderForeachLightItem", "ShForeachLightItemsAccessor");
   rna_def_node_item_array_common_functions(
-      srna, "ShaderLightLoopItem", "ShLightLoopItemsAccessor");
+      srna, "ShaderForeachLightItem", "ShForeachLightItemsAccessor");
 }
 
-static void def_sh_light_loop_output(StructRNA *srna)
+static void def_sh_foreach_light_output(StructRNA *srna)
 {
   PropertyRNA *prop;
 
-  RNA_def_struct_sdna_from(srna, "NodeShaderLightLoopOutput", "storage");
+  RNA_def_struct_sdna_from(srna, "NodeShaderForeachLightOutput", "storage");
 
-  prop = RNA_def_property(srna, "light_loop_items", PROP_COLLECTION, PROP_NONE);
+  prop = RNA_def_property(srna, "foreach_light_items", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, nullptr, "items", "items_num");
-  RNA_def_property_struct_type(prop, "ShaderLightLoopItem");
+  RNA_def_property_struct_type(prop, "ShaderForeachLightItem");
   RNA_def_property_ui_text(prop, "Items", "");
-  RNA_def_property_srna(prop, "NodeShaderLightLoopOutputItems");
+  RNA_def_property_srna(prop, "NodeShaderForeachLightOutputItems");
 
   prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, nullptr, "active_index");
@@ -10655,10 +10655,10 @@ static void def_sh_light_loop_output(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE, nullptr);
 
   prop = RNA_def_property(srna, "active_item", PROP_POINTER, PROP_NONE);
-  RNA_def_property_struct_type(prop, "ShaderLightLoopItem");
+  RNA_def_property_struct_type(prop, "ShaderForeachLightItem");
   RNA_def_property_pointer_funcs(prop,
-                                 "rna_Node_ItemArray_active_get<ShLightLoopItemsAccessor>",
-                                 "rna_Node_ItemArray_active_set<ShLightLoopItemsAccessor>",
+                                 "rna_Node_ItemArray_active_get<ShForeachLightItemsAccessor>",
+                                 "rna_Node_ItemArray_active_set<ShForeachLightItemsAccessor>",
                                  nullptr,
                                  nullptr);
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NO_DEG_UPDATE);
@@ -11827,7 +11827,7 @@ void RNA_def_nodetree(BlenderRNA *brna)
   rna_def_geometry_nodetree(brna);
 
   rna_def_sh_repeat_item(brna);
-  rna_def_sh_light_loop_item(brna);
+  rna_def_sh_foreach_light_item(brna);
 
   rna_def_simulation_state_item(brna);
   rna_def_repeat_item(brna);
@@ -11899,7 +11899,7 @@ void RNA_def_nodetree(BlenderRNA *brna)
   rna_def_geo_capture_attribute_items(brna);
 
   rna_def_sh_repeat_output_items(brna);
-  rna_def_sh_light_loop_output_items(brna);
+  rna_def_sh_foreach_light_output_items(brna);
 
   rna_def_node_instance_hash(brna);
 }

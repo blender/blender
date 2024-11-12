@@ -2012,7 +2012,7 @@ typedef struct NodeShaderRepeatOutput {
 #endif
 } NodeShaderRepeatOutput;
 
-typedef struct NodeShaderLightLoopItem {
+typedef struct NodeShaderForeachLightItem {
   char *name;
   /** #eNodeSocketDatatype. */
   short socket_type;
@@ -2022,26 +2022,26 @@ typedef struct NodeShaderLightLoopItem {
    * names change.
    */
   int identifier;
-} NodeShaderLightLoopItem;
+} NodeShaderForeachLightItem;
 
-typedef struct NodeShaderLightLoopInput {
+typedef struct NodeShaderForeachLightInput {
   /** bNode.identifier of the corresponding output node. */
   int32_t output_node_id;
-} NodeShaderLightLoopInput;
+} NodeShaderForeachLightInput;
 
-typedef struct NodeShaderLightLoopOutput {
-  NodeShaderLightLoopItem *items;
+typedef struct NodeShaderForeachLightOutput {
+  NodeShaderForeachLightItem *items;
   int items_num;
   int active_index;
-  /** Identifier to give to the next LightLoop item. */
+  /** Identifier to give to the next ForeachLight item. */
   int next_identifier;
   int _pad0;
 
 #ifdef __cplusplus
-  blender::Span<NodeShaderLightLoopItem> items_span() const;
-  blender::MutableSpan<NodeShaderLightLoopItem> items_span();
+  blender::Span<NodeShaderForeachLightItem> items_span() const;
+  blender::MutableSpan<NodeShaderForeachLightItem> items_span();
 #endif
-} NodeShaderLightLoopOutput;
+} NodeShaderForeachLightOutput;
 
 typedef struct NodeGeometryForeachGeometryElementInput {
   /** bNode.identifier of the corresponding output node. */

@@ -1005,8 +1005,10 @@ void node_tree_remove_layer_n(bNodeTree *ntree, Scene *scene, int layer_index);
 #define SH_NODE_INPUT_AOV 721
 #define SH_NODE_REPEAT_INPUT 722
 #define SH_NODE_REPEAT_OUTPUT 723
-#define SH_NODE_LIGHT_LOOP_INPUT 724
-#define SH_NODE_LIGHT_LOOP_OUTPUT 725
+// #define SH_NODE_LIGHT_LOOP_INPUT 724 (Deprecated)
+// #define SH_NODE_LIGHT_LOOP_OUTPUT 725 (Deprecated)
+#define SH_NODE_FOREACH_LIGHT_INPUT 726
+#define SH_NODE_FOREACH_LIGHT_OUTPUT 727
 
 /** \} */
 

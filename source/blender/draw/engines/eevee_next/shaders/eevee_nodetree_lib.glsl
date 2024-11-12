@@ -821,8 +821,8 @@ vec4 attr_load_uniform(vec4 attr, const uint attr_hash)
 #define REPEAT_END() }
 
 #if !defined(NPR_SHADER) || !defined(GPU_FRAGMENT_SHADER)
-#  define LIGHT_LOOP_BEGIN( \
+#  define FOREACH_LIGHT_BEGIN( \
       N, out_color, out_vector, out_distance, out_attenuation, out_shadow_mask)
 
-#  define LIGHT_LOOP_END()
+#  define FOREACH_LIGHT_END()
 #endif

@@ -67,7 +67,7 @@ set(SRC
   nodes/node_shader_layer_weight.cc
   nodes/node_shader_light_falloff.cc
   nodes/node_shader_light_path.cc
-  nodes/node_shader_light_loop.cc
+  nodes/node_shader_foreach_light.cc
   nodes/node_shader_map_range.cc
   nodes/node_shader_mapping.cc
   nodes/node_shader_math.cc

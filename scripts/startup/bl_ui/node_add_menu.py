@@ -91,8 +91,8 @@ def add_shader_repeat_zone(layout, label):
     return props
 
 
-def add_shader_light_loop_zone(layout, label):
-    props = layout.operator("node.add_shader_light_loop_zone", text=label, text_ctxt=i18n_contexts.default)
+def add_shader_foreach_light_zone(layout, label):
+    props = layout.operator("node.add_shader_foreach_light_zone", text=label, text_ctxt=i18n_contexts.default)
     props.use_transform = True
     return props
 

@@ -894,8 +894,8 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
     if (node->type == SH_NODE_REPEAT_OUTPUT) {
       nodes::socket_items::blend_write<nodes::ShRepeatItemsAccessor>(writer, *node);
     }
-    if (node->type == SH_NODE_LIGHT_LOOP_OUTPUT) {
-      nodes::socket_items::blend_write<nodes::ShLightLoopItemsAccessor>(writer, *node);
+    if (node->type == SH_NODE_FOREACH_LIGHT_OUTPUT) {
+      nodes::socket_items::blend_write<nodes::ShForeachLightItemsAccessor>(writer, *node);
     }
     if (node->type == GEO_NODE_INDEX_SWITCH) {
       nodes::socket_items::blend_write<nodes::IndexSwitchItemsAccessor>(writer, *node);
@@ -1189,8 +1189,8 @@ void node_tree_blend_read_data(BlendDataReader *reader, ID *owner_id, bNodeTree 
           nodes::socket_items::blend_read_data<nodes::ShRepeatItemsAccessor>(reader, *node);
           break;
         }
-        case SH_NODE_LIGHT_LOOP_OUTPUT: {
-          nodes::socket_items::blend_read_data<nodes::ShLightLoopItemsAccessor>(reader, *node);
+        case SH_NODE_FOREACH_LIGHT_OUTPUT: {
+          nodes::socket_items::blend_read_data<nodes::ShForeachLightItemsAccessor>(reader, *node);
           break;
         }
         case GEO_NODE_FOREACH_GEOMETRY_ELEMENT_OUTPUT: {

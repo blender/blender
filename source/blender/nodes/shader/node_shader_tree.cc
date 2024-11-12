@@ -497,10 +497,10 @@ static int &node_zone_id(bNode *node)
   switch (node->type) {
     case SH_NODE_REPEAT_INPUT:
       return ((NodeShaderRepeatInput *)node->storage)->output_node_id;
-    case SH_NODE_LIGHT_LOOP_INPUT:
-      return ((NodeShaderLightLoopInput *)node->storage)->output_node_id;
+    case SH_NODE_FOREACH_LIGHT_INPUT:
+      return ((NodeShaderForeachLightInput *)node->storage)->output_node_id;
     case SH_NODE_REPEAT_OUTPUT:
-    case SH_NODE_LIGHT_LOOP_OUTPUT:
+    case SH_NODE_FOREACH_LIGHT_OUTPUT:
       return node->identifier;
     default:
       BLI_assert_unreachable();
