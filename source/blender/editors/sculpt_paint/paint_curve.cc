@@ -23,6 +23,7 @@
 
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_paint.hh"
 
 #include "ED_paint.hh"
@@ -145,6 +146,13 @@ static char paintcurve_point_side_index(const BezTriple *bezt,
 
 /******************* Operators *********************************/
 
+static PaintCurve *paintcurve_for_brush_add(Main *bmain, const char *name, const Brush *brush)
+{
+  PaintCurve *curve = BKE_paint_curve_add(bmain, name);
+  BKE_id_move_to_same_lib(*bmain, curve->id, brush->id);
+  return curve;
+}
+
 static int paintcurve_new_exec(bContext *C, wmOperator * /*op*/)
 {
   Paint *paint = BKE_paint_get_active_from_context(C);
@@ -152,7 +160,7 @@ static int paintcurve_new_exec(bContext *C, wmOperator * /*op*/)
   Main *bmain = CTX_data_main(C);
 
   if (brush) {
-    brush->paint_curve = BKE_paint_curve_add(bmain, DATA_("PaintCurve"));
+    brush->paint_curve = paintcurve_for_brush_add(bmain, DATA_("PaintCurve"), brush);
     BKE_brush_tag_unsaved_changes(brush);
   }
 
@@ -187,7 +195,7 @@ static void paintcurve_point_add(bContext *C, wmOperator *op, const int loc[2])
 
   PaintCurve *pc = br->paint_curve;
   if (!pc) {
-    br->paint_curve = pc = BKE_paint_curve_add(bmain, DATA_("PaintCurve"));
+    br->paint_curve = pc = paintcurve_for_brush_add(bmain, DATA_("PaintCurve"), br);
   }
 
   ED_paintcurve_undo_push_begin(op->type->name);
