@@ -378,7 +378,7 @@ static void outliner_collection_set_flag_recursive(Scene *scene,
   }
   PointerRNA ptr;
   outliner_layer_or_collection_pointer_create(scene, layer_collection, collection, &ptr);
-  if (base_or_object_prop && !RNA_property_editable(&ptr, base_or_object_prop)) {
+  if (layer_or_collection_prop && !RNA_property_editable(&ptr, layer_or_collection_prop)) {
     return;
   }
 
