@@ -253,6 +253,9 @@ static void nlatrack_truncate_temporary_tracks(bAnimContext *ac)
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
 
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+    if (!ale->adt) {
+      continue;
+    }
     ListBase *nla_tracks = &ale->adt->nla_tracks;
 
     /** Remove top tracks that weren't necessary. */

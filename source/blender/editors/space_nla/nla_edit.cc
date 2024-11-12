@@ -66,6 +66,9 @@ void ED_nla_postop_refresh(bAnimContext *ac)
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+    if (!ale->adt) {
+      continue;
+    }
     /* performing auto-blending, extend-mode validation, etc. */
     BKE_nla_validate_state(static_cast<AnimData *>(ale->data));
 
@@ -117,7 +120,11 @@ static int nlaedit_enable_tweakmode_exec(bContext *C, wmOperator *op)
 
   /* for each AnimData block with NLA-data, try setting it in tweak-mode */
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+    if (ale->type != ANIMTYPE_ANIMDATA) {
+      continue;
+    }
     AnimData *adt = static_cast<AnimData *>(ale->data);
+    BLI_assert(adt);
 
     if (use_upper_stack_evaluation) {
       adt->flag |= ADT_NLA_EVAL_UPPER_TRACKS;
