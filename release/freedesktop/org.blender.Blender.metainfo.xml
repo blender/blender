@@ -48,6 +48,23 @@
         </screenshot>
     </screenshots>
     <releases>
+        <release version="4.3" date="2024-11-19">
+            <description>
+                <p>New features:</p>
+                <ul>
+                    <li>Grease Pencil was rewritten to remove deeper limitations and improve overall performance</li>
+                    <li>New Unwrapping Method "Minimum Stretch"</li>
+                    <li>Cycles: hardware accelerated ray-tracing on Linux/AMD, new volume scattering phase functions</li>
+                </ul>
+                <p>Enhancements:</p>
+                <ul>
+                    <li>Rendering: New Metallic BSDF and Gabor Noise texture</li>
+                    <li>Sculpt / Paint: Brush Assets and many performance improvements</li>
+                    <li>UI: New area docking, SVG icons for better resolution and more</li>
+                    <li>Video Sequencer: The preview area now supports snapping, various performance improvements</li>
+                </ul>
+            </description>
+        </release>
         <release version="4.2" date="2024-07-16">
             <description>
                 <p>New features:</p>
