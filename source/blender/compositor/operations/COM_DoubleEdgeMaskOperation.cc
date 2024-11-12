@@ -161,11 +161,17 @@ void DoubleEdgeMaskOperation::update_memory_buffer(MemoryBuffer *output,
                                                    Span<MemoryBuffer *> inputs)
 {
   if (!is_output_rendered_) {
-    /* Ensure full buffers to work with no strides. */
     MemoryBuffer *input_inner_mask = inputs[0];
+    MemoryBuffer *input_outer_mask = inputs[1];
+    if (input_inner_mask->is_a_single_elem() && input_outer_mask->is_a_single_elem()) {
+      output->clear();
+      is_output_rendered_ = true;
+      return;
+    }
+
+    /* Ensure full buffers to work with no strides. */
     MemoryBuffer *inner_mask = input_inner_mask->is_a_single_elem() ? input_inner_mask->inflate() :
                                                                       input_inner_mask;
-    MemoryBuffer *input_outer_mask = inputs[1];
     MemoryBuffer *outer_mask = input_outer_mask->is_a_single_elem() ? input_outer_mask->inflate() :
                                                                       input_outer_mask;
 
