@@ -12,6 +12,8 @@
 
 #include "BLI_rect.h"
 
+#include <optional>
+
 struct Depsgraph;
 struct GPUTexture;
 struct ID;
@@ -22,6 +24,7 @@ struct ImageFormatData;
 struct ImagePool;
 struct ImageTile;
 struct ImbFormatOptions;
+struct Library;
 struct ListBase;
 struct Main;
 struct Object;
@@ -192,16 +195,30 @@ void BKE_image_alpha_mode_from_extension(Image *image);
 
 /**
  * Returns a new image or NULL if it can't load.
+ *
+ * \note: The `_in_lib` version allows to add a new image in a given library. It also affects the
+ * root path used for relative filepaths. See also #BKE_id_new and #BKE_id_new_in_lib
+ * documentation for more details.
  */
 Image *BKE_image_load(Main *bmain, const char *filepath);
+Image *BKE_image_load_in_lib(Main *bmain,
+                             std::optional<Library *> owner_library,
+                             const char *filepath);
 /**
  * Returns existing Image when filename/type is same.
  *
  * Checks if image was already loaded, then returns same image otherwise creates new
  * (does not load ibuf itself).
+ *
+ * \note: The `_in_lib` version allows to find an existing (or add a new) image in a given library.
+ * It also affects the root path used for relative filepaths. See also #BKE_id_new and
+ * #BKE_id_new_in_lib documentation for more details.
  */
-Image *BKE_image_load_exists_ex(Main *bmain, const char *filepath, bool *r_exists);
-Image *BKE_image_load_exists(Main *bmain, const char *filepath);
+Image *BKE_image_load_exists(Main *bmain, const char *filepath, bool *r_exists = nullptr);
+Image *BKE_image_load_exists_in_lib(Main *bmain,
+                                    std::optional<Library *> owner_library,
+                                    const char *filepath,
+                                    bool *r_exists = nullptr);
 
 /**
  * Adds new image block, creates ImBuf and initializes color.

@@ -1277,7 +1277,7 @@ static Image *image_open_single(Main *bmain,
 
   errno = 0;
   if (check_exists) {
-    ima = BKE_image_load_exists_ex(bmain, range->filepath, &exists);
+    ima = BKE_image_load_exists(bmain, range->filepath, &exists);
   }
   else {
     ima = BKE_image_load(bmain, range->filepath);
