@@ -711,6 +711,10 @@ void Instance::light_bake_irradiance(
     render_sync();
     manager->end_sync();
 
+    /* Sampling module needs to be initialized to computing lighting. */
+    sampling.init(probe);
+    sampling.step();
+
     DebugScope debug_scope(debug_scope_irradiance_setup, "EEVEE.irradiance_setup");
 
     capture_view.render_world();
