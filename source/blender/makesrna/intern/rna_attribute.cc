@@ -594,18 +594,23 @@ static void rna_AttributeGroup_active_set(PointerRNA *ptr,
 {
   ID *id = ptr->owner_id;
   CustomDataLayer *layer = static_cast<CustomDataLayer *>(attribute_ptr.data);
-  BKE_id_attributes_active_set(id, layer->name);
+  if (layer) {
+    BKE_id_attributes_active_set(id, layer->name);
+  }
+  else {
+    BKE_id_attributes_active_clear(id);
+  }
 }
 
 static void rna_AttributeGroup_active_index_set(PointerRNA *ptr, int value)
 {
-  *BKE_id_attributes_active_index_p(ptr->owner_id) = value;
+  *BKE_id_attributes_active_index_p(ptr->owner_id) = std::max(-1, value);
 }
 
 static void rna_AttributeGroup_active_index_range(
     PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
-  *min = 0;
+  *min = -1;
   *max = BKE_id_attributes_length(ptr->owner_id, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL);
 
   *softmin = *min;
@@ -636,7 +641,12 @@ static void rna_AttributeGroup_active_color_set(PointerRNA *ptr,
 {
   ID *id = ptr->owner_id;
   CustomDataLayer *layer = static_cast<CustomDataLayer *>(attribute_ptr.data);
-  BKE_id_attributes_active_color_set(id, layer->name);
+  if (layer) {
+    BKE_id_attributes_active_color_set(id, layer->name);
+  }
+  else {
+    BKE_id_attributes_active_color_clear(ptr->owner_id);
+  }
 }
 
 static int rna_AttributeGroup_active_color_index_get(PointerRNA *ptr)
@@ -656,18 +666,18 @@ static void rna_AttributeGroup_active_color_index_set(PointerRNA *ptr, int value
   CustomDataLayer *layer = BKE_id_attribute_from_index(
       ptr->owner_id, value, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
 
-  if (!layer) {
-    fprintf(stderr, "%s: error setting active color index to %d\n", __func__, value);
-    return;
+  if (layer) {
+    BKE_id_attributes_active_color_set(ptr->owner_id, layer->name);
   }
-
-  BKE_id_attributes_active_color_set(ptr->owner_id, layer->name);
+  else {
+    BKE_id_attributes_active_color_clear(ptr->owner_id);
+  }
 }
 
 static void rna_AttributeGroup_active_color_index_range(
     PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
-  *min = 0;
+  *min = -1;
   *max = BKE_id_attributes_length(ptr->owner_id, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
 
   *softmin = *min;
@@ -1323,7 +1333,9 @@ static void rna_def_attribute_group(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_AttributeGroup_update_active");
 
   prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_NONE);
-  RNA_def_property_ui_text(prop, "Active Attribute Index", "Active attribute index");
+  RNA_def_property_ui_text(
+      prop, "Active Attribute Index", "Active attribute index or -1 when none are active");
+  RNA_def_property_range(prop, -1, INT_MAX);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_int_funcs(prop,
                              "rna_AttributeGroup_active_index_get",

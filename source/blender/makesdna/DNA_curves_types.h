@@ -169,6 +169,8 @@ typedef struct Curves {
   CurvesGeometry geometry;
 
   int flag;
+
+  /** Set to -1 when none is active. */
   int attributes_active_index;
 
   /* Materials. */

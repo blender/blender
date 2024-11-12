@@ -710,6 +710,9 @@ bool BKE_id_attribute_required(const ID *id, const char *name)
 CustomDataLayer *BKE_id_attributes_active_get(ID *id)
 {
   int active_index = *BKE_id_attributes_active_index_p(id);
+  if (active_index == -1) {
+    return nullptr;
+  }
   if (active_index > BKE_id_attributes_length(id, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL)) {
     active_index = 0;
   }
@@ -748,6 +751,11 @@ void BKE_id_attributes_active_set(ID *id, const char *name)
 
   const int index = BKE_id_attribute_to_index(id, layer, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL);
   *BKE_id_attributes_active_index_p(id) = index;
+}
+
+void BKE_id_attributes_active_clear(ID *id)
+{
+  *BKE_id_attributes_active_index_p(id) = -1;
 }
 
 int *BKE_id_attributes_active_index_p(ID *id)
@@ -890,6 +898,19 @@ void BKE_id_attributes_active_color_set(ID *id, const char *name)
       if (name) {
         mesh->active_color_attribute = BLI_strdup(name);
       }
+      break;
+    }
+    default:
+      break;
+  }
+}
+
+void BKE_id_attributes_active_color_clear(ID *id)
+{
+  switch (GS(id->name)) {
+    case ID_ME: {
+      Mesh *mesh = reinterpret_cast<Mesh *>(id);
+      MEM_SAFE_FREE(mesh->active_color_attribute);
       break;
     }
     default:
