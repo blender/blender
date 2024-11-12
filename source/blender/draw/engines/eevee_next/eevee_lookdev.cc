@@ -268,6 +268,10 @@ void LookdevModule::draw(View &view)
   if (!enabled_) {
     return;
   }
+
+  inst_.volume_probes.set_view(view);
+  inst_.sphere_probes.set_view(view);
+
   for (Sphere &sphere : spheres_) {
     sphere.framebuffer.bind();
     inst_.manager->submit(sphere.pass, view);
