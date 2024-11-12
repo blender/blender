@@ -1661,13 +1661,17 @@ static void compute_single_value(Result &input, Result &output)
   output.allocate_single_value();
   switch (input.type()) {
     case ResultType::Color:
-      output.set_float_value(input.get_float_value());
+      output.set_color_value(input.get_color_value());
+      break;
     case ResultType::Vector:
       output.set_vector_value(input.get_vector_value());
+      break;
     case ResultType::Float2:
       output.set_float2_value(input.get_float2_value());
+      break;
     case ResultType::Float:
       output.set_float_value(input.get_float_value());
+      break;
     case ResultType::Float3:
       output.set_float3_value(input.get_float3_value());
       break;
