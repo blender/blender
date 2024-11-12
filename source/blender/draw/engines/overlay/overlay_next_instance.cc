@@ -668,7 +668,7 @@ bool Instance::object_needs_prepass(const ObjectRef &ob_ref, bool in_paint_mode)
     /* Only workbench ensures the depth buffer is matching overlays.
      * Force depth prepass for other render engines. */
     /* TODO(fclem): Make an exception for EEVEE if not using mixed resolution. */
-    return ob_ref.object->dt >= OB_SOLID;
+    return state.v3d && (state.v3d->shading.type > OB_SOLID) && (ob_ref.object->dt >= OB_SOLID);
   }
 
   return false;
