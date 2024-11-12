@@ -686,7 +686,8 @@ bool BKE_paint_brush_set(Main *bmain,
 
   Brush *brush = reinterpret_cast<Brush *>(
       blender::bke::asset_edit_id_from_weak_reference(*bmain, ID_BR, *brush_asset_reference));
-  BLI_assert(brush == nullptr || blender::bke::asset_edit_id_is_editable(brush->id));
+  BLI_assert(brush == nullptr || !ID_IS_LINKED(brush) ||
+             blender::bke::asset_edit_id_is_editable(brush->id));
 
   /* Ensure we have a brush with appropriate mode to assign.
    * Could happen if contents of asset blend were manually changed. */
