@@ -307,7 +307,7 @@ ccl_device bool ray_quad_intersect(float3 ray_P,
 ccl_device bool ray_plane_intersect(const float3 N,
                                     const float3 P,
                                     const float3 ray_D,
-                                    ccl_private float2 *t_range)
+                                    ccl_private Interval<float> *t_range)
 {
   const float DN = dot(ray_D, N);
 
@@ -316,13 +316,13 @@ ccl_device bool ray_plane_intersect(const float3 N,
 
   /* Limit the range to the positive side. */
   if (DN > 0.0f) {
-    t_range->x = fmaxf(t_range->x, t);
+    t_range->min = fmaxf(t_range->min, t);
   }
   else {
-    t_range->y = fminf(t_range->y, t);
+    t_range->max = fminf(t_range->max, t);
   }
 
-  return t_range->x < t_range->y;
+  return !t_range->is_empty();
 }
 
 /* Find the ray segment inside an axis-aligned bounding box. */
@@ -330,7 +330,7 @@ ccl_device bool ray_aabb_intersect(const float3 bbox_min,
                                    const float3 bbox_max,
                                    const float3 ray_P,
                                    const float3 ray_D,
-                                   ccl_private float2 *t_range)
+                                   ccl_private Interval<float> *t_range)
 {
   const float3 inv_ray_D = rcp(ray_D);
 
@@ -339,16 +339,16 @@ ccl_device bool ray_aabb_intersect(const float3 bbox_min,
   const float3 t_upper = (bbox_max - ray_P) * inv_ray_D;
 
   /* The four t-intervals (for x-/y-/z-slabs, and ray p(t)). */
-  const float4 tmins = float3_to_float4(min(t_lower, t_upper), t_range->x);
-  const float4 tmaxes = float3_to_float4(max(t_lower, t_upper), t_range->y);
+  const float4 tmins = float3_to_float4(min(t_lower, t_upper), t_range->min);
+  const float4 tmaxes = float3_to_float4(max(t_lower, t_upper), t_range->max);
 
   /* Max of mins and min of maxes. */
   const float tmin = reduce_max(tmins);
   const float tmax = reduce_min(tmaxes);
 
-  *t_range = make_float2(tmin, tmax);
+  *t_range = {tmin, tmax};
 
-  return tmin < tmax;
+  return !t_range->is_empty();
 }
 
 /* Find the segment of a ray defined by P + D * t that lies inside a cylinder defined by
@@ -357,7 +357,7 @@ ccl_device_inline bool ray_infinite_cylinder_intersect(const float3 P,
                                                        const float3 D,
                                                        const float len_u,
                                                        const float len_v,
-                                                       ccl_private float2 *t_range)
+                                                       ccl_private Interval<float> *t_range)
 {
   /* Convert to a 2D problem. */
   const float2 inv_len = 1.0f / make_float2(len_u, len_v);
@@ -379,7 +379,9 @@ ccl_device_inline bool ray_infinite_cylinder_intersect(const float3 P,
   float tmin, tmax;
   const bool valid = solve_quadratic(a, 2.0f * b, c, tmin, tmax);
 
-  return valid && intervals_intersect(t_range, make_float2(tmin, tmax) + t_mid);
+  *t_range = intervals_intersection(*t_range, {tmin + t_mid, tmax + t_mid});
+
+  return valid && !t_range->is_empty();
 }
 
 /* *
@@ -389,7 +391,7 @@ ccl_device_inline bool ray_infinite_cylinder_intersect(const float3 P,
  * \param P: the vector pointing from the cone apex to the ray origin
  * \param D: the direction of the ray, does not need to have unit-length
  * \param cos_angle_sq: `sqr(cos(half_aperture_of_the_cone))`
- * \param t_range: the lower and upper bounds between which the ray lies inside the cone
+ * \param t_range: the ray segment that lies inside the cone
  * \return whether the intersection exists and is in the provided range
  *
  * See https://www.geometrictools.com/Documentation/IntersectionLineCone.pdf for illustration
@@ -398,7 +400,7 @@ ccl_device_inline bool ray_cone_intersect(const float3 axis,
                                           const float3 P,
                                           float3 D,
                                           const float cos_angle_sq,
-                                          ccl_private float2 *t_range)
+                                          ccl_private Interval<float> *t_range)
 {
   if (cos_angle_sq < 1e-4f) {
     /* The cone is nearly a plane. */
@@ -433,7 +435,9 @@ ccl_device_inline bool ray_cone_intersect(const float3 axis,
     tmax = FLT_MAX;
   }
 
-  return valid && intervals_intersect(t_range, make_float2(tmin, tmax) * inv_len);
+  *t_range = intervals_intersection(*t_range, {tmin * inv_len, tmax * inv_len});
+
+  return valid && !t_range->is_empty();
 }
 
 CCL_NAMESPACE_END

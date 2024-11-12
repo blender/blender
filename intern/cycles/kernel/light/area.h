@@ -454,7 +454,7 @@ ccl_device_forceinline float area_light_max_extent(const ccl_global KernelAreaLi
 ccl_device_inline bool area_light_valid_ray_segment(const ccl_global KernelAreaLight *light,
                                                     float3 P,
                                                     float3 D,
-                                                    ccl_private float2 *t_range)
+                                                    ccl_private Interval<float> *t_range)
 {
   bool valid;
   const float tan_half_spread = light->tan_half_spread;

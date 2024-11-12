@@ -268,7 +268,7 @@ ccl_device_inline bool spot_light_sample_from_intersection(const ccl_global Kern
 ccl_device_inline bool spot_light_valid_ray_segment(const ccl_global KernelLight *klight,
                                                     const float3 P,
                                                     const float3 D,
-                                                    ccl_private float2 *t_range)
+                                                    ccl_private Interval<float> *t_range)
 {
   /* Convert to local space of the spot light. */
   const Transform itfm = klight->itfm;

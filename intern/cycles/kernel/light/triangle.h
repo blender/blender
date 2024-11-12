@@ -273,7 +273,7 @@ ccl_device_forceinline bool triangle_light_sample(KernelGlobals kg,
 ccl_device_inline bool triangle_light_valid_ray_segment(KernelGlobals kg,
                                                         const float3 P,
                                                         const float3 D,
-                                                        ccl_private float2 *t_range,
+                                                        ccl_private Interval<float> *t_range,
                                                         const ccl_private LightSample *ls)
 {
   const int shader_flag = kernel_data_fetch(shaders, ls->shader & SHADER_MASK).flags;
