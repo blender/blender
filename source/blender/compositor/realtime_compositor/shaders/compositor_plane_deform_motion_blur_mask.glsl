@@ -13,6 +13,10 @@ void main()
     mat3 homography_matrix = to_float3x3(homography_matrices[i]);
 
     vec3 transformed_coordinates = homography_matrix * vec3(coordinates, 1.0);
+    /* Point is at infinity and will be zero when sampled, so early exit. */
+    if (transformed_coordinates.z == 0.0) {
+      continue;
+    }
     vec2 projected_coordinates = transformed_coordinates.xy / transformed_coordinates.z;
 
     bool is_inside_plane = all(greaterThanEqual(projected_coordinates, vec2(0.0))) &&
