@@ -6,8 +6,6 @@
  * \ingroup obj
  */
 
-#include <iostream>
-
 #include "BLI_path_utils.hh"
 #include "BLI_timeit.hh"
 
@@ -16,14 +14,16 @@
 #include "obj_exporter.hh"
 #include "obj_importer.hh"
 
+#include <fmt/core.h>
+
 using namespace blender::timeit;
 
 static void report_duration(const char *job, const TimePoint &start_time, const char *path)
 {
   Nanoseconds duration = Clock::now() - start_time;
-  std::cout << "OBJ " << job << " of '" << BLI_path_basename(path) << "' took ";
+  fmt::print("OBJ {} of '{}' took ", job, BLI_path_basename(path));
   print_duration(duration);
-  std::cout << '\n';
+  fmt::print("\n");
 }
 
 void OBJ_export(bContext *C, const OBJExportParams *export_params)

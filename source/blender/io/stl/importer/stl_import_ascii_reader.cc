@@ -6,7 +6,6 @@
  * \ingroup stl
  */
 
-#include <cstdio>
 #include <system_error>
 
 #include "BLI_fileops.hh"
@@ -26,6 +25,9 @@
 #include "stl_data.hh"
 #include "stl_import_ascii_reader.hh"
 #include "stl_import_mesh.hh"
+
+#include "CLG_log.h"
+static CLG_LogRef LOG = {"io.stl"};
 
 namespace blender::io::stl {
 
@@ -116,7 +118,7 @@ Mesh *read_stl_ascii(const char *filepath, const bool use_custom_normals)
   size_t buffer_len;
   void *buffer = BLI_file_read_text_as_mem(filepath, 0, &buffer_len);
   if (buffer == nullptr) {
-    fprintf(stderr, "STL Importer: cannot read from ASCII STL file: '%s'\n", filepath);
+    CLOG_ERROR(&LOG, "STL Importer: cannot read from ASCII STL file: '%s'", filepath);
     return nullptr;
   }
   BLI_SCOPED_DEFER([&]() { MEM_freeN(buffer); });

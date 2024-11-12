@@ -22,7 +22,9 @@
 
 #include <algorithm>
 #include <charconv>
-#include <iostream>
+
+#include "CLG_log.h"
+static CLG_LogRef LOG = {"io.obj"};
 
 namespace blender::io::obj {
 
@@ -152,7 +154,7 @@ static const char *parse_vertex_index(const char *p, const char *end, size_t n_e
   if (r_index != INT32_MAX) {
     r_index += r_index < 0 ? n_elems : -1;
     if (r_index < 0 || r_index >= n_elems) {
-      fprintf(stderr, "Invalid vertex index %i (valid range [0, %zu))\n", r_index, n_elems);
+      CLOG_WARN(&LOG, "Invalid vertex index %i (valid range [0, %zu))", r_index, n_elems);
       r_index = INT32_MAX;
     }
   }
@@ -178,7 +180,7 @@ static void geom_add_polyline(Geometry *geom,
   p = parse_vertex_index(p, end, r_global_vertices.vertices.size(), last_vertex_index);
 
   if (last_vertex_index == INT32_MAX) {
-    fprintf(stderr, "Skipping invalid OBJ polyline.\n");
+    CLOG_WARN(&LOG, "Skipping invalid OBJ polyline.");
     return;
   }
   geom->track_vertex_index(last_vertex_index);
@@ -252,10 +254,10 @@ static void geom_add_polygon(Geometry *geom,
     /* Always keep stored indices non-negative and zero-based. */
     corner.vert_index += corner.vert_index < 0 ? global_vertices.vertices.size() : -1;
     if (corner.vert_index < 0 || corner.vert_index >= global_vertices.vertices.size()) {
-      fprintf(stderr,
-              "Invalid vertex index %i (valid range [0, %zu)), ignoring face\n",
-              corner.vert_index,
-              size_t(global_vertices.vertices.size()));
+      CLOG_WARN(&LOG,
+                "Invalid vertex index %i (valid range [0, %zu)), ignoring face",
+                corner.vert_index,
+                size_t(global_vertices.vertices.size()));
       face_valid = false;
     }
     else {
@@ -265,10 +267,10 @@ static void geom_add_polygon(Geometry *geom,
     if (got_uv && !global_vertices.uv_vertices.is_empty()) {
       corner.uv_vert_index += corner.uv_vert_index < 0 ? global_vertices.uv_vertices.size() : -1;
       if (corner.uv_vert_index < 0 || corner.uv_vert_index >= global_vertices.uv_vertices.size()) {
-        fprintf(stderr,
-                "Invalid UV index %i (valid range [0, %zu)), ignoring face\n",
-                corner.uv_vert_index,
-                size_t(global_vertices.uv_vertices.size()));
+        CLOG_WARN(&LOG,
+                  "Invalid UV index %i (valid range [0, %zu)), ignoring face",
+                  corner.uv_vert_index,
+                  size_t(global_vertices.uv_vertices.size()));
         face_valid = false;
       }
     }
@@ -282,10 +284,10 @@ static void geom_add_polygon(Geometry *geom,
       if (corner.vertex_normal_index < 0 ||
           corner.vertex_normal_index >= global_vertices.vert_normals.size())
       {
-        fprintf(stderr,
-                "Invalid normal index %i (valid range [0, %zu)), ignoring face\n",
-                corner.vertex_normal_index,
-                size_t(global_vertices.vert_normals.size()));
+        CLOG_WARN(&LOG,
+                  "Invalid normal index %i (valid range [0, %zu)), ignoring face",
+                  corner.vertex_normal_index,
+                  size_t(global_vertices.vert_normals.size()));
         face_valid = false;
       }
     }
@@ -317,7 +319,7 @@ static Geometry *geom_set_curve_type(Geometry *geom,
 {
   p = drop_whitespace(p, end);
   if (!StringRef(p, end).startswith("bspline")) {
-    std::cerr << "Curve type not supported: '" << std::string(p, end) << "'" << std::endl;
+    CLOG_WARN(&LOG, "Curve type not supported: '%s'", std::string(p, end).c_str());
     return geom;
   }
   geom = create_geometry(geom, GEOM_CURVE, group_name, r_all_geometries);
@@ -354,11 +356,11 @@ static void geom_add_curve_parameters(Geometry *geom, const char *p, const char 
 {
   p = drop_whitespace(p, end);
   if (p == end) {
-    std::cerr << "Invalid OBJ curve parm line" << std::endl;
+    CLOG_ERROR(&LOG, "Invalid OBJ curve parm line");
     return;
   }
   if (*p != 'u') {
-    std::cerr << "OBJ curve surfaces are not supported: '" << *p << "'" << std::endl;
+    CLOG_WARN(&LOG, "OBJ curve surfaces are not supported, found '%c'", *p);
     return;
   }
   ++p;
@@ -370,7 +372,7 @@ static void geom_add_curve_parameters(Geometry *geom, const char *p, const char 
       geom->nurbs_element_.parm.append(val);
     }
     else {
-      std::cerr << "OBJ curve parm line has invalid number" << std::endl;
+      CLOG_ERROR(&LOG, "OBJ curve parm line has invalid number");
       return;
     }
   }
@@ -426,7 +428,7 @@ OBJParser::OBJParser(const OBJImportParams &import_params, size_t read_buffer_si
 {
   obj_file_ = BLI_fopen(import_params_.filepath, "rb");
   if (!obj_file_) {
-    fprintf(stderr, "Cannot read from OBJ file:'%s'.\n", import_params_.filepath);
+    CLOG_ERROR(&LOG, "Cannot read from OBJ file:'%s'.\n", import_params_.filepath);
     BKE_reportf(import_params_.reports,
                 RPT_ERROR,
                 "OBJ Import: Cannot open file '%s'",
@@ -540,10 +542,10 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
     }
     if (buffer[last_nl] != '\n') {
       /* Whole line did not fit into our read buffer. Warn and exit. */
-      fprintf(stderr,
-              "OBJ file contains a line #%zu that is too long (max. length %zu)\n",
-              line_number,
-              read_buffer_size_);
+      CLOG_ERROR(&LOG,
+                 "OBJ file contains a line #%zu that is too long (max. length %zu)",
+                 line_number,
+                 read_buffer_size_);
       break;
     }
     ++last_nl;
@@ -668,7 +670,7 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
         /* End of curve definition, nothing else to do. */
       }
       else {
-        std::cout << "OBJ element not recognized: '" << std::string(p, end) << "'" << std::endl;
+        CLOG_WARN(&LOG, "OBJ element not recognized: '%s'", std::string(p, end).c_str());
       }
     }
 
@@ -757,8 +759,9 @@ static bool parse_texture_option(const char *&p,
     tex_map.projection_type = SHD_PROJ_SPHERE;
     const StringRef line = StringRef(p, end);
     if (!line.startswith("sphere")) {
-      std::cerr << "OBJ import: only sphere MTL projection type is supported: '" << line << "'"
-                << std::endl;
+      CLOG_WARN(&LOG,
+                "Only the 'sphere' MTL projection type is supported, found: '%s'",
+                std::string(line).c_str());
     }
     p = drop_non_whitespace(p, end);
     return true;
@@ -793,7 +796,7 @@ static void parse_texture_map(const char *p,
   MTLTexMapType key = mtl_line_start_to_texture_type(p, end);
   if (key == MTLTexMapType::Count) {
     /* No supported texture map found. */
-    std::cerr << "OBJ import: MTL texture map type not supported: '" << line << "'" << std::endl;
+    CLOG_WARN(&LOG, "MTL texture map type not supported: '%s'", std::string(line).c_str());
     return;
   }
   MTLTexMap &tex_map = material->tex_map_of_type(key);
@@ -854,7 +857,7 @@ void MTLParser::parse_and_store(Map<string, std::unique_ptr<MTLMaterial>> &r_mat
   size_t buffer_len;
   void *buffer = BLI_file_read_text_as_mem(mtl_file_path_, 0, &buffer_len);
   if (buffer == nullptr) {
-    fprintf(stderr, "OBJ import: cannot read from MTL file: '%s'\n", mtl_file_path_);
+    CLOG_ERROR(&LOG, "OBJ import: cannot read from MTL file: '%s'", mtl_file_path_);
     return;
   }
 

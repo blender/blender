@@ -22,7 +22,8 @@
 #include "obj_export_mtl.hh"
 #include "obj_import_mtl.hh"
 
-#include <iostream>
+#include "CLG_log.h"
+static CLG_LogRef LOG = {"io.obj"};
 
 namespace blender::io::obj {
 
@@ -68,10 +69,10 @@ static Image *load_image_at_path(Main *bmain, const std::string &path, bool rela
 {
   Image *image = BKE_image_load_exists(bmain, path.c_str());
   if (!image) {
-    fprintf(stderr, "Cannot load image file: '%s'\n", path.c_str());
+    CLOG_WARN(&LOG, "Cannot load image file: '%s'", path.c_str());
     return nullptr;
   }
-  fprintf(stderr, "Loaded image from: '%s'\n", path.c_str());
+  CLOG_INFO(&LOG, 1, "Loaded image from: '%s'", path.c_str());
   if (relative_paths) {
     BLI_path_rel(image->filepath, BKE_main_blendfile_path(bmain));
   }
@@ -233,8 +234,9 @@ static void set_bsdf_socket_values(bNode *bsdf, Material *mat, const MTLMaterial
       break;
     }
     default: {
-      std::cerr << "Warning! illum value = " << illum
-                << "is not supported by the Principled-BSDF shader." << std::endl;
+      CLOG_WARN(&LOG,
+                "Material illum value '%d' is not supported by the Principled BSDF shader.",
+                illum);
       break;
     }
   }
