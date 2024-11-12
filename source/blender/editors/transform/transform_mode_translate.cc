@@ -18,7 +18,7 @@
 #include "BLI_string.h"
 #include "BLI_task.h"
 
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_report.hh"
 #include "BKE_unit.hh"
 

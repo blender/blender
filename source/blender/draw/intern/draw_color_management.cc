@@ -19,7 +19,7 @@
 #include "DNA_view3d_types.h"
 
 #include "BKE_colortools.hh"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 
 #include "DEG_depsgraph_query.hh"
 

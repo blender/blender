@@ -30,7 +30,7 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_image.h"
+#include "BKE_image.hh"
 
 #include "RE_texture.h"
 

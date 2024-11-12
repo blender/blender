@@ -13,7 +13,7 @@
 #include <memory>
 #include <optional>
 
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_main.hh"
 #include "BKE_object.hh"
 

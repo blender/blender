@@ -15,7 +15,7 @@
 
 #include "BKE_cryptomatte.hh"
 #include "BKE_global.hh"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_node.hh"
 #include "BKE_scene.hh"
 

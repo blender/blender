@@ -32,7 +32,7 @@
 
 #  include "BLI_path_utils.hh" /* #BLI_path_split_dir_file */
 
-#  include "BKE_image.h"
+#  include "BKE_image.hh"
 #  include "BKE_mask.h"
 #  include "BKE_movieclip.h"
 

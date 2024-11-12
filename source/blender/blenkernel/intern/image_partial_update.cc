@@ -49,7 +49,7 @@
 
 #include <optional>
 
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_image_partial_update.hh"
 
 #include "DNA_image_types.h"
@@ -538,8 +538,6 @@ ePartialUpdateIterResult BKE_image_partial_update_get_next_change(PartialUpdateU
 
 }  // namespace blender::bke::image::partial_update
 
-extern "C" {
-
 using namespace blender::bke::image::partial_update;
 
 PartialUpdateUser *BKE_image_partial_update_create(const Image *image)
@@ -589,5 +587,4 @@ void BKE_image_partial_update_mark_full_update(Image *image)
 {
   PartialUpdateRegisterImpl *partial_updater = unwrap(image_partial_update_register_ensure(image));
   partial_updater->mark_full_update();
-}
 }

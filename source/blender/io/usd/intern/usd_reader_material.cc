@@ -8,7 +8,7 @@
 #include "usd_utils.hh"
 
 #include "BKE_appdir.hh"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"

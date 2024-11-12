@@ -6,7 +6,7 @@
  * \ingroup obj
  */
 
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 

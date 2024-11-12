@@ -7,7 +7,7 @@
 #include "BLI_math_interp.hh"
 #include "BLI_string.h"
 
-#include "BKE_image.h"
+#include "BKE_image.hh"
 
 namespace blender::compositor {
 

@@ -15,7 +15,7 @@
 #include "BKE_curve.hh"
 #include "BKE_duplilist.hh"
 #include "BKE_global.hh"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"

@@ -22,7 +22,7 @@
 #include "IMB_imbuf_types.hh"
 
 #include "BKE_global.hh"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_image_partial_update.hh"
 #include "BKE_main.hh"
 
@@ -31,8 +31,6 @@
 #include "GPU_texture.hh"
 
 using namespace blender::bke::image::partial_update;
-
-extern "C" {
 
 /* Prototypes. */
 static void gpu_free_unused_buffers();
@@ -932,4 +930,3 @@ void BKE_image_paint_set_mipmap(Main *bmain, bool mipmap)
 }
 
 /** \} */
-}

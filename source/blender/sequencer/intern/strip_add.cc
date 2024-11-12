@@ -23,7 +23,7 @@
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
 
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_mask.h"

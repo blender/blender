@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "COM_ViewerOperation.h"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_scene.hh"
 #include "COM_ExecutionSystem.h"
 

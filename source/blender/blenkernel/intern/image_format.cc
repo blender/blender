@@ -19,7 +19,7 @@
 #include "IMB_imbuf_types.hh"
 
 #include "BKE_colortools.hh"
-#include "BKE_image_format.h"
+#include "BKE_image_format.hh"
 
 /* Init/Copy/Free */
 

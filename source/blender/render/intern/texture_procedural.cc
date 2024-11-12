@@ -25,7 +25,7 @@
 #include "IMB_imbuf_types.hh"
 
 #include "BKE_colorband.hh"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 
 #include "NOD_texture.h"
 

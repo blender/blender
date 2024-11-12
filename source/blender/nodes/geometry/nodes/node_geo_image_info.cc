@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_image.h"
+#include "BKE_image.hh"
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"

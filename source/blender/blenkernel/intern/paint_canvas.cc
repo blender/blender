@@ -10,7 +10,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_customdata.hh"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_material.h"
 #include "BKE_paint.hh"
 

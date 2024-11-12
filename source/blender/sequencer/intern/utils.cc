@@ -23,7 +23,7 @@
 #include "BLT_translation.hh"
 
 #include "BKE_animsys.h"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_main.hh"
 #include "BKE_scene.hh"
 

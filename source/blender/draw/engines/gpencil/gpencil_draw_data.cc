@@ -10,7 +10,7 @@
 
 #include "DNA_light_types.h"
 
-#include "BKE_image.h"
+#include "BKE_image.hh"
 
 #include "BLI_hash.h"
 #include "BLI_math_color.h"
