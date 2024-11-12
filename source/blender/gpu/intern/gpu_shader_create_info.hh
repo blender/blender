@@ -242,11 +242,12 @@
 #  define PUSH_CONSTANT(type, name) const type name = type(1);
 #  define PUSH_CONSTANT_ARRAY(type, name, array_size) const type name[array_size] = {type(1)};
 
-#  define UNIFORM_BUF(slot, type_name, name) const type_name name = {};
-#  define UNIFORM_BUF_FREQ(slot, type_name, name, freq) const type_name name = {};
+#  define UNIFORM_BUF(slot, type_name, name) const type_name name = {type_name()};
+#  define UNIFORM_BUF_FREQ(slot, type_name, name, freq) const type_name name = {type_name()};
 
-#  define STORAGE_BUF(slot, qualifiers, type_name, name) qualifiers type_name name = {};
-#  define STORAGE_BUF_FREQ(slot, qualifiers, type_name, name, freq) qualifiers type_name name = {};
+#  define STORAGE_BUF(slot, qualifiers, type_name, name) qualifiers type_name name = {type_name()};
+#  define STORAGE_BUF_FREQ(slot, qualifiers, type_name, name, freq) \
+    qualifiers type_name name = {type_name()};
 
 #  define SAMPLER(slot, type, name) _##type(sampler) name;
 #  define SAMPLER_FREQ(slot, type, name, freq) _##type(sampler) name;

@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/gpu_shader_gpencil_stroke_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(gpu_shader_gpencil_stroke)
+
 void main()
 {
   const vec2 center = vec2(0, 0.5);

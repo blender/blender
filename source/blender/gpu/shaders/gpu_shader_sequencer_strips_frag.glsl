@@ -2,7 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/gpu_shader_sequencer_info.hh"
+
 #include "gpu_shader_sequencer_lib.glsl"
+
+FRAGMENT_SHADER_CREATE_INFO(gpu_shader_sequencer_strips)
 
 vec3 color_shade(vec3 rgb, float shade)
 {
@@ -39,7 +43,7 @@ void main()
   SeqStripDrawData strip = strip_data[strip_id];
 
   vec2 pos1, pos2, size, center, pos;
-  float radius;
+  float radius = 0.0;
   strip_box(strip.left_handle,
             strip.right_handle,
             strip.bottom,

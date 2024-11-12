@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/gpu_shader_2D_widget_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(gpu_shader_2D_widget_shadow)
+
 void main()
 {
   fragColor = vec4(0.0);

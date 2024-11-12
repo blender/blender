@@ -4,6 +4,10 @@
 
 #pragma once
 
+#include "infos/gpu_shader_sequencer_info.hh"
+
+SHADER_LIBRARY_CREATE_INFO(gpu_shader_sequencer_strips)
+
 /* Signed distance to rounded box, centered at origin.
  * Reference: https://iquilezles.org/articles/distfunctions2d/ */
 float sdf_rounded_box(vec2 pos, vec2 size, float radius)

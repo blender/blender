@@ -647,9 +647,8 @@ template<typename T> T abs(T) RET;
 template<typename T> T max(T, T) RET;
 template<typename T> T min(T, T) RET;
 template<typename T> T sign(T) RET;
-template<typename T> T clamp(T, T, T) RET;
-template<typename T> T clamp(T, double, double) RET;
 template<typename T, typename U> T clamp(T, U, U) RET;
+template<typename T> T clamp(T, double, double) RET;
 template<typename T, typename U> T max(T, U) RET;
 template<typename T, typename U> T min(T, U) RET;
 /* TODO(fclem): These should be restricted to floats. */
@@ -658,7 +657,9 @@ template<typename T> T exp(T) RET;
 template<typename T> T exp2(T) RET;
 template<typename T> T floor(T) RET;
 template<typename T> T fma(T, T, T) RET;
+#ifndef _MSC_VER /* Avoid function redefinition which triggers a compile time error. */
 double fma(double, double, double) RET;
+#endif
 template<typename T> T fract(T) RET;
 template<typename T> T frexp(T, T) RET;
 template<typename T> T inversesqrt(T) RET;

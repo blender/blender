@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/gpu_shader_2D_image_overlays_stereo_merge_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(gpu_shader_2D_image_overlays_stereo_merge)
+
 #define S3D_DISPLAY_ANAGLYPH 0
 #define S3D_DISPLAY_INTERLACE 1
 

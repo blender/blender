@@ -7,6 +7,10 @@
  * does not need any vertex input (producing less call to immBegin/End)
  */
 
+#include "infos/gpu_shader_icon_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(gpu_shader_icon_multi)
+
 void main()
 {
   vec4 rect = multi_icon_data.calls_data[gl_InstanceID * 3];

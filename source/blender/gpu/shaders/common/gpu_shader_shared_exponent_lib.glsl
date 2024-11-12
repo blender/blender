@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "gpu_glsl_cpp_stubs.hh"
+
 /**
  * Software implementation of encoding and decoding of shared exponent texture as described by the
  * OpenGL extension EXT_texture_shared_exponent Appendix

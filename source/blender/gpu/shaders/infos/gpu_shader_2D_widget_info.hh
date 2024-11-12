@@ -6,6 +6,16 @@
  * \ingroup gpu
  */
 
+#ifdef GPU_SHADER
+#  pragma once
+#  include "gpu_glsl_cpp_stubs.hh"
+
+#  include "GPU_shader_shared.hh"
+#  include "gpu_srgb_to_framebuffer_space_info.hh"
+
+#  define widgetID 0
+#endif
+
 #include "gpu_interface_info.hh"
 #include "gpu_shader_create_info.hh"
 

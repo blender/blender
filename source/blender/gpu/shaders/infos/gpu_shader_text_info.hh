@@ -6,6 +6,14 @@
  * \ingroup gpu
  */
 
+#ifdef GPU_SHADER
+#  pragma once
+#  include "gpu_glsl_cpp_stubs.hh"
+
+#  include "GPU_shader_shared.hh"
+#  include "gpu_srgb_to_framebuffer_space_info.hh"
+#endif
+
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_INTERFACE_INFO(text_iface)

@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "gpu_glsl_cpp_stubs.hh"
+
 /* clang-format off */
 #ifndef GPU_METAL
 bool is_integer(bool v) { return true; }

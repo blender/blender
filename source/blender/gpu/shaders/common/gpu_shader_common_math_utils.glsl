@@ -4,6 +4,10 @@
 
 /* Float Math */
 
+#pragma once
+
+#include "gpu_glsl_cpp_stubs.hh"
+
 /* WORKAROUND: To be removed once we port all code to use `gpu_shader_math_base_lib.glsl`. */
 #ifndef GPU_SHADER_MATH_BASE_LIB_GLSL
 

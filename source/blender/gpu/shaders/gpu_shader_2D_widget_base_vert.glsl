@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/gpu_shader_2D_widget_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(gpu_shader_2D_widget_base)
+
 #define recti parameters[widgetID * MAX_PARAM + 0]
 #define rect parameters[widgetID * MAX_PARAM + 1]
 #define radsi parameters[widgetID * MAX_PARAM + 2].x
@@ -25,7 +29,7 @@
 #define doAlphaCheck (alphaDiscard < 0.0)
 #define discardFactor abs(alphaDiscard)
 
-vec2 do_widget(void)
+vec2 do_widget()
 {
   /* Offset to avoid losing pixels (mimics conservative rasterization). */
   const vec2 ofs = vec2(0.5, -0.5);

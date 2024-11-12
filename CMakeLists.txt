@@ -95,6 +95,10 @@ if(POLICY CMP0087)
   cmake_policy(SET CMP0087 NEW)
 endif()
 
+# Allow to specify language per file.
+if(POLICY CMP0119)
+  cmake_policy(SET CMP0119 NEW)
+endif()
 
 # -----------------------------------------------------------------------------
 # Load Blender's Local Macros
@@ -882,6 +886,18 @@ mark_as_advanced(
   WITH_RENDERDOC
   WITH_GPU_SHADER_ASSERT
 )
+
+if(POLICY CMP0119)
+  option(WITH_GPU_SHADER_CPP_COMPILATION "\
+  Compiler shaders using C++. \
+  Allows testing Metal compilation on other platform and enable C++ IDE support for shader code"
+  OFF
+  )
+  mark_as_advanced(WITH_GPU_SHADER_CPP_COMPILATION)
+else()
+  set(WITH_GPU_SHADER_CPP_COMPILATION OFF)
+endif()
+
 
 # OpenGL
 if(NOT APPLE)

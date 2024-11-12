@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/gpu_shader_2D_widget_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(gpu_shader_2D_widget_shadow)
+
 #define BIT_RANGE(x) uint((1 << x) - 1)
 
 /* 2 bits for corner */
