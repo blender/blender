@@ -356,15 +356,11 @@ static void recalcData_curves(TransInfo *t)
       curves.tag_normals_changed();
     }
     else {
-      const std::array<MutableSpan<float3>, 3> positions_per_selection_attr = {
-          curves.positions_for_write(),
-          curves.handle_positions_left_for_write(),
-          curves.handle_positions_right_for_write()};
-      for (const int selection_i :
-           ed::curves::get_curves_selection_attribute_names(curves).index_range())
-      {
+      const Vector<MutableSpan<float3>> positions_per_selection_attr =
+          ed::curves::get_curves_positions_for_write(curves);
+      for (const int i : positions_per_selection_attr.index_range()) {
         copy_positions_from_curves_transform_custom_data(
-            tc.custom.type, selection_i, positions_per_selection_attr[selection_i]);
+            tc.custom.type, i, positions_per_selection_attr[i]);
       }
       curves.tag_positions_changed();
       curves.calculate_bezier_auto_handles();
