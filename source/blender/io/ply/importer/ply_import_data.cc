@@ -479,7 +479,7 @@ static const char *load_face_element(PlyReadBuffer &file,
       /* Previous python based importer was accepting faces with fewer
        * than 3 vertices, and silently dropping them. */
       if (count < 3) {
-        CLOG_WARN(&LOG, "PLY Importer: ignoring face %i (%i vertices)", i, count);
+        CLOG_WARN(&LOG, "PLY Importer: ignoring face %i (%u vertices)", i, count);
       }
       else {
         ptr = scratch.data();
