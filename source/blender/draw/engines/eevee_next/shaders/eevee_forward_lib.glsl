@@ -88,7 +88,7 @@ void forward_lighting_eval(float thickness, out vec3 radiance, out vec3 transmit
   /* Combine all radiance. */
   vec3 radiance_direct = vec3(0.0);
   vec3 radiance_indirect = vec3(0.0);
-  for (int i = 0; i < LIGHT_CLOSURE_EVAL_COUNT; i++) {
+  for (uchar i = 0; i < LIGHT_CLOSURE_EVAL_COUNT; i++) {
     ClosureUndetermined cl = g_closure_get_resolved(i, 1.0);
     if (cl.weight > 1e-5) {
       vec3 direct_light = closure_light_get(stack, i).light_shadowed;

@@ -131,7 +131,11 @@ vec4 tangent_get(vec4 attr, mat3 normalmat)
 #endif
 
 /* Can't use enum here because not a header file. But would be great to do. */
-#define ClosureType uint
+#ifdef GPU_METAL
+using ClosureType = uchar;
+#else
+#  define ClosureType uint
+#endif
 #define CLOSURE_NONE_ID 0u
 /* Diffuse */
 #define CLOSURE_BSDF_DIFFUSE_ID 1u
@@ -153,12 +157,12 @@ vec4 tangent_get(vec4 attr, mat3 normalmat)
 #define CLOSURE_BSSRDF_BURLEY_ID 14u
 
 struct ClosureUndetermined {
-  vec3 color;
+  packed_float3 color;
   float weight;
-  vec3 N;
+  packed_float3 N;
   ClosureType type;
   /* Additional data different for each closure type. */
-  vec4 data;
+  packed_float4 data;
 };
 
 ClosureUndetermined closure_new(ClosureType type)
@@ -169,70 +173,70 @@ ClosureUndetermined closure_new(ClosureType type)
 }
 
 struct ClosureOcclusion {
-  vec3 N;
+  packed_float3 N;
 };
 
 struct ClosureDiffuse {
+  packed_float3 color;
   float weight;
-  vec3 color;
-  vec3 N;
+  packed_float3 N;
 };
 
 struct ClosureSubsurface {
+  packed_float3 color;
   float weight;
-  vec3 color;
-  vec3 N;
-  vec3 sss_radius;
+  packed_float3 N;
+  packed_float3 sss_radius;
 };
 
 struct ClosureTranslucent {
+  packed_float3 color;
   float weight;
-  vec3 color;
-  vec3 N;
+  packed_float3 N;
 };
 
 struct ClosureReflection {
+  packed_float3 color;
   float weight;
-  vec3 color;
-  vec3 N;
+  packed_float3 N;
   float roughness;
 };
 
 struct ClosureRefraction {
+  packed_float3 color;
   float weight;
-  vec3 color;
-  vec3 N;
+  packed_float3 N;
   float roughness;
   float ior;
 };
 
 struct ClosureHair {
+  packed_float3 color;
   float weight;
-  vec3 color;
+  packed_float3 T;
   float offset;
-  vec2 roughness;
-  vec3 T;
+  packed_float2 roughness;
 };
 
 struct ClosureVolumeScatter {
+  packed_float3 scattering;
   float weight;
-  vec3 scattering;
   float anisotropy;
 };
 
 struct ClosureVolumeAbsorption {
+  packed_float3 absorption;
   float weight;
-  vec3 absorption;
 };
 
 struct ClosureEmission {
+  packed_float3 emission;
   float weight;
-  vec3 emission;
 };
 
 struct ClosureTransparency {
+  packed_float3 transmittance;
   float weight;
-  vec3 transmittance;
   float holdout;
 };
 
@@ -282,22 +286,18 @@ ClosureRefraction to_closure_refraction(ClosureUndetermined cl)
 
 struct GlobalData {
   /** World position. */
-  vec3 P;
+  packed_float3 P;
   /** Surface Normal. Normalized, overridden by bump displacement. */
-  vec3 N;
+  packed_float3 N;
   /** Raw interpolated normal (non-normalized) data. */
-  vec3 Ni;
+  packed_float3 Ni;
   /** Geometric Normal. */
-  vec3 Ng;
+  packed_float3 Ng;
   /** Curve Tangent Space. */
-  vec3 curve_T, curve_B, curve_N;
+  packed_float3 curve_T, curve_B, curve_N;
   /** Barycentric coordinates. */
-  vec2 barycentric_coords;
-  vec3 barycentric_dists;
-  /** Ray properties (approximation). */
-  int ray_type;
-  float ray_depth;
-  float ray_length;
+  packed_float2 barycentric_coords;
+  packed_float3 barycentric_dists;
   /** Hair time along hair length. 0 at base 1 at tip. */
   float hair_time;
   /** Hair time along width of the hair. */
@@ -306,6 +306,10 @@ struct GlobalData {
   float hair_thickness;
   /** Index of the strand for per strand effects. */
   int hair_strand_id;
+  /** Ray properties (approximation). */
+  float ray_depth;
+  float ray_length;
+  uchar ray_type;
   /** Is hair. */
   bool is_strand;
 };

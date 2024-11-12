@@ -208,8 +208,8 @@ float attr_load_float(samplerBuffer cd_buf)
  * \{ */
 
 /* Globals to feed the load functions. */
-vec2 g_uvs;
-vec4 g_color;
+packed_float2 g_uvs;
+packed_float4 g_color;
 
 #  ifdef OBINFO_LIB
 vec3 attr_load_orco(vec4 orco)

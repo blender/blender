@@ -12,7 +12,7 @@
 #include "eevee_renderpass_lib.glsl"
 #include "gpu_shader_shared_exponent_lib.glsl"
 
-vec3 load_radiance_direct(ivec2 texel, int i)
+vec3 load_radiance_direct(ivec2 texel, uchar i)
 {
   uint data = 0u;
   switch (i) {
@@ -31,7 +31,7 @@ vec3 load_radiance_direct(ivec2 texel, int i)
   return rgb9e5_decode(data);
 }
 
-vec3 load_radiance_indirect(ivec2 texel, int i)
+vec3 load_radiance_indirect(ivec2 texel, uchar i)
 {
   switch (i) {
     case 0:
@@ -62,12 +62,12 @@ void main()
   vec3 out_indirect = vec3(0.0);
   vec3 average_normal = vec3(0.0);
 
-  for (int i = 0; i < GBUFFER_LAYER_MAX && i < gbuf.closure_count; i++) {
+  for (uchar i = 0; i < GBUFFER_LAYER_MAX && i < gbuf.closure_count; i++) {
     ClosureUndetermined cl = gbuffer_closure_get(gbuf, i);
     if (cl.type == CLOSURE_NONE_ID) {
       continue;
     }
-    int layer_index = gbuffer_closure_get_bin_index(gbuf, i);
+    uchar layer_index = gbuffer_closure_get_bin_index(gbuf, i);
     vec3 closure_direct_light = load_radiance_direct(texel, layer_index);
     vec3 closure_indirect_light = vec3(0.0);
 

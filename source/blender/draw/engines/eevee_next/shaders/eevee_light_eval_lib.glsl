@@ -39,7 +39,7 @@ struct ClosureLightStack {
   ClosureLight cl[LIGHT_CLOSURE_EVAL_COUNT];
 };
 
-ClosureLight closure_light_get(ClosureLightStack stack, int index)
+ClosureLight closure_light_get(ClosureLightStack stack, uchar index)
 {
   switch (index) {
     case 0:
@@ -60,7 +60,7 @@ ClosureLight closure_light_get(ClosureLightStack stack, int index)
   return closure_null;
 }
 
-void closure_light_set(inout ClosureLightStack stack, int index, ClosureLight cl_light)
+void closure_light_set(inout ClosureLightStack stack, uchar index, ClosureLight cl_light)
 {
   switch (index) {
     case 0:

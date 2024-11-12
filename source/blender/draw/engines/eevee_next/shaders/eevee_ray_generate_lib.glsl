@@ -65,7 +65,7 @@ BsdfSample ray_generate_direction(vec2 noise, ClosureUndetermined cl, vec3 V, fl
       break;
     }
   }
-  samp.direction = tangent_to_world * samp.direction;
+  samp.direction = tangent_to_world * vec3(samp.direction);
 
   return samp;
 }

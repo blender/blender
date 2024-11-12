@@ -27,7 +27,7 @@ void main()
   vec3 albedo_front = vec3(0.0);
   vec3 albedo_back = vec3(0.0);
 
-  for (int i = 0; i < GBUFFER_LAYER_MAX && i < gbuf.closure_count; i++) {
+  for (uchar i = 0; i < GBUFFER_LAYER_MAX && i < gbuf.closure_count; i++) {
     ClosureUndetermined cl = gbuffer_closure_get(gbuf, i);
     switch (cl.type) {
       case CLOSURE_BSSRDF_BURLEY_ID:
