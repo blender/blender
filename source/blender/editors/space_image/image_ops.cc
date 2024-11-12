@@ -1267,21 +1267,16 @@ static void image_open_cancel(bContext * /*C*/, wmOperator *op)
 }
 
 static Image *image_open_single(Main *bmain,
+                                Library *owner_library,
                                 wmOperator *op,
                                 const ImageFrameRange *range,
-                                const bool use_multiview,
-                                const bool check_exists)
+                                const bool use_multiview)
 {
   bool exists = false;
   Image *ima = nullptr;
 
   errno = 0;
-  if (check_exists) {
-    ima = BKE_image_load_exists(bmain, range->filepath, &exists);
-  }
-  else {
-    ima = BKE_image_load(bmain, range->filepath);
-  }
+  ima = BKE_image_load_exists_in_lib(bmain, owner_library, range->filepath, &exists);
 
   if (!ima) {
     if (op->customdata) {
@@ -1351,16 +1346,14 @@ static int image_open_exec(bContext *C, wmOperator *op)
   }
 
   ImageOpenData *iod = static_cast<ImageOpenData *>(op->customdata);
+  ID *owner_id = iod->pprop.ptr.owner_id;
+  Library *owner_library = owner_id ? owner_id->lib : nullptr;
+  blender::StringRefNull root_path = owner_library ? owner_library->runtime.filepath_abs :
+                                                     BKE_main_blendfile_path(bmain);
 
-  /* For editable assets always create a new image datablock. We can't assign
-   * a local datablock to linked asset datablocks. */
-  const bool check_exists = !(iod->pprop.prop && iod->pprop.ptr.owner_id &&
-                              ID_IS_LINKED(iod->pprop.ptr.owner_id) &&
-                              ID_IS_EDITABLE(iod->pprop.ptr.owner_id));
-
-  ListBase ranges = ED_image_filesel_detect_sequences(bmain, op, use_udim);
+  ListBase ranges = ED_image_filesel_detect_sequences(root_path, op, use_udim);
   LISTBASE_FOREACH (ImageFrameRange *, range, &ranges) {
-    Image *ima_range = image_open_single(bmain, op, range, use_multiview, check_exists);
+    Image *ima_range = image_open_single(bmain, owner_library, op, range, use_multiview);
 
     /* take the first image */
     if ((ima == nullptr) && ima_range) {
