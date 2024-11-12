@@ -21,7 +21,7 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_scene.hh"
 
 #include "RNA_define.hh"

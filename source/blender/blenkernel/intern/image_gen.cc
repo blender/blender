@@ -13,7 +13,7 @@
 #include "BLI_math_color.h"
 #include "BLI_math_vector.h"
 
-#include "BKE_image.h"
+#include "BKE_image.hh"
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"

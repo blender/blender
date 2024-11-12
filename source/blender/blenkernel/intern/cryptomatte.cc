@@ -8,7 +8,7 @@
 
 #include "BKE_cryptomatte.h"
 #include "BKE_cryptomatte.hh"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"

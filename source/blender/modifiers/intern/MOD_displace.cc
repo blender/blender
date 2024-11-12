@@ -22,7 +22,7 @@
 
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"

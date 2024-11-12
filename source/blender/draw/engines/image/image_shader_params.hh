@@ -14,7 +14,7 @@
 
 #include "IMB_imbuf_types.hh"
 
-#include "BKE_image.h"
+#include "BKE_image.hh"
 
 #include "image_enums.hh"
 #include "image_space.hh"

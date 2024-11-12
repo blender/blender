@@ -44,7 +44,7 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
-#include "BKE_image.h"
+#include "BKE_image.hh"
 
 #include "BIF_glutil.hh"
 

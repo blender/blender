@@ -6,7 +6,7 @@
  * \ingroup texnodes
  */
 
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BLI_math_vector.h"
 #include "BLI_threads.h"
 #include "IMB_imbuf.hh"

@@ -120,7 +120,7 @@ typedef enum eGPUTextureTarget {
   TEXTARGET_COUNT,
 } eGPUTextureTarget;
 
-/* Defined in BKE_image.h. */
+/* Defined in BKE_image.hh. */
 struct PartialUpdateRegister;
 struct PartialUpdateUser;
 

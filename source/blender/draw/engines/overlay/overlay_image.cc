@@ -9,7 +9,7 @@
 #include "DRW_render.hh"
 
 #include "BKE_camera.h"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_movieclip.h"
 #include "BKE_object.hh"
 

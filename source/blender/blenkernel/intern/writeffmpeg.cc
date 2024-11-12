@@ -31,7 +31,7 @@
 #  include "BLI_vector.hh"
 
 #  include "BKE_global.hh"
-#  include "BKE_image.h"
+#  include "BKE_image.hh"
 #  include "BKE_main.hh"
 #  include "BKE_report.hh"
 #  include "BKE_sound.h"

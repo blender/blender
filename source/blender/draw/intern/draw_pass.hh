@@ -44,7 +44,7 @@
 #include "BLI_listbase_wrapper.hh"
 #include "BLI_vector.hh"
 
-#include "BKE_image.h"
+#include "BKE_image.hh"
 
 #include "GPU_debug.hh"
 #include "GPU_material.hh"

@@ -10,7 +10,7 @@
 
 #include "DNA_image_types.h"
 
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_image_wrappers.hh"
 
 #include "IMB_imbuf_types.hh"

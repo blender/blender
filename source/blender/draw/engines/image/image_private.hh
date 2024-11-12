@@ -10,7 +10,7 @@
 
 #include <optional>
 
-#include "BKE_image.h"
+#include "BKE_image.hh"
 
 #include "image_instance_data.hh"
 #include "image_texture_info.hh"
