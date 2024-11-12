@@ -120,6 +120,27 @@ bool WM_toolsystem_ref_ensure(WorkSpace *workspace, const bToolKey *tkey, bToolR
 }
 
 /**
+ * Similar to #toolsystem_active_tool_from_context_or_view3d(), but returns the tool key only.
+ */
+static bToolKey toolsystem_key_from_context_or_view3d(const Scene *scene,
+                                                      ViewLayer *view_layer,
+                                                      ScrArea *area)
+{
+  bToolKey tkey{};
+
+  if (area && ((1 << area->spacetype) & WM_TOOLSYSTEM_SPACE_MASK)) {
+    tkey.space_type = area->spacetype;
+    tkey.mode = WM_toolsystem_mode_from_spacetype(scene, view_layer, area, area->spacetype);
+    return tkey;
+  }
+
+  /* Otherwise: Fallback to getting the active tool for 3D views. */
+  tkey.space_type = SPACE_VIEW3D;
+  tkey.mode = WM_toolsystem_mode_from_spacetype(scene, view_layer, nullptr, SPACE_VIEW3D);
+  return tkey;
+}
+
+/**
  * Get the active tool for the current context (space and mode) if the current space supports tools
  * or, fallback to the active tool of the 3D View in the current mode.
  *
@@ -185,11 +206,12 @@ static const char *brush_type_identifier_get(const int brush_type, const PaintMo
 
 static bool brush_type_matches_active_tool(bContext *C, const int brush_type)
 {
-  if (!WM_toolsystem_active_tool_is_brush(C)) {
+  const bToolRef *active_tool = toolsystem_active_tool_from_context_or_view3d(C);
+
+  if (!(active_tool->runtime->flag & TOOLREF_FLAG_USE_BRUSHES)) {
     return false;
   }
 
-  const bToolRef *active_tool = toolsystem_active_tool_from_context_or_view3d(C);
   BLI_assert(BKE_paintmode_get_active_from_context(C) == BKE_paintmode_get_from_tool(active_tool));
   return active_tool->runtime->brush_type == brush_type;
 }
@@ -906,43 +928,41 @@ static void toolsystem_ref_set_by_brush_type(bContext *C, const char *brush_type
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   ScrArea *area = CTX_wm_area(C);
-  bToolKey tkey;
-  if (WM_toolsystem_key_from_context(scene, view_layer, area, &tkey)) {
-    WorkSpace *workspace = CTX_wm_workspace(C);
+  const bToolKey tkey = toolsystem_key_from_context_or_view3d(scene, view_layer, area);
+  WorkSpace *workspace = CTX_wm_workspace(C);
 
-    wmOperatorType *ot = WM_operatortype_find("WM_OT_tool_set_by_brush_type", false);
-    /* On startup, Python operators are not yet loaded. */
-    if (ot == nullptr) {
-      return;
-    }
+  wmOperatorType *ot = WM_operatortype_find("WM_OT_tool_set_by_brush_type", false);
+  /* On startup, Python operators are not yet loaded. */
+  if (ot == nullptr) {
+    return;
+  }
 
 /* Some contexts use the current space type (image editor for e.g.),
  * ensure this is set correctly or there is no area. */
 #ifndef NDEBUG
-    /* Exclude this check for some space types where the space type isn't used. */
-    if ((1 << tkey.space_type) & WM_TOOLSYSTEM_SPACE_MASK_MODE_FROM_SPACE) {
-      ScrArea *area = CTX_wm_area(C);
-      BLI_assert(area == nullptr || area->spacetype == tkey.space_type);
-    }
+  /* Exclude this check for some space types where the space type isn't used. */
+  if ((1 << tkey.space_type) & WM_TOOLSYSTEM_SPACE_MASK_MODE_FROM_SPACE) {
+    ScrArea *area = CTX_wm_area(C);
+    BLI_assert(area == nullptr || area->spacetype == tkey.space_type);
+  }
 #endif
 
-    PointerRNA op_props;
-    WM_operator_properties_create_ptr(&op_props, ot);
-    RNA_string_set(&op_props, "brush_type", brush_type);
+  PointerRNA op_props;
+  WM_operator_properties_create_ptr(&op_props, ot);
+  RNA_string_set(&op_props, "brush_type", brush_type);
 
-    BLI_assert((1 << tkey.space_type) & WM_TOOLSYSTEM_SPACE_MASK);
+  BLI_assert((1 << tkey.space_type) & WM_TOOLSYSTEM_SPACE_MASK);
 
-    RNA_enum_set(&op_props, "space_type", tkey.space_type);
+  RNA_enum_set(&op_props, "space_type", tkey.space_type);
 
-    WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_DEFAULT, &op_props, nullptr);
-    WM_operator_properties_free(&op_props);
+  WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_DEFAULT, &op_props, nullptr);
+  WM_operator_properties_free(&op_props);
 
-    bToolRef *tref = WM_toolsystem_ref_find(workspace, &tkey);
+  bToolRef *tref = WM_toolsystem_ref_find(workspace, &tkey);
 
-    if (tref) {
-      Main *bmain = CTX_data_main(C);
-      toolsystem_refresh_screen_from_active_tool(bmain, workspace, tref);
-    }
+  if (tref) {
+    Main *bmain = CTX_data_main(C);
+    toolsystem_refresh_screen_from_active_tool(bmain, workspace, tref);
   }
 }
 
