@@ -5,9 +5,11 @@
 #pragma once
 
 #include "BLI_assert.h"
+#include "BLI_math_base.hh"
 #include "BLI_math_interp.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 
 #include "GPU_shader.hh"
@@ -415,6 +417,14 @@ class Result {
    * initialized with the template float4(0, 0, 0, 1). */
   float4 sample_bilinear_extended(const float2 &coordinates) const;
 
+  /* Equivalent to the GLSL textureGrad() function with EWA filtering and extended boundary
+   * conditions. Note that extended boundaries only cover areas touched by the ellipses whose
+   * center is inside the image, other areas will be zero. The coordinates are thus expected to
+   * have half-pixels offsets. Only supports ResultType::Color. */
+  float4 sample_ewa_extended(const float2 &coordinates,
+                             const float2 &x_gradient,
+                             const float2 &y_gradient) const;
+
   /* Computes the number of channels of the result based on its type. */
   int64_t channels_count() const;
 
@@ -515,6 +525,43 @@ inline float4 Result::sample_bilinear_extended(const float2 &coordinates) const
                                 this->channels_count(),
                                 texel_coordinates.x,
                                 texel_coordinates.y);
+  return pixel_value;
+}
+
+/* Given a Result as the userdata argument, sample it at the given coordinates using extended
+ * boundary condition and write the result to the result argument.*/
+static void sample_ewa_extended_read_callback(void *userdata, int x, int y, float result[4])
+{
+  const Result *input = static_cast<const Result *>(userdata);
+  const int2 upper_bound = input->domain().size - int2(1);
+  const int2 clamped_coordinates = math::clamp(int2(x, y), int2(0), upper_bound);
+  const float4 sampled_result = input->load_pixel(clamped_coordinates);
+  copy_v4_v4(result, sampled_result);
+}
+
+inline float4 Result::sample_ewa_extended(const float2 &coordinates,
+                                          const float2 &x_gradient,
+                                          const float2 &y_gradient) const
+{
+  BLI_assert(type_ == ResultType::Color);
+
+  float4 pixel_value = float4(0.0f, 0.0f, 0.0f, 1.0f);
+  if (is_single_value_) {
+    this->copy_pixel(pixel_value, float_texture_);
+    return pixel_value;
+  }
+
+  const int2 size = domain_.size;
+  BLI_ewa_filter(size.x,
+                 size.y,
+                 false,
+                 true,
+                 coordinates,
+                 x_gradient,
+                 y_gradient,
+                 sample_ewa_extended_read_callback,
+                 const_cast<Result *>(this),
+                 pixel_value);
   return pixel_value;
 }
 
