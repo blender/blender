@@ -829,7 +829,7 @@ static void clip_preview_region_init(wmWindowManager *wm, ARegion *region)
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
   keymap = WM_keymap_ensure(wm->defaultconf, "Clip Time Scrub", SPACE_CLIP, RGN_TYPE_PREVIEW);
-  WM_event_add_keymap_handler_poll(&region->handlers, keymap, ED_time_scrub_event_in_region);
+  WM_event_add_keymap_handler_poll(&region->handlers, keymap, ED_time_scrub_event_in_region_poll);
 
   keymap = WM_keymap_ensure(wm->defaultconf, "Clip Graph Editor", SPACE_CLIP, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);

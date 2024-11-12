@@ -53,6 +53,7 @@
 #include "ED_asset.hh"
 #include "ED_fileselect.hh"
 #include "ED_info.hh"
+#include "ED_markers.hh"
 #include "ED_render.hh"
 #include "ED_screen.hh"
 #include "ED_undo.hh"
@@ -64,6 +65,7 @@
 #include "RNA_access.hh"
 
 #include "UI_interface.hh"
+#include "UI_view2d.hh"
 
 #include "WM_api.hh"
 #include "WM_message.hh"
@@ -3381,7 +3383,9 @@ static eHandlerActionFlag wm_handlers_do_intern(bContext *C,
     if (handler_base->flag & WM_HANDLER_DO_FREE) {
       /* Pass. */
     }
-    else if (handler_base->poll == nullptr || handler_base->poll(CTX_wm_region(C), event)) {
+    else if (handler_base->poll == nullptr ||
+             handler_base->poll(win, CTX_wm_area(C), CTX_wm_region(C), event))
+    {
       /* In advance to avoid access to freed event on window close. */
       const bool always_pass = wm_event_always_pass(event);
 
@@ -4832,11 +4836,43 @@ static bool event_or_prev_in_rect(const wmEvent *event, const rcti *rect)
   return false;
 }
 
-static bool handler_region_v2d_mask_test(const ARegion *region, const wmEvent *event)
+bool WM_event_handler_region_v2d_mask_poll(const wmWindow * /*win*/,
+                                           const ScrArea * /*area*/,
+                                           const ARegion *region,
+                                           const wmEvent *event)
 {
   rcti rect = region->v2d.mask;
   BLI_rcti_translate(&rect, region->winrct.xmin, region->winrct.ymin);
   return event_or_prev_in_rect(event, &rect);
+}
+
+bool WM_event_handler_region_marker_poll(const wmWindow * /*win*/,
+                                         const ScrArea * /*area*/,
+                                         const ARegion *region,
+                                         const wmEvent *event)
+{
+  rcti rect = region->winrct;
+  rect.ymax = rect.ymin + UI_MARKER_MARGIN_Y;
+  /* TODO: investigate returning `event_or_prev_in_rect(event, &rect)` here.
+   * The difference is subtle but correct so dragging away from the region works. */
+  return BLI_rcti_isect_pt_v(&rect, event->xy);
+}
+
+bool WM_event_handler_region_v2d_mask_no_marker_poll(const wmWindow *win,
+                                                     const ScrArea *area,
+                                                     const ARegion *region,
+                                                     const wmEvent *event)
+{
+  if (!WM_event_handler_region_v2d_mask_poll(win, area, region, event)) {
+    return false;
+  }
+  /* Casting away `const` is only needed for a non-constant return value. */
+  const ListBase *markers = ED_scene_markers_get(WM_window_get_active_scene(win),
+                                                 const_cast<ScrArea *>(area));
+  if (markers && !BLI_listbase_is_empty(markers)) {
+    return !WM_event_handler_region_marker_poll(win, area, region, event);
+  }
+  return true;
 }
 
 wmEventHandler_Keymap *WM_event_add_keymap_handler_poll(ListBase *handlers,
@@ -4854,7 +4890,7 @@ wmEventHandler_Keymap *WM_event_add_keymap_handler_poll(ListBase *handlers,
 
 wmEventHandler_Keymap *WM_event_add_keymap_handler_v2d_mask(ListBase *handlers, wmKeyMap *keymap)
 {
-  return WM_event_add_keymap_handler_poll(handlers, keymap, handler_region_v2d_mask_test);
+  return WM_event_add_keymap_handler_poll(handlers, keymap, WM_event_handler_region_v2d_mask_poll);
 }
 
 void WM_event_remove_keymap_handler(ListBase *handlers, wmKeyMap *keymap)
@@ -6334,7 +6370,9 @@ wmKeyMapItem *WM_event_match_keymap_item_from_handlers(
     if (handler_base->flag & WM_HANDLER_DO_FREE) {
       /* Pass. */
     }
-    else if (handler_base->poll == nullptr || handler_base->poll(CTX_wm_region(C), event)) {
+    else if (handler_base->poll == nullptr ||
+             handler_base->poll(win, CTX_wm_area(C), CTX_wm_region(C), event))
+    {
       if (handler_base->type == WM_HANDLER_TYPE_KEYMAP) {
         wmEventHandler_Keymap *handler = (wmEventHandler_Keymap *)handler_base;
         wmEventHandler_KeymapResult km_result;
