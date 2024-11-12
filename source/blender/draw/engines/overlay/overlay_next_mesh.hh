@@ -720,10 +720,9 @@ class MeshUVs {
     Object *object_orig = DEG_get_original_object(ob_ref.object);
     Object *object_eval = DEG_get_evaluated_object(state.depsgraph, object_orig);
 
-    if (drawn_object_set_.contains(object_orig)) {
+    if (!drawn_object_set_.add(object_orig)) {
       return;
     }
-    drawn_object_set_.add(object_orig);
 
     ResourceHandle res_handle = manager.unique_handle(ob_ref);
 
