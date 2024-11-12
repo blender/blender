@@ -28,6 +28,7 @@ from math import pi
 from itertools import count
 from mathutils import Vector
 
+from bpy.app.translations import pgettext_iface as iface_
 
 class SegmentEntry(NamedTuple):
     org: str                 # ORG bone
