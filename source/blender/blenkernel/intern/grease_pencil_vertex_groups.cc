@@ -129,10 +129,7 @@ void assign_to_vertex_group(Drawing &drawing, const StringRef name, const float 
   }
 }
 
-bool remove_from_vertex_group(GreasePencil &grease_pencil,
-                              Drawing &drawing,
-                              const StringRef name,
-                              const bool use_selection)
+bool remove_from_vertex_group(Drawing &drawing, const StringRef name, const bool use_selection)
 {
   bool changed = false;
   bke::CurvesGeometry &curves = drawing.strokes_for_write();

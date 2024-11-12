@@ -2541,7 +2541,7 @@ static void grease_pencil_clear_from_vgroup(Scene &scene,
         continue;
       }
       bke::greasepencil::Drawing &drawing = reinterpret_cast<GreasePencilDrawing *>(base)->wrap();
-      bke::greasepencil::remove_from_vertex_group(grease_pencil, drawing, dg->name, use_selection);
+      bke::greasepencil::remove_from_vertex_group(drawing, dg->name, use_selection);
     }
     /* Remove vgroup from the list. */
     BKE_object_defgroup_remove(&ob, dg);
@@ -2549,8 +2549,7 @@ static void grease_pencil_clear_from_vgroup(Scene &scene,
   else {
     Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);
     for (const MutableDrawingInfo &info : drawings) {
-      bke::greasepencil::remove_from_vertex_group(
-          grease_pencil, info.drawing, dg->name, use_selection);
+      bke::greasepencil::remove_from_vertex_group(info.drawing, dg->name, use_selection);
     }
   }
 }
