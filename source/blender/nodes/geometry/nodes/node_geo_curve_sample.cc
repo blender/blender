@@ -267,7 +267,7 @@ class SampleCurveFunction : public mf::MultiFunction {
 
     const Curves &curves_id = *geometry_set_.get_curves();
     const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
-    if (curves.points_num() == 0) {
+    if (curves.is_empty()) {
       return return_default();
     }
     curves.ensure_can_interpolate_to_evaluated();
@@ -441,7 +441,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   const Curves &curves_id = *geometry_set.get_curves();
   const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
-  if (curves.points_num() == 0) {
+  if (curves.is_empty()) {
     params.set_default_remaining_outputs();
     return;
   }

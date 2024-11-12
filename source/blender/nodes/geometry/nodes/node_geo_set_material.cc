@@ -120,7 +120,7 @@ static void node_geo_exec(GeoNodeExecParams params)
           continue;
         }
         bke::CurvesGeometry &curves = drawing->strokes_for_write();
-        if (curves.curves_num() == 0) {
+        if (curves.is_empty()) {
           continue;
         }
 

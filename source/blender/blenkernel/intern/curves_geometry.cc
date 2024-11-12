@@ -1189,7 +1189,7 @@ void CurvesGeometry::transform(const float4x4 &matrix)
 
 std::optional<Bounds<float3>> CurvesGeometry::bounds_min_max() const
 {
-  if (this->points_num() == 0) {
+  if (this->is_empty()) {
     return std::nullopt;
   }
   this->runtime->bounds_cache.ensure(

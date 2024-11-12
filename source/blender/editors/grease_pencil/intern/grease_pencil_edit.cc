@@ -103,7 +103,7 @@ static int grease_pencil_stroke_smooth_exec(bContext *C, wmOperator *op)
   const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
     bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
-    if (curves.points_num() == 0) {
+    if (curves.is_empty()) {
       return;
     }
 
@@ -262,7 +262,7 @@ static int grease_pencil_stroke_simplify_exec(bContext *C, wmOperator *op)
   const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
     bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
-    if (curves.points_num() == 0) {
+    if (curves.is_empty()) {
       return;
     }
 
@@ -618,7 +618,7 @@ static int grease_pencil_dissolve_exec(bContext *C, wmOperator *op)
   const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
     bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
-    if (curves.points_num() == 0) {
+    if (curves.is_empty()) {
       return;
     }
 
@@ -2314,7 +2314,7 @@ static int grease_pencil_copy_strokes_exec(bContext *C, wmOperator *op)
     const Layer &layer = grease_pencil.layer(drawing_info.layer_index);
     const float4x4 layer_to_object = layer.to_object_space(*object);
 
-    if (curves.curves_num() == 0) {
+    if (curves.is_empty()) {
       continue;
     }
     if (!ed::curves::has_anything_selected(curves)) {
@@ -2975,7 +2975,7 @@ static int grease_pencil_snap_to_grid_exec(bContext *C, wmOperator * /*op*/)
   const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);
   for (const MutableDrawingInfo &drawing_info : drawings) {
     bke::CurvesGeometry &curves = drawing_info.drawing.strokes_for_write();
-    if (curves.curves_num() == 0) {
+    if (curves.is_empty()) {
       continue;
     }
     if (!ed::curves::has_anything_selected(curves)) {
@@ -3037,7 +3037,7 @@ static int grease_pencil_snap_to_cursor_exec(bContext *C, wmOperator *op)
   const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);
   for (const MutableDrawingInfo &drawing_info : drawings) {
     bke::CurvesGeometry &curves = drawing_info.drawing.strokes_for_write();
-    if (curves.curves_num() == 0) {
+    if (curves.is_empty()) {
       continue;
     }
     if (!ed::curves::has_anything_selected(curves)) {
@@ -3133,7 +3133,7 @@ static bool grease_pencil_snap_compute_centroid(const Scene &scene,
       continue;
     }
     const bke::CurvesGeometry &curves = drawing_info.drawing.strokes();
-    if (curves.curves_num() == 0) {
+    if (curves.is_empty()) {
       continue;
     }
     if (!ed::curves::has_anything_selected(curves)) {

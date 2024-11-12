@@ -874,7 +874,7 @@ static int select_set_mode_exec(bContext *C, wmOperator *op)
 
     GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(drawing_base);
     bke::CurvesGeometry &curves = drawing->wrap().strokes_for_write();
-    if (curves.points_num() == 0) {
+    if (curves.is_empty()) {
       continue;
     }
 

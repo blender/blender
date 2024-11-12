@@ -234,7 +234,7 @@ static void node_geo_exec(GeoNodeExecParams params)
           continue;
         }
         const bke::CurvesGeometry &src_curves = drawing->strokes();
-        if (src_curves.curves_num() == 0) {
+        if (src_curves.is_empty()) {
           /* Add an empty reference so the number of layers and instances match.
            * This makes it easy to reconstruct the layers afterwards and keep their attributes.
            * Although in this particular case we don't propagate the attributes. */

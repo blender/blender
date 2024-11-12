@@ -88,7 +88,7 @@ namespace bezier {
 Array<float3> retrieve_all_positions(const bke::CurvesGeometry &curves,
                                      const IndexMask &curves_selection)
 {
-  if (curves.curves_num() == 0 || !curves.has_curve_with_type(CURVE_TYPE_BEZIER)) {
+  if (curves.is_empty() || !curves.has_curve_with_type(CURVE_TYPE_BEZIER)) {
     return {};
   }
   const OffsetIndices points_by_curve = curves.points_by_curve();
@@ -114,7 +114,7 @@ void write_all_positions(bke::CurvesGeometry &curves,
                          const IndexMask &curves_selection,
                          const Span<float3> all_positions)
 {
-  if (curves_selection.is_empty() || curves.curves_num() == 0 ||
+  if (curves_selection.is_empty() || curves.is_empty() ||
       !curves.has_curve_with_type(CURVE_TYPE_BEZIER))
   {
     return;

@@ -286,7 +286,7 @@ void interpolate_curves(const CurvesGeometry &from_curves,
   BLI_assert(from_curve_indices.size() == dst_curve_mask.size());
   BLI_assert(to_curve_indices.size() == dst_curve_mask.size());
 
-  if (from_curves.curves_num() == 0 || to_curves.curves_num() == 0) {
+  if (from_curves.is_empty() || to_curves.is_empty()) {
     return;
   }
 

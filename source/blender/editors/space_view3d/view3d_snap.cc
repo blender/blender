@@ -1073,7 +1073,7 @@ bool ED_view3d_minmax_verts(const Scene *scene, Object *obedit, float r_min[3], 
         greasepencil::retrieve_editable_drawings(*scene, grease_pencil);
     for (const greasepencil::MutableDrawingInfo info : drawings) {
       const bke::CurvesGeometry &curves = info.drawing.strokes();
-      if (curves.points_num() == 0) {
+      if (curves.is_empty()) {
         continue;
       }
 

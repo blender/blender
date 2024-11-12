@@ -561,7 +561,7 @@ static void build_drawing(const GreasePencilBuildModifierData &mmd,
   modifier::greasepencil::ensure_no_bezier_curves(drawing);
   bke::CurvesGeometry &curves = drawing.strokes_for_write();
 
-  if (curves.points_num() == 0) {
+  if (curves.is_empty()) {
     return;
   }
 

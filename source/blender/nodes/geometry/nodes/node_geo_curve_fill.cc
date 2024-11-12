@@ -271,7 +271,7 @@ static void curve_fill_calculate(GeometrySet &geometry_set,
         continue;
       }
       const bke::CurvesGeometry &src_curves = drawing->strokes();
-      if (src_curves.curves_num() == 0) {
+      if (src_curves.is_empty()) {
         continue;
       }
       const Array<meshintersect::CDT_result<double>> results = do_group_aware_cdt(

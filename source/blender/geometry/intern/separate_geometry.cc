@@ -216,7 +216,7 @@ void separate_geometry(bke::GeometrySet &geometry_set,
       std::optional<bke::CurvesGeometry> dst_curves = separate_curves_selection(
           src_curves, field_context, selection, domain, attribute_filter);
       if (dst_curves) {
-        if (dst_curves->points_num() == 0) {
+        if (dst_curves->is_empty()) {
           geometry_set.remove<bke::CurveComponent>();
         }
         else {
