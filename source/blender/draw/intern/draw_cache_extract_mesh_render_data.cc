@@ -122,12 +122,10 @@ static void mesh_render_data_loose_edges_bm(const MeshRenderData &mr,
 
 static void mesh_render_data_loose_geom_build(const MeshRenderData &mr, MeshBufferCache &cache)
 {
-  if (mr.extract_type != MeshExtractType::BMesh) {
-    /* Mesh */
+  if (mr.extract_type == MeshExtractType::Mesh) {
     mesh_render_data_loose_geom_mesh(mr, cache);
   }
   else {
-    /* #BMesh */
     BMesh &bm = *mr.bm;
     mesh_render_data_loose_verts_bm(mr, cache, bm);
     mesh_render_data_loose_edges_bm(mr, cache, bm);
@@ -489,7 +487,7 @@ static bke::MeshNormalDomain bmesh_normals_domain(BMesh *bm)
 
 void mesh_render_data_update_corner_normals(MeshRenderData &mr)
 {
-  if (mr.extract_type != MeshExtractType::BMesh) {
+  if (mr.extract_type == MeshExtractType::Mesh) {
     mr.corner_normals = mr.mesh->corner_normals();
   }
   else {
@@ -510,12 +508,12 @@ void mesh_render_data_update_corner_normals(MeshRenderData &mr)
 
 void mesh_render_data_update_face_normals(MeshRenderData &mr)
 {
-  if (mr.extract_type != MeshExtractType::BMesh) {
+  if (mr.extract_type == MeshExtractType::Mesh) {
     /* Eager calculation of face normals can reduce waiting on the lazy cache's lock. */
     mr.face_normals = mr.mesh->face_normals();
   }
   else {
-    /* Use #BMFace.no instead. */
+    /* Use #BMFace.no. */
   }
 }
 
@@ -637,8 +635,7 @@ std::unique_ptr<MeshRenderData> mesh_render_data_create(Object &object,
     }
   }
 
-  if (mr->extract_type != MeshExtractType::BMesh) {
-    /* Mesh */
+  if (mr->extract_type == MeshExtractType::Mesh) {
     mr->verts_num = mr->mesh->verts_num;
     mr->edges_num = mr->mesh->edges_num;
     mr->faces_num = mr->mesh->faces_num;
@@ -679,7 +676,6 @@ std::unique_ptr<MeshRenderData> mesh_render_data_create(Object &object,
     mr->sharp_faces = *attributes.lookup<bool>("sharp_face", bke::AttrDomain::Face);
   }
   else {
-    /* #BMesh */
     BMesh *bm = mr->bm;
 
     mr->verts_num = bm->totvert;
