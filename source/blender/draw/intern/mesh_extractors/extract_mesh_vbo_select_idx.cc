@@ -89,7 +89,7 @@ static void extract_vert_index_bm(const MeshRenderData &mr, MutableSpan<int> vbo
 void extract_vert_index(const MeshRenderData &mr, gpu::VertBuf &vbo)
 {
   MutableSpan<int> vbo_data = init_vbo_data(vbo, mr.corners_num + mr.loose_indices_num);
-  if (mr.extract_type == MR_EXTRACT_MESH) {
+  if (mr.extract_type == MeshExtractType::Mesh) {
     extract_vert_index_mesh(mr, vbo_data);
   }
   else {
@@ -154,7 +154,7 @@ static void extract_edge_index_bm(const MeshRenderData &mr, MutableSpan<int> vbo
 void extract_edge_index(const MeshRenderData &mr, gpu::VertBuf &vbo)
 {
   MutableSpan<int> vbo_data = init_vbo_data(vbo, mr.corners_num + mr.loose_edges.size() * 2);
-  if (mr.extract_type == MR_EXTRACT_MESH) {
+  if (mr.extract_type == MeshExtractType::Mesh) {
     extract_edge_index_mesh(mr, vbo_data);
   }
   else {
@@ -193,7 +193,7 @@ static void extract_face_index_bm(const MeshRenderData &mr, MutableSpan<int> vbo
 void extract_face_index(const MeshRenderData &mr, gpu::VertBuf &vbo)
 {
   MutableSpan<int> vbo_data = init_vbo_data(vbo, mr.corners_num);
-  if (mr.extract_type == MR_EXTRACT_MESH) {
+  if (mr.extract_type == MeshExtractType::Mesh) {
     extract_face_index_mesh(mr, vbo_data);
   }
   else {
@@ -314,7 +314,7 @@ void extract_face_index_subdiv(const DRWSubdivCache &subdiv_cache,
 void extract_face_dot_index(const MeshRenderData &mr, gpu::VertBuf &vbo)
 {
   MutableSpan<int> vbo_data = init_vbo_data(vbo, mr.faces_num);
-  if (mr.extract_type == MR_EXTRACT_MESH) {
+  if (mr.extract_type == MeshExtractType::Mesh) {
     if (mr.orig_index_face) {
       const Span<int> orig_index_face(mr.orig_index_face, mr.faces_num);
       array_utils::copy(orig_index_face, vbo_data);

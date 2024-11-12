@@ -39,7 +39,7 @@ struct AreaInfo {
 };
 static AreaInfo compute_area_ratio(const MeshRenderData &mr, MutableSpan<float> r_area_ratio)
 {
-  if (mr.extract_type == MR_EXTRACT_BMESH) {
+  if (mr.extract_type == MeshExtractType::BMesh) {
     const BMesh &bm = *mr.bm;
     const int uv_offset = CustomData_get_offset(&bm.ldata, CD_PROP_FLOAT2);
     return threading::parallel_reduce(
@@ -111,7 +111,7 @@ void extract_edituv_stretch_area(const MeshRenderData &mr,
 
   const int64_t bytes = area_ratio.as_span().size_in_bytes() + vbo_data.size_in_bytes();
   threading::memory_bandwidth_bound_task(bytes, [&]() {
-    if (mr.extract_type == MR_EXTRACT_BMESH) {
+    if (mr.extract_type == MeshExtractType::BMesh) {
       const BMesh &bm = *mr.bm;
       threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
         for (const int face_index : range) {
@@ -122,7 +122,7 @@ void extract_edituv_stretch_area(const MeshRenderData &mr,
       });
     }
     else {
-      BLI_assert(mr.extract_type == MR_EXTRACT_MESH);
+      BLI_assert(mr.extract_type == MeshExtractType::Mesh);
       const OffsetIndices<int> faces = mr.faces;
       threading::parallel_for(faces.index_range(), 2048, [&](const IndexRange range) {
         for (const int face : range) {

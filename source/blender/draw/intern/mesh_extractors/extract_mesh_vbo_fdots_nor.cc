@@ -66,7 +66,7 @@ void extract_face_dot_normals(const MeshRenderData &mr, const bool use_hq, gpu::
     GPU_vertbuf_data_alloc(vbo, mr.faces_num);
     MutableSpan vbo_data = vbo.data<short4>();
 
-    if (mr.extract_type == MR_EXTRACT_MESH) {
+    if (mr.extract_type == MeshExtractType::Mesh) {
       extract_face_dot_normals_mesh(mr, vbo_data);
     }
     else {
@@ -82,7 +82,7 @@ void extract_face_dot_normals(const MeshRenderData &mr, const bool use_hq, gpu::
     GPU_vertbuf_data_alloc(vbo, mr.faces_num);
     MutableSpan vbo_data = vbo.data<GPUPackedNormal>();
 
-    if (mr.extract_type == MR_EXTRACT_MESH) {
+    if (mr.extract_type == MeshExtractType::Mesh) {
       extract_face_dot_normals_mesh(mr, vbo_data);
     }
     else {

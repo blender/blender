@@ -30,7 +30,7 @@ void extract_orco(const MeshRenderData &mr, gpu::VertBuf &vbo)
 
   const int64_t bytes = orco_data.size_in_bytes() + vbo_data.size_in_bytes();
   threading::memory_bandwidth_bound_task(bytes, [&]() {
-    if (mr.extract_type == MR_EXTRACT_BMESH) {
+    if (mr.extract_type == MeshExtractType::BMesh) {
       const BMesh &bm = *mr.bm;
       threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
         for (const int face_index : range) {

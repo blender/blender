@@ -102,7 +102,7 @@ void extract_edituv_data(const MeshRenderData &mr, gpu::VertBuf &vbo)
   GPU_vertbuf_data_alloc(vbo, mr.corners_num);
   MutableSpan vbo_data = vbo.data<EditLoopData>();
 
-  if (mr.extract_type == MR_EXTRACT_BMESH) {
+  if (mr.extract_type == MeshExtractType::BMesh) {
     extract_edituv_data_bm(mr, vbo_data);
   }
   else {
@@ -213,7 +213,7 @@ void extract_edituv_data_subdiv(const MeshRenderData &mr,
   GPU_vertbuf_data_alloc(vbo, size);
   MutableSpan vbo_data = vbo.data<EditLoopData>();
 
-  if (mr.extract_type == MR_EXTRACT_BMESH) {
+  if (mr.extract_type == MeshExtractType::BMesh) {
     extract_edituv_subdiv_data_bm(mr, subdiv_cache, vbo_data);
   }
   else {
