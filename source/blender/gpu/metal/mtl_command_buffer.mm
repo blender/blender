@@ -91,10 +91,10 @@ bool MTLCommandBufferManager::submit(bool wait)
   /* Skip submission if command buffer is empty. */
   if (empty_ || active_command_buffer_ == nil) {
     if (wait) {
-      /* Wait for any previously submitted work on this context to complete. */
-      while (context_.main_command_buffer.get_active_command_buffer_count()) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-      }
+      /* Wait for any previously submitted work on this context to complete.
+       * (The wait function will yield so may need reworking if this hits a
+       * performance critical path which is sensitive to CPU<->GPU latency) */
+      wait_until_active_command_buffers_complete();
     }
     return false;
   }
