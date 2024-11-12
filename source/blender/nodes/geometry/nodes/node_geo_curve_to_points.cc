@@ -287,10 +287,12 @@ static void grease_pencil_to_points(GeometrySet &geometry_set,
           const int handle = instances->add_reference(bke::InstanceReference{temp_set});
           instances->add_instance(handle, float4x4::identity());
         }
-        GeometrySet::propagate_attributes_from_layer_to_instances(
-            geometry.get_grease_pencil()->attributes(),
-            instances->attributes_for_write(),
-            attribute_filter);
+
+        bke::copy_attributes(geometry.get_grease_pencil()->attributes(),
+                             bke::AttrDomain::Layer,
+                             bke::AttrDomain::Instance,
+                             attribute_filter,
+                             instances->attributes_for_write());
         InstancesComponent &dst_component = geometry.get_component_for_write<InstancesComponent>();
         GeometrySet new_instances = geometry::join_geometries(
             {GeometrySet::from_instances(dst_component.release()),
