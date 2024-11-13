@@ -114,10 +114,7 @@ void strip_EmitVertex(const uint strip_index,
   }
 }
 
-void geometry_main(VertOut geom_in[4],
-                   uint out_vertex_id,
-                   uint out_primitive_id,
-                   uint out_invocation_id)
+void geometry_main(VertOut geom_in[4], uint out_vertex_id, uint out_primitive_id)
 {
   const float MiterLimit = 0.75;
 
@@ -330,8 +327,6 @@ void main()
   uint out_vertex_id = uint(gl_VertexID) % ouput_primitive_vertex_count;
   uint out_primitive_id = (uint(gl_VertexID) / ouput_primitive_vertex_count) %
                           ouput_primitive_count;
-  uint out_invocation_id = (uint(gl_VertexID) / output_vertex_count_per_invocation) %
-                           ouput_invocation_count;
 
   GreasePencilStrokeData vert_in[4];
   vert_in[0] = input_assembly(in_primitive_first_vertex + 0u);
@@ -347,5 +342,5 @@ void main()
 
   /* Discard by default. */
   gl_Position = vec4(NAN_FLT);
-  geometry_main(vert_out, out_vertex_id, out_primitive_id, out_invocation_id);
+  geometry_main(vert_out, out_vertex_id, out_primitive_id);
 }

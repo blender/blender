@@ -254,7 +254,7 @@ vec2 safe_normalize_len(vec2 v, out float len)
 #  ifndef GPU_SHADER_MATH_VECTOR_LIB_GLSL
 vec2 safe_normalize(vec2 v)
 {
-  float len;
+  float len = 0.0;
   return safe_normalize_len(v, len);
 }
 #  endif
