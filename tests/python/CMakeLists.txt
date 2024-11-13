@@ -1113,6 +1113,7 @@ else()
     transform
     blend_modes_byte
     blend_modes_float
+    ffmpeg
   )
 
   foreach(render_test ${render_tests})
