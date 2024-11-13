@@ -69,7 +69,7 @@ void iterate(const AssetLibraryReference &library_reference, AssetListIterFn fn)
  */
 void storage_fetch(const AssetLibraryReference *library_reference, const bContext *C);
 bool is_loaded(const AssetLibraryReference *library_reference);
-void ensure_previews_job(const AssetLibraryReference *library_reference, const bContext *C);
+void previews_fetch(const AssetLibraryReference *library_reference, const bContext *C);
 /**
  * Clears this asset library and the "All" asset library for reload in both the static asset list
  * storage, as well as for all open asset browsers. Call this whenever the content of the given
@@ -109,6 +109,9 @@ asset_system::AssetRepresentation *asset_get_by_index(
 
 bool asset_image_is_loading(const AssetLibraryReference *library_reference,
                             const AssetHandle *asset_handle);
+void asset_preview_ensure_requested(const bContext &C,
+                                    const AssetLibraryReference *library_reference,
+                                    AssetHandle *asset_handle);
 ImBuf *asset_image_get(const AssetHandle *asset_handle);
 
 /**

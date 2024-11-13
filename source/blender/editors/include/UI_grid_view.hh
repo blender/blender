@@ -45,7 +45,7 @@ class AbstractGridViewItem : public AbstractViewItem {
  public:
   /* virtual */ ~AbstractGridViewItem() override = default;
 
-  virtual void build_grid_tile(uiLayout &layout) const = 0;
+  virtual void build_grid_tile(const bContext &C, uiLayout &layout) const = 0;
 
   /* virtual */ std::optional<std::string> debug_name() const override;
 
@@ -170,7 +170,8 @@ class GridViewBuilder {
  public:
   GridViewBuilder(uiBlock &block);
 
-  void build_grid_view(AbstractGridView &grid_view,
+  void build_grid_view(const bContext &C,
+                       AbstractGridView &grid_view,
                        const View2D &v2d,
                        uiLayout &layout,
                        std::optional<StringRef> search_string = {});
@@ -206,9 +207,10 @@ class PreviewGridItem : public AbstractGridViewItem {
 
   PreviewGridItem(StringRef identifier, StringRef label, int preview_icon_id);
 
-  void build_grid_tile(uiLayout &layout) const override;
+  void build_grid_tile(const bContext &C, uiLayout &layout) const override;
 
-  void build_grid_tile_button(uiLayout &layout) const;
+  void build_grid_tile_button(uiLayout &layout,
+                              BIFIconID override_preview_icon_id = ICON_NONE) const;
 
   /**
    * Set a custom callback to execute when activating this view item. This way users don't have to
