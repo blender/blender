@@ -140,7 +140,9 @@ static void image_detect_frame_range(ImageFrameRange *range, const bool detect_u
   }
 }
 
-ListBase ED_image_filesel_detect_sequences(Main *bmain, wmOperator *op, const bool detect_udim)
+ListBase ED_image_filesel_detect_sequences(blender::StringRefNull root_path,
+                                           wmOperator *op,
+                                           const bool detect_udim)
 {
   ListBase ranges;
   BLI_listbase_clear(&ranges);
@@ -160,7 +162,7 @@ ListBase ED_image_filesel_detect_sequences(Main *bmain, wmOperator *op, const bo
       BLI_freelistN(&range->frames);
 
       if (was_relative) {
-        BLI_path_rel(range->filepath, BKE_main_blendfile_path(bmain));
+        BLI_path_rel(range->filepath, root_path.c_str());
       }
     }
   }
