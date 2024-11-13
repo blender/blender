@@ -612,25 +612,59 @@ static int create_op_exec(bContext *C, wmOperator *op)
   Vector<PBVHNode *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
   switch (mode) {
     case CreateMode::Masked: {
-      const OffsetIndices faces = mesh.faces();
-      const Span<int> corner_verts = mesh.corner_verts();
-      const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly",
-                                                                  bke::AttrDomain::Face);
-      const VArraySpan<float> mask = *attributes.lookup<float>(".sculpt_mask",
-                                                               bke::AttrDomain::Point);
-      if (!mask.is_empty()) {
+      if (BKE_pbvh_type(*ss.pbvh) == PBVH_FACES) {
+        const OffsetIndices faces = mesh.faces();
+        const Span<int> corner_verts = mesh.corner_verts();
+        const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly",
+                                                                    bke::AttrDomain::Face);
+        const VArraySpan<float> mask = *attributes.lookup<float>(".sculpt_mask",
+                                                                 bke::AttrDomain::Point);
+        if (!mask.is_empty()) {
+          face_sets_update(
+              object, nodes, [&](const Span<int> indices, MutableSpan<int> face_sets) {
+                for (const int i : indices.index_range()) {
+                  if (!hide_poly.is_empty() && hide_poly[indices[i]]) {
+                    continue;
+                  }
+                  const Span<int> face_verts = corner_verts.slice(faces[indices[i]]);
+                  if (!std::any_of(face_verts.begin(), face_verts.end(), [&](const int vert) {
+                        return mask[vert] > 0.5f;
+                      }))
+                  {
+                    continue;
+                  }
+                  face_sets[i] = next_face_set;
+                }
+              });
+        }
+      }
+      else if (BKE_pbvh_type(*ss.pbvh) == PBVH_GRIDS) {
+        const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+        const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+        const OffsetIndices faces = mesh.faces();
+        Span<CCGElem *> grids = subdiv_ccg.grids;
+        const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly",
+                                                                    bke::AttrDomain::Face);
         face_sets_update(object, nodes, [&](const Span<int> indices, MutableSpan<int> face_sets) {
           for (const int i : indices.index_range()) {
             if (!hide_poly.is_empty() && hide_poly[indices[i]]) {
               continue;
             }
-            const Span<int> face_verts = corner_verts.slice(faces[indices[i]]);
-            if (!std::any_of(face_verts.begin(), face_verts.end(), [&](const int vert) {
-                  return mask[vert] > 0.5f;
-                }))
-            {
+
+            bool any_masked_elem = false;
+            for (const int corner : faces[indices[i]]) {
+              for (const int offset : IndexRange(key.grid_area)) {
+                if (CCG_elem_offset_mask(key, grids[corner], offset) > 0.5f) {
+                  any_masked_elem = true;
+                  break;
+                }
+              }
+            }
+
+            if (!any_masked_elem) {
               continue;
             }
+
             face_sets[i] = next_face_set;
           }
         });
