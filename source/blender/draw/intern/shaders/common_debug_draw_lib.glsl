@@ -4,6 +4,10 @@
 
 #pragma once
 
+#include "draw_debug_info.hh"
+
+SHADER_LIBRARY_CREATE_INFO(draw_debug_draw)
+
 /**
  * Debugging drawing library
  *

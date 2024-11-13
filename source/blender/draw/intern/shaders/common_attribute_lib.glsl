@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "gpu_glsl_cpp_stubs.hh"
+
 /* Prototype of functions to implement to load attributes data.
  * Implementation changes based on object data type. */
 

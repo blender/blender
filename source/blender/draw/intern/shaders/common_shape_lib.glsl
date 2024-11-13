@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "gpu_glsl_cpp_stubs.hh"
+
 /**
  * Geometric shape structures.
  * Some constructors might seems redundant but are here to make the API cleaner and
@@ -202,7 +204,7 @@ struct Cone {
   vec3 direction;
   float angle_cos;
 
-#ifdef GPU_METAL
+#ifdef __cplusplus
   inline Cone() = default;
   inline Cone(vec3 in_direction, float in_angle_cos)
       : direction(in_direction), angle_cos(in_angle_cos)

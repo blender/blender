@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "draw_view_info.hh"
+
 /**
  * Intersection library used for culling.
  * Results are meant to be conservative.
@@ -131,6 +133,8 @@ IsectFrustum isect_frustum_setup(Frustum shape)
 /* ---------------------------------------------------------------------- */
 /** \name View Intersection functions.
  * \{ */
+
+SHADER_LIBRARY_CREATE_INFO(draw_view_culling)
 
 #ifdef DRW_VIEW_CULLING_INFO
 

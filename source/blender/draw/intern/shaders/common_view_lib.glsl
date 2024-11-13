@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "draw_view_info.hh"
+
 /* WORKAROUND: to guard against double include in EEVEE. */
 #ifndef COMMON_VIEW_LIB_GLSL
 #  define COMMON_VIEW_LIB_GLSL

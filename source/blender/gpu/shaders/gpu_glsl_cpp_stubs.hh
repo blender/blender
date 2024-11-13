@@ -893,4 +893,4 @@ static inline void groupMemoryBarrier() {}
 
 #define GLSL_CPP_STUBS
 
-#include "GPU_shader_shared.hh"
+#include "GPU_shader_shared_utils.hh"

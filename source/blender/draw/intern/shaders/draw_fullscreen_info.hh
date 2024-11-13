@@ -2,6 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#ifdef GPU_SHADER
+#  pragma once
+#  include "gpu_glsl_cpp_stubs.hh"
+#endif
+
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_INTERFACE_INFO(fullscreen_iface)

@@ -2,20 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "draw_hair_refine_info.hh"
+
 #include "common_hair_lib.glsl"
 
-#ifndef USE_GPU_SHADER_CREATE_INFO
-/*
- * To be compiled with common_hair_lib.glsl.
- */
-
-layout(local_size_x = 1, local_size_y = 1) in;
-layout(std430, binding = 0) writeonly buffer hairPointOutputBuffer
-{
-  vec4 posTime[];
-}
-out_vertbuf;
-#endif
+COMPUTE_SHADER_CREATE_INFO(draw_hair_refine_compute)
 
 void main()
 {

@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "gpu_glsl_cpp_stubs.hh"
+
 float linearrgb_to_srgb(float c)
 {
   if (c < 0.0031308) {

@@ -2,9 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#if !defined(GPU_SHADER) && !defined(GLSL_CPP_STUBS)
-#  pragma once
+#pragma once
 
+#if !defined(GPU_SHADER) && !defined(GLSL_CPP_STUBS)
 #  include "GPU_shader.hh"
 #  include "GPU_shader_shared_utils.hh"
 #  include "draw_defines.hh"

@@ -20,15 +20,15 @@ FRAGMENT_SHADER_CREATE_INFO(gpu_shader_2D_image_overlays_stereo_merge)
 bool interlace(ivec2 texel)
 {
   int interlace_mode = stereo_interlace_mode;
-  if (interlace_mode == S3D_INTERLACE_CHECKERBOARD) {
-    return ((texel.x + texel.y) & 1) != 0;
+  switch (interlace_mode) {
+    case S3D_INTERLACE_CHECKERBOARD:
+      return ((texel.x + texel.y) & 1) != 0;
+    case S3D_INTERLACE_ROW:
+      return (texel.y & 1) != 0;
+    case S3D_INTERLACE_COLUMN:
+      return (texel.x & 1) != 0;
   }
-  else if (interlace_mode == S3D_INTERLACE_ROW) {
-    return (texel.y & 1) != 0;
-  }
-  else if (interlace_mode == S3D_INTERLACE_COLUMN) {
-    return (texel.x & 1) != 0;
-  }
+  return false;
 }
 
 void main()
