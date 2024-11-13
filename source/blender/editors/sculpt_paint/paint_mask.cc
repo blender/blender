@@ -567,16 +567,15 @@ static void invert_mask_grids(Main &bmain,
                               const IndexMask &node_mask)
 {
   SculptSession &ss = *object.sculpt;
-  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
-  MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-
-  SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
 
   MultiresModifierData &mmd = *BKE_sculpt_multires_active(&scene, &object);
   BKE_sculpt_mask_layers_ensure(&depsgraph, &bmain, &object, &mmd);
 
   undo::push_nodes(depsgraph, object, node_mask, undo::Type::Mask);
 
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+  MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
+  SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
 
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
