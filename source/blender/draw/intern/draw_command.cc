@@ -729,7 +729,7 @@ void DrawMultiBuf::bind(RecordingState &state,
   for (DrawGroup &group : MutableSpan<DrawGroup>(group_buf_.data(), group_count_)) {
     /* Compute prefix sum of all instance of previous group. */
     group.start = resource_id_count_;
-    resource_id_count_ += group.len * view_len;
+    resource_id_count_ += group.len;
 
     int batch_vert_len, batch_vert_first, batch_base_index, batch_inst_len;
     /* Now that GPUBatches are guaranteed to be finished, extract their parameters. */
@@ -766,7 +766,7 @@ void DrawMultiBuf::bind(RecordingState &state,
   group_buf_.push_update();
   prototype_buf_.push_update();
   /* Allocate enough for the expansion pass. */
-  resource_id_buf_.get_or_resize(resource_id_count_ * (use_custom_ids ? 2 : 1));
+  resource_id_buf_.get_or_resize(resource_id_count_ * view_len * (use_custom_ids ? 2 : 1));
   /* Two commands per group (inverted and non-inverted scale). */
   command_buf_.get_or_resize(group_count_ * 2);
 
@@ -775,6 +775,7 @@ void DrawMultiBuf::bind(RecordingState &state,
     GPU_shader_bind(shader);
     GPU_shader_uniform_1i(shader, "prototype_len", prototype_count_);
     GPU_shader_uniform_1i(shader, "visibility_word_per_draw", visibility_word_per_draw);
+    GPU_shader_uniform_1i(shader, "view_len", view_len);
     GPU_shader_uniform_1i(shader, "view_shift", log2_ceil_u(view_len));
     GPU_shader_uniform_1b(shader, "use_custom_ids", use_custom_ids);
     GPU_storagebuf_bind(group_buf_, GPU_shader_get_ssbo_binding(shader, "group_buf"));

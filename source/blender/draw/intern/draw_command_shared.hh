@@ -26,6 +26,12 @@ struct DrawGroup {
   /** Index of next #DrawGroup from the same header. */
   uint next;
 
+  /**
+   * IMPORTANT: All the following 3 members do not take multi-view into account.
+   * They only count the number of input instances. The command generation shader must multiply
+   * them by view_len to get the correct indices for resource ids.
+   */
+
   /** Index of the first instances after sorting. */
   uint start;
   /** Total number of instances (including inverted facing). Needed to issue the draw call. */
@@ -38,8 +44,11 @@ struct DrawGroup {
   int vertex_first;
   int base_index;
 
-  /** Atomic counters used during command sorting. */
+  /** Atomic counters used during command sorting. GPU only. Reset on CPU. */
+
+  /* Counts visible and invisble instances. Create drawcalls when it reaches `DrawGroup::len`. */
   uint total_counter;
+  /* Counts only visible instance (counting multi-view). Used to issue the drawcalls. */
 
 #ifndef GPU_SHADER
 

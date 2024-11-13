@@ -228,6 +228,7 @@ GPU_SHADER_CREATE_INFO(draw_command_generate)
     .push_constant(Type::INT, "prototype_len")
     .push_constant(Type::INT, "visibility_word_per_draw")
     .push_constant(Type::INT, "view_shift")
+    .push_constant(Type::INT, "view_len")
     .push_constant(Type::BOOL, "use_custom_ids")
     .compute_source("draw_command_generate_comp.glsl");
 
