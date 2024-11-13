@@ -108,7 +108,7 @@ static void node_label(const bNodeTree * /*ntree*/, const bNode *node, char *lab
   if (!enum_label) {
     name = "Unknown";
   }
-  BLI_strncpy(label, IFACE_(name), maxlen);
+  BLI_strncpy(label, CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, name), maxlen);
 }
 
 /* Derived from `divide_round_i` but fixed to be safe and handle negative inputs. */
