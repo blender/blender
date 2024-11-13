@@ -66,7 +66,7 @@ typedef struct VolumeShaderCoefficients {
 
 typedef struct EquiangularCoefficients {
   float3 P;
-  float2 t_range;
+  Interval<float> t_range;
 } EquiangularCoefficients;
 
 /* Evaluate shader to get extinction coefficient at P. */
@@ -273,8 +273,8 @@ ccl_device float volume_equiangular_sample(ccl_private const Ray *ccl_restrict r
     *pdf = 0.0f;
     return 0.0f;
   }
-  const float tmin = coeffs.t_range.x;
-  const float tmax = coeffs.t_range.y;
+  const float tmin = coeffs.t_range.min;
+  const float tmax = coeffs.t_range.max;
   const float theta_a = atan2f(tmin - delta, D);
   const float theta_b = atan2f(tmax - delta, D);
   const float t_ = D * tanf((xi * theta_b) + (1 - xi) * theta_a);
@@ -297,8 +297,8 @@ ccl_device float volume_equiangular_pdf(ccl_private const Ray *ccl_restrict ray,
     return 0.0f;
   }
 
-  const float tmin = coeffs.t_range.x;
-  const float tmax = coeffs.t_range.y;
+  const float tmin = coeffs.t_range.min;
+  const float tmax = coeffs.t_range.max;
   const float t_ = sample_t - delta;
 
   const float theta_a = atan2f(tmin - delta, D);
@@ -315,7 +315,7 @@ ccl_device float volume_equiangular_pdf(ccl_private const Ray *ccl_restrict ray,
 ccl_device_inline bool volume_equiangular_valid_ray_segment(KernelGlobals kg,
                                                             const float3 ray_P,
                                                             const float3 ray_D,
-                                                            ccl_private float2 *t_range,
+                                                            ccl_private Interval<float> *t_range,
                                                             const ccl_private LightSample *ls)
 {
   if (ls->type == LIGHT_SPOT) {
@@ -333,41 +333,6 @@ ccl_device_inline bool volume_equiangular_valid_ray_segment(KernelGlobals kg,
   /* Point light, the whole range of the ray is visible. */
   kernel_assert(ls->type == LIGHT_POINT);
   return true;
-}
-
-/* Distance sampling */
-
-ccl_device float volume_distance_sample(float max_t,
-                                        Spectrum sigma_t,
-                                        int channel,
-                                        float xi,
-                                        ccl_private Spectrum *transmittance,
-                                        ccl_private Spectrum *pdf)
-{
-  /* xi is [0, 1[ so log(0) should never happen, division by zero is
-   * avoided because sample_sigma_t > 0 when SD_SCATTER is set */
-  float sample_sigma_t = volume_channel_get(sigma_t, channel);
-  Spectrum full_transmittance = volume_color_transmittance(sigma_t, max_t);
-  float sample_transmittance = volume_channel_get(full_transmittance, channel);
-
-  float sample_t = min(max_t, -logf(1.0f - xi * (1.0f - sample_transmittance)) / sample_sigma_t);
-
-  *transmittance = volume_color_transmittance(sigma_t, sample_t);
-  *pdf = safe_divide_color(sigma_t * *transmittance, one_spectrum() - full_transmittance);
-
-  /* todo: optimization: when taken together with hit/miss decision,
-   * the full_transmittance cancels out drops out and xi does not
-   * need to be remapped */
-
-  return sample_t;
-}
-
-ccl_device Spectrum volume_distance_pdf(float max_t, Spectrum sigma_t, float sample_t)
-{
-  Spectrum full_transmittance = volume_color_transmittance(sigma_t, max_t);
-  Spectrum transmittance = volume_color_transmittance(sigma_t, sample_t);
-
-  return safe_divide_color(sigma_t * transmittance, one_spectrum() - full_transmittance);
 }
 
 /* Emission */
@@ -403,9 +368,8 @@ ccl_device Spectrum volume_emission_integrate(ccl_private VolumeShaderCoefficien
 /* Volume Integration */
 
 typedef struct VolumeIntegrateState {
-  /* Volume segment extents. */
-  float tmin;
-  float tmax;
+  /* Current active segment. */
+  Interval<float> t;
 
   /* If volume is absorption-only up to this point, and no probabilistic
    * scattering or termination has been used yet. */
@@ -440,10 +404,8 @@ ccl_device_forceinline void volume_integrate_step_scattering(
 
   /* Equiangular sampling for direct lighting. */
   if (vstate.direct_sample_method == VOLUME_SAMPLE_EQUIANGULAR && !result.direct_scatter) {
-    if (result.direct_t >= vstate.tmin && result.direct_t <= vstate.tmax &&
-        vstate.equiangular_pdf > VOLUME_SAMPLE_PDF_CUTOFF)
-    {
-      const float new_dt = result.direct_t - vstate.tmin;
+    if (vstate.t.contains(result.direct_t) && vstate.equiangular_pdf > VOLUME_SAMPLE_PDF_CUTOFF) {
+      const float new_dt = result.direct_t - vstate.t.min;
       const Spectrum new_transmittance = volume_color_transmittance(coeff.sigma_t, new_dt);
 
       result.direct_scatter = true;
@@ -473,7 +435,7 @@ ccl_device_forceinline void volume_integrate_step_scattering(
       /* compute sampling distance */
       const float sample_sigma_t = volume_channel_get(coeff.sigma_t, channel);
       const float new_dt = -logf(1.0f - vstate.rscatter) / sample_sigma_t;
-      const float new_t = vstate.tmin + new_dt;
+      const float new_t = vstate.t.min + new_dt;
 
       /* transmittance and pdf */
       const Spectrum new_transmittance = volume_color_transmittance(coeff.sigma_t, new_dt);
@@ -552,8 +514,8 @@ ccl_device_forceinline void volume_integrate_heterogeneous(
 
   /* Initialize volume integration state. */
   VolumeIntegrateState vstate ccl_optional_struct_init;
-  vstate.tmin = ray->tmin;
-  vstate.tmax = ray->tmin;
+  vstate.t.min = ray->tmin;
+  vstate.t.max = ray->tmin;
   vstate.absorption_only = true;
   vstate.rscatter = path_state_rng_1D(kg, rng_state, PRNG_VOLUME_SCATTER_DISTANCE);
   vstate.rchannel = path_state_rng_1D(kg, rng_state, PRNG_VOLUME_COLOR_CHANNEL);
@@ -597,8 +559,8 @@ ccl_device_forceinline void volume_integrate_heterogeneous(
 
   for (int i = 0; i < max_steps; i++) {
     /* Advance to new position */
-    vstate.tmax = min(ray->tmax, ray->tmin + (i + steps_offset) * step_size);
-    const float shade_t = vstate.tmin + (vstate.tmax - vstate.tmin) * step_shade_offset;
+    vstate.t.max = min(ray->tmax, ray->tmin + (i + steps_offset) * step_size);
+    const float shade_t = vstate.t.min + (vstate.t.max - vstate.t.min) * step_shade_offset;
     sd->P = ray->P + ray->D * shade_t;
 
     /* compute segment */
@@ -607,7 +569,7 @@ ccl_device_forceinline void volume_integrate_heterogeneous(
       const int closure_flag = sd->flag;
 
       /* Evaluate transmittance over segment. */
-      const float dt = (vstate.tmax - vstate.tmin);
+      const float dt = (vstate.t.max - vstate.t.min);
       const Spectrum transmittance = (closure_flag & SD_EXTINCTION) ?
                                          volume_color_transmittance(coeff.sigma_t, dt) :
                                          one_spectrum();
@@ -665,8 +627,8 @@ ccl_device_forceinline void volume_integrate_heterogeneous(
     }
 
     /* Stop if at the end of the volume. */
-    vstate.tmin = vstate.tmax;
-    if (vstate.tmin == ray->tmax) {
+    vstate.t.min = vstate.t.max;
+    if (vstate.t.min == ray->tmax) {
       break;
     }
   }
@@ -1005,7 +967,7 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
   LightSample ls ccl_optional_struct_init;
   const bool need_light_sample = !(INTEGRATOR_STATE(state, path, flag) & PATH_RAY_TERMINATE);
 
-  EquiangularCoefficients equiangular_coeffs = {zero_float3(), make_float2(ray->tmin, ray->tmax)};
+  EquiangularCoefficients equiangular_coeffs = {zero_float3(), {ray->tmin, ray->tmax}};
 
   const bool have_equiangular_sample =
       need_light_sample && integrate_volume_equiangular_sample_light(

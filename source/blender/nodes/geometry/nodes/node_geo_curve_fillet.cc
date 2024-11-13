@@ -108,7 +108,7 @@ static void fillet_grease_pencil(GreasePencil &grease_pencil,
       continue;
     }
     const bke::CurvesGeometry &src_curves = drawing->strokes();
-    if (src_curves.points_num() == 0) {
+    if (src_curves.is_empty()) {
       continue;
     }
     const bke::GreasePencilLayerFieldContext field_context(

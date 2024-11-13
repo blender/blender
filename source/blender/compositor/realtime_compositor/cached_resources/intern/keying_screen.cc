@@ -8,6 +8,7 @@
 
 #include "BLI_hash.hh"
 #include "BLI_listbase.h"
+#include "BLI_math_base.hh"
 #include "BLI_math_color.h"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
@@ -127,7 +128,8 @@ static MovieClipUser get_movie_clip_user(Context &context, MovieClip *movie_clip
 KeyingScreen::KeyingScreen(Context &context,
                            MovieClip *movie_clip,
                            MovieTrackingObject *movie_tracking_object,
-                           float smoothness)
+                           const float smoothness)
+    : result(context.create_result(ResultType::Color))
 {
   int2 size;
   MovieClipUser movie_clip_user = get_movie_clip_user(context, movie_clip);
@@ -138,6 +140,24 @@ KeyingScreen::KeyingScreen(Context &context,
   compute_marker_points(
       movie_clip, movie_clip_user, movie_tracking_object, marker_positions, marker_colors);
 
+  if (marker_positions.is_empty()) {
+    return;
+  }
+
+  this->result.allocate_texture(Domain(size));
+  if (context.use_gpu()) {
+    this->compute_gpu(context, smoothness, marker_positions, marker_colors);
+  }
+  else {
+    this->compute_cpu(smoothness, marker_positions, marker_colors);
+  }
+}
+
+void KeyingScreen::compute_gpu(Context &context,
+                               const float smoothness,
+                               Vector<float2> &marker_positions,
+                               const Vector<float4> &marker_colors)
+{
   GPUShader *shader = context.get_shader("compositor_keying_screen");
   GPU_shader_bind(shader);
 
@@ -168,20 +188,11 @@ KeyingScreen::KeyingScreen(Context &context,
   const int colors_ssbo_location = GPU_shader_get_ssbo_binding(shader, "marker_colors");
   GPU_storagebuf_bind(colors_ssbo, colors_ssbo_location);
 
-  texture_ = GPU_texture_create_2d(
-      "Keying Screen",
-      size.x,
-      size.y,
-      1,
-      Result::gpu_texture_format(ResultType::Color, context.get_precision()),
-      GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE,
-      nullptr);
-  const int image_unit = GPU_shader_get_sampler_binding(shader, "output_img");
-  GPU_texture_image_bind(texture_, image_unit);
+  this->result.bind_as_image(shader, "output_img");
 
-  compute_dispatch_threads_at_least(shader, size);
+  compute_dispatch_threads_at_least(shader, this->result.domain().size);
 
-  GPU_texture_image_unbind(texture_);
+  this->result.unbind_as_image();
   GPU_storagebuf_unbind(positions_ssbo);
   GPU_storagebuf_unbind(colors_ssbo);
   GPU_shader_unbind();
@@ -190,25 +201,39 @@ KeyingScreen::KeyingScreen(Context &context,
   GPU_storagebuf_free(colors_ssbo);
 }
 
+void KeyingScreen::compute_cpu(const float smoothness,
+                               const Vector<float2> &marker_positions,
+                               const Vector<float4> &marker_colors)
+{
+  float squared_shape_parameter = math::square(1.0f / smoothness);
+  const int2 size = this->result.domain().size;
+  parallel_for(size, [&](const int2 texel) {
+    float2 normalized_pixel_location = (float2(texel) + float2(0.5f)) / float2(size);
+
+    /* Interpolate the markers using a Gaussian Radial Basis Function Interpolation with the
+     * reciprocal of the smoothness as the shaping parameter. Equal weights are assigned to all
+     * markers, so no RBF fitting is required. */
+    float sum_of_weights = 0.0f;
+    float4 weighted_sum = float4(0.0f);
+    for (const int64_t i : marker_positions.index_range()) {
+      float2 marker_position = marker_positions[i];
+      float2 difference = normalized_pixel_location - marker_position;
+      float squared_distance = math::dot(difference, difference);
+      float gaussian = math::exp(-squared_distance * squared_shape_parameter);
+
+      float4 marker_color = marker_colors[i];
+      weighted_sum += marker_color * gaussian;
+      sum_of_weights += gaussian;
+    }
+    weighted_sum /= sum_of_weights;
+
+    this->result.store_pixel(texel, weighted_sum);
+  });
+}
+
 KeyingScreen::~KeyingScreen()
 {
-  GPU_texture_free(texture_);
-}
-
-void KeyingScreen::bind_as_texture(GPUShader *shader, const char *texture_name) const
-{
-  const int texture_image_unit = GPU_shader_get_sampler_binding(shader, texture_name);
-  GPU_texture_bind(texture_, texture_image_unit);
-}
-
-void KeyingScreen::unbind_as_texture() const
-{
-  GPU_texture_unbind(texture_);
-}
-
-GPUTexture *KeyingScreen::texture() const
-{
-  return texture_;
+  this->result.release();
 }
 
 /* --------------------------------------------------------------------
@@ -232,10 +257,10 @@ void KeyingScreenContainer::reset()
   }
 }
 
-KeyingScreen &KeyingScreenContainer::get(Context &context,
-                                         MovieClip *movie_clip,
-                                         MovieTrackingObject *movie_tracking_object,
-                                         float smoothness)
+Result &KeyingScreenContainer::get(Context &context,
+                                   MovieClip *movie_clip,
+                                   MovieTrackingObject *movie_tracking_object,
+                                   float smoothness)
 {
   const KeyingScreenKey key(context.get_frame_number(), smoothness);
 
@@ -257,7 +282,7 @@ KeyingScreen &KeyingScreenContainer::get(Context &context,
   });
 
   keying_screen.needed = true;
-  return keying_screen;
+  return keying_screen.result;
 }
 
 }  // namespace blender::realtime_compositor

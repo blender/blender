@@ -43,7 +43,7 @@ bool grease_pencil_layer_parent_set(bke::greasepencil::Layer &layer,
   }
 
   layer.parent = parent;
-  BLI_strncpy(layer.parsubstr, bone.c_str(), sizeof(layer.parsubstr));
+  layer.parsubstr = BLI_strdup_null(bone.c_str());
   /* Calculate inverse parent matrix. */
   if (parent) {
     copy_m4_m4(layer.parentinv, parent->world_to_object().ptr());
@@ -65,7 +65,7 @@ void grease_pencil_layer_parent_clear(bke::greasepencil::Layer &layer, const boo
   }
 
   layer.parent = nullptr;
-  layer.parsubstr[0] = 0;
+  MEM_SAFE_FREE(layer.parsubstr);
 
   copy_m4_m4(layer.parentinv, float4x4::identity().ptr());
 }
@@ -399,14 +399,7 @@ static int grease_pencil_layer_group_add_exec(bContext *C, wmOperator *op)
   char *new_layer_group_name = RNA_string_get_alloc(
       op->ptr, "new_layer_group_name", nullptr, 0, &new_layer_group_name_length);
 
-  LayerGroup &parent_group = [&]() -> LayerGroup & {
-    if (grease_pencil.has_active_layer()) {
-      return grease_pencil.get_active_layer()->parent_group();
-    }
-    return grease_pencil.root_group();
-  }();
-
-  LayerGroup &new_group = grease_pencil.add_layer_group(parent_group, new_layer_group_name);
+  LayerGroup &new_group = grease_pencil.add_layer_group(new_layer_group_name);
   WM_msg_publish_rna_prop(
       CTX_wm_message_bus(C), &grease_pencil.id, &grease_pencil, GreasePencilv3, layer_groups);
 
@@ -415,6 +408,14 @@ static int grease_pencil_layer_group_add_exec(bContext *C, wmOperator *op)
                                   grease_pencil.get_active_layer()->as_node());
     WM_msg_publish_rna_prop(
         CTX_wm_message_bus(C), &grease_pencil.id, &grease_pencil, GreasePencilv3Layers, active);
+  }
+  else if (grease_pencil.has_active_group()) {
+    grease_pencil.move_node_into(new_group.as_node(), *grease_pencil.get_active_group());
+    WM_msg_publish_rna_prop(CTX_wm_message_bus(C),
+                            &grease_pencil.id,
+                            &grease_pencil,
+                            GreasePencilv3LayerGroup,
+                            active);
   }
 
   MEM_SAFE_FREE(new_layer_group_name);
@@ -778,12 +779,18 @@ static int grease_pencil_merge_layer_exec(bContext *C, wmOperator *op)
     /* Map all the other layers to their own index. */
     const Span<const Layer *> layers = grease_pencil.layers();
     for (const int layer_i : layers.index_range()) {
-      if (!ELEM(layer_i, prev_layer_index, active_layer_index)) {
+      if (layer_i == active_layer_index) {
+        /* Active layer is merged into previous, skip. */
+      }
+      else if (layer_i == prev_layer_index) {
+        /* Previous layer merges itself and the active layer. */
+        src_layer_indices_by_dst_layer.append({prev_layer_index, active_layer_index});
+      }
+      else {
+        /* Other layers remain unchanged. */
         src_layer_indices_by_dst_layer.append({layer_i});
       }
     }
-    /* Map the two layers to one index so they will be merged. */
-    src_layer_indices_by_dst_layer.append({prev_layer_index, active_layer_index});
 
     /* Store the name of the current active layer as the name of the merged layer. */
     merged_layer_name = grease_pencil.layer(prev_layer_index).name();

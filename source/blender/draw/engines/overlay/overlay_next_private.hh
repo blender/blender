@@ -359,6 +359,8 @@ struct Resources : public select::SelectMap {
   TextureFromPool color_overlay_alloc_tx = {"overlay_color_overlay_alloc_tx"};
   TextureFromPool color_render_alloc_tx = {"overlay_color_render_alloc_tx"};
 
+  /* 1px texture containing only maximum depth. To be used for fulfilling bindings when depth
+   * texture is not available or not needed. */
   Texture dummy_depth_tx = {"dummy_depth_tx"};
 
   /** TODO(fclem): Copy of G_data.block that should become theme colors only and managed by the

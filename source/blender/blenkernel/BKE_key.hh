@@ -143,13 +143,6 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
                                     float (*r_face_normals)[3],
                                     float (*r_loop_normals)[3]);
 
-void BKE_keyblock_update_from_vertcos(const Object *ob, KeyBlock *kb, const float (*vertCos)[3]);
-void BKE_keyblock_convert_from_vertcos(const Object *ob, KeyBlock *kb, const float (*vertCos)[3]);
-float (*BKE_keyblock_convert_to_vertcos(const Object *ob, const KeyBlock *kb))[3];
-
-/** RAW coordinates offsets. */
-void BKE_keyblock_update_from_offset(const Object *ob, KeyBlock *kb, const float (*ofs)[3]);
-
 /* other management */
 
 /**

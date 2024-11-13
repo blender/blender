@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/gpu_shader_2D_image_shuffle_color_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(gpu_shader_2D_image_shuffle_color)
+
 void main()
 {
   vec4 sampled_color = texture(image, texCoord_interp);

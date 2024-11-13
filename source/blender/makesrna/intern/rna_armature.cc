@@ -689,6 +689,7 @@ static void rna_Armature_redraw_data(Main * /*bmain*/, Scene * /*scene*/, Pointe
 
   DEG_id_tag_update(id, ID_RECALC_SYNC_TO_EVAL);
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
+  WM_main_add_notifier(NC_SPACE | ND_SPACE_OUTLINER, nullptr);
 }
 
 /* Unselect bones when hidden or not selectable. */

@@ -4,7 +4,9 @@
 
 #pragma once
 
-#include "gpu_glsl_cpp_stubs.hh"
+#include "draw_view_info.hh"
+
+SHADER_LIBRARY_CREATE_INFO(draw_view)
 
 #if !defined(DRAW_VIEW_CREATE_INFO) && !defined(GLSL_CPP_STUBS)
 #  error Missing draw_view additional create info on shader create info

@@ -75,9 +75,7 @@ class GridQueue {
     return 1;
   }
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("DUALCON:GridQueue")
-#endif
 };
 
 #endif /* __QUEUE_H__ */

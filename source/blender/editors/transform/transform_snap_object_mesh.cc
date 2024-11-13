@@ -98,8 +98,8 @@ static bool raycastMesh(SnapObjectContext *sctx,
   /* Local scale in normal direction. */
   ray_normal_local = math::normalize_and_get_length(ray_normal_local, local_scale);
 
-  const bool is_in_front = sctx->runtime.params.use_occlusion_test &&
-                           (ob_eval->dtx & OB_DRAW_IN_FRONT) != 0;
+  const bool is_in_front = (sctx->runtime.params.occlusion_test == SNAP_OCCLUSION_AS_SEEM) &&
+                           (ob_eval->dtx & OB_DRAW_IN_FRONT);
   const float depth_max = is_in_front ? sctx->ret.ray_depth_max_in_front : sctx->ret.ray_depth_max;
   local_depth = depth_max;
   if (local_depth != BVH_RAYCAST_DIST_MAX) {

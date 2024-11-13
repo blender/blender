@@ -132,6 +132,9 @@ struct GreasePencilHelper : public ::GreasePencil {
 
     CustomData_reset(&this->layers_data);
 
+    this->drawing_array = nullptr;
+    this->drawing_array_num = 0;
+
     this->runtime = MEM_new<GreasePencilRuntime>(__func__);
   }
 
@@ -220,6 +223,41 @@ TEST(greasepencil, layer_tree_node_types)
   }
 }
 
+TEST(greasepencil, layer_tree_remove_active_node)
+{
+  GreasePencilLayerTreeExample ex;
+  TreeNode *node = ex.grease_pencil.find_node_by_name("Layer2");
+  ex.grease_pencil.set_active_node(node);
+
+  ex.grease_pencil.remove_layer(node->as_layer());
+  node = ex.grease_pencil.get_active_node();
+  EXPECT_TRUE(node != nullptr);
+  EXPECT_TRUE(node->is_layer());
+  EXPECT_TRUE(node->as_layer().name() == "Layer1");
+
+  ex.grease_pencil.remove_layer(node->as_layer());
+  node = ex.grease_pencil.get_active_node();
+  EXPECT_TRUE(node != nullptr);
+  EXPECT_TRUE(node->is_group());
+  EXPECT_TRUE(node->as_group().name() == "Group2");
+
+  ex.grease_pencil.remove_group(node->as_group());
+  node = ex.grease_pencil.get_active_node();
+  EXPECT_TRUE(node != nullptr);
+  EXPECT_TRUE(node->is_group());
+  EXPECT_TRUE(node->as_group().name() == "Group1");
+
+  ex.grease_pencil.remove_group(node->as_group());
+  node = ex.grease_pencil.get_active_node();
+  EXPECT_TRUE(node != nullptr);
+  EXPECT_TRUE(node->is_layer());
+  EXPECT_TRUE(node->as_layer().name() == "Layer5");
+
+  ex.grease_pencil.remove_layer(node->as_layer());
+  node = ex.grease_pencil.get_active_node();
+  EXPECT_TRUE(node == nullptr);
+}
+
 TEST(greasepencil, layer_tree_is_child_of)
 {
   GreasePencilLayerTreeExample ex;
@@ -241,6 +279,23 @@ TEST(greasepencil, layer_tree_is_child_of)
   EXPECT_FALSE(layer1.is_child_of(group2));
 
   EXPECT_TRUE(layer5.is_child_of(ex.grease_pencil.root_group()));
+}
+
+TEST(greasepencil, layer_tree_remove_group)
+{
+  /* Regression test for #130034. */
+  GreasePencilHelper grease_pencil;
+  LayerGroup &group1 = grease_pencil.add_layer_group(grease_pencil.root_group(), "Group1");
+  LayerGroup &group2 = grease_pencil.add_layer_group(group1, "Group2");
+  LayerGroup &group3 = grease_pencil.add_layer_group(group2, "Group3");
+  grease_pencil.add_layer(group3, "Layer");
+  grease_pencil.add_layer("Layer2");
+
+  /* Remove Group with children. */
+  grease_pencil.remove_group(group1, false);
+  EXPECT_EQ(grease_pencil.nodes().size(), 1);
+  EXPECT_EQ(grease_pencil.layers().size(), 1);
+  EXPECT_TRUE(grease_pencil.find_node_by_name("Layer2") != nullptr);
 }
 
 /* --------------------------------------------------------------------------------------------- */

@@ -127,7 +127,7 @@ static bool trim_curves(const bke::CurvesGeometry &src_curves,
                         const AttributeFilter &attribute_filter,
                         bke::CurvesGeometry &dst_curves)
 {
-  if (src_curves.curves_num() == 0) {
+  if (src_curves.is_empty()) {
     return false;
   }
   fn::FieldEvaluator evaluator{field_context, src_curves.curves_num()};

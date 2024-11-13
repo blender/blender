@@ -130,7 +130,7 @@ void extract_weights(const MeshRenderData &mr, const MeshBatchCache &cache, gpu:
     return;
   }
 
-  if (mr.extract_type == MR_EXTRACT_MESH) {
+  if (mr.extract_type == MeshExtractType::Mesh) {
     extract_weights_mesh(mr, weight_state, vbo_data);
   }
   else {

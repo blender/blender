@@ -42,9 +42,7 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#ifdef WITH_CXX_GUARDEDALLOC
-#  include "MEM_guardedalloc.h"
-#endif
+#include "MEM_guardedalloc.h"
 
 namespace Freestyle {
 
@@ -142,9 +140,7 @@ class BlenderFileLoader {
 
   RenderMonitor *_pRenderMonitor;
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BlenderFileLoader")
-#endif
 };
 
 } /* namespace Freestyle */

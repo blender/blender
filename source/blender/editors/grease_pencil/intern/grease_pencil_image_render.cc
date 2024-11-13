@@ -9,7 +9,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_camera.h"
 #include "BKE_curves.hh"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_material.h"
 
 #include "BLI_math_vector.hh"

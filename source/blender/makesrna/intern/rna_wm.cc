@@ -520,7 +520,12 @@ const EnumPropertyItem rna_enum_operator_type_flag_items[] = {
      0,
      "Register",
      "Display in the info window and support the redo toolbar panel"},
-    {OPTYPE_UNDO, "UNDO", 0, "Undo", "Push an undo event (needed for operator redo)"},
+    {OPTYPE_UNDO,
+     "UNDO",
+     0,
+     "Undo",
+     "Push an undo event when the operator returns `FINISHED` (needed for operator redo, "
+     "mandatory if the operator modifies Blender data)"},
     {OPTYPE_UNDO_GROUPED,
      "UNDO_GROUPED",
      0,

@@ -4,7 +4,7 @@
 
 #include "COM_MovieClipOperation.h"
 
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_movieclip.h"
 
 #include "IMB_imbuf.hh"

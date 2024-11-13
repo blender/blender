@@ -13,7 +13,7 @@
 #include "gpu_shader_utildefines_lib.glsl"
 
 struct BsdfSample {
-  vec3 direction;
+  packed_float3 direction;
   float pdf;
 };
 
@@ -26,21 +26,21 @@ struct BsdfEval {
 
 struct ClosureLight {
   /* LTC matrix. */
-  vec4 ltc_mat;
+  packed_float4 ltc_mat;
   /* Shading normal. */
-  vec3 N;
+  packed_float3 N;
   /* Enum used as index to fetch which light intensity to use [0..3]. */
   LightingType type;
   /* Output both shadowed and unshadowed for shadow denoising. */
-  vec3 light_shadowed;
-  vec3 light_unshadowed;
+  packed_float3 light_shadowed;
+  packed_float3 light_unshadowed;
 };
 
 /* Represent an approximation of a bunch of rays from a BSDF. */
 struct LightProbeRay {
   /* Average direction of sampled rays or its approximation.
    * Magnitude will reduce directionality of spherical harmonic evaluation. */
-  vec3 dominant_direction;
+  packed_float3 dominant_direction;
   /* Perceptual roughness in [0..1] range.
    * Modulate blur level of spherical probe and blend between sphere probe and spherical harmonic
    * evaluation at higher roughness. */
@@ -49,9 +49,9 @@ struct LightProbeRay {
 
 /* General purpose 3D ray. */
 struct Ray {
-  vec3 origin;
-  vec3 direction;
+  packed_float3 direction;
   float max_time;
+  packed_float3 origin;
 };
 
 /* -------------------------------------------------------------------- */

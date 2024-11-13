@@ -24,7 +24,7 @@ void extract_face_dots_edituv_data(const MeshRenderData &mr, gpu::VertBuf &vbo)
   MutableSpan vbo_data = vbo.data<EditLoopData>();
   const BMesh &bm = *mr.bm;
   const BMUVOffsets offsets = BM_uv_map_get_offsets(&bm);
-  if (mr.extract_type == MR_EXTRACT_BMESH) {
+  if (mr.extract_type == MeshExtractType::BMesh) {
     threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
       for (const int face_index : range) {
         const BMFace &face = *BM_face_at_index(&const_cast<BMesh &>(bm), face_index);

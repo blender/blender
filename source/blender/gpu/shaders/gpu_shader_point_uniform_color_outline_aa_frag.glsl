@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/gpu_shader_2D_point_uniform_size_uniform_color_outline_aa_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(gpu_shader_2D_point_uniform_size_uniform_color_outline_aa)
+
 void main()
 {
   float dist = length(gl_PointCoord - vec2(0.5));

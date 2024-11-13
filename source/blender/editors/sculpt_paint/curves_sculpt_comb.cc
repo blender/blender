@@ -114,7 +114,7 @@ struct CombOperationExecutor {
     curves_ob_orig_ = CTX_data_active_object(&C);
     curves_id_orig_ = static_cast<Curves *>(curves_ob_orig_->data);
     curves_orig_ = &curves_id_orig_->geometry.wrap();
-    if (curves_orig_->curves_num() == 0) {
+    if (curves_orig_->is_empty()) {
       return;
     }
 

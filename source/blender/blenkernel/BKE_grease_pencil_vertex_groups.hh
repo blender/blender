@@ -33,7 +33,7 @@ void assign_to_vertex_group_from_mask(CurvesGeometry &curves,
  * Remove selected vertices from the vertex group.
  * \return True if at least one vertex was removed from the group.
  */
-bool remove_from_vertex_group(GreasePencil &grease_pencil, StringRef name, bool use_selection);
+bool remove_from_vertex_group(Drawing &drawing, StringRef name, bool use_selection);
 
 /** Remove vertices from all vertex groups. */
 void clear_vertex_groups(GreasePencil &grease_pencil);

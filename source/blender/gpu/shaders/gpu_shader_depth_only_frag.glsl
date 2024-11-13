@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/gpu_shader_3D_depth_only_info.hh"
+
 void main()
 {
   /* No color output, only depth (line below is implicit). */

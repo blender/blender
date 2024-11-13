@@ -2,7 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/gpu_shader_3D_flat_color_info.hh"
+
 #include "gpu_shader_colorspace_lib.glsl"
+
+FRAGMENT_SHADER_CREATE_INFO(gpu_shader_3D_flat_color)
 
 void main()
 {

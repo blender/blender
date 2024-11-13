@@ -4,9 +4,7 @@
 
 #pragma once
 
-#ifdef WITH_CXX_GUARDEDALLOC
-#  include "MEM_guardedalloc.h"
-#endif
+#include "MEM_guardedalloc.h"
 
 namespace blender::compositor {
 
@@ -104,9 +102,7 @@ class NodeConverter {
   /** The internal builder for storing the results of the graph construction. */
   NodeOperationBuilder *builder_;
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeCompiler")
-#endif
 };
 
 }  // namespace blender::compositor

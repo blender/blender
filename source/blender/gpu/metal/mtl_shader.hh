@@ -678,10 +678,12 @@ inline int mtl_format_component_len(MTLVertexFormat format)
     case MTLVertexFormatInt1010102Normalized:
     case MTLVertexFormatUChar4Normalized_BGRA:
       return 4;
+#if defined(MAC_OS_VERSION_14_0)
     case MTLVertexFormatFloatRG11B10:
       return 3;
     case MTLVertexFormatFloatRGB9E5:
       return 3;
+#endif
     case MTLVertexFormatInvalid:
       return -1;
   }

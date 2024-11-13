@@ -125,8 +125,8 @@ void SnapData::clip_planes_enable(SnapObjectContext *sctx,
 {
   float4x4 tobmat = math::transpose(this->obmat_);
   if (!skip_occlusion_plane) {
-    const bool is_in_front = sctx->runtime.params.use_occlusion_test && ob_eval &&
-                             (ob_eval->dtx & OB_DRAW_IN_FRONT) != 0;
+    const bool is_in_front = (sctx->runtime.params.occlusion_test == SNAP_OCCLUSION_AS_SEEM) &&
+                             ob_eval && (ob_eval->dtx & OB_DRAW_IN_FRONT) != 0;
     if (!is_in_front && sctx->runtime.has_occlusion_plane) {
       this->clip_planes.append(tobmat * sctx->runtime.occlusion_plane);
     }
@@ -583,7 +583,9 @@ static eSnapMode raycast_obj_fn(SnapObjectContext *sctx,
   bool retval = false;
 
   if (ob_data == nullptr) {
-    if (sctx->runtime.use_occlusion_test_edit && ELEM(ob_eval->dt, OB_BOUNDBOX, OB_WIRE)) {
+    if ((sctx->runtime.occlusion_test_edit == SNAP_OCCLUSION_AS_SEEM) &&
+        ELEM(ob_eval->dt, OB_BOUNDBOX, OB_WIRE))
+    {
       /* Do not hit objects that are in wire or bounding box display mode. */
       return SCE_SNAP_TO_NONE;
     }
@@ -596,7 +598,9 @@ static eSnapMode raycast_obj_fn(SnapObjectContext *sctx,
       return SCE_SNAP_TO_NONE;
     }
   }
-  else if (sctx->runtime.params.use_occlusion_test && ELEM(ob_eval->dt, OB_BOUNDBOX, OB_WIRE)) {
+  else if ((sctx->runtime.params.occlusion_test == SNAP_OCCLUSION_AS_SEEM) &&
+           ELEM(ob_eval->dt, OB_BOUNDBOX, OB_WIRE))
+  {
     /* Do not hit objects that are in wire or bounding box display mode. */
     return SCE_SNAP_TO_NONE;
   }
@@ -1056,6 +1060,7 @@ static bool snap_object_context_runtime_init(SnapObjectContext *sctx,
                                              const ARegion *region,
                                              const View3D *v3d,
                                              eSnapMode snap_to_flag,
+                                             eSnapOcclusionTest occlusion_test,
                                              const SnapObjectParams *params,
                                              const float ray_start[3],
                                              const float ray_dir[3],
@@ -1064,8 +1069,7 @@ static bool snap_object_context_runtime_init(SnapObjectContext *sctx,
                                              const float init_co[3],
                                              const float prev_co[3],
                                              const float dist_px_sq,
-                                             ListBase *hit_list,
-                                             bool use_occlusion_test)
+                                             ListBase *hit_list)
 {
   if (snap_to_flag &
       (SCE_SNAP_TO_GRID | SCE_SNAP_TO_EDGE_PERPENDICULAR | SCE_SNAP_INDIVIDUAL_NEAREST))
@@ -1093,9 +1097,9 @@ static bool snap_object_context_runtime_init(SnapObjectContext *sctx,
   sctx->runtime.v3d = v3d;
   sctx->runtime.snap_to_flag = snap_to_flag;
   sctx->runtime.params = *params;
-  sctx->runtime.params.use_occlusion_test = use_occlusion_test;
-  sctx->runtime.use_occlusion_test_edit = use_occlusion_test &&
-                                          (snap_to_flag & SCE_SNAP_TO_FACE) == 0;
+  sctx->runtime.params.occlusion_test = occlusion_test;
+  sctx->runtime.occlusion_test_edit = (snap_to_flag & SCE_SNAP_TO_FACE) ? SNAP_OCCLUSION_ALWAYS :
+                                                                          occlusion_test;
   sctx->runtime.has_occlusion_plane = false;
   sctx->runtime.has_occlusion_plane_in_front = false;
   sctx->runtime.object_index = 0;
@@ -1187,6 +1191,7 @@ bool ED_transform_snap_object_project_ray_ex(SnapObjectContext *sctx,
                                         nullptr,
                                         v3d,
                                         SCE_SNAP_TO_FACE,
+                                        params->occlusion_test,
                                         params,
                                         ray_start,
                                         ray_normal,
@@ -1196,8 +1201,7 @@ bool ED_transform_snap_object_project_ray_ex(SnapObjectContext *sctx,
                                         nullptr,
                                         nullptr,
                                         0,
-                                        nullptr,
-                                        params->use_occlusion_test))
+                                        nullptr))
   {
     return false;
   }
@@ -1239,6 +1243,7 @@ bool ED_transform_snap_object_project_ray_all(SnapObjectContext *sctx,
                                         nullptr,
                                         v3d,
                                         SCE_SNAP_TO_FACE,
+                                        params->occlusion_test,
                                         params,
                                         ray_start,
                                         ray_normal,
@@ -1247,8 +1252,7 @@ bool ED_transform_snap_object_project_ray_all(SnapObjectContext *sctx,
                                         nullptr,
                                         nullptr,
                                         0,
-                                        r_hit_list,
-                                        params->use_occlusion_test))
+                                        r_hit_list))
   {
     return false;
   }
@@ -1315,12 +1319,16 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
   bool use_occlusion_plane = false;
 
   /* It is required `mval` to calculate the occlusion plane. */
-  if (mval && (snap_to_flag & SCE_SNAP_TO_GEOM)) {
-    const bool is_allways_occluded = !params->use_occlusion_test;
-    use_occlusion_plane = is_allways_occluded || !XRAY_ENABLED(v3d);
+  if (mval && (snap_to_flag & (SCE_SNAP_TO_GEOM | SCE_SNAP_TO_GRID))) {
+    if (params->occlusion_test == SNAP_OCCLUSION_AS_SEEM) {
+      use_occlusion_plane = !XRAY_ENABLED(v3d);
+    }
+    else if (params->occlusion_test == SNAP_OCCLUSION_ALWAYS) {
+      use_occlusion_plane = true;
+    }
   }
 
-  if (use_occlusion_plane || (snap_to_flag & (SCE_SNAP_TO_FACE | SCE_SNAP_TO_GRID))) {
+  if (use_occlusion_plane || (snap_to_flag & SCE_SNAP_TO_FACE)) {
     /* Calculate the direction (`ray_dir`) and starting point (`ray_start`) of the ray from the
      * viewport to a 3D point under the mouse cursor (`mval`), taking into account potential view
      * clipping.
@@ -1356,6 +1364,8 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
                                         region,
                                         v3d,
                                         snap_to_flag,
+                                        use_occlusion_plane ? params->occlusion_test :
+                                                              SNAP_OCCLUSION_NEVER,
                                         params,
                                         sctx->runtime.ray_start,
                                         sctx->runtime.ray_dir,
@@ -1364,8 +1374,7 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
                                         init_co,
                                         prev_co,
                                         dist_px ? square_f(*dist_px) : FLT_MAX,
-                                        nullptr,
-                                        use_occlusion_plane))
+                                        nullptr))
   {
     return retval;
   }

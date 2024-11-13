@@ -8,7 +8,7 @@
 
 #include "DRW_render.hh"
 
-#include "BKE_image.h"
+#include "BKE_image.hh"
 
 #include "DNA_mesh_types.h"
 

@@ -91,7 +91,7 @@ struct DrawPrototype {
   /* Reference to parent DrawGroup to get the gpu::Batch vertex / instance count. */
   uint group_id;
   /* Resource handle associated with this call. Also reference visibility. */
-  uint resource_handle;
+  uint res_handle;
   /* Custom extra value to be used by the engines. */
   uint custom_id;
   /* Number of instances. */

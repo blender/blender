@@ -90,7 +90,7 @@ static void deform_drawing(const ModifierData &md,
   const auto &mmd = reinterpret_cast<const GreasePencilThickModifierData &>(md);
 
   bke::CurvesGeometry &curves = drawing.strokes_for_write();
-  if (curves.points_num() == 0) {
+  if (curves.is_empty()) {
     return;
   }
 

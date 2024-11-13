@@ -674,7 +674,7 @@ class DrawMultiBuf {
     bool inverted = handle.has_inverted_handedness();
 
     DrawPrototype &draw = prototype_buf_.get_or_resize(prototype_count_++);
-    draw.resource_handle = handle.raw;
+    draw.res_handle = handle.raw;
     draw.custom_id = custom_id;
     draw.instance_len = instance_len;
     draw.group_id = group_id;

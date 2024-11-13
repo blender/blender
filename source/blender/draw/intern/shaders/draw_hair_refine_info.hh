@@ -6,6 +6,15 @@
  * \ingroup draw
  */
 
+#ifdef GPU_SHADER
+#  pragma once
+#  include "gpu_glsl_cpp_stubs.hh"
+
+#  define HAIR_PHASE_SUBDIV
+#  define HAIR_SHADER
+#  define DRW_HAIR_INFO
+#endif
+
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(draw_hair_refine_compute)

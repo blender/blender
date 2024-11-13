@@ -38,7 +38,7 @@
 #include "IMB_imbuf_types.hh"
 
 #include "BKE_context.hh"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_paint.hh"
 #include "BKE_undo_system.hh"
 

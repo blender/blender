@@ -33,9 +33,7 @@ class VirtualMemoryAllocator {
   virtual int getAll() = 0;
   virtual int getBytes() = 0;
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("DUALCON:VirtualMemoryAllocator")
-#endif
 };
 
 /**
@@ -194,9 +192,7 @@ template<int N> class MemoryAllocator : public VirtualMemoryAllocator {
     return N;
   };
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("DUALCON:MemoryAllocator")
-#endif
 };
 
 #endif /* __MEMORYALLOCATOR_H__ */

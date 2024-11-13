@@ -10,7 +10,7 @@
 #include "BLI_math_vector_types.hh"
 
 #include "BKE_global.hh"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 
 #include "RNA_access.hh"
 

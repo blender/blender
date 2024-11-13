@@ -202,6 +202,15 @@ interactively by the user is the only way to make sure that the script doesn't b
    guarantee of any kind that it will be safe and consistent. Use it at your own risk.
 
 
+Modifying Blender Data & Undo
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In general, when Blender data is modified, there should always be an undo step created for it.
+Otherwise, there will be issues, ranging from invalid/broken undo stack, to crashes on undo/redo.
+
+This is especially true when modifying Blender data :ref:`in operators <operator_modifying_blender_data_undo>`.
+
+
 Undo & Library Data
 ^^^^^^^^^^^^^^^^^^^
 

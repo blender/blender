@@ -133,7 +133,7 @@ struct SlideOperationExecutor {
       report_missing_surface(stroke_extension.reports);
       return;
     }
-    if (curves_orig_->curves_num() == 0) {
+    if (curves_orig_->is_empty()) {
       return;
     }
     if (curves_id_orig_->surface_uv_map == nullptr) {

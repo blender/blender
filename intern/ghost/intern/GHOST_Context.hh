@@ -195,9 +195,7 @@ class GHOST_Context : public GHOST_IContext {
   static void initClearGL();
 #endif
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_Context")
-#endif
 };
 
 #ifdef _WIN32

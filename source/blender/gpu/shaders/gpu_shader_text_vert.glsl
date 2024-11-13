@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/gpu_shader_text_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(gpu_shader_text)
+
 void main()
 {
   color_flat = col;

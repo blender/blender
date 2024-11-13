@@ -55,7 +55,7 @@ static bool is_first_lineart(const GreasePencilLineartModifierData &md)
   return true;
 }
 
-static bool is_last_line_art(const GreasePencilLineartModifierData &md)
+static bool is_last_line_art(const GreasePencilLineartModifierData &md, const bool use_render)
 {
   if (md.modifier.type != eModifierType_GreasePencilLineart) {
     return false;
@@ -63,7 +63,12 @@ static bool is_last_line_art(const GreasePencilLineartModifierData &md)
   ModifierData *imd = md.modifier.next;
   while (imd != nullptr) {
     if (imd->type == eModifierType_GreasePencilLineart) {
-      return false;
+      if (use_render && (imd->mode & eModifierMode_Render)) {
+        return false;
+      }
+      if ((!use_render) && (imd->mode & eModifierMode_Realtime)) {
+        return false;
+      }
     }
     imd = imd->next;
   }
@@ -767,7 +772,8 @@ static void panel_register(ARegionType *region_type)
 static void generate_strokes(ModifierData &md,
                              const ModifierEvalContext &ctx,
                              GreasePencil &grease_pencil,
-                             GreasePencilLineartModifierData &first_lineart)
+                             GreasePencilLineartModifierData &first_lineart,
+                             const bool force_compute)
 {
   using namespace bke::greasepencil;
   auto &lmd = reinterpret_cast<GreasePencilLineartModifierData &>(md);
@@ -777,9 +783,16 @@ static void generate_strokes(ModifierData &md,
     return;
   }
 
-  LineartCache *local_lc = first_lineart.shared_cache;
+  const bool is_first_lineart = (&first_lineart == &lmd);
+  const bool use_cache = (lmd.flags & MOD_LINEART_USE_CACHE);
+  LineartCache *local_lc = (is_first_lineart || use_cache) ? first_lineart.shared_cache : nullptr;
 
-  if (!(lmd.flags & MOD_LINEART_USE_CACHE)) {
+  /* Only calculate strokes in these three conditions:
+   * 1. It's the very first line art modifier in the stack.
+   * 2. This line art modifier doesn't want to use globally cached data.
+   * 3. This modifier is not the first line art in stack, but it's the first that's visible (so we
+   *    need to do a `force_compute`). */
+  if (is_first_lineart || (!use_cache) || force_compute) {
     MOD_lineart_compute_feature_lines_v3(
         ctx.depsgraph, lmd, &local_lc, !(ctx.object->dtx & OB_DRAW_IN_FRONT));
     MOD_lineart_destroy_render_data_v3(&lmd);
@@ -825,11 +838,10 @@ static void generate_strokes(ModifierData &md,
       lmd.flags,
       lmd.calculation_flags);
 
-  if (!(lmd.flags & MOD_LINEART_USE_CACHE) && (&first_lineart != &lmd)) {
-    /* Clear local cache. */
-    if (local_lc != first_lineart.shared_cache) {
-      MOD_lineart_clear_cache(&local_lc);
-    }
+  if ((!is_first_lineart) && (!use_cache)) {
+    /* We only clear local cache, not global cache from the first line art modifier. */
+    BLI_assert(local_lc != first_lineart.shared_cache);
+    MOD_lineart_clear_cache(&local_lc);
     /* Restore the original cache pointer so the modifiers below still have access to the "global"
      * cache. */
     lmd.cache = first_lineart.shared_cache;
@@ -850,18 +862,22 @@ static void modify_geometry_set(ModifierData *md,
       blender::ed::greasepencil::get_first_lineart_modifier(*ctx->object);
   BLI_assert(first_lineart);
 
-  bool is_first_lineart = (mmd == first_lineart);
-
-  if (is_first_lineart) {
-    mmd->shared_cache = MOD_lineart_init_cache();
-    ed::greasepencil::get_lineart_modifier_limits(*ctx->object, mmd->shared_cache->LimitInfo);
+  /* Since settings for line art cached data are always in the first line art modifier, we need to
+   * get and set overall calculation limits on the first modifier regardless of its visibility
+   * state. If line art cache doesn't exist, it means line art hasn't done any calculation. */
+  const bool cache_ready = (first_lineart->shared_cache != nullptr);
+  if (!cache_ready) {
+    first_lineart->shared_cache = MOD_lineart_init_cache();
+    ed::greasepencil::get_lineart_modifier_limits(*ctx->object,
+                                                  first_lineart->shared_cache->LimitInfo);
   }
   ed::greasepencil::set_lineart_modifier_limits(
-      *mmd, first_lineart->shared_cache->LimitInfo, is_first_lineart);
+      *mmd, first_lineart->shared_cache->LimitInfo, cache_ready);
 
-  generate_strokes(*md, *ctx, grease_pencil, *first_lineart);
+  generate_strokes(*md, *ctx, grease_pencil, *first_lineart, (!cache_ready));
 
-  if (is_last_line_art(*mmd)) {
+  const bool use_render_params = (ctx->flag & MOD_APPLY_RENDER);
+  if (is_last_line_art(*mmd, use_render_params)) {
     MOD_lineart_clear_cache(&first_lineart->shared_cache);
   }
 

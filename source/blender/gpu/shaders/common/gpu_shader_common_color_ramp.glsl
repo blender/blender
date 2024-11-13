@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
+#include "gpu_glsl_cpp_stubs.hh"
+
 void valtorgb_opti_constant(
     float fac, float edge, vec4 color1, vec4 color2, out vec4 outcol, out float outalpha)
 {

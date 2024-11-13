@@ -155,7 +155,7 @@ static void write_weights_for_drawing(const ModifierData &md,
 {
   const auto &mmd = reinterpret_cast<const GreasePencilWeightProximityModifierData &>(md);
   bke::CurvesGeometry &curves = drawing.strokes_for_write();
-  if (curves.points_num() == 0) {
+  if (curves.is_empty()) {
     return;
   }
   IndexMaskMemory memory;

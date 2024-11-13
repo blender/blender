@@ -83,7 +83,7 @@
 #include "BLI_threads.h"
 
 #include "BKE_idprop.hh"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 
 #include "IMB_allocimbuf.hh"
 #include "IMB_colormanagement.hh"

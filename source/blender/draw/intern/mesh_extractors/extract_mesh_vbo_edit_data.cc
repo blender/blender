@@ -227,7 +227,7 @@ void extract_edit_data(const MeshRenderData &mr, gpu::VertBuf &vbo)
   const int size = mr.corners_num + mr.loose_indices_num;
   GPU_vertbuf_data_alloc(vbo, size);
   MutableSpan vbo_data = vbo.data<EditLoopData>();
-  if (mr.extract_type == MR_EXTRACT_MESH) {
+  if (mr.extract_type == MeshExtractType::Mesh) {
     extract_edit_data_mesh(mr, vbo_data);
   }
   else {
@@ -385,7 +385,7 @@ void extract_edit_data_subdiv(const MeshRenderData &mr,
   const int size = subdiv_full_vbo_size(mr, subdiv_cache);
   GPU_vertbuf_data_alloc(vbo, size);
   MutableSpan vbo_data = vbo.data<EditLoopData>();
-  if (mr.extract_type == MR_EXTRACT_MESH) {
+  if (mr.extract_type == MeshExtractType::Mesh) {
     extract_edit_subdiv_data_mesh(mr, subdiv_cache, vbo_data);
   }
   else {

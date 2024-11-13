@@ -120,7 +120,5 @@ class GHOST_EventManager {
   /** The list with event consumers. */
   TConsumerVector m_consumers;
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_EventManager")
-#endif
 };

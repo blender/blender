@@ -37,11 +37,18 @@ class Facing {
     }
 
     const View3DShading &shading = state.v3d->shading;
-    bool use_cull = ((shading.type == OB_SOLID) && (shading.flag & V3D_SHADING_BACKFACE_CULLING));
+    const bool is_solid_viewport = shading.type == OB_SOLID;
+    bool use_cull = (is_solid_viewport && (shading.flag & V3D_SHADING_BACKFACE_CULLING));
     DRWState backface_cull_state = use_cull ? DRW_STATE_CULL_BACK : DRWState(0);
 
+    /* Use the Depth Equal test in solid mode to ensure transparent textures display correctly.
+     * (See #128113). And the Depth-Less test in other modes (E.g. EEVEE) to ensure the overlay
+     * displays correctly (See # 114000). */
+    DRWState depth_compare_state = is_solid_viewport ? DRW_STATE_DEPTH_EQUAL :
+                                                       DRW_STATE_DEPTH_LESS_EQUAL;
+
     ps_.init();
-    ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WRITE_DEPTH |
+    ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | depth_compare_state |
                       backface_cull_state,
                   state.clipping_plane_count);
     ps_.shader_set(res.shaders.facing.get());

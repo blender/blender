@@ -5,6 +5,7 @@
 set(INC
   .
   intern
+  ../guardedalloc
 )
 
 set(INC_SYS

@@ -46,8 +46,18 @@ using AssetListIterFn = FunctionRef<bool(asset_system::AssetRepresentation &)>;
 /**
  * \warning Never keep the asset handle passed to \a fn outside of \a fn's scope. While iterating,
  * the file data wrapped by the asset handle can be freed, since the file cache has a maximum size.
+ * \note It is recommended to prefilter assets using \a prefilter_fn, which avoids populating the
+ * file cache with files that will not end up being relevant. With 1000s of assets that can make a
+ * difference, since often only a small subset needs to be displayed.
  */
-void iterate(const AssetLibraryReference &library_reference, AssetListHandleIterFn fn);
+void iterate(const AssetLibraryReference &library_reference,
+             AssetListHandleIterFn fn,
+             FunctionRef<bool(asset_system::AssetRepresentation &)> prefilter_fn = nullptr);
+/**
+ * \note This override avoids the file caching system, so it's more performant and avoids pitfals
+ * from the other override. Prefer this when access to #AssetRepresentation is enough, and no
+ * #AssetHandle is needed.
+ */
 void iterate(const AssetLibraryReference &library_reference, AssetListIterFn fn);
 
 /**
@@ -59,7 +69,7 @@ void iterate(const AssetLibraryReference &library_reference, AssetListIterFn fn)
  */
 void storage_fetch(const AssetLibraryReference *library_reference, const bContext *C);
 bool is_loaded(const AssetLibraryReference *library_reference);
-void ensure_previews_job(const AssetLibraryReference *library_reference, const bContext *C);
+void previews_fetch(const AssetLibraryReference *library_reference, const bContext *C);
 /**
  * Clears this asset library and the "All" asset library for reload in both the static asset list
  * storage, as well as for all open asset browsers. Call this whenever the content of the given
@@ -99,6 +109,9 @@ asset_system::AssetRepresentation *asset_get_by_index(
 
 bool asset_image_is_loading(const AssetLibraryReference *library_reference,
                             const AssetHandle *asset_handle);
+void asset_preview_ensure_requested(const bContext &C,
+                                    const AssetLibraryReference *library_reference,
+                                    AssetHandle *asset_handle);
 ImBuf *asset_image_get(const AssetHandle *asset_handle);
 
 /**

@@ -67,6 +67,15 @@ struct wmOperatorType;
 
 namespace blender::ed::sculpt_paint {
 
+/** Contains shape key array data for quick access for deformation. */
+struct ShapeKeyData {
+  MutableSpan<float3> active_key_data;
+  bool basis_key_active;
+  Vector<MutableSpan<float3>> dependent_keys;
+
+  static std::optional<ShapeKeyData> from_object(Object &object);
+};
+
 /**
  * This class represents an API to deform original positions based on translations created from
  * evaluated positions. It should be constructed once outside of a parallel context.
@@ -99,10 +108,7 @@ class PositionDeformData {
    */
   MutableSpan<float3> orig_;
 
-  Key *keys_;
-  KeyBlock *active_key_;
-  bool basis_active_;
-  std::optional<Array<bool>> dependent_keys_;
+  std::optional<ShapeKeyData> shape_key_data_;
 
  public:
   PositionDeformData(const Depsgraph &depsgraph, Object &object_orig);

@@ -3729,7 +3729,11 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
       /* Yep, second splitting... but this is a very cheap operation, so no big deal. */
       blo_split_main(&mainlist, bfd->main);
       LISTBASE_FOREACH (Main *, mainvar, &mainlist) {
-        BLI_assert(mainvar->versionfile != 0);
+        /* Do versioning for newly added linked data-blocks. If no data-blocks were read from a
+         * library versionfile will still be zero and we can skip it. */
+        if (mainvar->versionfile == 0) {
+          continue;
+        }
         do_versions_after_linking((mainvar->curlib && mainvar->curlib->runtime.filedata) ?
                                       mainvar->curlib->runtime.filedata :
                                       fd,
@@ -3745,11 +3749,32 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
       BKE_main_id_refcount_recompute(bfd->main, false);
     }
 
-    LISTBASE_FOREACH (Library *, lib, &bfd->main->libraries) {
+    LISTBASE_FOREACH_MUTABLE (Library *, lib, &bfd->main->libraries) {
       /* Now we can clear this runtime library filedata, it is not needed anymore. */
       if (lib->runtime.filedata) {
+        BLI_assert(lib->runtime.versionfile != 0);
         blo_filedata_free(lib->runtime.filedata);
         lib->runtime.filedata = nullptr;
+      }
+      /* If no data-blocks were read from a library (should only happen when all references to a
+       * library's data are `ID_FLAG_INDIRECT_WEAK_LINK`), its versionfile will still be zero and
+       * it can be deleted.
+       *
+       * NOTES:
+       *  - In case the library blendfile exists but is missing all the referenced linked IDs, the
+       *    placeholders IDs created will reference the library ID, and the library ID will have a
+       *    valid version number as the file was read to search for the linked IDs.
+       *  - In case the library blendfile does not exist, its local Library ID will get the version
+       *    of the current local Main (i.e. the loaded blendfile). */
+      else if (lib->runtime.versionfile == 0) {
+#ifndef NDEBUG
+        ID *id_iter;
+        FOREACH_MAIN_ID_BEGIN (bfd->main, id_iter) {
+          BLI_assert(id_iter->lib != lib);
+        }
+        FOREACH_MAIN_ID_END;
+#endif
+        BKE_id_delete(bfd->main, lib);
       }
     }
 

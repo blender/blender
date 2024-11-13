@@ -25,7 +25,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_cryptomatte.h"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_material.h"
 #include "BKE_report.hh"
 #include "BKE_screen.hh"

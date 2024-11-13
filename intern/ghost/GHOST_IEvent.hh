@@ -56,7 +56,5 @@ class GHOST_IEvent {
    */
   virtual GHOST_TEventDataPtr getData() const = 0;
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_IEvent")
-#endif
 };

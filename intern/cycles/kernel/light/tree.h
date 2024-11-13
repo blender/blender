@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 /* This code implements a modified version of the paper [Importance Sampling of Many Lights with
- * Adaptive Tree Splitting](http://www.aconty.com/pdf/many-lights-hpg2018.pdf) by Alejandro Conty
- * Estevez, Christopher Kulla.
+ * Adaptive Tree Splitting](https://fpsunflower.github.io/ckulla/data/many-lights-hpg2018.pdf)
+ * by Alejandro Conty Estevez and Christopher Kulla.
  * The original paper traverses both children when the variance of a node is too high (called
  * splitting). However, Cycles does not support multiple lights per shading point. Therefore, we
  * adjust the importance computation: instead of using a conservative measure (i.e., the maximal
@@ -24,7 +24,7 @@
 CCL_NAMESPACE_BEGIN
 
 /* Consine of the angle subtended by the smallest enclosing sphere of the node bounding box. */
-ccl_device float light_tree_cos_bound_subtended_angle(const BoundingBox bbox,
+ccl_device float light_tree_cos_bound_subtended_angle(const KernelBoundingBox bbox,
                                                       const float3 centroid,
                                                       const float3 P)
 {
@@ -121,7 +121,7 @@ ccl_device void light_tree_importance(const float3 N_or_D,
                                       const bool has_transmission,
                                       const float3 point_to_centroid,
                                       const float cos_theta_u,
-                                      const BoundingCone bcone,
+                                      const KernelBoundingCone bcone,
                                       const float max_distance,
                                       const float min_distance,
                                       const float energy,
@@ -303,8 +303,8 @@ ccl_device void light_tree_node_importance(KernelGlobals kg,
                                            ccl_private float &max_importance,
                                            ccl_private float &min_importance)
 {
-  const BoundingCone bcone = knode->bcone;
-  const BoundingBox bbox = knode->bbox;
+  const KernelBoundingCone bcone = knode->bcone;
+  const KernelBoundingBox bbox = knode->bbox;
 
   float3 point_to_centroid;
   float cos_theta_u, distance, theta_d;
@@ -395,7 +395,7 @@ ccl_device void light_tree_emitter_importance(KernelGlobals kg,
     return;
   }
 
-  BoundingCone bcone;
+  KernelBoundingCone bcone;
   bcone.theta_o = kemitter->theta_o;
   bcone.theta_e = kemitter->theta_e;
   float cos_theta_u, theta_d = 1.0f;

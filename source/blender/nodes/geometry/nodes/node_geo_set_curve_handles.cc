@@ -89,7 +89,7 @@ static void set_position_in_component(Curves &curves_id,
                                       const Field<float3> &offset_field)
 {
   bke::CurvesGeometry &curves = curves_id.geometry.wrap();
-  if (curves.points_num() == 0) {
+  if (curves.is_empty()) {
     return;
   }
 

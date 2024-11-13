@@ -44,7 +44,5 @@ class GHOST_CallbackEventConsumer : public GHOST_IEventConsumer {
   /** The data passed back through the call-back routine. */
   GHOST_TUserDataPtr m_userData;
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_CallbackEventConsumer")
-#endif
 };

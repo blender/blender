@@ -92,7 +92,7 @@ static bke::CurvesGeometry join_curves(const GreasePencil &src_grease_pencil,
   Vector<bke::GeometrySet> src_geometries(all_src_curves.size());
   for (const int src_curves_i : all_src_curves.index_range()) {
     bke::CurvesGeometry src_curves = *all_src_curves[src_curves_i];
-    if (src_curves.curves_num() == 0) {
+    if (src_curves.is_empty()) {
       continue;
     }
     const float4x4 &transform = transforms_to_apply[src_curves_i];

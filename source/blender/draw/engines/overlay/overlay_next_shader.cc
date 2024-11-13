@@ -117,7 +117,7 @@ static void shader_patch_edit_mesh_normal_common(gpu::shader::ShaderCreateInfo &
   shader_patch_common(info);
   info.defines_.clear(); /* Removes WORKAROUND_INDEX_LOAD_INCLUDE. */
   info.vertex_inputs_.clear();
-  info.additional_info("gpu_index_load");
+  info.additional_info("gpu_index_buffer_load");
   info.storage_buf(1, Qualifier::READ, "float", "pos[]", Frequency::GEOMETRY);
 }
 

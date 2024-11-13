@@ -11,9 +11,7 @@
 #include <iostream>
 #include <string>
 
-#ifdef WITH_CXX_GUARDEDALLOC
-#  include "MEM_guardedalloc.h"
-#endif
+#include "MEM_guardedalloc.h"
 
 using namespace std;
 
@@ -52,9 +50,7 @@ class Iterator {
     return false;
   }
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Iterator")
-#endif
 };
 
 } /* namespace Freestyle */

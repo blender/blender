@@ -17,9 +17,7 @@
 
 #include "../system/FreestyleConfig.h"
 
-#ifdef WITH_CXX_GUARDEDALLOC
-#  include "MEM_guardedalloc.h"
-#endif
+#include "MEM_guardedalloc.h"
 
 namespace Freestyle {
 
@@ -101,9 +99,7 @@ class NormalCycle {
   real M_[6];
   int i_[3];
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:OGF:NormalCycle")
-#endif
 };
 
 inline void NormalCycle::accumulate_dihedral_angle(const Vec3r &edge,

@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/gpu_shader_keyframe_shape_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(gpu_shader_keyframe_shape)
+
 #define line_falloff 1.0
 #define circle_scale sqrt(2.0 / 3.1416)
 #define square_scale sqrt(0.5)

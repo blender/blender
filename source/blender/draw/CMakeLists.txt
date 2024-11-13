@@ -25,14 +25,6 @@ set(INC
   ../compositor/realtime_compositor/cached_resources
   ../windowmanager
 
-  # For shader includes
-  engines/eevee_next/shaders
-  engines/workbench/shaders
-  engines/overlay/shaders
-  intern/shaders
-  ../gpu/shaders/common
-  ../gpu/shaders
-
   ../../../intern/opensubdiv
 )
 

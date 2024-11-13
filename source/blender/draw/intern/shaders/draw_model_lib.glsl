@@ -4,7 +4,11 @@
 
 #pragma once
 
+#include "draw_view_info.hh"
+
 #include "draw_view_lib.glsl"
+
+SHADER_LIBRARY_CREATE_INFO(draw_modelmat_new)
 
 #if !defined(DRAW_MODELMAT_CREATE_INFO) && !defined(GLSL_CPP_STUBS)
 #  error Missing draw_modelmat additional create info on shader create info
@@ -16,6 +20,7 @@
 #  define DRW_RESOURCE_ID_VARYING_SET
 
 #elif defined(GPU_VERTEX_SHADER)
+VERTEX_SHADER_CREATE_INFO(draw_resource_id_varying)
 #  if defined(UNIFORM_RESOURCE_ID_NEW)
 #    define resource_id (drw_ResourceID >> DRW_VIEW_SHIFT)
 #  else
@@ -27,6 +32,7 @@
 #  define resource_id drw_ResourceID_iface_in[0].resource_index
 
 #elif defined(GPU_FRAGMENT_SHADER)
+FRAGMENT_SHADER_CREATE_INFO(draw_resource_id_varying)
 #  define resource_id drw_ResourceID_iface.resource_index
 #endif
 

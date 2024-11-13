@@ -192,9 +192,7 @@ class ExecutionSystem {
   /* allow the DebugInfo class to look at internals */
   friend class DebugInfo;
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:ExecutionSystem")
-#endif
 };
 
 }  // namespace blender::compositor

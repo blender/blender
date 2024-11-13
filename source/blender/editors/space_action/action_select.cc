@@ -1941,6 +1941,10 @@ static int mouse_action_keys(bAnimContext *ac,
                              const bool same_channel,
                              bool wait_to_deselect_others)
 {
+  /* NOTE: keep this functionality in sync with #MARKER_OT_select.
+   * The logic here closely matches its internals.
+   * From a user perspective the functions should also behave in much the same way. */
+
   eAnimFilter_Flags filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
                              ANIMFILTER_LIST_CHANNELS;
 

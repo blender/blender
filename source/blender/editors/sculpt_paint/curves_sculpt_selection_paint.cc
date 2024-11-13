@@ -87,7 +87,7 @@ struct SelectionPaintOperationExecutor {
 
     curves_id_ = static_cast<Curves *>(object_->data);
     curves_ = &curves_id_->geometry.wrap();
-    if (curves_->curves_num() == 0) {
+    if (curves_->is_empty()) {
       return;
     }
     selection_ = float_selection_ensure(*curves_id_);

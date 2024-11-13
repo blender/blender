@@ -471,11 +471,45 @@ enum eWM_EventHandlerFlag {
 };
 ENUM_OPERATORS(eWM_EventHandlerFlag, WM_HANDLER_DO_FREE)
 
-using EventHandlerPoll = bool (*)(const ARegion *region, const wmEvent *event);
+using EventHandlerPoll = bool (*)(const wmWindow *win,
+                                  const ScrArea *area,
+                                  const ARegion *region,
+                                  const wmEvent *event);
 wmEventHandler_Keymap *WM_event_add_keymap_handler(ListBase *handlers, wmKeyMap *keymap);
 wmEventHandler_Keymap *WM_event_add_keymap_handler_poll(ListBase *handlers,
                                                         wmKeyMap *keymap,
                                                         EventHandlerPoll poll);
+
+/**
+ * \return true when the `event` should be handled by the 2D views masked region.
+ *
+ * \note uses the #EventHandlerPoll signature.
+ */
+bool WM_event_handler_region_v2d_mask_poll(const wmWindow *win,
+                                           const ScrArea *area,
+                                           const ARegion *region,
+                                           const wmEvent *event);
+/**
+ * \return true when the `event` is inside the marker region.
+ *
+ * \note There are no checks that markers are displayed.
+ */
+bool WM_event_handler_region_marker_poll(const wmWindow *win,
+                                         const ScrArea *area,
+                                         const ARegion *region,
+                                         const wmEvent *event);
+
+/**
+ * A version of #WM_event_handler_region_v2d_mask_poll which excludes events
+ * (returning false) in the marker region.
+ *
+ * \note uses the #EventHandlerPoll signature.
+ */
+bool WM_event_handler_region_v2d_mask_no_marker_poll(const wmWindow *win,
+                                                     const ScrArea *area,
+                                                     const ARegion *region,
+                                                     const wmEvent *event);
+
 wmEventHandler_Keymap *WM_event_add_keymap_handler_v2d_mask(ListBase *handlers, wmKeyMap *keymap);
 /**
  * \note Priorities not implemented yet, for time being just insert in begin of list.

@@ -24,8 +24,8 @@
 #include "DNA_windowmanager_types.h"
 #include "DNA_workspace_types.h"
 
-#include "BLI_ghash.h"
 #include "BLI_listbase.h"
+#include "BLI_map.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_action.hh"
@@ -1137,82 +1137,67 @@ static eContextResult screen_ctx_ui_list(const bContext *C, bContextDataResult *
 /* Registry of context callback functions. */
 
 using context_callback = eContextResult (*)(const bContext *C, bContextDataResult *result);
-static GHash *ed_screen_context_functions = nullptr;
 
-static void free_context_function_ghash(void * /*user_data*/)
+static const blender::Map<blender::StringRef, context_callback> &
+ensure_ed_screen_context_functions()
 {
-  BLI_ghash_free(ed_screen_context_functions, nullptr, nullptr);
-}
-static inline void register_context_function(const char *member, context_callback function)
-{
-  BLI_ghash_insert(
-      ed_screen_context_functions, (void *)member, reinterpret_cast<void *>(function));
-}
-
-static void ensure_ed_screen_context_functions()
-{
-  if (ed_screen_context_functions != nullptr) {
-    return;
-  }
-
-  /* Murmur hash is faster for smaller strings (according to BLI_hash_mm2). */
-  ed_screen_context_functions = BLI_ghash_new(
-      BLI_ghashutil_strhash_p_murmur, BLI_ghashutil_strcmp, __func__);
-
-  BKE_blender_atexit_register(free_context_function_ghash, nullptr);
-
-  register_context_function("scene", screen_ctx_scene);
-  register_context_function("visible_objects", screen_ctx_visible_objects);
-  register_context_function("selectable_objects", screen_ctx_selectable_objects);
-  register_context_function("selected_objects", screen_ctx_selected_objects);
-  register_context_function("selected_editable_objects", screen_ctx_selected_editable_objects);
-  register_context_function("editable_objects", screen_ctx_editable_objects);
-  register_context_function("objects_in_mode", screen_ctx_objects_in_mode);
-  register_context_function("objects_in_mode_unique_data", screen_ctx_objects_in_mode_unique_data);
-  register_context_function("visible_bones", screen_ctx_visible_bones);
-  register_context_function("editable_bones", screen_ctx_editable_bones);
-  register_context_function("selected_bones", screen_ctx_selected_bones);
-  register_context_function("selected_editable_bones", screen_ctx_selected_editable_bones);
-  register_context_function("visible_pose_bones", screen_ctx_visible_pose_bones);
-  register_context_function("selected_pose_bones", screen_ctx_selected_pose_bones);
-  register_context_function("selected_pose_bones_from_active_object",
-                            screen_ctx_selected_pose_bones_from_active_object);
-  register_context_function("active_bone", screen_ctx_active_bone);
-  register_context_function("active_pose_bone", screen_ctx_active_pose_bone);
-  register_context_function("active_object", screen_ctx_active_object);
-  register_context_function("object", screen_ctx_object);
-  register_context_function("edit_object", screen_ctx_edit_object);
-  register_context_function("sculpt_object", screen_ctx_sculpt_object);
-  register_context_function("vertex_paint_object", screen_ctx_vertex_paint_object);
-  register_context_function("weight_paint_object", screen_ctx_weight_paint_object);
-  register_context_function("image_paint_object", screen_ctx_image_paint_object);
-  register_context_function("particle_edit_object", screen_ctx_particle_edit_object);
-  register_context_function("pose_object", screen_ctx_pose_object);
-  register_context_function("active_sequence_strip", screen_ctx_active_sequence_strip);
-  register_context_function("sequences", screen_ctx_sequences);
-  register_context_function("selected_sequences", screen_ctx_selected_sequences);
-  register_context_function("selected_editable_sequences", screen_ctx_selected_editable_sequences);
-  register_context_function("active_nla_track", screen_ctx_active_nla_track);
-  register_context_function("active_nla_strip", screen_ctx_active_nla_strip);
-  register_context_function("selected_nla_strips", screen_ctx_selected_nla_strips);
-  register_context_function("selected_movieclip_tracks", screen_ctx_selected_movieclip_tracks);
-  register_context_function("annotation_data", screen_ctx_annotation_data);
-  register_context_function("annotation_data_owner", screen_ctx_annotation_data_owner);
-  register_context_function("active_annotation_layer", screen_ctx_active_annotation_layer);
-  register_context_function("grease_pencil", screen_ctx_grease_pencil_data);
-  register_context_function("active_operator", screen_ctx_active_operator);
-  register_context_function("active_action", screen_ctx_active_action);
-  register_context_function("selected_visible_actions", screen_ctx_selected_visible_actions);
-  register_context_function("selected_editable_actions", screen_ctx_selected_editable_actions);
-  register_context_function("editable_fcurves", screen_ctx_editable_fcurves);
-  register_context_function("visible_fcurves", screen_ctx_visible_fcurves);
-  register_context_function("selected_editable_fcurves", screen_ctx_selected_editable_fcurves);
-  register_context_function("selected_visible_fcurves", screen_ctx_selected_visible_fcurves);
-  register_context_function("active_editable_fcurve", screen_ctx_active_editable_fcurve);
-  register_context_function("selected_editable_keyframes", screen_ctx_selected_editable_keyframes);
-  register_context_function("asset_library_reference", screen_ctx_asset_library);
-  register_context_function("ui_list", screen_ctx_ui_list);
-  register_context_function("property", screen_ctx_property);
+  static blender::Map<blender::StringRef, context_callback> screen_context_functions = []() {
+    blender::Map<blender::StringRef, context_callback> map;
+    map.add("scene", screen_ctx_scene);
+    map.add("visible_objects", screen_ctx_visible_objects);
+    map.add("selectable_objects", screen_ctx_selectable_objects);
+    map.add("selected_objects", screen_ctx_selected_objects);
+    map.add("selected_editable_objects", screen_ctx_selected_editable_objects);
+    map.add("editable_objects", screen_ctx_editable_objects);
+    map.add("objects_in_mode", screen_ctx_objects_in_mode);
+    map.add("objects_in_mode_unique_data", screen_ctx_objects_in_mode_unique_data);
+    map.add("visible_bones", screen_ctx_visible_bones);
+    map.add("editable_bones", screen_ctx_editable_bones);
+    map.add("selected_bones", screen_ctx_selected_bones);
+    map.add("selected_editable_bones", screen_ctx_selected_editable_bones);
+    map.add("visible_pose_bones", screen_ctx_visible_pose_bones);
+    map.add("selected_pose_bones", screen_ctx_selected_pose_bones);
+    map.add("selected_pose_bones_from_active_object",
+            screen_ctx_selected_pose_bones_from_active_object);
+    map.add("active_bone", screen_ctx_active_bone);
+    map.add("active_pose_bone", screen_ctx_active_pose_bone);
+    map.add("active_object", screen_ctx_active_object);
+    map.add("object", screen_ctx_object);
+    map.add("edit_object", screen_ctx_edit_object);
+    map.add("sculpt_object", screen_ctx_sculpt_object);
+    map.add("vertex_paint_object", screen_ctx_vertex_paint_object);
+    map.add("weight_paint_object", screen_ctx_weight_paint_object);
+    map.add("image_paint_object", screen_ctx_image_paint_object);
+    map.add("particle_edit_object", screen_ctx_particle_edit_object);
+    map.add("pose_object", screen_ctx_pose_object);
+    map.add("active_sequence_strip", screen_ctx_active_sequence_strip);
+    map.add("sequences", screen_ctx_sequences);
+    map.add("selected_sequences", screen_ctx_selected_sequences);
+    map.add("selected_editable_sequences", screen_ctx_selected_editable_sequences);
+    map.add("active_nla_track", screen_ctx_active_nla_track);
+    map.add("active_nla_strip", screen_ctx_active_nla_strip);
+    map.add("selected_nla_strips", screen_ctx_selected_nla_strips);
+    map.add("selected_movieclip_tracks", screen_ctx_selected_movieclip_tracks);
+    map.add("annotation_data", screen_ctx_annotation_data);
+    map.add("annotation_data_owner", screen_ctx_annotation_data_owner);
+    map.add("active_annotation_layer", screen_ctx_active_annotation_layer);
+    map.add("grease_pencil", screen_ctx_grease_pencil_data);
+    map.add("active_operator", screen_ctx_active_operator);
+    map.add("active_action", screen_ctx_active_action);
+    map.add("selected_visible_actions", screen_ctx_selected_visible_actions);
+    map.add("selected_editable_actions", screen_ctx_selected_editable_actions);
+    map.add("editable_fcurves", screen_ctx_editable_fcurves);
+    map.add("visible_fcurves", screen_ctx_visible_fcurves);
+    map.add("selected_editable_fcurves", screen_ctx_selected_editable_fcurves);
+    map.add("selected_visible_fcurves", screen_ctx_selected_visible_fcurves);
+    map.add("active_editable_fcurve", screen_ctx_active_editable_fcurve);
+    map.add("selected_editable_keyframes", screen_ctx_selected_editable_keyframes);
+    map.add("asset_library_reference", screen_ctx_asset_library);
+    map.add("ui_list", screen_ctx_ui_list);
+    map.add("property", screen_ctx_property);
+    return map;
+  }();
+  return screen_context_functions;
 }
 
 int ed_screen_context(const bContext *C, const char *member, bContextDataResult *result)
@@ -1222,9 +1207,9 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
     return CTX_RESULT_OK;
   }
 
-  ensure_ed_screen_context_functions();
-  context_callback callback = reinterpret_cast<context_callback>(
-      BLI_ghash_lookup(ed_screen_context_functions, member));
+  const blender::Map<blender::StringRef, context_callback> &functions =
+      ensure_ed_screen_context_functions();
+  context_callback callback = functions.lookup_default(member, nullptr);
   if (callback == nullptr) {
     return CTX_RESULT_MEMBER_NOT_FOUND;
   }

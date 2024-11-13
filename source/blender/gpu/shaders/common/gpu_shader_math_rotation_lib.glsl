@@ -18,7 +18,7 @@ struct Angle {
   /* Angle in radian. */
   float angle;
 
-#  ifdef GPU_METAL
+#  ifdef __cplusplus
   Angle() = default;
   Angle(float angle_) : angle(angle_){};
 #  endif
@@ -28,7 +28,7 @@ struct AxisAngle {
   vec3 axis;
   float angle;
 
-#  ifdef GPU_METAL
+#  ifdef __cplusplus
   AxisAngle() = default;
   AxisAngle(vec3 axis_, float angle_) : axis(axis_), angle(angle_){};
 #  endif
@@ -41,7 +41,7 @@ AxisAngle AxisAngle_identity()
 
 struct Quaternion {
   float x, y, z, w;
-#  ifdef GPU_METAL
+#  ifdef __cplusplus
   Quaternion() = default;
   Quaternion(float x_, float y_, float z_, float w_) : x(x_), y(y_), z(z_), w(w_){};
 #  endif
@@ -59,7 +59,7 @@ Quaternion Quaternion_identity()
 
 struct EulerXYZ {
   float x, y, z;
-#  ifdef GPU_METAL
+#  ifdef __cplusplus
   EulerXYZ() = default;
   EulerXYZ(float x_, float y_, float z_) : x(x_), y(y_), z(z_){};
 #  endif

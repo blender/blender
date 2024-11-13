@@ -52,7 +52,7 @@
 #include "BKE_deform.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_idtype.hh"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_key.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
@@ -686,7 +686,8 @@ bool BKE_paint_brush_set(Main *bmain,
 
   Brush *brush = reinterpret_cast<Brush *>(
       blender::bke::asset_edit_id_from_weak_reference(*bmain, ID_BR, *brush_asset_reference));
-  BLI_assert(brush == nullptr || blender::bke::asset_edit_id_is_editable(brush->id));
+  BLI_assert(brush == nullptr || !ID_IS_LINKED(brush) ||
+             blender::bke::asset_edit_id_is_editable(brush->id));
 
   /* Ensure we have a brush with appropriate mode to assign.
    * Could happen if contents of asset blend were manually changed. */

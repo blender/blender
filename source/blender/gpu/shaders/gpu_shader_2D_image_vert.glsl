@@ -2,14 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#ifndef USE_GPU_SHADER_CREATE_INFO
-uniform mat4 ModelViewProjectionMatrix;
+#include "infos/gpu_shader_2D_image_info.hh"
 
-/* Keep in sync with intern/opencolorio/gpu_shader_display_transform_vertex.glsl */
-in vec2 texCoord;
-in vec2 pos;
-out vec2 texCoord_interp;
-#endif
+VERTEX_SHADER_CREATE_INFO(gpu_shader_2D_image_common)
 
 void main()
 {

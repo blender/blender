@@ -4,28 +4,26 @@
 
 #pragma once
 
-#ifdef USE_WORLD_CLIP_PLANES
-#  if defined(GPU_VERTEX_SHADER) || defined(GPU_GEOMETRY_SHADER)
+#include "infos/gpu_clip_planes_info.hh"
 
-/* When all shaders are builtin shaders are migrated this could be applied directly. */
-#    ifdef USE_GPU_SHADER_CREATE_INFO
-#      define WorldClipPlanes clipPlanes.world
-#    else
-uniform vec4 WorldClipPlanes[6];
-#    endif
+#ifdef GPU_FRAGMENT_SHADER
+#  error File should not be included in fragment shader
+#endif
+
+#ifdef USE_WORLD_CLIP_PLANES
+
+VERTEX_SHADER_CREATE_INFO(gpu_clip_planes)
 
 void world_clip_planes_calc_clip_distance(vec3 wpos)
 {
   vec4 pos = vec4(wpos, 1.0);
 
-  gl_ClipDistance[0] = dot(WorldClipPlanes[0], pos);
-  gl_ClipDistance[1] = dot(WorldClipPlanes[1], pos);
-  gl_ClipDistance[2] = dot(WorldClipPlanes[2], pos);
-  gl_ClipDistance[3] = dot(WorldClipPlanes[3], pos);
-  gl_ClipDistance[4] = dot(WorldClipPlanes[4], pos);
-  gl_ClipDistance[5] = dot(WorldClipPlanes[5], pos);
+  gl_ClipDistance[0] = dot(clipPlanes.world[0], pos);
+  gl_ClipDistance[1] = dot(clipPlanes.world[1], pos);
+  gl_ClipDistance[2] = dot(clipPlanes.world[2], pos);
+  gl_ClipDistance[3] = dot(clipPlanes.world[3], pos);
+  gl_ClipDistance[4] = dot(clipPlanes.world[4], pos);
+  gl_ClipDistance[5] = dot(clipPlanes.world[5], pos);
 }
-
-#  endif
 
 #endif

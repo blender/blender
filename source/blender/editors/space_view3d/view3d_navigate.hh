@@ -189,9 +189,7 @@ struct ViewOpsData {
                        const bool use_cursor_init = false);
   void end_navigation(bContext *C);
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("ViewOpsData")
-#endif
 };
 
 /* view3d_navigate.cc */

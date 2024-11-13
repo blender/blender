@@ -10,6 +10,10 @@
  * the rounded corner, and the rectangle sides.
  */
 
+#include "infos/gpu_shader_icon_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(gpu_shader_icon)
+
 void main()
 {
   /* Sample texture with LOD BIAS. Used instead of custom LOD bias in GPU_SAMPLER_CUSTOM_ICON. */

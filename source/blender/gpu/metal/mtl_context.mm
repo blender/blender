@@ -288,6 +288,9 @@ MTLContext::~MTLContext()
     }
   }
 
+  /* Wait for all GPU work to finish. */
+  main_command_buffer.wait_until_active_command_buffers_complete();
+
   /* Release context textures. */
   if (default_fbo_gputexture_) {
     GPU_texture_free(wrap(static_cast<Texture *>(default_fbo_gputexture_)));

@@ -119,17 +119,6 @@ class PlaneTrackDeformOperation : public NodeOperation {
 
   void execute() override
   {
-    /* Not yet supported on CPU. */
-    if (!context().use_gpu()) {
-      for (const bNodeSocket *output : this->node()->output_sockets()) {
-        Result &output_result = get_result(output->identifier);
-        if (output_result.should_compute()) {
-          output_result.allocate_invalid();
-        }
-      }
-      return;
-    }
-
     MovieTrackingPlaneTrack *plane_track = get_plane_track();
 
     Result &input_image = get_input("Image");
@@ -147,33 +136,48 @@ class PlaneTrackDeformOperation : public NodeOperation {
     }
 
     const Array<float4x4> homography_matrices = compute_homography_matrices(plane_track);
+
+    if (this->context().use_gpu()) {
+      this->execute_gpu(homography_matrices);
+    }
+    else {
+      this->execute_cpu(homography_matrices);
+    }
+  }
+
+  void execute_gpu(const Array<float4x4> homography_matrices)
+  {
     GPUUniformBuf *homography_matrices_buffer = GPU_uniformbuf_create_ex(
         homography_matrices.size() * sizeof(float4x4),
         homography_matrices.data(),
         "Plane Track Deform Homography Matrices");
 
-    Result plane_mask = compute_plane_mask(homography_matrices, homography_matrices_buffer);
-    Result anti_aliased_plane_mask = context().create_result(ResultType::Float);
+    Result plane_mask = this->compute_plane_mask_gpu(homography_matrices,
+                                                     homography_matrices_buffer);
+    Result anti_aliased_plane_mask = this->context().create_result(ResultType::Float);
     smaa(context(), plane_mask, anti_aliased_plane_mask);
     plane_mask.release();
 
+    Result &output_image = get_result("Image");
     if (output_image.should_compute()) {
-      compute_plane(homography_matrices, homography_matrices_buffer, anti_aliased_plane_mask);
+      this->compute_plane_gpu(
+          homography_matrices, homography_matrices_buffer, anti_aliased_plane_mask);
     }
 
+    GPU_uniformbuf_free(homography_matrices_buffer);
+
+    Result &output_mask = get_result("Plane");
     if (output_mask.should_compute()) {
       output_mask.steal_data(anti_aliased_plane_mask);
     }
     else {
       anti_aliased_plane_mask.release();
     }
-
-    GPU_uniformbuf_free(homography_matrices_buffer);
   }
 
-  void compute_plane(const Array<float4x4> &homography_matrices,
-                     GPUUniformBuf *homography_matrices_buffer,
-                     Result &plane_mask)
+  void compute_plane_gpu(const Array<float4x4> &homography_matrices,
+                         GPUUniformBuf *homography_matrices_buffer,
+                         Result &plane_mask)
   {
     GPUShader *shader = context().get_shader("compositor_plane_deform_motion_blur");
     GPU_shader_bind(shader);
@@ -186,6 +190,8 @@ class PlaneTrackDeformOperation : public NodeOperation {
     Result &input_image = get_input("Image");
     GPU_texture_mipmap_mode(input_image, true, true);
     GPU_texture_anisotropic_filter(input_image, true);
+    /* We actually need zero boundary conditions, but we sampled using extended boundaries then
+     * multiply by the anti-aliased plane mask to get better quality anti-aliased planes. */
     GPU_texture_extend_mode(input_image, GPU_SAMPLER_EXTEND_MODE_EXTEND);
     input_image.bind_as_texture(shader, "input_tx");
 
@@ -205,8 +211,8 @@ class PlaneTrackDeformOperation : public NodeOperation {
     GPU_shader_unbind();
   }
 
-  Result compute_plane_mask(const Array<float4x4> &homography_matrices,
-                            GPUUniformBuf *homography_matrices_buffer)
+  Result compute_plane_mask_gpu(const Array<float4x4> &homography_matrices,
+                                GPUUniformBuf *homography_matrices_buffer)
   {
     GPUShader *shader = context().get_shader("compositor_plane_deform_motion_blur_mask");
     GPU_shader_bind(shader);
@@ -226,6 +232,102 @@ class PlaneTrackDeformOperation : public NodeOperation {
     plane_mask.unbind_as_image();
     GPU_uniformbuf_unbind(homography_matrices_buffer);
     GPU_shader_unbind();
+
+    return plane_mask;
+  }
+
+  void execute_cpu(const Array<float4x4> homography_matrices)
+  {
+    Result plane_mask = this->compute_plane_mask_cpu(homography_matrices);
+    Result anti_aliased_plane_mask = this->context().create_result(ResultType::Float);
+    smaa(context(), plane_mask, anti_aliased_plane_mask);
+    plane_mask.release();
+
+    Result &output_image = get_result("Image");
+    if (output_image.should_compute()) {
+      this->compute_plane_cpu(homography_matrices, anti_aliased_plane_mask);
+    }
+
+    Result &output_mask = get_result("Plane");
+    if (output_mask.should_compute()) {
+      output_mask.steal_data(anti_aliased_plane_mask);
+    }
+    else {
+      anti_aliased_plane_mask.release();
+    }
+  }
+
+  void compute_plane_cpu(const Array<float4x4> &homography_matrices, Result &plane_mask)
+  {
+    Result &input = get_input("Image");
+
+    const Domain domain = compute_domain();
+    Result &output = get_result("Image");
+    output.allocate_texture(domain);
+
+    const int2 size = domain.size;
+    parallel_for(size, [&](const int2 texel) {
+      float2 coordinates = (float2(texel) + float2(0.5f)) / float2(size);
+
+      float4 accumulated_color = float4(0.0f);
+      for (const float4x4 &homography_matrix : homography_matrices) {
+        float3 transformed_coordinates = float3x3(homography_matrix) * float3(coordinates, 1.0f);
+        /* Point is at infinity and will be zero when sampled, so early exit. */
+        if (transformed_coordinates.z == 0.0f) {
+          continue;
+        }
+        float2 projected_coordinates = transformed_coordinates.xy() / transformed_coordinates.z;
+
+        /* The derivatives of the projected coordinates with respect to x and y are the first and
+         * second columns respectively, divided by the z projection factor as can be shown by
+         * differentiating the above matrix multiplication with respect to x and y. Divide by the
+         * output size since sample_ewa assumes derivatives with respect to texel coordinates. */
+        float2 x_gradient = (homography_matrix[0].xy() / transformed_coordinates.z) / size.x;
+        float2 y_gradient = (homography_matrix[1].xy() / transformed_coordinates.z) / size.y;
+
+        float4 sampled_color = input.sample_ewa_extended(
+            projected_coordinates, x_gradient, y_gradient);
+        accumulated_color += sampled_color;
+      }
+
+      accumulated_color /= homography_matrices.size();
+
+      /* Premultiply the mask value as an alpha. */
+      float4 plane_color = accumulated_color * plane_mask.load_pixel(texel).x;
+
+      output.store_pixel(texel, plane_color);
+    });
+  }
+
+  Result compute_plane_mask_cpu(const Array<float4x4> &homography_matrices)
+  {
+    const Domain domain = compute_domain();
+    Result plane_mask = context().create_result(ResultType::Float);
+    plane_mask.allocate_texture(domain);
+
+    const int2 size = domain.size;
+    parallel_for(size, [&](const int2 texel) {
+      float2 coordinates = (float2(texel) + float2(0.5f)) / float2(size);
+
+      float accumulated_mask = 0.0f;
+      for (const float4x4 &homography_matrix : homography_matrices) {
+        float3 transformed_coordinates = float3x3(homography_matrix) * float3(coordinates, 1.0f);
+        /* Point is at infinity and will be zero when sampled, so early exit. */
+        if (transformed_coordinates.z == 0.0f) {
+          continue;
+        }
+        float2 projected_coordinates = transformed_coordinates.xy() / transformed_coordinates.z;
+
+        bool is_inside_plane = projected_coordinates.x >= 0.0f &&
+                               projected_coordinates.y >= 0.0f &&
+                               projected_coordinates.x <= 1.0f && projected_coordinates.y <= 1.0f;
+        accumulated_mask += is_inside_plane ? 1.0f : 0.0f;
+      }
+
+      accumulated_mask /= homography_matrices.size();
+
+      plane_mask.store_pixel(texel, float4(accumulated_mask));
+    });
 
     return plane_mask;
   }

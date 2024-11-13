@@ -41,13 +41,13 @@ namespace blender::draw {
 /** \name Mesh Render Data
  * \{ */
 
-enum eMRExtractType {
-  MR_EXTRACT_BMESH,
-  MR_EXTRACT_MESH,
+enum class MeshExtractType {
+  BMesh,
+  Mesh,
 };
 
 struct MeshRenderData {
-  eMRExtractType extract_type;
+  MeshExtractType extract_type;
 
   int verts_num;
   int edges_num;

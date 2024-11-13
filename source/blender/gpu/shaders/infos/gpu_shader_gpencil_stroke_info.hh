@@ -6,12 +6,19 @@
  * \ingroup gpu
  */
 
+#ifdef GPU_SHADER
+#  pragma once
+#  include "gpu_glsl_cpp_stubs.hh"
+
+#  include "GPU_shader_shared.hh"
+#endif
+
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_NAMED_INTERFACE_INFO(gpencil_stroke_vert_iface, interp)
 SMOOTH(VEC4, mColor)
 SMOOTH(VEC2, mTexCoord)
-GPU_SHADER_NAMED_INTERFACE_END(geometry_out)
+GPU_SHADER_NAMED_INTERFACE_END(interp)
 
 GPU_SHADER_CREATE_INFO(gpu_shader_gpencil_stroke)
 TYPEDEF_SOURCE("GPU_shader_shared.hh")

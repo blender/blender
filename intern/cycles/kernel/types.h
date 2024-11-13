@@ -1642,12 +1642,12 @@ typedef struct KernelLightDistribution {
 static_assert_align(KernelLightDistribution, 16);
 
 /* Bounding box. */
-using BoundingBox = struct BoundingBox {
+struct KernelBoundingBox {
   packed_float3 min;
   packed_float3 max;
 };
 
-using BoundingCone = struct BoundingCone {
+struct KernelBoundingCone {
   packed_float3 axis;
   float theta_o;
   float theta_e;
@@ -1662,10 +1662,10 @@ enum LightTreeNodeType : uint8_t {
 
 typedef struct KernelLightTreeNode {
   /* Bounding box. */
-  BoundingBox bbox;
+  KernelBoundingBox bbox;
 
   /* Bounding cone. */
-  BoundingCone bcone;
+  KernelBoundingCone bcone;
 
   /* Energy. */
   float energy;

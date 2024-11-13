@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include <gtest/gtest.h>
-#include <ios>
 #include <memory>
 #include <string>
 #include <system_error>
@@ -16,9 +15,7 @@
 #include "BKE_main.hh"
 
 #include "BLI_fileops.h"
-#include "BLI_index_range.hh"
 #include "BLI_string.h"
-#include "BLI_string_utf8.h"
 #include "BLI_vector.hh"
 
 #include "BLO_readfile.hh"
@@ -168,8 +165,7 @@ class ObjExporterWriterTest : public testing::Test {
       return writer;
     }
     catch (const std::system_error &ex) {
-      std::cerr << ex.code().category().name() << ": " << ex.what() << ": " << ex.code().message()
-                << std::endl;
+      fprintf(stderr, "[%s] %s\n", ex.code().category().name(), ex.what());
       return nullptr;
     }
   }
@@ -251,15 +247,15 @@ static bool strings_equal_after_first_lines(const std::string &a, const std::str
   const size_t a_next = a.find_first_of('\n');
   const size_t b_next = b.find_first_of('\n');
   if (a_next == std::string::npos || b_next == std::string::npos) {
-    std::cout << "Couldn't find newline in one of args\n";
+    printf("Couldn't find newline in one of args\n");
     return false;
   }
   if (a.compare(a_next, a_len - a_next, b, b_next, b_len - b_next) != 0) {
     for (int i = 0; i < a_len - a_next && i < b_len - b_next; ++i) {
       if (a[a_next + i] != b[b_next + i]) {
-        std::cout << "Difference found at pos " << a_next + i << " of a\n";
-        std::cout << "a: " << a.substr(a_next + i, 100) << " ...\n";
-        std::cout << "b: " << b.substr(b_next + i, 100) << " ... \n";
+        printf("Difference found at pos %zu of a\n", a_next + i);
+        printf("a: %s ...\n", a.substr(a_next + i, 100).c_str());
+        printf("b: %s ...\n", b.substr(b_next + i, 100).c_str());
         return false;
       }
     }

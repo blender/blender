@@ -137,7 +137,7 @@ static const EnumPropertyItem blend_type_items[] = {
 #  include "BKE_brush.hh"
 #  include "BKE_colorband.hh"
 #  include "BKE_context.hh"
-#  include "BKE_image.h"
+#  include "BKE_image.hh"
 #  include "BKE_main.hh"
 #  include "BKE_texture.h"
 

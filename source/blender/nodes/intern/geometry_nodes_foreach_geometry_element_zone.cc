@@ -442,7 +442,7 @@ class LazyFunctionForForeachGeometryElementZone : public LazyFunction {
             continue;
           }
           const bke::CurvesGeometry &curves = drawing->strokes();
-          if (curves.curves_num() == 0) {
+          if (curves.is_empty()) {
             continue;
           }
           component_ids.append({component_type, iteration_domain, layer_i});

@@ -146,37 +146,9 @@ static bNode *node_under_mouse_select(const SpaceNode &snode, const float2 mouse
   return nullptr;
 }
 
-static bool node_under_mouse_tweak(const SpaceNode &snode, const float2 &mouse)
-{
-  for (bNode *node : tree_draw_order_calc_nodes_reversed(*snode.edittree)) {
-    switch (node->type) {
-      case NODE_REROUTE: {
-        const float2 location = node_to_view(*node, {node->locx, node->locy});
-        if (math::distance_squared(mouse, location) < square_f(24.0f)) {
-          return true;
-        }
-        break;
-      }
-      case NODE_FRAME: {
-        if (node_frame_select_isect_mouse(snode, *node, mouse)) {
-          return true;
-        }
-        break;
-      }
-      default: {
-        if (BLI_rctf_isect_pt(&node->runtime->totr, mouse.x, mouse.y)) {
-          return true;
-        }
-        break;
-      }
-    }
-  }
-  return false;
-}
-
 static bool is_position_over_node_or_socket(SpaceNode &snode, ARegion &region, const float2 &mouse)
 {
-  if (node_under_mouse_tweak(snode, mouse)) {
+  if (node_under_mouse_select(snode, mouse)) {
     return true;
   }
   if (node_find_indicated_socket(snode, region, mouse, SOCK_IN | SOCK_OUT)) {

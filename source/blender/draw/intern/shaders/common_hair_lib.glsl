@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "draw_object_infos_info.hh"
+
 /**
  * Library to create hairs dynamically from control points.
  * This is less bandwidth intensive than fetching the vertex attributes
@@ -75,31 +77,35 @@ uniform usamplerBuffer hairStrandSegBuffer; /* R16UI */
  * If no more subdivision is needed, we can skip this step.
  */
 
+float hair_get_local_time()
+{
 #  ifdef GPU_VERTEX_SHADER
-float hair_get_local_time()
-{
+  VERTEX_SHADER_CREATE_INFO(draw_hair_new)
   return float(gl_VertexID % hairStrandsRes) / float(hairStrandsRes - 1);
-}
-
-int hair_get_id()
-{
-  return gl_VertexID / hairStrandsRes;
-}
-#  endif
-
-#  ifdef GPU_COMPUTE_SHADER
-float hair_get_local_time()
-{
+#  elif defined(GPU_COMPUTE_SHADER)
+  COMPUTE_SHADER_CREATE_INFO(draw_hair_refine_compute)
   return float(gl_GlobalInvocationID.y) / float(hairStrandsRes - 1);
+#  else
+  return 0;
+#  endif
 }
 
 int hair_get_id()
 {
+#  ifdef GPU_VERTEX_SHADER
+  VERTEX_SHADER_CREATE_INFO(draw_hair_new)
+  return gl_VertexID / hairStrandsRes;
+#  elif defined(GPU_COMPUTE_SHADER)
+  COMPUTE_SHADER_CREATE_INFO(draw_hair_refine_compute)
   return int(gl_GlobalInvocationID.x) + hairStrandOffset;
-}
+#  else
+  return 0;
 #  endif
+}
 
 #  ifdef HAIR_PHASE_SUBDIV
+COMPUTE_SHADER_CREATE_INFO(draw_hair_refine_compute)
+
 int hair_get_base_id(float local_time, int strand_segments, out float interp_time)
 {
   float time_per_strand_seg = 1.0 / float(strand_segments);

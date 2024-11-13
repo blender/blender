@@ -2,7 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "gpu_shader_cfg_world_clip_lib.glsl"
+#include "infos/gpu_shader_3D_point_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(gpu_shader_3D_point_uniform_size_uniform_color_aa)
 
 void main()
 {
@@ -19,8 +21,4 @@ void main()
 
   /* Convert to PointCoord units. */
   radii /= size;
-
-#ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance((clipPlanes.ClipModelMatrix * pos_4d).xyz);
-#endif
 }

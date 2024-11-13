@@ -1055,16 +1055,6 @@ ccl_device_inline uint32_t reverse_integer_bits(uint32_t x)
 #endif
 }
 
-/* Check if intervals (first->x, first->y) and (second.x, second.y) intersect, and replace the
- * first interval with their intersection. */
-ccl_device_inline bool intervals_intersect(ccl_private float2 *first, const float2 second)
-{
-  first->x = fmaxf(first->x, second.x);
-  first->y = fminf(first->y, second.y);
-
-  return first->x < first->y;
-}
-
 /* Solve quadratic equation a*x^2 + b*x + c = 0, adapted from Mitsuba 3
  * The solution is ordered so that x1 <= x2.
  * Returns true if at least one solution is found.  */
@@ -1093,6 +1083,30 @@ ccl_device_inline bool solve_quadratic(
   }
 
   return (valid_linear || valid_quadratic);
+}
+
+/* Defines a closed interval [min, max]. */
+template<typename T> struct Interval {
+  T min;
+  T max;
+
+  ccl_device_inline_method bool is_empty() const
+  {
+    return min >= max;
+  }
+
+  ccl_device_inline_method bool contains(T value) const
+  {
+    return value >= min && value <= max;
+  }
+};
+
+/* Computes the intersection of two intervals. */
+template<typename T>
+ccl_device_inline Interval<T> intervals_intersection(ccl_private const Interval<T> &first,
+                                                     ccl_private const Interval<T> &second)
+{
+  return {max(first.min, second.min), min(first.max, second.max)};
 }
 
 CCL_NAMESPACE_END

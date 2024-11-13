@@ -6,10 +6,9 @@
  * \ingroup ply
  */
 
-#include <iostream>
+#include <fmt/core.h>
 
 #include "BLI_timeit.hh"
-
 #include "DNA_windowmanager_types.h"
 #include "IO_ply.hh"
 #include "ply_export.hh"
@@ -20,9 +19,9 @@ using namespace blender::timeit;
 static void report_duration(const char *job, const TimePoint &start_time, const char *path)
 {
   Nanoseconds duration = Clock::now() - start_time;
-  std::cout << "PLY " << job << " of '" << BLI_path_basename(path) << "' took ";
+  fmt::print("PLY {} of '{}' took ", job, BLI_path_basename(path));
   print_duration(duration);
-  std::cout << '\n';
+  fmt::print("\n");
 }
 
 void PLY_export(bContext *C, const PLYExportParams *export_params)

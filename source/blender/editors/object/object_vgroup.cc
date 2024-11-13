@@ -2525,18 +2525,82 @@ void OBJECT_OT_vertex_group_add(wmOperatorType *ot)
 /** \name Vertex Group Remove Operator
  * \{ */
 
+static void grease_pencil_clear_from_vgroup(Scene &scene,
+                                            Object &ob,
+                                            bDeformGroup *dg,
+                                            const bool use_selection,
+                                            const bool all_drawings = false)
+{
+  using namespace ed::greasepencil;
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob.data);
+
+  if (all_drawings) {
+    /* When removing vgroup, iterate over all the drawing. */
+    for (GreasePencilDrawingBase *base : grease_pencil.drawings()) {
+      if (base->type != GP_DRAWING) {
+        continue;
+      }
+      bke::greasepencil::Drawing &drawing = reinterpret_cast<GreasePencilDrawing *>(base)->wrap();
+      bke::greasepencil::remove_from_vertex_group(drawing, dg->name, use_selection);
+    }
+    /* Remove vgroup from the list. */
+    BKE_object_defgroup_remove(&ob, dg);
+  }
+  else {
+    Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);
+    for (const MutableDrawingInfo &info : drawings) {
+      bke::greasepencil::remove_from_vertex_group(info.drawing, dg->name, use_selection);
+    }
+  }
+}
+
+static void grease_pencil_clear_from_all_vgroup(Scene &scene,
+                                                Object &ob,
+                                                const bool use_selection,
+                                                const bool all_drawings = false,
+                                                const bool only_unlocked = false)
+{
+  const ListBase *defbase = BKE_object_defgroup_list(&ob);
+
+  bDeformGroup *dg = static_cast<bDeformGroup *>(defbase->first);
+  while (dg) {
+    bDeformGroup *next_group = dg->next;
+    if (!only_unlocked || (dg->flag & DG_LOCK_WEIGHT) == 0) {
+      grease_pencil_clear_from_vgroup(scene, ob, dg, use_selection, all_drawings);
+    }
+    dg = next_group;
+  }
+}
+
 static int vertex_group_remove_exec(bContext *C, wmOperator *op)
 {
   Object *ob = context_object(C);
+  Scene &scene = *CTX_data_scene(C);
+  const bool all_vgroup = RNA_boolean_get(op->ptr, "all");
+  const bool only_unlocked = RNA_boolean_get(op->ptr, "all_unlocked");
 
-  if (RNA_boolean_get(op->ptr, "all")) {
-    BKE_object_defgroup_remove_all(ob);
-  }
-  else if (RNA_boolean_get(op->ptr, "all_unlocked")) {
-    BKE_object_defgroup_remove_all_ex(ob, true);
+  if (ob->type == OB_GREASE_PENCIL) {
+    if (all_vgroup || only_unlocked) {
+      grease_pencil_clear_from_all_vgroup(scene, *ob, false, true, only_unlocked);
+    }
+    else {
+      const ListBase *defbase = BKE_object_defgroup_list(ob);
+      bDeformGroup *dg = static_cast<bDeformGroup *>(
+          BLI_findlink(defbase, BKE_object_defgroup_active_index_get(ob) - 1));
+
+      if (!dg) {
+        return OPERATOR_CANCELLED;
+      }
+      grease_pencil_clear_from_vgroup(scene, *ob, dg, false, true);
+    }
   }
   else {
-    vgroup_delete_active(ob);
+    if (all_vgroup || only_unlocked) {
+      BKE_object_defgroup_remove_all_ex(ob, only_unlocked);
+    }
+    else {
+      vgroup_delete_active(ob);
+    }
   }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -2654,11 +2718,15 @@ static int vertex_group_remove_from_exec(bContext *C, wmOperator *op)
 {
   const bool use_all_groups = RNA_boolean_get(op->ptr, "use_all_groups");
   const bool use_all_verts = RNA_boolean_get(op->ptr, "use_all_verts");
+  Scene &scene = *CTX_data_scene(C);
 
   Object *ob = context_object(C);
 
   if (use_all_groups) {
-    if (BKE_object_defgroup_clear_all(ob, true) == false) {
+    if (ob->type == OB_GREASE_PENCIL) {
+      grease_pencil_clear_from_all_vgroup(scene, *ob, true);
+    }
+    else if (BKE_object_defgroup_clear_all(ob, true) == false) {
       return OPERATOR_CANCELLED;
     }
   }
@@ -2666,7 +2734,14 @@ static int vertex_group_remove_from_exec(bContext *C, wmOperator *op)
     const ListBase *defbase = BKE_object_defgroup_list(ob);
     bDeformGroup *dg = static_cast<bDeformGroup *>(
         BLI_findlink(defbase, BKE_object_defgroup_active_index_get(ob) - 1));
-    if ((dg == nullptr) || (BKE_object_defgroup_clear(ob, dg, !use_all_verts) == false)) {
+    if (dg == nullptr) {
+      return OPERATOR_CANCELLED;
+    }
+
+    if (ob->type == OB_GREASE_PENCIL) {
+      grease_pencil_clear_from_vgroup(scene, *ob, dg, !use_all_verts);
+    }
+    else if (BKE_object_defgroup_clear(ob, dg, !use_all_verts) == false) {
       return OPERATOR_CANCELLED;
     }
   }

@@ -110,7 +110,7 @@ void ABCCurveWriter::do_write(HierarchyContext &context)
   }
 
   const bke::CurvesGeometry &curves = curves_id->geometry.wrap();
-  if (curves.points_num() == 0) {
+  if (curves.is_empty()) {
     return;
   }
 

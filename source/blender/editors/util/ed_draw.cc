@@ -20,7 +20,7 @@
 #include "BLT_translation.hh"
 
 #include "BKE_context.hh"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 
 #include "BLF_api.hh"
 

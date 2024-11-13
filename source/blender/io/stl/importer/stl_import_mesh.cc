@@ -6,8 +6,6 @@
  * \ingroup stl
  */
 
-#include <iostream>
-
 #include "BKE_mesh.hh"
 
 #include "BLI_array_utils.hh"
@@ -17,6 +15,9 @@
 
 #include "stl_data.hh"
 #include "stl_import_mesh.hh"
+
+#include "CLG_log.h"
+static CLG_LogRef LOG = {"io.stl"};
 
 namespace blender::io::stl {
 
@@ -56,12 +57,10 @@ bool STLMeshHelper::add_triangle(const PackedTriangle &data)
 Mesh *STLMeshHelper::to_mesh()
 {
   if (degenerate_tris_num_ > 0) {
-    std::cout << "STL Importer: " << degenerate_tris_num_ << " degenerate triangles were removed"
-              << std::endl;
+    CLOG_WARN(&LOG, "Removed %d degenerate triangles during import", degenerate_tris_num_);
   }
   if (duplicate_tris_num_ > 0) {
-    std::cout << "STL Importer: " << duplicate_tris_num_ << " duplicate triangles were removed"
-              << std::endl;
+    CLOG_WARN(&LOG, "Removed %d duplicate triangles during import", duplicate_tris_num_);
   }
 
   Mesh *mesh = BKE_mesh_new_nomain(verts_.size(), 0, tris_.size(), tris_.size() * 3);

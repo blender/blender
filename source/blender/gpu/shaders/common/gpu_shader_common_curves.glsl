@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
+#include "gpu_glsl_cpp_stubs.hh"
+
 vec4 white_balance(vec4 color, vec4 black_level, vec4 white_level)
 {
   vec4 range = max(white_level - black_level, vec4(1e-5f));

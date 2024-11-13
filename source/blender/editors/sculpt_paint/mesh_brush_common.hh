@@ -409,18 +409,6 @@ void clip_and_lock_translations(const Sculpt &sd,
                                 MutableSpan<float3> translations);
 
 /**
- * Applying final positions to shape keys is non-trivial because the mesh positions and the active
- * shape key positions must be kept in sync, and shape keys dependent on the active key must also
- * be modified.
- */
-void update_shape_keys(Object &object,
-                       const Mesh &mesh,
-                       const KeyBlock &active_key,
-                       Span<int> verts,
-                       Span<float3> translations,
-                       Span<float3> positions_orig);
-
-/**
  * Creates OffsetIndices based on each node's unique vertex count, allowing for easy slicing of a
  * new array.
  */

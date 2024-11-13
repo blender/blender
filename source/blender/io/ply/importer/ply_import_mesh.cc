@@ -19,6 +19,9 @@
 
 #include "ply_import_mesh.hh"
 
+#include "CLG_log.h"
+static CLG_LogRef LOG = {"io.ply"};
+
 namespace blender::io::ply {
 Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
 {
@@ -35,11 +38,11 @@ Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
       int32_t v1 = data.edges[i].first;
       int32_t v2 = data.edges[i].second;
       if (v1 >= mesh->verts_num) {
-        fprintf(stderr, "Invalid PLY vertex index in edge %i/1: %d\n", i, v1);
+        CLOG_WARN(&LOG, "Invalid PLY vertex index in edge %i/1: %d", i, v1);
         v1 = 0;
       }
       if (v2 >= mesh->verts_num) {
-        fprintf(stderr, "Invalid PLY vertex index in edge %i/2: %d\n", i, v2);
+        CLOG_WARN(&LOG, "Invalid PLY vertex index in edge %i/2: %d", i, v2);
         v2 = 0;
       }
       edges[i] = {v1, v2};
@@ -59,7 +62,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
       for (int j = 0; j < size; j++) {
         uint32_t v = data.face_vertices[offset + j];
         if (v >= mesh->verts_num) {
-          fprintf(stderr, "Invalid PLY vertex index in face %i loop %i: %u\n", i, j, v);
+          CLOG_WARN(&LOG, "Invalid PLY vertex index in face %i loop %i: %u", i, j, v);
           v = 0;
         }
         corner_verts[offset + j] = data.face_vertices[offset + j];

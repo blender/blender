@@ -4,6 +4,10 @@
 
 #pragma once
 
+#include "infos/gpu_shader_print_info.hh"
+
+SHADER_LIBRARY_CREATE_INFO(gpu_print)
+
 uint print_data(uint offset, uint data)
 {
   if (offset < GPU_SHADER_PRINTF_MAX_CAPACITY) {

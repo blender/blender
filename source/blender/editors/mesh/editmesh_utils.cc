@@ -1943,7 +1943,7 @@ void EDBM_project_snap_verts(
         SnapObjectParams params{};
         params.snap_target_select = target_op;
         params.edit_mode_type = SNAP_GEOM_FINAL;
-        params.use_occlusion_test = true;
+        params.occlusion_test = SNAP_OCCLUSION_AS_SEEM;
         if (ED_transform_snap_object_project_view3d(snap_context,
                                                     depsgraph,
                                                     region,

@@ -47,13 +47,18 @@ class Wireframe {
 
     show_wire_ = state.is_wireframe_mode || (state.overlay.flag & V3D_OVERLAY_WIREFRAMES);
 
+    const bool is_selection = res.selection_type != SelectionType::DISABLED;
     const bool do_smooth_lines = (U.gpu_flag & USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE) != 0;
     const bool is_transform = (G.moving & G_TRANSFORM_OBJ) != 0;
     const float wire_threshold = wire_discard_threshold_get(state.overlay.wireframe_threshold);
 
     GPUTexture **depth_tex = (state.xray_enabled) ? &res.depth_tx : &tmp_depth_tx_;
+    if (is_selection) {
+      depth_tex = &res.dummy_depth_tx;
+    }
 
-    do_depth_copy_workaround_ = (depth_tex == &tmp_depth_tx_);
+    /* Note: Depth buffer has different format when doing selection. Avoid copy in this case. */
+    do_depth_copy_workaround_ = !is_selection && (depth_tex == &tmp_depth_tx_);
 
     {
       auto &pass = wireframe_ps_;

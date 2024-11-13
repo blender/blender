@@ -214,9 +214,7 @@ template<typename T> class ImplicitSharedValue : public ImplicitSharingInfo {
   {
   }
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("ImplicitSharedValue");
-#endif
 
  private:
   void delete_self_with_data() override

@@ -10,9 +10,6 @@
 
 #include <variant>
 
-/* XXX temporary, until AssetHandle is designed properly and queries can return a pointer to it. */
-#include "DNA_asset_types.h"
-
 #include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
@@ -22,8 +19,9 @@
 #include "RNA_types.hh"
 
 struct ARegion;
+struct AssetLibraryReference;
+struct AssetWeakReference;
 struct Base;
-struct bGPdata;
 struct bGPDframe;
 struct bGPDlayer;
 struct bPoseChannel;

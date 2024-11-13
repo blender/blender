@@ -13,9 +13,7 @@
 #include "Nature.h"
 #include "WEdge.h"
 
-#ifdef WITH_CXX_GUARDEDALLOC
-#  include "MEM_guardedalloc.h"
-#endif
+#include "MEM_guardedalloc.h"
 
 namespace Freestyle {
 
@@ -78,9 +76,7 @@ class WXVertex : public WVertex {
     return _curvatures;
   }
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WXVertex")
-#endif
 };
 
 /**********************************
@@ -182,9 +178,7 @@ class WXEdge : public WEdge {
     _order = i;
   }
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WXEdge")
-#endif
 };
 
 /**********************************
@@ -293,9 +287,7 @@ class WXSmoothEdge {
     _config = iConf;
   }
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WXSmoothEdge")
-#endif
 };
 
 /* Class to store a value per vertex and a smooth edge.
@@ -474,9 +466,7 @@ class WXFaceLayer {
     }
   }
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WXFaceLayer")
-#endif
 };  // namespace Freestyle
 
 class WXFace : public WFace {
@@ -688,9 +678,7 @@ class WXFace : public WFace {
     }
   }
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WXFace")
-#endif
 };
 
 /**********************************
@@ -800,9 +788,7 @@ class WXShape : public WShape {
   }
   /** accessors */
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WXShape")
-#endif
 };
 
 /*

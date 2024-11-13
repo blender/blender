@@ -453,7 +453,7 @@ static bool curves_geometry_is_equal(const bke::CurvesGeometry &curves_a,
 {
   using namespace blender::bke;
 
-  if (curves_a.points_num() == 0 && curves_b.points_num() == 0) {
+  if (curves_a.is_empty() && curves_b.is_empty()) {
     return true;
   }
 

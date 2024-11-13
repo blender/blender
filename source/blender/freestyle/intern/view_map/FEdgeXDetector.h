@@ -20,9 +20,7 @@
 #include "../winged_edge/Curvature.h"
 #include "../winged_edge/WXEdge.h"
 
-#ifdef WITH_CXX_GUARDEDALLOC
-#  include "MEM_guardedalloc.h"
-#endif
+#include "MEM_guardedalloc.h"
 
 namespace Freestyle {
 
@@ -223,9 +221,7 @@ class FEdgeXDetector {
   ProgressBar *_pProgressBar;
   RenderMonitor *_pRenderMonitor;
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:FEdgeXDetector")
-#endif
 };
 
 } /* namespace Freestyle */

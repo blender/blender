@@ -242,15 +242,10 @@ static void recalcData_grease_pencil(TransInfo *t)
         /* No cache to update currently. */
       }
       else {
-        const std::array<MutableSpan<float3>, 3> positions_per_selection_attr = {
-            curves.positions_for_write(),
-            curves.handle_positions_left_for_write(),
-            curves.handle_positions_right_for_write()};
-        for (const int selection_i :
-             ed::curves::get_curves_selection_attribute_names(curves).index_range())
-        {
-          copy_positions_from_curves_transform_custom_data(
-              tc.custom.type, layer_i++, positions_per_selection_attr[selection_i]);
+        const Vector<MutableSpan<float3>> positions_per_selection_attr =
+            ed::curves::get_curves_positions_for_write(curves);
+        for (MutableSpan<float3> positions : positions_per_selection_attr) {
+          copy_positions_from_curves_transform_custom_data(tc.custom.type, layer_i++, positions);
         }
         curves.tag_positions_changed();
         curves.calculate_bezier_auto_handles();

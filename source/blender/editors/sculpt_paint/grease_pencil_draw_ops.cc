@@ -712,7 +712,7 @@ static void grease_pencil_fill_extension_cut(const bContext &C,
 
   /* Upper bound for segment count. Arrays are sized for easy index mapping, exact count isn't
    * necessary. Not all entries are added to the BVH tree. */
-  const int max_bvh_lines = bvh_curve_offsets.total_size();
+  const int max_bvh_lines = bvh_curve_offsets.data().last();
   /* Cached view positions for lines. */
   Array<float2> view_starts(max_bvh_lines);
   Array<float2> view_ends(max_bvh_lines);
@@ -1283,7 +1283,7 @@ static Vector<FillToolTargetInfo> ensure_editable_drawings(const Scene &scene,
 static void smooth_fill_strokes(bke::CurvesGeometry &curves, const IndexMask &stroke_mask)
 {
   const int iterations = 20;
-  if (curves.points_num() == 0) {
+  if (curves.is_empty()) {
     return;
   }
   if (stroke_mask.is_empty()) {
@@ -1428,7 +1428,8 @@ static bool grease_pencil_apply_fill(bContext &C, wmOperator &op, const wmEvent 
   WM_cursor_modal_restore(&win);
 
   /* Save extend value for next operation. */
-  brush.gpencil_settings->fill_extend_fac = op_data.extension_length;
+  brush.gpencil_settings->fill_extend_fac = op_data.extension_length /
+                                            bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
   BKE_brush_tag_unsaved_changes(&brush);
 
   return true;

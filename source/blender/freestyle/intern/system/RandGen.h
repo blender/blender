@@ -13,9 +13,7 @@
 
 #include "../system/Precision.h"
 
-#ifdef WITH_CXX_GUARDEDALLOC
-#  include "MEM_guardedalloc.h"
-#endif
+#include "MEM_guardedalloc.h"
 
 namespace Freestyle {
 
@@ -27,9 +25,7 @@ class RandGen {
  private:
   static void next();
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:RandGen")
-#endif
 };
 
 } /* namespace Freestyle */

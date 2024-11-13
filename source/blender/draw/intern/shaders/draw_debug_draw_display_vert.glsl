@@ -6,6 +6,10 @@
  * Display debug edge list.
  */
 
+#include "draw_debug_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(draw_debug_draw_display)
+
 void main()
 {
   /* Skip the first vertex containing header data. */

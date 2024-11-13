@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "gpu_glsl_cpp_stubs.hh"
+
 /** \param f: Offset from texel center in pixel space. */
 void cubic_bspline_coefficients(vec2 f, out vec2 w0, out vec2 w1, out vec2 w2, out vec2 w3)
 {

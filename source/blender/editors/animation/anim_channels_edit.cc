@@ -2064,34 +2064,41 @@ static void rearrange_grease_pencil_channels(bAnimContext *ac, eRearrangeAnimCha
   ANIM_animdata_filter(
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
 
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    GreasePencil &grease_pencil = *reinterpret_cast<GreasePencil *>(ale->id);
-    Layer *layer = static_cast<Layer *>(ale->data);
+  if (mode == REARRANGE_ANIMCHAN_TOP) {
+    LISTBASE_FOREACH_BACKWARD (bAnimListElem *, ale, &anim_data) {
+      GreasePencil &grease_pencil = *reinterpret_cast<GreasePencil *>(ale->id);
+      Layer *layer = static_cast<Layer *>(ale->data);
+      if (layer->is_selected()) {
+        grease_pencil.move_node_top(layer->as_node());
+      }
+    }
+  }
+  else {
+    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+      GreasePencil &grease_pencil = *reinterpret_cast<GreasePencil *>(ale->id);
+      Layer *layer = static_cast<Layer *>(ale->data);
 
-    switch (mode) {
-      case REARRANGE_ANIMCHAN_TOP: {
-        if (layer->is_selected()) {
-          grease_pencil.move_node_top(layer->as_node());
+      switch (mode) {
+        case REARRANGE_ANIMCHAN_UP: {
+          if (layer->is_selected()) {
+            grease_pencil.move_node_up(layer->as_node());
+          }
+          break;
         }
-        break;
-      }
-      case REARRANGE_ANIMCHAN_UP: {
-        if (layer->is_selected()) {
-          grease_pencil.move_node_up(layer->as_node());
+        case REARRANGE_ANIMCHAN_DOWN: {
+          if (layer->is_selected()) {
+            grease_pencil.move_node_down(layer->as_node());
+          }
+          break;
         }
-        break;
-      }
-      case REARRANGE_ANIMCHAN_DOWN: {
-        if (layer->is_selected()) {
-          grease_pencil.move_node_down(layer->as_node());
+        case REARRANGE_ANIMCHAN_BOTTOM: {
+          if (layer->is_selected()) {
+            grease_pencil.move_node_bottom(layer->as_node());
+          }
+          break;
         }
-        break;
-      }
-      case REARRANGE_ANIMCHAN_BOTTOM: {
-        if (layer->is_selected()) {
-          grease_pencil.move_node_bottom(layer->as_node());
-        }
-        break;
+        default:
+          break;
       }
     }
   }

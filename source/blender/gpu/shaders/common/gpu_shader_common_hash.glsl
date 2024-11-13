@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
+#include "gpu_glsl_cpp_stubs.hh"
+
 /* ***** Jenkins Lookup3 Hash Functions ***** */
 
 /* Source: http://burtleburtle.net/bob/c/lookup3.c */

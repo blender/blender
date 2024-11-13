@@ -49,7 +49,7 @@
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_global.hh"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_key.hh"
 #include "BKE_layer.hh"
 #include "BKE_mesh.hh"
@@ -1033,18 +1033,18 @@ void restore_position_from_undo_step(const Depsgraph &depsgraph, Object &object)
         Vector<float3> translations;
       };
 
-      const KeyBlock *active_key = BKE_keyblock_from_object(&object);
-      const bool need_translations = !ss.deform_imats.is_empty() || active_key;
+      std::optional<ShapeKeyData> shape_key_data = ShapeKeyData::from_object(object);
+      const bool need_translations = !ss.deform_imats.is_empty() || shape_key_data.has_value();
 
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       node_mask.foreach_index(GrainSize(1), [&](const int i) {
         threading::isolate_task([&] {
           LocalData &tls = all_tls.local();
           const OrigPositionData orig_data = *orig_position_data_lookup_mesh(object, nodes[i]);
-
           const Span<int> verts = nodes[i].verts();
           const Span<float3> undo_positions = orig_data.positions;
           if (need_translations) {
+            /* Calculate translations from evaluated positions before they are changed. */
             tls.translations.resize(verts.size());
             translations_from_new_positions(
                 undo_positions, verts, positions_eval, tls.translations);
@@ -1052,27 +1052,28 @@ void restore_position_from_undo_step(const Depsgraph &depsgraph, Object &object)
 
           scatter_data_mesh(undo_positions, verts, positions_eval);
 
-          if (positions_eval.data() != positions_orig.data()) {
-            /* When the evaluated positions and original mesh positions don't point to the same
-             * array, they must both be updated. */
-            if (ss.deform_imats.is_empty()) {
-              scatter_data_mesh(undo_positions, verts, positions_orig);
-            }
-            else {
-              /* Because brush deformation is calculated for the evaluated deformed positions,
-               * the translations have to be transformed to the original space. */
-              apply_crazyspace_to_translations(ss.deform_imats, verts, tls.translations);
-              if (ELEM(active_key, nullptr, mesh.key->refkey)) {
-                /* We only ever want to propagate changes back to the base mesh if we either have
-                 * no shape key active, or we are working on the basis shape key.
-                 * See #126199 for more information. */
-                apply_translations(tls.translations, verts, positions_orig);
-              }
-            }
+          if (positions_eval.data() == positions_orig.data()) {
+            return;
           }
 
-          if (active_key) {
-            update_shape_keys(object, mesh, *active_key, verts, tls.translations, positions_orig);
+          const MutableSpan<float3> translations = tls.translations;
+          if (!ss.deform_imats.is_empty()) {
+            apply_crazyspace_to_translations(ss.deform_imats, verts, translations);
+          }
+
+          if (shape_key_data) {
+            for (MutableSpan<float3> data : shape_key_data->dependent_keys) {
+              apply_translations(translations, verts, data);
+            }
+
+            if (shape_key_data->basis_key_active) {
+              /* The basis key positions and the mesh positions are always kept in sync. */
+              apply_translations(translations, verts, positions_orig);
+            }
+            apply_translations(translations, verts, shape_key_data->active_key_data);
+          }
+          else {
+            apply_translations(translations, verts, positions_orig);
           }
         });
       });
@@ -7114,6 +7115,34 @@ void clip_and_lock_translations(const Sculpt &sd,
   }
 }
 
+std::optional<ShapeKeyData> ShapeKeyData::from_object(Object &object)
+{
+  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  Key *keys = mesh.key;
+  if (!keys) {
+    return std::nullopt;
+  }
+  const int active_index = object.shapenr - 1;
+  const KeyBlock *active_key = BKE_keyblock_find_by_index(keys, active_index);
+  if (!active_key) {
+    return std::nullopt;
+  }
+  ShapeKeyData data;
+  data.active_key_data = {static_cast<float3 *>(active_key->data), active_key->totelem};
+  data.basis_key_active = active_key == keys->refkey;
+  if (const std::optional<Array<bool>> dependent = BKE_keyblock_get_dependent_keys(keys,
+                                                                                   active_index))
+  {
+    int i;
+    LISTBASE_FOREACH_INDEX (KeyBlock *, other_key, &keys->block, i) {
+      if ((other_key != active_key) && (*dependent)[i]) {
+        data.dependent_keys.append({static_cast<float3 *>(other_key->data), other_key->totelem});
+      }
+    }
+  }
+  return data;
+}
+
 PositionDeformData::PositionDeformData(const Depsgraph &depsgraph, Object &object_orig)
 {
   Mesh &mesh = *static_cast<Mesh *>(object_orig.data);
@@ -7129,25 +7158,7 @@ PositionDeformData::PositionDeformData(const Depsgraph &depsgraph, Object &objec
     eval_mut_ = eval_mut;
   }
 
-  if (Key *keys = mesh.key) {
-    keys_ = keys;
-    const int active_index = object_orig.shapenr - 1;
-    active_key_ = BKE_keyblock_find_by_index(keys, active_index);
-    basis_active_ = active_key_ == keys->refkey;
-    dependent_keys_ = BKE_keyblock_get_dependent_keys(keys_, active_index);
-  }
-  else {
-    keys_ = nullptr;
-    active_key_ = nullptr;
-    basis_active_ = false;
-  }
-}
-
-static void copy_indices(const Span<float3> src, const Span<int> indices, MutableSpan<float3> dst)
-{
-  for (const int i : indices) {
-    dst[i] = src[i];
-  }
+  shape_key_data_ = ShapeKeyData::from_object(object_orig);
 }
 
 void PositionDeformData::deform(MutableSpan<float3> translations, const Span<int> verts) const
@@ -7165,59 +7176,21 @@ void PositionDeformData::deform(MutableSpan<float3> translations, const Span<int
     apply_crazyspace_to_translations(*deform_imats_, verts, translations);
   }
 
-  if (KeyBlock *key = active_key_) {
-    const MutableSpan active_key_data(static_cast<float3 *>(key->data), key->totelem);
-    if (basis_active_) {
-      /* The active shape key positions and the mesh positions are always kept in sync. */
-      apply_translations(translations, verts, orig_);
-      copy_indices(orig_, verts, active_key_data);
-    }
-    else {
-      apply_translations(translations, verts, active_key_data);
-    }
-
-    if (dependent_keys_) {
-      int i;
-      LISTBASE_FOREACH_INDEX (KeyBlock *, other_key, &keys_->block, i) {
-        if ((other_key != key) && (*dependent_keys_)[i]) {
-          MutableSpan data(static_cast<float3 *>(other_key->data), other_key->totelem);
-          apply_translations(translations, verts, data);
-        }
-      }
-    }
-  }
-  else {
-    apply_translations(translations, verts, orig_);
-  }
-}
-
-void update_shape_keys(Object &object,
-                       const Mesh &mesh,
-                       const KeyBlock &active_key,
-                       const Span<int> verts,
-                       const Span<float3> translations,
-                       const Span<float3> positions_orig)
-{
-  const MutableSpan active_key_data(static_cast<float3 *>(active_key.data), active_key.totelem);
-  if (&active_key == mesh.key->refkey) {
-    for (const int vert : verts) {
-      active_key_data[vert] = positions_orig[vert];
-    }
-  }
-  else {
-    apply_translations(translations, verts, active_key_data);
-  }
-
-  if (std::optional<Array<bool>> dependent = BKE_keyblock_get_dependent_keys(mesh.key,
-                                                                             object.shapenr - 1))
-  {
-    int i;
-    LISTBASE_FOREACH_INDEX (KeyBlock *, other_key, &mesh.key->block, i) {
-      if ((other_key != &active_key) && (*dependent)[i]) {
-        MutableSpan<float3> data(static_cast<float3 *>(other_key->data), other_key->totelem);
+  if (shape_key_data_) {
+    if (!shape_key_data_->dependent_keys.is_empty()) {
+      for (MutableSpan<float3> data : shape_key_data_->dependent_keys) {
         apply_translations(translations, verts, data);
       }
     }
+
+    if (shape_key_data_->basis_key_active) {
+      /* The basis key positions and the mesh positions are always kept in sync. */
+      apply_translations(translations, verts, orig_);
+    }
+    apply_translations(translations, verts, shape_key_data_->active_key_data);
+  }
+  else {
+    apply_translations(translations, verts, orig_);
   }
 }
 

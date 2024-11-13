@@ -199,7 +199,7 @@ static EnumPropertyItem prop_sculpt_sample_detail_mode_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static void sample_detail_voxel(bContext *C, ViewContext *vc, const int mval[2])
+static bool sample_detail_voxel(bContext *C, ViewContext *vc, const int mval[2])
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object &ob = *vc->obact;
@@ -216,7 +216,9 @@ static void sample_detail_voxel(bContext *C, ViewContext *vc, const int mval[2])
 
   /* Update the active vertex. */
   const float mval_fl[2] = {float(mval[0]), float(mval[1])};
-  SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
+  if (!SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false)) {
+    return false;
+  }
   BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
 
   /* Average the edge length of the connected edges to the active vertex. */
@@ -230,6 +232,7 @@ static void sample_detail_voxel(bContext *C, ViewContext *vc, const int mval[2])
     edge_length += math::distance(active_vert_position, positions[neighbor]);
   }
   mesh.remesh_voxel_size = edge_length / float(neighbors.size());
+  return true;
 }
 
 static void sculpt_raycast_detail_cb(bke::pbvh::BMeshNode &node,
@@ -338,7 +341,9 @@ static int sample_detail(bContext *C, const int event_xy[2], const SampleDetailM
         CTX_wm_region_set(C, prev_region);
         return OPERATOR_CANCELLED;
       }
-      sample_detail_voxel(C, &vc, mval);
+      if (!sample_detail_voxel(C, &vc, mval)) {
+        return OPERATOR_CANCELLED;
+      }
       break;
   }
 
@@ -408,22 +413,25 @@ void SCULPT_OT_sample_detail_size(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_int_array(ot->srna,
-                    "location",
-                    2,
-                    nullptr,
-                    0,
-                    SHRT_MAX,
-                    "Location",
-                    "Screen coordinates of sampling",
-                    0,
-                    SHRT_MAX);
-  RNA_def_enum(ot->srna,
-               "mode",
-               prop_sculpt_sample_detail_mode_types,
-               int(SampleDetailModeType::Dyntopo),
-               "Detail Mode",
-               "Target sculpting workflow that is going to use the sampled size");
+  PropertyRNA *prop;
+  prop = RNA_def_int_array(ot->srna,
+                           "location",
+                           2,
+                           nullptr,
+                           0,
+                           SHRT_MAX,
+                           "Location",
+                           "Screen coordinates of sampling",
+                           0,
+                           SHRT_MAX);
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+  prop = RNA_def_enum(ot->srna,
+                      "mode",
+                      prop_sculpt_sample_detail_mode_types,
+                      int(SampleDetailModeType::Dyntopo),
+                      "Detail Mode",
+                      "Target sculpting workflow that is going to use the sampled size");
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /** \} */

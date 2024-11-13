@@ -75,7 +75,7 @@ void extract_face_dots_uv(const MeshRenderData &mr, gpu::VertBuf &vbo)
   GPU_vertbuf_data_alloc(vbo, mr.faces_num);
   MutableSpan<float2> vbo_data = vbo.data<float2>();
 
-  if (mr.extract_type == MR_EXTRACT_MESH) {
+  if (mr.extract_type == MeshExtractType::Mesh) {
     extract_face_dots_uv_mesh(mr, vbo_data);
   }
   else {

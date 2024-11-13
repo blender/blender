@@ -861,8 +861,14 @@ ID *BKE_id_copy_for_use_in_bmain(Main *bmain, const ID *id)
 
 void BKE_id_move_to_same_lib(Main &bmain, ID &id, const ID &owner_id)
 {
-  BLI_assert(id.lib == nullptr);
-  if (owner_id.lib == nullptr) {
+  if (owner_id.lib == id.lib) {
+    /* `id` is already in the target library, nothing to do. */
+    return;
+  }
+  if (ID_IS_LINKED(&id)) {
+    BLI_assert_msg(false, "Only local IDs can be moved into a library");
+    /* Protect release builds against errors in calling code, as continuing here can lead to
+     * critical Main data-base corruption. */
     return;
   }
 
@@ -1045,14 +1051,6 @@ bool id_single_user(bContext *C, ID *id, PointerRNA *ptr, PropertyRNA *prop)
         PointerRNA idptr = RNA_id_pointer_create(newid);
         RNA_property_pointer_set(ptr, prop, idptr, nullptr);
         RNA_property_update(C, ptr, prop);
-
-        /* tag grease pencil data-block and disable onion */
-        if (GS(id->name) == ID_GD_LEGACY) {
-          DEG_id_tag_update(id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-          DEG_id_tag_update(newid, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-          bGPdata *gpd = (bGPdata *)newid;
-          gpd->flag &= ~GP_DATA_SHOW_ONIONSKINS;
-        }
 
         return true;
       }

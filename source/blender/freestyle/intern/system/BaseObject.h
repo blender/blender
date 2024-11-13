@@ -10,9 +10,7 @@
  * \brief Inspired by COM IUnknown system.
  */
 
-#ifdef WITH_CXX_GUARDEDALLOC
-#  include "MEM_guardedalloc.h"
-#endif
+#include "MEM_guardedalloc.h"
 
 #include "BLI_sys_types.h"
 
@@ -53,9 +51,7 @@ class BaseObject {
  private:
   uint _ref_counter;
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BaseObject")
-#endif
 };
 
 } /* namespace Freestyle */

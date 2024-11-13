@@ -42,9 +42,15 @@ RESHAPE(float3x3, mat3x3, mat3x4)
 #define uint3 uvec3
 #define uint4 uvec4
 /* GLSL already follows the packed alignment / size rules for vec3. */
+#define packed_float2 float2
+#define packed_int2 int2
+#define packed_uint2 uint2
 #define packed_float3 float3
 #define packed_int3 int3
 #define packed_uint3 uint3
+#define packed_float4 float4
+#define packed_int4 int4
+#define packed_uint4 uint4
 
 #define float2x2 mat2x2
 #define float3x2 mat3x2

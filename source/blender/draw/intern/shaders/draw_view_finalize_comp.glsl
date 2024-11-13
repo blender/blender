@@ -6,6 +6,8 @@
  * Compute culling data for each views of a given view buffer.
  */
 
+#include "draw_view_info.hh"
+
 #include "common_math_lib.glsl"
 
 COMPUTE_SHADER_CREATE_INFO(draw_view_finalize)
@@ -40,7 +42,7 @@ void projmat_dimensions(mat4 winmat,
 
 void frustum_boundbox_calc(mat4 winmat, mat4 viewinv, out FrustumCorners frustum_corners)
 {
-  float left, right, bottom, top, near, far;
+  float left = 0.0, right = 0.0, bottom = 0.0, top = 0.0, near = 0.0, far = 0.0;
   bool is_persp = winmat[3][3] == 0.0;
 
   projmat_dimensions(winmat, left, right, bottom, top, near, far);

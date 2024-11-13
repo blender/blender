@@ -18,9 +18,7 @@
 #include "../view_map/FEdgeXDetector.h"
 #include "../view_map/ViewMapBuilder.h"
 
-#ifdef WITH_CXX_GUARDEDALLOC
-#  include "MEM_guardedalloc.h"
-#endif
+#include "MEM_guardedalloc.h"
 
 struct Depsgraph;
 struct Render;
@@ -261,9 +259,7 @@ class Controller {
   SceneHash sceneHashFunc;
   real prevSceneHash;
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Controller")
-#endif
 };
 
 extern Controller *g_pController;

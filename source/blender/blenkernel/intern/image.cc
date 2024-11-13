@@ -68,8 +68,8 @@
 #include "BKE_global.hh"
 #include "BKE_icons.h"
 #include "BKE_idtype.hh"
-#include "BKE_image.h"
-#include "BKE_image_format.h"
+#include "BKE_image.hh"
+#include "BKE_image_format.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
@@ -691,11 +691,15 @@ static void image_init(Image *ima, short source, short type)
   ima->stereo3d_format = MEM_cnew<Stereo3dFormat>("Image Stereo Format");
 }
 
-static Image *image_alloc(Main *bmain, const char *name, short source, short type)
+static Image *image_alloc(Main *bmain,
+                          std::optional<Library *> owner_library,
+                          const char *name,
+                          short source,
+                          short type)
 {
   Image *ima;
 
-  ima = static_cast<Image *>(BKE_libblock_alloc(bmain, ID_IM, name, 0));
+  ima = static_cast<Image *>(BKE_libblock_alloc_in_lib(bmain, owner_library, ID_IM, name, 0));
   if (ima) {
     image_init(ima, source, type);
   }
@@ -1032,14 +1036,37 @@ void BKE_image_alpha_mode_from_extension(Image *image)
   image->alpha_mode = BKE_image_alpha_mode_from_extension_ex(image->filepath);
 }
 
+static void image_abs_path(Main *bmain,
+                           Library *owner_library,
+                           const char *filepath,
+                           char *r_filepath_abs)
+{
+  BLI_strncpy(r_filepath_abs, filepath, FILE_MAX);
+  if (owner_library) {
+    BLI_path_abs(r_filepath_abs, owner_library->runtime.filepath_abs);
+  }
+  else {
+    BLI_path_abs(r_filepath_abs, BKE_main_blendfile_path(bmain));
+  }
+}
+
 Image *BKE_image_load(Main *bmain, const char *filepath)
+{
+  return BKE_image_load_in_lib(bmain, std::nullopt, filepath);
+}
+
+Image *BKE_image_load_in_lib(Main *bmain,
+                             std::optional<Library *> owner_library,
+                             const char *filepath)
 {
   Image *ima;
   int file;
   char filepath_abs[FILE_MAX];
 
-  STRNCPY(filepath_abs, filepath);
-  BLI_path_abs(filepath_abs, BKE_main_blendfile_path(bmain));
+  /* If no owner library is explicitely given, use the current library from the given Main. */
+  Library *owner_lib = owner_library.value_or(bmain->curlib);
+
+  image_abs_path(bmain, owner_lib, filepath, filepath_abs);
 
   /* exists? */
   file = BLI_open(filepath_abs, O_BINARY | O_RDONLY, 0);
@@ -1052,7 +1079,8 @@ Image *BKE_image_load(Main *bmain, const char *filepath)
     close(file);
   }
 
-  ima = image_alloc(bmain, BLI_path_basename(filepath), IMA_SRC_FILE, IMA_TYPE_IMAGE);
+  ima = image_alloc(
+      bmain, owner_library, BLI_path_basename(filepath), IMA_SRC_FILE, IMA_TYPE_IMAGE);
   STRNCPY(ima->filepath, filepath);
 
   if (BLI_path_extension_check_array(filepath, imb_ext_movie)) {
@@ -1064,13 +1092,23 @@ Image *BKE_image_load(Main *bmain, const char *filepath)
   return ima;
 }
 
-Image *BKE_image_load_exists_ex(Main *bmain, const char *filepath, bool *r_exists)
+Image *BKE_image_load_exists(Main *bmain, const char *filepath, bool *r_exists)
+{
+  return BKE_image_load_exists_in_lib(bmain, std::nullopt, filepath, r_exists);
+}
+
+Image *BKE_image_load_exists_in_lib(Main *bmain,
+                                    std::optional<Library *> owner_library,
+                                    const char *filepath,
+                                    bool *r_exists)
 {
   Image *ima;
   char filepath_abs[FILE_MAX], filepath_test[FILE_MAX];
 
-  STRNCPY(filepath_abs, filepath);
-  BLI_path_abs(filepath_abs, bmain->filepath);
+  /* If not owner library is explicitely given, use the current library from the given Main. */
+  Library *owner_lib = owner_library.value_or(bmain->curlib);
+
+  image_abs_path(bmain, owner_lib, filepath, filepath_abs);
 
   /* first search an identical filepath */
   for (ima = static_cast<Image *>(bmain->images.first); ima;
@@ -1080,27 +1118,30 @@ Image *BKE_image_load_exists_ex(Main *bmain, const char *filepath, bool *r_exist
       STRNCPY(filepath_test, ima->filepath);
       BLI_path_abs(filepath_test, ID_BLEND_PATH(bmain, &ima->id));
 
-      if (BLI_path_cmp(filepath_test, filepath_abs) == 0) {
-        if ((BKE_image_has_anim(ima) == false) || (ima->id.us == 0)) {
-          id_us_plus(&ima->id); /* officially should not, it doesn't link here! */
-          if (r_exists) {
-            *r_exists = true;
-          }
-          return ima;
-        }
+      if (BLI_path_cmp(filepath_test, filepath_abs) != 0) {
+        continue;
       }
+      if ((BKE_image_has_anim(ima)) && (ima->id.us != 0)) {
+        /* TODO explain why animated images with already one or more users are skipped? */
+        continue;
+      }
+      if (ima->id.lib != owner_lib) {
+        continue;
+      }
+      /* FIXME Should not happen here. Only code actually adding an ID usage should increment this
+       * counter. */
+      id_us_plus(&ima->id);
+      if (r_exists) {
+        *r_exists = true;
+      }
+      return ima;
     }
   }
 
   if (r_exists) {
     *r_exists = false;
   }
-  return BKE_image_load(bmain, filepath);
-}
-
-Image *BKE_image_load_exists(Main *bmain, const char *filepath)
-{
-  return BKE_image_load_exists_ex(bmain, filepath, nullptr);
+  return BKE_image_load_in_lib(bmain, owner_library, filepath);
 }
 
 struct ImageFillData {
@@ -1225,10 +1266,10 @@ Image *BKE_image_add_generated(Main *bmain,
   /* Saving the image changes it's #Image.source to #IMA_SRC_FILE (leave as generated here). */
   Image *ima;
   if (tiled) {
-    ima = image_alloc(bmain, name, IMA_SRC_TILED, IMA_TYPE_IMAGE);
+    ima = image_alloc(bmain, std::nullopt, name, IMA_SRC_TILED, IMA_TYPE_IMAGE);
   }
   else {
-    ima = image_alloc(bmain, name, IMA_SRC_GENERATED, IMA_TYPE_UV_TEST);
+    ima = image_alloc(bmain, std::nullopt, name, IMA_SRC_GENERATED, IMA_TYPE_UV_TEST);
   }
   if (ima == nullptr) {
     return nullptr;
@@ -1312,7 +1353,7 @@ Image *BKE_image_add_from_imbuf(Main *bmain, ImBuf *ibuf, const char *name)
    * Otherwise create "generated" image, avoiding invalid configuration with an empty file path. */
   const eImageSource source = ibuf->filepath[0] != '\0' ? IMA_SRC_FILE : IMA_SRC_GENERATED;
 
-  Image *ima = image_alloc(bmain, name, source, IMA_TYPE_IMAGE);
+  Image *ima = image_alloc(bmain, std::nullopt, name, source, IMA_TYPE_IMAGE);
 
   if (!ima) {
     return nullptr;
@@ -2744,7 +2785,7 @@ Image *BKE_image_ensure_viewer(Main *bmain, int type, const char *name)
   }
 
   if (ima == nullptr) {
-    ima = image_alloc(bmain, name, IMA_SRC_VIEWER, type);
+    ima = image_alloc(bmain, std::nullopt, name, IMA_SRC_VIEWER, type);
   }
 
   /* Happens on reload, image-window cannot be image user when hidden. */

@@ -4,9 +4,7 @@
 
 #pragma once
 
-#ifdef WITH_CXX_GUARDEDALLOC
-#  include "MEM_guardedalloc.h"
-#endif
+#include "MEM_guardedalloc.h"
 
 namespace blender::compositor {
 
@@ -40,9 +38,7 @@ class Device {
    */
   virtual void execute(struct WorkPackage *work) = 0;
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:Device")
-#endif
 };
 
 }  // namespace blender::compositor

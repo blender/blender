@@ -2225,12 +2225,6 @@ static int object_delete_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    /* if grease pencil object, set cache as dirty */
-    if (ob->type == OB_GPENCIL_LEGACY) {
-      bGPdata *gpd = (bGPdata *)ob->data;
-      DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-    }
-
     /* Use multi tagged delete if `use_global=True`, or the object is used only in one scene. */
     if (use_global || ID_REAL_USERS(ob) <= 1) {
       ob->id.tag |= ID_TAG_DOIT;
@@ -2240,18 +2234,6 @@ static int object_delete_exec(bContext *C, wmOperator *op)
       /* Object is used in multiple scenes. Delete the object from the current scene only. */
       base_free_and_unlink_no_indirect_check(bmain, scene, ob);
       changed_count += 1;
-
-      /* FIXME: this will also remove parent from grease pencil from other scenes. */
-      /* Remove from Grease Pencil parent */
-      LISTBASE_FOREACH (bGPdata *, gpd, &bmain->gpencils) {
-        LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-          if (gpl->parent != nullptr) {
-            if (gpl->parent == ob) {
-              gpl->parent = nullptr;
-            }
-          }
-        }
-      }
     }
   }
   CTX_DATA_END;
@@ -4305,14 +4287,6 @@ static int object_join_exec(bContext *C, wmOperator *op)
                 "Cannot edit object '%s' as it is used by override collections",
                 ob->id.name + 2);
     return OPERATOR_CANCELLED;
-  }
-
-  if (ob->type == OB_GPENCIL_LEGACY) {
-    bGPdata *gpd = (bGPdata *)ob->data;
-    if ((!gpd) || GPENCIL_ANY_MODE(gpd)) {
-      BKE_report(op->reports, RPT_ERROR, "This data does not support joining in this mode");
-      return OPERATOR_CANCELLED;
-    }
   }
 
   int ret = OPERATOR_CANCELLED;

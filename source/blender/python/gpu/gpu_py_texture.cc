@@ -20,7 +20,7 @@
 #include "GPU_context.hh"
 #include "GPU_texture.hh"
 
-#include "BKE_image.h"
+#include "BKE_image.hh"
 
 #include "../generic/py_capi_utils.hh"
 #include "../generic/python_compat.hh"

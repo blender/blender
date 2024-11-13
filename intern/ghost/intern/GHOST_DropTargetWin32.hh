@@ -133,7 +133,5 @@ class GHOST_DropTargetWin32 : public IDropTarget {
   /* Data type of the dragged object */
   GHOST_TDragnDropTypes m_draggedObjectType;
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_DropTargetWin32")
-#endif
 };

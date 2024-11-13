@@ -282,7 +282,7 @@ FRAGMENT_OUT(0, VEC4, fragColor)
 VERTEX_SOURCE("overlay_motion_path_line_next_vert.glsl")
 FRAGMENT_SOURCE("overlay_motion_path_line_frag.glsl")
 ADDITIONAL_INFO(draw_view)
-ADDITIONAL_INFO(gpu_index_load)
+ADDITIONAL_INFO(gpu_index_buffer_load)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 

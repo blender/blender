@@ -34,7 +34,5 @@ class GHOST_IEventConsumer {
    */
   virtual bool processEvent(const GHOST_IEvent *event) = 0;
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_IEventConsumer")
-#endif
 };

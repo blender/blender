@@ -367,7 +367,7 @@ static void rna_GreasePencilLayer_parent_set(PointerRNA *ptr,
   bke::greasepencil::Layer &layer = static_cast<GreasePencilLayer *>(ptr->data)->wrap();
   Object *parent = static_cast<Object *>(value.data);
 
-  ed::greasepencil::grease_pencil_layer_parent_set(layer, parent, layer.parsubstr, false);
+  ed::greasepencil::grease_pencil_layer_parent_set(layer, parent, layer.parent_bone_name(), false);
 }
 
 static void rna_GreasePencilLayer_bone_set(PointerRNA *ptr, const char *value)

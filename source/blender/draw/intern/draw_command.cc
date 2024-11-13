@@ -560,7 +560,7 @@ std::string DrawMulti::serialize(const std::string &line_prefix) const
   std::sort(
       prototypes.begin(), prototypes.end(), [](const DrawPrototype &a, const DrawPrototype &b) {
         return (a.group_id < b.group_id) ||
-               (a.group_id == b.group_id && a.resource_handle > b.resource_handle);
+               (a.group_id == b.group_id && a.res_handle > b.res_handle);
       });
 
   /* Compute prefix sum to have correct offsets. */
@@ -584,7 +584,7 @@ std::string DrawMulti::serialize(const std::string &line_prefix) const
     if (grp.back_facing_counter > 0) {
       for (DrawPrototype &proto : prototypes.slice_safe({offset, grp.back_facing_counter})) {
         BLI_assert(proto.group_id == group_index);
-        ResourceHandle handle(proto.resource_handle);
+        ResourceHandle handle(proto.res_handle);
         BLI_assert(handle.has_inverted_handedness());
         ss << std::endl
            << line_prefix << "    .proto(instance_len=" << std::to_string(proto.instance_len)
@@ -596,7 +596,7 @@ std::string DrawMulti::serialize(const std::string &line_prefix) const
     if (grp.front_facing_counter > 0) {
       for (DrawPrototype &proto : prototypes.slice_safe({offset, grp.front_facing_counter})) {
         BLI_assert(proto.group_id == group_index);
-        ResourceHandle handle(proto.resource_handle);
+        ResourceHandle handle(proto.res_handle);
         BLI_assert(!handle.has_inverted_handedness());
         ss << std::endl
            << line_prefix << "    .proto(instance_len=" << std::to_string(proto.instance_len)
