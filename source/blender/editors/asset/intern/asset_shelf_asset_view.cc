@@ -104,41 +104,45 @@ void AssetView::build_items()
     return;
   }
 
-  list::iterate(library_ref_, [&](AssetHandle asset_handle) {
-    const asset_system::AssetRepresentation *asset = handle_get_representation(&asset_handle);
+  list::iterate(
+      library_ref_,
+      [&](AssetHandle asset_handle) {
+        const asset_system::AssetRepresentation *asset = handle_get_representation(&asset_handle);
+        const bool show_names = (shelf_.settings.display_flag & ASSETSHELF_SHOW_NAMES);
 
-    if (shelf_.type->asset_poll && !shelf_.type->asset_poll(shelf_.type, asset)) {
-      return true;
-    }
+        const StringRef identifier = asset->library_relative_identifier();
+        const int preview_id = [&]() -> int {
+          if (list::asset_image_is_loading(&library_ref_, &asset_handle)) {
+            return ICON_TEMP;
+          }
+          return handle_get_preview_or_type_icon_id(&asset_handle);
+        }();
 
-    const AssetMetaData &asset_data = asset->get_metadata();
+        AssetViewItem &item = this->add_item<AssetViewItem>(
+            asset_handle, identifier, asset->get_name(), preview_id);
+        if (!show_names) {
+          item.hide_label();
+        }
+        if (shelf_.type->flag & ASSET_SHELF_TYPE_FLAG_NO_ASSET_DRAG) {
+          item.disable_asset_drag();
+        }
 
-    if (catalog_filter_ && !catalog_filter_->contains(asset_data.catalog_id)) {
-      /* Skip this asset. */
-      return true;
-    }
+        return true;
+      },
 
-    const bool show_names = (shelf_.settings.display_flag & ASSETSHELF_SHOW_NAMES);
+      /* prefilter_fn=*/
+      [&](asset_system::AssetRepresentation &asset) {
+        if (shelf_.type->asset_poll && !shelf_.type->asset_poll(shelf_.type, &asset)) {
+          return false;
+        }
 
-    const StringRef identifier = asset->library_relative_identifier();
-    const int preview_id = [&]() -> int {
-      if (list::asset_image_is_loading(&library_ref_, &asset_handle)) {
-        return ICON_TEMP;
-      }
-      return handle_get_preview_or_type_icon_id(&asset_handle);
-    }();
-
-    AssetViewItem &item = this->add_item<AssetViewItem>(
-        asset_handle, identifier, asset->get_name(), preview_id);
-    if (!show_names) {
-      item.hide_label();
-    }
-    if (shelf_.type->flag & ASSET_SHELF_TYPE_FLAG_NO_ASSET_DRAG) {
-      item.disable_asset_drag();
-    }
-
-    return true;
-  });
+        const AssetMetaData &asset_data = asset.get_metadata();
+        if (catalog_filter_ && !catalog_filter_->contains(asset_data.catalog_id)) {
+          /* Skip this asset. */
+          return false;
+        }
+        return true;
+      });
 }
 
 bool AssetView::begin_filtering(const bContext &C) const

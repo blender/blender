@@ -123,7 +123,8 @@ class AssetList : NonCopyable {
   bool is_loaded() const;
   bool is_asset_preview_loading(const AssetHandle &asset) const;
   asset_system::AssetLibrary *asset_library() const;
-  void iterate(AssetListHandleIterFn fn) const;
+  void iterate(AssetListHandleIterFn fn,
+               FunctionRef<bool(asset_system::AssetRepresentation &)> prefilter_fn) const;
   void iterate(AssetListIterFn fn) const;
   int size() const;
   void tag_main_data_dirty() const;
@@ -204,16 +205,23 @@ asset_system::AssetLibrary *AssetList::asset_library() const
   return reinterpret_cast<asset_system::AssetLibrary *>(filelist_asset_library(filelist_));
 }
 
-void AssetList::iterate(AssetListHandleIterFn fn) const
+void AssetList::iterate(AssetListHandleIterFn fn,
+                        FunctionRef<bool(asset_system::AssetRepresentation &)> prefilter_fn) const
 {
   FileList *files = filelist_;
   int numfiles = filelist_files_ensure(files);
 
   for (int i = 0; i < numfiles; i++) {
-    FileDirEntry *file = filelist_file(files, i);
-    if ((file->typeflag & FILE_TYPE_ASSET) == 0) {
+    asset_system::AssetRepresentation *asset = filelist_entry_get_asset_representation(files, i);
+    if (!asset) {
       continue;
     }
+
+    if (prefilter_fn && !prefilter_fn(*asset)) {
+      continue;
+    }
+
+    FileDirEntry *file = filelist_file(files, i);
 
     AssetHandle asset_handle = {file};
     if (!fn(asset_handle)) {
@@ -495,11 +503,13 @@ bool storage_has_list_for_library(const AssetLibraryReference *library_reference
   return lookup_list(*library_reference) != nullptr;
 }
 
-void iterate(const AssetLibraryReference &library_reference, AssetListHandleIterFn fn)
+void iterate(const AssetLibraryReference &library_reference,
+             AssetListHandleIterFn fn,
+             FunctionRef<bool(asset_system::AssetRepresentation &)> prefilter_fn)
 {
   AssetList *list = lookup_list(library_reference);
   if (list) {
-    list->iterate(fn);
+    list->iterate(fn, prefilter_fn);
   }
 }
 
