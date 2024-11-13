@@ -54,7 +54,7 @@ void geometry_main(VertOut geom_in[3],
 
   vec3 Ng = cross(v12, v10);
 
-  vec3 ls_light_direction = normal_world_to_object(vec3(pass_data.light_direction_ws));
+  vec3 ls_light_direction = drw_normal_world_to_object(vec3(pass_data.light_direction_ws));
 
   float facing = dot(Ng, ls_light_direction);
 

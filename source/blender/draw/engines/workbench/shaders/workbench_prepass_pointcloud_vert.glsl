@@ -2,9 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "draw_view_lib.glsl"
+
 #include "common_pointcloud_lib.glsl"
 #include "common_view_clipping_lib.glsl"
-#include "common_view_lib.glsl"
+
 #include "workbench_common_lib.glsl"
 #include "workbench_image_lib.glsl"
 #include "workbench_material_lib.glsl"
@@ -16,7 +18,7 @@ void main()
 
   normal_interp = normalize(normal_world_to_view(normal_interp));
 
-  gl_Position = point_world_to_ndc(world_pos);
+  gl_Position = drw_point_world_to_homogenous(world_pos);
 
   view_clipping_distances(world_pos);
 

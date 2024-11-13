@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "common_view_lib.glsl"
+#include "draw_view_lib.glsl"
 #include "workbench_common_lib.glsl"
 #include "workbench_image_lib.glsl"
 

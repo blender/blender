@@ -2,8 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "common_math_lib.glsl"
-#include "common_view_lib.glsl"
+#include "draw_model_lib.glsl"
+#include "draw_view_lib.glsl"
+#include "gpu_shader_math_vector_lib.glsl"
 #include "workbench_common_lib.glsl"
 
 float phase_function_isotropic()
@@ -18,7 +19,7 @@ float line_unit_box_intersect_dist(vec3 lineorigin, vec3 linedirection)
   vec3 firstplane = (vec3(1.0) - lineorigin) / linedirection;
   vec3 secondplane = (vec3(-1.0) - lineorigin) / linedirection;
   vec3 furthestplane = min(firstplane, secondplane);
-  return max_v3(furthestplane);
+  return reduce_max(furthestplane);
 }
 
 #define sample_trilinear(ima, co) texture(ima, co)
@@ -262,14 +263,14 @@ void main()
 
   float depth = do_depth_test ? texelFetch(depthBuffer, ivec2(gl_FragCoord.xy), 0).r : 1.0;
   float depth_end = min(depth, gl_FragCoord.z);
-  vec3 vs_ray_end = get_view_space_from_depth(screen_uv, depth_end);
-  vec3 vs_ray_ori = get_view_space_from_depth(screen_uv, 0.0);
+  vec3 vs_ray_end = drw_point_screen_to_view(vec3(screen_uv, depth_end));
+  vec3 vs_ray_ori = drw_point_screen_to_view(vec3(screen_uv, 0.0));
   vec3 vs_ray_dir = (is_persp) ? (vs_ray_end - vs_ray_ori) : vec3(0.0, 0.0, -1.0);
   vs_ray_dir /= abs(vs_ray_dir.z);
 
-  vec3 ls_ray_dir = point_view_to_object(vs_ray_ori + vs_ray_dir);
-  vec3 ls_ray_ori = point_view_to_object(vs_ray_ori);
-  vec3 ls_ray_end = point_view_to_object(vs_ray_end);
+  vec3 ls_ray_dir = drw_point_view_to_object(vs_ray_ori + vs_ray_dir);
+  vec3 ls_ray_ori = drw_point_view_to_object(vs_ray_ori);
+  vec3 ls_ray_end = drw_point_view_to_object(vs_ray_end);
 
 #  ifdef VOLUME_SMOKE
   ls_ray_dir = (OrcoTexCoFactors[0].xyz + ls_ray_dir * OrcoTexCoFactors[1].xyz) * 2.0 - 1.0;

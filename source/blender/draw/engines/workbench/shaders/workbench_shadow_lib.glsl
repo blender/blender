@@ -4,7 +4,8 @@
 
 #pragma once
 
-#include "common_view_lib.glsl"
+#include "draw_model_lib.glsl"
+#include "draw_view_lib.glsl"
 #include "gpu_shader_attribute_load_lib.glsl"
 #include "gpu_shader_index_load_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
@@ -40,7 +41,7 @@ VertOut vertex_main(VertIn vert_in)
   vert_out.lP = vert_in.lP;
   vec3 L = pass_data.light_direction_ws;
 
-  vec3 ws_P = point_object_to_world(vert_in.lP);
+  vec3 ws_P = drw_point_object_to_world(vert_in.lP);
   float extrude_distance = 1e5f;
   float L_FP = dot(L, pass_data.far_plane.xyz);
   if (L_FP > 0.0) {
@@ -49,8 +50,8 @@ VertOut vertex_main(VertIn vert_in)
     /* Ensure we don't overlap the far plane. */
     extrude_distance -= 1e-3;
   }
-  vert_out.backPosition = point_world_to_ndc(ws_P + L * extrude_distance);
-  vert_out.frontPosition = point_object_to_ndc(vert_in.lP);
+  vert_out.backPosition = drw_point_world_to_homogenous(ws_P + L * extrude_distance);
+  vert_out.frontPosition = drw_point_world_to_homogenous(drw_point_object_to_world(vert_in.lP));
   return vert_out;
 }
 

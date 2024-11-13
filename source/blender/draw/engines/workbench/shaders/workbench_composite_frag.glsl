@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "common_view_lib.glsl"
+#include "draw_view_lib.glsl"
 #include "workbench_cavity_lib.glsl"
 #include "workbench_common_lib.glsl"
 #include "workbench_curvature_lib.glsl"
@@ -21,7 +21,8 @@ void main()
   }
 
   /* Normal and Incident vector are in view-space. Lighting is evaluated in view-space. */
-  vec3 V = get_view_vector_from_screen_uv(uv);
+  vec3 P = drw_point_screen_to_view(vec3(uv, 0.5));
+  vec3 V = drw_view_incident_vector(P);
   vec3 N = workbench_normal_decode(texture(normal_tx, uv));
   vec4 mat_data = texture(material_tx, uv);
 

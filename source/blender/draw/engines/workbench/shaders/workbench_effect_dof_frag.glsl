@@ -8,8 +8,9 @@
  * Converted and adapted from HLSL to GLSL by Clément Foucault
  */
 
-#include "common_math_lib.glsl"
-#include "common_view_lib.glsl"
+#include "draw_view_lib.glsl"
+#include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 
 #define dof_aperturesize dofParams.x
 #define dof_distance dofParams.y
@@ -63,8 +64,8 @@ void main()
   vec4 cocs_near = calculate_coc(zdepths);
   vec4 cocs_far = -cocs_near;
 
-  float coc_near = max(max_v4(cocs_near), 0.0);
-  float coc_far = max(max_v4(cocs_far), 0.0);
+  float coc_near = max(reduce_max(cocs_near), 0.0);
+  float coc_far = max(reduce_max(cocs_far), 0.0);
 
   /* now we need to write the near-far fields premultiplied by the coc
    * also use bilateral weighting by each coc values to avoid bleeding. */
@@ -109,8 +110,8 @@ void main()
   vec4 cocs_near = vec4(cocs1.r, cocs2.r, cocs3.r, cocs4.r) * MAX_COC_SIZE;
   vec4 cocs_far = vec4(cocs1.g, cocs2.g, cocs3.g, cocs4.g) * MAX_COC_SIZE;
 
-  float coc_near = max_v4(cocs_near);
-  float coc_far = max_v4(cocs_far);
+  float coc_near = reduce_max(cocs_near);
+  float coc_far = reduce_max(cocs_far);
 
   /* now we need to write the near-far fields premultiplied by the coc
    * also use bilateral weighting by each coc values to avoid bleeding. */

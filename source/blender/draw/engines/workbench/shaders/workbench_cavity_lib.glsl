@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "common_view_lib.glsl"
+#include "draw_view_lib.glsl"
 #include "workbench_common_lib.glsl"
 
 /*  From The Alchemy screen-space ambient obscurance algorithm
@@ -33,7 +33,7 @@ void cavity_compute(vec2 screenco,
     return;
   }
 
-  vec3 position = get_view_space_from_depth(screenco, depth);
+  vec3 position = drw_point_screen_to_view(vec3(screenco, depth));
   vec3 normal = workbench_normal_decode(texture(normalBuffer, screenco));
 
   vec2 jitter_co = (screenco * world_data.viewport_size.xy) * world_data.cavity_jitter_scale;
@@ -73,7 +73,7 @@ void cavity_compute(vec2 screenco,
     bool is_background = (s_depth == 1.0);
     /* This trick provide good edge effect even if no neighbor is found. */
     s_depth = (is_background) ? depth : s_depth;
-    vec3 s_pos = get_view_space_from_depth(uvcoords, s_depth);
+    vec3 s_pos = drw_point_screen_to_view(vec3(uvcoords, s_depth));
 
     if (is_background) {
       s_pos.z -= world_data.cavity_distance;
