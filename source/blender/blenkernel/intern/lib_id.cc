@@ -861,8 +861,14 @@ ID *BKE_id_copy_for_use_in_bmain(Main *bmain, const ID *id)
 
 void BKE_id_move_to_same_lib(Main &bmain, ID &id, const ID &owner_id)
 {
-  BLI_assert(id.lib == nullptr);
-  if (owner_id.lib == nullptr) {
+  if (owner_id.lib == id.lib) {
+    /* `id` is already in the target library, nothing to do. */
+    return;
+  }
+  if (ID_IS_LINKED(&id)) {
+    BLI_assert_msg(false, "Only local IDs can be moved into a library");
+    /* Protect release builds against errors in calling code, as continuing here can lead to
+     * critical Main data-base corruption. */
     return;
   }
 
