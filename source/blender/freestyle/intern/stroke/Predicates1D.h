@@ -18,9 +18,7 @@
 #include "../view_map/Functions1D.h"
 #include "../view_map/Interface1D.h"
 
-#ifdef WITH_CXX_GUARDEDALLOC
-#  include "MEM_guardedalloc.h"
-#endif
+#include "MEM_guardedalloc.h"
 
 namespace Freestyle {
 
@@ -62,9 +60,7 @@ class UnaryPredicate1D {
    */
   virtual int operator()(Interface1D &inter);
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:UnaryPredicate1D")
-#endif
 };
 
 //
@@ -107,9 +103,7 @@ class BinaryPredicate1D {
    */
   virtual int operator()(Interface1D &inter1, Interface1D &inter2);
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BinaryPredicate1D")
-#endif
 };
 
 //

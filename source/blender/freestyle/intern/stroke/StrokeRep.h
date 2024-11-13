@@ -13,9 +13,7 @@
 
 #include "../geometry/Geom.h"
 
-#ifdef WITH_CXX_GUARDEDALLOC
-#  include "MEM_guardedalloc.h"
-#endif
+#include "MEM_guardedalloc.h"
 
 #include "DNA_material_types.h"  // for MAX_MTEX
 struct bNodeTree;
@@ -113,9 +111,7 @@ class StrokeVertexRep {
   Vec3r _color;
   float _alpha;
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:StrokeVertexRep")
-#endif
 };
 
 class Strip {
@@ -156,9 +152,7 @@ class Strip {
     return _vertices;
   }
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Strip")
-#endif
 };
 
 class StrokeRep {
@@ -255,9 +249,7 @@ class StrokeRep {
   }
 #endif
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:StrokeRep")
-#endif
 };
 
 } /* namespace Freestyle */

@@ -9,9 +9,7 @@
 #include "COM_Enums.h"
 #include "COM_ExecutionModel.h"
 
-#ifdef WITH_CXX_GUARDEDALLOC
-#  include "MEM_guardedalloc.h"
-#endif
+#include "MEM_guardedalloc.h"
 
 namespace blender::compositor {
 
@@ -84,9 +82,7 @@ class FullFrameExecutionModel : public ExecutionModel {
 
   void update_progress_bar();
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:FullFrameExecutionModel")
-#endif
 };
 
 }  // namespace blender::compositor

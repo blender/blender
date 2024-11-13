@@ -12,9 +12,7 @@
 #include "Canvas.h"
 #include "StyleModule.h"
 
-#ifdef WITH_CXX_GUARDEDALLOC
-#  include "MEM_guardedalloc.h"
-#endif
+#include "MEM_guardedalloc.h"
 
 namespace Freestyle {
 
@@ -57,9 +55,7 @@ class Module {
     return canvas->getCurrentStyleModule();
   }
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Module")
-#endif
 };
 
 } /* namespace Freestyle */

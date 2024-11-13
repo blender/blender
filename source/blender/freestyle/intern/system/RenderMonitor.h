@@ -11,9 +11,7 @@
 
 #include "render_types.h"
 
-#ifdef WITH_CXX_GUARDEDALLOC
-#  include "MEM_guardedalloc.h"
-#endif
+#include "MEM_guardedalloc.h"
 
 namespace Freestyle {
 
@@ -50,9 +48,7 @@ class RenderMonitor {
  protected:
   Render *_re;
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:RenderMonitor")
-#endif
 };
 
 } /* namespace Freestyle */

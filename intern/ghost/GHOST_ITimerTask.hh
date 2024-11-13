@@ -54,7 +54,5 @@ class GHOST_ITimerTask {
    */
   virtual void setUserData(const GHOST_TUserDataPtr userData) = 0;
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_ITimerTask")
-#endif
 };

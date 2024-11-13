@@ -292,9 +292,7 @@ class IndexedFaceSet : public Rep {
   uint _MISize;
   uint _TISize;
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:IndexedFaceSet")
-#endif
 };
 
 } /* namespace Freestyle */

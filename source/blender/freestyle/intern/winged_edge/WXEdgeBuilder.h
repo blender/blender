@@ -25,9 +25,7 @@ class WXEdgeBuilder : public WingedEdgeBuilder {
  protected:
   virtual void buildWVertices(WShape &shape, const float *vertices, uint vsize);
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WXEdgeBuilder")
-#endif
 };
 
 } /* namespace Freestyle */

@@ -22,9 +22,7 @@
 #include "../system/FreestyleConfig.h"
 #include "../system/Precision.h"
 
-#ifdef WITH_CXX_GUARDEDALLOC
-#  include "MEM_guardedalloc.h"
-#endif
+#include "MEM_guardedalloc.h"
 
 namespace Freestyle {
 
@@ -75,9 +73,7 @@ class CurvatureInfo {
   real dKr;  // radial curvature
   Vec3r er;  // radial curvature direction
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:CurvatureInfo")
-#endif
 };
 
 class Face_Curvature_Info {
@@ -98,9 +94,7 @@ class Face_Curvature_Info {
 
   vector<CurvatureInfo *> vec_curvature_info;
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Face_Curvature_Info")
-#endif
 };
 
 /**

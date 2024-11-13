@@ -8,9 +8,7 @@
  * Task graph.
  */
 
-#ifdef WITH_CXX_GUARDEDALLOC
-#  include "MEM_guardedalloc.h"
-#endif
+#include "MEM_guardedalloc.h"
 
 #include "BLI_task.h"
 
@@ -28,9 +26,7 @@ struct TaskGraph {
 #endif
   std::vector<std::unique_ptr<TaskNode>> nodes;
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("task_graph:TaskGraph")
-#endif
 };
 
 /* TaskNode - a node in the task graph. */
@@ -94,9 +90,7 @@ struct TaskNode {
     }
   }
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("task_graph:TaskNode")
-#endif
 };
 
 TaskGraph *BLI_task_graph_create()

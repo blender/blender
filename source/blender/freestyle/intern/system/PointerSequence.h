@@ -48,9 +48,7 @@
 
 #include <algorithm>
 
-#ifdef WITH_CXX_GUARDEDALLOC
-#  include "MEM_guardedalloc.h"
-#endif
+#include "MEM_guardedalloc.h"
 
 namespace Freestyle {
 
@@ -76,9 +74,7 @@ template<typename C, typename T> class PointerSequence : public C {
     for_each(this->begin(), this->end(), destroyer);
   }
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:PointerSequence")
-#endif
 };
 
 } /* namespace Freestyle */

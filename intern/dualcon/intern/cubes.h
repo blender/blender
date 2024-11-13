@@ -24,9 +24,7 @@ class Cubes {
     }
   }
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("DUALCON:Cubes")
-#endif
 };
 
 #endif /* __CUBES_H__ */

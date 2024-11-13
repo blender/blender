@@ -51,9 +51,7 @@ struct CryptomatteSession {
   blender::bke::cryptomatte::CryptomatteLayer &add_layer(std::string layer_name);
   std::optional<std::string> operator[](float encoded_hash) const;
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("cryptomatte:CryptomatteSession")
-#endif
 };
 
 CryptomatteSession::CryptomatteSession(const Main *bmain)

@@ -9,9 +9,7 @@
  * \brief Class defining a singleton used as timestamp
  */
 
-#ifdef WITH_CXX_GUARDEDALLOC
-#  include "MEM_guardedalloc.h"
-#endif
+#include "MEM_guardedalloc.h"
 
 #include "BLI_sys_types.h"
 
@@ -51,9 +49,7 @@ class TimeStamp {
   static TimeStamp _instance;
   uint _time_stamp;
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:TimeStamp")
-#endif
 };
 
 } /* namespace Freestyle */

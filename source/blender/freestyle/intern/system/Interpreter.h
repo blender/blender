@@ -11,9 +11,7 @@
 
 #include <string>
 
-#ifdef WITH_CXX_GUARDEDALLOC
-#  include "MEM_guardedalloc.h"
-#endif
+#include "MEM_guardedalloc.h"
 
 using namespace std;
 
@@ -40,9 +38,7 @@ class Interpreter {
  protected:
   string _language;
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Interpreter")
-#endif
 };
 
 } /* namespace Freestyle */

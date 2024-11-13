@@ -777,13 +777,6 @@ mark_as_advanced(WITH_MEM_JEMALLOC)
 option(WITH_MEM_VALGRIND "Enable extended valgrind support for better reporting" OFF)
 mark_as_advanced(WITH_MEM_VALGRIND)
 
-# Debug
-option(WITH_CXX_GUARDEDALLOC "\
-Enable GuardedAlloc for C++ memory allocation tracking (only enable for development)"
-  OFF
-)
-mark_as_advanced(WITH_CXX_GUARDEDALLOC)
-
 option(WITH_ASSERT_ABORT "Call abort() when raising an assertion through BLI_assert()" ON)
 mark_as_advanced(WITH_ASSERT_ABORT)
 
@@ -2597,12 +2590,6 @@ mark_as_advanced(
 
 # -------------------------------------------------------------------------------
 # Global Defines
-
-# better not set includes here but this debugging option is off by default.
-if(WITH_CXX_GUARDEDALLOC)
-  include_directories(${CMAKE_SOURCE_DIR}/intern/guardedalloc)
-  add_definitions(-DWITH_CXX_GUARDEDALLOC)
-endif()
 
 if(WITH_ASSERT_ABORT)
   add_definitions(-DWITH_ASSERT_ABORT)

@@ -20,9 +20,7 @@
 
 #include "../winged_edge/WEdge.h"
 
-#ifdef WITH_CXX_GUARDEDALLOC
-#  include "MEM_guardedalloc.h"
-#endif
+#include "MEM_guardedalloc.h"
 
 namespace Freestyle {
 
@@ -84,9 +82,7 @@ class ViewMapTesselator {
   FrsMaterial _FrsMaterial;
   bool _overloadFrsMaterial;
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:ViewMapTesselator")
-#endif
 };
 
 /** Class to tessellate the 2D projected silhouette */
@@ -101,9 +97,7 @@ class ViewMapTesselator2D : public ViewMapTesselator {
     iLine->AddVertex(v->point2D());
   }
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:ViewMapTesselator2D")
-#endif
 };
 
 /** Class to tessellate the 3D silhouette */
@@ -118,9 +112,7 @@ class ViewMapTesselator3D : public ViewMapTesselator {
     iLine->AddVertex(v->point3D());
   }
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:ViewMapTesselator3D")
-#endif
 };
 
 //

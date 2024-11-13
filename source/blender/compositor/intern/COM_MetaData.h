@@ -59,9 +59,7 @@ class MetaData {
   /* Invokes the given callback on each entry of the meta data. */
   void for_each_entry(FunctionRef<void(const std::string &, const std::string &)> callback) const;
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:MetaData")
-#endif
 };
 
 struct MetaDataExtractCallbackData {

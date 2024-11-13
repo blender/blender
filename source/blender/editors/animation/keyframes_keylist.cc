@@ -101,9 +101,7 @@ struct AnimKeylist {
     BLI_listbase_clear(&this->runtime.list_wrapper);
   }
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("editors:AnimKeylist")
-#endif
 };
 
 AnimKeylist *ED_keylist_create()
