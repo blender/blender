@@ -378,6 +378,9 @@ class Result {
   /* Returns a reference to the domain of the result. See the Domain class. */
   const Domain &domain() const;
 
+  /* Computes the number of channels of the result based on its type. */
+  int64_t channels_count() const;
+
   /* Returns a reference to the allocate float data. */
   float *float_texture() const;
 
@@ -388,45 +391,44 @@ class Result {
    * returned for all texel coordinates. */
   float4 load_pixel(const int2 &texel) const;
 
+  /* Identical to load_pixel but with extended boundary condition. */
+  float4 load_pixel_extended(const int2 &texel) const;
+
+  /* Identical to load_pixel but with zero boundary condition. */
+  float4 load_pixel_zero(const int2 &texel) const;
+
   /* Stores the given pixel value in the float pixel at the given texel coordinates. While a float4
    * is given, only the number of channels of the result will be written, while the rest of the
    * float4 will be ignored. This is similar to how the imageStore function in GLSL works. */
   void store_pixel(const int2 &texel, const float4 &pixel_value);
 
   /* Equivalent to the GLSL texture() function with nearest interpolation and zero boundary
-   * conditions. The coordinates are thus expected to have half-pixels offsets. A float4 is always
+   * condition. The coordinates are thus expected to have half-pixels offsets. A float4 is always
    * returned regardless of the number of channels of the buffer, the remaining channels will be
    * initialized with the template float4(0, 0, 0, 1). */
   float4 sample_nearest_zero(const float2 &coordinates) const;
 
-  /* Equivalent to the GLSL texture() function with bilinear interpolation and zero boundary
-   * conditions. The coordinates are thus expected to have half-pixels offsets. A float4 is always
-   * returned regardless of the number of channels of the buffer, the remaining channels will be
-   * initialized with the template float4(0, 0, 0, 1). */
+  /* Identical to sample_nearest_zero but with bilinear interpolation. */
   float4 sample_bilinear_zero(const float2 &coordinates) const;
 
-  /* Equivalent to the GLSL texture() function with nearest interpolation and extended boundary
-   * conditions. The coordinates are thus expected to have half-pixels offsets. A float4 is always
-   * returned regardless of the number of channels of the buffer, the remaining channels will be
-   * initialized with the template float4(0, 0, 0, 1). */
+  /* Identical to sample_nearest_zero but with extended boundary condition. */
   float4 sample_nearest_extended(const float2 &coordinates) const;
 
-  /* Equivalent to the GLSL texture() function with bilinear interpolation and extended boundary
-   * conditions. The coordinates are thus expected to have half-pixels offsets. A float4 is always
-   * returned regardless of the number of channels of the buffer, the remaining channels will be
-   * initialized with the template float4(0, 0, 0, 1). */
+  /* Identical to sample_nearest_extended but with bilinear interpolation. */
   float4 sample_bilinear_extended(const float2 &coordinates) const;
 
   /* Equivalent to the GLSL textureGrad() function with EWA filtering and extended boundary
-   * conditions. Note that extended boundaries only cover areas touched by the ellipses whose
+   * condition. Note that extended boundaries only cover areas touched by the ellipses whose
    * center is inside the image, other areas will be zero. The coordinates are thus expected to
    * have half-pixels offsets. Only supports ResultType::Color. */
   float4 sample_ewa_extended(const float2 &coordinates,
                              const float2 &x_gradient,
                              const float2 &y_gradient) const;
 
-  /* Computes the number of channels of the result based on its type. */
-  int64_t channels_count() const;
+  /* Identical to sample_ewa_extended but with zero boundary condition. */
+  float4 sample_ewa_zero(const float2 &coordinates,
+                         const float2 &x_gradient,
+                         const float2 &y_gradient) const;
 
  private:
   /* Allocates the texture data for the given size, either on the GPU or CPU based on the result's
@@ -443,6 +445,81 @@ class Result {
 /* -------------------------------------------------------------------- */
 /* Inline Methods.
  */
+
+inline const Domain &Result::domain() const
+{
+  return domain_;
+}
+
+inline int64_t Result::channels_count() const
+{
+  switch (type_) {
+    case ResultType::Float:
+      return 1;
+    case ResultType::Float2:
+    case ResultType::Int2:
+      return 2;
+    case ResultType::Float3:
+      return 3;
+    case ResultType::Vector:
+    case ResultType::Color:
+      return 4;
+  }
+  return 4;
+}
+
+inline float *Result::float_texture() const
+{
+  BLI_assert(storage_type_ == ResultStorageType::FloatCPU);
+  return float_texture_;
+}
+
+inline float4 Result::load_pixel(const int2 &texel) const
+{
+  float4 pixel_value = float4(0.0f, 0.0f, 0.0f, 1.0f);
+  if (is_single_value_) {
+    this->copy_pixel(pixel_value, float_texture_);
+  }
+  else {
+    this->copy_pixel(pixel_value, this->get_float_pixel(texel));
+  }
+  return pixel_value;
+}
+
+inline float4 Result::load_pixel_extended(const int2 &texel) const
+{
+  float4 pixel_value = float4(0.0f, 0.0f, 0.0f, 1.0f);
+  if (is_single_value_) {
+    this->copy_pixel(pixel_value, float_texture_);
+  }
+  else {
+    const int2 clamped_texel = math::clamp(texel, int2(0), domain_.size - int2(1));
+    this->copy_pixel(pixel_value, this->get_float_pixel(clamped_texel));
+  }
+  return pixel_value;
+}
+
+inline float4 Result::load_pixel_zero(const int2 &texel) const
+{
+  float4 pixel_value = float4(0.0f, 0.0f, 0.0f, 1.0f);
+  if (is_single_value_) {
+    this->copy_pixel(pixel_value, float_texture_);
+  }
+  else {
+    if (texel.x >= 0 && texel.y >= 0 && texel.x < domain_.size.x && texel.y < domain_.size.y) {
+      this->copy_pixel(pixel_value, this->get_float_pixel(texel));
+    }
+    else {
+      this->copy_pixel(pixel_value, float4(0.0f));
+    }
+  }
+  return pixel_value;
+}
+
+inline void Result::store_pixel(const int2 &texel, const float4 &pixel_value)
+{
+  this->copy_pixel(this->get_float_pixel(texel), pixel_value);
+}
 
 inline float4 Result::sample_nearest_zero(const float2 &coordinates) const
 {
@@ -533,9 +610,7 @@ inline float4 Result::sample_bilinear_extended(const float2 &coordinates) const
 static void sample_ewa_extended_read_callback(void *userdata, int x, int y, float result[4])
 {
   const Result *input = static_cast<const Result *>(userdata);
-  const int2 upper_bound = input->domain().size - int2(1);
-  const int2 clamped_coordinates = math::clamp(int2(x, y), int2(0), upper_bound);
-  const float4 sampled_result = input->load_pixel(clamped_coordinates);
+  const float4 sampled_result = input->load_pixel_extended(int2(x, y));
   copy_v4_v4(result, sampled_result);
 }
 
@@ -565,49 +640,39 @@ inline float4 Result::sample_ewa_extended(const float2 &coordinates,
   return pixel_value;
 }
 
-inline int64_t Result::channels_count() const
+/* Given a Result as the userdata argument, sample it at the given coordinates using zero boundary
+ * condition and write the result to the result argument.*/
+static void sample_ewa_zero_read_callback(void *userdata, int x, int y, float result[4])
 {
-  switch (type_) {
-    case ResultType::Float:
-      return 1;
-    case ResultType::Float2:
-    case ResultType::Int2:
-      return 2;
-    case ResultType::Float3:
-      return 3;
-    case ResultType::Vector:
-    case ResultType::Color:
-      return 4;
-  }
-  return 4;
+  const Result *input = static_cast<const Result *>(userdata);
+  const float4 sampled_result = input->load_pixel_zero(int2(x, y));
+  copy_v4_v4(result, sampled_result);
 }
 
-inline const Domain &Result::domain() const
+inline float4 Result::sample_ewa_zero(const float2 &coordinates,
+                                      const float2 &x_gradient,
+                                      const float2 &y_gradient) const
 {
-  return domain_;
-}
+  BLI_assert(type_ == ResultType::Color);
 
-inline float *Result::float_texture() const
-{
-  BLI_assert(storage_type_ == ResultStorageType::FloatCPU);
-  return float_texture_;
-}
-
-inline float4 Result::load_pixel(const int2 &texel) const
-{
   float4 pixel_value = float4(0.0f, 0.0f, 0.0f, 1.0f);
   if (is_single_value_) {
     this->copy_pixel(pixel_value, float_texture_);
+    return pixel_value;
   }
-  else {
-    this->copy_pixel(pixel_value, this->get_float_pixel(texel));
-  }
-  return pixel_value;
-}
 
-inline void Result::store_pixel(const int2 &texel, const float4 &pixel_value)
-{
-  this->copy_pixel(this->get_float_pixel(texel), pixel_value);
+  const int2 size = domain_.size;
+  BLI_ewa_filter(size.x,
+                 size.y,
+                 false,
+                 true,
+                 coordinates,
+                 x_gradient,
+                 y_gradient,
+                 sample_ewa_zero_read_callback,
+                 const_cast<Result *>(this),
+                 pixel_value);
+  return pixel_value;
 }
 
 inline float *Result::get_float_pixel(const int2 &texel) const
