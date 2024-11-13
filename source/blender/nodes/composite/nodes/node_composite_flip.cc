@@ -7,6 +7,7 @@
  */
 
 #include "BLI_assert.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.h"
 
 #include "UI_interface.hh"
@@ -45,17 +46,6 @@ class FlipOperation : public NodeOperation {
 
   void execute() override
   {
-    /* Not yet supported on CPU. */
-    if (!context().use_gpu()) {
-      for (const bNodeSocket *output : this->node()->output_sockets()) {
-        Result &output_result = get_result(output->identifier);
-        if (output_result.should_compute()) {
-          output_result.allocate_invalid();
-        }
-      }
-      return;
-    }
-
     Result &input = get_input("Image");
     Result &result = get_result("Image");
 
@@ -65,6 +55,16 @@ class FlipOperation : public NodeOperation {
       return;
     }
 
+    if (this->context().use_gpu()) {
+      this->execute_gpu();
+    }
+    else {
+      this->execute_cpu();
+    }
+  }
+
+  void execute_gpu()
+  {
     GPUShader *shader = context().get_shader("compositor_flip");
     GPU_shader_bind(shader);
 
@@ -73,10 +73,11 @@ class FlipOperation : public NodeOperation {
     GPU_shader_uniform_1b(
         shader, "flip_y", ELEM(get_flip_mode(), CMP_NODE_FLIP_Y, CMP_NODE_FLIP_X_Y));
 
+    Result &input = get_input("Image");
     input.bind_as_texture(shader, "input_tx");
 
     const Domain domain = compute_domain();
-
+    Result &result = get_result("Image");
     result.allocate_texture(domain);
     result.bind_as_image(shader, "output_img");
 
@@ -87,9 +88,33 @@ class FlipOperation : public NodeOperation {
     GPU_shader_unbind();
   }
 
+  void execute_cpu()
+  {
+    const bool flip_x = ELEM(get_flip_mode(), CMP_NODE_FLIP_X, CMP_NODE_FLIP_X_Y);
+    const bool flip_y = ELEM(get_flip_mode(), CMP_NODE_FLIP_Y, CMP_NODE_FLIP_X_Y);
+
+    Result &input = get_input("Image");
+
+    const Domain domain = compute_domain();
+    Result &output = get_result("Image");
+    output.allocate_texture(domain);
+
+    const int2 size = domain.size;
+    parallel_for(domain.size, [&](const int2 texel) {
+      int2 flipped_texel = texel;
+      if (flip_x) {
+        flipped_texel.x = size.x - texel.x - 1;
+      }
+      if (flip_y) {
+        flipped_texel.y = size.y - texel.y - 1;
+      }
+      output.store_pixel(texel, input.load_pixel(flipped_texel));
+    });
+  }
+
   CMPNodeFlipMode get_flip_mode()
   {
-    return (CMPNodeFlipMode)bnode().custom1;
+    return static_cast<CMPNodeFlipMode>(bnode().custom1);
   }
 };
 
