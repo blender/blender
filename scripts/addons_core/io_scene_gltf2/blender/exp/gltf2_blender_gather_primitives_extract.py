@@ -151,7 +151,8 @@ class PrimitiveCreator:
         # We need to check if we are in a GN Instance, because for GN instances, it seems that shape keys are preserved,
         # even if we apply modifiers
         # (For classic objects, shape keys are not preserved if we apply modifiers)
-        if self.blender_mesh.shape_keys and self.export_settings['gltf_morph'] and ((self.blender_mesh.is_evaluated is True and self.blender_mesh.get('gltf2_mesh_applied') is not None) or self.blender_mesh.is_evaluated is False):
+        if self.blender_mesh.shape_keys and self.export_settings['gltf_morph'] and (
+                (self.blender_mesh.is_evaluated is True and self.blender_mesh.get('gltf2_mesh_applied') is not None) or self.blender_mesh.is_evaluated is False):
             self.key_blocks = get_sk_exported(self.blender_mesh.shape_keys.key_blocks)
 
         # Fetch vert positions and bone data (joint,weights)
