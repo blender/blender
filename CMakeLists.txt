@@ -289,10 +289,10 @@ Use pre-compiled headers to speed up compilation."
   )
   mark_as_advanced(WITH_COMPILER_PRECOMPILED_HEADERS)
 
-  if(WITH_CLANG_TIDY AND CMAKE_COMPILER_IS_GNUCC)
+  if(WITH_CLANG_TIDY AND (CMAKE_COMPILER_IS_GNUCC OR APPLE))
     if(WITH_COMPILER_PRECOMPILED_HEADERS)
       message(STATUS
-        "Clang-Tidy and GCC precompiled headers are incompatible, disabling precompiled headers"
+        "Clang-Tidy and the current compiler's precompiled headers are incompatible, disabling precompiled headers."
       )
       set(WITH_COMPILER_PRECOMPILED_HEADERS OFF)
     endif()
@@ -783,7 +783,7 @@ mark_as_advanced(WITH_ASSERT_ABORT)
 option(WITH_ASSERT_RELEASE "Build with asserts enabled even for non-debug configurations" OFF)
 mark_as_advanced(WITH_ASSERT_RELEASE)
 
-if((UNIX AND NOT APPLE) OR (CMAKE_GENERATOR MATCHES "^Visual Studio.+"))
+if(UNIX OR (CMAKE_GENERATOR MATCHES "^Visual Studio.+"))
   option(WITH_CLANG_TIDY "\
 Use Clang Tidy to analyze the source code \
 (only enable for development on Linux using Clang, or Windows using the Visual Studio IDE)"
