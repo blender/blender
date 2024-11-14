@@ -706,8 +706,15 @@ uiBlock *ui_popup_block_refresh(bContext *C,
   block->oldblock = nullptr;
 
   if (!block->endblock) {
-    UI_block_end_ex(
-        C, block, handle->popup_create_vars.event_xy, handle->popup_create_vars.event_xy);
+    UI_block_end_ex(C,
+                    CTX_data_main(C),
+                    window,
+                    CTX_data_scene(C),
+                    region,
+                    CTX_data_depsgraph_pointer(C),
+                    block,
+                    handle->popup_create_vars.event_xy,
+                    handle->popup_create_vars.event_xy);
   }
 
   /* if this is being created from a button */

@@ -1919,13 +1919,16 @@ bool ui_but_context_poll_operator(bContext *C, wmOperatorType *ot, const uiBut *
   return ui_but_context_poll_operator_ex(C, but, &params);
 }
 
-void UI_block_end_ex(const bContext *C, uiBlock *block, const int xy[2], int r_xy[2])
+void UI_block_end_ex(const bContext *C,
+                     Main *bmain,
+                     wmWindow *window,
+                     Scene *scene,
+                     ARegion *region,
+                     Depsgraph *depsgraph,
+                     uiBlock *block,
+                     const int xy[2],
+                     int r_xy[2])
 {
-  wmWindow *window = CTX_wm_window(C);
-  Scene *scene = CTX_data_scene(C);
-  ARegion *region = CTX_wm_region(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-
   BLI_assert(block->active);
 
   /* Extend button data. This needs to be done before the block updating. */
@@ -1958,7 +1961,7 @@ void UI_block_end_ex(const bContext *C, uiBlock *block, const int xy[2], int r_x
     const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
         depsgraph, (scene) ? scene->r.cfra : 0.0f);
     ui_but_anim_flag(but, &anim_eval_context);
-    ui_but_override_flag(CTX_data_main(C), but);
+    ui_but_override_flag(bmain, but);
     if (UI_but_is_decorator(but)) {
       ui_but_anim_decorate_update_from_flag((uiButDecorator *)but);
     }
@@ -1972,7 +1975,7 @@ void UI_block_end_ex(const bContext *C, uiBlock *block, const int xy[2], int r_x
   if (block->layouts.first) {
     UI_block_layout_resolve(block, nullptr, nullptr);
   }
-  ui_block_align_calc(block, CTX_wm_region(C));
+  ui_block_align_calc(block, region);
   if ((block->flag & UI_BLOCK_LOOP) && (block->flag & UI_BLOCK_NUMSELECT) &&
       (block->flag & UI_BLOCK_NO_ACCELERATOR_KEYS) == 0)
   {
@@ -2029,7 +2032,15 @@ void UI_block_end(const bContext *C, uiBlock *block)
 {
   wmWindow *window = CTX_wm_window(C);
 
-  UI_block_end_ex(C, block, window->eventstate->xy, nullptr);
+  UI_block_end_ex(C,
+                  CTX_data_main(C),
+                  window,
+                  CTX_data_scene(C),
+                  CTX_wm_region(C),
+                  CTX_data_depsgraph_pointer(C),
+                  block,
+                  window->eventstate->xy,
+                  nullptr);
 }
 
 /* ************** BLOCK DRAWING FUNCTION ************* */
@@ -3786,11 +3797,13 @@ void UI_block_region_set(uiBlock *block, ARegion *region)
   block->oldblock = oldblock;
 }
 
-uiBlock *UI_block_begin(const bContext *C, ARegion *region, std::string name, eUIEmbossType emboss)
+uiBlock *UI_block_begin(const bContext *C,
+                        Scene *scene,
+                        wmWindow *window,
+                        ARegion *region,
+                        std::string name,
+                        eUIEmbossType emboss)
 {
-  wmWindow *window = CTX_wm_window(C);
-  Scene *scene = CTX_data_scene(C);
-
   uiBlock *block = MEM_new<uiBlock>(__func__);
   block->active = true;
   block->emboss = emboss;
@@ -3829,6 +3842,11 @@ uiBlock *UI_block_begin(const bContext *C, ARegion *region, std::string name, eU
   }
 
   return block;
+}
+
+uiBlock *UI_block_begin(const bContext *C, ARegion *region, std::string name, eUIEmbossType emboss)
+{
+  return UI_block_begin(C, CTX_data_scene(C), CTX_wm_window(C), region, std::move(name), emboss);
 }
 
 void ui_block_add_dynamic_listener(uiBlock *block,

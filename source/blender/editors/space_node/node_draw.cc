@@ -111,6 +111,12 @@ using blender::nodes::NodeExtraInfoRow;
  * This is passed to many functions which draw the node editor.
  */
 struct TreeDrawContext {
+  Main *bmain;
+  wmWindow *window;
+  Scene *scene;
+  ARegion *region;
+  Depsgraph *depsgraph;
+
   /**
    * Whether a viewer node is active in geometry nodes can not be determined by a flag on the node
    * alone. That's because if the node group with the viewer is used multiple times, it's only
@@ -339,7 +345,11 @@ Array<bNode *> tree_draw_order_calc_nodes_reversed(bNodeTree &ntree)
 static Array<uiBlock *> node_uiblocks_init(const bContext &C, const Span<bNode *> nodes)
 {
   Array<uiBlock *> blocks(nodes.size());
+
   /* Add node uiBlocks in drawing order - prevents events going to overlapping nodes. */
+  Scene *scene = CTX_data_scene(&C);
+  wmWindow *window = CTX_wm_window(&C);
+  ARegion *region = CTX_wm_region(&C);
   for (const int i : nodes.index_range()) {
     const bNode &node = *nodes[i];
     std::string block_name = "node_" + std::string(node.name);
@@ -3486,7 +3496,13 @@ static void node_draw_basis(const bContext &C,
     rect_with_preview.ymax += NODE_WIDTH(node);
   }
   if (BLI_rctf_isect(&rect_with_preview, &v2d.cur, nullptr) == false) {
-    UI_block_end(&C, &block);
+    UI_block_end_ex(&C,
+                    tree_draw_ctx.bmain,
+                    tree_draw_ctx.window,
+                    tree_draw_ctx.scene,
+                    tree_draw_ctx.region,
+                    tree_draw_ctx.depsgraph,
+                    &block);
     return;
   }
 
@@ -3826,7 +3842,13 @@ static void node_draw_basis(const bContext &C,
     node_draw_panels(ntree, node, block);
   }
 
-  UI_block_end(&C, &block);
+  UI_block_end_ex(&C,
+                  tree_draw_ctx.bmain,
+                  tree_draw_ctx.window,
+                  tree_draw_ctx.scene,
+                  tree_draw_ctx.region,
+                  tree_draw_ctx.depsgraph,
+                  &block);
   UI_block_draw(&C, &block);
 }
 
@@ -4011,7 +4033,13 @@ static void node_draw_hidden(const bContext &C,
 
   node_draw_sockets(v2d, C, ntree, node, block, true, false);
 
-  UI_block_end(&C, &block);
+  UI_block_end_ex(&C,
+                  tree_draw_ctx.bmain,
+                  tree_draw_ctx.window,
+                  tree_draw_ctx.scene,
+                  tree_draw_ctx.region,
+                  tree_draw_ctx.depsgraph,
+                  &block);
   UI_block_draw(&C, &block);
 }
 
@@ -4337,7 +4365,13 @@ static void frame_node_draw_overlay(const bContext &C,
 {
   /* Skip if out of view. */
   if (BLI_rctf_isect(&node.runtime->totr, &region.v2d.cur, nullptr) == false) {
-    UI_block_end(&C, &block);
+    UI_block_end_ex(&C,
+                    tree_draw_ctx.bmain,
+                    tree_draw_ctx.window,
+                    tree_draw_ctx.scene,
+                    tree_draw_ctx.region,
+                    tree_draw_ctx.depsgraph,
+                    &block);
     return;
   }
 
@@ -4346,7 +4380,13 @@ static void frame_node_draw_overlay(const bContext &C,
 
   node_draw_extra_info_panel(C, tree_draw_ctx, snode, node, nullptr, block);
 
-  UI_block_end(&C, &block);
+  UI_block_end_ex(&C,
+                  tree_draw_ctx.bmain,
+                  tree_draw_ctx.window,
+                  tree_draw_ctx.scene,
+                  tree_draw_ctx.region,
+                  tree_draw_ctx.depsgraph,
+                  &block);
   UI_block_draw(&C, &block);
 }
 
@@ -4516,7 +4556,13 @@ static void reroute_node_draw(const bContext &C,
   if (rct.xmax < region.v2d.cur.xmin || rct.xmin > region.v2d.cur.xmax ||
       rct.ymax < region.v2d.cur.ymin || node.runtime->totr.ymin > region.v2d.cur.ymax)
   {
-    UI_block_end(&C, &block);
+    UI_block_end_ex(&C,
+                    tree_draw_ctx.bmain,
+                    tree_draw_ctx.window,
+                    tree_draw_ctx.scene,
+                    tree_draw_ctx.region,
+                    tree_draw_ctx.depsgraph,
+                    &block);
     return;
   }
 
@@ -4526,7 +4572,13 @@ static void reroute_node_draw(const bContext &C,
    * if node itself is selected, since we don't display the node body separately. */
   node_draw_sockets(region.v2d, C, ntree, node, block, false, node.flag & SELECT);
 
-  UI_block_end(&C, &block);
+  UI_block_end_ex(&C,
+                  tree_draw_ctx.bmain,
+                  tree_draw_ctx.window,
+                  tree_draw_ctx.scene,
+                  tree_draw_ctx.region,
+                  tree_draw_ctx.depsgraph,
+                  &block);
   UI_block_draw(&C, &block);
 }
 
@@ -4936,6 +4988,11 @@ static void draw_nodetree(const bContext &C,
   Array<uiBlock *> blocks = node_uiblocks_init(C, nodes);
 
   TreeDrawContext tree_draw_ctx;
+  tree_draw_ctx.bmain = CTX_data_main(&C);
+  tree_draw_ctx.window = CTX_wm_window(&C);
+  tree_draw_ctx.scene = CTX_data_scene(&C);
+  tree_draw_ctx.region = CTX_wm_region(&C);
+  tree_draw_ctx.depsgraph = CTX_data_depsgraph_pointer(&C);
 
   BLI_SCOPED_DEFER([&]() { ntree.runtime->sockets_on_active_gizmo_paths.clear(); });
   if (ntree.type == NTREE_GEOMETRY) {
