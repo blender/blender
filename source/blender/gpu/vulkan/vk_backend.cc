@@ -39,6 +39,11 @@ static CLG_LogRef LOG = {"gpu.vulkan"};
 namespace blender::gpu {
 static const char *KNOWN_CRASHING_DRIVER = "unstable driver";
 
+static const char *vk_extension_get(int index)
+{
+  return VKBackend::get().device.extension_name_get(index);
+}
+
 static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physical_device)
 {
   Vector<StringRefNull> missing_capabilities;
@@ -553,6 +558,12 @@ void VKBackend::capabilities_init(VKDevice &device)
 
   GCaps.max_parallel_compilations = BLI_system_thread_count();
   GCaps.mem_stats_support = true;
+
+  uint32_t vk_extension_count;
+  vkEnumerateDeviceExtensionProperties(
+      device.physical_device_get(), nullptr, &vk_extension_count, nullptr);
+  GCaps.extensions_len = vk_extension_count;
+  GCaps.extension_get = vk_extension_get;
 
   detect_workarounds(device);
 }

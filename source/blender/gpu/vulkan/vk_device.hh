@@ -191,6 +191,11 @@ class VKDevice : public NonCopyable {
     PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessenger = nullptr;
   } functions;
 
+  const char *extension_name_get(int index) const
+  {
+    return device_extensions_[index].extensionName;
+  }
+
   VkPhysicalDevice physical_device_get() const
   {
     return vk_physical_device_;
