@@ -35,9 +35,11 @@ class Relations {
   {
   }
 
-  void begin_sync(Resources & /*res*/, const State &state)
+  void begin_sync(Resources &res, const State &state)
   {
     enabled_ = state.space_type == SPACE_VIEW3D;
+    enabled_ &= (state.v3d_flag & V3D_HIDE_HELPLINES) == 0;
+    enabled_ &= res.selection_type == SelectionType::DISABLED;
 
     points_buf_.clear();
     relations_buf_.clear();
@@ -46,6 +48,11 @@ class Relations {
   void object_sync(const ObjectRef &ob_ref, Resources &res, const State &state)
   {
     if (!enabled_) {
+      return;
+    }
+
+    /* Don't show object extras in set's. */
+    if (ob_ref.object->base_flag & (BASE_FROM_SET | BASE_FROM_DUPLI)) {
       return;
     }
 
