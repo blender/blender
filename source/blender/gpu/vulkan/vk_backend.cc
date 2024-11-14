@@ -356,6 +356,9 @@ void VKBackend::detect_workarounds(VKDevice &device)
   workarounds.dynamic_rendering_unused_attachments = !device.supports_extension(
       VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME);
 
+  /* TODO(jbakker): This should be set when dynamic rendering is not available. See #129062. */
+  GCaps.render_pass_workaround = false;
+
   device.workarounds_ = workarounds;
 }
 
