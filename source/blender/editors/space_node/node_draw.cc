@@ -353,7 +353,7 @@ static Array<uiBlock *> node_uiblocks_init(const bContext &C, const Span<bNode *
   for (const int i : nodes.index_range()) {
     const bNode &node = *nodes[i];
     std::string block_name = "node_" + std::string(node.name);
-    uiBlock *block = UI_block_begin(&C, CTX_wm_region(&C), std::move(block_name), UI_EMBOSS);
+    uiBlock *block = UI_block_begin(&C, scene, window, region, std::move(block_name), UI_EMBOSS);
     blocks[node.index()] = block;
     /* This cancels events for background nodes. */
     UI_block_flag_enable(block, UI_BLOCK_CLIP_EVENTS);
