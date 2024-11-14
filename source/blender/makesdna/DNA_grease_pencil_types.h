@@ -597,6 +597,8 @@ typedef struct GreasePencil {
   void remove_layer(blender::bke::greasepencil::Layer &layer);
   void remove_group(blender::bke::greasepencil::LayerGroup &group, bool keep_children = false);
 
+  std::string unique_layer_name(blender::StringRef name);
+
   /* Frames API functions. */
 
   /**
