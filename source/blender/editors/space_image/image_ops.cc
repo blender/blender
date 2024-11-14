@@ -1594,6 +1594,17 @@ static int image_file_browse_exec(bContext *C, wmOperator *op)
 
   char filepath[FILE_MAX];
   RNA_string_get(op->ptr, "filepath", filepath);
+  if (BLI_path_is_rel(filepath)) {
+    /* Relative path created by the filebrowser are always relative to the current blendfile, need
+     * to be made relative to the library blendfile path in case image is an editable linked data.
+     */
+    BLI_path_abs(filepath, BKE_main_blendfile_path(CTX_data_main(C)));
+    /* TODO: make this a BKE_lib_id helper (already a static function in BKE_image too), we likely
+     * need this in more places in the future. ~~mont29 */
+    BLI_path_rel(filepath,
+                 ID_IS_LINKED(&ima->id) ? ima->id.lib->runtime.filepath_abs :
+                                          BKE_main_blendfile_path(CTX_data_main(C)));
+  }
 
   /* If loading into a tiled texture, ensure that the filename is tokenized. */
   if (ima->source == IMA_SRC_TILED) {
@@ -1619,6 +1630,9 @@ static int image_file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *
 
   char filepath[FILE_MAX];
   STRNCPY(filepath, ima->filepath);
+  BLI_path_abs(filepath,
+               ID_IS_LINKED(&ima->id) ? ima->id.lib->runtime.filepath_abs :
+                                        BKE_main_blendfile_path(CTX_data_main(C)));
 
   /* Shift+Click to open the file, Alt+Click to browse a folder in the OS's browser. */
   if (event->modifier & (KM_SHIFT | KM_ALT)) {
