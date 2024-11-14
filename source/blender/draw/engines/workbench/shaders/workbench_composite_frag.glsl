@@ -43,7 +43,7 @@ void main()
 #endif
 
 #ifdef WORKBENCH_LIGHTING_STUDIO
-  float roughness, metallic;
+  float roughness = 0.0, metallic = 0.0;
   workbench_float_pair_decode(mat_data.a, roughness, metallic);
   color.rgb = get_world_lighting(base_color, roughness, metallic, N, V);
 #endif

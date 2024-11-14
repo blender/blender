@@ -46,10 +46,7 @@ void emit_cap(bool front,
   tri_EmitVertex(2, out_vertex_id, geom_out);
 }
 
-void geometry_main(VertOut geom_in[3],
-                   uint out_vertex_id,
-                   uint out_primitive_id,
-                   uint out_invocation_id)
+void geometry_main(VertOut geom_in[3], uint out_vertex_id, uint out_invocation_id)
 {
   vec3 v10 = geom_in[0].lP - geom_in[1].lP;
   vec3 v12 = geom_in[2].lP - geom_in[1].lP;
@@ -96,8 +93,6 @@ void main()
   uint in_primitive_first_vertex = in_primitive_id * input_primitive_vertex_count;
 
   uint out_vertex_id = uint(gl_VertexID) % ouput_primitive_vertex_count;
-  uint out_primitive_id = (uint(gl_VertexID) / ouput_primitive_vertex_count) %
-                          ouput_primitive_count;
   uint out_invocation_id = (uint(gl_VertexID) / output_vertex_count_per_invocation) %
                            ouput_invocation_count;
 
@@ -113,5 +108,5 @@ void main()
 
   /* Discard by default. */
   gl_Position = vec4(NAN_FLT);
-  geometry_main(vert_out, out_vertex_id, out_primitive_id, out_invocation_id);
+  geometry_main(vert_out, out_vertex_id, out_invocation_id);
 }

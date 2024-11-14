@@ -46,7 +46,7 @@ void pointcloud_get_pos_and_radius(out vec3 outpos, out float outradius)
 void pointcloud_get_pos_nor_radius(out vec3 outpos, out vec3 outnor, out float outradius)
 {
   vec3 p;
-  float radius;
+  float radius = 0.0;
   pointcloud_get_pos_and_radius(p, radius);
 
   mat3 facing_mat = pointcloud_get_facing_matrix(p);
@@ -88,7 +88,7 @@ void pointcloud_get_pos_nor_radius(out vec3 outpos, out vec3 outnor, out float o
 void pointcloud_get_pos_and_nor(out vec3 outpos, out vec3 outnor)
 {
   vec3 nor, pos;
-  float radius;
+  float radius = 0.0;
   pointcloud_get_pos_nor_radius(pos, nor, radius);
   outpos = pos;
   outnor = nor;

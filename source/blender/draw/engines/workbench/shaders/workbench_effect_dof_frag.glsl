@@ -109,7 +109,6 @@ void main_downsample()
   vec4 color3 = textureLod(sceneColorTex, texel.zy, 0.0);
   vec4 color4 = textureLod(sceneColorTex, texel.xw, 0.0);
 
-  vec4 depths;
   vec2 cocs1 = textureLod(inputCocTex, texel.xy, 0.0).rg;
   vec2 cocs2 = textureLod(inputCocTex, texel.zw, 0.0).rg;
   vec2 cocs3 = textureLod(inputCocTex, texel.zy, 0.0).rg;

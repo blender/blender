@@ -56,7 +56,7 @@ void workbench_hair_random_material(float rand,
 void main()
 {
   bool is_persp = (drw_view.winmat[3][3] == 0.0);
-  float time, thick_time, thickness;
+  float time = 0.0, thick_time = 0.0, thickness = 0.0;
   vec3 world_pos, tan, binor;
   hair_get_pos_tan_binor_time(is_persp,
                               drw_modelinv(),

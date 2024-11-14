@@ -187,7 +187,6 @@ in float dummy;
 #    endif
 
 void hair_get_center_pos_tan_binor_time(bool is_persp,
-                                        mat4 invmodel_mat,
                                         vec3 camera_pos,
                                         vec3 camera_z,
                                         out vec3 wpos,
@@ -237,7 +236,7 @@ void hair_get_pos_tan_binor_time(bool is_persp,
                                  out float thick_time)
 {
   hair_get_center_pos_tan_binor_time(
-      is_persp, invmodel_mat, camera_pos, camera_z, wpos, wtan, wbinor, time, thickness);
+      is_persp, camera_pos, camera_z, wpos, wtan, wbinor, time, thickness);
   if (hairThicknessRes > 1) {
     thick_time = float(gl_VertexID % hairThicknessRes) / float(hairThicknessRes - 1);
     thick_time = thickness * (thick_time * 2.0 - 1.0);
