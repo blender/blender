@@ -941,6 +941,13 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         mesh.tag_positions_changed();
         BKE_sculptsession_free_deformMats(&ss);
       }
+      else {
+        Mesh &mesh = *static_cast<Mesh *>(object.data);
+        /* The BVH normals recalculation that will happen later (caused by
+         * `pbvh.tag_positions_changed`) won't recalculate the face corner normals.
+         * We need to manually clear that cache. */
+        mesh.runtime->corner_normals_cache.tag_dirty();
+      }
       bke::pbvh::update_bounds(*depsgraph, object, pbvh);
       bke::pbvh::store_bounds_orig(pbvh);
       break;
