@@ -1581,7 +1581,12 @@ static void create_inspection_string_for_geometry_socket(fmt::memory_buffer &buf
     return;
   }
 
-  Span<bke::GeometryComponent::Type> supported_types = socket_decl->supported_types();
+  Vector<bke::GeometryComponent::Type> supported_types = socket_decl->supported_types();
+  if (!U.experimental.use_grease_pencil_version3) {
+    supported_types.remove_if([&](const bke::GeometryComponent::Type type) {
+      return type == bke::GeometryComponent::Type::GreasePencil;
+    });
+  }
   if (supported_types.is_empty()) {
     fmt::format_to(fmt::appender(buf), TIP_("Supported: All Types"));
     return;
