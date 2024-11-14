@@ -4139,19 +4139,19 @@ Mesh *BKE_object_get_evaluated_mesh(const Object *object_eval)
   return BKE_object_get_evaluated_mesh_unchecked(object_eval);
 }
 
-Mesh *BKE_object_get_pre_modified_mesh(const Object *object)
+const Mesh *BKE_object_get_pre_modified_mesh(const Object *object)
 {
   if (object->type == OB_MESH && object->runtime->data_orig != nullptr) {
     BLI_assert(object->id.tag & ID_TAG_COPIED_ON_EVAL);
     BLI_assert(object->id.orig_id != nullptr);
-    BLI_assert(object->runtime->data_orig->orig_id == ((Object *)object->id.orig_id)->data);
-    Mesh *result = (Mesh *)object->runtime->data_orig;
+    BLI_assert(object->runtime->data_orig->orig_id == ((const Object *)object->id.orig_id)->data);
+    const Mesh *result = (const Mesh *)object->runtime->data_orig;
     BLI_assert((result->id.tag & ID_TAG_COPIED_ON_EVAL) != 0);
     BLI_assert((result->id.tag & ID_TAG_COPIED_ON_EVAL_FINAL_RESULT) == 0);
     return result;
   }
   BLI_assert((object->id.tag & ID_TAG_COPIED_ON_EVAL) == 0);
-  return (Mesh *)object->data;
+  return (const Mesh *)object->data;
 }
 
 Mesh *BKE_object_get_original_mesh(const Object *object)

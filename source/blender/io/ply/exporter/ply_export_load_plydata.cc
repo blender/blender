@@ -332,11 +332,11 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
     }
 
     Object *obj_eval = DEG_get_evaluated_object(depsgraph, object);
-    Mesh *mesh = export_params.apply_modifiers ? BKE_object_get_evaluated_mesh(obj_eval) :
-                                                 BKE_object_get_pre_modified_mesh(obj_eval);
+    const Mesh *mesh = export_params.apply_modifiers ? BKE_object_get_evaluated_mesh(obj_eval) :
+                                                       BKE_object_get_pre_modified_mesh(obj_eval);
 
     /* Ensure data exists if currently in edit mode. */
-    BKE_mesh_wrapper_ensure_mdata(mesh);
+    BKE_mesh_wrapper_ensure_mdata(const_cast<Mesh *>(mesh));
 
     bool force_triangulation = false;
     OffsetIndices faces = mesh->faces();
@@ -348,11 +348,11 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
     }
 
     /* Triangulate */
-    bool manually_free_mesh = false;
+    Mesh *manually_free_mesh = nullptr;
     if (export_params.export_triangulated_mesh || force_triangulation) {
-      mesh = do_triangulation(mesh, export_params.export_triangulated_mesh);
+      manually_free_mesh = do_triangulation(mesh, export_params.export_triangulated_mesh);
+      mesh = manually_free_mesh;
       faces = mesh->faces();
-      manually_free_mesh = true;
     }
 
     Vector<int> ply_to_vertex, vertex_to_ply, loop_to_ply;
@@ -454,7 +454,7 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
 
     vertex_offset = int(plyData.vertices.size());
     if (manually_free_mesh) {
-      BKE_id_free(nullptr, mesh);
+      BKE_id_free(nullptr, manually_free_mesh);
     }
   }
 

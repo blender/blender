@@ -875,7 +875,8 @@ Mesh *USDMeshWriter::get_export_mesh(Object *object_eval, bool &r_needsfree)
     /* We must export the skinned mesh in its rest pose.  We therefore
      * return the pre-modified mesh, so that the armature modifier isn't
      * applied. */
-    return BKE_object_get_pre_modified_mesh(object_eval);
+    /* TODO: Store the "needs free" mesh in a separate variable. */
+    return const_cast<Mesh *>(BKE_object_get_pre_modified_mesh(object_eval));
   }
 
   /* Return the fully evaluated mesh. */
