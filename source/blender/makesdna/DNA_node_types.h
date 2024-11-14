@@ -753,6 +753,8 @@ typedef struct bNodeTree {
 
   struct GeometryNodeAssetTraits *geometry_node_asset_traits;
 
+  struct ShaderNodeTraits *shader_node_traits;
+
   /** Image representing what the node group does. */
   struct PreviewImage *preview;
 
@@ -980,6 +982,19 @@ typedef enum GeometryNodeAssetTraitFlag {
   GEO_NODE_ASSET_WAIT_FOR_CURSOR = (1 << 8),
 } GeometryNodeAssetTraitFlag;
 ENUM_OPERATORS(GeometryNodeAssetTraitFlag, GEO_NODE_ASSET_WAIT_FOR_CURSOR);
+
+typedef struct ShaderNodeTraits {
+  int type;
+} ShaderNodeTraits;
+
+typedef enum ShaderNodeTraitsType {
+  SH_TREE_TYPE_GROUP = (1 << 0),
+  SH_TREE_TYPE_MATERIAL = (1 << 1),
+  SH_TREE_TYPE_WORLD = (1 << 2),
+  SH_TREE_TYPE_LIGHT = (1 << 3),
+  SH_TREE_TYPE_NPR = (1 << 4),
+} ShaderNodeTraitsType;
+ENUM_OPERATORS(ShaderNodeTraitsType, SH_TREE_TYPE_NPR);
 
 /* Data structs, for `node->storage`. */
 

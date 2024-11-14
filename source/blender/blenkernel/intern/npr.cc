@@ -14,6 +14,7 @@
 bNodeTree *BKE_npr_tree_add(Main *bmain, const char *name)
 {
   bNodeTree *ntree = blender::bke::node_tree_add_tree(bmain, name, ntreeType_Shader->idname);
+  ntree->shader_node_traits->type = SH_TREE_TYPE_NPR;
 
   bNode *input = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_NPR_INPUT);
   bNode *output = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_NPR_OUTPUT);

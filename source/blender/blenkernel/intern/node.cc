@@ -246,6 +246,10 @@ static void ntree_copy_data(Main * /*bmain*/,
     ntree_dst->geometry_node_asset_traits = MEM_cnew<GeometryNodeAssetTraits>(
         __func__, *ntree_src->geometry_node_asset_traits);
   }
+  if (ntree_src->shader_node_traits) {
+    ntree_dst->shader_node_traits = MEM_cnew<ShaderNodeTraits>(__func__,
+                                                               *ntree_src->shader_node_traits);
+  }
 
   if (ntree_src->nested_node_refs) {
     ntree_dst->nested_node_refs = static_cast<bNestedNodeRef *>(
@@ -306,6 +310,10 @@ static void ntree_free_data(ID *id)
 
   if (ntree->geometry_node_asset_traits) {
     MEM_freeN(ntree->geometry_node_asset_traits);
+  }
+
+  if (ntree->shader_node_traits) {
+    MEM_freeN(ntree->shader_node_traits);
   }
 
   if (ntree->nested_node_refs) {
@@ -927,6 +935,8 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
 
   BLO_write_struct(writer, GeometryNodeAssetTraits, ntree->geometry_node_asset_traits);
 
+  BLO_write_struct(writer, ShaderNodeTraits, ntree->shader_node_traits);
+
   BLO_write_struct_array(
       writer, bNestedNodeRef, ntree->nested_node_refs_num, ntree->nested_node_refs);
 
@@ -1276,6 +1286,7 @@ void node_tree_blend_read_data(BlendDataReader *reader, ID *owner_id, bNodeTree 
   remove_unsupported_sockets(&ntree->outputs_legacy, nullptr);
 
   BLO_read_struct(reader, GeometryNodeAssetTraits, &ntree->geometry_node_asset_traits);
+  BLO_read_struct(reader, ShaderNodeTraits, &ntree->shader_node_traits);
   BLO_read_struct_array(
       reader, bNestedNodeRef, ntree->nested_node_refs_num, &ntree->nested_node_refs);
 
@@ -1518,6 +1529,31 @@ static void ntree_set_typeinfo(bNodeTree *ntree, bNodeTreeType *typeinfo)
 
   /* Deprecated integer type. */
   ntree->type = ntree->typeinfo->type;
+
+  if (ntree->type == NTREE_SHADER && !ntree->shader_node_traits) {
+    ntree->shader_node_traits = MEM_cnew<ShaderNodeTraits>(__func__);
+    if (ntree->owner_id) {
+      switch (GS(ntree->owner_id->name)) {
+        case ID_MA:
+          ntree->shader_node_traits->type = SH_TREE_TYPE_MATERIAL;
+          break;
+        case ID_WO:
+          ntree->shader_node_traits->type = SH_TREE_TYPE_WORLD;
+          break;
+        case ID_LA:
+          ntree->shader_node_traits->type = SH_TREE_TYPE_LIGHT;
+          break;
+        case ID_LI:
+          ntree->shader_node_traits->type = SH_TREE_TYPE_GROUP;
+        default:
+          BLI_assert_unreachable();
+      }
+    }
+    else {
+      ntree->shader_node_traits->type = SH_TREE_TYPE_GROUP;
+    }
+  }
+
   BKE_ntree_update_tag_all(ntree);
 }
 

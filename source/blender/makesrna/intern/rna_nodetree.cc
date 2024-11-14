@@ -925,6 +925,28 @@ static bool rna_NodeTree_poll(const bContext *C, blender::bke::bNodeTreeType *nt
   return visible;
 }
 
+static bool rna_NodeTree_poll_group(bNodeTree *ntree, bNodeTree *group)
+{
+  if (ntree->type != group->type || blender::bke::node_tree_contains_tree(group, ntree)) {
+    return false;
+  }
+
+  if (group->type != NTREE_SHADER) {
+    return true;
+  }
+
+  return group->shader_node_traits->type & SH_TREE_TYPE_GROUP;
+}
+
+static bool rna_NodeTree_is_group(bNodeTree *ntree)
+{
+  if (ntree->type == NTREE_SHADER) {
+    return ntree->shader_node_traits->type & SH_TREE_TYPE_GROUP;
+  }
+
+  return ntree->owner_id;
+}
+
 static void rna_NodeTree_update_reg(bNodeTree *ntree)
 {
   ParameterList list;
@@ -4257,10 +4279,8 @@ static void rna_NodeShaderNPR_node_tree_set(PointerRNA *ptr,
 static bool rna_NodeShaderNPR_node_tree_poll(PointerRNA * /*ptr*/, PointerRNA value)
 {
   bNodeTree *ntree = static_cast<bNodeTree *>(value.data);
-  if (ntree->type != NTREE_SHADER) {
-    return false;
-  }
-  return true;
+  return ntree->type == NTREE_SHADER && (ntree->shader_node_traits->type & SH_TREE_TYPE_NPR) &&
+         !(ntree->shader_node_traits->type & SH_TREE_TYPE_GROUP);
 }
 
 static void rna_NodeShaderNPR_node_tree_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -11554,6 +11574,16 @@ static void rna_def_nodetree(BlenderRNA *brna)
   parm = RNA_def_pointer(func, "context", "Context", "", "");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   RNA_def_function_return(func, RNA_def_boolean(func, "visible", false, "", ""));
+
+  func = RNA_def_function(srna, "poll_group", "rna_NodeTree_poll_group");
+  RNA_def_function_ui_description(func, "Check if the node tree can be added as a group");
+  parm = RNA_def_pointer(func, "ntree", "NodeTree", "", "The node group to be polled");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+  RNA_def_function_return(func, RNA_def_boolean(func, "valid", false, "", ""));
+
+  func = RNA_def_function(srna, "is_group", "rna_NodeTree_is_group");
+  RNA_def_function_ui_description(func, "Check if the node tree is as a group");
+  RNA_def_function_return(func, RNA_def_boolean(func, "valid", false, "", ""));
 
   /* update */
   func = RNA_def_function(srna, "update", nullptr);

@@ -1259,6 +1259,20 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
     version_legacy_actions_to_layered(bmain);
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 6)) {
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type != NTREE_SHADER || ntree->shader_node_traits->type != SH_TREE_TYPE_GROUP) {
+        continue;
+      }
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type == SH_NODE_NPR_OUTPUT) {
+          ntree->shader_node_traits->type = SH_TREE_TYPE_NPR;
+          break;
+        }
+      }
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
