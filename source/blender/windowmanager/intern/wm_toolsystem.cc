@@ -58,6 +58,9 @@ static void toolsystem_refresh_screen_from_active_tool(Main *bmain,
 bToolRef *WM_toolsystem_ref_from_context(bContext *C)
 {
   WorkSpace *workspace = CTX_wm_workspace(C);
+  if (workspace == nullptr) {
+    return nullptr;
+  }
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   ScrArea *area = CTX_wm_area(C);
@@ -795,7 +798,9 @@ static void wm_toolsystem_update_from_context_view3d_impl(bContext *C, WorkSpace
 void WM_toolsystem_update_from_context_view3d(bContext *C)
 {
   WorkSpace *workspace = CTX_wm_workspace(C);
-  wm_toolsystem_update_from_context_view3d_impl(C, workspace);
+  if (workspace) {
+    wm_toolsystem_update_from_context_view3d_impl(C, workspace);
+  }
 
   /* Multi window support. */
   Main *bmain = CTX_data_main(C);
