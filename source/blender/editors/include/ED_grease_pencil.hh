@@ -22,6 +22,7 @@
 #include "WM_api.hh"
 
 struct bContext;
+struct BrushGpencilSettings;
 struct Main;
 struct Object;
 struct KeyframeEditData;

@@ -29,6 +29,7 @@
 
 #include "DEG_depsgraph_query.hh"
 
+#include "DNA_brush_types.h"
 #include "DNA_material_types.h"
 
 #include "ED_grease_pencil.hh"

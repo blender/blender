@@ -7,6 +7,8 @@
 #include "BLI_rand.hh"
 #include "BLI_task.hh"
 
+#include "DNA_brush_types.h"
+
 #include "BKE_context.hh"
 #include "BKE_crazyspace.hh"
 #include "BKE_curves.hh"

@@ -25,6 +25,7 @@
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_grease_pencil_types.h"
 
+struct Brush;
 struct Main;
 struct Depsgraph;
 struct Scene;

@@ -23,6 +23,7 @@
 #include "BKE_material.h"
 #include "BKE_paint.hh"
 
+#include "DNA_brush_types.h"
 #include "DNA_curves_types.h"
 #include "DNA_grease_pencil_types.h"
 #include "DNA_material_types.h"

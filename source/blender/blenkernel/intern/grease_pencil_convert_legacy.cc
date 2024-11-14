@@ -48,6 +48,7 @@
 #include "BLT_translation.hh"
 
 #include "DNA_anim_types.h"
+#include "DNA_brush_types.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_grease_pencil_types.h"

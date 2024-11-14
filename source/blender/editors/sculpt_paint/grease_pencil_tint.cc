@@ -16,6 +16,8 @@
 #include "BLI_math_color.h"
 #include "BLI_math_geom.h"
 
+#include "DNA_brush_types.h"
+
 #include "DEG_depsgraph_query.hh"
 
 #include "ED_curves.hh"

@@ -21,7 +21,9 @@
 #include "BKE_paint.hh"
 
 #include "DEG_depsgraph_query.hh"
+
 #include "DNA_brush_enums.h"
+#include "DNA_brush_types.h"
 
 #include "ED_grease_pencil.hh"
 #include "ED_view3d.hh"

@@ -13,6 +13,8 @@
 #include "BLI_rect.h"
 #include "BLI_task.hh"
 
+#include "DNA_brush_types.h"
+
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
 #include "BKE_crazyspace.hh"
