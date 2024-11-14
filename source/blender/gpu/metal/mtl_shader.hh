@@ -442,7 +442,8 @@ class MTLParallelShaderCompiler {
   std::mutex queue_mutex;
   std::deque<ParallelWork *> parallel_work_queue;
 
-  void parallel_compilation_thread_func(GPUContext *blender_gpu_context);
+  void parallel_compilation_thread_func(GPUContext *blender_gpu_context,
+                                        GHOST_ContextHandle ghost_gpu_context);
   BatchHandle create_batch(size_t batch_size);
   void add_item_to_batch(ParallelWork *work_item, BatchHandle batch_handle);
   void add_parallel_item_to_queue(ParallelWork *add_parallel_item_to_queuework_item,
