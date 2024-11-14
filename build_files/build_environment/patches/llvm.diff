@@ -12,3 +12,25 @@ diff -Naur ll.org/llvm/lib/Support/Unix/Path.inc ll/llvm/lib/Support/Unix/Path.i
    if (__builtin_available(macos 10.12, *)) {
      // Optimistically try to use clonefile() and handle errors, rather than
      // calling stat() to see if it'll work.
+diff -Naur ll.org/llvm/lib/WindowsManifest/CMakeLists.txt ll/llvm/lib/WindowsManifest/CMakeLists.txt
+--- ll.org/llvm/lib/WindowsManifest/CMakeLists.txt	2024-11-13 19:29:25.362863529 +0100
++++ ll/llvm/lib/WindowsManifest/CMakeLists.txt	2024-11-13 19:29:43.376850350 +0100
+@@ -17,18 +17,3 @@
+   LINK_COMPONENTS
+   Support
+   )
+-
+-# This block is only needed for llvm-config. When we deprecate llvm-config and
+-# move to using CMake export, this block can be removed.
+-if(LLVM_ENABLE_LIBXML2)
+-  # CMAKE_BUILD_TYPE is only meaningful to single-configuration generators.
+-  if(CMAKE_BUILD_TYPE)
+-    string(TOUPPER ${CMAKE_BUILD_TYPE} build_type)
+-    get_property(libxml2_library TARGET LibXml2::LibXml2 PROPERTY LOCATION_${build_type})
+-  endif()
+-  if(NOT libxml2_library)
+-    get_property(libxml2_library TARGET LibXml2::LibXml2 PROPERTY LOCATION)
+-  endif()
+-  get_library_name(${libxml2_library} libxml2_library)
+-  set_property(TARGET LLVMWindowsManifest PROPERTY LLVM_SYSTEM_LIBS ${libxml2_library})
+-endif()

@@ -8,6 +8,13 @@ else()
   set(LLVM_TARGETS X86)
 endif()
 
+if(UNIX AND NOT APPLE)
+  # Make llvm's pkgconfig pick up our static xml2 lib
+  set(LLVM_XML2_ARGS
+    -DCMAKE_PREFIX_PATH=${LIBDIR}/xml2
+  )
+endif()
+
 if(APPLE)
   set(LLVM_XML2_ARGS
     -DLIBXML2_LIBRARY=${LIBDIR}/xml2/lib/libxml2.a
@@ -114,7 +121,7 @@ else()
 endif()
 
 # We currently do not build libxml2 on Windows.
-if(APPLE)
+if(UNIX)
   add_dependencies(
     ll
     external_xml2
