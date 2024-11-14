@@ -12,6 +12,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_build_config.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
@@ -4095,7 +4096,33 @@ static float area_split_factor(bContext *C, sAreaJoinData *jd, const wmEvent *ev
 
 static void area_join_update_data(bContext *C, sAreaJoinData *jd, const wmEvent *event)
 {
-  ScrArea *area = ED_area_find_under_cursor(C, SPACE_TYPE_ANY, event->xy);
+  ScrArea *area = nullptr;
+
+  /* TODO: The following is needed until we have linux-specific implementations of
+   * getWindowUnderCursor. See #130242. Use active window if there are overlapping. */
+
+#if (OS_WINDOWS || OS_MAC)
+  area = ED_area_find_under_cursor(C, SPACE_TYPE_ANY, event->xy);
+#else
+  int win_count = 0;
+  LISTBASE_FOREACH (wmWindow *, win, &CTX_wm_manager(C)->windows) {
+    int cursor[2];
+    if (wm_cursor_position_get(win, &cursor[0], &cursor[1])) {
+      rcti rect;
+      WM_window_rect_calc(win, &rect);
+      if (BLI_rcti_isect_pt_v(&rect, cursor)) {
+        win_count++;
+      }
+    }
+  }
+
+  if (win_count > 1) {
+    area = BKE_screen_find_area_xy(CTX_wm_screen(C), SPACE_TYPE_ANY, event->xy);
+  }
+  else {
+    area = ED_area_find_under_cursor(C, SPACE_TYPE_ANY, event->xy);
+  }
+#endif
 
   jd->win2 = WM_window_find_by_area(CTX_wm_manager(C), jd->sa2);
   jd->dir = SCREEN_DIR_NONE;
