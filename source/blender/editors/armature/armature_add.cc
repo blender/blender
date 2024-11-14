@@ -295,11 +295,13 @@ EditBone *add_points_bone(Object *obedit, float head[3], float tail[3])
 
 static EditBone *get_named_editbone(ListBase *edbo, const char *name)
 {
-  if (name) {
-    LISTBASE_FOREACH (EditBone *, eBone, edbo) {
-      if (STREQ(name, eBone->name)) {
-        return eBone;
-      }
+  if (!edbo || !name) {
+    return nullptr;
+  }
+
+  LISTBASE_FOREACH (EditBone *, eBone, edbo) {
+    if (STREQ(name, eBone->name)) {
+      return eBone;
     }
   }
 
@@ -387,7 +389,6 @@ static void pose_edit_bone_duplicate(ListBase *editbones, Object *ob)
 }
 
 static void update_duplicate_subtarget(EditBone *dup_bone,
-                                       ListBase *editbones,
                                        Object *ob,
                                        const bool lookup_mirror_subtarget)
 {
@@ -402,6 +403,7 @@ static void update_duplicate_subtarget(EditBone *dup_bone,
 
   EditBone *oldtarget, *newtarget;
   ListBase *conlist = &pchan->constraints;
+  char name_flipped[MAX_ID_NAME - 2];
   LISTBASE_FOREACH (bConstraint *, curcon, conlist) {
     /* does this constraint have a subtarget in
      * this armature?
@@ -412,30 +414,28 @@ static void update_duplicate_subtarget(EditBone *dup_bone,
       continue;
     }
     LISTBASE_FOREACH (bConstraintTarget *, ct, &targets) {
-      if ((ct->tar != ob) && (!ct->subtarget[0])) {
+      if (!ct->tar || !ct->subtarget[0]) {
         continue;
       }
-      oldtarget = get_named_editbone(editbones, ct->subtarget);
-      if (!oldtarget) {
+      Object *target_ob = ct->tar;
+      if (target_ob->type != OB_ARMATURE || !target_ob->data) {
+        /* Can only mirror armature. */
         continue;
       }
-      /* was the subtarget bone duplicated too? If
+      bArmature *target_armature = static_cast<bArmature *>(target_ob->data);
+      /* Was the subtarget bone duplicated too? If
        * so, update the constraint to point at the
        * duplicate of the old subtarget.
        */
-      if (oldtarget->temp.ebone) {
+      oldtarget = get_named_editbone(&target_armature->bonebase, ct->subtarget);
+      if (oldtarget && oldtarget->temp.ebone) {
         newtarget = oldtarget->temp.ebone;
         STRNCPY(ct->subtarget, newtarget->name);
       }
       else if (lookup_mirror_subtarget) {
-        /* The subtarget was not selected for duplication, try to see if a mirror bone of
-         * the current target exists */
-        char name_flip[MAXBONENAME];
-
-        BLI_string_flip_side_name(name_flip, oldtarget->name, false, sizeof(name_flip));
-        newtarget = get_named_editbone(editbones, name_flip);
-        if (newtarget) {
-          STRNCPY(ct->subtarget, newtarget->name);
+        BLI_string_flip_side_name(name_flipped, ct->subtarget, false, sizeof(name_flipped));
+        if (bPoseChannel *flipped_bone = BKE_pose_channel_find_name(ct->tar->pose, name_flipped)) {
+          STRNCPY(ct->subtarget, flipped_bone->name);
         }
       }
     }
@@ -1161,7 +1161,7 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
         }
 
         /* Lets try to fix any constraint sub-targets that might have been duplicated. */
-        update_duplicate_subtarget(ebone, arm->edbo, ob, false);
+        update_duplicate_subtarget(ebone, ob, false);
       }
     }
 
@@ -1414,7 +1414,7 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
         ebone->bbone_next_flag = ebone_iter->bbone_next_flag;
 
         /* Lets try to fix any constraint sub-targets that might have been duplicated. */
-        update_duplicate_subtarget(ebone, arm->edbo, obedit, true);
+        update_duplicate_subtarget(ebone, obedit, true);
         /* Try to update constraint options so that they are mirrored as well
          * (need to supply bone_iter as well in case we are working with existing bones) */
         update_duplicate_constraint_settings(ebone, ebone_iter, obedit);
