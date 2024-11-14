@@ -425,21 +425,6 @@ bool VelocityModule::object_is_deform(const Object *ob)
   return is_deform;
 }
 
-void VelocityModule::bind_resources(DRWShadingGroup *grp)
-{
-  /* For viewport, only previous motion is supported.
-   * Still bind previous step to avoid undefined behavior. */
-  eVelocityStep next = inst_.is_viewport() ? STEP_PREVIOUS : STEP_NEXT;
-  DRW_shgroup_storage_block_ref(grp, "velocity_obj_prev_buf", &(*object_steps[STEP_PREVIOUS]));
-  DRW_shgroup_storage_block_ref(grp, "velocity_obj_next_buf", &(*object_steps[next]));
-  DRW_shgroup_storage_block_ref(grp, "velocity_geo_prev_buf", &(*geometry_steps[STEP_PREVIOUS]));
-  DRW_shgroup_storage_block_ref(grp, "velocity_geo_next_buf", &(*geometry_steps[next]));
-  DRW_shgroup_uniform_block_ref(grp, "camera_prev", &(*camera_steps[STEP_PREVIOUS]));
-  DRW_shgroup_uniform_block_ref(grp, "camera_curr", &(*camera_steps[STEP_CURRENT]));
-  DRW_shgroup_uniform_block_ref(grp, "camera_next", &(*camera_steps[next]));
-  DRW_shgroup_storage_block_ref(grp, "velocity_indirection_buf", &indirection_buf);
-}
-
 bool VelocityModule::camera_has_motion() const
 {
   /* Only valid after sync. */
