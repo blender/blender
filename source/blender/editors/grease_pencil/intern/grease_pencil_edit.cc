@@ -24,6 +24,7 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_array_utils.hh"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"

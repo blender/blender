@@ -4,6 +4,8 @@
 
 #include "BLI_math_color.hh"
 
+#include "DNA_gpencil_legacy_types.h"
+
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
 #include "BKE_curves.hh"

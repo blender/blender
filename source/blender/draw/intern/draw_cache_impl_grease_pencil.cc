@@ -14,6 +14,7 @@
 #include "BKE_grease_pencil.h"
 #include "BKE_grease_pencil.hh"
 
+#include "BLI_array_utils.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_task.hh"
 

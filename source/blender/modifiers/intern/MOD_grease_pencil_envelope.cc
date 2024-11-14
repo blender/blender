@@ -9,6 +9,7 @@
 #include "DNA_defaults.h"
 #include "DNA_modifier_types.h"
 
+#include "BLI_array_utils.hh"
 #include "BLI_math_geom.h"
 
 #include "BKE_curves.hh"
