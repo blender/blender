@@ -1782,7 +1782,7 @@ static void calc_mesh_intersect_data(const Span<int> corner_verts,
                                      const int face_index,
                                      const int tri_index,
                                      const std::array<const float *, 3> co,
-                                     const float *depth,
+                                     const float depth,
                                      int &r_active_vertex,
                                      int &r_active_face_index,
                                      float3 &r_face_normal)
@@ -1791,7 +1791,7 @@ static void calc_mesh_intersect_data(const Span<int> corner_verts,
   float3 nearest_vertex_co(0.0f);
   normal_tri_v3(r_face_normal, co[0], co[1], co[2]);
 
-  const float3 location = ray_start + ray_normal * *depth;
+  const float3 location = ray_start + ray_normal * depth;
   for (int i = 0; i < co.size(); i++) {
     /* Always assign nearest_vertex_co in the first iteration to avoid comparison against
      * uninitialized values. This stores the closest vertex in the current intersecting
@@ -1845,7 +1845,7 @@ bool node_raycast_mesh(const MeshNode &node,
                                    face_i,
                                    tri_i,
                                    co,
-                                   depth,
+                                   *depth,
                                    r_active_vertex,
                                    r_active_face_index,
                                    r_face_normal);
@@ -1876,7 +1876,7 @@ bool node_raycast_mesh(const MeshNode &node,
                                    face_i,
                                    tri_i,
                                    co,
-                                   depth,
+                                   *depth,
                                    r_active_vertex,
                                    r_active_face_index,
                                    r_face_normal);
@@ -1894,7 +1894,7 @@ static void calc_grids_intersect_data(const float3 &ray_start,
                                       const short x,
                                       const short y,
                                       const std::array<const float *, 4> co,
-                                      float *depth,
+                                      const float depth,
                                       SubdivCCGCoord &r_active_vertex,
                                       int &r_active_grid_index,
                                       float3 &r_face_normal)
@@ -1903,7 +1903,7 @@ static void calc_grids_intersect_data(const float3 &ray_start,
   float3 nearest_vertex_co;
   normal_quad_v3(r_face_normal, co[0], co[1], co[2], co[3]);
 
-  const float3 location = ray_start + ray_normal * *depth;
+  const float3 location = ray_start + ray_normal * depth;
 
   constexpr short x_it[4] = {0, 1, 1, 0};
   constexpr short y_it[4] = {1, 1, 0, 0};
@@ -1965,7 +1965,7 @@ bool node_raycast_grids(const SubdivCCG &subdiv_ccg,
                                       x,
                                       y,
                                       co,
-                                      depth,
+                                      *depth,
                                       r_active_vertex,
                                       r_active_grid_index,
                                       r_face_normal);
@@ -1999,7 +1999,7 @@ bool node_raycast_grids(const SubdivCCG &subdiv_ccg,
                                       x,
                                       y,
                                       co,
-                                      depth,
+                                      *depth,
                                       r_active_vertex,
                                       r_active_grid_index,
                                       r_face_normal);
