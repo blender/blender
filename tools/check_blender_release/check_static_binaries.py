@@ -158,8 +158,8 @@ class UnitTesting(unittest.TestCase):
             lib_name_no_abi = stripLibraryABI(lib_name)
             with self.subTest(msg=os.path.basename(binary_filepath) + ' check'):
                 self.assertTrue(lib_name_no_abi in ALLOWED_LIBS,
-                            "Error detected in {}: library used {}" . format(
-                                binary_filepath, lib_name))
+                                "Error detected in {}: library used {}" . format(
+                                    binary_filepath, lib_name))
 
     def checkDirectory(self, directory):
         """
