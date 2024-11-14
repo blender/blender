@@ -2701,12 +2701,14 @@ static bool modifier_copy_to_selected_poll(bContext *C)
       continue;
     }
 
-    if (!md && BKE_object_supports_modifiers(ob)) {
+    if (!md) {
       /* Skip type check if modifier could not be found ("modifier" context variable not set). */
-      found_supported_objects = true;
-      break;
+      if (BKE_object_supports_modifiers(ob)) {
+        found_supported_objects = true;
+        break;
+      }
     }
-    if (BKE_object_support_modifier_type_check(ob, md->type)) {
+    else if (BKE_object_support_modifier_type_check(ob, md->type)) {
       found_supported_objects = true;
       break;
     }
