@@ -189,7 +189,7 @@ class Instance {
   void view_update();
 
   void begin_sync();
-  void object_sync(Object *ob);
+  void object_sync(ObjectRef &ob_ref);
   void end_sync();
 
   /**

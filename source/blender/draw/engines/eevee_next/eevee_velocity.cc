@@ -82,16 +82,18 @@ static void step_object_sync_render(void *instance,
   ObjectHandle &ob_handle = inst.sync.sync_object(ob_ref);
 
   if (partsys_is_visible) {
-    auto sync_hair =
-        [&](ObjectHandle hair_handle, ModifierData &md, ParticleSystem &particle_sys) {
-          inst.velocity.step_object_sync(
-              ob, hair_handle.object_key, resource_handle, hair_handle.recalc, &md, &particle_sys);
-        };
+    auto sync_hair = [&](ObjectHandle hair_handle,
+                         ModifierData &md,
+                         ParticleSystem &particle_sys) {
+      inst.velocity.step_object_sync(
+          hair_handle.object_key, ob_ref, hair_handle.recalc, resource_handle, &md, &particle_sys);
+    };
     foreach_hair_particle_handle(ob, ob_handle, sync_hair);
   };
 
   if (object_is_visible) {
-    inst.velocity.step_object_sync(ob, ob_handle.object_key, resource_handle, ob_handle.recalc);
+    inst.velocity.step_object_sync(
+        ob_handle.object_key, ob_ref, ob_handle.recalc, resource_handle);
   }
 }
 
@@ -128,13 +130,14 @@ void VelocityModule::step_camera_sync()
   }
 }
 
-bool VelocityModule::step_object_sync(Object *ob,
-                                      ObjectKey &object_key,
-                                      ResourceHandle resource_handle,
+bool VelocityModule::step_object_sync(ObjectKey &object_key,
+                                      const ObjectRef &object_ref,
                                       int /*IDRecalcFlag*/ recalc,
+                                      ResourceHandle resource_handle,
                                       ModifierData *modifier_data /*=nullptr*/,
                                       ParticleSystem *particle_sys /*=nullptr*/)
 {
+  Object *ob = object_ref.object;
   bool has_motion = object_has_velocity(ob) || (recalc & ID_RECALC_TRANSFORM);
   /* NOTE: Fragile. This will only work with 1 frame of lag since we can't record every geometry
    * just in case there might be an update the next frame. */

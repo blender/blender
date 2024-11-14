@@ -232,12 +232,13 @@ void Instance::begin_sync()
   }
 }
 
-void Instance::object_sync(Object *ob)
+void Instance::object_sync(ObjectRef &ob_ref)
 {
   if (!shaders_are_ready_) {
     return;
   }
 
+  Object *ob = ob_ref.object;
   const bool is_renderable_type = ELEM(ob->type,
                                        OB_CURVES,
                                        OB_GREASE_PENCIL,
@@ -246,7 +247,6 @@ void Instance::object_sync(Object *ob)
                                        OB_VOLUME,
                                        OB_LAMP,
                                        OB_LIGHTPROBE);
-  const bool is_drawable_type = is_renderable_type && !ELEM(ob->type, OB_LAMP, OB_LIGHTPROBE);
   const int ob_visibility = DRW_object_visibility_in_active_context(ob);
   const bool partsys_is_visible = (ob_visibility & OB_VISIBLE_PARTICLES) != 0 &&
                                   (ob->type == OB_MESH);
@@ -257,20 +257,14 @@ void Instance::object_sync(Object *ob)
     return;
   }
 
-  /* TODO cleanup. */
-  ObjectRef ob_ref = DRW_object_ref_get(ob);
   ObjectHandle &ob_handle = sync.sync_object(ob_ref);
-  ResourceHandle res_handle = {0};
-  if (is_drawable_type) {
-    res_handle = manager->resource_handle(ob_ref);
-  }
 
   if (partsys_is_visible && ob != DRW_context_state_get()->object_edit) {
     auto sync_hair =
         [&](ObjectHandle hair_handle, ModifierData &md, ParticleSystem &particle_sys) {
           ResourceHandle _res_handle = manager->resource_handle_for_psys(ob_ref,
                                                                          ob->object_to_world());
-          sync.sync_curves(ob, hair_handle, _res_handle, ob_ref, &md, &particle_sys);
+          sync.sync_curves(ob, hair_handle, ob_ref, _res_handle, &md, &particle_sys);
         };
     foreach_hair_particle_handle(ob, ob_handle, sync_hair);
   }
@@ -281,18 +275,18 @@ void Instance::object_sync(Object *ob)
         lights.sync_light(ob, ob_handle);
         break;
       case OB_MESH:
-        if (!sync.sync_sculpt(ob, ob_handle, res_handle, ob_ref)) {
-          sync.sync_mesh(ob, ob_handle, res_handle, ob_ref);
+        if (!sync.sync_sculpt(ob, ob_handle, ob_ref)) {
+          sync.sync_mesh(ob, ob_handle, ob_ref);
         }
         break;
       case OB_POINTCLOUD:
-        sync.sync_point_cloud(ob, ob_handle, res_handle, ob_ref);
+        sync.sync_point_cloud(ob, ob_handle, ob_ref);
         break;
       case OB_VOLUME:
-        sync.sync_volume(ob, ob_handle, res_handle, ob_ref);
+        sync.sync_volume(ob, ob_handle, ob_ref);
         break;
       case OB_CURVES:
-        sync.sync_curves(ob, ob_handle, res_handle, ob_ref);
+        sync.sync_curves(ob, ob_handle, ob_ref);
         break;
       case OB_LIGHTPROBE:
         light_probes.sync_probe(ob, ob_handle);
@@ -310,7 +304,8 @@ void Instance::object_sync_render(void *instance_,
 {
   UNUSED_VARS(engine, depsgraph);
   Instance &inst = *reinterpret_cast<Instance *>(instance_);
-  inst.object_sync(ob);
+  ObjectRef ob_ref = DRW_object_ref_get(ob);
+  inst.object_sync(ob_ref);
 }
 
 void Instance::end_sync()
