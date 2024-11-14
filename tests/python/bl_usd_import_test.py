@@ -72,6 +72,30 @@ class USDImportTest(AbstractUSDTest):
         self.assertEqual(objects['World'], objects['Empty'].parent, "Empty should be a child of /World")
         self.assertEqual(objects['Empty'], objects['Plane_002'].parent, "Plane_002 should be a child of /World")
 
+    def test_import_xform_and_mesh_merged_false(self):
+        """Test importing a simple object hierarchy (xform and mesh) from a USDA file."""
+
+        infile = str(self.testdir / "usd_mesh_polygon_types.usda")
+
+        res = bpy.ops.wm.usd_import(filepath=infile, merge_parent_xform=False)
+        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {infile}")
+
+        objects = bpy.context.scene.collection.objects
+        self.assertEqual(10, len(objects), f"Test scene {infile} should have ten objects; found {len(objects)}")
+
+        # Test the hierarchy.
+        self.assertEqual(
+            objects['degenerate'],
+            objects['m_degenerate'].parent,
+            "m_degenerate should be child of /degenerate")
+        self.assertEqual(
+            objects['triangles'],
+            objects['m_triangles'].parent,
+            "m_triangles should be a child of /triangles")
+        self.assertEqual(objects['quad'], objects['m_quad'].parent, "m_quad should be a child of /quad")
+        self.assertEqual(objects['ngon_concave'], objects['m_ngon_concave'].parent,
+                         "m_ngon_concave should be a child of /ngon_concave")
+
     def test_import_mesh_topology(self):
         """Test importing meshes with different polygon types."""
 

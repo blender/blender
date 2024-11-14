@@ -171,6 +171,13 @@ class USDStageReader {
   bool include_by_purpose(const pxr::UsdGeomImageable &imageable) const;
 
   /**
+   * Returns true if the given reader can use the parent of the encapsulated USD prim
+   * to compute the Blender object's transform. If so, the reader is appropriately
+   * flagged and the function returns true. Otherwise, the function returns false.
+   */
+  bool merge_with_parent(USDPrimReader *reader) const;
+
+  /**
    * Returns true if the specified UsdPrim is a UsdGeom primitive,
    * procedural shape, such as UsdGeomCube.
    */
