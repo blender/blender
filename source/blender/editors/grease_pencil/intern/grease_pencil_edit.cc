@@ -2686,26 +2686,10 @@ static bke::CurvesGeometry extrude_grease_pencil_curves(const bke::CurvesGeometr
   const bke::AttributeAccessor src_attributes = src.attributes();
   bke::MutableAttributeAccessor dst_attributes = dst.attributes_for_write();
 
-  bke::gather_attributes(src_attributes,
-                         bke::AttrDomain::Curve,
-                         bke::AttrDomain::Curve,
-                         {},
-                         dst_to_src_curves,
-                         dst_attributes);
-
-  bke::gather_attributes(src_attributes,
-                         bke::AttrDomain::Point,
-                         bke::AttrDomain::Point,
-                         {},
-                         dst_to_src_points,
-                         dst_attributes);
-
   /* Selection attribute. */
-  const std::string &selection_attr_name = ".selection";
-  bke::SpanAttributeWriter<bool> selection =
-      dst_attributes.lookup_or_add_for_write_only_span<bool>(selection_attr_name,
-                                                             bke::AttrDomain::Point);
-  array_utils::copy(dst_selected.as_span(), selection.span);
+  bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
+      dst, bke::AttrDomain::Point, CD_PROP_BOOL);
+  selection.span.copy_from(dst_selected.as_span());
   selection.finish();
 
   /* Cyclic attribute : newly created curves cannot be cyclic.
@@ -2714,6 +2698,20 @@ static bke::CurvesGeometry extrude_grease_pencil_curves(const bke::CurvesGeometr
   if (src_cyclic.get_if_single().value_or(true)) {
     dst.cyclic_for_write().drop_front(old_curves_num).fill(false);
   }
+
+  bke::gather_attributes(src_attributes,
+                         bke::AttrDomain::Curve,
+                         bke::AttrDomain::Curve,
+                         bke::attribute_filter_from_skip_ref({"cyclic"}),
+                         dst_to_src_curves,
+                         dst_attributes);
+
+  bke::gather_attributes(src_attributes,
+                         bke::AttrDomain::Point,
+                         bke::AttrDomain::Point,
+                         bke::attribute_filter_from_skip_ref({".selection"}),
+                         dst_to_src_points,
+                         dst_attributes);
 
   dst.update_curve_types();
   return dst;
@@ -2757,7 +2755,7 @@ static void GREASE_PENCIL_OT_extrude(wmOperatorType *ot)
   ot->description = "Extrude the selected points";
 
   ot->exec = grease_pencil_extrude_exec;
-  ot->poll = editable_grease_pencil_poll;
+  ot->poll = editable_grease_pencil_point_selection_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
