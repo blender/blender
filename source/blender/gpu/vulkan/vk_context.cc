@@ -319,7 +319,7 @@ void VKContext::swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &swap_c
   blit_image.filter = VK_FILTER_NEAREST;
 
   VkImageBlit &region = blit_image.region;
-  region.srcOffsets[0] = {0, color_attachment->height_get() - 1, 0};
+  region.srcOffsets[0] = {0, color_attachment->height_get(), 0};
   region.srcOffsets[1] = {color_attachment->width_get(), 0, 1};
   region.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
   region.srcSubresource.mipLevel = 0;
