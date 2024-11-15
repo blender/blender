@@ -185,11 +185,10 @@ void GPENCIL_cache_init(void *ved)
 {
   using namespace blender::draw;
   GPENCIL_Data *vedata = (GPENCIL_Data *)ved;
-  GPENCIL_PassList *psl = vedata->psl;
+  GPENCIL_Instance *inst = vedata->instance;
   GPENCIL_TextureList *txl = vedata->txl;
   GPENCIL_FramebufferList *fbl = vedata->fbl;
   GPENCIL_PrivateData *pd = vedata->stl->pd;
-  DRWShadingGroup *grp;
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
   pd->cfra = int(DEG_get_ctime(draw_ctx->depsgraph));
@@ -274,23 +273,21 @@ void GPENCIL_cache_init(void *ved)
   }
 
   {
-    DRWState state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
-    DRW_PASS_CREATE(psl->merge_depth_ps, state);
-
-    GPUShader *sh = GPENCIL_shader_depth_merge_get();
-    grp = DRW_shgroup_create(sh, psl->merge_depth_ps);
-    DRW_shgroup_uniform_texture_ref(grp, "depthBuf", &pd->depth_tx);
-    DRW_shgroup_uniform_bool(grp, "strokeOrder3d", &pd->is_stroke_order_3d, 1);
-    DRW_shgroup_uniform_vec4(grp, "gpModelMatrix", pd->object_bound_mat[0], 4);
-    DRW_shgroup_call_procedural_triangles(grp, nullptr, 1);
+    blender::draw::PassSimple &pass = inst->merge_depth_ps;
+    pass.init();
+    pass.state_set(DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
+    pass.shader_set(GPENCIL_shader_depth_merge_get());
+    pass.bind_texture("depthBuf", &pd->depth_tx);
+    pass.push_constant("strokeOrder3d", &pd->is_stroke_order_3d);
+    pass.push_constant("gpModelMatrix", &pd->object_bound_mat);
+    pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
   {
-    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_LOGIC_INVERT;
-    DRW_PASS_CREATE(psl->mask_invert_ps, state);
-
-    GPUShader *sh = GPENCIL_shader_mask_invert_get();
-    grp = DRW_shgroup_create(sh, psl->mask_invert_ps);
-    DRW_shgroup_call_procedural_triangles(grp, nullptr, 1);
+    blender::draw::PassSimple &pass = inst->mask_invert_ps;
+    pass.init();
+    pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_LOGIC_INVERT);
+    pass.shader_set(GPENCIL_shader_mask_invert_get());
+    pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
 
   Camera *cam = static_cast<Camera *>(
@@ -744,7 +741,9 @@ static void GPENCIL_draw_scene_depth_only(void *ved)
 
 static void gpencil_draw_mask(GPENCIL_Data *vedata, GPENCIL_tObject *ob, GPENCIL_tLayer *layer)
 {
-  GPENCIL_PassList *psl = vedata->psl;
+  GPENCIL_Instance *inst = vedata->instance;
+  blender::draw::Manager *manager = DRW_manager_get();
+
   GPENCIL_FramebufferList *fbl = vedata->fbl;
   const float clear_col[4] = {1.0f, 1.0f, 1.0f, 1.0f};
   float clear_depth = ob->is_drawmode3d ? 1.0f : 0.0f;
@@ -764,7 +763,7 @@ static void gpencil_draw_mask(GPENCIL_Data *vedata, GPENCIL_tObject *ob, GPENCIL
 
     if (BLI_BITMAP_TEST_BOOL(layer->mask_invert_bits, i) != inverted) {
       if (cleared) {
-        DRW_draw_pass(psl->mask_invert_ps);
+        manager->submit(inst->mask_invert_ps);
       }
       inverted = !inverted;
     }
@@ -785,7 +784,7 @@ static void gpencil_draw_mask(GPENCIL_Data *vedata, GPENCIL_tObject *ob, GPENCIL
 
   if (!inverted) {
     /* Blend shader expect an opacity mask not a reavealage buffer. */
-    DRW_draw_pass(psl->mask_invert_ps);
+    manager->submit(inst->mask_invert_ps);
   }
 
   DRW_stats_group_end();
@@ -793,9 +792,9 @@ static void gpencil_draw_mask(GPENCIL_Data *vedata, GPENCIL_tObject *ob, GPENCIL
 
 static void GPENCIL_draw_object(GPENCIL_Data *vedata, GPENCIL_tObject *ob)
 {
+  GPENCIL_Instance *inst = vedata->instance;
   blender::draw::Manager *manager = DRW_manager_get();
 
-  GPENCIL_PassList *psl = vedata->psl;
   GPENCIL_PrivateData *pd = vedata->stl->pd;
   GPENCIL_FramebufferList *fbl = vedata->fbl;
   const float clear_cols[2][4] = {{0.0f, 0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}};
@@ -837,12 +836,12 @@ static void GPENCIL_draw_object(GPENCIL_Data *vedata, GPENCIL_tObject *ob)
     manager->submit(*vfx->vfx_ps);
   }
 
-  copy_m4_m4(pd->object_bound_mat, ob->plane_mat);
+  pd->object_bound_mat = float4x4(ob->plane_mat);
   pd->is_stroke_order_3d = ob->is_drawmode3d;
 
   if (pd->scene_fb) {
     GPU_framebuffer_bind(pd->scene_fb);
-    DRW_draw_pass(psl->merge_depth_ps);
+    manager->submit(inst->merge_depth_ps);
   }
 
   DRW_stats_group_end();
