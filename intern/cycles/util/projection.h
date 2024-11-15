@@ -216,7 +216,7 @@ ccl_device_inline ProjectionTransform projection_inverse(const ProjectionTransfo
     return projection_identity();
   }
 
-  memcpy(&tfmR, R, sizeof(R));
+  memcpy((void *)&tfmR, R, sizeof(R));
 
   return tfmR;
 }
