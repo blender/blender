@@ -12,7 +12,7 @@ from bpy.types import (
 from bl_ui.properties_data_grease_pencil import (
     GreasePencil_LayerMaskPanel,
     GreasePencil_LayerTransformPanel,
-    GreasPencil_LayerRelationsPanel,
+    GreasePencil_LayerRelationsPanel,
 )
 
 from rna_prop_ui import PropertyPanel
@@ -948,7 +948,7 @@ class DOPESHEET_PT_grease_pencil_layer_transform(
 
 class DOPESHEET_PT_grease_pencil_layer_relations(
         GreasePencilLayersDopeSheetPanel,
-        GreasPencil_LayerRelationsPanel,
+        GreasePencil_LayerRelationsPanel,
         Panel):
     bl_label = "Relations"
     bl_parent_id = "DOPESHEET_PT_grease_pencil_mode"
