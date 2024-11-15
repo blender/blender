@@ -230,6 +230,11 @@ typedef struct Sequence {
   /* pointers for effects: */
   struct Sequence *seq1, *seq2;
 
+  /* This strange padding is needed due to how seqbasep deserialization is
+   * done right now in #scene_blend_read_data. */
+  void *_pad7;
+  int _pad8[2];
+
   /** List of strips for meta-strips. */
   ListBase seqbase;
   ListBase channels; /* SeqTimelineChannel */
@@ -288,6 +293,7 @@ typedef struct Sequence {
   float speed_factor;
 
   struct SeqRetimingKey *retiming_keys;
+  void *_pad5;
   int retiming_keys_num;
   char _pad6[4];
 

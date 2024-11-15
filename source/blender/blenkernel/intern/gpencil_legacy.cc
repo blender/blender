@@ -29,6 +29,7 @@
 /* Allow using deprecated functionality for .blend file I/O. */
 #define DNA_DEPRECATED_ALLOW
 
+#include "DNA_brush_types.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
@@ -144,7 +145,6 @@ static void greasepencil_blend_write(BlendWriter *writer, ID *id, const void *id
   gpd->runtime.sbuffer = nullptr;
   gpd->runtime.sbuffer_used = 0;
   gpd->runtime.sbuffer_size = 0;
-  gpd->runtime.tot_cp_points = 0;
 
   /* write gpd data block to file */
   BLO_write_id_struct(writer, bGPdata, id_address, &gpd->id);
@@ -199,7 +199,6 @@ void BKE_gpencil_blend_read_data(BlendDataReader *reader, bGPdata *gpd)
   gpd->runtime.sbuffer = nullptr;
   gpd->runtime.sbuffer_used = 0;
   gpd->runtime.sbuffer_size = 0;
-  gpd->runtime.tot_cp_points = 0;
 
   /* Relink palettes (old palettes deprecated, only to convert old files). */
   BLO_read_struct_list(reader, bGPDpalette, &gpd->palettes);

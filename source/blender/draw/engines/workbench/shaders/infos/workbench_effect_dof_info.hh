@@ -2,6 +2,23 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#ifdef GPU_SHADER
+#  pragma once
+#  include "gpu_glsl_cpp_stubs.hh"
+
+#  include "workbench_shader_shared.h"
+
+#  include "draw_fullscreen_info.hh"
+#  include "draw_view_info.hh"
+
+#  define PREPARE
+#  define DOWNSAMPLE
+#  define BLUR1
+#  define BLUR2
+#  define RESOLVE
+#  define NUM_SAMPLES 49
+#endif
+
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(workbench_effect_dof)

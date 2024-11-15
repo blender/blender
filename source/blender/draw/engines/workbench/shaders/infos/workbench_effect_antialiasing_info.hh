@@ -2,6 +2,20 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#ifdef GPU_SHADER
+#  pragma once
+#  include "gpu_glsl_cpp_stubs.hh"
+
+#  include "draw_fullscreen_info.hh"
+
+#  define SMAA_GLSL_3
+#  define SMAA_STAGE 1
+#  define SMAA_PRESET_HIGH
+#  define SMAA_NO_DISCARD
+#  define SMAA_RT_METRICS viewportMetrics
+#  define SMAA_LUMA_WEIGHT float4(1.0, 1.0, 1.0, 1.0)
+#endif
+
 #include "gpu_shader_create_info.hh"
 
 /* -------------------------------------------------------------------- */

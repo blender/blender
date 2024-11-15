@@ -113,11 +113,11 @@ void export_frame(Depsgraph *depsgraph,
     }
 
     Object *obj_eval = DEG_get_evaluated_object(depsgraph, object);
-    Mesh *mesh = export_params.apply_modifiers ? BKE_object_get_evaluated_mesh(obj_eval) :
-                                                 BKE_object_get_pre_modified_mesh(obj_eval);
+    const Mesh *mesh = export_params.apply_modifiers ? BKE_object_get_evaluated_mesh(obj_eval) :
+                                                       BKE_object_get_pre_modified_mesh(obj_eval);
 
     /* Ensure data exists if currently in edit mode. */
-    BKE_mesh_wrapper_ensure_mdata(mesh);
+    BKE_mesh_wrapper_ensure_mdata(const_cast<Mesh *>(mesh));
 
     /* Calculate transform. */
     float global_scale = export_params.global_scale * scene_unit_scale;

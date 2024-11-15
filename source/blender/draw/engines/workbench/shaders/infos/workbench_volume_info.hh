@@ -2,6 +2,24 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#ifdef GPU_SHADER
+#  pragma once
+#  include "BLI_utildefines_variadic.h"
+
+#  include "gpu_glsl_cpp_stubs.hh"
+
+#  include "draw_object_infos_info.hh"
+
+#  include "workbench_shader_shared.h"
+#  define VOLUME_SMOKE
+#  define VOLUME_OBJECT
+#  define USE_COBA
+#  define USE_TRILINEAR
+#  define USE_TRICUBIC
+#  define USE_CLOSEST
+#  define VOLUME_SLICE
+#endif
+
 #include "gpu_shader_create_info.hh"
 
 /* -------------------------------------------------------------------- */
@@ -23,7 +41,6 @@ FRAGMENT_SOURCE("workbench_volume_frag.glsl")
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(workbench_volume)
-DEFINE("WORKBENCH_NEXT")
 SAMPLER(6, UINT_2D, stencil_tx)
 ADDITIONAL_INFO(workbench_volume_common)
 ADDITIONAL_INFO(draw_object_infos_new)

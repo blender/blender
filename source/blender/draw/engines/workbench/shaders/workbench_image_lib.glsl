@@ -4,8 +4,12 @@
 
 #pragma once
 
+#include "infos/workbench_prepass_info.hh"
+
+SHADER_LIBRARY_CREATE_INFO(workbench_color_texture)
+
 /* TODO(fclem): deduplicate code. */
-bool node_tex_tile_lookup(inout vec3 co, sampler2DArray ima, sampler1DArray map)
+bool node_tex_tile_lookup(inout vec3 co, sampler1DArray map)
 {
   vec2 tile_pos = floor(co.xy);
 
@@ -37,7 +41,7 @@ vec3 workbench_image_color(vec2 uvs)
 
   vec3 co = vec3(uvs, 0.0);
   if (isImageTile) {
-    if (node_tex_tile_lookup(co, imageTileArray, imageTileData)) {
+    if (node_tex_tile_lookup(co, imageTileData)) {
       color = texture(imageTileArray, co);
     }
     else {

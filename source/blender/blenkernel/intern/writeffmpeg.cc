@@ -1198,6 +1198,16 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
     c->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
   }
 
+  /* If output pixel format is not RGB(A), setup colorspace metadata. */
+  const AVPixFmtDescriptor *pix_fmt_desc = av_pix_fmt_desc_get(c->pix_fmt);
+  const bool set_bt709 = (pix_fmt_desc->flags & AV_PIX_FMT_FLAG_RGB) == 0;
+  if (set_bt709) {
+    c->color_range = AVCOL_RANGE_MPEG;
+    c->color_primaries = AVCOL_PRI_BT709;
+    c->color_trc = AVCOL_TRC_BT709;
+    c->colorspace = AVCOL_SPC_BT709;
+  }
+
   /* xasp & yasp got float lately... */
 
   st->sample_aspect_ratio = c->sample_aspect_ratio = av_d2q((double(rd->xasp) / double(rd->yasp)),
@@ -1246,6 +1256,29 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
     context->img_convert_frame = alloc_picture(src_format, c->width, c->height);
     context->img_convert_ctx = BKE_ffmpeg_sws_get_context(
         c->width, c->height, src_format, c->width, c->height, c->pix_fmt, SWS_BICUBIC);
+
+    /* Setup BT.709 coefficients for RGB->YUV conversion, if needed. */
+    if (set_bt709) {
+      int *inv_table = nullptr, *table = nullptr;
+      int src_range = 0, dst_range = 0, brightness = 0, contrast = 0, saturation = 0;
+      sws_getColorspaceDetails(context->img_convert_ctx,
+                               &inv_table,
+                               &src_range,
+                               &table,
+                               &dst_range,
+                               &brightness,
+                               &contrast,
+                               &saturation);
+      const int *new_table = sws_getCoefficients(AVCOL_SPC_BT709);
+      sws_setColorspaceDetails(context->img_convert_ctx,
+                               inv_table,
+                               src_range,
+                               new_table,
+                               dst_range,
+                               brightness,
+                               contrast,
+                               saturation);
+    }
   }
 
   avcodec_parameters_from_context(st->codecpar, c);

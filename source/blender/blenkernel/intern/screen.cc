@@ -336,7 +336,7 @@ ARegion *BKE_area_region_copy(const SpaceType *st, const ARegion *region)
 {
   ARegion *newar = static_cast<ARegion *>(MEM_dupallocN(region));
 
-  memset(&newar->runtime, 0x0, sizeof(newar->runtime));
+  newar->runtime = MEM_new<blender::bke::ARegionRuntime>(__func__);
 
   newar->prev = newar->next = nullptr;
   BLI_listbase_clear(&newar->handlers);
@@ -371,6 +371,13 @@ ARegion *BKE_area_region_copy(const SpaceType *st, const ARegion *region)
   BLI_duplicatelist(&newar->ui_previews, &region->ui_previews);
 
   return newar;
+}
+
+ARegion *BKE_area_region_new()
+{
+  ARegion *region = MEM_cnew<ARegion>(__func__);
+  region->runtime = MEM_new<blender::bke::ARegionRuntime>(__func__);
+  return region;
 }
 
 /* from lb_src to lb_dst, lb_dst is supposed to be freed */
@@ -593,11 +600,12 @@ void BKE_area_region_free(SpaceType *st, ARegion *region)
     region_free_gizmomap_callback(region->gizmo_map);
   }
 
-  if (region->runtime.block_name_map != nullptr) {
-    BLI_ghash_free(region->runtime.block_name_map, nullptr, nullptr);
-    region->runtime.block_name_map = nullptr;
+  if (region->runtime->block_name_map != nullptr) {
+    BLI_ghash_free(region->runtime->block_name_map, nullptr, nullptr);
+    region->runtime->block_name_map = nullptr;
   }
 
+  MEM_delete(region->runtime);
   BLI_freelistN(&region->ui_lists);
   BLI_freelistN(&region->ui_previews);
   BLI_freelistN(&region->panels_category);
@@ -1186,8 +1194,6 @@ static void direct_link_panel_list(BlendDataReader *reader, ListBase *lb)
 
 static void direct_link_region(BlendDataReader *reader, ARegion *region, int spacetype)
 {
-  memset(&region->runtime, 0x0, sizeof(region->runtime));
-
   direct_link_panel_list(reader, &region->panels);
 
   BLO_read_struct_list(reader, PanelCategoryStack, &region->panels_category_active);
@@ -1247,6 +1253,7 @@ static void direct_link_region(BlendDataReader *reader, ARegion *region, int spa
     }
   }
 
+  region->runtime = MEM_new<blender::bke::ARegionRuntime>(__func__);
   region->v2d.sms = nullptr;
   region->v2d.alpha_hor = region->v2d.alpha_vert = 255; /* visible by default */
   BLI_listbase_clear(&region->panels_category);

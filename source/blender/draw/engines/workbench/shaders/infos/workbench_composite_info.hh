@@ -2,6 +2,25 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#ifdef GPU_SHADER
+#  pragma once
+#  include "BLI_utildefines_variadic.h"
+
+#  include "gpu_glsl_cpp_stubs.hh"
+
+#  include "workbench_shader_shared.h"
+
+#  include "draw_fullscreen_info.hh"
+#  include "draw_view_info.hh"
+
+#  define WORKBENCH_LIGHTING_STUDIO
+#  define WORKBENCH_LIGHTING_MATCAP
+#  define WORKBENCH_LIGHTING_FLAT
+#  define WORKBENCH_CURVATURE
+#  define WORKBENCH_CAVITY
+#  define WORKBENCH_SHADOW
+#endif
+
 #include "gpu_shader_create_info.hh"
 #include "workbench_defines.hh"
 

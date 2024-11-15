@@ -58,7 +58,8 @@ else()
     COMMAND ${CMAKE_COMMAND} -E copy
       ${LIBDIR}/zlib/lib/libz.a
       ${LIBDIR}/zlib/lib/libz_pic.a
-
+    # Make sure that our libraries do not pick up the shared libraries by mistake
+    COMMAND sh -c "rm -f ${LIBDIR}/zlib/lib/*.so*"
     DEPENDEES install
   )
 endif()

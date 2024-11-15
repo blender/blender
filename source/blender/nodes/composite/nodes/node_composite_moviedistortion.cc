@@ -6,6 +6,7 @@
  * \ingroup cmpnodes
  */
 
+#include "BLI_math_vector_types.hh"
 #include "BLI_string_utf8.h"
 
 #include "DNA_movieclip_types.h"
@@ -94,17 +95,6 @@ class MovieDistortionOperation : public NodeOperation {
 
   void execute() override
   {
-    /* Not yet supported on CPU. */
-    if (!context().use_gpu()) {
-      for (const bNodeSocket *output : this->node()->output_sockets()) {
-        Result &output_result = get_result(output->identifier);
-        if (output_result.should_compute()) {
-          output_result.allocate_invalid();
-        }
-      }
-      return;
-    }
-
     Result &input_image = get_input("Image");
     Result &output_image = get_result("Image");
     if (input_image.is_single_value() || !get_movie_clip()) {
@@ -113,22 +103,35 @@ class MovieDistortionOperation : public NodeOperation {
     }
 
     const Domain domain = compute_domain();
-    const DistortionGrid &distortion_grid = context().cache_manager().distortion_grids.get(
+    const Result &distortion_grid = context().cache_manager().distortion_grids.get(
         context(),
         get_movie_clip(),
         domain.size,
         get_distortion_type(),
         context().get_frame_number());
 
+    if (this->context().use_gpu()) {
+      this->execute_gpu(distortion_grid);
+    }
+    else {
+      this->execute_cpu(distortion_grid);
+    }
+  }
+
+  void execute_gpu(const Result &distortion_grid)
+  {
     GPUShader *shader = context().get_shader("compositor_movie_distortion");
     GPU_shader_bind(shader);
 
+    Result &input_image = get_input("Image");
     GPU_texture_extend_mode(input_image, GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
     GPU_texture_filter_mode(input_image, true);
     input_image.bind_as_texture(shader, "input_tx");
 
     distortion_grid.bind_as_texture(shader, "distortion_grid_tx");
 
+    const Domain domain = compute_domain();
+    Result &output_image = get_result("Image");
     output_image.allocate_texture(domain);
     output_image.bind_as_image(shader, "output_img");
 
@@ -138,6 +141,20 @@ class MovieDistortionOperation : public NodeOperation {
     distortion_grid.unbind_as_texture();
     output_image.unbind_as_image();
     GPU_shader_unbind();
+  }
+
+  void execute_cpu(const Result &distortion_grid)
+  {
+    Result &input = get_input("Image");
+
+    const Domain domain = compute_domain();
+    Result &output = get_result("Image");
+    output.allocate_texture(domain);
+
+    parallel_for(domain.size, [&](const int2 texel) {
+      output.store_pixel(texel,
+                         input.sample_bilinear_zero(distortion_grid.load_pixel(texel).xy()));
+    });
   }
 
   DistortionType get_distortion_type()

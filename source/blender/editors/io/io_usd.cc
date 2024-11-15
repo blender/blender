@@ -935,6 +935,8 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
 
   const bool create_world_material = RNA_boolean_get(op->ptr, "create_world_material");
 
+  const bool merge_parent_xform = RNA_boolean_get(op->ptr, "merge_parent_xform");
+
   /* TODO(makowalski): Add support for sequences. */
   const bool is_sequence = false;
   int offset = 0;
@@ -982,6 +984,7 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
   params.import_blendshapes = import_blendshapes;
 
   params.validate_meshes = validate_meshes;
+  params.merge_parent_xform = merge_parent_xform;
 
   params.import_guide = import_guide;
   params.import_proxy = import_proxy;
@@ -1073,6 +1076,7 @@ static void wm_usd_import_draw(bContext *C, wmOperator *op)
 
     col = uiLayoutColumn(panel, false);
     uiItemR(col, ptr, "validate_meshes", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "merge_parent_xform", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "USD_import_rigging", true, IFACE_("Rigging"))) {
@@ -1322,6 +1326,13 @@ void WM_OT_usd_import(wmOperatorType *ot)
                   "Defined Primitives Only",
                   "Import only defined USD primitives. When disabled this allows importing USD "
                   "primitives which are not defined, such as those with an override specifier");
+
+  RNA_def_boolean(ot->srna,
+                  "merge_parent_xform",
+                  true,
+                  "Merge parent Xform",
+                  "Allow USD primitives to merge with their Xform parent "
+                  "if they are the only child in the hierarchy");
 }
 
 namespace blender::ed::io {

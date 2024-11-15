@@ -4,6 +4,12 @@
 
 #pragma once
 
+#include "infos/workbench_prepass_info.hh"
+
+#ifdef GPU_LIBRARY_SHADER
+SHADER_LIBRARY_CREATE_INFO(workbench_prepass)
+#endif
+
 vec2 matcap_uv_compute(vec3 I, vec3 N, bool flipped)
 {
   /* Quick creation of an orthonormal basis */

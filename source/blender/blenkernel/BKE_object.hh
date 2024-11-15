@@ -512,7 +512,7 @@ Mesh *BKE_object_get_evaluated_mesh_unchecked(const Object *object);
  * - For copied-on-write objects it will give pointer to a copied-on-write
  *   mesh which corresponds to original object's mesh.
  */
-Mesh *BKE_object_get_pre_modified_mesh(const Object *object);
+const Mesh *BKE_object_get_pre_modified_mesh(const Object *object);
 /**
  * Get a mesh which corresponds to the very original mesh from #Main.
  * - For original objects it will be object->data.

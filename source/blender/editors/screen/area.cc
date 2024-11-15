@@ -1545,8 +1545,8 @@ static void region_rect_recursive(
     BLI_rcti_resize(&overlap_remainder_margin,
                     max_ii(0, BLI_rcti_size_x(overlap_remainder) - UI_UNIT_X / 2),
                     max_ii(0, BLI_rcti_size_y(overlap_remainder) - UI_UNIT_Y / 2));
-    region->winrct.xmin = overlap_remainder_margin.xmin + region->runtime.offset_x;
-    region->winrct.ymin = overlap_remainder_margin.ymin + region->runtime.offset_y;
+    region->winrct.xmin = overlap_remainder_margin.xmin + region->runtime->offset_x;
+    region->winrct.ymin = overlap_remainder_margin.ymin + region->runtime->offset_y;
     region->winrct.xmax = region->winrct.xmin + prefsizex - 1;
     region->winrct.ymax = region->winrct.ymin + prefsizey - 1;
 
@@ -1786,7 +1786,7 @@ static void region_rect_recursive(
   }
 
   /* Clear, initialize on demand. */
-  memset(&region->runtime.visible_rect, 0, sizeof(region->runtime.visible_rect));
+  memset(&region->runtime->visible_rect, 0, sizeof(region->runtime->visible_rect));
 }
 
 static void area_calc_totrct(ScrArea *area, const rcti *window_rect)
@@ -3105,7 +3105,7 @@ void ED_region_panels_layout_ex(const bContext *C,
     }
   }
 
-  region->runtime.category = nullptr;
+  region->runtime->category = nullptr;
 
   ScrArea *area = CTX_wm_area(C);
   View2D *v2d = &region->v2d;
@@ -3257,7 +3257,7 @@ void ED_region_panels_layout_ex(const bContext *C,
   }
 
   if (use_category_tabs) {
-    region->runtime.category = category;
+    region->runtime->category = category;
   }
 }
 
@@ -3292,14 +3292,14 @@ void ED_region_panels_draw(const bContext *C, ARegion *region)
   UI_view2d_view_restore(C);
 
   /* Set in layout. */
-  if (region->runtime.category) {
-    UI_panel_category_draw_all(region, region->runtime.category);
+  if (region->runtime->category) {
+    UI_panel_category_draw_all(region, region->runtime->category);
   }
 
   /* scrollers */
   bool use_mask = false;
   rcti mask;
-  if (region->runtime.category &&
+  if (region->runtime->category &&
       (RGN_ALIGN_ENUM_FROM_MASK(region->alignment) == RGN_ALIGN_RIGHT) &&
       UI_panel_category_is_visible(region))
   {
@@ -4002,7 +4002,7 @@ static void region_visible_rect_calc(ARegion *region, rcti *rect)
 
 const rcti *ED_region_visible_rect(ARegion *region)
 {
-  rcti *rect = &region->runtime.visible_rect;
+  rcti *rect = &region->runtime->visible_rect;
   if (rect->xmin == 0 && rect->ymin == 0 && rect->xmax == 0 && rect->ymax == 0) {
     region_visible_rect_calc(region, rect);
   }

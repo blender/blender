@@ -19,6 +19,8 @@
 
 #include "GPU_batch.hh"
 
+#include "draw_pass.hh"
+
 #define GP_LIGHT
 
 #include "gpencil_defines.h"
@@ -46,6 +48,10 @@ struct bGPDstroke;
 
 #define GP_MAX_MASKBITS 256
 
+struct GPENCIL_tVfx;
+
+using GPENCIL_tVfx_Pool = blender::draw::detail::SubPassVector<GPENCIL_tVfx>;
+
 /* *********** Draw Data *********** */
 typedef struct GPENCIL_MaterialPool {
   /* Single linked-list. */
@@ -70,30 +76,31 @@ typedef struct GPENCIL_LightPool {
   int light_used;
 } GPENCIL_LightPool;
 
-typedef struct GPENCIL_ViewLayerData {
+struct GPENCIL_ViewLayerData {
   /* GPENCIL_tObject */
   struct BLI_memblock *gp_object_pool;
   /* GPENCIL_tLayer */
   struct BLI_memblock *gp_layer_pool;
   /* GPENCIL_tVfx */
-  struct BLI_memblock *gp_vfx_pool;
+  GPENCIL_tVfx_Pool *gp_vfx_pool;
   /* GPENCIL_MaterialPool */
   struct BLI_memblock *gp_material_pool;
   /* GPENCIL_LightPool */
   struct BLI_memblock *gp_light_pool;
   /* BLI_bitmap */
   struct BLI_memblock *gp_maskbit_pool;
-} GPENCIL_ViewLayerData;
+};
 
 /* *********** GPencil  *********** */
 
-typedef struct GPENCIL_tVfx {
+struct GPENCIL_tVfx {
+  using PassSimple = blender::draw::PassSimple;
   /** Single linked-list. */
-  struct GPENCIL_tVfx *next;
-  DRWPass *vfx_ps;
+  struct GPENCIL_tVfx *next = nullptr;
+  std::unique_ptr<PassSimple> vfx_ps = std::make_unique<PassSimple>("vfx");
   /* Frame-buffer reference since it may not be allocated yet. */
-  GPUFrameBuffer **target_fb;
-} GPENCIL_tVfx;
+  GPUFrameBuffer **target_fb = nullptr;
+};
 
 typedef struct GPENCIL_tLayer {
   /** Single linked-list. */
@@ -153,10 +160,6 @@ typedef struct GPENCIL_PassList {
   struct DRWPass *merge_depth_ps;
   /* Invert mask buffer content. */
   struct DRWPass *mask_invert_ps;
-  /* Anti-Aliasing. */
-  struct DRWPass *smaa_edge_ps;
-  struct DRWPass *smaa_weight_ps;
-  struct DRWPass *smaa_resolve_ps;
 } GPENCIL_PassList;
 
 typedef struct GPENCIL_FramebufferList {
@@ -185,20 +188,29 @@ typedef struct GPENCIL_TextureList {
   struct GPUTexture *render_color_tx;
 } GPENCIL_TextureList;
 
-typedef struct GPENCIL_Data {
+struct GPENCIL_Instance {
+  blender::draw::PassSimple smaa_edge_ps = {"smaa_edge"};
+  blender::draw::PassSimple smaa_weight_ps = {"smaa_weight"};
+  blender::draw::PassSimple smaa_resolve_ps = {"smaa_resolve"};
+};
+
+struct GPENCIL_Data {
   void *engine_type; /* Required */
   struct GPENCIL_FramebufferList *fbl;
   struct GPENCIL_TextureList *txl;
   struct GPENCIL_PassList *psl;
   struct GPENCIL_StorageList *stl;
-} GPENCIL_Data;
+  struct GPENCIL_Instance *instance;
+
+  char info[GPU_INFO_SIZE];
+};
 
 /* *********** STATIC *********** */
 typedef struct GPENCIL_PrivateData {
   /* Pointers copied from GPENCIL_ViewLayerData. */
   struct BLI_memblock *gp_object_pool;
   struct BLI_memblock *gp_layer_pool;
-  struct BLI_memblock *gp_vfx_pool;
+  GPENCIL_tVfx_Pool *gp_vfx_pool;
   struct BLI_memblock *gp_material_pool;
   struct BLI_memblock *gp_light_pool;
   struct BLI_memblock *gp_maskbit_pool;

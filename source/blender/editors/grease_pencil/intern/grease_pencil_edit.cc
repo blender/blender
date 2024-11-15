@@ -24,6 +24,7 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_array_utils.hh"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -1786,6 +1787,12 @@ static int grease_pencil_move_to_layer_invoke(bContext *C, wmOperator *op, const
 {
   const bool add_new_layer = RNA_boolean_get(op->ptr, "add_new_layer");
   if (add_new_layer) {
+    Object *object = CTX_data_active_object(C);
+    GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+
+    const std::string unique_name = grease_pencil.unique_layer_name("Layer");
+    RNA_string_set(op->ptr, "target_layer_name", unique_name.c_str());
+
     return WM_operator_props_popup_confirm_ex(
         C, op, event, IFACE_("Move to New Layer"), IFACE_("Create"));
   }
@@ -1807,7 +1814,7 @@ static void GREASE_PENCIL_OT_move_to_layer(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   prop = RNA_def_string(
-      ot->srna, "target_layer_name", "Layer", INT16_MAX, "Name", "Target Grease Pencil Layer");
+      ot->srna, "target_layer_name", nullptr, INT16_MAX, "Name", "Target Grease Pencil Layer");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(
       ot->srna, "add_new_layer", false, "New Layer", "Move selection to a new layer");

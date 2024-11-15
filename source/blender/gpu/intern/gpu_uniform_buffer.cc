@@ -12,6 +12,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_math_base.h"
 
+#include "BKE_global.hh"
+
 #include "gpu_backend.hh"
 #include "gpu_node_graph.hh"
 
@@ -194,6 +196,12 @@ GPUUniformBuf *GPU_uniformbuf_create_ex(size_t size, const void *data, const cha
   /* Direct init. */
   if (data != nullptr) {
     ubo->update(data);
+  }
+  else if (G.debug & G_DEBUG_GPU) {
+    /* Fill the buffer with poison values.
+     * (NaN for floats, -1 for ints and "max value" for uints). */
+    blender::Vector<uchar> uninitialized_data(size, 0xFF);
+    ubo->update(uninitialized_data.data());
   }
   return wrap(ubo);
 }

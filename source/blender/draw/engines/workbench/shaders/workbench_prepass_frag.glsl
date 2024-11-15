@@ -2,7 +2,13 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "common_view_lib.glsl"
+#include "infos/workbench_prepass_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(workbench_prepass)
+FRAGMENT_SHADER_CREATE_INFO(workbench_opaque)
+FRAGMENT_SHADER_CREATE_INFO(workbench_lighting_matcap)
+
+#include "draw_view_lib.glsl"
 #include "workbench_common_lib.glsl"
 #include "workbench_image_lib.glsl"
 

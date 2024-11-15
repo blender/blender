@@ -207,6 +207,14 @@ int clear_keyframe(Main *bmain, ReportList *reports, ID *id, const RNAPath &rna_
 bool is_keying_flag(const Scene *scene, eKeying_Flag flag);
 
 /**
+ * Checks whether a keyframe exists for the given ID-block one the given frame.
+ *
+ * \param frame: The frame on which to check for a keyframe. This uses a threshold so the float
+ * doesn't need to match exactly.
+ */
+bool id_frame_has_keyframe(ID *id, float frame);
+
+/**
  * Get the settings for key-framing from the given scene.
  */
 eInsertKeyFlags get_keyframing_flags(Scene *scene);

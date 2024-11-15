@@ -74,7 +74,11 @@ Vector<ID *> find_related_ids(Main &bmain, ID &id)
 
     if (related_id->flag & ID_FLAG_EMBEDDED_DATA) {
       /* No matter the type of embedded ID, their owner can always be added to the related IDs. */
-      BLI_assert(ID_REAL_USERS(related_id) == 0);
+
+      /* User counting is irrelevant for the logic here, because embedded IDs cannot be shared.
+       * Embedded IDs do exist (sometimes) with a non-zero user count, hence the assertion that the
+       * user count is not greater than 1. */
+      BLI_assert(ID_REAL_USERS(related_id) <= 1);
       ID *owner_id = BKE_id_owner_get(related_id);
       /* Embedded IDs should always have an owner. */
       BLI_assert(owner_id != nullptr);

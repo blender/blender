@@ -35,8 +35,6 @@
 #include "RNA_path.hh"
 #include "RNA_prototypes.hh"
 
-#include "ED_keyframing.hh"
-
 #include "MEM_guardedalloc.h"
 
 #include "BLT_translation.hh"

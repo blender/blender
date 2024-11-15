@@ -35,10 +35,13 @@ struct wmTooltipState;
 struct Panel_Runtime;
 #ifdef __cplusplus
 namespace blender::bke {
+struct ARegionRuntime;
 struct FileHandlerType;
-}
+}  // namespace blender::bke
+using ARegionRuntimeHandle = blender::bke::ARegionRuntime;
 using FileHandlerTypeHandle = blender::bke::FileHandlerType;
 #else
+typedef struct ARegionRuntimeHandle ARegionRuntimeHandle;
 typedef struct FileHandlerTypeHandle FileHandlerTypeHandle;
 #endif
 
@@ -450,27 +453,6 @@ typedef struct ScrArea {
   ScrArea_Runtime runtime;
 } ScrArea;
 
-typedef struct ARegion_Runtime {
-  /** Panel category to use between 'layout' and 'draw'. */
-  const char *category;
-
-  /**
-   * The visible part of the region, use with region overlap not to draw
-   * on top of the overlapping regions.
-   *
-   * Lazy initialize, zero'd when unset, relative to #ARegion.winrct x/y min. */
-  rcti visible_rect;
-
-  /* The offset needed to not overlap with window scroll-bars. Only used by HUD regions for now. */
-  int offset_x, offset_y;
-
-  /** Maps #uiBlock::name to uiBlock for faster lookups. */
-  struct GHash *block_name_map;
-
-  /* Dummy panel used in popups so they can support layout panels. */
-  Panel *popup_block_panel;
-} ARegion_Runtime;
-
 typedef struct ARegion {
   struct ARegion *next, *prev;
 
@@ -542,7 +524,7 @@ typedef struct ARegion {
   /** XXX 2.50, need spacedata equivalent? */
   void *regiondata;
 
-  ARegion_Runtime runtime;
+  ARegionRuntimeHandle *runtime;
 } ARegion;
 
 /** #ScrArea.flag */

@@ -61,14 +61,14 @@ static SpaceLink *nla_create(const ScrArea *area, const Scene *scene)
   snla->flag = SNLA_SHOW_MARKERS;
 
   /* header */
-  region = MEM_cnew<ARegion>("header for nla");
+  region = BKE_area_region_new();
 
   BLI_addtail(&snla->regionbase, region);
   region->regiontype = RGN_TYPE_HEADER;
   region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* track list region */
-  region = MEM_cnew<ARegion>("track list for nla");
+  region = BKE_area_region_new();
   BLI_addtail(&snla->regionbase, region);
   region->regiontype = RGN_TYPE_CHANNELS;
   region->alignment = RGN_ALIGN_LEFT;
@@ -78,14 +78,14 @@ static SpaceLink *nla_create(const ScrArea *area, const Scene *scene)
   region->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
 
   /* ui buttons */
-  region = MEM_cnew<ARegion>("buttons region for nla");
+  region = BKE_area_region_new();
 
   BLI_addtail(&snla->regionbase, region);
   region->regiontype = RGN_TYPE_UI;
   region->alignment = RGN_ALIGN_RIGHT;
 
   /* main region */
-  region = MEM_cnew<ARegion>("main region for nla");
+  region = BKE_area_region_new();
 
   BLI_addtail(&snla->regionbase, region);
   region->regiontype = RGN_TYPE_WINDOW;

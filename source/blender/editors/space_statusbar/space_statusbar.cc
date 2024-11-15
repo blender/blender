@@ -37,7 +37,7 @@ static SpaceLink *statusbar_create(const ScrArea * /*area*/, const Scene * /*sce
   sstatusbar->spacetype = SPACE_STATUSBAR;
 
   /* header region */
-  region = static_cast<ARegion *>(MEM_callocN(sizeof(*region), "header for statusbar"));
+  region = BKE_area_region_new();
   BLI_addtail(&sstatusbar->regionbase, region);
   region->regiontype = RGN_TYPE_HEADER;
   region->alignment = RGN_ALIGN_NONE;

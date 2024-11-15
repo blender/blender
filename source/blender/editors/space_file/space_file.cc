@@ -59,41 +59,41 @@ static SpaceLink *file_create(const ScrArea * /*area*/, const Scene * /*scene*/)
   sfile->spacetype = SPACE_FILE;
 
   /* header */
-  region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "header for file"));
+  region = BKE_area_region_new();
   BLI_addtail(&sfile->regionbase, region);
   region->regiontype = RGN_TYPE_HEADER;
   /* Ignore user preference "USER_HEADER_BOTTOM" here (always show top for new types). */
   region->alignment = RGN_ALIGN_TOP;
 
   /* Tools region */
-  region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "tools region for file"));
+  region = BKE_area_region_new();
   BLI_addtail(&sfile->regionbase, region);
   region->regiontype = RGN_TYPE_TOOLS;
   region->alignment = RGN_ALIGN_LEFT;
 
   /* ui list region */
-  region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "ui region for file"));
+  region = BKE_area_region_new();
   BLI_addtail(&sfile->regionbase, region);
   region->regiontype = RGN_TYPE_UI;
   region->alignment = RGN_ALIGN_TOP;
   region->flag = RGN_FLAG_DYNAMIC_SIZE | RGN_FLAG_NO_USER_RESIZE;
 
   /* execute region */
-  region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "execute region for file"));
+  region = BKE_area_region_new();
   BLI_addtail(&sfile->regionbase, region);
   region->regiontype = RGN_TYPE_EXECUTE;
   region->alignment = RGN_ALIGN_BOTTOM;
   region->flag = RGN_FLAG_DYNAMIC_SIZE | RGN_FLAG_NO_USER_RESIZE;
 
   /* tools props region */
-  region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "tool props for file"));
+  region = BKE_area_region_new();
   BLI_addtail(&sfile->regionbase, region);
   region->regiontype = RGN_TYPE_TOOL_PROPS;
   region->alignment = RGN_ALIGN_RIGHT;
   region->flag = RGN_FLAG_HIDDEN;
 
   /* main region */
-  region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "main region for file"));
+  region = BKE_area_region_new();
   BLI_addtail(&sfile->regionbase, region);
   region->regiontype = RGN_TYPE_WINDOW;
   region->v2d.scroll = (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);

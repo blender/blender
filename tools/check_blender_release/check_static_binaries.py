@@ -8,6 +8,7 @@ from pathlib import Path
 import re
 import subprocess
 import unittest
+import glob
 
 from check_utils import (
     sliceCommandLineArguments,
@@ -15,7 +16,7 @@ from check_utils import (
 )
 
 
-ALLOWED_LIBS = (
+ALLOWED_LIBS = [
     # Core C/C++ libraries:
     "ld-linux.so",
     "ld-linux-x86-64.so",
@@ -30,16 +31,32 @@ ALLOWED_LIBS = (
 
     # Libraries which are part of default install:
     "libcrypt.so",
-    "libnsl.so",
-    "libmvec.so.1",
+    "libuuid.so",
+
+    # Bundled python ncurses deps
+    "libpanelw.so",
+    "libncursesw.so",
+    "libtinfo.so",
 
     # X11 libraries we don't link statically:
+    "libdrm.so",
     "libX11.so",
     "libXext.so",
     "libXrender.so",
     "libXxf86vm.so",
     "libXi.so",
     "libXfixes.so",
+    "libxkbcommon.so",
+
+    # MaterialX X11 libs:
+    "libICE.so",
+    "libSM.so",
+    "libXt.so",
+    "libOpenGL.so",
+    "libGLX.so",
+
+    # Level Zero (Intel GPU Render)
+    "libze_loader.so",
 
     # OpenGL libraries:
     "libGL.so",
@@ -48,10 +65,7 @@ ALLOWED_LIBS = (
     # Library the software-GL is linking against and distributes with it:
     'libglapi.so',
     'libxcb.so',
-
-    # Own dependencies we don't link statically:
-    "libfreetype.so",
-)
+]
 
 IGNORE_FILES = ("blender-launcher", "blender-softwaregl", )
 IGNORE_EXTENSION = (".sh", ".py", )
@@ -142,9 +156,10 @@ class UnitTesting(unittest.TestCase):
         libraries = getNeededLibraries(binary_filepath)
         for lib_name in libraries:
             lib_name_no_abi = stripLibraryABI(lib_name)
-            self.assertTrue(lib_name_no_abi in ALLOWED_LIBS,
-                            "Error detected in {}: library used {}" . format(
-                                binary_filepath, lib_name))
+            with self.subTest(msg=os.path.basename(binary_filepath) + ' check'):
+                self.assertTrue(lib_name_no_abi in ALLOWED_LIBS,
+                                "Error detected in {}: library used {}" . format(
+                                    binary_filepath, lib_name))
 
     def checkDirectory(self, directory):
         """
@@ -177,6 +192,16 @@ class UnitTesting(unittest.TestCase):
         self.assertTrue(os.path.isdir(args.directory),
                         "Given path is not a directory: {}" .
                         format(args.directory))
+        # Add all libraries the we bundle to the allowed list
+        global ALLOWED_LIBS
+        ALLOWED_LIBS += glob.glob("*.so", root_dir=args.directory + "/lib")
+        # Add OIDN libs that do not have a .so symlink
+        for oidn_lib in glob.glob("libOpenImageDenoise_*.so*", root_dir=args.directory + "/lib"):
+            ALLOWED_LIBS.append(stripLibraryABI(oidn_lib))
+        # Add all bundled python libs
+        for python_lib in glob.glob("[0-9].[0-9]/python/lib/**/*.so", root_dir=args.directory, recursive=True):
+            ALLOWED_LIBS.append(os.path.basename(python_lib))
+
         # Perform actual test,
         self.checkDirectory(args.directory)
 

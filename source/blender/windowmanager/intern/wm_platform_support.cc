@@ -158,15 +158,25 @@ bool WM_platform_support_perform_checks()
       slen = 0;
 
 #ifdef __APPLE__
-      STR_CONCAT(message,
-                 slen,
-                 CTX_IFACE_(BLT_I18NCONTEXT_ID_WINDOWMANAGER,
-                            "Your graphics card or macOS version is not supported"));
-      STR_CONCAT(message, slen, "\n \n");
-      STR_CONCAT(message,
-                 slen,
-                 CTX_IFACE_(BLT_I18NCONTEXT_ID_WINDOWMANAGER,
-                            "Upgrading to the latest macOS version may improve Blender support"));
+      if (GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_ANY)) {
+        STR_CONCAT(
+            message,
+            slen,
+            CTX_IFACE_(BLT_I18NCONTEXT_ID_WINDOWMANAGER, "Your graphics card is not supported"));
+      }
+      else {
+        STR_CONCAT(message,
+                   slen,
+                   CTX_IFACE_(BLT_I18NCONTEXT_ID_WINDOWMANAGER,
+                              "Your graphics card or macOS version is not supported"));
+        STR_CONCAT(message, slen, "\n \n");
+
+        STR_CONCAT(
+            message,
+            slen,
+            CTX_IFACE_(BLT_I18NCONTEXT_ID_WINDOWMANAGER,
+                       "Upgrading to the latest macOS version may improve Blender support"));
+      }
 #else
       STR_CONCAT(message,
                  slen,

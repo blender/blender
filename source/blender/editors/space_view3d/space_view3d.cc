@@ -208,14 +208,14 @@ static SpaceLink *view3d_create(const ScrArea * /*area*/, const Scene *scene)
   }
 
   /* header */
-  region = MEM_cnew<ARegion>("header for view3d");
+  region = BKE_area_region_new();
 
   BLI_addtail(&v3d->regionbase, region);
   region->regiontype = RGN_TYPE_HEADER;
   region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* tool header */
-  region = MEM_cnew<ARegion>("tool header for view3d");
+  region = BKE_area_region_new();
 
   BLI_addtail(&v3d->regionbase, region);
   region->regiontype = RGN_TYPE_TOOL_HEADER;
@@ -223,7 +223,7 @@ static SpaceLink *view3d_create(const ScrArea * /*area*/, const Scene *scene)
   region->flag = RGN_FLAG_HIDDEN | RGN_FLAG_HIDDEN_BY_USER;
 
   /* asset shelf */
-  region = MEM_cnew<ARegion>("asset shelf for view3d");
+  region = BKE_area_region_new();
 
   BLI_addtail(&v3d->regionbase, region);
   region->regiontype = RGN_TYPE_ASSET_SHELF;
@@ -231,13 +231,13 @@ static SpaceLink *view3d_create(const ScrArea * /*area*/, const Scene *scene)
   region->flag |= RGN_FLAG_HIDDEN;
 
   /* asset shelf header */
-  region = MEM_cnew<ARegion>("asset shelf header for view3d");
+  region = BKE_area_region_new();
   BLI_addtail(&v3d->regionbase, region);
   region->regiontype = RGN_TYPE_ASSET_SHELF_HEADER;
   region->alignment = RGN_ALIGN_BOTTOM | RGN_ALIGN_HIDE_WITH_PREV;
 
   /* tool shelf */
-  region = MEM_cnew<ARegion>("toolshelf for view3d");
+  region = BKE_area_region_new();
 
   BLI_addtail(&v3d->regionbase, region);
   region->regiontype = RGN_TYPE_TOOLS;
@@ -245,7 +245,7 @@ static SpaceLink *view3d_create(const ScrArea * /*area*/, const Scene *scene)
   region->flag = RGN_FLAG_HIDDEN;
 
   /* buttons/list view */
-  region = MEM_cnew<ARegion>("buttons for view3d");
+  region = BKE_area_region_new();
 
   BLI_addtail(&v3d->regionbase, region);
   region->regiontype = RGN_TYPE_UI;
@@ -253,7 +253,7 @@ static SpaceLink *view3d_create(const ScrArea * /*area*/, const Scene *scene)
   region->flag = RGN_FLAG_HIDDEN;
 
   /* main region */
-  region = MEM_cnew<ARegion>("main region for view3d");
+  region = BKE_area_region_new();
 
   BLI_addtail(&v3d->regionbase, region);
   region->regiontype = RGN_TYPE_WINDOW;

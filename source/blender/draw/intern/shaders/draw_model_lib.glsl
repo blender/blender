@@ -8,8 +8,6 @@
 
 #include "draw_view_lib.glsl"
 
-SHADER_LIBRARY_CREATE_INFO(draw_modelmat_new)
-
 #if !defined(DRAW_MODELMAT_CREATE_INFO) && !defined(GLSL_CPP_STUBS)
 #  error Missing draw_modelmat additional create info on shader create info
 #endif
@@ -33,6 +31,9 @@ VERTEX_SHADER_CREATE_INFO(draw_resource_id_varying)
 
 #elif defined(GPU_FRAGMENT_SHADER)
 FRAGMENT_SHADER_CREATE_INFO(draw_resource_id_varying)
+#  define resource_id drw_ResourceID_iface.resource_index
+#elif defined(GPU_LIBRARY_SHADER)
+SHADER_LIBRARY_CREATE_INFO(draw_resource_id_varying)
 #  define resource_id drw_ResourceID_iface.resource_index
 #endif
 

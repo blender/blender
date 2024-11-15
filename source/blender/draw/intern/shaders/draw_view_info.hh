@@ -17,6 +17,7 @@
 #  define DRAW_VIEW_CREATE_INFO
 #  define DRW_VIEW_CULLING_INFO
 #  define DRW_LEGACY_MODEL_MATRIX
+#  define USE_WORLD_CLIP_PLANES
 
 #  define drw_ModelMatrix drw_matrix_buf[resource_id].model
 #  define drw_ModelMatrixInverse drw_matrix_buf[resource_id].model_inverse
@@ -26,7 +27,6 @@
 #  define gpThicknessIsScreenSpace (gpThicknessWorldScale < 0.0)
 #  define ModelMatrix drw_ModelMatrix
 #  define ModelMatrixInverse drw_ModelMatrixInverse
-#  define resource_handle drw_ResourceID
 #endif
 
 #include "gpu_shader_create_info.hh"
@@ -270,3 +270,11 @@ COMPUTE_SOURCE("draw_command_generate_comp.glsl")
 GPU_SHADER_CREATE_END()
 
 /** \} */
+
+/* Stub needs to be after all definitions to avoid conflict with legacy definitions. */
+#ifdef GPU_SHADER
+/* Make it work for both draw_resource_id_new and draw_resource_with_custom_id_new. */
+#  define drw_ResourceID vec2(resource_id_buf[gpu_BaseInstance + gl_InstanceID]).x
+#  define drw_CustomID drw_ResourceID
+#  define resource_handle drw_ResourceID
+#endif

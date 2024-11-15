@@ -21,6 +21,7 @@
 #include "BLI_kdtree.h"
 #include "BLI_rect.h"
 
+#include "DNA_brush_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "ED_grease_pencil.hh"

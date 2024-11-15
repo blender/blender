@@ -673,4 +673,28 @@ void bake_fcurve_segments(FCurve *fcu)
   BKE_fcurve_handles_recalc(fcu);
 }
 
+bool fcurve_frame_has_keyframe(const FCurve *fcu, const float frame)
+{
+  if (ELEM(nullptr, fcu, fcu->bezt)) {
+    return false;
+  }
+
+  if ((fcu->flag & FCURVE_MUTED) == 0) {
+    bool replace;
+    const int i = BKE_fcurve_bezt_binarysearch_index(fcu->bezt, frame, fcu->totvert, &replace);
+
+    /* BKE_fcurve_bezt_binarysearch_index will set replace to be 0 or 1
+     * - obviously, 1 represents a match
+     */
+    if (replace) {
+      /* 'i' may in rare cases exceed arraylen. */
+      if ((i >= 0) && (i < fcu->totvert)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 }  // namespace blender::animrig

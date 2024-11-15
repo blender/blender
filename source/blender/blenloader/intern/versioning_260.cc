@@ -2637,7 +2637,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
             continue;
           }
 
-          ARegion *arnew = MEM_cnew<ARegion>("node tools");
+          ARegion *arnew = BKE_area_region_new();
 
           BLI_insertlinkafter(&area->regionbase, region, arnew);
           arnew->regiontype = RGN_TYPE_TOOLS;
