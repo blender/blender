@@ -234,8 +234,7 @@ static void do_version_action_editor_properties_region(ListBase *regionbase)
     }
     if (region->regiontype == RGN_TYPE_WINDOW) {
       /* add new region here */
-      ARegion *region_new = static_cast<ARegion *>(
-          MEM_callocN(sizeof(ARegion), "buttons for action"));
+      ARegion *region_new = BKE_area_region_new();
 
       BLI_insertlinkbefore(regionbase, region, region_new);
 

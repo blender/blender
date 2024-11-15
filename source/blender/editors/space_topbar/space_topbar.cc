@@ -46,17 +46,17 @@ static SpaceLink *topbar_create(const ScrArea * /*area*/, const Scene * /*scene*
   stopbar->spacetype = SPACE_TOPBAR;
 
   /* header */
-  region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "left aligned header for topbar"));
+  region = BKE_area_region_new();
   BLI_addtail(&stopbar->regionbase, region);
   region->regiontype = RGN_TYPE_HEADER;
   region->alignment = RGN_ALIGN_TOP;
-  region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "right aligned header for topbar"));
+  region = BKE_area_region_new();
   BLI_addtail(&stopbar->regionbase, region);
   region->regiontype = RGN_TYPE_HEADER;
   region->alignment = RGN_ALIGN_RIGHT | RGN_SPLIT_PREV;
 
   /* main regions */
-  region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "main region of topbar"));
+  region = BKE_area_region_new();
   BLI_addtail(&stopbar->regionbase, region);
   region->regiontype = RGN_TYPE_WINDOW;
 

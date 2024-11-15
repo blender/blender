@@ -55,14 +55,14 @@ static SpaceLink *buttons_create(const ScrArea * /*area*/, const Scene * /*scene
   sbuts->mainb = sbuts->mainbuser = BCONTEXT_OBJECT;
 
   /* header */
-  region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "header for buts"));
+  region = BKE_area_region_new();
 
   BLI_addtail(&sbuts->regionbase, region);
   region->regiontype = RGN_TYPE_HEADER;
   region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* navigation bar */
-  region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "navigation bar for buts"));
+  region = BKE_area_region_new();
 
   BLI_addtail(&sbuts->regionbase, region);
   region->regiontype = RGN_TYPE_NAV_BAR;
@@ -70,14 +70,14 @@ static SpaceLink *buttons_create(const ScrArea * /*area*/, const Scene * /*scene
 
 #if 0
   /* context region */
-  region = MEM_callocN(sizeof(ARegion), "context region for buts");
+  region = BKE_area_region_new();
   BLI_addtail(&sbuts->regionbase, region);
   region->regiontype = RGN_TYPE_CHANNELS;
   region->alignment = RGN_ALIGN_TOP;
 #endif
 
   /* main region */
-  region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "main region for buts"));
+  region = BKE_area_region_new();
 
   BLI_addtail(&sbuts->regionbase, region);
   region->regiontype = RGN_TYPE_WINDOW;

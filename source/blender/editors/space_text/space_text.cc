@@ -57,20 +57,20 @@ static SpaceLink *text_create(const ScrArea * /*area*/, const Scene * /*scene*/)
   stext->runtime = MEM_new<SpaceText_Runtime>(__func__);
 
   /* header */
-  region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "header for text"));
+  region = BKE_area_region_new();
 
   BLI_addtail(&stext->regionbase, region);
   region->regiontype = RGN_TYPE_HEADER;
   region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* footer */
-  region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "footer for text"));
+  region = BKE_area_region_new();
   BLI_addtail(&stext->regionbase, region);
   region->regiontype = RGN_TYPE_FOOTER;
   region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_TOP : RGN_ALIGN_BOTTOM;
 
   /* properties region */
-  region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "properties region for text"));
+  region = BKE_area_region_new();
 
   BLI_addtail(&stext->regionbase, region);
   region->regiontype = RGN_TYPE_UI;
@@ -78,7 +78,7 @@ static SpaceLink *text_create(const ScrArea * /*area*/, const Scene * /*scene*/)
   region->flag = RGN_FLAG_HIDDEN;
 
   /* main region */
-  region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "main region for text"));
+  region = BKE_area_region_new();
 
   BLI_addtail(&stext->regionbase, region);
   region->regiontype = RGN_TYPE_WINDOW;

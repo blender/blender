@@ -44,14 +44,14 @@ static SpaceLink *info_create(const ScrArea * /*area*/, const Scene * /*scene*/)
   sinfo->rpt_mask = INFO_RPT_OP;
 
   /* header */
-  region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "header for info"));
+  region = BKE_area_region_new();
 
   BLI_addtail(&sinfo->regionbase, region);
   region->regiontype = RGN_TYPE_HEADER;
   region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* main region */
-  region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "main region for info"));
+  region = BKE_area_region_new();
 
   BLI_addtail(&sinfo->regionbase, region);
   region->regiontype = RGN_TYPE_WINDOW;

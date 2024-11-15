@@ -162,28 +162,28 @@ static SpaceLink *clip_create(const ScrArea * /*area*/, const Scene * /*scene*/)
   sc = DNA_struct_default_alloc(SpaceClip);
 
   /* header */
-  region = MEM_cnew<ARegion>("header for clip");
+  region = BKE_area_region_new();
 
   BLI_addtail(&sc->regionbase, region);
   region->regiontype = RGN_TYPE_HEADER;
   region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* tools view */
-  region = MEM_cnew<ARegion>("tools for clip");
+  region = BKE_area_region_new();
 
   BLI_addtail(&sc->regionbase, region);
   region->regiontype = RGN_TYPE_TOOLS;
   region->alignment = RGN_ALIGN_LEFT;
 
   /* properties view */
-  region = MEM_cnew<ARegion>("properties for clip");
+  region = BKE_area_region_new();
 
   BLI_addtail(&sc->regionbase, region);
   region->regiontype = RGN_TYPE_UI;
   region->alignment = RGN_ALIGN_RIGHT;
 
   /* channels view */
-  region = MEM_cnew<ARegion>("channels for clip");
+  region = BKE_area_region_new();
 
   BLI_addtail(&sc->regionbase, region);
   region->regiontype = RGN_TYPE_CHANNELS;
@@ -193,13 +193,13 @@ static SpaceLink *clip_create(const ScrArea * /*area*/, const Scene * /*scene*/)
   region->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
 
   /* preview view */
-  region = MEM_cnew<ARegion>("preview for clip");
+  region = BKE_area_region_new();
 
   BLI_addtail(&sc->regionbase, region);
   region->regiontype = RGN_TYPE_PREVIEW;
 
   /* main region */
-  region = MEM_cnew<ARegion>("main region for clip");
+  region = BKE_area_region_new();
 
   BLI_addtail(&sc->regionbase, region);
   region->regiontype = RGN_TYPE_WINDOW;
