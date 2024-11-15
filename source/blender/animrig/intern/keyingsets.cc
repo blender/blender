@@ -131,7 +131,6 @@ KeyingSet *builtin_keyingset_get_named(const char name[])
   printf("%s: '%s' not found\n", __func__, name);
 #endif
 
-  /* no matches found */
   return nullptr;
 }
 
@@ -400,7 +399,6 @@ static int insert_key_to_keying_set_path(bContext *C,
       break;
   }
 
-  /* Send notifiers for updates (this doesn't require context to work!). */
   WM_main_add_notifier(NC_ANIMATION | ND_KEYFRAME | NA_ADDED, nullptr);
 
   return keyed_channels;
@@ -420,7 +418,7 @@ int apply_keyingset(bContext *C,
   const eInsertKeyFlags base_kflags = get_keyframing_flags(scene);
   eInsertKeyFlags kflag = INSERTKEY_NOFLAGS;
   if (mode == ModifyKeyMode::INSERT) {
-    /* use context settings as base */
+    /* Use context settings as base. */
     kflag = keyingset_apply_keying_flags(base_kflags,
                                          eInsertKeyFlags(keyingset->keyingoverride),
                                          eInsertKeyFlags(keyingset->keyingflag));

@@ -268,9 +268,8 @@ eInsertKeyFlags get_keyframing_flags(Scene *scene)
  *
  * For layered actions, this only checks for keyframes in the assigned slot.
  */
-static bool assigned_action_has_keyframe_at(AnimData &adt, float frame)
+static bool assigned_action_has_keyframe_at(AnimData &adt, const float frame)
 {
-  /* can only find if there is data */
   if (adt.action == nullptr) {
     return false;
   }
@@ -279,37 +278,29 @@ static bool assigned_action_has_keyframe_at(AnimData &adt, float frame)
     return false;
   }
 
-  /* loop over F-Curves, using binary-search to try to find matches
-   * - this assumes that keyframes are only beztriples
-   */
   for (FCurve *fcu : blender::animrig::legacy::fcurves_for_assigned_action(&adt)) {
-    /* only check if there are keyframes (currently only of type BezTriple) */
-    if (fcu->bezt && fcu->totvert) {
-      if (fcurve_frame_has_keyframe(fcu, frame)) {
-        return true;
-      }
+    if (fcurve_frame_has_keyframe(fcu, frame)) {
+      return true;
     }
   }
 
-  /* nothing found */
   return false;
 }
 
-/* Checks whether an Object has a keyframe for a given frame */
-static bool object_frame_has_keyframe(Object *ob, float frame)
+/* Checks whether an Object has a keyframe for a given frame. */
+static bool object_frame_has_keyframe(Object *ob, const float frame)
 {
-  /* error checking */
   if (ob == nullptr) {
     return false;
   }
 
-  /* check its own animation data - specifically, the action it contains */
+  /* Check its own animation data - specifically, the action it contains. */
   if ((ob->adt) && (ob->adt->action)) {
     /* #41525 - When the active action is a NLA strip being edited,
      * we need to correct the frame number to "look inside" the
      * remapped action
      */
-    float ob_frame = BKE_nla_tweakedit_remap(ob->adt, frame, NLATIME_CONVERT_UNMAP);
+    const float ob_frame = BKE_nla_tweakedit_remap(ob->adt, frame, NLATIME_CONVERT_UNMAP);
 
     if (assigned_action_has_keyframe_at(*ob->adt, ob_frame)) {
       return true;
@@ -322,22 +313,16 @@ static bool object_frame_has_keyframe(Object *ob, float frame)
 
 bool id_frame_has_keyframe(ID *id, float frame)
 {
-  /* sanity checks */
   if (id == nullptr) {
     return false;
   }
 
-  /* perform special checks for 'macro' types */
+  /* Perform special checks for 'macro' types. */
   switch (GS(id->name)) {
-    case ID_OB: /* object */
+    case ID_OB:
       return object_frame_has_keyframe((Object *)id, frame);
-#if 0
-    /* XXX TODO... for now, just use 'normal' behavior */
-    case ID_SCE: /* scene */
-      break;
-#endif
-    default: /* 'normal type' */
-    {
+
+    default: {
       AnimData *adt = BKE_animdata_from_id(id);
 
       /* only check keyframes in active action */
@@ -348,7 +333,6 @@ bool id_frame_has_keyframe(ID *id, float frame)
     }
   }
 
-  /* no keyframe found */
   return false;
 }
 

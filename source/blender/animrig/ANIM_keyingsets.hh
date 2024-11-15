@@ -102,8 +102,6 @@ enum class ModifyKeyReturn {
  * current context info.
  *
  * \note Passing sources as pointer because it can be a nullptr.
- *
- * \return 0 if succeeded, otherwise an error code: #eModifyKey_Returns.
  */
 ModifyKeyReturn validate_keyingset(bContext *C,
                                    blender::Vector<PointerRNA> *sources,
@@ -117,7 +115,7 @@ ModifyKeyReturn validate_keyingset(bContext *C,
  * This takes into account many of the different combinations of using KeyingSets.
  *
  * \returns the number of channels that key-frames were added or
- * an #eModifyKey_Returns value (always a negative number).
+ * an #ModifyKeyReturn error (always a negative number).
  */
 int apply_keyingset(bContext *C,
                     blender::Vector<PointerRNA> *sources,
