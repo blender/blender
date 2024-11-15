@@ -160,10 +160,6 @@ typedef struct GPENCIL_PassList {
   struct DRWPass *merge_depth_ps;
   /* Invert mask buffer content. */
   struct DRWPass *mask_invert_ps;
-  /* Anti-Aliasing. */
-  struct DRWPass *smaa_edge_ps;
-  struct DRWPass *smaa_weight_ps;
-  struct DRWPass *smaa_resolve_ps;
 } GPENCIL_PassList;
 
 typedef struct GPENCIL_FramebufferList {
@@ -192,13 +188,22 @@ typedef struct GPENCIL_TextureList {
   struct GPUTexture *render_color_tx;
 } GPENCIL_TextureList;
 
-typedef struct GPENCIL_Data {
+struct GPENCIL_Instance {
+  blender::draw::PassSimple smaa_edge_ps = {"smaa_edge"};
+  blender::draw::PassSimple smaa_weight_ps = {"smaa_weight"};
+  blender::draw::PassSimple smaa_resolve_ps = {"smaa_resolve"};
+};
+
+struct GPENCIL_Data {
   void *engine_type; /* Required */
   struct GPENCIL_FramebufferList *fbl;
   struct GPENCIL_TextureList *txl;
   struct GPENCIL_PassList *psl;
   struct GPENCIL_StorageList *stl;
-} GPENCIL_Data;
+  struct GPENCIL_Instance *instance;
+
+  char info[GPU_INFO_SIZE];
+};
 
 /* *********** STATIC *********** */
 typedef struct GPENCIL_PrivateData {

@@ -59,6 +59,10 @@ void GPENCIL_engine_init(void *ved)
   const DRWContextState *ctx = DRW_context_state_get();
   const View3D *v3d = ctx->v3d;
 
+  if (vedata->instance == nullptr) {
+    vedata->instance = new GPENCIL_Instance();
+  }
+
   if (!stl->pd) {
     stl->pd = static_cast<GPENCIL_PrivateData *>(
         MEM_callocN(sizeof(GPENCIL_PrivateData), "GPENCIL_PrivateData"));
@@ -938,6 +942,11 @@ static void GPENCIL_engine_free()
   GPENCIL_shader_free();
 }
 
+static void GPENCIL_instance_free(void *instance)
+{
+  delete reinterpret_cast<GPENCIL_Instance *>(instance);
+}
+
 static const DrawEngineDataSize GPENCIL_data_size = DRW_VIEWPORT_DATA_SIZE(GPENCIL_Data);
 
 DrawEngineType draw_engine_gpencil_type = {
@@ -947,7 +956,7 @@ DrawEngineType draw_engine_gpencil_type = {
     /*vedata_size*/ &GPENCIL_data_size,
     /*engine_init*/ &GPENCIL_engine_init,
     /*engine_free*/ &GPENCIL_engine_free,
-    /*instance_free*/ nullptr,
+    /*instance_free*/ &GPENCIL_instance_free,
     /*cache_init*/ &GPENCIL_cache_init,
     /*cache_populate*/ &GPENCIL_cache_populate,
     /*cache_finish*/ &GPENCIL_cache_finish,
