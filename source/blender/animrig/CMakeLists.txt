@@ -34,6 +34,7 @@ set(SRC
   intern/fcurve.cc
   intern/keyframing.cc
   intern/keyframing_auto.cc
+  intern/keyingsets.cc
   intern/nla.cc
   intern/pose.cc
   intern/visualkey.cc

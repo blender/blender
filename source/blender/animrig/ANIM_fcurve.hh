@@ -157,4 +157,12 @@ void bake_fcurve(FCurve *fcu, blender::int2 range, float step, BakeCurveRemove r
  */
 void bake_fcurve_segments(FCurve *fcu);
 
+/**
+ * \brief Lesser Keyframe Checking API call.
+ *
+ * Checks if some F-Curve has a keyframe for a given frame.
+ * \note Used for the buttons to check for keyframes.
+ */
+bool fcurve_frame_has_keyframe(const FCurve *fcu, float frame);
+
 }  // namespace blender::animrig

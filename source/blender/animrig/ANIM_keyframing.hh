@@ -207,6 +207,16 @@ int clear_keyframe(Main *bmain, ReportList *reports, ID *id, const RNAPath &rna_
 bool is_keying_flag(const Scene *scene, eKeying_Flag flag);
 
 /**
+ * \brief Main Keyframe Checking API call.
+ *
+ * Checks whether a keyframe exists for the given ID-block one the given frame.
+ * It is recommended to call this method over the other keyframe-checkers directly,
+ * in case some detail of the implementation changes...
+ * \param frame: The value of this is quite often result of #BKE_scene_ctime_get()
+ */
+bool id_frame_has_keyframe(ID *id, float frame);
+
+/**
  * Get the settings for key-framing from the given scene.
  */
 eInsertKeyFlags get_keyframing_flags(Scene *scene);

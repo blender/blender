@@ -71,6 +71,7 @@
 
 #include "ANIM_action.hh"
 #include "ANIM_keyframing.hh"
+#include "ANIM_keyingsets.hh"
 
 #include "ED_anim_api.hh"
 #include "ED_armature.hh"
@@ -343,7 +344,7 @@ static int object_clear_transform_generic_exec(bContext *C,
   }
 
   /* get KeyingSet to use */
-  ks = ANIM_get_keyingset_for_autokeying(scene, default_ksName);
+  ks = blender::animrig::get_keyingset_for_autokeying(scene, default_ksName);
 
   if (blender::animrig::is_autokey_on(scene)) {
     ANIM_deselect_keys_in_animation_editors(C);

@@ -15,7 +15,7 @@ struct ListBase;
 
 /* KeyingSets/Keyframing Interface ------------- */
 
-/** List of builtin KeyingSets (defined in `keyingsets.cc`). */
+/** List of builtin KeyingSets (defined in `blender/animrig/keyingsets.cc`). */
 extern ListBase builtin_keyingsets;
 
 /* Operator Define Prototypes ------------------- */

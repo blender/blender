@@ -261,6 +261,97 @@ eInsertKeyFlags get_keyframing_flags(Scene *scene)
   return flag;
 }
 
+/**
+ * Checks whether the Action assigned to `adt` (if any) has any keyframes at the
+ * given frame. Since we're only concerned whether a keyframe exists, we can
+ * simply loop until a match is found.
+ *
+ * For layered actions, this only checks for keyframes in the assigned slot.
+ */
+static bool assigned_action_has_keyframe_at(AnimData &adt, float frame)
+{
+  /* can only find if there is data */
+  if (adt.action == nullptr) {
+    return false;
+  }
+
+  if (adt.action->flag & ACT_MUTED) {
+    return false;
+  }
+
+  /* loop over F-Curves, using binary-search to try to find matches
+   * - this assumes that keyframes are only beztriples
+   */
+  for (FCurve *fcu : blender::animrig::legacy::fcurves_for_assigned_action(&adt)) {
+    /* only check if there are keyframes (currently only of type BezTriple) */
+    if (fcu->bezt && fcu->totvert) {
+      if (fcurve_frame_has_keyframe(fcu, frame)) {
+        return true;
+      }
+    }
+  }
+
+  /* nothing found */
+  return false;
+}
+
+/* Checks whether an Object has a keyframe for a given frame */
+static bool object_frame_has_keyframe(Object *ob, float frame)
+{
+  /* error checking */
+  if (ob == nullptr) {
+    return false;
+  }
+
+  /* check its own animation data - specifically, the action it contains */
+  if ((ob->adt) && (ob->adt->action)) {
+    /* #41525 - When the active action is a NLA strip being edited,
+     * we need to correct the frame number to "look inside" the
+     * remapped action
+     */
+    float ob_frame = BKE_nla_tweakedit_remap(ob->adt, frame, NLATIME_CONVERT_UNMAP);
+
+    if (assigned_action_has_keyframe_at(*ob->adt, ob_frame)) {
+      return true;
+    }
+  }
+
+  /* nothing found */
+  return false;
+}
+
+bool id_frame_has_keyframe(ID *id, float frame)
+{
+  /* sanity checks */
+  if (id == nullptr) {
+    return false;
+  }
+
+  /* perform special checks for 'macro' types */
+  switch (GS(id->name)) {
+    case ID_OB: /* object */
+      return object_frame_has_keyframe((Object *)id, frame);
+#if 0
+    /* XXX TODO... for now, just use 'normal' behavior */
+    case ID_SCE: /* scene */
+      break;
+#endif
+    default: /* 'normal type' */
+    {
+      AnimData *adt = BKE_animdata_from_id(id);
+
+      /* only check keyframes in active action */
+      if (adt) {
+        return assigned_action_has_keyframe_at(*adt, frame);
+      }
+      break;
+    }
+  }
+
+  /* no keyframe found */
+  return false;
+}
+
 bool key_insertion_may_create_fcurve(const eInsertKeyFlags insert_key_flags)
 {
   return (insert_key_flags & (INSERTKEY_REPLACE | INSERTKEY_AVAILABLE)) == 0;

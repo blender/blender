@@ -33,6 +33,7 @@
 #include "ED_keyframing.hh"
 
 #include "ANIM_action.hh"
+#include "ANIM_keyingsets.hh"
 
 using namespace blender;
 
@@ -507,7 +508,7 @@ static bool rna_KeyingSetInfo_unregister(Main *bmain, StructRNA *type)
   WM_main_add_notifier(NC_WINDOW, nullptr);
 
   /* unlink Blender-side data */
-  ANIM_keyingset_info_unregister(bmain, ksi);
+  blender::animrig::keyingset_info_unregister(bmain, ksi);
   return true;
 }
 
@@ -545,7 +546,7 @@ static StructRNA *rna_KeyingSetInfo_register(Main *bmain,
   }
 
   /* check if we have registered this info before, and remove it */
-  ksi = ANIM_keyingset_info_find_name(dummy_ksi.idname);
+  ksi = blender::animrig::keyingset_info_find_name(dummy_ksi.idname);
   if (ksi) {
     BKE_reportf(reports,
                 RPT_INFO,
@@ -585,7 +586,7 @@ static StructRNA *rna_KeyingSetInfo_register(Main *bmain,
   ksi->generate = (have_function[2]) ? RKS_GEN_rna_internal : nullptr;
 
   /* add and register with other info as needed */
-  ANIM_keyingset_info_register(ksi);
+  blender::animrig::keyingset_info_register(ksi);
 
   WM_main_add_notifier(NC_WINDOW, nullptr);
 
@@ -744,7 +745,7 @@ static PointerRNA rna_KeyingSet_typeinfo_get(PointerRNA *ptr)
 
   /* keying set info is only for builtin Keying Sets */
   if ((ks->flag & KEYINGSET_ABSOLUTE) == 0) {
-    ksi = ANIM_keyingset_info_find_name(ks->typeinfo);
+    ksi = blender::animrig::keyingset_info_find_name(ks->typeinfo);
   }
   return rna_pointer_inherit_refine(ptr, &RNA_KeyingSetInfo, ksi);
 }
