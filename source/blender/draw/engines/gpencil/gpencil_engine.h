@@ -335,11 +335,6 @@ GPENCIL_tObject *gpencil_object_cache_add(GPENCIL_PrivateData *pd,
                                           blender::Bounds<float3> bounds);
 void gpencil_object_cache_sort(GPENCIL_PrivateData *pd);
 
-GPENCIL_tLayer *gpencil_layer_cache_add(GPENCIL_PrivateData *pd,
-                                        const Object *ob,
-                                        const bGPDlayer *gpl,
-                                        const bGPDframe *gpf,
-                                        GPENCIL_tObject *tgp_ob);
 GPENCIL_tLayer *grease_pencil_layer_cache_get(GPENCIL_tObject *tgp_ob,
                                               int layer_id,
                                               bool skip_onion);

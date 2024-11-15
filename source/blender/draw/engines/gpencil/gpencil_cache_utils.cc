@@ -185,27 +185,6 @@ void gpencil_object_cache_sort(GPENCIL_PrivateData *pd)
 /** \name Layer
  * \{ */
 
-static float gpencil_layer_final_opacity_get(const GPENCIL_PrivateData *pd,
-                                             const Object *ob,
-                                             const bGPDlayer *gpl)
-{
-  const bool is_obact = ((pd->obact) && (pd->obact == ob));
-  const bool is_fade = ((pd->fade_layer_opacity > -1.0f) && (is_obact) &&
-                        ((gpl->flag & GP_LAYER_ACTIVE) == 0));
-
-  /* Defines layer opacity. For active object depends of layer opacity factor, and
-   * for no active object, depends if the fade grease pencil objects option is enabled. */
-  if (!pd->is_render) {
-    if (is_obact && is_fade) {
-      return gpl->opacity * pd->fade_layer_opacity;
-    }
-    if (!is_obact && (pd->fade_gp_object_opacity > -1.0f)) {
-      return gpl->opacity * pd->fade_gp_object_opacity;
-    }
-  }
-  return gpl->opacity;
-}
-
 static float grease_pencil_layer_final_opacity_get(const GPENCIL_PrivateData *pd,
                                                    const Object *ob,
                                                    const GreasePencil &grease_pencil,
@@ -226,49 +205,6 @@ static float grease_pencil_layer_final_opacity_get(const GPENCIL_PrivateData *pd
     }
   }
   return layer.opacity;
-}
-
-static void gpencil_layer_final_tint_and_alpha_get(const GPENCIL_PrivateData *pd,
-                                                   const bGPdata *gpd,
-                                                   const bGPDlayer *gpl,
-                                                   const bGPDframe *gpf,
-                                                   float r_tint[4],
-                                                   float *r_alpha)
-{
-  const bool use_onion = (gpf != nullptr) && (gpf->runtime.onion_id != 0.0f);
-  if (use_onion) {
-    const bool use_onion_custom_col = (gpd->onion_flag & GP_ONION_GHOST_PREVCOL) != 0;
-    const bool use_onion_fade = (gpd->onion_flag & GP_ONION_FADE) != 0;
-    const bool use_next_col = gpf->runtime.onion_id > 0.0f;
-
-    float color_next[3];
-    float color_prev[3];
-    if (use_onion_custom_col) {
-      copy_v3_v3(color_next, gpd->gcolor_next);
-      copy_v3_v3(color_prev, gpd->gcolor_prev);
-    }
-    else {
-      UI_GetThemeColor3fv(TH_FRAME_AFTER, color_next);
-      UI_GetThemeColor3fv(TH_FRAME_BEFORE, color_prev);
-    }
-    const float *onion_col_custom = use_next_col ? color_next : color_prev;
-
-    copy_v4_fl4(r_tint, UNPACK3(onion_col_custom), 1.0f);
-
-    *r_alpha = use_onion_fade ? (1.0f / abs(gpf->runtime.onion_id)) : 0.5f;
-    *r_alpha *= gpd->onion_factor;
-    *r_alpha = (gpd->onion_factor > 0.0f) ? clamp_f(*r_alpha, 0.1f, 1.0f) :
-                                            clamp_f(*r_alpha, 0.01f, 1.0f);
-  }
-  else {
-    copy_v4_v4(r_tint, gpl->tintcolor);
-    if (GPENCIL_SIMPLIFY_TINT(pd->scene)) {
-      r_tint[3] = 0.0f;
-    }
-    *r_alpha = 1.0f;
-  }
-
-  *r_alpha *= pd->xray_alpha;
 }
 
 static float4 grease_pencil_layer_final_tint_and_alpha_get(const GPENCIL_PrivateData *pd,
@@ -321,20 +257,6 @@ static float4 grease_pencil_layer_final_tint_and_alpha_get(const GPENCIL_Private
 }
 
 /* Random color by layer. */
-static void gpencil_layer_random_color_get(const Object *ob,
-                                           const bGPDlayer *gpl,
-                                           float r_color[3])
-{
-  const float hsv_saturation = 0.7f;
-  const float hsv_value = 0.6f;
-
-  uint ob_hash = BLI_ghashutil_strhash_p_murmur(ob->id.name);
-  uint gpl_hash = BLI_ghashutil_strhash_p_murmur(gpl->info);
-  float hue = BLI_hash_int_01(ob_hash * gpl_hash);
-  const float hsv[3] = {hue, hsv_saturation, hsv_value};
-  hsv_to_rgb_v(hsv, r_color);
-}
-
 static void grease_pencil_layer_random_color_get(const Object *ob,
                                                  const blender::bke::greasepencil::Layer &layer,
                                                  float r_color[3])
@@ -347,172 +269,6 @@ static void grease_pencil_layer_random_color_get(const Object *ob,
   float hue = BLI_hash_int_01(ob_hash * gpl_hash);
   const float hsv[3] = {hue, hsv_saturation, hsv_value};
   hsv_to_rgb_v(hsv, r_color);
-}
-
-GPENCIL_tLayer *gpencil_layer_cache_add(GPENCIL_PrivateData *pd,
-                                        const Object *ob,
-                                        const bGPDlayer *gpl,
-                                        const bGPDframe *gpf,
-                                        GPENCIL_tObject *tgp_ob)
-{
-  bGPdata *gpd = (bGPdata *)ob->data;
-
-  const bool is_in_front = (ob->dtx & OB_DRAW_IN_FRONT);
-  const bool is_screenspace = (gpd->flag & GP_DATA_STROKE_KEEPTHICKNESS) != 0;
-  const bool override_vertcol = (pd->v3d_color_type != -1);
-  const bool is_vert_col_mode = (pd->v3d_color_type == V3D_SHADING_VERTEX_COLOR) ||
-                                GPENCIL_VERTEX_MODE(gpd) || pd->is_render;
-  const bool is_viewlayer_render = pd->is_render && (gpl->viewlayername[0] != '\0') &&
-                                   STREQ(pd->view_layer->name, gpl->viewlayername);
-  const bool disable_masks_render = is_viewlayer_render &&
-                                    (gpl->flag & GP_LAYER_DISABLE_MASKS_IN_VIEWLAYER);
-  bool is_masked = disable_masks_render ? false :
-                                          (gpl->flag & GP_LAYER_USE_MASK) &&
-                                              !BLI_listbase_is_empty(&gpl->mask_layers);
-
-  float vert_col_opacity = (override_vertcol) ?
-                               (is_vert_col_mode ? pd->vertex_paint_opacity : 0.0f) :
-                               (pd->is_render ? gpl->vertex_paint_opacity :
-                                                pd->vertex_paint_opacity);
-  /* Negate thickness sign to tag that strokes are in screen space.
-   * Convert to world units (by default, 1 meter = 2000 pixels). */
-  float thickness_scale = (is_screenspace) ? -1.0f : (gpd->pixfactor / GPENCIL_PIXEL_FACTOR);
-  float layer_opacity = gpencil_layer_final_opacity_get(pd, ob, gpl);
-  float layer_tint[4];
-  float layer_alpha;
-  gpencil_layer_final_tint_and_alpha_get(pd, gpd, gpl, gpf, layer_tint, &layer_alpha);
-
-  /* Create the new layer descriptor. */
-  GPENCIL_tLayer *tgp_layer = static_cast<GPENCIL_tLayer *>(BLI_memblock_alloc(pd->gp_layer_pool));
-  BLI_LINKS_APPEND(&tgp_ob->layers, tgp_layer);
-  tgp_layer->layer_id = BLI_findindex(&gpd->layers, gpl);
-  tgp_layer->mask_bits = nullptr;
-  tgp_layer->mask_invert_bits = nullptr;
-  tgp_layer->blend_ps = nullptr;
-
-  /* Masking: Go through mask list and extract valid masks in a bitmap. */
-  if (is_masked) {
-    bool valid_mask = false;
-    /* WARNING: only #GP_MAX_MASKBITS amount of bits.
-     * TODO(fclem): Find a better system without any limitation. */
-    tgp_layer->mask_bits = static_cast<BLI_bitmap *>(BLI_memblock_alloc(pd->gp_maskbit_pool));
-    tgp_layer->mask_invert_bits = static_cast<BLI_bitmap *>(
-        BLI_memblock_alloc(pd->gp_maskbit_pool));
-    BLI_bitmap_set_all(tgp_layer->mask_bits, false, GP_MAX_MASKBITS);
-
-    LISTBASE_FOREACH (bGPDlayer_Mask *, mask, &gpl->mask_layers) {
-      bGPDlayer *gpl_mask = BKE_gpencil_layer_named_get(gpd, mask->name);
-      if (gpl_mask && (gpl_mask != gpl) && ((gpl_mask->flag & GP_LAYER_HIDE) == 0) &&
-          ((mask->flag & GP_MASK_HIDE) == 0))
-      {
-        int index = BLI_findindex(&gpd->layers, gpl_mask);
-        if (index < GP_MAX_MASKBITS) {
-          const bool invert = (mask->flag & GP_MASK_INVERT) != 0;
-          BLI_BITMAP_SET(tgp_layer->mask_bits, index, true);
-          BLI_BITMAP_SET(tgp_layer->mask_invert_bits, index, invert);
-          valid_mask = true;
-        }
-      }
-    }
-
-    if (valid_mask) {
-      pd->use_mask_fb = true;
-    }
-    else {
-      tgp_layer->mask_bits = nullptr;
-    }
-    is_masked = valid_mask;
-  }
-
-  /* Blending: Force blending for masked layer. */
-  if (is_masked || (gpl->blend_mode != eGplBlendMode_Regular) || (layer_opacity < 1.0f)) {
-    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_STENCIL_EQUAL;
-    switch (gpl->blend_mode) {
-      case eGplBlendMode_Regular:
-        state |= DRW_STATE_BLEND_ALPHA_PREMUL;
-        break;
-      case eGplBlendMode_Add:
-        state |= DRW_STATE_BLEND_ADD_FULL;
-        break;
-      case eGplBlendMode_Subtract:
-        state |= DRW_STATE_BLEND_SUB;
-        break;
-      case eGplBlendMode_Multiply:
-      case eGplBlendMode_Divide:
-      case eGplBlendMode_HardLight:
-        state |= DRW_STATE_BLEND_MUL;
-        break;
-    }
-
-    if (ELEM(gpl->blend_mode, eGplBlendMode_Subtract, eGplBlendMode_HardLight)) {
-      /* For these effect to propagate, we need a signed floating point buffer. */
-      pd->use_signed_fb = true;
-    }
-
-    tgp_layer->blend_ps = DRW_pass_create("GPencil Blend Layer", state);
-
-    GPUShader *sh = GPENCIL_shader_layer_blend_get();
-    DRWShadingGroup *grp = DRW_shgroup_create(sh, tgp_layer->blend_ps);
-    DRW_shgroup_uniform_int_copy(grp, "blendMode", gpl->blend_mode);
-    DRW_shgroup_uniform_float_copy(grp, "blendOpacity", layer_opacity);
-    DRW_shgroup_uniform_texture_ref(grp, "colorBuf", &pd->color_layer_tx);
-    DRW_shgroup_uniform_texture_ref(grp, "revealBuf", &pd->reveal_layer_tx);
-    DRW_shgroup_uniform_texture_ref(grp, "maskBuf", (is_masked) ? &pd->mask_tx : &pd->dummy_tx);
-    DRW_shgroup_stencil_mask(grp, 0xFF);
-    DRW_shgroup_call_procedural_triangles(grp, nullptr, 1);
-
-    if (gpl->blend_mode == eGplBlendMode_HardLight) {
-      /* We cannot do custom blending on Multi-Target frame-buffers.
-       * Workaround by doing 2 passes. */
-      grp = DRW_shgroup_create(sh, tgp_layer->blend_ps);
-      DRW_shgroup_state_disable(grp, DRW_STATE_BLEND_MUL);
-      DRW_shgroup_state_enable(grp, DRW_STATE_BLEND_ADD_FULL);
-      DRW_shgroup_uniform_int_copy(grp, "blendMode", 999);
-      DRW_shgroup_call_procedural_triangles(grp, nullptr, 1);
-    }
-
-    pd->use_layer_fb = true;
-  }
-
-  /* Geometry pass */
-  {
-    GPUTexture *depth_tex = (is_in_front) ? pd->dummy_tx : pd->scene_depth_tx;
-    GPUTexture **mask_tex = (is_masked) ? &pd->mask_tx : &pd->dummy_tx;
-
-    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_BLEND_ALPHA_PREMUL;
-    /* For 2D mode, we render all strokes with uniform depth (increasing with stroke id). */
-    state |= tgp_ob->is_drawmode3d ? DRW_STATE_DEPTH_LESS_EQUAL : DRW_STATE_DEPTH_GREATER;
-    /* Always write stencil. Only used as optimization for blending. */
-    state |= DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_ALWAYS;
-
-    tgp_layer->geom_ps = DRW_pass_create("GPencil Layer", state);
-
-    GPUShader *sh = GPENCIL_shader_geometry_get();
-    DRWShadingGroup *grp = tgp_layer->base_shgrp = DRW_shgroup_create(sh, tgp_layer->geom_ps);
-
-    DRW_shgroup_uniform_texture(grp, "gpSceneDepthTexture", depth_tex);
-    DRW_shgroup_uniform_texture_ref(grp, "gpMaskTexture", mask_tex);
-    DRW_shgroup_uniform_vec3_copy(grp, "gpNormal", tgp_ob->plane_normal);
-    DRW_shgroup_uniform_bool_copy(grp, "gpStrokeOrder3d", tgp_ob->is_drawmode3d);
-    DRW_shgroup_uniform_float_copy(grp, "gpThicknessScale", tgp_ob->object_scale);
-    DRW_shgroup_uniform_float_copy(grp, "gpThicknessOffset", float(gpl->line_change));
-    DRW_shgroup_uniform_float_copy(grp, "gpThicknessWorldScale", thickness_scale);
-    DRW_shgroup_uniform_float_copy(grp, "gpVertexColorOpacity", vert_col_opacity);
-
-    /* If random color type, need color by layer. */
-    float gpl_color[4];
-    copy_v4_v4(gpl_color, layer_tint);
-    if (pd->v3d_color_type == V3D_SHADING_RANDOM_COLOR) {
-      gpencil_layer_random_color_get(ob, gpl, gpl_color);
-      gpl_color[3] = 1.0f;
-    }
-    DRW_shgroup_uniform_vec4_copy(grp, "gpLayerTint", gpl_color);
-
-    DRW_shgroup_uniform_float_copy(grp, "gpLayerOpacity", layer_alpha);
-    DRW_shgroup_stencil_mask(grp, 0xFF);
-  }
-
-  return tgp_layer;
 }
 
 GPENCIL_tLayer *grease_pencil_layer_cache_get(GPENCIL_tObject *tgp_ob,
