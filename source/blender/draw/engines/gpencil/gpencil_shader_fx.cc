@@ -21,6 +21,8 @@
 
 #include "gpencil_engine.h"
 
+using namespace blender::draw;
+
 /* verify if this fx is active */
 static bool effect_is_active(ShaderFxData *fx, bool is_edit, bool is_viewport)
 {
@@ -52,21 +54,25 @@ struct gpIterVfxData {
   GPUTexture **source_reveal_tx;
 };
 
-static DRWShadingGroup *gpencil_vfx_pass_create(
+static PassSimple &gpencil_vfx_pass_create(
     const char *name,
     DRWState state,
     gpIterVfxData *iter,
     GPUShader *sh,
     GPUSamplerState sampler = GPUSamplerState::internal_sampler())
 {
-  DRWPass *pass = DRW_pass_create(name, state);
-  DRWShadingGroup *grp = DRW_shgroup_create(sh, pass);
-  DRW_shgroup_uniform_texture_ref_ex(grp, "colorBuf", iter->source_color_tx, sampler);
-  DRW_shgroup_uniform_texture_ref_ex(grp, "revealBuf", iter->source_reveal_tx, sampler);
+  UNUSED_VARS(name);
 
-  GPENCIL_tVfx *tgp_vfx = static_cast<GPENCIL_tVfx *>(BLI_memblock_alloc(iter->pd->gp_vfx_pool));
+  int64_t id = iter->pd->gp_vfx_pool->append_and_get_index({});
+  GPENCIL_tVfx *tgp_vfx = &(*iter->pd->gp_vfx_pool)[id];
   tgp_vfx->target_fb = iter->target_fb;
-  tgp_vfx->vfx_ps = pass;
+
+  PassSimple &pass = *tgp_vfx->vfx_ps;
+  pass.init();
+  pass.state_set(state);
+  pass.shader_set(sh);
+  pass.bind_texture("colorBuf", iter->source_color_tx, sampler);
+  pass.bind_texture("revealBuf", iter->source_reveal_tx, sampler);
 
   std::swap(iter->target_fb, iter->source_fb);
   std::swap(iter->target_color_tx, iter->source_color_tx);
@@ -74,7 +80,7 @@ static DRWShadingGroup *gpencil_vfx_pass_create(
 
   BLI_LINKS_APPEND(&iter->tgp_ob->vfx, tgp_vfx);
 
-  return grp;
+  return pass;
 }
 
 static void gpencil_vfx_blur(BlurShaderFxData *fx, Object *ob, gpIterVfxData *iter)
@@ -88,7 +94,6 @@ static void gpencil_vfx_blur(BlurShaderFxData *fx, Object *ob, gpIterVfxData *it
     return;
   }
 
-  DRWShadingGroup *grp;
   const float s = sin(fx->rotation);
   const float c = cos(fx->rotation);
 
@@ -116,40 +121,34 @@ static void gpencil_vfx_blur(BlurShaderFxData *fx, Object *ob, gpIterVfxData *it
 
   DRWState state = DRW_STATE_WRITE_COLOR;
   if (blur_size[0] > 0.0f) {
-    grp = gpencil_vfx_pass_create("Fx Blur H", state, iter, sh);
-    DRW_shgroup_uniform_vec2_copy(
-        grp, "offset", blender::float2{blur_size[0] * c, blur_size[0] * s});
-    DRW_shgroup_uniform_int_copy(grp, "sampCount", max_ii(1, min_ii(fx->samples, blur_size[0])));
-    DRW_shgroup_call_procedural_triangles(grp, nullptr, 1);
+    auto &grp = gpencil_vfx_pass_create("Fx Blur H", state, iter, sh);
+    grp.push_constant("offset", float2(blur_size[0] * c, blur_size[0] * s));
+    grp.push_constant("sampCount", max_ii(1, min_ii(fx->samples, blur_size[0])));
+    grp.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
   if (blur_size[1] > 0.0f) {
-    grp = gpencil_vfx_pass_create("Fx Blur V", state, iter, sh);
-    DRW_shgroup_uniform_vec2_copy(
-        grp, "offset", blender::float2{-blur_size[1] * s, blur_size[1] * c});
-    DRW_shgroup_uniform_int_copy(grp, "sampCount", max_ii(1, min_ii(fx->samples, blur_size[1])));
-    DRW_shgroup_call_procedural_triangles(grp, nullptr, 1);
+    auto &grp = gpencil_vfx_pass_create("Fx Blur V", state, iter, sh);
+    grp.push_constant("offset", float2(-blur_size[1] * s, blur_size[1] * c));
+    grp.push_constant("sampCount", max_ii(1, min_ii(fx->samples, blur_size[1])));
+    grp.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
 }
 
 static void gpencil_vfx_colorize(ColorizeShaderFxData *fx, Object * /*ob*/, gpIterVfxData *iter)
 {
-  DRWShadingGroup *grp;
-
   GPUShader *sh = GPENCIL_shader_fx_colorize_get();
 
   DRWState state = DRW_STATE_WRITE_COLOR;
-  grp = gpencil_vfx_pass_create("Fx Colorize", state, iter, sh);
-  DRW_shgroup_uniform_vec3_copy(grp, "lowColor", fx->low_color);
-  DRW_shgroup_uniform_vec3_copy(grp, "highColor", fx->high_color);
-  DRW_shgroup_uniform_float_copy(grp, "factor", fx->factor);
-  DRW_shgroup_uniform_int_copy(grp, "mode", fx->mode);
-  DRW_shgroup_call_procedural_triangles(grp, nullptr, 1);
+  auto &grp = gpencil_vfx_pass_create("Fx Colorize", state, iter, sh);
+  grp.push_constant("lowColor", float3(fx->low_color));
+  grp.push_constant("highColor", float3(fx->high_color));
+  grp.push_constant("factor", fx->factor);
+  grp.push_constant("mode", fx->mode);
+  grp.draw_procedural(GPU_PRIM_TRIS, 1, 3);
 }
 
 static void gpencil_vfx_flip(FlipShaderFxData *fx, Object * /*ob*/, gpIterVfxData *iter)
 {
-  DRWShadingGroup *grp;
-
   float axis_flip[2];
   axis_flip[0] = (fx->flag & FX_FLIP_HORIZONTAL) ? -1.0f : 1.0f;
   axis_flip[1] = (fx->flag & FX_FLIP_VERTICAL) ? -1.0f : 1.0f;
@@ -157,17 +156,15 @@ static void gpencil_vfx_flip(FlipShaderFxData *fx, Object * /*ob*/, gpIterVfxDat
   GPUShader *sh = GPENCIL_shader_fx_transform_get();
 
   DRWState state = DRW_STATE_WRITE_COLOR;
-  grp = gpencil_vfx_pass_create("Fx Flip", state, iter, sh);
-  DRW_shgroup_uniform_vec2_copy(grp, "axisFlip", axis_flip);
-  DRW_shgroup_uniform_vec2_copy(grp, "waveOffset", blender::float2{0.0f, 0.0f});
-  DRW_shgroup_uniform_float_copy(grp, "swirlRadius", 0.0f);
-  DRW_shgroup_call_procedural_triangles(grp, nullptr, 1);
+  auto &grp = gpencil_vfx_pass_create("Fx Flip", state, iter, sh);
+  grp.push_constant("axisFlip", float2(axis_flip));
+  grp.push_constant("waveOffset", float2(0.0f, 0.0f));
+  grp.push_constant("swirlRadius", 0.0f);
+  grp.draw_procedural(GPU_PRIM_TRIS, 1, 3);
 }
 
 static void gpencil_vfx_rim(RimShaderFxData *fx, Object *ob, gpIterVfxData *iter)
 {
-  DRWShadingGroup *grp;
-
   float winmat[4][4], persmat[4][4];
   float offset[2] = {float(fx->offset[0]), float(fx->offset[1])};
   float blur_size[2] = {float(fx->blur[0]), float(fx->blur[1])};
@@ -188,60 +185,59 @@ static void gpencil_vfx_rim(RimShaderFxData *fx, Object *ob, gpIterVfxData *iter
 
   GPUShader *sh = GPENCIL_shader_fx_rim_get();
 
-  DRWState state = DRW_STATE_WRITE_COLOR;
-  grp = gpencil_vfx_pass_create("Fx Rim H", state, iter, sh);
-  DRW_shgroup_uniform_vec2_copy(
-      grp, "blurDir", blender::float2{blur_size[0] * vp_size_inv[0], 0.0f});
-  DRW_shgroup_uniform_vec2_copy(grp, "uvOffset", offset);
-  DRW_shgroup_uniform_int_copy(grp, "sampCount", max_ii(1, min_ii(fx->samples, blur_size[0])));
-  DRW_shgroup_uniform_vec3_copy(grp, "maskColor", fx->mask_rgb);
-  DRW_shgroup_uniform_bool_copy(grp, "isFirstPass", true);
-  DRW_shgroup_call_procedural_triangles(grp, nullptr, 1);
-
-  switch (fx->mode) {
-    case eShaderFxRimMode_Normal:
-      state |= DRW_STATE_BLEND_ALPHA_PREMUL;
-      break;
-    case eShaderFxRimMode_Add:
-      state |= DRW_STATE_BLEND_ADD_FULL;
-      break;
-    case eShaderFxRimMode_Subtract:
-      state |= DRW_STATE_BLEND_SUB;
-      break;
-    case eShaderFxRimMode_Multiply:
-    case eShaderFxRimMode_Divide:
-    case eShaderFxRimMode_Overlay:
-      state |= DRW_STATE_BLEND_MUL;
-      break;
+  {
+    DRWState state = DRW_STATE_WRITE_COLOR;
+    auto &grp = gpencil_vfx_pass_create("Fx Rim H", state, iter, sh);
+    grp.push_constant("blurDir", float2(blur_size[0] * vp_size_inv[0], 0.0f));
+    grp.push_constant("uvOffset", float2(offset));
+    grp.push_constant("sampCount", max_ii(1, min_ii(fx->samples, blur_size[0])));
+    grp.push_constant("maskColor", float3(fx->mask_rgb));
+    grp.push_constant("isFirstPass", true);
+    grp.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
 
-  zero_v2(offset);
+  {
+    DRWState state = DRW_STATE_WRITE_COLOR;
+    switch (fx->mode) {
+      case eShaderFxRimMode_Normal:
+        state |= DRW_STATE_BLEND_ALPHA_PREMUL;
+        break;
+      case eShaderFxRimMode_Add:
+        state |= DRW_STATE_BLEND_ADD_FULL;
+        break;
+      case eShaderFxRimMode_Subtract:
+        state |= DRW_STATE_BLEND_SUB;
+        break;
+      case eShaderFxRimMode_Multiply:
+      case eShaderFxRimMode_Divide:
+      case eShaderFxRimMode_Overlay:
+        state |= DRW_STATE_BLEND_MUL;
+        break;
+    }
 
-  grp = gpencil_vfx_pass_create("Fx Rim V", state, iter, sh);
-  DRW_shgroup_uniform_vec2_copy(
-      grp, "blurDir", blender::float2{0.0f, blur_size[1] * vp_size_inv[1]});
-  DRW_shgroup_uniform_vec2_copy(grp, "uvOffset", offset);
-  DRW_shgroup_uniform_vec3_copy(grp, "rimColor", fx->rim_rgb);
-  DRW_shgroup_uniform_int_copy(grp, "sampCount", max_ii(1, min_ii(fx->samples, blur_size[1])));
-  DRW_shgroup_uniform_int_copy(grp, "blendMode", fx->mode);
-  DRW_shgroup_uniform_bool_copy(grp, "isFirstPass", false);
-  DRW_shgroup_call_procedural_triangles(grp, nullptr, 1);
+    zero_v2(offset);
 
-  if (fx->mode == eShaderFxRimMode_Overlay) {
-    /* We cannot do custom blending on multi-target frame-buffers.
-     * Workaround by doing 2 passes. */
-    grp = DRW_shgroup_create_sub(grp);
-    DRW_shgroup_state_disable(grp, DRW_STATE_BLEND_MUL);
-    DRW_shgroup_state_enable(grp, DRW_STATE_BLEND_ADD_FULL);
-    DRW_shgroup_uniform_int_copy(grp, "blendMode", 999);
-    DRW_shgroup_call_procedural_triangles(grp, nullptr, 1);
+    auto &grp = gpencil_vfx_pass_create("Fx Rim V", state, iter, sh);
+    grp.push_constant("blurDir", float2(0.0f, blur_size[1] * vp_size_inv[1]));
+    grp.push_constant("uvOffset", float2(offset));
+    grp.push_constant("rimColor", float3(fx->rim_rgb));
+    grp.push_constant("sampCount", max_ii(1, min_ii(fx->samples, blur_size[1])));
+    grp.push_constant("blendMode", fx->mode);
+    grp.push_constant("isFirstPass", false);
+    grp.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+
+    if (fx->mode == eShaderFxRimMode_Overlay) {
+      /* We cannot do custom blending on multi-target frame-buffers.
+       * Workaround by doing 2 passes. */
+      grp.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ADD_FULL);
+      grp.push_constant("blendMode", 999);
+      grp.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+    }
   }
 }
 
 static void gpencil_vfx_pixelize(PixelShaderFxData *fx, Object *ob, gpIterVfxData *iter)
 {
-  DRWShadingGroup *grp;
-
   float persmat[4][4], winmat[4][4], ob_center[3], pixsize_uniform[2];
   DRW_view_winmat_get(nullptr, winmat, false);
   DRW_view_persmat_get(nullptr, persmat, false);
@@ -279,32 +275,30 @@ static void gpencil_vfx_pixelize(PixelShaderFxData *fx, Object *ob, gpIterVfxDat
     GPUSamplerState sampler = (use_antialiasing) ? GPUSamplerState::internal_sampler() :
                                                    GPUSamplerState::default_sampler();
 
-    grp = gpencil_vfx_pass_create("Fx Pixelize X", state, iter, sh, sampler);
-    DRW_shgroup_uniform_vec2_copy(grp, "targetPixelSize", pixsize_uniform);
-    DRW_shgroup_uniform_vec2_copy(grp, "targetPixelOffset", ob_center);
-    DRW_shgroup_uniform_vec2_copy(grp, "accumOffset", blender::float2{pixel_size[0], 0.0f});
+    auto &grp = gpencil_vfx_pass_create("Fx Pixelize X", state, iter, sh, sampler);
+    grp.push_constant("targetPixelSize", float2(pixsize_uniform));
+    grp.push_constant("targetPixelOffset", float2(ob_center));
+    grp.push_constant("accumOffset", float2(pixel_size[0], 0.0f));
     int samp_count = (pixel_size[0] / vp_size_inv[0] > 3.0) ? 2 : 1;
-    DRW_shgroup_uniform_int_copy(grp, "sampCount", use_antialiasing ? samp_count : 0);
-    DRW_shgroup_call_procedural_triangles(grp, nullptr, 1);
+    grp.push_constant("sampCount", int(use_antialiasing ? samp_count : 0));
+    grp.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
 
   if (pixel_size[1] > vp_size_inv[1]) {
     GPUSamplerState sampler = (use_antialiasing) ? GPUSamplerState::internal_sampler() :
                                                    GPUSamplerState::default_sampler();
     copy_v2_fl2(pixsize_uniform, vp_size_inv[0], pixel_size[1]);
-    grp = gpencil_vfx_pass_create("Fx Pixelize Y", state, iter, sh, sampler);
-    DRW_shgroup_uniform_vec2_copy(grp, "targetPixelSize", pixsize_uniform);
-    DRW_shgroup_uniform_vec2_copy(grp, "accumOffset", blender::float2{0.0f, pixel_size[1]});
+    auto &grp = gpencil_vfx_pass_create("Fx Pixelize Y", state, iter, sh, sampler);
+    grp.push_constant("targetPixelSize", float2(pixsize_uniform));
+    grp.push_constant("accumOffset", float2(0.0f, pixel_size[1]));
     int samp_count = (pixel_size[1] / vp_size_inv[1] > 3.0) ? 2 : 1;
-    DRW_shgroup_uniform_int_copy(grp, "sampCount", use_antialiasing ? samp_count : 0);
-    DRW_shgroup_call_procedural_triangles(grp, nullptr, 1);
+    grp.push_constant("sampCount", int(use_antialiasing ? samp_count : 0));
+    grp.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
 }
 
 static void gpencil_vfx_shadow(ShadowShaderFxData *fx, Object *ob, gpIterVfxData *iter)
 {
-  DRWShadingGroup *grp;
-
   const bool use_obj_pivot = (fx->flag & FX_SHADOW_USE_OBJECT) != 0;
   const bool use_wave = (fx->flag & FX_SHADOW_USE_WAVE) != 0;
 
@@ -381,18 +375,20 @@ static void gpencil_vfx_shadow(ShadowShaderFxData *fx, Object *ob, gpIterVfxData
 
   copy_v2_fl2(blur_dir, blur_size[0] * vp_size_inv[0], 0.0f);
 
-  DRWState state = DRW_STATE_WRITE_COLOR;
-  grp = gpencil_vfx_pass_create("Fx Shadow H", state, iter, sh);
-  DRW_shgroup_uniform_vec2_copy(grp, "blurDir", blur_dir);
-  DRW_shgroup_uniform_vec2_copy(grp, "waveDir", wave_dir);
-  DRW_shgroup_uniform_vec2_copy(grp, "waveOffset", wave_ofs);
-  DRW_shgroup_uniform_float_copy(grp, "wavePhase", wave_phase);
-  DRW_shgroup_uniform_vec2_copy(grp, "uvRotX", uv_mat[0]);
-  DRW_shgroup_uniform_vec2_copy(grp, "uvRotY", uv_mat[1]);
-  DRW_shgroup_uniform_vec2_copy(grp, "uvOffset", uv_mat[3]);
-  DRW_shgroup_uniform_int_copy(grp, "sampCount", max_ii(1, min_ii(fx->samples, blur_size[0])));
-  DRW_shgroup_uniform_bool_copy(grp, "isFirstPass", true);
-  DRW_shgroup_call_procedural_triangles(grp, nullptr, 1);
+  {
+    DRWState state = DRW_STATE_WRITE_COLOR;
+    auto &grp = gpencil_vfx_pass_create("Fx Shadow H", state, iter, sh);
+    grp.push_constant("blurDir", float2(blur_dir));
+    grp.push_constant("waveDir", float2(wave_dir));
+    grp.push_constant("waveOffset", float2(wave_ofs));
+    grp.push_constant("wavePhase", wave_phase);
+    grp.push_constant("uvRotX", float2(uv_mat[0]));
+    grp.push_constant("uvRotY", float2(uv_mat[1]));
+    grp.push_constant("uvOffset", float2(uv_mat[3]));
+    grp.push_constant("sampCount", max_ii(1, min_ii(fx->samples, blur_size[0])));
+    grp.push_constant("isFirstPass", true);
+    grp.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+  }
 
   unit_m4(uv_mat);
   zero_v2(wave_ofs);
@@ -402,23 +398,24 @@ static void gpencil_vfx_shadow(ShadowShaderFxData *fx, Object *ob, gpIterVfxData
   rotate_v2_v2fl(blur_dir, tmp, -fx->rotation);
   mul_v2_v2(blur_dir, vp_size_inv);
 
-  state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_PREMUL;
-  grp = gpencil_vfx_pass_create("Fx Shadow V", state, iter, sh);
-  DRW_shgroup_uniform_vec4_copy(grp, "shadowColor", fx->shadow_rgba);
-  DRW_shgroup_uniform_vec2_copy(grp, "blurDir", blur_dir);
-  DRW_shgroup_uniform_vec2_copy(grp, "waveOffset", wave_ofs);
-  DRW_shgroup_uniform_vec2_copy(grp, "uvRotX", uv_mat[0]);
-  DRW_shgroup_uniform_vec2_copy(grp, "uvRotY", uv_mat[1]);
-  DRW_shgroup_uniform_vec2_copy(grp, "uvOffset", uv_mat[3]);
-  DRW_shgroup_uniform_int_copy(grp, "sampCount", max_ii(1, min_ii(fx->samples, blur_size[1])));
-  DRW_shgroup_uniform_bool_copy(grp, "isFirstPass", false);
-  DRW_shgroup_call_procedural_triangles(grp, nullptr, 1);
+  {
+    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_PREMUL;
+    auto &grp = gpencil_vfx_pass_create("Fx Shadow V", state, iter, sh);
+    grp.push_constant("shadowColor", float4(fx->shadow_rgba));
+    grp.push_constant("blurDir", float2(blur_dir));
+    grp.push_constant("waveOffset", float2(wave_ofs));
+    grp.push_constant("uvRotX", float2(uv_mat[0]));
+    grp.push_constant("uvRotY", float2(uv_mat[1]));
+    grp.push_constant("uvOffset", float2(uv_mat[3]));
+    grp.push_constant("sampCount", max_ii(1, min_ii(fx->samples, blur_size[1])));
+    grp.push_constant("isFirstPass", false);
+    grp.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+  }
 }
 
 static void gpencil_vfx_glow(GlowShaderFxData *fx, Object * /*ob*/, gpIterVfxData *iter)
 {
   const bool use_glow_under = (fx->flag & FX_GLOW_USE_ALPHA) != 0;
-  DRWShadingGroup *grp;
   const float s = sin(fx->rotation);
   const float c = cos(fx->rotation);
 
@@ -440,14 +437,14 @@ static void gpencil_vfx_glow(GlowShaderFxData *fx, Object * /*ob*/, gpIterVfxDat
   }
 
   DRWState state = DRW_STATE_WRITE_COLOR;
-  grp = gpencil_vfx_pass_create("Fx Glow H", state, iter, sh);
-  DRW_shgroup_uniform_vec2_copy(grp, "offset", blender::float2{fx->blur[0] * c, fx->blur[0] * s});
-  DRW_shgroup_uniform_int_copy(grp, "sampCount", max_ii(1, min_ii(fx->samples, fx->blur[0])));
-  DRW_shgroup_uniform_vec4_copy(grp, "threshold", ref_col);
-  DRW_shgroup_uniform_vec4_copy(grp, "glowColor", fx->glow_color);
-  DRW_shgroup_uniform_bool_copy(grp, "glowUnder", use_glow_under);
-  DRW_shgroup_uniform_bool_copy(grp, "firstPass", true);
-  DRW_shgroup_call_procedural_triangles(grp, nullptr, 1);
+  auto &grp = gpencil_vfx_pass_create("Fx Glow H", state, iter, sh);
+  grp.push_constant("offset", float2(fx->blur[0] * c, fx->blur[0] * s));
+  grp.push_constant("sampCount", max_ii(1, min_ii(fx->samples, fx->blur[0])));
+  grp.push_constant("threshold", float4(ref_col));
+  grp.push_constant("glowColor", float4(fx->glow_color));
+  grp.push_constant("glowUnder", use_glow_under);
+  grp.push_constant("firstPass", true);
+  grp.draw_procedural(GPU_PRIM_TRIS, 1, 3);
 
   state = DRW_STATE_WRITE_COLOR;
   /* Blending: Force blending. */
@@ -474,21 +471,20 @@ static void gpencil_vfx_glow(GlowShaderFxData *fx, Object * /*ob*/, gpIterVfxDat
     iter->pd->use_signed_fb = true;
   }
 
-  grp = gpencil_vfx_pass_create("Fx Glow V", state, iter, sh);
-  DRW_shgroup_uniform_vec2_copy(grp, "offset", blender::float2{-fx->blur[1] * s, fx->blur[1] * c});
-  DRW_shgroup_uniform_int_copy(grp, "sampCount", max_ii(1, min_ii(fx->samples, fx->blur[0])));
-  DRW_shgroup_uniform_vec4_copy(grp, "threshold", blender::float4{-1.0f, -1.0f, -1.0f, -1.0});
-  DRW_shgroup_uniform_vec4_copy(
-      grp, "glowColor", blender::float4{1.0f, 1.0f, 1.0f, fx->glow_color[3]});
-  DRW_shgroup_uniform_bool_copy(grp, "firstPass", false);
-  DRW_shgroup_uniform_int_copy(grp, "blendMode", fx->blend_mode);
-  DRW_shgroup_call_procedural_triangles(grp, nullptr, 1);
+  {
+    auto &grp = gpencil_vfx_pass_create("Fx Glow V", state, iter, sh);
+    grp.push_constant("offset", float2(-fx->blur[1] * s, fx->blur[1] * c));
+    grp.push_constant("sampCount", max_ii(1, min_ii(fx->samples, fx->blur[0])));
+    grp.push_constant("threshold", blender::float4{-1.0f, -1.0f, -1.0f, -1.0});
+    grp.push_constant("glowColor", blender::float4{1.0f, 1.0f, 1.0f, fx->glow_color[3]});
+    grp.push_constant("firstPass", false);
+    grp.push_constant("blendMode", fx->blend_mode);
+    grp.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+  }
 }
 
 static void gpencil_vfx_wave(WaveShaderFxData *fx, Object *ob, gpIterVfxData *iter)
 {
-  DRWShadingGroup *grp;
-
   float winmat[4][4], persmat[4][4], wave_center[3];
   float wave_ofs[3], wave_dir[3], wave_phase;
   DRW_view_winmat_get(nullptr, winmat, false);
@@ -531,19 +527,17 @@ static void gpencil_vfx_wave(WaveShaderFxData *fx, Object *ob, gpIterVfxData *it
   GPUShader *sh = GPENCIL_shader_fx_transform_get();
 
   DRWState state = DRW_STATE_WRITE_COLOR;
-  grp = gpencil_vfx_pass_create("Fx Wave", state, iter, sh);
-  DRW_shgroup_uniform_vec2_copy(grp, "axisFlip", blender::float2{1.0f, 1.0f});
-  DRW_shgroup_uniform_vec2_copy(grp, "waveDir", wave_dir);
-  DRW_shgroup_uniform_vec2_copy(grp, "waveOffset", wave_ofs);
-  DRW_shgroup_uniform_float_copy(grp, "wavePhase", wave_phase);
-  DRW_shgroup_uniform_float_copy(grp, "swirlRadius", 0.0f);
-  DRW_shgroup_call_procedural_triangles(grp, nullptr, 1);
+  auto &grp = gpencil_vfx_pass_create("Fx Wave", state, iter, sh);
+  grp.push_constant("axisFlip", float2(1.0f, 1.0f));
+  grp.push_constant("waveDir", float2(wave_dir));
+  grp.push_constant("waveOffset", float2(wave_ofs));
+  grp.push_constant("wavePhase", wave_phase);
+  grp.push_constant("swirlRadius", 0.0f);
+  grp.draw_procedural(GPU_PRIM_TRIS, 1, 3);
 }
 
 static void gpencil_vfx_swirl(SwirlShaderFxData *fx, Object * /*ob*/, gpIterVfxData *iter)
 {
-  DRWShadingGroup *grp;
-
   if (fx->object == nullptr) {
     return;
   }
@@ -576,13 +570,13 @@ static void gpencil_vfx_swirl(SwirlShaderFxData *fx, Object * /*ob*/, gpIterVfxD
   GPUShader *sh = GPENCIL_shader_fx_transform_get();
 
   DRWState state = DRW_STATE_WRITE_COLOR;
-  grp = gpencil_vfx_pass_create("Fx Flip", state, iter, sh);
-  DRW_shgroup_uniform_vec2_copy(grp, "axisFlip", blender::float2{1.0f, 1.0f});
-  DRW_shgroup_uniform_vec2_copy(grp, "waveOffset", blender::float2{0.0f, 0.0f});
-  DRW_shgroup_uniform_vec2_copy(grp, "swirlCenter", swirl_center);
-  DRW_shgroup_uniform_float_copy(grp, "swirlAngle", fx->angle);
-  DRW_shgroup_uniform_float_copy(grp, "swirlRadius", radius);
-  DRW_shgroup_call_procedural_triangles(grp, nullptr, 1);
+  auto &grp = gpencil_vfx_pass_create("Fx Flip", state, iter, sh);
+  grp.push_constant("axisFlip", float2(1.0f, 1.0f));
+  grp.push_constant("waveOffset", float2(0.0f, 0.0f));
+  grp.push_constant("swirlCenter", float2(swirl_center));
+  grp.push_constant("swirlAngle", fx->angle);
+  grp.push_constant("swirlRadius", radius);
+  grp.draw_procedural(GPU_PRIM_TRIS, 1, 3);
 }
 
 void gpencil_vfx_cache_populate(GPENCIL_Data *vedata,
@@ -650,17 +644,15 @@ void gpencil_vfx_cache_populate(GPENCIL_Data *vedata,
     GPUShader *sh = GPENCIL_shader_fx_composite_get();
 
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_MUL;
-    DRWShadingGroup *grp = gpencil_vfx_pass_create("GPencil Object Compose", state, &iter, sh);
-    DRW_shgroup_uniform_int_copy(grp, "isFirstPass", true);
-    DRW_shgroup_call_procedural_triangles(grp, nullptr, 1);
+    auto &grp = gpencil_vfx_pass_create("GPencil Object Compose", state, &iter, sh);
+    grp.push_constant("isFirstPass", true);
+    grp.draw_procedural(GPU_PRIM_TRIS, 1, 3);
 
     /* We cannot do custom blending on multi-target frame-buffers.
      * Workaround by doing 2 passes. */
-    grp = DRW_shgroup_create_sub(grp);
-    DRW_shgroup_state_disable(grp, DRW_STATE_BLEND_MUL);
-    DRW_shgroup_state_enable(grp, DRW_STATE_BLEND_ADD_FULL);
-    DRW_shgroup_uniform_int_copy(grp, "isFirstPass", false);
-    DRW_shgroup_call_procedural_triangles(grp, nullptr, 1);
+    grp.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ADD_FULL);
+    grp.push_constant("isFirstPass", false);
+    grp.draw_procedural(GPU_PRIM_TRIS, 1, 3);
 
     pd->use_object_fb = true;
     pd->use_layer_fb = true;

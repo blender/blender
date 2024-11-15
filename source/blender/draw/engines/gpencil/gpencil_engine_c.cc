@@ -35,6 +35,7 @@
 #include "GPU_texture.hh"
 #include "GPU_uniform_buffer.hh"
 
+#include "draw_manager.hh"
 #include "gpencil_engine.h"
 
 #include "DEG_depsgraph_query.hh"
@@ -75,7 +76,7 @@ void GPENCIL_engine_init(void *ved)
   BLI_memblock_clear(vldata->gp_material_pool, gpencil_material_pool_free);
   BLI_memblock_clear(vldata->gp_object_pool, nullptr);
   BLI_memblock_clear(vldata->gp_layer_pool, nullptr);
-  BLI_memblock_clear(vldata->gp_vfx_pool, nullptr);
+  vldata->gp_vfx_pool->clear();
   BLI_memblock_clear(vldata->gp_maskbit_pool, nullptr);
 
   stl->pd->gp_light_pool = vldata->gp_light_pool;
@@ -733,7 +734,8 @@ static void GPENCIL_draw_scene_depth_only(void *ved)
     GPU_framebuffer_bind(dfbl->default_fb);
   }
 
-  pd->gp_object_pool = pd->gp_layer_pool = pd->gp_vfx_pool = pd->gp_maskbit_pool = nullptr;
+  pd->gp_object_pool = pd->gp_layer_pool = pd->gp_maskbit_pool = nullptr;
+  pd->gp_vfx_pool = nullptr;
 }
 
 static void gpencil_draw_mask(GPENCIL_Data *vedata, GPENCIL_tObject *ob, GPENCIL_tLayer *layer)
@@ -787,6 +789,8 @@ static void gpencil_draw_mask(GPENCIL_Data *vedata, GPENCIL_tObject *ob, GPENCIL
 
 static void GPENCIL_draw_object(GPENCIL_Data *vedata, GPENCIL_tObject *ob)
 {
+  blender::draw::Manager *manager = DRW_manager_get();
+
   GPENCIL_PassList *psl = vedata->psl;
   GPENCIL_PrivateData *pd = vedata->stl->pd;
   GPENCIL_FramebufferList *fbl = vedata->fbl;
@@ -826,7 +830,7 @@ static void GPENCIL_draw_object(GPENCIL_Data *vedata, GPENCIL_tObject *ob)
 
   LISTBASE_FOREACH (GPENCIL_tVfx *, vfx, &ob->vfx) {
     GPU_framebuffer_bind(*(vfx->target_fb));
-    DRW_draw_pass(vfx->vfx_ps);
+    manager->submit(*vfx->vfx_ps);
   }
 
   copy_m4_m4(pd->object_bound_mat, ob->plane_mat);
@@ -925,7 +929,8 @@ void GPENCIL_draw_scene(void *ved)
     GPENCIL_antialiasing_draw(vedata);
   }
 
-  pd->gp_object_pool = pd->gp_layer_pool = pd->gp_vfx_pool = pd->gp_maskbit_pool = nullptr;
+  pd->gp_object_pool = pd->gp_layer_pool = pd->gp_maskbit_pool = nullptr;
+  pd->gp_vfx_pool = nullptr;
 }
 
 static void GPENCIL_engine_free()

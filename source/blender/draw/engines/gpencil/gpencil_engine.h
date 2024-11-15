@@ -19,6 +19,8 @@
 
 #include "GPU_batch.hh"
 
+#include "draw_pass.hh"
+
 #define GP_LIGHT
 
 #include "gpencil_defines.h"
@@ -46,6 +48,10 @@ struct bGPDstroke;
 
 #define GP_MAX_MASKBITS 256
 
+struct GPENCIL_tVfx;
+
+using GPENCIL_tVfx_Pool = blender::draw::detail::SubPassVector<GPENCIL_tVfx>;
+
 /* *********** Draw Data *********** */
 typedef struct GPENCIL_MaterialPool {
   /* Single linked-list. */
@@ -70,30 +76,31 @@ typedef struct GPENCIL_LightPool {
   int light_used;
 } GPENCIL_LightPool;
 
-typedef struct GPENCIL_ViewLayerData {
+struct GPENCIL_ViewLayerData {
   /* GPENCIL_tObject */
   struct BLI_memblock *gp_object_pool;
   /* GPENCIL_tLayer */
   struct BLI_memblock *gp_layer_pool;
   /* GPENCIL_tVfx */
-  struct BLI_memblock *gp_vfx_pool;
+  GPENCIL_tVfx_Pool *gp_vfx_pool;
   /* GPENCIL_MaterialPool */
   struct BLI_memblock *gp_material_pool;
   /* GPENCIL_LightPool */
   struct BLI_memblock *gp_light_pool;
   /* BLI_bitmap */
   struct BLI_memblock *gp_maskbit_pool;
-} GPENCIL_ViewLayerData;
+};
 
 /* *********** GPencil  *********** */
 
-typedef struct GPENCIL_tVfx {
+struct GPENCIL_tVfx {
+  using PassSimple = blender::draw::PassSimple;
   /** Single linked-list. */
-  struct GPENCIL_tVfx *next;
-  DRWPass *vfx_ps;
+  struct GPENCIL_tVfx *next = nullptr;
+  std::unique_ptr<PassSimple> vfx_ps = std::make_unique<PassSimple>("vfx");
   /* Frame-buffer reference since it may not be allocated yet. */
-  GPUFrameBuffer **target_fb;
-} GPENCIL_tVfx;
+  GPUFrameBuffer **target_fb = nullptr;
+};
 
 typedef struct GPENCIL_tLayer {
   /** Single linked-list. */
@@ -198,7 +205,7 @@ typedef struct GPENCIL_PrivateData {
   /* Pointers copied from GPENCIL_ViewLayerData. */
   struct BLI_memblock *gp_object_pool;
   struct BLI_memblock *gp_layer_pool;
-  struct BLI_memblock *gp_vfx_pool;
+  GPENCIL_tVfx_Pool *gp_vfx_pool;
   struct BLI_memblock *gp_material_pool;
   struct BLI_memblock *gp_light_pool;
   struct BLI_memblock *gp_maskbit_pool;
