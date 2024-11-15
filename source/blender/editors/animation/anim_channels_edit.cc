@@ -2097,7 +2097,8 @@ static void rearrange_grease_pencil_channels(bAnimContext *ac, eRearrangeAnimCha
           }
           break;
         }
-        default:
+        case REARRANGE_ANIMCHAN_TOP:
+          /* Handled separately before the switch case. */
           break;
       }
     }
