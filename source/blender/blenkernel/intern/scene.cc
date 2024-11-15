@@ -1328,14 +1328,22 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
     /* link metastack, slight abuse of structs here,
      * have to restore pointer to internal part in struct */
     {
-      Sequence temp;
       void *seqbase_poin;
       void *channels_poin;
-      intptr_t seqbase_offset;
-      intptr_t channels_offset;
-
-      seqbase_offset = intptr_t(&(temp).seqbase) - intptr_t(&temp);
-      channels_offset = intptr_t(&(temp).channels) - intptr_t(&temp);
+      /* This whole thing with seqbasep offsets is really not good
+       * and prevents changes to the Sequence struct. A more correct approach
+       * would be to calculate offset using sDNA from the file (NOT from the
+       * current Blender). Even better would be having some sort of dedicated
+       * map of seqbase pointers to avoid this offset magic. */
+      constexpr intptr_t seqbase_offset = offsetof(Sequence, seqbase);
+      constexpr intptr_t channels_offset = offsetof(Sequence, channels);
+#if ARCH_CPU_64_BITS
+      static_assert(seqbase_offset == 264, "Sequence seqbase member offset cannot be changed");
+      static_assert(channels_offset == 280, "Sequence channels member offset cannot be changed");
+#else
+      static_assert(seqbase_offset == 204, "Sequence seqbase member offset cannot be changed");
+      static_assert(channels_offset == 212, "Sequence channels member offset cannot be changed");
+#endif
 
       /* seqbase root pointer */
       if (ed->seqbasep == old_seqbasep) {
