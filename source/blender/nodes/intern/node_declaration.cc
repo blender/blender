@@ -586,7 +586,8 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::description(std::str
   return *this;
 }
 
-BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::translation_context(std::string value)
+BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::translation_context(
+    std::optional<std::string> value)
 {
   decl_base_->translation_context = std::move(value);
   return *this;
