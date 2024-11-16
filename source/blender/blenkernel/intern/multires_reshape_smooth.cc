@@ -362,7 +362,11 @@ static void grid_coords_from_face_verts(const MultiresReshapeSmoothContext *resh
   }
 }
 
-static float lerp(float t, float a, float b)
+/**
+ * C++20 has a built-in #lerp function, so use a different name here to avoid ambiguous calls for
+ * now.
+ */
+static float lerp_f(float t, float a, float b)
 {
   return (a + t * (b - a));
 }
@@ -384,15 +388,15 @@ static void interpolate_grid_coord(GridCoord *result,
    * *--------------------------> u
    */
 
-  const float u01 = lerp(u, face_grid_coords[0]->u, face_grid_coords[1]->u);
-  const float u32 = lerp(u, face_grid_coords[3]->u, face_grid_coords[2]->u);
+  const float u01 = lerp_f(u, face_grid_coords[0]->u, face_grid_coords[1]->u);
+  const float u32 = lerp_f(u, face_grid_coords[3]->u, face_grid_coords[2]->u);
 
-  const float v03 = lerp(v, face_grid_coords[0]->v, face_grid_coords[3]->v);
-  const float v12 = lerp(v, face_grid_coords[1]->v, face_grid_coords[2]->v);
+  const float v03 = lerp_f(v, face_grid_coords[0]->v, face_grid_coords[3]->v);
+  const float v12 = lerp_f(v, face_grid_coords[1]->v, face_grid_coords[2]->v);
 
   result->grid_index = face_grid_coords[0]->grid_index;
-  result->u = lerp(v, u01, u32);
-  result->v = lerp(u, v03, v12);
+  result->u = lerp_f(v, u01, u32);
+  result->v = lerp_f(u, v03, v12);
 }
 
 static void foreach_toplevel_grid_coord(
