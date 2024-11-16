@@ -152,7 +152,7 @@ bool multiresModifier_reshapeFromCCG(const int tot_level, Mesh *coarse_mesh, Sub
 
 void multiresModifier_subdivide(Object *object,
                                 MultiresModifierData *mmd,
-                                const eMultiresSubdivideModeType mode)
+                                const MultiresSubdivideModeType mode)
 {
   const int top_level = mmd->totlvl + 1;
   multiresModifier_subdivide_to_level(object, mmd, top_level, mode);
@@ -161,7 +161,7 @@ void multiresModifier_subdivide(Object *object,
 void multiresModifier_subdivide_to_level(Object *object,
                                          MultiresModifierData *mmd,
                                          const int top_level,
-                                         const eMultiresSubdivideModeType mode)
+                                         const MultiresSubdivideModeType mode)
 {
   if (top_level <= mmd->totlvl) {
     return;
@@ -194,7 +194,7 @@ void multiresModifier_subdivide_to_level(Object *object,
    * that the mdisps layer is also synchronized. */
   if (!has_mdisps || top_level == 1 || mmd->totlvl == 0) {
     multires_reshape_ensure_grids(coarse_mesh, top_level);
-    if (ELEM(mode, MULTIRES_SUBDIVIDE_LINEAR, MULTIRES_SUBDIVIDE_SIMPLE)) {
+    if (ELEM(mode, MultiresSubdivideModeType::Linear, MultiresSubdivideModeType::Simple)) {
       multires_subdivide_create_tangent_displacement_linear_grids(object, mmd);
     }
     else {
@@ -218,7 +218,7 @@ void multiresModifier_subdivide_to_level(Object *object,
    * displacement in sculpt mode at the old top level and then propagated to the new top level. */
   multires_reshape_free_original_grids(&reshape_context);
 
-  if (ELEM(mode, MULTIRES_SUBDIVIDE_LINEAR, MULTIRES_SUBDIVIDE_SIMPLE)) {
+  if (ELEM(mode, MultiresSubdivideModeType::Linear, MultiresSubdivideModeType::Simple)) {
     multires_reshape_smooth_object_grids(&reshape_context, mode);
   }
   else {

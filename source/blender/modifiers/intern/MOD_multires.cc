@@ -353,7 +353,7 @@ static void subdivisions_panel_draw(const bContext * /*C*/, Panel *panel)
               WM_OP_EXEC_DEFAULT,
               UI_ITEM_NONE,
               &op_ptr);
-  RNA_enum_set(&op_ptr, "mode", MULTIRES_SUBDIVIDE_CATMULL_CLARK);
+  RNA_enum_set(&op_ptr, "mode", int8_t(MultiresSubdivideModeType::CatmullClark));
   RNA_string_set(&op_ptr, "modifier", ((ModifierData *)mmd)->name);
 
   row = uiLayoutRow(layout, false);
@@ -365,7 +365,7 @@ static void subdivisions_panel_draw(const bContext * /*C*/, Panel *panel)
               WM_OP_EXEC_DEFAULT,
               UI_ITEM_NONE,
               &op_ptr);
-  RNA_enum_set(&op_ptr, "mode", MULTIRES_SUBDIVIDE_SIMPLE);
+  RNA_enum_set(&op_ptr, "mode", int8_t(MultiresSubdivideModeType::Simple));
   RNA_string_set(&op_ptr, "modifier", ((ModifierData *)mmd)->name);
   uiItemFullO(row,
               "OBJECT_OT_multires_subdivide",
@@ -375,7 +375,7 @@ static void subdivisions_panel_draw(const bContext * /*C*/, Panel *panel)
               WM_OP_EXEC_DEFAULT,
               UI_ITEM_NONE,
               &op_ptr);
-  RNA_enum_set(&op_ptr, "mode", MULTIRES_SUBDIVIDE_LINEAR);
+  RNA_enum_set(&op_ptr, "mode", int8_t(MultiresSubdivideModeType::Linear));
   RNA_string_set(&op_ptr, "modifier", ((ModifierData *)mmd)->name);
 
   uiItemS(layout);

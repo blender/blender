@@ -162,7 +162,7 @@ struct MultiresReshapeSmoothContext {
    *
    * NOTE: Uses same enumerator type as Subdivide operator, since the values are the same and
    * decoupling type just adds extra headache to convert one enumerator to another. */
-  eMultiresSubdivideModeType smoothing_type;
+  MultiresSubdivideModeType smoothing_type;
 };
 
 /** \} */
@@ -454,8 +454,8 @@ static int get_reshape_level_resolution(const MultiresReshapeContext *reshape_co
 static bool is_crease_supported(const MultiresReshapeSmoothContext *reshape_smooth_context)
 {
   return !ELEM(reshape_smooth_context->smoothing_type,
-               MULTIRES_SUBDIVIDE_LINEAR,
-               MULTIRES_SUBDIVIDE_SIMPLE);
+               MultiresSubdivideModeType::Linear,
+               MultiresSubdivideModeType::Simple);
 }
 
 /* Get crease which will be used for communication to OpenSubdiv topology.
@@ -483,7 +483,7 @@ static float get_effective_crease_float(const MultiresReshapeSmoothContext *resh
 
 static void context_init(MultiresReshapeSmoothContext *reshape_smooth_context,
                          const MultiresReshapeContext *reshape_context,
-                         const eMultiresSubdivideModeType mode)
+                         const MultiresSubdivideModeType mode)
 {
   reshape_smooth_context->reshape_context = reshape_context;
 
@@ -548,7 +548,8 @@ static bool foreach_topology_info(const blender::bke::subdiv::ForeachContext *fo
 {
   MultiresReshapeSmoothContext *reshape_smooth_context =
       static_cast<MultiresReshapeSmoothContext *>(foreach_context->user_data);
-  const int max_edges = reshape_smooth_context->smoothing_type == MULTIRES_SUBDIVIDE_LINEAR ?
+  const int max_edges = reshape_smooth_context->smoothing_type ==
+                                MultiresSubdivideModeType::Linear ?
                             num_edges :
                             reshape_smooth_context->geometry.max_edges;
 
@@ -794,7 +795,7 @@ static void foreach_edge(const blender::bke::subdiv::ForeachContext *foreach_con
   MultiresReshapeSmoothContext *reshape_smooth_context =
       static_cast<MultiresReshapeSmoothContext *>(foreach_context->user_data);
 
-  if (reshape_smooth_context->smoothing_type == MULTIRES_SUBDIVIDE_LINEAR) {
+  if (reshape_smooth_context->smoothing_type == MultiresSubdivideModeType::Linear) {
     if (!is_loose) {
       store_edge(reshape_smooth_context, subdiv_v1, subdiv_v2, 1.0f);
     }
@@ -1451,10 +1452,11 @@ void multires_reshape_smooth_object_grids_with_details(
 
   MultiresReshapeSmoothContext reshape_smooth_context;
   if (reshape_context->subdiv->settings.is_simple) {
-    context_init(&reshape_smooth_context, reshape_context, MULTIRES_SUBDIVIDE_SIMPLE);
+    context_init(&reshape_smooth_context, reshape_context, MultiresSubdivideModeType::Simple);
   }
   else {
-    context_init(&reshape_smooth_context, reshape_context, MULTIRES_SUBDIVIDE_CATMULL_CLARK);
+    context_init(
+        &reshape_smooth_context, reshape_context, MultiresSubdivideModeType::CatmullClark);
   }
 
   geometry_create(&reshape_smooth_context);
@@ -1476,7 +1478,7 @@ void multires_reshape_smooth_object_grids_with_details(
 }
 
 void multires_reshape_smooth_object_grids(const MultiresReshapeContext *reshape_context,
-                                          const eMultiresSubdivideModeType mode)
+                                          const MultiresSubdivideModeType mode)
 {
 #ifdef WITH_OPENSUBDIV
   const int level_difference = (reshape_context->top.level - reshape_context->reshape.level);
