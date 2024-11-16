@@ -148,20 +148,21 @@ static void link_nodes(
     bNodeTree *ntree, bNode *source, const char *sock_out, bNode *dest, const char *sock_in)
 {
   bNodeSocket *source_socket = blender::bke::node_find_socket(source, SOCK_OUT, sock_out);
-
   if (!source_socket) {
     CLOG_ERROR(&LOG, "Couldn't find output socket %s", sock_out);
     return;
   }
 
   bNodeSocket *dest_socket = blender::bke::node_find_socket(dest, SOCK_IN, sock_in);
-
   if (!dest_socket) {
     CLOG_ERROR(&LOG, "Couldn't find input socket %s", sock_in);
     return;
   }
 
-  blender::bke::node_add_link(ntree, source, source_socket, dest, dest_socket);
+  /* Only add the link if this is the first one to be connected. */
+  if (blender::bke::node_count_socket_links(ntree, dest_socket) == 0) {
+    blender::bke::node_add_link(ntree, source, source_socket, dest, dest_socket);
+  }
 }
 
 /* Returns a layer handle retrieved from the given attribute's property specs.
