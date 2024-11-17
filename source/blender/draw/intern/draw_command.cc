@@ -170,6 +170,13 @@ void Draw::execute(RecordingState &state) const
     GPU_batch_resource_id_buf_set(batch, state.resource_id_buf);
   }
 
+  /* Use same logic as in `finalize_commands`. */
+  uint instance_first = 0;
+  if (handle.raw > 0) {
+    instance_first = state.instance_offset;
+    state.instance_offset += instance_len;
+  }
+
   if (is_primitive_expansion()) {
     /* Expanded drawcall. */
     IndexRange vert_range = GPU_batch_draw_expanded_parameter_get(
@@ -187,12 +194,12 @@ void Draw::execute(RecordingState &state) const
     gpu::Batch *gpu_batch = procedural_batch_get(GPUPrimType(expand_prim_type));
     GPU_batch_set_shader(gpu_batch, state.shader);
     GPU_batch_draw_advanced(
-        gpu_batch, expanded_range.start(), expanded_range.size(), 0, instance_len);
+        gpu_batch, expanded_range.start(), expanded_range.size(), instance_first, instance_len);
   }
   else {
     /* Regular drawcall. */
     GPU_batch_set_shader(batch, state.shader);
-    GPU_batch_draw_advanced(batch, vertex_first, vertex_len, 0, instance_len);
+    GPU_batch_draw_advanced(batch, vertex_first, vertex_len, instance_first, instance_len);
   }
 }
 
@@ -718,6 +725,11 @@ void DrawCommandBuf::finalize_commands(Vector<Header, 0> &headers,
       cmd.vertex_len = batch_vert_len;
     }
 
+    /* NOTE: Only do this if a handle is present. If a drawcall is using instancing with null
+     * handle, the shader should not rely on `resource_id` at ***all***. This allows procedural
+     * instanced drawcalls with lots of instances with no overhead. */
+    /* TODO(fclem): Think about either fixing this feature or removing support for instancing all
+     * together. */
     if (cmd.handle.raw > 0) {
       /* Save correct offset to start of resource_id buffer region for this draw. */
       uint instance_first = resource_id_count;
@@ -738,7 +750,10 @@ void DrawCommandBuf::generate_commands(Vector<Header, 0> &headers,
                                        Vector<Undetermined, 0> &commands,
                                        SubPassVector &sub_passes)
 {
-  resource_id_count_ = 0;
+  /* First instance ID contains the null handle with identity transform.
+   * This is referenced for drawcalls with no handle. */
+  resource_id_buf_.get_or_resize(0) = 0;
+  resource_id_count_ = 1;
   finalize_commands(headers, commands, sub_passes, resource_id_count_, resource_id_buf_);
   resource_id_buf_.push_update();
 }

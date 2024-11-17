@@ -49,6 +49,8 @@ struct RecordingState {
   int clip_plane_count = 0;
   /** Used for gl_BaseInstance workaround. */
   GPUStorageBuf *resource_id_buf = nullptr;
+  /** Used for pass simple resource ID. Starts at 1 as 0 is the identity handle. */
+  int instance_offset = 1;
 
   void front_facing_set(bool facing)
   {
