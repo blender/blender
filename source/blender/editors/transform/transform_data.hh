@@ -11,30 +11,25 @@
 struct Object;
 struct bConstraint;
 
-#define TRANSDATABASIC \
-  /** Extra data (mirrored element pointer, in edit-mode mesh to #BMVert) \
-   * (edit-bone for roll fixing) (...). */ \
-  void *extra; \
-  /** Location of the data to transform. */ \
-  float *loc; \
-  /** Initial location. */ \
-  float iloc[3]; \
-  /** Individual data center. */ \
-  float center[3]; \
-  /** Value pointer for special transforms. */ \
-  float *val; \
-  /** Old value. */ \
-  float ival; \
-  /** Various flags. */ \
-  int flag
-
 struct TransDataBasic {
-  TRANSDATABASIC;
+  /** Extra data (mirrored element pointer, in edit-mode mesh to #BMVert) \
+   * (edit-bone for roll fixing) (...). */
+  void *extra;
+  /** Location of the data to transform. */
+  float *loc;
+  /** Initial location. */
+  float iloc[3];
+  /** Individual data center. */
+  float center[3];
+  /** Value pointer for special transforms. */
+  float *val;
+  /** Old value. */
+  float ival;
+  /** Various flags. */
+  int flag;
 };
 
-struct TransDataMirror {
-  TRANSDATABASIC;
-  // int pad;
+struct TransDataMirror : public TransDataBasic {
   /** Location of the data to transform. */
   float *loc_src;
 };
@@ -115,8 +110,7 @@ struct TransDataCurveHandleFlags {
   uint8_t *h1, *h2;
 };
 
-struct TransData {
-  TRANSDATABASIC;
+struct TransData : public TransDataBasic {
   /** Distance needed to affect element (for Proportional Editing). */
   float dist;
   /** Distance to the nearest element (for Proportional Editing). */
