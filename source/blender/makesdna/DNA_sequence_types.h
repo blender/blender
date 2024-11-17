@@ -446,6 +446,7 @@ typedef struct TextVars {
   float loc[2];
   float wrap_width;
   float box_margin;
+  float box_roundness;
   float shadow_angle;
   float shadow_offset;
   float shadow_blur;
@@ -454,7 +455,7 @@ typedef struct TextVars {
   char align;
   char align_y DNA_DEPRECATED /* Only used for versioning. */;
   char anchor_x, anchor_y;
-  char _pad[3];
+  char _pad[7];
 } TextVars;
 
 /** #TextVars.flag */

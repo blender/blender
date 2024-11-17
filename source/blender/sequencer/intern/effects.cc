@@ -2528,6 +2528,7 @@ static void init_text_effect(Sequence *seq)
   data->box_color[2] = 0.2f;
   data->box_color[3] = 0.7f;
   data->box_margin = 0.01f;
+  data->box_roundness = 0.0f;
   data->outline_color[3] = 0.7f;
   data->outline_width = 0.05f;
 
@@ -3037,10 +3038,42 @@ static rcti draw_text_outline(const SeqRenderData *context,
   return outline_rect;
 }
 
+static inline void fill_ellipse_alpha_under(const ImBuf *ibuf,
+                                            const float col[4],
+                                            int x1,
+                                            int y1,
+                                            int x2,
+                                            int y2,
+                                            float origin_x,
+                                            float origin_y,
+                                            float radius)
+{
+  float curve_pow = 2.1f;
+  float4 color;
+  float4 premul_color;
+  for (int y = y1; y < y2; y++) {
+    uchar *dst = ibuf->byte_buffer.data + (size_t(ibuf->x) * y + x1) * 4;
+    for (int x = x1; x < x2; x++) {
+      color = col;
+
+      float r = powf(powf(abs(x - origin_x), curve_pow) + powf(abs(y - origin_y), curve_pow),
+                     1.0f / curve_pow);
+      color.w = math::clamp(radius - r, 0.0f, color.w);
+
+      straight_to_premul_v4_v4(premul_color, color);
+      float4 pix = load_premul_pixel(dst);
+      float fac = 1.0f - pix.w;
+      float4 dst_fl = fac * premul_color + pix;
+      store_premul_pixel(dst_fl, dst);
+      dst += 4;
+    }
+  }
+}
+
 /* Similar to #IMB_rectfill_area but blends the given color under the
  * existing image. Also only works on byte buffers. */
 static void fill_rect_alpha_under(
-    const ImBuf *ibuf, const float col[4], int x1, int y1, int x2, int y2)
+    const ImBuf *ibuf, const float col[4], int x1, int y1, int x2, int y2, float corner_radius)
 {
   const int width = ibuf->x;
   const int height = ibuf->y;
@@ -3058,17 +3091,74 @@ static void fill_rect_alpha_under(
     return;
   }
 
-  float4 premul_col = col;
-  straight_to_premul_v4(premul_col);
+  corner_radius = math::clamp(corner_radius, 0.0f, math::min(x2 - x1, y2 - y1) / 2.0f);
 
-  for (int y = y1; y < y2; y++) {
-    uchar *dst = ibuf->byte_buffer.data + (size_t(width) * y + x1) * 4;
-    for (int x = x1; x < x2; x++) {
-      float4 pix = load_premul_pixel(dst);
-      float fac = 1.0f - pix.w;
-      float4 dst_fl = fac * premul_col + pix;
-      store_premul_pixel(dst_fl, dst);
-      dst += 4;
+  if (corner_radius > 0.0f) {
+    int cr = (int)corner_radius;
+    /* bottom left */
+    fill_ellipse_alpha_under(ibuf,
+                             col,
+                             x1,
+                             y1,
+                             x1 + cr,
+                             y1 + cr,
+                             x1 + corner_radius - 1,
+                             y1 + corner_radius - 1,
+                             corner_radius);
+
+    /* top left */
+    fill_ellipse_alpha_under(ibuf,
+                             col,
+                             x1,
+                             y2 - cr,
+                             x1 + cr,
+                             y2,
+                             x1 + corner_radius - 1,
+                             y2 - corner_radius,
+                             corner_radius);
+
+    /* top right */
+    fill_ellipse_alpha_under(ibuf,
+                             col,
+                             x2 - cr,
+                             y2 - cr,
+                             x2,
+                             y2,
+                             x2 - corner_radius,
+                             y2 - corner_radius,
+                             corner_radius);
+
+    /* bottom right */
+    fill_ellipse_alpha_under(ibuf,
+                             col,
+                             x2 - cr,
+                             y1,
+                             x2,
+                             y1 + cr,
+                             x2 - corner_radius,
+                             y1 + corner_radius - 1,
+                             corner_radius);
+
+    /* fill in areas between corners */
+    /* bottom */
+    fill_rect_alpha_under(ibuf, col, x1 + cr, y1, x2 - cr, y1 + cr, 0.0f);
+    /* middle */
+    fill_rect_alpha_under(ibuf, col, x1, y1 + cr, x2, y2 - cr, 0.0f);
+    /* top */
+    fill_rect_alpha_under(ibuf, col, x1 + cr, y2, x2 - cr, y2 - cr, 0.0f);
+  }
+  else {
+    float4 premul_col;
+    straight_to_premul_v4_v4(premul_col, col);
+    for (int y = y1; y < y2; y++) {
+      uchar *dst = ibuf->byte_buffer.data + (size_t(width) * y + x1) * 4;
+      for (int x = x1; x < x2; x++) {
+        float4 pix = load_premul_pixel(dst);
+        float fac = 1.0f - pix.w;
+        float4 dst_fl = fac * premul_col + pix;
+        store_premul_pixel(dst_fl, dst);
+        dst += 4;
+      }
     }
   }
 }
@@ -3331,7 +3421,8 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
       const int maxx = runtime.text_boundbox.xmax + margin;
       const int miny = runtime.text_boundbox.ymin - margin;
       const int maxy = runtime.text_boundbox.ymax + margin;
-      fill_rect_alpha_under(out, data->box_color, minx, miny, maxx, maxy);
+      float corner_radius = data->box_roundness * (maxy - miny) / 2.0f;
+      fill_rect_alpha_under(out, data->box_color, minx, miny, maxx, maxy, corner_radius);
     }
   }
 
