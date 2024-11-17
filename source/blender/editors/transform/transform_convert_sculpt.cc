@@ -59,7 +59,6 @@ static void createTransSculpt(bContext *C, TransInfo *t)
   td->flag = TD_SELECTED;
   copy_v3_v3(td->center, ss.pivot_pos);
   mul_m4_v3(ob.object_to_world().ptr(), td->center);
-  td->ob = &ob;
 
   td->loc = ss.pivot_pos;
   copy_v3_v3(td->iloc, ss.pivot_pos);

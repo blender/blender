@@ -142,7 +142,6 @@ static void createTransParticleVerts(bContext * /*C*/, TransInfo *t)
           td->protectflag |= OB_LOCK_LOC;
         }
 
-        td->ob = ob;
         td->ext = tx;
         if (t->mode == TFM_BAKE_TIME) {
           td->val = key->time;

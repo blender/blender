@@ -414,8 +414,9 @@ static bool applyFaceProject(TransInfo *t, TransDataContainer *tc, TransData *td
     mul_m4_v3(tc->mat, iloc);
   }
   else if (t->options & CTX_OBJECT) {
-    BKE_object_eval_transform_all(t->depsgraph, t->scene, td->ob);
-    copy_v3_v3(iloc, td->ob->object_to_world().location());
+    Object *ob = static_cast<Object *>(td->extra);
+    BKE_object_eval_transform_all(t->depsgraph, t->scene, ob);
+    copy_v3_v3(iloc, ob->object_to_world().location());
   }
 
   if (ED_view3d_project_float_global(t->region, iloc, mval_fl, V3D_PROJ_TEST_NOP) !=
@@ -483,8 +484,9 @@ static void applyFaceNearest(TransInfo *t, TransDataContainer *tc, TransData *td
     mul_m4_v3(tc->mat, prev_loc);
   }
   else if (t->options & CTX_OBJECT) {
-    BKE_object_eval_transform_all(t->depsgraph, t->scene, td->ob);
-    copy_v3_v3(init_loc, td->ob->object_to_world().location());
+    Object *ob = static_cast<Object *>(td->extra);
+    BKE_object_eval_transform_all(t->depsgraph, t->scene, ob);
+    copy_v3_v3(init_loc, ob->object_to_world().location());
   }
 
   SnapObjectParams snap_object_params{};
@@ -1508,7 +1510,8 @@ static void snap_source_closest_fn(TransInfo *t)
           std::optional<blender::Bounds<blender::float3>> bounds;
 
           if ((t->options & CTX_OBMODE_XFORM_OBDATA) == 0) {
-            bounds = BKE_object_boundbox_eval_cached_get(td->ob);
+            Object *ob = static_cast<Object *>(td->extra);
+            bounds = BKE_object_boundbox_eval_cached_get(ob);
           }
 
           /* Use bound-box if possible. */

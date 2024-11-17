@@ -54,8 +54,6 @@ static void createTransCursor_2D_impl(TransInfo *t, float cursor_location[2])
 
   copy_v3_v3(td->center, td2d->loc);
 
-  td->ob = nullptr;
-
   unit_m3(td->mtx);
   unit_m3(td->axismtx);
   pseudoinverse_m3_m3(td->smtx, td->mtx, PSEUDOINVERSE_EPSILON);
@@ -145,7 +143,6 @@ static void createTransCursor_view3d(bContext * /*C*/, TransInfo *t)
 
   td->flag = TD_SELECTED;
   copy_v3_v3(td->center, cursor->location);
-  td->ob = nullptr;
 
   unit_m3(td->mtx);
   copy_m3_m3(td->axismtx, cursor->matrix<blender::float3x3>().ptr());
