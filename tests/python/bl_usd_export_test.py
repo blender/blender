@@ -251,6 +251,86 @@ class USDExportTest(AbstractUSDTest):
         geom_subsets = UsdGeom.Subset.GetGeomSubsets(dynamic_mesh_prim)
         self.assertEqual(len(geom_subsets), 0)
 
+    def test_export_material_inmem(self):
+        """Validate correct export of in memory and packed images"""
+
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_materials_inmem_pack.blend"))
+        export_path1 = self.tempdir / "usd_materials_inmem_pack_relative.usda"
+        self.export_and_validate(filepath=str(export_path1), export_textures_mode='NEW', relative_paths=True)
+
+        export_path2 = self.tempdir / "usd_materials_inmem_pack_absolute.usda"
+        self.export_and_validate(filepath=str(export_path2), export_textures_mode='NEW', relative_paths=False)
+
+        # Validate that we actually see the correct set of files being saved to the filesystem
+
+        # Relative path variations
+        stage = Usd.Stage.Open(str(export_path1))
+        stage_path = pathlib.Path(stage.GetRootLayer().realPath)
+
+        shader_prim = stage.GetPrimAtPath("/root/_materials/MAT_inmem_single/Image_Texture")
+        shader = UsdShade.Shader(shader_prim)
+        asset_path = pathlib.Path(shader.GetInput("file").GetAttr().Get().path)
+        self.assertFalse(asset_path.is_absolute())
+        self.assertTrue(stage_path.parent.joinpath(asset_path).is_file())
+
+        shader_prim = stage.GetPrimAtPath("/root/_materials/MAT_inmem_udim/Image_Texture")
+        shader = UsdShade.Shader(shader_prim)
+        asset_path = pathlib.Path(shader.GetInput("file").GetAttr().Get().path)
+        image_path1 = pathlib.Path(str(asset_path).replace("<UDIM>", "1001"))
+        image_path2 = pathlib.Path(str(asset_path).replace("<UDIM>", "1002"))
+        self.assertFalse(asset_path.is_absolute())
+        self.assertTrue(stage_path.parent.joinpath(image_path1).is_file())
+        self.assertTrue(stage_path.parent.joinpath(image_path2).is_file())
+
+        shader_prim = stage.GetPrimAtPath("/root/_materials/MAT_pack_single/Image_Texture")
+        shader = UsdShade.Shader(shader_prim)
+        asset_path = pathlib.Path(shader.GetInput("file").GetAttr().Get().path)
+        self.assertFalse(asset_path.is_absolute())
+        self.assertTrue(stage_path.parent.joinpath(asset_path).is_file())
+
+        shader_prim = stage.GetPrimAtPath("/root/_materials/MAT_pack_udim/Image_Texture")
+        shader = UsdShade.Shader(shader_prim)
+        asset_path = pathlib.Path(shader.GetInput("file").GetAttr().Get().path)
+        image_path1 = pathlib.Path(str(asset_path).replace("<UDIM>", "1001"))
+        image_path2 = pathlib.Path(str(asset_path).replace("<UDIM>", "1002"))
+        self.assertFalse(asset_path.is_absolute())
+        self.assertTrue(stage_path.parent.joinpath(image_path1).is_file())
+        self.assertTrue(stage_path.parent.joinpath(image_path2).is_file())
+
+        # Absolute path variations
+        stage = Usd.Stage.Open(str(export_path2))
+        stage_path = pathlib.Path(stage.GetRootLayer().realPath)
+
+        shader_prim = stage.GetPrimAtPath("/root/_materials/MAT_inmem_single/Image_Texture")
+        shader = UsdShade.Shader(shader_prim)
+        asset_path = pathlib.Path(shader.GetInput("file").GetAttr().Get().path)
+        self.assertTrue(asset_path.is_absolute())
+        self.assertTrue(stage_path.parent.joinpath(asset_path).is_file())
+
+        shader_prim = stage.GetPrimAtPath("/root/_materials/MAT_inmem_udim/Image_Texture")
+        shader = UsdShade.Shader(shader_prim)
+        asset_path = pathlib.Path(shader.GetInput("file").GetAttr().Get().path)
+        image_path1 = pathlib.Path(str(asset_path).replace("<UDIM>", "1001"))
+        image_path2 = pathlib.Path(str(asset_path).replace("<UDIM>", "1002"))
+        self.assertTrue(asset_path.is_absolute())
+        self.assertTrue(stage_path.parent.joinpath(image_path1).is_file())
+        self.assertTrue(stage_path.parent.joinpath(image_path2).is_file())
+
+        shader_prim = stage.GetPrimAtPath("/root/_materials/MAT_pack_single/Image_Texture")
+        shader = UsdShade.Shader(shader_prim)
+        asset_path = pathlib.Path(shader.GetInput("file").GetAttr().Get().path)
+        self.assertTrue(asset_path.is_absolute())
+        self.assertTrue(stage_path.parent.joinpath(asset_path).is_file())
+
+        shader_prim = stage.GetPrimAtPath("/root/_materials/MAT_pack_udim/Image_Texture")
+        shader = UsdShade.Shader(shader_prim)
+        asset_path = pathlib.Path(shader.GetInput("file").GetAttr().Get().path)
+        image_path1 = pathlib.Path(str(asset_path).replace("<UDIM>", "1001"))
+        image_path2 = pathlib.Path(str(asset_path).replace("<UDIM>", "1002"))
+        self.assertTrue(asset_path.is_absolute())
+        self.assertTrue(stage_path.parent.joinpath(image_path1).is_file())
+        self.assertTrue(stage_path.parent.joinpath(image_path2).is_file())
+
     def test_export_material_displacement(self):
         """Validate correct export of Displacement information for the UsdPreviewSurface"""
 
