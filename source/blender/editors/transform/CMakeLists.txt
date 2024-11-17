@@ -103,7 +103,6 @@ set(SRC
   transform.hh
   transform_constraints.hh
   transform_convert.hh
-  transform_data.hh
   transform_draw_cursors.hh
   transform_gizmo.hh
   transform_mode.hh
