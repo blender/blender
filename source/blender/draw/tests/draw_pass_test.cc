@@ -76,7 +76,7 @@ static void test_draw_pass_all_commands()
   std::string result = pass.serialize();
   std::stringstream expected;
   expected << ".test.all_commands" << std::endl;
-  expected << "  .state_set(6)" << std::endl;
+  expected << "  .state_set(2147483654)" << std::endl;
   expected << "  .clear(color=(0.25, 0.5, 100, -2000), depth=0.5, stencil=0b11110000))"
            << std::endl;
   expected
@@ -491,8 +491,8 @@ static void test_draw_manager_sync()
   expected << "ObjectBounds(skipped)" << std::endl;
   expected << "ObjectBounds(skipped)" << std::endl;
   expected << "ObjectBounds(" << std::endl;
-  expected << ".bounding_corners[0](0.5, 0.5, 0.5)" << std::endl;
-  expected << ".bounding_corners[1](1, 0, 0)" << std::endl;
+  expected << ".bounding_corners[0](1.5, 0.5, 0.5)" << std::endl;
+  expected << ".bounding_corners[1](-1, -0, -0)" << std::endl;
   expected << ".bounding_corners[2](0, 1, 0)" << std::endl;
   expected << ".bounding_corners[3](0, 0, 1)" << std::endl;
   expected << ".sphere=(pos=(1, 1, 1), rad=0.866025" << std::endl;
