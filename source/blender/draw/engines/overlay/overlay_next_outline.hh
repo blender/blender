@@ -33,15 +33,15 @@ class Outline {
 
   Framebuffer prepass_fb_ = {"outline.prepass_fb"};
 
-  bool enabled = false;
+  bool enabled_ = false;
 
   overlay::GreasePencil::ViewParameters grease_pencil_view;
 
  public:
   void begin_sync(Resources &res, const State &state)
   {
-    enabled = state.v3d && (state.v3d_flag & V3D_SELECT_OUTLINE);
-    if (!enabled) {
+    enabled_ = state.v3d && (state.v3d_flag & V3D_SELECT_OUTLINE);
+    if (!enabled_) {
       return;
     }
 
@@ -129,7 +129,7 @@ class Outline {
 
   void object_sync(Manager &manager, const ObjectRef &ob_ref, const State &state)
   {
-    if (!enabled) {
+    if (!enabled_) {
       return;
     }
 
@@ -196,7 +196,7 @@ class Outline {
 
   void draw(Resources &res, Manager &manager, View &view)
   {
-    if (!enabled) {
+    if (!enabled_) {
       return;
     }
 
