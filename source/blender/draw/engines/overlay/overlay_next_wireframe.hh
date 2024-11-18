@@ -114,7 +114,8 @@ class Wireframe {
     }
 
     const bool all_edges = (ob_ref.object->dtx & OB_DRAW_ALL_EDGES) != 0;
-    const bool show_surface_wire = show_wire_ || (ob_ref.object->dtx & OB_DRAWWIRE);
+    const bool show_surface_wire = show_wire_ || (ob_ref.object->dtx & OB_DRAWWIRE) ||
+                                   (ob_ref.object->dt == OB_WIRE);
 
     ColoringPass &coloring = in_edit_paint_mode ? non_colored : colored;
     switch (ob_ref.object->type) {
