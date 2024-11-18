@@ -16,10 +16,10 @@ namespace blender::realtime_compositor {
  * accurately approximate an euclidean distance transform, finally, it can be used to flood fill
  * regions of an image.
  *
- * The input is expected to be initialized by the initialize_jump_flooding_value function from the
- * gpu_shader_compositor_jump_flooding_lib.glsl library. Seed pixels should specify true for the
- * is_seed argument, and false otherwise. The texel input should be the texel location of the
- * pixel. Both the input and output results should be of type ResultType::Int2.
+ * The input is expected to be initialized by the initialize_jump_flooding_value function. Seed
+ * pixels should specify true for the is_seed argument, and false otherwise. The texel input should
+ * be the texel location of the pixel. Both the input and output results should be of type
+ * ResultType::Int2.
  *
  * To compute a Voronoi diagram, the pixels lying at the centroid of the Voronoi cell should be
  * marked as seed pixels. To compute an euclidean distance transform of a region or flood fill a
@@ -43,5 +43,24 @@ namespace blender::realtime_compositor {
  * error of the algorithm as can be seen in "Figure 3: Errors of variants of JFA" in the variants
  * paper. */
 void jump_flooding(Context &context, Result &input, Result &output);
+
+/* A special value that indicates that the pixel has not be flooded yet, and consequently is not a
+ * seed pixel. */
+#define JUMP_FLOODING_NON_FLOODED_VALUE int2(-1)
+
+/* Given the texel location of the closest seed pixel and whether the pixel is flooded, encode that
+ * information in an int2. */
+inline int2 encode_jump_flooding_value(const int2 &closest_seed_texel, const bool is_flooded)
+{
+  return is_flooded ? closest_seed_texel : JUMP_FLOODING_NON_FLOODED_VALUE;
+}
+
+/* Initialize the pixel at the given texel location for the algorithm as being seed or background.
+ * This essentially calls encode_jump_flooding_value with the texel location, because the pixel is
+ * the closest seed to itself. */
+inline int2 initialize_jump_flooding_value(const int2 &texel, const bool is_seed)
+{
+  return encode_jump_flooding_value(texel, is_seed);
+}
 
 }  // namespace blender::realtime_compositor
