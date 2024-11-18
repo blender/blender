@@ -86,9 +86,6 @@ class Cameras {
   /* Same as `foreground_ps_` with "View as Render" checked. */
   PassMain foreground_scene_ps_ = {"foreground_scene_ps_"};
 
-  View view_reference_images = {"view_reference_images"};
-  float view_dist = 0.0f;
-
   struct CallBuffers {
     const SelectionType selection_type_;
     CameraInstanceBuf distances_buf = {selection_type_, "camera_distances_buf"};
@@ -374,8 +371,6 @@ class Cameras {
       return;
     }
 
-    view_dist = state.view_dist_get(view.winmat());
-
     call_buffers_.distances_buf.clear();
     call_buffers_.frame_buf.clear();
     call_buffers_.tria_buf.clear();
@@ -387,12 +382,16 @@ class Cameras {
     call_buffers_.tracking_path.clear();
     Empties::begin_sync(call_buffers_.empties);
 
+    float4x4 depth_bias_winmat = winmat_polygon_offset(
+        view.winmat(), state.view_dist_get(view.winmat()), -1.0f);
+
     /* Init image passes. */
     auto init_pass = [&](PassMain &pass, DRWState draw_state) {
       pass.init();
       pass.state_set(draw_state, state.clipping_plane_count);
-      pass.shader_set(res.shaders.image_plane.get());
+      pass.shader_set(res.shaders.image_plane_depth_bias.get());
       pass.bind_ubo("globalsBlock", &res.globals_buf);
+      pass.push_constant("depth_bias_winmat", depth_bias_winmat);
       res.select_bind(pass);
     };
 
@@ -652,10 +651,8 @@ class Cameras {
       return;
     }
 
-    view_reference_images.sync(view.viewmat(),
-                               winmat_polygon_offset(view.winmat(), view_dist, -1.0f));
     GPU_framebuffer_bind(framebuffer);
-    manager.submit(foreground_ps_, view_reference_images);
+    manager.submit(foreground_ps_, view);
   }
 
  private:

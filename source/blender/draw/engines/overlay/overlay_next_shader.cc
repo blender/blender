@@ -573,6 +573,15 @@ ShaderModule::ShaderModule(const SelectionType selection_type, const bool clippi
         "draw_view", "draw_globals", "draw_modelmat_new", "draw_resource_handle_new");
   });
 
+  image_plane_depth_bias = selectable_shader(
+      "overlay_image", [](gpu::shader::ShaderCreateInfo &info) {
+        info.additional_infos_.clear();
+        info.additional_info(
+            "draw_view", "draw_globals", "draw_modelmat_new", "draw_resource_handle_new");
+        info.define("DEPTH_BIAS");
+        info.push_constant(gpu::shader::Type::MAT4, "depth_bias_winmat");
+      });
+
   particle_dot = selectable_shader("overlay_particle_dot",
                                    [](gpu::shader::ShaderCreateInfo &info) {
                                      info.additional_infos_.clear();

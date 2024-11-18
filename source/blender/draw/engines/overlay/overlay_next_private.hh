@@ -294,6 +294,7 @@ class ShaderModule {
   ShaderPtr fluid_velocity_mac;
   ShaderPtr fluid_velocity_needle;
   ShaderPtr image_plane;
+  ShaderPtr image_plane_depth_bias;
   ShaderPtr lattice_points;
   ShaderPtr lattice_wire;
   ShaderPtr particle_dot;
