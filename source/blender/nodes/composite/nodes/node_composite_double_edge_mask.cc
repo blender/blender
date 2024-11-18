@@ -56,17 +56,6 @@ class DoubleEdgeMaskOperation : public NodeOperation {
 
   void execute() override
   {
-    /* Not yet supported on CPU. */
-    if (!context().use_gpu()) {
-      for (const bNodeSocket *output : this->node()->output_sockets()) {
-        Result &output_result = get_result(output->identifier);
-        if (output_result.should_compute()) {
-          output_result.allocate_invalid();
-        }
-      }
-      return;
-    }
-
     Result &inner_mask = get_input("Inner Mask");
     Result &outer_mask = get_input("Outer Mask");
     Result &output = get_result("Mask");
@@ -100,6 +89,16 @@ class DoubleEdgeMaskOperation : public NodeOperation {
 
   void compute_boundary(Result &inner_boundary, Result &outer_boundary)
   {
+    if (this->context().use_gpu()) {
+      this->compute_boundary_gpu(inner_boundary, outer_boundary);
+    }
+    else {
+      this->compute_boundary_cpu(inner_boundary, outer_boundary);
+    }
+  }
+
+  void compute_boundary_gpu(Result &inner_boundary, Result &outer_boundary)
+  {
     GPUShader *shader = context().get_shader("compositor_double_edge_mask_compute_boundary",
                                              ResultPrecision::Half);
     GPU_shader_bind(shader);
@@ -130,7 +129,92 @@ class DoubleEdgeMaskOperation : public NodeOperation {
     GPU_shader_unbind();
   }
 
-  void compute_gradient(Result &flooded_inner_boundary, Result &flooded_outer_boundary)
+  void compute_boundary_cpu(Result &inner_boundary, Result &outer_boundary)
+  {
+    const bool include_all_inner_edges = this->include_all_inner_edges();
+    const bool include_edges_of_image = this->include_edges_of_image();
+
+    const Result &inner_mask = get_input("Inner Mask");
+    const Result &outer_mask = get_input("Outer Mask");
+
+    const Domain domain = compute_domain();
+    inner_boundary.allocate_texture(domain);
+    outer_boundary.allocate_texture(domain);
+
+    /* The Double Edge Mask operation uses a jump flood algorithm to compute a distance transform
+     * to the boundary of the inner and outer masks. The algorithm expects an input image whose
+     * values are those returned by the initialize_jump_flooding_value function, given the texel
+     * location and a boolean specifying if the pixel is a boundary one.
+     *
+     * Technically, we needn't restrict the output to just the boundary pixels, since the algorithm
+     * can still operate if the interior of the masks was also included. However, the algorithm
+     * operates more accurately when the number of pixels to be flooded is minimum. */
+    parallel_for(domain.size, [&](const int2 texel) {
+      /* Identify if any of the 8 neighbors around the center pixel are not masked. */
+      bool has_inner_non_masked_neighbors = false;
+      bool has_outer_non_masked_neighbors = false;
+      for (int j = -1; j <= 1; j++) {
+        for (int i = -1; i <= 1; i++) {
+          int2 offset = int2(i, j);
+
+          /* Exempt the center pixel. */
+          if (offset == int2(0)) {
+            continue;
+          }
+
+          if (inner_mask.load_pixel_extended(texel + offset).x == 0.0f) {
+            has_inner_non_masked_neighbors = true;
+          }
+
+          /* If the user specified include_edges_of_image to be true, then we assume the outer mask
+           * is bounded by the image boundary, otherwise, we assume the outer mask is open-ended.
+           * This is practically implemented by falling back to 0.0f or 1.0f for out of bound
+           * pixels. */
+          float4 boundary_fallback = include_edges_of_image ? float4(0.0f) : float4(1.0f);
+          if (outer_mask.load_pixel_fallback(texel + offset, boundary_fallback).x == 0.0f) {
+            has_outer_non_masked_neighbors = true;
+          }
+
+          /* Both are true, no need to continue. */
+          if (has_inner_non_masked_neighbors && has_outer_non_masked_neighbors) {
+            break;
+          }
+        }
+      }
+
+      bool is_inner_masked = inner_mask.load_pixel(texel).x > 0.0f;
+      bool is_outer_masked = outer_mask.load_pixel(texel).x > 0.0f;
+
+      /* The pixels at the boundary are those that are masked and have non masked neighbors. The
+       * inner boundary has a specialization, if include_all_inner_edges is false, only inner
+       * boundaries that lie inside the outer mask will be considered a boundary. The outer
+       * boundary is only considered if it is not inside the inner mask. */
+      bool is_inner_boundary = is_inner_masked && has_inner_non_masked_neighbors &&
+                               (is_outer_masked || include_all_inner_edges);
+      bool is_outer_boundary = is_outer_masked && !is_inner_masked &&
+                               has_outer_non_masked_neighbors;
+
+      /* Encode the boundary information in the format expected by the jump flooding algorithm. */
+      int2 inner_jump_flooding_value = initialize_jump_flooding_value(texel, is_inner_boundary);
+      int2 outer_jump_flooding_value = initialize_jump_flooding_value(texel, is_outer_boundary);
+
+      inner_boundary.store_pixel(texel, int4(inner_jump_flooding_value, int2(0)));
+      outer_boundary.store_pixel(texel, int4(outer_jump_flooding_value, int2(0)));
+    });
+  }
+
+  void compute_gradient(const Result &flooded_inner_boundary, const Result &flooded_outer_boundary)
+  {
+    if (this->context().use_gpu()) {
+      this->compute_gradient_gpu(flooded_inner_boundary, flooded_outer_boundary);
+    }
+    else {
+      this->compute_gradient_cpu(flooded_inner_boundary, flooded_outer_boundary);
+    }
+  }
+
+  void compute_gradient_gpu(const Result &flooded_inner_boundary,
+                            const Result &flooded_outer_boundary)
   {
     GPUShader *shader = context().get_shader("compositor_double_edge_mask_compute_gradient");
     GPU_shader_bind(shader);
@@ -155,6 +239,57 @@ class DoubleEdgeMaskOperation : public NodeOperation {
     outer_mask.unbind_as_texture();
     output.unbind_as_image();
     GPU_shader_unbind();
+  }
+
+  void compute_gradient_cpu(const Result &flooded_inner_boundary,
+                            const Result &flooded_outer_boundary)
+  {
+    const Result &inner_mask_input = get_input("Inner Mask");
+    const Result &outer_mask_input = get_input("Outer Mask");
+
+    const Domain domain = compute_domain();
+    Result &output = get_result("Mask");
+    output.allocate_texture(domain);
+
+    /* Computes a linear gradient from the outer mask boundary to the inner mask boundary, starting
+     * from 0 and ending at 1. This is computed using the equation:
+     *
+     *   Gradient = O / (O + I)
+     *
+     * Where O is the distance to the outer boundary and I is the distance to the inner boundary.
+     * This can be viewed as computing the ratio between the distance to the outer boundary to the
+     * distance between the outer and inner boundaries as can be seen in the following illustration
+     * where the $ sign designates a pixel between both boundaries.
+     *
+     *                   |    O         I    |
+     *   Outer Boundary  |---------$---------|  Inner Boundary
+     *                   |                   |
+     */
+    parallel_for(domain.size, [&](const int2 texel) {
+      /* Pixels inside the inner mask are always 1.0. */
+      float inner_mask = inner_mask_input.load_pixel(texel).x;
+      if (inner_mask != 0.0f) {
+        output.store_pixel(texel, float4(1.0f));
+        return;
+      }
+
+      /* Pixels outside the outer mask are always 0.0. */
+      float outer_mask = outer_mask_input.load_pixel(texel).x;
+      if (outer_mask == 0.0f) {
+        output.store_pixel(texel, float4(0.0f));
+        return;
+      }
+
+      /* Compute the distances to the inner and outer boundaries from the jump flooding tables. */
+      int2 inner_boundary_texel = flooded_inner_boundary.load_integer_pixel(texel).xy();
+      int2 outer_boundary_texel = flooded_outer_boundary.load_integer_pixel(texel).xy();
+      float distance_to_inner = math::distance(float2(texel), float2(inner_boundary_texel));
+      float distance_to_outer = math::distance(float2(texel), float2(outer_boundary_texel));
+
+      float gradient = distance_to_outer / (distance_to_outer + distance_to_inner);
+
+      output.store_pixel(texel, float4(gradient));
+    });
   }
 
   /* If false, only edges of the inner mask that lie inside the outer mask will be considered. If
