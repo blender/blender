@@ -36,7 +36,6 @@
 
 struct anim_index_entry {
   int frameno;
-  uint64_t seek_pos;
   uint64_t seek_pos_pts;
   uint64_t seek_pos_dts;
   uint64_t pts;
@@ -68,7 +67,6 @@ struct anim_index_builder {
 anim_index_builder *IMB_index_builder_create(const char *filepath);
 void IMB_index_builder_add_entry(anim_index_builder *fp,
                                  int frameno,
-                                 uint64_t seek_pos,
                                  uint64_t seek_pos_pts,
                                  uint64_t seek_pos_dts,
                                  uint64_t pts);
@@ -77,23 +75,19 @@ void IMB_index_builder_proc_frame(anim_index_builder *fp,
                                   unsigned char *buffer,
                                   int data_size,
                                   int frameno,
-                                  uint64_t seek_pos,
                                   uint64_t seek_pos_pts,
                                   uint64_t seek_pos_dts,
                                   uint64_t pts);
 
 void IMB_index_builder_finish(anim_index_builder *fp, int rollback);
 
-ImBufAnimIndex *IMB_indexer_open(const char *name);
-uint64_t IMB_indexer_get_seek_pos(ImBufAnimIndex *idx, int frame_index);
+ImBufAnimIndex *IMB_indexer_open(const char *filepath);
 uint64_t IMB_indexer_get_seek_pos_pts(ImBufAnimIndex *idx, int frame_index);
 uint64_t IMB_indexer_get_seek_pos_dts(ImBufAnimIndex *idx, int frame_index);
 
 int IMB_indexer_get_frame_index(ImBufAnimIndex *idx, int frameno);
 uint64_t IMB_indexer_get_pts(ImBufAnimIndex *idx, int frame_index);
 int IMB_indexer_get_duration(ImBufAnimIndex *idx);
-
-int IMB_indexer_can_scan(ImBufAnimIndex *idx, int old_frame_index, int new_frame_index);
 
 void IMB_indexer_close(ImBufAnimIndex *idx);
 
