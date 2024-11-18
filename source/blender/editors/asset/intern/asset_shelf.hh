@@ -31,8 +31,7 @@ namespace blender::ed::asset::shelf {
 void build_asset_view(uiLayout &layout,
                       const AssetLibraryReference &library_ref,
                       const AssetShelf &shelf,
-                      const bContext &C,
-                      const ARegion &region);
+                      const bContext &C);
 
 void catalog_selector_panel_register(ARegionType *region_type);
 void popover_panel_register(ARegionType *region_type);

@@ -2013,7 +2013,7 @@ void UI_block_end_ex(const bContext *C,
   /* Update bounds of all views in this block. If this block is a panel, this will be done later in
    * #UI_panels_end(), because buttons are offset there. */
   if (!block->panel) {
-    ui_block_views_bounds_calc(block);
+    ui_block_views_end(region, block);
   }
 
   if (block->rect.xmin == 0.0f && block->rect.xmax == 0.0f) {

@@ -501,7 +501,7 @@ wmDragNodeTreeInterface *NodePanelDropTarget::get_drag_node_tree_declaration(
 
 }  // namespace blender::ui::nodes
 
-void uiTemplateNodeTreeInterface(uiLayout *layout, PointerRNA *ptr)
+void uiTemplateNodeTreeInterface(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
   if (!ptr->data) {
     return;
@@ -521,5 +521,5 @@ void uiTemplateNodeTreeInterface(uiLayout *layout, PointerRNA *ptr)
   tree_view->set_context_menu_title("Node Tree Interface");
   tree_view->set_default_rows(3);
 
-  blender::ui::TreeViewBuilder::build_tree_view(*tree_view, *layout);
+  blender::ui::TreeViewBuilder::build_tree_view(*C, *tree_view, *layout);
 }

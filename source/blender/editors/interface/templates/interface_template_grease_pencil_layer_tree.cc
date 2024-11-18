@@ -513,5 +513,5 @@ void uiTemplateGreasePencilLayerTree(uiLayout *layout, bContext *C)
   tree_view->set_context_menu_title("Grease Pencil Layer");
   tree_view->set_default_rows(6);
 
-  ui::TreeViewBuilder::build_tree_view(*tree_view, *layout);
+  ui::TreeViewBuilder::build_tree_view(*C, *tree_view, *layout);
 }

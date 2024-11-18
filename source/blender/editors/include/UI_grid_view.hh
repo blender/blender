@@ -172,7 +172,6 @@ class GridViewBuilder {
 
   void build_grid_view(const bContext &C,
                        AbstractGridView &grid_view,
-                       const View2D &v2d,
                        uiLayout &layout,
                        std::optional<StringRef> search_string = {});
 };

@@ -527,8 +527,7 @@ void region_layout(const bContext *C, ARegion *region)
                                      0,
                                      style);
 
-  build_asset_view(
-      *layout, active_shelf->settings.asset_library_reference, *active_shelf, *C, *region);
+  build_asset_view(*layout, active_shelf->settings.asset_library_reference, *active_shelf, *C);
 
   int layout_height;
   UI_block_layout_resolve(block, nullptr, &layout_height);

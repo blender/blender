@@ -345,8 +345,7 @@ static std::string filter_string_get(const AssetShelf &shelf)
 void build_asset_view(uiLayout &layout,
                       const AssetLibraryReference &library_ref,
                       const AssetShelf &shelf,
-                      const bContext &C,
-                      const ARegion &region)
+                      const bContext &C)
 {
   list::storage_fetch(&library_ref, &C);
   list::previews_fetch(&library_ref, &C);
@@ -371,7 +370,7 @@ void build_asset_view(uiLayout &layout,
   grid_view->set_context_menu_title("Asset Shelf");
 
   ui::GridViewBuilder builder(*block);
-  builder.build_grid_view(C, *grid_view, region.v2d, layout, filter_string_get(shelf));
+  builder.build_grid_view(C, *grid_view, layout, filter_string_get(shelf));
 }
 
 /* ---------------------------------------------------------------------- */

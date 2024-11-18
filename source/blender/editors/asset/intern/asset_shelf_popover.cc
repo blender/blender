@@ -155,7 +155,7 @@ class AssetCatalogTreeView : public ui::AbstractTreeView {
   }
 };
 
-static void catalog_tree_draw(uiLayout &layout, AssetShelf &shelf)
+static void catalog_tree_draw(const bContext &C, uiLayout &layout, AssetShelf &shelf)
 {
   const asset_system::AssetLibrary *library = list::library_get_once_available(
       shelf.settings.asset_library_reference);
@@ -169,7 +169,7 @@ static void catalog_tree_draw(uiLayout &layout, AssetShelf &shelf)
       "asset shelf catalog tree view",
       std::make_unique<AssetCatalogTreeView>(*library, shelf));
 
-  ui::TreeViewBuilder::build_tree_view(*tree_view, layout);
+  ui::TreeViewBuilder::build_tree_view(C, *tree_view, layout);
 }
 
 static AssetShelfType *lookup_type_from_idname_in_context(const bContext *C)
@@ -201,8 +201,6 @@ static void popover_panel_draw(const bContext *C, Panel *panel)
   AssetShelfType *shelf_type = lookup_type_from_idname_in_context(C);
   BLI_assert_msg(shelf_type != nullptr, "couldn't find asset shelf type from context");
 
-  const ARegion *region = CTX_wm_region_popup(C) ? CTX_wm_region_popup(C) : CTX_wm_region(C);
-
   uiLayout *layout = panel->layout;
   uiLayoutSetUnitsX(layout, layout_width_units);
 
@@ -222,7 +220,7 @@ static void popover_panel_draw(const bContext *C, Panel *panel)
   uiLayoutSetUnitsX(catalogs_col, LEFT_COL_WIDTH_UNITS);
   uiLayoutSetFixedSize(catalogs_col, true);
   library_selector_draw(C, catalogs_col, *shelf);
-  catalog_tree_draw(*catalogs_col, *shelf);
+  catalog_tree_draw(*C, *catalogs_col, *shelf);
 
   uiLayout *right_col = uiLayoutColumn(row, false);
   uiLayout *sub = uiLayoutRow(right_col, false);
@@ -241,7 +239,7 @@ static void popover_panel_draw(const bContext *C, Panel *panel)
   uiLayoutSetUnitsX(asset_view_col, layout_width_units - LEFT_COL_WIDTH_UNITS);
   uiLayoutSetFixedSize(asset_view_col, true);
 
-  build_asset_view(*asset_view_col, shelf->settings.asset_library_reference, *shelf, *C, *region);
+  build_asset_view(*asset_view_col, shelf->settings.asset_library_reference, *shelf, *C);
 }
 
 static bool popover_panel_poll(const bContext *C, PanelType * /*panel_type*/)

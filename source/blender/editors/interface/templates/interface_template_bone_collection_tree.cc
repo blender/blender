@@ -476,5 +476,5 @@ void uiTemplateBoneCollectionTree(uiLayout *layout, bContext *C)
   tree_view->set_context_menu_title("Bone Collection");
   tree_view->set_default_rows(3);
 
-  ui::TreeViewBuilder::build_tree_view(*tree_view, *layout);
+  ui::TreeViewBuilder::build_tree_view(*C, *tree_view, *layout);
 }
