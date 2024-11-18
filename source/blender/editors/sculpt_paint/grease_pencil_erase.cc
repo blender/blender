@@ -130,6 +130,28 @@ struct EraseOperationExecutor {
     const int64_t a = math::distance_squared(s0, s1);
     const int64_t b = 2 * math::dot(s0 - center, s1 - s0);
     const int64_t c = d_s0_center - radius_2;
+
+    /* If points are close together there is no direction vector.
+     * Since the solution multiplies by this factor for integer math,
+     * the valid case of degenerate segments inside the circle needs special handling. */
+    if (a == 0) {
+      const int64_t i = -4 * c;
+      if (i < 0) {
+        /* No intersections. */
+        return 0;
+      }
+      if (i == 0) {
+        /* One intersection. */
+        r_mu0 = 0.0f;
+        return 1;
+      }
+      /* Two intersections. */
+      const float i_sqrt = math::sqrt(float(i));
+      r_mu0 = math::round(i_sqrt / 2.0f);
+      r_mu1 = math::round(-i_sqrt / 2.0f);
+      return 2;
+    }
+
     const int64_t i = b * b - 4 * a * c;
 
     if (i < 0) {
