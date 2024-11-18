@@ -414,14 +414,18 @@ static int startffmpeg(ImBufAnim *anim)
         1);
   }
 
+  /* Use full_chroma_int + accurate_rnd YUV->RGB conversion flags. Otherwise
+   * the conversion is not fully accurate and introduces some banding and color
+   * shifts, particularly in dark regions. See issue #111703 or upstream
+   * ffmpeg ticket https://trac.ffmpeg.org/ticket/1582 */
   anim->img_convert_ctx = BKE_ffmpeg_sws_get_context(anim->x,
                                                      anim->y,
                                                      anim->pCodecCtx->pix_fmt,
                                                      anim->x,
                                                      anim->y,
                                                      anim->pFrameRGB->format,
-                                                     SWS_BILINEAR | SWS_PRINT_INFO |
-                                                         SWS_FULL_CHR_H_INT);
+                                                     SWS_POINT | SWS_FULL_CHR_H_INT |
+                                                         SWS_ACCURATE_RND);
 
   if (!anim->img_convert_ctx) {
     fprintf(stderr,
