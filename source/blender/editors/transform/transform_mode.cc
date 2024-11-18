@@ -1098,8 +1098,6 @@ static TransModeInfo *mode_info_get(TransInfo *t, const int mode)
       return &TransMode_curveshrinkfatten;
     case TFM_MASK_SHRINKFATTEN:
       return &TransMode_maskshrinkfatten;
-    case TFM_GPENCIL_SHRINKFATTEN:
-      return &TransMode_gpshrinkfatten;
     case TFM_TRACKBALL:
       return &TransMode_trackball;
     case TFM_PUSHPULL:
