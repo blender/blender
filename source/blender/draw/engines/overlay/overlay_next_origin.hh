@@ -25,7 +25,7 @@ class Origins {
     const bool is_paint_mode = (state.object_mode &
                                 (OB_MODE_ALL_PAINT | OB_MODE_ALL_PAINT_GPENCIL |
                                  OB_MODE_SCULPT_CURVES)) != 0;
-    enabled_ = state.v3d && !is_paint_mode &&
+    enabled_ = state.space_type == SPACE_VIEW3D && !is_paint_mode &&
                (state.overlay.flag & V3D_OVERLAY_HIDE_OBJECT_ORIGINS) == 0;
     point_buf_.clear();
   }

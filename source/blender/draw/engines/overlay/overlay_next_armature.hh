@@ -133,7 +133,7 @@ class Armatures {
 
   void begin_sync(Resources &res, const State &state)
   {
-    enabled_ = state.v3d && !(state.overlay.flag & V3D_OVERLAY_HIDE_BONES);
+    enabled_ = state.space_type == SPACE_VIEW3D && !(state.overlay.flag & V3D_OVERLAY_HIDE_BONES);
 
     if (!enabled_) {
       return;
