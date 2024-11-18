@@ -40,6 +40,13 @@
 #  define FFMPEG_INLINE static inline
 #endif
 
+#if LIBAVUTIL_VERSION_INT < AV_VERSION_INT(58, 29, 100)
+/* In ffmpeg 6.1 usage of the "key_frame" variable from "AVFrame" has been deprecated.
+ * used the new method to query for the "AV_FRAME_FLAG_KEY" flag instead.
+ */
+#  define FFMPEG_OLD_KEY_FRAME_QUERY_METHOD
+#endif
+
 #if (LIBAVFORMAT_VERSION_MAJOR < 59)
 /* For versions older than ffmpeg 5.0, use the old channel layout variables.
  * We intend to only keep this  workaround for around two releases (3.5, 3.6).

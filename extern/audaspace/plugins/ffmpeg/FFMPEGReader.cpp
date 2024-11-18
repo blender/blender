@@ -27,8 +27,13 @@ extern "C" {
 
 AUD_NAMESPACE_BEGIN
 
+/* FFmpeg < 4.0 */
 #if LIBAVCODEC_VERSION_MAJOR < 58
 #define FFMPEG_OLD_CODE
+#endif
+/* FFmpeg < 5.0 */
+#if LIBAVCODEC_VERSION_MAJOR < 59
+#define FFMPEG_OLD_CH_LAYOUT
 #endif
 
 SampleFormat FFMPEGReader::convertSampleFormat(AVSampleFormat format)
@@ -112,7 +117,13 @@ int FFMPEGReader::decode(AVPacket& packet, Buffer& buffer)
 		if(ret != 0)
 			break;
 
-		int data_size = av_samples_get_buffer_size(nullptr, m_codecCtx->channels, m_frame->nb_samples, m_codecCtx->sample_fmt, 1);
+		#ifdef FFMPEG_OLD_CH_LAYOUT
+			int channels = m_codecCtx->channels;
+		#else
+			int channels = m_codecCtx->ch_layout.nb_channels;
+		#endif
+
+		int data_size = av_samples_get_buffer_size(nullptr, channels, m_frame->nb_samples, m_codecCtx->sample_fmt, 1);
 
 		if(buf_size - buf_pos < data_size)
 		{
@@ -122,12 +133,12 @@ int FFMPEGReader::decode(AVPacket& packet, Buffer& buffer)
 
 		if(m_tointerleave)
 		{
-			int single_size = data_size / m_codecCtx->channels / m_frame->nb_samples;
-			for(int channel = 0; channel < m_codecCtx->channels; channel++)
+			int single_size = data_size / channels / m_frame->nb_samples;
+			for(int channel = 0; channel < channels; channel++)
 			{
 				for(int i = 0; i < m_frame->nb_samples; i++)
 				{
-					std::memcpy(((data_t*)buffer.getBuffer()) + buf_pos + ((m_codecCtx->channels * i) + channel) * single_size,
+					std::memcpy(((data_t*)buffer.getBuffer()) + buf_pos + ((channels * i) + channel) * single_size,
 						   m_frame->data[channel] + i * single_size, single_size);
 				}
 			}
@@ -207,7 +218,12 @@ void FFMPEGReader::init(int stream)
 	if(avcodec_open2(m_codecCtx, aCodec, nullptr) < 0)
 		AUD_THROW(FileException, "File couldn't be read, ffmpeg codec couldn't be opened.");
 
-	m_specs.channels = (Channels) m_codecCtx->channels;
+	#ifdef FFMPEG_OLD_CH_LAYOUT
+		int channels = m_codecCtx->channels;
+	#else
+		int channels = m_codecCtx->ch_layout.nb_channels;
+	#endif
+	m_specs.channels = (Channels) channels;
 	m_tointerleave = av_sample_fmt_is_planar(m_codecCtx->sample_fmt);
 
 	switch(av_get_packed_sample_fmt(m_codecCtx->sample_fmt))
@@ -345,7 +361,12 @@ std::vector<StreamInfo> FFMPEGReader::queryStreams()
 			info.specs.rate = m_formatCtx->streams[i]->codec->sample_rate;
 			info.specs.format = convertSampleFormat(m_formatCtx->streams[i]->codec->sample_fmt);
 #else
-			info.specs.channels = Channels(m_formatCtx->streams[i]->codecpar->channels);
+			#ifdef FFMPEG_OLD_CH_LAYOUT
+				int channels = m_formatCtx->streams[i]->codecpar->channels;
+			#else
+				int channels = m_formatCtx->streams[i]->codecpar->ch_layout.nb_channels;
+			#endif
+			info.specs.channels = Channels(channels);
 			info.specs.rate = m_formatCtx->streams[i]->codecpar->sample_rate;
 			info.specs.format = convertSampleFormat(AVSampleFormat(m_formatCtx->streams[i]->codecpar->format));
 #endif
