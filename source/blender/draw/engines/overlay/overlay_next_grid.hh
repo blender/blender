@@ -49,8 +49,7 @@ class Grid {
 
     data_.push_update();
 
-    /* Use dummy depth texture in xray mode to avoid occluding the grid with the scene geometry. */
-    GPUTexture **depth_tx = state.xray_enabled ? &res.dummy_depth_tx : &res.depth_tx;
+    GPUTexture **depth_tx = state.xray_enabled ? &res.xray_depth_tx : &res.depth_tx;
 
     grid_ps_.init();
     grid_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA);
