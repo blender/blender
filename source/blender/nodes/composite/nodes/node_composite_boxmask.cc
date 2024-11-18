@@ -8,6 +8,8 @@
 
 #include <cmath>
 
+#include "BLI_math_base.hh"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 
 #include "UI_interface.hh"
@@ -72,23 +74,50 @@ static void node_composit_buts_boxmask(uiLayout *layout, bContext * /*C*/, Point
 
 using namespace blender::realtime_compositor;
 
+template<CMPNodeMaskType MaskType>
+static void box_mask(const Result &base_mask,
+                     const Result &value_mask,
+                     Result &output_mask,
+                     const int2 &texel,
+                     const int2 &domain_size,
+                     const float2 &location,
+                     const float2 &size,
+                     const float cos_angle,
+                     const float sin_angle)
+{
+  float2 uv = float2(texel) / float2(domain_size - int2(1));
+  uv -= location;
+  uv.y *= float(domain_size.y) / float(domain_size.x);
+  uv = float2x2(float2(cos_angle, -sin_angle), float2(sin_angle, cos_angle)) * uv;
+  bool is_inside = math::abs(uv.x) < size.x && math::abs(uv.y) < size.y;
+
+  float base_mask_value = base_mask.load_pixel(texel).x;
+  float value = value_mask.load_pixel(texel).x;
+
+  float output_mask_value = 0.0f;
+  if constexpr (MaskType == CMP_NODE_MASKTYPE_ADD) {
+    output_mask_value = is_inside ? math::max(base_mask_value, value) : base_mask_value;
+  }
+  else if constexpr (MaskType == CMP_NODE_MASKTYPE_SUBTRACT) {
+    output_mask_value = is_inside ? math::clamp(base_mask_value - value, 0.0f, 1.0f) :
+                                    base_mask_value;
+  }
+  else if constexpr (MaskType == CMP_NODE_MASKTYPE_MULTIPLY) {
+    output_mask_value = is_inside ? base_mask_value * value : 0.0f;
+  }
+  else if constexpr (MaskType == CMP_NODE_MASKTYPE_NOT) {
+    output_mask_value = is_inside ? (base_mask_value > 0.0f ? 0.0f : value) : base_mask_value;
+  }
+
+  output_mask.store_pixel(texel, float4(output_mask_value));
+}
+
 class BoxMaskOperation : public NodeOperation {
  public:
   using NodeOperation::NodeOperation;
 
   void execute() override
   {
-    /* Not yet supported on CPU. */
-    if (!context().use_gpu()) {
-      for (const bNodeSocket *output : this->node()->output_sockets()) {
-        Result &output_result = get_result(output->identifier);
-        if (output_result.should_compute()) {
-          output_result.allocate_invalid();
-        }
-      }
-      return;
-    }
-
     const Result &input_mask = get_input("Mask");
     Result &output_mask = get_result("Mask");
     /* For single value masks, the output will assume the compositing region, so ensure it is valid
@@ -98,6 +127,16 @@ class BoxMaskOperation : public NodeOperation {
       return;
     }
 
+    if (this->context().use_gpu()) {
+      this->execute_gpu();
+    }
+    else {
+      this->execute_cpu();
+    }
+  }
+
+  void execute_gpu()
+  {
     GPUShader *shader = context().get_shader(get_shader_name());
     GPU_shader_bind(shader);
 
@@ -110,11 +149,13 @@ class BoxMaskOperation : public NodeOperation {
     GPU_shader_uniform_1f(shader, "cos_angle", std::cos(get_angle()));
     GPU_shader_uniform_1f(shader, "sin_angle", std::sin(get_angle()));
 
+    const Result &input_mask = get_input("Mask");
     input_mask.bind_as_texture(shader, "base_mask_tx");
 
     const Result &value = get_input("Value");
     value.bind_as_texture(shader, "mask_value_tx");
 
+    Result &output_mask = get_result("Mask");
     output_mask.allocate_texture(domain);
     output_mask.bind_as_image(shader, "output_mask_img");
 
@@ -124,19 +165,6 @@ class BoxMaskOperation : public NodeOperation {
     value.unbind_as_texture();
     output_mask.unbind_as_image();
     GPU_shader_unbind();
-  }
-
-  Domain compute_domain() override
-  {
-    if (get_input("Mask").is_single_value()) {
-      return Domain(context().get_compositing_region_size());
-    }
-    return get_input("Mask").domain();
-  }
-
-  CMPNodeMaskType get_mask_type()
-  {
-    return (CMPNodeMaskType)bnode().custom1;
   }
 
   const char *get_shader_name()
@@ -152,6 +180,90 @@ class BoxMaskOperation : public NodeOperation {
       case CMP_NODE_MASKTYPE_NOT:
         return "compositor_box_mask_not";
     }
+  }
+
+  void execute_cpu()
+  {
+    const Result &base_mask = this->get_input("Mask");
+    const Result &value_mask = this->get_input("Value");
+
+    Result &output_mask = get_result("Mask");
+    const Domain domain = this->compute_domain();
+    output_mask.allocate_texture(domain);
+
+    const int2 domain_size = domain.size;
+    const float2 location = this->get_location();
+    const float2 size = this->get_size() / 2.0f;
+    const float cos_angle = math::cos(this->get_angle());
+    const float sin_angle = math::sin(this->get_angle());
+
+    switch (this->get_mask_type()) {
+      case CMP_NODE_MASKTYPE_ADD:
+        parallel_for(domain_size, [&](const int2 texel) {
+          box_mask<CMP_NODE_MASKTYPE_ADD>(base_mask,
+                                          value_mask,
+                                          output_mask,
+                                          texel,
+                                          domain_size,
+                                          location,
+                                          size,
+                                          cos_angle,
+                                          sin_angle);
+        });
+        break;
+      case CMP_NODE_MASKTYPE_SUBTRACT:
+        parallel_for(domain_size, [&](const int2 texel) {
+          box_mask<CMP_NODE_MASKTYPE_SUBTRACT>(base_mask,
+                                               value_mask,
+                                               output_mask,
+                                               texel,
+                                               domain_size,
+                                               location,
+                                               size,
+                                               cos_angle,
+                                               sin_angle);
+        });
+        break;
+      case CMP_NODE_MASKTYPE_MULTIPLY:
+        parallel_for(domain_size, [&](const int2 texel) {
+          box_mask<CMP_NODE_MASKTYPE_MULTIPLY>(base_mask,
+                                               value_mask,
+                                               output_mask,
+                                               texel,
+                                               domain_size,
+                                               location,
+                                               size,
+                                               cos_angle,
+                                               sin_angle);
+        });
+        break;
+      case CMP_NODE_MASKTYPE_NOT:
+        parallel_for(domain_size, [&](const int2 texel) {
+          box_mask<CMP_NODE_MASKTYPE_NOT>(base_mask,
+                                          value_mask,
+                                          output_mask,
+                                          texel,
+                                          domain_size,
+                                          location,
+                                          size,
+                                          cos_angle,
+                                          sin_angle);
+        });
+        break;
+    }
+  }
+
+  Domain compute_domain() override
+  {
+    if (get_input("Mask").is_single_value()) {
+      return Domain(context().get_compositing_region_size());
+    }
+    return get_input("Mask").domain();
+  }
+
+  CMPNodeMaskType get_mask_type()
+  {
+    return static_cast<CMPNodeMaskType>(bnode().custom1);
   }
 
   float2 get_location()
