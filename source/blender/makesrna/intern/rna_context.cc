@@ -186,15 +186,20 @@ static PointerRNA rna_Context_collection_get(PointerRNA *ptr)
 static PointerRNA rna_Context_layer_collection_get(PointerRNA *ptr)
 {
   bContext *C = (bContext *)ptr->data;
-  ptr->owner_id = &CTX_data_scene(C)->id;
-  return rna_pointer_inherit_refine(ptr, &RNA_LayerCollection, CTX_data_layer_collection(C));
+  Scene *scene = CTX_data_scene(C);
+
+  PointerRNA scene_ptr = RNA_id_pointer_create(&scene->id);
+  return rna_pointer_inherit_refine(
+      &scene_ptr, &RNA_LayerCollection, CTX_data_layer_collection(C));
 }
 
 static PointerRNA rna_Context_tool_settings_get(PointerRNA *ptr)
 {
   bContext *C = (bContext *)ptr->data;
-  ptr->owner_id = &CTX_data_scene(C)->id;
-  return rna_pointer_inherit_refine(ptr, &RNA_ToolSettings, CTX_data_tool_settings(C));
+  Scene *scene = CTX_data_scene(C);
+
+  PointerRNA scene_ptr = RNA_id_pointer_create(&scene->id);
+  return rna_pointer_inherit_refine(&scene_ptr, &RNA_ToolSettings, CTX_data_tool_settings(C));
 }
 
 static PointerRNA rna_Context_preferences_get(PointerRNA * /*ptr*/)
