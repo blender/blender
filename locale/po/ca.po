@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'1c8669f8c9c1')\n"
+"Project-Id-Version: Blender 4.3.0 Release Candidate (b'7dfe47164a63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-11 09:42+0000\n"
-"PO-Revision-Date: 2024-11-11 03:56+0000\n"
+"POT-Creation-Date: 2024-11-18 11:20+0000\n"
+"PO-Revision-Date: 2024-11-17 21:56+0000\n"
 "Last-Translator: Joan Pujolar <joan.pujolar@gmail.com>\n"
 "Language-Team: Catalan <https://translate.blender.org/projects/blender-ui/ui/ca/>\n"
 "Language: ca\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.7.2"
+"X-Generator: Weblate 5.8.3"
 
 
 msgid "Shader AOV"
@@ -1596,7 +1596,7 @@ msgstr "Els recursos no s'arrastren"
 
 
 msgid "Disable the default asset dragging on drag events. Useful for implementing custom dragging via custom key-map items."
-msgstr "Desactiva l'arrossegament de recursos fixat per defecte en accions d'arrossegament. Útil per implementar l'arrossegament personalitzat mitjançant elements de teclari personalitzats."
+msgstr "Desactiva l'arrossegament de recursos fixat per defecte en episodis d'arrossegament. Útil per implementar l'arrossegament personalitzat mitjançant elements de teclari personalitzats."
 
 
 msgid "Visible by Default"
@@ -7231,11 +7231,11 @@ msgstr "RGB"
 
 
 msgid "HSV"
-msgstr "HSV"
+msgstr "TSV"
 
 
 msgid "HSL"
-msgstr "HSL"
+msgstr "TSL"
 
 
 msgid "Elements"
@@ -7271,7 +7271,7 @@ msgstr "Interpolació"
 
 
 msgid "Set interpolation between color stops"
-msgstr "[Interpolation]: Defineix la interpolació entre salts de color"
+msgstr "[Interpolation]: Defineix la interpolació entre tascons de color"
 
 
 msgid "Ease"
@@ -7303,11 +7303,11 @@ msgstr "Alfa"
 
 
 msgid "Set alpha of selected color stop"
-msgstr "[Alpha]: Defineix l'alfa del salt de color seleccionat"
+msgstr "[Alpha]: Defineix l'alfa del tascó de color seleccionat"
 
 
 msgid "Set color of selected color stop"
-msgstr "Defineix el color del salt de color seleccionat"
+msgstr "Defineix el color del tascó de color seleccionat"
 
 
 msgid "Position"
@@ -7315,7 +7315,7 @@ msgstr "Posició"
 
 
 msgid "Set position of selected color stop"
-msgstr "Defineix la posició del salt de color seleccionat"
+msgstr "Defineix la posició del tascó de color seleccionat"
 
 
 msgid "Color Ramp Elements"
@@ -11742,7 +11742,7 @@ msgstr "Superfície activa"
 
 
 msgid "Active Dynamic Paint surface being displayed"
-msgstr "[Active Surface]: S'està visualitzant la superfície activa de pintura dinàmica"
+msgstr "[Active Surface]: S'està visualitzant la superfície activa de pintat dinàmic"
 
 
 msgid "Active Point Cache Index"
@@ -16853,11 +16853,11 @@ msgstr "[Show Value]: Mostra un indicador del valor actual mentre s'arrossega"
 
 
 msgid "Handle All Events"
-msgstr "Gestiona totes les accions"
+msgstr "Gestionar tots els episodis"
 
 
 msgid "When highlighted, do not pass events through to be handled by other keymaps"
-msgstr "[Handle All Events]: Quan està ressaltat, no deixis que hi hagi accions que les gestionin altres teclaris"
+msgstr "[Handle All Events]: Quan està ressaltat, no deixis que hi hagi episodis que hagin de gestionar altres teclaris"
 
 
 msgid "Grab Cursor"
@@ -23955,7 +23955,7 @@ msgstr "Profunditat refracció"
 
 
 msgid "Approximate the thickness of the object to compute two refraction events (0 is disabled) (Deprecated)"
-msgstr "[Refraction Depth]: S'aproxima al gruix de l'objecte per a calcular dues situacions de refracció (0 vol dir desactivat) (obsolet)"
+msgstr "[Refraction Depth]: S'aproxima al gruix de l'objecte per a calcular dos episodis de refracció (0 vol dir desactivat) (obsolet)"
 
 
 msgid "Roughness"
@@ -26397,7 +26397,7 @@ msgstr "Reacció envers"
 
 
 msgid "The event of target particles to react on"
-msgstr "[React On]: Situació davant de la qual les partícules referents reaccionen"
+msgstr "[React On]: L'episodi davant de la qual les partícules referents han de reaccionar"
 
 
 msgid "Death"
@@ -30036,7 +30036,7 @@ msgstr "Complement configuració de teclari"
 
 
 msgid "Key configuration that can be extended by add-ons, and is added to the active configuration when handling events"
-msgstr "[Add-on Key Configuration]: Configuració de tecles que es pot estendre en base a complements, i s'afegeix a la configuració activa en gestionar accions"
+msgstr "[Add-on Key Configuration]: Configuració de tecles que es pot estendre en base a complements, i s'afegeix a la configuració activa en gestionar episodis"
 
 
 msgid "Default Key Configuration"
@@ -30072,7 +30072,7 @@ msgstr "Teclari modal"
 
 
 msgid "Indicates that a keymap is used for translate modal events for an operator"
-msgstr "[Modal Keymap]: Indica que un teclari s'usa per traduir accions modals per a un operador"
+msgstr "[Modal Keymap]: Indica que un teclari s'usa per traduir episodis modals per a un operador"
 
 
 msgid "Keymap is defined by the user"
@@ -30084,15 +30084,15 @@ msgstr "Elements"
 
 
 msgid "Items in the keymap, linking an operator to an input event"
-msgstr "[Items]: Elements del teclari que enllacen un operador amb una acció ingressada"
+msgstr "[Items]: Elements del teclari que enllacen un operador amb un episodi ingressat"
 
 
 msgid "Modal Events"
-msgstr "Operacions modals"
+msgstr "Episodis modals"
 
 
 msgid "Give access to the possible event values of this modal keymap's items (#KeyMapItem.propvalue), for API introspection"
-msgstr "Dona accés als possibles valors d'acció per als elements d'aquest teclari modal (#KeyMapItem.propvalue), per a la introspecció de l'API"
+msgstr "Dona accés als possibles valors d'episodi per als elements d'aquest teclari modal (#KeyMapItem.propvalue), per a la introspecció de l'API"
 
 
 msgid "Name of the key map"
@@ -30168,7 +30168,7 @@ msgstr "Tecla Control pitjada"
 
 
 msgid "The direction (only applies to drag events)"
-msgstr "La direcció (només s'aplica a accions d'arrossegament)"
+msgstr "La direcció (només s'aplica a episodis d'arrossegament)"
 
 
 msgid "North"
@@ -30208,7 +30208,7 @@ msgstr "ID de l'element"
 
 
 msgid "Identifier of operator to call on input event"
-msgstr "Identificador de l'operador a cridar a l'acció ingressada"
+msgstr "Identificador de l'operador a cridar a l'episodi ingressat"
 
 
 msgid "Is this keymap item user defined (doesn't just replace a builtin item)"
@@ -31545,7 +31545,7 @@ msgstr "Tipus de mapa"
 
 
 msgid "Type of event mapping"
-msgstr "Tipus de mapejat d'accions"
+msgstr "Tipus de mapejat d'episodis"
 
 
 msgid "Keyboard"
@@ -31569,7 +31569,7 @@ msgstr "Temporitzador"
 
 
 msgid "Name of operator (translated) to call on input event"
-msgstr "Nom de l'operador (traduït) a invocar en l'acció ingressada"
+msgstr "Nom de l'operador (traduït) a invocar en l'episodi ingressat"
 
 
 msgid "OS Key"
@@ -31594,11 +31594,11 @@ msgstr "Valor de propietat"
 
 
 msgid "The value this event translates to in a modal keymap"
-msgstr "[Property Value]: El valor al qual es tradueix aquesta acció en un teclari modal"
+msgstr "[Property Value]: El valor al qual es tradueix aques episodi en un teclari modal"
 
 
 msgid "Active on key-repeat events (when a key is held)"
-msgstr "Actiu en accions de repetició de tecla (quan es manté pitjada una tecla)"
+msgstr "Actiu en episodis de repetició de tecla (quan es manté pitjada una tecla)"
 
 
 msgctxt "WindowManager"
@@ -31615,7 +31615,7 @@ msgstr "Tecla Maj pitjada"
 
 
 msgid "Show key map event and property details in the user interface"
-msgstr "Mostra l'acció del teclari i els detalls de propietats a la interfície d'usuària"
+msgstr "Mostra l'episodi del teclari i els detalls de propietats a la interfície d'usuària"
 
 
 msgctxt "UI_Events_KeyMaps"
@@ -31624,7 +31624,7 @@ msgstr "Tipus"
 
 
 msgid "Type of event"
-msgstr "Tipus d'acció"
+msgstr "Tipus d'episodi"
 
 
 msgid "Press"
@@ -31673,7 +31673,7 @@ msgstr "Esquena"
 
 
 msgid "Amount of overshoot for 'back' easing"
-msgstr "[Back]: Quantitat de sobrepuig en el gradualitzat «esquena»"
+msgstr "[Back]: Quantitat d'ultrapassat en el gradualitzat de 'esquena'"
 
 
 msgid "Coordinates of the control point. Note: Changing this value also updates the handles similar to using the graph editor transform operator"
@@ -31864,7 +31864,7 @@ msgstr "Gradualitzat circular (més fort i el més dinàmic)"
 
 
 msgid "Cubic easing with overshoot and settle"
-msgstr "Gradualitzat cúbic amb sobrepuig i estabilització"
+msgstr "Gradualitzat cúbic amb ultrapassat i estabilització"
 
 
 msgctxt "Action"
@@ -33774,16 +33774,52 @@ msgid "Editor menu containing buttons"
 msgstr "El menú d'edició que conté els botons"
 
 
+msgid "Mirror"
+msgstr "Emmirallar"
+
+
+msgid "Snap"
+msgstr "Acoblament"
+
+
+msgid "UV Mapping"
+msgstr "Mapejat UV"
+
+
+msgid "Local View"
+msgstr "Vista local"
+
+
+msgid "Viewpoint"
+msgstr "Punt de vista"
+
+
+msgid "Navigation"
+msgstr "Navegació"
+
+
+msgid "Align View"
+msgstr "Alinear vista"
+
+
+msgid "Align View to Active"
+msgstr "Alinear vista a actiu"
+
+
+msgid "View Regions"
+msgstr "Regions de visionat"
+
+
+msgid "Select More/Less"
+msgstr "Seleccionar més/menys"
+
+
 msgid "Select Similar"
 msgstr "Seleccionar similar"
 
 
 msgid "Select All by Trait"
 msgstr "Seleccionar-ho tot per trets"
-
-
-msgid "Select More/Less"
-msgstr "Seleccionar més/menys"
 
 
 msgid "Select Linked"
@@ -33938,10 +33974,6 @@ msgid "Pivot Point"
 msgstr "Punt de pivot"
 
 
-msgid "Snap"
-msgstr "Acoblament"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "Decaïment a l'edició proporcional"
 
@@ -33956,38 +33988,6 @@ msgstr "Automàscara"
 
 msgid "Face Sets Edit"
 msgstr "Edició de jocs de cares"
-
-
-msgid "Mirror"
-msgstr "Emmirallar"
-
-
-msgid "UV Mapping"
-msgstr "Mapejat UV"
-
-
-msgid "Local View"
-msgstr "Vista local"
-
-
-msgid "Viewpoint"
-msgstr "Punt de vista"
-
-
-msgid "Navigation"
-msgstr "Navegació"
-
-
-msgid "Align View"
-msgstr "Alinear vista"
-
-
-msgid "Align View to Active"
-msgstr "Alinear vista a actiu"
-
-
-msgid "View Regions"
-msgstr "Regions de visionat"
 
 
 msgid "Keyframe Insert Pie"
@@ -35744,7 +35744,7 @@ msgstr "Per a col·lisionadors que participen en simulacions de física, control
 
 
 msgid "Dynamic Paint"
-msgstr "Pintura dinàmica"
+msgstr "Pintat dinàmic"
 
 
 msgid "Turn objects into paint canvases and brushes, creating color attributes, image sequences, or displacement"
@@ -37312,7 +37312,7 @@ msgstr "[Texture Coordinate Object]: Objecte per a definir les coordenades de la
 
 
 msgid "Dynamic Paint Modifier"
-msgstr "Modificador pintura dinàmica"
+msgstr "Modificador pintat dinàmic"
 
 
 msgid "Dynamic Paint modifier"
@@ -37695,11 +37695,11 @@ msgstr "[Speed Factor]: Multiplica la rapidesa de dibuix gravada per un factor"
 
 
 msgid "Maximum Gap"
-msgstr "Buit màxim"
+msgstr "Lapse màxim"
 
 
 msgid "The maximum gap between strokes in seconds"
-msgstr "[Maximum Gap]: El buit màxim entre traços en segons"
+msgstr "[Maximum Gap]: L'espaiat màxim entre traços en segons"
 
 
 msgid "Delay"
@@ -38359,7 +38359,7 @@ msgstr "[Use Crease]: Genera traços a partir d'arestes cairades"
 
 
 msgid "Crease On Sharp Edges"
-msgstr "Cairat en cantells aguts"
+msgstr "Cairat sobre cantells aguts"
 
 
 msgid "Allow crease to show on sharp edges"
@@ -43361,7 +43361,7 @@ msgstr "Clip de so"
 
 
 msgid "NLA Strip representing a sound event for speakers"
-msgstr "[Sound Clip]: Segment d'ANL que representa un esdeveniment sonor per altaveus"
+msgstr "[Sound Clip]: Segment d'ANL que representa un episodi sonor per altaveus"
 
 
 msgid "Animated Influence"
@@ -43859,7 +43859,7 @@ msgstr "Espai de color RGB"
 
 
 msgid "HSV color space"
-msgstr "Espai de color HSV"
+msgstr "Espai de color TSV"
 
 
 msgid "YUV"
@@ -44361,7 +44361,7 @@ msgstr "[Unspill]: Compensa tots els canals (diferentment) a mà"
 
 
 msgid "Combine HSVA"
-msgstr "Combinar HSVA"
+msgstr "Combinar TSVA"
 
 
 msgid "Combine RGBA"
@@ -44401,11 +44401,11 @@ msgstr "Usar procés de color RGB"
 
 
 msgid "Use HSV color processing"
-msgstr "Usar procés de color HSV"
+msgstr "Usar procés de color TSV"
 
 
 msgid "Use HSL color processing"
-msgstr "Usar procés de color HSL"
+msgstr "Usar procés de color TSL"
 
 
 msgid "Use YCbCr color processing"
@@ -45090,7 +45090,7 @@ msgstr "To/Saturació/Valor"
 
 
 msgid "Apply a color transformation in the HSV color model"
-msgstr "Aplica una transformació de color al model de color HSV"
+msgstr "Aplica una transformació de color al model de color TSV"
 
 
 msgid "ID Mask"
@@ -46040,7 +46040,7 @@ msgstr "Ingressar el temps de l'escena actual en segons o en fotogrames"
 
 
 msgid "Separate HSVA"
-msgstr "Separar HSVA"
+msgstr "Separar TSVA"
 
 
 msgid "Separate RGBA"
@@ -49747,11 +49747,11 @@ msgstr "Crea un color a partir de components individuals usant múltiples models
 
 
 msgid "Combine HSV"
-msgstr "Combinar HSV"
+msgstr "Combinar TSV"
 
 
 msgid "Create a color from its hue, saturation, and value channels"
-msgstr "[Combine HSV]: Crea un color a partir del seu to, saturació i canals de valors"
+msgstr "[Combine TSV]: Crea un color a partir del seu to, saturació i canals de valors"
 
 
 msgid "Combine RGB"
@@ -50107,11 +50107,11 @@ msgstr "Egressió de lineament"
 
 
 msgid "Material Output"
-msgstr "Egressió de material"
+msgstr "Material egressat"
 
 
 msgid "Output surface material information for use in rendering"
-msgstr "[Material Output]: Egressa la informació del material de superfície de cara al revelat"
+msgstr "[Material Output]: Egressa la informació del material de cara al revelat"
 
 
 msgid "World Output"
@@ -50203,11 +50203,11 @@ msgstr "Separa un color en els seus components individuals usant múltiples mode
 
 
 msgid "Separate HSV"
-msgstr "Separar HSV"
+msgstr "Separar TSV"
 
 
 msgid "Split a color into its hue, saturation, and value channels"
-msgstr "[Separate HSV]: Separa un color en els seus canals de to, saturació i valor"
+msgstr "[Separate TSV]: Separa un color en els seus canals de to, saturació i valor"
 
 
 msgid "Separate RGB"
@@ -53431,7 +53431,7 @@ msgstr "Connectar a sortida"
 
 msgctxt "Operator"
 msgid "glTF Material Output"
-msgstr "Sortida de material glTF"
+msgstr "Material egressat glTF"
 
 
 msgid "Add a copy of the active item to the interface"
@@ -53646,7 +53646,7 @@ msgstr "Connectar el node actiu a la selecció"
 
 
 msgid "Link to Composite node or Material Output node"
-msgstr "Connecta al Node compositar o al node Sortida de material"
+msgstr "Connecta al Node compositar o al node Material egressat"
 
 
 msgid "Make a link from one socket to another"
@@ -55828,7 +55828,7 @@ msgstr "Sostreu la selecció existent"
 
 
 msgid "Operator has been activated using a click-drag event"
-msgstr "L'operador s'ha activat mitjançant una acció de clica-i-arrossega"
+msgstr "L'operador s'ha activat mitjançant un episodi de clicar-i-arrossegar"
 
 
 msgid "Wait for Input"
@@ -58242,11 +58242,11 @@ msgstr "Dins de l'àrea anotada"
 
 
 msgid "Place markers only inside areas outlined with the Annotation tool"
-msgstr "[Inside Annotated Area]: Col·loca els marcadors només dins de les àrees consignades amb l'eina d'anotació"
+msgstr "[Inside Annotated Area]: Col·loca els marcadors només dins de les àrees consignades amb l'eina d'anotacions"
 
 
 msgid "Outside Annotated Area"
-msgstr "Fora de làrea anotada"
+msgstr "Fora de l'àrea anotada"
 
 
 msgid "Place markers only outside areas outlined with the Annotation tool"
@@ -60481,7 +60481,7 @@ msgstr "Ruta al document per a la imatge fusionada"
 
 msgctxt "Operator"
 msgid "Dynamic Paint Bake"
-msgstr "Precuinat de pintura dinàmica"
+msgstr "Precuinat de pintat dinàmic"
 
 
 msgid "Bake dynamic paint image sequence surface"
@@ -60515,7 +60515,7 @@ msgstr "Afegir epígraf de superfície"
 
 
 msgid "Add a new Dynamic Paint surface slot"
-msgstr "[Add Surface Slot]: Afegir un nou epígraf de la superfície de la Pintura dinàmica"
+msgstr "[Add Surface Slot]: Afegir un nou epígraf de la superfície del Pintat dinàmic"
 
 
 msgctxt "Operator"
@@ -62513,7 +62513,7 @@ msgstr "Transitar"
 
 
 msgid "Even on successful execution, pass the event on so other operators can execute on it as well"
-msgstr "Fins i tot amb l'execució reeixida, fes passar l'operació endavant perquè altres operadors també la puguin executar"
+msgstr "Fins i tot amb l'execució reeixida, fa passar l'episodi endavant perquè altres operadors també el puguin executar"
 
 
 msgctxt "Operator"
@@ -63920,7 +63920,7 @@ msgstr "Especifica l'interval de previsionat basat en l'interval de fotofites se
 
 msgctxt "Operator"
 msgid "Push Pull Keyframes"
-msgstr "Augmentar Reduir fotofites"
+msgstr "Augmentar-reduir fotofites"
 
 
 msgid "Exaggerate or minimize the value of the selected keys"
@@ -65269,7 +65269,7 @@ msgstr "Mantenir traços originals i crear-ne una còpia abans de reprojectar-lo
 
 
 msgid "Reproject the strokes on to the scene geometry, as if drawn using 'Surface' placement"
-msgstr "Reprojectar els traços a la geometria de l'escena, com si fossin dibuixats amb una ubicació de «superfície»"
+msgstr "Reprojectar els traços a la geometria de l'escena, com si fossin dibuixats amb col·locació de «superfície»"
 
 
 msgctxt "Operator"
@@ -65652,7 +65652,7 @@ msgstr "Llindar de color"
 
 
 msgid "Determine the lightness threshold above which strokes are generated"
-msgstr "[Color Threshold]: Determina el llindar de claredat per sobre del qual es generen els traços"
+msgstr "[Color Threshold]: Determina el llindar de lluminositat per sobre del qual es generen els traços"
 
 
 msgid "Turn Policy"
@@ -65735,7 +65735,7 @@ msgstr "To/Saturació/Valor de pintura de vèrtexs"
 
 
 msgid "Adjust vertex color HSV values"
-msgstr "Ajusta els valors HSV del color del vèrtex"
+msgstr "Ajusta els valors TSV del color del vèrtex"
 
 
 msgctxt "Operator"
@@ -70494,6 +70494,10 @@ msgid "Clear Constraints"
 msgstr "Retirar restriccions"
 
 
+msgid "Remove all constraints from keyed object/bones. To get a correct bake with this setting Visual Keying should be enabled"
+msgstr "Elimina totes les restriccions dels objectes/ossos fitats. Per aconseguir un precuinat correcte amb aquest paràmetre, caldria habilitar Fitació visual"
+
+
 msgid "Clear Parents"
 msgstr "Retirar paternitats"
 
@@ -70531,7 +70535,7 @@ msgstr "[Overwrite Current Action]: Precuina l'animació en l'acció actual, en 
 
 
 msgid "Visual Keying"
-msgstr "Fita visual"
+msgstr "Fitació visual"
 
 
 msgid "Keyframe from the final transformations (with constraints applied)"
@@ -71318,7 +71322,7 @@ msgstr "Insereix els nodes seleccionats en un grup de nodes"
 
 msgctxt "Operator"
 msgid "Make Group"
-msgstr "Crear grup"
+msgstr "Fer-ne grup"
 
 
 msgid "Make group from selected nodes"
@@ -74893,7 +74897,7 @@ msgstr "Acolorir"
 
 
 msgid "Apply different tint effects"
-msgstr "[Colorize]: Aplica diferents efectes de tenyit"
+msgstr "Aplica diferents efectes de tenyit"
 
 
 msgctxt "ID"
@@ -74952,7 +74956,7 @@ msgstr "[Swirl]: Crea una distorsió de rotació"
 
 msgctxt "ID"
 msgid "Wave Distortion"
-msgstr "Distorsió ona"
+msgstr "Distorsió en ona"
 
 
 msgid "Apply sinusoidal deformation"
@@ -81294,7 +81298,7 @@ msgstr "Claror"
 
 
 msgid "Glow effect strip type"
-msgstr "[Glow]: Tipus de segment efecte lluir"
+msgstr "[Glow]: Tipus de segment efecte lluentor"
 
 
 msgctxt "Sequence"
@@ -82017,6 +82021,10 @@ msgstr "Seleccionar anses"
 
 msgid "Select the strips and their handles"
 msgstr "[Select Handles]: Selecciona els segments i les seves nanses"
+
+
+msgid "Make box select pass through to sequence slide when the cursor is hovering on a strip"
+msgstr "Fer que la selecció de caixa es traslladi al corriment de seqüència quan el cursor sobreronda un segment"
 
 
 msgid "Select all strips grouped by various properties"
@@ -85513,11 +85521,11 @@ msgstr "Mou la vista"
 
 msgctxt "Operator"
 msgid "View Navigation (Walk/Fly)"
-msgstr "Navegació visual (a peu/volant)"
+msgstr "Navegació visual (caminant/volant)"
 
 
 msgid "Interactively navigate around the scene (uses the mode (walk/fly) preference)"
-msgstr "[View Navigation (Walk/Fly)]: Navega interactivament per l'escena (utilitza la preferència de mode (a peu/volant))"
+msgstr "[View Navigation (Walk/Fly)]: Navega interactivament per l'escena (utilitza la preferència de mode (caminar/volar))"
 
 
 msgctxt "Operator"
@@ -87698,7 +87706,7 @@ msgstr "Valor per als tipus de propietats personalitzables que només es poden e
 
 msgctxt "Operator"
 msgid "Quit Blender"
-msgstr "Sortir del Blender"
+msgstr "Plegar de Blender"
 
 
 msgid "Quit Blender"
@@ -89777,6 +89785,38 @@ msgid "Panel containing UI elements"
 msgstr "Plafó que conté elements de la IU"
 
 
+msgid "Measurement"
+msgstr "Mesurament"
+
+
+msgid "Curve Edit Mode"
+msgstr "Mode edició de corba"
+
+
+msgid "Snapping"
+msgstr "Acoblament"
+
+
+msgid "Transform Orientations"
+msgstr "Orientacions de transformació"
+
+
+msgid "Stroke Placement"
+msgstr "Emplaçament del traç"
+
+
+msgid "Drawing Plane"
+msgstr "Pla de dibuix"
+
+
+msgid "glTF Variants"
+msgstr "Variants glTF"
+
+
+msgid "glTF Material Variants"
+msgstr "Variants de material gITF"
+
+
 msgid "Guides"
 msgstr "Guies"
 
@@ -89801,12 +89841,12 @@ msgid "Multi Frame"
 msgstr "Multifotograma"
 
 
-msgid "glTF Variants"
-msgstr "Variants glTF"
+msgid "glTF"
+msgstr "glTF"
 
 
-msgid "glTF Material Variants"
-msgstr "Variants de material gITF"
+msgid "glTF Animations"
+msgstr "Animacions glTF"
 
 
 msgid "Auto-Masking"
@@ -89827,14 +89867,6 @@ msgstr "Expandir/encongir escala de corbes"
 
 msgid "Viewport Debug"
 msgstr "Depuració de mirador"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "Animacions glTF"
 
 
 msgid "VR"
@@ -89891,30 +89923,6 @@ msgstr "Rastreig de moviment"
 
 msgid "Mesh Edit Mode"
 msgstr "Mode edició de malla"
-
-
-msgid "Measurement"
-msgstr "Mesurament"
-
-
-msgid "Curve Edit Mode"
-msgstr "Mode edició de corba"
-
-
-msgid "Snapping"
-msgstr "Acoblament"
-
-
-msgid "Transform Orientations"
-msgstr "Orientacions de transformació"
-
-
-msgid "Stroke Placement"
-msgstr "Emplaçament del traç"
-
-
-msgid "Drawing Plane"
-msgstr "Pla de dibuix"
 
 
 msgid "Chain Scaling"
@@ -90332,12 +90340,12 @@ msgstr "Anotar"
 
 msgctxt "Operator"
 msgid "Annotate Line"
-msgstr "Línia d'anotació"
+msgstr "Línia d'anotacions"
 
 
 msgctxt "Operator"
 msgid "Annotate Polygon"
-msgstr "Anotar polígon"
+msgstr "Polígon d'anotacions"
 
 
 msgctxt "Operator"
@@ -90973,7 +90981,7 @@ msgstr "Navegació de preferències"
 
 
 msgid "Fly & Walk"
-msgstr "Volant i a peu"
+msgstr "Volar i caminar"
 
 
 msgid "Walk"
@@ -93350,7 +93358,7 @@ msgstr "Tanca automàticament els parells de caràcters pertinents en escriure e
 
 
 msgid "Use Visual keying automatically for constrained objects"
-msgstr "Usar fites visuals automàtiques per a objectes restringits"
+msgstr "Usar Fitació visual automàticament per a objectes restringits"
 
 
 msgid "Experimental features"
@@ -93498,7 +93506,7 @@ msgstr "Suport d'inclinació en mode escultura"
 
 
 msgid "Support for pen tablet tilt events in Sculpt Mode"
-msgstr "[Sculpt Mode Tilt Support]: Suport per a accions d'inclinació del pen de tauleta en mode escultura"
+msgstr "[Sculpt Mode Tilt Support]: Suport per a episodis d'inclinació del pen de tauleta en mode escultura"
 
 
 msgid "Shader Node Previews"
@@ -93824,7 +93832,7 @@ msgstr "Llindar d'arrossegament"
 
 
 msgid "Number of pixels to drag before a drag event is triggered for keyboard and other non mouse/tablet input (otherwise click events are detected)"
-msgstr "[Drag Threshold]: Nombre de píxels a arrossegar abans que s'activi una operació d'arrossegament per al teclat i altres ingressions de ratolí/tauleta(en cas contrari es detecten esdeveniments de clic)"
+msgstr "[Drag Threshold]: Nombre de píxels a arrossegar abans que s'activi un episodi d'arrossegament per al teclat i altres ingressions de ratolí/tauleta(en cas contrari es detecten episodis de clic)"
 
 
 msgid "Mouse Drag Threshold"
@@ -93832,7 +93840,7 @@ msgstr "Llindar d'arrossegament del ratolí"
 
 
 msgid "Number of pixels to drag before a drag event is triggered for mouse/trackpad input (otherwise click events are detected)"
-msgstr "Nombre de píxels a arrossegar abans que s'activi una acció d'arrossegament per a la ingressió de ratolí/estora tàctil (altrament es detecten esdeveniments de clic)"
+msgstr "Nombre de píxels a arrossegar abans que s'activi un episodi d'arrossegament per a la ingressió de ratolí/estora tàctil (altrament es detecten episodis de clic)"
 
 
 msgid "Tablet Drag Threshold"
@@ -93840,7 +93848,7 @@ msgstr "Llindar d'arrossegament de tauleta"
 
 
 msgid "Number of pixels to drag before a drag event is triggered for tablet input (otherwise click events are detected)"
-msgstr "[Tablet Drag Threshold]: Nombre de píxels a arrossegar abans que s'activi una acció d'arrossegament per a la ingressió de tauleta (en cas contrari es detecten esdeveniments de clic)"
+msgstr "[Tablet Drag Threshold]: Nombre de píxels a arrossegar abans que s'activi un episodi d'arrossegament per a la ingressió de tauleta (en cas contrari es detecten episodis de clic)"
 
 
 msgid "Invert Zoom Direction"
@@ -94876,7 +94884,7 @@ msgstr "Diferents estils de visualització del giny selector de color"
 
 
 msgid "Circle (HSV)"
-msgstr "Cercle (HSV)"
+msgstr "Cercle (TSV)"
 
 
 msgid "A circular Hue/Saturation color wheel, with Value slider"
@@ -94884,11 +94892,11 @@ msgstr "Una roda cromàtica circular de to/saturació, amb lliscador de Valor"
 
 
 msgid "Circle (HSL)"
-msgstr "Cercle (HSL)"
+msgstr "Cercle (TSL)"
 
 
 msgid "A circular Hue/Saturation color wheel, with Lightness slider"
-msgstr "Una roda cromàtica circular de to/saturació, amb lliscador de Claredat"
+msgstr "Una roda cromàtica circular de to/saturació, amb lliscador de Lluminositat"
 
 
 msgid "Square (SV + H)"
@@ -96642,7 +96650,7 @@ msgstr "Mostreig d'importància múltiple"
 
 
 msgid "Multiple importance sampling is used to combine direct light contributions from next-event estimation and forward path tracing"
-msgstr "[Multiple Importance Sampling]: El mostreig d'importància múltiple s'utilitza per combinar aportacions de llum directa des de l'estimació de situació següent i des del traçat endavant de trajectes"
+msgstr "[Multiple Importance Sampling]: El mostreig d'importància múltiple s'utilitza per combinar aportacions de llum directa des de l'estimació d'episodi següent i des del traçat endavant de trajectes"
 
 
 msgid "Forward Path Tracing"
@@ -96654,11 +96662,11 @@ msgstr "[Forward Path Tracing]: Les aportacions de llum directa només es mostre
 
 
 msgid "Next-Event Estimation"
-msgstr "Estimació de situació següent"
+msgstr "Estimació d'episodi següent"
 
 
 msgid "Direct light contributions are only sampled using next-event estimation"
-msgstr "[Next-Event Estimation]: Les aportacions de llum directa només es mostregen usant l'estimació de situació següent"
+msgstr "[Next-Event Estimation]: Les aportacions de llum directa només es mostregen usant l'estimació d'episodi següent"
 
 
 msgid "Cull Distance"
@@ -97234,7 +97242,7 @@ msgstr "Rebots del volum"
 
 
 msgid "Maximum number of volumetric scattering events"
-msgstr "Nombre màxim de situacions de dispersió volumètrica"
+msgstr "Nombre màxim d'episodis de dispersió volumètrica"
 
 
 msgid "Volume Guiding Probability"
@@ -97634,7 +97642,7 @@ msgstr "És inici de traç"
 
 
 msgid "Mouse Event"
-msgstr "Acció de ratolí"
+msgstr "Episodi de ratolí"
 
 
 msgid "Tablet pressure"
@@ -101651,7 +101659,7 @@ msgstr "Distància de difuminat"
 
 
 msgid "Radius of glow effect"
-msgstr "Radi de l'efecte claror"
+msgstr "Radi de l'efecte lluentor"
 
 
 msgid "Boost Factor"
@@ -103077,11 +103085,11 @@ msgstr "Invertir imatge verticalment"
 
 
 msgid "Glow Effect"
-msgstr "Efecte claror"
+msgstr "Efecte lluentor"
 
 
 msgid "Glow effect"
-msgstr "Glow Effect[]: Efecte de lluïssor"
+msgstr "[Glow Effect]: Efecte de lluïssor"
 
 
 msgid "Glow Color"
@@ -103117,7 +103125,7 @@ msgstr "Mida de l'efecte"
 
 
 msgid "Limit to select color for glow effect"
-msgstr "Límit del color seleccionat per a l'efecte claror"
+msgstr "Límit del color seleccionat per a l'efecte lluentor"
 
 
 msgid "Glow Under"
@@ -104090,7 +104098,7 @@ msgstr "Mostrar memòria cau del punt de tela de l'objecte actiu"
 
 
 msgid "Show the active object's Dynamic Paint cache"
-msgstr "Mostrar memòria cau de pintura dinàmica de l'objecte actiu"
+msgstr "Mostrar memòria cau de Pintat dinàmic de l'objecte actiu"
 
 
 msgid "Show the active object's particle point cache"
@@ -106151,7 +106159,7 @@ msgstr "Mostra l'últim temps d'execució de cada node"
 
 
 msgid "Show Wire Colors"
-msgstr "Mostrar colors de ratlla"
+msgstr "Mostrar colors de cables"
 
 
 msgid "Color node links based on their connected sockets"
@@ -108945,7 +108953,7 @@ msgstr "Estat de selecció de la marca"
 
 
 msgid "Window event timer"
-msgstr "Temporitzador d'acció de finestra"
+msgstr "Temporitzador d'episodi de finestra"
 
 
 msgid "Time since last step in seconds"
@@ -112026,7 +112034,7 @@ msgstr "Mapa d'acció RX"
 
 
 msgid "Items in the action map, mapping an XR event to an operator, pose, or haptic output"
-msgstr "[XR Action Map]: Elements del mapa d'acció, mapejant una acció RX a un operador, posat o egressió hàptica"
+msgstr "[XR Action Map]: Elements del mapa d'acció, mapejant un episodi RX a un operador, posa o egressió hàptica"
 
 
 msgid "Name of the action map"
@@ -112202,7 +112210,7 @@ msgstr "Nom de l'element del mapa d'acció"
 
 
 msgid "Identifier of operator to call on action event"
-msgstr "Identificador de l'operador a cridar en l'esdeveniment acció"
+msgstr "Identificador de l'operador a cridar en l'episodi d'acció"
 
 
 msgid "Operator Mode"
@@ -112230,7 +112238,7 @@ msgstr "Usar execució modal (només operadors modal)"
 
 
 msgid "Name of operator (translated) to call on action event"
-msgstr "Nom de l'operador (traduït) per a cridar l'esdeveniment acció"
+msgstr "Nom de l'operador (traduït) per a cridar l'episodi d'acció"
 
 
 msgid "Operator Properties"
@@ -112330,7 +112338,7 @@ msgstr "Col·lecció de camins de components d'OpenXR"
 
 
 msgid "XR Data for Window Manager Event"
-msgstr "Dades d'RX per a esdeveniment del gestor de finestres"
+msgstr "Dades d'RX per a episodi del gestor de finestres"
 
 
 msgid "XR action name"
@@ -112651,7 +112659,7 @@ msgstr "Activar Flòstic"
 
 
 msgid "Activation event for gizmos that support drag motion"
-msgstr "[Activate Gizmo]: Acció d'activació per a flòstics que admeten el moviment d'arrossegament"
+msgstr "[Activate Gizmo]: Episodi d'activació per a flòstics que admeten el moviment d'arrossegament"
 
 
 msgid "Press causes immediate activation, preventing click being passed to the tool"
@@ -112659,7 +112667,7 @@ msgstr "Pitjar causa l'activació immediata, impedint que es transfereixi el cli
 
 
 msgid "Drag allows click events to pass through to the tool, adding a small delay"
-msgstr "Arrossegar permet que les accions de clic passin a l'eina, afegint un petit retard"
+msgstr "Arrossegar permet que els episodis de clic passin a l'eina, afegint un petit retard"
 
 
 msgid "Right Mouse Select Action"
@@ -113037,42 +113045,42 @@ msgstr "Eina de vista 3D: transformar (pla B)"
 
 msgctxt "WindowManager"
 msgid "Generic Tool: Annotate"
-msgstr "Eina genèrica: anotar"
+msgstr "Eina genèrica: Anotacions"
 
 
 msgctxt "WindowManager"
 msgid "Generic Tool: Annotate (fallback)"
-msgstr "Eina genèrica: anotar (pla B)"
+msgstr "Eina genèrica: Anotacions (pla B)"
 
 
 msgctxt "WindowManager"
 msgid "Generic Tool: Annotate Line"
-msgstr "Eina genèrica: anotar línia"
+msgstr "Eina genèrica: línia d'anotacions"
 
 
 msgctxt "WindowManager"
 msgid "Generic Tool: Annotate Line (fallback)"
-msgstr "Eina genèrica: anotar línia (pla B)"
+msgstr "Eina genèrica: línia d'anotacions (pla B)"
 
 
 msgctxt "WindowManager"
 msgid "Generic Tool: Annotate Polygon"
-msgstr "Eina genèrica: anotar polígon"
+msgstr "Eina genèrica: polígon d'anotacions"
 
 
 msgctxt "WindowManager"
 msgid "Generic Tool: Annotate Polygon (fallback)"
-msgstr "Eina genèrica: anotar polígon (pla B)"
+msgstr "Eina genèrica: polígon d'anotacions (pla B)"
 
 
 msgctxt "WindowManager"
 msgid "Generic Tool: Annotate Eraser"
-msgstr "Eina genèrica: esborrador d'anotar"
+msgstr "Eina genèrica: esborrador d'anotacions"
 
 
 msgctxt "WindowManager"
 msgid "Generic Tool: Annotate Eraser (fallback)"
-msgstr "Eina genèrica: esborrador d'anotar (pla B)"
+msgstr "Eina genèrica: esborrador d'anotacions (pla B)"
 
 
 msgctxt "WindowManager"
@@ -117707,7 +117715,7 @@ msgstr "Alt acció d'arrossegament de ratolí del mig"
 
 
 msgid "Activate Gizmo Event"
-msgstr "Activar acció de flòstic"
+msgstr "Activar episodi de flòstic"
 
 
 msgid "Torus"
@@ -118051,7 +118059,7 @@ msgstr "Mapa de malles UV requerit"
 
 
 msgid "Unable to apply \"Generate\" modifier"
-msgstr "No s'ha pogut aplicar modificador \"Generar\""
+msgstr "No s'ha pogut aplicar modificador de \"Generació\""
 
 
 msgid "Active object is not a mesh"
@@ -121924,7 +121932,7 @@ msgstr "Sobreimpressions d'editor de nodes"
 
 
 msgid "Wire Colors"
-msgstr "Colors de trama"
+msgstr "Colors de cables"
 
 
 msgid "Reroute Auto Labels"
@@ -122941,7 +122949,7 @@ msgstr "Nou"
 
 msgctxt "Operator"
 msgid "Quit"
-msgstr "Sortir"
+msgstr "Plegar"
 
 
 msgctxt "Operator"
@@ -126259,6 +126267,18 @@ msgid "Total files %d | Changed %d | Failed %d"
 msgstr "Documents totals %d | Canviats %d| Errors %d"
 
 
+msgid "Path '%s' not found, from linked data-block '%s' (from library '%s')"
+msgstr "No s'ha trobat la ruta '%s', des del bloc de dades vinculat '%s' (des de la biblioteca '%s')"
+
+
+msgid "Path '%s' not found, from local data-block '%s'"
+msgstr "No s'ha trobat la ruta '%s', des del bloc de dades local '%s'"
+
+
+msgid "Path '%s' not found (no known owner data-block)"
+msgstr "No s'ha trobat la ruta '%s' (no hi ha bloc de dades propietari conegut)"
+
+
 msgid "No missing files"
 msgstr "No falten documents"
 
@@ -127475,6 +127495,14 @@ msgid "Failed to read blend file '%s': %s"
 msgstr "No s'ha pogut llegir el document blend '%s': %s"
 
 
+msgid "Cannot read blend file '%s', incomplete header, may be from a newer version of Blender"
+msgstr "No es pot llegir el document blend '%s', el capçal és incomplet, pot ser que provingui d'una versió més recent del Blender"
+
+
+msgid "Failed to read file '%s', not a blend file"
+msgstr "No s'ha pogut llegir el document '%s', no és un document blend"
+
+
 msgid "Unable to read '%s': %s"
 msgstr "No s'ha pogut llegir '%s': %s"
 
@@ -127675,6 +127703,10 @@ msgid "Error: Too many lights in the scene."
 msgstr "Error: Hi ha massa llums a l'escena."
 
 
+msgid "Warning: Could not allocate light probes volume pool of {} MB, using {} MB instead."
+msgstr "Atenció: no s'ha pogut assignar la reserva de volums de sondes de llum de {} MB, en lloc d'això s'usen {} MB."
+
+
 msgid "Irradiance Atlas texture could not be created"
 msgstr "No s'ha pogut crear la textura d'Irradiància Atlas"
 
@@ -127733,6 +127765,10 @@ msgstr "Error: excés d'actualitzacions d'ombres; algunes ombres poden haver sor
 
 msgid "Error: Reached max shadow updates."
 msgstr "Error: s'ha arribat al topall d'actualitzacions d'ombres."
+
+
+msgid "Warning: Volume rendering data could not be allocated. Now using a resolution of 1:{} instead of 1:{}."
+msgstr "Atenció: no s'han pogut assignar les dades per revelar volums. Es recoore a una resolució de 1:{} MB en lloc de 1:{} MB."
 
 
 msgid "GpencilMode"
@@ -129054,6 +129090,10 @@ msgid "No active object, or active object isn't a Grease Pencil object"
 msgstr "No hi ha objecte actiu o l'objecte actiu no és un objecte de Llapis de greix"
 
 
+msgid "{}: confirm, {}: cancel, {}: panning, Shift: align"
+msgstr "{}: confirmar, {}: cancel·lar, {}: panoramitzar, Maj: alinear"
+
+
 msgid ", {}/{}: adjust subdivisions: {}"
 msgstr ", {}/{}: ajustar subdivisions: {}"
 
@@ -129889,7 +129929,7 @@ msgstr "Restablir valors predeterminats de l'operador"
 
 
 msgid "Add a new color stop to the color ramp"
-msgstr "Afegir nou salt de color a la gradació de color"
+msgstr "Afegir nou tascó de color a la gradació de color"
 
 
 msgid "Delete the active position"
@@ -129897,7 +129937,7 @@ msgstr "Eliminar la ubicació activa"
 
 
 msgid "Choose active color stop"
-msgstr "Triar salt de color actiu"
+msgstr "Triar tascó de color actiu"
 
 
 msgid "Combined channels"
@@ -132177,7 +132217,7 @@ msgstr "Sense fotogrames per precuinar"
 
 
 msgid "Bake failed: no Dynamic Paint modifier found"
-msgstr "Precuinat fallit: no s'ha trobat cap modificador de Pintura dinàmica"
+msgstr "Precuinat fallit: no s'ha trobat cap modificador de Pintat dinàmic"
 
 
 msgid "Bake failed: invalid canvas"
@@ -132189,11 +132229,11 @@ msgstr "Precuinat cancel·lat!"
 
 
 msgid "DynamicPaint: Bake complete! (%.2f)"
-msgstr "PinturaDinàmica: Precuinat llest! (%.2f)"
+msgstr "PintatDinàmic: Precuinat enllestit! (%.2f)"
 
 
 msgid "DynamicPaint: Bake failed: %s"
-msgstr "PinturaDinàmica: Precuinat fallit: %s"
+msgstr "PintatDinàmic: Precuinat fallit: %s"
 
 
 msgid "Removed %d double particle(s)"
@@ -135446,7 +135486,7 @@ msgstr "Afegir una transició de fregar al seqüenciador"
 
 
 msgid "Add a glow effect strip to the sequencer"
-msgstr "Afegir un segment d'efecte claror al seqüenciador"
+msgstr "Afegir un segment d'efecte lluentor al seqüenciador"
 
 
 msgid "Add a transform effect strip to the sequencer"
@@ -136679,15 +136719,15 @@ msgstr "Desfer desactivat en iniciar en mode segon pla (crida `ed.undo_push()` p
 
 
 msgid "[E] - Disable overshoot"
-msgstr "[E] - Desactivar sobrepuig"
+msgstr "[E] - Desactivar ultrapassat"
 
 
 msgid "[E] - Enable overshoot"
-msgstr "[E] - Activar sobrepuig"
+msgstr "[E] - Activar ultrapassat"
 
 
 msgid "Overshoot disabled"
-msgstr "Sobrepuig desactivat"
+msgstr "Ultrapassat desactivat"
 
 
 msgid "[Shift] - Precision active"
@@ -139401,7 +139441,7 @@ msgstr "Cairat (Angle en memòria cau)"
 
 
 msgid "Material Borders"
-msgstr "Límits de material"
+msgstr "Límits entre materials"
 
 
 msgid "Light Contour"
@@ -139425,11 +139465,11 @@ msgstr "Arestes solapades com a contorn"
 
 
 msgid "Crease On Smooth"
-msgstr "Cairar en suavitzat"
+msgstr "Cairat sobre suavitzat"
 
 
 msgid "Crease On Sharp"
-msgstr "Cantells en aguts"
+msgstr "Cantells sobre aguts"
 
 
 msgid "Force Backface Culling"
@@ -139457,7 +139497,7 @@ msgstr "Llindar de geometria"
 
 
 msgid "Filter Source"
-msgstr "Font del filtre"
+msgstr "Font de filtre"
 
 
 msgid "Continue Without Clearing"
@@ -139469,7 +139509,7 @@ msgstr "Desviació de profunditat"
 
 
 msgid "Towards Custom Camera"
-msgstr "Versa la càmera personalitzada"
+msgstr "Vers a la càmera personalitzada"
 
 
 msgid "Cached from the first Line Art modifier"
@@ -143027,7 +143067,7 @@ msgstr "Alteració de valor. 0 fa que el color sigui negre, 1 el manté igual i 
 
 
 msgid "Color input on which HSV color transformation will be applied"
-msgstr "Ingressió de color a què s'aplicarà la transformació de color HSV"
+msgstr "Ingressió de color a què s'aplicarà la transformació de color TSV"
 
 
 msgid "Strength of the light source"
@@ -143731,7 +143771,7 @@ msgstr "Remolí"
 
 
 msgid "WaveDistortion"
-msgstr "Distorsió d'ona"
+msgstr "Distorsió_en_ona"
 
 
 msgid "window_managers"

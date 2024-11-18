@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'1c8669f8c9c1')\n"
+"Project-Id-Version: Blender 4.3.0 Release Candidate (b'7dfe47164a63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-11 09:42+0000\n"
-"PO-Revision-Date: 2024-11-11 03:56+0000\n"
+"POT-Creation-Date: 2024-11-18 11:20+0000\n"
+"PO-Revision-Date: 2024-11-17 07:56+0000\n"
 "Last-Translator: Satoshi Yamasaki <yamyam@yo.rim.or.jp>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
 "Language: ja\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 5.7.2"
+"X-Generator: Weblate 5.8.3"
 
 
 msgid "Shader AOV"
@@ -30630,10 +30630,6 @@ msgid "Activate or deactivate item"
 msgstr "項目を有効または無効化します"
 
 
-msgid "Alt"
-msgstr "[Alt]"
-
-
 msgid "Alt key pressed, -1 for any state"
 msgstr "[Alt]キー押下，-1で任意の状態"
 
@@ -30648,10 +30644,6 @@ msgstr "全て"
 
 msgid "Any modifier keys pressed"
 msgstr "修飾キーを押しながら"
-
-
-msgid "Ctrl"
-msgstr "[Ctrl]"
 
 
 msgid "Control key pressed, -1 for any state"
@@ -32096,11 +32088,6 @@ msgid "Active on key-repeat events (when a key is held)"
 msgstr "キーリピートイベントでアクティブ（単一キー押しっぱなし）"
 
 
-msgctxt "WindowManager"
-msgid "Shift"
-msgstr "[Shift]"
-
-
 msgid "Shift key pressed, -1 for any state"
 msgstr "[Shift]キー押下，-1で任意の状態"
 
@@ -32123,11 +32110,11 @@ msgstr "イベントの種類"
 
 
 msgid "Press"
-msgstr "押す"
+msgstr "押下"
 
 
 msgid "Release"
-msgstr "離す"
+msgstr "リリース"
 
 
 msgid "Click"
@@ -34277,16 +34264,52 @@ msgid "Editor menu containing buttons"
 msgstr "ボタンを含むエディターメニュー"
 
 
+msgid "Mirror"
+msgstr "ミラー"
+
+
+msgid "Snap"
+msgstr "スナップ"
+
+
+msgid "UV Mapping"
+msgstr "UVマッピング"
+
+
+msgid "Local View"
+msgstr "ローカルビュー"
+
+
+msgid "Viewpoint"
+msgstr "視点"
+
+
+msgid "Navigation"
+msgstr "視点の操作"
+
+
+msgid "Align View"
+msgstr "視点を揃える"
+
+
+msgid "Align View to Active"
+msgstr "アクティブに視点を揃える"
+
+
+msgid "View Regions"
+msgstr "ビュー領域設定"
+
+
+msgid "Select More/Less"
+msgstr "選択の拡大縮小"
+
+
 msgid "Select Similar"
 msgstr "類似選択"
 
 
 msgid "Select All by Trait"
 msgstr "特徴で全選択"
-
-
-msgid "Select More/Less"
-msgstr "選択の拡大縮小"
 
 
 msgid "Select Linked"
@@ -34441,10 +34464,6 @@ msgid "Pivot Point"
 msgstr "ピボットポイント"
 
 
-msgid "Snap"
-msgstr "スナップ"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "プロポーショナル編集の減衰タイプ"
 
@@ -34459,38 +34478,6 @@ msgstr "自動マスク"
 
 msgid "Face Sets Edit"
 msgstr "面セット編集"
-
-
-msgid "Mirror"
-msgstr "ミラー"
-
-
-msgid "UV Mapping"
-msgstr "UVマッピング"
-
-
-msgid "Local View"
-msgstr "ローカルビュー"
-
-
-msgid "Viewpoint"
-msgstr "視点"
-
-
-msgid "Navigation"
-msgstr "視点の操作"
-
-
-msgid "Align View"
-msgstr "視点を揃える"
-
-
-msgid "Align View to Active"
-msgstr "アクティブに視点を揃える"
-
-
-msgid "View Regions"
-msgstr "ビュー領域設定"
 
 
 msgid "Keyframe Insert Pie"
@@ -48332,11 +48319,11 @@ msgstr "セカンダリ"
 
 
 msgid "Linear Gizmo"
-msgstr "リニアーギズモ"
+msgstr "リニアギズモ"
 
 
 msgid "Show a linear gizmo in the viewport for a value"
-msgstr "ビューポートにある値のリニアーギズモを表示します"
+msgstr "ビューポートにある値のリニアギズモを表示します"
 
 
 msgid "Draw Style"
@@ -48785,7 +48772,7 @@ msgstr "既存の辺の間のメッシュ頂点のみマージします．非常
 
 
 msgid "Merge Layers"
-msgstr "レイヤーを統合"
+msgstr "レイヤー統合"
 
 
 msgid "Join groups of grease pencil layers into one"
@@ -71422,6 +71409,12 @@ msgid "Clear Constraints"
 msgstr "コンストレイントをクリア"
 
 
+msgid "Remove all constraints from keyed object/bones. To get a correct bake with this setting Visual Keying should be enabled"
+msgstr ""
+"キーのあるオブジェクトやボーンから全コンストレイントを削除します．\n"
+"この設定で正しいベイク結果を得るには「ビジュアルキーイング」を有効にしてください"
+
+
 msgid "Clear Parents"
 msgstr "親子関係をクリア"
 
@@ -83032,6 +83025,12 @@ msgid "Select the strips and their handles"
 msgstr "ストリップとそのハンドルを選択します"
 
 
+msgid "Make box select pass through to sequence slide when the cursor is hovering on a strip"
+msgstr ""
+"マウスカーソルがストリップ上にある（ホバー）時，\n"
+"ボックス選択がシーケンススライドを透過します"
+
+
 msgid "Select all strips grouped by various properties"
 msgstr "様々なプロパティによってグループ化された全ストリップを選択します"
 
@@ -90908,6 +90907,38 @@ msgid "Panel containing UI elements"
 msgstr "UIの要素を含むパネル"
 
 
+msgid "Measurement"
+msgstr "計測"
+
+
+msgid "Curve Edit Mode"
+msgstr "カーブ編集モード"
+
+
+msgid "Snapping"
+msgstr "スナップ"
+
+
+msgid "Transform Orientations"
+msgstr "トランスフォーム座標系"
+
+
+msgid "Stroke Placement"
+msgstr "ストロークの基準"
+
+
+msgid "Drawing Plane"
+msgstr "ドロー平面"
+
+
+msgid "glTF Variants"
+msgstr "glTFバリアント"
+
+
+msgid "glTF Material Variants"
+msgstr "glTFマテリアルバリアント"
+
+
 msgid "Guides"
 msgstr "ガイド"
 
@@ -90932,12 +90963,12 @@ msgid "Multi Frame"
 msgstr "マルチフレーム"
 
 
-msgid "glTF Variants"
-msgstr "glTFバリアント"
+msgid "glTF"
+msgstr "glTF"
 
 
-msgid "glTF Material Variants"
-msgstr "glTFマテリアルバリアント"
+msgid "glTF Animations"
+msgstr "glTFアニメーション"
 
 
 msgid "Auto-Masking"
@@ -90958,14 +90989,6 @@ msgstr "カーブスケールを拡大/収縮"
 
 msgid "Viewport Debug"
 msgstr "ビューポートデバッグ"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTFアニメーション"
 
 
 msgid "VR"
@@ -91022,30 +91045,6 @@ msgstr "モーショントラッキング"
 
 msgid "Mesh Edit Mode"
 msgstr "メッシュ編集モード"
-
-
-msgid "Measurement"
-msgstr "計測"
-
-
-msgid "Curve Edit Mode"
-msgstr "カーブ編集モード"
-
-
-msgid "Snapping"
-msgstr "スナップ"
-
-
-msgid "Transform Orientations"
-msgstr "トランスフォーム座標系"
-
-
-msgid "Stroke Placement"
-msgstr "ストロークの基準"
-
-
-msgid "Drawing Plane"
-msgstr "ドロー平面"
 
 
 msgid "Chain Scaling"
@@ -127737,6 +127736,18 @@ msgid "Total files %d | Changed %d | Failed %d"
 msgstr "総ファイル数 %d | 変更 %d | 失敗 %d"
 
 
+msgid "Path '%s' not found, from linked data-block '%s' (from library '%s')"
+msgstr "パス「%s」が見つかりません：リンクデータブロック「%s」(ライブラリ「%s」)"
+
+
+msgid "Path '%s' not found, from local data-block '%s'"
+msgstr "パス「%s」が見つかりません：ローカルデータブロック「%s」"
+
+
+msgid "Path '%s' not found (no known owner data-block)"
+msgstr "パス「%s」が見つかりません：既知のオーナーでないデータブロック"
+
+
 msgid "No missing files"
 msgstr "欠けているファイルはありません"
 
@@ -128953,6 +128964,14 @@ msgid "Failed to read blend file '%s': %s"
 msgstr "blendファイル「%s」の読み込み失敗．%s"
 
 
+msgid "Cannot read blend file '%s', incomplete header, may be from a newer version of Blender"
+msgstr "blend ファイル「%s」が読み込めません．ヘッダーが不完全で，新しいバージョンの Blender の物と思われます"
+
+
+msgid "Failed to read file '%s', not a blend file"
+msgstr "blend ファイル「%s」の読み込み失敗．blendファイルではありません"
+
+
 msgid "Unable to read '%s': %s"
 msgstr "「%s」を読み込みできません：%s"
 
@@ -129153,6 +129172,10 @@ msgid "Error: Too many lights in the scene."
 msgstr "エラー：シーン内のライトが多すぎです."
 
 
+msgid "Warning: Could not allocate light probes volume pool of {} MB, using {} MB instead."
+msgstr "警告：{} MB のライトプローブボリュームプローブが割り当てできません．代わりに {} MB を使用."
+
+
 msgid "Irradiance Atlas texture could not be created"
 msgstr "イラディアンスアトラステクスチャが作成できませんでした"
 
@@ -129211,6 +129234,10 @@ msgstr "エラー：影の更新が多すぎです．一部の影は不正確に
 
 msgid "Error: Reached max shadow updates."
 msgstr "エラー：影の最大更新数に到達しました."
+
+
+msgid "Warning: Volume rendering data could not be allocated. Now using a resolution of 1:{} instead of 1:{}."
+msgstr "警告：ボリュームレンダリングデータが割り当てできません．解像度 1:{} を（1:{} の代わりに）使用."
 
 
 msgid "GpencilMode"
@@ -130536,6 +130563,10 @@ msgid "No active object, or active object isn't a Grease Pencil object"
 msgstr "アクティブオブジェクトなし，またはグリースペンシルオブジェクトではありません"
 
 
+msgid "{}: confirm, {}: cancel, {}: panning, Shift: align"
+msgstr "{}: 確定，{}: キャンセル，{}: パン，[Shift]: 整列"
+
+
 msgid ", {}/{}: adjust subdivisions: {}"
 msgstr "，{}/{}: 細分化調整: {}"
 
@@ -130918,10 +130949,6 @@ msgstr "[OS]"
 
 msgid "Home"
 msgstr "ホーム"
-
-
-msgid "Esc"
-msgstr "[Esc]"
 
 
 msgid "Pause"

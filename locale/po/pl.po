@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'1c8669f8c9c1')\n"
+"Project-Id-Version: Blender 4.3.0 Release Candidate (b'7dfe47164a63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-11 09:42+0000\n"
+"POT-Creation-Date: 2024-11-18 11:20+0000\n"
 "PO-Revision-Date: 2024-09-20 01:56+0000\n"
 "Last-Translator: Kamil <uhkamil@gmail.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -11230,6 +11230,26 @@ msgid "Use Material Mask"
 msgstr "Używa maski materiału"
 
 
+msgid "Mirror"
+msgstr "Odbicie lustrzane"
+
+
+msgid "Snap"
+msgstr "Przyciągaj"
+
+
+msgid "Local View"
+msgstr "Widok lokalny"
+
+
+msgid "Viewpoint"
+msgstr "Punkt obserwacji"
+
+
+msgid "Navigation"
+msgstr "Nawigacja"
+
+
 msgid "Select Linked"
 msgstr "Zaznacz powiązane"
 
@@ -11282,28 +11302,8 @@ msgid "Merge"
 msgstr "Scal"
 
 
-msgid "Snap"
-msgstr "Przyciągaj"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "Proporcjonalne edytowanie spadku"
-
-
-msgid "Mirror"
-msgstr "Odbicie lustrzane"
-
-
-msgid "Local View"
-msgstr "Widok lokalny"
-
-
-msgid "Viewpoint"
-msgstr "Punkt obserwacji"
-
-
-msgid "Navigation"
-msgstr "Nawigacja"
 
 
 msgid "Catalog"
@@ -16406,6 +16406,22 @@ msgid "Palette Color"
 msgstr "Kolor palety"
 
 
+msgid "Measurement"
+msgstr "Pomiar"
+
+
+msgid "Curve Edit Mode"
+msgstr "Tryb edycji krzywej"
+
+
+msgid "Snapping"
+msgstr "Przyciąganie"
+
+
+msgid "Transform Orientations"
+msgstr "Orientacje przekształcenia"
+
+
 msgid "Active Tool"
 msgstr "Aktywne narzędzie"
 
@@ -16424,22 +16440,6 @@ msgstr "Śledzenie ruchu"
 
 msgid "Mesh Edit Mode"
 msgstr "Tryb edycji siatki"
-
-
-msgid "Measurement"
-msgstr "Pomiar"
-
-
-msgid "Curve Edit Mode"
-msgstr "Tryb edycji krzywej"
-
-
-msgid "Snapping"
-msgstr "Przyciąganie"
-
-
-msgid "Transform Orientations"
-msgstr "Orientacje przekształcenia"
 
 
 msgid "Aperture"
