@@ -3038,40 +3038,8 @@ static rcti draw_text_outline(const SeqRenderData *context,
   return outline_rect;
 }
 
-static inline void fill_ellipse_alpha_under(const ImBuf *ibuf,
-                                            const float col[4],
-                                            int x1,
-                                            int y1,
-                                            int x2,
-                                            int y2,
-                                            float origin_x,
-                                            float origin_y,
-                                            float radius)
-{
-  float curve_pow = 2.1f;
-  float4 color;
-  float4 premul_color;
-  for (int y = y1; y < y2; y++) {
-    uchar *dst = ibuf->byte_buffer.data + (size_t(ibuf->x) * y + x1) * 4;
-    for (int x = x1; x < x2; x++) {
-      color = col;
-
-      float r = powf(powf(abs(x - origin_x), curve_pow) + powf(abs(y - origin_y), curve_pow),
-                     1.0f / curve_pow);
-      color.w = math::clamp(radius - r, 0.0f, color.w);
-
-      straight_to_premul_v4_v4(premul_color, color);
-      float4 pix = load_premul_pixel(dst);
-      float fac = 1.0f - pix.w;
-      float4 dst_fl = fac * premul_color + pix;
-      store_premul_pixel(dst_fl, dst);
-      dst += 4;
-    }
-  }
-}
-
 /* Similar to #IMB_rectfill_area but blends the given color under the
- * existing image. Also only works on byte buffers. */
+ * existing image. Also can do rounded corners. Only works on byte buffers. */
 static void fill_rect_alpha_under(
     const ImBuf *ibuf, const float col[4], int x1, int y1, int x2, int y2, float corner_radius)
 {
@@ -3093,74 +3061,57 @@ static void fill_rect_alpha_under(
 
   corner_radius = math::clamp(corner_radius, 0.0f, math::min(x2 - x1, y2 - y1) / 2.0f);
 
-  if (corner_radius > 0.0f) {
-    int cr = (int)corner_radius;
-    /* bottom left */
-    fill_ellipse_alpha_under(ibuf,
-                             col,
-                             x1,
-                             y1,
-                             x1 + cr,
-                             y1 + cr,
-                             x1 + corner_radius - 1,
-                             y1 + corner_radius - 1,
-                             corner_radius);
+  float4 premul_col_base;
+  straight_to_premul_v4_v4(premul_col_base, col);
 
-    /* top left */
-    fill_ellipse_alpha_under(ibuf,
-                             col,
-                             x1,
-                             y2 - cr,
-                             x1 + cr,
-                             y2,
-                             x1 + corner_radius - 1,
-                             y2 - corner_radius,
-                             corner_radius);
-
-    /* top right */
-    fill_ellipse_alpha_under(ibuf,
-                             col,
-                             x2 - cr,
-                             y2 - cr,
-                             x2,
-                             y2,
-                             x2 - corner_radius,
-                             y2 - corner_radius,
-                             corner_radius);
-
-    /* bottom right */
-    fill_ellipse_alpha_under(ibuf,
-                             col,
-                             x2 - cr,
-                             y1,
-                             x2,
-                             y1 + cr,
-                             x2 - corner_radius,
-                             y1 + corner_radius - 1,
-                             corner_radius);
-
-    /* fill in areas between corners */
-    /* bottom */
-    fill_rect_alpha_under(ibuf, col, x1 + cr, y1, x2 - cr, y1 + cr, 0.0f);
-    /* middle */
-    fill_rect_alpha_under(ibuf, col, x1, y1 + cr, x2, y2 - cr, 0.0f);
-    /* top */
-    fill_rect_alpha_under(ibuf, col, x1 + cr, y2, x2 - cr, y2 - cr, 0.0f);
-  }
-  else {
-    float4 premul_col;
-    straight_to_premul_v4_v4(premul_col, col);
-    for (int y = y1; y < y2; y++) {
+  threading::parallel_for(IndexRange::from_begin_end(y1, y2), 16, [&](const IndexRange y_range) {
+    for (const int y : y_range) {
       uchar *dst = ibuf->byte_buffer.data + (size_t(width) * y + x1) * 4;
+      float origin_x = 0.0f, origin_y = 0.0f;
       for (int x = x1; x < x2; x++) {
         float4 pix = load_premul_pixel(dst);
         float fac = 1.0f - pix.w;
+
+        float4 premul_col = premul_col_base;
+        bool is_corner = false;
+        if (x < x1 + corner_radius && y < y1 + corner_radius) {
+          is_corner = true;
+          origin_x = x1 + corner_radius - 1;
+          origin_y = y1 + corner_radius - 1;
+        }
+        else if (x >= x2 - corner_radius && y < y1 + corner_radius) {
+          is_corner = true;
+          origin_x = x2 - corner_radius;
+          origin_y = y1 + corner_radius - 1;
+        }
+        else if (x < x1 + corner_radius && y >= y2 - corner_radius) {
+          is_corner = true;
+          origin_x = x1 + corner_radius - 1;
+          origin_y = y2 - corner_radius;
+        }
+        else if (x >= x2 - corner_radius && y >= y2 - corner_radius) {
+          is_corner = true;
+          origin_x = x2 - corner_radius;
+          origin_y = y2 - corner_radius;
+        }
+        if (is_corner) {
+          /* If we are inside rounded corner, evaluate a superellipse and
+           * modulate color with that. Superellipse instead of just a circle
+           * since the curvature between flat and rounded area looks a bit
+           * nicer. */
+          constexpr float curve_pow = 2.1f;
+          float r = powf(powf(abs(x - origin_x), curve_pow) + powf(abs(y - origin_y), curve_pow),
+                         1.0f / curve_pow);
+          float alpha = math::clamp(corner_radius - r, 0.0f, 1.0f);
+          premul_col *= alpha;
+        }
+
         float4 dst_fl = fac * premul_col + pix;
         store_premul_pixel(dst_fl, dst);
         dst += 4;
       }
     }
-  }
+  });
 }
 
 static int text_effect_line_size_get(const SeqRenderData *context, const Sequence *seq)
