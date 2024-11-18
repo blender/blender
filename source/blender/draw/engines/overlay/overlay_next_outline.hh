@@ -40,7 +40,7 @@ class Outline {
  public:
   void begin_sync(Resources &res, const State &state)
   {
-    enabled = (state.v3d_flag & V3D_SELECT_OUTLINE);
+    enabled = state.v3d && (state.v3d_flag & V3D_SELECT_OUTLINE);
     if (!enabled) {
       return;
     }
