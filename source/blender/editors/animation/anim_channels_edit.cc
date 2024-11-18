@@ -4442,6 +4442,7 @@ static int click_select_channel_grease_pencil_layer(bContext *C,
     grease_pencil->set_active_layer(layer);
     WM_msg_publish_rna_prop(
         CTX_wm_message_bus(C), &grease_pencil->id, &grease_pencil, GreasePencilv3Layers, active);
+    DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
   }
 
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);

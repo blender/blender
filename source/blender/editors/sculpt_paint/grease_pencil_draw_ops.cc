@@ -1400,6 +1400,19 @@ static bool grease_pencil_apply_fill(bContext &C, wmOperator &op, const wmEvent 
     }
 
     bke::CurvesGeometry &dst_curves = info.target.drawing.strokes_for_write();
+    /* If the `fill_strokes` function creates the "fill_opacity" attribute, make sure that we
+     * initialize this to full opacity on the target geometry. */
+    if (fill_curves.attributes().contains("fill_opacity") &&
+        !dst_curves.attributes().contains("fill_opacity"))
+    {
+      bke::SpanAttributeWriter<float> fill_opacities =
+          dst_curves.attributes_for_write().lookup_or_add_for_write_span<float>(
+              "fill_opacity",
+              bke::AttrDomain::Curve,
+              bke::AttributeInitVArray(VArray<float>::ForSingle(1.0f, dst_curves.curves_num())));
+      fill_opacities.finish();
+    }
+
     Curves *dst_curves_id = curves_new_nomain(dst_curves);
     Curves *fill_curves_id = curves_new_nomain(fill_curves);
     const Array<bke::GeometrySet> geometry_sets = {
