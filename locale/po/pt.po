@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'1c8669f8c9c1')\n"
+"Project-Id-Version: Blender 4.3.0 Release Candidate (b'7dfe47164a63')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2024-11-11 09:42+0000\n"
-"PO-Revision-Date: 2024-11-08 18:56+0000\n"
+"POT-Creation-Date: 2024-11-18 11:20+0000\n"
+"PO-Revision-Date: 2024-11-14 23:56+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 5.7.2\n"
+"X-Generator: Weblate 5.8.3\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Language: Portuguese\n"
 "X-Poedit-Country: PORTUGAL"
@@ -33777,16 +33777,52 @@ msgid "Editor menu containing buttons"
 msgstr "Menu de editor contendo botões"
 
 
+msgid "Mirror"
+msgstr "Espelhar"
+
+
+msgid "Snap"
+msgstr "Atrair"
+
+
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
+
+
+msgid "Local View"
+msgstr "Visão local"
+
+
+msgid "Viewpoint"
+msgstr "Ponto de Vista"
+
+
+msgid "Navigation"
+msgstr "Navegação"
+
+
+msgid "Align View"
+msgstr "Alinhar visualização"
+
+
+msgid "Align View to Active"
+msgstr "Alinhar vista para o activo"
+
+
+msgid "View Regions"
+msgstr "Regiões de Visualização"
+
+
+msgid "Select More/Less"
+msgstr "Selecionar mais ou menos"
+
+
 msgid "Select Similar"
 msgstr "Selecionar por similaridades"
 
 
 msgid "Select All by Trait"
 msgstr "Selecionar todos por características..."
-
-
-msgid "Select More/Less"
-msgstr "Selecionar mais ou menos"
 
 
 msgid "Select Linked"
@@ -33941,10 +33977,6 @@ msgid "Pivot Point"
 msgstr "Pontos de pivô"
 
 
-msgid "Snap"
-msgstr "Atrair"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "Tipo de decaimento para edição proporcional"
 
@@ -33959,38 +33991,6 @@ msgstr "Auto Máscara"
 
 msgid "Face Sets Edit"
 msgstr "Edições de Conjuntos de Faces"
-
-
-msgid "Mirror"
-msgstr "Espelhar"
-
-
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
-
-
-msgid "Local View"
-msgstr "Visão local"
-
-
-msgid "Viewpoint"
-msgstr "Ponto de Vista"
-
-
-msgid "Navigation"
-msgstr "Navegação"
-
-
-msgid "Align View"
-msgstr "Alinhar visualização"
-
-
-msgid "Align View to Active"
-msgstr "Alinhar vista para o activo"
-
-
-msgid "View Regions"
-msgstr "Regiões de Visualização"
 
 
 msgid "Keyframe Insert Pie"
@@ -61604,6 +61604,102 @@ msgid "Save PNGs as PNGs, JPEGs as JPEGs, WebPs as WebPs. For other formats, use
 msgstr "Guardar PNGs como PNGs, JPEGs como JPEGs, WebPs como WebPs. Para outros formatos, usar PNG."
 
 
+msgid "JPEG Format (.jpg)"
+msgstr "Formato JPEG (.jpg)"
+
+
+msgid "Save images as JPEGs. (Images that need alpha are saved as PNGs though.) Be aware of a possible loss in quality"
+msgstr "Guardar imagens como JPEG (Imagens que precisem de alfa são guardadas como PNG). Tenha atenção a possíveis perdas de qualidade."
+
+
+msgid "WebP Format"
+msgstr "Formato WebP"
+
+
+msgid "Save images as WebPs as main image (no fallback)"
+msgstr "Guardar imagens como WebPs como imagem principal (sem reserva)"
+
+
+msgid "Don't export images"
+msgstr "Não exportar imagens"
+
+
+msgid "Image quality"
+msgstr "Qualidade de Imagem"
+
+
+msgid "Quality of image export"
+msgstr "Qualidade de exportação de imagens"
+
+
+msgid "WebP fallback"
+msgstr "Reserva WebP"
+
+
+msgid "For all WebP textures, create a PNG fallback texture"
+msgstr "Para todas as texturas WebP, criar uma textura de reserva PNG"
+
+
+msgid "Lighting Mode"
+msgstr "Modo de Iluminação"
+
+
+msgid "Optional backwards compatibility for non-standard render engines. Applies to lights"
+msgstr "Retro compatibilidade opcional para motores de renderização não standard. Aplica-se a luzes."
+
+
+msgid "Physically-based glTF lighting units (cd, lx, nt)"
+msgstr "Unidades de iluminação glTF baseadas em física (cd, lx, nt)"
+
+
+msgid "Unitless"
+msgstr "Sem Unidade"
+
+
+msgid "Non-physical, unitless lighting. Useful when exposure controls are not available"
+msgstr "Iluminação não física sem unidade. Útil quando usado com controlo de exposição"
+
+
+msgid "Raw (Deprecated)"
+msgstr "Raw (Descontinuado)"
+
+
+msgid "Blender lighting strengths with no conversion"
+msgstr "Intensidades de iluminação Blender sem conversão"
+
+
+msgid "Bone Influences"
+msgstr "Influências de Ossos"
+
+
+msgid "Choose how many Bone influences to export"
+msgstr "Escolher quantas influências de ossos exportar"
+
+
+msgid "JPEG quality"
+msgstr "Qualidade JPEG"
+
+
+msgid "Quality of JPEG export"
+msgstr "Qualidade da exportação JPEG"
+
+
+msgid "Keep original"
+msgstr "Manter Original"
+
+
+msgid "Keep original textures files if possible. WARNING: if you use more than one texture, where pbr standard requires only one, only one texture will be used. This can lead to unexpected results"
+msgstr "Manter ficheiros de textura originais se possível. AVISO: se usar mais do que uma textura, onde o standard pbr requer apenas uma, apenas uma textura será usada. Isto pode levar a resultados inesperados."
+
+
+msgid "Punctual Lights"
+msgstr "Luzes Pontuais"
+
+
+msgid "Export directional, point, and spot lights. Uses \"KHR_lights_punctual\" glTF extension"
+msgstr "Exportar luzes direccionais, de ponto e projectores. Usa a extensão glTF \"KHR_lights_punctual\""
+
+
 msgid "Identifier of caller (in case of add-on calling this exporter). Can be useful in case of Extension added by other add-ons"
 msgstr "Identificador do invocador (no caso de uma adição chamar este exportador). Pode ser útil no caso de extensões adicionadas por outras adições"
 
@@ -74982,6 +75078,14 @@ msgid "Active Palette Color"
 msgstr "Cor activa da paleta"
 
 
+msgid "Snapping"
+msgstr "Atracção"
+
+
+msgid "Transform Orientations"
+msgstr "Orientações de transformação"
+
+
 msgid "Stereoscopy"
 msgstr "Estereoscopia"
 
@@ -74996,14 +75100,6 @@ msgstr "Passo de renderização"
 
 msgid "Motion Tracking"
 msgstr "Captura de movimentos"
-
-
-msgid "Snapping"
-msgstr "Atracção"
-
-
-msgid "Transform Orientations"
-msgstr "Orientações de transformação"
 
 
 msgid "Bone Constraints"
