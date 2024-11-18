@@ -397,6 +397,9 @@ class Result {
   /* Identical to load_pixel but with zero boundary condition. */
   float4 load_pixel_zero(const int2 &texel) const;
 
+  /* Identical to load_pixel but with a fallback value for out of bound access. */
+  float4 load_pixel_fallback(const int2 &texel, const float4 &fallback) const;
+
   /* Stores the given pixel value in the float pixel at the given texel coordinates. While a float4
    * is given, only the number of channels of the result will be written, while the rest of the
    * float4 will be ignored. This is similar to how the imageStore function in GLSL works. */
@@ -511,6 +514,23 @@ inline float4 Result::load_pixel_zero(const int2 &texel) const
     }
     else {
       this->copy_pixel(pixel_value, float4(0.0f));
+    }
+  }
+  return pixel_value;
+}
+
+inline float4 Result::load_pixel_fallback(const int2 &texel, const float4 &fallback) const
+{
+  float4 pixel_value = float4(0.0f, 0.0f, 0.0f, 1.0f);
+  if (is_single_value_) {
+    this->copy_pixel(pixel_value, float_texture_);
+  }
+  else {
+    if (texel.x >= 0 && texel.y >= 0 && texel.x < domain_.size.x && texel.y < domain_.size.y) {
+      this->copy_pixel(pixel_value, this->get_float_pixel(texel));
+    }
+    else {
+      this->copy_pixel(pixel_value, fallback);
     }
   }
   return pixel_value;
