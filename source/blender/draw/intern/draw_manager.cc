@@ -219,6 +219,12 @@ void Manager::generate_commands(PassMain &pass, View &view)
                                             pass.use_custom_ids);
 }
 
+void Manager::generate_commands(PassSortable &pass, View &view)
+{
+  pass.sort();
+  generate_commands(static_cast<PassMain &>(pass), view);
+}
+
 void Manager::generate_commands(PassSimple &pass)
 {
   BLI_assert_msg(pass.manager_fingerprint_ != this->fingerprint_get(),

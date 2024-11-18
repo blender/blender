@@ -242,6 +242,7 @@ class Manager {
    * generated for a previous view.
    */
   void generate_commands(PassMain &pass, View &view);
+  void generate_commands(PassSortable &pass, View &view);
   /**
    * Generate commands on CPU. Doesn't have the GPU compute dispatch overhead.
    */
