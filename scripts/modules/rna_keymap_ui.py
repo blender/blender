@@ -66,6 +66,8 @@ def draw_km(display_keymaps, kc, km, children, layout, level):
 
         if km.is_user_modified:
             subrow.operator("preferences.keymap_restore", text="Restore")
+            # Add margin to space the button from the scrollbar.
+            subrow.separator()
         if km.is_modal:
             subrow.label(text="", icon='LINKED')
         del subrow
@@ -156,6 +158,9 @@ def draw_kmi(display_keymaps, kc, km, kmi, layout, level):
             # Abusing the tracking icon, but it works pretty well here.
             icon=('TRACKING_CLEAR_BACKWARDS' if kmi.is_user_defined else 'X')
         ).item_id = kmi.id
+
+    # Add margin to space the buttons from the scrollbar.
+    row.separator(factor=0.25 if kmi.show_expanded else 1.0)
 
     # Expanded, additional event settings
     if kmi.show_expanded:
@@ -345,6 +350,8 @@ def draw_filtered(display_keymaps, filter_type, filter_text, layout):
                 subrow = row.row()
                 subrow.alignment = 'RIGHT'
                 subrow.operator("preferences.keymap_restore", text="Restore")
+                # Add margin to space the button from the scrollbar.
+                subrow.separator()
 
             for kmi in filtered_items:
                 draw_kmi(display_keymaps, kc, km, kmi, col, 1)
