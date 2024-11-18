@@ -215,6 +215,15 @@ class LightProbes {
     }
   }
 
+  void pre_draw(Manager &manager, View &view)
+  {
+    if (!enabled_) {
+      return;
+    }
+
+    manager.generate_commands(ps_dots_, view);
+  }
+
   void draw(Framebuffer &framebuffer, Manager &manager, View &view)
   {
     if (!enabled_) {
@@ -232,7 +241,7 @@ class LightProbes {
     }
 
     GPU_framebuffer_bind(framebuffer);
-    manager.submit(ps_dots_, view);
+    manager.submit_only(ps_dots_, view);
   }
 };
 

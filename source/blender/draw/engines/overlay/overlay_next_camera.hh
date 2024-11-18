@@ -614,6 +614,18 @@ class Cameras {
     }
   }
 
+  void pre_draw(Manager &manager, View &view)
+  {
+    if (!enabled_) {
+      return;
+    }
+
+    manager.generate_commands(background_scene_ps_, view);
+    manager.generate_commands(foreground_scene_ps_, view);
+    manager.generate_commands(background_ps_, view);
+    manager.generate_commands(foreground_ps_, view);
+  }
+
   void draw(Framebuffer &framebuffer, Manager &manager, View &view)
   {
     if (!enabled_) {
@@ -631,8 +643,8 @@ class Cameras {
     }
 
     GPU_framebuffer_bind(framebuffer);
-    manager.submit(background_scene_ps_, view);
-    manager.submit(foreground_scene_ps_, view);
+    manager.submit_only(background_scene_ps_, view);
+    manager.submit_only(foreground_scene_ps_, view);
   }
 
   void draw_background_images(Framebuffer &framebuffer, Manager &manager, View &view)
@@ -642,7 +654,7 @@ class Cameras {
     }
 
     GPU_framebuffer_bind(framebuffer);
-    manager.submit(background_ps_, view);
+    manager.submit_only(background_ps_, view);
   }
 
   void draw_in_front(Framebuffer &framebuffer, Manager &manager, View &view)
@@ -652,7 +664,7 @@ class Cameras {
     }
 
     GPU_framebuffer_bind(framebuffer);
-    manager.submit(foreground_ps_, view);
+    manager.submit_only(foreground_ps_, view);
   }
 
  private:

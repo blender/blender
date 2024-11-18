@@ -210,6 +210,15 @@ class Wireframe {
     }
   }
 
+  void pre_draw(Manager &manager, View &view)
+  {
+    if (!enabled_) {
+      return;
+    }
+
+    manager.generate_commands(wireframe_ps_, view);
+  }
+
   void draw(Framebuffer &framebuffer, Resources &res, Manager &manager, View &view)
   {
     if (!enabled_) {
@@ -227,7 +236,7 @@ class Wireframe {
     }
 
     GPU_framebuffer_bind(framebuffer);
-    manager.submit(wireframe_ps_, view);
+    manager.submit_only(wireframe_ps_, view);
 
     if (do_depth_copy_workaround_) {
       tmp_depth_tx_.release();

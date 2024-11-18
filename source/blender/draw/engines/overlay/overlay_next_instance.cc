@@ -337,6 +337,32 @@ void Instance::end_sync()
 
 void Instance::draw(Manager &manager)
 {
+  const DRWView *view_legacy = DRW_view_default_get();
+  View view("OverlayView", view_legacy);
+
+  /* Pre-Draw: Run the compute steps of all passes up-front
+   * to avoid constant GPU compute/raster context switching. */
+  {
+    manager.compute_visibility(view);
+
+    auto pre_draw = [&](OverlayLayer &layer) {
+      layer.attribute_viewer.pre_draw(manager, view);
+      layer.cameras.pre_draw(manager, view);
+      layer.empties.pre_draw(manager, view);
+      layer.facing.pre_draw(manager, view);
+      layer.fade.pre_draw(manager, view);
+      layer.lattices.pre_draw(manager, view);
+      layer.light_probes.pre_draw(manager, view);
+      layer.particles.pre_draw(manager, view);
+      layer.prepass.pre_draw(manager, view);
+      layer.wireframe.pre_draw(manager, view);
+    };
+
+    pre_draw(regular);
+    pre_draw(infront);
+    outline.pre_draw(manager, view);
+  }
+
   resources.depth_tx.wrap(DRW_viewport_texture_list_get()->depth);
   resources.depth_in_front_tx.wrap(DRW_viewport_texture_list_get()->depth_in_front);
   resources.color_overlay_tx.wrap(DRW_viewport_texture_list_get()->color_overlay);
@@ -346,9 +372,6 @@ void Instance::draw(Manager &manager)
   resources.render_in_front_fb = DRW_viewport_framebuffer_list_get()->in_front_fb;
 
   int2 render_size = int2(resources.depth_tx.size());
-
-  const DRWView *view_legacy = DRW_view_default_get();
-  View view("OverlayView", view_legacy);
 
   /* TODO(fclem): Remove mandatory allocation. */
   if (!resources.depth_in_front_tx.is_valid()) {

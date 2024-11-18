@@ -197,6 +197,18 @@ class Empties {
     call_buffers.image_buf.end_sync(ps, shapes.quad_wire.get());
   }
 
+  void pre_draw(Manager &manager, View &view)
+  {
+    if (!enabled_) {
+      return;
+    }
+
+    manager.generate_commands(images_back_ps_, view);
+    manager.generate_commands(images_ps_, view);
+    manager.generate_commands(images_blend_ps_, view);
+    manager.generate_commands(images_front_ps_, view);
+  }
+
   void draw(Framebuffer &framebuffer, Manager &manager, View &view)
   {
     if (!enabled_) {
@@ -214,7 +226,7 @@ class Empties {
     }
 
     GPU_framebuffer_bind(framebuffer);
-    manager.submit(images_back_ps_, view);
+    manager.submit_only(images_back_ps_, view);
   }
 
   void draw_images(Framebuffer &framebuffer, Manager &manager, View &view)
@@ -225,8 +237,8 @@ class Empties {
 
     GPU_framebuffer_bind(framebuffer);
 
-    manager.submit(images_ps_, view);
-    manager.submit(images_blend_ps_, view);
+    manager.submit_only(images_ps_, view);
+    manager.submit_only(images_blend_ps_, view);
   }
 
   void draw_in_front_images(Framebuffer &framebuffer, Manager &manager, View &view)
@@ -237,7 +249,7 @@ class Empties {
 
     GPU_framebuffer_bind(framebuffer);
 
-    manager.submit(images_front_ps_, view);
+    manager.submit_only(images_front_ps_, view);
   }
 
  private:
