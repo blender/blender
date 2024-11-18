@@ -21,12 +21,16 @@
 #  include <optix_function_table_definition.h>
 #endif
 
+#ifndef OPTIX_FUNCTION_TABLE_SYMBOL
+#  define OPTIX_FUNCTION_TABLE_SYMBOL g_optixFunctionTable
+#endif
+
 CCL_NAMESPACE_BEGIN
 
 bool device_optix_init()
 {
 #ifdef WITH_OPTIX
-  if (g_optixFunctionTable.optixDeviceContextCreate != NULL) {
+  if (OPTIX_FUNCTION_TABLE_SYMBOL.optixDeviceContextCreate != NULL) {
     /* Already initialized function table. */
     return true;
   }
