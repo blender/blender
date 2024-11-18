@@ -279,7 +279,7 @@ void GPENCIL_cache_init(void *ved)
     pass.shader_set(GPENCIL_shader_depth_merge_get());
     pass.bind_texture("depthBuf", &pd->depth_tx);
     pass.push_constant("strokeOrder3d", &pd->is_stroke_order_3d);
-    pass.push_constant("gpModelMatrix", &pd->object_bound_mat);
+    pass.push_constant("gpModelMatrix", float4x4(pd->object_bound_mat));
     pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
   {
@@ -836,7 +836,7 @@ static void GPENCIL_draw_object(GPENCIL_Data *vedata, GPENCIL_tObject *ob)
     manager->submit(*vfx->vfx_ps);
   }
 
-  pd->object_bound_mat = float4x4(ob->plane_mat);
+  copy_m4_m4(pd->object_bound_mat, ob->plane_mat);
   pd->is_stroke_order_3d = ob->is_drawmode3d;
 
   if (pd->scene_fb) {

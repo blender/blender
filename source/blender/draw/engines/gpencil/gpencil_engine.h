@@ -262,7 +262,7 @@ typedef struct GPENCIL_PrivateData {
   bool draw_wireframe;
   /* Used by the depth merge step. */
   int is_stroke_order_3d;
-  float4x4 object_bound_mat;
+  float object_bound_mat[4][4];
   /* Used for computing object distance to camera. */
   float camera_z_axis[3], camera_z_offset;
   float camera_pos[3];
