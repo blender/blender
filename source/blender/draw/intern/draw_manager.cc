@@ -174,7 +174,7 @@ uint64_t Manager::fingerprint_get()
   return sync_counter_ | (uint64_t(resource_len_) << 32);
 }
 
-ResourceHandle Manager::resource_handle_for_sculpt(const ObjectRef &ref)
+ResourceHandleRange Manager::resource_handle_for_sculpt(const ObjectRef &ref)
 {
   /* TODO(fclem): Deduplicate with other engine. */
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(*ref.object);

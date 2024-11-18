@@ -129,12 +129,12 @@ class Manager {
    * Create a unique resource handle for the given object.
    * Returns the existing handle if it exists.
    */
-  ResourceHandle unique_handle(const ObjectRef &ref);
+  ResourceHandleRange unique_handle(const ObjectRef &ref);
   /**
    * Create a new resource handle for the given object.
    */
   /* WORKAROUND: Instead of breaking const correctness everywhere, we only break it for this. */
-  ResourceHandle resource_handle(const ObjectRef &ref, float inflate_bounds = 0.0f);
+  ResourceHandleRange resource_handle(const ObjectRef &ref, float inflate_bounds = 0.0f);
   /**
    * Create a new resource handle for the given object, but optionally override model matrix and
    * bounds.
@@ -162,7 +162,7 @@ class Manager {
    */
   ResourceHandle resource_handle_for_psys(const ObjectRef &ref, const float4x4 &model_matrix);
 
-  ResourceHandle resource_handle_for_sculpt(const ObjectRef &ref);
+  ResourceHandleRange resource_handle_for_sculpt(const ObjectRef &ref);
 
   /** Update the bounds of an already created handle. */
   void update_handle_bounds(ResourceHandle handle,
@@ -309,16 +309,16 @@ class Manager {
   uint64_t fingerprint_get();
 };
 
-inline ResourceHandle Manager::unique_handle(const ObjectRef &ref)
+inline ResourceHandleRange Manager::unique_handle(const ObjectRef &ref)
 {
-  if (ref.handle.raw == 0) {
+  if (ref.handle.handle_first.raw == 0) {
     /* WORKAROUND: Instead of breaking const correctness everywhere, we only break it for this. */
     const_cast<ObjectRef &>(ref).handle = resource_handle(ref);
   }
   return ref.handle;
 }
 
-inline ResourceHandle Manager::resource_handle(const ObjectRef &ref, float inflate_bounds)
+inline ResourceHandleRange Manager::resource_handle(const ObjectRef &ref, float inflate_bounds)
 {
   bool is_active_object = (ref.dupli_object ? ref.dupli_parent : ref.object) == object_active;
   matrix_buf.current().get_or_resize(resource_len_).sync(*ref.object);
