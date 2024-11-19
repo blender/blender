@@ -139,6 +139,7 @@ void Instance::begin_sync()
     layer.meshes.begin_sync(resources, state, view);
     layer.mesh_uvs.begin_sync(resources, state);
     layer.mode_transfer.begin_sync(resources, state);
+    layer.names.begin_sync(resources, state);
     layer.paints.begin_sync(resources, state);
     layer.particles.begin_sync(resources, state);
     layer.prepass.begin_sync(resources, state);
@@ -286,6 +287,7 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
     layer.fluids.object_sync(manager, ob_ref, resources, state);
     layer.particles.object_sync(manager, ob_ref, resources, state);
     layer.relations.object_sync(ob_ref, resources, state);
+    layer.names.object_sync(ob_ref, resources, state);
 
     motion_paths.object_sync(ob_ref, resources, state);
     origins.object_sync(ob_ref, resources, state);

@@ -310,6 +310,7 @@ set(SRC
   engines/overlay/overlay_next_metaball.hh
   engines/overlay/overlay_next_mode_transfer.hh
   engines/overlay/overlay_next_motion_path.hh
+  engines/overlay/overlay_next_name.hh
   engines/overlay/overlay_next_origin.hh
   engines/overlay/overlay_next_outline.hh
   engines/overlay/overlay_next_paint.hh

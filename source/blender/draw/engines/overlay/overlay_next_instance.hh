@@ -32,6 +32,7 @@
 #include "overlay_next_metaball.hh"
 #include "overlay_next_mode_transfer.hh"
 #include "overlay_next_motion_path.hh"
+#include "overlay_next_name.hh"
 #include "overlay_next_origin.hh"
 #include "overlay_next_outline.hh"
 #include "overlay_next_paint.hh"
@@ -92,6 +93,7 @@ class Instance {
     MeshUVs mesh_uvs;
     Metaballs metaballs = {selection_type_};
     ModeTransfer mode_transfer;
+    Names names;
     Paints paints;
     Particles particles;
     Prepass prepass = {selection_type_};
