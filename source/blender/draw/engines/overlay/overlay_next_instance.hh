@@ -68,7 +68,7 @@ class Instance {
 
   /** Overlay types. */
   Background background;
-  Origins origins;
+  Origins origins = {selection_type_};
   Outline outline;
   MotionPath motion_paths;
 
