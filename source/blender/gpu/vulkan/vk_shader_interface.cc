@@ -286,7 +286,7 @@ void VKShaderInterface::descriptor_set_location_update(
     VKImageViewArrayed arrayed)
 {
   BLI_assert_msg(resource.has_value() ||
-                     ELEM(bind_type, VKBindType::UNIFORM_BUFFER, VKBindType::SAMPLER),
+                     ELEM(bind_type, VKBindType::UNIFORM_BUFFER, VKBindType::INPUT_ATTACHMENT),
                  "Incorrect parameters, when no resource is given, it must be the uniform buffer "
                  "for storing push constants or input attachment for subpass inputs.");
   BLI_assert_msg(!resource.has_value() || to_bind_type(resource->bind_type) == bind_type,
