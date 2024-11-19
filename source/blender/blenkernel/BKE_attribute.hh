@@ -64,7 +64,7 @@ struct AttributeMetaData {
   BLI_STRUCT_EQUALITY_OPERATORS_2(AttributeMetaData, domain, data_type)
 };
 
-struct AttributeKind {
+struct AttributeDomainAndType {
   AttrDomain domain;
   eCustomDataType data_type;
 };
