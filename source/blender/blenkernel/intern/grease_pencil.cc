@@ -2883,7 +2883,6 @@ void GreasePencil::add_layers_with_empty_drawings_for_eval(const int num)
       GreasePencilFrame *frame = layer.add_frame(this->runtime->eval_frame);
       BLI_assert(frame);
       frame->drawing_index = new_drawing_i;
-      drawing.add_user();
     }
   });
 }
