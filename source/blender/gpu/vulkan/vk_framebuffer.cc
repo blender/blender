@@ -67,44 +67,45 @@ void VKFrameBuffer::bind(bool enabled_srgb)
   scissor_reset();
 }
 
-Array<VkViewport, 16> VKFrameBuffer::vk_viewports_get() const
+void VKFrameBuffer::vk_viewports_append(Vector<VkViewport> &r_viewports) const
 {
-  Array<VkViewport, 16> viewports(this->multi_viewport_ ? GPU_MAX_VIEWPORTS : 1);
-
-  int index = 0;
-  for (VkViewport &viewport : viewports) {
+  BLI_assert(r_viewports.is_empty());
+  for (int64_t index : IndexRange(this->multi_viewport_ ? GPU_MAX_VIEWPORTS : 1)) {
+    VkViewport viewport;
     viewport.x = viewport_[index][0];
     viewport.y = viewport_[index][1];
     viewport.width = viewport_[index][2];
     viewport.height = viewport_[index][3];
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
-    index++;
+    r_viewports.append(viewport);
   }
-  return viewports;
 }
 
-Array<VkRect2D, 16> VKFrameBuffer::vk_render_areas_get() const
+void VKFrameBuffer::render_area_update(VkRect2D &render_area) const
 {
-  Array<VkRect2D, 16> render_areas(this->multi_viewport_ ? GPU_MAX_VIEWPORTS : 1);
-
-  for (VkRect2D &render_area : render_areas) {
-    if (scissor_test_get()) {
-      int scissor_rect[4];
-      scissor_get(scissor_rect);
-      render_area.offset.x = clamp_i(scissor_rect[0], 0, width_);
-      render_area.offset.y = clamp_i(scissor_rect[1], 0, height_);
-      render_area.extent.width = clamp_i(scissor_rect[2], 1, width_ - scissor_rect[0]);
-      render_area.extent.height = clamp_i(scissor_rect[3], 1, height_ - scissor_rect[1]);
-    }
-    else {
-      render_area.offset.x = 0;
-      render_area.offset.y = 0;
-      render_area.extent.width = width_;
-      render_area.extent.height = height_;
-    }
+  if (scissor_test_get()) {
+    int scissor_rect[4];
+    scissor_get(scissor_rect);
+    render_area.offset.x = clamp_i(scissor_rect[0], 0, width_);
+    render_area.offset.y = clamp_i(scissor_rect[1], 0, height_);
+    render_area.extent.width = clamp_i(scissor_rect[2], 1, width_ - scissor_rect[0]);
+    render_area.extent.height = clamp_i(scissor_rect[3], 1, height_ - scissor_rect[1]);
   }
-  return render_areas;
+  else {
+    render_area.offset.x = 0;
+    render_area.offset.y = 0;
+    render_area.extent.width = width_;
+    render_area.extent.height = height_;
+  }
+}
+
+void VKFrameBuffer::vk_render_areas_append(Vector<VkRect2D> &r_render_areas) const
+{
+  BLI_assert(r_render_areas.is_empty());
+  VkRect2D render_area;
+  render_area_update(render_area);
+  r_render_areas.append_n_times(render_area, this->multi_viewport_ ? GPU_MAX_VIEWPORTS : 1);
 }
 
 bool VKFrameBuffer::check(char err_out[256])
@@ -196,7 +197,7 @@ void VKFrameBuffer::clear(const eGPUFrameBufferBits buffers,
                           uint clear_stencil)
 {
   render_graph::VKClearAttachmentsNode::CreateInfo clear_attachments = {};
-  clear_attachments.vk_clear_rect.rect = vk_render_areas_get()[0];
+  render_area_update(clear_attachments.vk_clear_rect.rect);
   clear_attachments.vk_clear_rect.baseArrayLayer = 0;
   clear_attachments.vk_clear_rect.layerCount = 1;
 
@@ -242,7 +243,7 @@ void VKFrameBuffer::clear(const eGPUFrameBufferBits buffers,
 void VKFrameBuffer::clear_multi(const float (*clear_color)[4])
 {
   render_graph::VKClearAttachmentsNode::CreateInfo clear_attachments = {};
-  clear_attachments.vk_clear_rect.rect = vk_render_areas_get()[0];
+  render_area_update(clear_attachments.vk_clear_rect.rect);
   clear_attachments.vk_clear_rect.baseArrayLayer = 0;
   clear_attachments.vk_clear_rect.layerCount = 1;
 
@@ -578,7 +579,7 @@ void VKFrameBuffer::rendering_ensure(VKContext &context)
   render_graph::VKBeginRenderingNode::CreateInfo begin_rendering(access_info);
   begin_rendering.node_data.vk_rendering_info.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
   begin_rendering.node_data.vk_rendering_info.layerCount = 1;
-  begin_rendering.node_data.vk_rendering_info.renderArea = vk_render_areas_get()[0];
+  render_area_update(begin_rendering.node_data.vk_rendering_info.renderArea);
 
   color_attachment_formats_.clear();
   for (int color_attachment_index :

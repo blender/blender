@@ -1264,11 +1264,10 @@ VkPipeline VKShader::ensure_and_get_graphics_pipeline(GPUPrimType primitive,
   graphics_info.fragment_shader.vk_fragment_module = fragment_module.vk_shader_module;
   graphics_info.state = state_manager.state;
   graphics_info.mutable_state = state_manager.mutable_state;
-  // TODO: in stead of extend use a build pattern.
   graphics_info.fragment_shader.viewports.clear();
-  graphics_info.fragment_shader.viewports.extend(framebuffer.vk_viewports_get());
+  framebuffer.vk_viewports_append(graphics_info.fragment_shader.viewports);
   graphics_info.fragment_shader.scissors.clear();
-  graphics_info.fragment_shader.scissors.extend(framebuffer.vk_render_areas_get());
+  framebuffer.vk_render_areas_append(graphics_info.fragment_shader.scissors);
 
   graphics_info.fragment_out.depth_attachment_format = framebuffer.depth_attachment_format_get();
   graphics_info.fragment_out.stencil_attachment_format =
