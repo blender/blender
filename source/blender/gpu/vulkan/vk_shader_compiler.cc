@@ -172,23 +172,23 @@ BatchHandle VKShaderCompiler::batch_compile(Span<const shader::ShaderCreateInfo 
   return handle;
 }
 
-static const std::string to_stage_name(shaderc_shader_kind stage)
+static StringRef to_stage_name(shaderc_shader_kind stage)
 {
   switch (stage) {
     case shaderc_vertex_shader:
-      return std::string("vertex");
+      return "vertex";
     case shaderc_geometry_shader:
-      return std::string("geometry");
+      return "geometry";
     case shaderc_fragment_shader:
-      return std::string("fragment");
+      return "fragment";
     case shaderc_compute_shader:
-      return std::string("compute");
+      return "compute";
 
     default:
       BLI_assert_msg(false, "Do not know how to convert shaderc_shader_kind to stage name.");
       break;
   }
-  return std::string("unknown stage");
+  return "unknown stage";
 }
 
 static bool compile_ex(shaderc::Compiler &compiler,
@@ -213,7 +213,7 @@ static bool compile_ex(shaderc::Compiler &compiler,
     options.SetOptimizationLevel(shaderc_optimization_level_zero);
   }
 
-  std::string full_name = std::string(shader.name_get()) + "_" + to_stage_name(stage);
+  std::string full_name = shader.name_get() + "_" + to_stage_name(stage);
   shader_module.compilation_result = compiler.CompileGlslToSpv(
       shader_module.combined_sources, stage, full_name.c_str(), options);
   bool compilation_succeeded = shader_module.compilation_result.GetCompilationStatus() ==

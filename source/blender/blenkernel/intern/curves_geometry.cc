@@ -35,21 +35,21 @@
 
 namespace blender::bke {
 
-static const std::string ATTR_POSITION = "position";
-static const std::string ATTR_RADIUS = "radius";
-static const std::string ATTR_TILT = "tilt";
-static const std::string ATTR_CURVE_TYPE = "curve_type";
-static const std::string ATTR_CYCLIC = "cyclic";
-static const std::string ATTR_RESOLUTION = "resolution";
-static const std::string ATTR_NORMAL_MODE = "normal_mode";
-static const std::string ATTR_HANDLE_TYPE_LEFT = "handle_type_left";
-static const std::string ATTR_HANDLE_TYPE_RIGHT = "handle_type_right";
-static const std::string ATTR_HANDLE_POSITION_LEFT = "handle_left";
-static const std::string ATTR_HANDLE_POSITION_RIGHT = "handle_right";
-static const std::string ATTR_NURBS_ORDER = "nurbs_order";
-static const std::string ATTR_NURBS_WEIGHT = "nurbs_weight";
-static const std::string ATTR_NURBS_KNOTS_MODE = "knots_mode";
-static const std::string ATTR_SURFACE_UV_COORDINATE = "surface_uv_coordinate";
+constexpr StringRef ATTR_POSITION = "position";
+constexpr StringRef ATTR_RADIUS = "radius";
+constexpr StringRef ATTR_TILT = "tilt";
+constexpr StringRef ATTR_CURVE_TYPE = "curve_type";
+constexpr StringRef ATTR_CYCLIC = "cyclic";
+constexpr StringRef ATTR_RESOLUTION = "resolution";
+constexpr StringRef ATTR_NORMAL_MODE = "normal_mode";
+constexpr StringRef ATTR_HANDLE_TYPE_LEFT = "handle_type_left";
+constexpr StringRef ATTR_HANDLE_TYPE_RIGHT = "handle_type_right";
+constexpr StringRef ATTR_HANDLE_POSITION_LEFT = "handle_left";
+constexpr StringRef ATTR_HANDLE_POSITION_RIGHT = "handle_right";
+constexpr StringRef ATTR_NURBS_ORDER = "nurbs_order";
+constexpr StringRef ATTR_NURBS_WEIGHT = "nurbs_weight";
+constexpr StringRef ATTR_NURBS_KNOTS_MODE = "knots_mode";
+constexpr StringRef ATTR_SURFACE_UV_COORDINATE = "surface_uv_coordinate";
 
 /* -------------------------------------------------------------------- */
 /** \name Constructors/Destructor
