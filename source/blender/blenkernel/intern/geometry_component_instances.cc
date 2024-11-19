@@ -123,7 +123,7 @@ static void tag_component_reference_index_changed(void *owner)
   instances.tag_reference_handles_changed();
 }
 
-static ComponentAttributeProviders create_attribute_providers_for_instances()
+static GeometryAttributeProviders create_attribute_providers_for_instances()
 {
   static CustomDataAccessInfo instance_custom_data_access = {
       [](void *owner) -> CustomData * {
@@ -170,13 +170,13 @@ static ComponentAttributeProviders create_attribute_providers_for_instances()
   static CustomDataAttributeProvider instance_custom_data(AttrDomain::Instance,
                                                           instance_custom_data_access);
 
-  return ComponentAttributeProviders({&instance_transform, &id, &reference_index},
-                                     {&instance_custom_data});
+  return GeometryAttributeProviders({&instance_transform, &id, &reference_index},
+                                    {&instance_custom_data});
 }
 
 static AttributeAccessorFunctions get_instances_accessor_functions()
 {
-  static const ComponentAttributeProviders providers = create_attribute_providers_for_instances();
+  static const GeometryAttributeProviders providers = create_attribute_providers_for_instances();
   AttributeAccessorFunctions fn =
       attribute_accessor_functions::accessor_functions_for_providers<providers>();
   fn.domain_size = [](const void *owner, const AttrDomain domain) {

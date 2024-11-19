@@ -31,7 +31,7 @@ namespace blender::bke {
 struct AttributeKind;
 class AttributeAccessor;
 struct AttributeMetaData;
-class ComponentAttributeProviders;
+class GeometryAttributeProviders;
 class CurvesEditHints;
 class Instances;
 class GeometryComponent;

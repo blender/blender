@@ -994,7 +994,7 @@ class MeshVertexGroupsAttributeProvider final : public DynamicAttributesProvider
  * In this function all the attribute providers for a mesh component are created. Most data in this
  * function is statically allocated, because it does not change over time.
  */
-static ComponentAttributeProviders create_attribute_providers_for_mesh()
+static GeometryAttributeProviders create_attribute_providers_for_mesh()
 {
 #define MAKE_MUTABLE_CUSTOM_DATA_GETTER(NAME) \
   [](void *owner) -> CustomData * { \
@@ -1110,24 +1110,24 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
   static CustomDataAttributeProvider edge_custom_data(AttrDomain::Edge, edge_access);
   static CustomDataAttributeProvider face_custom_data(AttrDomain::Face, face_access);
 
-  return ComponentAttributeProviders({&position,
-                                      &edge_verts,
-                                      &corner_vert,
-                                      &corner_edge,
-                                      &id,
-                                      &material_index,
-                                      &sharp_face,
-                                      &sharp_edge},
-                                     {&corner_custom_data,
-                                      &vertex_groups,
-                                      &point_custom_data,
-                                      &edge_custom_data,
-                                      &face_custom_data});
+  return GeometryAttributeProviders({&position,
+                                     &edge_verts,
+                                     &corner_vert,
+                                     &corner_edge,
+                                     &id,
+                                     &material_index,
+                                     &sharp_face,
+                                     &sharp_edge},
+                                    {&corner_custom_data,
+                                     &vertex_groups,
+                                     &point_custom_data,
+                                     &edge_custom_data,
+                                     &face_custom_data});
 }
 
 static AttributeAccessorFunctions get_mesh_accessor_functions()
 {
-  static const ComponentAttributeProviders providers = create_attribute_providers_for_mesh();
+  static const GeometryAttributeProviders providers = create_attribute_providers_for_mesh();
   AttributeAccessorFunctions fn =
       attribute_accessor_functions::accessor_functions_for_providers<providers>();
   fn.domain_size = [](const void *owner, const AttrDomain domain) {

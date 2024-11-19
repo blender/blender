@@ -466,7 +466,7 @@ class CurvesVertexGroupsAttributeProvider final : public DynamicAttributesProvid
  * In this function all the attribute providers for a curves component are created.
  * Most data in this function is statically allocated, because it does not change over time.
  */
-static ComponentAttributeProviders create_attribute_providers_for_curve()
+static GeometryAttributeProviders create_attribute_providers_for_curve()
 {
   static CustomDataAccessInfo curve_access = {
       [](void *owner) -> CustomData * {
@@ -654,30 +654,30 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
   static CustomDataAttributeProvider curve_custom_data(AttrDomain::Curve, curve_access);
   static CustomDataAttributeProvider point_custom_data(AttrDomain::Point, point_access);
 
-  return ComponentAttributeProviders({&position,
-                                      &radius,
-                                      &id,
-                                      &tilt,
-                                      &handle_right,
-                                      &handle_left,
-                                      &handle_type_right,
-                                      &handle_type_left,
-                                      &normal_mode,
-                                      &custom_normal,
-                                      &nurbs_order,
-                                      &nurbs_knots_mode,
-                                      &nurbs_weight,
-                                      &curve_type,
-                                      &resolution,
-                                      &cyclic},
-                                     {&vertex_groups, &curve_custom_data, &point_custom_data});
+  return GeometryAttributeProviders({&position,
+                                     &radius,
+                                     &id,
+                                     &tilt,
+                                     &handle_right,
+                                     &handle_left,
+                                     &handle_type_right,
+                                     &handle_type_left,
+                                     &normal_mode,
+                                     &custom_normal,
+                                     &nurbs_order,
+                                     &nurbs_knots_mode,
+                                     &nurbs_weight,
+                                     &curve_type,
+                                     &resolution,
+                                     &cyclic},
+                                    {&vertex_groups, &curve_custom_data, &point_custom_data});
 }
 
 /** \} */
 
 static AttributeAccessorFunctions get_curves_accessor_functions()
 {
-  static const ComponentAttributeProviders providers = create_attribute_providers_for_curve();
+  static const GeometryAttributeProviders providers = create_attribute_providers_for_curve();
   AttributeAccessorFunctions fn =
       attribute_accessor_functions::accessor_functions_for_providers<providers>();
   fn.domain_size = [](const void *owner, const AttrDomain domain) {

@@ -202,10 +202,10 @@ class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
 };
 
 /**
- * This is a container for multiple attribute providers that are used by one geometry component
- * type (e.g. there is a set of attribute providers for mesh components).
+ * This is a container for multiple attribute providers that are used by one geometry type
+ * (e.g. there is a set of attribute providers for mesh components).
  */
-class ComponentAttributeProviders {
+class GeometryAttributeProviders {
  private:
   /**
    * Builtin attribute providers are identified by their name. Attribute names that are in this
@@ -225,8 +225,8 @@ class ComponentAttributeProviders {
   VectorSet<AttrDomain> supported_domains_;
 
  public:
-  ComponentAttributeProviders(Span<const BuiltinAttributeProvider *> builtin_attribute_providers,
-                              Span<const DynamicAttributesProvider *> dynamic_attribute_providers)
+  GeometryAttributeProviders(Span<const BuiltinAttributeProvider *> builtin_attribute_providers,
+                             Span<const DynamicAttributesProvider *> dynamic_attribute_providers)
       : dynamic_attribute_providers_(dynamic_attribute_providers)
   {
     for (const BuiltinAttributeProvider *provider : builtin_attribute_providers) {
@@ -257,7 +257,7 @@ class ComponentAttributeProviders {
 
 namespace attribute_accessor_functions {
 
-template<const ComponentAttributeProviders &providers>
+template<const GeometryAttributeProviders &providers>
 inline bool is_builtin(const void * /*owner*/, const StringRef attribute_id)
 {
   if (bke::attribute_name_is_anonymous(attribute_id)) {
@@ -267,7 +267,7 @@ inline bool is_builtin(const void * /*owner*/, const StringRef attribute_id)
   return providers.builtin_attribute_providers().contains_as(name);
 }
 
-template<const ComponentAttributeProviders &providers>
+template<const GeometryAttributeProviders &providers>
 inline GAttributeReader lookup(const void *owner, const StringRef attribute_id)
 {
   if (!bke::attribute_name_is_anonymous(attribute_id)) {
@@ -287,7 +287,7 @@ inline GAttributeReader lookup(const void *owner, const StringRef attribute_id)
   return {};
 }
 
-template<const ComponentAttributeProviders &providers>
+template<const GeometryAttributeProviders &providers>
 inline void foreach_attribute(const void *owner,
                               const FunctionRef<void(const AttributeIter &)> fn,
                               const AttributeAccessor &accessor)
@@ -320,7 +320,7 @@ inline void foreach_attribute(const void *owner,
   }
 }
 
-template<const ComponentAttributeProviders &providers>
+template<const GeometryAttributeProviders &providers>
 inline AttributeValidator lookup_validator(const void * /*owner*/,
                                            const blender::StringRef attribute_id)
 {
@@ -335,7 +335,7 @@ inline AttributeValidator lookup_validator(const void * /*owner*/,
   return provider->validator();
 }
 
-template<const ComponentAttributeProviders &providers>
+template<const GeometryAttributeProviders &providers>
 inline GAttributeWriter lookup_for_write(void *owner, const StringRef attribute_id)
 {
   if (!bke::attribute_name_is_anonymous(attribute_id)) {
@@ -355,7 +355,7 @@ inline GAttributeWriter lookup_for_write(void *owner, const StringRef attribute_
   return {};
 }
 
-template<const ComponentAttributeProviders &providers>
+template<const GeometryAttributeProviders &providers>
 inline bool remove(void *owner, const StringRef attribute_id)
 {
   if (!bke::attribute_name_is_anonymous(attribute_id)) {
@@ -374,7 +374,7 @@ inline bool remove(void *owner, const StringRef attribute_id)
   return false;
 }
 
-template<const ComponentAttributeProviders &providers>
+template<const GeometryAttributeProviders &providers>
 inline bool add(void *owner,
                 const StringRef attribute_id,
                 AttrDomain domain,
@@ -403,7 +403,7 @@ inline bool add(void *owner,
   return false;
 }
 
-template<const ComponentAttributeProviders &providers>
+template<const GeometryAttributeProviders &providers>
 inline AttributeAccessorFunctions accessor_functions_for_providers()
 {
   return AttributeAccessorFunctions{nullptr,

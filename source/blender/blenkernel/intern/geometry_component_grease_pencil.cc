@@ -101,7 +101,7 @@ void GreasePencilComponent::ensure_owns_direct_data()
   }
 }
 
-static ComponentAttributeProviders create_attribute_providers_for_grease_pencil()
+static GeometryAttributeProviders create_attribute_providers_for_grease_pencil()
 {
   static CustomDataAccessInfo layers_access = {
       [](void *owner) -> CustomData * {
@@ -119,7 +119,7 @@ static ComponentAttributeProviders create_attribute_providers_for_grease_pencil(
 
   static CustomDataAttributeProvider layer_custom_data(AttrDomain::Layer, layers_access);
 
-  return ComponentAttributeProviders({}, {&layer_custom_data});
+  return GeometryAttributeProviders({}, {&layer_custom_data});
 }
 
 static GVArray adapt_grease_pencil_attribute_domain(const GreasePencil & /*grease_pencil*/,
@@ -135,7 +135,7 @@ static GVArray adapt_grease_pencil_attribute_domain(const GreasePencil & /*greas
 
 static AttributeAccessorFunctions get_grease_pencil_accessor_functions()
 {
-  static const ComponentAttributeProviders providers =
+  static const GeometryAttributeProviders providers =
       create_attribute_providers_for_grease_pencil();
   AttributeAccessorFunctions fn =
       attribute_accessor_functions::accessor_functions_for_providers<providers>();
