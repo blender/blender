@@ -50,19 +50,6 @@ class VKShaderInterface : public ShaderInterface {
   const std::optional<VKDescriptorSet::Location> descriptor_set_location(
       const shader::ShaderCreateInfo::Resource::BindType &bind_type, int binding) const;
 
-  /**
-   * Get the access mask for a binding.
-   *
-   * Is used to build the correct resource accesses in the render graph (dispatch/draw nodes).
-   *
-   * Will return VK_ACCESS_NONE when binding isn't found or not compatible with the given bind
-   * type.
-   */
-  const VkAccessFlags access_mask(const shader::ShaderCreateInfo::Resource::BindType &bind_type,
-                                  int binding) const;
-  const VKImageViewArrayed arrayed(const shader::ShaderCreateInfo::Resource::BindType &bind_type,
-                                   int binding) const;
-
   /** Get the Layout of the shader. */
   const VKPushConstants::Layout &push_constants_layout_get() const
   {

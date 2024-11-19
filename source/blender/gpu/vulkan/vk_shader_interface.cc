@@ -353,30 +353,6 @@ const std::optional<VKDescriptorSet::Location> VKShaderInterface::descriptor_set
   return resource_binding.location;
 }
 
-const VkAccessFlags VKShaderInterface::access_mask(
-    const shader::ShaderCreateInfo::Resource::BindType &bind_type, int binding) const
-{
-  const ShaderInput *shader_input = shader_input_get(bind_type, binding);
-  if (shader_input == nullptr) {
-    return VK_ACCESS_NONE;
-  }
-  const VKResourceBinding &resource_binding = resource_binding_info(shader_input);
-  if (resource_binding.bind_type != bind_type) {
-    return VK_ACCESS_NONE;
-  }
-  return resource_binding.access_mask;
-}
-
-const VKImageViewArrayed VKShaderInterface::arrayed(
-    const shader::ShaderCreateInfo::Resource::BindType &bind_type, int binding) const
-{
-  const ShaderInput *shader_input = shader_input_get(bind_type, binding);
-  if (shader_input == nullptr) {
-    return VKImageViewArrayed::DONT_CARE;
-  }
-  return resource_binding_info(shader_input).arrayed;
-}
-
 const ShaderInput *VKShaderInterface::shader_input_get(
     const shader::ShaderCreateInfo::Resource &resource) const
 {
