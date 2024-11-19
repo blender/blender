@@ -662,19 +662,9 @@ bool Instance::object_is_in_front(const Object *object, const State &state)
     case OB_ARMATURE:
       return (object->dtx & OB_DRAW_IN_FRONT) ||
              (state.do_pose_xray && Armatures::is_pose_mode(object, state));
-    case OB_MESH:
-    case OB_CURVES_LEGACY:
-    case OB_GREASE_PENCIL:
-    case OB_SURF:
-    case OB_LATTICE:
-    case OB_MBALL:
-    case OB_FONT:
-    case OB_CURVES:
-    case OB_POINTCLOUD:
-    case OB_VOLUME:
+    default:
       return state.use_in_front && (object->dtx & OB_DRAW_IN_FRONT);
   }
-  return false;
 }
 
 bool Instance::object_needs_prepass(const ObjectRef &ob_ref, bool in_paint_mode)
