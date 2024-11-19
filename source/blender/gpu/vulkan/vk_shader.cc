@@ -959,59 +959,111 @@ std::string VKShader::fragment_interface_declare(const shader::ShaderCreateInfo 
   }
 
   ss << "\n/* Sub-pass Inputs. */\n";
-  for (const ShaderCreateInfo::SubpassIn &input : info.subpass_inputs_) {
-    std::string image_name = "gpu_subpass_img_";
-    image_name += std::to_string(input.index);
+  const VKShaderInterface &interface = interface_get();
+  const bool use_dynamic_rendering = !workarounds.dynamic_rendering;
+  if (use_dynamic_rendering) {
+    for (const ShaderCreateInfo::SubpassIn &input : info.subpass_inputs_) {
+      std::string image_name = "gpu_subpass_img_";
+      image_name += std::to_string(input.index);
 
-    /* Declare global for input. */
-    ss << to_string(input.type) << " " << input.name << ";\n";
+      /* Declare global for input. */
+      ss << to_string(input.type) << " " << input.name << ";\n";
 
-    /* IMPORTANT: We assume that the frame-buffer will be layered or not based on the layer
-     * built-in flag. */
-    bool is_layered_fb = bool(info.builtins_ & BuiltinBits::LAYER);
+      /* IMPORTANT: We assume that the frame-buffer will be layered or not based on the layer
+       * built-in flag. */
+      bool is_layered_fb = bool(info.builtins_ & BuiltinBits::LAYER);
 
-    /* Start with invalid value to detect failure cases. */
-    ImageType image_type = ImageType::FLOAT_BUFFER;
-    switch (to_component_type(input.type)) {
-      case Type::FLOAT:
-        image_type = is_layered_fb ? ImageType::FLOAT_2D_ARRAY : ImageType::FLOAT_2D;
-        break;
-      case Type::INT:
-        image_type = is_layered_fb ? ImageType::INT_2D_ARRAY : ImageType::INT_2D;
-        break;
-      case Type::UINT:
-        image_type = is_layered_fb ? ImageType::UINT_2D_ARRAY : ImageType::UINT_2D;
-        break;
-      default:
-        break;
+      /* Start with invalid value to detect failure cases. */
+      ImageType image_type = ImageType::FLOAT_BUFFER;
+      switch (to_component_type(input.type)) {
+        case Type::FLOAT:
+          image_type = is_layered_fb ? ImageType::FLOAT_2D_ARRAY : ImageType::FLOAT_2D;
+          break;
+        case Type::INT:
+          image_type = is_layered_fb ? ImageType::INT_2D_ARRAY : ImageType::INT_2D;
+          break;
+        case Type::UINT:
+          image_type = is_layered_fb ? ImageType::UINT_2D_ARRAY : ImageType::UINT_2D;
+          break;
+        default:
+          break;
+      }
+      /* Declare image. */
+      using Resource = ShaderCreateInfo::Resource;
+      /* NOTE(fclem): Using the attachment index as resource index might be problematic as it might
+       * collide with other resources. */
+      Resource res(Resource::BindType::SAMPLER, input.index);
+      res.sampler.type = image_type;
+      res.sampler.sampler = GPUSamplerState::default_sampler();
+      res.sampler.name = image_name;
+      print_resource(ss, interface, res);
+
+      char swizzle[] = "xyzw";
+      swizzle[to_component_count(input.type)] = '\0';
+
+      std::string texel_co = (is_layered_fb) ? "ivec3(gl_FragCoord.xy, gpu_Layer)" :
+                                               "ivec2(gl_FragCoord.xy)";
+
+      std::stringstream ss_pre;
+      /* Populate the global before main using imageLoad. */
+      ss_pre << "  " << input.name << " = texelFetch(" << image_name << ", " << texel_co << ", 0)."
+             << swizzle << ";\n";
+
+      pre_main += ss_pre.str();
     }
-    /* Declare image. */
-    using Resource = ShaderCreateInfo::Resource;
-    /* NOTE(fclem): Using the attachment index as resource index might be problematic as it might
-     * collide with other resources. */
-    Resource res(Resource::BindType::SAMPLER, input.index);
-    res.sampler.type = image_type;
-    res.sampler.sampler = GPUSamplerState::default_sampler();
-    res.sampler.name = image_name;
-    print_resource(ss, interface_get(), res);
+  }
+  else {
+    /* Use subpass passes input attachments when dynamic rendering isn't available. */
+    for (const ShaderCreateInfo::SubpassIn &input : info.subpass_inputs_) {
+      using Resource = ShaderCreateInfo::Resource;
+      Resource res(Resource::BindType::SAMPLER, input.index);
+      const VKDescriptorSet::Location location = interface.descriptor_set_location(res);
 
-    char swizzle[] = "xyzw";
-    swizzle[to_component_count(input.type)] = '\0';
+      std::string image_name = "gpu_subpass_img_" + std::to_string(input.index);
 
-    std::string texel_co = (is_layered_fb) ? "ivec3(gl_FragCoord.xy, gpu_Layer)" :
-                                             "ivec2(gl_FragCoord.xy)";
+      /* Declare global for input. */
+      ss << to_string(input.type) << " " << input.name << ";\n";
+      /* Declare subpass input. */
+      ss << "layout(input_attachment_index=" << input.index << ", set=0, binding=" << location
+         << ") uniform ";
+      switch (to_component_type(input.type)) {
+        case Type::INT:
+          ss << "isubpassInput";
+          break;
+        case Type::UINT:
+          ss << "usubpassInput";
+          break;
+        case Type::FLOAT:
+        default:
+          ss << "subpassInput";
+          break;
+      }
+      ss << " " << image_name << ";";
 
-    std::stringstream ss_pre;
-    /* Populate the global before main using imageLoad. */
-    ss_pre << "  " << input.name << " = texelFetch(" << image_name << ", " << texel_co << ", 0)."
-           << swizzle << ";\n";
-
-    pre_main += ss_pre.str();
+      /* Read data from subpass input. */
+      char swizzle[] = "xyzw";
+      swizzle[to_component_count(input.type)] = '\0';
+      std::stringstream ss_pre;
+      ss_pre << "  " << input.name << " = subpassLoad(" << image_name << ")." << swizzle << ";\n";
+      pre_main += ss_pre.str();
+    }
   }
 
   ss << "\n/* Outputs. */\n";
+  int fragment_out_location = 0;
   for (const ShaderCreateInfo::FragOut &output : info.fragment_outputs_) {
-    ss << "layout(location = " << output.index;
+    /* When using dynamic rendering the attachment location doesn't change. When using render
+     * passes and subpasses the location refers to the color attachment of the subpass.
+     *
+     * LIMITATION: dual source blending cannot be used together with subpasses.
+     */
+    const bool use_dual_blending = output.blend != DualBlend::NONE;
+    BLI_assert_msg(!(use_dual_blending && !info.subpass_inputs_.is_empty()),
+                   "Dual source blending are not supported with subpass inputs when using render "
+                   "passes. It can be supported, but wasn't for code readability.");
+    const int location = (use_dynamic_rendering || use_dual_blending) ? output.index :
+                                                                        fragment_out_location++;
+    ss << "layout(location = " << location;
     switch (output.blend) {
       case DualBlend::SRC_0:
         ss << ", index = 0";
@@ -1269,11 +1321,13 @@ VkPipeline VKShader::ensure_and_get_graphics_pipeline(GPUPrimType primitive,
   graphics_info.fragment_shader.scissors.clear();
   framebuffer.vk_render_areas_append(graphics_info.fragment_shader.scissors);
 
+  graphics_info.fragment_out.vk_render_pass = framebuffer.vk_render_pass;
   graphics_info.fragment_out.depth_attachment_format = framebuffer.depth_attachment_format_get();
   graphics_info.fragment_out.stencil_attachment_format =
       framebuffer.stencil_attachment_format_get();
   graphics_info.fragment_out.color_attachment_formats.extend(
       framebuffer.color_attachment_formats_get());
+  graphics_info.fragment_out.color_attachment_size = framebuffer.color_attachment_size;
 
   VKDevice &device = VKBackend::get().device;
   /* Store result in local variable to ensure thread safety. */

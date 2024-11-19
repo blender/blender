@@ -73,7 +73,9 @@ void VKDescriptorSetLayouts::update_layout_bindings(const VKDescriptorSetLayoutI
     binding.descriptorCount = 1;
     binding.descriptorType = vk_descriptor_type;
     binding.pImmutableSamplers = VK_NULL_HANDLE;
-    binding.stageFlags = info.vk_shader_stage_flags;
+    binding.stageFlags = vk_descriptor_type == VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT ?
+                             VK_SHADER_STAGE_FRAGMENT_BIT :
+                             info.vk_shader_stage_flags;
     vk_descriptor_set_layout_bindings_.append(binding);
   }
 }

@@ -402,13 +402,16 @@ void VKShaderInterface::init_descriptor_set_layout_info(
     VKPushConstants::StorageType push_constants_storage)
 {
   BLI_assert(descriptor_set_layout_info_.bindings.is_empty());
+  const VKWorkarounds &workarounds = VKBackend::get().device.workarounds_get();
   descriptor_set_layout_info_.bindings.reserve(resources_len);
   descriptor_set_layout_info_.vk_shader_stage_flags =
       info.compute_source_.is_empty() && info.compute_source_generated.empty() ?
           VK_SHADER_STAGE_ALL_GRAPHICS :
           VK_SHADER_STAGE_COMPUTE_BIT;
-  descriptor_set_layout_info_.bindings.append_n_times(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                                                      info.subpass_inputs_.size());
+  descriptor_set_layout_info_.bindings.append_n_times(
+      workarounds.dynamic_rendering ? VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT :
+                                      VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+      info.subpass_inputs_.size());
   for (const shader::ShaderCreateInfo::Resource &res : all_resources) {
     descriptor_set_layout_info_.bindings.append(to_vk_descriptor_type(res));
   }

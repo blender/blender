@@ -830,7 +830,7 @@ std::string to_string(const VkRenderPassBeginInfo &vk_render_pass_begin_info,
      << to_string(vk_render_pass_begin_info.renderArea, indentation_level + 1);
   ss << std::string(indentation_level * 2, ' ');
   ss << ", clear_value_count=" << vk_render_pass_begin_info.clearValueCount;
-  ss << ", p_clear_values=" << vk_render_pass_begin_info.pClearValues;
+  /*ss << ", p_clear_values=" << vk_render_pass_begin_info.pClearValues;*/
 
   return ss.str();
 }

@@ -88,6 +88,7 @@ void VKCommandBuilder::build_node_group(VKRenderGraph &render_graph,
                                         std::optional<NodeHandle> &r_rendering_scope)
 {
   bool is_rendering = false;
+
   for (NodeHandle node_handle : node_group) {
     VKRenderGraphNode &node = render_graph.nodes_[node_handle];
 #if 0
@@ -153,7 +154,12 @@ void VKCommandBuilder::build_node_group(VKRenderGraph &render_graph,
   if (is_rendering) {
     /* Suspend rendering as the next node group will contain data transfer/dispatch commands. */
     is_rendering = false;
-    command_buffer.end_rendering();
+    if (command_buffer.use_dynamic_rendering) {
+      command_buffer.end_rendering();
+    }
+    else {
+      command_buffer.end_render_pass();
+    }
     if (state_.subresource_tracking_enabled()) {
       layer_tracking_end(command_buffer, true);
     }
