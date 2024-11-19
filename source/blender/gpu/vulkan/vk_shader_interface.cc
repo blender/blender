@@ -13,6 +13,22 @@
 
 namespace blender::gpu {
 
+static VKBindType to_bind_type(shader::ShaderCreateInfo::Resource::BindType bind_type)
+{
+  switch (bind_type) {
+    case shader::ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER:
+      return VKBindType::UNIFORM_BUFFER;
+    case shader::ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER:
+      return VKBindType::STORAGE_BUFFER;
+    case shader::ShaderCreateInfo::Resource::BindType::SAMPLER:
+      return VKBindType::SAMPLER;
+    case shader::ShaderCreateInfo::Resource::BindType::IMAGE:
+      return VKBindType::IMAGE;
+  }
+  BLI_assert_unreachable();
+  return VKBindType::UNIFORM_BUFFER;
+}
+
 void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
 {
   static char PUSH_CONSTANTS_FALLBACK_NAME[] = "push_constants_fallback";
@@ -190,7 +206,7 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
     BLI_assert(input);
     descriptor_set_location_update(input,
                                    descriptor_set_location++,
-                                   shader::ShaderCreateInfo::Resource::BindType::SAMPLER,
+                                   VKBindType::INPUT_ATTACHMENT,
                                    std::nullopt,
                                    VKImageViewArrayed::DONT_CARE);
   }
@@ -234,7 +250,9 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
                     VKImageViewArrayed::ARRAYED :
                     VKImageViewArrayed::NOT_ARRAYED;
     }
-    descriptor_set_location_update(input, descriptor_set_location++, res.bind_type, res, arrayed);
+
+    const VKBindType bind_type = to_bind_type(res.bind_type);
+    descriptor_set_location_update(input, descriptor_set_location++, bind_type, res, arrayed);
   }
 
   /* Post initializing push constants. */
@@ -245,7 +263,7 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
     const ShaderInput *push_constant_input = ubo_get(PUSH_CONSTANTS_FALLBACK_NAME);
     descriptor_set_location_update(push_constant_input,
                                    push_constants_fallback_location,
-                                   shader::ShaderCreateInfo::Resource::UNIFORM_BUFFER,
+                                   VKBindType::UNIFORM_BUFFER,
                                    std::nullopt,
                                    VKImageViewArrayed::DONT_CARE);
   }
@@ -263,17 +281,15 @@ static int32_t shader_input_index(const ShaderInput *shader_inputs,
 void VKShaderInterface::descriptor_set_location_update(
     const ShaderInput *shader_input,
     const VKDescriptorSet::Location location,
-    const shader::ShaderCreateInfo::Resource::BindType bind_type,
+    const VKBindType bind_type,
     std::optional<const shader::ShaderCreateInfo::Resource> resource,
     VKImageViewArrayed arrayed)
 {
   BLI_assert_msg(resource.has_value() ||
-                     ELEM(bind_type,
-                          shader::ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER,
-                          shader::ShaderCreateInfo::Resource::BindType::SAMPLER),
+                     ELEM(bind_type, VKBindType::UNIFORM_BUFFER, VKBindType::SAMPLER),
                  "Incorrect parameters, when no resource is given, it must be the uniform buffer "
-                 "for storing push constants or sampler for subpasses.");
-  BLI_assert_msg(!resource.has_value() || resource->bind_type == bind_type,
+                 "for storing push constants or input attachment for subpass inputs.");
+  BLI_assert_msg(!resource.has_value() || to_bind_type(resource->bind_type) == bind_type,
                  "Incorrect parameter, bind types do not match.");
 
   int32_t index = shader_input_index(inputs_, shader_input);
@@ -309,10 +325,10 @@ void VKShaderInterface::descriptor_set_location_update(
         break;
     };
   }
-  else if (bind_type == shader::ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER) {
+  else if (bind_type == VKBindType::UNIFORM_BUFFER) {
     vk_access_flags |= VK_ACCESS_UNIFORM_READ_BIT;
   }
-  else if (bind_type == shader::ShaderCreateInfo::Resource::BindType::SAMPLER) {
+  else if (bind_type == VKBindType::INPUT_ATTACHMENT) {
     vk_access_flags |= VK_ACCESS_SHADER_READ_BIT;
   }
 
@@ -347,7 +363,7 @@ const std::optional<VKDescriptorSet::Location> VKShaderInterface::descriptor_set
     return std::nullopt;
   }
   const VKResourceBinding &resource_binding = resource_binding_info(shader_input);
-  if (resource_binding.bind_type != bind_type) {
+  if (resource_binding.bind_type != to_bind_type(bind_type)) {
     return std::nullopt;
   }
   return resource_binding.location;
@@ -391,10 +407,8 @@ void VKShaderInterface::init_descriptor_set_layout_info(
       info.compute_source_.is_empty() && info.compute_source_generated.empty() ?
           VK_SHADER_STAGE_ALL_GRAPHICS :
           VK_SHADER_STAGE_COMPUTE_BIT;
-  for (int index : IndexRange(info.subpass_inputs_.size())) {
-    UNUSED_VARS(index);
-    descriptor_set_layout_info_.bindings.append(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
-  }
+  descriptor_set_layout_info_.bindings.append_n_times(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                                                      info.subpass_inputs_.size());
   for (const shader::ShaderCreateInfo::Resource &res : all_resources) {
     descriptor_set_layout_info_.bindings.append(to_vk_descriptor_type(res));
   }
