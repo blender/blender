@@ -618,8 +618,12 @@ enum {
 typedef struct bUserAssetLibrary {
   struct bUserAssetLibrary *next, *prev;
 
-  char name[64];      /* MAX_NAME */
+  char name[64]; /* MAX_NAME */
+  /** The path on disk for this asset library. Only used for on disk libraries
+   * (#ASSET_LIBRARY_USE_REMOTE_URL is not set). */
   char dirpath[1024]; /* FILE_MAX */
+  /** Only for remote asset libraries (#ASSET_LIBRARY_USE_REMOTE_URL is set). */
+  char remote_url[1024]; /* FILE_MAX */
 
   short import_method; /* eAssetImportMethod */
   short flag;          /* eAssetLibrary_Flag */

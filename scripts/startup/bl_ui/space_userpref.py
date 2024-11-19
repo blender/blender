@@ -1733,7 +1733,7 @@ class USERPREF_PT_file_paths_asset_libraries(FilePathsPanel, Panel):
         )
 
         col = row.column(align=True)
-        col.operator("preferences.asset_library_add", text="", icon='ADD')
+        col.operator_menu_enum("preferences.asset_library_add", "type", text="", icon='ADD')
         props = col.operator("preferences.asset_library_remove", text="", icon='REMOVE')
         props.index = active_library_index
 
@@ -1747,9 +1747,12 @@ class USERPREF_PT_file_paths_asset_libraries(FilePathsPanel, Panel):
 
         layout.separator()
 
-        layout.prop(active_library, "path")
-        layout.prop(active_library, "import_method", text="Import Method")
-        layout.prop(active_library, "use_relative_path")
+        if active_library.use_remote_url:
+            layout.prop(active_library, "remote_url")
+        else:
+            layout.prop(active_library, "path")
+            layout.prop(active_library, "import_method", text="Import Method")
+            layout.prop(active_library, "use_relative_path")
 
 
 class USERPREF_UL_asset_libraries(UIList):

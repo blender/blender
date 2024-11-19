@@ -137,16 +137,61 @@ static void PREFERENCES_OT_autoexec_path_remove(wmOperatorType *ot)
 /** \name Add Asset Library Operator
  * \{ */
 
+enum class bUserAssetLibraryAddType {
+  Remote = 0,
+  Local = 1,
+};
+
 static int preferences_asset_library_add_exec(bContext *C, wmOperator *op)
 {
-  char *path = RNA_string_get_alloc(op->ptr, "directory", nullptr, 0, nullptr);
-  char dirname[FILE_MAXFILE];
+  const bUserAssetLibraryAddType library_type = bUserAssetLibraryAddType(
+      RNA_enum_get(op->ptr, "type"));
 
-  BLI_path_slash_rstrip(path);
-  BLI_path_split_file_part(path, dirname, sizeof(dirname));
+  char name[sizeof(bUserExtensionRepo::name)] = "";
+  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "name");
+  if (RNA_property_is_set(op->ptr, prop)) {
+    RNA_property_string_get(op->ptr, prop, name);
+  }
 
-  /* nullptr is a valid directory path here. A library without path will be created then. */
-  const bUserAssetLibrary *new_library = BKE_preferences_asset_library_add(&U, dirname, path);
+  bUserAssetLibrary *new_library = BKE_preferences_asset_library_add(&U, nullptr, nullptr);
+
+  switch (library_type) {
+    case bUserAssetLibraryAddType::Local: {
+      char *dirpath = RNA_string_get_alloc(op->ptr, "directory", nullptr, 0, nullptr);
+
+      BLI_path_slash_rstrip(dirpath);
+      if (!name[0]) {
+        BLI_path_split_file_part(dirpath, name, sizeof(name));
+      }
+      if (!name[0]) {
+        STRNCPY(name, DATA_("Local Asset Library"));
+      }
+
+      BKE_preferences_asset_library_name_set(&U, new_library, name);
+      STRNCPY(new_library->dirpath, dirpath);
+
+      MEM_freeN(dirpath);
+      break;
+    }
+    case bUserAssetLibraryAddType::Remote: {
+      char *remote_url = RNA_string_get_alloc(op->ptr, "remote_url", nullptr, 0, nullptr);
+
+      if (!name[0]) {
+        BKE_preferences_remote_to_name(remote_url, name);
+      }
+      if (!name[0]) {
+        STRNCPY(name, DATA_("Remote Asset Library"));
+      }
+
+      BKE_preferences_asset_library_name_set(&U, new_library, name);
+      STRNCPY(new_library->remote_url, remote_url);
+      new_library->flag |= ASSET_LIBRARY_USE_REMOTE_URL;
+
+      MEM_freeN(remote_url);
+      break;
+    }
+  }
+
   /* Activate new library in the UI for further setup. */
   U.active_asset_library = BLI_findindex(&U.asset_libraries, new_library);
   U.runtime.is_dirty = true;
@@ -155,20 +200,46 @@ static int preferences_asset_library_add_exec(bContext *C, wmOperator *op)
   WM_main_add_notifier(NC_WINDOW, nullptr);
   blender::ed::asset::list::clear_all_library(C);
 
-  MEM_freeN(path);
   return OPERATOR_FINISHED;
 }
 
-static int preferences_asset_library_add_invoke(bContext *C,
-                                                wmOperator *op,
-                                                const wmEvent * /*event*/)
+static int preferences_asset_library_add_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  if (!RNA_struct_property_is_set(op->ptr, "directory")) {
+  const bUserAssetLibraryAddType library_type = bUserAssetLibraryAddType(
+      RNA_enum_get(op->ptr, "type"));
+
+  if ((library_type == bUserAssetLibraryAddType::Local) &&
+      !RNA_struct_property_is_set(op->ptr, "directory"))
+  {
     WM_event_add_fileselect(C, op);
     return OPERATOR_RUNNING_MODAL;
   }
 
-  return preferences_asset_library_add_exec(C, op);
+  return WM_operator_props_popup_confirm_ex(
+      C, op, event, IFACE_("Add Asset Library"), IFACE_("Create"));
+}
+
+static void preferences_asset_library_add_ui(bContext * /*C*/, wmOperator *op)
+{
+
+  uiLayout *layout = op->layout;
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+
+  PointerRNA *ptr = op->ptr;
+  const bUserAssetLibraryAddType library_type = bUserAssetLibraryAddType(
+      RNA_enum_get(ptr, "type"));
+  switch (library_type) {
+    case bUserAssetLibraryAddType::Remote: {
+      uiItemR(layout, op->ptr, "remote_url", UI_ITEM_R_IMMEDIATE, nullptr, ICON_NONE);
+      break;
+    }
+    case bUserAssetLibraryAddType::Local: {
+      BLI_assert_unreachable();
+      uiItemR(layout, op->ptr, "name", UI_ITEM_R_IMMEDIATE, nullptr, ICON_NONE);
+      break;
+    }
+  }
 }
 
 static void PREFERENCES_OT_asset_library_add(wmOperatorType *ot)
@@ -179,8 +250,9 @@ static void PREFERENCES_OT_asset_library_add(wmOperatorType *ot)
 
   ot->exec = preferences_asset_library_add_exec;
   ot->invoke = preferences_asset_library_add_invoke;
+  ot->ui = preferences_asset_library_add_ui;
 
-  ot->flag = OPTYPE_INTERNAL;
+  ot->flag = OPTYPE_INTERNAL | OPTYPE_REGISTER;
 
   WM_operator_properties_filesel(ot,
                                  FILE_TYPE_FOLDER,
@@ -189,6 +261,53 @@ static void PREFERENCES_OT_asset_library_add(wmOperatorType *ot)
                                  WM_FILESEL_DIRECTORY,
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_DEFAULT);
+
+  static const EnumPropertyItem custom_library_type_items[] = {
+      {int(bUserAssetLibraryAddType::Remote),
+       "REMOTE",
+       ICON_INTERNET,
+       "Add Remote Asset Library",
+       "Add an asset library referencing a remote repository "
+       "with support for listing and updating asset libraries"},
+      {int(bUserAssetLibraryAddType::Local),
+       "LOCAL",
+       ICON_DISK_DRIVE,
+       "Add Local Asset Library",
+       "Add an asset library managed via the file system without referencing an external "
+       "repository"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  /* Copy the RNA values are copied into the operator to avoid repetition. */
+  StructRNA *type_ref = &RNA_UserAssetLibrary;
+
+  { /* Name. */
+    const char *prop_id = "name";
+    const PropertyRNA *prop_ref = RNA_struct_type_find_property(type_ref, prop_id);
+    PropertyRNA *prop = RNA_def_string(ot->srna,
+                                       prop_id,
+                                       nullptr,
+                                       sizeof(bUserExtensionRepo::name),
+                                       RNA_property_ui_name_raw(prop_ref),
+                                       RNA_property_ui_description_raw(prop_ref));
+    RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  }
+
+  { /* Remote Path. */
+    const char *prop_id = "remote_url";
+    const PropertyRNA *prop_ref = RNA_struct_type_find_property(type_ref, prop_id);
+    PropertyRNA *prop = RNA_def_string(ot->srna,
+                                       prop_id,
+                                       nullptr,
+                                       sizeof(bUserAssetLibrary::remote_url),
+                                       RNA_property_ui_name_raw(prop_ref),
+                                       RNA_property_ui_description_raw(prop_ref));
+    RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  }
+
+  ot->prop = RNA_def_enum(
+      ot->srna, "type", custom_library_type_items, 0, "Type", "The kind of asset library to add");
+  RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
 
 /** \} */
@@ -315,7 +434,7 @@ static int preferences_extension_repo_add_exec(bContext *C, wmOperator *op)
     if (name[0] == '\0') {
       switch (repo_type) {
         case bUserExtensionRepoAddType::Remote: {
-          BKE_preferences_extension_remote_to_name(remote_url, name);
+          BKE_preferences_remote_to_name(remote_url, name);
           break;
         }
         case bUserExtensionRepoAddType::Local: {
@@ -987,7 +1106,7 @@ static bool drop_extension_url_poll(bContext * /*C*/, wmDrag *drag, const wmEven
 
   /* Only URL formatted text. */
   const char *cstr = str.c_str();
-  if (BKE_preferences_extension_repo_remote_scheme_end(cstr) == 0) {
+  if (BKE_preferences_remote_scheme_end(cstr) == 0) {
     return false;
   }
 
