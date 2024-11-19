@@ -511,12 +511,6 @@ bool USD_import(const bContext *C,
   job->is_background_job = as_background_job;
   STRNCPY(job->filepath, filepath);
 
-  job->settings.scale = params->scale;
-  job->settings.sequence_offset = params->offset;
-  job->settings.is_sequence = params->is_sequence;
-  job->settings.sequence_len = params->sequence_len;
-  job->settings.validate_meshes = params->validate_meshes;
-  job->settings.sequence_len = params->sequence_len;
   job->error_code = USD_NO_ERROR;
   job->was_canceled = false;
   job->archive = nullptr;
