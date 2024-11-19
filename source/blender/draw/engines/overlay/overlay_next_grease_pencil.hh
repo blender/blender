@@ -158,12 +158,16 @@ class GreasePencil {
       gpu::Batch *geom = show_weight_ ?
                              DRW_cache_grease_pencil_weight_points_get(state.scene, ob) :
                              DRW_cache_grease_pencil_edit_points_get(state.scene, ob);
-      edit_points_->draw(geom, manager.unique_handle(ob_ref));
+      if (geom) {
+        edit_points_->draw(geom, manager.unique_handle(ob_ref));
+      }
     }
     if (show_lines_) {
       gpu::Batch *geom = show_weight_ ? DRW_cache_grease_pencil_weight_lines_get(state.scene, ob) :
                                         DRW_cache_grease_pencil_edit_lines_get(state.scene, ob);
-      edit_lines_->draw(geom, manager.unique_handle(ob_ref));
+      if (geom) {
+        edit_lines_->draw(geom, manager.unique_handle(ob_ref));
+      }
     }
   }
 
