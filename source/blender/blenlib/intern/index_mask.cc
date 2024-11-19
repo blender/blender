@@ -354,7 +354,7 @@ static void segments_from_indices(const Span<T> indices,
           segment_indices.size());
       while (!segment_indices.is_empty()) {
         const int64_t offset = segment_indices[0];
-        const int64_t next_segment_size = binary_search::find_predicate_begin(
+        const int64_t next_segment_size = binary_search::first_if(
             segment_indices.take_front(max_segment_size),
             [&](const T value) { return value - offset >= max_segment_size; });
         for (const int64_t i : IndexRange(next_segment_size)) {
@@ -836,7 +836,7 @@ std::optional<RawMaskIterator> IndexMask::find(const int64_t query_index) const
 
 std::optional<RawMaskIterator> IndexMask::find_larger_equal(const int64_t query_index) const
 {
-  const int64_t segment_i = binary_search::find_predicate_begin(
+  const int64_t segment_i = binary_search::first_if(
       IndexRange(segments_num_),
       [&](const int64_t seg_i) { return this->segment(seg_i).last() >= query_index; });
   if (segment_i == segments_num_) {
@@ -853,7 +853,7 @@ std::optional<RawMaskIterator> IndexMask::find_larger_equal(const int64_t query_
   }
   /* The query index is somewhere within this segment. */
   const int64_t local_index = query_index - segment.offset();
-  const int64_t index_in_segment = binary_search::find_predicate_begin(
+  const int64_t index_in_segment = binary_search::first_if(
       segment.base_span(), [&](const int16_t i) { return i >= local_index; });
   const int64_t actual_index_in_segment = index_in_segment + segment_begin_index;
   BLI_assert(actual_index_in_segment < max_segment_size);

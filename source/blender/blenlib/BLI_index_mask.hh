@@ -727,11 +727,10 @@ inline RawMaskIterator IndexMask::index_to_iterator(const int64_t index) const
   BLI_assert(index < indices_num_);
   RawMaskIterator it;
   const int64_t full_index = index + cumulative_segment_sizes_[0] + begin_index_in_segment_;
-  it.segment_i = -1 +
-                 binary_search::find_predicate_begin(
-                     cumulative_segment_sizes_,
-                     cumulative_segment_sizes_ + segments_num_ + 1,
-                     [&](const int64_t cumulative_size) { return cumulative_size > full_index; });
+  it.segment_i = binary_search::last_if(
+      cumulative_segment_sizes_,
+      cumulative_segment_sizes_ + segments_num_ + 1,
+      [&](const int64_t cumulative_size) { return cumulative_size <= full_index; });
   it.index_in_segment = full_index - cumulative_segment_sizes_[it.segment_i];
   return it;
 }
