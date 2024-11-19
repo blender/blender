@@ -482,7 +482,8 @@ static bke::CurvesGeometry reorder_strokes(const bke::CurvesGeometry &curves,
 static float get_factor_from_draw_speed(const bke::CurvesGeometry &curves,
                                         const float time_elapsed,
                                         const float speed_fac,
-                                        const float max_gap)
+                                        const float max_gap,
+                                        const float frame_duration)
 {
   const OffsetIndices<int> points_by_curve = curves.points_by_curve();
   const bke::AttributeAccessor attributes = curves.attributes();
@@ -505,7 +506,21 @@ static float get_factor_from_draw_speed(const bke::CurvesGeometry &curves,
     start_times[curve] = previous_end_time + gap_delta_time;
     accumulated_shift_delta_time += math::max(shifted_start_time - start_times[curve], 0.0f);
   }
-  const float limit = time_elapsed * speed_fac;
+
+  /* Caclulates the maximum time of this frame, which is the time between the beginning of the
+   * first stroke and the end of the last stroke. `start_times.last()` gives the starting time of
+   * the last stroke related to frame beginning, and `delta_time.last()` gives how long that stroke
+   * lasted.  */
+  const float max_time = start_times.last() + delta_times.last();
+
+  /* If the time needed for building the frame is shorter than frame length, this gives the
+   * percentage of time it needs to be compared to original drawing time. `max_time/speed_fac`
+   * gives time after speed scaling, then divided by `frame_duration` gives the percentage. */
+  const float time_compress_factor = math::max(max_time / speed_fac / frame_duration, 1.0f);
+
+  /* Finally actual building limit is then scaled with speed factor and time compress factor. */
+  const float limit = time_elapsed * speed_fac * time_compress_factor;
+
   for (const int curve : curves.curves_range()) {
     const float start_time = start_times[curve];
     for (const int point : points_by_curve[curve]) {
@@ -521,6 +536,7 @@ static float get_factor_from_draw_speed(const bke::CurvesGeometry &curves,
 static float get_build_factor(const GreasePencilBuildTimeMode time_mode,
                               const int current_frame,
                               const int start_frame,
+                              const int frame_duration,
                               const int length,
                               const float percentage,
                               const bke::CurvesGeometry &curves,
@@ -529,8 +545,10 @@ static float get_build_factor(const GreasePencilBuildTimeMode time_mode,
                               const float max_gap,
                               const float fade)
 {
+  const float use_time = blender::math::round(
+      float(current_frame) / float(math::min(frame_duration, length)) * float(length));
   const float build_factor_frames = math::clamp(
-                                        float(current_frame - start_frame) / length, 0.0f, 1.0f) *
+                                        float(use_time - start_frame) / length, 0.0f, 1.0f) *
                                     (1.0f + fade);
   switch (time_mode) {
     case MOD_GREASE_PENCIL_BUILD_TIMEMODE_FRAMES:
@@ -543,8 +561,11 @@ static float get_build_factor(const GreasePencilBuildTimeMode time_mode,
       if (!curves.attributes().contains("delta_time")) {
         return build_factor_frames;
       }
-      return get_factor_from_draw_speed(
-                 curves, float(current_frame) / scene_fps, speed_fac, max_gap) *
+      return get_factor_from_draw_speed(curves,
+                                        float(current_frame) / scene_fps,
+                                        speed_fac,
+                                        max_gap,
+                                        float(frame_duration) / scene_fps) *
              (1.0f + fade);
   }
   BLI_assert_unreachable();
@@ -556,6 +577,7 @@ static void build_drawing(const GreasePencilBuildModifierData &mmd,
                           bke::greasepencil::Drawing &drawing,
                           const bke::greasepencil::Drawing *previous_drawing,
                           const int current_time,
+                          const int frame_duration,
                           const float scene_fps)
 {
   modifier::greasepencil::ensure_no_bezier_curves(drawing);
@@ -596,6 +618,7 @@ static void build_drawing(const GreasePencilBuildModifierData &mmd,
   float factor = get_build_factor(GreasePencilBuildTimeMode(mmd.time_mode),
                                   current_time,
                                   mmd.start_delay,
+                                  frame_duration,
                                   mmd.length,
                                   mmd.percentage_fac,
                                   curves,
@@ -697,15 +720,19 @@ static void modify_geometry_set(ModifierData *md,
         const int frame_index = layer.sorted_keys_index_at(eval_frame);
         BLI_assert(frame_index != -1);
 
-        int time = relative_start_frame;
+        int frame_duration = INT_MAX;
         if (frame_index != layer.sorted_keys().index_range().last()) {
           const int next_frame = layer.sorted_keys()[frame_index + 1];
-          const int frame_duration = math::distance(start_frame, next_frame);
-          time = math::round(float(relative_start_frame) /
-                             math::min(float(frame_duration), mmd->length) * mmd->length);
+          frame_duration = math::distance(start_frame, next_frame);
         }
 
-        build_drawing(*mmd, *ctx->object, *drawing_info.drawing, prev_drawing, time, scene_fps);
+        build_drawing(*mmd,
+                      *ctx->object,
+                      *drawing_info.drawing,
+                      prev_drawing,
+                      relative_start_frame,
+                      frame_duration,
+                      scene_fps);
       });
 }
 
