@@ -3012,7 +3012,7 @@ void Armatures::draw_armature_pose(Armatures::DrawContext *ctx)
 
   bool is_pose_select = false;
   /* Object can be edited in the scene. */
-  if ((ob->base_flag & (BASE_FROM_SET | BASE_FROM_DUPLI)) == 0) {
+  if (!is_from_dupli_or_set(ob)) {
     if ((draw_ctx->object_mode & OB_MODE_POSE) || (ob == draw_ctx->object_pose)) {
       ctx->draw_mode = ARM_DRAW_MODE_POSE;
     }

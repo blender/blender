@@ -51,7 +51,7 @@ class Bounds {
   void object_sync(const ObjectRef &ob_ref, Resources &res, const State &state)
   {
     const Object *ob = ob_ref.object;
-    const bool from_dupli = (ob->base_flag & (BASE_FROM_SET | BASE_FROM_DUPLI)) != 0;
+    const bool from_dupli = is_from_dupli_or_set(ob);
     const bool has_bounds = !ELEM(
         ob->type, OB_LAMP, OB_CAMERA, OB_EMPTY, OB_SPEAKER, OB_LIGHTPROBE);
     const bool draw_bounds = has_bounds && ((ob->dt == OB_BOUNDBOX) ||

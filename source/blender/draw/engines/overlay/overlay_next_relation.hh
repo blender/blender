@@ -52,7 +52,7 @@ class Relations {
     }
 
     /* Don't show object extras in set's. */
-    if (ob_ref.object->base_flag & (BASE_FROM_SET | BASE_FROM_DUPLI)) {
+    if (is_from_dupli_or_set(ob_ref)) {
       return;
     }
 

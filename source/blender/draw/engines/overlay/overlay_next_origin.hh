@@ -35,6 +35,12 @@ class Origins {
     if (!enabled_) {
       return;
     }
+
+    /* Don't show object extras in set's. */
+    if (is_from_dupli_or_set(ob_ref)) {
+      return;
+    }
+
     const Object *ob = ob_ref.object;
     const bool is_library = ID_REAL_USERS(&ob->id) > 1 || ID_IS_LINKED(ob);
     BKE_view_layer_synced_ensure(state.scene, (ViewLayer *)state.view_layer);
