@@ -1759,11 +1759,13 @@ class USERPREF_UL_asset_libraries(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
         asset_library = item
 
+        icon = 'INTERNET' if asset_library.use_remote_url else 'DISK_DRIVE'
+
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.prop(asset_library, "name", text="", emboss=False)
+            layout.prop(asset_library, "name", text="", icon=icon, emboss=False)
         elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
-            layout.prop(asset_library, "name", text="", emboss=False)
+            layout.prop(asset_library, "name", text="", icon=icon, emboss=False)
 
 
 class USERPREF_UL_extension_repos(UIList):
