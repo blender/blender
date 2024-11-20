@@ -396,7 +396,7 @@ class Cameras {
     };
 
     DRWState draw_state;
-    draw_state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_GREATER | DRW_STATE_BLEND_ALPHA_PREMUL;
+    draw_state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_PREMUL;
     init_pass(background_ps_, draw_state);
 
     draw_state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_UNDER_PREMUL;
@@ -636,7 +636,7 @@ class Cameras {
     manager.submit(ps_, view);
   }
 
-  void draw_scene_background_images(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_scene_background_images(GPUFrameBuffer *framebuffer, Manager &manager, View &view)
   {
     if (!enabled_) {
       return;

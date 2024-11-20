@@ -450,6 +450,9 @@ void Instance::draw(Manager &manager)
     draw_scope.begin_capture();
   }
 
+  regular.cameras.draw_scene_background_images(resources.render_fb, manager, view);
+  infront.cameras.draw_scene_background_images(resources.render_fb, manager, view);
+
   regular.sculpts.draw_on_render(resources.render_fb, manager, view);
   regular.mesh_uvs.draw_on_render(resources.render_fb, manager, view);
   infront.sculpts.draw_on_render(resources.render_in_front_fb, manager, view);
@@ -464,13 +467,6 @@ void Instance::draw(Manager &manager)
   else {
     GPU_framebuffer_clear_color(resources.overlay_line_fb, clear_color);
   }
-
-  regular.cameras.draw_scene_background_images(resources.overlay_color_only_fb, manager, view);
-  infront.cameras.draw_scene_background_images(resources.overlay_color_only_fb, manager, view);
-
-  regular.empties.draw_background_images(resources.overlay_color_only_fb, manager, view);
-  regular.cameras.draw_background_images(resources.overlay_color_only_fb, manager, view);
-  infront.cameras.draw_background_images(resources.overlay_color_only_fb, manager, view);
 
   /* TODO(fclem): Would be better to have a v2d overlay class instead of this condition. */
   if (state.space_type == SPACE_IMAGE) {
@@ -539,11 +535,23 @@ void Instance::draw(Manager &manager)
   draw_layer_color_only(regular, resources.overlay_color_only_fb);
   draw_layer_color_only(infront, resources.overlay_color_only_fb);
 
+  regular.empties.draw_in_front_images(resources.overlay_color_only_fb, manager, view);
   infront.empties.draw_in_front_images(resources.overlay_color_only_fb, manager, view);
   regular.cameras.draw_in_front(resources.overlay_color_only_fb, manager, view);
   infront.cameras.draw_in_front(resources.overlay_color_only_fb, manager, view);
 
   origins.draw(resources.overlay_color_only_fb, manager, view);
+
+  /* Don't clear background for the node editor. The node editor draws the background and we
+   * need to mask out the image from the already drawn overlay color buffer. */
+  if (state.space_type != SPACE_NODE) {
+    GPU_framebuffer_bind(resources.overlay_output_fb);
+    GPU_framebuffer_clear_color(resources.overlay_output_fb, clear_color);
+  }
+
+  regular.cameras.draw_background_images(resources.overlay_output_fb, manager, view);
+  infront.cameras.draw_background_images(resources.overlay_output_fb, manager, view);
+  regular.empties.draw_background_images(resources.overlay_output_fb, manager, view);
 
   background.draw(resources.overlay_output_fb, manager, view);
   anti_aliasing.draw(resources.overlay_output_fb, manager, view);
