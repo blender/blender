@@ -1913,6 +1913,7 @@ IDNewNameResult BKE_id_new_name_validate(Main &bmain,
         result.action = IDNewNameResult::Action::RENAMED_COLLISION_FORCED;
       }
       id_sort_by_name(&lb, &id, nullptr);
+
       return result;
     }
   }
@@ -2334,10 +2335,8 @@ IDNewNameResult BKE_id_rename(Main &bmain,
 {
   const IDNewNameResult result = BKE_libblock_rename(bmain, id, name, mode);
 
-  if (!ELEM(result.action,
-            IDNewNameResult::Action::UNCHANGED,
-            IDNewNameResult::Action::UNCHANGED_COLLISION))
-  {
+  auto deg_tag_id = [](ID &id) -> void {
+    DEG_id_tag_update(&id, ID_RECALC_SYNC_TO_EVAL);
     switch (GS(id.name)) {
       case ID_OB: {
         Object &ob = reinterpret_cast<Object &>(id);
@@ -2349,6 +2348,21 @@ IDNewNameResult BKE_id_rename(Main &bmain,
       default:
         break;
     }
+  };
+
+  switch (result.action) {
+    case IDNewNameResult::Action::UNCHANGED:
+    case IDNewNameResult::Action::UNCHANGED_COLLISION:
+      break;
+    case IDNewNameResult::Action::RENAMED_NO_COLLISION:
+    case IDNewNameResult::Action::RENAMED_COLLISION_ADJUSTED:
+      deg_tag_id(id);
+      break;
+    case IDNewNameResult::Action::RENAMED_COLLISION_FORCED:
+      BLI_assert(result.other_id);
+      deg_tag_id(*result.other_id);
+      deg_tag_id(id);
+      break;
   }
 
   return result;
