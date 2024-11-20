@@ -442,6 +442,11 @@ static bool object_transfer_mode_to_base(bContext *C,
     BKE_view_layer_base_deselect_all(scene, view_layer);
     BKE_view_layer_base_select_and_set_active(view_layer, base_dst);
 
+    /* Not entirely clear why, but this extra undo step (the two calls to #mode_set_ex should
+     * already create their own) is required. Otherwise some mode switching does not work as
+     * expected on undo/redo (see #130420 with Sculpt mode). */
+    ED_undo_push(C, "Change Active");
+
     mode_set_ex(C, mode_dst, true, op->reports);
 
     if (RNA_boolean_get(op->ptr, "use_flash_on_transfer")) {

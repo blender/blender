@@ -267,7 +267,7 @@ static int unpack_all_invoke(bContext *C, wmOperator *op, const wmEvent * /*even
   }
 
   const std::string title = fmt::format(
-      IFACE_("Unpack - Files: {}, Bakes: {}"), count.individual_files, count.bakes);
+      fmt::runtime(IFACE_("Unpack - Files: {}, Bakes: {}")), count.individual_files, count.bakes);
 
   pup = UI_popup_menu_begin(C, title.c_str(), ICON_NONE);
   layout = UI_popup_menu_layout(pup);

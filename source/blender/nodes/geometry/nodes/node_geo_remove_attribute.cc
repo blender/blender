@@ -128,12 +128,14 @@ static void node_geo_exec(GeoNodeExecParams params)
     for (const StringRef attribute_name : failed_attributes) {
       quoted_attribute_names.append(fmt::format("\"{}\"", attribute_name));
     }
-    const std::string message = fmt::format(TIP_("Cannot remove built-in attributes: {}"),
-                                            fmt::join(quoted_attribute_names, ", "));
+    const std::string message = fmt::format(
+        fmt::runtime(TIP_("Cannot remove built-in attributes: {}")),
+        fmt::join(quoted_attribute_names, ", "));
     params.error_message_add(NodeWarningType::Warning, message);
   }
   else if (removed_attributes.is_empty() && pattern_mode == PatternMode::Exact) {
-    const std::string message = fmt::format(TIP_("Attribute does not exist: \"{}\""), pattern);
+    const std::string message = fmt::format(fmt::runtime(TIP_("Attribute does not exist: \"{}\"")),
+                                            pattern);
     params.error_message_add(NodeWarningType::Warning, message);
   }
 

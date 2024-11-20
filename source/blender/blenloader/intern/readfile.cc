@@ -1791,7 +1791,7 @@ static const char *get_alloc_name(FileData *fd,
   keyT key{block_alloc_name + struct_name, bh->nr};
   if (!storage.contains(key)) {
     const std::string alloc_string = fmt::format(
-        (is_id_data ? "{}{} (for ID type '{}')" : "{}{} (for block '{}')"),
+        fmt::runtime((is_id_data ? "{}{} (for ID type '{}')" : "{}{} (for block '{}')")),
         struct_name,
         bh->nr > 1 ? fmt::format("[{}]", bh->nr) : "",
         block_alloc_name);

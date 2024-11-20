@@ -856,7 +856,7 @@ wmDragPath *WM_drag_create_path_data(blender::Span<const char *> paths)
 
   if (path_data->paths.size() > 1) {
     std::string path_count = std::to_string(path_data->paths.size());
-    path_data->tooltip = fmt::format(TIP_("Dragging {} files"), path_count);
+    path_data->tooltip = fmt::format(fmt::runtime(TIP_("Dragging {} files")), path_count);
   }
 
   return path_data;

@@ -5880,7 +5880,7 @@ static std::string userpref_show_get_description(bContext *C,
     int section = RNA_property_enum_get(ptr, prop);
     const char *section_name;
     if (RNA_property_enum_name_gettexted(C, ptr, prop, section, &section_name)) {
-      return fmt::format(TIP_("Show {} preferences"), section_name);
+      return fmt::format(fmt::runtime(TIP_("Show {} preferences")), section_name);
     }
   }
   /* Fallback to default. */

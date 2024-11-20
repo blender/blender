@@ -122,6 +122,7 @@ void Instance::begin_sync()
   auto begin_sync_layer = [&](OverlayLayer &layer) {
     layer.armatures.begin_sync(resources, state);
     layer.attribute_viewer.begin_sync(resources, state);
+    layer.axes.begin_sync(resources, state);
     layer.bounds.begin_sync();
     layer.cameras.begin_sync(resources, state, view);
     layer.curves.begin_sync(resources, state, view);
@@ -287,6 +288,7 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
     layer.fluids.object_sync(manager, ob_ref, resources, state);
     layer.particles.object_sync(manager, ob_ref, resources, state);
     layer.relations.object_sync(ob_ref, resources, state);
+    layer.axes.object_sync(ob_ref, resources, state);
     layer.names.object_sync(ob_ref, resources, state);
 
     motion_paths.object_sync(ob_ref, resources, state);
@@ -305,6 +307,7 @@ void Instance::end_sync()
 
   auto end_sync_layer = [&](OverlayLayer &layer) {
     layer.armatures.end_sync(resources, shapes, state);
+    layer.axes.end_sync(resources, shapes, state);
     layer.bounds.end_sync(resources, shapes, state);
     layer.cameras.end_sync(resources, shapes, state);
     layer.edit_text.end_sync(resources, shapes, state);
@@ -495,6 +498,7 @@ void Instance::draw(Manager &manager)
     layer.wireframe.draw(framebuffer, resources, manager, view);
     layer.cameras.draw(framebuffer, manager, view);
     layer.empties.draw(framebuffer, manager, view);
+    layer.axes.draw(framebuffer, manager, view);
     layer.force_fields.draw(framebuffer, manager, view);
     layer.lights.draw(framebuffer, manager, view);
     layer.light_probes.draw(framebuffer, manager, view);
@@ -662,19 +666,9 @@ bool Instance::object_is_in_front(const Object *object, const State &state)
     case OB_ARMATURE:
       return (object->dtx & OB_DRAW_IN_FRONT) ||
              (state.do_pose_xray && Armatures::is_pose_mode(object, state));
-    case OB_MESH:
-    case OB_CURVES_LEGACY:
-    case OB_GREASE_PENCIL:
-    case OB_SURF:
-    case OB_LATTICE:
-    case OB_MBALL:
-    case OB_FONT:
-    case OB_CURVES:
-    case OB_POINTCLOUD:
-    case OB_VOLUME:
+    default:
       return state.use_in_front && (object->dtx & OB_DRAW_IN_FRONT);
   }
-  return false;
 }
 
 bool Instance::object_needs_prepass(const ObjectRef &ob_ref, bool in_paint_mode)

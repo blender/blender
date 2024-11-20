@@ -13,6 +13,7 @@
 #include "overlay_next_antialiasing.hh"
 #include "overlay_next_armature.hh"
 #include "overlay_next_attribute_viewer.hh"
+#include "overlay_next_axes.hh"
 #include "overlay_next_background.hh"
 #include "overlay_next_bounds.hh"
 #include "overlay_next_camera.hh"
@@ -67,7 +68,7 @@ class Instance {
 
   /** Overlay types. */
   Background background;
-  Origins origins;
+  Origins origins = {selection_type_};
   Outline outline;
   MotionPath motion_paths;
 
@@ -76,6 +77,7 @@ class Instance {
 
     Armatures armatures = {selection_type_};
     AttributeViewer attribute_viewer;
+    Axes axes = {selection_type_};
     Bounds bounds = {selection_type_};
     Cameras cameras = {selection_type_};
     Curves curves;

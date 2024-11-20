@@ -454,7 +454,7 @@ std::string make_anonymous_attribute_socket_inspection_string(const bNodeSocket 
 std::string make_anonymous_attribute_socket_inspection_string(StringRef node_name,
                                                               StringRef socket_name)
 {
-  return fmt::format(TIP_("\"{}\" from {}"), socket_name, node_name);
+  return fmt::format(fmt::runtime(TIP_("\"{}\" from {}")), socket_name, node_name);
 }
 
 static void execute_multi_function_on_value_variant__single(
@@ -1172,7 +1172,8 @@ class LazyFunctionForGroupNode : public LazyFunction {
 
   std::string name() const override
   {
-    return fmt::format(TIP_("Group '{}' ({})"), group_node_.id->name + 2, group_node_.name);
+    return fmt::format(
+        fmt::runtime(TIP_("Group '{}' ({})")), group_node_.id->name + 2, group_node_.name);
   }
 
   std::string input_name(const int i) const override

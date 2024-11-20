@@ -6597,8 +6597,9 @@ static std::string ui_template_status_tooltip(bContext *C, void * /*argN*/, cons
     char writer_ver_str[12];
     BKE_blender_version_blendfile_string_from_values(
         writer_ver_str, sizeof(writer_ver_str), bmain->versionfile, -1);
-    tooltip_message += fmt::format(RPT_("File saved by newer Blender\n({}), expect loss of data"),
-                                   writer_ver_str);
+    tooltip_message += fmt::format(
+        fmt::runtime(RPT_("File saved by newer Blender\n({}), expect loss of data")),
+        writer_ver_str);
   }
   if (bmain->is_asset_edit_file) {
     if (!tooltip_message.empty()) {

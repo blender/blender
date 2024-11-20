@@ -153,7 +153,7 @@ if(WITH_WINDOWS_BUNDLE_CRT)
     endif()
   endforeach()
   # Install the CRT to the blender.crt Sub folder.
-  install(FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION ./blender.crt COMPONENT Libraries)
+  install(FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION blender.crt COMPONENT Libraries)
 
   windows_generate_manifest(
     FILES "${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}"
@@ -161,7 +161,7 @@ if(WITH_WINDOWS_BUNDLE_CRT)
     NAME "blender.crt"
   )
 
-  install(FILES ${CMAKE_BINARY_DIR}/blender.crt.manifest DESTINATION ./blender.crt)
+  install(FILES ${CMAKE_BINARY_DIR}/blender.crt.manifest DESTINATION blender.crt)
   set(BUNDLECRT "<dependency><dependentAssembly><assemblyIdentity type=\"win32\" name=\"blender.crt\" version=\"1.0.0.0\" /></dependentAssembly></dependency>")
 endif()
 if(NOT WITH_PYTHON_MODULE)

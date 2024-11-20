@@ -106,11 +106,11 @@ static void applyShrinkFatten(TransInfo *t)
   t->values_final[0] = distance;
 
   /* Header print for NumInput. */
-  fmt::format_to(fmt::appender(str), IFACE_("Shrink/Fatten: "));
+  fmt::format_to(fmt::appender(str), "{}", IFACE_("Shrink/Fatten: "));
   if (hasNumInput(&t->num)) {
     char c[NUM_STR_REP_LEN];
     outputNumInput(&(t->num), c, unit);
-    fmt::format_to(fmt::appender(str), c);
+    fmt::format_to(fmt::appender(str), "{}", c);
   }
   else {
     /* Default header print. */
@@ -118,7 +118,7 @@ static void applyShrinkFatten(TransInfo *t)
       char unit_str[64];
       BKE_unit_value_as_string(
           unit_str, sizeof(unit_str), distance * unit->scale_length, 4, B_UNIT_LENGTH, unit, true);
-      fmt::format_to(fmt::appender(str), unit_str);
+      fmt::format_to(fmt::appender(str), "{}", unit_str);
     }
     else {
       fmt::format_to(fmt::appender(str), "{:.4f}", distance);
@@ -136,7 +136,7 @@ static void applyShrinkFatten(TransInfo *t)
   }
 
   fmt::format_to(fmt::appender(str),
-                 IFACE_(" or Alt) Even Thickness {}"),
+                 fmt::runtime(IFACE_(" or Alt) Even Thickness {}")),
                  WM_bool_as_string((t->flag & T_ALT_TRANSFORM) != 0));
   /* Done with header string. */
 

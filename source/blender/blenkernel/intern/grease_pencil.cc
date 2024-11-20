@@ -270,10 +270,10 @@ IDTypeInfo IDType_ID_GP = {
 
 namespace blender::bke::greasepencil {
 
-static const std::string ATTR_RADIUS = "radius";
-static const std::string ATTR_OPACITY = "opacity";
-static const std::string ATTR_VERTEX_COLOR = "vertex_color";
-static const std::string ATTR_FILL_COLOR = "fill_color";
+constexpr StringRef ATTR_RADIUS = "radius";
+constexpr StringRef ATTR_OPACITY = "opacity";
+constexpr StringRef ATTR_VERTEX_COLOR = "vertex_color";
+constexpr StringRef ATTR_FILL_COLOR = "fill_color";
 
 /* Curves attributes getters */
 static int domain_num(const CurvesGeometry &curves, const AttrDomain domain)

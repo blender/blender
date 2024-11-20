@@ -166,7 +166,7 @@ ShaderModule::ShaderModule(const SelectionType selection_type, const bool clippi
   curve_edit_line = shader("overlay_edit_particle_strand",
                            [](gpu::shader::ShaderCreateInfo &info) { shader_patch_common(info); });
 
-  extra_point = shader("overlay_extra_point", [](gpu::shader::ShaderCreateInfo &info) {
+  extra_point = selectable_shader("overlay_extra_point", [](gpu::shader::ShaderCreateInfo &info) {
     info.additional_infos_.clear();
     info.vertex_inputs_.pop_last();
     info.push_constants_.pop_last();

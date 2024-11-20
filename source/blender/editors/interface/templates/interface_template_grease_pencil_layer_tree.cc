@@ -82,11 +82,14 @@ class LayerNodeDropTarget : public TreeViewItemDropTarget {
 
     switch (drag_info.drop_location) {
       case DropLocation::Into:
-        return fmt::format(TIP_("Move {} {} into {}"), node_type, drag_name, drop_name);
+        return fmt::format(
+            fmt::runtime(TIP_("Move {} {} into {}")), node_type, drag_name, drop_name);
       case DropLocation::Before:
-        return fmt::format(TIP_("Move {} {} above {}"), node_type, drag_name, drop_name);
+        return fmt::format(
+            fmt::runtime(TIP_("Move {} {} above {}")), node_type, drag_name, drop_name);
       case DropLocation::After:
-        return fmt::format(TIP_("Move {} {} below {}"), node_type, drag_name, drop_name);
+        return fmt::format(
+            fmt::runtime(TIP_("Move {} {} below {}")), node_type, drag_name, drop_name);
       default:
         BLI_assert_unreachable();
         break;
