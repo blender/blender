@@ -286,6 +286,7 @@ class Armatures {
         sub.shader_set(res.shaders.armature_shape_wire.get());
         sub.bind_ubo("globalsBlock", &res.globals_buf);
         sub.push_constant("alpha", 1.0f);
+        sub.push_constant("do_smooth_wire", do_smooth_wire);
         opaque_.shape_wire = &sub;
       }
       if (use_wire_alpha) {
