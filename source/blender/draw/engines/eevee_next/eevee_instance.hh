@@ -231,7 +231,7 @@ class Instance {
   /* Append a new line to the info string. */
   template<typename... Args> void info_append(const char *msg, Args &&...args)
   {
-    info_ += fmt::format(msg, args...);
+    info_ += fmt::format(fmt::runtime(msg), args...);
     info_ += "\n";
   }
 
@@ -239,7 +239,7 @@ class Instance {
    * NOTE: When calling this function, `msg` should be a string literal. */
   template<typename... Args> void info_append_i18n(const char *msg, Args &&...args)
   {
-    std::string fmt_msg = fmt::format(RPT_(msg), args...) + "\n";
+    std::string fmt_msg = fmt::format(fmt::runtime(RPT_(msg)), args...) + "\n";
     /* Don't print the same error twice. */
     if (info_ != fmt_msg && !BLI_str_endswith(info_.c_str(), fmt_msg.c_str())) {
       info_ += fmt_msg;

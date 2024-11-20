@@ -8113,11 +8113,11 @@ static void point_normals_update_header(bContext *C, wmOperator *op)
   };
 
   const std::string header = fmt::format(
-      IFACE_("{}: confirm, {}: cancel, "
-             "{}: point to mouse ({}), {}: point to Pivot, "
-             "{}: point to object origin, {}: reset normals, "
-             "{}: set & point to 3D cursor, {}: select & point to mesh item, "
-             "{}: invert normals ({}), {}: spherize ({}), {}: align ({})"),
+      fmt::runtime(IFACE_("{}: confirm, {}: cancel, "
+                          "{}: point to mouse ({}), {}: point to Pivot, "
+                          "{}: point to object origin, {}: reset normals, "
+                          "{}: set & point to 3D cursor, {}: select & point to mesh item, "
+                          "{}: invert normals ({}), {}: spherize ({}), {}: align ({})")),
       get_modal_key_str(EDBM_CLNOR_MODAL_CONFIRM),
       get_modal_key_str(EDBM_CLNOR_MODAL_CANCEL),
       get_modal_key_str(EDBM_CLNOR_MODAL_POINTTO_USE_MOUSE),

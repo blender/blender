@@ -129,20 +129,22 @@ static std::string ui_drop_material_tooltip(bContext *C,
   const char *dragged_material_name = WM_drag_get_item_name(drag);
 
   if (prev_mat_in_slot) {
-    return fmt::format(TIP_("Drop {} on slot {} (replacing {}) of {}"),
+    return fmt::format(fmt::runtime(TIP_("Drop {} on slot {} (replacing {}) of {}")),
                        dragged_material_name,
                        target_slot,
                        prev_mat_in_slot->id.name + 2,
                        ob->id.name + 2);
   }
   if (target_slot == ob->actcol) {
-    return fmt::format(TIP_("Drop {} on slot {} (active slot) of {}"),
+    return fmt::format(fmt::runtime(TIP_("Drop {} on slot {} (active slot) of {}")),
                        dragged_material_name,
                        target_slot,
                        ob->id.name + 2);
   }
-  return fmt::format(
-      TIP_("Drop {} on slot {} of {}"), dragged_material_name, target_slot, ob->id.name + 2);
+  return fmt::format(fmt::runtime(TIP_("Drop {} on slot {} of {}")),
+                     dragged_material_name,
+                     target_slot,
+                     ob->id.name + 2);
 }
 
 /** \} */

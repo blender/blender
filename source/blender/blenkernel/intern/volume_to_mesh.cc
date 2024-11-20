@@ -104,7 +104,7 @@ struct VolumeToMeshOp {
           grid, this->verts, this->tris, this->quads, this->threshold, this->adaptivity);
     }
     catch (const std::exception &e) {
-      this->error = fmt::format(TIP_("OpenVDB error: {}"), e.what());
+      this->error = fmt::format(fmt::runtime(TIP_("OpenVDB error: {}")), e.what());
       this->verts.clear();
       this->tris.clear();
       this->quads.clear();

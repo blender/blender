@@ -139,9 +139,9 @@ class ReorderCollectionDropTarget : public TreeViewItemDropTarget {
       case DropLocation::Into:
         return "Add to linking collection";
       case DropLocation::Before:
-        return fmt::format(TIP_("Add to linking collection before {}"), drop_name);
+        return fmt::format(fmt::runtime(TIP_("Add to linking collection before {}")), drop_name);
       case DropLocation::After:
-        return fmt::format(TIP_("Add to linking collection after {}"), drop_name);
+        return fmt::format(fmt::runtime(TIP_("Add to linking collection after {}")), drop_name);
     }
 
     return "";

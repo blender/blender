@@ -115,7 +115,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       UI_but_func_tooltip_set(
           but,
           [](bContext * /*C*/, void *argN, const char * /*tip*/) {
-            return fmt::format(TIP_("{}"), *((int *)argN));
+            return fmt::format(fmt::runtime(TIP_("{}")), *((int *)argN));
           },
           MEM_cnew<int>(__func__, value),
           MEM_freeN);
@@ -168,7 +168,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       UI_but_func_tooltip_set(
           but,
           [](bContext * /*C*/, void *argN, const char * /*tip*/) {
-            return fmt::format(TIP_("{:f}"), *((float *)argN));
+            return fmt::format(fmt::runtime(TIP_("{:f}")), *((float *)argN));
           },
           MEM_cnew<float>(__func__, value),
           MEM_freeN);
@@ -304,7 +304,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       UI_but_func_tooltip_set(
           but,
           [](bContext * /*C*/, void *argN, const char * /*tip*/) {
-            return fmt::format(TIP_("{:f}"), *((float *)argN));
+            return fmt::format(fmt::runtime(TIP_("{:f}")), *((float *)argN));
           },
           MEM_cnew<float>(__func__, value),
           MEM_freeN);
@@ -339,7 +339,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       UI_but_func_tooltip_set(
           but,
           [](bContext * /*C*/, void *argN, const char * /*tip*/) {
-            return fmt::format(TIP_("{}"), *((int *)argN));
+            return fmt::format(fmt::runtime(TIP_("{}")), *((int *)argN));
           },
           MEM_cnew<int>(__func__, value),
           MEM_freeN);
@@ -382,7 +382,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
           [](bContext * /*C*/, void *argN, const char * /*tip*/) {
             const uint32_t uint_color = POINTER_AS_UINT(argN);
             ColorGeometry4b color = *(ColorGeometry4b *)&uint_color;
-            return fmt::format(TIP_("Byte Color (sRGB encoded):\n{}  {}  {}  {}"),
+            return fmt::format(fmt::runtime(TIP_("Byte Color (sRGB encoded):\n{}  {}  {}  {}")),
                                color.r,
                                color.g,
                                color.b,

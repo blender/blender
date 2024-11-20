@@ -661,9 +661,10 @@ bool get_bake_draw_context(const bContext *C, const bNode &node, BakeDrawContext
 std::string get_baked_string(const BakeDrawContext &ctx)
 {
   if (ctx.bake_still && ctx.baked_range->size() == 1) {
-    return fmt::format(RPT_("Baked Frame {}"), ctx.baked_range->first());
+    return fmt::format(fmt::runtime(RPT_("Baked Frame {}")), ctx.baked_range->first());
   }
-  return fmt::format(RPT_("Baked {} - {}"), ctx.baked_range->first(), ctx.baked_range->last());
+  return fmt::format(
+      fmt::runtime(RPT_("Baked {} - {}")), ctx.baked_range->first(), ctx.baked_range->last());
 }
 
 std::optional<std::string> get_bake_state_string(const BakeDrawContext &ctx)
@@ -677,14 +678,14 @@ std::optional<std::string> get_bake_state_string(const BakeDrawContext &ctx)
     char size_str[BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE];
     BLI_str_format_byte_unit(size_str, ctx.bake->bake_size, true);
     if (ctx.bake->packed) {
-      return fmt::format(RPT_("{} ({} packed)"), baked_str, size_str);
+      return fmt::format(fmt::runtime(RPT_("{} ({} packed)")), baked_str, size_str);
     }
-    return fmt::format(RPT_("{} ({} on disk)"), baked_str, size_str);
+    return fmt::format(fmt::runtime(RPT_("{} ({} on disk)")), baked_str, size_str);
   }
   if (ctx.frame_range.has_value()) {
     if (!ctx.bake_still) {
       return fmt::format(
-          RPT_("Frames {} - {}"), ctx.frame_range->first(), ctx.frame_range->last());
+          fmt::runtime(RPT_("Frames {} - {}")), ctx.frame_range->first(), ctx.frame_range->last());
     }
   }
   return std::nullopt;
