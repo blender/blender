@@ -212,7 +212,7 @@ endif()
 # /Zc:preprocessor: Available from MSVC 16.5 (1925) and up. Enables standards-conforming
 #                   preprocessor.
 if(NOT MSVC_CLANG)
-  string(APPEND CMAKE_CXX_FLAGS " /permissive- /Zc:__cplusplus /Zc:inline /Zc:lambda")
+  string(APPEND CMAKE_CXX_FLAGS " /permissive- /Zc:__cplusplus /Zc:inline")
   string(APPEND CMAKE_C_FLAGS   " /Zc:inline")
 
   # For ARM64 devices, we need to tell MSVC to use the new preprocessor
