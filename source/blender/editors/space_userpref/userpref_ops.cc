@@ -196,6 +196,14 @@ static int preferences_asset_library_add_exec(bContext *C, wmOperator *op)
   U.active_asset_library = BLI_findindex(&U.asset_libraries, new_library);
   U.runtime.is_dirty = true;
 
+  {
+    PointerRNA new_repo_ptr = RNA_pointer_create(nullptr, &RNA_UserAssetLibrary, new_library);
+    PointerRNA *pointers[] = {&new_repo_ptr};
+
+    BKE_callback_exec(
+        CTX_data_main(C), pointers, ARRAY_SIZE(pointers), BKE_CB_EVT_REMOTE_ASSET_LIBRARIES_SYNC);
+  }
+
   /* There's no dedicated notifier for the Preferences. */
   WM_main_add_notifier(NC_WINDOW, nullptr);
   blender::ed::asset::list::clear_all_library(C);

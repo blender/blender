@@ -377,6 +377,12 @@ static void rna_userdef_asset_library_clear_update(bContext *C, PointerRNA *ptr)
   rna_userdef_update(CTX_data_main(C), CTX_data_scene(C), ptr);
 }
 
+static void rna_userdef_asset_library_remote_sync_update(bContext *C, PointerRNA *ptr)
+{
+  BKE_callback_exec(CTX_data_main(C), &ptr, 1, BKE_CB_EVT_REMOTE_ASSET_LIBRARIES_SYNC);
+  rna_userdef_asset_library_clear_update(C, ptr);
+}
+
 /**
  * Use sparingly as a sync may be time consuming.
  * Any change that may cause loading remote data to change behavior
@@ -6920,10 +6926,8 @@ static void rna_def_userdef_filepaths_asset_library(BlenderRNA *brna)
   prop = RNA_def_property(srna, "remote_url", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, nullptr, "remote_url");
   RNA_def_property_ui_text(prop, "URL", "Remote URL to the asset library");
-  /* TODO call application handler to update remote index? Just like
-   * #rna_userdef_extension_sync_update(). */
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-  RNA_def_property_update(prop, 0, "rna_userdef_asset_library_clear_update");
+  RNA_def_property_update(prop, 0, "rna_userdef_asset_library_remote_sync_update");
 
   static const EnumPropertyItem import_method_items[] = {
       {ASSET_IMPORT_LINK, "LINK", 0, "Link", "Import the assets as linked data-block"},

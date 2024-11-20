@@ -382,6 +382,23 @@ def repos_to_notify():
 # Handlers
 
 @bpy.app.handlers.persistent
+def remote_asset_libraries_sync(library, *_):
+    # Ignore in background mode as this is for the UI to stay in sync.
+    # Automated tasks must sync explicitly.
+    if bpy.app.background:
+        return
+
+    print_debug("SYNC:", library.name)
+    # There may be nothing to upgrade.
+
+    if not library.use_remote_url:
+        return
+    if not bpy.app.online_access:
+        if not library.remote_url.startswith("file://"):
+            return
+
+
+@bpy.app.handlers.persistent
 def extenion_repos_sync(repo, *_):
     # Ignore in background mode as this is for the UI to stay in sync.
     # Automated tasks must sync explicitly.
@@ -723,6 +740,10 @@ def register():
 
     from bl_ui.space_userpref import USERPREF_MT_interface_theme_presets
     USERPREF_MT_interface_theme_presets.append(theme_preset_draw)
+
+    # pylint: disable-next=protected-access
+    handlers = bpy.app.handlers._remote_asset_libraries_sync
+    handlers.append(remote_asset_libraries_sync)
 
     # pylint: disable-next=protected-access
     handlers = bpy.app.handlers._extension_repos_sync
