@@ -2817,6 +2817,12 @@ static void update_paint_modes_for_brush_assets(Main &bmain)
   /* Replace persistent tool references with the new single builtin brush tool. */
   LISTBASE_FOREACH (WorkSpace *, workspace, &bmain.workspaces) {
     LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
+      if (STREQ(tref->idname, "builtin_brush.Draw")) {
+        /* Explicitly check against the old brush name, as the old texture paint image mode brush
+         * tool has a non-paint related mode. */
+        STRNCPY(tref->idname, "builtin.brush");
+        continue;
+      }
       if (tref->space_type != SPACE_VIEW3D) {
         continue;
       }
