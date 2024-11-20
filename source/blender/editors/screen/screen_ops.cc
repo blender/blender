@@ -4001,30 +4001,33 @@ static AreaDockTarget area_docking_target(sAreaJoinData *jd, const wmEvent *even
   jd->dir = SCREEN_DIR_NONE;
   jd->factor = 0.5f;
 
+  const float min_fac_x = 1.5f * AREAMINX * UI_SCALE_FAC / float(jd->sa2->winx);
+  const float min_fac_y = 1.5f * HEADERY * UI_SCALE_FAC / float(jd->sa2->winy);
+
   /* if the area is narrow then there are only two docking targets. */
-  if (jd->sa2->winx < min_x) {
+  if (jd->sa2->winx < (min_x * 3)) {
     if (fac_y > 0.4f && fac_y < 0.6f) {
       return AreaDockTarget::Center;
     }
     if (float(y) > float(jd->sa2->winy) / 2.0f) {
-      jd->factor = area_docking_snap(1.0f - float(y) / float(jd->sa2->winy), event);
+      jd->factor = area_docking_snap(std::max(1.0f - fac_y, min_fac_y), event);
       return AreaDockTarget::Top;
     }
     else {
-      jd->factor = area_docking_snap(float(y) / float(jd->sa2->winy), event);
+      jd->factor = area_docking_snap(std::max(fac_y, min_fac_y), event);
       return AreaDockTarget::Bottom;
     }
   }
-  if (jd->sa2->winy < min_y) {
+  if (jd->sa2->winy < (min_y * 3)) {
     if (fac_x > 0.4f && fac_x < 0.6f) {
       return AreaDockTarget::Center;
     }
     if (float(x) > float(jd->sa2->winx) / 2.0f) {
-      jd->factor = area_docking_snap(1.0f - float(x) / float(jd->sa2->winx), event);
+      jd->factor = area_docking_snap(std::max(1.0f - fac_x, min_fac_x), event);
       return AreaDockTarget::Right;
     }
     else {
-      jd->factor = area_docking_snap(float(x) / float(jd->sa2->winx), event);
+      jd->factor = area_docking_snap(std::max(fac_x, min_fac_x), event);
       return AreaDockTarget::Left;
     }
   }
@@ -4042,19 +4045,19 @@ static AreaDockTarget area_docking_target(sAreaJoinData *jd, const wmEvent *even
   const bool lower_left = float(x) / float(jd->sa2->winy - y + 1) < area_ratio;
 
   if (upper_left && !lower_left) {
-    jd->factor = area_docking_snap(1.0f - float(y) / float(jd->sa2->winy), event);
+    jd->factor = area_docking_snap(std::max(1.0f - fac_y, min_fac_y), event);
     return AreaDockTarget::Top;
   }
   if (!upper_left && lower_left) {
-    jd->factor = area_docking_snap(float(y) / float(jd->sa2->winy), event);
+    jd->factor = area_docking_snap(std::max(fac_y, min_fac_y), event);
     return AreaDockTarget::Bottom;
   }
   if (upper_left && lower_left) {
-    jd->factor = area_docking_snap(float(x) / float(jd->sa2->winx), event);
+    jd->factor = area_docking_snap(std::max(fac_x, min_fac_x), event);
     return AreaDockTarget::Left;
   }
   if (!upper_left && !lower_left) {
-    jd->factor = area_docking_snap(1.0f - float(x) / float(jd->sa2->winx), event);
+    jd->factor = area_docking_snap(std::max(1.0f - fac_x, min_fac_x), event);
     return AreaDockTarget::Right;
   }
   return AreaDockTarget::None;
