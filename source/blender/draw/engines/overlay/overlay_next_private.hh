@@ -297,6 +297,7 @@ class ShaderModule {
   ShaderPtr image_plane_depth_bias;
   ShaderPtr lattice_points;
   ShaderPtr lattice_wire;
+  ShaderPtr light_spot_cone;
   ShaderPtr particle_dot;
   ShaderPtr particle_shape;
   ShaderPtr particle_hair;

@@ -582,6 +582,15 @@ ShaderModule::ShaderModule(const SelectionType selection_type, const bool clippi
         info.push_constant(gpu::shader::Type::MAT4, "depth_bias_winmat");
       });
 
+  light_spot_cone = shader("overlay_extra", [](gpu::shader::ShaderCreateInfo &info) {
+    info.storage_buf(0, Qualifier::READ, "ExtraInstanceData", "data_buf[]");
+    info.define("color", "data_buf[gl_InstanceID].color_");
+    info.define("inst_obmat", "data_buf[gl_InstanceID].object_to_world_");
+    info.vertex_inputs_.pop_last();
+    info.vertex_inputs_.pop_last();
+    info.define("IS_SPOT_CONE");
+  });
+
   particle_dot = selectable_shader("overlay_particle_dot",
                                    [](gpu::shader::ShaderCreateInfo &info) {
                                      info.additional_infos_.clear();
