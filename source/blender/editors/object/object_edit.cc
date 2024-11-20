@@ -335,7 +335,7 @@ static int object_hide_view_set_exec(bContext *C, wmOperator *op)
   const bool unselected = RNA_boolean_get(op->ptr, "unselected");
   bool changed = false;
   const bool confirm = op->flag & OP_IS_INVOKE;
-  int hide_count = 0;
+  uint hide_count = 0;
 
   /* Hide selected or unselected objects. */
   BKE_view_layer_synced_ensure(scene, view_layer);
