@@ -3,9 +3,11 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_assert.h"
+#include "BLI_index_range.hh"
 #include "BLI_math_base.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_task.hh"
 
 #include "GPU_compute.hh"
 #include "GPU_shader.hh"
@@ -199,10 +201,10 @@ static void compute_complete_blocks(Context &context,
   output.unbind_as_image();
 }
 
-void summed_area_table(Context &context,
-                       Result &input,
-                       Result &output,
-                       SummedAreaTableOperation operation)
+static void summed_area_table_gpu(Context &context,
+                                  Result &input,
+                                  Result &output,
+                                  SummedAreaTableOperation operation)
 {
   Result incomplete_x_prologues = context.create_result(ResultType::Color, ResultPrecision::Full);
   Result incomplete_y_prologues = context.create_result(ResultType::Color, ResultPrecision::Full);
@@ -226,6 +228,55 @@ void summed_area_table(Context &context,
       context, input, complete_x_prologues, complete_y_prologues, operation, output);
   complete_x_prologues.release();
   complete_y_prologues.release();
+}
+
+/* Computes the summed area table as a cascade of a horizontal summing pass followed by a vertical
+ * summing pass. */
+static void summed_area_table_cpu(Result &input,
+                                  Result &output,
+                                  SummedAreaTableOperation operation)
+{
+  output.allocate_texture(input.domain());
+
+  /* Horizontal summing pass. */
+  const int2 size = input.domain().size;
+  threading::parallel_for(IndexRange(size.y), 1, [&](const IndexRange range_y) {
+    for (const int y : range_y) {
+      float4 accumulated_color = float4(0.0f);
+      for (const int x : IndexRange(size.x)) {
+        const int2 texel = int2(x, y);
+        const float4 color = input.load_pixel(texel);
+        accumulated_color += operation == SummedAreaTableOperation::Square ? color * color : color;
+        output.store_pixel(texel, accumulated_color);
+      }
+    }
+  });
+
+  /* Vertical summing pass. */
+  threading::parallel_for(IndexRange(size.x), 1, [&](const IndexRange range_x) {
+    for (const int x : range_x) {
+      float4 accumulated_color = float4(0.0f);
+      for (const int y : IndexRange(size.y)) {
+        const int2 texel = int2(x, y);
+        const float4 color = output.load_pixel(texel);
+        accumulated_color += color;
+        output.store_pixel(texel, accumulated_color);
+      }
+    }
+  });
+}
+
+void summed_area_table(Context &context,
+                       Result &input,
+                       Result &output,
+                       SummedAreaTableOperation operation)
+{
+  if (context.use_gpu()) {
+    summed_area_table_gpu(context, input, output, operation);
+  }
+  else {
+    summed_area_table_cpu(input, output, operation);
+  }
 }
 
 }  // namespace blender::realtime_compositor
