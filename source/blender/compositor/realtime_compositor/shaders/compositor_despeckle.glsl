@@ -3,13 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "gpu_shader_compositor_texture_utilities.glsl"
-
-/* Returns true if the given color is close enough to the given reference color within the
- * threshold supplied by the user, and returns false otherwise. */
-bool is_close(vec4 reference_color, vec4 color)
-{
-  return all(lessThan(abs(reference_color - color).rgb, vec3(threshold)));
-}
+#include "gpu_shader_math_vector_lib.glsl"
 
 void main()
 {
@@ -37,7 +31,7 @@ void main()
       float weight = weights[j][i];
       vec4 color = texture_load(input_tx, texel + ivec2(i - 1, j - 1)) * weight;
       sum_of_colors += color;
-      if (!is_close(center_color, color)) {
+      if (!is_equal(center_color.rgb, color.rgb, threshold)) {
         accumulated_color += color;
         accumulated_weight += weight;
       }
@@ -62,7 +56,7 @@ void main()
 
   /* If the weighted average color of the neighborhood is close enough to the center pixel, then no
    * need to despeckle anything, so write the original center color and return. */
-  if (is_close(center_color, sum_of_colors / sum_of_weights)) {
+  if (is_equal(center_color.rgb, (sum_of_colors / sum_of_weights).rgb, threshold)) {
     imageStore(output_img, texel, center_color);
     return;
   }
