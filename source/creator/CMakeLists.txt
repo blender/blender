@@ -1539,7 +1539,7 @@ elseif(WIN32)
     else()
       install(
         PROGRAMS $<TARGET_FILE:extern_draco>
-        DESTINATION ${TARGETDIR_VER}/python/lib/python${PYTHON_VERSION}/site-packages
+        DESTINATION ${TARGETDIR_VER}/python/lib/site-packages
       )
     endif()
   endif()
