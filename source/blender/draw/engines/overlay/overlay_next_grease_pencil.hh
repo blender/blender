@@ -55,8 +55,6 @@ class GreasePencil {
     const View3D *v3d = state.v3d;
     const ToolSettings *ts = state.scene->toolsettings;
 
-    const bke::AttrDomain selection_domain_edit = ED_grease_pencil_edit_selection_domain_get(ts);
-    const bool show_edit_point = selection_domain_edit == bke::AttrDomain::Point;
     const bool show_lines = (v3d->gp_flag & V3D_GP_SHOW_EDIT_LINES);
     const bool show_direction = (v3d->gp_flag & V3D_GP_SHOW_STROKE_DIRECTION);
 
@@ -71,7 +69,7 @@ class GreasePencil {
         break;
       case OB_MODE_EDIT:
         /* Edit mode. */
-        show_points_ = show_edit_point;
+        show_points_ = ED_grease_pencil_edit_selection_domain_get(ts) == bke::AttrDomain::Point;
         show_lines_ = show_lines;
         break;
       case OB_MODE_WEIGHT_GREASE_PENCIL:
@@ -82,7 +80,7 @@ class GreasePencil {
         break;
       case OB_MODE_SCULPT_GREASE_PENCIL:
         /* Sculpt mode. */
-        show_points_ = (selection_domain_edit == bke::AttrDomain::Point);
+        show_points_ = ED_grease_pencil_sculpt_selection_domain_get(ts) == bke::AttrDomain::Point;
         show_lines_ = show_lines && (ts->gpencil_selectmode_sculpt != 0);
         break;
       default:
