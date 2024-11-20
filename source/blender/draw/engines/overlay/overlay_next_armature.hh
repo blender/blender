@@ -282,7 +282,7 @@ class Armatures {
 
       {
         auto &sub = armature_ps_.sub("opaque.shape_wire");
-        sub.state_set(default_state, state.clipping_plane_count);
+        sub.state_set(default_state | DRW_STATE_BLEND_ALPHA, state.clipping_plane_count);
         sub.shader_set(res.shaders.armature_shape_wire.get());
         sub.bind_ubo("globalsBlock", &res.globals_buf);
         sub.push_constant("alpha", 1.0f);
