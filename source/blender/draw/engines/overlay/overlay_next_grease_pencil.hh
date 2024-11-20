@@ -66,6 +66,8 @@ class GreasePencil {
         break;
       case OB_MODE_VERTEX_GREASE_PENCIL:
         /* Vertex paint mode. */
+        show_lines_ = ED_grease_pencil_vertex_selection_domain_get(ts) == bke::AttrDomain::Point;
+        show_lines_ = show_lines;
         break;
       case OB_MODE_EDIT:
         /* Edit mode. */
