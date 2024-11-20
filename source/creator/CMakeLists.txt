@@ -40,6 +40,12 @@ if(WITH_TBB)
   list(INSERT LIB 0 bf_blenkernel)
 endif()
 
+if(WITH_OPENMP AND WITH_OPENMP_STATIC)
+  list(APPEND LIB
+    ${OpenMP_LIBRARIES}
+  )
+endif()
+
 if(WIN32)
   list(APPEND INC ../../intern/utfconv)
 endif()
