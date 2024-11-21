@@ -440,7 +440,10 @@ void Instance::draw(Manager &manager)
                                         GPU_ATTACHMENT_TEXTURE(resources.line_tx));
   resources.overlay_color_only_fb.ensure(GPU_ATTACHMENT_NONE,
                                          GPU_ATTACHMENT_TEXTURE(resources.overlay_tx));
-  resources.overlay_output_fb.ensure(GPU_ATTACHMENT_NONE,
+  /* The v2d path writes to the overlay output directly, but it needs a depth attachment. */
+  resources.overlay_output_fb.ensure(state.space_type == SPACE_IMAGE ?
+                                         GPUAttachment GPU_ATTACHMENT_TEXTURE(resources.depth_tx) :
+                                         GPUAttachment GPU_ATTACHMENT_NONE,
                                      GPU_ATTACHMENT_TEXTURE(resources.color_overlay_tx));
 
   static gpu::DebugScope select_scope = {"Selection"};
