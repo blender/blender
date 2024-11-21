@@ -968,34 +968,75 @@ std::string VKShader::fragment_interface_declare(const shader::ShaderCreateInfo 
   }
 
   ss << "\n/* Sub-pass Inputs. */\n";
+  const VKShaderInterface& interface = interface_get();
   const bool use_dynamic_rendering = !workarounds.dynamic_rendering;
-  uint32_t subpass_input_binding_index = 0;
-  for (const ShaderCreateInfo::SubpassIn &input : info.subpass_inputs_) {
-    std::string input_attachment_name = "gpu_input_attachment_";
-    input_attachment_name += std::to_string(input.index);
 
-    /* Declare global for input. */
-    ss << to_string(input.type) << " " << input.name << ";\n";
+  if (use_dynamic_rendering) {
+    uint32_t subpass_input_binding_index = 0;
+    for (const ShaderCreateInfo::SubpassIn &input : info.subpass_inputs_) {
+      std::string input_attachment_name = "gpu_input_attachment_";
+      input_attachment_name += std::to_string(input.index);
 
-    Type component_type = to_component_type(input.type);
-    char typePrefix;
-    switch (component_type)
-    {
-    case Type::INT: typePrefix = 'i'; break;
-    case Type::UINT: typePrefix = 'u'; break;
-    default: typePrefix = ' '; break;
+      /* Declare global for input. */
+      ss << to_string(input.type) << " " << input.name << ";\n";
+
+      Type component_type = to_component_type(input.type);
+      char typePrefix;
+      switch (component_type)
+      {
+      case Type::INT: typePrefix = 'i'; break;
+      case Type::UINT: typePrefix = 'u'; break;
+      default: typePrefix = ' '; break;
+      }
+      ss << "layout(input_attachment_index = " << (input.index) << ", binding = " << (subpass_input_binding_index++) << ") uniform "<< typePrefix << "subpassInput " << input_attachment_name << "; \n";
+
+      char swizzle[] = "xyzw";
+      swizzle[to_component_count(input.type)] = '\0';
+
+      std::stringstream ss_pre;
+      /* Populate the global before main using subpassLoad. */
+      ss_pre << "  " << input.name << " = " << input.type << "( subpassLoad(" << input_attachment_name << ")." << swizzle << " ); \n";
+
+      pre_main += ss_pre.str();
     }
-    ss << "layout(input_attachment_index = " << (input.index) << ", binding = " << (subpass_input_binding_index++) << ") uniform "<< typePrefix << "subpassInput " << input_attachment_name << "; \n";
-
-    char swizzle[] = "xyzw";
-    swizzle[to_component_count(input.type)] = '\0';
-
-    std::stringstream ss_pre;
-    /* Populate the global before main using subpassLoad. */
-    ss_pre << "  " << input.name << " = " << input.type << "( subpassLoad(" << input_attachment_name << ")." << swizzle << " ); \n";
-
-    pre_main += ss_pre.str();
   }
+  else {
+    /* Use subpass passes input attachments when dynamic rendering isn't available. */
+    for (const ShaderCreateInfo::SubpassIn &input : info.subpass_inputs_) {
+      using Resource = ShaderCreateInfo::Resource;
+      Resource res(Resource::BindType::SAMPLER, input.index);
+      const VKDescriptorSet::Location location = interface.descriptor_set_location(res);
+
+      std::string image_name = "gpu_subpass_img_" + std::to_string(input.index);
+
+      /* Declare global for input. */
+      ss << to_string(input.type) << " " << input.name << ";\n";
+      /* Declare subpass input. */
+      ss << "layout(input_attachment_index=" << input.index << ", set=0, binding=" << location
+         << ") uniform ";
+      switch (to_component_type(input.type)) {
+        case Type::INT:
+          ss << "isubpassInput";
+          break;
+        case Type::UINT:
+          ss << "usubpassInput";
+          break;
+        case Type::FLOAT:
+        default:
+          ss << "subpassInput";
+          break;
+      }
+      ss << " " << image_name << ";";
+
+      /* Read data from subpass input. */
+      char swizzle[] = "xyzw";
+      swizzle[to_component_count(input.type)] = '\0';
+      std::stringstream ss_pre;
+      ss_pre << "  " << input.name << " = subpassLoad(" << image_name << ")." << swizzle << ";\n";
+      pre_main += ss_pre.str();
+    }
+  }
+
 
   ss << "\n/* Outputs. */\n";
   int fragment_out_location = 0;

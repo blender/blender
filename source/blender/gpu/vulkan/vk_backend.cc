@@ -54,16 +54,19 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   Vector<StringRefNull> missing_capabilities;
   /* Check device features. */
   VkPhysicalDeviceFeatures2 features = {};
-  VkPhysicalDeviceDynamicRenderingFeatures dynamic_rendering = {};
-
   features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+
+  VkPhysicalDeviceDynamicRenderingFeatures dynamic_rendering = {};
   dynamic_rendering.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES;
+
   VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT
       dynamic_rendering_unused_attachments = {};
   dynamic_rendering_unused_attachments.sType =
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_FEATURES_EXT;
+
   VkPhysicalDeviceDynamicRenderingLocalReadFeaturesKHR dynamic_rendering_local_read = {};
   dynamic_rendering_local_read.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_LOCAL_READ_FEATURES_KHR;
+
   features.pNext = &dynamic_rendering;
   dynamic_rendering.pNext = &dynamic_rendering_unused_attachments;
   dynamic_rendering_unused_attachments.pNext = &dynamic_rendering_local_read;
