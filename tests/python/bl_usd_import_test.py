@@ -232,13 +232,19 @@ class USDImportTest(AbstractUSDTest):
         self.assertAlmostEqual(2.281, test_cam.shift_x, 3)
         self.assertAlmostEqual(0.496, test_cam.shift_y, 3)
 
-    def test_import_materials(self):
+    def assert_all_nodes_present(self, mat, node_list):
+        nodes = mat.node_tree.nodes
+        self.assertEqual(len(nodes), len(node_list))
+        for node in node_list:
+            self.assertTrue(nodes.find(node) >= 0, f"Could not find node '{node}' in material '{mat.name}'")
+
+    def test_import_materials1(self):
         """Validate UsdPreviewSurface shader graphs."""
 
         # Use the existing materials test file to create the USD file
         # for import. It is validated as part of the bl_usd_export test.
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_materials_export.blend"))
-        testfile = str(self.tempdir / "temp_materials.usda")
+        testfile = str(self.tempdir / "usd_materials_export.usda")
         res = bpy.ops.wm.usd_export(filepath=str(testfile), export_materials=True)
         self.assertEqual({'FINISHED'}, res, f"Unable to export to {testfile}")
 
@@ -250,43 +256,77 @@ class USDImportTest(AbstractUSDTest):
         # Most shader graph validation should occur through the Hydra render test suite. Here we
         # will only check some high-level criteria for each expected node graph.
 
-        def assert_all_nodes_present(mat, node_list):
-            nodes = mat.node_tree.nodes
-            self.assertEqual(len(nodes), len(node_list))
-            for node in node_list:
-                self.assertTrue(nodes.find(node) >= 0, f"Could not find node '{node}' in material '{mat.name}'")
-
-        mat = bpy.data.materials["Material"]
-        assert_all_nodes_present(mat, ["Principled BSDF", "Image Texture", "UV Map", "Material Output"])
-
-        mat = bpy.data.materials["Clip_With_LessThanInvert"]
-        assert_all_nodes_present(
-            mat, ["Principled BSDF", "Image Texture", "UV Map", "Math", "Math.001", "Material Output"])
-        node = [n for n in mat.node_tree.nodes if n.type == 'MATH' and n.operation == "LESS_THAN"][0]
-        self.assertAlmostEqual(node.inputs[1].default_value, 0.2, 3)
-
-        mat = bpy.data.materials["Clip_With_Round"]
-        assert_all_nodes_present(
-            mat, ["Principled BSDF", "Image Texture", "UV Map", "Math", "Math.001", "Material Output"])
-        node = [n for n in mat.node_tree.nodes if n.type == 'MATH' and n.operation == "LESS_THAN"][0]
-        self.assertAlmostEqual(node.inputs[1].default_value, 0.5, 3)
-
         mat = bpy.data.materials["Transforms"]
-        assert_all_nodes_present(mat, ["Principled BSDF", "Image Texture", "UV Map", "Mapping", "Material Output"])
+        self.assert_all_nodes_present(mat, ["Principled BSDF", "Image Texture", "UV Map", "Mapping", "Material Output"])
         node = mat.node_tree.nodes["Mapping"]
         self.assertEqual(self.round_vector(node.inputs[1].default_value), [0.75, 0.75, 0])
         self.assertEqual(self.round_vector(node.inputs[2].default_value), [0, 0, 3.14159])
         self.assertEqual(self.round_vector(node.inputs[3].default_value), [0.5, 0.5, 1])
 
         mat = bpy.data.materials["NormalMap"]
-        assert_all_nodes_present(mat, ["Principled BSDF", "Image Texture", "UV Map", "Normal Map", "Material Output"])
+        self.assert_all_nodes_present(
+            mat, ["Principled BSDF", "Image Texture", "UV Map", "Normal Map", "Material Output"])
 
         mat = bpy.data.materials["NormalMap_Scale_Bias"]
-        assert_all_nodes_present(mat, ["Principled BSDF", "Image Texture", "UV Map",
-                                       "Normal Map", "Vector Math", "Vector Math.001", "Material Output"])
+        self.assert_all_nodes_present(mat, ["Principled BSDF", "Image Texture", "UV Map",
+                                            "Normal Map", "Vector Math", "Vector Math.001", "Material Output"])
         node = mat.node_tree.nodes["Vector Math"]
         self.assertEqual(self.round_vector(node.inputs[1].default_value), [2, -2, 2])
         self.assertEqual(self.round_vector(node.inputs[2].default_value), [-1, 1, -1])
+
+    def test_import_materials2(self):
+        """Validate UsdPreviewSurface shader graphs."""
+
+        # Use the existing materials test file to create the USD file
+        # for import. It is validated as part of the bl_usd_export test.
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_materials_channels.blend"))
+        testfile = str(self.tempdir / "usd_materials_channels.usda")
+        res = bpy.ops.wm.usd_export(filepath=str(testfile), export_materials=True)
+        self.assertEqual({'FINISHED'}, res, f"Unable to export to {testfile}")
+
+        # Reload the empty file and import back in
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
+        res = bpy.ops.wm.usd_import(filepath=testfile)
+        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {testfile}")
+
+        # Most shader graph validation should occur through the Hydra render test suite. Here we
+        # will only check some high-level criteria for each expected node graph.
+
+        mat = bpy.data.materials["Opaque"]
+        self.assert_all_nodes_present(mat, ["Principled BSDF", "Image Texture", "UV Map", "Material Output"])
+
+        mat = bpy.data.materials["Alpha"]
+        self.assert_all_nodes_present(mat, ["Principled BSDF", "Image Texture", "UV Map", "Material Output"])
+
+        mat = bpy.data.materials["AlphaClip_LessThan"]
+        self.assert_all_nodes_present(
+            mat, ["Principled BSDF", "Image Texture", "UV Map", "Math", "Math.001", "Material Output"])
+        node = [n for n in mat.node_tree.nodes if n.type == 'MATH' and n.operation == "LESS_THAN"][0]
+        self.assertAlmostEqual(node.inputs[1].default_value, 0.8, 3)
+
+        mat = bpy.data.materials["AlphaClip_Round"]
+        self.assert_all_nodes_present(
+            mat, ["Principled BSDF", "Image Texture", "UV Map", "Math", "Math.001", "Material Output"])
+        node = [n for n in mat.node_tree.nodes if n.type == 'MATH' and n.operation == "LESS_THAN"][0]
+        self.assertAlmostEqual(node.inputs[1].default_value, 0.5, 3)
+
+        mat = bpy.data.materials["Channel"]
+        self.assert_all_nodes_present(
+            mat, ["Principled BSDF", "Image Texture", "Separate Color", "UV Map", "Material Output"])
+
+        mat = bpy.data.materials["ChannelClip_LessThan"]
+        self.assert_all_nodes_present(
+            mat,
+            ["Principled BSDF", "Image Texture", "Separate Color", "UV Map", "Math", "Math.001", "Material Output"])
+        node = [n for n in mat.node_tree.nodes if n.type == 'MATH' and n.operation == "LESS_THAN"][0]
+        self.assertAlmostEqual(node.inputs[1].default_value, 0.2, 3)
+
+        mat = bpy.data.materials["ChannelClip_Round"]
+        self.assert_all_nodes_present(
+            mat,
+            ["Principled BSDF", "Image Texture", "Separate Color", "UV Map", "Math", "Math.001", "Material Output"])
+        node = [n for n in mat.node_tree.nodes if n.type == 'MATH' and n.operation == "LESS_THAN"][0]
+        self.assertAlmostEqual(node.inputs[1].default_value, 0.5, 3)
 
     def test_import_material_subsets(self):
         """Validate multiple materials assigned to the same mesh work correctly."""

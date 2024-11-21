@@ -1069,17 +1069,19 @@ bool USDMaterialReader::follow_connection(const pxr::UsdShadeInput &usd_input,
       shift++;
     }
     else if (separate_color.node) {
-      link_nodes(ntree,
-                 separate_color.node,
-                 separate_color.sock_output_name,
-                 dest_node,
-                 dest_socket_name);
+      if (extra.opacity_threshold == 0.0f || !STREQ(dest_socket_name, "Alpha")) {
+        link_nodes(ntree,
+                   separate_color.node,
+                   separate_color.sock_output_name,
+                   dest_node,
+                   dest_socket_name);
+      }
       target_node = separate_color.node;
       target_sock_name = separate_color.sock_input_name;
     }
 
     /* Handle opacity threshold if necessary. */
-    if (source_name == usdtokens::a && extra.opacity_threshold > 0.0f) {
+    if (extra.opacity_threshold > 0.0f) {
       /* USD defines the threshold as >= but Blender does not have that operation. Use < instead
        * and then invert it. */
       IntermediateNode lessthan = add_lessthan(ntree, extra.opacity_threshold, column + 1, r_ctx);
@@ -1087,8 +1089,17 @@ bool USDMaterialReader::follow_connection(const pxr::UsdShadeInput &usd_input,
       link_nodes(
           ntree, lessthan.node, lessthan.sock_output_name, invert.node, invert.sock_input_name);
       link_nodes(ntree, invert.node, invert.sock_output_name, dest_node, dest_socket_name);
-      target_node = lessthan.node;
-      target_sock_name = lessthan.sock_input_name;
+      if (separate_color.node) {
+        link_nodes(ntree,
+                   separate_color.node,
+                   separate_color.sock_output_name,
+                   lessthan.node,
+                   lessthan.sock_input_name);
+      }
+      else {
+        target_node = lessthan.node;
+        target_sock_name = lessthan.sock_input_name;
+      }
     }
 
     convert_usd_uv_texture(source_shader,
