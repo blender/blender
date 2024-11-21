@@ -92,8 +92,7 @@ bool duplicate_fcurve_keys(FCurve *fcu)
 /** \name Various Tools
  * \{ */
 
-void clean_fcurve(bAnimContext *ac,
-                  bAnimListElem *ale,
+void clean_fcurve(bAnimListElem *ale,
                   float thresh,
                   bool cleardefault,
                   const bool only_selected_keys)
@@ -228,7 +227,7 @@ void clean_fcurve(bAnimContext *ac,
       /* check if curve is really unused and if it is, return signal for deletion */
       if (BKE_fcurve_is_empty(fcu)) {
         AnimData *adt = ale->adt;
-        blender::animrig::animdata_fcurve_delete(ac, adt, fcu);
+        blender::animrig::animdata_fcurve_delete(adt, fcu);
         ale->key_data = nullptr;
       }
     }

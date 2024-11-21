@@ -2759,7 +2759,9 @@ static int animchannels_delete_exec(bContext *C, wmOperator * /*op*/)
         FCurve *fcu = (FCurve *)ale->data;
 
         /* try to free F-Curve */
-        blender::animrig::animdata_fcurve_delete(&ac, adt, fcu);
+        BLI_assert_msg((fcu->driver != nullptr) == (ac.datatype == ANIMCONT_DRIVERS),
+                       "Expecting only driver F-Curves in the drivers editor");
+        blender::animrig::animdata_fcurve_delete(adt, fcu);
         tag_update_animation_element(ale);
         break;
       }
