@@ -54,10 +54,12 @@ struct bScreen;
 struct uiBlock;
 struct uiLayout;
 struct uiList;
+struct wmDrawBuffer;
 struct wmGizmoMap;
 struct wmKeyConfig;
 struct wmMsgBus;
 struct wmNotifier;
+struct wmTimer;
 struct wmWindow;
 struct wmWindowManager;
 
@@ -422,6 +424,9 @@ struct Panel_Runtime {
 namespace blender::bke {
 
 struct ARegionRuntime {
+  /** Callbacks for this region type. */
+  struct ARegionType *type;
+
   /** Panel category to use between 'layout' and 'draw'. */
   const char *category = nullptr;
 
@@ -438,6 +443,31 @@ struct ARegionRuntime {
 
   /** Maps #uiBlock::name to uiBlock for faster lookups. */
   GHash *block_name_map = nullptr;
+  /** #uiBlock. */
+  ListBase uiblocks = {};
+
+  /** #wmEventHandler. */
+  ListBase handlers = {};
+
+  /** Use this string to draw info. */
+  char *headerstr = nullptr;
+
+  /** Gizmo-map of this region. */
+  wmGizmoMap *gizmo_map = nullptr;
+
+  /** Blend in/out. */
+  wmTimer *regiontimer = nullptr;
+
+  wmDrawBuffer *draw_buffer = nullptr;
+
+  /** Panel categories runtime. */
+  ListBase panels_category = {};
+
+  /** Region is currently visible on screen. */
+  short visible = 0;
+
+  /** Private, cached notifier events. */
+  short do_draw = 0;
 
   /* Dummy panel used in popups so they can support layout panels. */
   Panel *popup_block_panel = nullptr;

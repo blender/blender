@@ -255,14 +255,14 @@ static void text_main_region_init(wmWindowManager *wm, ARegion *region)
 
   /* own keymap */
   keymap = WM_keymap_ensure(wm->defaultconf, "Text Generic", SPACE_TEXT, RGN_TYPE_WINDOW);
-  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->runtime->handlers, keymap);
   keymap = WM_keymap_ensure(wm->defaultconf, "Text", SPACE_TEXT, RGN_TYPE_WINDOW);
-  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->runtime->handlers, keymap);
 
   /* add drop boxes */
   lb = WM_dropboxmap_find("Text", SPACE_TEXT, RGN_TYPE_WINDOW);
 
-  WM_event_add_dropbox_handler(&region->handlers, lb);
+  WM_event_add_dropbox_handler(&region->runtime->handlers, lb);
 }
 
 static void text_main_region_draw(const bContext *C, ARegion *region)
@@ -382,7 +382,7 @@ static void text_properties_region_init(wmWindowManager *wm, ARegion *region)
 
   /* own keymaps */
   keymap = WM_keymap_ensure(wm->defaultconf, "Text Generic", SPACE_TEXT, RGN_TYPE_WINDOW);
-  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->runtime->handlers, keymap);
 }
 
 static void text_properties_region_draw(const bContext *C, ARegion *region)

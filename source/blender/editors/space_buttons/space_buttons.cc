@@ -147,7 +147,7 @@ static void buttons_main_region_init(wmWindowManager *wm, ARegion *region)
   ED_region_panels_init(wm, region);
 
   keymap = WM_keymap_ensure(wm->defaultconf, "Property Editor", SPACE_PROPERTIES, RGN_TYPE_WINDOW);
-  WM_event_add_keymap_handler(&region->handlers, keymap);
+  WM_event_add_keymap_handler(&region->runtime->handlers, keymap);
 }
 
 /** \} */
@@ -306,7 +306,7 @@ static void buttons_main_region_layout_properties(const bContext *C,
   const char *contexts[2] = {buttons_main_region_context_string(sbuts->mainb), nullptr};
 
   ED_region_panels_layout_ex(
-      C, region, &region->type->paneltypes, WM_OP_INVOKE_REGION_WIN, contexts, nullptr);
+      C, region, &region->runtime->type->paneltypes, WM_OP_INVOKE_REGION_WIN, contexts, nullptr);
 }
 
 /** \} */
@@ -357,7 +357,8 @@ static bool property_search_for_context(const bContext *C, ARegion *region, Spac
   }
 
   buttons_context_compute(C, sbuts);
-  return ED_region_property_search(C, region, &region->type->paneltypes, contexts, nullptr);
+  return ED_region_property_search(
+      C, region, &region->runtime->type->paneltypes, contexts, nullptr);
 }
 
 static void property_search_move_to_next_tab_with_results(SpaceProperties *sbuts,
@@ -407,7 +408,7 @@ static void property_search_all_tabs(const bContext *C,
   ARegion *region_copy = BKE_area_region_copy(area_copy.type, region_original);
   /* Set the region visible field. Otherwise some layout code thinks we're drawing in a popup.
    * This likely isn't necessary, but it's nice to emulate a "real" region where possible. */
-  region_copy->visible = true;
+  region_copy->runtime->visible = true;
   CTX_wm_area_set((bContext *)C, &area_copy);
   CTX_wm_region_set((bContext *)C, region_copy);
 
@@ -613,7 +614,7 @@ static void buttons_navigation_bar_region_draw(const bContext *C, ARegion *regio
   SpaceProperties *sbuts = CTX_wm_space_properties(C);
   buttons_context_compute(C, sbuts);
 
-  LISTBASE_FOREACH (PanelType *, pt, &region->type->paneltypes) {
+  LISTBASE_FOREACH (PanelType *, pt, &region->runtime->type->paneltypes) {
     pt->flag |= PANEL_TYPE_LAYOUT_VERT_BAR;
   }
 

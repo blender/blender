@@ -6494,7 +6494,7 @@ static bool uiTemplateInputStatusAzone(uiLayout *layout, const AZone *az, const 
   if (az->type == AZONE_REGION) {
     uiItemL(layout, nullptr, ICON_MOUSE_LMB_DRAG);
     uiItemL(layout,
-            (region->visible) ? IFACE_("Resize Region") : IFACE_("Show Hidden Region"),
+            (region->runtime->visible) ? IFACE_("Resize Region") : IFACE_("Show Hidden Region"),
             ICON_NONE);
     return true;
   }

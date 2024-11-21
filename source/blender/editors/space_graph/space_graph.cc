@@ -177,9 +177,9 @@ static void graph_main_region_init(wmWindowManager *wm, ARegion *region)
   /* own keymap */
   keymap = WM_keymap_ensure(wm->defaultconf, "Graph Editor", SPACE_GRAPH, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_poll(
-      &region->handlers, keymap, WM_event_handler_region_v2d_mask_no_marker_poll);
+      &region->runtime->handlers, keymap, WM_event_handler_region_v2d_mask_no_marker_poll);
   keymap = WM_keymap_ensure(wm->defaultconf, "Graph Editor Generic", SPACE_GRAPH, RGN_TYPE_WINDOW);
-  WM_event_add_keymap_handler(&region->handlers, keymap);
+  WM_event_add_keymap_handler(&region->runtime->handlers, keymap);
 }
 
 /* Draw a darker area above 1 and below -1. */
@@ -367,9 +367,9 @@ static void graph_channel_region_init(wmWindowManager *wm, ARegion *region)
 
   /* own keymap */
   keymap = WM_keymap_ensure(wm->defaultconf, "Animation Channels", SPACE_EMPTY, RGN_TYPE_WINDOW);
-  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->runtime->handlers, keymap);
   keymap = WM_keymap_ensure(wm->defaultconf, "Graph Editor Generic", SPACE_GRAPH, RGN_TYPE_WINDOW);
-  WM_event_add_keymap_handler(&region->handlers, keymap);
+  WM_event_add_keymap_handler(&region->runtime->handlers, keymap);
 }
 
 static void set_v2d_height(View2D *v2d, const size_t item_count)
@@ -432,7 +432,7 @@ static void graph_buttons_region_init(wmWindowManager *wm, ARegion *region)
   ED_region_panels_init(wm, region);
 
   keymap = WM_keymap_ensure(wm->defaultconf, "Graph Editor Generic", SPACE_GRAPH, RGN_TYPE_WINDOW);
-  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->runtime->handlers, keymap);
 }
 
 static void graph_buttons_region_draw(const bContext *C, ARegion *region)

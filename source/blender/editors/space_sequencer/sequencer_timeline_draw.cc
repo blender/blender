@@ -26,6 +26,7 @@
 #include "BKE_context.hh"
 #include "BKE_fcurve.hh"
 #include "BKE_global.hh"
+#include "BKE_screen.hh"
 #include "BKE_sound.h"
 
 #include "ED_anim_api.hh"
@@ -1921,7 +1922,7 @@ static void draw_timeline_gizmos(TimelineDrawContext *ctx)
     return;
   }
 
-  WM_gizmomap_draw(ctx->region->gizmo_map, ctx->C, WM_GIZMOMAP_DRAWSTEP_2D);
+  WM_gizmomap_draw(ctx->region->runtime->gizmo_map, ctx->C, WM_GIZMOMAP_DRAWSTEP_2D);
 }
 
 static void draw_timeline_pre_view_callbacks(TimelineDrawContext *ctx)

@@ -315,7 +315,7 @@ static void ui_update_flexible_spacing(const ARegion *region, uiBlock *block)
 static void ui_update_window_matrix(const wmWindow *window, const ARegion *region, uiBlock *block)
 {
   /* window matrix and aspect */
-  if (region && region->visible) {
+  if (region && region->runtime->visible) {
     /* Get projection matrix which includes View2D translation and zoom. */
     GPU_matrix_projection_get(block->winmat);
     block->aspect = 2.0f / fabsf(region->winx * block->winmat[0][0]);
@@ -333,7 +333,7 @@ static void ui_update_window_matrix(const wmWindow *window, const ARegion *regio
 
 void ui_region_winrct_get_no_margin(const ARegion *region, rcti *r_rect)
 {
-  uiBlock *block = static_cast<uiBlock *>(region->uiblocks.first);
+  uiBlock *block = static_cast<uiBlock *>(region->runtime->uiblocks.first);
   if (block && (block->flag & UI_BLOCK_LOOP) && (block->flag & UI_BLOCK_PIE_MENU) == 0) {
     BLI_rcti_rctf_copy_floor(r_rect, &block->rect);
     BLI_rcti_translate(r_rect, region->winrct.xmin, region->winrct.ymin);
@@ -2193,7 +2193,7 @@ static void ui_block_message_subscribe(ARegion *region, wmMsgBus *mbus, uiBlock 
 
 void UI_region_message_subscribe(ARegion *region, wmMsgBus *mbus)
 {
-  LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
+  LISTBASE_FOREACH (uiBlock *, block, &region->runtime->uiblocks) {
     ui_block_message_subscribe(region, mbus, block);
   }
 }
@@ -3732,7 +3732,7 @@ void UI_blocklist_draw(const bContext *C, const ListBase *lb)
 
 void UI_blocklist_free(const bContext *C, ARegion *region)
 {
-  ListBase *lb = &region->uiblocks;
+  ListBase *lb = &region->runtime->uiblocks;
   while (uiBlock *block = static_cast<uiBlock *>(BLI_pophead(lb))) {
     UI_block_free(C, block);
   }
@@ -3744,7 +3744,7 @@ void UI_blocklist_free(const bContext *C, ARegion *region)
 
 void UI_blocklist_free_inactive(const bContext *C, ARegion *region)
 {
-  ListBase *lb = &region->uiblocks;
+  ListBase *lb = &region->runtime->uiblocks;
 
   LISTBASE_FOREACH_MUTABLE (uiBlock *, block, lb) {
     if (!block->handle) {
@@ -3768,7 +3768,7 @@ void UI_blocklist_free_inactive(const bContext *C, ARegion *region)
 
 void UI_block_region_set(uiBlock *block, ARegion *region)
 {
-  ListBase *lb = &region->uiblocks;
+  ListBase *lb = &region->runtime->uiblocks;
   uiBlock *oldblock = nullptr;
 
   /* each listbase only has one block with this name, free block
@@ -3836,7 +3836,7 @@ uiBlock *UI_block_begin(const bContext *C,
   ui_update_window_matrix(window, region, block);
 
   /* Tag as popup menu if not created within a region. */
-  if (!(region && region->visible)) {
+  if (!(region && region->runtime->visible)) {
     block->auto_open = true;
     block->flag |= UI_BLOCK_LOOP;
   }

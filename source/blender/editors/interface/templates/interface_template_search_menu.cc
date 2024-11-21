@@ -325,7 +325,7 @@ static void menu_types_add_from_keymap_items(bContext *C,
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   ListBase *handlers[] = {
-      region ? &region->handlers : nullptr,
+      region ? &region->runtime->handlers : nullptr,
       area ? &area->handlers : nullptr,
       &win->handlers,
   };
@@ -801,14 +801,14 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
           if (region) {
             BLI_ghash_remove(
                 region->runtime->block_name_map, sub_block->name.c_str(), nullptr, nullptr);
-            BLI_remlink(&region->uiblocks, sub_block);
+            BLI_remlink(&region->runtime->uiblocks, sub_block);
           }
           UI_block_free(nullptr, sub_block);
         }
       }
       if (region) {
         BLI_ghash_remove(region->runtime->block_name_map, block->name.c_str(), nullptr, nullptr);
-        BLI_remlink(&region->uiblocks, block);
+        BLI_remlink(&region->runtime->uiblocks, block);
       }
       UI_block_free(nullptr, block);
 

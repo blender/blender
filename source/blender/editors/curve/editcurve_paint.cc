@@ -20,6 +20,7 @@
 #include "BKE_fcurve.hh"
 #include "BKE_object_types.hh"
 #include "BKE_report.hh"
+#include "BKE_screen.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -622,7 +623,7 @@ static void curve_draw_exit(wmOperator *op)
   CurveDrawData *cdd = static_cast<CurveDrawData *>(op->customdata);
   if (cdd) {
     if (cdd->draw_handle_view) {
-      ED_region_draw_cb_exit(cdd->vc.region->type, cdd->draw_handle_view);
+      ED_region_draw_cb_exit(cdd->vc.region->runtime->type, cdd->draw_handle_view);
       WM_cursor_modal_restore(cdd->vc.win);
     }
 
@@ -1084,7 +1085,7 @@ static int curve_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   }
 
   cdd->draw_handle_view = ED_region_draw_cb_activate(
-      cdd->vc.region->type, curve_draw_stroke_3d, op, REGION_DRAW_POST_VIEW);
+      cdd->vc.region->runtime->type, curve_draw_stroke_3d, op, REGION_DRAW_POST_VIEW);
   WM_cursor_modal_set(cdd->vc.win, WM_CURSOR_PAINT_BRUSH);
 
   {

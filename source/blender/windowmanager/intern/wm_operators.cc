@@ -3613,7 +3613,7 @@ static void redraw_timer_step(bContext *C,
     LISTBASE_FOREACH (ScrArea *, area_iter, &screen->areabase) {
       CTX_wm_area_set(C, area_iter);
       LISTBASE_FOREACH (ARegion *, region_iter, &area_iter->regionbase) {
-        if (!region_iter->visible) {
+        if (!region_iter->runtime->visible) {
           continue;
         }
         CTX_wm_region_set(C, region_iter);

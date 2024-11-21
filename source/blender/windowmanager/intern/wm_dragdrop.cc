@@ -232,7 +232,7 @@ static void wm_dropbox_invoke(bContext *C, wmDrag *drag)
     bScreen *screen = WM_window_get_active_screen(win);
     ED_screen_areas_iter (win, screen, area) {
       LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-        if (region->visible) {
+        if (region->runtime->visible) {
           BLI_assert(area->spacetype < SPACE_TYPE_NUM);
           BLI_assert(region->regiontype < RGN_TYPE_NUM);
           area_region_tag[area->spacetype][region->regiontype] = true;
@@ -490,7 +490,7 @@ static wmDropBox *wm_dropbox_active(bContext *C, wmDrag *drag, const wmEvent *ev
   if (area) {
     ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_ANY, event->xy);
     if (region) {
-      drop = dropbox_active(C, &region->handlers, drag, event);
+      drop = dropbox_active(C, &region->runtime->handlers, drag, event);
     }
 
     if (!drop) {

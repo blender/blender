@@ -257,7 +257,7 @@ bool ED_operator_region_gizmo_active(bContext *C)
   if (region == nullptr) {
     return false;
   }
-  wmGizmoMap *gzmap = region->gizmo_map;
+  wmGizmoMap *gzmap = region->runtime->gizmo_map;
   if (gzmap == nullptr) {
     return false;
   }
@@ -786,7 +786,7 @@ static bool azone_clipped_rect_calc(const AZone *az, rcti *r_rect_clip)
   if (az->type == AZONE_REGION) {
     if (region->overlap && (region->v2d.keeptot != V2D_KEEPTOT_STRICT) &&
         /* Only when this isn't hidden (where it's displayed as an button that expands). */
-        region->visible)
+        region->runtime->visible)
     {
       /* A floating region to be resized, clip by the visible region. */
       switch (az->edge) {
@@ -866,7 +866,7 @@ static AZone *area_actionzone_refresh_xy(ScrArea *area, const int xy[2], const b
         /* Respect button sections: Clusters of buttons (separated using separator-spacers) are
          * drawn with a background, in-between them the region is fully transparent (if "Region
          * Overlap" is enabled). Only allow dragging visible edges, so at the button sections. */
-        if (region->visible && region->overlap &&
+        if (region->runtime->visible && region->overlap &&
             (region->flag & RGN_FLAG_RESIZE_RESPECT_BUTTON_SECTIONS) &&
             !UI_region_button_sections_is_inside_x(az->region, local_xy[0]))
         {
@@ -918,7 +918,7 @@ static AZone *area_actionzone_refresh_xy(ScrArea *area, const int xy[2], const b
           break;
         }
       }
-      else if (az->type == AZONE_REGION_SCROLL && az->region->visible) {
+      else if (az->type == AZONE_REGION_SCROLL && az->region->runtime->visible) {
         /* If the region is not visible we can ignore this scroll-bar zone. */
         ARegion *region = az->region;
         View2D *v2d = &region->v2d;
@@ -988,7 +988,7 @@ static AZone *area_actionzone_refresh_xy(ScrArea *area, const int xy[2], const b
         area->flag &= ~AREA_FLAG_ACTIONZONES_UPDATE;
         ED_area_tag_redraw_no_rebuild(area);
       }
-      else if (az->type == AZONE_REGION_SCROLL && az->region->visible) {
+      else if (az->type == AZONE_REGION_SCROLL && az->region->runtime->visible) {
         /* If the region is not visible we can ignore this scroll-bar zone. */
         if (az->direction == AZ_SCROLL_VERT) {
           az->alpha = az->region->v2d.alpha_vert = 0;
@@ -2956,8 +2956,9 @@ static int region_scale_modal(bContext *C, wmOperator *op, const wmEvent *event)
          * check for and respect the max-width too. */
         CLAMP(rmd->region->sizex, 0, rmd->maxsize);
 
-        if (rmd->region->type->snap_size) {
-          short sizex_test = rmd->region->type->snap_size(rmd->region, rmd->region->sizex, 0);
+        if (rmd->region->runtime->type->snap_size) {
+          short sizex_test = rmd->region->runtime->type->snap_size(
+              rmd->region, rmd->region->sizex, 0);
           if ((abs(rmd->region->sizex - sizex_test) < snap_size_threshold) &&
               /* Don't snap to a new size if that would exceed the maximum width. */
               sizex_test <= rmd->maxsize)
@@ -3001,8 +3002,9 @@ static int region_scale_modal(bContext *C, wmOperator *op, const wmEvent *event)
          * check for and respect the max-height too. */
         CLAMP(rmd->region->sizey, 0, rmd->maxsize);
 
-        if (rmd->region->type->snap_size) {
-          short sizey_test = rmd->region->type->snap_size(rmd->region, rmd->region->sizey, 1);
+        if (rmd->region->runtime->type->snap_size) {
+          short sizey_test = rmd->region->runtime->type->snap_size(
+              rmd->region, rmd->region->sizey, 1);
           if ((abs(rmd->region->sizey - sizey_test) < snap_size_threshold) &&
               /* Don't snap to a new size if that would exceed the maximum height. */
               (sizey_test <= rmd->maxsize))
@@ -3034,8 +3036,8 @@ static int region_scale_modal(bContext *C, wmOperator *op, const wmEvent *event)
           size_changed = true;
         }
       }
-      if (size_changed && rmd->region->type->on_user_resize) {
-        rmd->region->type->on_user_resize(rmd->region);
+      if (size_changed && rmd->region->runtime->type->on_user_resize) {
+        rmd->region->runtime->type->on_user_resize(rmd->region);
       }
       ED_area_tag_redraw(rmd->area);
       WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, nullptr);
@@ -6140,17 +6142,18 @@ struct RegionAlphaInfo {
 float ED_region_blend_alpha(ARegion *region)
 {
   /* check parent too */
-  if (region->regiontimer == nullptr &&
+  if (region->runtime->regiontimer == nullptr &&
       (region->alignment & (RGN_SPLIT_PREV | RGN_ALIGN_HIDE_WITH_PREV)) && region->prev)
   {
     region = region->prev;
   }
 
-  if (region->regiontimer) {
-    RegionAlphaInfo *rgi = static_cast<RegionAlphaInfo *>(region->regiontimer->customdata);
+  if (region->runtime->regiontimer) {
+    RegionAlphaInfo *rgi = static_cast<RegionAlphaInfo *>(
+        region->runtime->regiontimer->customdata);
     float alpha;
 
-    alpha = float(region->regiontimer->time_duration) / TIMEOUT;
+    alpha = float(region->runtime->regiontimer->time_duration) / TIMEOUT;
     /* makes sure the blend out works 100% - without area redraws */
     if (rgi->hidden) {
       alpha = 0.9f - TIMESTEP - alpha;
@@ -6165,7 +6168,7 @@ float ED_region_blend_alpha(ARegion *region)
 /* assumes region has running region-blend timer */
 static void region_blend_end(bContext *C, ARegion *region, const bool is_running)
 {
-  RegionAlphaInfo *rgi = static_cast<RegionAlphaInfo *>(region->regiontimer->customdata);
+  RegionAlphaInfo *rgi = static_cast<RegionAlphaInfo *>(region->runtime->regiontimer->customdata);
 
   /* always send redraw */
   ED_region_tag_redraw(region);
@@ -6187,8 +6190,8 @@ static void region_blend_end(bContext *C, ARegion *region, const bool is_running
     /* area decoration needs redraw in end */
     ED_area_tag_redraw(rgi->area);
   }
-  WM_event_timer_remove(CTX_wm_manager(C), nullptr, region->regiontimer); /* frees rgi */
-  region->regiontimer = nullptr;
+  WM_event_timer_remove(CTX_wm_manager(C), nullptr, region->runtime->regiontimer); /* frees rgi */
+  region->runtime->regiontimer = nullptr;
 }
 void ED_region_visibility_change_update_animated(bContext *C, ScrArea *area, ARegion *region)
 {
@@ -6196,7 +6199,7 @@ void ED_region_visibility_change_update_animated(bContext *C, ScrArea *area, ARe
   wmWindow *win = CTX_wm_window(C);
 
   /* end running timer */
-  if (region->regiontimer) {
+  if (region->runtime->regiontimer) {
 
     region_blend_end(C, region, true);
   }
@@ -6223,8 +6226,8 @@ void ED_region_visibility_change_update_animated(bContext *C, ScrArea *area, ARe
   }
 
   /* new timer */
-  region->regiontimer = WM_event_timer_add(wm, win, TIMERREGION, TIMESTEP);
-  region->regiontimer->customdata = rgi;
+  region->runtime->regiontimer = WM_event_timer_add(wm, win, TIMERREGION, TIMESTEP);
+  region->runtime->regiontimer->customdata = rgi;
 }
 
 /* timer runs in win->handlers, so it cannot use context to find area/region */
@@ -6246,7 +6249,7 @@ static int region_blend_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *
   }
 
   /* end timer? */
-  if (rgi->region->regiontimer->time_duration > double(TIMEOUT)) {
+  if (rgi->region->runtime->regiontimer->time_duration > double(TIMEOUT)) {
     region_blend_end(C, rgi->region, false);
     return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);
   }

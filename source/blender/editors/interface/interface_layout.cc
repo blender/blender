@@ -1147,7 +1147,7 @@ void UI_context_active_but_prop_get_filebrowser(const bContext *C,
     return;
   }
 
-  LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
+  LISTBASE_FOREACH (uiBlock *, block, &region->runtime->uiblocks) {
     LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
       if (but && but->rnapoin.data) {
         if (RNA_property_type(but->rnaprop) == PROP_STRING) {

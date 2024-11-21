@@ -24,6 +24,7 @@
 #include "BKE_context.hh"
 #include "BKE_main.hh"
 #include "BKE_report.hh"
+#include "BKE_screen.hh"
 #include "BKE_workspace.hh"
 
 #include "RNA_access.hh"
@@ -275,7 +276,7 @@ void WM_gizmo_group_remove_by_tool(bContext *C,
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       if (area->runtime.tool == tref) {
         LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-          wmGizmoMap *gzmap = region->gizmo_map;
+          wmGizmoMap *gzmap = region->runtime->gizmo_map;
           if (gzmap && gzmap->type == gzmap_type) {
             wmGizmoGroup *gzgroup, *gzgroup_next;
             for (gzgroup = static_cast<wmGizmoGroup *>(gzmap->groups.first); gzgroup;
@@ -332,7 +333,7 @@ bool wm_gizmogroup_is_any_selected(const wmGizmoGroup *gzgroup)
 static int gizmo_select_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   ARegion *region = CTX_wm_region(C);
-  wmGizmoMap *gzmap = region->gizmo_map;
+  wmGizmoMap *gzmap = region->runtime->gizmo_map;
   wmGizmoMapSelectState *msel = &gzmap->gzmap_context.select;
   wmGizmo *highlight = gzmap->gzmap_context.highlight;
 
@@ -562,7 +563,7 @@ static int gizmo_tweak_modal(bContext *C, wmOperator *op, const wmEvent *event)
 static int gizmo_tweak_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
-  wmGizmoMap *gzmap = region->gizmo_map;
+  wmGizmoMap *gzmap = region->runtime->gizmo_map;
   wmGizmo *gz = gzmap->gzmap_context.highlight;
 
   /* Needed for single click actions which don't enter modal state. */
@@ -991,7 +992,7 @@ void WM_gizmomaptype_group_init_runtime(const Main *bmain,
       LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
         ListBase *lb = (sl == area->spacedata.first) ? &area->regionbase : &sl->regionbase;
         LISTBASE_FOREACH (ARegion *, region, lb) {
-          wmGizmoMap *gzmap = region->gizmo_map;
+          wmGizmoMap *gzmap = region->runtime->gizmo_map;
           if (gzmap && gzmap->type == gzmap_type) {
             WM_gizmomaptype_group_init_runtime_with_region(gzmap_type, gzgt, region);
           }
@@ -1005,7 +1006,7 @@ wmGizmoGroup *WM_gizmomaptype_group_init_runtime_with_region(wmGizmoMapType *gzm
                                                              wmGizmoGroupType *gzgt,
                                                              ARegion *region)
 {
-  wmGizmoMap *gzmap = region->gizmo_map;
+  wmGizmoMap *gzmap = region->runtime->gizmo_map;
   BLI_assert(gzmap && gzmap->type == gzmap_type);
   UNUSED_VARS_NDEBUG(gzmap_type);
 
@@ -1045,7 +1046,7 @@ void WM_gizmomaptype_group_unlink(bContext *C,
       LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
         ListBase *lb = (sl == area->spacedata.first) ? &area->regionbase : &sl->regionbase;
         LISTBASE_FOREACH (ARegion *, region, lb) {
-          wmGizmoMap *gzmap = region->gizmo_map;
+          wmGizmoMap *gzmap = region->runtime->gizmo_map;
           if (gzmap && gzmap->type == gzmap_type) {
             wmGizmoGroup *gzgroup, *gzgroup_next;
             for (gzgroup = static_cast<wmGizmoGroup *>(gzmap->groups.first); gzgroup;
@@ -1212,7 +1213,7 @@ void WM_gizmo_group_unlink_delayed_ptr_from_space(wmGizmoGroupType *gzgt,
                                                   ScrArea *area)
 {
   LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    wmGizmoMap *gzmap = region->gizmo_map;
+    wmGizmoMap *gzmap = region->runtime->gizmo_map;
     if (gzmap && gzmap->type == gzmap_type) {
       LISTBASE_FOREACH (wmGizmoGroup *, gzgroup, &gzmap->groups) {
         if (gzgroup->type == gzgt) {
@@ -1257,7 +1258,7 @@ void WM_gizmo_group_refresh(const bContext *C, wmGizmoGroup *gzgroup)
     if (!gz || gz->parent_gzgroup != gzgroup) {
       wmWindow *win = CTX_wm_window(C);
       ARegion *region = CTX_wm_region(C);
-      BLI_assert(region->gizmo_map == gzmap);
+      BLI_assert(region->runtime->gizmo_map == gzmap);
       /* Check if the tweak event originated from this region. */
       if ((win->eventstate != nullptr) && (win->event_queue_check_drag) &&
           BLI_rcti_isect_pt_v(&region->winrct, win->eventstate->prev_press_xy))

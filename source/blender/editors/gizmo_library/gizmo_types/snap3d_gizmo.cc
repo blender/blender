@@ -18,6 +18,7 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_context.hh"
+#include "BKE_screen.hh"
 
 #include "ED_gizmo_library.hh"
 #include "ED_screen.hh"
@@ -209,7 +210,9 @@ static bool snap_cursor_poll(ARegion *region, void *data)
     return false;
   }
 
-  if (!WM_gizmomap_group_find_ptr(region->gizmo_map, snap_gizmo->gizmo.parent_gzgroup->type)) {
+  if (!WM_gizmomap_group_find_ptr(region->runtime->gizmo_map,
+                                  snap_gizmo->gizmo.parent_gzgroup->type))
+  {
     /* Wrong viewport. */
     snap_cursor_free(snap_gizmo);
     return false;

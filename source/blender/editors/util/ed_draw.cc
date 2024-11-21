@@ -21,6 +21,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_image.hh"
+#include "BKE_screen.hh"
 
 #include "BLF_api.hh"
 
@@ -453,7 +454,7 @@ tSlider *ED_slider_create(bContext *C)
       if (region->regiontype == RGN_TYPE_HEADER) {
         slider->region_header = region;
         slider->draw_handle = ED_region_draw_cb_activate(
-            region->type, slider_draw, slider, REGION_DRAW_POST_PIXEL);
+            region->runtime->type, slider_draw, slider, REGION_DRAW_POST_PIXEL);
       }
     }
   }
@@ -554,7 +555,7 @@ void ED_slider_destroy(bContext *C, tSlider *slider)
 {
   /* Remove draw callback. */
   if (slider->draw_handle) {
-    ED_region_draw_cb_exit(slider->region_header->type, slider->draw_handle);
+    ED_region_draw_cb_exit(slider->region_header->runtime->type, slider->draw_handle);
   }
   ED_area_status_text(slider->area, nullptr);
   ED_workspace_status_text(C, nullptr);

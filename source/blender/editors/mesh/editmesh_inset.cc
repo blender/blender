@@ -20,6 +20,7 @@
 #include "BKE_editmesh.hh"
 #include "BKE_global.hh"
 #include "BKE_layer.hh"
+#include "BKE_screen.hh"
 #include "BKE_unit.hh"
 
 #include "RNA_access.hh"
@@ -168,8 +169,10 @@ static bool edbm_inset_init(bContext *C, wmOperator *op, const bool is_modal)
       opdata->ob_store[ob_index].mesh_backup = EDBM_redo_state_store(em);
     }
 
-    opdata->draw_handle_pixel = ED_region_draw_cb_activate(
-        region->type, ED_region_draw_mouse_line_cb, opdata->mcenter, REGION_DRAW_POST_PIXEL);
+    opdata->draw_handle_pixel = ED_region_draw_cb_activate(region->runtime->type,
+                                                           ED_region_draw_mouse_line_cb,
+                                                           opdata->mcenter,
+                                                           REGION_DRAW_POST_PIXEL);
     G.moving = G_TRANSFORM_EDIT;
   }
 
@@ -188,7 +191,7 @@ static void edbm_inset_exit(bContext *C, wmOperator *op)
     for (uint ob_index = 0; ob_index < opdata->ob_store_len; ob_index++) {
       EDBM_redo_state_free(&opdata->ob_store[ob_index].mesh_backup);
     }
-    ED_region_draw_cb_exit(region->type, opdata->draw_handle_pixel);
+    ED_region_draw_cb_exit(region->runtime->type, opdata->draw_handle_pixel);
     G.moving = 0;
   }
 

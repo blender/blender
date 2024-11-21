@@ -439,10 +439,10 @@ static void file_main_region_init(wmWindowManager *wm, ARegion *region)
 
   /* own keymaps */
   keymap = WM_keymap_ensure(wm->defaultconf, "File Browser", SPACE_FILE, RGN_TYPE_WINDOW);
-  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->runtime->handlers, keymap);
 
   keymap = WM_keymap_ensure(wm->defaultconf, "File Browser Main", SPACE_FILE, RGN_TYPE_WINDOW);
-  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->runtime->handlers, keymap);
 }
 
 static void file_main_region_listener(const wmRegionListenerParams *listener_params)
@@ -672,7 +672,7 @@ static void file_tools_region_init(wmWindowManager *wm, ARegion *region)
 
   /* own keymaps */
   keymap = WM_keymap_ensure(wm->defaultconf, "File Browser", SPACE_FILE, RGN_TYPE_WINDOW);
-  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->runtime->handlers, keymap);
 }
 
 static void file_tools_region_draw(const bContext *C, ARegion *region)
@@ -722,7 +722,7 @@ static void file_header_region_init(wmWindowManager *wm, ARegion *region)
   ED_region_header_init(region);
 
   keymap = WM_keymap_ensure(wm->defaultconf, "File Browser", SPACE_FILE, RGN_TYPE_WINDOW);
-  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->runtime->handlers, keymap);
 }
 
 static void file_header_region_draw(const bContext *C, ARegion *region)
@@ -740,10 +740,10 @@ static void file_ui_region_init(wmWindowManager *wm, ARegion *region)
 
   /* own keymap */
   keymap = WM_keymap_ensure(wm->defaultconf, "File Browser", SPACE_FILE, RGN_TYPE_WINDOW);
-  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->runtime->handlers, keymap);
 
   keymap = WM_keymap_ensure(wm->defaultconf, "File Browser Buttons", SPACE_FILE, RGN_TYPE_WINDOW);
-  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->runtime->handlers, keymap);
 }
 
 static void file_ui_region_draw(const bContext *C, ARegion *region)
@@ -760,7 +760,7 @@ static void file_execution_region_init(wmWindowManager *wm, ARegion *region)
 
   /* own keymap */
   keymap = WM_keymap_ensure(wm->defaultconf, "File Browser", SPACE_FILE, RGN_TYPE_WINDOW);
-  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->runtime->handlers, keymap);
 }
 
 static void file_execution_region_draw(const bContext *C, ARegion *region)

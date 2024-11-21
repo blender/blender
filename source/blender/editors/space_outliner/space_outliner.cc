@@ -77,11 +77,11 @@ static void outliner_main_region_init(wmWindowManager *wm, ARegion *region)
 
   /* own keymap */
   keymap = WM_keymap_ensure(wm->defaultconf, "Outliner", SPACE_OUTLINER, RGN_TYPE_WINDOW);
-  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->runtime->handlers, keymap);
 
   /* Add dropboxes */
   lb = WM_dropboxmap_find("Outliner", SPACE_OUTLINER, RGN_TYPE_WINDOW);
-  WM_event_add_dropbox_handler(&region->handlers, lb);
+  WM_event_add_dropbox_handler(&region->runtime->handlers, lb);
 }
 
 static void outliner_main_region_draw(const bContext *C, ARegion *region)
