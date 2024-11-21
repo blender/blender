@@ -108,7 +108,7 @@ static std::unique_ptr<GreasePencilStrokeOperation> get_stroke_operation(bContex
         return greasepencil::new_erase_operation(false);
       case GPAINT_BRUSH_TYPE_FILL:
         /* Fill tool keymap uses the paint operator as alternative mode. */
-        return greasepencil::new_paint_operation();
+        return greasepencil::new_paint_operation(true);
       case GPAINT_BRUSH_TYPE_TINT:
         return greasepencil::new_tint_operation();
     }
