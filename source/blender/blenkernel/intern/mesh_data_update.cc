@@ -229,8 +229,6 @@ static void mesh_calc_finalize(const Mesh &mesh_input, Mesh &mesh_eval)
   /* Make sure the name is the same. This is because mesh allocation from template does not
    * take care of naming. */
   STRNCPY(mesh_eval.id.name, mesh_input.id.name);
-  /* Make evaluated mesh to share same edit mesh pointer as original and copied meshes. */
-  mesh_eval.runtime->edit_mesh = mesh_input.runtime->edit_mesh;
 }
 
 /**
