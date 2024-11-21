@@ -143,6 +143,10 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
       UI_but_drawflag_enable(but, UI_BUT_TEXT_RIGHT);
     }
+    else if (data.type().is<short2>()) {
+      const int2 value = int2(data.get<short2>(real_index));
+      this->draw_int_vector(params, Span(&value.x, 2));
+    }
     else if (data.type().is<int2>()) {
       const int2 value = data.get<int2>(real_index);
       this->draw_int_vector(params, Span(&value.x, 2));
