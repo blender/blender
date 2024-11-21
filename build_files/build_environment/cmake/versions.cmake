@@ -1199,7 +1199,7 @@ set(IGC_VCINTRINSICS_HOMEPAGE https://github.com/intel/vc-intrinsics)
 set(IGC_VCINTRINSICS_LICENSE SPDX:MIT)
 set(IGC_VCINTRINSICS_COPYRIGHT "Copyright (c) 2019 Intel Corporation")
 
-set(IGC_SPIRV_HEADERS_VERSION vulkan-sdk-1.3.275.0)
+set(IGC_SPIRV_HEADERS_VERSION vulkan-sdk-1.3.296.0)
 set(IGC_SPIRV_HEADERS_URI https://github.com/KhronosGroup/SPIRV-Headers/archive/refs/tags/${IGC_SPIRV_HEADERS_VERSION}.tar.gz)
 set(IGC_SPIRV_HEADERS_HASH d46b261f1fbc5e85022cb2fada9a6facb5b0c9932b45007a77fe05639a605bd1)
 set(IGC_SPIRV_HEADERS_HASH_TYPE SHA256)
@@ -1340,7 +1340,7 @@ Copyright 2020 The Khronos Group Inc.
 Copyright (C) 2015-2018 Google, Inc.
 ]=])
 
-set(VULKAN_VERSION v1.3.270)
+set(VULKAN_VERSION v1.3.296)
 
 set(VULKAN_HEADERS_VERSION ${VULKAN_VERSION})
 set(VULKAN_HEADERS_NAME Vulkan-Headers)

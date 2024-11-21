@@ -33,6 +33,10 @@ if NOT "%2" == "" (
     echo "Building for x64"
     set HARVESTROOT=Win64_vc
     set ARCH=64
+		if "%1" == "2022" (
+			set CMAKE_BUILDER=Visual Studio 17 2022
+			set CMAKE_BUILD_ARCH=-A x64 -Thost=x64
+		)
 		if "%1" == "2019" (
 			set CMAKE_BUILDER=Visual Studio 16 2019
 			set CMAKE_BUILD_ARCH=-A x64 -Thost=x64
