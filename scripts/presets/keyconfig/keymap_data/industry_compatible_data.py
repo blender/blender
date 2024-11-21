@@ -407,6 +407,7 @@ def km_user_interface(params):
         ("ui.eyedropper_colorramp_point", {"type": 'I', "value": 'PRESS', "alt": True}, None),
         ("ui.eyedropper_id", {"type": 'I', "value": 'PRESS'}, None),
         ("ui.eyedropper_depth", {"type": 'I', "value": 'PRESS'}, None),
+        ("ui.eyedropper_bone", {"type": 'I', "value": 'PRESS'}, None),
         # Copy data path
         ("ui.copy_data_path_button", {"type": 'C', "value": 'PRESS', "ctrl": True}, None),
         ("ui.copy_data_path_button", {"type": 'C', "value": 'PRESS', "ctrl": True, "alt": True},
