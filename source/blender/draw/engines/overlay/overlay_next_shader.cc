@@ -357,6 +357,7 @@ ShaderModule::ShaderModule(const SelectionType selection_type, const bool clippi
 
   xray_fade = shader("overlay_xray_fade", [](gpu::shader::ShaderCreateInfo &info) {
     info.sampler(2, ImageType::DEPTH_2D, "xrayDepthTexInfront");
+    info.sampler(3, ImageType::DEPTH_2D, "depthTexInfront");
   });
 
   /** Selectable Shaders */

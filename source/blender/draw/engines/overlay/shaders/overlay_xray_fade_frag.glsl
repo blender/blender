@@ -4,18 +4,38 @@
 
 void main()
 {
-  float depth = texture(depthTex, uvcoordsvar.xy).r;
-  float depth_xray = texture(xrayDepthTex, uvcoordsvar.xy).r;
 #ifdef OVERLAY_NEXT
-  float depth_xray_infront = texture(xrayDepthTexInfront, uvcoordsvar.xy).r;
-  if (((depth_xray_infront == 1.0) && (depth > depth_xray)) || (depth > depth_xray_infront)) {
-    fragColor = vec4(opacity);
-  }
-  else {
+  /* TODO(fclem): Cleanup naming. Here the xray depth mean the scene depth (from workbench) and
+   * simple depth is the overlay depth. */
+  float depth_infront = textureLod(depthTexInfront, uvcoordsvar.xy, 0.0).r;
+  float depth_xray_infront = textureLod(xrayDepthTexInfront, uvcoordsvar.xy, 0.0).r;
+  if (depth_infront != 1.0) {
+    if (depth_xray_infront < depth_infront) {
+      fragColor = vec4(opacity);
+      return;
+    }
+
     discard;
     return;
   }
+
+  float depth = textureLod(depthTex, uvcoordsvar.xy, 0.0).r;
+  float depth_xray = textureLod(xrayDepthTex, uvcoordsvar.xy, 0.0).r;
+  /* Merge infront depth. */
+  if (depth_xray_infront != 1.0) {
+    depth_xray = 0.0;
+  }
+
+  if (depth_xray < depth) {
+    fragColor = vec4(opacity);
+    return;
+  }
+
+  discard;
+  return;
 #else
+  float depth = texture(depthTex, uvcoordsvar.xy).r;
+  float depth_xray = texture(xrayDepthTex, uvcoordsvar.xy).r;
   fragColor = vec4((depth < 1.0 && depth > depth_xray) ? opacity : 1.0);
 #endif
 }

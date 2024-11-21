@@ -384,7 +384,9 @@ void Instance::draw(Manager &manager)
     /* For X-ray we render the scene to a separate depth buffer. */
     resources.xray_depth_tx.acquire(render_size, GPU_DEPTH24_STENCIL8);
     resources.depth_target_tx.wrap(resources.xray_depth_tx);
-    resources.depth_target_in_front_tx.wrap(resources.xray_depth_tx);
+    /* TODO(fclem): Remove mandatory allocation. */
+    resources.xray_depth_in_front_tx.acquire(render_size, GPU_DEPTH24_STENCIL8);
+    resources.depth_target_in_front_tx.wrap(resources.xray_depth_in_front_tx);
   }
   else {
     /* TODO(fclem): Remove mandatory allocation. */
@@ -469,6 +471,7 @@ void Instance::draw(Manager &manager)
   resources.line_tx.release();
   resources.overlay_tx.release();
   resources.xray_depth_tx.release();
+  resources.xray_depth_in_front_tx.release();
   resources.depth_in_front_alloc_tx.release();
   resources.color_overlay_alloc_tx.release();
   resources.color_render_alloc_tx.release();
@@ -523,7 +526,7 @@ void Instance::draw_v3d(Manager &manager, View &view)
 
   regular.prepass.draw(resources.overlay_line_fb, manager, view);
 
-  if (!state.xray_enabled && state.v3d && state.v3d->shading.type > OB_SOLID) {
+  if (state.xray_enabled || (state.v3d && state.v3d->shading.type > OB_SOLID)) {
     /* If workbench is not enabled, the infront buffer might contain garbage. */
     GPU_framebuffer_bind(resources.overlay_line_in_front_fb);
     GPU_framebuffer_clear_depth(resources.overlay_line_in_front_fb, 1.0f);

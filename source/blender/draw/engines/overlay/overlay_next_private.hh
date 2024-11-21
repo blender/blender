@@ -354,6 +354,7 @@ struct Resources : public select::SelectMap {
   TextureFromPool overlay_tx = {"overlay_tx"};
   /* Target containing depth of overlays when xray is enabled. */
   TextureFromPool xray_depth_tx = {"xray_depth_tx"};
+  TextureFromPool xray_depth_in_front_tx = {"xray_depth_in_front_tx"};
 
   /* Texture that are usually allocated inside. These are fallback when they aren't.
    * They are then wrapped inside the #TextureRefs below. */
