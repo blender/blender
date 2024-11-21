@@ -1022,7 +1022,7 @@ CombinedKeyingResult insert_keyframes(Main *bmain,
     /* NOTE: this function call is complex with interesting/non-obvious effects.
      * Please see its documentation for details. */
     BKE_animsys_nla_remap_keyframe_values(nla_context,
-                                          struct_pointer,
+                                          &ptr,
                                           prop,
                                           rna_values.as_mutable_span(),
                                           rna_path.index.value_or(-1),
