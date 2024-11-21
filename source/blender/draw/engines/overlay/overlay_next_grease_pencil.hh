@@ -17,6 +17,8 @@
 
 #include "ED_grease_pencil.hh"
 
+#include "draw_manager_text.hh"
+
 #include "overlay_next_private.hh"
 
 namespace blender::draw::overlay {
@@ -33,6 +35,7 @@ class GreasePencil {
   bool show_lines_ = false;
   bool show_grid_ = false;
   bool show_weight_ = false;
+  bool show_material_name_ = false;
 
   /* TODO(fclem): This is quite wasteful and expensive, prefer in shader Z modification like the
    * retopology offset. */
@@ -55,6 +58,7 @@ class GreasePencil {
     const View3D *v3d = state.v3d;
     const ToolSettings *ts = state.scene->toolsettings;
 
+    show_material_name_ = (v3d->gp_flag & V3D_GP_SHOW_MATERIAL_NAME) && DRW_state_show_text();
     const bool show_lines = (v3d->gp_flag & V3D_GP_SHOW_EDIT_LINES);
     const bool show_direction = (v3d->gp_flag & V3D_GP_SHOW_STROKE_DIRECTION);
 
@@ -146,7 +150,7 @@ class GreasePencil {
   void edit_object_sync(Manager &manager,
                         const ObjectRef &ob_ref,
                         const State &state,
-                        Resources & /*res*/)
+                        Resources &res)
   {
     if (!enabled_) {
       return;
@@ -168,6 +172,10 @@ class GreasePencil {
       if (geom) {
         edit_lines_->draw(geom, manager.unique_handle(ob_ref));
       }
+    }
+
+    if (show_material_name_) {
+      draw_material_names(ob_ref, state, res);
     }
   }
 
@@ -424,6 +432,65 @@ class GreasePencil {
       mat.location() = layer.to_world_space(object).location();
     }
     return mat;
+  }
+
+  void draw_material_names(const ObjectRef &ob_ref, const State &state, Resources &res)
+  {
+    Object &object = *ob_ref.object;
+
+    uchar4 color;
+    UI_GetThemeColor4ubv(res.object_wire_theme_id(ob_ref, state), color);
+
+    ::GreasePencil &grease_pencil = *static_cast<::GreasePencil *>(object.data);
+
+    Vector<ed::greasepencil::DrawingInfo> drawings = ed::greasepencil::retrieve_visible_drawings(
+        *state.scene, grease_pencil, false);
+    if (drawings.is_empty()) {
+      return;
+    }
+
+    for (const ed::greasepencil::DrawingInfo &info : drawings) {
+      const bke::greasepencil::Drawing &drawing = info.drawing;
+
+      const bke::CurvesGeometry strokes = drawing.strokes();
+      const OffsetIndices<int> points_by_curve = strokes.points_by_curve();
+      const bke::AttrDomain domain = show_points_ ? bke::AttrDomain::Point :
+                                                    bke::AttrDomain::Curve;
+      const VArray<bool> selections = *strokes.attributes().lookup_or_default<bool>(
+          ".selection", domain, true);
+      const VArray<int> materials = *strokes.attributes().lookup_or_default<int>(
+          "material_index", bke::AttrDomain::Curve, 0);
+      const Span<float3> positions = strokes.positions();
+
+      auto show_stroke_name = [&](const int stroke_i) {
+        if (show_points_) {
+          for (const int point_i : points_by_curve[stroke_i]) {
+            if (selections[point_i]) {
+              return true;
+            }
+          }
+          return false;
+        }
+        return selections[stroke_i];
+      };
+
+      for (const int stroke_i : strokes.curves_range()) {
+        if (!show_stroke_name(stroke_i)) {
+          continue;
+        }
+        const int point_i = points_by_curve[stroke_i].first();
+        const float3 fpt = math::transform_point(object.object_to_world(), positions[point_i]);
+        Material *ma = BKE_object_material_get_eval(&object, materials[stroke_i] + 1);
+        DRW_text_cache_add(state.dt,
+                           fpt,
+                           ma->id.name + 2,
+                           strlen(ma->id.name + 2),
+                           10,
+                           0,
+                           DRW_TEXT_CACHE_GLOBALSPACE | DRW_TEXT_CACHE_STRING_PTR,
+                           color);
+      }
+    }
   }
 };
 
