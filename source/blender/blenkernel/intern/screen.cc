@@ -594,11 +594,6 @@ void BKE_area_region_free(SpaceType *st, ARegion *region)
     region_free_gizmomap_callback(region->runtime->gizmo_map);
   }
 
-  if (region->runtime->block_name_map != nullptr) {
-    BLI_ghash_free(region->runtime->block_name_map, nullptr, nullptr);
-    region->runtime->block_name_map = nullptr;
-  }
-
   BLI_freelistN(&region->ui_lists);
   BLI_freelistN(&region->ui_previews);
   BLI_freelistN(&region->runtime->panels_category);

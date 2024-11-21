@@ -11,6 +11,7 @@
 #include <string>
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
 #include "BLI_vector.hh"
@@ -32,7 +33,6 @@ struct AssetShelfType;
 struct BlendDataReader;
 struct BlendLibReader;
 struct BlendWriter;
-struct GHash;
 struct Header;
 struct ID;
 struct LayoutPanelState;
@@ -442,7 +442,7 @@ struct ARegionRuntime {
   int offset_y = 0;
 
   /** Maps #uiBlock::name to uiBlock for faster lookups. */
-  GHash *block_name_map = nullptr;
+  Map<std::string, uiBlock *> block_name_map;
   /** #uiBlock. */
   ListBase uiblocks = {};
 

@@ -799,15 +799,14 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
           }
 
           if (region) {
-            BLI_ghash_remove(
-                region->runtime->block_name_map, sub_block->name.c_str(), nullptr, nullptr);
+            region->runtime->block_name_map.remove(sub_block->name);
             BLI_remlink(&region->runtime->uiblocks, sub_block);
           }
           UI_block_free(nullptr, sub_block);
         }
       }
       if (region) {
-        BLI_ghash_remove(region->runtime->block_name_map, block->name.c_str(), nullptr, nullptr);
+        region->runtime->block_name_map.remove(block->name);
         BLI_remlink(&region->runtime->uiblocks, block);
       }
       UI_block_free(nullptr, block);
