@@ -316,9 +316,6 @@ void VKDescriptorSetTracker::bind_shader_resources(const VKDevice &device,
       case VKBindType::INPUT_ATTACHMENT:
         bind_input_attachment_resource(device, state_manager, resource_binding, access_info);
         break;
-      case shader::ShaderCreateInfo::Resource::BindType::INPUT_ATTACHMENT:
-        bind_input_attachment_resource(state_manager, resource_binding, access_info);
-        break;
     }
   }
 

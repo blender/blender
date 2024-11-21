@@ -968,6 +968,7 @@ std::string VKShader::fragment_interface_declare(const shader::ShaderCreateInfo 
   }
 
   ss << "\n/* Sub-pass Inputs. */\n";
+  const bool use_dynamic_rendering = !workarounds.dynamic_rendering;
   uint32_t subpass_input_binding_index = 0;
   for (const ShaderCreateInfo::SubpassIn &input : info.subpass_inputs_) {
     std::string input_attachment_name = "gpu_input_attachment_";
