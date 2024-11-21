@@ -1245,15 +1245,8 @@ if(WITH_HARU)
   set(HARU_LIBRARIES ${HARU_ROOT_DIR}/lib/libhpdfs.lib)
 endif()
 
-if (WITH_VULKAN_BACKEND)
-  if (TRUE) # TODO: revert
-    set(VULKAN_FOUND ON)
-    set(VULKAN_ROOT_DIR $ENV{VULKAN_SDK})
-    set(VULKAN_INCLUDE_DIR ${VULKAN_ROOT_DIR}/Include)
-    set(VULKAN_INCLUDE_DIRS ${VULKAN_INCLUDE_DIR})
-    set(VULKAN_LIBRARY ${VULKAN_ROOT_DIR}/Lib/vulkan-1.lib)
-    set(VULKAN_LIBRARIES ${VULKAN_LIBRARY})
-  elseif(EXISTS ${LIBDIR}/vulkan)
+if(WITH_VULKAN_BACKEND)
+  if(EXISTS ${LIBDIR}/vulkan)
     set(VULKAN_FOUND ON)
     set(VULKAN_ROOT_DIR ${LIBDIR}/vulkan)
     set(VULKAN_INCLUDE_DIR ${VULKAN_ROOT_DIR}/include)
@@ -1267,17 +1260,7 @@ if (WITH_VULKAN_BACKEND)
 endif()
 
 if(WITH_VULKAN_BACKEND)
-  if (TRUE) # TODO: revert
-    set(SHADERC_FOUND ON)
-    set(SHADERC_ROOT_DIR ${VULKAN_ROOT_DIR})
-    set(SHADERC_INCLUDE_DIR ${SHADERC_ROOT_DIR}/Include)
-    set(SHADERC_INCLUDE_DIRS ${SHADERC_INCLUDE_DIR})
-    set(SHADERC_LIBRARY
-      DEBUG ${SHADERC_ROOT_DIR}/Lib/shaderc_shared_d.lib
-      OPTIMIZED ${SHADERC_ROOT_DIR}/Lib/shaderc_shared.lib
-    )
-    set(SHADERC_LIBRARIES ${SHADERC_LIBRARY})
-  elseif(EXISTS ${LIBDIR}/shaderc)
+  if(EXISTS ${LIBDIR}/shaderc)
     set(SHADERC_FOUND ON)
     set(SHADERC_ROOT_DIR ${LIBDIR}/shaderc)
     set(SHADERC_INCLUDE_DIR ${SHADERC_ROOT_DIR}/include)
