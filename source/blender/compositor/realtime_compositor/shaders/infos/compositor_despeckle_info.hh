@@ -6,7 +6,7 @@
 
 GPU_SHADER_CREATE_INFO(compositor_despeckle)
 LOCAL_GROUP_SIZE(16, 16)
-PUSH_CONSTANT(FLOAT, threshold)
+PUSH_CONSTANT(FLOAT, color_threshold)
 PUSH_CONSTANT(FLOAT, neighbor_threshold)
 SAMPLER(0, FLOAT_2D, input_tx)
 SAMPLER(1, FLOAT_2D, factor_tx)

@@ -81,7 +81,7 @@ class DespeckleOperation : public NodeOperation {
     GPUShader *shader = context().get_shader("compositor_despeckle");
     GPU_shader_bind(shader);
 
-    GPU_shader_uniform_1f(shader, "threshold", get_threshold());
+    GPU_shader_uniform_1f(shader, "color_threshold", get_color_threshold());
     GPU_shader_uniform_1f(shader, "neighbor_threshold", get_neighbor_threshold());
 
     const Result &input_image = get_input("Image");
@@ -105,7 +105,7 @@ class DespeckleOperation : public NodeOperation {
 
   void execute_cpu()
   {
-    const float threshold = this->get_threshold();
+    const float color_threshold = this->get_color_threshold();
     const float neighbor_threshold = this->get_neighbor_threshold();
 
     const Result &input = get_input("Image");
@@ -139,7 +139,7 @@ class DespeckleOperation : public NodeOperation {
           float weight = weights[j][i];
           float4 color = input.load_pixel_extended(texel + int2(i - 1, j - 1)) * weight;
           sum_of_colors += color;
-          if (!math::is_equal(center_color.xyz(), color.xyz(), threshold)) {
+          if (!math::is_equal(center_color.xyz(), color.xyz(), color_threshold)) {
             accumulated_color += color;
             accumulated_weight += weight;
           }
@@ -164,7 +164,9 @@ class DespeckleOperation : public NodeOperation {
 
       /* If the weighted average color of the neighborhood is close enough to the center pixel,
        * then no need to despeckle anything, so write the original center color and return. */
-      if (math::is_equal(center_color.xyz(), (sum_of_colors / sum_of_weights).xyz(), threshold)) {
+      if (math::is_equal(
+              center_color.xyz(), (sum_of_colors / sum_of_weights).xyz(), color_threshold))
+      {
         output.store_pixel(texel, center_color);
         return;
       }
@@ -176,7 +178,7 @@ class DespeckleOperation : public NodeOperation {
     });
   }
 
-  float get_threshold()
+  float get_color_threshold()
   {
     return bnode().custom3;
   }

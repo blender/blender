@@ -31,7 +31,7 @@ void main()
       float weight = weights[j][i];
       vec4 color = texture_load(input_tx, texel + ivec2(i - 1, j - 1)) * weight;
       sum_of_colors += color;
-      if (!is_equal(center_color.rgb, color.rgb, threshold)) {
+      if (!is_equal(center_color.rgb, color.rgb, color_threshold)) {
         accumulated_color += color;
         accumulated_weight += weight;
       }
@@ -56,7 +56,7 @@ void main()
 
   /* If the weighted average color of the neighborhood is close enough to the center pixel, then no
    * need to despeckle anything, so write the original center color and return. */
-  if (is_equal(center_color.rgb, (sum_of_colors / sum_of_weights).rgb, threshold)) {
+  if (is_equal(center_color.rgb, (sum_of_colors / sum_of_weights).rgb, color_threshold)) {
     imageStore(output_img, texel, center_color);
     return;
   }
