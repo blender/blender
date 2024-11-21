@@ -94,8 +94,6 @@ void BKE_mesh_clear_geometry_and_metadata(Mesh *mesh);
 
 Mesh *BKE_mesh_add(Main *bmain, const char *name);
 
-void BKE_mesh_free_editmesh(Mesh *mesh);
-
 /**
  * A version of #BKE_mesh_copy_parameters that is intended for evaluated output
  * (the modifier stack for example).

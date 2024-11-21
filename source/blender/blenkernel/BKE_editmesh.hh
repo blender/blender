@@ -95,6 +95,14 @@ BMEditMesh *BKE_editmesh_copy(BMEditMesh *em);
  * don't add NULL data check here. caller must do that
  */
 BMEditMesh *BKE_editmesh_from_object(Object *ob);
+
+/**
+ * Return whether the evaluated mesh is a "descendent" of the original mesh: whether it is a
+ * version of the original mesh propagated during evaluation. This will be false if the mesh was
+ * taken from from an different object during evaluation, with the object info node for example.
+ */
+bool BKE_editmesh_eval_orig_map_available(const Mesh &mesh_eval, const Mesh *mesh_orig);
+
 /**
  * \note Does not free the #BMEditMesh  itself.
  */

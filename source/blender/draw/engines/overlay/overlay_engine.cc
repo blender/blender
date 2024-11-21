@@ -331,7 +331,7 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
   const bool is_preview = dupli_object != nullptr &&
                           dupli_object->preview_base_geometry != nullptr;
   const bool in_pose_mode = ob->type == OB_ARMATURE && OVERLAY_armature_is_pose_mode(ob, draw_ctx);
-  const bool in_edit_mode = overlay_object_is_edit_mode(pd, ob);
+  const bool in_edit_mode = ob->mode == OB_MODE_EDIT;
   const bool is_instance = (ob->base_flag & BASE_FROM_DUPLI);
   const bool instance_parent_in_edit_mode = is_instance ?
                                                 overlay_object_is_edit_mode(

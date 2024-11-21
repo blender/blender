@@ -4189,10 +4189,6 @@ const Mesh *BKE_object_get_editmesh_eval_cage(const Object *object)
   BLI_assert(!DEG_is_original_id(&object->id));
   BLI_assert(object->type == OB_MESH);
 
-  const Mesh *mesh = static_cast<const Mesh *>(object->data);
-  BLI_assert(mesh->runtime->edit_mesh != nullptr);
-  UNUSED_VARS_NDEBUG(mesh);
-
   return object->runtime->editmesh_eval_cage;
 }
 

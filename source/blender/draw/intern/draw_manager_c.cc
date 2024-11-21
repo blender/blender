@@ -189,7 +189,7 @@ bool DRW_object_is_renderable(const Object *ob)
   BLI_assert((ob->base_flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) != 0);
 
   if (ob->type == OB_MESH) {
-    if ((ob == DST.draw_ctx.object_edit) || DRW_object_is_in_edit_mode(ob)) {
+    if ((ob == DST.draw_ctx.object_edit) || ob->mode == OB_MODE_EDIT) {
       View3D *v3d = DST.draw_ctx.v3d;
       if (v3d && ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) && RETOPOLOGY_ENABLED(v3d)) {
         return false;
