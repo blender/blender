@@ -899,7 +899,7 @@ class MeshUVs {
     }
   }
 
-  void draw(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw(GPUFrameBuffer *framebuffer, Manager &manager, View &view)
   {
     if (!enabled_) {
       return;

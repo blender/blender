@@ -149,6 +149,10 @@ class Instance {
   /* Returns true if the object is rendered transparent by the render engine.
    * Overlays should not rely on the correct depth being available (and do a depth pre-pass). */
   bool object_is_rendered_transparent(const Object *object, const State &state);
+
+  void draw_node(Manager &manager, View &view);
+  void draw_v2d(Manager &manager, View &view);
+  void draw_v3d(Manager &manager, View &view);
 };
 
 }  // namespace blender::draw::overlay
