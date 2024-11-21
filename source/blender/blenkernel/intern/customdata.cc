@@ -1830,11 +1830,11 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      nullptr,
      nullptr,
      nullptr},
-    /* 22: CD_TEXTURE_MCOL */
+    /* 22: CD_PROP_INT16_2D */
     {sizeof(blender::short2),
      alignof(blender::short2),
      "vec2s",
-     4,
+     1,
      N_("2D 16-Bit Integer"),
      nullptr,
      nullptr,
