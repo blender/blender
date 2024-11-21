@@ -53,7 +53,7 @@ else()
     endif()
     if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.36.32532 AND # MSVC 2022 17.6.0 has a bad codegen
        CMAKE_CXX_COMPILER_VERSION VERSION_LESS 19.37.32705)             # But it is fixed in 2022 17.7 preview 1
-      message(FATAL_ERROR "Compiler is unsupported, MSVC 2022 17.6.x has codegen issues and cannot be used to build blender. Please upgrade 17.7 or newer.")
+      message(FATAL_ERROR "Compiler is unsupported, MSVC 2022 17.6.x has codegen issues and cannot be used to build blender. Please upgrade to 17.7 or newer.")
     endif()
   endif()
 endif()
