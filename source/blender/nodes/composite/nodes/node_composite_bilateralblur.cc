@@ -62,30 +62,29 @@ class BilateralBlurOperation : public NodeOperation {
 
   void execute() override
   {
-    /* Not yet supported on CPU. */
-    if (!context().use_gpu()) {
-      for (const bNodeSocket *output : this->node()->output_sockets()) {
-        Result &output_result = get_result(output->identifier);
-        if (output_result.should_compute()) {
-          output_result.allocate_invalid();
-        }
-      }
-      return;
-    }
-
     const Result &input_image = get_input("Image");
-    /* Single value inputs can't be blurred and are returned as is. */
     if (input_image.is_single_value()) {
       get_input("Image").pass_through(get_result("Image"));
       return;
     }
 
+    if (this->context().use_gpu()) {
+      this->execute_gpu();
+    }
+    else {
+      this->execute_cpu();
+    }
+  }
+
+  void execute_gpu()
+  {
     GPUShader *shader = context().get_shader("compositor_bilateral_blur");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1i(shader, "radius", get_blur_radius());
     GPU_shader_uniform_1f(shader, "threshold", get_threshold());
 
+    const Result &input_image = get_input("Image");
     input_image.bind_as_texture(shader, "input_tx");
 
     const Result &determinator_image = get_input("Determinator");
@@ -102,6 +101,48 @@ class BilateralBlurOperation : public NodeOperation {
     output_image.unbind_as_image();
     input_image.unbind_as_texture();
     determinator_image.unbind_as_texture();
+  }
+
+  void execute_cpu()
+  {
+    const int radius = this->get_blur_radius();
+    const float threshold = this->get_threshold();
+
+    const Result &input = get_input("Image");
+    const Result &determinator_image = get_input("Determinator");
+
+    const Domain domain = compute_domain();
+    Result &output = get_result("Image");
+    output.allocate_texture(domain);
+
+    parallel_for(domain.size, [&](const int2 texel) {
+      float4 center_determinator = determinator_image.load_pixel(texel);
+
+      /* Go over the pixels in the blur window of the specified radius around the center pixel, and
+       * for pixels whose determinator is close enough to the determinator of the center pixel,
+       * accumulate their color as well as their weights. */
+      float accumulated_weight = 0.0f;
+      float4 accumulated_color = float4(0.0f);
+      for (int y = -radius; y <= radius; y++) {
+        for (int x = -radius; x <= radius; x++) {
+          float4 determinator = determinator_image.load_pixel_extended(texel + int2(x, y));
+          float difference = math::dot(math::abs(center_determinator - determinator).xyz(),
+                                       float3(1.0f));
+
+          if (difference < threshold) {
+            accumulated_weight += 1.0f;
+            accumulated_color += input.load_pixel_extended(texel + int2(x, y));
+          }
+        }
+      }
+
+      /* Write the accumulated color divided by the accumulated weight if any pixel in the window
+       * was accumulated, otherwise, write a fallback black color. */
+      float4 fallback = float4(float3(0.0f), 1.0f);
+      float4 color = (accumulated_weight != 0.0f) ? (accumulated_color / accumulated_weight) :
+                                                    fallback;
+      output.store_pixel(texel, color);
+    });
   }
 
   int get_blur_radius()
