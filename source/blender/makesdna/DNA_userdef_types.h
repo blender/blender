@@ -755,7 +755,7 @@ typedef struct UserDef_Experimental {
   char use_sculpt_tools_tilt;
   char use_extended_asset_browser;
   char use_sculpt_texture_paint;
-  char enable_overlay_next;
+  char enable_overlay_legacy;
   char use_new_volume_nodes;
   char use_new_file_import_nodes;
   char use_shader_node_previews;

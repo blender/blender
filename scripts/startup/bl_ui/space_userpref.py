@@ -2898,7 +2898,7 @@ class USERPREF_PT_experimental_prototypes(ExperimentalPanel, Panel):
                 ({"property": "use_new_curves_tools"}, ("blender/blender/issues/68981", "#68981")),
                 ({"property": "use_new_point_cloud_type"}, ("blender/blender/issues/75717", "#75717")),
                 ({"property": "use_sculpt_texture_paint"}, ("blender/blender/issues/96225", "#96225")),
-                ({"property": "enable_overlay_next"}, ("blender/blender/issues/102179", "#102179")),
+                ({"property": "enable_overlay_legacy"}, ("blender/blender/issues/102179", "#102179")),
                 ({"property": "enable_new_cpu_compositor"}, ("/blender/blender/issues/125968", "#125968")),
             ),
         )

@@ -1195,8 +1195,8 @@ static void drw_engines_enable_from_engine(const RenderEngineType *engine_type, 
 
 static void drw_engines_enable_overlays()
 {
-  use_drw_engine((U.experimental.enable_overlay_next) ? &draw_engine_overlay_next_type :
-                                                        &draw_engine_overlay_type);
+  use_drw_engine((U.experimental.enable_overlay_legacy) ? &draw_engine_overlay_type :
+                                                          &draw_engine_overlay_next_type);
 }
 /**
  * Use for select and depth-drawing.
@@ -1215,8 +1215,8 @@ static void drw_engine_enable_image_editor()
     use_drw_engine(&draw_engine_image_type);
   }
 
-  use_drw_engine((U.experimental.enable_overlay_next) ? &draw_engine_overlay_next_type :
-                                                        &draw_engine_overlay_type);
+  use_drw_engine((U.experimental.enable_overlay_legacy) ? &draw_engine_overlay_type :
+                                                          &draw_engine_overlay_next_type);
 }
 
 static void drw_engines_enable_editors()
@@ -1234,8 +1234,8 @@ static void drw_engines_enable_editors()
     SpaceNode *snode = (SpaceNode *)space_data;
     if ((snode->flag & SNODE_BACKDRAW) != 0) {
       use_drw_engine(&draw_engine_image_type);
-      use_drw_engine((U.experimental.enable_overlay_next) ? &draw_engine_overlay_next_type :
-                                                            &draw_engine_overlay_type);
+      use_drw_engine((U.experimental.enable_overlay_legacy) ? &draw_engine_overlay_type :
+                                                              &draw_engine_overlay_next_type);
     }
   }
 }
@@ -2489,7 +2489,7 @@ void DRW_draw_select_loop(Depsgraph *depsgraph,
   DST.options.is_material_select = do_material_sub_selection;
   drw_task_graph_init();
   /* Get list of enabled engines */
-  if (U.experimental.enable_overlay_next) {
+  if (!U.experimental.enable_overlay_legacy) {
     use_drw_engine(&draw_engine_select_next_type);
   }
   else if (use_obedit) {
@@ -2616,13 +2616,13 @@ void DRW_draw_select_loop(Depsgraph *depsgraph,
     if (!select_pass_fn(DRW_SELECT_PASS_PRE, select_pass_user_data)) {
       break;
     }
-    if (!U.experimental.enable_overlay_next) {
+    if (U.experimental.enable_overlay_legacy) {
       DRW_state_lock(DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_TEST_ENABLED);
     }
 
     drw_engines_draw_scene();
 
-    if (!U.experimental.enable_overlay_next) {
+    if (U.experimental.enable_overlay_legacy) {
       DRW_state_lock(DRWState(0));
     }
 
