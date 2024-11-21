@@ -121,7 +121,6 @@ void OBJECT_OT_armature_add(wmOperatorType *ot);
 void OBJECT_OT_empty_add(wmOperatorType *ot);
 void OBJECT_OT_lightprobe_add(wmOperatorType *ot);
 void OBJECT_OT_empty_image_add(wmOperatorType *ot);
-void OBJECT_OT_gpencil_add(wmOperatorType *ot);
 void OBJECT_OT_grease_pencil_add(wmOperatorType *ot);
 void OBJECT_OT_light_add(wmOperatorType *ot);
 void OBJECT_OT_effector_add(wmOperatorType *ot);

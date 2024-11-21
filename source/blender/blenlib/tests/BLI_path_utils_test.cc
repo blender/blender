@@ -1304,6 +1304,246 @@ TEST(path_utils, Suffix)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_path_slash_find
+ * \{ */
+
+#define PATH_SLASH_FIND(path, expect_index) \
+  { \
+    const char *result = BLI_path_slash_find(path); \
+    EXPECT_EQ(result, &path[expect_index]); \
+  } \
+  (void)0;
+
+TEST(path_util, SlashFind)
+{
+  PATH_SLASH_FIND("/", 0);
+  PATH_SLASH_FIND("\\", 0);
+  PATH_SLASH_FIND("\\tmp\\", 0);
+  PATH_SLASH_FIND("/tmp\\", 0);
+  PATH_SLASH_FIND("\\tmp/", 0);
+  PATH_SLASH_FIND("/tmp/", 0);
+  PATH_SLASH_FIND("tmp\\", 3);
+  PATH_SLASH_FIND("tmp/", 3);
+
+  EXPECT_EQ(BLI_path_slash_find("no_slashes"), nullptr);
+  EXPECT_EQ(BLI_path_slash_find(""), nullptr);
+  EXPECT_EQ(BLI_path_slash_find("."), nullptr);
+}
+
+#undef PATH_SLASH_FIND
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_path_slash_rfind
+ * \{ */
+
+#define PATH_SLASH_RFIND(path, expect_index) \
+  { \
+    const char *result = BLI_path_slash_rfind(path); \
+    EXPECT_STREQ(result, &path[expect_index]); \
+  } \
+  (void)0;
+
+TEST(path_util, SlashRFind)
+{
+  PATH_SLASH_RFIND("/", 0);
+  PATH_SLASH_RFIND("\\", 0);
+  PATH_SLASH_RFIND("\\tmp\\", 4);
+  PATH_SLASH_RFIND("/tmp\\", 4);
+  PATH_SLASH_RFIND("\\tmp/", 4);
+  PATH_SLASH_RFIND("/tmp/", 4);
+  PATH_SLASH_RFIND("tmp\\", 3);
+  PATH_SLASH_RFIND("tmp/", 3);
+  PATH_SLASH_RFIND("/tmp", 0);
+  PATH_SLASH_RFIND("\\tmp", 0);
+
+  EXPECT_EQ(BLI_path_slash_rfind("no_slashes"), nullptr);
+  EXPECT_EQ(BLI_path_slash_rfind(""), nullptr);
+  EXPECT_EQ(BLI_path_slash_rfind("."), nullptr);
+}
+
+#undef PATH_SLASH_RFIND
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_path_slash_ensure
+ * \{ */
+
+#define PATH_SLASH_ENSURE(input, size, output_expect, length_expect) \
+  { \
+    char path[size] = input; \
+    if (SEP == '\\') { \
+      BLI_string_replace_char(path, '/', '\\'); \
+    } \
+    int result = BLI_path_slash_ensure(path, size); \
+    if (SEP == '\\') { \
+      BLI_string_replace_char(path, '\\', '/'); \
+    } \
+    EXPECT_STREQ(path, output_expect); \
+    EXPECT_EQ(result, length_expect); \
+  } \
+  ((void)0)
+
+TEST(path_util, SlashEnsure)
+{
+  PATH_SLASH_ENSURE("/tmp", FILE_MAX, "/tmp/", 5);
+  PATH_SLASH_ENSURE("", FILE_MAX, "/", 1);
+  PATH_SLASH_ENSURE("", 2, "/", 1);
+
+  /* no change */
+  PATH_SLASH_ENSURE("/tmp/", FILE_MAX, "/tmp/", 5);
+  PATH_SLASH_ENSURE("/", FILE_MAX, "/", 1);
+
+  /* Not enough space reserved to add a slash, so do nothing. */
+  PATH_SLASH_ENSURE("", 1, "", 0);
+  PATH_SLASH_ENSURE("/tmp", 5, "/tmp", 4);
+}
+
+#undef PATH_SLASH_ENSURE
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_path_slash_rstrip
+ * \{ */
+
+#define PATH_SLASH_RSTRIP(input, expected) \
+  { \
+    char path[FILE_MAX] = input; \
+    if (SEP == '\\') { \
+      BLI_string_replace_char(path, '/', '\\'); \
+    } \
+    BLI_path_slash_rstrip(path); \
+    if (SEP == '\\') { \
+      BLI_string_replace_char(path, '\\', '/'); \
+    } \
+    EXPECT_STREQ(path, expected); \
+  } \
+  ((void)0)
+
+TEST(path_util, SlashRStrip)
+{
+  PATH_SLASH_RSTRIP("/brown/cow/", "/brown/cow");
+  PATH_SLASH_RSTRIP("/brown/cow", "/brown/cow");
+  PATH_SLASH_RSTRIP("/brown/", "/brown");
+  PATH_SLASH_RSTRIP("/brown", "/brown");
+  PATH_SLASH_RSTRIP("/brown/../", "/brown/..");
+  PATH_SLASH_RSTRIP("/brown/..", "/brown/..");
+  PATH_SLASH_RSTRIP("/brown///", "/brown");
+  PATH_SLASH_RSTRIP("/", "");
+  PATH_SLASH_RSTRIP("", "");
+  PATH_SLASH_RSTRIP(".", ".");
+}
+
+#undef PATH_SLASH_RSTRIP
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_path_slash_skip
+ * \{ */
+
+#define PATH_SLASH_SKIP(input, expected) \
+  { \
+    char path[FILE_MAX] = input; \
+    if (SEP == '\\') { \
+      BLI_string_replace_char(path, '/', '\\'); \
+    } \
+    const char *skipped = BLI_path_slash_skip(path); \
+    if (SEP == '\\') { \
+      BLI_string_replace_char(path, '\\', '/'); \
+    } \
+    EXPECT_STREQ(skipped, expected); \
+  } \
+  ((void)0)
+
+TEST(path_util, SlashSkip)
+{
+  PATH_SLASH_SKIP("/brown", "brown");
+  PATH_SLASH_SKIP("brown", "brown");
+  PATH_SLASH_SKIP("////brown", "brown");
+  PATH_SLASH_SKIP("/../brown", "../brown");
+  PATH_SLASH_SKIP("../brown", "../brown");
+  PATH_SLASH_SKIP("/", "");
+  PATH_SLASH_SKIP("/////", "");
+  PATH_SLASH_SKIP("", "");
+  PATH_SLASH_SKIP(".", ".");
+}
+
+#undef PATH_SLASH_SKIP
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_path_slash_native
+ * \{ */
+
+#define PATH_SLASH_NATIVE(input, expected) \
+  { \
+    char path[FILE_MAX] = input; \
+    BLI_path_slash_native(path); \
+    EXPECT_STREQ(path, expected); \
+  } \
+  ((void)0)
+
+TEST(path_util, SlashNative)
+{
+#ifdef WIN32
+  PATH_SLASH_NATIVE("C:/", "C:\\");
+  PATH_SLASH_NATIVE("C:\\", "C:\\");
+  PATH_SLASH_NATIVE("C:\\tmp\\", "C:\\tmp\\");
+  PATH_SLASH_NATIVE("C:/tmp\\", "C:\\tmp\\");
+  PATH_SLASH_NATIVE("C:\\tmp/", "C:\\tmp\\");
+  PATH_SLASH_NATIVE("C:/tmp/", "C:\\tmp\\");
+  PATH_SLASH_NATIVE("tmp\\", "tmp\\");
+  PATH_SLASH_NATIVE("tmp/", "tmp\\");
+  PATH_SLASH_NATIVE("..\\tmp\\", "..\\tmp\\");
+  PATH_SLASH_NATIVE("../tmp/", "..\\tmp\\");
+  PATH_SLASH_NATIVE("C:/tmp", "C:\\tmp");
+  PATH_SLASH_NATIVE("C:\\tmp", "C:\\tmp");
+  PATH_SLASH_NATIVE("tmp", "tmp");
+  PATH_SLASH_NATIVE("", "");
+  PATH_SLASH_NATIVE(".", ".");
+
+  PATH_SLASH_NATIVE("\\\\server\\share", "\\\\server\\share");
+  PATH_SLASH_NATIVE("\\\\server/share", "\\\\server\\share");
+  PATH_SLASH_NATIVE("\\\\?\\server\\share", "\\\\?\\server\\share");
+  PATH_SLASH_NATIVE("\\\\?\\server/share", "\\\\?\\server\\share");
+  PATH_SLASH_NATIVE("\\\\?\\C:\\file.txt", "\\\\?\\C:\\file.txt");
+  PATH_SLASH_NATIVE("\\\\?\\C:/file.txt", "\\\\?\\C:\\file.txt");
+#else
+  PATH_SLASH_NATIVE("/", "/");
+  PATH_SLASH_NATIVE("\\", "/");
+  PATH_SLASH_NATIVE("\\tmp\\", "/tmp/");
+  PATH_SLASH_NATIVE("/tmp\\", "/tmp/");
+  PATH_SLASH_NATIVE("\\tmp/", "/tmp/");
+  PATH_SLASH_NATIVE("/tmp/", "/tmp/");
+  PATH_SLASH_NATIVE("tmp\\", "tmp/");
+  PATH_SLASH_NATIVE("tmp/", "tmp/");
+  PATH_SLASH_NATIVE("..\\tmp\\", "../tmp/");
+  PATH_SLASH_NATIVE("../tmp/", "../tmp/");
+  PATH_SLASH_NATIVE("/tmp", "/tmp");
+  PATH_SLASH_NATIVE("\\tmp", "/tmp");
+  PATH_SLASH_NATIVE("tmp", "tmp");
+  PATH_SLASH_NATIVE("", "");
+  PATH_SLASH_NATIVE(".", ".");
+
+  PATH_SLASH_NATIVE("\\\\server\\share", "\\\\server/share");
+  PATH_SLASH_NATIVE("\\\\server/share", "\\\\server/share");
+  PATH_SLASH_NATIVE("\\\\?\\server\\share", "\\\\?\\server/share");
+  PATH_SLASH_NATIVE("\\\\?\\server/share", "\\\\?\\server/share");
+  PATH_SLASH_NATIVE("\\\\?\\home\\user\\file.txt", "\\\\?\\home/user/file.txt");
+  PATH_SLASH_NATIVE("\\\\?\\home\\user/file.txt", "\\\\?\\home/user/file.txt");
+#endif
+}
+
+#undef PATH_SLASH_NATIVE
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Tests for: #BLI_path_rel
  * \{ */
 
@@ -1409,14 +1649,18 @@ TEST(path_utils, PathIsAbsFromCwd)
 {
 #ifdef WIN32
   EXPECT_FALSE(BLI_path_is_abs_from_cwd("/file.txt"));
+  EXPECT_FALSE(BLI_path_is_abs_from_cwd("/"));
 
+  EXPECT_TRUE(BLI_path_is_abs_from_cwd("C:"));
   EXPECT_TRUE(BLI_path_is_abs_from_cwd("C:/file.txt"));
   EXPECT_TRUE(BLI_path_is_abs_from_cwd("C:\\file.txt"));
   EXPECT_TRUE(BLI_path_is_abs_from_cwd("\\\\host\\server\\file.txt"));
   EXPECT_TRUE(BLI_path_is_abs_from_cwd("\\\\?\\C:\\server\\file.txt"));
 #else
   EXPECT_TRUE(BLI_path_is_abs_from_cwd("/file.txt"));
+  EXPECT_TRUE(BLI_path_is_abs_from_cwd("/"));
 
+  EXPECT_FALSE(BLI_path_is_abs_from_cwd("C:"));
   EXPECT_FALSE(BLI_path_is_abs_from_cwd("C:/file.txt"));
   EXPECT_FALSE(BLI_path_is_abs_from_cwd("C:\\file.txt"));
   EXPECT_FALSE(BLI_path_is_abs_from_cwd("\\\\host\\server\\file.txt"));

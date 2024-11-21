@@ -30,7 +30,7 @@ def load():
     params = industry_compatible.Params(use_mouse_emulate_3_button=prefs.inputs.use_mouse_emulate_3_button)
     keyconfig_data = industry_compatible.generate_keymaps(params)
 
-    if platform == 'darwin':
+    if platform == "darwin":
         from bl_keymap_utils.platform_helpers import keyconfig_data_oskey_from_ctrl_for_macos
         keyconfig_data = keyconfig_data_oskey_from_ctrl_for_macos(keyconfig_data)
 

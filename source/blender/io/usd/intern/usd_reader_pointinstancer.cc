@@ -36,21 +36,9 @@ static bNode *add_input_named_attrib_node(bNodeTree *ntree, const char *name, in
   return node;
 }
 
-USDPointInstancerReader::USDPointInstancerReader(const pxr::UsdPrim &prim,
-                                                 const USDImportParams &import_params,
-                                                 const ImportSettings &settings)
-    : USDXformReader(prim, import_params, settings)
-{
-}
-
-bool USDPointInstancerReader::valid() const
-{
-  return prim_.IsValid() && prim_.IsA<pxr::UsdGeomPointInstancer>();
-}
-
 void USDPointInstancerReader::create_object(Main *bmain, const double /*motionSampleTime*/)
 {
-  void *point_cloud = BKE_pointcloud_add(bmain, name_.c_str());
+  PointCloud *point_cloud = BKE_pointcloud_add(bmain, name_.c_str());
   this->object_ = BKE_object_add_only_object(bmain, OB_POINTCLOUD, name_.c_str());
   this->object_->data = point_cloud;
 }
@@ -59,19 +47,13 @@ void USDPointInstancerReader::read_object_data(Main *bmain, const double motionS
 {
   PointCloud *base_point_cloud = static_cast<PointCloud *>(object_->data);
 
-  pxr::UsdGeomPointInstancer point_instancer_prim(prim_);
-
-  if (!point_instancer_prim) {
-    return;
-  }
-
   pxr::VtArray<pxr::GfVec3f> positions;
   pxr::VtArray<pxr::GfVec3f> scales;
   pxr::VtArray<pxr::GfQuath> orientations;
   pxr::VtArray<int> proto_indices;
   std::vector<double> time_samples;
 
-  point_instancer_prim.GetPositionsAttr().GetTimeSamples(&time_samples);
+  point_instancer_prim_.GetPositionsAttr().GetTimeSamples(&time_samples);
 
   double sample_time = motionSampleTime;
 
@@ -79,12 +61,12 @@ void USDPointInstancerReader::read_object_data(Main *bmain, const double motionS
     sample_time = time_samples[0];
   }
 
-  point_instancer_prim.GetPositionsAttr().Get(&positions, sample_time);
-  point_instancer_prim.GetScalesAttr().Get(&scales, sample_time);
-  point_instancer_prim.GetOrientationsAttr().Get(&orientations, sample_time);
-  point_instancer_prim.GetProtoIndicesAttr().Get(&proto_indices, sample_time);
+  point_instancer_prim_.GetPositionsAttr().Get(&positions, sample_time);
+  point_instancer_prim_.GetScalesAttr().Get(&scales, sample_time);
+  point_instancer_prim_.GetOrientationsAttr().Get(&orientations, sample_time);
+  point_instancer_prim_.GetProtoIndicesAttr().Get(&proto_indices, sample_time);
 
-  std::vector<bool> mask = point_instancer_prim.ComputeMaskAtTime(sample_time);
+  std::vector<bool> mask = point_instancer_prim_.ComputeMaskAtTime(sample_time);
 
   PointCloud *point_cloud = BKE_pointcloud_new_nomain(positions.size());
 
@@ -254,14 +236,7 @@ void USDPointInstancerReader::read_object_data(Main *bmain, const double motionS
 pxr::SdfPathVector USDPointInstancerReader::proto_paths() const
 {
   pxr::SdfPathVector paths;
-
-  pxr::UsdGeomPointInstancer point_instancer_prim(prim_);
-
-  if (!point_instancer_prim) {
-    return paths;
-  }
-
-  point_instancer_prim.GetPrototypesRel().GetTargets(&paths);
+  point_instancer_prim_.GetPrototypesRel().GetTargets(&paths);
 
   return paths;
 }

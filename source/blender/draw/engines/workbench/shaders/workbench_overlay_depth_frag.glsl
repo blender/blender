@@ -4,6 +4,10 @@
 
 /* Prepare the Depth Buffer for the Overlay Engine. */
 
+#include "infos/workbench_depth_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(workbench_overlay_depth)
+
 void main()
 {
   /* Set the depth to 0 for "In Front" objects,

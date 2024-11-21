@@ -12,10 +12,6 @@ Sorts CMake path lists
 import os
 import sys
 
-from typing import (
-    Optional,
-)
-
 PWD = os.path.dirname(__file__)
 sys.path.append(os.path.join(PWD, "modules"))
 
@@ -37,7 +33,7 @@ SOURCE_EXT = (
 )
 
 
-def sort_cmake_file_lists(fn: str, data_src: str) -> Optional[str]:
+def sort_cmake_file_lists(fn: str, data_src: str) -> str | None:
     fn_dir = os.path.dirname(fn)
     lines = data_src.splitlines(keepends=True)
 

@@ -27,7 +27,9 @@ struct DupliObject;
 namespace blender::draw {
 
 struct ResourceHandle {
-  uint raw;
+  /* Index for getting a specific resource in the resource arrays (e.g. object matrices).
+   * Last bit contains handedness. */
+  uint32_t raw;
 
   ResourceHandle() = default;
   ResourceHandle(uint raw_) : raw(raw_){};
@@ -48,6 +50,32 @@ struct ResourceHandle {
   }
 };
 
+/* Refers to a range of contiguous handles in the resource arrays.
+ * Typically used to render instances of an object, but can represent a single instance too.
+ * The associated objects will all share handedness and state and can be rendered together. */
+struct ResourceHandleRange {
+  /* First handle in the range. */
+  ResourceHandle handle_first;
+  /* Number of handle in the range. */
+  uint32_t count;
+
+  ResourceHandleRange() = default;
+  ResourceHandleRange(ResourceHandle handle) : handle_first(handle), count(1) {}
+  ResourceHandleRange(ResourceHandle handle, uint len) : handle_first(handle), count(len) {}
+
+  IndexRange index_range() const
+  {
+    return {handle_first.raw, count};
+  }
+
+  /* TODO(fclem): Temporary workaround to keep existing code to work. Should be removed once we
+   * complete the instance optimization project. */
+  operator ResourceHandle() const
+  {
+    return handle_first;
+  }
+};
+
 /* TODO(fclem): Move to somewhere more appropriated after cleaning up the header dependencies. */
 struct ObjectRef {
   Object *object;
@@ -56,7 +84,7 @@ struct ObjectRef {
   /** Object that created the dupli-list the current object is part of. */
   Object *dupli_parent;
   /** Unique handle per object ref. */
-  ResourceHandle handle;
+  ResourceHandleRange handle;
 };
 
 };  // namespace blender::draw

@@ -12,9 +12,13 @@
  * `pos` is the verts position in the curve tangent space
  */
 
+#include "infos/gpu_shader_2D_nodelink_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(gpu_shader_2D_nodelink)
+
 #define MID_VERTEX 65
 
-void main(void)
+void main()
 {
   const float start_gradient_threshold = 0.35;
   const float end_gradient_threshold = 0.65;

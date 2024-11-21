@@ -201,7 +201,7 @@ inline void inplace_or(FirstBitSpanT &first_arg, const BitSpanT &...args)
 }
 
 template<typename FirstBitSpanT, typename MaskBitSpanT, typename... BitSpanT>
-inline void inplace_or_masked(FirstBitSpanT &first_arg,
+inline void inplace_or_masked(FirstBitSpanT &&first_arg,
                               const MaskBitSpanT &mask,
                               const BitSpanT &...args)
 {

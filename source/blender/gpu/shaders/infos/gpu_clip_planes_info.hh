@@ -6,9 +6,19 @@
  * \ingroup gpu
  */
 
+#ifdef GPU_SHADER
+#  pragma once
+#  include "gpu_glsl_cpp_stubs.hh"
+
+#  include "GPU_shader_shared.hh"
+
+#  define USE_WORLD_CLIP_PLANES
+#endif
+
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(gpu_clip_planes)
-    .uniform_buf(1, "GPUClipPlanes", "clipPlanes", Frequency::PASS)
-    .typedef_source("GPU_shader_shared.hh")
-    .define("USE_WORLD_CLIP_PLANES");
+UNIFORM_BUF_FREQ(1, GPUClipPlanes, clipPlanes, PASS)
+TYPEDEF_SOURCE("GPU_shader_shared.hh")
+DEFINE("USE_WORLD_CLIP_PLANES")
+GPU_SHADER_CREATE_END()

@@ -6,6 +6,14 @@
  * \ingroup cmpnodes
  */
 
+#include "BLI_math_base.hh"
+#include "BLI_math_vector.hh"
+#include "BLI_math_vector_types.hh"
+
+#include "FN_multi_function_builder.hh"
+
+#include "NOD_multi_function.hh"
+
 #include "IMB_colormanagement.hh"
 
 #include "UI_interface.hh"
@@ -341,6 +349,135 @@ static ShaderNode *get_compositor_shader_node(DNode node)
   return new ColorCorrectionShaderNode(node);
 }
 
+static float4 color_correction(const float4 &color,
+                               const float mask,
+                               const int16_t enabled_channels,
+                               const float start_midtones,
+                               const float end_midtones,
+                               const float master_saturation,
+                               const float master_contrast,
+                               const float master_gamma,
+                               const float master_gain,
+                               const float master_lift,
+                               const float shadows_saturation,
+                               const float shadows_contrast,
+                               const float shadows_gamma,
+                               const float shadows_gain,
+                               const float shadows_lift,
+                               const float midtones_saturation,
+                               const float midtones_contrast,
+                               const float midtones_gamma,
+                               const float midtones_gain,
+                               const float midtones_lift,
+                               const float highlights_saturation,
+                               const float highlights_contrast,
+                               const float highlights_gamma,
+                               const float highlights_gain,
+                               const float highlights_lift,
+                               const float3 &luminance_coefficients)
+{
+  const float margin = 0.10f;
+  const float margin_divider = 0.5f / margin;
+  float level = (color.x + color.y + color.z) / 3.0f;
+  float level_shadows = 0.0f;
+  float level_midtones = 0.0f;
+  float level_highlights = 0.0f;
+  if (level < (start_midtones - margin)) {
+    level_shadows = 1.0f;
+  }
+  else if (level < (start_midtones + margin)) {
+    level_midtones = ((level - start_midtones) * margin_divider) + 0.5f;
+    level_shadows = 1.0f - level_midtones;
+  }
+  else if (level < (end_midtones - margin)) {
+    level_midtones = 1.0f;
+  }
+  else if (level < (end_midtones + margin)) {
+    level_highlights = ((level - end_midtones) * margin_divider) + 0.5f;
+    level_midtones = 1.0f - level_highlights;
+  }
+  else {
+    level_highlights = 1.0f;
+  }
+
+  float contrast = level_shadows * shadows_contrast;
+  contrast += level_midtones * midtones_contrast;
+  contrast += level_highlights * highlights_contrast;
+  contrast *= master_contrast;
+  float saturation = level_shadows * shadows_saturation;
+  saturation += level_midtones * midtones_saturation;
+  saturation += level_highlights * highlights_saturation;
+  saturation *= master_saturation;
+  float gamma = level_shadows * shadows_gamma;
+  gamma += level_midtones * midtones_gamma;
+  gamma += level_highlights * highlights_gamma;
+  gamma *= master_gamma;
+  float gain = level_shadows * shadows_gain;
+  gain += level_midtones * midtones_gain;
+  gain += level_highlights * highlights_gain;
+  gain *= master_gain;
+  float lift = level_shadows * shadows_lift;
+  lift += level_midtones * midtones_lift;
+  lift += level_highlights * highlights_lift;
+  lift += master_lift;
+
+  float inverse_gamma = 1.0f / gamma;
+  float luma = math::dot(color.xyz(), luminance_coefficients);
+
+  float3 corrected = luma + saturation * (color.xyz() - luma);
+  corrected = 0.5f + (corrected - 0.5f) * contrast;
+  corrected = math::fallback_pow(corrected * gain + lift, inverse_gamma, corrected);
+  corrected = math::interpolate(color.xyz(), corrected, math::min(mask, 1.0f));
+
+  return float4(enabled_channels & (1 << 0) ? corrected.x : color.x,
+                enabled_channels & (1 << 1) ? corrected.y : color.y,
+                enabled_channels & (1 << 2) ? corrected.z : color.z,
+                color.w);
+}
+
+static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+{
+  const NodeColorCorrection &node_color_correction = node_storage(builder.node());
+
+  const int16_t enabled_channels = builder.node().custom1;
+  float3 luminance_coefficients;
+  IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
+
+  builder.construct_and_set_matching_fn_cb([=]() {
+    return mf::build::SI2_SO<float4, float, float4>(
+        "Color Correction",
+        [=](const float4 &color, const float mask) -> float4 {
+          return color_correction(color,
+                                  mask,
+                                  enabled_channels,
+                                  node_color_correction.startmidtones,
+                                  node_color_correction.endmidtones,
+                                  node_color_correction.master.saturation,
+                                  node_color_correction.master.contrast,
+                                  node_color_correction.master.gamma,
+                                  node_color_correction.master.gain,
+                                  node_color_correction.master.lift,
+                                  node_color_correction.shadows.saturation,
+                                  node_color_correction.shadows.contrast,
+                                  node_color_correction.shadows.gamma,
+                                  node_color_correction.shadows.gain,
+                                  node_color_correction.shadows.lift,
+                                  node_color_correction.midtones.saturation,
+                                  node_color_correction.midtones.contrast,
+                                  node_color_correction.midtones.gamma,
+                                  node_color_correction.midtones.gain,
+                                  node_color_correction.midtones.lift,
+                                  node_color_correction.highlights.saturation,
+                                  node_color_correction.highlights.contrast,
+                                  node_color_correction.highlights.gamma,
+                                  node_color_correction.highlights.gain,
+                                  node_color_correction.highlights.lift,
+                                  luminance_coefficients);
+        },
+        mf::build::exec_presets::SomeSpanOrSingle<0>());
+  });
+}
+
 }  // namespace blender::nodes::node_composite_colorcorrection_cc
 
 void register_node_type_cmp_colorcorrection()
@@ -358,6 +495,7 @@ void register_node_type_cmp_colorcorrection()
   blender::bke::node_type_storage(
       &ntype, "NodeColorCorrection", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
+  ntype.build_multi_function = file_ns::node_build_multi_function;
 
   blender::bke::node_register_type(&ntype);
 }

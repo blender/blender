@@ -154,8 +154,10 @@ static void deform_drawing(const ModifierData &md,
                            bke::greasepencil::Drawing &drawing)
 {
   const auto &mmd = reinterpret_cast<const GreasePencilHookModifierData &>(md);
+  modifier::greasepencil::ensure_no_bezier_curves(drawing);
   bke::CurvesGeometry &curves = drawing.strokes_for_write();
-  if (curves.points_num() == 0) {
+
+  if (curves.is_empty()) {
     return;
   }
   IndexMaskMemory memory;
@@ -290,7 +292,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   uiItemR(layout, ptr, "strength", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
 
-  if (uiLayout *sub = uiLayoutPanelProp(C, layout, ptr, "open_falloff_panel", "Falloff")) {
+  if (uiLayout *sub = uiLayoutPanelProp(C, layout, ptr, "open_falloff_panel", IFACE_("Falloff"))) {
     uiLayoutSetPropSep(sub, true);
 
     uiItemR(sub, ptr, "falloff_type", UI_ITEM_NONE, IFACE_("Type"), ICON_NONE);
@@ -309,7 +311,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   }
 
   if (uiLayout *influence_panel = uiLayoutPanelProp(
-          C, layout, ptr, "open_influence_panel", "Influence"))
+          C, layout, ptr, "open_influence_panel", IFACE_("Influence")))
   {
     modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
     modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);

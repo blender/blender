@@ -2,11 +2,13 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_bxdf_sampling_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_lightprobe_sphere_lib.glsl)
+#pragma once
+
+#include "eevee_bxdf_sampling_lib.glsl"
+#include "eevee_lightprobe_sphere_lib.glsl"
+#include "eevee_sampling_lib.glsl"
+#include "gpu_shader_codegen_lib.glsl"
+#include "gpu_shader_math_base_lib.glsl"
 
 #ifdef SPHERE_PROBE
 int lightprobe_spheres_select(vec3 P, float random_probe)

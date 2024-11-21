@@ -98,7 +98,7 @@ class MultiThreadedTaskConsumer:
         Any task that fails with an exception will cause all task consumer threads to stop.
 
         The maximum number of threads used matches the number of cpus available up to a maximum of `hard_max_threads`.
-        `hard_max_threads`'s default of 32 matches ThreadPoolExecutor's default behaviour.
+        `hard_max_threads`'s default of 32 matches ThreadPoolExecutor's default behavior.
 
         The maximum number of threads used is decreased by `other_cpu_bound_threads_in_use`. Defaulting to `1`, assuming
         that the calling thread will also be doing CPU-bound work.

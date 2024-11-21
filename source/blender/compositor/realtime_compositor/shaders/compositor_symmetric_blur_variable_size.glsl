@@ -2,9 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(gpu_shader_common_math_utils.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_blur_common.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
+#include "gpu_shader_common_math_utils.glsl"
+#include "gpu_shader_compositor_blur_common.glsl"
+#include "gpu_shader_compositor_texture_utilities.glsl"
 
 /* Loads the input color of the pixel at the given texel. If gamma correction is enabled, the color
  * is gamma corrected. If bounds are extended, then the input is treated as padded by a blur size

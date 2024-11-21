@@ -15,8 +15,8 @@
  * - Gather input color (whole mip chain), Scatter rect list, Signed CoC (whole mip chain).
  */
 
-#pragma BLENDER_REQUIRE(eevee_depth_of_field_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
+#include "eevee_depth_of_field_lib.glsl"
+#include "gpu_shader_math_vector_lib.glsl"
 
 /* NOTE: Do not compare alpha as it is not scattered by the scatter pass. */
 float dof_scatter_neighborhood_rejection(vec3 color)

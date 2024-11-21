@@ -7,13 +7,20 @@
  */
 
 #include "BLI_assert.h"
+#include "BLI_math_vector.hh"
+#include "BLI_math_vector_types.hh"
+
+#include "FN_multi_function_builder.hh"
 
 #include "DNA_material_types.h"
+
+#include "BKE_material.h"
 
 #include "GPU_material.hh"
 
 #include "COM_shader_node.hh"
 
+#include "NOD_multi_function.hh"
 #include "NOD_socket_search_link.hh"
 
 #include "RNA_enum_types.hh"
@@ -68,6 +75,21 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 
 using namespace blender::realtime_compositor;
 
+static int get_mode(const bNode &node)
+{
+  return node.custom1;
+}
+
+static bool get_use_alpha(const bNode &node)
+{
+  return node.custom2 & SHD_MIXRGB_USE_ALPHA;
+}
+
+static bool get_should_clamp(const bNode &node)
+{
+  return node.custom2 & SHD_MIXRGB_CLAMP;
+}
+
 class MixRGBShaderNode : public ShaderNode {
  public:
   using ShaderNode::ShaderNode;
@@ -77,7 +99,7 @@ class MixRGBShaderNode : public ShaderNode {
     GPUNodeStack *inputs = get_inputs_array();
     GPUNodeStack *outputs = get_outputs_array();
 
-    if (get_use_alpha()) {
+    if (get_use_alpha(bnode())) {
       GPU_link(material,
                "multiply_by_alpha",
                get_input_link("Fac"),
@@ -87,7 +109,7 @@ class MixRGBShaderNode : public ShaderNode {
 
     GPU_stack_link(material, &bnode(), get_shader_function_name(), inputs, outputs);
 
-    if (!get_should_clamp()) {
+    if (!get_should_clamp(bnode())) {
       return;
     }
 
@@ -101,14 +123,9 @@ class MixRGBShaderNode : public ShaderNode {
              &get_output("Image").link);
   }
 
-  int get_mode()
-  {
-    return bnode().custom1;
-  }
-
   const char *get_shader_function_name()
   {
-    switch (get_mode()) {
+    switch (get_mode(bnode())) {
       case MA_RAMP_BLEND:
         return "mix_blend";
       case MA_RAMP_ADD:
@@ -152,21 +169,71 @@ class MixRGBShaderNode : public ShaderNode {
     BLI_assert_unreachable();
     return nullptr;
   }
-
-  bool get_use_alpha()
-  {
-    return bnode().custom2 & SHD_MIXRGB_USE_ALPHA;
-  }
-
-  bool get_should_clamp()
-  {
-    return bnode().custom2 & SHD_MIXRGB_CLAMP;
-  }
 };
 
 static ShaderNode *get_compositor_shader_node(DNode node)
 {
   return new MixRGBShaderNode(node);
+}
+
+static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+{
+  const int mode = get_mode(builder.node());
+
+  if (get_use_alpha(builder.node())) {
+    if (get_should_clamp(builder.node())) {
+      builder.construct_and_set_matching_fn_cb([=]() {
+        return mf::build::SI3_SO<float, float4, float4, float4>(
+            "Mix RGB Alpha Clamp",
+            [=](const float factor, const float4 &color1, const float4 &color2) -> float4 {
+              const float alpha_factor = factor * color2.w;
+              float4 result = color1;
+              ramp_blend(mode, result, alpha_factor, color2);
+              return math::clamp(result, 0.0f, 1.0f);
+            },
+            mf::build::exec_presets::SomeSpanOrSingle<1, 2>());
+      });
+    }
+    else {
+      builder.construct_and_set_matching_fn_cb([=]() {
+        return mf::build::SI3_SO<float, float4, float4, float4>(
+            "Mix RGB Alpha",
+            [=](const float factor, const float4 &color1, const float4 &color2) -> float4 {
+              const float alpha_factor = factor * color2.w;
+              float4 result = color1;
+              ramp_blend(mode, result, alpha_factor, color2);
+              return result;
+            },
+            mf::build::exec_presets::SomeSpanOrSingle<1, 2>());
+      });
+    }
+  }
+  else {
+    if (get_should_clamp(builder.node())) {
+      builder.construct_and_set_matching_fn_cb([=]() {
+        return mf::build::SI3_SO<float, float4, float4, float4>(
+            "Mix RGB Clamp",
+            [=](const float factor, const float4 &color1, const float4 &color2) -> float4 {
+              float4 result = color1;
+              ramp_blend(mode, result, factor, color2);
+              return math::clamp(result, 0.0f, 1.0f);
+            },
+            mf::build::exec_presets::SomeSpanOrSingle<1, 2>());
+      });
+    }
+    else {
+      builder.construct_and_set_matching_fn_cb([=]() {
+        return mf::build::SI3_SO<float, float4, float4, float4>(
+            "Mix RGB",
+            [=](const float factor, const float4 &color1, const float4 &color2) -> float4 {
+              float4 result = color1;
+              ramp_blend(mode, result, factor, color2);
+              return result;
+            },
+            mf::build::exec_presets::SomeSpanOrSingle<1, 2>());
+      });
+    }
+  }
 }
 
 }  // namespace blender::nodes::node_composite_mixrgb_cc
@@ -183,6 +250,7 @@ void register_node_type_cmp_mix_rgb()
   ntype.labelfunc = node_blend_label;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
   ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
+  ntype.build_multi_function = file_ns::node_build_multi_function;
 
   blender::bke::node_register_type(&ntype);
 }

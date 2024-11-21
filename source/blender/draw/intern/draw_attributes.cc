@@ -50,6 +50,9 @@ void drw_attributes_clear(DRW_Attributes *attributes)
 
 void drw_attributes_merge(DRW_Attributes *dst, const DRW_Attributes *src, std::mutex &render_mutex)
 {
+  if (src->num_requests == 0) {
+    return;
+  }
   std::lock_guard lock{render_mutex};
   drw_attributes_merge_requests(src, dst);
 }

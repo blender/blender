@@ -35,10 +35,13 @@ struct wmTooltipState;
 struct Panel_Runtime;
 #ifdef __cplusplus
 namespace blender::bke {
+struct ARegionRuntime;
 struct FileHandlerType;
-}
+}  // namespace blender::bke
+using ARegionRuntimeHandle = blender::bke::ARegionRuntime;
 using FileHandlerTypeHandle = blender::bke::FileHandlerType;
 #else
+typedef struct ARegionRuntimeHandle ARegionRuntimeHandle;
 typedef struct FileHandlerTypeHandle FileHandlerTypeHandle;
 #endif
 
@@ -319,6 +322,31 @@ typedef struct uiList { /* some list UI data need to be saved in file */
   uiListDyn *dyn_data;
 } uiList;
 
+/** See #uiViewStateLink. */
+typedef struct uiViewState {
+  /**
+   * User set height of the view in unscaled pixels. A value of 0 means no custom height was set
+   * and the default should be used.
+   */
+  int custom_height;
+  char _pad[4];
+} uiViewState;
+
+/**
+ * Persistent storage for some state of views (#ui::AbstractView), for storage in a region. The
+ * view state is matched to the view using the view's idname.
+ *
+ * The actual state is stored in #uiViewState, so views can manage this conveniently without having
+ * to care about the idname and listbase pointers themselves.
+ */
+typedef struct uiViewStateLink {
+  struct uiViewStateLink *next, *prev;
+
+  char idname[64]; /* #BKE_ST_MAXNAME */
+
+  uiViewState state;
+} uiViewStateLink;
+
 typedef struct TransformOrientation {
   struct TransformOrientation *next, *prev;
   /** MAX_NAME. */
@@ -334,8 +362,18 @@ typedef struct uiPreview {
   /** Defined as #BKE_ST_MAXNAME. */
   char preview_id[64];
   short height;
-  char _pad1[6];
+
+  /* Unset on file read. */
+  short tag; /* #uiPreviewTag */
+
+  /** #ID.session_uid of the ID this preview is made for. Unset on file read. */
+  unsigned int id_session_uid;
 } uiPreview;
+
+typedef enum uiPreviewTag {
+  /** Preview needs re-rendering, handled in #ED_preview_draw(). */
+  UI_PREVIEW_TAG_DIRTY = (1 << 0),
+} uiPreviewTag;
 
 typedef struct ScrGlobalAreaData {
   /**
@@ -440,27 +478,6 @@ typedef struct ScrArea {
   ScrArea_Runtime runtime;
 } ScrArea;
 
-typedef struct ARegion_Runtime {
-  /** Panel category to use between 'layout' and 'draw'. */
-  const char *category;
-
-  /**
-   * The visible part of the region, use with region overlap not to draw
-   * on top of the overlapping regions.
-   *
-   * Lazy initialize, zero'd when unset, relative to #ARegion.winrct x/y min. */
-  rcti visible_rect;
-
-  /* The offset needed to not overlap with window scroll-bars. Only used by HUD regions for now. */
-  int offset_x, offset_y;
-
-  /** Maps #uiBlock::name to uiBlock for faster lookups. */
-  struct GHash *block_name_map;
-
-  /* Dummy panel used in popups so they can support layout panels. */
-  Panel *popup_block_panel;
-} ARegion_Runtime;
-
 typedef struct ARegion {
   struct ARegion *next, *prev;
 
@@ -520,6 +537,11 @@ typedef struct ARegion {
   ListBase handlers;
   /** Panel categories runtime. */
   ListBase panels_category;
+  /**
+   * Permanent state storage of #ui::AbstractView instances, so hiding regions with views or
+   * loading files remembers the view state.
+   */
+  ListBase view_states; /* #uiViewStateLink */
 
   /** Gizmo-map of this region. */
   struct wmGizmoMap *gizmo_map;
@@ -532,7 +554,7 @@ typedef struct ARegion {
   /** XXX 2.50, need spacedata equivalent? */
   void *regiondata;
 
-  ARegion_Runtime runtime;
+  ARegionRuntimeHandle *runtime;
 } ARegion;
 
 /** #ScrArea.flag */
@@ -795,8 +817,6 @@ enum {
 };
 
 typedef struct AssetShelfSettings {
-  struct AssetShelfSettings *next, *prev;
-
   AssetLibraryReference asset_library_reference;
 
   ListBase enabled_catalog_paths; /* #AssetCatalogPathLink */
@@ -835,7 +855,8 @@ typedef struct AssetShelf {
 
   /** Only for the permanent asset shelf regions, not asset shelves in temporary popups. */
   short preferred_row_count;
-  char _pad[6];
+  short instance_flag;
+  char _pad[4];
 } AssetShelf;
 
 /**
@@ -866,6 +887,17 @@ typedef enum AssetShelfSettings_DisplayFlag {
   ASSETSHELF_SHOW_NAMES = (1 << 0),
 } AssetShelfSettings_DisplayFlag;
 ENUM_OPERATORS(AssetShelfSettings_DisplayFlag, ASSETSHELF_SHOW_NAMES);
+
+/* #AssetShelfSettings.instance_flag */
+typedef enum AssetShelf_InstanceFlag {
+  /**
+   * Remember the last known region visibility state or this shelf, so it can be restored if the
+   * shelf is reactivated. Practically this makes the shelf visibility be remembered per mode.
+   * Continuously updated for the visible region.
+   */
+  ASSETSHELF_REGION_IS_HIDDEN = (1 << 0),
+} AssetShelf_InstanceFlag;
+ENUM_OPERATORS(AssetShelf_InstanceFlag, ASSETSHELF_REGION_IS_HIDDEN);
 
 typedef struct FileHandler {
   DNA_DEFINE_CXX_METHODS(FileHandler)

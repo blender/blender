@@ -12,7 +12,7 @@
  * filter, storing the result of each separately. See the DericheGaussianCoefficients class and the
  * implementation for more information. */
 
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
+#include "gpu_shader_compositor_texture_utilities.glsl"
 
 #define FILTER_ORDER 4
 
@@ -35,7 +35,7 @@ void main()
    * boundary condition, so we initialize all inputs by the boundary pixel. */
   ivec2 boundary_texel = is_causal ? ivec2(0, y) : ivec2(width - 1, y);
   vec4 input_boundary = texture_load(input_tx, boundary_texel);
-  vec4 inputs[FILTER_ORDER + 1] = vec4[](
+  vec4 inputs[FILTER_ORDER + 1] = float4_array(
       input_boundary, input_boundary, input_boundary, input_boundary, input_boundary);
 
   /* Create an array that holds the last FILTER_ORDER outputs along with the current output. The
@@ -44,7 +44,7 @@ void main()
    * boundary coefficient. See the DericheGaussianCoefficients class for more information on the
    * boundary handing. */
   vec4 output_boundary = input_boundary * boundary_coefficient;
-  vec4 outputs[FILTER_ORDER + 1] = vec4[](
+  vec4 outputs[FILTER_ORDER + 1] = float4_array(
       output_boundary, output_boundary, output_boundary, output_boundary, output_boundary);
 
   for (int x = 0; x < width; x++) {

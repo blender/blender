@@ -93,7 +93,7 @@ class TestGreasePencilDrawing(unittest.TestCase):
 
     def test_grease_pencil_drawing_remove_all_strokes(self):
         self.drawing.remove_strokes()
-        self.assertIsNone(self.drawing.strokes)
+        self.assertEqual(len(self.drawing.strokes), 0)
 
     def test_grease_pencil_drawing_remove_strokes(self):
         self.drawing.remove_strokes(indices=[0, 2])
@@ -115,6 +115,20 @@ class TestGreasePencilDrawing(unittest.TestCase):
         self.assertEqual(len(self.drawing.strokes[1].points), 25)
         self.assertEqual(len(self.drawing.strokes[2].points), 2)
         self.assertEqual(len(self.drawing.strokes[3].points), 30)
+
+    def test_grease_pencil_drawing_stroke_add_points(self):
+        self.drawing.strokes[0].add_points(5)
+        self.assertEqual(len(self.drawing.strokes[0].points), 8)
+
+        new_points = self.drawing.strokes[1].add_points(5)
+        self.assertEqual(len(new_points), 5)
+
+    def test_grease_pencil_drawing_stroke_remove_points(self):
+        self.drawing.strokes[0].remove_points(1)
+        self.assertEqual(len(self.drawing.strokes[0].points), 2)
+
+        self.drawing.strokes[1].remove_points(10)
+        self.assertEqual(len(self.drawing.strokes[1].points), 1)
 
     def test_grease_pencil_drawing_strokes_slice(self):
         self.assertEqual(len(self.drawing.strokes[:]), 4)

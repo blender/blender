@@ -7545,45 +7545,78 @@ static float geometry_collide_offset(BevelParams *bp, EdgeHalf *eb)
   if (ea->e == eb->e || (ec && ec->e == eb->e)) {
     return no_collide_offset;
   }
-  ka = ka / bp->offset;
-  kb = kb / bp->offset;
-  kc = kc / bp->offset;
   float th1 = angle_v3v3v3(va->co, vb->co, vc->co);
   float th2 = angle_v3v3v3(vb->co, vc->co, vd->co);
 
   /* First calculate offset at which edge B collapses, which happens
-   * when advancing clones of A, B, C all meet at a point.
-   * This only happens if at least two of those three edges have non-zero k's. */
+   * when advancing clones of A, B, C all meet at a point.*/
   float sin1 = sinf(th1);
   float sin2 = sinf(th2);
-  if ((ka > 0.0f) + (kb > 0.0f) + (kc > 0.0f) >= 2) {
-    float tan1 = tanf(th1);
-    float tan2 = tanf(th2);
-    float g = tan1 * tan2;
-    float h = sin1 * sin2;
-    float den = g * (ka * sin2 + kc * sin1) + kb * h * (tan1 + tan2);
-    if (den != 0.0f) {
-      float t = BM_edge_calc_length(eb->e);
-      t *= g * h / den;
-      if (t >= 0.0f) {
-        limit = t;
+  float cos1 = cosf(th1);
+  float cos2 = cosf(th2);
+  /*the side offsets, overlap at the two corners, to create two corner vectors.
+   *the intersection of these two corner vectors is the collapse point.
+   *The length of edge B divided by the projection of these vectors onto edge B
+   *is the number of 'offsets' that can be accomodated*/
+  float offsets_projected_on_B = (ka + cos1 * kb) / sin1 + (kc + cos2 * kb) / sin2;
+  if (offsets_projected_on_B > BEVEL_EPSILON) {
+    offsets_projected_on_B = bp->offset * (len_v3v3(vb->co, vc->co) / offsets_projected_on_B);
+    if (offsets_projected_on_B > BEVEL_EPSILON) {
+      limit = offsets_projected_on_B;
+    }
+  }
+
+  /* Now check edge slide cases.
+   * where side edges are in line with edge B and are not beveled, we should continue
+   * iterating until we find a return edge (not in line with B) to provide a minimum offset
+   * to the far side of the N-gon. This is not perfect, but is simpler and will catch many
+   * more overlap issues*/
+  if (ka == 0.0f && kb > FLT_EPSILON) {
+    BMLoop *la = BM_face_edge_share_loop(eb->fnext, ea->e);
+    if (la) {
+      float A_side_slide = 0.0f;
+      float exterior_angle = 0.0f;
+      bool first = true;
+      while (exterior_angle < 0.0001f) {
+        if (first) {
+          exterior_angle = float(M_PI) - th1;
+          first = false;
+        }
+        else {
+          la = la->prev;
+          exterior_angle += float(M_PI) -
+                            angle_v3v3v3(la->v->co, la->next->v->co, la->next->next->v->co);
+        }
+        A_side_slide += BM_edge_calc_length(la->e) * sinf(exterior_angle);
+      }
+      if (A_side_slide < limit) {
+        limit = A_side_slide;
       }
     }
   }
 
-  /* Now check edge slide cases. */
-  if (kb > 0.0f && ka == 0.0f /* `&& bvb->selcount == 1 && bvb->edgecount > 2` */) {
-    float t = BM_edge_calc_length(ea->e);
-    t *= sin1 / kb;
-    if (t >= 0.0f && t < limit) {
-      limit = t;
-    }
-  }
-  if (kb > 0.0f && kc == 0.0f /* `&& bvc && ec && bvc->selcount == 1 && bvc->edgecount > 2` */) {
-    float t = BM_edge_calc_length(ec->e);
-    t *= sin2 / kb;
-    if (t >= 0.0f && t < limit) {
-      limit = t;
+  if (kb > FLT_EPSILON && kc == 0.0f) {
+    BMLoop *lc = BM_face_edge_share_loop(eb->fnext, eb->e);
+    if (lc) {
+      lc = lc->next;
+      float C_side_slide = 0.0f;
+      float exterior_angle = 0.0f;
+      bool first = true;
+      while (exterior_angle < 0.0001f) {
+        if (first) {
+          exterior_angle = float(M_PI) - th2;
+          first = false;
+        }
+        else {
+          lc = lc->next;
+          exterior_angle += float(M_PI) -
+                            angle_v3v3v3(lc->prev->v->co, lc->v->co, lc->next->v->co);
+        }
+        C_side_slide += BM_edge_calc_length(lc->e) * sinf(exterior_angle);
+      }
+      if (C_side_slide < limit) {
+        limit = C_side_slide;
+      }
     }
   }
   return limit;

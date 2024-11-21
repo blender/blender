@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <memory>
 
+#include "BLI_array.hh"
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
 
@@ -16,6 +17,7 @@
 #include "DNA_movieclip_types.h"
 
 #include "COM_cached_resource.hh"
+#include "COM_result.hh"
 
 namespace blender::realtime_compositor {
 
@@ -54,7 +56,10 @@ bool operator==(const DistortionGridKey &a, const DistortionGridKey &b);
  * for more information. */
 class DistortionGrid : public CachedResource {
  private:
-  GPUTexture *texture_ = nullptr;
+  Array<float2> distortion_grid_;
+
+ public:
+  Result result;
 
  public:
   /* The calibration size is the size of the image where the tracking camera was calibrated, this
@@ -66,10 +71,6 @@ class DistortionGrid : public CachedResource {
                  int2 calibration_size);
 
   ~DistortionGrid();
-
-  void bind_as_texture(GPUShader *shader, const char *texture_name) const;
-
-  void unbind_as_texture() const;
 };
 
 /* ------------------------------------------------------------------------------------------------
@@ -86,7 +87,7 @@ class DistortionGridContainer : CachedResourceContainer {
    * container, if one exists, return it, otherwise, return a newly created one and add it to the
    * container. In both cases, tag the cached resource as needed to keep it cached for the next
    * evaluation. */
-  DistortionGrid &get(
+  Result &get(
       Context &context, MovieClip *movie_clip, int2 size, DistortionType type, int frame_number);
 };
 

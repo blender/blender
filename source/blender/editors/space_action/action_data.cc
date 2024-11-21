@@ -359,10 +359,12 @@ static int action_pushdown_exec(bContext *C, wmOperator *op)
   AnimData *adt = ED_actedit_animdata_from_context(C, &adt_id_owner);
 
   /* Do the deed... */
-  if (adt) {
+  if (adt && adt->action) {
+    blender::animrig::Action &action = adt->action->wrap();
+
     /* Perform the push-down operation
      * - This will deal with all the AnimData-side user-counts. */
-    if (!adt->action->wrap().has_keyframes(adt->slot_handle)) {
+    if (!action.has_keyframes(adt->slot_handle)) {
       /* action may not be suitable... */
       BKE_report(op->reports, RPT_WARNING, "Action must have at least one keyframe or F-Modifier");
       return OPERATOR_CANCELLED;
@@ -376,7 +378,7 @@ static int action_pushdown_exec(bContext *C, wmOperator *op)
 
     /* The action needs updating too, as FCurve modifiers are to be reevaluated. They won't extend
      * beyond the NLA strip after pushing down to the NLA. */
-    DEG_id_tag_update_ex(bmain, &adt->action->id, ID_RECALC_ANIMATION);
+    DEG_id_tag_update_ex(bmain, &action.id, ID_RECALC_ANIMATION);
 
     /* Stop displaying this action in this editor
      * NOTE: The editor itself doesn't set a user...
@@ -656,22 +658,16 @@ void ED_animedit_unlink_action(
     }
   }
   else {
-    /* Unlink normally - Setting it to nullptr should be enough to get the old one unlinked */
+    /* Clear AnimData -> action via RNA, so that it triggers message bus updates. */
+    PointerRNA ptr = RNA_pointer_create(id, &RNA_AnimData, adt);
+    PropertyRNA *prop = RNA_struct_find_property(&ptr, "action");
+
+    RNA_property_pointer_set(&ptr, prop, PointerRNA_NULL, nullptr);
+    RNA_property_update(C, &ptr, prop);
+
+    /* Also update the Action editor legacy Action pointer. */
     if (area->spacetype == SPACE_ACTION) {
-      /* clear action editor -> action */
       actedit_change_action(C, nullptr);
-    }
-    else {
-      /* clear AnimData -> action */
-      PropertyRNA *prop;
-
-      /* create AnimData RNA pointers */
-      PointerRNA ptr = RNA_pointer_create(id, &RNA_AnimData, adt);
-      prop = RNA_struct_find_property(&ptr, "action");
-
-      /* clear... */
-      RNA_property_pointer_set(&ptr, prop, PointerRNA_NULL, nullptr);
-      RNA_property_update(C, &ptr, prop);
     }
   }
 }

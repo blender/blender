@@ -9,6 +9,7 @@
 import time
 import logging
 import logging.handlers
+import sys
 
 #
 # Globals
@@ -65,22 +66,30 @@ def profile_end(label=None):
 class Log:
     def __init__(self, loglevel):
         self.logger = logging.getLogger('glTFImporter')
+        self.error_logger = logging.getLogger('glTFImporter_errors')
 
         # For console display
-        self.console_handler = logging.StreamHandler()
+        self.console_handler = logging.StreamHandler(sys.stdout)
         formatter = logging.Formatter('%(asctime)s | %(levelname)s: %(message)s', "%H:%M:%S")
         self.console_handler.setFormatter(formatter)
+
+        # For console display - errors
+        self.error_console_handler = logging.StreamHandler(sys.stderr)
+        formatter_error = logging.Formatter('%(asctime)s | %(levelname)s: %(message)s', "%H:%M:%S")
+        self.error_console_handler.setFormatter(formatter_error)
 
         # For popup display
         self.popup_handler = logging.handlers.MemoryHandler(1024 * 10)
 
         self.logger.addHandler(self.console_handler)
+        self.error_logger.addHandler(self.error_console_handler)
         # self.logger.addHandler(self.popup_handler) => Make sure to not attach the popup handler to the logger
 
         self.logger.setLevel(int(loglevel))
+        self.error_logger.setLevel(logging.ERROR)
 
     def error(self, message, popup=False):
-        self.logger.error(message)
+        self.error_logger.error(message)
         if popup:
             self.popup_handler.buffer.append(('ERROR', message))
 
@@ -100,7 +109,7 @@ class Log:
             self.popup_handler.buffer.append(('DEBUG', message))
 
     def critical(self, message, popup=False):
-        self.logger.critical(message)
+        self.error_logger.critical(message)
         if popup:
             # There is no Critical level in Blender, so we use error
             self.popup_handler.buffer.append(('ERROR', message))
@@ -115,5 +124,6 @@ class Log:
 
     def flush(self):
         self.logger.removeHandler(self.console_handler)
+        self.error_logger.removeHandler(self.error_console_handler)
         self.popup_handler.flush()
         self.logger.removeHandler(self.popup_handler)

@@ -50,10 +50,10 @@ static wmGizmo *wm_gizmo_create(const wmGizmoType *gzt, PointerRNA *properties)
   BLI_assert(gzt != nullptr);
   BLI_assert(gzt->struct_size >= sizeof(wmGizmo));
 
-  /* FIXME: Old C-style over-allocation is not trivial to port to C++, so for now keep it that way
-   * and use a placement new for C++ construction. */
-  wmGizmo *gz = static_cast<wmGizmo *>(MEM_callocN(
-      gzt->struct_size + (sizeof(wmGizmoProperty) * gzt->target_property_defs_len), __func__));
+  /* FIXME: Old C-style allocation is not trivial to port to C++ here, because actual allocation
+   * depends on the 'subtype' of gizmo. The whole gizmo type hierarchy should probably be moved to
+   * proper C++ virtual inheritance at some point. */
+  wmGizmo *gz = static_cast<wmGizmo *>(MEM_callocN(gzt->struct_size, __func__));
   new (gz) wmGizmo();
   gz->type = gzt;
 
@@ -74,6 +74,10 @@ static wmGizmo *wm_gizmo_create(const wmGizmoType *gzt, PointerRNA *properties)
   unit_m4(gz->matrix_offset);
 
   gz->drag_part = -1;
+
+  /* Only ensure expected size for the target properties array. Actual initialization of these
+   * happen separately (see e.g. #WM_gizmo_target_property_def_rna and related). */
+  gz->target_properties.resize(gzt->target_property_defs_len);
 
   return gz;
 }
@@ -146,13 +150,9 @@ void WM_gizmo_free(wmGizmo *gz)
     MEM_delete(gz->ptr);
   }
 
-  if (gz->type->target_property_defs_len != 0) {
-    wmGizmoProperty *gz_prop_array = WM_gizmo_target_property_array(gz);
-    for (int i = 0; i < gz->type->target_property_defs_len; i++) {
-      wmGizmoProperty *gz_prop = &gz_prop_array[i];
-      if (gz_prop->custom_func.free_fn) {
-        gz_prop->custom_func.free_fn(gz, gz_prop);
-      }
+  for (wmGizmoProperty &gz_prop : gz->target_properties) {
+    if (gz_prop.custom_func.free_fn) {
+      gz_prop.custom_func.free_fn(gz, &gz_prop);
     }
   }
 
@@ -194,7 +194,7 @@ void WM_gizmo_unlink(ListBase *gizmolist, wmGizmoMap *gzmap, wmGizmo *gz, bConte
 
 wmGizmoOpElem *WM_gizmo_operator_get(wmGizmo *gz, int part_index)
 {
-  if (((part_index >= 0) && (part_index < gz->op_data.size()))) {
+  if ((part_index >= 0) && (part_index < gz->op_data.size())) {
     return &gz->op_data[part_index];
   }
   return nullptr;
@@ -477,11 +477,9 @@ static void gizmo_update_prop_data(wmGizmo *gz)
 {
   /* Gizmo property might have been changed, so update gizmo. */
   if (gz->type->property_update) {
-    wmGizmoProperty *gz_prop_array = WM_gizmo_target_property_array(gz);
-    for (int i = 0; i < gz->type->target_property_defs_len; i++) {
-      wmGizmoProperty *gz_prop = &gz_prop_array[i];
-      if (WM_gizmo_target_property_is_valid(gz_prop)) {
-        gz->type->property_update(gz, gz_prop);
+    for (wmGizmoProperty &gz_prop : gz->target_properties) {
+      if (WM_gizmo_target_property_is_valid(&gz_prop)) {
+        gz->type->property_update(gz, &gz_prop);
       }
     }
   }

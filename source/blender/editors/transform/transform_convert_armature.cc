@@ -394,7 +394,6 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
   copy_v3_v3(vec, pchan->pose_mat[3]);
   copy_v3_v3(td->center, vec);
 
-  td->ob = ob;
   td->flag = TD_SELECTED;
   if (bone->flag & BONE_HINGE_CHILD_TRANSFORM) {
     td->flag |= TD_NOCENTER;
@@ -833,7 +832,6 @@ static void createTransArmatureVerts(bContext * /*C*/, TransInfo *t)
 
             td->loc = nullptr;
             td->ext = nullptr;
-            td->ob = tc->obedit;
 
             td++;
           }
@@ -848,7 +846,6 @@ static void createTransArmatureVerts(bContext * /*C*/, TransInfo *t)
 
             td->loc = nullptr;
             td->ext = nullptr;
-            td->ob = tc->obedit;
 
             td++;
           }
@@ -878,7 +875,6 @@ static void createTransArmatureVerts(bContext * /*C*/, TransInfo *t)
             normalize_m3(td->axismtx);
 
             td->ext = nullptr;
-            td->ob = tc->obedit;
 
             td++;
           }
@@ -893,7 +889,6 @@ static void createTransArmatureVerts(bContext * /*C*/, TransInfo *t)
             td->flag = TD_SELECTED;
 
             td->ext = nullptr;
-            td->ob = tc->obedit;
 
             td++;
           }
@@ -933,7 +928,6 @@ static void createTransArmatureVerts(bContext * /*C*/, TransInfo *t)
 
             td->ext = nullptr;
             td->val = nullptr;
-            td->ob = tc->obedit;
 
             td++;
           }
@@ -956,7 +950,6 @@ static void createTransArmatureVerts(bContext * /*C*/, TransInfo *t)
 
             td->ext = nullptr;
             td->val = nullptr;
-            td->ob = tc->obedit;
 
             td++;
           }
@@ -1664,13 +1657,6 @@ static void special_aftertrans_update__pose(bContext *C, TransInfo *t)
     const bool canceled = (t->state == TRANS_CANCEL);
 
     if (blender::animrig::is_autokey_on(t->scene) && !canceled) {
-      blender::Vector<Object *> objects;
-      FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-        for (int i = 0; i < tc->data_len; i++) {
-          const TransData *td = &tc->data[i];
-          objects.append(td->ob);
-        }
-      }
       ANIM_deselect_keys_in_animation_editors(C);
     }
 

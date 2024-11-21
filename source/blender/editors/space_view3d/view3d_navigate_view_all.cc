@@ -309,12 +309,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
   BKE_view_layer_synced_ensure(scene_eval, view_layer_eval);
   Object *ob_eval = BKE_view_layer_active_object_get(view_layer_eval);
   Object *obedit = CTX_data_edit_object(C);
-  const bGPdata *gpd_eval = ob_eval && (ob_eval->type == OB_GPENCIL_LEGACY) ?
-                                static_cast<const bGPdata *>(ob_eval->data) :
-                                nullptr;
-  const bool is_gp_edit = gpd_eval ? GPENCIL_ANY_MODE(gpd_eval) : false;
-  const bool is_face_map = ((is_gp_edit == false) && region->gizmo_map &&
-                            WM_gizmomap_is_any_selected(region->gizmo_map));
+  const bool is_face_map = (region->gizmo_map && WM_gizmomap_is_any_selected(region->gizmo_map));
   float3 min, max;
   bool ok = false, ok_dist = true;
   const bool use_all_regions = RNA_boolean_get(op->ptr, "use_all_regions");
@@ -349,38 +344,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
     }
   }
 
-  if (is_gp_edit) {
-    CTX_DATA_BEGIN (C, bGPDstroke *, gps, editable_gpencil_strokes) {
-      /* we're only interested in selected points here... */
-      if ((gps->flag & GP_STROKE_SELECT) && (gps->flag & GP_STROKE_3DSPACE)) {
-        ok |= BKE_gpencil_stroke_minmax(gps, true, min, max);
-      }
-      if (gps->editcurve != nullptr) {
-        for (int i = 0; i < gps->editcurve->tot_curve_points; i++) {
-          BezTriple *bezt = &gps->editcurve->curve_points[i].bezt;
-          if (bezt->f1 & SELECT) {
-            minmax_v3v3_v3(min, max, bezt->vec[0]);
-            ok = true;
-          }
-          if (bezt->f2 & SELECT) {
-            minmax_v3v3_v3(min, max, bezt->vec[1]);
-            ok = true;
-          }
-          if (bezt->f3 & SELECT) {
-            minmax_v3v3_v3(min, max, bezt->vec[2]);
-            ok = true;
-          }
-        }
-      }
-    }
-    CTX_DATA_END;
-
-    if ((ob_eval) && (ok)) {
-      mul_m4_v3(ob_eval->object_to_world().ptr(), min);
-      mul_m4_v3(ob_eval->object_to_world().ptr(), max);
-    }
-  }
-  else if (is_face_map) {
+  if (is_face_map) {
     ok = WM_gizmomap_minmax(region->gizmo_map, true, true, min, max);
   }
   else if (obedit) {

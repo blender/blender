@@ -9,13 +9,13 @@
  * are then tagged to avoid re-evaluation by screen trace.
  */
 
-#pragma BLENDER_REQUIRE(eevee_lightprobe_eval_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_bxdf_sampling_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_colorspace_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_ray_types_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_ray_trace_screen_lib.glsl)
+#include "eevee_bxdf_sampling_lib.glsl"
+#include "eevee_colorspace_lib.glsl"
+#include "eevee_gbuffer_lib.glsl"
+#include "eevee_lightprobe_eval_lib.glsl"
+#include "eevee_ray_trace_screen_lib.glsl"
+#include "eevee_ray_types_lib.glsl"
+#include "eevee_sampling_lib.glsl"
 
 void main()
 {

@@ -163,7 +163,7 @@ PyDoc_STRVAR(
     "   :arg vert: The vert to be dissolved.\n"
     "   :type vert: :class:`bmesh.types.BMVert`\n"
     "   :return: True when the vertex dissolve is successful.\n"
-    "   :rtype: boolean\n");
+    "   :rtype: bool\n");
 static PyObject *bpy_bm_utils_vert_dissolve(PyObject * /*self*/, PyObject *args)
 {
   BPy_BMVert *py_vert;
@@ -250,7 +250,7 @@ PyDoc_STRVAR(
     "   :arg edges: The edges to separated.\n"
     "   :type edges: :class:`bmesh.types.BMEdge`\n"
     "   :return: The newly separated verts (including the vertex passed).\n"
-    "   :rtype: tuple of :class:`bmesh.types.BMVert`\n");
+    "   :rtype: tuple[:class:`bmesh.types.BMVert`, ...]\n");
 static PyObject *bpy_bm_utils_vert_separate(PyObject * /*self*/, PyObject *args)
 {
   BPy_BMVert *py_vert;
@@ -312,7 +312,7 @@ PyDoc_STRVAR(
     "   :arg fac: The point on the edge where the new vert will be created [0 - 1].\n"
     "   :type fac: float\n"
     "   :return: The newly created (edge, vert) pair.\n"
-    "   :rtype: tuple\n");
+    "   :rtype: tuple[:class:`bmesh.types.BMEdge`, :class:`bmesh.types.BMVert`]\n");
 static PyObject *bpy_bm_utils_edge_split(PyObject * /*self*/, PyObject *args)
 {
   BPy_BMEdge *py_edge;
@@ -366,7 +366,7 @@ PyDoc_STRVAR(
     "   :arg edge: The edge to rotate.\n"
     "   :type edge: :class:`bmesh.types.BMEdge`\n"
     "   :arg ccw: When True the edge will be rotated counter clockwise.\n"
-    "   :type ccw: boolean\n"
+    "   :type ccw: bool\n"
     "   :return: The newly rotated edge.\n"
     "   :rtype: :class:`bmesh.types.BMEdge`\n");
 static PyObject *bpy_bm_utils_edge_rotate(PyObject * /*self*/, PyObject *args)
@@ -409,15 +409,15 @@ PyDoc_STRVAR(
     "   :type vert_a: :class:`bmesh.types.BMVert`\n"
     "   :arg vert_b: Second vertex to cut in the face (face must contain the vert).\n"
     "   :type vert_b: :class:`bmesh.types.BMVert`\n"
-    "   :arg coords: Optional argument to define points in between *vert_a* and *vert_b*.\n"
-    "   :type coords: sequence of float triplets\n"
+    "   :arg coords: Optional sequence of 3D points in between *vert_a* and *vert_b*.\n"
+    "   :type coords: Sequence[Sequence[float]]\n"
     "   :arg use_exist: .Use an existing edge if it exists (Only used when *coords* argument is "
     "empty or omitted)\n"
-    "   :type use_exist: boolean\n"
+    "   :type use_exist: bool\n"
     "   :arg example: Newly created edge will copy settings from this one.\n"
     "   :type example: :class:`bmesh.types.BMEdge`\n"
     "   :return: The newly created face or None on failure.\n"
-    "   :rtype: (:class:`bmesh.types.BMFace`, :class:`bmesh.types.BMLoop`) pair\n");
+    "   :rtype: tuple[:class:`bmesh.types.BMFace`, :class:`bmesh.types.BMLoop`]\n");
 static PyObject *bpy_bm_utils_face_split(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
   static const char *kwlist[] = {
@@ -544,9 +544,9 @@ PyDoc_STRVAR(
     "   :arg face: The face to split.\n"
     "   :type face: :class:`bmesh.types.BMFace`\n"
     "   :arg edgenet: Sequence of edges.\n"
-    "   :type edgenet: :class:`bmesh.types.BMEdge`\n"
+    "   :type edgenet: Sequence[:class:`bmesh.types.BMEdge`]\n"
     "   :return: The newly created faces.\n"
-    "   :rtype: tuple of (:class:`bmesh.types.BMFace`)\n"
+    "   :rtype: tuple[:class:`bmesh.types.BMFace`, ...]\n"
     "\n"
     "   .. note::\n"
     "\n"
@@ -621,7 +621,7 @@ PyDoc_STRVAR(
     "   :arg faces: Sequence of faces.\n"
     "   :type faces: :class:`bmesh.types.BMFace`\n"
     "   :arg remove: Remove the edges and vertices between the faces.\n"
-    "   :type remove: boolean\n"
+    "   :type remove: bool\n"
     "   :return: The newly created face or None on failure.\n"
     "   :rtype: :class:`bmesh.types.BMFace`\n");
 static PyObject *bpy_bm_utils_face_join(PyObject * /*self*/, PyObject *args)

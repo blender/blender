@@ -855,7 +855,11 @@ static BoneCollection *add_or_move_to_collection_bcoll(wmOperator *op, bArmature
   BoneCollection *target_bcoll;
 
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "new_collection_name");
-  if (RNA_property_is_set(op->ptr, prop)) {
+  if (RNA_property_is_set(op->ptr, prop) ||
+      /* Neither properties can be used, the operator may have been called with defaults.
+       * In this case add a root collection, the default name will be used. */
+      (collection_index < 0))
+  {
     /* TODO: check this with linked, non-overridden armatures. */
     char new_collection_name[MAX_NAME];
     RNA_string_get(op->ptr, "new_collection_name", new_collection_name);

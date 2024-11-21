@@ -25,7 +25,7 @@ def bmesh_linked_uv_islands(bm, uv_layer):
     :arg uv_layer: the UV layer to source UVs from.
     :type bmesh: :class:`BMLayerItem`
     :return: list of lists containing polygon indices
-    :rtype: list
+    :rtype: list[list[int]]
     """
 
     result = []

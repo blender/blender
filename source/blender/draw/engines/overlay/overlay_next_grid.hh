@@ -11,10 +11,12 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "DNA_camera_types.h"
+#include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
 #include "ED_image.hh"
 #include "ED_view3d.hh"
+#include "GPU_texture.hh"
 
 #include "draw_shader_shared.hh"
 #include "overlay_next_private.hh"
@@ -47,6 +49,8 @@ class Grid {
 
     data_.push_update();
 
+    GPUTexture **depth_tx = state.xray_enabled ? &res.xray_depth_tx : &res.depth_tx;
+
     grid_ps_.init();
     grid_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA);
     if (state.space_type == SPACE_IMAGE) {
@@ -57,7 +61,7 @@ class Grid {
           res.theme_settings.color_background, res.theme_settings.color_grid, 0.5);
       sub.push_constant("ucolor", color_back);
       sub.push_constant("tile_scale", float3(data_.size));
-      sub.bind_texture("depthBuffer", &res.depth_tx);
+      sub.bind_texture("depthBuffer", depth_tx);
       sub.draw(shapes.quad_solid.get());
     }
     {
@@ -65,7 +69,7 @@ class Grid {
       sub.shader_set(res.shaders.grid.get());
       sub.bind_ubo("grid_buf", &data_);
       sub.bind_ubo("globalsBlock", &res.globals_buf);
-      sub.bind_texture("depth_tx", &res.depth_tx);
+      sub.bind_texture("depth_tx", depth_tx, GPUSamplerState::default_sampler());
       if (zneg_flag_ & SHOW_AXIS_Z) {
         sub.push_constant("grid_flag", zneg_flag_);
         sub.push_constant("plane_axes", zplane_axes_);

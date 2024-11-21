@@ -25,8 +25,6 @@
 #include "gpu_context_private.hh"
 #include "gpu_shader_private.hh"
 
-#include "GPU_batch.hh"
-
 #include <cstring>
 
 using namespace blender::gpu;

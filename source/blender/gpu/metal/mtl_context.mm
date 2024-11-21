@@ -45,9 +45,8 @@ using namespace blender::gpu;
 #  define MTL_DEBUG_SINGLE_DISPATCH_PER_ENCODER 1
 #endif
 
-/* Debug option to bind null buffer for missing UBOs.
- * Enabled by default. TODO: Ensure all required UBO bindings are present. */
-#define DEBUG_BIND_NULL_BUFFER_FOR_MISSING_UBO 1
+/* Debug option to bind null buffer for missing UBOs. */
+#define DEBUG_BIND_NULL_BUFFER_FOR_MISSING_UBO 0
 
 /* Debug option to bind null buffer for missing SSBOs. NOTE: This is unsafe if replacing a
  * write-enabled SSBO and should only be used for debugging to identify binding-related issues. */
@@ -100,7 +99,7 @@ void MTLContext::set_ghost_context(GHOST_ContextHandle ghostCtxHandle)
   mtl_back_left->remove_all_attachments();
 
   GHOST_ContextCGL *ghost_cgl_ctx = dynamic_cast<GHOST_ContextCGL *>(ghost_ctx);
-  if (ghost_cgl_ctx != NULL) {
+  if (ghost_cgl_ctx != nullptr) {
     default_fbo_mtltexture_ = ghost_cgl_ctx->metalOverlayTexture();
 
     MTL_LOG_INFO(
@@ -167,7 +166,7 @@ void MTLContext::set_ghost_context(GHOST_ContextHandle ghostCtxHandle)
 void MTLContext::set_ghost_window(GHOST_WindowHandle ghostWinHandle)
 {
   GHOST_Window *ghostWin = reinterpret_cast<GHOST_Window *>(ghostWinHandle);
-  this->set_ghost_context((GHOST_ContextHandle)(ghostWin ? ghostWin->getContext() : NULL));
+  this->set_ghost_context((GHOST_ContextHandle)(ghostWin ? ghostWin->getContext() : nullptr));
 }
 
 /** \} */
@@ -206,12 +205,12 @@ MTLContext::MTLContext(void *ghost_window, void *ghost_context)
 
   /** Fetch GHOSTContext and fetch Metal device/queue. */
   ghost_window_ = ghost_window;
-  if (ghost_window_ && ghost_context == NULL) {
+  if (ghost_window_ && ghost_context == nullptr) {
     /* NOTE(Metal): Fetch ghost_context from ghost_window if it is not provided.
      * Regardless of whether windowed or not, we need access to the GhostContext
      * for presentation, and device/queue access. */
     GHOST_Window *ghostWin = reinterpret_cast<GHOST_Window *>(ghost_window_);
-    ghost_context = (ghostWin ? ghostWin->getContext() : NULL);
+    ghost_context = (ghostWin ? ghostWin->getContext() : nullptr);
   }
   BLI_assert(ghost_context);
   this->ghost_context_ = static_cast<GHOST_ContextCGL *>(ghost_context);
@@ -289,6 +288,9 @@ MTLContext::~MTLContext()
     }
   }
 
+  /* Wait for all GPU work to finish. */
+  main_command_buffer.wait_until_active_command_buffers_complete();
+
   /* Release context textures. */
   if (default_fbo_gputexture_) {
     GPU_texture_free(wrap(static_cast<Texture *>(default_fbo_gputexture_)));
@@ -353,7 +355,7 @@ MTLContext::~MTLContext()
   }
 
   /* Empty cached sampler argument buffers. */
-  for (auto entry : cached_sampler_buffers_.values()) {
+  for (auto *entry : cached_sampler_buffers_.values()) {
     entry->free();
   }
   cached_sampler_buffers_.clear();
@@ -610,94 +612,91 @@ gpu::MTLTexture *MTLContext::get_dummy_texture(eGPUTextureType type,
   if (dummy_tex != nullptr) {
     return dummy_tex;
   }
-  else {
-    /* Determine format for dummy texture. */
-    eGPUTextureFormat format = GPU_RGBA8;
-    switch (sampler_format) {
-      case GPU_SAMPLER_TYPE_FLOAT:
-        format = GPU_RGBA8;
-        break;
-      case GPU_SAMPLER_TYPE_INT:
-        format = GPU_RGBA8I;
-        break;
-      case GPU_SAMPLER_TYPE_UINT:
-        format = GPU_RGBA8UI;
-        break;
-      case GPU_SAMPLER_TYPE_DEPTH:
-        format = GPU_DEPTH32F_STENCIL8;
-        break;
-      default:
-        BLI_assert_unreachable();
-    }
-
-    /* Create dummy texture based on desired type. */
-    GPUTexture *tex = nullptr;
-    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL;
-    switch (type) {
-      case GPU_TEXTURE_1D:
-        tex = GPU_texture_create_1d("Dummy 1D", 128, 1, format, usage, nullptr);
-        break;
-      case GPU_TEXTURE_1D_ARRAY:
-        tex = GPU_texture_create_1d_array("Dummy 1DArray", 128, 1, 1, format, usage, nullptr);
-        break;
-      case GPU_TEXTURE_2D:
-        tex = GPU_texture_create_2d("Dummy 2D", 128, 128, 1, format, usage, nullptr);
-        break;
-      case GPU_TEXTURE_2D_ARRAY:
-        tex = GPU_texture_create_2d_array("Dummy 2DArray", 128, 128, 1, 1, format, usage, nullptr);
-        break;
-      case GPU_TEXTURE_3D:
-        tex = GPU_texture_create_3d("Dummy 3D", 128, 128, 1, 1, format, usage, nullptr);
-        break;
-      case GPU_TEXTURE_CUBE:
-        tex = GPU_texture_create_cube("Dummy Cube", 128, 1, format, usage, nullptr);
-        break;
-      case GPU_TEXTURE_CUBE_ARRAY:
-        tex = GPU_texture_create_cube_array("Dummy CubeArray", 128, 1, 1, format, usage, nullptr);
-        break;
-      case GPU_TEXTURE_BUFFER:
-        if (!dummy_verts_[sampler_format]) {
-          GPU_vertformat_clear(&dummy_vertformat_[sampler_format]);
-
-          GPUVertCompType comp_type = GPU_COMP_F32;
-          GPUVertFetchMode fetch_mode = GPU_FETCH_FLOAT;
-
-          switch (sampler_format) {
-            case GPU_SAMPLER_TYPE_FLOAT:
-            case GPU_SAMPLER_TYPE_DEPTH:
-              comp_type = GPU_COMP_F32;
-              fetch_mode = GPU_FETCH_FLOAT;
-              break;
-            case GPU_SAMPLER_TYPE_INT:
-              comp_type = GPU_COMP_I32;
-              fetch_mode = GPU_FETCH_INT;
-              break;
-            case GPU_SAMPLER_TYPE_UINT:
-              comp_type = GPU_COMP_U32;
-              fetch_mode = GPU_FETCH_INT;
-              break;
-            default:
-              BLI_assert_unreachable();
-          }
-
-          GPU_vertformat_attr_add(
-              &dummy_vertformat_[sampler_format], "dummy", comp_type, 4, fetch_mode);
-          dummy_verts_[sampler_format] = GPU_vertbuf_create_with_format_ex(
-              dummy_vertformat_[sampler_format],
-              GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
-          GPU_vertbuf_data_alloc(*dummy_verts_[sampler_format], 64);
-        }
-        tex = GPU_texture_create_from_vertbuf("Dummy TextureBuffer", dummy_verts_[sampler_format]);
-        break;
-      default:
-        BLI_assert_msg(false, "Unrecognised texture type");
-        return nullptr;
-    }
-    gpu::MTLTexture *metal_tex = static_cast<gpu::MTLTexture *>(reinterpret_cast<Texture *>(tex));
-    dummy_textures_[sampler_format][type - 1] = metal_tex;
-    return metal_tex;
+  /* Determine format for dummy texture. */
+  eGPUTextureFormat format = GPU_RGBA8;
+  switch (sampler_format) {
+    case GPU_SAMPLER_TYPE_FLOAT:
+      format = GPU_RGBA8;
+      break;
+    case GPU_SAMPLER_TYPE_INT:
+      format = GPU_RGBA8I;
+      break;
+    case GPU_SAMPLER_TYPE_UINT:
+      format = GPU_RGBA8UI;
+      break;
+    case GPU_SAMPLER_TYPE_DEPTH:
+      format = GPU_DEPTH32F_STENCIL8;
+      break;
+    default:
+      BLI_assert_unreachable();
   }
-  return nullptr;
+
+  /* Create dummy texture based on desired type. */
+  GPUTexture *tex = nullptr;
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL;
+  switch (type) {
+    case GPU_TEXTURE_1D:
+      tex = GPU_texture_create_1d("Dummy 1D", 128, 1, format, usage, nullptr);
+      break;
+    case GPU_TEXTURE_1D_ARRAY:
+      tex = GPU_texture_create_1d_array("Dummy 1DArray", 128, 1, 1, format, usage, nullptr);
+      break;
+    case GPU_TEXTURE_2D:
+      tex = GPU_texture_create_2d("Dummy 2D", 128, 128, 1, format, usage, nullptr);
+      break;
+    case GPU_TEXTURE_2D_ARRAY:
+      tex = GPU_texture_create_2d_array("Dummy 2DArray", 128, 128, 1, 1, format, usage, nullptr);
+      break;
+    case GPU_TEXTURE_3D:
+      tex = GPU_texture_create_3d("Dummy 3D", 128, 128, 1, 1, format, usage, nullptr);
+      break;
+    case GPU_TEXTURE_CUBE:
+      tex = GPU_texture_create_cube("Dummy Cube", 128, 1, format, usage, nullptr);
+      break;
+    case GPU_TEXTURE_CUBE_ARRAY:
+      tex = GPU_texture_create_cube_array("Dummy CubeArray", 128, 1, 1, format, usage, nullptr);
+      break;
+    case GPU_TEXTURE_BUFFER:
+      if (!dummy_verts_[sampler_format]) {
+        GPU_vertformat_clear(&dummy_vertformat_[sampler_format]);
+
+        GPUVertCompType comp_type = GPU_COMP_F32;
+        GPUVertFetchMode fetch_mode = GPU_FETCH_FLOAT;
+
+        switch (sampler_format) {
+          case GPU_SAMPLER_TYPE_FLOAT:
+          case GPU_SAMPLER_TYPE_DEPTH:
+            comp_type = GPU_COMP_F32;
+            fetch_mode = GPU_FETCH_FLOAT;
+            break;
+          case GPU_SAMPLER_TYPE_INT:
+            comp_type = GPU_COMP_I32;
+            fetch_mode = GPU_FETCH_INT;
+            break;
+          case GPU_SAMPLER_TYPE_UINT:
+            comp_type = GPU_COMP_U32;
+            fetch_mode = GPU_FETCH_INT;
+            break;
+          default:
+            BLI_assert_unreachable();
+        }
+
+        GPU_vertformat_attr_add(
+            &dummy_vertformat_[sampler_format], "dummy", comp_type, 4, fetch_mode);
+        dummy_verts_[sampler_format] = GPU_vertbuf_create_with_format_ex(
+            dummy_vertformat_[sampler_format],
+            GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
+        GPU_vertbuf_data_alloc(*dummy_verts_[sampler_format], 64);
+      }
+      tex = GPU_texture_create_from_vertbuf("Dummy TextureBuffer", dummy_verts_[sampler_format]);
+      break;
+    default:
+      BLI_assert_msg(false, "Unrecognised texture type");
+      return nullptr;
+  }
+  gpu::MTLTexture *metal_tex = static_cast<gpu::MTLTexture *>(reinterpret_cast<Texture *>(tex));
+  dummy_textures_[sampler_format][type - 1] = metal_tex;
+  return metal_tex;
 }
 
 void MTLContext::free_dummy_resources()
@@ -1106,7 +1105,7 @@ bool MTLContext::ensure_render_pipeline_state(MTLPrimitiveType mtl_prim_type)
 
       /* Scissor state can still be flagged as changed if it is toggled on and off, without
        * parameters changing between draws. */
-      if (memcmp(&scissor, &rps.last_scissor_rect, sizeof(MTLScissorRect))) {
+      if (memcmp(&scissor, &rps.last_scissor_rect, sizeof(MTLScissorRect)) != 0) {
         [rec setScissorRect:scissor];
         rps.last_scissor_rect = scissor;
       }
@@ -1660,7 +1659,7 @@ void MTLContext::ensure_texture_bindings(
               /* Update bound texture metadata.
                * components packed int uint4 (sizeX, sizeY, sizeZ/Layers, bytes per row). */
               MTLShader *active_shader = this->pipeline_state.active_shader;
-              const int *metadata = bound_texture->get_texture_metdata_ptr();
+              const int *metadata = bound_texture->get_texture_metadata_ptr();
               BLI_assert(shader_texture_info.buffer_metadata_uniform_loc != -1);
               active_shader->uniform_int(
                   shader_texture_info.buffer_metadata_uniform_loc, 4, 1, metadata);
@@ -1911,7 +1910,7 @@ void MTLContext::ensure_texture_bindings(
               /* Update bound texture metadata.
                * components packed int uint4 (sizeX, sizeY, sizeZ/Layers, bytes per row). */
               MTLShader *active_shader = this->pipeline_state.active_shader;
-              const int *metadata = bound_texture->get_texture_metdata_ptr();
+              const int *metadata = bound_texture->get_texture_metadata_ptr();
               BLI_assert(shader_texture_info.buffer_metadata_uniform_loc != -1);
               active_shader->uniform_int(
                   shader_texture_info.buffer_metadata_uniform_loc, 4, 1, metadata);
@@ -2706,7 +2705,7 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
    * possible. This command buffer is separate as it does not utilize the global state
    * for rendering as the main context does. */
   id<MTLCommandBuffer> cmdbuf = [ctx->queue commandBuffer];
-  MTLCommandBufferManager::num_active_cmd_bufs++;
+  ctx->main_command_buffer.inc_active_command_buffer_count();
 
   /* Do Present Call and final Blit to MTLDrawable. */
   id<MTLRenderCommandEncoder> enc = [cmdbuf renderCommandEncoderWithDescriptor:blit_descriptor];
@@ -2724,9 +2723,6 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
       MTLContext::get_global_memory_manager()->get_current_safe_list();
   BLI_assert(cmd_free_buffer_list);
 
-  id<MTLCommandBuffer> cmd_buffer_ref = cmdbuf;
-  [cmd_buffer_ref retain];
-
   /* Increment drawables in flight limiter. */
   MTLContext::max_drawables_in_flight++;
   std::chrono::time_point submission_time = std::chrono::high_resolution_clock::now();
@@ -2736,11 +2732,12 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
   [cmdbuf addCompletedHandler:^(id<MTLCommandBuffer> /*cb*/) {
     /* Flag freed buffers associated with this CMD buffer as ready to be freed. */
     cmd_free_buffer_list->decrement_reference();
-    [cmd_buffer_ref release];
 
     /* Decrement count */
-    MTLCommandBufferManager::num_active_cmd_bufs--;
-    MTL_LOG_INFO("Active command buffers: %d", MTLCommandBufferManager::num_active_cmd_bufs);
+    ctx->main_command_buffer.dec_active_command_buffer_count();
+
+    MTL_LOG_INFO("Active command buffers: %d",
+                 int(MTLCommandBufferManager::num_active_cmd_bufs_in_system));
 
     /* Drawable count and latency management. */
     MTLContext::max_drawables_in_flight--;

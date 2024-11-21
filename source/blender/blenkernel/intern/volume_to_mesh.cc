@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <fmt/format.h>
 #include <vector>
 
 #include "BLI_math_vector_types.hh"
@@ -19,6 +20,8 @@
 
 #include "BKE_volume_to_mesh.hh"
 
+#include "BLT_translation.hh"
+
 namespace blender::bke {
 
 #ifdef WITH_OPENVDB
@@ -31,6 +34,7 @@ struct VolumeToMeshOp {
   std::vector<openvdb::Vec3s> verts;
   std::vector<openvdb::Vec3I> tris;
   std::vector<openvdb::Vec4I> quads;
+  std::string error;
 
   template<typename GridType> bool operator()()
   {
@@ -95,8 +99,16 @@ struct VolumeToMeshOp {
 
   template<typename GridType> void grid_to_mesh(const GridType &grid)
   {
-    openvdb::tools::volumeToMesh(
-        grid, this->verts, this->tris, this->quads, this->threshold, this->adaptivity);
+    try {
+      openvdb::tools::volumeToMesh(
+          grid, this->verts, this->tris, this->quads, this->threshold, this->adaptivity);
+    }
+    catch (const std::exception &e) {
+      this->error = fmt::format(fmt::runtime(TIP_("OpenVDB error: {}")), e.what());
+      this->verts.clear();
+      this->tris.clear();
+      this->quads.clear();
+    }
 
     /* Better align generated mesh with volume (see #85312). */
     openvdb::Vec3s offset = grid.voxelSize() / 2.0f;
@@ -140,10 +152,10 @@ void fill_mesh_from_openvdb_data(const Span<openvdb::Vec3s> vdb_verts,
   }
 }
 
-bke::OpenVDBMeshData volume_to_mesh_data(const openvdb::GridBase &grid,
-                                         const VolumeToMeshResolution &resolution,
-                                         const float threshold,
-                                         const float adaptivity)
+bke::VolumeToMeshDataResult volume_to_mesh_data(const openvdb::GridBase &grid,
+                                                const VolumeToMeshResolution &resolution,
+                                                const float threshold,
+                                                const float adaptivity)
 {
   const VolumeGridType grid_type = bke::volume_grid::get_type(grid);
 
@@ -151,7 +163,8 @@ bke::OpenVDBMeshData volume_to_mesh_data(const openvdb::GridBase &grid,
   if (!BKE_volume_grid_type_operation(grid_type, to_mesh_op)) {
     return {};
   }
-  return {std::move(to_mesh_op.verts), std::move(to_mesh_op.tris), std::move(to_mesh_op.quads)};
+  return {{std::move(to_mesh_op.verts), std::move(to_mesh_op.tris), std::move(to_mesh_op.quads)},
+          to_mesh_op.error};
 }
 
 Mesh *volume_to_mesh(const openvdb::GridBase &grid,
@@ -160,7 +173,8 @@ Mesh *volume_to_mesh(const openvdb::GridBase &grid,
                      const float adaptivity)
 {
   using namespace blender::bke;
-  const OpenVDBMeshData mesh_data = volume_to_mesh_data(grid, resolution, threshold, adaptivity);
+  const OpenVDBMeshData mesh_data =
+      volume_to_mesh_data(grid, resolution, threshold, adaptivity).data;
 
   const int tot_loops = 3 * mesh_data.tris.size() + 4 * mesh_data.quads.size();
   const int tot_faces = mesh_data.tris.size() + mesh_data.quads.size();

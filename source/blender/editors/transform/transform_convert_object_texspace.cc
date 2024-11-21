@@ -66,7 +66,7 @@ static void createTransTexspace(bContext * /*C*/, TransInfo *t)
   }
 
   td->flag = TD_SELECTED;
-  td->ob = ob;
+  td->extra = ob;
 
   copy_m3_m4(td->mtx, ob->object_to_world().ptr());
   copy_m3_m4(td->axismtx, ob->object_to_world().ptr());
@@ -103,7 +103,8 @@ static void recalcData_texspace(TransInfo *t)
       if (td->flag & TD_SKIP) {
         continue;
       }
-      DEG_id_tag_update(&td->ob->id, ID_RECALC_GEOMETRY);
+      Object *ob = static_cast<Object *>(td->extra);
+      DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     }
   }
 }

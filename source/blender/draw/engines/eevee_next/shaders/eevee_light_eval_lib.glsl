@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 /**
  * The resources expected to be defined are:
  * - light_buf
@@ -13,14 +15,14 @@
  * - utility_tx
  */
 
-#pragma BLENDER_REQUIRE(eevee_shadow_tracing_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_bxdf_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_light_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_shadow_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_thickness_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_bxdf_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_closure_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
+#include "eevee_bxdf_lib.glsl"
+#include "eevee_closure_lib.glsl"
+#include "eevee_light_lib.glsl"
+#include "eevee_shadow_lib.glsl"
+#include "eevee_shadow_tracing_lib.glsl"
+#include "eevee_thickness_lib.glsl"
+#include "gpu_shader_codegen_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 
 /* If using compute, the shader should define its own pixel. */
 #if !defined(PIXEL) && defined(GPU_FRAGMENT_SHADER)
@@ -37,7 +39,7 @@ struct ClosureLightStack {
   ClosureLight cl[LIGHT_CLOSURE_EVAL_COUNT];
 };
 
-ClosureLight closure_light_get(ClosureLightStack stack, int index)
+ClosureLight closure_light_get(ClosureLightStack stack, uchar index)
 {
   switch (index) {
     case 0:
@@ -58,7 +60,7 @@ ClosureLight closure_light_get(ClosureLightStack stack, int index)
   return closure_null;
 }
 
-void closure_light_set(inout ClosureLightStack stack, int index, ClosureLight cl_light)
+void closure_light_set(inout ClosureLightStack stack, uchar index, ClosureLight cl_light)
 {
   switch (index) {
     case 0:
@@ -84,6 +86,11 @@ float light_power_get(LightData light, LightingType type)
 {
   /* Mask anything above 3. See LIGHT_TRANSLUCENT_WITH_THICKNESS. */
   return light.power[type & 3u];
+}
+
+bool light_linking_affects_receiver(uvec2 light_set_membership, uchar receiver_light_set)
+{
+  return bitmask64_test(light_set_membership, receiver_light_set);
 }
 
 void light_eval_single_closure(LightData light,
@@ -112,9 +119,14 @@ void light_eval_single(uint l_idx,
                        vec3 P,
                        vec3 Ng,
                        vec3 V,
-                       float thickness)
+                       float thickness,
+                       uchar receiver_light_set)
 {
   LightData light = light_buf[l_idx];
+
+  if (!light_linking_affects_receiver(light.light_set_membership, receiver_light_set)) {
+    return;
+  }
 
 #if defined(SPECIALIZED_SHADOW_PARAMS)
   int ray_count = shadow_ray_count;
@@ -171,37 +183,43 @@ void light_eval_single(uint l_idx,
   }
 }
 
-void light_eval_transmission(
-    inout ClosureLightStack stack, vec3 P, vec3 Ng, vec3 V, float vPz, float thickness)
+void light_eval_transmission(inout ClosureLightStack stack,
+                             vec3 P,
+                             vec3 Ng,
+                             vec3 V,
+                             float vPz,
+                             float thickness,
+                             uchar receiver_light_set)
 {
 #ifdef SKIP_LIGHT_EVAL
   return;
 #endif
 
   LIGHT_FOREACH_BEGIN_DIRECTIONAL (light_cull_buf, l_idx) {
-    light_eval_single(l_idx, true, true, stack, P, Ng, V, thickness);
+    light_eval_single(l_idx, true, true, stack, P, Ng, V, thickness, receiver_light_set);
   }
   LIGHT_FOREACH_END
 
   LIGHT_FOREACH_BEGIN_LOCAL (light_cull_buf, light_zbin_buf, light_tile_buf, PIXEL, vPz, l_idx) {
-    light_eval_single(l_idx, false, true, stack, P, Ng, V, thickness);
+    light_eval_single(l_idx, false, true, stack, P, Ng, V, thickness, receiver_light_set);
   }
   LIGHT_FOREACH_END
 }
 
-void light_eval_reflection(inout ClosureLightStack stack, vec3 P, vec3 Ng, vec3 V, float vPz)
+void light_eval_reflection(
+    inout ClosureLightStack stack, vec3 P, vec3 Ng, vec3 V, float vPz, uchar receiver_light_set)
 {
 #ifdef SKIP_LIGHT_EVAL
   return;
 #endif
 
   LIGHT_FOREACH_BEGIN_DIRECTIONAL (light_cull_buf, l_idx) {
-    light_eval_single(l_idx, true, false, stack, P, Ng, V, 0.0);
+    light_eval_single(l_idx, true, false, stack, P, Ng, V, 0.0, receiver_light_set);
   }
   LIGHT_FOREACH_END
 
   LIGHT_FOREACH_BEGIN_LOCAL (light_cull_buf, light_zbin_buf, light_tile_buf, PIXEL, vPz, l_idx) {
-    light_eval_single(l_idx, false, false, stack, P, Ng, V, 0.0);
+    light_eval_single(l_idx, false, false, stack, P, Ng, V, 0.0, receiver_light_set);
   }
   LIGHT_FOREACH_END
 }

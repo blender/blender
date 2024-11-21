@@ -11,9 +11,7 @@
 
 #include <string.h>  // for memcpy
 
-#ifdef WITH_CXX_GUARDEDALLOC
-#  include "MEM_guardedalloc.h"
-#endif
+#include "MEM_guardedalloc.h"
 
 namespace Freestyle {
 
@@ -159,9 +157,7 @@ class FrsImage {
   uint _Ox;  // origin of the stored part
   uint _Oy;  // origin of the stored part
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:FrsImage")
-#endif
 };
 
 //

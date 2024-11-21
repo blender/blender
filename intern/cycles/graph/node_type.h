@@ -131,7 +131,7 @@ struct NodeType {
                        Type type = NONE,
                        const NodeType *base = NULL);
   static const NodeType *find(ustring name);
-  static unordered_map<ustring, NodeType, ustringHash> &types();
+  static unordered_map<ustring, NodeType> &types();
 };
 
 /* Node Definition Macros

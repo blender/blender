@@ -275,7 +275,6 @@ void Camera::update(Scene *scene)
 
   rastertocamera = screentocamera * rastertoscreen;
   full_rastertocamera = screentocamera * full_rastertoscreen;
-  cameratoraster = screentoraster * cameratoscreen;
 
   cameratoworld = matrix;
   screentoworld = cameratoworld * screentocamera;
@@ -354,7 +353,6 @@ void Camera::update(Scene *scene)
   }
 
   if (need_motion == Scene::MOTION_PASS) {
-    /* TODO(sergey): Support perspective (zoom, fov) motion. */
     if (camera_type == CAMERA_PANORAMA) {
       if (have_motion) {
         kcam->motion_pass_pre = transform_inverse(motion[0]);
@@ -366,9 +364,19 @@ void Camera::update(Scene *scene)
       }
     }
     else {
-      if (have_motion) {
-        kcam->perspective_pre = cameratoraster * transform_inverse(motion[0]);
-        kcam->perspective_post = cameratoraster * transform_inverse(motion[motion.size() - 1]);
+      if (have_motion || fov != fov_pre || fov != fov_post) {
+        /* Note the values for perspective_pre/perspective_post calculated for MOTION_PASS are
+         * different to those calculated for MOTION_BLUR below, so the code has not been combined.
+         */
+        ProjectionTransform cameratoscreen_pre = projection_perspective(
+            fov_pre, nearclip, farclip);
+        ProjectionTransform cameratoscreen_post = projection_perspective(
+            fov_post, nearclip, farclip);
+        ProjectionTransform cameratoraster_pre = screentoraster * cameratoscreen_pre;
+        ProjectionTransform cameratoraster_post = screentoraster * cameratoscreen_post;
+        kcam->perspective_pre = cameratoraster_pre * transform_inverse(motion[0]);
+        kcam->perspective_post = cameratoraster_post *
+                                 transform_inverse(motion[motion.size() - 1]);
       }
       else {
         kcam->perspective_pre = worldtoraster;
@@ -385,9 +393,6 @@ void Camera::update(Scene *scene)
 
     /* TODO(sergey): Support other types of camera. */
     if (use_perspective_motion && camera_type == CAMERA_PERSPECTIVE) {
-      /* TODO(sergey): Move to an utility function and de-duplicate with
-       * calculation above.
-       */
       ProjectionTransform screentocamera_pre = projection_inverse(
           projection_perspective(fov_pre, nearclip, farclip));
       ProjectionTransform screentocamera_post = projection_inverse(

@@ -10,9 +10,9 @@
  * OSL only support float hashes.
  */
 
-#pragma BLENDER_REQUIRE(gpu_shader_common_hash.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_material_noise.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_material_fractal_noise.glsl)
+#include "gpu_shader_common_hash.glsl"
+#include "gpu_shader_material_fractal_noise.glsl"
+#include "gpu_shader_material_noise.glsl"
 
 #define NOISE_FRACTAL_DISTORTED_1D(NOISE_TYPE) \
   if (distortion != 0.0) { \

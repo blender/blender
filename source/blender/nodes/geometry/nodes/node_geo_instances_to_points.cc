@@ -59,7 +59,7 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
   point_radii.finish();
 
   const bke::AttributeAccessor src_attributes = instances.attributes();
-  Map<StringRef, AttributeKind> attributes_to_propagate;
+  Map<StringRef, AttributeDomainAndType> attributes_to_propagate;
   geometry_set.gather_attributes_for_propagation({GeometryComponent::Type::Instance},
                                                  GeometryComponent::Type::PointCloud,
                                                  false,

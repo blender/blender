@@ -2,7 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(gpu_shader_colorspace_lib.glsl)
+#include "infos/gpu_shader_3D_smooth_color_info.hh"
+
+#include "gpu_shader_colorspace_lib.glsl"
+
+FRAGMENT_SHADER_CREATE_INFO(gpu_shader_3D_smooth_color)
 
 void main()
 {

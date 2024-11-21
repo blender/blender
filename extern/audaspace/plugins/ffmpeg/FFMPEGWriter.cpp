@@ -30,8 +30,13 @@ extern "C" {
 
 AUD_NAMESPACE_BEGIN
 
+/* FFmpeg < 4.0 */
 #if LIBAVCODEC_VERSION_MAJOR < 58
 #define FFMPEG_OLD_CODE
+#endif
+/* FFmpeg < 5.0 */
+#if LIBAVCODEC_VERSION_MAJOR < 59
+#define FFMPEG_OLD_CH_LAYOUT
 #endif
 
 void FFMPEGWriter::encode()
@@ -77,8 +82,13 @@ void FFMPEGWriter::encode()
 
 	m_frame->nb_samples = m_input_samples;
 	m_frame->format = m_codecCtx->sample_fmt;
+#ifdef FFMPEG_OLD_CH_LAYOUT
 	m_frame->channel_layout = m_codecCtx->channel_layout;
 	m_frame->channels = m_specs.channels;
+#else
+	if(av_channel_layout_copy(&m_frame->ch_layout, &m_codecCtx->ch_layout) < 0)
+		AUD_THROW(FileException, "File couldn't be written, couldn't copy audio channel layout.");
+#endif
 
 	if(avcodec_fill_audio_frame(m_frame, m_specs.channels, m_codecCtx->sample_fmt, reinterpret_cast<data_t*>(data), m_input_buffer.getSize(), 0) < 0)
 		AUD_THROW(FileException, "File couldn't be written, filling the audio frame failed with ffmpeg.");
@@ -405,8 +415,13 @@ FFMPEGWriter::FFMPEGWriter(const std::string &filename, DeviceSpecs specs, Conta
 
 		m_codecCtx->codec_type = AVMEDIA_TYPE_AUDIO;
 		m_codecCtx->bit_rate = bitrate;
+#ifdef FFMPEG_OLD_CH_LAYOUT
 		m_codecCtx->channel_layout = channel_layout;
 		m_codecCtx->channels = m_specs.channels;
+#else
+		av_channel_layout_uninit(&m_codecCtx->ch_layout);
+		av_channel_layout_from_mask(&m_codecCtx->ch_layout, channel_layout);
+#endif
 		m_stream->time_base.num = m_codecCtx->time_base.num = 1;
 		m_stream->time_base.den = m_codecCtx->time_base.den = m_codecCtx->sample_rate;
 

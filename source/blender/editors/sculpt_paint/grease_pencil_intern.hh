@@ -78,8 +78,11 @@ float brush_point_influence(const Scene &scene,
                             const float2 &co,
                             const InputSample &sample,
                             float multi_frame_falloff);
-/* Compute the closest distance to a polygon. If the point is inside the polygon, the distance is
- * 0.0f. If the point is outside the polygon, the distance to the closest point is returned. */
+/**
+ * Compute the closest distance to the "surface".
+ * When the point is outside the polygon, compute the closest distance to the polygon points.
+ * When the point is inside the polygon return 0.
+ */
 float closest_distance_to_surface_2d(const float2 pt, const Span<float2> verts);
 /* Influence value for an entire fill. */
 float brush_fill_influence(const Scene &scene,

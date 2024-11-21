@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(gpu_shader_common_math_utils.glsl)
+#include "gpu_shader_common_math_utils.glsl"
 
 void node_gamma(vec4 col, float gamma, out vec4 outcol)
 {

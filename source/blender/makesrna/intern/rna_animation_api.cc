@@ -32,7 +32,7 @@ static void rna_KeyingSet_context_refresh(KeyingSet *ks, bContext *C, ReportList
 {
   using namespace blender::animrig;
   /* TODO: enable access to providing a list of overrides (dsources)? */
-  const ModifyKeyReturn error = ANIM_validate_keyingset(C, nullptr, ks);
+  const ModifyKeyReturn error = validate_keyingset(C, nullptr, ks);
 
   if (error == ModifyKeyReturn::SUCCESS) {
     return;

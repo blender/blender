@@ -91,9 +91,9 @@ def execfile(filepath, *, mod=None):
     Execute a file path as a Python script.
 
     :arg filepath: Path of the script to execute.
-    :type filepath: string
+    :type filepath: str
     :arg mod: Optional cached module, the result of a previous execution.
-    :type mod: Module or None
+    :type mod: ModuleType | None
     :return: The module which can be passed back in as ``mod``.
     :rtype: ModuleType
     """
@@ -138,7 +138,7 @@ def _test_import(module_name, loaded_modules):
 
     try:
         mod = __import__(module_name)
-    except:
+    except Exception:
         import traceback
         traceback.print_exc()
         return None
@@ -177,12 +177,12 @@ def modules_from_path(path, loaded_modules):
     Load all modules in a path and return them as a list.
 
     :arg path: this path is scanned for scripts and packages.
-    :type path: string
+    :type path: str
     :arg loaded_modules: already loaded module names, files matching these
        names will be ignored.
-    :type loaded_modules: set
+    :type loaded_modules: set[ModuleType]
     :return: all loaded modules.
-    :rtype: list
+    :rtype: list[ModuleType]
     """
     modules = []
 
@@ -194,8 +194,36 @@ def modules_from_path(path, loaded_modules):
     return modules
 
 
-_global_loaded_modules = []  # store loaded module names for reloading.
-import bpy_types as _bpy_types  # keep for comparisons, never ever reload this.
+# Store registered module names for reloading.
+# Currently used for "startup" modules.
+_registered_module_names = []
+# Keep for comparisons, never ever reload this.
+import bpy_types as _bpy_types
+
+
+def _register_module_call(mod):
+    register = getattr(mod, "register", None)
+    if register:
+        try:
+            register()
+        except Exception:
+            import traceback
+            traceback.print_exc()
+    else:
+        print(
+            "\nWarning! {!r} has no register function, "
+            "this is now a requirement for registerable scripts".format(mod.__file__)
+        )
+
+
+def _unregister_module_call(mod):
+    unregister = getattr(mod, "unregister", None)
+    if unregister:
+        try:
+            unregister()
+        except Exception:
+            import traceback
+            traceback.print_exc()
 
 
 def load_scripts(*, reload_scripts=False, refresh_scripts=False, extensions=True):
@@ -231,29 +259,6 @@ def load_scripts(*, reload_scripts=False, refresh_scripts=False, extensions=True
         for addon_module_name in [ext.module for ext in _preferences.addons]:
             _addon_utils.disable(addon_module_name)
 
-    def register_module_call(mod):
-        register = getattr(mod, "register", None)
-        if register:
-            try:
-                register()
-            except:
-                import traceback
-                traceback.print_exc()
-        else:
-            print(
-                "\nWarning! {!r} has no register function, "
-                "this is now a requirement for registerable scripts".format(mod.__file__)
-            )
-
-    def unregister_module_call(mod):
-        unregister = getattr(mod, "unregister", None)
-        if unregister:
-            try:
-                unregister()
-            except:
-                import traceback
-                traceback.print_exc()
-
     def test_reload(mod):
         import importlib
         # reloading this causes internal errors
@@ -264,7 +269,7 @@ def load_scripts(*, reload_scripts=False, refresh_scripts=False, extensions=True
 
         try:
             return importlib.reload(mod)
-        except:
+        except Exception:
             import traceback
             traceback.print_exc()
 
@@ -278,24 +283,34 @@ def load_scripts(*, reload_scripts=False, refresh_scripts=False, extensions=True
             mod = test_reload(mod)
 
         if mod:
-            register_module_call(mod)
-            _global_loaded_modules.append(mod.__name__)
+            _register_module_call(mod)
+            _registered_module_names.append(mod.__name__)
 
     if reload_scripts:
+        # Module names -> modules.
+        #
+        # Reverse the modules so they are unregistered in the reverse order they're registered.
+        # While this isn't essential for the most part, it ensures any inter-dependencies can be handled properly.
+        registered_modules = [
+            mod for mod in map(_sys.modules.get, reversed(_registered_module_names))
+            if mod is not None
+        ]
 
-        # module names -> modules
-        _global_loaded_modules[:] = [_sys.modules[mod_name]
-                                     for mod_name in _global_loaded_modules]
+        # This should never happen, only report this to notify developers that something unexpected happened.
+        if len(registered_modules) != len(_registered_module_names):
+            print(
+                "Warning: globally loaded modules not found in sys.modules:",
+                [mod_name for mod_name in _registered_module_names if mod_name not in _sys.modules]
+            )
+        _registered_module_names.clear()
 
-        # loop over and unload all scripts
-        _global_loaded_modules.reverse()
-        for mod in _global_loaded_modules:
-            unregister_module_call(mod)
+        # Loop over and unload all scripts.
+        for mod in registered_modules:
+            _unregister_module_call(mod)
 
-        for mod in _global_loaded_modules:
+        for mod in registered_modules:
             test_reload(mod)
-
-        del _global_loaded_modules[:]
+        del registered_modules
 
         # Update key-maps to account for operators no longer existing.
         # Typically unloading operators would refresh the event system (such as disabling an add-on)
@@ -341,6 +356,22 @@ def load_scripts(*, reload_scripts=False, refresh_scripts=False, extensions=True
                 for subcls in cls.__subclasses__():
                     if not subcls.is_registered:
                         print("Warning, unregistered class: {:s}({:s})".format(subcls.__name__, cls.__name__))
+
+
+# Internal only, called on exit by `WM_exit_ex`.
+def _on_exit():
+    # Disable all add-ons.
+    _addon_utils.disable_all()
+
+    # Call `unregister` function on internal startup module.
+    # Must only be used as part of Blender 'exit' process.
+    from bpy_restrict_state import RestrictBlend
+    with RestrictBlend():
+        for mod_name in reversed(_registered_module_names):
+            if (mod := _sys.modules.get(mod_name)) is None:
+                print("Warning: module", repr(mod_name), "not found in sys.modules")
+                continue
+            _unregister_module_call(mod)
 
 
 def load_scripts_extensions(*, reload_scripts=False):
@@ -396,7 +427,7 @@ def script_paths(*, subdir=None, user_pref=True, check_all=False, use_user=True,
     Returns a list of valid script paths.
 
     :arg subdir: Optional subdir.
-    :type subdir: string
+    :type subdir: str
     :arg user_pref: Include the user preference script paths.
     :type user_pref: bool
     :arg check_all: Include local, user and system paths rather just the paths Blender uses.
@@ -406,7 +437,7 @@ def script_paths(*, subdir=None, user_pref=True, check_all=False, use_user=True,
     :arg use_system_environment: Include BLENDER_SYSTEM_SCRIPTS variable path
     :type use_system_environment: bool
     :return: script paths.
-    :rtype: list
+    :rtype: list[str]
     """
 
     if check_all or use_user:
@@ -487,9 +518,9 @@ def app_template_paths(*, path=None):
     Returns valid application template paths.
 
     :arg path: Optional subdir.
-    :type path: string
-    :return: app template paths.
-    :rtype: generator
+    :type path: str
+    :return: App template paths.
+    :rtype: Iterator[str]
     """
     subdir_args = (path,) if path is not None else ()
     # Note: keep in sync with: Blender's 'BKE_appdir_app_template_any'.
@@ -515,9 +546,9 @@ def preset_paths(subdir):
     Returns a list of paths for a specific preset.
 
     :arg subdir: preset subdirectory (must not be an absolute path).
-    :type subdir: string
-    :return: script paths.
-    :rtype: list
+    :type subdir: str
+    :return: Script paths.
+    :rtype: list[str]
     """
     dirs = []
     for path in script_paths(subdir="presets"):
@@ -553,7 +584,7 @@ def register_preset_path(path):
        When the ``__init__.py`` is in the same location as a ``presets`` directory.
        For example an operators preset would be located under: ``presets/operator/{operator.id}/``
        where ``operator.id`` is the ``bl_idname`` of the operator.
-    :type path: string
+    :type path: str
     :return: success
     :rtype: bool
     """
@@ -572,7 +603,7 @@ def unregister_preset_path(path):
     :arg path: preset directory (must be an absolute path).
 
        This must match the registered path exactly.
-    :type path: string
+    :type path: str
     :return: success
     :rtype: bool
     """
@@ -664,9 +695,9 @@ def smpte_from_seconds(time, *, fps=None, fps_base=None):
     If *fps* and *fps_base* are not given the current scene is used.
 
     :arg time: time in seconds.
-    :type time: int, float or ``datetime.timedelta``.
+    :type time: int | float | datetime.timedelta
     :return: the frame string.
-    :rtype: string
+    :rtype: str
     """
 
     return smpte_from_frame(
@@ -684,9 +715,9 @@ def smpte_from_frame(frame, *, fps=None, fps_base=None):
     If *fps* and *fps_base* are not given the current scene is used.
 
     :arg frame: frame number.
-    :type frame: int or float.
+    :type frame: int | float
     :return: the frame string.
-    :rtype: string
+    :rtype: str
     """
 
     if fps is None:
@@ -717,7 +748,7 @@ def time_from_frame(frame, *, fps=None, fps_base=None):
     If *fps* and *fps_base* are not given the current scene is used.
 
     :arg frame: number.
-    :type frame: int or float.
+    :type frame: int | float
     :return: the time in seconds.
     :rtype: datetime.timedelta
     """
@@ -743,9 +774,9 @@ def time_to_frame(time, *, fps=None, fps_base=None):
     If *fps* and *fps_base* are not given the current scene is used.
 
     :arg time: time in seconds.
-    :type time: number or a ``datetime.timedelta`` object
-    :return: the frame.
-    :rtype: float
+    :type time: float | int | datetime.timedelta
+    :return: The frame.
+    :rtype: float | int | datetime.timedelta
     """
 
     if fps is None:
@@ -817,7 +848,7 @@ def keyconfig_set(filepath, *, report=None):
     try:
         error_msg = ""
         execfile(filepath)
-    except:
+    except Exception:
         import traceback
         error_msg = traceback.format_exc()
 
@@ -846,13 +877,13 @@ def user_resource(resource_type, *, path="", create=False):
     Return a user resource path (normally from the users home directory).
 
     :arg resource_type: Resource type in ['DATAFILES', 'CONFIG', 'SCRIPTS', 'EXTENSIONS'].
-    :type resource_type: string
+    :type resource_type: str
     :arg path: Optional subdirectory.
-    :type path: string
+    :type path: str
     :arg create: Treat the path as a directory and create it if its not existing.
-    :type create: boolean
+    :type create: bool
     :return: a path.
-    :rtype: string
+    :rtype: str
     """
 
     target_path = _user_resource(resource_type, path=path)
@@ -864,7 +895,7 @@ def user_resource(resource_type, *, path="", create=False):
             if not _os.path.exists(target_path):
                 try:
                     _os.makedirs(target_path)
-                except:
+                except Exception:
                     import traceback
                     traceback.print_exc()
                     target_path = ""
@@ -888,13 +919,13 @@ def extension_path_user(package, *, path="", create=False):
        to the repository (typically "System" repositories).
 
     :arg package: The ``__package__`` of the extension.
-    :type package: string
+    :type package: str
     :arg path: Optional subdirectory.
-    :type path: string
+    :type path: str
     :arg create: Treat the path as a directory and create it if its not existing.
-    :type create: boolean
+    :type create: bool
     :return: a path.
-    :rtype: string
+    :rtype: str
     """
     from addon_utils import _extension_module_name_decompose
 
@@ -913,7 +944,7 @@ def extension_path_user(package, *, path="", create=False):
             if not _os.path.exists(target_path):
                 try:
                     _os.makedirs(target_path)
-                except:
+                except Exception:
                     import traceback
                     traceback.print_exc()
                     target_path = ""
@@ -952,11 +983,11 @@ def register_submodule_factory(module_name, submodule_names):
        unregistered in reverse order.
 
     :arg module_name: The module name, typically ``__name__``.
-    :type module_name: string
+    :type module_name: str
     :arg submodule_names: List of submodule names to load and unload.
-    :type submodule_names: list of strings
+    :type submodule_names: list[str]
     :return: register and unregister functions.
-    :rtype: tuple pair of functions
+    :rtype: tuple[Callable[[], None], Callable[[], None]]
     """
 
     module = None
@@ -989,9 +1020,9 @@ def register_tool(tool_cls, *, after=None, separator=False, group=False):
     Register a tool in the toolbar.
 
     :arg tool_cls: A tool subclass.
-    :type tool_cls: :class:`bpy.types.WorkSpaceTool` subclass.
+    :type tool_cls: :class:`bpy.types.WorkSpaceTool`
     :arg after: Optional identifiers this tool will be added after.
-    :type after: collection of strings or None.
+    :type after: Sequence[str] | None
     :arg separator: When true, add a separator before this tool.
     :type separator: bool
     :arg group: When true, add a new nested group of tools.
@@ -1219,7 +1250,7 @@ def manual_map():
     for cb in reversed(_manual_map):
         try:
             prefix, url_manual_mapping = cb()
-        except:
+        except Exception:
             print("Error calling {!r}".format(cb))
             import traceback
             traceback.print_exc()
@@ -1304,15 +1335,15 @@ def make_rna_paths(struct_name, prop_name, enum_name):
     Create RNA "paths" from given names.
 
     :arg struct_name: Name of a RNA struct (like e.g. "Scene").
-    :type struct_name: string
+    :type struct_name: str
     :arg prop_name: Name of a RNA struct's property.
-    :type prop_name: string
+    :type prop_name: str
     :arg enum_name: Name of a RNA enum identifier.
-    :type enum_name: string
+    :type enum_name: str
     :return: A triple of three "RNA paths"
        (most_complete_path, "struct.prop", "struct.prop:'enum'").
        If no enum_name is given, the third element will always be void.
-    :rtype: tuple of strings
+    :rtype: tuple[str, str, str]
     """
     src = src_rna = src_enum = ""
     if struct_name:

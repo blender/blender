@@ -965,7 +965,7 @@ static BakeFrameIndices get_bake_frame_indices(
 {
   BakeFrameIndices frame_indices;
   if (!frame_caches.is_empty()) {
-    const int first_future_frame_index = binary_search::find_predicate_begin(
+    const int first_future_frame_index = binary_search::first_if(
         frame_caches,
         [&](const std::unique_ptr<bake::FrameCache> &value) { return value->frame > frame; });
     frame_indices.next = (first_future_frame_index == frame_caches.size()) ?
@@ -1236,7 +1236,7 @@ class NodesModifierSimulationParams : public nodes::GeoNodesSimulationParams {
     }
 
     /* If there are no baked frames, we don't need keep track of the data-blocks. */
-    if (!node_cache.bake.frames.is_empty()) {
+    if (!node_cache.bake.frames.is_empty() || node_cache.prev_cache.has_value()) {
       for (const NodesModifierDataBlock &data_block : Span{bake.data_blocks, bake.data_blocks_num})
       {
         data_block_map.old_mappings.add(data_block, data_block.id);
@@ -1505,7 +1505,7 @@ class NodesModifierBakeParams : public nodes::GeoNodesBakeParams {
           frame_cache->frame = current_frame;
           frame_cache->state = std::move(state);
           auto &frames = node_cache->bake.frames;
-          const int insert_index = binary_search::find_predicate_begin(
+          const int insert_index = binary_search::first_if(
               frames, [&](const std::unique_ptr<bake::FrameCache> &frame_cache) {
                 return frame_cache->frame > current_frame;
               });
@@ -1661,7 +1661,7 @@ static void add_data_block_items_writeback(const ModifierEvalContext &ctx,
             item.key))
     {
       /* Only writeback if the bake node has actually baked anything. */
-      if (!node_cache->bake.frames.is_empty()) {
+      if (!node_cache->bake.frames.is_empty() || node_cache->prev_cache.has_value()) {
         data.new_mappings = std::move(item.value->data_block_map.new_mappings);
       }
     }
@@ -2244,6 +2244,21 @@ static NodesModifierPanel *find_panel_by_id(NodesModifierData &nmd, const int id
   return nullptr;
 }
 
+static bool interace_panel_has_socket(const bNodeTreeInterfacePanel &interface_panel)
+{
+  for (const bNodeTreeInterfaceItem *item : interface_panel.items()) {
+    if (item->item_type == NODE_INTERFACE_SOCKET) {
+      return true;
+    }
+    if (item->item_type == NODE_INTERFACE_PANEL) {
+      if (interace_panel_has_socket(*reinterpret_cast<const bNodeTreeInterfacePanel *>(item))) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 static void draw_interface_panel_content(const bContext *C,
                                          uiLayout *layout,
                                          PointerRNA *modifier_ptr,
@@ -2256,6 +2271,9 @@ static void draw_interface_panel_content(const bContext *C,
   for (const bNodeTreeInterfaceItem *item : interface_panel.items()) {
     if (item->item_type == NODE_INTERFACE_PANEL) {
       const auto &sub_interface_panel = *reinterpret_cast<const bNodeTreeInterfacePanel *>(item);
+      if (!interace_panel_has_socket(sub_interface_panel)) {
+        continue;
+      }
       NodesModifierPanel *panel = find_panel_by_id(nmd, sub_interface_panel.identifier);
       PointerRNA panel_ptr = RNA_pointer_create(
           modifier_ptr->owner_id, &RNA_NodesModifierPanel, panel);
@@ -2425,7 +2443,9 @@ static void draw_warnings(const bContext *C,
     return;
   }
   PanelLayout panel = uiLayoutPanelProp(C, layout, md_ptr, "open_warnings_panel");
-  uiItemL(panel.header, fmt::format(IFACE_("Warnings ({})"), warnings_num).c_str(), ICON_NONE);
+  uiItemL(panel.header,
+          fmt::format(fmt::runtime(IFACE_("Warnings ({})")), warnings_num).c_str(),
+          ICON_NONE);
   if (!panel.body) {
     return;
   }

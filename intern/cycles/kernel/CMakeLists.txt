@@ -161,6 +161,11 @@ set(SRC_KERNEL_CLOSURE_HEADERS
   closure/bssrdf.h
   closure/emissive.h
   closure/volume.h
+  closure/volume_util.h
+  closure/volume_henyey_greenstein.h
+  closure/volume_rayleigh.h
+  closure/volume_fournier_forand.h
+  closure/volume_draine.h
   closure/bsdf_principled_hair_chiang.h
   closure/bsdf_principled_hair_huang.h
 )
@@ -397,6 +402,7 @@ set(SRC_UTIL_HEADERS
   ../util/math_int8.h
   ../util/math_matrix.h
   ../util/projection.h
+  ../util/projection_inverse.h
   ../util/rect.h
   ../util/static_assert.h
   ../util/transform.h
@@ -667,10 +673,13 @@ if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
       set(hip_flags)
     endif()
 
-    # There's a bug in the compiler causing some scenes to fail to render on Vega cards
-    # A workaround currently is to set -O1 opt level during kernel compilation for these
-    # cards Remove this when a newer compiler is available with fixes.
-    if(WIN32 AND (${arch} MATCHES "gfx90[a-z0-9]+"))
+    # There's a few bugs in the HIP compiler causing some scenes to fail to render,
+    # or render improperly with specific combinations of device and/or compiler.
+    # - Vega (gfx90x) fails to render some scenes
+    # - Other GPUs (E.g. RDNA3) render volumes improperly with HIP 6.1.40252
+    # A workaround is to set -O1 opt level during kernel compilation for these
+    # configurations.
+    if(WIN32 AND ((${arch} MATCHES "gfx90[a-z0-9]+") OR (${HIP_VERSION} STREQUAL "6.1.40252")))
       set(hip_opt_flags "-O1")
     else()
       set(hip_opt_flags)
@@ -753,6 +762,10 @@ if(WITH_CYCLES_DEVICE_HIPRT)
 
   if(WITH_CYCLES_DEBUG)
     set(hiprt_compile_flags ${hiprt_compile_flags} -D WITH_CYCLES_DEBUG)
+  endif()
+
+  if(WIN32 AND (${HIP_VERSION} STREQUAL "6.1.40252"))
+    message(WARNING "HIP SDK ${HIP_VERSION} has known rendering artifacts with HIPRT. 5.7 is recommended instead")
   endif()
 
   set(hiprt_compile_flags_bvh
@@ -1220,10 +1233,6 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     list(APPEND sycl_compiler_flags -fPIC)
     list(APPEND sycl_compiler_flags -fvisibility=hidden)
 
-    # We avoid getting __FAST_MATH__ to be defined when building on CentOS-7 and Rocky-8
-    # until the compilation issues it triggers at either AoT or JIT stages gets fixed.
-    list(APPEND sycl_compiler_flags -fhonor-nans)
-
     # Add $ORIGIN to `cycles_kernel_oneapi.so` RPATH so `libsycl.so` and
     # `libpi_level_zero.so` can be placed next to it and get found.
     list(APPEND sycl_compiler_flags -Wl,-rpath,'$$ORIGIN')
@@ -1386,18 +1395,22 @@ source_group("sample" FILES ${SRC_KERNEL_SAMPLE_HEADERS})
 source_group("svm" FILES ${SRC_KERNEL_SVM_HEADERS})
 source_group("util" FILES ${SRC_KERNEL_UTIL_HEADERS})
 
-if(WITH_CYCLES_CUDA)
-  add_dependencies(cycles_kernel cycles_kernel_cuda)
-endif()
-if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
-  add_dependencies(cycles_kernel cycles_kernel_optix)
-endif()
-if(WITH_CYCLES_HIP)
-  add_dependencies(cycles_kernel cycles_kernel_hip)
-endif()
-if(WITH_CYCLES_DEVICE_ONEAPI)
-  add_dependencies(cycles_kernel cycles_kernel_oneapi)
-endif()
+set(_cycles_prev_gpu_kernel_target)
+macro(cycles_add_gpu_kernel_dependencies GPU_KERNEL_TARGET)
+  if (TARGET ${GPU_KERNEL_TARGET})
+    add_dependencies(cycles_kernel ${GPU_KERNEL_TARGET})
+    if (_cycles_prev_gpu_kernel_target)
+      add_dependencies(${GPU_KERNEL_TARGET} ${_cycles_prev_gpu_kernel_target})
+    endif()
+    set(_cycles_prev_gpu_kernel_target ${GPU_KERNEL_TARGET})
+  endif()
+endmacro()
+
+cycles_add_gpu_kernel_dependencies(cycles_kernel_cuda)
+cycles_add_gpu_kernel_dependencies(cycles_kernel_optix)
+cycles_add_gpu_kernel_dependencies(cycles_kernel_hip)
+cycles_add_gpu_kernel_dependencies(cycles_kernel_hiprt)
+cycles_add_gpu_kernel_dependencies(cycles_kernel_oneapi)
 
 # Install kernel source for runtime compilation
 

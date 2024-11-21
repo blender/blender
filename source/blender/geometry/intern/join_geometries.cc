@@ -11,14 +11,14 @@
 
 namespace blender::geometry {
 
-using bke::AttributeMetaData;
+using bke::AttributeDomainAndType;
 using bke::GeometryComponent;
 using bke::GeometrySet;
 
-static Map<StringRef, AttributeMetaData> get_final_attribute_info(
+static Map<StringRef, AttributeDomainAndType> get_final_attribute_info(
     const Span<const GeometryComponent *> components, const Span<StringRef> ignored_attributes)
 {
-  Map<StringRef, AttributeMetaData> info;
+  Map<StringRef, AttributeDomainAndType> info;
 
   for (const GeometryComponent *component : components) {
     component->attributes()->foreach_attribute([&](const bke::AttributeIter &iter) {
@@ -30,10 +30,10 @@ static Map<StringRef, AttributeMetaData> get_final_attribute_info(
       }
       info.add_or_modify(
           iter.name,
-          [&](AttributeMetaData *meta_data_final) {
+          [&](AttributeDomainAndType *meta_data_final) {
             *meta_data_final = {iter.domain, iter.data_type};
           },
-          [&](AttributeMetaData *meta_data_final) {
+          [&](AttributeDomainAndType *meta_data_final) {
             meta_data_final->data_type = bke::attribute_data_type_highest_complexity(
                 {meta_data_final->data_type, iter.data_type});
             meta_data_final->domain = bke::attribute_domain_highest_priority(
@@ -76,12 +76,12 @@ void join_attributes(const Span<const GeometryComponent *> src_components,
                      GeometryComponent &result,
                      const Span<StringRef> ignored_attributes)
 {
-  const Map<StringRef, AttributeMetaData> info = get_final_attribute_info(src_components,
-                                                                          ignored_attributes);
+  const Map<StringRef, AttributeDomainAndType> info = get_final_attribute_info(src_components,
+                                                                               ignored_attributes);
 
-  for (const MapItem<StringRef, AttributeMetaData> item : info.items()) {
+  for (const MapItem<StringRef, AttributeDomainAndType> item : info.items()) {
     const StringRef attribute_id = item.key;
-    const AttributeMetaData &meta_data = item.value;
+    const AttributeDomainAndType &meta_data = item.value;
 
     bke::GSpanAttributeWriter write_attribute =
         result.attributes_for_write()->lookup_or_add_for_write_only_span(

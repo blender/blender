@@ -10,7 +10,7 @@
  * as it is way more complex and expensive to do.
  */
 
-#pragma BLENDER_REQUIRE(eevee_depth_of_field_lib.glsl)
+#include "eevee_depth_of_field_lib.glsl"
 
 void main()
 {
@@ -50,9 +50,9 @@ void main()
 
   ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
   /* For gather store the normalized UV. */
-  imageStore(out_gather_lut_img, texel, gather_uv.xyxy);
+  imageStoreFast(out_gather_lut_img, texel, gather_uv.xyxy);
   /* For scatter store distance. LUT will be scaled by COC. */
-  imageStore(out_scatter_lut_img, texel, vec4(radius));
+  imageStoreFast(out_scatter_lut_img, texel, vec4(radius));
   /* For slight focus gather store pixel perfect distance. */
   imageStore(out_resolve_lut_img, texel, vec4(length(slight_focus_texel)));
 }

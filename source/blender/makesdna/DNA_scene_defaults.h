@@ -179,24 +179,11 @@
     .gi_diffuse_bounces = 3, \
     .gi_cubemap_resolution = 512, \
     .gi_visibility_resolution = 32, \
-    .gi_cubemap_draw_size = 0.3f, \
-    .gi_irradiance_draw_size = 0.1f, \
-    .gi_irradiance_smoothing = 0.1f, \
-    .gi_filter_quality = 3.0f, \
     .gi_irradiance_pool_size = 16, \
     .shadow_pool_size = 512, \
  \
     .taa_samples = 16, \
     .taa_render_samples = 64, \
- \
-    .sss_samples = 7, \
-    .sss_jitter_threshold = 0.3f, \
- \
-    .ssr_quality = 0.25f, \
-    .ssr_max_roughness = 0.5f, \
-    .ssr_thickness = 0.2f, \
-    .ssr_border_fade = 0.075f, \
-    .ssr_firefly_fac = 10.0f, \
  \
     .volumetric_start = 0.1f, \
     .volumetric_end = 100.0f, \
@@ -208,14 +195,13 @@
     .volumetric_shadow_samples = 16, \
  \
     .gtao_distance = 0.2f, \
-    .gtao_factor = 1.0f, \
-    .gtao_quality = 0.25f, \
     .gtao_thickness = 0.5f, \
     .gtao_focus = 0.05f, \
     .gtao_resolution = 2, \
  \
     .fast_gi_step_count = 8, \
     .fast_gi_ray_count = 2, \
+    .fast_gi_quality = 0.25f, \
     .fast_gi_distance = 0.0f, \
     .fast_gi_thickness_near = 0.25f, \
     .fast_gi_thickness_far = DEG2RAD(45), \
@@ -225,14 +211,6 @@
     .bokeh_max_size = 100.0f, \
     .bokeh_threshold = 1.0f, \
     .bokeh_neighbor_max = 10.0f, \
-    .bokeh_denoise_fac = 0.75f, \
- \
-    .bloom_color = {1.0f, 1.0f, 1.0f}, \
-    .bloom_threshold = 0.8f, \
-    .bloom_knee = 0.5f, \
-    .bloom_intensity = 0.05f, \
-    .bloom_radius = 6.5f, \
-    .bloom_clamp = 0.0f, \
  \
     .motion_blur_depth_scale = 100.0f, \
     .motion_blur_max = 32, \
@@ -240,8 +218,6 @@
  \
     .clamp_surface_indirect = 10.0f, \
 \
-    .shadow_cube_size = 512, \
-    .shadow_cascade_size = 1024, \
     .shadow_ray_count = 1, \
     .shadow_step_count = 6, \
     .shadow_resolution_scale = 1.0f, \
@@ -254,9 +230,7 @@
  \
     .overscan = 3.0f, \
  \
-    .flag = SCE_EEVEE_VOLUMETRIC_LIGHTS | SCE_EEVEE_GTAO_BENT_NORMALS | \
-                    SCE_EEVEE_GTAO_BOUNCE | SCE_EEVEE_TAA_REPROJECTION | \
-                    SCE_EEVEE_SSR_HALF_RESOLUTION | SCE_EEVEE_SHADOW_SOFT, \
+    .flag = SCE_EEVEE_TAA_REPROJECTION, \
   }
 
 #define _DNA_DEFAULT_SceneHydra \
@@ -320,7 +294,9 @@
     .unprojected_radius = 0.29, \
     .alpha = 0.5f, \
     .weight = 0.5f, \
-    .flag = UNIFIED_PAINT_SIZE | UNIFIED_PAINT_ALPHA, \
+    .rgb = {0.0f, 0.0f, 0.0f}, \
+    .secondary_rgb = {1.0f, 1.0f, 1.0f}, \
+    .flag = UNIFIED_PAINT_SIZE | UNIFIED_PAINT_COLOR, \
   }
 
 #define _DNA_DEFAULTS_ParticleEditSettings \

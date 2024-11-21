@@ -47,6 +47,7 @@
 #include "BLI_set.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
+#include "BLI_string_utf8.h"
 
 #include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
@@ -61,7 +62,8 @@
 #include "BKE_file_handler.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_idprop.hh"
-#include "BKE_image_format.h"
+#include "BKE_image_format.hh"
+#include "BKE_lib_query.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_mesh_legacy_convert.hh"
@@ -120,9 +122,17 @@ static void convert_action_in_place(blender::animrig::Action &action)
   if (action.is_action_layered()) {
     return;
   }
-  Slot &slot = action.slot_add();
-  slot.idtype = action.idroot;
+
+  /* Store this ahead of time, because adding the slot sets the action's idroot
+   * to 0. We also set the action's idroot to 0 manually, just to be defensive
+   * so we don't depend on esoteric behavior in `slot_add()`. */
+  const int16_t idtype = action.idroot;
   action.idroot = 0;
+
+  Slot &slot = action.slot_add();
+  slot.idtype = idtype;
+  slot.name_ensure_prefix();
+
   Layer &layer = action.layer_add("Layer");
   blender::animrig::Strip &strip = layer.strip_add(action,
                                                    blender::animrig::Strip::Type::Keyframe);
@@ -180,8 +190,10 @@ static void version_legacy_actions_to_layered(Main *bmain)
 
   ID *id;
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    auto callback =
-        [&](bAction *&action_ptr_ref, slot_handle_t &slot_handle_ref, char *slot_name) -> bool {
+    auto callback = [&](ID &animated_id,
+                        bAction *&action_ptr_ref,
+                        slot_handle_t &slot_handle_ref,
+                        char *slot_name) -> bool {
       blender::Vector<ActionUserInfo> *action_user_vector = action_users.lookup_ptr(
           action_ptr_ref);
       /* Only actions that need to be converted are in this map. */
@@ -189,7 +201,7 @@ static void version_legacy_actions_to_layered(Main *bmain)
         return true;
       }
       ActionUserInfo user_info;
-      user_info.id = id;
+      user_info.id = &animated_id;
       user_info.action_ptr_ptr = &action_ptr_ref;
       user_info.slot_handle = &slot_handle_ref;
       user_info.slot_name = slot_name;
@@ -197,7 +209,33 @@ static void version_legacy_actions_to_layered(Main *bmain)
       return true;
     };
 
+    auto embedded_id_callback = [&](LibraryIDLinkCallbackData *cb_data) -> int {
+      ID *linked_id = *cb_data->id_pointer;
+
+      /* We only process embedded IDs with this callback. */
+      if (!linked_id || (linked_id->flag & ID_FLAG_EMBEDDED_DATA) == 0) {
+        return IDWALK_RET_STOP_RECURSION;
+      }
+
+      foreach_action_slot_use_with_references(*linked_id, callback);
+
+      return IDWALK_RET_NOP;
+    };
+
+    /* Process the main ID itself. */
     foreach_action_slot_use_with_references(*id, callback);
+
+    /* Process embedded IDs, as these are not listed in bmain, but still can
+     * have their own Action+Slot. */
+    BKE_library_foreach_ID_link(
+        bmain,
+        id,
+        embedded_id_callback,
+        nullptr,
+        IDWALK_RECURSE | IDWALK_READONLY |
+            /* This is more about "we don't care" than "must be ignored". We don't pass an owner
+             * ID, and it's not used in the callback either, so don't bother looking it up.  */
+            IDWALK_IGNORE_MISSING_OWNER_ID);
   }
   FOREACH_MAIN_ID_END;
 
@@ -223,31 +261,26 @@ static void version_legacy_actions_to_layered(Main *bmain)
         case ActionSlotAssignmentResult::OK:
           break;
         case ActionSlotAssignmentResult::SlotNotSuitable:
-          /* The slot assignment can fail in the following scenario, when dealing
-           * with "old Blender" (only supporting legacy Actions) and "new Blender"
-           * (versions supporting slotted/layered Actions).
+          /* If the slot wasn't suitable for the ID, we force assignment anyway,
+           * but with a warning.
            *
-           * - New Blender: create an action with two slots, ME and KE, and assign
-           *   to respectively a Mesh and a Shape Key. Save the file.
-           * - Old Blender: load the file. This will load the legacy data, but still
-           *   keep the assignments. This means that the Shape Key will get a ME
-           *   Action assigned, which is incompatible. Save the file.
-           * - New Blender: upgrades the Action (this code here), and tries to
-           *   assign the first (and by now only) slot. This will fail for the shape
-           *   key, as the ID type doesn't match.
-           *
-           * The failure is in itself okay, as there was actual data loss in this
-           * scenario, and so issuing a warning is the right way to go about this.
-           * The Action is still assigned, but the data-block won't get a slot
-           * assigned.
+           * This happens when the legacy action assigned to the ID had a
+           * mismatched idroot, and therefore the created slot does as well.
+           * This mismatch can happen in a variety of ways, and we opt to
+           * preserve this unusual (but technically valid) state of affairs.
            */
+          *action_user.slot_handle = slot_to_assign.handle;
+          BLI_strncpy_utf8(action_user.slot_name, slot_to_assign.name, Slot::name_length_max);
+
           printf(
-              "Warning: while upgrading legacy Action \"%s\", its slot \"%s\" could not be "
-              "assigned to data-block \"%s\" because it was meant for ID type \"%s\". The Action "
-              "assignment will be kept, but \"%s\" will not be animated.\n",
+              "Warning: legacy action \"%s\" is assigned to \"%s\", which does not match the "
+              "action's id_root \"%s\". The action has been upgraded to a slotted action with "
+              "slot \"%s\" with an id_type \"%s\", which has also been assigned to \"%s\" despite "
+              "this type mismatch. This likely indicates something odd about the blend file.\n",
               action.id.name + 2,
-              slot_to_assign.name_without_prefix().c_str(),
               action_user.id->name,
+              slot_to_assign.name_prefix_for_idtype().c_str(),
+              slot_to_assign.name_without_prefix().c_str(),
               slot_to_assign.name_prefix_for_idtype().c_str(),
               action_user.id->name);
           break;
@@ -1003,6 +1036,27 @@ static bool versioning_convert_strip_speed_factor(Sequence *seq, void *user_data
   return true;
 }
 
+static bool all_scenes_use(Main *bmain, const blender::Span<const char *> engines)
+{
+  if (!bmain->scenes.first) {
+    return false;
+  }
+
+  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+    bool match = false;
+    for (const char *engine : engines) {
+      if (STREQ(scene->r.engine, engine)) {
+        match = true;
+      }
+    }
+    if (!match) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 void do_versions_after_linking_400(FileData *fd, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 9)) {
@@ -1128,10 +1182,7 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 50)) {
-    Scene *scene = static_cast<Scene *>(bmain->scenes.first);
-    bool scene_uses_eevee_legacy = scene && STREQ(scene->r.engine, RE_engine_id_BLENDER_EEVEE);
-
-    if (scene_uses_eevee_legacy) {
+    if (all_scenes_use(bmain, {RE_engine_id_BLENDER_EEVEE})) {
       LISTBASE_FOREACH (Object *, object, &bmain->objects) {
         versioning_eevee_shadow_settings(object);
       }
@@ -1140,11 +1191,8 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 51)) {
     /* Convert blend method to math nodes. */
-    Scene *scene = static_cast<Scene *>(bmain->scenes.first);
-    bool scene_uses_eevee_legacy = scene && STREQ(scene->r.engine, RE_engine_id_BLENDER_EEVEE);
-
-    LISTBASE_FOREACH (Material *, material, &bmain->materials) {
-      if (scene_uses_eevee_legacy) {
+    if (all_scenes_use(bmain, {RE_engine_id_BLENDER_EEVEE})) {
+      LISTBASE_FOREACH (Material *, material, &bmain->materials) {
         if (!material->use_nodes || material->nodetree == nullptr) {
           /* Nothing to version. */
         }
@@ -1207,18 +1255,16 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
     version_node_socket_index_animdata(bmain, NTREE_SHADER, SH_NODE_BSDF_PRINCIPLED, 7, 1, 30);
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 2)) {
+    version_legacy_actions_to_layered(bmain);
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
    *
    * \note Keep this message at the bottom of the function.
    */
-
-  /* Keeping this block is without a `MAIN_VERSION_FILE_ATLEAST` until the experimental flag is
-   * removed. */
-  if (USER_EXPERIMENTAL_TEST(&U, use_animation_baklava)) {
-    version_legacy_actions_to_layered(bmain);
-  }
 }
 
 static void version_mesh_legacy_to_struct_of_array_format(Mesh &mesh)
@@ -2802,6 +2848,12 @@ static void update_paint_modes_for_brush_assets(Main &bmain)
   /* Replace persistent tool references with the new single builtin brush tool. */
   LISTBASE_FOREACH (WorkSpace *, workspace, &bmain.workspaces) {
     LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
+      if (STREQ(tref->idname, "builtin_brush.Draw")) {
+        /* Explicitly check against the old brush name, as the old texture paint image mode brush
+         * tool has a non-paint related mode. */
+        STRNCPY(tref->idname, "builtin.brush");
+        continue;
+      }
       if (tref->space_type != SPACE_VIEW3D) {
         continue;
       }
@@ -3054,6 +3106,35 @@ static void hide_simulation_node_skip_socket_value(Main &bmain)
 
       /* Change the old socket value so that the versioning code is not run again. */
       default_value->value = false;
+    }
+  }
+}
+
+static bool versioning_convert_seq_text_anchor(Sequence *seq, void * /*user_data*/)
+{
+  if (seq->type != SEQ_TYPE_TEXT || seq->effectdata == nullptr) {
+    return true;
+  }
+
+  TextVars *data = static_cast<TextVars *>(seq->effectdata);
+  data->anchor_x = data->align;
+  data->anchor_y = data->align_y;
+  data->align = SEQ_TEXT_ALIGN_X_LEFT;
+
+  return true;
+}
+
+static void add_subsurf_node_limit_surface_option(Main &bmain)
+{
+  LISTBASE_FOREACH (bNodeTree *, ntree, &bmain.nodetrees) {
+    if (ntree->type == NTREE_GEOMETRY) {
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type == GEO_NODE_SUBDIVISION_SURFACE) {
+          bNodeSocket *socket = version_node_add_socket_if_not_exist(
+              ntree, node, SOCK_IN, SOCK_BOOLEAN, PROP_NONE, "Limit Surface", "Limit Surface");
+          static_cast<bNodeSocketValueBoolean *>(socket->default_value)->value = false;
+        }
+      }
     }
   }
 }
@@ -3672,10 +3753,8 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 401, 5)) {
     /* Unify Material::blend_shadow and Cycles.use_transparent_shadows into the
      * Material::blend_flag. */
-    Scene *scene = static_cast<Scene *>(bmain->scenes.first);
-    bool is_eevee = scene && STR_ELEM(scene->r.engine,
-                                      RE_engine_id_BLENDER_EEVEE,
-                                      RE_engine_id_BLENDER_EEVEE_NEXT);
+    bool is_eevee = all_scenes_use(bmain,
+                                   {RE_engine_id_BLENDER_EEVEE, RE_engine_id_BLENDER_EEVEE_NEXT});
     LISTBASE_FOREACH (Material *, material, &bmain->materials) {
       bool transparent_shadows = true;
       if (is_eevee) {
@@ -4366,7 +4445,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     bool shadow_resolution_absolute = false;
     /* Try to get default resolution from scene setting. */
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      shadow_max_res_local = (2.0f * M_SQRT2) / scene->eevee.shadow_cube_size;
+      shadow_max_res_local = (2.0f * M_SQRT2) / scene->eevee.shadow_cube_size_deprecated;
       /* Round to avoid weird numbers in the UI. */
       shadow_max_res_local = ceil(shadow_max_res_local * 1000.0f) / 1000.0f;
       shadow_resolution_absolute = true;
@@ -4420,11 +4499,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 39)) {
     /* Unify cast shadow property with Cycles. */
-    Scene *scene = static_cast<Scene *>(bmain->scenes.first);
-    /* Be conservative, if there is no scene, still try to do the conversion as that can happen for
-     * append and linking. We prefer breaking EEVEE rather than breaking Cycles here. */
-    bool is_eevee = scene && STREQ(scene->r.engine, RE_engine_id_BLENDER_EEVEE);
-    if (!is_eevee) {
+    if (!all_scenes_use(bmain, {RE_engine_id_BLENDER_EEVEE})) {
       const Light *default_light = DNA_struct_default_get(Light);
       LISTBASE_FOREACH (Light *, light, &bmain->lights) {
         IDProperty *clight = version_cycles_properties_from_ID(&light->id);
@@ -4624,9 +4699,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 64)) {
-    Scene *scene = static_cast<Scene *>(bmain->scenes.first);
-    bool is_eevee_legacy = scene && STR_ELEM(scene->r.engine, RE_engine_id_BLENDER_EEVEE);
-    if (is_eevee_legacy) {
+    if (all_scenes_use(bmain, {RE_engine_id_BLENDER_EEVEE})) {
       /* Re-apply versioning made for EEVEE-Next in 4.1 before it got delayed. */
       LISTBASE_FOREACH (Material *, material, &bmain->materials) {
         bool transparent_shadows = material->blend_shadow != MA_BS_SOLID;
@@ -4898,6 +4971,18 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
         }
       }
     }
+
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type != NTREE_COMPOSIT) {
+        continue;
+      }
+      LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
+        if (node->type == CMP_NODE_VIEWER || node->type == CMP_NODE_COMPOSITE) {
+          node->flag &= ~NODE_PREVIEW;
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 403, 29)) {
@@ -4911,12 +4996,52 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
-  /**
-   * Always bump subversion in BKE_blender_version.h when adding versioning
-   * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
-   *
-   * \note Keep this message at the bottom of the function.
-   */
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 403, 31)) {
+    LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspaces) {
+      LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
+        if (tref->space_type != SPACE_SEQ) {
+          continue;
+        }
+        STRNCPY(tref->idname, "builtin.select_box");
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 1)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      Editing *ed = SEQ_editing_get(scene);
+      if (ed != nullptr) {
+        SEQ_for_each_callback(&ed->seqbase, versioning_convert_seq_text_anchor, nullptr);
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 4)) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype != SPACE_FILE) {
+            continue;
+          }
+          SpaceFile *sfile = reinterpret_cast<SpaceFile *>(sl);
+          if (sfile->asset_params) {
+            sfile->asset_params->base_params.sort = FILE_SORT_ASSET_CATALOG;
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 5)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      SequencerToolSettings *sequencer_tool_settings = SEQ_tool_settings_ensure(scene);
+      sequencer_tool_settings->snap_mode |= SEQ_SNAP_TO_RETIMING;
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 6)) {
+    add_subsurf_node_limit_surface_option(*bmain);
+  }
 
   /* Always run this versioning; meshes are written with the legacy format which always needs to
    * be converted to the new format on file load. Can be moved to a subversion check in a larger
@@ -4924,4 +5049,11 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
     blender::bke::mesh_sculpt_mask_to_generic(*mesh);
   }
+
+  /**
+   * Always bump subversion in BKE_blender_version.h when adding versioning
+   * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
+   *
+   * \note Keep this message at the bottom of the function.
+   */
 }

@@ -88,6 +88,9 @@ struct TransDataVertSlideVert {
 struct CurvesTransformData {
   blender::IndexMaskMemory memory;
   blender::Vector<blender::IndexMask> selection_by_layer;
+  /* TODO: add support for grease pencil layers. */
+  blender::IndexMask aligned_with_left;
+  blender::IndexMask aligned_with_right;
 
   /**
    * The offsets of every grease pencil layer into `positions` array.
@@ -222,10 +225,6 @@ extern TransConvertTypeInfo TransConvertType_Curves;
 /* `transform_convert_graph.cc` */
 
 extern TransConvertTypeInfo TransConvertType_Graph;
-
-/* `transform_convert_gpencil_legacy.cc` */
-
-extern TransConvertTypeInfo TransConvertType_GPencil;
 
 /* `transform_convert_greasepencil.cc` */
 

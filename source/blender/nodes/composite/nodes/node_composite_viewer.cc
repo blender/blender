@@ -10,7 +10,7 @@
 #include "BLI_math_vector_types.hh"
 
 #include "BKE_global.hh"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 
 #include "RNA_access.hh"
 
@@ -94,7 +94,8 @@ class ViewerOperation : public NodeOperation {
     }
 
     const Domain domain = compute_domain();
-    Result output = context().get_viewer_output_result(domain, image.meta_data.is_non_color_data);
+    Result output = context().get_viewer_output_result(
+        domain, image.meta_data.is_non_color_data, image.precision());
     if (this->context().use_gpu()) {
       GPU_texture_clear(output, GPU_DATA_FLOAT, color);
     }
@@ -118,7 +119,8 @@ class ViewerOperation : public NodeOperation {
   {
     const Result &image = get_input("Image");
     const Domain domain = compute_domain();
-    Result output = context().get_viewer_output_result(domain, image.meta_data.is_non_color_data);
+    Result output = context().get_viewer_output_result(
+        domain, image.meta_data.is_non_color_data, image.precision());
 
     GPUShader *shader = context().get_shader("compositor_write_output_opaque", output.precision());
     GPU_shader_bind(shader);
@@ -142,7 +144,8 @@ class ViewerOperation : public NodeOperation {
   {
     const Domain domain = compute_domain();
     const Result &image = get_input("Image");
-    Result output = context().get_viewer_output_result(domain, image.meta_data.is_non_color_data);
+    Result output = context().get_viewer_output_result(
+        domain, image.meta_data.is_non_color_data, image.precision());
 
     const Bounds<int2> bounds = get_output_bounds();
     parallel_for(domain.size, [&](const int2 texel) {
@@ -170,7 +173,8 @@ class ViewerOperation : public NodeOperation {
   {
     const Result &image = get_input("Image");
     const Domain domain = compute_domain();
-    Result output = context().get_viewer_output_result(domain, image.meta_data.is_non_color_data);
+    Result output = context().get_viewer_output_result(
+        domain, image.meta_data.is_non_color_data, image.precision());
 
     GPUShader *shader = context().get_shader("compositor_write_output", output.precision());
     GPU_shader_bind(shader);
@@ -194,7 +198,8 @@ class ViewerOperation : public NodeOperation {
   {
     const Domain domain = compute_domain();
     const Result &image = get_input("Image");
-    Result output = context().get_viewer_output_result(domain, image.meta_data.is_non_color_data);
+    Result output = context().get_viewer_output_result(
+        domain, image.meta_data.is_non_color_data, image.precision());
 
     const Bounds<int2> bounds = get_output_bounds();
     parallel_for(domain.size, [&](const int2 texel) {
@@ -221,7 +226,8 @@ class ViewerOperation : public NodeOperation {
   {
     const Result &image = get_input("Image");
     const Domain domain = compute_domain();
-    Result output = context().get_viewer_output_result(domain, image.meta_data.is_non_color_data);
+    Result output = context().get_viewer_output_result(
+        domain, image.meta_data.is_non_color_data, image.precision());
 
     GPUShader *shader = context().get_shader("compositor_write_output_alpha", output.precision());
     GPU_shader_bind(shader);
@@ -250,7 +256,8 @@ class ViewerOperation : public NodeOperation {
     const Domain domain = compute_domain();
     const Result &image = get_input("Image");
     const Result &alpha = get_input("Alpha");
-    Result output = context().get_viewer_output_result(domain, image.meta_data.is_non_color_data);
+    Result output = context().get_viewer_output_result(
+        domain, image.meta_data.is_non_color_data, image.precision());
 
     const Bounds<int2> bounds = get_output_bounds();
     parallel_for(domain.size, [&](const int2 texel) {

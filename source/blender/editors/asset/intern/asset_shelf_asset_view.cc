@@ -20,8 +20,7 @@
 #include "DNA_asset_types.h"
 #include "DNA_screen_types.h"
 
-#include "ED_asset_handle.hh"
-#include "ED_asset_list.hh"
+#include "ED_asset.hh"
 #include "ED_asset_menu_utils.hh"
 #include "ED_asset_shelf.hh"
 
@@ -66,7 +65,7 @@ class AssetViewItem : public ui::PreviewGridItem {
                 int preview_icon_id);
 
   void disable_asset_drag();
-  void build_grid_tile(uiLayout &layout) const override;
+  void build_grid_tile(const bContext &C, uiLayout &layout) const override;
   void build_context_menu(bContext &C, uiLayout &column) const override;
   std::optional<bool> should_be_active() const override;
   void on_activate(bContext &C) override;
@@ -105,41 +104,40 @@ void AssetView::build_items()
     return;
   }
 
-  list::iterate(library_ref_, [&](AssetHandle asset_handle) {
-    const asset_system::AssetRepresentation *asset = handle_get_representation(&asset_handle);
+  list::iterate(
+      library_ref_,
+      [&](AssetHandle asset_handle) {
+        const asset_system::AssetRepresentation *asset = handle_get_representation(&asset_handle);
+        const bool show_names = (shelf_.settings.display_flag & ASSETSHELF_SHOW_NAMES);
 
-    if (shelf_.type->asset_poll && !shelf_.type->asset_poll(shelf_.type, asset)) {
-      return true;
-    }
+        const StringRef identifier = asset->library_relative_identifier();
+        const int preview_id = handle_get_preview_or_type_icon_id(&asset_handle);
 
-    const AssetMetaData &asset_data = asset->get_metadata();
+        AssetViewItem &item = this->add_item<AssetViewItem>(
+            asset_handle, identifier, asset->get_name(), preview_id);
+        if (!show_names) {
+          item.hide_label();
+        }
+        if (shelf_.type->flag & ASSET_SHELF_TYPE_FLAG_NO_ASSET_DRAG) {
+          item.disable_asset_drag();
+        }
 
-    if (catalog_filter_ && !catalog_filter_->contains(asset_data.catalog_id)) {
-      /* Skip this asset. */
-      return true;
-    }
+        return true;
+      },
 
-    const bool show_names = (shelf_.settings.display_flag & ASSETSHELF_SHOW_NAMES);
+      /* prefilter_fn=*/
+      [&](asset_system::AssetRepresentation &asset) {
+        if (shelf_.type->asset_poll && !shelf_.type->asset_poll(shelf_.type, &asset)) {
+          return false;
+        }
 
-    const StringRef identifier = asset->library_relative_identifier();
-    const int preview_id = [&]() -> int {
-      if (list::asset_image_is_loading(&library_ref_, &asset_handle)) {
-        return ICON_TEMP;
-      }
-      return handle_get_preview_or_type_icon_id(&asset_handle);
-    }();
-
-    AssetViewItem &item = this->add_item<AssetViewItem>(
-        asset_handle, identifier, asset->get_name(), preview_id);
-    if (!show_names) {
-      item.hide_label();
-    }
-    if (shelf_.type->flag & ASSET_SHELF_TYPE_FLAG_NO_ASSET_DRAG) {
-      item.disable_asset_drag();
-    }
-
-    return true;
-  });
+        const AssetMetaData &asset_data = asset.get_metadata();
+        if (catalog_filter_ && !catalog_filter_->contains(asset_data.catalog_id)) {
+          /* Skip this asset. */
+          return false;
+        }
+        return true;
+      });
 }
 
 bool AssetView::begin_filtering(const bContext &C) const
@@ -217,10 +215,11 @@ static std::optional<wmOperatorCallParams> create_activate_operator_params(
   return wmOperatorCallParams{ot, op_props, WM_OP_INVOKE_REGION_WIN};
 }
 
-void AssetViewItem::build_grid_tile(uiLayout &layout) const
+void AssetViewItem::build_grid_tile(const bContext &C, uiLayout &layout) const
 {
   const AssetView &asset_view = reinterpret_cast<const AssetView &>(this->get_view());
   const AssetShelfType &shelf_type = *asset_view.shelf_.type;
+  const asset_system::AssetRepresentation *asset = handle_get_representation(&asset_);
 
   PointerRNA file_ptr = RNA_pointer_create(
       nullptr,
@@ -234,7 +233,7 @@ void AssetViewItem::build_grid_tile(uiLayout &layout) const
 
   uiBut *item_but = reinterpret_cast<uiBut *>(this->view_item_button());
   if (std::optional<wmOperatorCallParams> activate_op = create_activate_operator_params(
-          shelf_type.activate_operator, *handle_get_representation(&asset_)))
+          shelf_type.activate_operator, *asset))
   {
     /* Attach the operator, but don't call it through the button. We call it using
      * #on_activate(). */
@@ -249,7 +248,30 @@ void AssetViewItem::build_grid_tile(uiLayout &layout) const
   UI_but_view_item_draw_size_set(
       item_but, style.tile_width + 2 * U.pixelsize, style.tile_height + 2 * U.pixelsize);
 
-  ui::PreviewGridItem::build_grid_tile_button(layout);
+  UI_but_func_tooltip_set(
+      item_but,
+      [](bContext * /*C*/, void *argN, const char * /*tip*/) {
+        const asset_system::AssetRepresentation *asset =
+            static_cast<const asset_system::AssetRepresentation *>(argN);
+        return asset_tooltip(*asset, /*include_name=*/false);
+      },
+      const_cast<asset_system::AssetRepresentation *>(asset),
+      nullptr);
+
+  /* Request preview when drawing. Grid views have an optimization to only draw items that are
+   * actually visible, so only previews scrolled into view will be loaded this way. This reduces
+   * total loading time and memory footprint. */
+  list::asset_preview_ensure_requested(
+      C, &asset_view.library_ref_, const_cast<AssetHandle *>(&asset_));
+
+  const int preview_id = [&]() -> int {
+    if (list::asset_image_is_loading(&asset_view.library_ref_, &asset_)) {
+      return ICON_TEMP;
+    }
+    return handle_get_preview_or_type_icon_id(&asset_);
+  }();
+
+  ui::PreviewGridItem::build_grid_tile_button(layout, preview_id);
 }
 
 void AssetViewItem::build_context_menu(bContext &C, uiLayout &column) const
@@ -323,11 +345,10 @@ static std::string filter_string_get(const AssetShelf &shelf)
 void build_asset_view(uiLayout &layout,
                       const AssetLibraryReference &library_ref,
                       const AssetShelf &shelf,
-                      const bContext &C,
-                      const ARegion &region)
+                      const bContext &C)
 {
   list::storage_fetch(&library_ref, &C);
-  list::ensure_previews_job(&library_ref, &C);
+  list::previews_fetch(&library_ref, &C);
 
   const asset_system::AssetLibrary *library = list::library_get_once_available(library_ref);
   if (!library) {
@@ -349,7 +370,7 @@ void build_asset_view(uiLayout &layout,
   grid_view->set_context_menu_title("Asset Shelf");
 
   ui::GridViewBuilder builder(*block);
-  builder.build_grid_view(*grid_view, region.v2d, layout, filter_string_get(shelf));
+  builder.build_grid_view(C, *grid_view, layout, filter_string_get(shelf));
 }
 
 /* ---------------------------------------------------------------------- */

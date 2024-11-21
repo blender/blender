@@ -78,7 +78,7 @@ static int volume_import_exec(bContext *C, wmOperator *op)
   const bool is_relative_path = RNA_boolean_get(op->ptr, "relative_path");
   bool imported = false;
 
-  ListBase ranges = ED_image_filesel_detect_sequences(bmain, op, false);
+  ListBase ranges = ED_image_filesel_detect_sequences(BKE_main_blendfile_path(bmain), op, false);
   LISTBASE_FOREACH (ImageFrameRange *, range, &ranges) {
     char filepath[FILE_MAX];
     BLI_path_split_file_part(range->filepath, filepath, sizeof(filepath));

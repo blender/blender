@@ -57,43 +57,41 @@ void operator_properties(wmOperatorType *ot, ShapeType shapeType)
   }
 }
 
-static void init_common(bContext *C, wmOperator *op, GestureData &gesture_data)
+static void init_common(bContext *C, const wmOperator *op, GestureData &gesture_data)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   gesture_data.vc = ED_view3d_viewcontext_init(C, depsgraph);
-  Object &ob = *gesture_data.vc.obact;
+  const Object &object = *gesture_data.vc.obact;
 
   /* Operator properties. */
   gesture_data.front_faces_only = RNA_boolean_get(op->ptr, "use_front_faces_only");
   gesture_data.selection_type = SelectionType::Inside;
 
   /* SculptSession */
-  gesture_data.ss = ob.sculpt;
+  gesture_data.ss = object.sculpt;
 
   /* Symmetry. */
-  gesture_data.symm = ePaintSymmetryFlags(SCULPT_mesh_symmetry_xyz_get(ob));
+  gesture_data.symm = ePaintSymmetryFlags(SCULPT_mesh_symmetry_xyz_get(object));
 
   /* View Normal. */
-  float mat[3][3];
-  float view_dir[3] = {0.0f, 0.0f, 1.0f};
-  copy_m3_m4(mat, gesture_data.vc.rv3d->viewinv);
-  mul_m3_v3(mat, view_dir);
-  normalize_v3_v3(gesture_data.world_space_view_normal, view_dir);
-  copy_m3_m4(mat, ob.world_to_object().ptr());
-  mul_m3_v3(mat, view_dir);
-  normalize_v3_v3(gesture_data.true_view_normal, view_dir);
+  const float3x3 view_inv(float4x4(gesture_data.vc.rv3d->viewinv));
+  const float3 view_dir = math::transform_direction(view_inv, {0.0f, 0.0f, 1.0f});
+
+  gesture_data.world_space_view_normal = math::normalize(view_dir);
+  gesture_data.true_view_normal = math::normalize(
+      math::transform_direction(object.world_to_object(), view_dir));
 
   /* View Origin. */
-  copy_v3_v3(gesture_data.world_space_view_origin, gesture_data.vc.rv3d->viewinv[3]);
-  copy_v3_v3(gesture_data.true_view_origin, gesture_data.vc.rv3d->viewinv[3]);
+  gesture_data.world_space_view_origin = gesture_data.vc.rv3d->viewinv[3];
+  gesture_data.true_view_origin = gesture_data.vc.rv3d->viewinv[3];
 }
 
-static void lasso_px_cb(int x, int x_end, int y, void *user_data)
+static void lasso_px_cb(const int x, const int x_end, const int y, void *user_data)
 {
   GestureData *gesture_data = static_cast<GestureData *>(user_data);
   LassoData *lasso = &gesture_data->lasso;
   int index = (y * lasso->width) + x;
-  int index_end = (y * lasso->width) + x_end;
+  const int index_end = (y * lasso->width) + x_end;
   do {
     lasso->mask_px[index].set();
   } while (++index != index_end);
@@ -181,50 +179,56 @@ std::unique_ptr<GestureData> init_from_box(bContext *C, wmOperator *op)
 }
 
 static void line_plane_from_tri(float *r_plane,
-                                GestureData &gesture_data,
+                                const GestureData &gesture_data,
                                 const bool flip,
-                                const float p1[3],
-                                const float p2[3],
-                                const float p3[3])
+                                const float3 &p1,
+                                const float3 &p2,
+                                const float3 &p3)
 {
-  float normal[3];
+  float3 normal;
   normal_tri_v3(normal, p1, p2, p3);
-  mul_v3_mat3_m4v3(normal, gesture_data.vc.obact->world_to_object().ptr(), normal);
+  normal = math::transform_direction(gesture_data.vc.obact->world_to_object(), normal);
   if (flip) {
-    mul_v3_fl(normal, -1.0f);
+    normal *= -1.0f;
   }
-  float plane_point_object_space[3];
-  mul_v3_m4v3(plane_point_object_space, gesture_data.vc.obact->world_to_object().ptr(), p1);
+  const float3 plane_point_object_space = math::transform_point(
+      gesture_data.vc.obact->world_to_object(), p1);
   plane_from_point_normal_v3(r_plane, plane_point_object_space, normal);
 }
 
 /* Creates 4 points in the plane defined by the line and 2 extra points with an offset relative to
  * this plane. */
-static void line_calculate_plane_points(GestureData &gesture_data,
-                                        float line_points[2][2],
-                                        float r_plane_points[4][3],
-                                        float r_offset_plane_points[2][3])
+static void line_calculate_plane_points(const GestureData &gesture_data,
+                                        const Span<float2> line_points,
+                                        std::array<float3, 4> &r_plane_points,
+                                        std::array<float3, 2> &r_offset_plane_points)
 {
-  float depth_point[3];
-  add_v3_v3v3(depth_point, gesture_data.true_view_origin, gesture_data.true_view_normal);
+  const float3 depth_point = gesture_data.true_view_origin + gesture_data.true_view_normal;
   ED_view3d_win_to_3d(
       gesture_data.vc.v3d, gesture_data.vc.region, depth_point, line_points[0], r_plane_points[0]);
   ED_view3d_win_to_3d(
       gesture_data.vc.v3d, gesture_data.vc.region, depth_point, line_points[1], r_plane_points[3]);
 
-  madd_v3_v3v3fl(depth_point, gesture_data.true_view_origin, gesture_data.true_view_normal, 10.0f);
-  ED_view3d_win_to_3d(
-      gesture_data.vc.v3d, gesture_data.vc.region, depth_point, line_points[0], r_plane_points[1]);
-  ED_view3d_win_to_3d(
-      gesture_data.vc.v3d, gesture_data.vc.region, depth_point, line_points[1], r_plane_points[2]);
+  const float3 offset_depth_point = gesture_data.true_view_origin +
+                                    gesture_data.true_view_normal * 10.0f;
+  ED_view3d_win_to_3d(gesture_data.vc.v3d,
+                      gesture_data.vc.region,
+                      offset_depth_point,
+                      line_points[0],
+                      r_plane_points[1]);
+  ED_view3d_win_to_3d(gesture_data.vc.v3d,
+                      gesture_data.vc.region,
+                      offset_depth_point,
+                      line_points[1],
+                      r_plane_points[2]);
 
-  float normal[3];
+  float3 normal;
   normal_tri_v3(normal, r_plane_points[0], r_plane_points[1], r_plane_points[2]);
-  add_v3_v3v3(r_offset_plane_points[0], r_plane_points[0], normal);
-  add_v3_v3v3(r_offset_plane_points[1], r_plane_points[3], normal);
+  r_offset_plane_points[0] = r_plane_points[0] + normal;
+  r_offset_plane_points[1] = r_plane_points[3] + normal;
 }
 
-std::unique_ptr<GestureData> init_from_line(bContext *C, wmOperator *op)
+std::unique_ptr<GestureData> init_from_line(bContext *C, const wmOperator *op)
 {
   std::unique_ptr<GestureData> gesture_data = std::make_unique<GestureData>();
   gesture_data->shape_type = ShapeType::Line;
@@ -232,23 +236,18 @@ std::unique_ptr<GestureData> init_from_line(bContext *C, wmOperator *op)
 
   init_common(C, op, *gesture_data);
 
-  float line_points[2][2];
-  line_points[0][0] = RNA_int_get(op->ptr, "xstart");
-  line_points[0][1] = RNA_int_get(op->ptr, "ystart");
-  line_points[1][0] = RNA_int_get(op->ptr, "xend");
-  line_points[1][1] = RNA_int_get(op->ptr, "yend");
-
   gesture_data->gesture_points.reinitialize(2);
-  gesture_data->gesture_points[0][0] = line_points[0][0];
-  gesture_data->gesture_points[0][1] = line_points[0][1];
-  gesture_data->gesture_points[1][0] = line_points[1][0];
-  gesture_data->gesture_points[1][1] = line_points[1][1];
+  gesture_data->gesture_points[0] = {float(RNA_int_get(op->ptr, "xstart")),
+                                     float(RNA_int_get(op->ptr, "ystart"))};
+  gesture_data->gesture_points[1] = {float(RNA_int_get(op->ptr, "xend")),
+                                     float(RNA_int_get(op->ptr, "yend"))};
 
   gesture_data->line.flip = RNA_boolean_get(op->ptr, "flip");
 
-  float plane_points[4][3];
-  float offset_plane_points[2][3];
-  line_calculate_plane_points(*gesture_data, line_points, plane_points, offset_plane_points);
+  std::array<float3, 4> plane_points;
+  std::array<float3, 2> offset_plane_points;
+  line_calculate_plane_points(
+      *gesture_data, gesture_data->gesture_points, plane_points, offset_plane_points);
 
   /* Calculate line plane and normal. */
   const bool flip = gesture_data->line.flip ^ (!gesture_data->vc.rv3d->is_persp);
@@ -324,18 +323,15 @@ static void flip_for_symmetry_pass(GestureData &gesture_data, const ePaintSymmet
 static void update_affected_nodes_by_line_plane(GestureData &gesture_data)
 {
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(*gesture_data.vc.obact);
-  float clip_planes[3][4];
+  std::array<float4, 3> clip_planes;
   copy_v4_v4(clip_planes[0], gesture_data.line.plane);
   copy_v4_v4(clip_planes[1], gesture_data.line.side_plane[0]);
   copy_v4_v4(clip_planes[2], gesture_data.line.side_plane[1]);
 
-  PBVHFrustumPlanes frustum{};
-  frustum.planes = clip_planes;
-  frustum.num_planes = gesture_data.line.use_side_planes ? 3 : 1;
-
   gesture_data.node_mask = bke::pbvh::search_nodes(
       pbvh, gesture_data.node_mask_memory, [&](const bke::pbvh::Node &node) {
-        return BKE_pbvh_node_frustum_contain_AABB(&node, &frustum);
+        return bke::pbvh::node_frustum_contain_aabb(
+            node, Span(clip_planes).take_front(gesture_data.line.use_side_planes ? 3 : 1));
       });
 }
 
@@ -346,15 +342,13 @@ static void update_affected_nodes_by_clip_planes(GestureData &gesture_data)
   copy_m4_m4(clip_planes, gesture_data.clip_planes);
   negate_m4(clip_planes);
 
-  PBVHFrustumPlanes frustum{};
-  frustum.planes = clip_planes;
-  frustum.num_planes = 4;
+  Span planes(reinterpret_cast<float4 *>(clip_planes), 4);
 
   gesture_data.node_mask = bke::pbvh::search_nodes(
       pbvh, gesture_data.node_mask_memory, [&](const bke::pbvh::Node &node) {
         switch (gesture_data.selection_type) {
           case SelectionType::Inside:
-            return BKE_pbvh_node_frustum_contain_AABB(&node, &frustum);
+            return bke::pbvh::node_frustum_contain_aabb(node, planes);
           case SelectionType::Outside:
             /* Certain degenerate cases of a lasso shape can cause the resulting
              * frustum planes to enclose a node's AABB, therefore we must submit it
@@ -362,7 +356,7 @@ static void update_affected_nodes_by_clip_planes(GestureData &gesture_data)
             if (gesture_data.shape_type == ShapeType::Lasso) {
               return true;
             }
-            return BKE_pbvh_node_frustum_exclude_AABB(&node, &frustum);
+            return bke::pbvh::node_frustum_exclude_aabb(node, planes);
         }
         BLI_assert_unreachable();
         return false;
@@ -384,26 +378,25 @@ static void update_affected_nodes(GestureData &gesture_data)
 
 static bool is_affected_lasso(const GestureData &gesture_data, const float3 &position)
 {
-  int scr_co_s[2];
-  float3 co_final = symmetry_flip(position, gesture_data.symmpass);
+  const float3 co_final = symmetry_flip(position, gesture_data.symmpass);
 
   /* First project point to 2d space. */
   const float2 scr_co_f = ED_view3d_project_float_v2_m4(
       gesture_data.vc.region, co_final, gesture_data.lasso.projviewobjmat);
 
-  scr_co_s[0] = scr_co_f[0];
-  scr_co_s[1] = scr_co_f[1];
+  int2 screen_coords = {int(scr_co_f[0]), int(scr_co_f[1])};
 
   /* Clip against lasso boundbox. */
   const LassoData &lasso = gesture_data.lasso;
-  if (!BLI_rcti_isect_pt(&lasso.boundbox, scr_co_s[0], scr_co_s[1])) {
+  if (!BLI_rcti_isect_pt_v(&lasso.boundbox, screen_coords)) {
     return gesture_data.selection_type == SelectionType::Outside;
   }
 
-  scr_co_s[0] -= lasso.boundbox.xmin;
-  scr_co_s[1] -= lasso.boundbox.ymin;
+  screen_coords[0] -= lasso.boundbox.xmin;
+  screen_coords[1] -= lasso.boundbox.ymin;
 
-  const bool bitmap_result = lasso.mask_px[scr_co_s[1] * lasso.width + scr_co_s[0]].test();
+  const bool bitmap_result =
+      lasso.mask_px[screen_coords[1] * lasso.width + screen_coords[0]].test();
   switch (gesture_data.selection_type) {
     case SelectionType::Inside:
       return bitmap_result;
@@ -416,10 +409,10 @@ static bool is_affected_lasso(const GestureData &gesture_data, const float3 &pos
 
 bool is_affected(const GestureData &gesture_data, const float3 &position, const float3 &normal)
 {
-  float dot = math::dot(gesture_data.view_normal, normal);
-  const bool is_effected_front_face = !(gesture_data.front_faces_only && dot < 0.0f);
+  const float dot = math::dot(gesture_data.view_normal, normal);
+  const bool is_affected_front_face = !(gesture_data.front_faces_only && dot < 0.0f);
 
-  if (!is_effected_front_face) {
+  if (!is_affected_front_face) {
     return false;
   }
 
@@ -456,7 +449,7 @@ void filter_factors(const GestureData &gesture_data,
 
 void apply(bContext &C, GestureData &gesture_data, wmOperator &op)
 {
-  Operation *operation = gesture_data.operation;
+  const Operation *operation = gesture_data.operation;
 
   operation->begin(C, op, gesture_data);
 

@@ -7,7 +7,7 @@
 
 /* Step 4 : Apply final integration on top of the scene color. */
 
-#pragma BLENDER_REQUIRE(eevee_volume_lib.glsl)
+#include "eevee_volume_lib.glsl"
 
 void main()
 {
@@ -21,8 +21,8 @@ void main()
   out_transmittance = vec4(vol.transmittance, saturate(average(vol.transmittance)));
 
   if (uniform_buf.render_pass.volume_light_id >= 0) {
-    imageStore(rp_color_img,
-               ivec3(ivec2(gl_FragCoord.xy), uniform_buf.render_pass.volume_light_id),
-               vec4(vol.scattering, 1.0));
+    imageStoreFast(rp_color_img,
+                   ivec3(ivec2(gl_FragCoord.xy), uniform_buf.render_pass.volume_light_id),
+                   vec4(vol.scattering, 1.0));
   }
 }

@@ -108,7 +108,7 @@ static void node_label(const bNodeTree * /*ntree*/, const bNode *node, char *lab
   if (!enum_label) {
     name = "Unknown";
   }
-  BLI_strncpy(label, IFACE_(name), maxlen);
+  BLI_strncpy(label, CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, name), maxlen);
 }
 
 /* Derived from `divide_round_i` but fixed to be safe and handle negative inputs. */
@@ -294,6 +294,7 @@ static void node_rna(StructRNA *srna)
                            rna_enum_node_integer_math_items,
                            NOD_inline_enum_accessors(custom1),
                            NODE_INTEGER_MATH_ADD);
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_NODETREE);
   RNA_def_property_update_runtime(prop, rna_Node_socket_update);
 }
 

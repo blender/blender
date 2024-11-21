@@ -6,6 +6,14 @@
  * \ingroup cmpnodes
  */
 
+#include <cmath>
+
+#include "BLI_math_vector_types.hh"
+
+#include "FN_multi_function_builder.hh"
+
+#include "NOD_multi_function.hh"
+
 #include "GPU_material.hh"
 
 #include "COM_shader_node.hh"
@@ -45,6 +53,17 @@ static ShaderNode *get_compositor_shader_node(DNode node)
   return new ExposureShaderNode(node);
 }
 
+static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+{
+  static auto function = mf::build::SI2_SO<float4, float, float4>(
+      "Exposure",
+      [](const float4 &color, const float exposure) -> float4 {
+        return float4(color.xyz() * std::exp2(exposure), color.w);
+      },
+      mf::build::exec_presets::SomeSpanOrSingle<0>());
+  builder.set_matching_fn(function);
+}
+
 }  // namespace blender::nodes::node_composite_exposure_cc
 
 void register_node_type_cmp_exposure()
@@ -56,6 +75,7 @@ void register_node_type_cmp_exposure()
   cmp_node_type_base(&ntype, CMP_NODE_EXPOSURE, "Exposure", NODE_CLASS_OP_COLOR);
   ntype.declare = file_ns::cmp_node_exposure_declare;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
+  ntype.build_multi_function = file_ns::node_build_multi_function;
 
   blender::bke::node_register_type(&ntype);
 }

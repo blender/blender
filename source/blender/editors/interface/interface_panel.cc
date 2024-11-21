@@ -307,20 +307,24 @@ void UI_panels_free_instanced(const bContext *C, ARegion *region)
 {
   /* Delete panels with the instanced flag. */
   LISTBASE_FOREACH_MUTABLE (Panel *, panel, &region->panels) {
-    if ((panel->type != nullptr) && (panel->type->flag & PANEL_TYPE_INSTANCED)) {
-      /* Make sure the panel's handler is removed before deleting it. */
-      if (C != nullptr && panel->activedata != nullptr) {
-        panel_activate_state(C, panel, PANEL_STATE_EXIT);
-      }
-
-      /* Free panel's custom data. */
-      if (panel->runtime->custom_data_ptr != nullptr) {
-        MEM_delete(panel->runtime->custom_data_ptr);
-      }
-
-      /* Free the panel and its sub-panels. */
-      panel_delete(region, &region->panels, panel);
+    if (!panel->type) {
+      continue;
     }
+    if ((panel->type->flag & PANEL_TYPE_INSTANCED) == 0) {
+      continue;
+    }
+    /* Make sure the panel's handler is removed before deleting it. */
+    if (C != nullptr && panel->activedata != nullptr) {
+      panel_activate_state(C, panel, PANEL_STATE_EXIT);
+    }
+
+    /* Free panel's custom data. */
+    if (panel->runtime->custom_data_ptr != nullptr) {
+      MEM_delete(panel->runtime->custom_data_ptr);
+    }
+
+    /* Free the panel and its sub-panels. */
+    panel_delete(region, &region->panels, panel);
   }
 }
 
@@ -1940,7 +1944,7 @@ void UI_panels_end(const bContext *C, ARegion *region, int *r_x, int *r_y)
 
       /* Update bounds for all "views" in this block. Usually this is done in #UI_block_end(), but
        * that wouldn't work because of the offset applied above. */
-      ui_block_views_bounds_calc(block);
+      ui_block_views_end(region, block);
     }
   }
 

@@ -6,6 +6,7 @@
  * \ingroup spseq
  */
 
+#include "BLI_map.hh"
 #include "MEM_guardedalloc.h"
 
 #include "BLI_set.hh"
@@ -188,7 +189,8 @@ static bool retiming_key_add_new_for_seq(bContext *C,
                                          const int timeline_frame)
 {
   Scene *scene = CTX_data_scene(C);
-  const int frame_index = BKE_scene_frame_get(scene) - SEQ_time_start_frame_get(seq);
+  const float frame_index = (BKE_scene_frame_get(scene) - SEQ_time_start_frame_get(seq)) *
+                            SEQ_time_media_playback_rate_factor_get(scene, seq);
   const SeqRetimingKey *key = SEQ_retiming_find_segment_start_key(seq, frame_index);
 
   if (key != nullptr && SEQ_retiming_key_is_transition_start(key)) {
@@ -358,7 +360,9 @@ static bool freeze_frame_add_from_retiming_selection(const bContext *C,
   Scene *scene = CTX_data_scene(C);
   bool success = false;
 
-  for (auto item : SEQ_retiming_selection_get(SEQ_editing_get(scene)).items()) {
+  blender::Map selection = SEQ_retiming_selection_get(SEQ_editing_get(scene));
+
+  for (auto item : selection.items()) {
     const int timeline_frame = SEQ_retiming_key_timeline_frame_get(scene, item.value, item.key);
     success |= freeze_frame_add_new_for_seq(C, op, item.value, timeline_frame, duration);
     SEQ_relations_invalidate_cache_raw(scene, item.value);
@@ -441,7 +445,7 @@ static bool transition_add_new_for_seq(const bContext *C,
     return false;
   }
 
-  SeqRetimingKey *transition = SEQ_retiming_add_transition(scene, seq, key, duration);
+  SeqRetimingKey *transition = SEQ_retiming_add_transition(seq, key, duration);
 
   if (transition == nullptr) {
     BKE_report(op->reports, RPT_WARNING, "Cannot create transition");
@@ -462,7 +466,9 @@ static bool transition_add_from_retiming_selection(const bContext *C,
   Scene *scene = CTX_data_scene(C);
   bool success = false;
 
-  for (auto item : SEQ_retiming_selection_get(SEQ_editing_get(scene)).items()) {
+  blender::Map selection = SEQ_retiming_selection_get(SEQ_editing_get(scene));
+
+  for (auto item : selection.items()) {
     const int timeline_frame = SEQ_retiming_key_timeline_frame_get(scene, item.value, item.key);
     success |= transition_add_new_for_seq(C, op, item.value, timeline_frame, duration);
   }
@@ -832,9 +838,10 @@ int sequencer_retiming_key_select_exec(bContext *C,
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene);
 
-  const bool deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
   const bool wait_to_deselect_others = RNA_boolean_get(op->ptr, "wait_to_deselect_others");
   const bool toggle = RNA_boolean_get(op->ptr, "toggle");
+  bool deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
+  deselect_all |= !toggle;
 
   /* Clicked on an unselected key. */
   if (!SEQ_retiming_selection_contains(ed, key) && !toggle) {

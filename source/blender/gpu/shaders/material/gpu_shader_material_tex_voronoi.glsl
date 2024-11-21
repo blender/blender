@@ -17,10 +17,10 @@
  * as explained in https://www.shadertoy.com/view/llG3zy.
  */
 
-#pragma BLENDER_REQUIRE(gpu_shader_common_hash.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_common_math_utils.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_material_voronoi.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_material_fractal_voronoi.glsl)
+#include "gpu_shader_common_hash.glsl"
+#include "gpu_shader_common_math_utils.glsl"
+#include "gpu_shader_material_fractal_voronoi.glsl"
+#include "gpu_shader_material_voronoi.glsl"
 
 #define INITIALIZE_VORONOIPARAMS(FEATURE) \
   params.feature = FEATURE; \

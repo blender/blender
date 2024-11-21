@@ -51,7 +51,7 @@
 #include <pxr/usd/usdGeom/metrics.h>
 #include <pxr/usd/usdGeom/tokens.h>
 
-#include <iostream>
+#include <fmt/core.h>
 
 namespace blender::io::usd {
 
@@ -186,9 +186,9 @@ struct ImportJobData {
 static void report_job_duration(const ImportJobData *data)
 {
   timeit::Nanoseconds duration = timeit::Clock::now() - data->start_time;
-  std::cout << "USD import of '" << data->filepath << "' took ";
+  fmt::print("USD import of '{}' took ", data->filepath);
   timeit::print_duration(duration);
-  std::cout << '\n';
+  fmt::print("\n");
 }
 
 static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
@@ -214,7 +214,6 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
         display_name, sizeof(display_name), BLI_path_basename(data->filepath));
     Collection *import_collection = BKE_collection_add(
         data->bmain, data->scene->master_collection, display_name);
-    id_fake_user_set(&import_collection->id);
 
     DEG_id_tag_update(&import_collection->id, ID_RECALC_SYNC_TO_EVAL);
     DEG_relations_tag_update(data->bmain);
@@ -512,12 +511,6 @@ bool USD_import(const bContext *C,
   job->is_background_job = as_background_job;
   STRNCPY(job->filepath, filepath);
 
-  job->settings.scale = params->scale;
-  job->settings.sequence_offset = params->offset;
-  job->settings.is_sequence = params->is_sequence;
-  job->settings.sequence_len = params->sequence_len;
-  job->settings.validate_meshes = params->validate_meshes;
-  job->settings.sequence_len = params->sequence_len;
   job->error_code = USD_NO_ERROR;
   job->was_canceled = false;
   job->archive = nullptr;
@@ -644,6 +637,10 @@ CacheReader *CacheReader_open_usd_object(CacheArchiveHandle *handle,
 
   if (usd_reader == nullptr) {
     /* This object is not supported. */
+    return nullptr;
+  }
+  if (!usd_reader->valid()) {
+    /* This object is invalid for some reason. */
     return nullptr;
   }
   usd_reader->object(object);

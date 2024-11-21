@@ -6,10 +6,16 @@
  * \ingroup gpu
  */
 
+#ifdef GPU_SHADER
+#  pragma once
+#  include "gpu_glsl_cpp_stubs.hh"
+
+#  include "GPU_shader_shared.hh"
+#endif
+
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(gpu_print)
-    .storage_buf(
-        GPU_SHADER_PRINTF_SLOT, Qualifier::READ_WRITE, "uint", "gpu_print_buf[]", Frequency::PASS)
-    .define("GPU_SHADER_PRINTF_MAX_CAPACITY", STRINGIFY(GPU_SHADER_PRINTF_MAX_CAPACITY))
-    .define("GPU_PRINT");
+STORAGE_BUF_FREQ(GPU_SHADER_PRINTF_SLOT, READ_WRITE, uint, gpu_print_buf[], PASS)
+DEFINE_VALUE("GPU_SHADER_PRINTF_MAX_CAPACITY", STRINGIFY(GPU_SHADER_PRINTF_MAX_CAPACITY))
+GPU_SHADER_CREATE_END()

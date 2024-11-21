@@ -93,6 +93,7 @@ LANGUAGES = (
     (54, "Slovenian (Slovenščina)", "sl"),
     # Using the utf8 flipped form of Urdu (اُردُو).
     (55, "Urdu (وُدرُا)", "ur"),
+    (56, "Lithuanian (Lietuviškai)", "lt"),
 )
 
 # Default context, in py (keep in sync with `BLT_translation.hh`)!
@@ -109,7 +110,7 @@ IMPORT_MIN_LEVEL = 0.0
 
 # Languages in the working repository that should not be imported in the Blender one currently...
 IMPORT_LANGUAGES_SKIP = {
-    'am_ET', 'et_EE', 'ro_RO', 'uz_UZ@latin', 'uz_UZ@cyrillic', 'kk_KZ',
+    'am_ET', 'et_EE', 'uz_UZ@latin', 'uz_UZ@cyrillic', 'kk_KZ',
 }
 
 # Languages that need RTL pre-processing.

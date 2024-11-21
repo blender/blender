@@ -43,6 +43,11 @@ enum eFileDataFlag {
   FD_FLAGS_POINTSIZE_DIFFERS = 1 << 2,
   FD_FLAGS_FILE_OK = 1 << 3,
   FD_FLAGS_IS_MEMFILE = 1 << 4,
+  /**
+   * The Blender file is not compatible with current code, but is still likely a blender file
+   * 'from the future'. Improves report to the user.
+   */
+  FD_FLAGS_FILE_FUTURE = 1 << 5,
 };
 ENUM_OPERATORS(eFileDataFlag, FD_FLAGS_IS_MEMFILE)
 

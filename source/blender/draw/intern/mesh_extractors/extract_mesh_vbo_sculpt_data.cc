@@ -44,7 +44,7 @@ void extract_sculpt_data(const MeshRenderData &mr, gpu::VertBuf &vbo)
 
   const int default_face_set = mr.mesh->face_sets_color_default;
   const int face_set_seed = mr.mesh->face_sets_color_seed;
-  if (mr.extract_type == MR_EXTRACT_BMESH) {
+  if (mr.extract_type == MeshExtractType::BMesh) {
     const BMesh &bm = *mr.bm;
     const int mask_offset = CustomData_get_offset_named(
         &mr.bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");

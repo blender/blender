@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(gpu_shader_material_transform_utils.glsl)
+#include "gpu_shader_material_transform_utils.glsl"
 
 void camera(out vec3 outview, out float outdepth, out float outdist)
 {

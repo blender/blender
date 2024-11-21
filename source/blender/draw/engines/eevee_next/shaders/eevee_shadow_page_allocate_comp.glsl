@@ -9,8 +9,8 @@
  * Note that allocation can fail, in this case the tile is left with no page.
  */
 
-#pragma BLENDER_REQUIRE(eevee_shadow_page_ops_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_shadow_tilemap_lib.glsl)
+#include "eevee_shadow_page_ops_lib.glsl"
+#include "eevee_shadow_tilemap_lib.glsl"
 
 void main()
 {

@@ -37,7 +37,7 @@ void BKE_volumes_init();
 /* Data-block Management */
 
 void BKE_volume_init_grids(Volume *volume);
-void *BKE_volume_add(Main *bmain, const char *name);
+Volume *BKE_volume_add(Main *bmain, const char *name);
 
 bool BKE_volume_is_y_up(const Volume *volume);
 bool BKE_volume_is_points_only(const Volume *volume);

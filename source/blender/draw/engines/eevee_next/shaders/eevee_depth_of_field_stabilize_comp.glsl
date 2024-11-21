@@ -17,9 +17,9 @@
  * - Stabilized Color and CoC (half-resolution).
  */
 
-#pragma BLENDER_REQUIRE(eevee_colorspace_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_depth_of_field_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_velocity_lib.glsl)
+#include "eevee_colorspace_lib.glsl"
+#include "eevee_depth_of_field_lib.glsl"
+#include "eevee_velocity_lib.glsl"
 
 struct DofSample {
   vec4 color;
@@ -125,7 +125,7 @@ float dof_bilateral_weight(float reference_coc, float sample_coc)
 DofSample dof_spatial_filtering()
 {
   /* Plus (+) shape offsets. */
-  const ivec2 plus_offsets[4] = ivec2[4](ivec2(-1, 0), ivec2(0, -1), ivec2(1, 0), ivec2(0, 1));
+  const ivec2 plus_offsets[4] = int2_array(ivec2(-1, 0), ivec2(0, -1), ivec2(1, 0), ivec2(0, 1));
   DofSample center = dof_fetch_input_sample(ivec2(0));
   DofSample accum = DofSample(vec4(0.0), 0.0);
   float accum_weight = 0.0;
@@ -165,7 +165,7 @@ struct DofNeighborhoodMinMax {
 DofNeighborhoodMinMax dof_neighbor_boundbox()
 {
   /* Plus (+) shape offsets. */
-  const ivec2 plus_offsets[4] = ivec2[4](ivec2(-1, 0), ivec2(0, -1), ivec2(1, 0), ivec2(0, 1));
+  const ivec2 plus_offsets[4] = int2_array(ivec2(-1, 0), ivec2(0, -1), ivec2(1, 0), ivec2(0, 1));
   /**
    * Simple bounding box calculation in YCoCg as described in:
    * "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014
@@ -183,7 +183,7 @@ DofNeighborhoodMinMax dof_neighbor_boundbox()
    * Round bbox shape by averaging 2 different min/max from 2 different neighborhood. */
   DofSample min_c_3x3 = min_c;
   DofSample max_c_3x3 = max_c;
-  const ivec2 corners[4] = ivec2[4](ivec2(-1, -1), ivec2(1, -1), ivec2(-1, 1), ivec2(1, 1));
+  const ivec2 corners[4] = int2_array(ivec2(-1, -1), ivec2(1, -1), ivec2(-1, 1), ivec2(1, 1));
   for (int i = 0; i < 4; i++) {
     DofSample samp = dof_fetch_input_sample(corners[i]);
     min_c_3x3.color = min(min_c_3x3.color, samp.color);
@@ -206,7 +206,7 @@ vec2 dof_pixel_history_motion_vector(ivec2 texel_sample)
    * Dilate velocity by using the nearest pixel in a cross pattern.
    * "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014 (Slide 27)
    */
-  const ivec2 corners[4] = ivec2[4](ivec2(-2, -2), ivec2(2, -2), ivec2(-2, 2), ivec2(2, 2));
+  const ivec2 corners[4] = int2_array(ivec2(-2, -2), ivec2(2, -2), ivec2(-2, 2), ivec2(2, 2));
   float min_depth = dof_fetch_half_depth(ivec2(0));
   ivec2 nearest_texel = ivec2(0);
   for (int i = 0; i < 4; i++) {

@@ -2,9 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#include "common_math_lib.glsl"
+#include "common_view_clipping_lib.glsl"
+#include "common_view_lib.glsl"
 
 #define M_TAN_PI_BY_8 tan(M_PI / 8)
 #define M_TAN_3_PI_BY_8 tan(3 * M_PI / 8)
@@ -44,35 +44,27 @@ void output_line(vec2 offset, vec4 color_start, vec4 color_end)
 
 void main()
 {
-  bool showCurveHandles = true;
-  uint curveHandleDisplay = CURVE_HANDLE_ALL;
 
   vec4 v1 = gl_in[0].gl_Position;
   vec4 v2 = gl_in[1].gl_Position;
 
-  bool is_active_nurb = (vert[0].flag & EDIT_CURVES_ACTIVE_HANDLE) != 0u;
-  uint color_id = (vert[0].flag >> EDIT_CURVES_HANDLE_TYPES_SHIFT) & 3;
+  bool is_active = (vert[0].flag & EDIT_CURVES_ACTIVE_HANDLE) != 0u;
+  uint color_id = uint(vert[0].flag >> EDIT_CURVES_HANDLE_TYPES_SHIFT) & 7;
 
+  bool is_bezier_handle = (vert[0].flag & EDIT_CURVES_BEZIER_HANDLE) != 0;
   /* Don't output any edges if we don't show handles */
-  if (!showCurveHandles && (color_id < 5u)) {
+  if ((uint(curveHandleDisplay) == CURVE_HANDLE_NONE) && is_bezier_handle) {
     return;
   }
 
-  bool handle_selected = (showCurveHandles &&
-                          ((vert[0].flag &
-                            (EDIT_CURVES_ACTIVE_HANDLE | EDIT_CURVES_BEZIER_HANDLE)) != 0u));
-
-  /* If handle type is only selected and the edge is not selected, don't show. */
-  if ((uint(curveHandleDisplay) != CURVE_HANDLE_ALL) && (!handle_selected)) {
-    /* Nurbs must show the handles always. */
-    bool is_nurbs = (vert[0].flag & EDIT_CURVES_NURBS_CONTROL_POINT) != 0u;
-    if ((!is_nurbs) && (color_id <= 4u)) {
-      return;
-    }
+  /* If handle type is only selected and the edge is not selected, don't show.
+   * Nurbs and other curves must show the handles always. */
+  if ((uint(curveHandleDisplay) == CURVE_HANDLE_SELECTED) && is_bezier_handle && !is_active) {
+    return;
   }
 
   vec4 inner_color[2];
-  if ((vert[0].flag & EDIT_CURVES_BEZIER_HANDLE) != 0u) {
+  if ((vert[0].flag & (EDIT_CURVES_BEZIER_HANDLE | EDIT_CURVES_BEZIER_KNOT)) != 0u) {
     inner_color[0] = get_bezier_handle_color(color_id, vert[0].selection);
     inner_color[1] = get_bezier_handle_color(color_id, vert[1].selection);
   }
@@ -90,7 +82,7 @@ void main()
   }
 
   vec4 outer_color[2];
-  if (is_active_nurb) {
+  if (is_active) {
     outer_color[0] = mix(colorActiveSpline,
                          inner_color[0],
                          0.25); /* Minimize active color bleeding on inner_color. */
@@ -117,7 +109,7 @@ void main()
   }
 
   /* draw the transparent border (AA). */
-  if (is_active_nurb) {
+  if (is_active) {
     offset *= 0.75; /* Don't make the active "halo" appear very thick. */
     output_line(offset * 2.0, vec4(colorActiveSpline.rgb, 0.0), vec4(colorActiveSpline.rgb, 0.0));
   }
@@ -132,7 +124,7 @@ void main()
   output_line(-offset, outer_color[0], outer_color[1]);
 
   /* draw the transparent border (AA). */
-  if (is_active_nurb) {
+  if (is_active) {
     output_line(offset * -2.0, vec4(colorActiveSpline.rgb, 0.0), vec4(colorActiveSpline.rgb, 0.0));
   }
 

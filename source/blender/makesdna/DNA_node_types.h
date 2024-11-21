@@ -489,6 +489,9 @@ typedef struct bNode {
   const bNodeSocket &output_by_identifier(blender::StringRef identifier) const;
   bNodeSocket &input_by_identifier(blender::StringRef identifier);
   bNodeSocket &output_by_identifier(blender::StringRef identifier);
+  /** Lookup socket by its declaration. */
+  const bNodeSocket &socket_by_decl(const blender::nodes::SocketDeclaration &decl) const;
+  bNodeSocket &socket_by_decl(const blender::nodes::SocketDeclaration &decl);
   /** If node is frame, will return all children nodes. */
   blender::Span<bNode *> direct_children_in_frame() const;
   blender::Span<bNodePanelState> panel_states() const;
@@ -2199,15 +2202,6 @@ enum {
   NODE_PROXY_AUTOTYPE = 1,
 };
 
-/* Comp channel matte. */
-
-enum {
-  CMP_NODE_CHANNEL_MATTE_CS_RGB = 1,
-  CMP_NODE_CHANNEL_MATTE_CS_HSV = 2,
-  CMP_NODE_CHANNEL_MATTE_CS_YUV = 3,
-  CMP_NODE_CHANNEL_MATTE_CS_YCC = 4,
-};
-
 /* Conductive fresnel types */
 enum {
   SHD_PHYSICAL_CONDUCTOR = 0,
@@ -2676,8 +2670,8 @@ typedef enum CMPNodeAlphaConvertMode {
 
 /** Distance Matte Node. Stored in #NodeChroma.channel. */
 typedef enum CMPNodeDistanceMatteColorSpace {
-  CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_YCCA = 0,
   CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_RGBA = 1,
+  CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_YCCA = 2,
 } CMPNodeDistanceMatteColorSpace;
 
 /** Color Spill Node. Stored in `custom2`. */
@@ -2825,6 +2819,14 @@ typedef enum CMPNodeCryptomatteSource {
   CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE = 1,
 } CMPNodeCryptomatteSource;
 
+/* Channel Matte node, stored in custom1. */
+typedef enum CMPNodeChannelMatteColorSpace {
+  CMP_NODE_CHANNEL_MATTE_CS_RGB = 1,
+  CMP_NODE_CHANNEL_MATTE_CS_HSV = 2,
+  CMP_NODE_CHANNEL_MATTE_CS_YUV = 3,
+  CMP_NODE_CHANNEL_MATTE_CS_YCC = 4,
+} CMPNodeChannelMatteColorSpace;
+
 /* Point Density shader node */
 
 enum {
@@ -2847,6 +2849,15 @@ enum {
   SHD_POINTDENSITY_COLOR_VERTCOL = 0,
   SHD_POINTDENSITY_COLOR_VERTWEIGHT = 1,
   SHD_POINTDENSITY_COLOR_VERTNOR = 2,
+};
+
+/* Scattering phase functions */
+enum {
+  SHD_PHASE_HENYEY_GREENSTEIN = 0,
+  SHD_PHASE_FOURNIER_FORAND = 1,
+  SHD_PHASE_DRAINE = 2,
+  SHD_PHASE_RAYLEIGH = 3,
+  SHD_PHASE_MIE = 4,
 };
 
 /* Output shader node */

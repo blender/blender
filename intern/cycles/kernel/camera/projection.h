@@ -12,22 +12,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Spherical coordinates <-> Cartesian direction. */
-
-ccl_device float2 direction_to_spherical(float3 dir)
-{
-  float theta = safe_acosf(dir.z);
-  float phi = atan2f(dir.x, dir.y);
-
-  return make_float2(theta, phi);
-}
-
-ccl_device float3 spherical_to_direction(float theta, float phi)
-{
-  float sin_theta = sinf(theta);
-  return make_float3(sin_theta * sinf(phi), sin_theta * cosf(phi), cosf(theta));
-}
-
 /* Equirectangular coordinates <-> Cartesian direction */
 
 ccl_device float2 direction_to_equirectangular_range(float3 dir, float4 range)
@@ -45,8 +29,7 @@ ccl_device float3 equirectangular_range_to_direction(float u, float v, float4 ra
 {
   float phi = range.x * u + range.y;
   float theta = range.z * v + range.w;
-  float sin_theta = sinf(theta);
-  return make_float3(sin_theta * cosf(phi), sin_theta * sinf(phi), cosf(theta));
+  return spherical_to_direction(theta, phi);
 }
 
 ccl_device float2 direction_to_equirectangular(float3 dir)
@@ -77,14 +60,24 @@ ccl_device float3 central_cylindrical_to_direction(float u, float v, float4 rang
 
 /* Fisheye <-> Cartesian direction */
 
-ccl_device float2 direction_to_fisheye(float3 dir, float fov)
+ccl_device_inline float3 fisheye_to_direction(float theta, float u, float v, float r)
+{
+  float phi = safe_acosf(safe_divide(u, r));
+  if (v < 0.0f) {
+    phi = -phi;
+  }
+
+  return make_float3(cosf(theta), -cosf(phi) * sinf(theta), sinf(phi) * sinf(theta));
+}
+
+ccl_device float2 direction_to_fisheye_equidistant(float3 dir, float fov)
 {
   const float r = atan2f(len(make_float2(dir.y, dir.z)), dir.x) / fov;
   const float2 uv = r * safe_normalize(make_float2(dir.y, dir.z));
   return make_float2(0.5f - uv.x, uv.y + 0.5f);
 }
 
-ccl_device float3 fisheye_to_direction(float u, float v, float fov)
+ccl_device float3 fisheye_equidistant_to_direction(float u, float v, float fov)
 {
   u = (u - 0.5f) * 2.0f;
   v = (v - 0.5f) * 2.0f;
@@ -94,13 +87,9 @@ ccl_device float3 fisheye_to_direction(float u, float v, float fov)
   if (r > 1.0f)
     return zero_float3();
 
-  float phi = safe_acosf((r != 0.0f) ? u / r : 0.0f);
   float theta = r * fov * 0.5f;
 
-  if (v < 0.0f)
-    phi = -phi;
-
-  return make_float3(cosf(theta), -cosf(phi) * sinf(theta), sinf(phi) * sinf(theta));
+  return fisheye_to_direction(theta, u, v, r);
 }
 
 ccl_device float2 direction_to_fisheye_equisolid(float3 dir, float lens, float width, float height)
@@ -124,13 +113,9 @@ fisheye_equisolid_to_direction(float u, float v, float lens, float fov, float wi
   if (r > rmax)
     return zero_float3();
 
-  float phi = safe_acosf((r != 0.0f) ? u / r : 0.0f);
   float theta = 2.0f * asinf(r / (2.0f * lens));
 
-  if (v < 0.0f)
-    phi = -phi;
-
-  return make_float3(cosf(theta), -cosf(phi) * sinf(theta), sinf(phi) * sinf(theta));
+  return fisheye_to_direction(theta, u, v, r);
 }
 
 ccl_device_inline float3 fisheye_lens_polynomial_to_direction(
@@ -147,12 +132,7 @@ ccl_device_inline float3 fisheye_lens_polynomial_to_direction(
   if (fabsf(theta) > 0.5f * fov)
     return zero_float3();
 
-  float phi = safe_acosf((r != 0.0f) ? u / r : 0.0f);
-
-  if (v < 0.0f)
-    phi = -phi;
-
-  return make_float3(cosf(theta), -cosf(phi) * sinf(theta), sinf(phi) * sinf(theta));
+  return fisheye_to_direction(theta, u, v, r);
 }
 
 ccl_device float2 direction_to_fisheye_lens_polynomial(
@@ -258,7 +238,7 @@ ccl_device_inline float3 panorama_to_direction(ccl_constant KernelCamera *cam, f
     case PANORAMA_MIRRORBALL:
       return mirrorball_to_direction(u, v);
     case PANORAMA_FISHEYE_EQUIDISTANT:
-      return fisheye_to_direction(u, v, cam->fisheye_fov);
+      return fisheye_equidistant_to_direction(u, v, cam->fisheye_fov);
     case PANORAMA_FISHEYE_LENS_POLYNOMIAL:
       return fisheye_lens_polynomial_to_direction(u,
                                                   v,
@@ -286,7 +266,7 @@ ccl_device_inline float2 direction_to_panorama(ccl_constant KernelCamera *cam, f
     case PANORAMA_MIRRORBALL:
       return direction_to_mirrorball(dir);
     case PANORAMA_FISHEYE_EQUIDISTANT:
-      return direction_to_fisheye(dir, cam->fisheye_fov);
+      return direction_to_fisheye_equidistant(dir, cam->fisheye_fov);
     case PANORAMA_FISHEYE_LENS_POLYNOMIAL:
       return direction_to_fisheye_lens_polynomial(dir,
                                                   cam->fisheye_lens_polynomial_bias,

@@ -8,115 +8,147 @@
 /** \name Outline Pre-pass
  * \{ */
 
-GPU_SHADER_INTERFACE_INFO(overlay_outline_prepass_iface, "interp").flat(Type::UINT, "ob_id");
+GPU_SHADER_NAMED_INTERFACE_INFO(overlay_outline_prepass_iface, interp)
+FLAT(UINT, ob_id)
+GPU_SHADER_NAMED_INTERFACE_END(interp)
 
 GPU_SHADER_CREATE_INFO(overlay_outline_prepass)
-    .push_constant(Type::BOOL, "isTransform")
-    .vertex_out(overlay_outline_prepass_iface)
-    /* Using uint because 16bit uint can contain more ids than int. */
-    .fragment_out(0, Type::UINT, "out_object_id")
-    .fragment_source("overlay_outline_prepass_frag.glsl")
-    .additional_info("draw_globals");
+PUSH_CONSTANT(BOOL, isTransform)
+VERTEX_OUT(overlay_outline_prepass_iface)
+/* Using uint because 16bit uint can contain more ids than int. */
+FRAGMENT_OUT(0, UINT, out_object_id)
+FRAGMENT_SOURCE("overlay_outline_prepass_frag.glsl")
+ADDITIONAL_INFO(draw_globals)
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(overlay_outline_prepass_mesh)
-    .do_static_compilation(true)
-    .vertex_in(0, Type::VEC3, "pos")
-    .vertex_source("overlay_outline_prepass_vert.glsl")
-    .additional_info("draw_mesh", "draw_resource_handle", "overlay_outline_prepass")
-    .additional_info("draw_object_infos");
+DO_STATIC_COMPILATION()
+VERTEX_IN(0, VEC3, pos)
+VERTEX_SOURCE("overlay_outline_prepass_vert.glsl")
+ADDITIONAL_INFO(draw_mesh)
+ADDITIONAL_INFO(draw_resource_handle)
+ADDITIONAL_INFO(overlay_outline_prepass)
+ADDITIONAL_INFO(draw_object_infos)
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(overlay_outline_prepass_mesh_clipped)
-    .do_static_compilation(true)
-    .additional_info("overlay_outline_prepass_mesh", "drw_clipped");
+DO_STATIC_COMPILATION()
+ADDITIONAL_INFO(overlay_outline_prepass_mesh)
+ADDITIONAL_INFO(drw_clipped)
+GPU_SHADER_CREATE_END()
 
-GPU_SHADER_INTERFACE_INFO(overlay_outline_prepass_wire_iface, "vert").flat(Type::VEC3, "pos");
+GPU_SHADER_NAMED_INTERFACE_INFO(overlay_outline_prepass_wire_iface, vert)
+FLAT(VEC3, pos)
+GPU_SHADER_NAMED_INTERFACE_END(vert)
 
 GPU_SHADER_CREATE_INFO(overlay_outline_prepass_curves)
-    .do_static_compilation(true)
-    .vertex_source("overlay_outline_prepass_curves_vert.glsl")
-    .additional_info("draw_hair", "draw_resource_handle", "overlay_outline_prepass")
-    .additional_info("draw_object_infos");
+DO_STATIC_COMPILATION()
+VERTEX_SOURCE("overlay_outline_prepass_curves_vert.glsl")
+ADDITIONAL_INFO(draw_hair)
+ADDITIONAL_INFO(draw_resource_handle)
+ADDITIONAL_INFO(overlay_outline_prepass)
+ADDITIONAL_INFO(draw_object_infos)
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(overlay_outline_prepass_curves_clipped)
-    .do_static_compilation(true)
-    .additional_info("overlay_outline_prepass_curves", "drw_clipped");
+DO_STATIC_COMPILATION()
+ADDITIONAL_INFO(overlay_outline_prepass_curves)
+ADDITIONAL_INFO(drw_clipped)
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(overlay_outline_prepass_wire)
-    .do_static_compilation(true)
-    .additional_info("overlay_outline_prepass",
-                     "draw_object_infos",
-                     "draw_mesh",
-                     "draw_resource_handle")
-    .vertex_in(0, Type::VEC3, "pos")
-    .define("USE_GEOM")
-    .vertex_out(overlay_outline_prepass_wire_iface)
-    .geometry_layout(PrimitiveIn::LINES_ADJACENCY, PrimitiveOut::LINE_STRIP, 2)
-    .geometry_out(overlay_outline_prepass_iface)
-    .vertex_source("overlay_outline_prepass_vert.glsl")
-    .geometry_source("overlay_outline_prepass_geom.glsl");
+DO_STATIC_COMPILATION()
+ADDITIONAL_INFO(overlay_outline_prepass)
+ADDITIONAL_INFO(draw_object_infos)
+ADDITIONAL_INFO(draw_mesh)
+ADDITIONAL_INFO(draw_resource_handle)
+VERTEX_IN(0, VEC3, pos)
+DEFINE("USE_GEOM")
+VERTEX_OUT(overlay_outline_prepass_wire_iface)
+GEOMETRY_LAYOUT(PrimitiveIn::LINES_ADJACENCY, PrimitiveOut::LINE_STRIP, 2)
+GEOMETRY_OUT(overlay_outline_prepass_iface)
+VERTEX_SOURCE("overlay_outline_prepass_vert.glsl")
+GEOMETRY_SOURCE("overlay_outline_prepass_geom.glsl")
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(overlay_outline_prepass_wire_next)
-    .do_static_compilation(true)
-    .additional_info("overlay_outline_prepass",
-                     "draw_view",
-                     "draw_mesh_new",
-                     "draw_object_infos_new",
-                     "draw_resource_handle_new",
-                     "gpu_index_load")
-    .storage_buf(0, Qualifier::READ, "float", "pos[]", Frequency::GEOMETRY)
-    .push_constant(Type::IVEC2, "gpu_attr_0")
-    .vertex_source("overlay_outline_prepass_wire_vert.glsl");
+DO_STATIC_COMPILATION()
+ADDITIONAL_INFO(overlay_outline_prepass)
+ADDITIONAL_INFO(draw_view)
+ADDITIONAL_INFO(draw_mesh_new)
+ADDITIONAL_INFO(draw_object_infos_new)
+ADDITIONAL_INFO(draw_resource_handle_new)
+ADDITIONAL_INFO(gpu_index_buffer_load)
+STORAGE_BUF_FREQ(0, READ, float, pos[], GEOMETRY)
+PUSH_CONSTANT(IVEC2, gpu_attr_0)
+VERTEX_SOURCE("overlay_outline_prepass_wire_vert.glsl")
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(overlay_outline_prepass_wire_no_geom)
-    .metal_backend_only(true)
-    .do_static_compilation(true)
-    .vertex_in(0, Type::VEC3, "pos")
-    .additional_info("overlay_outline_prepass",
-                     "draw_object_infos",
-                     "draw_mesh",
-                     "draw_resource_handle")
-    .vertex_source("overlay_outline_prepass_vert_no_geom.glsl");
+METAL_BACKEND_ONLY()
+DO_STATIC_COMPILATION()
+VERTEX_IN(0, VEC3, pos)
+ADDITIONAL_INFO(overlay_outline_prepass)
+ADDITIONAL_INFO(draw_object_infos)
+ADDITIONAL_INFO(draw_mesh)
+ADDITIONAL_INFO(draw_resource_handle)
+VERTEX_SOURCE("overlay_outline_prepass_vert_no_geom.glsl")
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(overlay_outline_prepass_wire_clipped)
-    .do_static_compilation(true)
-    .additional_info("overlay_outline_prepass_wire", "drw_clipped");
+DO_STATIC_COMPILATION()
+ADDITIONAL_INFO(overlay_outline_prepass_wire)
+ADDITIONAL_INFO(drw_clipped)
+GPU_SHADER_CREATE_END()
 
-GPU_SHADER_INTERFACE_INFO(overlay_outline_prepass_gpencil_flat_iface, "gp_interp_flat")
-    .flat(Type::VEC2, "aspect")
-    .flat(Type::VEC4, "sspos");
-GPU_SHADER_INTERFACE_INFO(overlay_outline_prepass_gpencil_noperspective_iface,
-                          "gp_interp_noperspective")
-    .no_perspective(Type::VEC2, "thickness")
-    .no_perspective(Type::FLOAT, "hardness");
+GPU_SHADER_NAMED_INTERFACE_INFO(overlay_outline_prepass_gpencil_flat_iface, gp_interp_flat)
+FLAT(VEC2, aspect)
+FLAT(VEC4, sspos)
+GPU_SHADER_NAMED_INTERFACE_END(gp_interp_flat)
+GPU_SHADER_NAMED_INTERFACE_INFO(overlay_outline_prepass_gpencil_noperspective_iface,
+                                gp_interp_noperspective)
+NO_PERSPECTIVE(VEC2, thickness)
+NO_PERSPECTIVE(FLOAT, hardness)
+GPU_SHADER_NAMED_INTERFACE_END(gp_interp_noperspective)
 
 GPU_SHADER_CREATE_INFO(overlay_outline_prepass_gpencil)
-    .do_static_compilation(true)
-    .push_constant(Type::BOOL, "isTransform")
-    .vertex_out(overlay_outline_prepass_iface)
-    .vertex_out(overlay_outline_prepass_gpencil_flat_iface)
-    .vertex_out(overlay_outline_prepass_gpencil_noperspective_iface)
-    .vertex_source("overlay_outline_prepass_gpencil_vert.glsl")
-    .push_constant(Type::BOOL, "gpStrokeOrder3d") /* TODO(fclem): Move to a GPencil object UBO. */
-    .push_constant(Type::VEC4, "gpDepthPlane")    /* TODO(fclem): Move to a GPencil object UBO. */
-    /* Using uint because 16bit uint can contain more ids than int. */
-    .fragment_out(0, Type::UINT, "out_object_id")
-    .fragment_source("overlay_outline_prepass_gpencil_frag.glsl")
-    .depth_write(DepthWrite::ANY)
-    .additional_info("draw_gpencil", "draw_resource_handle", "draw_globals");
+DO_STATIC_COMPILATION()
+PUSH_CONSTANT(BOOL, isTransform)
+VERTEX_OUT(overlay_outline_prepass_iface)
+VERTEX_OUT(overlay_outline_prepass_gpencil_flat_iface)
+VERTEX_OUT(overlay_outline_prepass_gpencil_noperspective_iface)
+VERTEX_SOURCE("overlay_outline_prepass_gpencil_vert.glsl")
+PUSH_CONSTANT(BOOL, gpStrokeOrder3d) /* TODO(fclem): Move to a GPencil object UBO. */
+PUSH_CONSTANT(VEC4, gpDepthPlane)    /* TODO(fclem): Move to a GPencil object UBO. */
+/* Using uint because 16bit uint can contain more ids than int. */
+FRAGMENT_OUT(0, UINT, out_object_id)
+FRAGMENT_SOURCE("overlay_outline_prepass_gpencil_frag.glsl")
+DEPTH_WRITE(DepthWrite::ANY)
+ADDITIONAL_INFO(draw_gpencil)
+ADDITIONAL_INFO(draw_resource_handle)
+ADDITIONAL_INFO(draw_globals)
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(overlay_outline_prepass_gpencil_clipped)
-    .do_static_compilation(true)
-    .additional_info("overlay_outline_prepass_gpencil", "drw_clipped");
+DO_STATIC_COMPILATION()
+ADDITIONAL_INFO(overlay_outline_prepass_gpencil)
+ADDITIONAL_INFO(drw_clipped)
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(overlay_outline_prepass_pointcloud)
-    .do_static_compilation(true)
-    .vertex_source("overlay_outline_prepass_pointcloud_vert.glsl")
-    .additional_info("draw_pointcloud", "draw_resource_handle", "overlay_outline_prepass")
-    .additional_info("draw_object_infos");
+DO_STATIC_COMPILATION()
+VERTEX_SOURCE("overlay_outline_prepass_pointcloud_vert.glsl")
+ADDITIONAL_INFO(draw_pointcloud)
+ADDITIONAL_INFO(draw_resource_handle)
+ADDITIONAL_INFO(overlay_outline_prepass)
+ADDITIONAL_INFO(draw_object_infos)
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(overlay_outline_prepass_pointcloud_clipped)
-    .do_static_compilation(true)
-    .additional_info("overlay_outline_prepass_pointcloud", "drw_clipped");
+DO_STATIC_COMPILATION()
+ADDITIONAL_INFO(overlay_outline_prepass_pointcloud)
+ADDITIONAL_INFO(drw_clipped)
+GPU_SHADER_CREATE_END()
 
 /** \} */
 
@@ -125,17 +157,20 @@ GPU_SHADER_CREATE_INFO(overlay_outline_prepass_pointcloud_clipped)
  * \{ */
 
 GPU_SHADER_CREATE_INFO(overlay_outline_detect)
-    .do_static_compilation(true)
-    .push_constant(Type::FLOAT, "alphaOcclu")
-    .push_constant(Type::BOOL, "isXrayWires")
-    .push_constant(Type::BOOL, "doAntiAliasing")
-    .push_constant(Type::BOOL, "doThickOutlines")
-    .sampler(0, ImageType::UINT_2D, "outlineId")
-    .sampler(1, ImageType::DEPTH_2D, "outlineDepth")
-    .sampler(2, ImageType::DEPTH_2D, "sceneDepth")
-    .fragment_out(0, Type::VEC4, "fragColor")
-    .fragment_out(1, Type::VEC4, "lineOutput")
-    .fragment_source("overlay_outline_detect_frag.glsl")
-    .additional_info("draw_fullscreen", "draw_view", "draw_globals");
+DO_STATIC_COMPILATION()
+PUSH_CONSTANT(FLOAT, alphaOcclu)
+PUSH_CONSTANT(BOOL, isXrayWires)
+PUSH_CONSTANT(BOOL, doAntiAliasing)
+PUSH_CONSTANT(BOOL, doThickOutlines)
+SAMPLER(0, UINT_2D, outlineId)
+SAMPLER(1, DEPTH_2D, outlineDepth)
+SAMPLER(2, DEPTH_2D, sceneDepth)
+FRAGMENT_OUT(0, VEC4, fragColor)
+FRAGMENT_OUT(1, VEC4, lineOutput)
+FRAGMENT_SOURCE("overlay_outline_detect_frag.glsl")
+ADDITIONAL_INFO(draw_fullscreen)
+ADDITIONAL_INFO(draw_view)
+ADDITIONAL_INFO(draw_globals)
+GPU_SHADER_CREATE_END()
 
 /** \} */

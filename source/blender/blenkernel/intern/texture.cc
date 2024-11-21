@@ -36,11 +36,12 @@
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 
+#include "BKE_brush.hh"
 #include "BKE_colorband.hh"
 #include "BKE_colortools.hh"
 #include "BKE_icons.h"
 #include "BKE_idtype.hh"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_node_runtime.hh"
@@ -551,6 +552,7 @@ void set_current_brush_texture(Brush *br, Tex *newtex)
     br->mtex.tex = newtex;
     id_us_plus(&newtex->id);
   }
+  BKE_brush_tag_unsaved_changes(br);
 }
 
 Tex *give_current_particle_texture(ParticleSettings *part)

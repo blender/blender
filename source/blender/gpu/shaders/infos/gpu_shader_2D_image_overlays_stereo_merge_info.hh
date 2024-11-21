@@ -6,16 +6,24 @@
  * \ingroup gpu
  */
 
+#ifdef GPU_SHADER
+#  pragma once
+#  include "gpu_glsl_cpp_stubs.hh"
+
+#  include "GPU_shader_shared.hh"
+#endif
+
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(gpu_shader_2D_image_overlays_stereo_merge)
-    .vertex_in(0, Type::VEC2, "pos")
-    .fragment_out(0, Type::VEC4, "overlayColor")
-    .fragment_out(1, Type::VEC4, "imageColor")
-    .sampler(0, ImageType::FLOAT_2D, "imageTexture")
-    .sampler(1, ImageType::FLOAT_2D, "overlayTexture")
-    .push_constant(Type::MAT4, "ModelViewProjectionMatrix")
-    .push_constant(Type::INT, "stereoDisplaySettings")
-    .vertex_source("gpu_shader_2D_vert.glsl")
-    .fragment_source("gpu_shader_image_overlays_stereo_merge_frag.glsl")
-    .do_static_compilation(true);
+VERTEX_IN(0, VEC2, pos)
+FRAGMENT_OUT(0, VEC4, overlayColor)
+FRAGMENT_OUT(1, VEC4, imageColor)
+SAMPLER(0, FLOAT_2D, imageTexture)
+SAMPLER(1, FLOAT_2D, overlayTexture)
+PUSH_CONSTANT(MAT4, ModelViewProjectionMatrix)
+PUSH_CONSTANT(INT, stereoDisplaySettings)
+VERTEX_SOURCE("gpu_shader_2D_vert.glsl")
+FRAGMENT_SOURCE("gpu_shader_image_overlays_stereo_merge_frag.glsl")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()

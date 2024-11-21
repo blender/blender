@@ -20,24 +20,20 @@ import zipfile
 
 from typing import (
     Any,
-    Sequence,
-    Dict,
-    List,
     NamedTuple,
-    Optional,
-    Set,
-    Tuple,
-    Union,
+)
+from collections.abc import (
+    Sequence,
 )
 
 # A tree of files.
-FileTree = Dict[str, Union["FileTree", bytes]]
+FileTree = dict[str, "FileTree | bytes"]
 
-JSON_OutputElem = Tuple[str, Any]
+JSON_OutputElem = tuple[str, Any]
 
 # For more useful output that isn't clipped.
 # pylint: disable-next=protected-access
-unittest.util._MAX_LENGTH = 10_000
+unittest.util._MAX_LENGTH = 10_000  # type: ignore
 
 IS_WIN32 = sys.platform == "win32"
 
@@ -124,7 +120,7 @@ def rmdir_contents(directory: str) -> None:
             os.unlink(filepath)
 
 
-def manifest_dict_from_archive(filepath: str) -> Dict[str, Any]:
+def manifest_dict_from_archive(filepath: str) -> dict[str, Any]:
     with zipfile.ZipFile(filepath, mode="r") as zip_fh:
         manifest_data = zip_fh.read(PKG_MANIFEST_FILENAME_TOML)
         manifest_dict = tomllib.loads(manifest_data.decode("utf-8"))
@@ -154,9 +150,10 @@ def my_create_package(
         dirpath: str,
         filename: str,
         *,
-        metadata: Dict[str, Any],
+        metadata: dict[str, Any],
         files: FileTree,
-        build_args_extra: Tuple[str, ...],
+        build_args_extra: tuple[str, ...],
+        expected_returncode: int = 0,
 ) -> Sequence[JSON_OutputElem]:
     """
     Create a package using the command line interface.
@@ -191,6 +188,21 @@ def my_create_package(
             if (value := metadata_copy.pop("wheels", None)) is not None:
                 data_list.append("""wheels = [{:s}]\n""".format(", ".join("\"{:s}\"".format(v) for v in value)))
 
+            if (value := metadata_copy.pop("build", None)) is not None:
+                value_copy = value.copy()
+
+                data_list.append(
+                    """\n"""
+                    """[build]\n"""
+                )
+
+                if (value := value_copy.pop("paths", None)) is not None:
+                    data_list.append("""paths = [{:s}]\n""".format(", ".join("\"{:s}\"".format(v) for v in value)))
+
+                if value_copy:
+                    raise Exception("Unexpected mata-data [build]: {!r}".format(value_copy))
+                del value_copy
+
             fh.write("".join(data_list).encode('utf-8'))
 
         if metadata_copy:
@@ -201,11 +213,16 @@ def my_create_package(
         output_json = command_output_from_json_0(
             [
                 "build",
-                "--source-dir", temp_dir_pkg,
+                "--source-dir", ".",
                 "--output-filepath", outfile,
                 *build_args_extra,
             ],
             exclude_types={"PROGRESS"},
+            expected_returncode=expected_returncode,
+            # NOTE: using the CWD makes error message output more predictable
+            # in this case it means `temp_dir_pkg` isn't part of the output
+            # which is important as the value is not known to the caller.
+            cwd=temp_dir_pkg,
         )
 
         output_json_error = command_output_filter_exclude(
@@ -213,8 +230,9 @@ def my_create_package(
             exclude_types=STATUS_NON_ERROR,
         )
 
-        if output_json_error:
-            raise Exception("Creating a package produced some error output: {!r}".format(output_json_error))
+        if expected_returncode == 0:
+            if output_json_error:
+                raise Exception("Creating a package produced some error output: {!r}".format(output_json_error))
 
         return output_json
 
@@ -255,14 +273,14 @@ def my_generate_repo(
 
 def command_output_filter_include(
         output_json: Sequence[JSON_OutputElem],
-        include_types: Set[str],
+        include_types: set[str],
 ) -> Sequence[JSON_OutputElem]:
     return [(a, b) for a, b in output_json if a in include_types]
 
 
 def command_output_filter_exclude(
         output_json: Sequence[JSON_OutputElem],
-        exclude_types: Set[str],
+        exclude_types: set[str],
 ) -> Sequence[JSON_OutputElem]:
     return [(a, b) for a, b in output_json if a not in exclude_types]
 
@@ -287,8 +305,9 @@ def command_output(
 def command_output_from_json_0(
         args: Sequence[str],
         *,
-        exclude_types: Optional[Set[str]] = None,
+        exclude_types: set[str] | None = None,
         expected_returncode: int = 0,
+        cwd: str | None = None,
 ) -> Sequence[JSON_OutputElem]:
     result = []
 
@@ -296,6 +315,7 @@ def command_output_from_json_0(
         [*CMD, *args, "--output-type=JSON_0"],
         stdout=subprocess.PIPE,
         check=expected_returncode == 0,
+        cwd=cwd,
     )
     if proc.returncode != expected_returncode:
         raise subprocess.CalledProcessError(proc.returncode, proc.args, output=proc.stdout, stderr=proc.stderr)
@@ -391,7 +411,7 @@ class TestCLI_Build(unittest.TestCase):
             include_types={'STATUS'},
         )
 
-        packages: List[Tuple[str, List[JSON_OutputElem]]] = [("", [])]
+        packages: list[tuple[str, list[JSON_OutputElem]]] = [("", [])]
         for _, message in output_json:
             if message.startswith("building: "):
                 assert not packages[-1][0]
@@ -426,6 +446,143 @@ class TestCLI_Build(unittest.TestCase):
             build_generated_platforms_value = build_generated_value.get("platforms")
             assert build_generated_platforms_value is not None
             self.assertEqual(build_generated_platforms_value, [platform])
+
+    def _test_build_path_literal_impl(
+            self,
+            build_paths: list[str],
+            *,
+            expected_returncode: int = 0,
+    ) -> tuple[str, Sequence[JSON_OutputElem]]:
+        pkg_idname = "my_test_paths"
+        output_json = my_create_package(
+            self.dirpath,
+            pkg_idname + PKG_EXT,
+            metadata={
+                "schema_version": "1.0.0",
+                "id": "multi_platform_test",
+                "name": "Multi Platform Test",
+                "tagline": """This package has a tagline""",
+                "version": "1.0.0",
+                "type": "add-on",
+                "tags": ["UV", "Modeling"],
+                "blender_version_min": "0.0.0",
+                "maintainer": "Some Developer",
+                "license": ["SPDX:GPL-2.0-or-later"],
+                # The main difference with other tests.
+                "build": {
+                    "paths": build_paths,
+                },
+            },
+            files={
+                "__init__.py": b"# This is a script\n",
+            },
+            build_args_extra=(
+                # Include `add: {...}` so the file list can be scanned.
+                "--verbose",
+            ),
+            expected_returncode=expected_returncode,
+        )
+
+        output_path = os.path.join(TEMP_DIR_LOCAL, pkg_idname + ".zip")
+        return output_path, output_json
+
+    def test_build_path_literal_success(self) -> None:
+        output_path, output_json = self._test_build_path_literal_impl(
+            build_paths=["__init__.py"],
+            expected_returncode=0,
+
+        )
+
+        output_size = os.path.getsize(output_path)
+        self.assertEqual(
+            output_json, [
+                ("STATUS", "building: my_test_paths.zip"),
+                ("STATUS", "add: blender_manifest.toml"),
+                ("STATUS", "add: __init__.py"),
+                ("STATUS", "complete"),
+                ("STATUS", "created: \"{:s}\", {:d}".format(output_path, output_size)),
+            ]
+        )
+
+    def test_build_path_literal_error_duplicate(self) -> None:
+        _output_path, output_json = self._test_build_path_literal_impl(
+            build_paths=[
+                "__init__.py",
+                "__init__.py",
+            ],
+            expected_returncode=1,
+
+        )
+
+        self.assertEqual(
+            output_json, [
+                ("FATAL_ERROR", (
+                    "Error parsing TOML \"{:s}\" Expected \"paths\" to contain unique paths, "
+                    "duplicate found: \"__init__.py\""
+                ).format(os.path.join(".", PKG_MANIFEST_FILENAME_TOML)))
+            ]
+        )
+
+    def test_build_path_literal_error_non_relative(self) -> None:
+        path_abs = "/test" if os.sep == "/" else "C:\\"
+        _output_path, output_json = self._test_build_path_literal_impl(
+            build_paths=[
+                "__init__.py",
+                path_abs,
+            ],
+            expected_returncode=1,
+
+        )
+
+        self.assertEqual(
+            output_json, [
+                ("FATAL_ERROR", (
+                    "Error parsing TOML \"{:s}\" Expected \"paths\" to be relative, "
+                    "found: \"{:s}\""
+                ).format(os.path.join(".", PKG_MANIFEST_FILENAME_TOML), path_abs))
+            ]
+        )
+
+    def test_build_path_literal_error_missing_file(self) -> None:
+        _output_path, output_json = self._test_build_path_literal_impl(
+            build_paths=[
+                "__init__.py",
+                "MISSING_FILE",
+            ],
+            expected_returncode=1,
+
+        )
+
+        self.assertEqual(
+            output_json, [
+                ("STATUS", "building: my_test_paths.zip"),
+                ("STATUS", "add: blender_manifest.toml"),
+                ("STATUS", "add: __init__.py"),
+                ("FATAL_ERROR", "Error adding to archive, file not found: \"MISSING_FILE\""),
+            ]
+        )
+
+    def test_build_path_literal_error_has_manifest(self) -> None:
+        _output_path, output_json = self._test_build_path_literal_impl(
+            build_paths=[
+                "__init__.py",
+                PKG_MANIFEST_FILENAME_TOML,
+            ],
+            expected_returncode=1,
+
+        )
+
+        self.assertEqual(
+            output_json, [
+                (
+                    "FATAL_ERROR",
+                    (
+                        "Error parsing TOML \"{:s}\" Expected \"paths\" not to "
+                        "contain the manifest, found: \"blender_manifest.toml\""
+                    ).format(os.path.join(".", PKG_MANIFEST_FILENAME_TOML)),
+                ),
+            ]
+        )
 
 
 class TestCLI_WithRepo(unittest.TestCase):

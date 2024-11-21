@@ -287,7 +287,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiItemR(layout, ptr, "replace_material", UI_ITEM_NONE, IFACE_("Material Override"), ICON_NONE);
 
   if (uiLayout *sub = uiLayoutPanelProp(
-          C, layout, ptr, "open_relative_offset_panel", "Relative Offset"))
+          C, layout, ptr, "open_relative_offset_panel", IFACE_("Relative Offset")))
   {
     uiLayoutSetPropSep(sub, true);
     uiItemR(sub, ptr, "use_relative_offset", UI_ITEM_NONE, IFACE_("Enable"), ICON_NONE);
@@ -298,7 +298,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   }
 
   if (uiLayout *sub = uiLayoutPanelProp(
-          C, layout, ptr, "open_constant_offset_panel", "Constant Offset"))
+          C, layout, ptr, "open_constant_offset_panel", IFACE_("Constant Offset")))
   {
     uiLayoutSetPropSep(sub, true);
     uiItemR(sub, ptr, "use_constant_offset", UI_ITEM_NONE, IFACE_("Enable"), ICON_NONE);
@@ -309,7 +309,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   }
 
   if (uiLayout *sub = uiLayoutPanelProp(
-          C, layout, ptr, "open_object_offset_panel", "Object Offset"))
+          C, layout, ptr, "open_object_offset_panel", IFACE_("Object Offset")))
   {
     uiLayoutSetPropSep(sub, true);
     uiItemR(sub, ptr, "use_object_offset", UI_ITEM_NONE, IFACE_("Enable"), ICON_NONE);
@@ -319,7 +319,9 @@ static void panel_draw(const bContext *C, Panel *panel)
     uiItemR(col, ptr, "offset_object", UI_ITEM_NONE, IFACE_("Object"), ICON_NONE);
   }
 
-  if (uiLayout *sub = uiLayoutPanelProp(C, layout, ptr, "open_randomize_panel", "Randomize")) {
+  if (uiLayout *sub = uiLayoutPanelProp(
+          C, layout, ptr, "open_randomize_panel", IFACE_("Randomize")))
+  {
     uiLayoutSetPropSep(sub, true);
     uiItemR(sub, ptr, "random_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
     uiItemR(sub, ptr, "random_rotation", UI_ITEM_NONE, IFACE_("Rotation"), ICON_NONE);
@@ -329,7 +331,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   }
 
   if (uiLayout *influence_panel = uiLayoutPanelProp(
-          C, layout, ptr, "open_influence_panel", "Influence"))
+          C, layout, ptr, "open_influence_panel", IFACE_("Influence")))
   {
     modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
     modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);

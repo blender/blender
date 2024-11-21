@@ -282,17 +282,15 @@ class DATA_PT_motion_paths_display(MotionPathButtonsPanel_display, Panel):
 
 
 class DATA_PT_armature_animation(ArmatureButtonsPanel, PropertiesAnimationMixin, PropertyPanel, Panel):
-    _animated_id_context_property = 'armature'
+    _animated_id_context_property = "armature"
 
 
 class DATA_PT_custom_props_arm(ArmatureButtonsPanel, PropertyPanel, Panel):
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
     _context_path = "object.data"
     _property_type = bpy.types.Armature
 
 
 class DATA_PT_custom_props_bcoll(ArmatureButtonsPanel, PropertyPanel, Panel):
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
     _context_path = "armature.collections.active"
     _property_type = bpy.types.BoneCollection
     bl_parent_id = "DATA_PT_bone_collections"
@@ -398,7 +396,7 @@ class POSE_MT_selection_set_create(Menu):
 
 
 class POSE_MT_selection_sets_select(Menu):
-    bl_label = 'Select Selection Set'
+    bl_label = "Select Selection Set"
 
     @classmethod
     def poll(cls, context):

@@ -22,7 +22,7 @@ static bke::CurvesGeometry join_curves(const GreasePencil &src_grease_pencil,
   Vector<bke::GeometrySet> src_geometries(all_src_curves.size());
   for (const int src_curves_i : all_src_curves.index_range()) {
     bke::CurvesGeometry src_curves = *all_src_curves[src_curves_i];
-    if (src_curves.curves_num() == 0) {
+    if (src_curves.is_empty()) {
       continue;
     }
     const float4x4 &transform = transforms_to_apply[src_curves_i];
@@ -64,6 +64,7 @@ GreasePencil *merge_layers(const GreasePencil &src_grease_pencil,
     const Layer &first_src_layer = src_grease_pencil.layer(first_src_layer_i);
     layer.set_name(first_src_layer.name());
     Drawing *drawing = new_grease_pencil->get_eval_drawing(layer);
+    BLI_assert(drawing != nullptr);
     curves_by_new_layer[new_layer_i] = &drawing->strokes_for_write();
   }
 
@@ -82,24 +83,26 @@ GreasePencil *merge_layers(const GreasePencil &src_grease_pencil,
 
       if (src_layer_indices.size() == 1) {
         /* Optimization for the case if the new layer corresponds to exactly one source layer. */
-        const bke::CurvesGeometry &src_curves =
-            src_grease_pencil.get_eval_drawing(first_src_layer)->strokes();
-        new_curves = src_curves;
+        if (const Drawing *src_drawing = src_grease_pencil.get_eval_drawing(first_src_layer)) {
+          const bke::CurvesGeometry &src_curves = src_drawing->strokes();
+          new_curves = src_curves;
+        }
         continue;
       }
 
       /* Needed to transform the positions from all spaces into the same space. */
       const float4x4 new_layer_transform_inv = math::invert(new_layer_transform);
 
-      Vector<const bke::CurvesGeometry *> all_src_curves(src_layer_indices.size());
-      Vector<float4x4> transforms_to_apply(src_layer_indices.size());
+      Vector<const bke::CurvesGeometry *> all_src_curves;
+      Vector<float4x4> transforms_to_apply;
       for (const int i : src_layer_indices.index_range()) {
         const int src_layer_i = src_layer_indices[i];
         const Layer &src_layer = src_grease_pencil.layer(src_layer_i);
-        const Drawing &src_drawing = *src_grease_pencil.get_eval_drawing(src_layer);
-        const bke::CurvesGeometry &src_curves = src_drawing.strokes();
-        all_src_curves[i] = &src_curves;
-        transforms_to_apply[i] = new_layer_transform_inv * src_layer.local_transform();
+        if (const Drawing *src_drawing = src_grease_pencil.get_eval_drawing(src_layer)) {
+          const bke::CurvesGeometry &src_curves = src_drawing->strokes();
+          all_src_curves.append(&src_curves);
+          transforms_to_apply.append(new_layer_transform_inv * src_layer.local_transform());
+        }
       }
       new_curves = join_curves(
           src_grease_pencil, all_src_curves, transforms_to_apply, attribute_filter);

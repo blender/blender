@@ -54,7 +54,7 @@ void GeometryManager::device_update_mesh(Device *,
   size_t patch_size = 0;
 
   foreach (Geometry *geom, scene->geometry) {
-    if (geom->geometry_type == Geometry::MESH || geom->geometry_type == Geometry::VOLUME) {
+    if (geom->is_mesh() || geom->is_volume()) {
       Mesh *mesh = static_cast<Mesh *>(geom);
 
       vert_size += mesh->verts.size();
@@ -103,7 +103,7 @@ void GeometryManager::device_update_mesh(Device *,
                                dscene->tri_patch_uv.need_realloc();
 
     foreach (Geometry *geom, scene->geometry) {
-      if (geom->geometry_type == Geometry::MESH || geom->geometry_type == Geometry::VOLUME) {
+      if (geom->is_mesh() || geom->is_volume()) {
         Mesh *mesh = static_cast<Mesh *>(geom);
 
         if (mesh->shader_is_modified() || mesh->smooth_is_modified() ||

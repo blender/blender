@@ -15,11 +15,8 @@ import os
 import sys
 import argparse
 
-from typing import (
-    Generator,
-    List,
-    Optional,
-    Tuple,
+from collections.abc import (
+    Iterator,
 )
 
 SOURCE_DIR = os.path.abspath(os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..")))
@@ -31,7 +28,7 @@ SORT_BY_FN = {
 }
 
 
-def blend_list(path: str) -> Generator[str, None, None]:
+def blend_list(path: str) -> Iterator[str]:
     for dirpath, dirnames, filenames in os.walk(path):
         # skip '.git'
         dirnames[:] = [d for d in dirnames if not d.startswith(".")]
@@ -53,7 +50,7 @@ def load_blend_file(filepath: str) -> None:
     bpy.ops.wm.open_mainfile(filepath=filepath)
 
 
-def load_files_immediately(blend_files: List[str], blend_file_index_offset: int) -> None:
+def load_files_immediately(blend_files: list[str], blend_file_index_offset: int) -> None:
     index = blend_file_index_offset
     for filepath in blend_files:
         print_load_message(filepath, index)
@@ -61,10 +58,10 @@ def load_files_immediately(blend_files: List[str], blend_file_index_offset: int)
         load_blend_file(filepath)
 
 
-def load_files_with_wait(blend_files: List[str], blend_file_index_offset: int, wait: float) -> None:
+def load_files_with_wait(blend_files: list[str], blend_file_index_offset: int, wait: float) -> None:
     index = 0
 
-    def load_on_timer() -> Optional[float]:
+    def load_on_timer() -> float | None:
         nonlocal index
         if index >= len(blend_files):
             sys.exit(0)
@@ -80,7 +77,7 @@ def load_files_with_wait(blend_files: List[str], blend_file_index_offset: int, w
     bpy.app.timers.register(load_on_timer, persistent=True)
 
 
-def argparse_handle_int_range(value: str) -> Tuple[int, int]:
+def argparse_handle_int_range(value: str) -> tuple[int, int]:
     range_beg, sep, range_end = value.partition(":")
     if not sep:
         raise argparse.ArgumentTypeError("Expected a \":\" separator!")
@@ -151,7 +148,7 @@ def argparse_create() -> argparse.ArgumentParser:
     return parser
 
 
-def main() -> Optional[int]:
+def main() -> int | None:
     try:
         argv_sep = sys.argv.index("--")
     except ValueError:

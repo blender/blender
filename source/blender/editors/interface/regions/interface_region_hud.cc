@@ -240,7 +240,7 @@ ARegionType *ED_area_type_hud(int space_type)
 
 static ARegion *hud_region_add(ScrArea *area)
 {
-  ARegion *region = MEM_cnew<ARegion>(__func__);
+  ARegion *region = BKE_area_region_new();
   ARegion *region_win = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
   if (region_win) {
     BLI_insertlinkbefore(&area->regionbase, region_win, region);
@@ -354,8 +354,8 @@ void ED_area_type_hud_ensure(bContext *C, ScrArea *area)
     float x, y;
 
     UI_view2d_scroller_size_get(&region_win->v2d, true, &x, &y);
-    region->runtime.offset_x = x;
-    region->runtime.offset_y = y;
+    region->runtime->offset_x = x;
+    region->runtime->offset_y = y;
   }
 
   /* Reset zoom level (not well supported). */

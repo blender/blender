@@ -12,6 +12,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
@@ -26,7 +27,7 @@
 
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_paint.hh"
@@ -58,7 +59,7 @@ static int brush_scale_size_exec(bContext *C, wmOperator *op)
 
   /* Grease Pencil brushes in Paint mode do not use unified size. */
   const bool use_unified_size = !(brush && brush->gpencil_settings &&
-                                  brush->ob_mode == OB_MODE_PAINT_GPENCIL_LEGACY);
+                                  brush->ob_mode == OB_MODE_PAINT_GREASE_PENCIL);
 
   if (brush) {
     /* Pixel radius. */
@@ -80,6 +81,7 @@ static int brush_scale_size_exec(bContext *C, wmOperator *op)
       }
       else {
         brush->size = max_ii(size, 1);
+        BKE_brush_tag_unsaved_changes(brush);
       }
     }
 
@@ -98,6 +100,7 @@ static int brush_scale_size_exec(bContext *C, wmOperator *op)
       }
       else {
         brush->unprojected_radius = unprojected_radius;
+        BKE_brush_tag_unsaved_changes(brush);
       }
     }
 
@@ -183,9 +186,10 @@ static int palette_color_add_exec(bContext *C, wmOperator * /*op*/)
              PaintMode::Texture2D,
              PaintMode::Vertex,
              PaintMode::Sculpt,
-             PaintMode::GPencil))
+             PaintMode::GPencil,
+             PaintMode::VertexGPencil))
     {
-      copy_v3_v3(color->rgb, BKE_brush_color_get(scene, brush));
+      copy_v3_v3(color->rgb, BKE_brush_color_get(scene, paint, brush));
       color->value = 0.0;
     }
     else if (mode == PaintMode::Weight) {
@@ -668,6 +672,7 @@ static void stencil_control_calculate(StencilControlData *scd, const int mval[2]
       CLAMP(scd->pos_target[1],
             -scd->dim_target[1] + PIXEL_MARGIN,
             scd->area_size[1] + scd->dim_target[1] - PIXEL_MARGIN);
+      BKE_brush_tag_unsaved_changes(scd->br);
 
       break;
     case STENCIL_SCALE: {
@@ -684,6 +689,7 @@ static void stencil_control_calculate(StencilControlData *scd, const int mval[2]
       }
       clamp_v2(mdiff, 5.0f, 10000.0f);
       copy_v2_v2(scd->dim_target, mdiff);
+      BKE_brush_tag_unsaved_changes(scd->br);
       break;
     }
     case STENCIL_ROTATE: {
@@ -698,6 +704,7 @@ static void stencil_control_calculate(StencilControlData *scd, const int mval[2]
         angle -= float(2 * M_PI);
       }
       *scd->rot_target = angle;
+      BKE_brush_tag_unsaved_changes(scd->br);
       break;
     }
   }
@@ -860,6 +867,7 @@ static int stencil_fit_image_aspect_exec(bContext *C, wmOperator *op)
       br->stencil_dimension[0] = fabsf(factor * aspx);
       br->stencil_dimension[1] = fabsf(factor * aspy);
     }
+    BKE_brush_tag_unsaved_changes(br);
   }
 
   WM_event_add_notifier(C, NC_WINDOW, nullptr);
@@ -917,6 +925,7 @@ static int stencil_reset_transform_exec(bContext *C, wmOperator *op)
     br->mtex.rot = 0;
   }
 
+  BKE_brush_tag_unsaved_changes(br);
   WM_event_add_notifier(C, NC_WINDOW, nullptr);
 
   return OPERATOR_FINISHED;
@@ -992,7 +1001,7 @@ void ED_operatortypes_paint()
   WM_operatortype_append(BRUSH_OT_asset_edit_metadata);
   WM_operatortype_append(BRUSH_OT_asset_load_preview);
   WM_operatortype_append(BRUSH_OT_asset_delete);
-  WM_operatortype_append(BRUSH_OT_asset_update);
+  WM_operatortype_append(BRUSH_OT_asset_save);
   WM_operatortype_append(BRUSH_OT_asset_revert);
 
   /* image */

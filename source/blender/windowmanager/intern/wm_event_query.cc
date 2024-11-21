@@ -614,14 +614,13 @@ int WM_event_absolute_delta_y(const wmEvent *event)
  * \{ */
 
 #ifdef WITH_INPUT_IME
-/**
- * Most OS's use `Ctrl+Space` / `OsKey+Space` to switch IME,
- * so don't type in the space character.
- *
- * \note Shift is excluded from this check since it prevented typing `Shift+Space`, see: #85517.
- */
 bool WM_event_is_ime_switch(const wmEvent *event)
 {
+  /* Most OS's use `Ctrl+Space` / `OsKey+Space` to switch IME,
+   * so don't type in the space character.
+   *
+   * NOTE: Shift is excluded from this check since it prevented typing `Shift+Space`, see: #85517.
+   */
   return (event->val == KM_PRESS) && (event->type == EVT_SPACEKEY) &&
          (event->modifier & (KM_CTRL | KM_OSKEY | KM_ALT));
 }

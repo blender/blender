@@ -2,8 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
-#pragma BLENDER_REQUIRE(common_intersect_lib.glsl)
+#include "infos/workbench_shadow_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(workbench_shadow_visibility_compute_dynamic_pass_type)
+
+#include "common_intersect_lib.glsl"
+#include "gpu_shader_math_vector_lib.glsl"
 
 shared uint shared_result;
 

@@ -166,7 +166,7 @@ PyDoc_STRVAR(
     "   Each object has attributes matching bpy.data which are lists of strings to be linked.\n"
     "\n"
     "   :arg filepath: The path to a blend file.\n"
-    "   :type filepath: string or bytes\n"
+    "   :type filepath: str | bytes\n"
     "   :arg link: When False reference to the original file is lost.\n"
     "   :type link: bool\n"
     "   :arg relative: When True the path is stored relative to the open blend file.\n"
@@ -185,7 +185,7 @@ PyDoc_STRVAR(
 static PyObject *bpy_lib_load(BPy_PropertyRNA *self, PyObject *args, PyObject *kw)
 {
   Main *bmain_base = CTX_data_main(BPY_context_get());
-  Main *bmain = static_cast<Main *>(self->ptr.data); /* Typically #G_MAIN */
+  Main *bmain = static_cast<Main *>(self->ptr->data); /* Typically #G_MAIN */
   BPy_Library *ret;
   PyC_UnicodeAsBytesAndSize_Data filepath_data = {nullptr};
   bool is_rel = false, is_link = false, use_assets_only = false;
@@ -447,7 +447,7 @@ static bool bpy_lib_exit_lapp_context_items_cb(BlendfileLinkAppendContext *lapp_
 
     bpy_lib_exit_warn_idname(data.py_library, idcode_name_plural, item_idname);
 
-    py_item = Py_INCREF_RET(Py_None);
+    py_item = Py_NewRef(Py_None);
   }
 
   PyList_SET_ITEM(data.py_list, py_list_index, py_item);
@@ -519,13 +519,15 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject * /*args*/)
 
 #ifdef USE_RNA_DATABLOCKS
         /* We can replace the item immediately with `None`. */
-        PyObject *py_item = Py_INCREF_RET(Py_None);
+        PyObject *py_item = Py_NewRef(Py_None);
         PyList_SET_ITEM(ls, i, py_item);
         Py_DECREF(item_src);
 #endif
       }
     }
   }
+
+  BKE_blendfile_link_append_context_init_done(lapp_context);
 
   BKE_blendfile_link(lapp_context, nullptr);
   if (do_append) {
@@ -534,6 +536,8 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject * /*args*/)
   else if (create_liboverrides) {
     BKE_blendfile_override(lapp_context, self->liboverride_flags, nullptr);
   }
+
+  BKE_blendfile_link_append_context_finalize(lapp_context);
 
 /* If enabled, replace named items in given lists by the final matching new ID pointer. */
 #ifdef USE_RNA_DATABLOCKS

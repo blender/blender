@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 vec4 EDIT_MESH_edge_color_outer(uint edge_flag, uint face_flag, float crease, float bweight)
 {
   vec4 color = vec4(0.0);

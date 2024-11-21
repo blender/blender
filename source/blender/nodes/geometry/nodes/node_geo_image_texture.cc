@@ -4,7 +4,7 @@
 
 #include "node_geometry_util.hh"
 
-#include "BKE_image.h"
+#include "BKE_image.hh"
 
 #include "BLI_math_vector_types.hh"
 #include "BLI_threads.h"

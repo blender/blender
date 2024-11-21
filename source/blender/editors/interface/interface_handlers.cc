@@ -3131,7 +3131,10 @@ static void ui_textedit_set_cursor_pos(uiBut *but, const ARegion *region, const 
       startx += UI_ICON_SIZE / aspect;
     }
   }
-  startx += (UI_TEXT_MARGIN_X * U.widget_unit - U.pixelsize) / aspect;
+  startx -= U.pixelsize / aspect;
+  if (!(but->drawflag & UI_BUT_NO_TEXT_PADDING)) {
+    startx += UI_TEXT_MARGIN_X * U.widget_unit / aspect;
+  }
 
   /* mouse dragged outside the widget to the left */
   if (x < startx) {
@@ -4828,7 +4831,7 @@ static int ui_do_but_TEX(
         /* Pass, allow file-selector, enter to execute. */
       }
       else if (ELEM(but->emboss, UI_EMBOSS_NONE, UI_EMBOSS_NONE_OR_STATUS) &&
-               ((event->modifier & (KM_CTRL | KM_SHIFT | KM_ALT)) != KM_CTRL))
+               ((event->modifier & (KM_SHIFT | KM_CTRL | KM_ALT | KM_OSKEY)) != KM_CTRL))
       {
         /* Pass. */
       }
@@ -4958,6 +4961,8 @@ static void force_activate_view_item_but(bContext *C,
 {
   if (but->active) {
     ui_apply_but(C, but->block, but, but->active, true);
+    ED_region_tag_redraw_no_rebuild(region);
+    ED_region_tag_refresh_ui(region);
   }
   else {
     UI_but_execute(C, region, but);
@@ -4999,10 +5004,13 @@ static int ui_do_but_VIEW_ITEM(bContext *C,
            * example). */
           return WM_UI_HANDLER_CONTINUE;
         case KM_DBL_CLICK:
-          data->cancel = true;
-          UI_view_item_begin_rename(*view_item_but->view_item);
-          ED_region_tag_redraw(CTX_wm_region(C));
-          return WM_UI_HANDLER_BREAK;
+          if (UI_view_item_can_rename(*view_item_but->view_item)) {
+            data->cancel = true;
+            UI_view_item_begin_rename(*view_item_but->view_item);
+            ED_region_tag_redraw(CTX_wm_region(C));
+            return WM_UI_HANDLER_BREAK;
+          }
+          return WM_UI_HANDLER_CONTINUE;
       }
     }
   }
@@ -6505,6 +6513,7 @@ static int ui_do_but_COLOR(bContext *C, uiBut *but, uiHandleButtonData *data, co
               else if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR) {
                 RNA_property_float_get_array(&but->rnapoin, but->rnaprop, target);
               }
+              BKE_brush_tag_unsaved_changes(brush);
             }
             else {
               Scene *scene = CTX_data_scene(C);
@@ -6512,13 +6521,13 @@ static int ui_do_but_COLOR(bContext *C, uiBut *but, uiHandleButtonData *data, co
 
               if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA) {
                 RNA_property_float_get_array(&but->rnapoin, but->rnaprop, color);
-                BKE_brush_color_set(scene, brush, color);
+                BKE_brush_color_set(scene, paint, brush, color);
                 updated = true;
               }
               else if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR) {
                 RNA_property_float_get_array(&but->rnapoin, but->rnaprop, color);
                 IMB_colormanagement_scene_linear_to_srgb_v3(color, color);
-                BKE_brush_color_set(scene, brush, color);
+                BKE_brush_color_set(scene, paint, brush, color);
                 updated = true;
               }
 

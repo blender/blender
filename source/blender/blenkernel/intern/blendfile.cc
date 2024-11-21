@@ -16,6 +16,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_brush_types.h"
+#include "DNA_material_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -481,7 +483,7 @@ static void reuse_editable_asset_bmain_data_for_blendfile(ReuseOldBMainData *reu
 
   FOREACH_MAIN_LISTBASE_ID_BEGIN (old_lb, old_id_iter) {
     /* Keep any datablocks from libraries marked as LIBRARY_ASSET_EDITABLE. */
-    if (!((ID_IS_LINKED(old_id_iter) && old_id_iter->lib->runtime.tag & LIBRARY_ASSET_EDITABLE))) {
+    if (!(ID_IS_LINKED(old_id_iter) && old_id_iter->lib->runtime.tag & LIBRARY_ASSET_EDITABLE)) {
       continue;
     }
 
@@ -505,6 +507,27 @@ static void reuse_editable_asset_bmain_data_for_blendfile(ReuseOldBMainData *reu
                                   reuse_editable_asset_bmain_data_dependencies_process_cb,
                                   reuse_data,
                                   IDWALK_RECURSE | IDWALK_DO_LIBRARY_POINTER);
+    }
+  }
+  FOREACH_MAIN_LISTBASE_ID_END;
+}
+
+/**
+ * Grease pencil brushes may have a material pinned that is from the current file. Moving local
+ * scene data to a different #Main is tricky, so in that case, unpin the material.
+ */
+static void unpin_file_local_grease_pencil_brush_materials(const ReuseOldBMainData *reuse_data)
+{
+  ID *old_id_iter;
+  FOREACH_MAIN_LISTBASE_ID_BEGIN (&reuse_data->old_bmain->brushes, old_id_iter) {
+    const Brush *brush = reinterpret_cast<Brush *>(old_id_iter);
+    if (brush->gpencil_settings && brush->gpencil_settings->material &&
+        /* Don't unpin if this material is linked, then it can be preserved for the new file. */
+        !ID_IS_LINKED(brush->gpencil_settings->material))
+    {
+      /* Unpin material and clear pointer. */
+      brush->gpencil_settings->flag &= ~GP_BRUSH_MATERIAL_PINNED;
+      brush->gpencil_settings->material = nullptr;
     }
   }
   FOREACH_MAIN_LISTBASE_ID_END;
@@ -946,6 +969,7 @@ static void setup_app_data(bContext *C,
     BKE_main_idmap_destroy(reuse_data.id_map);
 
     if (!params->is_factory_settings && reuse_editable_asset_needed(&reuse_data)) {
+      unpin_file_local_grease_pencil_brush_materials(&reuse_data);
       /* Keep linked brush asset data, similar to UI data. Only does a known
        * subset know. Could do everything, but that risks dragging along more
        * scene data than we want. */
@@ -1493,11 +1517,25 @@ UserDef *BKE_blendfile_userdef_from_defaults()
 
   {
     BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(
-        userdef, "VIEW3D_AST_brush_sculpt", "Brushes/Mesh/Sculpt/Cloth");
+        userdef, "VIEW3D_AST_brush_sculpt", "Brushes/Mesh Sculpt/General");
     BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(
-        userdef, "VIEW3D_AST_brush_sculpt", "Brushes/Mesh/Sculpt/General");
+        userdef, "VIEW3D_AST_brush_sculpt", "Brushes/Mesh Sculpt/Paint");
     BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(
-        userdef, "VIEW3D_AST_brush_sculpt", "Brushes/Mesh/Sculpt/Painting");
+        userdef, "VIEW3D_AST_brush_sculpt", "Brushes/Mesh Sculpt/Simulation");
+
+    BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(
+        userdef, "VIEW3D_AST_brush_gpencil_paint", "Brushes/Grease Pencil Draw/Draw");
+    BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(
+        userdef, "VIEW3D_AST_brush_gpencil_paint", "Brushes/Grease Pencil Draw/Erase");
+    BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(
+        userdef, "VIEW3D_AST_brush_gpencil_paint", "Brushes/Grease Pencil Draw/Utilities");
+
+    BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(
+        userdef, "VIEW3D_AST_brush_gpencil_sculpt", "Brushes/Grease Pencil Sculpt/Contrast");
+    BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(
+        userdef, "VIEW3D_AST_brush_gpencil_sculpt", "Brushes/Grease Pencil Sculpt/Transform");
+    BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(
+        userdef, "VIEW3D_AST_brush_gpencil_sculpt", "Brushes/Grease Pencil Sculpt/Utilities");
   }
 
   return userdef;
@@ -1752,12 +1790,10 @@ ID *PartialWriteContext::id_add_copy(const ID *id, const bool regenerate_session
 {
   ID *ctx_root_id = nullptr;
   BLI_assert(BKE_main_idmap_lookup_uid(matching_uid_map_, id->session_uid) == nullptr);
-  ctx_root_id = BKE_id_copy_in_lib(nullptr,
-                                   id->lib,
-                                   id,
-                                   nullptr,
-                                   nullptr,
-                                   (LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_USER_REFCOUNT));
+  const int copy_flags = (LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_USER_REFCOUNT |
+                          /* NOTE: Could make this an option if needed in the future */
+                          LIB_ID_COPY_ASSET_METADATA);
+  ctx_root_id = BKE_id_copy_in_lib(nullptr, id->lib, id, nullptr, nullptr, copy_flags);
   ctx_root_id->tag |= ID_TAG_TEMP_MAIN;
   if (regenerate_session_uid) {
     /* Calling #BKE_lib_libblock_session_uid_renew is not needed here, copying already generated a
@@ -1779,7 +1815,7 @@ void PartialWriteContext::make_local(ID *ctx_id, const int make_local_flags)
   /* Making an ID local typically resets its session UID, here we want to keep the same value. */
   const uint ctx_id_session_uid = ctx_id->session_uid;
   BKE_main_idmap_remove_id(this->bmain.id_map, ctx_id);
-  BKE_main_idmap_insert_id(matching_uid_map_, ctx_id);
+  BKE_main_idmap_remove_id(matching_uid_map_, ctx_id);
 
   BKE_lib_id_make_local(&this->bmain, ctx_id, make_local_flags);
 

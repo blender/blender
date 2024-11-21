@@ -10,9 +10,9 @@
  * to use a sampler instead of a SSBO bind.
  */
 
-#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_matrix_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_shadow_tilemap_lib.glsl)
+#include "eevee_shadow_tilemap_lib.glsl"
+#include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 
 shared int rect_min_x;
 shared int rect_min_y;
@@ -135,6 +135,8 @@ void main()
           render_view_buf[view_index].tilemap_tiles_index = tilemap_data.tiles_index;
           render_view_buf[view_index].tilemap_lod = lod;
           render_view_buf[view_index].rect_min = rect_min;
+          /* For shadow linking. */
+          render_view_buf[view_index].shadow_set_membership = tilemap_data.shadow_set_membership;
         }
       }
     }
@@ -170,7 +172,7 @@ void main()
   ShadowSamplingTilePacked tile_sampling_packed = shadow_sampling_tile_pack(tile_sampling);
 
   uvec2 atlas_texel = shadow_tile_coord_in_atlas(uvec2(tile_co), tilemap_index);
-  imageStore(tilemaps_img, ivec2(atlas_texel), uvec4(tile_sampling_packed));
+  imageStoreFast(tilemaps_img, ivec2(atlas_texel), uvec4(tile_sampling_packed));
 
   if (all(equal(gl_GlobalInvocationID, uvec3(0)))) {
     /* Clamp it as it can underflow if there is too much tile present on screen. */

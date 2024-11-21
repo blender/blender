@@ -2,12 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(select_lib.glsl)
+#include "common_view_clipping_lib.glsl"
+#include "common_view_lib.glsl"
+#include "select_lib.glsl"
 
 /* Sphere radius */
-const float rad = 0.05;
+#define rad 0.05
 
 void main()
 {
@@ -25,7 +25,7 @@ void main()
    * In perspective mode it's also the view-space position
    * of the sphere center. */
   vec3 cam_ray = (is_persp) ? model_view_matrix[3].xyz : vec3(0.0, 0.0, -1.0);
-  cam_ray = mat3(sphereMatrix) * cam_ray;
+  cam_ray = to_float3x3(sphereMatrix) * cam_ray;
 
   /* Sphere center distance from the camera (persp) in local space. */
   float cam_dist = length(cam_ray);

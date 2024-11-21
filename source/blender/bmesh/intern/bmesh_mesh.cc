@@ -243,6 +243,7 @@ void BM_mesh_data_free(BMesh *bm)
 void BM_mesh_clear(BMesh *bm)
 {
   const bool use_toolflags = bm->use_toolflags;
+  void *py_handle = bm->py_handle;
 
   /* free old mesh */
   BM_mesh_data_free(bm);
@@ -252,6 +253,8 @@ void BM_mesh_clear(BMesh *bm)
   bm_mempool_init(bm, &bm_mesh_allocsize_default, use_toolflags);
 
   bm->use_toolflags = use_toolflags;
+  bm->py_handle = py_handle;
+
   bm->toolflag_index = 0;
   bm->totflags = 0;
 

@@ -71,67 +71,67 @@ PyDoc_STRVAR(
     bpy_bmlayeraccess_collection__float_doc,
     "Generic float custom-data layer.\n"
     "\n"
-    ":type: :class:`BMLayerCollection`");
+    ":type: :class:`BMLayerCollection` of float");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmlayeraccess_collection__int_doc,
     "Generic int custom-data layer.\n"
     "\n"
-    ":type: :class:`BMLayerCollection`");
+    ":type: :class:`BMLayerCollection` of int");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmlayeraccess_collection__float_vector_doc,
     "Generic 3D vector with float precision custom-data layer.\n"
     "\n"
     ":type: "
-    ":class:`BMLayerCollection`");
+    ":class:`BMLayerCollection` of :class:`mathutils.Vector`");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmlayeraccess_collection__float_color_doc,
     "Generic RGBA color with float precision custom-data layer.\n"
     "\n"
     ":type: "
-    ":class:`BMLayerCollection`");
+    ":class:`BMLayerCollection` of :class:`mathutils.Vector`");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmlayeraccess_collection__color_doc,
     "Generic RGBA color with 8-bit precision custom-data layer.\n"
     "\n"
     ":type: "
-    ":class:`BMLayerCollection`");
+    ":class:`BMLayerCollection` of :class:`mathutils.Vector`");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmlayeraccess_collection__string_doc,
     "Generic string custom-data layer (exposed as bytes, 255 max length).\n"
     "\n"
     ":type: "
-    ":class:`BMLayerCollection`");
+    ":class:`BMLayerCollection` of bytes");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmlayeraccess_collection__deform_doc,
     "Vertex deform weight :class:`BMDeformVert` (TODO).\n"
     "\n"
     ":type: "
-    ":class:`BMLayerCollection`" /* TYPE DOESN'T EXIST YET */
+    ":class:`BMLayerCollection` of :class:`bmesh.types.BMDeformVert`" /* TYPE DOESN'T EXIST YET */
 );
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmlayeraccess_collection__shape_doc,
     "Vertex shapekey absolute location (as a 3D Vector).\n"
     "\n"
-    ":type: :class:`BMLayerCollection`");
+    ":type: :class:`BMLayerCollection` of :class:`mathutils.Vector`");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmlayeraccess_collection__uv_doc,
     "Accessor for :class:`BMLoopUV` UV (as a 2D Vector).\n"
     "\n"
-    ":type: :class:`BMLayerCollection`");
+    ":type: :class:`BMLayerCollection` of :class:`bmesh.types.BMLoopUV`");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmlayeraccess_collection__skin_doc,
     "Accessor for skin layer.\n"
     "\n"
-    ":type: :class:`BMLayerCollection`");
+    ":type: :class:`BMLayerCollection` of :class:`bmesh.types.BMVertSkin`");
 #ifdef WITH_FREESTYLE
 PyDoc_STRVAR(
     /* Wrap. */
@@ -182,7 +182,7 @@ static PyObject *bpy_bmlayercollection_active_get(BPy_BMLayerItem *self, void * 
 PyDoc_STRVAR(bpy_bmlayercollection_is_singleton_doc,
              "True if there can exists only one layer of this type (read-only).\n"
              "\n"
-             ":type: boolean");
+             ":type: bool");
 static PyObject *bpy_bmlayercollection_is_singleton_get(BPy_BMLayerItem *self, void * /*flag*/)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -195,7 +195,7 @@ PyDoc_STRVAR(
     bpy_bmlayercollection_name_doc,
     "The layers unique name (read-only).\n"
     "\n"
-    ":type: string");
+    ":type: str");
 static PyObject *bpy_bmlayeritem_name_get(BPy_BMLayerItem *self, void * /*flag*/)
 {
   CustomDataLayer *layer;
@@ -506,7 +506,7 @@ PyDoc_STRVAR(
     "   Create a new layer\n"
     "\n"
     "   :arg name: Optional name argument (will be made unique).\n"
-    "   :type name: string\n"
+    "   :type name: str\n"
     "   :return: The newly created layer.\n"
     "   :rtype: :class:`BMLayerItem`\n");
 static PyObject *bpy_bmlayercollection_new(BPy_BMLayerCollection *self, PyObject *args)
@@ -593,7 +593,7 @@ PyDoc_STRVAR(
     "   (matching Python's dict.keys() functionality).\n"
     "\n"
     "   :return: the identifiers for each member of this collection.\n"
-    "   :rtype: list of strings\n");
+    "   :rtype: list[str]\n");
 static PyObject *bpy_bmlayercollection_keys(BPy_BMLayerCollection *self)
 {
   PyObject *ret;
@@ -630,7 +630,7 @@ PyDoc_STRVAR(
     "   (matching Python's dict.items() functionality).\n"
     "\n"
     "   :return: (key, value) pairs for each member of this collection.\n"
-    "   :rtype: list of tuples\n");
+    "   :rtype: list[tuple[str, :class:`BMLayerItem`]]\n");
 static PyObject *bpy_bmlayercollection_items(BPy_BMLayerCollection *self)
 {
   PyObject *ret;
@@ -667,7 +667,7 @@ PyDoc_STRVAR(
     "   (matching Python's dict.values() functionality).\n"
     "\n"
     "   :return: the members of this collection.\n"
-    "   :rtype: list\n");
+    "   :rtype: list[:class:`BMLayerItem`]\n");
 static PyObject *bpy_bmlayercollection_values(BPy_BMLayerCollection *self)
 {
   PyObject *ret;
@@ -701,10 +701,10 @@ PyDoc_STRVAR(
     "   when not found (matches Python's dictionary function of the same name).\n"
     "\n"
     "   :arg key: The key associated with the layer.\n"
-    "   :type key: string\n"
+    "   :type key: str\n"
     "   :arg default: Optional argument for the value to return if\n"
     "      *key* is not found.\n"
-    "   :type default: Undefined\n");
+    "   :type default: Any\n");
 static PyObject *bpy_bmlayercollection_get(BPy_BMLayerCollection *self, PyObject *args)
 {
   const char *key;
@@ -726,7 +726,7 @@ static PyObject *bpy_bmlayercollection_get(BPy_BMLayerCollection *self, PyObject
     return BPy_BMLayerItem_CreatePyObject(self->bm, self->htype, self->type, index);
   }
 
-  return Py_INCREF_RET(def);
+  return Py_NewRef(def);
 }
 
 static PyMethodDef bpy_bmlayeritem_methods[] = {

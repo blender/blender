@@ -101,10 +101,8 @@ void BKE_fcurves_free(ListBase *list)
     return;
   }
 
-  /* Free data - no need to call remlink before freeing each curve,
-   * as we store reference to next, and freeing only touches the curve
-   * it's given.
-   */
+  /* Free data, no need to call #BLI_remlink before freeing each curve,
+   * as we store reference to next, and freeing only touches the curve it's given. */
   FCurve *fcn = nullptr;
   for (FCurve *fcu = static_cast<FCurve *>(list->first); fcu; fcu = fcn) {
     fcn = fcu->next;

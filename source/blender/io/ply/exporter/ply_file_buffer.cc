@@ -10,8 +10,10 @@
 
 #include "BLI_fileops.hh"
 
-#include <iostream>
 #include <system_error>
+
+#include "CLG_log.h"
+static CLG_LogRef LOG = {"io.ply"};
 
 namespace blender::io::ply {
 
@@ -40,8 +42,7 @@ void FileBuffer::close_file()
     return;
   }
   if (outfile_ && close_status) {
-    std::cerr << "Error: could not close the file '" << this->filepath_
-              << "' properly, it may be corrupted." << std::endl;
+    CLOG_ERROR(&LOG, "Error: could not close file '%s' properly, it may be corrupted.", filepath_);
   }
 }
 

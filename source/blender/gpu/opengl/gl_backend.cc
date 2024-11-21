@@ -304,6 +304,7 @@ static void detect_workarounds()
     printf("    version: %s\n\n", version);
     GCaps.depth_blitting_workaround = true;
     GCaps.mip_render_workaround = true;
+    GCaps.stencil_clasify_buffer_workaround = true;
     GLContext::debug_layer_workaround = true;
     /* Turn off Blender features. */
     GCaps.hdr_viewport_support = false;
@@ -427,24 +428,6 @@ static void detect_workarounds()
   {
     GLContext::unused_fb_slot_workaround = true;
   }
-  /* dFdx/dFdy calculation factors, those are dependent on driver. */
-  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY) && strstr(version, "3.3.10750"))
-  {
-    GLContext::derivative_signs[0] = 1.0;
-    GLContext::derivative_signs[1] = -1.0;
-  }
-  else if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_ANY)) {
-    if (strstr(version, "4.0.0 - Build 10.18.10.3308") ||
-        strstr(version, "4.0.0 - Build 9.18.10.3186") ||
-        strstr(version, "4.0.0 - Build 9.18.10.3165") ||
-        strstr(version, "3.1.0 - Build 9.17.10.3347") ||
-        strstr(version, "3.1.0 - Build 9.17.10.4101") ||
-        strstr(version, "3.3.0 - Build 8.15.10.2618"))
-    {
-      GLContext::derivative_signs[0] = -1.0;
-      GLContext::derivative_signs[1] = 1.0;
-    }
-  }
 
   /* Draw shader parameters are broken on Qualcomm Windows ARM64 devices
    * on Mesa version < 24.0.0 */
@@ -469,10 +452,9 @@ static void detect_workarounds()
 
       /* X Elite devices have GPU driver version 31, and currently no known release version of the
        * GPU driver renders the cube correctly. This will be changed when a working driver version
-       * is released to commercial devices to only enable these flags on older drivers. */
+       * is released to commercial devices to only enable this flags on older drivers. */
       if (ver0 == 31) {
-        GCaps.shader_draw_parameters_support = false;
-        GLContext::shader_draw_parameters_support = false;
+        GCaps.stencil_clasify_buffer_workaround = true;
       }
     }
   }
@@ -560,7 +542,6 @@ bool GLContext::texture_filter_anisotropic_support = false;
 bool GLContext::debug_layer_workaround = false;
 bool GLContext::unused_fb_slot_workaround = false;
 bool GLContext::generate_mipmap_workaround = false;
-float GLContext::derivative_signs[2] = {1.0f, 1.0f};
 
 void GLBackend::capabilities_init()
 {

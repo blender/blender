@@ -239,7 +239,7 @@ void extract_lines(const MeshRenderData &mr,
                    gpu::IndexBuf *lines_loose,
                    bool &no_loose_wire)
 {
-  if (mr.extract_type == MR_EXTRACT_MESH) {
+  if (mr.extract_type == MeshExtractType::Mesh) {
     extract_lines_mesh(mr, lines, lines_loose, no_loose_wire);
   }
   else {
@@ -273,7 +273,7 @@ static void extract_lines_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
   MutableSpan<uint> flags_data = flags->data<uint>();
 
   switch (mr.extract_type) {
-    case MR_EXTRACT_MESH: {
+    case MeshExtractType::Mesh: {
       const int *orig_index_edge = (mr.hide_unmapped_edges) ? mr.orig_index_edge : nullptr;
       if (orig_index_edge == nullptr) {
         const Span<bool> hide_edge = mr.hide_edge;
@@ -312,7 +312,7 @@ static void extract_lines_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
       }
       break;
     }
-    case MR_EXTRACT_BMESH: {
+    case MeshExtractType::BMesh: {
       BMesh *bm = mr.bm;
       for (const int i : loose_edges.index_range()) {
         const BMEdge *bm_edge = BM_edge_at_index(bm, loose_edges[i]);

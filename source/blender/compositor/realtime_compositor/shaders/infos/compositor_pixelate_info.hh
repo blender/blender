@@ -5,9 +5,10 @@
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(compositor_pixelate)
-    .local_group_size(16, 16)
-    .push_constant(Type::INT, "pixel_size")
-    .sampler(0, ImageType::FLOAT_2D, "input_tx")
-    .image(0, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
-    .compute_source("compositor_pixelate.glsl")
-    .do_static_compilation(true);
+LOCAL_GROUP_SIZE(16, 16)
+PUSH_CONSTANT(INT, pixel_size)
+SAMPLER(0, FLOAT_2D, input_tx)
+IMAGE(0, GPU_RGBA16F, WRITE, FLOAT_2D, output_img)
+COMPUTE_SOURCE("compositor_pixelate.glsl")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()

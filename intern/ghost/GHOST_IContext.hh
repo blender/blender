@@ -68,12 +68,16 @@ class GHOST_IContext {
    * \param r_queue: After calling this function the VkQueue
    *     referenced by this parameter will contain the VKQueue handle
    *     of the context associated with the `context` parameter.
+   * \param r_queue_mutex: After calling this function the std::mutex referred
+   *     by this parameter will contain the mutex of the context associated
+   *     with the context parameter.
    */
   virtual GHOST_TSuccess getVulkanHandles(void *r_instance,
                                           void *r_physical_device,
                                           void *r_device,
                                           uint32_t *r_graphic_queue_family,
-                                          void *r_queue) = 0;
+                                          void *r_queue,
+                                          void **r_queue_mutex) = 0;
 
   /**
    * Acquire the current swap chain format.
@@ -106,7 +110,5 @@ class GHOST_IContext {
       std::function<void(void)> swap_buffers_post_callback) = 0;
 #endif
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_IContext")
-#endif
 };

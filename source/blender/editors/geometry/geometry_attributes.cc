@@ -289,6 +289,21 @@ static int geometry_attribute_add_invoke(bContext *C, wmOperator *op, const wmEv
   if (!RNA_property_is_set(op->ptr, prop)) {
     RNA_property_string_set(op->ptr, prop, DATA_("Attribute"));
   }
+  /* Set a valid default domain, in case Point domain is not supported. */
+  prop = RNA_struct_find_property(op->ptr, "domain");
+  if (!RNA_property_is_set(op->ptr, prop)) {
+    EnumPropertyItem *items;
+    int totitems;
+    bool free;
+    RNA_property_enum_items(
+        C, op->ptr, prop, const_cast<const EnumPropertyItem **>(&items), &totitems, &free);
+    if (totitems > 0) {
+      RNA_property_enum_set(op->ptr, prop, items[0].value);
+    }
+    if (free) {
+      MEM_freeN(items);
+    }
+  }
   return WM_operator_props_popup_confirm_ex(
       C, op, event, IFACE_("Add Attribute"), CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add"));
 }
@@ -798,6 +813,8 @@ static int geometry_color_attribute_convert_exec(bContext *C, wmOperator *op)
                                 eCustomDataType(RNA_enum_get(op->ptr, "data_type")),
                                 bke::AttrDomain(RNA_enum_get(op->ptr, "domain")),
                                 op->reports);
+  DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
+  WM_main_add_notifier(NC_GEOM | ND_DATA, &mesh->id);
   return OPERATOR_FINISHED;
 }
 

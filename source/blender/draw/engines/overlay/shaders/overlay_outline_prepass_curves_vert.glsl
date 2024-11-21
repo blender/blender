@@ -2,12 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(common_hair_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
+#include "common_hair_lib.glsl"
+#include "common_view_clipping_lib.glsl"
+#include "common_view_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 
-uint outline_colorid_get(void)
+uint outline_colorid_get()
 {
 #ifdef OBINFO_NEW
   eObjectInfoFlag ob_flag = eObjectInfoFlag(floatBitsToUint(drw_infos[resource_id].infos.w));
@@ -43,7 +43,6 @@ void main()
   vec3 center_wpos, tan, binor;
 
   hair_get_center_pos_tan_binor_time(is_persp,
-                                     ModelMatrixInverse,
                                      drw_view.viewinv[3].xyz,
                                      drw_view.viewinv[2].xyz,
                                      center_wpos,
@@ -61,7 +60,7 @@ void main()
     thick_time = thickness * (thick_time * 2.0 - 1.0);
     /* Take object scale into account.
      * NOTE: This only works fine with uniform scaling. */
-    float scale = 1.0 / length(mat3(ModelMatrixInverse) * binor);
+    float scale = 1.0 / length(to_float3x3(ModelMatrixInverse) * binor);
     world_pos = center_wpos + binor * thick_time * scale;
   }
   else {

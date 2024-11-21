@@ -1,6 +1,7 @@
-Project: xxHash
+Project: xxHash Library
 URL: https://xxhash.com/
-License: BSD 2-Clause
+License: SPDX:BSD-2-Clause
+Copyright: "Copyright (c) 2012-2021 Yann Collet"
 Upstream version: v0.8.2 (2023-07-21)
 Local modifications:
 * None

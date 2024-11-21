@@ -35,7 +35,8 @@ class Fade {
   {
     const bool do_edit_mesh_fade_geom = !state.xray_enabled &&
                                         (state.overlay.flag & V3D_OVERLAY_FADE_INACTIVE);
-    enabled_ = state.v3d && (do_edit_mesh_fade_geom || state.do_pose_fade_geom) &&
+    enabled_ = state.space_type == SPACE_VIEW3D &&
+               (do_edit_mesh_fade_geom || state.do_pose_fade_geom) &&
                (selection_type_ == SelectionType::DISABLED);
 
     if (!enabled_) {
@@ -123,10 +124,23 @@ class Fade {
     }
   }
 
+  void pre_draw(Manager &manager, View &view)
+  {
+    if (!enabled_) {
+      return;
+    }
+
+    manager.generate_commands(ps_, view);
+  }
+
   void draw(Framebuffer &framebuffer, Manager &manager, View &view)
   {
+    if (!enabled_) {
+      return;
+    }
+
     GPU_framebuffer_bind(framebuffer);
-    manager.submit(ps_, view);
+    manager.submit_only(ps_, view);
   }
 
  private:

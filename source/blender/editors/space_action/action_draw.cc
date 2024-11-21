@@ -432,7 +432,8 @@ static void draw_keyframes(bAnimContext *ac,
         break;
       case ALE_GREASE_PENCIL_DATA:
         ED_add_grease_pencil_datablock_channel(draw_list,
-                                               ads,
+                                               ac,
+                                               ale->adt,
                                                static_cast<const GreasePencil *>(ale->data),
                                                ycenter,
                                                scale_factor,
@@ -465,25 +466,17 @@ static void draw_keyframes(bAnimContext *ac,
   ED_channel_list_free(draw_list);
 }
 
-void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region)
+void draw_channel_strips(bAnimContext *ac,
+                         SpaceAction *saction,
+                         ARegion *region,
+                         ListBase *anim_data)
 {
-  ListBase anim_data = {nullptr, nullptr};
   View2D *v2d = &region->v2d;
-
-  /* build list of channels to draw */
-  eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
-                              ANIMFILTER_LIST_CHANNELS);
-  size_t items = ANIM_animdata_filter(
-      ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
-
-  const int height = ANIM_UI_get_channels_total_height(v2d, items);
-  const float pad_bottom = BLI_listbase_is_empty(ac->markers) ? 0 : UI_MARKER_MARGIN_Y;
-  v2d->tot.ymin = -(height + pad_bottom);
 
   /* Draw the manual frame ranges for actions in the background of the dopesheet.
    * The action editor has already drawn the range for its action so it's not needed. */
   if (ac->datatype == ANIMCONT_DOPESHEET) {
-    draw_channel_action_ranges(&anim_data, v2d);
+    draw_channel_action_ranges(anim_data, v2d);
   }
 
   /* Draw the background strips. */
@@ -495,7 +488,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region
   GPU_blend(GPU_BLEND_ALPHA);
 
   /* first backdrop strips */
-  draw_backdrops(ac, anim_data, v2d, pos);
+  draw_backdrops(ac, *anim_data, v2d, pos);
 
   GPU_blend(GPU_BLEND_NONE);
 
@@ -510,10 +503,10 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region
   }
   immUnbindProgram();
 
-  draw_keyframes(ac, v2d, saction, anim_data);
+  draw_keyframes(ac, v2d, saction, *anim_data);
 
   /* free temporary channels used for drawing */
-  ANIM_animdata_freelist(&anim_data);
+  ANIM_animdata_freelist(anim_data);
 }
 
 /** \} */

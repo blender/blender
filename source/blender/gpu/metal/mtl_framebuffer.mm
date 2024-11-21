@@ -173,7 +173,7 @@ bool MTLFrameBuffer::check(char err_out[256])
   for (int col_att = 0; col_att < this->get_attachment_count(); col_att++) {
     MTLAttachment att = this->get_color_attachment(col_att);
     if (att.used) {
-      if (att.texture->gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_ATTACHMENT) {
+      if (att.texture->internal_gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_ATTACHMENT) {
         if (first) {
           dim_x = att.texture->width_get();
           dim_y = att.texture->height_get();
@@ -217,7 +217,7 @@ bool MTLFrameBuffer::check(char err_out[256])
       dim_x = depth_att.texture->width_get();
       dim_y = depth_att.texture->height_get();
       first = false;
-      valid = (depth_att.texture->gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_ATTACHMENT);
+      valid = (depth_att.texture->internal_gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_ATTACHMENT);
 
       if (!valid) {
         const char *format =
@@ -254,7 +254,8 @@ bool MTLFrameBuffer::check(char err_out[256])
       dim_x = stencil_att.texture->width_get();
       dim_y = stencil_att.texture->height_get();
       first = false;
-      valid = (stencil_att.texture->gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_ATTACHMENT);
+      valid = (stencil_att.texture->internal_gpu_image_usage_flags_ &
+               GPU_TEXTURE_USAGE_ATTACHMENT);
       if (!valid) {
         const char *format =
             "Framebuffer %s: Stencil attachment does not have usage "
@@ -1305,11 +1306,16 @@ bool MTLFrameBuffer::set_color_attachment_clear_color(uint slot, const float cle
 
   /* Only mark as dirty if values have changed. */
   bool changed = mtl_color_attachments_[slot].load_action != GPU_LOADACTION_CLEAR;
-  changed = changed || (memcmp(mtl_color_attachments_[slot].clear_value.color,
-                               clear_color,
-                               sizeof(float) * 4) != 0);
+  float *attachment_clear_color = mtl_color_attachments_[slot].clear_value.color;
+  changed = changed || (attachment_clear_color[0] != clear_color[0] ||
+                        attachment_clear_color[1] != clear_color[1] ||
+                        attachment_clear_color[2] != clear_color[2] ||
+                        attachment_clear_color[3] != clear_color[3]);
   if (changed) {
-    memcpy(mtl_color_attachments_[slot].clear_value.color, clear_color, sizeof(float) * 4);
+    attachment_clear_color[0] = clear_color[0];
+    attachment_clear_color[1] = clear_color[1];
+    attachment_clear_color[2] = clear_color[2];
+    attachment_clear_color[3] = clear_color[3];
   }
   mtl_color_attachments_[slot].load_action = GPU_LOADACTION_CLEAR;
 

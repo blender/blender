@@ -12,8 +12,7 @@
 #include <opensubdiv/osd/mesh.h>
 #include <opensubdiv/osd/types.h>
 
-#include "internal/evaluator/evaluator_impl.h"
-
+#include "opensubdiv_evaluator.hh"
 #include "opensubdiv_evaluator_capi.hh"
 
 using OpenSubdiv::Far::PatchTable;

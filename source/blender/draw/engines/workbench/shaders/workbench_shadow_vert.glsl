@@ -17,7 +17,11 @@
  * execute the vertex shader code on each of the input primitive's vertices.
  */
 
-#pragma BLENDER_REQUIRE(workbench_shadow_lib.glsl)
+#include "infos/workbench_shadow_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(workbench_shadow_common)
+
+#include "workbench_shadow_lib.glsl"
 
 void extrude_edge(
     bool invert, VertOut geom_in_1, VertOut geom_in_2, uint out_vertex_id, uint out_primitive_id)
@@ -66,7 +70,7 @@ void geometry_main(VertOut geom_in[4],
   }
 #endif
 
-  vec3 ls_light_direction = normal_world_to_object(vec3(pass_data.light_direction_ws));
+  vec3 ls_light_direction = drw_normal_world_to_object(vec3(pass_data.light_direction_ws));
 
   vec2 facing = vec2(dot(n1, ls_light_direction), dot(n2, ls_light_direction));
 

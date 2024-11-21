@@ -21,7 +21,9 @@
 #include "BKE_paint.hh"
 
 #include "DEG_depsgraph_query.hh"
+
 #include "DNA_brush_enums.h"
+#include "DNA_brush_types.h"
 
 #include "ED_grease_pencil.hh"
 #include "ED_view3d.hh"
@@ -130,6 +132,28 @@ struct EraseOperationExecutor {
     const int64_t a = math::distance_squared(s0, s1);
     const int64_t b = 2 * math::dot(s0 - center, s1 - s0);
     const int64_t c = d_s0_center - radius_2;
+
+    /* If points are close together there is no direction vector.
+     * Since the solution multiplies by this factor for integer math,
+     * the valid case of degenerate segments inside the circle needs special handling. */
+    if (a == 0) {
+      const int64_t i = -4 * c;
+      if (i < 0) {
+        /* No intersections. */
+        return 0;
+      }
+      if (i == 0) {
+        /* One intersection. */
+        r_mu0 = 0.0f;
+        return 1;
+      }
+      /* Two intersections. */
+      const float i_sqrt = math::sqrt(float(i));
+      r_mu0 = math::round(i_sqrt / 2.0f);
+      r_mu1 = math::round(-i_sqrt / 2.0f);
+      return 2;
+    }
+
     const int64_t i = b * b - 4 * a * c;
 
     if (i < 0) {
@@ -867,52 +891,58 @@ struct EraseOperationExecutor {
     GreasePencil &grease_pencil = *static_cast<GreasePencil *>(obact->data);
 
     bool changed = false;
-    const auto execute_eraser_on_drawing = [&](const int layer_index,
-                                               const int frame_number,
-                                               Drawing &drawing) {
-      const Layer &layer = grease_pencil.layer(layer_index);
-      const bke::CurvesGeometry &src = drawing.strokes();
+    const auto execute_eraser_on_drawing =
+        [&](const int layer_index, const int frame_number, Drawing &drawing) {
+          const Layer &layer = grease_pencil.layer(layer_index);
+          const bke::CurvesGeometry &src = drawing.strokes();
 
-      /* Evaluated geometry. */
-      bke::crazyspace::GeometryDeformation deformation =
-          bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-              ob_eval, *obact, layer_index, frame_number);
+          /* Evaluated geometry. */
+          bke::crazyspace::GeometryDeformation deformation =
+              bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
+                  ob_eval, *obact, layer_index, frame_number);
 
-      /* Compute screen space positions. */
-      Array<float2> screen_space_positions(src.points_num());
-      threading::parallel_for(src.points_range(), 4096, [&](const IndexRange src_points) {
-        for (const int src_point : src_points) {
-          ED_view3d_project_float_global(region,
-                                         math::transform_point(layer.to_world_space(*ob_eval),
-                                                               deformation.positions[src_point]),
-                                         screen_space_positions[src_point],
-                                         V3D_PROJ_TEST_NOP);
-        }
-      });
+          /* Compute screen space positions. */
+          Array<float2> screen_space_positions(src.points_num());
+          threading::parallel_for(src.points_range(), 4096, [&](const IndexRange src_points) {
+            for (const int src_point : src_points) {
+              const int result = ED_view3d_project_float_global(
+                  region,
+                  math::transform_point(layer.to_world_space(*ob_eval),
+                                        deformation.positions[src_point]),
+                  screen_space_positions[src_point],
+                  V3D_PROJ_TEST_CLIP_NEAR | V3D_PROJ_TEST_CLIP_FAR);
+              if (result != V3D_PROJ_RET_OK) {
+                /* Set the screen space position to a impossibly far coordinate for all the points
+                 * that are outside near/far clipping planes, this is to prevent accidental
+                 * intersections with strokes not visibly present in the camera. */
+                screen_space_positions[src_point] = float2(1e20);
+              }
+            }
+          });
 
-      /* Erasing operator. */
-      bke::CurvesGeometry dst;
-      bool erased = false;
-      switch (self.eraser_mode_) {
-        case GP_BRUSH_ERASER_STROKE:
-          erased = stroke_eraser(src, screen_space_positions, dst);
-          break;
-        case GP_BRUSH_ERASER_HARD:
-          erased = hard_eraser(src, screen_space_positions, dst, self.keep_caps_);
-          break;
-        case GP_BRUSH_ERASER_SOFT:
-          erased = soft_eraser(src, screen_space_positions, dst, self.keep_caps_);
-          break;
-      }
+          /* Erasing operator. */
+          bke::CurvesGeometry dst;
+          bool erased = false;
+          switch (self.eraser_mode_) {
+            case GP_BRUSH_ERASER_STROKE:
+              erased = stroke_eraser(src, screen_space_positions, dst);
+              break;
+            case GP_BRUSH_ERASER_HARD:
+              erased = hard_eraser(src, screen_space_positions, dst, self.keep_caps_);
+              break;
+            case GP_BRUSH_ERASER_SOFT:
+              erased = soft_eraser(src, screen_space_positions, dst, self.keep_caps_);
+              break;
+          }
 
-      if (erased) {
-        /* Set the new geometry. */
-        drawing.geometry.wrap() = std::move(dst);
-        drawing.tag_topology_changed();
-        changed = true;
-        self.affected_drawings_.add(&drawing);
-      }
-    };
+          if (erased) {
+            /* Set the new geometry. */
+            drawing.geometry.wrap() = std::move(dst);
+            drawing.tag_topology_changed();
+            changed = true;
+            self.affected_drawings_.add(&drawing);
+          }
+        };
 
     if (self.active_layer_only_) {
       /* Erase only on the drawing at the current frame of the active layer. */

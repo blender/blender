@@ -231,7 +231,7 @@ class Graph : NonCopyable, NonMovable {
   int socket_num_ = 0;
 
  public:
-  Graph(StringRef name = "unkown");
+  Graph(StringRef name = "unknown");
   ~Graph();
 
   StringRefNull name() const;

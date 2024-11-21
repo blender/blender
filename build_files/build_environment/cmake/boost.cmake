@@ -114,6 +114,7 @@ add_dependencies(
   external_boost
   external_python
   external_numpy
+  external_zlib
 )
 
 if(NOT WIN32)

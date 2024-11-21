@@ -18,6 +18,22 @@
 
 namespace blender::gpu {
 
+static VKBindType to_bind_type(shader::ShaderCreateInfo::Resource::BindType bind_type)
+{
+  switch (bind_type) {
+    case shader::ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER:
+      return VKBindType::UNIFORM_BUFFER;
+    case shader::ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER:
+      return VKBindType::STORAGE_BUFFER;
+    case shader::ShaderCreateInfo::Resource::BindType::SAMPLER:
+      return VKBindType::SAMPLER;
+    case shader::ShaderCreateInfo::Resource::BindType::IMAGE:
+      return VKBindType::IMAGE;
+  }
+  BLI_assert_unreachable();
+  return VKBindType::UNIFORM_BUFFER;
+}
+
 void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
 {
   static char PUSH_CONSTANTS_FALLBACK_NAME[] = "push_constants_fallback";
@@ -195,7 +211,7 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
     BLI_assert(STREQ(input_name_get(input), SUBPASS_FALLBACK_NAME));
     descriptor_set_location_update(input,
                                    descriptor_set_location++,
-                                   shader::ShaderCreateInfo::Resource::BindType::INPUT_ATTACHMENT,
+                                   VKBindType::INPUT_ATTACHMENT,
                                    std::nullopt,
                                    VKImageViewArrayed::DONT_CARE);
   }
@@ -239,7 +255,9 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
                     VKImageViewArrayed::ARRAYED :
                     VKImageViewArrayed::NOT_ARRAYED;
     }
-    descriptor_set_location_update(input, descriptor_set_location++, res.bind_type, res, arrayed);
+
+    const VKBindType bind_type = to_bind_type(res.bind_type);
+    descriptor_set_location_update(input, descriptor_set_location++, bind_type, res, arrayed);
   }
 
   /* Post initializing push constants. */
@@ -250,7 +268,7 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
     const ShaderInput *push_constant_input = ubo_get(PUSH_CONSTANTS_FALLBACK_NAME);
     descriptor_set_location_update(push_constant_input,
                                    push_constants_fallback_location,
-                                   shader::ShaderCreateInfo::Resource::UNIFORM_BUFFER,
+                                   VKBindType::UNIFORM_BUFFER,
                                    std::nullopt,
                                    VKImageViewArrayed::DONT_CARE);
   }
@@ -268,18 +286,15 @@ static int32_t shader_input_index(const ShaderInput *shader_inputs,
 void VKShaderInterface::descriptor_set_location_update(
     const ShaderInput *shader_input,
     const VKDescriptorSet::Location location,
-    const shader::ShaderCreateInfo::Resource::BindType bind_type,
+    const VKBindType bind_type,
     std::optional<const shader::ShaderCreateInfo::Resource> resource,
     VKImageViewArrayed arrayed)
 {
   BLI_assert_msg(resource.has_value() ||
-                     ELEM(bind_type,
-                          shader::ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER) ||
-                     ELEM(bind_type,
-                          shader::ShaderCreateInfo::Resource::BindType::INPUT_ATTACHMENT),
+                     ELEM(bind_type, VKBindType::UNIFORM_BUFFER, VKBindType::INPUT_ATTACHMENT),
                  "Incorrect parameters, when no resource is given, it must be the uniform buffer "
-                 "for storing push constants, or an input attachment.");
-  BLI_assert_msg(!resource.has_value() || resource->bind_type == bind_type,
+                 "for storing push constants or input attachment for subpass inputs.");
+  BLI_assert_msg(!resource.has_value() || to_bind_type(resource->bind_type) == bind_type,
                  "Incorrect parameter, bind types do not match.");
 
   int32_t index = shader_input_index(inputs_, shader_input);
@@ -318,10 +333,10 @@ void VKShaderInterface::descriptor_set_location_update(
         break;
     };
   }
-  else if (bind_type == shader::ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER) {
+  else if (bind_type == VKBindType::UNIFORM_BUFFER) {
     vk_access_flags |= VK_ACCESS_UNIFORM_READ_BIT;
   }
-  else if (bind_type == shader::ShaderCreateInfo::Resource::BindType::INPUT_ATTACHMENT) {
+  else if (bind_type == VKBindType::INPUT_ATTACHMENT) {
     vk_access_flags |= VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
   }
 
@@ -356,34 +371,10 @@ const std::optional<VKDescriptorSet::Location> VKShaderInterface::descriptor_set
     return std::nullopt;
   }
   const VKResourceBinding &resource_binding = resource_binding_info(shader_input);
-  if (resource_binding.bind_type != bind_type) {
+  if (resource_binding.bind_type != to_bind_type(bind_type)) {
     return std::nullopt;
   }
   return resource_binding.location;
-}
-
-const VkAccessFlags VKShaderInterface::access_mask(
-    const shader::ShaderCreateInfo::Resource::BindType &bind_type, int binding) const
-{
-  const ShaderInput *shader_input = shader_input_get(bind_type, binding);
-  if (shader_input == nullptr) {
-    return VK_ACCESS_NONE;
-  }
-  const VKResourceBinding &resource_binding = resource_binding_info(shader_input);
-  if (resource_binding.bind_type != bind_type) {
-    return VK_ACCESS_NONE;
-  }
-  return resource_binding.access_mask;
-}
-
-const VKImageViewArrayed VKShaderInterface::arrayed(
-    const shader::ShaderCreateInfo::Resource::BindType &bind_type, int binding) const
-{
-  const ShaderInput *shader_input = shader_input_get(bind_type, binding);
-  if (shader_input == nullptr) {
-    return VKImageViewArrayed::DONT_CARE;
-  }
-  return resource_binding_info(shader_input).arrayed;
 }
 
 const ShaderInput *VKShaderInterface::shader_input_get(
@@ -421,6 +412,7 @@ void VKShaderInterface::init_descriptor_set_layout_info(
     VKPushConstants::StorageType push_constants_storage)
 {
   BLI_assert(descriptor_set_layout_info_.bindings.is_empty());
+  const VKWorkarounds &workarounds = VKBackend::get().device.workarounds_get();
   descriptor_set_layout_info_.bindings.reserve(resources_len);
   if (!(info.compute_source_.is_empty() && info.compute_source_generated.empty()))
   {

@@ -8,6 +8,7 @@
 #include <type_traits>
 #include <utility>
 
+#include "BLI_build_config.h"
 #include "BLI_utildefines.h"
 
 /** \file
@@ -119,6 +120,27 @@ template<typename Ret, typename... Params> class FunctionRef<Ret(Params...)> {
       : callback_(callback_fn<typename std::remove_reference_t<Callable>>),
         callable_(intptr_t(&callable))
   {
+    if constexpr (std::is_constructible_v<bool, Callable>) {
+      /* For some types, the compiler can be sure that the callable is always truthy. Good!
+       * Then the entire check can be optimized away. */
+#if COMPILER_CLANG || COMPILER_GCC
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Waddress"
+#  if COMPILER_GCC
+#    pragma GCC diagnostic ignored "-Wnonnull-compare"
+#  endif
+#endif
+      /* Make sure the #FunctionRef is falsy if the callback is falsy.
+       * That can happen when passing in null or empty std::function. */
+      const bool is_truthy = bool(callable);
+      if (!is_truthy) {
+        callback_ = nullptr;
+        callable_ = 0;
+      }
+#if COMPILER_CLANG || COMPILER_GCC
+#  pragma GCC diagnostic pop
+#endif
+    }
   }
 
   /**

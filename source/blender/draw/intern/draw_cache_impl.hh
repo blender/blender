@@ -25,7 +25,6 @@ struct Lattice;
 struct Mesh;
 struct PointCloud;
 struct Volume;
-struct bGPdata;
 struct GreasePencil;
 
 #include "BKE_mesh.h"
@@ -50,9 +49,6 @@ void DRW_lattice_batch_cache_free(Lattice *lt);
 
 void DRW_particle_batch_cache_dirty_tag(ParticleSystem *psys, int mode);
 void DRW_particle_batch_cache_free(ParticleSystem *psys);
-
-void DRW_gpencil_batch_cache_dirty_tag(bGPdata *gpd);
-void DRW_gpencil_batch_cache_free(bGPdata *gpd);
 
 void DRW_curves_batch_cache_dirty_tag(Curves *curves, int mode);
 void DRW_curves_batch_cache_validate(Curves *curves);

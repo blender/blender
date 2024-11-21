@@ -287,10 +287,10 @@ class MTLShader : public Shader {
   void init(const shader::ShaderCreateInfo & /*info*/, bool is_batch_compilation) override;
 
   /* Assign GLSL source. */
-  void vertex_shader_from_glsl(MutableSpan<const char *> sources) override;
-  void geometry_shader_from_glsl(MutableSpan<const char *> sources) override;
-  void fragment_shader_from_glsl(MutableSpan<const char *> sources) override;
-  void compute_shader_from_glsl(MutableSpan<const char *> sources) override;
+  void vertex_shader_from_glsl(MutableSpan<StringRefNull> sources) override;
+  void geometry_shader_from_glsl(MutableSpan<StringRefNull> sources) override;
+  void fragment_shader_from_glsl(MutableSpan<StringRefNull> sources) override;
+  void compute_shader_from_glsl(MutableSpan<StringRefNull> sources) override;
 
   /* Compile and build - Return true if successful. */
   bool finalize(const shader::ShaderCreateInfo *info = nullptr) override;
@@ -442,13 +442,14 @@ class MTLParallelShaderCompiler {
   std::mutex queue_mutex;
   std::deque<ParallelWork *> parallel_work_queue;
 
-  void parallel_compilation_thread_func(GPUContext *blender_gpu_context);
+  void parallel_compilation_thread_func(GPUContext *blender_gpu_context,
+                                        GHOST_ContextHandle ghost_gpu_context);
   BatchHandle create_batch(size_t batch_size);
   void add_item_to_batch(ParallelWork *work_item, BatchHandle batch_handle);
   void add_parallel_item_to_queue(ParallelWork *add_parallel_item_to_queuework_item,
                                   BatchHandle batch_handle);
 
-  std::atomic<int> ref_count;
+  std::atomic<int> ref_count = 1;
 
  public:
   MTLParallelShaderCompiler();
@@ -469,6 +470,7 @@ class MTLParallelShaderCompiler {
   }
   void decrement_ref_count()
   {
+    BLI_assert(ref_count > 0);
     ref_count--;
   }
   int get_ref_count()
@@ -512,271 +514,205 @@ class MTLShaderCompiler : public ShaderCompiler {
  * Implicitly supported conversions in Metal are described here:
  * https://developer.apple.com/documentation/metal/mtlvertexattributedescriptor/1516081-format?language=objc
  */
-inline bool mtl_vertex_format_resize(MTLVertexFormat mtl_format,
-                                     uint32_t components,
-                                     MTLVertexFormat *r_convertedFormat)
+inline MTLVertexFormat format_resize_comp(MTLVertexFormat mtl_format, uint32_t components)
 {
-  MTLVertexFormat out_vert_format = MTLVertexFormatInvalid;
+#define RESIZE_TYPE(_type, _suffix) \
+  case MTLVertexFormat##_type##_suffix: \
+  case MTLVertexFormat##_type##2##_suffix: \
+  case MTLVertexFormat##_type##3##_suffix: \
+  case MTLVertexFormat##_type##4##_suffix: \
+    switch (components) { \
+      case 1: \
+        return MTLVertexFormat##_type##_suffix; \
+      case 2: \
+        return MTLVertexFormat##_type##2##_suffix; \
+      case 3: \
+        return MTLVertexFormat##_type##3##_suffix; \
+      case 4: \
+        return MTLVertexFormat##_type##4##_suffix; \
+    } \
+    break;
+
   switch (mtl_format) {
-    /* Char. */
-    case MTLVertexFormatChar:
-    case MTLVertexFormatChar2:
-    case MTLVertexFormatChar3:
-    case MTLVertexFormatChar4:
-      switch (components) {
-        case 1:
-          out_vert_format = MTLVertexFormatChar;
-          break;
-        case 2:
-          out_vert_format = MTLVertexFormatChar2;
-          break;
-        case 3:
-          out_vert_format = MTLVertexFormatChar3;
-          break;
-        case 4:
-          out_vert_format = MTLVertexFormatChar4;
-          break;
-      }
-      break;
-
-    /* Normalized Char. */
-    case MTLVertexFormatCharNormalized:
-    case MTLVertexFormatChar2Normalized:
-    case MTLVertexFormatChar3Normalized:
-    case MTLVertexFormatChar4Normalized:
-      switch (components) {
-        case 1:
-          out_vert_format = MTLVertexFormatCharNormalized;
-          break;
-        case 2:
-          out_vert_format = MTLVertexFormatChar2Normalized;
-          break;
-        case 3:
-          out_vert_format = MTLVertexFormatChar3Normalized;
-          break;
-        case 4:
-          out_vert_format = MTLVertexFormatChar4Normalized;
-          break;
-      }
-      break;
-
-    /* Unsigned Char. */
-    case MTLVertexFormatUChar:
-    case MTLVertexFormatUChar2:
-    case MTLVertexFormatUChar3:
-    case MTLVertexFormatUChar4:
-      switch (components) {
-        case 1:
-          out_vert_format = MTLVertexFormatUChar;
-          break;
-        case 2:
-          out_vert_format = MTLVertexFormatUChar2;
-          break;
-        case 3:
-          out_vert_format = MTLVertexFormatUChar3;
-          break;
-        case 4:
-          out_vert_format = MTLVertexFormatUChar4;
-          break;
-      }
-      break;
-
-    /* Normalized Unsigned char */
-    case MTLVertexFormatUCharNormalized:
-    case MTLVertexFormatUChar2Normalized:
-    case MTLVertexFormatUChar3Normalized:
-    case MTLVertexFormatUChar4Normalized:
-      switch (components) {
-        case 1:
-          out_vert_format = MTLVertexFormatUCharNormalized;
-          break;
-        case 2:
-          out_vert_format = MTLVertexFormatUChar2Normalized;
-          break;
-        case 3:
-          out_vert_format = MTLVertexFormatUChar3Normalized;
-          break;
-        case 4:
-          out_vert_format = MTLVertexFormatUChar4Normalized;
-          break;
-      }
-      break;
-
-    /* Short. */
-    case MTLVertexFormatShort:
-    case MTLVertexFormatShort2:
-    case MTLVertexFormatShort3:
-    case MTLVertexFormatShort4:
-      switch (components) {
-        case 1:
-          out_vert_format = MTLVertexFormatShort;
-          break;
-        case 2:
-          out_vert_format = MTLVertexFormatShort2;
-          break;
-        case 3:
-          out_vert_format = MTLVertexFormatShort3;
-          break;
-        case 4:
-          out_vert_format = MTLVertexFormatShort4;
-          break;
-      }
-      break;
-
-    /* Normalized Short. */
-    case MTLVertexFormatShortNormalized:
-    case MTLVertexFormatShort2Normalized:
-    case MTLVertexFormatShort3Normalized:
-    case MTLVertexFormatShort4Normalized:
-      switch (components) {
-        case 1:
-          out_vert_format = MTLVertexFormatShortNormalized;
-          break;
-        case 2:
-          out_vert_format = MTLVertexFormatShort2Normalized;
-          break;
-        case 3:
-          out_vert_format = MTLVertexFormatShort3Normalized;
-          break;
-        case 4:
-          out_vert_format = MTLVertexFormatShort4Normalized;
-          break;
-      }
-      break;
-
-    /* Unsigned Short. */
-    case MTLVertexFormatUShort:
-    case MTLVertexFormatUShort2:
-    case MTLVertexFormatUShort3:
-    case MTLVertexFormatUShort4:
-      switch (components) {
-        case 1:
-          out_vert_format = MTLVertexFormatUShort;
-          break;
-        case 2:
-          out_vert_format = MTLVertexFormatUShort2;
-          break;
-        case 3:
-          out_vert_format = MTLVertexFormatUShort3;
-          break;
-        case 4:
-          out_vert_format = MTLVertexFormatUShort4;
-          break;
-      }
-      break;
-
-    /* Normalized Unsigned Short. */
-    case MTLVertexFormatUShortNormalized:
-    case MTLVertexFormatUShort2Normalized:
-    case MTLVertexFormatUShort3Normalized:
-    case MTLVertexFormatUShort4Normalized:
-      switch (components) {
-        case 1:
-          out_vert_format = MTLVertexFormatUShortNormalized;
-          break;
-        case 2:
-          out_vert_format = MTLVertexFormatUShort2Normalized;
-          break;
-        case 3:
-          out_vert_format = MTLVertexFormatUShort3Normalized;
-          break;
-        case 4:
-          out_vert_format = MTLVertexFormatUShort4Normalized;
-          break;
-      }
-      break;
-
-    /* Integer. */
-    case MTLVertexFormatInt:
-    case MTLVertexFormatInt2:
-    case MTLVertexFormatInt3:
-    case MTLVertexFormatInt4:
-      switch (components) {
-        case 1:
-          out_vert_format = MTLVertexFormatInt;
-          break;
-        case 2:
-          out_vert_format = MTLVertexFormatInt2;
-          break;
-        case 3:
-          out_vert_format = MTLVertexFormatInt3;
-          break;
-        case 4:
-          out_vert_format = MTLVertexFormatInt4;
-          break;
-      }
-      break;
-
-    /* Unsigned Integer. */
-    case MTLVertexFormatUInt:
-    case MTLVertexFormatUInt2:
-    case MTLVertexFormatUInt3:
-    case MTLVertexFormatUInt4:
-      switch (components) {
-        case 1:
-          out_vert_format = MTLVertexFormatUInt;
-          break;
-        case 2:
-          out_vert_format = MTLVertexFormatUInt2;
-          break;
-        case 3:
-          out_vert_format = MTLVertexFormatUInt3;
-          break;
-        case 4:
-          out_vert_format = MTLVertexFormatUInt4;
-          break;
-      }
-      break;
-
-    /* Half. */
-    case MTLVertexFormatHalf:
-    case MTLVertexFormatHalf2:
-    case MTLVertexFormatHalf3:
-    case MTLVertexFormatHalf4:
-      switch (components) {
-        case 1:
-          out_vert_format = MTLVertexFormatHalf;
-          break;
-        case 2:
-          out_vert_format = MTLVertexFormatHalf2;
-          break;
-        case 3:
-          out_vert_format = MTLVertexFormatHalf3;
-          break;
-        case 4:
-          out_vert_format = MTLVertexFormatHalf4;
-          break;
-      }
-      break;
-
-    /* Float. */
-    case MTLVertexFormatFloat:
-    case MTLVertexFormatFloat2:
-    case MTLVertexFormatFloat3:
-    case MTLVertexFormatFloat4:
-      switch (components) {
-        case 1:
-          out_vert_format = MTLVertexFormatFloat;
-          break;
-        case 2:
-          out_vert_format = MTLVertexFormatFloat2;
-          break;
-        case 3:
-          out_vert_format = MTLVertexFormatFloat3;
-          break;
-        case 4:
-          out_vert_format = MTLVertexFormatFloat4;
-          break;
-      }
-      break;
-
-    /* Other formats */
+    RESIZE_TYPE(Char, )
+    RESIZE_TYPE(Char, Normalized)
+    RESIZE_TYPE(UChar, )
+    RESIZE_TYPE(UChar, Normalized)
+    RESIZE_TYPE(Short, )
+    RESIZE_TYPE(Short, Normalized)
+    RESIZE_TYPE(UShort, )
+    RESIZE_TYPE(UShort, Normalized)
+    RESIZE_TYPE(Int, )
+    RESIZE_TYPE(UInt, )
+    RESIZE_TYPE(Half, )
+    RESIZE_TYPE(Float, )
     default:
-      out_vert_format = mtl_format;
+      /* Can only call this function on format that can be resized. */
+      BLI_assert_unreachable();
       break;
   }
-  *r_convertedFormat = out_vert_format;
-  return out_vert_format != MTLVertexFormatInvalid;
+
+#undef RESIZE_TYPE
+  return MTLVertexFormatInvalid;
+}
+
+inline MTLVertexFormat format_get_component_type(MTLVertexFormat mtl_format)
+{
+  return format_resize_comp(mtl_format, 1);
+}
+
+inline MTLVertexFormat to_mtl(GPUVertCompType component_type,
+                              GPUVertFetchMode fetch_mode,
+                              uint32_t component_len)
+{
+#define FORMAT_PER_COMP(_type, _suffix) \
+  switch (component_len) { \
+    case 1: \
+      return MTLVertexFormat##_type##_suffix; \
+    case 2: \
+      return MTLVertexFormat##_type##2##_suffix; \
+    case 3: \
+      return MTLVertexFormat##_type##3##_suffix; \
+    case 4: \
+      return MTLVertexFormat##_type##4##_suffix; \
+    default: \
+      BLI_assert_msg(0, "Invalid attribute component count"); \
+      break; \
+  } \
+  break;
+
+#define FORMAT_PER_COMP_SMALL_INT(_type) \
+  switch (fetch_mode) { \
+    case GPU_FETCH_INT: \
+      FORMAT_PER_COMP(_type, ) \
+    case GPU_FETCH_INT_TO_FLOAT_UNIT: \
+      FORMAT_PER_COMP(_type, Normalized) \
+    case GPU_FETCH_FLOAT: \
+      BLI_assert_msg(0, "Invalid fetch mode for integer attribute"); \
+      break; \
+    case GPU_FETCH_INT_TO_FLOAT: \
+      /* Fallback to manual conversion */ \
+      break; \
+  } \
+  break;
+
+#define FORMAT_PER_COMP_INT(_type) \
+  switch (fetch_mode) { \
+    case GPU_FETCH_INT: \
+      FORMAT_PER_COMP(_type, ) \
+    case GPU_FETCH_FLOAT: \
+      BLI_assert_msg(0, "Invalid fetch mode for integer attribute"); \
+      break; \
+    case GPU_FETCH_INT_TO_FLOAT_UNIT: \
+    case GPU_FETCH_INT_TO_FLOAT: \
+      /* Fallback to manual conversion */ \
+      break; \
+  } \
+  break;
+
+  switch (component_type) {
+    case GPU_COMP_I8:
+      FORMAT_PER_COMP_SMALL_INT(Char)
+    case GPU_COMP_U8:
+      FORMAT_PER_COMP_SMALL_INT(UChar)
+    case GPU_COMP_I16:
+      FORMAT_PER_COMP_SMALL_INT(Short)
+    case GPU_COMP_U16:
+      FORMAT_PER_COMP_SMALL_INT(UShort)
+    case GPU_COMP_I32:
+      FORMAT_PER_COMP_INT(Int)
+    case GPU_COMP_U32:
+      FORMAT_PER_COMP_INT(UInt)
+    case GPU_COMP_F32:
+      switch (fetch_mode) {
+        case GPU_FETCH_FLOAT:
+          FORMAT_PER_COMP(Float, )
+          break;
+        case GPU_FETCH_INT:
+        case GPU_FETCH_INT_TO_FLOAT_UNIT:
+        case GPU_FETCH_INT_TO_FLOAT:
+          BLI_assert_msg(0, "Invalid fetch mode for float attribute");
+          break;
+      }
+    case GPU_COMP_I10:
+      switch (fetch_mode) {
+        case GPU_FETCH_INT_TO_FLOAT_UNIT:
+          return MTLVertexFormatInt1010102Normalized;
+        case GPU_FETCH_FLOAT:
+        case GPU_FETCH_INT:
+        case GPU_FETCH_INT_TO_FLOAT:
+          BLI_assert_msg(0, "Invalid fetch mode for compressed attribute");
+          break;
+      }
+    case GPU_COMP_MAX:
+      BLI_assert_unreachable();
+      break;
+  }
+#undef FORMAT_PER_COMP
+  /* Loading mode not natively supported. */
+  return MTLVertexFormatInvalid;
+}
+
+inline int mtl_format_component_len(MTLVertexFormat format)
+{
+#define FORMAT_PER_TYPE(_comp, _value) \
+  case MTLVertexFormatChar##_comp: \
+  case MTLVertexFormatChar##_comp##Normalized: \
+  case MTLVertexFormatUChar##_comp: \
+  case MTLVertexFormatUChar##_comp##Normalized: \
+  case MTLVertexFormatShort##_comp: \
+  case MTLVertexFormatShort##_comp##Normalized: \
+  case MTLVertexFormatUShort##_comp: \
+  case MTLVertexFormatUShort##_comp##Normalized: \
+  case MTLVertexFormatInt##_comp: \
+  case MTLVertexFormatUInt##_comp: \
+  case MTLVertexFormatHalf##_comp: \
+  case MTLVertexFormatFloat##_comp: \
+    return _value;
+
+  switch (format) {
+    FORMAT_PER_TYPE(, 1)
+    FORMAT_PER_TYPE(2, 2)
+    FORMAT_PER_TYPE(3, 3)
+    FORMAT_PER_TYPE(4, 4)
+    case MTLVertexFormatUInt1010102Normalized:
+    case MTLVertexFormatInt1010102Normalized:
+    case MTLVertexFormatUChar4Normalized_BGRA:
+      return 4;
+#if defined(MAC_OS_VERSION_14_0)
+    case MTLVertexFormatFloatRG11B10:
+      return 3;
+    case MTLVertexFormatFloatRGB9E5:
+      return 3;
+#endif
+    case MTLVertexFormatInvalid:
+      return -1;
+  }
+
+#undef FORMAT_PER_TYPE
+  return -1;
+}
+
+inline bool mtl_format_is_normalized(MTLVertexFormat format)
+{
+#define FORMAT_PER_TYPE(_comp) \
+  case MTLVertexFormatChar##_comp##Normalized: \
+  case MTLVertexFormatUChar##_comp##Normalized: \
+  case MTLVertexFormatShort##_comp##Normalized: \
+  case MTLVertexFormatUShort##_comp##Normalized: \
+    return true;
+
+  switch (format) {
+    FORMAT_PER_TYPE()
+    FORMAT_PER_TYPE(2)
+    FORMAT_PER_TYPE(3)
+    FORMAT_PER_TYPE(4)
+    default:
+      break;
+  }
+
+#undef FORMAT_PER_TYPE
+  return false;
 }
 
 /**
@@ -793,571 +729,70 @@ inline bool mtl_vertex_format_resize(MTLVertexFormat mtl_format,
  * These functions selectively convert between types based on the specified vertex
  * attribute `GPUVertFetchMode fetch_mode` e.g. `GPU_FETCH_INT`.
  */
-inline bool mtl_convert_vertex_format(MTLVertexFormat shader_attrib_format,
+inline MTLVertexFormat mtl_convert_vertex_format_ex(MTLVertexFormat shader_attr_format,
+                                                    GPUVertCompType component_type,
+                                                    uint32_t component_len,
+                                                    GPUVertFetchMode fetch_mode)
+{
+  MTLVertexFormat vertex_attr_format = to_mtl(component_type, fetch_mode, component_len);
+
+  if (vertex_attr_format == MTLVertexFormatInvalid) {
+    /* No valid builtin conversion known or error. */
+    return vertex_attr_format;
+  }
+
+  if (vertex_attr_format == shader_attr_format) {
+    /* Everything matches. Nothing to do. */
+    return vertex_attr_format;
+  }
+
+  if (vertex_attr_format == MTLVertexFormatInt1010102Normalized) {
+    BLI_assert_msg(format_get_component_type(shader_attr_format) == MTLVertexFormatFloat,
+                   "Vertex format is GPU_COMP_I10 but shader input is not float");
+    return vertex_attr_format;
+  }
+
+  /* Attribute type mismatch. Check if casting is supported. */
+  MTLVertexFormat shader_attr_comp_type = format_get_component_type(shader_attr_format);
+  MTLVertexFormat vertex_attr_comp_type = format_get_component_type(vertex_attr_format);
+
+  if (shader_attr_comp_type == vertex_attr_comp_type) {
+    /* Conversion of vectors of different lengths is valid. */
+    return vertex_attr_format;
+  }
+
+  if (shader_attr_comp_type != MTLVertexFormatFloat) {
+    BLI_assert_msg(vertex_attr_comp_type != MTLVertexFormatFloat,
+                   "Vertex format is GPU_COMP_F32 but shader input is not float");
+  }
+  /* Casting normalized MTLVertexFormat types are only valid to float or half. */
+  if (shader_attr_comp_type == MTLVertexFormatFloat) {
+    BLI_assert_msg(mtl_format_is_normalized(vertex_attr_comp_type),
+                   "Vertex format is INT_TO_FLOAT_UNIT but shader input is not float");
+  }
+  /* The sign of an integer MTLVertexFormat can not be cast to a shader argument with an integer
+   * type of a different sign. */
+  if (shader_attr_comp_type == MTLVertexFormatInt) {
+    BLI_assert_msg(ELEM(vertex_attr_comp_type, MTLVertexFormatChar, MTLVertexFormatShort),
+                   "Vertex format is either I8 or I16 but shader input is not float");
+  }
+  if (shader_attr_comp_type == MTLVertexFormatUInt) {
+    BLI_assert_msg(ELEM(vertex_attr_comp_type, MTLVertexFormatUChar, MTLVertexFormatUShort),
+                   "Vertex format is either U8 or U16 but shader input is not float");
+  }
+  /* Valid automatic conversion. */
+  return vertex_attr_format;
+}
+
+inline bool mtl_convert_vertex_format(MTLVertexFormat shader_attr_format,
                                       GPUVertCompType component_type,
-                                      uint32_t component_length,
+                                      uint32_t component_len,
                                       GPUVertFetchMode fetch_mode,
                                       MTLVertexFormat *r_convertedFormat)
 {
-  bool normalized = (fetch_mode == GPU_FETCH_INT_TO_FLOAT_UNIT);
-  MTLVertexFormat out_vert_format = MTLVertexFormatInvalid;
-
-  switch (component_type) {
-
-    case GPU_COMP_I8:
-      switch (fetch_mode) {
-        case GPU_FETCH_INT:
-          if (shader_attrib_format == MTLVertexFormatChar ||
-              shader_attrib_format == MTLVertexFormatChar2 ||
-              shader_attrib_format == MTLVertexFormatChar3 ||
-              shader_attrib_format == MTLVertexFormatChar4)
-          {
-
-            /* No conversion Needed (as type matches) - Just a vector resize if needed. */
-            bool can_convert = mtl_vertex_format_resize(
-                shader_attrib_format, component_type, &out_vert_format);
-
-            /* Ensure format resize successful. */
-            BLI_assert(can_convert);
-            UNUSED_VARS_NDEBUG(can_convert);
-          }
-          else if (shader_attrib_format == MTLVertexFormatInt4 && component_length == 4) {
-            /* Allow type expansion - Shader expects MTLVertexFormatInt4, we can supply a type
-             * with fewer bytes if component count is the same. Sign must also match original type
-             *  -- which is not a problem in this case. */
-            out_vert_format = MTLVertexFormatChar4;
-          }
-          else if (shader_attrib_format == MTLVertexFormatInt3 && component_length == 3) {
-            /* Same as above case for matching length and signage (Len=3). */
-            out_vert_format = MTLVertexFormatChar3;
-          }
-          else if (shader_attrib_format == MTLVertexFormatInt2 && component_length == 2) {
-            /* Same as above case for matching length and signage (Len=2). */
-            out_vert_format = MTLVertexFormatChar2;
-          }
-          else if (shader_attrib_format == MTLVertexFormatInt && component_length == 1) {
-            /* Same as above case for matching length and signage (Len=1). */
-            out_vert_format = MTLVertexFormatChar;
-          }
-          else if (shader_attrib_format == MTLVertexFormatInt && component_length == 4) {
-            /* Special case here, format has been specified as GPU_COMP_U8 with 4 components, which
-             * is equivalent to an Int -- so data will be compatible with the shader interface. */
-            out_vert_format = MTLVertexFormatInt;
-          }
-          else {
-            BLI_assert_msg(false,
-                           "Source vertex data format is either Char, Char2, Char3, Char4 but "
-                           "format in shader interface is NOT compatible.\n");
-            out_vert_format = MTLVertexFormatInvalid;
-          }
-          break;
-
-        /* Source vertex data is integer type, but shader interface type is floating point.
-         * If the input attribute is specified as normalized, we can convert. */
-        case GPU_FETCH_FLOAT:
-        case GPU_FETCH_INT_TO_FLOAT:
-        case GPU_FETCH_INT_TO_FLOAT_UNIT:
-          if (normalized) {
-            switch (component_length) {
-              case 1:
-                out_vert_format = MTLVertexFormatCharNormalized;
-                break;
-              case 2:
-                out_vert_format = MTLVertexFormatChar2Normalized;
-                break;
-              case 3:
-                out_vert_format = MTLVertexFormatChar3Normalized;
-                break;
-              case 4:
-                out_vert_format = MTLVertexFormatChar4Normalized;
-                break;
-              default:
-                BLI_assert_msg(false, "invalid vertex format");
-                out_vert_format = MTLVertexFormatInvalid;
-            }
-          }
-          else {
-            /* Cannot convert. */
-            out_vert_format = MTLVertexFormatInvalid;
-          }
-          break;
-      }
-      break;
-
-    case GPU_COMP_U8:
-      switch (fetch_mode) {
-        /* Fetching INT: Check backing shader format matches source input. */
-        case GPU_FETCH_INT:
-          if (shader_attrib_format == MTLVertexFormatUChar ||
-              shader_attrib_format == MTLVertexFormatUChar2 ||
-              shader_attrib_format == MTLVertexFormatUChar3 ||
-              shader_attrib_format == MTLVertexFormatUChar4)
-          {
-
-            /* No conversion Needed (as type matches) - Just a vector resize if needed. */
-            bool can_convert = mtl_vertex_format_resize(
-                shader_attrib_format, component_length, &out_vert_format);
-
-            /* Ensure format resize successful. */
-            BLI_assert(can_convert);
-            UNUSED_VARS_NDEBUG(can_convert);
-            /* TODO(Metal): Add other format conversions if needed. Currently no attributes hit
-             * this path. */
-          }
-          else if (shader_attrib_format == MTLVertexFormatUInt4 && component_length == 4) {
-            /* Allow type expansion - Shader expects MTLVertexFormatUInt4, we can supply a type
-             * with fewer bytes if component count is the same. */
-            out_vert_format = MTLVertexFormatUChar4;
-          }
-          else if (shader_attrib_format == MTLVertexFormatUInt3 && component_length == 3) {
-            /* Same as above case for matching length and signage (Len=3). */
-            out_vert_format = MTLVertexFormatUChar3;
-          }
-          else if (shader_attrib_format == MTLVertexFormatUInt2 && component_length == 2) {
-            /* Same as above case for matching length and signage (Len=2). */
-            out_vert_format = MTLVertexFormatUChar2;
-          }
-          else if (shader_attrib_format == MTLVertexFormatUInt && component_length == 1) {
-            /* Same as above case for matching length and signage (Len=1). */
-            out_vert_format = MTLVertexFormatUChar;
-          }
-          else if (shader_attrib_format == MTLVertexFormatInt && component_length == 4) {
-            /* Special case here, format has been specified as GPU_COMP_U8 with 4 components, which
-             * is equivalent to an Int-- so data will be compatible with shader interface. */
-            out_vert_format = MTLVertexFormatInt;
-          }
-          else if (shader_attrib_format == MTLVertexFormatUInt && component_length == 4) {
-            /* Special case here, format has been specified as GPU_COMP_U8 with 4 components, which
-             * is equivalent to a UInt-- so data will be compatible with shader interface. */
-            out_vert_format = MTLVertexFormatUInt;
-          }
-          else {
-            BLI_assert_msg(false,
-                           "Source vertex data format is either UChar, UChar2, UChar3, UChar4 but "
-                           "format in shader interface is NOT compatible.\n");
-            out_vert_format = MTLVertexFormatInvalid;
-          }
-          break;
-
-        /* Source vertex data is integral type, but shader interface type is floating point.
-         * If the input attribute is specified as normalized, we can convert. */
-        case GPU_FETCH_FLOAT:
-        case GPU_FETCH_INT_TO_FLOAT:
-        case GPU_FETCH_INT_TO_FLOAT_UNIT:
-          if (normalized) {
-            switch (component_length) {
-              case 1:
-                out_vert_format = MTLVertexFormatUCharNormalized;
-                break;
-              case 2:
-                out_vert_format = MTLVertexFormatUChar2Normalized;
-                break;
-              case 3:
-                out_vert_format = MTLVertexFormatUChar3Normalized;
-                break;
-              case 4:
-                out_vert_format = MTLVertexFormatUChar4Normalized;
-                break;
-              default:
-                BLI_assert_msg(false, "invalid vertex format");
-                out_vert_format = MTLVertexFormatInvalid;
-            }
-          }
-          else {
-            /* Cannot convert. */
-            out_vert_format = MTLVertexFormatInvalid;
-          }
-          break;
-      }
-      break;
-
-    case GPU_COMP_I16:
-      switch (fetch_mode) {
-        case GPU_FETCH_INT:
-          if (shader_attrib_format == MTLVertexFormatShort ||
-              shader_attrib_format == MTLVertexFormatShort2 ||
-              shader_attrib_format == MTLVertexFormatShort3 ||
-              shader_attrib_format == MTLVertexFormatShort4)
-          {
-            /* No conversion Needed (as type matches) - Just a vector resize if needed. */
-            bool can_convert = mtl_vertex_format_resize(
-                shader_attrib_format, component_length, &out_vert_format);
-
-            /* Ensure conversion successful. */
-            BLI_assert(can_convert);
-            UNUSED_VARS_NDEBUG(can_convert);
-          }
-          else {
-            BLI_assert_msg(false,
-                           "Source vertex data format is either Short, Short2, Short3, Short4 but "
-                           "format in shader interface is NOT compatible.\n");
-            out_vert_format = MTLVertexFormatInvalid;
-          }
-          break;
-
-        /* Source vertex data is integral type, but shader interface type is floating point.
-         * If the input attribute is specified as normalized, we can convert. */
-        case GPU_FETCH_FLOAT:
-        case GPU_FETCH_INT_TO_FLOAT:
-        case GPU_FETCH_INT_TO_FLOAT_UNIT:
-          if (normalized) {
-            switch (component_length) {
-              case 1:
-                out_vert_format = MTLVertexFormatShortNormalized;
-                break;
-              case 2:
-                out_vert_format = MTLVertexFormatShort2Normalized;
-                break;
-              case 3:
-                out_vert_format = MTLVertexFormatShort3Normalized;
-                break;
-              case 4:
-                out_vert_format = MTLVertexFormatShort4Normalized;
-                break;
-              default:
-                BLI_assert_msg(false, "invalid vertex format");
-                out_vert_format = MTLVertexFormatInvalid;
-            }
-          }
-          else {
-            /* Cannot convert. */
-            out_vert_format = MTLVertexFormatInvalid;
-          }
-          break;
-      }
-      break;
-
-    case GPU_COMP_U16:
-      switch (fetch_mode) {
-        case GPU_FETCH_INT:
-          if (shader_attrib_format == MTLVertexFormatUShort ||
-              shader_attrib_format == MTLVertexFormatUShort2 ||
-              shader_attrib_format == MTLVertexFormatUShort3 ||
-              shader_attrib_format == MTLVertexFormatUShort4)
-          {
-            /* No conversion Needed (as type matches) - Just a vector resize if needed. */
-            bool can_convert = mtl_vertex_format_resize(
-                shader_attrib_format, component_length, &out_vert_format);
-
-            /* Ensure format resize successful. */
-            BLI_assert(can_convert);
-            UNUSED_VARS_NDEBUG(can_convert);
-          }
-          else {
-            BLI_assert_msg(false,
-                           "Source vertex data format is either UShort, UShort2, UShort3, UShort4 "
-                           "but format in shader interface is NOT compatible.\n");
-            out_vert_format = MTLVertexFormatInvalid;
-          }
-          break;
-
-        /* Source vertex data is integral type, but shader interface type is floating point.
-         * If the input attribute is specified as normalized, we can convert. */
-        case GPU_FETCH_FLOAT:
-        case GPU_FETCH_INT_TO_FLOAT:
-        case GPU_FETCH_INT_TO_FLOAT_UNIT:
-          if (normalized) {
-            switch (component_length) {
-              case 1:
-                out_vert_format = MTLVertexFormatUShortNormalized;
-                break;
-              case 2:
-                out_vert_format = MTLVertexFormatUShort2Normalized;
-                break;
-              case 3:
-                out_vert_format = MTLVertexFormatUShort3Normalized;
-                break;
-              case 4:
-                out_vert_format = MTLVertexFormatUShort4Normalized;
-                break;
-              default:
-                BLI_assert_msg(false, "invalid vertex format");
-                out_vert_format = MTLVertexFormatInvalid;
-            }
-          }
-          else {
-            /* Cannot convert. */
-            out_vert_format = MTLVertexFormatInvalid;
-          }
-          break;
-      }
-      break;
-
-    case GPU_COMP_I32:
-      switch (fetch_mode) {
-        case GPU_FETCH_INT:
-          if (shader_attrib_format == MTLVertexFormatInt ||
-              shader_attrib_format == MTLVertexFormatInt2 ||
-              shader_attrib_format == MTLVertexFormatInt3 ||
-              shader_attrib_format == MTLVertexFormatInt4)
-          {
-            /* No conversion Needed (as type matches) - Just a vector resize if needed. */
-            bool can_convert = mtl_vertex_format_resize(
-                shader_attrib_format, component_length, &out_vert_format);
-
-            /* Verify conversion successful. */
-            BLI_assert(can_convert);
-            UNUSED_VARS_NDEBUG(can_convert);
-          }
-          else {
-            BLI_assert_msg(false,
-                           "Source vertex data format is either Int, Int2, Int3, Int4 but format "
-                           "in shader interface is NOT compatible.\n");
-            out_vert_format = MTLVertexFormatInvalid;
-          }
-          break;
-        case GPU_FETCH_FLOAT:
-        case GPU_FETCH_INT_TO_FLOAT:
-        case GPU_FETCH_INT_TO_FLOAT_UNIT:
-          /* Unfortunately we cannot implicitly convert between Int and Float in METAL. */
-          out_vert_format = MTLVertexFormatInvalid;
-          break;
-      }
-      break;
-
-    case GPU_COMP_U32:
-      switch (fetch_mode) {
-        case GPU_FETCH_INT:
-          if (shader_attrib_format == MTLVertexFormatUInt ||
-              shader_attrib_format == MTLVertexFormatUInt2 ||
-              shader_attrib_format == MTLVertexFormatUInt3 ||
-              shader_attrib_format == MTLVertexFormatUInt4)
-          {
-            /* No conversion Needed (as type matches) - Just a vector resize if needed. */
-            bool can_convert = mtl_vertex_format_resize(
-                shader_attrib_format, component_length, &out_vert_format);
-
-            /* Verify conversion successful. */
-            BLI_assert(can_convert);
-            UNUSED_VARS_NDEBUG(can_convert);
-          }
-          else {
-            BLI_assert_msg(false,
-                           "Source vertex data format is either UInt, UInt2, UInt3, UInt4 but "
-                           "format in shader interface is NOT compatible.\n");
-            out_vert_format = MTLVertexFormatInvalid;
-          }
-          break;
-        case GPU_FETCH_FLOAT:
-        case GPU_FETCH_INT_TO_FLOAT:
-        case GPU_FETCH_INT_TO_FLOAT_UNIT:
-          /* Unfortunately we cannot convert between UInt and Float in METAL */
-          out_vert_format = MTLVertexFormatInvalid;
-          break;
-      }
-      break;
-
-    case GPU_COMP_F32:
-      switch (fetch_mode) {
-
-        /* Source data is float. This will be compatible
-         * if type specified in shader is also float. */
-        case GPU_FETCH_FLOAT:
-        case GPU_FETCH_INT_TO_FLOAT:
-        case GPU_FETCH_INT_TO_FLOAT_UNIT:
-          if (shader_attrib_format == MTLVertexFormatFloat ||
-              shader_attrib_format == MTLVertexFormatFloat2 ||
-              shader_attrib_format == MTLVertexFormatFloat3 ||
-              shader_attrib_format == MTLVertexFormatFloat4)
-          {
-            /* No conversion Needed (as type matches) - Just a vector resize, if needed. */
-            bool can_convert = mtl_vertex_format_resize(
-                shader_attrib_format, component_length, &out_vert_format);
-
-            /* Verify conversion successful. */
-            BLI_assert(can_convert);
-            UNUSED_VARS_NDEBUG(can_convert);
-          }
-          else {
-            BLI_assert_msg(false,
-                           "Source vertex data format is either Float, Float2, Float3, Float4 but "
-                           "format in shader interface is NOT compatible.\n");
-            out_vert_format = MTLVertexFormatInvalid;
-          }
-          break;
-
-        case GPU_FETCH_INT:
-          /* Unfortunately we cannot convert between Float and Int implicitly in METAL. */
-          out_vert_format = MTLVertexFormatInvalid;
-          break;
-      }
-      break;
-
-    case GPU_COMP_I10:
-      out_vert_format = MTLVertexFormatInt1010102Normalized;
-      break;
-    case GPU_COMP_MAX:
-      BLI_assert_unreachable();
-      break;
-  }
-  *r_convertedFormat = out_vert_format;
-  return (out_vert_format != MTLVertexFormatInvalid);
-}
-
-inline uint comp_count_from_vert_format(MTLVertexFormat vert_format)
-{
-  switch (vert_format) {
-    case MTLVertexFormatFloat:
-    case MTLVertexFormatInt:
-    case MTLVertexFormatUInt:
-    case MTLVertexFormatShort:
-    case MTLVertexFormatUChar:
-    case MTLVertexFormatUCharNormalized:
-      return 1;
-    case MTLVertexFormatUChar2:
-    case MTLVertexFormatUInt2:
-    case MTLVertexFormatFloat2:
-    case MTLVertexFormatInt2:
-    case MTLVertexFormatUChar2Normalized:
-      return 2;
-    case MTLVertexFormatUChar3:
-    case MTLVertexFormatUInt3:
-    case MTLVertexFormatFloat3:
-    case MTLVertexFormatInt3:
-    case MTLVertexFormatShort3Normalized:
-    case MTLVertexFormatUChar3Normalized:
-      return 3;
-    case MTLVertexFormatUChar4:
-    case MTLVertexFormatFloat4:
-    case MTLVertexFormatUInt4:
-    case MTLVertexFormatInt4:
-    case MTLVertexFormatUChar4Normalized:
-    case MTLVertexFormatInt1010102Normalized:
-
-    default:
-      BLI_assert_msg(false, "Unrecognized attribute type. Add types to switch as needed.");
-      return 0;
-  }
-}
-
-inline GPUVertFetchMode fetchmode_from_vert_format(MTLVertexFormat vert_format)
-{
-  switch (vert_format) {
-    case MTLVertexFormatFloat:
-    case MTLVertexFormatFloat2:
-    case MTLVertexFormatFloat3:
-    case MTLVertexFormatFloat4:
-      return GPU_FETCH_FLOAT;
-
-    case MTLVertexFormatUChar:
-    case MTLVertexFormatUChar2:
-    case MTLVertexFormatUChar3:
-    case MTLVertexFormatUChar4:
-    case MTLVertexFormatChar:
-    case MTLVertexFormatChar2:
-    case MTLVertexFormatChar3:
-    case MTLVertexFormatChar4:
-    case MTLVertexFormatUShort:
-    case MTLVertexFormatUShort2:
-    case MTLVertexFormatUShort3:
-    case MTLVertexFormatUShort4:
-    case MTLVertexFormatShort:
-    case MTLVertexFormatShort2:
-    case MTLVertexFormatShort3:
-    case MTLVertexFormatShort4:
-    case MTLVertexFormatUInt:
-    case MTLVertexFormatUInt2:
-    case MTLVertexFormatUInt3:
-    case MTLVertexFormatUInt4:
-    case MTLVertexFormatInt:
-    case MTLVertexFormatInt2:
-    case MTLVertexFormatInt3:
-    case MTLVertexFormatInt4:
-      return GPU_FETCH_INT;
-
-    case MTLVertexFormatUCharNormalized:
-    case MTLVertexFormatUChar2Normalized:
-    case MTLVertexFormatUChar3Normalized:
-    case MTLVertexFormatUChar4Normalized:
-    case MTLVertexFormatCharNormalized:
-    case MTLVertexFormatChar2Normalized:
-    case MTLVertexFormatChar3Normalized:
-    case MTLVertexFormatChar4Normalized:
-    case MTLVertexFormatUShortNormalized:
-    case MTLVertexFormatUShort2Normalized:
-    case MTLVertexFormatUShort3Normalized:
-    case MTLVertexFormatUShort4Normalized:
-    case MTLVertexFormatShortNormalized:
-    case MTLVertexFormatShort2Normalized:
-    case MTLVertexFormatShort3Normalized:
-    case MTLVertexFormatShort4Normalized:
-    case MTLVertexFormatInt1010102Normalized:
-      return GPU_FETCH_INT_TO_FLOAT_UNIT;
-
-    default:
-      BLI_assert_msg(false, "Unrecognized attribute type. Add types to switch as needed.");
-      return GPU_FETCH_FLOAT;
-  }
-}
-
-inline GPUVertCompType comp_type_from_vert_format(MTLVertexFormat vert_format)
-{
-  switch (vert_format) {
-    case MTLVertexFormatUChar:
-    case MTLVertexFormatUChar2:
-    case MTLVertexFormatUChar3:
-    case MTLVertexFormatUChar4:
-    case MTLVertexFormatUCharNormalized:
-    case MTLVertexFormatUChar2Normalized:
-    case MTLVertexFormatUChar3Normalized:
-    case MTLVertexFormatUChar4Normalized:
-      return GPU_COMP_U8;
-
-    case MTLVertexFormatChar:
-    case MTLVertexFormatChar2:
-    case MTLVertexFormatChar3:
-    case MTLVertexFormatChar4:
-    case MTLVertexFormatCharNormalized:
-    case MTLVertexFormatChar2Normalized:
-    case MTLVertexFormatChar3Normalized:
-    case MTLVertexFormatChar4Normalized:
-      return GPU_COMP_I8;
-
-    case MTLVertexFormatShort:
-    case MTLVertexFormatShort2:
-    case MTLVertexFormatShort3:
-    case MTLVertexFormatShort4:
-    case MTLVertexFormatShortNormalized:
-    case MTLVertexFormatShort2Normalized:
-    case MTLVertexFormatShort3Normalized:
-    case MTLVertexFormatShort4Normalized:
-      return GPU_COMP_I16;
-
-    case MTLVertexFormatUShort:
-    case MTLVertexFormatUShort2:
-    case MTLVertexFormatUShort3:
-    case MTLVertexFormatUShort4:
-    case MTLVertexFormatUShortNormalized:
-    case MTLVertexFormatUShort2Normalized:
-    case MTLVertexFormatUShort3Normalized:
-    case MTLVertexFormatUShort4Normalized:
-      return GPU_COMP_U16;
-
-    case MTLVertexFormatInt:
-    case MTLVertexFormatInt2:
-    case MTLVertexFormatInt3:
-    case MTLVertexFormatInt4:
-      return GPU_COMP_I32;
-
-    case MTLVertexFormatUInt:
-    case MTLVertexFormatUInt2:
-    case MTLVertexFormatUInt3:
-    case MTLVertexFormatUInt4:
-      return GPU_COMP_U32;
-
-    case MTLVertexFormatFloat:
-    case MTLVertexFormatFloat2:
-    case MTLVertexFormatFloat3:
-    case MTLVertexFormatFloat4:
-      return GPU_COMP_F32;
-
-    case MTLVertexFormatInt1010102Normalized:
-      return GPU_COMP_I10;
-
-    default:
-      BLI_assert_msg(false, "Unrecognized attribute type. Add types to switch as needed.");
-      return GPU_COMP_F32;
-  }
+  *r_convertedFormat = mtl_convert_vertex_format_ex(
+      shader_attr_format, component_type, component_len, fetch_mode);
+  return (*r_convertedFormat != MTLVertexFormatInvalid);
 }
 
 }  // namespace blender::gpu

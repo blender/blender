@@ -27,9 +27,9 @@ static const char *static_path = PREFIX "/share";
 static const char *static_path = nullptr;
 #endif
 
-GHOST_SystemPathsUnix::GHOST_SystemPathsUnix() {}
+GHOST_SystemPathsUnix::GHOST_SystemPathsUnix() = default;
 
-GHOST_SystemPathsUnix::~GHOST_SystemPathsUnix() {}
+GHOST_SystemPathsUnix::~GHOST_SystemPathsUnix() = default;
 
 const char *GHOST_SystemPathsUnix::getSystemDir(int /*version*/, const char *versionstr) const
 {
@@ -42,6 +42,17 @@ const char *GHOST_SystemPathsUnix::getSystemDir(int /*version*/, const char *ver
   return nullptr;
 }
 
+static const char *home_dir_get()
+{
+  const char *home_dir = getenv("HOME");
+  if (home_dir == nullptr) {
+    if (const passwd *pwuser = getpwuid(getuid())) {
+      home_dir = pwuser->pw_dir;
+    }
+  }
+  return home_dir;
+}
+
 const char *GHOST_SystemPathsUnix::getUserDir(int version, const char *versionstr) const
 {
   static string user_path = "";
@@ -51,7 +62,7 @@ const char *GHOST_SystemPathsUnix::getUserDir(int version, const char *versionst
    * operator works we give a different path depending on the requested version */
   if (version < 264) {
     if (user_path.empty() || last_version != version) {
-      const char *home = getenv("HOME");
+      const char *home = home_dir_get();
 
       last_version = version;
 
@@ -73,11 +84,13 @@ const char *GHOST_SystemPathsUnix::getUserDir(int version, const char *versionst
       user_path = string(home) + "/blender/" + versionstr;
     }
     else {
-      home = getenv("HOME");
-      if (home == nullptr) {
-        home = getpwuid(getuid())->pw_dir;
+      home = home_dir_get();
+      if (home) {
+        user_path = string(home) + "/.config/blender/" + versionstr;
       }
-      user_path = string(home) + "/.config/blender/" + versionstr;
+      else {
+        return nullptr;
+      }
     }
   }
 

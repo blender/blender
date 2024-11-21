@@ -36,7 +36,7 @@ class MTLBackend : public GPUBackend {
     return MTLBackend::capabilities;
   }
 
-  ~MTLBackend()
+  ~MTLBackend() override
   {
     MTLBackend::platform_exit();
   }

@@ -22,7 +22,7 @@ struct LightProbeGridCacheFrame;
 struct Object;
 
 void BKE_lightprobe_type_set(struct LightProbe *probe, short lightprobe_type);
-void *BKE_lightprobe_add(struct Main *bmain, const char *name);
+struct LightProbe *BKE_lightprobe_add(struct Main *bmain, const char *name);
 
 void BKE_lightprobe_cache_blend_write(struct BlendWriter *writer,
                                       struct LightProbeObjectCache *cache);

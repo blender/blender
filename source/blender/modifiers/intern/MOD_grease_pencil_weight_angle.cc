@@ -128,7 +128,7 @@ static void write_weights_for_drawing(const ModifierData &md,
 {
   const auto &mmd = reinterpret_cast<const GreasePencilWeightAngleModifierData &>(md);
   bke::CurvesGeometry &curves = drawing.strokes_for_write();
-  if (curves.points_num() == 0) {
+  if (curves.is_empty()) {
     return;
   }
   IndexMaskMemory memory;
@@ -255,7 +255,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiItemR(layout, ptr, "use_multiply", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   if (uiLayout *influence_panel = uiLayoutPanelProp(
-          C, layout, ptr, "open_influence_panel", "Influence"))
+          C, layout, ptr, "open_influence_panel", IFACE_("Influence")))
   {
     modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
     modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);

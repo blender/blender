@@ -796,7 +796,10 @@ class VolumeNode : public ShaderNode {
   VolumeNode(const NodeType *node_type);
   SHADER_NODE_BASE_CLASS(VolumeNode)
 
-  void compile(SVMCompiler &compiler, ShaderInput *param1, ShaderInput *param2);
+  void compile(SVMCompiler &compiler,
+               ShaderInput *density,
+               ShaderInput *param1 = nullptr,
+               ShaderInput *param2 = nullptr);
   virtual int get_feature()
   {
     return ShaderNode::get_feature() | KERNEL_FEATURE_NODE_VOLUME;
@@ -835,6 +838,11 @@ class ScatterVolumeNode : public VolumeNode {
   SHADER_NODE_CLASS(ScatterVolumeNode)
 
   NODE_SOCKET_API(float, anisotropy)
+  NODE_SOCKET_API(float, IOR)
+  NODE_SOCKET_API(float, backscatter)
+  NODE_SOCKET_API(float, alpha)
+  NODE_SOCKET_API(float, diameter)
+  NODE_SOCKET_API(ClosureType, phase)
 };
 
 class PrincipledVolumeNode : public VolumeNode {

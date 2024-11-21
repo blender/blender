@@ -9,9 +9,7 @@
  * \brief Class to define the drawing style of a node
  */
 
-#ifdef WITH_CXX_GUARDEDALLOC
-#  include "MEM_guardedalloc.h"
-#endif
+#include "MEM_guardedalloc.h"
 
 namespace Freestyle {
 
@@ -85,9 +83,7 @@ class DrawingStyle {
   float PointSize;
   bool LightingEnabled;
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:DrawingStyle")
-#endif
 };
 
 DrawingStyle::DrawingStyle(const DrawingStyle &iBrother)

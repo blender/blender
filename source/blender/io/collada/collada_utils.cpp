@@ -874,7 +874,7 @@ bool bc_has_animations(Object *ob)
   }
 
   Key *key = BKE_key_from_object(ob);
-  if (blender::animrig::legacy::assigned_action_has_keyframes(key->adt)) {
+  if (key && blender::animrig::legacy::assigned_action_has_keyframes(key->adt)) {
     return true;
   }
 

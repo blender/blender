@@ -19,32 +19,15 @@
 
 namespace blender::io::usd {
 
-USDPointsReader::USDPointsReader(const pxr::UsdPrim &prim,
-                                 const USDImportParams &import_params,
-                                 const ImportSettings &settings)
-    : USDGeomReader(prim, import_params, settings), points_prim_(prim)
-{
-}
-
-bool USDPointsReader::valid() const
-{
-  return bool(points_prim_);
-}
-
 void USDPointsReader::create_object(Main *bmain, double /*motionSampleTime*/)
 {
-  PointCloud *point_cloud = static_cast<PointCloud *>(BKE_pointcloud_add(bmain, name_.c_str()));
+  PointCloud *point_cloud = BKE_pointcloud_add(bmain, name_.c_str());
   object_ = BKE_object_add_only_object(bmain, OB_POINTCLOUD, name_.c_str());
   object_->data = point_cloud;
 }
 
 void USDPointsReader::read_object_data(Main *bmain, double motionSampleTime)
 {
-  if (!points_prim_) {
-    /* Invalid prim, so we pass. */
-    return;
-  }
-
   const USDMeshReadParams params = create_mesh_read_params(motionSampleTime,
                                                            import_params_.mesh_read_flag);
 
@@ -76,11 +59,6 @@ void USDPointsReader::read_geometry(bke::GeometrySet &geometry_set,
                                     USDMeshReadParams params,
                                     const char ** /*r_err_str*/)
 {
-  if (!points_prim_) {
-    /* Invalid prim, so we pass. */
-    return;
-  }
-
   PointCloud *point_cloud = geometry_set.get_pointcloud_for_write();
 
   /* Get the existing point cloud data. */

@@ -12,13 +12,8 @@ __all__ = (
     "sha1_authors_map",
 )
 
-from typing import (
-    Dict,
-    Tuple,
-)
 
-
-def sha1_authors_map() -> Dict[bytes, Tuple[str, ...]]:
+def sha1_authors_map() -> dict[bytes, tuple[str, ...]]:
     """
     Return SHA1 to authors map.
     """
@@ -32,4 +27,8 @@ def sha1_authors_map() -> Dict[bytes, Tuple[str, ...]]:
         b"ba3d49225c9ff3514fb87ae5d692baefe5edec30": ("Sergey Sharybin <sergey@blender.org>", ),
         # Author was: `Author Name <email@address.com>`.
         b"4b6a4b5bc25bce10367dffadf7718e373f81f299": ("Antonio Vazquez <blendergit@gmail.com>", ),
+        # Author was: `Campbell Barton <campbell@blender.org>`.
+        b"584b96018a575d56e564a239dce0de572bf26c48": ("Lukasz Czyz <lukasz.czyzz@gmail.com>", ),
+        # Author was: `Sergey Sharybin <sergey.vfx@gmail.com>`.
+        b"a76e69f5f75c06dda6d35113d80b6b65dcc94ea0": ("John Cox <johnedwardcox@yahoo.com>", ),
     }

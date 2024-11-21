@@ -67,6 +67,12 @@ void BKE_ffmpeg_filepath_get(char filepath[/*FILE_MAX*/ 1024],
 void BKE_ffmpeg_preset_set(RenderData *rd, int preset);
 void BKE_ffmpeg_image_type_verify(RenderData *rd, const ImageFormatData *imf);
 bool BKE_ffmpeg_alpha_channel_is_supported(const RenderData *rd);
+bool BKE_ffmpeg_codec_supports_crf(int av_codec_id);
+/**
+ * Which pixel bit depths are supported by a given video codec.
+ * Returns bitmask of `R_IMF_CHAN_DEPTH_` flags.
+ */
+int BKE_ffmpeg_valid_bit_depths(int av_codec_id);
 
 void *BKE_ffmpeg_context_create();
 void BKE_ffmpeg_context_free(void *context_v);

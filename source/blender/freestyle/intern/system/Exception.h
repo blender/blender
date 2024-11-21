@@ -9,9 +9,7 @@
  * \brief Singleton to manage exceptions
  */
 
-#ifdef WITH_CXX_GUARDEDALLOC
-#  include "MEM_guardedalloc.h"
-#endif
+#include "MEM_guardedalloc.h"
 
 namespace Freestyle {
 
@@ -43,9 +41,7 @@ class Exception {
  private:
   static exception_type _exception;
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Exception")
-#endif
 };
 
 } /* namespace Freestyle */

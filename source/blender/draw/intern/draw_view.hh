@@ -21,6 +21,8 @@
 #include "DRW_render.hh"
 
 #include "draw_shader_shared.hh"
+#include <atomic>
+#include <cstdint>
 
 namespace blender::draw {
 
@@ -28,10 +30,17 @@ class Manager;
 
 /* TODO: de-duplicate. */
 using ObjectBoundsBuf = StorageArrayBuffer<ObjectBounds, 128>;
+using ObjectInfosBuf = StorageArrayBuffer<ObjectInfos, 128>;
 using VisibilityBuf = StorageArrayBuffer<uint, 4, true>;
 
 class View {
   friend Manager;
+
+  /** Number of sync done by views. Used for fingerprint. */
+  static std::atomic<uint32_t> global_sync_counter_;
+
+  /* Local sync counter. Used for fingerprint. */
+  uint32_t sync_counter_ = 0;
 
  protected:
   /** TODO(fclem): Maybe try to reduce the minimum cost if the number of view is lower. */
@@ -43,6 +52,8 @@ class View {
   UniformArrayBuffer<ViewCullingData, DRW_VIEW_MAX> culling_freeze_;
   /** Result of the visibility computation. 1 bit or 1 or 2 word per resource ID per view. */
   VisibilityBuf visibility_buf_;
+  /* Fingerprint of the manager state when visibility was computed. */
+  uint64_t manager_fingerprint_ = 0;
 
   const char *debug_name_;
 
@@ -173,8 +184,27 @@ class View {
  protected:
   /** Called from draw manager. */
   void bind();
-  virtual void compute_visibility(ObjectBoundsBuf &bounds, uint resource_len, bool debug_freeze);
+  virtual void compute_visibility(ObjectBoundsBuf &bounds,
+                                  ObjectInfosBuf &infos,
+                                  uint resource_len,
+                                  bool debug_freeze);
   virtual VisibilityBuf &get_visibility_buffer();
+
+  bool has_computed_visibility() const
+  {
+    /* NOTE: Even though manager fingerprint is not enough to check for update, it is still
+     * guaranteed to not be 0. So we can check weather or not this view has computed visibility
+     * after sync. Asserts will catch invalid usage . */
+    return manager_fingerprint_ != 0;
+  }
+
+  /* Fingerprint of the view for the current state.
+   * Not reliable enough for general update detection. Only to be used for debugging assertion. */
+  uint64_t fingerprint_get() const
+  {
+    BLI_assert_msg(sync_counter_ != 0, "View should be synced at least once before use");
+    return sync_counter_;
+  }
 
   void update_viewport_size();
 

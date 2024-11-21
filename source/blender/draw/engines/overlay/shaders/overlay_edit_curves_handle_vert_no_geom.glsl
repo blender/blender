@@ -2,9 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#include "common_math_lib.glsl"
+#include "common_view_clipping_lib.glsl"
+#include "common_view_lib.glsl"
 #pragma USE_SSBO_VERTEX_FETCH(TriangleList, 24)
 
 #define M_TAN_PI_BY_8 tan(M_PI / 8)
@@ -43,9 +43,6 @@ void main()
 {
   GPU_INTEL_VERTEX_SHADER_WORKAROUND
 
-  bool showCurveHandles = true;
-  uint curveHandleDisplay = CURVE_HANDLE_ALL;
-
   /* Perform vertex shader for each input primitive. */
   vec3 in_pos[2];
   vec3 world_pos[2];
@@ -74,30 +71,24 @@ void main()
   }
 
   /* Perform Geometry shader equivalent calculation. */
-  bool is_active_nurb = (vert_flag[0] & EDIT_CURVES_ACTIVE_HANDLE) != 0u;
-  uint color_id = (vert_flag[0] >> EDIT_CURVES_HANDLE_TYPES_SHIFT) & 3;
+  bool is_active = (vert_flag[0] & EDIT_CURVES_ACTIVE_HANDLE) != 0u;
+  uint color_id = (vert_flag[0] >> EDIT_CURVES_HANDLE_TYPES_SHIFT) & 7;
 
+  bool is_bezier_handle = (vert_flag[0] & EDIT_CURVES_BEZIER_HANDLE) != 0;
   /* Don't output any edges if we don't show handles */
-  if (!showCurveHandles && (color_id < 5u)) {
+  if ((uint(curveHandleDisplay) == CURVE_HANDLE_NONE) && is_bezier_handle) {
     DISCARD_VERTEX
     return;
   }
 
-  bool handle_selected = (showCurveHandles &&
-                          ((vert_flag[0] &
-                            (EDIT_CURVES_ACTIVE_HANDLE | EDIT_CURVES_BEZIER_HANDLE)) != 0u));
-
-  /* If handle type is only selected and the edge is not selected, don't show. */
-  if ((uint(curveHandleDisplay) != CURVE_HANDLE_ALL) && (!handle_selected)) {
-    /* Nurbs must show the handles always. */
-    bool is_nurbs = (vert_flag[0] & EDIT_CURVES_NURBS_CONTROL_POINT) != 0u;
-    if ((!is_nurbs) && (color_id <= 4u)) {
-      return;
-    }
+  /* If handle type is only selected and the edge is not selected, don't show.
+   * Nurbs and other curves must show the handles always. */
+  if ((uint(curveHandleDisplay) == CURVE_HANDLE_SELECTED) && is_bezier_handle && !is_active) {
+    return;
   }
 
   vec4 inner_color;
-  if ((vert_flag[line_end_point] & EDIT_CURVES_BEZIER_HANDLE) != 0u) {
+  if ((vert_flag[line_end_point] & (EDIT_CURVES_BEZIER_HANDLE | EDIT_CURVES_BEZIER_KNOT)) != 0u) {
     inner_color = get_bezier_handle_color(color_id, vert_selection[line_end_point]);
   }
   else if ((vert_flag[line_end_point] & EDIT_CURVES_NURBS_CONTROL_POINT) != 0u) {
@@ -110,12 +101,11 @@ void main()
         globalsBlock.color_wire, globalsBlock.color_vertex_select, vert_selection[line_end_point]);
   }
 
-  vec4 outer_color = (is_active_nurb != 0u) ?
-                         mix(colorActiveSpline,
-                             inner_color,
-                             0.25) /* Minimize active color bleeding on inner_color. */
-                         :
-                         vec4(inner_color.rgb, 0.0);
+  vec4 outer_color = is_active ? mix(colorActiveSpline,
+                                     inner_color,
+                                     0.25) /* Minimize active color bleeding on inner_color. */
+                                 :
+                                 vec4(inner_color.rgb, 0.0);
 
   vec2 v1_2 = (ndc_pos[1].xy / ndc_pos[1].w - ndc_pos[0].xy / ndc_pos[0].w) * sizeViewport;
   vec2 offset = sizeEdge * 4.0 * sizeViewportInv; /* 4.0 is eyeballed */
@@ -133,7 +123,7 @@ void main()
   /* Each output vertex falls into 10 possible positions to generate 8 output triangles between 5
    * lines. */
   /* Discard transparent border quads up-front. */
-  if (!(is_active_nurb != 0u)) {
+  if (!is_active) {
     if (output_quad_id == 0 || output_quad_id == 3) {
       DISCARD_VERTEX
       return;

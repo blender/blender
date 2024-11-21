@@ -14,7 +14,6 @@
 #include "CLG_log.h"
 
 #include "vk_backend.hh"
-#include "vk_memory.hh"
 #include "vk_pipeline_pool.hh"
 
 #ifdef WITH_BUILDINFO
@@ -129,14 +128,11 @@ VKPipelinePool::VKPipelinePool()
 }
 void VKPipelinePool::init()
 {
-  VK_ALLOCATION_CALLBACKS;
   VKDevice &device = VKBackend::get().device;
   VkPipelineCacheCreateInfo create_info = {};
   create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
-  vkCreatePipelineCache(
-      device.vk_handle(), &create_info, vk_allocation_callbacks, &vk_pipeline_cache_static_);
-  vkCreatePipelineCache(
-      device.vk_handle(), &create_info, vk_allocation_callbacks, &vk_pipeline_cache_non_static_);
+  vkCreatePipelineCache(device.vk_handle(), &create_info, nullptr, &vk_pipeline_cache_static_);
+  vkCreatePipelineCache(device.vk_handle(), &create_info, nullptr, &vk_pipeline_cache_non_static_);
 }
 
 VkSpecializationInfo *VKPipelinePool::specialization_info_update(
@@ -190,7 +186,6 @@ VkPipeline VKPipelinePool::get_or_create_compute_pipeline(VKComputeInfo &compute
   /* Build pipeline. */
   VKBackend &backend = VKBackend::get();
   VKDevice &device = backend.device;
-  VK_ALLOCATION_CALLBACKS;
 
   VkPipeline pipeline = VK_NULL_HANDLE;
   vkCreateComputePipelines(device.vk_handle(),
@@ -198,7 +193,7 @@ VkPipeline VKPipelinePool::get_or_create_compute_pipeline(VKComputeInfo &compute
                                               vk_pipeline_cache_non_static_,
                            1,
                            &vk_compute_pipeline_create_info_,
-                           vk_allocation_callbacks,
+                           nullptr,
                            &pipeline);
   compute_pipelines_.add(compute_info, pipeline);
 
@@ -416,7 +411,7 @@ VkPipeline VKPipelinePool::get_or_create_graphics_pipeline(VKGraphicsInfo &graph
     vk_pipeline_color_blend_attachment_states_.clear();
     vk_pipeline_color_blend_attachment_states_.append_n_times(
         vk_pipeline_color_blend_attachment_state_template_,
-        graphics_info.fragment_out.color_attachment_formats.size());
+        graphics_info.fragment_out.color_attachment_size);
     vk_pipeline_color_blend_state_create_info_.attachmentCount =
         vk_pipeline_color_blend_attachment_states_.size();
     vk_pipeline_color_blend_state_create_info_.pAttachments =
@@ -530,14 +525,23 @@ VkPipeline VKPipelinePool::get_or_create_graphics_pipeline(VKGraphicsInfo &graph
   }
 
   /* VK_KHR_dynamic_rendering */
-  vk_pipeline_rendering_create_info_.depthAttachmentFormat =
-      graphics_info.fragment_out.depth_attachment_format;
-  vk_pipeline_rendering_create_info_.stencilAttachmentFormat =
-      graphics_info.fragment_out.stencil_attachment_format;
-  vk_pipeline_rendering_create_info_.colorAttachmentCount =
-      graphics_info.fragment_out.color_attachment_formats.size();
-  vk_pipeline_rendering_create_info_.pColorAttachmentFormats =
-      graphics_info.fragment_out.color_attachment_formats.data();
+  const VKWorkarounds &workarounds = VKBackend::get().device.workarounds_get();
+  if (workarounds.dynamic_rendering) {
+    BLI_assert(ELEM(
+        vk_graphics_pipeline_create_info_.pNext, &vk_pipeline_rendering_create_info_, nullptr));
+    vk_graphics_pipeline_create_info_.pNext = nullptr;
+    vk_graphics_pipeline_create_info_.renderPass = graphics_info.fragment_out.vk_render_pass;
+  }
+  else {
+    vk_pipeline_rendering_create_info_.depthAttachmentFormat =
+        graphics_info.fragment_out.depth_attachment_format;
+    vk_pipeline_rendering_create_info_.stencilAttachmentFormat =
+        graphics_info.fragment_out.stencil_attachment_format;
+    vk_pipeline_rendering_create_info_.colorAttachmentCount =
+        graphics_info.fragment_out.color_attachment_formats.size();
+    vk_pipeline_rendering_create_info_.pColorAttachmentFormats =
+        graphics_info.fragment_out.color_attachment_formats.data();
+  }
 
   /* Common values */
   vk_graphics_pipeline_create_info_.layout = graphics_info.vk_pipeline_layout;
@@ -547,7 +551,6 @@ VkPipeline VKPipelinePool::get_or_create_graphics_pipeline(VKGraphicsInfo &graph
   /* Build pipeline. */
   VKBackend &backend = VKBackend::get();
   VKDevice &device = backend.device;
-  VK_ALLOCATION_CALLBACKS;
 
   VkPipeline pipeline = VK_NULL_HANDLE;
   vkCreateGraphicsPipelines(device.vk_handle(),
@@ -555,7 +558,7 @@ VkPipeline VKPipelinePool::get_or_create_graphics_pipeline(VKGraphicsInfo &graph
                                                vk_pipeline_cache_non_static_,
                             1,
                             &vk_graphics_pipeline_create_info_,
-                            vk_allocation_callbacks,
+                            nullptr,
                             &pipeline);
   graphic_pipelines_.add(graphics_info, pipeline);
 
@@ -564,6 +567,7 @@ VkPipeline VKPipelinePool::get_or_create_graphics_pipeline(VKGraphicsInfo &graph
   vk_graphics_pipeline_create_info_.stageCount = 0;
   vk_graphics_pipeline_create_info_.layout = VK_NULL_HANDLE;
   vk_graphics_pipeline_create_info_.basePipelineHandle = VK_NULL_HANDLE;
+  vk_graphics_pipeline_create_info_.renderPass = VK_NULL_HANDLE;
   for (VkPipelineShaderStageCreateInfo &info :
        MutableSpan<VkPipelineShaderStageCreateInfo>(vk_pipeline_shader_stage_create_info_, 3))
   {
@@ -627,9 +631,8 @@ void VKPipelinePool::remove(Span<VkShaderModule> vk_shader_modules)
   });
 
   VKDevice &device = VKBackend::get().device;
-  VK_ALLOCATION_CALLBACKS;
   for (VkPipeline vk_pipeline : pipelines_to_destroy) {
-    vkDestroyPipeline(device.vk_handle(), vk_pipeline, vk_allocation_callbacks);
+    vkDestroyPipeline(device.vk_handle(), vk_pipeline, nullptr);
   }
 }
 
@@ -637,19 +640,17 @@ void VKPipelinePool::free_data()
 {
   std::scoped_lock lock(mutex_);
   VKDevice &device = VKBackend::get().device;
-  VK_ALLOCATION_CALLBACKS;
   for (VkPipeline &vk_pipeline : graphic_pipelines_.values()) {
-    vkDestroyPipeline(device.vk_handle(), vk_pipeline, vk_allocation_callbacks);
+    vkDestroyPipeline(device.vk_handle(), vk_pipeline, nullptr);
   }
   graphic_pipelines_.clear();
   for (VkPipeline &vk_pipeline : compute_pipelines_.values()) {
-    vkDestroyPipeline(device.vk_handle(), vk_pipeline, vk_allocation_callbacks);
+    vkDestroyPipeline(device.vk_handle(), vk_pipeline, nullptr);
   }
   compute_pipelines_.clear();
 
-  vkDestroyPipelineCache(device.vk_handle(), vk_pipeline_cache_static_, vk_allocation_callbacks);
-  vkDestroyPipelineCache(
-      device.vk_handle(), vk_pipeline_cache_non_static_, vk_allocation_callbacks);
+  vkDestroyPipelineCache(device.vk_handle(), vk_pipeline_cache_static_, nullptr);
+  vkDestroyPipelineCache(device.vk_handle(), vk_pipeline_cache_non_static_, nullptr);
 }
 
 /* -------------------------------------------------------------------- */

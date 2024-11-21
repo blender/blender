@@ -6,6 +6,7 @@
  * NVIDIA Corporation. All rights reserved. */
 
 #include "usd_reader_mesh.hh"
+#include "usd.hh"
 #include "usd_attribute_utils.hh"
 #include "usd_hash_types.hh"
 #include "usd_mesh_utils.hh"
@@ -40,6 +41,7 @@
 #include <pxr/usd/usdGeom/primvarsAPI.h>
 #include <pxr/usd/usdGeom/subset.h>
 #include <pxr/usd/usdShade/materialBindingAPI.h>
+#include <pxr/usd/usdShade/tokens.h>
 #include <pxr/usd/usdSkel/bindingAPI.h>
 
 #include <algorithm>
@@ -55,22 +57,31 @@ static const pxr::TfToken normalsPrimvar("normals", pxr::TfToken::Immortal);
 }  // namespace usdtokens
 
 namespace utils {
-
-static pxr::UsdShadeMaterial compute_bound_material(const pxr::UsdPrim &prim)
+using namespace blender::io::usd;
+static pxr::UsdShadeMaterial compute_bound_material(const pxr::UsdPrim &prim,
+                                                    eUSDMtlPurpose mtl_purpose)
 {
-  pxr::UsdShadeMaterialBindingAPI api = pxr::UsdShadeMaterialBindingAPI(prim);
+  const pxr::UsdShadeMaterialBindingAPI api = pxr::UsdShadeMaterialBindingAPI(prim);
 
-  /* Compute generically bound ('allPurpose') materials. */
-  pxr::UsdShadeMaterial mtl = api.ComputeBoundMaterial();
+  /* See the following documentation for material resolution behavior:
+   * https://openusd.org/release/api/class_usd_shade_material_binding_a_p_i.html#UsdShadeMaterialBindingAPI_MaterialResolution
+   */
 
-  /* If no generic material could be resolved, also check for 'preview' and
-   * 'full' purpose materials as fallbacks. */
-  if (!mtl) {
-    mtl = api.ComputeBoundMaterial(pxr::UsdShadeTokens->preview);
-  }
-
-  if (!mtl) {
-    mtl = api.ComputeBoundMaterial(pxr::UsdShadeTokens->full);
+  pxr::UsdShadeMaterial mtl;
+  switch (mtl_purpose) {
+    case USD_MTL_PURPOSE_FULL:
+      mtl = api.ComputeBoundMaterial(pxr::UsdShadeTokens->full);
+      if (!mtl) {
+        /* Add an additional Blender-specific fallback to help with oddly authored USD files. */
+        mtl = api.ComputeBoundMaterial(pxr::UsdShadeTokens->preview);
+      }
+      break;
+    case USD_MTL_PURPOSE_PREVIEW:
+      mtl = api.ComputeBoundMaterial(pxr::UsdShadeTokens->preview);
+      break;
+    case USD_MTL_PURPOSE_ALL:
+      mtl = api.ComputeBoundMaterial(pxr::UsdShadeTokens->allPurpose);
+      break;
   }
 
   return mtl;
@@ -148,17 +159,6 @@ static void assign_materials(Main *bmain,
 
 namespace blender::io::usd {
 
-USDMeshReader::USDMeshReader(const pxr::UsdPrim &prim,
-                             const USDImportParams &import_params,
-                             const ImportSettings &settings)
-    : USDGeomReader(prim, import_params, settings),
-      mesh_prim_(prim),
-      is_left_handed_(false),
-      is_time_varying_(false),
-      is_initial_load_(false)
-{
-}
-
 void USDMeshReader::create_object(Main *bmain, const double /*motionSampleTime*/)
 {
   Mesh *mesh = BKE_mesh_add(bmain, name_.c_str());
@@ -212,11 +212,6 @@ void USDMeshReader::read_object_data(Main *bmain, const double motionSampleTime)
   }
 
   USDXformReader::read_object_data(bmain, motionSampleTime);
-}
-
-bool USDMeshReader::valid() const
-{
-  return bool(mesh_prim_);
 }
 
 bool USDMeshReader::topology_changed(const Mesh *existing_mesh, const double motionSampleTime)
@@ -415,8 +410,7 @@ void USDMeshReader::process_normals_vertex_varying(Mesh *mesh)
   }
 
   BLI_STATIC_ASSERT(sizeof(normals_[0]) == sizeof(float3), "Expected float3 normals size");
-  bke::mesh_vert_normals_assign(
-      *mesh, Span(reinterpret_cast<const float3 *>(normals_.data()), int64_t(normals_.size())));
+  BKE_mesh_set_custom_normals_from_verts(mesh, reinterpret_cast<float(*)[3]>(normals_.data()));
 }
 
 void USDMeshReader::process_normals_face_varying(Mesh *mesh) const
@@ -527,7 +521,7 @@ void USDMeshReader::read_custom_data(const ImportSettings *settings,
                                      const double motionSampleTime,
                                      const bool new_mesh)
 {
-  if (!(mesh && mesh_prim_ && mesh->corners_num > 0)) {
+  if (!(mesh && mesh->corners_num > 0)) {
     return;
   }
 
@@ -663,7 +657,8 @@ void USDMeshReader::assign_facesets_to_material_indices(double motionSampleTime,
   if (!subsets.empty()) {
     for (const pxr::UsdGeomSubset &subset : subsets) {
       pxr::UsdPrim subset_prim = subset.GetPrim();
-      pxr::UsdShadeMaterial subset_mtl = utils::compute_bound_material(subset_prim);
+      pxr::UsdShadeMaterial subset_mtl = utils::compute_bound_material(subset_prim,
+                                                                       import_params_.mtl_purpose);
       if (!subset_mtl) {
         continue;
       }
@@ -707,8 +702,7 @@ void USDMeshReader::assign_facesets_to_material_indices(double motionSampleTime,
   }
 
   if (r_mat_map->is_empty()) {
-
-    pxr::UsdShadeMaterial mtl = utils::compute_bound_material(prim_);
+    pxr::UsdShadeMaterial mtl = utils::compute_bound_material(prim_, import_params_.mtl_purpose);
     if (mtl) {
       pxr::SdfPath mtl_path = mtl.GetPath();
 
@@ -749,10 +743,6 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
                                const USDMeshReadParams params,
                                const char ** /*r_err_str*/)
 {
-  if (!mesh_prim_) {
-    return existing_mesh;
-  }
-
   mesh_prim_.GetOrientationAttr().Get(&orientation_);
   if (orientation_ == pxr::UsdGeomTokens->leftHanded) {
     is_left_handed_ = true;

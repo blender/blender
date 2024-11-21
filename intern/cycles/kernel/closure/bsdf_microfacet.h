@@ -99,7 +99,7 @@ ccl_device_forceinline float3 microfacet_beckmann_sample_vndf(const float3 wi,
   wi_ = normalize(wi_);
 
   /* 2. sample P22_{wi}(x_slope, y_slope, 1, 1) */
-  float slope_x, slope_y;
+  float2 slope;
   float cos_phi_i = 1.0f;
   float sin_phi_i = 0.0f;
 
@@ -107,8 +107,7 @@ ccl_device_forceinline float3 microfacet_beckmann_sample_vndf(const float3 wi,
     /* Special case (normal incidence). */
     const float r = sqrtf(-logf(rand.x));
     const float phi = M_2PI_F * rand.y;
-    slope_x = r * cosf(phi);
-    slope_y = r * sinf(phi);
+    slope = polar_to_cartesian(r, phi);
   }
   else {
     /* Precomputations. */
@@ -169,21 +168,19 @@ ccl_device_forceinline float3 microfacet_beckmann_sample_vndf(const float3 wi,
       current.y = 1.0f + current.x + K * expf(-sqr(inv_erf)) - y_exact;
     }
 
-    slope_x = inv_erf;
-    slope_y = fast_ierff(2.0f * rand.y - 1.0f);
+    slope.x = inv_erf;
+    slope.y = fast_ierff(2.0f * rand.y - 1.0f);
   }
 
   /* 3. rotate */
-  float tmp = cos_phi_i * slope_x - sin_phi_i * slope_y;
-  slope_y = sin_phi_i * slope_x + cos_phi_i * slope_y;
-  slope_x = tmp;
+  slope = make_float2(cos_phi_i * slope.x - sin_phi_i * slope.y,
+                      sin_phi_i * slope.x + cos_phi_i * slope.y);
 
   /* 4. unstretch */
-  slope_x = alpha_x * slope_x;
-  slope_y = alpha_y * slope_y;
+  slope *= make_float2(alpha_x, alpha_y);
 
   /* 5. compute normal */
-  return normalize(make_float3(-slope_x, -slope_y, 1.0f));
+  return normalize(make_float3(-slope.x, -slope.y, 1.0f));
 }
 
 /* GGX VNDF importance sampling algorithm from:
@@ -216,7 +213,7 @@ ccl_device_forceinline float3 microfacet_ggx_sample_vndf(const float3 wi,
   t.y = mix(safe_sqrtf(1.0f - sqr(t.x)), t.y, 0.5f * (1.0f + wi_.z));
 
   /* Section 4.3: Reprojection onto hemisphere. */
-  float3 H_ = t.x * T1 + t.y * T2 + safe_sqrtf(1.0f - len_squared(t)) * wi_;
+  float3 H_ = to_global(disk_to_hemisphere(t), T1, T2, wi_);
 
   /* Section 3.4: Transforming the normal back to the ellipsoid configuration. */
   return normalize(make_float3(alpha_x * H_.x, alpha_y * H_.y, max(0.0f, H_.z)));
@@ -509,13 +506,14 @@ ccl_device_inline float bsdf_G(float alpha2, float cos_NI, float cos_NO)
 template<MicrofacetType m_type> ccl_device_inline float bsdf_D(float alpha2, float cos_NH)
 {
   const float cos_NH2 = min(sqr(cos_NH), 1.0f);
+  const float one_minus_cos_NH2 = 1.0f - cos_NH2;
 
   if (m_type == MicrofacetType::BECKMANN) {
-    return expf((cos_NH2 - 1.0f) / (cos_NH2 * alpha2)) / (M_PI_F * alpha2 * sqr(cos_NH2));
+    return 1.0f / (expf(one_minus_cos_NH2 / (cos_NH2 * alpha2)) * M_PI_F * alpha2 * sqr(cos_NH2));
   }
   else {
     kernel_assert(m_type == MicrofacetType::GGX);
-    return alpha2 / (M_PI_F * sqr((1.0f - cos_NH2) + alpha2 * cos_NH2));
+    return alpha2 / (M_PI_F * sqr(one_minus_cos_NH2 + alpha2 * cos_NH2));
   }
 }
 
@@ -686,7 +684,7 @@ ccl_device int bsdf_microfacet_sample(KernelGlobals kg,
       local_H = microfacet_beckmann_sample_vndf(local_I, alpha_x, alpha_y, float3_to_float2(rand));
     }
 
-    H = X * local_H.x + Y * local_H.y + N * local_H.z;
+    H = to_global(local_H, X, Y, N);
   }
   const float cos_HI = dot(H, wi);
 

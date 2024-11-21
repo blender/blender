@@ -71,9 +71,7 @@ struct SnapCache_EditMesh : public SnapObjectContext::SnapCache {
     this->clear();
   }
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("SnapCache_EditMesh")
-#endif
 };
 
 static Mesh *create_mesh(SnapObjectContext *sctx,

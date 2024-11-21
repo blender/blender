@@ -278,7 +278,7 @@ static int gizmo_move_modal(bContext *C,
       SnapObjectParams params{};
       params.snap_target_select = SCE_SNAP_TARGET_ALL;
       params.edit_mode_type = SNAP_GEOM_EDIT;
-      params.use_occlusion_test = true;
+      params.occlusion_test = SNAP_OCCLUSION_AS_SEEM;
       if (ED_transform_snap_object_project_view3d(
               inter->snap_context_v3d,
               CTX_data_ensure_evaluated_depsgraph(C),

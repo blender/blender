@@ -166,6 +166,10 @@ typedef struct BrushCurvesSculptSettings {
 
 /** Max number of propagation steps for automasking settings. */
 #define AUTOMASKING_BOUNDARY_EDGES_MAX_PROPAGATION_STEPS 20
+/**
+ * \note Any change to members that is user visible and that may make the brush differ from the one
+ * saved in the asset library should be followed by a #BKE_brush_tag_unsaved_changes() call.
+ */
 typedef struct Brush {
   DNA_DEFINE_CXX_METHODS(Brush)
 
@@ -264,7 +268,11 @@ typedef struct Brush {
   /** Source for fill brush color gradient application. */
   char gradient_fill_mode;
 
-  char _pad0;
+  /**
+   * Tag to indicate to the user that the brush has been changed since being imported. Only set for
+   * brushes that are actually imported (must have #ID.lib set). Runtime only.
+   */
+  char has_unsaved_changes;
 
   /** Projection shape (sphere, circle). */
   char falloff_shape;

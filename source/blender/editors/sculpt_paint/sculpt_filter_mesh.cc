@@ -32,7 +32,7 @@
 #include "BKE_modifier.hh"
 #include "BKE_object_types.hh"
 #include "BKE_paint.hh"
-#include "BKE_pbvh_api.hh"
+#include "BKE_paint_bvh.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -238,7 +238,7 @@ enum class MeshFilterType {
   SurfaceSmooth = 7,
   Sharpen = 8,
   EnhanceDetails = 9,
-  EraseDispacement = 10,
+  EraseDisplacement = 10,
 };
 
 static EnumPropertyItem prop_mesh_filter_types[] = {
@@ -264,8 +264,8 @@ static EnumPropertyItem prop_mesh_filter_types[] = {
      0,
      "Enhance Details",
      "Enhance the high frequency surface detail"},
-    {int(MeshFilterType::EraseDispacement),
-     "ERASE_DISCPLACEMENT",
+    {int(MeshFilterType::EraseDisplacement),
+     "ERASE_DISPLACEMENT",
      0,
      "Erase Displacement",
      "Deletes the displacement of the Multires Modifier"},
@@ -375,8 +375,13 @@ static void calc_smooth_filter(const Depsgraph &depsgraph,
 
         tls.vert_neighbors.resize(verts.size());
         MutableSpan<Vector<int>> neighbors = tls.vert_neighbors;
-        calc_vert_neighbors_interior(
-            faces, corner_verts, vert_to_face_map, ss.vertex_info.boundary, {}, verts, neighbors);
+        calc_vert_neighbors_interior(faces,
+                                     corner_verts,
+                                     vert_to_face_map,
+                                     ss.vertex_info.boundary,
+                                     attribute_data.hide_poly,
+                                     verts,
+                                     neighbors);
         tls.new_positions.resize(verts.size());
         const MutableSpan<float3> new_positions = tls.new_positions;
         smooth::neighbor_data_average_mesh_check_loose(
@@ -1307,12 +1312,17 @@ static void calc_surface_smooth_filter(const Depsgraph &depsgraph,
         clamp_factors(factors, 0.0f, 1.0f);
 
         tls.vert_neighbors.reinitialize(verts.size());
-        calc_vert_neighbors(faces, corner_verts, vert_to_face_map, {}, verts, tls.vert_neighbors);
+        calc_vert_neighbors(faces,
+                            corner_verts,
+                            vert_to_face_map,
+                            attribute_data.hide_poly,
+                            verts,
+                            tls.vert_neighbors);
 
         tls.average_positions.reinitialize(verts.size());
         const MutableSpan<float3> average_positions = tls.average_positions;
-        smooth::neighbor_data_average_mesh(
-            position_data.eval, tls.vert_neighbors, average_positions);
+        smooth::neighbor_data_average_mesh_check_loose(
+            position_data.eval, verts, tls.vert_neighbors, average_positions);
 
         tls.laplacian_disp.reinitialize(verts.size());
         const MutableSpan<float3> laplacian_disp = tls.laplacian_disp;
@@ -1349,12 +1359,17 @@ static void calc_surface_smooth_filter(const Depsgraph &depsgraph,
             all_laplacian_disp.as_span(), verts, tls.laplacian_disp);
 
         tls.vert_neighbors.resize(verts.size());
-        calc_vert_neighbors(faces, corner_verts, vert_to_face_map, {}, verts, tls.vert_neighbors);
+        calc_vert_neighbors(faces,
+                            corner_verts,
+                            vert_to_face_map,
+                            attribute_data.hide_poly,
+                            verts,
+                            tls.vert_neighbors);
 
         tls.average_positions.resize(verts.size());
         const MutableSpan<float3> average_laplacian_disps = tls.average_positions;
-        smooth::neighbor_data_average_mesh(
-            all_laplacian_disp.as_span(), tls.vert_neighbors, average_laplacian_disps);
+        smooth::neighbor_data_average_mesh_check_loose(
+            all_laplacian_disp.as_span(), verts, tls.vert_neighbors, average_laplacian_disps);
 
         tls.translations.resize(verts.size());
         const MutableSpan<float3> translations = tls.translations;
@@ -1588,11 +1603,13 @@ static void calc_sharpen_filter(const Depsgraph &depsgraph,
 
         tls.vert_neighbors.resize(verts.size());
         const MutableSpan<Vector<int>> neighbors = tls.vert_neighbors;
-        calc_vert_neighbors(faces, corner_verts, vert_to_face_map, {}, verts, neighbors);
+        calc_vert_neighbors(
+            faces, corner_verts, vert_to_face_map, attribute_data.hide_poly, verts, neighbors);
 
         tls.smooth_positions.resize(verts.size());
         const MutableSpan<float3> smooth_positions = tls.smooth_positions;
-        smooth::neighbor_data_average_mesh(position_data.eval, neighbors, smooth_positions);
+        smooth::neighbor_data_average_mesh_check_loose(
+            position_data.eval, verts, neighbors, smooth_positions);
 
         const Span<float> sharpen_factors = gather_data_mesh(
             ss.filter_cache->sharpen_factor.as_span(), verts, tls.sharpen_factors);
@@ -2022,22 +2039,26 @@ static void mesh_filter_sharpen_init(const Depsgraph &depsgraph,
         const Span<int> corner_verts = mesh.corner_verts();
         const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
         const Span<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
+        const MeshAttributeData attribute_data(mesh.attributes());
         node_mask.foreach_index(GrainSize(1), [&](const int i) {
           LocalData &tls = all_tls.local();
           const Span<int> verts = nodes[i].verts();
 
           tls.vert_neighbors.resize(verts.size());
           const MutableSpan<Vector<int>> neighbors = tls.vert_neighbors;
-          calc_vert_neighbors(faces, corner_verts, vert_to_face_map, {}, verts, neighbors);
+          calc_vert_neighbors(
+              faces, corner_verts, vert_to_face_map, attribute_data.hide_poly, verts, neighbors);
 
           tls.smooth_directions.resize(verts.size());
-          smooth::neighbor_data_average_mesh(
-              detail_directions.as_span(), neighbors, tls.smooth_directions.as_mutable_span());
+          smooth::neighbor_data_average_mesh_check_loose(detail_directions.as_span(),
+                                                         verts,
+                                                         neighbors,
+                                                         tls.smooth_directions.as_mutable_span());
           scatter_data_mesh(tls.smooth_directions.as_span(), verts, detail_directions);
 
           tls.smooth_factors.resize(verts.size());
-          smooth::neighbor_data_average_mesh(
-              sharpen_factors.as_span(), neighbors, tls.smooth_factors.as_mutable_span());
+          smooth::neighbor_data_average_mesh_check_loose(
+              sharpen_factors.as_span(), verts, neighbors, tls.smooth_factors.as_mutable_span());
           scatter_data_mesh(tls.smooth_factors.as_span(), verts, sharpen_factors);
         });
         break;
@@ -2165,7 +2186,7 @@ static void sculpt_mesh_filter_apply(bContext *C, wmOperator *op)
     case MeshFilterType::EnhanceDetails:
       calc_enhance_details_filter(depsgraph, sd, strength, ob, node_mask);
       break;
-    case MeshFilterType::EraseDispacement:
+    case MeshFilterType::EraseDisplacement:
       calc_erase_displacement_filter(depsgraph, sd, strength, ob, node_mask);
       break;
   }
@@ -2358,7 +2379,7 @@ static void sculpt_filter_specific_init(const Depsgraph &depsgraph,
           depsgraph, object, ss.filter_cache->node_mask, ss.filter_cache->detail_directions);
       break;
     }
-    case MeshFilterType::EraseDispacement: {
+    case MeshFilterType::EraseDisplacement: {
       ss.filter_cache->limit_surface_co.reinitialize(SCULPT_vertex_count_get(object));
       calc_limit_surface_positions(object, ss.filter_cache->limit_surface_co);
       break;
@@ -2396,6 +2417,11 @@ static int sculpt_mesh_filter_start(bContext *C, wmOperator *op)
   }
 
   SculptSession &ss = *ob.sculpt;
+
+  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
+  if (filter_type == MeshFilterType::EraseDisplacement && pbvh.type() != bke::pbvh::Type::Grids) {
+    return OPERATOR_CANCELLED;
+  }
 
   const eMeshFilterDeformAxis deform_axis = eMeshFilterDeformAxis(
       RNA_enum_get(op->ptr, "deform_axis"));

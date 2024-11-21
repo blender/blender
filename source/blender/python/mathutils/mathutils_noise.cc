@@ -150,13 +150,13 @@ static float frand()
   "'VORONOI_F1', 'VORONOI_F2', " \
   "'VORONOI_F3', 'VORONOI_F4', 'VORONOI_F2F1', 'VORONOI_CRACKLE', " \
   "'CELLNOISE'].\n" \
-  "   :type noise_basis: string\n"
+  "   :type noise_basis: str\n"
 
 #define BPY_NOISE_METRIC_ENUM_DOC \
   "   :arg distance_metric: Enumerator in ['DISTANCE', 'DISTANCE_SQUARED', 'MANHATTAN', " \
   "'CHEBYCHEV', " \
   "'MINKOVSKY', 'MINKOVSKY_HALF', 'MINKOVSKY_FOUR'].\n" \
-  "   :type distance_metric: string\n"
+  "   :type distance_metric: str\n"
 
 /* Noise basis enum */
 #define DEFAULT_NOISE_TYPE TEX_STDPERLIN
@@ -487,7 +487,7 @@ PyDoc_STRVAR(
     "   :type octaves: int\n"
     "   :arg hard: Specifies whether returned turbulence is hard (sharp transitions) or "
     "soft (smooth transitions).\n"
-    "   :type hard: boolean\n" BPY_NOISE_BASIS_ENUM_DOC
+    "   :type hard: bool\n" BPY_NOISE_BASIS_ENUM_DOC
     "   :arg amplitude_scale: The amplitude scaling factor.\n"
     "   :type amplitude_scale: float\n"
     "   :arg frequency_scale: The frequency scaling factor\n"
@@ -548,7 +548,7 @@ PyDoc_STRVAR(
     "   :type octaves: int\n"
     "   :arg hard: Specifies whether returned turbulence is hard (sharp transitions) or "
     "soft (smooth transitions).\n"
-    "   :type hard: boolean\n" BPY_NOISE_BASIS_ENUM_DOC
+    "   :type hard: bool\n" BPY_NOISE_BASIS_ENUM_DOC
     "   :arg amplitude_scale: The amplitude scaling factor.\n"
     "   :type amplitude_scale: float\n"
     "   :arg frequency_scale: The frequency scaling factor\n"
@@ -722,12 +722,12 @@ PyDoc_STRVAR(
     "'VORONOI_F1', 'VORONOI_F2', "
     "'VORONOI_F3', 'VORONOI_F4', 'VORONOI_F2F1', 'VORONOI_CRACKLE', "
     "'CELLNOISE'].\n"
-    "   :type noise_type1: string\n"
+    "   :type noise_type1: str\n"
     "   :arg noise_type2: Enumerator in ['BLENDER', 'PERLIN_ORIGINAL', 'PERLIN_NEW', "
     "'VORONOI_F1', 'VORONOI_F2', "
     "'VORONOI_F3', 'VORONOI_F4', 'VORONOI_F2F1', 'VORONOI_CRACKLE', "
     "'CELLNOISE'].\n"
-    "   :type noise_type2: string\n"
+    "   :type noise_type2: str\n"
     "   :return: The variable lacunarity noise value.\n"
     "   :rtype: float\n");
 static PyObject *M_Noise_variable_lacunarity(PyObject * /*self*/, PyObject *args, PyObject *kw)
@@ -980,7 +980,7 @@ PyDoc_STRVAR(
     "   :arg exponent: The exponent for Minkowski distance metric.\n"
     "   :type exponent: float\n"
     "   :return: A list of distances to the four closest features and their locations.\n"
-    "   :rtype: list of four floats, list of four :class:`mathutils.Vector` types\n");
+    "   :rtype: list[list[float], list[:class:`mathutils.Vector`]]\n");
 static PyObject *M_Noise_voronoi(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
   static const char *kwlist[] = {"", "distance_metric", "exponent", nullptr};

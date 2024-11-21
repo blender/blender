@@ -55,6 +55,7 @@
 #include "SEQ_sequencer.hh"
 
 #include "WM_api.hh"
+#include "WM_message.hh"
 #include "WM_types.hh"
 
 #include "UI_interface.hh"
@@ -159,18 +160,20 @@ static void do_outliner_item_posemode_toggle(bContext *C, Scene *scene, Base *ba
  *
  * \note Handles its own undo push.
  */
-static void do_outliner_item_mode_toggle_generic(bContext *C, TreeViewContext *tvc, Base *base)
+static void do_outliner_item_mode_toggle_generic(bContext *C,
+                                                 const TreeViewContext &tvc,
+                                                 Base *base)
 {
-  const eObjectMode active_mode = (eObjectMode)tvc->obact->mode;
+  const eObjectMode active_mode = (eObjectMode)tvc.obact->mode;
   ED_undo_group_begin(C);
 
   if (object::mode_set(C, OB_MODE_OBJECT)) {
-    BKE_view_layer_synced_ensure(tvc->scene, tvc->view_layer);
-    Base *base_active = BKE_view_layer_base_find(tvc->view_layer, tvc->obact);
+    BKE_view_layer_synced_ensure(tvc.scene, tvc.view_layer);
+    Base *base_active = BKE_view_layer_base_find(tvc.view_layer, tvc.obact);
     if (base_active != base) {
-      BKE_view_layer_base_deselect_all(tvc->scene, tvc->view_layer);
-      BKE_view_layer_base_select_and_set_active(tvc->view_layer, base);
-      DEG_id_tag_update(&tvc->scene->id, ID_RECALC_SELECT);
+      BKE_view_layer_base_deselect_all(tvc.scene, tvc.view_layer);
+      BKE_view_layer_base_select_and_set_active(tvc.view_layer, base);
+      DEG_id_tag_update(&tvc.scene->id, ID_RECALC_SELECT);
       ED_undo_push(C, "Change Active");
 
       /* Operator call does undo push. */
@@ -182,7 +185,7 @@ static void do_outliner_item_mode_toggle_generic(bContext *C, TreeViewContext *t
 }
 
 void outliner_item_mode_toggle(bContext *C,
-                               TreeViewContext *tvc,
+                               const TreeViewContext &tvc,
                                TreeElement *te,
                                const bool do_extend)
 {
@@ -190,12 +193,12 @@ void outliner_item_mode_toggle(bContext *C,
 
   if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) {
     Object *ob = (Object *)tselem->id;
-    BKE_view_layer_synced_ensure(tvc->scene, tvc->view_layer);
-    Base *base = BKE_view_layer_base_find(tvc->view_layer, ob);
+    BKE_view_layer_synced_ensure(tvc.scene, tvc.view_layer);
+    Base *base = BKE_view_layer_base_find(tvc.view_layer, ob);
 
     /* Hidden objects can be removed from the mode. */
     if (!base || (!(base->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) &&
-                  (ob->mode != tvc->obact->mode)))
+                  (ob->mode != tvc.obact->mode)))
     {
       return;
     }
@@ -203,11 +206,11 @@ void outliner_item_mode_toggle(bContext *C,
     if (!do_extend) {
       do_outliner_item_mode_toggle_generic(C, tvc, base);
     }
-    else if (tvc->ob_edit && OB_TYPE_SUPPORT_EDITMODE(ob->type)) {
-      do_outliner_item_editmode_toggle(C, tvc->scene, base);
+    else if (tvc.ob_edit && OB_TYPE_SUPPORT_EDITMODE(ob->type)) {
+      do_outliner_item_editmode_toggle(C, tvc.scene, base);
     }
-    else if (tvc->ob_pose && ob->type == OB_ARMATURE) {
-      do_outliner_item_posemode_toggle(C, tvc->scene, base);
+    else if (tvc.ob_pose && ob->type == OB_ARMATURE) {
+      do_outliner_item_posemode_toggle(C, tvc.scene, base);
     }
   }
 }
@@ -498,7 +501,31 @@ static void tree_element_grease_pencil_node_activate(bContext *C,
   GreasePencil &grease_pencil = *(GreasePencil *)tselem->id;
   bke::greasepencil::TreeNode &node = tree_element_cast<TreeElementGreasePencilNode>(te)->node();
 
+  if (node.is_layer()) {
+    if (grease_pencil.has_active_group()) {
+      WM_msg_publish_rna_prop(CTX_wm_message_bus(C),
+                              &grease_pencil.id,
+                              &grease_pencil,
+                              GreasePencilv3LayerGroup,
+                              active);
+    }
+    WM_msg_publish_rna_prop(
+        CTX_wm_message_bus(C), &grease_pencil.id, &grease_pencil, GreasePencilv3Layers, active);
+  }
+  if (node.is_group()) {
+    if (grease_pencil.has_active_layer()) {
+      WM_msg_publish_rna_prop(
+          CTX_wm_message_bus(C), &grease_pencil.id, &grease_pencil, GreasePencilv3Layers, active);
+    }
+    WM_msg_publish_rna_prop(CTX_wm_message_bus(C),
+                            &grease_pencil.id,
+                            &grease_pencil,
+                            GreasePencilv3LayerGroup,
+                            active);
+  }
+
   grease_pencil.set_active_node(&node);
+
   DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, &grease_pencil);
 }
@@ -784,7 +811,7 @@ static void tree_element_text_activate(bContext *C, TreeElement *te)
 /* ---------------------------------------------- */
 
 void tree_element_activate(bContext *C,
-                           const TreeViewContext *tvc,
+                           const TreeViewContext &tvc,
                            TreeElement *te,
                            const eOLSetState set,
                            const bool handle_all_types)
@@ -795,17 +822,17 @@ void tree_element_activate(bContext *C,
      * See #do_outliner_item_activate. */
     case ID_OB:
       if (handle_all_types) {
-        tree_element_object_activate(C, tvc->scene, tvc->view_layer, te, set, false);
+        tree_element_object_activate(C, tvc.scene, tvc.view_layer, te, set, false);
       }
       break;
     case ID_MA:
-      tree_element_material_activate(C, tvc->scene, tvc->view_layer, te);
+      tree_element_material_activate(C, tvc.scene, tvc.view_layer, te);
       break;
     case ID_WO:
-      tree_element_world_activate(C, tvc->scene, te);
+      tree_element_world_activate(C, tvc.scene, te);
       break;
     case ID_CA:
-      tree_element_camera_activate(C, tvc->scene, te);
+      tree_element_camera_activate(C, tvc.scene, te);
       break;
     case ID_TXT:
       tree_element_text_activate(C, te);
@@ -814,7 +841,7 @@ void tree_element_activate(bContext *C,
 }
 
 void tree_element_type_active_set(bContext *C,
-                                  const TreeViewContext *tvc,
+                                  const TreeViewContext &tvc,
                                   TreeElement *te,
                                   TreeStoreElem *tselem,
                                   const eOLSetState set,
@@ -826,16 +853,16 @@ void tree_element_type_active_set(bContext *C,
       tree_element_defgroup_activate(C, te, tselem);
       break;
     case TSE_BONE:
-      tree_element_bone_activate(C, tvc->scene, tvc->view_layer, te, tselem, set, recursive);
+      tree_element_bone_activate(C, tvc.scene, tvc.view_layer, te, tselem, set, recursive);
       break;
     case TSE_EBONE:
-      tree_element_ebone_activate(C, tvc->scene, tvc->view_layer, te, tselem, set, recursive);
+      tree_element_ebone_activate(C, tvc.scene, tvc.view_layer, te, tselem, set, recursive);
       break;
     case TSE_MODIFIER:
       tree_element_modifier_activate(C, te, tselem, set);
       break;
     case TSE_LINKED_OB:
-      tree_element_object_activate(C, tvc->scene, tvc->view_layer, te, set, false);
+      tree_element_object_activate(C, tvc.scene, tvc.view_layer, te, set, false);
       break;
     case TSE_LINKED_PSYS:
       tree_element_psys_activate(C, tselem);
@@ -843,12 +870,11 @@ void tree_element_type_active_set(bContext *C,
     case TSE_POSE_BASE:
       return;
     case TSE_POSE_CHANNEL:
-      tree_element_posechannel_activate(
-          C, tvc->scene, tvc->view_layer, te, tselem, set, recursive);
+      tree_element_posechannel_activate(C, tvc.scene, tvc.view_layer, te, tselem, set, recursive);
       break;
     case TSE_CONSTRAINT_BASE:
     case TSE_CONSTRAINT:
-      tree_element_constraint_activate(C, tvc->scene, tvc->view_layer, te, tselem, set);
+      tree_element_constraint_activate(C, tvc.scene, tvc.view_layer, te, tselem, set);
       break;
     case TSE_R_LAYER:
       tree_element_viewlayer_activate(C, te);
@@ -857,10 +883,10 @@ void tree_element_type_active_set(bContext *C,
       tree_element_bonecollection_activate(C, te, tselem);
       break;
     case TSE_SEQUENCE:
-      tree_element_sequence_activate(C, tvc->scene, te, set);
+      tree_element_sequence_activate(C, tvc.scene, te, set);
       break;
     case TSE_SEQUENCE_DUP:
-      tree_element_sequence_dup_activate(tvc->scene, te);
+      tree_element_sequence_dup_activate(tvc.scene, te);
       break;
     case TSE_GP_LAYER:
       tree_element_gplayer_activate(C, te, tselem);
@@ -927,10 +953,10 @@ static eOLDrawState tree_element_modifier_state_get(const TreeElement *te,
   return (BKE_object_active_modifier(ob) == md) ? OL_DRAWSEL_NORMAL : OL_DRAWSEL_NONE;
 }
 
-static eOLDrawState tree_element_object_state_get(const TreeViewContext *tvc,
+static eOLDrawState tree_element_object_state_get(const TreeViewContext &tvc,
                                                   const TreeStoreElem *tselem)
 {
-  return (tselem->id == (const ID *)tvc->obact) ? OL_DRAWSEL_NORMAL : OL_DRAWSEL_NONE;
+  return (tselem->id == (const ID *)tvc.obact) ? OL_DRAWSEL_NORMAL : OL_DRAWSEL_NONE;
 }
 
 static eOLDrawState tree_element_pose_state_get(const Scene *scene,
@@ -966,16 +992,17 @@ static eOLDrawState tree_element_posechannel_state_get(const Object *ob_pose,
   return OL_DRAWSEL_NONE;
 }
 
-static eOLDrawState tree_element_viewlayer_state_get(const bContext *C, const TreeElement *te)
+static eOLDrawState tree_element_viewlayer_state_get(const ViewLayer *view_layer,
+                                                     const TreeElement *te)
 {
   /* paranoia check */
   if (te->idcode != ID_SCE) {
     return OL_DRAWSEL_NONE;
   }
 
-  const ViewLayer *view_layer = static_cast<ViewLayer *>(te->directdata);
+  const ViewLayer *te_view_layer = static_cast<ViewLayer *>(te->directdata);
 
-  if (CTX_data_view_layer(C) == view_layer) {
+  if (view_layer == te_view_layer) {
     return OL_DRAWSEL_NORMAL;
   }
   return OL_DRAWSEL_NONE;
@@ -1034,22 +1061,19 @@ static eOLDrawState tree_element_grease_pencil_node_state_get(const TreeElement 
   return OL_DRAWSEL_NONE;
 }
 
-static eOLDrawState tree_element_master_collection_state_get(const bContext *C)
+static eOLDrawState tree_element_master_collection_state_get(
+    const ViewLayer *view_layer, const LayerCollection *layer_collection)
 {
-  const ViewLayer *view_layer = CTX_data_view_layer(C);
-  const LayerCollection *active = CTX_data_layer_collection(C);
-
-  if (active == view_layer->layer_collections.first) {
+  if (layer_collection == view_layer->layer_collections.first) {
     return OL_DRAWSEL_NORMAL;
   }
   return OL_DRAWSEL_NONE;
 }
 
-static eOLDrawState tree_element_layer_collection_state_get(const bContext *C,
-                                                            const TreeElement *te)
+static eOLDrawState tree_element_layer_collection_state_get(
+    const LayerCollection *layer_collection, const TreeElement *te)
 {
-  const LayerCollection *active = CTX_data_layer_collection(C);
-  if (active == te->directdata) {
+  if (layer_collection == te->directdata) {
     return OL_DRAWSEL_NORMAL;
   }
   return OL_DRAWSEL_NONE;
@@ -1089,12 +1113,12 @@ static eOLDrawState tree_element_active_material_get(const Scene *scene,
   return OL_DRAWSEL_NONE;
 }
 
-static eOLDrawState tree_element_active_scene_get(const TreeViewContext *tvc,
+static eOLDrawState tree_element_active_scene_get(const TreeViewContext &tvc,
                                                   const TreeElement *te,
                                                   const TreeStoreElem *tselem)
 {
   if (te->idcode == ID_SCE) {
-    if (tselem->id == (ID *)tvc->scene) {
+    if (tselem->id == (ID *)tvc.scene) {
       return OL_DRAWSEL_NORMAL;
     }
   }
@@ -1122,7 +1146,7 @@ static eOLDrawState tree_element_active_camera_get(const Scene *scene, const Tre
   return (scene->camera == ob) ? OL_DRAWSEL_NORMAL : OL_DRAWSEL_NONE;
 }
 
-eOLDrawState tree_element_active_state_get(const TreeViewContext *tvc,
+eOLDrawState tree_element_active_state_get(const TreeViewContext &tvc,
                                            const TreeElement *te,
                                            const TreeStoreElem *tselem)
 {
@@ -1134,25 +1158,24 @@ eOLDrawState tree_element_active_state_get(const TreeViewContext *tvc,
       return OL_DRAWSEL_NONE;
       break;
     case ID_MA:
-      return tree_element_active_material_get(tvc->scene, tvc->view_layer, te);
+      return tree_element_active_material_get(tvc.scene, tvc.view_layer, te);
     case ID_WO:
-      return tree_element_active_world_get(tvc->scene, te);
+      return tree_element_active_world_get(tvc.scene, te);
     case ID_CA:
-      return tree_element_active_camera_get(tvc->scene, te);
+      return tree_element_active_camera_get(tvc.scene, te);
   }
   return OL_DRAWSEL_NONE;
 }
 
-eOLDrawState tree_element_type_active_state_get(const bContext *C,
-                                                const TreeViewContext *tvc,
+eOLDrawState tree_element_type_active_state_get(const TreeViewContext &tvc,
                                                 const TreeElement *te,
                                                 const TreeStoreElem *tselem)
 {
   switch (tselem->type) {
     case TSE_DEFGROUP:
-      return tree_element_defgroup_state_get(tvc->scene, tvc->view_layer, te, tselem);
+      return tree_element_defgroup_state_get(tvc.scene, tvc.view_layer, te, tselem);
     case TSE_BONE:
-      return tree_element_bone_state_get(tvc->scene, tvc->view_layer, te, tselem);
+      return tree_element_bone_state_get(tvc.scene, tvc.view_layer, te, tselem);
     case TSE_EBONE:
       return tree_element_ebone_state_get(te);
     case TSE_MODIFIER:
@@ -1164,16 +1187,16 @@ eOLDrawState tree_element_type_active_state_get(const bContext *C,
     case TSE_LINKED_PSYS:
       return OL_DRAWSEL_NONE;
     case TSE_POSE_BASE:
-      return tree_element_pose_state_get(tvc->scene, tvc->view_layer, tselem);
+      return tree_element_pose_state_get(tvc.scene, tvc.view_layer, tselem);
     case TSE_POSE_CHANNEL:
-      return tree_element_posechannel_state_get(tvc->ob_pose, te, tselem);
+      return tree_element_posechannel_state_get(tvc.ob_pose, te, tselem);
     case TSE_CONSTRAINT_BASE:
     case TSE_CONSTRAINT:
       return OL_DRAWSEL_NONE;
     case TSE_R_LAYER:
-      return tree_element_viewlayer_state_get(C, te);
+      return tree_element_viewlayer_state_get(tvc.view_layer, te);
     case TSE_SEQUENCE:
-      return tree_element_sequence_state_get(tvc->scene, te);
+      return tree_element_sequence_state_get(tvc.scene, te);
     case TSE_SEQUENCE_DUP:
       return tree_element_sequence_dup_state_get(te);
     case TSE_GP_LAYER:
@@ -1181,9 +1204,9 @@ eOLDrawState tree_element_type_active_state_get(const bContext *C,
     case TSE_GREASE_PENCIL_NODE:
       return tree_element_grease_pencil_node_state_get(te);
     case TSE_VIEW_COLLECTION_BASE:
-      return tree_element_master_collection_state_get(C);
+      return tree_element_master_collection_state_get(tvc.view_layer, tvc.layer_collection);
     case TSE_LAYER_COLLECTION:
-      return tree_element_layer_collection_state_get(C, te);
+      return tree_element_layer_collection_state_get(tvc.layer_collection, te);
     case TSE_BONE_COLLECTION:
       return tree_element_bone_collection_state_get(te, tselem);
   }
@@ -1416,7 +1439,7 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
  * Needed to run from operators accessed from a menu.
  */
 static void do_outliner_item_activate_tree_element(bContext *C,
-                                                   const TreeViewContext *tvc,
+                                                   const TreeViewContext &tvc,
                                                    SpaceOutliner *space_outliner,
                                                    TreeElement *te,
                                                    TreeStoreElem *tselem,
@@ -1438,8 +1461,8 @@ static void do_outliner_item_activate_tree_element(bContext *C,
   }
   else if (do_activate_data) {
     tree_element_object_activate(C,
-                                 tvc->scene,
-                                 tvc->view_layer,
+                                 tvc.scene,
+                                 tvc.view_layer,
                                  te,
                                  (extend && tselem->type == TSE_SOME_ID) ? OL_SETSEL_EXTEND :
                                                                            OL_SETSEL_NORMAL,
@@ -1460,18 +1483,18 @@ static void do_outliner_item_activate_tree_element(bContext *C,
       /* Only select in outliner. */
     }
     else if (te->idcode == ID_SCE) {
-      if (tvc->scene != (Scene *)tselem->id) {
+      if (tvc.scene != (Scene *)tselem->id) {
         WM_window_set_active_scene(CTX_data_main(C), C, CTX_wm_window(C), (Scene *)tselem->id);
       }
     }
     else if ((te->idcode == ID_GR) && (space_outliner->outlinevis != SO_VIEW_LAYER)) {
       Collection *gr = (Collection *)tselem->id;
-      BKE_view_layer_synced_ensure(tvc->scene, tvc->view_layer);
+      BKE_view_layer_synced_ensure(tvc.scene, tvc.view_layer);
 
       if (extend) {
         object::eObjectSelect_Mode sel = object::BA_SELECT;
         FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (gr, object) {
-          Base *base = BKE_view_layer_base_find(tvc->view_layer, object);
+          Base *base = BKE_view_layer_base_find(tvc.view_layer, object);
           if (base && (base->flag & BASE_SELECTED)) {
             sel = object::BA_DESELECT;
             break;
@@ -1480,7 +1503,7 @@ static void do_outliner_item_activate_tree_element(bContext *C,
         FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 
         FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (gr, object) {
-          Base *base = BKE_view_layer_base_find(tvc->view_layer, object);
+          Base *base = BKE_view_layer_base_find(tvc.view_layer, object);
           if (base) {
             object::base_select(base, sel);
           }
@@ -1488,10 +1511,10 @@ static void do_outliner_item_activate_tree_element(bContext *C,
         FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
       }
       else {
-        BKE_view_layer_base_deselect_all(tvc->scene, tvc->view_layer);
+        BKE_view_layer_base_deselect_all(tvc.scene, tvc.view_layer);
 
         FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (gr, object) {
-          Base *base = BKE_view_layer_base_find(tvc->view_layer, object);
+          Base *base = BKE_view_layer_base_find(tvc.view_layer, object);
           /* Object may not be in this scene */
           if (base != nullptr) {
             if ((base->flag & BASE_SELECTED) == 0) {
@@ -1502,8 +1525,8 @@ static void do_outliner_item_activate_tree_element(bContext *C,
         FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
       }
 
-      DEG_id_tag_update(&tvc->scene->id, ID_RECALC_SELECT);
-      WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, tvc->scene);
+      DEG_id_tag_update(&tvc.scene->id, ID_RECALC_SELECT);
+      WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, tvc.scene);
     }
     else { /* Rest of types. */
       tree_element_activate(C, tvc, te, OL_SETSEL_NORMAL, false);
@@ -1550,7 +1573,7 @@ void outliner_item_select(bContext *C,
     }
 
     do_outliner_item_activate_tree_element(C,
-                                           &tvc,
+                                           tvc,
                                            space_outliner,
                                            te,
                                            tselem,
@@ -1839,7 +1862,7 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
         }
         else {
           /* Double-clicked, but it wasn't on the icon. */
-          return OPERATOR_CANCELLED;
+          return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
         }
       }
       else {

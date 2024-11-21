@@ -20,9 +20,7 @@
 
 #include "BKE_global.hh"
 
-#ifdef WITH_CXX_GUARDEDALLOC
-#  include "MEM_guardedalloc.h"
-#endif
+#include "MEM_guardedalloc.h"
 
 namespace Freestyle {
 
@@ -117,9 +115,7 @@ class GridDensityProvider {
   float _cellSize;
   float _cellOrigin[2];
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:GridDensityProvider")
-#endif
 };
 
 class GridDensityProviderFactory {
@@ -142,9 +138,7 @@ class GridDensityProviderFactory {
 
   virtual ~GridDensityProviderFactory() {}
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:GridDensityProviderFactory")
-#endif
 };
 
 } /* namespace Freestyle */

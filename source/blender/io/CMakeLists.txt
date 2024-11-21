@@ -19,7 +19,6 @@ if(WITH_IO_STL)
 endif()
 
 if(WITH_IO_GREASE_PENCIL)
-  add_subdirectory(gpencil_legacy)
   add_subdirectory(grease_pencil)
 endif()
 

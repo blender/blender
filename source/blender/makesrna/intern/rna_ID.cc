@@ -135,7 +135,7 @@ const IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
      "filter_grease_pencil",
      ICON_GREASEPENCIL,
      "Grease Pencil",
-     "Show Grease pencil data-blocks"},
+     "Show Grease Pencil data-blocks"},
     {FILTER_ID_GR,
      "filter_group",
      ICON_OUTLINER_COLLECTION,
@@ -660,6 +660,9 @@ IDProperty **rna_PropertyGroup_idprops(PointerRNA *ptr)
 
 bool rna_PropertyGroup_unregister(Main * /*bmain*/, StructRNA *type)
 {
+  /* Ensure that a potential py object representing this RNA type is properly dereferenced. */
+  BPY_free_srna_pytype(type);
+
   RNA_struct_free(&BLENDER_RNA, type);
   return true;
 }
@@ -2149,7 +2152,7 @@ static void rna_def_ID_override_library(BlenderRNA *brna)
                          "view_layer",
                          "ViewLayer",
                          "",
-                         "The view layer to operate in (same usage as the `scene` data, in case "
+                         "The view layer to operate in (same usage as the ``scene`` data, in case "
                          "it is not provided the scene's collection will be used instead)");
   parm = RNA_def_pointer(
       func,

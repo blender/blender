@@ -8,6 +8,23 @@ from pathlib import Path
 import bpy
 
 
+def find_draco_dll_in_module(library_name: str) -> Path:
+    """
+    Get the extern Draco library if it exist in the default location used when
+    build PYthon as a module
+    :return: DLL/shared library path.
+    """
+    bpy_path = Path(bpy.__file__).resolve()
+    bpy_dir = bpy_path.parents[4]
+    lib_dir = bpy_dir / 'lib'
+
+    draco_path = lib_dir / library_name
+    if draco_path.exists():
+        return draco_path
+
+    return None
+
+
 def dll_path() -> Path:
     """
     Get the DLL path depending on the underlying platform.
@@ -19,19 +36,23 @@ def dll_path() -> Path:
     python_version = 'python{v[0]}.{v[1]}'.format(v=sys.version_info)
 
     path = os.environ.get('BLENDER_EXTERN_DRACO_LIBRARY_PATH')
-    if path is None:
-        path = {
-            'win32': blender_root / python_lib / 'site-packages',
-            'linux': blender_root / python_lib / python_version / 'site-packages',
-            'darwin': blender_root.parent / 'Resources' / python_lib / python_version / 'site-packages'
-        }.get(sys.platform)
-    else:
+    if path is not None:
         return Path(path)
 
     library_name = {
         'win32': '{}.dll'.format(lib_name),
         'linux': 'lib{}.so'.format(lib_name),
         'darwin': 'lib{}.dylib'.format(lib_name)
+    }.get(sys.platform)
+
+    path = find_draco_dll_in_module(library_name)
+    if path is not None:
+        return path
+
+    path = {
+        'win32': blender_root / python_lib / 'site-packages',
+        'linux': blender_root / python_lib / python_version / 'site-packages',
+        'darwin': blender_root.parent / 'Resources' / python_lib / python_version / 'site-packages'
     }.get(sys.platform)
 
     if path is None or library_name is None:

@@ -53,7 +53,7 @@
 #include "BKE_global.hh"
 #include "BKE_icons.h"
 #include "BKE_idprop.hh"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_light.h"
@@ -105,7 +105,7 @@
 #  include "BLI_threads.h"
 #endif
 
-static void icon_copy_rect(ImBuf *ibuf, uint w, uint h, uint *rect);
+static void icon_copy_rect(const ImBuf *ibuf, uint w, uint h, uint *rect);
 
 /* -------------------------------------------------------------------- */
 /** \name Local Structs
@@ -709,7 +709,8 @@ static bool ed_preview_draw_rect(
   return ok;
 }
 
-void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, rcti *rect)
+void ED_preview_draw(
+    const bContext *C, void *idp, void *parentp, void *slotp, uiPreview *ui_preview, rcti *rect)
 {
   if (idp) {
     Scene *scene = CTX_data_scene(C);
@@ -746,7 +747,7 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, r
     /* start a new preview render job if signaled through sbuts->preview,
      * if no render result was found and no preview render job is running,
      * or if the job is running and the size of preview changed */
-    if ((sbuts != nullptr && sbuts->preview) ||
+    if ((sbuts != nullptr && sbuts->preview) || (ui_preview->tag & UI_PREVIEW_TAG_DIRTY) ||
         (!ok && !WM_jobs_test(wm, area, WM_JOB_TYPE_RENDER_PREVIEW)) ||
         (sp && (abs(sp->sizex - newx) >= 2 || abs(sp->sizey - newy) > 2)))
     {
@@ -754,6 +755,22 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, r
         sbuts->preview = 0;
       }
       ED_preview_shader_job(C, area, id, parent, slot, newx, newy, PR_BUTS_RENDER);
+      ui_preview->tag &= ~UI_PREVIEW_TAG_DIRTY;
+    }
+  }
+}
+
+void ED_previews_tag_dirty_by_id(const Main &bmain, const ID &id)
+{
+  LISTBASE_FOREACH (const bScreen *, screen, &bmain.screens) {
+    LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
+      LISTBASE_FOREACH (const ARegion *, region, &area->regionbase) {
+        LISTBASE_FOREACH (uiPreview *, preview, &region->ui_previews) {
+          if (preview->id_session_uid == id.session_uid) {
+            preview->tag |= UI_PREVIEW_TAG_DIRTY;
+          }
+        }
+      }
     }
   }
 }
@@ -1341,51 +1358,43 @@ static ImBuf *icon_preview_imbuf_from_brush(Brush *brush)
   return brush->icon_imbuf;
 }
 
-static void icon_copy_rect(ImBuf *ibuf, uint w, uint h, uint *rect)
+static void icon_copy_rect(const ImBuf *ibuf, uint w, uint h, uint *rect)
 {
-  ImBuf *ima;
-  uint *drect, *srect;
-  float scaledx, scaledy;
-  short ex, ey, dx, dy;
-
-  /* paranoia test */
-  if (ibuf == nullptr || (ibuf->byte_buffer.data == nullptr && ibuf->float_buffer.data == nullptr))
+  if (ibuf == nullptr ||
+      (ibuf->byte_buffer.data == nullptr && ibuf->float_buffer.data == nullptr) || rect == nullptr)
   {
     return;
   }
 
-  /* Waste of cpu cycles... but the imbuf API has no other way to scale fast (ton). */
-  ima = IMB_dupImBuf(ibuf);
-
-  if (!ima) {
-    return;
-  }
-
-  if (ima->x > ima->y) {
+  float scaledx, scaledy;
+  if (ibuf->x > ibuf->y) {
     scaledx = float(w);
-    scaledy = (float(ima->y) / float(ima->x)) * float(w);
+    scaledy = (float(ibuf->y) / float(ibuf->x)) * float(w);
   }
   else {
-    scaledx = (float(ima->x) / float(ima->y)) * float(h);
+    scaledx = (float(ibuf->x) / float(ibuf->y)) * float(h);
     scaledy = float(h);
   }
 
   /* Scaling down must never assign zero width/height, see: #89868. */
-  ex = std::max(short(1), short(scaledx));
-  ey = std::max(short(1), short(scaledy));
+  int ex = std::max<int>(1, scaledx);
+  int ey = std::max<int>(1, scaledy);
 
-  dx = (w - ex) / 2;
-  dy = (h - ey) / 2;
+  int dx = (w - ex) / 2;
+  int dy = (h - ey) / 2;
 
-  IMB_scale(ima, ex, ey, IMBScaleFilter::Nearest, false);
+  ImBuf *ima = IMB_scale_into_new(ibuf, ex, ey, IMBScaleFilter::Nearest, false);
+  if (ima == nullptr) {
+    return;
+  }
 
   /* if needed, convert to 32 bits */
   if (ima->byte_buffer.data == nullptr) {
     IMB_rect_from_float(ima);
   }
 
-  srect = reinterpret_cast<uint *>(ima->byte_buffer.data);
-  drect = rect;
+  const uint *srect = reinterpret_cast<const uint *>(ima->byte_buffer.data);
+  uint *drect = rect;
 
   drect += dy * w + dx;
   for (; ey > 0; ey--) {

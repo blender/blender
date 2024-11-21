@@ -679,7 +679,7 @@ bool ED_view3d_camera_autokey(
     const float cfra = float(scene->r.cfra);
     blender::Vector<PointerRNA> sources;
     /* add data-source override for the camera object */
-    ANIM_relative_keyingset_add_source(sources, id_key);
+    blender::animrig::relative_keyingset_add_source(sources, id_key);
 
     /* insert keyframes
      * 1) on the first frame
@@ -687,12 +687,12 @@ bool ED_view3d_camera_autokey(
      *    TODO: need to check in future that frame changed before doing this
      */
     if (do_rotate) {
-      KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_ROTATION_ID);
-      ANIM_apply_keyingset(C, &sources, ks, ModifyKeyMode::INSERT, cfra);
+      KeyingSet *ks = blender::animrig::get_keyingset_for_autokeying(scene, ANIM_KS_ROTATION_ID);
+      blender::animrig::apply_keyingset(C, &sources, ks, ModifyKeyMode::INSERT, cfra);
     }
     if (do_translate) {
-      KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
-      ANIM_apply_keyingset(C, &sources, ks, ModifyKeyMode::INSERT, cfra);
+      KeyingSet *ks = blender::animrig::get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
+      blender::animrig::apply_keyingset(C, &sources, ks, ModifyKeyMode::INSERT, cfra);
     }
 
     return true;

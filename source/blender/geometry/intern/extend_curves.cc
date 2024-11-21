@@ -217,8 +217,8 @@ bke::CurvesGeometry extend_curves(bke::CurvesGeometry &src_curves,
   }
 
   const int src_curves_num = src_curves.curves_num();
-  Array<int> start_points(src_curves_num);
-  Array<int> end_points(src_curves_num);
+  Array<int> start_points(src_curves_num, 0);
+  Array<int> end_points(src_curves_num, 0);
   Array<float> use_start_lengths(src_curves_num);
   Array<float> use_end_lengths(src_curves_num);
 
@@ -253,6 +253,8 @@ bke::CurvesGeometry extend_curves(bke::CurvesGeometry &src_curves,
       dst_points_by_curve[curve] = point_count;
       /* Curve not suitable for stretching... */
       if (point_count <= 2) {
+        start_points[curve] = 0;
+        end_points[curve] = 0;
         return;
       }
 
@@ -278,12 +280,18 @@ bke::CurvesGeometry extend_curves(bke::CurvesGeometry &src_curves,
       int local_front = 0;
       MutableSpan<int> new_points_by_curve = dst_to_src_point.as_mutable_span().slice(
           dst_indices[curve]);
-      if (start_points[curve]) {
+      if (point_count <= 2) {
+        for (const int point_i : new_points_by_curve.index_range()) {
+          new_points_by_curve[point_i] = points_by_curve[curve][point_i];
+        }
+        continue;
+      }
+      if (start_points[curve] > 0) {
         MutableSpan<int> starts = new_points_by_curve.slice(0, start_points[curve]);
         starts.fill(points_by_curve[curve].first());
         local_front = start_points[curve];
       }
-      if (end_points[curve]) {
+      if (end_points[curve] > 0) {
         MutableSpan<int> ends = new_points_by_curve.slice(
             new_points_by_curve.size() - end_points[curve], end_points[curve]);
         ends.fill(points_by_curve[curve].last());
@@ -313,10 +321,6 @@ bke::CurvesGeometry extend_curves(bke::CurvesGeometry &src_curves,
   const OffsetIndices<int> new_points_by_curve = dst_curves.points_by_curve();
   threading::parallel_for(dst_curves.curves_range(), 512, [&](const IndexRange curves_range) {
     for (const int curve : curves_range) {
-      if (!start_points[curve] && !end_points[curve]) {
-        /* Curves should not be touched if they didn't generate extra points before. */
-        return;
-      }
       const IndexRange new_curve = new_points_by_curve[curve];
       int new_size = new_curve.size();
 
@@ -324,18 +328,18 @@ bke::CurvesGeometry extend_curves(bke::CurvesGeometry &src_curves,
       const float used_percent_length = math::clamp(
           isfinite(overshoot_fac) ? overshoot_fac : 0.1f, 1e-4f, 1.0f);
 
-      if (!follow_curvature) {
+      if (!follow_curvature || new_size == 2) {
         extend_curves_straight(used_percent_length,
                                new_size,
-                               start_points.as_span(),
-                               end_points.as_span(),
+                               {1},
+                               {1},
                                curve,
                                new_curve,
                                use_start_lengths.as_span(),
                                use_end_lengths.as_span(),
                                positions);
       }
-      else {
+      else if (start_points[curve] > 0 || end_points[curve] > 0) {
         extend_curves_curved(used_percent_length,
                              start_points.as_span(),
                              end_points.as_span(),

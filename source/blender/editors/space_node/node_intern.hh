@@ -308,6 +308,7 @@ void NODE_OT_default_group_width_set(wmOperatorType *ot);
 
 void update_multi_input_indices_for_removed_links(bNode &node);
 bool all_links_muted(const bNodeSocket &socket);
+/** Get the "main" socket based on the node declaration or an heuristic. */
 bNodeSocket *get_main_socket(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out);
 
 void NODE_OT_link(wmOperatorType *ot);
@@ -334,8 +335,6 @@ float2 node_link_calculate_multi_input_position(const float2 &socket_position,
                                                 int total_inputs);
 
 float node_socket_calculate_height(const bNodeSocket &socket);
-
-void snode_set_context(const bContext &C);
 
 bool composite_node_active(bContext *C);
 /** Operator poll callback. */

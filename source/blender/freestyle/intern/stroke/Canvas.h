@@ -21,9 +21,7 @@
 
 #include "../system/FreestyleConfig.h"
 
-#ifdef WITH_CXX_GUARDEDALLOC
-#  include "MEM_guardedalloc.h"
-#endif
+#include "MEM_guardedalloc.h"
 
 namespace Freestyle {
 
@@ -233,9 +231,7 @@ class Canvas {
   void causalStyleModules(std::vector<uint> &vec, uint index = 0);
   void setModified(uint index, bool iMod);
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Canvas")
-#endif
 };
 
 } /* namespace Freestyle */

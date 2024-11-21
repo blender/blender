@@ -2,7 +2,13 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#ifndef DRAW_VIEW_CREATE_INFO
+#pragma once
+
+#include "draw_view_info.hh"
+
+SHADER_LIBRARY_CREATE_INFO(draw_view)
+
+#if !defined(DRAW_VIEW_CREATE_INFO) && !defined(GLSL_CPP_STUBS)
 #  error Missing draw_view additional create info on shader create info
 #endif
 
@@ -104,12 +110,12 @@ float drw_ndc_to_screen(float ndc_P)
 
 vec3 drw_normal_view_to_world(vec3 vN)
 {
-  return (mat3x3(drw_view.viewinv) * vN);
+  return (to_float3x3(drw_view.viewinv) * vN);
 }
 
 vec3 drw_normal_world_to_view(vec3 N)
 {
-  return (mat3x3(drw_view.viewmat) * N);
+  return (to_float3x3(drw_view.viewmat) * N);
 }
 
 /** \} */

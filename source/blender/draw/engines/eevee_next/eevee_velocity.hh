@@ -105,17 +105,21 @@ class VelocityModule {
   void step_sync(eVelocityStep step, float time);
 
   /* Gather motion data. Returns true if the object **can** have motion. */
-  bool step_object_sync(Object *ob,
-                        ObjectKey &object_key,
+  bool step_object_sync(ObjectKey &object_key,
+                        const ObjectRef &object_ref,
+                        int recalc,
                         ResourceHandle resource_handle,
-                        int recalc = 0,
                         ModifierData *modifier_data = nullptr,
                         ParticleSystem *particle_sys = nullptr);
 
-  /* Moves next frame data to previous frame data. Nullify next frame data. */
+  /**
+   * In Render, moves the next frame data to previous frame data. Nullify next frame data.
+   * In Viewport, the current frame data will be used as previous frame data in the next frame.
+   */
   void step_swap();
 
   void begin_sync();
+  /** This is the end of the current frame sync. Not the step_sync. */
   void end_sync();
 
   void bind_resources(DRWShadingGroup *grp);

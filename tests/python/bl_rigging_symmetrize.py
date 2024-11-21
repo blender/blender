@@ -221,6 +221,109 @@ class ArmatureSymmetrizeTest(AbstractAnimationTest, unittest.TestCase):
                 value, vec2[idx], 3, "%s does not match with expected value on bone %s" % (check_str, bone_name))
 
 
+def create_armature() -> tuple[bpy.types.Object, bpy.types.Armature]:
+    arm = bpy.data.armatures.new('Armature')
+    arm_ob = bpy.data.objects.new('ArmObject', arm)
+
+    # Link to the scene just for giggles. And ease of debugging when things
+    # go bad.
+    bpy.context.scene.collection.objects.link(arm_ob)
+
+    return arm_ob, arm
+
+
+def set_edit_bone_selected(ebone: bpy.types.EditBone, selected: bool):
+    # Helper to select all parts of an edit bone.
+    ebone.select = selected
+    ebone.select_tail = selected
+    ebone.select_head = selected
+
+
+def create_copy_loc_constraint(pose_bone, target_ob, subtarget):
+    pose_bone.constraints.new("COPY_LOCATION")
+    pose_bone.constraints[0].target = target_ob
+    pose_bone.constraints[0].subtarget = subtarget
+
+
+class ArmatureSymmetrizeTargetsTest(unittest.TestCase):
+    arm_ob: bpy.types.Object
+    arm: bpy.types.Armature
+
+    def setUp(self):
+        bpy.ops.wm.read_homefile(use_factory_startup=True)
+        self.arm_ob, self.arm = create_armature()
+        bpy.context.view_layer.objects.active = self.arm_ob
+        bpy.ops.object.mode_set(mode='EDIT')
+        ebone = self.arm.edit_bones.new(name="test.l")
+        ebone.tail = (1, 0, 0)
+
+    def test_symmetrize_selection(self):
+        # Only selected things are symmetrized.
+        set_edit_bone_selected(self.arm.edit_bones["test.l"], False)
+        bpy.ops.armature.symmetrize()
+        self.assertEqual(len(self.arm.edit_bones), 1, "If nothing is selected, no bone is symmetrized")
+
+        set_edit_bone_selected(self.arm.edit_bones["test.l"], True)
+        bpy.ops.armature.symmetrize()
+        self.assertEqual(len(self.arm.edit_bones), 2, "Selected EditBone should have been symmetrized")
+        self.assertTrue("test.r" in self.arm.edit_bones)
+        self.assertTrue("test.l" in self.arm.edit_bones)
+
+    def test_symmetrize_constraint_sub_target(self):
+        # Explicitly test that constraints targeting another armature are symmetrized.
+        bpy.ops.object.mode_set(mode='OBJECT')
+        target_arm_ob, target_arm = create_armature()
+        bpy.context.view_layer.objects.active = target_arm_ob
+        bpy.ops.object.mode_set(mode='EDIT')
+        target_arm.edit_bones.new("target.l")
+        target_arm.edit_bones.new("target.r")
+        target_arm.edit_bones["target.l"].tail = (1, 0, 0)
+        target_arm.edit_bones["target.r"].tail = (1, 0, 0)
+
+        bpy.ops.object.mode_set(mode='OBJECT')
+        bpy.context.view_layer.objects.active = self.arm_ob
+
+        bpy.ops.object.mode_set(mode='POSE')
+        pose_bone_l = self.arm_ob.pose.bones["test.l"]
+        create_copy_loc_constraint(pose_bone_l, target_arm_ob, "target.l")
+
+        bpy.ops.object.mode_set(mode='EDIT')
+        set_edit_bone_selected(self.arm.edit_bones["test.l"], True)
+        bpy.ops.armature.symmetrize()
+        self.assertEqual(len(self.arm.edit_bones), 2, "Bone should have been symmetrized")
+        self.assertTrue("test.r" in self.arm.edit_bones)
+        self.assertTrue("test.l" in self.arm.edit_bones)
+
+        bpy.ops.object.mode_set(mode='POSE')
+        self.assertEqual(len(self.arm_ob.pose.bones["test.r"].constraints), 1, "Constraint should have been copied")
+        symm_constraint = self.arm_ob.pose.bones["test.r"].constraints[0]
+        self.assertEqual(symm_constraint.subtarget, "target.r")
+
+    def test_symmetrize_invalid_subtarget(self):
+        # Blender shouldn't crash when there is an invalid subtarget specified.
+        bpy.ops.object.mode_set(mode='OBJECT')
+        target_ob = bpy.data.objects.new("target", None)
+        bpy.context.scene.collection.objects.link(target_ob)
+
+        bpy.context.view_layer.objects.active = self.arm_ob
+
+        bpy.ops.object.mode_set(mode='POSE')
+        pose_bone_l = self.arm_ob.pose.bones["test.l"]
+        create_copy_loc_constraint(pose_bone_l, target_ob, "invalid_subtarget")
+
+        bpy.ops.object.mode_set(mode='EDIT')
+        set_edit_bone_selected(self.arm.edit_bones["test.l"], True)
+        bpy.ops.armature.symmetrize()
+        self.assertEqual(len(self.arm.edit_bones), 2, "Bone should have been symmetrized")
+        self.assertTrue("test.r" in self.arm.edit_bones)
+        self.assertTrue("test.l" in self.arm.edit_bones)
+
+        bpy.ops.object.mode_set(mode='POSE')
+        self.assertEqual(len(self.arm_ob.pose.bones["test.r"].constraints), 1, "Constraint should have been copied")
+        symm_constraint = self.arm_ob.pose.bones["test.r"].constraints[0]
+        self.assertEqual(symm_constraint.subtarget, "invalid_subtarget")
+
+
 def main():
     global args
     import argparse

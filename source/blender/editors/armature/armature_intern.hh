@@ -233,9 +233,6 @@ EditBone *make_boneList(ListBase *edbo, ListBase *bones, Bone *actBone);
 
 /* Duplicate method. */
 
-/** Call this before doing any duplications. */
-void preEditBoneDuplicate(ListBase *editbones);
-void postEditBoneDuplicate(ListBase *editbones, Object *ob);
 EditBone *duplicateEditBone(EditBone *cur_bone, const char *name, ListBase *editbones, Object *ob);
 
 /* Duplicate method (cross objects). */

@@ -9,8 +9,8 @@
  * Also does not weight luma for the bilateral weights.
  */
 
-#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_depth_of_field_lib.glsl)
+#include "eevee_depth_of_field_lib.glsl"
+#include "gpu_shader_math_vector_lib.glsl"
 
 void main()
 {

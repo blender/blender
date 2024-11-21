@@ -415,6 +415,13 @@ INFO_DOCS = (
 INFO_DOCS_OTHER = (
     # Included by: `info_advanced.rst`.
     "info_advanced_blender_as_bpy.rst",
+    # Included by: `info_gotcha.rst`.
+    "info_gotchas_crashes.rst",
+    "info_gotchas_internal_data_and_python_objects.rst",
+    "info_gotchas_operators.rst",
+    "info_gotchas_meshes.rst",
+    "info_gotchas_armatures_and_bones.rst",
+    "info_gotchas_file_paths_and_encoding.rst",
 )
 
 # Hide the actual TOC, use a separate list that links to the items.
@@ -1176,8 +1183,6 @@ context_type_map = {
     "active_annotation_layer": [("GPencilLayer", False)],
     "active_bone": [("EditBone", False), ("Bone", False)],
     "active_file": [("FileSelectEntry", False)],
-    "active_gpencil_frame": [("GreasePencilLayer", True)],
-    "active_gpencil_layer": [("GPencilLayer", True)],
     "active_node": [("Node", False)],
     "active_object": [("Object", False)],
     "active_operator": [("Operator", False)],
@@ -1205,15 +1210,11 @@ context_type_map = {
     "edit_object": [("Object", False)],
     "edit_text": [("Text", False)],
     "editable_bones": [("EditBone", True)],
-    "editable_gpencil_layers": [("GPencilLayer", True)],
-    "editable_gpencil_strokes": [("GPencilStroke", True)],
     "editable_objects": [("Object", True)],
     "editable_fcurves": [("FCurve", True)],
     "fluid": [("FluidSimulationModifier", False)],
     "gpencil": [("GreasePencil", False)],
-    "gpencil_data": [("GreasePencil", False)],
     "grease_pencil": [("GreasePencilv3", False)],
-    "gpencil_data_owner": [("ID", False)],
     "curves": [("Hair Curves", False)],
     "id": [("ID", False)],
     "image_paint_object": [("Object", False)],
@@ -1270,7 +1271,6 @@ context_type_map = {
     "vertex_paint_object": [("Object", False)],
     "view_layer": [("ViewLayer", False)],
     "visible_bones": [("EditBone", True)],
-    "visible_gpencil_layers": [("GPencilLayer", True)],
     "visible_objects": [("Object", True)],
     "visible_pose_bones": [("PoseBone", True)],
     "visible_fcurves": [("FCurve", True)],
@@ -1625,7 +1625,7 @@ def pyrna2sphinx(basepath):
                 fw("   .. data:: {:s}\n".format(identifier))
             else:
                 fw("   .. attribute:: {:s}\n".format(identifier))
-            # Also write `noindex` on requerst.
+            # Also write `noindex` on request.
             if ("bpy.types", struct_id, identifier) in RST_NOINDEX_ATTR:
                 fw("      :noindex:\n")
             fw("\n")
@@ -1660,7 +1660,18 @@ def pyrna2sphinx(basepath):
         del key, descr
 
         for func in struct.functions:
-            args_str = ", ".join(prop.get_arg_default(force=False) for prop in func.args)
+            args_kw_only_index = next((i for i, prop in enumerate(func.args) if not prop.is_required), -1)
+            if args_kw_only_index == -1:
+                args_str = ", ".join(prop.get_arg_default(force=False) for prop in func.args)
+            else:
+                args_str = ", ".join([
+                    *[prop.get_arg_default(force=False) for prop in func.args[:args_kw_only_index]],
+                    # Keyword only.
+                    "*",
+                    *[prop.get_arg_default(force=False) for prop in func.args[args_kw_only_index:]],
+
+                ])
+            del args_kw_only_index
 
             fw("   .. {:s}:: {:s}({:s})\n\n".format(
                 "classmethod" if func.is_classmethod else "method",
@@ -1894,7 +1905,8 @@ def pyrna2sphinx(basepath):
 
             for op in ops_mod:
                 args_str = ", ".join(prop.get_arg_default(force=True) for prop in op.args)
-                fw(".. function:: {:s}({:s})\n\n".format(op.func_name, args_str))
+                # All operator arguments are keyword only (denoted by the leading `*`).
+                fw(".. function:: {:s}({:s}{:s})\n\n".format(op.func_name, "*, " if args_str else "", args_str))
 
                 # If the description isn't valid, we output the standard warning
                 # with a link to the wiki so that people can help.
@@ -2539,7 +2551,7 @@ def main():
 
     try:
         os.mkdir(SPHINX_IN_TMP)
-    except:
+    except Exception:
         pass
 
     # Copy extra files needed for theme.

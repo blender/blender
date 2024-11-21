@@ -88,7 +88,7 @@ struct PuffOperationExecutor {
     object_ = CTX_data_active_object(&C);
     curves_id_ = static_cast<Curves *>(object_->data);
     curves_ = &curves_id_->geometry.wrap();
-    if (curves_->curves_num() == 0) {
+    if (curves_->is_empty()) {
       return;
     }
     if (curves_id_->surface == nullptr || curves_id_->surface->type != OB_MESH) {

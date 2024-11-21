@@ -78,6 +78,11 @@ void filelist_file_get_full_path(const FileList *filelist,
                                  const FileDirEntry *file,
                                  char r_filepath[/*FILE_MAX_LIBEXTRA*/]);
 bool filelist_file_is_preview_pending(const FileList *filelist, const FileDirEntry *file);
+/**
+ * \return True if a new preview request was pushed, false otherwise (e.g. because the preview is
+ * already loaded, invalid or not supported).
+ */
+bool filelist_file_ensure_preview_requested(FileList *filelist, FileDirEntry *file);
 ImBuf *filelist_getimage(FileList *filelist, int index);
 ImBuf *filelist_file_getimage(const FileDirEntry *file);
 ImBuf *filelist_geticon_image_ex(const FileDirEntry *file);
@@ -163,6 +168,8 @@ void filelist_file_cache_slidingwindow_set(FileList *filelist, size_t window_siz
  */
 bool filelist_file_cache_block(FileList *filelist, int index);
 
+void filelist_set_no_preview_auto_cache(FileList *filelist);
+
 bool filelist_needs_force_reset(const FileList *filelist);
 void filelist_tag_force_reset(FileList *filelist);
 void filelist_tag_force_reset_mainfiles(FileList *filelist);
@@ -221,7 +228,9 @@ void filelist_readjob_start(FileList *filelist, int space_notifier, const bConte
 void filelist_readjob_stop(FileList *filelist, wmWindowManager *wm);
 int filelist_readjob_running(FileList *filelist, wmWindowManager *wm);
 
+void filelist_cache_previews_ensure_running(FileList *filelist);
 bool filelist_cache_previews_update(FileList *filelist);
+bool filelist_cache_previews_enabled(const FileList *filelist);
 void filelist_cache_previews_set(FileList *filelist, bool use_previews);
 bool filelist_cache_previews_running(FileList *filelist);
 bool filelist_cache_previews_done(FileList *filelist);

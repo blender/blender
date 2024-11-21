@@ -6,8 +6,6 @@
  * \ingroup ply
  */
 
-#include <cstdio>
-
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_report.hh"
@@ -24,6 +22,9 @@
 #include "ply_export_load_plydata.hh"
 #include "ply_file_buffer_ascii.hh"
 #include "ply_file_buffer_binary.hh"
+
+#include "CLG_log.h"
+static CLG_LogRef LOG = {"io.ply"};
 
 namespace blender::io::ply {
 
@@ -75,7 +76,7 @@ void exporter_main(bContext *C, const PLYExportParams &export_params)
     }
   }
   catch (const std::system_error &ex) {
-    fprintf(stderr, "%s\n", ex.what());
+    CLOG_ERROR(&LOG, "[%s] %s", ex.code().category().name(), ex.what());
     BKE_reportf(export_params.reports,
                 RPT_ERROR,
                 "PLY Export: Cannot open file '%s'",

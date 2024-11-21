@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <limits>
 #include <string>
 
 #include "BLI_map.hh"
@@ -9,11 +10,14 @@
 
 #include "NOD_derived_node_tree.hh"
 
+#include "COM_algorithm_compute_preview.hh"
 #include "COM_context.hh"
+#include "COM_multi_function_procedure_operation.hh"
 #include "COM_operation.hh"
 #include "COM_pixel_operation.hh"
 #include "COM_result.hh"
 #include "COM_scheduler.hh"
+#include "COM_shader_operation.hh"
 #include "COM_utilities.hh"
 
 namespace blender::realtime_compositor {
@@ -27,11 +31,33 @@ PixelOperation::PixelOperation(Context &context,
 {
 }
 
+PixelOperation *PixelOperation::create_operation(Context &context,
+                                                 PixelCompileUnit &compile_unit,
+                                                 const Schedule &schedule)
+{
+  if (context.use_gpu()) {
+    return new ShaderOperation(context, compile_unit, schedule);
+  }
+
+  return new MultiFunctionProcedureOperation(context, compile_unit, schedule);
+}
+
+int PixelOperation::maximum_number_of_outputs(Context &context)
+{
+  if (context.use_gpu()) {
+    /* The GPU module currently only supports up to 8 output images in shaders, but once this
+     * limitation is lifted, we can replace that with GPU_max_images(). */
+    return 8;
+  }
+
+  return std::numeric_limits<int>::max();
+}
+
 void PixelOperation::compute_preview()
 {
   for (const DOutputSocket &output : preview_outputs_) {
     Result &result = get_result(get_output_identifier_from_output_socket(output));
-    compute_preview_from_result(context(), output.node(), result);
+    realtime_compositor::compute_preview(context(), output.node(), result);
     /* Preview results gets as an extra reference in pixel operations as can be seen in the
      * compute_results_reference_counts method, so release it after computing preview. */
     result.release();

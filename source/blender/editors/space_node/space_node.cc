@@ -409,21 +409,21 @@ static SpaceLink *node_create(const ScrArea * /*area*/, const Scene * /*scene*/)
   NODE_TREE_TYPES_END;
 
   /* header */
-  ARegion *region = MEM_cnew<ARegion>("header for node");
+  ARegion *region = BKE_area_region_new();
 
   BLI_addtail(&snode->regionbase, region);
   region->regiontype = RGN_TYPE_HEADER;
   region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* buttons/list view */
-  region = MEM_cnew<ARegion>("buttons for node");
+  region = BKE_area_region_new();
 
   BLI_addtail(&snode->regionbase, region);
   region->regiontype = RGN_TYPE_UI;
   region->alignment = RGN_ALIGN_RIGHT;
 
   /* toolbar */
-  region = MEM_cnew<ARegion>("node tools");
+  region = BKE_area_region_new();
 
   BLI_addtail(&snode->regionbase, region);
   region->regiontype = RGN_TYPE_TOOLS;
@@ -432,7 +432,7 @@ static SpaceLink *node_create(const ScrArea * /*area*/, const Scene * /*scene*/)
   region->flag = RGN_FLAG_HIDDEN;
 
   /* main region */
-  region = MEM_cnew<ARegion>("main region for node");
+  region = BKE_area_region_new();
 
   BLI_addtail(&snode->regionbase, region);
   region->regiontype = RGN_TYPE_WINDOW;

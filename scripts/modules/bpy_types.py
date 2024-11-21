@@ -25,9 +25,9 @@ class Context(_StructRNA):
         Returns the property from the path, raise an exception when not found.
 
         :arg path: patch which this property resolves.
-        :type path: string
+        :type path: str
         :arg coerce: optional argument, when True, the property will be converted into its Python representation.
-        :type coerce: boolean
+        :type coerce: bool
         """
         # This is a convenience wrapper around `_StructRNA.path_resolve` which doesn't support accessing context members.
         # Without this wrapper many users were writing `exec("context.{:s}".format(data_path))` which is a security
@@ -606,7 +606,7 @@ class Mesh(_types.ID):
            float triplets each representing (X, Y, Z)
            eg: [(0.0, 1.0, 0.5), ...].
 
-        :type vertices: iterable object
+        :type vertices: Iterable[Sequence[float]]
         :arg edges:
 
            int pairs, each pair contains two indices to the
@@ -614,13 +614,13 @@ class Mesh(_types.ID):
 
            When an empty iterable is passed in, the edges are inferred from the polygons.
 
-        :type edges: iterable object
+        :type edges: Iterable[Sequence[int]]
         :arg faces:
 
            iterator of faces, each faces contains three or more indices to
            the *vertices* argument. eg: [(5, 6, 8, 9), (1, 2, 3), ...]
 
-        :type faces: iterable object
+        :type faces: Iterable[Sequence[int]]
 
         .. warning::
 
@@ -855,12 +855,12 @@ class Gizmo(_StructRNA):
         Draw a shape created form :class:`Gizmo.draw_custom_shape`.
 
         :arg shape: The cached shape to draw.
-        :type shape: Undefined.
+        :type shape: Any
         :arg matrix: 4x4 matrix, when not given :class:`Gizmo.matrix_world` is used.
         :type matrix: :class:`mathutils.Matrix`
         :arg select_id: The selection id.
            Only use when drawing within :class:`Gizmo.draw_select`.
-        :type select_it: int
+        :type select_id: int
         """
         import gpu
 
@@ -896,13 +896,11 @@ class Gizmo(_StructRNA):
         Create a new shape that can be passed to :class:`Gizmo.draw_custom_shape`.
 
         :arg type: The type of shape to create in (POINTS, LINES, TRIS, LINE_STRIP).
-        :type type: string
-        :arg verts: Coordinates.
-        :type verts: sequence of 2D or 3D coordinates.
-        :arg display_name: Optional callback that takes the full path, returns the name to display.
-        :type display_name: Callable that takes a string and returns a string.
-        :return: The newly created shape.
-        :rtype: Undefined (it may change).
+        :type type: str
+        :arg verts: Sequence of 2D or 3D coordinates.
+        :type verts: Sequence[Sequence[float]]
+        :return: The newly created shape (the return type make change).
+        :rtype: Any
         """
         import gpu
         from gpu.types import (
@@ -974,7 +972,7 @@ class Macro(_StructRNA):
         Append an operator to a registered macro class.
 
         :arg operator: Identifier of the operator. This does not have to be defined when this function is called.
-        :type operator: string
+        :type operator: str
         :return: The operator macro for property access.
         :rtype: :class:`OperatorMacro`
         """
@@ -1035,7 +1033,7 @@ class _GenericUI:
                     # the entire menu from drawing
                     try:
                         func(self, context)
-                    except:
+                    except Exception:
                         import traceback
                         traceback.print_exc()
 
@@ -1115,20 +1113,20 @@ class Menu(_StructRNA, _GenericUI, metaclass=_RNAMeta):
         Populate a menu from a list of paths.
 
         :arg searchpaths: Paths to scan.
-        :type searchpaths: sequence of strings.
+        :type searchpaths: Sequence[str]
         :arg operator: The operator id to use with each file.
-        :type operator: string
+        :type operator: str
         :arg prop_filepath: Optional operator filepath property (defaults to "filepath").
-        :type prop_filepath: string
+        :type prop_filepath: str
         :arg props_default: Properties to assign to each operator.
-        :type props_default: dict
+        :type props_default: dict[str, Any]
         :arg filter_ext: Optional callback that takes the file extensions.
 
            Returning false excludes the file from the list.
 
-        :type filter_ext: Callable that takes a string and returns a bool.
+        :type filter_ext: Callable[[str], bool] | None
         :arg display_name: Optional callback that takes the full path, returns the name to display.
-        :type display_name: Callable that takes a string and returns a string.
+        :type display_name: Callable[[str], str]
         """
 
         layout = self.layout
@@ -1276,6 +1274,8 @@ class NodeSocket(_StructRNA, metaclass=_RNAMetaPropGroup):
         """
         List of node links from or to this socket.
 
+        :type: :class:`NodeLinks`
+
         .. note:: Takes ``O(len(nodetree.links))`` time."""
         links = (link for link in self.id_data.links
                  if self in (link.from_socket, link.to_socket))
@@ -1342,7 +1342,8 @@ class HydraRenderEngine(RenderEngine):
     bl_use_shading_nodes_custom = False
     bl_delegate_id = 'HdStormRendererPlugin'
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.engine_ptr = None
 
     def __del__(self):
@@ -1421,5 +1422,4 @@ class GreasePencilDrawing(_StructRNA):
         """
         from _bpy_internal.grease_pencil.stroke import GreasePencilStrokeSlice
         num_strokes = self.attributes.domain_size('CURVE')
-        if num_strokes > 0:
-            return GreasePencilStrokeSlice(self, 0, num_strokes)
+        return GreasePencilStrokeSlice(self, 0, num_strokes)

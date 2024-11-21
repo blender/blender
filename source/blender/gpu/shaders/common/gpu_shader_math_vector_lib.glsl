@@ -2,7 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
+#pragma once
+
+#include "gpu_shader_math_base_lib.glsl"
 
 /* WORKAROUND: to guard against double include in EEVEE. */
 #ifndef GPU_SHADER_MATH_VECTOR_LIB_GLSL
@@ -548,17 +550,17 @@ vec4 safe_normalize_and_get_length(vec4 vector, out float out_length)
 
 vec2 safe_normalize(vec2 vector)
 {
-  float unused_length;
+  float unused_length = 0.0;
   return safe_normalize_and_get_length(vector, unused_length);
 }
 vec3 safe_normalize(vec3 vector)
 {
-  float unused_length;
+  float unused_length = 0.0;
   return safe_normalize_and_get_length(vector, unused_length);
 }
 vec4 safe_normalize(vec4 vector)
 {
-  float unused_length;
+  float unused_length = 0.0;
   return safe_normalize_and_get_length(vector, unused_length);
 }
 

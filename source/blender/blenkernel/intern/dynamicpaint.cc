@@ -48,8 +48,8 @@
 #include "BKE_deform.hh"
 #include "BKE_dynamicpaint.h"
 #include "BKE_effect.h"
-#include "BKE_image.h"
-#include "BKE_image_format.h"
+#include "BKE_image.hh"
+#include "BKE_image_format.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"
@@ -3430,7 +3430,7 @@ void dynamicPaint_outputSurfaceImage(DynamicPaintSurface *surface,
 #ifdef WITH_OPENEXR
   if (format == R_IMF_IMTYPE_OPENEXR) { /* OpenEXR 32-bit float */
     ibuf->ftype = IMB_FTYPE_OPENEXR;
-    ibuf->foptions.flag |= OPENEXR_COMPRESS;
+    ibuf->foptions.flag = R_IMF_EXR_CODEC_ZIP;
   }
   else
 #endif

@@ -20,7 +20,7 @@ def mesh_linked_uv_islands(mesh):
     :arg mesh: the mesh used to group with.
     :type mesh: :class:`bpy.types.Mesh`
     :return: list of lists containing polygon indices
-    :rtype: list
+    :rtype: list[list[int]]
     """
 
     if mesh.polygons and not mesh.uv_layers.active.data:
@@ -84,12 +84,12 @@ def mesh_linked_uv_islands(mesh):
 def mesh_linked_triangles(mesh):
     """
     Splits the mesh into connected triangles, use this for separating cubes from
-    other mesh elements within 1 mesh datablock.
+    other mesh elements within 1 mesh data-block.
 
     :arg mesh: the mesh used to group with.
     :type mesh: :class:`bpy.types.Mesh`
-    :return: lists of lists containing triangles.
-    :rtype: list
+    :return: Lists of lists containing triangles.
+    :rtype: list[list[:class:`bpy.types.MeshLoopTriangle`]]
     """
 
     # Build vert face connectivity
@@ -139,9 +139,8 @@ def mesh_linked_triangles(mesh):
 
 def edge_face_count_dict(mesh):
     """
-    :return: dict of edge keys with their value set to the number of
-       faces using each edge.
-    :rtype: dict
+    :return: Dictionary of edge keys with their value set to the number of faces using each edge.
+    :rtype: dict[tuple[int, int], int]
     """
 
     face_edge_count = {}
@@ -152,7 +151,7 @@ def edge_face_count_dict(mesh):
             key = edges[loops[i].edge_index].key
             try:
                 face_edge_count[key] += 1
-            except:
+            except KeyError:
                 face_edge_count[key] = 1
 
     return face_edge_count
@@ -161,7 +160,7 @@ def edge_face_count_dict(mesh):
 def edge_face_count(mesh):
     """
     :return: list face users for each item in mesh.edges.
-    :rtype: list
+    :rtype: list[int]
     """
     edge_face_count = edge_face_count_dict(mesh)
     get = dict.get
@@ -237,12 +236,12 @@ def ngon_tessellate(from_data, indices, fix_loops=True, debug_print=True):
     index lists. Designed to be used for importers that need indices for an
     ngon to create from existing verts.
 
-    :arg from_data: either a mesh, or a list/tuple of vectors.
-    :type from_data: list or :class:`bpy.types.Mesh`
+    :arg from_data: Either a mesh, or a list/tuple of 3D vectors.
+    :type from_data: :class:`bpy.types.Mesh` | list[Sequence[float]] | tuple[Sequence[float]]
     :arg indices: a list of indices to use this list
        is the ordered closed poly-line
        to fill, and can be a subset of the data given.
-    :type indices: list
+    :type indices: list[int]
     :arg fix_loops: If this is enabled poly-lines
        that use loops to make multiple
        poly-lines are dealt with correctly.
@@ -428,12 +427,12 @@ def triangle_random_points(num_points, loop_triangles):
     """
     Generates a list of random points over mesh loop triangles.
 
-    :arg num_points: the number of random points to generate on each triangle.
-    :type int:
-    :arg loop_triangles: list of the triangles to generate points on.
-    :type loop_triangles: :class:`bpy.types.MeshLoopTriangle`, sequence
-    :return: list of random points over all triangles.
-    :rtype: list
+    :arg num_points: The number of random points to generate on each triangle.
+    :type num_points: int
+    :arg loop_triangles: Sequence of the triangles to generate points on.
+    :type loop_triangles: Sequence[:class:`bpy.types.MeshLoopTriangle`]
+    :return: List of random points over all triangles.
+    :rtype: list[:class:`mathutils.Vector`]
     """
 
     from random import random

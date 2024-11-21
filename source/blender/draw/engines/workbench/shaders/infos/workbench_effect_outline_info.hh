@@ -2,13 +2,23 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#ifdef GPU_SHADER
+#  pragma once
+#  include "gpu_glsl_cpp_stubs.hh"
+
+#  include "draw_fullscreen_info.hh"
+
+#  include "workbench_shader_shared.h"
+#endif
+
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(workbench_effect_outline)
-    .typedef_source("workbench_shader_shared.h")
-    .fragment_source("workbench_effect_outline_frag.glsl")
-    .sampler(0, ImageType::UINT_2D, "objectIdBuffer")
-    .uniform_buf(WB_WORLD_SLOT, "WorldData", "world_data")
-    .fragment_out(0, Type::VEC4, "fragColor")
-    .additional_info("draw_fullscreen")
-    .do_static_compilation(true);
+TYPEDEF_SOURCE("workbench_shader_shared.h")
+FRAGMENT_SOURCE("workbench_effect_outline_frag.glsl")
+SAMPLER(0, UINT_2D, objectIdBuffer)
+UNIFORM_BUF(WB_WORLD_SLOT, WorldData, world_data)
+FRAGMENT_OUT(0, VEC4, fragColor)
+ADDITIONAL_INFO(draw_fullscreen)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()

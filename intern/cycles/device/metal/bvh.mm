@@ -1139,17 +1139,17 @@ bool BVHMetal::build_TLAS(Progress &progress,
       uint32_t primitive_offset = 0;
       int currIndex = instance_index++;
 
-      if (geom->geometry_type == Geometry::HAIR) {
+      if (geom->is_hair()) {
         /* Build BLAS for curve primitives. */
         Hair *const hair = static_cast<Hair *const>(const_cast<Geometry *>(geom));
         primitive_offset = uint32_t(hair->curve_segment_offset);
       }
-      else if (geom->geometry_type == Geometry::MESH || geom->geometry_type == Geometry::VOLUME) {
+      else if (geom->is_mesh() || geom->is_volume()) {
         /* Build BLAS for triangle primitives. */
         Mesh *const mesh = static_cast<Mesh *const>(const_cast<Geometry *>(geom));
         primitive_offset = uint32_t(mesh->prim_offset);
       }
-      else if (geom->geometry_type == Geometry::POINTCLOUD) {
+      else if (geom->is_pointcloud()) {
         /* Build BLAS for points primitives. */
         PointCloud *const pointcloud = static_cast<PointCloud *const>(
             const_cast<Geometry *>(geom));

@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/gpu_shader_index_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(gpu_shader_index_2d_array_lines)
+
 /**
  *  Constructs a 2D array index buffer with 'ncurves' rows and 'elements_per_curve*2'
  *  columns. Each row contains 'elements_per_curve' pairs of indexes.

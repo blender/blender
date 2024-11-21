@@ -161,14 +161,6 @@ Class mix-in example:
 
    bpy.utils.register_class(SimpleOperator)
 
-Notice these classes don't define an ``__init__(self)`` function.
-While ``__init__()`` and ``__del__()`` will be called if defined,
-the class instances lifetime only spans the execution.
-So a panel for example will have a new instance for every redraw,
-for this reason there is rarely a cause to store variables in the panel instance.
-Instead, persistent variables should be stored in Blender's data
-so that the state can be restored when Blender is restarted.
-
 .. note::
 
    Modal operators are an exception, keeping their instance variable as Blender runs, see modal operator template.
@@ -184,6 +176,53 @@ To run operators you can call them through the operator API, e.g:
 
 User interface classes are given a context in which to draw, buttons, window, file header, toolbar, etc.,
 then they are drawn when that area is displayed so they are never called by Python scripts directly.
+
+
+.. _info_overview_class_construction_destruction:
+
+Construction & Destruction
+--------------------------
+
+In the examples above, the classes don't define an ``__init__(self)`` function.
+In general, defining custom constructors or destructors should not be needed, and is not recommended.
+
+The lifetime of class instances is usually very short (also see the
+:ref:`dedicated section <blender_py_objects_life_time>`), a panel for example will
+have a new instance for every redraw.
+Some other types, like :class:`bpy.types.Operator`, have an even more complex internal handling,
+which can lead to several instantiations for a single operator execution.
+
+There are a few cases where defining ``__init__()`` and ``__del__()`` does make sense,
+e.g. when sub-classing a :class:`bpy.types.RenderEngine`. When doing so, the parent matching function
+must always be called, otherwise Blender's internal initialization won't happen properly:
+
+.. code-block:: python
+
+   import bpy
+   class AwesomeRaytracer(bpy.types.RenderEngine):
+      def __init__(self, *args, **kwargs):
+         super().__init__(*args, **kwargs)
+         ...
+
+      def __del__(self):
+         ...
+         super.__del__()
+
+.. note::
+
+   Calling the parent's ``__init__()`` function is a hard requirement since Blender 4.4.
+   The 'generic' signature is the recommended one here, as Blender internal BPY code is typically
+   the only caller of these functions. The actual arguments passed to the constructor are fully
+   internal data, and may change depending on the implementation.
+
+
+.. note::
+
+   Defining a custom ``__new__()`` function is strongly discouraged, not tested, and not considered
+   as supported currently.
+   Doing so presents a very high risk of crashes or otherwise corruption of Blender internal data.
+   But if defined, it must take the same two generic positional and keyword arguments,
+   and call the parent's ``__new__()`` with them if actually creating a new object.
 
 
 .. _info_overview_registration:

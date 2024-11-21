@@ -2,21 +2,23 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
-#pragma BLENDER_REQUIRE(draw_model_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_renderpass_lib.glsl)
+#pragma once
 
-vec3 g_emission;
-vec3 g_transmittance;
+#include "draw_model_lib.glsl"
+#include "draw_view_lib.glsl"
+#include "eevee_renderpass_lib.glsl"
+#include "gpu_shader_codegen_lib.glsl"
+#include "gpu_shader_math_base_lib.glsl"
+#include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
+
+packed_float3 g_emission;
+packed_float3 g_transmittance;
 float g_holdout;
 
-vec3 g_volume_scattering;
+packed_float3 g_volume_scattering;
 float g_volume_anisotropy;
-vec3 g_volume_absorption;
+packed_float3 g_volume_absorption;
 
 /* The Closure type is never used. Use float as dummy type. */
 #define Closure float
@@ -31,7 +33,7 @@ ClosureUndetermined g_closure_bins[CLOSURE_BIN_COUNT];
 /* Random number per sampled closure type. */
 float g_closure_rand[CLOSURE_BIN_COUNT];
 
-ClosureUndetermined g_closure_get(int i)
+ClosureUndetermined g_closure_get(uchar i)
 {
   switch (i) {
     case 0:
@@ -50,7 +52,7 @@ ClosureUndetermined g_closure_get(int i)
   return cl_empty;
 }
 
-ClosureUndetermined g_closure_get_resolved(int i, float weight_fac)
+ClosureUndetermined g_closure_get_resolved(uchar i, float weight_fac)
 {
   ClosureUndetermined cl = g_closure_get(i);
   cl.color *= cl.weight * weight_fac;

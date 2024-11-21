@@ -2,9 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
+#include "common_view_clipping_lib.glsl"
 
-void main(void)
+void main()
 {
   finalColor = vec4(geom_in[0].vColSize.rgb, 1.0);
 

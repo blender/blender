@@ -36,10 +36,6 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
     return;
   }
 
-  if (!prim_) {
-    return;
-  }
-
   pxr::UsdLuxLightAPI light_api(prim_);
   if (!light_api) {
     return;

@@ -381,7 +381,7 @@ class InfoPropertyRNA:
         """
         :arg enum_descr_override: Optionally override items for enum.
            Otherwise expand the literal items.
-        :type enum_descr_override: string or None when unset.
+        :type enum_descr_override: str | None
         """
         type_str = ""
         if self.fixed_type is None:
@@ -645,7 +645,7 @@ def BuildRNAInfo():
     def base_id(rna_struct):
         try:
             return rna_struct.base.identifier
-        except:
+        except AttributeError:
             return ""  # invalid id
 
     # structs = [(base_id(rna_struct), rna_struct.identifier, rna_struct) for rna_struct in bpy.doc.structs.values()]

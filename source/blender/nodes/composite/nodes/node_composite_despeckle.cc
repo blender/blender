@@ -6,6 +6,11 @@
  * \ingroup cmpnodes
  */
 
+#include "BLI_math_base.hh"
+#include "BLI_math_matrix_types.hh"
+#include "BLI_math_vector.hh"
+#include "BLI_math_vector_types.hh"
+
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
@@ -57,19 +62,29 @@ class DespeckleOperation : public NodeOperation {
 
   void execute() override
   {
-    const Result &input_image = get_input("Image");
-    /* Single value inputs can't be despeckled and are returned as is. */
+    Result &input_image = get_input("Image");
     if (input_image.is_single_value()) {
-      get_input("Image").pass_through(get_result("Image"));
+      input_image.pass_through(get_result("Image"));
       return;
     }
 
+    if (this->context().use_gpu()) {
+      this->execute_gpu();
+    }
+    else {
+      this->execute_cpu();
+    }
+  }
+
+  void execute_gpu()
+  {
     GPUShader *shader = context().get_shader("compositor_despeckle");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1f(shader, "threshold", get_threshold());
     GPU_shader_uniform_1f(shader, "neighbor_threshold", get_neighbor_threshold());
 
+    const Result &input_image = get_input("Image");
     input_image.bind_as_texture(shader, "input_tx");
 
     const Result &factor_image = get_input("Fac");
@@ -86,6 +101,79 @@ class DespeckleOperation : public NodeOperation {
     output_image.unbind_as_image();
     input_image.unbind_as_texture();
     factor_image.unbind_as_texture();
+  }
+
+  void execute_cpu()
+  {
+    const float threshold = this->get_threshold();
+    const float neighbor_threshold = this->get_neighbor_threshold();
+
+    const Result &input = get_input("Image");
+    const Result &factor_image = get_input("Fac");
+
+    const Domain domain = compute_domain();
+    Result &output = get_result("Image");
+    output.allocate_texture(domain);
+
+    /* A 3x3 weights kernel whose weights are the inverse of the distance to the center of the
+     * kernel. So the center weight is zero, the corners weights are (1 / sqrt(2)), and the rest
+     * of the weights are 1. The total sum of weights is 4 plus quadruple the corner weight. */
+    float corner_weight = 1.0f / math::sqrt(2.0f);
+    float sum_of_weights = 4.0f + corner_weight * 4.0f;
+    float3x3 weights = float3x3(float3(corner_weight, 1.0f, corner_weight),
+                                float3(1.0f, 0.0f, 1.0f),
+                                float3(corner_weight, 1.0f, corner_weight));
+
+    parallel_for(domain.size, [&](const int2 texel) {
+      float4 center_color = input.load_pixel(texel);
+
+      /* Go over the pixels in the 3x3 window around the center pixel and compute the total sum of
+       * their colors multiplied by their weights. Additionally, for pixels whose colors are not
+       * close enough to the color of the center pixel, accumulate their color as well as their
+       * weights. */
+      float4 sum_of_colors = float4(0.0f);
+      float accumulated_weight = 0.0f;
+      float4 accumulated_color = float4(0.0f);
+      for (int j = 0; j < 3; j++) {
+        for (int i = 0; i < 3; i++) {
+          float weight = weights[j][i];
+          float4 color = input.load_pixel_extended(texel + int2(i - 1, j - 1)) * weight;
+          sum_of_colors += color;
+          if (!math::is_equal(center_color.xyz(), color.xyz(), threshold)) {
+            accumulated_color += color;
+            accumulated_weight += weight;
+          }
+        }
+      }
+
+      /* If the accumulated weight is zero, that means all pixels in the 3x3 window are similar and
+       * no need to despeckle anything, so write the original center color and return. */
+      if (accumulated_weight == 0.0f) {
+        output.store_pixel(texel, center_color);
+        return;
+      }
+
+      /* If the ratio between the accumulated weights and the total sum of weights is not larger
+       * than the user specified neighbor threshold, then the number of pixels in the neighborhood
+       * that are not close enough to the center pixel is low, and no need to despeckle anything,
+       * so write the original center color and return. */
+      if (accumulated_weight / sum_of_weights < neighbor_threshold) {
+        output.store_pixel(texel, center_color);
+        return;
+      }
+
+      /* If the weighted average color of the neighborhood is close enough to the center pixel,
+       * then no need to despeckle anything, so write the original center color and return. */
+      if (math::is_equal(center_color.xyz(), (sum_of_colors / sum_of_weights).xyz(), threshold)) {
+        output.store_pixel(texel, center_color);
+        return;
+      }
+
+      /* We need to despeckle, so write the mean accumulated color. */
+      float factor = factor_image.load_pixel(texel).x;
+      float4 mean_color = accumulated_color / accumulated_weight;
+      output.store_pixel(texel, math::interpolate(center_color, mean_color, factor));
+    });
   }
 
   float get_threshold()

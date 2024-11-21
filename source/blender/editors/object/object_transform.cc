@@ -71,6 +71,7 @@
 
 #include "ANIM_action.hh"
 #include "ANIM_keyframing.hh"
+#include "ANIM_keyingsets.hh"
 
 #include "ED_anim_api.hh"
 #include "ED_armature.hh"
@@ -343,7 +344,7 @@ static int object_clear_transform_generic_exec(bContext *C,
   }
 
   /* get KeyingSet to use */
-  ks = ANIM_get_keyingset_for_autokeying(scene, default_ksName);
+  ks = blender::animrig::get_keyingset_for_autokeying(scene, default_ksName);
 
   if (blender::animrig::is_autokey_on(scene)) {
     ANIM_deselect_keys_in_animation_editors(C);
@@ -717,7 +718,6 @@ static int apply_objects_internal(bContext *C,
              OB_CURVES_LEGACY,
              OB_SURF,
              OB_FONT,
-             OB_GPENCIL_LEGACY,
              OB_CURVES,
              OB_POINTCLOUD,
              OB_GREASE_PENCIL))
@@ -776,46 +776,6 @@ static int apply_objects_internal(bContext *C,
                     "Text objects can only have their scale applied: \"%s\"",
                     ob->id.name + 2);
         changed = false;
-      }
-    }
-
-    if (ob->type == OB_GPENCIL_LEGACY) {
-      bGPdata *gpd = static_cast<bGPdata *>(ob->data);
-      if (gpd) {
-        if (gpd->layers.first) {
-          /* Unsupported configuration */
-          bool has_unparented_layers = false;
-
-          LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-            /* Parented layers aren't supported as we can't easily re-evaluate
-             * the scene to sample parent movement */
-            if (gpl->parent == nullptr) {
-              has_unparented_layers = true;
-              break;
-            }
-          }
-
-          if (has_unparented_layers == false) {
-            BKE_reportf(reports,
-                        RPT_ERROR,
-                        "Can't apply to a GP data-block where all layers are parented: Object "
-                        "\"%s\", %s \"%s\", aborting",
-                        ob->id.name + 2,
-                        BKE_idtype_idcode_to_name(ID_GD_LEGACY),
-                        gpd->id.name + 2);
-            changed = false;
-          }
-        }
-        else {
-          /* No layers/data */
-          BKE_reportf(
-              reports,
-              RPT_ERROR,
-              R"(Can't apply to GP data-block with no layers: Object "%s", %s "%s", aborting)",
-              ob->id.name + 2,
-              BKE_idtype_idcode_to_name(ID_GD_LEGACY),
-              gpd->id.name + 2);
-        }
       }
     }
 
@@ -948,10 +908,6 @@ static int apply_objects_internal(bContext *C,
         cu->fsize *= scale;
       }
     }
-    else if (ob->type == OB_GPENCIL_LEGACY) {
-      bGPdata *gpd = static_cast<bGPdata *>(ob->data);
-      BKE_gpencil_transform(gpd, mat);
-    }
     else if (ob->type == OB_CURVES) {
       Curves &curves = *static_cast<Curves *>(ob->data);
       curves.geometry.wrap().transform(float4x4(mat));
@@ -1044,6 +1000,11 @@ static int apply_objects_internal(bContext *C,
       la->area_size *= rsmat[0][0];
       la->area_sizey *= rsmat[1][1];
       la->area_sizez *= rsmat[2][2];
+
+      /* Explicit tagging is required for Lamp ID because, unlike Geometry IDs like Mesh,
+       * it is not covered by the `ID_RECALC_GEOMETRY` flag applied to the object at the end
+       * of this loop. */
+      DEG_id_tag_update(&la->id, ID_RECALC_PARAMETERS);
     }
     else {
       continue;
@@ -1641,83 +1602,6 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
       tot_change++;
       lt->id.tag |= ID_TAG_DOIT;
       do_inverse_offset = true;
-    }
-    else if (ob->type == OB_GPENCIL_LEGACY) {
-      bGPdata *gpd = static_cast<bGPdata *>(ob->data);
-      float gpcenter[3];
-      if (gpd) {
-        if (centermode == ORIGIN_TO_GEOMETRY) {
-          zero_v3(gpcenter);
-          BKE_gpencil_centroid_3d(gpd, gpcenter);
-          add_v3_v3(gpcenter, ob->object_to_world().location());
-        }
-        if (centermode == ORIGIN_TO_CURSOR) {
-          copy_v3_v3(gpcenter, cursor);
-        }
-        if (ELEM(centermode, ORIGIN_TO_GEOMETRY, ORIGIN_TO_CURSOR)) {
-          bGPDspoint *pt;
-          float imat[3][3], bmat[3][3];
-          float offset_global[3];
-          float offset_local[3];
-          int i;
-
-          sub_v3_v3v3(offset_global, gpcenter, ob->object_to_world().location());
-          copy_m3_m4(bmat, obact->object_to_world().ptr());
-          invert_m3_m3(imat, bmat);
-          mul_m3_v3(imat, offset_global);
-          mul_v3_m3v3(offset_local, imat, offset_global);
-
-          float diff_mat[4][4];
-          float inverse_diff_mat[4][4];
-
-          /* recalculate all strokes
-           * (all layers are considered without evaluating lock attributes) */
-          LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-            /* calculate difference matrix */
-            BKE_gpencil_layer_transform_matrix_get(depsgraph, obact, gpl, diff_mat);
-            /* undo matrix */
-            invert_m4_m4(inverse_diff_mat, diff_mat);
-            LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
-              LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-                for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-                  float mpt[3];
-                  mul_v3_m4v3(mpt, inverse_diff_mat, &pt->x);
-                  sub_v3_v3(mpt, offset_local);
-                  mul_v3_m4v3(&pt->x, diff_mat, mpt);
-                }
-
-                /* Apply transform to edit-curve. */
-                if (gps->editcurve != nullptr) {
-                  for (i = 0; i < gps->editcurve->tot_curve_points; i++) {
-                    BezTriple *bezt = &gps->editcurve->curve_points[i].bezt;
-                    for (int j = 0; j < 3; j++) {
-                      float mpt[3];
-                      mul_v3_m4v3(mpt, inverse_diff_mat, bezt->vec[j]);
-                      sub_v3_v3(mpt, offset_local);
-                      mul_v3_m4v3(bezt->vec[j], diff_mat, mpt);
-                    }
-                  }
-                }
-                BKE_gpencil_stroke_geometry_update(gpd, gps);
-              }
-            }
-          }
-          tot_change++;
-          if (centermode == ORIGIN_TO_GEOMETRY) {
-            copy_v3_v3(ob->loc, gpcenter);
-          }
-          DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-          DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
-
-          ob->id.tag |= ID_TAG_DOIT;
-          do_inverse_offset = true;
-        }
-        else {
-          BKE_report(op->reports,
-                     RPT_WARNING,
-                     "Grease Pencil Object does not support this set origin option");
-        }
-      }
     }
     else if (ob->type == OB_CURVES) {
       Curves &curves_id = *static_cast<Curves *>(ob->data);

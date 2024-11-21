@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "overlay_next_grease_pencil.hh"
 #include "overlay_next_private.hh"
 
 #include "draw_common.hh"
@@ -32,15 +33,15 @@ class Outline {
 
   Framebuffer prepass_fb_ = {"outline.prepass_fb"};
 
-  bool enabled = false;
+  bool enabled_ = false;
 
   overlay::GreasePencil::ViewParameters grease_pencil_view;
 
  public:
   void begin_sync(Resources &res, const State &state)
   {
-    enabled = (state.v3d_flag & V3D_SELECT_OUTLINE);
-    if (!enabled) {
+    enabled_ = state.v3d && (state.v3d_flag & V3D_SELECT_OUTLINE);
+    if (!enabled_) {
       return;
     }
 
@@ -128,7 +129,7 @@ class Outline {
 
   void object_sync(Manager &manager, const ObjectRef &ob_ref, const State &state)
   {
-    if (!enabled) {
+    if (!enabled_) {
       return;
     }
 
@@ -193,9 +194,18 @@ class Outline {
     }
   }
 
+  void pre_draw(Manager &manager, View &view)
+  {
+    if (!enabled_) {
+      return;
+    }
+
+    manager.generate_commands(outline_prepass_ps_, view);
+  }
+
   void draw(Resources &res, Manager &manager, View &view)
   {
-    if (!enabled) {
+    if (!enabled_) {
       return;
     }
 
@@ -210,7 +220,7 @@ class Outline {
     prepass_fb_.ensure(GPU_ATTACHMENT_TEXTURE(tmp_depth_tx_),
                        GPU_ATTACHMENT_TEXTURE(object_id_tx_));
 
-    manager.submit(outline_prepass_ps_, view);
+    manager.submit_only(outline_prepass_ps_, view);
     manager.submit(outline_resolve_ps_, view);
 
     tmp_depth_tx_.release();

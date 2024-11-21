@@ -2,12 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_spherical_harmonics_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_filter_lib.glsl)
+#include "draw_view_lib.glsl"
+#include "eevee_filter_lib.glsl"
+#include "eevee_sampling_lib.glsl"
+#include "eevee_spherical_harmonics_lib.glsl"
+#include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 
 vec3 sample_normal_get(ivec2 texel, out bool is_processed)
 {

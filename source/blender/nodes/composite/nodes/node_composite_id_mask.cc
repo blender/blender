@@ -8,6 +8,9 @@
 
 #include <cmath>
 
+#include "BLI_math_base.hh"
+#include "BLI_math_vector_types.hh"
+
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
@@ -53,17 +56,33 @@ class IDMaskOperation : public NodeOperation {
       return;
     }
 
+    /* If anti-aliasing is disabled, write to the output directly, otherwise, write to a temporary
+     * result to later perform anti-aliasing. */
+    Result non_anti_aliased_mask = context().create_result(ResultType::Float);
+    Result &output_mask = use_anti_aliasing() ? non_anti_aliased_mask : get_result("Alpha");
+
+    if (this->context().use_gpu()) {
+      this->execute_gpu(output_mask);
+    }
+    else {
+      this->execute_cpu(output_mask);
+    }
+
+    if (this->use_anti_aliasing()) {
+      smaa(context(), non_anti_aliased_mask, get_result("Alpha"));
+      non_anti_aliased_mask.release();
+    }
+  }
+
+  void execute_gpu(Result &output_mask)
+  {
     GPUShader *shader = context().get_shader("compositor_id_mask");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1i(shader, "index", get_index());
 
+    const Result &input_mask = get_input("ID value");
     input_mask.bind_as_texture(shader, "input_mask_tx");
-
-    /* If anti-aliasing is disabled, write to the output directly, otherwise, write to a temporary
-     * result to later perform anti-aliasing. */
-    Result non_anti_aliased_mask = context().create_result(ResultType::Float);
-    Result &output_mask = use_anti_aliasing() ? non_anti_aliased_mask : get_result("Alpha");
 
     const Domain domain = compute_domain();
     output_mask.allocate_texture(domain);
@@ -74,11 +93,22 @@ class IDMaskOperation : public NodeOperation {
     input_mask.unbind_as_texture();
     output_mask.unbind_as_image();
     GPU_shader_unbind();
+  }
 
-    if (use_anti_aliasing()) {
-      smaa(context(), non_anti_aliased_mask, get_result("Alpha"));
-      non_anti_aliased_mask.release();
-    }
+  void execute_cpu(Result &output_mask)
+  {
+    const int index = this->get_index();
+
+    const Result &input_mask = get_input("ID value");
+
+    const Domain domain = compute_domain();
+    output_mask.allocate_texture(domain);
+
+    parallel_for(domain.size, [&](const int2 texel) {
+      float input_mask_value = input_mask.load_pixel(texel).x;
+      float mask = int(math::round(input_mask_value)) == index ? 1.0f : 0.0f;
+      output_mask.store_pixel(texel, float4(mask));
+    });
   }
 
   void execute_single_value()

@@ -26,6 +26,7 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_cloth_types.h"
 #include "DNA_collection_types.h"
@@ -451,6 +452,7 @@ static void do_versions_fix_annotations(bGPdata *gpd)
 
 static void do_versions_remove_region(ListBase *regionbase, ARegion *region)
 {
+  MEM_delete(region->runtime);
   BLI_freelinkN(regionbase, region);
 }
 
@@ -2886,10 +2888,10 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
       ToolSettings *ts = scene->toolsettings;
 
       /* Ensure new Paint modes. */
-      BKE_paint_ensure_from_paintmode(bmain, scene, PaintMode::GPencil);
-      BKE_paint_ensure_from_paintmode(bmain, scene, PaintMode::VertexGPencil);
-      BKE_paint_ensure_from_paintmode(bmain, scene, PaintMode::SculptGPencil);
-      BKE_paint_ensure_from_paintmode(bmain, scene, PaintMode::WeightGPencil);
+      BKE_paint_ensure_from_paintmode(scene, PaintMode::GPencil);
+      BKE_paint_ensure_from_paintmode(scene, PaintMode::VertexGPencil);
+      BKE_paint_ensure_from_paintmode(scene, PaintMode::SculptGPencil);
+      BKE_paint_ensure_from_paintmode(scene, PaintMode::WeightGPencil);
 
       /* Enable cursor by default. */
       Paint *paint = &ts->gp_paint->paint;
@@ -2933,9 +2935,9 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
     /* Reset all grease pencil brushes. */
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       /* Ensure new Paint modes. */
-      BKE_paint_ensure_from_paintmode(bmain, scene, PaintMode::VertexGPencil);
-      BKE_paint_ensure_from_paintmode(bmain, scene, PaintMode::SculptGPencil);
-      BKE_paint_ensure_from_paintmode(bmain, scene, PaintMode::WeightGPencil);
+      BKE_paint_ensure_from_paintmode(scene, PaintMode::VertexGPencil);
+      BKE_paint_ensure_from_paintmode(scene, PaintMode::SculptGPencil);
+      BKE_paint_ensure_from_paintmode(scene, PaintMode::WeightGPencil);
     }
   }
 
@@ -3061,14 +3063,6 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
         la->cascade_count = 4;
         la->cascade_exponent = 0.8f;
         la->cascade_fade = 0.1f;
-      }
-    }
-
-    if (!DNA_struct_member_exists(fd->filesdna, "Light", "float", "contact_dist")) {
-      LISTBASE_FOREACH (Light *, la, &bmain->lights) {
-        la->contact_dist = 0.2f;
-        la->contact_bias = 0.03f;
-        la->contact_thickness = 0.2f;
       }
     }
 
@@ -3440,15 +3434,6 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
         scene->eevee.taa_samples = 16;
         scene->eevee.taa_render_samples = 64;
 
-        scene->eevee.sss_samples = 7;
-        scene->eevee.sss_jitter_threshold = 0.3f;
-
-        scene->eevee.ssr_quality = 0.25f;
-        scene->eevee.ssr_max_roughness = 0.5f;
-        scene->eevee.ssr_thickness = 0.2f;
-        scene->eevee.ssr_border_fade = 0.075f;
-        scene->eevee.ssr_firefly_fac = 10.0f;
-
         scene->eevee.volumetric_start = 0.1f;
         scene->eevee.volumetric_end = 100.0f;
         scene->eevee.volumetric_tile_size = 8;
@@ -3458,29 +3443,17 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
         scene->eevee.volumetric_shadow_samples = 16;
 
         scene->eevee.gtao_distance = 0.2f;
-        scene->eevee.gtao_factor = 1.0f;
-        scene->eevee.gtao_quality = 0.25f;
+        scene->eevee.fast_gi_quality = 0.25f;
 
         scene->eevee.bokeh_max_size = 100.0f;
         scene->eevee.bokeh_threshold = 1.0f;
 
-        copy_v3_fl(scene->eevee.bloom_color, 1.0f);
-        scene->eevee.bloom_threshold = 0.8f;
-        scene->eevee.bloom_knee = 0.5f;
-        scene->eevee.bloom_intensity = 0.05f;
-        scene->eevee.bloom_radius = 6.5f;
-        scene->eevee.bloom_clamp = 0.0f;
-
         scene->eevee.motion_blur_samples = 8;
         scene->eevee.motion_blur_shutter_deprecated = 0.5f;
 
-        scene->eevee.shadow_method = SHADOW_ESM;
-        scene->eevee.shadow_cube_size = 512;
-        scene->eevee.shadow_cascade_size = 1024;
+        scene->eevee.shadow_cube_size_deprecated = 512;
 
-        scene->eevee.flag = SCE_EEVEE_VOLUMETRIC_LIGHTS | SCE_EEVEE_GTAO_BENT_NORMALS |
-                            SCE_EEVEE_GTAO_BOUNCE | SCE_EEVEE_TAA_REPROJECTION |
-                            SCE_EEVEE_SSR_HALF_RESOLUTION;
+        scene->eevee.flag = SCE_EEVEE_TAA_REPROJECTION;
 
         /* If the file is pre-2.80 move on. */
         if (scene->layer_properties == nullptr) {
@@ -3536,21 +3509,21 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
         IDProperty *props = IDP_GetPropertyFromGroup(scene->layer_properties,
                                                      RE_engine_id_BLENDER_EEVEE);
         // EEVEE_GET_BOOL(props, volumetric_enable, SCE_EEVEE_VOLUMETRIC_ENABLED);
-        EEVEE_GET_BOOL(props, volumetric_lights, SCE_EEVEE_VOLUMETRIC_LIGHTS);
-        EEVEE_GET_BOOL(props, volumetric_shadows, SCE_EEVEE_VOLUMETRIC_SHADOWS);
+        // EEVEE_GET_BOOL(props, volumetric_lights, SCE_EEVEE_VOLUMETRIC_LIGHTS);
+        // EEVEE_GET_BOOL(props, volumetric_shadows, SCE_EEVEE_VOLUMETRIC_SHADOWS);
         EEVEE_GET_BOOL(props, gtao_enable, SCE_EEVEE_GTAO_ENABLED);
-        EEVEE_GET_BOOL(props, gtao_use_bent_normals, SCE_EEVEE_GTAO_BENT_NORMALS);
-        EEVEE_GET_BOOL(props, gtao_bounce, SCE_EEVEE_GTAO_BOUNCE);
+        // EEVEE_GET_BOOL(props, gtao_use_bent_normals, SCE_EEVEE_GTAO_BENT_NORMALS);
+        // EEVEE_GET_BOOL(props, gtao_bounce, SCE_EEVEE_GTAO_BOUNCE);
         EEVEE_GET_BOOL(props, dof_enable, SCE_EEVEE_DOF_ENABLED);
         // EEVEE_GET_BOOL(props, bloom_enable, SCE_EEVEE_BLOOM_ENABLED);
         EEVEE_GET_BOOL(props, motion_blur_enable, SCE_EEVEE_MOTION_BLUR_ENABLED_DEPRECATED);
-        EEVEE_GET_BOOL(props, shadow_high_bitdepth, SCE_EEVEE_SHADOW_HIGH_BITDEPTH);
+        // EEVEE_GET_BOOL(props, shadow_high_bitdepth, SCE_EEVEE_SHADOW_HIGH_BITDEPTH);
         EEVEE_GET_BOOL(props, taa_reprojection, SCE_EEVEE_TAA_REPROJECTION);
         // EEVEE_GET_BOOL(props, sss_enable, SCE_EEVEE_SSS_ENABLED);
         // EEVEE_GET_BOOL(props, sss_separate_albedo, SCE_EEVEE_SSS_SEPARATE_ALBEDO);
         EEVEE_GET_BOOL(props, ssr_enable, SCE_EEVEE_SSR_ENABLED);
-        EEVEE_GET_BOOL(props, ssr_refraction, SCE_EEVEE_SSR_REFRACTION);
-        EEVEE_GET_BOOL(props, ssr_halfres, SCE_EEVEE_SSR_HALF_RESOLUTION);
+        // EEVEE_GET_BOOL(props, ssr_refraction, SCE_EEVEE_SSR_REFRACTION);
+        // EEVEE_GET_BOOL(props, ssr_halfres, SCE_EEVEE_SSR_HALF_RESOLUTION);
 
         EEVEE_GET_INT(props, gi_diffuse_bounces);
         EEVEE_GET_INT(props, gi_diffuse_bounces);
@@ -3560,14 +3533,14 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
         EEVEE_GET_INT(props, taa_samples);
         EEVEE_GET_INT(props, taa_render_samples);
 
-        EEVEE_GET_INT(props, sss_samples);
-        EEVEE_GET_FLOAT(props, sss_jitter_threshold);
+        // EEVEE_GET_INT(props, sss_samples);
+        // EEVEE_GET_FLOAT(props, sss_jitter_threshold);
 
-        EEVEE_GET_FLOAT(props, ssr_quality);
-        EEVEE_GET_FLOAT(props, ssr_max_roughness);
-        EEVEE_GET_FLOAT(props, ssr_thickness);
-        EEVEE_GET_FLOAT(props, ssr_border_fade);
-        EEVEE_GET_FLOAT(props, ssr_firefly_fac);
+        // EEVEE_GET_FLOAT(props, ssr_quality);
+        // EEVEE_GET_FLOAT(props, ssr_max_roughness);
+        // EEVEE_GET_FLOAT(props, ssr_thickness);
+        // EEVEE_GET_FLOAT(props, ssr_border_fade);
+        // EEVEE_GET_FLOAT(props, ssr_firefly_fac);
 
         EEVEE_GET_FLOAT(props, volumetric_start);
         EEVEE_GET_FLOAT(props, volumetric_end);
@@ -3577,26 +3550,26 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
         EEVEE_GET_FLOAT(props, volumetric_light_clamp);
         EEVEE_GET_INT(props, volumetric_shadow_samples);
 
-        EEVEE_GET_FLOAT(props, gtao_distance);
-        EEVEE_GET_FLOAT(props, gtao_factor);
-        EEVEE_GET_FLOAT(props, gtao_quality);
+        // EEVEE_GET_FLOAT(props, gtao_distance);
+        // EEVEE_GET_FLOAT(props, gtao_factor);
+        EEVEE_GET_FLOAT(props, fast_gi_quality);
 
         EEVEE_GET_FLOAT(props, bokeh_max_size);
         EEVEE_GET_FLOAT(props, bokeh_threshold);
 
-        EEVEE_GET_FLOAT_ARRAY(props, bloom_color, 3);
-        EEVEE_GET_FLOAT(props, bloom_threshold);
-        EEVEE_GET_FLOAT(props, bloom_knee);
-        EEVEE_GET_FLOAT(props, bloom_intensity);
-        EEVEE_GET_FLOAT(props, bloom_radius);
-        EEVEE_GET_FLOAT(props, bloom_clamp);
+        // EEVEE_GET_FLOAT_ARRAY(props, bloom_color, 3);
+        // EEVEE_GET_FLOAT(props, bloom_threshold);
+        // EEVEE_GET_FLOAT(props, bloom_knee);
+        // EEVEE_GET_FLOAT(props, bloom_intensity);
+        // EEVEE_GET_FLOAT(props, bloom_radius);
+        // EEVEE_GET_FLOAT(props, bloom_clamp);
 
         EEVEE_GET_INT(props, motion_blur_samples);
         EEVEE_GET_FLOAT(props, motion_blur_shutter_deprecated);
 
-        EEVEE_GET_INT(props, shadow_method);
-        EEVEE_GET_INT(props, shadow_cube_size);
-        EEVEE_GET_INT(props, shadow_cascade_size);
+        // EEVEE_GET_INT(props, shadow_method);
+        EEVEE_GET_INT(props, shadow_cube_size_deprecated);
+        // EEVEE_GET_INT(props, shadow_cascade_size);
 
         /* Cleanup. */
         IDP_FreeProperty(scene->layer_properties);
@@ -3879,13 +3852,6 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
             }
           }
         }
-      }
-    }
-
-    if (!DNA_struct_member_exists(fd->filesdna, "SceneEEVEE", "float", "gi_cubemap_draw_size")) {
-      LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-        scene->eevee.gi_irradiance_draw_size = 0.1f;
-        scene->eevee.gi_cubemap_draw_size = 0.3f;
       }
     }
 
@@ -4276,8 +4242,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
           if (sl->spacetype == SPACE_PROPERTIES) {
             ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
                                                                    &sl->regionbase;
-            ARegion *region = static_cast<ARegion *>(
-                MEM_callocN(sizeof(ARegion), "navigation bar for properties"));
+            ARegion *region = BKE_area_region_new();
             ARegion *region_header = nullptr;
 
             for (region_header = static_cast<ARegion *>(regionbase->first);
@@ -4345,22 +4310,9 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_member_exists(fd->filesdna, "SceneEEVEE", "float", "gi_irradiance_smoothing"))
-    {
-      LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-        scene->eevee.gi_irradiance_smoothing = 0.1f;
-      }
-    }
-
-    if (!DNA_struct_member_exists(fd->filesdna, "SceneEEVEE", "float", "gi_filter_quality")) {
-      LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-        scene->eevee.gi_filter_quality = 1.0f;
-      }
-    }
-
     if (!DNA_struct_member_exists(fd->filesdna, "Light", "float", "att_dist")) {
       LISTBASE_FOREACH (Light *, la, &bmain->lights) {
-        la->att_dist = la->clipend;
+        la->att_dist = la->clipend_deprecated;
       }
     }
 
@@ -4519,8 +4471,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
               ListBase *regionbase = (slink == area->spacedata.first) ? &area->regionbase :
                                                                         &slink->regionbase;
 
-              navigation_region = static_cast<ARegion *>(
-                  MEM_callocN(sizeof(ARegion), "userpref navigation-region do_versions"));
+              navigation_region = BKE_area_region_new();
 
               /* Order matters, addhead not addtail! */
               BLI_insertlinkbefore(regionbase, main_region, navigation_region);
@@ -4791,8 +4742,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
                                                                      &sl->regionbase;
               ARegion *region_navbar = BKE_spacedata_find_region_type(sl, area, RGN_TYPE_NAV_BAR);
 
-              execute_region = static_cast<ARegion *>(
-                  MEM_callocN(sizeof(ARegion), "execute region for properties"));
+              execute_region = BKE_area_region_new();
 
               BLI_assert(region_navbar);
 
@@ -5855,15 +5805,6 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
         {
           br->tip_roundness = 0.18f;
         }
-      }
-    }
-
-    /* EEVEE: Cascade shadow bias fix */
-    LISTBASE_FOREACH (Light *, light, &bmain->lights) {
-      if (light->type == LA_SUN) {
-        /* Should be 0.0004 but for practical reason we make it bigger.
-         * Correct factor is scene dependent. */
-        light->bias *= 0.002f;
       }
     }
   }

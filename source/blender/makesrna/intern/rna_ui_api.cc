@@ -2372,7 +2372,7 @@ void RNA_api_ui_layout(StructRNA *srna)
                  0,
                  "",
                  "Name of a custom operator to invoke when starting to drag an item. Never "
-                 "invoked together with the `active_operator` (if set), it's either the drag or "
+                 "invoked together with the ``active_operator`` (if set), it's either the drag or "
                  "the activate one");
   parm = RNA_def_pointer(
       func,
@@ -2387,6 +2387,7 @@ void RNA_api_ui_layout(StructRNA *srna)
       srna, "template_light_linking_collection", "uiTemplateLightLinkingCollection");
   RNA_def_function_ui_description(func,
                                   "Visualization of a content of a light linking collection");
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
   parm = RNA_def_pointer(func,
                          "context_layout",
                          "UILayout",
@@ -2401,11 +2402,12 @@ void RNA_api_ui_layout(StructRNA *srna)
 
   func = RNA_def_function(
       srna, "template_grease_pencil_layer_tree", "uiTemplateGreasePencilLayerTree");
-  RNA_def_function_ui_description(func, "View of the active grease pencil layer tree");
+  RNA_def_function_ui_description(func, "View of the active Grease Pencil layer tree");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 
   func = RNA_def_function(srna, "template_node_tree_interface", "uiTemplateNodeTreeInterface");
   RNA_def_function_ui_description(func, "Show a node tree interface");
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
   parm = RNA_def_pointer(func,
                          "interface",
                          "NodeTreeInterface",
@@ -2427,7 +2429,7 @@ void RNA_api_ui_layout(StructRNA *srna)
                         nullptr,
                         0,
                         "",
-                        "Identifier of the asset shelf to display (`bl_idname`)");
+                        "Identifier of the asset shelf to display (``bl_idname``)");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_string(
       func, "name", nullptr, 0, "", "Optional name to indicate the active asset");

@@ -40,6 +40,12 @@ if(WITH_TBB)
   list(INSERT LIB 0 bf_blenkernel)
 endif()
 
+if(WITH_OPENMP AND WITH_OPENMP_STATIC)
+  list(APPEND LIB
+    ${OpenMP_LIBRARIES}
+  )
+endif()
+
 if(WIN32)
   list(APPEND INC ../../intern/utfconv)
 endif()
@@ -405,9 +411,9 @@ elseif(WIN32)
     set(TARGETDIR_LIB ${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/bpy)
     set(TARGETDIR_EXE ${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/bpy)
   else()
-    set(TARGETDIR_VER "./${BLENDER_VERSION}")
+    set(TARGETDIR_VER "${BLENDER_VERSION}")
     set(TARGETDIR_TEXT ".")
-    set(TARGETDIR_LIB "./blender.shared")
+    set(TARGETDIR_LIB "blender.shared")
     set(TARGETDIR_EXE ".")
   endif()
 elseif(APPLE)
@@ -1818,7 +1824,7 @@ if((DEFINED LIBDIR) AND TARGETDIR_LIB)
         ${LIBDIR}/usd/plugin/usd/hdStorm
         ${LIBDIR}/usd/plugin/usd/usdShaders
         ${LIBDIR}/usd/plugin/usd/hioOiio
-        DESTINATION "./blender.shared/usd"
+        DESTINATION "blender.shared/usd"
       )
     elseif(USD_PYTHON_SUPPORT)
       install(DIRECTORY

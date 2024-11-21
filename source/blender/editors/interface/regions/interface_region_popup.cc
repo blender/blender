@@ -610,7 +610,7 @@ void ui_layout_panel_popup_scroll_apply(Panel *panel, const float dy)
 
 void UI_popup_dummy_panel_set(ARegion *region, uiBlock *block)
 {
-  Panel *&panel = region->runtime.popup_block_panel;
+  Panel *&panel = region->runtime->popup_block_panel;
   if (!panel) {
     /* Dummy popup panel type. */
     static PanelType panel_type = []() {
@@ -706,8 +706,15 @@ uiBlock *ui_popup_block_refresh(bContext *C,
   block->oldblock = nullptr;
 
   if (!block->endblock) {
-    UI_block_end_ex(
-        C, block, handle->popup_create_vars.event_xy, handle->popup_create_vars.event_xy);
+    UI_block_end_ex(C,
+                    CTX_data_main(C),
+                    window,
+                    CTX_data_scene(C),
+                    region,
+                    CTX_data_depsgraph_pointer(C),
+                    block,
+                    handle->popup_create_vars.event_xy,
+                    handle->popup_create_vars.event_xy);
   }
 
   /* if this is being created from a button */
@@ -989,8 +996,8 @@ void ui_popup_block_free(bContext *C, uiPopupBlockHandle *handle)
     handle->popup_create_vars.arg_free(handle->popup_create_vars.arg);
   }
 
-  if (handle->region->runtime.popup_block_panel) {
-    BKE_panel_free(handle->region->runtime.popup_block_panel);
+  if (handle->region->runtime->popup_block_panel) {
+    BKE_panel_free(handle->region->runtime->popup_block_panel);
   }
 
   ui_popup_block_remove(C, handle);

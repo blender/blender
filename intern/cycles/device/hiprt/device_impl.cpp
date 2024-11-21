@@ -922,10 +922,10 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
           custom_prim_info_offset[blender_instance_id].x = offset;
           custom_prim_info_offset[blender_instance_id].y = custom_prim_offset;
 
-          if (geom->geometry_type == Geometry::HAIR) {
+          if (geom->is_hair()) {
             custom_prim_offset += ((Hair *)geom)->num_curves();
           }
-          else if (geom->geometry_type == Geometry::POINTCLOUD) {
+          else if (geom->is_pointcloud()) {
             custom_prim_offset += ((PointCloud *)geom)->num_points();
           }
           else {

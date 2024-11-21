@@ -6,12 +6,12 @@
  * Draw particles as shapes using primitive expansion.
  */
 
-#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
-#pragma BLENDER_REQUIRE(draw_model_lib.glsl)
-#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
-#pragma BLENDER_REQUIRE(select_lib.glsl)
+#include "common_view_clipping_lib.glsl"
+#include "draw_model_lib.glsl"
+#include "draw_view_lib.glsl"
+#include "gpu_shader_math_base_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
+#include "select_lib.glsl"
 
 /* TODO(fclem): Deduplicate wireframe color. */
 

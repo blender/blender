@@ -77,12 +77,13 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_fileops.h"
+#include "BLI_math_base.hh"
 #include "BLI_math_color.h"
 #include "BLI_mmap.h"
 #include "BLI_threads.h"
 
 #include "BKE_idprop.hh"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 
 #include "IMB_allocimbuf.hh"
 #include "IMB_colormanagement.hh"
@@ -385,7 +386,20 @@ bool imb_is_a_openexr(const uchar *mem, const size_t size)
   return Imf::isImfMagic((const char *)mem);
 }
 
-static void openexr_header_compression(Header *header, int compression)
+static int openexr_jpg_like_quality_to_dwa_quality(int q)
+{
+  q = blender::math::clamp(q, 0, 100);
+
+  /* Map "visually lossless" JPG quality of 97 to default DWA level of 45,
+   * "lossless" JPG quality of 100 to DWA level of 0, and everything else
+   * linearly based on those. */
+  constexpr int x0 = 100, y0 = 0;
+  constexpr int x1 = 97, y1 = 45;
+  q = y0 + (q - x0) * (y1 - y0) / (x1 - x0);
+  return q;
+}
+
+static void openexr_header_compression(Header *header, int compression, int quality)
 {
   switch (compression) {
     case R_IMF_EXR_CODEC_NONE:
@@ -415,9 +429,11 @@ static void openexr_header_compression(Header *header, int compression)
 #if OPENEXR_VERSION_MAJOR > 2 || (OPENEXR_VERSION_MAJOR >= 2 && OPENEXR_VERSION_MINOR >= 2)
     case R_IMF_EXR_CODEC_DWAA:
       header->compression() = DWAA_COMPRESSION;
+      header->dwaCompressionLevel() = openexr_jpg_like_quality_to_dwa_quality(quality);
       break;
     case R_IMF_EXR_CODEC_DWAB:
       header->compression() = DWAB_COMPRESSION;
+      header->dwaCompressionLevel() = openexr_jpg_like_quality_to_dwa_quality(quality);
       break;
 #endif
     default:
@@ -462,7 +478,8 @@ static bool imb_save_openexr_half(ImBuf *ibuf, const char *filepath, const int f
   try {
     Header header(width, height);
 
-    openexr_header_compression(&header, ibuf->foptions.flag & OPENEXR_COMPRESS);
+    openexr_header_compression(
+        &header, ibuf->foptions.flag & OPENEXR_CODEC_MASK, ibuf->foptions.quality);
     openexr_header_metadata(&header, ibuf);
 
     /* create channels */
@@ -563,7 +580,8 @@ static bool imb_save_openexr_float(ImBuf *ibuf, const char *filepath, const int 
   try {
     Header header(width, height);
 
-    openexr_header_compression(&header, ibuf->foptions.flag & OPENEXR_COMPRESS);
+    openexr_header_compression(
+        &header, ibuf->foptions.flag & OPENEXR_CODEC_MASK, ibuf->foptions.quality);
     openexr_header_metadata(&header, ibuf);
 
     /* create channels */
@@ -875,6 +893,7 @@ bool IMB_exr_begin_write(void *handle,
                          int width,
                          int height,
                          int compress,
+                         int quality,
                          const StampData *stamp)
 {
   ExrHandle *data = (ExrHandle *)handle;
@@ -889,7 +908,7 @@ bool IMB_exr_begin_write(void *handle,
     header.channels().insert(echan->name, Channel(echan->use_half_float ? Imf::HALF : Imf::FLOAT));
   }
 
-  openexr_header_compression(&header, compress);
+  openexr_header_compression(&header, compress, quality);
   BKE_stamp_info_callback(
       &header, const_cast<StampData *>(stamp), openexr_header_metadata_callback, false);
   /* header.lineOrder() = DECREASING_Y; this crashes in windows for file read! */

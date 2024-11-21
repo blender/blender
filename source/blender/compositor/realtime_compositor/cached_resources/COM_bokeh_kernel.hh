@@ -59,6 +59,20 @@ class BokehKernel : public CachedResource {
               float lens_shift);
 
   ~BokehKernel();
+
+ private:
+  void compute_gpu(Context &context,
+                   const int sides,
+                   const float rotation,
+                   const float roundness,
+                   const float catadioptric,
+                   const float lens_shift);
+
+  void compute_cpu(const int sides,
+                   const float rotation,
+                   const float roundness,
+                   const float catadioptric,
+                   const float lens_shift);
 };
 
 /* ------------------------------------------------------------------------------------------------

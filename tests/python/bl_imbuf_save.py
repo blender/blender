@@ -45,7 +45,8 @@ class ImBufTest(AbstractImBufTest):
         for s in settings:
             if s == "color_depth":
                 name += str(settings[s]).rjust(2, '0') + "-"
-            else:
+            # do not embed exr quality into test file name
+            elif not (s == "quality" and ext == "exr"):
                 name += str(settings[s]) + "-"
 
             setattr(image_settings, s, settings[s])
@@ -123,17 +124,17 @@ class ImBufSaveTest(ImBufTest):
         self.skip_if_format_missing("OPENEXR")
 
         self.check(src="rgba08", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "BW", "color_depth": "16", "exr_codec": "ZIP"})
-        self.check(src="rgba08", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "16", "exr_codec": "DWAA"})
-        self.check(src="rgba08", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGBA", "color_depth": "16", "exr_codec": "DWAB"})
-        self.check(src="rgba08", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "BW", "color_depth": "32", "exr_codec": "DWAB"})
-        self.check(src="rgba08", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "32", "exr_codec": "DWAA"})
+        self.check(src="rgba08", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "16", "exr_codec": "DWAA", "quality": 97})
+        self.check(src="rgba08", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGBA", "color_depth": "16", "exr_codec": "DWAB", "quality": 97})
+        self.check(src="rgba08", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "BW", "color_depth": "32", "exr_codec": "DWAB", "quality": 97})
+        self.check(src="rgba08", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "32", "exr_codec": "DWAA", "quality": 97})
         self.check(src="rgba08", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGBA", "color_depth": "32", "exr_codec": "ZIP"})
 
         self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "BW", "color_depth": "16", "exr_codec": "ZIP"})
-        self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "16", "exr_codec": "DWAA"})
-        self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGBA", "color_depth": "16", "exr_codec": "DWAB"})
-        self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "BW", "color_depth": "32", "exr_codec": "DWAB"})
-        self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "32", "exr_codec": "DWAA"})
+        self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "16", "exr_codec": "DWAA", "quality": 97})
+        self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGBA", "color_depth": "16", "exr_codec": "DWAB", "quality": 97})
+        self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "BW", "color_depth": "32", "exr_codec": "DWAB", "quality": 97})
+        self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "32", "exr_codec": "DWAA", "quality": 97})
         self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGBA", "color_depth": "32", "exr_codec": "ZIP"})
 
     def test_save_hdr(self):

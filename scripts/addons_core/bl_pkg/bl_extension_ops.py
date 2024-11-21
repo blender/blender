@@ -70,8 +70,13 @@ _ext_base_pkg_idname_with_dot = _ext_base_pkg_idname + "."
 
 
 def url_append_defaults(url):
+    import sys
     from .bl_extension_utils import url_append_query_for_blender
-    return url_append_query_for_blender(url, blender_version=bpy.app.version)
+    return url_append_query_for_blender(
+        url=url,
+        blender_version=bpy.app.version,
+        python_version=sys.version_info[:3],
+    )
 
 
 def url_normalize(url):
@@ -272,9 +277,47 @@ class OperatorNonBlockingSyncHelper:
 # Internal Utilities
 #
 
+def _extensions_repo_temp_files_make_stale(
+        repo_directory,  # `str`
+):  # `-> None`
+
+    # NOTE: this function should run after any operation
+    # which may have attempted to remove a directory but only successfully renamed it.
+    # The extension sub-process could communicate this back to this process but it's
+    # reasonably involved and only avoids a repository file-system scan after each operation.
+    # Scan repository directories and clear files with a specific prefix & suffix.
+    import addon_utils
+    from .bl_extension_utils import (
+        scandir_with_demoted_errors,
+        PKG_TEMP_PREFIX_AND_SUFFIX,
+    )
+
+    paths_stale = []
+
+    prefix, suffix = PKG_TEMP_PREFIX_AND_SUFFIX
+    for entry in scandir_with_demoted_errors(repo_directory):
+        filename = entry.name
+        if not filename.startswith(prefix):
+            continue
+        # Check the `filename` ends with `suffix` or suffix & digits `suffix123`.
+        i = filename.rfind(suffix)
+        if i == -1:
+            continue
+        ext_end = filename[i + len(suffix):]
+        if ext_end and (not ext_end.isdigit()):
+            continue
+
+        paths_stale.append(os.path.join(repo_directory, filename))
+
+    if not paths_stale:
+        return
+
+    addon_utils.stale_pending_stage_paths(repo_directory, paths_stale)
+
+
 def _extensions_repo_uninstall_stale_package_fallback(
         repo_directory,  # `str`
-        pkg_id_sequence,  # `List[str]`
+        pkg_id_sequence,  # `list[str]`
 ):  # `-> None`
     # If uninstall failed, make the package stale (by renaming it & queue to remove later).
     import addon_utils
@@ -290,6 +333,30 @@ def _extensions_repo_uninstall_stale_package_fallback(
         return
 
     addon_utils.stale_pending_stage_paths(repo_directory, paths_stale)
+
+
+def _extensions_repo_install_stale_package_clear(
+        repo_directory,  # `str`
+        pkg_id_sequence,  # `list[str]`
+):  # `-> None`
+    # If install succeeds, ensure the package is not stale.
+    #
+    # This can happen when a package fails to remove (if one of it's files are locked),
+    # it is queued for removal. Then the user successfully removes it & re-installs in.
+    # In this case the package will be tagged for later removal, so ensure it's removed.
+    import addon_utils
+
+    paths_not_stale = []
+    for pkg_id in pkg_id_sequence:
+        path_abs = os.path.join(repo_directory, pkg_id)
+        if not os.path.exists(path_abs):
+            continue
+        paths_not_stale.append(path_abs)
+
+    if not paths_not_stale:
+        return
+
+    addon_utils.stale_pending_remove_paths(repo_directory, paths_not_stale)
 
 
 def _sequence_split_with_job_limit(items, job_limit):
@@ -483,9 +550,11 @@ def pkg_manifest_params_compatible_or_error_for_this_system(
     *,
     blender_version_min,  # `str`
     blender_version_max,  # `str`
-    platforms,  # `List[str]`
-):  # `Optional[str]`
+    platforms,  # `list[str]`
+    python_versions,  # `list[str]`
+):  # `str | None`
     # Return true if the parameters are compatible with this system.
+    import sys
     from .bl_extension_utils import (
         pkg_manifest_params_compatible_or_error,
         platform_from_this_system,
@@ -495,8 +564,10 @@ def pkg_manifest_params_compatible_or_error_for_this_system(
         blender_version_min=blender_version_min,
         blender_version_max=blender_version_max,
         platforms=platforms,
+        python_versions=python_versions,
         # This system.
         this_platform=platform_from_this_system(),
+        this_python_version=sys.version_info,
         this_blender_version=bpy.app.version,
         error_fn=print,
     )
@@ -547,8 +618,8 @@ def repo_cache_store_refresh_from_prefs(repo_cache_store, include_disabled=False
 
 def _preferences_pkg_id_sequence_filter_enabled(
         repo_item,  # `RepoItem`
-        pkg_id_sequence,  # `List[str]`
-):  # `-> List[str]`
+        pkg_id_sequence,  # `list[str]`
+):  # `-> list[str]`
     import addon_utils
     result = []
 
@@ -570,10 +641,10 @@ def _preferences_pkg_id_sequence_filter_enabled(
 def _preferences_ensure_disabled(
         *,
         repo_item,  # `RepoItem`
-        pkg_id_sequence,  # `List[str]`
+        pkg_id_sequence,  # `list[str]`
         default_set,  # `bool`
         error_fn,  # `Callable[[Exception], None]`
-):  # `-> Dict[str, Tuple[boo, bool]]`
+):  # `-> dict[str, tuple[boo, bool]]`
     import sys
     import addon_utils
 
@@ -604,7 +675,12 @@ def _preferences_ensure_disabled(
             if not hasattr(repo_module, pkg_id):
                 print("Repo module \"{:s}.{:s}\" not a sub-module!".format(".".join(module_base_elem), pkg_id))
 
-        addon_utils.disable(addon_module_name, default_set=default_set, handle_error=error_fn)
+        addon_utils.disable(
+            addon_module_name,
+            default_set=default_set,
+            refresh_handled=True,
+            handle_error=error_fn,
+        )
 
         modules_clear.append(pkg_id)
 
@@ -654,7 +730,12 @@ def _preferences_ensure_enabled(*, repo_item, pkg_id_sequence, result, handle_er
         if not loaded_state:
             continue
 
-        addon_utils.enable(addon_module_name, default_set=loaded_default, handle_error=handle_error)
+        addon_utils.enable(
+            addon_module_name,
+            default_set=loaded_default,
+            refresh_handled=True,
+            handle_error=handle_error,
+        )
 
 
 def _preferences_ensure_enabled_all(*, addon_restore, handle_error):
@@ -695,7 +776,13 @@ def _preferences_install_post_enable_on_install(
                 continue
 
             addon_module_name = "{:s}.{:s}.{:s}".format(_ext_base_pkg_idname, repo_item.module, pkg_id)
-            addon_utils.enable(addon_module_name, default_set=True, handle_error=handle_error)
+            addon_utils.enable(
+                addon_module_name,
+                default_set=True,
+                # Handled by `_extensions_repo_sync_wheels`.
+                refresh_handled=True,
+                handle_error=handle_error,
+            )
         elif item_local.type == "theme":
             if has_theme:
                 continue
@@ -851,7 +938,7 @@ def _pkg_marked_by_repo(repo_cache_store, pkg_manifest_all):
 # Wheel Handling
 #
 
-def _extensions_wheel_filter_for_platform(wheels):
+def _extensions_wheel_filter_for_this_system(wheels):
 
     # Copied from `wheel.bwheel_dist.get_platform(..)` which isn't part of Python.
     # This misses some additional checks which aren't supported by official Blender builds,
@@ -859,6 +946,13 @@ def _extensions_wheel_filter_for_platform(wheels):
     # (e.g. `linux-i686` on 64 bit systems & `linux-armv7l`).
     import sysconfig
     platform_tag_current = sysconfig.get_platform().replace("-", "_")
+
+    import sys
+    from .bl_extension_utils import (
+        python_versions_from_wheel_python_tag,
+    )
+
+    python_version_current = sys.version_info[:2]
 
     # https://packaging.python.org/en/latest/specifications/binary-distribution-format/#file-name-convention
     # This also defines the name spec:
@@ -880,16 +974,18 @@ def _extensions_wheel_filter_for_platform(wheels):
         if not (5 <= len(wheel_filename_split) <= 6):
             print("Error: wheel doesn't follow naming spec \"{:s}\"".format(wheel_filename))
             continue
-        # TODO: Match Python & ABI tags.
-        _python_tag, _abi_tag, platform_tag = wheel_filename_split[-3:]
+        # TODO: Match ABI tags.
+        python_tag, _abi_tag, platform_tag = wheel_filename_split[-3:]
 
+        # Perform Platform Checks.
         if platform_tag in {"any", platform_tag_current}:
             pass
         elif platform_tag_current.startswith("macosx_") and (
                 # FIXME: `macosx_11.00` should be `macosx_11_0`.
                 platform_tag.startswith("macosx_") and
                 # Ignore the MACOSX version, ensure `arm64` suffix.
-                platform_tag.endswith("_" + platform_tag_current.rpartition("_")[2])
+                (platform_tag.endswith("_" + platform_tag_current.rpartition("_")[2]) or
+                 platform_tag.endswith("_universal2"))
         ):
             pass
         elif platform_tag_current.startswith("linux_") and (
@@ -910,7 +1006,36 @@ def _extensions_wheel_filter_for_platform(wheels):
             )
             continue
 
+        # Perform Python Version Checks.
+        if isinstance(python_versions := python_versions_from_wheel_python_tag(python_tag), str):
+            print("Error: wheel \"{:s}\" unable to parse Python version {:s}".format(wheel_filename, python_versions))
+        else:
+            python_version_is_compat = False
+            for python_version in python_versions:
+                if len(python_version) == 1:
+                    if python_version_current[0] == python_version[0]:
+                        python_version_is_compat = True
+                        break
+                else:
+                    if python_version_current == python_version:
+                        python_version_is_compat = True
+                        break
+            if not python_version_is_compat:
+                # Useful to know, can quiet print in the future.
+                print(
+                    "Skipping wheel for other Python version",
+                    "({:s}=>({:s}) not in {:d}.{:d}):".format(
+                        python_tag,
+                        ", ".join([".".join(str(i) for i in v) for v in python_versions]),
+                        python_version_current[0],
+                        python_version_current[1],
+                    ),
+                    wheel_filename,
+                )
+                continue
+
         wheels_compatible.append(wheel)
+
     return wheels_compatible
 
 
@@ -918,10 +1043,10 @@ def pkg_wheel_filter(
         repo_module,  # `str`
         pkg_id,  # `str`
         repo_directory,  # `str`
-        wheels_rel,  # `List[str]`
-):  # `-> Tuple[str, List[str]]`
+        wheels_rel,  # `list[str]`
+):  # `-> tuple[str, list[str]]`
     # Filter only the wheels for this platform.
-    wheels_rel = _extensions_wheel_filter_for_platform(wheels_rel)
+    wheels_rel = _extensions_wheel_filter_for_this_system(wheels_rel)
     if not wheels_rel:
         return None
 
@@ -1020,13 +1145,20 @@ def _extensions_repo_refresh_on_change(repo_cache_store, *, extensions_enabled, 
 
     if compat_calc:
         # NOTE: `extensions_enabled` may contain add-ons which are not yet enabled (these are pending).
-        # These will *not* have their compatibility information refreshed here.
-        # This is acceptable because:
-        # - Installing & enabling an extension relies on the extension being compatible,
-        #   so it can be assumed to already be the compatible.
-        # - If the add-on existed and was incompatible it *will* have it's compatibility recalculated.
-        # - Any missing cache entries will cause cache to be re-generated on next start or from an explicit refresh.
-        addon_utils.extensions_refresh(ensure_wheels=False)
+        # They *must* have their compatibility information refreshed here,
+        # even though compatibility is guaranteed based on the code-path that calls this function.
+        #
+        # Without updating compatibility information, un-installing the extensions won't detect the
+        # add-on as having been removed and won't remove any wheels the extension may use, see #125958.
+        addon_modules_pending = None if extensions_enabled is None else ([
+            "{:s}{:s}.{:s}".format(_ext_base_pkg_idname_with_dot, repo_module, pkg_id)
+            for repo_module, pkg_id in extensions_enabled
+        ])
+
+        addon_utils.extensions_refresh(
+            ensure_wheels=False,
+            addon_modules_pending=addon_modules_pending,
+        )
 
     if stats_calc:
         repo_stats_calc()
@@ -1814,6 +1946,7 @@ class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
         return ""  # Default.
 
     def exec_command_iter(self, is_modal):
+        import sys
         from . import bl_extension_utils
         # pylint: disable-next=attribute-defined-outside-init
         self._repo_directories = set()
@@ -1904,6 +2037,7 @@ class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
                     pkg_id_sequence=pkg_id_sequence_iter,
                     online_user_agent=online_user_agent_from_blender(),
                     blender_version=bpy.app.version,
+                    python_version=sys.version_info[:3],
                     access_token=repo_item.access_token,
                     timeout=prefs.system.network_timeout,
                     use_cache=repo_item.use_cache,
@@ -1957,11 +2091,21 @@ class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
                 error_fn=self.error_fn_from_exception,
             )
 
-        repo_stats_calc()
-
         # TODO: it would be nice to include this message in the banner.
         def handle_error(ex):
             self.report({'ERROR'}, str(ex))
+
+        # Ensure wheels are refreshed before re-enabling.
+        _extensions_repo_refresh_on_change(
+            repo_cache_store,
+            extensions_enabled=set(
+                (repo_item.module, pkg_id)
+                for (repo_item, pkg_id_sequence, result) in self._addon_restore
+                for pkg_id in pkg_id_sequence
+            ),
+            compat_calc=True,
+            stats_calc=True,
+        )
 
         _preferences_ensure_enabled_all(
             addon_restore=self._addon_restore,
@@ -1985,6 +2129,7 @@ class EXTENSIONS_OT_package_install_marked(Operator, _ExtCmdMixIn):
     enable_on_install: rna_prop_enable_on_install
 
     def exec_command_iter(self, is_modal):
+        import sys
         from . import bl_extension_utils
 
         repos_all = extension_repos_read()
@@ -2026,6 +2171,7 @@ class EXTENSIONS_OT_package_install_marked(Operator, _ExtCmdMixIn):
                     pkg_id_sequence=pkg_id_sequence_iter,
                     online_user_agent=online_user_agent_from_blender(),
                     blender_version=bpy.app.version,
+                    python_version=sys.version_info[:3],
                     access_token=repo_item.access_token,
                     timeout=prefs.system.network_timeout,
                     use_cache=repo_item.use_cache,
@@ -2116,6 +2262,8 @@ class EXTENSIONS_OT_package_install_marked(Operator, _ExtCmdMixIn):
                     pkg_id_sequence_upgrade=[],
                     handle_error=handle_error,
                 )
+            _extensions_repo_temp_files_make_stale(directory)
+            _extensions_repo_install_stale_package_clear(directory, pkg_id_sequence)
 
         if self.enable_on_install:
             if (extensions_enabled_test := _extensions_enabled()) != extensions_enabled:
@@ -2230,6 +2378,7 @@ class EXTENSIONS_OT_package_uninstall_marked(Operator, _ExtCmdMixIn):
         del self.repo_lock
 
         for directory, pkg_id_sequence in self._pkg_id_sequence_from_directory.items():
+            _extensions_repo_temp_files_make_stale(repo_directory=directory)
             _extensions_repo_uninstall_stale_package_fallback(
                 repo_directory=directory,
                 pkg_id_sequence=pkg_id_sequence,
@@ -2310,6 +2459,7 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
     url: rna_prop_url
 
     def exec_command_iter(self, is_modal):
+        import sys
         from . import bl_extension_utils
         from .bl_extension_utils import (
             pkg_manifest_dict_from_archive_or_error,
@@ -2424,6 +2574,7 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
                     directory=directory,
                     files=pkg_files,
                     blender_version=bpy.app.version,
+                    python_version=sys.version_info[:3],
                     use_idle=is_modal,
                     python_args=bpy.app.python_args,
                 )
@@ -2505,6 +2656,9 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
                     compat_calc=False,
                     stats_calc=False,
                 )
+
+        _extensions_repo_temp_files_make_stale(self.repo_directory)
+        _extensions_repo_install_stale_package_clear(self.repo_directory, self.pkg_id_sequence)
 
         _preferences_ui_redraw()
         _preferences_ui_refresh_addons()
@@ -2749,6 +2903,7 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
         return True
 
     def exec_command_iter(self, is_modal):
+        import sys
         from . import bl_extension_utils
 
         if not self._is_ready_to_execute():
@@ -2803,6 +2958,7 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
                     pkg_id_sequence=(pkg_id,),
                     online_user_agent=online_user_agent_from_blender(),
                     blender_version=bpy.app.version,
+                    python_version=sys.version_info[:3],
                     access_token=repo_item.access_token,
                     timeout=prefs.system.network_timeout,
                     use_cache=repo_item.use_cache,
@@ -2879,6 +3035,9 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
                     stats_calc=False,
                 )
 
+        _extensions_repo_temp_files_make_stale(self.repo_directory)
+        _extensions_repo_install_stale_package_clear(self.repo_directory, (self.pkg_id,))
+
         _preferences_ui_redraw()
         _preferences_ui_refresh_addons()
 
@@ -2927,6 +3086,10 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
                 blender_version_min=url_params.get("blender_version_min", ""),
                 blender_version_max=url_params.get("blender_version_max", ""),
                 platforms=[platform for platform in url_params.get("platforms", "").split(",") if platform],
+                python_versions=[
+                    python_version for python_version in url_params.get("python_versions", "").split(",")
+                    if python_version
+                ],
         ), str):
             self.report({'ERROR'}, iface_("The extension is incompatible with this system:\n{:s}").format(error))
             return {'CANCELLED'}
@@ -3034,7 +3197,7 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
             *,
             context,  # `bpy.types.Context`
             op_notify,  # `OperatorNonBlockingSyncHelper`
-            remote_url,  # `Optional[str]`
+            remote_url,  # `str | None`
             repo_from_url_name,  # `str`
             url,  # `str`
     ):
@@ -3060,7 +3223,7 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
             self,
             *,
             context,  # `bpy.types.Context`
-            remote_url,   # `Optional[str]`
+            remote_url,   # `str | None`
             repo_from_url_name,  # `str`
             url,  # `str`
     ):
@@ -3273,6 +3436,7 @@ class EXTENSIONS_OT_package_uninstall(Operator, _ExtCmdMixIn):
 
     def exec_command_finish(self, canceled):
 
+        _extensions_repo_temp_files_make_stale(repo_directory=self.repo_directory)
         _extensions_repo_uninstall_stale_package_fallback(
             repo_directory=self.repo_directory,
             pkg_id_sequence=[self.pkg_id],
@@ -3304,7 +3468,7 @@ class EXTENSIONS_OT_package_uninstall(Operator, _ExtCmdMixIn):
 
         _extensions_repo_refresh_on_change(
             repo_cache_store,
-            extensions_enabled=None,
+            extensions_enabled=_extensions_enabled(),
             compat_calc=True,
             stats_calc=True,
         )

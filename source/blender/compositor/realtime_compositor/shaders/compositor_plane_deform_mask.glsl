@@ -8,7 +8,12 @@ void main()
 
   vec2 coordinates = (vec2(texel) + vec2(0.5)) / vec2(imageSize(mask_img));
 
-  vec3 transformed_coordinates = mat3(homography_matrix) * vec3(coordinates, 1.0);
+  vec3 transformed_coordinates = to_float3x3(homography_matrix) * vec3(coordinates, 1.0);
+  /* Point is at infinity and will be zero when sampled, so early exit. */
+  if (transformed_coordinates.z == 0.0) {
+    imageStore(mask_img, texel, vec4(0.0));
+    return;
+  }
   vec2 projected_coordinates = transformed_coordinates.xy / transformed_coordinates.z;
 
   bool is_inside_plane = all(greaterThanEqual(projected_coordinates, vec2(0.0))) &&

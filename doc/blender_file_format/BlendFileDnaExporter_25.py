@@ -402,7 +402,7 @@ def main():
             log.info("   saving to: " + Path_Blend)
             try:
                 bpy.ops.wm.save_as_mainfile(filepath=Path_Blend, copy=True, compress=False)
-            except:
+            except Exception:
                 log.error("Filename {0} does not exist and can't be created... quitting".format(Path_Blend))
                 return
         else:

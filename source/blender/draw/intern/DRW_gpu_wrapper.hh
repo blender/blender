@@ -1013,7 +1013,7 @@ class Texture : NonCopyable {
     }
     if (tx_ == nullptr) {
       tx_ = create(w, h, d, mip_len, format, usage, data, layered, cubemap);
-      if (data == nullptr && (G.debug & G_DEBUG_GPU)) {
+      if (is_valid() && data == nullptr && (G.debug & G_DEBUG_GPU)) {
         debug_clear();
       }
       return true;

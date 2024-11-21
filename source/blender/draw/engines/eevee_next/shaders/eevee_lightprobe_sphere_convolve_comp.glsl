@@ -4,11 +4,11 @@
 
 /* Shader to convert cube-map to octahedral projection. */
 
-#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_matrix_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_lightprobe_sphere_mapping_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
+#include "eevee_lightprobe_sphere_mapping_lib.glsl"
+#include "eevee_sampling_lib.glsl"
+#include "gpu_shader_math_base_lib.glsl"
+#include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 
 /* Bypass convolution cascade and projection logic. */
 // #define ALWAYS_SAMPLE_CUBEMAP

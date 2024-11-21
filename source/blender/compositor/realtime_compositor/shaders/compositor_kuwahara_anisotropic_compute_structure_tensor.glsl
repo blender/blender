@@ -11,7 +11,7 @@
  * The structure tensor should then be smoothed using a Gaussian function to eliminate high
  * frequency details. */
 
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
+#include "gpu_shader_compositor_texture_utilities.glsl"
 
 void main()
 {

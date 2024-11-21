@@ -54,6 +54,13 @@
 #define STR_MB_ALPHA_3 "\xe0\xa0\x80"
 #define STR_MB_ALPHA_4 "\xf0\x90\x80\x80"
 
+/* These don't decode into valid code-points and wont work in all UTF8 functions.
+ * Use them for functions which support up to #BLI_UTF8_MAX, where failure to test
+ * 5 & 6 byte sequences would cause test coverage to be incomplete.
+ * See https://stackoverflow.com/a/35027139 for details. */
+#define STR_MB_ALPHA_5 "\xf8\x80\x80\x80\x80"
+#define STR_MB_ALPHA_6 "\xfc\x80\x80\x80\x80\x80"
+
 /* -------------------------------------------------------------------- */
 /** \name Test #BLI_str_utf8_invalid_strip
  * \{ */
@@ -328,6 +335,269 @@ TEST(string, Utf8InvalidBytes)
     EXPECT_EQ(errors_found_num, errors_num);
     EXPECT_STREQ(buff, tst_stripped);
   }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Test #BLI_strnlen_utf8
+ * \{ */
+
+TEST(string, StringNLenUTF8)
+{
+  EXPECT_EQ(BLI_strnlen_utf8("", 0), 0);
+  EXPECT_EQ(BLI_strnlen_utf8("", 1), 0);
+  EXPECT_EQ(BLI_strnlen_utf8(STR_MB_ALPHA_6, 6), 1);
+}
+
+TEST(string, StringNLenUTF8_Incomplete)
+{
+  const char *ref_str =
+      STR_MB_ALPHA_1 STR_MB_ALPHA_2 STR_MB_ALPHA_3 STR_MB_ALPHA_4 STR_MB_ALPHA_5 STR_MB_ALPHA_6;
+  char buf[22];
+  const size_t ref_str_len = 21;
+
+#define EXPECT_BYTE_OFFSET(truncate_ofs, expect_nchars) \
+  { \
+    size_t buf_ofs = 0; \
+    strcpy(buf, ref_str); \
+    buf[truncate_ofs] = '\0'; \
+    EXPECT_EQ(BLI_strnlen_utf8_ex(buf, ref_str_len, &buf_ofs), expect_nchars); \
+    EXPECT_EQ(buf_ofs, truncate_ofs); \
+  }
+
+  EXPECT_BYTE_OFFSET(0, 0);
+  EXPECT_BYTE_OFFSET(1, 1);
+
+  EXPECT_BYTE_OFFSET(2, 2);
+  EXPECT_BYTE_OFFSET(3, 2);
+
+  EXPECT_BYTE_OFFSET(4, 3);
+  EXPECT_BYTE_OFFSET(5, 3);
+  EXPECT_BYTE_OFFSET(6, 3);
+
+  EXPECT_BYTE_OFFSET(7, 4);
+  EXPECT_BYTE_OFFSET(8, 4);
+  EXPECT_BYTE_OFFSET(9, 4);
+  EXPECT_BYTE_OFFSET(10, 4);
+
+  EXPECT_BYTE_OFFSET(11, 5);
+  EXPECT_BYTE_OFFSET(12, 5);
+  EXPECT_BYTE_OFFSET(13, 5);
+  EXPECT_BYTE_OFFSET(14, 5);
+  EXPECT_BYTE_OFFSET(15, 5);
+
+  EXPECT_BYTE_OFFSET(16, 6);
+  EXPECT_BYTE_OFFSET(17, 6);
+  EXPECT_BYTE_OFFSET(18, 6);
+  EXPECT_BYTE_OFFSET(19, 6);
+  EXPECT_BYTE_OFFSET(20, 6);
+  EXPECT_BYTE_OFFSET(21, 6);
+
+#undef EXPECT_BYTE_OFFSET
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Test #BLI_strncpy_utf8
+ * \{ */
+
+TEST(string, StrCopyUTF8_ASCII)
+{
+#define STRNCPY_UTF8_ASCII(...) \
+  { \
+    const char src[] = {__VA_ARGS__, 0}; \
+    char dst[sizeof(src)]; \
+    memset(dst, 0xff, sizeof(dst)); \
+    STRNCPY_UTF8(dst, src); \
+    EXPECT_EQ(strlen(dst), sizeof(dst) - 1); \
+    EXPECT_STREQ(dst, src); \
+  }
+
+  STRNCPY_UTF8_ASCII('a');
+  STRNCPY_UTF8_ASCII('a', 'b', 'c');
+
+#undef STRNCPY_UTF8_ASCII
+}
+
+TEST(string, StrCopyUTF8_ASCII_Truncate)
+{
+#define STRNCPY_UTF8_ASCII_TRUNCATE(maxncpy, ...) \
+  { \
+    char src[] = {__VA_ARGS__}; \
+    char dst[sizeof(src)]; \
+    memset(dst, 0xff, sizeof(dst)); \
+    BLI_strncpy_utf8(dst, src, maxncpy); \
+    int len_expect = std::min<int>(sizeof(src), maxncpy) - 1; \
+    src[len_expect] = '\0'; /* To be able to use `EXPECT_STREQ`. */ \
+    EXPECT_EQ(strlen(dst), len_expect); \
+    EXPECT_STREQ(dst, src); \
+  }
+
+  STRNCPY_UTF8_ASCII_TRUNCATE(1, '\0');
+  STRNCPY_UTF8_ASCII_TRUNCATE(3, 'A', 'A', 'A', 'A');
+
+#undef STRNCPY_UTF8_ASCII_TRUNCATE
+}
+
+TEST(string, StrCopyUTF8_TruncateEncoding)
+{
+  /* Ensure copying one byte less than the code-point results in it being ignored entirely. */
+#define STRNCPY_UTF8_TRUNCATE(byte_size, ...) \
+  { \
+    const char src[] = {__VA_ARGS__, 0}; \
+    EXPECT_EQ(BLI_str_utf8_size_or_error(src), byte_size); \
+    char dst[sizeof(src)]; \
+    memset(dst, 0xff, sizeof(dst)); \
+    STRNCPY_UTF8(dst, src); \
+    EXPECT_EQ(strlen(dst), sizeof(dst) - 1); \
+    EXPECT_STREQ(dst, src); \
+    BLI_strncpy_utf8(dst, src, sizeof(dst) - 1); \
+    EXPECT_STREQ(dst, ""); \
+  }
+
+  STRNCPY_UTF8_TRUNCATE(6, 252, 1, 1, 1, 1, 1);
+  STRNCPY_UTF8_TRUNCATE(5, 248, 1, 1, 1, 1);
+  STRNCPY_UTF8_TRUNCATE(4, 240, 1, 1, 1);
+  STRNCPY_UTF8_TRUNCATE(3, 224, 1, 1);
+  STRNCPY_UTF8_TRUNCATE(2, 192, 1);
+  STRNCPY_UTF8_TRUNCATE(1, 96);
+
+#undef STRNCPY_UTF8_TRUNCATE
+}
+
+TEST(string, StrCopyUTF8_TruncateEncodingMulti)
+{
+#define STRNCPY_UTF8_TRUNC_EXPECT(src, dst_expect, dst_maxncpy) \
+  { \
+    char dst[dst_maxncpy + 1]; \
+    dst[dst_maxncpy] = 0xff; \
+    size_t len = BLI_strncpy_utf8_rlen(dst, src, dst_maxncpy); \
+    EXPECT_EQ(len, strlen(dst)); \
+    EXPECT_STREQ(dst, dst_expect); \
+    EXPECT_EQ(dst[dst_maxncpy], 0xff); \
+  }
+
+  /* Single characters. */
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_1, STR_MB_ALPHA_1, 2);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_1, "", 1);
+
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_2, STR_MB_ALPHA_2, 3);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_2, "", 2);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_2, "", 1);
+
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_3, STR_MB_ALPHA_3, 4);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_3, "", 3);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_3, "", 2);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_3, "", 1);
+
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_4, STR_MB_ALPHA_4, 5);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_4, "", 4);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_4, "", 3);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_4, "", 2);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_4, "", 1);
+
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_5, STR_MB_ALPHA_5, 6);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_5, "", 5);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_5, "", 4);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_5, "", 3);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_5, "", 2);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_5, "", 1);
+
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_6, STR_MB_ALPHA_6, 7);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_6, "", 6);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_6, "", 5);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_6, "", 4);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_6, "", 3);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_6, "", 2);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_6, "", 1);
+
+  /* Multiple characters. */
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_2 STR_MB_ALPHA_2, STR_MB_ALPHA_2 STR_MB_ALPHA_2, 5);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_2 STR_MB_ALPHA_2, STR_MB_ALPHA_2, 4);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_2 STR_MB_ALPHA_2, STR_MB_ALPHA_2, 3);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_2, "", 2);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_2, "", 1);
+
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_3 STR_MB_ALPHA_3, STR_MB_ALPHA_3 STR_MB_ALPHA_3, 7);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_3 STR_MB_ALPHA_3, STR_MB_ALPHA_3, 6);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_3 STR_MB_ALPHA_3, STR_MB_ALPHA_3, 5);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_3 STR_MB_ALPHA_3, STR_MB_ALPHA_3, 4);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_3 STR_MB_ALPHA_3, "", 3);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_3 STR_MB_ALPHA_3, "", 2);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_3 STR_MB_ALPHA_3, "", 1);
+
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_4 STR_MB_ALPHA_4, STR_MB_ALPHA_4 STR_MB_ALPHA_4, 9);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_4 STR_MB_ALPHA_4, STR_MB_ALPHA_4, 8);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_4 STR_MB_ALPHA_4, STR_MB_ALPHA_4, 7);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_4 STR_MB_ALPHA_4, STR_MB_ALPHA_4, 6);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_4 STR_MB_ALPHA_4, STR_MB_ALPHA_4, 5);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_4 STR_MB_ALPHA_4, "", 4);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_4 STR_MB_ALPHA_4, "", 3);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_4 STR_MB_ALPHA_4, "", 2);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_4 STR_MB_ALPHA_4, "", 1);
+
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_5 STR_MB_ALPHA_5, STR_MB_ALPHA_5 STR_MB_ALPHA_5, 11);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_5 STR_MB_ALPHA_5, STR_MB_ALPHA_5, 10);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_5 STR_MB_ALPHA_5, STR_MB_ALPHA_5, 9);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_5 STR_MB_ALPHA_5, STR_MB_ALPHA_5, 8);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_5 STR_MB_ALPHA_5, STR_MB_ALPHA_5, 7);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_5 STR_MB_ALPHA_5, STR_MB_ALPHA_5, 6);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_5 STR_MB_ALPHA_5, "", 5);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_5 STR_MB_ALPHA_5, "", 4);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_5 STR_MB_ALPHA_5, "", 3);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_5 STR_MB_ALPHA_5, "", 2);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_5 STR_MB_ALPHA_5, "", 1);
+
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_6 STR_MB_ALPHA_6, STR_MB_ALPHA_6 STR_MB_ALPHA_6, 13);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_6 STR_MB_ALPHA_6, STR_MB_ALPHA_6, 12);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_6 STR_MB_ALPHA_6, STR_MB_ALPHA_6, 11);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_6 STR_MB_ALPHA_6, STR_MB_ALPHA_6, 10);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_6 STR_MB_ALPHA_6, STR_MB_ALPHA_6, 9);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_6 STR_MB_ALPHA_6, STR_MB_ALPHA_6, 8);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_6 STR_MB_ALPHA_6, STR_MB_ALPHA_6, 7);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_6 STR_MB_ALPHA_6, "", 6);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_6 STR_MB_ALPHA_6, "", 5);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_6 STR_MB_ALPHA_6, "", 4);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_6 STR_MB_ALPHA_6, "", 3);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_6 STR_MB_ALPHA_6, "", 2);
+  STRNCPY_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_6 STR_MB_ALPHA_6, "", 1);
+
+#undef STRNCPY_UTF8_TRUNC_EXPECT
+}
+
+TEST(string, StrCopyUTF8_TerminateEncodingEarly)
+{
+  /* A UTF8 sequence that has a null byte before the sequence ends.
+   * Ensure the UTF8 sequence does not step over the null byte. */
+#define STRNCPY_UTF8_TERMINATE_EARLY(byte_size, ...) \
+  { \
+    char src[] = {__VA_ARGS__, 0}; \
+    EXPECT_EQ(BLI_str_utf8_size_or_error(src), byte_size); \
+    char dst[sizeof(src)]; \
+    memset(dst, 0xff, sizeof(dst)); \
+    STRNCPY_UTF8(dst, src); \
+    EXPECT_EQ(strlen(dst), sizeof(dst) - 1); \
+    EXPECT_STREQ(dst, src); \
+    for (int i = sizeof(dst) - 1; i > 1; i--) { \
+      src[i] = '\0'; \
+      memset(dst, 0xff, sizeof(dst)); \
+      const int dst_copied = STRNCPY_UTF8_RLEN(dst, src); \
+      EXPECT_STREQ(dst, src); \
+      EXPECT_EQ(strlen(dst), i); \
+      EXPECT_EQ(dst_copied, i); \
+    } \
+  }
+
+  STRNCPY_UTF8_TERMINATE_EARLY(6, 252, 1, 1, 1, 1, 1);
+  STRNCPY_UTF8_TERMINATE_EARLY(5, 248, 1, 1, 1, 1);
+  STRNCPY_UTF8_TERMINATE_EARLY(4, 240, 1, 1, 1);
+  STRNCPY_UTF8_TERMINATE_EARLY(3, 224, 1, 1);
+  STRNCPY_UTF8_TERMINATE_EARLY(2, 192, 1);
+  STRNCPY_UTF8_TERMINATE_EARLY(1, 96);
+
+#undef STRNCPY_UTF8_TERMINATE_EARLY
 }
 
 /** \} */

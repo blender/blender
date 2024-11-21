@@ -83,16 +83,15 @@ class MaskOperation : public NodeOperation {
     }
 
     const Domain domain = compute_domain();
-    CachedMask &cached_mask = context().cache_manager().cached_masks.get(
-        context(),
-        get_mask(),
-        domain.size,
-        get_aspect_ratio(),
-        get_use_feather(),
-        get_motion_blur_samples(),
-        get_motion_blur_shutter());
+    Result &cached_mask = context().cache_manager().cached_masks.get(context(),
+                                                                     get_mask(),
+                                                                     domain.size,
+                                                                     get_aspect_ratio(),
+                                                                     get_use_feather(),
+                                                                     get_motion_blur_samples(),
+                                                                     get_motion_blur_shutter());
 
-    output_mask.wrap_external(cached_mask.texture());
+    output_mask.wrap_external(cached_mask);
   }
 
   Domain compute_domain() override

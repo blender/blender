@@ -18,12 +18,8 @@ import os
 import sys
 import subprocess
 
-from typing import (
-    List,
-    Optional,
+from collections.abc import (
     Sequence,
-    Set,
-    Tuple,
 )
 
 VERSION_MIN = (17, 0, 6)
@@ -49,7 +45,7 @@ extensions_only_retab = (
 )
 
 # Add files which are too large/heavy to format.
-ignore_files: Set[str] = set([
+ignore_files: set[str] = set([
     # Currently empty, looks like.
     # "intern/cycles/render/sobol.cpp",
 ])
@@ -66,7 +62,7 @@ ignore_directories = {
 }
 
 
-def compute_paths(paths: List[str], use_default_paths: bool) -> List[str]:
+def compute_paths(paths: list[str], use_default_paths: bool) -> list[str]:
     # The resulting paths:
     # - Use forward slashes on all systems.
     # - Are relative to the GIT repository without any `.` or `./` prefix.
@@ -91,7 +87,7 @@ def compute_paths(paths: List[str], use_default_paths: bool) -> List[str]:
     return paths
 
 
-def source_files_from_git(paths: Sequence[str], changed_only: bool) -> List[str]:
+def source_files_from_git(paths: Sequence[str], changed_only: bool) -> list[str]:
     if changed_only:
         cmd = ("git", "diff", "HEAD", "--name-only", "-z", "--", *paths)
     else:
@@ -126,7 +122,7 @@ def convert_tabs_to_spaces(files: Sequence[str]) -> None:
             fh.write(data)
 
 
-def clang_format_ensure_version() -> Optional[Tuple[int, int, int]]:
+def clang_format_ensure_version() -> tuple[int, int, int] | None:
     global CLANG_FORMAT_CMD
     clang_format_cmd = None
     version_output = ""
@@ -142,18 +138,18 @@ def clang_format_ensure_version() -> Optional[Tuple[int, int, int]]:
             continue
         CLANG_FORMAT_CMD = clang_format_cmd
         break
-    version: Optional[str] = next(iter(v for v in version_output.split() if v[0].isdigit()), None)
+    version: str | None = next(iter(v for v in version_output.split() if v[0].isdigit()), None)
     if version is None:
         return None
 
     version = version.split("-")[0]
     # Ensure exactly 3 numbers.
-    version_num: Tuple[int, int, int] = (tuple(int(n) for n in version.split(".")) + (0, 0, 0))[:3]  # type: ignore
+    version_num: tuple[int, int, int] = (tuple(int(n) for n in version.split(".")) + (0, 0, 0))[:3]  # type: ignore
     print("Using {:s} ({:d}.{:d}.{:d})...".format(CLANG_FORMAT_CMD, version_num[0], version_num[1], version_num[2]))
     return version_num
 
 
-def clang_format_file(files: List[str]) -> bytes:
+def clang_format_file(files: list[str]) -> bytes:
     cmd = [
         CLANG_FORMAT_CMD,
         # Update the files in-place.
@@ -168,7 +164,7 @@ def clang_print_output(output: bytes) -> None:
     print(output.decode('utf8', errors='ignore').strip())
 
 
-def clang_format(files: List[str]) -> None:
+def clang_format(files: list[str]) -> None:
     pool = multiprocessing.Pool()
 
     # Process in chunks to reduce overhead of starting processes.

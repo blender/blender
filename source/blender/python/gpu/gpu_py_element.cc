@@ -58,7 +58,7 @@ static PyObject *pygpu_IndexBuf__tp_new(PyTypeObject * /*type*/, PyObject *args,
   if (verts_per_prim == -1) {
     PyErr_Format(PyExc_ValueError,
                  "The argument 'type' must be "
-                 "'POINTS', 'LINES', 'TRIS' or 'LINES_ADJ'");
+                 "'POINTS', 'LINES', 'TRIS', 'LINES_ADJ' or 'TRIS_ADJ'");
     return nullptr;
   }
 
@@ -184,12 +184,12 @@ PyDoc_STRVAR(
     "   Contains an index buffer.\n"
     "\n"
     "   :arg type: The primitive type this index buffer is composed of.\n"
-    "      Possible values are `POINTS`, `LINES`, `TRIS` and `LINE_STRIP_ADJ`.\n"
+    "      Possible values are [``POINTS``, ``LINES``, ``TRIS``, ``LINES_ADJ``, ``TRIS_ADJ``].\n"
     "   :type type: str\n"
     "   :arg seq: Indices this index buffer will contain.\n"
     "      Whether a 1D or 2D sequence is required depends on the type.\n"
     "      Optionally the sequence can support the buffer protocol.\n"
-    "   :type seq: 1D or 2D sequence\n");
+    "   :type seq: Buffer | Sequence[int] | Sequence[Sequence[int]]\n");
 PyTypeObject BPyGPUIndexBuf_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "GPUIndexBuf",

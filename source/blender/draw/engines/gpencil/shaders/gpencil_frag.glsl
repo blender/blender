@@ -2,8 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_gpencil_lib.glsl)
-#pragma BLENDER_REQUIRE(common_colormanagement_lib.glsl)
+#include "common_colormanagement_lib.glsl"
+#include "common_gpencil_lib.glsl"
 
 float length_squared(vec2 v)
 {
@@ -14,7 +14,7 @@ float length_squared(vec3 v)
   return dot(v, v);
 }
 
-vec3 gpencil_lighting(void)
+vec3 gpencil_lighting()
 {
   vec3 light_accum = vec3(0.0);
   for (int i = 0; i < GPENCIL_LIGHT_BUFFER_LEN; i++) {
@@ -23,7 +23,7 @@ vec3 gpencil_lighting(void)
     }
     vec3 L = gp_lights[i]._position - gp_interp.pos;
     float vis = 1.0;
-    gpLightType type = floatBitsToUint(gp_lights[i]._type);
+    gpLightType type = gpLightType(floatBitsToUint(gp_lights[i]._type));
     /* Spot Attenuation. */
     if (type == GP_LIGHT_TYPE_SPOT) {
       mat3 rot_scale = mat3(gp_lights[i]._right, gp_lights[i]._up, gp_lights[i]._forward);

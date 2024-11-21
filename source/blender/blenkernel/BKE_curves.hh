@@ -32,6 +32,7 @@ namespace blender::bke {
 class AttributeAccessor;
 class MutableAttributeAccessor;
 enum class AttrDomain : int8_t;
+struct AttributeAccessorFunctions;
 }  // namespace blender::bke
 namespace blender::bke::bake {
 struct BakeMaterialsList;
@@ -158,6 +159,11 @@ class CurvesGeometry : public ::CurvesGeometry {
    * The number of curves in the data-block.
    */
   int curves_num() const;
+  /**
+   * Return true if there are no curves in the geometry.
+   */
+  bool is_empty() const;
+
   IndexRange points_range() const;
   IndexRange curves_range() const;
 
@@ -660,6 +666,11 @@ void calculate_auto_handles(bool cyclic,
                             MutableSpan<float3> positions_left,
                             MutableSpan<float3> positions_right);
 
+void calculate_aligned_handles(const IndexMask &selection,
+                               Span<float3> positions,
+                               Span<float3> align_by,
+                               MutableSpan<float3> align);
+
 /**
  * Change the handles of a single control point, aligning any aligned (#BEZIER_HANDLE_ALIGN)
  * handles on the other side of the control point.
@@ -875,6 +886,12 @@ inline int CurvesGeometry::curves_num() const
 {
   return this->curve_num;
 }
+inline bool CurvesGeometry::is_empty() const
+{
+  /* Each curve must have at least one point. */
+  BLI_assert((this->curve_num == 0) == (this->point_num == 0));
+  return this->curve_num == 0;
+}
 inline IndexRange CurvesGeometry::points_range() const
 {
   return IndexRange(this->points_num());
@@ -1005,6 +1022,8 @@ inline float3 calculate_vector_handle(const float3 &point, const float3 &next_po
 }  // namespace bezier
 
 /** \} */
+
+const AttributeAccessorFunctions &get_attribute_accessor_functions();
 
 }  // namespace curves
 

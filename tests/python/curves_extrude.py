@@ -103,9 +103,11 @@ class CurvesTest(ABC):
             if len(attribute.data.items()) != len(expected_attribute.data.items()):
                 print("Attribute data length doesn't match")
 
-            value_attr_name = ('vector' if attribute.data_type == 'FLOAT_VECTOR'
-                               or attribute.data_type == 'FLOAT2' else
-                               'color' if attribute.data_type == 'FLOAT_COLOR' else 'value')
+            value_attr_name = (
+                'vector' if attribute.data_type == 'FLOAT_VECTOR' or
+                attribute.data_type == 'FLOAT2' else
+                'color' if attribute.data_type == 'FLOAT_COLOR' else 'value'
+            )
 
             for v_idx, attribute_value in attribute.data.items():
                 if getattr(

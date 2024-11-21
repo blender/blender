@@ -800,7 +800,7 @@ static int curves_set_selection_domain_exec(bContext *C, wmOperator *op)
 
     CurvesGeometry &curves = curves_id->geometry.wrap();
     bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
-    if (curves.points_num() == 0) {
+    if (curves.is_empty()) {
       continue;
     }
 
@@ -1777,6 +1777,7 @@ void operatortypes_curves()
   WM_operatortype_append(CURVES_OT_select_random);
   WM_operatortype_append(CURVES_OT_select_ends);
   WM_operatortype_append(CURVES_OT_select_linked);
+  WM_operatortype_append(CURVES_OT_select_linked_pick);
   WM_operatortype_append(CURVES_OT_select_more);
   WM_operatortype_append(CURVES_OT_select_less);
   WM_operatortype_append(CURVES_OT_surface_set);

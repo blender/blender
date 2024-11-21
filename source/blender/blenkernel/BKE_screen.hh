@@ -12,6 +12,7 @@
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_math_vector_types.hh"
+#include "BLI_rect.h"
 #include "BLI_vector.hh"
 
 #include "RNA_types.hh"
@@ -31,6 +32,7 @@ struct AssetShelfType;
 struct BlendDataReader;
 struct BlendLibReader;
 struct BlendWriter;
+struct GHash;
 struct Header;
 struct ID;
 struct LayoutPanelState;
@@ -417,6 +419,32 @@ struct Panel_Runtime {
   LayoutPanels layout_panels;
 };
 
+namespace blender::bke {
+
+struct ARegionRuntime {
+  /** Panel category to use between 'layout' and 'draw'. */
+  const char *category = nullptr;
+
+  /**
+   * The visible part of the region, use with region overlap not to draw
+   * on top of the overlapping regions.
+   *
+   * Lazy initialize, zero'd when unset, relative to #ARegion.winrct x/y min. */
+  rcti visible_rect = {};
+
+  /* The offset needed to not overlap with window scroll-bars. Only used by HUD regions for now. */
+  int offset_x = 0;
+  int offset_y = 0;
+
+  /** Maps #uiBlock::name to uiBlock for faster lookups. */
+  GHash *block_name_map = nullptr;
+
+  /* Dummy panel used in popups so they can support layout panels. */
+  Panel *popup_block_panel = nullptr;
+};
+
+}  // namespace blender::bke
+
 /* #uiList types. */
 
 /** Draw an item in the `ui_list`. */
@@ -613,6 +641,9 @@ void BKE_spacedata_id_unref(ScrArea *area, SpaceLink *sl, ID *id);
 /* Area/regions. */
 
 ARegion *BKE_area_region_copy(const SpaceType *st, const ARegion *region);
+
+ARegion *BKE_area_region_new();
+
 /**
  * Doesn't free the region itself.
  */

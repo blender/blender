@@ -10,7 +10,7 @@
  * needed.
  */
 
-#pragma BLENDER_REQUIRE(eevee_shadow_tag_usage_lib.glsl)
+#include "eevee_shadow_tag_usage_lib.glsl"
 
 void main()
 {

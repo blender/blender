@@ -43,6 +43,11 @@ static void node_declare(NodeDeclarationBuilder &b)
       .max(1.0f)
       .subtype(PROP_FACTOR)
       .field_on_all();
+  b.add_input<decl::Bool>("Limit Surface")
+      .default_value(true)
+      .description(
+          "Place vertices at the surface that would be produced with infinite "
+          "levels of subdivision (smoothest possible shape)");
   b.add_output<decl::Geometry>("Mesh").propagate_all();
 }
 
@@ -98,7 +103,8 @@ static Mesh *mesh_subsurf_calc(const Mesh *mesh,
                                const Field<float> &vert_crease_field,
                                const Field<float> &edge_crease_field,
                                const int boundary_smooth,
-                               const int uv_smooth)
+                               const int uv_smooth,
+                               const bool use_limit_surface)
 {
   const bke::MeshFieldContext point_context{*mesh, AttrDomain::Point};
   FieldEvaluator point_evaluator(point_context, mesh->verts_num);
@@ -132,7 +138,7 @@ static Mesh *mesh_subsurf_calc(const Mesh *mesh,
 
   bke::subdiv::Settings subdiv_settings;
   subdiv_settings.is_simple = false;
-  subdiv_settings.is_adaptive = false;
+  subdiv_settings.is_adaptive = use_limit_surface;
   subdiv_settings.use_creases = use_creases;
   subdiv_settings.level = level;
   subdiv_settings.vtx_boundary_interpolation =
@@ -178,6 +184,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const int uv_smooth = storage.uv_smooth;
   const int boundary_smooth = storage.boundary_smooth;
   const int level = std::clamp(params.extract_input<int>("Level"), 0, 11);
+  const bool use_limit_surface = params.extract_input<bool>("Limit Surface");
   if (level == 0) {
     params.set_output("Mesh", std::move(geometry_set));
     return;
@@ -185,8 +192,8 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (const Mesh *mesh = geometry_set.get_mesh()) {
-      geometry_set.replace_mesh(
-          mesh_subsurf_calc(mesh, level, vert_crease, edge_crease, boundary_smooth, uv_smooth));
+      geometry_set.replace_mesh(mesh_subsurf_calc(
+          mesh, level, vert_crease, edge_crease, boundary_smooth, uv_smooth, use_limit_surface));
     }
   });
 #else

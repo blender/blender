@@ -70,14 +70,14 @@ static SpaceLink *graph_create(const ScrArea * /*area*/, const Scene *scene)
   sipo->flag |= SIPO_SHOW_MARKERS;
 
   /* header */
-  region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "header for graphedit"));
+  region = BKE_area_region_new();
 
   BLI_addtail(&sipo->regionbase, region);
   region->regiontype = RGN_TYPE_HEADER;
   region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* channels */
-  region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "channels region for graphedit"));
+  region = BKE_area_region_new();
 
   BLI_addtail(&sipo->regionbase, region);
   region->regiontype = RGN_TYPE_CHANNELS;
@@ -86,14 +86,14 @@ static SpaceLink *graph_create(const ScrArea * /*area*/, const Scene *scene)
   region->v2d.scroll = (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
 
   /* ui buttons */
-  region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "buttons region for graphedit"));
+  region = BKE_area_region_new();
 
   BLI_addtail(&sipo->regionbase, region);
   region->regiontype = RGN_TYPE_UI;
   region->alignment = RGN_ALIGN_RIGHT;
 
   /* main region */
-  region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "main region for graphedit"));
+  region = BKE_area_region_new();
 
   BLI_addtail(&sipo->regionbase, region);
   region->regiontype = RGN_TYPE_WINDOW;
@@ -176,7 +176,8 @@ static void graph_main_region_init(wmWindowManager *wm, ARegion *region)
 
   /* own keymap */
   keymap = WM_keymap_ensure(wm->defaultconf, "Graph Editor", SPACE_GRAPH, RGN_TYPE_WINDOW);
-  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
+  WM_event_add_keymap_handler_poll(
+      &region->handlers, keymap, WM_event_handler_region_v2d_mask_no_marker_poll);
   keymap = WM_keymap_ensure(wm->defaultconf, "Graph Editor Generic", SPACE_GRAPH, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&region->handlers, keymap);
 }

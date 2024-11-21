@@ -38,7 +38,7 @@
 #define ccl_global
 #define ccl_always_inline __attribute__((always_inline))
 #define ccl_device_inline inline
-#define ccl_noinline
+#define ccl_noinline __attribute__((noinline))
 #define ccl_inline_constant const constexpr
 #define ccl_device_constant static constexpr
 #define ccl_static_constexpr static constexpr
@@ -230,6 +230,7 @@ ccl_device_forceinline int __float_as_int(float x)
 #define tanf(x) sycl::native::tan(((float)(x)))
 #define logf(x) sycl::native::log(((float)(x)))
 #define expf(x) sycl::native::exp(((float)(x)))
+#define sqrtf(x) sycl::native::sqrt(((float)(x)))
 
 #define __forceinline __attribute__((always_inline))
 

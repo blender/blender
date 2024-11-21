@@ -9,6 +9,59 @@
 
 CCL_NAMESPACE_BEGIN
 
+ccl_device float2 direction_to_spherical(float3 dir)
+{
+  float theta = safe_acosf(dir.z);
+  float phi = atan2f(dir.y, dir.x);
+
+  return make_float2(theta, phi);
+}
+
+ccl_device float3 spherical_to_direction(float theta, float phi)
+{
+  return make_float3(sinf(theta) * cosf(phi), sinf(theta) * sinf(phi), cosf(theta));
+}
+
+ccl_device float3 spherical_cos_to_direction(float cos_theta, float phi)
+{
+  const float sin_theta = sin_from_cos(cos_theta);
+  return make_float3(sin_theta * cosf(phi), sin_theta * sinf(phi), cos_theta);
+}
+
+ccl_device_inline float2 polar_to_cartesian(float r, float phi)
+{
+  return make_float2(r * cosf(phi), r * sinf(phi));
+}
+
+/* Transform p from a local coordinate system (spanned by X and Y) into global coordinates. */
+template<class T> ccl_device_inline T to_global(const float2 p, const T X, const T Y)
+{
+  return p.x * X + p.y * Y;
+}
+
+/* Transform p from a local coordinate system (spanned by X, Y and Z) into global coordinates. */
+template<class T> ccl_device_inline T to_global(const float3 p, const T X, const T Y, const T Z)
+{
+  return p.x * X + p.y * Y + p.z * Z;
+}
+
+/* Transform p from global coordinates into a local coordinate system (spanned by X and Y). */
+template<class T> ccl_device_inline float2 to_local(const T p, const T X, const T Y)
+{
+  return make_float2(dot(p, X), dot(p, Y));
+}
+
+/* Transform p from global coordinates into a local coordinate system (spanned by X, Y and Z). */
+template<class T> ccl_device_inline float3 to_local(const T p, const T X, const T Y, const T Z)
+{
+  return make_float3(dot(p, X), dot(p, Y), dot(p, Z));
+}
+
+ccl_device_inline float3 disk_to_hemisphere(const float2 p)
+{
+  return make_float3(p.x, p.y, safe_sqrtf(1.0f - len_squared(p)));
+}
+
 /* 4x4 projection matrix, perspective or orthographic. */
 
 typedef struct ProjectionTransform {
@@ -28,6 +81,14 @@ typedef struct PerspectiveMotionTransform {
   ProjectionTransform pre;
   ProjectionTransform post;
 } PerspectiveMotionTransform;
+
+CCL_NAMESPACE_END
+
+#if !defined(__KERNEL_METAL__)
+#  include "util/projection_inverse.h"
+#endif
+
+CCL_NAMESPACE_BEGIN
 
 /* Functions */
 
@@ -50,40 +111,6 @@ ccl_device_inline float3 transform_perspective_direction(ccl_private const Proje
 
   return c;
 }
-
-#ifndef __KERNEL_GPU__
-
-ccl_device_inline Transform projection_to_transform(const ProjectionTransform &a)
-{
-  Transform tfm = {a.x, a.y, a.z};
-  return tfm;
-}
-
-ccl_device_inline ProjectionTransform projection_transpose(const ProjectionTransform &a)
-{
-  ProjectionTransform t;
-
-  t.x.x = a.x.x;
-  t.x.y = a.y.x;
-  t.x.z = a.z.x;
-  t.x.w = a.w.x;
-  t.y.x = a.x.y;
-  t.y.y = a.y.y;
-  t.y.z = a.z.y;
-  t.y.w = a.w.y;
-  t.z.x = a.x.z;
-  t.z.y = a.y.z;
-  t.z.z = a.z.z;
-  t.z.w = a.w.z;
-  t.w.x = a.x.w;
-  t.w.y = a.y.w;
-  t.w.z = a.z.w;
-  t.w.w = a.w.w;
-
-  return t;
-}
-
-ProjectionTransform projection_inverse(const ProjectionTransform &a);
 
 ccl_device_inline ProjectionTransform make_projection(float a,
                                                       float b,
@@ -123,6 +150,7 @@ ccl_device_inline ProjectionTransform make_projection(float a,
 
   return t;
 }
+
 ccl_device_inline ProjectionTransform projection_identity()
 {
   return make_projection(1.0f,
@@ -143,8 +171,58 @@ ccl_device_inline ProjectionTransform projection_identity()
                          1.0f);
 }
 
-ccl_device_inline ProjectionTransform operator*(const ProjectionTransform &a,
-                                                const ProjectionTransform &b)
+#ifndef __KERNEL_GPU__
+ccl_device_inline Transform projection_to_transform(const ProjectionTransform &a)
+{
+  Transform tfm = {a.x, a.y, a.z};
+  return tfm;
+}
+#endif
+
+ccl_device_inline ProjectionTransform projection_transpose(const ProjectionTransform a)
+{
+  ProjectionTransform t;
+
+  t.x.x = a.x.x;
+  t.x.y = a.y.x;
+  t.x.z = a.z.x;
+  t.x.w = a.w.x;
+  t.y.x = a.x.y;
+  t.y.y = a.y.y;
+  t.y.z = a.z.y;
+  t.y.w = a.w.y;
+  t.z.x = a.x.z;
+  t.z.y = a.y.z;
+  t.z.z = a.z.z;
+  t.z.w = a.w.z;
+  t.w.x = a.x.w;
+  t.w.y = a.y.w;
+  t.w.z = a.z.w;
+  t.w.w = a.w.w;
+
+  return t;
+}
+
+#if !defined(__KERNEL_METAL__)
+ccl_device_inline ProjectionTransform projection_inverse(const ProjectionTransform tfm)
+{
+  ProjectionTransform tfmR = projection_identity();
+  float M[4][4], R[4][4];
+
+  memcpy(R, &tfmR, sizeof(R));
+  memcpy(M, &tfm, sizeof(M));
+
+  if (UNLIKELY(!projection_inverse_impl(R, M))) {
+    return projection_identity();
+  }
+
+  memcpy((void *)&tfmR, R, sizeof(R));
+
+  return tfmR;
+}
+
+ccl_device_inline ProjectionTransform operator*(const ProjectionTransform a,
+                                                const ProjectionTransform b)
 {
   ProjectionTransform c = projection_transpose(b);
   ProjectionTransform t;
@@ -156,6 +234,9 @@ ccl_device_inline ProjectionTransform operator*(const ProjectionTransform &a,
 
   return t;
 }
+#endif
+
+#ifndef __KERNEL_GPU__
 
 ccl_device_inline ProjectionTransform operator*(const ProjectionTransform &a, const Transform &b)
 {

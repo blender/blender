@@ -111,8 +111,7 @@ static int wm_obj_export_exec(bContext *C, wmOperator *op)
   RNA_string_get(op->ptr, "collection", export_params.collection);
 
   OBJ_export(C, &export_params);
-
-  return OPERATOR_FINISHED;
+  return BKE_reports_contain(op->reports, RPT_ERROR) ? OPERATOR_CANCELLED : OPERATOR_FINISHED;
 }
 
 static void ui_obj_export_settings(const bContext *C, uiLayout *layout, PointerRNA *ptr)

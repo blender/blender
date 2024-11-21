@@ -18,6 +18,8 @@ from bl_ui.properties_view_layer import (
     ViewLayerLightgroupsPanelHelper,
 )
 
+from bl_ui.properties_object import has_geometry_visibility
+
 
 class CyclesPresetPanel(PresetPanel, Panel):
     COMPAT_ENGINES = {'CYCLES'}
@@ -70,9 +72,11 @@ class CyclesDebugButtonsPanel(CyclesButtonsPanel):
     @classmethod
     def poll(cls, context):
         prefs = bpy.context.preferences
-        return (CyclesButtonsPanel.poll(context)
-                and prefs.experimental.use_cycles_debug
-                and prefs.view.show_developer_ui)
+        return (
+            CyclesButtonsPanel.poll(context) and
+            prefs.experimental.use_cycles_debug and
+            prefs.view.show_developer_ui
+        )
 
 
 # Adapt properties editor panel to display in node editor. We have to
@@ -1255,46 +1259,14 @@ class CYCLES_OBJECT_PT_motion_blur(CyclesButtonsPanel, Panel):
             col.prop(cob, "use_deform_motion", text="Deformation")
 
 
-def has_geometry_visibility(ob):
-    return ob and (
-        (ob.type in {
-            'MESH',
-            'CURVE',
-            'SURFACE',
-            'FONT',
-            'META',
-            'LIGHT',
-            'VOLUME',
-            'POINTCLOUD',
-            'CURVES',
-        }) or (ob.instance_type == 'COLLECTION' and ob.instance_collection))
-
-
-class CYCLES_OBJECT_PT_shading(CyclesButtonsPanel, Panel):
-    bl_label = "Shading"
-    bl_context = "object"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        if not CyclesButtonsPanel.poll(context):
-            return False
-
-        ob = context.object
-        return ob and has_geometry_visibility(ob)
-
-    def draw(self, context):
-        pass
-
-
 class CYCLES_OBJECT_PT_shading_shadow_terminator(CyclesButtonsPanel, Panel):
     bl_label = "Shadow Terminator"
-    bl_parent_id = "CYCLES_OBJECT_PT_shading"
+    bl_parent_id = "OBJECT_PT_shading"
     bl_context = "object"
 
     @classmethod
     def poll(cls, context):
-        return context.object.type != 'LIGHT'
+        return CyclesButtonsPanel.poll(context) and context.object.type != 'LIGHT'
 
     def draw(self, context):
         layout = self.layout
@@ -1310,12 +1282,12 @@ class CYCLES_OBJECT_PT_shading_shadow_terminator(CyclesButtonsPanel, Panel):
 
 class CYCLES_OBJECT_PT_shading_gi_approximation(CyclesButtonsPanel, Panel):
     bl_label = "Fast GI Approximation"
-    bl_parent_id = "CYCLES_OBJECT_PT_shading"
+    bl_parent_id = "OBJECT_PT_shading"
     bl_context = "object"
 
     @classmethod
     def poll(cls, context):
-        return context.object.type != 'LIGHT'
+        return CyclesButtonsPanel.poll(context) and context.object.type != 'LIGHT'
 
     def draw(self, context):
         layout = self.layout
@@ -1334,7 +1306,7 @@ class CYCLES_OBJECT_PT_shading_gi_approximation(CyclesButtonsPanel, Panel):
 
 class CYCLES_OBJECT_PT_shading_caustics(CyclesButtonsPanel, Panel):
     bl_label = "Caustics"
-    bl_parent_id = "CYCLES_OBJECT_PT_shading"
+    bl_parent_id = "OBJECT_PT_shading"
     bl_context = "object"
 
     @classmethod
@@ -1356,7 +1328,7 @@ class CYCLES_OBJECT_PT_shading_caustics(CyclesButtonsPanel, Panel):
 
 class CYCLES_OBJECT_PT_lightgroup(CyclesButtonsPanel, Panel):
     bl_label = "Light Group"
-    bl_parent_id = "CYCLES_OBJECT_PT_shading"
+    bl_parent_id = "OBJECT_PT_shading"
     bl_context = "object"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -1377,96 +1349,6 @@ class CYCLES_OBJECT_PT_lightgroup(CyclesButtonsPanel, Panel):
         sub = row.column(align=True)
         sub.enabled = bool(ob.lightgroup) and not any(lg.name == ob.lightgroup for lg in view_layer.lightgroups)
         sub.operator("scene.view_layer_add_lightgroup", icon='ADD', text="").name = ob.lightgroup
-
-
-class CYCLES_OBJECT_MT_light_linking_context_menu(Menu):
-    bl_label = "Light Linking Specials"
-
-    def draw(self, _context):
-        layout = self.layout
-
-        layout.operator("object.light_linking_receivers_select")
-
-
-class CYCLES_OBJECT_MT_shadow_linking_context_menu(Menu):
-    bl_label = "Shadow Linking Specials"
-
-    def draw(self, _context):
-        layout = self.layout
-
-        layout.operator("object.light_linking_blockers_select")
-
-
-class CYCLES_OBJECT_PT_light_linking(CyclesButtonsPanel, Panel):
-    bl_label = "Light Linking"
-    bl_parent_id = "CYCLES_OBJECT_PT_shading"
-    bl_context = "object"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-
-        object = context.object
-        light_linking = object.light_linking
-
-        col = layout.column()
-
-        col.template_ID(
-            light_linking,
-            "receiver_collection",
-            new="object.light_linking_receiver_collection_new")
-
-        if not light_linking.receiver_collection:
-            return
-
-        row = layout.row()
-        col = row.column()
-        col.template_light_linking_collection(row, light_linking, "receiver_collection")
-
-        col = row.column()
-        sub = col.column(align=True)
-        prop = sub.operator("object.light_linking_receivers_link", icon='ADD', text="")
-        prop.link_state = 'INCLUDE'
-        sub.operator("object.light_linking_unlink_from_collection", icon='REMOVE', text="")
-        sub = col.column()
-        sub.menu("CYCLES_OBJECT_MT_light_linking_context_menu", icon='DOWNARROW_HLT', text="")
-
-
-class CYCLES_OBJECT_PT_shadow_linking(CyclesButtonsPanel, Panel):
-    bl_label = "Shadow Linking"
-    bl_parent_id = "CYCLES_OBJECT_PT_shading"
-    bl_context = "object"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-
-        object = context.object
-        light_linking = object.light_linking
-
-        col = layout.column()
-
-        col.template_ID(
-            light_linking,
-            "blocker_collection",
-            new="object.light_linking_blocker_collection_new")
-
-        if not light_linking.blocker_collection:
-            return
-
-        row = layout.row()
-        col = row.column()
-        col.template_light_linking_collection(row, light_linking, "blocker_collection")
-
-        col = row.column()
-        sub = col.column(align=True)
-        prop = sub.operator("object.light_linking_blockers_link", icon='ADD', text="")
-        prop.link_state = 'INCLUDE'
-        sub.operator("object.light_linking_unlink_from_collection", icon='REMOVE', text="")
-        sub = col.column()
-        sub.menu("CYCLES_OBJECT_MT_shadow_linking_context_menu", icon='DOWNARROW_HLT', text="")
 
 
 class CYCLES_OBJECT_PT_visibility(CyclesButtonsPanel, Panel):
@@ -2517,14 +2399,6 @@ def draw_pause(self, context):
             layout.prop(cscene, "preview_pause", icon='PLAY' if cscene.preview_pause else 'PAUSE', text="")
 
 
-def draw_make_links(self, context):
-    if context.engine == "CYCLES":
-        layout = self.layout
-        layout.separator()
-        layout.operator_menu_enum("object.light_linking_receivers_link", "link_state")
-        layout.operator_menu_enum("object.light_linking_blockers_link", "link_state")
-
-
 def get_panels():
     exclude_panels = {
         'DATA_PT_camera_dof',
@@ -2608,15 +2482,10 @@ classes = (
     CYCLES_CAMERA_PT_dof_aperture,
     CYCLES_PT_context_material,
     CYCLES_OBJECT_PT_motion_blur,
-    CYCLES_OBJECT_PT_shading,
     CYCLES_OBJECT_PT_shading_shadow_terminator,
     CYCLES_OBJECT_PT_shading_gi_approximation,
     CYCLES_OBJECT_PT_shading_caustics,
     CYCLES_OBJECT_PT_lightgroup,
-    CYCLES_OBJECT_MT_light_linking_context_menu,
-    CYCLES_OBJECT_PT_light_linking,
-    CYCLES_OBJECT_MT_shadow_linking_context_menu,
-    CYCLES_OBJECT_PT_shadow_linking,
     CYCLES_OBJECT_PT_visibility,
     CYCLES_OBJECT_PT_visibility_ray_visibility,
     CYCLES_OBJECT_PT_visibility_culling,
@@ -2663,7 +2532,6 @@ def register():
 
     bpy.types.RENDER_PT_context.append(draw_device)
     bpy.types.VIEW3D_HT_header.append(draw_pause)
-    bpy.types.VIEW3D_MT_make_links.append(draw_make_links)
 
     for panel in get_panels():
         panel.COMPAT_ENGINES.add('CYCLES')
@@ -2677,7 +2545,6 @@ def unregister():
 
     bpy.types.RENDER_PT_context.remove(draw_device)
     bpy.types.VIEW3D_HT_header.remove(draw_pause)
-    bpy.types.VIEW3D_MT_make_links.remove(draw_make_links)
 
     for panel in get_panels():
         if 'CYCLES' in panel.COMPAT_ENGINES:

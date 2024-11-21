@@ -260,7 +260,7 @@ IDTypeInfo IDType_ID_CA = {
 /** \name Camera Usage
  * \{ */
 
-void *BKE_camera_add(Main *bmain, const char *name)
+Camera *BKE_camera_add(Main *bmain, const char *name)
 {
   Camera *cam;
 

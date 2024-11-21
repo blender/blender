@@ -34,10 +34,10 @@ static void extract_tan_init_common(const MeshRenderData &mr,
 {
   GPU_vertformat_deinterleave(format);
 
-  const CustomData *cd_ldata = (mr.extract_type == MR_EXTRACT_BMESH) ? &mr.bm->ldata :
-                                                                       &mr.mesh->corner_data;
-  const CustomData *cd_vdata = (mr.extract_type == MR_EXTRACT_BMESH) ? &mr.bm->vdata :
-                                                                       &mr.mesh->vert_data;
+  const CustomData *cd_ldata = (mr.extract_type == MeshExtractType::BMesh) ? &mr.bm->ldata :
+                                                                             &mr.mesh->corner_data;
+  const CustomData *cd_vdata = (mr.extract_type == MeshExtractType::BMesh) ? &mr.bm->vdata :
+                                                                             &mr.mesh->vert_data;
   uint32_t tan_layers = cache.cd_used.tan;
   const float3 *orco_ptr = static_cast<const float3 *>(CustomData_get_layer(cd_vdata, CD_ORCO));
   Span<float3> orco = orco_ptr ? Span(orco_ptr, mr.verts_num) : Span<float3>();
@@ -83,7 +83,7 @@ static void extract_tan_init_common(const MeshRenderData &mr,
     /* If `orco` is not available compute it ourselves */
     orco_allocated.reinitialize(mr.verts_num);
 
-    if (mr.extract_type == MR_EXTRACT_BMESH) {
+    if (mr.extract_type == MeshExtractType::BMesh) {
       BMesh *bm = mr.bm;
       for (int v = 0; v < mr.verts_num; v++) {
         const BMVert *eve = BM_vert_at_index(bm, v);
@@ -107,7 +107,7 @@ static void extract_tan_init_common(const MeshRenderData &mr,
   if (tan_len != 0 || use_orco_tan) {
     short tangent_mask = 0;
     bool calc_active_tangent = false;
-    if (mr.extract_type == MR_EXTRACT_BMESH) {
+    if (mr.extract_type == MeshExtractType::BMesh) {
       BKE_editmesh_loop_tangent_calc(mr.edit_bmesh,
                                      calc_active_tangent,
                                      r_tangent_names,

@@ -208,14 +208,14 @@ static SpaceLink *view3d_create(const ScrArea * /*area*/, const Scene *scene)
   }
 
   /* header */
-  region = MEM_cnew<ARegion>("header for view3d");
+  region = BKE_area_region_new();
 
   BLI_addtail(&v3d->regionbase, region);
   region->regiontype = RGN_TYPE_HEADER;
   region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* tool header */
-  region = MEM_cnew<ARegion>("tool header for view3d");
+  region = BKE_area_region_new();
 
   BLI_addtail(&v3d->regionbase, region);
   region->regiontype = RGN_TYPE_TOOL_HEADER;
@@ -223,7 +223,7 @@ static SpaceLink *view3d_create(const ScrArea * /*area*/, const Scene *scene)
   region->flag = RGN_FLAG_HIDDEN | RGN_FLAG_HIDDEN_BY_USER;
 
   /* asset shelf */
-  region = MEM_cnew<ARegion>("asset shelf for view3d");
+  region = BKE_area_region_new();
 
   BLI_addtail(&v3d->regionbase, region);
   region->regiontype = RGN_TYPE_ASSET_SHELF;
@@ -231,13 +231,13 @@ static SpaceLink *view3d_create(const ScrArea * /*area*/, const Scene *scene)
   region->flag |= RGN_FLAG_HIDDEN;
 
   /* asset shelf header */
-  region = MEM_cnew<ARegion>("asset shelf header for view3d");
+  region = BKE_area_region_new();
   BLI_addtail(&v3d->regionbase, region);
   region->regiontype = RGN_TYPE_ASSET_SHELF_HEADER;
   region->alignment = RGN_ALIGN_BOTTOM | RGN_ALIGN_HIDE_WITH_PREV;
 
   /* tool shelf */
-  region = MEM_cnew<ARegion>("toolshelf for view3d");
+  region = BKE_area_region_new();
 
   BLI_addtail(&v3d->regionbase, region);
   region->regiontype = RGN_TYPE_TOOLS;
@@ -245,7 +245,7 @@ static SpaceLink *view3d_create(const ScrArea * /*area*/, const Scene *scene)
   region->flag = RGN_FLAG_HIDDEN;
 
   /* buttons/list view */
-  region = MEM_cnew<ARegion>("buttons for view3d");
+  region = BKE_area_region_new();
 
   BLI_addtail(&v3d->regionbase, region);
   region->regiontype = RGN_TYPE_UI;
@@ -253,7 +253,7 @@ static SpaceLink *view3d_create(const ScrArea * /*area*/, const Scene *scene)
   region->flag = RGN_FLAG_HIDDEN;
 
   /* main region */
-  region = MEM_cnew<ARegion>("main region for view3d");
+  region = BKE_area_region_new();
 
   BLI_addtail(&v3d->regionbase, region);
   region->regiontype = RGN_TYPE_WINDOW;
@@ -402,6 +402,10 @@ static void view3d_main_region_init(wmWindowManager *wm, ARegion *region)
    * `ed_default_handlers` because it needed to be added to multiple editors (as other editors use
    * annotations.). But for OB_GREASE_PENCIL, we only need it to register the keymaps for the
    * 3D View. */
+  keymap = WM_keymap_ensure(
+      wm->defaultconf, "Grease Pencil Selection", SPACE_EMPTY, RGN_TYPE_WINDOW);
+  WM_event_add_keymap_handler(&region->handlers, keymap);
+
   keymap = WM_keymap_ensure(
       wm->defaultconf, "Grease Pencil Edit Mode", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&region->handlers, keymap);
@@ -597,7 +601,13 @@ static bool view3d_collection_drop_poll_external_asset(bContext *C,
 
 static bool view3d_mat_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
-  return view3d_drop_id_in_main_region_poll(C, drag, event, ID_MA);
+  if (!view3d_drop_id_in_main_region_poll(C, drag, event, ID_MA)) {
+    return false;
+  }
+
+  Object *ob = ED_view3d_give_object_under_cursor(C, event->mval);
+
+  return (ob && ID_IS_EDITABLE(&ob->id) && !ID_IS_OVERRIDE_LIBRARY(&ob->id));
 }
 
 static std::string view3d_mat_drop_tooltip(bContext *C,
@@ -1718,7 +1728,7 @@ void ED_view3d_buttons_region_layout_ex(const bContext *C,
       ARRAY_SET_ITEMS(contexts, ".greasepencil_weight");
       break;
     case CTX_MODE_VERTEX_GREASE_PENCIL:
-      ARRAY_SET_ITEMS(contexts, ".grease_pencil_vertex");
+      ARRAY_SET_ITEMS(contexts, ".greasepencil_vertex");
       break;
     case CTX_MODE_EDIT_POINT_CLOUD:
       ARRAY_SET_ITEMS(contexts, ".point_cloud_edit");

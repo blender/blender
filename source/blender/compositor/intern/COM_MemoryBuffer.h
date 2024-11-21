@@ -679,9 +679,7 @@ class MemoryBuffer {
                        int to_y,
                        int to_channel_offset);
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:MemoryBuffer")
-#endif
 };
 
 }  // namespace blender::compositor

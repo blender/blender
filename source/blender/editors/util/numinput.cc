@@ -286,7 +286,7 @@ bool user_string_to_number(bContext *C,
     return BPY_run_string_as_number(C, nullptr, str_unit_convert, &err_info, r_value);
   }
 
-  int success = BPY_run_string_as_number(C, nullptr, str, &err_info, r_value);
+  bool success = BPY_run_string_as_number(C, nullptr, str, &err_info, r_value);
   *r_value = BKE_unit_apply_preferred_unit(unit, type, *r_value);
   *r_value /= unit_scale;
   return success;

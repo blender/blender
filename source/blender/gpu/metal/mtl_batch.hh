@@ -78,8 +78,8 @@ class MTLBatch : public Batch {
   uint32_t topology_buffer_output_v_count_ = 0;
 
  public:
-  MTLBatch(){};
-  ~MTLBatch(){};
+  MTLBatch() = default;
+  ~MTLBatch() override = default;
 
   void draw(int v_first, int v_count, int i_first, int i_count) override;
   void draw_indirect(GPUStorageBuf *indirect_buf, intptr_t offset) override;

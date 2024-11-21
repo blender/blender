@@ -78,6 +78,11 @@ ShaderModule::ShaderModule()
 
 ShaderModule::~ShaderModule()
 {
+  if (compilation_handle_) {
+    /* Finish compilation to avoid asserts on exit at GLShaderCompiler destructor. */
+    is_ready(true);
+  }
+
   for (GPUShader *&shader : shaders_) {
     DRW_SHADER_FREE_SAFE(shader);
   }
@@ -340,6 +345,8 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_shadow_page_tile_store";
     case SHADOW_TILEMAP_TAG_USAGE_VOLUME:
       return "eevee_shadow_tag_usage_volume";
+    case SHADOW_VIEW_VISIBILITY:
+      return "eevee_shadow_view_visibility";
     case SUBSURFACE_CONVOLVE:
       return "eevee_subsurface_convolve";
     case SUBSURFACE_SETUP:
@@ -996,8 +1003,6 @@ GPUMaterial *ShaderModule::world_shader_get(::World *blender_world,
                                this);
 }
 
-/* Variation to compile a material only with a nodetree. Caller needs to maintain the list of
- * materials and call GPU_material_free on it to update the material. */
 GPUMaterial *ShaderModule::material_shader_get(const char *name,
                                                ListBase &materials,
                                                bNodeTree *nodetree,

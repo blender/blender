@@ -134,9 +134,10 @@ static const EnumPropertyItem blend_type_items[] = {
 
 #  include "RNA_access.hh"
 
+#  include "BKE_brush.hh"
 #  include "BKE_colorband.hh"
 #  include "BKE_context.hh"
-#  include "BKE_image.h"
+#  include "BKE_image.hh"
 #  include "BKE_main.hh"
 #  include "BKE_texture.h"
 
@@ -269,6 +270,7 @@ void rna_TextureSlot_update(bContext *C, PointerRNA *ptr)
       MTex *mtex = static_cast<MTex *>(ptr->data);
       ViewLayer *view_layer = CTX_data_view_layer(C);
       BKE_paint_invalidate_overlay_tex(scene, view_layer, mtex->tex);
+      BKE_brush_tag_unsaved_changes(reinterpret_cast<Brush *>(id));
       WM_main_add_notifier(NC_BRUSH, id);
       break;
     }

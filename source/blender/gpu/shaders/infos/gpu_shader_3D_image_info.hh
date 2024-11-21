@@ -6,25 +6,35 @@
  * \ingroup gpu
  */
 
+#ifdef GPU_SHADER
+#  pragma once
+#  include "gpu_glsl_cpp_stubs.hh"
+
+#  include "GPU_shader_shared.hh"
+#endif
+
 #include "gpu_interface_info.hh"
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(gpu_shader_3D_image_common)
-    .vertex_in(0, Type::VEC3, "pos")
-    .vertex_in(1, Type::VEC2, "texCoord")
-    .vertex_out(smooth_tex_coord_interp_iface)
-    .fragment_out(0, Type::VEC4, "fragColor")
-    .push_constant(Type::MAT4, "ModelViewProjectionMatrix")
-    .sampler(0, ImageType::FLOAT_2D, "image")
-    .vertex_source("gpu_shader_3D_image_vert.glsl");
+VERTEX_IN(0, VEC3, pos)
+VERTEX_IN(1, VEC2, texCoord)
+VERTEX_OUT(smooth_tex_coord_interp_iface)
+FRAGMENT_OUT(0, VEC4, fragColor)
+PUSH_CONSTANT(MAT4, ModelViewProjectionMatrix)
+SAMPLER(0, FLOAT_2D, image)
+VERTEX_SOURCE("gpu_shader_3D_image_vert.glsl")
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(gpu_shader_3D_image)
-    .additional_info("gpu_shader_3D_image_common")
-    .fragment_source("gpu_shader_image_frag.glsl")
-    .do_static_compilation(true);
+ADDITIONAL_INFO(gpu_shader_3D_image_common)
+FRAGMENT_SOURCE("gpu_shader_image_frag.glsl")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(gpu_shader_3D_image_color)
-    .additional_info("gpu_shader_3D_image_common")
-    .push_constant(Type::VEC4, "color")
-    .fragment_source("gpu_shader_image_color_frag.glsl")
-    .do_static_compilation(true);
+ADDITIONAL_INFO(gpu_shader_3D_image_common)
+PUSH_CONSTANT(VEC4, color)
+FRAGMENT_SOURCE("gpu_shader_image_color_frag.glsl")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()

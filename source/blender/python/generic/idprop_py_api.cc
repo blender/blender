@@ -1682,9 +1682,9 @@ PyDoc_STRVAR(
     "   :raises KeyError: When the item doesn't exist.\n"
     "\n"
     "   :arg key: Name of item to remove.\n"
-    "   :type key: string\n"
+    "   :type key: str\n"
     "   :arg default: Value to return when key isn't found, otherwise raise an exception.\n"
-    "   :type default: Undefined\n");
+    "   :type default: Any\n");
 static PyObject *BPy_IDGroup_pop(BPy_IDProperty *self, PyObject *args)
 {
   IDProperty *idprop;
@@ -1703,7 +1703,7 @@ static PyObject *BPy_IDGroup_pop(BPy_IDProperty *self, PyObject *args)
       PyErr_SetString(PyExc_KeyError, "item not in group");
       return nullptr;
     }
-    return Py_INCREF_RET(def);
+    return Py_NewRef(def);
   }
 
   pyform = BPy_IDGroup_MapDataToPy(idprop);
@@ -1726,7 +1726,7 @@ static void BPy_IDGroup_CorrectListLen(IDProperty *prop, PyObject *seq, int len,
 
   /* fill rest of list with valid references to None */
   for (j = len; j < prop->len; j++) {
-    PyList_SET_ITEM(seq, j, Py_INCREF_RET(Py_None));
+    PyList_SET_ITEM(seq, j, Py_NewRef(Py_None));
   }
 
   /* Set correct group length. */
@@ -1884,7 +1884,8 @@ PyDoc_STRVAR(
     "   Update key, values.\n"
     "\n"
     "   :arg other: Updates the values in the group with this.\n"
-    "   :type other: :class:`IDPropertyGroup` or dict\n");
+    /* TODO: replace `Any` with an alias for all types an ID property can use. */
+    "   :type other: :class:`IDPropertyGroup` | dict[str, Any]\n");
 static PyObject *BPy_IDGroup_update(BPy_IDProperty *self, PyObject *value)
 {
   PyObject *pkey, *pval;

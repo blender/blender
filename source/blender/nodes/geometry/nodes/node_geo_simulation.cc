@@ -35,6 +35,7 @@
 #include "NOD_node_extra_info.hh"
 #include "NOD_socket.hh"
 #include "NOD_socket_items_ops.hh"
+#include "NOD_socket_items_ui.hh"
 
 #include "DNA_curves_types.h"
 #include "DNA_mesh_types.h"
@@ -192,106 +193,28 @@ static bke::bake::BakeState move_values_to_simulation_state(
   return bake_state;
 }
 
-static void draw_simulation_state_item(uiList * /*ui_list*/,
-                                       const bContext *C,
-                                       uiLayout *layout,
-                                       PointerRNA * /*idataptr*/,
-                                       PointerRNA *itemptr,
-                                       int /*icon*/,
-                                       PointerRNA * /*active_dataptr*/,
-                                       const char * /*active_propname*/,
-                                       int /*index*/,
-                                       int /*flt_flag*/)
-{
-  uiLayout *row = uiLayoutRow(layout, true);
-  float4 color;
-  RNA_float_get_array(itemptr, "color", color);
-  uiTemplateNodeSocket(row, const_cast<bContext *>(C), color);
-  uiLayoutSetEmboss(row, UI_EMBOSS_NONE);
-  uiItemR(row, itemptr, "name", UI_ITEM_NONE, "", ICON_NONE);
-}
-
 static void draw_simulation_state(const bContext *C,
                                   uiLayout *layout,
                                   bNodeTree &ntree,
                                   bNode &output_node)
 {
-  static const uiListType *state_items_list = []() {
-    uiListType *list = MEM_cnew<uiListType>(__func__);
-    STRNCPY(list->idname, "DATA_UL_simulation_zone_state");
-    list->draw_item = draw_simulation_state_item;
-    WM_uilisttype_add(list);
-    return list;
-  }();
-
-  PointerRNA output_node_ptr = RNA_pointer_create(&ntree.id, &RNA_Node, &output_node);
-
   if (uiLayout *panel = uiLayoutPanel(
           C, layout, "simulation_state_items", false, TIP_("Simulation State")))
   {
-    uiLayout *row = uiLayoutRow(panel, false);
-    uiTemplateList(row,
-                   C,
-                   state_items_list->idname,
-                   "",
-                   &output_node_ptr,
-                   "state_items",
-                   &output_node_ptr,
-                   "active_index",
-                   nullptr,
-                   3,
-                   5,
-                   UILST_LAYOUT_DEFAULT,
-                   0,
-                   UI_TEMPLATE_LIST_FLAG_NONE);
-
-    {
-      uiLayout *ops_col = uiLayoutColumn(row, false);
-      {
-        uiLayout *add_remove_col = uiLayoutColumn(ops_col, true);
-        uiItemO(add_remove_col, "", ICON_ADD, "node.simulation_zone_item_add");
-        uiItemO(add_remove_col, "", ICON_REMOVE, "node.simulation_zone_item_remove");
-      }
-      {
-        uiLayout *up_down_col = uiLayoutColumn(ops_col, true);
-        uiItemEnumO(
-            up_down_col, "node.simulation_zone_item_move", "", ICON_TRIA_UP, "direction", 0);
-        uiItemEnumO(
-            up_down_col, "node.simulation_zone_item_move", "", ICON_TRIA_DOWN, "direction", 1);
-      }
-    }
-
+    socket_items::ui::draw_items_list_with_operators<SimulationItemsAccessor>(
+        C, panel, ntree, output_node);
     auto &storage = *static_cast<NodeGeometrySimulationOutput *>(output_node.storage);
-    if (storage.active_index >= 0 && storage.active_index < storage.items_num) {
-      NodeSimulationItem &active_item = storage.items[storage.active_index];
-      PointerRNA item_ptr = RNA_pointer_create(
-          output_node_ptr.owner_id, SimulationItemsAccessor::item_srna, &active_item);
-      uiLayoutSetPropSep(panel, true);
-      uiLayoutSetPropDecorate(panel, false);
-      uiItemR(panel, &item_ptr, "socket_type", UI_ITEM_NONE, nullptr, ICON_NONE);
-      if (socket_type_supports_fields(eNodeSocketDatatype(active_item.socket_type))) {
-        uiItemR(panel, &item_ptr, "attribute_domain", UI_ITEM_NONE, nullptr, ICON_NONE);
-      }
-    }
+    socket_items::ui::draw_active_item_props<SimulationItemsAccessor>(
+        ntree, output_node, [&](PointerRNA *item_ptr) {
+          NodeSimulationItem &active_item = storage.items[storage.active_index];
+          uiLayoutSetPropSep(panel, true);
+          uiLayoutSetPropDecorate(panel, false);
+          uiItemR(panel, item_ptr, "socket_type", UI_ITEM_NONE, nullptr, ICON_NONE);
+          if (socket_type_supports_fields(eNodeSocketDatatype(active_item.socket_type))) {
+            uiItemR(panel, item_ptr, "attribute_domain", UI_ITEM_NONE, nullptr, ICON_NONE);
+          }
+        });
   }
-}
-
-static void NODE_OT_simulation_zone_item_remove(wmOperatorType *ot)
-{
-  socket_items::ops::remove_active_item<SimulationItemsAccessor>(
-      ot, "Remove Simulation Zone Item", __func__, "Remove active simulation zone item");
-}
-
-static void NODE_OT_simulation_zone_item_add(wmOperatorType *ot)
-{
-  socket_items::ops::add_item<SimulationItemsAccessor>(
-      ot, "Add Simulation Zone Item", __func__, "Add simulation zone item");
-}
-
-static void NODE_OT_simulation_zone_item_move(wmOperatorType *ot)
-{
-  socket_items::ops::move_active_item<SimulationItemsAccessor>(
-      ot, "Move Simulation Zone Item", __func__, "Move active simulation zone item");
 }
 
 /** Shared for simulation input and output node. */
@@ -914,9 +837,7 @@ static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const b
 
 static void node_operators()
 {
-  WM_operatortype_append(NODE_OT_simulation_zone_item_add);
-  WM_operatortype_append(NODE_OT_simulation_zone_item_remove);
-  WM_operatortype_append(NODE_OT_simulation_zone_item_move);
+  socket_items::ops::make_common_operators<SimulationItemsAccessor>();
 }
 
 static bool node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
@@ -1034,23 +955,16 @@ void mix_baked_data_item(const eNodeSocketDatatype socket_type,
 
 StructRNA *SimulationItemsAccessor::item_srna = &RNA_SimulationStateItem;
 int SimulationItemsAccessor::node_type = GEO_NODE_SIMULATION_OUTPUT;
+int SimulationItemsAccessor::item_dna_type = SDNA_TYPE_FROM_STRUCT(NodeSimulationItem);
 
-void SimulationItemsAccessor::blend_write(BlendWriter *writer, const bNode &node)
+void SimulationItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {
-  const auto &storage = *static_cast<const NodeGeometrySimulationOutput *>(node.storage);
-  BLO_write_struct_array(writer, NodeSimulationItem, storage.items_num, storage.items);
-  for (const NodeSimulationItem &item : Span(storage.items, storage.items_num)) {
-    BLO_write_string(writer, item.name);
-  }
+  BLO_write_string(writer, item.name);
 }
 
-void SimulationItemsAccessor::blend_read_data(BlendDataReader *reader, bNode &node)
+void SimulationItemsAccessor::blend_read_data_item(BlendDataReader *reader, ItemT &item)
 {
-  auto &storage = *static_cast<NodeGeometrySimulationOutput *>(node.storage);
-  BLO_read_struct_array(reader, NodeSimulationItem, storage.items_num, &storage.items);
-  for (const NodeSimulationItem &item : Span(storage.items, storage.items_num)) {
-    BLO_read_string(reader, &item.name);
-  }
+  BLO_read_string(reader, &item.name);
 }
 
 }  // namespace blender::nodes

@@ -113,6 +113,46 @@ class NlaStripBoundaryTest(AbstractNlaStripTest):
         self.assertFrameValue(4.1, 1.0)
 
 
+class NLAStripActionSlotSelectionTest(AbstractNlaStripTest):
+    def test_two_strips_for_same_action(self):
+        action = bpy.data.actions.new("StripAction")
+        action.slots.new()
+        self.assertTrue(action.is_action_layered)
+        self.assertEqual(1, len(action.slots))
+
+        track = self.nla_tracks.new()
+
+        self.assertEqual('UNSPECIFIED', action.slots[0].id_root)
+
+        strip1 = track.strips.new("name", 1, action)
+        self.assertEqual(action.slots[0], strip1.action_slot)
+        self.assertEqual('OBJECT', action.slots[0].id_root, "Slot should have been rooted to object")
+
+        strip2 = track.strips.new("name", 10, action)
+        self.assertEqual(action.slots[0], strip2.action_slot)
+
+    def test_switch_action_via_assignment(self):
+        action1 = bpy.data.actions.new("StripAction 1")
+        action1.slots.new()
+        self.assertTrue(action1.is_action_layered)
+        self.assertEqual(1, len(action1.slots))
+
+        action2 = bpy.data.actions.new("StripAction 2")
+        action2.slots.new()
+        self.assertTrue(action2.is_action_layered)
+        self.assertEqual(1, len(action2.slots))
+
+        track = self.nla_tracks.new()
+
+        strip = track.strips.new("name", 1, action1)
+        self.assertEqual(action1.slots[0], strip.action_slot)
+        self.assertEqual('OBJECT', action1.slots[0].id_root, "Slot of Action 1 should have been rooted to object")
+
+        strip.action = action2
+        self.assertEqual(action2.slots[0], strip.action_slot)
+        self.assertEqual('OBJECT', action2.slots[0].id_root, "Slot of Action 2 should have been rooted to object")
+
+
 if __name__ == "__main__":
     # Drop all arguments before "--", or everything if the delimiter is absent. Keep the executable path.
     unittest.main(argv=sys.argv[:1] + (sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []))

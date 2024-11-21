@@ -197,7 +197,7 @@ eCustomDataType attribute_data_type_highest_complexity(Span<eCustomDataType> dat
 
 /**
  * \note Generally the order should mirror the order of the domains
- * established in each component's ComponentAttributeProviders.
+ * established in each component's GeometryAttributeProviders.
  */
 static int attribute_domain_priority(const AttrDomain domain)
 {

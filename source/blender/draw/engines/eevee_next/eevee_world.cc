@@ -43,7 +43,6 @@ DefaultWorldNodeTree::~DefaultWorldNodeTree()
   MEM_SAFE_FREE(ntree_);
 }
 
-/* Configure a default node-tree with the given world. */
 bNodeTree *DefaultWorldNodeTree::nodetree_get(::World *wo)
 {
   /* WARNING: This function is not thread-safe. Which is not a problem for the moment. */

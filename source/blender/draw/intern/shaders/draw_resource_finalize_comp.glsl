@@ -6,8 +6,12 @@
  * Finish computation of a few draw resource after sync.
  */
 
-#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_matrix_lib.glsl)
+#include "draw_view_info.hh"
+
+#include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_math_vector_lib.glsl"
+
+COMPUTE_SHADER_CREATE_INFO(draw_resource_finalize)
 
 void main()
 {

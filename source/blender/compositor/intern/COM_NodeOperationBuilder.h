@@ -144,9 +144,7 @@ class NodeOperationBuilder {
   void merge_equal_operations();
   void merge_equal_operations(NodeOperation *from, NodeOperation *into);
   void save_graphviz(StringRefNull name = "");
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeCompilerImpl")
-#endif
 };
 
 /** Create a graphviz representation of the NodeOperationBuilder. */

@@ -1141,7 +1141,11 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
         if (CU_IS_2D(cu)) {
           BKE_nurb_project_2d(nu);
         }
-        BKE_nurb_handles_test(nu, NURB_HANDLE_TEST_EACH, false); /* test for bezier too */
+        /* In the case of weight, tilt or radius (these don't change positions),
+         * don't change handle types. */
+        if ((nu->type == CU_BEZIER) && apply_vcos) {
+          BKE_nurb_handles_test(nu, NURB_HANDLE_TEST_EACH, false); /* test for bezier too */
+        }
       }
     }
     else if ((ob->type == OB_LATTICE) && (apply_vcos || median_basis.lattice.weight)) {

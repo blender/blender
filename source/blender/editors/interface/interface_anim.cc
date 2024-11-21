@@ -100,17 +100,27 @@ void ui_but_anim_flag(uiBut *but, const AnimationEvalContext *anim_eval_context)
     cfra = BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP);
   }
 
-  if (fcurve_frame_has_keyframe(fcu, cfra)) {
+  if (blender::animrig::fcurve_frame_has_keyframe(fcu, cfra)) {
     but->flag |= UI_BUT_ANIMATED_KEY;
   }
 
-  /* XXX: this feature is totally broken and useless with NLA */
-  if (adt == nullptr || adt->nla_tracks.first == nullptr) {
-    const AnimationEvalContext remapped_context = BKE_animsys_eval_context_construct_at(
-        anim_eval_context, cfra);
-    if (fcurve_is_changed(but->rnapoin, but->rnaprop, fcu, &remapped_context)) {
-      but->drawflag |= UI_BUT_ANIMATED_CHANGED;
+  /* This feature is not implemented at all for the NLA. However, if the NLA just consists of
+   * stashed (i.e. deactivated) Actions, it doesn't do anything, and we can treat it as
+   * non-existant here. Note that this is mostly to play nice with stashed Actions, and doesn't
+   * fully look at all the track & strip flags. */
+  if (adt) {
+    LISTBASE_FOREACH (NlaTrack *, nla_track, &adt->nla_tracks) {
+      if (!(nla_track->flag & NLATRACK_MUTED)) {
+        /* Found a non-muted track, so this NLA is not purely for stashing Actions. */
+        return;
+      }
     }
+  }
+
+  const AnimationEvalContext remapped_context = BKE_animsys_eval_context_construct_at(
+      anim_eval_context, cfra);
+  if (fcurve_is_changed(but->rnapoin, but->rnaprop, fcu, &remapped_context)) {
+    but->drawflag |= UI_BUT_ANIMATED_CHANGED;
   }
 }
 

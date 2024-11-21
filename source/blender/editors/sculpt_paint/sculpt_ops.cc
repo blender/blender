@@ -36,7 +36,7 @@
 #include "BKE_multires.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
-#include "BKE_pbvh_api.hh"
+#include "BKE_paint_bvh.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 #include "BKE_subdiv_ccg.hh"
@@ -234,7 +234,7 @@ static int symmetrize_exec(bContext *C, wmOperator *op)
        * are logged as added (as opposed to attempting to store just the
        * parts that symmetrize modifies). */
       undo::push_begin(scene, ob, op);
-      undo::push_node(depsgraph, ob, nullptr, undo::Type::DyntopoSymmetrize);
+      undo::push_node(depsgraph, ob, nullptr, undo::Type::Geometry);
       BM_log_before_all_removed(ss.bm, ss.bm_log);
 
       BM_mesh_toolflags_set(ss.bm, true);
@@ -274,8 +274,6 @@ static int symmetrize_exec(bContext *C, wmOperator *op)
     case bke::pbvh::Type::Grids:
       return OPERATOR_CANCELLED;
   }
-
-  islands::invalidate(ss);
 
   BKE_sculptsession_free_pbvh(ob);
   DEG_id_tag_update(&ob.id, ID_RECALC_GEOMETRY);
@@ -647,7 +645,7 @@ static int sample_color_invoke(bContext *C, wmOperator *op, const wmEvent * /*ev
 
   float color_srgb[3];
   IMB_colormanagement_scene_linear_to_srgb_v3(color_srgb, active_vertex_color);
-  BKE_brush_color_set(&scene, &brush, color_srgb);
+  BKE_brush_color_set(&scene, &sd.paint, &brush, color_srgb);
 
   WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, &brush);
 

@@ -85,7 +85,7 @@ void extract_face_dots_position(const MeshRenderData &mr, gpu::VertBuf &vbo)
   GPU_vertbuf_data_alloc(vbo, mr.corners_num + mr.loose_indices_num);
 
   MutableSpan vbo_data = vbo.data<float3>();
-  if (mr.extract_type == MR_EXTRACT_MESH) {
+  if (mr.extract_type == MeshExtractType::Mesh) {
     extract_face_dot_positions_mesh(mr, vbo_data);
   }
   else {

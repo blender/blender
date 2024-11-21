@@ -3,7 +3,7 @@ Hello World Text Example
 ++++++++++++++++++++++++
 
 Example of using the blf module. For this module to work we
-need to use the OpenGL wrapper :class:`~bgl` as well.
+need to use the GPU module :mod:`gpu` as well.
 """
 # import stand alone modules
 import blf

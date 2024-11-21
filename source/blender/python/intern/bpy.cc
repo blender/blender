@@ -69,7 +69,7 @@ PyDoc_STRVAR(
     "   Return 2 paths to blender scripts directories.\n"
     "\n"
     "   :return: (system, user) strings will be empty when not found.\n"
-    "   :rtype: tuple of strings\n");
+    "   :rtype: tuple[str, str]\n");
 static PyObject *bpy_script_paths(PyObject * /*self*/)
 {
   PyObject *ret = PyTuple_New(2);
@@ -105,13 +105,13 @@ PyDoc_STRVAR(
     "   Returns a list of paths to external files referenced by the loaded .blend file.\n"
     "\n"
     "   :arg absolute: When true the paths returned are made absolute.\n"
-    "   :type absolute: boolean\n"
+    "   :type absolute: bool\n"
     "   :arg packed: When true skip file paths for packed data.\n"
-    "   :type packed: boolean\n"
+    "   :type packed: bool\n"
     "   :arg local: When true skip linked library paths.\n"
-    "   :type local: boolean\n"
+    "   :type local: bool\n"
     "   :return: path list.\n"
-    "   :rtype: list of strings\n");
+    "   :rtype: list[str]\n");
 static PyObject *bpy_blend_paths(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
   eBPathForeachFlag flag = eBPathForeachFlag(0);
@@ -176,11 +176,11 @@ PyDoc_STRVAR(
     "   mirroring bone names.\n"
     "\n"
     "   :arg name: Bone name to flip.\n"
-    "   :type name: string\n"
+    "   :type name: str\n"
     "   :arg strip_digits: Whether to remove ``.###`` suffix.\n"
     "   :type strip_digits: bool\n"
     "   :return: The flipped name.\n"
-    "   :rtype: string\n");
+    "   :rtype: str\n");
 static PyObject *bpy_flip_name(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
   const char *name_src = nullptr;
@@ -267,9 +267,9 @@ PyDoc_STRVAR(
     "   Return a system resource path.\n"
     "\n"
     "   :arg type: string in ['DATAFILES', 'SCRIPTS', 'EXTENSIONS', 'PYTHON'].\n"
-    "   :type type: string\n"
+    "   :type type: str\n"
     "   :arg path: Optional subdirectory.\n"
-    "   :type path: string or bytes\n");
+    "   :type path: str | bytes\n");
 static PyObject *bpy_system_resource(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
   const PyC_StringEnumItems type_items[] = {
@@ -318,13 +318,13 @@ PyDoc_STRVAR(
     "   Return the base path for storing system files.\n"
     "\n"
     "   :arg type: string in ['USER', 'LOCAL', 'SYSTEM'].\n"
-    "   :type type: string\n"
+    "   :type type: str\n"
     "   :arg major: major version, defaults to current.\n"
     "   :type major: int\n"
     "   :arg minor: minor version, defaults to current.\n"
-    "   :type minor: string\n"
+    "   :type minor: str\n"
     "   :return: the resource path (not necessarily existing).\n"
-    "   :rtype: string\n");
+    "   :rtype: str\n");
 static PyObject *bpy_resource_path(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
   const PyC_StringEnumItems type_items[] = {
@@ -371,7 +371,7 @@ PyDoc_STRVAR(
     "   :arg code: The code to test.\n"
     "   :type code: code\n"
     "   :arg namespace: The namespace of values which are allowed.\n"
-    "   :type namespace: dict\n"
+    "   :type namespace: dict[str, Any]\n"
     "   :arg verbose: Print the reason for considering insecure to the ``stderr``.\n"
     "   :type verbose: bool\n"
     "   :return: True when the script is considered trusted.\n"
@@ -415,9 +415,9 @@ PyDoc_STRVAR(
     "   Simple string escaping function used for animation paths.\n"
     "\n"
     "   :arg string: text\n"
-    "   :type string: string\n"
+    "   :type string: str\n"
     "   :return: The escaped string.\n"
-    "   :rtype: string\n");
+    "   :rtype: str\n");
 static PyObject *bpy_escape_identifier(PyObject * /*self*/, PyObject *value)
 {
   Py_ssize_t value_str_len;
@@ -452,12 +452,12 @@ PyDoc_STRVAR(
     ".. function:: unescape_identifier(string)\n"
     "\n"
     "   Simple string un-escape function used for animation paths.\n"
-    "   This performs the reverse of `escape_identifier`.\n"
+    "   This performs the reverse of :func:`escape_identifier`.\n"
     "\n"
     "   :arg string: text\n"
-    "   :type string: string\n"
+    "   :type string: str\n"
     "   :return: The un-escaped string.\n"
-    "   :rtype: string\n");
+    "   :rtype: str\n");
 static PyObject *bpy_unescape_identifier(PyObject * /*self*/, PyObject *value)
 {
   Py_ssize_t value_str_len;
@@ -505,7 +505,7 @@ PyDoc_STRVAR(
     ".. function:: context_members()\n"
     "\n"
     "   :return: A dict where the key is the context and the value is a tuple of it's members.\n"
-    "   :rtype: dict\n");
+    "   :rtype: dict[str, tuple[str]]\n");
 static PyObject *bpy_context_members(PyObject * /*self*/)
 {
 
@@ -552,9 +552,8 @@ PyDoc_STRVAR(
     bpy_rna_enum_items_static_doc,
     ".. function:: rna_enum_items_static()\n"
     "\n"
-    "   :return: A dict where the key the name of the enum, the value is a tuple of "
-    ":class:`bpy.types.EnumPropertyItem`.\n"
-    "   :rtype: dict of \n");
+    "   :return: A dict where the key the name of the enum, the value is a tuple of enum items.\n"
+    "   :rtype: dict[str, tuple[:class:`bpy.types.EnumPropertyItem`]]\n");
 static PyObject *bpy_rna_enum_items_static(PyObject * /*self*/)
 {
 #define DEF_ENUM(id) {STRINGIFY(id), id},
@@ -588,7 +587,7 @@ PyDoc_STRVAR(
     ".. function:: _ghost_backend()\n"
     "\n"
     "   :return: An identifier for the GHOST back-end.\n"
-    "   :rtype: string\n");
+    "   :rtype: str\n");
 static PyObject *bpy_ghost_backend(PyObject * /*self*/)
 {
   return PyUnicode_FromString(WM_ghost_backend());
@@ -607,41 +606,43 @@ PyDoc_STRVAR(
     ".. function:: _wm_capabilities()\n"
     "\n"
     "   :return: A dictionary of capabilities (string keys, boolean values).\n"
-    "   :rtype: dict\n");
+    "   :rtype: dict[str, bool]\n");
 static PyObject *bpy_wm_capabilities(PyObject *self)
 {
-  static _Py_Identifier PyId_capabilities = {"_wm_capabilities_", -1};
-
+  PyObject *py_id_capabilities = PyUnicode_FromString("_wm_capabilities_");
   PyObject *result = nullptr;
-  switch (_PyObject_LookupAttrId(self, &PyId_capabilities, &result)) {
-    case 1:
-      return result;
-    case 0:
-      break;
-    default:
-      /* Unlikely, but there may be an error, forward it. */
-      return nullptr;
-  }
+  switch (PyObject_GetOptionalAttr(self, py_id_capabilities, &result)) {
+    case 1: {
+      result = PyDict_New();
 
-  result = PyDict_New();
-
-  const eWM_CapabilitiesFlag flag = WM_capabilities_flag();
+      const eWM_CapabilitiesFlag flag = WM_capabilities_flag();
 
 #define SetFlagItem(x) \
   PyDict_SetItemString(result, STRINGIFY(x), PyBool_FromLong((WM_CAPABILITY_##x) & flag));
 
-  SetFlagItem(CURSOR_WARP);
-  SetFlagItem(WINDOW_POSITION);
-  SetFlagItem(PRIMARY_CLIPBOARD);
-  SetFlagItem(GPU_FRONT_BUFFER_READ);
-  SetFlagItem(CLIPBOARD_IMAGES);
-  SetFlagItem(DESKTOP_SAMPLE);
-  SetFlagItem(INPUT_IME);
-  SetFlagItem(TRACKPAD_PHYSICAL_DIRECTION);
+      SetFlagItem(CURSOR_WARP);
+      SetFlagItem(WINDOW_POSITION);
+      SetFlagItem(PRIMARY_CLIPBOARD);
+      SetFlagItem(GPU_FRONT_BUFFER_READ);
+      SetFlagItem(CLIPBOARD_IMAGES);
+      SetFlagItem(DESKTOP_SAMPLE);
+      SetFlagItem(INPUT_IME);
+      SetFlagItem(TRACKPAD_PHYSICAL_DIRECTION);
 
 #undef SetFlagItem
+      PyObject_SetAttr(self, py_id_capabilities, result);
+      break;
+    }
+    case 0:
+      BLI_assert(result != nullptr);
+      break;
+    default:
+      /* Unlikely, but there may be an error, forward it. */
+      BLI_assert(result == nullptr);
+      break;
+  }
 
-  _PyObject_SetAttrId(self, &PyId_capabilities, result);
+  Py_DECREF(py_id_capabilities);
   return result;
 }
 
@@ -765,10 +766,6 @@ void BPy_init_modules(bContext *C)
 
   PointerRNA ctx_ptr = RNA_pointer_create(nullptr, &RNA_Context, C);
   bpy_context_module = (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ctx_ptr);
-  /* odd that this is needed, 1 ref on creation and another for the module
-   * but without we get a crash on exit */
-  Py_INCREF(bpy_context_module);
-
   PyModule_AddObject(mod, "context", (PyObject *)bpy_context_module);
 
   /* Register methods and property get/set for RNA types. */

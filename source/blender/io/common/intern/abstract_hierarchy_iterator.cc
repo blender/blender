@@ -406,6 +406,7 @@ void AbstractHierarchyIterator::visit_object(Object *object,
 {
   HierarchyContext *context = new HierarchyContext();
   context->object = object;
+  context->is_object_data_context = false;
   context->export_name = get_object_name(object);
   context->export_parent = export_parent;
   context->duplicator = nullptr;
@@ -446,6 +447,7 @@ void AbstractHierarchyIterator::visit_dupli_object(DupliObject *dupli_object,
 {
   HierarchyContext *context = new HierarchyContext();
   context->object = dupli_object->ob;
+  context->is_object_data_context = false;
   context->duplicator = duplicator;
   context->persistent_id = PersistentID(dupli_object);
   context->weak_export = false;
@@ -619,6 +621,12 @@ HierarchyContext AbstractHierarchyIterator::context_for_object_data(
     const HierarchyContext *object_context) const
 {
   HierarchyContext data_context = *object_context;
+  data_context.is_object_data_context = true;
+
+  ExportGraph::key_type object_key = ObjectIdentifier::for_real_object(data_context.object);
+  auto iter = export_graph_.find(object_key);
+  data_context.is_parent = iter->second.size() > 0;
+
   data_context.higher_up_export_path = object_context->export_path;
   data_context.export_name = get_object_data_name(data_context.object);
   data_context.export_path = path_concatenate(data_context.higher_up_export_path,

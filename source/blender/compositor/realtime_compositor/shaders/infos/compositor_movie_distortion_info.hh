@@ -5,9 +5,10 @@
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(compositor_movie_distortion)
-    .local_group_size(16, 16)
-    .sampler(0, ImageType::FLOAT_2D, "input_tx")
-    .sampler(1, ImageType::FLOAT_2D, "distortion_grid_tx")
-    .image(0, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
-    .compute_source("compositor_movie_distortion.glsl")
-    .do_static_compilation(true);
+LOCAL_GROUP_SIZE(16, 16)
+SAMPLER(0, FLOAT_2D, input_tx)
+SAMPLER(1, FLOAT_2D, distortion_grid_tx)
+IMAGE(0, GPU_RGBA16F, WRITE, FLOAT_2D, output_img)
+COMPUTE_SOURCE("compositor_movie_distortion.glsl")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()

@@ -31,6 +31,7 @@ set(DEFSRC
   rna_armature.cc
   rna_asset.cc
   rna_attribute.cc
+  rna_blendfile_import.cc
   rna_boid.cc
   rna_brush.cc
   rna_cachefile.cc
@@ -109,7 +110,6 @@ endif()
 
 if(WITH_EXPERIMENTAL_FEATURES)
   add_definitions(-DWITH_SIMULATION_DATABLOCK)
-  add_definitions(-DWITH_ANIM_BAKLAVA)
 endif()
 
 set(APISRC

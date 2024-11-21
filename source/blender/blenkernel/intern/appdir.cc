@@ -51,7 +51,7 @@
 #  endif
 /* #mkdtemp on OSX (and probably all *BSD?), not worth making specific check for this OS. */
 #  include <unistd.h>
-#endif /* WIN32 */
+#endif /* !WIN32 */
 
 static const char _str_null[] = "(null)";
 #define STR_OR_FALLBACK(a) ((a) ? (a) : _str_null)
@@ -134,7 +134,7 @@ static char *blender_version_decimal(const int version)
 const char *BKE_appdir_folder_default()
 {
 #ifndef WIN32
-  return BLI_getenv("HOME");
+  return BLI_dir_home();
 #else  /* Windows */
   static char documentfolder[FILE_MAXDIR];
 
@@ -166,17 +166,6 @@ const char *BKE_appdir_folder_default_or_root()
   return path;
 }
 
-const char *BKE_appdir_folder_home()
-{
-#ifdef WIN32
-  return BLI_getenv("userprofile");
-#elif defined(__APPLE__)
-  return BLI_expand_tilde("~/");
-#else
-  return BLI_getenv("HOME");
-#endif
-}
-
 bool BKE_appdir_folder_documents(char *dir)
 {
   dir[0] = '\0';
@@ -191,7 +180,7 @@ bool BKE_appdir_folder_documents(char *dir)
 
   /* Ghost couldn't give us a documents path, let's try if we can find it ourselves. */
 
-  const char *home_path = BKE_appdir_folder_home();
+  const char *home_path = BLI_dir_home();
   if (!home_path || !BLI_is_dir(home_path)) {
     return false;
   }
@@ -242,7 +231,9 @@ bool BKE_appdir_font_folder_default(char *dir, size_t dir_maxncpy)
     BLI_strncpy_wchar_as_utf8(test_dir, wpath, sizeof(test_dir));
   }
 #elif defined(__APPLE__)
-  STRNCPY(test_dir, BLI_expand_tilde("~/Library/Fonts"));
+  if (const char *home_dir = BLI_dir_home()) {
+    BLI_path_join(test_dir, sizeof(test_dir), home_dir, "Library/Fonts");
+  }
 #else
   STRNCPY(test_dir, "/usr/share/fonts");
 #endif

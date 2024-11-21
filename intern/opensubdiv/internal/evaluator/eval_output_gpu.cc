@@ -6,7 +6,7 @@
 
 #include "internal/evaluator/eval_output_gpu.h"
 
-#include "opensubdiv_evaluator_capi.hh"
+#include "opensubdiv_evaluator.hh"
 
 using OpenSubdiv::Osd::PatchArray;
 using OpenSubdiv::Osd::PatchArrayVector;

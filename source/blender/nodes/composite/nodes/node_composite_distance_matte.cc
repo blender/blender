@@ -6,6 +6,15 @@
  * \ingroup cmpnodes
  */
 
+#include "BLI_math_base.hh"
+#include "BLI_math_color.h"
+#include "BLI_math_vector.hh"
+#include "BLI_math_vector_types.hh"
+
+#include "FN_multi_function_builder.hh"
+
+#include "NOD_multi_function.hh"
+
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
@@ -59,6 +68,21 @@ static void node_composit_buts_distance_matte(uiLayout *layout, bContext * /*C*/
 
 using namespace blender::realtime_compositor;
 
+static CMPNodeDistanceMatteColorSpace get_color_space(const bNode &node)
+{
+  return static_cast<CMPNodeDistanceMatteColorSpace>(node_storage(node).channel);
+}
+
+static float get_tolerance(const bNode &node)
+{
+  return node_storage(node).t1;
+}
+
+static float get_falloff(const bNode &node)
+{
+  return node_storage(node).t2;
+}
+
 class DistanceMatteShaderNode : public ShaderNode {
  public:
   using ShaderNode::ShaderNode;
@@ -68,10 +92,10 @@ class DistanceMatteShaderNode : public ShaderNode {
     GPUNodeStack *inputs = get_inputs_array();
     GPUNodeStack *outputs = get_outputs_array();
 
-    const float tolerance = get_tolerance();
-    const float falloff = get_falloff();
+    const float tolerance = get_tolerance(bnode());
+    const float falloff = get_falloff(bnode());
 
-    if (get_color_space() == CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_RGBA) {
+    if (get_color_space(bnode()) == CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_RGBA) {
       GPU_stack_link(material,
                      &bnode(),
                      "node_composite_distance_matte_rgba",
@@ -90,26 +114,79 @@ class DistanceMatteShaderNode : public ShaderNode {
                    GPU_uniform(&tolerance),
                    GPU_uniform(&falloff));
   }
-
-  CMPNodeDistanceMatteColorSpace get_color_space()
-  {
-    return (CMPNodeDistanceMatteColorSpace)node_storage(bnode()).channel;
-  }
-
-  float get_tolerance()
-  {
-    return node_storage(bnode()).t1;
-  }
-
-  float get_falloff()
-  {
-    return node_storage(bnode()).t2;
-  }
 };
 
 static ShaderNode *get_compositor_shader_node(DNode node)
 {
   return new DistanceMatteShaderNode(node);
+}
+
+static void distance_key_rgba(const float4 &color,
+                              const float4 &key,
+                              const float tolerance,
+                              const float falloff,
+                              float4 &result,
+                              float &matte)
+{
+  float difference = math::distance(color.xyz(), key.xyz());
+  bool is_opaque = difference > tolerance + falloff;
+  float alpha = is_opaque ? color.w : math::max(0.0f, difference - tolerance) / falloff;
+  matte = math::min(alpha, color.w);
+  result = color * matte;
+}
+
+static void distance_key_ycca(const float4 &color,
+                              const float4 &key,
+                              const float tolerance,
+                              const float falloff,
+                              float4 &result,
+                              float &matte)
+{
+  float3 color_ycca;
+  rgb_to_ycc(
+      color.x, color.y, color.z, &color_ycca.x, &color_ycca.y, &color_ycca.z, BLI_YCC_ITU_BT709);
+  color_ycca /= 255.0f;
+  float3 key_ycca;
+  rgb_to_ycc(key.x, key.y, key.z, &key_ycca.x, &key_ycca.y, &key_ycca.z, BLI_YCC_ITU_BT709);
+  key_ycca /= 255.0f;
+
+  float difference = math::distance(color_ycca.yz(), key_ycca.yz());
+  bool is_opaque = difference > tolerance + falloff;
+  float alpha = is_opaque ? color.w : math::max(0.0f, difference - tolerance) / falloff;
+  matte = math::min(alpha, color.w);
+  result = color * matte;
+}
+
+static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+{
+  const float tolerance = get_tolerance(builder.node());
+  const float falloff = get_falloff(builder.node());
+  const CMPNodeDistanceMatteColorSpace color_space = get_color_space(builder.node());
+
+  switch (color_space) {
+    case CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_YCCA:
+      builder.construct_and_set_matching_fn_cb([=]() {
+        return mf::build::SI2_SO2<float4, float4, float4, float>(
+            "Distance Key YCCA",
+            [=](const float4 &color, const float4 &key_color, float4 &output_color, float &matte)
+                -> void {
+              distance_key_ycca(color, key_color, tolerance, falloff, output_color, matte);
+            },
+            mf::build::exec_presets::AllSpanOrSingle());
+      });
+      break;
+    case CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_RGBA:
+      builder.construct_and_set_matching_fn_cb([=]() {
+        return mf::build::SI2_SO2<float4, float4, float4, float>(
+            "Distance Key RGBA",
+            [=](const float4 &color, const float4 &key_color, float4 &output_color, float &matte)
+                -> void {
+              distance_key_rgba(color, key_color, tolerance, falloff, output_color, matte);
+            },
+            mf::build::exec_presets::AllSpanOrSingle());
+      });
+      break;
+  }
 }
 
 }  // namespace blender::nodes::node_composite_distance_matte_cc
@@ -128,6 +205,7 @@ void register_node_type_cmp_distance_matte()
   blender::bke::node_type_storage(
       &ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
+  ntype.build_multi_function = file_ns::node_build_multi_function;
 
   blender::bke::node_register_type(&ntype);
 }

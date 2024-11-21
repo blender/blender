@@ -14,10 +14,10 @@
  *  Half-resolution Color, signed CoC (out_coc.x), and max slight focus abs CoC (out_coc.y).
  */
 
-#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_depth_of_field_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_colorspace_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
+#include "draw_view_lib.glsl"
+#include "eevee_colorspace_lib.glsl"
+#include "eevee_depth_of_field_lib.glsl"
+#include "gpu_shader_math_vector_lib.glsl"
 
 void main()
 {

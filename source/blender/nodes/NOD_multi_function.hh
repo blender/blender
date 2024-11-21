@@ -40,8 +40,17 @@ class NodeMultiFunctionBuilder : NonCopyable, NonMovable {
    */
   template<typename T, typename... Args> void construct_and_set_matching_fn(Args &&...args);
 
+  /**
+   * Similar to #construct_and_set_matching_fn, but can be used when the type name of the
+   * multi-function is not known (e.g. when using `mf::build::SI1_SO`).
+   *
+   * \param create_multi_function: A function that returns the multi-function by value.
+   */
+  template<typename Fn> void construct_and_set_matching_fn_cb(Fn &&create_multi_function);
+
   const bNode &node();
   const bNodeTree &tree();
+  const mf::MultiFunction &function();
 };
 
 /**
@@ -82,6 +91,11 @@ inline const bNodeTree &NodeMultiFunctionBuilder::tree()
   return tree_;
 }
 
+inline const mf::MultiFunction &NodeMultiFunctionBuilder::function()
+{
+  return *built_fn_;
+}
+
 inline void NodeMultiFunctionBuilder::set_matching_fn(const mf::MultiFunction *fn)
 {
   built_fn_ = fn;
@@ -96,6 +110,15 @@ template<typename T, typename... Args>
 inline void NodeMultiFunctionBuilder::construct_and_set_matching_fn(Args &&...args)
 {
   owned_built_fn_ = std::make_shared<T>(std::forward<Args>(args)...);
+  built_fn_ = &*owned_built_fn_;
+}
+
+template<typename Fn>
+inline void NodeMultiFunctionBuilder::construct_and_set_matching_fn_cb(Fn &&create_multi_function)
+{
+  using T = decltype(create_multi_function());
+  T *allocated_function = new T(create_multi_function());
+  owned_built_fn_ = std::shared_ptr<T>(allocated_function);
   built_fn_ = &*owned_built_fn_;
 }
 

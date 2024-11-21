@@ -38,7 +38,7 @@ def build_property_typemap(skip_classes, skip_typemap):
                 for prop_id in properties_blacklist:
                     try:
                         properties.remove(prop_id)
-                    except:
+                    except Exception:
                         print("skip_typemap unknown prop_id '{:s}.{:s}'".format(cls_name, prop_id))
             else:
                 print("skip_typemap unknown class '{:s}'".format(cls_name))
@@ -130,7 +130,7 @@ def rna2xml(
             else:
                 try:
                     subvalue_ls = list(subvalue)
-                except:
+                except Exception:
                     subvalue_ls = None
 
                 if subvalue_ls is None:
@@ -213,7 +213,7 @@ def rna2xml(
             value = getattr(root_rna, attr)
             try:
                 ls = value[:]
-            except:
+            except Exception:
                 ls = None
 
             if type(ls) == list:
@@ -246,7 +246,7 @@ def rna2xml(
 def xml2rna(
         root_xml, *,
         root_rna=None,  # must be set
-        secure_types=None,  # `Optional[Set[str]]`
+        secure_types=None,  # `Set[str] | None`
 ):
 
     def xml2rna_node(xml_node, value):
@@ -377,7 +377,7 @@ def xml_file_run(
         context,
         filepath,
         rna_map,
-        secure_types=None,  # `Optional[Set[str]]`
+        secure_types=None,  # `set[str] | None`
 ):
     import xml.dom.minidom
 

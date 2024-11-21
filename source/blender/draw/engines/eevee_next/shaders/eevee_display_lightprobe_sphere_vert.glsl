@@ -2,20 +2,20 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_lightprobe_lib.glsl)
+#include "draw_view_lib.glsl"
+#include "eevee_lightprobe_lib.glsl"
 
 void main()
 {
   /* Constant array moved inside function scope.
    * Minimizes local register allocation in MSL. */
-  const vec2 pos[6] = vec2[6](vec2(-1.0, -1.0),
-                              vec2(1.0, -1.0),
-                              vec2(-1.0, 1.0),
+  const vec2 pos[6] = float2_array(vec2(-1.0, -1.0),
+                                   vec2(1.0, -1.0),
+                                   vec2(-1.0, 1.0),
 
-                              vec2(1.0, -1.0),
-                              vec2(1.0, 1.0),
-                              vec2(-1.0, 1.0));
+                                   vec2(1.0, -1.0),
+                                   vec2(1.0, 1.0),
+                                   vec2(-1.0, 1.0));
 
   lP = pos[gl_VertexID % 6];
   int display_index = gl_VertexID / 6;

@@ -33,3 +33,5 @@ leak:libusd*
 leak:*openvdb::v11_0*
 leak:*tbb::internal*
 leak:*libOpenColorIO*
+leak:pa_xmalloc
+leak:*::x265_malloc*

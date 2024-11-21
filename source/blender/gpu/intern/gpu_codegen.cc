@@ -344,7 +344,7 @@ void GPUCodegen::generate_attribs()
   /* Input declaration, loading / assignment to interface and geometry shader passthrough. */
   std::stringstream load_ss;
 
-  int slot = 15;
+  int slot = GPU_shader_draw_parameters_support() ? 15 : 14;
   LISTBASE_FOREACH (GPUMaterialAttribute *, attr, &graph.attributes) {
     if (slot == -1) {
       BLI_assert_msg(0, "Too many attributes");
@@ -786,7 +786,7 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
     pass->shader = nullptr;
     pass->refcount = 1;
     pass->create_info = codegen.create_info;
-    /* Ensure the CreateInfo is finalized in the main thread. */
+    /* Finalize before adding the pass to the cache, to prevent race conditions. */
     pass->create_info->finalize();
     pass->engine = engine;
     pass->hash = codegen.hash_get();

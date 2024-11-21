@@ -944,17 +944,18 @@ static bool pose_select_same_collection(bContext *C, const bool extend)
 
 static bool pose_select_same_keyingset(bContext *C, ReportList *reports, bool extend)
 {
+  using namespace blender::animrig;
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   bool changed_multi = false;
-  KeyingSet *ks = ANIM_scene_get_active_keyingset(CTX_data_scene(C));
+  KeyingSet *ks = scene_get_active_keyingset(CTX_data_scene(C));
 
   /* sanity checks: validate Keying Set and object */
   if (ks == nullptr) {
     BKE_report(reports, RPT_ERROR, "No active Keying Set to use");
     return false;
   }
-  if (ANIM_validate_keyingset(C, nullptr, ks) != blender::animrig::ModifyKeyReturn::SUCCESS) {
+  if (validate_keyingset(C, nullptr, ks) != ModifyKeyReturn::SUCCESS) {
     if (ks->paths.first == nullptr) {
       if ((ks->flag & KEYINGSET_ABSOLUTE) == 0) {
         BKE_report(reports,

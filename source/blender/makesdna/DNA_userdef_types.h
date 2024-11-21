@@ -759,9 +759,8 @@ typedef struct UserDef_Experimental {
   char use_new_volume_nodes;
   char use_new_file_import_nodes;
   char use_shader_node_previews;
-  char use_animation_baklava;
   char enable_new_cpu_compositor;
-  char _pad[2];
+  char _pad[3];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 
@@ -1294,7 +1293,8 @@ typedef enum eUserpref_UI_Flag {
   USER_ZOOM_TO_MOUSEPOS = (1 << 20),
   USER_SHOW_FPS = (1 << 21),
   USER_REGISTER_ALL_USERS = (1 << 22),
-  USER_UIFLAG_UNUSED_4 = (1 << 23), /* Cleared. */
+  /** Actually implemented in .py. */
+  USER_FILTER_BRUSHES_BY_TOOL = (1 << 23),
   USER_CONTINUOUS_MOUSE = (1 << 24),
   USER_ZOOM_INVERT = (1 << 25),
   USER_ZOOM_HORIZ = (1 << 26), /* for CONTINUE and DOLLY zoom */

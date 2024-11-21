@@ -33,6 +33,12 @@ enum eSnapEditType {
   SNAP_GEOM_EDIT = 2, /* Bmesh for mesh-type. */
 };
 
+enum eSnapOcclusionTest {
+  SNAP_OCCLUSION_NEVER = 0,
+  SNAP_OCCLUSION_AS_SEEM = 1,
+  SNAP_OCCLUSION_ALWAYS = 2,
+};
+
 /** used for storing multiple hits */
 struct SnapObjectHitDepth {
   SnapObjectHitDepth *next, *prev;
@@ -53,10 +59,12 @@ struct SnapObjectParams {
   eSnapTargetOP snap_target_select;
   /** Geometry for snapping in edit mode. */
   eSnapEditType edit_mode_type;
+  /** Snap to or ignore the frontmost object. */
+  eSnapOcclusionTest occlusion_test;
+  /** Grid unit size. "0.0" is automatic. */
+  float grid_size;
   /** Break nearest face snapping into steps to improve transformations across U-shaped targets. */
   short face_nearest_steps;
-  /** Snap to the closest element, use when using more than one snap type. */
-  bool use_occlusion_test : 1;
   /** Exclude back facing geometry from snapping. */
   bool use_backface_culling : 1;
   /** Enable to force nearest face snapping to snap to target the source was initially near. */

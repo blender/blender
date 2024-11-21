@@ -129,6 +129,14 @@ static void localize(bNodeTree *localtree, bNodeTree * /*ntree*/)
   /* replace muted nodes and reroute nodes by internal links */
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &localtree->nodes) {
     if (node->flag & NODE_MUTED || node->type == NODE_REROUTE) {
+      if (node->is_group() && node->id) {
+        /* Free the group like in #ntree_shader_groups_flatten. */
+        bNodeTree *group = reinterpret_cast<bNodeTree *>(node->id);
+        blender::bke::node_tree_free_tree(group);
+        MEM_freeN(group);
+        node->id = nullptr;
+      }
+
       blender::bke::node_internal_relink(localtree, node);
       blender::bke::node_tree_free_local_node(localtree, node);
     }

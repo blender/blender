@@ -8,6 +8,7 @@
 
 #include "node_composite_util.hh"
 
+#include "BLI_assert.h"
 #include "BLI_linklist.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
@@ -16,7 +17,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_global.hh"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_scene.hh"
@@ -458,21 +459,22 @@ class ImageOperation : public NodeOperation {
       return;
     }
 
-    Result *cached_image = context().cache_manager().cached_images.get(
+    Result cached_image = context().cache_manager().cached_images.get(
         context(), get_image(), get_image_user(), get_pass_name(identifier));
 
     Result &result = get_result(identifier);
-    if (!cached_image || !cached_image->is_allocated()) {
+    if (!cached_image.is_allocated()) {
       result.allocate_invalid();
       return;
     }
 
     /* Alpha is not an actual pass, but one that is extracted from the combined pass. */
     if (identifier == "Alpha") {
-      extract_alpha(context(), *cached_image, result);
+      extract_alpha(context(), cached_image, result);
     }
     else {
-      cached_image->pass_through(result);
+      result.set_precision(cached_image.precision());
+      result.wrap_external(cached_image);
     }
   }
 
@@ -665,92 +667,134 @@ class RenderLayerOperation : public NodeOperation {
 
   void execute() override
   {
-    const Scene *scene = reinterpret_cast<const Scene *>(bnode().id);
-    const int view_layer = bnode().custom1;
+    const Scene *scene = reinterpret_cast<const Scene *>(this->bnode().id);
+    const int view_layer = this->bnode().custom1;
 
-    Result &image_result = get_result("Image");
-    Result &alpha_result = get_result("Alpha");
+    Result &image_result = this->get_result("Image");
+    Result &alpha_result = this->get_result("Alpha");
 
     if (image_result.should_compute() || alpha_result.should_compute()) {
-      GPUTexture *combined_texture = context().get_input_texture(
+      const Result combined_pass = this->context().get_pass(
           scene, view_layer, RE_PASSNAME_COMBINED);
       if (image_result.should_compute()) {
-        execute_pass(image_result, combined_texture, "compositor_read_input_color");
+        this->execute_pass(combined_pass, image_result);
       }
       if (alpha_result.should_compute()) {
-        execute_pass(alpha_result, combined_texture, "compositor_read_input_alpha");
+        this->execute_pass(combined_pass, alpha_result);
       }
     }
 
-    /* Other output passes are not supported for now, so allocate them as invalid. */
     for (const bNodeSocket *output : this->node()->output_sockets()) {
       if (STR_ELEM(output->identifier, "Image", "Alpha")) {
         continue;
       }
 
-      Result &result = get_result(output->identifier);
+      Result &result = this->get_result(output->identifier);
       if (!result.should_compute()) {
         continue;
       }
 
-      context().populate_meta_data_for_pass(
+      this->context().populate_meta_data_for_pass(
           scene, view_layer, output->identifier, result.meta_data);
 
-      GPUTexture *pass_texture = context().get_input_texture(
-          scene, view_layer, output->identifier);
-      if (output->type == SOCK_FLOAT) {
-        execute_pass(result, pass_texture, "compositor_read_input_float");
-      }
-      else if (output->type == SOCK_VECTOR) {
-        execute_pass(result, pass_texture, "compositor_read_input_vector");
-      }
-      else if (output->type == SOCK_RGBA) {
-        execute_pass(result, pass_texture, "compositor_read_input_color");
-      }
-      else {
-        BLI_assert_unreachable();
-      }
+      const Result pass = this->context().get_pass(scene, view_layer, output->identifier);
+      this->execute_pass(pass, result);
     }
   }
 
-  void execute_pass(Result &result, GPUTexture *pass_texture, const char *shader_name)
+  void execute_pass(const Result &pass, Result &result)
   {
-    if (pass_texture == nullptr) {
+    if (!pass.is_allocated()) {
       /* Pass not rendered yet, or not supported by viewport. */
       result.allocate_invalid();
-      context().set_info_message("Viewport compositor setup not fully supported");
+      this->context().set_info_message("Viewport compositor setup not fully supported");
       return;
     }
 
-    if (!context().is_valid_compositing_region()) {
+    if (!this->context().is_valid_compositing_region()) {
       result.allocate_invalid();
       return;
     }
 
-    const ResultPrecision precision = Result::precision(GPU_texture_format(pass_texture));
-    GPUShader *shader = context().get_shader(shader_name, precision);
+    if (this->context().use_gpu()) {
+      this->execute_pass_gpu(pass, result);
+    }
+    else {
+      this->execute_pass_cpu(pass, result);
+    }
+  }
+
+  void execute_pass_gpu(const Result &pass, Result &result)
+  {
+    result.set_precision(pass.precision());
+
+    GPUShader *shader = this->context().get_shader(this->get_shader_name(pass, result),
+                                                   result.precision());
     GPU_shader_bind(shader);
 
     /* The compositing space might be limited to a subset of the pass texture, so only read that
-     * compositing region into an appropriately sized texture. */
-    const rcti compositing_region = context().get_compositing_region();
+     * compositing region into an appropriately sized result. */
+    const rcti compositing_region = this->context().get_compositing_region();
     const int2 lower_bound = int2(compositing_region.xmin, compositing_region.ymin);
     GPU_shader_uniform_2iv(shader, "lower_bound", lower_bound);
 
-    const int input_unit = GPU_shader_get_sampler_binding(shader, "input_tx");
-    GPU_texture_bind(pass_texture, input_unit);
+    pass.bind_as_texture(shader, "input_tx");
 
-    result.set_precision(precision);
-
-    const int2 compositing_region_size = context().get_compositing_region_size();
-    result.allocate_texture(Domain(compositing_region_size));
+    result.allocate_texture(Domain(this->context().get_compositing_region_size()));
     result.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, compositing_region_size);
+    compute_dispatch_threads_at_least(shader, result.domain().size);
 
     GPU_shader_unbind();
-    GPU_texture_unbind(pass_texture);
+    pass.unbind_as_texture();
     result.unbind_as_image();
+  }
+
+  const char *get_shader_name(const Result &pass, const Result &result)
+  {
+    /* Special case for alpha output. */
+    if (pass.type() == ResultType::Color && result.type() == ResultType::Float) {
+      return "compositor_read_input_alpha";
+    }
+
+    switch (pass.type()) {
+      case ResultType::Float:
+        return "compositor_read_input_float";
+      case ResultType::Vector:
+        return "compositor_read_input_vector";
+      case ResultType::Color:
+        return "compositor_read_input_color";
+      case ResultType::Float3:
+        return "compositor_read_input_vector";
+      default:
+        /* Other types are internal and needn't be handled by operations. */
+        break;
+    }
+
+    BLI_assert_unreachable();
+    return nullptr;
+  }
+
+  void execute_pass_cpu(const Result &pass, Result &result)
+  {
+    /* The compositing space might be limited to a subset of the pass texture, so only read that
+     * compositing region into an appropriately sized result. */
+    const rcti compositing_region = this->context().get_compositing_region();
+    const int2 lower_bound = int2(compositing_region.xmin, compositing_region.ymin);
+
+    result.allocate_texture(Domain(this->context().get_compositing_region_size()));
+
+    /* Special case for alpha output. */
+    if (pass.type() == ResultType::Color && result.type() == ResultType::Float) {
+      parallel_for(result.domain().size, [&](const int2 texel) {
+        result.store_pixel(texel, float4(pass.load_pixel(texel + lower_bound).w));
+      });
+    }
+    else {
+      parallel_for(result.domain().size, [&](const int2 texel) {
+        result.store_pixel(texel, pass.load_pixel(texel + lower_bound));
+      });
+    }
   }
 };
 

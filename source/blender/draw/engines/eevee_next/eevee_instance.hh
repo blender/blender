@@ -189,7 +189,7 @@ class Instance {
   void view_update();
 
   void begin_sync();
-  void object_sync(Object *ob);
+  void object_sync(ObjectRef &ob_ref);
   void end_sync();
 
   /**
@@ -231,7 +231,7 @@ class Instance {
   /* Append a new line to the info string. */
   template<typename... Args> void info_append(const char *msg, Args &&...args)
   {
-    info_ += fmt::format(msg, args...);
+    info_ += fmt::format(fmt::runtime(msg), args...);
     info_ += "\n";
   }
 
@@ -239,8 +239,11 @@ class Instance {
    * NOTE: When calling this function, `msg` should be a string literal. */
   template<typename... Args> void info_append_i18n(const char *msg, Args &&...args)
   {
-    info_ += fmt::format(RPT_(msg), args...);
-    info_ += "\n";
+    std::string fmt_msg = fmt::format(fmt::runtime(RPT_(msg)), args...) + "\n";
+    /* Don't print the same error twice. */
+    if (info_ != fmt_msg && !BLI_str_endswith(info_.c_str(), fmt_msg.c_str())) {
+      info_ += fmt_msg;
+    }
   }
 
   const char *info_get()
@@ -351,10 +354,15 @@ class Instance {
   }
 
  private:
+  /** Wrapper to use with #DRW_render_object_iter. */
   static void object_sync_render(void *instance_,
                                  Object *ob,
                                  RenderEngine *engine,
                                  Depsgraph *depsgraph);
+  /**
+   * Conceptually renders one sample per pixel.
+   * Everything based on random sampling should be done here (i.e: DRWViews jitter)
+   */
   void render_sample();
   void render_read_result(RenderLayer *render_layer, const char *view_name);
 

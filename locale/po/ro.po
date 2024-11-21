@@ -1,0 +1,3884 @@
+
+msgid ""
+msgstr ""
+"Project-Id-Version: Blender 4.3.0 Release Candidate (b'7dfe47164a63')\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-11-18 11:20+0000\n"
+"PO-Revision-Date: 2024-03-23 04:06+0000\n"
+"Last-Translator: Alexandru Buhnici <in@alexm.ro>\n"
+"Language-Team: Romanian <https://translate.blender.org/projects/blender-ui/ui/ro/>\n"
+"Language: ro\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < 20)) ? 1 : 2;\n"
+"X-Generator: Weblate 5.0.1"
+
+
+msgid "Shader AOV"
+msgstr "Shader AOV"
+
+
+msgid "Valid"
+msgstr "Valid"
+
+
+msgid "Is the name of the AOV conflicting"
+msgstr "Este numele VIA-urilor în conflict"
+
+
+msgid "Name"
+msgstr "Nume"
+
+
+msgid "Name of the AOV"
+msgstr "Numele AOV-ului"
+
+
+msgid "Type"
+msgstr "Tip"
+
+
+msgid "Data type of the AOV"
+msgstr "Tipul de date al AOV-ului"
+
+
+msgid "Color"
+msgstr "Culoare"
+
+
+msgid "Value"
+msgstr "Valoare"
+
+
+msgid "List of AOVs"
+msgstr "Lista de AOV-uri"
+
+
+msgid "Collection of AOVs"
+msgstr "Colecție de AOV-uri"
+
+
+msgid "Action F-Curves"
+msgstr "F-Curbe de Acțiune"
+
+
+msgid "Collection of action F-Curves"
+msgstr "Colecție de F-Curbe de acțiune"
+
+
+msgid "Action Group"
+msgstr "Grup de Acțiune"
+
+
+msgid "Groups of F-Curves"
+msgstr "Grup de F-Curbe"
+
+
+msgid "Channels"
+msgstr "Canale"
+
+
+msgid "F-Curves in this group"
+msgstr "F-Curbe în acest grup"
+
+
+msgid "Color Set"
+msgstr "Setare Culoare"
+
+
+msgid "Custom color set to use"
+msgstr "Set de culori personalizat de folosit"
+
+
+msgid "Default Colors"
+msgstr "Culori Implicite"
+
+
+msgid "01 - Theme Color Set"
+msgstr "01 - Setul de Culori ale Temei"
+
+
+msgid "02 - Theme Color Set"
+msgstr "02 - Setul de Culori ale Temei"
+
+
+msgid "03 - Theme Color Set"
+msgstr "03 - Setul de Culori ale Temei"
+
+
+msgid "04 - Theme Color Set"
+msgstr "04 - Setul de Culori ale Temei"
+
+
+msgid "05 - Theme Color Set"
+msgstr "05 - Setul de Culori ale Temei"
+
+
+msgid "06 - Theme Color Set"
+msgstr "06 - Setul de Culori ale Temei"
+
+
+msgid "07 - Theme Color Set"
+msgstr "07 - Setul de Culori ale Temei"
+
+
+msgid "08 - Theme Color Set"
+msgstr "08 - Setul de Culori ale Temei"
+
+
+msgid "09 - Theme Color Set"
+msgstr "09 - Setul de Culori ale Temei"
+
+
+msgid "10 - Theme Color Set"
+msgstr "10 - Setul de Culori ale Temei"
+
+
+msgid "11 - Theme Color Set"
+msgstr "11 - Setul de Culori ale Temei"
+
+
+msgid "12 - Theme Color Set"
+msgstr "12 - Setul de Culori ale Temei"
+
+
+msgid "13 - Theme Color Set"
+msgstr "13 - Setul de Culori ale Temei"
+
+
+msgid "14 - Theme Color Set"
+msgstr "14 - Setul de Culori ale Temei"
+
+
+msgid "15 - Theme Color Set"
+msgstr "15 - Setul de Culori ale Temei"
+
+
+msgid "16 - Theme Color Set"
+msgstr "16 - Setul de Culori ale Temei"
+
+
+msgid "17 - Theme Color Set"
+msgstr "17 - Setul de Culori ale Temei"
+
+
+msgid "18 - Theme Color Set"
+msgstr "18 - Setul de Culori ale Temei"
+
+
+msgid "19 - Theme Color Set"
+msgstr "19 - Setul de Culori ale Temei"
+
+
+msgid "20 - Theme Color Set"
+msgstr "20 - Setul de Culori ale Temei"
+
+
+msgid "Custom Color Set"
+msgstr "Set de Culori Personalizat"
+
+
+msgid "Colors"
+msgstr "Culori"
+
+
+msgid "Copy of the colors associated with the group's color set"
+msgstr "Copie a culorilor asociate cu setul de culori a grupului"
+
+
+msgid "Color set is user-defined instead of a fixed theme color set"
+msgstr "Setul de culori este definit de utilizator în loc de un set de culori fixat de temă"
+
+
+msgid "Lock"
+msgstr "Blocare"
+
+
+msgid "Action group is locked"
+msgstr "Grupul de acțiune este blocat"
+
+
+msgid "Mute"
+msgstr "Amuțire"
+
+
+msgid "Action group is muted"
+msgstr "Grupul de acțiune este amuțit"
+
+
+msgid "Select"
+msgstr "Selectare"
+
+
+msgid "Action group is selected"
+msgstr "Grupul de Acțiune este selectat"
+
+
+msgid "Expanded"
+msgstr "Extins"
+
+
+msgid "Action group is expanded except in graph editor"
+msgstr "Grupul de acțiune este extins cu excepția în editorului de grafice"
+
+
+msgid "Expanded in Graph Editor"
+msgstr "Extins în Editorul de Grafice"
+
+
+msgid "Action group is expanded in graph editor"
+msgstr "Grupul de acțiune este extins în editorul de grafice"
+
+
+msgid "Pin in Graph Editor"
+msgstr "Fixare în Editorul de Grafice"
+
+
+msgid "Action Groups"
+msgstr "Grupuri de acțiune"
+
+
+msgid "Collection of action groups"
+msgstr "Colecție de grupuri de acțiune"
+
+
+msgid "Action Pose Markers"
+msgstr "Marcatori de poziție de acțiune"
+
+
+msgid "Collection of timeline markers"
+msgstr "Colecție de marcatori cronologici"
+
+
+msgid "Active Pose Marker"
+msgstr "Marcator Poziție Activ"
+
+
+msgid "Active pose marker for this action"
+msgstr "Marcator Poziție Activ pentru această acțiune"
+
+
+msgid "Active Pose Marker Index"
+msgstr "Indexul Marcatorului De Poziție Activ"
+
+
+msgid "Index of active pose marker"
+msgstr "Indexul marcatorului de poziție activ"
+
+
+msgid "Add-on"
+msgstr "Add-on"
+
+
+msgid "Python add-ons to be loaded automatically"
+msgstr "Add-on-urile Python care vor fi încărcate automat"
+
+
+msgid "Module"
+msgstr "Modul"
+
+
+msgid "Module name"
+msgstr "Nume modul"
+
+
+msgid "Add-on Preferences"
+msgstr "Preferințele Add-on-ului"
+
+
+msgid "Compute Device Type"
+msgstr "Tipul Dispozitivului de Calcul"
+
+
+msgid "Device to use for computation (rendering with Cycles)"
+msgstr "Dispozitiv folosit pentru calcul (render folosind Cycles)"
+
+
+msgid "Kernel Optimization"
+msgstr "Optimizare de kernel"
+
+
+msgid "Kernels can be optimized based on scene content. Optimized kernels are requested at the start of a render. If optimized kernels are not available, rendering will proceed using generic kernels until the optimized set is available in the cache. This can result in additional CPU usage for a brief time (tens of seconds)"
+msgstr "Kernel-urile pot fi optimizate pe baza conținutului scenei. Kernel-urile optimizate sunt solicitate la începutul unei randări. În cazul în care nu sunt disponibile kernel-uri optimizate, randarea va continua folosind kernel-uri generice până când setul optimizat este disponibil în memoria cache. Acest lucru poate duce la o utilizare suplimentară a procesorului pentru o perioadă scurtă de timp (câteva zeci de secunde)"
+
+
+msgid "Off"
+msgstr "Oprit"
+
+
+msgid "Disable kernel optimization. Slowest rendering, no extra background CPU usage"
+msgstr "Se dezactivează optimizarea kernel. Cea mai lentă randare, fără utilizare suplimentară în fundal a procesorului"
+
+
+msgid "Intersection only"
+msgstr "Numai intersectare"
+
+
+msgid "Optimize only intersection kernels. Faster rendering, negligible extra background CPU usage"
+msgstr "Se optimizează numai kernel-uri care se intersectează. Randare mai rapidă, utilizare suplimentară neglijabilă în fundal a procesorului"
+
+
+msgid "Full"
+msgstr "Completă"
+
+
+msgid "Optimize all kernels. Fastest rendering, may result in extra background CPU usage"
+msgstr "Se optimizează toate kernel-urile. Cea mai rapidă randare, poate rezulta în utilizare suplimentară în fundal a procesorului"
+
+
+msgid "MetalRT"
+msgstr "MetalRT"
+
+
+msgid "MetalRT for ray tracing uses less memory for scenes which use curves extensively, and can give better performance in specific cases"
+msgstr "MetalRT pentru ray tracing utilizează mai puțină memorie pentru scenele care utilizează curbe pe scară largă și poate oferi performanțe mai bune în anumite cazuri"
+
+
+msgid "Disable MetalRT (uses BVH2 layout for intersection queries)"
+msgstr "Dezactivare MetalRT (se folosește layout-ul BVH2 pentru interogările de intersectare)"
+
+
+msgid "On"
+msgstr "Activat"
+
+
+msgid "Enable MetalRT for intersection queries"
+msgstr "Activare MetalRT pentru interogările de intersectare"
+
+
+msgid "Auto"
+msgstr "Auto"
+
+
+msgid "Automatically pick the fastest intersection method"
+msgstr "Se alege automat cea mai rapidă metodă"
+
+
+msgid "Distribute memory across devices"
+msgstr "Distribuire memorie pe dispozitive"
+
+
+msgid "Make more room for large scenes to fit by distributing memory across interconnected devices (e.g. via NVLink) rather than duplicating it"
+msgstr "Faceți mai mult spațiu pentru a se potrivi scene mari distribuind memoria pe dispozitive interconectate (de ex. Prin NVLink), mai degrabă decât duplicând"
+
+
+msgid "HIP RT (Experimental)"
+msgstr "HIP RT (Experimental)"
+
+
+msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above, with shader fallback on older cards. This feature is experimental and some scenes may render incorrectly"
+msgstr "HIP RT permite ray tracing pe hardware AMD cu RDNA2 și versiunile superioare și cu shader fallback pe plăcile mai vechi. Această caracteristică este experimentală și este posibil ca unele scene să fie randate incorect"
+
+
+msgid "Embree on GPU"
+msgstr "Embree pe GPU"
+
+
+msgid "Embree on GPU enables the use of hardware ray tracing on Intel GPUs, providing better overall performance"
+msgstr "Embree pe GPU permite utilizarea de hardware ray tracing pe GPU-uri Intel, oferind performanță îmbunătățită în general"
+
+
+msgid "KHR_materials_variants_ui"
+msgstr "KHR_materials_variants_ui"
+
+
+msgid "Displays glTF UI to manage material variants"
+msgstr "Afilează interfața glTF pentru a gestiona variantele de materiale"
+
+
+msgid "Fribidi Library"
+msgstr "Biblioteca Fribidi"
+
+
+msgid "Translation Root"
+msgstr "Rădăcina Traducerii"
+
+
+msgid "The bf-translation repository"
+msgstr "Depozitul de bf-translation"
+
+
+msgid "Import Paths"
+msgstr "Importare Căi"
+
+
+msgid "Additional paths to add to sys.path (';' separated)"
+msgstr "Căi adiționale de adăugat la sys.path (separate de ';')"
+
+
+msgid "Source Root"
+msgstr "Rădăcina Sursei"
+
+
+msgid "The Blender source root path"
+msgstr "Calea rădăcină sursă Blender"
+
+
+msgid "Spell Cache"
+msgstr "Cache Ortografie"
+
+
+msgid "A cache storing validated msgids, to avoid re-spellchecking them"
+msgstr "Un cache care stochează msgid-uri validate pentru a evita verificarea lor din nou"
+
+
+msgid "Warn Msgid Not Capitalized"
+msgstr "Avertizare Msgid Fără Majuscule"
+
+
+msgid "Warn about messages not starting by a capitalized letter (with a few allowed exceptions!)"
+msgstr "Avertizați despre mesajele care nu încep cu o literă cu majuscule (cu câteva excepții permise!)"
+
+
+msgid "Persistent Data Path"
+msgstr "Calea a Datelor Persistentă"
+
+
+msgid "The name of a json file storing those settings (unfortunately, Blender's system does not work here)"
+msgstr "Numele unui fișier json care stochează acele setări (din păcate, sistemul Blender nu funcționează aici)"
+
+
+msgid "User Add-ons"
+msgstr "Add-on-urile Utilizatorului"
+
+
+msgid "Collection of add-ons"
+msgstr "Colecție de add-on-uri"
+
+
+msgid "Animation Data"
+msgstr "Datele Animației"
+
+
+msgid "Animation data for data-block"
+msgstr "Date de animație pentru blocul de date"
+
+
+msgid "Action"
+msgstr "Acțiune"
+
+
+msgid "Active Action for this data-block"
+msgstr "Acțiune Activă pentru acest bloc de date"
+
+
+msgid "Action Blending"
+msgstr "Amestecarea Acțiunii"
+
+
+msgid "Method used for combining Active Action's result with result of NLA stack"
+msgstr "Metoda folosită pentru combinarea rezultatului Combinării Acțiuni cu rezultatul stack-ului NLA"
+
+
+msgid "Replace"
+msgstr "Înlocuire"
+
+
+msgid "Combine"
+msgstr "Combinare"
+
+
+msgid "The strip values are combined with accumulated results by appropriately using addition, multiplication, or quaternion math, based on channel type"
+msgstr "Valorile benzii sunt combinate cu rezultatele acumulate utilizând în mod corespunzător adunarea, multiplicarea sau matematica cuaternară, pe baza tipului de canal"
+
+
+msgid "Add"
+msgstr "Adăugare"
+
+
+msgid "Weighted result of strip is added to the accumulated results"
+msgstr "Rezultatul ponderat al benzii se adaugă la rezultatele acumulate"
+
+
+msgid "Subtract"
+msgstr "Scădere"
+
+
+msgid "Weighted result of strip is removed from the accumulated results"
+msgstr "Rezultatul ponderat al benzii este eliminat din rezultate acumulate"
+
+
+msgid "Multiply"
+msgstr "Înmulțire"
+
+
+msgid "Weighted result of strip is multiplied with the accumulated results"
+msgstr "Rezultatul ponderat al benzii este înmulțit cu rezultatele cumulate"
+
+
+msgid "Action Extrapolation"
+msgstr "Extrapolarea Acțiunii"
+
+
+msgid "Action to take for gaps past the Active Action's range (when evaluating with NLA)"
+msgstr "Acțiune care trebuie luată pentru golurile care depășesc intervalul Acțiunii active (atunci când se evaluează cu NLA)"
+
+
+msgid "Nothing"
+msgstr "Nimic"
+
+
+msgid "Strip has no influence past its extents"
+msgstr "Fâșia nu are nicio influență dincolo de întinderea sa"
+
+
+msgid "Hold"
+msgstr "Ținere"
+
+
+msgid "Hold the first frame if no previous strips in track, and always hold last frame"
+msgstr "Țineți primul cadru dacă nu există benzi anterioare în pistă și țineți întotdeauna ultimul cadru"
+
+
+msgid "Hold Forward"
+msgstr "Ține Înainte"
+
+
+msgid "Only hold last frame"
+msgstr "Ține numai ultimul cadru"
+
+
+msgid "Action Influence"
+msgstr "Influența Acțiunii"
+
+
+msgid "Amount the Active Action contributes to the result of the NLA stack"
+msgstr "Cantitatea cu care Acțiunea Activă contribuie la rezultatul stivei NLA"
+
+
+msgid "Drivers"
+msgstr "Drivere"
+
+
+msgid "The Drivers/Expressions for this data-block"
+msgstr "Driverele/Expresiile pentru acest bloc de date"
+
+
+msgid "NLA Tracks"
+msgstr "Piste NLA"
+
+
+msgid "NLA Tracks (i.e. Animation Layers)"
+msgstr "Piste NLA (adică Straturile Animației)"
+
+
+msgid "NLA Evaluation Enabled"
+msgstr "Evaluare NLA Activată"
+
+
+msgid "NLA stack is evaluated when evaluating this block"
+msgstr "Stiva NLA este evaluată la evaluarea acestui bloc"
+
+
+msgid "Use NLA Tweak Mode"
+msgstr "Utilizați modul NLA Tweak"
+
+
+msgid "Whether to enable or disable tweak mode in NLA"
+msgstr "Dacă activați sau dezactivați modul Tweak în NLA"
+
+
+msgid "Collection of Driver F-Curves"
+msgstr "Colecție de Drivere F-Curbe"
+
+
+msgid "Animation Visualization"
+msgstr "Vizualizarea Animației"
+
+
+msgid "Settings for the visualization of motion"
+msgstr "Setări pentru vizualizarea mișcării"
+
+
+msgid "Motion Paths"
+msgstr "Căi de Mișcare"
+
+
+msgid "Motion Path settings for visualization"
+msgstr "Setările Căii de mișcare pentru vizualizare"
+
+
+msgid "Motion Path Settings"
+msgstr "Setări cale de mișcare"
+
+
+msgid "Motion Path settings for animation visualization"
+msgstr "Setările Căii de mișcare pentru vizualizarea animației"
+
+
+msgid "Bake Location"
+msgstr "Coaceți locația"
+
+
+msgid "When calculating Bone Paths, use Head or Tips"
+msgstr "La calcularea Căii Oaselor, folosiți Capul sau Vârfurile"
+
+
+msgid "Heads"
+msgstr "Capete"
+
+
+msgid "Calculate bone paths from heads"
+msgstr "Calculați Căile Oaselor de la capete"
+
+
+msgid "Tails"
+msgstr "Cozi"
+
+
+msgid "Calculate bone paths from tails"
+msgstr "Calculați Căile Oaselor de la cozi"
+
+
+msgid "After Current"
+msgstr "După actual"
+
+
+msgid "Before Current"
+msgstr "Înainte de actual"
+
+
+msgid "End Frame"
+msgstr "Cadru de sfârșit"
+
+
+msgid "Start Frame"
+msgstr "Cadru de Început"
+
+
+msgid "Frame Step"
+msgstr "Pas cadru"
+
+
+msgid "Number of frames between paths shown (not for 'On Keyframes' Onion-skinning method)"
+msgstr "Numărul de cadre între traseele afișate (nu pentru metoda Onion-skinning 'În Jurul Cadrului Actual')"
+
+
+msgid "Has Motion Paths"
+msgstr "Are căi de mișcare"
+
+
+msgid "Are there any bone paths that will need updating (read-only)"
+msgstr "Există căi de oase care vor avea nevoie de actualizare (doar în citire)"
+
+
+msgid "Show Frame Numbers"
+msgstr "Afișare numere cadre"
+
+
+msgid "Show frame numbers on Motion Paths"
+msgstr "Afișați numărul cadrelor de pe Traseul de Mișcare"
+
+
+msgid "All Action Keyframes"
+msgstr "Toate cadrele cheie de acțiune"
+
+
+msgid "For bone motion paths, search whole Action for keyframes instead of in group with matching name only (is slower)"
+msgstr "Pentru căile de mișcare a oaselor, căutați în întreaga acțiune cadre cheie în loc de în grupul numai cu numele potrivit (este mai lent)"
+
+
+msgid "Highlight Keyframes"
+msgstr "Evidențiere cadre cheie"
+
+
+msgid "Emphasize position of keyframes on Motion Paths"
+msgstr "Accentuarea poziției cadrelor cheie pe căi de mișcare"
+
+
+msgid "Show Keyframe Numbers"
+msgstr "Arătați Numerele Cadrelor Cheie"
+
+
+msgid "Show frame numbers of Keyframes on Motion Paths"
+msgstr "Arătați numerle cadrelor de Cadre Cheie pe Căile de Mișcare"
+
+
+msgid "Paths Type"
+msgstr "Tip Căi"
+
+
+msgid "Type of range to show for Motion Paths"
+msgstr "Tip de zonă de afișat pentru Căile de Mișcare"
+
+
+msgid "Around Frame"
+msgstr "În jurul Cadrului"
+
+
+msgid "Display Paths of poses within a fixed number of frames around the current frame"
+msgstr "Afișarea căilor de poziții într-un număr fix de cadre în jurul cadrului actual"
+
+
+msgid "In Range"
+msgstr "În Interval"
+
+
+msgid "Display Paths of poses within specified range"
+msgstr "Afișare Căi de poziții în intervalul specificat"
+
+
+msgid "Any Type"
+msgstr "Orice Tip"
+
+
+msgid "RNA type used for pointers to any possible data"
+msgstr "Tip RNA utilizat pentru indicii către orice date posibile"
+
+
+msgid "Area in a subdivided screen, containing an editor"
+msgstr "Zonă dintr-un ecran subdivizat, care conține un editor"
+
+
+msgid "Height"
+msgstr "Înălțime"
+
+
+msgid "Area height"
+msgstr "Înălțimea suprafeței"
+
+
+msgid "Regions"
+msgstr "Regiuni"
+
+
+msgid "Regions this area is subdivided in"
+msgstr "Regiunile în care această zonă este subdivizată"
+
+
+msgid "Show Menus"
+msgstr "Afișare Meniuri"
+
+
+msgid "Show menus in the header"
+msgstr "Afișarea meniurilor în antet"
+
+
+msgid "Spaces"
+msgstr "Spaţii"
+
+
+msgid "Spaces contained in this area, the first being the active space (NOTE: Useful for example to restore a previously used 3D view space in a certain area to get the old view orientation)"
+msgstr "Spațiile conținute în această zonă, primul fiind spațiul activ (NOTĂ: Util, de exemplu, pentru a restaura un spațiu de vizualizare 3D utilizat anterior într-o anumită zonă pentru a obține orientarea de vizualizare veche)"
+
+
+msgid "Editor Type"
+msgstr "Tip Editor"
+
+
+msgid "Current editor type for this area"
+msgstr "Tipul actual de editor pentru această zonă"
+
+
+msgid "Empty"
+msgstr "Gol"
+
+
+msgid "3D Viewport"
+msgstr "Fereastră de vizualizare: 3D"
+
+
+msgid "Manipulate objects in a 3D environment"
+msgstr "Manipularea obiectelor într-un mediu 3D"
+
+
+msgid "UV/Image Editor"
+msgstr "Editor imagine/UV"
+
+
+msgid "View and edit images and UV Maps"
+msgstr "Vizualizarea și editarea imaginilor și hărților UV"
+
+
+msgid "Node Editor"
+msgstr "Editor Nodule"
+
+
+msgid "Editor for node-based shading and compositing tools"
+msgstr "Editor pentru instrumente de umbrire și compunere bazate pe noduri"
+
+
+msgid "Video Sequencer"
+msgstr "Sequencer video"
+
+
+msgid "Video editing tools"
+msgstr "Unelte de editare video"
+
+
+msgid "Movie Clip Editor"
+msgstr "Editor Clip Video"
+
+
+msgid "Motion tracking tools"
+msgstr "Unelte pentru Urmărirea mișcării"
+
+
+msgid "Dope Sheet"
+msgstr "Dope sheet"
+
+
+msgid "Adjust timing of keyframes"
+msgstr "Reglați sincronizarea cadrelor cheie"
+
+
+msgid "Graph Editor"
+msgstr "Editor Grafice"
+
+
+msgid "Edit drivers and keyframe interpolation"
+msgstr "Editare drivere și interpolarea cadrelor cheie"
+
+
+msgid "Nonlinear Animation"
+msgstr "Animație Neliniară"
+
+
+msgid "Combine and layer Actions"
+msgstr "Combinare și Acțiunile stratului"
+
+
+msgid "Text Editor"
+msgstr "Editor Text"
+
+
+msgid "Edit scripts and in-file documentation"
+msgstr "Editare scripturi și documentația din fișier"
+
+
+msgid "Python Console"
+msgstr "Consola Python"
+
+
+msgid "Interactive programmatic console for advanced editing and script development"
+msgstr "Consolă programatică interactivă pentru editare avansată și dezvoltare de scripturi"
+
+
+msgid "Info"
+msgstr "Info"
+
+
+msgid "Log of operations, warnings and error messages"
+msgstr "Jurnal de operații, avertismente și mesaje de eroare"
+
+
+msgid "Top Bar"
+msgstr "Bara de Sus"
+
+
+msgid "Global bar at the top of the screen for global per-window settings"
+msgstr "Bară globală în partea de sus a ecranului pentru setări globale per-fereastră"
+
+
+msgid "Status Bar"
+msgstr "Bara de Stare"
+
+
+msgid "Global bar at the bottom of the screen for general status information"
+msgstr "Bara globală în partea de jos a ecranului pentru informații generale de stare"
+
+
+msgid "Outliner"
+msgstr "Outliner"
+
+
+msgid "Overview of scene graph and all available data-blocks"
+msgstr "Prezentare generală a graficului de scenă și a tuturor blocurilor de date disponibile"
+
+
+msgid "Properties"
+msgstr "Proprietăți"
+
+
+msgid "Edit properties of active object and related data-blocks"
+msgstr "Editați proprietățile obiectului activ și ale blocurilor de date aferente"
+
+
+msgid "File Browser"
+msgstr "Browser de fișiere"
+
+
+msgid "Browse for files and assets"
+msgstr "Căutați fișiere și materiale"
+
+
+msgid "Preferences"
+msgstr "Preferințe"
+
+
+msgid "Edit persistent configuration settings"
+msgstr "Editați setările configurației persistente"
+
+
+msgid "Width"
+msgstr "Lățime"
+
+
+msgid "Area width"
+msgstr "Lățime Zonei"
+
+
+msgid "X Position"
+msgstr "Poziție X"
+
+
+msgid "The window relative vertical location of the area"
+msgstr "Amplasarea relativă verticală a ferestrei zonei"
+
+
+msgid "Y Position"
+msgstr "Poziție Y"
+
+
+msgid "The window relative horizontal location of the area"
+msgstr "Locația orizontală relativă a zonei"
+
+
+msgid "Area Spaces"
+msgstr "Spații de suprafață"
+
+
+msgid "Collection of spaces"
+msgstr "Colecție de spații"
+
+
+msgid "Active Space"
+msgstr "Spațiu activ"
+
+
+msgid "Space currently being displayed in this area"
+msgstr "Spațiu afișat în prezent în această zonă"
+
+
+msgid "Armature Bones"
+msgstr "Oase Armături"
+
+
+msgid "Collection of armature bones"
+msgstr "Colecția oaselor de armătură"
+
+
+msgid "Active Bone"
+msgstr "Os activ"
+
+
+msgid "Armature's active bone"
+msgstr "Osul activ al armăturii"
+
+
+msgid "Armature Deform Constraint Targets"
+msgstr "Armătura Deformează Constrângerile Țintelor"
+
+
+msgid "Collection of target bones and weights"
+msgstr "Colecția de oase și greutăți țintă"
+
+
+msgid "Armature EditBones"
+msgstr "Armătura EditBones"
+
+
+msgid "Collection of armature edit bones"
+msgstr "Colecția de oase de editare a armăturii"
+
+
+msgid "Active EditBone"
+msgstr "EditBone Activ"
+
+
+msgid "Armatures active edit bone"
+msgstr "Osul activ de editare a Armăturii"
+
+
+msgctxt "ID"
+msgid "Action"
+msgstr "Acțiune"
+
+
+msgctxt "ID"
+msgid "Grease Pencil"
+msgstr "Creion de Grăsime"
+
+
+msgctxt "ID"
+msgid "Image"
+msgstr "Imagine"
+
+
+msgctxt "ID"
+msgid "Light"
+msgstr "Lumină"
+
+
+msgctxt "ID"
+msgid "Material"
+msgstr "Material"
+
+
+msgctxt "ID"
+msgid "Object"
+msgstr "Obiect"
+
+
+msgctxt "ID"
+msgid "Scene"
+msgstr "Scenă"
+
+
+msgctxt "ID"
+msgid "Texture"
+msgstr "Textură"
+
+
+msgctxt "ID"
+msgid "Window Manager"
+msgstr "Manager Ferestre"
+
+
+msgctxt "ID"
+msgid "Workspace"
+msgstr "Spațiu de lucru"
+
+
+msgctxt "ID"
+msgid "World"
+msgstr "Lume"
+
+
+msgid "Options"
+msgstr "Opțiuni"
+
+
+msgid "Geometry attribute"
+msgstr "Atributul geometriei"
+
+
+msgid "Data Type"
+msgstr "Tip de date"
+
+
+msgid "Type of data stored in attribute"
+msgstr "Tipul de date stocate într-un atribut"
+
+
+msgid "Float"
+msgstr "Float"
+
+
+msgid "Integer"
+msgstr "Integer"
+
+
+msgid "Vector"
+msgstr "Vector"
+
+
+msgid "Byte Color"
+msgstr "Culoare Byte"
+
+
+msgid "String"
+msgstr "Șir"
+
+
+msgid "Text string"
+msgstr "Șir de text"
+
+
+msgid "Domain"
+msgstr "Domeniu"
+
+
+msgid "Domain of the Attribute"
+msgstr "Domeniul Atributului"
+
+
+msgid "Point"
+msgstr "Punct"
+
+
+msgid "Attribute on point"
+msgstr "Atribut pe punct"
+
+
+msgid "Edge"
+msgstr "Margine"
+
+
+msgid "Attribute on mesh edge"
+msgstr "Atributul pe marginea mesh-ului"
+
+
+msgid "Name of the Attribute"
+msgstr "Numele Atributului"
+
+
+msgid "Byte Color Attribute"
+msgstr "Atributul Culorii Byte"
+
+
+msgid "Float Attribute"
+msgstr "Atribut Float"
+
+
+msgid "Float Color Attribute"
+msgstr "Atribut Culoare Float"
+
+
+msgid "Float Vector Attribute"
+msgstr "Atribut Vector Float"
+
+
+msgid "String Attribute"
+msgstr "Atribut Șir"
+
+
+msgid "Attribute Group"
+msgstr "Grup de atribute"
+
+
+msgid "Group of geometry attributes"
+msgstr "Group de atribute geometrice"
+
+
+msgid "Active Attribute"
+msgstr "Atribut Activ"
+
+
+msgid "Active attribute"
+msgstr "Atribut activ"
+
+
+msgid "Bake Data"
+msgstr "Coacere Date"
+
+
+msgid "Bake data for a Scene data-block"
+msgstr "Coaceți date pentru un bloc de date Scene"
+
+
+msgid "Cage Extrusion"
+msgstr "Extrudarea Coliviei"
+
+
+msgid "Cage Object"
+msgstr "Obiectul Colivie"
+
+
+msgid "Object to use as cage instead of calculating the cage from the active object with cage extrusion"
+msgstr "Obiectul care va fi folosit ca o colivie în loc de calcularea cuștii din obiectul activ cu extrudarea coliviei"
+
+
+msgid "File Path"
+msgstr "Calea Fișierului"
+
+
+msgid "Image filepath to use when saving externally"
+msgstr "Filepath-ul imaginii de folosit atunci când se salvează extern"
+
+
+msgid "Vertical dimension of the baking map"
+msgstr "Dimensiunile verticale ale hărții de coacere"
+
+
+msgid "Image Format"
+msgstr "Formatul Imaginii"
+
+
+msgid "Margin"
+msgstr "Margine"
+
+
+msgid "Extends the baked result as a post process filter"
+msgstr "Extinde rezultatul coacerii ca un filtru post proces"
+
+
+msgid "Max Ray Distance"
+msgstr "Distanța Razei Maxime"
+
+
+msgid "Normal Space"
+msgstr "Spațiu Normal"
+
+
+msgid "Axis to bake in blue channel"
+msgstr "Axă de copt în canalul albastru"
+
+
+msgid "+X"
+msgstr "+X"
+
+
+msgid "+Y"
+msgstr "+Y"
+
+
+msgid "+Z"
+msgstr "+Z"
+
+
+msgid "-X"
+msgstr "-X"
+
+
+msgid "-Y"
+msgstr "-Y"
+
+
+msgid "-Z"
+msgstr "-Z"
+
+
+msgid "Axis to bake in green channel"
+msgstr "Axă de copt în canalul verde"
+
+
+msgid "Axis to bake in red channel"
+msgstr "Axă de copt în canalul roșu"
+
+
+msgid "Choose normal space for baking"
+msgstr "Alegeți spațiul normal pentru copt"
+
+
+msgid "Object"
+msgstr "Obiect"
+
+
+msgid "Bake the normals in object space"
+msgstr "Coaceți normalele în spațiul obiectelor"
+
+
+msgid "Tangent"
+msgstr "Tangenta"
+
+
+msgid "Bake the normals in tangent space"
+msgstr "Coaceți normalele în spațiul tangent"
+
+
+msgid "Pass Filter"
+msgstr "Filtru Pass"
+
+
+msgid "None"
+msgstr "Niciunul"
+
+
+msgid "Emit"
+msgstr "Emite"
+
+
+msgid "Direct"
+msgstr "Direct"
+
+
+msgid "Indirect"
+msgstr "Indirect"
+
+
+msgid "Diffuse"
+msgstr "Difuzie"
+
+
+msgid "Glossy"
+msgstr "Lucios"
+
+
+msgid "Transmission"
+msgstr "Transmisie"
+
+
+msgid "Save Mode"
+msgstr "Mod salvare"
+
+
+msgid "Internal"
+msgstr "Intern"
+
+
+msgid "Save the baking map in an internal image data-block"
+msgstr "Salvați mapa de coacere într-o imagine internală de bloc de date"
+
+
+msgid "External"
+msgstr "Extern"
+
+
+msgid "Save the baking map in an external file"
+msgstr "Salvați mapa de coacere într-un fișier extern"
+
+
+msgid "Automatic Name"
+msgstr "Nume Automat"
+
+
+msgid "Automatically name the output file with the pass type (external only)"
+msgstr "Denumiți automat fișierul de ieșire cu tipul de trecere (numai extern)"
+
+
+msgid "Cage"
+msgstr "Cușcă"
+
+
+msgid "Cast rays to active object from a cage"
+msgstr "Aruncă raze la obiectul activ dintr-o cușcă"
+
+
+msgid "Clear"
+msgstr "Șterge"
+
+
+msgid "Clear Images before baking (internal only)"
+msgstr "Ștergeți imaginile înainte de coacere (numai intern)"
+
+
+msgid "Color the pass"
+msgstr "Colorați trecerea"
+
+
+msgid "Add diffuse contribution"
+msgstr "Adăugați contribuție difuzie"
+
+
+msgid "Add direct lighting contribution"
+msgstr "Adăugați contribuție a luminii directe"
+
+
+msgid "Add emission contribution"
+msgstr "Adăugați contribuție a emisiei"
+
+
+msgid "Add glossy contribution"
+msgstr "Adăugați contribuție a luciului"
+
+
+msgid "Add indirect lighting contribution"
+msgstr "Adăugați contribuție a luminii indirecte"
+
+
+msgid "Add transmission contribution"
+msgstr "Adăugați contribuția transmiterii"
+
+
+msgid "Selected to Active"
+msgstr "Selectat la Activ"
+
+
+msgid "Bake shading on the surface of selected objects to the active object"
+msgstr "Coaceți umbrirea pe suprafața obiectelor selectate la obiectul activ"
+
+
+msgid "Split Materials"
+msgstr "Despicare Materialele"
+
+
+msgid "Split external images per material (external only)"
+msgstr "Scindarea imaginilor externe per material (numai extern)"
+
+
+msgid "Horizontal dimension of the baking map"
+msgstr "Dimensiunea orizontală a hărții de coacere"
+
+
+msgid "Coordinates of the control point"
+msgstr "Coordonatele punctului de control"
+
+
+msgid "Handle 1"
+msgstr "Handle 1"
+
+
+msgid "Coordinates of the first handle"
+msgstr "Coordonatele primului handle"
+
+
+msgid "Handle 1 Type"
+msgstr "Tipul Handle 1"
+
+
+msgid "Handle types"
+msgstr "Tipuri handle"
+
+
+msgid "Free"
+msgstr "Liber"
+
+
+msgid "Aligned"
+msgstr "Aliniat"
+
+
+msgid "Handle 2"
+msgstr "Handle 2"
+
+
+msgid "Coordinates of the second handle"
+msgstr "Coordonatele celui de-al doilea handle"
+
+
+msgid "Handle 2 Type"
+msgstr "Tipul Handle 2"
+
+
+msgid "Hide"
+msgstr "Ascundere"
+
+
+msgid "Visibility status"
+msgstr "Starea vizibilității"
+
+
+msgid "Bevel Radius"
+msgstr "Rază Teșire"
+
+
+msgid "Radius for beveling"
+msgstr "Rază pentru teșire"
+
+
+msgid "Control Point selected"
+msgstr "Punct de Control selectat"
+
+
+msgid "Control point selection status"
+msgstr "Starea selectării punctului de control"
+
+
+msgid "Handle 1 selected"
+msgstr "Handle 1 selectat"
+
+
+msgid "Handle 1 selection status"
+msgstr "Starea selectării Handle-ului 1"
+
+
+msgid "Handle 2 selected"
+msgstr "Handle 1 selectat"
+
+
+msgid "Handle 2 selection status"
+msgstr "Starea selectării Handle-ului 2"
+
+
+msgid "Tilt"
+msgstr "Înclinare"
+
+
+msgid "Tilt in 3D View"
+msgstr "înclinare în Vederea 3D"
+
+
+msgid "Weight"
+msgstr "Greutate"
+
+
+msgid "Softbody goal weight"
+msgstr "Greutatea obiectivului Softbody"
+
+
+msgid "Main data structure representing a .blend file and all its data-blocks"
+msgstr "Structura principală de date reprezentând un fișier .blend și toate blocurile sale de date"
+
+
+msgid "Actions"
+msgstr "Acțiuni"
+
+
+msgid "Action data-blocks"
+msgstr "Acțiunile blocurilor de date"
+
+
+msgid "Armatures"
+msgstr "Armături"
+
+
+msgid "Armature data-blocks"
+msgstr "Blocuri de date ale armăturilor"
+
+
+msgid "Brushes"
+msgstr "Perii"
+
+
+msgid "Brush data-blocks"
+msgstr "Blocurile de date ale periilor"
+
+
+msgid "Cache Files"
+msgstr "Fișiere Cache"
+
+
+msgid "Cache Files data-blocks"
+msgstr "Blocurile de date Fișierelor cache"
+
+
+msgid "Cameras"
+msgstr "Camere"
+
+
+msgid "Camera data-blocks"
+msgstr "Blocurile de date ale camerelor"
+
+
+msgid "Collections"
+msgstr "Colecții"
+
+
+msgid "Collection data-blocks"
+msgstr "Blocurile de date ale colecțiilor"
+
+
+msgid "Curves"
+msgstr "Curbe"
+
+
+msgid "Curve data-blocks"
+msgstr "Blocurile de date ale curbelor"
+
+
+msgid "Filename"
+msgstr "Nume fișier"
+
+
+msgid "Path to the .blend file"
+msgstr "Calea către fișierul .blend"
+
+
+msgid "Vector Fonts"
+msgstr "Fonturi Vector"
+
+
+msgid "Vector font data-blocks"
+msgstr "Blocurile de date ale fontului vector"
+
+
+msgid "Grease Pencil"
+msgstr "Creion de Grăsime"
+
+
+msgid "Grease Pencil data-blocks"
+msgstr "Blocurile de date ale Creionului de Grăsime"
+
+
+msgid "Images"
+msgstr "Imagini"
+
+
+msgid "Image data-blocks"
+msgstr "Blocurile de date ale imaginilor"
+
+
+msgid "File Has Unsaved Changes"
+msgstr "Fișierul are modificări nesalvate"
+
+
+msgid "Have recent edits been saved to disk"
+msgstr "Are editări recente salvate pe disk"
+
+
+msgid "File is Saved"
+msgstr "Fișierul este salvat"
+
+
+msgid "Has the current session been saved to disk as a .blend file"
+msgstr "A fost sesiunea curentă salvată pe disk ca un fișier .blend"
+
+
+msgid "Lattices"
+msgstr "Latici"
+
+
+msgid "Lattice data-blocks"
+msgstr "Blocuri de date ale laticii"
+
+
+msgid "Libraries"
+msgstr "Biblioteci"
+
+
+msgid "Library data-blocks"
+msgstr "Blocurile de date ale bibliotecilor"
+
+
+msgid "Lights"
+msgstr "Lumini"
+
+
+msgid "Light data-blocks"
+msgstr "Blocurilor de date ale luminilor"
+
+
+msgid "Line Styles"
+msgstr "Stiluri de Linii"
+
+
+msgid "Line Style data-blocks"
+msgstr "Blocurile de date ale Stilurilor de Linii"
+
+
+msgid "Masks"
+msgstr "Măști"
+
+
+msgid "Masks data-blocks"
+msgstr "Blocurile de date ale măștilor"
+
+
+msgid "Materials"
+msgstr "Materiale"
+
+
+msgid "Material data-blocks"
+msgstr "Blocurile de date ale materialelor"
+
+
+msgid "Meshes"
+msgstr "Plase"
+
+
+msgid "Mesh data-blocks"
+msgstr "Blocurile de date ale plaselor"
+
+
+msgid "Metaballs"
+msgstr "Metaballs"
+
+
+msgid "Metaball data-blocks"
+msgstr "Blocurile de date ale metaball-ului"
+
+
+msgid "Movie Clips"
+msgstr "Clipuri de film"
+
+
+msgid "Movie Clip data-blocks"
+msgstr "Blocurile de date ale clipurilor de film"
+
+
+msgid "Node Groups"
+msgstr "Grupuri Nodule"
+
+
+msgid "Node group data-blocks"
+msgstr "Blocurile de date ale nodurilor"
+
+
+msgid "Objects"
+msgstr "Obiecte"
+
+
+msgid "Object data-blocks"
+msgstr "Blocurile de date ale obiectelor"
+
+
+msgid "Paint Curves"
+msgstr "Pictați Curbele"
+
+
+msgid "Paint Curves data-blocks"
+msgstr "Blocurile de date ale Picturii Curbelor"
+
+
+msgid "Palettes"
+msgstr "Palete"
+
+
+msgid "Palette data-blocks"
+msgstr "Blocurile de date ale paletelor"
+
+
+msgid "Particles"
+msgstr "Particule"
+
+
+msgid "Particle data-blocks"
+msgstr "Blocurile de date ale particulelor"
+
+
+msgid "Point Clouds"
+msgstr "Nori de Puncte"
+
+
+msgid "Point cloud data-blocks"
+msgstr "Blocurile de date ale norilor de puncte"
+
+
+msgid "Scenes"
+msgstr "Scene"
+
+
+msgid "Scene data-blocks"
+msgstr "Blocurile de date ale scenelor"
+
+
+msgid "Screens"
+msgstr "Ecrane"
+
+
+msgid "Screen data-blocks"
+msgstr "Blocurile de date ale ecranului"
+
+
+msgid "Shape Keys"
+msgstr "Chei de Formă"
+
+
+msgid "Shape Key data-blocks"
+msgstr "Blocurile de date ale Cheilor de Formă"
+
+
+msgid "Textures"
+msgstr "Texturi"
+
+
+msgid "Curve"
+msgstr "Curbă"
+
+
+msgid "Image"
+msgstr "Imagine"
+
+
+msgid "Light"
+msgstr "Lumină"
+
+
+msgid "Material"
+msgstr "Material"
+
+
+msgid "Scene"
+msgstr "Scenă"
+
+
+msgid "Texture"
+msgstr "Textură"
+
+
+msgid "Window Manager"
+msgstr "Manager Ferestre"
+
+
+msgid "Workspace"
+msgstr "Spațiu de lucru"
+
+
+msgid "World"
+msgstr "Lume"
+
+
+msgid "Distance"
+msgstr "Distanță"
+
+
+msgid "Deform"
+msgstr "Deformare"
+
+
+msgctxt "Operator"
+msgid "Add"
+msgstr "Adăugare"
+
+
+msgctxt "Operator"
+msgid "Remove"
+msgstr "Eliminare"
+
+
+msgid "Mode"
+msgstr "Mod"
+
+
+msgid "Radius"
+msgstr "Rază"
+
+
+msgid "Hue"
+msgstr "Hue"
+
+
+msgid "Saturation"
+msgstr "Saturație"
+
+
+msgid "Object Path"
+msgstr "Calea Obiectului"
+
+
+msgid "Path of an object inside of an Alembic archive"
+msgstr "Calea unui obiect este într-o arhivă Alambică"
+
+
+msgid "Object path"
+msgstr "Calea Obiectului"
+
+
+msgid "Object Paths"
+msgstr "Căile Obiectelor"
+
+
+msgid "Collection of object paths"
+msgstr "Colecție de căi ale obiectelor"
+
+
+msgid "Offset"
+msgstr "Decalaj"
+
+
+msgid "Rotation"
+msgstr "Rotație"
+
+
+msgid "Scale"
+msgstr "Scară"
+
+
+msgid "Blades"
+msgstr "Lame"
+
+
+msgid "Left"
+msgstr "Stânga"
+
+
+msgid "Right"
+msgstr "Dreapta"
+
+
+msgid "Gamma"
+msgstr "Gamma"
+
+
+msgid "Contrast"
+msgstr "Contrast"
+
+
+msgid "RGB"
+msgstr "RGB"
+
+
+msgid "Elements"
+msgstr "Elemente"
+
+
+msgid "Set interpolation between color stops"
+msgstr "Setează interpolare între opriri de culoare"
+
+
+msgid "Alpha"
+msgstr "Alpha"
+
+
+msgid "Bone"
+msgstr "Os"
+
+
+msgid "Python Constraint"
+msgstr "Restricție Python"
+
+
+msgid "Script"
+msgstr "Script"
+
+
+msgid "Auto Handle"
+msgstr "Manipulare Automată"
+
+
+msgid "Vector Handle"
+msgstr "Manipulator Vector"
+
+
+msgid "Depth"
+msgstr "Adâncime"
+
+
+msgid "View"
+msgstr "Vedere"
+
+
+msgid "Viewport"
+msgstr "Fereastra de Vizualizare"
+
+
+msgid "Render"
+msgstr "Render"
+
+
+msgid "Shading"
+msgstr "Umbrire"
+
+
+msgid "Transform"
+msgstr "Transformare"
+
+
+msgid "Shrink"
+msgstr "Micșorează"
+
+
+msgid "Vertex"
+msgstr "Vertex"
+
+
+msgid "Group"
+msgstr "Grup"
+
+
+msgid "Modifiers"
+msgstr "Modificatori"
+
+
+msgctxt "Action"
+msgid "Envelope"
+msgstr "Plic"
+
+
+msgid "Frequency"
+msgstr "Frecvență"
+
+
+msgid "Save"
+msgstr "Salvare"
+
+
+msgid "Operator"
+msgstr "Operator"
+
+
+msgid "Link"
+msgstr "Legătură"
+
+
+msgid "End"
+msgstr "Sfârșit"
+
+
+msgid "Start"
+msgstr "Început"
+
+
+msgid "Delete"
+msgstr "Ștergere"
+
+
+msgid "Frames"
+msgstr "Cadre"
+
+
+msgid "Window"
+msgstr "Fereastră"
+
+
+msgid "Header"
+msgstr "Antet"
+
+
+msgid "Tools"
+msgstr "Unelte"
+
+
+msgid "Red"
+msgstr "Roșu"
+
+
+msgid "Green"
+msgstr "Verde"
+
+
+msgid "Blue"
+msgstr "Albastru"
+
+
+msgid "Envelope"
+msgstr "Plic"
+
+
+msgid "Local"
+msgstr "Local"
+
+
+msgid "Global"
+msgstr "Global"
+
+
+msgctxt "Curves"
+msgid "Curve Preset"
+msgstr "Preset Curbă"
+
+
+msgid "Blur"
+msgstr "Estompare"
+
+
+msgid "Space"
+msgstr "Spațiu"
+
+
+msgid "Sequence"
+msgstr "Secvența"
+
+
+msgid "Up"
+msgstr "Sus"
+
+
+msgid "Path"
+msgstr "Cale"
+
+
+msgid "Min"
+msgstr "Min"
+
+
+msgid "Max"
+msgstr "Max"
+
+
+msgctxt "Light"
+msgid "Light"
+msgstr "Lumină"
+
+
+msgid "Cube"
+msgstr "Cub"
+
+
+msgid "Corner"
+msgstr "Colț"
+
+
+msgid "Edit"
+msgstr "Editare"
+
+
+msgid "Tool"
+msgstr "Unealtă"
+
+
+msgid "Object Mode"
+msgstr "Mod Obiect"
+
+
+msgid "Edit Mode"
+msgstr "Mod Editare"
+
+
+msgid "Pose Mode"
+msgstr "Mod Poziționare"
+
+
+msgid "Sculpt Mode"
+msgstr "Mod Sculptare"
+
+
+msgid "Vertex Paint"
+msgstr "Pictare Vertex"
+
+
+msgid "Weight Paint"
+msgstr "Pictare Greutate"
+
+
+msgid "Texture Paint"
+msgstr "Pictare Textură"
+
+
+msgid "Gain"
+msgstr "Creștere"
+
+
+msgid "Animation"
+msgstr "Animație"
+
+
+msgid "Color Management"
+msgstr "Gestionarea Culorii"
+
+
+msgid "RGBA"
+msgstr "RGBA"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Delete"
+msgstr "Ștergere"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "End"
+msgstr "Sfârșit"
+
+
+msgid "Sampling"
+msgstr "Eșantionare"
+
+
+msgid "Add Image"
+msgstr "Adăugare Imagine"
+
+
+msgid "Apply"
+msgstr "Aplicare"
+
+
+msgid "Convert"
+msgstr "Convertire"
+
+
+msgid "Marker"
+msgstr "Marcator"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Unwrap"
+msgstr "Desfacere"
+
+
+msgid "Layout"
+msgstr "Aspect"
+
+
+msgid "Add Modifier"
+msgstr "Adaugă Modificator"
+
+
+msgid "Generate"
+msgstr "Generare"
+
+
+msgid "Physics"
+msgstr "Fizică"
+
+
+msgctxt "Operator"
+msgid "Scene"
+msgstr "Scenă"
+
+
+msgid "System"
+msgstr "Sistem"
+
+
+msgid "Help"
+msgstr "Ajutor"
+
+
+msgid "Polygon"
+msgstr "Poligon"
+
+
+msgid "New"
+msgstr "Nou"
+
+
+msgid "Overwrite"
+msgstr "Suprascriere"
+
+
+msgid "Copy"
+msgstr "Copiere"
+
+
+msgid "Normalize"
+msgstr "Normalizare"
+
+
+msgid "Aspect Correction"
+msgstr "Corecție Aspect"
+
+
+msgid "Lift"
+msgstr "Ridicare"
+
+
+msgid "Composite"
+msgstr "Compozit"
+
+
+msgid "Combined"
+msgstr "Combinat"
+
+
+msgid "Rotate"
+msgstr "Rotație"
+
+
+msgid "Ambient Occlusion"
+msgstr "Ocluzie Ambientală"
+
+
+msgid "Object Constraints"
+msgstr "Constrângeri Obiect"
+
+
+msgid "Object Modifiers"
+msgstr "Modificatori de Obiecte"
+
+
+msgctxt "Operator"
+msgid "Add Modifier"
+msgstr "Adaugă Modificator"
+
+
+msgctxt "Operator"
+msgid "New"
+msgstr "Nou"
+
+
+msgctxt "Operator"
+msgid "Select Keyframes"
+msgstr "Selectare Keyframe-uri"
+
+
+msgctxt "Operator"
+msgid "Delete Keyframes"
+msgstr "Șterge Keyframe-urile"
+
+
+msgctxt "Operator"
+msgid "Insert Keyframes"
+msgstr "Inserează Keyframe-uri"
+
+
+msgctxt "Operator"
+msgid "Next Layer"
+msgstr "Stratul Următor"
+
+
+msgctxt "Operator"
+msgid "Previous Layer"
+msgstr "Startul Anterior"
+
+
+msgctxt "Operator"
+msgid "Box Select"
+msgstr "Cutie de Selectare"
+
+
+msgid "Down"
+msgstr "Jos"
+
+
+msgctxt "Operator"
+msgid "Copy Driver"
+msgstr "Copiază Driver-ul"
+
+
+msgctxt "Operator"
+msgid "Add Driver"
+msgstr "Adaugă Driver"
+
+
+msgctxt "Operator"
+msgid "Remove Driver"
+msgstr "Eliminare Driver"
+
+
+msgctxt "Operator"
+msgid "Delete Keyframe"
+msgstr "Șterge Keyframe"
+
+
+msgctxt "Operator"
+msgid "Insert Keyframe"
+msgstr "Inserează Keyframe"
+
+
+msgctxt "Operator"
+msgid "Add to Keying Set"
+msgstr "Adăugare la Setul de Keying"
+
+
+msgctxt "Operator"
+msgid "Remove from Keying Set"
+msgstr "Eliminare din Setul de Keying"
+
+
+msgctxt "Operator"
+msgid "Paste Driver"
+msgstr "Lipește Driverul"
+
+
+msgid "Move"
+msgstr "Mutare"
+
+
+msgid "(undocumented operator)"
+msgstr "(operator nedocumentat)"
+
+
+msgctxt "Curve"
+msgid "Mode"
+msgstr "Mod"
+
+
+msgctxt "Curve"
+msgid "Max"
+msgstr "Max"
+
+
+msgctxt "Operator"
+msgid "Add Marker"
+msgstr "Adăugare Marker"
+
+
+msgid "Add Marker"
+msgstr "Adăugare Marker"
+
+
+msgctxt "Operator"
+msgid "Delete Marker"
+msgstr "Ștergere Marker"
+
+
+msgctxt "Operator"
+msgid "Select"
+msgstr "Selectare"
+
+
+msgctxt "Operator"
+msgid "Zoom In"
+msgstr "Mărire"
+
+
+msgctxt "Operator"
+msgid "Zoom Out"
+msgstr "Micșorare"
+
+
+msgctxt "Operator"
+msgid "Delete"
+msgstr "Ștergere"
+
+
+msgid "Lamp"
+msgstr "Lampă"
+
+
+msgid "Custom Properties"
+msgstr "Proprietăți Personalizate"
+
+
+msgctxt "Operator"
+msgid "Cancel File Load"
+msgstr "Anulați Încărcarea Fișierului"
+
+
+msgid "Open"
+msgstr "Deschidere"
+
+
+msgid "Remove"
+msgstr "Eliminare"
+
+
+msgid "Both"
+msgstr "Ambele"
+
+
+msgctxt "Operator"
+msgid "Add F-Curve Modifier"
+msgstr "Adaugă Modificator F-Curve"
+
+
+msgctxt "Operator"
+msgid "Show All Layers"
+msgstr "Arată Toate Straturile"
+
+
+msgid "Zoom Out"
+msgstr "Micșorare"
+
+
+msgctxt "Operator"
+msgid "Add Object"
+msgstr "Adăugare Obiect"
+
+
+msgid "The maximum ray distance for matching points between the active and selected objects. If zero, there is no limit"
+msgstr "Distanța razei maxime pentru punctele potrivite între obiectele active și selectate. Dacă este zero, nu există limită"
+
+
+msgid "Object Data"
+msgstr "Datele Obiectului"
+
+
+msgctxt "ID"
+msgid "Blur"
+msgstr "Estompare"
+
+
+msgctxt "Operator"
+msgid "Assign to New Group"
+msgstr "Alocare la Grup Nou"
+
+
+msgctxt "Operator"
+msgid "Set Active Group"
+msgstr "Setați Grupul Activ"
+
+
+msgid "Paste"
+msgstr "Lipire"
+
+
+msgid "Reset"
+msgstr "Reset"
+
+
+msgid "Front Faces Only"
+msgstr "Numai fețele din față"
+
+
+msgctxt "Operator"
+msgid "Vertex Paint"
+msgstr "Pictare Vertex"
+
+
+msgctxt "Operator"
+msgid "Weight Paint"
+msgstr "Pictare Greutate"
+
+
+msgctxt "Operator"
+msgid "Render"
+msgstr "Render"
+
+
+msgctxt "Scene"
+msgid "New"
+msgstr "Nou"
+
+
+msgctxt "Operator"
+msgid "Scale"
+msgstr "Scară"
+
+
+msgctxt "Operator"
+msgid "Sculpt Mode"
+msgstr "Mod Sculptare"
+
+
+msgctxt "Sequence"
+msgid "Add"
+msgstr "Adăugare"
+
+
+msgctxt "Sequence"
+msgid "Subtract"
+msgstr "Scădere"
+
+
+msgctxt "Sequence"
+msgid "Multiply"
+msgstr "Înmulțire"
+
+
+msgctxt "Sequence"
+msgid "Transform"
+msgstr "Transformare"
+
+
+msgctxt "Sequence"
+msgid "Color"
+msgstr "Culoare"
+
+
+msgctxt "Operator"
+msgid "Copy"
+msgstr "Copiere"
+
+
+msgctxt "Operator"
+msgid "Paste"
+msgstr "Lipire"
+
+
+msgid "File format"
+msgstr "Format fișier"
+
+
+msgctxt "Operator"
+msgid "Replace"
+msgstr "Înlocuire"
+
+
+msgctxt "Operator"
+msgid "Save"
+msgstr "Salvare"
+
+
+msgctxt "Operator"
+msgid "Save As"
+msgstr "Salvare ca"
+
+
+msgctxt "Operator"
+msgid "Rotate"
+msgstr "Rotație"
+
+
+msgctxt "Operator"
+msgid "Transform"
+msgstr "Transformare"
+
+
+msgctxt "Operator"
+msgid "Move"
+msgstr "Mutare"
+
+
+msgctxt "Operator"
+msgid "Copy Data Path"
+msgstr "Copiază Calea Datelor"
+
+
+msgctxt "Operator"
+msgid "Reset to Default Value"
+msgstr "Resetează la Valoarea Implicită"
+
+
+msgctxt "Operator"
+msgid "Reset"
+msgstr "Reset"
+
+
+msgctxt "Operator"
+msgid "Unwrap"
+msgstr "Desfacere"
+
+
+msgctxt "Operator"
+msgid "Reset View"
+msgstr "Resetare Vedere"
+
+
+msgid "Move the view"
+msgstr "Mișcați vederea"
+
+
+msgctxt "Operator"
+msgid "Rotate View"
+msgstr "Rotiți Vederea"
+
+
+msgctxt "Operator"
+msgid "Link"
+msgstr "Legătură"
+
+
+msgctxt "Operator"
+msgid "Open"
+msgstr "Deschidere"
+
+
+msgctxt "Operator"
+msgid "New Window"
+msgstr "Fereastră Nouă"
+
+
+msgid "UV Sculpting"
+msgstr "Sculptare UV"
+
+
+msgid "Motion Tracking"
+msgstr "Urmărirea mișcării"
+
+
+msgid "Bone Constraints"
+msgstr "Constrângerile Osului"
+
+
+msgid "Bookmarks"
+msgstr "Marcaje"
+
+
+msgid "Recent"
+msgstr "Recent"
+
+
+msgctxt "Operator"
+msgid "Annotate"
+msgstr "Adnotare"
+
+
+msgctxt "Operator"
+msgid "Select Box"
+msgstr "Cutie de Selectare"
+
+
+msgid "Shadows"
+msgstr "Umbre"
+
+
+msgctxt "Operator"
+msgid "Measure"
+msgstr "Măsurare"
+
+
+msgctxt "Operator"
+msgid "Breakdowner"
+msgstr "Despărțitor"
+
+
+msgctxt "Operator"
+msgid "Knife"
+msgstr "Cuțit"
+
+
+msgctxt "Operator"
+msgid "Radius"
+msgstr "Rază"
+
+
+msgctxt "Operator"
+msgid "Trim"
+msgstr "Tundere"
+
+
+msgid "Pose Options"
+msgstr "Opțiuni Poziție"
+
+
+msgid "Filter Add-ons"
+msgstr "Filtrare Add-on-uri"
+
+
+msgid "Manual"
+msgstr "Manual"
+
+
+msgid "New Window"
+msgstr "Fereastră Nouă"
+
+
+msgid "Password"
+msgstr "Parolă"
+
+
+msgid "Viewport Samples"
+msgstr "Eșantioane în fereastra de vizualizare"
+
+
+msgid "Use Viewport Denoising"
+msgstr "Folosiți Denoising în Fereastra de Vizualizare"
+
+
+msgid "Trace Precision"
+msgstr "Precizia Urmei"
+
+
+msgid "Viewport Denoising"
+msgstr "Denoising în Fereastra de Vizualizare"
+
+
+msgctxt "Sequence"
+msgid "Image"
+msgstr "Imagine"
+
+
+msgctxt "Sequence"
+msgid "Scene"
+msgstr "Scenă"
+
+
+msgctxt "Sequence"
+msgid "Movie"
+msgstr "Film"
+
+
+msgctxt "MovieClip"
+msgid "View"
+msgstr "Vedere"
+
+
+msgid "Active Tool and Workspace settings"
+msgstr "Unealta Activă și Setările Spațiului de Lucru"
+
+
+msgid "Render Properties"
+msgstr "Propretățile de Render"
+
+
+msgid "Summary"
+msgstr "Rezumat"
+
+
+msgctxt "Unit"
+msgid "Nearest Marker"
+msgstr "Cel mai apropriat Marker"
+
+
+msgid "Error Message"
+msgstr "Mesaj de Eroare"
+
+
+msgctxt "WindowManager"
+msgid "Window"
+msgstr "Fereastră"
+
+
+msgctxt "WindowManager"
+msgid "Object Mode"
+msgstr "Mod Obiect"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate"
+msgstr "Unealtă Generică: Adnotare"
+
+
+msgctxt "WindowManager"
+msgid "Grease Pencil"
+msgstr "Creion de Grăsime"
+
+
+msgctxt "WindowManager"
+msgid "Vertex Paint"
+msgstr "Pictare Vertex"
+
+
+msgctxt "WindowManager"
+msgid "Weight Paint"
+msgstr "Pictare Greutate"
+
+
+msgctxt "WindowManager"
+msgid "Image"
+msgstr "Imagine"
+
+
+msgctxt "WindowManager"
+msgid "Frames"
+msgstr "Cadre"
+
+
+msgctxt "WindowManager"
+msgid "Animation"
+msgstr "Animație"
+
+
+msgctxt "WindowManager"
+msgid "In"
+msgstr "Intrare"
+
+
+msgid "Description:"
+msgstr "Descriere:"
+
+
+msgid "File:"
+msgstr "Fișier:"
+
+
+msgctxt "Operator"
+msgid "Apply"
+msgstr "Aplicare"
+
+
+msgid "Tracking"
+msgstr "Urmărire"
+
+
+msgctxt "WindowManager"
+msgid "Add New"
+msgstr "Adăugați Nou"
+
+
+msgctxt "Operator"
+msgid "Manual"
+msgstr "Manual"
+
+
+msgctxt "Operator"
+msgid "Rotation"
+msgstr "Rotație"
+
+
+msgctxt "Operator"
+msgid "Add Image"
+msgstr "Adăugare Imagine"
+
+
+msgid "Not Set"
+msgstr "Nu setat"
+
+
+msgid "Draw:"
+msgstr "Desenare:"
+
+
+msgctxt "Operator"
+msgid "New Layer"
+msgstr "Strat nou"
+
+
+msgid "Render Engine"
+msgstr "Motor de Rendering"
+
+
+msgctxt "Operator"
+msgid "Save As..."
+msgstr "Salvare ca..."
+
+
+msgctxt "Operator"
+msgid "Clear Seam"
+msgstr "Eliminați Cusătura"
+
+
+msgctxt "Operator"
+msgid "Online Manual"
+msgstr "Manual Online"
+
+
+msgctxt "Operator"
+msgid "Movie"
+msgstr "Film"
+
+
+msgctxt "Operator"
+msgid "Both"
+msgstr "Ambele"
+
+
+msgctxt "Operator"
+msgid "Left"
+msgstr "Stânga"
+
+
+msgctxt "Operator"
+msgid "Right"
+msgstr "Dreapta"
+
+
+msgctxt "Operator"
+msgid "Color"
+msgstr "Culoare"
+
+
+msgctxt "Text"
+msgid "New"
+msgstr "Nou"
+
+
+msgctxt "Operator"
+msgid "Python API Reference"
+msgstr "Referință API Python"
+
+
+msgid "Location:"
+msgstr "Locație:"
+
+
+msgctxt "Operator"
+msgid "Active Camera"
+msgstr "Camera Activă"
+
+
+msgctxt "Operator"
+msgid "Cube"
+msgstr "Cub"
+
+
+msgctxt "Operator"
+msgid "Path"
+msgstr "Cale"
+
+
+msgctxt "Operator"
+msgid "Object"
+msgstr "Obiect"
+
+
+msgctxt "Operator"
+msgid "Normalize"
+msgstr "Normalizare"
+
+
+msgid "Origins"
+msgstr "Origini"
+
+
+msgctxt "Operator"
+msgid "Move Texture Space"
+msgstr "Mutarea Texturii Spațiului"
+
+
+msgctxt "Operator"
+msgid "Scale Texture Space"
+msgstr "Scalarea texturii spațiului"
+
+
+msgctxt "Operator"
+msgid "Align to Transform Orientation"
+msgstr "Aliniere la transformarea orientării"
+
+
+msgctxt "Operator"
+msgid "Project from View (Bounds)"
+msgstr "Protejare de la Vedere (Limite)"
+
+
+msgctxt "Operator"
+msgid "Non Manifold"
+msgstr "Non Multiplă"
+
+
+msgctxt "Operator"
+msgid "Hook to Selected Object Bone"
+msgstr "Atașare la Osul Obiectului Selectat"
+
+
+msgctxt "Operator"
+msgid "To Last Keyframe (Make Cyclic)"
+msgstr "Către Ultimul Keyframe (Faceți Ciclic)"
+
+
+msgctxt "Operator"
+msgid "Paste X-Flipped Pose"
+msgstr "Lipiți Poziția Răsturnată pe X"
+
+
+msgctxt "Operator"
+msgid "Rotate Edge CW"
+msgstr "Rotire Muchie în sensul acelor de ceasornic"
+
+
+msgctxt "Operator"
+msgid "Rotate Edge CCW"
+msgstr "Rotire Muchie în sens invers acelor de ceasornic"
+
+
+msgctxt "Operator"
+msgid "Clear Sharp"
+msgstr "Eliminați Ascuțit"
+
+
+msgctxt "Operator"
+msgid "Recalculate Outside"
+msgstr "Recalculare Exterior"
+
+
+msgctxt "Operator"
+msgid "Recalculate Inside"
+msgstr "Recalculare Interior"
+
+
+msgctxt "Operator"
+msgid "Toggle Bold"
+msgstr "Comutare Aldină"
+
+
+msgctxt "Operator"
+msgid "Toggle Italic"
+msgstr "Comutare Italică"
+
+
+msgctxt "Operator"
+msgid "Toggle Underline"
+msgstr "Comutare Subliniere"
+
+
+msgctxt "Operator"
+msgid "Toggle Small Caps"
+msgstr "Comutare Majuscule Mici"
+
+
+msgctxt "Operator"
+msgid "Set Roll"
+msgstr "Setare Rostogolire"
+
+
+msgctxt "Operator"
+msgid "Assign to Active Group"
+msgstr "Alocați Grupului Activ"
+
+
+msgctxt "Operator"
+msgid "Remove Active Group"
+msgstr "Eliminați Grupul Activ"
+
+
+msgctxt "Operator"
+msgid "Remove All Groups"
+msgstr "Eliminați Toate Grupurile"
+
+
+msgctxt "Operator"
+msgid "Camera Lens Scale"
+msgstr "Scala Obiectivului Camerei"
+
+
+msgctxt "Operator"
+msgid "Remove from Active Group"
+msgstr "Eliminare din Grupul Activ"
+
+
+msgctxt "Operator"
+msgid "Remove from All"
+msgstr "Eliminați din Tot"
+
+
+msgid "Affect Only"
+msgstr "Afectați Numai"
+
+
+msgid "Locations"
+msgstr "Locații"
+
+
+msgid "Parents"
+msgstr "Părinți"
+
+
+msgid "Auto Normalize"
+msgstr "Auto Normalizare"
+
+
+msgid "Multi-Paint"
+msgstr "Multi-Pictură"
+
+
+msgctxt "Operator"
+msgid "Quick Edit"
+msgstr "Editare Rapidă"
+
+
+msgctxt "Operator"
+msgid "Apply Camera Image"
+msgstr "Aplicați Imaginea Camerei"
+
+
+msgid "Path Steps"
+msgstr "Pașii Căii"
+
+
+msgid "Point cache must be baked"
+msgstr "Memoria cache a punctelor trebuie coaptă"
+
+
+msgid "in memory to enable editing!"
+msgstr "în memorie pentru a activa editarea!"
+
+
+msgid "Scene Collection"
+msgstr "Colecția Scenei"
+
+
+msgid "Did not write, no Multilayer Image"
+msgstr "Nu s-a scris, nicio Imagine Multilayer"
+
+
+msgid "Scene not found"
+msgstr "Scena nu a fost găsită"
+
+
+msgid "Paste driver: no driver to paste"
+msgstr "Lipire Driver: niciun driver de lipit"
+
+
+msgid "Out"
+msgstr "Ieșire"
+
+
+msgid "Cannot paint stroke"
+msgstr "Nu se poate picta cursa"
+
+
+msgid "No active frame to delete"
+msgstr "Niciun cadru activ de șters"
+
+
+msgid "Nothing selected"
+msgstr "Nimic selectat"
+
+
+msgctxt "Operator"
+msgid "Change Shortcut"
+msgstr "Schimbă Scurtătura"
+
+
+msgctxt "Operator"
+msgid "Replace Keyframes"
+msgstr "Înlocuiește keyframe-urile"
+
+
+msgctxt "Operator"
+msgid "Replace Single Keyframe"
+msgstr "Înlocuiește Un Singur keyframe"
+
+
+msgctxt "Operator"
+msgid "Delete Single Keyframe"
+msgstr "Șterge Un Singur Keyframe"
+
+
+msgctxt "Operator"
+msgid "Replace Keyframe"
+msgstr "Înlocuiește Keyframe"
+
+
+msgctxt "Operator"
+msgid "Insert Single Keyframe"
+msgstr "Inserează Un Singur Keyframe"
+
+
+msgctxt "Operator"
+msgid "Clear Keyframes"
+msgstr "Șterge Keyframe-urile"
+
+
+msgctxt "Operator"
+msgid "Clear Single Keyframes"
+msgstr "Șterge Keyframe-urile Unice"
+
+
+msgctxt "Operator"
+msgid "Delete Drivers"
+msgstr "Șterge Driverele"
+
+
+msgctxt "Operator"
+msgid "Delete Single Driver"
+msgstr "Șterge Un Singur Driver"
+
+
+msgctxt "Operator"
+msgid "Delete Driver"
+msgstr "Șterge Driver-ul"
+
+
+msgctxt "Operator"
+msgid "Add All to Keying Set"
+msgstr "Adăugare totală la setul de taste"
+
+
+msgctxt "Operator"
+msgid "Add Single to Keying Set"
+msgstr "Adaugă Unul singur la Setul de Keying"
+
+
+msgctxt "Operator"
+msgid "Reset All to Default Values"
+msgstr "Resetează totul la Valorile Implicite"
+
+
+msgctxt "Operator"
+msgid "Reset Single to Default Value"
+msgstr "Resetează Unul Singur la Valorile Implicite"
+
+
+msgctxt "Operator"
+msgid "Remove Shortcut"
+msgstr "Elimină Scurtătura"
+
+
+msgctxt "Operator"
+msgid "Online Python Reference"
+msgstr "Referința Online Python"
+
+
+msgid "Active button not found"
+msgstr "Butonul activ nu a fost găsit"
+
+
+msgid "%d items"
+msgstr "%d obiecte"
+
+
+msgid "Hex"
+msgstr "Hex"
+
+
+msgid "OK"
+msgstr "OK"
+
+
+msgid "Cancel"
+msgstr "Anulare"
+
+
+msgid "Movie"
+msgstr "Film"
+
+
+msgid "No Properties"
+msgstr "Fără proprietăți"
+
+
+msgid "Reset View"
+msgstr "Resetare Vedere"
+
+
+msgid "Extend Horizontal"
+msgstr "Extinde Orizontal"
+
+
+msgid "Extend Extrapolated"
+msgstr "Extinde Extrapolat"
+
+
+msgid "Reset Curve"
+msgstr "Resetează Curba"
+
+
+msgid "Anim Player"
+msgstr "Anim Player"
+
+
+msgid "Display number of users of this data (click to make a single-user copy)"
+msgstr "Afișează numărul de utilizatori ai acestor date (faceți click pentru a face o copie pentru un singur utilizator)"
+
+
+msgid "Reset operator defaults"
+msgstr "Resetează valorile implicite ale operatorilor"
+
+
+msgid "Delete the active position"
+msgstr "Șterge poziția activă"
+
+
+msgid "Choose active color stop"
+msgstr "Alege stopul de culoare activ"
+
+
+msgid "Zoom in"
+msgstr "Mărire"
+
+
+msgid "Zoom out"
+msgstr "Micșorare"
+
+
+msgid "Clipping Options"
+msgstr "Opțiuni de tăiere"
+
+
+msgid "Delete points"
+msgstr "Șterge punctele"
+
+
+msgid "Reset Black/White point and curves"
+msgstr "Resetează punctele și curbele Negru/Alb"
+
+
+msgid "Stop this job"
+msgstr "Oprește această treabă"
+
+
+msgid "Stop animation playback"
+msgstr "Oprește playback-ul animației"
+
+
+msgid "Browse Scene to be linked"
+msgstr "Răsfoiți scena care urmează să fie conectată"
+
+
+msgid "Browse Object to be linked"
+msgstr "Răsfoiți Obiectul care urmează să fie conectat"
+
+
+msgid "Browse Mesh Data to be linked"
+msgstr "Răsfoiți Datele Mesh care urmează să fie conectate"
+
+
+msgid "Browse Curve Data to be linked"
+msgstr "Răsfoiți Datele Curbei care urmează să fie conectată"
+
+
+msgid "Browse Metaball Data to be linked"
+msgstr "Răsfoiți Datele Metaball care urmează să fie conectat"
+
+
+msgid "Browse Material to be linked"
+msgstr "Răsfoiți Materialul care urmează să fie conectat"
+
+
+msgid "Browse Texture to be linked"
+msgstr "Răsfoiți Textura care urmează să fie conectată"
+
+
+msgid "Browse Image to be linked"
+msgstr "Răsfoiți Imaginea care urmează să fie conectată"
+
+
+msgid "Browse Lattice Data to be linked"
+msgstr "Răsfoiți Datele Lattice care urmează să fie conectate"
+
+
+msgid "Browse Camera Data to be linked"
+msgstr "Răsfoiți Datele Camerei care urmează să fie conectată"
+
+
+msgid "Browse World Settings to be linked"
+msgstr "Răsfoiți Setările Lumii care urmează să fie conectată"
+
+
+msgid "Browse Text to be linked"
+msgstr "Răsfoiți Textul care urmează să fie conectat"
+
+
+msgid "Browse Speaker Data to be linked"
+msgstr "Răsfoiți Datele Difuzorului care urmează să fie conectat"
+
+
+msgid "Browse Sound to be linked"
+msgstr "Răsfoiți Sunetul care urmează să fie conectat"
+
+
+msgid "Browse Armature data to be linked"
+msgstr "Răsfoiți datele Armature înainte de a fi conectate"
+
+
+msgid "Browse Action to be linked"
+msgstr "Răsfoiți Acțiunea care urmează să fie conectată"
+
+
+msgid "Browse Node Tree to be linked"
+msgstr "Răsfoiți Arborele nodului care urmează să fie conectat"
+
+
+msgid "Browse Brush to be linked"
+msgstr "Răsfoiți Pensula care urmează să fie conectate"
+
+
+msgid "Browse Grease Pencil Data to be linked"
+msgstr "Răsfoiți Datele Creionului de Grăsime care urmează să fie conectat"
+
+
+msgid "Browse ID data to be linked"
+msgstr "Răsfoiți Datele ID care urmează să fie conectate"
+
+
+msgctxt "Action"
+msgid "New"
+msgstr "Nou"
+
+
+msgctxt "Armature"
+msgid "New"
+msgstr "Nou"
+
+
+msgctxt "Brush"
+msgid "New"
+msgstr "Nou"
+
+
+msgctxt "Camera"
+msgid "New"
+msgstr "Nou"
+
+
+msgctxt "Curve"
+msgid "New"
+msgstr "Nou"
+
+
+msgctxt "FreestyleLineStyle"
+msgid "New"
+msgstr "Nou"
+
+
+msgctxt "GPencil"
+msgid "New"
+msgstr "Nou"
+
+
+msgctxt "Image"
+msgid "New"
+msgstr "Nou"
+
+
+msgctxt "Lattice"
+msgid "New"
+msgstr "Nou"
+
+
+msgctxt "Light"
+msgid "New"
+msgstr "Nou"
+
+
+msgctxt "LightProbe"
+msgid "New"
+msgstr "Nou"
+
+
+msgctxt "Material"
+msgid "New"
+msgstr "Nou"
+
+
+msgctxt "Mesh"
+msgid "New"
+msgstr "Nou"
+
+
+msgctxt "Metaball"
+msgid "New"
+msgstr "Nou"
+
+
+msgctxt "NodeTree"
+msgid "New"
+msgstr "Nou"
+
+
+msgctxt "Object"
+msgid "New"
+msgstr "Nou"
+
+
+msgctxt "ParticleSettings"
+msgid "New"
+msgstr "Nou"
+
+
+msgctxt "PointCloud"
+msgid "New"
+msgstr "Nou"
+
+
+msgctxt "Screen"
+msgid "New"
+msgstr "Nou"
+
+
+msgctxt "Sound"
+msgid "New"
+msgstr "Nou"
+
+
+msgctxt "Speaker"
+msgid "New"
+msgstr "Nou"
+
+
+msgctxt "Texture"
+msgid "New"
+msgstr "Nou"
+
+
+msgctxt "Volume"
+msgid "New"
+msgstr "Nou"
+
+
+msgctxt "WorkSpace"
+msgid "New"
+msgstr "Nou"
+
+
+msgctxt "World"
+msgid "New"
+msgstr "Nou"
+
+
+msgctxt "Mesh"
+msgid "Cube"
+msgstr "Cub"
+
+
+msgid "Cannot create editmode armature"
+msgstr "Nu se poate crea armătură editmode"
+
+
+msgid "Child Of constraint not found"
+msgstr "Copilul constrângerii nu a fost găsit"
+
+
+msgid "Follow Path constraint not found"
+msgstr "Constrângerea Urmărește Calea nu a fost găsit"
+
+
+msgid "Path is already animated"
+msgstr "Calea este deja animată"
+
+
+msgid "No active bone with constraints for copying"
+msgstr "Niciun Os activ cu constrângeri pentru copiat"
+
+
+msgid "No active pose bone to add a constraint to"
+msgstr "Niciun os de poziție activ pentru adăugarea unei constrângeri"
+
+
+msgid "No active object to add constraint to"
+msgstr "Niciun obiect activ la care se poate adăuga constrângere"
+
+
+msgid "Requires selected vertices or active vertex group"
+msgstr "Necesită vârfurile selectate sau grup de vârfuri active"
+
+
+msgid "Armature has no active object bone"
+msgstr "Armătura nu are niciun obiect os activ"
+
+
+msgid "Modifier '%s' not in object '%s'"
+msgstr "Modificatorul '%s' nu este în obiectul '%s'"
+
+
+msgid "Blender Render"
+msgstr "Render Blender"
+
+
+msgid "Compiled without sound support"
+msgstr "Compilat fără suport de sunet"
+
+
+msgid "AutoPack is enabled, so image will be packed again on file save"
+msgstr "AutoPack este activat, așa că imaginea va fii împachetată din nou la salvarea fișierului"
+
+
+msgid "Active F-Curve"
+msgstr "F-Curve Activ"
+
+
+msgid "Active Keyframe"
+msgstr "Keyframe Activ"
+
+
+msgid "Fields"
+msgstr "Câmpuri"
+
+
+msgid "File Path:"
+msgstr "Calea Fișierului:"
+
+
+msgid "No files selected to be opened"
+msgstr "Niciun fișier selectat de deschis"
+
+
+msgid "File path"
+msgstr "Calea Fișierului"
+
+
+msgid "No parent directory given"
+msgstr "Nu s-a dat niciun director părinte"
+
+
+msgid "File name, overwrite existing"
+msgstr "Nume fișier, suprascriere existent"
+
+
+msgid "File name"
+msgstr "Nume fișier"
+
+
+msgid "Driver Value:"
+msgstr "Valoare Driver:"
+
+
+msgid "Value:"
+msgstr "Valoare:"
+
+
+msgid "Delete target variable"
+msgstr "Șterge variabila țintă"
+
+
+msgid "Unsupported audio format"
+msgstr "Format audio neacceptat"
+
+
+msgid "No F-Modifiers to paste"
+msgstr "Niciun F-Modificator de lipit"
+
+
+msgid "Select Slot"
+msgstr "Selectare Slot"
+
+
+msgid "Select Layer"
+msgstr "Selectare Strat"
+
+
+msgid "Select Pass"
+msgstr "Selectare Pass"
+
+
+msgid "Can't Load Image"
+msgstr "Nu s-a putut încărca imaginea"
+
+
+msgid " RGBA float"
+msgstr " RGBA float"
+
+
+msgid " RGB float"
+msgstr " RGB float"
+
+
+msgid " RGBA byte"
+msgstr " RGBA byte"
+
+
+msgid " RGB byte"
+msgstr " RGB byte"
+
+
+msgid "Can only save sequence on image sequences"
+msgstr "Secvența se poate salva numai pe secvențele de imagini"
+
+
+msgid "No images have been changed"
+msgstr "Nicio imagine nu a fost schimbată"
+
+
+msgid "%d image(s) will be saved in %s"
+msgstr "%d imagine(imagini) va fi salvat în %s"
+
+
+msgid "Label Size"
+msgstr "Mărime etichetă"
+
+
+msgid "Frame: %d"
+msgstr "Cadru: %d"
+
+
+msgid "Squash"
+msgstr "Turtire"
+
+
+msgid "Disconnect"
+msgstr "Deconectare"
+
+
+msgid "Add node to input"
+msgstr "Adăugare nodul la intrare"
+
+
+msgid "Mask not found"
+msgstr "Masca nu a fost găsită"
+
+
+msgid "Please select all related strips"
+msgstr "Te rog selectează toate benzile aferente"
+
+
+msgid "No valid inputs to swap"
+msgstr "Nu există intrări valide de schimbat"
+
+
+msgid "Please select two strips"
+msgstr "Te rog selectează două benzi"
+
+
+msgid "New effect needs more input strips"
+msgstr "Efectul nou are nevoie de mai multe benzi de intrare"
+
+
+msgid "See '%s' in the text editor"
+msgstr "Vezi '%s' în editorul text"
+
+
+msgid "Control Point:"
+msgstr "Punct control:"
+
+
+msgid "Vertex:"
+msgstr "Vertex:"
+
+
+msgid "Median:"
+msgstr "Median:"
+
+
+msgid "Bevel Weight:"
+msgstr "Greutate teșită:"
+
+
+msgid "Mean Bevel Weight:"
+msgstr "Greutatea medie a teșiței:"
+
+
+msgid "Radius X:"
+msgstr "Raza X:"
+
+
+msgid "Mean Radius X:"
+msgstr "Raza X medie:"
+
+
+msgid "Radius Y:"
+msgstr "Raza Y:"
+
+
+msgid "Mean Radius Y:"
+msgstr "Raza Y medie:"
+
+
+msgid "Crease:"
+msgstr "Cută:"
+
+
+msgid "Mean Crease:"
+msgstr "Cută medie:"
+
+
+msgid "Mean Weight:"
+msgstr "Greutate Medie:"
+
+
+msgid "Mean Radius:"
+msgstr "Rază Medie:"
+
+
+msgid "Mean Tilt:"
+msgstr "Aplecare Medie:"
+
+
+msgid "4L"
+msgstr "4L"
+
+
+msgid "No Bone Active"
+msgstr "Niciun Os activ"
+
+
+msgid "Radius (Parent)"
+msgstr "Rază (Părinte)"
+
+
+msgid "Size:"
+msgstr "Mărime:"
+
+
+msgid "User Perspective"
+msgstr "Perspectiva Utilizatorului"
+
+
+msgid "Depth too large"
+msgstr "Adâncime prea mare"
+
+
+msgctxt "Scene"
+msgid "Space"
+msgstr "Spațiu"
+
+
+msgid "Relationship"
+msgstr "Relație"
+
+
+msgid "Modify"
+msgstr "Modificare"
+
+
+msgid "Color Space:"
+msgstr "Spațiu Culoare:"
+
+
+msgid "Master"
+msgstr "Maestru"
+
+
+msgid "Highlights"
+msgstr "Evidențieri"
+
+
+msgid "Midtones"
+msgstr "Tonuri Mijlocii"
+
+
+msgid "Bokeh Type:"
+msgstr "Tip Bokeh:"
+
+
+msgid "Center:"
+msgstr "Centru:"
+
+
+msgid "Path:"
+msgstr "Cale:"
+
+
+msgid "Base Path:"
+msgstr "Cale de Bază:"
+
+
+msgid "Add Input"
+msgstr "Adăugare Intrare"
+
+
+msgid "Layer:"
+msgstr "Strat:"
+
+
+msgid "Format:"
+msgstr "Format:"
+
+
+msgid "Blender File View"
+msgstr "Vizualizatorul de Fișiere Blender"
+
+
+msgid "Context window not set"
+msgstr "Fereastra de context nu este setată"
+
+
+msgid "Not a library"
+msgstr "Nu o bibliotecă"
+
+
+msgid "Nothing indicated"
+msgstr "Nimic indicat"
+
+
+msgid "Toggle System Console"
+msgstr "Comutați Consola de sistem"
+
+
+msgctxt "Operator"
+msgid "Toggle System Console"
+msgstr "Comutați Consola de sistem"
+
+
+msgid "Finnish (Suomi)"
+msgstr "Finlandeză (Suomi)"
+
+
+msgid "Catalan (Català)"
+msgstr "Catalan (Català)"
+
+
+msgid "Polish (Polski)"
+msgstr "Poloneză (Polski)"
+
+
+msgid "Romanian (Român)"
+msgstr "Română"
+
+
+msgid "Bulgarian (Български)"
+msgstr "Bulgară (Български)"
+
+
+msgid "Greek (Ελληνικά)"
+msgstr "Greacă (Ελληνικά)"
+
+
+msgid "Nepali (नेपाली)"
+msgstr "Nepali (नेपाली)"
+
+
+msgid "Complete"
+msgstr "Complet"
+
+
+msgid "Starting"
+msgstr "Pornire"
+

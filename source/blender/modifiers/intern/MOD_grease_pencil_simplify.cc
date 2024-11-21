@@ -100,8 +100,10 @@ static void simplify_drawing(const GreasePencilSimplifyModifierData &mmd,
                              const Object &ob,
                              bke::greasepencil::Drawing &drawing)
 {
-  IndexMaskMemory memory;
+  modifier::greasepencil::ensure_no_bezier_curves(drawing);
   const bke::CurvesGeometry &curves = drawing.strokes();
+
+  IndexMaskMemory memory;
   const IndexMask strokes = modifier::greasepencil::get_filtered_stroke_mask(
       &ob, curves, mmd.influence, memory);
   if (strokes.is_empty()) {
@@ -192,7 +194,7 @@ static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void 
   modifier::greasepencil::foreach_influence_ID_link(&mmd->influence, ob, walk, user_data);
 }
 
-static void panel_draw(const bContext * /*C*/, Panel *panel)
+static void panel_draw(const bContext *C, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
@@ -216,6 +218,13 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   }
   else if (mode == MOD_GREASE_PENCIL_SIMPLIFY_MERGE) {
     uiItemR(layout, ptr, "distance", UI_ITEM_NONE, nullptr, ICON_NONE);
+  }
+
+  if (uiLayout *influence_panel = uiLayoutPanelProp(
+          C, layout, ptr, "open_influence_panel", IFACE_("Influence")))
+  {
+    modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
+    modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);
   }
 
   modifier_panel_end(layout, ptr);

@@ -62,15 +62,15 @@
 #include "BKE_global.hh"
 #include "BKE_idprop.hh"
 #include "BKE_idtype.hh"
-#include "BKE_image_format.h"
+#include "BKE_image_format.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_node_enum.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_node_tree_anonymous_attributes.hh"
 #include "BKE_node_tree_interface.hh"
+#include "BKE_node_tree_reference_lifetimes.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_node_tree_zones.hh"
 #include "BKE_preview_image.hh"
@@ -97,6 +97,7 @@
 #include "NOD_register.hh"
 #include "NOD_shader.h"
 #include "NOD_socket.hh"
+#include "NOD_socket_items_blend.hh"
 #include "NOD_texture.h"
 
 #include "DEG_depsgraph.hh"
@@ -226,24 +227,16 @@ static void ntree_copy_data(Main * /*bmain*/,
     dst_runtime.field_inferencing_interface = std::make_unique<FieldInferencingInterface>(
         *ntree_src->runtime->field_inferencing_interface);
   }
-  if (ntree_src->runtime->anonymous_attribute_inferencing) {
-    using namespace anonymous_attribute_inferencing;
-    dst_runtime.anonymous_attribute_inferencing =
-        std::make_unique<AnonymousAttributeInferencingResult>(
-            *ntree_src->runtime->anonymous_attribute_inferencing);
-    for (FieldSource &field_source :
-         dst_runtime.anonymous_attribute_inferencing->all_field_sources)
-    {
-      if (auto *socket_field_source = std::get_if<SocketFieldSource>(&field_source.data)) {
-        socket_field_source->socket = socket_map.lookup(socket_field_source->socket);
+  if (ntree_src->runtime->reference_lifetimes_info) {
+    using namespace node_tree_reference_lifetimes;
+    dst_runtime.reference_lifetimes_info = std::make_unique<ReferenceLifetimesInfo>(
+        *ntree_src->runtime->reference_lifetimes_info);
+    for (ReferenceSetInfo &reference_set : dst_runtime.reference_lifetimes_info->reference_sets) {
+      if (ELEM(reference_set.type, ReferenceSetType::LocalReferenceSet)) {
+        reference_set.socket = socket_map.lookup(reference_set.socket);
       }
-    }
-    for (GeometrySource &geometry_source :
-         dst_runtime.anonymous_attribute_inferencing->all_geometry_sources)
-    {
-      if (auto *socket_geometry_source = std::get_if<SocketGeometrySource>(&geometry_source.data))
-      {
-        socket_geometry_source->socket = socket_map.lookup(socket_geometry_source->socket);
+      for (auto &socket : reference_set.potential_data_origins) {
+        socket = socket_map.lookup(socket);
       }
     }
   }
@@ -866,7 +859,7 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
           }
         }
         BLO_write_struct(writer, NodeGeometryAttributeCapture, node->storage);
-        nodes::CaptureAttributeItemsAccessor::blend_write(writer, *node);
+        nodes::socket_items::blend_write<nodes::CaptureAttributeItemsAccessor>(writer, *node);
       }
       else if (node->typeinfo != &NodeTypeUndefined) {
         BLO_write_struct_by_name(writer, node->typeinfo->storagename, node->storage);
@@ -892,24 +885,27 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
       }
     }
     if (node->type == GEO_NODE_SIMULATION_OUTPUT) {
-      nodes::SimulationItemsAccessor::blend_write(writer, *node);
+      nodes::socket_items::blend_write<nodes::SimulationItemsAccessor>(writer, *node);
     }
     if (node->type == GEO_NODE_REPEAT_OUTPUT) {
-      nodes::RepeatItemsAccessor::blend_write(writer, *node);
+      nodes::socket_items::blend_write<nodes::RepeatItemsAccessor>(writer, *node);
     }
     if (node->type == GEO_NODE_INDEX_SWITCH) {
-      nodes::IndexSwitchItemsAccessor::blend_write(writer, *node);
+      nodes::socket_items::blend_write<nodes::IndexSwitchItemsAccessor>(writer, *node);
     }
     if (node->type == GEO_NODE_BAKE) {
-      nodes::BakeItemsAccessor::blend_write(writer, *node);
+      nodes::socket_items::blend_write<nodes::BakeItemsAccessor>(writer, *node);
     }
     if (node->type == GEO_NODE_MENU_SWITCH) {
-      nodes::MenuSwitchItemsAccessor::blend_write(writer, *node);
+      nodes::socket_items::blend_write<nodes::MenuSwitchItemsAccessor>(writer, *node);
     }
     if (node->type == GEO_NODE_FOREACH_GEOMETRY_ELEMENT_OUTPUT) {
-      nodes::ForeachGeometryElementInputItemsAccessor::blend_write(writer, *node);
-      nodes::ForeachGeometryElementGenerationItemsAccessor::blend_write(writer, *node);
-      nodes::ForeachGeometryElementMainItemsAccessor::blend_write(writer, *node);
+      nodes::socket_items::blend_write<nodes::ForeachGeometryElementInputItemsAccessor>(writer,
+                                                                                        *node);
+      nodes::socket_items::blend_write<nodes::ForeachGeometryElementGenerationItemsAccessor>(
+          writer, *node);
+      nodes::socket_items::blend_write<nodes::ForeachGeometryElementMainItemsAccessor>(writer,
+                                                                                       *node);
     }
   }
 
@@ -1175,33 +1171,37 @@ void node_tree_blend_read_data(BlendDataReader *reader, ID *owner_id, bNodeTree 
           break;
         }
         case GEO_NODE_SIMULATION_OUTPUT: {
-          nodes::SimulationItemsAccessor::blend_read_data(reader, *node);
+          nodes::socket_items::blend_read_data<nodes::SimulationItemsAccessor>(reader, *node);
           break;
         }
         case GEO_NODE_REPEAT_OUTPUT: {
-          nodes::RepeatItemsAccessor::blend_read_data(reader, *node);
+          nodes::socket_items::blend_read_data<nodes::RepeatItemsAccessor>(reader, *node);
           break;
         }
         case GEO_NODE_FOREACH_GEOMETRY_ELEMENT_OUTPUT: {
-          nodes::ForeachGeometryElementInputItemsAccessor::blend_read_data(reader, *node);
-          nodes::ForeachGeometryElementMainItemsAccessor::blend_read_data(reader, *node);
-          nodes::ForeachGeometryElementGenerationItemsAccessor::blend_read_data(reader, *node);
+          nodes::socket_items::blend_read_data<nodes::ForeachGeometryElementInputItemsAccessor>(
+              reader, *node);
+          nodes::socket_items::blend_read_data<nodes::ForeachGeometryElementMainItemsAccessor>(
+              reader, *node);
+          nodes::socket_items::blend_read_data<
+              nodes::ForeachGeometryElementGenerationItemsAccessor>(reader, *node);
           break;
         }
         case GEO_NODE_INDEX_SWITCH: {
-          nodes::IndexSwitchItemsAccessor::blend_read_data(reader, *node);
+          nodes::socket_items::blend_read_data<nodes::IndexSwitchItemsAccessor>(reader, *node);
           break;
         }
         case GEO_NODE_BAKE: {
-          nodes::BakeItemsAccessor::blend_read_data(reader, *node);
+          nodes::socket_items::blend_read_data<nodes::BakeItemsAccessor>(reader, *node);
           break;
         }
         case GEO_NODE_MENU_SWITCH: {
-          nodes::MenuSwitchItemsAccessor::blend_read_data(reader, *node);
+          nodes::socket_items::blend_read_data<nodes::MenuSwitchItemsAccessor>(reader, *node);
           break;
         }
         case GEO_NODE_CAPTURE_ATTRIBUTE: {
-          nodes::CaptureAttributeItemsAccessor::blend_read_data(reader, *node);
+          nodes::socket_items::blend_read_data<nodes::CaptureAttributeItemsAccessor>(reader,
+                                                                                     *node);
           break;
         }
 

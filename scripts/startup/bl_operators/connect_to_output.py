@@ -33,7 +33,8 @@ class NODE_OT_connect_to_output(Operator, NodeEditorBase):
         default=True,
     )
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.shader_output_idname = ""
 
     @classmethod
@@ -226,9 +227,11 @@ class NODE_OT_connect_to_output(Operator, NodeEditorBase):
 
             # Go up in the node group hierarchy.
             next_tree = path[path_index + 1].node_tree
-            node = next(n for n in next_tree.nodes
-                        if n.type == 'GROUP'
-                        and n.node_tree == tree)
+            node = next(
+                n for n in next_tree.nodes
+                if n.type == 'GROUP' and
+                n.node_tree == tree
+            )
             tree = next_tree
             active_node_socket_id = viewer_socket.identifier
         return node.outputs[active_node_socket_id]

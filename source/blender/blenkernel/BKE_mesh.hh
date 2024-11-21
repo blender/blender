@@ -18,6 +18,7 @@
 namespace blender::bke {
 
 enum class AttrDomain : int8_t;
+struct AttributeAccessorFunctions;
 
 namespace mesh {
 /* -------------------------------------------------------------------- */
@@ -369,5 +370,7 @@ void mesh_data_update(Depsgraph &depsgraph,
                       const Scene &scene,
                       Object &ob,
                       const CustomData_MeshMasks &dataMask);
+
+const AttributeAccessorFunctions &mesh_attribute_accessor_functions();
 
 }  // namespace blender::bke

@@ -796,7 +796,6 @@ static void action_idcode_patch_check(ID *id, bAction *act)
     return;
   }
 
-#ifdef WITH_ANIM_BAKLAVA
   if (!blender::animrig::legacy::action_treat_as_legacy(*act)) {
     /* Layered Actions can always be assigned to any ID. It's actually the Slot that is limited
      * to an ID type (similar to legacy Actions). Layered Actions are evaluated differently,
@@ -805,7 +804,6 @@ static void action_idcode_patch_check(ID *id, bAction *act)
     /* TODO: when possible, add a BLI_assert_unreachable() here. */
     return;
   }
-#endif
 
   idcode = GS(id->name);
 
@@ -863,24 +861,20 @@ void animsys_evaluate_action_group(PointerRNA *ptr,
     }
   };
 
-#ifdef WITH_ANIM_BAKLAVA
   blender::animrig::ChannelGroup channel_group = agrp->wrap();
   if (channel_group.is_legacy()) {
-#endif
     /* calculate then execute each curve */
     for (fcu = static_cast<FCurve *>(agrp->channels.first); (fcu) && (fcu->grp == agrp);
          fcu = fcu->next)
     {
       visit_fcurve(fcu);
     }
-#ifdef WITH_ANIM_BAKLAVA
     return;
   }
 
   for (FCurve *fcurve : channel_group.fcurves()) {
     visit_fcurve(fcurve);
   }
-#endif
 }
 
 void animsys_evaluate_action(PointerRNA *ptr,

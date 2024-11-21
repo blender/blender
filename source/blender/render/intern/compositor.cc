@@ -15,7 +15,7 @@
 
 #include "BKE_cryptomatte.hh"
 #include "BKE_global.hh"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_node.hh"
 #include "BKE_scene.hh"
 
@@ -160,8 +160,11 @@ class Context : public realtime_compositor::Context {
   /* Viewer output result. */
   realtime_compositor::Result viewer_output_result_;
 
-  /* Cached textures that the compositor took ownership of. */
-  Vector<GPUTexture *> textures_;
+  /* Cached GPU and CPU passes that the compositor took ownership of. Those had their reference
+   * count incremented when accessed and need to be freed/have their reference count decremented
+   * when destroying the context. */
+  Vector<GPUTexture *> cached_gpu_passes_;
+  Vector<ImBuf *> cached_cpu_passes_;
 
  public:
   Context(const ContextInputData &input_data, TexturePool &texture_pool)
@@ -176,8 +179,11 @@ class Context : public realtime_compositor::Context {
   {
     output_result_.release();
     viewer_output_result_.release();
-    for (GPUTexture *texture : textures_) {
-      GPU_texture_free(texture);
+    for (GPUTexture *pass : cached_gpu_passes_) {
+      GPU_texture_free(pass);
+    }
+    for (ImBuf *pass : cached_cpu_passes_) {
+      IMB_freeImBuf(pass);
     }
   }
 
@@ -256,71 +262,99 @@ class Context : public realtime_compositor::Context {
     return output_result_;
   }
 
-  realtime_compositor::Result get_viewer_output_result(realtime_compositor::Domain domain,
-                                                       const bool is_data) override
+  realtime_compositor::Result get_viewer_output_result(
+      realtime_compositor::Domain domain,
+      const bool is_data,
+      realtime_compositor::ResultPrecision precision) override
   {
     viewer_output_result_.set_transformation(domain.transformation);
     viewer_output_result_.meta_data.is_non_color_data = is_data;
 
     if (viewer_output_result_.is_allocated()) {
-      /* If the allocated result have the same size as the requested domain, return it as is. */
-      if (domain.size == viewer_output_result_.domain().size) {
+      /* If the allocated result have the same size and precision as requested, return it as is. */
+      if (domain.size == viewer_output_result_.domain().size &&
+          precision == viewer_output_result_.precision())
+      {
         return viewer_output_result_;
       }
       else {
-        /* Otherwise, the size changed, so release its data and reset it, then we reallocate it on
-         * the new domain below. */
+        /* Otherwise, the size or precision changed, so release its data and reset it, then we
+         * reallocate it on the new domain below. */
         viewer_output_result_.release();
         viewer_output_result_.reset();
       }
     }
 
+    viewer_output_result_.set_precision(precision);
     viewer_output_result_.allocate_texture(domain, false);
     return viewer_output_result_;
   }
 
-  GPUTexture *get_input_texture(const Scene *scene,
-                                int view_layer_id,
-                                const char *pass_name) override
+  realtime_compositor::Result get_pass(const Scene *scene,
+                                       int view_layer_id,
+                                       const char *pass_name) override
   {
     if (!scene) {
-      return nullptr;
+      return realtime_compositor::Result(*this);
     }
 
-    Render *re = RE_GetSceneRender(scene);
-    RenderResult *rr = nullptr;
-    GPUTexture *input_texture = nullptr;
-
-    if (re) {
-      rr = RE_AcquireResultRead(re);
+    ViewLayer *view_layer = static_cast<ViewLayer *>(
+        BLI_findlink(&scene->view_layers, view_layer_id));
+    if (!view_layer) {
+      return realtime_compositor::Result(*this);
     }
 
-    if (rr) {
-      ViewLayer *view_layer = (ViewLayer *)BLI_findlink(&scene->view_layers, view_layer_id);
-      if (view_layer) {
-        RenderLayer *rl = RE_GetRenderLayer(rr, view_layer->name);
-        if (rl) {
-          RenderPass *rpass = RE_pass_find_by_name(rl, pass_name, get_view_name().data());
-
-          if (rpass && rpass->ibuf && rpass->ibuf->float_buffer.data) {
-            input_texture = RE_pass_ensure_gpu_texture_cache(re, rpass);
-
-            if (input_texture) {
-              /* Don't assume render keeps texture around, add our own reference. */
-              GPU_texture_ref(input_texture);
-              textures_.append(input_texture);
-            }
-          }
-        }
-      }
+    Render *render = RE_GetSceneRender(scene);
+    if (!render) {
+      return realtime_compositor::Result(*this);
     }
 
-    if (re) {
-      RE_ReleaseResult(re);
-      re = nullptr;
+    RenderResult *render_result = RE_AcquireResultRead(render);
+    if (!render_result) {
+      RE_ReleaseResult(render);
+      return realtime_compositor::Result(*this);
     }
 
-    return input_texture;
+    RenderLayer *render_layer = RE_GetRenderLayer(render_result, view_layer->name);
+    if (!render_layer) {
+      RE_ReleaseResult(render);
+      return realtime_compositor::Result(*this);
+    }
+
+    RenderPass *render_pass = RE_pass_find_by_name(
+        render_layer, pass_name, this->get_view_name().data());
+    if (!render_pass) {
+      RE_ReleaseResult(render);
+      return realtime_compositor::Result(*this);
+    }
+
+    if (!render_pass || !render_pass->ibuf || !render_pass->ibuf->float_buffer.data) {
+      RE_ReleaseResult(render);
+      return realtime_compositor::Result(*this);
+    }
+
+    const eGPUTextureFormat format = (render_pass->channels == 1) ? GPU_R32F :
+                                     (render_pass->channels == 3) ? GPU_RGB32F :
+                                                                    GPU_RGBA32F;
+    realtime_compositor::Result pass = realtime_compositor::Result(*this, format);
+
+    if (this->use_gpu()) {
+      GPUTexture *pass_texture = RE_pass_ensure_gpu_texture_cache(render, render_pass);
+      /* Don't assume render will keep pass data stored, add our own reference. */
+      GPU_texture_ref(pass_texture);
+      pass.wrap_external(pass_texture);
+      cached_gpu_passes_.append(pass_texture);
+    }
+    else {
+      /* Don't assume render will keep pass data stored, add our own reference. */
+      IMB_refImBuf(render_pass->ibuf);
+      pass.wrap_external(render_pass->ibuf->float_buffer.data,
+                         int2(render_pass->ibuf->x, render_pass->ibuf->y));
+      cached_cpu_passes_.append(render_pass->ibuf);
+    }
+
+    RE_ReleaseResult(render);
+    return pass;
   }
 
   StringRef get_view_name() const override
@@ -389,8 +423,9 @@ class Context : public realtime_compositor::Context {
 
     /* We assume the given pass is a Cryptomatte pass and retrieve its layer name. If it wasn't a
      * Cryptomatte pass, the checks below will fail anyways. */
+    const std::string combined_pass_name = std::string(view_layer->name) + "." + pass_name;
     StringRef cryptomatte_layer_name = bke::cryptomatte::BKE_cryptomatte_extract_layer_name(
-        std::string(view_layer->name) + "." + pass_name);
+        combined_pass_name);
 
     struct StampCallbackData {
       std::string cryptomatte_layer_name;
@@ -589,17 +624,28 @@ class RealtimeCompositor {
   std::unique_ptr<TexturePool> texture_pool_;
   std::unique_ptr<Context> context_;
 
+  /* Stores the execution device and precision used in the last evaluation of the compositor. Those
+   * might be different from the current values returned by the context, since the user might have
+   * changed them since the last evaluation. See the needs_to_be_recreated method for more info on
+   * why those are needed. */
+  bool uses_gpu_;
+  realtime_compositor::ResultPrecision used_precision_;
+
  public:
   RealtimeCompositor(Render &render, const ContextInputData &input_data) : render_(render)
   {
     texture_pool_ = std::make_unique<TexturePool>();
     context_ = std::make_unique<Context>(input_data, *texture_pool_);
+
+    uses_gpu_ = context_->use_gpu();
+    used_precision_ = context_->get_precision();
   }
 
   ~RealtimeCompositor()
   {
-    const bool use_gpu = context_->use_gpu();
-    if (use_gpu) {
+    /* Use uses_gpu_ instead of context_->use_gpu() because we are freeing resources from the last
+     * evaluation. See uses_gpu_ for more information. */
+    if (uses_gpu_) {
       /* Free resources with GPU context enabled. Cleanup may happen from the
        * main thread, and we must use the main context there. */
       if (BLI_thread_is_main()) {
@@ -613,7 +659,8 @@ class RealtimeCompositor {
     context_.reset();
     texture_pool_.reset();
 
-    if (use_gpu) {
+    /* See comment above on context enabling. */
+    if (uses_gpu_) {
       if (BLI_thread_is_main()) {
         DRW_gpu_context_disable();
       }
@@ -623,8 +670,12 @@ class RealtimeCompositor {
     }
   }
 
-  /* Evaluate the compositor and output to the scene render result. */
-  void execute(const ContextInputData &input_data)
+  void update_input_data(const ContextInputData &input_data)
+  {
+    context_->update_input_data(input_data);
+  }
+
+  void execute()
   {
     if (context_->use_gpu()) {
       /* For main thread rendering in background mode, blocking rendering, or when we do not have a
@@ -645,8 +696,6 @@ class RealtimeCompositor {
         GPU_context_active_set(static_cast<GPUContext *>(re_blender_gpu_context));
       }
     }
-
-    context_->update_input_data(input_data);
 
     /* Always recreate the evaluator, as this only runs on compositing node changes and
      * there is no reason to cache this. Unlike the viewport where it helps for navigation. */
@@ -672,6 +721,17 @@ class RealtimeCompositor {
       }
     }
   }
+
+  /* Returns true if the compositor should be freed and reconstructed, which is needed when the
+   * compositor execution device or precision changed, because we either need to update all cached
+   * and pooled resources for the new execution device and precision, or we simply recreate the
+   * entire compositor, since it is much easier and safer. */
+  bool needs_to_be_recreated()
+  {
+    /* See uses_gpu_ and used_precision_ for more information what how they are different from the
+     * ones returned from the context. */
+    return context_->use_gpu() != uses_gpu_ || context_->get_precision() != used_precision_;
+  }
 };
 
 }  // namespace blender::render
@@ -688,11 +748,21 @@ void Render::compositor_execute(const Scene &scene,
   blender::render::ContextInputData input_data(
       scene, render_data, node_tree, view_name, render_context, profiler);
 
-  if (this->compositor == nullptr) {
+  if (this->compositor) {
+    this->compositor->update_input_data(input_data);
+
+    if (this->compositor->needs_to_be_recreated()) {
+      /* Free it here and it will be recreated in the check below. */
+      delete this->compositor;
+      this->compositor = nullptr;
+    }
+  }
+
+  if (!this->compositor) {
     this->compositor = new blender::render::RealtimeCompositor(*this, input_data);
   }
 
-  this->compositor->execute(input_data);
+  this->compositor->execute();
 }
 
 void Render::compositor_free()

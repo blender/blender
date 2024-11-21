@@ -339,7 +339,7 @@ bool AbcCurveReader::accepts_object_type(
 
 void AbcCurveReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel)
 {
-  Curves *curves = static_cast<Curves *>(BKE_curves_add(bmain, m_data_name.c_str()));
+  Curves *curves = BKE_curves_add(bmain, m_data_name.c_str());
 
   m_object = BKE_object_add_only_object(bmain, OB_CURVES, m_object_name.c_str());
   m_object->data = curves;

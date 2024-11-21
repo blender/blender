@@ -26,7 +26,7 @@
 #endif
 
 #include "BKE_global.hh"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_main.hh"
 #include "BKE_scene.hh"
 
@@ -239,7 +239,7 @@ ImBuf *seq_proxy_fetch(const SeqRenderData *context, Sequence *seq, int timeline
   }
 
   if (BLI_exists(filepath)) {
-    ImBuf *ibuf = IMB_loadiffname(filepath, IB_rect, nullptr);
+    ImBuf *ibuf = IMB_loadiffname(filepath, IB_rect | IB_metadata, nullptr);
 
     if (ibuf) {
       seq_imbuf_assign_spaces(context->scene, ibuf);
@@ -259,8 +259,6 @@ static void seq_proxy_build_frame(const SeqRenderData *context,
                                   const bool overwrite)
 {
   char filepath[PROXY_MAXFILE];
-  int quality;
-  int rectx, recty;
   ImBuf *ibuf_tmp, *ibuf;
   Scene *scene = context->scene;
 
@@ -280,33 +278,35 @@ static void seq_proxy_build_frame(const SeqRenderData *context,
 
   ibuf_tmp = seq_render_strip(context, state, seq, timeline_frame);
 
-  rectx = (proxy_render_size * ibuf_tmp->x) / 100;
-  recty = (proxy_render_size * ibuf_tmp->y) / 100;
+  int rectx = (proxy_render_size * ibuf_tmp->x) / 100;
+  int recty = (proxy_render_size * ibuf_tmp->y) / 100;
 
   if (ibuf_tmp->x != rectx || ibuf_tmp->y != recty) {
-    ibuf = IMB_dupImBuf(ibuf_tmp);
-    IMB_metadata_copy(ibuf, ibuf_tmp);
+    ibuf = IMB_scale_into_new(ibuf_tmp, rectx, recty, IMBScaleFilter::Nearest, true);
     IMB_freeImBuf(ibuf_tmp);
-    IMB_scale(ibuf, rectx, recty, IMBScaleFilter::Nearest, false);
   }
   else {
     ibuf = ibuf_tmp;
   }
 
-  /* depth = 32 is intentionally left in, otherwise ALPHA channels
-   * won't work... */
-  quality = seq->strip->proxy->quality;
-  ibuf->ftype = IMB_FTYPE_JPG;
+  const int quality = seq->strip->proxy->quality;
+  const bool save_float = ibuf->float_buffer.data != nullptr;
   ibuf->foptions.quality = quality;
-
-  /* unsupported feature only confuses other s/w */
-  if (ibuf->planes == 32) {
-    ibuf->planes = 24;
+  if (save_float) {
+    /* Float image: save as EXR with FP16 data and DWAA compression. */
+    ibuf->ftype = IMB_FTYPE_OPENEXR;
+    ibuf->foptions.flag = OPENEXR_HALF | R_IMF_EXR_CODEC_DWAA;
   }
-
+  else {
+    /* Byte image: save as JPG. */
+    ibuf->ftype = IMB_FTYPE_JPG;
+    if (ibuf->planes == 32) {
+      ibuf->planes = 24; /* JPGs do not support alpha. */
+    }
+  }
   BLI_file_ensure_parent_dir_exists(filepath);
 
-  const bool ok = IMB_saveiff(ibuf, filepath, IB_rect);
+  const bool ok = IMB_saveiff(ibuf, filepath, save_float ? IB_rectfloat : IB_rect);
   if (ok == false) {
     perror(filepath);
   }

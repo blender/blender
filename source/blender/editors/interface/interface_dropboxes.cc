@@ -90,7 +90,18 @@ static void ui_drop_name_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
 static bool ui_drop_material_poll(bContext *C, wmDrag *drag, const wmEvent * /*event*/)
 {
   PointerRNA mat_slot = CTX_data_pointer_get_type(C, "material_slot", &RNA_MaterialSlot);
-  return WM_drag_is_ID_type(drag, ID_MA) && !RNA_pointer_is_null(&mat_slot);
+  if (RNA_pointer_is_null(&mat_slot)) {
+    return false;
+  }
+  PointerRNA ob_ptr = CTX_data_pointer_get_type(C, "object", &RNA_Object);
+  if (RNA_pointer_is_null(&ob_ptr)) {
+    return false;
+  }
+
+  Object *ob = static_cast<Object *>(ob_ptr.data);
+
+  return WM_drag_is_ID_type(drag, ID_MA) && ID_IS_EDITABLE(&ob->id) &&
+         !ID_IS_OVERRIDE_LIBRARY(&ob->id);
 }
 
 static void ui_drop_material_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
@@ -118,20 +129,22 @@ static std::string ui_drop_material_tooltip(bContext *C,
   const char *dragged_material_name = WM_drag_get_item_name(drag);
 
   if (prev_mat_in_slot) {
-    return fmt::format(TIP_("Drop {} on slot {} (replacing {}) of {}"),
+    return fmt::format(fmt::runtime(TIP_("Drop {} on slot {} (replacing {}) of {}")),
                        dragged_material_name,
                        target_slot,
                        prev_mat_in_slot->id.name + 2,
                        ob->id.name + 2);
   }
   if (target_slot == ob->actcol) {
-    return fmt::format(TIP_("Drop {} on slot {} (active slot) of {}"),
+    return fmt::format(fmt::runtime(TIP_("Drop {} on slot {} (active slot) of {}")),
                        dragged_material_name,
                        target_slot,
                        ob->id.name + 2);
   }
-  return fmt::format(
-      TIP_("Drop {} on slot {} of {}"), dragged_material_name, target_slot, ob->id.name + 2);
+  return fmt::format(fmt::runtime(TIP_("Drop {} on slot {} of {}")),
+                     dragged_material_name,
+                     target_slot,
+                     ob->id.name + 2);
 }
 
 /** \} */

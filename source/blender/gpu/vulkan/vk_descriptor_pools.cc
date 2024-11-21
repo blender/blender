@@ -9,17 +9,15 @@
 #include "vk_descriptor_pools.hh"
 #include "vk_backend.hh"
 #include "vk_device.hh"
-#include "vk_memory.hh"
 
 namespace blender::gpu {
 VKDescriptorPools::VKDescriptorPools() {}
 
 VKDescriptorPools::~VKDescriptorPools()
 {
-  VK_ALLOCATION_CALLBACKS
   const VKDevice &device = VKBackend::get().device;
   for (const VkDescriptorPool vk_descriptor_pool : pools_) {
-    vkDestroyDescriptorPool(device.vk_handle(), vk_descriptor_pool, vk_allocation_callbacks);
+    vkDestroyDescriptorPool(device.vk_handle(), vk_descriptor_pool, nullptr);
   }
 }
 
@@ -41,14 +39,13 @@ void VKDescriptorPools::reset()
 
 void VKDescriptorPools::add_new_pool(const VKDevice &device)
 {
-  VK_ALLOCATION_CALLBACKS
   Vector<VkDescriptorPoolSize> pool_sizes = {
       {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, POOL_SIZE_STORAGE_BUFFER},
       {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, POOL_SIZE_STORAGE_IMAGE},
       {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, POOL_SIZE_COMBINED_IMAGE_SAMPLER},
       {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, POOL_SIZE_UNIFORM_BUFFER},
       {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, POOL_SIZE_UNIFORM_TEXEL_BUFFER},
-  };
+      {VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, POOL_SIZE_INPUT_ATTACHMENT}};
   VkDescriptorPoolCreateInfo pool_info = {};
   pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
   pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
@@ -57,7 +54,7 @@ void VKDescriptorPools::add_new_pool(const VKDevice &device)
   pool_info.pPoolSizes = pool_sizes.data();
   VkDescriptorPool descriptor_pool = VK_NULL_HANDLE;
   VkResult result = vkCreateDescriptorPool(
-      device.vk_handle(), &pool_info, vk_allocation_callbacks, &descriptor_pool);
+      device.vk_handle(), &pool_info, nullptr, &descriptor_pool);
   UNUSED_VARS(result);
   pools_.append(descriptor_pool);
 }

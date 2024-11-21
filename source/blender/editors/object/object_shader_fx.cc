@@ -511,7 +511,7 @@ static int shaderfx_remove_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 void OBJECT_OT_shaderfx_remove(wmOperatorType *ot)
 {
   ot->name = "Remove Grease Pencil Effect";
-  ot->description = "Remove a effect from the active grease pencil object";
+  ot->description = "Remove a effect from the active Grease Pencil object";
   ot->idname = "OBJECT_OT_shaderfx_remove";
 
   ot->invoke = shaderfx_remove_invoke;

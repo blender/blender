@@ -61,6 +61,9 @@ closure color hair_huang(normal N,
 
 // Volume
 closure color henyey_greenstein(float g) BUILTIN;
+closure color fournier_forand(float B, float IOR) BUILTIN;
+closure color draine(float g, float alpha) BUILTIN;
+closure color rayleigh() BUILTIN;
 closure color absorption() BUILTIN;
 
 // Ray Portal

@@ -139,6 +139,7 @@ enum eShaderType {
   SHADOW_TILEMAP_TAG_USAGE_SURFELS,
   SHADOW_TILEMAP_TAG_USAGE_TRANSPARENT,
   SHADOW_TILEMAP_TAG_USAGE_VOLUME,
+  SHADOW_VIEW_VISIBILITY,
 
   SUBSURFACE_CONVOLVE,
   SUBSURFACE_SETUP,
@@ -193,6 +194,11 @@ class ShaderModule {
   GPUMaterial *world_shader_get(::World *blender_world,
                                 bNodeTree *nodetree,
                                 eMaterialPipeline pipeline_type);
+
+  /**
+   * Variation to compile a material only with a `nodetree`. Caller needs to maintain the list of
+   * materials and call GPU_material_free on it to update the material.
+   */
   GPUMaterial *material_shader_get(const char *name,
                                    ListBase &materials,
                                    bNodeTree *nodetree,

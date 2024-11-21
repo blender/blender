@@ -103,10 +103,10 @@ static void emit_attribute_map_entry(AttributeMap *attr_map,
   attr_map[index].element = desc.element;
   attr_map[index].offset = as_uint(desc.offset);
 
-  if (type == TypeDesc::TypeFloat) {
+  if (type == TypeFloat) {
     attr_map[index].type = NODE_ATTR_FLOAT;
   }
-  else if (type == TypeDesc::TypeMatrix) {
+  else if (type == TypeMatrix) {
     attr_map[index].type = NODE_ATTR_MATRIX;
   }
   else if (type == TypeFloat2) {
@@ -319,7 +319,7 @@ void GeometryManager::update_attribute_element_offset(Geometry *geom,
       }
       attr_uchar4_offset += size;
     }
-    else if (mattr->type == TypeDesc::TypeFloat) {
+    else if (mattr->type == TypeFloat) {
       float *data = mattr->data_float();
       offset = attr_float_offset;
 
@@ -345,7 +345,7 @@ void GeometryManager::update_attribute_element_offset(Geometry *geom,
       }
       attr_float2_offset += size;
     }
-    else if (mattr->type == TypeDesc::TypeMatrix) {
+    else if (mattr->type == TypeMatrix) {
       Transform *tfm = mattr->data_transform();
       offset = attr_float4_offset;
 
@@ -464,13 +464,13 @@ static void update_attribute_element_size(Geometry *geom,
     else if (mattr->element == ATTR_ELEMENT_CORNER_BYTE) {
       *attr_uchar4_size += size;
     }
-    else if (mattr->type == TypeDesc::TypeFloat) {
+    else if (mattr->type == TypeFloat) {
       *attr_float_size += size;
     }
     else if (mattr->type == TypeFloat2) {
       *attr_float2_size += size;
     }
-    else if (mattr->type == TypeDesc::TypeMatrix) {
+    else if (mattr->type == TypeMatrix) {
       *attr_float4_size += size * 4;
     }
     else if (mattr->type == TypeFloat4 || mattr->type == TypeRGBA) {

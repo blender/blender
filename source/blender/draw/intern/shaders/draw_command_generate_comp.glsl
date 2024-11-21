@@ -6,7 +6,11 @@
  * Convert DrawPrototype into draw commands.
  */
 
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#include "draw_view_info.hh"
+
+#include "common_math_lib.glsl"
+
+COMPUTE_SHADER_CREATE_INFO(draw_command_generate)
 
 #define atomicAddAndGet(dst, val) (atomicAdd(dst, val) + val)
 
@@ -17,19 +21,21 @@ void write_draw_call(DrawGroup group, uint group_id)
   cmd.vertex_len = group.vertex_len;
   cmd.vertex_first = group.vertex_first;
   bool indexed_draw = group.base_index != -1;
+
+  /* Back-facing command. */
+  uint back_facing_start = group.start * view_len;
   if (indexed_draw) {
     cmd.base_index = group.base_index;
-    cmd.instance_first_indexed = group.start;
+    cmd.instance_first_indexed = back_facing_start;
   }
   else {
-    cmd._instance_first_array = group.start;
+    cmd._instance_first_array = back_facing_start;
   }
-  /* Back-facing command. */
   cmd.instance_len = group_buf[group_id].back_facing_counter;
   command_buf[group_id * 2 + 0] = cmd;
 
   /* Front-facing command. */
-  uint front_facing_start = group.start + (group.len - group.front_facing_len);
+  uint front_facing_start = (group.start + (group.len - group.front_facing_len)) * view_len;
   if (indexed_draw) {
     cmd.instance_first_indexed = front_facing_start;
   }
@@ -55,8 +61,8 @@ void main()
 
   DrawPrototype proto = prototype_buf[proto_id];
   uint group_id = proto.group_id;
-  bool is_inverted = (proto.resource_handle & 0x80000000u) != 0;
-  uint resource_index = (proto.resource_handle & 0x7FFFFFFFu);
+  bool is_inverted = (proto.res_handle & 0x80000000u) != 0;
+  uint resource_index = (proto.res_handle & 0x7FFFFFFFu);
 
   /* Visibility test result. */
   uint visible_instance_len = 0;
@@ -85,9 +91,8 @@ void main()
     return;
   }
 
-  uint back_facing_len = group.len - group.front_facing_len;
-  uint front_facing_len = group.front_facing_len;
-  uint dst_index = group.start;
+  uint back_facing_len = (group.len - group.front_facing_len) * view_len;
+  uint dst_index = group.start * view_len;
   if (is_inverted) {
     uint offset = atomicAdd(group_buf[group_id].back_facing_counter, visible_instance_len);
     dst_index += offset;

@@ -6,10 +6,7 @@
  * \ingroup edtransform
  */
 
-#include <cmath>
-
-#include "MEM_guardedalloc.h"
-
+#include "DNA_brush_types.h"
 #include "DNA_gpencil_legacy_types.h"
 
 #include "BLI_blenlib.h"
@@ -22,6 +19,7 @@
 
 #include "RNA_access.hh"
 
+#include "BKE_brush.hh"
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
 #include "BKE_mask.h"
@@ -38,7 +36,6 @@
 #include "ED_uvedit.hh"
 
 #include "WM_api.hh"
-#include "WM_types.hh"
 
 #include "UI_view2d.hh"
 
@@ -128,7 +125,6 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   ARegion *region = CTX_wm_region(C);
   ScrArea *area = CTX_wm_area(C);
 
-  bGPdata *gpd = CTX_data_gpencil_data(C);
   PropertyRNA *prop;
 
   t->mbus = CTX_wm_message_bus(C);
@@ -217,11 +213,6 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     if (RNA_property_boolean_get(op->ptr, prop)) {
       t->remove_on_cancel = true;
     }
-  }
-
-  /* GPencil editing context. */
-  if (GPENCIL_EDIT_MODE(gpd)) {
-    t->options |= CTX_GPENCIL_STROKES;
   }
 
   /* Grease Pencil editing context. */
@@ -772,9 +763,7 @@ void postTrans(bContext *C, TransInfo *t)
   if (t->data_len_all != 0) {
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
       /* Free data malloced per trans-data. */
-      if (ELEM(t->obedit_type, OB_CURVES_LEGACY, OB_SURF, OB_GPENCIL_LEGACY) ||
-          (t->spacetype == SPACE_GRAPH))
-      {
+      if (ELEM(t->obedit_type, OB_CURVES_LEGACY, OB_SURF) || (t->spacetype == SPACE_GRAPH)) {
         TransData *td = tc->data;
         for (int a = 0; a < tc->data_len; a++, td++) {
           if (td->flag & TD_BEZTRIPLE) {
@@ -1115,6 +1104,7 @@ bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
     Brush *br = BKE_paint_brush(paint);
     PaintCurve *pc = br->paint_curve;
     copy_v3_v3(r_center, pc->points[pc->add_index - 1].bez.vec[1]);
+    BKE_brush_tag_unsaved_changes(br);
     r_center[2] = 0.0f;
     return true;
   }
@@ -1267,6 +1257,7 @@ void transformViewUpdate(TransInfo *t)
   }
 
   calculateCenter2D(t);
+  transform_snap_grid_init(t, t->snap_spatial, &t->snap_spatial_precision);
   transform_input_update(t, zoom_prev / zoom_new);
 }
 

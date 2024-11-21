@@ -386,7 +386,7 @@ static PyObject *pygpu_buffer__tp_new(PyTypeObject * /*type*/, PyObject *args, P
     return nullptr;
   }
 
-  const PyC_StringEnum pygpu_dataformat = {bpygpu_dataformat_items, GPU_DATA_FLOAT};
+  PyC_StringEnum pygpu_dataformat = {bpygpu_dataformat_items, GPU_DATA_FLOAT};
   if (!PyArg_ParseTuple(
           args, "O&O|O: Buffer", PyC_ParseStringEnum, &pygpu_dataformat, &length_ob, &init))
   {
@@ -684,7 +684,7 @@ PyDoc_STRVAR(
     "   :arg dimensions: Array describing the dimensions.\n"
     "   :type dimensions: int\n"
     "   :arg data: Optional data array.\n"
-    "   :type data: sequence\n");
+    "   :type data: Buffer | Sequence[float] | Sequence[int]\n");
 PyTypeObject BPyGPU_BufferType = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "Buffer",

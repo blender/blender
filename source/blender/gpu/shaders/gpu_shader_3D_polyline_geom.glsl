@@ -46,7 +46,7 @@ void do_vertex(const int i, vec4 pos, vec2 ofs)
   gpu_EmitVertex();
 }
 
-void main(void)
+void main()
 {
   vec4 p0 = clip_line_point_homogeneous_space(gl_in[0].gl_Position, gl_in[1].gl_Position);
   vec4 p1 = clip_line_point_homogeneous_space(gl_in[1].gl_Position, gl_in[0].gl_Position);

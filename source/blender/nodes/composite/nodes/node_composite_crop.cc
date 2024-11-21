@@ -96,6 +96,16 @@ class CropOperation : public NodeOperation {
    * same domain as the input image. */
   void execute_alpha_crop()
   {
+    if (this->context().use_gpu()) {
+      this->execute_alpha_crop_gpu();
+    }
+    else {
+      this->execute_alpha_crop_cpu();
+    }
+  }
+
+  void execute_alpha_crop_gpu()
+  {
     GPUShader *shader = context().get_shader("compositor_alpha_crop");
     GPU_shader_bind(shader);
 
@@ -120,8 +130,39 @@ class CropOperation : public NodeOperation {
     GPU_shader_unbind();
   }
 
+  void execute_alpha_crop_cpu()
+  {
+    int2 lower_bound, upper_bound;
+    compute_cropping_bounds(lower_bound, upper_bound);
+
+    const Result &input = get_input("Image");
+
+    const Domain domain = compute_domain();
+    Result &output = get_result("Image");
+    output.allocate_texture(domain);
+
+    parallel_for(domain.size, [&](const int2 texel) {
+      /* The lower bound is inclusive and upper bound is exclusive. */
+      bool is_inside = texel.x >= lower_bound.x && texel.y >= lower_bound.y &&
+                       texel.x < upper_bound.x && texel.y < upper_bound.y;
+      /* Write the pixel color if it is inside the cropping region, otherwise, write zero. */
+      float4 color = is_inside ? input.load_pixel(texel) : float4(0.0f);
+      output.store_pixel(texel, color);
+    });
+  }
+
   /* Crop the image into a new size that matches the cropping bounds. */
   void execute_image_crop()
+  {
+    if (this->context().use_gpu()) {
+      this->execute_image_crop_gpu();
+    }
+    else {
+      this->execute_image_crop_cpu();
+    }
+  }
+
+  void execute_image_crop_gpu()
   {
     int2 lower_bound, upper_bound;
     compute_cropping_bounds(lower_bound, upper_bound);
@@ -152,6 +193,29 @@ class CropOperation : public NodeOperation {
     input_image.unbind_as_texture();
     output_image.unbind_as_image();
     GPU_shader_unbind();
+  }
+
+  void execute_image_crop_cpu()
+  {
+    int2 lower_bound, upper_bound;
+    compute_cropping_bounds(lower_bound, upper_bound);
+
+    /* The image is cropped into nothing, so just return a single zero value. */
+    if (lower_bound.x == upper_bound.x || lower_bound.y == upper_bound.y) {
+      Result &result = get_result("Image");
+      result.allocate_invalid();
+      return;
+    }
+
+    const Result &input = get_input("Image");
+
+    const int2 size = upper_bound - lower_bound;
+    Result &output = get_result("Image");
+    output.allocate_texture(Domain(size, compute_domain().transformation));
+
+    parallel_for(size, [&](const int2 texel) {
+      output.store_pixel(texel, input.load_pixel(texel + lower_bound));
+    });
   }
 
   /* If true, the image should actually be cropped into a new size. Otherwise, if false, the region

@@ -336,7 +336,10 @@ static void texture_create_upload_read()
     GTEST_SKIP() << "Platform doesn't support texture format [" << STRINGIFY(DeviceFormat) << "]";
   }
 
-  size_t data_len = Size * Size * to_component_len(DeviceFormat);
+  size_t data_len = Size * Size *
+                    (HostFormat == GPU_DATA_10_11_11_REV ? to_bytesize(HostFormat) :
+                                                           to_component_len(DeviceFormat));
+
   DataType *data = static_cast<DataType *>(generate_test_data<DataType>(data_len));
   GPU_texture_update(texture, HostFormat, data);
 

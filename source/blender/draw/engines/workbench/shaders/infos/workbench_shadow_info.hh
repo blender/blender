@@ -2,6 +2,24 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#ifdef GPU_SHADER
+#  pragma once
+
+#  include "BLI_utildefines_variadic.h"
+
+#  include "gpu_glsl_cpp_stubs.hh"
+
+#  include "draw_object_infos_info.hh"
+#  include "draw_view_info.hh"
+#  include "gpu_index_load_info.hh"
+
+#  include "workbench_shader_shared.h"
+#  define DYNAMIC_PASS_SELECTION
+#  define SHADOW_PASS
+#  define SHADOW_FAIL
+#  define DOUBLE_MANIFOLD
+#endif
+
 #include "draw_defines.hh"
 
 #include "gpu_shader_create_info.hh"
@@ -11,41 +29,46 @@
  * \{ */
 
 GPU_SHADER_CREATE_INFO(workbench_shadow_common)
-    .storage_buf(3, Qualifier::READ, "float", "pos[]", Frequency::GEOMETRY)
-    /* WORKAROUND: Needed to support OpenSubdiv vertex format. Should be removed. */
-    .push_constant(Type::IVEC2, "gpu_attr_3")
-    .uniform_buf(1, "ShadowPassData", "pass_data")
-    .typedef_source("workbench_shader_shared.h")
-    .additional_info("gpu_index_load")
-    .additional_info("draw_view")
-    .additional_info("draw_modelmat_new")
-    .additional_info("draw_resource_handle_new");
+STORAGE_BUF_FREQ(3, READ, float, pos[], GEOMETRY)
+/* WORKAROUND: Needed to support OpenSubdiv vertex format. Should be removed. */
+PUSH_CONSTANT(IVEC2, gpu_attr_3)
+UNIFORM_BUF(1, ShadowPassData, pass_data)
+TYPEDEF_SOURCE("workbench_shader_shared.h")
+ADDITIONAL_INFO(gpu_index_buffer_load)
+ADDITIONAL_INFO(draw_view)
+ADDITIONAL_INFO(draw_modelmat_new)
+ADDITIONAL_INFO(draw_resource_handle_new)
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(workbench_shadow_visibility_compute_common)
-    .local_group_size(DRW_VISIBILITY_GROUP_SIZE)
-    .define("DRW_VIEW_LEN", "64")
-    .storage_buf(0, Qualifier::READ, "ObjectBounds", "bounds_buf[]")
-    .uniform_buf(2, "ExtrudedFrustum", "extruded_frustum")
-    .push_constant(Type::INT, "resource_len")
-    .push_constant(Type::INT, "view_len")
-    .push_constant(Type::INT, "visibility_word_per_draw")
-    .push_constant(Type::BOOL, "force_fail_method")
-    .push_constant(Type::VEC3, "shadow_direction")
-    .typedef_source("workbench_shader_shared.h")
-    .compute_source("workbench_shadow_visibility_comp.glsl")
-    .additional_info("draw_view", "draw_view_culling");
+LOCAL_GROUP_SIZE(DRW_VISIBILITY_GROUP_SIZE)
+DEFINE_VALUE("DRW_VIEW_LEN", "64")
+STORAGE_BUF(0, READ, ObjectBounds, bounds_buf[])
+UNIFORM_BUF(2, ExtrudedFrustum, extruded_frustum)
+PUSH_CONSTANT(INT, resource_len)
+PUSH_CONSTANT(INT, view_len)
+PUSH_CONSTANT(INT, visibility_word_per_draw)
+PUSH_CONSTANT(BOOL, force_fail_method)
+PUSH_CONSTANT(VEC3, shadow_direction)
+TYPEDEF_SOURCE("workbench_shader_shared.h")
+COMPUTE_SOURCE("workbench_shadow_visibility_comp.glsl")
+ADDITIONAL_INFO(draw_view)
+ADDITIONAL_INFO(draw_view_culling)
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(workbench_shadow_visibility_compute_dynamic_pass_type)
-    .additional_info("workbench_shadow_visibility_compute_common")
-    .define("DYNAMIC_PASS_SELECTION")
-    .storage_buf(1, Qualifier::READ_WRITE, "uint", "pass_visibility_buf[]")
-    .storage_buf(2, Qualifier::READ_WRITE, "uint", "fail_visibility_buf[]")
-    .do_static_compilation(true);
+ADDITIONAL_INFO(workbench_shadow_visibility_compute_common)
+DEFINE("DYNAMIC_PASS_SELECTION")
+STORAGE_BUF(1, READ_WRITE, uint, pass_visibility_buf[])
+STORAGE_BUF(2, READ_WRITE, uint, fail_visibility_buf[])
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(workbench_shadow_visibility_compute_static_pass_type)
-    .additional_info("workbench_shadow_visibility_compute_common")
-    .storage_buf(1, Qualifier::READ_WRITE, "uint", "visibility_buf[]")
-    .do_static_compilation(true);
+ADDITIONAL_INFO(workbench_shadow_visibility_compute_common)
+STORAGE_BUF(1, READ_WRITE, uint, visibility_buf[])
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
 
 /** \} */
 
@@ -54,11 +77,13 @@ GPU_SHADER_CREATE_INFO(workbench_shadow_visibility_compute_static_pass_type)
  * \{ */
 
 GPU_SHADER_CREATE_INFO(workbench_shadow_no_debug)
-    .fragment_source("gpu_shader_depth_only_frag.glsl");
+FRAGMENT_SOURCE("gpu_shader_depth_only_frag.glsl")
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(workbench_shadow_debug)
-    .fragment_out(0, Type::VEC4, "out_debug_color")
-    .fragment_source("workbench_shadow_debug_frag.glsl");
+FRAGMENT_OUT(0, VEC4, out_debug_color)
+FRAGMENT_SOURCE("workbench_shadow_debug_frag.glsl")
+GPU_SHADER_CREATE_END()
 
 /** \} */
 
@@ -68,47 +93,55 @@ GPU_SHADER_CREATE_INFO(workbench_shadow_debug)
 
 #define WORKBENCH_SHADOW_VARIATIONS(common, prefix, suffix, ...) \
   GPU_SHADER_CREATE_INFO(prefix##_pass_manifold_no_caps##suffix) \
-      .define("SHADOW_PASS") \
-      .vertex_source("workbench_shadow_vert.glsl") \
-      .additional_info(common, __VA_ARGS__) \
-      .do_static_compilation(true); \
+  DEFINE("SHADOW_PASS") \
+  VERTEX_SOURCE("workbench_shadow_vert.glsl") \
+  ADDITIONAL_INFO_EXPAND(common, __VA_ARGS__) \
+  DO_STATIC_COMPILATION() \
+  GPU_SHADER_CREATE_END() \
+\
   GPU_SHADER_CREATE_INFO(prefix##_pass_no_manifold_no_caps##suffix) \
-      .define("SHADOW_PASS") \
-      .define("DOUBLE_MANIFOLD") \
-      .vertex_source("workbench_shadow_vert.glsl") \
-      .additional_info(common, __VA_ARGS__) \
-      .do_static_compilation(true); \
+  DEFINE("SHADOW_PASS") \
+  DEFINE("DOUBLE_MANIFOLD") \
+  VERTEX_SOURCE("workbench_shadow_vert.glsl") \
+  ADDITIONAL_INFO_EXPAND(common, __VA_ARGS__) \
+  DO_STATIC_COMPILATION() \
+  GPU_SHADER_CREATE_END() \
+\
   GPU_SHADER_CREATE_INFO(prefix##_fail_manifold_caps##suffix) \
-      .define("SHADOW_FAIL") \
-      .vertex_source("workbench_shadow_caps_vert.glsl") \
-      .additional_info(common, __VA_ARGS__) \
-      .do_static_compilation(true); \
+  DEFINE("SHADOW_FAIL") \
+  VERTEX_SOURCE("workbench_shadow_caps_vert.glsl") \
+  ADDITIONAL_INFO_EXPAND(common, __VA_ARGS__) \
+  DO_STATIC_COMPILATION() \
+  GPU_SHADER_CREATE_END() \
+\
   GPU_SHADER_CREATE_INFO(prefix##_fail_manifold_no_caps##suffix) \
-      .define("SHADOW_FAIL") \
-      .vertex_source("workbench_shadow_vert.glsl") \
-      .additional_info(common, __VA_ARGS__) \
-      .do_static_compilation(true); \
+  DEFINE("SHADOW_FAIL") \
+  VERTEX_SOURCE("workbench_shadow_vert.glsl") \
+  ADDITIONAL_INFO_EXPAND(common, __VA_ARGS__) \
+  DO_STATIC_COMPILATION() \
+  GPU_SHADER_CREATE_END() \
+\
   GPU_SHADER_CREATE_INFO(prefix##_fail_no_manifold_caps##suffix) \
-      .define("SHADOW_FAIL") \
-      .define("DOUBLE_MANIFOLD") \
-      .vertex_source("workbench_shadow_caps_vert.glsl") \
-      .additional_info(common, __VA_ARGS__) \
-      .do_static_compilation(true); \
+  DEFINE("SHADOW_FAIL") \
+  DEFINE("DOUBLE_MANIFOLD") \
+  VERTEX_SOURCE("workbench_shadow_caps_vert.glsl") \
+  ADDITIONAL_INFO_EXPAND(common, __VA_ARGS__) \
+  DO_STATIC_COMPILATION() \
+  GPU_SHADER_CREATE_END() \
+\
   GPU_SHADER_CREATE_INFO(prefix##_fail_no_manifold_no_caps##suffix) \
-      .define("SHADOW_FAIL") \
-      .define("DOUBLE_MANIFOLD") \
-      .vertex_source("workbench_shadow_vert.glsl") \
-      .additional_info(common, __VA_ARGS__) \
-      .do_static_compilation(true);
+  DEFINE("SHADOW_FAIL") \
+  DEFINE("DOUBLE_MANIFOLD") \
+  VERTEX_SOURCE("workbench_shadow_vert.glsl") \
+  ADDITIONAL_INFO_EXPAND(common, __VA_ARGS__) \
+  DO_STATIC_COMPILATION() \
+  GPU_SHADER_CREATE_END()
 
-WORKBENCH_SHADOW_VARIATIONS("workbench_shadow_common",
-                            workbench_shadow,
-                            ,
-                            "workbench_shadow_no_debug")
+WORKBENCH_SHADOW_VARIATIONS(workbench_shadow_common, workbench_shadow, , workbench_shadow_no_debug)
 
-WORKBENCH_SHADOW_VARIATIONS("workbench_shadow_common",
+WORKBENCH_SHADOW_VARIATIONS(workbench_shadow_common,
                             workbench_shadow,
                             _debug,
-                            "workbench_shadow_debug")
+                            workbench_shadow_debug)
 
 /** \} */

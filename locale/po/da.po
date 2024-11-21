@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'd52d70324d18')\n"
+"Project-Id-Version: Blender 4.3.0 Release Candidate (b'7dfe47164a63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-16 11:03+0000\n"
-"PO-Revision-Date: 2024-05-23 14:56+0000\n"
+"POT-Creation-Date: 2024-11-18 11:20+0000\n"
+"PO-Revision-Date: 2024-11-09 15:56+0000\n"
 "Last-Translator: leif larsen <linuxdk1978@gmail.com>\n"
 "Language-Team: Danish <https://translate.blender.org/projects/blender-ui/ui/da/>\n"
 "Language: da\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.5.2"
+"X-Generator: Weblate 5.7.2"
 
 
 msgid "Valid"
@@ -53,10 +53,6 @@ msgstr "Liste over AOVs"
 
 msgid "Collection of AOVs"
 msgstr "Samling af AOVs"
-
-
-msgid "F-Curves"
-msgstr "F-curves"
 
 
 msgid "Action F-Curves"
@@ -243,34 +239,6 @@ msgid "Collection of action groups"
 msgstr "Samling af handlingsgrupper"
 
 
-msgid "Influence"
-msgstr "Indflydelse"
-
-
-msgid "Mix Mode"
-msgstr "Blandingstilstand"
-
-
-msgid "Replace"
-msgstr "Udskift"
-
-
-msgid "Add"
-msgstr "Tilføj"
-
-
-msgid "Subtract"
-msgstr "Fratrække"
-
-
-msgid "Multiply"
-msgstr "Gange"
-
-
-msgid "Strips"
-msgstr "stimmel"
-
-
 msgid "Action Pose Markers"
 msgstr "Handling poserings markøre"
 
@@ -293,18 +261,6 @@ msgstr "Aktiv poséringsmarkør indeks"
 
 msgid "Index of active pose marker"
 msgstr "Indeks for aktive poséringsmarkører"
-
-
-msgid "Active"
-msgstr "Aktiv"
-
-
-msgid "Show Expanded"
-msgstr "Vis udvidet"
-
-
-msgid "Keyframe"
-msgstr "Nøglebillede"
 
 
 msgid "Add-on"
@@ -443,12 +399,80 @@ msgid "Displays glTF Material Output node in Shader Editor (Menu Add > Output)"
 msgstr "Viser glTF Material Output node i Shader Editor (Menu Tilføj > Output)"
 
 
+msgid "        Filter by Name"
+msgstr "        Filtrer efter navn"
+
+
+msgid "Show only hotkeys that have this text in their name"
+msgstr "Vis kun genvejstaster, der har denne tekst i deres navn"
+
+
+msgid "Hide Mix nodes"
+msgstr "Skjul Mix-noder"
+
+
+msgid "When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specify whether to collapse them or show the full node with options expanded"
+msgstr "Når du slår noder sammen med genvejstasten Ctrl+Numpad0 (og lignende), skal du angive, om de skal skjules eller vise hele noden med udvidede muligheder"
+
+
+msgid "Always"
+msgstr "Altid"
+
+
+msgid "Always collapse the new merge nodes"
+msgstr "Skjul altid de nye sammenfletningsknuder sammen"
+
+
+msgid "Non-Shader"
+msgstr "Ikke-Shader"
+
+
+msgid "Collapse in all cases except for shaders"
+msgstr "Fold sammen i alle tilfælde undtagen shaders"
+
+
+msgid "Never"
+msgstr "Aldrig"
+
+
+msgid "Never collapse the new merge nodes"
+msgstr "Skjul aldrig de nye fletningsnoder sammen"
+
+
+msgid "When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specify the position of the new nodes"
+msgstr "Når du slår noder sammen med genvejstasten Ctrl+Numpad0 (og lignende), skal du angive placeringen af de nye noder"
+
+
 msgid "Center"
 msgstr "Centrum"
 
 
+msgid "Place the Mix node between the two nodes"
+msgstr "Placer Mix-noden mellem de to noder"
+
+
 msgid "Bottom"
 msgstr "Bund"
+
+
+msgid "Place the Mix node at the same height as the lowest node"
+msgstr "Placer Mix-noden mellem de to noder"
+
+
+msgid "Show Hotkey List"
+msgstr "Vis genvejsliste"
+
+
+msgid "Expand this box into a list of all the hotkeys for functions in this addon"
+msgstr "Udvid denne boks til en liste over alle genvejstaster til funktioner i denne tilføjelse"
+
+
+msgid "Show Principled naming tags"
+msgstr "Vis principielle navngivningsmærker"
+
+
+msgid "Expand this box into a list of all naming tags for principled texture setup"
+msgstr "Udvid denne boks til en liste over alle navngivningsmærker til principiel teksturopsætning"
 
 
 msgid "Fribidi Library"
@@ -535,6 +559,10 @@ msgid "Method used for combining Active Action's result with result of NLA stack
 msgstr "Metode brugt til at kombinere Active Actions resultat med resultat af NLA stak"
 
 
+msgid "Replace"
+msgstr "Udskift"
+
+
 msgid "The strip values replace the accumulated results by amount specified by influence"
 msgstr "Stripværdierne erstatter de akkumulerede resultater med mængde specificeret ved indflydelse"
 
@@ -547,12 +575,24 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "Stripværdierne kombineres med akkumulerede resultater ved passende at bruge addition, multiplikation eller quaternion matematik baseret på kanaltype"
 
 
+msgid "Add"
+msgstr "Tilføj"
+
+
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "Det vægtede resultat af strimlen føjes til de akkumulerede resultater"
 
 
+msgid "Subtract"
+msgstr "Fratrække"
+
+
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "Det vægtede resultat af strimlen fjernes fra de akkumulerede resultater"
+
+
+msgid "Multiply"
+msgstr "Gange"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -597,6 +637,10 @@ msgstr "Handlings påvirkning"
 
 msgid "Amount the Active Action contributes to the result of the NLA stack"
 msgstr "mængde, som den aktive handling bidrager til resultatet af NLA-stakken"
+
+
+msgid "Tweak Mode Action Storage"
+msgstr "Juster mode handlings _opbevaring"
 
 
 msgid "Slot to temporarily hold the main action while in tweak mode"
@@ -907,6 +951,10 @@ msgid "Editor for node-based shading and compositing tools"
 msgstr "Editor til nodebaserede fave- og sammensætningsværktøje"
 
 
+msgid "Video Sequencer"
+msgstr "Video Sequencer"
+
+
 msgid "Video editing tools"
 msgstr "Videoredigeringsværktøjer"
 
@@ -1043,6 +1091,10 @@ msgid "The window relative horizontal location of the area"
 msgstr "Vinduet relativ vandret placering af området"
 
 
+msgid "Area Spaces"
+msgstr "Område space"
+
+
 msgid "Collection of spaces"
 msgstr "Samling af rum"
 
@@ -1071,8 +1123,16 @@ msgid "Armature's active bone"
 msgstr "Armaturets aktive knogle"
 
 
+msgid "Armature Deform Constraint Targets"
+msgstr "skelet Deformeringsbegrænsning mål"
+
+
 msgid "Collection of target bones and weights"
 msgstr "Indsamling af målknogler og vægte"
+
+
+msgid "Armature EditBones"
+msgstr "Skelet Redigere ben"
 
 
 msgid "Collection of armature edit bones"
@@ -1236,6 +1296,11 @@ msgstr "Fedt blyant v3"
 
 
 msgctxt "ID"
+msgid "Lattice"
+msgstr "Gitter"
+
+
+msgctxt "ID"
 msgid "Library"
 msgstr "bibliotek"
 
@@ -1258,6 +1323,11 @@ msgstr "linje stil"
 msgctxt "ID"
 msgid "Mask"
 msgstr "maske"
+
+
+msgctxt "ID"
+msgid "Mesh"
+msgstr "overflade"
 
 
 msgctxt "ID"
@@ -1336,6 +1406,10 @@ msgstr "aktiv bibliotek"
 
 msgid "Choose the asset library to display assets from"
 msgstr "Vælg det aktivbibliotek, du vil vise aktiver fra"
+
+
+msgid "All Libraries"
+msgstr "Alle biblioteker"
 
 
 msgid "Show assets from all of the listed asset libraries"
@@ -1486,6 +1560,14 @@ msgid "Type of data stored in attribute"
 msgstr "type af data gemt i atribut"
 
 
+msgid "Floating-point value"
+msgstr "Flydende komma værdi"
+
+
+msgid "Vector"
+msgstr "Vektor"
+
+
 msgid "3D vector with floating-point values"
 msgstr "3D vector med floating-point værdi"
 
@@ -1494,12 +1576,24 @@ msgid "RGBA color with 32-bit floating-point values"
 msgstr "RGBA farver med 32-bit floating-point værdier"
 
 
+msgid "Byte Color"
+msgstr "Byte farve"
+
+
 msgid "RGBA color with 8-bit positive integer values"
 msgstr "RRGB farver med 8-bit positive intenger værdier"
 
 
+msgid "String"
+msgstr "Streng"
+
+
 msgid "Text string"
 msgstr "tekst string"
+
+
+msgid "2D Vector"
+msgstr "2D Vektor"
 
 
 msgid "2D vector with floating-point values"
@@ -1522,6 +1616,14 @@ msgid "32-bit signed integer vector"
 msgstr "32-Bit signed integer vector"
 
 
+msgid "Quaternion"
+msgstr "Kvaternion"
+
+
+msgid "Floating point quaternion rotation"
+msgstr "Flydende komma quaternion rotation"
+
+
 msgid "4x4 Matrix"
 msgstr "4x4 Matrix"
 
@@ -1530,12 +1632,48 @@ msgid "Floating point matrix"
 msgstr "Floating point matrix"
 
 
+msgid "Domain"
+msgstr "Domæne"
+
+
+msgid "Domain of the Attribute"
+msgstr "Attributtens domæne"
+
+
+msgid "Point"
+msgstr "Punkt"
+
+
 msgid "Attribute on point"
 msgstr "atribut på punkt"
 
 
 msgid "Edge"
 msgstr "kant"
+
+
+msgid "Attribute on mesh edge"
+msgstr "Attribut på meshkant"
+
+
+msgid "Face"
+msgstr "ansigt"
+
+
+msgid "Attribute on mesh faces"
+msgstr "Attribut på overfalde"
+
+
+msgid "Face Corner"
+msgstr "Overflade hjørne"
+
+
+msgid "Attribute on mesh face corner"
+msgstr "Attribut på overflade hjørne"
+
+
+msgid "Attribute on spline"
+msgstr "Attribut på spline"
 
 
 msgid "Attribute on instance"
@@ -1564,6 +1702,10 @@ msgstr "Om attributten kan fjernes eller omdøbes"
 
 msgid "Name of the Attribute"
 msgstr "Navn på attributten"
+
+
+msgid "Bool Attribute"
+msgstr "Bool attribut"
 
 
 msgid "Geometry attribute that stores booleans"
@@ -1650,6 +1792,10 @@ msgid "Geometry attribute that stores rotation"
 msgstr "Geometriattribut, der gemmer rotation"
 
 
+msgid "String Attribute"
+msgstr "Strengattribut"
+
+
 msgid "Geometry attribute that stores strings"
 msgstr "Geometriattribut, der gemmer strings"
 
@@ -1674,8 +1820,8 @@ msgid "Active Attribute Index"
 msgstr "Aktivt attributindeks"
 
 
-msgid "Active attribute index"
-msgstr "Aktivt attributindeks"
+msgid "Active attribute index or -1 when none are active"
+msgstr "Aktivt attributindeks eller -1, når ingen er aktive"
 
 
 msgid "Active Color"
@@ -1716,6 +1862,10 @@ msgstr "Aktivt gengivelsesfarveindeks"
 
 msgid "The index of the color attribute used as a fallback for rendering"
 msgstr "Indekset for farveattributten, der bruges som en reserve til gengivelse"
+
+
+msgid "Bake Data"
+msgstr "Bag Data"
 
 
 msgid "Bake data for a Scene data-block"
@@ -1894,6 +2044,14 @@ msgid "Where to output the baked map"
 msgstr "Hvor skal det bagte kort udlæses"
 
 
+msgid "Bake to image data-blocks associated with active image texture nodes in materials"
+msgstr "Bage til billeddata-blokke forbundet med aktive billedteksturnoder i materialer"
+
+
+msgid "Bake to the active color attribute on meshes"
+msgstr "Bag til den aktive farveegenskab på masker"
+
+
 msgid "Automatic Name"
 msgstr "Automatisk navn"
 
@@ -1904,6 +2062,14 @@ msgstr "Navngiv automatisk outputfilen med pass-typen (kun eksternt)"
 
 msgid "Cage"
 msgstr "Bur"
+
+
+msgid "Cast rays to active object from a cage"
+msgstr "Kast stråler til et aktivt objekt fra et bur"
+
+
+msgid "Clear"
+msgstr "Rens"
 
 
 msgid "Clear Images before baking (internal only)"
@@ -1934,6 +2100,10 @@ msgid "Add indirect lighting contribution"
 msgstr "Tilføj indirekte belysnings bidrag"
 
 
+msgid "Add transmission contribution"
+msgstr "Tilføj transmissionsbidrag"
+
+
 msgid "Selected to Active"
 msgstr "Valgt til Aktiv"
 
@@ -1948,6 +2118,22 @@ msgstr "Del materialer"
 
 msgid "Split external images per material (external only)"
 msgstr "Opdel eksterne billeder pr. materiale (kun eksternt)"
+
+
+msgid "Above Surface"
+msgstr "Over overfladen"
+
+
+msgid "Cast rays from above the surface"
+msgstr "Kast stråler fra over overfladen"
+
+
+msgid "Active Camera"
+msgstr "Aktivt kamera"
+
+
+msgid "Use the active camera's position to cast rays"
+msgstr "Brug det aktive kameras position til at kaste stråler"
 
 
 msgid "Horizontal dimension of the baking map"
@@ -1970,8 +2156,156 @@ msgid "Coordinates of the first handle"
 msgstr "Koordinater for første håndtag"
 
 
+msgid "Handle 1 Type"
+msgstr "Håndtag 1 Type"
+
+
+msgid "Handle types"
+msgstr "Håndtag typer"
+
+
+msgid "Free"
+msgstr "Fri"
+
+
+msgid "Aligned"
+msgstr "Justeret"
+
+
+msgid "Handle 2"
+msgstr "Håndtag 2"
+
+
+msgid "Coordinates of the second handle"
+msgstr "Koordinater for det andet håndtag"
+
+
+msgid "Handle 2 Type"
+msgstr "Håndtag 2 Type"
+
+
+msgid "Hide"
+msgstr "Skjule"
+
+
+msgid "Visibility status"
+msgstr "Synlighedsstatus"
+
+
+msgid "Control Point selected"
+msgstr "Kontrolpunkt valgt"
+
+
+msgid "Control point selection status"
+msgstr "Status for valg af kontrolpunkt"
+
+
+msgid "Handle 1 selected"
+msgstr "Håndtag 1 valgt"
+
+
+msgid "Handle 1 selection status"
+msgstr "Håndter 1 valgstatus"
+
+
+msgid "Handle 2 selected"
+msgstr "Håndtag 2 valgt"
+
+
+msgid "Handle 2 selection status"
+msgstr "Håndter 2 valgstatus"
+
+
+msgid "Tilt in 3D View"
+msgstr "Vip i 3D-visning"
+
+
 msgid "Weight"
 msgstr "Vægt"
+
+
+msgid "Curve data-blocks"
+msgstr "Kurve data-blokke"
+
+
+msgid "Filename"
+msgstr "Filnavn"
+
+
+msgid "Path to the .blend file"
+msgstr "Sti til .blend"
+
+
+msgid "Vector Fonts"
+msgstr "Vektor skrifttyper"
+
+
+msgid "Vector font data-blocks"
+msgstr "Vektor skrifttyper"
+
+
+msgid "Annotation data-blocks (legacy Grease Pencil)"
+msgstr "Annotationsdatablokke (legacy Grease Pencil)"
+
+
+msgid "Grease Pencil"
+msgstr "Grease Pencil"
+
+
+msgid "File is Saved"
+msgstr "Fil er Gemt"
+
+
+msgid "Has the current session been saved to disk as a .blend file"
+msgstr "Er den aktuelle session blevet gemt på disken som en .blend-fil"
+
+
+msgid "Lattices"
+msgstr "Gitter"
+
+
+msgid "Light Probes"
+msgstr "Lyssonder"
+
+
+msgid "Armature"
+msgstr "Armatur"
+
+
+msgid "Camera"
+msgstr "Kamera"
+
+
+msgid "Image"
+msgstr "Billede"
+
+
+msgid "Key"
+msgstr "Nøgle"
+
+
+msgid "Material"
+msgstr "Materiale"
+
+
+msgid "Mesh"
+msgstr "Maske"
+
+
+msgid "Movie Clip"
+msgstr "Film klip"
+
+
+msgid "Scene"
+msgstr "Scene"
+
+
+msgid "Sound"
+msgstr "Lyd"
+
+
+msgid "Text"
+msgstr "Tekst"
 
 
 msgid "Level"
@@ -2026,8 +2360,8 @@ msgid "Mode"
 msgstr "tilstand"
 
 
-msgid "Material"
-msgstr "Materiale"
+msgid "Active"
+msgstr "Aktiv"
 
 
 msgid "Direction"
@@ -2114,10 +2448,6 @@ msgid "Crop"
 msgstr "Beskær"
 
 
-msgid "Image"
-msgstr "Billede"
-
-
 msgid "Image displayed and edited in this space"
 msgstr "Billedet vises og redigeres i dette rum"
 
@@ -2146,6 +2476,10 @@ msgid "Show this image as background"
 msgstr "Vis dette billede som baggrund"
 
 
+msgid "Show Expanded"
+msgstr "Vis udvidet"
+
+
 msgid "Show On Foreground"
 msgstr "Vis på forgrunden"
 
@@ -2160,10 +2494,6 @@ msgstr "Baggrunds kilde"
 
 msgid "Data source used for background"
 msgstr "Datakilde brugt til baggrund"
-
-
-msgid "Movie Clip"
-msgstr "Film klip"
 
 
 msgid "Camera Clip"
@@ -2234,6 +2564,10 @@ msgid "Temperature"
 msgstr "Temperatur"
 
 
+msgid "Influence"
+msgstr "Indflydelse"
+
+
 msgid "Disable"
 msgstr "Deaktivere"
 
@@ -2278,8 +2612,8 @@ msgid "Locked Track"
 msgstr "Låst spor"
 
 
-msgid "Armature"
-msgstr "Armatur"
+msgid "Mix Mode"
+msgstr "Blandingstilstand"
 
 
 msgid "Target object"
@@ -2306,10 +2640,6 @@ msgid "Up Axis"
 msgstr "Op akse"
 
 
-msgid "Camera"
-msgstr "Kamera"
-
-
 msgid "Bone"
 msgstr "Knogle"
 
@@ -2328,10 +2658,6 @@ msgstr "Lokation"
 
 msgid "Depth"
 msgstr "Dybte"
-
-
-msgid "Scene"
-msgstr "Scene"
 
 
 msgid "Invert"
@@ -2383,6 +2709,10 @@ msgid "Visibility"
 msgstr "Synlighed"
 
 
+msgid "Keyframe"
+msgstr "Nøglebillede"
+
+
 msgid "Blend Mode"
 msgstr "Blandings måde"
 
@@ -2391,20 +2721,8 @@ msgid "Ping Pong"
 msgstr "Ping pong"
 
 
-msgid "Key"
-msgstr "Nøgle"
-
-
-msgid "Mesh"
-msgstr "Maske"
-
-
-msgid "Sound"
-msgstr "Lyd"
-
-
-msgid "Text"
-msgstr "Tekst"
+msgid "F-Curves"
+msgstr "F-curves"
 
 
 msgid "B-Bone"
@@ -2482,22 +2800,6 @@ msgstr "Bit dybde pr kanal"
 
 msgid "Pxr24 (lossy)"
 msgstr "Pxr24 (ej tabsfri)"
-
-
-msgid "ZIP (lossless)"
-msgstr "ZIP (tabsfri)"
-
-
-msgid "PIZ (lossless)"
-msgstr "PIZ (tabsfri)"
-
-
-msgid "RLE (lossless)"
-msgstr "RLE (tabsfri)"
-
-
-msgid "ZIPS (lossless)"
-msgstr "ZIPS (tabsfri)"
 
 
 msgid "B44 (lossy)"
@@ -2734,6 +3036,10 @@ msgstr "Følsomhed"
 
 msgid "Dynamics"
 msgstr "dynamik"
+
+
+msgid "Strips"
+msgstr "stimmel"
 
 
 msgid "Timeline"

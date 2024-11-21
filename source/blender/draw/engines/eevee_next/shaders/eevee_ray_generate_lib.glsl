@@ -2,18 +2,20 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 /**
  * Ray generation routines for each BSDF types.
  */
 
-#pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_matrix_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_bxdf_sampling_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_ray_types_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_thickness_lib.glsl)
+#include "eevee_bxdf_sampling_lib.glsl"
+#include "eevee_ray_types_lib.glsl"
+#include "eevee_sampling_lib.glsl"
+#include "eevee_thickness_lib.glsl"
+#include "gpu_shader_codegen_lib.glsl"
+#include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 
 /* Returns view-space ray. */
 BsdfSample ray_generate_direction(vec2 noise, ClosureUndetermined cl, vec3 V, float thickness)
@@ -49,19 +51,21 @@ BsdfSample ray_generate_direction(vec2 noise, ClosureUndetermined cl, vec3 V, fl
     case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID: {
       samp = bxdf_ggx_sample_reflection(random_point_on_cylinder,
                                         V * tangent_to_world,
-                                        square(to_closure_reflection(cl).roughness));
+                                        square(to_closure_reflection(cl).roughness),
+                                        true);
       break;
     }
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID: {
-      samp = bxdf_ggx_sample_transmission(random_point_on_cylinder,
-                                          V * tangent_to_world,
-                                          square(to_closure_refraction(cl).roughness),
-                                          to_closure_refraction(cl).ior,
-                                          thickness);
+      samp = bxdf_ggx_sample_refraction(random_point_on_cylinder,
+                                        V * tangent_to_world,
+                                        square(to_closure_refraction(cl).roughness),
+                                        to_closure_refraction(cl).ior,
+                                        thickness,
+                                        true);
       break;
     }
   }
-  samp.direction = tangent_to_world * samp.direction;
+  samp.direction = tangent_to_world * vec3(samp.direction);
 
   return samp;
 }

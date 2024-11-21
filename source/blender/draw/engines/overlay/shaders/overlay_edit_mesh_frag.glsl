@@ -45,4 +45,5 @@ void main()
   fragColor.a *= 1.0 - (geometry_flat_out.finalColorOuter.a > 0.0 ? mix_w_outer : mix_w);
 
   fragColor.a *= test_occlusion() ? alpha : 1.0;
+  lineOutput = vec4(0.0);
 }

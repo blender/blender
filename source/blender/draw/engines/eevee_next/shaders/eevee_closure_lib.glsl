@@ -2,9 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_bxdf_microfacet_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_bxdf_diffuse_lib.glsl)
+#pragma once
+
+#include "eevee_bxdf_diffuse_lib.glsl"
+#include "eevee_bxdf_microfacet_lib.glsl"
+#include "gpu_shader_codegen_lib.glsl"
 
 /* Return the apparent roughness of a closure compared to a GGX reflection lobe. */
 float closure_apparent_roughness_get(ClosureUndetermined cl)
@@ -37,11 +39,13 @@ float closure_evaluate_pdf(ClosureUndetermined cl, vec3 L, vec3 V, float thickne
       return bxdf_diffuse_eval(cl.N, L).pdf;
     case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID: {
       ClosureReflection cl_ = to_closure_reflection(cl);
-      return bxdf_ggx_eval_reflection(cl.N, L, V, square(cl_.roughness)).pdf;
+      float roughness_sq = square(cl_.roughness);
+      return bxdf_ggx_eval_reflection(cl.N, L, V, roughness_sq, true).pdf;
     }
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID: {
       ClosureRefraction cl_ = to_closure_refraction(cl);
-      return bxdf_ggx_eval_transmission(cl.N, L, V, square(cl_.roughness), cl_.ior, thickness).pdf;
+      float roughness_sq = square(cl_.roughness);
+      return bxdf_ggx_eval_refraction(cl.N, L, V, roughness_sq, cl_.ior, thickness, true).pdf;
     }
   }
   /* TODO(fclem): Assert. */

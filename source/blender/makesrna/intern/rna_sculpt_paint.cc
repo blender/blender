@@ -123,14 +123,6 @@ const EnumPropertyItem rna_enum_symmetrize_direction_items[] = {
 #  include "ED_paint.hh"
 #  include "ED_particle.hh"
 
-static void rna_GPencil_update(Main * /*bmain*/, Scene *scene, PointerRNA * /*ptr*/)
-{
-  /* mark all grease pencil datablocks of the scene */
-  if (scene != nullptr) {
-    ED_gpencil_tag_scene_gpencil(scene);
-  }
-}
-
 const EnumPropertyItem rna_enum_particle_edit_disconnected_hair_brush_items[] = {
     {PE_BRUSH_COMB, "COMB", 0, "Comb", "Comb hairs"},
     {PE_BRUSH_SMOOTH, "SMOOTH", 0, "Smooth", "Smooth hairs"},
@@ -877,7 +869,7 @@ static void rna_def_sculpt(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Occlusion",
-      "Only affect vertices that are not occluded by other faces (Slower performance)");
+      "Only affect vertices that are not occluded by other faces (slower performance)");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
 
   prop = RNA_def_property(srna, "automasking_start_normal_limit", PROP_FLOAT, PROP_ANGLE);
@@ -1625,7 +1617,7 @@ static void rna_def_gpencil_sculpt(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, rna_enum_gpencil_lock_axis_items);
   RNA_def_property_ui_text(prop, "Lock Axis", "");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, nullptr);
 
   /* threshold for cutter */
   prop = RNA_def_property(srna, "intersection_threshold", PROP_FLOAT, PROP_NONE);

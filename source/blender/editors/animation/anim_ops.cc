@@ -679,6 +679,56 @@ static void ANIM_OT_previewrange_clear(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Debug operator: channel list
+ * \{ */
+
+#ifndef NDEBUG
+static int debug_channel_list_exec(bContext *C, wmOperator * /*op*/)
+{
+  bAnimContext ac;
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  ListBase anim_data = {nullptr, nullptr};
+  /* Same filter flags as in action_channel_region_draw() in
+   * `source/blender/editors/space_action/space_action.cc`. */
+  const eAnimFilter_Flags filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
+                                   ANIMFILTER_LIST_CHANNELS;
+  ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
+
+  printf("==============================================\n");
+  printf("Animation Channel List:\n");
+  printf("----------------------------------------------\n");
+
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+    ANIM_channel_debug_print_info(ale, 1);
+  }
+
+  printf("==============================================\n");
+
+  ANIM_animdata_freelist(&anim_data);
+  return OPERATOR_FINISHED;
+}
+
+static void ANIM_OT_debug_channel_list(wmOperatorType *ot)
+{
+  ot->name = "Debug Channel List";
+  ot->idname = "ANIM_OT_debug_channel_list";
+  ot->description =
+      "Log the channel list info in the terminal. This operator is only available in debug builds "
+      "of Blender";
+
+  ot->exec = debug_channel_list_exec;
+  ot->poll = ED_operator_animview_active;
+
+  ot->flag = OPTYPE_REGISTER;
+}
+#endif /* !NDEBUG */
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Frame Scene/Preview Range Operator
  * \{ */
 
@@ -720,59 +770,6 @@ static void ANIM_OT_scene_range_frame(wmOperatorType *ot)
 /* -------------------------------------------------------------------- */
 /** \name Conversion
  * \{ */
-
-static bool slot_new_for_object_poll(bContext *C)
-{
-  using namespace blender;
-
-  Object *object = CTX_data_active_object(C);
-  if (!object) {
-    return false;
-  }
-  animrig::Action *action = animrig::get_action(object->id);
-  if (!action) {
-    CTX_wm_operator_poll_msg_set(
-        C, "Creating a new Action Slot is only possible when an Action is already assigned");
-    return false;
-  }
-  return action->is_action_layered();
-}
-
-static int slot_new_for_object_exec(bContext *C, wmOperator * /*op*/)
-{
-  using namespace blender::animrig;
-
-  Object *object = CTX_data_active_object(C);
-  Action *action = get_action(object->id);
-  BLI_assert_msg(action, "The poll function should have ensured the Action is not NULL");
-
-  Slot &slot = action->slot_add_for_id(object->id);
-  { /* Assign the newly created slot. */
-    const ActionSlotAssignmentResult result = assign_action_slot(&slot, object->id);
-    BLI_assert_msg(result == ActionSlotAssignmentResult::OK,
-                   "Assigning a slot that was made for this ID should always work");
-    UNUSED_VARS_NDEBUG(result);
-  }
-
-  DEG_relations_tag_update(CTX_data_main(C));
-  WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN, nullptr);
-  return OPERATOR_FINISHED;
-}
-
-static void ANIM_OT_slot_new_for_object(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "New Slot";
-  ot->idname = "ANIM_OT_slot_new_for_object";
-  ot->description = "Create a new Slot for this object, on the Action already assigned to it";
-
-  /* api callbacks */
-  ot->exec = slot_new_for_object_exec;
-  ot->poll = slot_new_for_object_poll;
-
-  /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
 
 static int convert_action_exec(bContext *C, wmOperator * /*op*/)
 {
@@ -947,6 +944,10 @@ void ED_operatortypes_anim()
 
   WM_operatortype_append(ANIM_OT_scene_range_frame);
 
+#ifndef NDEBUG
+  WM_operatortype_append(ANIM_OT_debug_channel_list);
+#endif
+
   /* Entire UI --------------------------------------- */
   WM_operatortype_append(ANIM_OT_keyframe_insert);
   WM_operatortype_append(ANIM_OT_keyframe_delete);
@@ -975,7 +976,6 @@ void ED_operatortypes_anim()
 
   WM_operatortype_append(ANIM_OT_keying_set_active_set);
 
-  WM_operatortype_append(ANIM_OT_slot_new_for_object);
   WM_operatortype_append(ANIM_OT_convert_legacy_action);
   WM_operatortype_append(ANIM_OT_merge_animation);
 }

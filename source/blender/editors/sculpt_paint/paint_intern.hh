@@ -136,6 +136,7 @@ void paint_stroke_jitter_pos(Scene &scene,
 bool paint_brush_tool_poll(bContext *C);
 /** Returns true if the brush cursor should be activated. */
 bool paint_brush_cursor_poll(bContext *C);
+/** Initialize the stroke cache variants from operator properties. */
 bool paint_brush_update(bContext *C,
                         const Brush &brush,
                         PaintMode mode,
@@ -151,7 +152,7 @@ void BRUSH_OT_asset_save_as(wmOperatorType *ot);
 void BRUSH_OT_asset_edit_metadata(wmOperatorType *ot);
 void BRUSH_OT_asset_load_preview(wmOperatorType *ot);
 void BRUSH_OT_asset_delete(wmOperatorType *ot);
-void BRUSH_OT_asset_update(wmOperatorType *ot);
+void BRUSH_OT_asset_save(wmOperatorType *ot);
 void BRUSH_OT_asset_revert(wmOperatorType *ot);
 
 }  // namespace blender::ed::sculpt_paint
@@ -303,6 +304,7 @@ void paint_proj_redraw(const bContext *C, void *ps_handle_p, bool final);
 void paint_proj_stroke_done(void *ps_handle_p);
 
 void paint_brush_color_get(Scene *scene,
+                           const Paint *paint,
                            Brush *br,
                            bool color_correction,
                            bool invert,
@@ -545,6 +547,7 @@ void get_brush_alpha_data(const Scene &scene,
 
 void init_stroke(Depsgraph &depsgraph, Object &ob);
 void init_session_data(const ToolSettings &ts, Object &ob);
+/** Toggle operator for turning vertex paint mode on or off (copied from `sculpt.cc`) */
 void init_session(
     Main &bmain, Depsgraph &depsgraph, Scene &scene, Object &ob, eObjectMode object_mode);
 
@@ -562,7 +565,9 @@ bool mode_toggle_poll_test(bContext *C);
 void smooth_brush_toggle_off(const bContext *C, Paint *paint, StrokeCache *cache);
 void smooth_brush_toggle_on(const bContext *C, Paint *paint, StrokeCache *cache);
 
+/** Initialize the stroke cache variants from operator properties. */
 void update_cache_variants(bContext *C, VPaint &vp, Object &ob, PointerRNA *ptr);
+/** Initialize the stroke cache invariants from operator properties. */
 void update_cache_invariants(
     bContext *C, VPaint &vp, SculptSession &ss, wmOperator *op, const float mval[2]);
 void last_stroke_update(Scene &scene, const float location[3]);

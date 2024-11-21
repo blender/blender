@@ -29,9 +29,7 @@
 
 #include "../winged_edge/Curvature.h"
 
-#ifdef WITH_CXX_GUARDEDALLOC
-#  include "MEM_guardedalloc.h"
-#endif
+#include "MEM_guardedalloc.h"
 
 using namespace std;
 
@@ -439,9 +437,7 @@ class SVertex : public Interface0D {
   inline real curvature2d_as_angle() const;
 #endif
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:SVertex")
-#endif
 };
 
 /**********************************/
@@ -952,9 +948,7 @@ class FEdge : public Interface1D {
    */
   virtual inline Interface0DIterator pointsEnd(float t = 0.0f);
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:FEdge")
-#endif
 };
 
 //
@@ -1265,9 +1259,7 @@ class FEdgeSharp : public FEdge {
     _bFaceMark = iFaceMark;
   }
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:FEdgeSharp")
-#endif
 };
 
 /** Class defining a smooth edge. This kind of edge typically runs across a face of the input mesh.
@@ -1380,9 +1372,7 @@ class FEdgeSmooth : public FEdge {
     _FrsMaterialIndex = i;
   }
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:FEdgeSmooth")
-#endif
 };
 
 /**********************************/
@@ -1935,9 +1925,7 @@ class SShape {
     _importance = importance;
   }
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:SShape")
-#endif
 };
 
 } /* namespace Freestyle */

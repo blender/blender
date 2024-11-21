@@ -58,9 +58,9 @@ int BLI_cpu_support_sse2(void)
 #endif
 }
 
-/* Windows stack-walk lives in system_win32.c */
+/* Windows stack-walk lives in system_win32.cc */
 #if !defined(_MSC_VER)
-void BLI_system_backtrace(FILE *fp)
+void BLI_system_backtrace_with_os_info(FILE *fp, const void *UNUSED(os_info))
 {
   /* ----------------------- */
   /* If system as execinfo.h */
@@ -97,7 +97,12 @@ void BLI_system_backtrace(FILE *fp)
 #  endif
 }
 #endif
-/* end BLI_system_backtrace */
+/* end BLI_system_backtrace_with_os_info */
+
+void BLI_system_backtrace(FILE *fp)
+{
+  BLI_system_backtrace_with_os_info(fp, NULL);
+}
 
 /* NOTE: The code for CPU brand string is adopted from Cycles. */
 
@@ -141,17 +146,17 @@ char *BLI_cpu_brand_string(void)
   }
 #else
   /* No CPUID on ARM64, so we pull from the registry (on Windows) instead. */
-  DWORD vendorIdentifierLength = 255;
-  char vendorIdentifier[255];
+  DWORD processorNameStringLength = 255;
+  char processorNameString[255];
   if (RegGetValueA(HKEY_LOCAL_MACHINE,
                    "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0",
-                   "VendorIdentifier",
+                   "ProcessorNameString",
                    RRF_RT_REG_SZ,
                    NULL,
-                   &vendorIdentifier,
-                   &vendorIdentifierLength) == ERROR_SUCCESS)
+                   &processorNameString,
+                   &processorNameStringLength) == ERROR_SUCCESS)
   {
-    return BLI_strdup(vendorIdentifier);
+    return BLI_strdup(processorNameString);
   }
 #endif
   return NULL;

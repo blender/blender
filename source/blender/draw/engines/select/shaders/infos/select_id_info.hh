@@ -9,60 +9,68 @@
 /** \name Select ID for Edit Mesh Selection
  * \{ */
 
-GPU_SHADER_INTERFACE_INFO(select_id_iface, "").flat(Type::INT, "select_id");
+GPU_SHADER_INTERFACE_INFO(select_id_iface)
+FLAT(INT, select_id)
+GPU_SHADER_INTERFACE_END()
 
 GPU_SHADER_CREATE_INFO(select_id_flat)
-    .push_constant(Type::FLOAT, "sizeVertex")
-    .push_constant(Type::INT, "offset")
-    .push_constant(Type::FLOAT, "retopologyOffset")
-    .vertex_in(0, Type::VEC3, "pos")
-    .vertex_in(1, Type::INT, "index")
-    .vertex_out(select_id_iface)
-    .fragment_out(0, Type::UINT, "fragColor")
-    .vertex_source("select_id_vert.glsl")
-    .fragment_source("select_id_frag.glsl")
-    .additional_info("draw_modelmat")
-    .do_static_compilation(true);
+PUSH_CONSTANT(FLOAT, sizeVertex)
+PUSH_CONSTANT(INT, offset)
+PUSH_CONSTANT(FLOAT, retopologyOffset)
+VERTEX_IN(0, VEC3, pos)
+VERTEX_IN(1, INT, index)
+VERTEX_OUT(select_id_iface)
+FRAGMENT_OUT(0, UINT, fragColor)
+VERTEX_SOURCE("select_id_vert.glsl")
+FRAGMENT_SOURCE("select_id_frag.glsl")
+ADDITIONAL_INFO(draw_modelmat)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(select_id_uniform)
-    .define("UNIFORM_ID")
-    .push_constant(Type::FLOAT, "sizeVertex")
-    .push_constant(Type::INT, "select_id")
-    .push_constant(Type::FLOAT, "retopologyOffset")
-    .vertex_in(0, Type::VEC3, "pos")
-    .fragment_out(0, Type::UINT, "fragColor")
-    .vertex_source("select_id_vert.glsl")
-    .fragment_source("select_id_frag.glsl")
-    .additional_info("draw_modelmat")
-    .do_static_compilation(true);
+DEFINE("UNIFORM_ID")
+PUSH_CONSTANT(FLOAT, sizeVertex)
+PUSH_CONSTANT(INT, select_id)
+PUSH_CONSTANT(FLOAT, retopologyOffset)
+VERTEX_IN(0, VEC3, pos)
+FRAGMENT_OUT(0, UINT, fragColor)
+VERTEX_SOURCE("select_id_vert.glsl")
+FRAGMENT_SOURCE("select_id_frag.glsl")
+ADDITIONAL_INFO(draw_modelmat)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(select_id_flat_clipped)
-    .additional_info("select_id_flat")
-    .additional_info("drw_clipped")
-    .do_static_compilation(true);
+ADDITIONAL_INFO(select_id_flat)
+ADDITIONAL_INFO(drw_clipped)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(select_id_uniform_clipped)
-    .additional_info("select_id_uniform")
-    .additional_info("drw_clipped")
-    .do_static_compilation(true);
+ADDITIONAL_INFO(select_id_uniform)
+ADDITIONAL_INFO(drw_clipped)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
 
 /* Used to patch overlay shaders. */
 GPU_SHADER_CREATE_INFO(select_id_patch)
-    .typedef_source("select_shader_shared.hh")
-    .vertex_out(select_id_iface)
-    /* Need to make sure the depth & stencil comparison runs before the fragment shader. */
-    .early_fragment_test(true)
-    .uniform_buf(SELECT_DATA, "SelectInfoData", "select_info_buf")
-    /* Select IDs for instanced draw-calls not using #PassMain. */
-    .storage_buf(SELECT_ID_IN, Qualifier::READ, "int", "in_select_buf[]")
-    /* Stores the result of the whole selection drawing. Content depends on selection mode. */
-    .storage_buf(SELECT_ID_OUT, Qualifier::READ_WRITE, "uint", "out_select_buf[]");
+TYPEDEF_SOURCE("select_shader_shared.hh")
+VERTEX_OUT(select_id_iface)
+/* Need to make sure the depth & stencil comparison runs before the fragment shader. */
+EARLY_FRAGMENT_TEST(true)
+UNIFORM_BUF(SELECT_DATA, SelectInfoData, select_info_buf)
+/* Select IDs for instanced draw-calls not using #PassMain. */
+STORAGE_BUF(SELECT_ID_IN, READ, int, in_select_buf[])
+/* Stores the result of the whole selection drawing. Content depends on selection mode. */
+STORAGE_BUF(SELECT_ID_OUT, READ_WRITE, uint, out_select_buf[])
+GPU_SHADER_CREATE_END()
 
 /** \} */
 
 GPU_SHADER_CREATE_INFO(select_debug_fullscreen)
-    .additional_info("draw_fullscreen")
-    .fragment_source("select_debug_frag.glsl")
-    .sampler(0, ImageType::UINT_2D, "image")
-    .fragment_out(0, Type::VEC4, "fragColor")
-    .do_static_compilation(true);
+ADDITIONAL_INFO(draw_fullscreen)
+FRAGMENT_SOURCE("select_debug_frag.glsl")
+SAMPLER(0, UINT_2D, image)
+FRAGMENT_OUT(0, VEC4, fragColor)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()

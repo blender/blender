@@ -730,6 +730,10 @@ static PVert *p_vert_add(
   v->edge = e;
   v->flag = 0;
 
+  /* Unused, prevent uninitialized memory access on duplication. */
+  v->on_boundary_flag = false;
+  v->slim_id = 0;
+
   phash_insert(handle->hash_verts, (PHashLink *)v);
 
   return v;
@@ -756,6 +760,10 @@ static PVert *p_vert_copy(ParamHandle *handle, PVert *v)
   nv->u.key = v->u.key;
   nv->edge = v->edge;
   nv->flag = v->flag;
+
+  nv->weight = v->weight;
+  nv->on_boundary_flag = v->on_boundary_flag;
+  nv->slim_id = v->slim_id;
 
   return nv;
 }
@@ -3966,7 +3974,7 @@ void uv_parametrizer_face_add(ParamHandle *phandle,
       Array<ParamKey> vkeys_sub(pm);
       Array<const float *> co_sub(pm);
       Array<float *> uv_sub(pm);
-      Array<float> weight_sub(pm);
+      Array<float> weight_sub(weight ? pm : 0);
       Array<bool> pin_sub(pm);
       Array<bool> select_sub(pm);
       for (int i = 0; i < pm; i++) {
@@ -3974,7 +3982,9 @@ void uv_parametrizer_face_add(ParamHandle *phandle,
         vkeys_sub[i] = vkeys[j];
         co_sub[i] = co[j];
         uv_sub[i] = uv[j];
-        weight_sub[i] = weight[j];
+        if (weight) {
+          weight_sub[i] = weight[j];
+        }
         pin_sub[i] = pin && pin[j];
         select_sub[i] = select && select[j];
       }
@@ -3984,7 +3994,7 @@ void uv_parametrizer_face_add(ParamHandle *phandle,
                  &vkeys_sub.first(),
                  &co_sub.first(),
                  &uv_sub.first(),
-                 &weight_sub.first(),
+                 weight ? &weight_sub.first() : nullptr,
                  &pin_sub.first(),
                  &select_sub.first());
       return; /* Nothing more to do. */

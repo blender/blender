@@ -68,23 +68,23 @@ const EnumPropertyItem rna_enum_object_mode_items[] = {
      ICON_EDITMODE_HLT,
      "Edit Mode",
      "Edit Grease Pencil Strokes"},
-    {OB_MODE_SCULPT_GPENCIL_LEGACY,
-     "SCULPT_GPENCIL",
+    {OB_MODE_SCULPT_GREASE_PENCIL,
+     "SCULPT_GREASE_PENCIL",
      ICON_SCULPTMODE_HLT,
      "Sculpt Mode",
      "Sculpt Grease Pencil Strokes"},
-    {OB_MODE_PAINT_GPENCIL_LEGACY,
-     "PAINT_GPENCIL",
+    {OB_MODE_PAINT_GREASE_PENCIL,
+     "PAINT_GREASE_PENCIL",
      ICON_GREASEPENCIL,
      "Draw Mode",
      "Paint Grease Pencil Strokes"},
-    {OB_MODE_WEIGHT_GPENCIL_LEGACY,
-     "WEIGHT_GPENCIL",
+    {OB_MODE_WEIGHT_GREASE_PENCIL,
+     "WEIGHT_GREASE_PENCIL",
      ICON_WPAINT_HLT,
      "Weight Paint",
      "Grease Pencil Weight Paint Strokes"},
-    {OB_MODE_VERTEX_GPENCIL_LEGACY,
-     "VERTEX_GPENCIL",
+    {OB_MODE_VERTEX_GREASE_PENCIL,
+     "VERTEX_GREASE_PENCIL",
      ICON_VPAINT_HLT,
      "Vertex Paint",
      "Grease Pencil Vertex Paint Strokes"},
@@ -106,23 +106,23 @@ const EnumPropertyItem rna_enum_workspace_object_mode_items[] = {
      ICON_EDITMODE_HLT,
      "Grease Pencil Edit Mode",
      "Edit Grease Pencil Strokes"},
-    {OB_MODE_SCULPT_GPENCIL_LEGACY,
-     "SCULPT_GPENCIL",
+    {OB_MODE_SCULPT_GREASE_PENCIL,
+     "SCULPT_GREASE_PENCIL",
      ICON_SCULPTMODE_HLT,
      "Grease Pencil Sculpt Mode",
      "Sculpt Grease Pencil Strokes"},
-    {OB_MODE_PAINT_GPENCIL_LEGACY,
-     "PAINT_GPENCIL",
+    {OB_MODE_PAINT_GREASE_PENCIL,
+     "PAINT_GREASE_PENCIL",
      ICON_GREASEPENCIL,
      "Grease Pencil Draw",
      "Paint Grease Pencil Strokes"},
-    {OB_MODE_VERTEX_GPENCIL_LEGACY,
-     "VERTEX_GPENCIL",
+    {OB_MODE_VERTEX_GREASE_PENCIL,
+     "VERTEX_GREASE_PENCIL",
      ICON_VPAINT_HLT,
      "Grease Pencil Vertex Paint",
      "Grease Pencil Vertex Paint Strokes"},
-    {OB_MODE_WEIGHT_GPENCIL_LEGACY,
-     "WEIGHT_GPENCIL",
+    {OB_MODE_WEIGHT_GREASE_PENCIL,
+     "WEIGHT_GREASE_PENCIL",
      ICON_WPAINT_HLT,
      "Grease Pencil Weight Paint",
      "Grease Pencil Weight Paint Strokes"},
@@ -149,9 +149,9 @@ static const EnumPropertyItem rna_enum_object_empty_image_depth_items[] = {
 };
 
 const EnumPropertyItem rna_enum_object_gpencil_type_items[] = {
-    {GP_EMPTY, "EMPTY", ICON_EMPTY_AXIS, "Blank", "Create an empty grease pencil object"},
+    {GP_EMPTY, "EMPTY", ICON_EMPTY_AXIS, "Blank", "Create an empty Grease Pencil object"},
     {GP_STROKE, "STROKE", ICON_STROKE, "Stroke", "Create a simple stroke with basic colors"},
-    {GP_MONKEY, "MONKEY", ICON_MONKEY, "Monkey", "Construct a Suzanne grease pencil object"},
+    {GP_MONKEY, "MONKEY", ICON_MONKEY, "Monkey", "Construct a Suzanne Grease Pencil object"},
     RNA_ENUM_ITEM_SEPR,
     {GREASE_PENCIL_LINEART_SCENE,
      "LINEART_SCENE",
@@ -902,8 +902,7 @@ static void rna_VertexGroup_name_set(PointerRNA *ptr, const char *value)
   }
 
   bDeformGroup *dg = static_cast<bDeformGroup *>(ptr->data);
-  STRNCPY_UTF8(dg->name, value);
-  BKE_object_defgroup_unique_name(dg, ob);
+  BKE_object_defgroup_set_name(dg, ob, value);
 }
 
 static int rna_VertexGroup_index_get(PointerRNA *ptr)
@@ -3554,7 +3553,7 @@ static void rna_def_object(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_grease_pencil_lights", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "dtx", OB_USE_GPENCIL_LIGHTS);
   RNA_def_property_boolean_default(prop, true);
-  RNA_def_property_ui_text(prop, "Use Lights", "Lights affect grease pencil object");
+  RNA_def_property_ui_text(prop, "Use Lights", "Lights affect Grease Pencil object");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_GPencil_update");
 
   prop = RNA_def_property(srna, "show_transparent", PROP_BOOLEAN, PROP_NONE);

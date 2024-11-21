@@ -17,22 +17,8 @@
 #include "util/types.h"
 #include "util/vector.h"
 
+#include "BKE_image.hh"
 #include "BKE_mesh.hh"
-
-/* Hacks to hook into Blender API
- * todo: clean this up ... */
-
-extern "C" {
-void BKE_image_user_frame_calc(void *ima, void *iuser, int cfra);
-void BKE_image_user_file_path_ex(void *bmain,
-                                 void *iuser,
-                                 void *ima,
-                                 char *filepath,
-                                 bool resolve_udim,
-                                 bool resolve_multiview);
-unsigned char *BKE_image_get_pixels_for_frame(void *image, int frame, int tile);
-float *BKE_image_get_float_pixels_for_frame(void *image, int frame, int tile);
-}
 
 CCL_NAMESPACE_BEGIN
 
@@ -317,26 +303,33 @@ static inline string image_user_file_path(BL::BlendData &data,
 {
   char filepath[1024];
   iuser.tile(0);
-  BKE_image_user_frame_calc(ima.ptr.data, iuser.ptr.data, cfra);
-  BKE_image_user_file_path_ex(data.ptr.data, iuser.ptr.data, ima.ptr.data, filepath, false, true);
+  BKE_image_user_frame_calc(
+      static_cast<Image *>(ima.ptr.data), static_cast<ImageUser *>(iuser.ptr.data), cfra);
+  BKE_image_user_file_path_ex(static_cast<Main *>(data.ptr.data),
+                              static_cast<ImageUser *>(iuser.ptr.data),
+                              static_cast<Image *>(ima.ptr.data),
+                              filepath,
+                              false,
+                              true);
 
   return string(filepath);
 }
 
 static inline int image_user_frame_number(BL::ImageUser &iuser, BL::Image &ima, int cfra)
 {
-  BKE_image_user_frame_calc(ima.ptr.data, iuser.ptr.data, cfra);
+  BKE_image_user_frame_calc(
+      static_cast<Image *>(ima.ptr.data), static_cast<ImageUser *>(iuser.ptr.data), cfra);
   return iuser.frame_current();
 }
 
 static inline unsigned char *image_get_pixels_for_frame(BL::Image &image, int frame, int tile)
 {
-  return BKE_image_get_pixels_for_frame(image.ptr.data, frame, tile);
+  return BKE_image_get_pixels_for_frame(static_cast<Image *>(image.ptr.data), frame, tile);
 }
 
 static inline float *image_get_float_pixels_for_frame(BL::Image &image, int frame, int tile)
 {
-  return BKE_image_get_float_pixels_for_frame(image.ptr.data, frame, tile);
+  return BKE_image_get_float_pixels_for_frame(static_cast<Image *>(image.ptr.data), frame, tile);
 }
 
 static inline bool image_is_builtin(BL::Image &ima, BL::RenderEngine &engine)

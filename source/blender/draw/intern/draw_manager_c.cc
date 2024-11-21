@@ -3106,9 +3106,6 @@ void DRW_engines_register()
     BKE_particle_batch_cache_dirty_tag_cb = DRW_particle_batch_cache_dirty_tag;
     BKE_particle_batch_cache_free_cb = DRW_particle_batch_cache_free;
 
-    BKE_gpencil_batch_cache_dirty_tag_cb = DRW_gpencil_batch_cache_dirty_tag;
-    BKE_gpencil_batch_cache_free_cb = DRW_gpencil_batch_cache_free;
-
     BKE_curves_batch_cache_dirty_tag_cb = DRW_curves_batch_cache_dirty_tag;
     BKE_curves_batch_cache_free_cb = DRW_curves_batch_cache_free;
 

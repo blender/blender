@@ -29,7 +29,7 @@ class WM_OT_previews_batch_generate(Operator):
         type=OperatorFileListElement,
         options={'HIDDEN', 'SKIP_SAVE'},
         name="",
-        description="Collection of file paths with common `directory` root",
+        description="Collection of file paths with common ``directory`` root",
     )
 
     directory: StringProperty(
@@ -37,7 +37,7 @@ class WM_OT_previews_batch_generate(Operator):
         subtype='FILE_PATH',
         options={'HIDDEN', 'SKIP_SAVE'},
         name="",
-        description="Root path of all files listed in `files` collection",
+        description="Root path of all files listed in ``files`` collection",
     )
 
     # Show only images/videos, and directories!

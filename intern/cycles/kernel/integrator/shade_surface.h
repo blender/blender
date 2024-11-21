@@ -60,7 +60,9 @@ ccl_device_forceinline float3 integrate_surface_ray_offset(KernelGlobals kg,
    * - Instead of ray offset, can we tweak P to lie within the triangle?
    */
 
-  /* TODO: Investigate if there are better ray offsetting algorithms for each BVH/device. */
+  /* TODO: Investigate if there are better ray offsetting algorithms for each BVH.
+   * Cycles and Custom BVH triangle tests aren't numerically identical, meaning
+   * this method isn't ideal for them. */
 
   float3 verts[3];
   if (sd->type == PRIMITIVE_TRIANGLE) {

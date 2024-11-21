@@ -16,8 +16,9 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Vector>("Position").implicit_field(implicit_field_inputs::position);
   b.add_input<decl::Int>("Group ID").supports_field().hide_value();
 
-  b.add_output<decl::Int>("Index").field_source().description("Index of nearest element");
-  b.add_output<decl::Bool>("Has Neighbor").field_source();
+  b.add_output<decl::Int>("Index").field_source_reference_all().description(
+      "Index of nearest element");
+  b.add_output<decl::Bool>("Has Neighbor").field_source_reference_all();
 }
 
 static KDTree_3d *build_kdtree(const Span<float3> positions, const IndexMask &mask)
@@ -190,7 +191,7 @@ class HasNeighborFieldInput final : public bke::GeometryFieldInput {
     const VArraySpan<int> group_span(group);
     mask.foreach_index([&](const int i) {
       counts.add_or_modify(
-          group_span[i], [](int *count) { *count = 0; }, [](int *count) { (*count)++; });
+          group_span[i], [](int *count) { *count = 1; }, [](int *count) { (*count)++; });
     });
     Array<bool> result(mask.min_array_size());
     mask.foreach_index([&](const int i) { result[i] = counts.lookup(group_span[i]) > 1; });

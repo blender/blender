@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/gpu_shader_2D_widget_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(gpu_shader_2D_widget_shadow)
+
 #define BIT_RANGE(x) uint((1 << x) - 1)
 
 /* 2 bits for corner */
@@ -30,44 +34,44 @@ void main()
 {
   /* NOTE(Metal): Declaring constant array in function scope to avoid increasing local shader
    * memory pressure. */
-  const vec2 cornervec[36] = vec2[36](vec2(0.0, 1.0),
-                                      vec2(0.02, 0.805),
-                                      vec2(0.067, 0.617),
-                                      vec2(0.169, 0.45),
-                                      vec2(0.293, 0.293),
-                                      vec2(0.45, 0.169),
-                                      vec2(0.617, 0.076),
-                                      vec2(0.805, 0.02),
-                                      vec2(1.0, 0.0),
-                                      vec2(-1.0, 0.0),
-                                      vec2(-0.805, 0.02),
-                                      vec2(-0.617, 0.067),
-                                      vec2(-0.45, 0.169),
-                                      vec2(-0.293, 0.293),
-                                      vec2(-0.169, 0.45),
-                                      vec2(-0.076, 0.617),
-                                      vec2(-0.02, 0.805),
-                                      vec2(0.0, 1.0),
-                                      vec2(0.0, -1.0),
-                                      vec2(-0.02, -0.805),
-                                      vec2(-0.067, -0.617),
-                                      vec2(-0.169, -0.45),
-                                      vec2(-0.293, -0.293),
-                                      vec2(-0.45, -0.169),
-                                      vec2(-0.617, -0.076),
-                                      vec2(-0.805, -0.02),
-                                      vec2(-1.0, 0.0),
-                                      vec2(1.0, 0.0),
-                                      vec2(0.805, -0.02),
-                                      vec2(0.617, -0.067),
-                                      vec2(0.45, -0.169),
-                                      vec2(0.293, -0.293),
-                                      vec2(0.169, -0.45),
-                                      vec2(0.076, -0.617),
-                                      vec2(0.02, -0.805),
-                                      vec2(0.0, -1.0));
+  const vec2 cornervec[36] = float2_array(vec2(0.0, 1.0),
+                                          vec2(0.02, 0.805),
+                                          vec2(0.067, 0.617),
+                                          vec2(0.169, 0.45),
+                                          vec2(0.293, 0.293),
+                                          vec2(0.45, 0.169),
+                                          vec2(0.617, 0.076),
+                                          vec2(0.805, 0.02),
+                                          vec2(1.0, 0.0),
+                                          vec2(-1.0, 0.0),
+                                          vec2(-0.805, 0.02),
+                                          vec2(-0.617, 0.067),
+                                          vec2(-0.45, 0.169),
+                                          vec2(-0.293, 0.293),
+                                          vec2(-0.169, 0.45),
+                                          vec2(-0.076, 0.617),
+                                          vec2(-0.02, 0.805),
+                                          vec2(0.0, 1.0),
+                                          vec2(0.0, -1.0),
+                                          vec2(-0.02, -0.805),
+                                          vec2(-0.067, -0.617),
+                                          vec2(-0.169, -0.45),
+                                          vec2(-0.293, -0.293),
+                                          vec2(-0.45, -0.169),
+                                          vec2(-0.617, -0.076),
+                                          vec2(-0.805, -0.02),
+                                          vec2(-1.0, 0.0),
+                                          vec2(1.0, 0.0),
+                                          vec2(0.805, -0.02),
+                                          vec2(0.617, -0.067),
+                                          vec2(0.45, -0.169),
+                                          vec2(0.293, -0.293),
+                                          vec2(0.169, -0.45),
+                                          vec2(0.076, -0.617),
+                                          vec2(0.02, -0.805),
+                                          vec2(0.0, -1.0));
 
-  const vec2 center_offset[4] = vec2[4](
+  const vec2 center_offset[4] = float2_array(
       vec2(1.0, 1.0), vec2(-1.0, 1.0), vec2(-1.0, -1.0), vec2(1.0, -1.0));
 
   uint cflag = vflag & CNR_FLAG_RANGE;

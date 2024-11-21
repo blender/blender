@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BLI_listbase.h"
 #include "BLI_sys_types.h"
 #include "BLI_utildefines.h"

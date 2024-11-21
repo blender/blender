@@ -10,7 +10,6 @@ set(INC
   ../../io/alembic
   ../../io/collada
   ../../io/common
-  ../../io/gpencil_legacy
   ../../io/grease_pencil
   ../../io/ply
   ../../io/stl
@@ -30,9 +29,6 @@ set(SRC
   io_cache.cc
   io_collada.cc
   io_drop_import_file.cc
-  io_gpencil_legacy_export.cc
-  io_gpencil_legacy_import.cc
-  io_gpencil_legacy_utils.cc
   io_grease_pencil.cc
   io_obj.cc
   io_ops.cc
@@ -45,7 +41,6 @@ set(SRC
   io_cache.hh
   io_collada.hh
   io_drop_import_file.hh
-  io_gpencil_legacy.hh
   io_grease_pencil.hh
   io_obj.hh
   io_ops.hh
@@ -95,7 +90,6 @@ endif()
 
 if(WITH_IO_GREASE_PENCIL)
   list(APPEND LIB
-    bf_io_gpencil_legacy
     bf_io_grease_pencil
   )
   add_definitions(-DWITH_IO_GREASE_PENCIL)

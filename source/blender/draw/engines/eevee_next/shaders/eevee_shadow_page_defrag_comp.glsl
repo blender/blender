@@ -18,9 +18,9 @@
  *     `[----xxxxxx------]`
  */
 
-#pragma BLENDER_REQUIRE(eevee_shadow_page_ops_lib.glsl)
+#include "eevee_shadow_page_ops_lib.glsl"
 
-const uint max_page = SHADOW_MAX_PAGE;
+#define max_page uint(SHADOW_MAX_PAGE)
 
 void find_first_valid(inout uint src, uint dst)
 {

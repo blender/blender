@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(gpu_shader_common_color_utils.glsl)
+#include "gpu_shader_common_color_utils.glsl"
 
 void node_composite_hue_saturation_value(
     vec4 color, float hue, float saturation, float value, float factor, out vec4 result)

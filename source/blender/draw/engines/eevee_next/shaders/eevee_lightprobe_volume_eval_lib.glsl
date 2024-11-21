@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 /**
  * The resources expected to be defined are:
  * - grids_infos_buf
@@ -12,10 +14,10 @@
  * - sampling_buf
  */
 
-#pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_lightprobe_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_spherical_harmonics_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
+#include "eevee_lightprobe_lib.glsl"
+#include "eevee_sampling_lib.glsl"
+#include "eevee_spherical_harmonics_lib.glsl"
+#include "gpu_shader_math_base_lib.glsl"
 
 /**
  * Return the brick coordinate inside the grid.
@@ -168,7 +170,7 @@ SphericalHarmonicL1 lightprobe_volume_sample(
 
   VolumeProbeData grid_data = grids_infos_buf[index];
 
-  mat3x3 world_to_grid_transposed = mat3x3(grid_data.world_to_grid_transposed);
+  mat3x3 world_to_grid_transposed = to_float3x3(grid_data.world_to_grid_transposed);
   vec3 lNg = safe_normalize(Ng * world_to_grid_transposed);
   vec3 lV = safe_normalize(V * world_to_grid_transposed);
 

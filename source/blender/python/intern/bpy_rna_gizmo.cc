@@ -49,10 +49,10 @@ static int py_rna_gizmo_parse(PyObject *o, void *p)
 {
   /* No type checking (this is `self` not a user defined argument). */
   BLI_assert(BPy_StructRNA_Check(o));
-  BLI_assert(RNA_struct_is_a(((const BPy_StructRNA *)o)->ptr.type, &RNA_Gizmo));
+  BLI_assert(RNA_struct_is_a(((const BPy_StructRNA *)o)->ptr->type, &RNA_Gizmo));
 
   wmGizmo **gz_p = static_cast<wmGizmo **>(p);
-  *gz_p = static_cast<wmGizmo *>(((const BPy_StructRNA *)o)->ptr.data);
+  *gz_p = static_cast<wmGizmo *>(((const BPy_StructRNA *)o)->ptr->data);
   return 1;
 }
 
@@ -322,12 +322,13 @@ PyDoc_STRVAR(
     "   Assigns callbacks to a gizmos property.\n"
     "\n"
     "   :arg target: Target property name.\n"
-    "   :type target: string\n"
+    "   :type target: str\n"
     "   :arg get: Function that returns the value for this property (single value or sequence).\n"
-    "   :type get: callable\n"
+    "   :type get: Callable[[], float | Sequence[float]]\n"
     "   :arg set: Function that takes a single value argument and applies it.\n"
-    "   :type set: callable\n"
-    "   :arg range: Function that returns a (min, max) tuple for gizmos that use a range.\n"
+    "   :type set: Callable[[tuple[float, ...]], Any]\n"
+    "   :arg range: Function that returns a (min, max) tuple for gizmos that use a range. "
+    "The returned value is not used.\n"
     "   :type range: callable\n");
 static PyObject *bpy_gizmo_target_set_handler(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
@@ -439,9 +440,9 @@ PyDoc_STRVAR(
     "   Get the value of this target property.\n"
     "\n"
     "   :arg target: Target property name.\n"
-    "   :type target: string\n"
-    "   :return: The value of the target property.\n"
-    "   :rtype: Single value or array based on the target type\n");
+    "   :type target: str\n"
+    "   :return: The value of the target property as a value or array based on the target type.\n"
+    "   :rtype: float | tuple[float, ...]\n");
 static PyObject *bpy_gizmo_target_get_value(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
   struct {
@@ -510,7 +511,7 @@ PyDoc_STRVAR(
     "   Set the value of this target property.\n"
     "\n"
     "   :arg target: Target property name.\n"
-    "   :type target: string\n");
+    "   :type target: str\n");
 static PyObject *bpy_gizmo_target_set_value(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
   struct {
@@ -598,7 +599,7 @@ PyDoc_STRVAR(
     "\n"
     "   :arg target: Target property name.\n"
     "   :return: The range of this property (min, max).\n"
-    "   :rtype: tuple pair.\n");
+    "   :rtype: tuple[float, float]\n");
 static PyObject *bpy_gizmo_target_get_range(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
   struct {

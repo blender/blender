@@ -2,8 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma once
+
+#include "common_math_lib.glsl"
+#include "common_view_lib.glsl"
 
 #ifndef DRW_GPENCIL_INFO
 #  error Missing additional info draw_gpencil
@@ -379,7 +381,7 @@ vec4 gpencil_vertex(vec4 viewport_size,
                     out float out_hardness)
 {
   return gpencil_vertex(viewport_size,
-                        0u,
+                        gpMaterialFlag(0u),
                         vec2(1.0, 0.0),
                         out_P,
                         out_N,

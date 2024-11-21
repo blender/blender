@@ -2,8 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(gpu_shader_bicubic_sampler_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
+#include "gpu_shader_bicubic_sampler_lib.glsl"
+#include "gpu_shader_compositor_texture_utilities.glsl"
 
 void main()
 {
@@ -15,7 +15,7 @@ void main()
   /* Transform the input image by transforming the domain coordinates with the inverse of input
    * image's transformation. The inverse transformation is an affine matrix and thus the
    * coordinates should be in homogeneous coordinates. */
-  coordinates = (mat3(inverse_transformation) * vec3(coordinates, 1.0)).xy;
+  coordinates = (to_float3x3(inverse_transformation) * vec3(coordinates, 1.0)).xy;
 
   /* Subtract the offset and divide by the input image size to get the relevant coordinates into
    * the sampler's expected [0, 1] range. */

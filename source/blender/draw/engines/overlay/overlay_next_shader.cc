@@ -16,13 +16,10 @@ ShaderModule::ShaderPtr ShaderModule::shader(
     const char *create_info_name,
     const FunctionRef<void(gpu::shader::ShaderCreateInfo &info)> patch)
 {
-  const gpu::shader::ShaderCreateInfo *info_ptr =
-      reinterpret_cast<const gpu::shader::ShaderCreateInfo *>(
-          GPU_shader_create_info_get(create_info_name));
-  BLI_assert(info_ptr != nullptr);
-
   /* Perform a copy for patching. */
-  gpu::shader::ShaderCreateInfo info = *info_ptr;
+  gpu::shader::ShaderCreateInfo info(create_info_name);
+  GPU_shader_create_info_get_unfinalized_copy(create_info_name,
+                                              reinterpret_cast<GPUShaderCreateInfo &>(info));
 
   patch(info);
 
@@ -45,8 +42,11 @@ ShaderModule::ShaderPtr ShaderModule::selectable_shader(const char *create_info_
   // this->shader_ = GPU_shader_create_from_info_name(create_info_name.c_str());
 
   /* WORKAROUND: ... but for now, we have to patch the create info used by the old engine. */
-  gpu::shader::ShaderCreateInfo info = *reinterpret_cast<const gpu::shader::ShaderCreateInfo *>(
-      GPU_shader_create_info_get(create_info_name));
+
+  /* Perform a copy for patching. */
+  gpu::shader::ShaderCreateInfo info(create_info_name);
+  GPU_shader_create_info_get_unfinalized_copy(create_info_name,
+                                              reinterpret_cast<GPUShaderCreateInfo &>(info));
 
   info.define("OVERLAY_NEXT");
 
@@ -74,8 +74,10 @@ ShaderModule::ShaderPtr ShaderModule::selectable_shader(
     const char *create_info_name,
     const FunctionRef<void(gpu::shader::ShaderCreateInfo &info)> patch)
 {
-  gpu::shader::ShaderCreateInfo info = *reinterpret_cast<const gpu::shader::ShaderCreateInfo *>(
-      GPU_shader_create_info_get(create_info_name));
+  /* Perform a copy for patching. */
+  gpu::shader::ShaderCreateInfo info(create_info_name);
+  GPU_shader_create_info_get_unfinalized_copy(create_info_name,
+                                              reinterpret_cast<GPUShaderCreateInfo &>(info));
 
   patch(info);
 
@@ -115,7 +117,7 @@ static void shader_patch_edit_mesh_normal_common(gpu::shader::ShaderCreateInfo &
   shader_patch_common(info);
   info.defines_.clear(); /* Removes WORKAROUND_INDEX_LOAD_INCLUDE. */
   info.vertex_inputs_.clear();
-  info.additional_info("gpu_index_load");
+  info.additional_info("gpu_index_buffer_load");
   info.storage_buf(1, Qualifier::READ, "float", "pos[]", Frequency::GEOMETRY);
 }
 
@@ -158,13 +160,13 @@ ShaderModule::ShaderModule(const SelectionType selection_type, const bool clippi
         info.vertex_inputs_.pop_last();
       });
 
-  curve_edit_points = shader(
-      "overlay_edit_particle_point",
-      [](gpu::shader::ShaderCreateInfo &info) { shader_patch_common(info); });
+  curve_edit_points = shader("overlay_edit_curves_point", [](gpu::shader::ShaderCreateInfo &info) {
+    shader_patch_common(info);
+  });
   curve_edit_line = shader("overlay_edit_particle_strand",
                            [](gpu::shader::ShaderCreateInfo &info) { shader_patch_common(info); });
 
-  extra_point = shader("overlay_extra_point", [](gpu::shader::ShaderCreateInfo &info) {
+  extra_point = selectable_shader("overlay_extra_point", [](gpu::shader::ShaderCreateInfo &info) {
     info.additional_infos_.clear();
     info.vertex_inputs_.pop_last();
     info.push_constants_.pop_last();
@@ -569,6 +571,24 @@ ShaderModule::ShaderModule(const SelectionType selection_type, const bool clippi
     info.additional_infos_.clear();
     info.additional_info(
         "draw_view", "draw_globals", "draw_modelmat_new", "draw_resource_handle_new");
+  });
+
+  image_plane_depth_bias = selectable_shader(
+      "overlay_image", [](gpu::shader::ShaderCreateInfo &info) {
+        info.additional_infos_.clear();
+        info.additional_info(
+            "draw_view", "draw_globals", "draw_modelmat_new", "draw_resource_handle_new");
+        info.define("DEPTH_BIAS");
+        info.push_constant(gpu::shader::Type::MAT4, "depth_bias_winmat");
+      });
+
+  light_spot_cone = shader("overlay_extra", [](gpu::shader::ShaderCreateInfo &info) {
+    info.storage_buf(0, Qualifier::READ, "ExtraInstanceData", "data_buf[]");
+    info.define("color", "data_buf[gl_InstanceID].color_");
+    info.define("inst_obmat", "data_buf[gl_InstanceID].object_to_world_");
+    info.vertex_inputs_.pop_last();
+    info.vertex_inputs_.pop_last();
+    info.define("IS_SPOT_CONE");
   });
 
   particle_dot = selectable_shader("overlay_particle_dot",

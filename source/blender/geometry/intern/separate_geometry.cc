@@ -143,6 +143,7 @@ static std::optional<GreasePencil *> separate_grease_pencil_layer_selection(
 
   GreasePencil *dst_grease_pencil = BKE_grease_pencil_new_nomain();
   BKE_grease_pencil_duplicate_drawing_array(&src_grease_pencil, dst_grease_pencil);
+  BKE_grease_pencil_copy_parameters(src_grease_pencil, *dst_grease_pencil);
   selection.foreach_index([&](const int index) {
     const bke::greasepencil::Layer &src_layer = src_grease_pencil.layer(index);
     dst_grease_pencil->duplicate_layer(src_layer);
@@ -215,7 +216,7 @@ void separate_geometry(bke::GeometrySet &geometry_set,
       std::optional<bke::CurvesGeometry> dst_curves = separate_curves_selection(
           src_curves, field_context, selection, domain, attribute_filter);
       if (dst_curves) {
-        if (dst_curves->points_num() == 0) {
+        if (dst_curves->is_empty()) {
           geometry_set.remove<bke::CurveComponent>();
         }
         else {

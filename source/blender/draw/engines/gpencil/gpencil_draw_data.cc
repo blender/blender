@@ -10,7 +10,7 @@
 
 #include "DNA_light_types.h"
 
-#include "BKE_image.h"
+#include "BKE_image.hh"
 
 #include "BLI_hash.h"
 #include "BLI_math_color.h"
@@ -241,8 +241,8 @@ GPENCIL_MaterialPool *gpencil_material_pool_create(GPENCIL_PrivateData *pd,
     if ((gp_style->stroke_style == GP_MATERIAL_STROKE_STYLE_TEXTURE) && (gp_style->sima)) {
       bool premul;
       pool->tex_stroke[mat_id] = gpencil_image_texture_get(gp_style->sima, &premul);
-      mat_data->flag |= pool->tex_stroke[mat_id] ? GP_STROKE_TEXTURE_USE : 0;
-      mat_data->flag |= premul ? GP_STROKE_TEXTURE_PREMUL : 0;
+      mat_data->flag |= pool->tex_stroke[mat_id] ? GP_STROKE_TEXTURE_USE : GP_FLAG_NONE;
+      mat_data->flag |= premul ? GP_STROKE_TEXTURE_PREMUL : GP_FLAG_NONE;
       copy_v4_v4(mat_data->stroke_color, gp_style->stroke_rgba);
       mat_data->stroke_texture_mix = 1.0f - gp_style->mix_stroke_factor;
       mat_data->stroke_u_scale = 500.0f / gp_style->texture_pixsize;
@@ -259,9 +259,9 @@ GPENCIL_MaterialPool *gpencil_material_pool_create(GPENCIL_PrivateData *pd,
       bool use_clip = (gp_style->flag & GP_MATERIAL_TEX_CLAMP) != 0;
       bool premul;
       pool->tex_fill[mat_id] = gpencil_image_texture_get(gp_style->ima, &premul);
-      mat_data->flag |= pool->tex_fill[mat_id] ? GP_FILL_TEXTURE_USE : 0;
-      mat_data->flag |= premul ? GP_FILL_TEXTURE_PREMUL : 0;
-      mat_data->flag |= use_clip ? GP_FILL_TEXTURE_CLIP : 0;
+      mat_data->flag |= pool->tex_fill[mat_id] ? GP_FILL_TEXTURE_USE : GP_FLAG_NONE;
+      mat_data->flag |= premul ? GP_FILL_TEXTURE_PREMUL : GP_FLAG_NONE;
+      mat_data->flag |= use_clip ? GP_FILL_TEXTURE_CLIP : GP_FLAG_NONE;
       gpencil_uv_transform_get(gp_style->texture_offset,
                                gp_style->texture_scale,
                                gp_style->texture_angle,
@@ -274,7 +274,7 @@ GPENCIL_MaterialPool *gpencil_material_pool_create(GPENCIL_PrivateData *pd,
       bool use_radial = (gp_style->gradient_type == GP_MATERIAL_GRADIENT_RADIAL);
       pool->tex_fill[mat_id] = nullptr;
       mat_data->flag |= GP_FILL_GRADIENT_USE;
-      mat_data->flag |= use_radial ? GP_FILL_GRADIENT_RADIAL : 0;
+      mat_data->flag |= use_radial ? GP_FILL_GRADIENT_RADIAL : GP_FLAG_NONE;
       gpencil_uv_transform_get(gp_style->texture_offset,
                                gp_style->texture_scale,
                                gp_style->texture_angle,
@@ -452,7 +452,7 @@ static void gpencil_view_layer_data_free(void *storage)
   BLI_memblock_destroy(vldata->gp_maskbit_pool, nullptr);
   BLI_memblock_destroy(vldata->gp_object_pool, nullptr);
   BLI_memblock_destroy(vldata->gp_layer_pool, nullptr);
-  BLI_memblock_destroy(vldata->gp_vfx_pool, nullptr);
+  delete vldata->gp_vfx_pool;
 }
 
 GPENCIL_ViewLayerData *GPENCIL_view_layer_data_ensure()
@@ -472,7 +472,7 @@ GPENCIL_ViewLayerData *GPENCIL_view_layer_data_ensure()
     (*vldata)->gp_maskbit_pool = BLI_memblock_create(BLI_BITMAP_SIZE(GP_MAX_MASKBITS));
     (*vldata)->gp_object_pool = BLI_memblock_create(sizeof(GPENCIL_tObject));
     (*vldata)->gp_layer_pool = BLI_memblock_create(sizeof(GPENCIL_tLayer));
-    (*vldata)->gp_vfx_pool = BLI_memblock_create(sizeof(GPENCIL_tVfx));
+    (*vldata)->gp_vfx_pool = new GPENCIL_tVfx_Pool();
   }
 
   return *vldata;

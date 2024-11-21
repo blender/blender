@@ -2,16 +2,18 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 /**
  * Film accumulation utils functions.
  */
 
-#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_colorspace_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_cryptomatte_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
-#pragma BLENDER_REQUIRE(draw_math_geom_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_velocity_lib.glsl)
+#include "draw_math_geom_lib.glsl"
+#include "draw_view_lib.glsl"
+#include "eevee_colorspace_lib.glsl"
+#include "eevee_cryptomatte_lib.glsl"
+#include "eevee_velocity_lib.glsl"
+#include "gpu_shader_math_vector_lib.glsl"
 
 /* Return scene linear Z depth from the camera or radial depth for panoramic cameras. */
 float film_depth_convert_to_scene(float depth)
@@ -193,7 +195,7 @@ void film_cryptomatte_layer_accum_and_store(
     return;
   }
   /* x = hash, y = accumulated weight. Only keep track of 4 highest weighted samples. */
-  vec2 crypto_samples[4] = vec2[4](vec2(0.0), vec2(0.0), vec2(0.0), vec2(0.0));
+  vec2 crypto_samples[4] = float2_array(vec2(0.0), vec2(0.0), vec2(0.0), vec2(0.0));
   for (int i = 0; i < samples_len; i++) {
     FilmSample src = film_sample_get(i, texel_film);
     film_sample_cryptomatte_accum(src, layer_component, cryptomatte_tx, crypto_samples);
@@ -244,7 +246,7 @@ vec2 film_pixel_history_motion_vector(ivec2 texel_sample)
    * Dilate velocity by using the nearest pixel in a cross pattern.
    * "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014 (Slide 27)
    */
-  const ivec2 corners[4] = ivec2[4](ivec2(-2, -2), ivec2(2, -2), ivec2(-2, 2), ivec2(2, 2));
+  const ivec2 corners[4] = int2_array(ivec2(-2, -2), ivec2(2, -2), ivec2(-2, 2), ivec2(2, 2));
   float min_depth = texelFetch(depth_tx, texel_sample, 0).x;
   ivec2 nearest_texel = texel_sample;
   for (int i = 0; i < 4; i++) {
@@ -340,11 +342,11 @@ vec4 film_sample_catmull_rom(sampler2D color_tx, vec2 input_texel)
 void film_combined_neighbor_boundbox(ivec2 texel, out vec4 min_c, out vec4 max_c)
 {
   /* Plus (+) shape offsets. */
-  const ivec2 plus_offsets[5] = ivec2[5](ivec2(0, 0), /* Center */
-                                         ivec2(-1, 0),
-                                         ivec2(0, -1),
-                                         ivec2(1, 0),
-                                         ivec2(0, 1));
+  const ivec2 plus_offsets[5] = int2_array(ivec2(0, 0), /* Center */
+                                           ivec2(-1, 0),
+                                           ivec2(0, -1),
+                                           ivec2(1, 0),
+                                           ivec2(0, 1));
 #if 0
   /**
    * Compute Variance of neighborhood as described in:
@@ -387,7 +389,7 @@ void film_combined_neighbor_boundbox(ivec2 texel, out vec4 min_c, out vec4 max_c
    * Round bbox shape by averaging 2 different min/max from 2 different neighborhood. */
   vec4 min_c_3x3 = min_c;
   vec4 max_c_3x3 = max_c;
-  const ivec2 corners[4] = ivec2[4](ivec2(-1, -1), ivec2(1, -1), ivec2(-1, 1), ivec2(1, 1));
+  const ivec2 corners[4] = int2_array(ivec2(-1, -1), ivec2(1, -1), ivec2(-1, 1), ivec2(1, 1));
   for (int i = 0; i < 4; i++) {
     vec4 color = film_texelfetch_as_YCoCg_opacity(combined_tx, texel + corners[i]);
     min_c_3x3 = min(min_c_3x3, color);

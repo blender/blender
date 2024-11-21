@@ -358,15 +358,15 @@ void BVHBuild::add_reference_geometry(BoundBox &root,
                                       Geometry *geom,
                                       int object_index)
 {
-  if (geom->geometry_type == Geometry::MESH || geom->geometry_type == Geometry::VOLUME) {
+  if (geom->is_mesh() || geom->is_volume()) {
     Mesh *mesh = static_cast<Mesh *>(geom);
     add_reference_triangles(root, center, mesh, object_index);
   }
-  else if (geom->geometry_type == Geometry::HAIR) {
+  else if (geom->is_hair()) {
     Hair *hair = static_cast<Hair *>(geom);
     add_reference_curves(root, center, hair, object_index);
   }
-  else if (geom->geometry_type == Geometry::POINTCLOUD) {
+  else if (geom->is_pointcloud()) {
     PointCloud *pointcloud = static_cast<PointCloud *>(geom);
     add_reference_points(root, center, pointcloud, object_index);
   }
@@ -392,15 +392,15 @@ static size_t count_curve_segments(Hair *hair)
 
 static size_t count_primitives(Geometry *geom)
 {
-  if (geom->geometry_type == Geometry::MESH || geom->geometry_type == Geometry::VOLUME) {
+  if (geom->is_mesh() || geom->is_volume()) {
     Mesh *mesh = static_cast<Mesh *>(geom);
     return mesh->num_triangles();
   }
-  else if (geom->geometry_type == Geometry::HAIR) {
+  else if (geom->is_hair()) {
     Hair *hair = static_cast<Hair *>(geom);
     return count_curve_segments(hair);
   }
-  else if (geom->geometry_type == Geometry::POINTCLOUD) {
+  else if (geom->is_pointcloud()) {
     PointCloud *pointcloud = static_cast<PointCloud *>(geom);
     return pointcloud->num_points();
   }

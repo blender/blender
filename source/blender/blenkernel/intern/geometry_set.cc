@@ -238,7 +238,7 @@ std::ostream &operator<<(std::ostream &stream, const GeometrySet &geometry_set)
     parts.append(std::to_string(curves->geometry.curve_num) + " curves");
   }
   if (const GreasePencil *grease_pencil = geometry_set.get_grease_pencil()) {
-    parts.append(std::to_string(grease_pencil->layers().size()) + " grease pencil layers");
+    parts.append(std::to_string(grease_pencil->layers().size()) + " Grease Pencil layers");
   }
   if (const PointCloud *point_cloud = geometry_set.get_pointcloud()) {
     parts.append(std::to_string(point_cloud->totpoint) + " points");
@@ -627,30 +627,40 @@ void GeometrySet::attribute_foreach(const Span<GeometryComponent::Type> componen
   }
 }
 
-void GeometrySet::propagate_attributes_from_layer_to_instances(
-    const AttributeAccessor src_attributes,
-    MutableAttributeAccessor dst_attributes,
-    const AttributeFilter &attribute_filter)
+bool attribute_is_builtin_on_component_type(const GeometryComponent::Type type,
+                                            const StringRef name)
 {
-  src_attributes.foreach_attribute([&](const AttributeIter &iter) {
-    if (attribute_filter.allow_skip(iter.name)) {
-      return;
+  switch (type) {
+    case GeometryComponent::Type::Mesh: {
+      static auto component = GeometryComponent::create(type);
+      return component->attributes()->is_builtin(name);
     }
-    const GAttributeReader src = iter.get(AttrDomain::Layer);
-    if (src.sharing_info && src.varray.is_span()) {
-      const AttributeInitShared init(src.varray.get_internal_span().data(), *src.sharing_info);
-      if (dst_attributes.add(iter.name, AttrDomain::Instance, iter.data_type, init)) {
-        return;
-      }
+    case GeometryComponent::Type::PointCloud: {
+      static auto component = GeometryComponent::create(type);
+      return component->attributes()->is_builtin(name);
     }
-    GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
-        iter.name, AttrDomain::Instance, iter.data_type);
-    if (!dst) {
-      return;
+    case GeometryComponent::Type::Instance: {
+      static auto component = GeometryComponent::create(type);
+      return component->attributes()->is_builtin(name);
     }
-    array_utils::copy(src.varray, dst.span);
-    dst.finish();
-  });
+    case GeometryComponent::Type::Curve: {
+      static auto component = GeometryComponent::create(type);
+      return component->attributes()->is_builtin(name);
+    }
+    case GeometryComponent::Type::GreasePencil: {
+      static auto grease_pencil_component = GeometryComponent::create(
+          GeometryComponent::Type::GreasePencil);
+      static auto curves_component = GeometryComponent::create(GeometryComponent::Type::Curve);
+      return grease_pencil_component->attributes()->is_builtin(name) ||
+             curves_component->attributes()->is_builtin(name);
+    }
+    case GeometryComponent::Type::Volume:
+    case GeometryComponent::Type::Edit: {
+      return false;
+    }
+  }
+  BLI_assert_unreachable();
+  return false;
 }
 
 void GeometrySet::gather_attributes_for_propagation(
@@ -658,11 +668,8 @@ void GeometrySet::gather_attributes_for_propagation(
     const GeometryComponent::Type dst_component_type,
     bool include_instances,
     const AttributeFilter &attribute_filter,
-    Map<StringRef, AttributeKind> &r_attributes) const
+    Map<StringRef, AttributeDomainAndType> &r_attributes) const
 {
-  /* Only needed right now to check if an attribute is built-in on this component type.
-   * TODO: Get rid of the dummy component. */
-  const GeometryComponentPtr dummy_component = GeometryComponent::create(dst_component_type);
   this->attribute_foreach(
       component_types,
       include_instances,
@@ -670,7 +677,7 @@ void GeometrySet::gather_attributes_for_propagation(
           const AttributeMetaData &meta_data,
           const GeometryComponent &component) {
         if (component.attributes()->is_builtin(attribute_id)) {
-          if (!dummy_component->attributes()->is_builtin(attribute_id)) {
+          if (!attribute_is_builtin_on_component_type(dst_component_type, attribute_id)) {
             /* Don't propagate built-in attributes that are not built-in on the destination
              * component. */
             return;
@@ -690,11 +697,11 @@ void GeometrySet::gather_attributes_for_propagation(
           domain = AttrDomain::Point;
         }
 
-        auto add_info = [&](AttributeKind *attribute_kind) {
+        auto add_info = [&](AttributeDomainAndType *attribute_kind) {
           attribute_kind->domain = domain;
           attribute_kind->data_type = meta_data.data_type;
         };
-        auto modify_info = [&](AttributeKind *attribute_kind) {
+        auto modify_info = [&](AttributeDomainAndType *attribute_kind) {
           attribute_kind->domain = bke::attribute_domain_highest_priority(
               {attribute_kind->domain, domain});
           attribute_kind->data_type = bke::attribute_data_type_highest_complexity(

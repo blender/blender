@@ -468,7 +468,6 @@ id<MTLComputePipelineState> gpu::MTLTexture::mtl_texture_update_impl(
     }
 
     /* Store PSO. */
-    [compute_pso retain];
     specialization_cache.add_new(specialization_params, compute_pso);
     return_pso = compute_pso;
   }
@@ -790,7 +789,6 @@ id<MTLComputePipelineState> gpu::MTLTexture::mtl_texture_read_impl(
     }
 
     /* Store PSO. */
-    [compute_pso retain];
     specialization_cache.add_new(specialization_params, compute_pso);
     return_pso = compute_pso;
   }

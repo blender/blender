@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'd52d70324d18')\n"
+"Project-Id-Version: Blender 4.3.0 Release Candidate (b'7dfe47164a63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-16 11:03+0000\n"
+"POT-Creation-Date: 2024-11-18 11:20+0000\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -33,10 +33,6 @@ msgstr "Boja"
 
 msgid "Value"
 msgstr "Vrednost"
-
-
-msgid "F-Curves"
-msgstr "F-kriva"
 
 
 msgid "Action Group"
@@ -183,50 +179,6 @@ msgid "Expanded"
 msgstr "Prošireno"
 
 
-msgid "Influence"
-msgstr "Uticaj"
-
-
-msgid "Mix Mode"
-msgstr "Režim mešanja"
-
-
-msgid "Replace"
-msgstr "Zameni"
-
-
-msgid "Offset"
-msgstr "Odstojanje"
-
-
-msgid "Add"
-msgstr "Dodaj"
-
-
-msgid "Subtract"
-msgstr "Oduzimanje"
-
-
-msgid "Multiply"
-msgstr "Umnoženo"
-
-
-msgid "Strips"
-msgstr "Trake"
-
-
-msgid "Active"
-msgstr "Aktivno"
-
-
-msgid "Show Expanded"
-msgstr "Prikaži prošireno"
-
-
-msgid "Keyframe"
-msgstr "Ključni kadar"
-
-
 msgid "Module"
 msgstr "Modul"
 
@@ -297,6 +249,22 @@ msgstr "Trajna putanja do podataka"
 
 msgid "Action"
 msgstr "Akcija"
+
+
+msgid "Replace"
+msgstr "Zameni"
+
+
+msgid "Add"
+msgstr "Dodaj"
+
+
+msgid "Subtract"
+msgstr "Oduzimanje"
+
+
+msgid "Multiply"
+msgstr "Umnoženo"
 
 
 msgid "Nothing"
@@ -935,6 +903,106 @@ msgid "Worlds"
 msgstr "Svetovi"
 
 
+msgid "ID Type"
+msgstr "Vrsta ID-a"
+
+
+msgid "Armature"
+msgstr "Kostur"
+
+
+msgid "Brush"
+msgstr "Četkica"
+
+
+msgid "Camera"
+msgstr "Kamera"
+
+
+msgid "Curve"
+msgstr "Kriva"
+
+
+msgid "Font"
+msgstr "Font"
+
+
+msgid "Image"
+msgstr "Slika"
+
+
+msgid "Key"
+msgstr "Ključ"
+
+
+msgid "Lattice"
+msgstr "Kavez"
+
+
+msgid "Library"
+msgstr "Zbirka"
+
+
+msgid "Light"
+msgstr "Svetlost"
+
+
+msgid "Mask"
+msgstr "Maska"
+
+
+msgid "Material"
+msgstr "Materijal"
+
+
+msgid "Mesh"
+msgstr "Meš"
+
+
+msgid "Metaball"
+msgstr "Meta lopta"
+
+
+msgid "Node Tree"
+msgstr "Drvo čvorova"
+
+
+msgid "Particle"
+msgstr "Čestica"
+
+
+msgid "Scene"
+msgstr "Scena"
+
+
+msgid "Screen"
+msgstr "Ekran"
+
+
+msgid "Sound"
+msgstr "Zvuk"
+
+
+msgid "Speaker"
+msgstr "Zvučnik"
+
+
+msgid "Texture"
+msgstr "Tekstura"
+
+
+msgid "Volume"
+msgstr "Zapremina"
+
+
+msgid "Window Manager"
+msgstr "Upravljač prozorima"
+
+
+msgid "World"
+msgstr "Svet"
+
+
 msgid "Blender RNA"
 msgstr "Blender RNK"
 
@@ -1167,10 +1235,6 @@ msgid "All rules are averaged"
 msgstr "Sva pravila su prosečna"
 
 
-msgid "Volume"
-msgstr "Zapremina"
-
-
 msgid "Automatic"
 msgstr "Automatski početak"
 
@@ -1361,8 +1425,8 @@ msgid "Mode"
 msgstr "Režim rada"
 
 
-msgid "Material"
-msgstr "Materijal"
+msgid "Active"
+msgstr "Aktivno"
 
 
 msgid "Vertex Color"
@@ -1465,8 +1529,8 @@ msgid "Crop"
 msgstr "Iseci"
 
 
-msgid "Image"
-msgstr "Slika"
+msgid "Offset"
+msgstr "Odstojanje"
 
 
 msgid "Rotation"
@@ -1483,6 +1547,10 @@ msgstr "Uvećanje"
 
 msgid "Show Background Image"
 msgstr "Prikaži pozadinsku sliku"
+
+
+msgid "Show Expanded"
+msgstr "Prikaži prošireno"
 
 
 msgid "Show On Foreground"
@@ -1849,10 +1917,6 @@ msgid "Color Space"
 msgstr "Prostor boja"
 
 
-msgid "Curve"
-msgstr "Kriva"
-
-
 msgid "Exposure"
 msgstr "Ekspozicija"
 
@@ -1903,10 +1967,6 @@ msgstr "Tamnije"
 
 msgid "Lighten"
 msgstr "Svetlije"
-
-
-msgid "Screen"
-msgstr "Ekran"
 
 
 msgid "Overlay"
@@ -2044,6 +2104,10 @@ msgstr "Greška"
 
 msgid "Constraint modifying the transformation of objects and bones"
 msgstr "Ograničenje koji menja transformaciju objekata i kostiju"
+
+
+msgid "Influence"
+msgstr "Uticaj"
 
 
 msgid "Amount of influence constraint will have on the final solution"
@@ -2202,10 +2266,6 @@ msgid "Legacy tracking constraint prone to twisting artifacts"
 msgstr "Staro ograničenje praćenja za uklanjanje nepravilnog uvijanja"
 
 
-msgid "Armature"
-msgstr "Kostur"
-
-
 msgid "Child Of"
 msgstr "Dete od"
 
@@ -2244,6 +2304,10 @@ msgstr "Minimum"
 
 msgid "Minimum value for target channel range"
 msgstr "Postavlja minimalnu Y vrednost renderovanog okvira"
+
+
+msgid "Mix Mode"
+msgstr "Režim mešanja"
 
 
 msgid "Transform Channel"
@@ -2468,10 +2532,6 @@ msgstr "Prati krivu"
 
 msgid "Fixed Position"
 msgstr "Fiksna pozicija"
-
-
-msgid "Camera"
-msgstr "Kamera"
 
 
 msgid "Depth Object"
@@ -2953,10 +3013,6 @@ msgstr "Aktivna kriva"
 
 msgid "Render"
 msgstr "Rendering"
-
-
-msgid "Scene"
-msgstr "Scena"
 
 
 msgid "Generated Coordinates"
@@ -3549,10 +3605,6 @@ msgstr "UV tekstura"
 
 msgid "Data Layer"
 msgstr "Sloj podataka"
-
-
-msgid "Texture"
-msgstr "Tekstura"
 
 
 msgid "Is Active"
@@ -4820,6 +4872,10 @@ msgid "Grease Pencil Frame"
 msgstr "Skicirani kadar"
 
 
+msgid "Keyframe"
+msgstr "Ključni kadar"
+
+
 msgid "Extreme"
 msgstr "Ekstrem"
 
@@ -4884,66 +4940,6 @@ msgid "Show Line"
 msgstr "Prikaži liniju"
 
 
-msgid "Brush"
-msgstr "Četkica"
-
-
-msgid "Font"
-msgstr "Font"
-
-
-msgid "Key"
-msgstr "Ključ"
-
-
-msgid "Lattice"
-msgstr "Kavez"
-
-
-msgid "Library"
-msgstr "Zbirka"
-
-
-msgid "Light"
-msgstr "Svetlost"
-
-
-msgid "Mask"
-msgstr "Maska"
-
-
-msgid "Mesh"
-msgstr "Meš"
-
-
-msgid "Metaball"
-msgstr "Meta lopta"
-
-
-msgid "Node Tree"
-msgstr "Drvo čvorova"
-
-
-msgid "Particle"
-msgstr "Čestica"
-
-
-msgid "Sound"
-msgstr "Zvuk"
-
-
-msgid "Speaker"
-msgstr "Zvučnik"
-
-
-msgid "Window Manager"
-msgstr "Upravljač prozorima"
-
-
-msgid "World"
-msgstr "Svet"
-
-
 msgid "Editable"
 msgstr "Omogući"
 
@@ -4964,16 +4960,16 @@ msgid "Users"
 msgstr "Korisnici"
 
 
+msgid "F-Curves"
+msgstr "F-kriva"
+
+
 msgid "Frame Range"
 msgstr "Opseg kadrova:"
 
 
 msgid "Groups"
 msgstr "Grupe"
-
-
-msgid "Layers"
-msgstr "Slojevi"
 
 
 msgid "Stick"
@@ -5864,6 +5860,10 @@ msgid "Use Textures"
 msgstr "Koristi teksture"
 
 
+msgid "Layers"
+msgstr "Slojevi"
+
+
 msgid "Selected"
 msgstr "Izabrano"
 
@@ -6248,10 +6248,6 @@ msgid "Roughness"
 msgstr "Hrapavost"
 
 
-msgid "Opaque"
-msgstr "Neprovidno"
-
-
 msgid "Texture Slot Images"
 msgstr "Slike slota tekstura"
 
@@ -6366,10 +6362,6 @@ msgstr "Osveži"
 
 msgid "Filename of the movie or sequence file"
 msgstr "Naziv filma ili niza slika"
-
-
-msgid "Grease pencil data for this movie clip"
-msgstr "Podatak skiciranja ovog filmskog isečka"
 
 
 msgid "Movie File"
@@ -8086,28 +8078,8 @@ msgid "Codec"
 msgstr "Kodek"
 
 
-msgid "Codec settings for OpenEXR"
-msgstr "Podešavanje kodeka OpenEXR"
-
-
 msgid "Pxr24 (lossy)"
 msgstr "Pxr24 (sa gubitkom)"
-
-
-msgid "ZIP (lossless)"
-msgstr "ZIP (bez gubitka)"
-
-
-msgid "PIZ (lossless)"
-msgstr "PIZ (bez gubitka)"
-
-
-msgid "RLE (lossless)"
-msgstr "RLE (bez gubitka)"
-
-
-msgid "ZIPS (lossless)"
-msgstr "ZIPS (bez gubitka)"
 
 
 msgid "B44 (lossy)"
@@ -8680,10 +8652,6 @@ msgid "Mask Parent"
 msgstr "Maskiraj roditelja"
 
 
-msgid "ID Type"
-msgstr "Vrsta ID-a"
-
-
 msgid "Point Track"
 msgstr "Spoji staze"
 
@@ -8752,52 +8720,12 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
-msgid "Names"
-msgstr "Imena"
-
-
-msgid "Show/Hide"
-msgstr "Prikaži/sakrij"
-
-
-msgid "Apply"
-msgstr "Primeni"
-
-
-msgid "Toggle Bone Options"
-msgstr "Manje/više informacija"
-
-
-msgid "Enable Bone Options"
-msgstr "Omogući opcije kostiju"
-
-
-msgid "Disable Bone Options"
-msgstr "Onemogući opcije kostiju"
-
-
-msgid "Mesh Select Mode"
-msgstr "Mod izbora mreže"
-
-
-msgid "Merge"
-msgstr "Sjedini"
-
-
-msgid "Special Characters"
-msgstr "Specijalni znaci"
-
-
-msgid "Bone Roll"
-msgstr "Rolna kostiju"
+msgid "Mirror"
+msgstr "Ogledalo"
 
 
 msgid "Snap"
 msgstr "Lepljenje"
-
-
-msgid "Mirror"
-msgstr "Ogledalo"
 
 
 msgid "UV Mapping"
@@ -8828,12 +8756,20 @@ msgid "Rigid Body"
 msgstr "Kruto telo"
 
 
+msgid "Apply"
+msgstr "Primeni"
+
+
 msgid "Track"
 msgstr "Staza"
 
 
 msgid "Quick Effects"
 msgstr "Brzi efekti"
+
+
+msgid "Show/Hide"
+msgstr "Prikaži/sakrij"
 
 
 msgid "Hooks"
@@ -8850,6 +8786,38 @@ msgstr "U međuvremenu"
 
 msgid "Propagate"
 msgstr "Prenesi"
+
+
+msgid "Names"
+msgstr "Imena"
+
+
+msgid "Toggle Bone Options"
+msgstr "Manje/više informacija"
+
+
+msgid "Enable Bone Options"
+msgstr "Omogući opcije kostiju"
+
+
+msgid "Disable Bone Options"
+msgstr "Onemogući opcije kostiju"
+
+
+msgid "Mesh Select Mode"
+msgstr "Mod izbora mreže"
+
+
+msgid "Merge"
+msgstr "Sjedini"
+
+
+msgid "Special Characters"
+msgstr "Specijalni znaci"
+
+
+msgid "Bone Roll"
+msgstr "Rolna kostiju"
 
 
 msgid "Basic"
@@ -14531,11 +14499,6 @@ msgid "Default fill color"
 msgstr "Tekuća boja ispune"
 
 
-msgctxt "Operator"
-msgid "Delete Active Frame"
-msgstr "Izbriši aktivan kadar"
-
-
 msgid "Make annotations on the active data"
 msgstr "Dodaje oznake na aktivne podatke"
 
@@ -14568,322 +14531,9 @@ msgid "Eraser"
 msgstr "Gumica"
 
 
-msgid "Side"
-msgstr "Sa strane"
-
-
 msgctxt "Operator"
-msgid "Convert Grease Pencil"
-msgstr "Pretvori skicu"
-
-
-msgid "Convert the active Grease Pencil layer to a new Curve Object"
-msgstr "Pretvara aktivni sloj skice u objekat krive"
-
-
-msgid "Gap Duration"
-msgstr "Trajanje rupe"
-
-
-msgid "Multiplier for the points' radii (set from stroke width)"
-msgstr "Množilac tačaka radiusa (podešava debljinu poteza)"
-
-
-msgid "Use the original timing, gaps included"
-msgstr "Kost nasleđuje uvećanje sa roditeljske kosti"
-
-
-msgid "Custom Gaps"
-msgstr "Prilagođeni razmaci"
-
-
-msgid "Which type of curve to convert to"
-msgstr "U koju vrstu krive da pretvorim?"
-
-
-msgid "Polygon Curve"
-msgstr "Poligon"
-
-
-msgid "Normalize Weight"
-msgstr "Normalizovana debljina"
-
-
-msgctxt "Operator"
-msgid "Copy Strokes"
-msgstr "Kopiraj poteze"
-
-
-msgid "Copy selected Grease Pencil points and strokes"
-msgstr "Kopira izabrane poteze skice"
-
-
-msgid "Delete selected Grease Pencil strokes, vertices, or frames"
-msgstr "Briše izabrane poteze, tačke ili kadrove skice"
-
-
-msgid "Method used for deleting Grease Pencil data"
-msgstr "Način brisanja podataka skice"
-
-
-msgid "Delete selected points and split strokes into segments"
-msgstr "Izbriši izabrane tačke i razdvoj segmente poteza"
-
-
-msgid "Delete selected strokes"
-msgstr "Izbriši izabrane poteze"
-
-
-msgid "Delete active frame"
-msgstr "Izbriši aktivne kadrove"
-
-
-msgctxt "Operator"
-msgid "Dissolve"
-msgstr "Rastopi"
-
-
-msgid "Delete selected points without splitting strokes"
-msgstr "Briše izabrane tačke bez prekidanja poteza"
-
-
-msgctxt "Operator"
-msgid "Grease Pencil Draw"
-msgstr "Skiciranje"
-
-
-msgid "Erase Grease Pencil strokes"
-msgstr "Briše skicirane poteze"
-
-
-msgctxt "Operator"
-msgid "Duplicate Strokes"
-msgstr "Dupliraj poteze"
-
-
-msgid "Duplicate the selected Grease Pencil strokes"
-msgstr "Dupliraj izabrane poteze skice"
-
-
-msgid "Make copies of the selected Grease Pencil strokes and move them"
-msgstr "Pravi kopiju izabranih poteza skice i pomera ih"
-
-
-msgid "Duplicate Strokes"
-msgstr "Dupliraj poteze"
-
-
-msgid "Only Selected"
-msgstr "Samo izabrano"
-
-
-msgid "Limit"
-msgstr "Granica"
-
-
-msgctxt "Operator"
-msgid "Hide Layer(s)"
-msgstr "Sakrij sloj/slojeve"
-
-
-msgid "Hide selected/unselected Grease Pencil layers"
-msgstr "Sakriva izabrane/neizrabrane slojeve skice"
-
-
-msgid "Hide unselected rather than selected layers"
-msgstr "Sakri neizabrane umesto izabranih slojeva"
-
-
-msgctxt "Operator"
-msgid "Add New Layer"
-msgstr "Dodaj novi sloj"
-
-
-msgctxt "Operator"
-msgid "Duplicate Layer"
-msgstr "Dupliraj sloj"
-
-
-msgid "Make a copy of the active Grease Pencil layer"
-msgstr "Duplira aktivni sloj skice"
-
-
-msgctxt "Operator"
-msgid "Remove Mask Layer"
-msgstr "Ukloni masku sloja"
-
-
-msgctxt "Operator"
-msgid "Move Grease Pencil Layer"
-msgstr "Premesti sloj skice"
-
-
-msgid "Move the active Grease Pencil layer up/down in the list"
-msgstr "Premešta redosled prikaza aktivnog sloja skiciranja u okviru liste slojeva"
-
-
-msgctxt "Operator"
-msgid "Remove Layer"
-msgstr "Ukloni sloj"
-
-
-msgid "Remove active Grease Pencil layer"
-msgstr "Uklanja aktivni sloj skice"
-
-
-msgctxt "Operator"
-msgid "Paste Strokes"
-msgstr "Ubaci poteze"
-
-
-msgctxt "Operator"
-msgid "All"
-msgstr "Sve"
-
-
-msgctxt "Operator"
-msgid "Rotate"
-msgstr "Rotiraj"
-
-
-msgctxt "Operator"
-msgid "Scale"
-msgstr "Povećaj/smanji"
-
-
-msgctxt "Operator"
-msgid "Show All Layers"
-msgstr "Prikaži sve slojeve"
-
-
-msgid "Show all Grease Pencil layers"
-msgstr "Pirkaži sve slojeve skice"
-
-
-msgid "Select Grease Pencil strokes and/or stroke points"
-msgstr "Izaberi poteze i/ili tačke skice"
-
-
-msgid "Entire Strokes"
-msgstr "Cele poteze"
-
-
-msgid "Select entire strokes instead of just the nearest stroke vertex"
-msgstr "Bira cele poteze imesto samo okolnih temena poteza"
-
-
-msgid "Mouse location"
-msgstr "Lokacija miša"
-
-
-msgctxt "Operator"
-msgid "(De)select All Strokes"
-msgstr "Izaberi/poništi izbor svih poteza"
-
-
-msgid "Change selection of all Grease Pencil strokes currently visible"
-msgstr "Menja izbor svih vidljivih poteza skice"
-
-
-msgid "Select Grease Pencil strokes within a rectangular region"
-msgstr "Bira poteze skice u okviru pravougaonog regiona"
-
-
-msgid "Select Grease Pencil strokes using brush selection"
-msgstr "Bira poteze skice koristeći izbor četkicom"
-
-
-msgid "Shared layers"
-msgstr "Deljeni slojevi"
-
-
-msgctxt "Operator"
-msgid "Lasso Select Strokes"
-msgstr "Laso izbor poteza"
-
-
-msgid "Select Grease Pencil strokes using lasso selection"
-msgstr "Bira poteze skice koristeći laso izbor"
-
-
-msgid "Shrink sets of selected Grease Pencil points"
-msgstr "Umanjuje zbirku izabranih tačaka poteza skice"
-
-
-msgid "Select all points in same strokes as already selected points"
-msgstr "Izaberi sve tačke u trenutnom potezu kao već izabrane tačke"
-
-
-msgid "Grow sets of selected Grease Pencil points"
-msgstr "Uvećava zbirku izabranih tačaka poteza skice"
-
-
-msgctxt "Operator"
-msgid "Snap Selection to Cursor"
-msgstr "Izabor za kursor"
-
-
-msgctxt "Operator"
-msgid "Snap Selection to Grid"
-msgstr "Izabrano za mrežu"
-
-
-msgid "Both"
-msgstr "Obe"
-
-
-msgctxt "Operator"
-msgid "Assign to Vertex Group"
-msgstr "Pridruži grupu temena"
-
-
-msgid "Assign the selected vertices to the active vertex group"
-msgstr "Pridružuje izabrana temena aktivnoj grupi temena"
-
-
-msgctxt "Operator"
-msgid "Invert Vertex Group"
-msgstr "Obrni grupu temena"
-
-
-msgctxt "Operator"
-msgid "Normalize Vertex Group"
-msgstr "Normalizuj grupu temena"
-
-
-msgid "Lock Active"
-msgstr "Zaključaj aktivnu"
-
-
-msgid "Keep the values of the active group while normalizing others"
-msgstr "Zadrži vrednosti aktivne prilikom normalizacije drugih grupa"
-
-
-msgctxt "Operator"
-msgid "Remove from Vertex Group"
-msgstr "Ukloni iz grupe temena"
-
-
-msgid "Remove the selected vertices from active or all vertex group(s)"
-msgstr "Uklanja izabrana temena iz aktivne grupe temena"
-
-
-msgctxt "Operator"
-msgid "Select Vertex Group"
-msgstr "Izaberi grupu temena"
-
-
-msgid "Select all the vertices assigned to the active vertex group"
-msgstr "Označava sva temena povezana sa aktivnom UV mapom"
-
-
-msgctxt "Operator"
-msgid "Weight Paint Sample Weight"
-msgstr "Bojenje čvorova "
-
-
-msgid "Use the mouse to sample a weight in the 3D view"
-msgstr "Način prikaza/senčenja objekata u 3D pogledu"
+msgid "Delete Active Frame"
+msgstr "Izbriši aktivan kadar"
 
 
 msgctxt "Operator"
@@ -14914,6 +14564,14 @@ msgstr "Ukloni"
 
 msgid "Flatten"
 msgstr "Izravnavanje"
+
+
+msgid "Side"
+msgstr "Sa strane"
+
+
+msgid "Both"
+msgstr "Obe"
 
 
 msgctxt "Operator"
@@ -14951,8 +14609,101 @@ msgid "Flatten handles for a smoother transition"
 msgstr "Generiši mek šum (mekan prelaz)"
 
 
+msgctxt "Operator"
+msgid "Grease Pencil Draw"
+msgstr "Skiciranje"
+
+
 msgid "Flat"
 msgstr "Ravno"
+
+
+msgid "Limit"
+msgstr "Granica"
+
+
+msgctxt "Operator"
+msgid "Copy Strokes"
+msgstr "Kopiraj poteze"
+
+
+msgctxt "Operator"
+msgid "Dissolve"
+msgstr "Rastopi"
+
+
+msgid "Delete selected points without splitting strokes"
+msgstr "Briše izabrane tačke bez prekidanja poteza"
+
+
+msgctxt "Operator"
+msgid "Duplicate Strokes"
+msgstr "Dupliraj poteze"
+
+
+msgid "Make copies of the selected Grease Pencil strokes and move them"
+msgstr "Pravi kopiju izabranih poteza skice i pomera ih"
+
+
+msgctxt "Operator"
+msgid "Add New Layer"
+msgstr "Dodaj novi sloj"
+
+
+msgctxt "Operator"
+msgid "Duplicate Layer"
+msgstr "Dupliraj sloj"
+
+
+msgid "Make a copy of the active Grease Pencil layer"
+msgstr "Duplira aktivni sloj skice"
+
+
+msgctxt "Operator"
+msgid "Hide Layer(s)"
+msgstr "Sakrij sloj/slojeve"
+
+
+msgid "Hide selected/unselected Grease Pencil layers"
+msgstr "Sakriva izabrane/neizrabrane slojeve skice"
+
+
+msgid "Hide unselected rather than selected layers"
+msgstr "Sakri neizabrane umesto izabranih slojeva"
+
+
+msgctxt "Operator"
+msgid "Remove Mask Layer"
+msgstr "Ukloni masku sloja"
+
+
+msgctxt "Operator"
+msgid "Merge"
+msgstr "Spoji"
+
+
+msgctxt "Operator"
+msgid "Remove Layer"
+msgstr "Ukloni sloj"
+
+
+msgctxt "Operator"
+msgid "Show All Layers"
+msgstr "Prikaži sve slojeve"
+
+
+msgid "Show all Grease Pencil layers"
+msgstr "Pirkaži sve slojeve skice"
+
+
+msgctxt "Operator"
+msgid "Paste Strokes"
+msgstr "Ubaci poteze"
+
+
+msgctxt "Operator"
+msgid "(De)select All Strokes"
+msgstr "Izaberi/poništi izbor svih poteza"
 
 
 msgid "By Material"
@@ -14965,8 +14716,52 @@ msgstr "Mod izabora"
 
 
 msgctxt "Operator"
+msgid "Snap Selection to Cursor"
+msgstr "Izabor za kursor"
+
+
+msgctxt "Operator"
+msgid "Snap Selection to Grid"
+msgstr "Izabrano za mrežu"
+
+
+msgid "X End"
+msgstr "X kraj"
+
+
+msgid "X Start"
+msgstr "X početak"
+
+
+msgid "Y End"
+msgstr "Y kraj"
+
+
+msgid "Y Start"
+msgstr "Y početak"
+
+
+msgctxt "Operator"
+msgid "Normalize Vertex Group"
+msgstr "Normalizuj grupu temena"
+
+
+msgctxt "Operator"
 msgid "Normalize All Vertex Groups"
 msgstr "Normalizuj sve grupe temena"
+
+
+msgid "Lock Active"
+msgstr "Zaključaj aktivnu"
+
+
+msgid "Keep the values of the active group while normalizing others"
+msgstr "Zadrži vrednosti aktivne prilikom normalizacije drugih grupa"
+
+
+msgctxt "Operator"
+msgid "Weight Paint Sample Weight"
+msgstr "Bojenje čvorova "
 
 
 msgid "Relative Paths"
@@ -15051,22 +14846,6 @@ msgstr "Zameni tekuću sliku sa drugom sa diska"
 msgctxt "Operator"
 msgid "Sample Color"
 msgstr "Uzorak boje"
-
-
-msgid "X End"
-msgstr "X kraj"
-
-
-msgid "X Start"
-msgstr "X početak"
-
-
-msgid "Y End"
-msgstr "Y kraj"
-
-
-msgid "Y Start"
-msgstr "Y početak"
 
 
 msgid "Save As Render"
@@ -15714,6 +15493,10 @@ msgid "Swap"
 msgstr "Zameni"
 
 
+msgid "Only Selected"
+msgstr "Samo izabrano"
+
+
 msgid "Only cut selected geometry"
 msgstr "Jačina izdizanja geometrije"
 
@@ -15767,11 +15550,6 @@ msgstr "Označi šav"
 msgctxt "Operator"
 msgid "Mark Sharp"
 msgstr "Označi oštro"
-
-
-msgctxt "Operator"
-msgid "Merge"
-msgstr "Spoji"
 
 
 msgid "Merge selected vertices"
@@ -16263,10 +16041,6 @@ msgid "Bake object transformations"
 msgstr "Bez transformacija"
 
 
-msgid "Remove all constraints from keyed object/bones, and do 'visual' keying"
-msgstr "Ukloni sva IK ograničenja sa izabranih kostiju"
-
-
 msgid "Clear Parents"
 msgstr "Obriši roditeljske veze"
 
@@ -16641,6 +16415,10 @@ msgstr "Izbriši izabrane čvorove"
 msgctxt "Operator"
 msgid "Render Changed Layer"
 msgstr "Renderuj izmenjene slojeve"
+
+
+msgid "Mouse location"
+msgstr "Lokacija miša"
 
 
 msgid "(De)select all nodes"
@@ -17319,6 +17097,15 @@ msgstr "Dodaj grupu tačaka"
 
 
 msgctxt "Operator"
+msgid "Assign to Vertex Group"
+msgstr "Pridruži grupu temena"
+
+
+msgid "Assign the selected vertices to the active vertex group"
+msgstr "Pridružuje izabrana temena aktivnoj grupi temena"
+
+
+msgctxt "Operator"
 msgid "Assign to New Group"
 msgstr "Pridruži novoj grupi"
 
@@ -17329,6 +17116,11 @@ msgstr "Pridružuje izabrana temena novoj grupi temena"
 
 msgid "Make a copy of the active vertex group"
 msgstr "Postavlja aktivnu grupu temena"
+
+
+msgctxt "Operator"
+msgid "Invert Vertex Group"
+msgstr "Obrni grupu temena"
 
 
 msgid "Add Weights"
@@ -17373,12 +17165,30 @@ msgid "Remove all vertex groups"
 msgstr "Ukloni sve grupe temena"
 
 
+msgctxt "Operator"
+msgid "Remove from Vertex Group"
+msgstr "Ukloni iz grupe temena"
+
+
+msgid "Remove the selected vertices from active or all vertex group(s)"
+msgstr "Uklanja izabrana temena iz aktivne grupe temena"
+
+
 msgid "Remove from all groups"
 msgstr "Ukloni iz svih grupa"
 
 
 msgid "Clear the active group"
 msgstr "Izbriši aktivnu grupu"
+
+
+msgctxt "Operator"
+msgid "Select Vertex Group"
+msgstr "Izaberi grupu temena"
+
+
+msgid "Select all the vertices assigned to the active vertex group"
+msgstr "Označava sva temena povezana sa aktivnom UV mapom"
 
 
 msgctxt "Operator"
@@ -17627,6 +17437,10 @@ msgstr "Bojenje uticaja"
 msgctxt "Operator"
 msgid "Weight Paint Mode"
 msgstr "Režim bojenja težine"
+
+
+msgid "Use the mouse to sample a weight in the 3D view"
+msgstr "Način prikaza/senčenja objekata u 3D pogledu"
 
 
 msgctxt "Operator"
@@ -18306,6 +18120,11 @@ msgstr "Vajanje"
 
 msgid "Ignore Background Click"
 msgstr "Ignoriši klik na pozadinu"
+
+
+msgctxt "Operator"
+msgid "Scale"
+msgstr "Povećaj/smanji"
 
 
 msgid "Falloff Type"
@@ -19097,6 +18916,11 @@ msgstr "Postavlja zapamćenu pozu"
 
 msgid "Edit Texture Space"
 msgstr "Uredi prostor tekture"
+
+
+msgctxt "Operator"
+msgid "Rotate"
+msgstr "Rotiraj"
 
 
 msgid "Rotate selected items"
@@ -20150,12 +19974,12 @@ msgid "Restrict"
 msgstr "Ograniči"
 
 
-msgid "Motion Tracking"
-msgstr "Praćenje pokreta"
-
-
 msgid "Transform Orientations"
 msgstr "Transformacija orijentacija"
+
+
+msgid "Motion Tracking"
+msgstr "Praćenje pokreta"
 
 
 msgid "Bone Constraints"
@@ -20342,10 +20166,6 @@ msgid "Self Collision"
 msgstr "Samoodbijanje"
 
 
-msgid "Indirect Lighting"
-msgstr "Indirektno osvetljenje"
-
-
 msgid "Shadows"
 msgstr "Senke"
 
@@ -20360,6 +20180,10 @@ msgstr "Audio"
 
 msgid "Note"
 msgstr "Beleška"
+
+
+msgid "Strips"
+msgstr "Trake"
 
 
 msgid "Playback"
@@ -20436,13 +20260,18 @@ msgstr "Težina dlaka kose"
 
 
 msgctxt "Operator"
-msgid "Line"
-msgstr "Linija"
+msgid "Erase"
+msgstr "Obriši"
 
 
 msgctxt "Operator"
 msgid "Circle"
 msgstr "Krug"
+
+
+msgctxt "Operator"
+msgid "Line"
+msgstr "Linija"
 
 
 msgid "Pose Options"
@@ -21293,6 +21122,10 @@ msgid "Limit the texture size to save graphics memory"
 msgstr "Ograniči veličinu teksture radi uštede memorije grafičke kartice"
 
 
+msgid "Device"
+msgstr "Uređaj"
+
+
 msgid "2D Texture"
 msgstr "2D tekstura"
 
@@ -21455,10 +21288,6 @@ msgstr "Koristi BVH prostorne podele: duže traje priprema ali je brži renderin
 
 msgid "High quality"
 msgstr "Visok kvalitet"
-
-
-msgid "Device"
-msgstr "Uređaj"
 
 
 msgid "Device to use for rendering"
@@ -22528,10 +22357,6 @@ msgstr "Koristi normalizaciju"
 
 msgid "Z-Buffer"
 msgstr "Z-bafer"
-
-
-msgid "Grease pencil data for this space"
-msgstr "Podaci skice za ovaj prostor"
 
 
 msgid "UV Editor"
@@ -23855,11 +23680,6 @@ msgstr "Početni NLA"
 
 
 msgctxt "WindowManager"
-msgid "Timeline"
-msgstr "Vremenska linija"
-
-
-msgctxt "WindowManager"
 msgid "Image"
 msgstr "Slika"
 
@@ -23955,6 +23775,11 @@ msgstr "Crtaj prave linije"
 
 
 msgctxt "Operator"
+msgid "All"
+msgstr "Sve"
+
+
+msgctxt "Operator"
 msgid "Report a Bug"
 msgstr "Prijava greške"
 
@@ -24003,38 +23828,6 @@ msgstr "Primeni"
 
 msgid "Options:"
 msgstr "Opcije:"
-
-
-msgid "    RNA Path: bpy.types."
-msgstr "    RNK putanja: bpy.types."
-
-
-msgid "    RNA Context: "
-msgstr "    RNK kontekst: "
-
-
-msgid "Labels:"
-msgstr "Natpisi:"
-
-
-msgid "Tool Tips:"
-msgstr "Saveti alatki:"
-
-
-msgid "Button Label:"
-msgstr "Natpisi dugmeta:"
-
-
-msgid "RNA Label:"
-msgstr "RNK natpis:"
-
-
-msgid "Button Tip:"
-msgstr "Savet dugmeta:"
-
-
-msgid "RNA Tip:"
-msgstr "RNK savet:"
 
 
 msgctxt "Operator"
@@ -24183,26 +23976,6 @@ msgstr "Zaključaj sve"
 
 
 msgctxt "Operator"
-msgid "Assign to Active Group"
-msgstr "Pridruži aktivnoj grupi"
-
-
-msgctxt "Operator"
-msgid "Remove from Active Group"
-msgstr "Ukloni iz aktivne grupe"
-
-
-msgctxt "Operator"
-msgid "Remove Active Group"
-msgstr "Ukloni aktivnu grupu"
-
-
-msgctxt "Operator"
-msgid "Remove All Groups"
-msgstr "Ukloni sve grupe"
-
-
-msgctxt "Operator"
 msgid "Lock Invert All"
 msgstr "Zaključaj sve obrnuto"
 
@@ -24235,22 +24008,17 @@ msgstr "Kursor na vođice"
 
 
 msgctxt "Operator"
-msgid "Erase"
-msgstr "Obriši"
-
-
-msgctxt "Operator"
 msgid "Poly"
 msgstr "Poligon"
+
+
+msgid "Data Source:"
+msgstr "Izvor podataka:"
 
 
 msgctxt "Operator"
 msgid "Selection to Cursor"
 msgstr "Izabrano za kursor"
-
-
-msgid "Data Source:"
-msgstr "Izvor podataka:"
 
 
 msgid "Parent:"
@@ -25223,6 +24991,21 @@ msgid "Set Roll"
 msgstr "Izoštri"
 
 
+msgctxt "Operator"
+msgid "Assign to Active Group"
+msgstr "Pridruži aktivnoj grupi"
+
+
+msgctxt "Operator"
+msgid "Remove Active Group"
+msgstr "Ukloni aktivnu grupu"
+
+
+msgctxt "Operator"
+msgid "Remove All Groups"
+msgstr "Ukloni sve grupe"
+
+
 msgid "Sharpen"
 msgstr "Izoštreno"
 
@@ -25243,12 +25026,13 @@ msgstr "Veličina objektiva kamere"
 
 
 msgctxt "Operator"
+msgid "Remove from Active Group"
+msgstr "Ukloni iz aktivne grupe"
+
+
+msgctxt "Operator"
 msgid "Remove from All"
 msgstr "Ukloni iz svih"
-
-
-msgid "Layer:"
-msgstr "Slojevi:"
 
 
 msgid "Parents"
@@ -25385,6 +25169,10 @@ msgstr "Ne mogu da otvorim datoteku %s za upis: %s"
 
 msgid "Could not connect vertices"
 msgstr "Ne mogu da spojim temena"
+
+
+msgid "No active object"
+msgstr "Nema aktivnog objekta"
 
 
 msgid "Scene not found"
@@ -25934,10 +25722,6 @@ msgstr "Objekat (zadrži transformaciju)"
 
 msgid "No active bone"
 msgstr "Bez aktivne kosti"
-
-
-msgid "No active object"
-msgstr "Nema aktivnog objekta"
 
 
 msgid "Editmode lattice is not supported yet"
@@ -26537,11 +26321,6 @@ msgid "UV Vertex"
 msgstr "UV teme"
 
 
-msgctxt "Action"
-msgid "Group"
-msgstr "Grupa"
-
-
 msgid "Index out of range"
 msgstr "Indeks je van opsega"
 
@@ -26641,6 +26420,10 @@ msgstr "Strana"
 
 msgid "Bright"
 msgstr "Svetlina"
+
+
+msgid "Layer:"
+msgstr "Slojevi:"
 
 
 msgid "Val"

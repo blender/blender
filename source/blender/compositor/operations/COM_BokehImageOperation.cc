@@ -42,18 +42,12 @@ void BokehImageOperation::init_execution()
   lens_shift_ = data_->lensshift;
 }
 
-/* Get the 2D vertex position of the vertex with the given index in the regular polygon
- * representing this bokeh. The polygon is rotated by the rotation amount and have a unit
- * circumradius. The regular polygon is one whose vertices' exterior angles are given by
- * exterior_angle. See the bokeh function for more information. */
 float2 BokehImageOperation::get_regular_polygon_vertex_position(int vertex_index)
 {
   float angle = exterior_angle_ * vertex_index - rotation_;
   return float2(math::cos(angle), math::sin(angle));
 }
 
-/* Find the closest point to the given point on the given line. This assumes the length of the
- * given line is not zero. */
 float2 BokehImageOperation::closest_point_on_line(float2 point, float2 line_start, float2 line_end)
 {
   float2 line_vector = line_end - line_start;
@@ -63,20 +57,6 @@ float2 BokehImageOperation::closest_point_on_line(float2 point, float2 line_star
   return line_start + line_vector * parameter;
 }
 
-/* Compute the value of the bokeh at the given point. The computed bokeh is essentially a regular
- * polygon centered in space having the given circumradius. The regular polygon is one whose
- * vertices' exterior angles are given by "exterior_angle", which relates to the number of vertices
- * n through the equation "exterior angle = 2 pi / n". The regular polygon may additionally morph
- * into a shape with the given properties:
- *
- * - The regular polygon may have a circular hole in its center whose radius is controlled by the
- *   "catadioptric" value.
- * - The regular polygon is rotated by the "rotation" value.
- * - The regular polygon can morph into a circle controlled by the "roundness" value, such that it
- *   becomes a full circle at unit roundness.
- *
- * The function returns 0 when the point lies inside the regular polygon and 1 otherwise. However,
- * at the edges, it returns a narrow band gradient as a form of anti-aliasing. */
 float BokehImageOperation::bokeh(float2 point, float circumradius)
 {
   /* Get the index of the vertex of the regular polygon whose polar angle is maximum but less than

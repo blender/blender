@@ -6,7 +6,7 @@
  * \ingroup eevee
  */
 
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_node.hh"
 #include "BKE_studiolight.h"
@@ -268,6 +268,10 @@ void LookdevModule::draw(View &view)
   if (!enabled_) {
     return;
   }
+
+  inst_.volume_probes.set_view(view);
+  inst_.sphere_probes.set_view(view);
+
   for (Sphere &sphere : spheres_) {
     sphere.framebuffer.bind();
     inst_.manager->submit(sphere.pass, view);

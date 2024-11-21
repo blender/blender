@@ -28,20 +28,15 @@ from check_cmake_consistency_config import (
     BUILD_DIR,
 )
 
-from typing import (
+from collections.abc import (
     Callable,
-    Dict,
-    Generator,
     Iterator,
-    List,
-    Optional,
-    Tuple,
 )
 
 
 global_h = set()
 global_c = set()
-global_refs: Dict[str, List[Tuple[str, int]]] = {}
+global_refs: dict[str, list[tuple[str, int]]] = {}
 
 # Flatten `IGNORE_SOURCE_MISSING` to avoid nested looping.
 IGNORE_SOURCE_MISSING_FLAT = [
@@ -50,7 +45,7 @@ IGNORE_SOURCE_MISSING_FLAT = [
 ]
 
 # Ignore cmake file, path pairs.
-global_ignore_source_missing: Dict[str, List[str]] = {}
+global_ignore_source_missing: dict[str, list[str]] = {}
 for k, v in IGNORE_SOURCE_MISSING_FLAT:
     global_ignore_source_missing.setdefault(k, []).append(v)
 del IGNORE_SOURCE_MISSING_FLAT
@@ -73,8 +68,8 @@ def replace_line(f: str, i: int, text: str, keep_indent: bool = True) -> None:
 
 def source_list(
         path: str,
-        filename_check: Optional[Callable[[str], bool]] = None,
-) -> Generator[str, None, None]:
+        filename_check: Callable[[str], bool] | None = None,
+) -> Iterator[str]:
     for dirpath, dirnames, filenames in os.walk(path):
         # skip '.git'
         dirnames[:] = [d for d in dirnames if not d.startswith(".")]
@@ -110,12 +105,12 @@ def cmake_get_src(f: str) -> None:
     sources_c = []
 
     filen = open(f, "r", encoding="utf8")
-    it: Optional[Iterator[str]] = iter(filen)
+    it: Iterator[str] | None = iter(filen)
     found = False
     i = 0
     # print(f)
 
-    def is_definition(l: str, f: str, i: int, name: str) -> Tuple[bool, int]:
+    def is_definition(l: str, f: str, i: int, name: str) -> tuple[bool, int]:
         """
         Return (is_definition, single_line_offset).
         """
@@ -308,7 +303,7 @@ def cmake_get_src(f: str) -> None:
     filen.close()
 
 
-def is_ignore_source(f: str, ignore_used: List[bool]) -> bool:
+def is_ignore_source(f: str, ignore_used: list[bool]) -> bool:
     for index, ignore_path in enumerate(IGNORE_SOURCE):
         if ignore_path in f:
             ignore_used[index] = True
@@ -316,7 +311,7 @@ def is_ignore_source(f: str, ignore_used: List[bool]) -> bool:
     return False
 
 
-def is_ignore_cmake(f: str, ignore_used: List[bool]) -> bool:
+def is_ignore_cmake(f: str, ignore_used: list[bool]) -> bool:
     for index, ignore_path in enumerate(IGNORE_CMAKE):
         if ignore_path in f:
             ignore_used[index] = True

@@ -170,7 +170,7 @@ IDTypeInfo IDType_ID_SCR = {
     /*name_plural*/ N_("screens"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_SCREEN,
     /*flags*/ IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_ONLY_APPEND | IDTYPE_FLAGS_NO_ANIMDATA |
-        IDTYPE_FLAGS_NO_MEMFILE_UNDO | IDTYPE_FLAGS_NEVER_UNUSED,
+        IDTYPE_FLAGS_NO_MEMFILE_UNDO,
     /*asset_type_info*/ nullptr,
 
     /*init_data*/ nullptr,
@@ -336,7 +336,7 @@ ARegion *BKE_area_region_copy(const SpaceType *st, const ARegion *region)
 {
   ARegion *newar = static_cast<ARegion *>(MEM_dupallocN(region));
 
-  memset(&newar->runtime, 0x0, sizeof(newar->runtime));
+  newar->runtime = MEM_new<blender::bke::ARegionRuntime>(__func__);
 
   newar->prev = newar->next = nullptr;
   BLI_listbase_clear(&newar->handlers);
@@ -369,8 +369,17 @@ ARegion *BKE_area_region_copy(const SpaceType *st, const ARegion *region)
 
   BLI_listbase_clear(&newar->ui_previews);
   BLI_duplicatelist(&newar->ui_previews, &region->ui_previews);
+  BLI_listbase_clear(&newar->view_states);
+  BLI_duplicatelist(&newar->view_states, &region->view_states);
 
   return newar;
+}
+
+ARegion *BKE_area_region_new()
+{
+  ARegion *region = MEM_cnew<ARegion>(__func__);
+  region->runtime = MEM_new<blender::bke::ARegionRuntime>(__func__);
+  return region;
 }
 
 /* from lb_src to lb_dst, lb_dst is supposed to be freed */
@@ -593,15 +602,17 @@ void BKE_area_region_free(SpaceType *st, ARegion *region)
     region_free_gizmomap_callback(region->gizmo_map);
   }
 
-  if (region->runtime.block_name_map != nullptr) {
-    BLI_ghash_free(region->runtime.block_name_map, nullptr, nullptr);
-    region->runtime.block_name_map = nullptr;
+  if (region->runtime->block_name_map != nullptr) {
+    BLI_ghash_free(region->runtime->block_name_map, nullptr, nullptr);
+    region->runtime->block_name_map = nullptr;
   }
 
+  MEM_delete(region->runtime);
   BLI_freelistN(&region->ui_lists);
   BLI_freelistN(&region->ui_previews);
   BLI_freelistN(&region->panels_category);
   BLI_freelistN(&region->panels_category_active);
+  BLI_freelistN(&region->view_states);
 }
 
 void BKE_screen_area_free(ScrArea *area)
@@ -1135,6 +1146,10 @@ static void write_area(BlendWriter *writer, ScrArea *area)
     LISTBASE_FOREACH (uiPreview *, ui_preview, &region->ui_previews) {
       BLO_write_struct(writer, uiPreview, ui_preview);
     }
+
+    LISTBASE_FOREACH (uiViewStateLink *, view_state, &region->view_states) {
+      BLO_write_struct(writer, uiViewStateLink, view_state);
+    }
   }
 
   LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -1186,13 +1201,12 @@ static void direct_link_panel_list(BlendDataReader *reader, ListBase *lb)
 
 static void direct_link_region(BlendDataReader *reader, ARegion *region, int spacetype)
 {
-  memset(&region->runtime, 0x0, sizeof(region->runtime));
-
   direct_link_panel_list(reader, &region->panels);
 
   BLO_read_struct_list(reader, PanelCategoryStack, &region->panels_category_active);
 
   BLO_read_struct_list(reader, uiList, &region->ui_lists);
+  BLO_read_struct_list(reader, uiViewStateLink, &region->view_states);
 
   /* The area's search filter is runtime only, so we need to clear the active flag on read. */
   /* Clear runtime flags (e.g. search filter is runtime only). */
@@ -1206,6 +1220,10 @@ static void direct_link_region(BlendDataReader *reader, ARegion *region, int spa
   }
 
   BLO_read_struct_list(reader, uiPreview, &region->ui_previews);
+  LISTBASE_FOREACH (uiPreview *, ui_preview, &region->ui_previews) {
+    ui_preview->id_session_uid = MAIN_ID_SESSION_UID_UNSET;
+    ui_preview->tag = 0;
+  }
 
   if (spacetype == SPACE_EMPTY) {
     /* unknown space type, don't leak regiondata */
@@ -1243,6 +1261,7 @@ static void direct_link_region(BlendDataReader *reader, ARegion *region, int spa
     }
   }
 
+  region->runtime = MEM_new<blender::bke::ARegionRuntime>(__func__);
   region->v2d.sms = nullptr;
   region->v2d.alpha_hor = region->v2d.alpha_vert = 255; /* visible by default */
   BLI_listbase_clear(&region->panels_category);

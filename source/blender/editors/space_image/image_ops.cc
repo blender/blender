@@ -38,8 +38,8 @@
 #include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_icons.h"
-#include "BKE_image.h"
-#include "BKE_image_save.h"
+#include "BKE_image.hh"
+#include "BKE_image_save.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
@@ -1267,25 +1267,20 @@ static void image_open_cancel(bContext * /*C*/, wmOperator *op)
 }
 
 static Image *image_open_single(Main *bmain,
+                                Library *owner_library,
                                 wmOperator *op,
                                 const ImageFrameRange *range,
-                                const bool use_multiview,
-                                const bool check_exists)
+                                const bool use_multiview)
 {
   bool exists = false;
   Image *ima = nullptr;
 
   errno = 0;
-  if (check_exists) {
-    ima = BKE_image_load_exists_ex(bmain, range->filepath, &exists);
-  }
-  else {
-    ima = BKE_image_load(bmain, range->filepath);
-  }
+  ima = BKE_image_load_exists_in_lib(bmain, owner_library, range->filepath, &exists);
 
   if (!ima) {
     if (op->customdata) {
-      MEM_freeN(op->customdata);
+      MEM_delete(static_cast<ImageOpenData *>(op->customdata));
     }
     BKE_reportf(op->reports,
                 RPT_ERROR,
@@ -1351,16 +1346,14 @@ static int image_open_exec(bContext *C, wmOperator *op)
   }
 
   ImageOpenData *iod = static_cast<ImageOpenData *>(op->customdata);
+  ID *owner_id = iod->pprop.ptr.owner_id;
+  Library *owner_library = owner_id ? owner_id->lib : nullptr;
+  blender::StringRefNull root_path = owner_library ? owner_library->runtime.filepath_abs :
+                                                     BKE_main_blendfile_path(bmain);
 
-  /* For editable assets always create a new image datablock. We can't assign
-   * a local datablock to linked asset datablocks. */
-  const bool check_exists = !(iod->pprop.prop && iod->pprop.ptr.owner_id &&
-                              ID_IS_LINKED(iod->pprop.ptr.owner_id) &&
-                              ID_IS_EDITABLE(iod->pprop.ptr.owner_id));
-
-  ListBase ranges = ED_image_filesel_detect_sequences(bmain, op, use_udim);
+  ListBase ranges = ED_image_filesel_detect_sequences(root_path, op, use_udim);
   LISTBASE_FOREACH (ImageFrameRange *, range, &ranges) {
-    Image *ima_range = image_open_single(bmain, op, range, use_multiview, check_exists);
+    Image *ima_range = image_open_single(bmain, owner_library, op, range, use_multiview);
 
     /* take the first image */
     if ((ima == nullptr) && ima_range) {
@@ -1601,6 +1594,17 @@ static int image_file_browse_exec(bContext *C, wmOperator *op)
 
   char filepath[FILE_MAX];
   RNA_string_get(op->ptr, "filepath", filepath);
+  if (BLI_path_is_rel(filepath)) {
+    /* Relative path created by the filebrowser are always relative to the current blendfile, need
+     * to be made relative to the library blendfile path in case image is an editable linked data.
+     */
+    BLI_path_abs(filepath, BKE_main_blendfile_path(CTX_data_main(C)));
+    /* TODO: make this a BKE_lib_id helper (already a static function in BKE_image too), we likely
+     * need this in more places in the future. ~~mont29 */
+    BLI_path_rel(filepath,
+                 ID_IS_LINKED(&ima->id) ? ima->id.lib->runtime.filepath_abs :
+                                          BKE_main_blendfile_path(CTX_data_main(C)));
+  }
 
   /* If loading into a tiled texture, ensure that the filename is tokenized. */
   if (ima->source == IMA_SRC_TILED) {
@@ -1626,6 +1630,9 @@ static int image_file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *
 
   char filepath[FILE_MAX];
   STRNCPY(filepath, ima->filepath);
+  BLI_path_abs(filepath,
+               ID_IS_LINKED(&ima->id) ? ima->id.lib->runtime.filepath_abs :
+                                        BKE_main_blendfile_path(CTX_data_main(C)));
 
   /* Shift+Click to open the file, Alt+Click to browse a folder in the OS's browser. */
   if (event->modifier & (KM_SHIFT | KM_ALT)) {
@@ -1781,6 +1788,7 @@ static int image_replace_exec(bContext *C, wmOperator *op)
 
   BKE_icon_changed(BKE_icon_id_ensure(&sima->image->id));
   BKE_image_signal(bmain, sima->image, &sima->iuser, IMA_SIGNAL_RELOAD);
+  DEG_id_tag_update(&sima->image->id, 0);
   WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, sima->image);
 
   return OPERATOR_FINISHED;

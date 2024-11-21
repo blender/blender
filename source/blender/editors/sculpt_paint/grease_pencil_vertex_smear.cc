@@ -4,6 +4,8 @@
 
 #include <optional>
 
+#include "DNA_gpencil_legacy_types.h"
+
 #include "BKE_context.hh"
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"

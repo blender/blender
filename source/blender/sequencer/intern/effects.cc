@@ -12,6 +12,8 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "BLI_vector.hh"
+#include "DNA_vec_types.h"
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.hh"
@@ -21,6 +23,7 @@
 #include "BLI_path_utils.hh"
 #include "BLI_rect.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_task.hh"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
@@ -1009,13 +1012,11 @@ static void do_blend_mode_effect(const SeqRenderData *context,
 
 static void init_colormix_effect(Sequence *seq)
 {
-  ColorMixVars *data;
-
   if (seq->effectdata) {
     MEM_freeN(seq->effectdata);
   }
   seq->effectdata = MEM_callocN(sizeof(ColorMixVars), "colormixvars");
-  data = (ColorMixVars *)seq->effectdata;
+  ColorMixVars *data = (ColorMixVars *)seq->effectdata;
   data->blend_effect = SEQ_TYPE_OVERLAY;
   data->factor = 1.0f;
 }
@@ -1431,15 +1432,13 @@ static ImBuf *do_wipe_effect(const SeqRenderData *context,
 
 static void init_transform_effect(Sequence *seq)
 {
-  TransformVars *transform;
-
   if (seq->effectdata) {
     MEM_freeN(seq->effectdata);
   }
 
   seq->effectdata = MEM_callocN(sizeof(TransformVars), "transformvars");
 
-  transform = (TransformVars *)seq->effectdata;
+  TransformVars *transform = (TransformVars *)seq->effectdata;
 
   transform->ScalexIni = 1.0f;
   transform->ScaleyIni = 1.0f;
@@ -1708,15 +1707,13 @@ static void blur_isolate_highlights(const float4 *in,
 
 static void init_glow_effect(Sequence *seq)
 {
-  GlowVars *glow;
-
   if (seq->effectdata) {
     MEM_freeN(seq->effectdata);
   }
 
   seq->effectdata = MEM_callocN(sizeof(GlowVars), "glowvars");
 
-  glow = (GlowVars *)seq->effectdata;
+  GlowVars *glow = (GlowVars *)seq->effectdata;
   glow->fMini = 0.25;
   glow->fClamp = 1.0;
   glow->fBoost = 0.5;
@@ -1850,15 +1847,13 @@ static ImBuf *do_glow_effect(const SeqRenderData *context,
 
 static void init_solid_color(Sequence *seq)
 {
-  SolidColorVars *cv;
-
   if (seq->effectdata) {
     MEM_freeN(seq->effectdata);
   }
 
   seq->effectdata = MEM_callocN(sizeof(SolidColorVars), "solidcolor");
 
-  cv = (SolidColorVars *)seq->effectdata;
+  SolidColorVars *cv = (SolidColorVars *)seq->effectdata;
   cv->col[0] = cv->col[1] = cv->col[2] = 0.5;
 }
 
@@ -2062,15 +2057,13 @@ static ImBuf *do_adjustment(const SeqRenderData *context,
 
 static void init_speed_effect(Sequence *seq)
 {
-  SpeedControlVars *v;
-
   if (seq->effectdata) {
     MEM_freeN(seq->effectdata);
   }
 
   seq->effectdata = MEM_callocN(sizeof(SpeedControlVars), "speedcontrolvars");
 
-  v = (SpeedControlVars *)seq->effectdata;
+  SpeedControlVars *v = (SpeedControlVars *)seq->effectdata;
   v->speed_control_type = SEQ_SPEED_STRETCH;
   v->speed_fader = 1.0f;
   v->speed_fader_length = 0.0f;
@@ -2295,7 +2288,7 @@ static void init_gaussian_blur_effect(Sequence *seq)
     MEM_freeN(seq->effectdata);
   }
 
-  seq->effectdata = MEM_callocN(sizeof(WipeVars), "wipevars");
+  seq->effectdata = MEM_callocN(sizeof(GaussianBlurVars), "gaussianblurvars");
 }
 
 static int num_inputs_gaussian_blur()
@@ -2368,10 +2361,18 @@ static void gaussian_blur_x(const Span<float> gaussian,
         accum_weight += weight;
       }
       accum *= (1.0f / accum_weight);
-      dst[0] = accum[0];
-      dst[1] = accum[1];
-      dst[2] = accum[2];
-      dst[3] = accum[3];
+      if constexpr (math::is_math_float_type<T>) {
+        dst[0] = accum[0];
+        dst[1] = accum[1];
+        dst[2] = accum[2];
+        dst[3] = accum[3];
+      }
+      else {
+        dst[0] = accum[0] + 0.5f;
+        dst[1] = accum[1] + 0.5f;
+        dst[2] = accum[2] + 0.5f;
+        dst[3] = accum[3] + 0.5f;
+      }
       dst += 4;
     }
   }
@@ -2401,10 +2402,18 @@ static void gaussian_blur_y(const Span<float> gaussian,
         accum_weight += weight;
       }
       accum *= (1.0f / accum_weight);
-      dst[0] = accum[0];
-      dst[1] = accum[1];
-      dst[2] = accum[2];
-      dst[3] = accum[3];
+      if constexpr (math::is_math_float_type<T>) {
+        dst[0] = accum[0];
+        dst[1] = accum[1];
+        dst[2] = accum[2];
+        dst[3] = accum[3];
+      }
+      else {
+        dst[0] = accum[0] + 0.5f;
+        dst[1] = accum[1] + 0.5f;
+        dst[2] = accum[2] + 0.5f;
+        dst[3] = accum[3] + 0.5f;
+      }
       dst += 4;
     }
   }
@@ -2499,13 +2508,12 @@ static ImBuf *do_gaussian_blur_effect(const SeqRenderData *context,
 
 static void init_text_effect(Sequence *seq)
 {
-  TextVars *data;
-
   if (seq->effectdata) {
     MEM_freeN(seq->effectdata);
   }
 
-  data = static_cast<TextVars *>(seq->effectdata = MEM_callocN(sizeof(TextVars), "textvars"));
+  TextVars *data = static_cast<TextVars *>(
+      seq->effectdata = MEM_callocN(sizeof(TextVars), "textvars"));
   data->text_font = nullptr;
   data->text_blf_id = -1;
   data->text_size = 60.0f;
@@ -2520,6 +2528,7 @@ static void init_text_effect(Sequence *seq)
   data->box_color[2] = 0.2f;
   data->box_color[3] = 0.7f;
   data->box_margin = 0.01f;
+  data->box_roundness = 0.0f;
   data->outline_color[3] = 0.7f;
   data->outline_width = 0.05f;
 
@@ -2527,8 +2536,9 @@ static void init_text_effect(Sequence *seq)
 
   data->loc[0] = 0.5f;
   data->loc[1] = 0.5f;
+  data->anchor_x = SEQ_TEXT_ALIGN_X_CENTER;
+  data->anchor_y = SEQ_TEXT_ALIGN_Y_CENTER;
   data->align = SEQ_TEXT_ALIGN_X_CENTER;
-  data->align_y = SEQ_TEXT_ALIGN_Y_CENTER;
   data->wrap_width = 1.0f;
 }
 
@@ -2891,21 +2901,31 @@ static void jump_flooding_pass(Span<JFACoord> input,
     }
   });
 }
+namespace blender::seq {
+
+static void text_draw(const TextVarsRuntime &runtime, float color[4])
+{
+  for (const LineInfo &line : runtime.lines) {
+    for (const CharInfo &character : line.characters) {
+      BLF_position(runtime.font, character.position.x, character.position.y, 0.0f);
+      BLF_buffer_col(runtime.font, color);
+      BLF_draw_buffer(runtime.font, character.str_ptr, character.byte_length);
+    }
+  }
+}
 
 static rcti draw_text_outline(const SeqRenderData *context,
                               const TextVars *data,
-                              int font,
+                              const TextVarsRuntime &runtime,
                               ColorManagedDisplay *display,
-                              int x,
-                              int y,
-                              int line_height,
-                              const rcti &rect,
                               ImBuf *out)
 {
   /* Outline width of 1.0 maps to half of text line height. */
-  const int outline_width = int(line_height * 0.5f * data->outline_width);
-  if (outline_width < 1 || data->outline_color[3] <= 0.0f) {
-    return rect;
+  const int outline_width = int(runtime.line_height * 0.5f * data->outline_width);
+  if (outline_width < 1 || data->outline_color[3] <= 0.0f ||
+      ((data->flag & SEQ_TEXT_OUTLINE) == 0))
+  {
+    return runtime.text_boundbox;
   }
 
   const int2 size = int2(context->rectx, context->recty);
@@ -2913,12 +2933,11 @@ static rcti draw_text_outline(const SeqRenderData *context,
   /* Draw white text into temporary buffer. */
   const size_t pixel_count = size_t(size.x) * size.y;
   Array<uchar4> tmp_buf(pixel_count, uchar4(0));
-  BLF_buffer(font, nullptr, (uchar *)tmp_buf.data(), size.x, size.y, display);
-  BLF_position(font, x, y, 0.0f);
-  BLF_buffer_col(font, float4(1.0f));
-  BLF_draw_buffer(font, data->text, sizeof(data->text));
+  BLF_buffer(runtime.font, nullptr, (uchar *)tmp_buf.data(), size.x, size.y, display);
 
-  rcti outline_rect = rect;
+  text_draw(runtime, float4(1.0f));
+
+  rcti outline_rect = runtime.text_boundbox;
   BLI_rcti_pad(&outline_rect, outline_width + 1, outline_width + 1);
   outline_rect.xmin = clamp_i(outline_rect.xmin, 0, size.x - 1);
   outline_rect.xmax = clamp_i(outline_rect.xmax, 0, size.x - 1);
@@ -3014,15 +3033,15 @@ static rcti draw_text_outline(const SeqRenderData *context,
       }
     }
   });
-  BLF_buffer(font, nullptr, out->byte_buffer.data, size.x, size.y, display);
+  BLF_buffer(runtime.font, nullptr, out->byte_buffer.data, size.x, size.y, display);
 
   return outline_rect;
 }
 
 /* Similar to #IMB_rectfill_area but blends the given color under the
- * existing image. Also only works on byte buffers. */
+ * existing image. Also can do rounded corners. Only works on byte buffers. */
 static void fill_rect_alpha_under(
-    const ImBuf *ibuf, const float col[4], int x1, int y1, int x2, int y2)
+    const ImBuf *ibuf, const float col[4], int x1, int y1, int x2, int y2, float corner_radius)
 {
   const int width = ibuf->x;
   const int height = ibuf->y;
@@ -3040,19 +3059,276 @@ static void fill_rect_alpha_under(
     return;
   }
 
-  float4 premul_col = col;
-  straight_to_premul_v4(premul_col);
+  corner_radius = math::clamp(corner_radius, 0.0f, math::min(x2 - x1, y2 - y1) / 2.0f);
 
-  for (int y = y1; y < y2; y++) {
-    uchar *dst = ibuf->byte_buffer.data + (size_t(width) * y + x1) * 4;
-    for (int x = x1; x < x2; x++) {
-      float4 pix = load_premul_pixel(dst);
-      float fac = 1.0f - pix.w;
-      float4 dst_fl = fac * premul_col + pix;
-      store_premul_pixel(dst_fl, dst);
-      dst += 4;
+  float4 premul_col_base;
+  straight_to_premul_v4_v4(premul_col_base, col);
+
+  threading::parallel_for(IndexRange::from_begin_end(y1, y2), 16, [&](const IndexRange y_range) {
+    for (const int y : y_range) {
+      uchar *dst = ibuf->byte_buffer.data + (size_t(width) * y + x1) * 4;
+      float origin_x = 0.0f, origin_y = 0.0f;
+      for (int x = x1; x < x2; x++) {
+        float4 pix = load_premul_pixel(dst);
+        float fac = 1.0f - pix.w;
+
+        float4 premul_col = premul_col_base;
+        bool is_corner = false;
+        if (x < x1 + corner_radius && y < y1 + corner_radius) {
+          is_corner = true;
+          origin_x = x1 + corner_radius - 1;
+          origin_y = y1 + corner_radius - 1;
+        }
+        else if (x >= x2 - corner_radius && y < y1 + corner_radius) {
+          is_corner = true;
+          origin_x = x2 - corner_radius;
+          origin_y = y1 + corner_radius - 1;
+        }
+        else if (x < x1 + corner_radius && y >= y2 - corner_radius) {
+          is_corner = true;
+          origin_x = x1 + corner_radius - 1;
+          origin_y = y2 - corner_radius;
+        }
+        else if (x >= x2 - corner_radius && y >= y2 - corner_radius) {
+          is_corner = true;
+          origin_x = x2 - corner_radius;
+          origin_y = y2 - corner_radius;
+        }
+        if (is_corner) {
+          /* If we are inside rounded corner, evaluate a superellipse and
+           * modulate color with that. Superellipse instead of just a circle
+           * since the curvature between flat and rounded area looks a bit
+           * nicer. */
+          constexpr float curve_pow = 2.1f;
+          float r = powf(powf(abs(x - origin_x), curve_pow) + powf(abs(y - origin_y), curve_pow),
+                         1.0f / curve_pow);
+          float alpha = math::clamp(corner_radius - r, 0.0f, 1.0f);
+          premul_col *= alpha;
+        }
+
+        float4 dst_fl = fac * premul_col + pix;
+        store_premul_pixel(dst_fl, dst);
+        dst += 4;
+      }
+    }
+  });
+}
+
+static int text_effect_line_size_get(const SeqRenderData *context, const Sequence *seq)
+{
+  TextVars *data = static_cast<TextVars *>(seq->effectdata);
+  /* Compensate text size for preview render size. */
+  double proxy_size_comp = context->scene->r.size / 100.0;
+  if (context->preview_render_size != SEQ_RENDER_SIZE_SCENE) {
+    proxy_size_comp = SEQ_rendersize_to_scale_factor(context->preview_render_size);
+  }
+
+  return proxy_size_comp * data->text_size;
+}
+
+static int text_effect_font_init(const SeqRenderData *context, const Sequence *seq, int font_flags)
+{
+  TextVars *data = static_cast<TextVars *>(seq->effectdata);
+  int font = blf_mono_font_render;
+
+  if (data->text_blf_id == SEQ_FONT_NOT_LOADED) {
+    data->text_blf_id = -1;
+
+    SEQ_effect_text_font_load(data, false);
+  }
+
+  if (data->text_blf_id >= 0) {
+    font = data->text_blf_id;
+  }
+
+  BLF_size(font, text_effect_line_size_get(context, seq));
+  BLF_enable(font, font_flags);
+  return font;
+}
+
+static blender::Vector<CharInfo> build_character_info(const TextVars *data, int font)
+{
+  blender::Vector<CharInfo> characters;
+  const size_t len_max = BLI_strnlen(data->text, sizeof(data->text));
+  int byte_offset = 0;
+  while (byte_offset <= len_max) {
+    const char *str = data->text + byte_offset;
+    const int char_length = BLI_str_utf8_size_safe(str);
+
+    CharInfo char_info;
+    char_info.str_ptr = str;
+    char_info.byte_length = char_length;
+    char_info.advance_x = BLF_glyph_advance(font, str);
+    characters.append(char_info);
+
+    byte_offset += char_length;
+  }
+  return characters;
+}
+
+static int wrap_width_get(const TextVars *data, const int2 image_size)
+{
+  if (data->wrap_width == 0.0f) {
+    return std::numeric_limits<int>::max();
+  }
+  return data->wrap_width * image_size.x;
+}
+
+/* Lines must contain CharInfo for newlines and \0, as UI must know where they begin. */
+static void apply_word_wrapping(const TextVars *data,
+                                TextVarsRuntime &runtime,
+                                const int2 image_size,
+                                blender::Vector<CharInfo> &characters)
+{
+  const int wrap_width = wrap_width_get(data, image_size);
+
+  float2 char_position{0.0f, 0.0f};
+  CharInfo *last_space = nullptr;
+
+  /* First pass: Find characters where line has to be broken. */
+  for (CharInfo &character : characters) {
+    if (character.str_ptr[0] == ' ') {
+      character.position = char_position;
+      last_space = &character;
+    }
+    if (character.str_ptr[0] == '\n') {
+      char_position.x = 0;
+      last_space = nullptr;
+    }
+    if (character.str_ptr[0] != '\0' && char_position.x > wrap_width && last_space != nullptr) {
+      last_space->do_wrap = true;
+      char_position -= last_space->position + last_space->advance_x;
+    }
+    char_position.x += character.advance_x;
+  }
+
+  /* Second pass: Fill lines with characters. */
+  char_position = {0.0f, 0.0f};
+  runtime.lines.append(LineInfo());
+  for (CharInfo &character : characters) {
+    character.position = char_position;
+    runtime.lines.last().characters.append(character);
+    runtime.lines.last().width = char_position.x;
+
+    char_position.x += character.advance_x;
+
+    if (character.do_wrap || character.str_ptr[0] == '\n') {
+      runtime.lines.append(LineInfo());
+      char_position.x = 0;
+      char_position.y -= runtime.line_height;
     }
   }
+}
+
+static int text_box_width_get(const blender::Vector<LineInfo> &lines)
+{
+  int width_max = 0;
+
+  for (const LineInfo &line : lines) {
+    width_max = std::max(width_max, line.width);
+  }
+  return width_max;
+}
+
+static float2 horizontal_alignment_offset_get(const TextVars *data,
+                                              float line_width,
+                                              int width_max)
+{
+  const float line_offset = (width_max - line_width);
+
+  if (data->align == SEQ_TEXT_ALIGN_X_RIGHT) {
+    return {line_offset, 0.0f};
+  }
+  else if (data->align == SEQ_TEXT_ALIGN_X_CENTER) {
+    return {line_offset / 2.0f, 0.0f};
+  }
+
+  return {0.0f, 0.0f};
+}
+
+static float2 anchor_offset_get(const TextVars *data, int width_max, int text_height)
+{
+  float2 anchor_offset;
+
+  switch (data->anchor_x) {
+    case SEQ_TEXT_ALIGN_X_LEFT:
+      anchor_offset.x = 0;
+      break;
+    case SEQ_TEXT_ALIGN_X_CENTER:
+      anchor_offset.x = -width_max / 2.0f;
+      break;
+    case SEQ_TEXT_ALIGN_X_RIGHT:
+      anchor_offset.x = -width_max;
+      break;
+  }
+  switch (data->anchor_y) {
+    case SEQ_TEXT_ALIGN_Y_TOP:
+      anchor_offset.y = 0;
+      break;
+    case SEQ_TEXT_ALIGN_Y_CENTER:
+      anchor_offset.y = text_height / 2.0f;
+      break;
+    case SEQ_TEXT_ALIGN_Y_BOTTOM:
+      anchor_offset.y = text_height;
+      break;
+  }
+
+  return anchor_offset;
+}
+
+static void apply_text_alignment(const TextVars *data,
+                                 TextVarsRuntime &runtime,
+                                 const int2 image_size)
+{
+  const int width_max = text_box_width_get(runtime.lines);
+  const int text_height = runtime.lines.size() * runtime.line_height;
+
+  const float2 image_center{data->loc[0] * image_size.x, data->loc[1] * image_size.y};
+  const float2 line_height_offset{0.0f, float(-runtime.line_height - BLF_descender(runtime.font))};
+  const float2 anchor = anchor_offset_get(data, width_max, text_height);
+
+  Vector<rcti> line_boxes;
+
+  for (LineInfo &line : runtime.lines) {
+    const float2 alignment_x = horizontal_alignment_offset_get(data, line.width, width_max);
+    const float2 alignment = math::round(image_center + line_height_offset + alignment_x + anchor);
+
+    for (CharInfo &character : line.characters) {
+      character.position += alignment;
+    }
+
+    /* Get text box for line.
+     * This has to be done, because some fonts do not define a descender value,
+     * but define their height. In that case, box has unwanted offset in Y axis. */
+    rcti line_box;
+    size_t str_len = line.characters.last().str_ptr - line.characters.first().str_ptr;
+    BLF_boundbox(runtime.font, line.characters.first().str_ptr, str_len, &line_box, nullptr);
+    BLI_rcti_translate(
+        &line_box, line.characters.first().position.x, line.characters.first().position.y);
+    line_boxes.append(line_box);
+  }
+
+  runtime.text_boundbox = line_boxes.first();
+  for (const rcti &box : line_boxes) {
+    BLI_rcti_union(&runtime.text_boundbox, &box);
+  }
+}
+
+static void calc_text_runtime(const Sequence *seq,
+                              int font,
+                              const int2 image_size,
+                              TextVarsRuntime &r_runtime)
+{
+  const TextVars *data = static_cast<TextVars *>(seq->effectdata);
+
+  r_runtime.font = font;
+  r_runtime.line_height = BLF_height_max(font);
+  r_runtime.font_descender = BLF_descender(font);
+  r_runtime.character_count = BLI_strlen_utf8(data->text);
+
+  blender::Vector<CharInfo> characters_temp = build_character_info(data, font);
+  apply_word_wrapping(data, r_runtime, image_size, characters_temp);
+  apply_text_alignment(data, r_runtime, image_size);
 }
 
 static ImBuf *do_text_effect(const SeqRenderData *context,
@@ -3066,112 +3342,44 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
    * need to clear it. */
   ImBuf *out = prepare_effect_imbufs(context, nullptr, nullptr, false);
   TextVars *data = static_cast<TextVars *>(seq->effectdata);
-  const int width = out->x;
-  const int height = out->y;
-  int font = blf_mono_font_render;
-  int y_ofs, x, y;
-  double proxy_size_comp;
-
-  if (data->text_blf_id == SEQ_FONT_NOT_LOADED) {
-    data->text_blf_id = -1;
-
-    SEQ_effect_text_font_load(data, false);
-  }
-
-  if (data->text_blf_id >= 0) {
-    font = data->text_blf_id;
-  }
 
   const char *display_device = context->scene->display_settings.display_device;
   ColorManagedDisplay *display = IMB_colormanagement_display_get_named(display_device);
-
-  /* Compensate text size for preview render size. */
-  proxy_size_comp = context->scene->r.size / 100.0;
-  if (context->preview_render_size != SEQ_RENDER_SIZE_SCENE) {
-    proxy_size_comp = SEQ_rendersize_to_scale_factor(context->preview_render_size);
-  }
-
-  /* set before return */
-  BLF_size(font, proxy_size_comp * data->text_size);
-
-  const int font_flags = BLF_WORD_WRAP | /* Always allow wrapping. */
-                         ((data->flag & SEQ_TEXT_BOLD) ? BLF_BOLD : 0) |
+  const int font_flags = ((data->flag & SEQ_TEXT_BOLD) ? BLF_BOLD : 0) |
                          ((data->flag & SEQ_TEXT_ITALIC) ? BLF_ITALIC : 0);
-  BLF_enable(font, font_flags);
 
-  /* use max width to enable newlines only */
-  BLF_wordwrap(font, (data->wrap_width != 0.0f) ? data->wrap_width * width : -1);
+  const int font = text_effect_font_init(context, seq, font_flags);
 
-  BLF_buffer(font, nullptr, out->byte_buffer.data, width, height, display);
+  TextVarsRuntime runtime;
+  calc_text_runtime(seq, font, {out->x, out->y}, runtime);
 
-  const int line_height = BLF_height_max(font);
-
-  y_ofs = -BLF_descender(font);
-
-  x = (data->loc[0] * width);
-  y = (data->loc[1] * height) + y_ofs;
-
-  /* Calculate bounding box and wrapping information. */
-  rcti rect;
-  ResultBLF wrap_info;
-  BLF_boundbox(font, data->text, sizeof(data->text), &rect, &wrap_info);
-
-  if ((data->align == SEQ_TEXT_ALIGN_X_LEFT) && (data->align_y == SEQ_TEXT_ALIGN_Y_TOP)) {
-    y -= line_height;
-  }
-  else {
-    if (data->align == SEQ_TEXT_ALIGN_X_RIGHT) {
-      x -= BLI_rcti_size_x(&rect);
-    }
-    else if (data->align == SEQ_TEXT_ALIGN_X_CENTER) {
-      x -= BLI_rcti_size_x(&rect) / 2;
-    }
-
-    if (data->align_y == SEQ_TEXT_ALIGN_Y_TOP) {
-      y -= line_height;
-    }
-    else if (data->align_y == SEQ_TEXT_ALIGN_Y_BOTTOM) {
-      y += (wrap_info.lines - 1) * line_height;
-    }
-    else if (data->align_y == SEQ_TEXT_ALIGN_Y_CENTER) {
-      y += (((wrap_info.lines - 1) / 2) * line_height) - (line_height / 2);
-    }
-  }
-  BLI_rcti_translate(&rect, x, y);
-
-  /* Draw text outline. */
-  rcti outline_rect = rect;
-  if (data->flag & SEQ_TEXT_OUTLINE) {
-    outline_rect = draw_text_outline(context, data, font, display, x, y, line_height, rect, out);
-  }
-
-  /* Draw text itself. */
-  BLF_position(font, x, y, 0.0f);
-  BLF_buffer_col(font, data->color);
-  BLF_draw_buffer(font, data->text, sizeof(data->text));
-
+  rcti outline_rect = draw_text_outline(context, data, runtime, display, out);
+  BLF_buffer(font, nullptr, out->byte_buffer.data, out->x, out->y, display);
+  text_draw(runtime, data->color);
   BLF_buffer(font, nullptr, nullptr, 0, 0, nullptr);
   BLF_disable(font, font_flags);
 
   /* Draw shadow. */
   if (data->flag & SEQ_TEXT_SHADOW) {
-    draw_text_shadow(context, data, line_height, outline_rect, out);
+    draw_text_shadow(context, data, runtime.line_height, outline_rect, out);
   }
 
   /* Draw box under text. */
   if (data->flag & SEQ_TEXT_BOX) {
     if (out->byte_buffer.data) {
-      const int margin = data->box_margin * width;
-      const int minx = rect.xmin - margin;
-      const int maxx = rect.xmax + margin;
-      const int miny = rect.ymin - margin;
-      const int maxy = rect.ymax + margin;
-      fill_rect_alpha_under(out, data->box_color, minx, miny, maxx, maxy);
+      const int margin = data->box_margin * out->x;
+      const int minx = runtime.text_boundbox.xmin - margin;
+      const int maxx = runtime.text_boundbox.xmax + margin;
+      const int miny = runtime.text_boundbox.ymin - margin;
+      const int maxy = runtime.text_boundbox.ymax + margin;
+      float corner_radius = data->box_roundness * (maxy - miny) / 2.0f;
+      fill_rect_alpha_under(out, data->box_color, minx, miny, maxx, maxy, corner_radius);
     }
   }
 
   return out;
 }
+}  // namespace blender::seq
 
 /** \} */
 
@@ -3414,7 +3622,7 @@ static SeqEffectHandle get_sequence_effect_impl(int seq_type)
       rval.load = load_text_effect;
       rval.copy = copy_text_effect;
       rval.early_out = early_out_text;
-      rval.execute = do_text_effect;
+      rval.execute = blender::seq::do_text_effect;
       break;
   }
 

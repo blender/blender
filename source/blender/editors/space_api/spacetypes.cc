@@ -166,7 +166,6 @@ void ED_spacemacros_init()
   ED_operatormacros_mask();
   ED_operatormacros_sequencer();
   ED_operatormacros_paint();
-  ED_operatormacros_gpencil();
   ED_operatormacros_grease_pencil();
   ED_operatormacros_nla();
 

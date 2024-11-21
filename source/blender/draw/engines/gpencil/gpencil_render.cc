@@ -57,7 +57,7 @@ void GPENCIL_render_init(GPENCIL_Data *vedata,
 
   if (!pix_z || !pix_col) {
     RE_engine_set_error_message(engine,
-                                "Warning: To render grease pencil, enable Combined and Z passes.");
+                                "Warning: To render Grease Pencil, enable Combined and Z passes.");
   }
 
   if (pix_z) {

@@ -18,7 +18,6 @@
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
 #include "BKE_material.h"
-#include "BKE_pbvh.hh"
 #include "BKE_scene.hh"
 
 #include "BLT_translation.hh"
@@ -79,6 +78,9 @@ class TextureFromPool;
 struct DRW_Attributes;
 struct DRW_MeshCDMask;
 }  // namespace blender::draw
+namespace blender::bke::pbvh {
+class Node;
+}
 
 typedef struct DRWCallBuffer DRWCallBuffer;
 typedef struct DRWInterface DRWInterface;
@@ -698,7 +700,7 @@ void DRW_view_frustum_corners_get(const DRWView *view, BoundBox *corners);
  * \return world space frustum sides as planes.
  * See #draw_frustum_culling_planes_calc() for the plane order.
  */
-void DRW_view_frustum_planes_get(const DRWView *view, float planes[6][4]);
+std::array<float4, 6> DRW_view_frustum_planes_get(const DRWView *view);
 
 /**
  * These are in view-space, so negative if in perspective.
@@ -952,10 +954,6 @@ void DRW_mesh_batch_cache_get_attributes(Object *object,
                                          blender::draw::DRW_Attributes **r_attrs,
                                          blender::draw::DRW_MeshCDMask **r_cd_needed);
 
-void DRW_sculpt_debug_cb(blender::bke::pbvh::Node *node,
-                         void *user_data,
-                         const float bmin[3],
-                         const float bmax[3],
-                         PBVHNodeFlags flag);
+void DRW_sculpt_debug_cb(blender::bke::pbvh::Node *node, void *user_data);
 
 bool DRW_is_viewport_compositor_enabled();

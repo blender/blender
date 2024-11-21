@@ -2,16 +2,23 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(workbench_common_lib.glsl)
-#pragma BLENDER_REQUIRE(workbench_matcap_lib.glsl)
-#pragma BLENDER_REQUIRE(workbench_world_light_lib.glsl)
-#pragma BLENDER_REQUIRE(workbench_cavity_lib.glsl)
-#pragma BLENDER_REQUIRE(workbench_curvature_lib.glsl)
+#include "infos/workbench_composite_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(workbench_composite)
+FRAGMENT_SHADER_CREATE_INFO(workbench_resolve_opaque_matcap)
+FRAGMENT_SHADER_CREATE_INFO(workbench_resolve_curvature)
+FRAGMENT_SHADER_CREATE_INFO(workbench_resolve_shadow)
+
+#include "draw_view_lib.glsl"
+#include "workbench_cavity_lib.glsl"
+#include "workbench_common_lib.glsl"
+#include "workbench_curvature_lib.glsl"
+#include "workbench_matcap_lib.glsl"
+#include "workbench_world_light_lib.glsl"
 
 void main()
 {
-  vec2 uv = uvcoordsvar.st;
+  vec2 uv = uvcoordsvar.xy;
 
   float depth = texture(depth_tx, uv).r;
   if (depth == 1.0) {
@@ -21,7 +28,8 @@ void main()
   }
 
   /* Normal and Incident vector are in view-space. Lighting is evaluated in view-space. */
-  vec3 V = get_view_vector_from_screen_uv(uv);
+  vec3 P = drw_point_screen_to_view(vec3(uv, 0.5));
+  vec3 V = drw_view_incident_vector(P);
   vec3 N = workbench_normal_decode(texture(normal_tx, uv));
   vec4 mat_data = texture(material_tx, uv);
 
@@ -35,7 +43,7 @@ void main()
 #endif
 
 #ifdef WORKBENCH_LIGHTING_STUDIO
-  float roughness, metallic;
+  float roughness = 0.0, metallic = 0.0;
   workbench_float_pair_decode(mat_data.a, roughness, metallic);
   color.rgb = get_world_lighting(base_color, roughness, metallic, N, V);
 #endif

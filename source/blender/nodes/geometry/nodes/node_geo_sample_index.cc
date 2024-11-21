@@ -28,7 +28,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .supported_type({GeometryComponent::Type::Mesh,
                        GeometryComponent::Type::PointCloud,
                        GeometryComponent::Type::Curve,
-                       GeometryComponent::Type::Instance});
+                       GeometryComponent::Type::Instance,
+                       GeometryComponent::Type::GreasePencil});
   if (node != nullptr) {
     const eCustomDataType data_type = eCustomDataType(node_storage(*node).data_type);
     b.add_input(data_type, "Value").hide_value().field_on_all();
@@ -95,7 +96,8 @@ static const GeometryComponent *find_source_component(const GeometrySet &geometr
       GeometryComponent::Type::Mesh,
       GeometryComponent::Type::PointCloud,
       GeometryComponent::Type::Curve,
-      GeometryComponent::Type::Instance};
+      GeometryComponent::Type::Instance,
+      GeometryComponent::Type::GreasePencil};
   for (const GeometryComponent::Type src_type : supported_types) {
     if (component_is_available(geometry, src_type, domain)) {
       return geometry.get_component(src_type);

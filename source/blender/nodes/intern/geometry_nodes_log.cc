@@ -351,18 +351,6 @@ void GeoTreeLog::ensure_execution_times()
     }
     this->execution_time += tree_logger->execution_time;
   }
-  for (const ComputeContextHash &child_hash : children_hashes_) {
-    GeoTreeLog &child_log = modifier_log_->get_tree_log(child_hash);
-    if (child_log.tree_loggers_.is_empty()) {
-      continue;
-    }
-    child_log.ensure_execution_times();
-    const std::optional<int32_t> &parent_node_id = child_log.tree_loggers_[0]->parent_node_id;
-    if (parent_node_id.has_value()) {
-      this->nodes.lookup_or_add_default(*parent_node_id).execution_time +=
-          child_log.execution_time;
-    }
-  }
   reduced_execution_times_ = true;
 }
 

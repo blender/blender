@@ -39,11 +39,18 @@ class LightProbes {
 
   } call_buffers_{selection_type_};
 
+  bool enabled_ = false;
+
  public:
   LightProbes(const SelectionType selection_type) : selection_type_(selection_type){};
 
   void begin_sync(Resources &res, const State &state)
   {
+    enabled_ = state.space_type == SPACE_VIEW3D;
+    if (!enabled_) {
+      return;
+    }
+
     call_buffers_.ground_line_buf.clear();
     call_buffers_.probe_cube_buf.clear();
     call_buffers_.probe_planar_buf.clear();
@@ -64,6 +71,10 @@ class LightProbes {
 
   void object_sync(const ObjectRef &ob_ref, Resources &res, const State &state)
   {
+    if (!enabled_) {
+      return;
+    }
+
     const Object *ob = ob_ref.object;
     const LightProbe *prb = static_cast<LightProbe *>(ob_ref.object->data);
     const bool show_clipping = (prb->flag & LIGHTPROBE_FLAG_SHOW_CLIP_DIST) != 0;
@@ -173,6 +184,10 @@ class LightProbes {
 
   void end_sync(Resources &res, ShapeCache &shapes, const State &state)
   {
+    if (!enabled_) {
+      return;
+    }
+
     ps_.init();
     res.select_bind(ps_);
 
@@ -200,16 +215,33 @@ class LightProbes {
     }
   }
 
+  void pre_draw(Manager &manager, View &view)
+  {
+    if (!enabled_) {
+      return;
+    }
+
+    manager.generate_commands(ps_dots_, view);
+  }
+
   void draw(Framebuffer &framebuffer, Manager &manager, View &view)
   {
+    if (!enabled_) {
+      return;
+    }
+
     GPU_framebuffer_bind(framebuffer);
     manager.submit(ps_, view);
   }
 
   void draw_color_only(Framebuffer &framebuffer, Manager &manager, View &view)
   {
+    if (!enabled_) {
+      return;
+    }
+
     GPU_framebuffer_bind(framebuffer);
-    manager.submit(ps_dots_, view);
+    manager.submit_only(ps_dots_, view);
   }
 };
 

@@ -8,6 +8,8 @@
 
 #include "BKE_appdir.hh"
 
+#include "CLG_log.h"
+
 #include "testing/testing.h"
 
 #include "obj_export_mtl.hh"
@@ -17,6 +19,14 @@ namespace blender::io::obj {
 
 class OBJMTLParserTest : public testing::Test {
  public:
+  static void SetUpTestCase()
+  {
+    CLG_init();
+  }
+  static void TearDownTestCase()
+  {
+    CLG_exit();
+  }
   void check_string(const char *text, const MTLMaterial *expect, size_t expect_count)
   {
     BKE_tempdir_init(nullptr);

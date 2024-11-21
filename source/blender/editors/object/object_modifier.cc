@@ -31,6 +31,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 
+#include "BLI_array_utils.hh"
 #include "BLI_bitmap.h"
 #include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
@@ -90,11 +91,9 @@
 #include "RNA_prototypes.hh"
 
 #include "ED_armature.hh"
-#include "ED_mesh.hh"
 #include "ED_object.hh"
 #include "ED_object_vgroup.hh"
 #include "ED_screen.hh"
-#include "ED_sculpt.hh"
 
 #include "ANIM_bone_collections.hh"
 
@@ -989,112 +988,116 @@ static void remove_invalid_attribute_strings(Mesh &mesh)
   }
 }
 
-static bool apply_grease_pencil_for_modifier(Depsgraph *depsgraph,
-                                             Object *ob,
-                                             Object *ob_eval,
-                                             GreasePencil &grease_pencil_orig,
-                                             ModifierData *md_eval,
-                                             ReportList *reports)
+static void apply_eval_grease_pencil_data(const GreasePencil &src_grease_pencil,
+                                          const int eval_frame,
+                                          const IndexMask &orig_layers,
+                                          GreasePencil &orig_grease_pencil)
 {
   using namespace bke;
   using namespace bke::greasepencil;
-  const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md_eval->type));
-  GreasePencil *grease_pencil_for_eval = ob_eval->runtime->data_orig ?
-                                             reinterpret_cast<GreasePencil *>(
-                                                 ob_eval->runtime->data_orig) :
-                                             &grease_pencil_orig;
-  const int eval_frame = int(DEG_get_ctime(depsgraph));
-  GreasePencil *grease_pencil_temp = reinterpret_cast<GreasePencil *>(
-      BKE_id_copy_ex(nullptr, &grease_pencil_for_eval->id, nullptr, LIB_ID_COPY_LOCALIZE));
-  grease_pencil_temp->runtime->eval_frame = eval_frame;
-  GeometrySet eval_geometry_set = GeometrySet::from_grease_pencil(grease_pencil_temp,
-                                                                  GeometryOwnershipType::Owned);
-
-  ModifierEvalContext mectx = {depsgraph, ob_eval, MOD_APPLY_TO_ORIGINAL};
-  mti->modify_geometry_set(md_eval, &mectx, &eval_geometry_set);
-  if (!eval_geometry_set.has_grease_pencil()) {
-    BKE_report(reports,
-               RPT_ERROR,
-               "Evaluated geometry from modifier does not contain grease pencil geometry");
-    return false;
-  }
-  GreasePencil &grease_pencil_result =
-      *eval_geometry_set.get_component_for_write<GreasePencilComponent>().get_for_write();
-
-  /* Anonymous attributes shouldn't be available on original geometry. */
-  grease_pencil_result.attributes_for_write().remove_anonymous();
+  /* Build a set of pointers to the layers that we want to apply. */
+  Set<const Layer *> orig_layers_to_apply;
+  orig_layers.foreach_index([&](const int layer_i) {
+    const Layer &layer = orig_grease_pencil.layer(layer_i);
+    orig_layers_to_apply.add(&layer);
+  });
 
   /* Ensure that the layer names are unique by merging layers with the same name. */
-  const int old_layers_num = grease_pencil_result.layers().size();
+  const int old_layers_num = src_grease_pencil.layers().size();
   Vector<Vector<int>> layers_map;
   Map<StringRef, int> new_layer_index_by_name;
   for (const int layer_i : IndexRange(old_layers_num)) {
-    const Layer &layer = grease_pencil_result.layer(layer_i);
+    const Layer &layer = src_grease_pencil.layer(layer_i);
     const int new_layer_index = new_layer_index_by_name.lookup_or_add_cb(
         layer.name(), [&]() { return layers_map.append_and_get_index_as(); });
     layers_map[new_layer_index].append(layer_i);
   }
-  if (GreasePencil *merged_layers_grease_pencil = geometry::merge_layers(
-          grease_pencil_result, layers_map, {}))
-  {
-    grease_pencil_result = std::move(*merged_layers_grease_pencil);
-  }
+  GreasePencil &merged_layers_grease_pencil = *geometry::merge_layers(
+      src_grease_pencil, layers_map, {});
 
   Map<const Layer *, const Layer *> eval_to_orig_layer_map;
   {
-    Set<Layer *> mapped_original_layers;
-    TreeNode *previous_node = nullptr;
-    const Span<const Layer *> result_layers = grease_pencil_result.layers();
-    for (const Layer *layer_eval : result_layers) {
+    /* Keep track of the last layer in each group to ensure layers get added to the same groups in
+     * the same order as the original. This is better than using the layer cache since it avoids
+     * updating the cache every time a new layer is added. */
+    Map<const LayerGroup *, TreeNode *> last_node_by_group;
+    /* Set of orig layers that require the drawing on `eval_frame` to be cleared. These are layers
+     * that existed in original geometry but were removed during the modifier evaluation. */
+    Set<Layer *> orig_layers_to_clear(orig_grease_pencil.layers_for_write());
+    for (const TreeNode *node_eval : merged_layers_grease_pencil.nodes()) {
       /* Check if the original geometry has a layer with the same name. */
-      TreeNode *node_orig = grease_pencil_orig.find_node_by_name(layer_eval->name());
-      if (!node_orig || node_orig->is_group()) {
-        /* No layer with the same name found. Create a new layer. */
-        Layer &layer_orig = grease_pencil_orig.add_layer(layer_eval->name());
-        /* Make sure to add a new keyframe with a new drawing. */
-        grease_pencil_orig.insert_frame(layer_orig, eval_frame);
-        node_orig = &layer_orig.as_node();
-      }
-      BLI_assert(node_orig != nullptr);
-      Layer &layer_orig = node_orig->as_layer();
-      layer_orig.opacity = layer_eval->opacity;
-      layer_orig.set_local_transform(layer_eval->local_transform());
+      TreeNode *node_orig = orig_grease_pencil.find_node_by_name(node_eval->name());
 
-      /* Insert the updated node after the previous node. This keeps the layer order consistent. */
-      if (previous_node) {
+      BLI_assert(node_eval != nullptr);
+      if (node_eval->is_layer()) {
+        /* If the orig layer isn't valid then a new layer with a unique name will be generated. */
+        const bool has_valid_orig_layer = (node_orig != nullptr && node_orig->is_layer());
+        if (!has_valid_orig_layer) {
+          /* Note: This name might be empty! This has to be resolved at a later stage! */
+          Layer &layer_orig = orig_grease_pencil.add_layer(node_eval->name(), true);
+          orig_layers_to_apply.add(&layer_orig);
+          /* Make sure to add a new keyframe with a new drawing. */
+          orig_grease_pencil.insert_frame(layer_orig, eval_frame);
+          node_orig = &layer_orig.as_node();
+        }
         BLI_assert(node_orig != nullptr);
-        grease_pencil_orig.move_node_after(*node_orig, *previous_node);
-      }
-      previous_node = node_orig;
+        Layer &layer_orig = node_orig->as_layer();
+        /* This layer has a matching evaluated layer, so don't clear its keyframe. */
+        orig_layers_to_clear.remove(&layer_orig);
+        /* Only map layers in `eval_to_orig_layer_map` that we want to apply. */
+        if (orig_layers_to_apply.contains(&layer_orig)) {
+          /* Copy layer properties to original geometry. */
+          const Layer &layer_eval = node_eval->as_layer();
+          layer_orig.opacity = layer_eval.opacity;
+          layer_orig.set_local_transform(layer_eval.local_transform());
 
-      /* Add new mapping for layer_eval -> layer_orig*/
-      eval_to_orig_layer_map.add_new(layer_eval, &layer_orig);
-      mapped_original_layers.add_new(&layer_orig);
+          /* Add new mapping for layer_eval -> layer_orig*/
+          eval_to_orig_layer_map.add_new(&layer_eval, &layer_orig);
+        }
+      }
+
+      /* Insert the updated node after the last node in the same group.
+       * This keeps the layer order consistent. */
+      if (node_orig && node_orig->parent_group()) {
+        last_node_by_group.add_or_modify(
+            node_orig->parent_group(),
+            [&](TreeNode **node_ptr) {
+              /* First layer in the group, set the last-layer pointer. */
+              *node_ptr = node_orig;
+            },
+            [&](TreeNode **node_ptr) {
+              orig_grease_pencil.move_node_after(*node_orig, **node_ptr);
+              *node_ptr = node_orig;
+            });
+      }
     }
 
-    /* Remove all the unmapped layers from the original geometry. */
-    /* IMPORTANT: We copy the span of pointers into a local array here, because the runtime cache
-     * of the layers actually changes while we remove the layers. */
-    const Array<Layer *> original_layers = grease_pencil_orig.layers_for_write();
-    for (Layer *layer_orig : original_layers) {
-      if (!mapped_original_layers.contains(layer_orig)) {
-        grease_pencil_orig.remove_layer(*layer_orig);
+    /* Clear the keyframe of all the original layers that don't have a matching evaluated layer,
+     * e.g. the ones that were "deleted" in the modifier. */
+    for (Layer *layer_orig : orig_layers_to_clear) {
+      /* Try inserting a frame. */
+      Drawing *drawing_orig = orig_grease_pencil.insert_frame(*layer_orig, eval_frame);
+      if (drawing_orig == nullptr) {
+        /* If that fails, get the drawing for this frame. */
+        drawing_orig = orig_grease_pencil.get_drawing_at(*layer_orig, eval_frame);
       }
+      /* Clear the existing drawing. */
+      drawing_orig->strokes_for_write() = {};
+      drawing_orig->tag_topology_changed();
     }
   }
 
   /* Update the drawings. */
   VectorSet<Drawing *> all_updated_drawings;
   for (auto [layer_eval, layer_orig] : eval_to_orig_layer_map.items()) {
-    Drawing *drawing_eval = grease_pencil_result.get_drawing_at(*layer_eval, eval_frame);
-    if (drawing_eval) {
-      /* Anonymous attributes shouldn't be available on original geometry. */
-      drawing_eval->strokes_for_write().attributes_for_write().remove_anonymous();
-    }
-    Drawing *drawing_orig = grease_pencil_orig.get_drawing_at(*layer_orig, eval_frame);
+    const Drawing *drawing_eval = merged_layers_grease_pencil.get_drawing_at(*layer_eval,
+                                                                             eval_frame);
+    Drawing *drawing_orig = orig_grease_pencil.get_drawing_at(*layer_orig, eval_frame);
     if (drawing_orig && drawing_eval) {
       /* Write the data to the original drawing. */
-      drawing_orig->strokes_for_write() = std::move(drawing_eval->strokes_for_write());
+      drawing_orig->strokes_for_write() = std::move(drawing_eval->strokes());
+      /* Anonymous attributes shouldn't be available on original geometry. */
+      drawing_orig->strokes_for_write().attributes_for_write().remove_anonymous();
       drawing_orig->tag_topology_changed();
       all_updated_drawings.add_new(drawing_orig);
     }
@@ -1102,8 +1105,8 @@ static bool apply_grease_pencil_for_modifier(Depsgraph *depsgraph,
 
   /* Get the original material pointers from the result geometry. */
   VectorSet<Material *> original_materials;
-  const Span<Material *> eval_materials = Span{grease_pencil_result.material_array,
-                                               grease_pencil_result.material_array_num};
+  const Span<Material *> eval_materials = Span{merged_layers_grease_pencil.material_array,
+                                               merged_layers_grease_pencil.material_array_num};
   for (Material *eval_material : eval_materials) {
     if (eval_material != nullptr && eval_material->id.orig_id != nullptr) {
       original_materials.add_new(reinterpret_cast<Material *>(eval_material->id.orig_id));
@@ -1115,9 +1118,9 @@ static bool apply_grease_pencil_for_modifier(Depsgraph *depsgraph,
    * result geometry are already correct, but this might not be the case for all drawings in the
    * original geometry (like for drawings that are not visible on the frame that the modifier is
    * being applied on). */
-  Array<int> material_indices_map(grease_pencil_orig.material_array_num);
-  for (const int mat_i : IndexRange(grease_pencil_orig.material_array_num)) {
-    Material *material = grease_pencil_orig.material_array[mat_i];
+  Array<int> material_indices_map(orig_grease_pencil.material_array_num);
+  for (const int mat_i : IndexRange(orig_grease_pencil.material_array_num)) {
+    Material *material = orig_grease_pencil.material_array[mat_i];
     const int map_index = original_materials.index_of_try(material);
     if (map_index != -1) {
       material_indices_map[mat_i] = map_index;
@@ -1127,9 +1130,9 @@ static bool apply_grease_pencil_for_modifier(Depsgraph *depsgraph,
   /* Remap material indices for all other drawings. */
   if (!material_indices_map.is_empty() &&
       !array_utils::indices_are_range(material_indices_map,
-                                      IndexRange(grease_pencil_orig.material_array_num)))
+                                      IndexRange(orig_grease_pencil.material_array_num)))
   {
-    for (GreasePencilDrawingBase *base : grease_pencil_orig.drawings()) {
+    for (GreasePencilDrawingBase *base : orig_grease_pencil.drawings()) {
       if (base->type != GP_DRAWING) {
         continue;
       }
@@ -1154,18 +1157,24 @@ static bool apply_grease_pencil_for_modifier(Depsgraph *depsgraph,
   }
 
   /* Convert the layer map into an index mapping. */
-  Array<int> eval_to_orig_layer_indices_map(grease_pencil_result.layers().size());
-  for (const int layer_eval_i : grease_pencil_result.layers().index_range()) {
-    const Layer *layer_eval = &grease_pencil_result.layer(layer_eval_i);
-    const Layer *layer_orig = eval_to_orig_layer_map.lookup(layer_eval);
-    const int layer_orig_index = *grease_pencil_orig.get_layer_index(*layer_orig);
-    eval_to_orig_layer_indices_map[layer_eval_i] = layer_orig_index;
+  Map<int, int> eval_to_orig_layer_indices_map;
+  for (const int layer_eval_i : merged_layers_grease_pencil.layers().index_range()) {
+    const Layer *layer_eval = &merged_layers_grease_pencil.layer(layer_eval_i);
+    if (eval_to_orig_layer_map.contains(layer_eval)) {
+      const Layer *layer_orig = eval_to_orig_layer_map.lookup(layer_eval);
+      const int layer_orig_index = *orig_grease_pencil.get_layer_index(*layer_orig);
+      eval_to_orig_layer_indices_map.add(layer_eval_i, layer_orig_index);
+    }
   }
 
   /* Propagate layer attributes. */
-  AttributeAccessor src_attributes = grease_pencil_result.attributes();
-  MutableAttributeAccessor dst_attributes = grease_pencil_orig.attributes_for_write();
+  AttributeAccessor src_attributes = merged_layers_grease_pencil.attributes();
+  MutableAttributeAccessor dst_attributes = orig_grease_pencil.attributes_for_write();
   src_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+    /* Anonymous attributes shouldn't be available on original geometry. */
+    if (attribute_name_is_anonymous(iter.name)) {
+      return;
+    }
     if (iter.data_type == CD_PROP_STRING) {
       return;
     }
@@ -1177,19 +1186,155 @@ static bool apply_grease_pencil_for_modifier(Depsgraph *depsgraph,
     }
     attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
       using T = decltype(dummy);
-      array_utils::scatter(
-          src.typed<T>(), eval_to_orig_layer_indices_map.as_span(), dst.span.typed<T>());
+      Span<T> src_span = src.typed<T>();
+      MutableSpan<T> dst_span = dst.span.typed<T>();
+      for (const auto [src_i, dst_i] : eval_to_orig_layer_indices_map.items()) {
+        dst_span[dst_i] = src_span[src_i];
+      }
     });
     dst.finish();
   });
 
+  /* Free temporary grease pencil struct. */
+  BKE_id_free(nullptr, &merged_layers_grease_pencil);
+}
+
+static bool apply_grease_pencil_for_modifier(Depsgraph *depsgraph,
+                                             Object *ob,
+                                             GreasePencil &grease_pencil_orig,
+                                             ModifierData *md_eval)
+{
+  using namespace bke;
+  using namespace bke::greasepencil;
+  const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md_eval->type));
+  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  GreasePencil *grease_pencil_for_eval = ob_eval->runtime->data_orig ?
+                                             reinterpret_cast<GreasePencil *>(
+                                                 ob_eval->runtime->data_orig) :
+                                             &grease_pencil_orig;
+  const int eval_frame = int(DEG_get_ctime(depsgraph));
+  GreasePencil *grease_pencil_temp = reinterpret_cast<GreasePencil *>(
+      BKE_id_copy_ex(nullptr, &grease_pencil_for_eval->id, nullptr, LIB_ID_COPY_LOCALIZE));
+  grease_pencil_temp->runtime->eval_frame = eval_frame;
+  GeometrySet eval_geometry_set = GeometrySet::from_grease_pencil(grease_pencil_temp,
+                                                                  GeometryOwnershipType::Owned);
+
+  ModifierEvalContext mectx = {depsgraph, ob_eval, MOD_APPLY_TO_ORIGINAL};
+  mti->modify_geometry_set(md_eval, &mectx, &eval_geometry_set);
+  if (!eval_geometry_set.has_grease_pencil()) {
+
+    return false;
+  }
+  GreasePencil &grease_pencil_result =
+      *eval_geometry_set.get_component_for_write<GreasePencilComponent>().get_for_write();
+
+  apply_eval_grease_pencil_data(grease_pencil_result,
+                                eval_frame,
+                                grease_pencil_orig.layers().index_range(),
+                                grease_pencil_orig);
+
   Main *bmain = DEG_get_bmain(depsgraph);
+  /* There might be layers with empty names after evaluation. Make sure to rename them. */
+  for (Layer *layer : grease_pencil_orig.layers_for_write()) {
+    if (layer->name().is_empty()) {
+      grease_pencil_orig.rename_node(*bmain, layer->as_node(), DATA_("Layer"));
+    }
+  }
   BKE_object_material_from_eval_data(bmain, ob, &grease_pencil_result.id);
   return true;
 }
 
-static bool modifier_apply_obdata(
-    ReportList *reports, Depsgraph *depsgraph, Scene *scene, Object *ob, ModifierData *md_eval)
+static bool apply_grease_pencil_for_modifier_all_keyframes(Depsgraph *depsgraph,
+                                                           Scene *scene,
+                                                           Object *ob,
+                                                           GreasePencil &grease_pencil_orig,
+                                                           ModifierData *md)
+{
+  using namespace bke;
+  using namespace bke::greasepencil;
+  Main *bmain = DEG_get_bmain(depsgraph);
+
+  const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+
+  WM_cursor_wait(true);
+
+  Map<int, Vector<int>> layer_indices_to_apply_per_frame;
+  {
+    for (const int layer_i : grease_pencil_orig.layers().index_range()) {
+      const Layer &layer = grease_pencil_orig.layer(layer_i);
+      for (const auto &[key, value] : layer.frames().items()) {
+        if (value.is_end()) {
+          continue;
+        }
+        layer_indices_to_apply_per_frame.lookup_or_add(key, {}).append(layer_i);
+      }
+    }
+  }
+
+  Array<int> sorted_frame_times(layer_indices_to_apply_per_frame.size());
+  int i = 0;
+  for (const int key : layer_indices_to_apply_per_frame.keys()) {
+    sorted_frame_times[i++] = key;
+  }
+  std::sort(sorted_frame_times.begin(), sorted_frame_times.end());
+
+  const int prev_frame = int(DEG_get_ctime(depsgraph));
+  bool changed = false;
+  for (const int eval_frame : sorted_frame_times) {
+    const Span<int> layer_indices = layer_indices_to_apply_per_frame.lookup(eval_frame).as_span();
+    scene->r.cfra = eval_frame;
+    BKE_scene_graph_update_for_newframe(depsgraph);
+
+    Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+    GreasePencil *grease_pencil_for_eval = ob_eval->runtime->data_orig ?
+                                               reinterpret_cast<GreasePencil *>(
+                                                   ob_eval->runtime->data_orig) :
+                                               &grease_pencil_orig;
+
+    GreasePencil *grease_pencil_temp = reinterpret_cast<GreasePencil *>(
+        BKE_id_copy_ex(nullptr, &grease_pencil_for_eval->id, nullptr, LIB_ID_COPY_LOCALIZE));
+    grease_pencil_temp->runtime->eval_frame = eval_frame;
+    GeometrySet eval_geometry_set = GeometrySet::from_grease_pencil(grease_pencil_temp,
+                                                                    GeometryOwnershipType::Owned);
+
+    ModifierData *md_eval = BKE_modifier_get_evaluated(depsgraph, ob, md);
+    ModifierEvalContext mectx = {depsgraph, ob_eval, MOD_APPLY_TO_ORIGINAL};
+    mti->modify_geometry_set(md_eval, &mectx, &eval_geometry_set);
+    if (!eval_geometry_set.has_grease_pencil()) {
+      continue;
+    }
+    GreasePencil &grease_pencil_result =
+        *eval_geometry_set.get_component_for_write<GreasePencilComponent>().get_for_write();
+
+    IndexMaskMemory memory;
+    const IndexMask orig_layers_to_apply = IndexMask::from_indices(layer_indices, memory);
+    apply_eval_grease_pencil_data(
+        grease_pencil_result, eval_frame, orig_layers_to_apply, grease_pencil_orig);
+
+    BKE_object_material_from_eval_data(bmain, ob, &grease_pencil_result.id);
+    changed = true;
+  }
+
+  scene->r.cfra = prev_frame;
+  BKE_scene_graph_update_for_newframe(depsgraph);
+
+  /* There might be layers with empty names after evaluation. Make sure to rename them. */
+  for (Layer *layer : grease_pencil_orig.layers_for_write()) {
+    if (layer->name().is_empty()) {
+      grease_pencil_orig.rename_node(*bmain, layer->as_node(), DATA_("Layer"));
+    }
+  }
+
+  WM_cursor_wait(false);
+  return changed;
+}
+
+static bool modifier_apply_obdata(ReportList *reports,
+                                  Depsgraph *depsgraph,
+                                  Scene *scene,
+                                  Object *ob,
+                                  ModifierData *md_eval,
+                                  const bool do_all_keyframes)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md_eval->type);
 
@@ -1350,14 +1495,27 @@ static bool modifier_apply_obdata(
   }
   else if (ob->type == OB_GREASE_PENCIL) {
     if (mti->modify_geometry_set == nullptr) {
-      BKE_report(reports, RPT_ERROR, "Cannot apply this modifier to grease pencil geometry");
+      BKE_report(reports, RPT_ERROR, "Cannot apply this modifier to Grease Pencil geometry");
       return false;
     }
-    Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
     GreasePencil &grease_pencil_orig = *static_cast<GreasePencil *>(ob->data);
-    if (!apply_grease_pencil_for_modifier(
-            depsgraph, ob, ob_eval, grease_pencil_orig, md_eval, reports))
-    {
+    bool success = false;
+    if (do_all_keyframes) {
+      /* The function #apply_grease_pencil_for_modifier_all_keyframes will retrieve
+       * the evaluated modifier for each keyframe. The original modifier is passed
+       * to ensure the evaluated modifier is not used, as it will be invalid when
+       * the scene graph is updated for the next keyframe. */
+      ModifierData *md = BKE_modifier_get_original(ob, md_eval);
+      success = apply_grease_pencil_for_modifier_all_keyframes(
+          depsgraph, scene, ob, grease_pencil_orig, md);
+    }
+    else {
+      success = apply_grease_pencil_for_modifier(depsgraph, ob, grease_pencil_orig, md_eval);
+    }
+    if (!success) {
+      BKE_report(reports,
+                 RPT_ERROR,
+                 "Evaluated geometry from modifier does not contain Grease Pencil geometry");
       return false;
     }
   }
@@ -1388,7 +1546,8 @@ bool modifier_apply(Main *bmain,
                     Object *ob,
                     ModifierData *md,
                     int mode,
-                    bool keep_modifier)
+                    bool keep_modifier,
+                    const bool do_all_keyframes)
 {
   if (BKE_object_is_in_editmode(ob)) {
     BKE_report(reports, RPT_ERROR, "Modifiers cannot be applied in edit mode");
@@ -1451,7 +1610,8 @@ bool modifier_apply(Main *bmain,
     did_apply = modifier_apply_shape(bmain, reports, apply_depsgraph, scene, ob, md_eval);
   }
   else {
-    did_apply = modifier_apply_obdata(reports, apply_depsgraph, scene, ob, md_eval);
+    did_apply = modifier_apply_obdata(
+        reports, apply_depsgraph, scene, ob, md_eval, do_all_keyframes);
   }
 
   if (did_apply) {
@@ -2110,6 +2270,9 @@ static int modifier_apply_exec_ex(bContext *C, wmOperator *op, int apply_as, boo
   const bool do_merge_customdata = (apply_as == MODIFIER_APPLY_DATA) ?
                                        RNA_boolean_get(op->ptr, "merge_customdata") :
                                        false;
+  const bool do_all_keyframes = (apply_as == MODIFIER_APPLY_DATA) ?
+                                    RNA_boolean_get(op->ptr, "all_keyframes") :
+                                    false;
 
   bool changed = false;
   for (const PointerRNA &ptr : objects) {
@@ -2128,7 +2291,16 @@ static int modifier_apply_exec_ex(bContext *C, wmOperator *op, int apply_as, boo
       DEG_relations_tag_update(bmain);
     }
 
-    if (!modifier_apply(bmain, op->reports, depsgraph, scene, ob, md, apply_as, keep_modifier)) {
+    if (!modifier_apply(bmain,
+                        op->reports,
+                        depsgraph,
+                        scene,
+                        ob,
+                        md,
+                        apply_as,
+                        keep_modifier,
+                        do_all_keyframes))
+    {
       continue;
     }
     changed = true;
@@ -2194,6 +2366,8 @@ static int modifier_apply_invoke(bContext *C, wmOperator *op, const wmEvent *eve
 
 void OBJECT_OT_modifier_apply(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   ot->name = "Apply Modifier";
   ot->description = "Apply modifier and remove from the stack";
   ot->idname = "OBJECT_OT_modifier_apply";
@@ -2214,11 +2388,17 @@ void OBJECT_OT_modifier_apply(wmOperatorType *ot)
                   "Merge UVs",
                   "For mesh objects, merge UV coordinates that share a vertex to account for "
                   "imprecision in some modifiers");
-  PropertyRNA *prop = RNA_def_boolean(ot->srna,
-                                      "single_user",
-                                      false,
-                                      "Make Data Single User",
-                                      "Make the object's data single user if needed");
+  prop = RNA_def_boolean(ot->srna,
+                         "single_user",
+                         false,
+                         "Make Data Single User",
+                         "Make the object's data single user if needed");
+  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
+  prop = RNA_def_boolean(ot->srna,
+                         "all_keyframes",
+                         false,
+                         "Apply to all keyframes",
+                         "For Grease Pencil objects, apply the modifier to all the keyframes");
   RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
   modifier_register_use_selected_objects_prop(ot);
 }
@@ -2280,6 +2460,7 @@ void OBJECT_OT_modifier_apply_as_shapekey(wmOperatorType *ot)
       ot->srna, "keep_modifier", false, "Keep Modifier", "Do not remove the modifier from stack");
   edit_modifier_properties(ot);
   edit_modifier_report_property(ot);
+  modifier_register_use_selected_objects_prop(ot);
 }
 
 /** \} */
@@ -2521,12 +2702,14 @@ static bool modifier_copy_to_selected_poll(bContext *C)
       continue;
     }
 
-    if (!md && BKE_object_supports_modifiers(ob)) {
+    if (!md) {
       /* Skip type check if modifier could not be found ("modifier" context variable not set). */
-      found_supported_objects = true;
-      break;
+      if (BKE_object_supports_modifiers(ob)) {
+        found_supported_objects = true;
+        break;
+      }
     }
-    if (BKE_object_support_modifier_type_check(ob, md->type)) {
+    else if (BKE_object_support_modifier_type_check(ob, md->type)) {
       found_supported_objects = true;
       break;
     }
@@ -2610,500 +2793,6 @@ void OBJECT_OT_modifiers_copy_to_selected(wmOperatorType *ot)
   ot->poll = modifiers_copy_to_selected_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------- */
-/** \name Multires Delete Higher Levels Operator
- * \{ */
-
-static bool multires_poll(bContext *C)
-{
-  return edit_modifier_poll_generic(C, &RNA_MultiresModifier, (1 << OB_MESH), true, false);
-}
-
-static int multires_higher_levels_delete_exec(bContext *C, wmOperator *op)
-{
-  Scene *scene = CTX_data_scene(C);
-  Object *ob = context_active_object(C);
-  MultiresModifierData *mmd = (MultiresModifierData *)edit_modifier_property_get(
-      op, ob, eModifierType_Multires);
-
-  if (!mmd) {
-    return OPERATOR_CANCELLED;
-  }
-
-  multiresModifier_del_levels(mmd, scene, ob, 1);
-
-  iter_other(CTX_data_main(C), ob, true, multires_update_totlevels, &mmd->totlvl);
-
-  WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
-
-  return OPERATOR_FINISHED;
-}
-
-static int multires_higher_levels_delete_invoke(bContext *C,
-                                                wmOperator *op,
-                                                const wmEvent * /*event*/)
-{
-  if (edit_modifier_invoke_properties(C, op)) {
-    return multires_higher_levels_delete_exec(C, op);
-  }
-  return OPERATOR_CANCELLED;
-}
-
-void OBJECT_OT_multires_higher_levels_delete(wmOperatorType *ot)
-{
-  ot->name = "Delete Higher Levels";
-  ot->description = "Deletes the higher resolution mesh, potential loss of detail";
-  ot->idname = "OBJECT_OT_multires_higher_levels_delete";
-
-  ot->poll = multires_poll;
-  ot->invoke = multires_higher_levels_delete_invoke;
-  ot->exec = multires_higher_levels_delete_exec;
-
-  /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
-  edit_modifier_properties(ot);
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------- */
-/** \name Multires Subdivide Operator
- * \{ */
-
-static EnumPropertyItem prop_multires_subdivide_mode_type[] = {
-    {MULTIRES_SUBDIVIDE_CATMULL_CLARK,
-     "CATMULL_CLARK",
-     0,
-     "Catmull-Clark",
-     "Create a new level using Catmull-Clark subdivisions"},
-    {MULTIRES_SUBDIVIDE_SIMPLE,
-     "SIMPLE",
-     0,
-     "Simple",
-     "Create a new level using simple subdivisions"},
-    {MULTIRES_SUBDIVIDE_LINEAR,
-     "LINEAR",
-     0,
-     "Linear",
-     "Create a new level using linear interpolation of the sculpted displacement"},
-    {0, nullptr, 0, nullptr, nullptr},
-};
-
-static int multires_subdivide_exec(bContext *C, wmOperator *op)
-{
-  Object *object = context_active_object(C);
-  MultiresModifierData *mmd = (MultiresModifierData *)edit_modifier_property_get(
-      op, object, eModifierType_Multires);
-
-  if (!mmd) {
-    return OPERATOR_CANCELLED;
-  }
-
-  const eMultiresSubdivideModeType subdivide_mode = (eMultiresSubdivideModeType)RNA_enum_get(
-      op->ptr, "mode");
-  multiresModifier_subdivide(object, mmd, subdivide_mode);
-
-  iter_other(CTX_data_main(C), object, true, multires_update_totlevels, &mmd->totlvl);
-
-  DEG_id_tag_update(&object->id, ID_RECALC_GEOMETRY);
-  WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, object);
-
-  if (object->mode & OB_MODE_SCULPT) {
-    /* ensure that grid paint mask layer is created */
-    BKE_sculpt_mask_layers_ensure(
-        CTX_data_ensure_evaluated_depsgraph(C), CTX_data_main(C), object, mmd);
-  }
-
-  return OPERATOR_FINISHED;
-}
-
-static int multires_subdivide_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
-{
-  if (edit_modifier_invoke_properties(C, op)) {
-    return multires_subdivide_exec(C, op);
-  }
-  return OPERATOR_CANCELLED;
-}
-
-void OBJECT_OT_multires_subdivide(wmOperatorType *ot)
-{
-  ot->name = "Multires Subdivide";
-  ot->description = "Add a new level of subdivision";
-  ot->idname = "OBJECT_OT_multires_subdivide";
-
-  ot->poll = multires_poll;
-  ot->invoke = multires_subdivide_invoke;
-  ot->exec = multires_subdivide_exec;
-
-  /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
-  edit_modifier_properties(ot);
-  RNA_def_enum(ot->srna,
-               "mode",
-               prop_multires_subdivide_mode_type,
-               MULTIRES_SUBDIVIDE_CATMULL_CLARK,
-               "Subdivision Mode",
-               "How the mesh is going to be subdivided to create a new level");
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------- */
-/** \name Multires Reshape Operator
- * \{ */
-
-static int multires_reshape_exec(bContext *C, wmOperator *op)
-{
-  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  Object *ob = context_active_object(C), *secondob = nullptr;
-  MultiresModifierData *mmd = (MultiresModifierData *)edit_modifier_property_get(
-      op, ob, eModifierType_Multires);
-
-  if (!mmd) {
-    return OPERATOR_CANCELLED;
-  }
-
-  if (mmd->lvl == 0) {
-    BKE_report(op->reports, RPT_ERROR, "Reshape can work only with higher levels of subdivisions");
-    return OPERATOR_CANCELLED;
-  }
-
-  CTX_DATA_BEGIN (C, Object *, selob, selected_editable_objects) {
-    if (selob->type == OB_MESH && selob != ob) {
-      secondob = selob;
-      break;
-    }
-  }
-  CTX_DATA_END;
-
-  if (!secondob) {
-    BKE_report(op->reports, RPT_ERROR, "Second selected mesh object required to copy shape from");
-    return OPERATOR_CANCELLED;
-  }
-
-  if (!multiresModifier_reshapeFromObject(depsgraph, mmd, ob, secondob)) {
-    BKE_report(op->reports, RPT_ERROR, "Objects do not have the same number of vertices");
-    return OPERATOR_CANCELLED;
-  }
-
-  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-  WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
-
-  return OPERATOR_FINISHED;
-}
-
-static int multires_reshape_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
-{
-  if (edit_modifier_invoke_properties(C, op)) {
-    return multires_reshape_exec(C, op);
-  }
-  return OPERATOR_CANCELLED;
-}
-
-void OBJECT_OT_multires_reshape(wmOperatorType *ot)
-{
-  ot->name = "Multires Reshape";
-  ot->description = "Copy vertex coordinates from other object";
-  ot->idname = "OBJECT_OT_multires_reshape";
-
-  ot->poll = multires_poll;
-  ot->invoke = multires_reshape_invoke;
-  ot->exec = multires_reshape_exec;
-
-  /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
-  edit_modifier_properties(ot);
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------- */
-/** \name Multires Save External Operator
- * \{ */
-
-static int multires_external_save_exec(bContext *C, wmOperator *op)
-{
-  Main *bmain = CTX_data_main(C);
-  Object *ob = context_active_object(C);
-  Mesh *mesh = (ob) ? static_cast<Mesh *>(ob->data) : static_cast<Mesh *>(op->customdata);
-  char filepath[FILE_MAX];
-  const bool relative = RNA_boolean_get(op->ptr, "relative_path");
-
-  if (!mesh) {
-    return OPERATOR_CANCELLED;
-  }
-
-  if (CustomData_external_test(&mesh->corner_data, CD_MDISPS)) {
-    return OPERATOR_CANCELLED;
-  }
-
-  RNA_string_get(op->ptr, "filepath", filepath);
-
-  if (relative) {
-    BLI_path_rel(filepath, BKE_main_blendfile_path(bmain));
-  }
-
-  CustomData_external_add(&mesh->corner_data, &mesh->id, CD_MDISPS, mesh->corners_num, filepath);
-  CustomData_external_write(
-      &mesh->corner_data, &mesh->id, CD_MASK_MESH.lmask, mesh->corners_num, 0);
-
-  return OPERATOR_FINISHED;
-}
-
-static int multires_external_save_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
-{
-  Object *ob = context_active_object(C);
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
-  char filepath[FILE_MAX];
-
-  if (!edit_modifier_invoke_properties(C, op)) {
-    return OPERATOR_CANCELLED;
-  }
-
-  MultiresModifierData *mmd = (MultiresModifierData *)edit_modifier_property_get(
-      op, ob, eModifierType_Multires);
-
-  if (!mmd) {
-    return OPERATOR_CANCELLED;
-  }
-
-  if (CustomData_external_test(&mesh->corner_data, CD_MDISPS)) {
-    return OPERATOR_CANCELLED;
-  }
-
-  if (RNA_struct_property_is_set(op->ptr, "filepath")) {
-    return multires_external_save_exec(C, op);
-  }
-
-  op->customdata = mesh;
-
-  SNPRINTF(filepath, "//%s.btx", mesh->id.name + 2);
-  RNA_string_set(op->ptr, "filepath", filepath);
-
-  WM_event_add_fileselect(C, op);
-
-  return OPERATOR_RUNNING_MODAL;
-}
-
-void OBJECT_OT_multires_external_save(wmOperatorType *ot)
-{
-  ot->name = "Multires Save External";
-  ot->description = "Save displacements to an external file";
-  ot->idname = "OBJECT_OT_multires_external_save";
-
-  /* XXX modifier no longer in context after file browser: `ot->poll = multires_poll;`. */
-  ot->exec = multires_external_save_exec;
-  ot->invoke = multires_external_save_invoke;
-  ot->poll = multires_poll;
-
-  /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
-
-  WM_operator_properties_filesel(ot,
-                                 FILE_TYPE_FOLDER | FILE_TYPE_BTX,
-                                 FILE_SPECIAL,
-                                 FILE_SAVE,
-                                 WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH,
-                                 FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_DEFAULT);
-  edit_modifier_properties(ot);
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------- */
-/** \name Multires Pack Operator
- * \{ */
-
-static int multires_external_pack_exec(bContext *C, wmOperator * /*op*/)
-{
-  Object *ob = context_active_object(C);
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
-
-  if (!CustomData_external_test(&mesh->corner_data, CD_MDISPS)) {
-    return OPERATOR_CANCELLED;
-  }
-
-  /* XXX don't remove. */
-  CustomData_external_remove(&mesh->corner_data, &mesh->id, CD_MDISPS, mesh->corners_num);
-
-  return OPERATOR_FINISHED;
-}
-
-void OBJECT_OT_multires_external_pack(wmOperatorType *ot)
-{
-  ot->name = "Multires Pack External";
-  ot->description = "Pack displacements from an external file";
-  ot->idname = "OBJECT_OT_multires_external_pack";
-
-  ot->poll = multires_poll;
-  ot->exec = multires_external_pack_exec;
-
-  /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------- */
-/** \name Multires Apply Base
- * \{ */
-
-static int multires_base_apply_exec(bContext *C, wmOperator *op)
-{
-  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  Object *object = context_active_object(C);
-  MultiresModifierData *mmd = (MultiresModifierData *)edit_modifier_property_get(
-      op, object, eModifierType_Multires);
-
-  if (!mmd) {
-    return OPERATOR_CANCELLED;
-  }
-
-  ed::sculpt_paint::undo::push_multires_mesh_begin(C, op->type->name);
-
-  multiresModifier_base_apply(depsgraph, object, mmd);
-
-  ed::sculpt_paint::undo::push_multires_mesh_end(C, op->type->name);
-
-  DEG_id_tag_update(&object->id, ID_RECALC_GEOMETRY);
-  WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, object);
-
-  return OPERATOR_FINISHED;
-}
-
-static int multires_base_apply_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
-{
-  if (edit_modifier_invoke_properties(C, op)) {
-    return multires_base_apply_exec(C, op);
-  }
-  return OPERATOR_CANCELLED;
-}
-
-void OBJECT_OT_multires_base_apply(wmOperatorType *ot)
-{
-  ot->name = "Multires Apply Base";
-  ot->description = "Modify the base mesh to conform to the displaced mesh";
-  ot->idname = "OBJECT_OT_multires_base_apply";
-
-  ot->poll = multires_poll;
-  ot->invoke = multires_base_apply_invoke;
-  ot->exec = multires_base_apply_exec;
-
-  /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_INTERNAL;
-  edit_modifier_properties(ot);
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------- */
-/** \name Multires Unsubdivide
- * \{ */
-
-static int multires_unsubdivide_exec(bContext *C, wmOperator *op)
-{
-  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  Object *object = context_active_object(C);
-  MultiresModifierData *mmd = (MultiresModifierData *)edit_modifier_property_get(
-      op, object, eModifierType_Multires);
-
-  if (!mmd) {
-    return OPERATOR_CANCELLED;
-  }
-
-  int new_levels = multiresModifier_rebuild_subdiv(depsgraph, object, mmd, 1, true);
-  if (new_levels == 0) {
-    BKE_report(op->reports, RPT_ERROR, "No valid subdivisions found to rebuild a lower level");
-    return OPERATOR_CANCELLED;
-  }
-
-  DEG_id_tag_update(&object->id, ID_RECALC_GEOMETRY);
-  WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, object);
-
-  return OPERATOR_FINISHED;
-}
-
-static int multires_unsubdivide_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
-{
-  if (edit_modifier_invoke_properties(C, op)) {
-    return multires_unsubdivide_exec(C, op);
-  }
-  return OPERATOR_CANCELLED;
-}
-
-void OBJECT_OT_multires_unsubdivide(wmOperatorType *ot)
-{
-  ot->name = "Unsubdivide";
-  ot->description = "Rebuild a lower subdivision level of the current base mesh";
-  ot->idname = "OBJECT_OT_multires_unsubdivide";
-
-  ot->poll = multires_poll;
-  ot->invoke = multires_unsubdivide_invoke;
-  ot->exec = multires_unsubdivide_exec;
-
-  /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
-  edit_modifier_properties(ot);
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------- */
-/** \name Multires Rebuild Subdivisions
- * \{ */
-
-static int multires_rebuild_subdiv_exec(bContext *C, wmOperator *op)
-{
-  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  Object *object = context_active_object(C);
-  MultiresModifierData *mmd = (MultiresModifierData *)edit_modifier_property_get(
-      op, object, eModifierType_Multires);
-
-  if (!mmd) {
-    return OPERATOR_CANCELLED;
-  }
-
-  int new_levels = multiresModifier_rebuild_subdiv(depsgraph, object, mmd, INT_MAX, false);
-  if (new_levels == 0) {
-    BKE_report(op->reports, RPT_ERROR, "No valid subdivisions found to rebuild lower levels");
-    return OPERATOR_CANCELLED;
-  }
-
-  BKE_reportf(op->reports, RPT_INFO, "%d new levels rebuilt", new_levels);
-
-  DEG_id_tag_update(&object->id, ID_RECALC_GEOMETRY);
-  WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, object);
-
-  return OPERATOR_FINISHED;
-}
-
-static int multires_rebuild_subdiv_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
-{
-  if (edit_modifier_invoke_properties(C, op)) {
-    return multires_rebuild_subdiv_exec(C, op);
-  }
-  return OPERATOR_CANCELLED;
-}
-
-void OBJECT_OT_multires_rebuild_subdiv(wmOperatorType *ot)
-{
-  ot->name = "Rebuild Lower Subdivisions";
-  ot->description =
-      "Rebuilds all possible subdivisions levels to generate a lower resolution base mesh";
-  ot->idname = "OBJECT_OT_multires_rebuild_subdiv";
-
-  ot->poll = multires_poll;
-  ot->invoke = multires_rebuild_subdiv_invoke;
-  ot->exec = multires_rebuild_subdiv_exec;
-
-  /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
-  edit_modifier_properties(ot);
 }
 
 /** \} */

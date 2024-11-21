@@ -9,12 +9,12 @@
  * Each thread group will load a brick worth of data and add the needed padding texels.
  */
 
-#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_matrix_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_spherical_harmonics_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_lightprobe_volume_eval_lib.glsl)
+#include "eevee_lightprobe_volume_eval_lib.glsl"
+#include "eevee_spherical_harmonics_lib.glsl"
+#include "gpu_shader_math_base_lib.glsl"
+#include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 
 void atlas_store(vec4 sh_coefficient, ivec2 atlas_coord, int layer)
 {
@@ -104,7 +104,8 @@ void main()
   }
 
   /* Rotate Spherical Harmonic into world space. */
-  mat3 grid_to_world_rot = normalize(mat3(grids_infos_buf[grid_index].world_to_grid_transposed));
+  mat3 grid_to_world_rot = normalize(
+      to_float3x3(grids_infos_buf[grid_index].world_to_grid_transposed));
   sh_local = spherical_harmonics_rotate(grid_to_world_rot, sh_local);
 
   SphericalHarmonicL1 sh_visibility;

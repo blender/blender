@@ -1191,7 +1191,6 @@ void create_stroke(Main &bmain, Object &object, const float4x4 &matrix, const in
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
 
   int material_index = add_material_from_template(bmain, object, gp_stroke_material_black);
-  add_material_from_template(bmain, object, gp_stroke_material_black);
   add_material_from_template(bmain, object, gp_stroke_material_white);
   add_material_from_template(bmain, object, gp_stroke_material_red);
   add_material_from_template(bmain, object, gp_stroke_material_green);

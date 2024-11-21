@@ -2,23 +2,33 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#ifdef GPU_SHADER
+#  pragma once
+#  include "gpu_glsl_cpp_stubs.hh"
+
+#  include "draw_fullscreen_info.hh"
+#endif
+
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(workbench_merge_depth)
-    .sampler(0, ImageType::DEPTH_2D, "depth_tx")
-    .fragment_source("workbench_merge_depth_frag.glsl")
-    .additional_info("draw_fullscreen")
-    .depth_write(DepthWrite::ANY)
-    .do_static_compilation(true);
+SAMPLER(0, DEPTH_2D, depth_tx)
+FRAGMENT_SOURCE("workbench_merge_depth_frag.glsl")
+ADDITIONAL_INFO(draw_fullscreen)
+DEPTH_WRITE(DepthWrite::ANY)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(workbench_overlay_depth)
-    .fragment_source("workbench_overlay_depth_frag.glsl")
-    .additional_info("draw_fullscreen")
-    .depth_write(DepthWrite::ANY)
-    .do_static_compilation(true);
+FRAGMENT_SOURCE("workbench_overlay_depth_frag.glsl")
+ADDITIONAL_INFO(draw_fullscreen)
+DEPTH_WRITE(DepthWrite::ANY)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(workbench_extract_stencil)
-    .fragment_out(0, Type::UINT, "out_stencil_value")
-    .fragment_source("workbench_extract_stencil.glsl")
-    .additional_info("draw_fullscreen")
-    .do_static_compilation(true);
+FRAGMENT_OUT(0, UINT, out_stencil_value)
+FRAGMENT_SOURCE("workbench_extract_stencil.glsl")
+ADDITIONAL_INFO(draw_fullscreen)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()

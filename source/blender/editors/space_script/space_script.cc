@@ -43,14 +43,14 @@ static SpaceLink *script_create(const ScrArea * /*area*/, const Scene * /*scene*
   sscript->spacetype = SPACE_SCRIPT;
 
   /* header */
-  region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "header for script"));
+  region = BKE_area_region_new();
 
   BLI_addtail(&sscript->regionbase, region);
   region->regiontype = RGN_TYPE_HEADER;
   region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* main region */
-  region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "main region for script"));
+  region = BKE_area_region_new();
 
   BLI_addtail(&sscript->regionbase, region);
   region->regiontype = RGN_TYPE_WINDOW;

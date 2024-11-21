@@ -5,17 +5,20 @@
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(compositor_morphological_blur_shared)
-    .local_group_size(16, 16)
-    .sampler(0, ImageType::FLOAT_2D, "input_tx")
-    .image(0, GPU_R16F, Qualifier::READ_WRITE, ImageType::FLOAT_2D, "blurred_input_img")
-    .compute_source("compositor_morphological_blur.glsl");
+LOCAL_GROUP_SIZE(16, 16)
+SAMPLER(0, FLOAT_2D, input_tx)
+IMAGE(0, GPU_R16F, READ_WRITE, FLOAT_2D, blurred_input_img)
+COMPUTE_SOURCE("compositor_morphological_blur.glsl")
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(compositor_morphological_blur_dilate)
-    .additional_info("compositor_morphological_blur_shared")
-    .define("OPERATOR(x, y)", "max(x, y)")
-    .do_static_compilation(true);
+ADDITIONAL_INFO(compositor_morphological_blur_shared)
+DEFINE_VALUE("OPERATOR(x, y)", "max(x, y)")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(compositor_morphological_blur_erode)
-    .additional_info("compositor_morphological_blur_shared")
-    .define("OPERATOR(x, y)", "min(x, y)")
-    .do_static_compilation(true);
+ADDITIONAL_INFO(compositor_morphological_blur_shared)
+DEFINE_VALUE("OPERATOR(x, y)", "min(x, y)")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()

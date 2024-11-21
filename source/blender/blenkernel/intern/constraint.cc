@@ -1310,8 +1310,12 @@ static void trackto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
     /* NOTE(@joshualung): `targetmat[2]` instead of `ownermat[2]` is passed to #vectomat
      * for backwards compatibility it seems. */
     sub_v3_v3v3(vec, cob->matrix[3], ct->matrix[3]);
-    vectomat(
-        vec, ct->matrix[2], short(data->reserved1), short(data->reserved2), data->flags, totmat);
+    vectomat(vec,
+             ct->matrix[2],
+             std::clamp<short>(data->reserved1, 0, 5),
+             std::clamp<short>(data->reserved2, 0, 2),
+             data->flags,
+             totmat);
 
     mul_m4_m3m4(cob->matrix, totmat, cob->matrix);
   }
@@ -1540,7 +1544,9 @@ static void followpath_get_tarmat(Depsgraph * /*depsgraph*/,
         unit_m4(totmat);
 
         if (data->followflag & FOLLOWPATH_FOLLOW) {
-          quat_apply_track(quat, data->trackflag, data->upflag);
+          quat_apply_track(quat,
+                           std::clamp<short>(data->trackflag, 0, 5),
+                           std::clamp<short>(data->upflag, 0, 2));
           quat_to_mat4(totmat, quat);
         }
 
@@ -2962,7 +2968,7 @@ static void actcon_get_tarmat(Depsgraph *depsgraph,
        * normalization by the (max-min) range, to get predictable, valid values when that range is
        * zero. */
       const float range = data->max - data->min;
-      if (range == 0.0f) {
+      if ((range == 0.0f) || (ushort(axis) > 2)) {
         s = 0.0f;
       }
       else {
@@ -4819,23 +4825,27 @@ static void pivotcon_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *ta
   /* pivot correction */
   float axis[3], angle;
 
+  const int rot_axis = std::clamp(
+      int(data->rotAxis), int(PIVOTCON_AXIS_NONE), int(PIVOTCON_AXIS_Z));
+
   /* firstly, check if pivoting should take place based on the current rotation */
-  if (data->rotAxis != PIVOTCON_AXIS_NONE) {
+  if (rot_axis != PIVOTCON_AXIS_NONE) {
+
     float rot[3];
 
     /* extract euler-rotation of target */
     mat4_to_eulO(rot, cob->rotOrder, cob->matrix);
 
     /* check which range might be violated */
-    if (data->rotAxis < PIVOTCON_AXIS_X) {
-      /* negative rotations (data->rotAxis = 0 -> 2) */
-      if (rot[data->rotAxis] > 0.0f) {
+    if (rot_axis < PIVOTCON_AXIS_X) {
+      /* Negative rotations (`rot_axis = 0 -> 2`). */
+      if (rot[rot_axis] > 0.0f) {
         return;
       }
     }
     else {
-      /* positive rotations (data->rotAxis = 3 -> 5 */
-      if (rot[data->rotAxis - PIVOTCON_AXIS_X] < 0.0f) {
+      /* Positive rotations (`rot_axis = 3 -> 5`). */
+      if (rot[rot_axis - PIVOTCON_AXIS_X] < 0.0f) {
         return;
       }
     }

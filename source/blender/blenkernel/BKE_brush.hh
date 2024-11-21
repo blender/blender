@@ -22,6 +22,7 @@ struct ImBuf;
 struct ImagePool;
 struct Main;
 struct MTex;
+struct Paint;
 struct Scene;
 struct UnifiedPaintSettings;
 
@@ -49,6 +50,19 @@ bool BKE_brush_delete(Main *bmain, Brush *brush);
 void BKE_brush_init_gpencil_settings(Brush *brush);
 
 void BKE_brush_init_curves_sculpt_settings(Brush *brush);
+
+/**
+ * Tag a linked brush as having changed settings so an indicator can be displayed to the user,
+ * showing that the brush settings differ from the state of the imported brush asset. Call
+ * every time a user visible change to the brush is done.
+ *
+ * Since this is meant to indicate brushes that are known to differ from the linked source file,
+ * tagging is only performed for linked brushes. File local brushes are normal data-blocks that get
+ * saved with the file, and don't need special attention by the user.
+ *
+ * For convenience, null may be passed for \a brush.
+ */
+void BKE_brush_tag_unsaved_changes(Brush *brush);
 
 Brush *BKE_brush_first_search(Main *bmain, eObjectMode ob_mode);
 
@@ -128,9 +142,11 @@ ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br, bool secondary, bool displa
 
 /* Unified strength size and color. */
 
-const float *BKE_brush_color_get(const Scene *scene, const Brush *brush);
-const float *BKE_brush_secondary_color_get(const Scene *scene, const Brush *brush);
-void BKE_brush_color_set(Scene *scene, Brush *brush, const float color[3]);
+const float *BKE_brush_color_get(const Scene *scene, const Paint *paint, const Brush *brush);
+const float *BKE_brush_secondary_color_get(const Scene *scene,
+                                           const Paint *paint,
+                                           const Brush *brush);
+void BKE_brush_color_set(Scene *scene, const Paint *paint, Brush *brush, const float color[3]);
 
 int BKE_brush_size_get(const Scene *scene, const Brush *brush);
 void BKE_brush_size_set(Scene *scene, Brush *brush, int size);

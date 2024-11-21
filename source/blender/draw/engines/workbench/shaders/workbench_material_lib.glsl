@@ -2,6 +2,13 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
+#include "infos/workbench_prepass_info.hh"
+
+// SHADER_LIBRARY_CREATE_INFO(workbench_color_material)
+SHADER_LIBRARY_CREATE_INFO(workbench_color_texture)
+
 void workbench_material_data_get(int handle,
                                  vec3 vertex_color,
                                  out vec3 color,

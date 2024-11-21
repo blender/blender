@@ -16,7 +16,6 @@ import pathlib
 import subprocess
 import sys
 import unittest
-from typing import Tuple
 
 from modules.test_utils import (
     with_tempdir,
@@ -44,7 +43,7 @@ class AbstractAlembicTest(AbstractBlenderRunnerTest):
         # 'abcls' array notation, like "name[16]"
         cls.abcls_array = re.compile(r'^(?P<name>[^\[]+)(\[(?P<arraysize>\d+)\])?$')
 
-    def abcls(self, *arguments) -> Tuple[int, str]:
+    def abcls(self, *arguments) -> tuple[int, str]:
         """Uses abcls and return its output.
 
         :return: tuple (process exit status code, stdout)
@@ -403,7 +402,7 @@ class UVMapExportTest(AbstractAlembicTest):
         basename = 'T77021-multiple-uvmaps-animated-mesh'
         abc = tempdir / f'{basename}.abc'
         script = f"import bpy; bpy.ops.wm.alembic_export(filepath='{abc.as_posix()}', start=1, end=1, " \
-                 f"visible_objects_only=True, flatten=False)"
+            f"visible_objects_only=True, flatten=False)"
         self.run_blender(f'{basename}.blend', script)
 
         self.maxDiff = 1000
@@ -542,7 +541,7 @@ class InvisibleObjectExportTest(AbstractAlembicTest):
     This test only tests a small subset of the functionality that is required to
     export invisible objects. It just tests that the visibility property is
     written, and that it has the correct initial value. This is a limitation
-    caused by these tests relying on `abcls`.
+    caused by these tests relying on ``abcls``.
     """
 
     @with_tempdir

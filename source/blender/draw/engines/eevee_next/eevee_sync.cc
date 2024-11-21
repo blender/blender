@@ -13,7 +13,7 @@
 #include "BKE_gpencil_legacy.h"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
-#include "BKE_pbvh_api.hh"
+#include "BKE_paint_bvh.hh"
 #include "DEG_depsgraph_query.hh"
 #include "DNA_curves_types.h"
 #include "DNA_gpencil_legacy_types.h"
@@ -88,17 +88,21 @@ static inline void volume_call(
 /** \name Mesh
  * \{ */
 
-void SyncModule::sync_mesh(Object *ob,
-                           ObjectHandle &ob_handle,
-                           ResourceHandle res_handle,
-                           const ObjectRef &ob_ref)
+void SyncModule::sync_mesh(Object *ob, ObjectHandle &ob_handle, const ObjectRef &ob_ref)
 {
   if (!inst_.use_surfaces) {
     return;
   }
 
+  if ((ob->dt < OB_SOLID) && (inst_.is_viewport() && inst_.v3d->shading.type != OB_RENDER)) {
+    /** Do not render objects with display type lower than solid when in material preview mode. */
+    return;
+  }
+
+  ResourceHandle res_handle = inst_.manager->unique_handle(ob_ref);
+
   bool has_motion = inst_.velocity.step_object_sync(
-      ob, ob_handle.object_key, res_handle, ob_handle.recalc);
+      ob_handle.object_key, ob_ref, ob_handle.recalc, res_handle);
 
   MaterialArray &material_array = inst_.materials.material_array_get(ob, has_motion);
 
@@ -106,11 +110,6 @@ void SyncModule::sync_mesh(Object *ob,
       ob, material_array.gpu_materials.data(), material_array.gpu_materials.size());
 
   if (mat_geom == nullptr) {
-    return;
-  }
-
-  if ((ob->dt < OB_SOLID) && ((inst_.is_viewport() && inst_.v3d->shading.type != OB_RENDER))) {
-    /** Do not render objects with display type lower than solid when in material preview mode. */
     return;
   }
 
@@ -174,10 +173,7 @@ void SyncModule::sync_mesh(Object *ob,
   inst_.cryptomatte.sync_object(ob, res_handle);
 }
 
-bool SyncModule::sync_sculpt(Object *ob,
-                             ObjectHandle &ob_handle,
-                             ResourceHandle res_handle,
-                             const ObjectRef &ob_ref)
+bool SyncModule::sync_sculpt(Object *ob, ObjectHandle &ob_handle, const ObjectRef &ob_ref)
 {
   if (!inst_.use_surfaces) {
     return false;
@@ -187,6 +183,8 @@ bool SyncModule::sync_sculpt(Object *ob,
   if (!pbvh_draw) {
     return false;
   }
+
+  ResourceHandle res_handle = inst_.manager->unique_handle(ob_ref);
 
   bool has_motion = false;
   MaterialArray &material_array = inst_.materials.material_array_get(ob, has_motion);
@@ -264,15 +262,14 @@ bool SyncModule::sync_sculpt(Object *ob,
 /** \name Point Cloud
  * \{ */
 
-void SyncModule::sync_point_cloud(Object *ob,
-                                  ObjectHandle &ob_handle,
-                                  ResourceHandle res_handle,
-                                  const ObjectRef &ob_ref)
+void SyncModule::sync_point_cloud(Object *ob, ObjectHandle &ob_handle, const ObjectRef &ob_ref)
 {
   const int material_slot = POINTCLOUD_MATERIAL_NR;
 
+  ResourceHandle res_handle = inst_.manager->unique_handle(ob_ref);
+
   bool has_motion = inst_.velocity.step_object_sync(
-      ob, ob_handle.object_key, res_handle, ob_handle.recalc);
+      ob_handle.object_key, ob_ref, ob_handle.recalc, res_handle);
 
   Material &material = inst_.materials.material_get(
       ob, has_motion, material_slot - 1, MAT_GEOM_POINT_CLOUD);
@@ -334,14 +331,13 @@ void SyncModule::sync_point_cloud(Object *ob,
 /** \name Volume Objects
  * \{ */
 
-void SyncModule::sync_volume(Object *ob,
-                             ObjectHandle &ob_handle,
-                             ResourceHandle res_handle,
-                             const ObjectRef &ob_ref)
+void SyncModule::sync_volume(Object *ob, ObjectHandle &ob_handle, const ObjectRef &ob_ref)
 {
   if (!inst_.use_volumes) {
     return;
   }
+
+  ResourceHandle res_handle = inst_.manager->unique_handle(ob_ref);
 
   const int material_slot = VOLUME_MATERIAL_NR;
 
@@ -394,156 +390,13 @@ void SyncModule::sync_volume(Object *ob,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name GPencil
- * \{ */
-
-#define DO_BATCHING true
-
-struct gpIterData {
-  Instance &inst;
-  Object *ob;
-  MaterialArray &material_array;
-  int cfra;
-
-  /* Drawcall batching. */
-  gpu::Batch *geom = nullptr;
-  Material *material = nullptr;
-  int vfirst = 0;
-  int vcount = 0;
-  bool instancing = false;
-
-  gpIterData(Instance &inst_, Object *ob_, ObjectHandle &ob_handle, ResourceHandle resource_handle)
-      : inst(inst_),
-        ob(ob_),
-        material_array(inst_.materials.material_array_get(
-            ob_,
-            inst_.velocity.step_object_sync(
-                ob, ob_handle.object_key, resource_handle, ob_handle.recalc)))
-  {
-    cfra = DEG_get_ctime(inst.depsgraph);
-  };
-};
-
-static void gpencil_drawcall_flush(gpIterData &iter)
-{
-#if 0 /* Incompatible with new draw manager. */
-  if (iter.geom != nullptr) {
-    geometry_call(iter.material->shading.sub_pass,
-                  iter.ob,
-                  iter.geom,
-                  iter.vfirst,
-                  iter.vcount,
-                  iter.instancing);
-    geometry_call(iter.material->prepass.sub_pass,
-                  iter.ob,
-                  iter.geom,
-                  iter.vfirst,
-                  iter.vcount,
-                  iter.instancing);
-    geometry_call(iter.material->shadow.sub_pass,
-                  iter.ob,
-                  iter.geom,
-                  iter.vfirst,
-                  iter.vcount,
-                  iter.instancing);
-  }
-#endif
-  iter.geom = nullptr;
-  iter.vfirst = -1;
-  iter.vcount = 0;
-}
-
-/* Group draw-calls that are consecutive and with the same type. Reduces GPU driver overhead. */
-static void gpencil_drawcall_add(gpIterData &iter,
-                                 gpu::Batch *geom,
-                                 Material *material,
-                                 int v_first,
-                                 int v_count,
-                                 bool instancing)
-{
-  int last = iter.vfirst + iter.vcount;
-  /* Interrupt draw-call grouping if the sequence is not consecutive. */
-  if (!DO_BATCHING || (geom != iter.geom) || (material != iter.material) || (v_first - last > 3)) {
-    gpencil_drawcall_flush(iter);
-  }
-  iter.geom = geom;
-  iter.material = material;
-  iter.instancing = instancing;
-  if (iter.vfirst == -1) {
-    iter.vfirst = v_first;
-  }
-  iter.vcount = v_first + v_count - iter.vfirst;
-}
-
-static void gpencil_stroke_sync(bGPDlayer * /*gpl*/,
-                                bGPDframe * /*gpf*/,
-                                bGPDstroke *gps,
-                                void *thunk)
-{
-  gpIterData &iter = *(gpIterData *)thunk;
-
-  Material *material = &iter.material_array.materials[gps->mat_nr];
-  MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(iter.ob, gps->mat_nr + 1);
-
-  bool hide_material = (gp_style->flag & GP_MATERIAL_HIDE) != 0;
-  bool show_stroke = ((gp_style->flag & GP_MATERIAL_STROKE_SHOW) != 0) ||
-                     (!DRW_state_is_image_render() && ((gps->flag & GP_STROKE_NOFILL) != 0));
-  bool show_fill = (gps->tot_triangles > 0) && ((gp_style->flag & GP_MATERIAL_FILL_SHOW) != 0);
-
-  if (hide_material) {
-    return;
-  }
-
-  gpu::Batch *geom = DRW_cache_gpencil_get(iter.ob, iter.cfra);
-
-  if (show_fill) {
-    int vfirst = gps->runtime.fill_start * 3;
-    int vcount = gps->tot_triangles * 3;
-    gpencil_drawcall_add(iter, geom, material, vfirst, vcount, false);
-  }
-
-  if (show_stroke) {
-    /* Start one vert before to have gl_InstanceID > 0 (see shader). */
-    int vfirst = gps->runtime.stroke_start * 3;
-    /* Include "potential" cyclic vertex and start adj vertex (see shader). */
-    int vcount = gps->totpoints + 1 + 1;
-    gpencil_drawcall_add(iter, geom, material, vfirst, vcount, true);
-  }
-}
-
-void SyncModule::sync_gpencil(Object *ob, ObjectHandle &ob_handle, ResourceHandle res_handle)
-{
-  /* TODO(fclem): Waiting for a user option to use the render engine instead of gpencil engine. */
-  return;
-
-  /* Is this a surface or curves? */
-  if (!inst_.use_surfaces) {
-    return;
-  }
-
-  UNUSED_VARS(res_handle);
-
-  gpIterData iter(inst_, ob, ob_handle, res_handle);
-
-  BKE_gpencil_visible_stroke_iter((bGPdata *)ob->data, nullptr, gpencil_stroke_sync, &iter);
-
-  gpencil_drawcall_flush(iter);
-
-  bool is_alpha_blend = true;          /* TODO material.is_alpha_blend. */
-  bool has_transparent_shadows = true; /* TODO material.has_transparent_shadows. */
-  inst_.shadows.sync_object(ob, ob_handle, res_handle, is_alpha_blend, has_transparent_shadows);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Hair
  * \{ */
 
 void SyncModule::sync_curves(Object *ob,
                              ObjectHandle &ob_handle,
-                             ResourceHandle res_handle,
                              const ObjectRef &ob_ref,
+                             ResourceHandle res_handle,
                              ModifierData *modifier_data,
                              ParticleSystem *particle_sys)
 {
@@ -556,8 +409,13 @@ void SyncModule::sync_curves(Object *ob,
     mat_nr = particle_sys->part->omat;
   }
 
+  if (res_handle.raw == 0) {
+    /* For curve objects. */
+    res_handle = inst_.manager->unique_handle(ob_ref);
+  }
+
   bool has_motion = inst_.velocity.step_object_sync(
-      ob, ob_handle.object_key, res_handle, ob_handle.recalc, modifier_data, particle_sys);
+      ob_handle.object_key, ob_ref, ob_handle.recalc, res_handle, modifier_data, particle_sys);
   Material &material = inst_.materials.material_get(ob, has_motion, mat_nr - 1, MAT_GEOM_CURVES);
 
   auto drawcall_add = [&](MaterialPass &matpass) {

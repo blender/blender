@@ -2,12 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_attribute_load_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_index_load_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
+#include "common_view_clipping_lib.glsl"
+#include "common_view_lib.glsl"
+#include "gpu_shader_attribute_load_lib.glsl"
+#include "gpu_shader_index_load_lib.glsl"
+#include "gpu_shader_math_base_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 
 #define M_TAN_PI_BY_8 tan(M_PI / 8)
 #define M_TAN_3_PI_BY_8 tan(3 * M_PI / 8)
@@ -122,27 +122,21 @@ void geometry_main(VertOut geom_in[2],
   vec4 v1 = geom_in[0].gpu_position;
   vec4 v2 = geom_in[1].gpu_position;
 
-  uint is_active_nurb = (geom_in[0].flag & EDIT_CURVES_ACTIVE_HANDLE);
-  uint color_id = (geom_in[0].flag >> EDIT_CURVES_HANDLE_TYPES_SHIFT) & 3u;
+  bool is_active = (geom_in[0].flag & EDIT_CURVES_ACTIVE_HANDLE) != 0u;
+  uint color_id = (geom_in[0].flag >> EDIT_CURVES_HANDLE_TYPES_SHIFT) & 7u;
 
+  bool is_bezier_handle = (geom_in[0].flag & EDIT_CURVES_BEZIER_HANDLE) != 0;
   /* Don't output any edges if we don't show handles */
-  if (!showCurveHandles && (color_id < 5u)) {
+  if ((uint(curveHandleDisplay) == CURVE_HANDLE_NONE) && is_bezier_handle) {
     return;
   }
 
-  bool edge_selected = (((geom_in[1].flag | geom_in[0].flag) & VERT_SELECTED) != 0u);
-  bool handle_selected = (showCurveHandles &&
-                          (((geom_in[0].flag) &
-                            (EDIT_CURVES_ACTIVE_HANDLE | EDIT_CURVES_BEZIER_HANDLE)) != 0u));
-
-  /* If handle type is only selected and the edge is not selected, don't show. */
-  if ((uint(curveHandleDisplay) != CURVE_HANDLE_ALL) && (!handle_selected)) {
-    /* Nurbs must show the handles always. */
-    bool is_nurbs = (geom_in[0].flag & EDIT_CURVES_NURBS_CONTROL_POINT) != 0u;
-    if ((!is_nurbs) && (color_id <= 4u)) {
-      return;
-    }
+  /* If handle type is only selected and the edge is not selected, don't show.
+   * Nurbs and other curves must show the handles always. */
+  if ((uint(curveHandleDisplay) == CURVE_HANDLE_SELECTED) && is_bezier_handle && !is_active) {
+    return;
   }
+
   bool is_odd_vertex = (out_vertex_id & 1u) != 0u;
   bool is_odd_primitive = (out_primitive_id & 1u) != 0u;
   uint line_end_point = (is_odd_primitive && !is_odd_vertex) ||
@@ -150,7 +144,8 @@ void geometry_main(VertOut geom_in[2],
                             1 :
                             0;
   vec4 inner_color;
-  if ((geom_in[line_end_point].flag & EDIT_CURVES_BEZIER_HANDLE) != 0u) {
+  if ((geom_in[line_end_point].flag & (EDIT_CURVES_BEZIER_HANDLE | EDIT_CURVES_BEZIER_KNOT)) != 0u)
+  {
     inner_color = get_bezier_handle_color(color_id, geom_in[line_end_point].sel);
   }
   else if ((geom_in[line_end_point].flag & EDIT_CURVES_NURBS_CONTROL_POINT) != 0u) {
@@ -165,7 +160,7 @@ void geometry_main(VertOut geom_in[2],
 
   /* Minimize active color bleeding on inner_color. */
   vec4 active_color = mix(colorActiveSpline, inner_color, 0.25);
-  vec4 outer_color = (is_active_nurb != 0u) ? active_color : vec4(inner_color.rgb, 0.0);
+  vec4 outer_color = is_active ? active_color : vec4(inner_color.rgb, 0.0);
 
   vec2 v1_2 = (v2.xy / v2.w - v1.xy / v1.w);
   vec2 offset = sizeEdge * 4.0 * sizeViewportInv; /* 4.0 is eyeballed */
@@ -182,7 +177,7 @@ void geometry_main(VertOut geom_in[2],
 
   vec4 border_color = vec4(colorActiveSpline.rgb, 0.0);
   /* Draw the transparent border (AA). */
-  if (is_active_nurb != 0u) {
+  if (is_active) {
     offset *= 0.75; /* Don't make the active "halo" appear very thick. */
     output_vertex_pair(0, out_vertex_id, out_primitive_id, geom_in, offset * 2.0, border_color);
   }
@@ -193,7 +188,7 @@ void geometry_main(VertOut geom_in[2],
   /* Draw the outline. */
   output_vertex_pair(3, out_vertex_id, out_primitive_id, geom_in, -offset, outer_color);
   /* Draw the transparent border (AA). */
-  if (is_active_nurb != 0u) {
+  if (is_active) {
     output_vertex_pair(4, out_vertex_id, out_primitive_id, geom_in, -offset * 2.0, border_color);
   }
 }

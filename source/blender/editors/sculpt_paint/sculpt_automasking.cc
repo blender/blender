@@ -25,7 +25,7 @@
 
 #include "BKE_colortools.hh"
 #include "BKE_paint.hh"
-#include "BKE_pbvh_api.hh"
+#include "BKE_paint_bvh.hh"
 #include "BKE_subdiv_ccg.hh"
 
 #include "mesh_brush_common.hh"
@@ -887,14 +887,15 @@ void calc_grids_factors(const Depsgraph &depsgraph,
 
   for (const int i : grids.index_range()) {
     const int grid_face_set = face_sets.is_empty() ?
-                                  1 :
+                                  SCULPT_FACE_SET_NONE :
                                   face_sets[subdiv_ccg.grid_to_face_map[grids[i]]];
     const int node_start = i * key.grid_area;
     const int grids_start = grids[i] * key.grid_area;
     for (const int offset : IndexRange(key.grid_area)) {
       const int node_vert = node_start + offset;
       const int vert = grids_start + offset;
-      const float3 &normal = orig_normals.is_empty() ? subdiv_ccg.normals[vert] : orig_normals[i];
+      const float3 &normal = orig_normals.is_empty() ? subdiv_ccg.normals[vert] :
+                                                       orig_normals[node_vert];
 
       /* Since brush normal mode depends on the current mirror symmetry pass
        * it is not folded into the factor cache (when it exists). */
@@ -1113,12 +1114,21 @@ static void fill_topology_automasking_factors_mesh(const Depsgraph &depsgraph,
 
   float3 location = vert_positions[active_vert];
 
-  flood.execute(ob, vert_to_face_map, [&](int from_v, int to_v) {
-    factors[from_v] = 1.0f;
-    factors[to_v] = 1.0f;
-    return (use_radius || SCULPT_is_vertex_inside_brush_radius_symm(
-                              vert_positions[to_v], location, radius, symm));
-  });
+  if (use_radius) {
+    flood.execute(ob, vert_to_face_map, [&](int from_v, int to_v) {
+      factors[from_v] = 1.0f;
+      factors[to_v] = 1.0f;
+      return SCULPT_is_vertex_inside_brush_radius_symm(
+          vert_positions[to_v], location, radius, symm);
+    });
+  }
+  else {
+    flood.execute(ob, vert_to_face_map, [&](int from_v, int to_v) {
+      factors[from_v] = 1.0f;
+      factors[to_v] = 1.0f;
+      return true;
+    });
+  }
 }
 
 static void fill_topology_automasking_factors_grids(const Sculpt &sd,
@@ -1145,13 +1155,23 @@ static void fill_topology_automasking_factors_grids(const Sculpt &sd,
 
   float3 location = positions[active_vert];
 
-  flood.execute(
-      ob, subdiv_ccg, [&](SubdivCCGCoord from_v, SubdivCCGCoord to_v, bool /*is_duplicate*/) {
-        factors[from_v.to_index(key)] = 1.0f;
-        factors[to_v.to_index(key)] = 1.0f;
-        return (use_radius || SCULPT_is_vertex_inside_brush_radius_symm(
-                                  positions[to_v.to_index(key)], location, radius, symm));
-      });
+  if (use_radius) {
+    flood.execute(
+        ob, subdiv_ccg, [&](SubdivCCGCoord from_v, SubdivCCGCoord to_v, bool /*is_duplicate*/) {
+          factors[from_v.to_index(key)] = 1.0f;
+          factors[to_v.to_index(key)] = 1.0f;
+          return SCULPT_is_vertex_inside_brush_radius_symm(
+              positions[to_v.to_index(key)], location, radius, symm);
+        });
+  }
+  else {
+    flood.execute(
+        ob, subdiv_ccg, [&](SubdivCCGCoord from_v, SubdivCCGCoord to_v, bool /*is_duplicate*/) {
+          factors[from_v.to_index(key)] = 1.0f;
+          factors[to_v.to_index(key)] = 1.0f;
+          return true;
+        });
+  }
 }
 
 static void fill_topology_automasking_factors_bmesh(const Sculpt &sd,
@@ -1174,12 +1194,20 @@ static void fill_topology_automasking_factors_bmesh(const Sculpt &sd,
 
   float3 location = active_vert->co;
 
-  flood.execute(ob, [&](BMVert *from_v, BMVert *to_v) {
-    factors[BM_elem_index_get(from_v)] = 1.0f;
-    factors[BM_elem_index_get(to_v)] = 1.0f;
-    return (use_radius ||
-            SCULPT_is_vertex_inside_brush_radius_symm(active_vert->co, location, radius, symm));
-  });
+  if (use_radius) {
+    flood.execute(ob, [&](BMVert *from_v, BMVert *to_v) {
+      factors[BM_elem_index_get(from_v)] = 1.0f;
+      factors[BM_elem_index_get(to_v)] = 1.0f;
+      return SCULPT_is_vertex_inside_brush_radius_symm(to_v->co, location, radius, symm);
+    });
+  }
+  else {
+    flood.execute(ob, [&](BMVert *from_v, BMVert *to_v) {
+      factors[BM_elem_index_get(from_v)] = 1.0f;
+      factors[BM_elem_index_get(to_v)] = 1.0f;
+      return true;
+    });
+  }
 }
 
 static void fill_topology_automasking_factors(const Depsgraph &depsgraph,

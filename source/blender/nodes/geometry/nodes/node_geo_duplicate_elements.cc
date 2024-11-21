@@ -731,7 +731,7 @@ static bke::CurvesGeometry duplicate_points_CurvesGeometry(
     const IndexAttributes &attribute_outputs,
     const AttributeFilter &attribute_filter)
 {
-  if (src_curves.points_num() == 0) {
+  if (src_curves.is_empty()) {
     return {};
   }
 

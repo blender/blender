@@ -28,8 +28,6 @@ MTLImmediate::MTLImmediate(MTLContext *ctx)
   context_ = ctx;
 }
 
-MTLImmediate::~MTLImmediate() {}
-
 uchar *MTLImmediate::begin()
 {
   BLI_assert(!has_begun_);
@@ -71,12 +69,12 @@ void MTLImmediate::end()
         active_mtl_shader->get_interface() == nullptr)
     {
 
-      const char *ptr = (active_mtl_shader) ? active_mtl_shader->name_get() : nullptr;
+      const StringRefNull ptr = (active_mtl_shader) ? active_mtl_shader->name_get() : "";
       MTL_LOG_WARNING(
           "MTLImmediate::end -- cannot perform draw as active shader is NULL or invalid (likely "
           "unimplemented) (shader %p '%s')",
           active_mtl_shader,
-          ptr);
+          ptr.c_str());
       return;
     }
 
@@ -203,11 +201,9 @@ void MTLImmediate::end()
          *   and will generate an appropriate conversion function when reading the vertex attribute
          *   value into local shader storage.
          *   (If no explicit conversion is needed, the function specialize to a pass-through). */
-        MTLVertexFormat converted_format;
-        bool can_convert = mtl_vertex_format_resize(
-            mtl_shader_attribute.format, attr->comp_len, &converted_format);
-        desc.vertex_descriptor.attributes[i].format = (can_convert) ? converted_format :
-                                                                      mtl_shader_attribute.format;
+        MTLVertexFormat converted_format = format_resize_comp(mtl_shader_attribute.format,
+                                                              attr->comp_len);
+        desc.vertex_descriptor.attributes[i].format = converted_format;
         desc.vertex_descriptor.attributes[i].format_conversion_mode = (GPUVertFetchMode)
                                                                           attr->fetch_mode;
         BLI_assert(desc.vertex_descriptor.attributes[i].format != MTLVertexFormatInvalid);

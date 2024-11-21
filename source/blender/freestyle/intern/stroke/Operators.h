@@ -23,9 +23,7 @@
 #include "../view_map/Interface1D.h"
 #include "../view_map/ViewMap.h"
 
-#ifdef WITH_CXX_GUARDEDALLOC
-#  include "MEM_guardedalloc.h"
-#endif
+#include "MEM_guardedalloc.h"
 
 namespace Freestyle {
 
@@ -269,9 +267,7 @@ class Operators {
   static I1DContainer *_current_set;
   static StrokesContainer _current_strokes_set;
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Operators")
-#endif
 };
 
 } /* namespace Freestyle */

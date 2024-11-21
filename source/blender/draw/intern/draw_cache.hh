@@ -23,7 +23,6 @@ struct PTCacheEdit;
 struct ParticleSystem;
 struct Volume;
 struct bGPDstroke;
-struct bGPdata;
 struct Scene;
 
 /**
@@ -258,30 +257,10 @@ DRWVolumeGrid *DRW_volume_batch_cache_get_grid(Volume *volume,
 blender::gpu::Batch *DRW_cache_volume_face_wireframe_get(Object *ob);
 blender::gpu::Batch *DRW_cache_volume_selection_surface_get(Object *ob);
 
-/* GPencil (legacy) */
-
-blender::gpu::Batch *DRW_cache_gpencil_get(Object *ob, int cfra);
-gpu::VertBuf *DRW_cache_gpencil_position_buffer_get(Object *ob, int cfra);
-gpu::VertBuf *DRW_cache_gpencil_color_buffer_get(Object *ob, int cfra);
-blender::gpu::Batch *DRW_cache_gpencil_edit_lines_get(Object *ob, int cfra);
-blender::gpu::Batch *DRW_cache_gpencil_edit_points_get(Object *ob, int cfra);
-blender::gpu::Batch *DRW_cache_gpencil_edit_curve_handles_get(Object *ob, int cfra);
-blender::gpu::Batch *DRW_cache_gpencil_edit_curve_points_get(Object *ob, int cfra);
-blender::gpu::Batch *DRW_cache_gpencil_sbuffer_get(Object *ob, bool show_fill);
-gpu::VertBuf *DRW_cache_gpencil_sbuffer_position_buffer_get(Object *ob, bool show_fill);
-gpu::VertBuf *DRW_cache_gpencil_sbuffer_color_buffer_get(Object *ob, bool show_fill);
-int DRW_gpencil_material_count_get(const bGPdata *gpd);
-
-blender::gpu::Batch *DRW_cache_gpencil_face_wireframe_get(Object *ob);
-
-bGPDstroke *DRW_cache_gpencil_sbuffer_stroke_data_get(Object *ob);
-/**
- * Sbuffer batches are temporary. We need to clear it after drawing.
- */
-void DRW_cache_gpencil_sbuffer_clear(Object *ob);
-
 /* Grease Pencil */
 
+/* When there's no visible drawings in this grease pencil object, the returned `Batch` could be
+ * nullptr as `grease_pencil_edit_batch_ensure` won't do anything in those cases. */
 blender::gpu::Batch *DRW_cache_grease_pencil_get(const Scene *scene, Object *ob);
 blender::gpu::Batch *DRW_cache_grease_pencil_edit_points_get(const Scene *scene, Object *ob);
 blender::gpu::Batch *DRW_cache_grease_pencil_edit_lines_get(const Scene *scene, Object *ob);

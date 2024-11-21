@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/gpu_shader_simple_lighting_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(gpu_shader_simple_lighting)
+
 void main()
 {
   fragColor = simple_lighting_data.l_color;

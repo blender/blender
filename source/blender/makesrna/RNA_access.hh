@@ -631,7 +631,7 @@ void RNA_collection_clear(PointerRNA *ptr, const char *name);
 
 #define RNA_STRUCT_BEGIN(sptr, prop) \
   { \
-    CollectionPropertyIterator rna_macro_iter; \
+    CollectionPropertyIterator rna_macro_iter{}; \
     for (RNA_property_collection_begin( \
              sptr, RNA_struct_iterator_property((sptr)->type), &rna_macro_iter); \
          rna_macro_iter.valid; \

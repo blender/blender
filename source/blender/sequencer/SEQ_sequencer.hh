@@ -36,7 +36,6 @@ enum {
 /* seq_dupli' flags */
 #define SEQ_DUPE_UNIQUE_NAME (1 << 0)
 #define SEQ_DUPE_ALL (1 << 3) /* otherwise only selected are copied */
-#define SEQ_DUPE_IS_RECURSIVE_CALL (1 << 4)
 
 SequencerToolSettings *SEQ_tool_settings_init();
 SequencerToolSettings *SEQ_tool_settings_ensure(Scene *scene);

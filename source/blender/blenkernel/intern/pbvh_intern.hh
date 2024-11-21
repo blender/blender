@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "BKE_pbvh.hh"
+#include "BKE_paint_bvh.hh"
 
 /** \file
  * \ingroup bke

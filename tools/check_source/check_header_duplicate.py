@@ -19,10 +19,9 @@ import os
 import sys
 import argparse
 
-from typing import (
+from collections.abc import (
     Callable,
-    Generator,
-    Optional,
+    Iterator,
 )
 
 # Use GCC's `__INCLUDE_LEVEL__` to find direct duplicate includes.
@@ -90,8 +89,8 @@ def scan_source_recursive(dirpath: str, is_restore: bool) -> None:
 
     def source_list(
             path: str,
-            filename_check: Optional[Callable[[str], bool]] = None,
-    ) -> Generator[str, None, None]:
+            filename_check: Callable[[str], bool] | None = None,
+    ) -> Iterator[str]:
         for dirpath, dirnames, filenames in os.walk(path):
             # skip '.git'
             dirnames[:] = [d for d in dirnames if not d.startswith(".")]

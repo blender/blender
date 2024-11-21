@@ -974,7 +974,6 @@ function(delayed_do_install
 endfunction()
 
 # Same as above but generates the var name and output automatic.
-# Takes optional: `STRIP_LEADING_C_COMMENTS` argument.
 function(data_to_c
   file_from file_to
   list_to_add
@@ -985,19 +984,10 @@ function(data_to_c
 
   get_filename_component(_file_to_path ${file_to} PATH)
 
-  set(optional_args "")
-  foreach(f ${ARGN})
-    if(f STREQUAL "STRIP_LEADING_C_COMMENTS")
-      set(optional_args "--options=strip_leading_c_comments")
-    else()
-      message(FATAL_ERROR "Unknown optional argument ${f} to \"data_to_c\"")
-    endif()
-  endforeach()
-
   add_custom_command(
     OUTPUT ${file_to}
     COMMAND ${CMAKE_COMMAND} -E make_directory ${_file_to_path}
-    COMMAND "$<TARGET_FILE:datatoc>" ${file_from} ${file_to} ${optional_args}
+    COMMAND "$<TARGET_FILE:datatoc>" ${file_from} ${file_to}
     DEPENDS ${file_from} datatoc)
 
   set_source_files_properties(${file_to} PROPERTIES GENERATED TRUE)
@@ -1005,7 +995,6 @@ endfunction()
 
 
 # Same as above but generates the var name and output automatic.
-# Takes optional: `STRIP_LEADING_C_COMMENTS` argument.
 function(data_to_c_simple
   file_from
   list_to_add
@@ -1022,23 +1011,45 @@ function(data_to_c_simple
 
   get_filename_component(_file_to_path ${_file_to} PATH)
 
-  set(optional_args "")
-  foreach(f ${ARGN})
-    if(f STREQUAL "STRIP_LEADING_C_COMMENTS")
-      set(optional_args "--options=strip_leading_c_comments")
-    else()
-      message(FATAL_ERROR "Unknown optional argument ${f} to \"data_to_c_simple\"")
-    endif()
-  endforeach()
-
   add_custom_command(
     OUTPUT  ${_file_to}
     COMMAND ${CMAKE_COMMAND} -E make_directory ${_file_to_path}
-    COMMAND "$<TARGET_FILE:datatoc>" ${_file_from} ${_file_to} ${optional_args}
+    COMMAND "$<TARGET_FILE:datatoc>" ${_file_from} ${_file_to}
     DEPENDS ${_file_from} datatoc)
 
   set_source_files_properties(${_file_to} PROPERTIES GENERATED TRUE)
 endfunction()
+
+
+# Process glsl file and convert it to c
+function(glsl_to_c
+  file_from
+  list_to_add
+  )
+
+  # remove ../'s
+  get_filename_component(_file_from ${CMAKE_CURRENT_SOURCE_DIR}/${file_from}   REALPATH)
+  get_filename_component(_file_tmp  ${CMAKE_CURRENT_BINARY_DIR}/${file_from}   REALPATH)
+  get_filename_component(_file_to   ${CMAKE_CURRENT_BINARY_DIR}/${file_from}.c REALPATH)
+
+  list(APPEND ${list_to_add} ${_file_to})
+  source_group(Generated FILES ${_file_to})
+  list(APPEND ${list_to_add} ${file_from})
+  set(${list_to_add} ${${list_to_add}} PARENT_SCOPE)
+
+  get_filename_component(_file_to_path ${_file_to} PATH)
+
+  add_custom_command(
+    OUTPUT  ${_file_to}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${_file_to_path}
+    COMMAND "$<TARGET_FILE:glsl_preprocess>" ${_file_from} ${_file_tmp}
+    COMMAND "$<TARGET_FILE:datatoc>" ${_file_tmp} ${_file_to}
+    DEPENDS ${_file_from} datatoc glsl_preprocess)
+
+  set_source_files_properties(${_file_tmp} PROPERTIES GENERATED TRUE)
+  set_source_files_properties(${_file_to}  PROPERTIES GENERATED TRUE)
+endfunction()
+
 
 function(msgfmt_simple
   file_from
@@ -1398,14 +1409,14 @@ macro(windows_install_shared_manifest)
     endif()
     install(
       FILES ${WINDOWS_INSTALL_FILES}
-      DESTINATION "./blender.shared"
+      DESTINATION "blender.shared"
       CONFIGURATIONS ${WINDOWS_CONFIGURATIONS}
     )
   else()
     # Python module without manifest.
     install(
       FILES ${WINDOWS_INSTALL_FILES}
-      DESTINATION "./bpy"
+      DESTINATION "bpy"
       CONFIGURATIONS ${WINDOWS_CONFIGURATIONS}
     )
   endif()
@@ -1443,7 +1454,7 @@ macro(windows_generate_shared_manifest)
     )
     install(
       FILES ${CMAKE_BINARY_DIR}/Debug/blender.shared.manifest
-      DESTINATION "./blender.shared"
+      DESTINATION "blender.shared"
       CONFIGURATIONS Debug
     )
   endif()
@@ -1455,7 +1466,7 @@ macro(windows_generate_shared_manifest)
     )
     install(
       FILES ${CMAKE_BINARY_DIR}/Release/blender.shared.manifest
-      DESTINATION "./blender.shared"
+      DESTINATION "blender.shared"
       CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
     )
   endif()

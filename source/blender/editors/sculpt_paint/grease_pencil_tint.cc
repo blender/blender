@@ -16,6 +16,8 @@
 #include "BLI_math_color.h"
 #include "BLI_math_geom.h"
 
+#include "DNA_brush_types.h"
+
 #include "DEG_depsgraph_query.hh"
 
 #include "ED_curves.hh"
@@ -71,7 +73,7 @@ void TintOperation::on_stroke_begin(const bContext &C, const InputSample & /*sta
 
   float4 color_linear;
   color_linear[3] = 1.0f;
-  srgb_to_linearrgb_v3_v3(color_linear, brush->rgb);
+  srgb_to_linearrgb_v3_v3(color_linear, BKE_brush_color_get(scene, paint, brush));
 
   color_ = ColorGeometry4f(color_linear);
 

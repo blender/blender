@@ -104,14 +104,14 @@ static SpaceLink *sequencer_create(const ScrArea * /*area*/, const Scene *scene)
   sseq->draw_flag |= SEQ_DRAW_TRANSFORM_PREVIEW;
 
   /* Header. */
-  region = MEM_cnew<ARegion>("header for sequencer");
+  region = BKE_area_region_new();
 
   BLI_addtail(&sseq->regionbase, static_cast<void *>(region));
   region->regiontype = RGN_TYPE_HEADER;
   region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* Tool header. */
-  region = MEM_cnew<ARegion>("tool header for sequencer");
+  region = BKE_area_region_new();
 
   BLI_addtail(&sseq->regionbase, static_cast<void *>(region));
   region->regiontype = RGN_TYPE_TOOL_HEADER;
@@ -119,7 +119,7 @@ static SpaceLink *sequencer_create(const ScrArea * /*area*/, const Scene *scene)
   region->flag = RGN_FLAG_HIDDEN | RGN_FLAG_HIDDEN_BY_USER;
 
   /* Buttons/list view. */
-  region = MEM_cnew<ARegion>("buttons for sequencer");
+  region = BKE_area_region_new();
 
   BLI_addtail(&sseq->regionbase, static_cast<void *>(region));
   region->regiontype = RGN_TYPE_UI;
@@ -127,14 +127,14 @@ static SpaceLink *sequencer_create(const ScrArea * /*area*/, const Scene *scene)
   region->flag = RGN_FLAG_HIDDEN;
 
   /* Toolbar. */
-  region = MEM_cnew<ARegion>("tools for sequencer");
+  region = BKE_area_region_new();
 
   BLI_addtail(&sseq->regionbase, static_cast<void *>(region));
   region->regiontype = RGN_TYPE_TOOLS;
   region->alignment = RGN_ALIGN_LEFT;
 
   /* Channels. */
-  region = MEM_cnew<ARegion>("channels for sequencer");
+  region = BKE_area_region_new();
 
   BLI_addtail(&sseq->regionbase, static_cast<void *>(region));
   region->regiontype = RGN_TYPE_CHANNELS;
@@ -143,7 +143,7 @@ static SpaceLink *sequencer_create(const ScrArea * /*area*/, const Scene *scene)
 
   /* Preview region. */
   /* NOTE: if you change values here, also change them in sequencer_init_preview_region. */
-  region = MEM_cnew<ARegion>("preview region for sequencer");
+  region = BKE_area_region_new();
   BLI_addtail(&sseq->regionbase, static_cast<void *>(region));
   region->regiontype = RGN_TYPE_PREVIEW;
   region->alignment = RGN_ALIGN_TOP;
@@ -164,7 +164,7 @@ static SpaceLink *sequencer_create(const ScrArea * /*area*/, const Scene *scene)
   region->v2d.keeptot = V2D_KEEPTOT_FREE;
 
   /* Main region. */
-  region = MEM_cnew<ARegion>("main region for sequencer");
+  region = BKE_area_region_new();
 
   BLI_addtail(&sseq->regionbase, static_cast<void *>(region));
   region->regiontype = RGN_TYPE_WINDOW;
@@ -442,7 +442,8 @@ static void sequencer_main_region_init(wmWindowManager *wm, ARegion *region)
 
   /* Own keymap. */
   keymap = WM_keymap_ensure(wm->defaultconf, "Sequencer", SPACE_SEQ, RGN_TYPE_WINDOW);
-  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
+  WM_event_add_keymap_handler_poll(
+      &region->handlers, keymap, WM_event_handler_region_v2d_mask_no_marker_poll);
 
   /* Add drop boxes. */
   lb = WM_dropboxmap_find("Sequencer", SPACE_SEQ, RGN_TYPE_WINDOW);
@@ -893,6 +894,8 @@ static void sequencer_preview_region_draw(const bContext *C, ARegion *region)
     BLF_shadow(font_id, FontShadowType::Outline, shadow_color);
 
     ED_scene_draw_fps(scene, xoffset, &yoffset);
+
+    BLF_disable(font_id, BLF_SHADOW);
   }
 }
 

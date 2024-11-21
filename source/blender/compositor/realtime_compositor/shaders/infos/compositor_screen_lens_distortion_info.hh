@@ -5,18 +5,21 @@
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(compositor_screen_lens_distortion_shared)
-    .local_group_size(16, 16)
-    .push_constant(Type::VEC3, "chromatic_distortion")
-    .push_constant(Type::FLOAT, "scale")
-    .sampler(0, ImageType::FLOAT_2D, "input_tx")
-    .image(0, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
-    .compute_source("compositor_screen_lens_distortion.glsl");
+LOCAL_GROUP_SIZE(16, 16)
+PUSH_CONSTANT(VEC3, chromatic_distortion)
+PUSH_CONSTANT(FLOAT, scale)
+SAMPLER(0, FLOAT_2D, input_tx)
+IMAGE(0, GPU_RGBA16F, WRITE, FLOAT_2D, output_img)
+COMPUTE_SOURCE("compositor_screen_lens_distortion.glsl")
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(compositor_screen_lens_distortion)
-    .additional_info("compositor_screen_lens_distortion_shared")
-    .do_static_compilation(true);
+ADDITIONAL_INFO(compositor_screen_lens_distortion_shared)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(compositor_screen_lens_distortion_jitter)
-    .additional_info("compositor_screen_lens_distortion_shared")
-    .define("JITTER")
-    .do_static_compilation(true);
+ADDITIONAL_INFO(compositor_screen_lens_distortion_shared)
+DEFINE("JITTER")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()

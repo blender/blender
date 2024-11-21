@@ -24,7 +24,7 @@
 #include "BKE_colortools.hh"
 #include "BKE_mesh.hh"
 #include "BKE_paint.hh"
-#include "BKE_pbvh_api.hh"
+#include "BKE_paint_bvh.hh"
 
 #include "mesh_brush_common.hh"
 #include "paint_intern.hh"
@@ -1163,7 +1163,7 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_grids(Object &object,
                                                               const float radius)
 {
   struct SegmentData {
-    SubdivCCGCoord vert;
+    int vert;
     int face_set;
   };
 
@@ -1186,7 +1186,7 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_grids(Object &object,
   BitVector<> is_weighted(grids_num);
   Set<int> visited_face_sets;
 
-  SegmentData current_data = {std::get<SubdivCCGCoord>(ss.active_vert()), SCULPT_FACE_SET_NONE};
+  SegmentData current_data = {ss.active_vert_index(), SCULPT_FACE_SET_NONE};
 
   const int symm = SCULPT_mesh_symmetry_xyz_get(object);
   SubdivCCGNeighbors neighbors;
@@ -1194,8 +1194,7 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_grids(Object &object,
     const bool is_first_iteration = i == 0;
 
     flood_fill::FillDataGrids flood_fill(grids_num);
-    flood_fill.add_initial(key,
-                           find_symm_verts_grids(object, current_data.vert.to_index(key), radius));
+    flood_fill.add_initial(key, find_symm_verts_grids(object, current_data.vert, radius));
 
     visited_face_sets.add(current_data.face_set);
 
@@ -1208,7 +1207,7 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_grids(Object &object,
     float3 fallback_accum(0);
     int fallback_count = 0;
 
-    const float3 &pose_initial_co = positions[current_data.vert.to_index(key)];
+    const float3 &pose_initial_co = positions[current_data.vert];
     flood_fill.execute(
         object,
         subdiv_ccg,
@@ -1295,7 +1294,7 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_grids(Object &object,
                 !visited_face_sets.contains(next_face_set_candidate))
             {
               if (!next_segment_data) {
-                next_segment_data = {neighbor, next_face_set_candidate};
+                next_segment_data = {neighbor.to_index(key), next_face_set_candidate};
               }
               count_as_boundary = true;
             }
@@ -1322,8 +1321,7 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_grids(Object &object,
     current_data = *next_segment_data;
   }
 
-  ik_chain_origin_heads_init(*ik_chain,
-                             positions[std::get<SubdivCCGCoord>(ss.active_vert()).to_index(key)]);
+  ik_chain_origin_heads_init(*ik_chain, positions[ss.active_vert_index()]);
 
   return ik_chain;
 }
@@ -1673,7 +1671,6 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_fk_grids(const Depsgraph
 
   std::unique_ptr<IKChain> ik_chain = ik_chain_new(1, grids_num);
 
-  const SubdivCCGCoord active_vert = std::get<SubdivCCGCoord>(ss.active_vert());
   const int active_vert_index = ss.active_vert_index();
 
   const int active_face_set = face_set::active_face_set_get(object);
@@ -1686,7 +1683,7 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_fk_grids(const Depsgraph
   int target_face_set = SCULPT_FACE_SET_NONE;
   int masked_face_set_it = 0;
   flood_fill::FillDataGrids step_floodfill(grids_num);
-  step_floodfill.add_initial(active_vert);
+  step_floodfill.add_initial(SubdivCCGCoord::from_index(key, active_vert_index));
   step_floodfill.execute(
       object, subdiv_ccg, [&](SubdivCCGCoord from_v, SubdivCCGCoord to_v, bool is_duplicate) {
         const int from_v_i = from_v.to_index(key);
@@ -1739,8 +1736,7 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_fk_grids(const Depsgraph
   ik_chain->grab_delta_offset = ik_chain->segments[0].head - initial_location;
 
   flood_fill::FillDataGrids weight_floodfill(grids_num);
-  weight_floodfill.add_initial(key,
-                               find_symm_verts_grids(object, active_vert.to_index(key), radius));
+  weight_floodfill.add_initial(key, find_symm_verts_grids(object, active_vert_index, radius));
   MutableSpan<float> fk_weights = ik_chain->segments[0].weights;
   weight_floodfill.execute(
       object,

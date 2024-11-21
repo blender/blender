@@ -7,8 +7,8 @@
  * Comment out for correct compilation error line. */
 #line 9
 
-#pragma BLENDER_REQUIRE(gpu_shader_math_matrix_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_test_lib.glsl)
+#include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_test_lib.glsl"
 
 #define TEST(a, b) if (true)
 
@@ -70,22 +70,22 @@ void main()
     EulerXYZ euler = EulerXYZ(1, 2, 3);
     Quaternion quat = to_quaternion(euler);
     AxisAngle axis_angle = to_axis_angle(euler);
-    m = mat4(from_rotation(euler));
+    m = to_float4x4(from_rotation(euler));
     EXPECT_NEAR(m, expect, 1e-5);
-    m = mat4(from_rotation(quat));
+    m = to_float4x4(from_rotation(quat));
     EXPECT_NEAR(m, expect, 1e-5);
-    m = mat4(from_rotation(axis_angle));
+    m = to_float4x4(from_rotation(axis_angle));
     EXPECT_NEAR(m, expect, 3e-4); /* Has some precision issue on some platform. */
 
     m = from_scale(vec4(1, 2, 3, 4));
     expect = mat4x4(vec4(1, 0, 0, 0), vec4(0, 2, 0, 0), vec4(0, 0, 3, 0), vec4(0, 0, 0, 4));
     EXPECT_TRUE(is_equal(m, expect, 0.00001));
 
-    m = mat4(from_scale(vec3(1, 2, 3)));
+    m = to_float4x4(from_scale(vec3(1, 2, 3)));
     expect = mat4x4(vec4(1, 0, 0, 0), vec4(0, 2, 0, 0), vec4(0, 0, 3, 0), vec4(0, 0, 0, 1));
     EXPECT_TRUE(is_equal(m, expect, 0.00001));
 
-    m = mat4(from_scale(vec2(1, 2)));
+    m = to_float4x4(from_scale(vec2(1, 2)));
     expect = mat4x4(vec4(1, 0, 0, 0), vec4(0, 2, 0, 0), vec4(0, 0, 1, 0), vec4(0, 0, 0, 1));
     EXPECT_TRUE(is_equal(m, expect, 0.00001));
 
@@ -182,8 +182,8 @@ void main()
     EulerXYZ eul;
     Quaternion qt;
     vec3 scale;
-    to_rot_scale(mat3x3(m), eul, scale);
-    to_rot_scale(mat3x3(m), qt, scale);
+    to_rot_scale(to_float3x3(m), eul, scale);
+    to_rot_scale(to_float3x3(m), qt, scale);
     EXPECT_NEAR(scale, expect_scale, 0.00001);
     EXPECT_NEAR(as_vec4(qt), as_vec4(expect_qt), 0.0002);
     EXPECT_NEAR(as_vec3(eul), as_vec3(expect_eul), 0.0002);

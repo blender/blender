@@ -63,7 +63,7 @@ class NodeTreeSearchResult:
 
 # TODO: cache these searches
 def from_socket(start_socket: NodeTreeSearchResult,
-                shader_node_filter: typing.Union[Filter, typing.Callable]) -> typing.List[NodeTreeSearchResult]:
+                shader_node_filter):
     """
     Find shader nodes where the filter expression is true.
 
@@ -734,8 +734,8 @@ def get_socket(blender_material_nodetree, use_nodes: bool, name: str, volume=Fal
     :return: a blender NodeSocket
     """
     if blender_material_nodetree and use_nodes:
-        #i = [input for input in blender_material.node_tree.inputs]
-        #o = [output for output in blender_material.node_tree.outputs]
+        # i = [input for input in blender_material.node_tree.inputs]
+        # o = [output for output in blender_material.node_tree.outputs]
         if name == "Emissive":
             # Check for a dedicated Emission node first, it must supersede the newer built-in one
             # because the newer one is always present in all Principled BSDF materials.
@@ -854,11 +854,11 @@ def get_texture_transform_from_mapping_node(mapping_node, export_settings):
     texture_transform = texture_transform_blender_to_gltf(mapping_transform)
 
     if all([component == 0 for component in texture_transform["offset"]]):
-        del(texture_transform["offset"])
+        del (texture_transform["offset"])
     if all([component == 1 for component in texture_transform["scale"]]):
-        del(texture_transform["scale"])
+        del (texture_transform["scale"])
     if texture_transform["rotation"] == 0:
-        del(texture_transform["rotation"])
+        del (texture_transform["rotation"])
 
     # glTF Offset needs: offset, rotation, scale (note that Offset is not used for Vector mapping)
     # glTF Rotation needs: rotation
@@ -869,22 +869,22 @@ def get_texture_transform_from_mapping_node(mapping_node, export_settings):
         path_['length'] = 2
         path_['path'] = "/materials/XXX/YYY/KHR_texture_transform/offset"
         path_['vector_type'] = mapping_node.node.vector_type
-        export_settings['current_texture_transform']["node_tree." + \
-            mapping_node.node.inputs['Location'].path_from_id() + ".default_value"] = path_
+        export_settings['current_texture_transform']["node_tree." +
+                                                     mapping_node.node.inputs['Location'].path_from_id() + ".default_value"] = path_
 
     path_ = {}
     path_['length'] = 2
     path_['path'] = "/materials/XXX/YYY/KHR_texture_transform/scale"
     path_['vector_type'] = mapping_node.node.vector_type
-    export_settings['current_texture_transform']["node_tree." + \
-        mapping_node.node.inputs['Scale'].path_from_id() + ".default_value"] = path_
+    export_settings['current_texture_transform']["node_tree." +
+                                                 mapping_node.node.inputs['Scale'].path_from_id() + ".default_value"] = path_
 
     path_ = {}
     path_['length'] = 1
     path_['path'] = "/materials/XXX/YYY/KHR_texture_transform/rotation"
     path_['vector_type'] = mapping_node.node.vector_type
-    export_settings['current_texture_transform']["node_tree." + \
-        mapping_node.node.inputs['Rotation'].path_from_id() + ".default_value[2]"] = path_
+    export_settings['current_texture_transform']["node_tree." +
+                                                 mapping_node.node.inputs['Rotation'].path_from_id() + ".default_value[2]"] = path_
 
     return texture_transform
 

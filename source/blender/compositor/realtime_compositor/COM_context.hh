@@ -69,7 +69,7 @@ class Context {
   virtual const RenderData &get_render_data() const = 0;
 
   /* Get the width and height of the render passes and of the output texture returned by the
-   * get_input_texture and get_output_texture methods respectively. */
+   * get_pass and get_output_texture methods respectively. */
   virtual int2 get_render_size() const = 0;
 
   /* Get the rectangular region representing the area of the input that the compositor will operate
@@ -85,14 +85,14 @@ class Context {
   virtual Result get_output_result() = 0;
 
   /* Get the result where the result of the compositor viewer should be written, given the domain
-   * of the result to be viewed and whether the output is a non-color data image. */
-  virtual Result get_viewer_output_result(Domain domain, bool is_data) = 0;
+   * of the result to be viewed, its precision, and whether the output is a non-color data image
+   * that should be displayed without view transform. */
+  virtual Result get_viewer_output_result(Domain domain,
+                                          bool is_data,
+                                          ResultPrecision precision) = 0;
 
-  /* Get the texture where the given render pass is stored. This should be called by the Render
-   * Layer node to populate its outputs. */
-  virtual GPUTexture *get_input_texture(const Scene *scene,
-                                        int view_layer,
-                                        const char *pass_name) = 0;
+  /* Get the result where the given render pass is stored. */
+  virtual Result get_pass(const Scene *scene, int view_layer, const char *pass_name) = 0;
 
   /* Get the name of the view currently being rendered. */
   virtual StringRef get_view_name() const = 0;

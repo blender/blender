@@ -61,8 +61,7 @@ inline GPUAttachmentType &operator--(GPUAttachmentType &a)
   return a;
 }
 
-namespace blender {
-namespace gpu {
+namespace blender::gpu {
 
 #ifndef NDEBUG
 #  define DEBUG_NAME_LEN 64
@@ -89,8 +88,8 @@ class FrameBuffer {
   /* Flag specifying the current bind operation should use explicit load-store state. */
   bool use_explicit_load_store_ = false;
 
-#ifndef GPU_NO_USE_PY_REFERENCES
  public:
+#ifndef GPU_NO_USE_PY_REFERENCES
   /**
    * Reference of a pointer that needs to be cleaned when deallocating the frame-buffer.
    * Points to #BPyGPUFrameBuffer.fb
@@ -98,7 +97,6 @@ class FrameBuffer {
   void **py_ref = nullptr;
 #endif
 
- public:
   FrameBuffer(const char *name);
   virtual ~FrameBuffer();
 
@@ -238,7 +236,7 @@ class FrameBuffer {
     return attachments_[GPU_FB_COLOR_ATTACHMENT0 + slot].tex;
   };
 
-  inline const char *const name_get() const
+  inline const char *name_get() const
   {
     return name_;
   };
@@ -270,5 +268,4 @@ static inline const FrameBuffer *unwrap(const GPUFrameBuffer *vert)
 
 #undef DEBUG_NAME_LEN
 
-}  // namespace gpu
-}  // namespace blender
+}  // namespace blender::gpu

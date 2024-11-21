@@ -13,16 +13,17 @@
 #include "BLI_assert.h"
 #include "BLI_compiler_compat.h"
 #include "BLI_math_geom.h"
+#include "BLI_math_vector_types.hh"
 #include "GPU_common.hh"
 
 struct GPUShader;
 
-#define GPU_VERT_ATTR_MAX_LEN 16
-#define GPU_VERT_ATTR_MAX_NAMES 6
-#define GPU_VERT_ATTR_NAMES_BUF_LEN 256
-#define GPU_VERT_FORMAT_MAX_NAMES 63 /* More than enough, actual max is ~30. */
+constexpr static int GPU_VERT_ATTR_MAX_LEN = 16;
+constexpr static int GPU_VERT_ATTR_MAX_NAMES = 6;
+constexpr static int GPU_VERT_ATTR_NAMES_BUF_LEN = 256;
+constexpr static int GPU_VERT_FORMAT_MAX_NAMES = 63; /* More than enough, actual max is ~30. */
 /* Computed as GPU_VERT_ATTR_NAMES_BUF_LEN / 30 (actual max format name). */
-#define GPU_MAX_SAFE_ATTR_NAME 12
+constexpr static int GPU_MAX_SAFE_ATTR_NAME = 12;
 
 enum GPUVertCompType {
   GPU_COMP_I8 = 0,
@@ -153,6 +154,15 @@ struct GPUPackedNormal {
   int y : 10;
   int z : 10;
   int w : 2; /* 0 by default, can manually set to { -2, -1, 0, 1 } */
+
+  GPUPackedNormal() = default;
+  GPUPackedNormal(int _x, int _y, int _z, int _w = 0) : x(_x), y(_y), z(_z), w(_w) {}
+
+  /* Cast from int to float. */
+  operator blender::float4()
+  {
+    return blender::float4(x, y, z, w);
+  }
 };
 
 struct GPUNormal {
@@ -162,32 +172,27 @@ struct GPUNormal {
   };
 };
 
-/* OpenGL ES packs in a different order as desktop GL but component conversion is the same.
- * Of the code here, only GPUPackedNormal needs to change. */
-
-#define SIGNED_INT_10_MAX 511
-#define SIGNED_INT_10_MIN -512
-
 BLI_INLINE int clampi(int x, int min_allowed, int max_allowed)
 {
-#if TRUST_NO_ONE
-  assert(min_allowed <= max_allowed);
-#endif
+  BLI_assert(min_allowed <= max_allowed);
   if (x < min_allowed) {
     return min_allowed;
   }
-  else if (x > max_allowed) {
+  if (x > max_allowed) {
     return max_allowed;
   }
-  else {
-    return x;
-  }
+  return x;
 }
 
 BLI_INLINE int gpu_convert_normalized_f32_to_i10(float x)
 {
-  int qx = x * 511.0f;
-  return clampi(qx, SIGNED_INT_10_MIN, SIGNED_INT_10_MAX);
+  /* OpenGL ES packs in a different order as desktop GL but component conversion is the same.
+   * Of the code here, only GPUPackedNormal needs to change. */
+  constexpr int signed_int_10_max = 511;
+  constexpr int signed_int_10_min = -512;
+
+  int qx = x * signed_int_10_max;
+  return clampi(qx, signed_int_10_min, signed_int_10_max);
 }
 
 BLI_INLINE int gpu_convert_i16_to_i10(short x)

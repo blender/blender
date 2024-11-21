@@ -6,7 +6,11 @@
  * \ingroup RNA
  */
 
+#include "DNA_curves_types.h"
+
 #include "RNA_define.hh"
+
+#include "RNA_enum_types.hh"
 
 #include "rna_internal.hh" /* own include */
 
@@ -22,6 +26,11 @@
 #  include "rna_curves_utils.hh"
 
 /* Common `CurvesGeometry` API functions. */
+
+using blender::IndexMask;
+using blender::IndexMaskMemory;
+using blender::IndexRange;
+using blender::Span;
 
 bool rna_CurvesGeometry_add_curves(blender::bke::CurvesGeometry &curves,
                                    ReportList *reports,
@@ -39,40 +48,49 @@ bool rna_CurvesGeometry_add_curves(blender::bke::CurvesGeometry &curves,
   return true;
 }
 
+static std::optional<IndexMask> rna_indices_to_mask(const IndexRange universe,
+                                                    const int *indices_ptr,
+                                                    const int indices_num,
+                                                    ReportList &reports,
+                                                    IndexMaskMemory &memory)
+{
+  if (!indices_ptr) {
+    return IndexMask(universe);
+  }
+  const Span<int> indices(indices_ptr, indices_num);
+  if (std::any_of(indices.begin(), indices.end(), [&](const int index) {
+        return !universe.contains(index);
+      }))
+  {
+    BKE_report(&reports, RPT_ERROR, "Indices must be in range");
+    return std::nullopt;
+  }
+  if (!std::is_sorted(indices.begin(), indices.end())) {
+    BKE_report(&reports, RPT_ERROR, "Indices must be sorted in ascending order");
+    return std::nullopt;
+  }
+  if (std::adjacent_find(indices.begin(), indices.end(), std::greater_equal<int>()) !=
+      indices.end())
+  {
+    BKE_report(&reports, RPT_ERROR, "Indices can't have duplicates");
+    return std::nullopt;
+  }
+  return IndexMask::from_indices(indices, memory);
+}
+
 bool rna_CurvesGeometry_remove_curves(blender::bke::CurvesGeometry &curves,
                                       ReportList *reports,
                                       const int *indices_ptr,
                                       const int indices_num)
 {
   using namespace blender;
-  if (indices_ptr != nullptr) {
-    const Span<int> indices(indices_ptr, indices_num);
-    if (std::any_of(indices.begin(), indices.end(), [&](const int index) {
-          return !curves.curves_range().contains(index);
-        }))
-    {
-      BKE_report(reports, RPT_ERROR, "Indices must be in range");
-      return false;
-    }
-    if (!std::is_sorted(indices.begin(), indices.end())) {
-      BKE_report(reports, RPT_ERROR, "Indices must be sorted in acending order");
-      return false;
-    }
-    if (std::adjacent_find(indices.begin(), indices.end(), std::greater_equal<int>()) !=
-        indices.end())
-    {
-      BKE_report(reports, RPT_ERROR, "Indices can't have duplicates");
-      return false;
-    }
-    /* Remove the curves by their indices. */
-    IndexMaskMemory memory;
-    IndexMask curves_to_delete = IndexMask::from_indices(indices, memory);
-    curves.remove_curves(curves_to_delete, {});
+  IndexMaskMemory memory;
+  const std::optional<IndexMask> curves_to_delete = rna_indices_to_mask(
+      curves.curves_range(), indices_ptr, indices_num, *reports, memory);
+  if (!curves_to_delete) {
+    return false;
   }
-  else {
-    /* Clear the CurvesGeometry. */
-    curves = {};
-  }
+  curves.remove_curves(*curves_to_delete, {});
   return true;
 }
 
@@ -90,41 +108,32 @@ bool rna_CurvesGeometry_resize_curves(blender::bke::CurvesGeometry &curves,
     return false;
   }
   IndexMaskMemory memory;
-  IndexMask curves_to_resize;
-  if (indices_ptr != nullptr) {
-    if (indices_num != sizes_num) {
-      BKE_report(reports, RPT_ERROR, "Length of sizes and length of indices must be the same");
-      return false;
-    }
-    const Span<int> indices(indices_ptr, indices_num);
-    if (std::any_of(indices.begin(), indices.end(), [&](const int index) {
-          return !curves.curves_range().contains(index);
-        }))
-    {
-      BKE_report(reports, RPT_ERROR, "Indices must be in range");
-      return false;
-    }
-    if (!std::is_sorted(indices.begin(), indices.end())) {
-      BKE_report(reports, RPT_ERROR, "Indices must be sorted in acending order");
-      return false;
-    }
-    if (std::adjacent_find(indices.begin(), indices.end(), std::greater_equal<int>()) !=
-        indices.end())
-    {
-      BKE_report(reports, RPT_ERROR, "Indices can't have duplicates");
-      return false;
-    }
-    curves_to_resize = IndexMask::from_indices(indices, memory);
+  const std::optional<IndexMask> curves_to_resize = rna_indices_to_mask(
+      curves.curves_range(), indices_ptr, indices_num, *reports, memory);
+  if (!curves_to_resize) {
+    return false;
   }
-  else {
-    if (sizes_num != curves.curves_num()) {
-      BKE_report(reports, RPT_ERROR, "Length of sizes and number of strokes must be the same");
-      return false;
-    }
-    curves_to_resize = curves.curves_range();
+  if (curves_to_resize->size() != sizes_num) {
+    BKE_report(reports, RPT_ERROR, "Length of sizes must be the same as the selection size");
+    return false;
   }
+  ed::curves::resize_curves(curves, *curves_to_resize, {sizes_ptr, sizes_num});
+  return true;
+}
 
-  ed::curves::resize_curves(curves, curves_to_resize, {sizes_ptr, sizes_num});
+bool rna_CurvesGeometry_set_types(blender::bke::CurvesGeometry &curves,
+                                  ReportList *reports,
+                                  const int type,
+                                  const int *indices_ptr,
+                                  const int indices_num)
+{
+  IndexMaskMemory memory;
+  const std::optional<IndexMask> selection = rna_indices_to_mask(
+      curves.curves_range(), indices_ptr, indices_num, *reports, memory);
+  if (!selection) {
+    return false;
+  }
+  curves.fill_curve_types(*selection, CurveType(type));
   return true;
 }
 
@@ -181,6 +190,24 @@ static void rna_Curves_resize_curves(Curves *curves_id,
     return;
   }
 
+  /* Avoid updates for importers creating curves. */
+  if (curves_id->id.us > 0) {
+    DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
+    WM_main_add_notifier(NC_GEOM | ND_DATA, curves_id);
+  }
+}
+
+static void rna_Curves_set_types(Curves *curves_id,
+                                 ReportList *reports,
+                                 const int type,
+                                 const int *indices_ptr,
+                                 const int indices_num)
+{
+  using namespace blender;
+  bke::CurvesGeometry &curves = curves_id->geometry.wrap();
+  if (!rna_CurvesGeometry_set_types(curves, reports, type, indices_ptr, indices_num)) {
+    return;
+  }
   /* Avoid updates for importers creating curves. */
   if (curves_id->id.us > 0) {
     DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
@@ -254,6 +281,24 @@ void RNA_api_curves(StructRNA *srna)
                            "The indices of the curves to resize",
                            0,
                            10000);
+  RNA_def_parameter_flags(parm, PROP_DYNAMIC, ParameterFlag(0));
+
+  func = RNA_def_function(srna, "set_types", "rna_Curves_set_types");
+  RNA_def_function_ui_description(func,
+                                  "Set the curve type. If indices are provided, set only the "
+                                  "types with the given curve indices.");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  RNA_def_enum(func, "type", rna_enum_curves_type_items, CURVE_TYPE_CATMULL_ROM, "Type", "");
+  parm = RNA_def_int_array(func,
+                           "indices",
+                           1,
+                           nullptr,
+                           0,
+                           INT_MAX,
+                           "Indices",
+                           "The indices of the curves to resize",
+                           0,
+                           INT_MAX);
   RNA_def_parameter_flags(parm, PROP_DYNAMIC, ParameterFlag(0));
 }
 

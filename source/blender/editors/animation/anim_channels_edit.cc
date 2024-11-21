@@ -63,6 +63,7 @@
 #include "ANIM_fcurve.hh"
 
 #include "WM_api.hh"
+#include "WM_message.hh"
 #include "WM_types.hh"
 
 #include "BLT_translation.hh"
@@ -2063,34 +2064,42 @@ static void rearrange_grease_pencil_channels(bAnimContext *ac, eRearrangeAnimCha
   ANIM_animdata_filter(
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
 
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    GreasePencil &grease_pencil = *reinterpret_cast<GreasePencil *>(ale->id);
-    Layer *layer = static_cast<Layer *>(ale->data);
+  if (mode == REARRANGE_ANIMCHAN_TOP) {
+    LISTBASE_FOREACH_BACKWARD (bAnimListElem *, ale, &anim_data) {
+      GreasePencil &grease_pencil = *reinterpret_cast<GreasePencil *>(ale->id);
+      Layer *layer = static_cast<Layer *>(ale->data);
+      if (layer->is_selected()) {
+        grease_pencil.move_node_top(layer->as_node());
+      }
+    }
+  }
+  else {
+    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+      GreasePencil &grease_pencil = *reinterpret_cast<GreasePencil *>(ale->id);
+      Layer *layer = static_cast<Layer *>(ale->data);
 
-    switch (mode) {
-      case REARRANGE_ANIMCHAN_TOP: {
-        if (layer->is_selected()) {
-          grease_pencil.move_node_top(layer->as_node());
+      switch (mode) {
+        case REARRANGE_ANIMCHAN_UP: {
+          if (layer->is_selected()) {
+            grease_pencil.move_node_up(layer->as_node());
+          }
+          break;
         }
-        break;
-      }
-      case REARRANGE_ANIMCHAN_UP: {
-        if (layer->is_selected()) {
-          grease_pencil.move_node_up(layer->as_node());
+        case REARRANGE_ANIMCHAN_DOWN: {
+          if (layer->is_selected()) {
+            grease_pencil.move_node_down(layer->as_node());
+          }
+          break;
         }
-        break;
-      }
-      case REARRANGE_ANIMCHAN_DOWN: {
-        if (layer->is_selected()) {
-          grease_pencil.move_node_down(layer->as_node());
+        case REARRANGE_ANIMCHAN_BOTTOM: {
+          if (layer->is_selected()) {
+            grease_pencil.move_node_bottom(layer->as_node());
+          }
+          break;
         }
-        break;
-      }
-      case REARRANGE_ANIMCHAN_BOTTOM: {
-        if (layer->is_selected()) {
-          grease_pencil.move_node_bottom(layer->as_node());
-        }
-        break;
+        case REARRANGE_ANIMCHAN_TOP:
+          /* Handled separately before the switch case. */
+          break;
       }
     }
   }
@@ -4431,6 +4440,9 @@ static int click_select_channel_grease_pencil_layer(bContext *C,
   /* Active channel is not changed during range select. */
   if (layer->is_selected() && (selectmode != SELECT_EXTEND_RANGE)) {
     grease_pencil->set_active_layer(layer);
+    WM_msg_publish_rna_prop(
+        CTX_wm_message_bus(C), &grease_pencil->id, &grease_pencil, GreasePencilv3Layers, active);
+    DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
   }
 
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
@@ -5187,8 +5199,6 @@ static void ANIM_OT_channels_bake(wmOperatorType *ot)
                   "Bake Modifiers into keyframes and delete them after");
 }
 
-#ifdef WITH_ANIM_BAKLAVA
-
 static int slot_channels_move_to_new_action_exec(bContext *C, wmOperator * /* op */)
 {
   using namespace blender::animrig;
@@ -5347,8 +5357,6 @@ static void ANIM_OT_separate_slots(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
-
-#endif /* WITH_ANIM_BAKLAVA */
 
 /**
  *  Find a Graph Editor area and set the context arguments accordingly.
@@ -5732,10 +5740,8 @@ void ED_operatortypes_animchannels()
 
   WM_operatortype_append(ANIM_OT_channels_bake);
 
-#ifdef WITH_ANIM_BAKLAVA
   WM_operatortype_append(ANIM_OT_slot_channels_move_to_new_action);
   WM_operatortype_append(ANIM_OT_separate_slots);
-#endif
 }
 
 void ED_keymap_animchannels(wmKeyConfig *keyconf)

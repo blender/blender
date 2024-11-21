@@ -240,12 +240,12 @@ void BPY_modules_update()
 
 bContext *BPY_context_get()
 {
-  return static_cast<bContext *>(bpy_context_module->ptr.data);
+  return static_cast<bContext *>(bpy_context_module->ptr->data);
 }
 
 void BPY_context_set(bContext *C)
 {
-  bpy_context_module->ptr.data = (void *)C;
+  bpy_context_module->ptr->data = (void *)C;
 }
 
 #ifdef WITH_FLUID
@@ -484,6 +484,8 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
 
     /* Initialize Python (also acquires lock). */
     status = Py_InitializeFromConfig(&config);
+    PyConfig_Clear(&config);
+
     pystatus_exit_on_error(status);
 
     if (!has_python_executable) {
@@ -577,7 +579,7 @@ void BPY_python_end(const bool do_python_exit)
   BPY_rna_props_clear_all();
 
   /* Free other Python data. */
-  pyrna_free_types();
+  RNA_bpy_exit();
 
   BPY_rna_exit();
 
@@ -752,7 +754,7 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
     done = true;
   }
   else if (BPy_StructRNA_Check(item)) {
-    ptr = &(((BPy_StructRNA *)item)->ptr);
+    ptr = &reinterpret_cast<BPy_StructRNA *>(item)->ptr.value();
 
     // result->ptr = ((BPy_StructRNA *)item)->ptr;
     CTX_data_pointer_set_ptr(result, ptr);
@@ -774,7 +776,7 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
         PyObject *list_item = seq_fast_items[i];
 
         if (BPy_StructRNA_Check(list_item)) {
-          ptr = &(((BPy_StructRNA *)list_item)->ptr);
+          ptr = &reinterpret_cast<BPy_StructRNA *>(list_item)->ptr.value();
           CTX_data_list_add_ptr(result, ptr);
         }
         else {
@@ -978,7 +980,13 @@ bool BPY_string_is_keyword(const char *str)
   return false;
 }
 
-/* EVIL: define `text.cc` functions here (declared in `BKE_text.h`). */
+/* -------------------------------------------------------------------- */
+/** \name Character Classification
+ *
+ * Define `text.cc` functions here (declared in `BKE_text.h`),
+ * This could be removed if Blender gets its own unicode library.
+ * \{ */
+
 int text_check_identifier_unicode(const uint ch)
 {
   return (ch < 255 && text_check_identifier(char(ch))) || Py_UNICODE_ISALNUM(ch);
@@ -988,3 +996,5 @@ int text_check_identifier_nodigit_unicode(const uint ch)
 {
   return (ch < 255 && text_check_identifier_nodigit(char(ch))) || Py_UNICODE_ISALPHA(ch);
 }
+
+/** \} */

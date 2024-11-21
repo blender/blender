@@ -11,7 +11,7 @@
 
 #include "BKE_mesh.hh"
 #include "BKE_paint.hh"
-#include "BKE_pbvh.hh"
+#include "BKE_paint_bvh.hh"
 #include "BKE_subdiv_ccg.hh"
 
 #include "BLI_array.hh"
@@ -22,6 +22,8 @@
 #include "editors/sculpt_paint/sculpt_automask.hh"
 #include "editors/sculpt_paint/sculpt_intern.hh"
 #include "editors/sculpt_paint/sculpt_smooth.hh"
+
+#include "bmesh.hh"
 
 namespace blender::ed::sculpt_paint {
 
@@ -129,6 +131,7 @@ static void calc_translations_faces(const Span<float3> vert_positions,
                                     const OffsetIndices<int> faces,
                                     const Span<int> corner_verts,
                                     const GroupedSpan<int> vert_to_face_map,
+                                    const Span<bool> hide_poly,
                                     const bke::pbvh::MeshNode &node,
                                     LocalData &tls,
                                     const MutableSpan<float3> all_translations)
@@ -137,11 +140,11 @@ static void calc_translations_faces(const Span<float3> vert_positions,
 
   tls.vert_neighbors.resize(verts.size());
   const MutableSpan<Vector<int>> neighbors = tls.vert_neighbors;
-  calc_vert_neighbors(faces, corner_verts, vert_to_face_map, {}, verts, neighbors);
+  calc_vert_neighbors(faces, corner_verts, vert_to_face_map, hide_poly, verts, neighbors);
 
   tls.new_positions.resize(verts.size());
   const MutableSpan<float3> new_positions = tls.new_positions;
-  smooth::neighbor_data_average_mesh(vert_positions, neighbors, new_positions);
+  smooth::neighbor_data_average_mesh_check_loose(vert_positions, verts, neighbors, new_positions);
 
   tls.translations.resize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
@@ -187,12 +190,6 @@ static void calc_translations_bmesh(const bke::pbvh::BMeshNode &node,
 
 }  // namespace enhance_details_cc
 
-/**
- * The brush uses translations calculated at the beginning of the stroke. They can't be calculated
- * dynamically because changing positions will influence neighboring translations. However we can
- * reduce the cost in some cases by skipping initializing values for vertices in hidden or masked
- * nodes.
- */
 void calc_smooth_translations(const Depsgraph &depsgraph,
                               const Object &object,
                               const IndexMask &node_mask,
@@ -205,6 +202,7 @@ void calc_smooth_translations(const Depsgraph &depsgraph,
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
+      const MeshAttributeData attribute_data(mesh.attributes());
       const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
       const OffsetIndices faces = mesh.faces();
       const Span<int> corner_verts = mesh.corner_verts();
@@ -212,8 +210,14 @@ void calc_smooth_translations(const Depsgraph &depsgraph,
       const Span<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        calc_translations_faces(
-            positions_eval, faces, corner_verts, vert_to_face_map, nodes[i], tls, translations);
+        calc_translations_faces(positions_eval,
+                                faces,
+                                corner_verts,
+                                vert_to_face_map,
+                                attribute_data.hide_poly,
+                                nodes[i],
+                                tls,
+                                translations);
       });
       break;
     }

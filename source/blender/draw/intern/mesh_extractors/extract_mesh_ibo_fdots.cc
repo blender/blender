@@ -62,7 +62,7 @@ static void extract_face_dots_bm(const MeshRenderData &mr, gpu::IndexBuf &face_d
 
 void extract_face_dots(const MeshRenderData &mr, gpu::IndexBuf &face_dots)
 {
-  if (mr.extract_type == MR_EXTRACT_MESH) {
+  if (mr.extract_type == MeshExtractType::Mesh) {
     extract_face_dots_mesh(mr, face_dots);
   }
   else {

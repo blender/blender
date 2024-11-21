@@ -626,8 +626,8 @@ void GRAPH_OT_decimate(wmOperatorType *ot)
                        1.0f / 3.0f,
                        0.0f,
                        1.0f,
-                       "Remove",
-                       "The ratio of remaining keyframes after the operation",
+                       "Factor",
+                       "The ratio of keyframes to remove",
                        0.0f,
                        1.0f);
   RNA_def_float(ot->srna,

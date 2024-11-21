@@ -10,6 +10,7 @@
 
 #include "BKE_global.hh"
 #include "BLI_math_matrix.hh"
+#include "GPU_compute.hh"
 
 #include "eevee_instance.hh"
 
@@ -28,14 +29,18 @@ ShadowTechnique ShadowModule::shadow_technique = ShadowTechnique::ATOMIC_RASTER;
 void ShadowTileMap::sync_orthographic(const float4x4 &object_mat_,
                                       int2 origin_offset,
                                       int clipmap_level,
-                                      eShadowProjectionType projection_type_)
+                                      eShadowProjectionType projection_type_,
+                                      uint2 shadow_set_membership_)
 {
-  if ((projection_type != projection_type_) || (level != clipmap_level)) {
+  if ((projection_type != projection_type_) || (level != clipmap_level) ||
+      (shadow_set_membership_ != shadow_set_membership))
+  {
     set_dirty();
   }
   projection_type = projection_type_;
   level = clipmap_level;
   light_type = eLightType::LIGHT_SUN;
+  shadow_set_membership = shadow_set_membership_;
 
   grid_shift = origin_offset - grid_offset;
   grid_offset = origin_offset;
@@ -63,16 +68,23 @@ void ShadowTileMap::sync_orthographic(const float4x4 &object_mat_,
                                           1.0f);
 }
 
-void ShadowTileMap::sync_cubeface(
-    eLightType light_type_, const float4x4 &object_mat_, float near_, float far_, eCubeFace face)
+void ShadowTileMap::sync_cubeface(eLightType light_type_,
+                                  const float4x4 &object_mat_,
+                                  float near_,
+                                  float far_,
+                                  eCubeFace face,
+                                  uint2 shadow_set_membership_)
 {
-  if (projection_type != SHADOW_PROJECTION_CUBEFACE || (cubeface != face)) {
+  if (projection_type != SHADOW_PROJECTION_CUBEFACE || (cubeface != face) ||
+      (shadow_set_membership_ != shadow_set_membership))
+  {
     set_dirty();
   }
   projection_type = SHADOW_PROJECTION_CUBEFACE;
   cubeface = face;
   grid_offset = int2(0);
   light_type = light_type_;
+  shadow_set_membership = shadow_set_membership_;
 
   if ((clip_near != near_) || (clip_far != far_)) {
     set_dirty();
@@ -237,7 +249,8 @@ void ShadowPunctual::end_sync(Light &light)
   float far = int_as_float(light.clip_far);
   for (int i : tilemaps_.index_range()) {
     eCubeFace face = eCubeFace(Z_NEG + i);
-    tilemaps_[face]->sync_cubeface(light.type, object_to_world, near, far, face);
+    tilemaps_[face]->sync_cubeface(
+        light.type, object_to_world, near, far, face, light.shadow_set_membership);
   }
 
   light.local.tilemaps_count = tilemaps_needed;
@@ -291,10 +304,11 @@ void ShadowDirectional::cascade_tilemaps_distribution_near_far_points(const Came
       light.object_to_world, camera.position() - camera.forward() * cam_data.clip_near);
 }
 
-/* \note All tile-maps are meant to have the same LOD but we still return a range starting at the
- * unique LOD. */
 IndexRange ShadowDirectional::cascade_level_range(const Light &light, const Camera &camera)
 {
+  /* NOTE: All tile-maps are meant to have the same LOD
+   * but we still return a range starting at the unique LOD. */
+
   using namespace blender::math;
 
   /* 16 is arbitrary. To avoid too much tile-map per directional lights. */
@@ -329,10 +343,6 @@ IndexRange ShadowDirectional::cascade_level_range(const Light &light, const Came
   return IndexRange(lod_level, tilemap_len);
 }
 
-/**
- * Distribute tile-maps in a linear pattern along camera forward vector instead of a clipmap
- * centered on camera position.
- */
 void ShadowDirectional::cascade_tilemaps_distribution(Light &light, const Camera &camera)
 {
   using namespace blender::math;
@@ -372,7 +382,8 @@ void ShadowDirectional::cascade_tilemaps_distribution(Light &light, const Camera
     /* Equal spacing between cascades layers since we want uniform shadow density. */
     int2 level_offset = origin_offset +
                         shadow_cascade_grid_offset(light.sun.clipmap_base_offset_pos, i);
-    tilemap->sync_orthographic(object_mat, level_offset, level, SHADOW_PROJECTION_CASCADE);
+    tilemap->sync_orthographic(
+        object_mat, level_offset, level, SHADOW_PROJECTION_CASCADE, light.shadow_set_membership);
 
     /* Add shadow tile-maps grouped by lights to the GPU buffer. */
     shadows_.tilemap_pool.tilemaps_data.append(*tilemap);
@@ -429,7 +440,8 @@ void ShadowDirectional::clipmap_tilemaps_distribution(Light &light, const Camera
     float2 light_space_camera_position = camera.position() * float2x3(object_mat.view<2, 3>());
     int2 level_offset = int2(math::round(light_space_camera_position / tile_size));
 
-    tilemap->sync_orthographic(object_mat, level_offset, level, SHADOW_PROJECTION_CLIPMAP);
+    tilemap->sync_orthographic(
+        object_mat, level_offset, level, SHADOW_PROJECTION_CLIPMAP, light.shadow_set_membership);
 
     /* Add shadow tile-maps grouped by lights to the GPU buffer. */
     shadows_.tilemap_pool.tilemaps_data.append(*tilemap);
@@ -637,7 +649,7 @@ void ShadowModule::init()
           shadow_page_len_);
     }
     if (stats.view_needed_count > SHADOW_VIEW_MAX && enabled_) {
-      inst_.info_append_i18n("Error: Too many shadow updates, some shadow might be incorrect.");
+      inst_.info_append_i18n("Error: Too many shadow updates, some shadows might be incorrect.");
     }
   }
 
@@ -1127,7 +1139,6 @@ void ShadowModule::debug_end_sync()
   debug_draw_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
 }
 
-/* Compute approximate screen pixel density (as world space radius). */
 float ShadowModule::screen_pixel_radius(const float4x4 &wininv,
                                         bool is_perspective,
                                         const int2 &extent)
@@ -1150,6 +1161,7 @@ bool ShadowModule::shadow_update_finished(int loop_count)
   if (loop_count >= (SHADOW_MAX_TILEMAP * SHADOW_TILEMAP_LOD) / SHADOW_VIEW_MAX) {
     /* We have reach the maximum theoretical number of updates.
      * This can indicate a problem in the statistic buffer read-back or update tagging. */
+    inst_.info_append_i18n("Error: Reached max shadow updates.");
     return true;
   }
 
@@ -1170,6 +1182,15 @@ bool ShadowModule::shadow_update_finished(int loop_count)
   statistics_buf_.current().async_flush_to_host();
   statistics_buf_.current().read();
   ShadowStatistics stats = statistics_buf_.current();
+
+  if (stats.page_used_count > shadow_page_len_) {
+    inst_.info_append_i18n(
+        "Error: Shadow buffer full, may result in missing shadows and lower "
+        "performance. ({} / {})",
+        stats.page_used_count,
+        shadow_page_len_);
+  }
+
   /* Rendering is finished if we rendered all the remaining pages. */
   return stats.view_needed_count <= SHADOW_VIEW_MAX;
 }
@@ -1203,6 +1224,43 @@ int ShadowModule::max_view_per_tilemap()
   }
 
   return max_view_count;
+}
+
+void ShadowModule::ShadowView::compute_visibility(ObjectBoundsBuf &bounds,
+                                                  ObjectInfosBuf &infos,
+                                                  uint resource_len,
+                                                  bool /*debug_freeze*/)
+{
+  GPU_debug_group_begin("View.compute_visibility");
+
+  uint word_per_draw = this->visibility_word_per_draw();
+  /* Switch between tightly packed and set of whole word per instance. */
+  uint words_len = (view_len_ == 1) ? divide_ceil_u(resource_len, 32) :
+                                      resource_len * word_per_draw;
+  words_len = ceil_to_multiple_u(max_ii(1, words_len), 4);
+  /* TODO(fclem): Resize to nearest pow2 to reduce fragmentation. */
+  visibility_buf_.resize(words_len);
+
+  const uint32_t data = 0xFFFFFFFFu;
+  GPU_storagebuf_clear(visibility_buf_, data);
+
+  if (do_visibility_) {
+    GPUShader *shader = inst_.shaders.static_shader_get(SHADOW_VIEW_VISIBILITY);
+    GPU_shader_bind(shader);
+    GPU_shader_uniform_1i(shader, "resource_len", resource_len);
+    GPU_shader_uniform_1i(shader, "view_len", view_len_);
+    GPU_shader_uniform_1i(shader, "visibility_word_per_draw", word_per_draw);
+    GPU_storagebuf_bind(bounds, GPU_shader_get_ssbo_binding(shader, "bounds_buf"));
+    GPU_storagebuf_bind(visibility_buf_, GPU_shader_get_ssbo_binding(shader, "visibility_buf"));
+    GPU_storagebuf_bind(render_view_buf_, GPU_shader_get_ssbo_binding(shader, "render_view_buf"));
+    GPU_storagebuf_bind(infos, DRW_OBJ_INFOS_SLOT);
+    GPU_uniformbuf_bind(data_, DRW_VIEW_UBO_SLOT);
+    GPU_uniformbuf_bind(culling_, DRW_VIEW_CULLING_UBO_SLOT);
+    GPU_compute_dispatch(shader, divide_ceil_u(resource_len, DRW_VISIBILITY_GROUP_SIZE), 1, 1);
+    GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE);
+  }
+
+  GPU_debug_group_end();
 }
 
 void ShadowModule::set_view(View &view, int2 extent)

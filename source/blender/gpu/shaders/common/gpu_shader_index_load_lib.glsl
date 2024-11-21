@@ -2,6 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
+#include "infos/gpu_index_load_info.hh"
+
+SHADER_LIBRARY_CREATE_INFO(gpu_index_buffer_load)
+
 /**
  * Library to read the index buffer of a `gpu::Batch` using a SSBO rather than using `gl_VertexID`.
  * This is required for primitive expansion without geometry shader.
@@ -11,7 +17,7 @@
 
 #ifndef WORKAROUND_INDEX_LOAD_INCLUDE
 #  ifndef GPU_INDEX_LOAD
-#    error Missing gpu_index_load create info dependency
+#    error Missing gpu_index_buffer_load create info dependency
 #  endif
 
 /**

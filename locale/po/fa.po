@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'd52d70324d18')\n"
+"Project-Id-Version: Blender 4.3.0 Release Candidate (b'7dfe47164a63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-16 11:03+0000\n"
+"POT-Creation-Date: 2024-11-18 11:20+0000\n"
 "PO-Revision-Date: 2024-05-03 12:13+0000\n"
 "Last-Translator: Nooby Noober <iamanoobynoober@gmail.com>\n"
 "Language-Team: Persian <https://translate.blender.org/projects/blender-ui/ui/fa/>\n"
@@ -246,34 +246,6 @@ msgid "Collection of action groups"
 msgstr "ﻡﺍﺪﻗﺍ ﯼﺎﻫ‌ﻩﻭﺮﮔ ﻪﻋﻮﻤﺠﻣ"
 
 
-msgid "Influence"
-msgstr "ﺫﻮﻔﻧ"
-
-
-msgid "Mix Mode"
-msgstr "ﯽﺒﯿﮐﺮﺗ ﺖﻟﺎﺣ"
-
-
-msgid "Replace"
-msgstr "ﻦﯾﺰﮕﯾﺎﺟ"
-
-
-msgid "Offset"
-msgstr "ﺖﺴﻓﺍ"
-
-
-msgid "Add"
-msgstr "ﻥﺩﺮﮐ‌ﻪﻓﺎﺿﺍ"
-
-
-msgid "Subtract"
-msgstr "ﻥﺩﺮﮐ‌ﻖﯾﺮﻔﺗ"
-
-
-msgid "Multiply"
-msgstr "ﺏﺮﺿ"
-
-
 msgid "Action Pose Markers"
 msgstr "ﻞﻤﻋ ﺖﺳﮊ ﯼﺎﻫﺮﮕﻧﺎﺸﻧ"
 
@@ -296,14 +268,6 @@ msgstr "ﻝﺎﻌﻓ ﺖﺳﮊ ﺮﮕﻧﺎﺸﻧ ﺺﺧﺎﺷ"
 
 msgid "Index of active pose marker"
 msgstr "ﺖﺳﺍ ﻝﺎﻌﻓ ﻪﮐ ﯽﺘﺳﮊ ﺮﮕﻧﺎﺸﻧ ﺺﺧﺎﺷ"
-
-
-msgid "Active"
-msgstr "ﻝﺎﻌﻓ"
-
-
-msgid "Show Expanded"
-msgstr "ﻩﺩﺮﺘﺴﮔ ﺶﯾﺎﻤﻧ"
 
 
 msgid "Add-on"
@@ -534,6 +498,10 @@ msgid "Method used for combining Active Action's result with result of NLA stack
 msgstr "NLA ﻪﺘﺳﺩ ﻪﺠﯿﺘﻧ ﺎﺑ ﻝﺎﻌﻓ ﻡﺍﺪﻗﺍ ﻪﺠﯿﺘﻧ ﺐﯿﮐﺮﺗ ﯼﺍﺮﺑ ﻩﺩﺎﻔﺘﺳﺍ ﺩﺭﻮﻣ ﺵﻭﺭ"
 
 
+msgid "Replace"
+msgstr "ﻦﯾﺰﮕﯾﺎﺟ"
+
+
 msgid "The strip values replace the accumulated results by amount specified by influence"
 msgstr "ﺩﻮﺷ ﯽﻣ ﺮﯿﺛﺄﺗ ﻂﺳﻮﺗ ﻩﺪﺷ ﺺﺨﺸﻣ ﺭﺍﺪﻘﻣ ﺎﺑ ﻩﺪﺷ ﯼﺭﻭﺁ ﻊﻤﺟ ﺞﯾﺎﺘﻧ ﻦﯾﺰﮕﯾﺎﺟ ﺭﺍﻮﻧ ﺮﯾﺩﺎﻘﻣ"
 
@@ -546,12 +514,24 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "ﺪﻧﻮﺷ ﯽﻣ ﺐﯿﮐﺮﺗ ﻝﺎﻧﺎﮐ ﻉﻮﻧ ﺱﺎﺳﺍ ﺮﺑ ﻂﻠﺘﺨﻣ ﺩﺍﺪﻋﺍ ﺎﯾ ﺏﺮﺿ ،ﻊﻤﺟ ﺕﺎﯿﺿﺎﯾﺭ ﺯﺍ ﺐﺳﺎﻨﻣ ﻩﺩﺎﻔﺘﺳﺍ ﺎﺑ ﻩﺪﺷ ﯼﺭﻭﺁ ﻊﻤﺟ ﺞﯾﺎﺘﻧ ﺎﺑ ﺭﺍﻮﻧ ﺮﯾﺩﺎﻘﻣ"
 
 
+msgid "Add"
+msgstr "ﻥﺩﺮﮐ‌ﻪﻓﺎﺿﺍ"
+
+
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "ﺩﻮﺷ‌ﯽﻣ ﻪﻓﺎﺿﺍ ﻩﺪﺷ ﯼﺭﻭﺁ ﻊﻤﺟ ﺞﯾﺎﺘﻧ ﻪﺑ ﺭﺍﻮﻧ ﯽﻧﺯﻭ ﻪﺠﯿﺘﻧ"
 
 
+msgid "Subtract"
+msgstr "ﻥﺩﺮﮐ‌ﻖﯾﺮﻔﺗ"
+
+
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "ﺩﻮﺷ ﯽﻣ ﻑﺬﺣ ﻩﺪﺷ ﯼﺭﻭﺁ ﻊﻤﺟ ﺞﯾﺎﺘﻧ ﺯﺍ ﺭﺍﻮﻧ ﯽﻧﺯﻭ ﻪﺠﯿﺘﻧ"
+
+
+msgid "Multiply"
+msgstr "ﺏﺮﺿ"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -1115,6 +1095,94 @@ msgid "Textures"
 msgstr "ﺎﻫ‌ﺖﻓﺎﺑ"
 
 
+msgid "ID Type"
+msgstr "ID ﻉﻮﻧ"
+
+
+msgid "Armature"
+msgstr "ﺮﭽﯿﻣﺭﺁ"
+
+
+msgid "Brush"
+msgstr "ﻮﻣ ﻢﻠﻗ"
+
+
+msgid "Camera"
+msgstr "ﻦﯿﺑﺭﻭﺩ"
+
+
+msgid "Curve"
+msgstr "ﯽﻨﺤﻨﻣ"
+
+
+msgid "Font"
+msgstr "ﺖﻧﻮﻓ"
+
+
+msgid "Image"
+msgstr "ﺮﯾﻮﺼﺗ"
+
+
+msgid "Key"
+msgstr "ﺪﯿﻠﮐ"
+
+
+msgid "Lattice"
+msgstr "ﻪﮑﺒﺷ"
+
+
+msgid "Library"
+msgstr "ﻪﻧﺎﺨﺑﺎﺘﮐ"
+
+
+msgid "Material"
+msgstr "ﻩﺩﺎﻣ"
+
+
+msgid "Mesh"
+msgstr "ﺶﻣ"
+
+
+msgid "Paint Curve"
+msgstr "ﮓﻧﺭ ﯽﻨﺤﻨﻣ"
+
+
+msgid "Particle"
+msgstr "ﻩﺭﺫ"
+
+
+msgid "Scene"
+msgstr "ﻪﻨﺤﺻ"
+
+
+msgid "Screen"
+msgstr "ﻩﺩﺮﭘ"
+
+
+msgid "Sound"
+msgstr "ﺍﺪﺻ"
+
+
+msgid "Speaker"
+msgstr "ﻮﮔﺪﻨﻠﺑ"
+
+
+msgid "Text"
+msgstr "ﻦﺘﻣ"
+
+
+msgid "Texture"
+msgstr "ﺖﻓﺎﺑ"
+
+
+msgid "Window Manager"
+msgstr "ﻩﺮﺠﻨﭘ ﺖﯾﺮﯾﺪﻣ"
+
+
+msgid "World"
+msgstr "ﻥﺎﻬﺟ"
+
+
 msgid "Blender RNA"
 msgstr "RNA ﺭﺪﻨﻠﺑ"
 
@@ -1271,8 +1339,8 @@ msgid "Mode"
 msgstr "ﺖﻟﺎﺣ"
 
 
-msgid "Material"
-msgstr "ﻩﺩﺎﻣ"
+msgid "Active"
+msgstr "ﻝﺎﻌﻓ"
 
 
 msgctxt "GPencil"
@@ -1323,8 +1391,8 @@ msgid "Stretch"
 msgstr "ﺶﺸﮐ"
 
 
-msgid "Image"
-msgstr "ﺮﯾﻮﺼﺗ"
+msgid "Offset"
+msgstr "ﺖﺴﻓﺍ"
 
 
 msgid "Rotation"
@@ -1333,6 +1401,10 @@ msgstr "ﻥﺍﺭﻭﺩ"
 
 msgid "Scale"
 msgstr "ﺲﻧﺎﺠﺗ"
+
+
+msgid "Show Expanded"
+msgstr "ﻩﺩﺮﺘﺴﮔ ﺶﯾﺎﻤﻧ"
 
 
 msgid "Left"
@@ -1519,10 +1591,6 @@ msgid "Color Space"
 msgstr "ﮓﻧﺭ ﯼﺎﻀﻓ"
 
 
-msgid "Curve"
-msgstr "ﯽﻨﺤﻨﻣ"
-
-
 msgid "Gamma"
 msgstr "ﺎﻣﺎﮔ"
 
@@ -1553,10 +1621,6 @@ msgstr "ﮏﯾﺭﺎﺗ"
 
 msgid "Lighten"
 msgstr "ﻦﺷﻭﺭ"
-
-
-msgid "Screen"
-msgstr "ﻩﺩﺮﭘ"
 
 
 msgid "Overlay"
@@ -1683,6 +1747,10 @@ msgid "Input"
 msgstr "ﯼﺩﻭﺭﻭ"
 
 
+msgid "Influence"
+msgstr "ﺫﻮﻔﻧ"
+
+
 msgid "Disable"
 msgstr "ﻝﺎﻌﻓﺮﯿﻏ"
 
@@ -1731,12 +1799,12 @@ msgid "Clamp To"
 msgstr "ﻪﺑ ﻩﺮﯿﮔ"
 
 
-msgid "Armature"
-msgstr "ﺮﭽﯿﻣﺭﺁ"
-
-
 msgid "Follow Path"
 msgstr "ﺮﯿﺴﻣ ﻩﺪﻨﻨﮐ ﻝﺎﺒﻧﺩ"
+
+
+msgid "Mix Mode"
+msgstr "ﯽﺒﯿﮐﺮﺗ ﺖﻟﺎﺣ"
 
 
 msgid "X Location"
@@ -1855,10 +1923,6 @@ msgid "Fixed Position"
 msgstr "ﺖﺑﺎﺛ ﺖﯿﻌﻗﻮﻣ"
 
 
-msgid "Camera"
-msgstr "ﻦﯿﺑﺭﻭﺩ"
-
-
 msgid "Copy Pose"
 msgstr "ﺖﺳﮊ ﯽﭙﮐ"
 
@@ -1945,10 +2009,6 @@ msgstr "ﺶﯾﺎﻤﻧ"
 
 msgid "Render"
 msgstr "ﺭﺪﻧﺭ"
-
-
-msgid "Scene"
-msgstr "ﻪﻨﺤﺻ"
 
 
 msgid "ID"
@@ -2046,10 +2106,6 @@ msgstr "ﻪﯿﻟﻭﺍ ﮓﻧﺭ"
 
 msgid "UV Texture"
 msgstr "UV ﺖﻓﺎﺑ"
-
-
-msgid "Texture"
-msgstr "ﺖﻓﺎﺑ"
 
 
 msgid "Format"
@@ -2311,62 +2367,6 @@ msgid "Blue"
 msgstr "ﯽﺑﺁ"
 
 
-msgid "Brush"
-msgstr "ﻮﻣ ﻢﻠﻗ"
-
-
-msgid "Font"
-msgstr "ﺖﻧﻮﻓ"
-
-
-msgid "Key"
-msgstr "ﺪﯿﻠﮐ"
-
-
-msgid "Lattice"
-msgstr "ﻪﮑﺒﺷ"
-
-
-msgid "Library"
-msgstr "ﻪﻧﺎﺨﺑﺎﺘﮐ"
-
-
-msgid "Mesh"
-msgstr "ﺶﻣ"
-
-
-msgid "Paint Curve"
-msgstr "ﮓﻧﺭ ﯽﻨﺤﻨﻣ"
-
-
-msgid "Particle"
-msgstr "ﻩﺭﺫ"
-
-
-msgid "Sound"
-msgstr "ﺍﺪﺻ"
-
-
-msgid "Speaker"
-msgstr "ﻮﮔﺪﻨﻠﺑ"
-
-
-msgid "Text"
-msgstr "ﻦﺘﻣ"
-
-
-msgid "Window Manager"
-msgstr "ﻩﺮﺠﻨﭘ ﺖﯾﺮﯾﺪﻣ"
-
-
-msgid "World"
-msgstr "ﻥﺎﻬﺟ"
-
-
-msgid "Layers"
-msgstr "ﺎﻫ‌ﻪﯾﻻ﻿"
-
-
 msgid "Feature Set"
 msgstr "ﯽﮔﮋﯾﻭ ﻪﻋﻮﻤﺠﻣ"
 
@@ -2619,6 +2619,10 @@ msgstr "ﻪﻨﯿﻤﮐ"
 
 msgid "Max"
 msgstr "ﻪﻨﯿﺸﯿﺑ"
+
+
+msgid "Layers"
+msgstr "ﺎﻫ‌ﻪﯾﻻ﻿"
 
 
 msgid "U"
@@ -2980,10 +2984,6 @@ msgid "Restrict Select"
 msgstr "ﺏﺎﺨﺘﻧﺍ ﻥﺩﺮﮐ ﺩﻭﺪﺤﻣ"
 
 
-msgid "ID Type"
-msgstr "ID ﻉﻮﻧ"
-
-
 msgctxt "Mask"
 msgid "Fill"
 msgstr "ﻥﺩﺮﮐ ﺮﭘ"
@@ -3003,14 +3003,6 @@ msgid "Mix"
 msgstr "ﻁﻮﻠﺨﻣ"
 
 
-msgid "Apply"
-msgstr "ﻝﺎﻤﻋﺍ"
-
-
-msgid "Pivot Point"
-msgstr "ﺶﺧﺮﭼ ﻪﻄﻘﻧ"
-
-
 msgid "Mirror"
 msgstr "ﻪﻨﯾﺁ"
 
@@ -3023,8 +3015,16 @@ msgid "Relations"
 msgstr "ﻂﺑﺍﻭﺭ"
 
 
+msgid "Apply"
+msgstr "ﻝﺎﻤﻋﺍ"
+
+
 msgid "Convert"
 msgstr "ﻞﯾﺪﺒﺗ"
+
+
+msgid "Pivot Point"
+msgstr "ﺶﺧﺮﭼ ﻪﻄﻘﻧ"
 
 
 msgid "Marker"
@@ -3916,6 +3916,18 @@ msgid "Play"
 msgstr "ﺶﺨﭘ"
 
 
+msgid "Remove"
+msgstr "ﻑﺬﺣ"
+
+
+msgid "Both"
+msgstr "ﻭﺩ ﺮﻫ"
+
+
+msgid "Flat"
+msgstr "ﺖﺨﺗ"
+
+
 msgid "Limit"
 msgstr "ﻥﺩﺮﮐ ﺩﻭﺪﺤﻣ"
 
@@ -3925,29 +3937,8 @@ msgid "Linear"
 msgstr "ﯽﻄﺧ"
 
 
-msgctxt "Operator"
-msgid "Rotate"
-msgstr "ﺶﺧﺮﭼ"
-
-
-msgid "Mouse location"
-msgstr "ﺱﻭﺎﻣ ﻥﺎﮑﻣ"
-
-
-msgid "Both"
-msgstr "ﻭﺩ ﺮﻫ"
-
-
 msgid "Join"
 msgstr "ﻦﺘﺳﻮﯿﭘ"
-
-
-msgid "Remove"
-msgstr "ﻑﺬﺣ"
-
-
-msgid "Flat"
-msgstr "ﺖﺨﺗ"
 
 
 msgid "By Material"
@@ -4015,6 +4006,10 @@ msgstr "ﻥﺎﻬﻨﭘ"
 msgctxt "Operator"
 msgid "Toggle Node Options"
 msgstr "ﻩﺮﮔ ﯼﺎﻫ ﻪﻨﯾﺰﮔ ﭻﯾﻮﺳ"
+
+
+msgid "Mouse location"
+msgstr "ﺱﻭﺎﻣ ﻥﺎﮑﻣ"
 
 
 msgctxt "Operator"
@@ -4216,6 +4211,11 @@ msgstr "ﻩﺮﯿﺧﺫ"
 
 
 msgctxt "Operator"
+msgid "Rotate"
+msgstr "ﺶﺧﺮﭼ"
+
+
+msgctxt "Operator"
 msgid "Reset to Default Value"
 msgstr "ﺽﺮﻓ ﺶﯿﭘ ﺭﺍﺪﻘﻣ ﻪﺑ ﺩﺪﺠﻣ ﻢﯿﻈﻨﺗ"
 
@@ -4329,12 +4329,12 @@ msgid "Restrict"
 msgstr "ﻥﺩﺮﮐ ﺩﻭﺪﺤﻣ"
 
 
-msgid "Motion Tracking"
-msgstr "ﺖﮐﺮﺣ ﯽﺑﺎﯾﺩﺭ"
-
-
 msgid "Transform Orientations"
 msgstr "ﻞﮑﺷ ﺮﯿﯿﻐﺗ ﺖﻬﺟ"
+
+
+msgid "Motion Tracking"
+msgstr "ﺖﮐﺮﺣ ﯽﺑﺎﯾﺩﺭ"
 
 
 msgid "Bone Constraints"
@@ -4465,6 +4465,10 @@ msgid "Audio output device"
 msgstr "ﯽﺗﻮﺻ ﯽﺟﻭﺮﺧ ﻩﺎﮕﺘﺳﺩ"
 
 
+msgid "Device"
+msgstr "ﻩﺎﮕﺘﺳﺩ"
+
+
 msgid "Manual"
 msgstr "ﺎﻤﻨﻫﺍﺭ ﺏﺎﺘﮐ"
 
@@ -4479,10 +4483,6 @@ msgstr "ﺰﻣﺭ"
 
 msgid "Dynamic BVH"
 msgstr "BVH ﺎﯾﻮﭘ"
-
-
-msgid "Device"
-msgstr "ﻩﺎﮕﺘﺳﺩ"
 
 
 msgid "Use CPU for rendering"
@@ -4980,10 +4980,6 @@ msgid "%d items"
 msgstr "‬%d‪‪ ﻡﻼ﻿ﻗﺍ"
 
 
-msgid "Hex"
-msgstr "Hex"
-
-
 msgid "Red:"
 msgstr ":ﺰﻣﺮﻗ"
 
@@ -5012,12 +5008,8 @@ msgid "Alpha:"
 msgstr ":ﺎﻔﻟﺁ"
 
 
-msgid "Hex:"
-msgstr ":ﺲﮑﻫِ"
-
-
-msgid "Hex triplet for color (#RRGGBB)"
-msgstr "(#RRGGBB) ﮓﻧﺭ ﯼﺍﺮﺑ ﻪﻧﺎﮔ ﻪﺳ ﺰﮕﻫ"
+msgid "Hex"
+msgstr "Hex"
 
 
 msgctxt "Color"

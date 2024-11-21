@@ -18,7 +18,7 @@
 #include "BKE_callbacks.hh"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"
@@ -675,11 +675,10 @@ void ED_node_texture_default(const bContext *C, Tex *tex)
 
 namespace blender::ed::space_node {
 
-/**
- * Here we set the active tree(s), even called for each redraw now, so keep it fast :)
- */
 void snode_set_context(const bContext &C)
 {
+  /* NOTE: Here we set the active tree(s), even called for each redraw now, so keep it fast :). */
+
   SpaceNode *snode = CTX_wm_space_node(&C);
   bke::bNodeTreeType *treetype = bke::node_tree_type_find(snode->tree_idname);
   bNodeTree *ntree = snode->nodetree;

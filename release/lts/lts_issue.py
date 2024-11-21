@@ -16,9 +16,9 @@ class ReleaseLogLine:
     * issue_id: (int or None) the extracted issue id associated with this log
                line. Can be None if the log line isn't associated with a issue.
     * commit_id: (str or None) the extracted commit id associated with this log
-               line. Only filled when no `issue_id` could be found.
-    * ref: (str) `issue_id` or `commit_id` of this line, including `T` for issues
-            or `D` for diffs.
+               line. Only filled when no ``issue_id`` could be found.
+    * ref: (str) ``issue_id`` or ``commit_id`` of this line, including ``T`` for issues
+            or ``D`` for diffs.
     * title: (str) title of this log line. When constructed this attribute is
             an empty string. The called needs to retrieve the title from the
             backend.

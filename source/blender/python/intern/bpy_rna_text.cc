@@ -54,14 +54,14 @@ PyDoc_STRVAR(
     "((start_line, start_column), (end_line, end_column))\n"
     "      The values match Python's slicing logic "
     "(negative values count backwards from the end, the end value is not inclusive).\n"
-    "   :type range: Two pairs of ints\n"
+    "   :type range: tuple[tuple[int, int], tuple[int, int]]\n"
     "   :return: The specified region as a string.\n"
     "   :rtype: str.\n");
 /* Receive a Python Tuple as parameter to represent the region range. */
 static PyObject *bpy_rna_region_as_string(PyObject *self, PyObject *args, PyObject *kwds)
 {
   BPy_StructRNA *pyrna = (BPy_StructRNA *)self;
-  Text *text = static_cast<Text *>(pyrna->ptr.data);
+  Text *text = static_cast<Text *>(pyrna->ptr->data);
   /* Parse the region range. */
   TextRegion region;
 
@@ -124,11 +124,11 @@ PyDoc_STRVAR(
     "((start_line, start_column), (end_line, end_column))\n"
     "      The values match Python's slicing logic "
     "(negative values count backwards from the end, the end value is not inclusive).\n"
-    "   :type range: Two pairs of ints\n");
+    "   :type range: tuple[tuple[int, int], tuple[int, int]]\n");
 static PyObject *bpy_rna_region_from_string(PyObject *self, PyObject *args, PyObject *kwds)
 {
   BPy_StructRNA *pyrna = (BPy_StructRNA *)self;
-  Text *text = static_cast<Text *>(pyrna->ptr.data);
+  Text *text = static_cast<Text *>(pyrna->ptr->data);
 
   /* Parse the region range. */
   const char *buf;

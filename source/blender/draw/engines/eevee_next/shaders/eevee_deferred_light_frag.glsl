@@ -6,41 +6,41 @@
  * Compute light objects lighting contribution using Gbuffer data.
  */
 
-#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_shared_exponent_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_renderpass_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_light_eval_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_lightprobe_eval_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_subsurface_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_thickness_lib.glsl)
+#include "draw_view_lib.glsl"
+#include "eevee_gbuffer_lib.glsl"
+#include "eevee_light_eval_lib.glsl"
+#include "eevee_lightprobe_eval_lib.glsl"
+#include "eevee_renderpass_lib.glsl"
+#include "eevee_subsurface_lib.glsl"
+#include "eevee_thickness_lib.glsl"
+#include "gpu_shader_codegen_lib.glsl"
+#include "gpu_shader_shared_exponent_lib.glsl"
 
-void write_radiance_direct(int layer_index, ivec2 texel, vec3 radiance)
+void write_radiance_direct(uchar layer_index, ivec2 texel, vec3 radiance)
 {
   /* TODO(fclem): Layered texture. */
   uint data = rgb9e5_encode(radiance);
-  if (layer_index == 0) {
+  if (layer_index == 0u) {
     imageStore(direct_radiance_1_img, texel, uvec4(data));
   }
-  else if (layer_index == 1) {
+  else if (layer_index == 1u) {
     imageStore(direct_radiance_2_img, texel, uvec4(data));
   }
-  else if (layer_index == 2) {
+  else if (layer_index == 2u) {
     imageStore(direct_radiance_3_img, texel, uvec4(data));
   }
 }
 
-void write_radiance_indirect(int layer_index, ivec2 texel, vec3 radiance)
+void write_radiance_indirect(uchar layer_index, ivec2 texel, vec3 radiance)
 {
   /* TODO(fclem): Layered texture. */
-  if (layer_index == 0) {
+  if (layer_index == 0u) {
     imageStore(indirect_radiance_1_img, texel, vec4(radiance, 1.0));
   }
-  else if (layer_index == 1) {
+  else if (layer_index == 1u) {
     imageStore(indirect_radiance_2_img, texel, vec4(radiance, 1.0));
   }
-  else if (layer_index == 2) {
+  else if (layer_index == 2u) {
     imageStore(indirect_radiance_3_img, texel, vec4(radiance, 1.0));
   }
 }
@@ -64,13 +64,14 @@ void main()
 
   ClosureLightStack stack;
   /* Unroll light stack array assignments to avoid non-constant indexing. */
-  for (int i = 0; i < LIGHT_CLOSURE_EVAL_COUNT && i < gbuf.closure_count; i++) {
+  for (uchar i = 0; i < LIGHT_CLOSURE_EVAL_COUNT && i < gbuf.closure_count; i++) {
     closure_light_set(stack, i, closure_light_new(gbuffer_closure_get(gbuf, i), V));
   }
 
   /* TODO(fclem): If transmission (no SSS) is present, we could reduce LIGHT_CLOSURE_EVAL_COUNT
    * by 1 for this evaluation and skip evaluating the transmission closure twice. */
-  light_eval_reflection(stack, P, Ng, V, vPz);
+  uchar receiver_light_set = gbuffer_light_link_receiver_unpack(gbuf.header);
+  light_eval_reflection(stack, P, Ng, V, vPz, receiver_light_set);
 
   if (use_transmission) {
     ClosureUndetermined cl_transmit = gbuffer_closure_get(gbuf, 0);
@@ -85,7 +86,7 @@ void main()
     stack.cl[0] = closure_light_new(cl_transmit, V, gbuf.thickness);
 
     /* NOTE: Only evaluates `stack.cl[0]`. */
-    light_eval_transmission(stack, P, Ng, V, vPz, gbuf.thickness);
+    light_eval_transmission(stack, P, Ng, V, vPz, gbuf.thickness, receiver_light_set);
 
 #if 1 /* TODO Limit to SSS. */
     if (cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID) {
@@ -103,7 +104,7 @@ void main()
   if (render_pass_shadow_id != -1) {
     vec3 radiance_shadowed = vec3(0);
     vec3 radiance_unshadowed = vec3(0);
-    for (int i = 0; i < LIGHT_CLOSURE_EVAL_COUNT && i < gbuf.closure_count; i++) {
+    for (uchar i = 0; i < LIGHT_CLOSURE_EVAL_COUNT && i < gbuf.closure_count; i++) {
       radiance_shadowed += closure_light_get(stack, i).light_shadowed;
       radiance_unshadowed += closure_light_get(stack, i).light_unshadowed;
     }
@@ -117,11 +118,11 @@ void main()
     float clamp_indirect = uniform_buf.clamp.surface_indirect;
     samp.volume_irradiance = spherical_harmonics_clamp(samp.volume_irradiance, clamp_indirect);
 
-    for (int i = 0; i < LIGHT_CLOSURE_EVAL_COUNT && i < gbuf.closure_count; i++) {
+    for (uchar i = 0; i < LIGHT_CLOSURE_EVAL_COUNT && i < gbuf.closure_count; i++) {
       ClosureUndetermined cl = gbuffer_closure_get(gbuf, i);
       vec3 indirect_light = lightprobe_eval(samp, cl, P, V, gbuf.thickness);
 
-      int layer_index = gbuffer_closure_get_bin_index(gbuf, i);
+      uchar layer_index = gbuffer_closure_get_bin_index(gbuf, i);
       vec3 direct_light = closure_light_get(stack, i).light_shadowed;
       if (use_split_indirect) {
         write_radiance_indirect(layer_index, texel, indirect_light);
@@ -133,8 +134,8 @@ void main()
     }
   }
   else {
-    for (int i = 0; i < LIGHT_CLOSURE_EVAL_COUNT && i < gbuf.closure_count; i++) {
-      int layer_index = gbuffer_closure_get_bin_index(gbuf, i);
+    for (uchar i = 0; i < LIGHT_CLOSURE_EVAL_COUNT && i < gbuf.closure_count; i++) {
+      uchar layer_index = gbuffer_closure_get_bin_index(gbuf, i);
       vec3 direct_light = closure_light_get(stack, i).light_shadowed;
       write_radiance_direct(layer_index, texel, direct_light);
     }

@@ -28,6 +28,7 @@
  * \{ */
 
 using blender::nodes::ItemDeclaration;
+using blender::nodes::LayoutDeclaration;
 using blender::nodes::NodeDeclaration;
 using blender::nodes::PanelDeclaration;
 using blender::nodes::SocketDeclaration;
@@ -66,54 +67,37 @@ static void draw_node_input(bContext *C,
   socket.typeinfo->draw(C, row, &socket_ptr, node_ptr, text);
 }
 
-static void draw_node_input(bContext *C,
-                            uiLayout *layout,
-                            PointerRNA *node_ptr,
-                            StringRefNull identifier)
+static void draw_node_inputs_recursive(bContext *C,
+                                       uiLayout *layout,
+                                       bNode &node,
+                                       PointerRNA *node_ptr,
+                                       const blender::nodes::PanelDeclaration &panel_decl)
 {
-  bNode &node = *static_cast<bNode *>(node_ptr->data);
-  bNodeSocket *socket = node.runtime->inputs_by_identifier.lookup(identifier);
-  draw_node_input(C, layout, node_ptr, *socket);
-}
-
-/* Consume the item range, draw buttons if layout is not null. */
-static void handle_node_declaration_items(bContext *C,
-                                          Panel *root_panel,
-                                          uiLayout *layout,
-                                          PointerRNA *node_ptr,
-                                          ItemIterator &item_iter,
-                                          const ItemIterator item_end)
-{
-  while (item_iter != item_end) {
-    const ItemDeclaration *item_decl = item_iter->get();
-    ++item_iter;
-
-    if (const SocketDeclaration *socket_decl = dynamic_cast<const SocketDeclaration *>(item_decl))
-    {
-      if (layout && socket_decl->in_out == SOCK_IN) {
-        draw_node_input(C, layout, node_ptr, socket_decl->identifier);
+  /* Use a root panel property to toggle open/closed state. */
+  /* TODO: Use flag on the panel state instead which is better for dynamic panel amounts. */
+  const std::string panel_idname = "NodePanel" + std::to_string(panel_decl.identifier);
+  Panel *root_panel = uiLayoutGetRootPanel(layout);
+  LayoutPanelState *state = BKE_panel_layout_panel_state_ensure(
+      root_panel, panel_idname.c_str(), panel_decl.default_collapsed);
+  PointerRNA state_ptr = RNA_pointer_create(nullptr, &RNA_LayoutPanelState, state);
+  uiLayout *panel_layout = uiLayoutPanelProp(
+      C, layout, &state_ptr, "is_open", IFACE_(panel_decl.name.c_str()));
+  if (!(state->flag & LAYOUT_PANEL_STATE_FLAG_OPEN)) {
+    return;
+  }
+  for (const ItemDeclaration *item_decl : panel_decl.items) {
+    if (const auto *socket_decl = dynamic_cast<const SocketDeclaration *>(item_decl)) {
+      if (socket_decl->in_out == SOCK_IN) {
+        draw_node_input(C, panel_layout, node_ptr, node.socket_by_decl(*socket_decl));
       }
     }
-    else if (const PanelDeclaration *panel_decl = dynamic_cast<const PanelDeclaration *>(
-                 item_decl))
-    {
-      const ItemIterator panel_item_end = item_iter + panel_decl->num_child_decls;
-      BLI_assert(panel_item_end <= item_end);
-
-      /* Use a root panel property to toggle open/closed state. */
-      const std::string panel_idname = "NodePanel" + std::to_string(panel_decl->identifier);
-      LayoutPanelState *state = BKE_panel_layout_panel_state_ensure(
-          root_panel, panel_idname.c_str(), panel_decl->default_collapsed);
-      PointerRNA state_ptr = RNA_pointer_create(nullptr, &RNA_LayoutPanelState, state);
-      uiLayout *panel_layout = uiLayoutPanelProp(
-          C, layout, &state_ptr, "is_open", IFACE_(panel_decl->name.c_str()));
-      /* Draw panel buttons at the top of each panel section. */
-      if (panel_layout && panel_decl->draw_buttons) {
-        panel_decl->draw_buttons(panel_layout, C, node_ptr);
+    else if (const auto *sub_panel_decl = dynamic_cast<const PanelDeclaration *>(item_decl)) {
+      draw_node_inputs_recursive(C, panel_layout, node, node_ptr, *sub_panel_decl);
+    }
+    else if (const auto *layout_decl = dynamic_cast<const LayoutDeclaration *>(item_decl)) {
+      if (!layout_decl->is_default) {
+        layout_decl->draw(panel_layout, C, node_ptr);
       }
-
-      handle_node_declaration_items(
-          C, root_panel, panel_layout, node_ptr, item_iter, panel_item_end);
     }
   }
 }
@@ -122,6 +106,7 @@ static void handle_node_declaration_items(bContext *C,
 
 void uiTemplateNodeInputs(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
+  using namespace blender::nodes;
   bNodeTree &tree = *reinterpret_cast<bNodeTree *>(ptr->owner_id);
   bNode &node = *static_cast<bNode *>(ptr->data);
 
@@ -138,11 +123,22 @@ void uiTemplateNodeInputs(uiLayout *layout, bContext *C, PointerRNA *ptr)
 
   if (node.declaration()) {
     /* Draw socket inputs and panel buttons in the order of declaration panels. */
-    ItemIterator item_iter = node.declaration()->items.begin();
-    const ItemIterator item_end = node.declaration()->items.end();
-    Panel *root_panel = uiLayoutGetRootPanel(layout);
-    blender::ui::nodes::handle_node_declaration_items(
-        C, root_panel, layout, ptr, item_iter, item_end);
+    const NodeDeclaration &node_decl = *node.declaration();
+    for (const ItemDeclaration *item_decl : node_decl.root_items) {
+      if (const auto *panel_decl = dynamic_cast<const PanelDeclaration *>(item_decl)) {
+        blender::ui::nodes::draw_node_inputs_recursive(C, layout, node, ptr, *panel_decl);
+      }
+      else if (const auto *socket_decl = dynamic_cast<const SocketDeclaration *>(item_decl)) {
+        if (socket_decl->in_out == SOCK_IN) {
+          blender::ui::nodes::draw_node_input(C, layout, ptr, node.socket_by_decl(*socket_decl));
+        }
+      }
+      else if (const auto *layout_decl = dynamic_cast<const LayoutDeclaration *>(item_decl)) {
+        if (!layout_decl->is_default) {
+          layout_decl->draw(layout, C, ptr);
+        }
+      }
+    }
   }
   else {
     /* Draw socket values using the flat inputs list. */

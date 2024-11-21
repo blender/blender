@@ -10,8 +10,8 @@
  * tiles.
  */
 
-#pragma BLENDER_REQUIRE(draw_model_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_shadow_tag_usage_lib.glsl)
+#include "draw_model_lib.glsl"
+#include "eevee_shadow_tag_usage_lib.glsl"
 
 float ray_aabb(vec3 ray_origin, vec3 ray_direction, vec3 aabb_min, vec3 aabb_max)
 {

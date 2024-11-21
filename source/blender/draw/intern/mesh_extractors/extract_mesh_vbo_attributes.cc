@@ -193,7 +193,7 @@ static void extract_attribute(const MeshRenderData &mr,
                               const DRW_AttributeRequest &request,
                               gpu::VertBuf &vbo)
 {
-  if (mr.extract_type == MR_EXTRACT_BMESH) {
+  if (mr.extract_type == MeshExtractType::BMesh) {
     const CustomData &custom_data = *get_custom_data_for_domain(*mr.bm, request.domain);
     const char *name = request.attribute_name;
     const int cd_offset = CustomData_get_offset_named(&custom_data, request.cd_type, name);

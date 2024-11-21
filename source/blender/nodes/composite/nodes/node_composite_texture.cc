@@ -63,12 +63,12 @@ class TextureOperation : public NodeOperation {
 
     Result &color_result = get_result("Color");
     if (color_result.should_compute()) {
-      color_result.wrap_external(cached_texture.color_texture());
+      color_result.wrap_external(cached_texture.color_result);
     }
 
     Result &value_result = get_result("Value");
     if (value_result.should_compute()) {
-      value_result.wrap_external(cached_texture.value_texture());
+      value_result.wrap_external(cached_texture.value_result);
     }
   }
 

@@ -6,7 +6,7 @@
  * Clear render passes and background.
  */
 
-#pragma BLENDER_REQUIRE(eevee_renderpass_lib.glsl)
+#include "eevee_renderpass_lib.glsl"
 
 void main()
 {

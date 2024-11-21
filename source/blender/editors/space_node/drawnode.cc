@@ -20,7 +20,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_node_enum.hh"
@@ -445,6 +445,11 @@ static void node_buts_output_shader(uiLayout *layout, bContext * /*C*/, PointerR
   uiItemR(layout, ptr, "target", DEFAULT_FLAGS, "", ICON_NONE);
 }
 
+static void node_shader_buts_scatter(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "phase", DEFAULT_FLAGS, "", ICON_NONE);
+}
+
 /* only once called */
 static void node_shader_set_butfunc(blender::bke::bNodeType *ntype)
 {
@@ -500,6 +505,9 @@ static void node_shader_set_butfunc(blender::bke::bNodeType *ntype)
     case SH_NODE_OUTPUT_LIGHT:
     case SH_NODE_OUTPUT_WORLD:
       ntype->draw_buttons = node_buts_output_shader;
+      break;
+    case SH_NODE_VOLUME_SCATTER:
+      ntype->draw_buttons = node_shader_buts_scatter;
       break;
   }
 }
@@ -1226,7 +1234,7 @@ static void draw_gizmo_pin_icon(uiLayout *layout, PointerRNA *socket_ptr)
   uiItemR(layout, socket_ptr, "pin_gizmo", UI_ITEM_NONE, "", ICON_GIZMO);
 }
 
-static void draw_node_socket_without_value(uiLayout *layout, bNodeSocket *sock, const char *text)
+static void draw_node_socket_name_editable(uiLayout *layout, bNodeSocket *sock, const char *text)
 {
   if (sock->runtime->declaration) {
     if (sock->runtime->declaration->socket_name_rna) {
@@ -1241,6 +1249,11 @@ static void draw_node_socket_without_value(uiLayout *layout, bNodeSocket *sock, 
     }
   }
   uiItemL(layout, text, ICON_NONE);
+}
+
+static void draw_node_socket_without_value(uiLayout *layout, bNodeSocket *sock, const char *text)
+{
+  draw_node_socket_name_editable(layout, sock, text);
 }
 
 static void std_node_socket_draw(
@@ -1328,7 +1341,7 @@ static void std_node_socket_draw(
           uiLayout *column = uiLayoutColumn(layout, false);
           {
             uiLayout *row = uiLayoutRow(column, true);
-            uiItemL(row, text, ICON_NONE);
+            draw_node_socket_name_editable(row, sock, text);
             if (has_gizmo) {
               draw_gizmo_pin_icon(row, ptr);
               gizmo_handled = true;
@@ -1342,7 +1355,7 @@ static void std_node_socket_draw(
       uiLayout *column = uiLayoutColumn(layout, false);
       {
         uiLayout *row = uiLayoutRow(column, true);
-        uiItemL(row, text, ICON_NONE);
+        draw_node_socket_name_editable(row, sock, text);
         if (has_gizmo) {
           draw_gizmo_pin_icon(row, ptr);
           gizmo_handled = true;
@@ -1352,7 +1365,7 @@ static void std_node_socket_draw(
       break;
     }
     case SOCK_MATRIX: {
-      uiItemL(layout, text, ICON_NONE);
+      draw_node_socket_name_editable(layout, sock, text);
       break;
     }
     case SOCK_RGBA: {

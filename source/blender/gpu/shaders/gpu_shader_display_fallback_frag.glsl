@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/gpu_shader_2D_image_overlays_merge_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(gpu_shader_cycles_display_fallback)
+
 void main()
 {
   fragColor = texture(image_texture, texCoord_interp);

@@ -112,32 +112,42 @@ using TreeViewOrItem = TreeViewItemContainer;
  * \{ */
 
 class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
-  int min_rows_ = 0;
+  /* Shared pointer so the pointer can be kept persistent over redraws. The grip button gets a
+   * pointer to modify the value on resizing, and it uses it to identify the button over redraws.*/
+  /* TODO support region zoom. */
+  std::shared_ptr<int> custom_height_ = nullptr;
+  std::shared_ptr<int> scroll_value_ = nullptr;
 
   friend class AbstractTreeViewItem;
   friend class TreeViewBuilder;
+  friend class TreeViewLayoutBuilder;
   friend class TreeViewItemDropTarget;
 
  public:
   /* virtual */ ~AbstractTreeView() override = default;
 
-  void draw_overlays(const ARegion &region) const override;
+  void draw_overlays(const ARegion &region, const uiBlock &block) const override;
 
   void foreach_item(ItemIterFn iter_fn, IterOptions options = IterOptions::None) const;
+
+  void scroll(ViewScrollDirection direction) override;
 
   /**
    * \param xy: The mouse coordinates in window space.
    */
   AbstractTreeViewItem *find_hovered(const ARegion &region, const int2 &xy);
 
-  /** Visual feature: Define a number of item rows the view will always show at minimum. If there
+  /** Visual feature: Define a number of item rows the view will show by default. If there
    * are fewer items, empty dummy items will be added. These contribute to the view bounds, so the
    * drop target of the view includes them, but they are not interactive (e.g. no mouse-hover
    * highlight). */
-  void set_min_rows(int min_rows);
+  void set_default_rows(int default_rows);
 
  protected:
   virtual void build_tree() = 0;
+
+  std::optional<uiViewState> persistent_state() const override;
+  void persistent_state_apply(const uiViewState &state) override;
 
  private:
   void foreach_view_item(FunctionRef<void(AbstractViewItem &)> iter_fn) const final;
@@ -146,14 +156,18 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
                                                  const TreeViewOrItem &old_items);
   static AbstractTreeViewItem *find_matching_child(
       const AbstractTreeViewItem &lookup_item, const Span<AbstractTreeViewItem *> possible_items);
+  std::optional<int> tot_visible_row_count() const;
 
-  void draw_hierarchy_lines(const ARegion &region) const;
-  void draw_hierarchy_lines_recursive(const ARegion &region,
-                                      const TreeViewOrItem &parent,
-                                      const uint pos,
-                                      const float aspect) const;
+  bool supports_scrolling() const override;
 
-  AbstractTreeViewItem *find_last_visible_descendant(const AbstractTreeViewItem &parent) const;
+  void draw_hierarchy_lines(const ARegion &region, const uiBlock &block) const;
+  void get_hierarchy_lines(const ARegion &region,
+                           const TreeViewOrItem &parent,
+                           const float aspect,
+                           Vector<std::pair<int2, int2>> &lines,
+                           int &visible_item_index) const;
+
+  int count_visible_descendants(const AbstractTreeViewItem &parent) const;
 };
 
 /** \} */
@@ -393,7 +407,8 @@ class TreeViewItemDropTarget : public DropTargetInterface {
 
 class TreeViewBuilder {
  public:
-  static void build_tree_view(AbstractTreeView &tree_view,
+  static void build_tree_view(const bContext &C,
+                              AbstractTreeView &tree_view,
                               uiLayout &layout,
                               std::optional<StringRef> search_string = {},
                               bool add_box = true);

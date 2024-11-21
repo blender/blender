@@ -51,7 +51,7 @@
 #include "BKE_effect.h"
 #include "BKE_global.hh"
 #include "BKE_idprop.hh"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_lattice.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
@@ -334,6 +334,8 @@ static int object_hide_view_set_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   const bool unselected = RNA_boolean_get(op->ptr, "unselected");
   bool changed = false;
+  const bool confirm = op->flag & OP_IS_INVOKE;
+  int hide_count = 0;
 
   /* Hide selected or unselected objects. */
   BKE_view_layer_synced_ensure(scene, view_layer);
@@ -346,6 +348,7 @@ static int object_hide_view_set_exec(bContext *C, wmOperator *op)
       if (base->flag & BASE_SELECTED) {
         base_select(base, BA_DESELECT);
         base->flag |= BASE_HIDDEN;
+        hide_count++;
         changed = true;
       }
     }
@@ -353,12 +356,17 @@ static int object_hide_view_set_exec(bContext *C, wmOperator *op)
       if (!(base->flag & BASE_SELECTED)) {
         base_select(base, BA_DESELECT);
         base->flag |= BASE_HIDDEN;
+        hide_count++;
         changed = true;
       }
     }
   }
   if (!changed) {
     return OPERATOR_CANCELLED;
+  }
+
+  if (hide_count > 0 && confirm) {
+    BKE_reportf(op->reports, RPT_INFO, "%u object(s) hidden", (hide_count));
   }
 
   BKE_view_layer_need_resync_tag(view_layer);
@@ -1956,11 +1964,6 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
   eObjectMode mode = eObjectMode(RNA_enum_get(op->ptr, "mode"));
   const bool toggle = RNA_boolean_get(op->ptr, "toggle");
-
-  /* by default the operator assume is a mesh, but if gp object change mode */
-  if ((ob->type == OB_GPENCIL_LEGACY) && (mode == OB_MODE_EDIT)) {
-    mode = OB_MODE_EDIT_GPENCIL_LEGACY;
-  }
 
   if (!mode_compat_test(ob, mode)) {
     return OPERATOR_PASS_THROUGH;

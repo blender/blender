@@ -62,7 +62,7 @@ PyDoc_STRVAR(
     "      already been chained must be ignored ot not.\n"
     "   :type restrict_to_unvisited: bool\n"
     "   :arg begin: The ViewEdge from where to start the iteration.\n"
-    "   :type begin: :class:`freestyle.types.ViewEdge` or None\n"
+    "   :type begin: :class:`freestyle.types.ViewEdge` | None\n"
     "   :arg orientation: If true, we'll look for the next ViewEdge among\n"
     "      the ViewEdges that surround the ending ViewVertex of begin. If\n"
     "      false, we'll search over the ViewEdges surrounding the ending\n"

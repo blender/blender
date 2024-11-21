@@ -6,9 +6,9 @@
  * \ingroup modifiers
  */
 
-#include "MOD_lineart.h"
+#include "MOD_lineart.hh"
 
-#include "lineart_intern.h"
+#include "lineart_intern.hh"
 
 #include "BKE_global.hh"
 #include "BKE_grease_pencil.hh"
@@ -1251,8 +1251,18 @@ bool lineart_main_try_generate_shadow_v3(Depsgraph *depsgraph,
 
   lineart_main_get_view_vector(ld);
 
-  lineart_main_load_geometries(
-      depsgraph, scene, nullptr, ld, lmd->flags & MOD_LINEART_ALLOW_DUPLI_OBJECTS, true, nullptr);
+  LineartModifierRuntime *runtime = reinterpret_cast<LineartModifierRuntime *>(lmd->runtime);
+  blender::Set<const Object *> *included_objects = runtime ? runtime->object_dependencies.get() :
+                                                             nullptr;
+
+  lineart_main_load_geometries(depsgraph,
+                               scene,
+                               nullptr,
+                               ld,
+                               lmd->flags & MOD_LINEART_ALLOW_DUPLI_OBJECTS,
+                               true,
+                               nullptr,
+                               included_objects);
 
   if (!ld->geom.vertex_buffer_pointers.first) {
     /* No geometry loaded, return early. */

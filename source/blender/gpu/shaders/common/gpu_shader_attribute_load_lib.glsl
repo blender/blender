@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
+#include "gpu_glsl_cpp_stubs.hh"
+
 /**
  * Library to read packed vertex buffer data of a `gpu::Batch` using a SSBO rather than using input
  * assembly. It is **not** needed to use these macros if the data is known to be aligned and

@@ -12,8 +12,7 @@
 
 #pragma once
 
-#ifdef WITH_ANIM_BAKLAVA
-#  ifdef RNA_RUNTIME
+#ifdef RNA_RUNTIME
 
 /**
  * Get the Action slot, given this slot handle.
@@ -54,5 +53,4 @@ void rna_generic_action_slot_handle_set(blender::animrig::slot_handle_t slot_han
 void rna_iterator_generic_action_slots_begin(CollectionPropertyIterator *iter,
                                              bAction *assigned_action);
 
-#  endif /* RNA_RUNTIME */
-#endif   /* WITH_ANIM_BAKLAVA */
+#endif /* RNA_RUNTIME */

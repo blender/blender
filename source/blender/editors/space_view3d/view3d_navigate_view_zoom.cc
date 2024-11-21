@@ -26,9 +26,10 @@
 /** \name View Zoom Operator
  * \{ */
 
-/* #viewdolly_modal_keymap has an exact copy of this, apply fixes to both. */
 void viewzoom_modal_keymap(wmKeyConfig *keyconf)
 {
+  /* NOTE: #viewdolly_modal_keymap has an exact copy of this, apply fixes to both. */
+
   static const EnumPropertyItem modal_items[] = {
       {VIEW_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
       {VIEW_MODAL_CONFIRM, "CONFIRM", 0, "Confirm", ""},

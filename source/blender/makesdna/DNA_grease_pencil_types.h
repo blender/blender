@@ -16,7 +16,7 @@
 #ifdef __cplusplus
 #  include "BLI_bounds_types.hh"
 #  include "BLI_function_ref.hh"
-#  include "BLI_generic_virtual_array.hh"
+#  include "BLI_index_mask_fwd.hh"
 #  include "BLI_map.hh"
 #  include "BLI_math_vector_types.hh"
 #  include "BLI_memory_counter_fwd.hh"
@@ -543,10 +543,13 @@ typedef struct GreasePencil {
 
   /* Adding layers and layer groups. */
   /** Adds a new layer with the given name to the top of root group. */
-  blender::bke::greasepencil::Layer &add_layer(blender::StringRefNull name);
+  blender::bke::greasepencil::Layer &add_layer(blender::StringRefNull name,
+                                               bool check_name_is_unique = true);
   /** Adds a new layer with the given name to the top of the given group. */
   blender::bke::greasepencil::Layer &add_layer(
-      blender::bke::greasepencil::LayerGroup &parent_group, blender::StringRefNull name);
+      blender::bke::greasepencil::LayerGroup &parent_group,
+      blender::StringRefNull name,
+      bool check_name_is_unique = true);
   /** Duplicates the given layer to the top of the root group. */
   blender::bke::greasepencil::Layer &duplicate_layer(
       const blender::bke::greasepencil::Layer &duplicate_layer);
@@ -554,12 +557,17 @@ typedef struct GreasePencil {
   blender::bke::greasepencil::Layer &duplicate_layer(
       blender::bke::greasepencil::LayerGroup &parent_group,
       const blender::bke::greasepencil::Layer &duplicate_layer);
+  /** Add new layer group into the root group. */
+  blender::bke::greasepencil::LayerGroup &add_layer_group(blender::StringRefNull name,
+                                                          bool check_name_is_unique = true);
   blender::bke::greasepencil::LayerGroup &add_layer_group(
-      blender::bke::greasepencil::LayerGroup &parent_group, blender::StringRefNull name);
+      blender::bke::greasepencil::LayerGroup &parent_group,
+      blender::StringRefNull name,
+      bool check_name_is_unique = true);
 
   /**
    *  Adds multiple layers with an empty name.
-   *  Note: Evaluated Grease Pencil geometry is allowed to have layers with the same name.
+   *  NOTE: Evaluated Grease Pencil geometry is allowed to have layers with the same name.
    */
   void add_layers_for_eval(int num_new_layers);
 
@@ -588,6 +596,8 @@ typedef struct GreasePencil {
 
   void remove_layer(blender::bke::greasepencil::Layer &layer);
   void remove_group(blender::bke::greasepencil::LayerGroup &group, bool keep_children = false);
+
+  std::string unique_layer_name(blender::StringRef name);
 
   /* Frames API functions. */
 

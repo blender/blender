@@ -436,8 +436,8 @@ class ErrorHandlingPrinter:
         try:
             with ensure_unwind_on_signal():
                 return self.printer.to_string()
-        except Exception as e:
-            return "Error"
+        except Exception as ex:
+            return f"Error: {ex!s}"
 
     def children(self):
         try:
@@ -531,8 +531,10 @@ class LazyFunctionEvalFilter:
     @staticmethod
     def frame_to_name(frame):
         function_name = frame.function()
-        if (function_name.startswith("blender::fn::lazy_function::LazyFunction::execute")
-                or function_name.startswith("blender::fn::lazy_function::Executor::push_to_task_pool")):
+        if function_name.startswith((
+                "blender::fn::lazy_function::LazyFunction::execute",
+                "blender::fn::lazy_function::Executor::push_to_task_pool",
+        )):
             return "Execute Lazy Function"
 
 

@@ -895,7 +895,7 @@ typedef enum eDopeSheet_FilterFlag {
    * Show all Action slots; if not set, only show the Slot of the
    * data-block that's being animated by the Action.
    */
-  ADS_FILTER_ALL_SLOTS = (1 << 5),
+  ADS_FILTER_ONLY_SLOTS_OF_ACTIVE = (1 << 5),
 
   /* datatype-based filtering */
   ADS_FILTER_NOSHAPEKEYS = (1 << 6),
@@ -1168,13 +1168,12 @@ typedef struct ActionSlot {
    * \see #AnimData::slot_name
    */
   char name[66]; /* MAX_ID_NAME */
-  uint8_t _pad0[2];
 
   /**
    * Type of ID-blocks that this slot can be assigned to.
    * If 0, will be set to whatever ID is first assigned.
    */
-  int idtype;
+  int16_t idtype;
 
   /**
    * Identifier of this Slot within the Action.
@@ -1191,7 +1190,7 @@ typedef struct ActionSlot {
 
   /** \see #blender::animrig::Slot::flags() */
   int8_t slot_flags;
-  uint8_t _pad1[3];
+  uint8_t _pad1[7];
 
   /** Runtime data. Set to nullptr when writing to disk. */
   ActionSlotRuntimeHandle *runtime;

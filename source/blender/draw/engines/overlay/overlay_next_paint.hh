@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_paint.hh"
 
 #include "DEG_depsgraph_query.hh"

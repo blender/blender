@@ -196,10 +196,6 @@ std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
     MEM_freeN((void *)structname);
   }
 
-  /* Valid path - remove the invalid tag since we now know how to use it saving
-   * users manual effort to re-enable using "Revive Disabled FCurves" #29629. */
-  fcu->flag &= ~FCURVE_DISABLED;
-
   /* Use the property's owner struct icon. */
   return RNA_struct_ui_icon(ptr.type);
 }

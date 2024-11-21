@@ -18,6 +18,8 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.use_custom_socket_order();
   b.allow_any_socket_order();
 
+  b.add_default_layout();
+
   b.add_input<decl::Bool>("Show").default_value(true).hide_value();
   b.add_output<decl::Bool>("Show").align_with_previous();
   b.add_input<decl::String>("Message").hide_label();

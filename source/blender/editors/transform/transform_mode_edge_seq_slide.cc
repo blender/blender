@@ -26,6 +26,8 @@
 
 #include "BLT_translation.hh"
 
+#include "ED_sequencer.hh"
+
 #include "transform.hh"
 #include "transform_convert.hh"
 #include "transform_mode.hh"
@@ -85,7 +87,9 @@ static void applySeqSlide(TransInfo *t)
   else {
     copy_v2_v2(values_final, t->values);
     transform_snap_mixed_apply(t, values_final);
-    transform_convert_sequencer_channel_clamp(t, values_final);
+    if (!sequencer_retiming_mode_is_active(t->context)) {
+      transform_convert_sequencer_channel_clamp(t, values_final);
+    }
 
     if (t->con.mode & CON_APPLY) {
       t->con.applyVec(t, nullptr, nullptr, values_final, values_final);

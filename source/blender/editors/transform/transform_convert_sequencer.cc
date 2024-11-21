@@ -602,6 +602,15 @@ static void flushTransSeq(TransInfo *t)
         break;
       }
       case SEQ_LEFTSEL: { /* No vertical transform. */
+        /* Update right handle first if both handles are selected and the new_frame is right of
+         * the old one to avoid unexpected left handle clamping when canceling. See #126191. */
+        bool both_handles_selected = (tdsq->flag & (SEQ_LEFTSEL | SEQ_RIGHTSEL)) ==
+                                     (SEQ_LEFTSEL | SEQ_RIGHTSEL);
+        if (both_handles_selected && new_frame > SEQ_time_left_handle_frame_get(scene, seq)) {
+          a++, td++, td2d++;
+          int new_right_frame = round_fl_to_int(td->loc[0] + edge_pan_offset[0]);
+          SEQ_time_right_handle_frame_set(scene, seq, new_right_frame);
+        }
         int old_startdisp = SEQ_time_left_handle_frame_get(scene, seq);
         SEQ_time_left_handle_frame_set(t->scene, seq, new_frame);
 

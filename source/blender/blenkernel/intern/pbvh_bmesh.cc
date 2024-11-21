@@ -20,7 +20,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_ccg.hh"
-#include "BKE_pbvh_api.hh"
+#include "BKE_paint_bvh.hh"
 
 #include "bmesh.hh"
 #include "pbvh_intern.hh"
@@ -289,8 +289,8 @@ static void pbvh_bmesh_node_split(Vector<BMeshNode> &nodes,
 
   /* Initialize children */
   BMeshNode *c1 = &nodes[children], *c2 = &nodes[children + 1];
-  c1->flag_ |= PBVH_Leaf;
-  c2->flag_ |= PBVH_Leaf;
+  c1->flag_ |= Node::Leaf;
+  c2->flag_ |= Node::Leaf;
   c1->bm_faces_.reserve(n->bm_faces_.size() / 2);
   c2->bm_faces_.reserve(n->bm_faces_.size() / 2);
 
@@ -337,7 +337,7 @@ static void pbvh_bmesh_node_split(Vector<BMeshNode> &nodes,
   }
   n->bm_faces_.clear_and_shrink();
 
-  n->flag_ &= ~PBVH_Leaf;
+  n->flag_ &= ~Node::Leaf;
   node_changed[node_index] = true;
 
   /* Recurse. */
@@ -454,7 +454,7 @@ static BMVert *pbvh_bmesh_vert_create(BMesh &bm,
   node->bm_unique_verts_.add(v);
   BM_ELEM_CD_SET_INT(v, cd_vert_node_offset, node_index);
 
-  node->flag_ |= PBVH_TopologyUpdated;
+  node->flag_ |= Node::TopologyUpdated;
   node_changed[node_index] = true;
 
   /* Log the new vertex. */
@@ -487,9 +487,9 @@ static BMFace *pbvh_bmesh_face_create(BMesh &bm,
   node->bm_faces_.add(f);
   BM_ELEM_CD_SET_INT(f, cd_face_node_offset, node_index);
 
-  node->flag_ |= PBVH_TopologyUpdated;
+  node->flag_ |= Node::TopologyUpdated;
   node_changed[node_index] = true;
-  node->flag_ &= ~PBVH_FullyHidden;
+  node->flag_ &= ~Node::FullyHidden;
 
   /* Log the new face. */
   BM_log_face_added(&bm_log, f);
@@ -551,7 +551,7 @@ static void pbvh_bmesh_vert_ownership_transfer(MutableSpan<BMeshNode> nodes,
 {
   const int current_owner_index = pbvh_bmesh_node_index_from_vert(cd_vert_node_offset, v);
   BMeshNode *current_owner = &nodes[current_owner_index];
-  current_owner->flag_ |= PBVH_TopologyUpdated;
+  current_owner->flag_ |= Node::TopologyUpdated;
   node_changed[new_owner_index] = true;
 
   BMeshNode *new_owner = &nodes[new_owner_index];
@@ -567,7 +567,7 @@ static void pbvh_bmesh_vert_ownership_transfer(MutableSpan<BMeshNode> nodes,
   new_owner->bm_other_verts_.remove(v);
   BLI_assert(!new_owner->bm_other_verts_.contains(v));
 
-  new_owner->flag_ |= PBVH_TopologyUpdated;
+  new_owner->flag_ |= Node::TopologyUpdated;
   node_changed[new_owner_index] = true;
 }
 
@@ -594,7 +594,7 @@ static void pbvh_bmesh_vert_remove(MutableSpan<BMeshNode> nodes,
       f_node_index_prev = f_node_index;
 
       BMeshNode *f_node = &nodes[f_node_index];
-      f_node->flag_ |= PBVH_TopologyUpdated;
+      f_node->flag_ |= Node::TopologyUpdated;
       node_changed[f_node_index] = true;
 
       /* Remove current ownership. */
@@ -650,7 +650,7 @@ static void pbvh_bmesh_face_remove(MutableSpan<BMeshNode> nodes,
   BM_log_face_removed(&bm_log, f);
 
   /* Mark node for update. */
-  f_node->flag_ |= PBVH_TopologyUpdated;
+  f_node->flag_ |= Node::TopologyUpdated;
   node_changed[node_index] = true;
 }
 
@@ -1068,8 +1068,8 @@ static void long_edge_queue_create(EdgeQueueContext *eq_ctx,
 
   for (BMeshNode &node : nodes) {
     /* Check leaf nodes marked for topology update. */
-    if ((node.flag_ & PBVH_Leaf) && (node.flag_ & PBVH_UpdateTopology) &&
-        !(node.flag_ & PBVH_FullyHidden))
+    if ((node.flag_ & Node::Leaf) && (node.flag_ & Node::UpdateTopology) &&
+        !(node.flag_ & Node::FullyHidden))
     {
       for (BMFace *f : node.bm_faces_) {
         long_edge_queue_face_add(eq_ctx, f);
@@ -1123,8 +1123,8 @@ static void short_edge_queue_create(EdgeQueueContext *eq_ctx,
 
   for (BMeshNode &node : nodes) {
     /* Check leaf nodes marked for topology update */
-    if ((node.flag_ & PBVH_Leaf) && (node.flag_ & PBVH_UpdateTopology) &&
-        !(node.flag_ & PBVH_FullyHidden))
+    if ((node.flag_ & Node::Leaf) && (node.flag_ & Node::UpdateTopology) &&
+        !(node.flag_ & Node::FullyHidden))
     {
       for (BMFace *f : node.bm_faces_) {
         short_edge_queue_face_add(eq_ctx, f);
@@ -1935,7 +1935,7 @@ bool raycast_node_detail_bmesh(BMeshNode &node,
                                float *depth,
                                float *r_edge_length)
 {
-  if (node.flag_ & PBVH_FullyHidden) {
+  if (node.flag_ & Node::FullyHidden) {
     return false;
   }
 
@@ -2172,7 +2172,7 @@ static void pbvh_bmesh_create_nodes_fast_recursive(Vector<BMeshNode> &nodes,
     /* Node does not have children so it's a leaf node, populate with faces and tag accordingly
      * this is an expensive part but it's not so easily thread-able due to vertex node indices. */
 
-    n->flag_ |= PBVH_Leaf;
+    n->flag_ |= Node::Leaf;
     n->bm_faces_.reserve(node->totface);
 
     const int end = node->start + node->totface;
@@ -2275,7 +2275,7 @@ Tree Tree::from_bmesh(BMesh &bm)
             return BM_elem_flag_test(face, BM_ELEM_HIDDEN);
           }))
       {
-        nodes[i].flag_ |= PBVH_FullyHidden;
+        nodes[i].flag_ |= Node::FullyHidden;
       }
     }
   });
@@ -2367,15 +2367,15 @@ bool bmesh_update_topology(BMesh &bm,
 
   /* Unmark nodes. */
   for (Node &node : nodes) {
-    if (node.flag_ & PBVH_Leaf && node.flag_ & PBVH_UpdateTopology) {
-      node.flag_ &= ~PBVH_UpdateTopology;
+    if (node.flag_ & Node::Leaf && node.flag_ & Node::UpdateTopology) {
+      node.flag_ &= ~Node::UpdateTopology;
     }
   }
 
   /* Go over all changed nodes and check if anything needs to be updated. */
   for (BMeshNode &node : nodes) {
-    if (node.flag_ & PBVH_Leaf && node.flag_ & PBVH_TopologyUpdated) {
-      node.flag_ &= ~PBVH_TopologyUpdated;
+    if (node.flag_ & Node::Leaf && node.flag_ & Node::TopologyUpdated) {
+      node.flag_ &= ~Node::TopologyUpdated;
 
       if (!node.orig_tris_.is_empty()) {
         /* Reallocate original triangle data. */
@@ -2480,7 +2480,7 @@ void BKE_pbvh_bmesh_after_stroke(BMesh &bm, blender::bke::pbvh::Tree &pbvh)
   const IndexRange orig_range = nodes.index_range();
   for (const int i : orig_range) {
     bke::pbvh::BMeshNode *n = &nodes[i];
-    if (n->flag_ & PBVH_Leaf) {
+    if (n->flag_ & bke::pbvh::Node::Leaf) {
       /* Free `orco` / `ortri` data. */
       pbvh_bmesh_node_drop_orig(n);
 
@@ -2499,7 +2499,7 @@ void BKE_pbvh_bmesh_after_stroke(BMesh &bm, blender::bke::pbvh::Tree &pbvh)
 
 void BKE_pbvh_node_mark_topology_update(blender::bke::pbvh::Node &node)
 {
-  node.flag_ |= PBVH_UpdateTopology;
+  node.flag_ |= blender::bke::pbvh::Node::UpdateTopology;
 }
 
 const blender::Set<BMVert *, 0> &BKE_pbvh_bmesh_node_unique_verts(
@@ -2544,7 +2544,7 @@ static void pbvh_bmesh_print(Tree *pbvh)
 
   for (int n = 0; n < pbvh->totnode; n++) {
     Node *node = &pbvh->nodes_[n];
-    if (!(node->flag & PBVH_Leaf)) {
+    if (!(node->flag & Node::Leaf)) {
       continue;
     }
 
@@ -2619,7 +2619,7 @@ static void pbvh_bmesh_verify(Tree *pbvh)
       Node *n = pbvh_bmesh_node_lookup(pbvh, f);
 
       /* Check that the face's node is a leaf. */
-      BLI_assert(n->flag & PBVH_Leaf);
+      BLI_assert(n->flag & Node::Leaf);
 
       /* Check that the face's node knows it owns the face. */
       BLI_assert(n->bm_faces_.contains(f));
@@ -2656,7 +2656,7 @@ static void pbvh_bmesh_verify(Tree *pbvh)
       Node *n = pbvh_bmesh_node_lookup(pbvh, v);
 
       /* Check that the vert's node is a leaf. */
-      BLI_assert(n->flag & PBVH_Leaf);
+      BLI_assert(n->flag & Node::Leaf);
 
       /* Check that the vert's node knows it owns the vert. */
       BLI_assert(BLI_gset_haskey(n->bm_unique_verts_, v));
@@ -2711,7 +2711,7 @@ static void pbvh_bmesh_verify(Tree *pbvh)
   /* Check that node elements are recorded in the top level */
   for (int i = 0; i < pbvh->totnode; i++) {
     Node *n = &pbvh->nodes_[i];
-    if (n->flag & PBVH_Leaf) {
+    if (n->flag & Node::Leaf) {
       GSetIterator gs_iter;
 
       for (BMFace *f : n->bm_faces_) {

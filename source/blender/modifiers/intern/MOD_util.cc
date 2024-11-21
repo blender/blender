@@ -23,7 +23,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_lattice.hh"
 
 #include "BKE_modifier.hh"

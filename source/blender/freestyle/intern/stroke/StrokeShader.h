@@ -12,9 +12,7 @@
 #include <iostream>
 #include <vector>
 
-#ifdef WITH_CXX_GUARDEDALLOC
-#  include "MEM_guardedalloc.h"
-#endif
+#include "MEM_guardedalloc.h"
 
 using namespace std;
 
@@ -75,9 +73,7 @@ class StrokeShader {
    */
   virtual int shade(Stroke &ioStroke) const;
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:StrokeShader")
-#endif
 };
 
 } /* namespace Freestyle */

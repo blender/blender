@@ -24,11 +24,8 @@ import os
 import sys
 import unicodedata
 
-from typing import (
-    Dict,
-    Tuple,
+from collections.abc import (
     Iterable,
-    List,
 )
 
 from git_log import (
@@ -99,11 +96,11 @@ class Credits:
     )
 
     def __init__(self) -> None:
-        self.users: Dict[str, CreditUser] = {}
+        self.users: dict[str, CreditUser] = {}
         self.process_commits_count = 0
 
     @classmethod
-    def commit_authors_get(cls, c: GitCommit) -> List[str]:
+    def commit_authors_get(cls, c: GitCommit) -> list[str]:
         if (authors_overwrite := author_override_table.get(c.sha1, None)) is not None:
             # Ignore git commit info for these having an entry in `author_override_table`.
             return [author_table.get(author, author) for author in authors_overwrite]
@@ -208,7 +205,7 @@ class Credits:
             fh: io.TextIOWrapper,
             *,
             is_main_credits: bool = True,
-            contrib_companies: Tuple[str, ...] = (),
+            contrib_companies: tuple[str, ...] = (),
             sort: str = "name",
             use_email: bool = False,
     ) -> None:
@@ -256,7 +253,7 @@ class Credits:
             filepath: str,
             *,
             is_main_credits: bool = True,
-            contrib_companies: Tuple[str, ...] = (),
+            contrib_companies: tuple[str, ...] = (),
             sort: str = "name",
             use_email: bool = False,
     ) -> None:

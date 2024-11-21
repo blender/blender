@@ -33,9 +33,7 @@
 #include "../winged_edge/WEdge.h"
 #include "../winged_edge/WXEdge.h"
 
-#ifdef WITH_CXX_GUARDEDALLOC
-#  include "MEM_guardedalloc.h"
-#endif
+#include "MEM_guardedalloc.h"
 
 namespace Freestyle {
 
@@ -264,9 +262,7 @@ class ViewMapBuilder {
                     Vec3r &edgeDir,
                     vector<WVertex *> &faceVertices);
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:ViewMapBuilder")
-#endif
 };
 
 } /* namespace Freestyle */

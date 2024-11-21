@@ -64,7 +64,7 @@ ccl_device Spectrum bsdf_sheen_eval(ccl_private const ShaderClosure *sc,
     return zero_spectrum();
   }
 
-  float3 localO = make_float3(dot(T, wo), dot(B, wo), dot(N, wo));
+  float3 localO = to_local(wo, T, B, N);
   if (localO.z <= 0.0f) {
     *pdf = 0.0f;
     return zero_spectrum();
@@ -93,7 +93,7 @@ ccl_device int bsdf_sheen_sample(ccl_private const ShaderClosure *sc,
   float diskZ = safe_sqrtf(1.0f - dot(disk, disk));
   float3 localO = normalize(make_float3((disk.x - diskZ * b), disk.y, diskZ * a));
 
-  *wo = localO.x * T + localO.y * B + localO.z * N;
+  *wo = to_global(localO, T, B, N);
 
   if (dot(Ng, *wo) <= 0) {
     *eval = zero_spectrum();

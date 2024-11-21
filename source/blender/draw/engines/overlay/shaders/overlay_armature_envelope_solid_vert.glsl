@@ -2,9 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(select_lib.glsl)
+#include "common_view_clipping_lib.glsl"
+#include "common_view_lib.glsl"
+#include "select_lib.glsl"
 
 void main()
 {
@@ -36,7 +36,7 @@ void main()
   sp = bone_mat * sp.xzy + headSphere.xyz;
   nor = bone_mat * nor.xzy;
 
-  normalView = mat3(drw_view.viewmat) * nor;
+  normalView = to_float3x3(drw_view.viewmat) * nor;
 
   finalStateColor = stateColor;
   finalBoneColor = boneColor;

@@ -20,7 +20,13 @@ Environment Variables:
 
 - ``BLENDER_BIN``: the Blender binary to run.
   (defaults to ``blender`` which must be in the ``PATH``).
-
+- ``USE_WINDOW``: When nonzero:
+  Show the window (not actually headless).
+  Useful for troubleshooting so it's possible to see the contents of the window.
+  Note that using a window causes WAYLAND to define a "seat",
+  where the headless session doesn't define a seat.
+- ``USE_DEBUG``: When nonzero:
+  Run Blender in a debugger.
 
 WAYLAND Environment Variables:
 
@@ -41,25 +47,33 @@ import tempfile
 
 from typing import (
     Any,
-    Dict,
+)
+from collections.abc import (
     Iterator,
-    Optional,
     Sequence,
-    Tuple,
 )
 
 
 # -----------------------------------------------------------------------------
 # Constants
 
-# For debugging, print out all information.
-VERBOSE = False
+def environ_nonzero(var: str) -> bool:
+    return os.environ.get(var, "").lstrip("0") != ""
+
 
 BLENDER_BIN = os.environ.get("BLENDER_BIN", "blender")
+
+# For debugging, print out all information.
+VERBOSE = environ_nonzero("VERBOSE")
+
+# Show the window in the foreground.
+USE_WINDOW = environ_nonzero("USE_WINDOW")
+USE_DEBUG = environ_nonzero("USE_DEBUG")
 
 
 # -----------------------------------------------------------------------------
 # Generic Utilities
+
 
 def scantree(path: str) -> Iterator[os.DirEntry[str]]:
     """Recursively yield DirEntry objects for given directory."""
@@ -108,9 +122,9 @@ class backend_wayland(backend_base):
     @staticmethod
     def _weston_env_and_ini_from_portable(
             *,
-            wayland_root_dir: Optional[str],
-            weston_root_dir: Optional[str],
-    ) -> Tuple[Optional[Dict[str, str]], str]:
+            wayland_root_dir: str | None,
+            weston_root_dir: str | None,
+    ) -> tuple[dict[str, str] | None, str]:
         """
         Construct a portable environment to run WESTON in.
         """
@@ -197,7 +211,7 @@ class backend_wayland(backend_base):
         )
 
     @staticmethod
-    def _weston_env_and_ini_from_system() -> Tuple[Optional[Dict[str, str]], str]:
+    def _weston_env_and_ini_from_system() -> tuple[dict[str, str] | None, str]:
         weston_env = None
         weston_ini = [
             "[shell]",
@@ -212,7 +226,7 @@ class backend_wayland(backend_base):
         )
 
     @staticmethod
-    def _weston_env_and_ini() -> Tuple[Optional[Dict[str, str]], str]:
+    def _weston_env_and_ini() -> tuple[dict[str, str] | None, str]:
         wayland_root_dir = os.environ.get("WAYLAND_ROOT_DIR")
         weston_root_dir = os.environ.get("WESTON_ROOT_DIR")
 
@@ -242,12 +256,12 @@ class backend_wayland(backend_base):
         cmd = [
             weston_bin,
             "--socket={:s}".format(socket),
-            "--backend=headless",
+            *(() if USE_WINDOW else ("--backend=headless",)),
             "--width=800",
             "--height=600",
             # `--config={..}` is added to point to a temp file.
         ]
-        cmd_kw: Dict[str, Any] = {}
+        cmd_kw: dict[str, Any] = {}
         if weston_env is not None:
             cmd_kw["env"] = weston_env
         if not VERBOSE:
@@ -297,6 +311,10 @@ class backend_wayland(backend_base):
                     BLENDER_BIN,
                     *blender_args,
                 ]
+
+                if USE_DEBUG:
+                    cmd = ["gdb", BLENDER_BIN, "--ex=run", "--args", *cmd]
+
                 if VERBOSE:
                     print("Env:", blender_env)
                     print("Run:", cmd)

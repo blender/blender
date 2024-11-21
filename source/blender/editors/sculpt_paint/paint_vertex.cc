@@ -222,7 +222,6 @@ void init_stroke(Depsgraph &depsgraph, Object &ob)
   }
 }
 
-/* Toggle operator for turning vertex paint mode on or off (copied from sculpt.cc) */
 void init_session(
     Main &bmain, Depsgraph &depsgraph, Scene &scene, Object &ob, eObjectMode object_mode)
 {
@@ -327,7 +326,7 @@ void mode_enter_generic(
     const PaintMode paint_mode = PaintMode::Vertex;
     ED_mesh_color_ensure(mesh, nullptr);
 
-    BKE_paint_ensure(&bmain, scene.toolsettings, (Paint **)&scene.toolsettings->vpaint);
+    BKE_paint_ensure(scene.toolsettings, (Paint **)&scene.toolsettings->vpaint);
     Paint *paint = BKE_paint_get_active_from_paintmode(&scene, paint_mode);
     ED_paint_cursor_start(paint, vertex_paint_poll);
     BKE_paint_init(&bmain, &scene, paint_mode, PAINT_CURSOR_VERTEX_PAINT);
@@ -335,7 +334,7 @@ void mode_enter_generic(
   else if (mode_flag == OB_MODE_WEIGHT_PAINT) {
     const PaintMode paint_mode = PaintMode::Weight;
 
-    BKE_paint_ensure(&bmain, scene.toolsettings, (Paint **)&scene.toolsettings->wpaint);
+    BKE_paint_ensure(scene.toolsettings, (Paint **)&scene.toolsettings->wpaint);
     Paint *paint = BKE_paint_get_active_from_paintmode(&scene, paint_mode);
     ED_paint_cursor_start(paint, weight_paint_poll);
     BKE_paint_init(&bmain, &scene, paint_mode, PAINT_CURSOR_WEIGHT_PAINT);
@@ -436,7 +435,6 @@ void smooth_brush_toggle_off(const bContext *C, Paint *paint, StrokeCache *cache
     cache->saved_active_brush = nullptr;
   }
 }
-/* Initialize the stroke cache invariants from operator properties */
 void update_cache_invariants(
     bContext *C, VPaint &vp, SculptSession &ss, wmOperator *op, const float mval[2])
 {
@@ -506,7 +504,6 @@ void update_cache_invariants(
   cache->accum = true;
 }
 
-/* Initialize the stroke cache variants from operator properties */
 void update_cache_variants(bContext *C, VPaint &vp, Object &ob, PointerRNA *ptr)
 {
   using namespace blender;
@@ -577,6 +574,7 @@ void last_stroke_update(Scene &scene, const float location[3])
 }
 
 /* -------------------------------------------------------------------- */
+
 void smooth_brush_toggle_on(const bContext *C, Paint *paint, StrokeCache *cache)
 {
   Main *bmain = CTX_data_main(C);
@@ -584,10 +582,7 @@ void smooth_brush_toggle_on(const bContext *C, Paint *paint, StrokeCache *cache)
   Brush *cur_brush = BKE_paint_brush(paint);
 
   /* Switch to the blur (smooth) brush if possible. */
-  BKE_paint_brush_set_essentials(bmain,
-                                 paint,
-                                 paint->runtime.ob_mode == OB_MODE_WEIGHT_PAINT ? "Blur Weight" :
-                                                                                  "Blur Vertex");
+  BKE_paint_brush_set_essentials(bmain, paint, "Blur");
   Brush *smooth_brush = BKE_paint_brush(paint);
 
   if (!smooth_brush) {
@@ -656,8 +651,8 @@ static ColorPaint4f vpaint_get_current_col(Scene &scene, VPaint &vp, bool second
 {
   const Brush *brush = BKE_paint_brush_for_read(&vp.paint);
   float color[4];
-  const float *brush_color = secondary ? BKE_brush_secondary_color_get(&scene, brush) :
-                                         BKE_brush_color_get(&scene, brush);
+  const float *brush_color = secondary ? BKE_brush_secondary_color_get(&scene, &vp.paint, brush) :
+                                         BKE_brush_color_get(&scene, &vp.paint, brush);
   IMB_colormanagement_srgb_to_scene_linear_v3(color, brush_color);
 
   color[3] = 1.0f; /* alpha isn't used, could even be removed to speedup paint a little */

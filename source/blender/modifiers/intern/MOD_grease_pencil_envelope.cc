@@ -9,6 +9,7 @@
 #include "DNA_defaults.h"
 #include "DNA_modifier_types.h"
 
+#include "BLI_array_utils.hh"
 #include "BLI_math_geom.h"
 
 #include "BKE_curves.hh"
@@ -510,10 +511,12 @@ static void create_envelope_strokes(const EnvelopeInfo &info,
       "cyclic", bke::AttrDomain::Curve, false);
   const VArray<int> src_material_indices = *src_attributes.lookup_or_default(
       "material_index", bke::AttrDomain::Curve, 0);
+  const int src_curves_num = src_curves.curves_num();
+  const int src_points_num = src_curves.points_num();
 
   /* Count envelopes. */
-  Array<int> envelope_curves_by_curve(src_curves.curve_num + 1);
-  Array<int> envelope_points_by_curve(src_curves.curve_num + 1);
+  Array<int> envelope_curves_by_curve(src_curves_num + 1);
+  Array<int> envelope_points_by_curve(src_curves_num + 1);
   curves_mask.foreach_index([&](const int64_t src_curve_i) {
     const IndexRange points = src_curves.points_by_curve()[src_curve_i];
     const int curve_num = curve_envelope_strokes_num(info, points.size(), src_cyclic[src_curve_i]);
@@ -521,12 +524,14 @@ static void create_envelope_strokes(const EnvelopeInfo &info,
     envelope_points_by_curve[src_curve_i] = info.points_per_curve * curve_num;
   });
   /* Ranges by source curve for envelope curves and points. */
+  const int dst_curve_start_offset = keep_original ? src_curves_num : 0;
+  const int dst_points_start_offset = keep_original ? src_points_num : 0;
   const OffsetIndices envelope_curve_offsets = offset_indices::accumulate_counts_to_offsets(
-      envelope_curves_by_curve, keep_original ? src_curves.curve_num : 0);
+      envelope_curves_by_curve, dst_curve_start_offset);
   const OffsetIndices envelope_point_offsets = offset_indices::accumulate_counts_to_offsets(
-      envelope_points_by_curve, keep_original ? src_curves.point_num : 0);
-  const int dst_curve_num = envelope_curve_offsets.total_size();
-  const int dst_point_num = envelope_point_offsets.total_size();
+      envelope_points_by_curve, dst_points_start_offset);
+  const int dst_curve_num = envelope_curve_offsets.total_size() + dst_curve_start_offset;
+  const int dst_point_num = envelope_point_offsets.total_size() + dst_points_start_offset;
   if (dst_curve_num == 0 || dst_point_num == 0) {
     return;
   }
@@ -626,6 +631,8 @@ static void modify_drawing(const GreasePencilEnvelopeModifierData &emd,
 {
   const EnvelopeInfo info = get_envelope_info(emd, ctx);
 
+  modifier::greasepencil::ensure_no_bezier_curves(drawing);
+
   IndexMaskMemory mask_memory;
   const IndexMask curves_mask = modifier::greasepencil::get_filtered_stroke_mask(
       ctx.object, drawing.strokes(), emd.influence, mask_memory);
@@ -696,7 +703,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   }
 
   if (uiLayout *influence_panel = uiLayoutPanelProp(
-          C, layout, ptr, "open_influence_panel", "Influence"))
+          C, layout, ptr, "open_influence_panel", IFACE_("Influence")))
   {
     modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
     modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);

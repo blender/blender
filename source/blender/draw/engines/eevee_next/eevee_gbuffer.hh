@@ -141,7 +141,7 @@ struct GBuffer {
 
     eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE |
                              GPU_TEXTURE_USAGE_ATTACHMENT;
-    header_tx.ensure_2d(GPU_R16UI, extent, usage);
+    header_tx.ensure_2d(GPU_R32UI, extent, usage);
     closure_tx.ensure_2d_array(GPU_RGB10_A2, extent, data_count, usage);
     normal_tx.ensure_2d_array(GPU_RG16, extent, normal_count, usage);
     /* Ensure layer view for frame-buffer attachment. */

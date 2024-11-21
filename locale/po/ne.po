@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'd52d70324d18')\n"
+"Project-Id-Version: Blender 4.3.0 Release Candidate (b'7dfe47164a63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-16 11:03+0000\n"
+"POT-Creation-Date: 2024-11-18 11:20+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Yudhir Khanal <yudhir.khanal@gmail.com>\n"
 "Language-Team: Yudhir\n"
@@ -59,6 +59,10 @@ msgstr "लुकाउ"
 
 msgid "Weight"
 msgstr "भार"
+
+
+msgid "Camera"
+msgstr "क्यामेरा"
 
 
 msgid "Level"
@@ -119,10 +123,6 @@ msgstr "डाल "
 
 msgid "Inverse Kinematics"
 msgstr "बिपरित 'गति-बिज्ञान'"
-
-
-msgid "Camera"
-msgstr "क्यामेरा"
 
 
 msgid "Location"
@@ -346,12 +346,12 @@ msgid "Select"
 msgstr "छान्ने "
 
 
-msgid "Limit"
-msgstr "हद"
-
-
 msgid "Remove"
 msgstr "हटाउने"
+
+
+msgid "Limit"
+msgstr "हद"
 
 
 msgctxt "Operator"

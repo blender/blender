@@ -86,6 +86,9 @@ op_blacklist = (
     "render.cycles_viewport_sampling_preset_add",
     "render.preset_add",
 
+    # Don't manipulate installed extensions.
+    "extensions.*",
+
     # FIXME:
     # Crashes with non-trivial fixes.
     #

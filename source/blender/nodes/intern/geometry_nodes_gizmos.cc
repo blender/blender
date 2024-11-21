@@ -418,7 +418,12 @@ void foreach_active_gizmo(const bContext &C,
   }
   foreach_active_gizmo_in_open_editors(*wm, nullptr, nullptr, compute_context_builder, fn);
 
-  if (const Object *active_object = CTX_data_active_object(&C)) {
+  if (const Base *active_base = CTX_data_active_base(&C)) {
+    if (!(active_base->flag & BASE_SELECTED)) {
+      return;
+    }
+    Object *active_object = active_base->object;
+
     if (const ModifierData *md = BKE_object_active_modifier(active_object)) {
       if (!(md->mode & eModifierMode_Realtime)) {
         return;

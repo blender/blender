@@ -7,6 +7,10 @@
  *
  * SPDX-License-Identifier: MIT AND GPL-2.0-or-later */
 
+#pragma once
+
+#include "gpu_glsl_cpp_stubs.hh"
+
 /**
  *                  _______  ___  ___       ___           ___
  *                 /       ||   \/   |     /   \         /   \
@@ -1359,18 +1363,18 @@ float4 SMAABlendingWeightCalculationPS(float2 texcoord,
     float e2 = SMAASampleLevelZeroOffset(edgesTex, coords.xz, int2(0, 1)).g;
 
     // Get the area for this direction:
-    weights.ba = SMAAArea(SMAATexturePass2D(areaTex), sqrt_d, e1, e2, subsampleIndices.x);
+    weights.zw = SMAAArea(SMAATexturePass2D(areaTex), sqrt_d, e1, e2, subsampleIndices.x);
 
     // Fix corners:
     coords.x = texcoord.x;
 
 #  ifdef GPU_METAL
     /* Partial vector references are unsupported in MSL. */
-    vec2 _weights = weights.ba;
+    vec2 _weights = weights.zw;
     SMAADetectVerticalCornerPattern(SMAATexturePass2D(edgesTex), _weights, coords.xyxz, d);
-    weights.ba = _weights;
+    weights.zw = _weights;
 #  else
-    SMAADetectVerticalCornerPattern(SMAATexturePass2D(edgesTex), weights.ba, coords.xyxz, d);
+    SMAADetectVerticalCornerPattern(SMAATexturePass2D(edgesTex), weights.zw, coords.xyxz, d);
 #  endif
   }
 

@@ -2,7 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(gpu_shader_smaa_lib.glsl)
+#include "infos/workbench_effect_antialiasing_info.hh"
+
+/* Adjust according to SMAA_STAGE for C++ compilation. */
+FRAGMENT_SHADER_CREATE_INFO(workbench_smaa_stage_1)
+
+#include "gpu_shader_smaa_lib.glsl"
 
 void main()
 {

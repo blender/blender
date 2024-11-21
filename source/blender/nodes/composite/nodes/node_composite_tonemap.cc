@@ -109,6 +109,16 @@ class ToneMapOperation : public NodeOperation {
    * interactive techniques. 2002. */
   void execute_simple()
   {
+    if (this->context().use_gpu()) {
+      execute_simple_gpu();
+    }
+    else {
+      execute_simple_cpu();
+    }
+  }
+
+  void execute_simple_gpu()
+  {
     const float luminance_scale = compute_luminance_scale();
     const float luminance_scale_blend_factor = compute_luminance_scale_blend_factor();
     const float gamma = node_storage(bnode()).gamma;
@@ -134,6 +144,38 @@ class ToneMapOperation : public NodeOperation {
     GPU_shader_unbind();
     output_image.unbind_as_image();
     input_image.unbind_as_texture();
+  }
+
+  void execute_simple_cpu()
+  {
+    const float luminance_scale = compute_luminance_scale();
+    const float luminance_scale_blend_factor = compute_luminance_scale_blend_factor();
+    const float gamma = node_storage(bnode()).gamma;
+    const float inverse_gamma = gamma != 0.0f ? 1.0f / gamma : 0.0f;
+
+    const Result &image = get_input("Image");
+
+    const Domain domain = compute_domain();
+    Result &output = get_result("Image");
+    output.allocate_texture(domain);
+
+    parallel_for(domain.size, [&](const int2 texel) {
+      float4 input_color = image.load_pixel(texel);
+
+      /* Equation (2) from Reinhard's 2002 paper. */
+      float4 scaled_color = input_color * luminance_scale;
+
+      /* Equation (3) from Reinhard's 2002 paper, but with the 1 replaced with the blend factor for
+       * more flexibility. See ToneMapOperation::compute_luminance_scale_blend_factor. */
+      float4 denominator = luminance_scale_blend_factor + scaled_color;
+      float4 tone_mapped_color = math::safe_divide(scaled_color, denominator);
+
+      if (inverse_gamma != 0.0f) {
+        tone_mapped_color = math::pow(math::max(tone_mapped_color, float4(0.0f)), inverse_gamma);
+      }
+
+      output.store_pixel(texel, float4(tone_mapped_color.xyz(), input_color.w));
+    });
   }
 
   /* Computes the scaling factor in equation (2) from Reinhard's 2002 paper. */
@@ -169,6 +211,16 @@ class ToneMapOperation : public NodeOperation {
    * physiology." IEEE transactions on visualization and computer graphics 11.1 (2005): 13-24. */
   void execute_photoreceptor()
   {
+    if (this->context().use_gpu()) {
+      execute_photoreceptor_gpu();
+    }
+    else {
+      execute_photoreceptor_cpu();
+    }
+  }
+
+  void execute_photoreceptor_gpu()
+  {
     const float4 global_adaptation_level = compute_global_adaptation_level();
     const float contrast = compute_contrast();
     const float intensity = compute_intensity();
@@ -201,6 +253,41 @@ class ToneMapOperation : public NodeOperation {
     GPU_shader_unbind();
     output_image.unbind_as_image();
     input_image.unbind_as_texture();
+  }
+
+  void execute_photoreceptor_cpu()
+  {
+    const float4 global_adaptation_level = compute_global_adaptation_level();
+    const float contrast = compute_contrast();
+    const float intensity = compute_intensity();
+    const float chromatic_adaptation = get_chromatic_adaptation();
+    const float light_adaptation = get_light_adaptation();
+
+    float3 luminance_coefficients;
+    IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
+
+    const Result &input = get_input("Image");
+
+    const Domain domain = compute_domain();
+    Result &output = get_result("Image");
+    output.allocate_texture(domain);
+
+    parallel_for(domain.size, [&](const int2 texel) {
+      float4 input_color = input.load_pixel(texel);
+      float input_luminance = math::dot(input_color.xyz(), luminance_coefficients);
+
+      /* Trilinear interpolation between equations (6) and (7) from Reinhard's 2005 paper. */
+      float4 local_adaptation_level = math::interpolate(
+          float4(input_luminance), input_color, chromatic_adaptation);
+      float4 adaptation_level = math::interpolate(
+          global_adaptation_level, local_adaptation_level, light_adaptation);
+
+      /* Equation (1) from Reinhard's 2005 paper, assuming Vmax is 1. */
+      float4 semi_saturation = math::pow(intensity * adaptation_level, contrast);
+      float4 tone_mapped_color = input_color / (input_color + semi_saturation);
+
+      output.store_pixel(texel, float4(tone_mapped_color.xyz(), input_color.w));
+    });
   }
 
   /* Computes the global adaptation level from the trilinear interpolation equations constructed

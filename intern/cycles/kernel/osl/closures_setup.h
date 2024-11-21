@@ -1086,4 +1086,62 @@ ccl_device void osl_closure_henyey_greenstein_setup(
   sd->flag |= volume_henyey_greenstein_setup(volume);
 }
 
+ccl_device void osl_closure_fournier_forand_setup(
+    KernelGlobals kg,
+    ccl_private ShaderData *sd,
+    uint32_t path_flag,
+    float3 weight,
+    ccl_private const VolumeFournierForandClosure *closure,
+    float3 *layer_albedo)
+{
+  volume_extinction_setup(sd, rgb_to_spectrum(weight));
+
+  ccl_private FournierForandVolume *volume = (ccl_private FournierForandVolume *)bsdf_alloc(
+      sd, sizeof(FournierForandVolume), rgb_to_spectrum(weight));
+  if (!volume) {
+    return;
+  }
+
+  sd->flag |= volume_fournier_forand_setup(volume, closure->B, closure->IOR);
+}
+
+ccl_device void osl_closure_draine_setup(KernelGlobals kg,
+                                         ccl_private ShaderData *sd,
+                                         uint32_t path_flag,
+                                         float3 weight,
+                                         ccl_private const VolumeDraineClosure *closure,
+                                         float3 *layer_albedo)
+{
+  volume_extinction_setup(sd, rgb_to_spectrum(weight));
+
+  ccl_private DraineVolume *volume = (ccl_private DraineVolume *)bsdf_alloc(
+      sd, sizeof(DraineVolume), rgb_to_spectrum(weight));
+  if (!volume) {
+    return;
+  }
+
+  volume->g = closure->g;
+  volume->alpha = closure->alpha;
+
+  sd->flag |= volume_draine_setup(volume);
+}
+
+ccl_device void osl_closure_rayleigh_setup(KernelGlobals kg,
+                                           ccl_private ShaderData *sd,
+                                           uint32_t path_flag,
+                                           float3 weight,
+                                           ccl_private const VolumeRayleighClosure *closure,
+                                           float3 *layer_albedo)
+{
+  volume_extinction_setup(sd, rgb_to_spectrum(weight));
+
+  ccl_private RayleighVolume *volume = (ccl_private RayleighVolume *)bsdf_alloc(
+      sd, sizeof(RayleighVolume), rgb_to_spectrum(weight));
+  if (!volume) {
+    return;
+  }
+
+  sd->flag |= volume_rayleigh_setup(volume);
+}
+
 CCL_NAMESPACE_END

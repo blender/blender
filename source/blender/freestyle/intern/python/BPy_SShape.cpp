@@ -232,7 +232,7 @@ PyDoc_STRVAR(
     SShape_vertices_doc,
     "The list of vertices constituting this SShape.\n"
     "\n"
-    ":type: List of :class:`SVertex` objects");
+    ":type: List of :class:`SVertex`");
 
 static PyObject *SShape_vertices_get(BPy_SShape *self, void * /*closure*/)
 {
@@ -254,7 +254,7 @@ PyDoc_STRVAR(
     SShape_edges_doc,
     "The list of edges constituting this SShape.\n"
     "\n"
-    ":type: List of :class:`FEdge` objects");
+    ":type: List of :class:`FEdge`");
 
 static PyObject *SShape_edges_get(BPy_SShape *self, void * /*closure*/)
 {

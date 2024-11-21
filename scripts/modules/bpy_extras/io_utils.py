@@ -331,11 +331,11 @@ def axis_conversion_ensure(operator, forward_attr, up_attr):
     :arg operator: the operator to access axis attributes from.
     :type operator: :class:`bpy.types.Operator`
     :arg forward_attr: attribute storing the forward axis
-    :type forward_attr: string
+    :type forward_attr: str
     :arg up_attr: attribute storing the up axis
-    :type up_attr: string
+    :type up_attr: str
     :return: True if the value was modified.
-    :rtype: boolean
+    :rtype: bool
     """
     def validate(axis_forward, axis_up):
         if axis_forward[-1] == axis_up[-1]:
@@ -362,10 +362,10 @@ def create_derived_objects(depsgraph, objects):
     :arg depsgraph: The evaluated depsgraph.
     :type depsgraph: :class:`bpy.types.Depsgraph`
     :arg objects: A sequencer of objects.
-    :type objects: sequence of :class:`bpy.types.Object`
-    :return: A dictionary where each key is an object from `objects`,
-       values are lists of (:class:`bpy.types.Object`, :class:`mathutils.Matrix`) tuples representing instances.
-    :rtype: dict
+    :type objects: Sequence[:class:`bpy.types.Object`]
+    :return: A dictionary where each key is an object from ``objects``,
+       values are lists of (object, matrix) tuples representing instances.
+    :rtype: dict[:class:`bpy.types.Object`, list[tuple[:class:`bpy.types.Object`, :class:`mathutils.Matrix`]]]
     """
     result = {}
     for ob in objects:
@@ -463,25 +463,25 @@ def path_reference(
 
     :arg filepath: the file path to return,
        supporting blenders relative '//' prefix.
-    :type filepath: string
+    :type filepath: str
     :arg base_src: the directory the *filepath* is relative too
        (normally the blend file).
-    :type base_src: string
+    :type base_src: str
     :arg base_dst: the directory the *filepath* will be referenced from
        (normally the export path).
-    :type base_dst: string
+    :type base_dst: str
     :arg mode: the method used get the path in
        ['AUTO', 'ABSOLUTE', 'RELATIVE', 'MATCH', 'STRIP', 'COPY']
-    :type mode: string
+    :type mode: str
     :arg copy_subdir: the subdirectory of *base_dst* to use when mode='COPY'.
-    :type copy_subdir: string
+    :type copy_subdir: str
     :arg copy_set: collect from/to pairs when mode='COPY',
        pass to *path_reference_copy* when exporting is done.
-    :type copy_set: set
+    :type copy_set: set[tuple[str, str]]
     :arg library: The library this path is relative to.
-    :type library: :class:`bpy.types.Library` or None
+    :type library: :class:`bpy.types.Library` | None
     :return: the new filepath.
-    :rtype: string
+    :rtype: str
     """
     import os
     is_relative = filepath.startswith("//")
@@ -528,9 +528,9 @@ def path_reference_copy(copy_set, report=print):
     Execute copying files of path_reference
 
     :arg copy_set: set of (from, to) pairs to copy.
-    :type copy_set: set
+    :type copy_set: set[tuple[str, str]]
     :arg report: function used for reporting warnings, takes a string argument.
-    :type report: function
+    :type report: Callable[[str], None]
     """
     if not copy_set:
         return
@@ -548,13 +548,13 @@ def path_reference_copy(copy_set, report=print):
 
             try:
                 os.makedirs(dir_to, exist_ok=True)
-            except:
+            except Exception:
                 import traceback
                 traceback.print_exc()
 
             try:
                 shutil.copy(file_src, file_dst)
-            except:
+            except Exception:
                 import traceback
                 traceback.print_exc()
 
@@ -564,12 +564,13 @@ def unique_name(key, name, name_dict, name_max=-1, clean_func=None, sep="."):
     Helper function for storing unique names which may have special characters
     stripped and restricted to a maximum length.
 
-    :arg key: unique item this name belongs to, name_dict[key] will be reused
+    :arg key: Unique item this name belongs to, name_dict[key] will be reused
        when available.
        This can be the object, mesh, material, etc instance itself.
-    :type key: any hashable object associated with the *name*.
+       Any hashable object associated with the *name*.
+    :type key: Any
     :arg name: The name used to create a unique value in *name_dict*.
-    :type name: string
+    :type name: str
     :arg name_dict: This is used to cache namespace to ensure no collisions
        occur, this should be an empty dict initially and only modified by this
        function.
@@ -578,7 +579,7 @@ def unique_name(key, name, name_dict, name_max=-1, clean_func=None, sep="."):
     :type clean_func: function
     :arg sep: Separator to use when between the name and a number when a
        duplicate name is found.
-    :type sep: string
+    :type sep: str
     """
     name_new = name_dict.get(key)
     if name_new is None:

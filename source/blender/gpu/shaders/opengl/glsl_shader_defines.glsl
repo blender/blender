@@ -6,6 +6,26 @@
 /** IMPORTANT: Be wary of size and alignment matching for types that are present
  * in C++ shared code. */
 
+/* Matrix reshaping functions. Needs to be declared before matrix type aliases. */
+#define RESHAPE(name, mat_to, mat_from) \
+  mat_to to_##name(mat_from m) \
+  { \
+    return mat_to(m); \
+  }
+
+/* clang-format off */
+RESHAPE(float2x2, mat2x2, mat3x3)
+RESHAPE(float2x2, mat2x2, mat4x4)
+RESHAPE(float3x3, mat3x3, mat4x4)
+RESHAPE(float3x3, mat3x3, mat2x2)
+RESHAPE(float4x4, mat4x4, mat2x2)
+RESHAPE(float4x4, mat4x4, mat3x3)
+/* clang-format on */
+/* TODO(fclem): Remove. Use Transform instead. */
+RESHAPE(float3x3, mat3x3, mat3x4)
+
+#undef RESHAPE
+
 /* Boolean in GLSL are 32bit in interface structs. */
 #define bool32_t bool
 #define bool2 bvec2
@@ -22,9 +42,15 @@
 #define uint3 uvec3
 #define uint4 uvec4
 /* GLSL already follows the packed alignment / size rules for vec3. */
+#define packed_float2 float2
+#define packed_int2 int2
+#define packed_uint2 uint2
 #define packed_float3 float3
 #define packed_int3 int3
 #define packed_uint3 uint3
+#define packed_float4 float4
+#define packed_int4 int4
+#define packed_uint4 uint4
 
 #define float2x2 mat2x2
 #define float3x2 mat3x2
@@ -103,3 +129,42 @@ bool is_zero(vec4 A)
 {
   return all(equal(A, vec4(0.0)));
 }
+
+/* Array syntax compatibility. */
+#define float_array float[]
+#define float2_array vec2[]
+#define float3_array vec3[]
+#define float4_array vec4[]
+#define int_array int[]
+#define int2_array int2[]
+#define int3_array int3[]
+#define int4_array int4[]
+#define uint_array uint[]
+#define uint2_array uint2[]
+#define uint3_array uint3[]
+#define uint4_array uint4[]
+#define bool_array bool[]
+#define bool2_array bool2[]
+#define bool3_array bool3[]
+#define bool4_array bool4[]
+#define ARRAY_T(type) type[]
+#define ARRAY_V
+
+#define SHADER_LIBRARY_CREATE_INFO(a)
+#define VERTEX_SHADER_CREATE_INFO(a)
+#define FRAGMENT_SHADER_CREATE_INFO(a)
+#define COMPUTE_SHADER_CREATE_INFO(a)
+
+#define _in_sta
+#define _in_end
+#define _out_sta
+#define _out_end
+#define _inout_sta
+#define _inout_end
+#define _shared_sta
+#define _shared_end
+
+#define _enum_dummy /* Needed to please `glslang`. */
+#define _enum_type(name) uint
+#define _enum_decl(name) const uint
+#define _enum_end _enum_dummy;

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'd52d70324d18')\n"
+"Project-Id-Version: Blender 4.3.0 Release Candidate (b'7dfe47164a63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-16 11:03+0000\n"
+"POT-Creation-Date: 2024-11-18 11:20+0000\n"
 "PO-Revision-Date: 2024-04-29 13:54+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Basque <https://translate.blender.org/projects/blender-ui/ui/eu/>\n"
@@ -167,6 +167,10 @@ msgid "Expanded"
 msgstr "Hedatua"
 
 
+msgid "Action"
+msgstr "Akzioa"
+
+
 msgid "Replace"
 msgstr "Ordezkatu"
 
@@ -177,14 +181,6 @@ msgstr "Gehitu"
 
 msgid "Multiply"
 msgstr "Biderkatu"
-
-
-msgid "Active"
-msgstr "Aktibo"
-
-
-msgid "Action"
-msgstr "Akzioa"
 
 
 msgid "Heads"
@@ -283,6 +279,38 @@ msgid "Weight"
 msgstr "Pisua"
 
 
+msgid "Armature"
+msgstr "Eskeletoa"
+
+
+msgid "Camera"
+msgstr "Kamera"
+
+
+msgid "Curve"
+msgstr "Kurba"
+
+
+msgid "Material"
+msgstr "Materiala"
+
+
+msgid "Sound"
+msgstr "Soinua"
+
+
+msgid "Speaker"
+msgstr "Bozgorailua"
+
+
+msgid "Text"
+msgstr "Testua"
+
+
+msgid "World"
+msgstr "Mundua"
+
+
 msgid "Distance"
 msgstr "Distantzia"
 
@@ -299,8 +327,8 @@ msgid "Parent"
 msgstr "Gurasoa"
 
 
-msgid "Material"
-msgstr "Materiala"
+msgid "Active"
+msgstr "Aktibo"
 
 
 msgid "Direction"
@@ -313,10 +341,6 @@ msgstr "Normala"
 
 msgid "Stroke"
 msgstr "Trazua"
-
-
-msgid "Curve"
-msgstr "Kurba"
 
 
 msgid "Look"
@@ -335,20 +359,12 @@ msgid "Disable"
 msgstr "Desgaitu"
 
 
-msgid "Armature"
-msgstr "Eskeletoa"
-
-
 msgid "Z"
 msgstr "Z"
 
 
 msgid "Default"
 msgstr "Lehenetsia"
-
-
-msgid "Camera"
-msgstr "Kamera"
 
 
 msgid "Bone"
@@ -433,22 +449,6 @@ msgstr "Leihoa"
 
 msgid "Tools"
 msgstr "Tresnak"
-
-
-msgid "Sound"
-msgstr "Soinua"
-
-
-msgid "Speaker"
-msgstr "Bozgorailua"
-
-
-msgid "Text"
-msgstr "Testua"
-
-
-msgid "World"
-msgstr "Mundua"
 
 
 msgid "Groups"
@@ -569,12 +569,12 @@ msgid "Sphere"
 msgstr "Esfera"
 
 
-msgid "Show/Hide"
-msgstr "Erakutsi/Ezkutatu"
-
-
 msgid "Relations"
 msgstr "Loturak"
+
+
+msgid "Show/Hide"
+msgstr "Erakutsi/Ezkutatu"
 
 
 msgid "UV"
@@ -1301,25 +1301,9 @@ msgid "Eraser"
 msgstr "Borragoma"
 
 
-msgid "Timing Mode"
-msgstr "Egokitzapen modua"
-
-
-msgid "No Timing"
-msgstr "Egokitzapenik ez"
-
-
-msgid "Ignore timing"
-msgstr "Egokitzapena baztertu"
-
-
-msgid "Normalize Weight"
-msgstr "Altuera normalizatu"
-
-
 msgctxt "Operator"
-msgid "Dissolve"
-msgstr "Desegin"
+msgid "Set Cursor"
+msgstr "Kurtsorea finkatu"
 
 
 msgctxt "Operator"
@@ -1332,6 +1316,21 @@ msgstr "Limitea"
 
 
 msgctxt "Operator"
+msgid "Dissolve"
+msgstr "Desegin"
+
+
+msgctxt "Operator"
+msgid "Add New Layer"
+msgstr "Geruza berri bat gehitu"
+
+
+msgctxt "Operator"
+msgid "Duplicate Layer"
+msgstr "Geruza bikoiztu"
+
+
+msgctxt "Operator"
 msgid "Hide Layer(s)"
 msgstr "Geruzak ezkutatu"
 
@@ -1341,23 +1340,8 @@ msgstr "Aukeratu gabeko geruzak ezkutatu, aukeratutakoak baino"
 
 
 msgctxt "Operator"
-msgid "Add New Layer"
-msgstr "Geruza berri bat gehitu"
-
-
-msgctxt "Operator"
-msgid "Change Layer"
-msgstr "Geruza aldatu"
-
-
-msgctxt "Operator"
-msgid "Duplicate Layer"
-msgstr "Geruza bikoiztu"
-
-
-msgctxt "Operator"
-msgid "Isolate Layer"
-msgstr "Geruza baztertu"
+msgid "Lock All Layers"
+msgstr "Geruza guztiak itxi"
 
 
 msgctxt "Operator"
@@ -1366,32 +1350,8 @@ msgstr "Geruza ezabatu"
 
 
 msgctxt "Operator"
-msgid "Lock All Layers"
-msgstr "Geruza guztiak itxi"
-
-
-msgctxt "Operator"
-msgid "Move Strokes to Layer"
-msgstr "Trazuak geruzara mugitu"
-
-
-msgctxt "Operator"
 msgid "Paste Strokes"
 msgstr "Trazuak itsatsi"
-
-
-msgctxt "Operator"
-msgid "Rotate"
-msgstr "Biratu"
-
-
-msgctxt "Operator"
-msgid "Scale"
-msgstr "Eskalatu"
-
-
-msgid "Mouse location"
-msgstr "Arratoiaren lokalizazioa"
 
 
 msgctxt "Operator"
@@ -1399,18 +1359,20 @@ msgid "(De)select All Strokes"
 msgstr "(Ez)hautatu trazu guztiak"
 
 
-msgid "Shared layers"
-msgstr "Geruza partekatuak"
+msgid "X End"
+msgstr "X Bukaera"
 
 
-msgctxt "Operator"
-msgid "Unlock All Layers"
-msgstr "Geruza guztiak ireki"
+msgid "X Start"
+msgstr "X Hasiera"
 
 
-msgctxt "Operator"
-msgid "Set Cursor"
-msgstr "Kurtsorea finkatu"
+msgid "Y End"
+msgstr "Y Bukaera"
+
+
+msgid "Y Start"
+msgstr "Y Hasiera"
 
 
 msgid "Black Point"
@@ -1456,22 +1418,6 @@ msgid "Open image"
 msgstr "Irudia ireki"
 
 
-msgid "X End"
-msgstr "X Bukaera"
-
-
-msgid "X Start"
-msgstr "X Hasiera"
-
-
-msgid "Y End"
-msgstr "Y Bukaera"
-
-
-msgid "Y Start"
-msgstr "Y Hasiera"
-
-
 msgctxt "Operator"
 msgid "Save Image"
 msgstr "Irudia Gorde"
@@ -1513,6 +1459,10 @@ msgstr "Bikoiztu Estekatua"
 msgctxt "Operator"
 msgid "Hide"
 msgstr "Ezkutatu"
+
+
+msgid "Mouse location"
+msgstr "Arratoiaren lokalizazioa"
 
 
 msgctxt "Operator"
@@ -1621,6 +1571,11 @@ msgid "Save Screenshot"
 msgstr "Pantaila-irudia Gorde"
 
 
+msgctxt "Operator"
+msgid "Scale"
+msgstr "Eskalatu"
+
+
 msgctxt "Sequence"
 msgid "Type"
 msgstr "Mota"
@@ -1653,6 +1608,11 @@ msgstr "Testua"
 
 msgid "Property"
 msgstr "Ezaugarria"
+
+
+msgctxt "Operator"
+msgid "Rotate"
+msgstr "Biratu"
 
 
 msgid "Delta X"
@@ -1824,11 +1784,6 @@ msgstr "AEL (Animazio Ez-Lineala) Editorea"
 
 
 msgctxt "WindowManager"
-msgid "Timeline"
-msgstr "Denbora-lerroa"
-
-
-msgctxt "WindowManager"
 msgid "Outliner"
 msgstr "Laburpena"
 
@@ -1896,10 +1851,6 @@ msgstr "Baxua"
 
 msgid "Upper"
 msgstr "Altua"
-
-
-msgid "Refraction"
-msgstr "Errefrakzioa"
 
 
 msgctxt "Operator"

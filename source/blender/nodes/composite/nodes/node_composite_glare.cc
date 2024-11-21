@@ -127,6 +127,17 @@ class GlareOperation : public NodeOperation {
 
   void execute() override
   {
+    /* Not yet supported on CPU. */
+    if (!context().use_gpu()) {
+      for (const bNodeSocket *output : this->node()->output_sockets()) {
+        Result &output_result = get_result(output->identifier);
+        if (output_result.should_compute()) {
+          output_result.allocate_invalid();
+        }
+      }
+      return;
+    }
+
     if (is_identity()) {
       get_input("Image").pass_through(get_result("Image"));
       return;
@@ -873,7 +884,7 @@ class GlareOperation : public NodeOperation {
 
     /* We only process the color channels, the alpha channel is written to the output as is. */
     const int channels_count = 3;
-    const float image_channels_count = 4;
+    const int image_channels_count = 4;
     const int64_t spatial_pixels_per_channel = int64_t(spatial_size.x) * spatial_size.y;
     const int64_t frequency_pixels_per_channel = int64_t(frequency_size.x) * frequency_size.y;
     const int64_t spatial_pixels_count = spatial_pixels_per_channel * channels_count;

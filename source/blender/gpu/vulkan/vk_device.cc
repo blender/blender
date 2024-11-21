@@ -11,7 +11,6 @@
 #include "vk_backend.hh"
 #include "vk_context.hh"
 #include "vk_device.hh"
-#include "vk_memory.hh"
 #include "vk_state_manager.hh"
 #include "vk_storage_buffer.hh"
 #include "vk_texture.hh"
@@ -75,12 +74,15 @@ bool VKDevice::is_initialized() const
 void VKDevice::init(void *ghost_context)
 {
   BLI_assert(!is_initialized());
+  void *queue_mutex = nullptr;
   GHOST_GetVulkanHandles((GHOST_ContextHandle)ghost_context,
                          &vk_instance_,
                          &vk_physical_device_,
                          &vk_device_,
                          &vk_queue_family_,
-                         &vk_queue_);
+                         &vk_queue_,
+                         &queue_mutex);
+  queue_mutex_ = static_cast<std::mutex *>(queue_mutex);
 
   init_physical_device_properties();
   init_physical_device_memory_properties();
@@ -182,13 +184,11 @@ bool VKDevice::supports_extension(const char *extension_name) const
 
 void VKDevice::init_memory_allocator()
 {
-  VK_ALLOCATION_CALLBACKS;
   VmaAllocatorCreateInfo info = {};
   info.vulkanApiVersion = VK_API_VERSION_1_2;
   info.physicalDevice = vk_physical_device_;
   info.device = vk_device_;
   info.instance = vk_instance_;
-  info.pAllocationCallbacks = vk_allocation_callbacks;
   vmaCreateAllocator(&info, &mem_allocator_);
 }
 
@@ -236,9 +236,6 @@ void VKDevice::init_glsl_patch()
     ss << "#define gpu_BaryCoordNoPersp gl_BaryCoordNoPerspEXT\n";
   }
 
-  ss << "#define DFDX_SIGN 1.0\n";
-  ss << "#define DFDY_SIGN 1.0\n";
-
   /* GLSL Backend Lib. */
   ss << datatoc_glsl_shader_defines_glsl;
   glsl_patch_ = ss.str();
@@ -262,24 +259,31 @@ constexpr int32_t PCI_ID_APPLE = 0x106b;
 
 eGPUDeviceType VKDevice::device_type() const
 {
-  /* According to the vulkan specifications:
-   *
-   * If the vendor has a PCI vendor ID, the low 16 bits of vendorID must contain that PCI vendor
-   * ID, and the remaining bits must be set to zero. Otherwise, the value returned must be a valid
-   * Khronos vendor ID.
-   */
-  switch (vk_physical_device_properties_.vendorID) {
-    case PCI_ID_NVIDIA:
-      return GPU_DEVICE_NVIDIA;
-    case PCI_ID_INTEL:
-      return GPU_DEVICE_INTEL;
-    case PCI_ID_AMD:
-    case PCI_ID_ATI:
+  switch (vk_physical_device_driver_properties_.driverID) {
+    case VK_DRIVER_ID_AMD_PROPRIETARY:
+    case VK_DRIVER_ID_AMD_OPEN_SOURCE:
+    case VK_DRIVER_ID_MESA_RADV:
       return GPU_DEVICE_ATI;
-    case PCI_ID_APPLE:
+
+    case VK_DRIVER_ID_NVIDIA_PROPRIETARY:
+    case VK_DRIVER_ID_MESA_NVK:
+      return GPU_DEVICE_NVIDIA;
+
+    case VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS:
+    case VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA:
+      return GPU_DEVICE_INTEL;
+
+    case VK_DRIVER_ID_QUALCOMM_PROPRIETARY:
+      return GPU_DEVICE_QUALCOMM;
+
+    case VK_DRIVER_ID_MOLTENVK:
       return GPU_DEVICE_APPLE;
+
+    case VK_DRIVER_ID_MESA_LLVMPIPE:
+      return GPU_DEVICE_SOFTWARE;
+
     default:
-      break;
+      return GPU_DEVICE_UNKNOWN;
   }
 
   return GPU_DEVICE_UNKNOWN;
@@ -287,8 +291,27 @@ eGPUDeviceType VKDevice::device_type() const
 
 eGPUDriverType VKDevice::driver_type() const
 {
-  /* It is unclear how to determine the driver type, but it is required to extract the correct
-   * driver version. */
+  switch (vk_physical_device_driver_properties_.driverID) {
+    case VK_DRIVER_ID_AMD_PROPRIETARY:
+    case VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS:
+    case VK_DRIVER_ID_NVIDIA_PROPRIETARY:
+    case VK_DRIVER_ID_QUALCOMM_PROPRIETARY:
+      return GPU_DRIVER_OFFICIAL;
+
+    case VK_DRIVER_ID_MOLTENVK:
+    case VK_DRIVER_ID_AMD_OPEN_SOURCE:
+    case VK_DRIVER_ID_MESA_RADV:
+    case VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA:
+    case VK_DRIVER_ID_MESA_NVK:
+      return GPU_DRIVER_OPENSOURCE;
+
+    case VK_DRIVER_ID_MESA_LLVMPIPE:
+      return GPU_DRIVER_SOFTWARE;
+
+    default:
+      return GPU_DRIVER_ANY;
+  }
+
   return GPU_DRIVER_ANY;
 }
 
@@ -298,6 +321,7 @@ std::string VKDevice::vendor_name() const
   if (vk_physical_device_properties_.vendorID < 0x10000) {
     switch (vk_physical_device_properties_.vendorID) {
       case PCI_ID_AMD:
+      case PCI_ID_ATI:
         return "Advanced Micro Devices";
       case PCI_ID_NVIDIA:
         return "NVIDIA Corporation";
@@ -330,11 +354,7 @@ std::string VKDevice::driver_version() const
 /** \name VKThreadData
  * \{ */
 
-VKThreadData::VKThreadData(VKDevice &device,
-                           pthread_t thread_id,
-                           std::unique_ptr<render_graph::VKCommandBufferInterface> command_buffer,
-                           render_graph::VKResourceStateTracker &resources)
-    : thread_id(thread_id), render_graph(std::move(command_buffer), resources)
+VKThreadData::VKThreadData(VKDevice &device, pthread_t thread_id) : thread_id(thread_id)
 {
   for (VKResourcePool &resource_pool : resource_pools) {
     resource_pool.init(device);
@@ -365,11 +385,7 @@ VKThreadData &VKDevice::current_thread_data()
     }
   }
 
-  VKThreadData *thread_data = new VKThreadData(
-      *this,
-      current_thread_id,
-      std::make_unique<render_graph::VKCommandBufferWrapper>(),
-      resources);
+  VKThreadData *thread_data = new VKThreadData(*this, current_thread_id);
   thread_data_.append(thread_data);
   return *thread_data;
 }
@@ -378,9 +394,11 @@ VKDiscardPool &VKDevice::discard_pool_for_current_thread()
 {
   std::scoped_lock mutex(resources.mutex);
   pthread_t current_thread_id = pthread_self();
-  for (VKThreadData *thread_data : thread_data_) {
-    if (pthread_equal(thread_data->thread_id, current_thread_id)) {
-      return thread_data->resource_pool_get().discard_pool;
+  if (BLI_thread_is_main()) {
+    for (VKThreadData *thread_data : thread_data_) {
+      if (pthread_equal(thread_data->thread_id, current_thread_id)) {
+        return thread_data->resource_pool_get().discard_pool;
+      }
     }
   }
 
@@ -390,19 +408,11 @@ VKDiscardPool &VKDevice::discard_pool_for_current_thread()
 void VKDevice::context_register(VKContext &context)
 {
   contexts_.append(std::reference_wrapper(context));
-  current_thread_data().num_contexts += 1;
 }
 
 void VKDevice::context_unregister(VKContext &context)
 {
   contexts_.remove(contexts_.first_index_of(std::reference_wrapper(context)));
-
-  auto &thread_data = current_thread_data();
-  thread_data.num_contexts -= 1;
-  BLI_assert(thread_data.num_contexts >= 0);
-  if (thread_data.num_contexts == 0) {
-    discard_pool_for_current_thread().destroy_discarded_resources(*this);
-  }
 }
 Span<std::reference_wrapper<VKContext>> VKDevice::contexts_get() const
 {
@@ -485,7 +495,6 @@ void VKDevice::debug_print()
     const bool is_main = pthread_equal(thread_data->thread_id, pthread_self());
     os << "ThreadData" << (is_main ? " (main-thread)" : "") << ")\n";
     os << " Rendering_depth: " << thread_data->rendering_depth << "\n";
-    os << " Number of contexts: " << thread_data->num_contexts << "\n";
     for (int resource_pool_index : IndexRange(thread_data->resource_pools.size())) {
       const VKResourcePool &resource_pool = thread_data->resource_pools[resource_pool_index];
       const bool is_active = thread_data->resource_pool_index == resource_pool_index;

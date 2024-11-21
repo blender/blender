@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
+#include "draw_object_infos_info.hh"
+
 /**
  * Library to create hairs dynamically from control points.
  * This is less bandwidth intensive than fetching the vertex attributes
@@ -73,31 +77,35 @@ uniform usamplerBuffer hairStrandSegBuffer; /* R16UI */
  * If no more subdivision is needed, we can skip this step.
  */
 
+float hair_get_local_time()
+{
 #  ifdef GPU_VERTEX_SHADER
-float hair_get_local_time()
-{
+  VERTEX_SHADER_CREATE_INFO(draw_hair_new)
   return float(gl_VertexID % hairStrandsRes) / float(hairStrandsRes - 1);
-}
-
-int hair_get_id()
-{
-  return gl_VertexID / hairStrandsRes;
-}
-#  endif
-
-#  ifdef GPU_COMPUTE_SHADER
-float hair_get_local_time()
-{
+#  elif defined(GPU_COMPUTE_SHADER)
+  COMPUTE_SHADER_CREATE_INFO(draw_hair_refine_compute)
   return float(gl_GlobalInvocationID.y) / float(hairStrandsRes - 1);
+#  else
+  return 0;
+#  endif
 }
 
 int hair_get_id()
 {
+#  ifdef GPU_VERTEX_SHADER
+  VERTEX_SHADER_CREATE_INFO(draw_hair_new)
+  return gl_VertexID / hairStrandsRes;
+#  elif defined(GPU_COMPUTE_SHADER)
+  COMPUTE_SHADER_CREATE_INFO(draw_hair_refine_compute)
   return int(gl_GlobalInvocationID.x) + hairStrandOffset;
-}
+#  else
+  return 0;
 #  endif
+}
 
 #  ifdef HAIR_PHASE_SUBDIV
+COMPUTE_SHADER_CREATE_INFO(draw_hair_refine_compute)
+
 int hair_get_base_id(float local_time, int strand_segments, out float interp_time)
 {
   float time_per_strand_seg = 1.0 / float(strand_segments);
@@ -143,13 +151,14 @@ void hair_get_interp_attrs(
  */
 
 #  if !defined(HAIR_PHASE_SUBDIV) && defined(GPU_VERTEX_SHADER)
+VERTEX_SHADER_CREATE_INFO(draw_hair_new)
 
-int hair_get_strand_id(void)
+int hair_get_strand_id()
 {
   return gl_VertexID / (hairStrandsRes * hairThicknessRes);
 }
 
-int hair_get_base_id(void)
+int hair_get_base_id()
 {
   return gl_VertexID / hairThicknessRes;
 }
@@ -178,7 +187,6 @@ in float dummy;
 #    endif
 
 void hair_get_center_pos_tan_binor_time(bool is_persp,
-                                        mat4 invmodel_mat,
                                         vec3 camera_pos,
                                         vec3 camera_z,
                                         out vec3 wpos,
@@ -208,7 +216,7 @@ void hair_get_center_pos_tan_binor_time(bool is_persp,
 
   mat4 obmat = hairDupliMatrix;
   wpos = (obmat * vec4(wpos, 1.0)).xyz;
-  wtan = -normalize(mat3(obmat) * wtan);
+  wtan = -normalize(to_float3x3(obmat) * wtan);
 
   vec3 camera_vec = (is_persp) ? camera_pos - wpos : camera_z;
   wbinor = normalize(cross(camera_vec, wtan));
@@ -228,13 +236,13 @@ void hair_get_pos_tan_binor_time(bool is_persp,
                                  out float thick_time)
 {
   hair_get_center_pos_tan_binor_time(
-      is_persp, invmodel_mat, camera_pos, camera_z, wpos, wtan, wbinor, time, thickness);
+      is_persp, camera_pos, camera_z, wpos, wtan, wbinor, time, thickness);
   if (hairThicknessRes > 1) {
     thick_time = float(gl_VertexID % hairThicknessRes) / float(hairThicknessRes - 1);
     thick_time = thickness * (thick_time * 2.0 - 1.0);
     /* Take object scale into account.
      * NOTE: This only works fine with uniform scaling. */
-    float scale = 1.0 / length(mat3(invmodel_mat) * wbinor);
+    float scale = 1.0 / length(to_float3x3(invmodel_mat) * wbinor);
     wpos += wbinor * thick_time * scale;
   }
   else {
@@ -268,13 +276,13 @@ vec4 hair_get_customdata_vec4(const samplerBuffer cd_buf)
   return texelFetch(cd_buf, id).rgba;
 }
 
-vec3 hair_get_strand_pos(void)
+vec3 hair_get_strand_pos()
 {
   int id = hair_get_strand_id() * hairStrandsRes;
   return texelFetch(hairPointBuffer, id).point_position;
 }
 
-vec2 hair_get_barycentric(void)
+vec2 hair_get_barycentric()
 {
   /* To match cycles without breaking into individual segment we encode if we need to invert
    * the first component into the second component. We invert if the barycentricTexCo.y

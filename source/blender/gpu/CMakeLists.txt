@@ -19,15 +19,29 @@ set(INC
   ../editors/include
 
   # For `*_info.hh` includes.
-  ../compositor/realtime_compositor
+  ../compositor/realtime_compositor/shaders/infos
+  ../draw/engines/basic/shaders/infos
   ../draw/engines/eevee_next
+  ../draw/engines/eevee_next/shaders/infos
   ../draw/engines/gpencil
+  ../draw/engines/gpencil/shaders/infos
+  ../draw/engines/image/shaders/infos
+  ../draw/engines/overlay/shaders/infos
   ../draw/engines/select
+  ../draw/engines/select/shaders/infos
   ../draw/engines/workbench
+  ../draw/engines/workbench/shaders/infos
   ../draw/intern
+  ../draw/intern/shaders
+  metal/kernels
+  shaders/infos
 
   # For node muting stuff.
   ../nodes
+
+  # For shader includes
+  shaders/common
+  shaders
 
   ../../../intern/ghost
   ../../../intern/mantaflow/extern
@@ -43,6 +57,10 @@ if(WITH_RENDERDOC)
     ../../../intern/renderdoc_dynload/include
   )
   add_definitions(-DWITH_RENDERDOC)
+endif()
+
+if(WITH_GPU_SHADER_ASSERT)
+  add_definitions(-DWITH_GPU_SHADER_ASSERT)
 endif()
 
 set(INC_SYS
@@ -216,7 +234,6 @@ set(VULKAN_SRC
   vulkan/vk_image_view.cc
   vulkan/vk_immediate.cc
   vulkan/vk_index_buffer.cc
-  vulkan/vk_memory.cc
   vulkan/vk_memory_layout.cc
   vulkan/vk_pipeline_pool.cc
   vulkan/vk_pixel_buffer.cc
@@ -265,7 +282,6 @@ set(VULKAN_SRC
   vulkan/vk_image_view.hh
   vulkan/vk_immediate.hh
   vulkan/vk_index_buffer.hh
-  vulkan/vk_memory.hh
   vulkan/vk_memory_layout.hh
   vulkan/vk_pipeline_pool.hh
   vulkan/vk_pixel_buffer.hh
@@ -379,6 +395,7 @@ set(LIB
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::extern::fmtlib
 )
 
 # Select Backend source based on availability
@@ -434,10 +451,6 @@ if(WITH_VULKAN_BACKEND)
   add_definitions(-DWITH_VULKAN_BACKEND)
 endif()
 
-if(WITH_VULKAN_GUARDEDALLOC)
-  add_definitions(-DWITH_VULKAN_GUARDEDALLOC)
-endif()
-
 set(MSL_SRC
   shaders/metal/mtl_shader_defines.msl
   shaders/metal/mtl_shader_common.msl
@@ -462,8 +475,6 @@ set(GLSL_SRC
   shaders/gpu_shader_diag_stripes_frag.glsl
   shaders/gpu_shader_simple_lighting_frag.glsl
   shaders/gpu_shader_flat_color_frag.glsl
-  shaders/gpu_shader_flat_color_alpha_test_0_frag.glsl
-  shaders/gpu_shader_flat_id_frag.glsl
   shaders/gpu_shader_2D_vert.glsl
   shaders/gpu_shader_2D_area_borders_vert.glsl
   shaders/gpu_shader_2D_area_borders_frag.glsl
@@ -496,14 +507,10 @@ set(GLSL_SRC
   shaders/gpu_shader_3D_polyline_vert_no_geom.glsl
   shaders/gpu_shader_3D_smooth_color_vert.glsl
   shaders/gpu_shader_3D_smooth_color_frag.glsl
-  shaders/gpu_shader_3D_passthrough_vert.glsl
   shaders/gpu_shader_3D_clipped_uniform_color_vert.glsl
-
-  shaders/gpu_shader_instance_variying_size_variying_color_vert.glsl
 
   shaders/gpu_shader_point_uniform_color_aa_frag.glsl
   shaders/gpu_shader_point_uniform_color_outline_aa_frag.glsl
-  shaders/gpu_shader_point_varying_color_varying_outline_aa_frag.glsl
   shaders/gpu_shader_point_varying_color_frag.glsl
   shaders/gpu_shader_3D_point_varying_size_varying_color_vert.glsl
   shaders/gpu_shader_3D_point_uniform_size_aa_vert.glsl
@@ -638,9 +645,7 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_world_normals.glsl
 
   shaders/gpu_shader_gpencil_stroke_vert.glsl
-  shaders/gpu_shader_gpencil_stroke_vert_no_geom.glsl
   shaders/gpu_shader_gpencil_stroke_frag.glsl
-  shaders/gpu_shader_gpencil_stroke_geom.glsl
 
   shaders/gpu_shader_display_fallback_vert.glsl
   shaders/gpu_shader_display_fallback_frag.glsl
@@ -698,13 +703,13 @@ if(WITH_METAL_BACKEND)
 
   set(MSL_C)
   foreach(MSL_FILE ${MSL_SRC})
-    data_to_c_simple(${MSL_FILE} MSL_C STRIP_LEADING_C_COMMENTS)
+    data_to_c_simple(${MSL_FILE} MSL_C)
   endforeach()
 endif()
 
 set(GLSL_C)
 foreach(GLSL_FILE ${GLSL_SRC})
-  data_to_c_simple(${GLSL_FILE} GLSL_C STRIP_LEADING_C_COMMENTS)
+  glsl_to_c(${GLSL_FILE} GLSL_C)
 endforeach()
 
 set(SHADER_C)
@@ -731,124 +736,6 @@ file(GENERATE OUTPUT ${glsl_source_list_file} CONTENT "${GLSL_SOURCE_CONTENT}")
 list(APPEND SRC ${glsl_source_list_file})
 list(APPEND INC ${CMAKE_CURRENT_BINARY_DIR})
 
-set(SRC_SHADER_CREATE_INFOS
-  ../draw/engines/basic/shaders/infos/basic_depth_info.hh
-  ../draw/engines/eevee_next/shaders/infos/eevee_ambient_occlusion_info.hh
-  ../draw/engines/eevee_next/shaders/infos/eevee_deferred_info.hh
-  ../draw/engines/eevee_next/shaders/infos/eevee_depth_of_field_info.hh
-  ../draw/engines/eevee_next/shaders/infos/eevee_film_info.hh
-  ../draw/engines/eevee_next/shaders/infos/eevee_hiz_info.hh
-  ../draw/engines/eevee_next/shaders/infos/eevee_light_culling_info.hh
-  ../draw/engines/eevee_next/shaders/infos/eevee_lightprobe_sphere_info.hh
-  ../draw/engines/eevee_next/shaders/infos/eevee_lightprobe_volume_info.hh
-  ../draw/engines/eevee_next/shaders/infos/eevee_lookdev_info.hh
-  ../draw/engines/eevee_next/shaders/infos/eevee_lut_info.hh
-  ../draw/engines/eevee_next/shaders/infos/eevee_material_info.hh
-  ../draw/engines/eevee_next/shaders/infos/eevee_motion_blur_info.hh
-  ../draw/engines/eevee_next/shaders/infos/eevee_shadow_info.hh
-  ../draw/engines/eevee_next/shaders/infos/eevee_subsurface_info.hh
-  ../draw/engines/eevee_next/shaders/infos/eevee_tracing_info.hh
-  ../draw/engines/eevee_next/shaders/infos/eevee_velocity_info.hh
-  ../draw/engines/eevee_next/shaders/infos/eevee_volume_info.hh
-  ../draw/engines/gpencil/shaders/infos/gpencil_info.hh
-  ../draw/engines/gpencil/shaders/infos/gpencil_vfx_info.hh
-  ../draw/engines/overlay/shaders/infos/overlay_antialiasing_info.hh
-  ../draw/engines/overlay/shaders/infos/overlay_armature_info.hh
-  ../draw/engines/overlay/shaders/infos/overlay_background_info.hh
-  ../draw/engines/overlay/shaders/infos/overlay_edit_mode_info.hh
-  ../draw/engines/overlay/shaders/infos/overlay_extra_info.hh
-  ../draw/engines/overlay/shaders/infos/overlay_facing_info.hh
-  ../draw/engines/overlay/shaders/infos/overlay_grid_info.hh
-  ../draw/engines/overlay/shaders/infos/overlay_outline_info.hh
-  ../draw/engines/overlay/shaders/infos/overlay_paint_info.hh
-  ../draw/engines/overlay/shaders/infos/overlay_sculpt_curves_info.hh
-  ../draw/engines/overlay/shaders/infos/overlay_sculpt_info.hh
-  ../draw/engines/overlay/shaders/infos/overlay_viewer_attribute_info.hh
-  ../draw/engines/overlay/shaders/infos/overlay_volume_info.hh
-  ../draw/engines/overlay/shaders/infos/overlay_wireframe_info.hh
-  ../draw/engines/select/shaders/infos/select_id_info.hh
-  ../draw/engines/workbench/shaders/infos/workbench_composite_info.hh
-  ../draw/engines/workbench/shaders/infos/workbench_depth_info.hh
-  ../draw/engines/workbench/shaders/infos/workbench_effect_antialiasing_info.hh
-  ../draw/engines/workbench/shaders/infos/workbench_effect_dof_info.hh
-  ../draw/engines/workbench/shaders/infos/workbench_effect_outline_info.hh
-  ../draw/engines/workbench/shaders/infos/workbench_prepass_info.hh
-  ../draw/engines/workbench/shaders/infos/workbench_shadow_info.hh
-  ../draw/engines/workbench/shaders/infos/workbench_transparent_resolve_info.hh
-  ../draw/engines/workbench/shaders/infos/workbench_volume_info.hh
-
-  ../draw/engines/image/shaders/infos/engine_image_info.hh
-  ../draw/intern/shaders/draw_debug_info.hh
-  ../draw/intern/shaders/draw_fullscreen_info.hh
-  ../draw/intern/shaders/draw_hair_refine_info.hh
-  ../draw/intern/shaders/draw_object_infos_info.hh
-  ../draw/intern/shaders/draw_view_info.hh
-
-  shaders/infos/gpu_clip_planes_info.hh
-  shaders/infos/gpu_index_load_info.hh
-  shaders/infos/gpu_shader_2D_area_borders_info.hh
-  shaders/infos/gpu_shader_2D_checker_info.hh
-  shaders/infos/gpu_shader_2D_diag_stripes_info.hh
-  shaders/infos/gpu_shader_2D_image_desaturate_color_info.hh
-  shaders/infos/gpu_shader_2D_image_info.hh
-  shaders/infos/gpu_shader_2D_image_overlays_merge_info.hh
-  shaders/infos/gpu_shader_2D_image_overlays_stereo_merge_info.hh
-  shaders/infos/gpu_shader_2D_image_rect_color_info.hh
-  shaders/infos/gpu_shader_2D_image_shuffle_color_info.hh
-  shaders/infos/gpu_shader_2D_nodelink_info.hh
-  shaders/infos/gpu_shader_2D_point_uniform_size_uniform_color_aa_info.hh
-  shaders/infos/gpu_shader_2D_point_uniform_size_uniform_color_outline_aa_info.hh
-  shaders/infos/gpu_shader_2D_point_varying_size_varying_color_info.hh
-  shaders/infos/gpu_shader_2D_widget_info.hh
-  shaders/infos/gpu_shader_3D_depth_only_info.hh
-  shaders/infos/gpu_shader_3D_flat_color_info.hh
-  shaders/infos/gpu_shader_3D_image_info.hh
-  shaders/infos/gpu_shader_3D_point_info.hh
-  shaders/infos/gpu_shader_3D_polyline_info.hh
-  shaders/infos/gpu_shader_3D_smooth_color_info.hh
-  shaders/infos/gpu_shader_3D_uniform_color_info.hh
-  shaders/infos/gpu_shader_gpencil_stroke_info.hh
-  shaders/infos/gpu_shader_icon_info.hh
-  shaders/infos/gpu_shader_index_info.hh
-  shaders/infos/gpu_shader_instance_varying_color_varying_size_info.hh
-  shaders/infos/gpu_shader_keyframe_shape_info.hh
-  shaders/infos/gpu_shader_line_dashed_uniform_color_info.hh
-  shaders/infos/gpu_shader_print_info.hh
-  shaders/infos/gpu_shader_sequencer_info.hh
-  shaders/infos/gpu_shader_simple_lighting_info.hh
-  shaders/infos/gpu_shader_text_info.hh
-  shaders/infos/gpu_srgb_to_framebuffer_space_info.hh
-)
-
-set(SRC_SHADER_CREATE_INFOS_TEST
-  shaders/infos/gpu_shader_test_info.hh
-)
-
-
-set(SRC_SHADER_CREATE_INFOS_MTL
-  metal/kernels/depth_2d_update_info.hh
-  metal/kernels/gpu_shader_fullscreen_blit_info.hh
-)
-
-if(WITH_GTESTS)
-  if(WITH_GPU_DRAW_TESTS)
-    list(APPEND SRC_SHADER_CREATE_INFOS ${SRC_SHADER_CREATE_INFOS_TEST})
-  endif()
-endif()
-
-if(WITH_METAL_BACKEND)
-  list(APPEND SRC_SHADER_CREATE_INFOS ${SRC_SHADER_CREATE_INFOS_MTL})
-endif()
-
-
-set(SHADER_CREATE_INFOS_CONTENT "")
-foreach(DESCRIPTOR_FILE ${SRC_SHADER_CREATE_INFOS})
-  string(APPEND SHADER_CREATE_INFOS_CONTENT "#include \"${DESCRIPTOR_FILE}\"\n")
-endforeach()
-
-set(shader_create_info_list_file "${CMAKE_CURRENT_BINARY_DIR}/gpu_shader_create_info_list.hh")
-file(GENERATE OUTPUT ${shader_create_info_list_file} CONTENT "${SHADER_CREATE_INFOS_CONTENT}")
-
 if(WITH_MOD_FLUID)
   add_definitions(-DWITH_FLUID)
 endif()
@@ -857,6 +744,9 @@ if(WITH_OPENCOLORIO)
   add_definitions(-DWITH_OCIO)
 endif()
 
+if(WITH_GPU_DRAW_TESTS)
+  add_definitions(-DWITH_GPU_DRAW_TESTS)
+endif()
 
 blender_add_lib(bf_gpu "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 target_link_libraries(bf_gpu PUBLIC
@@ -880,62 +770,6 @@ endif()
 
 if(CXX_WARN_NO_SUGGEST_OVERRIDE)
   target_compile_options(bf_gpu PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wsuggest-override>)
-endif()
-
-
-
-if(WITH_GPU_BUILDTIME_SHADER_BUILDER)
-  set(_manifest)
-  if(WIN32)
-    # We can re-use the manifest from `tests.exe` here since it's
-    # rather generic and just selects the appropriate common
-    # controls version.
-    set(_manifest "${CMAKE_BINARY_DIR}/tests.exe.manifest")
-  endif()
-  add_executable(shader_builder
-    intern/gpu_shader_builder.cc
-    intern/gpu_shader_builder_stubs.cc
-    ${shader_create_info_list_file}
-    ${_manifest}
-  )
-  unset(_manifest)
-  setup_platform_linker_flags(shader_builder)
-
-  if(WITH_BUILD_INFO)
-    target_link_libraries(shader_builder PRIVATE buildinfoobj)
-    add_definitions(-DWITH_BUILD_INFO)
-  endif()
-  target_link_libraries(shader_builder PRIVATE
-    bf_gpu
-    bf_intern_clog
-    bf_blenlib
-    bf_intern_ghost
-    ${PLATFORM_LINKLIBS}
-    PRIVATE bf::intern::guardedalloc
-  )
-  target_include_directories(shader_builder SYSTEM PRIVATE ${INC_SYS})
-  target_include_directories(shader_builder PRIVATE ${INC} ${CMAKE_CURRENT_BINARY_DIR})
-
-  set(SRC_BAKED_CREATE_INFOS_FILE ${CMAKE_CURRENT_BINARY_DIR}/shader_baked.hh)
-
-  add_custom_command(
-    OUTPUT
-    ${SRC_BAKED_CREATE_INFOS_FILE}
-    COMMAND
-      ${CMAKE_COMMAND} -E env ${PLATFORM_ENV_BUILD}
-      $<TARGET_FILE:shader_builder> ${SRC_BAKED_CREATE_INFOS_FILE}
-    DEPENDS shader_builder
-  )
-  set(GPU_SHADER_INFO_SRC
-    intern/gpu_shader_info_baked.cc
-    ${SRC_BAKED_CREATE_INFOS_FILE}
-
-    # For project files to be aware of these headers.
-    ${SRC_SHADER_CREATE_INFOS}
-    shaders/infos/gpu_interface_info.hh
-  )
-
-  blender_add_lib(bf_gpu_shader_infos "${GPU_SHADER_INFO_SRC}" "" "" "")
 endif()
 
 

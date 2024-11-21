@@ -457,6 +457,8 @@ static wmDropBox *dropbox_active(bContext *C,
 
           const wmOperatorCallContext opcontext = wm_drop_operator_context_get(drop);
           if (drop->ot && WM_operator_poll_context(C, drop->ot, opcontext)) {
+            /* Get dropbox tooltip now, #wm_drag_draw_tooltip can use a different draw context. */
+            drag->drop_state.tooltip = dropbox_tooltip(C, drag, event->xy, drop);
             CTX_store_set(C, nullptr);
             return drop;
           }
@@ -519,6 +521,7 @@ static void wm_drop_update_active(bContext *C, wmDrag *drag, const wmEvent *even
   /* Update UI context, before polling so polls can query this context. */
   drag->drop_state.ui_context.reset();
   drag->drop_state.ui_context = wm_drop_ui_context_create(C);
+  drag->drop_state.tooltip = "";
 
   wmDropBox *drop_prev = drag->drop_state.active_dropbox;
   wmDropBox *drop = wm_dropbox_active(C, drag, event);
@@ -853,7 +856,7 @@ wmDragPath *WM_drag_create_path_data(blender::Span<const char *> paths)
 
   if (path_data->paths.size() > 1) {
     std::string path_count = std::to_string(path_data->paths.size());
-    path_data->tooltip = fmt::format(TIP_("Dragging {} files"), path_count);
+    path_data->tooltip = fmt::format(fmt::runtime(TIP_("Dragging {} files")), path_count);
   }
 
   return path_data;
@@ -1060,11 +1063,13 @@ static void wm_drag_draw_item_name(wmDrag *drag, const int x, const int y)
   UI_fontstyle_draw_simple(fstyle, x, y, WM_drag_get_item_name(drag), text_col);
 }
 
-void WM_drag_draw_item_name_fn(bContext * /*C*/, wmWindow * /*win*/, wmDrag *drag, const int xy[2])
+void WM_drag_draw_item_name_fn(bContext * /*C*/, wmWindow *win, wmDrag *drag, const int xy[2])
 {
   int x = xy[0] + 10 * UI_SCALE_FAC;
   int y = xy[1] + 1 * UI_SCALE_FAC;
 
+  /* Needs zero offset here or it looks blurry. #128112. */
+  wmWindowViewport_ex(win, 0.0f);
   wm_drag_draw_item_name(drag, x, y);
 }
 
@@ -1076,15 +1081,10 @@ static void wm_drag_draw_tooltip(bContext *C, wmWindow *win, wmDrag *drag, const
   }
   int iconsize = UI_ICON_SIZE;
   int padding = 4 * UI_SCALE_FAC;
-
-  std::string tooltip;
-  if (drag->drop_state.active_dropbox) {
-    tooltip = dropbox_tooltip(C, drag, xy, drag->drop_state.active_dropbox);
-  }
-
+  blender::StringRef tooltip = drag->drop_state.tooltip;
   const bool has_disabled_info = drag->drop_state.disabled_info &&
                                  drag->drop_state.disabled_info[0];
-  if (tooltip.empty() && !has_disabled_info) {
+  if (tooltip.is_empty() && !has_disabled_info) {
     return;
   }
 
@@ -1114,7 +1114,7 @@ static void wm_drag_draw_tooltip(bContext *C, wmWindow *win, wmDrag *drag, const
     }
   }
 
-  if (!tooltip.empty()) {
+  if (!tooltip.is_empty()) {
     wm_drop_operator_draw(tooltip, x, y);
   }
   else if (has_disabled_info) {
@@ -1197,6 +1197,8 @@ void wm_drags_draw(bContext *C, wmWindow *win)
       CTX_wm_region_set(C, region);
     }
 
+    /* Needs zero offset here or it looks blurry. #128112. */
+    wmWindowViewport_ex(win, 0.0f);
     wm_drag_draw_default(C, win, drag, xy);
   }
   GPU_blend(GPU_BLEND_NONE);

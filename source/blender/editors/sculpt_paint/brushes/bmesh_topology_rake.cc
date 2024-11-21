@@ -20,6 +20,8 @@
 #include "editors/sculpt_paint/sculpt_intern.hh"
 #include "editors/sculpt_paint/sculpt_smooth.hh"
 
+#include "bmesh.hh"
+
 namespace blender::ed::sculpt_paint {
 
 inline namespace bmesh_topology_rake_cc {

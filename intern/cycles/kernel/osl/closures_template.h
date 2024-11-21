@@ -223,6 +223,19 @@ OSL_CLOSURE_STRUCT_BEGIN(VolumeHenyeyGreenstein, henyey_greenstein)
   OSL_CLOSURE_STRUCT_MEMBER(VolumeHenyeyGreenstein, FLOAT, float, g, NULL)
 OSL_CLOSURE_STRUCT_END(VolumeHenyeyGreenstein, henyey_greenstein)
 
+OSL_CLOSURE_STRUCT_BEGIN(VolumeFournierForand, fournier_forand)
+  OSL_CLOSURE_STRUCT_MEMBER(VolumeFournierForand, FLOAT, float, B, NULL)
+  OSL_CLOSURE_STRUCT_MEMBER(VolumeFournierForand, FLOAT, float, IOR, NULL)
+OSL_CLOSURE_STRUCT_END(VolumeFournierForand, fournier_forand)
+
+OSL_CLOSURE_STRUCT_BEGIN(VolumeDraine, draine)
+  OSL_CLOSURE_STRUCT_MEMBER(VolumeDraine, FLOAT, float, g, NULL)
+  OSL_CLOSURE_STRUCT_MEMBER(VolumeDraine, FLOAT, float, alpha, NULL)
+OSL_CLOSURE_STRUCT_END(VolumeDraine, draine)
+
+OSL_CLOSURE_STRUCT_BEGIN(VolumeRayleigh, rayleigh)
+OSL_CLOSURE_STRUCT_END(VolumeRayleigh, rayleigh)
+
 #undef OSL_CLOSURE_STRUCT_BEGIN
 #undef OSL_CLOSURE_STRUCT_END
 #undef OSL_CLOSURE_STRUCT_MEMBER

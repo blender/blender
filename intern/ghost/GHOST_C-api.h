@@ -1277,13 +1277,17 @@ int GHOST_XrGetControllerModelData(GHOST_XrContextHandle xr_context,
  * \param r_queue: After calling this function the VkQueue
  *     referenced by this parameter will contain the VKQueue handle
  *     of the context associated with the `context` parameter.
+ * \param r_queue_mutex: After calling this function the std::mutex referred
+ *     by this parameter will contain the mutex of the context associated
+ *     with the context parameter.
  */
 void GHOST_GetVulkanHandles(GHOST_ContextHandle context,
                             void *r_instance,
                             void *r_physical_device,
                             void *r_device,
                             uint32_t *r_graphic_queue_family,
-                            void *r_queue);
+                            void *r_queue,
+                            void **r_queue_mutex);
 
 /**
  * Set the pre and post callbacks for vulkan swap chain in the given context.

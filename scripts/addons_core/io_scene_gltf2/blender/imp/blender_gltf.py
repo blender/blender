@@ -312,7 +312,7 @@ class BlenderGlTF():
 
         pointer_tab = channel.target.extensions["KHR_animation_pointer"]["pointer"].split("/")
 
-        ### Nodes and Meshes
+        # Nodes and Meshes
         if len(pointer_tab) >= 4 and pointer_tab[1] == "nodes" and pointer_tab[3] in [
                 "translation", "rotation", "scale", "weights"]:
             if anim_idx not in gltf.data.nodes[int(pointer_tab[2])].animations.keys():

@@ -5,9 +5,9 @@
 /* Identical to eevee_motion_blur_dilate_comp.glsl but with minor adjustments to work with the
  * compositor. */
 
-#pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_motion_blur_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
+#include "gpu_shader_compositor_motion_blur_lib.glsl"
+#include "gpu_shader_compositor_texture_utilities.glsl"
+#include "gpu_shader_math_base_lib.glsl"
 
 struct MotionRect {
   ivec2 bottom_left;

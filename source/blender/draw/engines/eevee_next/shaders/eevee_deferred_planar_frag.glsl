@@ -6,10 +6,10 @@
  * Compute light objects lighting contribution using captured Gbuffer data.
  */
 
-#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_light_eval_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_lightprobe_eval_lib.glsl)
+#include "draw_view_lib.glsl"
+#include "eevee_gbuffer_lib.glsl"
+#include "eevee_light_eval_lib.glsl"
+#include "eevee_lightprobe_eval_lib.glsl"
 
 void main()
 {
@@ -22,7 +22,7 @@ void main()
   vec3 albedo_front = vec3(0.0);
   vec3 albedo_back = vec3(0.0);
 
-  for (int i = 0; i < GBUFFER_LAYER_MAX && i < gbuf.closure_count; i++) {
+  for (uchar i = 0; i < GBUFFER_LAYER_MAX && i < gbuf.closure_count; i++) {
     ClosureUndetermined cl = gbuffer_closure_get(gbuf, i);
     switch (cl.type) {
       case CLOSURE_BSSRDF_BURLEY_ID:
@@ -56,12 +56,13 @@ void main()
   /* Direct light. */
   ClosureLightStack stack;
   stack.cl[0] = closure_light_new(cl, V);
-  light_eval_reflection(stack, P, Ng, V, vPz);
+  uchar receiver_light_set = gbuffer_light_link_receiver_unpack(gbuf.header);
+  light_eval_reflection(stack, P, Ng, V, vPz, receiver_light_set);
 
   vec3 radiance_front = stack.cl[0].light_shadowed;
 
   stack.cl[0] = closure_light_new(cl_transmit, V, gbuf.thickness);
-  light_eval_transmission(stack, P, Ng, V, vPz, gbuf.thickness);
+  light_eval_transmission(stack, P, Ng, V, vPz, gbuf.thickness, receiver_light_set);
 
   vec3 radiance_back = stack.cl[0].light_shadowed;
 

@@ -35,9 +35,11 @@ class Relations {
   {
   }
 
-  void begin_sync(Resources & /*res*/, const State &state)
+  void begin_sync(Resources &res, const State &state)
   {
     enabled_ = state.space_type == SPACE_VIEW3D;
+    enabled_ &= (state.v3d_flag & V3D_HIDE_HELPLINES) == 0;
+    enabled_ &= res.selection_type == SelectionType::DISABLED;
 
     points_buf_.clear();
     relations_buf_.clear();
@@ -49,13 +51,19 @@ class Relations {
       return;
     }
 
+    /* Don't show object extras in set's. */
+    if (is_from_dupli_or_set(ob_ref)) {
+      return;
+    }
+
     Object *ob = ob_ref.object;
     const float4 &relation_color = res.theme_settings.color_wire;
     const float4 &constraint_color = res.theme_settings.color_grid_axis_z; /* ? */
 
     if (ob->parent && (DRW_object_visibility_in_active_context(ob->parent) & OB_VISIBLE_SELF)) {
       const float3 &parent_pos = ob->runtime->parent_display_origin;
-      relations_buf_.append(parent_pos, ob->object_to_world().location(), relation_color);
+      /* Reverse order to have less stipple overlap. */
+      relations_buf_.append(ob->object_to_world().location(), parent_pos, relation_color);
     }
 
     /* Drawing the hook lines. */

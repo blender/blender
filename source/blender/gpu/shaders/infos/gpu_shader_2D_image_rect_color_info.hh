@@ -6,17 +6,25 @@
  * \ingroup gpu
  */
 
+#ifdef GPU_SHADER
+#  pragma once
+#  include "gpu_glsl_cpp_stubs.hh"
+
+#  include "GPU_shader_shared.hh"
+#endif
+
 #include "gpu_interface_info.hh"
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(gpu_shader_2D_image_rect_color)
-    .vertex_out(smooth_tex_coord_interp_iface)
-    .fragment_out(0, Type::VEC4, "fragColor")
-    .push_constant(Type::MAT4, "ModelViewProjectionMatrix")
-    .push_constant(Type::VEC4, "color")
-    .push_constant(Type::VEC4, "rect_icon")
-    .push_constant(Type::VEC4, "rect_geom")
-    .sampler(0, ImageType::FLOAT_2D, "image")
-    .vertex_source("gpu_shader_2D_image_rect_vert.glsl")
-    .fragment_source("gpu_shader_image_color_frag.glsl")
-    .do_static_compilation(true);
+VERTEX_OUT(smooth_tex_coord_interp_iface)
+FRAGMENT_OUT(0, VEC4, fragColor)
+PUSH_CONSTANT(MAT4, ModelViewProjectionMatrix)
+PUSH_CONSTANT(VEC4, color)
+PUSH_CONSTANT(VEC4, rect_icon)
+PUSH_CONSTANT(VEC4, rect_geom)
+SAMPLER(0, FLOAT_2D, image)
+VERTEX_SOURCE("gpu_shader_2D_image_rect_vert.glsl")
+FRAGMENT_SOURCE("gpu_shader_image_color_frag.glsl")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()

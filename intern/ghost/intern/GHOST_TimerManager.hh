@@ -92,7 +92,5 @@ class GHOST_TimerManager {
   /** The list with event consumers. */
   TTimerVector m_timers;
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_TimerManager")
-#endif
 };

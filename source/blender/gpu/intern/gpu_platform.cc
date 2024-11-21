@@ -103,6 +103,7 @@ void GPUPlatformGlobal::clear()
   MEM_SAFE_FREE(version);
   MEM_SAFE_FREE(support_key);
   MEM_SAFE_FREE(gpu_name);
+  devices.clear_and_shrink();
   initialized = false;
 }
 

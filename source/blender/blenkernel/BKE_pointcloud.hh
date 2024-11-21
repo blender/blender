@@ -50,8 +50,8 @@ PointCloud *pointcloud_new_no_attributes(int totpoint);
 
 }  // namespace blender::bke
 
-void *BKE_pointcloud_add(Main *bmain, const char *name);
-void *BKE_pointcloud_add_default(Main *bmain, const char *name);
+PointCloud *BKE_pointcloud_add(Main *bmain, const char *name);
+PointCloud *BKE_pointcloud_add_default(Main *bmain, const char *name);
 PointCloud *BKE_pointcloud_new_nomain(int totpoint);
 void BKE_pointcloud_nomain_to_pointcloud(PointCloud *pointcloud_src, PointCloud *pointcloud_dst);
 
@@ -74,3 +74,8 @@ void BKE_pointcloud_batch_cache_free(PointCloud *pointcloud);
 
 extern void (*BKE_pointcloud_batch_cache_dirty_tag_cb)(PointCloud *pointcloud, int mode);
 extern void (*BKE_pointcloud_batch_cache_free_cb)(PointCloud *pointcloud);
+
+namespace blender::bke {
+struct AttributeAccessorFunctions;
+const AttributeAccessorFunctions &pointcloud_attribute_accessor_functions();
+}  // namespace blender::bke

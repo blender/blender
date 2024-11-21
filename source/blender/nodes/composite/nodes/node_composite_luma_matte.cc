@@ -6,6 +6,14 @@
  * \ingroup cmpnodes
  */
 
+#include "BLI_math_base.hh"
+#include "BLI_math_vector.hh"
+#include "BLI_math_vector_types.hh"
+
+#include "FN_multi_function_builder.hh"
+
+#include "NOD_multi_function.hh"
+
 #include "IMB_colormanagement.hh"
 
 #include "UI_interface.hh"
@@ -53,6 +61,16 @@ static void node_composit_buts_luma_matte(uiLayout *layout, bContext * /*C*/, Po
 
 using namespace blender::realtime_compositor;
 
+static float get_high(const bNode &node)
+{
+  return node_storage(node).t1;
+}
+
+static float get_low(const bNode &node)
+{
+  return node_storage(node).t2;
+}
+
 class LuminanceMatteShaderNode : public ShaderNode {
  public:
   using ShaderNode::ShaderNode;
@@ -62,8 +80,8 @@ class LuminanceMatteShaderNode : public ShaderNode {
     GPUNodeStack *inputs = get_inputs_array();
     GPUNodeStack *outputs = get_outputs_array();
 
-    const float high = get_high();
-    const float low = get_low();
+    const float high = get_high(bnode());
+    const float low = get_low(bnode());
     float luminance_coefficients[3];
     IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
 
@@ -76,21 +94,31 @@ class LuminanceMatteShaderNode : public ShaderNode {
                    GPU_uniform(&low),
                    GPU_constant(luminance_coefficients));
   }
-
-  float get_high()
-  {
-    return node_storage(bnode()).t1;
-  }
-
-  float get_low()
-  {
-    return node_storage(bnode()).t2;
-  }
 };
 
 static ShaderNode *get_compositor_shader_node(DNode node)
 {
   return new LuminanceMatteShaderNode(node);
+}
+
+static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+{
+  const float high = get_high(builder.node());
+  const float low = get_low(builder.node());
+  float3 luminance_coefficients;
+  IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
+
+  builder.construct_and_set_matching_fn_cb([=]() {
+    return mf::build::SI1_SO2<float4, float4, float>(
+        "Luminance Key",
+        [=](const float4 &color, float4 &result, float &matte) -> void {
+          float luminance = math::dot(color.xyz(), luminance_coefficients);
+          float alpha = math::clamp((luminance - low) / (high - low), 0.0f, 1.0f);
+          matte = math::min(alpha, color.w);
+          result = color * matte;
+        },
+        mf::build::exec_presets::AllSpanOrSingle());
+  });
 }
 
 }  // namespace blender::nodes::node_composite_luma_matte_cc
@@ -109,6 +137,7 @@ void register_node_type_cmp_luma_matte()
   blender::bke::node_type_storage(
       &ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
+  ntype.build_multi_function = file_ns::node_build_multi_function;
 
   blender::bke::node_register_type(&ntype);
 }

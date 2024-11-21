@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 /* Identical copy to eevee_motion_blur_lib.glsl, but with the needed macros defined inline. */
 
 #define MOTION_BLUR_TILE_SIZE 32

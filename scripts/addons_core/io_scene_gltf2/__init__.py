@@ -5,8 +5,8 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (4, 3, 36),
-    'blender': (4, 2, 0),
+    "version": (4, 4, 12),
+    'blender': (4, 3, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
     'warning': '',
@@ -975,10 +975,16 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
     export_extra_animations: BoolProperty(
         name='Prepare extra animations',
         description=(
-            'Export additional animations'
+            'Export additional animations.\n'
             'This feature is not standard and needs an external extension to be included in the glTF file'
         ),
         default=False
+    )
+
+    export_loglevel: IntProperty(
+        name='Log Level',
+        description="Log Level",
+        default=-1,
     )
 
     # Custom scene property for saving settings
@@ -1066,7 +1072,11 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
         # All custom export settings are stored in this container.
         export_settings = {}
 
-        export_settings['loglevel'] = set_debug_log()
+        # Get log level from parameters
+        # If not set, get it from Blender app debug value
+        export_settings['gltf_loglevel'] = self.export_loglevel
+        if export_settings['gltf_loglevel'] < 0:
+            export_settings['loglevel'] = set_debug_log()
 
         export_settings['exported_images'] = {}
         export_settings['exported_texture_nodes'] = []
@@ -1721,8 +1731,8 @@ def export_panel_gltfpack(layout, operator):
         col.prop(operator, 'export_gltfpack_vc')
         col = body.column(heading="Vertex positions", align=True)
         col.prop(operator, 'export_gltfpack_vpi')
-        #col = body.column(heading = "Animations", align = True)
-        #col = body.column(heading = "Scene", align = True)
+        # col = body.column(heading = "Animations", align = True)
+        # col = body.column(heading = "Scene", align = True)
         col = body.column(heading="Miscellaneous", align=True)
         col.prop(operator, 'export_gltfpack_noq')
 

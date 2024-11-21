@@ -353,7 +353,7 @@ static PyObject *bpy_app_driver_dict_get(PyObject * /*self*/, void * /*closure*/
     }
   }
 
-  return Py_INCREF_RET(bpy_pydriver_Dict);
+  return Py_NewRef(bpy_pydriver_Dict);
 }
 
 PyDoc_STRVAR(

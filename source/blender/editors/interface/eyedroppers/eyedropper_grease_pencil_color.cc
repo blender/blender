@@ -23,8 +23,9 @@
 #include "DNA_material_types.h"
 #include "DNA_space_types.h"
 
+#include "BKE_brush.hh"
 #include "BKE_context.hh"
-#include "BKE_gpencil_legacy.h"
+#include "BKE_grease_pencil.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_material.h"
 #include "BKE_paint.hh"
@@ -203,7 +204,7 @@ static void eyedropper_add_material(bContext *C,
    * depending of the secondary key (LMB: Stroke, Shift: Fill, Shift+Ctrl: Stroke/Fill)
    */
   int idx;
-  Material *ma_new = BKE_gpencil_object_material_new(bmain, ob, "Material", &idx);
+  Material *ma_new = BKE_grease_pencil_object_material_new(bmain, ob, "Material", &idx);
   WM_main_add_notifier(NC_OBJECT | ND_OB_SHADING, &ob->id);
   WM_main_add_notifier(NC_MATERIAL | ND_SHADING_LINKS, nullptr);
   DEG_relations_tag_update(bmain);
@@ -292,12 +293,13 @@ static void eyedropper_set_brush_color(bContext *C, const float3 &col_conv)
   }
 
   copy_v3_v3(brush->rgb, col_conv);
+  BKE_brush_tag_unsaved_changes(brush);
 }
 
 /* Set the material or the palette color. */
-static void eyedropper_gpencil_color_set(bContext *C,
-                                         const wmEvent *event,
-                                         EyedropperGreasePencil *eye)
+static void eyedropper_grease_pencil_color_set(bContext *C,
+                                               const wmEvent *event,
+                                               EyedropperGreasePencil *eye)
 {
   const bool is_ctrl = (event->modifier & KM_CTRL) != 0;
   const bool is_shift = (event->modifier & KM_SHIFT) != 0;
@@ -386,7 +388,7 @@ static int eyedropper_grease_pencil_modal(bContext *C, wmOperator *op, const wmE
           eyedropper_grease_pencil_color_sample(C, eye, event->xy);
 
           /* Create material. */
-          eyedropper_gpencil_color_set(C, event, eye);
+          eyedropper_grease_pencil_color_set(C, event, eye);
           WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
 
           eyedropper_grease_pencil_exit(C, op);

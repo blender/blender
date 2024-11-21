@@ -14,11 +14,6 @@ __all__ = (
 
 
 def url_from_blender() -> str:
-    from typing import (
-        Dict,
-        Optional,
-    )
-
     import re
     import struct
     import platform
@@ -68,13 +63,13 @@ def url_from_blender() -> str:
 
     unknown_string = "<unknown>"
 
-    def re_group_or_unknown(m: Optional[re.Match[str]]) -> str:
+    def re_group_or_unknown(m: re.Match[str] | None) -> str:
         if m is None:
             return unknown_string
         return m.group(1)
 
     # Gather Blender version information.
-    values: Dict[str, str] = {
+    values: dict[str, str] = {
         "version": re_group_or_unknown(re.search(r"^Blender (.*)", text, flags=re.MULTILINE)),
         "branch": re_group_or_unknown(re.search(r"^\s+build branch: (.*)", text, flags=re.MULTILINE)),
         "commit_date": re_group_or_unknown(re.search(r"^\s+build commit date: (.*)", text, flags=re.MULTILINE)),

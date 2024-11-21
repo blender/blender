@@ -151,8 +151,7 @@ class PrimitiveCreator:
         # We need to check if we are in a GN Instance, because for GN instances, it seems that shape keys are preserved,
         # even if we apply modifiers
         # (For classic objects, shape keys are not preserved if we apply modifiers)
-        # We can check it by checking if the mesh is used by a user
-        if self.blender_mesh.shape_keys and self.export_settings['gltf_morph'] and self.blender_mesh.users != 0:
+        if self.blender_mesh.shape_keys and self.export_settings['gltf_morph'] and ((self.blender_mesh.is_evaluated is True and self.blender_mesh.get('gltf2_mesh_applied') is not None) or self.blender_mesh.is_evaluated is False):
             self.key_blocks = get_sk_exported(self.blender_mesh.shape_keys.key_blocks)
 
         # Fetch vert positions and bone data (joint,weights)
@@ -695,6 +694,10 @@ class PrimitiveCreator:
                     else:
                         indices = np.where((self.dots[uvmap_name + '0'] >= u) & (self.dots[uvmap_name + '0'] <= (u + 1)) & (
                             self.dots[uvmap_name + '1'] <= (1 - v)) & (self.dots[uvmap_name + '1'] >= 1 - (v + 1)))[0]
+
+                    # If no vertex in this tile, continue
+                    if indices.shape[0] == 0:
+                        continue
 
                     # Reset UVMap to 0-1 : reset to Blener UVMAP => slide to 0-1 => go to glTF UVMap
                     self.dots[uvmap_name + '1'][indices] -= 1

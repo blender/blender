@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 /**
  * Operations to move virtual shadow map pages between heaps and tiles.
  * We reuse the blender::vector class denomination.
@@ -25,12 +27,7 @@
  * IMPORTANT: Do not forget to manually store the tile data after doing operations on them.
  */
 
-#pragma BLENDER_REQUIRE(eevee_shadow_tilemap_lib.glsl)
-
-/* TODO(@fclem): Implement. */
-#ifndef GPU_METAL
-#  define assert(check)
-#endif
+#include "eevee_shadow_tilemap_lib.glsl"
 
 /* Remove page ownership from the tile and append it to the cache. */
 void shadow_page_free(inout ShadowTileData tile)

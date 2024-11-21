@@ -2,10 +2,14 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-const float line_falloff = 1.0;
-const float circle_scale = sqrt(2.0 / 3.1416);
-const float square_scale = sqrt(0.5);
-const float diagonal_scale = sqrt(0.5);
+#include "infos/gpu_shader_keyframe_shape_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(gpu_shader_keyframe_shape)
+
+#define line_falloff 1.0
+#define circle_scale sqrt(2.0 / 3.1416)
+#define square_scale sqrt(0.5)
+#define diagonal_scale sqrt(0.5)
 
 bool test(uint bit)
 {

@@ -245,23 +245,30 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
 
   virtual void build_parameters(ID *id);
   virtual void build_dimensions(Object *object);
+  /** IK Solver Eval Steps. */
   virtual void build_ik_pose(Object *object, bPoseChannel *pchan, bConstraint *con);
+  /** Spline IK Eval Steps. */
   virtual void build_splineik_pose(Object *object, bPoseChannel *pchan, bConstraint *con);
+  /** Pose/Armature Bones Graph. */
   virtual void build_rig(Object *object);
   virtual void build_armature(bArmature *armature);
   virtual void build_armature_bones(ListBase *bones);
   virtual void build_armature_bone_collections(blender::Span<BoneCollection *> collections);
+  /** Shape-keys. */
   virtual void build_shapekeys(Key *key);
   virtual void build_camera(Camera *camera);
   virtual void build_light(Light *lamp);
   virtual void build_nodetree(bNodeTree *ntree);
   virtual void build_nodetree_socket(bNodeSocket *socket);
+  /** Recursively build graph for material. */
   virtual void build_material(Material *ma);
   virtual void build_materials(Material **materials, int num_materials);
   virtual void build_freestyle_lineset(FreestyleLineSet *fls);
   virtual void build_freestyle_linestyle(FreestyleLineStyle *linestyle);
+  /** Recursively build graph for texture. */
   virtual void build_texture(Tex *tex);
   virtual void build_image(Image *image);
+  /** Recursively build graph for world. */
   virtual void build_world(World *world);
   virtual void build_cachefile(CacheFile *cache_file);
   virtual void build_mask(Mask *mask);

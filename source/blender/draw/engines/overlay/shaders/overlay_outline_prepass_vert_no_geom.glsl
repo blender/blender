@@ -3,15 +3,15 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma USE_SSBO_VERTEX_FETCH(LineList, 2)
-#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
+#include "common_view_clipping_lib.glsl"
+#include "common_view_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 
 #define DISCARD_VERTEX \
   gl_Position = vec4(0.0); \
   return;
 
-uint outline_colorid_get(void)
+uint outline_colorid_get()
 {
 #ifdef OBINFO_NEW
   eObjectInfoFlag ob_flag = eObjectInfoFlag(floatBitsToUint(drw_infos[resource_id].infos.w));

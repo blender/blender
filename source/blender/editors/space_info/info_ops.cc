@@ -23,7 +23,7 @@
 #include "BKE_bpath.hh"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_packedFile.hh"
@@ -267,7 +267,7 @@ static int unpack_all_invoke(bContext *C, wmOperator *op, const wmEvent * /*even
   }
 
   const std::string title = fmt::format(
-      IFACE_("Unpack - Files: {}, Bakes: {}"), count.individual_files, count.bakes);
+      fmt::runtime(IFACE_("Unpack - Files: {}, Bakes: {}")), count.individual_files, count.bakes);
 
   pup = UI_popup_menu_begin(C, title.c_str(), ICON_NONE);
   layout = UI_popup_menu_layout(pup);

@@ -109,7 +109,7 @@ static int grease_pencil_vertex_paint_brightness_contrast_exec(bContext *C, wmOp
   Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](MutableDrawingInfo info) {
     bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
-    if (curves.curves_num() == 0) {
+    if (curves.is_empty()) {
       return;
     }
     const bool changed = apply_color_operation_for_mode(
@@ -163,7 +163,7 @@ static int grease_pencil_vertex_paint_hsv_exec(bContext *C, wmOperator *op)
   Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](MutableDrawingInfo info) {
     bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
-    if (curves.curves_num() == 0) {
+    if (curves.is_empty()) {
       return;
     }
     const bool changed = apply_color_operation_for_mode(
@@ -228,7 +228,7 @@ static int grease_pencil_vertex_paint_invert_exec(bContext *C, wmOperator *op)
   Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](MutableDrawingInfo info) {
     bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
-    if (curves.curves_num() == 0) {
+    if (curves.is_empty()) {
       return;
     }
     const bool changed = apply_color_operation_for_mode(
@@ -278,7 +278,7 @@ static int grease_pencil_vertex_paint_levels_exec(bContext *C, wmOperator *op)
   Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](MutableDrawingInfo info) {
     bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
-    if (curves.curves_num() == 0) {
+    if (curves.is_empty()) {
       return;
     }
     const bool changed = apply_color_operation_for_mode(
@@ -331,14 +331,14 @@ static int grease_pencil_vertex_paint_set_exec(bContext *C, wmOperator *op)
   const float factor = RNA_float_get(op->ptr, "factor");
 
   float3 color_linear;
-  srgb_to_linearrgb_v3_v3(color_linear, BKE_brush_color_get(&scene, &brush));
+  srgb_to_linearrgb_v3_v3(color_linear, BKE_brush_color_get(&scene, &paint, &brush));
   const ColorGeometry4f target_color(color_linear[0], color_linear[1], color_linear[2], 1.0f);
 
   std::atomic<bool> any_changed;
   Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](MutableDrawingInfo info) {
     bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
-    if (curves.curves_num() == 0) {
+    if (curves.is_empty()) {
       return;
     }
     /* Create the color attributes if they don't exist. */
@@ -396,7 +396,7 @@ static int grease_pencil_vertex_paint_reset_exec(bContext *C, wmOperator *op)
   Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](MutableDrawingInfo info) {
     bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
-    if (curves.curves_num() == 0) {
+    if (curves.is_empty()) {
       return;
     }
     /* Remove the color attributes. */

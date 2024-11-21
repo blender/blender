@@ -49,6 +49,9 @@ CCL_NAMESPACE_BEGIN
 #ifndef M_1_2PI_F
 #  define M_1_2PI_F (0.1591549430918953f) /* 1/(2*pi) */
 #endif
+#ifndef M_1_4PI_F
+#  define M_1_4PI_F (0.0795774715459476f) /* 1/(4*pi) */
+#endif
 #ifndef M_SQRT_PI_8_F
 #  define M_SQRT_PI_8_F (0.6266570686577501f) /* sqrt(pi/8) */
 #endif
@@ -70,6 +73,9 @@ CCL_NAMESPACE_BEGIN
 /* Float sqrt variations */
 #ifndef M_SQRT2_F
 #  define M_SQRT2_F (1.4142135623730950f) /* sqrt(2) */
+#endif
+#ifndef M_CBRT2_F
+#  define M_CBRT2_F 1.2599210498948732f /* cbrt(2) */
 #endif
 #ifndef M_SQRT1_2F
 #  define M_SQRT1_2F 0.70710678118654752440f /* sqrt(1/2) */
@@ -519,6 +525,11 @@ ccl_device_inline int mod(int x, int m)
 ccl_device_inline float3 float2_to_float3(const float2 a)
 {
   return make_float3(a.x, a.y, 0.0f);
+}
+
+ccl_device_inline float3 float2_to_float3(const float2 a, const float z)
+{
+  return make_float3(a.x, a.y, z);
 }
 
 ccl_device_inline float2 float3_to_float2(const float3 a)
@@ -1044,16 +1055,6 @@ ccl_device_inline uint32_t reverse_integer_bits(uint32_t x)
 #endif
 }
 
-/* Check if intervals (first->x, first->y) and (second.x, second.y) intersect, and replace the
- * first interval with their intersection. */
-ccl_device_inline bool intervals_intersect(ccl_private float2 *first, const float2 second)
-{
-  first->x = fmaxf(first->x, second.x);
-  first->y = fminf(first->y, second.y);
-
-  return first->x < first->y;
-}
-
 /* Solve quadratic equation a*x^2 + b*x + c = 0, adapted from Mitsuba 3
  * The solution is ordered so that x1 <= x2.
  * Returns true if at least one solution is found.  */
@@ -1082,6 +1083,30 @@ ccl_device_inline bool solve_quadratic(
   }
 
   return (valid_linear || valid_quadratic);
+}
+
+/* Defines a closed interval [min, max]. */
+template<typename T> struct Interval {
+  T min;
+  T max;
+
+  ccl_device_inline_method bool is_empty() const
+  {
+    return min >= max;
+  }
+
+  ccl_device_inline_method bool contains(T value) const
+  {
+    return value >= min && value <= max;
+  }
+};
+
+/* Computes the intersection of two intervals. */
+template<typename T>
+ccl_device_inline Interval<T> intervals_intersection(ccl_private const Interval<T> &first,
+                                                     ccl_private const Interval<T> &second)
+{
+  return {max(first.min, second.min), min(first.max, second.max)};
 }
 
 CCL_NAMESPACE_END

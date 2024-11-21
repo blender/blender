@@ -43,6 +43,13 @@
 #  include <opcode.h>
 #endif
 
+#if PY_VERSION_HEX >= 0x030d0000 /* >=3.13 */
+/* WARNING(@ideasman42): Using `Py_BUILD_CORE` is a last resort,
+ * the alternative would be not to inspect OP-CODES at all. */
+#  define Py_BUILD_CORE
+#  include <internal/pycore_code.h>
+#endif
+
 PyObject *bpy_pydriver_Dict = nullptr;
 
 #ifdef USE_BYTECODE_WHITELIST
@@ -222,7 +229,7 @@ static void bpy_pydriver_namespace_update_depsgraph(Depsgraph *depsgraph)
   }
 
   if ((g_pydriver_state_prev.depsgraph == nullptr) ||
-      (depsgraph != g_pydriver_state_prev.depsgraph->ptr.data))
+      (depsgraph != g_pydriver_state_prev.depsgraph->ptr->data))
   {
     PyObject *item = bpy_pydriver_depsgraph_as_pyobject(depsgraph);
     PyDict_SetItem(bpy_pydriver_Dict, bpy_intern_str_depsgraph, item);
@@ -375,7 +382,35 @@ static bool is_opcode_secure(const int opcode)
     OK_OP(LOAD_CONST) /* Ok because constants are accepted. */
     OK_OP(LOAD_NAME)  /* Ok, because `PyCodeObject.names` is checked. */
     OK_OP(CALL)       /* Ok, because we check its "name" before calling. */
-    OK_OP(KW_NAMES)   /* Ok, because it's used for calling functions with keyword arguments. */
+#  if PY_VERSION_HEX >= 0x030d0000
+    OK_OP(CALL_KW) /* Ok, because it's used for calling functions with keyword arguments. */
+
+    OK_OP(CALL_FUNCTION_EX);
+
+    /* OK because the names are checked. */
+    OK_OP(CALL_ALLOC_AND_ENTER_INIT)
+    OK_OP(CALL_BOUND_METHOD_EXACT_ARGS)
+    OK_OP(CALL_BOUND_METHOD_GENERAL)
+    OK_OP(CALL_BUILTIN_CLASS)
+    OK_OP(CALL_BUILTIN_FAST)
+    OK_OP(CALL_BUILTIN_FAST_WITH_KEYWORDS)
+    OK_OP(CALL_BUILTIN_O)
+    OK_OP(CALL_ISINSTANCE)
+    OK_OP(CALL_LEN)
+    OK_OP(CALL_LIST_APPEND)
+    OK_OP(CALL_METHOD_DESCRIPTOR_FAST)
+    OK_OP(CALL_METHOD_DESCRIPTOR_FAST_WITH_KEYWORDS)
+    OK_OP(CALL_METHOD_DESCRIPTOR_NOARGS)
+    OK_OP(CALL_METHOD_DESCRIPTOR_O)
+    OK_OP(CALL_NON_PY_GENERAL)
+    OK_OP(CALL_PY_EXACT_ARGS)
+    OK_OP(CALL_PY_GENERAL)
+    OK_OP(CALL_STR_1)
+    OK_OP(CALL_TUPLE_1)
+    OK_OP(CALL_TYPE_1)
+#  else
+    OK_OP(KW_NAMES) /* Ok, because it's used for calling functions with keyword arguments. */
+#  endif
 
 #  if PY_VERSION_HEX < 0x030c0000
     OK_OP(PRECALL) /* Ok, because it's used for calling. */

@@ -214,7 +214,7 @@ void extract_normals(const MeshRenderData &mr, const bool use_hq, gpu::VertBuf &
     MutableSpan corners_data = vbo_data.take_front(mr.corners_num);
     MutableSpan loose_data = vbo_data.take_back(mr.loose_indices_num);
 
-    if (mr.extract_type == MR_EXTRACT_MESH) {
+    if (mr.extract_type == MeshExtractType::Mesh) {
       extract_normals_mesh(mr, corners_data);
       extract_paint_overlay_flags(mr, corners_data);
     }
@@ -236,7 +236,7 @@ void extract_normals(const MeshRenderData &mr, const bool use_hq, gpu::VertBuf &
     MutableSpan corners_data = vbo_data.take_front(mr.corners_num);
     MutableSpan loose_data = vbo_data.take_back(mr.loose_indices_num);
 
-    if (mr.extract_type == MR_EXTRACT_MESH) {
+    if (mr.extract_type == MeshExtractType::Mesh) {
       extract_normals_mesh(mr, corners_data);
       extract_paint_overlay_flags(mr, corners_data);
     }

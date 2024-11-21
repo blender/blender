@@ -10,8 +10,12 @@
 
 #pragma once
 
+#include <optional>
+
 #include "BLI_span.hh"
+#include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
+
 #include "GPU_common_types.hh"
 #include "GPU_shader_builtin.hh"
 
@@ -26,10 +30,10 @@ struct GPUShader;
 
 /* Hardware limit is 16. Position attribute is always needed so we reduce to 15.
  * This makes sure the GPUVertexFormat name buffer does not overflow. */
-#define GPU_MAX_ATTR 15
+constexpr static int GPU_MAX_ATTR = 15;
 
 /* Determined by the maximum uniform buffer size divided by chunk size. */
-#define GPU_MAX_UNIFORM_ATTR 8
+constexpr static int GPU_MAX_UNIFORM_ATTR = 8;
 
 /* -------------------------------------------------------------------- */
 /** \name Creation
@@ -40,6 +44,11 @@ struct GPUShader;
  * Can return a null pointer if compilation fails.
  */
 GPUShader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info);
+
+/**
+ * Same as GPU_shader_create_from_info but will run preprocessor on source strings.
+ */
+GPUShader *GPU_shader_create_from_info_python(const GPUShaderCreateInfo *_info);
 
 /**
  * Create a shader using a named #GPUShaderCreateInfo registered at startup.
@@ -56,6 +65,9 @@ GPUShader *GPU_shader_create_from_info_name(const char *info_name);
  */
 const GPUShaderCreateInfo *GPU_shader_create_info_get(const char *info_name);
 
+void GPU_shader_create_info_get_unfinalized_copy(const char *info_name,
+                                                 GPUShaderCreateInfo &r_info);
+
 /**
  * Error checking for user created shaders.
  * \return true is create info is valid.
@@ -67,7 +79,7 @@ using BatchHandle = int64_t;
  * Request the creation of multiple shaders at once, allowing the backend to use multithreaded
  * compilation. Returns a handle that can be used to poll if all shaders have been compiled, and to
  * retrieve the compiled shaders.
- * NOTE: This function is asynchronous on OpenGL, but it's blocking on Vulkan and Metal.
+ * NOTE: This function is asynchronous on OpenGL, but it's blocking on Vulkan.
  * WARNING: The GPUShaderCreateInfo pointers should be valid until `GPU_shader_batch_finalize` has
  * returned.
  */
@@ -263,32 +275,32 @@ enum eGPUShaderTFBType {
   GPU_SHADER_TFB_TRIANGLES = 3,
 };
 
-GPUShader *GPU_shader_create(const char *vertcode,
-                             const char *fragcode,
-                             const char *geomcode,
-                             const char *libcode,
-                             const char *defines,
-                             const char *shname);
-GPUShader *GPU_shader_create_compute(const char *computecode,
-                                     const char *libcode,
-                                     const char *defines,
-                                     const char *shname);
-GPUShader *GPU_shader_create_from_python(const char *vertcode,
-                                         const char *fragcode,
-                                         const char *geomcode,
-                                         const char *libcode,
-                                         const char *defines,
-                                         const char *name);
-GPUShader *GPU_shader_create_ex(const char *vertcode,
-                                const char *fragcode,
-                                const char *geomcode,
-                                const char *computecode,
-                                const char *libcode,
-                                const char *defines,
+GPUShader *GPU_shader_create(std::optional<blender::StringRefNull> vertcode,
+                             std::optional<blender::StringRefNull> fragcode,
+                             std::optional<blender::StringRefNull> geomcode,
+                             std::optional<blender::StringRefNull> libcode,
+                             std::optional<blender::StringRefNull> defines,
+                             blender::StringRefNull shname);
+GPUShader *GPU_shader_create_compute(std::optional<blender::StringRefNull> computecode,
+                                     std::optional<blender::StringRefNull> libcode,
+                                     std::optional<blender::StringRefNull> defines,
+                                     blender::StringRefNull shname);
+GPUShader *GPU_shader_create_from_python(std::optional<blender::StringRefNull> vertcode,
+                                         std::optional<blender::StringRefNull> fragcode,
+                                         std::optional<blender::StringRefNull> geomcode,
+                                         std::optional<blender::StringRefNull> libcode,
+                                         std::optional<blender::StringRefNull> defines,
+                                         std::optional<blender::StringRefNull> name);
+GPUShader *GPU_shader_create_ex(std::optional<blender::StringRefNull> vertcode,
+                                std::optional<blender::StringRefNull> fragcode,
+                                std::optional<blender::StringRefNull> geomcode,
+                                std::optional<blender::StringRefNull> computecode,
+                                std::optional<blender::StringRefNull> libcode,
+                                std::optional<blender::StringRefNull> defines,
                                 eGPUShaderTFBType tf_type,
                                 const char **tf_names,
                                 int tf_count,
-                                const char *shname);
+                                blender::StringRefNull shname);
 
 /**
  * Returns true if transform feedback was successfully enabled.

@@ -6,29 +6,39 @@
  * \ingroup gpu
  */
 
+#ifdef GPU_SHADER
+#  pragma once
+#  include "gpu_glsl_cpp_stubs.hh"
+
+#  include "GPU_shader_shared.hh"
+#endif
+
 #include "gpu_interface_info.hh"
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(gpu_shader_index_2d_array_points)
-    .local_group_size(16, 16, 1)
-    .push_constant(Type::INT, "elements_per_curve")
-    .push_constant(Type::INT, "ncurves")
-    .storage_buf(0, Qualifier::WRITE, "uint", "out_indices[]")
-    .compute_source("gpu_shader_index_2d_array_points.glsl")
-    .do_static_compilation(true);
+LOCAL_GROUP_SIZE(16, 16, 1)
+PUSH_CONSTANT(INT, elements_per_curve)
+PUSH_CONSTANT(INT, ncurves)
+STORAGE_BUF(0, WRITE, uint, out_indices[])
+COMPUTE_SOURCE("gpu_shader_index_2d_array_points.glsl")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(gpu_shader_index_2d_array_lines)
-    .local_group_size(16, 16, 1)
-    .push_constant(Type::INT, "elements_per_curve")
-    .push_constant(Type::INT, "ncurves")
-    .storage_buf(0, Qualifier::WRITE, "uint", "out_indices[]")
-    .compute_source("gpu_shader_index_2d_array_lines.glsl")
-    .do_static_compilation(true);
+LOCAL_GROUP_SIZE(16, 16, 1)
+PUSH_CONSTANT(INT, elements_per_curve)
+PUSH_CONSTANT(INT, ncurves)
+STORAGE_BUF(0, WRITE, uint, out_indices[])
+COMPUTE_SOURCE("gpu_shader_index_2d_array_lines.glsl")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(gpu_shader_index_2d_array_tris)
-    .local_group_size(16, 16, 1)
-    .push_constant(Type::INT, "elements_per_curve")
-    .push_constant(Type::INT, "ncurves")
-    .storage_buf(0, Qualifier::WRITE, "uint", "out_indices[]")
-    .compute_source("gpu_shader_index_2d_array_tris.glsl")
-    .do_static_compilation(true);
+LOCAL_GROUP_SIZE(16, 16, 1)
+PUSH_CONSTANT(INT, elements_per_curve)
+PUSH_CONSTANT(INT, ncurves)
+STORAGE_BUF(0, WRITE, uint, out_indices[])
+COMPUTE_SOURCE("gpu_shader_index_2d_array_tris.glsl")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()

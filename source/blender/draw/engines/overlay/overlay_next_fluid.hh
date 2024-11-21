@@ -78,7 +78,7 @@ class Fluids {
     Object *ob = ob_ref.object;
 
     /* Do not show for dupli objects as the fluid is baked for the original object. */
-    if (ob->base_flag & (BASE_FROM_SET | BASE_FROM_DUPLI)) {
+    if (is_from_dupli_or_set(ob)) {
       return;
     }
 

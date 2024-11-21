@@ -2,12 +2,13 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#include "common_view_clipping_lib.glsl"
+#include "common_view_lib.glsl"
 
-void do_vertex(vec4 color, vec4 pos, float coord, vec2 offset)
+void do_vertex(vec4 color, vec4 pos, float coord, float wire_width, vec2 offset)
 {
   geometry_out.finalColor = color;
+  geometry_out.wire_width = wire_width;
   geometry_noperspective_out.edgeCoord = coord;
   gl_Position = pos;
   /* Multiply offset by 2 because gl_Position range is [-1..1]. */
@@ -48,7 +49,6 @@ void main()
   /* `sizeEdge` is defined as the distance from the center to the outer edge.
    * As such to get the total width it needs to be doubled. */
   const float wire_width = geometry_in[0].wire_width * (sizeEdge * 2);
-  geometry_out.wire_width = wire_width;
   float half_size = max(wire_width / 2.0, 0.5);
 
   if (do_smooth_wire) {
@@ -64,12 +64,12 @@ void main()
    * function (see #62792). */
   view_clipping_distances_set(gl_in[0]);
   const vec4 final_color = geometry_in[0].finalColor;
-  do_vertex(final_color, pos0, half_size, edge_ofs);
-  do_vertex(final_color, pos0, -half_size, -edge_ofs);
+  do_vertex(final_color, pos0, half_size, wire_width, edge_ofs);
+  do_vertex(final_color, pos0, -half_size, wire_width, -edge_ofs);
 
   view_clipping_distances_set(gl_in[1]);
-  do_vertex(final_color, pos1, half_size, edge_ofs);
-  do_vertex(final_color, pos1, -half_size, -edge_ofs);
+  do_vertex(final_color, pos1, half_size, wire_width, edge_ofs);
+  do_vertex(final_color, pos1, -half_size, wire_width, -edge_ofs);
 
   EndPrimitive();
 }

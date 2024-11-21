@@ -197,6 +197,14 @@ bool ED_time_scrub_event_in_region(const ARegion *region, const wmEvent *event)
   return BLI_rcti_isect_pt_v(&rect, event->xy);
 }
 
+bool ED_time_scrub_event_in_region_poll(const wmWindow * /*win*/,
+                                        const ScrArea * /*area*/,
+                                        const ARegion *region,
+                                        const wmEvent *event)
+{
+  return ED_time_scrub_event_in_region(region, event);
+}
+
 void ED_time_scrub_channel_search_draw(const bContext *C, ARegion *region, bDopeSheet *dopesheet)
 {
   GPU_matrix_push_projection();

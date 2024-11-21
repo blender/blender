@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_array_utils.hh"
+
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_instances.hh"
@@ -129,6 +131,9 @@ static GreasePencil *curve_instances_to_grease_pencil_layers(
   bke::MutableAttributeAccessor grease_pencil_attributes = grease_pencil->attributes_for_write();
   instances_attributes.foreach_attribute([&](const AttributeIter &iter) {
     if (iter.is_builtin && !grease_pencil_attributes.is_builtin(iter.name)) {
+      return;
+    }
+    if (iter.data_type == CD_PROP_STRING) {
       return;
     }
     if (ELEM(iter.name, "opacity")) {

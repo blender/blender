@@ -78,7 +78,7 @@ IDTypeInfo IDType_ID_SPK = {
     /*lib_override_apply_post*/ nullptr,
 };
 
-void *BKE_speaker_add(Main *bmain, const char *name)
+Speaker *BKE_speaker_add(Main *bmain, const char *name)
 {
   Speaker *spk;
 

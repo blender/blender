@@ -55,33 +55,34 @@ class GreasePencil {
     const View3D *v3d = state.v3d;
     const ToolSettings *ts = state.scene->toolsettings;
 
-    const bke::AttrDomain selection_domain_edit = ED_grease_pencil_edit_selection_domain_get(ts);
-    const bool show_edit_point = selection_domain_edit == bke::AttrDomain::Point;
     const bool show_lines = (v3d->gp_flag & V3D_GP_SHOW_EDIT_LINES);
+    const bool show_direction = (v3d->gp_flag & V3D_GP_SHOW_STROKE_DIRECTION);
 
     show_points_ = show_lines_ = show_weight_ = false;
 
     switch (state.object_mode) {
-      case OB_MODE_PAINT_GPENCIL_LEGACY:
+      case OB_MODE_PAINT_GREASE_PENCIL:
         /* Draw mode. */
         break;
-      case OB_MODE_VERTEX_GPENCIL_LEGACY:
+      case OB_MODE_VERTEX_GREASE_PENCIL:
         /* Vertex paint mode. */
+        show_lines_ = ED_grease_pencil_vertex_selection_domain_get(ts) == bke::AttrDomain::Point;
+        show_lines_ = show_lines;
         break;
       case OB_MODE_EDIT:
         /* Edit mode. */
-        show_points_ = show_edit_point;
+        show_points_ = ED_grease_pencil_edit_selection_domain_get(ts) == bke::AttrDomain::Point;
         show_lines_ = show_lines;
         break;
-      case OB_MODE_WEIGHT_GPENCIL_LEGACY:
+      case OB_MODE_WEIGHT_GREASE_PENCIL:
         /* Weight paint mode. */
         show_points_ = true;
         show_lines_ = show_lines;
         show_weight_ = true;
         break;
-      case OB_MODE_SCULPT_GPENCIL_LEGACY:
+      case OB_MODE_SCULPT_GREASE_PENCIL:
         /* Sculpt mode. */
-        show_points_ = (selection_domain_edit == bke::AttrDomain::Point);
+        show_points_ = ED_grease_pencil_sculpt_selection_domain_get(ts) == bke::AttrDomain::Point;
         show_lines_ = show_lines && (ts->gpencil_selectmode_sculpt != 0);
         break;
       default:
@@ -106,6 +107,7 @@ class GreasePencil {
         sub.bind_texture("weightTex", &res.weight_ramp_tx);
         sub.push_constant("useWeight", show_weight_);
         sub.push_constant("useGreasePencil", true);
+        sub.push_constant("doStrokeEndpoints", show_direction);
         edit_points_ = &sub;
       }
 
@@ -156,12 +158,16 @@ class GreasePencil {
       gpu::Batch *geom = show_weight_ ?
                              DRW_cache_grease_pencil_weight_points_get(state.scene, ob) :
                              DRW_cache_grease_pencil_edit_points_get(state.scene, ob);
-      edit_points_->draw(geom, manager.unique_handle(ob_ref));
+      if (geom) {
+        edit_points_->draw(geom, manager.unique_handle(ob_ref));
+      }
     }
     if (show_lines_) {
       gpu::Batch *geom = show_weight_ ? DRW_cache_grease_pencil_weight_lines_get(state.scene, ob) :
                                         DRW_cache_grease_pencil_edit_lines_get(state.scene, ob);
-      edit_lines_->draw(geom, manager.unique_handle(ob_ref));
+      if (geom) {
+        edit_lines_->draw(geom, manager.unique_handle(ob_ref));
+      }
     }
   }
 
@@ -189,7 +195,7 @@ class GreasePencil {
       return;
     }
 
-    if (ob_ref.object != state.active_base->object) {
+    if ((!state.active_base) || (ob_ref.object != state.active_base->object)) {
       /* Only display for the active object. */
       return;
     }

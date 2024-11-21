@@ -27,7 +27,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_multires.hh"
 #include "BKE_paint.hh"
-#include "BKE_pbvh_api.hh"
+#include "BKE_paint_bvh.hh"
 #include "BKE_subdiv_ccg.hh"
 #include "BKE_subsurf.hh"
 
@@ -432,19 +432,19 @@ static void fill_mask_grids(Main &bmain,
                             const IndexMask &node_mask)
 {
   SculptSession &ss = *object.sculpt;
-  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
-  MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
 
-  SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
-
-  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-  if (value == 0.0f && subdiv_ccg.masks.is_empty()) {
+  if (value == 0.0f && ss.subdiv_ccg->masks.is_empty()) {
     /* NOTE: Deleting the mask array would be possible here. */
     return;
   }
 
   MultiresModifierData &mmd = *BKE_sculpt_multires_active(&scene, &object);
   BKE_sculpt_mask_layers_ensure(&depsgraph, &bmain, &object, &mmd);
+
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+  MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
+  SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
   const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
 
@@ -567,16 +567,15 @@ static void invert_mask_grids(Main &bmain,
                               const IndexMask &node_mask)
 {
   SculptSession &ss = *object.sculpt;
-  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
-  MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-
-  SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
 
   MultiresModifierData &mmd = *BKE_sculpt_multires_active(&scene, &object);
   BKE_sculpt_mask_layers_ensure(&depsgraph, &bmain, &object, &mmd);
 
   undo::push_nodes(depsgraph, object, node_mask, undo::Type::Mask);
 
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+  MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
+  SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
 
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);

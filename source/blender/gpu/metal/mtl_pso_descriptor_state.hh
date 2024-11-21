@@ -7,12 +7,15 @@
  */
 #pragma once
 
+#include "BLI_math_bits.h"
+#include "GPU_batch.hh"
 #include "GPU_vertex_format.hh"
 
 #include <Metal/Metal.h>
 
 #include "BLI_vector.hh"
 
+#include "gpu_framebuffer_private.hh"
 #include "gpu_shader_private.hh"
 
 namespace blender::gpu {
@@ -83,7 +86,7 @@ struct MTLSSBOAttribute {
   int attribute_format;
   bool is_instance;
 
-  MTLSSBOAttribute(){};
+  MTLSSBOAttribute() = default;
   MTLSSBOAttribute(
       int attribute_ind, int vertexbuffer_ind, int offset, int stride, int format, bool instanced)
       : mtl_attribute_index(attribute_ind),
@@ -97,7 +100,10 @@ struct MTLSSBOAttribute {
 
   bool operator==(const MTLSSBOAttribute &other) const
   {
-    return (memcmp(this, &other, sizeof(MTLSSBOAttribute)) == 0);
+    return (mtl_attribute_index == other.mtl_attribute_index && vbo_id == other.vbo_id &&
+            attribute_offset == other.attribute_offset &&
+            per_vertex_stride == other.per_vertex_stride &&
+            attribute_format == other.attribute_format && is_instance == other.is_instance);
   }
 
   void reset()
@@ -314,7 +320,7 @@ struct MTLRenderPipelineStateDescriptor {
     }
 
     hash |= uint64_t((this->blending_enabled && (this->num_color_attachments > 0)) ? 1 : 0) << 62;
-    hash ^= uint64_t(this->point_size);
+    hash ^= uint64_t(float_as_uint(this->point_size));
 
     /* Clipping plane enablement. */
     hash ^= uint64_t(clipping_plane_enable_mask) << 20;
@@ -347,7 +353,7 @@ struct MTLComputePipelineStateDescriptor {
   /* Specialization constants map. */
   SpecializationStateDescriptor specialization_state;
 
-  MTLComputePipelineStateDescriptor() {}
+  MTLComputePipelineStateDescriptor() = default;
   MTLComputePipelineStateDescriptor(Vector<Shader::Constants::Value> values)
   {
     specialization_state.values = values;

@@ -375,7 +375,7 @@ const EnumPropertyItem rna_enum_object_modifier_type_items[] = {
      "GREASE_PENCIL_NOISE",
      ICON_MOD_NOISE,
      "Noise",
-     "Generate noise wobble in grease pencil strokes"},
+     "Generate noise wobble in Grease Pencil strokes"},
     {eModifierType_GreasePencilOffset,
      "GREASE_PENCIL_OFFSET",
      ICON_MOD_OFFSET,
@@ -385,7 +385,7 @@ const EnumPropertyItem rna_enum_object_modifier_type_items[] = {
      "GREASE_PENCIL_SMOOTH",
      ICON_SMOOTHCURVE,
      "Smooth",
-     "Smooth grease pencil strokes"},
+     "Smooth Grease Pencil strokes"},
     {eModifierType_GreasePencilThickness,
      "GREASE_PENCIL_THICKNESS",
      ICON_MOD_THICKNESS,
@@ -568,9 +568,13 @@ const EnumPropertyItem rna_enum_shrinkwrap_face_cull_items[] = {
 };
 
 const EnumPropertyItem rna_enum_node_warning_type_items[] = {
-    {int(blender::nodes::geo_eval_log::NodeWarningType::Error), "ERROR", 0, "Error", ""},
-    {int(blender::nodes::geo_eval_log::NodeWarningType::Warning), "WARNING", 0, "Warning", ""},
-    {int(blender::nodes::geo_eval_log::NodeWarningType::Info), "INFO", 0, "Info", ""},
+    {int(blender::nodes::geo_eval_log::NodeWarningType::Error), "ERROR", ICON_CANCEL, "Error", ""},
+    {int(blender::nodes::geo_eval_log::NodeWarningType::Warning),
+     "WARNING",
+     ICON_ERROR,
+     "Warning",
+     ""},
+    {int(blender::nodes::geo_eval_log::NodeWarningType::Info), "INFO", ICON_INFO, "Info", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -2099,7 +2103,7 @@ static void rna_GreasePencilModifier_material_set(PointerRNA *ptr,
                                                   Material **ma_target)
 {
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
-  Material *ma = reinterpret_cast<Material *>(value.owner_id);
+  Material *ma = reinterpret_cast<Material *>(value.data);
 
   if (ma == nullptr || BKE_object_material_index_get(ob, ma) != -1) {
     id_lib_extern(reinterpret_cast<ID *>(ob));
@@ -2109,7 +2113,7 @@ static void rna_GreasePencilModifier_material_set(PointerRNA *ptr,
     BKE_reportf(
         reports,
         RPT_ERROR,
-        "Cannot assign material '%s', it has to be used by the grease pencil object already",
+        "Cannot assign material '%s', it has to be used by the Grease Pencil object already",
         ma->id.name);
   }
 }
@@ -8547,6 +8551,7 @@ static void rna_def_modifier_grease_pencil_subdiv(BlenderRNA *brna)
   RNA_def_property_range(prop, 0, 16);
   RNA_def_property_ui_range(prop, 0, 6, 1, 0);
   RNA_def_property_ui_text(prop, "Level", "Level of subdivision");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "subdivision_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "type");
@@ -8847,7 +8852,7 @@ static void rna_def_modifier_grease_pencil_lineart(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_face_mark", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "calculation_flags", MOD_LINEART_FILTER_FACE_MARK);
   RNA_def_property_ui_text(
-      prop, "Filter Face Marks", "Filter feature lines using freestyle face marks");
+      prop, "Filter Face Marks", "Filter feature lines using Freestyle face marks");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "use_face_mark_invert", PROP_BOOLEAN, PROP_NONE);
@@ -8981,7 +8986,7 @@ static void rna_def_modifier_grease_pencil_lineart(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_edge_mark", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "edge_types", MOD_LINEART_EDGE_FLAG_EDGE_MARK);
-  RNA_def_property_ui_text(prop, "Use Edge Mark", "Generate strokes from freestyle marked edges");
+  RNA_def_property_ui_text(prop, "Use Edge Mark", "Generate strokes from Freestyle marked edges");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "use_intersection", PROP_BOOLEAN, PROP_NONE);
@@ -10306,6 +10311,8 @@ static void rna_def_modifier_grease_pencil_simplify(BlenderRNA *brna)
       srna, "rna_GreasePencilSimplifyModifier_material_filter_set");
   rna_def_modifier_grease_pencil_vertex_group(
       srna, "rna_GreasePencilSimplifyModifier_vertex_group_name_set");
+
+  rna_def_modifier_panel_open_prop(srna, "open_influence_panel", 0);
 
   prop = RNA_def_property(srna, "factor", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, nullptr, "factor");

@@ -112,11 +112,13 @@ static Array<int> point_counts_to_keep_concurrent(const bke::CurvesGeometry &cur
 {
   const int stroke_count = curves.curves_num();
   const OffsetIndices<int> points_by_curve = curves.points_by_curve();
+  const VArray<bool> cyclic = curves.cyclic();
 
   curves.ensure_evaluated_lengths();
   float max_length = 0;
   for (const int stroke : curves.curves_range()) {
-    const float len = curves.evaluated_length_total_for_curve(stroke, false);
+    const bool stroke_cyclic = cyclic[stroke];
+    const float len = curves.evaluated_length_total_for_curve(stroke, stroke_cyclic);
     max_length = math::max(max_length, len);
   }
 
@@ -128,7 +130,9 @@ static Array<int> point_counts_to_keep_concurrent(const bke::CurvesGeometry &cur
   }
 
   auto get_stroke_factor = [&](const float factor, const int index) {
-    const float max_factor = max_length / curves.evaluated_length_total_for_curve(index, false);
+    const bool stroke_cyclic = cyclic[index];
+    const float max_factor = max_length /
+                             curves.evaluated_length_total_for_curve(index, stroke_cyclic);
     if (time_alignment == MOD_GREASE_PENCIL_BUILD_TIMEALIGN_START) {
       if (clamp_points) {
         return std::clamp(factor * max_factor, 0.0f, 1.0f);
@@ -478,7 +482,8 @@ static bke::CurvesGeometry reorder_strokes(const bke::CurvesGeometry &curves,
 static float get_factor_from_draw_speed(const bke::CurvesGeometry &curves,
                                         const float time_elapsed,
                                         const float speed_fac,
-                                        const float max_gap)
+                                        const float max_gap,
+                                        const float frame_duration)
 {
   const OffsetIndices<int> points_by_curve = curves.points_by_curve();
   const bke::AttributeAccessor attributes = curves.attributes();
@@ -501,7 +506,21 @@ static float get_factor_from_draw_speed(const bke::CurvesGeometry &curves,
     start_times[curve] = previous_end_time + gap_delta_time;
     accumulated_shift_delta_time += math::max(shifted_start_time - start_times[curve], 0.0f);
   }
-  const float limit = time_elapsed * speed_fac;
+
+  /* Caclulates the maximum time of this frame, which is the time between the beginning of the
+   * first stroke and the end of the last stroke. `start_times.last()` gives the starting time of
+   * the last stroke related to frame beginning, and `delta_time.last()` gives how long that stroke
+   * lasted.  */
+  const float max_time = start_times.last() + delta_times.last();
+
+  /* If the time needed for building the frame is shorter than frame length, this gives the
+   * percentage of time it needs to be compared to original drawing time. `max_time/speed_fac`
+   * gives time after speed scaling, then divided by `frame_duration` gives the percentage. */
+  const float time_compress_factor = math::max(max_time / speed_fac / frame_duration, 1.0f);
+
+  /* Finally actual building limit is then scaled with speed factor and time compress factor. */
+  const float limit = time_elapsed * speed_fac * time_compress_factor;
+
   for (const int curve : curves.curves_range()) {
     const float start_time = start_times[curve];
     for (const int point : points_by_curve[curve]) {
@@ -517,6 +536,7 @@ static float get_factor_from_draw_speed(const bke::CurvesGeometry &curves,
 static float get_build_factor(const GreasePencilBuildTimeMode time_mode,
                               const int current_frame,
                               const int start_frame,
+                              const int frame_duration,
                               const int length,
                               const float percentage,
                               const bke::CurvesGeometry &curves,
@@ -525,14 +545,27 @@ static float get_build_factor(const GreasePencilBuildTimeMode time_mode,
                               const float max_gap,
                               const float fade)
 {
+  const float use_time = blender::math::round(
+      float(current_frame) / float(math::min(frame_duration, length)) * float(length));
+  const float build_factor_frames = math::clamp(
+                                        float(use_time - start_frame) / length, 0.0f, 1.0f) *
+                                    (1.0f + fade);
   switch (time_mode) {
     case MOD_GREASE_PENCIL_BUILD_TIMEMODE_FRAMES:
-      return math::clamp(float(current_frame - start_frame) / length, 0.0f, 1.0f) * (1.0f + fade);
+      return build_factor_frames;
     case MOD_GREASE_PENCIL_BUILD_TIMEMODE_PERCENTAGE:
       return percentage * (1.0f + fade);
     case MOD_GREASE_PENCIL_BUILD_TIMEMODE_DRAWSPEED:
-      return get_factor_from_draw_speed(
-                 curves, float(current_frame) / scene_fps, speed_fac, max_gap) *
+      /* The "drawing speed" is written as an attribute called 'delta_time' (for each point). If
+       * this attribute doesn't exist, we fallback to the "frames" mode. */
+      if (!curves.attributes().contains("delta_time")) {
+        return build_factor_frames;
+      }
+      return get_factor_from_draw_speed(curves,
+                                        float(current_frame) / scene_fps,
+                                        speed_fac,
+                                        max_gap,
+                                        float(frame_duration) / scene_fps) *
              (1.0f + fade);
   }
   BLI_assert_unreachable();
@@ -544,11 +577,13 @@ static void build_drawing(const GreasePencilBuildModifierData &mmd,
                           bke::greasepencil::Drawing &drawing,
                           const bke::greasepencil::Drawing *previous_drawing,
                           const int current_time,
+                          const int frame_duration,
                           const float scene_fps)
 {
+  modifier::greasepencil::ensure_no_bezier_curves(drawing);
   bke::CurvesGeometry &curves = drawing.strokes_for_write();
 
-  if (curves.points_num() == 0) {
+  if (curves.is_empty()) {
     return;
   }
 
@@ -583,6 +618,7 @@ static void build_drawing(const GreasePencilBuildModifierData &mmd,
   float factor = get_build_factor(GreasePencilBuildTimeMode(mmd.time_mode),
                                   current_time,
                                   mmd.start_delay,
+                                  frame_duration,
                                   mmd.length,
                                   mmd.percentage_fac,
                                   curves,
@@ -670,10 +706,33 @@ static void modify_geometry_set(ModifierData *md,
 
   threading::parallel_for_each(
       drawing_infos, [&](modifier::greasepencil::LayerDrawingInfo drawing_info) {
+        const bke::greasepencil::Layer &layer = *layers[drawing_info.layer_index];
         const bke::greasepencil::Drawing *prev_drawing = grease_pencil.get_drawing_at(
-            *layers[drawing_info.layer_index], eval_frame - 1);
-        build_drawing(
-            *mmd, *ctx->object, *drawing_info.drawing, prev_drawing, eval_frame, scene_fps);
+            layer, eval_frame - 1);
+
+        /* This will always return a valid start frame because we're iterating over the valid
+         * drawings on `eval_frame`. Each drawing will have a start frame. */
+        const int start_frame = *layer.start_frame_at(eval_frame);
+        BLI_assert(start_frame <= eval_frame);
+
+        const int relative_start_frame = eval_frame - start_frame;
+
+        const int frame_index = layer.sorted_keys_index_at(eval_frame);
+        BLI_assert(frame_index != -1);
+
+        int frame_duration = INT_MAX;
+        if (frame_index != layer.sorted_keys().index_range().last()) {
+          const int next_frame = layer.sorted_keys()[frame_index + 1];
+          frame_duration = math::distance(start_frame, next_frame);
+        }
+
+        build_drawing(*mmd,
+                      *ctx->object,
+                      *drawing_info.drawing,
+                      prev_drawing,
+                      relative_start_frame,
+                      frame_duration,
+                      scene_fps);
       });
 }
 
@@ -731,7 +790,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiItemR(layout, ptr, "object", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   if (uiLayout *panel = uiLayoutPanelProp(
-          C, layout, ptr, "open_frame_range_panel", "Effective Range"))
+          C, layout, ptr, "open_frame_range_panel", IFACE_("Effective Range")))
   {
     uiLayoutSetPropSep(panel, true);
     uiItemR(
@@ -744,7 +803,7 @@ static void panel_draw(const bContext *C, Panel *panel)
     uiItemR(col, ptr, "frame_end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
   }
 
-  if (uiLayout *panel = uiLayoutPanelProp(C, layout, ptr, "open_fading_panel", "Fading")) {
+  if (uiLayout *panel = uiLayoutPanelProp(C, layout, ptr, "open_fading_panel", IFACE_("Fading"))) {
     uiLayoutSetPropSep(panel, true);
     uiItemR(panel, ptr, "use_fading", UI_ITEM_NONE, IFACE_("Fade"), ICON_NONE);
 
@@ -768,7 +827,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   }
 
   if (uiLayout *influence_panel = uiLayoutPanelProp(
-          C, layout, ptr, "open_influence_panel", "Influence"))
+          C, layout, ptr, "open_influence_panel", IFACE_("Influence")))
   {
     modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
     modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);

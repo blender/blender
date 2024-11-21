@@ -68,7 +68,6 @@ set(SRC
   intern/draw_attributes.cc
   intern/draw_cache_impl_curve.cc
   intern/draw_cache_impl_curves.cc
-  intern/draw_cache_impl_gpencil_legacy.cc
   intern/draw_cache_impl_grease_pencil.cc
   intern/draw_cache_impl_lattice.cc
   intern/draw_cache_impl_mesh.cc
@@ -174,7 +173,6 @@ set(SRC
   engines/overlay/overlay_extra.cc
   engines/overlay/overlay_facing.cc
   engines/overlay/overlay_fade.cc
-  engines/overlay/overlay_gpencil_legacy.cc
   engines/overlay/overlay_grease_pencil.cc
   engines/overlay/overlay_grid.cc
   engines/overlay/overlay_image.cc
@@ -291,6 +289,7 @@ set(SRC
   engines/overlay/overlay_next_antialiasing.hh
   engines/overlay/overlay_next_armature.hh
   engines/overlay/overlay_next_attribute_viewer.hh
+  engines/overlay/overlay_next_axes.hh
   engines/overlay/overlay_next_background.hh
   engines/overlay/overlay_next_bounds.hh
   engines/overlay/overlay_next_camera.hh
@@ -312,6 +311,7 @@ set(SRC
   engines/overlay/overlay_next_metaball.hh
   engines/overlay/overlay_next_mode_transfer.hh
   engines/overlay/overlay_next_motion_path.hh
+  engines/overlay/overlay_next_name.hh
   engines/overlay/overlay_next_origin.hh
   engines/overlay/overlay_next_outline.hh
   engines/overlay/overlay_next_paint.hh
@@ -496,6 +496,7 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_shadow_tilemap_init_comp.glsl
   engines/eevee_next/shaders/eevee_shadow_tilemap_lib.glsl
   engines/eevee_next/shaders/eevee_shadow_tilemap_rendermap_comp.glsl
+  engines/eevee_next/shaders/eevee_shadow_visibility_comp.glsl
   engines/eevee_next/shaders/eevee_spherical_harmonics_lib.glsl
   engines/eevee_next/shaders/eevee_subsurface_convolve_comp.glsl
   engines/eevee_next/shaders/eevee_subsurface_lib.glsl
@@ -566,7 +567,6 @@ set(GLSL_SRC
   intern/shaders/common_attribute_lib.glsl
   intern/shaders/common_colormanagement_lib.glsl
   intern/shaders/common_debug_draw_lib.glsl
-  intern/shaders/common_debug_print_lib.glsl
   intern/shaders/common_debug_shape_lib.glsl
   intern/shaders/common_fullscreen_vert.glsl
   intern/shaders/common_fxaa_lib.glsl
@@ -596,13 +596,12 @@ set(GLSL_SRC
   intern/shaders/draw_command_generate_comp.glsl
   intern/shaders/draw_debug_draw_display_frag.glsl
   intern/shaders/draw_debug_draw_display_vert.glsl
-  intern/shaders/draw_debug_info.hh
-  intern/shaders/draw_debug_print_display_frag.glsl
-  intern/shaders/draw_debug_print_display_vert.glsl
   intern/shaders/draw_intersect_lib.glsl
   intern/shaders/draw_math_geom_lib.glsl
   intern/shaders/draw_model_lib.glsl
+  intern/shaders/draw_pointcloud_lib.glsl
   intern/shaders/draw_resource_finalize_comp.glsl
+  intern/shaders/draw_view_clipping_lib.glsl
   intern/shaders/draw_view_finalize_comp.glsl
   intern/shaders/draw_view_lib.glsl
   intern/shaders/draw_view_reconstruction_lib.glsl
@@ -799,7 +798,7 @@ set(GLSL_SRC
 set(GLSL_C)
 
 foreach(GLSL_FILE ${GLSL_SRC})
-  data_to_c_simple(${GLSL_FILE} GLSL_C STRIP_LEADING_C_COMMENTS)
+  glsl_to_c(${GLSL_FILE} GLSL_C)
 endforeach()
 
 blender_add_lib(bf_draw_shaders "${GLSL_C}" "" "" "")
@@ -835,6 +834,7 @@ if(WITH_DRAW_DEBUG)
 endif()
 
 if(WITH_OPENSUBDIV)
+  add_definitions(-DWITH_OPENSUBDIV)
   list(APPEND INC_SYS
     ${OPENSUBDIV_INCLUDE_DIRS}
   )

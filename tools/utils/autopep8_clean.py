@@ -9,10 +9,10 @@ from os.path import join
 
 from autopep8_clean_config import PATHS, PATHS_EXCLUDE
 
-from typing import (
+
+from collections.abc import (
     Callable,
-    Generator,
-    Optional,
+    Iterator,
     Sequence,
 )
 
@@ -35,8 +35,8 @@ def is_source_and_included(filename: str) -> bool:
 
 def path_iter(
         path: str,
-        filename_check: Optional[Callable[[str], bool]] = None,
-) -> Generator[str, None, None]:
+        filename_check: Callable[[str], bool] | None = None,
+) -> Iterator[str]:
     for dirpath, dirnames, filenames in os.walk(path):
         # skip ".git"
         dirnames[:] = [d for d in dirnames if not d.startswith(".")]
@@ -51,8 +51,8 @@ def path_iter(
 
 def path_expand(
         paths: Sequence[str],
-        filename_check: Optional[Callable[[str], bool]] = None,
-) -> Generator[str, None, None]:
+        filename_check: Callable[[str], bool] | None = None,
+) -> Iterator[str]:
     for f in paths:
         if not os.path.exists(f):
             print("Missing:", f)

@@ -166,6 +166,7 @@ void RNA_def_key(BlenderRNA *brna);
 void RNA_def_light(BlenderRNA *brna);
 void RNA_def_lattice(BlenderRNA *brna);
 void RNA_def_linestyle(BlenderRNA *brna);
+void RNA_def_blendfile_import(BlenderRNA *brna);
 void RNA_def_main(BlenderRNA *brna);
 void RNA_def_material(BlenderRNA *brna);
 void RNA_def_mesh(BlenderRNA *brna);

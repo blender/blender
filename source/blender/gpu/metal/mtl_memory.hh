@@ -4,6 +4,10 @@
 
 #pragma once
 
+#include "BLI_map.hh"
+
+#include "mtl_common.hh"
+
 #include <atomic>
 #include <ctime>
 #include <functional>
@@ -11,8 +15,6 @@
 #include <mutex>
 #include <set>
 #include <unordered_map>
-
-#include "mtl_common.hh"
 
 #include <Cocoa/Cocoa.h>
 #include <Metal/Metal.h>
@@ -90,10 +92,6 @@
 /* Debug memory statistics: Disabled by Macro rather than guarded for
  * performance considerations. */
 #define MTL_DEBUG_MEMORY_STATISTICS 0
-
-/* Allows a scratch buffer to temporarily grow beyond its maximum, which allows submission
- * of one-time-use data packets which are too large. */
-#define MTL_SCRATCH_BUFFER_ALLOW_TEMPORARY_EXPANSION 1
 
 namespace blender::gpu {
 

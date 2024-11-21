@@ -42,6 +42,14 @@
 #include "outliner_intern.hh"
 #include "tree/tree_display.hh"
 
+/**
+ * Since 2.8x outliner drawing itself can change the scroll position of the outliner
+ * after drawing has completed. Failing to draw a second time can cause nothing to display.
+ * Making search seem to fail & deleting objects fail to scroll up to show remaining objects.
+ * See #128346 for details.
+ */
+#define USE_OUTLINER_DRAW_CLAMPS_SCROLL_HACK
+
 namespace blender::ed::outliner {
 
 SpaceOutliner_Runtime::SpaceOutliner_Runtime(const SpaceOutliner_Runtime & /*other*/)
@@ -80,10 +88,21 @@ static void outliner_main_region_draw(const bContext *C, ARegion *region)
 {
   View2D *v2d = &region->v2d;
 
-  /* clear */
-  UI_ThemeClearColor(TH_BACK);
+#ifdef USE_OUTLINER_DRAW_CLAMPS_SCROLL_HACK
+  const rctf v2d_cur_prev = v2d->cur;
+#endif
 
-  draw_outliner(C);
+  UI_ThemeClearColor(TH_BACK);
+  draw_outliner(C, true);
+
+#ifdef USE_OUTLINER_DRAW_CLAMPS_SCROLL_HACK
+  /* This happens when scrolling is clamped & occasionally when resizing the area.
+   * In practice this isn't often which is important as that would hurt performance. */
+  if (!BLI_rctf_compare(&v2d->cur, &v2d_cur_prev, FLT_EPSILON)) {
+    UI_ThemeClearColor(TH_BACK);
+    draw_outliner(C, false);
+  }
+#endif
 
   /* reset view matrix */
   UI_view2d_view_restore(C);
@@ -363,14 +382,14 @@ static SpaceLink *outliner_create(const ScrArea * /*area*/, const Scene * /*scen
   space_outliner->filter = SO_FILTER_NO_VIEW_LAYERS;
 
   /* header */
-  region = MEM_cnew<ARegion>("header for outliner");
+  region = BKE_area_region_new();
 
   BLI_addtail(&space_outliner->regionbase, region);
   region->regiontype = RGN_TYPE_HEADER;
   region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* main region */
-  region = MEM_cnew<ARegion>("main region for outliner");
+  region = BKE_area_region_new();
 
   BLI_addtail(&space_outliner->regionbase, region);
   region->regiontype = RGN_TYPE_WINDOW;

@@ -10,8 +10,8 @@
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
+#include "BKE_paint_bvh.hh"
 #include "BKE_particle.h"
-#include "BKE_pbvh_api.hh"
 
 #include "DEG_depsgraph_query.hh"
 #include "DNA_fluid_types.h"
@@ -32,8 +32,12 @@ void SceneState::init(Object *camera_ob /*=nullptr*/)
 
   scene = DEG_get_evaluated_scene(context->depsgraph);
 
-  GPUTexture *viewport_tx = DRW_viewport_texture_list_get()->color;
-  resolution = int2(GPU_texture_width(viewport_tx), GPU_texture_height(viewport_tx));
+  if (assign_if_different(resolution, int2(float2(DRW_viewport_size_get())))) {
+    /* In some cases, the viewport can change resolution without a call to `workbench_view_update`.
+     * This is the case when dragging a window between two screen with different DPI settings.
+     * (See #128712) */
+    reset_taa = true;
+  }
 
   camera_object = camera_ob;
   if (camera_object == nullptr && v3d && rv3d) {
@@ -173,7 +177,16 @@ void SceneState::init(Object *camera_ob /*=nullptr*/)
   draw_dof = camera && camera->dof.flag & CAM_DOF_ENABLED &&
              shading.flag & V3D_SHADING_DEPTH_OF_FIELD;
 
-  draw_object_id = draw_outline || draw_curvature;
+  draw_object_id = (draw_outline || draw_curvature);
+
+  /* Legacy Vulkan devices don't support gaps between color attachments. We disable outline
+   * drawing on these devices. There are situations outline drawing can just work, but we need to
+   * be sure transparency depth drawing isn't used. */
+  /* TODO(jbakker): Add support on legacy Vulkan devices by introducing specific depth shaders. */
+  if ((shading.type < OB_SOLID || xray_mode) && GPU_vulkan_render_pass_workaround()) {
+    draw_object_id = false;
+    draw_outline = false;
+  }
 };
 
 static const CustomData *get_loop_custom_data(const Mesh *mesh)

@@ -40,7 +40,7 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "MOD_lineart.h"
+#include "MOD_lineart.hh"
 
 namespace blender::ed::greasepencil {
 
@@ -66,10 +66,10 @@ void get_lineart_modifier_limits(const Object &ob,
 
 void set_lineart_modifier_limits(GreasePencilLineartModifierData &lmd,
                                  const blender::ed::greasepencil::LineartLimitInfo &info,
-                                 const bool is_first_lineart)
+                                 const bool cache_is_ready)
 {
   BLI_assert(lmd.modifier.type == eModifierType_GreasePencilLineart);
-  if (is_first_lineart || lmd.flags & MOD_LINEART_USE_CACHE) {
+  if ((!cache_is_ready) || (lmd.flags & MOD_LINEART_USE_CACHE)) {
     lmd.level_start_override = info.min_level;
     lmd.level_end_override = info.max_level;
     lmd.edge_types_override = info.edge_types;
@@ -87,6 +87,8 @@ void set_lineart_modifier_limits(GreasePencilLineartModifierData &lmd,
 
 GreasePencilLineartModifierData *get_first_lineart_modifier(const Object &ob)
 {
+  /* This function always gets the first line art modifier regardless of their visibility, because
+   * cached line art configuration are always inside the first line art modifier. */
   LISTBASE_FOREACH (ModifierData *, i_md, &ob.modifiers) {
     if (i_md->type == eModifierType_GreasePencilLineart) {
       return reinterpret_cast<GreasePencilLineartModifierData *>(i_md);
@@ -509,7 +511,7 @@ static void OBJECT_OT_lineart_bake_strokes(wmOperatorType *ot)
   ot->exec = lineart_bake_strokes_exec;
   ot->modal = lineart_bake_strokes_common_modal;
 
-  RNA_def_boolean(ot->srna, "bake_all", false, "Bake All", "Bake all line art modifiers");
+  RNA_def_boolean(ot->srna, "bake_all", false, "Bake All", "Bake all Line Art modifiers");
 }
 
 static void OBJECT_OT_lineart_clear(wmOperatorType *ot)
@@ -521,7 +523,7 @@ static void OBJECT_OT_lineart_clear(wmOperatorType *ot)
   ot->poll = blender::ed::greasepencil::active_grease_pencil_poll;
   ot->exec = lineart_gpencil_clear_strokes_exec;
 
-  RNA_def_boolean(ot->srna, "clear_all", false, "Clear All", "Clear all line art modifier bakes");
+  RNA_def_boolean(ot->srna, "clear_all", false, "Clear All", "Clear all Line Art modifier bakes");
 }
 
 void ED_operatortypes_grease_pencil_lineart()

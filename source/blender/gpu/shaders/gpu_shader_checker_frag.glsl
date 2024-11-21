@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/gpu_shader_2D_checker_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(gpu_shader_2D_checker)
+
 void main()
 {
   vec2 phase = mod(gl_FragCoord.xy, (size * 2));

@@ -1041,6 +1041,23 @@ float blf_font_fixed_width(FontBLF *font)
   return width;
 }
 
+int blf_font_glyph_advance(FontBLF *font, const char *str)
+{
+  GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
+  const uint charcode = BLI_str_utf8_as_unicode_safe(str);
+  const GlyphBLF *g = blf_glyph_ensure(font, gc, charcode);
+
+  if (UNLIKELY(g == nullptr)) {
+    blf_glyph_cache_release(font);
+    return 0;
+  }
+
+  const int glyph_advance = ft_pix_to_int(g->advance_x);
+
+  blf_glyph_cache_release(font);
+  return glyph_advance;
+}
+
 void blf_font_boundbox_foreach_glyph(FontBLF *font,
                                      const char *str,
                                      const size_t str_len,

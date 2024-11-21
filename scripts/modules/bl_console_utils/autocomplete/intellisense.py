@@ -54,7 +54,7 @@ def complete(line, cursor, namespace, private):
     :arg private: whether private variables should be listed
     :type private: bool
     :returns: list of completions, word
-    :rtype: list, str
+    :rtype: tuple[list[str], str]
 
     >>> complete('re.sr', 5, {'re': re})
     (['re.sre_compile', 're.sre_parse'], 're.sr')
@@ -89,7 +89,7 @@ def expand(line, cursor, namespace, *, private=True):
     :arg cursor: current character position
     :type cursor: int
     :arg namespace: namespace
-    :type namespace: dict
+    :type namespace: dict[str, Any]
     :arg private: whether private variables should be listed
     :type private: bool
     :returns:

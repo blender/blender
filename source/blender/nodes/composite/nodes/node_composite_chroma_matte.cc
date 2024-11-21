@@ -8,7 +8,15 @@
 
 #include <cmath>
 
+#include "BLI_math_base.hh"
+#include "BLI_math_color.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
+#include "BLI_math_vector_types.hh"
+
+#include "FN_multi_function_builder.hh"
+
+#include "NOD_multi_function.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -66,6 +74,21 @@ static void node_composit_buts_chroma_matte(uiLayout *layout, bContext * /*C*/, 
 
 using namespace blender::realtime_compositor;
 
+static float get_acceptance(const bNode &node)
+{
+  return std::tan(node_storage(node).t1 / 2.0f);
+}
+
+static float get_cutoff(const bNode &node)
+{
+  return node_storage(node).t2;
+}
+
+static float get_falloff(const bNode &node)
+{
+  return node_storage(node).fstrength;
+}
+
 class ChromaMatteShaderNode : public ShaderNode {
  public:
   using ShaderNode::ShaderNode;
@@ -75,9 +98,9 @@ class ChromaMatteShaderNode : public ShaderNode {
     GPUNodeStack *inputs = get_inputs_array();
     GPUNodeStack *outputs = get_outputs_array();
 
-    const float acceptance = get_acceptance();
-    const float cutoff = get_cutoff();
-    const float falloff = get_falloff();
+    const float acceptance = get_acceptance(bnode());
+    const float cutoff = get_cutoff(bnode());
+    const float falloff = get_falloff(bnode());
 
     GPU_stack_link(material,
                    &bnode(),
@@ -88,26 +111,72 @@ class ChromaMatteShaderNode : public ShaderNode {
                    GPU_uniform(&cutoff),
                    GPU_uniform(&falloff));
   }
-
-  float get_acceptance()
-  {
-    return std::tan(node_storage(bnode()).t1 / 2.0f);
-  }
-
-  float get_cutoff()
-  {
-    return node_storage(bnode()).t2;
-  }
-
-  float get_falloff()
-  {
-    return node_storage(bnode()).fstrength;
-  }
 };
 
 static ShaderNode *get_compositor_shader_node(DNode node)
 {
   return new ChromaMatteShaderNode(node);
+}
+
+/* Algorithm from the book Video Demystified. Chapter 7. Chroma Keying. */
+static void chroma_matte(const float4 &color,
+                         const float4 &key,
+                         const float acceptance,
+                         const float cutoff,
+                         const float falloff,
+                         float4 &result,
+                         float &matte)
+{
+  float3 color_ycca;
+  rgb_to_ycc(
+      color.x, color.y, color.z, &color_ycca.x, &color_ycca.y, &color_ycca.z, BLI_YCC_ITU_BT709);
+  color_ycca /= 255.0f;
+  float3 key_ycca;
+  rgb_to_ycc(key.x, key.y, key.z, &key_ycca.x, &key_ycca.y, &key_ycca.z, BLI_YCC_ITU_BT709);
+  key_ycca /= 255.0f;
+
+  /* Normalize the CrCb components into the [-1, 1] range. */
+  float2 color_cc = color_ycca.yz() * 2.0f - 1.0f;
+  float2 key_cc = math::normalize(key_ycca.yz() * 2.0f - 1.0f);
+
+  /* Rotate the color onto the space of the key such that x axis of the color space passes
+   * through the key color. */
+  color_cc = math::from_direction(key_cc * float2(1.0f, -1.0f)) * color_cc;
+
+  /* Compute foreground key. If positive, the value is in the [0, 1] range. */
+  float foreground_key = color_cc.x - (math::abs(color_cc.y) / acceptance);
+
+  /* Negative foreground key values retain the original alpha. Positive values are scaled by the
+   * falloff, while colors that make an angle less than the cutoff angle get a zero alpha. */
+  float alpha = color.w;
+  if (foreground_key > 0.0f) {
+    alpha = 1.0f - (foreground_key / falloff);
+
+    if (math::abs(math::atan2(color_cc.y, color_cc.x)) < (cutoff / 2.0f)) {
+      alpha = 0.0f;
+    }
+  }
+
+  /* Compute output. */
+  matte = math::min(alpha, color.w);
+  result = color * matte;
+}
+
+static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+{
+  const float acceptance = get_acceptance(builder.node());
+  const float cutoff = get_cutoff(builder.node());
+  const float falloff = get_falloff(builder.node());
+
+  builder.construct_and_set_matching_fn_cb([=]() {
+    return mf::build::SI2_SO2<float4, float4, float4, float>(
+        "Chroma Key",
+        [=](const float4 &color, const float4 &key_color, float4 &output_color, float &matte)
+            -> void {
+          chroma_matte(color, key_color, acceptance, cutoff, falloff, output_color, matte);
+        },
+        mf::build::exec_presets::AllSpanOrSingle());
+  });
 }
 
 }  // namespace blender::nodes::node_composite_chroma_matte_cc
@@ -126,6 +195,7 @@ void register_node_type_cmp_chroma_matte()
   blender::bke::node_type_storage(
       &ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
+  ntype.build_multi_function = file_ns::node_build_multi_function;
 
   blender::bke::node_register_type(&ntype);
 }

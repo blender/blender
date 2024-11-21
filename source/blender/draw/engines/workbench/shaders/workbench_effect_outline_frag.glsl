@@ -2,10 +2,14 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/workbench_effect_outline_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(workbench_effect_outline)
+
 void main()
 {
   vec3 offset = vec3(world_data.viewport_size_inv, 0.0) * world_data.ui_scale;
-  vec2 uv = uvcoordsvar.st;
+  vec2 uv = uvcoordsvar.xy;
 
   uint center_id = texture(objectIdBuffer, uv).r;
   uvec4 adjacent_ids = uvec4(texture(objectIdBuffer, uv + offset.zy).r,

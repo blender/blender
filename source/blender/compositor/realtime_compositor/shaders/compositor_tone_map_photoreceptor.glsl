@@ -6,7 +6,7 @@
  * from Reinhard, Erik, and Kate Devlin. "Dynamic range reduction inspired by photoreceptor
  * physiology." IEEE transactions on visualization and computer graphics 11.1 (2005): 13-24. */
 
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
+#include "gpu_shader_compositor_texture_utilities.glsl"
 
 void main()
 {

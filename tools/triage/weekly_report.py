@@ -32,9 +32,8 @@ from gitea_utils import (
 
 from typing import (
     Any,
-    Dict,
-    List,
-    Set,
+)
+from collections.abc import (
     Iterable,
 )
 
@@ -107,35 +106,35 @@ def report_personal_weekly_get(
         verbose: bool = True,
 ) -> None:
 
-    data_cache: Dict[str, Dict[str, Any]] = {}
+    data_cache: dict[str, dict[str, Any]] = {}
 
-    def gitea_json_issue_get_cached(issue_fullname: str) -> Dict[str, Any]:
+    def gitea_json_issue_get_cached(issue_fullname: str) -> dict[str, Any]:
         if issue_fullname not in data_cache:
             issue = gitea_json_issue_get(issue_fullname)
             data_cache[issue_fullname] = issue
 
         return data_cache[issue_fullname]
 
-    pulls_closed: Set[str] = set()
-    pulls_commented: Set[str] = set()
-    pulls_created: Set[str] = set()
+    pulls_closed: set[str] = set()
+    pulls_commented: set[str] = set()
+    pulls_created: set[str] = set()
 
-    issues_closed: Set[str] = set()
-    issues_commented: Set[str] = set()
-    issues_created: Set[str] = set()
+    issues_closed: set[str] = set()
+    issues_commented: set[str] = set()
+    issues_created: set[str] = set()
 
-    pulls_reviewed: List[str] = []
+    pulls_reviewed: list[str] = []
 
-    issues_confirmed: List[str] = []
-    issues_needing_user_info: List[str] = []
-    issues_needing_developer_info: List[str] = []
-    issues_fixed: List[str] = []
-    issues_duplicated: List[str] = []
-    issues_archived: List[str] = []
+    issues_confirmed: list[str] = []
+    issues_needing_user_info: list[str] = []
+    issues_needing_developer_info: list[str] = []
+    issues_fixed: list[str] = []
+    issues_duplicated: list[str] = []
+    issues_archived: list[str] = []
 
-    commits_main: List[str] = []
+    commits_main: list[str] = []
 
-    user_data: Dict[str, Any] = gitea_user_get(username)
+    user_data: dict[str, Any] = gitea_user_get(username)
 
     for i in range(7):
         date_curr = start + datetime.timedelta(days=i)
@@ -173,7 +172,7 @@ def report_personal_weekly_get(
                     content_json = json.loads(activity["content"])
                     assert isinstance(content_json, dict)
                     repo_fullname = activity["repo"]["full_name"]
-                    content_json_commits: List[Dict[str, Any]] = content_json["Commits"]
+                    content_json_commits: list[dict[str, Any]] = content_json["Commits"]
                     for commits in content_json_commits:
                         # Skip commits that were not made by this user. Using email doesn't seem to
                         # be possible unfortunately.

@@ -173,7 +173,7 @@ PyDoc_STRVAR(
     "\n"
     "   :arg order: Optional rotation order argument in\n"
     "      ['XYZ', 'XZY', 'YXZ', 'YZX', 'ZXY', 'ZYX'].\n"
-    "   :type order: string\n"
+    "   :type order: str\n"
     "   :arg euler_compat: Optional euler argument the new euler will be made\n"
     "      compatible with (no axis flipping between them).\n"
     "      Useful for converting a series of matrices to animation curves.\n"
@@ -270,8 +270,8 @@ PyDoc_STRVAR(
     "\n"
     "   Return the axis, angle representation of the quaternion.\n"
     "\n"
-    "   :return: axis, angle.\n"
-    "   :rtype: (:class:`Vector`, float) pair\n");
+    "   :return: Axis, angle.\n"
+    "   :rtype: tuple[:class:`Vector`, float]\n");
 static PyObject *Quaternion_to_axis_angle(QuaternionObject *self)
 {
   PyObject *ret;
@@ -309,9 +309,10 @@ PyDoc_STRVAR(
     "   Split the rotation into a swing quaternion with the specified\n"
     "   axis fixed at zero, and the remaining twist rotation angle.\n"
     "\n"
-    "   :arg axis: twist axis as a string in ['X', 'Y', 'Z']\n"
-    "   :return: swing, twist angle.\n"
-    "   :rtype: (:class:`Quaternion`, float) pair\n");
+    "   :arg axis: Twist axis as a string in ['X', 'Y', 'Z'].\n"
+    "   :type axis: str\n"
+    "   :return: Swing, twist angle.\n"
+    "   :rtype: tuple[:class:`Quaternion`, float]\n");
 static PyObject *Quaternion_to_swing_twist(QuaternionObject *self, PyObject *axis_arg)
 {
   PyObject *ret;
@@ -556,7 +557,7 @@ PyDoc_STRVAR(
     "   Rotates the quaternion by another mathutils value.\n"
     "\n"
     "   :arg other: rotation component of mathutils value\n"
-    "   :type other: :class:`Euler`, :class:`Quaternion` or :class:`Matrix`\n");
+    "   :type other: :class:`Euler` | :class:`Quaternion` | :class:`Matrix`\n");
 static PyObject *Quaternion_rotate(QuaternionObject *self, PyObject *value)
 {
   float self_rmat[3][3], other_rmat[3][3], rmat[3][3];
@@ -899,7 +900,7 @@ static PyObject *Quaternion_richcmpr(PyObject *a, PyObject *b, int op)
       return nullptr;
   }
 
-  return Py_INCREF_RET(res);
+  return Py_NewRef(res);
 }
 
 /** \} */

@@ -8,7 +8,15 @@
 
 import unittest
 
-from view_layer_common import *
+from view_layer_common import (
+    ViewLayerTesting,
+    compare_files,
+    dump,
+    get_layers,
+    get_scene_collections,
+    query_scene,
+    setup_extra_arguments,
+)
 
 
 # ############################################################
@@ -104,7 +112,7 @@ class UnitTesting(ViewLayerTesting):
     def test_scene_read_collections(self):
         """
         See if read is working for scene collections
-        (run `test_scene_write_colections` first)
+        (run ``test_scene_write_colections`` first).
         """
         import os
 
@@ -121,7 +129,7 @@ class UnitTesting(ViewLayerTesting):
     def test_scene_read_layers(self):
         """
         See if read is working for scene layers
-        (run `test_scene_write_layers` first)
+        (run ``test_scene_write_layers`` first).
         """
         import os
 

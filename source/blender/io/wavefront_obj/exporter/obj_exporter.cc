@@ -33,6 +33,9 @@
 
 #include "obj_export_file_writer.hh"
 
+#include "CLG_log.h"
+static CLG_LogRef LOG = {"io.obj"};
+
 namespace blender::io::obj {
 
 OBJDepsgraph::OBJDepsgraph(const bContext *C,
@@ -81,8 +84,7 @@ void OBJDepsgraph::update_for_newframe()
 
 static void print_exception_error(const std::system_error &ex)
 {
-  std::cerr << ex.code().category().name() << ": " << ex.what() << ": " << ex.code().message()
-            << std::endl;
+  CLOG_ERROR(&LOG, "[%s] %s", ex.code().category().name(), ex.what());
 }
 
 static bool is_curve_nurbs_compatible(const Nurb *nurb)
@@ -355,7 +357,7 @@ void exporter_main(bContext *C, const OBJExportParams &export_params)
 
   /* Single frame export, i.e. no animation. */
   if (!export_params.export_animation) {
-    fprintf(stderr, "Writing to %s\n", filepath);
+    fmt::println("Writing to {}", filepath);
     export_frame(obj_depsgraph.get(), export_params, filepath);
     return;
   }
@@ -367,13 +369,13 @@ void exporter_main(bContext *C, const OBJExportParams &export_params)
   for (int frame = export_params.start_frame; frame <= export_params.end_frame; frame++) {
     const bool filepath_ok = append_frame_to_filename(filepath, frame, filepath_with_frames);
     if (!filepath_ok) {
-      fprintf(stderr, "Error: File Path too long.\n%s\n", filepath_with_frames);
+      CLOG_ERROR(&LOG, "File Path too long: %s", filepath_with_frames);
       return;
     }
 
     scene->r.cfra = frame;
     obj_depsgraph.update_for_newframe();
-    fprintf(stderr, "Writing to %s\n", filepath_with_frames);
+    fmt::println("Writing to {}", filepath_with_frames);
     export_frame(obj_depsgraph.get(), export_params, filepath_with_frames);
   }
   scene->r.cfra = original_frame;

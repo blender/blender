@@ -15,6 +15,7 @@
 #include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.hh"
+#include "BLI_ordered_edge.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
@@ -34,7 +35,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_paint.hh"
-#include "BKE_pbvh_api.hh"
+#include "BKE_paint_bvh.hh"
 #include "BKE_subdiv_ccg.hh"
 
 #include "DEG_depsgraph_query.hh"
@@ -892,7 +893,7 @@ static void calc_forces_grids(const Depsgraph &depsgraph,
   calc_brush_strength_factors(cache, brush, distances, factors);
 
   const auto_mask::Cache *automask = auto_mask::active_cache_get(ss);
-  auto_mask::calc_grids_factors(depsgraph, ob, automask, node, verts, factors);
+  auto_mask::calc_grids_factors(depsgraph, ob, automask, node, grids, factors);
 
   calc_brush_texture_factors(ss, brush, current_positions, factors);
 

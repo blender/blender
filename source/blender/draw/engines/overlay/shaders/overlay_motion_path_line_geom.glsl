@@ -2,8 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#include "common_view_clipping_lib.glsl"
+#include "common_view_lib.glsl"
 
 vec2 compute_dir(vec2 v0, vec2 v1)
 {
@@ -12,7 +12,7 @@ vec2 compute_dir(vec2 v0, vec2 v1)
   return dir;
 }
 
-void main(void)
+void main()
 {
   vec2 t;
   vec2 edge_dir = compute_dir(interp_flat[0].ss_pos, interp_flat[1].ss_pos) * sizeViewportInv;

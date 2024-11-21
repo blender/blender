@@ -76,9 +76,7 @@ void GPU_indexbuf_init(GPUIndexBufBuilder *builder,
                        uint vertex_len)
 {
   int verts_per_prim = GPU_indexbuf_primitive_len(prim_type);
-#if TRUST_NO_ONE
-  assert(verts_per_prim != -1);
-#endif
+  BLI_assert(verts_per_prim != -1);
   GPU_indexbuf_init_ex(builder, prim_type, prim_len * uint(verts_per_prim), vertex_len);
 }
 
@@ -110,11 +108,9 @@ void GPU_indexbuf_join(GPUIndexBufBuilder *builder_to, const GPUIndexBufBuilder 
 
 void GPU_indexbuf_add_generic_vert(GPUIndexBufBuilder *builder, uint v)
 {
-#if TRUST_NO_ONE
-  assert(builder->data != nullptr);
-  assert(builder->index_len < builder->max_index_len);
-  assert(v <= builder->max_allowed_index);
-#endif
+  BLI_assert(builder->data != nullptr);
+  BLI_assert(builder->index_len < builder->max_index_len);
+  BLI_assert(v <= builder->max_allowed_index);
   builder->data[builder->index_len++] = v;
   builder->index_min = std::min(builder->index_min, v);
   builder->index_max = std::max(builder->index_max, v);
@@ -122,38 +118,30 @@ void GPU_indexbuf_add_generic_vert(GPUIndexBufBuilder *builder, uint v)
 
 void GPU_indexbuf_add_primitive_restart(GPUIndexBufBuilder *builder)
 {
-#if TRUST_NO_ONE
-  assert(builder->data != nullptr);
-  assert(builder->index_len < builder->max_index_len);
-#endif
+  BLI_assert(builder->data != nullptr);
+  BLI_assert(builder->index_len < builder->max_index_len);
   builder->data[builder->index_len++] = builder->restart_index_value;
   builder->uses_restart_indices = true;
 }
 
 void GPU_indexbuf_add_point_vert(GPUIndexBufBuilder *builder, uint v)
 {
-#if TRUST_NO_ONE
-  assert(builder->prim_type == GPU_PRIM_POINTS);
-#endif
+  BLI_assert(builder->prim_type == GPU_PRIM_POINTS);
   GPU_indexbuf_add_generic_vert(builder, v);
 }
 
 void GPU_indexbuf_add_line_verts(GPUIndexBufBuilder *builder, uint v1, uint v2)
 {
-#if TRUST_NO_ONE
-  assert(builder->prim_type == GPU_PRIM_LINES);
-  assert(v1 != v2);
-#endif
+  BLI_assert(builder->prim_type == GPU_PRIM_LINES);
+  BLI_assert(v1 != v2);
   GPU_indexbuf_add_generic_vert(builder, v1);
   GPU_indexbuf_add_generic_vert(builder, v2);
 }
 
 void GPU_indexbuf_add_tri_verts(GPUIndexBufBuilder *builder, uint v1, uint v2, uint v3)
 {
-#if TRUST_NO_ONE
-  assert(builder->prim_type == GPU_PRIM_TRIS);
-  assert(v1 != v2 && v2 != v3 && v3 != v1);
-#endif
+  BLI_assert(builder->prim_type == GPU_PRIM_TRIS);
+  BLI_assert(v1 != v2 && v2 != v3 && v3 != v1);
   GPU_indexbuf_add_generic_vert(builder, v1);
   GPU_indexbuf_add_generic_vert(builder, v2);
   GPU_indexbuf_add_generic_vert(builder, v3);
@@ -162,10 +150,8 @@ void GPU_indexbuf_add_tri_verts(GPUIndexBufBuilder *builder, uint v1, uint v2, u
 void GPU_indexbuf_add_line_adj_verts(
     GPUIndexBufBuilder *builder, uint v1, uint v2, uint v3, uint v4)
 {
-#if TRUST_NO_ONE
-  assert(builder->prim_type == GPU_PRIM_LINES_ADJ);
-  assert(v2 != v3); /* only the line need diff indices */
-#endif
+  BLI_assert(builder->prim_type == GPU_PRIM_LINES_ADJ);
+  BLI_assert(v2 != v3); /* only the line need diff indices */
   GPU_indexbuf_add_generic_vert(builder, v1);
   GPU_indexbuf_add_generic_vert(builder, v2);
   GPU_indexbuf_add_generic_vert(builder, v3);

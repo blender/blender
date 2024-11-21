@@ -6,27 +6,36 @@
  * \ingroup gpu
  */
 
+#ifdef GPU_SHADER
+#  pragma once
+#  include "gpu_glsl_cpp_stubs.hh"
+
+#  include "GPU_shader_shared.hh"
+#endif
+
 #include "gpu_shader_create_info.hh"
 
-GPU_SHADER_INTERFACE_INFO(keyframe_shape_iface, "")
-    .flat(Type::VEC4, "finalColor")
-    .flat(Type::VEC4, "finalOutlineColor")
-    .flat(Type::VEC4, "radii")
-    .flat(Type::VEC4, "thresholds")
-    .flat(Type::UINT, "finalFlags");
+GPU_SHADER_INTERFACE_INFO(keyframe_shape_iface)
+FLAT(VEC4, finalColor)
+FLAT(VEC4, finalOutlineColor)
+FLAT(VEC4, radii)
+FLAT(VEC4, thresholds)
+FLAT(UINT, finalFlags)
+GPU_SHADER_INTERFACE_END()
 
 GPU_SHADER_CREATE_INFO(gpu_shader_keyframe_shape)
-    .typedef_source("GPU_shader_shared.hh")
-    .vertex_in(0, Type::VEC4, "color")
-    .vertex_in(1, Type::VEC4, "outlineColor")
-    .vertex_in(2, Type::VEC2, "pos")
-    .vertex_in(3, Type::FLOAT, "size")
-    .vertex_in(4, Type::UINT, "flags")
-    .vertex_out(keyframe_shape_iface)
-    .fragment_out(0, Type::VEC4, "fragColor")
-    .push_constant(Type::MAT4, "ModelViewProjectionMatrix")
-    .push_constant(Type::VEC2, "ViewportSize")
-    .push_constant(Type::FLOAT, "outline_scale")
-    .vertex_source("gpu_shader_keyframe_shape_vert.glsl")
-    .fragment_source("gpu_shader_keyframe_shape_frag.glsl")
-    .do_static_compilation(true);
+TYPEDEF_SOURCE("GPU_shader_shared.hh")
+VERTEX_IN(0, VEC4, color)
+VERTEX_IN(1, VEC4, outlineColor)
+VERTEX_IN(2, VEC2, pos)
+VERTEX_IN(3, FLOAT, size)
+VERTEX_IN(4, UINT, flags)
+VERTEX_OUT(keyframe_shape_iface)
+FRAGMENT_OUT(0, VEC4, fragColor)
+PUSH_CONSTANT(MAT4, ModelViewProjectionMatrix)
+PUSH_CONSTANT(VEC2, ViewportSize)
+PUSH_CONSTANT(FLOAT, outline_scale)
+VERTEX_SOURCE("gpu_shader_keyframe_shape_vert.glsl")
+FRAGMENT_SOURCE("gpu_shader_keyframe_shape_frag.glsl")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()

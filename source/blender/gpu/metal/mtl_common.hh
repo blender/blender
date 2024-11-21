@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#ifndef __MTL_COMMON
-#define __MTL_COMMON
+#pragma once
 
 /** -- Renderer Options -- */
 /* Number of frames over which rolling averages are taken. */
@@ -18,4 +17,3 @@
 
 /* Display debug information about missing attributes and incorrect vertex formats. */
 #define MTL_DEBUG_SHADER_ATTRIBUTES 0
-#endif

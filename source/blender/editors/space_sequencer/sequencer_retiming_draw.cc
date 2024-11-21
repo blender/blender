@@ -245,6 +245,10 @@ static bool can_draw_retiming(const TimelineDrawContext *timeline_ctx,
     return false;
   }
 
+  if (!strip_ctx.can_draw_retiming_overlay) {
+    return false;
+  }
+
   return true;
 }
 

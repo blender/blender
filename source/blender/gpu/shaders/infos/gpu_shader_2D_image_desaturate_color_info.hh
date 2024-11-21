@@ -6,11 +6,20 @@
  * \ingroup gpu
  */
 
+#ifdef GPU_SHADER
+#  pragma once
+#  include "gpu_glsl_cpp_stubs.hh"
+
+#  include "GPU_shader_shared.hh"
+#  include "gpu_shader_2D_image_info.hh"
+#endif
+
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(gpu_shader_2D_image_desaturate_color)
-    .additional_info("gpu_shader_2D_image_common")
-    .push_constant(Type::VEC4, "color")
-    .push_constant(Type::FLOAT, "factor")
-    .fragment_source("gpu_shader_image_desaturate_frag.glsl")
-    .do_static_compilation(true);
+ADDITIONAL_INFO(gpu_shader_2D_image_common)
+PUSH_CONSTANT(VEC4, color)
+PUSH_CONSTANT(FLOAT, factor)
+FRAGMENT_SOURCE("gpu_shader_image_desaturate_frag.glsl")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()

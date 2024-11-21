@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/gpu_shader_sequencer_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(gpu_shader_sequencer_thumbs)
+
 void main()
 {
   int id = gl_InstanceID;

@@ -286,7 +286,7 @@ BLI_NOINLINE static void interpolate_attribute(const Mesh &mesh,
 
 BLI_NOINLINE static void propagate_existing_attributes(
     const Mesh &mesh,
-    const Map<StringRef, AttributeKind> &attributes,
+    const Map<StringRef, AttributeDomainAndType> &attributes,
     PointCloud &points,
     const Span<float3> bary_coords,
     const Span<int> tri_indices)
@@ -294,7 +294,7 @@ BLI_NOINLINE static void propagate_existing_attributes(
   const AttributeAccessor mesh_attributes = mesh.attributes();
   MutableAttributeAccessor point_attributes = points.attributes_for_write();
 
-  for (MapItem<StringRef, AttributeKind> entry : attributes.items()) {
+  for (MapItem<StringRef, AttributeDomainAndType> entry : attributes.items()) {
     const StringRef attribute_id = entry.key;
     const eCustomDataType output_data_type = entry.value.data_type;
 
@@ -555,7 +555,7 @@ static void point_distribution_calculate(GeometrySet &geometry_set,
 
   geometry_set.replace_pointcloud(pointcloud);
 
-  Map<StringRef, AttributeKind> attributes;
+  Map<StringRef, AttributeDomainAndType> attributes;
   geometry_set.gather_attributes_for_propagation({GeometryComponent::Type::Mesh},
                                                  GeometryComponent::Type::PointCloud,
                                                  false,

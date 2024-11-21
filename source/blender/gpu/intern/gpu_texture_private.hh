@@ -14,8 +14,7 @@
 
 #include "gpu_framebuffer_private.hh"
 
-namespace blender {
-namespace gpu {
+namespace blender::gpu {
 
 enum eGPUTextureFormatFlag {
   /* The format has a depth component and can be used as depth attachment. */
@@ -341,7 +340,7 @@ class PixelBuffer {
 
  public:
   PixelBuffer(size_t size) : size_(size){};
-  virtual ~PixelBuffer(){};
+  virtual ~PixelBuffer() = default;
 
   virtual void *map() = 0;
   virtual void unmap() = 0;
@@ -1170,5 +1169,4 @@ static inline eGPUTextureFormat to_texture_format(const GPUVertFormat *format)
   return GPU_DEPTH_COMPONENT24;
 }
 
-}  // namespace gpu
-}  // namespace blender
+}  // namespace blender::gpu

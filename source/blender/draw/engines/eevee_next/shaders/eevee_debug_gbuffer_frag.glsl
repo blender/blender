@@ -7,10 +7,10 @@
  * This also fills the different render passes.
  */
 
-#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_renderpass_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_debug_gradients_lib.glsl)
+#include "draw_view_lib.glsl"
+#include "eevee_gbuffer_lib.glsl"
+#include "eevee_renderpass_lib.glsl"
+#include "gpu_shader_debug_gradients_lib.glsl"
 
 void main()
 {
@@ -30,7 +30,7 @@ void main()
   float storage_cost = reduce_add(vec4(not(equal(closure_types, uvec4(0u)))));
 
   float eval_cost = 0.0;
-  for (int i = 0; i < GBUFFER_LAYER_MAX && i < gbuf.closure_count; i++) {
+  for (uchar i = 0; i < GBUFFER_LAYER_MAX && i < gbuf.closure_count; i++) {
     switch (gbuffer_closure_get(gbuf, i).type) {
       case CLOSURE_BSDF_DIFFUSE_ID:
       case CLOSURE_BSDF_TRANSLUCENT_ID:

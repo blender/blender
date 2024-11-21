@@ -26,8 +26,8 @@
 #define GRID_LINE_SMOOTH_END (0.5 - DISC_RADIUS)
 #define GRID_LINE_STEP(dist) smoothstep(GRID_LINE_SMOOTH_START, GRID_LINE_SMOOTH_END, dist)
 
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#include "common_math_lib.glsl"
+#include "common_view_lib.glsl"
 
 float get_grid(vec2 co, vec2 fwidthCos, vec2 grid_scale)
 {
@@ -203,7 +203,7 @@ void main()
     }
   }
 
-  float scene_depth = texelFetch(depth_tx, ivec2(gl_FragCoord.xy), 0).r;
+  float scene_depth = texture(depth_tx, gl_FragCoord.xy / vec2(textureSize(depth_tx, 0)), 0).r;
   if (flag_test(grid_flag, GRID_BACK)) {
     fade *= (scene_depth == 1.0) ? 1.0 : 0.0;
   }

@@ -6,7 +6,11 @@
  * \ingroup cmpnodes
  */
 
+#include <limits>
+
 #include "BLI_math_base.hh"
+#include "BLI_math_vector.hh"
+#include "BLI_math_vector_types.hh"
 
 #include "RNA_access.hh"
 
@@ -97,16 +101,32 @@ class ConvertKuwaharaOperation : public NodeOperation {
     if (!node_storage(bnode()).high_precision &&
         (!size_input.is_single_value() || size_input.get_float_value() > 5.0f))
     {
-      execute_classic_summed_area_table();
-      return;
+      this->execute_classic_summed_area_table();
     }
+    else {
+      this->execute_classic_convolution();
+    }
+  }
 
+  void execute_classic_convolution()
+  {
+    if (this->context().use_gpu()) {
+      this->execute_classic_convolution_gpu();
+    }
+    else {
+      this->execute_classic_convolution_cpu();
+    }
+  }
+
+  void execute_classic_convolution_gpu()
+  {
     GPUShader *shader = context().get_shader(get_classic_convolution_shader_name());
     GPU_shader_bind(shader);
 
     const Result &input_image = get_input("Image");
     input_image.bind_as_texture(shader, "input_tx");
 
+    Result &size_input = get_input("Size");
     if (size_input.is_single_value()) {
       GPU_shader_uniform_1i(shader, "size", int(size_input.get_float_value()));
     }
@@ -126,15 +146,48 @@ class ConvertKuwaharaOperation : public NodeOperation {
     GPU_shader_unbind();
   }
 
+  const char *get_classic_convolution_shader_name()
+  {
+    if (is_constant_size()) {
+      return "compositor_kuwahara_classic_convolution_constant_size";
+    }
+    return "compositor_kuwahara_classic_convolution_variable_size";
+  }
+
+  void execute_classic_convolution_cpu()
+  {
+    const Domain domain = this->compute_domain();
+    Result &output = this->get_result("Image");
+    output.allocate_texture(domain);
+
+    this->compute_classic<false>(
+        &this->get_input("Image"), nullptr, nullptr, this->get_input("Size"), output, domain.size);
+  }
+
   void execute_classic_summed_area_table()
   {
-    Result table = context().create_result(ResultType::Color, ResultPrecision::Full);
-    summed_area_table(context(), get_input("Image"), table);
+    Result table = this->context().create_result(ResultType::Color, ResultPrecision::Full);
+    summed_area_table(this->context(), this->get_input("Image"), table);
 
-    Result squared_table = context().create_result(ResultType::Color, ResultPrecision::Full);
-    summed_area_table(
-        context(), get_input("Image"), squared_table, SummedAreaTableOperation::Square);
+    Result squared_table = this->context().create_result(ResultType::Color, ResultPrecision::Full);
+    summed_area_table(this->context(),
+                      this->get_input("Image"),
+                      squared_table,
+                      SummedAreaTableOperation::Square);
 
+    if (this->context().use_gpu()) {
+      this->execute_classic_summed_area_table_gpu(table, squared_table);
+    }
+    else {
+      this->execute_classic_summed_area_table_cpu(table, squared_table);
+    }
+
+    table.release();
+    squared_table.release();
+  }
+
+  void execute_classic_summed_area_table_gpu(const Result &table, const Result &squared_table)
+  {
     GPUShader *shader = context().get_shader(get_classic_summed_area_table_shader_name());
     GPU_shader_bind(shader);
 
@@ -160,9 +213,96 @@ class ConvertKuwaharaOperation : public NodeOperation {
     squared_table.unbind_as_texture();
     output_image.unbind_as_image();
     GPU_shader_unbind();
+  }
 
-    table.release();
-    squared_table.release();
+  const char *get_classic_summed_area_table_shader_name()
+  {
+    if (is_constant_size()) {
+      return "compositor_kuwahara_classic_summed_area_table_constant_size";
+    }
+    return "compositor_kuwahara_classic_summed_area_table_variable_size";
+  }
+
+  void execute_classic_summed_area_table_cpu(const Result &table, const Result &squared_table)
+  {
+    const Domain domain = this->compute_domain();
+    Result &output = this->get_result("Image");
+    output.allocate_texture(domain);
+
+    this->compute_classic<true>(
+        nullptr, &table, &squared_table, this->get_input("Size"), output, domain.size);
+  }
+
+  /* If UseSummedAreaTable is true, then `table` and `squared_table` should be provided while
+   * `input` should be nullptr, otherwise, `input` should be provided while `table` and
+   * `squared_table` should be nullptr. */
+  template<bool UseSummedAreaTable>
+  void compute_classic(const Result *input,
+                       const Result *table,
+                       const Result *squared_table,
+                       const Result &size_input,
+                       Result &output,
+                       const int2 size)
+  {
+    parallel_for(size, [&](const int2 texel) {
+      int radius = math::max(0, int(size_input.load_pixel(texel).x));
+
+      float4 mean_of_squared_color_of_quadrants[4] = {
+          float4(0.0f), float4(0.0f), float4(0.0f), float4(0.0f)};
+      float4 mean_of_color_of_quadrants[4] = {
+          float4(0.0f), float4(0.0f), float4(0.0f), float4(0.0f)};
+
+      /* Compute the above statistics for each of the quadrants around the current pixel. */
+      for (int q = 0; q < 4; q++) {
+        /* A fancy expression to compute the sign of the quadrant q. */
+        int2 sign = int2((q % 2) * 2 - 1, ((q / 2) * 2 - 1));
+
+        int2 lower_bound = texel - int2(sign.x > 0 ? 0 : radius, sign.y > 0 ? 0 : radius);
+        int2 upper_bound = texel + int2(sign.x < 0 ? 0 : radius, sign.y < 0 ? 0 : radius);
+
+        /* Limit the quadrants to the image bounds. */
+        int2 image_bound = size - int2(1);
+        int2 corrected_lower_bound = math::min(image_bound, math::max(int2(0), lower_bound));
+        int2 corrected_upper_bound = math::min(image_bound, math::max(int2(0), upper_bound));
+        int2 region_size = corrected_upper_bound - corrected_lower_bound + int2(1);
+        int quadrant_pixel_count = region_size.x * region_size.y;
+
+        if constexpr (UseSummedAreaTable) {
+          mean_of_color_of_quadrants[q] = summed_area_table_sum(*table, lower_bound, upper_bound);
+          mean_of_squared_color_of_quadrants[q] = summed_area_table_sum(
+              *squared_table, lower_bound, upper_bound);
+        }
+        else {
+          for (int j = 0; j <= radius; j++) {
+            for (int i = 0; i <= radius; i++) {
+              float4 color = input->load_pixel_fallback(texel + int2(i, j) * sign, float4(0.0f));
+              mean_of_color_of_quadrants[q] += color;
+              mean_of_squared_color_of_quadrants[q] += color * color;
+            }
+          }
+        }
+
+        mean_of_color_of_quadrants[q] /= quadrant_pixel_count;
+        mean_of_squared_color_of_quadrants[q] /= quadrant_pixel_count;
+      }
+
+      /* Find the quadrant which has the minimum variance. */
+      float minimum_variance = std::numeric_limits<float>::max();
+      float4 mean_color_of_chosen_quadrant = mean_of_color_of_quadrants[0];
+      for (int q = 0; q < 4; q++) {
+        float4 color_mean = mean_of_color_of_quadrants[q];
+        float4 squared_color_mean = mean_of_squared_color_of_quadrants[q];
+        float4 color_variance = squared_color_mean - color_mean * color_mean;
+
+        float variance = math::dot(color_variance.xyz(), float3(1.0f));
+        if (variance < minimum_variance) {
+          minimum_variance = variance;
+          mean_color_of_chosen_quadrant = color_mean;
+        }
+      }
+
+      output.store_pixel(texel, mean_color_of_chosen_quadrant);
+    });
   }
 
   /* An implementation of the Anisotropic Kuwahara filter described in the paper:
@@ -235,22 +375,6 @@ class ConvertKuwaharaOperation : public NodeOperation {
     GPU_shader_unbind();
 
     return structure_tensor;
-  }
-
-  const char *get_classic_convolution_shader_name()
-  {
-    if (is_constant_size()) {
-      return "compositor_kuwahara_classic_convolution_constant_size";
-    }
-    return "compositor_kuwahara_classic_convolution_variable_size";
-  }
-
-  const char *get_classic_summed_area_table_shader_name()
-  {
-    if (is_constant_size()) {
-      return "compositor_kuwahara_classic_summed_area_table_constant_size";
-    }
-    return "compositor_kuwahara_classic_summed_area_table_variable_size";
   }
 
   const char *get_anisotropic_shader_name()

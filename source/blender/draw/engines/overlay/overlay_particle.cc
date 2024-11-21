@@ -49,6 +49,7 @@ void OVERLAY_edit_particle_cache_init(OVERLAY_Data *vedata)
   DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
   DRW_shgroup_uniform_bool_copy(grp, "useWeight", false);
   DRW_shgroup_uniform_bool_copy(grp, "useGreasePencil", false);
+  DRW_shgroup_uniform_bool_copy(grp, "doStrokeEndpoints", false);
 }
 
 void OVERLAY_edit_particle_cache_populate(OVERLAY_Data *vedata, Object *ob)

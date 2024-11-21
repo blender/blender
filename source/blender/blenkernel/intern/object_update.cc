@@ -282,9 +282,6 @@ void BKE_object_batch_cache_dirty_tag(Object *ob)
       }
       break;
     }
-    case OB_GPENCIL_LEGACY:
-      BKE_gpencil_batch_cache_dirty_tag((bGPdata *)ob->data);
-      break;
     case OB_CURVES:
       BKE_curves_batch_cache_dirty_tag((Curves *)ob->data, BKE_CURVES_BATCH_DIRTY_ALL);
       break;

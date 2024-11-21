@@ -1073,7 +1073,7 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Use Mask",
-      "Use a grease pencil data-block as a mask to use only specified areas of pattern "
+      "Use a Grease Pencil data-block as a mask to use only specified areas of pattern "
       "when tracking");
   RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, nullptr);
 
@@ -1585,7 +1585,7 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Use Mask",
-      "Use a grease pencil data-block as a mask to use only specified areas of pattern "
+      "Use a Grease Pencil data-block as a mask to use only specified areas of pattern "
       "when tracking");
   RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, nullptr);
 
@@ -1595,7 +1595,7 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
       prop, nullptr, "algorithm_flag", TRACK_ALGORITHM_FLAG_USE_NORMALIZATION);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(
-      prop, "Normalize", "Normalize light intensities while tracking (Slower)");
+      prop, "Normalize", "Normalize light intensities while tracking (slower)");
   RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, nullptr);
 
   /* markers */
@@ -1727,7 +1727,7 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
   RNA_def_property_pointer_funcs(
       prop, nullptr, nullptr, nullptr, "rna_GPencil_datablocks_annotations_poll");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
-  RNA_def_property_ui_text(prop, "Grease Pencil", "Grease pencil data for this track");
+  RNA_def_property_ui_text(prop, "Grease Pencil", "Grease Pencil data for this track");
   RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, nullptr);
 
   /* weight */

@@ -32,6 +32,10 @@
 #include "RNA_enum_types.hh"
 #include "RNA_prototypes.hh"
 
+#ifdef WITH_PYTHON
+#  include "BPY_extern.hh"
+#endif
+
 #include "WM_api.hh"
 #include "WM_types.hh"
 
@@ -153,6 +157,14 @@ void WM_operatortype_append_ptr(void (*opfunc)(wmOperatorType *, void *), void *
 void WM_operatortype_remove_ptr(wmOperatorType *ot)
 {
   BLI_assert(ot == WM_operatortype_find(ot->idname, false));
+
+#ifdef WITH_PYTHON
+  /* The 'unexposed' type (inherited from #RNA_OperatorProperties) created for this operator type's
+   * properties may have had a python type representation created. This needs to be dereferenced
+   * manually here, as other #bpy_class_free (which is part of the unregistering code for runtime
+   * operators) will not be able to handle it. */
+  BPY_free_srna_pytype(ot->srna);
+#endif
 
   RNA_struct_free(&BLENDER_RNA, ot->srna);
 

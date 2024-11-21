@@ -13,6 +13,7 @@
 #include "BKE_instances.hh"
 #include "BKE_pointcloud.hh"
 
+#include "GEO_join_geometries.hh"
 #include "GEO_resample_curves.hh"
 
 #include "NOD_rna_define.hh"
@@ -272,13 +273,7 @@ static void grease_pencil_to_points(GeometrySet &geometry_set,
                                                                   rotation_anonymous_id);
       }
       if (!pointcloud_by_layer.is_empty()) {
-        InstancesComponent &instances_component =
-            geometry_set.get_component_for_write<InstancesComponent>();
-        bke::Instances *instances = instances_component.get_for_write();
-        if (instances == nullptr) {
-          instances = new bke::Instances();
-          instances_component.replace(instances);
-        }
+        bke::Instances *instances = new bke::Instances();
         for (PointCloud *pointcloud : pointcloud_by_layer) {
           if (!pointcloud) {
             /* Add an empty reference so the number of layers and instances match.
@@ -292,10 +287,19 @@ static void grease_pencil_to_points(GeometrySet &geometry_set,
           const int handle = instances->add_reference(bke::InstanceReference{temp_set});
           instances->add_instance(handle, float4x4::identity());
         }
-        GeometrySet::propagate_attributes_from_layer_to_instances(
-            geometry.get_grease_pencil()->attributes(),
-            geometry.get_instances_for_write()->attributes_for_write(),
+
+        bke::copy_attributes(geometry.get_grease_pencil()->attributes(),
+                             bke::AttrDomain::Layer,
+                             bke::AttrDomain::Instance,
+                             attribute_filter,
+                             instances->attributes_for_write());
+        InstancesComponent &dst_component = geometry.get_component_for_write<InstancesComponent>();
+        GeometrySet new_instances = geometry::join_geometries(
+            {GeometrySet::from_instances(dst_component.release()),
+             GeometrySet::from_instances(instances)},
             attribute_filter);
+        dst_component.replace(
+            new_instances.get_component_for_write<InstancesComponent>().release());
       }
     }
   });

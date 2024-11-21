@@ -343,7 +343,8 @@ static void menu_types_add_from_keymap_items(bContext *C,
         continue;
       }
 
-      if (handler_base->poll == nullptr || handler_base->poll(region, win->eventstate)) {
+      if (handler_base->poll == nullptr || handler_base->poll(win, area, region, win->eventstate))
+      {
         wmEventHandler_Keymap *handler = (wmEventHandler_Keymap *)handler_base;
         wmEventHandler_KeymapResult km_result;
         WM_event_get_keymaps_from_handler(wm, win, handler, &km_result);
@@ -799,14 +800,14 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
 
           if (region) {
             BLI_ghash_remove(
-                region->runtime.block_name_map, sub_block->name.c_str(), nullptr, nullptr);
+                region->runtime->block_name_map, sub_block->name.c_str(), nullptr, nullptr);
             BLI_remlink(&region->uiblocks, sub_block);
           }
           UI_block_free(nullptr, sub_block);
         }
       }
       if (region) {
-        BLI_ghash_remove(region->runtime.block_name_map, block->name.c_str(), nullptr, nullptr);
+        BLI_ghash_remove(region->runtime->block_name_map, block->name.c_str(), nullptr, nullptr);
         BLI_remlink(&region->uiblocks, block);
       }
       UI_block_free(nullptr, block);

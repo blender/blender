@@ -6,6 +6,14 @@
  * \ingroup cmpnodes
  */
 
+#include "BLI_math_base.hh"
+#include "BLI_math_vector.hh"
+#include "BLI_math_vector_types.hh"
+
+#include "FN_multi_function_builder.hh"
+
+#include "NOD_multi_function.hh"
+
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
@@ -53,6 +61,16 @@ static void node_composit_buts_diff_matte(uiLayout *layout, bContext * /*C*/, Po
 
 using namespace blender::realtime_compositor;
 
+static float get_tolerance(const bNode &node)
+{
+  return node_storage(node).t1;
+}
+
+static float get_falloff(const bNode &node)
+{
+  return node_storage(node).t2;
+}
+
 class DifferenceMatteShaderNode : public ShaderNode {
  public:
   using ShaderNode::ShaderNode;
@@ -62,8 +80,8 @@ class DifferenceMatteShaderNode : public ShaderNode {
     GPUNodeStack *inputs = get_inputs_array();
     GPUNodeStack *outputs = get_outputs_array();
 
-    const float tolerance = get_tolerance();
-    const float falloff = get_falloff();
+    const float tolerance = get_tolerance(bnode());
+    const float falloff = get_falloff(bnode());
 
     GPU_stack_link(material,
                    &bnode(),
@@ -73,21 +91,34 @@ class DifferenceMatteShaderNode : public ShaderNode {
                    GPU_uniform(&tolerance),
                    GPU_uniform(&falloff));
   }
-
-  float get_tolerance()
-  {
-    return node_storage(bnode()).t1;
-  }
-
-  float get_falloff()
-  {
-    return node_storage(bnode()).t2;
-  }
 };
 
 static ShaderNode *get_compositor_shader_node(DNode node)
 {
   return new DifferenceMatteShaderNode(node);
+}
+
+static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+{
+  const float tolerance = get_tolerance(builder.node());
+  const float falloff = get_falloff(builder.node());
+
+  builder.construct_and_set_matching_fn_cb([=]() {
+    return mf::build::SI2_SO2<float4, float4, float4, float>(
+        "Difference Key",
+        [=](const float4 &color, const float4 &key, float4 &result, float &matte) -> void {
+          float difference = math::dot(math::abs(color - key).xyz(), float3(1.0f)) / 3.0f;
+
+          bool is_opaque = difference > tolerance + falloff;
+          float alpha = is_opaque ?
+                            color.w :
+                            math::safe_divide(math::max(0.0f, difference - tolerance), falloff);
+
+          matte = math::min(alpha, color.w);
+          result = color * matte;
+        },
+        mf::build::exec_presets::AllSpanOrSingle());
+  });
 }
 
 }  // namespace blender::nodes::node_composite_diff_matte_cc
@@ -106,6 +137,7 @@ void register_node_type_cmp_diff_matte()
   blender::bke::node_type_storage(
       &ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
+  ntype.build_multi_function = file_ns::node_build_multi_function;
 
   blender::bke::node_register_type(&ntype);
 }

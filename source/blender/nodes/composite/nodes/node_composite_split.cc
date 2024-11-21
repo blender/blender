@@ -51,18 +51,28 @@ class SplitOperation : public NodeOperation {
 
   void execute() override
   {
-    GPUShader *shader = get_split_shader();
+    if (this->context().use_gpu()) {
+      this->execute_gpu();
+    }
+    else {
+      this->execute_cpu();
+    }
+  }
+
+  void execute_gpu()
+  {
+    GPUShader *shader = this->get_split_shader();
     GPU_shader_bind(shader);
 
-    GPU_shader_uniform_1f(shader, "split_ratio", get_split_ratio());
+    GPU_shader_uniform_1f(shader, "split_ratio", this->get_split_ratio());
 
-    const Result &first_image = get_input("Image");
+    const Result &first_image = this->get_input("Image");
     first_image.bind_as_texture(shader, "first_image_tx");
-    const Result &second_image = get_input("Image_001");
+    const Result &second_image = this->get_input("Image_001");
     second_image.bind_as_texture(shader, "second_image_tx");
 
-    const Domain domain = compute_domain();
-    Result &output_image = get_result("Image");
+    const Domain domain = this->compute_domain();
+    Result &output_image = this->get_result("Image");
     output_image.allocate_texture(domain);
     output_image.bind_as_image(shader, "output_img");
 
@@ -76,16 +86,45 @@ class SplitOperation : public NodeOperation {
 
   GPUShader *get_split_shader()
   {
-    if (get_split_axis() == CMP_NODE_SPLIT_HORIZONTAL) {
-      return context().get_shader("compositor_split_horizontal");
+    if (this->get_split_axis() == CMP_NODE_SPLIT_HORIZONTAL) {
+      return this->context().get_shader("compositor_split_horizontal");
     }
 
-    return context().get_shader("compositor_split_vertical");
+    return this->context().get_shader("compositor_split_vertical");
+  }
+
+  void execute_cpu()
+  {
+    const Result &first_image = this->get_input("Image");
+    const Result &second_image = this->get_input("Image_001");
+
+    const Domain domain = this->compute_domain();
+    Result &output_image = this->get_result("Image");
+    output_image.allocate_texture(domain);
+
+    const float split_ratio = this->get_split_ratio();
+    const bool is_horizontal = this->get_split_axis() == CMP_NODE_SPLIT_HORIZONTAL;
+    const float split_pixel = (is_horizontal ? domain.size.x : domain.size.y) * split_ratio;
+
+    if (is_horizontal) {
+      parallel_for(domain.size, [&](const int2 texel) {
+        output_image.store_pixel(texel,
+                                 split_pixel <= texel.x ? first_image.load_pixel(texel) :
+                                                          second_image.load_pixel(texel));
+      });
+    }
+    else {
+      parallel_for(domain.size, [&](const int2 texel) {
+        output_image.store_pixel(texel,
+                                 split_pixel <= texel.y ? first_image.load_pixel(texel) :
+                                                          second_image.load_pixel(texel));
+      });
+    }
   }
 
   CMPNodeSplitAxis get_split_axis()
   {
-    return (CMPNodeSplitAxis)bnode().custom2;
+    return static_cast<CMPNodeSplitAxis>(bnode().custom2);
   }
 
   float get_split_ratio()

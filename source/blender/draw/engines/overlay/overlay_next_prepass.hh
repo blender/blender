@@ -246,6 +246,15 @@ class Prepass {
     }
   }
 
+  void pre_draw(Manager &manager, View &view)
+  {
+    if (!enabled_) {
+      return;
+    }
+
+    manager.generate_commands(ps_, view);
+  }
+
   void draw(Framebuffer &framebuffer, Manager &manager, View &view)
   {
     if (!enabled_) {
@@ -253,7 +262,7 @@ class Prepass {
     }
     /* Should be fine to use the line buffer since the prepass only writes to the depth buffer. */
     GPU_framebuffer_bind(framebuffer);
-    manager.submit(ps_, view);
+    manager.submit_only(ps_, view);
   }
 };
 

@@ -141,8 +141,10 @@ class Context : public realtime_compositor::Context {
     return result;
   }
 
-  realtime_compositor::Result get_viewer_output_result(realtime_compositor::Domain /*domain*/,
-                                                       bool /*is_data*/) override
+  realtime_compositor::Result get_viewer_output_result(
+      realtime_compositor::Domain /*domain*/,
+      bool /*is_data*/,
+      realtime_compositor::ResultPrecision /*precision*/) override
   {
     realtime_compositor::Result result = this->create_result(
         realtime_compositor::ResultType::Color, realtime_compositor::ResultPrecision::Half);
@@ -150,37 +152,40 @@ class Context : public realtime_compositor::Context {
     return result;
   }
 
-  GPUTexture *get_input_texture(const Scene *scene, int view_layer, const char *pass_name) override
+  realtime_compositor::Result get_pass(const Scene *scene,
+                                       int view_layer,
+                                       const char *pass_name) override
   {
     if (DEG_get_original_id(const_cast<ID *>(&scene->id)) !=
         DEG_get_original_id(&DRW_context_state_get()->scene->id))
     {
-      return nullptr;
+      return realtime_compositor::Result(*this);
     }
 
     if (view_layer != 0) {
-      return nullptr;
+      return realtime_compositor::Result(*this);
     }
 
     /* The combined pass is a special case where we return the viewport color texture, because it
      * includes Grease Pencil objects since GP is drawn using their own engine. */
     if (STREQ(pass_name, RE_PASSNAME_COMBINED)) {
-      return DRW_viewport_texture_list_get()->color;
+      GPUTexture *combined_texture = DRW_viewport_texture_list_get()->color;
+      realtime_compositor::Result pass = realtime_compositor::Result(
+          *this, GPU_texture_format(combined_texture));
+      pass.wrap_external(combined_texture);
+      return pass;
     }
 
     /* Return the pass that was written by the engine if such pass was found. */
     GPUTexture *pass_texture = DRW_viewport_pass_texture_get(pass_name).gpu_texture();
     if (pass_texture) {
-      return pass_texture;
+      realtime_compositor::Result pass = realtime_compositor::Result(
+          *this, GPU_texture_format(pass_texture));
+      pass.wrap_external(pass_texture);
+      return pass;
     }
 
-    /* If no Z pass was found above, return the viewport depth as a fallback, which might be
-     * populated if overlays are enabled. */
-    if (STREQ(pass_name, RE_PASSNAME_Z)) {
-      return DRW_viewport_texture_list_get()->depth;
-    }
-
-    return nullptr;
+    return realtime_compositor::Result(*this);
   }
 
   StringRef get_view_name() const override

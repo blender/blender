@@ -794,7 +794,7 @@ static void bchunk_list_fill_from_array(const BArrayInfo *info,
 
 BLI_INLINE hash_key hash_data_single(const uchar p)
 {
-  return ((HASH_INIT << 5) + HASH_INIT) + (hash_key)(*((signed char *)&p));
+  return ((HASH_INIT << 5) + HASH_INIT) + (hash_key) * ((signed char *)&p);
 }
 
 /* Hash bytes, from #BLI_ghashutil_strhash_n. */

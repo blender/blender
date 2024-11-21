@@ -26,7 +26,3 @@ set(WITH_PYTHON_SAFETY                ON  CACHE BOOL "" FORCE)
 if(WIN32)
   set(WITH_WINDOWS_BUNDLE_CRT         OFF CACHE BOOL "" FORCE)
 endif()
-
-# This may have issues with C++ initialization order, needs to be tested
-# on all platforms to be sure this is safe to enable.
-# set(WITH_CXX_GUARDEDALLOC             ON  CACHE BOOL "" FORCE)

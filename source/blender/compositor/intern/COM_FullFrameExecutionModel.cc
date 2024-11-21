@@ -16,9 +16,7 @@
 
 #include "BLI_timeit.hh"
 
-#ifdef WITH_CXX_GUARDEDALLOC
-#  include "MEM_guardedalloc.h"
-#endif
+#include "MEM_guardedalloc.h"
 
 namespace blender::compositor {
 
@@ -257,7 +255,8 @@ void FullFrameExecutionModel::get_output_render_area(NodeOperation *output_op, r
   const bool has_viewer_border = border_.use_viewer_border &&
                                  (output_op->get_flags().is_viewer_operation ||
                                   output_op->get_flags().is_preview_operation);
-  const bool has_render_border = border_.use_render_border;
+  const bool has_render_border = border_.use_render_border &&
+                                 output_op->get_flags().use_render_border;
   if (has_viewer_border || has_render_border) {
     /* Get border with normalized coordinates. */
     const rctf *norm_border = has_viewer_border ? border_.viewer_border : border_.render_border;

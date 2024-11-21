@@ -2,11 +2,14 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <limits>
 #include <utility>
 
 #include "BLI_assert.h"
 #include "BLI_math_base.h"
 #include "BLI_math_base.hh"
+#include "BLI_math_vector.hh"
+#include "BLI_math_vector_types.hh"
 
 #include "GPU_shader.hh"
 
@@ -18,7 +21,7 @@
 
 namespace blender::realtime_compositor {
 
-static void jump_flooding_pass(Context &context, Result &input, Result &output, int step_size)
+static void jump_flooding_pass_gpu(Context &context, Result &input, Result &output, int step_size)
 {
   GPUShader *shader = context.get_shader("compositor_jump_flooding", ResultPrecision::Half);
   GPU_shader_bind(shader);
@@ -33,6 +36,75 @@ static void jump_flooding_pass(Context &context, Result &input, Result &output, 
   GPU_shader_unbind();
   input.unbind_as_texture();
   output.unbind_as_image();
+}
+
+/* This function implements a single pass of the Jump Flooding algorithm described in sections 3.1
+ * and 3.2 of the paper:
+ *
+ *   Rong, Guodong, and Tiow-Seng Tan. "Jump flooding in GPU with applications to Voronoi diagram
+ *   and distance transform." Proceedings of the 2006 symposium on Interactive 3D graphics and
+ *   games. 2006.
+ *
+ * The function is a straightforward implementation of the aforementioned sections of the paper,
+ * noting that the nil special value in the paper is equivalent to JUMP_FLOODING_NON_FLOODED_VALUE.
+ *
+ * The `COM_algorithm_jump_flooding.hh` header contains the necessary utility functions to
+ * initialize and encode the jump flooding values. */
+static void jump_flooding_pass_cpu(Result &input, Result &output, int step_size)
+{
+  parallel_for(input.domain().size, [&](const int2 texel) {
+    /* For each of the previously flooded pixels in the 3x3 window of the given step size around
+     * the center pixel, find the position of the closest seed pixel that is closest to the current
+     * center pixel. */
+    int2 closest_seed_texel = int2(0);
+    float minimum_squared_distance = std::numeric_limits<float>::max();
+    for (int j = -1; j <= 1; j++) {
+      for (int i = -1; i <= 1; i++) {
+        int2 offset = int2(i, j) * step_size;
+
+        /* Use #JUMP_FLOODING_NON_FLOODED_VALUE as a fallback value to exempt out of bound pixels
+         * from the loop as can be seen in the following continue condition. */
+        int4 fallback = int4(JUMP_FLOODING_NON_FLOODED_VALUE, int2(0));
+        int2 jump_flooding_value = input.load_pixel_fallback(texel + offset, fallback).xy();
+
+        /* The pixel is either not flooded yet or is out of bound, so skip it. */
+        if (jump_flooding_value == JUMP_FLOODING_NON_FLOODED_VALUE) {
+          continue;
+        }
+
+        /* The neighboring pixel is flooded, so its flooding value is the texel of the closest seed
+         * pixel to this neighboring pixel. */
+        int2 closest_seed_texel_to_neighbor = jump_flooding_value;
+
+        /* Compute the squared distance to the neighbor's closest seed pixel. */
+        float squared_distance = math::distance_squared(float2(closest_seed_texel_to_neighbor),
+                                                        float2(texel));
+
+        if (squared_distance < minimum_squared_distance) {
+          minimum_squared_distance = squared_distance;
+          closest_seed_texel = closest_seed_texel_to_neighbor;
+        }
+      }
+    }
+
+    /* If the minimum squared distance is still #std::numeric_limits<float>::max(), that means the
+     * loop never got past the continue condition and thus no flooding happened. If flooding
+     * happened, we encode the closest seed texel in the format expected by the algorithm. */
+    bool flooding_happened = minimum_squared_distance != std::numeric_limits<float>::max();
+    int2 jump_flooding_value = encode_jump_flooding_value(closest_seed_texel, flooding_happened);
+
+    output.store_pixel(texel, int4(jump_flooding_value, int2(0)));
+  });
+}
+
+static void jump_flooding_pass(Context &context, Result &input, Result &output, int step_size)
+{
+  if (context.use_gpu()) {
+    jump_flooding_pass_gpu(context, input, output, step_size);
+  }
+  else {
+    jump_flooding_pass_cpu(input, output, step_size);
+  }
 }
 
 void jump_flooding(Context &context, Result &input, Result &output)

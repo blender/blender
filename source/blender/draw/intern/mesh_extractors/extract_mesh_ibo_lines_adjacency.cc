@@ -174,7 +174,7 @@ void extract_lines_adjacency(const MeshRenderData &mr, gpu::IndexBuf &ibo, bool 
   GPUIndexBufBuilder builder;
   GPU_indexbuf_init(&builder, GPU_PRIM_LINES_ADJ, tess_edge_len, mr.corners_num);
 
-  if (mr.extract_type == MR_EXTRACT_MESH) {
+  if (mr.extract_type == MeshExtractType::Mesh) {
     calc_adjacency_mesh(mr, vert_to_corner, edge_hash, builder, is_manifold);
   }
   else {

@@ -7,8 +7,8 @@
  * Outputs the largest intersecting motion vector in the neighborhood.
  */
 
-#pragma BLENDER_REQUIRE(draw_math_geom_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_motion_blur_lib.glsl)
+#include "draw_math_geom_lib.glsl"
+#include "eevee_motion_blur_lib.glsl"
 
 #define DEBUG_BYPASS_DILATION 0
 

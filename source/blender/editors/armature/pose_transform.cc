@@ -792,13 +792,16 @@ static int pose_copy_exec(bContext *C, wmOperator *op)
   copybuffer.id_add(
       &ob->id,
       PartialWriteContext::IDAddOptions{PartialWriteContext::IDAddOperations(
+          PartialWriteContext::IDAddOperations::MAKE_LOCAL |
           PartialWriteContext::IDAddOperations::SET_FAKE_USER |
           PartialWriteContext::IDAddOperations::SET_CLIPBOARD_MARK)},
       [ob](LibraryIDLinkCallbackData *cb_data,
            PartialWriteContext::IDAddOptions /*options*/) -> PartialWriteContext::IDAddOperations {
         /* Only include `ob->data` (i.e. the Armature) dependency. */
         if (*(cb_data->id_pointer) == ob->data) {
-          return PartialWriteContext::IDAddOperations::ADD_DEPENDENCIES;
+          return PartialWriteContext::IDAddOperations(
+              PartialWriteContext::IDAddOperations::MAKE_LOCAL |
+              PartialWriteContext::IDAddOperations::ADD_DEPENDENCIES);
         }
         return PartialWriteContext::IDAddOperations::CLEAR_DEPENDENCIES;
       });
@@ -841,7 +844,8 @@ static int pose_paste_exec(bContext *C, wmOperator *op)
   bool selOnly = RNA_boolean_get(op->ptr, "selected_mask");
 
   /* Get KeyingSet to use. */
-  KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_WHOLE_CHARACTER_ID);
+  KeyingSet *ks = blender::animrig::get_keyingset_for_autokeying(scene,
+                                                                 ANIM_KS_WHOLE_CHARACTER_ID);
 
   /* Sanity checks. */
   if (ELEM(nullptr, ob, ob->pose)) {
@@ -1194,7 +1198,8 @@ static int pose_clear_transform_generic_exec(bContext *C,
       /* do auto-keyframing as appropriate */
       if (blender::animrig::autokeyframe_cfra_can_key(scene, &ob_iter->id)) {
         /* tag for autokeying later */
-        ANIM_relative_keyingset_add_source(sources, &ob_iter->id, &RNA_PoseBone, pchan);
+        blender::animrig::relative_keyingset_add_source(
+            sources, &ob_iter->id, &RNA_PoseBone, pchan);
 
 #if 1 /* XXX: Ugly Hack - Run clearing function on evaluated copy of pchan */
         bPoseChannel *pchan_eval = BKE_pose_channel_find_name(ob_eval->pose, pchan->name);
@@ -1210,10 +1215,10 @@ static int pose_clear_transform_generic_exec(bContext *C,
       /* perform autokeying on the bones if needed */
       if (!sources.is_empty()) {
         /* get KeyingSet to use */
-        KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, default_ksName);
+        KeyingSet *ks = blender::animrig::get_keyingset_for_autokeying(scene, default_ksName);
 
         /* insert keyframes */
-        ANIM_apply_keyingset(
+        blender::animrig::apply_keyingset(
             C, &sources, ks, blender::animrig::ModifyKeyMode::INSERT, float(scene->r.cfra));
 
         /* now recalculate paths */

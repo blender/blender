@@ -81,9 +81,9 @@ static bool get_thumb_dir(char *dir, ThumbSize size)
 #else
 #  if defined(USE_FREEDESKTOP)
   const char *home_cache = BLI_getenv("XDG_CACHE_HOME");
-  const char *home = home_cache ? home_cache : BLI_getenv("HOME");
+  const char *home = home_cache ? home_cache : BLI_dir_home();
 #  else
-  const char *home = BLI_getenv("HOME");
+  const char *home = BLI_dir_home();
 #  endif
   if (!home) {
     return false;

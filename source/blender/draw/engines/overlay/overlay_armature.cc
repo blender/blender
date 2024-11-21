@@ -1220,8 +1220,8 @@ static void drw_shgroup_bone_relationship_lines_ex(const Armatures::DrawContext 
   float3 end_pt = math::transform_point(ctx->ob->object_to_world(), float3(end));
 
   if (ctx->is_overlay_next()) {
-    /* reverse order to have less stipple overlap */
-    ctx->bone_buf->relations_buf.append(start_pt, end_pt, float4(color));
+    /* Reverse order to have less stipple overlap. */
+    ctx->bone_buf->relations_buf.append(end_pt, start_pt, float4(color));
   }
 #ifndef NO_LEGACY_OVERLAY
   else {
@@ -3012,7 +3012,7 @@ void Armatures::draw_armature_pose(Armatures::DrawContext *ctx)
 
   bool is_pose_select = false;
   /* Object can be edited in the scene. */
-  if ((ob->base_flag & (BASE_FROM_SET | BASE_FROM_DUPLI)) == 0) {
+  if (!is_from_dupli_or_set(ob)) {
     if ((draw_ctx->object_mode & OB_MODE_POSE) || (ob == draw_ctx->object_pose)) {
       ctx->draw_mode = ARM_DRAW_MODE_POSE;
     }

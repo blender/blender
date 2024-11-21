@@ -8,7 +8,14 @@
  * language.
  */
 
-#ifndef USE_GPU_SHADER_CREATE_INFO
+/* __cplusplus is true when compiling with MSL, so ensure we are not inside a shader. */
+#if defined(GPU_SHADER) || defined(GLSL_CPP_STUBS)
+#  define IS_CPP 0
+#else
+#  define IS_CPP 1
+#endif
+
+#if IS_CPP
 #  pragma once
 
 #  include "BLI_math_bits.h"
@@ -32,13 +39,6 @@ using namespace draw;
 
 constexpr GPUSamplerState no_filter = GPUSamplerState::default_sampler();
 constexpr GPUSamplerState with_filter = {GPU_SAMPLER_FILTERING_LINEAR};
-#endif
-
-/* __cplusplus is true when compiling with MSL, so ensure we are not inside a shader. */
-#ifdef GPU_SHADER
-#  define IS_CPP 0
-#else
-#  define IS_CPP 1
 #endif
 
 /** WORKAROUND(@fclem): This is because this file is included before common_math_lib.glsl. */
@@ -262,6 +262,9 @@ enum eSamplingDimension : uint32_t {
   SAMPLING_SHADOW_I = 26u,
   SAMPLING_SHADOW_J = 27u,
   SAMPLING_SHADOW_K = 28u,
+  SAMPLING_UNUSED_0 = 29u,
+  SAMPLING_UNUSED_1 = 30u,
+  SAMPLING_UNUSED_2 = 31u,
 };
 
 /**
@@ -706,7 +709,7 @@ struct DepthOfFieldData {
   float4 filter_samples_weight;
   float filter_center_weight;
   /** Max number of sprite in the scatter pass for each ground. */
-  int scatter_max_rect;
+  uint scatter_max_rect;
 
   int _pad0, _pad1;
 };
@@ -1008,6 +1011,11 @@ struct LightData {
   /* True if the light uses jittered soft shadows. */
   bool32_t shadow_jitter;
   float _pad2;
+  uint2 light_set_membership;
+  /** Used by shadow sync. */
+  /* TODO(fclem): this should be part of #eevee::Light struct. But for some reason it gets cleared
+   * to zero after each sync cycle. */
+  uint2 shadow_set_membership;
 
 #if USE_LIGHT_UNION
   union {
@@ -1337,6 +1345,9 @@ struct ShadowTileMapData {
   float half_size;
   /** Offset in local space to the tilemap center in world units. Used for directional winmat. */
   float2 center_offset;
+  /** Shadow set bitmask of the light using this tilemap. */
+  uint2 shadow_set_membership;
+  uint2 _pad3;
 };
 BLI_STATIC_ASSERT_ALIGN(ShadowTileMapData, 16)
 
@@ -1362,6 +1373,9 @@ struct ShadowRenderView {
   int tilemap_lod;
   /** Updated region of the tilemap. */
   int2 rect_min;
+  /** Shadow set bitmask of the light generating this view. */
+  uint2 shadow_set_membership;
+  uint2 _pad0;
 };
 BLI_STATIC_ASSERT_ALIGN(ShadowRenderView, 16)
 
@@ -1725,9 +1739,10 @@ struct Surfel {
   int cluster_id;
   /** True if the light can bounce or be emitted by the surfel back face. */
   bool32_t double_sided;
+  /** Surface receiver light set for light linking. */
+  uint receiver_light_set;
   int _pad0;
   int _pad1;
-  int _pad2;
   /** Surface radiance: Emission + Direct Lighting. */
   SurfelRadiance radiance_direct;
   /** Surface radiance: Indirect Lighting. Double buffered to avoid race conditions. */

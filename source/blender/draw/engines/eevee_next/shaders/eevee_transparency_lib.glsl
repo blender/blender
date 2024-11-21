@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 /* From the paper "Hashed Alpha Testing" by Chris Wyman and Morgan McGuire. */
 float transparency_hash(vec2 a)
 {

@@ -92,7 +92,7 @@ if(WIN32)
   set(CPACK_NSIS_MUI_ICON ${CMAKE_SOURCE_DIR}/release/windows/icons/winblender.ico)
   set(CPACK_NSIS_COMPRESSOR "/SOLID lzma")
 
-  set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_SOURCE_DIR}/release/license/GPL-3.0.txt)
+  set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_SOURCE_DIR}/release/license/spdx/GPL-3.0-or-later.txt)
   set(CPACK_WIX_PRODUCT_ICON ${CMAKE_SOURCE_DIR}/release/windows/icons/winblender.ico)
 
   set(BLENDER_NAMESPACE_GUID "507F933F-5898-404A-9A05-18282FD491A6")
@@ -103,9 +103,9 @@ if(WIN32)
     TYPE SHA1 UPPER
   )
 
-  set(CPACK_WIX_TEMPLATE ${LIBDIR}/package/installer_wix/WIX.template)
-  set(CPACK_WIX_UI_BANNER ${LIBDIR}/package/installer_wix/WIX_UI_BANNER.bmp)
-  set(CPACK_WIX_UI_DIALOG ${LIBDIR}/package/installer_wix/WIX_UI_DIALOG.bmp)
+  set(CPACK_WIX_TEMPLATE ${CMAKE_SOURCE_DIR}/release/windows/installer_wix/WIX.template)
+  set(CPACK_WIX_UI_BANNER ${CMAKE_SOURCE_DIR}/release/windows/installer_wix/WIX_UI_BANNER.bmp)
+  set(CPACK_WIX_UI_DIALOG ${CMAKE_SOURCE_DIR}/release/windows/installer_wix/WIX_UI_DIALOG.bmp)
 
   set(CPACK_WIX_LIGHT_EXTRA_FLAGS -dcl:medium)
 endif()

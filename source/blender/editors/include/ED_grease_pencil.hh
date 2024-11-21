@@ -22,9 +22,11 @@
 #include "WM_api.hh"
 
 struct bContext;
+struct BrushGpencilSettings;
 struct Main;
 struct Object;
 struct KeyframeEditData;
+struct MDeformVert;
 struct wmKeyConfig;
 struct wmOperator;
 struct GPUOffScreen;
@@ -67,6 +69,7 @@ void ED_operatortypes_grease_pencil_select();
 void ED_operatortypes_grease_pencil_edit();
 void ED_operatortypes_grease_pencil_join();
 void ED_operatortypes_grease_pencil_material();
+void ED_operatortypes_grease_pencil_modes();
 void ED_operatortypes_grease_pencil_primitives();
 void ED_operatortypes_grease_pencil_weight_paint();
 void ED_operatortypes_grease_pencil_vertex_paint();
@@ -234,6 +237,13 @@ struct KeyframeClipboard {
   }
 };
 
+bool grease_pencil_layer_parent_set(bke::greasepencil::Layer &layer,
+                                    Object *parent,
+                                    StringRefNull bone,
+                                    bool keep_transform);
+
+void grease_pencil_layer_parent_clear(bke::greasepencil::Layer &layer, bool keep_transform);
+
 bool grease_pencil_copy_keyframes(bAnimContext *ac, KeyframeClipboard &clipboard);
 
 bool grease_pencil_paste_keyframes(bAnimContext *ac,
@@ -284,11 +294,15 @@ bool ensure_active_keyframe(const Scene &scene,
 void create_keyframe_edit_data_selected_frames_list(KeyframeEditData *ked,
                                                     const bke::greasepencil::Layer &layer);
 
+bool grease_pencil_context_poll(bContext *C);
 bool active_grease_pencil_poll(bContext *C);
+bool active_grease_pencil_material_poll(bContext *C);
 bool editable_grease_pencil_poll(bContext *C);
 bool active_grease_pencil_layer_poll(bContext *C);
 bool editable_grease_pencil_point_selection_poll(bContext *C);
+bool grease_pencil_selection_poll(bContext *C);
 bool grease_pencil_painting_poll(bContext *C);
+bool grease_pencil_edit_poll(bContext *C);
 bool grease_pencil_sculpting_poll(bContext *C);
 bool grease_pencil_weight_painting_poll(bContext *C);
 bool grease_pencil_vertex_painting_poll(bContext *C);
@@ -860,6 +874,10 @@ bke::CurvesGeometry trim_curve_segments(const bke::CurvesGeometry &src,
                                         bool keep_caps);
 };  // namespace trim
 
+void merge_layers(const GreasePencil &src_grease_pencil,
+                  const Span<Vector<int>> src_layer_indices_by_dst_layer,
+                  GreasePencil &dst_grease_pencil);
+
 /* Lineart */
 
 /* Stores the maximum calculation range in the whole modifier stack for line art so the cache can
@@ -875,8 +893,9 @@ struct LineartLimitInfo {
 void get_lineart_modifier_limits(const Object &ob, LineartLimitInfo &info);
 void set_lineart_modifier_limits(GreasePencilLineartModifierData &lmd,
                                  const LineartLimitInfo &info,
-                                 const bool is_first_lineart);
+                                 const bool cache_is_ready);
 
 GreasePencilLineartModifierData *get_first_lineart_modifier(const Object &ob);
 
+GreasePencil *from_context(bContext &C);
 }  // namespace blender::ed::greasepencil

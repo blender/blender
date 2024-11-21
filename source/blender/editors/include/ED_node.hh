@@ -25,6 +25,9 @@ struct uiLayout;
 
 namespace blender::ed::space_node {
 
+/** Update the active node tree based on the context. */
+void snode_set_context(const bContext &C);
+
 VectorSet<bNode *> get_selected_nodes(bNodeTree &node_tree);
 
 /**
@@ -39,7 +42,7 @@ void node_insert_on_link_flags_set(SpaceNode &snode,
 /**
  * Assumes link with #NODE_LINK_INSERT_TARGET set.
  */
-void node_insert_on_link_flags(Main &bmain, SpaceNode &snode);
+void node_insert_on_link_flags(Main &bmain, SpaceNode &snode, bool is_new_node);
 void node_insert_on_link_flags_clear(bNodeTree &node_tree);
 
 /**

@@ -71,14 +71,14 @@ static SpaceLink *action_create(const ScrArea *area, const Scene *scene)
                            TIME_CACHE_RIGIDBODY | TIME_CACHE_SIMULATION_NODES;
 
   /* header */
-  region = MEM_cnew<ARegion>("header for action");
+  region = BKE_area_region_new();
 
   BLI_addtail(&saction->regionbase, region);
   region->regiontype = RGN_TYPE_HEADER;
   region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* channel list region */
-  region = MEM_cnew<ARegion>("channel region for action");
+  region = BKE_area_region_new();
   BLI_addtail(&saction->regionbase, region);
   region->regiontype = RGN_TYPE_CHANNELS;
   region->alignment = RGN_ALIGN_LEFT;
@@ -88,14 +88,14 @@ static SpaceLink *action_create(const ScrArea *area, const Scene *scene)
   region->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
 
   /* ui buttons */
-  region = MEM_cnew<ARegion>("buttons region for action");
+  region = BKE_area_region_new();
 
   BLI_addtail(&saction->regionbase, region);
   region->regiontype = RGN_TYPE_UI;
   region->alignment = RGN_ALIGN_RIGHT;
 
   /* main region */
-  region = MEM_cnew<ARegion>("main region for action");
+  region = BKE_area_region_new();
 
   BLI_addtail(&saction->regionbase, region);
   region->regiontype = RGN_TYPE_WINDOW;
@@ -158,9 +158,21 @@ static void action_main_region_init(wmWindowManager *wm, ARegion *region)
 
   /* own keymap */
   keymap = WM_keymap_ensure(wm->defaultconf, "Dopesheet", SPACE_ACTION, RGN_TYPE_WINDOW);
-  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
+  WM_event_add_keymap_handler_poll(
+      &region->handlers, keymap, WM_event_handler_region_v2d_mask_no_marker_poll);
+
   keymap = WM_keymap_ensure(wm->defaultconf, "Dopesheet Generic", SPACE_ACTION, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&region->handlers, keymap);
+}
+
+static void set_v2d_height(View2D *v2d, const size_t item_count, const bool add_marker_padding)
+{
+  const int height = ANIM_UI_get_channels_total_height(v2d, item_count);
+  float pad_bottom = add_marker_padding ? UI_MARKER_MARGIN_Y : 0;
+  /* Add padding for the collapsed redo panel. */
+  pad_bottom += HEADERY;
+  v2d->tot.ymin = -(height + pad_bottom);
+  UI_view2d_curRect_clamp_y(v2d);
 }
 
 static void action_main_region_draw(const bContext *C, ARegion *region)
@@ -171,6 +183,19 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
   bAnimContext ac;
   View2D *v2d = &region->v2d;
   short marker_flag = 0;
+
+  ListBase anim_data = {nullptr, nullptr};
+  const bool has_anim_context = ANIM_animdata_get_context(C, &ac);
+  if (has_anim_context) {
+    /* Build list of channels to draw. */
+    const eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
+                                      ANIMFILTER_LIST_CHANNELS);
+    const size_t items = ANIM_animdata_filter(
+        &ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
+    /* The View2D's height needs to be set before calling UI_view2d_view_ortho because the latter
+     * uses the View2D's `cur` rect which might be modified when setting the height. */
+    set_v2d_height(v2d, items, !BLI_listbase_is_empty(ac.markers));
+  }
 
   UI_view2d_view_ortho(v2d);
 
@@ -196,8 +221,8 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
   }
 
   /* data */
-  if (ANIM_animdata_get_context(C, &ac)) {
-    draw_channel_strips(&ac, saction, region);
+  if (has_anim_context) {
+    draw_channel_strips(&ac, saction, region, &anim_data);
   }
 
   /* markers */
@@ -269,16 +294,6 @@ static void action_channel_region_init(wmWindowManager *wm, ARegion *region)
 
   keymap = WM_keymap_ensure(wm->defaultconf, "Dopesheet Generic", SPACE_ACTION, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&region->handlers, keymap);
-}
-
-static void set_v2d_height(View2D *v2d, const size_t item_count, const bool add_marker_padding)
-{
-  const int height = ANIM_UI_get_channels_total_height(v2d, item_count);
-  float pad_bottom = add_marker_padding ? UI_MARKER_MARGIN_Y : 0;
-  /* Add padding for the collapsed redo panel. */
-  pad_bottom += HEADERY;
-  v2d->tot.ymin = -(height + pad_bottom);
-  UI_view2d_curRect_clamp_y(v2d);
 }
 
 static void action_channel_region_draw(const bContext *C, ARegion *region)

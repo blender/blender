@@ -172,10 +172,10 @@ class AnimationImporter : private TransformReader, public AnimationImporterBase 
    * animation class of each animation.
    */
   void Assign_color_animations(const COLLADAFW::UniqueId &listid,
-                               ListBase *AnimCurves,
+                               AnimData &adt,
                                const char *anim_type);
   void Assign_float_animations(const COLLADAFW::UniqueId &listid,
-                               ListBase *AnimCurves,
+                               AnimData &adt,
                                const char *anim_type);
   /**
    * Lens animations must be stored in COLLADA by using FOV,
@@ -183,9 +183,9 @@ class AnimationImporter : private TransformReader, public AnimationImporterBase 
    * The imported animation curves must be converted appropriately.
    */
   void Assign_lens_animations(const COLLADAFW::UniqueId &listid,
-                              ListBase *AnimCurves,
+                              AnimData &adt,
                               double aspect,
-                              Camera *cam,
+                              const Camera *cam,
                               const char *anim_type,
                               int fov_type);
 

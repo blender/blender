@@ -1208,7 +1208,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, const uiWidgetColors *wcol)
 
 #define UI_TEXT_CLIP_MARGIN (0.25f * U.widget_unit / but->block->aspect)
 
-#define PREVIEW_PAD 6
+#define PREVIEW_PAD (0.15f * UI_UNIT_X)
 
 static float widget_alpha_factor(const uiWidgetStateInfo *state)
 {
@@ -4509,8 +4509,7 @@ static void widget_draw_extra_mask(const bContext *C, uiBut *but, uiWidgetType *
 
   if (but->block->drawextra) {
     /* NOTE: drawextra can change rect +1 or -1, to match round errors of existing previews. */
-    but->block->drawextra(
-        C, but->poin, but->block->drawextra_arg1, but->block->drawextra_arg2, rect);
+    but->block->drawextra(C, rect);
 
     const uint pos = GPU_vertformat_attr_add(
         immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);

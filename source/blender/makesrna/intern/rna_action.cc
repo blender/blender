@@ -34,7 +34,6 @@
 
 using namespace blender;
 
-#ifdef WITH_ANIM_BAKLAVA
 const EnumPropertyItem rna_enum_layer_mix_mode_items[] = {
     {int(animrig::Layer::MixMode::Replace),
      "REPLACE",
@@ -85,8 +84,6 @@ const EnumPropertyItem default_ActionSlot_id_root_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-#endif /* WITH_ANIM_BAKLAVA */
-
 #ifdef RNA_RUNTIME
 
 #  include <algorithm>
@@ -116,8 +113,6 @@ static animrig::Action &rna_action(const PointerRNA *ptr)
 {
   return reinterpret_cast<bAction *>(ptr->owner_id)->wrap();
 }
-
-#  ifdef WITH_ANIM_BAKLAVA
 
 static animrig::Slot &rna_data_slot(const PointerRNA *ptr)
 {
@@ -375,7 +370,7 @@ static void rna_ActionSlot_name_update(Main *bmain, Scene *, PointerRNA *ptr)
   action.slot_name_propagate(*bmain, slot);
 }
 
-#    ifndef NDEBUG
+#  ifndef NDEBUG
 static void rna_ActionSlot_debug_log_users(const ID *action_id, ActionSlot *dna_slot, Main *bmain)
 {
   using namespace blender::animrig;
@@ -396,7 +391,7 @@ static void rna_ActionSlot_debug_log_users(const ID *action_id, ActionSlot *dna_
     printf("  - %s\n", user->name);
   }
 }
-#    endif /* NDEBUG */
+#  endif /* NDEBUG */
 
 static std::optional<std::string> rna_ActionLayer_path(const PointerRNA *ptr)
 {
@@ -739,8 +734,6 @@ static ActionChannelBag *rna_ActionStrip_channels(ID *dna_action_id,
   return strip_data.channelbag_for_slot(slot_handle);
 }
 
-#  endif  // WITH_ANIM_BAKLAVA
-
 /**
  * Iterator for the fcurves in a channel group.
  *
@@ -859,7 +852,6 @@ static PointerRNA rna_ActionGroup_channels_get(CollectionPropertyIterator *iter)
   return rna_pointer_inherit_refine(&iter->parent, &RNA_FCurve, fcurve);
 }
 
-#  ifdef WITH_ANIM_BAKLAVA
 /* Use the backward-compatible API only when we're working with the action as a
  * layered action. */
 static bool use_backward_compatible_api(animrig::Action &action)
@@ -928,13 +920,10 @@ static int rna_iterator_Action_groups_length(PointerRNA *ptr)
   return BLI_listbase_count(&action.groups);
 }
 
-#  endif /* WITH_ANIM_BAKLAVA */
-
 static bActionGroup *rna_Action_groups_new(bAction *act, const char name[])
 {
   bActionGroup *group;
 
-#  ifdef WITH_ANIM_BAKLAVA
   animrig::Action &action = act->wrap();
   if (use_backward_compatible_api(action)) {
     animrig::ChannelBag &channelbag = animrig::legacy::channelbag_ensure(action);
@@ -943,9 +932,6 @@ static bActionGroup *rna_Action_groups_new(bAction *act, const char name[])
   else {
     group = action_groups_add_new(act, name);
   }
-#  else
-  group = action_groups_add_new(act, name);
-#  endif
 
   /* I (Sybren) expected that the commented-out notifier below was missing.
    * However, the animation filtering code (`animfilter_act_group()`) hides
@@ -962,7 +948,6 @@ static void rna_Action_groups_remove(bAction *act, ReportList *reports, PointerR
   bActionGroup *agrp = static_cast<bActionGroup *>(agrp_ptr->data);
   BLI_assert(agrp); /* Ensured by RNA flag PROP_NEVER_NULL. */
 
-#  ifdef WITH_ANIM_BAKLAVA
   animrig::Action &action = act->wrap();
   if (use_backward_compatible_api(action)) {
     animrig::ChannelBag *channelbag = animrig::legacy::channelbag_get(action);
@@ -980,7 +965,6 @@ static void rna_Action_groups_remove(bAction *act, ReportList *reports, PointerR
 
     return;
   }
-#  endif
 
   FCurve *fcu, *fcn;
 
@@ -1012,7 +996,6 @@ static void rna_Action_groups_remove(bAction *act, ReportList *reports, PointerR
   WM_main_add_notifier(NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 }
 
-#  ifdef WITH_ANIM_BAKLAVA
 static void rna_iterator_Action_fcurves_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   animrig::Action &action = rna_action(ptr);
@@ -1074,8 +1057,6 @@ static int rna_iterator_Action_fcurves_length(PointerRNA *ptr)
   return BLI_listbase_count(&action.curves);
 }
 
-#  endif  // WITH_ANIM_BAKLAVA
-
 static FCurve *rna_Action_fcurve_new(bAction *act,
                                      Main *bmain,
                                      ReportList *reports,
@@ -1094,7 +1075,6 @@ static FCurve *rna_Action_fcurve_new(bAction *act,
     fcurve_descriptor.channel_group = group;
   }
 
-#  ifdef WITH_ANIM_BAKLAVA
   animrig::Action &action = act->wrap();
   if (use_backward_compatible_api(action)) {
     /* Add the F-Curve to the channelbag for the first slot. */
@@ -1116,7 +1096,6 @@ static FCurve *rna_Action_fcurve_new(bAction *act,
 
     return fcurve;
   }
-#  endif
 
   /* Annoying, check if this exists. */
   if (blender::animrig::fcurve_find_in_action(act, fcurve_descriptor)) {
@@ -1128,7 +1107,7 @@ static FCurve *rna_Action_fcurve_new(bAction *act,
                 act->id.name + 2);
     return nullptr;
   }
-  return blender::animrig::action_fcurve_ensure(
+  return blender::animrig::action_fcurve_ensure_legacy(
       bmain,
       act,
       fcurve_descriptor.channel_group ? fcurve_descriptor.channel_group->c_str() : nullptr,
@@ -1146,7 +1125,6 @@ static FCurve *rna_Action_fcurve_find(bAction *act,
     return nullptr;
   }
 
-#  ifdef WITH_ANIM_BAKLAVA
   animrig::Action &action = act->wrap();
   if (use_backward_compatible_api(action)) {
     animrig::ChannelBag *channelbag = animrig::legacy::channelbag_get(action);
@@ -1155,7 +1133,6 @@ static FCurve *rna_Action_fcurve_find(bAction *act,
     }
     return channelbag->fcurve_find({data_path, index});
   }
-#  endif
 
   /* Returns nullptr if not found. */
   return animrig::fcurve_find_in_action(act, {data_path, index});
@@ -1165,7 +1142,6 @@ static void rna_Action_fcurve_remove(bAction *act, ReportList *reports, PointerR
 {
   FCurve *fcu = static_cast<FCurve *>(fcu_ptr->data);
 
-#  ifdef WITH_ANIM_BAKLAVA
   animrig::Action &action = act->wrap();
   if (use_backward_compatible_api(action)) {
     animrig::ChannelBag *channelbag = animrig::legacy::channelbag_get(action);
@@ -1184,7 +1160,6 @@ static void rna_Action_fcurve_remove(bAction *act, ReportList *reports, PointerR
 
     return;
   }
-#  endif
 
   if (fcu->grp) {
     if (BLI_findindex(&act->groups, fcu->grp) == -1) {
@@ -1217,7 +1192,6 @@ static void rna_Action_fcurve_remove(bAction *act, ReportList *reports, PointerR
 
 static void rna_Action_fcurve_clear(bAction *act)
 {
-#  ifdef WITH_ANIM_BAKLAVA
   animrig::Action &action = act->wrap();
   if (use_backward_compatible_api(action)) {
     animrig::ChannelBag *channelbag = animrig::legacy::channelbag_get(action);
@@ -1230,9 +1204,6 @@ static void rna_Action_fcurve_clear(bAction *act)
   else {
     BKE_action_fcurves_clear(act);
   }
-#  else
-  BKE_action_fcurves_clear(act);
-#  endif
 
   WM_main_add_notifier(NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 }
@@ -1301,7 +1272,6 @@ static void rna_Action_active_pose_marker_index_range(
   *max = max_ii(0, BLI_listbase_count(&act->markers) - 1);
 }
 
-#  ifdef WITH_ANIM_BAKLAVA
 static bool rna_Action_is_empty_get(PointerRNA *ptr)
 {
   animrig::Action &action = rna_action(ptr);
@@ -1315,7 +1285,6 @@ static bool rna_Action_is_action_layered_get(PointerRNA *ptr)
 {
   return rna_action(ptr).is_action_layered();
 }
-#  endif  // WITH_ANIM_BAKLAVA
 
 static void rna_Action_frame_range_get(PointerRNA *ptr, float *r_values)
 {
@@ -1496,36 +1465,6 @@ static std::optional<std::string> rna_DopeSheet_path(const PointerRNA *ptr)
   return "dopesheet";
 }
 
-static const EnumPropertyItem *rna_id_root_itemf(bContext * /* C */,
-                                                 PointerRNA * /* ptr */,
-                                                 PropertyRNA * /* prop */,
-                                                 bool *r_free)
-{
-  int totitem = 0;
-  EnumPropertyItem *items = nullptr;
-
-  int i = 0;
-  while (rna_enum_id_type_items[i].identifier != nullptr) {
-    EnumPropertyItem item = {0};
-    item.value = rna_enum_id_type_items[i].value;
-    item.name = rna_enum_id_type_items[i].name;
-    item.identifier = rna_enum_id_type_items[i].identifier;
-    item.icon = rna_enum_id_type_items[i].icon;
-    item.description = rna_enum_id_type_items[i].description;
-    RNA_enum_item_add(&items, &totitem, &item);
-    i++;
-  }
-
-  const EnumPropertyItem id_root_any = {0, "ANY", ICON_NONE, "Any", ""};
-  RNA_enum_item_add(&items, &totitem, &id_root_any);
-
-  RNA_enum_item_end(&items, &totitem);
-  *r_free = true;
-  return items;
-}
-
-#  ifdef WITH_ANIM_BAKLAVA
-
 static const EnumPropertyItem *rna_ActionSlot_id_root_itemf(bContext * /* C */,
                                                             PointerRNA * /* ptr */,
                                                             PropertyRNA * /* prop */,
@@ -1573,7 +1512,6 @@ static const EnumPropertyItem *rna_ActionSlot_id_root_itemf(bContext * /* C */,
 
   return items;
 }
-#  endif /* WITH_ANIM_BAKLAVA */
 
 #else
 
@@ -1613,9 +1551,12 @@ static void rna_def_dopesheet(BlenderRNA *brna)
   RNA_def_property_ui_icon(prop, ICON_RESTRICT_SELECT_OFF, 0);
   RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);
 
-  prop = RNA_def_property(srna, "show_all_slots", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "filterflag", ADS_FILTER_ALL_SLOTS);
-  RNA_def_property_ui_text(prop, "Show All Slots", "Show all the Action's Slots");
+  prop = RNA_def_property(srna, "show_only_slot_of_active_object", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "filterflag", ADS_FILTER_ONLY_SLOTS_OF_ACTIVE);
+  RNA_def_property_ui_text(
+      prop,
+      "Only Show Slot of Active Object",
+      "Only show the slot of the active Object. Otherwise show all the Action's Slots");
   RNA_def_property_ui_icon(prop, ICON_ACTION_SLOT, 0);
   RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);
 
@@ -1899,8 +1840,6 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 
 /* =========================== Layered Action interface =========================== */
 
-#  ifdef WITH_ANIM_BAKLAVA
-
 static void rna_def_action_slots(BlenderRNA *brna, PropertyRNA *cprop)
 {
   StructRNA *srna;
@@ -2046,7 +1985,7 @@ static void rna_def_action_slot(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop,
                            "Slot Handle",
-                           "Number specific to this Slot, unique within the Action"
+                           "Number specific to this Slot, unique within the Action.\n"
                            "This is used, for example, on a ActionKeyframeStrip to look up the "
                            "ActionChannelBag for this Slot");
 
@@ -2074,7 +2013,7 @@ static void rna_def_action_slot(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update_notifier(prop, NC_ANIMATION | ND_ANIMCHAN | NA_SELECTED);
 
-#    ifndef NDEBUG
+#  ifndef NDEBUG
   /* Slot.debug_log_users() */
   {
     FunctionRNA *func;
@@ -2082,7 +2021,7 @@ static void rna_def_action_slot(BlenderRNA *brna)
     func = RNA_def_function(srna, "debug_log_users", "rna_ActionSlot_debug_log_users");
     RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
   }
-#    endif
+#  endif
 }
 
 static void rna_def_ActionLayer_strips(BlenderRNA *brna, PropertyRNA *cprop)
@@ -2472,7 +2411,6 @@ static void rna_def_action_channelbag(BlenderRNA *brna)
       "Groupings of F-Curves for display purposes, in e.g. the dopesheet and graph editor");
   rna_def_channelbag_groups(brna, prop);
 }
-#  endif  // WITH_ANIM_BAKLAVA
 
 static void rna_def_action_group(BlenderRNA *brna)
 {
@@ -2564,7 +2502,6 @@ static void rna_def_action_groups(BlenderRNA *brna, PropertyRNA *cprop)
   srna = RNA_def_struct(brna, "ActionGroups", nullptr);
   RNA_def_struct_sdna(srna, "bAction");
   RNA_def_struct_ui_text(srna, "Action Groups", "Collection of action groups");
-#  ifdef WITH_ANIM_BAKLAVA
   RNA_def_property_collection_funcs(cprop,
                                     "rna_iterator_Action_groups_begin",
                                     "rna_iterator_Action_groups_next",
@@ -2574,7 +2511,6 @@ static void rna_def_action_groups(BlenderRNA *brna, PropertyRNA *cprop)
                                     nullptr,
                                     nullptr,
                                     nullptr);
-#  endif
 
   func = RNA_def_function(srna, "new", "rna_Action_groups_new");
   RNA_def_function_ui_description(func, "Create a new action group and add it to the action");
@@ -2602,7 +2538,6 @@ static void rna_def_action_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
   srna = RNA_def_struct(brna, "ActionFCurves", nullptr);
   RNA_def_struct_sdna(srna, "bAction");
   RNA_def_struct_ui_text(srna, "Action F-Curves", "Collection of action F-Curves");
-#  ifdef WITH_ANIM_BAKLAVA
   RNA_def_property_collection_funcs(cprop,
                                     "rna_iterator_Action_fcurves_begin",
                                     "rna_iterator_Action_fcurves_next",
@@ -2612,7 +2547,6 @@ static void rna_def_action_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
                                     nullptr,
                                     nullptr,
                                     nullptr);
-#  endif
 
   /* Action.fcurves.new(...) */
   func = RNA_def_function(srna, "new", "rna_Action_fcurve_new");
@@ -2702,13 +2636,6 @@ static void rna_def_action_pose_markers(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_property_ui_text(prop, "Active Pose Marker Index", "Index of active pose marker");
 }
 
-/* Cannot use rna_enum_dummy_DEFAULT_items because the OBJECT entry needs to exist as it is the
- * default. */
-const EnumPropertyItem default_id_root_items[] = {
-    {0, "OBJECT", 0, "Object", ""},
-    {0, nullptr, 0, nullptr, nullptr},
-};
-
 /* Access to 'legacy' Action features, like the top-level F-Curves, the corresponding F-Curve
  * groups, and the top-level id_root. */
 static void rna_def_action_legacy(BlenderRNA *brna, StructRNA *srna)
@@ -2732,8 +2659,9 @@ static void rna_def_action_legacy(BlenderRNA *brna, StructRNA *srna)
    * but is still available/editable in 'emergencies' */
   prop = RNA_def_property(srna, "id_root", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "idroot");
-  RNA_def_property_enum_items(prop, default_id_root_items);
-  RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_id_root_itemf");
+  RNA_def_property_enum_items(prop, default_ActionSlot_id_root_items);
+  RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_ActionSlot_id_root_itemf");
+  RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);
   RNA_def_property_ui_text(prop,
                            "ID Root Type",
                            "Type of ID block that action can be used on - "
@@ -2751,7 +2679,6 @@ static void rna_def_action(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Action", "A collection of F-Curves for animation");
   RNA_def_struct_ui_icon(srna, ICON_ACTION);
 
-#  ifdef WITH_ANIM_BAKLAVA
   /* Properties. */
   prop = RNA_def_property(srna, "is_empty", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -2775,11 +2702,8 @@ static void rna_def_action(BlenderRNA *brna)
                            "Return whether this is a layered Action. An empty Action considered "
                            "as both a 'layered' and a 'layered' Action.");
   RNA_def_property_boolean_funcs(prop, "rna_Action_is_action_layered_get", nullptr);
-#  endif  // WITH_ANIM_BAKLAVA
 
   /* Collection properties. */
-
-#  ifdef WITH_ANIM_BAKLAVA
   prop = RNA_def_property(srna, "slots", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "ActionSlot");
   RNA_def_property_collection_funcs(prop,
@@ -2807,7 +2731,6 @@ static void rna_def_action(BlenderRNA *brna)
                                     nullptr);
   RNA_def_property_ui_text(prop, "Layers", "The list of layers that make up this Action");
   rna_def_action_layers(brna, prop);
-#  endif  // WITH_ANIM_BAKLAVA
 
   prop = RNA_def_property(srna, "pose_markers", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, nullptr, "markers", nullptr);
@@ -2907,12 +2830,10 @@ void RNA_def_action(BlenderRNA *brna)
   rna_def_action_group(brna);
   rna_def_dopesheet(brna);
 
-#  ifdef WITH_ANIM_BAKLAVA
   rna_def_action_slot(brna);
   rna_def_action_layer(brna);
   rna_def_action_strip(brna);
   rna_def_action_channelbag(brna);
-#  endif
 }
 
 #endif

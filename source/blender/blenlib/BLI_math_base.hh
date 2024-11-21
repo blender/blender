@@ -176,6 +176,16 @@ template<typename T> inline T pow(const T &x, const T &power)
   return std::pow(x, power);
 }
 
+template<typename T> inline T safe_pow(const T &x, const T &power)
+{
+  return (x < 0 || (x == 0 && power <= 0)) ? x : std::pow(x, power);
+}
+
+template<typename T> inline T fallback_pow(const T &x, const T &power, const T &fallback)
+{
+  return (x < 0 || (x == 0 && power <= 0)) ? fallback : std::pow(x, power);
+}
+
 template<typename T> inline T square(const T &a)
 {
   return a * a;

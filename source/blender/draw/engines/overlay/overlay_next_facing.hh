@@ -21,27 +21,34 @@ class Facing {
 
   PassMain ps_ = {"Facing"};
 
-  bool enabled = false;
+  bool enabled_ = false;
 
  public:
   Facing(const SelectionType selection_type_) : selection_type_(selection_type_) {}
 
   void begin_sync(Resources &res, const State &state)
   {
-    enabled = state.v3d && (state.overlay.flag & V3D_OVERLAY_FACE_ORIENTATION) &&
-              !state.xray_enabled && (selection_type_ == SelectionType::DISABLED);
-    if (!enabled) {
+    enabled_ = state.v3d && (state.overlay.flag & V3D_OVERLAY_FACE_ORIENTATION) &&
+               !state.xray_enabled && (selection_type_ == SelectionType::DISABLED);
+    if (!enabled_) {
       /* Not used. But release the data. */
       ps_.init();
       return;
     }
 
     const View3DShading &shading = state.v3d->shading;
-    bool use_cull = ((shading.type == OB_SOLID) && (shading.flag & V3D_SHADING_BACKFACE_CULLING));
+    const bool is_solid_viewport = shading.type == OB_SOLID;
+    bool use_cull = (is_solid_viewport && (shading.flag & V3D_SHADING_BACKFACE_CULLING));
     DRWState backface_cull_state = use_cull ? DRW_STATE_CULL_BACK : DRWState(0);
 
+    /* Use the Depth Equal test in solid mode to ensure transparent textures display correctly.
+     * (See #128113). And the Depth-Less test in other modes (E.g. EEVEE) to ensure the overlay
+     * displays correctly (See # 114000). */
+    DRWState depth_compare_state = is_solid_viewport ? DRW_STATE_DEPTH_EQUAL :
+                                                       DRW_STATE_DEPTH_LESS_EQUAL;
+
     ps_.init();
-    ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WRITE_DEPTH |
+    ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | depth_compare_state |
                       backface_cull_state,
                   state.clipping_plane_count);
     ps_.shader_set(res.shaders.facing.get());
@@ -50,7 +57,7 @@ class Facing {
 
   void object_sync(Manager &manager, const ObjectRef &ob_ref, const State &state)
   {
-    if (!enabled) {
+    if (!enabled_) {
       return;
     }
     const bool renderable = DRW_object_is_renderable(ob_ref.object);
@@ -78,13 +85,23 @@ class Facing {
     }
   }
 
-  void draw(Framebuffer &framebuffer, Manager &manager, View &view)
+  void pre_draw(Manager &manager, View &view)
   {
-    if (!enabled) {
+    if (!enabled_) {
       return;
     }
+
+    manager.generate_commands(ps_, view);
+  }
+
+  void draw(Framebuffer &framebuffer, Manager &manager, View &view)
+  {
+    if (!enabled_) {
+      return;
+    }
+
     GPU_framebuffer_bind(framebuffer);
-    manager.submit(ps_, view);
+    manager.submit_only(ps_, view);
   }
 };
 

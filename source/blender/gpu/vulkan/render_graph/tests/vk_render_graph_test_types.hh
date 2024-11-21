@@ -45,13 +45,13 @@ class CommandBufferLog : public VKCommandBufferInterface {
     is_recording_ = false;
   }
 
-  void submit_with_cpu_synchronization() override
+  void submit_with_cpu_synchronization(VkFence /*vk_fence*/) override
   {
     EXPECT_FALSE(is_recording_);
     EXPECT_FALSE(is_cpu_synchronizing_);
     is_cpu_synchronizing_ = true;
   };
-  void wait_for_cpu_synchronization() override
+  void wait_for_cpu_synchronization(VkFence /*vk_fence*/) override
   {
     EXPECT_FALSE(is_recording_);
     EXPECT_TRUE(is_cpu_synchronizing_);
@@ -201,7 +201,6 @@ class CommandBufferLog : public VKCommandBufferInterface {
     ss << ", dst_offset=" << dst_offset;
     ss << ", data_size=" << data_size;
     ss << ")";
-    ss << std::endl;
     log_.append(ss.str());
   }
   void copy_buffer(VkBuffer src_buffer,
@@ -433,6 +432,24 @@ class CommandBufferLog : public VKCommandBufferInterface {
     EXPECT_TRUE(is_recording_);
     std::stringstream ss;
     ss << "end_rendering()";
+    log_.append(ss.str());
+  }
+
+  void begin_render_pass(const VkRenderPassBeginInfo *p_render_pass_begin_info) override
+  {
+    EXPECT_TRUE(is_recording_);
+    std::stringstream ss;
+    ss << "begin_render_pass(";
+    ss << "p_render_pass_begin_info=" << to_string(*p_render_pass_begin_info);
+    ss << ")";
+    log_.append(ss.str());
+  }
+
+  void end_render_pass() override
+  {
+    EXPECT_TRUE(is_recording_);
+    std::stringstream ss;
+    ss << "end_render_pass()";
     log_.append(ss.str());
   }
 

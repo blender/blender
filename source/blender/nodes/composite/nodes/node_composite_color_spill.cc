@@ -6,6 +6,12 @@
  * \ingroup cmpnodes
  */
 
+#include "BLI_math_vector_types.hh"
+
+#include "FN_multi_function_builder.hh"
+
+#include "NOD_multi_function.hh"
+
 #include "RNA_access.hh"
 
 #include "UI_interface.hh"
@@ -96,6 +102,69 @@ static void node_composit_buts_color_spill(uiLayout *layout, bContext * /*C*/, P
 
 using namespace blender::realtime_compositor;
 
+/* Get the index of the channel used for spilling. */
+static int get_spill_channel(const bNode &node)
+{
+  return node.custom1 - 1;
+}
+
+static CMPNodeColorSpillLimitAlgorithm get_limit_algorithm(const bNode &node)
+{
+  return static_cast<CMPNodeColorSpillLimitAlgorithm>(node.custom2);
+}
+
+static float3 get_spill_scale(const bNode &node)
+{
+  const NodeColorspill &node_color_spill = node_storage(node);
+  float3 spill_scale;
+  if (node_color_spill.unspill) {
+    spill_scale.x = node_color_spill.uspillr;
+    spill_scale.y = node_color_spill.uspillg;
+    spill_scale.z = node_color_spill.uspillb;
+    spill_scale[get_spill_channel(node)] *= -1.0f;
+  }
+  else {
+    spill_scale.x = 0.0f;
+    spill_scale.y = 0.0f;
+    spill_scale.z = 0.0f;
+    spill_scale[get_spill_channel(node)] = -1.0f;
+  }
+
+  return spill_scale;
+}
+
+/* Get the index of the channel used for limiting. */
+static int get_limit_channel(const bNode &node)
+{
+  return node_storage(node).limchan;
+}
+
+/* Get the indices of the channels used to compute the limit value. We always assume the limit
+ * algorithm is Average, if it is a single limit channel, store it in both limit channels,
+ * because the average of two identical values is the same value. */
+static int2 get_limit_channels(const bNode &node)
+{
+  int2 limit_channels;
+  if (get_limit_algorithm(node) == CMP_NODE_COLOR_SPILL_LIMIT_ALGORITHM_AVERAGE) {
+    /* If the algorithm is Average, store the indices of the other two channels other than the
+     * spill channel. */
+    limit_channels[0] = (get_spill_channel(node) + 1) % 3;
+    limit_channels[1] = (get_spill_channel(node) + 2) % 3;
+  }
+  else {
+    /* If the algorithm is Single, store the index of the limit channel in both channels. */
+    limit_channels[0] = get_limit_channel(node);
+    limit_channels[1] = get_limit_channel(node);
+  }
+
+  return limit_channels;
+}
+
+static float get_limit_scale(const bNode &node)
+{
+  return node_storage(node).limscale;
+}
+
 class ColorSpillShaderNode : public ShaderNode {
  public:
   using ShaderNode::ShaderNode;
@@ -105,12 +174,10 @@ class ColorSpillShaderNode : public ShaderNode {
     GPUNodeStack *inputs = get_inputs_array();
     GPUNodeStack *outputs = get_outputs_array();
 
-    const float spill_channel = get_spill_channel();
-    float spill_scale[3];
-    get_spill_scale(spill_scale);
-    float limit_channels[2];
-    get_limit_channels(limit_channels);
-    const float limit_scale = get_limit_scale();
+    const float spill_channel = get_spill_channel(bnode());
+    const float3 spill_scale = get_spill_scale(bnode());
+    const float2 limit_channels = float2(get_limit_channels(bnode()));
+    const float limit_scale = get_limit_scale(bnode());
 
     GPU_stack_link(material,
                    &bnode(),
@@ -122,68 +189,30 @@ class ColorSpillShaderNode : public ShaderNode {
                    GPU_constant(limit_channels),
                    GPU_uniform(&limit_scale));
   }
-
-  /* Get the index of the channel used for spilling. */
-  int get_spill_channel()
-  {
-    return bnode().custom1 - 1;
-  }
-
-  CMPNodeColorSpillLimitAlgorithm get_limit_algorithm()
-  {
-    return (CMPNodeColorSpillLimitAlgorithm)bnode().custom2;
-  }
-
-  void get_spill_scale(float spill_scale[3])
-  {
-    const NodeColorspill &node_color_spill = node_storage(bnode());
-    if (node_color_spill.unspill) {
-      spill_scale[0] = node_color_spill.uspillr;
-      spill_scale[1] = node_color_spill.uspillg;
-      spill_scale[2] = node_color_spill.uspillb;
-      spill_scale[get_spill_channel()] *= -1.0f;
-    }
-    else {
-      spill_scale[0] = 0.0f;
-      spill_scale[1] = 0.0f;
-      spill_scale[2] = 0.0f;
-      spill_scale[get_spill_channel()] = -1.0f;
-    }
-  }
-
-  /* Get the index of the channel used for limiting. */
-  int get_limit_channel()
-  {
-    return node_storage(bnode()).limchan;
-  }
-
-  /* Get the indices of the channels used to compute the limit value. We always assume the limit
-   * algorithm is Average, if it is a single limit channel, store it in both limit channels,
-   * because the average of two identical values is the same value. */
-  void get_limit_channels(float limit_channels[2])
-  {
-    if (get_limit_algorithm() == CMP_NODE_COLOR_SPILL_LIMIT_ALGORITHM_AVERAGE) {
-      /* If the algorithm is Average, store the indices of the other two channels other than the
-       * spill channel. */
-      limit_channels[0] = (get_spill_channel() + 1) % 3;
-      limit_channels[1] = (get_spill_channel() + 2) % 3;
-    }
-    else {
-      /* If the algorithm is Single, store the index of the limit channel in both channels. */
-      limit_channels[0] = get_limit_channel();
-      limit_channels[1] = get_limit_channel();
-    }
-  }
-
-  float get_limit_scale()
-  {
-    return node_storage(bnode()).limscale;
-  }
 };
 
 static ShaderNode *get_compositor_shader_node(DNode node)
 {
   return new ColorSpillShaderNode(node);
+}
+
+static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+{
+  const float spill_channel = get_spill_channel(builder.node());
+  const float3 spill_scale = get_spill_scale(builder.node());
+  const float2 limit_channels = float2(get_limit_channels(builder.node()));
+  const float limit_scale = get_limit_scale(builder.node());
+
+  builder.construct_and_set_matching_fn_cb([=]() {
+    return mf::build::SI2_SO<float4, float, float4>(
+        "Color Spill",
+        [=](const float4 &color, const float factor) -> float4 {
+          float average_limit = (color[limit_channels.x] + color[limit_channels.y]) / 2.0f;
+          float map = factor * color[spill_channel] - limit_scale * average_limit;
+          return float4(map > 0.0f ? color.xyz() + spill_scale * map : color.xyz(), color.w);
+        },
+        mf::build::exec_presets::SomeSpanOrSingle<0>());
+  });
 }
 
 }  // namespace blender::nodes::node_composite_color_spill_cc
@@ -201,6 +230,7 @@ void register_node_type_cmp_color_spill()
   blender::bke::node_type_storage(
       &ntype, "NodeColorspill", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
+  ntype.build_multi_function = file_ns::node_build_multi_function;
 
   blender::bke::node_register_type(&ntype);
 }

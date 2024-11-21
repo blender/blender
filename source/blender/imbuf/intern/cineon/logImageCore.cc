@@ -235,9 +235,10 @@ static size_t getRowLength(size_t width, const LogImageElement &logElement)
   return 0;
 }
 
-/* For the C-API. */
 size_t getRowLength(size_t width, const LogImageElement *logElement)
 {
+  /* For the C-API. */
+
   return getRowLength(width, *logElement);
 }
 

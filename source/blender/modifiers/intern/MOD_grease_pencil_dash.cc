@@ -6,6 +6,7 @@
  * \ingroup modifiers
  */
 
+#include "BLI_array_utils.hh"
 #include "BLI_index_range.hh"
 #include "BLI_span.hh"
 #include "BLI_string.h"
@@ -204,13 +205,13 @@ static bke::CurvesGeometry create_dashes(const PatternInfo &pattern_info,
                                          const IndexMask &curves_mask)
 {
   const bke::AttributeAccessor src_attributes = src_curves.attributes();
-  const VArray<bool> src_cyclic = *src_attributes.lookup_or_default(
-      "cyclic", bke::AttrDomain::Curve, false);
+  const VArray<bool> src_cyclic = src_curves.cyclic();
   const VArray<int> src_material = *src_attributes.lookup_or_default(
       "material_index", bke::AttrDomain::Curve, 0);
-  const VArray<float> src_radius = *src_attributes.lookup<float>("radius", bke::AttrDomain::Point);
-  const VArray<float> src_opacity = *src_attributes.lookup<float>("opacity",
-                                                                  bke::AttrDomain::Point);
+  const VArray<float> src_radius = *src_attributes.lookup_or_default<float>(
+      "radius", bke::AttrDomain::Point, 0.01f);
+  const VArray<float> src_opacity = *src_attributes.lookup_or_default<float>(
+      "opacity", bke::AttrDomain::Point, 1.0f);
 
   /* Count new curves and points. */
   int dst_point_num = 0;
@@ -328,6 +329,7 @@ static void modify_drawing(const GreasePencilDashModifierData &dmd,
                            const PatternInfo &pattern_info,
                            bke::greasepencil::Drawing &drawing)
 {
+  modifier::greasepencil::ensure_no_bezier_curves(drawing);
   const bke::CurvesGeometry &src_curves = drawing.strokes();
   if (src_curves.curve_num == 0) {
     return;
@@ -429,7 +431,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   }
 
   if (uiLayout *influence_panel = uiLayoutPanelProp(
-          C, layout, ptr, "open_influence_panel", "Influence"))
+          C, layout, ptr, "open_influence_panel", IFACE_("Influence")))
   {
     modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
     modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);

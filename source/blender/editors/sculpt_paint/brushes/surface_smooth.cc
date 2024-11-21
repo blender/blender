@@ -11,7 +11,7 @@
 
 #include "BKE_mesh.hh"
 #include "BKE_paint.hh"
-#include "BKE_pbvh.hh"
+#include "BKE_paint_bvh.hh"
 #include "BKE_subdiv_ccg.hh"
 
 #include "BLI_array.hh"
@@ -24,6 +24,8 @@
 #include "editors/sculpt_paint/sculpt_automask.hh"
 #include "editors/sculpt_paint/sculpt_intern.hh"
 #include "editors/sculpt_paint/sculpt_smooth.hh"
+
+#include "bmesh.hh"
 
 namespace blender::ed::sculpt_paint {
 
@@ -404,6 +406,7 @@ void do_surface_smooth_brush(const Depsgraph &depsgraph,
       break;
     }
   }
+  pbvh.tag_positions_changed(node_mask);
   bke::pbvh::update_bounds(depsgraph, object, pbvh);
 }
 

@@ -31,6 +31,8 @@
 
 #include "UI_interface.hh"
 
+#include "GEO_resample_curves.hh"
+
 namespace blender::modifier::greasepencil {
 
 using bke::greasepencil::Drawing;
@@ -106,7 +108,7 @@ void draw_layer_filter_settings(const bContext * /*C*/, uiLayout *layout, Pointe
   sub = uiLayoutRow(row, true);
   uiItemR(sub, ptr, "invert_layer_filter", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
 
-  row = uiLayoutRowWithHeading(col, true, "Layer Pass");
+  row = uiLayoutRowWithHeading(col, true, IFACE_("Layer Pass"));
   uiLayoutSetPropDecorate(row, false);
   sub = uiLayoutRow(row, true);
   uiItemR(sub, ptr, "use_layer_pass_filter", UI_ITEM_NONE, "", ICON_NONE);
@@ -133,7 +135,7 @@ void draw_material_filter_settings(const bContext * /*C*/, uiLayout *layout, Poi
   sub = uiLayoutRow(row, true);
   uiItemR(sub, ptr, "invert_material_filter", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
 
-  row = uiLayoutRowWithHeading(col, true, "Material Pass");
+  row = uiLayoutRowWithHeading(col, true, IFACE_("Material Pass"));
   uiLayoutSetPropDecorate(row, false);
   sub = uiLayoutRow(row, true);
   uiItemR(sub, ptr, "use_material_pass_filter", UI_ITEM_NONE, "", ICON_NONE);
@@ -381,6 +383,18 @@ Vector<FrameDrawingInfo> get_drawing_infos_by_frame(GreasePencil &grease_pencil,
     }
   });
   return drawing_infos;
+}
+
+void ensure_no_bezier_curves(Drawing &drawing)
+{
+  const bke::CurvesGeometry &curves = drawing.strokes();
+  IndexMaskMemory memory;
+  const IndexMask bezier_selection = curves.indices_for_curve_type(CURVE_TYPE_BEZIER, memory);
+  if (bezier_selection.is_empty()) {
+    return;
+  }
+  drawing.strokes_for_write() = geometry::resample_to_evaluated(curves, bezier_selection);
+  drawing.tag_topology_changed();
 }
 
 }  // namespace blender::modifier::greasepencil

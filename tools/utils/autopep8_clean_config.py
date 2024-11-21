@@ -4,14 +4,12 @@
 
 import os
 
-from typing import (
-    Generator,
+from collections.abc import (
     Callable,
-    Set,
-    Tuple,
+    Iterator,
 )
 
-PATHS: Tuple[str, ...] = (
+PATHS: tuple[str, ...] = (
     "build_files",
     "doc",
     "release/datafiles",
@@ -34,7 +32,7 @@ PATHS = tuple(
     for p in PATHS
 )
 
-PATHS_EXCLUDE: Set[str] = set(
+PATHS_EXCLUDE: set[str] = set(
     os.path.join(SOURCE_DIR, p.replace("/", os.sep))
     for p in
     (
@@ -46,7 +44,7 @@ PATHS_EXCLUDE: Set[str] = set(
 )
 
 
-def files(path: str, test_fn: Callable[[str], bool]) -> Generator[str, None, None]:
+def files(path: str, test_fn: Callable[[str], bool]) -> Iterator[str]:
     for dirpath, dirnames, filenames in os.walk(path):
         # skip '.git'
         dirnames[:] = [d for d in dirnames if not d.startswith(".")]

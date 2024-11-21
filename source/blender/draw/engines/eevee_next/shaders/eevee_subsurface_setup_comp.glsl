@@ -7,14 +7,14 @@
  * processing.
  */
 
-#pragma BLENDER_REQUIRE(gpu_shader_shared_exponent_lib.glsl)
-#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
+#include "draw_view_lib.glsl"
+#include "eevee_gbuffer_lib.glsl"
+#include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_shared_exponent_lib.glsl"
 
 shared uint has_visible_sss;
 
-void main(void)
+void main()
 {
   ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
 
@@ -27,14 +27,14 @@ void main(void)
   GBufferReader gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel);
 
   if (gbuffer_closure_get(gbuf, 0).type == CLOSURE_BSSRDF_BURLEY_ID) {
-    vec3 radiance = rgb9e5_decode(imageLoad(direct_light_img, texel).r);
-    radiance += imageLoad(indirect_light_img, texel).rgb;
+    vec3 radiance = rgb9e5_decode(imageLoadFast(direct_light_img, texel).r);
+    radiance += imageLoadFast(indirect_light_img, texel).rgb;
 
     ClosureSubsurface closure = to_closure_subsurface(gbuffer_closure_get(gbuf, 0));
     float max_radius = reduce_max(closure.sss_radius);
 
-    imageStore(radiance_img, texel, vec4(radiance, 0.0));
-    imageStore(object_id_img, texel, uvec4(gbuf.object_id));
+    imageStoreFast(radiance_img, texel, vec4(radiance, 0.0));
+    imageStoreFast(object_id_img, texel, uvec4(gbuf.object_id));
 
     vec2 center_uv = (vec2(texel) + 0.5) / vec2(textureSize(gbuf_header_tx, 0));
     float depth = texelFetch(depth_tx, texel, 0).r;

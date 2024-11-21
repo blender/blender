@@ -7,16 +7,16 @@
  * See eShadowDebug for more information.
  */
 
-#pragma BLENDER_REQUIRE(gpu_shader_debug_gradients_lib.glsl)
-#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_light_iter_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_light_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_shadow_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_shadow_tilemap_lib.glsl)
+#include "draw_view_lib.glsl"
+#include "eevee_light_iter_lib.glsl"
+#include "eevee_light_lib.glsl"
+#include "eevee_sampling_lib.glsl"
+#include "eevee_shadow_lib.glsl"
+#include "eevee_shadow_tilemap_lib.glsl"
+#include "gpu_shader_debug_gradients_lib.glsl"
 
 /** Control the scaling of the tile-map splat. */
-const float pixel_scale = 4.0;
+#define pixel_scale float(4.0)
 
 ShadowSamplingTile shadow_tile_data_get(usampler2D tilemaps_tx, ShadowCoordinates coord)
 {
@@ -36,11 +36,11 @@ vec3 debug_random_color(int v)
 
 void debug_tile_print(ShadowTileData tile, ivec4 tile_coord)
 {
-#ifdef DRW_DEBUG_PRINT
-  drw_print("Tile (", tile_coord.x, ",", tile_coord.y, ") in Tilemap ", tile_coord.z, " : ");
-  drw_print(tile.page);
-  drw_print(tile.cache_index);
-#endif
+  /* This `printf` injection is based on string literal detection. Comment it out unless needed. */
+  /* NOTE: using `#if 0` here causes a crash on exit for debug builds, stick to C++ comments. */
+  // printf("Tile (%u, %u) in Tilemap %u: page(%u, %u, %u), cache_index %u",
+  // tile_coord.x, tile_coord.y, tile_coord.z, tile.page.x, tile.page.y, tile.page.z,
+  // tile.cache_index);
 }
 
 vec3 debug_tile_state_color(ShadowTileData tile)
@@ -112,6 +112,10 @@ LightData debug_light_get()
     }
   }
   LIGHT_FOREACH_END
+
+  /* TODO Assert. */
+  /* Silence compiler warning. */
+  return light_buf[0];
 }
 
 /** Return true if a pixel was written. */
@@ -225,6 +229,8 @@ void main()
         break;
       case DEBUG_SHADOW_TILEMAP_RANDOM_COLOR:
         debug_random_tilemap_color(P, light);
+        break;
+      default:
         break;
     }
   }

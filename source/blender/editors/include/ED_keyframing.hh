@@ -64,144 +64,10 @@ void ED_keyframes_add(FCurve *fcu, int num_keys_to_add);
 /** \name Keying Sets
  * \{ */
 
-/* Forward declaration. For this struct which is declared a bit later. */
-struct ExtensionRNA;
-struct KeyingSetInfo;
-
-/** Polling Callback for KeyingSets. */
-using cbKeyingSet_Poll = bool (*)(KeyingSetInfo *ksi, bContext *C);
-/** Context Iterator Callback for KeyingSets. */
-using cbKeyingSet_Iterator = void (*)(KeyingSetInfo *ksi, bContext *C, KeyingSet *ks);
-/** Property Specifier Callback for KeyingSets (called from iterators) */
-using cbKeyingSet_Generate = void (*)(KeyingSetInfo *ksi,
-                                      bContext *C,
-                                      KeyingSet *ks,
-                                      PointerRNA *ptr);
-
-/** Callback info for 'Procedural' KeyingSets to use. */
-struct KeyingSetInfo {
-  KeyingSetInfo *next, *prev;
-
-  /* info */
-  /** Identifier used for class name, which KeyingSet instances reference as "Type-info Name". */
-  char idname[64];
-  /** identifier so that user can hook this up to a KeyingSet (used as label). */
-  char name[64];
-  /** Short help/description. */
-  char description[1024]; /* #RNA_DYN_DESCR_MAX */
-  /** Keying settings. */
-  short keyingflag;
-
-  /* polling callbacks */
-  /** callback for polling the context for whether the right data is available. */
-  cbKeyingSet_Poll poll;
-
-  /* generate callbacks */
-  /**
-   * Iterator to use to go through collections of data in context
-   * - this callback is separate from the 'adding' stage, allowing
-   *   BuiltIn KeyingSets to be manually specified to use.
-   */
-  cbKeyingSet_Iterator iter;
-  /** Generator to use to add properties based on the data found by iterator. */
-  cbKeyingSet_Generate generate;
-
-  /** RNA integration. */
-  ExtensionRNA rna_ext;
-};
-
-/* -------- */
-
-/**
- * Add another data source for Relative Keying Sets to be evaluated with.
- */
-void ANIM_relative_keyingset_add_source(blender::Vector<PointerRNA> &sources,
-                                        ID *id,
-                                        StructRNA *srna,
-                                        void *data);
-void ANIM_relative_keyingset_add_source(blender::Vector<PointerRNA> &sources, ID *id);
-
-/**
- * Given a #KeyingSet and context info, validate Keying Set's paths.
- * This is only really necessary with relative/built-in KeyingSets
- * where their list of paths is dynamically generated based on the
- * current context info.
- *
- * \note Passing sources as pointer because it can be a nullptr.
- *
- * \return 0 if succeeded, otherwise an error code: #eModifyKey_Returns.
- */
-blender::animrig::ModifyKeyReturn ANIM_validate_keyingset(bContext *C,
-                                                          blender::Vector<PointerRNA> *sources,
-                                                          KeyingSet *keyingset);
-
-/**
- * Use the specified #KeyingSet and context info (if required)
- * to add/remove various Keyframes on the specified frame.
- *
- * Modify keyframes for the channels specified by the KeyingSet.
- * This takes into account many of the different combinations of using KeyingSets.
- *
- * \returns the number of channels that key-frames were added or
- * an #eModifyKey_Returns value (always a negative number).
- */
-int ANIM_apply_keyingset(bContext *C,
-                         blender::Vector<PointerRNA> *sources,
-                         KeyingSet *keyingset,
-                         blender::animrig::ModifyKeyMode mode,
-                         float cfra);
-
-/* -------- */
-
-/**
- * Find builtin #KeyingSet by name.
- *
- * \return The first builtin #KeyingSet with the given name
- */
-KeyingSet *ANIM_builtin_keyingset_get_named(const char name[]);
-
-/**
- * Find KeyingSet type info given a name.
- */
-KeyingSetInfo *ANIM_keyingset_info_find_name(const char name[]);
-
-/**
- * Check if the ID appears in the paths specified by the #KeyingSet.
- */
-bool ANIM_keyingset_find_id(KeyingSet *keyingset, ID *id);
-
-/**
- * Add the given KeyingSetInfo to the list of type infos,
- * and create an appropriate builtin set too.
- */
-void ANIM_keyingset_info_register(KeyingSetInfo *keyingset_info);
-/**
- * Remove the given #KeyingSetInfo from the list of type infos,
- * and also remove the builtin set if appropriate.
- */
-void ANIM_keyingset_info_unregister(Main *bmain, KeyingSetInfo *keyingset_info);
-
-/* cleanup on exit */
-/* --------------- */
-
-void ANIM_keyingset_infos_exit();
-
-/* -------- */
-
-/**
- * Get the active Keying Set for the given scene.
- */
-KeyingSet *ANIM_scene_get_active_keyingset(const Scene *scene);
-
 /**
  * Get the index of the Keying Set provided, for the given Scene.
  */
 int ANIM_scene_get_keyingset_index(Scene *scene, KeyingSet *keyingset);
-
-/**
- * Get Keying Set to use for Auto-Key-Framing some transforms.
- */
-KeyingSet *ANIM_get_keyingset_for_autokeying(const Scene *scene, const char *transformKSName);
 
 void ANIM_keyingset_visit_for_search(
     const bContext *C,
@@ -216,6 +82,7 @@ void ANIM_keyingset_visit_for_search_no_poll(
     PropertyRNA *prop,
     const char *edit_text,
     blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn);
+
 /**
  * Dynamically populate an enum of Keying Sets.
  */
@@ -424,14 +291,6 @@ void ANIM_copy_as_driver(ID *target_id, const char *target_path, const char *var
 /**
  * \brief Lesser Keyframe Checking API call.
  *
- * Checks if some F-Curve has a keyframe for a given frame.
- * \note Used for the buttons to check for keyframes.
- */
-bool fcurve_frame_has_keyframe(const FCurve *fcu, float frame);
-
-/**
- * \brief Lesser Keyframe Checking API call.
- *
  * - Returns whether the current value of a given property differs from the interpolated value.
  * - Used for button drawing.
  */
@@ -439,27 +298,5 @@ bool fcurve_is_changed(PointerRNA ptr,
                        PropertyRNA *prop,
                        FCurve *fcu,
                        const AnimationEvalContext *anim_eval_context);
-
-/**
- * \brief Main Keyframe Checking API call.
- *
- * Checks whether a keyframe exists for the given ID-block one the given frame.
- * It is recommended to call this method over the other keyframe-checkers directly,
- * in case some detail of the implementation changes...
- * \param frame: The value of this is quite often result of #BKE_scene_ctime_get()
- */
-bool id_frame_has_keyframe(ID *id, float frame);
-
-/* Names for builtin keying sets so we don't confuse these with labels/text,
- * defined in python script: `keyingsets_builtins.py`. */
-
-#define ANIM_KS_LOCATION_ID "Location"
-#define ANIM_KS_ROTATION_ID "Rotation"
-#define ANIM_KS_SCALING_ID "Scaling"
-#define ANIM_KS_LOC_ROT_SCALE_ID "LocRotScale"
-#define ANIM_KS_LOC_ROT_SCALE_CPROP_ID "LocRotScaleCProp"
-#define ANIM_KS_AVAILABLE_ID "Available"
-#define ANIM_KS_WHOLE_CHARACTER_ID "WholeCharacter"
-#define ANIM_KS_WHOLE_CHARACTER_SELECTED_ID "WholeCharacterSelected"
 
 /** \} */

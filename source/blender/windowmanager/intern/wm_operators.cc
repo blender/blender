@@ -55,8 +55,8 @@
 #include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_idprop.hh"
-#include "BKE_image.h"
-#include "BKE_image_format.h"
+#include "BKE_image.hh"
+#include "BKE_image_format.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_main.hh"
@@ -1334,7 +1334,7 @@ ID *WM_operator_drop_load_path(bContext *C, wmOperator *op, const short idcode)
     errno = 0;
 
     if (idcode == ID_IM) {
-      id = (ID *)BKE_image_load_exists_ex(bmain, filepath, &exists);
+      id = reinterpret_cast<ID *>(BKE_image_load_exists(bmain, filepath, &exists));
     }
     else {
       BLI_assert_unreachable();
@@ -2525,7 +2525,6 @@ struct RadialControl {
   int initial_co[2];
   int slow_mouse[2];
   bool slow_mode;
-  float scale_fac;
   Dial *dial;
   GPUTexture *texture;
   ListBase orig_paintcursors;
@@ -2575,32 +2574,7 @@ static void radial_control_update_header(wmOperator *op, bContext *C)
   ED_area_status_text(area, msg);
 }
 
-/* Helper: Compute the brush radius in pixels at the mouse position. */
-static float grease_pencil_unprojected_brush_radius_pixel_size(const bContext *C,
-                                                               const Brush *brush,
-                                                               const blender::float2 mval)
-{
-  using namespace blender;
-  Scene *scene = CTX_data_scene(C);
-  ARegion *region = CTX_wm_region(C);
-  View3D *view3d = CTX_wm_view3d(C);
-  RegionView3D *rv3d = CTX_wm_region_view3d(C);
-  Object *object = CTX_data_active_object(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  Object *eval_object = DEG_get_evaluated_object(depsgraph, object);
-
-  BLI_assert(object->type == OB_GREASE_PENCIL);
-  GreasePencil *grease_pencil = static_cast<GreasePencil *>(eval_object->data);
-
-  ed::greasepencil::DrawingPlacement placement(
-      *scene, *region, *view3d, *eval_object, grease_pencil->get_active_layer());
-  const float3 position = placement.project(mval);
-  const float pixel_size = ED_view3d_pixel_size(
-      rv3d, math::transform_point(placement.to_world_space(), position));
-  return brush->unprojected_radius / pixel_size;
-}
-
-static void radial_control_set_initial_mouse(bContext *C, RadialControl *rc, const wmEvent *event)
+static void radial_control_set_initial_mouse(RadialControl *rc, const wmEvent *event)
 {
   float d[2] = {0, 0};
   float zoom[2] = {1, 1};
@@ -2634,18 +2608,6 @@ static void radial_control_set_initial_mouse(bContext *C, RadialControl *rc, con
     RNA_property_float_get_array(&rc->zoom_ptr, rc->zoom_prop, zoom);
     d[0] *= zoom[0];
     d[1] *= zoom[1];
-  }
-  rc->scale_fac = 1.0f;
-  if (rc->ptr.owner_id && GS(rc->ptr.owner_id->name) == ID_BR && rc->prop == &rna_Brush_size) {
-    Brush *brush = reinterpret_cast<Brush *>(rc->ptr.owner_id);
-    if ((brush && brush->gpencil_settings) && (brush->ob_mode == OB_MODE_PAINT_GPENCIL_LEGACY) &&
-        (brush->gpencil_brush_type == GPAINT_BRUSH_TYPE_DRAW) &&
-        (brush->flag & BRUSH_LOCK_SIZE) != 0)
-    {
-      const float radius_px = grease_pencil_unprojected_brush_radius_pixel_size(
-          C, brush, blender::float2(event->mval));
-      rc->scale_fac = max_ff(radius_px, 1.0f) / max_ff(rc->initial_value, 1.0f);
-    }
   }
 
   rc->initial_mouse[0] -= d[0];
@@ -2851,9 +2813,6 @@ static void radial_control_paint_cursor(bContext * /*C*/, int x, int y, void *cu
     RNA_property_float_get_array(&rc->zoom_ptr, rc->zoom_prop, zoom);
     GPU_matrix_scale_2fv(zoom);
   }
-
-  /* Apply scale correction (used by grease pencil brushes). */
-  GPU_matrix_scale_2f(rc->scale_fac, rc->scale_fac);
 
   /* Draw rotated texture. */
   radial_control_paint_tex(rc, tex_radius, alpha);
@@ -3199,7 +3158,7 @@ static int radial_control_invoke(bContext *C, wmOperator *op, const wmEvent *eve
   }
 
   rc->current_value = rc->initial_value;
-  radial_control_set_initial_mouse(C, rc, event);
+  radial_control_set_initial_mouse(rc, event);
   radial_control_set_tex(rc);
 
   rc->init_event = WM_userdef_event_type_from_keymap_type(event->type);
@@ -4238,7 +4197,6 @@ static void gesture_circle_modal_keymap(wmKeyConfig *keyconf)
   WM_modalkeymap_assign(keymap, "CLIP_OT_select_circle");
   WM_modalkeymap_assign(keymap, "MASK_OT_select_circle");
   WM_modalkeymap_assign(keymap, "NODE_OT_select_circle");
-  WM_modalkeymap_assign(keymap, "GPENCIL_OT_select_circle");
   WM_modalkeymap_assign(keymap, "GRAPH_OT_select_circle");
   WM_modalkeymap_assign(keymap, "ACTION_OT_select_circle");
 }
@@ -4330,7 +4288,6 @@ static void gesture_box_modal_keymap(wmKeyConfig *keyconf)
   WM_modalkeymap_assign(keymap, "VIEW3D_OT_zoom_border");
   WM_modalkeymap_assign(keymap, "IMAGE_OT_render_border");
   WM_modalkeymap_assign(keymap, "IMAGE_OT_view_zoom_border");
-  WM_modalkeymap_assign(keymap, "GPENCIL_OT_select_box");
 }
 
 /* Lasso modal operators. */
@@ -4352,8 +4309,6 @@ static void gesture_lasso_modal_keymap(wmKeyConfig *keyconf)
 
   /* Assign map to operators. */
   WM_modalkeymap_assign(keymap, "VIEW3D_OT_select_lasso");
-  WM_modalkeymap_assign(keymap, "GPENCIL_OT_stroke_cutter");
-  WM_modalkeymap_assign(keymap, "GPENCIL_OT_select_lasso");
   WM_modalkeymap_assign(keymap, "MASK_OT_select_lasso");
   WM_modalkeymap_assign(keymap, "PAINT_OT_mask_lasso_gesture");
   WM_modalkeymap_assign(keymap, "SCULPT_OT_face_set_lasso_gesture");

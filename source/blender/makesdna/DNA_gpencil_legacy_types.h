@@ -9,25 +9,11 @@
 #pragma once
 
 #include "DNA_ID.h"
-#include "DNA_brush_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_listBase.h"
 
 struct AnimData;
-struct Curve;
-struct Curve;
-struct GPencilUpdateCache;
 struct MDeformVert;
-#ifdef __cplusplus
-namespace blender::gpu {
-class VertBuf;
-class Batch;
-}  // namespace blender::gpu
-using GPUBatchHandle = blender::gpu::Batch;
-using GPUVertBufHandle = blender::gpu::VertBuf;
-#else
-typedef struct GPUBatchHandle GPUBatchHandle;
-typedef struct GPUVertBufHandle GPUVertBufHandle;
-#endif
 
 #define GP_DEFAULT_PIX_FACTOR 1.0f
 #define GP_DEFAULT_GRID_LINES 4
@@ -39,29 +25,6 @@ typedef struct GPUVertBufHandle GPUVertBufHandle;
 
 #define GPENCIL_MIN_FILL_FAC 0.05f
 #define GPENCIL_MAX_FILL_FAC 8.0f
-
-/* ***************************************** */
-/* GP Stroke Points */
-
-/* 'Control Point' data for primitives and curves */
-typedef struct bGPDcontrolpoint {
-  /** X and y coordinates of control point. */
-  float x, y, z;
-  /** Point color. */
-  float color[4];
-  /** Radius. */
-  int size;
-} bGPDcontrolpoint;
-
-typedef struct bGPDspoint_Runtime {
-  DNA_DEFINE_CXX_METHODS(bGPDspoint_Runtime)
-
-  /** Original point (used to dereference evaluated data) */
-  struct bGPDspoint *pt_orig;
-  /** Original index array position */
-  int idx_orig;
-  char _pad0[4];
-} bGPDspoint_Runtime;
 
 /**
  * Grease-Pencil Annotations - 'Stroke Point'
@@ -95,8 +58,6 @@ typedef struct bGPDspoint {
 
   /** Runtime data */
   char _pad2[4];
-
-  bGPDspoint_Runtime runtime;
 } bGPDspoint;
 
 /** #bGPDspoint.flag */
@@ -106,10 +67,6 @@ typedef enum eGPDspoint_Flag {
 
   /* stroke point is tagged (for some editing operation) */
   GP_SPOINT_TAG = (1 << 1),
-  /* stroke point is temp tagged (for some editing operation) */
-  GP_SPOINT_TEMP_TAG = (1 << 2),
-  /* stroke point is temp tagged (for some editing operation) */
-  GP_SPOINT_TEMP_TAG2 = (1 << 3),
 } eGPSPoint_Flag;
 
 /* ***************************************** */
@@ -308,11 +265,6 @@ typedef struct bGPDstroke {
   /** Factor of opacity for Fill color (used by opacity modifier). */
   float fill_opacity_fac;
 
-  /** Min of the bound box used to speedup painting operators. */
-  float boundbox_min[3];
-  /** Max of the bound box used to speedup painting operators. */
-  float boundbox_max[3];
-
   /** UV rotation */
   float uv_rotation;
   /** UV translation (X and Y axis) */
@@ -332,9 +284,6 @@ typedef struct bGPDstroke {
 
   /** Curve used to edit the stroke using Bezier handlers. */
   struct bGPDcurve *editcurve;
-
-  /* NOTE: When adding new members, make sure to add them to BKE_gpencil_stroke_copy_settings as
-   * well! */
 
   bGPDstroke_Runtime runtime;
   void *_pad5;
@@ -404,9 +353,6 @@ typedef struct bGPDframe_Runtime {
   int frameid;
   /** Onion offset from active frame. 0 if not onion. INT_MAX to bypass frame. */
   int onion_id;
-
-  /** Original frame (used to dereference evaluated data) */
-  struct bGPDframe *gpf_orig;
 } bGPDframe_Runtime;
 
 /**
@@ -428,9 +374,6 @@ typedef struct bGPDframe {
   short flag;
   /** Keyframe type (eBezTriple_KeyframeType). */
   short key_type;
-
-  /* NOTE: When adding new members, make sure to add them to BKE_gpencil_frame_copy_settings as
-   * well! */
 
   bGPDframe_Runtime runtime;
 } bGPDframe;
@@ -475,8 +418,6 @@ typedef struct bGPDlayer_Runtime {
   /** Id for dynamic icon used to show annotation color preview for layer. */
   int icon_id;
   char _pad[4];
-  /** Original layer (used to dereference evaluated data) */
-  struct bGPDlayer *gpl_orig;
 } bGPDlayer_Runtime;
 
 /** Grease-Pencil Annotations - 'Layer'. */
@@ -561,9 +502,6 @@ typedef struct bGPDlayer {
   float layer_mat[4][4], layer_invmat[4][4];
   char _pad3[4];
 
-  /* NOTE: When adding new members, make sure to add them to BKE_gpencil_layer_copy_settings as
-   * well! */
-
   bGPDlayer_Runtime runtime;
 } bGPDlayer;
 
@@ -625,12 +563,6 @@ typedef struct bGPdata_Runtime {
 
   /** Stroke buffer. */
   void *sbuffer;
-  /** Temp batches cleared after drawing. */
-  GPUVertBufHandle *sbuffer_position_buf;
-  GPUVertBufHandle *sbuffer_color_buf;
-  GPUBatchHandle *sbuffer_batch;
-  /** Temp stroke used for drawing. */
-  struct bGPDstroke *sbuffer_gps;
 
   /** Animation playing flag. */
   short playing;
@@ -663,16 +595,7 @@ typedef struct bGPdata_Runtime {
   int arrow_start_style;
   int arrow_end_style;
 
-  /** Number of control-points for stroke. */
-  int tot_cp_points;
-  /** Array of control-points for stroke. */
-  bGPDcontrolpoint *cp_points;
-  /** Brush pointer */
-  Brush *sbuffer_brush;
-  struct GpencilBatchCache *gpencil_cache;
-  struct LineartCache *lineart_cache;
-
-  struct GPencilUpdateCache *update_cache;
+  char _pad[4];
 } bGPdata_Runtime;
 
 /* grid configuration */
@@ -768,9 +691,6 @@ typedef struct bGPdata {
   int vertex_group_active_index;
 
   bGPgrid grid;
-
-  /* NOTE: When adding new members, make sure to add them to BKE_gpencil_data_copy_settings as
-   * well! */
 
   bGPdata_Runtime runtime;
 } bGPdata;
@@ -880,37 +800,11 @@ typedef enum eGP_DrawMode {
 /* ***************************************** */
 /* Mode Checking Macros */
 
-/* Check if 'multiedit sessions' is enabled */
-#define GPENCIL_MULTIEDIT_SESSIONS_ON(gpd) \
-  ((gpd) && \
-   ((gpd)->flag & \
-    (GP_DATA_STROKE_PAINTMODE | GP_DATA_STROKE_EDITMODE | GP_DATA_STROKE_SCULPTMODE | \
-     GP_DATA_STROKE_WEIGHTMODE | GP_DATA_STROKE_VERTEXMODE)) && \
-   ((gpd)->flag & GP_DATA_STROKE_MULTIEDIT))
-
 #define GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd) \
   ((gpd) && ((gpd)->flag & (GP_DATA_STROKE_EDITMODE)) && ((gpd)->flag & GP_DATA_CURVE_EDIT_MODE))
 
 /* Macros to check grease pencil modes */
-#define GPENCIL_ANY_MODE(gpd) \
-  ((gpd) && ((gpd)->flag & \
-             (GP_DATA_STROKE_PAINTMODE | GP_DATA_STROKE_EDITMODE | GP_DATA_STROKE_SCULPTMODE | \
-              GP_DATA_STROKE_WEIGHTMODE | GP_DATA_STROKE_VERTEXMODE)))
-#define GPENCIL_EDIT_MODE(gpd) ((gpd) && ((gpd)->flag & GP_DATA_STROKE_EDITMODE))
-#define GPENCIL_ANY_EDIT_MODE(gpd) \
-  ((gpd) && ((gpd)->flag & \
-             (GP_DATA_STROKE_EDITMODE | GP_DATA_STROKE_SCULPTMODE | GP_DATA_STROKE_WEIGHTMODE)))
-#define GPENCIL_PAINT_MODE(gpd) ((gpd) && (gpd->flag & GP_DATA_STROKE_PAINTMODE))
-#define GPENCIL_SCULPT_MODE(gpd) ((gpd) && (gpd->flag & GP_DATA_STROKE_SCULPTMODE))
-#define GPENCIL_WEIGHT_MODE(gpd) ((gpd) && (gpd->flag & GP_DATA_STROKE_WEIGHTMODE))
 #define GPENCIL_VERTEX_MODE(gpd) ((gpd) && (gpd->flag & GP_DATA_STROKE_VERTEXMODE))
-#define GPENCIL_NONE_EDIT_MODE(gpd) \
-  ((gpd) && (((gpd)->flag & (GP_DATA_STROKE_EDITMODE | GP_DATA_STROKE_SCULPTMODE | \
-                             GP_DATA_STROKE_WEIGHTMODE | GP_DATA_STROKE_VERTEXMODE)) == 0))
-#define GPENCIL_LAZY_MODE(brush, shift) \
-  (((brush) && \
-    (((brush)->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE) && ((shift) == 0))) || \
-   ((((brush)->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE) == 0) && ((shift) == 1)))
 
 #define GPENCIL_ANY_SCULPT_MASK(flag) \
   ((flag & (GP_SCULPT_MASK_SELECTMODE_POINT | GP_SCULPT_MASK_SELECTMODE_STROKE | \
@@ -919,5 +813,3 @@ typedef enum eGP_DrawMode {
 #define GPENCIL_ANY_VERTEX_MASK(flag) \
   ((flag & (GP_VERTEX_MASK_SELECTMODE_POINT | GP_VERTEX_MASK_SELECTMODE_STROKE | \
             GP_VERTEX_MASK_SELECTMODE_SEGMENT)))
-
-#define GPENCIL_PLAY_ON(gpd) ((gpd) && ((gpd)->runtime.playing == 1))

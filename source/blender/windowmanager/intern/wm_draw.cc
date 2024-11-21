@@ -26,7 +26,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
 
@@ -1120,6 +1120,10 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
   /* After area regions so we can do area 'overlay' drawing. */
   UI_SetTheme(0, 0);
   ED_screen_draw_edges(win);
+
+  /* Needs zero offset here or it looks blurry. #128112. */
+  wmWindowViewport_ex(win, 0.0f);
+
   wm_draw_callbacks(win);
   wmWindowViewport(win);
 

@@ -16,7 +16,9 @@ def batch_for_shader(shader, type, content, *, indices=None):
     :arg type: "'POINTS', 'LINES', 'TRIS' or 'LINES_ADJ'".
     :type type: str
     :arg content: Maps the name of the shader attribute with the data to fill the vertex buffer.
-    :type content: dict
+       For the dictionary values see documentation for :class:`gpu.types.GPUVertBuf.attr_fill` data argument.
+    :type content: dict[str, Buffer | Sequence[float] | Sequence[int] | \
+Sequence[Sequence[float]] | Sequence[Sequence[int]]]
     :return: compatible batch
     :rtype: :class:`gpu.types.GPUBatch`
     """

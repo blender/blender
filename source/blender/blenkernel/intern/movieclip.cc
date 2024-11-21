@@ -47,7 +47,7 @@
 #include "BKE_bpath.hh"
 #include "BKE_colortools.hh"
 #include "BKE_idtype.hh"
-#include "BKE_image.h" /* openanim */
+#include "BKE_image.hh" /* openanim */
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_main.hh"
@@ -1757,21 +1757,23 @@ void BKE_movieclip_update_scopes(MovieClip *clip,
   }
 }
 
-static void movieclip_build_proxy_ibuf(
-    MovieClip *clip, ImBuf *ibuf, int cfra, int proxy_render_size, bool undistorted, bool threaded)
+static void movieclip_build_proxy_ibuf(const MovieClip *clip,
+                                       const ImBuf *ibuf,
+                                       int cfra,
+                                       int proxy_render_size,
+                                       bool undistorted,
+                                       bool threaded)
 {
   char filepath[FILE_MAX];
   int quality, rectx, recty;
   int size = rendersize_to_number(proxy_render_size);
-  ImBuf *scaleibuf;
 
   get_proxy_filepath(clip, proxy_render_size, undistorted, cfra, filepath);
 
   rectx = ibuf->x * size / 100.0f;
   recty = ibuf->y * size / 100.0f;
 
-  scaleibuf = IMB_dupImBuf(ibuf);
-  IMB_scale(scaleibuf, rectx, recty, IMBScaleFilter::Bilinear, threaded);
+  ImBuf *scaleibuf = IMB_scale_into_new(ibuf, rectx, recty, IMBScaleFilter::Bilinear, threaded);
 
   quality = clip->proxy.quality;
   scaleibuf->ftype = IMB_FTYPE_JPG;

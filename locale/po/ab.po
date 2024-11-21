@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'd52d70324d18')\n"
+"Project-Id-Version: Blender 4.3.0 Release Candidate (b'7dfe47164a63')\n"
 "Report-Msgid-Bugs-To: \n"
 "PO-Revision-Date: 2024-04-29 13:23+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
@@ -99,12 +99,52 @@ msgid "Main Meshes"
 msgstr "Ихадоу Аҿарԥагақәа"
 
 
-msgid "Mode"
-msgstr "А́иҿкаашьа"
+msgid "Armature"
+msgstr "Абаҩ"
+
+
+msgid "Camera"
+msgstr "Акамера"
+
+
+msgid "Curve"
+msgstr "Архәара"
 
 
 msgid "Image"
 msgstr "Асахьанҵа"
+
+
+msgid "Lattice"
+msgstr "Аҭыџьеихац"
+
+
+msgid "Library"
+msgstr "Ашәҟәыԥхьарҭа"
+
+
+msgid "Light"
+msgstr "Алашара"
+
+
+msgid "Mesh"
+msgstr "Аҿарҧага"
+
+
+msgid "Metaball"
+msgstr "Метампыл"
+
+
+msgid "Speaker"
+msgstr "Абжьы Ахыҵхырҭа"
+
+
+msgid "Text"
+msgstr "Аҳәоу"
+
+
+msgid "Mode"
+msgstr "А́иҿкаашьа"
 
 
 msgid "Rotation"
@@ -115,20 +155,8 @@ msgid "Scale"
 msgstr "Ашәага"
 
 
-msgid "Curve"
-msgstr "Архәара"
-
-
 msgid "Difference"
 msgstr "Аиԥшымра"
-
-
-msgid "Armature"
-msgstr "Абаҩ"
-
-
-msgid "Camera"
-msgstr "Акамера"
 
 
 msgid "Location"
@@ -181,34 +209,6 @@ msgstr "Алагара"
 
 msgid "Window"
 msgstr "Аԥенџьыр"
-
-
-msgid "Lattice"
-msgstr "Аҭыџьеихац"
-
-
-msgid "Library"
-msgstr "Ашәҟәыԥхьарҭа"
-
-
-msgid "Light"
-msgstr "Алашара"
-
-
-msgid "Mesh"
-msgstr "Аҿарҧага"
-
-
-msgid "Metaball"
-msgstr "Метампыл"
-
-
-msgid "Speaker"
-msgstr "Абжьы Ахыҵхырҭа"
-
-
-msgid "Text"
-msgstr "Аҳәоу"
 
 
 msgid "Local"
@@ -316,11 +316,6 @@ msgstr "Ацҵара Аицыгьежь"
 
 
 msgctxt "Operator"
-msgid "Scale"
-msgstr "Ашәага"
-
-
-msgctxt "Operator"
 msgid "Add Cube"
 msgstr "Ацҵара Акуб"
 
@@ -383,6 +378,11 @@ msgstr "Ацҵара Аҳәоу"
 msgctxt "Scene"
 msgid "New"
 msgstr "Аҿыц"
+
+
+msgctxt "Operator"
+msgid "Scale"
+msgstr "Ашәага"
 
 
 msgctxt "Sequence"
@@ -701,9 +701,4 @@ msgstr "Аԥшра"
 
 msgid "cursor"
 msgstr "Ахырхага"
-
-
-msgctxt "Action"
-msgid "Group"
-msgstr "Агәыԥ"
 

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'd52d70324d18')\n"
+"Project-Id-Version: Blender 4.3.0 Release Candidate (b'7dfe47164a63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-16 11:03+0000\n"
+"POT-Creation-Date: 2024-11-18 11:20+0000\n"
 "PO-Revision-Date: 2023-10-06 09:54+0000\n"
 "Last-Translator: Eitan Traurig <eitant13@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
@@ -59,22 +59,6 @@ msgid "Select"
 msgstr "רחוב"
 
 
-msgid "Replace"
-msgstr "ףלחה"
-
-
-msgid "Add"
-msgstr "ףסוה"
-
-
-msgid "Subtract"
-msgstr "ריסחהל"
-
-
-msgid "Multiply"
-msgstr "ליפכהל"
-
-
 msgid "Module"
 msgstr "לודומ"
 
@@ -97,6 +81,22 @@ msgstr "זכרמ"
 
 msgid "Animation Data"
 msgstr "היצמינא ינותנ"
+
+
+msgid "Replace"
+msgstr "ףלחה"
+
+
+msgid "Add"
+msgstr "ףסוה"
+
+
+msgid "Subtract"
+msgstr "ריסחהל"
+
+
+msgid "Multiply"
+msgstr "ליפכהל"
 
 
 msgid "Hold"
@@ -216,6 +216,30 @@ msgid "Collection of worlds"
 msgstr "תומלוע לש ףסוא"
 
 
+msgid "Collection"
+msgstr "ףסוא"
+
+
+msgid "Image"
+msgstr "הנומת"
+
+
+msgid "Mask"
+msgstr "הכסמ"
+
+
+msgid "Scene"
+msgstr "הנצס"
+
+
+msgid "Texture"
+msgstr "םקרמ"
+
+
+msgid "World"
+msgstr "םלוע"
+
+
 msgid "Speed"
 msgstr "תוריהמ"
 
@@ -255,10 +279,6 @@ msgstr "קלח"
 
 msgid "Saturation"
 msgstr "היוור"
-
-
-msgid "Image"
-msgstr "הנומת"
 
 
 msgid "Rotation"
@@ -317,10 +337,6 @@ msgid "View"
 msgstr "הגוצת"
 
 
-msgid "Scene"
-msgstr "הנצס"
-
-
 msgid "Only Show Selected"
 msgstr "םירחבנ גצה קר"
 
@@ -340,10 +356,6 @@ msgstr "ץווכ"
 
 msgid "UV Texture"
 msgstr "UV םקרמ"
-
-
-msgid "Texture"
-msgstr "םקרמ"
 
 
 msgid "Vertex"
@@ -403,10 +415,6 @@ msgid "Vertex Group"
 msgstr "דוקדוק תצובק"
 
 
-msgid "Collection"
-msgstr "ףסוא"
-
-
 msgid "Window"
 msgstr "ןולח"
 
@@ -441,14 +449,6 @@ msgstr "קורי"
 
 msgid "Blue"
 msgstr "לוחכ"
-
-
-msgid "Mask"
-msgstr "הכסמ"
-
-
-msgid "World"
-msgstr "םלוע"
 
 
 msgid "Full Name"
@@ -599,20 +599,20 @@ msgid "Grease Pencil Color"
 msgstr "Grease Pencil יאבצ"
 
 
-msgid "Apply"
-msgstr "לחה"
-
-
-msgid "Face Data"
-msgstr "האפ ינותנ"
-
-
 msgid "Mirror"
 msgstr "הארמ"
 
 
+msgid "Apply"
+msgstr "לחה"
+
+
 msgid "Convert"
 msgstr "רמה"
+
+
+msgid "Face Data"
+msgstr "האפ ינותנ"
 
 
 msgid "Languages..."
@@ -716,22 +716,12 @@ msgid "Eraser"
 msgstr "קחמ"
 
 
-msgctxt "Operator"
-msgid "Select Vertex Color"
-msgstr "דוקדוק עבצ רחוב"
+msgid "Remove"
+msgstr "רסה"
 
 
 msgid "Both"
 msgstr "םהינש"
-
-
-msgctxt "Operator"
-msgid "Select Vertex Group"
-msgstr "דוקדוק תצובק רחב"
-
-
-msgid "Remove"
-msgstr "רסה"
 
 
 msgid "Image Name"
@@ -741,6 +731,11 @@ msgstr "הנומת םש"
 msgctxt "Mesh"
 msgid "Vertex Groups"
 msgstr "דוקדוק תוצובק"
+
+
+msgctxt "Operator"
+msgid "Select Vertex Group"
+msgstr "דוקדוק תצובק רחב"
 
 
 msgctxt "Operator"

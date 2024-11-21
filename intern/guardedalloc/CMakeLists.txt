@@ -63,14 +63,6 @@ endif()
 blender_add_lib(bf_intern_guardedalloc "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 add_library(bf::intern::guardedalloc ALIAS bf_intern_guardedalloc)
 
-# Override C++ allocator, optional.
-if(WITH_CXX_GUARDEDALLOC)
-  set(SRC
-    cpp/mallocn.cpp
-  )
-  blender_add_lib(bf_intern_guardedalloc_cpp "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-endif()
-
 if(WITH_GTESTS)
   set(TEST_SRC
     tests/guardedalloc_alignment_test.cc

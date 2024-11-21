@@ -2,14 +2,14 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_lightprobe_eval_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_closure_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_filter_lib.glsl)
+#include "draw_view_lib.glsl"
+#include "eevee_closure_lib.glsl"
+#include "eevee_filter_lib.glsl"
+#include "eevee_gbuffer_lib.glsl"
+#include "eevee_lightprobe_eval_lib.glsl"
+#include "eevee_sampling_lib.glsl"
+#include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 
 vec3 sample_normal_get(ivec2 texel, out bool is_processed)
 {
@@ -129,7 +129,7 @@ void main()
   float clamp_indirect = uniform_buf.clamp.surface_indirect;
   samp.volume_irradiance = spherical_harmonics_clamp(samp.volume_irradiance, clamp_indirect);
 
-  for (int i = 0; i < GBUFFER_LAYER_MAX && i < gbuf.closure_count; i++) {
+  for (uchar i = 0; i < GBUFFER_LAYER_MAX && i < gbuf.closure_count; i++) {
     ClosureUndetermined cl = gbuffer_closure_get(gbuf, i);
 
     float roughness = closure_apparent_roughness_get(cl);
@@ -165,32 +165,32 @@ void main()
     vec3 radiance_probe = spherical_harmonics_evaluate_lambert(L, samp.volume_irradiance);
     radiance += visibility * radiance_probe;
 
-    int layer_index = gbuffer_closure_get_bin_index(gbuf, i);
+    uchar layer_index = gbuffer_closure_get_bin_index(gbuf, i);
 
     vec4 radiance_horizon = vec4(radiance, 0.0);
     vec4 radiance_raytrace = vec4(0.0);
     if (use_raytrace) {
       /* TODO(fclem): Layered texture. */
-      if (layer_index == 0) {
+      if (layer_index == 0u) {
         radiance_raytrace = imageLoad(closure0_img, texel_fullres);
       }
-      else if (layer_index == 1) {
+      else if (layer_index == 1u) {
         radiance_raytrace = imageLoad(closure1_img, texel_fullres);
       }
-      else if (layer_index == 2) {
+      else if (layer_index == 2u) {
         radiance_raytrace = imageLoad(closure2_img, texel_fullres);
       }
     }
     vec4 radiance_mixed = mix(radiance_raytrace, radiance_horizon, mix_fac);
 
     /* TODO(fclem): Layered texture. */
-    if (layer_index == 0) {
+    if (layer_index == 0u) {
       imageStore(closure0_img, texel_fullres, radiance_mixed);
     }
-    else if (layer_index == 1) {
+    else if (layer_index == 1u) {
       imageStore(closure1_img, texel_fullres, radiance_mixed);
     }
-    else if (layer_index == 2) {
+    else if (layer_index == 2u) {
       imageStore(closure2_img, texel_fullres, radiance_mixed);
     }
   }

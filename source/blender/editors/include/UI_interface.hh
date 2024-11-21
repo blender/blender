@@ -273,6 +273,8 @@ void UI_list_filter_and_sort_items(uiList *ui_list,
 
 /**
  * Override this for all available view types.
+ * \param idname: Used for restoring persistent state of this view, potentially written to files.
+ * Must not be longer than #BKE_ST_MAXNAME (including 0 terminator).
  */
 blender::ui::AbstractGridView *UI_block_add_view(
     uiBlock &block,

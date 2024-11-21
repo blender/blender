@@ -9,6 +9,10 @@
  * Dashed is performed in screen space.
  */
 
+#include "infos/gpu_shader_line_dashed_uniform_color_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(gpu_shader_3D_line_dashed_uniform_color)
+
 void main()
 {
   float distance_along_line = distance(stipple_pos, stipple_start);

@@ -7,6 +7,14 @@
  */
 
 #include "BLI_math_base.h"
+#include "BLI_math_vector.hh"
+#include "BLI_math_vector_types.hh"
+
+#include "FN_multi_function_builder.hh"
+
+#include "NOD_multi_function.hh"
+
+#include "DNA_color_types.h"
 
 #include "BKE_colortools.hh"
 
@@ -134,6 +142,11 @@ static void node_buts_curvevec(uiLayout *layout, bContext * /*C*/, PointerRNA *p
 
 using namespace blender::realtime_compositor;
 
+static CurveMapping *get_curve_mapping(const bNode &node)
+{
+  return static_cast<CurveMapping *>(node.storage);
+}
+
 class VectorCurvesShaderNode : public ShaderNode {
  public:
   using ShaderNode::ShaderNode;
@@ -143,7 +156,7 @@ class VectorCurvesShaderNode : public ShaderNode {
     GPUNodeStack *inputs = get_inputs_array();
     GPUNodeStack *outputs = get_outputs_array();
 
-    CurveMapping *curve_mapping = const_cast<CurveMapping *>(get_curve_mapping());
+    CurveMapping *curve_mapping = get_curve_mapping(bnode());
 
     BKE_curvemapping_init(curve_mapping);
     float *band_values;
@@ -172,16 +185,28 @@ class VectorCurvesShaderNode : public ShaderNode {
                    GPU_uniform(start_slopes),
                    GPU_uniform(end_slopes));
   }
-
-  const CurveMapping *get_curve_mapping()
-  {
-    return static_cast<const CurveMapping *>(bnode().storage);
-  }
 };
 
 static ShaderNode *get_compositor_shader_node(DNode node)
 {
   return new VectorCurvesShaderNode(node);
+}
+
+static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+{
+  CurveMapping *curve_mapping = get_curve_mapping(builder.node());
+  BKE_curvemapping_init(curve_mapping);
+
+  builder.construct_and_set_matching_fn_cb([=]() {
+    return mf::build::SI1_SO<float4, float4>(
+        "Vector Curves",
+        [=](const float4 &vector) -> float4 {
+          float4 output_vector = float4(0.0f);
+          BKE_curvemapping_evaluate3F(curve_mapping, output_vector, vector);
+          return output_vector;
+        },
+        mf::build::exec_presets::AllSpanOrSingle());
+  });
 }
 
 }  // namespace blender::nodes::node_composite_vector_curves_cc
@@ -199,6 +224,7 @@ void register_node_type_cmp_curve_vec()
   ntype.initfunc = file_ns::node_composit_init_curve_vec;
   blender::bke::node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
+  ntype.build_multi_function = file_ns::node_build_multi_function;
 
   blender::bke::node_register_type(&ntype);
 }
@@ -211,7 +237,7 @@ static void cmp_node_rgbcurves_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Float>("Fac")
       .default_value(1.0f)
-      .min(-1.0f)
+      .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
       .compositor_domain_priority(1)
@@ -236,6 +262,11 @@ static void node_composit_init_curve_rgb(bNodeTree * /*ntree*/, bNode *node)
 
 using namespace blender::realtime_compositor;
 
+static CurveMapping *get_curve_mapping(const bNode &node)
+{
+  return static_cast<CurveMapping *>(node.storage);
+}
+
 class RGBCurvesShaderNode : public ShaderNode {
  public:
   using ShaderNode::ShaderNode;
@@ -245,7 +276,7 @@ class RGBCurvesShaderNode : public ShaderNode {
     GPUNodeStack *inputs = get_inputs_array();
     GPUNodeStack *outputs = get_outputs_array();
 
-    CurveMapping *curve_mapping = const_cast<CurveMapping *>(get_curve_mapping());
+    CurveMapping *curve_mapping = get_curve_mapping(bnode());
 
     BKE_curvemapping_init(curve_mapping);
     float *band_values;
@@ -317,16 +348,35 @@ class RGBCurvesShaderNode : public ShaderNode {
                    GPU_uniform(start_slopes),
                    GPU_uniform(end_slopes));
   }
-
-  const CurveMapping *get_curve_mapping()
-  {
-    return static_cast<const CurveMapping *>(bnode().storage);
-  }
 };
 
 static ShaderNode *get_compositor_shader_node(DNode node)
 {
   return new RGBCurvesShaderNode(node);
+}
+
+static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+{
+  CurveMapping *curve_mapping = get_curve_mapping(builder.node());
+  BKE_curvemapping_init(curve_mapping);
+  BKE_curvemapping_premultiply(curve_mapping, false);
+
+  builder.construct_and_set_matching_fn_cb([=]() {
+    return mf::build::SI4_SO<float, float4, float4, float4, float4>(
+        "RGB Curves",
+        [=](const float factor, const float4 &color, const float4 &black, const float4 &white)
+            -> float4 {
+          float3 black_white_scale;
+          BKE_curvemapping_set_black_white_ex(black, white, black_white_scale);
+
+          float3 result;
+          BKE_curvemapping_evaluate_premulRGBF_ex(
+              curve_mapping, result, color, black, black_white_scale);
+          return float4(math::interpolate(color.xyz(), result, math::clamp(factor, 0.0f, 1.0f)),
+                        color.w);
+        },
+        mf::build::exec_presets::SomeSpanOrSingle<1>());
+  });
 }
 
 }  // namespace blender::nodes::node_composite_rgb_curves_cc
@@ -343,6 +393,7 @@ void register_node_type_cmp_curve_rgb()
   ntype.initfunc = file_ns::node_composit_init_curve_rgb;
   blender::bke::node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
+  ntype.build_multi_function = file_ns::node_build_multi_function;
 
   blender::bke::node_register_type(&ntype);
 }

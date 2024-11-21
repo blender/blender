@@ -25,11 +25,8 @@ import subprocess
 import sys
 import time
 
-from typing import (
-    List,
-    Optional,
+from collections.abc import (
     Sequence,
-    Tuple,
 )
 
 RE_ADDR = re.compile("\\[(0x[A-Fa-f0-9]+)\\]")
@@ -49,7 +46,7 @@ else:
         sys.stdout.write("[{:s}]: {:s}\n".format(value_as_percentage(value_partial, value_final), info))
 
 
-def find_gitroot(filepath_reference: str) -> Optional[str]:
+def find_gitroot(filepath_reference: str) -> str | None:
     path = filepath_reference
     path_prev = ""
     found = False
@@ -61,7 +58,7 @@ def find_gitroot(filepath_reference: str) -> Optional[str]:
     return None
 
 
-def addr2line_fn(arg_pair: Tuple[Tuple[str, str, bool], Sequence[str]]) -> Sequence[Tuple[str, str]]:
+def addr2line_fn(arg_pair: tuple[tuple[str, str, bool], Sequence[str]]) -> Sequence[tuple[str, str]]:
     shared_args, addr_list = arg_pair
     (exe, base_path, time_command) = shared_args
     cmd = (
@@ -77,7 +74,7 @@ def addr2line_fn(arg_pair: Tuple[Tuple[str, str, bool], Sequence[str]]) -> Seque
     output = subprocess.check_output(cmd).rstrip().decode("utf-8", errors="surrogateescape")
     output_lines = output.split("\n")
 
-    result: List[Tuple[str, str]] = []
+    result: list[tuple[str, str]] = []
 
     while output_lines:
         # Swap (function, line), to (line, function).

@@ -86,6 +86,7 @@ static void subdivide_drawing(ModifierData &md, Object &ob, bke::greasepencil::D
       &ob, drawing.strokes_for_write(), mmd.influence, memory);
 
   if (use_catmull_clark) {
+    modifier::greasepencil::ensure_no_bezier_curves(drawing);
     bke::CurvesGeometry subdivided_curves = drawing.strokes();
     for ([[maybe_unused]] const int level_i : IndexRange(mmd.level)) {
       VArray<int> one_cut = VArray<int>::ForSingle(1, subdivided_curves.points_num());
@@ -160,7 +161,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiItemR(layout, ptr, "level", UI_ITEM_NONE, IFACE_("Subdivisions"), ICON_NONE);
 
   if (uiLayout *influence_panel = uiLayoutPanelProp(
-          C, layout, ptr, "open_influence_panel", "Influence"))
+          C, layout, ptr, "open_influence_panel", IFACE_("Influence")))
   {
     modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
     modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);

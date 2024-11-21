@@ -10,7 +10,6 @@ import pathlib
 import sys
 import unittest
 from math import degrees, radians
-from typing import List
 
 import bpy
 
@@ -148,7 +147,7 @@ class EulerFilterTest(AbstractAnimationTest, unittest.TestCase):
         bpy.context.view_layer.objects.active = ob
 
     @staticmethod
-    def active_object_rotation_channels() -> List[bpy.types.FCurve]:
+    def active_object_rotation_channels() -> list[bpy.types.FCurve]:
         ob = bpy.context.view_layer.objects.active
         action = ob.animation_data.action
         return [action.fcurves.find('rotation_euler', index=idx) for idx in range(3)]

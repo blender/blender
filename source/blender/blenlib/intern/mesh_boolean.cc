@@ -38,6 +38,10 @@
 #    include <tbb/spin_mutex.h>
 #  endif
 
+#  ifdef _WIN_32
+#    include "BLI_fileops.h"
+#  endif
+
 // #  define PERFDEBUG
 
 namespace blender::meshintersect {
@@ -627,7 +631,11 @@ static void write_obj_cell_patch(const IMesh &m,
    * This is just for developer debugging anyway,
    * and should never be called in production Blender. */
 #  ifdef _WIN_32
-  const char *objdir = BLI_getenv("HOME");
+  const char *objdir = BLI_dir_home();
+  if (objdir == nullptr) {
+    std::cout << "Could not access home directory\n";
+    return;
+  }
 #  else
   const char *objdir = "/tmp/";
 #  endif
@@ -3529,12 +3537,6 @@ static IMesh polymesh_from_trimesh_with_dissolve(const IMesh &tm_out,
   return imesh_out;
 }
 
-/**
- * This function does a boolean operation on a TriMesh with nshapes inputs.
- * All the shapes are combined in tm_in.
- * The shape_fn function should take a triangle index in tm_in and return
- * a number in the range 0 to `nshapes-1`, to say which shape that triangle is in.
- */
 IMesh boolean_trimesh(IMesh &tm_in,
                       BoolOpType op,
                       int nshapes,

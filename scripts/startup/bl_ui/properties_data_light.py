@@ -26,7 +26,6 @@ class DATA_PT_context_light(DataButtonsPanel, Panel):
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_EEVEE',
         'BLENDER_WORKBENCH',
     }
 
@@ -46,7 +45,10 @@ class DATA_PT_context_light(DataButtonsPanel, Panel):
 class DATA_PT_preview(DataButtonsPanel, Panel):
     bl_label = "Preview"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE_NEXT', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {
+        'BLENDER_RENDER',
+        'BLENDER_EEVEE_NEXT',
+    }
 
     def draw(self, context):
         self.layout.template_preview(context.light)
@@ -72,7 +74,7 @@ class DATA_PT_light(DataButtonsPanel, Panel):
 
 class DATA_PT_EEVEE_light(DataButtonsPanel, Panel):
     bl_label = "Light"
-    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
 
     def draw(self, context):
         layout = self.layout
@@ -113,7 +115,7 @@ class DATA_PT_EEVEE_light_distance(DataButtonsPanel, Panel):
     bl_label = "Custom Distance"
     bl_parent_id = "DATA_PT_EEVEE_light"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
 
     @classmethod
     def poll(cls, context):
@@ -175,7 +177,7 @@ class DATA_PT_EEVEE_light_influence(DataButtonsPanel, Panel):
     bl_label = "Influence"
     bl_parent_id = "DATA_PT_EEVEE_light"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
 
     def draw(self, context):
         layout = self.layout
@@ -202,108 +204,12 @@ class DATA_PT_EEVEE_light_influence(DataButtonsPanel, Panel):
         sub.prop(light, "volume_factor", text="Volume Scatter", text_ctxt=i18n_contexts.id_id)
 
 
-class DATA_PT_EEVEE_shadow(DataButtonsPanel, Panel):
-    bl_label = "Shadow"
-    bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_EEVEE'}
-
-    @classmethod
-    def poll(cls, context):
-        light = context.light
-        engine = context.engine
-        return (
-            (light and light.type in {'POINT', 'SUN', 'SPOT', 'AREA'}) and
-            (engine in cls.COMPAT_ENGINES)
-        )
-
-    def draw_header(self, context):
-        light = context.light
-        self.layout.prop(light, "use_shadow", text="")
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-
-        light = context.light
-
-        layout.active = light.use_shadow
-
-        col = layout.column()
-        sub = col.column(align=True)
-        if light.type != 'SUN':
-            sub.prop(light, "shadow_buffer_clip_start", text="Clip Start")
-
-        col.prop(light, "shadow_buffer_bias", text="Bias")
-
-
-class DATA_PT_EEVEE_shadow_cascaded_shadow_map(DataButtonsPanel, Panel):
-    bl_label = "Cascaded Shadow Map"
-    bl_parent_id = "DATA_PT_EEVEE_shadow"
-    bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_EEVEE'}
-
-    @classmethod
-    def poll(cls, context):
-        light = context.light
-        engine = context.engine
-
-        return (light and light.type == 'SUN') and (engine in cls.COMPAT_ENGINES)
-
-    def draw(self, context):
-        layout = self.layout
-        light = context.light
-        layout.use_property_split = True
-
-        col = layout.column()
-
-        col.prop(light, "shadow_cascade_count", text="Count")
-        col.prop(light, "shadow_cascade_fade", text="Fade")
-
-        col.prop(light, "shadow_cascade_max_distance", text="Max Distance")
-        col.prop(light, "shadow_cascade_exponent", text="Distribution")
-
-
-class DATA_PT_EEVEE_shadow_contact(DataButtonsPanel, Panel):
-    bl_label = "Contact Shadows"
-    bl_parent_id = "DATA_PT_EEVEE_shadow"
-    COMPAT_ENGINES = {'BLENDER_EEVEE'}
-
-    @classmethod
-    def poll(cls, context):
-        light = context.light
-        engine = context.engine
-        return (
-            (light and light.type in {'POINT', 'SUN', 'SPOT', 'AREA'}) and
-            (engine in cls.COMPAT_ENGINES)
-        )
-
-    def draw_header(self, context):
-        light = context.light
-
-        layout = self.layout
-        layout.active = light.use_shadow
-        layout.prop(light, "use_contact_shadow", text="")
-
-    def draw(self, context):
-        layout = self.layout
-        light = context.light
-        layout.use_property_split = True
-
-        col = layout.column()
-        col.active = light.use_shadow and light.use_contact_shadow
-
-        col.prop(light, "contact_shadow_distance", text="Distance")
-        col.prop(light, "contact_shadow_bias", text="Bias")
-        col.prop(light, "contact_shadow_thickness", text="Thickness")
-
-
 class DATA_PT_spot(DataButtonsPanel, Panel):
     bl_label = "Beam Shape"
     bl_parent_id = "DATA_PT_EEVEE_light"
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_EEVEE',
         'BLENDER_WORKBENCH',
     }
 
@@ -331,7 +237,6 @@ class DATA_PT_light_animation(DataButtonsPanel, PropertiesAnimationMixin, Proper
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_EEVEE',
         'BLENDER_WORKBENCH',
     }
 
@@ -357,7 +262,6 @@ class DATA_PT_custom_props_light(DataButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_EEVEE',
         'BLENDER_WORKBENCH',
     }
     _context_path = "object.data"
@@ -373,9 +277,6 @@ classes = (
     DATA_PT_EEVEE_light_shadow,
     DATA_PT_EEVEE_light_influence,
     DATA_PT_EEVEE_light_distance,
-    DATA_PT_EEVEE_shadow,
-    DATA_PT_EEVEE_shadow_cascaded_shadow_map,
-    DATA_PT_EEVEE_shadow_contact,
     DATA_PT_light_animation,
     DATA_PT_custom_props_light,
 )

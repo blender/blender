@@ -43,7 +43,7 @@
 #include "BKE_collection.hh"
 #include "BKE_fcurve.hh"
 #include "BKE_global.hh"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_light.h"
@@ -1009,16 +1009,12 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
     et->setData("red", &(lamp->r));
     et->setData("green", &(lamp->g));
     et->setData("blue", &(lamp->b));
-    et->setData("shadow_r", &(lamp->shdwr));
-    et->setData("shadow_g", &(lamp->shdwg));
-    et->setData("shadow_b", &(lamp->shdwb));
     et->setData("energy", &(lamp->energy));
     et->setData("spotsize", &(lamp->spotsize));
     lamp->spotsize = DEG2RADF(lamp->spotsize);
     et->setData("spotblend", &(lamp->spotblend));
     et->setData("clipsta", &(lamp->clipsta));
-    et->setData("clipend", &(lamp->clipend));
-    et->setData("bias", &(lamp->bias));
+    et->setData("clipend", &(lamp->att_dist));
     et->setData("radius", &(lamp->radius));
     et->setData("area_shape", &(lamp->area_shape));
     et->setData("area_size", &(lamp->area_size));

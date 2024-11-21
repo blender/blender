@@ -42,7 +42,7 @@
 #include "BKE_object.hh"
 #include "BKE_object_deform.h"
 #include "BKE_paint.hh"
-#include "BKE_pbvh_api.hh"
+#include "BKE_paint_bvh.hh"
 #include "BKE_subdiv_modifier.hh"
 
 #include "atomic_ops.h"
@@ -1374,9 +1374,6 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
                            (BKE_object_get_editmesh_eval_final(&ob) != nullptr) &&
                            DRW_object_is_in_edit_mode(&ob);
 
-  /* This could be set for paint mode too, currently it's only used for edit-mode. */
-  const bool edit_mode_active = is_editmode && DRW_object_is_in_edit_mode(&ob);
-
   DRWBatchFlag batch_requested = cache.batch_requested;
   cache.batch_requested = (DRWBatchFlag)0;
 
@@ -1503,7 +1500,7 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
   cache.batch_ready |= batch_requested;
 
   bool do_cage = false, do_uvcage = false;
-  if (is_editmode && edit_mode_active) {
+  if (is_editmode) {
     const Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(&ob);
     const Mesh *editmesh_eval_cage = BKE_object_get_editmesh_eval_cage(&ob);
 
@@ -1873,7 +1870,6 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
                                        mesh,
                                        is_editmode,
                                        is_paint_mode,
-                                       edit_mode_active,
                                        ob.object_to_world(),
                                        false,
                                        true,
@@ -1890,7 +1886,6 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
                                        mesh,
                                        is_editmode,
                                        is_paint_mode,
-                                       edit_mode_active,
                                        ob.object_to_world(),
                                        false,
                                        false,
@@ -1906,7 +1901,6 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
                            cache.final,
                            is_editmode,
                            is_paint_mode,
-                           edit_mode_active,
                            ob.object_to_world(),
                            true,
                            false,
@@ -1927,7 +1921,6 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
                                      mesh,
                                      is_editmode,
                                      is_paint_mode,
-                                     edit_mode_active,
                                      ob.object_to_world(),
                                      true,
                                      false,

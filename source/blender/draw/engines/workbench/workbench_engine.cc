@@ -6,8 +6,8 @@
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
+#include "BKE_paint_bvh.hh"
 #include "BKE_particle.h"
-#include "BKE_pbvh_api.hh"
 #include "BKE_report.hh"
 #include "DEG_depsgraph_query.hh"
 #include "DNA_fluid_types.h"
@@ -421,6 +421,9 @@ class Instance {
       GPU_framebuffer_clear_depth_stencil(resources.clear_in_front_fb, 1.0f, 0x00);
     }
 
+    resources.depth_tx.wrap(depth_tx);
+    resources.color_tx.wrap(color_tx);
+
     if (scene_state.render_finished) {
       /* Just copy back the already rendered result */
       anti_aliasing_ps.draw(manager, view, scene_state, resources, depth_in_front_tx);
@@ -429,8 +432,6 @@ class Instance {
 
     anti_aliasing_ps.setup_view(view, scene_state);
 
-    resources.depth_tx.wrap(depth_tx);
-    resources.color_tx.wrap(color_tx);
     GPUAttachment id_attachment = GPU_ATTACHMENT_NONE;
     if (scene_state.draw_object_id) {
       resources.object_id_tx.acquire(
@@ -541,6 +542,7 @@ static void workbench_cache_populate(void *vedata, Object *object)
   ref.object = object;
   ref.dupli_object = DRW_object_get_dupli(object);
   ref.dupli_parent = DRW_object_get_dupli_parent(object);
+  ref.handle = draw::ResourceHandle(0);
 
   reinterpret_cast<WORKBENCH_Data *>(vedata)->instance->object_sync(*manager, ref);
 }

@@ -54,7 +54,7 @@ static SpaceLink *spreadsheet_create(const ScrArea * /*area*/, const Scene * /*s
 
   {
     /* Header. */
-    ARegion *region = MEM_cnew<ARegion>("spreadsheet header");
+    ARegion *region = BKE_area_region_new();
     BLI_addtail(&spreadsheet_space->regionbase, region);
     region->regiontype = RGN_TYPE_HEADER;
     region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
@@ -62,7 +62,7 @@ static SpaceLink *spreadsheet_create(const ScrArea * /*area*/, const Scene * /*s
 
   {
     /* Footer. */
-    ARegion *region = MEM_cnew<ARegion>("spreadsheet footer region");
+    ARegion *region = BKE_area_region_new();
     BLI_addtail(&spreadsheet_space->regionbase, region);
     region->regiontype = RGN_TYPE_FOOTER;
     region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_TOP : RGN_ALIGN_BOTTOM;
@@ -70,7 +70,7 @@ static SpaceLink *spreadsheet_create(const ScrArea * /*area*/, const Scene * /*s
 
   {
     /* Dataset Region */
-    ARegion *region = MEM_cnew<ARegion>("spreadsheet dataset region");
+    ARegion *region = BKE_area_region_new();
     BLI_addtail(&spreadsheet_space->regionbase, region);
     region->regiontype = RGN_TYPE_TOOLS;
     region->alignment = RGN_ALIGN_LEFT;
@@ -78,7 +78,7 @@ static SpaceLink *spreadsheet_create(const ScrArea * /*area*/, const Scene * /*s
 
   {
     /* Properties region. */
-    ARegion *region = MEM_cnew<ARegion>("spreadsheet right region");
+    ARegion *region = BKE_area_region_new();
     BLI_addtail(&spreadsheet_space->regionbase, region);
     region->regiontype = RGN_TYPE_UI;
     region->alignment = RGN_ALIGN_RIGHT;
@@ -87,7 +87,7 @@ static SpaceLink *spreadsheet_create(const ScrArea * /*area*/, const Scene * /*s
 
   {
     /* Main window. */
-    ARegion *region = MEM_cnew<ARegion>("spreadsheet main region");
+    ARegion *region = BKE_area_region_new();
     BLI_addtail(&spreadsheet_space->regionbase, region);
     region->regiontype = RGN_TYPE_WINDOW;
   }

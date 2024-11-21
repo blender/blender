@@ -190,10 +190,11 @@ void OneapiDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
     if (bvh->params.top_level) {
       embree_scene = bvh_embree->scene;
 #    if RTC_VERSION >= 40302
-      if (bvh_embree->offload_scenes_to_gpu(all_embree_scenes) == false) {
+      RTCError error_code = bvh_embree->offload_scenes_to_gpu(all_embree_scenes);
+      if (error_code != RTC_ERROR_NONE) {
         set_error(
-            string_printf("BVH failed to to migrate to the GPU due to Embree library error (%s)",
-                          bvh_embree->get_last_error_message()));
+            string_printf("BVH failed to migrate to the GPU due to Embree library error (%s)",
+                          bvh_embree->get_error_string(error_code)));
       }
       all_embree_scenes.clear();
 #    endif

@@ -53,7 +53,7 @@ class EndpointFieldInput final : public bke::GeometryFieldInput {
       return {};
     }
     const bke::CurvesGeometry &curves = *curves_ptr;
-    if (curves.points_num() == 0) {
+    if (curves.is_empty()) {
       return {};
     }
 

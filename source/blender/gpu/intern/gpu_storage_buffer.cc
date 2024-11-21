@@ -12,13 +12,14 @@
 #include "BLI_blenlib.h"
 #include "BLI_math_base.h"
 
+#include "BKE_global.hh"
+
 #include "gpu_backend.hh"
 
 #include "GPU_material.hh"
+#include "GPU_storage_buffer.hh"
 #include "GPU_vertex_buffer.hh" /* For GPUUsageType. */
 
-#include "GPU_storage_buffer.hh"
-#include "GPU_vertex_buffer.hh"
 #include "gpu_context_private.hh"
 #include "gpu_storage_buffer_private.hh"
 
@@ -63,6 +64,13 @@ GPUStorageBuf *GPU_storagebuf_create_ex(size_t size,
   if (data != nullptr) {
     ssbo->update(data);
   }
+  else if (G.debug & G_DEBUG_GPU) {
+    /* Fill the buffer with poison values.
+     * (NaN for floats, -1 for ints and "max value" for uints). */
+    blender::Vector<uchar> uninitialized_data(size, 0xFF);
+    ssbo->update(uninitialized_data.data());
+  }
+
   return wrap(ssbo);
 }
 

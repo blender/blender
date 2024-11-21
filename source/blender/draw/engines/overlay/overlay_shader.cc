@@ -35,6 +35,7 @@ struct OVERLAY_Shaders {
   GPUShader *edit_curve_handle;
   GPUShader *edit_curve_point;
   GPUShader *edit_curves_handle;
+  GPUShader *edit_curves_point;
   GPUShader *edit_curve_wire;
   GPUShader *edit_gpencil_guide_point;
   GPUShader *edit_gpencil_point;
@@ -345,6 +346,18 @@ GPUShader *OVERLAY_shader_edit_curves_handle()
   return sh_data->edit_curves_handle;
 }
 
+GPUShader *OVERLAY_shader_edit_curves_point()
+{
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
+  if (!sh_data->edit_curves_point) {
+    sh_data->edit_curves_point = GPU_shader_create_from_info_name(
+        (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) ? "overlay_edit_curves_point_clipped" :
+                                                       "overlay_edit_curves_point");
+  }
+  return sh_data->edit_curves_point;
+}
+
 GPUShader *OVERLAY_shader_edit_curve_wire()
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -355,42 +368,6 @@ GPUShader *OVERLAY_shader_edit_curve_wire()
                                                        "overlay_edit_curve_wire");
   }
   return sh_data->edit_curve_wire;
-}
-
-GPUShader *OVERLAY_shader_edit_gpencil_guide_point()
-{
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
-  if (!sh_data->edit_gpencil_guide_point) {
-    sh_data->edit_gpencil_guide_point = GPU_shader_create_from_info_name(
-        (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) ? "overlay_edit_gpencil_guide_point_clipped" :
-                                                       "overlay_edit_gpencil_guide_point");
-  }
-  return sh_data->edit_gpencil_guide_point;
-}
-
-GPUShader *OVERLAY_shader_edit_gpencil_point()
-{
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
-  if (!sh_data->edit_gpencil_point) {
-    sh_data->edit_gpencil_point = GPU_shader_create_from_info_name(
-        (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) ? "overlay_edit_gpencil_point_clipped" :
-                                                       "overlay_edit_gpencil_point");
-  }
-  return sh_data->edit_gpencil_point;
-}
-
-GPUShader *OVERLAY_shader_edit_gpencil_wire()
-{
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
-  if (!sh_data->edit_gpencil_wire) {
-    sh_data->edit_gpencil_wire = GPU_shader_create_from_info_name(
-        (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) ? "overlay_edit_gpencil_wire_clipped" :
-                                                       "overlay_edit_gpencil_wire");
-  }
-  return sh_data->edit_gpencil_wire;
 }
 
 GPUShader *OVERLAY_shader_edit_lattice_point()

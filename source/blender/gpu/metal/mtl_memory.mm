@@ -13,11 +13,15 @@
 using namespace blender;
 using namespace blender::gpu;
 
+/* Allows a scratch buffer to temporarily grow beyond its maximum, which allows submission
+ * of one-time-use data packets which are too large. */
+#define MTL_SCRATCH_BUFFER_ALLOW_TEMPORARY_EXPANSION
+
 /* Memory size in bytes macros, used as pool flushing frequency thresholds. */
-#define MEMORY_SIZE_2GB 2147483648LL
-#define MEMORY_SIZE_1GB 1073741824LL
-#define MEMORY_SIZE_512MB 536870912LL
-#define MEMORY_SIZE_256MB 268435456LL
+constexpr static size_t MEMORY_SIZE_256MB = 256LL * (1024LL * 1024LL);
+constexpr static size_t MEMORY_SIZE_512MB = 512LL * (1024LL * 1024LL);
+constexpr static size_t MEMORY_SIZE_1GB = 1LL * (1024LL * 1024LL * 1024LL);
+constexpr static size_t MEMORY_SIZE_2GB = 2LL * (1024LL * 1024LL * 1024LL);
 
 namespace blender::gpu {
 
@@ -974,7 +978,7 @@ MTLTemporaryBuffer MTLCircularBuffer::allocate_range_aligned(uint64_t alloc_size
           min_ulul(MTLScratchBufferManager::mtl_scratch_buffer_max_size_, new_size * 1.2),
           aligned_current_offset + aligned_alloc_size);
 
-#if MTL_SCRATCH_BUFFER_ALLOW_TEMPORARY_EXPANSION == 1
+#ifdef MTL_SCRATCH_BUFFER_ALLOW_TEMPORARY_EXPANSION
       /* IF a requested allocation EXCEEDS the maximum supported size, temporarily allocate up to
        * this, but shrink down ASAP. */
       if (new_size > MTLScratchBufferManager::mtl_scratch_buffer_max_size_) {

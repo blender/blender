@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include "GPU_select.hh"
+
 /* gpu_select_pick */
 
 void gpu_select_pick_begin(GPUSelectBuffer *buffer, const rcti *input, eGPUSelectMode mode);
@@ -41,6 +43,6 @@ uint gpu_select_next_end();
 /* Return a single offset since picking uses squared viewport. */
 int gpu_select_next_get_pick_area_center();
 eGPUSelectMode gpu_select_next_get_mode();
-void gpu_select_next_set_result(GPUSelectResult *buffer, uint buffer_len);
+void gpu_select_next_set_result(GPUSelectResult *hit_buf, uint hit_len);
 
 #define SELECT_ID_NONE ((uint)0xffffffff)

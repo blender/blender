@@ -98,7 +98,5 @@ class GHOST_DropTargetX11 {
   /* Counter of references to global #XDND structures. */
   static int m_refCounter;
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_DropTargetX11")
-#endif
 };

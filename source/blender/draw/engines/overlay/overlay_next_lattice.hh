@@ -78,10 +78,15 @@ class Lattices {
     }
   }
 
+  void pre_draw(Manager &manager, View &view)
+  {
+    manager.generate_commands(ps_, view);
+  }
+
   void draw(Framebuffer &framebuffer, Manager &manager, View &view)
   {
     GPU_framebuffer_bind(framebuffer);
-    manager.submit(ps_, view);
+    manager.submit_only(ps_, view);
   }
 };
 }  // namespace blender::draw::overlay

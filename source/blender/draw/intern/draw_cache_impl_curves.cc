@@ -51,6 +51,9 @@ namespace blender::draw {
 #define EDIT_CURVES_NURBS_CONTROL_POINT (1u)
 #define EDIT_CURVES_BEZIER_HANDLE (1u << 1)
 #define EDIT_CURVES_ACTIVE_HANDLE (1u << 2)
+/* Bezier curve control point lying on the curve.
+ * The one between left and right handles. */
+#define EDIT_CURVES_BEZIER_KNOT (1u << 3)
 #define EDIT_CURVES_HANDLE_TYPES_SHIFT (4u)
 
 /* ---------------------------------------------------------------------- */
@@ -347,7 +350,7 @@ static void create_edit_points_position_and_data(
             const int point_in_curve = point - points_by_curve[src_i].start();
             const int dst_index = bezier_dst_offsets[dst_i].start() + point_in_curve;
 
-            data_dst[point] = EDIT_CURVES_BEZIER_HANDLE;
+            data_dst[point] = EDIT_CURVES_BEZIER_KNOT;
             bool is_active = selection_attr[point] || selection_left[point] ||
                              selection_right[point];
             handle_data_left[dst_index] = bezier_data_value(left_handle_types[point], is_active);
@@ -1077,6 +1080,7 @@ void DRW_curves_batch_cache_create_requested(Object *ob)
 
   if (DRW_batch_requested(cache.edit_points, GPU_PRIM_POINTS)) {
     DRW_vbo_request(cache.edit_points, &cache.edit_points_pos);
+    DRW_vbo_request(cache.edit_points, &cache.edit_points_data);
     DRW_vbo_request(cache.edit_points, &cache.edit_points_selection);
   }
   if (DRW_batch_requested(cache.sculpt_cage, GPU_PRIM_LINE_STRIP)) {

@@ -20,8 +20,8 @@
 #include "BLT_translation.hh"
 
 #include "BKE_context.hh"
-#include "BKE_image.h"
-#include "BKE_image_format.h"
+#include "BKE_image.hh"
+#include "BKE_image_format.hh"
 #include "BKE_node.hh"
 #include "BKE_screen.hh"
 
@@ -940,6 +940,9 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, bool color_ma
 {
   ImageFormatData *imf = static_cast<ImageFormatData *>(imfptr->data);
   ID *id = imfptr->owner_id;
+  /* Note: this excludes any video formats; for them the image template does
+   * not show the color depth. Color depth instead is shown as part of encoding UI block,
+   * which is less confusing. */
   const int depth_ok = BKE_imtype_valid_depths(imf->imtype);
   /* some settings depend on this being a scene that's rendered */
   const bool is_render_out = (id && GS(id->name) == ID_SCE);
@@ -986,6 +989,9 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, bool color_ma
 
   if (ELEM(imf->imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER)) {
     uiItemR(col, imfptr, "exr_codec", UI_ITEM_NONE, nullptr, ICON_NONE);
+    if (ELEM(imf->exr_codec & OPENEXR_CODEC_MASK, R_IMF_EXR_CODEC_DWAA, R_IMF_EXR_CODEC_DWAB)) {
+      uiItemR(col, imfptr, "quality", UI_ITEM_NONE, nullptr, ICON_NONE);
+    }
   }
 
   if (is_render_out && ELEM(imf->imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER)) {

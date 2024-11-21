@@ -2,34 +2,38 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
+#include "gpu_glsl_cpp_stubs.hh"
+
 /* WORKAROUND: to guard against double include in EEVEE. */
 #ifndef GPU_SHADER_UTILDEFINES_GLSL
-#define GPU_SHADER_UTILDEFINES_GLSL
+#  define GPU_SHADER_UTILDEFINES_GLSL
 
-#ifndef FLT_MAX
-#  define FLT_MAX uintBitsToFloat(0x7F7FFFFFu)
-#  define FLT_MIN uintBitsToFloat(0x00800000u)
-#  define FLT_EPSILON 1.192092896e-07F
-#  define SHRT_MAX 0x00007FFF
-#  define INT_MAX 0x7FFFFFFF
-#  define USHRT_MAX 0x0000FFFFu
-#  define UINT_MAX 0xFFFFFFFFu
-#endif
-#define NAN_FLT uintBitsToFloat(0x7FC00000u)
-#define FLT_11_MAX uintBitsToFloat(0x477E0000)
-#define FLT_10_MAX uintBitsToFloat(0x477C0000)
-#define FLT_11_11_10_MAX vec3(FLT_11_MAX, FLT_11_MAX, FLT_10_MAX)
+#  ifndef FLT_MAX
+#    define FLT_MAX uintBitsToFloat(0x7F7FFFFFu)
+#    define FLT_MIN uintBitsToFloat(0x00800000u)
+#    define FLT_EPSILON 1.192092896e-07F
+#    define SHRT_MAX 0x00007FFF
+#    define INT_MAX 0x7FFFFFFF
+#    define USHRT_MAX 0x0000FFFFu
+#    define UINT_MAX 0xFFFFFFFFu
+#  endif
+#  define NAN_FLT uintBitsToFloat(0x7FC00000u)
+#  define FLT_11_MAX uintBitsToFloat(0x477E0000)
+#  define FLT_10_MAX uintBitsToFloat(0x477C0000)
+#  define FLT_11_11_10_MAX vec3(FLT_11_MAX, FLT_11_MAX, FLT_10_MAX)
 
-#define UNPACK2(a) (a)[0], (a)[1]
-#define UNPACK3(a) (a)[0], (a)[1], (a)[2]
-#define UNPACK4(a) (a)[0], (a)[1], (a)[2], (a)[3]
+#  define UNPACK2(a) (a)[0], (a)[1]
+#  define UNPACK3(a) (a)[0], (a)[1], (a)[2]
+#  define UNPACK4(a) (a)[0], (a)[1], (a)[2], (a)[3]
 
 /**
  * Clamp input into [0..1] range.
  */
-#define saturate(a) clamp(a, 0.0, 1.0)
+#  define saturate(a) clamp(a, 0.0, 1.0)
 
-#define isfinite(a) (!isinf(a) && !isnan(a))
+#  define isfinite(a) (!isinf(a) && !isnan(a))
 
 /* clang-format off */
 #define in_range_inclusive(val, min_v, max_v) (all(greaterThanEqual(val, min_v)) && all(lessThanEqual(val, max_v)))
@@ -74,7 +78,17 @@ void set_flag_from_test(inout int value, bool test, int flag)
 }
 
 /* Keep define to match C++ implementation. */
-#define SET_FLAG_FROM_TEST(value, test, flag) set_flag_from_test(value, test, flag)
+#  define SET_FLAG_FROM_TEST(value, test, flag) set_flag_from_test(value, test, flag)
+
+/**
+ * Return true if the bit inside bitmask at bit_index is set high.
+ * Assume the lower bits are inside first component of bitmask,
+ */
+bool bitmask64_test(uvec2 bitmask, uint bit_index)
+{
+  uint bitmask32 = (bit_index >= 32u) ? bitmask.y : bitmask.x;
+  return flag_test(bitmask32, 1u << (bit_index & 0x1Fu));
+}
 
 /**
  * Pack two 16-bit uint into one 32-bit uint.

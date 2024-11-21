@@ -56,11 +56,12 @@ bool operator==(const DistortionGridKey &a, const DistortionGridKey &b)
 
 DistortionGrid::DistortionGrid(
     Context &context, MovieClip *movie_clip, int2 size, DistortionType type, int2 calibration_size)
+    : result(context.create_result(ResultType::Float2))
 {
   MovieDistortion *distortion = BKE_tracking_distortion_new(
       &movie_clip->tracking, calibration_size.x, calibration_size.y);
 
-  Array<float2> distortion_grid(size.x * size.y);
+  distortion_grid_ = Array<float2>(size.x * size.y);
   threading::parallel_for(IndexRange(size.y), 1, [&](const IndexRange sub_y_range) {
     for (const int64_t y : sub_y_range) {
       for (const int64_t x : IndexRange(size.x)) {
@@ -81,37 +82,28 @@ DistortionGrid::DistortionGrid(
         /* Note that we should remap the coordinates back into the original size by dividing by the
          * calibration size and multiplying by the size, however, we skip the latter to store the
          * coordinates in normalized form, since this is what the shader expects. */
-        distortion_grid[y * size.x + x] = coordinates / float2(calibration_size);
+        distortion_grid_[y * size.x + x] = coordinates / float2(calibration_size);
       }
     }
   });
 
   BKE_tracking_distortion_free(distortion);
 
-  texture_ = GPU_texture_create_2d(
-      "Distortion Grid",
-      size.x,
-      size.y,
-      1,
-      Result::gpu_texture_format(ResultType::Float2, context.get_precision()),
-      GPU_TEXTURE_USAGE_SHADER_READ,
-      *distortion_grid.data());
+  if (context.use_gpu()) {
+    this->result.allocate_texture(Domain(size), false);
+    GPU_texture_update(this->result, GPU_DATA_FLOAT, distortion_grid_.data());
+
+    /* CPU-side data no longer needed, so free it. */
+    distortion_grid_ = Array<float2>();
+  }
+  else {
+    this->result.wrap_external(&distortion_grid_[0].x, size);
+  }
 }
 
 DistortionGrid::~DistortionGrid()
 {
-  GPU_texture_free(texture_);
-}
-
-void DistortionGrid::bind_as_texture(GPUShader *shader, const char *texture_name) const
-{
-  const int texture_image_unit = GPU_shader_get_sampler_binding(shader, texture_name);
-  GPU_texture_bind(texture_, texture_image_unit);
-}
-
-void DistortionGrid::unbind_as_texture() const
-{
-  GPU_texture_unbind(texture_);
+  this->result.release();
 }
 
 /* --------------------------------------------------------------------
@@ -141,7 +133,7 @@ static int2 get_movie_clip_size(MovieClip *movie_clip, int frame_number)
   return size;
 }
 
-DistortionGrid &DistortionGridContainer::get(
+Result &DistortionGridContainer::get(
     Context &context, MovieClip *movie_clip, int2 size, DistortionType type, int frame_number)
 {
   const int2 calibration_size = get_movie_clip_size(movie_clip, frame_number);
@@ -153,7 +145,7 @@ DistortionGrid &DistortionGridContainer::get(
   });
 
   distortion_grid.needed = true;
-  return distortion_grid;
+  return distortion_grid.result;
 }
 
 }  // namespace blender::realtime_compositor

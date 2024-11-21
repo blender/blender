@@ -2,9 +2,13 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
+#pragma once
 
-#ifndef DRAW_MODELMAT_CREATE_INFO
+#include "draw_view_info.hh"
+
+#include "draw_view_lib.glsl"
+
+#if !defined(DRAW_MODELMAT_CREATE_INFO) && !defined(GLSL_CPP_STUBS)
 #  error Missing draw_modelmat additional create info on shader create info
 #endif
 
@@ -14,6 +18,7 @@
 #  define DRW_RESOURCE_ID_VARYING_SET
 
 #elif defined(GPU_VERTEX_SHADER)
+VERTEX_SHADER_CREATE_INFO(draw_resource_id_varying)
 #  if defined(UNIFORM_RESOURCE_ID_NEW)
 #    define resource_id (drw_ResourceID >> DRW_VIEW_SHIFT)
 #  else
@@ -25,6 +30,10 @@
 #  define resource_id drw_ResourceID_iface_in[0].resource_index
 
 #elif defined(GPU_FRAGMENT_SHADER)
+FRAGMENT_SHADER_CREATE_INFO(draw_resource_id_varying)
+#  define resource_id drw_ResourceID_iface.resource_index
+#elif defined(GPU_LIBRARY_SHADER)
+SHADER_LIBRARY_CREATE_INFO(draw_resource_id_varying)
 #  define resource_id drw_ResourceID_iface.resource_index
 #endif
 
@@ -51,11 +60,11 @@ mat4x4 drw_modelinv()
  */
 mat3x3 drw_normat()
 {
-  return transpose(mat3x3(drw_modelinv()));
+  return transpose(to_float3x3(drw_modelinv()));
 }
 mat3x3 drw_norinv()
 {
-  return transpose(mat3x3(drw_modelmat()));
+  return transpose(to_float3x3(drw_modelmat()));
 }
 
 /* -------------------------------------------------------------------- */
@@ -75,11 +84,11 @@ vec3 drw_normal_world_to_object(vec3 N)
 
 vec3 drw_normal_object_to_view(vec3 lN)
 {
-  return (mat3x3(drw_view.viewmat) * (drw_normat() * lN));
+  return (to_float3x3(drw_view.viewmat) * (drw_normat() * lN));
 }
 vec3 drw_normal_view_to_object(vec3 vN)
 {
-  return (drw_norinv() * (mat3x3(drw_view.viewinv) * vN));
+  return (drw_norinv() * (to_float3x3(drw_view.viewinv) * vN));
 }
 
 /** \} */

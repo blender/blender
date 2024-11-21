@@ -1,6 +1,7 @@
 /* SPDX-FileCopyrightText: 2024 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
+
 #include "sculpt_flood_fill.hh"
 
 #include "BKE_mesh.hh"
@@ -10,6 +11,8 @@
 #include "paint_intern.hh"
 #include "sculpt_hide.hh"
 #include "sculpt_intern.hh"
+
+#include "bmesh.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Sculpt Flood Fill API

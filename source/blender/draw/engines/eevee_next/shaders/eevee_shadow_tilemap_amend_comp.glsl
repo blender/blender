@@ -15,10 +15,10 @@
  * Currently this shader is dispatched with one thread-group for all directional light.
  */
 
-#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_matrix_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_light_iter_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_shadow_tilemap_lib.glsl)
+#include "eevee_light_iter_lib.glsl"
+#include "eevee_shadow_tilemap_lib.glsl"
+#include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 
 shared ShadowSamplingTilePacked tiles_local[SHADOW_TILEMAP_RES][SHADOW_TILEMAP_RES];
 
@@ -81,7 +81,7 @@ void main()
 
           tile_prev_packed = shadow_sampling_tile_pack(tile_prev);
           /* Replace the missing page with the one from the lower LOD. */
-          imageStore(tilemaps_img, ivec2(atlas_texel), uvec4(tile_prev_packed));
+          imageStoreFast(tilemaps_img, ivec2(atlas_texel), uvec4(tile_prev_packed));
           /* Push this amended tile to the local tiles. */
           tile_packed = tile_prev_packed;
           tile.is_valid = true;

@@ -16,12 +16,10 @@ __all__ = (
 )
 
 import sys
+
 from types import ModuleType
-from typing import (
-    Dict,
-    Optional,
+from collections.abc import (
     Sequence,
-    Tuple,
 )
 
 
@@ -36,8 +34,8 @@ def _module_file_set(module: ModuleType, name_full: str) -> None:
 def _module_create(
         name: str,
         *,
-        parent: Optional[ModuleType] = None,
-        doc: Optional[str] = None,
+        parent: ModuleType | None = None,
+        doc: str | None = None,
 ) -> ModuleType:
     if parent is not None:
         name_full = parent.__name__ + "." + name
@@ -60,10 +58,10 @@ class JunctionModuleHandle:
 
     def __init__(self, module_name: str):
         self._module_name: str = module_name
-        self._module: Optional[ModuleType] = None
-        self._submodules: Dict[str, ModuleType] = {}
+        self._module: ModuleType | None = None
+        self._submodules: dict[str, ModuleType] = {}
 
-    def submodule_items(self) -> Sequence[Tuple[str, ModuleType]]:
+    def submodule_items(self) -> Sequence[tuple[str, ModuleType]]:
         return tuple(self._submodules.items())
 
     def register_module(self) -> ModuleType:

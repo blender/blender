@@ -78,8 +78,7 @@ void HdCyclesVolume::Populate(HdSceneDelegate *sceneDelegate, HdDirtyBits dirtyB
         {
           Attribute *const attr = (std != ATTR_STD_NONE) ?
                                       _geom->attributes.add(std) :
-                                      _geom->attributes.add(
-                                          name, TypeDesc::TypeFloat, ATTR_ELEMENT_VOXEL);
+                                      _geom->attributes.add(name, TypeFloat, ATTR_ELEMENT_VOXEL);
           attr->data_voxel() = openvdbAsset->GetImageHandle();
         }
       }

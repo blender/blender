@@ -80,6 +80,7 @@ struct Light : public LightData, NonCopyable {
             float4x4 object_to_world,
             char visibility_flag,
             const ::Light *la,
+            const LightLinking *light_linking,
             float threshold);
 
   void shadow_ensure(ShadowModule &shadows);

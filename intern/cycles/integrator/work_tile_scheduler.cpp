@@ -56,16 +56,17 @@ void WorkTileScheduler::reset_scheduler_state()
 
   const int num_path_states_in_tile = tile_size_.width * tile_size_.height *
                                       tile_size_.num_samples;
-  const int num_tiles = max_num_path_states_ / num_path_states_in_tile;
-
-  VLOG_WORK << "Will schedule " << num_tiles << " tiles of " << tile_size_;
 
   if (num_path_states_in_tile == 0) {
+    VLOG_WORK << "Will not schedule any tiles: no work remained for the device";
     num_tiles_x_ = 0;
     num_tiles_y_ = 0;
     num_tiles_per_sample_range_ = 0;
   }
   else {
+    const int num_tiles = max_num_path_states_ / num_path_states_in_tile;
+    VLOG_WORK << "Will schedule " << num_tiles << " tiles of " << tile_size_;
+
     /* The logging is based on multiple tiles scheduled, ignoring overhead of multi-tile
      * scheduling and purely focusing on the number of used path states. */
     VLOG_WORK << "Number of unused path states: "

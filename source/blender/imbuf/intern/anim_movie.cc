@@ -234,6 +234,19 @@ static int ffmpeg_frame_count_get(AVFormatContext *pFormatCtx, AVStream *video_s
   return 0;
 }
 
+static int calc_pix_fmt_max_component_bits(AVPixelFormat fmt)
+{
+  const AVPixFmtDescriptor *desc = av_pix_fmt_desc_get(fmt);
+  if (desc == nullptr) {
+    return 0;
+  }
+  int bits = 0;
+  for (int i = 0; i < desc->nb_components; i++) {
+    bits = max_ii(bits, desc->comp[i].depth);
+  }
+  return bits;
+}
+
 static int startffmpeg(ImBufAnim *anim)
 {
   const AVCodec *pCodec;
@@ -343,6 +356,8 @@ static int startffmpeg(ImBufAnim *anim)
 
   anim->x = pCodecCtx->width;
   anim->y = pCodecCtx->height;
+  /* Decode >8bit videos into floating point image. */
+  anim->is_float = calc_pix_fmt_max_component_bits(pCodecCtx->pix_fmt) > 8;
 
   anim->pFormatCtx = pFormatCtx;
   anim->pCodecCtx = pCodecCtx;
@@ -361,26 +376,16 @@ static int startffmpeg(ImBufAnim *anim)
   anim->pFrame_complete = false;
   anim->pFrameDeinterlaced = av_frame_alloc();
   anim->pFrameRGB = av_frame_alloc();
-  anim->pFrameRGB->format = AV_PIX_FMT_RGBA;
+  /* Ideally we'd use AV_PIX_FMT_RGBAF32LE for floats, but currently (ffmpeg 6.1)
+   * swscale does not support that as destination. So using AV_PIX_FMT_GBRAPF32LE
+   * with manual interleaving to RGBA floats. */
+  anim->pFrameRGB->format = anim->is_float ? AV_PIX_FMT_GBRAPF32LE : AV_PIX_FMT_RGBA;
   anim->pFrameRGB->width = anim->x;
   anim->pFrameRGB->height = anim->y;
 
   const size_t align = ffmpeg_get_buffer_alignment();
   if (av_frame_get_buffer(anim->pFrameRGB, align) < 0) {
     fprintf(stderr, "Could not allocate frame data.\n");
-    avcodec_free_context(&anim->pCodecCtx);
-    avformat_close_input(&anim->pFormatCtx);
-    av_packet_free(&anim->cur_packet);
-    av_frame_free(&anim->pFrameRGB);
-    av_frame_free(&anim->pFrameDeinterlaced);
-    av_frame_free(&anim->pFrame);
-    av_frame_free(&anim->pFrame_backup);
-    anim->pCodecCtx = nullptr;
-    return -1;
-  }
-
-  if (av_image_get_buffer_size(AV_PIX_FMT_RGBA, anim->x, anim->y, 1) != anim->x * anim->y * 4) {
-    fprintf(stderr, "ffmpeg has changed alloc scheme ... ARGHHH!\n");
     avcodec_free_context(&anim->pCodecCtx);
     avformat_close_input(&anim->pFormatCtx);
     av_packet_free(&anim->cur_packet);
@@ -409,17 +414,25 @@ static int startffmpeg(ImBufAnim *anim)
         1);
   }
 
+  /* Use full_chroma_int + accurate_rnd YUV->RGB conversion flags. Otherwise
+   * the conversion is not fully accurate and introduces some banding and color
+   * shifts, particularly in dark regions. See issue #111703 or upstream
+   * ffmpeg ticket https://trac.ffmpeg.org/ticket/1582 */
   anim->img_convert_ctx = BKE_ffmpeg_sws_get_context(anim->x,
                                                      anim->y,
                                                      anim->pCodecCtx->pix_fmt,
                                                      anim->x,
                                                      anim->y,
-                                                     AV_PIX_FMT_RGBA,
-                                                     SWS_BILINEAR | SWS_PRINT_INFO |
-                                                         SWS_FULL_CHR_H_INT);
+                                                     anim->pFrameRGB->format,
+                                                     SWS_POINT | SWS_FULL_CHR_H_INT |
+                                                         SWS_ACCURATE_RND);
 
   if (!anim->img_convert_ctx) {
-    fprintf(stderr, "Can't transform color space??? Bailing out...\n");
+    fprintf(stderr,
+            "ffmpeg: swscale can't transform from pixel format %s to %s (%s)\n",
+            av_get_pix_fmt_name(anim->pCodecCtx->pix_fmt),
+            av_get_pix_fmt_name((AVPixelFormat)anim->pFrameRGB->format),
+            anim->filepath);
     avcodec_free_context(&anim->pCodecCtx);
     avformat_close_input(&anim->pFormatCtx);
     av_packet_free(&anim->cur_packet);
@@ -559,46 +572,81 @@ static void ffmpeg_postprocess(ImBufAnim *anim, AVFrame *input, ImBuf *ibuf)
     }
   }
 
-  /* If final destination image layout matches that of decoded RGB frame (including
-   * any line padding done by ffmpeg for SIMD alignment), we can directly
-   * decode into that, doing the vertical flip in the same step. Otherwise have
-   * to do a separate flip. */
-  const int ibuf_linesize = ibuf->x * 4;
-  const int rgb_linesize = anim->pFrameRGB->linesize[0];
-  bool scale_to_ibuf = (rgb_linesize == ibuf_linesize);
-  /* swscale on arm64 before ffmpeg 6.0 (libswscale major version 7)
-   * could not handle negative line sizes. That has been fixed in all major
-   * ffmpeg releases in early 2023, but easier to just check for "below 7". */
-#  if (defined(__aarch64__) || defined(_M_ARM64)) && (LIBSWSCALE_VERSION_MAJOR < 7)
-  scale_to_ibuf = false;
-#  endif
-  uint8_t *rgb_data = anim->pFrameRGB->data[0];
-
-  if (scale_to_ibuf) {
-    /* Decode RGB and do vertical flip directly into destination image, by using negative
-     * line size. */
-    anim->pFrameRGB->linesize[0] = -ibuf_linesize;
-    anim->pFrameRGB->data[0] = ibuf->byte_buffer.data + (ibuf->y - 1) * ibuf_linesize;
-
-    BKE_ffmpeg_sws_scale_frame(anim->img_convert_ctx, anim->pFrameRGB, input);
-
-    anim->pFrameRGB->linesize[0] = rgb_linesize;
-    anim->pFrameRGB->data[0] = rgb_data;
-  }
-  else {
+  if (anim->is_float) {
+    /* Float images are converted into planar BGRA layout by swscale (since
+     * it does not support direct YUV->RGBA float interleaved conversion).
+     * Do vertical flip and interleave into RGBA manually. */
     /* Decode, then do vertical flip into destination. */
     BKE_ffmpeg_sws_scale_frame(anim->img_convert_ctx, anim->pFrameRGB, input);
 
-    /* Use negative line size to do vertical image flip. */
-    const int src_linesize[4] = {-rgb_linesize, 0, 0, 0};
-    const uint8_t *const src[4] = {
-        rgb_data + (anim->y - 1) * rgb_linesize, nullptr, nullptr, nullptr};
-    int dst_size = av_image_get_buffer_size(AVPixelFormat(anim->pFrameRGB->format),
-                                            anim->pFrameRGB->width,
-                                            anim->pFrameRGB->height,
-                                            1);
-    av_image_copy_to_buffer(
-        ibuf->byte_buffer.data, dst_size, src, src_linesize, AV_PIX_FMT_RGBA, anim->x, anim->y, 1);
+    const size_t src_linesize = anim->pFrameRGB->linesize[0];
+    BLI_assert_msg(anim->pFrameRGB->linesize[1] == src_linesize &&
+                       anim->pFrameRGB->linesize[2] == src_linesize &&
+                       anim->pFrameRGB->linesize[3] == src_linesize,
+                   "ffmpeg frame should be 4 same size planes for a floating point image case");
+    for (int y = 0; y < ibuf->y; y++) {
+      size_t src_offset = src_linesize * (ibuf->y - y - 1);
+      const float *src_g = reinterpret_cast<const float *>(anim->pFrameRGB->data[0] + src_offset);
+      const float *src_b = reinterpret_cast<const float *>(anim->pFrameRGB->data[1] + src_offset);
+      const float *src_r = reinterpret_cast<const float *>(anim->pFrameRGB->data[2] + src_offset);
+      const float *src_a = reinterpret_cast<const float *>(anim->pFrameRGB->data[3] + src_offset);
+      float *dst = ibuf->float_buffer.data + ibuf->x * y * 4;
+      for (int x = 0; x < ibuf->x; x++) {
+        *dst++ = *src_r++;
+        *dst++ = *src_g++;
+        *dst++ = *src_b++;
+        *dst++ = *src_a++;
+      }
+    }
+  }
+  else {
+    /* If final destination image layout matches that of decoded RGB frame (including
+     * any line padding done by ffmpeg for SIMD alignment), we can directly
+     * decode into that, doing the vertical flip in the same step. Otherwise have
+     * to do a separate flip. */
+    const int ibuf_linesize = ibuf->x * 4;
+    const int rgb_linesize = anim->pFrameRGB->linesize[0];
+    bool scale_to_ibuf = (rgb_linesize == ibuf_linesize);
+    /* swscale on arm64 before ffmpeg 6.0 (libswscale major version 7)
+     * could not handle negative line sizes. That has been fixed in all major
+     * ffmpeg releases in early 2023, but easier to just check for "below 7". */
+#  if (defined(__aarch64__) || defined(_M_ARM64)) && (LIBSWSCALE_VERSION_MAJOR < 7)
+    scale_to_ibuf = false;
+#  endif
+    uint8_t *rgb_data = anim->pFrameRGB->data[0];
+
+    if (scale_to_ibuf) {
+      /* Decode RGB and do vertical flip directly into destination image, by using negative
+       * line size. */
+      anim->pFrameRGB->linesize[0] = -ibuf_linesize;
+      anim->pFrameRGB->data[0] = ibuf->byte_buffer.data + (ibuf->y - 1) * ibuf_linesize;
+
+      BKE_ffmpeg_sws_scale_frame(anim->img_convert_ctx, anim->pFrameRGB, input);
+
+      anim->pFrameRGB->linesize[0] = rgb_linesize;
+      anim->pFrameRGB->data[0] = rgb_data;
+    }
+    else {
+      /* Decode, then do vertical flip into destination. */
+      BKE_ffmpeg_sws_scale_frame(anim->img_convert_ctx, anim->pFrameRGB, input);
+
+      /* Use negative line size to do vertical image flip. */
+      const int src_linesize[4] = {-rgb_linesize, 0, 0, 0};
+      const uint8_t *const src[4] = {
+          rgb_data + (anim->y - 1) * rgb_linesize, nullptr, nullptr, nullptr};
+      int dst_size = av_image_get_buffer_size(AVPixelFormat(anim->pFrameRGB->format),
+                                              anim->pFrameRGB->width,
+                                              anim->pFrameRGB->height,
+                                              1);
+      av_image_copy_to_buffer(ibuf->byte_buffer.data,
+                              dst_size,
+                              src,
+                              src_linesize,
+                              AVPixelFormat(anim->pFrameRGB->format),
+                              anim->x,
+                              anim->y,
+                              1);
+    }
   }
 
   if (filter_y) {
@@ -656,7 +704,11 @@ static void ffmpeg_decode_store_frame_pts(ImBufAnim *anim)
 {
   anim->cur_pts = av_get_pts_from_frame(anim->pFrame);
 
+#  ifdef FFMPEG_OLD_KEY_FRAME_QUERY_METHOD
   if (anim->pFrame->key_frame) {
+#  else
+  if (anim->pFrame->flags & AV_FRAME_FLAG_KEY) {
+#  endif
     anim->cur_key_frame_pts = anim->cur_pts;
   }
 
@@ -751,48 +803,6 @@ static int ffmpeg_decode_video_frame(ImBufAnim *anim)
   }
 
   return (rval >= 0);
-}
-
-static int match_format(const char *name, AVFormatContext *pFormatCtx)
-{
-  const char *p;
-  int len, namelen;
-
-  const char *names = pFormatCtx->iformat->name;
-
-  if (!name || !names) {
-    return 0;
-  }
-
-  namelen = strlen(name);
-  while ((p = strchr(names, ','))) {
-    len = std::max(int(p - names), namelen);
-    if (!BLI_strncasecmp(name, names, len)) {
-      return 1;
-    }
-    names = p + 1;
-  }
-  return !BLI_strcasecmp(name, names);
-}
-
-static int ffmpeg_seek_by_byte(AVFormatContext *pFormatCtx)
-{
-  static const char *byte_seek_list[] = {"mpegts", nullptr};
-  const char **p;
-
-  if (pFormatCtx->iformat->flags & AVFMT_TS_DISCONT) {
-    return true;
-  }
-
-  p = byte_seek_list;
-
-  while (*p) {
-    if (match_format(*p++, pFormatCtx)) {
-      return true;
-    }
-  }
-
-  return false;
 }
 
 static int64_t ffmpeg_get_seek_pts(ImBufAnim *anim, int64_t pts_to_search)
@@ -996,35 +1006,17 @@ static int ffmpeg_seek_to_key_frame(ImBufAnim *anim,
   if (tc_index) {
     /* We can use timestamps generated from our indexer to seek. */
     int new_frame_index = IMB_indexer_get_frame_index(tc_index, position);
-    int old_frame_index = IMB_indexer_get_frame_index(tc_index, anim->cur_position);
 
-    if (IMB_indexer_can_scan(tc_index, old_frame_index, new_frame_index)) {
-      /* No need to seek, return early. */
-      return 0;
-    }
-    uint64_t pts;
-    uint64_t dts;
-
-    seek_pos = IMB_indexer_get_seek_pos(tc_index, new_frame_index);
-    pts = IMB_indexer_get_seek_pos_pts(tc_index, new_frame_index);
-    dts = IMB_indexer_get_seek_pos_dts(tc_index, new_frame_index);
+    uint64_t pts = IMB_indexer_get_seek_pos_pts(tc_index, new_frame_index);
+    uint64_t dts = IMB_indexer_get_seek_pos_dts(tc_index, new_frame_index);
 
     anim->cur_key_frame_pts = timestamp_from_pts_or_dts(pts, dts);
 
-    av_log(anim->pFormatCtx, AV_LOG_DEBUG, "TC INDEX seek seek_pos = %" PRId64 "\n", seek_pos);
     av_log(anim->pFormatCtx, AV_LOG_DEBUG, "TC INDEX seek pts = %" PRIu64 "\n", pts);
     av_log(anim->pFormatCtx, AV_LOG_DEBUG, "TC INDEX seek dts = %" PRIu64 "\n", dts);
 
-    if (ffmpeg_seek_by_byte(anim->pFormatCtx)) {
-      av_log(anim->pFormatCtx, AV_LOG_DEBUG, "... using BYTE seek_pos\n");
-
-      ret = av_seek_frame(anim->pFormatCtx, -1, seek_pos, AVSEEK_FLAG_BYTE);
-    }
-    else {
-      av_log(anim->pFormatCtx, AV_LOG_DEBUG, "... using PTS seek_pos\n");
-      ret = av_seek_frame(
-          anim->pFormatCtx, anim->videoStream, anim->cur_key_frame_pts, AVSEEK_FLAG_BACKWARD);
-    }
+    av_log(anim->pFormatCtx, AV_LOG_DEBUG, "Using PTS from timecode as seek_pos\n");
+    ret = av_seek_frame(anim->pFormatCtx, anim->videoStream, pts, AVSEEK_FLAG_BACKWARD);
   }
   else {
     /* We have to manually seek with ffmpeg to get to the key frame we want to start decoding from.
@@ -1136,11 +1128,17 @@ static ImBuf *ffmpeg_fetchibuf(ImBufAnim *anim, int position, IMB_Timecode_Type 
 
   /* Allocate the storage explicitly to ensure the memory is aligned. */
   const size_t align = ffmpeg_get_buffer_alignment();
+  const size_t pixel_size = anim->is_float ? 16 : 4;
   uint8_t *buffer_data = static_cast<uint8_t *>(
-      MEM_mallocN_aligned(size_t(4) * anim->x * anim->y, align, "ffmpeg ibuf"));
-  IMB_assign_byte_buffer(cur_frame_final, buffer_data, IB_TAKE_OWNERSHIP);
-
-  cur_frame_final->byte_buffer.colorspace = colormanage_colorspace_get_named(anim->colorspace);
+      MEM_mallocN_aligned(pixel_size * anim->x * anim->y, align, "ffmpeg ibuf"));
+  if (anim->is_float) {
+    IMB_assign_float_buffer(cur_frame_final, (float *)buffer_data, IB_TAKE_OWNERSHIP);
+    cur_frame_final->float_buffer.colorspace = colormanage_colorspace_get_named(anim->colorspace);
+  }
+  else {
+    IMB_assign_byte_buffer(cur_frame_final, buffer_data, IB_TAKE_OWNERSHIP);
+    cur_frame_final->byte_buffer.colorspace = colormanage_colorspace_get_named(anim->colorspace);
+  }
 
   AVFrame *final_frame = ffmpeg_frame_by_pts_get(anim, pts_to_search);
   if (final_frame == nullptr) {

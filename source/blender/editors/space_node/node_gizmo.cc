@@ -14,7 +14,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 
 #include "ED_gizmo_library.hh"
 #include "ED_screen.hh"

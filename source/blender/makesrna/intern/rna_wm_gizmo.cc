@@ -221,7 +221,10 @@ static void rna_Gizmo_bl_idname_set(PointerRNA *ptr, const char *value)
   wmGizmo *data = static_cast<wmGizmo *>(ptr->data);
   char *str = (char *)data->type->idname;
   if (!str[0]) {
-    BLI_strncpy(str, value, MAX_NAME); /* utf8 already ensured */
+    /* Calling UTF8 copy is disputable since registering ensures the value isn't truncated.
+     * Use a UTF8 copy to ensure truncating never causes an incomplete UTF8 sequence,
+     * even before registration. */
+    BLI_strncpy_utf8(str, value, MAX_NAME);
   }
   else {
     BLI_assert_msg(0, "setting the bl_idname on a non-builtin operator");
@@ -642,7 +645,10 @@ static void rna_GizmoGroup_bl_idname_set(PointerRNA *ptr, const char *value)
   wmGizmoGroup *data = static_cast<wmGizmoGroup *>(ptr->data);
   char *str = (char *)data->type->idname;
   if (!str[0]) {
-    BLI_strncpy(str, value, MAX_NAME); /* utf8 already ensured */
+    /* Calling UTF8 copy is disputable since registering ensures the value isn't truncated.
+     * Use a UTF8 copy to ensure truncating never causes an incomplete UTF8 sequence,
+     * even before registration. */
+    BLI_strncpy_utf8(str, value, MAX_NAME);
   }
   else {
     BLI_assert_msg(0, "setting the bl_idname on a non-builtin operator");
@@ -654,7 +660,7 @@ static void rna_GizmoGroup_bl_label_set(PointerRNA *ptr, const char *value)
   wmGizmoGroup *data = static_cast<wmGizmoGroup *>(ptr->data);
   char *str = (char *)data->type->name;
   if (!str[0]) {
-    BLI_strncpy(str, value, MAX_NAME); /* utf8 already ensured */
+    BLI_strncpy_utf8(str, value, MAX_NAME);
   }
   else {
     BLI_assert_msg(0, "setting the bl_label on a non-builtin operator");
@@ -1265,8 +1271,10 @@ static void rna_def_gizmo(BlenderRNA *brna, PropertyRNA *cprop)
   prop = RNA_def_property(srna, "use_draw_scale", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(
       prop, "rna_Gizmo_flag_use_draw_scale_get", "rna_Gizmo_flag_use_draw_scale_set");
+  RNA_def_property_boolean_default(prop, true);
   RNA_def_property_ui_text(prop, "Scale", "Use scale when calculating the matrix");
   RNA_def_property_update(prop, 0, "rna_Gizmo_update_redraw");
+
   /* WM_GIZMO_SELECT_BACKGROUND */
   prop = RNA_def_property(srna, "use_select_background", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(prop,
@@ -1300,6 +1308,7 @@ static void rna_def_gizmo(BlenderRNA *brna, PropertyRNA *cprop)
   prop = RNA_def_property(srna, "use_tooltip", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(
       prop, "rna_Gizmo_flag_use_tooltip_get", "rna_Gizmo_flag_use_tooltip_set");
+  RNA_def_property_boolean_default(prop, true);
   RNA_def_property_ui_text(prop, "Use Tooltip", "Use tooltips when hovering over this gizmo");
   /* No update needed. */
 

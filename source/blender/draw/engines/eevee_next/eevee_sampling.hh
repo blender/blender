@@ -216,7 +216,16 @@ class Sampling {
   }
 
   /* Cumulative Distribution Function Utils. */
+
+  /**
+   * Creates a discrete cumulative distribution function table from a given curvemapping.
+   * Output cdf vector is expected to already be sized according to the wanted resolution.
+   */
   static void cdf_from_curvemapping(const CurveMapping &curve, Vector<float> &cdf);
+  /**
+   * Inverts a cumulative distribution function.
+   * Output vector is expected to already be sized according to the wanted resolution.
+   */
   static void cdf_invert(Vector<float> &cdf, Vector<float> &inverted_cdf);
 };
 

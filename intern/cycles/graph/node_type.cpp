@@ -203,9 +203,9 @@ const SocketType *NodeType::find_output(ustring name) const
 
 /* Node Type Registry */
 
-unordered_map<ustring, NodeType, ustringHash> &NodeType::types()
+unordered_map<ustring, NodeType> &NodeType::types()
 {
-  static unordered_map<ustring, NodeType, ustringHash> _types;
+  static unordered_map<ustring, NodeType> _types;
   return _types;
 }
 
@@ -229,7 +229,7 @@ NodeType *NodeType::add(const char *name_, CreateFunc create_, Type type_, const
 
 const NodeType *NodeType::find(ustring name)
 {
-  unordered_map<ustring, NodeType, ustringHash>::iterator it = types().find(name);
+  unordered_map<ustring, NodeType>::iterator it = types().find(name);
   return (it == types().end()) ? NULL : &it->second;
 }
 

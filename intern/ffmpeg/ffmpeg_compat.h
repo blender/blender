@@ -40,6 +40,13 @@
 #  define FFMPEG_INLINE static inline
 #endif
 
+#if LIBAVUTIL_VERSION_INT < AV_VERSION_INT(58, 29, 100)
+/* In ffmpeg 6.1 usage of the "key_frame" variable from "AVFrame" has been deprecated.
+ * used the new method to query for the "AV_FRAME_FLAG_KEY" flag instead.
+ */
+#  define FFMPEG_OLD_KEY_FRAME_QUERY_METHOD
+#endif
+
 #if (LIBAVFORMAT_VERSION_MAJOR < 59)
 /* For versions older than ffmpeg 5.0, use the old channel layout variables.
  * We intend to only keep this  workaround for around two releases (3.5, 3.6).
@@ -144,7 +151,7 @@ int64_t av_get_frame_duration_in_pts_units(const AVFrame *picture)
 
 FFMPEG_INLINE size_t ffmpeg_get_buffer_alignment()
 {
-  /* Note: even if av_frame_get_buffer suggests to pass 0 for alignment,
+  /* NOTE: even if av_frame_get_buffer suggests to pass 0 for alignment,
    * as of ffmpeg 6.1/7.0 it does not use correct alignment for AVX512
    * CPU (frame.c get_video_buffer ends up always using 32 alignment,
    * whereas it should have used 64). Reported upstream:

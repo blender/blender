@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
+#include "gpu_shader_compositor_texture_utilities.glsl"
 
 /* A shared table that stores the UV coordinates of all pixels in the work group. This is necessary
  * to avoid recomputing UV coordinates when computing the gradients necessary for anisotropic

@@ -13,9 +13,7 @@
 
 #include "../system/FreestyleConfig.h"
 
-#ifdef WITH_CXX_GUARDEDALLOC
-#  include "MEM_guardedalloc.h"
-#endif
+#include "MEM_guardedalloc.h"
 
 namespace Freestyle {
 
@@ -140,9 +138,7 @@ class GeomCleaner {
                                       uint *oVSize,
                                       uint **oIndices);
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:GeomCleaner")
-#endif
 };
 
 /** Binary operators */
@@ -225,9 +221,7 @@ class IndexedVertex {
     return (_Vector == v._Vector);
   }
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:IndexedVertex")
-#endif
 };
 
 #if 0

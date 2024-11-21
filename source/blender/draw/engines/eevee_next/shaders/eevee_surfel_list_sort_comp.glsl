@@ -12,7 +12,7 @@
  * Dispatched as 1 thread per list.
  */
 
-#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
+#include "gpu_shader_utildefines_lib.glsl"
 
 /**
  * A doubly-linked list implementation.

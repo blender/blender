@@ -40,6 +40,7 @@ set(SRC
   nodes/node_fn_integer_math.cc
   nodes/node_fn_invert_matrix.cc
   nodes/node_fn_invert_rotation.cc
+  nodes/node_fn_matrix_determinant.cc
   nodes/node_fn_matrix_multiply.cc
   nodes/node_fn_project_point.cc
   nodes/node_fn_quaternion_to_rotation.cc
@@ -60,7 +61,6 @@ set(SRC
   nodes/node_fn_transform_point.cc
   nodes/node_fn_transpose_matrix.cc
   nodes/node_fn_value_to_string.cc
-  nodes/node_fn_matrix_determinant.cc
 
   node_function_util.cc
 

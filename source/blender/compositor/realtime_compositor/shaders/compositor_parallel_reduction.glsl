@@ -47,7 +47,7 @@
  * expected to define the TYPE macro to be a float or a vec4, depending on the type of data being
  * reduced. */
 
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
+#include "gpu_shader_compositor_texture_utilities.glsl"
 
 #define reduction_size (gl_WorkGroupSize.x * gl_WorkGroupSize.y)
 shared TYPE reduction_data[reduction_size];

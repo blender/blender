@@ -23,7 +23,7 @@
 #include "BKE_layer.hh"
 #include "BKE_mesh.hh"
 #include "BKE_paint.hh"
-#include "BKE_pbvh_api.hh"
+#include "BKE_paint_bvh.hh"
 #include "BKE_subdiv_ccg.hh"
 
 #include "WM_api.hh"
@@ -56,7 +56,7 @@ void init_transform(bContext *C, Object &ob, const float mval_fl[2], const char 
   const Scene &scene = *CTX_data_scene(C);
   const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
   SculptSession &ss = *ob.sculpt;
-  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
   ss.init_pivot_pos = ss.pivot_pos;
   ss.init_pivot_rot = ss.pivot_rot;
@@ -66,8 +66,8 @@ void init_transform(bContext *C, Object &ob, const float mval_fl[2], const char 
   ss.prev_pivot_rot = ss.pivot_rot;
   ss.prev_pivot_scale = ss.pivot_scale;
 
-  undo::push_begin_ex(scene, ob, undo_name);
   BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
+  undo::push_begin_ex(scene, ob, undo_name);
 
   ss.pivot_rot[3] = 1.0f;
 

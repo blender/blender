@@ -803,7 +803,7 @@ static int outliner_id_copy_tag(SpaceOutliner *space_outliner,
   LISTBASE_FOREACH (TreeElement *, te, tree) {
     TreeStoreElem *tselem = TREESTORE(te);
 
-    /* if item is selected and is an ID, tag it as needing to be copied. */
+    /* Add selected item and all of its dependencies to the copy buffer. */
     if (tselem->flag & TSE_SELECTED && ELEM(tselem->type, TSE_SOME_ID, TSE_LAYER_COLLECTION)) {
       copybuffer.id_add(tselem->id,
                         PartialWriteContext::IDAddOptions{PartialWriteContext::IDAddOperations(

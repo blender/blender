@@ -142,11 +142,6 @@ class CONSOLE_MT_context_menu(Menu):
         layout.operator("console.autocomplete", text="Autocomplete")
 
 
-def add_scrollback(text, text_type):
-    for l in text.split("\n"):
-        bpy.ops.console.scrollback_append(text=l.expandtabs(4), type=text_type)
-
-
 classes = (
     CONSOLE_HT_header,
     CONSOLE_MT_editor_menus,

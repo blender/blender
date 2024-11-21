@@ -4,28 +4,12 @@
 
 #pragma once
 
-#include <atomic>
-
-#include "BLI_implicit_sharing_ptr.hh"
 #include "BLI_set.hh"
 #include "BLI_string_ref.hh"
 
 #include "BKE_attribute_filter.hh"
 
 namespace blender::bke {
-
-/**
- * A set of anonymous attribute names that is passed around in geometry nodes.
- */
-class AnonymousAttributeSet {
- public:
-  /**
-   * This uses `std::shared_ptr` because attributes sets are passed around by value during geometry
-   * nodes evaluation, and this makes it very small if there is no name. Also it makes copying very
-   * cheap.
-   */
-  std::shared_ptr<Set<std::string>> names;
-};
 
 /**
  * Checks if the attribute name has the `.a_` prefix which indicates that it is an anonymous

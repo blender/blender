@@ -12,12 +12,12 @@
  *   and transparency." ACM SIGGRAPH 2015 Posters. 2015. 1-1.
  */
 
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
+#include "gpu_shader_compositor_texture_utilities.glsl"
 
 void main()
 {
   ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
-  vec4 layer = texture_load(layer_tx, texel);
+  vec4 layer = texture_load(layer_tx, texel + lower_bound);
 
   /* Each Cryptomatte layer stores two ranks. */
   vec2 first_rank = layer.xy;

@@ -36,6 +36,7 @@ class DefaultWorldNodeTree {
   DefaultWorldNodeTree();
   ~DefaultWorldNodeTree();
 
+  /** Configure a default node-tree with the given world. */
   bNodeTree *nodetree_get(::World *world);
 };
 

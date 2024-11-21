@@ -30,9 +30,9 @@
 
 #include "BKE_colortools.hh"
 #include "BKE_global.hh"
-#include "BKE_image.h"
-#include "BKE_image_format.h"
-#include "BKE_image_save.h"
+#include "BKE_image.hh"
+#include "BKE_image_format.hh"
+#include "BKE_image_save.hh"
 #include "BKE_main.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
@@ -998,9 +998,10 @@ bool BKE_image_render_write_exr(ReportList *reports,
 
   BLI_file_ensure_parent_dir_exists(filepath);
 
-  int compress = (imf ? imf->exr_codec : 0);
+  const int compress = (imf ? imf->exr_codec : 0);
+  const int quality = (imf ? imf->quality : 90);
   bool success = IMB_exr_begin_write(
-      exrhandle, filepath, rr->rectx, rr->recty, compress, rr->stamp_data);
+      exrhandle, filepath, rr->rectx, rr->recty, compress, quality, rr->stamp_data);
   if (success) {
     IMB_exr_write_channels(exrhandle);
   }

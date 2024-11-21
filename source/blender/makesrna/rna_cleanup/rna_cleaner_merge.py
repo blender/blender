@@ -30,11 +30,7 @@ def main():
     rna_api_new = []
 
     for key, val_orig in mod_to_dict.items():
-        try:
-            val_new = mod_from_dict.pop(key)
-        except:
-            # print("not found", key)
-            val_new = val_orig
+        val_new = mod_from_dict.pop(key, val_orig)
 
         # always take the class from the base
         val = list(val_orig)

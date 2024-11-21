@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 /** Storing/merging and sorting cryptomatte samples. */
 
 bool cryptomatte_can_merge_sample(vec2 dst, vec2 src)

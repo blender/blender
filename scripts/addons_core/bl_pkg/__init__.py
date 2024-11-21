@@ -97,11 +97,12 @@ def manifest_compatible_with_wheel_data_or_error(
         repo_module,  # `str`
         pkg_id,  # `str`
         repo_directory,  # `str`
-        wheel_list,  # `List[Tuple[str, List[str]]]`
+        wheel_list,  # `list[tuple[str, list[str]]]`
 ):  # `Optional[str]`
     from bl_pkg.bl_extension_utils import (
         pkg_manifest_dict_is_valid_or_error,
         toml_from_filepath,
+        python_versions_from_wheels,
     )
     from bl_pkg.bl_extension_ops import (
         pkg_manifest_params_compatible_or_error_for_this_system,
@@ -115,10 +116,24 @@ def manifest_compatible_with_wheel_data_or_error(
     if (error := pkg_manifest_dict_is_valid_or_error(manifest_dict, from_repo=False, strict=False)):
         return error
 
+    python_versions = []
+    if (wheel_files := manifest_dict.get("wheels", None)) is not None:
+        if isinstance(python_versions_test := python_versions_from_wheels(wheel_files), str):
+            print("Error parsing wheel versions: {:s} from \"{:s}\"".format(
+                python_versions_test,
+                pkg_manifest_filepath,
+            ))
+        else:
+            python_versions = [
+                ".".join(str(i) for i in v)
+                for v in python_versions_test
+            ]
+
     if isinstance(error := pkg_manifest_params_compatible_or_error_for_this_system(
             blender_version_min=manifest_dict.get("blender_version_min", ""),
             blender_version_max=manifest_dict.get("blender_version_max", ""),
             platforms=manifest_dict.get("platforms", ""),
+            python_versions=python_versions,
     ), str):
         return error
 
@@ -569,6 +584,7 @@ _repo_cache_store = None
 def repo_cache_store_ensure():
     # pylint: disable-next=global-statement
     global _repo_cache_store
+    import sys
 
     if _repo_cache_store is not None:
         return _repo_cache_store
@@ -577,7 +593,10 @@ def repo_cache_store_ensure():
         bl_extension_ops,
         bl_extension_utils,
     )
-    _repo_cache_store = bl_extension_utils.RepoCacheStore(bpy.app.version)
+    _repo_cache_store = bl_extension_utils.RepoCacheStore(
+        blender_version=bpy.app.version,
+        python_version=sys.version_info[:3],
+    )
     bl_extension_ops.repo_cache_store_refresh_from_prefs(_repo_cache_store)
     return _repo_cache_store
 

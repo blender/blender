@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_array_utils.hh"
+
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_instances.hh"
@@ -80,6 +82,9 @@ static void node_geo_exec(GeoNodeExecParams params)
   bke::MutableAttributeAccessor instances_attributes = instances->attributes_for_write();
   grease_pencil_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
     if (ELEM(iter.name, "opacity")) {
+      return;
+    }
+    if (iter.data_type == CD_PROP_STRING) {
       return;
     }
     const GAttributeReader src_attribute = iter.get();

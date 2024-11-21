@@ -4,9 +4,7 @@
 
 #pragma once
 
-#ifdef WITH_CXX_GUARDEDALLOC
-#  include "MEM_guardedalloc.h"
-#endif
+#include "MEM_guardedalloc.h"
 
 namespace blender::compositor {
 
@@ -62,9 +60,7 @@ struct WorkScheduler {
 
   static int current_thread_id();
 
-#ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:WorkScheduler")
-#endif
 };
 
 }  // namespace blender::compositor

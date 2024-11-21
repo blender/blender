@@ -42,7 +42,7 @@
 #include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_global.hh"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
@@ -222,7 +222,15 @@ static void modifier_unwrap_state(Object *obedit,
    * only if modifier is first or right after mirror. */
   if (subsurf) {
     if (md && md->type == eModifierType_Subsurf) {
-      subsurf = true;
+      const SubsurfModifierData &smd = *reinterpret_cast<const SubsurfModifierData *>(md);
+      if (smd.levels > 0) {
+        /* Skip all calculation for zero subdivision levels, similar to the way the modifier is
+         * disabled in that case. */
+        subsurf = true;
+      }
+      else {
+        subsurf = false;
+      }
     }
     else {
       subsurf = false;
@@ -802,8 +810,13 @@ static Mesh *subdivide_edit_mesh(const Object *object,
   BKE_mesh_ensure_default_orig_index_customdata(me_from_em);
 
   bke::subdiv::Settings settings = BKE_subsurf_modifier_settings_init(smd, false);
+  /* A zero level must be prevented by #modifier_unwrap_state
+   * since necessary data won't be available, see: #128958. */
+  BLI_assert(settings.level > 0);
+
+  /* Level 1 causes disconnected triangles, force level 2 to prevent this, see: #129503. */
   if (settings.level == 1) {
-    return me_from_em;
+    settings.level = 2;
   }
 
   bke::subdiv::ToMeshSettings mesh_settings;
@@ -1691,7 +1704,7 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
   const Scene *scene = CTX_data_scene(C);
   const SpaceImage *sima = CTX_wm_space_image(C);
 
-  UnwrapOptions options = unwrap_options_get(op, nullptr, nullptr);
+  UnwrapOptions options = unwrap_options_get(op, nullptr, scene->toolsettings);
   options.topology_from_uvs = true;
   options.only_selected_faces = true;
   options.only_selected_uvs = true;
@@ -2724,8 +2737,7 @@ void ED_uvedit_live_unwrap(const Scene *scene, const Span<Object *> objects)
     options.topology_from_uvs = false;
     options.only_selected_faces = false;
     options.only_selected_uvs = false;
-    options.fill_holes = (scene->toolsettings->uvcalc_flag & UVCALC_FILLHOLES) != 0;
-    options.correct_aspect = (scene->toolsettings->uvcalc_flag & UVCALC_NO_ASPECT_CORRECT) == 0;
+
     uvedit_unwrap_multi(scene, objects, &options, nullptr);
 
     blender::geometry::UVPackIsland_Params pack_island_params;
@@ -2759,8 +2771,6 @@ static int unwrap_exec(bContext *C, wmOperator *op)
   options.topology_from_uvs = false;
   options.only_selected_faces = true;
   options.only_selected_uvs = false;
-  options.fill_holes = RNA_boolean_get(op->ptr, "fill_holes");
-  options.correct_aspect = RNA_boolean_get(op->ptr, "correct_aspect");
 
   /* We will report an error unless at least one object
    * has the subsurf modifier in the right place. */

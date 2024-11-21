@@ -2,8 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(gpu_shader_common_hash.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_common_math_utils.glsl)
+#include "gpu_shader_common_hash.glsl"
+#include "gpu_shader_common_math_utils.glsl"
 
 vec2 calc_brick_texture(vec3 p,
                         float mortar_size,

@@ -459,23 +459,25 @@ inline void execute_element_fn_as_multi_function(const ElementFn element_fn,
     }
     else {
       /* This fallback is slower because it uses virtual method calls for every element. */
-      execute_array(
-          TypeSequence<ParamTags...>(), std::index_sequence<I...>(), element_fn, mask, [&]() {
-            /* Use `typedef` instead of `using` to work around a compiler bug. */
-            typedef ParamTags ParamTag;
-            typedef typename ParamTag::base_type T;
-            if constexpr (ParamTag::category == ParamCategory::SingleInput) {
-              const GVArrayImpl &varray_impl = *std::get<I>(loaded_params);
-              return GVArray(&varray_impl).typed<T>();
-            }
-            else if constexpr (ELEM(ParamTag::category,
-                                    ParamCategory::SingleOutput,
-                                    ParamCategory::SingleMutable))
-            {
-              T *ptr = std::get<I>(loaded_params);
-              return ptr;
-            }
-          }()...);
+      mask.foreach_segment([&](const IndexMaskSegment segment) {
+        execute_array(
+            TypeSequence<ParamTags...>(), std::index_sequence<I...>(), element_fn, segment, [&]() {
+              /* Use `typedef` instead of `using` to work around a compiler bug. */
+              typedef ParamTags ParamTag;
+              typedef typename ParamTag::base_type T;
+              if constexpr (ParamTag::category == ParamCategory::SingleInput) {
+                const GVArrayImpl &varray_impl = *std::get<I>(loaded_params);
+                return GVArray(&varray_impl).typed<T>();
+              }
+              else if constexpr (ELEM(ParamTag::category,
+                                      ParamCategory::SingleOutput,
+                                      ParamCategory::SingleMutable))
+              {
+                T *ptr = std::get<I>(loaded_params);
+                return ptr;
+              }
+            }()...);
+      });
     }
   }
 }
@@ -537,6 +539,19 @@ inline auto build_multi_function_with_n_inputs_one_output(const char *name,
       [element_fn](const In &...in, Out &out) { new (&out) Out(element_fn(in...)); },
       exec_preset,
       param_tags);
+  return CustomMF(name, call_fn, param_tags);
+}
+
+template<typename Out1, typename Out2, typename... In, typename ElementFn, typename ExecPreset>
+inline auto build_multi_function_with_n_inputs_two_outputs(const char *name,
+                                                           const ElementFn element_fn,
+                                                           const ExecPreset exec_preset,
+                                                           TypeSequence<In...> /*in_types*/)
+{
+  constexpr auto param_tags = TypeSequence<ParamTag<ParamCategory::SingleInput, In>...,
+                                           ParamTag<ParamCategory::SingleOutput, Out1>,
+                                           ParamTag<ParamCategory::SingleOutput, Out2>>();
+  auto call_fn = build_multi_function_call_from_element_fn(element_fn, exec_preset, param_tags);
   return CustomMF(name, call_fn, param_tags);
 }
 
@@ -642,6 +657,77 @@ inline auto SM(const char *name,
                const ExecPreset exec_preset = exec_presets::AllSpanOrSingle())
 {
   constexpr auto param_tags = TypeSequence<ParamTag<ParamCategory::SingleMutable, Mut1>>();
+  auto call_fn = detail::build_multi_function_call_from_element_fn(
+      element_fn, exec_preset, param_tags);
+  return detail::CustomMF(name, call_fn, param_tags);
+}
+
+/** Build multi-function with 1 single-input and 2 single-output parameter. */
+template<typename In1,
+         typename Out1,
+         typename Out2,
+         typename ElementFn,
+         typename ExecPreset = exec_presets::Materialized>
+inline auto SI1_SO2(const char *name,
+                    const ElementFn element_fn,
+                    const ExecPreset exec_preset = exec_presets::Materialized())
+{
+  return detail::build_multi_function_with_n_inputs_two_outputs<Out1, Out2>(
+      name, element_fn, exec_preset, TypeSequence<In1>());
+}
+
+/** Build multi-function with 2 single-input and 2 single-output parameter. */
+template<typename In1,
+         typename In2,
+         typename Out1,
+         typename Out2,
+         typename ElementFn,
+         typename ExecPreset = exec_presets::Materialized>
+inline auto SI2_SO2(const char *name,
+                    const ElementFn element_fn,
+                    const ExecPreset exec_preset = exec_presets::Materialized())
+{
+  return detail::build_multi_function_with_n_inputs_two_outputs<Out1, Out2>(
+      name, element_fn, exec_preset, TypeSequence<In1, In2>());
+}
+
+/** Build multi-function with 1 single-input and 3 single output parameter. */
+template<typename In1,
+         typename Out1,
+         typename Out2,
+         typename Out3,
+         typename ElementFn,
+         typename ExecPreset = exec_presets::Materialized>
+inline auto SI1_SO3(const char *name,
+                    const ElementFn element_fn,
+                    const ExecPreset exec_preset = exec_presets::Materialized())
+{
+  constexpr auto param_tags = TypeSequence<ParamTag<ParamCategory::SingleInput, In1>,
+                                           ParamTag<ParamCategory::SingleOutput, Out1>,
+                                           ParamTag<ParamCategory::SingleOutput, Out2>,
+                                           ParamTag<ParamCategory::SingleOutput, Out3>>();
+  auto call_fn = detail::build_multi_function_call_from_element_fn(
+      element_fn, exec_preset, param_tags);
+  return detail::CustomMF(name, call_fn, param_tags);
+}
+
+/** Build multi-function with 1 single-input and 4 single output parameter. */
+template<typename In1,
+         typename Out1,
+         typename Out2,
+         typename Out3,
+         typename Out4,
+         typename ElementFn,
+         typename ExecPreset = exec_presets::Materialized>
+inline auto SI1_SO4(const char *name,
+                    const ElementFn element_fn,
+                    const ExecPreset exec_preset = exec_presets::Materialized())
+{
+  constexpr auto param_tags = TypeSequence<ParamTag<ParamCategory::SingleInput, In1>,
+                                           ParamTag<ParamCategory::SingleOutput, Out1>,
+                                           ParamTag<ParamCategory::SingleOutput, Out2>,
+                                           ParamTag<ParamCategory::SingleOutput, Out3>,
+                                           ParamTag<ParamCategory::SingleOutput, Out4>>();
   auto call_fn = detail::build_multi_function_call_from_element_fn(
       element_fn, exec_preset, param_tags);
   return detail::CustomMF(name, call_fn, param_tags);

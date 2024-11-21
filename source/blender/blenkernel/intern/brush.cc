@@ -10,6 +10,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_ID.h"
 #include "DNA_brush_types.h"
 #include "DNA_defaults.h"
 #include "DNA_material_types.h"
@@ -364,6 +365,7 @@ static void brush_blend_read_data(BlendDataReader *reader, ID *id)
   BKE_previewimg_blend_read(reader, brush->preview);
 
   brush->icon_imbuf = nullptr;
+  brush->has_unsaved_changes = false;
 }
 
 static void brush_blend_read_after_liblink(BlendLibReader * /*reader*/, ID *id)
@@ -399,13 +401,13 @@ static void brush_asset_metadata_ensure(void *asset_ptr, AssetMetaData *asset_da
       std::tuple{"use_paint_image", OB_MODE_TEXTURE_PAINT, "image_brush_type"},
       /* Sculpt UVs in the image editor while in edit mode. */
       std::tuple{"use_paint_uv_sculpt", OB_MODE_EDIT, "image_brush_type"},
-      std::tuple{"use_paint_grease_pencil", OB_MODE_PAINT_GPENCIL_LEGACY, "gpencil_brush_type"},
+      std::tuple{"use_paint_grease_pencil", OB_MODE_PAINT_GREASE_PENCIL, "gpencil_brush_type"},
       /* Note: Not defined in brush RNA, own name. */
       std::tuple{
-          "use_sculpt_grease_pencil", OB_MODE_SCULPT_GPENCIL_LEGACY, "gpencil_sculpt_brush_type"},
+          "use_sculpt_grease_pencil", OB_MODE_SCULPT_GREASE_PENCIL, "gpencil_sculpt_brush_type"},
       std::tuple{
-          "use_vertex_grease_pencil", OB_MODE_VERTEX_GPENCIL_LEGACY, "gpencil_vertex_brush_type"},
-      std::tuple{"use_weight_gpencil", OB_MODE_WEIGHT_GPENCIL_LEGACY, "gpencil_weight_brush_type"},
+          "use_vertex_grease_pencil", OB_MODE_VERTEX_GREASE_PENCIL, "gpencil_vertex_brush_type"},
+      std::tuple{"use_weight_gpencil", OB_MODE_WEIGHT_GREASE_PENCIL, "gpencil_weight_brush_type"},
       std::tuple{"use_paint_sculpt_curves", OB_MODE_SCULPT_CURVES, "curves_sculpt_brush_type"},
   };
 
@@ -547,10 +549,10 @@ Brush *BKE_brush_add(Main *bmain, const char *name, const eObjectMode ob_mode)
     BKE_brush_init_curves_sculpt_settings(brush);
   }
   else if (ELEM(ob_mode,
-                OB_MODE_PAINT_GPENCIL_LEGACY,
-                OB_MODE_SCULPT_GPENCIL_LEGACY,
-                OB_MODE_WEIGHT_GPENCIL_LEGACY,
-                OB_MODE_VERTEX_GPENCIL_LEGACY))
+                OB_MODE_PAINT_GREASE_PENCIL,
+                OB_MODE_SCULPT_GREASE_PENCIL,
+                OB_MODE_WEIGHT_GREASE_PENCIL,
+                OB_MODE_VERTEX_GREASE_PENCIL))
   {
     BKE_brush_init_gpencil_settings(brush);
   }
@@ -614,6 +616,13 @@ void BKE_brush_init_curves_sculpt_settings(Brush *brush)
   settings->curve_radius = 0.01f;
   settings->density_add_attempts = 100;
   settings->curve_parameter_falloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+}
+
+void BKE_brush_tag_unsaved_changes(Brush *brush)
+{
+  if (brush && ID_IS_LINKED(brush)) {
+    brush->has_unsaved_changes = true;
+  }
 }
 
 Brush *BKE_brush_first_search(Main *bmain, const eObjectMode ob_mode)
@@ -747,6 +756,7 @@ void BKE_brush_curve_preset(Brush *b, eCurveMappingPreset preset)
   cuma = b->curve->cm;
   BKE_curvemap_reset(cuma, &cumap->clipr, cumap->preset, CURVEMAP_SLOPE_NEGATIVE);
   BKE_curvemapping_changed(cumap, false);
+  BKE_brush_tag_unsaved_changes(b);
 }
 
 const MTex *BKE_brush_mask_texture_get(const Brush *brush, const eObjectMode object_mode)
@@ -1016,27 +1026,33 @@ float BKE_brush_sample_masktex(
  * In any case, a better solution is needed to prevent
  * inconsistency. */
 
-const float *BKE_brush_color_get(const Scene *scene, const Brush *brush)
+const float *BKE_brush_color_get(const Scene *scene, const Paint *paint, const Brush *brush)
 {
-  UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
-  return (ups->flag & UNIFIED_PAINT_COLOR) ? ups->rgb : brush->rgb;
+  if (BKE_paint_use_unified_color(scene->toolsettings, paint)) {
+    return scene->toolsettings->unified_paint_settings.rgb;
+  }
+  return brush->rgb;
 }
 
-const float *BKE_brush_secondary_color_get(const Scene *scene, const Brush *brush)
+const float *BKE_brush_secondary_color_get(const Scene *scene,
+                                           const Paint *paint,
+                                           const Brush *brush)
 {
-  UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
-  return (ups->flag & UNIFIED_PAINT_COLOR) ? ups->secondary_rgb : brush->secondary_rgb;
+  if (BKE_paint_use_unified_color(scene->toolsettings, paint)) {
+    return scene->toolsettings->unified_paint_settings.secondary_rgb;
+  }
+  return brush->secondary_rgb;
 }
 
-void BKE_brush_color_set(Scene *scene, Brush *brush, const float color[3])
+void BKE_brush_color_set(Scene *scene, const Paint *paint, Brush *brush, const float color[3])
 {
-  UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
-
-  if (ups->flag & UNIFIED_PAINT_COLOR) {
+  if (BKE_paint_use_unified_color(scene->toolsettings, paint)) {
+    UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
     copy_v3_v3(ups->rgb, color);
   }
   else {
     copy_v3_v3(brush->rgb, color);
+    BKE_brush_tag_unsaved_changes(brush);
   }
 }
 
@@ -1052,6 +1068,7 @@ void BKE_brush_size_set(Scene *scene, Brush *brush, int size)
   }
   else {
     brush->size = size;
+    BKE_brush_tag_unsaved_changes(brush);
   }
 }
 
@@ -1109,6 +1126,7 @@ void BKE_brush_unprojected_radius_set(Scene *scene, Brush *brush, float unprojec
   }
   else {
     brush->unprojected_radius = unprojected_radius;
+    BKE_brush_tag_unsaved_changes(brush);
   }
 }
 
@@ -1128,6 +1146,7 @@ void BKE_brush_alpha_set(Scene *scene, Brush *brush, float alpha)
   }
   else {
     brush->alpha = alpha;
+    BKE_brush_tag_unsaved_changes(brush);
   }
 }
 
@@ -1154,6 +1173,7 @@ void BKE_brush_weight_set(const Scene *scene, Brush *brush, float value)
   }
   else {
     brush->weight = value;
+    BKE_brush_tag_unsaved_changes(brush);
   }
 }
 
@@ -1173,6 +1193,7 @@ void BKE_brush_input_samples_set(const Scene *scene, Brush *brush, int value)
   }
   else {
     brush->input_samples = value;
+    BKE_brush_tag_unsaved_changes(brush);
   }
 }
 

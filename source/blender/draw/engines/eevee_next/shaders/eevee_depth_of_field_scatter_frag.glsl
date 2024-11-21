@@ -9,8 +9,8 @@
  * invocations and overdraw.
  */
 
-#pragma BLENDER_REQUIRE(eevee_depth_of_field_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
+#include "eevee_depth_of_field_lib.glsl"
+#include "gpu_shader_math_vector_lib.glsl"
 
 #define linearstep(p0, p1, v) (clamp(((v) - (p0)) / abs((p1) - (p0)), 0.0, 1.0))
 

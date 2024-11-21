@@ -207,12 +207,6 @@ void AssetLibraryService::reload_all_library_catalogs_if_dirty()
 
 AssetLibrary *AssetLibraryService::get_asset_library_all(const Main *bmain)
 {
-  if (all_library_) {
-    CLOG_INFO(&LOG, 2, "get all lib (cached)");
-    all_library_->refresh_catalogs();
-    return all_library_.get();
-  }
-
   /* (Re-)load all other asset libraries. */
   for (AssetLibraryReference &library_ref : all_valid_asset_library_refs()) {
     /* Skip self :) */
@@ -224,10 +218,15 @@ AssetLibrary *AssetLibraryService::get_asset_library_all(const Main *bmain)
     this->get_asset_library(bmain, library_ref);
   }
 
-  CLOG_INFO(&LOG, 2, "get all lib (loaded)");
-  all_library_ = std::make_unique<AllAssetLibrary>();
+  if (!all_library_) {
+    CLOG_INFO(&LOG, 2, "get all lib (loaded)");
+    all_library_ = std::make_unique<AllAssetLibrary>();
+  }
+  else {
+    CLOG_INFO(&LOG, 2, "get all lib (cached)");
+  }
 
-  /* Don't reload catalogs on this initial read, they've just been loaded above. */
+  /* Don't reload catalogs, they've just been loaded above. */
   all_library_->rebuild_catalogs_from_nested(/*reload_nested_catalogs=*/false);
 
   return all_library_.get();
@@ -348,13 +347,14 @@ std::string AssetLibraryService::normalize_asset_weak_reference_relative_asset_i
                                    group_name_sep_pos + 1);
 }
 
-/* TODO currently only works for asset libraries on disk (custom or essentials asset libraries).
- * Once there is a proper registry of asset libraries, this could contain an asset library locator
- * and/or identifier, so a full path (not necessarily file path) can be built for all asset
- * libraries. */
 std::string AssetLibraryService::resolve_asset_weak_reference_to_full_path(
     const AssetWeakReference &asset_reference)
 {
+  /* TODO currently only works for asset libraries on disk (custom or essentials asset libraries).
+   * Once there is a proper registry of asset libraries, this could contain an asset library
+   * locator and/or identifier, so a full path (not necessarily file path) can be built for all
+   * asset libraries. */
+
   if (asset_reference.relative_asset_identifier[0] == '\0') {
     return "";
   }

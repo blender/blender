@@ -265,19 +265,16 @@ bool selection_update(const ViewContext *vc,
 
         /* Modes that un-set all elements not in the mask. */
         if (ELEM(sel_op, SEL_OP_SET, SEL_OP_AND)) {
-          ed::curves::foreach_selection_attribute_writer(
-              curves, selection_domain, [&](bke::GSpanAttributeWriter &writer) {
-                for (const int element_i : IndexRange(writer.span.size())) {
-                  ed::curves::apply_selection_operation_at_index(
-                      writer.span, element_i, SEL_OP_SUB);
-                }
-              });
+          bke::SpanAttributeWriter<bool> selection =
+              curves.attributes_for_write().lookup_or_add_for_write_span<bool>(attribute_name,
+                                                                               selection_domain);
+          ed::curves::fill_selection_false(selection.span);
+          selection.finish();
         }
 
         if (use_segment_selection) {
           /* Range of points in tree data matching this curve, for re-using screen space
-           * positions.
-           */
+           * positions. */
           const IndexRange tree_data_range = tree_data_by_drawing[i_drawing];
           changed |= ed::greasepencil::apply_mask_as_segment_selection(curves,
                                                                        changed_element_mask,
@@ -581,7 +578,7 @@ static const EnumPropertyItem select_similar_mode_items[] = {
     {int(SelectSimilarMode::VERTEX_COLOR), "VERTEX_COLOR", 0, "Vertex Color", ""},
     {int(SelectSimilarMode::RADIUS), "RADIUS", 0, "Radius", ""},
     {int(SelectSimilarMode::OPACITY), "OPACITY", 0, "Opacity", ""},
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 template<typename T>
@@ -779,12 +776,13 @@ static void GREASE_PENCIL_OT_select_similar(wmOperatorType *ot)
   ot->idname = "GREASE_PENCIL_OT_select_similar";
   ot->description = "Select all strokes with similar characteristics";
 
+  ot->invoke = WM_menu_invoke;
   ot->exec = select_similar_exec;
   ot->poll = editable_grease_pencil_point_selection_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_enum(
+  ot->prop = RNA_def_enum(
       ot->srna, "mode", select_similar_mode_items, int(SelectSimilarMode::LAYER), "Mode", "");
 
   RNA_def_float(ot->srna, "threshold", 0.1f, 0.0f, FLT_MAX, "Threshold", "", 0.0f, 10.0f);
@@ -875,7 +873,7 @@ static int select_set_mode_exec(bContext *C, wmOperator *op)
 
     GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(drawing_base);
     bke::CurvesGeometry &curves = drawing->wrap().strokes_for_write();
-    if (curves.points_num() == 0) {
+    if (curves.is_empty()) {
       continue;
     }
 
@@ -1047,10 +1045,10 @@ blender::bke::AttrDomain ED_grease_pencil_selection_domain_get(const ToolSetting
   if (object->mode & OB_MODE_EDIT) {
     return ED_grease_pencil_edit_selection_domain_get(tool_settings);
   }
-  if (object->mode & OB_MODE_SCULPT_GPENCIL_LEGACY) {
+  if (object->mode & OB_MODE_SCULPT_GREASE_PENCIL) {
     return ED_grease_pencil_sculpt_selection_domain_get(tool_settings);
   }
-  if (object->mode & OB_MODE_VERTEX_GPENCIL_LEGACY) {
+  if (object->mode & OB_MODE_VERTEX_GREASE_PENCIL) {
     return ED_grease_pencil_vertex_selection_domain_get(tool_settings);
   }
   return blender::bke::AttrDomain::Point;
@@ -1077,10 +1075,10 @@ bool ED_grease_pencil_segment_selection_enabled(const ToolSettings *tool_setting
   if (object->mode & OB_MODE_EDIT) {
     return ED_grease_pencil_edit_segment_selection_enabled(tool_settings);
   }
-  if (object->mode & OB_MODE_SCULPT_GPENCIL_LEGACY) {
+  if (object->mode & OB_MODE_SCULPT_GREASE_PENCIL) {
     return ED_grease_pencil_sculpt_segment_selection_enabled(tool_settings);
   }
-  if (object->mode & OB_MODE_VERTEX_GPENCIL_LEGACY) {
+  if (object->mode & OB_MODE_VERTEX_GREASE_PENCIL) {
     return ED_grease_pencil_vertex_segment_selection_enabled(tool_settings);
   }
   return false;

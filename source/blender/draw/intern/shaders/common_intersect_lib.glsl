@@ -2,13 +2,18 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
+#include "draw_view_info.hh"
+
 /**
  * Intersection library used for culling.
  * Results are meant to be conservative.
  */
 
-#pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
-#pragma BLENDER_REQUIRE(common_shape_lib.glsl)
+#include "common_shape_lib.glsl"
+#include "draw_math_geom_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 
 /* ---------------------------------------------------------------------- */
 /** \name Plane extraction functions.
@@ -128,6 +133,8 @@ IsectFrustum isect_frustum_setup(Frustum shape)
 /* ---------------------------------------------------------------------- */
 /** \name View Intersection functions.
  * \{ */
+
+SHADER_LIBRARY_CREATE_INFO(draw_view_culling)
 
 #ifdef DRW_VIEW_CULLING_INFO
 
@@ -513,7 +520,7 @@ bool intersect(Cone cone, Sphere sphere)
 bool intersect(Circle circle_a, Circle circle_b)
 {
   return distance_squared(circle_a.center, circle_b.center) <
-         sqr(circle_a.radius + circle_b.radius);
+         square(circle_a.radius + circle_b.radius);
 }
 
 /** \} */

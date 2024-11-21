@@ -38,7 +38,7 @@
 #include "BKE_context.hh"
 #include "BKE_cryptomatte.h"
 #include "BKE_geometry_set.hh"
-#include "BKE_image.h"
+#include "BKE_image.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
@@ -4476,6 +4476,37 @@ static const EnumPropertyItem prop_image_extension[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+static const EnumPropertyItem node_scatter_phase_items[] = {
+    {SHD_PHASE_HENYEY_GREENSTEIN,
+     "HENYEY_GREENSTEIN",
+     0,
+     "Henyey-Greenstein",
+     "Henyey-Greenstein, default phase function for the scattering of light"},
+    {SHD_PHASE_FOURNIER_FORAND,
+     "FOURNIER_FORAND",
+     0,
+     "Fournier-Forand",
+     "Fournier-Forand phase function, used for the scattering of light in underwater "
+     "environments"},
+    {SHD_PHASE_DRAINE,
+     "DRAINE",
+     0,
+     "Draine",
+     "Draine phase functions, mostly used for the scattering of light in interstellar dust"},
+    {SHD_PHASE_RAYLEIGH,
+     "RAYLEIGH",
+     0,
+     "Rayleigh",
+     "Rayleigh phase function, mostly used for particles smaller than the wavelength of light, "
+     "such as scattering of sunlight in earth's atmosphere"},
+    {SHD_PHASE_MIE,
+     "MIE",
+     0,
+     "Mie",
+     "Approximation of Mie scattering in water droplets, used for scattering in clouds and fog"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 /* -- Common nodes ---------------------------------------------------------- */
 
 static void def_group_input(StructRNA * /*srna*/) {}
@@ -5927,6 +5958,17 @@ static void def_refraction(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
+static void def_scatter(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  prop = RNA_def_property(srna, "phase", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "custom1");
+  RNA_def_property_enum_items(prop, node_scatter_phase_items);
+  RNA_def_property_ui_text(prop, "Phase", "Phase function for the scattered light");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
 static void def_toon(StructRNA *srna)
 {
   PropertyRNA *prop;
@@ -7077,8 +7119,8 @@ static void def_cmp_distance_matte(StructRNA *srna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem color_space_items[] = {
-      {1, "RGB", 0, "RGB", "RGB color space"},
-      {2, "YCC", 0, "YCC", "YCbCr suppression"},
+      {CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_RGBA, "RGB", 0, "RGB", "RGB color space"},
+      {CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_YCCA, "YCC", 0, "YCC", "YCbCr suppression"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -7779,7 +7821,7 @@ static void def_cmp_glare(StructRNA *srna)
 
   prop = RNA_def_property(srna, "threshold", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "threshold");
-  RNA_def_property_range(prop, 0.0f, 1000.0f);
+  RNA_def_property_range(prop, 0.0f, FLT_MAX);
   RNA_def_property_ui_text(
       prop,
       "Threshold",

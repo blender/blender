@@ -29,7 +29,7 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "DNA_brush_enums.h"
+#include "DNA_brush_types.h"
 #include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
 
@@ -545,13 +545,17 @@ struct PaintOperationExecutor {
         "cyclic", bke::AttrDomain::Curve);
     bke::SpanAttributeWriter<float> softness = attributes.lookup_or_add_for_write_span<float>(
         "softness", bke::AttrDomain::Curve);
+    bke::SpanAttributeWriter<float> u_scale = attributes.lookup_or_add_for_write_span<float>(
+        "u_scale", bke::AttrDomain::Curve);
     cyclic.span[active_curve] = false;
     materials.span[active_curve] = material_index;
     softness.span[active_curve] = softness_;
-    curve_attributes_to_skip.add_multiple({"material_index", "cyclic", "softness"});
+    u_scale.span[active_curve] = 1.0f;
+    curve_attributes_to_skip.add_multiple({"material_index", "cyclic", "softness", "u_scale"});
     cyclic.finish();
     materials.finish();
     softness.finish();
+    u_scale.finish();
 
     if (settings_->uv_random > 0.0f || attributes.contains("rotation")) {
       bke::SpanAttributeWriter<float> rotations = attributes.lookup_or_add_for_write_span<float>(
@@ -976,8 +980,15 @@ struct PaintOperationExecutor {
 
   void execute(PaintOperation &self, const bContext &C, const InputSample &extension_sample)
   {
+    const Scene *scene = CTX_data_scene(&C);
+    const bool on_back = (scene->toolsettings->gpencil_flags & GP_TOOL_FLAG_PAINT_ONBACK) != 0;
+
     this->process_extension_sample(self, C, extension_sample);
-    drawing_->tag_topology_changed();
+
+    const bke::CurvesGeometry &curves = drawing_->strokes();
+    const int active_curve = on_back ? curves.curves_range().first() :
+                                       curves.curves_range().last();
+    drawing_->tag_topology_changed(IndexRange::from_single(active_curve));
   }
 };
 
@@ -1189,7 +1200,7 @@ static void trim_stroke_ends(bke::greasepencil::Drawing &drawing,
       true);
 
   /* No intersection found. */
-  if (stroke_trimmed.points_num() == 0) {
+  if (stroke_trimmed.is_empty()) {
     return;
   }
 

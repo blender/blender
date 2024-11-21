@@ -310,7 +310,7 @@ static void GREASE_PENCIL_OT_bake_grease_pencil_animation(wmOperatorType *ot)
 {
   ot->name = "Bake Object Transform to Grease Pencil";
   ot->idname = "GREASE_PENCIL_OT_bake_grease_pencil_animation";
-  ot->description = "Bake grease pencil object transform to grease pencil keyframes";
+  ot->description = "Bake Grease Pencil object transform to Grease Pencil keyframes";
 
   ot->invoke = bake_grease_pencil_animation_invoke;
   ot->exec = bake_grease_pencil_animation_exec;

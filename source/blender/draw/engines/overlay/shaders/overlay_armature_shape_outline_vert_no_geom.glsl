@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma USE_SSBO_VERTEX_FETCH(LineList, 2)
-#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#include "common_view_clipping_lib.glsl"
+#include "common_view_lib.glsl"
 
 #define DISCARD_VERTEX \
   gl_Position = finalColor = vec4(0.0); \
@@ -39,7 +39,7 @@ void do_vertex_shader(mat4 in_inst_obmat,
 
   /* This is slow and run per vertex, but it's still faster than
    * doing it per instance on CPU and sending it on via instance attribute. */
-  mat3 normal_mat = transpose(inverse(mat3(model_mat)));
+  mat3 normal_mat = transpose(inverse(to_float3x3(model_mat)));
 
   out_ssPos = proj(out_pPos);
 

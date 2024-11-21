@@ -74,7 +74,11 @@ Vector<ID *> find_related_ids(Main &bmain, ID &id)
 
     if (related_id->flag & ID_FLAG_EMBEDDED_DATA) {
       /* No matter the type of embedded ID, their owner can always be added to the related IDs. */
-      BLI_assert(ID_REAL_USERS(related_id) == 0);
+
+      /* User counting is irrelevant for the logic here, because embedded IDs cannot be shared.
+       * Embedded IDs do exist (sometimes) with a non-zero user count, hence the assertion that the
+       * user count is not greater than 1. */
+      BLI_assert(ID_REAL_USERS(related_id) <= 1);
       ID *owner_id = BKE_id_owner_get(related_id);
       /* Embedded IDs should always have an owner. */
       BLI_assert(owner_id != nullptr);
@@ -203,21 +207,19 @@ bAction *id_action_ensure(Main *bmain, ID *id)
   /* init action if none available yet */
   /* TODO: need some wizardry to handle NLA stuff correct */
   if (adt->action == nullptr) {
-    bAction *action = nullptr;
-    if (USER_EXPERIMENTAL_TEST(&U, use_animation_baklava)) {
-      action = find_related_action(*bmain, *id);
-    }
+    bAction *action = find_related_action(*bmain, *id);
+
     if (action == nullptr) {
       /* init action name from name of ID block */
       char actname[sizeof(id->name) - 2];
-      if (id->flag & ID_FLAG_EMBEDDED_DATA && USER_EXPERIMENTAL_TEST(&U, use_animation_baklava)) {
+      if (id->flag & ID_FLAG_EMBEDDED_DATA) {
         /* When the ID is embedded, use the name of the owner ID for clarity. */
         ID *owner_id = BKE_id_owner_get(id);
         /* If the ID is embedded it should have an owner. */
         BLI_assert(owner_id != nullptr);
         SNPRINTF(actname, DATA_("%sAction"), owner_id->name + 2);
       }
-      else if (GS(id->name) == ID_KE && USER_EXPERIMENTAL_TEST(&U, use_animation_baklava)) {
+      else if (GS(id->name) == ID_KE) {
         Key *key = (Key *)id;
         SNPRINTF(actname, DATA_("%sAction"), key->from->name + 2);
       }

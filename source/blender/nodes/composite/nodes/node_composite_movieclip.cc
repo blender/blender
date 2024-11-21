@@ -6,7 +6,10 @@
  * \ingroup cmpnodes
  */
 
+#include "BLI_array.hh"
 #include "BLI_math_vector_types.hh"
+
+#include "IMB_imbuf.hh"
 
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
@@ -81,92 +84,78 @@ class MovieClipOperation : public NodeOperation {
 
   void execute() override
   {
-    GPUTexture *movie_clip_texture = get_movie_clip_texture();
+    ImBuf *movie_clip_buffer = get_movie_clip_buffer();
 
-    compute_image(movie_clip_texture);
-    compute_alpha(movie_clip_texture);
-    compute_stabilization_data(movie_clip_texture);
+    compute_image(movie_clip_buffer);
+    compute_alpha(movie_clip_buffer);
+    compute_stabilization_data(movie_clip_buffer);
 
-    free_movie_clip_texture();
+    IMB_freeImBuf(movie_clip_buffer);
   }
 
-  void compute_image(GPUTexture *movie_clip_texture)
+  void compute_image(ImBuf *movie_clip_buffer)
   {
     if (!should_compute_output("Image")) {
       return;
     }
 
     Result &result = get_result("Image");
-
-    /* The movie clip texture is invalid or missing, set an appropriate fallback value. */
-    if (!movie_clip_texture) {
+    if (!movie_clip_buffer) {
       result.allocate_invalid();
       return;
     }
 
-    const int2 size = int2(GPU_texture_width(movie_clip_texture),
-                           GPU_texture_height(movie_clip_texture));
+    const int2 size = int2(movie_clip_buffer->x, movie_clip_buffer->y);
     result.allocate_texture(Domain(size));
 
-    GPUShader *shader = context().get_shader("compositor_read_input_color");
-    GPU_shader_bind(shader);
-
-    const int2 lower_bound = int2(0);
-    GPU_shader_uniform_2iv(shader, "lower_bound", lower_bound);
-
-    const int input_unit = GPU_shader_get_sampler_binding(shader, "input_tx");
-    GPU_texture_bind(movie_clip_texture, input_unit);
-
-    result.bind_as_image(shader, "output_img");
-
-    compute_dispatch_threads_at_least(shader, size);
-
-    GPU_shader_unbind();
-    GPU_texture_unbind(movie_clip_texture);
-    result.unbind_as_image();
+    if (context().use_gpu()) {
+      GPU_texture_update(result, GPU_DATA_FLOAT, movie_clip_buffer->float_buffer.data);
+    }
+    else {
+      parallel_for(size, [&](const int2 texel) {
+        int64_t pixel_index = (int64_t(texel.y) * size.x + texel.x) * 4;
+        result.store_pixel(texel, float4(movie_clip_buffer->float_buffer.data + pixel_index));
+      });
+    }
   }
 
-  void compute_alpha(GPUTexture *movie_clip_texture)
+  void compute_alpha(ImBuf *movie_clip_buffer)
   {
     if (!should_compute_output("Alpha")) {
       return;
     }
 
     Result &result = get_result("Alpha");
-
-    /* The movie clip texture is invalid or missing, set an appropriate fallback value. */
-    if (!movie_clip_texture) {
+    if (!movie_clip_buffer) {
       result.allocate_single_value();
       result.set_float_value(1.0f);
       return;
     }
 
-    const int2 size = int2(GPU_texture_width(movie_clip_texture),
-                           GPU_texture_height(movie_clip_texture));
+    const int2 size = int2(movie_clip_buffer->x, movie_clip_buffer->y);
     result.allocate_texture(Domain(size));
 
-    GPUShader *shader = context().get_shader("compositor_read_input_alpha");
-    GPU_shader_bind(shader);
-
-    const int2 lower_bound = int2(0);
-    GPU_shader_uniform_2iv(shader, "lower_bound", lower_bound);
-
-    const int input_unit = GPU_shader_get_sampler_binding(shader, "input_tx");
-    GPU_texture_bind(movie_clip_texture, input_unit);
-
-    result.bind_as_image(shader, "output_img");
-
-    compute_dispatch_threads_at_least(shader, size);
-
-    GPU_shader_unbind();
-    GPU_texture_unbind(movie_clip_texture);
-    result.unbind_as_image();
+    if (context().use_gpu()) {
+      Array<float> alpha_values(size.x * size.y);
+      parallel_for(size, [&](const int2 texel) {
+        int64_t pixel_index = int64_t(texel.y) * size.x + texel.x;
+        int64_t input_pixel_index = pixel_index * 4;
+        alpha_values[pixel_index] = movie_clip_buffer->float_buffer.data[input_pixel_index + 3];
+      });
+      GPU_texture_update(result, GPU_DATA_FLOAT, alpha_values.data());
+    }
+    else {
+      parallel_for(size, [&](const int2 texel) {
+        int64_t pixel_index = (int64_t(texel.y) * size.x + texel.x) * 4;
+        result.store_pixel(texel, float4(movie_clip_buffer->float_buffer.data[pixel_index + 3]));
+      });
+    }
   }
 
-  void compute_stabilization_data(GPUTexture *movie_clip_texture)
+  void compute_stabilization_data(ImBuf *movie_clip_buffer)
   {
-    /* The movie clip texture is invalid or missing, set appropriate fallback values. */
-    if (!movie_clip_texture) {
+    /* The movie clip buffer is invalid or missing, set appropriate fallback values. */
+    if (!movie_clip_buffer) {
       if (should_compute_output("Offset X")) {
         Result &result = get_result("Offset X");
         result.allocate_single_value();
@@ -193,8 +182,8 @@ class MovieClipOperation : public NodeOperation {
     MovieClip *movie_clip = get_movie_clip();
     const int frame_number = BKE_movieclip_remap_scene_to_clip_frame(movie_clip,
                                                                      context().get_frame_number());
-    const int width = GPU_texture_width(movie_clip_texture);
-    const int height = GPU_texture_height(movie_clip_texture);
+    const int width = movie_clip_buffer->x;
+    const int height = movie_clip_buffer->y;
 
     /* If the movie clip has no stabilization data, it will initialize the given values with
      * fallback values regardless, so no need to handle that case. */
@@ -225,25 +214,39 @@ class MovieClipOperation : public NodeOperation {
     }
   }
 
-  GPUTexture *get_movie_clip_texture()
+  /* Get a float image buffer contacting the movie content at the current frame. If the movie clip
+   * does not exist or is invalid, return nullptr.*/
+  ImBuf *get_movie_clip_buffer()
   {
     MovieClip *movie_clip = get_movie_clip();
+    if (!movie_clip) {
+      return nullptr;
+    }
+
     MovieClipUser *movie_clip_user = get_movie_clip_user();
     BKE_movieclip_user_set_frame(movie_clip_user, context().get_frame_number());
-    return BKE_movieclip_get_gpu_texture(movie_clip, movie_clip_user);
-  }
 
-  void free_movie_clip_texture()
-  {
-    MovieClip *movie_clip = get_movie_clip();
-    if (movie_clip) {
-      BKE_movieclip_free_gputexture(movie_clip);
+    ImBuf *movie_clip_buffer = BKE_movieclip_get_ibuf(movie_clip, movie_clip_user);
+    if (!movie_clip_buffer) {
+      return nullptr;
     }
+
+    if (movie_clip_buffer->float_buffer.data) {
+      return movie_clip_buffer;
+    }
+
+    /* Create a float buffer from the byte buffer if it exists, if not, return nullptr. */
+    IMB_float_from_rect(movie_clip_buffer);
+    if (!movie_clip_buffer->float_buffer.data) {
+      return nullptr;
+    }
+
+    return movie_clip_buffer;
   }
 
   MovieClip *get_movie_clip()
   {
-    return (MovieClip *)bnode().id;
+    return reinterpret_cast<MovieClip *>(bnode().id);
   }
 
   MovieClipUser *get_movie_clip_user()

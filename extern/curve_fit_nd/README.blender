@@ -1,5 +1,6 @@
 Project: Curve-Fit-nD
 URL: https://github.com/ideasman42/curve-fit-nd
-License: BSD 3-Clause
-Upstream version: ae32da9de264c3ed399673e2bc1bc09003799416 (Last Release)
+License: SPDX:BSD-3-Clause
+Upstream version: ae32da9de26
 Local modifications: None
+Copyright: Copyright (c) 2016, DWANGO Co., Ltd.; Copyright (c) 2016, Campbell Barton; All rights reserved.

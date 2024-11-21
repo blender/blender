@@ -422,7 +422,7 @@ static void refresh_node_sockets_and_panels(bNodeTree &ntree,
 
   /* Count panels */
   int new_num_panels = 0;
-  for (const ItemDeclarationPtr &item_decl : node_decl.items) {
+  for (const ItemDeclarationPtr &item_decl : node_decl.all_items) {
     if (dynamic_cast<const PanelDeclaration *>(item_decl.get())) {
       ++new_num_panels;
     }
@@ -451,7 +451,7 @@ static void refresh_node_sockets_and_panels(bNodeTree &ntree,
   VectorSet<bNodeSocket *> new_inputs;
   VectorSet<bNodeSocket *> new_outputs;
   bNodePanelState *new_panel = node.panel_states_array;
-  for (const ItemDeclarationPtr &item_decl : node_decl.items) {
+  for (const ItemDeclarationPtr &item_decl : node_decl.all_items) {
     if (const SocketDeclaration *socket_decl = dynamic_cast<const SocketDeclaration *>(
             item_decl.get()))
     {

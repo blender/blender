@@ -266,15 +266,15 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   if (!mesh_attributes_eval.contains(uv_map_name)) {
     pass_through_input();
-    const std::string message = fmt::format(TIP_("Evaluated surface missing UV map: \"{}\""),
-                                            uv_map_name);
+    const std::string message = fmt::format(
+        fmt::runtime(TIP_("Evaluated surface missing UV map: \"{}\"")), uv_map_name);
     params.error_message_add(NodeWarningType::Error, message);
     return;
   }
   if (!mesh_attributes_orig.contains(uv_map_name)) {
     pass_through_input();
-    const std::string message = fmt::format(TIP_("Original surface missing UV map: \"{}\""),
-                                            uv_map_name);
+    const std::string message = fmt::format(
+        fmt::runtime(TIP_("Original surface missing UV map: \"{}\"")), uv_map_name);
     params.error_message_add(NodeWarningType::Error, message);
     return;
   }
@@ -383,7 +383,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   curves.tag_positions_changed();
 
   if (invalid_uv_count) {
-    const std::string message = fmt::format(TIP_("Invalid surface UVs on {} curves"),
+    const std::string message = fmt::format(fmt::runtime(TIP_("Invalid surface UVs on {} curves")),
                                             invalid_uv_count.load());
     params.error_message_add(NodeWarningType::Warning, message);
   }

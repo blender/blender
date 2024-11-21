@@ -14,8 +14,8 @@
 #include "IMB_imbuf_types.hh"
 
 #include "BKE_image_wrappers.hh"
-#include "BKE_pbvh_api.hh"
-#include "BKE_pbvh_pixels.hh"
+#include "BKE_paint_bvh.hh"
+#include "BKE_paint_bvh_pixels.hh"
 
 #include "pbvh_intern.hh"
 #include "pbvh_pixels_copy.hh"
@@ -190,7 +190,7 @@ class PixelNodesTileData : public Vector<std::reference_wrapper<UDIMTilePixels>>
   static bool should_add_node(blender::bke::pbvh::Node &node,
                               const image::ImageTileWrapper &image_tile)
   {
-    if ((node.flag_ & PBVH_Leaf) == 0) {
+    if ((node.flag_ & Node::Leaf) == 0) {
       return false;
     }
     if (node.pixels_ == nullptr) {

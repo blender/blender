@@ -21,8 +21,6 @@
 #include "ED_mesh.hh"
 #include "ED_screen.hh"
 
-#include "WM_api.hh"
-
 #include "RNA_access.hh"
 
 #include "UI_interface.hh"
@@ -92,6 +90,7 @@ struct EdgeSlideParams {
 
   bool use_even;
   bool flipped;
+  bool update_status_bar;
 };
 
 /**
@@ -410,11 +409,14 @@ static eRedrawFlag handleEventEdgeSlide(TransInfo *t, const wmEvent *event)
   EdgeSlideParams *slp = static_cast<EdgeSlideParams *>(t->custom.mode.data);
 
   if (slp) {
+    bool is_event_handled = t->redraw && (event->type != MOUSEMOVE);
+    slp->update_status_bar |= is_event_handled;
     switch (event->type) {
       case EVT_EKEY:
         if (event->val == KM_PRESS) {
           slp->use_even = !slp->use_even;
           calcEdgeSlideCustomPoints(t);
+          slp->update_status_bar = true;
           return TREDRAW_HARD;
         }
         break;
@@ -422,6 +424,7 @@ static eRedrawFlag handleEventEdgeSlide(TransInfo *t, const wmEvent *event)
         if (event->val == KM_PRESS) {
           slp->flipped = !slp->flipped;
           calcEdgeSlideCustomPoints(t);
+          slp->update_status_bar = true;
           return TREDRAW_HARD;
         }
         break;
@@ -430,6 +433,7 @@ static eRedrawFlag handleEventEdgeSlide(TransInfo *t, const wmEvent *event)
         if (event->val == KM_PRESS) {
           t->flag ^= T_ALT_TRANSFORM;
           calcEdgeSlideCustomPoints(t);
+          slp->update_status_bar = true;
           return TREDRAW_HARD;
         }
         break;
@@ -809,20 +813,24 @@ static void applyEdgeSlide(TransInfo *t)
     return;
   }
 
-  WorkspaceStatus status(t->context);
-  status.opmodal(IFACE_("Confirm"), op->type, TFM_MODAL_CONFIRM);
-  status.opmodal(IFACE_("Cancel"), op->type, TFM_MODAL_CONFIRM);
-  status.opmodal(IFACE_("Snap"), op->type, TFM_MODAL_SNAP_TOGGLE, is_snap);
-  status.opmodal(IFACE_("Snap Invert"), op->type, TFM_MODAL_SNAP_INV_ON, is_snap_invert);
-  status.opmodal(IFACE_("Set Snap Base"), op->type, TFM_MODAL_EDIT_SNAP_SOURCE_ON);
-  status.opmodal(IFACE_("Move"), op->type, TFM_MODAL_TRANSLATE);
-  status.opmodal(IFACE_("Rotate"), op->type, TFM_MODAL_ROTATE);
-  status.opmodal(IFACE_("Resize"), op->type, TFM_MODAL_RESIZE);
-  status.opmodal(IFACE_("Precision Mode"), op->type, TFM_MODAL_PRECISION, is_precision);
-  status.item_bool(IFACE_("Clamp"), is_clamp, ICON_EVENT_C, ICON_EVENT_ALT);
-  status.item_bool(IFACE_("Even"), use_even, ICON_EVENT_E);
-  if (use_even) {
-    status.item_bool(IFACE_("Flipped"), flipped, ICON_EVENT_F);
+  if (slp->update_status_bar) {
+    slp->update_status_bar = false;
+
+    WorkspaceStatus status(t->context);
+    status.opmodal(IFACE_("Confirm"), op->type, TFM_MODAL_CONFIRM);
+    status.opmodal(IFACE_("Cancel"), op->type, TFM_MODAL_CANCEL);
+    status.opmodal(IFACE_("Snap"), op->type, TFM_MODAL_SNAP_TOGGLE, is_snap);
+    status.opmodal(IFACE_("Snap Invert"), op->type, TFM_MODAL_SNAP_INV_ON, is_snap_invert);
+    status.opmodal(IFACE_("Set Snap Base"), op->type, TFM_MODAL_EDIT_SNAP_SOURCE_ON);
+    status.opmodal(IFACE_("Move"), op->type, TFM_MODAL_TRANSLATE);
+    status.opmodal(IFACE_("Rotate"), op->type, TFM_MODAL_ROTATE);
+    status.opmodal(IFACE_("Resize"), op->type, TFM_MODAL_RESIZE);
+    status.opmodal(IFACE_("Precision Mode"), op->type, TFM_MODAL_PRECISION, is_precision);
+    status.item_bool(IFACE_("Clamp"), is_clamp, ICON_EVENT_C, ICON_EVENT_ALT);
+    status.item_bool(IFACE_("Even"), use_even, ICON_EVENT_E);
+    if (use_even) {
+      status.item_bool(IFACE_("Flipped"), flipped, ICON_EVENT_F);
+    }
   }
 }
 
@@ -883,6 +891,7 @@ static void initEdgeSlide_ex(TransInfo *t,
       slp->flipped = !flipped;
     }
     slp->perc = 0.0f;
+    slp->update_status_bar = true;
 
     if (!use_clamp) {
       t->flag |= T_ALT_TRANSFORM;

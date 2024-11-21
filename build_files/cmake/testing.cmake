@@ -19,7 +19,7 @@ endfunction()
 #
 # \param envvars_list: A list of extra environment variables to define for that test.
 #                      Note that this does no check for (re-)definition of a same variable.
-function(blender_test_set_envvars testname envvars_list)
+function(blender_test_set_envvars testname envvar_list)
   if(PLATFORM_ENV_INSTALL)
     list(APPEND envvar_list "${PLATFORM_ENV_INSTALL}")
   endif()
@@ -126,10 +126,9 @@ macro(blender_src_gtest_ex)
       set_target_properties(${TARGET_NAME} PROPERTIES VS_GLOBAL_VcpkgEnabled "false")
 
       if(WITH_WINDOWS_EXTERNAL_MANIFEST)
-        install(
-          FILES ${CMAKE_BINARY_DIR}/tests.exe.manifest
-          DESTINATION ${TESTS_OUTPUT_DIR}
-          RENAME ${TARGET_NAME}.exe.manifest
+        add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+          COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/tests.exe.manifest ${TESTS_OUTPUT_DIR}/${TARGET_NAME}.exe.manifest
+          DEPENDS ${CMAKE_BINARY_DIR}/tests.exe.manifest
         )
       endif()
     endif()

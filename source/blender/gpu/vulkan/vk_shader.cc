@@ -19,7 +19,6 @@
 
 #include "vk_backend.hh"
 #include "vk_framebuffer.hh"
-#include "vk_memory.hh"
 #include "vk_shader_interface.hh"
 #include "vk_shader_log.hh"
 #include "vk_state_manager.hh"
@@ -29,6 +28,8 @@
 #include "BLI_vector.hh"
 
 #include "BKE_global.hh"
+
+#include <fmt/format.h>
 
 using namespace blender::gpu::shader;
 
@@ -389,14 +390,14 @@ static void print_resource(std::ostream &os,
     case ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER:
       array_offset = res.uniformbuf.name.find_first_of("[");
       name_no_array = (array_offset == -1) ? res.uniformbuf.name :
-                                             StringRef(res.uniformbuf.name.c_str(), array_offset);
+                                             StringRef(res.uniformbuf.name.data(), array_offset);
       os << "uniform _" << name_no_array << " { " << res.uniformbuf.type_name << " "
          << res.uniformbuf.name << "; };\n";
       break;
     case ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER:
       array_offset = res.storagebuf.name.find_first_of("[");
       name_no_array = (array_offset == -1) ? res.storagebuf.name :
-                                             StringRef(res.storagebuf.name.c_str(), array_offset);
+                                             StringRef(res.storagebuf.name.data(), array_offset);
       print_qualifier(os, res.storagebuf.qualifiers);
       os << "buffer _";
       os << name_no_array << " { " << res.storagebuf.type_name << " " << res.storagebuf.name
@@ -491,11 +492,22 @@ static std::string main_function_wrapper(std::string &pre_main, std::string &pos
   return ss.str();
 }
 
-static std::string combine_sources(Span<const char *> sources)
+static std::string combine_sources(Span<StringRefNull> sources)
 {
-  char *sources_combined = BLI_string_join_arrayN((const char **)sources.data(), sources.size());
-  std::string result(sources_combined);
-  MEM_freeN(sources_combined);
+  std::string result = fmt::to_string(fmt::join(sources, ""));
+  /* Renderdoc step-by-step debugger cannot be used when using the #line directive. The indexed
+   * based is not supported as it doesn't make sense in Vulkan and Blender misuses this to store a
+   * hash. The filename based directive cannot be used as it cannot find the actual file on disk
+   * and state is set incorrectly.
+   *
+   * When running in renderdoc we scramble `#line` into `//ine` to work around these limitation. */
+  if (G.debug & G_DEBUG_GPU_RENDERDOC) {
+    size_t start_pos = 0;
+    while ((start_pos = result.find("#line ", start_pos)) != std::string::npos) {
+      result[start_pos] = '/';
+      result[start_pos + 1] = '/';
+    }
+  }
   return result;
 }
 
@@ -527,7 +539,7 @@ VKShader::~VKShader()
   vk_descriptor_set_layout_ = VK_NULL_HANDLE;
 }
 
-void VKShader::build_shader_module(MutableSpan<const char *> sources,
+void VKShader::build_shader_module(MutableSpan<StringRefNull> sources,
                                    shaderc_shader_kind stage,
                                    VKShaderModule &r_shader_module)
 {
@@ -547,22 +559,22 @@ void VKShader::build_shader_module(MutableSpan<const char *> sources,
   }
 }
 
-void VKShader::vertex_shader_from_glsl(MutableSpan<const char *> sources)
+void VKShader::vertex_shader_from_glsl(MutableSpan<StringRefNull> sources)
 {
   build_shader_module(sources, shaderc_vertex_shader, vertex_module);
 }
 
-void VKShader::geometry_shader_from_glsl(MutableSpan<const char *> sources)
+void VKShader::geometry_shader_from_glsl(MutableSpan<StringRefNull> sources)
 {
   build_shader_module(sources, shaderc_geometry_shader, geometry_module);
 }
 
-void VKShader::fragment_shader_from_glsl(MutableSpan<const char *> sources)
+void VKShader::fragment_shader_from_glsl(MutableSpan<StringRefNull> sources)
 {
   build_shader_module(sources, shaderc_fragment_shader, fragment_module);
 }
 
-void VKShader::compute_shader_from_glsl(MutableSpan<const char *> sources)
+void VKShader::compute_shader_from_glsl(MutableSpan<StringRefNull> sources)
 {
   build_shader_module(sources, shaderc_compute_shader, compute_module);
 }
@@ -583,9 +595,9 @@ bool VKShader::finalize(const shader::ShaderCreateInfo *info)
 
   if (do_geometry_shader_injection(info)) {
     std::string source = workaround_geometry_shader_source_create(*info);
-    Vector<const char *> sources;
+    Vector<StringRefNull> sources;
     sources.append("version");
-    sources.append(source.c_str());
+    sources.append(source);
     geometry_shader_from_glsl(sources);
   }
 
@@ -636,8 +648,7 @@ bool VKShader::finalize_shader_module(VKShaderModule &shader_module, const char 
   if (bool(shader_module.compilation_result.GetNumWarnings() +
            shader_module.compilation_result.GetNumErrors()))
   {
-    const char *sources = shader_module.combined_sources.c_str();
-    print_log(Span<const char *>(&sources, 1),
+    print_log({shader_module.combined_sources},
               shader_module.compilation_result.GetErrorMessage().c_str(),
               stage_name,
               bool(shader_module.compilation_result.GetNumErrors()),
@@ -649,6 +660,7 @@ bool VKShader::finalize_shader_module(VKShaderModule &shader_module, const char 
   shader_module.combined_sources.clear();
   shader_module.sources_hash.clear();
   shader_module.compilation_result = {};
+  shader_module.spirv_binary.clear();
   return compilation_succeeded;
 }
 
@@ -660,8 +672,6 @@ bool VKShader::is_ready() const
 bool VKShader::finalize_pipeline_layout(VkDevice vk_device,
                                         const VKShaderInterface &shader_interface)
 {
-  VK_ALLOCATION_CALLBACKS
-
   const uint32_t layout_count = vk_descriptor_set_layout_ == VK_NULL_HANDLE ? 0 : 1;
   VkPipelineLayoutCreateInfo pipeline_info = {};
   VkPushConstantRange push_constant_range = {};
@@ -682,8 +692,8 @@ bool VKShader::finalize_pipeline_layout(VkDevice vk_device,
     pipeline_info.pPushConstantRanges = &push_constant_range;
   }
 
-  if (vkCreatePipelineLayout(
-          vk_device, &pipeline_info, vk_allocation_callbacks, &vk_pipeline_layout) != VK_SUCCESS)
+  if (vkCreatePipelineLayout(vk_device, &pipeline_info, nullptr, &vk_pipeline_layout) !=
+      VK_SUCCESS)
   {
     return false;
   };
@@ -951,7 +961,11 @@ std::string VKShader::fragment_interface_declare(const shader::ShaderCreateInfo 
   if (info.early_fragment_test_) {
     ss << "layout(early_fragment_tests) in;\n";
   }
-  ss << "layout(" << to_string(info.depth_write_) << ") out float gl_FragDepth;\n";
+  const bool use_gl_frag_depth = info.depth_write_ != DepthWrite::UNCHANGED &&
+                                 info.fragment_source_.find("gl_FragDepth") != std::string::npos;
+  if (use_gl_frag_depth) {
+    ss << "layout(" << to_string(info.depth_write_) << ") out float gl_FragDepth;\n";
+  }
 
   ss << "\n/* Sub-pass Inputs. */\n";
   uint32_t subpass_input_binding_index = 0;
@@ -983,8 +997,20 @@ std::string VKShader::fragment_interface_declare(const shader::ShaderCreateInfo 
   }
 
   ss << "\n/* Outputs. */\n";
+  int fragment_out_location = 0;
   for (const ShaderCreateInfo::FragOut &output : info.fragment_outputs_) {
-    ss << "layout(location = " << output.index;
+    /* When using dynamic rendering the attachment location doesn't change. When using render
+     * passes and subpasses the location refers to the color attachment of the subpass.
+     *
+     * LIMITATION: dual source blending cannot be used together with subpasses.
+     */
+    const bool use_dual_blending = output.blend != DualBlend::NONE;
+    BLI_assert_msg(!(use_dual_blending && !info.subpass_inputs_.is_empty()),
+                   "Dual source blending are not supported with subpass inputs when using render "
+                   "passes. It can be supported, but wasn't for code readability.");
+    const int location = (use_dynamic_rendering || use_dual_blending) ? output.index :
+                                                                        fragment_out_location++;
+    ss << "layout(location = " << location;
     switch (output.blend) {
       case DualBlend::SRC_0:
         ss << ", index = 0";
@@ -1141,12 +1167,6 @@ std::string VKShader::workaround_geometry_shader_source_create(
 
   ss << "void main()\n";
   ss << "{\n";
-  if (do_layer_workaround) {
-    ss << "  gl_Layer = gpu_Layer[0];\n";
-  }
-  if (do_viewport_workaround) {
-    ss << "  gl_ViewportIndex = gpu_ViewportIndex[0];\n";
-  }
   for (auto i : IndexRange(3)) {
     for (StageInterfaceInfo *iface : info_modified.vertex_out_interfaces_) {
       for (auto &inout : iface->inouts) {
@@ -1159,6 +1179,12 @@ std::string VKShader::workaround_geometry_shader_source_create(
       ss << " vec3(" << int(i == 0) << ", " << int(i == 1) << ", " << int(i == 2) << ");\n";
     }
     ss << "  gl_Position = gl_in[" << i << "].gl_Position;\n";
+    if (do_layer_workaround) {
+      ss << "  gl_Layer = gpu_Layer[" << i << "];\n";
+    }
+    if (do_viewport_workaround) {
+      ss << "  gl_ViewportIndex = gpu_ViewportIndex[" << i << "];\n";
+    }
     ss << "  gpu_EmitVertex();\n";
   }
   ss << "}\n";
@@ -1237,17 +1263,18 @@ VkPipeline VKShader::ensure_and_get_graphics_pipeline(GPUPrimType primitive,
   graphics_info.fragment_shader.vk_fragment_module = fragment_module.vk_shader_module;
   graphics_info.state = state_manager.state;
   graphics_info.mutable_state = state_manager.mutable_state;
-  // TODO: in stead of extend use a build pattern.
   graphics_info.fragment_shader.viewports.clear();
-  graphics_info.fragment_shader.viewports.extend(framebuffer.vk_viewports_get());
+  framebuffer.vk_viewports_append(graphics_info.fragment_shader.viewports);
   graphics_info.fragment_shader.scissors.clear();
-  graphics_info.fragment_shader.scissors.extend(framebuffer.vk_render_areas_get());
+  framebuffer.vk_render_areas_append(graphics_info.fragment_shader.scissors);
 
+  graphics_info.fragment_out.vk_render_pass = framebuffer.vk_render_pass;
   graphics_info.fragment_out.depth_attachment_format = framebuffer.depth_attachment_format_get();
   graphics_info.fragment_out.stencil_attachment_format =
       framebuffer.stencil_attachment_format_get();
   graphics_info.fragment_out.color_attachment_formats.extend(
       framebuffer.color_attachment_formats_get());
+  graphics_info.fragment_out.color_attachment_size = framebuffer.color_attachment_size;
 
   VKDevice &device = VKBackend::get().device;
   /* Store result in local variable to ensure thread safety. */

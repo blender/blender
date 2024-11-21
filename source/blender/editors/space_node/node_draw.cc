@@ -25,6 +25,7 @@
 #include "BLI_array.hh"
 #include "BLI_bounds.hh"
 #include "BLI_convexhull_2d.h"
+#include "BLI_function_ref.hh"
 #include "BLI_map.hh"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
@@ -110,6 +111,12 @@ using blender::nodes::NodeExtraInfoRow;
  * This is passed to many functions which draw the node editor.
  */
 struct TreeDrawContext {
+  Main *bmain;
+  wmWindow *window;
+  Scene *scene;
+  ARegion *region;
+  Depsgraph *depsgraph;
+
   /**
    * Whether a viewer node is active in geometry nodes can not be determined by a flag on the node
    * alone. That's because if the node group with the viewer is used multiple times, it's only
@@ -224,14 +231,15 @@ static const char *node_socket_get_translation_context(const bNodeSocket &socket
     return nullptr;
   }
 
-  blender::StringRefNull translation_context = socket.runtime->declaration->translation_context;
+  const std::optional<std::string> &translation_context =
+      socket.runtime->declaration->translation_context;
 
   /* Default context. */
-  if (translation_context.is_empty()) {
+  if (!translation_context.has_value()) {
     return nullptr;
   }
 
-  return translation_context.data();
+  return translation_context->c_str();
 }
 
 static void node_socket_add_tooltip_in_node_editor(const bNodeSocket &sock, uiLayout &layout);
@@ -338,11 +346,15 @@ Array<bNode *> tree_draw_order_calc_nodes_reversed(bNodeTree &ntree)
 static Array<uiBlock *> node_uiblocks_init(const bContext &C, const Span<bNode *> nodes)
 {
   Array<uiBlock *> blocks(nodes.size());
+
   /* Add node uiBlocks in drawing order - prevents events going to overlapping nodes. */
+  Scene *scene = CTX_data_scene(&C);
+  wmWindow *window = CTX_wm_window(&C);
+  ARegion *region = CTX_wm_region(&C);
   for (const int i : nodes.index_range()) {
     const bNode &node = *nodes[i];
     std::string block_name = "node_" + std::string(node.name);
-    uiBlock *block = UI_block_begin(&C, CTX_wm_region(&C), std::move(block_name), UI_EMBOSS);
+    uiBlock *block = UI_block_begin(&C, scene, window, region, std::move(block_name), UI_EMBOSS);
     blocks[node.index()] = block;
     /* This cancels events for background nodes. */
     UI_block_flag_enable(block, UI_BLOCK_CLIP_EVENTS);
@@ -383,7 +395,7 @@ static bool is_node_panels_supported(const bNode &node)
 static bool node_update_basis_buttons(const bContext &C,
                                       bNodeTree &ntree,
                                       bNode &node,
-                                      nodes::PanelDrawButtonsFunction draw_buttons,
+                                      blender::FunctionRef<nodes::DrawNodeLayoutFn> draw_buttons,
                                       uiBlock &block,
                                       int &dy)
 {
@@ -550,378 +562,479 @@ static bool node_update_basis_socket(const bContext &C,
   return true;
 }
 
-struct NodeInterfaceItemData {
- private:
-  NodeInterfaceItemData() = default;
+namespace flat_item {
 
- public:
-  /* Declaration of a socket (only for socket items). */
-  const nodes::SocketDeclaration *socket_decl = nullptr;
+enum class Type {
+  Socket,
+  Separator,
+  Layout,
+  PanelHeader,
+  PanelContentBegin,
+  PanelContentEnd,
+};
+
+struct Socket {
+  static constexpr Type type = Type::Socket;
   bNodeSocket *input = nullptr;
   bNodeSocket *output = nullptr;
-
-  /* Declaration of a panel (only for panel items). */
   const nodes::PanelDeclaration *panel_decl = nullptr;
-  /* State of the panel instance on the node.
-   * Mutable so that panel visibility can be updated. */
-  bNodePanelState *state = nullptr;
-  /* Runtime panel state for draw locations. */
-  bke::bNodePanelRuntime *runtime = nullptr;
+};
+struct Separator {
+  static constexpr Type type = Type::Separator;
+};
+struct PanelHeader {
+  static constexpr Type type = Type::PanelHeader;
+  const nodes::PanelDeclaration *decl;
+};
+struct PanelContentBegin {
+  static constexpr Type type = Type::PanelContentBegin;
+  const nodes::PanelDeclaration *decl;
+};
+struct PanelContentEnd {
+  static constexpr Type type = Type::PanelContentEnd;
+  const nodes::PanelDeclaration *decl;
+};
+struct Layout {
+  static constexpr Type type = Type::Layout;
+  const nodes::LayoutDeclaration *decl;
+};
 
-  bool is_separator = false;
+}  // namespace flat_item
 
-  NodeInterfaceItemData(const nodes::SocketDeclaration *_socket_decl,
-                        bNodeSocket *_input,
-                        bNodeSocket *_output)
-      : socket_decl(_socket_decl), input(_input), output(_output)
-  {
-  }
-  NodeInterfaceItemData(const nodes::PanelDeclaration *_panel_decl,
-                        bNodePanelState *_state,
-                        bke::bNodePanelRuntime *_runtime)
-      : panel_decl(_panel_decl), state(_state), runtime(_runtime)
-  {
-  }
+struct FlatNodeItem {
+  std::variant<flat_item::Socket,
+               flat_item::Separator,
+               flat_item::PanelHeader,
+               flat_item::PanelContentBegin,
+               flat_item::PanelContentEnd,
+               flat_item::Layout>
+      item;
 
-  static NodeInterfaceItemData separator()
+  flat_item::Type type() const
   {
-    NodeInterfaceItemData item;
-    item.is_separator = true;
-    return item;
-  }
-
-  bool is_valid_socket() const
-  {
-    /* At least one socket pointer must be valid. */
-    return this->socket_decl && (input || output);
-  }
-
-  bool is_valid_panel() const
-  {
-    /* Panel can only be drawn when state data is available. */
-    return this->panel_decl && this->state && this->runtime;
-  }
-
-  bool is_valid_separator() const
-  {
-    return this->is_separator;
+    return std::visit([](auto &&item) { return item.type; }, this->item);
   }
 };
 
-/* Compile relevant socket and panel pointer data into a vector.
- * This helps ensure correct pointer access in complex situations like inlined sockets.
- */
-static Vector<NodeInterfaceItemData> node_build_item_data(bNode &node)
+static void determine_potentially_visible_panels_recursive(
+    const bNode &node, const nodes::PanelDeclaration &panel_decl, MutableSpan<bool> r_result)
 {
-  namespace nodes = blender::nodes;
-  using ItemDeclIterator = blender::Span<nodes::ItemDeclarationPtr>::iterator;
-  using SocketIterator = blender::Span<bNodeSocket *>::iterator;
-  using PanelStateIterator = blender::MutableSpan<bNodePanelState>::iterator;
-  using PanelRuntimeIterator = blender::MutableSpan<bke::bNodePanelRuntime>::iterator;
+  bool potentially_visible = false;
+  for (const nodes::ItemDeclaration *item_decl : panel_decl.items) {
+    if (const auto *socket_decl = dynamic_cast<const nodes::SocketDeclaration *>(item_decl)) {
+      const bNodeSocket &socket = node.socket_by_decl(*socket_decl);
+      potentially_visible |= socket.is_visible();
+    }
+    else if (const auto *sub_panel_decl = dynamic_cast<const nodes::PanelDeclaration *>(item_decl))
+    {
+      determine_potentially_visible_panels_recursive(node, *sub_panel_decl, r_result);
+      potentially_visible |= r_result[sub_panel_decl->index];
+    }
+  }
+  r_result[panel_decl.index] = potentially_visible;
+}
 
+/**
+ * A panel is potentially visible if it contains any socket that is available and not hidden.
+ */
+static void determine_potentially_visible_panels(const bNode &node, MutableSpan<bool> r_result)
+{
+  for (const nodes::ItemDeclaration *item_decl : node.declaration()->root_items) {
+    if (const auto *panel_decl = dynamic_cast<const nodes::PanelDeclaration *>(item_decl)) {
+      determine_potentially_visible_panels_recursive(node, *panel_decl, r_result);
+    }
+  }
+}
+
+static void determine_visible_panels_impl_recursive(const bNode &node,
+                                                    const nodes::PanelDeclaration &panel_decl,
+                                                    const Span<bool> potentially_visible_states,
+                                                    MutableSpan<bool> r_result)
+{
+  if (!potentially_visible_states[panel_decl.index]) {
+    /* This panel does not contain any visible sockets.*/
+    return;
+  }
+  r_result[panel_decl.index] = true;
+  const bNodePanelState &panel_state = node.panel_states_array[panel_decl.index];
+  if (panel_state.is_collapsed()) {
+    /* The sub-panels can't be visible if this panel is collapsed. */
+    return;
+  }
+  for (const nodes::ItemDeclaration *item_decl : panel_decl.items) {
+    if (const auto *sub_panel_decl = dynamic_cast<const nodes::PanelDeclaration *>(item_decl)) {
+      determine_visible_panels_impl_recursive(
+          node, *sub_panel_decl, potentially_visible_states, r_result);
+    }
+  }
+}
+
+static void determine_visible_panels_impl(const bNode &node,
+                                          const Span<bool> potentially_visible_states,
+                                          MutableSpan<bool> r_result)
+{
+  for (const nodes::ItemDeclaration *item_decl : node.declaration()->root_items) {
+    if (const auto *panel_decl = dynamic_cast<const nodes::PanelDeclaration *>(item_decl)) {
+      determine_visible_panels_impl_recursive(
+          node, *panel_decl, potentially_visible_states, r_result);
+    }
+  }
+}
+
+/**
+ * A panel is visible if all of the following are true:
+ * - All parent panels are visible and not collapsed.
+ * - The panel contains any visible sockets.
+ */
+static void determine_visible_panels(const bNode &node, MutableSpan<bool> r_visibility_states)
+{
+  Array<bool> potentially_visible_states(r_visibility_states.size(), false);
+  determine_potentially_visible_panels(node, potentially_visible_states);
+  determine_visible_panels_impl(node, potentially_visible_states, r_visibility_states);
+}
+
+static void add_flat_items_for_socket(bNode &node,
+                                      const nodes::SocketDeclaration &socket_decl,
+                                      const nodes::PanelDeclaration *panel_decl,
+                                      Vector<FlatNodeItem> &r_items)
+{
+  bNodeSocket &socket = node.socket_by_decl(socket_decl);
+  if (!socket_decl.align_with_previous_socket) {
+    r_items.append({flat_item::Socket()});
+  }
+  flat_item::Socket &item = std::get<flat_item::Socket>(r_items.last().item);
+  if (socket_decl.in_out == SOCK_IN) {
+    BLI_assert(!item.input);
+    item.input = &socket;
+  }
+  else {
+    BLI_assert(!item.output);
+    item.output = &socket;
+  }
+  item.panel_decl = panel_decl;
+}
+
+static void add_flat_items_for_separator(Vector<FlatNodeItem> &r_items)
+{
+  r_items.append({flat_item::Separator()});
+}
+
+static void add_flat_items_for_layout(const bNode &node,
+                                      const nodes::LayoutDeclaration &layout_decl,
+                                      Vector<FlatNodeItem> &r_items)
+{
+  if (!(node.flag & NODE_OPTIONS)) {
+    return;
+  }
+  r_items.append({flat_item::Layout{&layout_decl}});
+}
+
+static void add_flat_items_for_panel(bNode &node,
+                                     const nodes::PanelDeclaration &panel_decl,
+                                     const Span<bool> panel_visibility,
+                                     Vector<FlatNodeItem> &r_items)
+{
+  if (!panel_visibility[panel_decl.index]) {
+    return;
+  }
+  r_items.append({flat_item::PanelHeader{&panel_decl}});
+  const bNodePanelState &panel_state = node.panel_states_array[panel_decl.index];
+  if (panel_state.is_collapsed()) {
+    return;
+  }
+  r_items.append({flat_item::PanelContentBegin{&panel_decl}});
+  for (const nodes::ItemDeclaration *item_decl : panel_decl.items) {
+    if (const auto *socket_decl = dynamic_cast<const nodes::SocketDeclaration *>(item_decl)) {
+      add_flat_items_for_socket(node, *socket_decl, &panel_decl, r_items);
+    }
+    else if (const auto *sub_panel_decl = dynamic_cast<const nodes::PanelDeclaration *>(item_decl))
+    {
+      add_flat_items_for_panel(node, *sub_panel_decl, panel_visibility, r_items);
+    }
+    else if (dynamic_cast<const nodes::SeparatorDeclaration *>(item_decl)) {
+      add_flat_items_for_separator(r_items);
+    }
+    else if (const auto *layout_decl = dynamic_cast<const nodes::LayoutDeclaration *>(item_decl)) {
+      add_flat_items_for_layout(node, *layout_decl, r_items);
+    }
+  }
+  r_items.append({flat_item::PanelContentEnd{&panel_decl}});
+}
+
+/**
+ * Flattens the visible panels, sockets etc. of the node into a list that is then used to draw it.
+ */
+static Vector<FlatNodeItem> make_flat_node_items(bNode &node)
+{
   BLI_assert(is_node_panels_supported(node));
   BLI_assert(node.runtime->panels.size() == node.num_panel_states);
 
-  ItemDeclIterator item_decl = node.declaration()->items.begin();
-  SocketIterator input = node.input_sockets().begin();
-  SocketIterator output = node.output_sockets().begin();
-  PanelStateIterator panel_state = node.panel_states().begin();
-  PanelRuntimeIterator panel_runtime = node.runtime->panels.begin();
-  const ItemDeclIterator item_decl_end = node.declaration()->items.end();
-  const SocketIterator input_end = node.input_sockets().end();
-  const SocketIterator output_end = node.output_sockets().end();
-  const PanelStateIterator panel_state_end = node.panel_states().end();
-  const PanelRuntimeIterator panel_runtime_end = node.runtime->panels.end();
-  UNUSED_VARS_NDEBUG(input_end, output_end, panel_state_end, panel_runtime_end);
+  const int panels_num = node.num_panel_states;
+  Array<bool> panel_visibility(panels_num, false);
+  determine_visible_panels(node, panel_visibility);
 
-  Vector<NodeInterfaceItemData> result;
-  result.reserve(node.declaration()->items.size());
-
-  while (item_decl != item_decl_end) {
-    if (const nodes::SocketDeclaration *socket_decl =
-            dynamic_cast<const nodes::SocketDeclaration *>(item_decl->get()))
-    {
-      if (socket_decl->align_with_previous_socket) {
-        NodeInterfaceItemData &last_item = result.last();
-        switch (socket_decl->in_out) {
-          case SOCK_IN:
-            BLI_assert(input != input_end);
-            BLI_assert(last_item.input == nullptr);
-            last_item.input = *input;
-            ++input;
-            break;
-          case SOCK_OUT:
-            BLI_assert(output != output_end);
-            BLI_assert(last_item.output == nullptr);
-            last_item.output = *output;
-            ++output;
-            break;
-        }
-      }
-      else {
-        switch (socket_decl->in_out) {
-          case SOCK_IN:
-            BLI_assert(input != input_end);
-            result.append({socket_decl, *input, nullptr});
-            ++input;
-            break;
-          case SOCK_OUT:
-            BLI_assert(output != output_end);
-            result.append({socket_decl, nullptr, *output});
-            ++output;
-            break;
-        }
-      }
-      ++item_decl;
+  Vector<FlatNodeItem> items;
+  for (const nodes::ItemDeclaration *item_decl : node.declaration()->root_items) {
+    if (const auto *socket_decl = dynamic_cast<const nodes::SocketDeclaration *>(item_decl)) {
+      add_flat_items_for_socket(node, *socket_decl, nullptr, items);
     }
-    else if (const nodes::PanelDeclaration *panel_decl =
-                 dynamic_cast<const nodes::PanelDeclaration *>(item_decl->get()))
-    {
-      BLI_assert(panel_state != panel_state_end);
-      BLI_assert(panel_runtime != panel_runtime_end);
-      result.append({panel_decl, panel_state, panel_runtime});
-      ++item_decl;
-      ++panel_state;
-      ++panel_runtime;
+    else if (const auto *panel_decl = dynamic_cast<const nodes::PanelDeclaration *>(item_decl)) {
+      add_flat_items_for_panel(node, *panel_decl, panel_visibility, items);
     }
-    else if (dynamic_cast<const nodes::SeparatorDeclaration *>(item_decl->get())) {
-      result.append(NodeInterfaceItemData::separator());
-      ++item_decl;
+    else if (dynamic_cast<const nodes::SeparatorDeclaration *>(item_decl)) {
+      add_flat_items_for_separator(items);
+    }
+    else if (const auto *layout_decl = dynamic_cast<const nodes::LayoutDeclaration *>(item_decl)) {
+      add_flat_items_for_layout(node, *layout_decl, items);
     }
   }
-  return result;
+  return items;
 }
 
-using ItemIterator = Vector<NodeInterfaceItemData>::const_iterator;
-
-struct VisibilityUpdateState {
-  ItemIterator item_iter;
-  const ItemIterator item_end;
-
-  explicit VisibilityUpdateState(const Span<NodeInterfaceItemData> items)
-      : item_iter(items.begin()), item_end(items.end())
-  {
-  }
-};
-
-/* Recursive function to determine visibility of items before drawing. */
-static void node_update_panel_items_visibility_recursive(int num_items,
-                                                         const bool is_parent_collapsed,
-                                                         bNodePanelState &parent_state,
-                                                         VisibilityUpdateState &state)
+/** Get the height of an empty node body. */
+static float get_margin_empty()
 {
-  parent_state.flag &= ~NODE_PANEL_CONTENT_VISIBLE;
-  while (state.item_iter != state.item_end) {
-    /* Stop after adding the expected number of items.
-     * Root panel consumes all remaining items (num_items == -1). */
-    if (num_items == 0) {
+  return NODE_DYS;
+}
+
+/** Get the margin between the node header and the first item. */
+static float get_margin_from_top(const Span<FlatNodeItem> items)
+{
+  const FlatNodeItem &first_item = items[0];
+  const flat_item::Type first_item_type = first_item.type();
+  switch (first_item_type) {
+    case flat_item::Type::Socket:
+      return 2 * NODE_ITEM_SPACING_Y;
+    case flat_item::Type::Separator:
+      return NODE_ITEM_SPACING_Y / 2;
+    case flat_item::Type::Layout:
+      return 3 * NODE_ITEM_SPACING_Y;
+    case flat_item::Type::PanelHeader:
+      return 4 * NODE_ITEM_SPACING_Y;
+    case flat_item::Type::PanelContentBegin:
+    case flat_item::Type::PanelContentEnd:
+      break;
+  }
+  BLI_assert_unreachable();
+  return 0;
+}
+
+/** Get the margin between the last item and the node bottom. */
+static float get_margin_to_bottom(const Span<FlatNodeItem> items)
+{
+  const FlatNodeItem &last_item = items.last();
+  const flat_item::Type last_item_type = last_item.type();
+  switch (last_item_type) {
+    case flat_item::Type::Socket:
+      return 5 * NODE_ITEM_SPACING_Y;
+    case flat_item::Type::Separator:
+      return NODE_ITEM_SPACING_Y;
+    case flat_item::Type::Layout:
+      return 5 * NODE_ITEM_SPACING_Y;
+    case flat_item::Type::PanelHeader:
+      return 4 * NODE_ITEM_SPACING_Y;
+    case flat_item::Type::PanelContentBegin:
+      break;
+    case flat_item::Type::PanelContentEnd:
+      return 1 * NODE_ITEM_SPACING_Y;
+  }
+  BLI_assert_unreachable();
+  return 0;
+}
+
+/** Get the margin between two consecutive items. */
+static float get_margin_between_elements(const Span<FlatNodeItem> items, const int next_index)
+{
+  BLI_assert(next_index >= 1);
+  const FlatNodeItem &prev = items[next_index - 1];
+  const FlatNodeItem &next = items[next_index];
+  using flat_item::Type;
+  const Type prev_type = prev.type();
+  const Type next_type = next.type();
+
+  /* Handle all cases explicitly. This simplifies modifying the margins for specific cases
+   * without breaking other cases significantly. */
+  switch (prev_type) {
+    case Type::Socket: {
+      switch (next_type) {
+        case Type::Socket:
+          return NODE_ITEM_SPACING_Y;
+        case Type::Separator:
+          return 0;
+        case Type::Layout:
+          return 2 * NODE_ITEM_SPACING_Y;
+        case Type::PanelHeader:
+          return 3 * NODE_ITEM_SPACING_Y;
+        case Type::PanelContentBegin:
+          break;
+        case Type::PanelContentEnd:
+          return 2 * NODE_ITEM_SPACING_Y;
+      }
       break;
     }
-    else if (num_items > 0) {
-      --num_items;
+    case Type::Layout: {
+      switch (next_type) {
+        case Type::Socket:
+          return 2 * NODE_ITEM_SPACING_Y;
+        case Type::Separator:
+          return 0;
+        case Type::Layout:
+          return NODE_ITEM_SPACING_Y;
+        case Type::PanelHeader:
+          return 3 * NODE_ITEM_SPACING_Y;
+        case Type::PanelContentBegin:
+          break;
+        case Type::PanelContentEnd:
+          return 2 * NODE_ITEM_SPACING_Y;
+      }
+      break;
     }
-    /* Consume item. */
-    const NodeInterfaceItemData &item = *state.item_iter++;
+    case Type::Separator: {
+      switch (next_type) {
+        case Type::Socket:
+          return 2 * NODE_ITEM_SPACING_Y;
+        case Type::Separator:
+          return NODE_ITEM_SPACING_Y;
+        case Type::Layout:
+          return NODE_ITEM_SPACING_Y;
+        case Type::PanelHeader:
+          return NODE_ITEM_SPACING_Y;
+        case Type::PanelContentBegin:
+          break;
+        case Type::PanelContentEnd:
+          return NODE_ITEM_SPACING_Y;
+      }
+      break;
+    }
+    case Type::PanelHeader: {
+      switch (next_type) {
+        case Type::Socket:
+          return 4 * NODE_ITEM_SPACING_Y;
+        case Type::Separator:
+          return 3 * NODE_ITEM_SPACING_Y;
+        case Type::Layout:
+          return 3 * NODE_ITEM_SPACING_Y;
+        case Type::PanelHeader:
+          return 5 * NODE_ITEM_SPACING_Y;
+        case Type::PanelContentBegin:
+          return 3 * NODE_ITEM_SPACING_Y;
+        case Type::PanelContentEnd:
+          return 3 * NODE_ITEM_SPACING_Y;
+      }
+      break;
+    }
+    case Type::PanelContentBegin: {
+      switch (next_type) {
+        case Type::Socket:
+          return 2 * NODE_ITEM_SPACING_Y;
+        case Type::Separator:
+          return NODE_ITEM_SPACING_Y;
+        case Type::Layout:
+          return 2 * NODE_ITEM_SPACING_Y;
+        case Type::PanelHeader:
+          return 3 * NODE_ITEM_SPACING_Y;
+        case Type::PanelContentBegin:
+          break;
+        case Type::PanelContentEnd:
+          return NODE_ITEM_SPACING_Y;
+      }
+      break;
+    }
+    case Type::PanelContentEnd: {
+      switch (next_type) {
+        case Type::Socket:
+          return NODE_ITEM_SPACING_Y;
+        case Type::Separator:
+          return NODE_ITEM_SPACING_Y;
+        case Type::Layout:
+          return NODE_ITEM_SPACING_Y;
+        case Type::PanelHeader:
+          return 3 * NODE_ITEM_SPACING_Y;
+        case Type::PanelContentBegin:
+          break;
+        case Type::PanelContentEnd:
+          return 0;
+      }
+      break;
+    }
+  }
+  BLI_assert_unreachable();
+  return 0.0f;
+}
 
-    if (item.is_valid_panel()) {
-      SET_FLAG_FROM_TEST(item.state->flag, is_parent_collapsed, NODE_PANEL_PARENT_COLLAPSED);
-      /* New top panel is collapsed if self or parent is collapsed. */
-      const bool is_collapsed = is_parent_collapsed || item.state->is_collapsed();
-
-      node_update_panel_items_visibility_recursive(
-          item.panel_decl->num_child_decls, is_collapsed, *item.state, state);
-      if (item.panel_decl->draw_buttons) {
-        item.state->flag |= NODE_PANEL_CONTENT_VISIBLE;
-      }
-      if (item.state->flag & NODE_PANEL_CONTENT_VISIBLE) {
-        /* If child panel is visible so is the parent panel. */
-        parent_state.flag |= NODE_PANEL_CONTENT_VISIBLE;
-      }
+/** Tags all the sockets in the panel as collapsed and updates their positions. */
+static void mark_sockets_collapsed_recursive(bNode &node,
+                                             const int node_left_x,
+                                             const nodes::PanelDeclaration &visible_panel_decl,
+                                             const nodes::PanelDeclaration &panel_decl)
+{
+  const bke::bNodePanelRuntime &visible_panel_runtime =
+      node.runtime->panels[visible_panel_decl.index];
+  for (const nodes::ItemDeclaration *item_decl : panel_decl.items) {
+    if (const auto *socket_decl = dynamic_cast<const nodes::SocketDeclaration *>(item_decl)) {
+      bNodeSocket &socket = node.socket_by_decl(*socket_decl);
+      const int socket_x = socket.in_out == SOCK_IN ? node_left_x : node_left_x + NODE_WIDTH(node);
+      socket.runtime->location = math::round(
+          float2(socket_x, *visible_panel_runtime.header_center_y));
+      socket.flag |= SOCK_PANEL_COLLAPSED;
     }
-    else if (item.is_valid_socket()) {
-      if (item.input) {
-        SET_FLAG_FROM_TEST(item.input->flag, is_parent_collapsed, SOCK_PANEL_COLLAPSED);
-        if (item.input->is_visible()) {
-          parent_state.flag |= NODE_PANEL_CONTENT_VISIBLE;
-        }
-      }
-      if (item.output) {
-        SET_FLAG_FROM_TEST(item.output->flag, is_parent_collapsed, SOCK_PANEL_COLLAPSED);
-        if (item.output->is_visible()) {
-          parent_state.flag |= NODE_PANEL_CONTENT_VISIBLE;
-        }
-      }
-    }
-    else if (item.is_valid_separator()) {
-      /* Nothing to do. */
-    }
-    else {
-      /* Should not happen. */
-      BLI_assert_unreachable();
+    else if (const auto *sub_panel_decl = dynamic_cast<const nodes::PanelDeclaration *>(item_decl))
+    {
+      mark_sockets_collapsed_recursive(node, node_left_x, visible_panel_decl, *sub_panel_decl);
     }
   }
 }
 
-struct LocationUpdateState {
-  ItemIterator item_iter;
-  const ItemIterator item_end;
-
-  /* Checked at various places to avoid adding duplicate spacers without anything in between. */
-  bool need_spacer_after_item = false;
-  /* Makes sure buttons are only drawn once. */
-  bool buttons_drawn = false;
-  /* Only true for the first item in the layout. */
-  bool is_first = true;
-
-  explicit LocationUpdateState(const Span<NodeInterfaceItemData> items)
-      : item_iter(items.begin()), item_end(items.end())
-  {
-  }
-};
-
-/* Recursive function that adds the expected number of items in a panel and advances the
- * iterator. */
-static void add_panel_items_recursive(const bContext &C,
-                                      bNodeTree &ntree,
-                                      bNode &node,
-                                      uiBlock &block,
-                                      const int locx,
-                                      int &locy,
-                                      int num_items,
-                                      const bool is_parent_collapsed,
-                                      const char *parent_label,
-                                      bke::bNodePanelRuntime *parent_runtime,
-                                      LocationUpdateState &state)
+static void update_collapsed_sockets_recursive(bNode &node,
+                                               const int node_left_x,
+                                               const nodes::PanelDeclaration &panel_decl)
 {
-  while (state.item_iter != state.item_end) {
-    /* Stop after adding the expected number of items.
-     * Root panel consumes all remaining items (num_items == -1). */
-    if (num_items == 0) {
-      break;
+  const bNodePanelState &panel_state = node.panel_states_array[panel_decl.index];
+  const bke::bNodePanelRuntime &panel_runtime = node.runtime->panels[panel_decl.index];
+  const bool is_open = panel_runtime.header_center_y.has_value() && !panel_state.is_collapsed();
+  if (!is_open) {
+    mark_sockets_collapsed_recursive(node, node_left_x, panel_decl, panel_decl);
+    return;
+  }
+  for (const nodes::ItemDeclaration *item_decl : panel_decl.items) {
+    if (const auto *sub_panel_decl = dynamic_cast<const nodes::PanelDeclaration *>(item_decl)) {
+      update_collapsed_sockets_recursive(node, node_left_x, *sub_panel_decl);
     }
-    else if (num_items > 0) {
-      --num_items;
+  }
+}
+
+/**
+ * Finds all collapsed sockets and updates them based on the visible parent panel that contains
+ * them.
+ */
+static void update_collapsed_sockets(bNode &node, const int node_left_x)
+{
+  for (const nodes::ItemDeclaration *item_decl : node.declaration()->root_items) {
+    if (const auto *panel_decl = dynamic_cast<const nodes::PanelDeclaration *>(item_decl)) {
+      update_collapsed_sockets_recursive(node, node_left_x, *panel_decl);
     }
-    /* Consume item. */
-    const NodeInterfaceItemData &item = *state.item_iter++;
+  }
+}
 
-    if (item.is_valid_panel()) {
-      /* Draw buttons before the first panel. */
-      if (!state.buttons_drawn) {
-        state.buttons_drawn = true;
-        state.need_spacer_after_item = node_update_basis_buttons(
-            C, ntree, node, node.typeinfo->draw_buttons, block, locy);
-      }
-
-      /* Panel visible if any content is visible. */
-      if (item.state->has_visible_content()) {
-        if (!is_parent_collapsed) {
-          locy -= NODE_DY;
-          state.is_first = false;
-        }
-
-        /* New top panel is collapsed if self or parent is collapsed. */
-        const bool is_collapsed = is_parent_collapsed || item.state->is_collapsed();
-
-        /* Round the socket location to stop it from jiggling. */
-        item.runtime->location_y = round(locy + NODE_DYS);
-        if (is_collapsed) {
-          item.runtime->max_content_y = item.runtime->min_content_y = round(locy);
-        }
-        else {
-          locy -= NODE_ITEM_SPACING_Y / 2; /* Space at bottom of panel header. */
-          item.runtime->max_content_y = item.runtime->min_content_y = round(locy);
-          locy -= NODE_ITEM_SPACING_Y; /* Space at top of panel contents. */
-
-          node_update_basis_buttons(C, ntree, node, item.panel_decl->draw_buttons, block, locy);
-        }
-
-        add_panel_items_recursive(C,
-                                  ntree,
-                                  node,
-                                  block,
-                                  locx,
-                                  locy,
-                                  item.panel_decl->num_child_decls,
-                                  is_collapsed,
-                                  item.panel_decl->name.c_str(),
-                                  item.runtime,
-                                  state);
-      }
-    }
-    else if (item.is_valid_socket()) {
-      bool need_socket_spacing = false;
-      if (item.input) {
-        /* Draw buttons before the first input. */
-        if (!state.buttons_drawn) {
-          state.buttons_drawn = true;
-          state.need_spacer_after_item = node_update_basis_buttons(
-              C, ntree, node, node.typeinfo->draw_buttons, block, locy);
-        }
-
-        if (is_parent_collapsed) {
-          item.input->runtime->location = float2(locx, round(locy + NODE_DYS));
-        }
-        else {
-          /* Space between items. */
-          if (!state.is_first && item.input->is_visible()) {
-            need_socket_spacing = true;
-          }
-        }
-      }
-      if (item.output) {
-        if (is_parent_collapsed) {
-          item.output->runtime->location = float2(round(locx + NODE_WIDTH(node)),
-                                                  round(locy + NODE_DYS));
-        }
-        else {
-          /* Space between items. */
-          if (!state.is_first && item.output->is_visible()) {
-            need_socket_spacing = true;
-          }
-        }
-      }
-      if (need_socket_spacing) {
-        locy -= NODE_ITEM_SPACING_Y;
-      }
-
-      if (!is_parent_collapsed &&
-          node_update_basis_socket(
-              C, ntree, node, parent_label, item.input, item.output, block, locx, locy))
-      {
-        state.is_first = false;
-        state.need_spacer_after_item = true;
-      }
-    }
-    else if (item.is_valid_separator()) {
-      if (!is_parent_collapsed) {
-        uiLayout *layout = UI_block_layout(&block,
-                                           UI_LAYOUT_VERTICAL,
-                                           UI_LAYOUT_PANEL,
-                                           locx + NODE_DYS,
-                                           locy,
-                                           NODE_WIDTH(node) - NODE_DY,
-                                           NODE_DY,
-                                           0,
-                                           UI_style_get_dpi());
-        uiItemS_ex(layout, 1.0, LayoutSeparatorType::Line);
-        UI_block_layout_resolve(&block, nullptr, nullptr);
-        locy -= NODE_ITEM_SPACING_Y;
-      }
+/**
+ * Tag the innermost panel that goes to the very end of the node. The background color of that
+ * panel is extended to fill the entire rest of the node.
+ */
+static void tag_final_panel(bNode &node, const Span<FlatNodeItem> items)
+{
+  const flat_item::PanelContentEnd *final_panel = nullptr;
+  for (int item_i = items.size() - 1; item_i >= 0; item_i--) {
+    const FlatNodeItem &item = items[item_i];
+    if (const auto *panel_item = std::get_if<flat_item::PanelContentEnd>(&item.item)) {
+      final_panel = panel_item;
     }
     else {
-      /* Should not happen. */
-      BLI_assert_unreachable();
+      break;
     }
   }
-
-  /* Finalize the vertical extent of the content. */
-  if (!is_parent_collapsed) {
-    if (parent_runtime) {
-      locy -= 2 * NODE_ITEM_SPACING_Y; /* Space at bottom of panel contents. */
-      parent_runtime->min_content_y = round(locy);
-    }
-    locy -= NODE_ITEM_SPACING_Y / 2; /* Space at top of next panel header. */
+  if (final_panel) {
+    bke::bNodePanelRuntime &final_panel_runtime = node.runtime->panels[final_panel->decl->index];
+    final_panel_runtime.content_extent->fill_node_end = true;
   }
 }
 
@@ -929,45 +1042,118 @@ static void add_panel_items_recursive(const bContext &C,
 static void node_update_basis_from_declaration(
     const bContext &C, bNodeTree &ntree, bNode &node, uiBlock &block, const int locx, int &locy)
 {
-  namespace nodes = blender::nodes;
-
   BLI_assert(is_node_panels_supported(node));
   BLI_assert(node.runtime->panels.size() == node.num_panel_states);
 
-  const Vector<NodeInterfaceItemData> item_data = node_build_item_data(node);
-
-  /* Update item visibility flags first. */
-  VisibilityUpdateState visibility_state(item_data);
-  /* Dummy state item to write into, unused. */
-  bNodePanelState root_panel_state;
-  node_update_panel_items_visibility_recursive(-1, false, root_panel_state, visibility_state);
-
-  /* Space at the top. */
-  locy -= NODE_DYS / 2;
-
-  /* Start by adding root panel items. */
-  LocationUpdateState location_state(item_data);
-
-  /* Draw buttons at the top when the node has a custom socket order. This could be customized in
-   * the future to support showing the buttons in any place. */
-  if (node.declaration()->allow_any_socket_order) {
-    location_state.buttons_drawn = true;
-    location_state.need_spacer_after_item = node_update_basis_buttons(
-        C, ntree, node, node.typeinfo->draw_buttons, block, locy);
+  /* Reset states. */
+  for (bke::bNodePanelRuntime &panel_runtime : node.runtime->panels) {
+    panel_runtime.header_center_y.reset();
+    panel_runtime.content_extent.reset();
+  }
+  for (bNodeSocket *socket : node.input_sockets()) {
+    socket->flag &= ~SOCK_PANEL_COLLAPSED;
+  }
+  for (bNodeSocket *socket : node.output_sockets()) {
+    socket->flag &= ~SOCK_PANEL_COLLAPSED;
   }
 
-  add_panel_items_recursive(
-      C, ntree, node, block, locx, locy, -1, false, "", nullptr, location_state);
-
-  /* Draw buttons at the bottom if no inputs exist. */
-  if (!location_state.buttons_drawn) {
-    location_state.need_spacer_after_item = node_update_basis_buttons(
-        C, ntree, node, node.typeinfo->draw_buttons, block, locy);
+  /* Gather flattened list of items in the node.*/
+  const Vector<FlatNodeItem> flat_items = make_flat_node_items(node);
+  if (flat_items.is_empty()) {
+    const float margin = get_margin_empty();
+    locy -= margin;
+    return;
   }
 
-  if (location_state.need_spacer_after_item) {
-    locy -= NODE_DYS / 2;
+  for (const int item_i : flat_items.index_range()) {
+    /* Apply margins. This should be the only place that applies margins between elements so that
+     * it is easy change later on.*/
+    if (item_i == 0) {
+      const float margin = get_margin_from_top(flat_items);
+      locy -= margin;
+    }
+    else {
+      const float margin = get_margin_between_elements(flat_items, item_i);
+      locy -= margin;
+    }
+
+    const FlatNodeItem &item_variant = flat_items[item_i];
+    std::visit(
+        [&](const auto &item) {
+          using ItemT = std::decay_t<decltype(item)>;
+          if constexpr (std::is_same_v<ItemT, flat_item::Socket>) {
+            bNodeSocket *input_socket = item.input;
+            bNodeSocket *output_socket = item.output;
+            const nodes::PanelDeclaration *panel_decl = item.panel_decl;
+            const char *parent_label = panel_decl ? panel_decl->name.c_str() : "";
+            node_update_basis_socket(
+                C, ntree, node, parent_label, input_socket, output_socket, block, locx, locy);
+          }
+          else if constexpr (std::is_same_v<ItemT, flat_item::Layout>) {
+            const nodes::LayoutDeclaration &decl = *item.decl;
+            /* Round the node origin because text contents are always pixel-aligned. */
+            const float2 loc = math::round(node_to_view(node, float2(0)));
+            uiLayout *layout = UI_block_layout(&block,
+                                               UI_LAYOUT_VERTICAL,
+                                               UI_LAYOUT_PANEL,
+                                               loc.x + NODE_DYS,
+                                               locy,
+                                               NODE_WIDTH(node) - NODE_DY,
+                                               0,
+                                               0,
+                                               UI_style_get_dpi());
+            if (node.flag & NODE_MUTED) {
+              uiLayoutSetActive(layout, false);
+            }
+            PointerRNA node_ptr = RNA_pointer_create(&ntree.id, &RNA_Node, &node);
+            uiLayoutSetContextPointer(layout, "node", &node_ptr);
+            decl.draw(layout, const_cast<bContext *>(&C), &node_ptr);
+            UI_block_align_end(&block);
+            int buty;
+            UI_block_layout_resolve(&block, nullptr, &buty);
+            locy = buty;
+          }
+          else if constexpr (std::is_same_v<ItemT, flat_item::Separator>) {
+            uiLayout *layout = UI_block_layout(&block,
+                                               UI_LAYOUT_VERTICAL,
+                                               UI_LAYOUT_PANEL,
+                                               locx + NODE_DYS,
+                                               locy,
+                                               NODE_WIDTH(node) - NODE_DY,
+                                               NODE_DY,
+                                               0,
+                                               UI_style_get_dpi());
+            uiItemS_ex(layout, 1.0, LayoutSeparatorType::Line);
+            UI_block_layout_resolve(&block, nullptr, nullptr);
+          }
+          else if constexpr (std::is_same_v<ItemT, flat_item::PanelHeader>) {
+            const nodes::PanelDeclaration &node_decl = *item.decl;
+            bke::bNodePanelRuntime &panel_runtime = node.runtime->panels[node_decl.index];
+            const float panel_header_height = NODE_DYS;
+            locy -= panel_header_height / 2;
+            panel_runtime.header_center_y = locy;
+            locy -= panel_header_height / 2;
+          }
+          else if constexpr (std::is_same_v<ItemT, flat_item::PanelContentBegin>) {
+            const nodes::PanelDeclaration &node_decl = *item.decl;
+            bke::bNodePanelRuntime &panel_runtime = node.runtime->panels[node_decl.index];
+            panel_runtime.content_extent.emplace();
+            panel_runtime.content_extent->max_y = locy;
+          }
+          else if constexpr (std::is_same_v<ItemT, flat_item::PanelContentEnd>) {
+            const nodes::PanelDeclaration &node_decl = *item.decl;
+            bke::bNodePanelRuntime &panel_runtime = node.runtime->panels[node_decl.index];
+            panel_runtime.content_extent->min_y = locy;
+          }
+        },
+        item_variant.item);
   }
+
+  const float bottom_margin = get_margin_to_bottom(flat_items);
+  locy -= bottom_margin;
+
+  update_collapsed_sockets(node, locx);
+  tag_final_panel(node, flat_items);
 }
 
 /* Conventional drawing in outputs/buttons/inputs order. */
@@ -1366,9 +1552,9 @@ static void create_inspection_string_for_generic_value(const bNodeSocket &socket
                                                        fmt::memory_buffer &buf)
 {
   auto id_to_inspection_string = [&](const ID *id, const short idcode) {
-    fmt::format_to(fmt::appender(buf), (id ? id->name + 2 : TIP_("None")));
+    fmt::format_to(fmt::appender(buf), "{}", id ? id->name + 2 : TIP_("None"));
     fmt::format_to(fmt::appender(buf), " (");
-    fmt::format_to(fmt::appender(buf), TIP_(BKE_idtype_idcode_to_name(idcode)));
+    fmt::format_to(fmt::appender(buf), "{}", TIP_(BKE_idtype_idcode_to_name(idcode)));
     fmt::format_to(fmt::appender(buf), ")");
   };
 
@@ -1395,8 +1581,9 @@ static void create_inspection_string_for_generic_value(const bNodeSocket &socket
     return;
   }
   if (value_type.is<std::string>()) {
-    fmt::format_to(
-        fmt::appender(buf), TIP_("{} (String)"), *static_cast<const std::string *>(buffer));
+    fmt::format_to(fmt::appender(buf),
+                   fmt::runtime(TIP_("{} (String)")),
+                   *static_cast<const std::string *>(buffer));
     return;
   }
 
@@ -1419,7 +1606,7 @@ static void create_inspection_string_for_generic_value(const bNodeSocket &socket
     if (!enum_item) {
       return;
     }
-    fmt::format_to(fmt::appender(buf), TIP_("{} (Menu)"), enum_item->name);
+    fmt::format_to(fmt::appender(buf), fmt::runtime(TIP_("{} (Menu)")), enum_item->name);
     return;
   }
 
@@ -1435,7 +1622,8 @@ static void create_inspection_string_for_generic_value(const bNodeSocket &socket
   BLI_SCOPED_DEFER([&]() { socket_type.destruct(socket_value); });
 
   if (socket_type.is<int>()) {
-    fmt::format_to(fmt::appender(buf), TIP_("{} (Integer)"), *static_cast<int *>(socket_value));
+    fmt::format_to(
+        fmt::appender(buf), fmt::runtime(TIP_("{} (Integer)")), *static_cast<int *>(socket_value));
   }
   else if (socket_type.is<float>()) {
     const float float_value = *static_cast<float *>(socket_value);
@@ -1443,21 +1631,28 @@ static void create_inspection_string_for_generic_value(const bNodeSocket &socket
     if (std::abs(float_value) > (1 << 24)) {
       /* Use higher precision to display correct integer value instead of one that is rounded to
        * fewer significant digits. */
-      fmt::format_to(fmt::appender(buf), TIP_("{:.10} (Float)"), float_value);
+      fmt::format_to(fmt::appender(buf), fmt::runtime(TIP_("{:.10} (Float)")), float_value);
     }
     else {
-      fmt::format_to(fmt::appender(buf), TIP_("{} (Float)"), float_value);
+      fmt::format_to(fmt::appender(buf), fmt::runtime(TIP_("{} (Float)")), float_value);
     }
   }
   else if (socket_type.is<blender::float3>()) {
     const blender::float3 &vector = *static_cast<blender::float3 *>(socket_value);
-    fmt::format_to(
-        fmt::appender(buf), TIP_("({}, {}, {}) (Vector)"), vector.x, vector.y, vector.z);
+    fmt::format_to(fmt::appender(buf),
+                   fmt::runtime(TIP_("({}, {}, {}) (Vector)")),
+                   vector.x,
+                   vector.y,
+                   vector.z);
   }
   else if (socket_type.is<blender::ColorGeometry4f>()) {
     const blender::ColorGeometry4f &color = *static_cast<blender::ColorGeometry4f *>(socket_value);
-    fmt::format_to(
-        fmt::appender(buf), TIP_("({}, {}, {}, {}) (Color)"), color.r, color.g, color.b, color.a);
+    fmt::format_to(fmt::appender(buf),
+                   fmt::runtime(TIP_("({}, {}, {}, {}) (Color)")),
+                   color.r,
+                   color.g,
+                   color.b,
+                   color.a);
   }
   else if (socket_type.is<math::Quaternion>()) {
     const math::Quaternion &rotation = *static_cast<math::Quaternion *>(socket_value);
@@ -1468,11 +1663,11 @@ static void create_inspection_string_for_generic_value(const bNodeSocket &socket
                    euler.x().degree(),
                    euler.y().degree(),
                    euler.z().degree());
-    fmt::format_to(fmt::appender(buf), TIP_("(Rotation)"));
+    fmt::format_to(fmt::appender(buf), "{}", TIP_("(Rotation)"));
   }
   else if (socket_type.is<bool>()) {
     fmt::format_to(fmt::appender(buf),
-                   TIP_("{} (Boolean)"),
+                   fmt::runtime(TIP_("{} (Boolean)")),
                    ((*static_cast<bool *>(socket_value)) ? TIP_("True") : TIP_("False")));
   }
   else if (socket_type.is<float4x4>()) {
@@ -1484,7 +1679,7 @@ static void create_inspection_string_for_generic_value(const bNodeSocket &socket
     ss << value[2] << ",\n";
     ss << value[3] << ",\n";
     buf.append(ss.str());
-    fmt::format_to(fmt::appender(buf), TIP_("(Matrix)"));
+    fmt::format_to(fmt::appender(buf), "{}", TIP_("(Matrix)"));
   }
 }
 
@@ -1498,35 +1693,35 @@ static void create_inspection_string_for_field_info(const bNodeSocket &socket,
   if (input_tooltips.is_empty()) {
     /* Should have been logged as constant value. */
     BLI_assert_unreachable();
-    fmt::format_to(fmt::appender(buf), TIP_("Value has not been logged"));
+    fmt::format_to(fmt::appender(buf), "{}", TIP_("Value has not been logged"));
   }
   else {
     if (socket_type.is<int>()) {
-      fmt::format_to(fmt::appender(buf), TIP_("Integer field based on:"));
+      fmt::format_to(fmt::appender(buf), "{}", TIP_("Integer field based on:"));
     }
     else if (socket_type.is<float>()) {
-      fmt::format_to(fmt::appender(buf), TIP_("Float field based on:"));
+      fmt::format_to(fmt::appender(buf), "{}", TIP_("Float field based on:"));
     }
     else if (socket_type.is<blender::float3>()) {
-      fmt::format_to(fmt::appender(buf), TIP_("Vector field based on:"));
+      fmt::format_to(fmt::appender(buf), "{}", TIP_("Vector field based on:"));
     }
     else if (socket_type.is<bool>()) {
-      fmt::format_to(fmt::appender(buf), TIP_("Boolean field based on:"));
+      fmt::format_to(fmt::appender(buf), "{}", TIP_("Boolean field based on:"));
     }
     else if (socket_type.is<std::string>()) {
-      fmt::format_to(fmt::appender(buf), TIP_("String field based on:"));
+      fmt::format_to(fmt::appender(buf), "{}", TIP_("String field based on:"));
     }
     else if (socket_type.is<blender::ColorGeometry4f>()) {
-      fmt::format_to(fmt::appender(buf), TIP_("Color field based on:"));
+      fmt::format_to(fmt::appender(buf), "{}", TIP_("Color field based on:"));
     }
     else if (socket_type.is<math::Quaternion>()) {
-      fmt::format_to(fmt::appender(buf), TIP_("Rotation field based on:"));
+      fmt::format_to(fmt::appender(buf), "{}", TIP_("Rotation field based on:"));
     }
     fmt::format_to(fmt::appender(buf), "\n");
 
     for (const int i : input_tooltips.index_range()) {
       const blender::StringRefNull tooltip = input_tooltips[i];
-      fmt::format_to(fmt::appender(buf), TIP_("\u2022 {}"), TIP_(tooltip.c_str()));
+      fmt::format_to(fmt::appender(buf), fmt::runtime(TIP_("\u2022 {}")), TIP_(tooltip.c_str()));
       if (i < input_tooltips.size() - 1) {
         fmt::format_to(fmt::appender(buf), ".\n");
       }
@@ -1545,18 +1740,18 @@ static void create_inspection_string_for_geometry_info(const geo_log::GeometryIn
 
   if (value_log.grid_info) {
     const geo_log::GeometryInfoLog::GridInfo &grid_info = *value_log.grid_info;
-    fmt::format_to(fmt::appender(buf),
-                   grid_info.is_empty ? TIP_("Empty Grid") : TIP_("\u2022 Grid"));
+    fmt::format_to(
+        fmt::appender(buf), "{}", grid_info.is_empty ? TIP_("Empty Grid") : TIP_("\u2022 Grid"));
     return;
   }
 
   Span<bke::GeometryComponent::Type> component_types = value_log.component_types;
   if (component_types.is_empty()) {
-    fmt::format_to(fmt::appender(buf), TIP_("Empty Geometry"));
+    fmt::format_to(fmt::appender(buf), "{}", TIP_("Empty Geometry"));
     return;
   }
 
-  fmt::format_to(fmt::appender(buf), TIP_("Geometry:"));
+  fmt::format_to(fmt::appender(buf), "{}", TIP_("Geometry:"));
   if (!value_log.name.empty()) {
     fmt::format_to(fmt::appender(buf), " \"{}\"", value_log.name);
   }
@@ -1566,7 +1761,7 @@ static void create_inspection_string_for_geometry_info(const geo_log::GeometryIn
       case bke::GeometryComponent::Type::Mesh: {
         const geo_log::GeometryInfoLog::MeshInfo &mesh_info = *value_log.mesh_info;
         fmt::format_to(fmt::appender(buf),
-                       TIP_("\u2022 Mesh: {} vertices, {} edges, {} faces"),
+                       fmt::runtime(TIP_("\u2022 Mesh: {} vertices, {} edges, {} faces")),
                        to_string(mesh_info.verts_num),
                        to_string(mesh_info.edges_num),
                        to_string(mesh_info.faces_num));
@@ -1576,14 +1771,14 @@ static void create_inspection_string_for_geometry_info(const geo_log::GeometryIn
         const geo_log::GeometryInfoLog::PointCloudInfo &pointcloud_info =
             *value_log.pointcloud_info;
         fmt::format_to(fmt::appender(buf),
-                       TIP_("\u2022 Point Cloud: {} points"),
+                       fmt::runtime(TIP_("\u2022 Point Cloud: {} points")),
                        to_string(pointcloud_info.points_num));
         break;
       }
       case bke::GeometryComponent::Type::Curve: {
         const geo_log::GeometryInfoLog::CurveInfo &curve_info = *value_log.curve_info;
         fmt::format_to(fmt::appender(buf),
-                       TIP_("\u2022 Curve: {} points, {} splines"),
+                       fmt::runtime(TIP_("\u2022 Curve: {} points, {} splines")),
                        to_string(curve_info.points_num),
                        to_string(curve_info.splines_num));
         break;
@@ -1591,20 +1786,22 @@ static void create_inspection_string_for_geometry_info(const geo_log::GeometryIn
       case bke::GeometryComponent::Type::Instance: {
         const geo_log::GeometryInfoLog::InstancesInfo &instances_info = *value_log.instances_info;
         fmt::format_to(fmt::appender(buf),
-                       TIP_("\u2022 Instances: {}"),
+                       fmt::runtime(TIP_("\u2022 Instances: {}")),
                        to_string(instances_info.instances_num));
         break;
       }
       case bke::GeometryComponent::Type::Volume: {
         const geo_log::GeometryInfoLog::VolumeInfo &volume_info = *value_log.volume_info;
-        fmt::format_to(fmt::appender(buf), TIP_("\u2022 Volume: {} grids"), volume_info.grids_num);
+        fmt::format_to(fmt::appender(buf),
+                       fmt::runtime(TIP_("\u2022 Volume: {} grids")),
+                       volume_info.grids_num);
         break;
       }
       case bke::GeometryComponent::Type::Edit: {
         if (value_log.edit_data_info.has_value()) {
           const geo_log::GeometryInfoLog::EditDataInfo &edit_info = *value_log.edit_data_info;
           fmt::format_to(fmt::appender(buf),
-                         TIP_("\u2022 Edit: {}, {}, {}"),
+                         fmt::runtime(TIP_("\u2022 Edit: {}, {}, {}")),
                          edit_info.has_deformed_positions ? TIP_("positions") :
                                                             TIP_("no positions"),
                          edit_info.has_deform_matrices ? TIP_("matrices") : TIP_("no matrices"),
@@ -1616,7 +1813,7 @@ static void create_inspection_string_for_geometry_info(const geo_log::GeometryIn
         const geo_log::GeometryInfoLog::GreasePencilInfo &grease_pencil_info =
             *value_log.grease_pencil_info;
         fmt::format_to(fmt::appender(buf),
-                       TIP_("\u2022 Grease Pencil: {} layers"),
+                       fmt::runtime(TIP_("\u2022 Grease Pencil: {} layers")),
                        to_string(grease_pencil_info.layers_num));
         break;
       }
@@ -1638,38 +1835,38 @@ static void create_inspection_string_for_geometry_socket(fmt::memory_buffer &buf
 
   Span<bke::GeometryComponent::Type> supported_types = socket_decl->supported_types();
   if (supported_types.is_empty()) {
-    fmt::format_to(fmt::appender(buf), TIP_("Supported: All Types"));
+    fmt::format_to(fmt::appender(buf), "{}", TIP_("Supported: All Types"));
     return;
   }
 
-  fmt::format_to(fmt::appender(buf), TIP_("Supported: "));
+  fmt::format_to(fmt::appender(buf), "{}", TIP_("Supported: "));
   for (bke::GeometryComponent::Type type : supported_types) {
     switch (type) {
       case bke::GeometryComponent::Type::Mesh: {
-        fmt::format_to(fmt::appender(buf), TIP_("Mesh"));
+        fmt::format_to(fmt::appender(buf), "{}", TIP_("Mesh"));
         break;
       }
       case bke::GeometryComponent::Type::PointCloud: {
-        fmt::format_to(fmt::appender(buf), TIP_("Point Cloud"));
+        fmt::format_to(fmt::appender(buf), "{}", TIP_("Point Cloud"));
         break;
       }
       case bke::GeometryComponent::Type::Curve: {
-        fmt::format_to(fmt::appender(buf), TIP_("Curve"));
+        fmt::format_to(fmt::appender(buf), "{}", TIP_("Curve"));
         break;
       }
       case bke::GeometryComponent::Type::Instance: {
-        fmt::format_to(fmt::appender(buf), TIP_("Instances"));
+        fmt::format_to(fmt::appender(buf), "{}", TIP_("Instances"));
         break;
       }
       case bke::GeometryComponent::Type::Volume: {
-        fmt::format_to(fmt::appender(buf), CTX_TIP_(BLT_I18NCONTEXT_ID_ID, "Volume"));
+        fmt::format_to(fmt::appender(buf), "{}", CTX_TIP_(BLT_I18NCONTEXT_ID_ID, "Volume"));
         break;
       }
       case bke::GeometryComponent::Type::Edit: {
         break;
       }
       case bke::GeometryComponent::Type::GreasePencil: {
-        fmt::format_to(fmt::appender(buf), TIP_("Grease Pencil"));
+        fmt::format_to(fmt::appender(buf), "{}", TIP_("Grease Pencil"));
         break;
       }
     }
@@ -1843,7 +2040,7 @@ static std::optional<std::string> create_multi_input_log_inspection_string(
     const Vector<std::string> lines = lines_of_text(info.second);
     fmt::format_to(fmt::appender(buf), "{}", info.first);
     fmt::format_to(fmt::appender(buf), ". ");
-    fmt::format_to(fmt::appender(buf), lines.first());
+    fmt::format_to(fmt::appender(buf), "{}", lines.first());
     for (const std::string &line : lines.as_span().drop_front(1)) {
       fmt::format_to(fmt::appender(buf), "\n  {}", line);
     }
@@ -1927,6 +2124,7 @@ static std::optional<std::string> create_dangling_reroute_inspection_string(
   }
   fmt::format_to(fmt::appender(buf), ".\n\n");
   fmt::format_to(fmt::appender(buf),
+                 "{}",
                  TIP_("Dangling reroute is ignored, default value of target socket is used"));
   return str;
 }
@@ -2460,103 +2658,64 @@ static void node_panel_toggle_button_cb(bContext *C, void *panel_state_argv, voi
 }
 
 /* Draw panel backgrounds first, so other node elements can be rendered on top. */
-static void node_draw_panels_background(const bNode &node, uiBlock &block)
+static void node_draw_panels_background(const bNode &node)
 {
-  namespace nodes = blender::nodes;
-
   BLI_assert(is_node_panels_supported(node));
-  BLI_assert(node.runtime->panels.size() == node.panel_states().size());
 
-  const nodes::NodeDeclaration &decl = *node.declaration();
-  const rctf &rct = node.runtime->totr;
-  float color_panel[4];
-  UI_GetThemeColorShade4fv(TH_NODE, -15, color_panel);
+  float panel_color[4];
+  UI_GetThemeColorShade4fv(TH_NODE, -15, panel_color);
+  const rctf &totr = node.runtime->totr;
 
-  /* True if the last panel is open, draw bottom gap as background. */
-  bool is_last_panel_visible = false;
-  float last_panel_content_y = 0.0f;
+  const nodes::PanelDeclaration *final_panel_decl = nullptr;
 
-  int panel_i = 0;
-  for (const nodes::ItemDeclarationPtr &item_decl : decl.items) {
-    const nodes::PanelDeclaration *panel_decl = dynamic_cast<nodes::PanelDeclaration *>(
-        item_decl.get());
-    if (panel_decl == nullptr) {
-      /* Not a panel. */
+  const nodes::NodeDeclaration &node_decl = *node.declaration();
+  for (const int panel_i : node_decl.panels.index_range()) {
+    const nodes::PanelDeclaration &panel_decl = *node_decl.panels[panel_i];
+    const bke::bNodePanelRuntime &panel_runtime = node.runtime->panels[panel_i];
+    if (!panel_runtime.content_extent.has_value()) {
       continue;
     }
-
-    const bNodePanelState &state = node.panel_states()[panel_i];
-    const bke::bNodePanelRuntime &runtime = node.runtime->panels[panel_i];
-
-    /* Don't draw hidden or collapsed panels. */
-    const bool is_background_visible = state.has_visible_content() &&
-                                       !(state.is_collapsed() || state.is_parent_collapsed());
-    is_last_panel_visible = is_background_visible;
-    last_panel_content_y = runtime.max_content_y;
-    if (!is_background_visible) {
-      ++panel_i;
-      continue;
-    }
-
-    UI_block_emboss_set(&block, UI_EMBOSS_NONE);
-
-    /* Panel background. */
-    const rctf content_rect = {rct.xmin, rct.xmax, runtime.min_content_y, runtime.max_content_y};
+    const rctf content_rect = {totr.xmin,
+                               totr.xmax,
+                               panel_runtime.content_extent->min_y,
+                               panel_runtime.content_extent->max_y};
     UI_draw_roundbox_corner_set(UI_CNR_NONE);
-    UI_draw_roundbox_4fv(&content_rect, true, BASIS_RAD, color_panel);
-
-    UI_block_emboss_set(&block, UI_EMBOSS);
-
-    ++panel_i;
+    UI_draw_roundbox_4fv(&content_rect, true, BASIS_RAD, panel_color);
+    if (panel_runtime.content_extent->fill_node_end) {
+      final_panel_decl = &panel_decl;
+    }
   }
-
-  /* If last item is an open panel, extend the panel background to cover the bottom border. */
-  if (is_last_panel_visible) {
-    UI_block_emboss_set(&block, UI_EMBOSS_NONE);
-
-    const rctf content_rect = {rct.xmin, rct.xmax, rct.ymin, last_panel_content_y};
+  if (final_panel_decl) {
+    const bke::bNodePanelRuntime &final_panel_runtime =
+        node.runtime->panels[final_panel_decl->index];
+    const rctf content_rect = {
+        totr.xmin, totr.xmax, totr.ymin, final_panel_runtime.content_extent->min_y};
     UI_draw_roundbox_corner_set(UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT);
-    UI_draw_roundbox_4fv(&content_rect, true, BASIS_RAD, color_panel);
-
-    UI_block_emboss_set(&block, UI_EMBOSS);
+    const int repeats = final_panel_decl->depth() + 1;
+    for ([[maybe_unused]] const int i : IndexRange(repeats)) {
+      UI_draw_roundbox_4fv(&content_rect, true, BASIS_RAD, panel_color);
+    }
   }
 }
 
 static void node_draw_panels(bNodeTree &ntree, const bNode &node, uiBlock &block)
 {
-  namespace nodes = blender::nodes;
-
   BLI_assert(is_node_panels_supported(node));
-  BLI_assert(node.runtime->panels.size() == node.panel_states().size());
+  const rctf &totr = node.runtime->totr;
 
-  const nodes::NodeDeclaration &decl = *node.declaration();
-  const rctf &rct = node.runtime->totr;
-
-  int panel_i = 0;
-  for (const nodes::ItemDeclarationPtr &item_decl : decl.items) {
-    const nodes::PanelDeclaration *panel_decl = dynamic_cast<nodes::PanelDeclaration *>(
-        item_decl.get());
-    if (panel_decl == nullptr) {
-      /* Not a panel. */
+  const nodes::NodeDeclaration &node_decl = *node.declaration();
+  for (const int panel_i : node_decl.panels.index_range()) {
+    const nodes::PanelDeclaration &panel_decl = *node_decl.panels[panel_i];
+    const bke::bNodePanelRuntime &panel_runtime = node.runtime->panels[panel_i];
+    const bNodePanelState &panel_state = node.panel_states_array[panel_i];
+    if (!panel_runtime.header_center_y.has_value()) {
       continue;
     }
 
-    const bNodePanelState &state = node.panel_states()[panel_i];
-    /* Don't draw hidden panels. */
-    const bool is_header_visible = state.has_visible_content() && !state.is_parent_collapsed();
-    if (!is_header_visible) {
-      ++panel_i;
-      continue;
-    }
-    const bke::bNodePanelRuntime &runtime = node.runtime->panels[panel_i];
-
-    const rctf rect = {
-        rct.xmin,
-        rct.xmax,
-        runtime.location_y - NODE_DYS,
-        runtime.location_y + NODE_DYS,
-    };
-
+    const rctf header_rect = {totr.xmin,
+                              totr.xmax,
+                              *panel_runtime.header_center_y - NODE_DYS,
+                              *panel_runtime.header_center_y + NODE_DYS};
     UI_block_emboss_set(&block, UI_EMBOSS_NONE);
 
     /* Collapse/expand icon. */
@@ -2564,9 +2723,9 @@ static void node_draw_panels(bNodeTree &ntree, const bNode &node, uiBlock &block
     uiDefIconBut(&block,
                  UI_BTYPE_BUT_TOGGLE,
                  0,
-                 state.is_collapsed() ? ICON_RIGHTARROW : ICON_DOWNARROW_HLT,
-                 rct.xmin + (NODE_MARGIN_X / 3),
-                 runtime.location_y - but_size / 2,
+                 panel_state.is_collapsed() ? ICON_RIGHTARROW : ICON_DOWNARROW_HLT,
+                 totr.xmin + (NODE_MARGIN_X / 3),
+                 *panel_runtime.header_center_y - but_size / 2,
                  but_size,
                  but_size,
                  nullptr,
@@ -2575,43 +2734,45 @@ static void node_draw_panels(bNodeTree &ntree, const bNode &node, uiBlock &block
                  "");
 
     /* Panel label. */
-    uiBut *but = uiDefBut(&block,
-                          UI_BTYPE_LABEL,
-                          0,
-                          IFACE_(panel_decl->name.c_str()),
-                          int(rct.xmin + NODE_MARGIN_X + 0.4f),
-                          int(runtime.location_y - NODE_DYS),
-                          short(rct.xmax - rct.xmin - (30.0f * UI_SCALE_FAC)),
-                          short(NODE_DY),
-                          nullptr,
-                          0,
-                          0,
-                          "");
+    uiBut *label_but = uiDefBut(&block,
+                                UI_BTYPE_LABEL,
+                                0,
+                                IFACE_(panel_decl.name.c_str()),
+                                int(totr.xmin + NODE_MARGIN_X + 0.4f),
+                                int(*panel_runtime.header_center_y - NODE_DYS),
+                                short(totr.xmax - totr.xmin - (30.0f * UI_SCALE_FAC)),
+                                short(NODE_DY),
+                                nullptr,
+                                0,
+                                0,
+                                "");
     if (node.flag & NODE_MUTED) {
-      UI_but_flag_enable(but, UI_BUT_INACTIVE);
+      UI_but_flag_enable(label_but, UI_BUT_INACTIVE);
     }
 
     /* Invisible button covering the entire header for collapsing/expanding. */
     const int header_but_margin = NODE_MARGIN_X / 3;
-    but = uiDefIconBut(&block,
-                       UI_BTYPE_BUT_TOGGLE,
-                       0,
-                       ICON_NONE,
-                       rect.xmin + header_but_margin,
-                       rect.ymin,
-                       std::max(int(rect.xmax - rect.xmin - 2 * header_but_margin), 0),
-                       rect.ymax - rect.ymin,
-                       nullptr,
-                       0.0f,
-                       0.0f,
-                       panel_decl->description.c_str());
-    UI_but_func_pushed_state_set(but, [&state](const uiBut &) { return state.is_collapsed(); });
-    UI_but_func_set(
-        but, node_panel_toggle_button_cb, const_cast<bNodePanelState *>(&state), &ntree);
+    uiBut *toggle_action_but = uiDefIconBut(
+        &block,
+        UI_BTYPE_BUT_TOGGLE,
+        0,
+        ICON_NONE,
+        header_rect.xmin + header_but_margin,
+        header_rect.ymin,
+        std::max(int(header_rect.xmax - header_rect.xmin - 2 * header_but_margin), 0),
+        header_rect.ymax - header_rect.ymin,
+        nullptr,
+        0.0f,
+        0.0f,
+        panel_decl.description.c_str());
+    UI_but_func_pushed_state_set(
+        toggle_action_but, [&panel_state](const uiBut &) { return panel_state.is_collapsed(); });
+    UI_but_func_set(toggle_action_but,
+                    node_panel_toggle_button_cb,
+                    const_cast<bNodePanelState *>(&panel_state),
+                    &ntree);
 
     UI_block_emboss_set(&block, UI_EMBOSS);
-
-    ++panel_i;
   }
 }
 
@@ -2913,7 +3074,7 @@ static std::string named_attribute_tooltip(bContext * /*C*/, void *argN, const c
   NamedAttributeTooltipArg &arg = *static_cast<NamedAttributeTooltipArg *>(argN);
 
   fmt::memory_buffer buf;
-  fmt::format_to(fmt::appender(buf), TIP_("Accessed named attributes:"));
+  fmt::format_to(fmt::appender(buf), "{}", TIP_("Accessed named attributes:"));
   fmt::format_to(fmt::appender(buf), "\n");
 
   struct NameWithUsage {
@@ -2934,7 +3095,7 @@ static std::string named_attribute_tooltip(bContext * /*C*/, void *argN, const c
   for (const NameWithUsage &attribute : sorted_used_attribute) {
     const StringRefNull name = attribute.name;
     const geo_log::NamedAttributeUsage usage = attribute.usage;
-    fmt::format_to(fmt::appender(buf), TIP_("  \u2022 \"{}\": "), name);
+    fmt::format_to(fmt::appender(buf), fmt::runtime(TIP_("  \u2022 \"{}\": ")), name);
     Vector<std::string> usages;
     if ((usage & geo_log::NamedAttributeUsage::Read) != geo_log::NamedAttributeUsage::None) {
       usages.append(TIP_("read"));
@@ -2946,7 +3107,7 @@ static std::string named_attribute_tooltip(bContext * /*C*/, void *argN, const c
       usages.append(TIP_("remove"));
     }
     for (const int i : usages.index_range()) {
-      fmt::format_to(fmt::appender(buf), usages[i]);
+      fmt::format_to(fmt::appender(buf), "{}", usages[i]);
       if (i < usages.size() - 1) {
         fmt::format_to(fmt::appender(buf), ", ");
       }
@@ -2954,9 +3115,10 @@ static std::string named_attribute_tooltip(bContext * /*C*/, void *argN, const c
     fmt::format_to(fmt::appender(buf), "\n");
   }
   fmt::format_to(fmt::appender(buf), "\n");
-  fmt::format_to(fmt::appender(buf),
-                 TIP_("Attributes with these names used within the group may conflict with "
-                      "existing attributes"));
+  fmt::format_to(
+      fmt::appender(buf),
+      fmt::runtime(TIP_("Attributes with these names used within the group may conflict with "
+                        "existing attributes")));
   return fmt::to_string(buf);
 }
 
@@ -3348,7 +3510,13 @@ static void node_draw_basis(const bContext &C,
     rect_with_preview.ymax += NODE_WIDTH(node);
   }
   if (BLI_rctf_isect(&rect_with_preview, &v2d.cur, nullptr) == false) {
-    UI_block_end(&C, &block);
+    UI_block_end_ex(&C,
+                    tree_draw_ctx.bmain,
+                    tree_draw_ctx.window,
+                    tree_draw_ctx.scene,
+                    tree_draw_ctx.region,
+                    tree_draw_ctx.depsgraph,
+                    &block);
     return;
   }
 
@@ -3424,7 +3592,7 @@ static void node_draw_basis(const bContext &C,
   float iconofs = rct.xmax - 0.35f * U.widget_unit;
 
   /* Group edit. This icon should be the first for the node groups. */
-  if (node.is_group()) {
+  if (node.type == NODE_GROUP) {
     iconofs -= iconbutw;
     UI_block_emboss_set(&block, UI_EMBOSS_NONE);
     uiBut *but = uiDefIconBut(&block,
@@ -3622,7 +3790,7 @@ static void node_draw_basis(const bContext &C,
     UI_draw_roundbox_4fv(&rect, true, corner_radius, color);
 
     if (is_node_panels_supported(node)) {
-      node_draw_panels_background(node, block);
+      node_draw_panels_background(node);
     }
   }
 
@@ -3688,7 +3856,13 @@ static void node_draw_basis(const bContext &C,
     node_draw_panels(ntree, node, block);
   }
 
-  UI_block_end(&C, &block);
+  UI_block_end_ex(&C,
+                  tree_draw_ctx.bmain,
+                  tree_draw_ctx.window,
+                  tree_draw_ctx.scene,
+                  tree_draw_ctx.region,
+                  tree_draw_ctx.depsgraph,
+                  &block);
   UI_block_draw(&C, &block);
 }
 
@@ -3873,7 +4047,13 @@ static void node_draw_hidden(const bContext &C,
 
   node_draw_sockets(v2d, C, ntree, node, block, true, false);
 
-  UI_block_end(&C, &block);
+  UI_block_end_ex(&C,
+                  tree_draw_ctx.bmain,
+                  tree_draw_ctx.window,
+                  tree_draw_ctx.scene,
+                  tree_draw_ctx.region,
+                  tree_draw_ctx.depsgraph,
+                  &block);
   UI_block_draw(&C, &block);
 }
 
@@ -4199,7 +4379,13 @@ static void frame_node_draw_overlay(const bContext &C,
 {
   /* Skip if out of view. */
   if (BLI_rctf_isect(&node.runtime->totr, &region.v2d.cur, nullptr) == false) {
-    UI_block_end(&C, &block);
+    UI_block_end_ex(&C,
+                    tree_draw_ctx.bmain,
+                    tree_draw_ctx.window,
+                    tree_draw_ctx.scene,
+                    tree_draw_ctx.region,
+                    tree_draw_ctx.depsgraph,
+                    &block);
     return;
   }
 
@@ -4208,7 +4394,13 @@ static void frame_node_draw_overlay(const bContext &C,
 
   node_draw_extra_info_panel(C, tree_draw_ctx, snode, node, nullptr, block);
 
-  UI_block_end(&C, &block);
+  UI_block_end_ex(&C,
+                  tree_draw_ctx.bmain,
+                  tree_draw_ctx.window,
+                  tree_draw_ctx.scene,
+                  tree_draw_ctx.region,
+                  tree_draw_ctx.depsgraph,
+                  &block);
   UI_block_draw(&C, &block);
 }
 
@@ -4378,7 +4570,13 @@ static void reroute_node_draw(const bContext &C,
   if (rct.xmax < region.v2d.cur.xmin || rct.xmin > region.v2d.cur.xmax ||
       rct.ymax < region.v2d.cur.ymin || node.runtime->totr.ymin > region.v2d.cur.ymax)
   {
-    UI_block_end(&C, &block);
+    UI_block_end_ex(&C,
+                    tree_draw_ctx.bmain,
+                    tree_draw_ctx.window,
+                    tree_draw_ctx.scene,
+                    tree_draw_ctx.region,
+                    tree_draw_ctx.depsgraph,
+                    &block);
     return;
   }
 
@@ -4388,7 +4586,13 @@ static void reroute_node_draw(const bContext &C,
    * if node itself is selected, since we don't display the node body separately. */
   node_draw_sockets(region.v2d, C, ntree, node, block, false, node.flag & SELECT);
 
-  UI_block_end(&C, &block);
+  UI_block_end_ex(&C,
+                  tree_draw_ctx.bmain,
+                  tree_draw_ctx.window,
+                  tree_draw_ctx.scene,
+                  tree_draw_ctx.region,
+                  tree_draw_ctx.depsgraph,
+                  &block);
   UI_block_draw(&C, &block);
 }
 
@@ -4429,7 +4633,7 @@ static void add_rect_corner_positions(Vector<float2> &positions, const rctf &rec
 
 static void find_bounds_by_zone_recursive(const SpaceNode &snode,
                                           const bNodeTreeZone &zone,
-                                          const Span<std::unique_ptr<bNodeTreeZone>> all_zones,
+                                          const Span<const bNodeTreeZone *> all_zones,
                                           MutableSpan<Vector<float2>> r_bounds_by_zone)
 {
   const float node_padding = UI_UNIT_X;
@@ -4558,7 +4762,7 @@ static void node_draw_zones_and_frames(const bContext &C,
   using ZoneOrNode = std::variant<const bNodeTreeZone *, const bNode *>;
   Vector<ZoneOrNode> draw_order;
   for (const int zone_i : IndexRange(zones_num)) {
-    draw_order.append(zones->zones[zone_i].get());
+    draw_order.append(zones->zones[zone_i]);
   }
   for (const bNode *node : ntree.all_nodes()) {
     if (node->flag & NODE_BACKGROUND) {
@@ -4798,6 +5002,11 @@ static void draw_nodetree(const bContext &C,
   Array<uiBlock *> blocks = node_uiblocks_init(C, nodes);
 
   TreeDrawContext tree_draw_ctx;
+  tree_draw_ctx.bmain = CTX_data_main(&C);
+  tree_draw_ctx.window = CTX_wm_window(&C);
+  tree_draw_ctx.scene = CTX_data_scene(&C);
+  tree_draw_ctx.region = CTX_wm_region(&C);
+  tree_draw_ctx.depsgraph = CTX_data_depsgraph_pointer(&C);
 
   BLI_SCOPED_DEFER([&]() { ntree.runtime->sockets_on_active_gizmo_paths.clear(); });
   if (ntree.type == NTREE_GEOMETRY) {

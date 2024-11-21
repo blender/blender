@@ -19,6 +19,12 @@
 
 namespace blender::eevee {
 
+/* Convert by putting the least significant bits in the first component. */
+static uint2 uint64_to_uint2(uint64_t data)
+{
+  return {uint(data), uint(data >> uint64_t(32))};
+}
+
 /* -------------------------------------------------------------------- */
 /** \name LightData
  * \{ */
@@ -50,6 +56,7 @@ void Light::sync(ShadowModule &shadows,
                  float4x4 object_to_world,
                  char visibility_flag,
                  const ::Light *la,
+                 const LightLinking *light_linking /* = nullptr */,
                  float threshold)
 {
   using namespace blender::math;
@@ -97,6 +104,16 @@ void Light::sync(ShadowModule &shadows,
   }
   else {
     shadow_discard_safe(shadows);
+  }
+
+  if (light_linking) {
+    this->light_set_membership = uint64_to_uint2(light_linking->runtime.light_set_membership);
+    this->shadow_set_membership = uint64_to_uint2(light_linking->runtime.shadow_set_membership);
+  }
+  else {
+    /* Set all bits if light linking is not used. */
+    this->light_set_membership = uint64_to_uint2(~uint64_t(0));
+    this->shadow_set_membership = uint64_to_uint2(~uint64_t(0));
   }
 
   this->initialized = true;
@@ -229,8 +246,7 @@ void Light::shape_parameters_set(const ::Light *la,
     this->local.shadow_radius = (la->radius > 0.0f) ? max_ff(1e-8f, local.shadow_radius) : 0.0f;
     /* Set to default position. */
     this->local.shadow_position = float3(0.0f);
-    /* Ensure a minimum radius/energy ratio to avoid harsh cut-offs. (See 114284) */
-    this->local.shape_radius = max(la->radius, la->energy * 2e-05f);
+    this->local.shape_radius = la->radius;
     /* Clamp to minimum value before float imprecision artifacts appear. */
     this->local.shape_radius = max(0.001f, this->local.shape_radius);
   }
@@ -365,7 +381,7 @@ void LightModule::begin_sync()
 
     Light &light = light_map_.lookup_or_add_default(world_sunlight_key);
     light.used = true;
-    light.sync(inst_.shadows, float4x4::identity(), 0, &la, light_threshold_);
+    light.sync(inst_.shadows, float4x4::identity(), 0, &la, nullptr, light_threshold_);
 
     sun_lights_len_ += 1;
   }
@@ -388,7 +404,12 @@ void LightModule::sync_light(const Object *ob, ObjectHandle &handle)
   light.used = true;
   if (handle.recalc != 0 || !light.initialized) {
     light.initialized = true;
-    light.sync(inst_.shadows, ob->object_to_world(), ob->visibility_flag, la, light_threshold_);
+    light.sync(inst_.shadows,
+               ob->object_to_world(),
+               ob->visibility_flag,
+               la,
+               ob->light_linking,
+               light_threshold_);
   }
   sun_lights_len_ += int(is_sun_light(light.type));
   local_lights_len_ += int(!is_sun_light(light.type));

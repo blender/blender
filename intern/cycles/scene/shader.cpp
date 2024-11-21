@@ -813,13 +813,13 @@ float ShaderManager::linear_rgb_to_gray(float3 c)
 
 float3 ShaderManager::rec709_to_scene_linear(float3 c)
 {
-  return make_float3(dot(rec709_to_r, c), dot(rec709_to_g, c), dot(rec709_to_b, c));
+  return to_local(c, rec709_to_r, rec709_to_g, rec709_to_b);
 }
 
 string ShaderManager::get_cryptomatte_materials(Scene *scene)
 {
   string manifest = "{";
-  unordered_set<ustring, ustringHash> materials;
+  unordered_set<ustring> materials;
   foreach (Shader *shader, scene->shaders) {
     if (materials.count(shader->name)) {
       continue;
