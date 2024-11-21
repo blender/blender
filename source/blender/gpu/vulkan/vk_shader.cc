@@ -583,6 +583,11 @@ bool VKShader::finalize(const shader::ShaderCreateInfo *info)
   if (compilation_failed) {
     return false;
   }
+  /* Add-ons that still use old API will crash as the shader create info isn't available.
+   * See #130555 */
+  if (info == nullptr) {
+    return false;
+  }
 
   if (do_geometry_shader_injection(info)) {
     std::string source = workaround_geometry_shader_source_create(*info);
