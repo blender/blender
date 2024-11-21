@@ -35,6 +35,25 @@ struct bPose;
 struct bPoseChannel;
 struct bPoseChannel_Runtime;
 
+namespace blender::animrig {
+
+/**
+ * Action slot handle type.
+ *
+ * An identifier of slots within an action that is guaranteed to be unique
+ * within that action and is guaranteed not to change for a slot.
+ *
+ * NOTE: keep this type in sync with `ActionSlot::handle` in the action DNA
+ * types. We redefine it here rather than making a type alias to avoid bringing
+ * in the entirety of DNA_action_types.h for everything that includes this
+ * header.
+ *
+ * \see `ActionSlot::handle`
+ */
+using slot_handle_t = int32_t;
+
+}  // namespace blender::animrig
+
 /* Action Lib Stuff ----------------- */
 
 /* Allocate a new bAction with the given name */

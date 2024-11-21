@@ -80,11 +80,12 @@ static blender::IndexRange get_bounding_bezt_index_range(const FCurve *fcu,
 
 /* TODO: draw a shaded poly showing the region of influence too!!! */
 /**
- * \param adt_nla_remap: Send nullptr if no NLA remapping necessary.
+ * \param ale_nla_remap: the anim list element of the fcurve that this modifier
+ * is on. This is used to do NLA time remapping, as appropriate.
  */
 static void draw_fcurve_modifier_controls_envelope(FModifier *fcm,
                                                    View2D *v2d,
-                                                   AnimData *adt_nla_remap)
+                                                   bAnimListElem *ale_nla_remap)
 {
   FMod_Envelope *env = (FMod_Envelope *)fcm->data;
   FCM_EnvelopeData *fed;
@@ -131,8 +132,8 @@ static void draw_fcurve_modifier_controls_envelope(FModifier *fcm,
     immBeginAtMost(GPU_PRIM_POINTS, env->totvert * 2);
 
     for (i = 0, fed = env->data; i < env->totvert; i++, fed++) {
-      const float env_scene_time = BKE_nla_tweakedit_remap(
-          adt_nla_remap, fed->time, NLATIME_CONVERT_MAP);
+      const float env_scene_time = ANIM_nla_tweakedit_remap(
+          ale_nla_remap, fed->time, NLATIME_CONVERT_MAP);
 
       /* only draw if visible
        * - min/max here are fixed, not relative
@@ -1143,10 +1144,9 @@ static void draw_fcurve(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, bAn
 {
   FCurve *fcu = (FCurve *)ale->key_data;
   FModifier *fcm = find_active_fmodifier(&fcu->modifiers);
-  AnimData *adt = ANIM_nla_mapping_get(ac, ale);
 
   /* map keyframes for drawing if scaled F-Curve */
-  ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), false, false);
+  ANIM_nla_mapping_apply_if_needed_fcurve(ale, static_cast<FCurve *>(ale->key_data), false, false);
 
   /* draw curve:
    * - curve line may be result of one or more destructive modifiers or just the raw data,
@@ -1213,20 +1213,23 @@ static void draw_fcurve(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, bAn
       /* draw a curve affected by modifiers or only allowed to have integer values
        * by sampling it at various small-intervals over the visible region
        */
-      if (adt) {
-        /* We have to do this mapping dance since the keyframes were remapped but the F-modifier
-         * evaluations are not.
-         *
-         * So we undo the keyframe remapping and instead remap the evaluation time when drawing the
-         * curve itself. Afterward, we go back and redo the keyframe remapping so the controls are
-         * drawn properly. */
-        ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), true, false);
-        draw_fcurve_curve(ac, ale->id, fcu, &region->v2d, shdr_pos, true, draw_extrapolation);
-        ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), false, false);
-      }
-      else {
-        draw_fcurve_curve(ac, ale->id, fcu, &region->v2d, shdr_pos, false, draw_extrapolation);
-      }
+      /* We have to do this mapping dance since the keyframes were remapped but the F-modifier
+       * evaluations are not.
+       *
+       * So we undo the keyframe remapping and instead remap the evaluation time when drawing
+       * the curve itself. Afterward, we go back and redo the keyframe remapping so the controls
+       * are drawn properly. */
+      ANIM_nla_mapping_apply_if_needed_fcurve(
+          ale, static_cast<FCurve *>(ale->key_data), true, false);
+      draw_fcurve_curve(ac,
+                        ale->id,
+                        fcu,
+                        &region->v2d,
+                        shdr_pos,
+                        ANIM_nla_mapping_allowed(ale),
+                        draw_extrapolation);
+      ANIM_nla_mapping_apply_if_needed_fcurve(
+          ale, static_cast<FCurve *>(ale->key_data), false, false);
     }
     else if (((fcu->bezt) || (fcu->fpt)) && (fcu->totvert)) {
       /* just draw curve based on defined data (i.e. no modifiers) */
@@ -1258,7 +1261,7 @@ static void draw_fcurve(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, bAn
       if ((fcu->flag & FCURVE_ACTIVE) && (fcm)) {
         switch (fcm->type) {
           case FMODIFIER_TYPE_ENVELOPE: /* envelope */
-            draw_fcurve_modifier_controls_envelope(fcm, &region->v2d, adt);
+            draw_fcurve_modifier_controls_envelope(fcm, &region->v2d, ale);
             break;
         }
       }
@@ -1303,9 +1306,7 @@ static void draw_fcurve(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, bAn
   }
 
   /* undo mapping of keyframes for drawing if scaled F-Curve */
-  if (adt) {
-    ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), true, false);
-  }
+  ANIM_nla_mapping_apply_if_needed_fcurve(ale, static_cast<FCurve *>(ale->key_data), true, false);
 }
 
 /* Debugging -------------------------------- */

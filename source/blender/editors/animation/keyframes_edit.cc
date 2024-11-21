@@ -361,15 +361,11 @@ static short summary_keyframes_loop(KeyframeEditData *ked,
           float f1 = ked->f1;
           float f2 = ked->f2;
 
-          if (ked->iterflags & (KED_F1_NLA_UNMAP | KED_F2_NLA_UNMAP)) {
-            AnimData *adt = ANIM_nla_mapping_get(ac, ale);
-
-            if (ked->iterflags & KED_F1_NLA_UNMAP) {
-              ked->f1 = BKE_nla_tweakedit_remap(adt, f1, NLATIME_CONVERT_UNMAP);
-            }
-            if (ked->iterflags & KED_F2_NLA_UNMAP) {
-              ked->f2 = BKE_nla_tweakedit_remap(adt, f2, NLATIME_CONVERT_UNMAP);
-            }
+          if (ked->iterflags & KED_F1_NLA_UNMAP) {
+            ked->f1 = ANIM_nla_tweakedit_remap(ale, f1, NLATIME_CONVERT_UNMAP);
+          }
+          if (ked->iterflags & KED_F2_NLA_UNMAP) {
+            ked->f2 = ANIM_nla_tweakedit_remap(ale, f2, NLATIME_CONVERT_UNMAP);
           }
 
           /* now operate on the channel as per normal */

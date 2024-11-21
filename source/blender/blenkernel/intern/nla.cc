@@ -781,7 +781,7 @@ float nlastrip_get_frame(NlaStrip *strip, float cframe, short mode)
   }
 }
 
-float BKE_nla_tweakedit_remap(AnimData *adt, float cframe, short mode)
+float BKE_nla_tweakedit_remap(AnimData *adt, const float cframe, const eNlaTime_ConvertModes mode)
 {
   NlaStrip *strip;
 

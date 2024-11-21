@@ -1829,7 +1829,6 @@ eKeyPasteError paste_animedit_keys(bAnimContext *ac,
          *   (group check is not that important).
          * - Most importantly, rna-paths should match (array indices are unimportant for now)
          */
-        AnimData *adt = ANIM_nla_mapping_get(ac, ale);
         FCurve *fcu = (FCurve *)ale->data; /* destination F-Curve */
         tAnimCopybufItem *aci = nullptr;
 
@@ -1855,14 +1854,12 @@ eKeyPasteError paste_animedit_keys(bAnimContext *ac,
           totmatch++;
 
           offset[1] = paste_get_y_offset(ac, aci, ale, value_offset_mode);
-          if (adt) {
-            ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), false, false);
-            paste_animedit_keys_fcurve(fcu, aci, offset, merge_mode, flip);
-            ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), true, false);
-          }
-          else {
-            paste_animedit_keys_fcurve(fcu, aci, offset, merge_mode, flip);
-          }
+
+          ANIM_nla_mapping_apply_if_needed_fcurve(
+              ale, static_cast<FCurve *>(ale->key_data), false, false);
+          paste_animedit_keys_fcurve(fcu, aci, offset, merge_mode, flip);
+          ANIM_nla_mapping_apply_if_needed_fcurve(
+              ale, static_cast<FCurve *>(ale->key_data), true, false);
         }
 
         ale->update |= ANIM_UPDATE_DEFAULT;
