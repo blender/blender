@@ -58,8 +58,8 @@ static Result horizontal_pass(Context &context,
 
   input.bind_as_texture(shader, "input_tx");
 
-  const SymmetricSeparableBlurWeights &weights =
-      context.cache_manager().symmetric_separable_blur_weights.get(context, filter_type, radius);
+  const Result &weights = context.cache_manager().symmetric_separable_blur_weights.get(
+      context, filter_type, radius);
   weights.bind_as_texture(shader, "weights_tx");
 
   Domain domain = input.domain();
@@ -109,8 +109,8 @@ static void vertical_pass(Context &context,
 
   horizontal_pass_result.bind_as_texture(shader, "input_tx");
 
-  const SymmetricSeparableBlurWeights &weights =
-      context.cache_manager().symmetric_separable_blur_weights.get(context, filter_type, radius.y);
+  const Result &weights = context.cache_manager().symmetric_separable_blur_weights.get(
+      context, filter_type, radius.y);
   weights.bind_as_texture(shader, "weights_tx");
 
   Domain domain = original_input.domain();

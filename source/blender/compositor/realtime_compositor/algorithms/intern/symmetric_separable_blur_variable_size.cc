@@ -52,9 +52,10 @@ static Result horizontal_pass(
 
   input.bind_as_texture(shader, "input_tx");
 
-  const SymmetricSeparableBlurWeights &weights =
-      context.cache_manager().symmetric_separable_blur_weights.get(
-          context, filter_type, weights_resolution);
+  const Result &weights = context.cache_manager().symmetric_separable_blur_weights.get(
+      context, filter_type, weights_resolution);
+  GPU_texture_filter_mode(weights, true);
+  GPU_texture_extend_mode(weights, GPU_SAMPLER_EXTEND_MODE_EXTEND);
   weights.bind_as_texture(shader, "weights_tx");
 
   radius.bind_as_texture(shader, "radius_tx");
@@ -100,9 +101,10 @@ static void vertical_pass(Context &context,
 
   horizontal_pass_result.bind_as_texture(shader, "input_tx");
 
-  const SymmetricSeparableBlurWeights &weights =
-      context.cache_manager().symmetric_separable_blur_weights.get(
-          context, filter_type, weights_resolution);
+  const Result &weights = context.cache_manager().symmetric_separable_blur_weights.get(
+      context, filter_type, weights_resolution);
+  GPU_texture_filter_mode(weights, true);
+  GPU_texture_extend_mode(weights, GPU_SAMPLER_EXTEND_MODE_EXTEND);
   weights.bind_as_texture(shader, "weights_tx");
 
   radius.bind_as_texture(shader, "radius_tx");

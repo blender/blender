@@ -13,7 +13,7 @@ vec4 load_input(ivec2 texel)
      * we load the input with an offset by the radius amount and fallback to a transparent color if
      * it is out of bounds. Notice that we subtract 1 because the weights texture have an extra
      * center weight, see the SymmetricSeparableBlurWeights for more information. */
-    int blur_size = texture_size(weights_tx) - 1;
+    int blur_size = texture_size(weights_tx).x - 1;
     color = texture_load(input_tx, texel - ivec2(blur_size, 0), vec4(0.0));
   }
   else {
@@ -35,14 +35,14 @@ void main()
 
   /* First, compute the contribution of the center pixel. */
   vec4 center_color = load_input(texel);
-  accumulated_color += center_color * texture_load(weights_tx, 0).x;
+  accumulated_color += center_color * texture_load(weights_tx, ivec2(0)).x;
 
   /* Then, compute the contributions of the pixel to the right and left, noting that the
    * weights texture only stores the weights for the positive half, but since the filter is
    * symmetric, the same weight is used for the negative half and we add both of their
    * contributions. */
-  for (int i = 1; i < texture_size(weights_tx); i++) {
-    float weight = texture_load(weights_tx, i).x;
+  for (int i = 1; i < texture_size(weights_tx).x; i++) {
+    float weight = texture_load(weights_tx, ivec2(i, 0)).x;
     accumulated_color += load_input(texel + ivec2(i, 0)) * weight;
     accumulated_color += load_input(texel + ivec2(-i, 0)) * weight;
   }

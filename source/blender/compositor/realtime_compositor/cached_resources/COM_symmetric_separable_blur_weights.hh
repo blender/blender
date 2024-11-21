@@ -7,11 +7,9 @@
 #include <cstdint>
 #include <memory>
 
+#include "BLI_array.hh"
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
-
-#include "GPU_shader.hh"
-#include "GPU_texture.hh"
 
 #include "COM_cached_resource.hh"
 
@@ -49,16 +47,15 @@ bool operator==(const SymmetricSeparableBlurWeightsKey &a,
 
 class SymmetricSeparableBlurWeights : public CachedResource {
  private:
-  GPUTexture *texture_ = nullptr;
+  Array<float> weights_;
+
+ public:
+  Result result;
 
  public:
   SymmetricSeparableBlurWeights(Context &context, int type, float radius);
 
   ~SymmetricSeparableBlurWeights();
-
-  void bind_as_texture(GPUShader *shader, const char *texture_name) const;
-
-  void unbind_as_texture() const;
 };
 
 /** \} */
@@ -78,7 +75,7 @@ class SymmetricSeparableBlurWeightsContainer : public CachedResourceContainer {
    * parameters in the container, if one exists, return it, otherwise, return a newly created one
    * and add it to the container. In both cases, tag the cached resource as needed to keep it
    * cached for the next evaluation. */
-  SymmetricSeparableBlurWeights &get(Context &context, int type, float radius);
+  Result &get(Context &context, int type, float radius);
 };
 
 /** \} */
