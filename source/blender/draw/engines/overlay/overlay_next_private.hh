@@ -215,7 +215,7 @@ class ShaderModule {
   ShaderPtr curve_edit_handles = shader("overlay_edit_curves_handle_next");
   ShaderPtr extra_point;
   ShaderPtr facing;
-  ShaderPtr grid = shader("overlay_grid");
+  ShaderPtr grid = shader("overlay_grid_next");
   ShaderPtr grid_background;
   ShaderPtr grid_grease_pencil = shader("overlay_gpencil_canvas");
   ShaderPtr grid_image;

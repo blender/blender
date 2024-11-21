@@ -378,12 +378,6 @@ void Instance::draw(Manager &manager)
 
   int2 render_size = int2(resources.depth_tx.size());
 
-  /* TODO(fclem): Remove mandatory allocation. */
-  if (!resources.depth_in_front_tx.is_valid()) {
-    resources.depth_in_front_alloc_tx.acquire(render_size, GPU_DEPTH24_STENCIL8);
-    resources.depth_in_front_tx.wrap(resources.depth_in_front_alloc_tx);
-  }
-
   if (state.xray_enabled) {
     /* For X-ray we render the scene to a separate depth buffer. */
     resources.xray_depth_tx.acquire(render_size, GPU_DEPTH24_STENCIL8);
@@ -391,6 +385,11 @@ void Instance::draw(Manager &manager)
     resources.depth_target_in_front_tx.wrap(resources.xray_depth_tx);
   }
   else {
+    /* TODO(fclem): Remove mandatory allocation. */
+    if (!resources.depth_in_front_tx.is_valid()) {
+      resources.depth_in_front_alloc_tx.acquire(render_size, GPU_DEPTH24_STENCIL8);
+      resources.depth_in_front_tx.wrap(resources.depth_in_front_alloc_tx);
+    }
     resources.depth_target_tx.wrap(resources.depth_tx);
     resources.depth_target_in_front_tx.wrap(resources.depth_in_front_tx);
   }
@@ -521,6 +520,13 @@ void Instance::draw_v3d(Manager &manager, View &view)
   regular.empties.draw_images(resources.overlay_fb, manager, view);
 
   regular.prepass.draw(resources.overlay_line_fb, manager, view);
+
+  if (!state.xray_enabled && state.v3d && state.v3d->shading.type > OB_SOLID) {
+    /* If workbench is not enabled, the infront buffer might contain garbage. */
+    GPU_framebuffer_bind(resources.overlay_line_in_front_fb);
+    GPU_framebuffer_clear_depth(resources.overlay_line_in_front_fb, 1.0f);
+  }
+
   infront.prepass.draw(resources.overlay_line_in_front_fb, manager, view);
 
   outline.draw(resources, manager, view);
