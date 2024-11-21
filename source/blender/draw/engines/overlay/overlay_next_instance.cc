@@ -185,6 +185,8 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
       case OB_MESH:
         /* TODO(fclem): Make it part of a #Meshes. */
         layer.paints.object_sync(manager, ob_ref, state);
+        /* For wireframes. */
+        layer.mesh_uvs.edit_object_sync(manager, ob_ref, state);
         break;
       case OB_GREASE_PENCIL:
         layer.grease_pencil.paint_object_sync(manager, ob_ref, state, resources);
