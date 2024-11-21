@@ -784,6 +784,12 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           undo_str = "Rename NLA Track";
           break;
         }
+        case TSE_MODIFIER: {
+          WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER | NA_RENAME, nullptr);
+          DEG_relations_tag_update(bmain);
+          undo_str = "Rename Modifier";
+          break;
+        }
         case TSE_EBONE: {
           bArmature *arm = (bArmature *)tselem->id;
           if (arm->edbo) {
