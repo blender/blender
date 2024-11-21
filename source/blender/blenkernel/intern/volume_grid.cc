@@ -273,7 +273,7 @@ void VolumeGridData::ensure_grid_loaded() const
     loaded_grid.grid = openvdb::FloatGrid::create();
   }
   BLI_assert(loaded_grid.grid);
-  BLI_assert(loaded_grid.grid.unique());
+  BLI_assert(loaded_grid.grid.use_count() == 1);
 
   if (!loaded_grid.tree_sharing_info) {
     BLI_assert(loaded_grid.grid->isTreeUnique());
