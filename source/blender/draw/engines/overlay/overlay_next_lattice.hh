@@ -30,6 +30,7 @@ class Lattices {
   void begin_sync(Resources &res, const State &state)
   {
     enabled_ = state.space_type == SPACE_VIEW3D;
+    enabled_ &= !(state.overlay.flag & V3D_OVERLAY_HIDE_OBJECT_XTRAS);
     if (!enabled_) {
       return;
     }
@@ -76,9 +77,7 @@ class Lattices {
 
   void object_sync(Manager &manager, const ObjectRef &ob_ref, Resources &res, const State &state)
   {
-    if (!enabled_ || ob_ref.object->dt == OB_BOUNDBOX ||
-        state.overlay.flag & V3D_OVERLAY_HIDE_OBJECT_XTRAS)
-    {
+    if (!enabled_) {
       return;
     }
 
