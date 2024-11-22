@@ -22,7 +22,7 @@ class Names {
   void begin_sync(Resources &res, const State &state)
   {
     enabled_ = state.space_type == SPACE_VIEW3D && (res.selection_type == SelectionType::DISABLED);
-    enabled_ &= DRW_state_show_text();
+    enabled_ &= state.show_text;
 
     if (!enabled_) {
       return;

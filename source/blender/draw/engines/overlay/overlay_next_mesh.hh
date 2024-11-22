@@ -346,7 +346,7 @@ class Meshes {
       gpu::Batch *geom = DRW_mesh_batch_cache_get_edit_skin_roots(mesh);
       edit_mesh_skin_roots_ps_.draw_expand(geom, GPU_PRIM_LINES, 32, 1, res_handle);
     }
-    if (DRW_state_show_text() && (state.overlay.edit_flag & overlay_edit_text)) {
+    if (state.show_text && (state.overlay.edit_flag & overlay_edit_text)) {
       DRW_text_edit_mesh_measure_stats(state.region, state.v3d, ob, &state.scene->unit, state.dt);
     }
   }

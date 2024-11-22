@@ -60,7 +60,7 @@ class Prepass {
       grease_pencil_view = {DRW_view_is_persp_get(nullptr), viewinv};
     }
 
-    use_material_slot_selection_ = DRW_state_is_material_select();
+    use_material_slot_selection_ = state.is_material_select;
 
     const View3DShading &shading = state.v3d->shading;
     bool use_cull = ((shading.type == OB_SOLID) && (shading.flag & V3D_SHADING_BACKFACE_CULLING));
@@ -161,7 +161,7 @@ class Prepass {
     particle_sync(manager, ob_ref, res, state);
 
     const bool use_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob_ref.object, state.rv3d) &&
-                                 !DRW_state_is_image_render();
+                                 !state.is_image_render;
 
     if (use_sculpt_pbvh) {
       sculpt_sync(manager, ob_ref, res);

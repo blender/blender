@@ -36,6 +36,12 @@ void Instance::init()
   state.object_active = ctx->obact;
   state.object_mode = ctx->object_mode;
   state.cfra = DEG_get_ctime(state.depsgraph);
+  state.is_viewport_image_render = DRW_state_is_viewport_image_render();
+  state.is_image_render = DRW_state_is_image_render();
+  state.is_depth_only_drawing = DRW_state_is_depth();
+  state.is_material_select = DRW_state_is_material_select();
+  state.draw_background = DRW_state_draw_background();
+  state.show_text = DRW_state_show_text();
 
   /* Note there might be less than 6 planes, but we always compute the 6 of them for simplicity. */
   state.clipping_plane_count = clipping_enabled_ ? 6 : 0;
