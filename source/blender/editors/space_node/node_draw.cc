@@ -50,6 +50,7 @@
 #include "BKE_object.hh"
 #include "BKE_scene.hh"
 #include "BKE_scene_runtime.hh"
+#include "BKE_screen.hh"
 #include "BKE_type_conversions.hh"
 
 #include "IMB_imbuf.hh"
@@ -5141,7 +5142,7 @@ void node_draw_space(const bContext &C, ARegion &region)
 
         wmOrtho2_pixelspace(region.winx, region.winy);
 
-        WM_gizmomap_draw(region.gizmo_map, &C, WM_GIZMOMAP_DRAWSTEP_2D);
+        WM_gizmomap_draw(region.runtime->gizmo_map, &C, WM_GIZMOMAP_DRAWSTEP_2D);
 
         GPU_matrix_pop();
         GPU_matrix_projection_set(original_proj);

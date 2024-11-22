@@ -136,7 +136,7 @@ void GPU_select_begin_next(GPUSelectBuffer *buffer,
                            eGPUSelectMode mode,
                            int oldhits)
 {
-  gpu_select_begin_ex(buffer, input, mode, oldhits, U.experimental.enable_overlay_next);
+  gpu_select_begin_ex(buffer, input, mode, oldhits, !U.experimental.enable_overlay_legacy);
 }
 
 void GPU_select_begin(GPUSelectBuffer *buffer, const rcti *input, eGPUSelectMode mode, int oldhits)

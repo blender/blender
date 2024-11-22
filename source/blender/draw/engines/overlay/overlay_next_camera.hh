@@ -100,23 +100,20 @@ class Cameras {
     Empties::CallBuffers empties{selection_type_};
   } call_buffers_;
 
-  static void view3d_reconstruction(const select::ID select_id,
-                                    const Scene *scene,
-                                    const View3D *v3d,
-                                    const float4 &color,
-                                    const ObjectRef &ob_ref,
-                                    const bool is_select,
-                                    Resources &res,
-                                    CallBuffers &call_buffers)
+  void sync_view3d_reconstruction(const ObjectRef &ob_ref, Resources &res, const State &state)
   {
-    const DRWContextState *draw_ctx = DRW_context_state_get();
     Object *ob = ob_ref.object;
+    const View3D *v3d = state.v3d;
+    const Scene *scene = state.scene;
 
-    MovieClip *clip = BKE_object_movieclip_get((Scene *)scene, ob, false);
+    MovieClip *clip = BKE_object_movieclip_get(const_cast<Scene *>(scene), ob, false);
     if (clip == nullptr) {
       return;
     }
 
+    const float4 &color = res.object_wire_color(ob_ref, state);
+
+    const bool is_selection = res.selection_type != SelectionType::DISABLED;
     const bool is_solid_bundle = (v3d->bundle_drawtype == OB_EMPTY_SPHERE) &&
                                  ((v3d->shading.type != OB_SOLID) || !XRAY_FLAG_ENABLED(v3d));
 
@@ -147,7 +144,7 @@ class Cameras {
       }
       else {
         const int framenr = BKE_movieclip_remap_scene_to_clip_frame(
-            clip, DEG_get_ctime(draw_ctx->depsgraph));
+            clip, DEG_get_ctime(state.depsgraph));
 
         float4x4 object_mat;
         BKE_tracking_camera_get_reconstructed_interpolate(
@@ -185,8 +182,7 @@ class Cameras {
           bundle_color = bundle_color_unselected;
         }
 
-        const select::ID track_select_id = is_select ? res.select_id(ob_ref, track_index++ << 16) :
-                                                       select_id;
+        const select::ID track_select_id = res.select_id(ob_ref, track_index++ << 16);
         if (is_solid_bundle) {
           if (is_selected) {
             Empties::object_sync(track_select_id,
@@ -194,10 +190,10 @@ class Cameras {
                                  v3d->bundle_size,
                                  v3d->bundle_drawtype,
                                  color,
-                                 call_buffers.empties);
+                                 call_buffers_.empties);
           }
 
-          call_buffers.sphere_solid_buf.append(
+          call_buffers_.sphere_solid_buf.append(
               ExtraInstanceData{bundle_mat, float4(float3(bundle_color), 1.0f), v3d->bundle_size},
               track_select_id);
         }
@@ -207,10 +203,10 @@ class Cameras {
                                v3d->bundle_size,
                                v3d->bundle_drawtype,
                                bundle_color,
-                               call_buffers.empties);
+                               call_buffers_.empties);
         }
 
-        if ((v3d->flag2 & V3D_SHOW_BUNDLENAME) && !is_select) {
+        if ((v3d->flag2 & V3D_SHOW_BUNDLENAME) && !is_selection) {
           DRWTextStore *dt = DRW_text_cache_ensure();
 
           DRW_text_cache_add(dt,
@@ -225,7 +221,7 @@ class Cameras {
       }
 
       if ((v3d->flag2 & V3D_SHOW_CAMERAPATH) && (tracking_object->flag & TRACKING_OBJECT_CAMERA) &&
-          !is_select)
+          !is_selection)
       {
         const MovieTrackingReconstruction *reconstruction = &tracking_object->reconstruction;
 
@@ -238,7 +234,7 @@ class Cameras {
             if (a > 0) {
               /* This one is suboptimal (gl_lines instead of gl_line_strip)
                * but we keep this for simplicity */
-              call_buffers.tracking_path.append(v0, v1, TH_CAMERA_PATH);
+              call_buffers_.tracking_path.append(v0, v1, TH_CAMERA_PATH);
             }
           }
         }
@@ -250,14 +246,13 @@ class Cameras {
    * Draw the stereo 3d support elements (cameras, plane, volume).
    * They are only visible when not looking through the camera:
    */
-  static void stereoscopy_extra(const CameraInstanceData &instdata,
-                                const select::ID select_id,
-                                const Scene *scene,
-                                const View3D *v3d,
-                                const bool is_select,
-                                Resources &res,
-                                Object *ob,
-                                CallBuffers &call_buffers)
+  static void sync_stereoscopy_extra(const CameraInstanceData &instdata,
+                                     const select::ID cam_select_id,
+                                     const Scene *scene,
+                                     const View3D *v3d,
+                                     Resources &res,
+                                     Object *ob,
+                                     CallBuffers &call_buffers)
   {
     CameraInstanceData stereodata = instdata;
 
@@ -267,10 +262,11 @@ class Cameras {
     const bool is_stereo3d_cameras = (v3d->stereo3d_flag & V3D_S3D_DISPCAMERAS) != 0;
     const bool is_stereo3d_plane = (v3d->stereo3d_flag & V3D_S3D_DISPPLANE) != 0;
     const bool is_stereo3d_volume = (v3d->stereo3d_flag & V3D_S3D_DISPVOLUME) != 0;
+    const bool is_selection = res.selection_type != SelectionType::DISABLED;
 
     if (!is_stereo3d_cameras) {
       /* Draw single camera. */
-      call_buffers.frame_buf.append(instdata, select_id);
+      call_buffers.frame_buf.append(instdata, cam_select_id);
     }
 
     for (const int eye : IndexRange(2)) {
@@ -279,46 +275,51 @@ class Cameras {
 
       stereodata.corner_x = instdata.corner_x;
       stereodata.corner_y = instdata.corner_y;
-      stereodata.center_x = instdata.center_x +
-                            camera_offaxis_shiftx_get(scene, ob, instdata.corner_x, eye);
+      stereodata.center_x = instdata.center_x;
       stereodata.center_y = instdata.center_y;
       stereodata.depth = instdata.depth;
 
+      stereodata.center_x += camera_offaxis_shiftx_get(scene, ob, instdata.corner_x, eye);
+
       if (is_stereo3d_cameras) {
-        call_buffers.frame_buf.append(stereodata, select_id);
+        call_buffers.frame_buf.append(stereodata, cam_select_id);
 
         /* Connecting line between cameras. */
         call_buffers.stereo_connect_lines.append(stereodata.matrix.location(),
                                                  instdata.object_to_world_.location(),
                                                  res.theme_settings.color_wire,
-                                                 select_id);
+                                                 cam_select_id);
       }
 
-      if (is_stereo3d_volume && !is_select) {
+      if (is_stereo3d_volume && !is_selection) {
         float r = (eye == 1) ? 2.0f : 1.0f;
 
         stereodata.volume_start = -cam->clip_start;
         stereodata.volume_end = -cam->clip_end;
         /* Encode eye + intensity and alpha (see shader) */
-        copy_v2_fl2(stereodata.color_, r + 0.15f, 1.0f);
-        call_buffers.volume_wire_buf.append(stereodata, select_id);
+        stereodata.color_.x = r + 0.15f;
+        stereodata.color_.y = 1.0f;
+        call_buffers.volume_wire_buf.append(stereodata, cam_select_id);
 
         if (v3d->stereo3d_volume_alpha > 0.0f) {
           /* Encode eye + intensity and alpha (see shader) */
-          copy_v2_fl2(stereodata.color_, r + 0.999f, v3d->stereo3d_volume_alpha);
-          call_buffers.volume_buf.append(stereodata, select_id);
+          stereodata.color_.x = r + 0.999f;
+          stereodata.color_.y = v3d->stereo3d_volume_alpha;
+          call_buffers.volume_buf.append(stereodata, cam_select_id);
         }
         /* restore */
-        copy_v3_v3(stereodata.color_, instdata.color_);
+        stereodata.color_.x = instdata.color_.x;
+        stereodata.color_.y = instdata.color_.y;
+        stereodata.color_.z = instdata.color_.z;
       }
     }
 
-    if (is_stereo3d_plane && !is_select) {
+    if (is_stereo3d_plane && !is_selection) {
       if (cam->stereo.convergence_mode == CAM_S3D_TOE) {
         /* There is no real convergence plane but we highlight the center
          * point where the views are pointing at. */
-        // zero_v3(stereodata.mat[0]); /* We reconstruct from Z and Y */
-        // zero_v3(stereodata.mat[1]); /* Y doesn't change */
+        // stereodata.matrix.x_axis() = float3(0.0f); /* We reconstruct from Z and Y */
+        // stereodata.matrix.y_axis() = float3(0.0f); /* Y doesn't change */
         stereodata.matrix.z_axis() = float3(0.0f);
         stereodata.matrix.location() = float3(0.0f);
         for (int i : IndexRange(2)) {
@@ -347,18 +348,21 @@ class Cameras {
       stereodata.volume_start = -cam->stereo.convergence_distance;
       stereodata.volume_end = -cam->stereo.convergence_distance;
       /* Encode eye + intensity and alpha (see shader) */
-      copy_v2_fl2(stereodata.color_, 0.1f, 1.0f);
-      call_buffers.volume_wire_buf.append(stereodata, select_id);
+      stereodata.color_.x = 0.1f;
+      stereodata.color_.y = 1.0f;
+      call_buffers.volume_wire_buf.append(stereodata, cam_select_id);
 
       if (v3d->stereo3d_convergence_alpha > 0.0f) {
         /* Encode eye + intensity and alpha (see shader) */
-        copy_v2_fl2(stereodata.color_, 0.0f, v3d->stereo3d_convergence_alpha);
-        call_buffers.volume_buf.append(stereodata, select_id);
+        stereodata.color_.x = 0.0f;
+        stereodata.color_.y = v3d->stereo3d_convergence_alpha;
+        call_buffers.volume_buf.append(stereodata, cam_select_id);
       }
     }
   }
 
   bool enabled_ = false;
+  bool images_enabled_ = false;
 
  public:
   Cameras(const SelectionType selection_type) : call_buffers_{selection_type} {};
@@ -382,6 +386,12 @@ class Cameras {
     call_buffers_.tracking_path.clear();
     Empties::begin_sync(call_buffers_.empties);
 
+    images_enabled_ = res.selection_type == SelectionType::DISABLED;
+
+    if (!images_enabled_) {
+      return;
+    }
+
     float4x4 depth_bias_winmat = winmat_polygon_offset(
         view.winmat(), state.view_dist_get(view.winmat()), -1.0f);
 
@@ -396,7 +406,7 @@ class Cameras {
     };
 
     DRWState draw_state;
-    draw_state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_GREATER | DRW_STATE_BLEND_ALPHA_PREMUL;
+    draw_state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_PREMUL;
     init_pass(background_ps_, draw_state);
 
     draw_state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_UNDER_PREMUL;
@@ -424,7 +434,7 @@ class Cameras {
 
     const Camera *cam = static_cast<Camera *>(ob->data);
     const Object *camera_object = DEG_get_evaluated_object(state.depsgraph, v3d->camera);
-    const bool is_select = call_buffers_.selection_type_ == SelectionType::ENABLED;
+    const bool is_select = res.selection_type != SelectionType::DISABLED;
     const bool is_active = (ob == camera_object);
     const bool is_camera_view = (is_active && (rv3d->persp == RV3D_CAMOB));
 
@@ -487,7 +497,9 @@ class Cameras {
           data.center_x += camera_offaxis_shiftx_get(scene, ob, data.corner_x, is_right);
           for (int i : IndexRange(4)) {
             /* Partial copy to avoid overriding packed data. */
-            copy_v3_v3(data.matrix[i], mat[i].xyz());
+            for (int j : IndexRange(3)) {
+              data.matrix[i][j] = mat[i][j];
+            }
           }
         }
         data.depth *= -1.0f; /* Hides the back of the camera wires (see shader). */
@@ -497,7 +509,7 @@ class Cameras {
     else {
       /* Stereo cameras, volumes, plane drawing. */
       if (is_stereo3d_display_extra) {
-        stereoscopy_extra(data, select_id, scene, v3d, is_select, res, ob, call_buffers_);
+        sync_stereoscopy_extra(data, select_id, scene, v3d, res, ob, call_buffers_);
       }
       else {
         call_buffers_.frame_buf.append(data, select_id);
@@ -539,14 +551,7 @@ class Cameras {
 
     /* Motion Tracking. */
     if ((v3d->flag2 & V3D_SHOW_RECONSTRUCTION) != 0) {
-      view3d_reconstruction(select_id,
-                            scene,
-                            v3d,
-                            res.object_wire_color(ob_ref, state),
-                            ob_ref,
-                            is_select,
-                            res,
-                            call_buffers_);
+      sync_view3d_reconstruction(ob_ref, res, state);
     }
 
     if (is_camera_view && (cam->flag & CAM_SHOW_BG_IMAGE) &&
@@ -616,7 +621,7 @@ class Cameras {
 
   void pre_draw(Manager &manager, View &view)
   {
-    if (!enabled_) {
+    if (!images_enabled_) {
       return;
     }
 
@@ -636,9 +641,9 @@ class Cameras {
     manager.submit(ps_, view);
   }
 
-  void draw_scene_background_images(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_scene_background_images(GPUFrameBuffer *framebuffer, Manager &manager, View &view)
   {
-    if (!enabled_) {
+    if (!images_enabled_) {
       return;
     }
 
@@ -649,7 +654,7 @@ class Cameras {
 
   void draw_background_images(Framebuffer &framebuffer, Manager &manager, View &view)
   {
-    if (!enabled_) {
+    if (!images_enabled_) {
       return;
     }
 
@@ -659,7 +664,7 @@ class Cameras {
 
   void draw_in_front(Framebuffer &framebuffer, Manager &manager, View &view)
   {
-    if (!enabled_) {
+    if (!images_enabled_) {
       return;
     }
 
@@ -676,6 +681,10 @@ class Cameras {
                           Resources &res,
                           const SelectionType selection_type)
   {
+    if (!images_enabled_) {
+      return;
+    }
+
     Object *ob = ob_ref.object;
     const Camera *cam = static_cast<Camera *>(ob->data);
 

@@ -215,7 +215,7 @@ class ShaderModule {
   ShaderPtr curve_edit_handles = shader("overlay_edit_curves_handle_next");
   ShaderPtr extra_point;
   ShaderPtr facing;
-  ShaderPtr grid = shader("overlay_grid");
+  ShaderPtr grid = shader("overlay_grid_next");
   ShaderPtr grid_background;
   ShaderPtr grid_grease_pencil = shader("overlay_gpencil_canvas");
   ShaderPtr grid_image;
@@ -297,6 +297,7 @@ class ShaderModule {
   ShaderPtr image_plane_depth_bias;
   ShaderPtr lattice_points;
   ShaderPtr lattice_wire;
+  ShaderPtr light_spot_cone;
   ShaderPtr particle_dot;
   ShaderPtr particle_shape;
   ShaderPtr particle_hair;
@@ -353,6 +354,7 @@ struct Resources : public select::SelectMap {
   TextureFromPool overlay_tx = {"overlay_tx"};
   /* Target containing depth of overlays when xray is enabled. */
   TextureFromPool xray_depth_tx = {"xray_depth_tx"};
+  TextureFromPool xray_depth_in_front_tx = {"xray_depth_in_front_tx"};
 
   /* Texture that are usually allocated inside. These are fallback when they aren't.
    * They are then wrapped inside the #TextureRefs below. */

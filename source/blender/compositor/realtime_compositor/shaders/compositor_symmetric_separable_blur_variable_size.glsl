@@ -14,7 +14,7 @@ void main()
 
   /* First, compute the contribution of the center pixel. */
   vec4 center_color = texture_load(input_tx, texel);
-  float center_weight = texture_load(weights_tx, 0).x;
+  float center_weight = texture_load(weights_tx, ivec2(0)).x;
   accumulated_color += center_color * center_weight;
   accumulated_weight += center_weight;
 
@@ -29,7 +29,7 @@ void main()
    * contributions. */
   for (int i = 1; i <= radius; i++) {
     /* Add 0.5 to evaluate at the center of the pixels. */
-    float weight = texture(weights_tx, (float(i) + 0.5) / float(radius + 1)).x;
+    float weight = texture(weights_tx, vec2((float(i) + 0.5) / float(radius + 1), 0.0)).x;
     accumulated_color += texture_load(input_tx, texel + ivec2(i, 0)) * weight;
     accumulated_color += texture_load(input_tx, texel + ivec2(-i, 0)) * weight;
     accumulated_weight += weight * 2.0;

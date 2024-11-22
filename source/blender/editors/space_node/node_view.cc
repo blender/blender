@@ -15,6 +15,7 @@
 #include "BKE_context.hh"
 #include "BKE_image.hh"
 #include "BKE_node_runtime.hh"
+#include "BKE_screen.hh"
 
 #include "ED_image.hh"
 #include "ED_node.hh" /* own include */
@@ -662,9 +663,9 @@ static int sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   }
 
   info = MEM_cnew<ImageSampleInfo>("ImageSampleInfo");
-  info->art = region->type;
+  info->art = region->runtime->type;
   info->draw_handle = ED_region_draw_cb_activate(
-      region->type, sample_draw, info, REGION_DRAW_POST_PIXEL);
+      region->runtime->type, sample_draw, info, REGION_DRAW_POST_PIXEL);
   op->customdata = info;
 
   sample_apply(C, op, event);

@@ -11,9 +11,6 @@
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
 
-#include "GPU_shader.hh"
-#include "GPU_texture.hh"
-
 #include "DNA_movieclip_types.h"
 
 #include "COM_cached_resource.hh"
@@ -51,9 +48,9 @@ bool operator==(const DistortionGridKey &a, const DistortionGridKey &b);
 /* -------------------------------------------------------------------------------------------------
  * Distortion Grid.
  *
- * A cached resource that computes and caches a GPU texture containing the normalized coordinates
- * after applying the camera distortion of a given movie clip tracking camera. See the constructor
- * for more information. */
+ * A cached resource that computes and caches a result containing the normalized coordinates after
+ * applying the camera distortion of a given movie clip tracking camera. See the constructor for
+ * more information. */
 class DistortionGrid : public CachedResource {
  private:
   Array<float2> distortion_grid_;

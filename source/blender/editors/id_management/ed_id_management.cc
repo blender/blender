@@ -42,6 +42,7 @@ bool ED_id_rename(Main &bmain, ID &id, blender::StringRefNull name)
       return false;
     case IDNewNameResult::Action::RENAMED_NO_COLLISION:
       CLOG_INFO(&LOG, 4, "ID '%s' renamed without any collision", id.name + 2);
+      WM_main_add_notifier(NC_ID | NA_RENAME, &id);
       return true;
     case IDNewNameResult::Action::RENAMED_COLLISION_ADJUSTED:
       CLOG_INFO(&LOG,
@@ -54,6 +55,7 @@ bool ED_id_rename(Main &bmain, ID &id, blender::StringRefNull name)
                  "Data-block renamed to '%s', try again to force renaming it to '%s'",
                  id.name + 2,
                  name.c_str());
+      WM_main_add_notifier(NC_ID | NA_RENAME, &id);
       return true;
     case IDNewNameResult::Action::RENAMED_COLLISION_FORCED:
       CLOG_INFO(
@@ -64,6 +66,8 @@ bool ED_id_rename(Main &bmain, ID &id, blender::StringRefNull name)
       WM_reportf(RPT_INFO,
                  "Name in use. The other data-block was renamed to ‘%s’",
                  result.other_id->name + 2);
+      WM_main_add_notifier(NC_ID | NA_RENAME, &id);
+      WM_main_add_notifier(NC_ID | NA_RENAME, result.other_id);
       return true;
   }
 

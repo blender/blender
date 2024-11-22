@@ -1365,9 +1365,7 @@ class IMAGE_PT_tools_imagepaint_symmetry(BrushButtonsPanel, Panel):
 
 class IMAGE_PT_uv_sculpt_curve(Panel, ImagePaintPanel):
     bl_context = ".uv_sculpt"  # Dot on purpose (access from top-bar).
-    bl_category = "Tool"
     bl_label = "Falloff"
-    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
@@ -1379,7 +1377,6 @@ class IMAGE_PT_uv_sculpt_curve(Panel, ImagePaintPanel):
 
 class IMAGE_PT_uv_sculpt_options(Panel, ImagePaintPanel):
     bl_context = ".uv_sculpt"  # Dot on purpose (access from top-bar).
-    bl_category = "Tool"
     bl_label = "Options"
 
     def draw(self, context):

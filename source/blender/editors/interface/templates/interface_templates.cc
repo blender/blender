@@ -1404,10 +1404,8 @@ static void template_ID(const bContext *C,
      * ID. */
     UI_but_flag_disable(but, UI_BUT_UNDO);
     Main *bmain = CTX_data_main(C);
-    UI_but_func_rename_full_set(but, [bmain, id](std::string &new_name) {
-      ED_id_rename(*bmain, *id, new_name);
-      WM_main_add_notifier(NC_ID | NA_RENAME, nullptr);
-    });
+    UI_but_func_rename_full_set(
+        but, [bmain, id](std::string &new_name) { ED_id_rename(*bmain, *id, new_name); });
     UI_but_funcN_set(but,
                      template_id_cb,
                      MEM_new<TemplateID>(__func__, template_ui),
@@ -6496,7 +6494,7 @@ static bool uiTemplateInputStatusAzone(uiLayout *layout, const AZone *az, const 
   if (az->type == AZONE_REGION) {
     uiItemL(layout, nullptr, ICON_MOUSE_LMB_DRAG);
     uiItemL(layout,
-            (region->visible) ? IFACE_("Resize Region") : IFACE_("Show Hidden Region"),
+            (region->runtime->visible) ? IFACE_("Resize Region") : IFACE_("Show Hidden Region"),
             ICON_NONE);
     return true;
   }

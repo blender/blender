@@ -321,7 +321,7 @@ static void motionpath_calculate_update_range(MPathTarget *mpt,
    * we ignore all others (which can potentially make an update range unnecessary wide). */
   for (FCurve *fcu = static_cast<FCurve *>(fcurve_list->first); fcu != nullptr; fcu = fcu->next) {
     AnimKeylist *keylist = ED_keylist_create();
-    fcurve_to_keylist(adt, fcu, keylist, 0, {-FLT_MAX, FLT_MAX});
+    fcurve_to_keylist(adt, fcu, keylist, 0, {-FLT_MAX, FLT_MAX}, true);
     ED_keylist_prepare_for_direct_access(keylist);
 
     int fcu_sfra = motionpath_get_prev_prev_keyframe(mpt, keylist, current_frame);
@@ -371,7 +371,7 @@ void animviz_motionpath_compute_range(Object *ob, Scene *scene)
 
   AnimKeylist *keylist = ED_keylist_create();
   for (FCurve *fcu : blender::animrig::legacy::fcurves_for_assigned_action(ob->adt)) {
-    fcurve_to_keylist(ob->adt, fcu, keylist, 0, {-FLT_MAX, FLT_MAX});
+    fcurve_to_keylist(ob->adt, fcu, keylist, 0, {-FLT_MAX, FLT_MAX}, true);
   }
 
   Range2f frame_range;

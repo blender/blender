@@ -727,7 +727,7 @@ static void write_bhead(WriteData *wd, const BHead &bhead)
 static void writestruct_at_address_nr(WriteData *wd,
                                       const int filecode,
                                       const int struct_nr,
-                                      const int nr,
+                                      const int64_t nr,
                                       const void *adr,
                                       const void *data)
 {
@@ -741,12 +741,18 @@ static void writestruct_at_address_nr(WriteData *wd,
     return;
   }
 
+  const int64_t len_in_bytes = nr * DNA_struct_size(wd->sdna, struct_nr);
+  if (len_in_bytes > INT32_MAX) {
+    CLOG_ERROR(&LOG, "Cannot write chunks bigger than INT_MAX.");
+    return;
+  }
+
   BHead bh;
   bh.code = filecode;
   bh.old = adr;
   bh.nr = nr;
   bh.SDNAnr = struct_nr;
-  bh.len = nr * DNA_struct_size(wd->sdna, bh.SDNAnr);
+  bh.len = len_in_bytes;
 
   if (bh.len == 0) {
     return;
@@ -757,7 +763,7 @@ static void writestruct_at_address_nr(WriteData *wd,
 }
 
 static void writestruct_nr(
-    WriteData *wd, const int filecode, const int struct_nr, const int nr, const void *adr)
+    WriteData *wd, const int filecode, const int struct_nr, const int64_t nr, const void *adr)
 {
   writestruct_at_address_nr(wd, filecode, struct_nr, nr, adr, adr);
 }
@@ -1835,7 +1841,7 @@ void BLO_write_struct_by_name(BlendWriter *writer, const char *struct_name, cons
 
 void BLO_write_struct_array_by_name(BlendWriter *writer,
                                     const char *struct_name,
-                                    const int array_size,
+                                    const int64_t array_size,
                                     const void *data_ptr)
 {
   int struct_id = BLO_get_struct_id_by_name(writer, struct_name);
@@ -1871,7 +1877,7 @@ void BLO_write_struct_at_address_by_id_with_filecode(BlendWriter *writer,
 
 void BLO_write_struct_array_by_id(BlendWriter *writer,
                                   const int struct_id,
-                                  const int array_size,
+                                  const int64_t array_size,
                                   const void *data_ptr)
 {
   writestruct_nr(writer->wd, BLO_CODE_DATA, struct_id, array_size, data_ptr);
@@ -1879,7 +1885,7 @@ void BLO_write_struct_array_by_id(BlendWriter *writer,
 
 void BLO_write_struct_array_at_address_by_id(BlendWriter *writer,
                                              const int struct_id,
-                                             const int array_size,
+                                             const int64_t array_size,
                                              const void *address,
                                              const void *data_ptr)
 {
@@ -1915,47 +1921,47 @@ int BLO_get_struct_id_by_name(const BlendWriter *writer, const char *struct_name
   return struct_id;
 }
 
-void BLO_write_char_array(BlendWriter *writer, const uint num, const char *data_ptr)
+void BLO_write_char_array(BlendWriter *writer, const int64_t num, const char *data_ptr)
 {
   BLO_write_raw(writer, sizeof(char) * size_t(num), data_ptr);
 }
 
-void BLO_write_int8_array(BlendWriter *writer, const uint num, const int8_t *data_ptr)
+void BLO_write_int8_array(BlendWriter *writer, const int64_t num, const int8_t *data_ptr)
 {
   BLO_write_raw(writer, sizeof(int8_t) * size_t(num), data_ptr);
 }
 
-void BLO_write_uint8_array(BlendWriter *writer, const uint num, const uint8_t *data_ptr)
+void BLO_write_uint8_array(BlendWriter *writer, const int64_t num, const uint8_t *data_ptr)
 {
   BLO_write_raw(writer, sizeof(uint8_t) * size_t(num), data_ptr);
 }
 
-void BLO_write_int32_array(BlendWriter *writer, const uint num, const int32_t *data_ptr)
+void BLO_write_int32_array(BlendWriter *writer, const int64_t num, const int32_t *data_ptr)
 {
   BLO_write_raw(writer, sizeof(int32_t) * size_t(num), data_ptr);
 }
 
-void BLO_write_uint32_array(BlendWriter *writer, const uint num, const uint32_t *data_ptr)
+void BLO_write_uint32_array(BlendWriter *writer, const int64_t num, const uint32_t *data_ptr)
 {
   BLO_write_raw(writer, sizeof(uint32_t) * size_t(num), data_ptr);
 }
 
-void BLO_write_float_array(BlendWriter *writer, const uint num, const float *data_ptr)
+void BLO_write_float_array(BlendWriter *writer, const int64_t num, const float *data_ptr)
 {
   BLO_write_raw(writer, sizeof(float) * size_t(num), data_ptr);
 }
 
-void BLO_write_double_array(BlendWriter *writer, const uint num, const double *data_ptr)
+void BLO_write_double_array(BlendWriter *writer, const int64_t num, const double *data_ptr)
 {
   BLO_write_raw(writer, sizeof(double) * size_t(num), data_ptr);
 }
 
-void BLO_write_pointer_array(BlendWriter *writer, const uint num, const void *data_ptr)
+void BLO_write_pointer_array(BlendWriter *writer, const int64_t num, const void *data_ptr)
 {
   BLO_write_raw(writer, sizeof(void *) * size_t(num), data_ptr);
 }
 
-void BLO_write_float3_array(BlendWriter *writer, const uint num, const float *data_ptr)
+void BLO_write_float3_array(BlendWriter *writer, const int64_t num, const float *data_ptr)
 {
   BLO_write_raw(writer, sizeof(float[3]) * size_t(num), data_ptr);
 }

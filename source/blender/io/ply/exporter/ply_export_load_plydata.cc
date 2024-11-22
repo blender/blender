@@ -217,6 +217,17 @@ static void load_custom_attributes(const Mesh *mesh,
         }
         break;
       }
+      case CD_PROP_INT16_2D: {
+        float *attr_x = find_or_add_attribute(iter.name + "_x", size, vertex_offset, r_attributes);
+        float *attr_y = find_or_add_attribute(iter.name + "_y", size, vertex_offset, r_attributes);
+        auto typed = attribute.typed<short2>();
+        for (const int64_t i : ply_to_vertex.index_range()) {
+          int j = ply_to_vertex[i];
+          attr_x[i] = typed[j].x;
+          attr_y[i] = typed[j].y;
+        }
+        break;
+      }
       case CD_PROP_INT32_2D: {
         float *attr_x = find_or_add_attribute(iter.name + "_x", size, vertex_offset, r_attributes);
         float *attr_y = find_or_add_attribute(iter.name + "_y", size, vertex_offset, r_attributes);

@@ -186,32 +186,76 @@ class USDExportTest(AbstractUSDTest):
         """Validate correct export of opacity and opacity_threshold parameters to the UsdPreviewSurface shader def"""
 
         # Use the common materials .blend file
-        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_materials_export.blend"))
-        export_path = self.tempdir / "material_opacities.usda"
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_materials_channels.blend"))
+        export_path = self.tempdir / "usd_materials_channels.usda"
         self.export_and_validate(filepath=str(export_path), export_materials=True)
 
-        # Inspect and validate the exported USD for the opaque blend case.
+        # Opaque no-Alpha
         stage = Usd.Stage.Open(str(export_path))
-        shader_prim = stage.GetPrimAtPath("/root/_materials/Material/Principled_BSDF")
+        shader_prim = stage.GetPrimAtPath("/root/_materials/Opaque/Principled_BSDF")
         shader = UsdShade.Shader(shader_prim)
         opacity_input = shader.GetInput('opacity')
         self.assertEqual(opacity_input.HasConnectedSource(), False,
                          "Opacity input should not be connected for opaque material")
         self.assertAlmostEqual(opacity_input.Get(), 1.0, 2, "Opacity input should be set to 1")
 
-        # Inspect and validate the exported USD for the alpha clip w/Round node case.
-        shader_prim = stage.GetPrimAtPath("/root/_materials/Clip_With_Round/Principled_BSDF")
+        # Validate Image Alpha to BSDF Alpha
+        shader_prim = stage.GetPrimAtPath("/root/_materials/Alpha/Principled_BSDF")
+        shader = UsdShade.Shader(shader_prim)
+        opacity_input = shader.GetInput('opacity')
+        opacity_thresh_input = shader.GetInput('opacityThreshold')
+        self.assertEqual(opacity_input.HasConnectedSource(), True, "Alpha input should be connected")
+        self.assertEqual(opacity_thresh_input.Get(), None, "Opacity threshold input should be empty")
+
+        # Validate Image Alpha to BSDF Alpha w/Round
+        shader_prim = stage.GetPrimAtPath("/root/_materials/AlphaClip_Round/Principled_BSDF")
         shader = UsdShade.Shader(shader_prim)
         opacity_input = shader.GetInput('opacity')
         opacity_thresh_input = shader.GetInput('opacityThreshold')
         self.assertEqual(opacity_input.HasConnectedSource(), True, "Alpha input should be connected")
         self.assertAlmostEqual(opacity_thresh_input.Get(), 0.5, 2, "Opacity threshold input should be 0.5")
 
-        # Inspect and validate the exported USD for the alpha clip w/LessThan+Invert node case.
-        shader_prim = stage.GetPrimAtPath("/root/_materials/Clip_With_LessThanInvert/Principled_BSDF")
+        # Validate Image Alpha to BSDF Alpha w/LessThan+Invert
+        shader_prim = stage.GetPrimAtPath("/root/_materials/AlphaClip_LessThan/Principled_BSDF")
         shader = UsdShade.Shader(shader_prim)
         opacity_input = shader.GetInput('opacity')
         opacity_thresh_input = shader.GetInput('opacityThreshold')
+        self.assertEqual(opacity_input.HasConnectedSource(), True, "Alpha input should be connected")
+        self.assertAlmostEqual(opacity_thresh_input.Get(), 0.8, 2, "Opacity threshold input should be 0.8")
+
+        # Validate Image RGB to BSDF Metallic, Roughness, Alpha
+        shader_prim = stage.GetPrimAtPath("/root/_materials/Channel/Principled_BSDF")
+        shader = UsdShade.Shader(shader_prim)
+        metallic_input = shader.GetInput("metallic")
+        roughness_input = shader.GetInput("roughness")
+        opacity_input = shader.GetInput('opacity')
+        opacity_thresh_input = shader.GetInput('opacityThreshold')
+        self.assertEqual(metallic_input.HasConnectedSource(), True, "Metallic input should be connected")
+        self.assertEqual(roughness_input.HasConnectedSource(), True, "Roughness input should be connected")
+        self.assertEqual(opacity_input.HasConnectedSource(), True, "Alpha input should be connected")
+        self.assertEqual(opacity_thresh_input.Get(), None, "Opacity threshold input should be empty")
+
+        # Validate Image RGB to BSDF Metallic, Roughness, Alpha w/Round
+        shader_prim = stage.GetPrimAtPath("/root/_materials/ChannelClip_Round/Principled_BSDF")
+        shader = UsdShade.Shader(shader_prim)
+        metallic_input = shader.GetInput("metallic")
+        roughness_input = shader.GetInput("roughness")
+        opacity_input = shader.GetInput('opacity')
+        opacity_thresh_input = shader.GetInput('opacityThreshold')
+        self.assertEqual(metallic_input.HasConnectedSource(), True, "Metallic input should be connected")
+        self.assertEqual(roughness_input.HasConnectedSource(), True, "Roughness input should be connected")
+        self.assertEqual(opacity_input.HasConnectedSource(), True, "Alpha input should be connected")
+        self.assertAlmostEqual(opacity_thresh_input.Get(), 0.5, 2, "Opacity threshold input should be 0.5")
+
+        # Validate Image RGB to BSDF Metallic, Roughness, Alpha w/LessThan+Invert
+        shader_prim = stage.GetPrimAtPath("/root/_materials/ChannelClip_LessThan/Principled_BSDF")
+        shader = UsdShade.Shader(shader_prim)
+        metallic_input = shader.GetInput("metallic")
+        roughness_input = shader.GetInput("roughness")
+        opacity_input = shader.GetInput('opacity')
+        opacity_thresh_input = shader.GetInput('opacityThreshold')
+        self.assertEqual(metallic_input.HasConnectedSource(), True, "Metallic input should be connected")
+        self.assertEqual(roughness_input.HasConnectedSource(), True, "Roughness input should be connected")
         self.assertEqual(opacity_input.HasConnectedSource(), True, "Alpha input should be connected")
         self.assertAlmostEqual(opacity_thresh_input.Get(), 0.2, 2, "Opacity threshold input should be 0.2")
 

@@ -151,33 +151,33 @@ class Wireframe {
         break;
       }
       case OB_MESH:
-        if (BKE_sculptsession_use_pbvh_draw(ob_ref.object, state.rv3d)) {
-          ResourceHandle handle = manager.unique_handle(ob_ref);
+        if (show_surface_wire) {
+          if (BKE_sculptsession_use_pbvh_draw(ob_ref.object, state.rv3d)) {
+            ResourceHandle handle = manager.unique_handle(ob_ref);
 
-          for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, SCULPT_BATCH_WIREFRAME)) {
-            coloring.mesh_all_edges_ps_->draw(batch.batch, handle);
+            for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, SCULPT_BATCH_WIREFRAME)) {
+              coloring.mesh_all_edges_ps_->draw(batch.batch, handle);
+            }
           }
-        }
-        else {
-          if (show_surface_wire) {
+          else {
             gpu::Batch *geom = DRW_cache_mesh_face_wireframe_get(ob_ref.object);
             (all_edges ? coloring.mesh_all_edges_ps_ : coloring.mesh_ps_)
                 ->draw(geom, manager.unique_handle(ob_ref), res.select_id(ob_ref).get());
           }
+        }
 
-          /* Draw loose geometry. */
-          if (!in_edit_paint_mode || Meshes::mesh_has_edit_cage(ob_ref.object)) {
-            const Mesh *mesh = static_cast<const Mesh *>(ob_ref.object->data);
-            gpu::Batch *geom;
-            if ((mesh->edges_num == 0) && (mesh->verts_num > 0)) {
-              geom = DRW_cache_mesh_all_verts_get(ob_ref.object);
-              coloring.pointcloud_ps_->draw(
-                  geom, manager.unique_handle(ob_ref), res.select_id(ob_ref).get());
-            }
-            else if ((geom = DRW_cache_mesh_loose_edges_get(ob_ref.object))) {
-              coloring.mesh_all_edges_ps_->draw(
-                  geom, manager.unique_handle(ob_ref), res.select_id(ob_ref).get());
-            }
+        /* Draw loose geometry. */
+        if (!in_edit_paint_mode || Meshes::mesh_has_edit_cage(ob_ref.object)) {
+          const Mesh *mesh = static_cast<const Mesh *>(ob_ref.object->data);
+          gpu::Batch *geom;
+          if ((mesh->edges_num == 0) && (mesh->verts_num > 0)) {
+            geom = DRW_cache_mesh_all_verts_get(ob_ref.object);
+            coloring.pointcloud_ps_->draw(
+                geom, manager.unique_handle(ob_ref), res.select_id(ob_ref).get());
+          }
+          else if ((geom = DRW_cache_mesh_loose_edges_get(ob_ref.object))) {
+            coloring.mesh_all_edges_ps_->draw(
+                geom, manager.unique_handle(ob_ref), res.select_id(ob_ref).get());
           }
         }
         break;

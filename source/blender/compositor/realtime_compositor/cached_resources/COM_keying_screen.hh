@@ -11,9 +11,6 @@
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
 
-#include "GPU_shader.hh"
-#include "GPU_texture.hh"
-
 #include "DNA_movieclip_types.h"
 #include "DNA_tracking_types.h"
 
@@ -42,8 +39,8 @@ bool operator==(const KeyingScreenKey &a, const KeyingScreenKey &b);
 /* -------------------------------------------------------------------------------------------------
  * Keying Screen.
  *
- * A cached resource that computes and caches a GPU texture containing the keying screen computed
- * by interpolating the markers of the given movie tracking object in the given movie clip. */
+ * A cached resource that computes and caches a result containing the keying screen computed by
+ * interpolating the markers of the given movie tracking object in the given movie clip. */
 class KeyingScreen : public CachedResource {
  public:
   Result result;

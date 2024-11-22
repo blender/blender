@@ -31,6 +31,7 @@
 #include "BKE_layer.hh"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_report.hh"
+#include "BKE_screen.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -2335,7 +2336,7 @@ static int stitch_init_all(bContext *C, wmOperator *op)
   stitch_update_header(ssc, C);
 
   ssc->draw_handle = ED_region_draw_cb_activate(
-      region->type, stitch_draw, ssc, REGION_DRAW_POST_VIEW);
+      region->runtime->type, stitch_draw, ssc, REGION_DRAW_POST_VIEW);
 
   return 1;
 }
@@ -2431,7 +2432,7 @@ static void stitch_exit(bContext *C, wmOperator *op, int finished)
     ED_workspace_status_text(C, nullptr);
   }
 
-  ED_region_draw_cb_exit(CTX_wm_region(C)->type, ssc->draw_handle);
+  ED_region_draw_cb_exit(CTX_wm_region(C)->runtime->type, ssc->draw_handle);
 
   ToolSettings *ts = scene->toolsettings;
   const bool synced_selection = (ts->uv_flag & UV_SYNC_SELECTION) != 0;

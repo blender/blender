@@ -2,9 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "gpu_shader_common_math_utils.glsl"
 #include "gpu_shader_compositor_blur_common.glsl"
 #include "gpu_shader_compositor_texture_utilities.glsl"
+#include "gpu_shader_math_vector_lib.glsl"
 
 /* Loads the input color of the pixel at the given texel. If gamma correction is enabled, the color
  * is gamma corrected. If bounds are extended, then the input is treated as padded by a blur size
@@ -36,13 +36,9 @@ vec4 load_input(ivec2 texel)
  * instead of returning zero for out of bound access. See load_input for more information. */
 float load_size(ivec2 texel)
 {
-  if (extend_bounds) {
-    ivec2 blur_radius = texture_size(weights_tx) - 1;
-    return clamp(texture_load(size_tx, texel - blur_radius).x, 0.0, 1.0);
-  }
-  else {
-    return clamp(texture_load(size_tx, texel).x, 0.0, 1.0);
-  }
+  ivec2 blur_radius = texture_size(weights_tx) - 1;
+  ivec2 offset = extend_bounds ? blur_radius : ivec2(0);
+  return clamp(texture_load(size_tx, texel - offset).x, 0.0, 1.0);
 }
 
 void main()

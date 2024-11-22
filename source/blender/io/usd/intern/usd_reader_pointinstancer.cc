@@ -5,6 +5,7 @@
 #include "usd_reader_pointinstancer.hh"
 
 #include "BKE_attribute.hh"
+#include "BKE_geometry_set.hh"
 #include "BKE_modifier.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
@@ -43,32 +44,26 @@ void USDPointInstancerReader::create_object(Main *bmain, const double /*motionSa
   this->object_->data = point_cloud;
 }
 
-void USDPointInstancerReader::read_object_data(Main *bmain, const double motionSampleTime)
+void USDPointInstancerReader::read_geometry(bke::GeometrySet &geometry_set,
+                                            USDMeshReadParams params,
+                                            const char ** /*r_err_str*/)
 {
-  PointCloud *base_point_cloud = static_cast<PointCloud *>(object_->data);
-
   pxr::VtArray<pxr::GfVec3f> positions;
   pxr::VtArray<pxr::GfVec3f> scales;
   pxr::VtArray<pxr::GfQuath> orientations;
   pxr::VtArray<int> proto_indices;
-  std::vector<double> time_samples;
+  std::vector<bool> mask = point_instancer_prim_.ComputeMaskAtTime(params.motion_sample_time);
 
-  point_instancer_prim_.GetPositionsAttr().GetTimeSamples(&time_samples);
+  point_instancer_prim_.GetPositionsAttr().Get(&positions, params.motion_sample_time);
+  point_instancer_prim_.GetScalesAttr().Get(&scales, params.motion_sample_time);
+  point_instancer_prim_.GetOrientationsAttr().Get(&orientations, params.motion_sample_time);
+  point_instancer_prim_.GetProtoIndicesAttr().Get(&proto_indices, params.motion_sample_time);
 
-  double sample_time = motionSampleTime;
-
-  if (!time_samples.empty()) {
-    sample_time = time_samples[0];
+  PointCloud *point_cloud = geometry_set.get_pointcloud_for_write();
+  if (point_cloud->totpoint != positions.size()) {
+    /* Size changed so we must reallocate. */
+    point_cloud = BKE_pointcloud_new_nomain(positions.size());
   }
-
-  point_instancer_prim_.GetPositionsAttr().Get(&positions, sample_time);
-  point_instancer_prim_.GetScalesAttr().Get(&scales, sample_time);
-  point_instancer_prim_.GetOrientationsAttr().Get(&orientations, sample_time);
-  point_instancer_prim_.GetProtoIndicesAttr().Get(&proto_indices, sample_time);
-
-  std::vector<bool> mask = point_instancer_prim_.ComputeMaskAtTime(sample_time);
-
-  PointCloud *point_cloud = BKE_pointcloud_new_nomain(positions.size());
 
   MutableSpan<float3> point_positions = point_cloud->positions_for_write();
   point_positions.copy_from(Span(positions.data(), positions.size()).cast<float3>());
@@ -133,7 +128,32 @@ void USDPointInstancerReader::read_object_data(Main *bmain, const double motionS
 
   mask_attribute.finish();
 
-  BKE_pointcloud_nomain_to_pointcloud(point_cloud, base_point_cloud);
+  geometry_set.replace_pointcloud(point_cloud);
+}
+
+void USDPointInstancerReader::read_object_data(Main *bmain, const double motionSampleTime)
+{
+  PointCloud *point_cloud = static_cast<PointCloud *>(object_->data);
+
+  bke::GeometrySet geometry_set = bke::GeometrySet::from_pointcloud(
+      point_cloud, bke::GeometryOwnershipType::Editable);
+
+  const USDMeshReadParams params = create_mesh_read_params(motionSampleTime,
+                                                           import_params_.mesh_read_flag);
+
+  read_geometry(geometry_set, params, nullptr);
+
+  PointCloud *read_point_cloud =
+      geometry_set.get_component_for_write<bke::PointCloudComponent>().release();
+
+  if (read_point_cloud != point_cloud) {
+    BKE_pointcloud_nomain_to_pointcloud(read_point_cloud, point_cloud);
+  }
+
+  if (is_animated()) {
+    /* If the point cloud has time-varying data, we add the cache modifier. */
+    add_cache_modifier();
+  }
 
   ModifierData *md = BKE_modifier_new(eModifierType_Nodes);
   BLI_addtail(&object_->modifiers, md);
@@ -279,6 +299,17 @@ void USDPointInstancerReader::set_collection(Main *bmain, Collection &coll)
     socket_data->value = &coll;
     BKE_ntree_update_main_tree(bmain, ntree, nullptr);
   }
+}
+
+bool USDPointInstancerReader::is_animated() const
+{
+  bool is_animated = false;
+  is_animated |= point_instancer_prim_.GetPositionsAttr().ValueMightBeTimeVarying();
+  is_animated |= point_instancer_prim_.GetScalesAttr().ValueMightBeTimeVarying();
+  is_animated |= point_instancer_prim_.GetOrientationsAttr().ValueMightBeTimeVarying();
+  is_animated |= point_instancer_prim_.GetProtoIndicesAttr().ValueMightBeTimeVarying();
+
+  return is_animated;
 }
 
 }  // namespace blender::io::usd

@@ -339,16 +339,8 @@ ARegion *BKE_area_region_copy(const SpaceType *st, const ARegion *region)
   newar->runtime = MEM_new<blender::bke::ARegionRuntime>(__func__);
 
   newar->prev = newar->next = nullptr;
-  BLI_listbase_clear(&newar->handlers);
-  BLI_listbase_clear(&newar->uiblocks);
-  BLI_listbase_clear(&newar->panels_category);
   BLI_listbase_clear(&newar->panels_category_active);
   BLI_listbase_clear(&newar->ui_lists);
-  newar->visible = 0;
-  newar->gizmo_map = nullptr;
-  newar->regiontimer = nullptr;
-  newar->headerstr = nullptr;
-  newar->draw_buffer = nullptr;
 
   /* use optional regiondata callback */
   if (region->regiondata) {
@@ -483,8 +475,8 @@ void BKE_screen_gizmo_tag_refresh(bScreen *screen)
 
   LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
     LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-      if (region->gizmo_map != nullptr) {
-        region_refresh_tag_gizmomap_callback(region->gizmo_map);
+      if (region->runtime->gizmo_map != nullptr) {
+        region_refresh_tag_gizmomap_callback(region->runtime->gizmo_map);
       }
     }
   }
@@ -582,8 +574,8 @@ void BKE_area_region_free(SpaceType *st, ARegion *region)
       printf("regiondata free error\n");
     }
   }
-  else if (region->type && region->type->free) {
-    region->type->free(region);
+  else if (region->runtime->type && region->runtime->type->free) {
+    region->runtime->type->free(region);
   }
 
   BKE_area_region_panels_free(&region->panels);
@@ -598,21 +590,16 @@ void BKE_area_region_free(SpaceType *st, ARegion *region)
     MEM_SAFE_FREE(uilst->dyn_data);
   }
 
-  if (region->gizmo_map != nullptr) {
-    region_free_gizmomap_callback(region->gizmo_map);
+  if (region->runtime->gizmo_map != nullptr) {
+    region_free_gizmomap_callback(region->runtime->gizmo_map);
   }
 
-  if (region->runtime->block_name_map != nullptr) {
-    BLI_ghash_free(region->runtime->block_name_map, nullptr, nullptr);
-    region->runtime->block_name_map = nullptr;
-  }
-
-  MEM_delete(region->runtime);
   BLI_freelistN(&region->ui_lists);
   BLI_freelistN(&region->ui_previews);
-  BLI_freelistN(&region->panels_category);
+  BLI_freelistN(&region->runtime->panels_category);
   BLI_freelistN(&region->panels_category_active);
   BLI_freelistN(&region->view_states);
+  MEM_delete(region->runtime);
 }
 
 void BKE_screen_area_free(ScrArea *area)
@@ -1264,16 +1251,6 @@ static void direct_link_region(BlendDataReader *reader, ARegion *region, int spa
   region->runtime = MEM_new<blender::bke::ARegionRuntime>(__func__);
   region->v2d.sms = nullptr;
   region->v2d.alpha_hor = region->v2d.alpha_vert = 255; /* visible by default */
-  BLI_listbase_clear(&region->panels_category);
-  BLI_listbase_clear(&region->handlers);
-  BLI_listbase_clear(&region->uiblocks);
-  region->headerstr = nullptr;
-  region->visible = 0;
-  region->type = nullptr;
-  region->do_draw = 0;
-  region->gizmo_map = nullptr;
-  region->regiontimer = nullptr;
-  region->draw_buffer = nullptr;
   memset(&region->drawrct, 0, sizeof(region->drawrct));
 }
 

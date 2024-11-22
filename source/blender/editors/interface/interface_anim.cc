@@ -31,6 +31,7 @@
 
 #include "ED_keyframing.hh"
 
+#include "ANIM_fcurve.hh"
 #include "ANIM_keyframing.hh"
 
 #include "UI_interface.hh"

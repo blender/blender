@@ -50,6 +50,7 @@ class Grid {
     data_.push_update();
 
     GPUTexture **depth_tx = state.xray_enabled ? &res.xray_depth_tx : &res.depth_tx;
+    GPUTexture **depth_infront_tx = &res.depth_target_in_front_tx;
 
     grid_ps_.init();
     grid_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA);
@@ -70,6 +71,7 @@ class Grid {
       sub.bind_ubo("grid_buf", &data_);
       sub.bind_ubo("globalsBlock", &res.globals_buf);
       sub.bind_texture("depth_tx", depth_tx, GPUSamplerState::default_sampler());
+      sub.bind_texture("depth_infront_tx", depth_infront_tx, GPUSamplerState::default_sampler());
       if (zneg_flag_ & SHOW_AXIS_Z) {
         sub.push_constant("grid_flag", zneg_flag_);
         sub.push_constant("plane_axes", zplane_axes_);

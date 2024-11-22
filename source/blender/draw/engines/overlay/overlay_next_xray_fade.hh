@@ -43,6 +43,7 @@ class XrayFade {
       /* TODO(fclem): Confusing. The meaning of xray depth texture changed between legacy engine
        * and overlay next. To be renamed after shaders are not shared anymore. */
       pass.bind_texture("depthTex", &res.xray_depth_tx);
+      pass.bind_texture("depthTexInfront", &res.xray_depth_in_front_tx);
       pass.bind_texture("xrayDepthTex", &res.depth_tx);
       pass.bind_texture("xrayDepthTexInfront", &res.depth_in_front_tx);
       pass.push_constant("opacity", 1.0f - state.xray_opacity);

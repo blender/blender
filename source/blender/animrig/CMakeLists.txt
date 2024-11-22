@@ -65,7 +65,6 @@ set(LIB
   bf::blenlib
   PRIVATE bf::depsgraph
   bf::dna
-  PRIVATE bf_editor_interface
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::clog

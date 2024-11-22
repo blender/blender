@@ -7,11 +7,9 @@
 #include <cstdint>
 #include <memory>
 
+#include "BLI_array.hh"
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
-
-#include "GPU_shader.hh"
-#include "GPU_texture.hh"
 
 #include "COM_cached_resource.hh"
 
@@ -37,22 +35,21 @@ bool operator==(const SymmetricBlurWeightsKey &a, const SymmetricBlurWeightsKey 
 /* -------------------------------------------------------------------------------------------------
  * Symmetric Blur Weights.
  *
- * A cached resource that computes and caches a 2D GPU texture containing the weights of the filter
- * of the given type and radius. The filter is assumed to be symmetric, because the filter
- * functions are evaluated on the normalized distance to the center. Consequently, only the upper
- * right quadrant are computed and the shader takes that into consideration. */
+ * A cached resource that computes and caches a result containing the weights of the filter of the
+ * given type and radius. The filter is assumed to be symmetric, because the filter functions are
+ * evaluated on the normalized distance to the center. Consequently, only the upper right quadrant
+ * are computed and the user takes that into consideration. */
 class SymmetricBlurWeights : public CachedResource {
  private:
-  GPUTexture *texture_ = nullptr;
+  Array<float> weights_;
+
+ public:
+  Result result;
 
  public:
   SymmetricBlurWeights(Context &context, int type, float2 radius);
 
   ~SymmetricBlurWeights();
-
-  void bind_as_texture(GPUShader *shader, const char *texture_name) const;
-
-  void unbind_as_texture() const;
 };
 
 /* ------------------------------------------------------------------------------------------------
@@ -69,7 +66,7 @@ class SymmetricBlurWeightsContainer : public CachedResourceContainer {
    * in the container, if one exists, return it, otherwise, return a newly created one and add it
    * to the container. In both cases, tag the cached resource as needed to keep it cached for the
    * next evaluation. */
-  SymmetricBlurWeights &get(Context &context, int type, float2 radius);
+  Result &get(Context &context, int type, float2 radius);
 };
 
 }  // namespace blender::realtime_compositor

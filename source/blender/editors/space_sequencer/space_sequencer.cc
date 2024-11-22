@@ -434,21 +434,21 @@ static void sequencer_main_region_init(wmWindowManager *wm, ARegion *region)
 
 #if 0
   keymap = WM_keymap_ensure(wm->defaultconf, "Mask Editing", SPACE_EMPTY, RGN_TYPE_WINDOW);
-  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->runtime->handlers, keymap);
 #endif
 
   keymap = WM_keymap_ensure(wm->defaultconf, "SequencerCommon", SPACE_SEQ, RGN_TYPE_WINDOW);
-  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->runtime->handlers, keymap);
 
   /* Own keymap. */
   keymap = WM_keymap_ensure(wm->defaultconf, "Sequencer", SPACE_SEQ, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_poll(
-      &region->handlers, keymap, WM_event_handler_region_v2d_mask_no_marker_poll);
+      &region->runtime->handlers, keymap, WM_event_handler_region_v2d_mask_no_marker_poll);
 
   /* Add drop boxes. */
   lb = WM_dropboxmap_find("Sequencer", SPACE_SEQ, RGN_TYPE_WINDOW);
 
-  WM_event_add_dropbox_handler(&region->handlers, lb);
+  WM_event_add_dropbox_handler(&region->runtime->handlers, lb);
 }
 
 /* Strip editing timeline. */
@@ -561,7 +561,7 @@ static void sequencer_main_region_listener(const wmRegionListenerParams *params)
         case ND_SEQUENCER:
         case ND_RENDER_RESULT:
           ED_region_tag_redraw(region);
-          WM_gizmomap_tag_refresh(region->gizmo_map);
+          WM_gizmomap_tag_refresh(region->runtime->gizmo_map);
           break;
       }
       break;
@@ -575,7 +575,7 @@ static void sequencer_main_region_listener(const wmRegionListenerParams *params)
     case NC_SPACE:
       if (wmn->data == ND_SPACE_SEQUENCER) {
         ED_region_tag_redraw(region);
-        WM_gizmomap_tag_refresh(region->gizmo_map);
+        WM_gizmomap_tag_refresh(region->runtime->gizmo_map);
       }
       break;
     case NC_ID:
@@ -586,7 +586,7 @@ static void sequencer_main_region_listener(const wmRegionListenerParams *params)
     case NC_SCREEN:
       if (ELEM(wmn->data, ND_ANIMPLAY)) {
         ED_region_tag_redraw(region);
-        WM_gizmomap_tag_refresh(region->gizmo_map);
+        WM_gizmomap_tag_refresh(region->runtime->gizmo_map);
       }
       break;
   }
@@ -748,7 +748,7 @@ static void sequencer_tools_region_init(wmWindowManager *wm, ARegion *region)
   ED_region_panels_init(wm, region);
 
   keymap = WM_keymap_ensure(wm->defaultconf, "SequencerCommon", SPACE_SEQ, RGN_TYPE_WINDOW);
-  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->runtime->handlers, keymap);
 }
 
 static void sequencer_tools_region_draw(const bContext *C, ARegion *region)
@@ -785,18 +785,18 @@ static void sequencer_preview_region_init(wmWindowManager *wm, ARegion *region)
 
 #if 0
   keymap = WM_keymap_ensure(wm->defaultconf, "Mask Editing", SPACE_EMPTY, RGN_TYPE_WINDOW);
-  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->runtime->handlers, keymap);
 #endif
 
   keymap = WM_keymap_ensure(wm->defaultconf, "SequencerCommon", SPACE_SEQ, RGN_TYPE_WINDOW);
-  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->runtime->handlers, keymap);
 
   /* Own keymap. */
   keymap = WM_keymap_ensure(wm->defaultconf, "SequencerPreview", SPACE_SEQ, RGN_TYPE_WINDOW);
-  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->runtime->handlers, keymap);
 
   ListBase *lb = WM_dropboxmap_find("Sequencer", SPACE_SEQ, RGN_TYPE_PREVIEW);
-  WM_event_add_dropbox_handler(&region->handlers, lb);
+  WM_event_add_dropbox_handler(&region->runtime->handlers, lb);
 }
 
 static void sequencer_preview_region_layout(const bContext *C, ARegion *region)
@@ -875,7 +875,7 @@ static void sequencer_preview_region_draw(const bContext *C, ARegion *region)
   }
 
   if ((is_playing == false) && (sseq->gizmo_flag & SEQ_GIZMO_HIDE) == 0) {
-    WM_gizmomap_draw(region->gizmo_map, C, WM_GIZMOMAP_DRAWSTEP_2D);
+    WM_gizmomap_draw(region->runtime->gizmo_map, C, WM_GIZMOMAP_DRAWSTEP_2D);
   }
 
   if ((U.uiflag & USER_SHOW_FPS) && ED_screen_animation_no_scrub(wm)) {
@@ -904,7 +904,7 @@ static void sequencer_preview_region_listener(const wmRegionListenerParams *para
   ARegion *region = params->region;
   const wmNotifier *wmn = params->notifier;
 
-  WM_gizmomap_tag_refresh(region->gizmo_map);
+  WM_gizmomap_tag_refresh(region->runtime->gizmo_map);
 
   /* Context changes. */
   switch (wmn->category) {
@@ -959,7 +959,7 @@ static void sequencer_buttons_region_init(wmWindowManager *wm, ARegion *region)
   wmKeyMap *keymap;
 
   keymap = WM_keymap_ensure(wm->defaultconf, "SequencerCommon", SPACE_SEQ, RGN_TYPE_WINDOW);
-  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->runtime->handlers, keymap);
 
   UI_panel_category_active_set_default(region, "Strip");
   ED_region_panels_init(wm, region);
@@ -1035,7 +1035,7 @@ static void sequencer_channel_region_init(wmWindowManager *wm, ARegion *region)
   UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_LIST, region->winx, region->winy);
 
   keymap = WM_keymap_ensure(wm->defaultconf, "Sequencer Channels", SPACE_SEQ, RGN_TYPE_WINDOW);
-  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->runtime->handlers, keymap);
 }
 
 static void sequencer_channel_region_draw(const bContext *C, ARegion *region)

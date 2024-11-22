@@ -203,7 +203,17 @@ void main()
     }
   }
 
-  float scene_depth = texture(depth_tx, gl_FragCoord.xy / vec2(textureSize(depth_tx, 0)), 0).r;
+  vec2 uv = gl_FragCoord.xy / vec2(textureSize(depth_tx, 0));
+  float scene_depth = texture(depth_tx, uv, 0).r;
+
+#ifdef OVERLAY_NEXT
+  float scene_depth_infront = texture(depth_infront_tx, uv, 0).r;
+  if (scene_depth_infront != 1.0) {
+    /* Treat in front objects as if they were on the near plane to occlude the grid. */
+    scene_depth = 0.0;
+  }
+#endif
+
   if (flag_test(grid_flag, GRID_BACK)) {
     fade *= (scene_depth == 1.0) ? 1.0 : 0.0;
   }

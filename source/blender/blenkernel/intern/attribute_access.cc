@@ -57,6 +57,8 @@ const blender::CPPType *custom_data_type_to_cpp_type(const eCustomDataType type)
       return &CPPType::get<math::Quaternion>();
     case CD_PROP_FLOAT4X4:
       return &CPPType::get<float4x4>();
+    case CD_PROP_INT16_2D:
+      return &CPPType::get<short2>();
     case CD_PROP_STRING:
       return &CPPType::get<MStringProperty>();
     default:
@@ -98,6 +100,9 @@ eCustomDataType cpp_type_to_custom_data_type(const blender::CPPType &type)
   }
   if (type.is<float4x4>()) {
     return CD_PROP_FLOAT4X4;
+  }
+  if (type.is<short2>()) {
+    return CD_PROP_INT16_2D;
   }
   if (type.is<MStringProperty>()) {
     return CD_PROP_STRING;
@@ -154,23 +159,25 @@ static int attribute_data_type_complexity(const eCustomDataType data_type)
       return 2;
     case CD_PROP_FLOAT:
       return 3;
-    case CD_PROP_INT32_2D:
+    case CD_PROP_INT16_2D:
       return 4;
-    case CD_PROP_FLOAT2:
+    case CD_PROP_INT32_2D:
       return 5;
-    case CD_PROP_FLOAT3:
+    case CD_PROP_FLOAT2:
       return 6;
-    case CD_PROP_BYTE_COLOR:
+    case CD_PROP_FLOAT3:
       return 7;
-    case CD_PROP_QUATERNION:
+    case CD_PROP_BYTE_COLOR:
       return 8;
-    case CD_PROP_COLOR:
+    case CD_PROP_QUATERNION:
       return 9;
-    case CD_PROP_FLOAT4X4:
+    case CD_PROP_COLOR:
       return 10;
+    case CD_PROP_FLOAT4X4:
+      return 11;
 #if 0 /* These attribute types are not supported yet. */
     case CD_PROP_STRING:
-      return 10;
+      return 12;
 #endif
     default:
       /* Only accept "generic" custom data types used by the attribute system. */

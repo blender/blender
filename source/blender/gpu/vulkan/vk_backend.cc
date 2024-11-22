@@ -97,9 +97,6 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   if (!extensions.contains(VK_KHR_SWAPCHAIN_EXTENSION_NAME)) {
     missing_capabilities.append(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
   }
-  if (!extensions.contains(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME)) {
-    missing_capabilities.append(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
-  }
 
   /* Check for known faulty drivers. */
   VkPhysicalDeviceProperties2 vk_physical_device_properties = {};
@@ -128,6 +125,18 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
       vk_physical_device_properties.properties.deviceType ==
           VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU &&
       conformance_version < VK_MAKE_API_VERSION(1, 3, 2, 0))
+  {
+    missing_capabilities.append(KNOWN_CRASHING_DRIVER);
+  }
+
+  /* NVIDIA drivers below 550 don't work. When sending command to the GPU there is no reply back
+   * when they are finished. Driver 550 should support GTX 700 and above GPUs.
+   *
+   * NOTE: We should retest later after fixing other issues. Allowing more drivers is always
+   * better as reporting to the user is quite limited.
+   */
+  if (vk_physical_device_driver_properties.driverID == VK_DRIVER_ID_NVIDIA_PROPRIETARY &&
+      conformance_version < VK_MAKE_API_VERSION(1, 3, 7, 2))
   {
     missing_capabilities.append(KNOWN_CRASHING_DRIVER);
   }

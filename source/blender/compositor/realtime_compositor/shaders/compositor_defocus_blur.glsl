@@ -2,9 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "gpu_shader_common_math_utils.glsl"
 #include "gpu_shader_compositor_blur_common.glsl"
 #include "gpu_shader_compositor_texture_utilities.glsl"
+#include "gpu_shader_math_vector_lib.glsl"
 
 /* Given the texel in the range [-radius, radius] in both axis, load the appropriate weight from
  * the weights texture, where the given texel (0, 0) corresponds the center of weights texture.

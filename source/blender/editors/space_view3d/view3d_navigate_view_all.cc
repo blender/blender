@@ -15,6 +15,7 @@
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_scene.hh"
+#include "BKE_screen.hh"
 
 #include "BLI_bounds_types.hh"
 #include "BLI_math_matrix.h"
@@ -309,7 +310,8 @@ static int viewselected_exec(bContext *C, wmOperator *op)
   BKE_view_layer_synced_ensure(scene_eval, view_layer_eval);
   Object *ob_eval = BKE_view_layer_active_object_get(view_layer_eval);
   Object *obedit = CTX_data_edit_object(C);
-  const bool is_face_map = (region->gizmo_map && WM_gizmomap_is_any_selected(region->gizmo_map));
+  const bool is_face_map = (region->runtime->gizmo_map &&
+                            WM_gizmomap_is_any_selected(region->runtime->gizmo_map));
   float3 min, max;
   bool ok = false, ok_dist = true;
   const bool use_all_regions = RNA_boolean_get(op->ptr, "use_all_regions");
@@ -345,7 +347,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
   }
 
   if (is_face_map) {
-    ok = WM_gizmomap_minmax(region->gizmo_map, true, true, min, max);
+    ok = WM_gizmomap_minmax(region->runtime->gizmo_map, true, true, min, max);
   }
   else if (obedit) {
     /* only selected */

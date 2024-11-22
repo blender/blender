@@ -327,7 +327,7 @@ bool space_image_main_region_poll(bContext *C)
   // ARegion *region = CTX_wm_region(C); /* XXX. */
 
   if (sima) {
-    return true; /* XXX (region && region->type->regionid == RGN_TYPE_WINDOW); */
+    return true; /* XXX (region && region->runtime->type->regionid == RGN_TYPE_WINDOW); */
   }
   return false;
 }

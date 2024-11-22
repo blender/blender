@@ -66,6 +66,20 @@ BMEditMesh *BKE_editmesh_from_object(Object *ob)
   return ((Mesh *)ob->data)->runtime->edit_mesh.get();
 }
 
+bool BKE_editmesh_eval_orig_map_available(const Mesh &mesh_eval, const Mesh *mesh_orig)
+{
+  if (!mesh_orig) {
+    return false;
+  }
+  if (&mesh_eval == mesh_orig) {
+    return true;
+  }
+  if (mesh_eval.runtime->edit_mesh) {
+    return mesh_eval.runtime->edit_mesh == mesh_orig->runtime->edit_mesh;
+  }
+  return false;
+}
+
 void BKE_editmesh_looptris_calc_ex(BMEditMesh *em, const BMeshCalcTessellation_Params *params)
 {
   BMesh *bm = em->bm;

@@ -1184,6 +1184,8 @@ typedef struct ActionSlot {
    *
    * Only valid within the Action that owns this Slot.
    *
+   * NOTE: keep this type in sync with `slot_handle_t` in BKE_action.hh.
+   *
    * \see #blender::animrig::Action::slot_for_handle()
    */
   int32_t handle;

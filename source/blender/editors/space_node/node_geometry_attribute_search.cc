@@ -165,6 +165,7 @@ static eCustomDataType data_type_in_attribute_input_node(const eCustomDataType t
       /* Unsupported currently. */
       return CD_PROP_FLOAT;
     case CD_PROP_FLOAT2:
+    case CD_PROP_INT16_2D:
     case CD_PROP_INT32_2D:
       /* No 2D vector sockets currently. */
       return CD_PROP_FLOAT3;

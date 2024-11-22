@@ -13,6 +13,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_main.hh"
+#include "BKE_screen.hh"
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -125,7 +126,7 @@ static void gizmotype_unlink(bContext *C, Main *bmain, wmGizmoType *gzt)
       LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
         ListBase *lb = (sl == area->spacedata.first) ? &area->regionbase : &sl->regionbase;
         LISTBASE_FOREACH (ARegion *, region, lb) {
-          wmGizmoMap *gzmap = region->gizmo_map;
+          wmGizmoMap *gzmap = region->runtime->gizmo_map;
           if (gzmap) {
             LISTBASE_FOREACH (wmGizmoGroup *, gzgroup, &gzmap->groups) {
               for (wmGizmo *gz = static_cast<wmGizmo *>(gzgroup->gizmos.first), *gz_next; gz;

@@ -8,7 +8,10 @@
 void main()
 {
   fragColor = finalColor;
+#ifdef IS_SPOT_CONE
+  lineOutput = vec4(0.0);
+#else
   lineOutput = pack_line_data(gl_FragCoord.xy, edgeStart, edgePos);
-
   select_id_output(select_id);
+#endif
 }

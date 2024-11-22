@@ -89,7 +89,7 @@ BLI_NOINLINE static void fill_factor_from_hide_and_mask(const Mesh &mesh,
     r_factors.fill(1.0f);
   }
 
-  if (const VArray hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Point)) {
+  if (const VArray hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face)) {
     const VArraySpan span(hide_poly);
     for (const int i : face_indices.index_range()) {
       if (span[face_indices[i]]) {

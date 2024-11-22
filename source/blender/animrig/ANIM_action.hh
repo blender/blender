@@ -15,6 +15,7 @@
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 
+#include "BKE_action.hh"
 #include "BKE_anim_data.hh"
 
 #include "BLI_math_vector.hh"
@@ -39,9 +40,6 @@ namespace blender::animrig {
 class Layer;
 class Strip;
 class Slot;
-
-/* Use an alias for the Slot handle type to help disambiguate function parameters. */
-using slot_handle_t = decltype(::ActionSlot::handle);
 
 /**
  * Container of animation data for one or more animated IDs.

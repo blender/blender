@@ -18,6 +18,7 @@
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
+#include "BKE_screen.hh"
 
 #include "ED_node.hh" /* own include */
 #include "ED_render.hh"
@@ -981,14 +982,14 @@ static void draw_draglink_tooltip_activate(const ARegion &region, bNodeLinkDrag 
 {
   if (nldrag.draw_handle == nullptr) {
     nldrag.draw_handle = ED_region_draw_cb_activate(
-        region.type, draw_draglink_tooltip, &nldrag, REGION_DRAW_POST_PIXEL);
+        region.runtime->type, draw_draglink_tooltip, &nldrag, REGION_DRAW_POST_PIXEL);
   }
 }
 
 static void draw_draglink_tooltip_deactivate(const ARegion &region, bNodeLinkDrag &nldrag)
 {
   if (nldrag.draw_handle) {
-    ED_region_draw_cb_exit(region.type, nldrag.draw_handle);
+    ED_region_draw_cb_exit(region.runtime->type, nldrag.draw_handle);
     nldrag.draw_handle = nullptr;
   }
 }

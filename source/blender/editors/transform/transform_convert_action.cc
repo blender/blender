@@ -383,7 +383,7 @@ static int count_masklayer_frames(MaskLayer *masklay, char side, float cfra, boo
 
 /* This function assigns the information to transdata. */
 static void TimeToTransData(
-    TransData *td, TransData2D *td2d, BezTriple *bezt, AnimData *adt, float ypos)
+    TransData *td, TransData2D *td2d, BezTriple *bezt, bAnimListElem *ale, float ypos)
 {
   float *time = bezt->vec[1];
 
@@ -404,17 +404,20 @@ static void TimeToTransData(
   copy_v3_v3(td->iloc, td->loc);
   td->val = time;
   td->ival = *(time);
-  if (adt) {
-    td->center[0] = BKE_nla_tweakedit_remap(adt, td->ival, NLATIME_CONVERT_MAP);
-  }
-  else {
-    td->center[0] = td->ival;
-  }
+  td->center[0] = ANIM_nla_tweakedit_remap(ale, td->ival, NLATIME_CONVERT_MAP);
   td->center[1] = ypos;
 
   /* Store the AnimData where this keyframe exists as a keyframe of the
-   * active action as #td->extra. */
-  td->extra = adt;
+   * active action as #td->extra.
+   *
+   * We do this conditionally as a hacky way of indicating whether NLA remapping
+   * should be done. This is left over from old code, most of which was changed
+   * in #130440 to avoid using `adt == nullptr` as an indicator for that. This
+   * was left that way because updating it cleanly was more involved than made
+   * sense for the bug fix in #130440. */
+  if (ANIM_nla_mapping_allowed(ale)) {
+    td->extra = ale->adt;
+  }
 
   if (bezt->f2 & SELECT) {
     td->flag |= TD_SELECTED;
@@ -436,7 +439,7 @@ static void TimeToTransData(
 static TransData *ActionFCurveToTransData(TransData *td,
                                           TransData2D **td2dv,
                                           FCurve *fcu,
-                                          AnimData *adt,
+                                          bAnimListElem *ale,
                                           char side,
                                           float cfra,
                                           bool is_prop_edit,
@@ -456,7 +459,7 @@ static TransData *ActionFCurveToTransData(TransData *td,
     { /* Note this MUST match #count_fcurve_keys(), so can't use #BEZT_ISSEL_ANY() macro. */
       /* Only add if on the right 'side' of the current frame. */
       if (FrameOnMouseSide(side, bezt->vec[1][0], cfra)) {
-        TimeToTransData(td, td2d, bezt, adt, ypos);
+        TimeToTransData(td, td2d, bezt, ale, ypos);
 
         td++;
         td2d++;
@@ -662,7 +665,6 @@ static void createTransActionData(bContext *C, TransInfo *t)
 
   int count = 0;
   int gpf_count = 0;
-  float cfra;
   float ypos = 1.0f / ((ysize / xsize) * (xmask / ymask)) * BLI_rctf_cent_y(&t->region->v2d.cur);
 
   /* Determine what type of data we are operating on. */
@@ -686,35 +688,29 @@ static void createTransActionData(bContext *C, TransInfo *t)
 
   /* Loop 1: fully select F-Curve keys and count how many BezTriples are selected. */
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    AnimData *adt = ANIM_nla_mapping_get(&ac, ale);
-    int adt_count = 0;
+    int ale_count = 0;
     /* Convert current-frame to action-time (slightly less accurate, especially under
      * higher scaling ratios, but is faster than converting all points). */
-    if (adt) {
-      cfra = BKE_nla_tweakedit_remap(adt, float(scene->r.cfra), NLATIME_CONVERT_UNMAP);
-    }
-    else {
-      cfra = float(scene->r.cfra);
-    }
+    const float cfra = ANIM_nla_tweakedit_remap(ale, float(scene->r.cfra), NLATIME_CONVERT_UNMAP);
 
     switch (ale->type) {
       case ANIMTYPE_FCURVE:
       case ANIMTYPE_NLACURVE:
-        adt_count = count_fcurve_keys(
+        ale_count = count_fcurve_keys(
             static_cast<FCurve *>(ale->key_data), t->frame_side, cfra, is_prop_edit);
         break;
       case ANIMTYPE_GPLAYER:
-        adt_count = count_gplayer_frames(
+        ale_count = count_gplayer_frames(
             static_cast<bGPDlayer *>(ale->data), t->frame_side, cfra, is_prop_edit);
         break;
       case ANIMTYPE_GREASE_PENCIL_LAYER: {
         using namespace blender::bke::greasepencil;
-        adt_count = count_grease_pencil_frames(
+        ale_count = count_grease_pencil_frames(
             static_cast<Layer *>(ale->data), t->frame_side, cfra, is_prop_edit, use_duplicated);
         break;
       }
       case ANIMTYPE_MASKLAYER:
-        adt_count = count_masklayer_frames(
+        ale_count = count_masklayer_frames(
             static_cast<MaskLayer *>(ale->data), t->frame_side, cfra, is_prop_edit);
         break;
       case ANIMTYPE_NONE:
@@ -763,11 +759,11 @@ static void createTransActionData(bContext *C, TransInfo *t)
         break;
     }
 
-    if (adt_count > 0) {
+    if (ale_count > 0) {
       if (ELEM(ale->type, ANIMTYPE_GPLAYER, ANIMTYPE_MASKLAYER)) {
-        gpf_count += adt_count;
+        gpf_count += ale_count;
       }
-      count += adt_count;
+      count += ale_count;
       ale->tag = true;
     }
   }
@@ -798,15 +794,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
       continue;
     }
 
-    cfra = float(scene->r.cfra);
-
-    {
-      AnimData *adt;
-      adt = ANIM_nla_mapping_get(&ac, ale);
-      if (adt) {
-        cfra = BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP);
-      }
-    }
+    const float cfra = ANIM_nla_tweakedit_remap(ale, float(scene->r.cfra), NLATIME_CONVERT_UNMAP);
 
     if (ale->type == ANIMTYPE_GPLAYER) {
       bGPDlayer *gpl = (bGPDlayer *)ale->data;
@@ -836,10 +824,8 @@ static void createTransActionData(bContext *C, TransInfo *t)
       td2d += i;
     }
     else {
-      AnimData *adt = ANIM_nla_mapping_get(&ac, ale);
       FCurve *fcu = (FCurve *)ale->key_data;
-
-      td = ActionFCurveToTransData(td, &td2d, fcu, adt, t->frame_side, cfra, is_prop_edit, ypos);
+      td = ActionFCurveToTransData(td, &td2d, fcu, ale, t->frame_side, cfra, is_prop_edit, ypos);
     }
   }
 
@@ -848,20 +834,13 @@ static void createTransActionData(bContext *C, TransInfo *t)
     td = tc->data;
 
     LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-      AnimData *adt;
-
       /* F-Curve may not have any keyframes. */
       if (!ale->tag) {
         continue;
       }
 
-      adt = ANIM_nla_mapping_get(&ac, ale);
-      if (adt) {
-        cfra = BKE_nla_tweakedit_remap(adt, float(scene->r.cfra), NLATIME_CONVERT_UNMAP);
-      }
-      else {
-        cfra = float(scene->r.cfra);
-      }
+      const float cfra = ANIM_nla_tweakedit_remap(
+          ale, float(scene->r.cfra), NLATIME_CONVERT_UNMAP);
 
       if (ale->type == ANIMTYPE_GPLAYER) {
         bGPDlayer *gpl = (bGPDlayer *)ale->data;
@@ -1214,20 +1193,13 @@ static void posttrans_action_clean(bAnimContext *ac, bAction *act)
    *      - all keyframes are converted in/out of global time.
    */
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    AnimData *adt = ANIM_nla_mapping_get(ac, ale);
-
-    if (adt) {
-      ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), false, false);
-      BKE_fcurve_merge_duplicate_keys(static_cast<FCurve *>(ale->key_data),
-                                      SELECT,
-                                      false); /* Only use handles in graph editor. */
-      ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), true, false);
-    }
-    else {
-      BKE_fcurve_merge_duplicate_keys(static_cast<FCurve *>(ale->key_data),
-                                      SELECT,
-                                      false); /* Only use handles in graph editor. */
-    }
+    ANIM_nla_mapping_apply_if_needed_fcurve(
+        ale, static_cast<FCurve *>(ale->key_data), false, false);
+    BKE_fcurve_merge_duplicate_keys(static_cast<FCurve *>(ale->key_data),
+                                    SELECT,
+                                    false); /* Only use handles in graph editor. */
+    ANIM_nla_mapping_apply_if_needed_fcurve(
+        ale, static_cast<FCurve *>(ale->key_data), true, false);
   }
 
   /* Free temp data. */
@@ -1265,7 +1237,6 @@ static void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
           break;
 
         case ALE_FCURVE: {
-          AnimData *adt = ANIM_nla_mapping_get(&ac, ale);
           FCurve *fcu = (FCurve *)ale->key_data;
 
           /* 3 cases here for curve cleanups:
@@ -1276,16 +1247,10 @@ static void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
            *                            but we made duplicates, so get rid of these.
            */
           if ((saction->flag & SACTION_NOTRANSKEYCULL) == 0 && ((canceled == 0) || (duplicate))) {
-            if (adt) {
-              ANIM_nla_mapping_apply_fcurve(adt, fcu, false, false);
-              BKE_fcurve_merge_duplicate_keys(
-                  fcu, SELECT, false); /* Only use handles in graph editor. */
-              ANIM_nla_mapping_apply_fcurve(adt, fcu, true, false);
-            }
-            else {
-              BKE_fcurve_merge_duplicate_keys(
-                  fcu, SELECT, false); /* Only use handles in graph editor. */
-            }
+            ANIM_nla_mapping_apply_if_needed_fcurve(ale, fcu, false, false);
+            BKE_fcurve_merge_duplicate_keys(
+                fcu, SELECT, false); /* Only use handles in graph editor. */
+            ANIM_nla_mapping_apply_if_needed_fcurve(ale, fcu, true, false);
           }
           break;
         }

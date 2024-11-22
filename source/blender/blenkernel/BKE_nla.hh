@@ -13,12 +13,10 @@
 
 #include "DNA_listBase.h"
 
+#include "BKE_action.hh"
 #include "BKE_anim_data.hh"
 
 #include "BLI_function_ref.hh"
-
-/* For blender::animrig::slot_handle_t. */
-#include "ANIM_action.hh"
 
 struct AnimData;
 struct ID;
@@ -536,13 +534,18 @@ enum eNlaTime_ConvertModes {
 };
 
 /**
- * Non clipped mapping for strip-time <-> global time:
- * `mode = eNlaTime_ConvertModes -> NLATIME_CONVERT_*`
+ * Non clipped mapping for strip-time <-> global time.
  *
  * Public API method - perform this mapping using the given AnimData block
- * and perform any necessary sanity checks on the value
+ * and perform any necessary sanity checks on the value.
+ *
+ * \note Do not call this with an `adt` obtained from an `bAnimListElem`.
+ * Instead, use `ANIM_nla_tweakedit_remap()` for that. This is because not all
+ * data that might be in an `bAnimListElem` should be nla remapped, and this
+ * function cannot account for that, whereas `ANIM_nla_tweakedit_remap()` takes
+ * the `bAnimListElem` directly and makes sure the right thing is done.
  */
-float BKE_nla_tweakedit_remap(AnimData *adt, float cframe, short mode);
+float BKE_nla_tweakedit_remap(AnimData *adt, float cframe, eNlaTime_ConvertModes mode);
 
 /* ----------------------------- */
 /* .blend file API */

@@ -45,6 +45,7 @@
 
 #  include "BKE_global.hh"
 #  include "BKE_idprop.hh"
+#  include "BKE_screen.hh"
 #  include "BKE_workspace.hh"
 
 #  include "MEM_guardedalloc.h"
@@ -250,8 +251,8 @@ static wmGizmo *rna_GizmoProperties_find_operator(PointerRNA *ptr)
     IDProperty *properties = static_cast<IDProperty *>(ptr->data);
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-        if (region->gizmo_map) {
-          wmGizmoMap *gzmap = region->gizmo_map;
+        if (region->runtime->gizmo_map) {
+          wmGizmoMap *gzmap = region->runtime->gizmo_map;
           LISTBASE_FOREACH (wmGizmoGroup *, gzgroup, WM_gizmomap_group_list(gzmap)) {
             LISTBASE_FOREACH (wmGizmo *, gz, &gzgroup->gizmos) {
               if (gz->properties == properties) {
