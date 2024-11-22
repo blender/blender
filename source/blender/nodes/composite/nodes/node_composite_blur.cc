@@ -102,17 +102,6 @@ class BlurOperation : public NodeOperation {
 
   void execute() override
   {
-    /* Not yet supported on CPU. */
-    if (!context().use_gpu()) {
-      for (const bNodeSocket *output : this->node()->output_sockets()) {
-        Result &output_result = get_result(output->identifier);
-        if (output_result.should_compute()) {
-          output_result.allocate_invalid();
-        }
-      }
-      return;
-    }
-
     if (is_identity()) {
       get_input("Image").pass_through(get_result("Image"));
       return;
@@ -140,6 +129,16 @@ class BlurOperation : public NodeOperation {
   }
 
   void execute_constant_size()
+  {
+    if (this->context().use_gpu()) {
+      this->execute_constant_size_gpu();
+    }
+    else {
+      this->execute_constant_size_cpu();
+    }
+  }
+
+  void execute_constant_size_gpu()
   {
     GPUShader *shader = context().get_shader("compositor_symmetric_blur");
     GPU_shader_bind(shader);
@@ -174,7 +173,90 @@ class BlurOperation : public NodeOperation {
     weights.unbind_as_texture();
   }
 
+  void execute_constant_size_cpu()
+  {
+    const float2 blur_radius = this->compute_blur_radius();
+    const Result &weights = this->context().cache_manager().symmetric_blur_weights.get(
+        this->context(), node_storage(this->bnode()).filtertype, blur_radius);
+
+    Domain domain = this->compute_domain();
+    const bool extend_bounds = this->get_extend_bounds();
+    if (extend_bounds) {
+      /* Add a radius amount of pixels in both sides of the image, hence the multiply by 2. */
+      domain.size += int2(math::ceil(blur_radius)) * 2;
+    }
+
+    Result &output = get_result("Image");
+    output.allocate_texture(domain);
+
+    const Result &input = this->get_input("Image");
+    const bool gamma_correct = node_storage(this->bnode()).gamma;
+    auto load_input = [&](const int2 texel) {
+      return this->load_input(input, weights, texel, extend_bounds, gamma_correct);
+    };
+
+    parallel_for(domain.size, [&](const int2 texel) {
+      float4 accumulated_color = float4(0.0f);
+
+      /* First, compute the contribution of the center pixel. */
+      float4 center_color = load_input(texel);
+      accumulated_color += center_color * weights.load_pixel(int2(0)).x;
+
+      int2 weights_size = weights.domain().size;
+
+      /* Then, compute the contributions of the pixels along the x axis of the filter, noting that
+       * the weights texture only stores the weights for the positive half, but since the filter is
+       * symmetric, the same weight is used for the negative half and we add both of their
+       * contributions. */
+      for (int x = 1; x < weights_size.x; x++) {
+        float weight = weights.load_pixel(int2(x, 0)).x;
+        accumulated_color += load_input(texel + int2(x, 0)) * weight;
+        accumulated_color += load_input(texel + int2(-x, 0)) * weight;
+      }
+
+      /* Then, compute the contributions of the pixels along the y axis of the filter, noting that
+       * the weights texture only stores the weights for the positive half, but since the filter is
+       * symmetric, the same weight is used for the negative half and we add both of their
+       * contributions. */
+      for (int y = 1; y < weights_size.y; y++) {
+        float weight = weights.load_pixel(int2(0, y)).x;
+        accumulated_color += load_input(texel + int2(0, y)) * weight;
+        accumulated_color += load_input(texel + int2(0, -y)) * weight;
+      }
+
+      /* Finally, compute the contributions of the pixels in the four quadrants of the filter,
+       * noting that the weights texture only stores the weights for the upper right quadrant, but
+       * since the filter is symmetric, the same weight is used for the rest of the quadrants and
+       * we add all four of their contributions. */
+      for (int y = 1; y < weights_size.y; y++) {
+        for (int x = 1; x < weights_size.x; x++) {
+          float weight = weights.load_pixel(int2(x, y)).x;
+          accumulated_color += load_input(texel + int2(x, y)) * weight;
+          accumulated_color += load_input(texel + int2(-x, y)) * weight;
+          accumulated_color += load_input(texel + int2(x, -y)) * weight;
+          accumulated_color += load_input(texel + int2(-x, -y)) * weight;
+        }
+      }
+
+      if (gamma_correct) {
+        accumulated_color = this->gamma_uncorrect_blur_output(accumulated_color);
+      }
+
+      output.store_pixel(texel, accumulated_color);
+    });
+  }
+
   void execute_variable_size()
+  {
+    if (this->context().use_gpu()) {
+      this->execute_variable_size_gpu();
+    }
+    else {
+      this->execute_variable_size_cpu();
+    }
+  }
+
+  void execute_variable_size_gpu()
   {
     GPUShader *shader = context().get_shader("compositor_symmetric_blur_variable_size");
     GPU_shader_bind(shader);
@@ -211,6 +293,157 @@ class BlurOperation : public NodeOperation {
     input_image.unbind_as_texture();
     weights.unbind_as_texture();
     input_size.unbind_as_texture();
+  }
+
+  void execute_variable_size_cpu()
+  {
+    const float2 blur_radius = this->compute_blur_radius();
+    const Result &weights = this->context().cache_manager().symmetric_blur_weights.get(
+        this->context(), node_storage(this->bnode()).filtertype, blur_radius);
+
+    Domain domain = this->compute_domain();
+    const bool extend_bounds = this->get_extend_bounds();
+    if (extend_bounds) {
+      /* Add a radius amount of pixels in both sides of the image, hence the multiply by 2. */
+      domain.size += int2(math::ceil(blur_radius)) * 2;
+    }
+
+    Result &output = get_result("Image");
+    output.allocate_texture(domain);
+
+    const Result &input = this->get_input("Image");
+    const bool gamma_correct = node_storage(this->bnode()).gamma;
+    auto load_input = [&](const int2 texel) {
+      return this->load_input(input, weights, texel, extend_bounds, gamma_correct);
+    };
+
+    const Result &size = get_input("Size");
+    /* Similar to load_input but loads the size instead, has no gamma correction, and clamps to
+     * borders instead of returning zero for out of bound access. See load_input for more
+     * information. */
+    auto load_size = [&](const int2 texel) {
+      int2 blur_radius = weights.domain().size - 1;
+      int2 offset = extend_bounds ? blur_radius : int2(0);
+      return math::clamp(size.load_pixel_extended(texel - offset).x, 0.0f, 1.0f);
+    };
+
+    parallel_for(domain.size, [&](const int2 texel) {
+      float4 accumulated_color = float4(0.0f);
+      float4 accumulated_weight = float4(0.0f);
+
+      /* The weights texture only stores the weights for the first quadrant, but since the weights
+       * are symmetric, other quadrants can be found using mirroring. It follows that the base blur
+       * radius is the weights texture size minus one, where the one corresponds to the zero
+       * weight. */
+      int2 weights_size = weights.domain().size;
+      int2 base_radius = weights_size - int2(1);
+      int2 radius = int2(math::ceil(float2(base_radius) * load_size(texel)));
+      float2 coordinates_scale = float2(1.0f) / float2(radius + int2(1));
+
+      /* First, compute the contribution of the center pixel. */
+      float4 center_color = load_input(texel);
+      float center_weight = weights.load_pixel(int2(0)).x;
+      accumulated_color += center_color * center_weight;
+      accumulated_weight += center_weight;
+
+      /* Then, compute the contributions of the pixels along the x axis of the filter, noting that
+       * the weights texture only stores the weights for the positive half, but since the filter is
+       * symmetric, the same weight is used for the negative half and we add both of their
+       * contributions. */
+      for (int x = 1; x <= radius.x; x++) {
+        float weight_coordinates = (x + 0.5f) * coordinates_scale.x;
+        float weight = weights.sample_bilinear_extended(float2(weight_coordinates, 0.0f)).x;
+        accumulated_color += load_input(texel + int2(x, 0)) * weight;
+        accumulated_color += load_input(texel + int2(-x, 0)) * weight;
+        accumulated_weight += weight * 2.0f;
+      }
+
+      /* Then, compute the contributions of the pixels along the y axis of the filter, noting that
+       * the weights texture only stores the weights for the positive half, but since the filter is
+       * symmetric, the same weight is used for the negative half and we add both of their
+       * contributions. */
+      for (int y = 1; y <= radius.y; y++) {
+        float weight_coordinates = (y + 0.5f) * coordinates_scale.y;
+        float weight = weights.sample_bilinear_extended(float2(0.0f, weight_coordinates)).x;
+        accumulated_color += load_input(texel + int2(0, y)) * weight;
+        accumulated_color += load_input(texel + int2(0, -y)) * weight;
+        accumulated_weight += weight * 2.0f;
+      }
+
+      /* Finally, compute the contributions of the pixels in the four quadrants of the filter,
+       * noting that the weights texture only stores the weights for the upper right quadrant, but
+       * since the filter is symmetric, the same weight is used for the rest of the quadrants and
+       * we add all four of their contributions. */
+      for (int y = 1; y <= radius.y; y++) {
+        for (int x = 1; x <= radius.x; x++) {
+          float2 weight_coordinates = (float2(x, y) + float2(0.5f)) * coordinates_scale;
+          float weight = weights.sample_bilinear_extended(weight_coordinates).x;
+          accumulated_color += load_input(texel + int2(x, y)) * weight;
+          accumulated_color += load_input(texel + int2(-x, y)) * weight;
+          accumulated_color += load_input(texel + int2(x, -y)) * weight;
+          accumulated_color += load_input(texel + int2(-x, -y)) * weight;
+          accumulated_weight += weight * 4.0f;
+        }
+      }
+
+      accumulated_color = math::safe_divide(accumulated_color, accumulated_weight);
+
+      if (gamma_correct) {
+        accumulated_color = this->gamma_uncorrect_blur_output(accumulated_color);
+      }
+
+      output.store_pixel(texel, accumulated_color);
+    });
+  }
+
+  /* Loads the input color of the pixel at the given texel. If gamma correction is enabled, the
+   * color is gamma corrected. If bounds are extended, then the input is treated as padded by a
+   * blur size amount of pixels of zero color, and the given texel is assumed to be in the space of
+   * the image after padding. So we offset the texel by the blur radius amount and fallback to a
+   * zero color if it is out of bounds. For instance, if the input is padded by 5 pixels to the
+   * left of the image, the first 5 pixels should be out of bounds and thus zero, hence the
+   * introduced offset. */
+  float4 load_input(const Result &input,
+                    const Result &weights,
+                    const int2 texel,
+                    const bool extend_bounds,
+                    const bool gamma_correct)
+  {
+    float4 color;
+    if (extend_bounds) {
+      /* Notice that we subtract 1 because the weights result have an extra center weight, see the
+       * SymmetricBlurWeights class for more information. */
+      int2 blur_radius = weights.domain().size - 1;
+      color = input.load_pixel_fallback(texel - blur_radius, float4(0.0f));
+    }
+    else {
+      color = input.load_pixel_extended(texel);
+    }
+
+    if (gamma_correct) {
+      color = this->gamma_correct_blur_input(color);
+    }
+
+    return color;
+  }
+
+  /* Preprocess the input of the blur filter by squaring it in its alpha straight form, assuming
+   * the given color is alpha pre-multiplied. */
+  float4 gamma_correct_blur_input(const float4 &color)
+  {
+    float alpha = color.w > 0.0f ? color.w : 1.0f;
+    float3 corrected_color = math::square(math::max(color.xyz() / alpha, float3(0.0f))) * alpha;
+    return float4(corrected_color, color.w);
+  }
+
+  /* Postprocess the output of the blur filter by taking its square root it in its alpha straight
+   * form, assuming the given color is alpha pre-multiplied. This essential undoes the processing
+   * done by the gamma_correct_blur_input function. */
+  float4 gamma_uncorrect_blur_output(const float4 &color)
+  {
+    float alpha = color.w > 0.0f ? color.w : 1.0f;
+    float3 uncorrected_color = math::sqrt(math::max(color.xyz() / alpha, float3(0.0f))) * alpha;
+    return float4(uncorrected_color, color.w);
   }
 
   float2 compute_blur_radius()
