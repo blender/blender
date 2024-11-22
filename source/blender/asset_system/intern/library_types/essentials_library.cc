@@ -11,7 +11,7 @@
 #include "utils.hh"
 
 #include "AS_essentials_library.hh"
-#include "asset_library_essentials.hh"
+#include "essentials_library.hh"
 
 namespace blender::asset_system {
 

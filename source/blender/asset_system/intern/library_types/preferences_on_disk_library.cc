@@ -6,7 +6,7 @@
  * \ingroup asset_system
  */
 
-#include "asset_library_from_preferences.hh"
+#include "preferences_on_disk_library.hh"
 
 namespace blender::asset_system {
 

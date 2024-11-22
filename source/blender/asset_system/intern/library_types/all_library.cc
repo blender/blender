@@ -12,7 +12,7 @@
 #include "asset_catalog_collection.hh"
 #include "asset_catalog_definition_file.hh"
 
-#include "asset_library_all.hh"
+#include "all_library.hh"
 
 #include "CLG_log.h"
 
