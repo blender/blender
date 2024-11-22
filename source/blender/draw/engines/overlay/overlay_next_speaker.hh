@@ -24,16 +24,29 @@ class Speakers {
 
   SpeakerInstanceBuf speaker_buf_ = {selection_type_, "speaker_data_buf"};
 
+  bool enabled_ = false;
+
  public:
   Speakers(const SelectionType selection_type) : selection_type_(selection_type){};
 
-  void begin_sync()
+  void begin_sync(const State &state)
   {
+    enabled_ = state.space_type == SPACE_VIEW3D &&
+               !(state.overlay.flag & V3D_OVERLAY_HIDE_OBJECT_XTRAS);
+
+    if (!enabled_) {
+      return;
+    }
+
     speaker_buf_.clear();
   }
 
   void object_sync(const ObjectRef &ob_ref, Resources &res, const State &state)
   {
+    if (!enabled_) {
+      return;
+    }
+
     const float4 color = res.object_wire_color(ob_ref, state);
     const select::ID select_id = res.select_id(ob_ref);
 
@@ -42,6 +55,10 @@ class Speakers {
 
   void end_sync(Resources &res, ShapeCache &shapes, const State &state)
   {
+    if (!enabled_) {
+      return;
+    }
+
     ps_.init();
     ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL,
                   state.clipping_plane_count);
@@ -54,6 +71,10 @@ class Speakers {
 
   void draw(Framebuffer &framebuffer, Manager &manager, View &view)
   {
+    if (!enabled_) {
+      return;
+    }
+
     GPU_framebuffer_bind(framebuffer);
     manager.submit(ps_, view);
   }

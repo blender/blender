@@ -151,7 +151,7 @@ void Instance::begin_sync()
     layer.particles.begin_sync(resources, state);
     layer.prepass.begin_sync(resources, state);
     layer.relations.begin_sync(resources, state);
-    layer.speakers.begin_sync();
+    layer.speakers.begin_sync(state);
     layer.sculpts.begin_sync(resources, state);
     layer.wireframe.begin_sync(resources, state);
   };

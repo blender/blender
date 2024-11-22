@@ -24,9 +24,16 @@ class Lattices {
   PassMain::Sub *edit_lattice_wire_ps_;
   PassMain::Sub *edit_lattice_point_ps_;
 
+  bool enabled_ = false;
+
  public:
   void begin_sync(Resources &res, const State &state)
   {
+    enabled_ = state.space_type == SPACE_VIEW3D;
+    if (!enabled_) {
+      return;
+    }
+
     const DRWState pass_state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
                                 DRW_STATE_DEPTH_LESS_EQUAL;
 
@@ -52,6 +59,10 @@ class Lattices {
 
   void edit_object_sync(Manager &manager, const ObjectRef &ob_ref, Resources &res)
   {
+    if (!enabled_) {
+      return;
+    }
+
     ResourceHandle res_handle = manager.unique_handle(ob_ref);
     {
       gpu::Batch *geom = DRW_cache_lattice_wire_get(ob_ref.object, true);
@@ -65,6 +76,12 @@ class Lattices {
 
   void object_sync(Manager &manager, const ObjectRef &ob_ref, Resources &res, const State &state)
   {
+    if (!enabled_ || ob_ref.object->dt == OB_BOUNDBOX ||
+        state.overlay.flag & V3D_OVERLAY_HIDE_OBJECT_XTRAS)
+    {
+      return;
+    }
+
     gpu::Batch *geom = DRW_cache_lattice_wire_get(ob_ref.object, false);
     if (geom) {
       const float4 &color = res.object_wire_color(ob_ref, state);
@@ -80,11 +97,19 @@ class Lattices {
 
   void pre_draw(Manager &manager, View &view)
   {
+    if (!enabled_) {
+      return;
+    }
+
     manager.generate_commands(ps_, view);
   }
 
   void draw(Framebuffer &framebuffer, Manager &manager, View &view)
   {
+    if (!enabled_) {
+      return;
+    }
+
     GPU_framebuffer_bind(framebuffer);
     manager.submit_only(ps_, view);
   }

@@ -85,6 +85,8 @@ class Cameras {
 
   bool enabled_ = false;
   bool images_enabled_ = false;
+  bool extras_enabled_ = false;
+  bool motion_tracking_enabled_ = false;
 
  public:
   Cameras(const SelectionType selection_type) : call_buffers_{selection_type} {};
@@ -92,51 +94,49 @@ class Cameras {
   void begin_sync(Resources &res, State &state, View &view)
   {
     enabled_ = state.space_type == SPACE_VIEW3D;
+    extras_enabled_ = enabled_ && !(state.overlay.flag & V3D_OVERLAY_HIDE_OBJECT_XTRAS);
+    motion_tracking_enabled_ = enabled_ && state.v3d->flag2 & V3D_SHOW_RECONSTRUCTION;
+    images_enabled_ = enabled_ && res.selection_type == SelectionType::DISABLED;
+    enabled_ = extras_enabled_ || images_enabled_ || motion_tracking_enabled_;
 
-    if (!enabled_) {
-      return;
+    if (extras_enabled_ || motion_tracking_enabled_) {
+      call_buffers_.distances_buf.clear();
+      call_buffers_.frame_buf.clear();
+      call_buffers_.tria_buf.clear();
+      call_buffers_.tria_wire_buf.clear();
+      call_buffers_.volume_buf.clear();
+      call_buffers_.volume_wire_buf.clear();
+      call_buffers_.sphere_solid_buf.clear();
+      call_buffers_.stereo_connect_lines.clear();
+      call_buffers_.tracking_path.clear();
+      Empties::begin_sync(call_buffers_.empties);
     }
 
-    call_buffers_.distances_buf.clear();
-    call_buffers_.frame_buf.clear();
-    call_buffers_.tria_buf.clear();
-    call_buffers_.tria_wire_buf.clear();
-    call_buffers_.volume_buf.clear();
-    call_buffers_.volume_wire_buf.clear();
-    call_buffers_.sphere_solid_buf.clear();
-    call_buffers_.stereo_connect_lines.clear();
-    call_buffers_.tracking_path.clear();
-    Empties::begin_sync(call_buffers_.empties);
+    if (images_enabled_) {
+      float4x4 depth_bias_winmat = winmat_polygon_offset(
+          view.winmat(), state.view_dist_get(view.winmat()), -1.0f);
 
-    images_enabled_ = res.selection_type == SelectionType::DISABLED;
+      /* Init image passes. */
+      auto init_pass = [&](PassMain &pass, DRWState draw_state) {
+        pass.init();
+        pass.state_set(draw_state, state.clipping_plane_count);
+        pass.shader_set(res.shaders.image_plane_depth_bias.get());
+        pass.bind_ubo("globalsBlock", &res.globals_buf);
+        pass.push_constant("depth_bias_winmat", depth_bias_winmat);
+        res.select_bind(pass);
+      };
 
-    if (!images_enabled_) {
-      return;
+      DRWState draw_state;
+      draw_state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_PREMUL;
+      init_pass(background_ps_, draw_state);
+
+      draw_state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_UNDER_PREMUL;
+      init_pass(background_scene_ps_, draw_state);
+
+      draw_state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_PREMUL;
+      init_pass(foreground_ps_, draw_state);
+      init_pass(foreground_scene_ps_, draw_state);
     }
-
-    float4x4 depth_bias_winmat = winmat_polygon_offset(
-        view.winmat(), state.view_dist_get(view.winmat()), -1.0f);
-
-    /* Init image passes. */
-    auto init_pass = [&](PassMain &pass, DRWState draw_state) {
-      pass.init();
-      pass.state_set(draw_state, state.clipping_plane_count);
-      pass.shader_set(res.shaders.image_plane_depth_bias.get());
-      pass.bind_ubo("globalsBlock", &res.globals_buf);
-      pass.push_constant("depth_bias_winmat", depth_bias_winmat);
-      res.select_bind(pass);
-    };
-
-    DRWState draw_state;
-    draw_state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_PREMUL;
-    init_pass(background_ps_, draw_state);
-
-    draw_state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_UNDER_PREMUL;
-    init_pass(background_scene_ps_, draw_state);
-
-    draw_state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_PREMUL;
-    init_pass(foreground_ps_, draw_state);
-    init_pass(foreground_scene_ps_, draw_state);
   }
 
   void object_sync(
@@ -146,8 +146,136 @@ class Cameras {
       return;
     }
 
-    Object *ob = ob_ref.object;
     const select::ID select_id = res.select_id(ob_ref);
+
+    object_sync_extras(ob_ref, select_id, state, res);
+
+    object_sync_motion_paths(ob_ref, res, state);
+
+    object_sync_images(ob_ref, select_id, shapes, manager, state, res);
+  }
+
+  void end_sync(Resources &res, ShapeCache &shapes, const State &state)
+  {
+    if (!extras_enabled_ && !motion_tracking_enabled_) {
+      return;
+    }
+
+    ps_.init();
+    res.select_bind(ps_);
+
+    {
+      PassSimple::Sub &sub_pass = ps_.sub("volume");
+      sub_pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA |
+                             DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK,
+                         state.clipping_plane_count);
+      sub_pass.shader_set(res.shaders.extra_shape.get());
+      sub_pass.bind_ubo("globalsBlock", &res.globals_buf);
+      call_buffers_.volume_buf.end_sync(sub_pass, shapes.camera_volume.get());
+    }
+    {
+      PassSimple::Sub &sub_pass = ps_.sub("volume_wire");
+      sub_pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA |
+                             DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK,
+                         state.clipping_plane_count);
+      sub_pass.shader_set(res.shaders.extra_shape.get());
+      sub_pass.bind_ubo("globalsBlock", &res.globals_buf);
+      call_buffers_.volume_wire_buf.end_sync(sub_pass, shapes.camera_volume_wire.get());
+    }
+
+    {
+      PassSimple::Sub &sub_pass = ps_.sub("camera_shapes");
+      sub_pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
+                             DRW_STATE_DEPTH_LESS_EQUAL,
+                         state.clipping_plane_count);
+      sub_pass.shader_set(res.shaders.extra_shape.get());
+      sub_pass.bind_ubo("globalsBlock", &res.globals_buf);
+      call_buffers_.distances_buf.end_sync(sub_pass, shapes.camera_distances.get());
+      call_buffers_.frame_buf.end_sync(sub_pass, shapes.camera_frame.get());
+      call_buffers_.tria_buf.end_sync(sub_pass, shapes.camera_tria.get());
+      call_buffers_.tria_wire_buf.end_sync(sub_pass, shapes.camera_tria_wire.get());
+      call_buffers_.sphere_solid_buf.end_sync(sub_pass, shapes.sphere_low_detail.get());
+    }
+
+    {
+      PassSimple::Sub &sub_pass = ps_.sub("camera_extra_wire");
+      sub_pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
+                             DRW_STATE_DEPTH_LESS_EQUAL,
+                         state.clipping_plane_count);
+      sub_pass.shader_set(res.shaders.extra_wire.get());
+      sub_pass.bind_ubo("globalsBlock", &res.globals_buf);
+      call_buffers_.stereo_connect_lines.end_sync(sub_pass);
+      call_buffers_.tracking_path.end_sync(sub_pass);
+    }
+
+    PassSimple::Sub &sub_pass = ps_.sub("empties");
+    Empties::end_sync(res, shapes, state, sub_pass, call_buffers_.empties);
+  }
+
+  void pre_draw(Manager &manager, View &view)
+  {
+    if (!images_enabled_) {
+      return;
+    }
+
+    manager.generate_commands(background_scene_ps_, view);
+    manager.generate_commands(foreground_scene_ps_, view);
+    manager.generate_commands(background_ps_, view);
+    manager.generate_commands(foreground_ps_, view);
+  }
+
+  void draw(Framebuffer &framebuffer, Manager &manager, View &view)
+  {
+    if (!extras_enabled_ && !motion_tracking_enabled_) {
+      return;
+    }
+
+    GPU_framebuffer_bind(framebuffer);
+    manager.submit(ps_, view);
+  }
+
+  void draw_scene_background_images(GPUFrameBuffer *framebuffer, Manager &manager, View &view)
+  {
+    if (!images_enabled_) {
+      return;
+    }
+
+    GPU_framebuffer_bind(framebuffer);
+    manager.submit_only(background_scene_ps_, view);
+    manager.submit_only(foreground_scene_ps_, view);
+  }
+
+  void draw_background_images(Framebuffer &framebuffer, Manager &manager, View &view)
+  {
+    if (!images_enabled_) {
+      return;
+    }
+
+    GPU_framebuffer_bind(framebuffer);
+    manager.submit_only(background_ps_, view);
+  }
+
+  void draw_in_front(Framebuffer &framebuffer, Manager &manager, View &view)
+  {
+    if (!images_enabled_) {
+      return;
+    }
+
+    GPU_framebuffer_bind(framebuffer);
+    manager.submit_only(foreground_ps_, view);
+  }
+
+ private:
+  void object_sync_extras(const ObjectRef &ob_ref,
+                          select::ID select_id,
+                          const State &state,
+                          Resources &res)
+  {
+    if (!extras_enabled_) {
+      return;
+    }
+
+    Object *ob = ob_ref.object;
     CameraInstanceData data(ob->object_to_world(), res.object_wire_color(ob_ref, state));
 
     const View3D *v3d = state.v3d;
@@ -176,11 +304,11 @@ class Cameras {
       /* Avoid division by 0. */
       return;
     }
+
     float4x3 vecs;
     float2 aspect_ratio;
     float2 shift;
     float drawsize;
-
     BKE_camera_view_frame_ex(scene,
                              cam,
                              cam->drawsize,
@@ -269,149 +397,172 @@ class Cameras {
         call_buffers_.distances_buf.append(data, select_id);
       }
     }
-
-    /* Motion Tracking. */
-    if ((v3d->flag2 & V3D_SHOW_RECONSTRUCTION) != 0) {
-      sync_view3d_reconstruction(ob_ref, res, state);
-    }
-
-    if (is_camera_view && (cam->flag & CAM_SHOW_BG_IMAGE) &&
-        !BLI_listbase_is_empty(&cam->bg_images))
-    {
-      sync_camera_images(
-          ob_ref, select_id, shapes, manager, state, res, call_buffers_.selection_type_);
-    }
   }
 
-  void end_sync(Resources &res, ShapeCache &shapes, const State &state)
+  void object_sync_motion_paths(const ObjectRef &ob_ref, Resources &res, const State &state)
   {
-    if (!enabled_) {
-      return;
-    }
-
-    ps_.init();
-    res.select_bind(ps_);
-
-    {
-      PassSimple::Sub &sub_pass = ps_.sub("volume");
-      sub_pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA |
-                             DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK,
-                         state.clipping_plane_count);
-      sub_pass.shader_set(res.shaders.extra_shape.get());
-      sub_pass.bind_ubo("globalsBlock", &res.globals_buf);
-      call_buffers_.volume_buf.end_sync(sub_pass, shapes.camera_volume.get());
-    }
-    {
-      PassSimple::Sub &sub_pass = ps_.sub("volume_wire");
-      sub_pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA |
-                             DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK,
-                         state.clipping_plane_count);
-      sub_pass.shader_set(res.shaders.extra_shape.get());
-      sub_pass.bind_ubo("globalsBlock", &res.globals_buf);
-      call_buffers_.volume_wire_buf.end_sync(sub_pass, shapes.camera_volume_wire.get());
-    }
-
-    {
-      PassSimple::Sub &sub_pass = ps_.sub("camera_shapes");
-      sub_pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
-                             DRW_STATE_DEPTH_LESS_EQUAL,
-                         state.clipping_plane_count);
-      sub_pass.shader_set(res.shaders.extra_shape.get());
-      sub_pass.bind_ubo("globalsBlock", &res.globals_buf);
-      call_buffers_.distances_buf.end_sync(sub_pass, shapes.camera_distances.get());
-      call_buffers_.frame_buf.end_sync(sub_pass, shapes.camera_frame.get());
-      call_buffers_.tria_buf.end_sync(sub_pass, shapes.camera_tria.get());
-      call_buffers_.tria_wire_buf.end_sync(sub_pass, shapes.camera_tria_wire.get());
-      call_buffers_.sphere_solid_buf.end_sync(sub_pass, shapes.sphere_low_detail.get());
-    }
-    {
-      PassSimple::Sub &sub_pass = ps_.sub("camera_extra_wire");
-      sub_pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
-                             DRW_STATE_DEPTH_LESS_EQUAL,
-                         state.clipping_plane_count);
-      sub_pass.shader_set(res.shaders.extra_wire.get());
-      sub_pass.bind_ubo("globalsBlock", &res.globals_buf);
-      call_buffers_.stereo_connect_lines.end_sync(sub_pass);
-      call_buffers_.tracking_path.end_sync(sub_pass);
-    }
-    {
-      PassSimple::Sub &sub_pass = ps_.sub("empties");
-      Empties::end_sync(res, shapes, state, sub_pass, call_buffers_.empties);
-    }
-  }
-
-  void pre_draw(Manager &manager, View &view)
-  {
-    if (!images_enabled_) {
-      return;
-    }
-
-    manager.generate_commands(background_scene_ps_, view);
-    manager.generate_commands(foreground_scene_ps_, view);
-    manager.generate_commands(background_ps_, view);
-    manager.generate_commands(foreground_ps_, view);
-  }
-
-  void draw(Framebuffer &framebuffer, Manager &manager, View &view)
-  {
-    if (!enabled_) {
-      return;
-    }
-
-    GPU_framebuffer_bind(framebuffer);
-    manager.submit(ps_, view);
-  }
-
-  void draw_scene_background_images(GPUFrameBuffer *framebuffer, Manager &manager, View &view)
-  {
-    if (!images_enabled_) {
-      return;
-    }
-
-    GPU_framebuffer_bind(framebuffer);
-    manager.submit_only(background_scene_ps_, view);
-    manager.submit_only(foreground_scene_ps_, view);
-  }
-
-  void draw_background_images(Framebuffer &framebuffer, Manager &manager, View &view)
-  {
-    if (!images_enabled_) {
-      return;
-    }
-
-    GPU_framebuffer_bind(framebuffer);
-    manager.submit_only(background_ps_, view);
-  }
-
-  void draw_in_front(Framebuffer &framebuffer, Manager &manager, View &view)
-  {
-    if (!images_enabled_) {
-      return;
-    }
-
-    GPU_framebuffer_bind(framebuffer);
-    manager.submit_only(foreground_ps_, view);
-  }
-
- private:
-  void sync_camera_images(const ObjectRef &ob_ref,
-                          select::ID select_id,
-                          ShapeCache &shapes,
-                          Manager &manager,
-                          const State &state,
-                          Resources &res,
-                          const SelectionType selection_type)
-  {
-    if (!images_enabled_) {
+    if (!motion_tracking_enabled_) {
       return;
     }
 
     Object *ob = ob_ref.object;
-    const Camera *cam = static_cast<Camera *>(ob->data);
+    const View3D *v3d = state.v3d;
+    const Scene *scene = state.scene;
 
+    MovieClip *clip = BKE_object_movieclip_get(const_cast<Scene *>(scene), ob, false);
+    if (clip == nullptr) {
+      return;
+    }
+
+    const float4 &color = res.object_wire_color(ob_ref, state);
+
+    const bool is_selection = res.selection_type != SelectionType::DISABLED;
+    const bool is_solid_bundle = (v3d->bundle_drawtype == OB_EMPTY_SPHERE) &&
+                                 ((v3d->shading.type != OB_SOLID) || !XRAY_FLAG_ENABLED(v3d));
+
+    MovieTracking *tracking = &clip->tracking;
+    /* Index must start in 1, to mimic BKE_tracking_track_get_for_selection_index. */
+    int track_index = 1;
+
+    float4 bundle_color_custom;
+    float *bundle_color_solid = G_draw.block.color_bundle_solid;
+    float *bundle_color_unselected = G_draw.block.color_wire;
+    uchar4 text_color_selected, text_color_unselected;
+    /* Color Management: Exception here as texts are drawn in sRGB space directly. */
+    UI_GetThemeColor4ubv(TH_SELECT, text_color_selected);
+    UI_GetThemeColor4ubv(TH_TEXT, text_color_unselected);
+
+    float4x4 camera_mat;
+    BKE_tracking_get_camera_object_matrix(ob, camera_mat.ptr());
+
+    const float4x4 object_to_world{ob->object_to_world().ptr()};
+
+    for (MovieTrackingObject *tracking_object :
+         ListBaseWrapper<MovieTrackingObject>(&tracking->objects))
+    {
+      float4x4 tracking_object_mat;
+
+      if (tracking_object->flag & TRACKING_OBJECT_CAMERA) {
+        tracking_object_mat = camera_mat;
+      }
+      else {
+        const int framenr = BKE_movieclip_remap_scene_to_clip_frame(
+            clip, DEG_get_ctime(state.depsgraph));
+
+        float4x4 object_mat;
+        BKE_tracking_camera_get_reconstructed_interpolate(
+            tracking, tracking_object, framenr, object_mat.ptr());
+
+        tracking_object_mat = object_to_world * math::invert(object_mat);
+      }
+
+      for (MovieTrackingTrack *track :
+           ListBaseWrapper<MovieTrackingTrack>(&tracking_object->tracks))
+      {
+        if ((track->flag & TRACK_HAS_BUNDLE) == 0) {
+          continue;
+        }
+        bool is_selected = TRACK_SELECTED(track);
+
+        float4x4 bundle_mat = math::translate(tracking_object_mat, float3(track->bundle_pos));
+
+        const float *bundle_color;
+        if (track->flag & TRACK_CUSTOMCOLOR) {
+          /* Meh, hardcoded srgb transform here. */
+          /* TODO: change the actual DNA color to be linear. */
+          srgb_to_linearrgb_v3_v3(bundle_color_custom, track->color);
+          bundle_color_custom[3] = 1.0;
+
+          bundle_color = bundle_color_custom;
+        }
+        else if (is_solid_bundle) {
+          bundle_color = bundle_color_solid;
+        }
+        else if (is_selected) {
+          bundle_color = color;
+        }
+        else {
+          bundle_color = bundle_color_unselected;
+        }
+
+        const select::ID track_select_id = res.select_id(ob_ref, track_index++ << 16);
+        if (is_solid_bundle) {
+          if (is_selected) {
+            Empties::object_sync(track_select_id,
+                                 bundle_mat,
+                                 v3d->bundle_size,
+                                 v3d->bundle_drawtype,
+                                 color,
+                                 call_buffers_.empties);
+          }
+
+          call_buffers_.sphere_solid_buf.append(
+              ExtraInstanceData{bundle_mat, float4(float3(bundle_color), 1.0f), v3d->bundle_size},
+              track_select_id);
+        }
+        else {
+          Empties::object_sync(track_select_id,
+                               bundle_mat,
+                               v3d->bundle_size,
+                               v3d->bundle_drawtype,
+                               bundle_color,
+                               call_buffers_.empties);
+        }
+
+        if ((v3d->flag2 & V3D_SHOW_BUNDLENAME) && !is_selection) {
+          DRWTextStore *dt = DRW_text_cache_ensure();
+
+          DRW_text_cache_add(dt,
+                             bundle_mat[3],
+                             track->name,
+                             strlen(track->name),
+                             10,
+                             0,
+                             DRW_TEXT_CACHE_GLOBALSPACE | DRW_TEXT_CACHE_STRING_PTR,
+                             is_selected ? text_color_selected : text_color_unselected);
+        }
+      }
+
+      if ((v3d->flag2 & V3D_SHOW_CAMERAPATH) && (tracking_object->flag & TRACKING_OBJECT_CAMERA) &&
+          !is_selection)
+      {
+        const MovieTrackingReconstruction *reconstruction = &tracking_object->reconstruction;
+
+        if (reconstruction->camnr) {
+          const MovieReconstructedCamera *camera = reconstruction->cameras;
+          float3 v0, v1 = float3(0.0f);
+          for (int a = 0; a < reconstruction->camnr; a++, camera++) {
+            v0 = v1;
+            v1 = math::transform_point(camera_mat, float3(camera->mat[3]));
+            if (a > 0) {
+              /* This one is suboptimal (gl_lines instead of gl_line_strip)
+               * but we keep this for simplicity */
+              call_buffers_.tracking_path.append(v0, v1, TH_CAMERA_PATH);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  void object_sync_images(const ObjectRef &ob_ref,
+                          select::ID select_id,
+                          ShapeCache &shapes,
+                          Manager &manager,
+                          const State &state,
+                          Resources &res)
+  {
+    Object *ob = ob_ref.object;
+    const Camera *cam = static_cast<Camera *>(ob_ref.object->data);
+    const Object *camera_object = DEG_get_evaluated_object(state.depsgraph, state.v3d->camera);
+
+    const bool is_active = ob_ref.object == camera_object;
+    const bool is_camera_view = (is_active && (state.rv3d->persp == RV3D_CAMOB));
+    const bool show_image = (cam->flag & CAM_SHOW_BG_IMAGE) &&
+                            !BLI_listbase_is_empty(&cam->bg_images);
     const bool show_frame = BKE_object_empty_image_frame_is_visible_in_view3d(ob, state.rv3d);
 
-    if (!show_frame || selection_type != SelectionType::DISABLED) {
+    if (!images_enabled_ || !is_camera_view || !show_image || !show_frame) {
       return;
     }
 
@@ -609,148 +760,6 @@ class Cameras {
 
     r_aspect = (width * aspect_x) / (height * aspect_y);
     return tex;
-  }
-
-  void sync_view3d_reconstruction(const ObjectRef &ob_ref, Resources &res, const State &state)
-  {
-    Object *ob = ob_ref.object;
-    const View3D *v3d = state.v3d;
-    const Scene *scene = state.scene;
-
-    MovieClip *clip = BKE_object_movieclip_get(const_cast<Scene *>(scene), ob, false);
-    if (clip == nullptr) {
-      return;
-    }
-
-    const float4 &color = res.object_wire_color(ob_ref, state);
-
-    const bool is_selection = res.selection_type != SelectionType::DISABLED;
-    const bool is_solid_bundle = (v3d->bundle_drawtype == OB_EMPTY_SPHERE) &&
-                                 ((v3d->shading.type != OB_SOLID) || !XRAY_FLAG_ENABLED(v3d));
-
-    MovieTracking *tracking = &clip->tracking;
-    /* Index must start in 1, to mimic BKE_tracking_track_get_for_selection_index. */
-    int track_index = 1;
-
-    float4 bundle_color_custom;
-    float *bundle_color_solid = G_draw.block.color_bundle_solid;
-    float *bundle_color_unselected = G_draw.block.color_wire;
-    uchar4 text_color_selected, text_color_unselected;
-    /* Color Management: Exception here as texts are drawn in sRGB space directly. */
-    UI_GetThemeColor4ubv(TH_SELECT, text_color_selected);
-    UI_GetThemeColor4ubv(TH_TEXT, text_color_unselected);
-
-    float4x4 camera_mat;
-    BKE_tracking_get_camera_object_matrix(ob, camera_mat.ptr());
-
-    const float4x4 object_to_world{ob->object_to_world().ptr()};
-
-    for (MovieTrackingObject *tracking_object :
-         ListBaseWrapper<MovieTrackingObject>(&tracking->objects))
-    {
-      float4x4 tracking_object_mat;
-
-      if (tracking_object->flag & TRACKING_OBJECT_CAMERA) {
-        tracking_object_mat = camera_mat;
-      }
-      else {
-        const int framenr = BKE_movieclip_remap_scene_to_clip_frame(
-            clip, DEG_get_ctime(state.depsgraph));
-
-        float4x4 object_mat;
-        BKE_tracking_camera_get_reconstructed_interpolate(
-            tracking, tracking_object, framenr, object_mat.ptr());
-
-        tracking_object_mat = object_to_world * math::invert(object_mat);
-      }
-
-      for (MovieTrackingTrack *track :
-           ListBaseWrapper<MovieTrackingTrack>(&tracking_object->tracks))
-      {
-        if ((track->flag & TRACK_HAS_BUNDLE) == 0) {
-          continue;
-        }
-        bool is_selected = TRACK_SELECTED(track);
-
-        float4x4 bundle_mat = math::translate(tracking_object_mat, float3(track->bundle_pos));
-
-        const float *bundle_color;
-        if (track->flag & TRACK_CUSTOMCOLOR) {
-          /* Meh, hardcoded srgb transform here. */
-          /* TODO: change the actual DNA color to be linear. */
-          srgb_to_linearrgb_v3_v3(bundle_color_custom, track->color);
-          bundle_color_custom[3] = 1.0;
-
-          bundle_color = bundle_color_custom;
-        }
-        else if (is_solid_bundle) {
-          bundle_color = bundle_color_solid;
-        }
-        else if (is_selected) {
-          bundle_color = color;
-        }
-        else {
-          bundle_color = bundle_color_unselected;
-        }
-
-        const select::ID track_select_id = res.select_id(ob_ref, track_index++ << 16);
-        if (is_solid_bundle) {
-          if (is_selected) {
-            Empties::object_sync(track_select_id,
-                                 bundle_mat,
-                                 v3d->bundle_size,
-                                 v3d->bundle_drawtype,
-                                 color,
-                                 call_buffers_.empties);
-          }
-
-          call_buffers_.sphere_solid_buf.append(
-              ExtraInstanceData{bundle_mat, float4(float3(bundle_color), 1.0f), v3d->bundle_size},
-              track_select_id);
-        }
-        else {
-          Empties::object_sync(track_select_id,
-                               bundle_mat,
-                               v3d->bundle_size,
-                               v3d->bundle_drawtype,
-                               bundle_color,
-                               call_buffers_.empties);
-        }
-
-        if ((v3d->flag2 & V3D_SHOW_BUNDLENAME) && !is_selection) {
-          DRWTextStore *dt = DRW_text_cache_ensure();
-
-          DRW_text_cache_add(dt,
-                             bundle_mat[3],
-                             track->name,
-                             strlen(track->name),
-                             10,
-                             0,
-                             DRW_TEXT_CACHE_GLOBALSPACE | DRW_TEXT_CACHE_STRING_PTR,
-                             is_selected ? text_color_selected : text_color_unselected);
-        }
-      }
-
-      if ((v3d->flag2 & V3D_SHOW_CAMERAPATH) && (tracking_object->flag & TRACKING_OBJECT_CAMERA) &&
-          !is_selection)
-      {
-        const MovieTrackingReconstruction *reconstruction = &tracking_object->reconstruction;
-
-        if (reconstruction->camnr) {
-          const MovieReconstructedCamera *camera = reconstruction->cameras;
-          float3 v0, v1 = float3(0.0f);
-          for (int a = 0; a < reconstruction->camnr; a++, camera++) {
-            v0 = v1;
-            v1 = math::transform_point(camera_mat, float3(camera->mat[3]));
-            if (a > 0) {
-              /* This one is suboptimal (gl_lines instead of gl_line_strip)
-               * but we keep this for simplicity */
-              call_buffers_.tracking_path.append(v0, v1, TH_CAMERA_PATH);
-            }
-          }
-        }
-      }
-    }
   }
 
   /**
