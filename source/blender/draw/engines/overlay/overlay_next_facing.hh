@@ -68,7 +68,7 @@ class Facing {
       return;
     }
     const bool use_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob_ref.object, state.rv3d) &&
-                                 !DRW_state_is_image_render();
+                                 !state.is_image_render;
 
     if (use_sculpt_pbvh) {
       ResourceHandle handle = manager.resource_handle_for_sculpt(ob_ref);

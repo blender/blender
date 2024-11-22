@@ -25,7 +25,7 @@ class Background {
     float4 color_override(0.0f, 0.0f, 0.0f, 0.0f);
     int background_type;
 
-    if (DRW_state_is_viewport_image_render() && !DRW_state_draw_background()) {
+    if (state.is_viewport_image_render && !state.draw_background) {
       background_type = BG_SOLID;
       color_override[3] = 1.0f;
     }
@@ -36,7 +36,7 @@ class Background {
       background_type = BG_MASK;
       pass_state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_MUL;
     }
-    else if (!DRW_state_draw_background()) {
+    else if (!state.draw_background) {
       background_type = BG_CHECKER;
     }
     else if (state.v3d->shading.background_type == V3D_SHADING_BACKGROUND_WORLD &&

@@ -1831,13 +1831,22 @@ static int area_snap_calc_location(const bScreen *screen,
   // const int axis_max = axis_min + m_span;
 
   switch (snap_type) {
-    case SNAP_AREAGRID:
+    case SNAP_AREAGRID: {
       m_cursor_final = m_cursor;
       if (!ELEM(delta, bigger, -smaller)) {
         m_cursor_final -= (m_cursor % AREAGRID);
         CLAMP(m_cursor_final, origval - smaller, origval + bigger);
       }
-      break;
+
+      /* Slight snap to vertical minimum and maximum. */
+      const int snap_threshold = int(float(ED_area_headersize()) * 0.6f);
+      if (m_cursor_final < (m_min + snap_threshold)) {
+        m_cursor_final = m_min;
+      }
+      else if (m_cursor_final > (origval + bigger - snap_threshold)) {
+        m_cursor_final = origval + bigger;
+      }
+    } break;
 
     case SNAP_BIGGER_SMALLER_ONLY:
       m_cursor_final = (m_cursor >= bigger) ? bigger : smaller;
@@ -4095,8 +4104,28 @@ static float area_split_factor(bContext *C, sAreaJoinData *jd, const wmEvent *ev
     /* Use nearest neighbor or fractional, whichever is closest. */
     fac = (fabs(near_fac - fac) < fabs(frac_fac - fac)) ? near_fac : frac_fac;
   }
+  else {
+    /* Slight snap to center when no modifiers are held. */
+    if (fac >= 0.4375f && fac < 0.5f) {
+      fac = 0.499999f;
+    }
+    else if (fac >= 0.5f && fac < 0.5625f) {
+      fac = 0.500001f;
+    }
+  }
 
-  return std::clamp(fac, 0.001f, 0.999f);
+  /* Don't allow a new area to be created that is very small. */
+  const float min_size = float(2.0f * ED_area_headersize());
+  const float min_fac = min_size / ((jd->split_dir == SCREEN_AXIS_V) ? float(jd->sa1->winx + 1) :
+                                                                       float(jd->sa1->winy + 1));
+  if (min_fac < 0.5f) {
+    return std::clamp(fac, min_fac, 1.0f - min_fac);
+  }
+  else {
+    return 0.5f;
+  }
+
+  return fac;
 }
 
 static void area_join_update_data(bContext *C, sAreaJoinData *jd, const wmEvent *event)
@@ -4137,8 +4166,8 @@ static void area_join_update_data(bContext *C, sAreaJoinData *jd, const wmEvent 
 
   if (jd->sa1 == area) {
     jd->sa2 = area;
-    if (!(abs(jd->start_x - event->xy[0]) > (10 * U.pixelsize) ||
-          abs(jd->start_y - event->xy[1]) > (10 * U.pixelsize)))
+    if (!(abs(jd->start_x - event->xy[0]) > (30 * U.pixelsize) ||
+          abs(jd->start_y - event->xy[1]) > (30 * U.pixelsize)))
     {
       /* We haven't moved enough to start a split. */
       jd->dir = SCREEN_DIR_NONE;

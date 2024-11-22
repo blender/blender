@@ -58,6 +58,18 @@ struct State {
   bool clear_in_front;
   bool use_in_front;
   bool is_wireframe_mode;
+  /** Whether we are rendering for an image (viewport render). */
+  bool is_viewport_image_render;
+  /** Whether we are rendering for an image. */
+  bool is_image_render;
+  /** True if rendering only to query the depth. Can be for auto-depth rotation. */
+  bool is_depth_only_drawing;
+  /** When drag-dropping material onto objects to assignment. */
+  bool is_material_select;
+  /** Whether we should render the background or leave it transparent. */
+  bool draw_background;
+  /** Should text draw in this mode? */
+  bool show_text;
   bool hide_overlays;
   bool xray_enabled;
   bool xray_enabled_and_not_wire;

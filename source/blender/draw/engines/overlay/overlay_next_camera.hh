@@ -208,8 +208,7 @@ class Cameras {
     data.depth = vecs[0].z;
 
     if (is_camera_view) {
-      /* TODO(Miguel Pozo) */
-      if (!DRW_state_is_image_render()) {
+      if (!state.is_image_render) {
         /* Only draw the frame. */
         if (is_multiview) {
           float4x4 mat;
