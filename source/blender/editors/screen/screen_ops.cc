@@ -4104,8 +4104,28 @@ static float area_split_factor(bContext *C, sAreaJoinData *jd, const wmEvent *ev
     /* Use nearest neighbor or fractional, whichever is closest. */
     fac = (fabs(near_fac - fac) < fabs(frac_fac - fac)) ? near_fac : frac_fac;
   }
+  else {
+    /* Slight snap to center when no modifiers are held. */
+    if (fac >= 0.4375f && fac < 0.5f) {
+      fac = 0.499999f;
+    }
+    else if (fac >= 0.5f && fac < 0.5625f) {
+      fac = 0.500001f;
+    }
+  }
 
-  return std::clamp(fac, 0.001f, 0.999f);
+  /* Don't allow a new area to be created that is very small. */
+  const float min_size = float(2.0f * ED_area_headersize());
+  const float min_fac = min_size / ((jd->split_dir == SCREEN_AXIS_V) ? float(jd->sa1->winx + 1) :
+                                                                       float(jd->sa1->winy + 1));
+  if (min_fac < 0.5f) {
+    return std::clamp(fac, min_fac, 1.0f - min_fac);
+  }
+  else {
+    return 0.5f;
+  }
+
+  return fac;
 }
 
 static void area_join_update_data(bContext *C, sAreaJoinData *jd, const wmEvent *event)
@@ -4146,8 +4166,8 @@ static void area_join_update_data(bContext *C, sAreaJoinData *jd, const wmEvent 
 
   if (jd->sa1 == area) {
     jd->sa2 = area;
-    if (!(abs(jd->start_x - event->xy[0]) > (10 * U.pixelsize) ||
-          abs(jd->start_y - event->xy[1]) > (10 * U.pixelsize)))
+    if (!(abs(jd->start_x - event->xy[0]) > (30 * U.pixelsize) ||
+          abs(jd->start_y - event->xy[1]) > (30 * U.pixelsize)))
     {
       /* We haven't moved enough to start a split. */
       jd->dir = SCREEN_DIR_NONE;
