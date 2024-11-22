@@ -329,9 +329,18 @@ void Film::init(const int2 &extent, const rcti *output_rect)
     data_.overscan = overscan_pixels_get(inst_.camera.overscan(), data_.render_extent);
     data_.render_extent += data_.overscan * 2;
 
-    /* Disable filtering if sample count is 1. */
-    data_.filter_radius = (sampling.sample_count() == 1) ? 0.0f :
-                                                           clamp_f(scene.r.gauss, 0.0f, 100.0f);
+    data_.filter_radius = clamp_f(scene.r.gauss, 0.0f, 100.0f);
+    if (sampling.sample_count() == 1) {
+      /* Disable filtering if sample count is 1. */
+      data_.filter_radius = 0.0f;
+    }
+    if (data_.scaling_factor > 1) {
+      /* Fixes issue when using scaling factor and no filtering.
+       * Without this, the filter becomes a dirac and samples gets only the fallback weight.
+       * This results in a box blur instead of no filtering. */
+      data_.filter_radius = math::max(data_.filter_radius, 0.0001f);
+    }
+
     data_.cryptomatte_samples_len = inst_.view_layer->cryptomatte_levels;
 
     data_.background_opacity = (scene.r.alphamode == R_ALPHAPREMUL) ? 0.0f : 1.0f;
