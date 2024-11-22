@@ -142,6 +142,32 @@ class TestGreasePencilFrame(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             self.layer.frames.move(-10, 20)
 
+    def test_grease_pencil_frame_set(self):
+        frame1 = self.layer.frames.new(0)
+        frame1.drawing.add_strokes([3, 5, 7, 11])
+
+        self.assertEqual(len(frame1.drawing.strokes), 4)
+
+        frame1.drawing = None
+        self.assertEqual(len(frame1.drawing.strokes), 0)
+
+        frame2 = self.layer.frames.new(10)
+        frame2.drawing.add_strokes([13, 17])
+
+        frame1.drawing = frame2.drawing
+        self.assertEqual(len(frame1.drawing.strokes), 2)
+        self.assertEqual(len(frame1.drawing.strokes[0].points), 13)
+        self.assertEqual(len(frame1.drawing.strokes[1].points), 17)
+
+        layer2 = self.gp.layers.new("test_layer02")
+        frame2 = layer2.frames.new(0)
+        frame2.drawing.add_strokes([19, 23])
+
+        frame1.drawing = frame2.drawing
+        self.assertEqual(len(frame1.drawing.strokes), 2)
+        self.assertEqual(len(frame1.drawing.strokes[0].points), 19)
+        self.assertEqual(len(frame1.drawing.strokes[1].points), 23)
+
 
 class TestGreasePencilDrawing(unittest.TestCase):
     def setUp(self):
