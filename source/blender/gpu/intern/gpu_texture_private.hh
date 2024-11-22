@@ -824,7 +824,7 @@ constexpr inline bool validate_data_format(eGPUTextureFormat tex_format,
       /* Should have its own type. For now, we rely on the backend to do the conversion. */
       ATTR_FALLTHROUGH;
     case GPU_DEPTH24_STENCIL8:
-      return ELEM(data_format, GPU_DATA_UINT_24_8, GPU_DATA_UINT);
+      return ELEM(data_format, GPU_DATA_FLOAT, GPU_DATA_UINT_24_8, GPU_DATA_UINT);
     case GPU_SRGB8_A8:
       return ELEM(data_format, GPU_DATA_FLOAT, GPU_DATA_UBYTE);
 
