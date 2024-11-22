@@ -6,6 +6,11 @@
  * \ingroup asset_system
  */
 
+#include "AS_asset_catalog.hh"
+#include "AS_asset_catalog_tree.hh"
+#include "asset_catalog_collection.hh"
+#include "asset_catalog_definition_file.hh"
+
 #include "on_disk_library.hh"
 
 namespace blender::asset_system {
@@ -21,6 +26,14 @@ OnDiskAssetLibrary::OnDiskAssetLibrary(eAssetLibraryType library_type,
 void OnDiskAssetLibrary::refresh_catalogs()
 {
   this->catalog_service().reload_catalogs();
+}
+
+void OnDiskAssetLibrary::load_catalogs()
+{
+  auto catalog_service = std::make_unique<AssetCatalogService>(root_path());
+  catalog_service->load_from_disk();
+  std::lock_guard lock{catalog_service_mutex_};
+  catalog_service_ = std::move(catalog_service);
 }
 
 }  // namespace blender::asset_system

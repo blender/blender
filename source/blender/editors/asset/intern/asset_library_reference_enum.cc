@@ -66,7 +66,8 @@ AssetLibraryReference library_reference_from_enum_value(int value)
     library.custom_library_index = -1;
   }
   else {
-    const bool is_valid = (user_library->name[0] && user_library->dirpath[0]);
+    const bool is_valid = user_library->name[0] &&
+                          (user_library->remote_url[0] || user_library->dirpath[0]);
     if (is_valid) {
       library.custom_library_index = value - ASSET_LIBRARY_CUSTOM;
       library.type = ASSET_LIBRARY_CUSTOM;

@@ -12,14 +12,9 @@
 
 namespace blender::asset_system {
 
-class OnDiskAssetLibrary : public AssetLibrary {
+class RemoteAssetLibrary : public AssetLibrary {
  public:
-  OnDiskAssetLibrary(eAssetLibraryType library_type,
-                     StringRef name = "",
-                     StringRef root_path = "");
-
-  void refresh_catalogs() override;
-  void load_catalogs();
+  RemoteAssetLibrary();
 };
 
 }  // namespace blender::asset_system

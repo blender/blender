@@ -25,6 +25,7 @@ set(SRC
   intern/library_types/essentials_library.cc
   intern/library_types/preferences_on_disk_library.cc
   intern/library_types/on_disk_library.cc
+  intern/library_types/remote_library.cc
   intern/library_types/runtime_library.cc
   intern/utils.cc
 
@@ -41,6 +42,7 @@ set(SRC
   intern/library_types/essentials_library.hh
   intern/library_types/preferences_on_disk_library.hh
   intern/library_types/on_disk_library.hh
+  intern/library_types/remote_library.hh
   intern/library_types/runtime_library.hh
   intern/utils.hh
 )

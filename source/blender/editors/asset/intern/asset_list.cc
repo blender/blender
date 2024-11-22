@@ -18,6 +18,7 @@
 #include "AS_asset_library.hh"
 
 #include "BKE_context.hh"
+#include "BKE_preferences.h"
 #include "BKE_screen.hh"
 
 #include "BLI_map.hh"
@@ -160,8 +161,8 @@ void AssetList::setup()
       "");
   filelist_set_no_preview_auto_cache(files);
 
-  const bool use_asset_indexer = !USER_EXPERIMENTAL_TEST(&U, no_asset_indexing);
-  filelist_setindexer(files, use_asset_indexer ? &index::file_indexer_asset : &file_indexer_noop);
+  const FileIndexerType *asset_indexer = index::asset_indexer_from_library_ref(&library_ref_);
+  filelist_setindexer(files, asset_indexer ? asset_indexer : &file_indexer_noop);
 
   char dirpath[FILE_MAX_LIBEXTRA] = "";
   if (!asset_lib_path.empty()) {
@@ -407,8 +408,14 @@ static std::optional<eFileSelectType> asset_library_reference_to_fileselect_type
     case ASSET_LIBRARY_ALL:
       return FILE_ASSET_LIBRARY_ALL;
     case ASSET_LIBRARY_ESSENTIALS:
-    case ASSET_LIBRARY_CUSTOM:
+    case ASSET_LIBRARY_CUSTOM: {
+      const bUserAssetLibrary *user_library = BKE_preferences_asset_library_find_index(
+          &U, library_reference.custom_library_index);
+      if (user_library->flag & ASSET_LIBRARY_USE_REMOTE_URL) {
+        return FILE_ASSET_LIBRARY_REMOTE;
+      }
       return FILE_ASSET_LIBRARY;
+    }
     case ASSET_LIBRARY_LOCAL:
       return FILE_MAIN_ASSET;
   }

@@ -1086,6 +1086,23 @@ void blo_do_versions_userdef(UserDef *userdef)
         userdef, "VIEW3D_AST_brush_gpencil_sculpt", "Brushes/Grease Pencil Sculpt/Utilities");
   }
 
+  {
+    const bool has_polyhaven_library = [userdef]() {
+      LISTBASE_FOREACH (bUserAssetLibrary *, asset_library, &userdef->asset_libraries) {
+        if ((asset_library->flag & ASSET_LIBRARY_USE_REMOTE_URL) &&
+            STREQ(asset_library->name, "Polyhaven"))
+        {
+          return true;
+        }
+      }
+      return false;
+    }();
+
+    if (!has_polyhaven_library) {
+      BKE_preferences_remote_asset_library_add(userdef, "Polyhaven", "/dummy/url/", "polyhaven");
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a USER_VERSION_ATLEAST check.

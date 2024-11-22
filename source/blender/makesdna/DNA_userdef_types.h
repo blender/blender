@@ -625,6 +625,11 @@ typedef struct bUserAssetLibrary {
   /** Only for remote asset libraries (#ASSET_LIBRARY_USE_REMOTE_URL is set). */
   char remote_url[1024]; /* FILE_MAX */
 
+  /* TODO Naming this "module" for now following the extensions. This should be some identifier for
+   * the repository that doesn't break when the user change the name. Maybe hash value of URL with
+   * user-name pre fix (for human readability, ignored by Blender)? */
+  char module[64]; /* MAX_NAME */
+
   short import_method; /* eAssetImportMethod */
   short flag;          /* eAssetLibrary_Flag */
   char _pad0[4];

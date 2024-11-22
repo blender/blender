@@ -28,6 +28,9 @@ struct bUserAssetShelfSettings;
 /** Name of the asset library added by default. Needs translation with `DATA_()` still. */
 #define BKE_PREFS_ASSET_LIBRARY_DEFAULT_NAME N_("User Library")
 
+/**
+ * \note For remote asset libraries, use #BKE_preferences_remote_asset_library_add().
+ */
 struct bUserAssetLibrary *BKE_preferences_asset_library_add(struct UserDef *userdef,
                                                             const char *name,
                                                             const char *dirpath) ATTR_NONNULL(1);
@@ -75,6 +78,18 @@ int BKE_preferences_asset_library_get_index(const struct UserDef *userdef,
     ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 
 void BKE_preferences_asset_library_default_add(struct UserDef *userdef) ATTR_NONNULL();
+
+struct bUserAssetLibrary *BKE_preferences_remote_asset_library_add(struct UserDef *userdef,
+                                                                   const char *remote_url,
+                                                                   const char *name,
+                                                                   const char *module)
+    ATTR_NONNULL(1, 3);
+void BKE_preferences_remote_asset_library_module_set(UserDef *userdef,
+                                                     bUserAssetLibrary *library,
+                                                     const char *module);
+size_t BKE_preferences_remote_asset_library_dirpath_get(const bUserAssetLibrary *library,
+                                                        char *dirpath,
+                                                        const int dirpath_maxncpy);
 
 /** \} */
 

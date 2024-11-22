@@ -10,6 +10,8 @@
 
 #include "ED_file_indexer.hh"
 
+struct AssetLibraryReference;
+
 namespace blender::ed::asset::index {
 
 /**
@@ -30,5 +32,7 @@ namespace blender::ed::asset::index {
  *   additional performance.
  */
 extern const FileIndexerType file_indexer_asset;
+
+const FileIndexerType *asset_indexer_from_library_ref(const AssetLibraryReference *library_ref);
 
 }  // namespace blender::ed::asset::index

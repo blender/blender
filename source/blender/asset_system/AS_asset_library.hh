@@ -121,8 +121,6 @@ class AssetLibrary {
    */
   static void foreach_loaded(FunctionRef<void(AssetLibrary &)> fn, bool include_all_library);
 
-  void load_catalogs();
-
   AssetCatalogService &catalog_service() const;
 
   /**

@@ -46,6 +46,8 @@
 
 #include "MEM_guardedalloc.h"
 
+static void beautify_module_name(char module_buf[FILE_MAX]);
+
 /* -------------------------------------------------------------------- */
 /** \name Reset Default Theme Operator
  * \{ */
@@ -147,13 +149,13 @@ static int preferences_asset_library_add_exec(bContext *C, wmOperator *op)
   const bUserAssetLibraryAddType library_type = bUserAssetLibraryAddType(
       RNA_enum_get(op->ptr, "type"));
 
-  char name[sizeof(bUserExtensionRepo::name)] = "";
+  char name[sizeof(bUserAssetLibrary::name)] = "";
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "name");
   if (RNA_property_is_set(op->ptr, prop)) {
     RNA_property_string_get(op->ptr, prop, name);
   }
 
-  bUserAssetLibrary *new_library = BKE_preferences_asset_library_add(&U, nullptr, nullptr);
+  bUserAssetLibrary *new_library;
 
   switch (library_type) {
     case bUserAssetLibraryAddType::Local: {
@@ -167,8 +169,7 @@ static int preferences_asset_library_add_exec(bContext *C, wmOperator *op)
         STRNCPY(name, DATA_("Local Asset Library"));
       }
 
-      BKE_preferences_asset_library_name_set(&U, new_library, name);
-      STRNCPY(new_library->dirpath, dirpath);
+      new_library = BKE_preferences_asset_library_add(&U, name, dirpath);
 
       MEM_freeN(dirpath);
       break;
@@ -183,9 +184,16 @@ static int preferences_asset_library_add_exec(bContext *C, wmOperator *op)
         STRNCPY(name, DATA_("Remote Asset Library"));
       }
 
-      BKE_preferences_asset_library_name_set(&U, new_library, name);
-      STRNCPY(new_library->remote_url, remote_url);
-      new_library->flag |= ASSET_LIBRARY_USE_REMOTE_URL;
+      /* TODO dummy, should get this from a RNA prop. */
+      const char custom_directory[FILE_MAX] = "";
+
+      char module[FILE_MAX];
+      STRNCPY(module, custom_directory[0] ? BLI_path_basename(custom_directory) : name);
+      /* Not essential but results in more readable module names.
+       * Otherwise URL's have their '.' removed, making for quite unreadable module names. */
+      beautify_module_name(module);
+
+      new_library = BKE_preferences_remote_asset_library_add(&U, name, remote_url, module);
 
       MEM_freeN(remote_url);
       break;
@@ -396,6 +404,23 @@ static const char *preferences_extension_repo_default_name_from_type(
   return "";
 }
 
+/**
+ * Makes the module name that's extracted from the URL (or file path) a bit nicer to read.
+ */
+static void beautify_module_name(char module_buf[FILE_MAX])
+{
+  int i;
+  for (i = 0; module_buf[i]; i++) {
+    if (ELEM(module_buf[i], '.', '-', '/', '\\')) {
+      module_buf[i] = '_';
+    }
+  }
+  /* Strip any trailing underscores. */
+  while ((i > 0) && (module_buf[--i] == '_')) {
+    module_buf[i] = '\0';
+  }
+}
+
 static int preferences_extension_repo_add_exec(bContext *C, wmOperator *op)
 {
   const bUserExtensionRepoAddType repo_type = bUserExtensionRepoAddType(
@@ -460,24 +485,11 @@ static int preferences_extension_repo_add_exec(bContext *C, wmOperator *op)
     }
   }
 
-  const char *module = custom_directory[0] ? BLI_path_basename(custom_directory) : name;
+  char module[FILE_MAX];
+  STRNCPY(module, custom_directory[0] ? BLI_path_basename(custom_directory) : name);
   /* Not essential but results in more readable module names.
    * Otherwise URL's have their '.' removed, making for quite unreadable module names. */
-  char module_buf[FILE_MAX];
-  {
-    STRNCPY(module_buf, module);
-    int i;
-    for (i = 0; module_buf[i]; i++) {
-      if (ELEM(module_buf[i], '.', '-', '/', '\\')) {
-        module_buf[i] = '_';
-      }
-    }
-    /* Strip any trailing underscores. */
-    while ((i > 0) && (module_buf[--i] == '_')) {
-      module_buf[i] = '\0';
-    }
-    module = module_buf;
-  }
+  beautify_module_name(module);
 
   bUserExtensionRepo *new_repo = BKE_preferences_extension_repo_add(
       &U, name, module, custom_directory);

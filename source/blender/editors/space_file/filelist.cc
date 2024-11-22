@@ -349,6 +349,10 @@ static void filelist_readjob_main_assets(FileListReadJob *job_params,
                                          bool *stop,
                                          bool *do_update,
                                          float *progress);
+static void filelist_readjob_remote_asset_library(FileListReadJob *job_params,
+                                                  bool *stop,
+                                                  bool *do_update,
+                                                  float *progress);
 static void filelist_readjob_all_asset_library(FileListReadJob *job_params,
                                                bool *stop,
                                                bool *do_update,
@@ -1885,6 +1889,12 @@ void filelist_settype(FileList *filelist, short type)
       filelist->prepare_filter_fn = prepare_filter_asset_library;
       filelist->filter_fn = is_filtered_main_assets;
       filelist->tags |= FILELIST_TAGS_USES_MAIN_DATA | FILELIST_TAGS_NO_THREADS;
+      break;
+    case FILE_ASSET_LIBRARY_REMOTE:
+      filelist->check_dir_fn = filelist_checkdir_return_always_valid;
+      filelist->read_job_fn = filelist_readjob_remote_asset_library;
+      filelist->prepare_filter_fn = prepare_filter_asset_library;
+      filelist->filter_fn = is_filtered_asset_library;
       break;
     case FILE_ASSET_LIBRARY_ALL:
       filelist->check_dir_fn = filelist_checkdir_return_always_valid;
@@ -4030,6 +4040,62 @@ static void filelist_readjob_asset_library(FileListReadJob *job_params,
   }
   if (!job_params->only_main_data) {
     filelist_readjob_recursive_dir_add_items(true, job_params, stop, do_update, progress);
+  }
+}
+
+static void filelist_readjob_remote_asset_library_index_read(FileListReadJob *job_params,
+                                                             bool *stop,
+                                                             bool *do_update,
+                                                             float *progress)
+{
+  FileList *filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
+
+  char dirpath[FILE_MAX];
+  const bUserAssetLibrary *user_library = BKE_preferences_asset_library_find_index(
+      &U, job_params->filelist->asset_library_ref->custom_library_index);
+  BKE_preferences_remote_asset_library_dirpath_get(user_library, dirpath, sizeof(dirpath));
+  printf("%s\n", dirpath);
+
+  FileIndexer indexer_runtime{};
+  indexer_runtime.callbacks = filelist->indexer;
+  if (indexer_runtime.callbacks->init_user_data) {
+    // indexer_runtime.user_data = indexer_runtime.callbacks->init_user_data(dir, sizeof(dir));
+  }
+
+  /* Finalize and free indexer. */
+  if (indexer_runtime.callbacks->filelist_finished) {
+    indexer_runtime.callbacks->filelist_finished(indexer_runtime.user_data);
+  }
+  if (indexer_runtime.callbacks->free_user_data && indexer_runtime.user_data) {
+    indexer_runtime.callbacks->free_user_data(indexer_runtime.user_data);
+    indexer_runtime.user_data = nullptr;
+  }
+}
+
+static void filelist_readjob_remote_asset_library(FileListReadJob *job_params,
+                                                  bool *stop,
+                                                  bool *do_update,
+                                                  float *progress)
+{
+  FileList *filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
+
+  BLI_assert(BLI_listbase_is_empty(&filelist->filelist.entries) &&
+             (filelist->filelist.entries_num == FILEDIR_NBR_ENTRIES_UNSET));
+
+  /* A valid, but empty file-list from now. */
+  filelist->filelist.entries_num = 0;
+
+  BLI_assert(job_params->filelist->asset_library_ref != nullptr);
+
+  /* NOP if already read. */
+  filelist_readjob_load_asset_library_data(job_params, do_update);
+
+  const bool full_library_downloaded = false;
+  if (full_library_downloaded) {
+    filelist_readjob_recursive_dir_add_items(true, job_params, stop, do_update, progress);
+  }
+  else {
+    filelist_readjob_remote_asset_library_index_read(job_params, stop, do_update, progress);
   }
 }
 

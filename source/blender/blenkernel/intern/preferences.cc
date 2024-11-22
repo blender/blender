@@ -127,6 +127,63 @@ void BKE_preferences_asset_library_default_add(UserDef *userdef)
       library->dirpath, sizeof(library->dirpath), documents_path, N_("Blender"), N_("Assets"));
 }
 
+bUserAssetLibrary *BKE_preferences_remote_asset_library_add(UserDef *userdef,
+                                                            const char *name,
+                                                            const char *remote_url,
+                                                            const char *module)
+{
+  bUserAssetLibrary *library = DNA_struct_default_alloc(bUserAssetLibrary);
+
+  library->flag |= ASSET_LIBRARY_USE_REMOTE_URL;
+  BLI_addtail(&userdef->asset_libraries, library);
+
+  STRNCPY(library->remote_url, remote_url);
+  BKE_preferences_remote_asset_library_module_set(userdef, library, module);
+  if (name) {
+    BKE_preferences_asset_library_name_set(userdef, library, name);
+  }
+
+  return library;
+}
+
+void BKE_preferences_remote_asset_library_module_set(UserDef *userdef,
+                                                     bUserAssetLibrary *library,
+                                                     const char *module)
+{
+  STRNCPY(library->module, module);
+  BLI_path_make_safe_filename(library->module);
+
+  BLI_uniquename(&userdef->asset_libraries,
+                 library,
+                 "asset-library",
+                 '_',
+                 offsetof(bUserExtensionRepo, module),
+                 sizeof(library->module));
+}
+
+size_t BKE_preferences_remote_asset_library_dirpath_get(const bUserAssetLibrary *library,
+                                                        char *dirpath,
+                                                        const int dirpath_maxncpy)
+{
+  /* TODO support custom directories? */
+  // if (library->flag & USER_EXTENSION_REPO_FLAG_USE_CUSTOM_DIRECTORY) {
+  //   return BLI_strncpy_rlen(dirpath, library->custom_dirpath, dirpath_maxncpy);
+  // }
+
+  std::optional<std::string> path = std::nullopt;
+
+  /* TODO actual download directory should be elsewhere. In ~/.config (meaning versioned)? Or in
+   * ~/.cache? */
+  path = BKE_appdir_folder_id(BLENDER_SYSTEM_EXTENSIONS, "asset_indices");
+
+  /* Highly unlikely to fail as the directory doesn't have to exist. */
+  if (!path) {
+    dirpath[0] = '\0';
+    return 0;
+  }
+  return BLI_path_join(dirpath, dirpath_maxncpy, path.value().c_str(), library->module);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

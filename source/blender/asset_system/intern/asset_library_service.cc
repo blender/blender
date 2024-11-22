@@ -20,11 +20,12 @@
 #include "AS_asset_library.hh"
 #include "AS_essentials_library.hh"
 #include "all_library.hh"
-#include "essentials_library.hh"
-#include "preferences_on_disk_library.hh"
-#include "on_disk_library.hh"
-#include "runtime_library.hh"
 #include "asset_library_service.hh"
+#include "essentials_library.hh"
+#include "on_disk_library.hh"
+#include "preferences_on_disk_library.hh"
+#include "remote_library.hh"
+#include "runtime_library.hh"
 #include "utils.hh"
 
 /* When enabled, use a pre file load handler (#BKE_CB_EVT_LOAD_PRE) callback to destroy the asset
@@ -96,6 +97,10 @@ AssetLibrary *AssetLibraryService::get_asset_library(
         return nullptr;
       }
 
+      if (custom_library->flag & ASSET_LIBRARY_USE_REMOTE_URL) {
+        return this->get_remote_asset_library(custom_library->remote_url);
+      }
+
       std::string root_path = custom_library->dirpath;
       if (root_path.empty()) {
         return nullptr;
@@ -112,6 +117,24 @@ AssetLibrary *AssetLibraryService::get_asset_library(
   }
 
   return nullptr;
+}
+
+AssetLibrary *AssetLibraryService::get_remote_asset_library(StringRefNull remote_url)
+{
+  std::unique_ptr<RemoteAssetLibrary> *lib_uptr_ptr = remote_libraries_.lookup_ptr(remote_url);
+  if (lib_uptr_ptr != nullptr) {
+    CLOG_INFO(&LOG, 2, "get \"%s\" (cached)", remote_url.c_str());
+    AssetLibrary *lib = lib_uptr_ptr->get();
+    lib->refresh_catalogs();
+    return lib;
+  }
+
+  std::unique_ptr<RemoteAssetLibrary> lib_uptr = std::make_unique<RemoteAssetLibrary>();
+  AssetLibrary *lib = lib_uptr.get();
+
+  remote_libraries_.add_new(remote_url, std::move(lib_uptr));
+  CLOG_INFO(&LOG, 2, "get \"%s\" (loaded)", remote_url.c_str());
+  return lib;
 }
 
 AssetLibrary *AssetLibraryService::get_asset_library_on_disk(eAssetLibraryType library_type,
@@ -145,10 +168,10 @@ AssetLibrary *AssetLibraryService::get_asset_library_on_disk(eAssetLibraryType l
       break;
   }
 
+  lib_uptr->load_catalogs();
+
+  /* Get underlying pointer before moving. */
   AssetLibrary *lib = lib_uptr.get();
-
-  lib->load_catalogs();
-
   on_disk_libraries_.add_new({library_type, normalized_root_path}, std::move(lib_uptr));
   CLOG_INFO(&LOG, 2, "get \"%s\" (loaded)", normalized_root_path.c_str());
   return lib;
@@ -523,6 +546,10 @@ void AssetLibraryService::foreach_loaded_asset_library(FunctionRef<void(AssetLib
   }
 
   for (const auto &asset_lib_uptr : on_disk_libraries_.values()) {
+    fn(*asset_lib_uptr);
+  }
+
+  for (const auto &asset_lib_uptr : remote_libraries_.values()) {
     fn(*asset_lib_uptr);
   }
 }

@@ -31,6 +31,7 @@
 #include "BKE_appdir.hh"
 #include "BKE_asset.hh"
 #include "BKE_idprop.hh"
+#include "BKE_preferences.h"
 
 #include "CLG_log.h"
 
@@ -756,5 +757,23 @@ constexpr FileIndexerType asset_indexer()
 }
 
 const FileIndexerType file_indexer_asset = asset_indexer();
+
+const FileIndexerType *asset_indexer_from_library_ref(const AssetLibraryReference *library_ref)
+{
+  if (USER_EXPERIMENTAL_TEST(&U, no_asset_indexing)) {
+    return nullptr;
+  }
+
+  if (library_ref->type == ASSET_LIBRARY_CUSTOM) {
+    const bUserAssetLibrary *library = BKE_preferences_asset_library_find_index(
+        &U, library_ref->custom_library_index);
+    if (library->flag & ASSET_LIBRARY_USE_REMOTE_URL) {
+      /* TODO remote asset library indexer */
+      return nullptr;
+    }
+  }
+
+  return &index::file_indexer_asset;
+}
 
 }  // namespace blender::ed::asset::index

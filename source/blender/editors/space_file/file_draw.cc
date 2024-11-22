@@ -30,6 +30,7 @@
 
 #include "BKE_blendfile.hh"
 #include "BKE_context.hh"
+#include "BKE_preferences.h"
 #include "BKE_report.hh"
 
 #include "BLO_readfile.hh"
@@ -1535,10 +1536,24 @@ bool file_draw_hint_if_invalid(const bContext *C, const SpaceFile *sfile, ARegio
   if (is_asset_browser) {
     FileAssetSelectParams *asset_params = ED_fileselect_get_asset_params(sfile);
 
+    const bool is_on_disk_library = [&]() {
+      if (ELEM(asset_params->asset_library_ref.type, ASSET_LIBRARY_LOCAL, ASSET_LIBRARY_ALL)) {
+        return false;
+      }
+      if (asset_params->asset_library_ref.type == ASSET_LIBRARY_CUSTOM) {
+        if (const bUserAssetLibrary *library = BKE_preferences_asset_library_find_index(
+                &U, asset_params->asset_library_ref.custom_library_index))
+        {
+          if (library->flag & ASSET_LIBRARY_USE_REMOTE_URL) {
+            return false;
+          }
+        }
+      }
+      return true;
+    }();
+
     /* Check if the asset library exists. */
-    if (!((asset_params->asset_library_ref.type == ASSET_LIBRARY_LOCAL) ||
-          filelist_is_dir(sfile->files, asset_params->base_params.dir)))
-    {
+    if (is_on_disk_library && !filelist_is_dir(sfile->files, asset_params->base_params.dir)) {
       file_draw_invalid_asset_library_hint(C, sfile, region, asset_params);
       return true;
     }
