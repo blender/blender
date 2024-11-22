@@ -2,15 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 
-#include "bmesh.hh"
-#include "bmesh_tools.hh"
-
-#include "DNA_mesh_types.h"
-
 #include "NOD_rna_define.hh"
+
+#include "GEO_mesh_triangulate.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -25,7 +21,6 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Mesh").supported_type(GeometryComponent::Type::Mesh);
   b.add_input<decl::Bool>("Selection").default_value(true).field_on_all().hide_value();
-  b.add_input<decl::Int>("Minimum Vertices").default_value(4).min(4).max(10000);
   b.add_output<decl::Geometry>("Mesh").propagate_all();
 }
 
@@ -37,69 +32,53 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void geo_triangulate_init(bNodeTree * /*tree*/, bNode *node)
 {
-  node->custom1 = GEO_NODE_TRIANGULATE_QUAD_SHORTEDGE;
-  node->custom2 = GEO_NODE_TRIANGULATE_NGON_BEAUTY;
-}
-
-static Mesh *triangulate_mesh_selection(const Mesh &mesh,
-                                        const int quad_method,
-                                        const int ngon_method,
-                                        const IndexMask &selection,
-                                        const int min_vertices)
-{
-  CustomData_MeshMasks cd_mask_extra = {
-      CD_MASK_ORIGINDEX, CD_MASK_ORIGINDEX, 0, CD_MASK_ORIGINDEX};
-  BMeshCreateParams create_params{false};
-  BMeshFromMeshParams from_mesh_params{};
-  from_mesh_params.calc_face_normal = true;
-  from_mesh_params.calc_vert_normal = true;
-  from_mesh_params.cd_mask_extra = cd_mask_extra;
-  BMesh *bm = BKE_mesh_to_bmesh_ex(&mesh, &create_params, &from_mesh_params);
-
-  /* Tag faces to be triangulated from the selection mask. */
-  BM_mesh_elem_table_ensure(bm, BM_FACE);
-  selection.foreach_index([&](const int i_face) {
-    BM_elem_flag_set(BM_face_at_index(bm, i_face), BM_ELEM_TAG, true);
-  });
-
-  BM_mesh_triangulate(bm, quad_method, ngon_method, min_vertices, true, nullptr, nullptr, nullptr);
-  Mesh *result = BKE_mesh_from_bmesh_for_eval_nomain(bm, &cd_mask_extra, &mesh);
-  BM_mesh_free(bm);
-
-  /* Positions are not changed by the triangulation operation, so the bounds are the same. */
-  result->runtime->bounds_cache = mesh.runtime->bounds_cache;
-
-  /* Vertex order is not affected. */
-  geometry::debug_randomize_edge_order(result);
-  geometry::debug_randomize_face_order(result);
-
-  return result;
+  node->custom1 = int(geometry::TriangulateQuadMode::ShortEdge);
+  node->custom2 = int(geometry::TriangulateNGonMode::Beauty);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh");
   Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
-  const int min_vertices = std::max(params.extract_input<int>("Minimum Vertices"), 4);
+  const AttributeFilter &attribute_filter = params.get_attribute_filter("Mesh");
 
-  GeometryNodeTriangulateQuads quad_method = GeometryNodeTriangulateQuads(params.node().custom1);
-  GeometryNodeTriangulateNGons ngon_method = GeometryNodeTriangulateNGons(params.node().custom2);
+  geometry::TriangulateNGonMode ngon_method = geometry::TriangulateNGonMode(params.node().custom2);
+  geometry::TriangulateQuadMode quad_method = geometry::TriangulateQuadMode(params.node().custom1);
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    if (!geometry_set.has_mesh()) {
+    const Mesh *src_mesh = geometry_set.get_mesh();
+    if (!src_mesh) {
       return;
     }
-    const Mesh &mesh_in = *geometry_set.get_mesh();
+    if (src_mesh->corners_num == src_mesh->faces_num * 3) {
+      /* The mesh is already completely triangulated. */
+      return;
+    }
 
-    const bke::MeshFieldContext context{mesh_in, AttrDomain::Face};
-    FieldEvaluator evaluator{context, mesh_in.faces_num};
+    const bke::MeshFieldContext context(*src_mesh, AttrDomain::Face);
+    FieldEvaluator evaluator{context, src_mesh->faces_num};
     evaluator.add(selection_field);
     evaluator.evaluate();
     const IndexMask selection = evaluator.get_evaluated_as_mask(0);
+    if (selection.is_empty()) {
+      return;
+    }
 
-    Mesh *mesh_out = triangulate_mesh_selection(
-        mesh_in, quad_method, ngon_method, selection, min_vertices);
-    geometry_set.replace_mesh(mesh_out);
+    std::optional<Mesh *> mesh = geometry::mesh_triangulate(
+        *src_mesh,
+        selection,
+        geometry::TriangulateNGonMode(ngon_method),
+        geometry::TriangulateQuadMode(quad_method),
+        attribute_filter);
+    if (!mesh) {
+      return;
+    }
+
+    /* Vertex order is not affected. */
+    geometry::debug_randomize_edge_order(*mesh);
+    geometry::debug_randomize_face_order(*mesh);
+
+    geometry_set.replace_mesh(*mesh);
   });
 
   params.set_output("Mesh", std::move(geometry_set));
@@ -108,27 +87,27 @@ static void node_geo_exec(GeoNodeExecParams params)
 static void node_rna(StructRNA *srna)
 {
   static const EnumPropertyItem rna_node_geometry_triangulate_quad_method_items[] = {
-      {GEO_NODE_TRIANGULATE_QUAD_BEAUTY,
+      {int(geometry::TriangulateQuadMode::Beauty),
        "BEAUTY",
        0,
        "Beauty",
        "Split the quads in nice triangles, slower method"},
-      {GEO_NODE_TRIANGULATE_QUAD_FIXED,
+      {int(geometry::TriangulateQuadMode::Fixed),
        "FIXED",
        0,
        "Fixed",
        "Split the quads on the first and third vertices"},
-      {GEO_NODE_TRIANGULATE_QUAD_ALTERNATE,
+      {int(geometry::TriangulateQuadMode::Alternate),
        "FIXED_ALTERNATE",
        0,
        "Fixed Alternate",
        "Split the quads on the 2nd and 4th vertices"},
-      {GEO_NODE_TRIANGULATE_QUAD_SHORTEDGE,
+      {int(geometry::TriangulateQuadMode::ShortEdge),
        "SHORTEST_DIAGONAL",
        0,
        "Shortest Diagonal",
        "Split the quads along their shortest diagonal"},
-      {GEO_NODE_TRIANGULATE_QUAD_LONGEDGE,
+      {int(geometry::TriangulateQuadMode::LongEdge),
        "LONGEST_DIAGONAL",
        0,
        "Longest Diagonal",
@@ -137,12 +116,12 @@ static void node_rna(StructRNA *srna)
   };
 
   static const EnumPropertyItem rna_node_geometry_triangulate_ngon_method_items[] = {
-      {GEO_NODE_TRIANGULATE_NGON_BEAUTY,
+      {int(geometry::TriangulateNGonMode::Beauty),
        "BEAUTY",
        0,
        "Beauty",
        "Arrange the new triangles evenly (slow)"},
-      {GEO_NODE_TRIANGULATE_NGON_EARCLIP,
+      {int(geometry::TriangulateNGonMode::EarClip),
        "CLIP",
        0,
        "Clip",
