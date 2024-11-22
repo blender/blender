@@ -70,6 +70,79 @@ class TestGreasePencilLayers(unittest.TestCase):
         self.assertEqual(self.gp.layers[2].name, "test_layer03")
 
 
+class TestGreasePencilFrame(unittest.TestCase):
+    def setUp(self):
+        self.gp = bpy.data.grease_pencils_v3.new("test_grease_pencil")
+        self.layer = self.gp.layers.new("test_layer01")
+
+    def tearDown(self):
+        bpy.data.grease_pencils_v3.remove(self.gp)
+        del self.gp
+
+    def test_grease_pencil_frame_add(self):
+        frame1 = self.layer.frames.new(0)
+        frame2 = self.layer.frames.new(-100)
+        frame3 = self.layer.frames.new(10)
+        with self.assertRaises(RuntimeError):
+            self.layer.frames.new(10)
+
+        self.assertEqual(len(self.layer.frames), 3)
+        self.assertEqual(frame1.frame_number, 0)
+        self.assertEqual(frame2.frame_number, -100)
+        self.assertEqual(frame3.frame_number, 10)
+
+    def test_grease_pencil_frame_remove(self):
+        self.layer.frames.new(0)
+        self.layer.frames.new(-10)
+        frame3 = self.layer.frames.new(20)
+
+        self.assertEqual(len(self.layer.frames), 3)
+
+        self.layer.frames.remove(0)
+        self.layer.frames.remove(-10)
+
+        with self.assertRaises(RuntimeError):
+            self.layer.frames.remove(19)
+
+        self.assertEqual(len(self.layer.frames), 1)
+        self.assertEqual(frame3.frame_number, 20)
+
+    def test_grease_pencil_frame_copy(self):
+        self.layer.frames.new(0)
+        self.layer.frames.new(-10)
+        self.layer.frames.new(20)
+
+        self.assertEqual(len(self.layer.frames), 3)
+
+        frame = self.layer.frames.copy(0, 1)
+
+        self.assertEqual(len(self.layer.frames), 4)
+        self.assertEqual(frame.frame_number, 1)
+
+        with self.assertRaises(RuntimeError):
+            self.layer.frames.copy(0, 1)
+
+        with self.assertRaises(RuntimeError):
+            self.layer.frames.copy(10, 20)
+
+    def test_grease_pencil_frame_move(self):
+        self.layer.frames.new(0)
+        self.layer.frames.new(-10)
+        self.layer.frames.new(20)
+
+        self.assertEqual(len(self.layer.frames), 3)
+
+        frame = self.layer.frames.move(0, 1)
+
+        self.assertEqual(frame.frame_number, 1)
+
+        with self.assertRaises(RuntimeError):
+            self.layer.frames.move(0, 1)
+
+        with self.assertRaises(RuntimeError):
+            self.layer.frames.move(-10, 20)
+
+
 class TestGreasePencilDrawing(unittest.TestCase):
     def setUp(self):
         self.gp = bpy.data.grease_pencils_v3.new("test_grease_pencil")
