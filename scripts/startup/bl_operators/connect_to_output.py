@@ -57,6 +57,8 @@ class NODE_OT_connect_to_output(Operator, NodeEditorBase):
                 self.shader_output_idname = 'ShaderNodeOutputMaterial'
         elif shader_type == 'WORLD':
             self.shader_output_idname = 'ShaderNodeOutputWorld'
+        elif shader_type == 'NPR':
+            self.shader_output_idname = 'ShaderNodeNPR_Output'
 
     def ensure_viewer_socket(self, node_tree, socket_type, connect_socket=None):
         """Check if a viewer output already exists in a node group, otherwise create it"""

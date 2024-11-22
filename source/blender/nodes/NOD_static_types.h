@@ -87,7 +87,7 @@ DefNode(ShaderNode,     SH_NODE_NEW_GEOMETRY,       0,                      "NEW
 DefNode(ShaderNode,     SH_NODE_NORMAL_MAP,         def_sh_normal_map,      "NORMAL_MAP",         NormalMap,        "Normal Map",        "Generate a perturbed normal from an RGB normal map image. Typically used for faking highly detailed surfaces")
 DefNode(ShaderNode,     SH_NODE_NPR_IMAGE_SAMPLE,   def_sh_image_sample,    "NPR_IMAGE_SAMPLE",   NPR_ImageSample,  "Image Sample",      "Image Sample")
 DefNode(ShaderNode,     SH_NODE_NPR_INPUT,          0,                      "NPR_INPUT",          NPR_Input,        "NPR Input",         "NPR Input")
-DefNode(ShaderNode,     SH_NODE_NPR_OUTPUT,         0,                      "NPR_OUTPUT",         NPR_Output,       "NPR Output",        "NPR Output")
+DefNode(ShaderNode,     SH_NODE_NPR_OUTPUT,         def_group_output,       "NPR_OUTPUT",         NPR_Output,       "NPR Output",        "NPR Output")
 DefNode(ShaderNode,     SH_NODE_NPR_REFRACTION,     0,                      "NPR_REFRACTION",     NPR_Refraction,   "NPR Refraction",    "NPR Refraction")
 DefNode(ShaderNode,     SH_NODE_INPUT_AOV,          def_sh_input_aov,       "INPUT_AOV",          InputAOV,         "AOV Input",         "AOV Input")
 DefNode(ShaderNode,     SH_NODE_REPEAT_INPUT,       def_sh_repeat_input,    "REPEAT_INPUT",       RepeatInput,      "RepeatInput",       "Repeat Zone Input")
