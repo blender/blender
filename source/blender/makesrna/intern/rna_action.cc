@@ -1415,6 +1415,39 @@ bool rna_Action_actedit_assign_poll(PointerRNA *ptr, PointerRNA value)
   return false;
 }
 
+/** Iterate the FCurves of the given bAnimContext and validate the RNA path. Sets the flag
+ * FCURVE_DISABLED if the path can't be resolved. */
+static void reevaluate_fcurve_errors(bAnimContext *ac)
+{
+  /* Need to take off the flag before filtering, else the filter code would skip the FCurves, which
+   * have not yet been validated. */
+  const bool filtering_enabled = ac->ads->filterflag & ADS_FILTER_ONLY_ERRORS;
+  if (filtering_enabled) {
+    ac->ads->filterflag &= ~ADS_FILTER_ONLY_ERRORS;
+  }
+  ListBase anim_data = {nullptr, nullptr};
+  const eAnimFilter_Flags filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FCURVESONLY;
+  ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
+
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+    FCurve *fcu = (FCurve *)ale->key_data;
+    PointerRNA ptr;
+    PropertyRNA *prop;
+    PointerRNA id_ptr = RNA_id_pointer_create(ale->id);
+    if (RNA_path_resolve_property(&id_ptr, fcu->rna_path, &ptr, &prop)) {
+      fcu->flag &= ~FCURVE_DISABLED;
+    }
+    else {
+      fcu->flag |= FCURVE_DISABLED;
+    }
+  }
+
+  ANIM_animdata_freelist(&anim_data);
+  if (filtering_enabled) {
+    ac->ads->filterflag |= ADS_FILTER_ONLY_ERRORS;
+  }
+}
+
 /* All FCurves need to be validated when the "show_only_errors" button is enabled. */
 static void rna_Action_show_errors_update(bContext *C, PointerRNA * /*ptr*/)
 {
@@ -1429,7 +1462,7 @@ static void rna_Action_show_errors_update(bContext *C, PointerRNA * /*ptr*/)
     return;
   }
 
-  blender::animrig::reevaluate_fcurve_errors(&ac);
+  reevaluate_fcurve_errors(&ac);
 }
 
 static std::optional<std::string> rna_DopeSheet_path(const PointerRNA *ptr)

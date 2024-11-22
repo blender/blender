@@ -832,8 +832,8 @@ void UI_view2d_curRect_changed(const bContext *C, View2D *v2d)
 
   ARegion *region = CTX_wm_region(C);
 
-  if (region->type->on_view2d_changed != nullptr) {
-    region->type->on_view2d_changed(C, region);
+  if (region->runtime->type->on_view2d_changed != nullptr) {
+    region->runtime->type->on_view2d_changed(C, region);
   }
 }
 

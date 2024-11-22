@@ -28,10 +28,10 @@ namespace blender::nodes {
 
 using bke::AttrDomain;
 using bke::AttributeAccessor;
+using bke::AttributeDomainAndType;
 using bke::AttributeFieldInput;
 using bke::AttributeFilter;
 using bke::AttributeIter;
-using bke::AttributeKind;
 using bke::AttributeMetaData;
 using bke::AttributeReader;
 using bke::AttributeWriter;

@@ -58,7 +58,7 @@ static uiBlock *ui_block_func_PIE(bContext * /*C*/, uiPopupBlockHandle *handle, 
 
   /* in some cases we create the block before the region,
    * so we set it delayed here if necessary */
-  if (BLI_findindex(&handle->region->uiblocks, block) == -1) {
+  if (BLI_findindex(&handle->region->runtime->uiblocks, block) == -1) {
     UI_block_region_set(block, handle->region);
   }
 

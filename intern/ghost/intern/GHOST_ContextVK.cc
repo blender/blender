@@ -241,6 +241,13 @@ class GHOST_DeviceVK {
 
     void *device_create_info_p_next = nullptr;
 
+    /* Enable vulkan 11 features when supported on physical device. */
+    VkPhysicalDeviceVulkan11Features vulkan_11_features = {};
+    vulkan_11_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
+    vulkan_11_features.pNext = device_create_info_p_next;
+    vulkan_11_features.shaderDrawParameters = features_11.shaderDrawParameters;
+    device_create_info_p_next = &vulkan_11_features;
+
     /* Enable optional vulkan 12 features when supported on physical device. */
     VkPhysicalDeviceVulkan12Features vulkan_12_features = {};
     vulkan_12_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
@@ -249,20 +256,14 @@ class GHOST_DeviceVK {
     vulkan_12_features.pNext = device_create_info_p_next;
     device_create_info_p_next = &vulkan_12_features;
 
-    /* Enable shader draw parameters on logical device when supported on physical device. */
-    VkPhysicalDeviceShaderDrawParametersFeatures shader_draw_parameters = {};
-    shader_draw_parameters.sType =
-        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETERS_FEATURES;
-    shader_draw_parameters.shaderDrawParameters = features_11.shaderDrawParameters;
-    shader_draw_parameters.pNext = device_create_info_p_next;
-    device_create_info_p_next = &shader_draw_parameters;
-
     /* Enable dynamic rendering. */
     VkPhysicalDeviceDynamicRenderingFeatures dynamic_rendering = {};
     dynamic_rendering.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES;
-    dynamic_rendering.dynamicRendering = true;
-    dynamic_rendering.pNext = device_create_info_p_next;
-    device_create_info_p_next = &dynamic_rendering;
+    dynamic_rendering.dynamicRendering = VK_TRUE;
+    if (has_extensions({VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME})) {
+      dynamic_rendering.pNext = device_create_info_p_next;
+      device_create_info_p_next = &dynamic_rendering;
+    }
 
     VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT
         dynamic_rendering_unused_attachments = {};
@@ -990,10 +991,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
 
     required_device_extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
   }
-  required_device_extensions.push_back(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
-  /* NOTE: marking this as an optional extension, but is actually required. RenderDoc doesn't
-   * create a device with this extension, but seems to work when not requesting the extension.
-   */
+  optional_device_extensions.push_back(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
   optional_device_extensions.push_back(VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME);
   optional_device_extensions.push_back(VK_EXT_SHADER_STENCIL_EXPORT_EXTENSION_NAME);
   optional_device_extensions.push_back(VK_KHR_MAINTENANCE_4_EXTENSION_NAME);

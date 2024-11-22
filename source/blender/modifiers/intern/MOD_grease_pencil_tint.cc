@@ -155,7 +155,8 @@ static ColorGeometry4f apply_gradient_tint(const GreasePencilTintModifierData &t
   const float3 input_rgb = {input_color.r, input_color.g, input_color.b};
   /* GP2 compatibility: ignore vertex group factor and use the plain modifier setting for
    * RGB mixing. */
-  const float3 rgb = math::interpolate(input_rgb, gradient_color.xyz(), tmd.factor);
+  const float3 rgb = math::interpolate(
+      input_rgb, gradient_color.xyz(), tmd.factor * gradient_color.w);
   /* GP2 compatibility: use vertex group factor for alpha. */
   return ColorGeometry4f(rgb[0], rgb[1], rgb[2], factor);
 }

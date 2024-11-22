@@ -504,6 +504,8 @@ static void generate_cap(const float3 &point,
                                        r_src_indices);
       break;
     case GP_STROKE_CAP_FLAT:
+      r_perimeter.append(point - normal * radius);
+      r_src_indices.append(src_point_index);
       r_perimeter.append(point + normal * radius);
       r_src_indices.append(src_point_index);
       break;

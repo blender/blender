@@ -965,7 +965,7 @@ static BakeFrameIndices get_bake_frame_indices(
 {
   BakeFrameIndices frame_indices;
   if (!frame_caches.is_empty()) {
-    const int first_future_frame_index = binary_search::find_predicate_begin(
+    const int first_future_frame_index = binary_search::first_if(
         frame_caches,
         [&](const std::unique_ptr<bake::FrameCache> &value) { return value->frame > frame; });
     frame_indices.next = (first_future_frame_index == frame_caches.size()) ?
@@ -1505,7 +1505,7 @@ class NodesModifierBakeParams : public nodes::GeoNodesBakeParams {
           frame_cache->frame = current_frame;
           frame_cache->state = std::move(state);
           auto &frames = node_cache->bake.frames;
-          const int insert_index = binary_search::find_predicate_begin(
+          const int insert_index = binary_search::first_if(
               frames, [&](const std::unique_ptr<bake::FrameCache> &frame_cache) {
                 return frame_cache->frame > current_frame;
               });
@@ -2443,7 +2443,9 @@ static void draw_warnings(const bContext *C,
     return;
   }
   PanelLayout panel = uiLayoutPanelProp(C, layout, md_ptr, "open_warnings_panel");
-  uiItemL(panel.header, fmt::format(IFACE_("Warnings ({})"), warnings_num).c_str(), ICON_NONE);
+  uiItemL(panel.header,
+          fmt::format(fmt::runtime(IFACE_("Warnings ({})")), warnings_num).c_str(),
+          ICON_NONE);
   if (!panel.body) {
     return;
   }

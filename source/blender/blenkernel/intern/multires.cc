@@ -739,9 +739,9 @@ static DerivedMesh *multires_dm_create_local(Scene *scene,
   mmd.renderlvl = lvl;
   mmd.totlvl = totlvl;
 
-  flags |= MULTIRES_USE_LOCAL_MMD;
+  flags |= MultiresFlags::UseLocalMMD;
   if (alloc_paint_mask) {
-    flags |= MULTIRES_ALLOC_PAINT_MASK;
+    flags |= MultiresFlags::AllocPaintMask;
   }
 
   return multires_make_derived_from_derived(dm, &mmd, scene, ob, flags);
@@ -1076,7 +1076,7 @@ void multires_modifier_update_mdisps(DerivedMesh *dm, Scene *scene)
 
       /* create multires DM from original mesh and displacements */
       lowdm = multires_dm_create_local(
-          scene, ob, cddm, lvl, totlvl, has_mask, MULTIRES_IGNORE_SIMPLIFY);
+          scene, ob, cddm, lvl, totlvl, has_mask, MultiresFlags::IgnoreSimplify);
       cddm->release(cddm);
 
       /* gather grid data */
@@ -1220,8 +1220,8 @@ DerivedMesh *multires_make_derived_from_derived(
   CCGDerivedMesh *ccgdm = nullptr;
   CCGElem **gridData, **subGridData;
   CCGKey key;
-  const bool render = (flags & MULTIRES_USE_RENDER_PARAMS) != 0;
-  const bool ignore_simplify = (flags & MULTIRES_IGNORE_SIMPLIFY) != 0;
+  const bool render = uint8_t(flags & MultiresFlags::UseRenderParams) != 0;
+  const bool ignore_simplify = uint8_t(flags & MultiresFlags::IgnoreSimplify) != 0;
   int lvl = multires_get_level(scene, ob, mmd, render, ignore_simplify);
   int i, gridSize, numGrids;
 
@@ -1238,11 +1238,11 @@ DerivedMesh *multires_make_derived_from_derived(
                                    false,
                                    mmd->flags & eMultiresModifierFlag_ControlEdges,
                                    mmd->uv_smooth == SUBSURF_UV_SMOOTH_NONE,
-                                   flags & MULTIRES_ALLOC_PAINT_MASK,
+                                   uint8_t(flags & MultiresFlags::AllocPaintMask),
                                    render,
                                    subsurf_flags);
 
-  if (!(flags & MULTIRES_USE_LOCAL_MMD)) {
+  if (!uint8_t(flags & MultiresFlags::UseLocalMMD)) {
     ccgdm = (CCGDerivedMesh *)result;
 
     ccgdm->multires.ob = ob;
@@ -1350,7 +1350,7 @@ void multiresModifier_sync_levels_ex(Object *ob_dst,
 
   if (mmd_src->totlvl > mmd_dst->totlvl) {
     multiresModifier_subdivide_to_level(
-        ob_dst, mmd_dst, mmd_src->totlvl, MULTIRES_SUBDIVIDE_CATMULL_CLARK);
+        ob_dst, mmd_dst, mmd_src->totlvl, MultiresSubdivideModeType::CatmullClark);
   }
   else {
     multires_del_higher(mmd_dst, ob_dst, mmd_src->totlvl);

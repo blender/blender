@@ -235,7 +235,7 @@ static bool values_different(const T value1,
                              const float threshold,
                              const int component_i)
 {
-  if constexpr (is_same_any_v<T, int, int2, bool, int8_t, OrderedEdge, ColorGeometry4b>) {
+  if constexpr (is_same_any_v<T, int, short2, int2, bool, int8_t, OrderedEdge, ColorGeometry4b>) {
     /* These types already have a good implementation. */
     return value1 != value2;
   }

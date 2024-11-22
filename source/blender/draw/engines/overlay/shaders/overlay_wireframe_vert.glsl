@@ -95,7 +95,9 @@ void main()
   /* Noop */
 #else
   bool no_attr = all(equal(nor, vec3(0)));
-  vec3 wnor = no_attr ? drw_view.viewinv[2].xyz : normalize(normal_object_to_world(nor));
+  /* If no attribute is available, use a direction perpendicular
+   * to the view to have full brightness. */
+  vec3 wnor = no_attr ? drw_view.viewinv[1].xyz : normalize(normal_object_to_world(nor));
 
   if (isHair) {
     mat4 obmat = hairDupliMatrix;

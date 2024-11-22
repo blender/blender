@@ -46,6 +46,7 @@ const EnumPropertyItem rna_enum_attribute_type_items[] = {
     {CD_PROP_BOOL, "BOOLEAN", 0, "Boolean", "True or false"},
     {CD_PROP_FLOAT2, "FLOAT2", 0, "2D Vector", "2D vector with floating-point values"},
     {CD_PROP_INT8, "INT8", 0, "8-Bit Integer", "Smaller integer with a range from -128 to 127"},
+    {CD_PROP_INT16_2D, "INT16_2D", 0, "2D 16-Bit Integer Vector", "16-bit signed integer vector"},
     {CD_PROP_INT32_2D, "INT32_2D", 0, "2D Integer Vector", "32-bit signed integer vector"},
     {CD_PROP_QUATERNION, "QUATERNION", 0, "Quaternion", "Floating point quaternion rotation"},
     {CD_PROP_FLOAT4X4, "FLOAT4X4", 0, "4x4 Matrix", "Floating point matrix"},
@@ -76,6 +77,7 @@ const EnumPropertyItem rna_enum_attribute_type_with_auto_items[] = {
     {CD_PROP_BOOL, "BOOLEAN", 0, "Boolean", "True or false"},
     {CD_PROP_FLOAT2, "FLOAT2", 0, "2D Vector", "2D vector with floating-point values"},
     {CD_PROP_FLOAT2, "FLOAT2", 0, "2D Vector", "2D vector with floating-point values"},
+    {CD_PROP_INT16_2D, "INT16_2D", 0, "2D 16-Bit Integer Vector", "16-bit signed integer vector"},
     {CD_PROP_INT32_2D, "INT32_2D", 0, "2D Integer Vector", "32-bit signed integer vector"},
     {CD_PROP_QUATERNION, "QUATERNION", 0, "Quaternion", "Floating point quaternion rotation"},
     {CD_PROP_FLOAT4X4, "FLOAT4X4", 0, "4x4 Matrix", "Floating point matrix"},
@@ -260,6 +262,8 @@ static StructRNA *srna_by_custom_data_layer_type(const eCustomDataType type)
       return &RNA_Float2Attribute;
     case CD_PROP_INT8:
       return &RNA_ByteIntAttribute;
+    case CD_PROP_INT16_2D:
+      return &RNA_Short2Attribute;
     case CD_PROP_INT32_2D:
       return &RNA_Int2Attribute;
     case CD_PROP_QUATERNION:
@@ -1270,6 +1274,43 @@ static void rna_def_attribute_int8(BlenderRNA *brna)
   RNA_def_property_int_sdna(prop, nullptr, "i");
 }
 
+static void rna_def_attribute_short2(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "Short2Attribute", "Attribute");
+  RNA_def_struct_sdna(srna, "CustomDataLayer");
+  RNA_def_struct_ui_text(srna,
+                         "2D 16-Bit Integer Vector Attribute",
+                         "Geometry attribute that stores 2D integer vectors");
+
+  prop = RNA_def_property(srna, "data", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "Short2AttributeValue");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_Attribute_data_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_get",
+                                    "rna_Attribute_data_length",
+                                    nullptr,
+                                    nullptr,
+                                    nullptr);
+  RNA_def_property_update(prop, 0, "rna_Attribute_update_data");
+
+  srna = RNA_def_struct(brna, "Short2AttributeValue", nullptr);
+  RNA_def_struct_sdna(srna, "vec2s");
+  RNA_def_struct_ui_text(
+      srna, "2D 16-Bit Integer Vector Attribute Value", "2D value in geometry attribute");
+
+  prop = RNA_def_property(srna, "value", PROP_INT, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Vector", "2D vector");
+  RNA_def_property_int_sdna(prop, nullptr, "x");
+  RNA_def_property_array(prop, 2);
+  RNA_def_property_update(prop, 0, "rna_Attribute_update_data");
+}
+
 static void rna_def_attribute_int2(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -1461,6 +1502,7 @@ static void rna_def_attribute(BlenderRNA *brna)
   rna_def_attribute_float_color(brna);
   rna_def_attribute_byte_color(brna);
   rna_def_attribute_int(brna);
+  rna_def_attribute_short2(brna);
   rna_def_attribute_int2(brna);
   rna_def_attribute_quaternion(brna);
   rna_def_attribute_float4x4(brna);

@@ -174,7 +174,7 @@ uint64_t Manager::fingerprint_get()
   return sync_counter_ | (uint64_t(resource_len_) << 32);
 }
 
-ResourceHandle Manager::resource_handle_for_sculpt(const ObjectRef &ref)
+ResourceHandleRange Manager::resource_handle_for_sculpt(const ObjectRef &ref)
 {
   /* TODO(fclem): Deduplicate with other engine. */
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(*ref.object);
@@ -217,6 +217,12 @@ void Manager::generate_commands(PassMain &pass, View &view)
                                             view.visibility_word_per_draw(),
                                             view.view_len_,
                                             pass.use_custom_ids);
+}
+
+void Manager::generate_commands(PassSortable &pass, View &view)
+{
+  pass.sort();
+  generate_commands(static_cast<PassMain &>(pass), view);
 }
 
 void Manager::generate_commands(PassSimple &pass)

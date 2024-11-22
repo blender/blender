@@ -116,8 +116,8 @@ template<typename Resource> class VKResourceTracker : NonCopyable {
   Vector<std::unique_ptr<Resource>> tracked_resources_;
 
  protected:
-  VKResourceTracker<Resource>() = default;
-  VKResourceTracker<Resource>(VKResourceTracker<Resource> &&other)
+  VKResourceTracker() = default;
+  VKResourceTracker(VKResourceTracker<Resource> &&other)
       : submission_tracker_(other.submission_tracker_),
         tracked_resources_(std::move(other.tracked_resources_))
   {

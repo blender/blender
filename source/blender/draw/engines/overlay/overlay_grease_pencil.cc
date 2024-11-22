@@ -244,16 +244,13 @@ void OVERLAY_grease_pencil_cache_init(OVERLAY_Data *vedata)
       break;
   }
 
-  /* Note: This is here to match the legacy size. */
-  mat *= 2.0f;
-
   if (ts->gpencil_v3d_align & GP_PROJECT_CURSOR) {
     mat.location() = cursor->location;
   }
-  else if (grease_pencil.has_active_layer()) {
-    const bke::greasepencil::Layer &layer = *grease_pencil.get_active_layer();
-    mat.location() = layer.to_world_space(*ob).location();
-  }
+
+  /* Note: This is here to match the legacy size. */
+  mat.view<3, 3>() *= 2.0f;
+
   /* Local transform of the grid from the overlay settings. */
   const float3 offset = float3(
       v3d->overlay.gpencil_grid_offset[0], v3d->overlay.gpencil_grid_offset[1], 0.0f);

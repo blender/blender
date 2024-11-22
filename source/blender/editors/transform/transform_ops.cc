@@ -21,6 +21,7 @@
 #include "BKE_global.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
+#include "BKE_screen.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -140,7 +141,6 @@ const EnumPropertyItem rna_enum_transform_mode_type_items[] = {
     {TFM_BONE_ENVELOPE_DIST, "BONE_ENVELOPE_DIST", 0, "Bone Envelope Distance", ""},
     {TFM_CURVE_SHRINKFATTEN, "CURVE_SHRINKFATTEN", 0, "Curve Shrink/Fatten", ""},
     {TFM_MASK_SHRINKFATTEN, "MASK_SHRINKFATTEN", 0, "Mask Shrink/Fatten", ""},
-    {TFM_GPENCIL_SHRINKFATTEN, "GPENCIL_SHRINKFATTEN", 0, "Grease Pencil Shrink/Fatten", ""},
     {TFM_BONE_ROLL, "BONE_ROLL", 0, "Bone Roll", ""},
     {TFM_TIME_TRANSLATE, "TIME_TRANSLATE", 0, "Time Translate", ""},
     {TFM_TIME_SLIDE, "TIME_SLIDE", 0, "Time Slide", ""},
@@ -1420,7 +1420,7 @@ static int transform_from_gizmo_invoke(bContext *C, wmOperator * /*op*/, const w
   bToolRef *tref = WM_toolsystem_ref_from_context(C);
   if (tref) {
     ARegion *region = CTX_wm_region(C);
-    wmGizmoMap *gzmap = region->gizmo_map;
+    wmGizmoMap *gzmap = region->runtime->gizmo_map;
     wmGizmoGroup *gzgroup = gzmap ? WM_gizmomap_group_find(gzmap, "VIEW3D_GGT_xform_gizmo") :
                                     nullptr;
     if (gzgroup != nullptr) {

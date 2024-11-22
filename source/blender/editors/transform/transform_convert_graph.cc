@@ -46,7 +46,7 @@ struct TransDataGraph {
 static void bezt_to_transdata(TransData *td,
                               TransData2D *td2d,
                               TransDataGraph *tdg,
-                              AnimData *adt,
+                              bAnimListElem *ale,
                               BezTriple *bezt,
                               int bi,
                               bool selected,
@@ -67,14 +67,14 @@ static void bezt_to_transdata(TransData *td,
    * and then that mapping will be undone after transform is done.
    */
 
-  if (adt) {
-    td2d->loc[0] = BKE_nla_tweakedit_remap(adt, loc[0], NLATIME_CONVERT_MAP);
+  if (ANIM_nla_mapping_allowed(ale)) {
+    td2d->loc[0] = ANIM_nla_tweakedit_remap(ale, loc[0], NLATIME_CONVERT_MAP);
     td2d->loc[1] = (loc[1] + offset) * unit_scale;
     td2d->loc[2] = 0.0f;
     td2d->loc2d = loc;
 
     td->loc = td2d->loc;
-    td->center[0] = BKE_nla_tweakedit_remap(adt, cent[0], NLATIME_CONVERT_MAP);
+    td->center[0] = ANIM_nla_tweakedit_remap(ale, cent[0], NLATIME_CONVERT_MAP);
     td->center[1] = (cent[1] + offset) * unit_scale;
     td->center[2] = 0.0f;
 
@@ -109,8 +109,16 @@ static void bezt_to_transdata(TransData *td,
   td->ext = nullptr;
   td->val = nullptr;
 
-  /* Store AnimData info in td->extra, for applying mapping when flushing. */
-  td->extra = adt;
+  /* Store AnimData info in td->extra, for applying mapping when flushing.
+   *
+   * We do this conditionally as a hacky way of indicating whether NLA remapping
+   * should be done. This is left over from old code, most of which was changed
+   * in #130440 to avoid using `adt == nullptr` as an indicator for that. This
+   * was left that way because updating it cleanly was more involved than made
+   * sense for the bug fix in #130440. */
+  if (ANIM_nla_mapping_allowed(ale)) {
+    td->extra = ale->adt;
+  }
 
   if (selected) {
     td->flag |= TD_SELECTED;
@@ -281,7 +289,6 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
   blender::Set<FCurve *> visited_fcurves;
   blender::Vector<bAnimListElem *> unique_fcu_anim_list_elements;
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    AnimData *adt = ANIM_nla_mapping_get(&ac, ale);
     FCurve *fcu = (FCurve *)ale->key_data;
     /* If 2 or more objects share the same action, multiple bAnimListElem might reference the same
      * FCurve. */
@@ -289,7 +296,6 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
       continue;
     }
     unique_fcu_anim_list_elements.append(ale);
-    float cfra;
     int curvecount = 0;
     bool selected = false;
 
@@ -300,12 +306,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 
     /* Convert current-frame to action-time (slightly less accurate, especially under
      * higher scaling ratios, but is faster than converting all points). */
-    if (adt) {
-      cfra = BKE_nla_tweakedit_remap(adt, float(scene->r.cfra), NLATIME_CONVERT_UNMAP);
-    }
-    else {
-      cfra = float(scene->r.cfra);
-    }
+    const float cfra = ANIM_nla_tweakedit_remap(ale, float(scene->r.cfra), NLATIME_CONVERT_UNMAP);
 
     for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
       /* Only include BezTriples whose 'keyframe'
@@ -396,11 +397,9 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 
   /* Loop 2: build transdata arrays. */
   for (bAnimListElem *ale : unique_fcu_anim_list_elements) {
-    AnimData *adt = ANIM_nla_mapping_get(&ac, ale);
     FCurve *fcu = (FCurve *)ale->key_data;
     bool intvals = (fcu->flag & FCURVE_INT_VALUES) != 0;
     float unit_scale, offset;
-    float cfra;
 
     /* F-Curve may not have any keyframes. */
     if (fcu->bezt == nullptr || (is_prop_edit && ale->tag == 0)) {
@@ -409,12 +408,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 
     /* Convert current-frame to action-time (slightly less accurate, especially under
      * higher scaling ratios, but is faster than converting all points). */
-    if (adt) {
-      cfra = BKE_nla_tweakedit_remap(adt, float(scene->r.cfra), NLATIME_CONVERT_UNMAP);
-    }
-    else {
-      cfra = float(scene->r.cfra);
-    }
+    const float cfra = ANIM_nla_tweakedit_remap(ale, float(scene->r.cfra), NLATIME_CONVERT_UNMAP);
 
     unit_scale = ANIM_unit_mapping_get_factor(
         ac.scene, ale->id, static_cast<FCurve *>(ale->key_data), anim_map_flag, &offset);
@@ -440,7 +434,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
           bezt_to_transdata(td++,
                             td2d++,
                             tdg++,
-                            adt,
+                            ale,
                             bezt,
                             0,
                             is_sel,
@@ -454,7 +448,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
           bezt_to_transdata(td++,
                             td2d++,
                             tdg++,
-                            adt,
+                            ale,
                             bezt,
                             1,
                             is_sel,
@@ -468,7 +462,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
           bezt_to_transdata(td++,
                             td2d++,
                             tdg++,
-                            adt,
+                            ale,
                             bezt,
                             2,
                             is_sel,
@@ -493,7 +487,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
             bezt_to_transdata(td++,
                               td2d++,
                               tdg++,
-                              adt,
+                              ale,
                               bezt,
                               0,
                               sel_left,
@@ -513,7 +507,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
             bezt_to_transdata(td++,
                               td2d++,
                               tdg++,
-                              adt,
+                              ale,
                               bezt,
                               2,
                               sel_right,
@@ -548,7 +542,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
             bezt_to_transdata(td++,
                               td2d++,
                               tdg++,
-                              adt,
+                              ale,
                               bezt,
                               1,
                               sel_key,
@@ -588,10 +582,8 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
     td = tc->data;
 
     for (bAnimListElem *ale : unique_fcu_anim_list_elements) {
-      AnimData *adt = ANIM_nla_mapping_get(&ac, ale);
       FCurve *fcu = (FCurve *)ale->key_data;
       TransData *td_start = td;
-      float cfra;
 
       /* F-Curve may not have any keyframes. */
       if (fcu->bezt == nullptr || (ale->tag == 0)) {
@@ -600,12 +592,8 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 
       /* Convert current-frame to action-time (slightly less accurate, especially under
        * higher scaling ratios, but is faster than converting all points). */
-      if (adt) {
-        cfra = BKE_nla_tweakedit_remap(adt, float(scene->r.cfra), NLATIME_CONVERT_UNMAP);
-      }
-      else {
-        cfra = float(scene->r.cfra);
-      }
+      const float cfra = ANIM_nla_tweakedit_remap(
+          ale, float(scene->r.cfra), NLATIME_CONVERT_UNMAP);
 
       for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
         /* Only include BezTriples whose 'keyframe' occurs on the
@@ -1010,7 +998,6 @@ static void special_aftertrans_update__graph(bContext *C, TransInfo *t)
         &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
     LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-      AnimData *adt = ANIM_nla_mapping_get(&ac, ale);
       FCurve *fcu = (FCurve *)ale->key_data;
 
       /* 3 cases here for curve cleanups:
@@ -1021,14 +1008,9 @@ static void special_aftertrans_update__graph(bContext *C, TransInfo *t)
        *                            but we made duplicates, so get rid of these.
        */
       if ((sipo->flag & SIPO_NOTRANSKEYCULL) == 0 && ((canceled == 0) || (duplicate))) {
-        if (adt) {
-          ANIM_nla_mapping_apply_fcurve(adt, fcu, false, false);
-          BKE_fcurve_merge_duplicate_keys(fcu, BEZT_FLAG_TEMP_TAG, use_handle);
-          ANIM_nla_mapping_apply_fcurve(adt, fcu, true, false);
-        }
-        else {
-          BKE_fcurve_merge_duplicate_keys(fcu, BEZT_FLAG_TEMP_TAG, use_handle);
-        }
+        ANIM_nla_mapping_apply_if_needed_fcurve(ale, fcu, false, false);
+        BKE_fcurve_merge_duplicate_keys(fcu, BEZT_FLAG_TEMP_TAG, use_handle);
+        ANIM_nla_mapping_apply_if_needed_fcurve(ale, fcu, true, false);
       }
     }
 

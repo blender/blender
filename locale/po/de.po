@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'1c8669f8c9c1')\n"
+"Project-Id-Version: Blender 4.3.0 Release Candidate (b'7dfe47164a63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-11 09:42+0000\n"
-"PO-Revision-Date: 2024-04-29 13:41+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2024-11-18 11:20+0000\n"
+"PO-Revision-Date: 2024-11-11 17:56+0000\n"
+"Last-Translator: Thomas Radeke <rahdick@gmx.de>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.0.1"
+"X-Generator: Weblate 5.7.2"
 
 
 msgid "Shader AOV"
@@ -13672,11 +13672,11 @@ msgstr "Trennlinienentfernung"
 
 
 msgid "Cycles Light Settings"
-msgstr "Zyklen Lichteinstellungen"
+msgstr "Cycles Lichteinstellungen"
 
 
 msgid "Cycles light settings"
-msgstr "Zyklen Lichteinstellungen"
+msgstr "Cycles Lichteinstellungen"
 
 
 msgid "Node tree for node based lights"
@@ -14334,11 +14334,11 @@ msgstr "Beschränkungen"
 
 
 msgid "Cycles Object Settings"
-msgstr "Zyklen Objekteinstellungen"
+msgstr "Cycles Objekteinstellungen"
 
 
 msgid "Cycles object settings"
-msgstr "Zyklen Objekteinstellungen"
+msgstr "Cycles Objekteinstellungen"
 
 
 msgid "Data"
@@ -19015,16 +19015,48 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
+msgid "Mirror"
+msgstr "Spiegeln"
+
+
+msgid "Snap"
+msgstr "Einrasten"
+
+
+msgid "Local View"
+msgstr "Lokale Ansicht"
+
+
+msgid "Viewpoint"
+msgstr "Ansicht"
+
+
+msgid "Navigation"
+msgstr "Navigation"
+
+
+msgid "Align View"
+msgstr "Ansicht ausrichten"
+
+
+msgid "Align View to Active"
+msgstr "Ansicht auf Aktiv ausrichten"
+
+
+msgid "View Regions"
+msgstr "Vierfenster Ansicht"
+
+
+msgid "Select More/Less"
+msgstr "Mehr/weniger anzeigen"
+
+
 msgid "Select Similar"
 msgstr "Ähnliche auswählen"
 
 
 msgid "Select All by Trait"
 msgstr "Alles nach Merkmal auswählen"
-
-
-msgid "Select More/Less"
-msgstr "Mehr/weniger anzeigen"
 
 
 msgid "Select Linked"
@@ -19143,44 +19175,12 @@ msgid "Pivot Point"
 msgstr "Drehpunkt"
 
 
-msgid "Snap"
-msgstr "Einrasten"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "Proportionaler Bearbeitungsabfall"
 
 
 msgid "Mask Edit"
 msgstr "Maskenbearbeitung"
-
-
-msgid "Mirror"
-msgstr "Spiegeln"
-
-
-msgid "Local View"
-msgstr "Lokale Ansicht"
-
-
-msgid "Viewpoint"
-msgstr "Ansicht"
-
-
-msgid "Navigation"
-msgstr "Navigation"
-
-
-msgid "Align View"
-msgstr "Ansicht ausrichten"
-
-
-msgid "Align View to Active"
-msgstr "Ansicht auf Aktiv ausrichten"
-
-
-msgid "View Regions"
-msgstr "Vierfenster Ansicht"
 
 
 msgid "Assets"
@@ -40374,6 +40374,26 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
+msgid "Measurement"
+msgstr "Messung"
+
+
+msgid "Curve Edit Mode"
+msgstr "Kurven-Bearbeitungsmodus"
+
+
+msgid "Snapping"
+msgstr "Einrasten"
+
+
+msgid "Transform Orientations"
+msgstr "Transformationsausrichtung"
+
+
+msgid "Drawing Plane"
+msgstr "Malfläche"
+
+
 msgid "Guides"
 msgstr "Hilfslinien"
 
@@ -40436,26 +40456,6 @@ msgstr "Bewegungsverfolgung"
 
 msgid "Mesh Edit Mode"
 msgstr "Maschenbearbeitungsmodus"
-
-
-msgid "Measurement"
-msgstr "Messung"
-
-
-msgid "Curve Edit Mode"
-msgstr "Kurven-Bearbeitungsmodus"
-
-
-msgid "Snapping"
-msgstr "Einrasten"
-
-
-msgid "Transform Orientations"
-msgstr "Transformationsausrichtung"
-
-
-msgid "Drawing Plane"
-msgstr "Malfläche"
 
 
 msgid "Chain Scaling"
@@ -41127,7 +41127,7 @@ msgstr "Editor"
 
 
 msgid "Cycles Render Devices"
-msgstr "Zyklen Rendergeräte"
+msgstr "Cycles Rendergeräte"
 
 
 msgid "Memory & Limits"

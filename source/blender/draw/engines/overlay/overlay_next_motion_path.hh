@@ -27,14 +27,14 @@ class MotionPath {
   PassSimple::Sub *line_ps_ = nullptr;
   PassSimple::Sub *vert_ps_ = nullptr;
 
-  bool enabled = false;
+  bool enabled_ = false;
 
  public:
   void begin_sync(Resources &res, const State &state)
   {
-    enabled = state.v3d && !(state.overlay.flag & V3D_OVERLAY_HIDE_MOTION_PATHS) &&
-              (res.selection_type == SelectionType::DISABLED);
-    if (!enabled) {
+    enabled_ = state.v3d && !(state.overlay.flag & V3D_OVERLAY_HIDE_MOTION_PATHS) &&
+               (res.selection_type == SelectionType::DISABLED);
+    if (!enabled_) {
       /* Not used. But release the data. */
       motion_path_ps_.init();
       return;
@@ -61,7 +61,7 @@ class MotionPath {
 
   void object_sync(const ObjectRef &ob_ref, Resources & /*res*/, const State &state)
   {
-    if (!enabled) {
+    if (!enabled_) {
       return;
     }
 
@@ -84,7 +84,7 @@ class MotionPath {
 
   void draw_color_only(Framebuffer &framebuffer, Manager &manager, View &view)
   {
-    if (!enabled) {
+    if (!enabled_) {
       return;
     }
     GPU_framebuffer_bind(framebuffer);

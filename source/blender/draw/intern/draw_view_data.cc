@@ -286,7 +286,7 @@ draw::Manager *DRW_manager_get()
 draw::ObjectRef DRW_object_ref_get(Object *object)
 {
   BLI_assert(DST.view_data_active->manager);
-  return {object, DST.dupli_source, DST.dupli_parent, 0};
+  return {object, DST.dupli_source, DST.dupli_parent, draw::ResourceHandle(0)};
 }
 
 void DRW_manager_begin_sync()

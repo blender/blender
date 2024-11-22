@@ -197,8 +197,9 @@ void select_id_draw_object(void *vedata,
   BLI_assert(initial_offset > 0);
 
   switch (ob->type) {
-    case OB_MESH:
-      if (ob->mode & OB_MODE_EDIT) {
+    case OB_MESH: {
+      const Mesh &mesh = *static_cast<const Mesh *>(ob->data);
+      if (mesh.runtime->edit_mesh) {
         bool draw_facedot = check_ob_drawface_dot(select_mode, v3d, eDrawType(ob->dt));
         draw_select_id_edit_mesh(stl,
                                  ob,
@@ -214,6 +215,7 @@ void select_id_draw_object(void *vedata,
             stl, ob, select_mode, initial_offset, r_vert_offset, r_edge_offset, r_face_offset);
       }
       break;
+    }
     case OB_CURVES_LEGACY:
     case OB_SURF:
       break;

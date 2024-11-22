@@ -807,7 +807,8 @@ VkClearColorValue to_vk_clear_color_value(const eGPUDataFormat format, const voi
   VkClearColorValue result = {{0.0f}};
   switch (format) {
     case GPU_DATA_FLOAT:
-    case GPU_DATA_10_11_11_REV: {
+    case GPU_DATA_10_11_11_REV:
+    case GPU_DATA_2_10_10_10_REV: {
       const float *float_data = static_cast<const float *>(data);
       copy_color<float>(result.float32, float_data);
       break;
@@ -827,8 +828,7 @@ VkClearColorValue to_vk_clear_color_value(const eGPUDataFormat format, const voi
 
     case GPU_DATA_HALF_FLOAT:
     case GPU_DATA_UBYTE:
-    case GPU_DATA_UINT_24_8:
-    case GPU_DATA_2_10_10_10_REV: {
+    case GPU_DATA_UINT_24_8: {
       BLI_assert_unreachable();
       break;
     }

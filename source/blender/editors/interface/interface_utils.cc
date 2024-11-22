@@ -1004,7 +1004,7 @@ std::optional<std::string> UI_key_event_operator_string(const bContext *C,
   }
 
   /* Early exit regions which don't have UI-Lists. */
-  if ((region->type->keymapflag & ED_KEYMAP_UI) == 0) {
+  if ((region->runtime->type->keymapflag & ED_KEYMAP_UI) == 0) {
     return std::nullopt;
   }
 

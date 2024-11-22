@@ -67,6 +67,7 @@ StringRefNull rna_property_name_for_type(const eCustomDataType type)
     case CD_PROP_INT8:
     case CD_PROP_INT32:
       return "value_int";
+    case CD_PROP_INT16_2D:
     case CD_PROP_INT32_2D:
       return "value_int_vector_2d";
     default:
@@ -131,11 +132,12 @@ GPointer rna_property_for_attribute_type_retrieve_value(PointerRNA &ptr,
     case CD_PROP_COLOR:
       RNA_float_get_array(&ptr, prop_name.c_str(), static_cast<float *>(buffer));
       break;
-    case CD_PROP_BYTE_COLOR:
+    case CD_PROP_BYTE_COLOR: {
       ColorGeometry4f value;
       RNA_float_get_array(&ptr, prop_name.c_str(), value);
       *static_cast<ColorGeometry4b *>(buffer) = value.encode();
       break;
+    }
     case CD_PROP_BOOL:
       *static_cast<bool *>(buffer) = RNA_boolean_get(&ptr, prop_name.c_str());
       break;
@@ -145,6 +147,12 @@ GPointer rna_property_for_attribute_type_retrieve_value(PointerRNA &ptr,
     case CD_PROP_INT32:
       *static_cast<int32_t *>(buffer) = RNA_int_get(&ptr, prop_name.c_str());
       break;
+    case CD_PROP_INT16_2D: {
+      int2 value;
+      RNA_int_get_array(&ptr, prop_name.c_str(), value);
+      *static_cast<short2 *>(buffer) = short2(value);
+      break;
+    }
     case CD_PROP_INT32_2D:
       RNA_int_get_array(&ptr, prop_name.c_str(), static_cast<int *>(buffer));
       break;
@@ -183,6 +191,9 @@ void rna_property_for_attribute_type_set_value(PointerRNA &ptr,
       break;
     case CD_PROP_INT32:
       RNA_property_int_set(&ptr, &prop, *value.get<int32_t>());
+      break;
+    case CD_PROP_INT16_2D:
+      RNA_property_int_set_array(&ptr, &prop, int2(*value.get<short2>()));
       break;
     case CD_PROP_INT32_2D:
       RNA_property_int_set_array(&ptr, &prop, *value.get<int2>());

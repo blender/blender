@@ -215,7 +215,7 @@ class ShaderModule {
   ShaderPtr curve_edit_handles = shader("overlay_edit_curves_handle_next");
   ShaderPtr extra_point;
   ShaderPtr facing;
-  ShaderPtr grid = shader("overlay_grid");
+  ShaderPtr grid = shader("overlay_grid_next");
   ShaderPtr grid_background;
   ShaderPtr grid_grease_pencil = shader("overlay_gpencil_canvas");
   ShaderPtr grid_image;
@@ -294,8 +294,10 @@ class ShaderModule {
   ShaderPtr fluid_velocity_mac;
   ShaderPtr fluid_velocity_needle;
   ShaderPtr image_plane;
+  ShaderPtr image_plane_depth_bias;
   ShaderPtr lattice_points;
   ShaderPtr lattice_wire;
+  ShaderPtr light_spot_cone;
   ShaderPtr particle_dot;
   ShaderPtr particle_shape;
   ShaderPtr particle_hair;
@@ -352,6 +354,7 @@ struct Resources : public select::SelectMap {
   TextureFromPool overlay_tx = {"overlay_tx"};
   /* Target containing depth of overlays when xray is enabled. */
   TextureFromPool xray_depth_tx = {"xray_depth_tx"};
+  TextureFromPool xray_depth_in_front_tx = {"xray_depth_in_front_tx"};
 
   /* Texture that are usually allocated inside. These are fallback when they aren't.
    * They are then wrapped inside the #TextureRefs below. */
@@ -658,5 +661,19 @@ struct LinePrimitiveBuf : public VertexPrimitiveBuf {
     VertexPrimitiveBuf::end_sync(pass, GPU_PRIM_LINES);
   }
 };
+
+/* Consider instance any object form a set or a dupli system.
+ * This hides some overlay to avoid making the viewport unreadable. */
+static inline bool is_from_dupli_or_set(const Object *ob)
+{
+  return ob->base_flag & (BASE_FROM_SET | BASE_FROM_DUPLI);
+}
+
+/* Consider instance any object form a set or a dupli system.
+ * This hides some overlay to avoid making the viewport unreadable. */
+static inline bool is_from_dupli_or_set(const ObjectRef &ob_ref)
+{
+  return is_from_dupli_or_set(ob_ref.object);
+}
 
 }  // namespace blender::draw::overlay

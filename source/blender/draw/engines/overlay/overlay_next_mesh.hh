@@ -677,7 +677,7 @@ class MeshUVs {
                      DRW_STATE_BLEND_ALPHA);
       pass.shader_set(res.shaders.uv_edit_facedot.get());
       pass.bind_ubo("globalsBlock", &res.globals_buf);
-      pass.push_constant("pointSize", (point_size + 1.5f) * float(M_SQRT2));
+      pass.push_constant("pointSize", point_size);
     }
 
     if (show_face_) {
@@ -899,7 +899,7 @@ class MeshUVs {
     }
   }
 
-  void draw(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw(GPUFrameBuffer *framebuffer, Manager &manager, View &view)
   {
     if (!enabled_) {
       return;

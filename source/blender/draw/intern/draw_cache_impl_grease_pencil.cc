@@ -1472,6 +1472,7 @@ gpu::Batch *DRW_cache_grease_pencil_edit_points_get(const Scene *scene, Object *
   GreasePencilBatchCache *cache = grease_pencil_batch_cache_get(grease_pencil);
   grease_pencil_edit_batch_ensure(*ob, grease_pencil, *scene);
 
+  /* Can be `nullptr` when there's no grease pencil drawing visible. */
   return cache->edit_points;
 }
 
@@ -1481,6 +1482,7 @@ gpu::Batch *DRW_cache_grease_pencil_edit_lines_get(const Scene *scene, Object *o
   GreasePencilBatchCache *cache = grease_pencil_batch_cache_get(grease_pencil);
   grease_pencil_edit_batch_ensure(*ob, grease_pencil, *scene);
 
+  /* Can be `nullptr` when there's no grease pencil drawing visible. */
   return cache->edit_lines;
 }
 
@@ -1508,6 +1510,7 @@ gpu::Batch *DRW_cache_grease_pencil_weight_points_get(const Scene *scene, Object
   GreasePencilBatchCache *cache = grease_pencil_batch_cache_get(grease_pencil);
   grease_pencil_weight_batch_ensure(*ob, grease_pencil, *scene);
 
+  /* Can be `nullptr` when there's no grease pencil drawing visible. */
   return cache->edit_points;
 }
 
@@ -1517,6 +1520,7 @@ gpu::Batch *DRW_cache_grease_pencil_weight_lines_get(const Scene *scene, Object 
   GreasePencilBatchCache *cache = grease_pencil_batch_cache_get(grease_pencil);
   grease_pencil_weight_batch_ensure(*ob, grease_pencil, *scene);
 
+  /* Can be `nullptr` when there's no grease pencil drawing visible. */
   return cache->edit_lines;
 }
 

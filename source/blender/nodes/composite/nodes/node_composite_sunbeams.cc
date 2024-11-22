@@ -6,7 +6,9 @@
  * \ingroup cmpnodes
  */
 
+#include "BLI_math_base.hh"
 #include "BLI_math_vector.hh"
+#include "BLI_math_vector_types.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -58,17 +60,6 @@ class SunBeamsOperation : public NodeOperation {
 
   void execute() override
   {
-    /* Not yet supported on CPU. */
-    if (!context().use_gpu()) {
-      for (const bNodeSocket *output : this->node()->output_sockets()) {
-        Result &output_result = get_result(output->identifier);
-        if (output_result.should_compute()) {
-          output_result.allocate_invalid();
-        }
-      }
-      return;
-    }
-
     Result &input_image = get_input("Image");
     Result &output_image = get_result("Image");
 
@@ -79,16 +70,28 @@ class SunBeamsOperation : public NodeOperation {
       return;
     }
 
+    if (this->context().use_gpu()) {
+      this->execute_gpu(max_steps);
+    }
+    else {
+      this->execute_cpu(max_steps);
+    }
+  }
+
+  void execute_gpu(const int max_steps)
+  {
     GPUShader *shader = context().get_shader("compositor_sun_beams");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_2fv(shader, "source", node_storage(bnode()).source);
     GPU_shader_uniform_1i(shader, "max_steps", max_steps);
 
+    Result &input_image = get_input("Image");
     GPU_texture_filter_mode(input_image, true);
     GPU_texture_extend_mode(input_image, GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
     input_image.bind_as_texture(shader, "input_tx");
 
+    Result &output_image = get_result("Image");
     const Domain domain = compute_domain();
     output_image.allocate_texture(domain);
     output_image.bind_as_image(shader, "output_img");
@@ -98,6 +101,59 @@ class SunBeamsOperation : public NodeOperation {
     GPU_shader_unbind();
     output_image.unbind_as_image();
     input_image.unbind_as_texture();
+  }
+
+  void execute_cpu(const int max_steps)
+  {
+    const float2 source = node_storage(bnode()).source;
+
+    Result &input = get_input("Image");
+
+    const Domain domain = compute_domain();
+    Result &output = get_result("Image");
+    output.allocate_texture(domain);
+
+    const int2 input_size = domain.size;
+    parallel_for(input_size, [&](const int2 texel) {
+      /* The number of steps is the distance in pixels from the source to the current texel. With
+       * at least a single step and at most the user specified maximum ray length, which is
+       * proportional to the diagonal pixel count. */
+      float unbounded_steps = math::max(
+          1.0f, math::distance(float2(texel), source * float2(input_size)));
+      int steps = math::min(max_steps, int(unbounded_steps));
+
+      /* We integrate from the current pixel to the source pixel, so compute the start coordinates
+       * and step vector in the direction to source. Notice that the step vector is still computed
+       * from the unbounded steps, such that the total integration length becomes limited by the
+       * bounded steps, and thus by the maximum ray length. */
+      float2 coordinates = (float2(texel) + float2(0.5f)) / float2(input_size);
+      float2 vector_to_source = source - coordinates;
+      float2 step_vector = vector_to_source / unbounded_steps;
+
+      float accumulated_weight = 0.0f;
+      float4 accumulated_color = float4(0.0f);
+      for (int i = 0; i <= steps; i++) {
+        float2 position = coordinates + i * step_vector;
+
+        /* We are already past the image boundaries, and any future steps are also past the image
+         * boundaries, so break. */
+        if (position.x < 0.0f || position.y < 0.0f || position.x > 1.0f || position.y > 1.0f) {
+          break;
+        }
+
+        float4 sample_color = input.sample_bilinear_zero(position);
+
+        /* Attenuate the contributions of pixels that are further away from the source using a
+         * quadratic falloff. */
+        float weight = math::square(1.0f - i / float(steps));
+
+        accumulated_weight += weight;
+        accumulated_color += sample_color * weight;
+      }
+
+      accumulated_color /= accumulated_weight != 0.0f ? accumulated_weight : 1.0f;
+      output.store_pixel(texel, accumulated_color);
+    });
   }
 };
 

@@ -32,6 +32,7 @@ namespace blender::bke {
 class AttributeAccessor;
 class MutableAttributeAccessor;
 enum class AttrDomain : int8_t;
+struct AttributeAccessorFunctions;
 }  // namespace blender::bke
 namespace blender::bke::bake {
 struct BakeMaterialsList;
@@ -1021,6 +1022,8 @@ inline float3 calculate_vector_handle(const float3 &point, const float3 &next_po
 }  // namespace bezier
 
 /** \} */
+
+const AttributeAccessorFunctions &get_attribute_accessor_functions();
 
 }  // namespace curves
 

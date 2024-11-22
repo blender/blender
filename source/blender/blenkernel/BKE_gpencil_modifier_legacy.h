@@ -14,7 +14,6 @@ extern "C" {
 #endif
 
 struct BlendDataReader;
-struct BlendWriter;
 struct GpencilModifierData;
 struct ID;
 struct ListBase;
@@ -49,7 +48,6 @@ void BKE_gpencil_modifiers_foreach_ID_link(struct Object *ob,
                                            GreasePencilIDWalkFunc walk,
                                            void *user_data);
 
-void BKE_gpencil_modifier_blend_write(struct BlendWriter *writer, struct ListBase *modbase);
 void BKE_gpencil_modifier_blend_read_data(struct BlendDataReader *reader,
                                           struct ListBase *lb,
                                           struct Object *ob);

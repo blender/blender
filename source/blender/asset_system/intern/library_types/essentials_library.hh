@@ -8,13 +8,13 @@
 
 #pragma once
 
-#include "asset_library_on_disk.hh"
+#include "on_disk_library.hh"
 
 namespace blender::asset_system {
 
-class PreferencesOnDiskAssetLibrary : public OnDiskAssetLibrary {
+class EssentialsAssetLibrary : public OnDiskAssetLibrary {
  public:
-  PreferencesOnDiskAssetLibrary(StringRef name = "", StringRef root_path = "");
+  EssentialsAssetLibrary();
 };
 
 }  // namespace blender::asset_system

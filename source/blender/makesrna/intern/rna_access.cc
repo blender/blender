@@ -497,7 +497,7 @@ void rna_property_rna_or_id_get(PropertyRNA *prop,
    * pointer to the IDProperty. */
   *r_prop_rna_or_id = {};
 
-  r_prop_rna_or_id->ptr = *ptr;
+  r_prop_rna_or_id->ptr = ptr;
   r_prop_rna_or_id->rawprop = prop;
 
   if (prop->magic == RNA_MAGIC) {
@@ -5877,7 +5877,7 @@ std::string RNA_pointer_as_string_keywords_ex(bContext *C,
 
     if (as_function && (prop->flag_parameter & PARM_REQUIRED)) {
       /* required args don't have useful defaults */
-      ss << fmt::format(first_iter ? "{}" : ", {}", arg_name);
+      ss << fmt::format(fmt::runtime(first_iter ? "{}" : ", {}"), arg_name);
       first_iter = false;
     }
     else {
@@ -5906,7 +5906,7 @@ std::string RNA_pointer_as_string_keywords_ex(bContext *C,
           buf = RNA_property_as_string(C, ptr, prop, -1, max_prop_length);
         }
 
-        ss << fmt::format(first_iter ? "{}={}" : ", {}={}", arg_name, buf);
+        ss << fmt::format(fmt::runtime(first_iter ? "{}={}" : ", {}={}"), arg_name, buf);
         first_iter = false;
       }
     }
@@ -5989,7 +5989,8 @@ static void rna_array_as_string_elem(int type, void **buf_p, int len, std::strin
     case PROP_BOOLEAN: {
       bool *buf = static_cast<bool *>(*buf_p);
       for (int i = 0; i < len; i++, buf++) {
-        ss << fmt::format((i < end || !end) ? "{}, " : "{}", bool_as_py_string(*buf));
+        ss << fmt::format(fmt::runtime((i < end || !end) ? "{}, " : "{}"),
+                          bool_as_py_string(*buf));
       }
       *buf_p = buf;
       break;
@@ -5997,7 +5998,7 @@ static void rna_array_as_string_elem(int type, void **buf_p, int len, std::strin
     case PROP_INT: {
       int *buf = static_cast<int *>(*buf_p);
       for (int i = 0; i < len; i++, buf++) {
-        ss << fmt::format((i < end || !end) ? "{}, " : "{}", *buf);
+        ss << fmt::format(fmt::runtime((i < end || !end) ? "{}, " : "{}"), *buf);
       }
       *buf_p = buf;
       break;
@@ -6005,7 +6006,7 @@ static void rna_array_as_string_elem(int type, void **buf_p, int len, std::strin
     case PROP_FLOAT: {
       float *buf = static_cast<float *>(*buf_p);
       for (int i = 0; i < len; i++, buf++) {
-        ss << fmt::format((i < end || !end) ? "{:g}, " : "{:g}", *buf);
+        ss << fmt::format(fmt::runtime((i < end || !end) ? "{:g}, " : "{:g}"), *buf);
       }
       *buf_p = buf;
       break;
@@ -6135,7 +6136,7 @@ std::string RNA_property_as_string(
             bool is_first = true;
             for (; item->identifier; item++) {
               if (item->identifier[0] && item->value & val) {
-                ss << fmt::format(is_first ? "'{}'" : ", '{}'", item->identifier);
+                ss << fmt::format(fmt::runtime(is_first ? "'{}'" : ", '{}'"), item->identifier);
                 is_first = false;
               }
             }

@@ -49,7 +49,7 @@ static void add_instances_from_component(
     const GeometrySet &instance,
     const fn::FieldContext &field_context,
     const GeoNodeExecParams &params,
-    const Map<StringRef, AttributeKind> &attributes_to_propagate)
+    const Map<StringRef, AttributeDomainAndType> &attributes_to_propagate)
 {
   const AttrDomain domain = AttrDomain::Point;
   const int domain_num = src_attributes.domain_size(domain);
@@ -203,7 +203,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                                                GeometryComponent::Type::PointCloud,
                                                GeometryComponent::Type::Curve};
 
-    Map<StringRef, AttributeKind> attributes_to_propagate;
+    Map<StringRef, AttributeDomainAndType> attributes_to_propagate;
     geometry_set.gather_attributes_for_propagation(types,
                                                    GeometryComponent::Type::Instance,
                                                    false,

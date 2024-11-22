@@ -613,7 +613,9 @@ void screen_area_spacelink_add(const Scene *scene, ScrArea *area, eSpace_Type sp
 static void region_cursor_set_ex(wmWindow *win, ScrArea *area, ARegion *region, bool swin_changed)
 {
   BLI_assert(WM_window_get_active_screen(win)->active_region == region);
-  if (win->tag_cursor_refresh || swin_changed || (region->type && region->type->event_cursor)) {
+  if (win->tag_cursor_refresh || swin_changed ||
+      (region->runtime->type && region->runtime->type->event_cursor))
+  {
     win->tag_cursor_refresh = false;
     ED_region_cursor_set(win, area, region);
   }
@@ -666,7 +668,7 @@ static bool region_poll(const bContext *C,
                         const ScrArea *area,
                         const ARegion *region)
 {
-  if (!region->type || !region->type->poll) {
+  if (!region->runtime->type || !region->runtime->type->poll) {
     /* Show region by default. */
     return true;
   }
@@ -677,7 +679,7 @@ static bool region_poll(const bContext *C,
   params.region = region;
   params.context = C;
 
-  return region->type->poll(&params);
+  return region->runtime->type->poll(&params);
 }
 
 /**
@@ -704,8 +706,8 @@ static bool screen_regions_poll(bContext *C, wmWindow *win, const bScreen *scree
       if (region_poll(C, screen, area, region) == false) {
         region->flag |= RGN_FLAG_POLL_FAILED;
       }
-      else if (region->type && region->type->on_poll_success) {
-        region->type->on_poll_success(C, region);
+      else if (region->runtime->type && region->runtime->type->on_poll_success) {
+        region->runtime->type->on_poll_success(C, region);
       }
 
       if (old_region_flag != region->flag) {
@@ -829,13 +831,13 @@ void ED_region_exit(bContext *C, ARegion *region)
   wmWindow *win = CTX_wm_window(C);
   ARegion *prevar = CTX_wm_region(C);
 
-  if (region->type && region->type->exit) {
-    region->type->exit(wm, region);
+  if (region->runtime->type && region->runtime->type->exit) {
+    region->runtime->type->exit(wm, region);
   }
 
   CTX_wm_region_set(C, region);
 
-  WM_event_remove_handlers(C, &region->handlers);
+  WM_event_remove_handlers(C, &region->runtime->handlers);
   WM_event_modal_handler_region_replace(win, region, nullptr);
 
   if (region->regiontype == RGN_TYPE_TEMPORARY) {
@@ -851,13 +853,13 @@ void ED_region_exit(bContext *C, ARegion *region)
 
   WM_draw_region_free(region);
   /* The region is not in a state that it can be visible in anymore. Reinitializing is needed. */
-  region->visible = false;
+  region->runtime->visible = false;
 
-  MEM_SAFE_FREE(region->headerstr);
+  MEM_SAFE_FREE(region->runtime->headerstr);
 
-  if (region->regiontimer) {
-    WM_event_timer_remove(wm, win, region->regiontimer);
-    region->regiontimer = nullptr;
+  if (region->runtime->regiontimer) {
+    WM_event_timer_remove(wm, win, region->runtime->regiontimer);
+    region->runtime->regiontimer = nullptr;
   }
 
   WM_msgbus_clear_by_owner(wm->message_bus, region);
@@ -1056,7 +1058,7 @@ void ED_screen_set_active_region(bContext *C, wmWindow *win, const int xy[2])
         }
 
         if (region == region_prev && region != screen->active_region) {
-          wmGizmoMap *gzmap = region_prev->gizmo_map;
+          wmGizmoMap *gzmap = region_prev->runtime->gizmo_map;
           if (gzmap) {
             if (WM_gizmo_highlight_set(gzmap, nullptr)) {
               ED_region_tag_redraw_no_rebuild(region_prev);
@@ -1612,9 +1614,9 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *area, const
      * are no longer in the same screen */
     LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
       UI_blocklist_free(C, region);
-      if (region->regiontimer) {
-        WM_event_timer_remove(wm, nullptr, region->regiontimer);
-        region->regiontimer = nullptr;
+      if (region->runtime->regiontimer) {
+        WM_event_timer_remove(wm, nullptr, region->runtime->regiontimer);
+        region->runtime->regiontimer = nullptr;
       }
     }
 

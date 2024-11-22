@@ -171,13 +171,13 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
   const bool all_wires = (ob->dtx & OB_DRAW_ALL_EDGES) != 0;
   const bool is_xray = (ob->dtx & OB_DRAW_IN_FRONT) != 0;
   const bool is_mesh = ob->type == OB_MESH;
-  const bool is_edit_mode = DRW_object_is_in_edit_mode(ob);
+  const bool is_edit_mode = ob->mode == OB_MODE_EDIT;
   bool has_edit_mesh_cage = false;
   bool is_mesh_verts_only = false;
   if (is_mesh) {
     /* TODO: Should be its own function. */
     const Mesh *mesh = static_cast<const Mesh *>(ob->data);
-    if (is_edit_mode) {
+    if (is_edit_mode && mesh->runtime->edit_mesh) {
       BLI_assert(mesh->runtime->edit_mesh.get());
       const Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(ob);
       const Mesh *editmesh_eval_cage = BKE_object_get_editmesh_eval_cage(ob);
@@ -289,9 +289,10 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
     const bool use_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->rv3d) &&
                                  !DRW_state_is_image_render();
     const bool is_instance = (ob->base_flag & BASE_FROM_DUPLI);
-    const bool instance_parent_in_edit_mode = is_instance ? DRW_object_is_in_edit_mode(
-                                                                DRW_object_get_dupli_parent(ob)) :
-                                                            false;
+    const bool instance_parent_in_edit_mode = is_instance ?
+                                                  DRW_object_get_dupli_parent(ob)->mode ==
+                                                      OB_MODE_EDIT :
+                                                  false;
     const bool use_coloring = (use_wire && !is_edit_mode && !is_sculpt_mode &&
                                !has_edit_mesh_cage && !instance_parent_in_edit_mode);
     geom = DRW_cache_object_face_wireframe_get(draw_ctx->scene, ob);

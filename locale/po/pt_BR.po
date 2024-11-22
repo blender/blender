@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'1c8669f8c9c1')\n"
+"Project-Id-Version: Blender 4.3.0 Release Candidate (b'7dfe47164a63')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2024-11-11 09:42+0000\n"
+"POT-Creation-Date: 2024-11-18 11:20+0000\n"
 "PO-Revision-Date: 2024-04-15 06:56+0000\n"
 "Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -21467,16 +21467,52 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
+msgid "Mirror"
+msgstr "Espelhar"
+
+
+msgid "Snap"
+msgstr "Atrair"
+
+
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
+
+
+msgid "Local View"
+msgstr "Visão local"
+
+
+msgid "Viewpoint"
+msgstr "Ponto de visualização"
+
+
+msgid "Navigation"
+msgstr "Navegação"
+
+
+msgid "Align View"
+msgstr "Alinhar visualização"
+
+
+msgid "Align View to Active"
+msgstr "Alinhar vista para o ativo"
+
+
+msgid "View Regions"
+msgstr "Visualizar Regiões"
+
+
+msgid "Select More/Less"
+msgstr "Selecionar mais ou menos"
+
+
 msgid "Select Similar"
 msgstr "Selecionar por similaridades"
 
 
 msgid "Select All by Trait"
 msgstr "Selecionar todos por características..."
-
-
-msgid "Select More/Less"
-msgstr "Selecionar mais ou menos"
 
 
 msgid "Select Linked"
@@ -21587,44 +21623,8 @@ msgid "Pivot Point"
 msgstr "Pontos de pivô"
 
 
-msgid "Snap"
-msgstr "Atrair"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "Tipo de decaimento para edição proporcional"
-
-
-msgid "Mirror"
-msgstr "Espelhar"
-
-
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
-
-
-msgid "Local View"
-msgstr "Visão local"
-
-
-msgid "Viewpoint"
-msgstr "Ponto de visualização"
-
-
-msgid "Navigation"
-msgstr "Navegação"
-
-
-msgid "Align View"
-msgstr "Alinhar visualização"
-
-
-msgid "Align View to Active"
-msgstr "Alinhar vista para o ativo"
-
-
-msgid "View Regions"
-msgstr "Visualizar Regiões"
 
 
 msgid "Basic"
@@ -50288,6 +50288,10 @@ msgid "Active Palette Color"
 msgstr "Cor ativa da paleta"
 
 
+msgid "Transform Orientations"
+msgstr "Orientações de transformação"
+
+
 msgid "Quad View"
 msgstr "Exibição Quadrante"
 
@@ -50306,10 +50310,6 @@ msgstr "Passo de renderização"
 
 msgid "Motion Tracking"
 msgstr "Captura de movimentos"
-
-
-msgid "Transform Orientations"
-msgstr "Orientações de transformação"
 
 
 msgid "Bone Constraints"

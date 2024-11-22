@@ -1167,3 +1167,16 @@ add_subdirectory(collada)
 
 # TODO: disabled for now after collection unification
 # add_subdirectory(view_layer)
+
+# ------------------------------------------------------------------------------
+# Linux Release sainty checks
+
+if(WITH_LINUX_OFFICIAL_RELEASE_TESTS)
+  get_filename_component(release_root_folder ${TEST_BLENDER_EXE} DIRECTORY)
+  add_python_test(
+    linux_release_sanity_checks
+    ${CMAKE_SOURCE_DIR}/tools/check_blender_release/check_release.py
+    -- ${release_root_folder}
+  )
+  unset(release_root_folder)
+endif()

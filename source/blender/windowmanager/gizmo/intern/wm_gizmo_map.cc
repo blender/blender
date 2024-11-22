@@ -19,6 +19,7 @@
 #include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_main.hh"
+#include "BKE_screen.hh"
 
 #include "ED_screen.hh"
 #include "ED_select_utils.hh"
@@ -693,7 +694,7 @@ static wmGizmo *gizmo_find_intersected_3d(bContext *C,
     GPUViewport *viewport = WM_draw_region_get_viewport(CTX_wm_region(C));
 
     /* When switching between modes and the mouse pointer is over a gizmo, the highlight test is
-     * performed before the viewport is fully initialized (region->draw_buffer = nullptr).
+     * performed before the viewport is fully initialized (region->runtime->draw_buffer = nullptr).
      * When this is the case we should not use depth testing. */
     if (viewport == nullptr) {
       return nullptr;
@@ -808,7 +809,7 @@ wmGizmo *wm_gizmomap_highlight_find(wmGizmoMap *gzmap,
 
 void WM_gizmomap_add_handlers(ARegion *region, wmGizmoMap *gzmap)
 {
-  LISTBASE_FOREACH (wmEventHandler *, handler_base, &region->handlers) {
+  LISTBASE_FOREACH (wmEventHandler *, handler_base, &region->runtime->handlers) {
     if (handler_base->type == WM_HANDLER_TYPE_GIZMO) {
       wmEventHandler_Gizmo *handler = (wmEventHandler_Gizmo *)handler_base;
       if (handler->gizmo_map == gzmap) {
@@ -820,9 +821,9 @@ void WM_gizmomap_add_handlers(ARegion *region, wmGizmoMap *gzmap)
   wmEventHandler_Gizmo *handler = static_cast<wmEventHandler_Gizmo *>(
       MEM_callocN(sizeof(*handler), __func__));
   handler->head.type = WM_HANDLER_TYPE_GIZMO;
-  BLI_assert(gzmap == region->gizmo_map);
+  BLI_assert(gzmap == region->runtime->gizmo_map);
   handler->gizmo_map = gzmap;
-  BLI_addtail(&region->handlers, handler);
+  BLI_addtail(&region->runtime->handlers, handler);
 }
 
 void wm_gizmomaps_handled_modal_update(bContext *C, wmEvent *event, wmEventHandler_Op *handler)
@@ -830,11 +831,11 @@ void wm_gizmomaps_handled_modal_update(bContext *C, wmEvent *event, wmEventHandl
   const bool modal_running = (handler->op != nullptr);
 
   /* Happens on render or when joining areas. */
-  if (!handler->context.region || !handler->context.region->gizmo_map) {
+  if (!handler->context.region || !handler->context.region->runtime->gizmo_map) {
     return;
   }
 
-  wmGizmoMap *gzmap = handler->context.region->gizmo_map;
+  wmGizmoMap *gzmap = handler->context.region->runtime->gizmo_map;
   wmGizmo *gz = wm_gizmomap_modal_get(gzmap);
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
@@ -1214,7 +1215,7 @@ void WM_gizmomap_message_subscribe(const bContext *C,
 ARegion *WM_gizmomap_tooltip_init(
     bContext *C, ARegion *region, int * /*r_pass*/, double * /*pass_delay*/, bool *r_exit_on_event)
 {
-  wmGizmoMap *gzmap = region->gizmo_map;
+  wmGizmoMap *gzmap = region->runtime->gizmo_map;
   *r_exit_on_event = false;
   if (gzmap) {
     wmGizmo *gz = gzmap->gzmap_context.highlight;
@@ -1398,7 +1399,7 @@ void WM_gizmoconfig_update(Main *bmain)
           ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
                                                                  &sl->regionbase;
           LISTBASE_FOREACH (ARegion *, region, regionbase) {
-            wmGizmoMap *gzmap = region->gizmo_map;
+            wmGizmoMap *gzmap = region->runtime->gizmo_map;
             if (gzmap != nullptr && gzmap->tag_remove_group) {
               gzmap->tag_remove_group = false;
 
@@ -1445,7 +1446,7 @@ void WM_reinit_gizmomap_all(Main *bmain)
       LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
         ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase : &sl->regionbase;
         LISTBASE_FOREACH (ARegion *, region, regionbase) {
-          wmGizmoMap *gzmap = region->gizmo_map;
+          wmGizmoMap *gzmap = region->runtime->gizmo_map;
           if ((gzmap != nullptr) && (gzmap->is_init == false)) {
             WM_gizmomap_reinit(gzmap);
 

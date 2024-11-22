@@ -397,10 +397,22 @@ class Result {
   /* Identical to load_pixel but with zero boundary condition. */
   float4 load_pixel_zero(const int2 &texel) const;
 
+  /* Identical to load_pixel but with a fallback value for out of bound access. */
+  float4 load_pixel_fallback(const int2 &texel, const float4 &fallback) const;
+
+  /* Identical to load_pixel but loads an integer pixel. */
+  int4 load_integer_pixel(const int2 &texel) const;
+
+  /* Identical to load_pixel_fallback but loads an integer pixel. */
+  int4 load_pixel_fallback(const int2 &texel, const int4 &fallback) const;
+
   /* Stores the given pixel value in the float pixel at the given texel coordinates. While a float4
    * is given, only the number of channels of the result will be written, while the rest of the
    * float4 will be ignored. This is similar to how the imageStore function in GLSL works. */
   void store_pixel(const int2 &texel, const float4 &pixel_value);
+
+  /* Integer variant of store_pixel. */
+  void store_pixel(const int2 &texel, const int4 &pixel_value);
 
   /* Equivalent to the GLSL texture() function with nearest interpolation and zero boundary
    * condition. The coordinates are thus expected to have half-pixels offsets. A float4 is always
@@ -435,11 +447,20 @@ class Result {
    * context. See the allocate_texture method for information about the from_pool argument. */
   void allocate_data(int2 size, bool from_pool);
 
+  /* Get the index of the start of pixel at the given texel position in its result buffer. */
+  int64_t get_pixel_index(const int2 &texel) const;
+
   /* Get a pointer to the float pixel at the given texel position. */
   float *get_float_pixel(const int2 &texel) const;
 
+  /* Get a pointer to the integer pixel at the given texel position. */
+  int *get_integer_pixel(const int2 &texel) const;
+
   /* Copy the float pixel from the source pointer to the target pointer. */
   void copy_pixel(float *target, const float *source) const;
+
+  /* Copy the integer pixel from the source pointer to the target pointer. */
+  void copy_pixel(int *target, const int *source) const;
 };
 
 /* -------------------------------------------------------------------- */
@@ -516,9 +537,60 @@ inline float4 Result::load_pixel_zero(const int2 &texel) const
   return pixel_value;
 }
 
+inline float4 Result::load_pixel_fallback(const int2 &texel, const float4 &fallback) const
+{
+  float4 pixel_value = float4(0.0f, 0.0f, 0.0f, 1.0f);
+  if (is_single_value_) {
+    this->copy_pixel(pixel_value, float_texture_);
+  }
+  else {
+    if (texel.x >= 0 && texel.y >= 0 && texel.x < domain_.size.x && texel.y < domain_.size.y) {
+      this->copy_pixel(pixel_value, this->get_float_pixel(texel));
+    }
+    else {
+      this->copy_pixel(pixel_value, fallback);
+    }
+  }
+  return pixel_value;
+}
+
+inline int4 Result::load_integer_pixel(const int2 &texel) const
+{
+  int4 pixel_value = int4(0, 0, 0, 1);
+  if (is_single_value_) {
+    this->copy_pixel(pixel_value, integer_texture_);
+  }
+  else {
+    this->copy_pixel(pixel_value, this->get_integer_pixel(texel));
+  }
+  return pixel_value;
+}
+
+inline int4 Result::load_pixel_fallback(const int2 &texel, const int4 &fallback) const
+{
+  int4 pixel_value = int4(0, 0, 0, 1);
+  if (is_single_value_) {
+    this->copy_pixel(pixel_value, integer_texture_);
+  }
+  else {
+    if (texel.x >= 0 && texel.y >= 0 && texel.x < domain_.size.x && texel.y < domain_.size.y) {
+      this->copy_pixel(pixel_value, this->get_integer_pixel(texel));
+    }
+    else {
+      this->copy_pixel(pixel_value, fallback);
+    }
+  }
+  return pixel_value;
+}
+
 inline void Result::store_pixel(const int2 &texel, const float4 &pixel_value)
 {
   this->copy_pixel(this->get_float_pixel(texel), pixel_value);
+}
+
+inline void Result::store_pixel(const int2 &texel, const int4 &pixel_value)
+{
+  this->copy_pixel(this->get_integer_pixel(texel), pixel_value);
 }
 
 inline float4 Result::sample_nearest_zero(const float2 &coordinates) const
@@ -675,9 +747,21 @@ inline float4 Result::sample_ewa_zero(const float2 &coordinates,
   return pixel_value;
 }
 
+inline int64_t Result::get_pixel_index(const int2 &texel) const
+{
+  return (int64_t(texel.y) * domain_.size.x + texel.x) * this->channels_count();
+}
+
 inline float *Result::get_float_pixel(const int2 &texel) const
 {
-  return float_texture_ + (texel.y * domain_.size.x + texel.x) * this->channels_count();
+  BLI_assert(storage_type_ == ResultStorageType::FloatCPU);
+  return float_texture_ + this->get_pixel_index(texel);
+}
+
+inline int *Result::get_integer_pixel(const int2 &texel) const
+{
+  BLI_assert(storage_type_ == ResultStorageType::IntegerCPU);
+  return integer_texture_ + this->get_pixel_index(texel);
 }
 
 inline void Result::copy_pixel(float *target, const float *source) const
@@ -687,7 +771,6 @@ inline void Result::copy_pixel(float *target, const float *source) const
       *target = *source;
       break;
     case ResultType::Float2:
-    case ResultType::Int2:
       copy_v2_v2(target, source);
       break;
     case ResultType::Float3:
@@ -696,6 +779,25 @@ inline void Result::copy_pixel(float *target, const float *source) const
     case ResultType::Vector:
     case ResultType::Color:
       copy_v4_v4(target, source);
+      break;
+    case ResultType::Int2:
+      BLI_assert_unreachable();
+      break;
+  }
+}
+
+inline void Result::copy_pixel(int *target, const int *source) const
+{
+  switch (type_) {
+    case ResultType::Int2:
+      copy_v2_v2_int(target, source);
+      break;
+    case ResultType::Float:
+    case ResultType::Float2:
+    case ResultType::Float3:
+    case ResultType::Vector:
+    case ResultType::Color:
+      BLI_assert_unreachable();
       break;
   }
 }

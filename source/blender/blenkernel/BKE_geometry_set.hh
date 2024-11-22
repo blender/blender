@@ -28,10 +28,9 @@ struct PointCloud;
 struct Volume;
 struct GreasePencil;
 namespace blender::bke {
-struct AttributeKind;
+struct AttributeDomainAndType;
 class AttributeAccessor;
 struct AttributeMetaData;
-class ComponentAttributeProviders;
 class CurvesEditHints;
 class Instances;
 class GeometryComponent;
@@ -255,11 +254,12 @@ struct GeometrySet {
                          bool include_instances,
                          AttributeForeachCallback callback) const;
 
-  void gather_attributes_for_propagation(Span<GeometryComponent::Type> component_types,
-                                         GeometryComponent::Type dst_component_type,
-                                         bool include_instances,
-                                         const AttributeFilter &attribute_filter,
-                                         Map<StringRef, AttributeKind> &r_attributes) const;
+  void gather_attributes_for_propagation(
+      Span<GeometryComponent::Type> component_types,
+      GeometryComponent::Type dst_component_type,
+      bool include_instances,
+      const AttributeFilter &attribute_filter,
+      Map<StringRef, AttributeDomainAndType> &r_attributes) const;
 
   Vector<GeometryComponent::Type> gather_component_types(bool include_instances,
                                                          bool ignore_empty) const;

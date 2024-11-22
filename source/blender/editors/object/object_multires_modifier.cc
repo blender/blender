@@ -95,17 +95,17 @@ void OBJECT_OT_multires_higher_levels_delete(wmOperatorType *ot)
  * \{ */
 
 static EnumPropertyItem prop_multires_subdivide_mode_type[] = {
-    {MULTIRES_SUBDIVIDE_CATMULL_CLARK,
+    {int8_t(MultiresSubdivideModeType::CatmullClark),
      "CATMULL_CLARK",
      0,
      "Catmull-Clark",
      "Create a new level using Catmull-Clark subdivisions"},
-    {MULTIRES_SUBDIVIDE_SIMPLE,
+    {int8_t(MultiresSubdivideModeType::Simple),
      "SIMPLE",
      0,
      "Simple",
      "Create a new level using simple subdivisions"},
-    {MULTIRES_SUBDIVIDE_LINEAR,
+    {int8_t(MultiresSubdivideModeType::Linear),
      "LINEAR",
      0,
      "Linear",
@@ -123,8 +123,8 @@ static int multires_subdivide_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  const eMultiresSubdivideModeType subdivide_mode = (eMultiresSubdivideModeType)RNA_enum_get(
-      op->ptr, "mode");
+  const MultiresSubdivideModeType subdivide_mode = (MultiresSubdivideModeType)RNA_enum_get(op->ptr,
+                                                                                           "mode");
   multiresModifier_subdivide(object, mmd, subdivide_mode);
 
   iter_other(CTX_data_main(C), object, true, multires_update_totlevels, &mmd->totlvl);
@@ -165,7 +165,7 @@ void OBJECT_OT_multires_subdivide(wmOperatorType *ot)
   RNA_def_enum(ot->srna,
                "mode",
                prop_multires_subdivide_mode_type,
-               MULTIRES_SUBDIVIDE_CATMULL_CLARK,
+               int8_t(MultiresSubdivideModeType::CatmullClark),
                "Subdivision Mode",
                "How the mesh is going to be subdivided to create a new level");
 }

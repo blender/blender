@@ -11,6 +11,7 @@
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_context.hh"
+#include "BKE_screen.hh"
 
 #include "ED_screen.hh"
 #include "ED_transform_snap_object_context.hh"
@@ -237,7 +238,7 @@ void transform_mode_snap_source_init(TransInfo *t, wmOperator * /*op*/)
 #endif
 
 #ifdef REMOVE_GIZMO
-  wmGizmo *gz = WM_gizmomap_get_modal(t->region->gizmo_map);
+  wmGizmo *gz = WM_gizmomap_get_modal(t->region->runtime->gizmo_map);
   if (gz) {
     const wmEvent *event = CTX_wm_window(t->context)->eventstate;
 #  ifdef RESET_TRANSFORMATION
@@ -247,7 +248,7 @@ void transform_mode_snap_source_init(TransInfo *t, wmOperator * /*op*/)
     }
 #  endif
 
-    WM_gizmo_modal_set_while_modal(t->region->gizmo_map, t->context, nullptr, event);
+    WM_gizmo_modal_set_while_modal(t->region->runtime->gizmo_map, t->context, nullptr, event);
   }
 #endif
 

@@ -78,6 +78,11 @@ ShaderModule::ShaderModule()
 
 ShaderModule::~ShaderModule()
 {
+  if (compilation_handle_) {
+    /* Finish compilation to avoid asserts on exit at GLShaderCompiler destructor. */
+    is_ready(true);
+  }
+
   for (GPUShader *&shader : shaders_) {
     DRW_SHADER_FREE_SAFE(shader);
   }

@@ -680,9 +680,21 @@ static void create_uv_input(const USDExporterContext &usd_export_context,
       usd_export_context, uvmap_link, usd_material, usd_input, active_uvmap_name, reports);
 }
 
+static bool has_generated_tiles(const Image *ima)
+{
+  bool any_generated = false;
+  LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
+    if ((tile->gen_flag & IMA_GEN_TILE) != 0) {
+      any_generated = true;
+      break;
+    }
+  }
+  return any_generated;
+}
+
 static bool is_in_memory_texture(Image *ima)
 {
-  return BKE_image_is_dirty(ima) || ima->source == IMA_SRC_GENERATED;
+  return has_generated_tiles(ima) || BKE_image_is_dirty(ima);
 }
 
 static bool is_packed_texture(const Image *ima)
@@ -695,7 +707,7 @@ static bool is_packed_texture(const Image *ima)
 static std::string get_in_memory_texture_filename(Image *ima)
 {
   bool is_dirty = BKE_image_is_dirty(ima);
-  bool is_generated = ima->source == IMA_SRC_GENERATED;
+  bool is_generated = has_generated_tiles(ima);
   bool is_packed = BKE_image_has_packedfile(ima);
   bool is_tiled = ima->source == IMA_SRC_TILED;
   if (!(is_generated || is_dirty || is_packed)) {
@@ -718,7 +730,7 @@ static std::string get_in_memory_texture_filename(Image *ima)
 
   BKE_image_path_ext_from_imformat_ensure(file_name, sizeof(file_name), &imageFormat);
 
-  if (is_tiled) {
+  if (is_tiled && !BKE_image_is_filename_tokenized(file_name)) {
     /* Ensure that the UDIM tag is in. */
     char file_body[FILE_MAX];
     char file_ext[FILE_MAX];
@@ -729,37 +741,15 @@ static std::string get_in_memory_texture_filename(Image *ima)
   return file_name;
 }
 
-static void export_in_memory_texture(Image *ima,
-                                     const std::string &export_dir,
-                                     const bool allow_overwrite,
-                                     ReportList *reports)
+static void export_in_memory_imbuf(ImBuf *imbuf,
+                                   const std::string &export_dir,
+                                   char image_abs_path[FILE_MAX],
+                                   char file_name[FILE_MAX],
+                                   const bool allow_overwrite,
+                                   ReportList *reports)
 {
-  char image_abs_path[FILE_MAX];
-
-  char file_name[FILE_MAX];
-  if (ima->filepath[0]) {
-    get_absolute_path(ima, image_abs_path);
-    BLI_path_split_file_part(image_abs_path, file_name, FILE_MAX);
-  }
-  else {
-    /* Use the image name for the file name. */
-    STRNCPY(file_name, ima->id.name + 2);
-  }
-
-  ImBuf *imbuf = BKE_image_acquire_ibuf(ima, nullptr, nullptr);
-  BLI_SCOPED_DEFER([&]() { BKE_image_release_ibuf(ima, imbuf, nullptr); });
-  if (!imbuf) {
-    return;
-  }
-
   ImageFormatData imageFormat;
   BKE_image_format_from_imbuf(&imageFormat, imbuf);
-
-  /* This image in its current state only exists in Blender memory.
-   * So we have to export it. The export will keep the image state intact,
-   * so the exported file will not be associated with the image. */
-
-  BKE_image_path_ext_from_imformat_ensure(file_name, sizeof(file_name), &imageFormat);
 
   char export_path[FILE_MAX];
   BLI_path_join(export_path, FILE_MAX, export_dir.c_str(), file_name);
@@ -778,6 +768,129 @@ static void export_in_memory_texture(Image *ima,
   if (BKE_imbuf_write_as(imbuf, export_path, &imageFormat, true) == false) {
     BKE_reportf(
         reports, RPT_WARNING, "USD export: couldn't export in-memory texture to %s", export_path);
+  }
+}
+
+static void export_in_memory_texture(Image *ima,
+                                     const std::string &export_dir,
+                                     const bool allow_overwrite,
+                                     ReportList *reports)
+{
+  char image_abs_path[FILE_MAX] = {};
+
+  char file_name[FILE_MAX];
+  if (ima->filepath[0]) {
+    get_absolute_path(ima, image_abs_path);
+    BLI_path_split_file_part(image_abs_path, file_name, FILE_MAX);
+  }
+  else {
+    /* Use the image name for the file name. */
+    std::string file = get_in_memory_texture_filename(ima);
+    STRNCPY(file_name, file.c_str());
+  }
+
+  /* This image in its current state only exists in Blender memory.
+   * So we have to export it. The export will keep the image state intact,
+   * so the exported file will not be associated with the image. */
+  if (ima->source != IMA_SRC_TILED) {
+    ImBuf *imbuf = BKE_image_acquire_ibuf(ima, nullptr, nullptr);
+    if (!imbuf) {
+      return;
+    }
+
+    export_in_memory_imbuf(imbuf, export_dir, image_abs_path, file_name, allow_overwrite, reports);
+    BKE_image_release_ibuf(ima, imbuf, nullptr);
+  }
+  else {
+    eUDIM_TILE_FORMAT tile_format;
+    char *udim_pattern = nullptr;
+    udim_pattern = BKE_image_get_tile_strformat(file_name, &tile_format);
+    if (tile_format == UDIM_TILE_FORMAT_NONE) {
+      return;
+    }
+
+    /* Save all the tiles. */
+    ImageUser iuser{};
+    LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
+      char tile_filepath[FILE_MAX];
+      BKE_image_set_filepath_from_tile_number(
+          tile_filepath, udim_pattern, tile_format, tile->tile_number);
+      iuser.tile = tile->tile_number;
+
+      ImBuf *imbuf = BKE_image_acquire_ibuf(ima, &iuser, nullptr);
+      if (!imbuf) {
+        continue;
+      }
+
+      export_in_memory_imbuf(
+          imbuf, export_dir, image_abs_path, tile_filepath, allow_overwrite, reports);
+      BKE_image_release_ibuf(ima, imbuf, nullptr);
+    }
+    MEM_freeN(udim_pattern);
+  }
+}
+
+static void export_packed_texture(Image *ima,
+                                  const std::string &export_dir,
+                                  const bool allow_overwrite,
+                                  ReportList *reports)
+{
+  LISTBASE_FOREACH (ImagePackedFile *, imapf, &ima->packedfiles) {
+    if (!imapf || !imapf->packedfile || !imapf->packedfile->data || !imapf->packedfile->size) {
+      continue;
+    }
+
+    const PackedFile *pf = imapf->packedfile;
+
+    char image_abs_path[FILE_MAX];
+    char file_name[FILE_MAX];
+
+    if (imapf->filepath[0] != '\0') {
+      /* Get the file name from the original path. */
+      /* Make absolute source path. */
+      STRNCPY(image_abs_path, imapf->filepath);
+      USD_path_abs(
+          image_abs_path, ID_BLEND_PATH_FROM_GLOBAL(&ima->id), false /* Not for import */);
+      BLI_path_split_file_part(image_abs_path, file_name, FILE_MAX);
+    }
+    else {
+      /* The following logic is taken from unpack_generate_paths() in packedFile.cc. */
+
+      /* NOTE: we generally do not have any real way to re-create extension out of data. */
+      const size_t len = STRNCPY_RLEN(file_name, ima->id.name + 2);
+
+      /* For images ensure that the temporary filename contains tile number information as well as
+       * a file extension based on the file magic. */
+
+      enum eImbFileType ftype = eImbFileType(
+          IMB_ispic_type_from_memory(static_cast<const uchar *>(pf->data), pf->size));
+      if (ima->source == IMA_SRC_TILED) {
+        char tile_number[6];
+        SNPRINTF(tile_number, ".%d", imapf->tile_number);
+        BLI_strncpy(file_name + len, tile_number, sizeof(file_name) - len);
+      }
+      if (ftype != IMB_FTYPE_NONE) {
+        const int imtype = BKE_ftype_to_imtype(ftype, nullptr);
+        BKE_image_path_ext_from_imtype_ensure(file_name, sizeof(file_name), imtype);
+      }
+    }
+
+    char export_path[FILE_MAX];
+    BLI_path_join(export_path, FILE_MAX, export_dir.c_str(), file_name);
+    BLI_string_replace_char(export_path, '\\', '/');
+
+    if (!allow_overwrite && asset_exists(export_path)) {
+      return;
+    }
+
+    if (paths_equal(export_path, image_abs_path) && asset_exists(image_abs_path)) {
+      /* As a precaution, don't overwrite the original path. */
+      return;
+    }
+
+    CLOG_INFO(&LOG, 2, "Exporting packed texture to '%s'", export_path);
+
+    write_to_path(pf->data, pf->size, export_path, reports);
   }
 }
 
@@ -1177,26 +1290,16 @@ static void export_texture(Image *ima,
                            const bool allow_overwrite,
                            ReportList *reports)
 {
-  std::string export_path = stage->GetRootLayer()->GetRealPath();
-  if (export_path.empty()) {
+  std::string dest_dir = get_export_textures_dir(stage);
+  if (dest_dir.empty()) {
+    CLOG_ERROR(&LOG, "Couldn't determine textures directory path");
     return;
   }
 
-  char usd_dir_path[FILE_MAX];
-  BLI_path_split_dir_part(export_path.c_str(), usd_dir_path, FILE_MAX);
-
-  char tex_dir_path[FILE_MAX];
-  BLI_path_join(tex_dir_path, FILE_MAX, usd_dir_path, "textures", SEP_STR);
-
-  BLI_dir_create_recursive(tex_dir_path);
-
-  const bool is_dirty = BKE_image_is_dirty(ima);
-  const bool is_generated = ima->source == IMA_SRC_GENERATED;
-  const bool is_packed = BKE_image_has_packedfile(ima);
-
-  std::string dest_dir(tex_dir_path);
-
-  if (is_generated || is_dirty || is_packed) {
+  if (is_packed_texture(ima)) {
+    export_packed_texture(ima, dest_dir, allow_overwrite, reports);
+  }
+  else if (is_in_memory_texture(ima)) {
     export_in_memory_texture(ima, dest_dir, allow_overwrite, reports);
   }
   else if (ima->source == IMA_SRC_TILED) {
@@ -1207,12 +1310,39 @@ static void export_texture(Image *ima,
   }
 }
 
+/* Export the given texture node's image to a 'textures' directory in the export path.
+ * Based on ImagesExporter::export_UV_Image() */
+static void export_texture(const USDExporterContext &usd_export_context, bNode *node)
+{
+  export_texture(node,
+                 usd_export_context.stage,
+                 usd_export_context.export_params.overwrite_textures,
+                 usd_export_context.export_params.worker_status->reports);
+}
+
 static void export_texture(const USDExporterContext &usd_export_context, Image *ima)
 {
   export_texture(ima,
                  usd_export_context.stage,
                  usd_export_context.export_params.overwrite_textures,
                  usd_export_context.export_params.worker_status->reports);
+}
+
+void export_texture(bNode *node,
+                    const pxr::UsdStageRefPtr stage,
+                    const bool allow_overwrite,
+                    ReportList *reports)
+{
+  if (!ELEM(node->type, SH_NODE_TEX_IMAGE, SH_NODE_TEX_ENVIRONMENT)) {
+    return;
+  }
+
+  Image *ima = reinterpret_cast<Image *>(node->id);
+  if (!ima) {
+    return;
+  }
+
+  export_texture(ima, stage, allow_overwrite, reports);
 }
 
 pxr::TfToken token_for_input(const char *input_name)
@@ -1489,114 +1619,6 @@ pxr::UsdShadeMaterial create_usd_material(const USDExporterContext &usd_export_c
   call_material_export_hooks(usd_export_context.stage, material, usd_material, reports);
 
   return usd_material;
-}
-
-static void export_packed_texture(Image *ima,
-                                  const std::string &export_dir,
-                                  const bool allow_overwrite,
-                                  ReportList *reports)
-{
-  LISTBASE_FOREACH (ImagePackedFile *, imapf, &ima->packedfiles) {
-    if (!imapf || !imapf->packedfile || !imapf->packedfile->data || !imapf->packedfile->size) {
-      continue;
-    }
-
-    const PackedFile *pf = imapf->packedfile;
-
-    char image_abs_path[FILE_MAX];
-    char file_name[FILE_MAX];
-
-    if (imapf->filepath[0] != '\0') {
-      /* Get the file name from the original path. */
-      /* Make absolute source path. */
-      STRNCPY(image_abs_path, imapf->filepath);
-      USD_path_abs(
-          image_abs_path, ID_BLEND_PATH_FROM_GLOBAL(&ima->id), false /* Not for import */);
-      BLI_path_split_file_part(image_abs_path, file_name, FILE_MAX);
-    }
-    else {
-      /* The following logic is taken from unpack_generate_paths() in packedFile.cc. */
-
-      /* NOTE: we generally do not have any real way to re-create extension out of data. */
-      const size_t len = STRNCPY_RLEN(file_name, ima->id.name + 2);
-
-      /* For images ensure that the temporary filename contains tile number information as well as
-       * a file extension based on the file magic. */
-
-      enum eImbFileType ftype = eImbFileType(
-          IMB_ispic_type_from_memory(static_cast<const uchar *>(pf->data), pf->size));
-      if (ima->source == IMA_SRC_TILED) {
-        char tile_number[6];
-        SNPRINTF(tile_number, ".%d", imapf->tile_number);
-        BLI_strncpy(file_name + len, tile_number, sizeof(file_name) - len);
-      }
-      if (ftype != IMB_FTYPE_NONE) {
-        const int imtype = BKE_ftype_to_imtype(ftype, nullptr);
-        BKE_image_path_ext_from_imtype_ensure(file_name, sizeof(file_name), imtype);
-      }
-    }
-
-    char export_path[FILE_MAX];
-    BLI_path_join(export_path, FILE_MAX, export_dir.c_str(), file_name);
-    BLI_string_replace_char(export_path, '\\', '/');
-
-    if (!allow_overwrite && asset_exists(export_path)) {
-      return;
-    }
-
-    if (paths_equal(export_path, image_abs_path) && asset_exists(image_abs_path)) {
-      /* As a precaution, don't overwrite the original path. */
-      return;
-    }
-
-    CLOG_INFO(&LOG, 2, "Exporting packed texture to '%s'", export_path);
-
-    write_to_path(pf->data, pf->size, export_path, reports);
-  }
-}
-
-/* Export the given texture node's image to a 'textures' directory in the export path.
- * Based on ImagesExporter::export_UV_Image() */
-static void export_texture(const USDExporterContext &usd_export_context, bNode *node)
-{
-  export_texture(node,
-                 usd_export_context.stage,
-                 usd_export_context.export_params.overwrite_textures,
-                 usd_export_context.export_params.worker_status->reports);
-}
-
-void export_texture(bNode *node,
-                    const pxr::UsdStageRefPtr stage,
-                    const bool allow_overwrite,
-                    ReportList *reports)
-{
-  if (!ELEM(node->type, SH_NODE_TEX_IMAGE, SH_NODE_TEX_ENVIRONMENT)) {
-    return;
-  }
-
-  Image *ima = reinterpret_cast<Image *>(node->id);
-  if (!ima) {
-    return;
-  }
-
-  std::string dest_dir = get_export_textures_dir(stage);
-  if (dest_dir.empty()) {
-    CLOG_ERROR(&LOG, "Couldn't determine textures directory path");
-    return;
-  }
-
-  if (is_packed_texture(ima)) {
-    export_packed_texture(ima, dest_dir, allow_overwrite, reports);
-  }
-  else if (is_in_memory_texture(ima)) {
-    export_in_memory_texture(ima, dest_dir, allow_overwrite, reports);
-  }
-  else if (ima->source == IMA_SRC_TILED) {
-    copy_tiled_textures(ima, dest_dir, allow_overwrite, reports);
-  }
-  else {
-    copy_single_file(ima, dest_dir, allow_overwrite, reports);
-  }
 }
 
 }  // namespace blender::io::usd

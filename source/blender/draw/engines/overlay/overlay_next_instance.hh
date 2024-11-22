@@ -13,6 +13,7 @@
 #include "overlay_next_antialiasing.hh"
 #include "overlay_next_armature.hh"
 #include "overlay_next_attribute_viewer.hh"
+#include "overlay_next_axes.hh"
 #include "overlay_next_background.hh"
 #include "overlay_next_bounds.hh"
 #include "overlay_next_camera.hh"
@@ -32,6 +33,7 @@
 #include "overlay_next_metaball.hh"
 #include "overlay_next_mode_transfer.hh"
 #include "overlay_next_motion_path.hh"
+#include "overlay_next_name.hh"
 #include "overlay_next_origin.hh"
 #include "overlay_next_outline.hh"
 #include "overlay_next_paint.hh"
@@ -66,7 +68,7 @@ class Instance {
 
   /** Overlay types. */
   Background background;
-  Origins origins;
+  Origins origins = {selection_type_};
   Outline outline;
   MotionPath motion_paths;
 
@@ -75,6 +77,7 @@ class Instance {
 
     Armatures armatures = {selection_type_};
     AttributeViewer attribute_viewer;
+    Axes axes = {selection_type_};
     Bounds bounds = {selection_type_};
     Cameras cameras = {selection_type_};
     Curves curves;
@@ -92,6 +95,7 @@ class Instance {
     MeshUVs mesh_uvs;
     Metaballs metaballs = {selection_type_};
     ModeTransfer mode_transfer;
+    Names names;
     Paints paints;
     Particles particles;
     Prepass prepass = {selection_type_};
@@ -145,6 +149,10 @@ class Instance {
   /* Returns true if the object is rendered transparent by the render engine.
    * Overlays should not rely on the correct depth being available (and do a depth pre-pass). */
   bool object_is_rendered_transparent(const Object *object, const State &state);
+
+  void draw_node(Manager &manager, View &view);
+  void draw_v2d(Manager &manager, View &view);
+  void draw_v3d(Manager &manager, View &view);
 };
 
 }  // namespace blender::draw::overlay

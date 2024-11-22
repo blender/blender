@@ -39,7 +39,13 @@ class VKFrameBuffer : public FrameBuffer {
   Array<GPULoadStore, GPU_FB_MAX_ATTACHMENT> load_stores;
   Array<GPUAttachmentState, GPU_FB_MAX_ATTACHMENT> attachment_states_;
 
+  /* Render pass workaround when dynamic rendering isn't supported. */
+  VkFramebuffer vk_framebuffer = VK_NULL_HANDLE;
+
  public:
+  VkRenderPass vk_render_pass = VK_NULL_HANDLE;
+  uint32_t color_attachment_size = 0u;
+
   /**
    * Create a conventional frame-buffer to attach texture to.
    */
@@ -78,8 +84,9 @@ class VKFrameBuffer : public FrameBuffer {
                int dst_offset_x,
                int dst_offset_y) override;
 
-  Array<VkViewport, 16> vk_viewports_get() const;
-  Array<VkRect2D, 16> vk_render_areas_get() const;
+  void vk_viewports_append(Vector<VkViewport> &r_viewports) const;
+  void vk_render_areas_append(Vector<VkRect2D> &r_render_areas) const;
+  void render_area_update(VkRect2D &render_area) const;
   VkFormat depth_attachment_format_get() const;
   VkFormat stencil_attachment_format_get() const;
   Span<VkFormat> color_attachment_formats_get() const;
@@ -111,6 +118,8 @@ class VKFrameBuffer : public FrameBuffer {
    * the latest changes that can happen between drawing commands inside `VKStateManager`.
    */
   void rendering_ensure(VKContext &context);
+  void rendering_ensure_dynamic_rendering(VKContext &context, const VKWorkarounds &workarounds);
+  void rendering_ensure_render_pass(VKContext &context);
 
   /**
    * End the rendering on this framebuffer.
@@ -133,9 +142,12 @@ class VKFrameBuffer : public FrameBuffer {
   int color_attachments_resource_size() const;
 
  private:
-  void update_attachments();
+  /**
+   * Discard both the render pass and framebuffer
+   *
+   * TODO: render pass could be reusable.
+   */
   void render_pass_free();
-  void render_pass_create();
 
   /* Clearing attachments */
   void build_clear_attachments_depth_stencil(

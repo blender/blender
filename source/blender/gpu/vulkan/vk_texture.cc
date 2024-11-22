@@ -408,6 +408,10 @@ static VkImageUsageFlags to_vk_image_usage(const eGPUTextureUsage usage,
       }
       else {
         result |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+        const VKWorkarounds &workarounds = VKBackend::get().device.workarounds_get();
+        if (workarounds.dynamic_rendering) {
+          result |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
+        }
       }
     }
   }

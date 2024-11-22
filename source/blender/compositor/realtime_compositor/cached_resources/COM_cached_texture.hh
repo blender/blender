@@ -11,8 +11,6 @@
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
 
-#include "GPU_texture.hh"
-
 #include "DNA_texture_types.h"
 
 #include "COM_cached_resource.hh"
@@ -61,10 +59,6 @@ class CachedTexture : public CachedResource {
                 float3 scale);
 
   ~CachedTexture();
-
-  GPUTexture *color_texture();
-
-  GPUTexture *value_texture();
 };
 
 /* ------------------------------------------------------------------------------------------------

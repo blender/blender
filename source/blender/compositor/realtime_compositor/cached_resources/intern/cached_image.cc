@@ -12,7 +12,6 @@
 
 #include "RE_pipeline.h"
 
-#include "GPU_shader.hh"
 #include "GPU_texture.hh"
 
 #include "IMB_colormanagement.hh"

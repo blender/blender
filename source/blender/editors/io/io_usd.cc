@@ -299,6 +299,8 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
 
   const int usdz_downscale_custom_size = RNA_int_get(op->ptr, "usdz_downscale_custom_size");
 
+  const bool merge_parent_xform = RNA_boolean_get(op->ptr, "merge_parent_xform");
+
 #  if PXR_VERSION >= 2403
   const bool allow_unicode = RNA_boolean_get(op->ptr, "allow_unicode");
 #  else
@@ -387,6 +389,8 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
   params.usdz_downscale_size = usdz_downscale_size;
   params.usdz_downscale_custom_size = usdz_downscale_custom_size;
 
+  params.merge_parent_xform = merge_parent_xform;
+
   STRNCPY(params.root_prim_path, root_prim_path);
   STRNCPY(params.custom_properties_namespace, custom_properties_namespace);
   RNA_string_get(op->ptr, "collection", params.collection);
@@ -460,6 +464,7 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
     uiItemR(col, ptr, "rename_uvmaps", UI_ITEM_NONE, nullptr, ICON_NONE);
     uiItemR(col, ptr, "export_normals", UI_ITEM_NONE, nullptr, ICON_NONE);
 
+    uiItemR(col, ptr, "merge_parent_xform", UI_ITEM_NONE, nullptr, ICON_NONE);
     uiItemR(col, ptr, "triangulate_meshes", UI_ITEM_NONE, nullptr, ICON_NONE);
     if (RNA_boolean_get(ptr, "triangulate_meshes")) {
       uiItemR(col, ptr, "quad_method", UI_ITEM_NONE, IFACE_("Method Quads"), ICON_NONE);
@@ -844,6 +849,14 @@ void WM_OT_usd_export(wmOperatorType *ot)
               "Custom size for downscaling exported textures",
               128,
               8192);
+
+  RNA_def_boolean(ot->srna,
+                  "merge_parent_xform",
+                  false,
+                  "Merge parent Xform",
+                  "Merge USD primitives with their Xform parent if possible: "
+                  "USD does not allow nested UsdGeomGprim. Intermediary Xform will "
+                  "be defined to keep the USD file valid.");
 }
 
 /* ====== USD Import ====== */

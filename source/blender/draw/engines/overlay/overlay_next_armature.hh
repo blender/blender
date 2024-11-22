@@ -133,7 +133,7 @@ class Armatures {
 
   void begin_sync(Resources &res, const State &state)
   {
-    enabled_ = state.v3d && !(state.overlay.flag & V3D_OVERLAY_HIDE_BONES);
+    enabled_ = state.space_type == SPACE_VIEW3D && !(state.overlay.flag & V3D_OVERLAY_HIDE_BONES);
 
     if (!enabled_) {
       return;
@@ -282,10 +282,11 @@ class Armatures {
 
       {
         auto &sub = armature_ps_.sub("opaque.shape_wire");
-        sub.state_set(default_state, state.clipping_plane_count);
+        sub.state_set(default_state | DRW_STATE_BLEND_ALPHA, state.clipping_plane_count);
         sub.shader_set(res.shaders.armature_shape_wire.get());
         sub.bind_ubo("globalsBlock", &res.globals_buf);
         sub.push_constant("alpha", 1.0f);
+        sub.push_constant("do_smooth_wire", do_smooth_wire);
         opaque_.shape_wire = &sub;
       }
       if (use_wire_alpha) {

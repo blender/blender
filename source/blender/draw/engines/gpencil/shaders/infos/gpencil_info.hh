@@ -89,7 +89,7 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(gpencil_depth_merge)
 DO_STATIC_COMPILATION()
-PUSH_CONSTANT_ARRAY(VEC4, gpModelMatrix, 4)
+PUSH_CONSTANT(MAT4, gpModelMatrix)
 PUSH_CONSTANT(BOOL, strokeOrder3d)
 SAMPLER(0, DEPTH_2D, depthBuf)
 VERTEX_SOURCE("gpencil_depth_merge_vert.glsl")

@@ -141,11 +141,11 @@ class BoneCollectionDropTarget : public TreeViewItemDropTarget {
 
     switch (drag_info.drop_location) {
       case DropLocation::Into:
-        return fmt::format(TIP_("Move {} into {}"), drag_name, drop_name);
+        return fmt::format(fmt::runtime(TIP_("Move {} into {}")), drag_name, drop_name);
       case DropLocation::Before:
-        return fmt::format(TIP_("Move {} above {}"), drag_name, drop_name);
+        return fmt::format(fmt::runtime(TIP_("Move {} above {}")), drag_name, drop_name);
       case DropLocation::After:
-        return fmt::format(TIP_("Move {} below {}"), drag_name, drop_name);
+        return fmt::format(fmt::runtime(TIP_("Move {} below {}")), drag_name, drop_name);
     }
 
     return "";
@@ -476,5 +476,5 @@ void uiTemplateBoneCollectionTree(uiLayout *layout, bContext *C)
   tree_view->set_context_menu_title("Bone Collection");
   tree_view->set_default_rows(3);
 
-  ui::TreeViewBuilder::build_tree_view(*tree_view, *layout);
+  ui::TreeViewBuilder::build_tree_view(*C, *tree_view, *layout);
 }

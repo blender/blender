@@ -6,7 +6,7 @@
  * \ingroup asset_system
  */
 
-#include "asset_library_runtime.hh"
+#include "runtime_library.hh"
 
 namespace blender::asset_system {
 

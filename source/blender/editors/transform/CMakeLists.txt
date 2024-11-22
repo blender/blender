@@ -71,7 +71,6 @@ set(SRC
   transform_mode_edge_seq_slide.cc
   transform_mode_edge_slide.cc
   transform_mode_gpopacity.cc
-  transform_mode_gpshrinkfatten.cc
   transform_mode_maskshrinkfatten.cc
   transform_mode_mirror.cc
   transform_mode_push_pull.cc
@@ -104,7 +103,6 @@ set(SRC
   transform.hh
   transform_constraints.hh
   transform_convert.hh
-  transform_data.hh
   transform_draw_cursors.hh
   transform_gizmo.hh
   transform_mode.hh

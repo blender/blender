@@ -105,7 +105,7 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
   array_utils::gather(evaluator.get_evaluated(1), selection, radius.span);
   radius.finish();
 
-  Map<StringRef, AttributeKind> attributes;
+  Map<StringRef, AttributeDomainAndType> attributes;
   geometry_set.gather_attributes_for_propagation({GeometryComponent::Type::Mesh},
                                                  GeometryComponent::Type::PointCloud,
                                                  false,
@@ -114,7 +114,7 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
   attributes.remove("radius");
   attributes.remove("position");
 
-  for (MapItem<StringRef, AttributeKind> entry : attributes.items()) {
+  for (MapItem<StringRef, AttributeDomainAndType> entry : attributes.items()) {
     const StringRef attribute_id = entry.key;
     const eCustomDataType data_type = entry.value.data_type;
     const bke::GAttributeReader src = src_attributes.lookup(attribute_id, domain, data_type);

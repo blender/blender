@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'1c8669f8c9c1')\n"
+"Project-Id-Version: Blender 4.3.0 Release Candidate (b'7dfe47164a63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-11 09:42+0000\n"
-"PO-Revision-Date: 2024-11-09 08:56+0000\n"
+"POT-Creation-Date: 2024-11-18 11:20+0000\n"
+"PO-Revision-Date: 2024-11-13 00:56+0000\n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
 "Language: es\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.7.2"
+"X-Generator: Weblate 5.8.3"
 
 
 msgid "Shader AOV"
@@ -33774,16 +33774,52 @@ msgid "Editor menu containing buttons"
 msgstr "Menú del editor que contiene botones"
 
 
+msgid "Mirror"
+msgstr "Simetrizar"
+
+
+msgid "Snap"
+msgstr "Adherir"
+
+
+msgid "UV Mapping"
+msgstr "Mapeo UV"
+
+
+msgid "Local View"
+msgstr "Vista local"
+
+
+msgid "Viewpoint"
+msgstr "Punto de vista"
+
+
+msgid "Navigation"
+msgstr "Navegación"
+
+
+msgid "Align View"
+msgstr "Alinear vista"
+
+
+msgid "Align View to Active"
+msgstr "Alinear vista al activo"
+
+
+msgid "View Regions"
+msgstr "Regiones de la vista"
+
+
+msgid "Select More/Less"
+msgstr "Seleccionar más / menos"
+
+
 msgid "Select Similar"
 msgstr "Seleccionar similar"
 
 
 msgid "Select All by Trait"
 msgstr "Seleccionar por condición"
-
-
-msgid "Select More/Less"
-msgstr "Seleccionar más / menos"
 
 
 msgid "Select Linked"
@@ -33938,10 +33974,6 @@ msgid "Pivot Point"
 msgstr "Punto de pivote"
 
 
-msgid "Snap"
-msgstr "Adherir"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "Decaimiento de edición proporcional"
 
@@ -33956,38 +33988,6 @@ msgstr "Autoenmascarar"
 
 msgid "Face Sets Edit"
 msgstr "Edición de conjuntos de caras"
-
-
-msgid "Mirror"
-msgstr "Simetrizar"
-
-
-msgid "UV Mapping"
-msgstr "Mapeo UV"
-
-
-msgid "Local View"
-msgstr "Vista local"
-
-
-msgid "Viewpoint"
-msgstr "Punto de vista"
-
-
-msgid "Navigation"
-msgstr "Navegación"
-
-
-msgid "Align View"
-msgstr "Alinear vista"
-
-
-msgid "Align View to Active"
-msgstr "Alinear vista al activo"
-
-
-msgid "View Regions"
-msgstr "Regiones de la vista"
 
 
 msgid "Keyframe Insert Pie"
@@ -70496,6 +70496,10 @@ msgid "Clear Constraints"
 msgstr "Eliminar restricciones"
 
 
+msgid "Remove all constraints from keyed object/bones. To get a correct bake with this setting Visual Keying should be enabled"
+msgstr "Elimina todas las restricciones de los objetos/huesos animados. Para obtener una captura correcta con esta opción, la opción Claves visuales deberá estar activa"
+
+
 msgid "Clear Parents"
 msgstr "Eliminar superiores"
 
@@ -82021,6 +82025,10 @@ msgid "Select the strips and their handles"
 msgstr "Selecciona los clips y sus asas"
 
 
+msgid "Make box select pass through to sequence slide when the cursor is hovering on a strip"
+msgstr "Hace que el marco de selección cambie a deslizar en la línea de tiempo, cuando el puntero esté posado sobre un clip"
+
+
 msgid "Select all strips grouped by various properties"
 msgstr "Selecciona todos los clips agrupados por diferentes propiedades"
 
@@ -89781,6 +89789,38 @@ msgid "Panel containing UI elements"
 msgstr "Panel que contiene elementos de la interfaz"
 
 
+msgid "Measurement"
+msgstr "Medición"
+
+
+msgid "Curve Edit Mode"
+msgstr "Modo edición de curvas"
+
+
+msgid "Snapping"
+msgstr "Adherencia"
+
+
+msgid "Transform Orientations"
+msgstr "Orientación de transformación"
+
+
+msgid "Stroke Placement"
+msgstr "Ubicación del trazo"
+
+
+msgid "Drawing Plane"
+msgstr "Plano de dibujo"
+
+
+msgid "glTF Variants"
+msgstr "Variantes glTF"
+
+
+msgid "glTF Material Variants"
+msgstr "Variantes de material glTF"
+
+
 msgid "Guides"
 msgstr "Guías"
 
@@ -89805,12 +89845,12 @@ msgid "Multi Frame"
 msgstr "Multifotograma"
 
 
-msgid "glTF Variants"
-msgstr "Variantes glTF"
+msgid "glTF"
+msgstr "glTF"
 
 
-msgid "glTF Material Variants"
-msgstr "Variantes de material glTF"
+msgid "glTF Animations"
+msgstr "Animaciones glTF"
 
 
 msgid "Auto-Masking"
@@ -89831,14 +89871,6 @@ msgstr "Escala expandir/contraer curvas"
 
 msgid "Viewport Debug"
 msgstr "Depurar Vista 3D"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "Animaciones glTF"
 
 
 msgid "VR"
@@ -89895,30 +89927,6 @@ msgstr "Rastreo de movimiento"
 
 msgid "Mesh Edit Mode"
 msgstr "Modo edición de mallas"
-
-
-msgid "Measurement"
-msgstr "Medición"
-
-
-msgid "Curve Edit Mode"
-msgstr "Modo edición de curvas"
-
-
-msgid "Snapping"
-msgstr "Adherencia"
-
-
-msgid "Transform Orientations"
-msgstr "Orientación de transformación"
-
-
-msgid "Stroke Placement"
-msgstr "Ubicación del trazo"
-
-
-msgid "Drawing Plane"
-msgstr "Plano de dibujo"
 
 
 msgid "Chain Scaling"
@@ -126263,6 +126271,18 @@ msgid "Total files %d | Changed %d | Failed %d"
 msgstr "Total arch. %d | Cambiados %d | Fallidos %d"
 
 
+msgid "Path '%s' not found, from linked data-block '%s' (from library '%s')"
+msgstr "Ruta '%s' no encontrada, del bloque de datos vinculado '%s' (de la biblioteca '%s')"
+
+
+msgid "Path '%s' not found, from local data-block '%s'"
+msgstr "Ruta '%s' no encontrada, del bloque de datos local '%s'"
+
+
+msgid "Path '%s' not found (no known owner data-block)"
+msgstr "Ruta '%s' no encontrada (ningún bloque de datos usuario conocido)"
+
+
 msgid "No missing files"
 msgstr "No hay archivos faltantes"
 
@@ -127479,6 +127499,14 @@ msgid "Failed to read blend file '%s': %s"
 msgstr "Falla al leer el archivo blend '%s': %s"
 
 
+msgid "Cannot read blend file '%s', incomplete header, may be from a newer version of Blender"
+msgstr "No es posible leer el archivo .blend '%s', su encabezado se encuentra incompleto, es posible que sea de una versión más nueva de Blender"
+
+
+msgid "Failed to read file '%s', not a blend file"
+msgstr "Falla al leer el archivo '%s', no es un archivo .blend"
+
+
 msgid "Unable to read '%s': %s"
 msgstr "No es posible leer '%s': %s"
 
@@ -127679,6 +127707,10 @@ msgid "Error: Too many lights in the scene."
 msgstr "Error: Demasiadas luces en la escena."
 
 
+msgid "Warning: Could not allocate light probes volume pool of {} MB, using {} MB instead."
+msgstr "Advertencia: No fue posible asignar un área de memoria de {} MB para las sondas de luz de tipo Volumen, se usarán {} MB en su lugar."
+
+
 msgid "Irradiance Atlas texture could not be created"
 msgstr "La textura del atlas de irradianza no pudo ser creada"
 
@@ -127737,6 +127769,10 @@ msgstr "Error: Demasiadas actualizaciones de sombras, algunas sombras podrían r
 
 msgid "Error: Reached max shadow updates."
 msgstr "Error: Se alcanzó el máximo de actualizaciones de sombras."
+
+
+msgid "Warning: Volume rendering data could not be allocated. Now using a resolution of 1:{} instead of 1:{}."
+msgstr "Advertencia: Los datos de procesamiento volumétrico no pudieron ser asignados. Se pasará a usar una resolución de 1:{} en vez de 1:{}."
 
 
 msgid "GpencilMode"
@@ -129056,6 +129092,10 @@ msgstr "Los trazos capturados fueron liberados"
 
 msgid "No active object, or active object isn't a Grease Pencil object"
 msgstr "No hay ningún objeto activo o el objeto activo no es un objeto de Grease Pencil"
+
+
+msgid "{}: confirm, {}: cancel, {}: panning, Shift: align"
+msgstr "{}: confirmar, {}: cancelar, {}: desplazar, Mayús: alinear"
 
 
 msgid ", {}/{}: adjust subdivisions: {}"

@@ -25,5 +25,9 @@ void main()
 #else
   fragColor = finalColor;
 #endif
+
+#ifdef LINE_OUTPUT
+  lineOutput = vec4(0.0);
+#endif
   select_id_output(select_id);
 }

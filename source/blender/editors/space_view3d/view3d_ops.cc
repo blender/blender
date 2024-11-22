@@ -61,7 +61,6 @@ static int view3d_copybuffer_exec(bContext *C, wmOperator *op)
 
   Main *bmain = CTX_data_main(C);
   PartialWriteContext copybuffer{BKE_main_blendfile_path(bmain)};
-  int num_copied = 0;
 
   /* context, selection, could be generalized */
   CTX_DATA_BEGIN (C, Object *, ob, selected_objects) {
@@ -71,10 +70,13 @@ static int view3d_copybuffer_exec(bContext *C, wmOperator *op)
                           PartialWriteContext::IDAddOperations::SET_CLIPBOARD_MARK |
                           PartialWriteContext::IDAddOperations::ADD_DEPENDENCIES)},
                       nullptr);
-
-    num_copied++;
   }
   CTX_DATA_END;
+
+  /* Explicitely adding an object to the copypaste buffer _may_ add others as dependencies (e.g. a
+   * parent object). So count to total amount of objects added, to get a matching number with the
+   * one reported by the 'paste' operation. */
+  const int num_copied = BLI_listbase_count(&copybuffer.bmain.objects);
 
   char filepath[FILE_MAX];
   view3d_copybuffer_filepath_get(filepath, sizeof(filepath));

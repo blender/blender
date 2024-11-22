@@ -314,7 +314,7 @@ static ARegion *wm_searchbox_tooltip_init(
 {
   *r_exit_on_event = true;
 
-  LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
+  LISTBASE_FOREACH (uiBlock *, block, &region->runtime->uiblocks) {
     LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
       if (but->type != UI_BTYPE_SEARCH_MENU) {
         continue;
@@ -868,7 +868,7 @@ static ARegion *ui_searchbox_create_generic_ex(bContext *C,
   type.free = ui_searchbox_region_free_fn;
   type.listener = ui_searchbox_region_listen_fn;
   type.regionid = RGN_TYPE_TEMPORARY;
-  region->type = &type;
+  region->runtime->type = &type;
 
   /* Create search-box data. */
   uiSearchboxData *data = MEM_cnew<uiSearchboxData>(__func__);
@@ -1054,7 +1054,7 @@ ARegion *ui_searchbox_create_operator(bContext *C, ARegion *butregion, uiButSear
 {
   ARegion *region = ui_searchbox_create_generic_ex(C, butregion, search_but, true);
 
-  region->type->draw = ui_searchbox_region_draw_cb__operator;
+  region->runtime->type->draw = ui_searchbox_region_draw_cb__operator;
 
   return region;
 }
@@ -1074,7 +1074,7 @@ ARegion *ui_searchbox_create_menu(bContext *C, ARegion *butregion, uiButSearch *
   ARegion *region = ui_searchbox_create_generic_ex(C, butregion, search_but, true);
 
   if (false) {
-    region->type->draw = ui_searchbox_region_draw_cb__menu;
+    region->runtime->type->draw = ui_searchbox_region_draw_cb__menu;
   }
 
   return region;

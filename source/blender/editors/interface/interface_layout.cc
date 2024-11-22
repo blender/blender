@@ -1147,7 +1147,7 @@ void UI_context_active_but_prop_get_filebrowser(const bContext *C,
     return;
   }
 
-  LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
+  LISTBASE_FOREACH (uiBlock *, block, &region->runtime->uiblocks) {
     LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
       if (but && but->rnapoin.data) {
         if (RNA_property_type(but->rnaprop) == PROP_STRING) {
@@ -2404,10 +2404,8 @@ void uiItemFullR(uiLayout *layout,
     if (is_id_name_prop) {
       Main *bmain = CTX_data_main(static_cast<bContext *>(block->evil_C));
       ID *id = ptr->owner_id;
-      UI_but_func_rename_full_set(but, [bmain, id](const std::string &new_name) {
-        ED_id_rename(*bmain, *id, new_name);
-        WM_main_add_notifier(NC_ID | NA_RENAME, nullptr);
-      });
+      UI_but_func_rename_full_set(
+          but, [bmain, id](const std::string &new_name) { ED_id_rename(*bmain, *id, new_name); });
     }
 
     bool results_are_suggestions = false;

@@ -651,13 +651,25 @@ static void test_texture_roundtrip__GPU_DATA_FLOAT__GPU_DEPTH_COMPONENT32F()
 }
 GPU_TEST(texture_roundtrip__GPU_DATA_FLOAT__GPU_DEPTH_COMPONENT32F);
 
-#if RUN_COMPONENT_UNIMPLEMENTED
 static void test_texture_roundtrip__GPU_DATA_FLOAT__GPU_DEPTH_COMPONENT24()
 {
   texture_create_upload_read_with_bias<GPU_DEPTH_COMPONENT24, GPU_DATA_FLOAT>(0.0000001f);
 }
 GPU_TEST(texture_roundtrip__GPU_DATA_FLOAT__GPU_DEPTH_COMPONENT24);
 
+static void test_texture_roundtrip__GPU_DATA_FLOAT__GPU_DEPTH24_STENCIL8()
+{
+  texture_create_upload_read_with_bias<GPU_DEPTH24_STENCIL8, GPU_DATA_FLOAT>(0.0f);
+}
+GPU_TEST(texture_roundtrip__GPU_DATA_FLOAT__GPU_DEPTH24_STENCIL8);
+
+static void test_texture_roundtrip__GPU_DATA_FLOAT__GPU_DEPTH32F_STENCIL8()
+{
+  texture_create_upload_read_with_bias<GPU_DEPTH32F_STENCIL8, GPU_DATA_FLOAT>(0.0f);
+}
+GPU_TEST(texture_roundtrip__GPU_DATA_FLOAT__GPU_DEPTH32F_STENCIL8);
+
+#if RUN_COMPONENT_UNIMPLEMENTED
 static void test_texture_roundtrip__GPU_DATA_FLOAT__GPU_DEPTH_COMPONENT16()
 {
   texture_create_upload_read_with_bias<GPU_DEPTH_COMPONENT16, GPU_DATA_FLOAT>(0.0f);

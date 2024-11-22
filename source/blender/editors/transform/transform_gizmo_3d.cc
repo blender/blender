@@ -34,6 +34,7 @@
 #include "BKE_paint.hh"
 #include "BKE_pointcache.h"
 #include "BKE_scene.hh"
+#include "BKE_screen.hh"
 
 #include "WM_api.hh"
 #include "WM_message.hh"
@@ -1895,7 +1896,7 @@ static void WIDGETGROUP_gizmo_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   ARegion *region = CTX_wm_region(C);
 
   {
-    wmGizmo *gz = WM_gizmomap_get_modal(region->gizmo_map);
+    wmGizmo *gz = WM_gizmomap_get_modal(region->runtime->gizmo_map);
     if (gz && gz->parent_gzgroup == gzgroup) {
       return;
     }
@@ -1966,7 +1967,7 @@ static void WIDGETGROUP_gizmo_draw_prepare(const bContext *C, wmGizmoGroup *gzgr
   /* Re-calculate hidden unless modal. */
   bool is_modal = false;
   {
-    wmGizmo *gz = WM_gizmomap_get_modal(region->gizmo_map);
+    wmGizmo *gz = WM_gizmomap_get_modal(region->runtime->gizmo_map);
     if (gz && gz->parent_gzgroup == gzgroup) {
       is_modal = true;
     }
@@ -2273,7 +2274,7 @@ void VIEW3D_GGT_xform_gizmo_context(wmGizmoGroupType *gzgt)
 
 static wmGizmoGroup *gizmogroup_xform_find(TransInfo *t)
 {
-  wmGizmoMap *gizmo_map = t->region->gizmo_map;
+  wmGizmoMap *gizmo_map = t->region->runtime->gizmo_map;
   if (gizmo_map == nullptr) {
     BLI_assert_msg(false, "#T_NO_GIZMO should already be set to return early before.");
     return nullptr;
@@ -2304,8 +2305,8 @@ static wmGizmoGroup *gizmogroup_xform_find(TransInfo *t)
 
 void transform_gizmo_3d_model_from_constraint_and_mode_init(TransInfo *t)
 {
-  wmGizmo *gizmo_modal_current = t->region && t->region->gizmo_map ?
-                                     WM_gizmomap_get_modal(t->region->gizmo_map) :
+  wmGizmo *gizmo_modal_current = t->region && t->region->runtime->gizmo_map ?
+                                     WM_gizmomap_get_modal(t->region->runtime->gizmo_map) :
                                      nullptr;
   if (!gizmo_modal_current || !ELEM(gizmo_modal_current->parent_gzgroup->type,
                                     g_GGT_xform_gizmo,
@@ -2371,7 +2372,7 @@ void transform_gizmo_3d_model_from_constraint_and_mode_set(TransInfo *t)
     axis_idx = axis_map[trans_mode][con_mode];
   }
 
-  wmGizmo *gizmo_modal_current = WM_gizmomap_get_modal(t->region->gizmo_map);
+  wmGizmo *gizmo_modal_current = WM_gizmomap_get_modal(t->region->runtime->gizmo_map);
   if (axis_idx != -1) {
     RegionView3D *rv3d = static_cast<RegionView3D *>(t->region->regiondata);
     float(*mat_cmp)[3] = t->orient[t->orient_curr != O_DEFAULT ? t->orient_curr : O_SCENE].matrix;
@@ -2400,12 +2401,13 @@ void transform_gizmo_3d_model_from_constraint_and_mode_set(TransInfo *t)
       BLI_assert_msg(!gizmo_modal_current || gizmo_modal_current->highlight_part == 0,
                      "Avoid changing the highlight part");
       gizmo_expected->highlight_part = 0;
-      WM_gizmo_modal_set_while_modal(t->region->gizmo_map, t->context, gizmo_expected, &event);
-      WM_gizmo_highlight_set(t->region->gizmo_map, gizmo_expected);
+      WM_gizmo_modal_set_while_modal(
+          t->region->runtime->gizmo_map, t->context, gizmo_expected, &event);
+      WM_gizmo_highlight_set(t->region->runtime->gizmo_map, gizmo_expected);
     }
   }
   else if (gizmo_modal_current) {
-    WM_gizmo_modal_set_while_modal(t->region->gizmo_map, t->context, nullptr, nullptr);
+    WM_gizmo_modal_set_while_modal(t->region->runtime->gizmo_map, t->context, nullptr, nullptr);
   }
 }
 

@@ -322,6 +322,31 @@ typedef struct uiList { /* some list UI data need to be saved in file */
   uiListDyn *dyn_data;
 } uiList;
 
+/** See #uiViewStateLink. */
+typedef struct uiViewState {
+  /**
+   * User set height of the view in unscaled pixels. A value of 0 means no custom height was set
+   * and the default should be used.
+   */
+  int custom_height;
+  char _pad[4];
+} uiViewState;
+
+/**
+ * Persistent storage for some state of views (#ui::AbstractView), for storage in a region. The
+ * view state is matched to the view using the view's idname.
+ *
+ * The actual state is stored in #uiViewState, so views can manage this conveniently without having
+ * to care about the idname and listbase pointers themselves.
+ */
+typedef struct uiViewStateLink {
+  struct uiViewStateLink *next, *prev;
+
+  char idname[64]; /* #BKE_ST_MAXNAME */
+
+  uiViewState state;
+} uiViewStateLink;
+
 typedef struct TransformOrientation {
   struct TransformOrientation *next, *prev;
   /** MAX_NAME. */
@@ -469,10 +494,7 @@ typedef struct ARegion {
    * where zero represents no scroll - the first category always shows first at the top.
    */
   int category_scroll;
-  char _pad0[4];
 
-  /** Region is currently visible on screen. */
-  short visible;
   /** Window, header, etc. identifier for drawing. */
   short regiontype;
   /** How it should split. */
@@ -487,19 +509,12 @@ typedef struct ARegion {
   short sizex, sizey;
 
   /** Private, cached notifier events. */
-  short do_draw;
-  /** Private, cached notifier events. */
   short do_draw_paintcursor;
   /** Private, set for indicate drawing overlapped. */
   short overlap;
   /** Temporary copy of flag settings for clean full-screen. */
   short flagfullscreen;
 
-  /** Callbacks for this region type. */
-  struct ARegionType *type;
-
-  /** #uiBlock. */
-  ListBase uiblocks;
   /** Panel. */
   ListBase panels;
   /** Stack of panel categories. */
@@ -508,19 +523,12 @@ typedef struct ARegion {
   ListBase ui_lists;
   /** #uiPreview. */
   ListBase ui_previews;
-  /** #wmEventHandler. */
-  ListBase handlers;
-  /** Panel categories runtime. */
-  ListBase panels_category;
+  /**
+   * Permanent state storage of #ui::AbstractView instances, so hiding regions with views or
+   * loading files remembers the view state.
+   */
+  ListBase view_states; /* #uiViewStateLink */
 
-  /** Gizmo-map of this region. */
-  struct wmGizmoMap *gizmo_map;
-  /** Blend in/out. */
-  struct wmTimer *regiontimer;
-  struct wmDrawBuffer *draw_buffer;
-
-  /** Use this string to draw info. */
-  char *headerstr;
   /** XXX 2.50, need spacedata equivalent? */
   void *regiondata;
 

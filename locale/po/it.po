@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'1c8669f8c9c1')\n"
+"Project-Id-Version: Blender 4.3.0 Release Candidate (b'7dfe47164a63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-11 09:42+0000\n"
-"PO-Revision-Date: 2024-10-26 17:56+0000\n"
+"POT-Creation-Date: 2024-11-18 11:20+0000\n"
+"PO-Revision-Date: 2024-11-17 21:56+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
 "Language: it\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.7.2"
+"X-Generator: Weblate 5.8.3"
 
 
 msgid "Shader AOV"
@@ -427,6 +427,10 @@ msgid "Always"
 msgstr "Sempre"
 
 
+msgid "Always collapse the new merge nodes"
+msgstr "Riscollare sempre i nuovi nodi di fusione"
+
+
 msgid "Non-Shader"
 msgstr "Non-Shader"
 
@@ -439,8 +443,16 @@ msgid "Never"
 msgstr "Mai"
 
 
+msgid "Never collapse the new merge nodes"
+msgstr "Non collassare mai i nuovi nodi di fusione"
+
+
 msgid "Mix Node Position"
 msgstr "Posizione Nodo Mix"
+
+
+msgid "When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specify the position of the new nodes"
+msgstr "Quando si uniscono i nodi con la scorciatoia Ctrl+Numpad0 (e simili) specificare la posizione dei nuovi nodi"
 
 
 msgid "Center"
@@ -1987,6 +1999,10 @@ msgid "The name of the default color attribute used as a fallback for rendering"
 msgstr "Il nome dell'attributo di colore predefinito usato come riserva per il rendering"
 
 
+msgid "Active Render Color Index"
+msgstr "Indice del Colore Attivo del Render"
+
+
 msgid "The index of the color attribute used as a fallback for rendering"
 msgstr "L'indice dell'attributo di colore usato come riserva per il rendering"
 
@@ -2817,6 +2833,10 @@ msgstr "Raccolta di annotazioni"
 
 msgid "Main Grease Pencils"
 msgstr "Principale Matita"
+
+
+msgid "Collection of grease pencils"
+msgstr "Raccolta di grease pencils"
 
 
 msgid "Main Hair Curves"
@@ -4145,6 +4165,10 @@ msgid "Active Collection Index"
 msgstr "Indice delle Raccolte Attive"
 
 
+msgid "The index of the Armature's active bone collection; -1 when there is no active collection. Note that this is indexing the underlying array of bone collections, which may not be in the order you expect. Root collections are listed first, and siblings are always sequential. Apart from that, bone collections can be in any order, and thus incrementing or decrementing this index can make the active bone collection jump around in unexpected ways. For a more predictable interface, use ``active`` or ``active_name``."
+msgstr "L'indice della raccolta di ossa attiva dell'armatura; -1 quando non c'è una raccolta attiva. Nota che questo indicizza la sequenza sottostante delle raccolte di ossa, la quale potrebbe non essere nell'ordine che ti aspetteresti. Le raccolte di radice sono elencate per prime, e i fratelli sono sempre sequenziali. A parte questo, le raccolte di ossa possono trovarsi in qualunque ordine, e di conseguenza incrementare o decrementare questo indice può far saltare in giro la raccolta di ossa attiva in modi inaspettati. Per un interfaccia più prevedibile, utilizza ``active`` o ``active_name``."
+
+
 msgid "Active Collection Name"
 msgstr "Nome della Raccolta Attiva"
 
@@ -4427,6 +4451,10 @@ msgstr "Scala Uniforme"
 
 msgid "Grease Pencil Brush Settings"
 msgstr "Impostazioni Pennello Greace Pencil"
+
+
+msgid "Settings for grease pencil brush"
+msgstr "Impostazioni per pennello grease pencil"
 
 
 msgid "Active Smooth"
@@ -4888,6 +4916,10 @@ msgstr "Non visualizzare il colore di riempimento mentre si disegna il tratto"
 
 msgid "Factor of Simplify using adaptive algorithm"
 msgstr "Fattore di Semplificazione utilizzando l'algoritmo adattivo"
+
+
+msgid "Threashold in screen space used for the simplify algorithm. Points within this threashold are treated as if they were in a straight line."
+msgstr "Soglia nello spazio schermo utilizzata per l'algoritmo di semplificazione. I punti che rientrano in questa soglia sono trattati come se fossero in linea retta."
 
 
 msgid "Active Layer"
@@ -11514,6 +11546,10 @@ msgid "Show Font data-blocks"
 msgstr "Mostra blocchi-dati Font"
 
 
+msgid "Show Grease pencil data-blocks"
+msgstr "Mostra blocchi-dati Greace pencil"
+
+
 msgid "Show Image data-blocks"
 msgstr "Mostra blocchi-dati Immagine"
 
@@ -12684,6 +12720,11 @@ msgid "Texture mapping type"
 msgstr "Tipo Mappatura Texture"
 
 
+msgctxt "Texture"
+msgid "Generated"
+msgstr "Generate"
+
+
 msgid "Generated coordinates centered to flow object"
 msgstr "Coordinate generate centrate sull'oggetto del flusso"
 
@@ -13481,8 +13522,16 @@ msgid "Set layer group visibility"
 msgstr "Imposta la visibilità del gruppo di livelli"
 
 
+msgid "Protect group from further editing and/or frame changes"
+msgstr "Protegge il gruppo da ulteriori modifiche e/o cambiamenti del fotogramma"
+
+
 msgid "Group name"
 msgstr "Nome gruppo"
+
+
+msgid "Parent Group"
+msgstr "Gruppo di Genitori"
 
 
 msgid "Grease Pencil Masking Layers"
@@ -13499,6 +13548,10 @@ msgstr "Inverti maschera"
 
 msgid "Grease Pencil Mask Layers"
 msgstr "Livelli di Maschera per Greace Pencil"
+
+
+msgid "Collection of grease pencil masking layers"
+msgstr "Raccolta di livelli di maschera per greace pencil"
 
 
 msgid "Active Layer Mask Index"
@@ -13539,6 +13592,22 @@ msgstr "Primo Fotogramma"
 
 msgid "First frame of the segment"
 msgstr "Primo fotogramma del segmento"
+
+
+msgid "Grease Pencil Group"
+msgstr "Gruppo Greace Pencil"
+
+
+msgid "Collection of Grease Pencil layers"
+msgstr "Raccolta di livelli Greace Pencil"
+
+
+msgid "Active Layer Group"
+msgstr "Gruppo Livelli Attivo"
+
+
+msgid "Active Grease Pencil layer group"
+msgstr "Gruppo di livelli Greace Pencil Attivo"
 
 
 msgid "Grease Pencil Layers"
@@ -13798,6 +13867,22 @@ msgstr "Posizione a Riposo"
 
 msgid "Show Armature in binding pose state (no posing possible)"
 msgstr "Mostra l'armatura in stato a riposo (non è possibile metterla in posa)"
+
+
+msgid "Finalize Script"
+msgstr "Finalizza Script"
+
+
+msgid "Mirror Widgets"
+msgstr "Specchia Widgets"
+
+
+msgid "Theme"
+msgstr "Tema"
+
+
+msgid "Widgets Collection"
+msgstr "Raccolta di Widgets"
 
 
 msgid "Display Axes"
@@ -14439,6 +14524,10 @@ msgid "Clamp"
 msgstr "Limita"
 
 
+msgid "Has unsaved changes"
+msgstr "Ha modifiche non salvate"
+
+
 msgid "Brush Height"
 msgstr "Altezza Pennello"
 
@@ -14662,6 +14751,11 @@ msgstr "Spingi"
 msgctxt "Brush"
 msgid "Rotate"
 msgstr "Ruota"
+
+
+msgctxt "Brush"
+msgid "Slide Relax"
+msgstr "Scorri Rilassa"
 
 
 msgctxt "Brush"
@@ -14909,6 +15003,10 @@ msgid "Use Paint"
 msgstr "Utilizza Pittura"
 
 
+msgid "Use this brush in grease pencil drawing mode"
+msgstr "Utilizza questo pennello in modalità disegno greace pencil"
+
+
 msgid "Use this brush in texture paint mode"
 msgstr "Utilizza questo pennello in modalità pittura texture"
 
@@ -15025,6 +15123,10 @@ msgid "Automatically adjust strength to give consistent results for different sp
 msgstr "Aggiusta automaticamente la forza per dare risultati consistenti per spaziature differenti"
 
 
+msgid "Use this brush in grease pencil vertex color mode"
+msgstr "Utilizza questo pennello in modalità pittura vertici di greace pencil"
+
+
 msgid "Vertex weight when brush is applied"
 msgstr "Peso vertici quando viene applicato il pennello"
 
@@ -15116,12 +15218,20 @@ msgid "List of background images"
 msgstr "Lista delle immagini di sfondo"
 
 
+msgid "Radius of the virtual cylinder"
+msgstr "Raggio di questo cilindro virtuale"
+
+
 msgid "Max Longitude"
 msgstr "Max Longitudine"
 
 
 msgid "Min Longitude"
 msgstr "Min Longitudine"
+
+
+msgid "Max Height"
+msgstr "Altezza Massima"
 
 
 msgid "Clip End"
@@ -22894,16 +23004,52 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
+msgid "Mirror"
+msgstr "Specchia"
+
+
+msgid "Snap"
+msgstr "Aggancia"
+
+
+msgid "UV Mapping"
+msgstr "Mappatura UV"
+
+
+msgid "Local View"
+msgstr "Vista Locale"
+
+
+msgid "Viewpoint"
+msgstr "Punto di vista"
+
+
+msgid "Navigation"
+msgstr "Navigazione"
+
+
+msgid "Align View"
+msgstr "Allinea Vista"
+
+
+msgid "Align View to Active"
+msgstr "Allinea Vista a Attivo"
+
+
+msgid "View Regions"
+msgstr "Regione Vista"
+
+
+msgid "Select More/Less"
+msgstr "Seleziona Più/Meno"
+
+
 msgid "Select Similar"
 msgstr "Seleziona Simili"
 
 
 msgid "Select All by Trait"
 msgstr "Seleziona Tutto per Caratteristica"
-
-
-msgid "Select More/Less"
-msgstr "Seleziona Più/Meno"
 
 
 msgid "Select Linked"
@@ -23010,44 +23156,8 @@ msgid "Pivot Point"
 msgstr "Punto di Perno"
 
 
-msgid "Snap"
-msgstr "Aggancia"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "Decadimento Modifica Proporzionale"
-
-
-msgid "Mirror"
-msgstr "Specchia"
-
-
-msgid "UV Mapping"
-msgstr "Mappatura UV"
-
-
-msgid "Local View"
-msgstr "Vista Locale"
-
-
-msgid "Viewpoint"
-msgstr "Punto di vista"
-
-
-msgid "Navigation"
-msgstr "Navigazione"
-
-
-msgid "Align View"
-msgstr "Allinea Vista"
-
-
-msgid "Align View to Active"
-msgstr "Allinea Vista a Attivo"
-
-
-msgid "View Regions"
-msgstr "Regione Vista"
 
 
 msgid "Basic"
@@ -46675,6 +46785,18 @@ msgid "Active Palette Color"
 msgstr "Colore Tavolozza Attivo"
 
 
+msgid "Measurement"
+msgstr "Misurazione"
+
+
+msgid "Transform Orientations"
+msgstr "Assi (Orientamenti Trasformazione)"
+
+
+msgid "Stroke Placement"
+msgstr "Giacitura Tratto"
+
+
 msgid "Stereoscopy"
 msgstr "Stereoscopia"
 
@@ -46713,18 +46835,6 @@ msgstr "Tracciatura Movimento"
 
 msgid "Mesh Edit Mode"
 msgstr "Modalità Modifica Mesh"
-
-
-msgid "Measurement"
-msgstr "Misurazione"
-
-
-msgid "Transform Orientations"
-msgstr "Assi (Orientamenti Trasformazione)"
-
-
-msgid "Stroke Placement"
-msgstr "Giacitura Tratto"
 
 
 msgid "Chain Scaling"

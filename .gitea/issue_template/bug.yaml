@@ -12,6 +12,7 @@ body:
                 First time reporting? See [tips](https://developer.blender.org/docs/handbook/bug_reports/making_good_bug_reports/).
 
                 * Use **Help > Report a Bug** from the top of Blender to fill system information and exact Blender version.
+                * If Blender isn't opening, then follow [our guide](https://developer.blender.org/docs/handbook/bug_reports/making_good_bug_reports/collect_system_information/) on how to manually collect the required information.
                 * Test [daily builds](https://builder.blender.org/) to verify if the issue is already fixed.
                 * Test [previous versions](https://download.blender.org/release/) to find an older working version.
                 * For feature requests, feedback, questions or build issues, see [communication channels](https://developer.blender.org/docs/handbook/communication/user_feedback/).

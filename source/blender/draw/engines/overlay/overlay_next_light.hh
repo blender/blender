@@ -165,9 +165,10 @@ class Lights {
 
     {
       PassSimple::Sub &sub_pass = ps_.sub("spot_cone_front");
-      sub_pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA | DRW_STATE_CULL_FRONT,
+      sub_pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA |
+                             DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_FRONT,
                          state.clipping_plane_count);
-      sub_pass.shader_set(res.shaders.extra_shape.get());
+      sub_pass.shader_set(res.shaders.light_spot_cone.get());
       sub_pass.bind_ubo("globalsBlock", &res.globals_buf);
       call_buffers_.spot_cone_front_buf.end_sync(sub_pass, shapes.light_spot_volume.get());
     }
@@ -176,7 +177,7 @@ class Lights {
       sub_pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA |
                              DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK,
                          state.clipping_plane_count);
-      sub_pass.shader_set(res.shaders.extra_shape.get());
+      sub_pass.shader_set(res.shaders.light_spot_cone.get());
       sub_pass.bind_ubo("globalsBlock", &res.globals_buf);
       call_buffers_.spot_cone_back_buf.end_sync(sub_pass, shapes.light_spot_volume.get());
     }

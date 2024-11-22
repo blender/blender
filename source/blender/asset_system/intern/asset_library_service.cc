@@ -19,12 +19,12 @@
 
 #include "AS_asset_library.hh"
 #include "AS_essentials_library.hh"
-#include "asset_library_all.hh"
-#include "asset_library_essentials.hh"
-#include "asset_library_from_preferences.hh"
-#include "asset_library_on_disk.hh"
-#include "asset_library_runtime.hh"
+#include "all_library.hh"
 #include "asset_library_service.hh"
+#include "essentials_library.hh"
+#include "on_disk_library.hh"
+#include "preferences_on_disk_library.hh"
+#include "runtime_library.hh"
 #include "utils.hh"
 
 /* When enabled, use a pre file load handler (#BKE_CB_EVT_LOAD_PRE) callback to destroy the asset

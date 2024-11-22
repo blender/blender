@@ -154,12 +154,7 @@ typedef struct GPENCIL_StorageList {
 } GPENCIL_StorageList;
 
 typedef struct GPENCIL_PassList {
-  /* Composite the main GPencil buffer onto the rendered image. */
-  struct DRWPass *composite_ps;
-  /* Composite the object depth to the default depth buffer to occlude overlays. */
-  struct DRWPass *merge_depth_ps;
-  /* Invert mask buffer content. */
-  struct DRWPass *mask_invert_ps;
+  struct DRWPass *dummy;
 } GPENCIL_PassList;
 
 typedef struct GPENCIL_FramebufferList {
@@ -192,6 +187,10 @@ struct GPENCIL_Instance {
   blender::draw::PassSimple smaa_edge_ps = {"smaa_edge"};
   blender::draw::PassSimple smaa_weight_ps = {"smaa_weight"};
   blender::draw::PassSimple smaa_resolve_ps = {"smaa_resolve"};
+  /* Composite the object depth to the default depth buffer to occlude overlays. */
+  blender::draw::PassSimple merge_depth_ps = {"merge_depth_ps"};
+  /* Invert mask buffer content. */
+  blender::draw::PassSimple mask_invert_ps = {"mask_invert_ps"};
 };
 
 struct GPENCIL_Data {
@@ -336,11 +335,6 @@ GPENCIL_tObject *gpencil_object_cache_add(GPENCIL_PrivateData *pd,
                                           blender::Bounds<float3> bounds);
 void gpencil_object_cache_sort(GPENCIL_PrivateData *pd);
 
-GPENCIL_tLayer *gpencil_layer_cache_add(GPENCIL_PrivateData *pd,
-                                        const Object *ob,
-                                        const bGPDlayer *gpl,
-                                        const bGPDframe *gpf,
-                                        GPENCIL_tObject *tgp_ob);
 GPENCIL_tLayer *grease_pencil_layer_cache_get(GPENCIL_tObject *tgp_ob,
                                               int layer_id,
                                               bool skip_onion);

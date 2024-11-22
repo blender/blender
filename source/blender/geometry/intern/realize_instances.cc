@@ -25,8 +25,7 @@
 namespace blender::geometry {
 
 using blender::bke::AttrDomain;
-using blender::bke::AttributeKind;
-using blender::bke::AttributeMetaData;
+using blender::bke::AttributeDomainAndType;
 using blender::bke::GSpanAttributeWriter;
 using blender::bke::InstanceReference;
 using blender::bke::Instances;
@@ -38,7 +37,7 @@ using blender::bke::SpanAttributeWriter;
  */
 struct OrderedAttributes {
   VectorSet<StringRef> ids;
-  Vector<AttributeKind> kinds;
+  Vector<AttributeDomainAndType> kinds;
 
   int size() const
   {
@@ -868,7 +867,7 @@ static void gather_attribute_propagation_components_with_custom_depths(
   }
 }
 
-static Map<StringRef, AttributeKind> gather_attributes_to_propagate(
+static Map<StringRef, AttributeDomainAndType> gather_attributes_to_propagate(
     const bke::GeometrySet &geometry,
     const bke::GeometryComponent::Type component_type,
     const RealizeInstancesOptions &options,
@@ -898,7 +897,7 @@ static Map<StringRef, AttributeKind> gather_attributes_to_propagate(
   }
 
   /* Actually gather the attributes to propagate from the found components. */
-  Map<StringRef, AttributeKind> attributes_to_propagate;
+  Map<StringRef, AttributeDomainAndType> attributes_to_propagate;
   for (const bke::GeometryComponentPtr &component : components) {
     const bke::AttributeAccessor attributes = *component->attributes();
     attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
@@ -923,11 +922,11 @@ static Map<StringRef, AttributeKind> gather_attributes_to_propagate(
         /* Instance attributes are realized on the point domain currently. */
         dst_domain = AttrDomain::Point;
       }
-      auto add = [&](AttributeKind *kind) {
+      auto add = [&](AttributeDomainAndType *kind) {
         kind->domain = dst_domain;
         kind->data_type = iter.data_type;
       };
-      auto modify = [&](AttributeKind *kind) {
+      auto modify = [&](AttributeDomainAndType *kind) {
         kind->domain = bke::attribute_domain_highest_priority({kind->domain, dst_domain});
         kind->data_type = bke::attribute_data_type_highest_complexity(
             {kind->data_type, iter.data_type});
@@ -950,7 +949,7 @@ static OrderedAttributes gather_generic_instance_attributes_to_propagate(
     const RealizeInstancesOptions &options,
     const VariedDepthOptions &varied_depth_option)
 {
-  Map<StringRef, AttributeKind> attributes_to_propagate = gather_attributes_to_propagate(
+  Map<StringRef, AttributeDomainAndType> attributes_to_propagate = gather_attributes_to_propagate(
       in_geometry_set, bke::GeometryComponent::Type::Instance, options, varied_depth_option);
   attributes_to_propagate.pop_try("id");
   OrderedAttributes ordered_attributes;
@@ -1067,7 +1066,7 @@ static OrderedAttributes gather_generic_pointcloud_attributes_to_propagate(
     bool &r_create_radii,
     bool &r_create_id)
 {
-  Map<StringRef, AttributeKind> attributes_to_propagate = gather_attributes_to_propagate(
+  Map<StringRef, AttributeDomainAndType> attributes_to_propagate = gather_attributes_to_propagate(
       in_geometry_set, bke::GeometryComponent::Type::PointCloud, options, varied_depth_option);
   attributes_to_propagate.remove("position");
   r_create_id = attributes_to_propagate.pop_try("id").has_value();
@@ -1296,7 +1295,7 @@ static OrderedAttributes gather_generic_mesh_attributes_to_propagate(
     bool &r_create_id,
     bool &r_create_material_index)
 {
-  Map<StringRef, AttributeKind> attributes_to_propagate = gather_attributes_to_propagate(
+  Map<StringRef, AttributeDomainAndType> attributes_to_propagate = gather_attributes_to_propagate(
       in_geometry_set, bke::GeometryComponent::Type::Mesh, options, varied_depth_option);
   attributes_to_propagate.remove("position");
   attributes_to_propagate.remove(".edge_verts");
@@ -1667,7 +1666,7 @@ static OrderedAttributes gather_generic_curve_attributes_to_propagate(
     const VariedDepthOptions &varied_depth_option,
     bool &r_create_id)
 {
-  Map<StringRef, AttributeKind> attributes_to_propagate = gather_attributes_to_propagate(
+  Map<StringRef, AttributeDomainAndType> attributes_to_propagate = gather_attributes_to_propagate(
       in_geometry_set, bke::GeometryComponent::Type::Curve, options, varied_depth_option);
   attributes_to_propagate.remove("position");
   attributes_to_propagate.remove("radius");
@@ -2010,7 +2009,7 @@ static OrderedAttributes gather_generic_grease_pencil_attributes_to_propagate(
     const RealizeInstancesOptions &options,
     const VariedDepthOptions &varied_depth_options)
 {
-  Map<StringRef, AttributeKind> attributes_to_propagate = gather_attributes_to_propagate(
+  Map<StringRef, AttributeDomainAndType> attributes_to_propagate = gather_attributes_to_propagate(
       in_geometry_set, bke::GeometryComponent::Type::GreasePencil, options, varied_depth_options);
   OrderedAttributes ordered_attributes;
   for (auto &&item : attributes_to_propagate.items()) {

@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BKE_nla.hh"
+
 #include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
 
@@ -963,18 +965,40 @@ void nla_action_get_color(AnimData *adt, bAction *act, float color[4]);
 /* `anim_draw.cc` */
 
 /**
- * Obtain the AnimData block providing NLA-mapping for the given channel (if applicable).
+ * Check whether NLA time remapping should be done on this bAnimListElem.
  *
- * TODO: do not supply return this if the animdata tells us that there is no mapping to perform.
+ * \returns true by default, false only when this ale indicates an NLA control curve (like animated
+ * influence) or a driver.
  */
-AnimData *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale);
+bool ANIM_nla_mapping_allowed(const bAnimListElem *ale);
+
+/**
+ * Do NLA time remapping, but only if `ANIM_nla_mapping_allowed(ale)` returns `true`.
+ *
+ * \see #ANIM_nla_mapping_allowed
+ * \see #BKE_nla_tweakedit_remap
+ */
+float ANIM_nla_tweakedit_remap(bAnimListElem *ale, float cframe, eNlaTime_ConvertModes mode);
 
 /**
  * Apply/Unapply NLA mapping to all keyframes in the nominated F-Curve
  * \param restore: Whether to map points back to non-mapped time.
  * \param only_keys: Whether to only adjust the location of the center point of beztriples.
+ *
+ * TODO: this is only used by `fcurve_to_keylist()` at this point. Perhaps with
+ * some refactoring we can make `fcurve_to_keylist()` use
+ * `ANIM_nla_mapping_apply_if_needed_fcurve()` instead, and then we can get rid
+ * of this.
  */
 void ANIM_nla_mapping_apply_fcurve(AnimData *adt, FCurve *fcu, bool restore, bool only_keys);
+
+/**
+ * Same as above, but only if `ANIM_nla_mapping_allowed(ale)` returns `true`.
+ */
+void ANIM_nla_mapping_apply_if_needed_fcurve(bAnimListElem *ale,
+                                             FCurve *fcu,
+                                             bool restore,
+                                             bool only_keys);
 
 /* ..... */
 

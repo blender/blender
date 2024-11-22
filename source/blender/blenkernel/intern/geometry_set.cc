@@ -668,7 +668,7 @@ void GeometrySet::gather_attributes_for_propagation(
     const GeometryComponent::Type dst_component_type,
     bool include_instances,
     const AttributeFilter &attribute_filter,
-    Map<StringRef, AttributeKind> &r_attributes) const
+    Map<StringRef, AttributeDomainAndType> &r_attributes) const
 {
   this->attribute_foreach(
       component_types,
@@ -697,11 +697,11 @@ void GeometrySet::gather_attributes_for_propagation(
           domain = AttrDomain::Point;
         }
 
-        auto add_info = [&](AttributeKind *attribute_kind) {
+        auto add_info = [&](AttributeDomainAndType *attribute_kind) {
           attribute_kind->domain = domain;
           attribute_kind->data_type = meta_data.data_type;
         };
-        auto modify_info = [&](AttributeKind *attribute_kind) {
+        auto modify_info = [&](AttributeDomainAndType *attribute_kind) {
           attribute_kind->domain = bke::attribute_domain_highest_priority(
               {attribute_kind->domain, domain});
           attribute_kind->data_type = bke::attribute_data_type_highest_complexity(

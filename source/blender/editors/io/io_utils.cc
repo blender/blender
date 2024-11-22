@@ -38,7 +38,7 @@ int filesel_drop_import_invoke(bContext *C, wmOperator *op, const wmEvent * /*ev
         title = files[0];
       }
       else {
-        title = fmt::format(TIP_("Import {} files"), files.size());
+        title = fmt::format(fmt::runtime(TIP_("Import {} files")), files.size());
       }
     }
     else {

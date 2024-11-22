@@ -557,8 +557,7 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
       elem = SCE_SNAP_TO_EDGE;
     }
   }
-  else {
-    BLI_assert(snap_to & SCE_SNAP_TO_EDGE_ENDPOINT);
+  else if (snap_to & SCE_SNAP_TO_EDGE_ENDPOINT) {
     if (bvhtree[0]) {
       /* Snap to loose edges verts. */
       BLI_bvhtree_find_nearest_projected(

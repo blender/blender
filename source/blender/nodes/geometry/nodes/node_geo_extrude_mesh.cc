@@ -89,9 +89,14 @@ static void save_selection_as_attribute(MutableAttributeAccessor attributes,
 static void remove_non_propagated_attributes(MutableAttributeAccessor attributes,
                                              const AttributeFilter &attribute_filter)
 {
-  Set<StringRefNull> ids_to_remove = attributes.all_ids();
-  ids_to_remove.remove_if([&](const StringRef id) { return !attribute_filter.allow_skip(id); });
-  for (const StringRef id : ids_to_remove) {
+  Vector<std::string> names_to_remove;
+  const Set<StringRefNull> all_names = attributes.all_ids();
+  for (const StringRefNull name : all_names) {
+    if (attribute_filter.allow_skip(name)) {
+      names_to_remove.append(name);
+    }
+  }
+  for (const StringRef id : names_to_remove) {
     attributes.remove(id);
   }
 }

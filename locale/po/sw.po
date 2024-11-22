@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'1c8669f8c9c1')\n"
+"Project-Id-Version: Blender 4.3.0 Release Candidate (b'7dfe47164a63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-11 09:42+0000\n"
+"POT-Creation-Date: 2024-11-18 11:20+0000\n"
 "PO-Revision-Date: 2024-07-05 18:56+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -29001,6 +29001,18 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
+msgid "Mirror"
+msgstr "Kioo"
+
+
+msgid "Snap"
+msgstr "Picha"
+
+
+msgid "Navigation"
+msgstr "Urambazaji"
+
+
 msgid "Select Linked"
 msgstr "Chagua Imeunganishwa"
 
@@ -29031,18 +29043,6 @@ msgstr "Unganisha"
 
 msgid "Pivot Point"
 msgstr "Egemeo"
-
-
-msgid "Snap"
-msgstr "Picha"
-
-
-msgid "Mirror"
-msgstr "Kioo"
-
-
-msgid "Navigation"
-msgstr "Urambazaji"
 
 
 msgid "Keyframe Insert Pie"
@@ -76324,6 +76324,30 @@ msgid "Panel containing UI elements"
 msgstr "Paneli iliyo na vipengele vya UI"
 
 
+msgid "Measurement"
+msgstr "Kipimo"
+
+
+msgid "Curve Edit Mode"
+msgstr "Njia ya Kuhariri Curve"
+
+
+msgid "Snapping"
+msgstr "Kupiga"
+
+
+msgid "Transform Orientations"
+msgstr "Badilisha Mielekeo"
+
+
+msgid "Stroke Placement"
+msgstr "Uwekaji wa Kiharusi"
+
+
+msgid "Drawing Plane"
+msgstr "Ndege ya Kuchora"
+
+
 msgid "Quad View"
 msgstr "Mtazamo wa Quad"
 
@@ -76382,30 +76406,6 @@ msgstr "Kufuatilia Mwendo"
 
 msgid "Mesh Edit Mode"
 msgstr "Njia ya Kuhariri Mesh"
-
-
-msgid "Measurement"
-msgstr "Kipimo"
-
-
-msgid "Curve Edit Mode"
-msgstr "Njia ya Kuhariri Curve"
-
-
-msgid "Snapping"
-msgstr "Kupiga"
-
-
-msgid "Transform Orientations"
-msgstr "Badilisha Mielekeo"
-
-
-msgid "Stroke Placement"
-msgstr "Uwekaji wa Kiharusi"
-
-
-msgid "Drawing Plane"
-msgstr "Ndege ya Kuchora"
 
 
 msgid "Fast GI Approximation"

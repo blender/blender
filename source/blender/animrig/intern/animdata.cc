@@ -31,8 +31,6 @@
 #include "DNA_mesh_types.h"
 #include "DNA_particle_types.h"
 
-#include "ED_anim_api.hh"
-
 #include "RNA_access.hh"
 #include "RNA_path.hh"
 
@@ -252,7 +250,7 @@ bAction *id_action_ensure(Main *bmain, ID *id)
   return adt->action;
 }
 
-void animdata_fcurve_delete(bAnimContext *ac, AnimData *adt, FCurve *fcu)
+void animdata_fcurve_delete(AnimData *adt, FCurve *fcu)
 {
   /* - If no AnimData, we've got nowhere to remove the F-Curve from
    *   (this doesn't guarantee that the F-Curve is in there, but at least we tried
@@ -262,13 +260,8 @@ void animdata_fcurve_delete(bAnimContext *ac, AnimData *adt, FCurve *fcu)
     return;
   }
 
-  /* Remove from whatever list it came from
-   * - Action Group
-   * - Action
-   * - Drivers
-   * - TODO... some others?
-   */
-  if ((ac) && (ac->datatype == ANIMCONT_DRIVERS)) {
+  const bool is_driver = fcu->driver != nullptr;
+  if (is_driver) {
     BLI_remlink(&adt->drivers, fcu);
   }
   else if (adt->action) {
@@ -332,37 +325,6 @@ bool animdata_remove_empty_action(AnimData *adt)
 }
 
 /** \} */
-
-void reevaluate_fcurve_errors(bAnimContext *ac)
-{
-  /* Need to take off the flag before filtering, else the filter code would skip the FCurves, which
-   * have not yet been validated. */
-  const bool filtering_enabled = ac->ads->filterflag & ADS_FILTER_ONLY_ERRORS;
-  if (filtering_enabled) {
-    ac->ads->filterflag &= ~ADS_FILTER_ONLY_ERRORS;
-  }
-  ListBase anim_data = {nullptr, nullptr};
-  const eAnimFilter_Flags filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FCURVESONLY;
-  ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
-
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    FCurve *fcu = (FCurve *)ale->key_data;
-    PointerRNA ptr;
-    PropertyRNA *prop;
-    PointerRNA id_ptr = RNA_id_pointer_create(ale->id);
-    if (RNA_path_resolve_property(&id_ptr, fcu->rna_path, &ptr, &prop)) {
-      fcu->flag &= ~FCURVE_DISABLED;
-    }
-    else {
-      fcu->flag |= FCURVE_DISABLED;
-    }
-  }
-
-  ANIM_animdata_freelist(&anim_data);
-  if (filtering_enabled) {
-    ac->ads->filterflag |= ADS_FILTER_ONLY_ERRORS;
-  }
-}
 
 const FCurve *fcurve_find_by_rna_path(const AnimData &adt,
                                       const StringRefNull rna_path,

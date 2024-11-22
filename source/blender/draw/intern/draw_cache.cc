@@ -3361,7 +3361,7 @@ void drw_batch_cache_generate_requested(Object *ob)
   const bool use_hide = ((ob->type == OB_MESH) &&
                          ((is_paint_mode && (ob == draw_ctx->obact) &&
                            DRW_object_use_hide_faces(ob)) ||
-                          ((mode == CTX_MODE_EDIT_MESH) && DRW_object_is_in_edit_mode(ob))));
+                          ((mode == CTX_MODE_EDIT_MESH) && (ob->mode == OB_MODE_EDIT))));
 
   switch (ob->type) {
     case OB_MESH:
@@ -3400,7 +3400,7 @@ void drw_batch_cache_generate_requested_evaluated_mesh_or_curve(Object *ob)
   const bool use_hide = ((ob->type == OB_MESH) &&
                          ((is_paint_mode && (ob == draw_ctx->obact) &&
                            DRW_object_use_hide_faces(ob)) ||
-                          ((mode == CTX_MODE_EDIT_MESH) && DRW_object_is_in_edit_mode(ob))));
+                          ((mode == CTX_MODE_EDIT_MESH) && (ob->mode == OB_MODE_EDIT))));
 
   Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf_unchecked(ob);
   /* Try getting the mesh first and if that fails, try getting the curve data.

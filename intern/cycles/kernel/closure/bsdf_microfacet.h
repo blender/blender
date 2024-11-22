@@ -506,13 +506,14 @@ ccl_device_inline float bsdf_G(float alpha2, float cos_NI, float cos_NO)
 template<MicrofacetType m_type> ccl_device_inline float bsdf_D(float alpha2, float cos_NH)
 {
   const float cos_NH2 = min(sqr(cos_NH), 1.0f);
+  const float one_minus_cos_NH2 = 1.0f - cos_NH2;
 
   if (m_type == MicrofacetType::BECKMANN) {
-    return expf((cos_NH2 - 1.0f) / (cos_NH2 * alpha2)) / (M_PI_F * alpha2 * sqr(cos_NH2));
+    return 1.0f / (expf(one_minus_cos_NH2 / (cos_NH2 * alpha2)) * M_PI_F * alpha2 * sqr(cos_NH2));
   }
   else {
     kernel_assert(m_type == MicrofacetType::GGX);
-    return alpha2 / (M_PI_F * sqr((1.0f - cos_NH2) + alpha2 * cos_NH2));
+    return alpha2 / (M_PI_F * sqr(one_minus_cos_NH2 + alpha2 * cos_NH2));
   }
 }
 

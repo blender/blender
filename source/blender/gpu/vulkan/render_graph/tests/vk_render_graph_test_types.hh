@@ -435,6 +435,24 @@ class CommandBufferLog : public VKCommandBufferInterface {
     log_.append(ss.str());
   }
 
+  void begin_render_pass(const VkRenderPassBeginInfo *p_render_pass_begin_info) override
+  {
+    EXPECT_TRUE(is_recording_);
+    std::stringstream ss;
+    ss << "begin_render_pass(";
+    ss << "p_render_pass_begin_info=" << to_string(*p_render_pass_begin_info);
+    ss << ")";
+    log_.append(ss.str());
+  }
+
+  void end_render_pass() override
+  {
+    EXPECT_TRUE(is_recording_);
+    std::stringstream ss;
+    ss << "end_render_pass()";
+    log_.append(ss.str());
+  }
+
   void begin_query(VkQueryPool /*vk_query_pool*/,
                    uint32_t /*query_index*/,
                    VkQueryControlFlags /*vk_query_control_flags*/) override

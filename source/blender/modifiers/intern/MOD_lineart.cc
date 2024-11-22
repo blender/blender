@@ -210,6 +210,7 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
         ctx->node, ctx->scene->camera, DEG_OB_COMP_TRANSFORM, "Line Art Modifier");
     DEG_add_object_relation(
         ctx->node, ctx->scene->camera, DEG_OB_COMP_PARAMETERS, "Line Art Modifier");
+    DEG_add_scene_relation(ctx->node, ctx->scene, DEG_SCENE_COMP_PARAMETERS, "Line Art Modifier");
   }
   if (lmd->light_contour_object) {
     DEG_add_object_relation(

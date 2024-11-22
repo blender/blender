@@ -49,13 +49,9 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   Vector<StringRefNull> missing_capabilities;
   /* Check device features. */
   VkPhysicalDeviceFeatures2 features = {};
-  VkPhysicalDeviceDynamicRenderingFeatures dynamic_rendering = {};
-
   features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
-  dynamic_rendering.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES;
-  features.pNext = &dynamic_rendering;
-
   vkGetPhysicalDeviceFeatures2(vk_physical_device, &features);
+
 #ifndef __APPLE__
   if (features.features.geometryShader == VK_FALSE) {
     missing_capabilities.append("geometry shaders");
@@ -85,9 +81,6 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   if (features.features.fragmentStoresAndAtomics == VK_FALSE) {
     missing_capabilities.append("fragment stores and atomics");
   }
-  if (dynamic_rendering.dynamicRendering == VK_FALSE) {
-    missing_capabilities.append("dynamic rendering");
-  }
 
   /* Check device extensions. */
   uint32_t vk_extension_count;
@@ -104,9 +97,6 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   if (!extensions.contains(VK_KHR_SWAPCHAIN_EXTENSION_NAME)) {
     missing_capabilities.append(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
   }
-  if (!extensions.contains(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME)) {
-    missing_capabilities.append(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
-  }
 
   /* Check for known faulty drivers. */
   VkPhysicalDeviceProperties2 vk_physical_device_properties = {};
@@ -115,25 +105,38 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   vk_physical_device_driver_properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES;
   vk_physical_device_properties.pNext = &vk_physical_device_driver_properties;
   vkGetPhysicalDeviceProperties2(vk_physical_device, &vk_physical_device_properties);
-
-  /* Check for drivers that are known to crash. */
-
-  /* Intel IRIS on 10th gen CPU crashes due to issues when using dynamic rendering. It seems like
-   * when vkCmdBeginRendering is called some requirements need to be met, that can only be met when
-   * actually calling a vkCmdDraw command. As driver versions are not easy accessible we check
-   * against the latest conformance test version.
-   *
-   * This should be revisited when dynamic rendering is fully optional.
-   */
   uint32_t conformance_version = VK_MAKE_API_VERSION(
       vk_physical_device_driver_properties.conformanceVersion.major,
       vk_physical_device_driver_properties.conformanceVersion.minor,
       vk_physical_device_driver_properties.conformanceVersion.subminor,
       vk_physical_device_driver_properties.conformanceVersion.patch);
+
+  /* Intel IRIS on 10th gen CPU (and older) crashes due to multiple driver issues.
+   *
+   * 1) Workbench is working, but EEVEE pipelines are failing. Calling vkCreateGraphicsPipelines
+   * for certain EEVEE shaders (Shadow, Deferred rendering) would return with VK_SUCCESS, but
+   * without a created VkPipeline handle.
+   *
+   * 2) When vkCmdBeginRendering is called some requirements need to be met, that can only be met
+   * when actually calling a vkCmdDraw* command. According to the Vulkan specs the requirements
+   * should only be met when calling a vkCmdDraw* command.
+   */
   if (vk_physical_device_driver_properties.driverID == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS &&
       vk_physical_device_properties.properties.deviceType ==
           VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU &&
       conformance_version < VK_MAKE_API_VERSION(1, 3, 2, 0))
+  {
+    missing_capabilities.append(KNOWN_CRASHING_DRIVER);
+  }
+
+  /* NVIDIA drivers below 550 don't work. When sending command to the GPU there is no reply back
+   * when they are finished. Driver 550 should support GTX 700 and above GPUs.
+   *
+   * NOTE: We should retest later after fixing other issues. Allowing more drivers is always
+   * better as reporting to the user is quite limited.
+   */
+  if (vk_physical_device_driver_properties.driverID == VK_DRIVER_ID_NVIDIA_PROPRIETARY &&
+      conformance_version < VK_MAKE_API_VERSION(1, 3, 7, 2))
   {
     missing_capabilities.append(KNOWN_CRASHING_DRIVER);
   }
@@ -326,7 +329,10 @@ void VKBackend::detect_workarounds(VKDevice &device)
     workarounds.shader_output_viewport_index = true;
     workarounds.vertex_formats.r8g8b8 = true;
     workarounds.fragment_shader_barycentric = true;
+    workarounds.dynamic_rendering = true;
     workarounds.dynamic_rendering_unused_attachments = true;
+
+    GCaps.render_pass_workaround = true;
 
     device.workarounds_ = workarounds;
     return;
@@ -336,6 +342,12 @@ void VKBackend::detect_workarounds(VKDevice &device)
       !device.physical_device_vulkan_12_features_get().shaderOutputLayer;
   workarounds.shader_output_viewport_index =
       !device.physical_device_vulkan_12_features_get().shaderOutputViewportIndex;
+  workarounds.fragment_shader_barycentric = !device.supports_extension(
+      VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME);
+  workarounds.dynamic_rendering = !device.supports_extension(
+      VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
+  workarounds.dynamic_rendering_unused_attachments = !device.supports_extension(
+      VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME);
 
   /* AMD GPUs don't support texture formats that use are aligned to 24 or 48 bits. */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY) ||
@@ -353,11 +365,10 @@ void VKBackend::detect_workarounds(VKDevice &device)
   workarounds.fragment_shader_barycentric = !device.supports_extension(
       VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME);
 
+  GCaps.render_pass_workaround = workarounds.dynamic_rendering = !device.supports_extension(
+      VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
   workarounds.dynamic_rendering_unused_attachments = !device.supports_extension(
       VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME);
-
-  /* TODO(jbakker): This should be set when dynamic rendering is not available. See #129062. */
-  GCaps.render_pass_workaround = false;
 
   device.workarounds_ = workarounds;
 }

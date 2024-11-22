@@ -178,6 +178,8 @@ User interface classes are given a context in which to draw, buttons, window, fi
 then they are drawn when that area is displayed so they are never called by Python scripts directly.
 
 
+.. _info_overview_class_construction_destruction:
+
 Construction & Destruction
 --------------------------
 
@@ -194,7 +196,6 @@ There are a few cases where defining ``__init__()`` and ``__del__()`` does make 
 e.g. when sub-classing a :class:`bpy.types.RenderEngine`. When doing so, the parent matching function
 must always be called, otherwise Blender's internal initialization won't happen properly:
 
-
 .. code-block:: python
 
    import bpy
@@ -209,7 +210,19 @@ must always be called, otherwise Blender's internal initialization won't happen 
 
 .. note::
 
-   Calling the parent's ``__init__()`` function is a hard requirement since Blender 4.4. 
+   Calling the parent's ``__init__()`` function is a hard requirement since Blender 4.4.
+   The 'generic' signature is the recommended one here, as Blender internal BPY code is typically
+   the only caller of these functions. The actual arguments passed to the constructor are fully
+   internal data, and may change depending on the implementation.
+
+
+.. note::
+
+   Defining a custom ``__new__()`` function is strongly discouraged, not tested, and not considered
+   as supported currently.
+   Doing so presents a very high risk of crashes or otherwise corruption of Blender internal data.
+   But if defined, it must take the same two generic positional and keyword arguments,
+   and call the parent's ``__new__()`` with them if actually creating a new object.
 
 
 .. _info_overview_registration:

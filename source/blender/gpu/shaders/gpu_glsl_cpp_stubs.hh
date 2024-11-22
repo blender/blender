@@ -29,6 +29,7 @@
 
 #pragma once
 
+#include <cstdio>
 #include <type_traits>
 
 /* Some compilers complain about lack of return values. Keep it short. */

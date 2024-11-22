@@ -3437,6 +3437,12 @@ static void rna_def_text(StructRNA *srna)
   RNA_def_property_float_default(prop, 0.01f);
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_raw_update");
 
+  prop = RNA_def_property(srna, "box_roundness", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, nullptr, "box_roundness");
+  RNA_def_property_ui_text(prop, "Box Roundness", "Box corner radius as a factor of box height");
+  RNA_def_property_range(prop, 0, 1.0);
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_raw_update");
+
   prop = RNA_def_property(srna, "alignment_x", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "align");
   RNA_def_property_enum_items(prop, text_alignment_x_items);

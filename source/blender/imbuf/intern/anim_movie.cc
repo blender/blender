@@ -414,14 +414,18 @@ static int startffmpeg(ImBufAnim *anim)
         1);
   }
 
+  /* Use full_chroma_int + accurate_rnd YUV->RGB conversion flags. Otherwise
+   * the conversion is not fully accurate and introduces some banding and color
+   * shifts, particularly in dark regions. See issue #111703 or upstream
+   * ffmpeg ticket https://trac.ffmpeg.org/ticket/1582 */
   anim->img_convert_ctx = BKE_ffmpeg_sws_get_context(anim->x,
                                                      anim->y,
                                                      anim->pCodecCtx->pix_fmt,
                                                      anim->x,
                                                      anim->y,
                                                      anim->pFrameRGB->format,
-                                                     SWS_BILINEAR | SWS_PRINT_INFO |
-                                                         SWS_FULL_CHR_H_INT);
+                                                     SWS_POINT | SWS_FULL_CHR_H_INT |
+                                                         SWS_ACCURATE_RND);
 
   if (!anim->img_convert_ctx) {
     fprintf(stderr,
@@ -700,7 +704,11 @@ static void ffmpeg_decode_store_frame_pts(ImBufAnim *anim)
 {
   anim->cur_pts = av_get_pts_from_frame(anim->pFrame);
 
+#  ifdef FFMPEG_OLD_KEY_FRAME_QUERY_METHOD
   if (anim->pFrame->key_frame) {
+#  else
+  if (anim->pFrame->flags & AV_FRAME_FLAG_KEY) {
+#  endif
     anim->cur_key_frame_pts = anim->cur_pts;
   }
 
@@ -795,48 +803,6 @@ static int ffmpeg_decode_video_frame(ImBufAnim *anim)
   }
 
   return (rval >= 0);
-}
-
-static int match_format(const char *name, AVFormatContext *pFormatCtx)
-{
-  const char *p;
-  int len, namelen;
-
-  const char *names = pFormatCtx->iformat->name;
-
-  if (!name || !names) {
-    return 0;
-  }
-
-  namelen = strlen(name);
-  while ((p = strchr(names, ','))) {
-    len = std::max(int(p - names), namelen);
-    if (!BLI_strncasecmp(name, names, len)) {
-      return 1;
-    }
-    names = p + 1;
-  }
-  return !BLI_strcasecmp(name, names);
-}
-
-static int ffmpeg_seek_by_byte(AVFormatContext *pFormatCtx)
-{
-  static const char *byte_seek_list[] = {"mpegts", nullptr};
-  const char **p;
-
-  if (pFormatCtx->iformat->flags & AVFMT_TS_DISCONT) {
-    return true;
-  }
-
-  p = byte_seek_list;
-
-  while (*p) {
-    if (match_format(*p++, pFormatCtx)) {
-      return true;
-    }
-  }
-
-  return false;
 }
 
 static int64_t ffmpeg_get_seek_pts(ImBufAnim *anim, int64_t pts_to_search)
@@ -1040,35 +1006,17 @@ static int ffmpeg_seek_to_key_frame(ImBufAnim *anim,
   if (tc_index) {
     /* We can use timestamps generated from our indexer to seek. */
     int new_frame_index = IMB_indexer_get_frame_index(tc_index, position);
-    int old_frame_index = IMB_indexer_get_frame_index(tc_index, anim->cur_position);
 
-    if (IMB_indexer_can_scan(tc_index, old_frame_index, new_frame_index)) {
-      /* No need to seek, return early. */
-      return 0;
-    }
-    uint64_t pts;
-    uint64_t dts;
-
-    seek_pos = IMB_indexer_get_seek_pos(tc_index, new_frame_index);
-    pts = IMB_indexer_get_seek_pos_pts(tc_index, new_frame_index);
-    dts = IMB_indexer_get_seek_pos_dts(tc_index, new_frame_index);
+    uint64_t pts = IMB_indexer_get_seek_pos_pts(tc_index, new_frame_index);
+    uint64_t dts = IMB_indexer_get_seek_pos_dts(tc_index, new_frame_index);
 
     anim->cur_key_frame_pts = timestamp_from_pts_or_dts(pts, dts);
 
-    av_log(anim->pFormatCtx, AV_LOG_DEBUG, "TC INDEX seek seek_pos = %" PRId64 "\n", seek_pos);
     av_log(anim->pFormatCtx, AV_LOG_DEBUG, "TC INDEX seek pts = %" PRIu64 "\n", pts);
     av_log(anim->pFormatCtx, AV_LOG_DEBUG, "TC INDEX seek dts = %" PRIu64 "\n", dts);
 
-    if (ffmpeg_seek_by_byte(anim->pFormatCtx)) {
-      av_log(anim->pFormatCtx, AV_LOG_DEBUG, "... using BYTE seek_pos\n");
-
-      ret = av_seek_frame(anim->pFormatCtx, -1, seek_pos, AVSEEK_FLAG_BYTE);
-    }
-    else {
-      av_log(anim->pFormatCtx, AV_LOG_DEBUG, "... using PTS seek_pos\n");
-      ret = av_seek_frame(
-          anim->pFormatCtx, anim->videoStream, anim->cur_key_frame_pts, AVSEEK_FLAG_BACKWARD);
-    }
+    av_log(anim->pFormatCtx, AV_LOG_DEBUG, "Using PTS from timecode as seek_pos\n");
+    ret = av_seek_frame(anim->pFormatCtx, anim->videoStream, pts, AVSEEK_FLAG_BACKWARD);
   }
   else {
     /* We have to manually seek with ffmpeg to get to the key frame we want to start decoding from.

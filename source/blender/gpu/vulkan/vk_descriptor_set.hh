@@ -119,6 +119,10 @@ class VKDescriptorSetTracker {
   void bind_uniform_buffer_resource(const VKStateManager &state_manager,
                                     const VKResourceBinding &resource_binding,
                                     render_graph::VKResourceAccessInfo &access_info);
+  void bind_input_attachment_resource(const VKDevice &device,
+                                      const VKStateManager &state_manager,
+                                      const VKResourceBinding &resource_binding,
+                                      render_graph::VKResourceAccessInfo &access_info);
   void bind_push_constants(VKPushConstants &push_constants,
 
                            render_graph::VKResourceAccessInfo &access_info);

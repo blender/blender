@@ -782,7 +782,7 @@ static int clear_anim_v3d_exec(bContext *C, wmOperator * /*op*/)
           fcn = fcu->next;
           /* delete F-Curve completely */
           if (can_delete_fcurve(fcu, ob)) {
-            blender::animrig::animdata_fcurve_delete(nullptr, adt, fcu);
+            blender::animrig::animdata_fcurve_delete(adt, fcu);
             DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
             changed = true;
           }

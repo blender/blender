@@ -108,7 +108,7 @@ static std::unique_ptr<GreasePencilStrokeOperation> get_stroke_operation(bContex
         return greasepencil::new_erase_operation(false);
       case GPAINT_BRUSH_TYPE_FILL:
         /* Fill tool keymap uses the paint operator as alternative mode. */
-        return greasepencil::new_paint_operation();
+        return greasepencil::new_paint_operation(true);
       case GPAINT_BRUSH_TYPE_TINT:
         return greasepencil::new_tint_operation();
     }
@@ -1052,8 +1052,9 @@ static void grease_pencil_fill_status_indicators(bContext &C,
   const bool is_extend = (op_data.extension_mode == GP_FILL_EMODE_EXTEND);
 
   const std::string status_str = fmt::format(
-      IFACE_("Fill: ESC/RMB cancel, LMB Fill, MMB Adjust Extension, S: "
-             "Switch Mode, D: Stroke Collision | Mode: {}, Collision {}, Length: {:.3f}"),
+      fmt::runtime(
+          IFACE_("Fill: ESC/RMB cancel, LMB Fill, MMB Adjust Extension, S: "
+                 "Switch Mode, D: Stroke Collision | Mode: {}, Collision {}, Length: {:.3f}")),
       (is_extend) ? IFACE_("Extend") : IFACE_("Radius"),
       (is_extend && op_data.extension_cut) ? IFACE_("ON") : IFACE_("OFF"),
       op_data.extension_length);
@@ -1150,12 +1151,12 @@ static void grease_pencil_fill_update_overlay(const ARegion &region,
   if (needs_overlay) {
     if (op_data.overlay_cb_handle == nullptr) {
       op_data.overlay_cb_handle = ED_region_draw_cb_activate(
-          region.type, grease_pencil_fill_overlay_cb, &op_data, REGION_DRAW_POST_VIEW);
+          region.runtime->type, grease_pencil_fill_overlay_cb, &op_data, REGION_DRAW_POST_VIEW);
     }
   }
   else {
     if (op_data.overlay_cb_handle) {
-      ED_region_draw_cb_exit(region.type, op_data.overlay_cb_handle);
+      ED_region_draw_cb_exit(region.runtime->type, op_data.overlay_cb_handle);
       op_data.overlay_cb_handle = nullptr;
     }
   }
@@ -1400,6 +1401,19 @@ static bool grease_pencil_apply_fill(bContext &C, wmOperator &op, const wmEvent 
     }
 
     bke::CurvesGeometry &dst_curves = info.target.drawing.strokes_for_write();
+    /* If the `fill_strokes` function creates the "fill_opacity" attribute, make sure that we
+     * initialize this to full opacity on the target geometry. */
+    if (fill_curves.attributes().contains("fill_opacity") &&
+        !dst_curves.attributes().contains("fill_opacity"))
+    {
+      bke::SpanAttributeWriter<float> fill_opacities =
+          dst_curves.attributes_for_write().lookup_or_add_for_write_span<float>(
+              "fill_opacity",
+              bke::AttrDomain::Curve,
+              bke::AttributeInitVArray(VArray<float>::ForSingle(1.0f, dst_curves.curves_num())));
+      fill_opacities.finish();
+    }
+
     Curves *dst_curves_id = curves_new_nomain(dst_curves);
     Curves *fill_curves_id = curves_new_nomain(fill_curves);
     const Array<bke::GeometrySet> geometry_sets = {
@@ -1493,7 +1507,7 @@ static void grease_pencil_fill_exit(bContext &C, wmOperator &op)
     auto &op_data = *static_cast<GreasePencilFillOpData *>(op.customdata);
 
     if (op_data.overlay_cb_handle) {
-      ED_region_draw_cb_exit(region.type, op_data.overlay_cb_handle);
+      ED_region_draw_cb_exit(region.runtime->type, op_data.overlay_cb_handle);
       op_data.overlay_cb_handle = nullptr;
     }
 

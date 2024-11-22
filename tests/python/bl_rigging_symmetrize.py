@@ -324,6 +324,92 @@ class ArmatureSymmetrizeTargetsTest(unittest.TestCase):
         self.assertEqual(symm_constraint.subtarget, "invalid_subtarget")
 
 
+class ArmatureSymmetrizeCollectionAssignments(unittest.TestCase):
+    arm_ob: bpy.types.Object
+    arm: bpy.types.Armature
+
+    def setUp(self):
+        bpy.ops.wm.read_homefile(use_factory_startup=True)
+        self.arm_ob, self.arm = create_armature()
+        bpy.context.view_layer.objects.active = self.arm_ob
+        bpy.ops.object.mode_set(mode='EDIT')
+        ebone = self.arm.edit_bones.new(name="test.l")
+        ebone.tail = (1, 0, 0)
+
+        parent_coll = self.arm.collections.new("parent")
+        left_coll = self.arm.collections.new("collection.l", parent=parent_coll)
+        self.assertTrue(left_coll.assign(ebone))
+        self.assertEqual(len(ebone.collections), 1)
+
+    def test_symmetrize_to_existing_collection(self):
+        other_parent = self.arm.collections.new("other_parent")
+        right_coll = self.arm.collections.new("collection.r", parent=other_parent)
+
+        set_edit_bone_selected(self.arm.edit_bones["test.l"], True)
+        bpy.ops.armature.symmetrize()
+
+        right_bone = self.arm.edit_bones["test.r"]
+        self.assertEqual(len(right_bone.collections), 1)
+        self.assertEqual(right_bone.collections[0], right_coll)
+
+        # Parents should not be modified.
+        left_coll = self.arm.collections_all["collection.l"]
+        self.assertNotEqual(right_coll.parent, left_coll.parent)
+
+    def test_no_symmetrize(self):
+        # If the collection name cannot be flipped, nothing changes.
+        non_flip_collection = self.arm.collections.new("foobar")
+        left_bone = self.arm.edit_bones["test.l"]
+        self.arm.collections_all["collection.l"].unassign(left_bone)
+        self.assertTrue(non_flip_collection.assign(left_bone))
+
+        set_edit_bone_selected(left_bone, True)
+        bpy.ops.armature.symmetrize()
+
+        right_bone = self.arm.edit_bones["test.r"]
+        self.assertEqual(len(right_bone.collections), 1)
+        self.assertEqual(right_bone.collections[0], non_flip_collection)
+
+    def test_create_missing_collection(self):
+        set_edit_bone_selected(self.arm.edit_bones["test.l"], True)
+        self.assertFalse("collection.r" in self.arm.collections_all)
+        bpy.ops.armature.symmetrize()
+
+        # Missing collections are created.
+        self.assertTrue("collection.r" in self.arm.collections_all)
+        right_coll = self.arm.collections_all["collection.r"]
+        # When the collection is created, it is parented to the same collection as the source collection.
+        left_coll = self.arm.collections_all["collection.l"]
+        self.assertEqual(right_coll.parent, left_coll.parent)
+
+        right_bone = self.arm.edit_bones["test.r"]
+        self.assertEqual(len(right_bone.collections), 1)
+        self.assertEqual(right_bone.collections[0], right_coll)
+
+    def test_symmetrize_to_existing_bone(self):
+        right_bone = self.arm.edit_bones.new(name="test.r")
+        right_bone.tail = (1, 0, 0)
+        unique_right_coll = self.arm.collections.new("unique")
+        unique_right_coll.assign(right_bone)
+
+        set_edit_bone_selected(self.arm.edit_bones["test.l"], True)
+        bpy.ops.armature.symmetrize()
+
+        # Missing collection is created.
+        self.assertTrue("collection.r" in self.arm.collections_all)
+        self.assertEqual(len(right_bone.collections), 2)
+        self.assertTrue("collection.r" in right_bone.collections)
+        self.assertTrue("unique" in right_bone.collections,
+                        "Mirrored bone shouldn't have lost the unique collection assignment")
+
+        # Symmetrizing twice shouldn't double invert the collection assignments.
+        set_edit_bone_selected(self.arm.edit_bones["test.l"], True)
+        set_edit_bone_selected(right_bone, False)
+        bpy.ops.armature.symmetrize()
+        self.assertTrue("collection.r" in right_bone.collections)
+        self.assertTrue("collection.l" not in right_bone.collections)
+
+
 def main():
     global args
     import argparse

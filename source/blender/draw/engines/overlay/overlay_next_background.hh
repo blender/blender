@@ -70,11 +70,6 @@ class Background {
 
     bg_ps_.init();
     bg_ps_.framebuffer_set(&framebuffer_ref_);
-    /* Don't clear background for the node editor. The node editor draws the background and we
-     * need to mask out the image from the already drawn overlay color buffer. */
-    if (state.space_type != SPACE_NODE) {
-      bg_ps_.clear_color(float4(0.0f));
-    }
 
     if ((state.clipping_plane_count != 0) && (state.rv3d) && (state.rv3d->clipbb)) {
       bg_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA | DRW_STATE_CULL_BACK);

@@ -5,6 +5,7 @@
 set(INC
   .
   intern
+  intern/library_types
   ../blenkernel
 )
 
@@ -18,13 +19,13 @@ set(SRC
   intern/asset_catalog_path.cc
   intern/asset_catalog_tree.cc
   intern/asset_library.cc
-  intern/asset_library_all.cc
-  intern/asset_library_essentials.cc
-  intern/asset_library_from_preferences.cc
-  intern/asset_library_on_disk.cc
-  intern/asset_library_runtime.cc
   intern/asset_library_service.cc
   intern/asset_representation.cc
+  intern/library_types/all_library.cc
+  intern/library_types/essentials_library.cc
+  intern/library_types/preferences_on_disk_library.cc
+  intern/library_types/on_disk_library.cc
+  intern/library_types/runtime_library.cc
   intern/utils.cc
 
   AS_asset_catalog.hh
@@ -35,12 +36,12 @@ set(SRC
   AS_essentials_library.hh
   intern/asset_catalog_collection.hh
   intern/asset_catalog_definition_file.hh
-  intern/asset_library_all.hh
-  intern/asset_library_essentials.hh
-  intern/asset_library_from_preferences.hh
-  intern/asset_library_on_disk.hh
-  intern/asset_library_runtime.hh
   intern/asset_library_service.hh
+  intern/library_types/all_library.hh
+  intern/library_types/essentials_library.hh
+  intern/library_types/preferences_on_disk_library.hh
+  intern/library_types/on_disk_library.hh
+  intern/library_types/runtime_library.hh
   intern/utils.hh
 )
 

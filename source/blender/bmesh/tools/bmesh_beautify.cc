@@ -19,7 +19,6 @@
 
 #include "BLI_heap.h"
 #include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_polyfill_2d_beautify.h"
 
@@ -135,76 +134,6 @@ static void erot_state_alternate(const BMEdge *e, EdRotState *e_state)
 /* -------------------------------------------------------------------- */
 /* Calculate the improvement of rotating the edge */
 
-static float bm_edge_calc_rotate_beauty__area(const float v1[3],
-                                              const float v2[3],
-                                              const float v3[3],
-                                              const float v4[3],
-                                              const bool lock_degenerate)
-{
-  /* not a loop (only to be able to break out) */
-  do {
-    float v1_xy[2], v2_xy[2], v3_xy[2], v4_xy[2];
-
-    /* first get the 2d values */
-    {
-      const float eps = 1e-5;
-      float no_a[3], no_b[3];
-      float no[3];
-      float axis_mat[3][3];
-      float no_scale;
-      cross_tri_v3(no_a, v2, v3, v4);
-      cross_tri_v3(no_b, v2, v4, v1);
-
-      // printf("%p %p %p %p - %p %p\n", v1, v2, v3, v4, e->l->f, e->l->radial_next->f);
-      BLI_assert((ELEM(v1, v2, v3, v4) == false) && (ELEM(v2, v1, v3, v4) == false) &&
-                 (ELEM(v3, v1, v2, v4) == false) && (ELEM(v4, v1, v2, v3) == false));
-
-      add_v3_v3v3(no, no_a, no_b);
-      if (UNLIKELY((no_scale = normalize_v3(no)) == 0.0f)) {
-        break;
-      }
-
-      axis_dominant_v3_to_m3(axis_mat, no);
-      mul_v2_m3v3(v1_xy, axis_mat, v1);
-      mul_v2_m3v3(v2_xy, axis_mat, v2);
-      mul_v2_m3v3(v3_xy, axis_mat, v3);
-      mul_v2_m3v3(v4_xy, axis_mat, v4);
-
-      /**
-       * Check if input faces are already flipped.
-       * Logic for 'signum_i' addition is:
-       *
-       * Accept:
-       * - (1, 1) or (-1, -1): same side (common case).
-       * - (-1/1, 0): one degenerate, OK since we may rotate into a valid state.
-       *
-       * Ignore:
-       * - (-1, 1): opposite winding, ignore.
-       * - ( 0, 0): both degenerate, ignore.
-       *
-       * \note The cross product is divided by 'no_scale'
-       * so the rotation calculation is scale independent.
-       */
-      if (!(signum_i_ex(cross_tri_v2(v2_xy, v3_xy, v4_xy) / no_scale, eps) +
-            signum_i_ex(cross_tri_v2(v2_xy, v4_xy, v1_xy) / no_scale, eps)))
-      {
-        break;
-      }
-    }
-
-    /**
-     * Important to lock degenerate here,
-     * since the triangle pars will be projected into different 2D spaces.
-     * Allowing to rotate out of a degenerate state can flip the faces
-     * (when performed iteratively).
-     */
-    return BLI_polyfill_beautify_quad_rotate_calc_ex(
-        v1_xy, v2_xy, v3_xy, v4_xy, lock_degenerate, nullptr);
-  } while (false);
-
-  return FLT_MAX;
-}
-
 static float bm_edge_calc_rotate_beauty__angle(const float v1[3],
                                                const float v2[3],
                                                const float v3[3],
@@ -256,7 +185,7 @@ float BM_verts_calc_rotate_beauty(const BMVert *v1,
 
     switch (method) {
       case 0:
-        return bm_edge_calc_rotate_beauty__area(
+        return BLI_polyfill_edge_calc_rotate_beauty__area(
             v1->co, v2->co, v3->co, v4->co, flag & EDGE_RESTRICT_DEGENERATE);
       default:
         return bm_edge_calc_rotate_beauty__angle(v1->co, v2->co, v3->co, v4->co);

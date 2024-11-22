@@ -36,6 +36,7 @@ struct BakeMaterialsList;
 }
 
 namespace blender::bke {
+struct AttributeAccessorFunctions;
 
 namespace greasepencil {
 
@@ -881,6 +882,8 @@ inline LayerGroup &Layer::parent_group()
 }
 
 TREENODE_COMMON_METHODS_FORWARD_IMPL(LayerGroup);
+
+const AttributeAccessorFunctions &get_attribute_accessor_functions();
 
 }  // namespace greasepencil
 

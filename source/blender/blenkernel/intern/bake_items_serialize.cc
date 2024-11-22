@@ -1271,6 +1271,10 @@ static std::shared_ptr<io::serialize::Value> serialize_primitive_value(
       const int value = *static_cast<const int *>(value_ptr);
       return std::make_shared<io::serialize::IntValue>(value);
     }
+    case CD_PROP_INT16_2D: {
+      const int2 value = int2(*static_cast<const short2 *>(value_ptr));
+      return serialize_int_array({&value.x, 2});
+    }
     case CD_PROP_INT32_2D: {
       const int2 value = *static_cast<const int2 *>(value_ptr);
       return serialize_int_array({&value.x, 2});
@@ -1397,6 +1401,9 @@ template<typename T>
       }
       *static_cast<int *>(r_value) = *value;
       return true;
+    }
+    case CD_PROP_INT16_2D: {
+      return deserialize_int_array<int16_t>(io_value, {static_cast<int16_t *>(r_value), 2});
     }
     case CD_PROP_INT32_2D: {
       return deserialize_int_array<int>(io_value, {static_cast<int *>(r_value), 2});

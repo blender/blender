@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BKE_paint.hh"
 #include "DNA_volume_types.h"
 
 #include "draw_common.hh"
@@ -114,7 +115,8 @@ class Wireframe {
     }
 
     const bool all_edges = (ob_ref.object->dtx & OB_DRAW_ALL_EDGES) != 0;
-    const bool show_surface_wire = show_wire_ || (ob_ref.object->dtx & OB_DRAWWIRE);
+    const bool show_surface_wire = show_wire_ || (ob_ref.object->dtx & OB_DRAWWIRE) ||
+                                   (ob_ref.object->dt == OB_WIRE);
 
     ColoringPass &coloring = in_edit_paint_mode ? non_colored : colored;
     switch (ob_ref.object->type) {
@@ -150,9 +152,18 @@ class Wireframe {
       }
       case OB_MESH:
         if (show_surface_wire) {
-          gpu::Batch *geom = DRW_cache_mesh_face_wireframe_get(ob_ref.object);
-          (all_edges ? coloring.mesh_all_edges_ps_ : coloring.mesh_ps_)
-              ->draw(geom, manager.unique_handle(ob_ref), res.select_id(ob_ref).get());
+          if (BKE_sculptsession_use_pbvh_draw(ob_ref.object, state.rv3d)) {
+            ResourceHandle handle = manager.unique_handle(ob_ref);
+
+            for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, SCULPT_BATCH_WIREFRAME)) {
+              coloring.mesh_all_edges_ps_->draw(batch.batch, handle);
+            }
+          }
+          else {
+            gpu::Batch *geom = DRW_cache_mesh_face_wireframe_get(ob_ref.object);
+            (all_edges ? coloring.mesh_all_edges_ps_ : coloring.mesh_ps_)
+                ->draw(geom, manager.unique_handle(ob_ref), res.select_id(ob_ref).get());
+          }
         }
 
         /* Draw loose geometry. */
@@ -199,6 +210,15 @@ class Wireframe {
     }
   }
 
+  void pre_draw(Manager &manager, View &view)
+  {
+    if (!enabled_) {
+      return;
+    }
+
+    manager.generate_commands(wireframe_ps_, view);
+  }
+
   void draw(Framebuffer &framebuffer, Resources &res, Manager &manager, View &view)
   {
     if (!enabled_) {
@@ -216,7 +236,7 @@ class Wireframe {
     }
 
     GPU_framebuffer_bind(framebuffer);
-    manager.submit(wireframe_ps_, view);
+    manager.submit_only(wireframe_ps_, view);
 
     if (do_depth_copy_workaround_) {
       tmp_depth_tx_.release();

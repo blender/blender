@@ -113,7 +113,7 @@ bool delete_keyframe_fcurve_legacy(AnimData *adt, FCurve *fcu, float cfra)
 
   /* Empty curves get automatically deleted. */
   if (BKE_fcurve_is_empty(fcu)) {
-    animdata_fcurve_delete(nullptr, adt, fcu);
+    animdata_fcurve_delete(adt, fcu);
   }
 
   return true;

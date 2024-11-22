@@ -122,11 +122,11 @@ void BLO_write_struct_at_address_by_id_with_filecode(
  */
 void BLO_write_struct_array_by_name(BlendWriter *writer,
                                     const char *struct_name,
-                                    int array_size,
+                                    int64_t array_size,
                                     const void *data_ptr);
 void BLO_write_struct_array_by_id(BlendWriter *writer,
                                   int struct_id,
-                                  int array_size,
+                                  int64_t array_size,
                                   const void *data_ptr);
 #define BLO_write_struct_array(writer, struct_name, array_size, data_ptr) \
   BLO_write_struct_array_by_id( \
@@ -135,8 +135,11 @@ void BLO_write_struct_array_by_id(BlendWriter *writer,
 /**
  * Write struct array at address.
  */
-void BLO_write_struct_array_at_address_by_id(
-    BlendWriter *writer, int struct_id, int array_size, const void *address, const void *data_ptr);
+void BLO_write_struct_array_at_address_by_id(BlendWriter *writer,
+                                             int struct_id,
+                                             int64_t array_size,
+                                             const void *address,
+                                             const void *data_ptr);
 #define BLO_write_struct_array_at_address(writer, struct_name, array_size, address, data_ptr) \
   BLO_write_struct_array_at_address_by_id( \
       writer, BLO_get_struct_id(writer, struct_name), array_size, address, data_ptr)
@@ -189,15 +192,15 @@ void BLO_write_raw(BlendWriter *writer, size_t size_in_bytes, const void *data_p
 /**
  * Slightly 'safer' code to write arrays of basic types data.
  */
-void BLO_write_char_array(BlendWriter *writer, uint num, const char *data_ptr);
-void BLO_write_int8_array(BlendWriter *writer, uint num, const int8_t *data_ptr);
-void BLO_write_uint8_array(BlendWriter *writer, uint num, const uint8_t *data_ptr);
-void BLO_write_int32_array(BlendWriter *writer, uint num, const int32_t *data_ptr);
-void BLO_write_uint32_array(BlendWriter *writer, uint num, const uint32_t *data_ptr);
-void BLO_write_float_array(BlendWriter *writer, uint num, const float *data_ptr);
-void BLO_write_double_array(BlendWriter *writer, uint num, const double *data_ptr);
-void BLO_write_float3_array(BlendWriter *writer, uint num, const float *data_ptr);
-void BLO_write_pointer_array(BlendWriter *writer, uint num, const void *data_ptr);
+void BLO_write_char_array(BlendWriter *writer, int64_t num, const char *data_ptr);
+void BLO_write_int8_array(BlendWriter *writer, int64_t num, const int8_t *data_ptr);
+void BLO_write_uint8_array(BlendWriter *writer, int64_t num, const uint8_t *data_ptr);
+void BLO_write_int32_array(BlendWriter *writer, int64_t num, const int32_t *data_ptr);
+void BLO_write_uint32_array(BlendWriter *writer, int64_t num, const uint32_t *data_ptr);
+void BLO_write_float_array(BlendWriter *writer, int64_t num, const float *data_ptr);
+void BLO_write_double_array(BlendWriter *writer, int64_t num, const double *data_ptr);
+void BLO_write_float3_array(BlendWriter *writer, int64_t num, const float *data_ptr);
+void BLO_write_pointer_array(BlendWriter *writer, int64_t num, const void *data_ptr);
 /**
  * Write a null terminated string.
  */
@@ -299,7 +302,7 @@ void *BLO_read_struct_array_with_size(BlendDataReader *reader,
  */
 void *BLO_read_struct_by_name_array(BlendDataReader *reader,
                                     const char *struct_name,
-                                    uint32_t items_num,
+                                    int64_t items_num,
                                     const void *old_address);
 
 /* Read all elements in list
@@ -316,15 +319,15 @@ void BLO_read_struct_list_with_size(BlendDataReader *reader,
 
 /* Update data pointers and correct byte-order if necessary. */
 
-void BLO_read_char_array(BlendDataReader *reader, int array_size, char **ptr_p);
-void BLO_read_int8_array(BlendDataReader *reader, int array_size, int8_t **ptr_p);
-void BLO_read_uint8_array(BlendDataReader *reader, int array_size, uint8_t **ptr_p);
-void BLO_read_int32_array(BlendDataReader *reader, int array_size, int32_t **ptr_p);
-void BLO_read_uint32_array(BlendDataReader *reader, int array_size, uint32_t **ptr_p);
-void BLO_read_float_array(BlendDataReader *reader, int array_size, float **ptr_p);
-void BLO_read_float3_array(BlendDataReader *reader, int array_size, float **ptr_p);
-void BLO_read_double_array(BlendDataReader *reader, int array_size, double **ptr_p);
-void BLO_read_pointer_array(BlendDataReader *reader, int array_size, void **ptr_p);
+void BLO_read_char_array(BlendDataReader *reader, int64_t array_size, char **ptr_p);
+void BLO_read_int8_array(BlendDataReader *reader, int64_t array_size, int8_t **ptr_p);
+void BLO_read_uint8_array(BlendDataReader *reader, int64_t array_size, uint8_t **ptr_p);
+void BLO_read_int32_array(BlendDataReader *reader, int64_t array_size, int32_t **ptr_p);
+void BLO_read_uint32_array(BlendDataReader *reader, int64_t array_size, uint32_t **ptr_p);
+void BLO_read_float_array(BlendDataReader *reader, int64_t array_size, float **ptr_p);
+void BLO_read_float3_array(BlendDataReader *reader, int64_t array_size, float **ptr_p);
+void BLO_read_double_array(BlendDataReader *reader, int64_t array_size, double **ptr_p);
+void BLO_read_pointer_array(BlendDataReader *reader, int64_t array_size, void **ptr_p);
 
 /* Read null terminated string. */
 

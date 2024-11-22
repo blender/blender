@@ -666,7 +666,6 @@ static void object_blend_write(BlendWriter *writer, ID *id, const void *id_addre
 
   BKE_particle_system_blend_write(writer, &ob->particlesystem);
   BKE_modifier_blend_write(writer, &ob->id, &ob->modifiers);
-  BKE_gpencil_modifier_blend_write(writer, &ob->greasepencil_modifiers);
   BKE_shaderfx_blend_write(writer, &ob->shader_fx);
 
   BLO_write_struct_list(writer, LinkData, &ob->pc_ids);
@@ -4189,10 +4188,6 @@ const Mesh *BKE_object_get_editmesh_eval_cage(const Object *object)
 {
   BLI_assert(!DEG_is_original_id(&object->id));
   BLI_assert(object->type == OB_MESH);
-
-  const Mesh *mesh = static_cast<const Mesh *>(object->data);
-  BLI_assert(mesh->runtime->edit_mesh != nullptr);
-  UNUSED_VARS_NDEBUG(mesh);
 
   return object->runtime->editmesh_eval_cage;
 }

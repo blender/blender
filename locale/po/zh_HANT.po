@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'1c8669f8c9c1')\n"
+"Project-Id-Version: Blender 4.3.0 Release Candidate (b'7dfe47164a63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-11 09:42+0000\n"
+"POT-Creation-Date: 2024-11-18 11:20+0000\n"
 "PO-Revision-Date: 2024-03-05 22:56+0000\n"
 "Last-Translator: 居樂行 <oscilloscope9705@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -20889,12 +20889,44 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
-msgid "Select Similar"
-msgstr "選取相似者"
+msgid "Mirror"
+msgstr "鏡像"
+
+
+msgid "Snap"
+msgstr "吸附"
+
+
+msgid "UV Mapping"
+msgstr "UV 映射處理"
+
+
+msgid "Local View"
+msgstr "區域視圖"
+
+
+msgid "Viewpoint"
+msgstr "視點"
+
+
+msgid "Navigation"
+msgstr "導覽"
+
+
+msgid "Align View"
+msgstr "對齊視圖"
+
+
+msgid "Align View to Active"
+msgstr "對齊視圖至作用項"
 
 
 msgid "Select More/Less"
 msgstr "較多/較少選取"
+
+
+msgid "Select Similar"
+msgstr "選取相似者"
 
 
 msgid "Select Linked"
@@ -20997,10 +21029,6 @@ msgid "Pivot Point"
 msgstr "樞紐點"
 
 
-msgid "Snap"
-msgstr "吸附"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "比例化編輯衰落"
 
@@ -21011,34 +21039,6 @@ msgstr "自動遮罩"
 
 msgid "Face Sets Edit"
 msgstr "面集編輯"
-
-
-msgid "Mirror"
-msgstr "鏡像"
-
-
-msgid "UV Mapping"
-msgstr "UV 映射處理"
-
-
-msgid "Local View"
-msgstr "區域視圖"
-
-
-msgid "Viewpoint"
-msgstr "視點"
-
-
-msgid "Navigation"
-msgstr "導覽"
-
-
-msgid "Align View"
-msgstr "對齊視圖"
-
-
-msgid "Align View to Active"
-msgstr "對齊視圖至作用項"
 
 
 msgid "Basic"
@@ -44588,6 +44588,14 @@ msgid "Palette Color"
 msgstr "色版色彩"
 
 
+msgid "Transform Orientations"
+msgstr "變換方向"
+
+
+msgid "Stroke Placement"
+msgstr "筆觸放置"
+
+
 msgid "Stereoscopy"
 msgstr "立體視覺"
 
@@ -44622,14 +44630,6 @@ msgstr "疊層"
 
 msgid "Motion Tracking"
 msgstr "運動跟蹤"
-
-
-msgid "Transform Orientations"
-msgstr "變換方向"
-
-
-msgid "Stroke Placement"
-msgstr "筆觸放置"
 
 
 msgid "Chain Scaling"

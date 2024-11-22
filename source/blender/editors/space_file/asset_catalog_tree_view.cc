@@ -406,8 +406,9 @@ std::string AssetCatalogDropTarget::drop_tooltip_asset_catalog(const wmDrag &dra
   BLI_assert(drag.type == WM_DRAG_ASSET_CATALOG);
   const AssetCatalog *src_catalog = this->get_drag_catalog(drag, get_asset_library());
 
-  return fmt::format(
-      TIP_("Move catalog {} into {}"), src_catalog->path.name(), catalog_item_.get_name());
+  return fmt::format(fmt::runtime(TIP_("Move catalog {} into {}")),
+                     src_catalog->path.name(),
+                     catalog_item_.get_name());
 }
 
 std::string AssetCatalogDropTarget::drop_tooltip_asset_list(const wmDrag &drag) const
@@ -625,7 +626,7 @@ std::string AssetCatalogTreeViewAllItem::DropTarget::drop_tooltip(
   const AssetCatalog *drag_catalog = AssetCatalogDropTarget::get_drag_catalog(
       drag_info.drag_data, *this->get_view<AssetCatalogTreeView>().asset_library_);
 
-  return fmt::format(TIP_("Move catalog {} to the top level of the tree"),
+  return fmt::format(fmt::runtime(TIP_("Move catalog {} to the top level of the tree")),
                      drag_catalog->path.name());
 }
 
@@ -754,7 +755,8 @@ bool file_is_asset_visible_in_catalog_filter_settings(
 
 /* ---------------------------------------------------------------------- */
 
-void file_create_asset_catalog_tree_view_in_layout(asset_system::AssetLibrary *asset_library,
+void file_create_asset_catalog_tree_view_in_layout(const bContext *C,
+                                                   asset_system::AssetLibrary *asset_library,
                                                    uiLayout *layout,
                                                    SpaceFile *space_file,
                                                    FileAssetSelectParams *params)
@@ -769,7 +771,7 @@ void file_create_asset_catalog_tree_view_in_layout(asset_system::AssetLibrary *a
       std::make_unique<ed::asset_browser::AssetCatalogTreeView>(
           asset_library, params, *space_file));
   tree_view->set_context_menu_title("Catalog");
-  ui::TreeViewBuilder::build_tree_view(*tree_view, *layout);
+  ui::TreeViewBuilder::build_tree_view(*C, *tree_view, *layout);
 }
 
 }  // namespace blender::ed::asset_browser

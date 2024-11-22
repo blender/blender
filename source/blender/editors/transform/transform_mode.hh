@@ -151,10 +151,6 @@ void transform_mode_edge_slide_reproject_input(TransInfo *t);
 
 extern TransModeInfo TransMode_gpopacity;
 
-/* `transform_mode_gpshrinkfatten.cc` */
-
-extern TransModeInfo TransMode_gpshrinkfatten;
-
 /* `transform_mode_maskshrinkfatten.cc` */
 
 extern TransModeInfo TransMode_maskshrinkfatten;

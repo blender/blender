@@ -112,7 +112,17 @@ void VKDescriptorSetTracker::bind_texture_resource(const VKDevice &device,
     }
     case BindSpaceTextures::Type::Texture: {
       VKTexture *texture = static_cast<VKTexture *>(elem.resource);
-      if (texture->type_ != GPU_TEXTURE_BUFFER) {
+      if (texture->type_ == GPU_TEXTURE_BUFFER) {
+        /* Texture buffers are no textures, but wrap around vertex buffers and need to be
+         * bound as texel buffers. */
+        /* TODO: Investigate if this can be improved in the API. */
+        VKVertexBuffer *vertex_buffer = texture->source_buffer_;
+        vertex_buffer->ensure_updated();
+        vertex_buffer->ensure_buffer_view();
+        bind_texel_buffer(vertex_buffer->vk_buffer_view_get(), resource_binding.location);
+        access_info.buffers.append({vertex_buffer->vk_handle(), resource_binding.access_mask});
+      }
+      else {
         const VKSampler &sampler = device.samplers().get(elem.sampler);
         bind_image(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                    sampler.vk_handle(),
@@ -125,21 +135,48 @@ void VKDescriptorSetTracker::bind_texture_resource(const VKDevice &device,
                                    0,
                                    VK_REMAINING_ARRAY_LAYERS});
       }
-      else {
-        /* Texture buffers are no textures, but wrap around vertex buffers and need to be
-         * bound as texel buffers. */
-        /* TODO: Investigate if this can be improved in the API. */
-        VKVertexBuffer *vertex_buffer = texture->source_buffer_;
-        vertex_buffer->ensure_updated();
-        vertex_buffer->ensure_buffer_view();
-        bind_texel_buffer(vertex_buffer->vk_buffer_view_get(), resource_binding.location);
-        access_info.buffers.append({vertex_buffer->vk_handle(), resource_binding.access_mask});
-      }
       break;
     }
     case BindSpaceTextures::Type::Unused: {
       BLI_assert_unreachable();
     }
+  }
+}
+
+void VKDescriptorSetTracker::bind_input_attachment_resource(
+    const VKDevice &device,
+    const VKStateManager &state_manager,
+    const VKResourceBinding &resource_binding,
+    render_graph::VKResourceAccessInfo &access_info)
+{
+  const BindSpaceTextures::Elem &elem = state_manager.textures_.get(resource_binding.binding);
+  VKTexture *texture = static_cast<VKTexture *>(elem.resource);
+  BLI_assert(elem.resource_type == BindSpaceTextures::Type::Texture);
+
+  if (!device.workarounds_get().dynamic_rendering) {
+    const VKSampler &sampler = device.samplers().get(elem.sampler);
+    bind_image(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+               sampler.vk_handle(),
+               texture->image_view_get(resource_binding.arrayed).vk_handle(),
+               VK_IMAGE_LAYOUT_GENERAL,
+               resource_binding.location);
+    access_info.images.append({texture->vk_image_handle(),
+                               resource_binding.access_mask,
+                               to_vk_image_aspect_flag_bits(texture->device_format_get()),
+                               0,
+                               VK_REMAINING_ARRAY_LAYERS});
+  }
+  else {
+    bind_image(VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
+               VK_NULL_HANDLE,
+               texture->image_view_get(resource_binding.arrayed).vk_handle(),
+               VK_IMAGE_LAYOUT_GENERAL,
+               resource_binding.location);
+    access_info.images.append({texture->vk_image_handle(),
+                               resource_binding.access_mask,
+                               to_vk_image_aspect_flag_bits(texture->device_format_get()),
+                               0,
+                               VK_REMAINING_ARRAY_LAYERS});
   }
 }
 
@@ -234,20 +271,24 @@ void VKDescriptorSetTracker::bind_shader_resources(const VKDevice &device,
     }
 
     switch (resource_binding.bind_type) {
-      case shader::ShaderCreateInfo::Resource::BindType::IMAGE:
-        bind_image_resource(state_manager, resource_binding, access_info);
+      case VKBindType::UNIFORM_BUFFER:
+        bind_uniform_buffer_resource(state_manager, resource_binding, access_info);
         break;
 
-      case shader::ShaderCreateInfo::Resource::BindType::SAMPLER:
-        bind_texture_resource(device, state_manager, resource_binding, access_info);
-        break;
-
-      case shader::ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER:
+      case VKBindType::STORAGE_BUFFER:
         bind_storage_buffer_resource(state_manager, resource_binding, access_info);
         break;
 
-      case shader::ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER:
-        bind_uniform_buffer_resource(state_manager, resource_binding, access_info);
+      case VKBindType::SAMPLER:
+        bind_texture_resource(device, state_manager, resource_binding, access_info);
+        break;
+
+      case VKBindType::IMAGE:
+        bind_image_resource(state_manager, resource_binding, access_info);
+        break;
+
+      case VKBindType::INPUT_ATTACHMENT:
+        bind_input_attachment_resource(device, state_manager, resource_binding, access_info);
         break;
     }
   }
@@ -296,6 +337,7 @@ void VKDescriptorSetTracker::upload_descriptor_sets()
     switch (vk_write_descriptor_set.descriptorType) {
       case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
       case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+      case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:
         vk_write_descriptor_set.pImageInfo = &vk_descriptor_image_infos_[image_index++];
         break;
 

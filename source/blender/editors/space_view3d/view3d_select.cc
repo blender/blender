@@ -469,7 +469,7 @@ static bool view3d_selectable_data(bContext *C)
       return BKE_paint_select_elem_test(ob);
     }
     if (ob->mode & OB_MODE_WEIGHT_PAINT) {
-      return BKE_paint_select_elem_test(ob) && BKE_object_pose_armature_get_with_wpaint_check(ob);
+      return BKE_paint_select_elem_test(ob) || BKE_object_pose_armature_get_with_wpaint_check(ob);
     }
   }
 

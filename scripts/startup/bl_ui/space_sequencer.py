@@ -1682,48 +1682,89 @@ class SEQUENCER_PT_effect_text_style(SequencerButtonsPanel, Panel):
         col.prop(strip, "font_size")
         col.prop(strip, "color")
 
-        row = layout.row(align=True, heading="Shadow")
-        row.use_property_decorate = False
-        sub = row.row(align=True)
-        sub.prop(strip, "use_shadow", text="")
-        subsub = sub.row(align=True)
-        subsub.active = strip.use_shadow and (not strip.mute)
-        subsub.prop(strip, "shadow_color", text="")
-        row.prop_decorator(strip, "shadow_color")
+
+class SEQUENCER_PT_effect_text_outline(SequencerButtonsPanel, Panel):
+    bl_label = "Outline"
+    bl_options = {"DEFAULT_CLOSED"}
+    bl_category = "Strip"
+    bl_parent_id = "SEQUENCER_PT_effect_text_style"
+
+    @classmethod
+    def poll(cls, context):
+        strip = context.active_sequence_strip
+        return strip.type == "TEXT"
+
+    def draw_header(self, context):
+        strip = context.active_sequence_strip
+        layout = self.layout
+        layout.prop(strip, "use_outline", text="")
+
+    def draw(self, context):
+        strip = context.active_sequence_strip
+        layout = self.layout
+        layout.use_property_split = True
 
         col = layout.column()
-        col.prop(strip, "shadow_angle")
-        col.prop(strip, "shadow_offset")
-        col.prop(strip, "shadow_blur")
+        col.prop(strip, "outline_color", text="Color")
+        col.prop(strip, "outline_width", text="Width")
+        col.active = strip.use_outline and (not strip.mute)
+
+
+class SEQUENCER_PT_effect_text_shadow(SequencerButtonsPanel, Panel):
+    bl_label = "Shadow"
+    bl_options = {"DEFAULT_CLOSED"}
+    bl_category = "Strip"
+    bl_parent_id = "SEQUENCER_PT_effect_text_style"
+
+    @classmethod
+    def poll(cls, context):
+        strip = context.active_sequence_strip
+        return strip.type == "TEXT"
+
+    def draw_header(self, context):
+        strip = context.active_sequence_strip
+        layout = self.layout
+        layout.prop(strip, "use_shadow", text="")
+
+    def draw(self, context):
+        strip = context.active_sequence_strip
+        layout = self.layout
+        layout.use_property_split = True
+
+        col = layout.column()
+        col.prop(strip, "shadow_color", text="Color")
+        col.prop(strip, "shadow_angle", text="Angle")
+        col.prop(strip, "shadow_offset", text="Offset")
+        col.prop(strip, "shadow_blur", text="Blur")
         col.active = strip.use_shadow and (not strip.mute)
 
-        row = layout.row(align=True, heading="Outline")
-        row.use_property_decorate = False
-        sub = row.row(align=True)
-        sub.prop(strip, "use_outline", text="")
-        subsub = sub.row(align=True)
-        subsub.active = strip.use_outline and (not strip.mute)
-        subsub.prop(strip, "outline_color", text="")
-        row.prop_decorator(strip, "outline_color")
 
-        row = layout.row(align=True, heading="Outline Width")
-        sub = row.row(align=True)
-        sub.prop(strip, "outline_width")
-        sub.active = strip.use_outline and (not strip.mute)
+class SEQUENCER_PT_effect_text_box(SequencerButtonsPanel, Panel):
+    bl_label = "Box"
+    bl_options = {"DEFAULT_CLOSED"}
+    bl_category = "Strip"
+    bl_parent_id = "SEQUENCER_PT_effect_text_style"
 
-        row = layout.row(align=True, heading="Box", heading_ctxt=i18n_contexts.id_sequence)
-        row.use_property_decorate = False
-        sub = row.row(align=True)
-        sub.prop(strip, "use_box", text="")
-        subsub = sub.row(align=True)
-        subsub.active = strip.use_box and (not strip.mute)
-        subsub.prop(strip, "box_color", text="")
-        row.prop_decorator(strip, "box_color")
+    @classmethod
+    def poll(cls, context):
+        strip = context.active_sequence_strip
+        return strip.type == "TEXT"
 
-        row = layout.row(align=True, heading="Box Margin")
-        sub = row.row(align=True)
-        sub.prop(strip, "box_margin")
-        sub.active = strip.use_box and (not strip.mute)
+    def draw_header(self, context):
+        strip = context.active_sequence_strip
+        layout = self.layout
+        layout.prop(strip, "use_box", text="")
+
+    def draw(self, context):
+        strip = context.active_sequence_strip
+        layout = self.layout
+        layout.use_property_split = True
+
+        col = layout.column()
+        col.prop(strip, "box_color", text="Color")
+        col.prop(strip, "box_margin", text="Margin")
+        col.prop(strip, "box_roundness", text="Roundness")
+        col.active = strip.use_box and (not strip.mute)
 
 
 class SEQUENCER_PT_source(SequencerButtonsPanel, Panel):
@@ -3017,6 +3058,9 @@ classes = (
     SEQUENCER_PT_scene_sound,
     SEQUENCER_PT_mask,
     SEQUENCER_PT_effect_text_style,
+    SEQUENCER_PT_effect_text_outline,
+    SEQUENCER_PT_effect_text_shadow,
+    SEQUENCER_PT_effect_text_box,
     SEQUENCER_PT_effect_text_layout,
     SEQUENCER_PT_movie_clip,
 

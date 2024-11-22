@@ -14,7 +14,7 @@
 
 namespace blender::nodes::materialx {
 
-static const std::string TEXCOORD_NODE_NAME = "node_texcoord";
+constexpr StringRef TEXCOORD_NODE_NAME = "node_texcoord";
 
 CLG_LOGREF_DECLARE_GLOBAL(LOG_MATERIALX_SHADER, "materialx.shader");
 

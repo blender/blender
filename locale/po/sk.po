@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Beta (b'1c8669f8c9c1')\n"
+"Project-Id-Version: Blender 4.3.0 Release Candidate (b'7dfe47164a63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-11 09:42+0000\n"
-"PO-Revision-Date: 2024-11-05 06:59+0000\n"
+"POT-Creation-Date: 2024-11-18 11:20+0000\n"
+"PO-Revision-Date: 2024-11-12 07:56+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
 "Language: sk\n"
@@ -33774,16 +33774,52 @@ msgid "Editor menu containing buttons"
 msgstr "Ponuka editora obsahujúca tlačidlá"
 
 
+msgid "Mirror"
+msgstr "Zrkadlo"
+
+
+msgid "Snap"
+msgstr "Prichytiť"
+
+
+msgid "UV Mapping"
+msgstr "UV mapovanie"
+
+
+msgid "Local View"
+msgstr "Lokálny pohľad"
+
+
+msgid "Viewpoint"
+msgstr "Smer záberu"
+
+
+msgid "Navigation"
+msgstr "Navigácia"
+
+
+msgid "Align View"
+msgstr "Zarovnať pohľad"
+
+
+msgid "Align View to Active"
+msgstr "Zarovnať pohľad na aktívne"
+
+
+msgid "View Regions"
+msgstr "Oblasti pohľadu"
+
+
+msgid "Select More/Less"
+msgstr "Vybrať viac/menej"
+
+
 msgid "Select Similar"
 msgstr "Vybrať podobné"
 
 
 msgid "Select All by Trait"
 msgstr "Vybrať všetko podľa črty"
-
-
-msgid "Select More/Less"
-msgstr "Vybrať viac/menej"
 
 
 msgid "Select Linked"
@@ -33938,10 +33974,6 @@ msgid "Pivot Point"
 msgstr "Otočný bod"
 
 
-msgid "Snap"
-msgstr "Prichytiť"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "Dopad proporcionálnej úpravy"
 
@@ -33956,38 +33988,6 @@ msgstr "Automatické maskovanie"
 
 msgid "Face Sets Edit"
 msgstr "Úprava nastavenia plôšok"
-
-
-msgid "Mirror"
-msgstr "Zrkadlo"
-
-
-msgid "UV Mapping"
-msgstr "UV mapovanie"
-
-
-msgid "Local View"
-msgstr "Lokálny pohľad"
-
-
-msgid "Viewpoint"
-msgstr "Smer záberu"
-
-
-msgid "Navigation"
-msgstr "Navigácia"
-
-
-msgid "Align View"
-msgstr "Zarovnať pohľad"
-
-
-msgid "Align View to Active"
-msgstr "Zarovnať pohľad na aktívne"
-
-
-msgid "View Regions"
-msgstr "Oblasti pohľadu"
 
 
 msgid "Keyframe Insert Pie"
@@ -70494,6 +70494,10 @@ msgid "Clear Constraints"
 msgstr "Odstrániť u"
 
 
+msgid "Remove all constraints from keyed object/bones. To get a correct bake with this setting Visual Keying should be enabled"
+msgstr "Odstráni všetky obmedzenia z kľúčovaného objektu/kostí. Ak chcete získať správne zapečenie s týmto nastavením, Vizuálne kľúčovanie by malo byť zapnuté"
+
+
 msgid "Clear Parents"
 msgstr "Vymazať rodičov"
 
@@ -82019,6 +82023,10 @@ msgid "Select the strips and their handles"
 msgstr "Vyberie pásy a ich manipulátory"
 
 
+msgid "Make box select pass through to sequence slide when the cursor is hovering on a strip"
+msgstr "Zabezpečí, aby výber poľa prechádzal do snímky sekvencie, keď kurzor visí na páse"
+
+
 msgid "Select all strips grouped by various properties"
 msgstr "Vyberie všetky pásy zoskupené podľa rôznych vlastností"
 
@@ -89777,6 +89785,38 @@ msgid "Panel containing UI elements"
 msgstr "Panel obsahujúci prvky užívateľského rozhrania"
 
 
+msgid "Measurement"
+msgstr "Miera"
+
+
+msgid "Curve Edit Mode"
+msgstr "Režim editácie krivky"
+
+
+msgid "Snapping"
+msgstr "Prichytenie"
+
+
+msgid "Transform Orientations"
+msgstr "Orientácia transformácie"
+
+
+msgid "Stroke Placement"
+msgstr "Umiestnenie ťahu"
+
+
+msgid "Drawing Plane"
+msgstr "Rovina kreslenia"
+
+
+msgid "glTF Variants"
+msgstr "glTF varianty"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF varianty materiálu"
+
+
 msgid "Guides"
 msgstr "Vodenie"
 
@@ -89801,12 +89841,12 @@ msgid "Multi Frame"
 msgstr "Viacsnímkové"
 
 
-msgid "glTF Variants"
-msgstr "glTF varianty"
+msgid "glTF"
+msgstr "glTF"
 
 
-msgid "glTF Material Variants"
-msgstr "glTF varianty materiálu"
+msgid "glTF Animations"
+msgstr "glTF animácie"
 
 
 msgid "Auto-Masking"
@@ -89827,14 +89867,6 @@ msgstr "Zmena mierky Zúžiť/Rozšíriť krivku"
 
 msgid "Viewport Debug"
 msgstr "Ladenie záberu"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTF animácie"
 
 
 msgid "VR"
@@ -89891,30 +89923,6 @@ msgstr "Snímanie pohybu"
 
 msgid "Mesh Edit Mode"
 msgstr "Režim editácie povrchovej siete"
-
-
-msgid "Measurement"
-msgstr "Miera"
-
-
-msgid "Curve Edit Mode"
-msgstr "Režim editácie krivky"
-
-
-msgid "Snapping"
-msgstr "Prichytenie"
-
-
-msgid "Transform Orientations"
-msgstr "Orientácia transformácie"
-
-
-msgid "Stroke Placement"
-msgstr "Umiestnenie ťahu"
-
-
-msgid "Drawing Plane"
-msgstr "Rovina kreslenia"
 
 
 msgid "Chain Scaling"
@@ -126259,6 +126267,18 @@ msgid "Total files %d | Changed %d | Failed %d"
 msgstr "Celkovo súborov %d | zmenených %d | zlyhaných %d"
 
 
+msgid "Path '%s' not found, from linked data-block '%s' (from library '%s')"
+msgstr "Cesta '%s' nebola nájdená z prepojeného bloku údajov '%s' (z knižnice '%s')"
+
+
+msgid "Path '%s' not found, from local data-block '%s'"
+msgstr "Cesta '%s' nebola nájdená, z lokálneho bloku údajov '%s'"
+
+
+msgid "Path '%s' not found (no known owner data-block)"
+msgstr "Cesta '%s' nebola nájdená (nie je známy vlastník bloku údajov)"
+
+
 msgid "No missing files"
 msgstr "Žiadne chýbajúce súbory"
 
@@ -127475,6 +127495,14 @@ msgid "Failed to read blend file '%s': %s"
 msgstr "Nepodarilo sa načítať blend súbor '%s': %s"
 
 
+msgid "Cannot read blend file '%s', incomplete header, may be from a newer version of Blender"
+msgstr "Nemožno načítať súbor blend '%s', neúplná hlavička, môže byť z novšej verzie Blenderu"
+
+
+msgid "Failed to read file '%s', not a blend file"
+msgstr "Nepodarilo sa načítať súbor '%s', bez blend súboru"
+
+
 msgid "Unable to read '%s': %s"
 msgstr "Nemožno načítať '%s': %s"
 
@@ -127675,6 +127703,10 @@ msgid "Error: Too many lights in the scene."
 msgstr "Chyba: Príliš veľa svetiel v scéne."
 
 
+msgid "Warning: Could not allocate light probes volume pool of {} MB, using {} MB instead."
+msgstr "Upozornenie: Nepodarilo sa prideliť nádrž objemu snímačov svetla {} MB, s použitím {} MB."
+
+
 msgid "Irradiance Atlas texture could not be created"
 msgstr "Vyžarovanie textúry Atlasu nemohlo byť vytvorené"
 
@@ -127733,6 +127765,10 @@ msgstr "Chyba: Príliš veľa aktualizácií tieňov, niektoré tiene môžu by�
 
 msgid "Error: Reached max shadow updates."
 msgstr "Chyba: Dosiahnuté maximálne aktualizácie tieňa."
+
+
+msgid "Warning: Volume rendering data could not be allocated. Now using a resolution of 1:{} instead of 1:{}."
+msgstr "Upozornenie: Údaje prekresľovania objemov sa nepodarilo alokovať. Teraz sa používa rozlíšenie 1:{} namiesto 1:{}."
 
 
 msgid "GpencilMode"
@@ -129052,6 +129088,10 @@ msgstr "Zapečené ťahy sú odstránené"
 
 msgid "No active object, or active object isn't a Grease Pencil object"
 msgstr "Žiadny aktívny objekt, alebo aktívny objekt nie je objektom Grease Pencil"
+
+
+msgid "{}: confirm, {}: cancel, {}: panning, Shift: align"
+msgstr "{}: potvrdiť, {}: zrušiť, {}: posúvať, Shift: zarovnať"
 
 
 msgid ", {}/{}: adjust subdivisions: {}"

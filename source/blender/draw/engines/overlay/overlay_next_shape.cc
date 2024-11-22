@@ -965,7 +965,7 @@ ShapeCache::ShapeCache()
   /* camera tria */
   {
     const Vector<float2> triangle = {{-1.0f, 1.0f}, {1.0f, 1.0f}, {0.0f, 0.0f}};
-    Vector<Vertex> verts(2 * 3);
+    Vector<Vertex> verts;
     /* Wire */
     append_line_loop(verts, triangle, 1.0f, VCLASS_CAMERA_FRAME);
     camera_tria_wire = BatchPtr(
@@ -996,7 +996,7 @@ ShapeCache::ShapeCache()
   }
   /* camera volume wire */
   {
-    Vector<Vertex> verts(bone_box_wire_lines.size());
+    Vector<Vertex> verts;
     for (int i : bone_box_wire_lines) {
       const float x = bone_box_verts[i][2];
       const float y = bone_box_verts[i][0];

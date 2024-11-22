@@ -219,8 +219,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
   ob->transflag &= ~OB_NEG_SCALE;
   ob->transflag |= (object_eval->transflag & OB_NEG_SCALE);
 
-  td->ob = ob;
-
+  td->extra = ob;
   td->loc = ob->loc;
   copy_v3_v3(td->iloc, td->loc);
 
@@ -604,7 +603,7 @@ static void createTransObject(bContext *C, TransInfo *t)
     td = tc->data;
     for (int i = 0; i < tc->data_len; i++, td++) {
       if ((td->flag & TD_SKIP) == 0) {
-        BLI_gset_add(objects_in_transdata, td->ob);
+        BLI_gset_add(objects_in_transdata, td->extra);
       }
     }
 
@@ -656,7 +655,7 @@ static void createTransObject(bContext *C, TransInfo *t)
     td = tc->data;
     for (int i = 0; i < tc->data_len; i++, td++) {
       if ((td->flag & TD_SKIP) == 0) {
-        BLI_gset_add(objects_in_transdata, td->ob);
+        BLI_gset_add(objects_in_transdata, td->extra);
       }
     }
 
@@ -851,7 +850,7 @@ static void recalcData_objects(TransInfo *t)
     TransData *td = tc->data;
 
     for (int i = 0; i < tc->data_len; i++, td++) {
-      Object *ob = td->ob;
+      Object *ob = static_cast<Object *>(td->extra);
       if (td->flag & TD_SKIP) {
         continue;
       }
@@ -908,18 +907,13 @@ static void special_aftertrans_update__object(bContext *C, TransInfo *t)
   bool motionpath_update = false;
 
   if (blender::animrig::is_autokey_on(t->scene) && !canceled) {
-    blender::Vector<Object *> objects;
-    for (int i = 0; i < tc->data_len; i++) {
-      const TransData *td = &tc->data[i];
-      objects.append(td->ob);
-    }
     ANIM_deselect_keys_in_animation_editors(C);
   }
 
   for (int i = 0; i < tc->data_len; i++) {
     TransData *td = tc->data + i;
     ListBase pidlist;
-    ob = td->ob;
+    ob = static_cast<Object *>(td->extra);
 
     if (td->flag & TD_SKIP) {
       continue;

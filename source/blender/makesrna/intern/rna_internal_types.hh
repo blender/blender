@@ -127,7 +127,7 @@ using PropEnumSetFuncEx = void (*)(PointerRNA *ptr, PropertyRNA *prop, int value
 
 /** Structure storing all needed data to process all three kinds of RNA properties. */
 struct PropertyRNAOrID {
-  PointerRNA ptr;
+  PointerRNA *ptr;
 
   /**
    * The PropertyRNA passed as parameter, used to generate that structure's content:

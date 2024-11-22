@@ -21,16 +21,16 @@ class Facing {
 
   PassMain ps_ = {"Facing"};
 
-  bool enabled = false;
+  bool enabled_ = false;
 
  public:
   Facing(const SelectionType selection_type_) : selection_type_(selection_type_) {}
 
   void begin_sync(Resources &res, const State &state)
   {
-    enabled = state.v3d && (state.overlay.flag & V3D_OVERLAY_FACE_ORIENTATION) &&
-              !state.xray_enabled && (selection_type_ == SelectionType::DISABLED);
-    if (!enabled) {
+    enabled_ = state.v3d && (state.overlay.flag & V3D_OVERLAY_FACE_ORIENTATION) &&
+               !state.xray_enabled && (selection_type_ == SelectionType::DISABLED);
+    if (!enabled_) {
       /* Not used. But release the data. */
       ps_.init();
       return;
@@ -57,7 +57,7 @@ class Facing {
 
   void object_sync(Manager &manager, const ObjectRef &ob_ref, const State &state)
   {
-    if (!enabled) {
+    if (!enabled_) {
       return;
     }
     const bool renderable = DRW_object_is_renderable(ob_ref.object);
@@ -85,13 +85,23 @@ class Facing {
     }
   }
 
-  void draw(Framebuffer &framebuffer, Manager &manager, View &view)
+  void pre_draw(Manager &manager, View &view)
   {
-    if (!enabled) {
+    if (!enabled_) {
       return;
     }
+
+    manager.generate_commands(ps_, view);
+  }
+
+  void draw(Framebuffer &framebuffer, Manager &manager, View &view)
+  {
+    if (!enabled_) {
+      return;
+    }
+
     GPU_framebuffer_bind(framebuffer);
-    manager.submit(ps_, view);
+    manager.submit_only(ps_, view);
   }
 };
 

@@ -10,7 +10,7 @@ PUSH_CONSTANT(BOOL, extend_bounds)
 PUSH_CONSTANT(BOOL, gamma_correct_input)
 PUSH_CONSTANT(BOOL, gamma_uncorrect_output)
 SAMPLER(0, FLOAT_2D, input_tx)
-SAMPLER(1, FLOAT_1D, weights_tx)
+SAMPLER(1, FLOAT_2D, weights_tx)
 COMPUTE_SOURCE("compositor_symmetric_separable_blur.glsl")
 GPU_SHADER_CREATE_END()
 

@@ -7,6 +7,8 @@
  */
 
 #include "BLI_math_matrix_types.hh"
+#include "BLI_math_vector.hh"
+#include "BLI_math_vector_types.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -47,17 +49,16 @@ class FilterOperation : public NodeOperation {
 
   void execute() override
   {
-    /* Not yet supported on CPU. */
-    if (!context().use_gpu()) {
-      for (const bNodeSocket *output : this->node()->output_sockets()) {
-        Result &output_result = get_result(output->identifier);
-        if (output_result.should_compute()) {
-          output_result.allocate_invalid();
-        }
-      }
-      return;
+    if (this->context().use_gpu()) {
+      this->execute_gpu();
     }
+    else {
+      this->execute_cpu();
+    }
+  }
 
+  void execute_gpu()
+  {
     GPUShader *shader = context().get_shader(get_shader_name());
     GPU_shader_bind(shader);
 
@@ -83,9 +84,87 @@ class FilterOperation : public NodeOperation {
     GPU_shader_unbind();
   }
 
-  CMPNodeFilterMethod get_filter_method()
+  const char *get_shader_name()
   {
-    return (CMPNodeFilterMethod)bnode().custom1;
+    if (this->is_edge_filter()) {
+      return "compositor_edge_filter";
+    }
+    return "compositor_filter";
+  }
+
+  void execute_cpu()
+  {
+    const float3x3 kernel = this->get_filter_kernel();
+
+    const Result &input = get_input("Image");
+    const Result &factor = get_input("Fac");
+
+    const Domain domain = compute_domain();
+    Result &output = get_result("Image");
+    output.allocate_texture(domain);
+
+    if (this->is_edge_filter()) {
+      parallel_for(domain.size, [&](const int2 texel) {
+        /* Compute the dot product between the 3x3 window around the pixel and the edge detection
+         * kernel in the X direction and Y direction. The Y direction kernel is computed by
+         * transposing the given X direction kernel. */
+        float3 color_x = float3(0.0f);
+        float3 color_y = float3(0.0f);
+        for (int j = 0; j < 3; j++) {
+          for (int i = 0; i < 3; i++) {
+            float3 color = input.load_pixel_extended(texel + int2(i - 1, j - 1)).xyz();
+            color_x += color * kernel[j][i];
+            color_y += color * kernel[i][j];
+          }
+        }
+
+        /* Compute the channel-wise magnitude of the 2D vector composed from the X and Y edge
+         * detection filter results. */
+        float3 magnitude = math::sqrt(color_x * color_x + color_y * color_y);
+
+        /* Mix the channel-wise magnitude with the original color at the center of the kernel using
+         * the input factor. */
+        float4 color = input.load_pixel(texel);
+        magnitude = math::interpolate(color.xyz(), magnitude, factor.load_pixel(texel).x);
+
+        /* Store the channel-wise magnitude with the original alpha of the input. */
+        output.store_pixel(texel, float4(magnitude, color.w));
+      });
+    }
+    else {
+      parallel_for(domain.size, [&](const int2 texel) {
+        /* Compute the dot product between the 3x3 window around the pixel and the kernel. */
+        float4 color = float4(0.0f);
+        for (int j = 0; j < 3; j++) {
+          for (int i = 0; i < 3; i++) {
+            color += input.load_pixel_extended(texel + int2(i - 1, j - 1)) * kernel[j][i];
+          }
+        }
+
+        /* Mix with the original color at the center of the kernel using the input factor. */
+        color = math::interpolate(input.load_pixel(texel), color, factor.load_pixel(texel).x);
+
+        /* Store the color making sure it is not negative. */
+        output.store_pixel(texel, math::max(color, float4(0.0f)));
+      });
+    }
+  }
+
+  bool is_edge_filter()
+  {
+    switch (this->get_filter_method()) {
+      case CMP_NODE_FILTER_LAPLACE:
+      case CMP_NODE_FILTER_SOBEL:
+      case CMP_NODE_FILTER_PREWITT:
+      case CMP_NODE_FILTER_KIRSCH:
+        return true;
+      case CMP_NODE_FILTER_SOFT:
+      case CMP_NODE_FILTER_SHARP_BOX:
+      case CMP_NODE_FILTER_SHADOW:
+      case CMP_NODE_FILTER_SHARP_DIAMOND:
+        return false;
+    }
+    return false;
   }
 
   float3x3 get_filter_kernel()
@@ -140,21 +219,9 @@ class FilterOperation : public NodeOperation {
     }
   }
 
-  const char *get_shader_name()
+  CMPNodeFilterMethod get_filter_method()
   {
-    switch (get_filter_method()) {
-      case CMP_NODE_FILTER_LAPLACE:
-      case CMP_NODE_FILTER_SOBEL:
-      case CMP_NODE_FILTER_PREWITT:
-      case CMP_NODE_FILTER_KIRSCH:
-        return "compositor_edge_filter";
-      case CMP_NODE_FILTER_SOFT:
-      case CMP_NODE_FILTER_SHARP_BOX:
-      case CMP_NODE_FILTER_SHADOW:
-      case CMP_NODE_FILTER_SHARP_DIAMOND:
-      default:
-        return "compositor_filter";
-    }
+    return static_cast<CMPNodeFilterMethod>(bnode().custom1);
   }
 };
 
