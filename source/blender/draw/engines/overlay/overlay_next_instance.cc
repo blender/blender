@@ -719,8 +719,9 @@ bool Instance::object_is_in_front(const Object *object, const State &state)
 bool Instance::object_needs_prepass(const ObjectRef &ob_ref, bool in_paint_mode)
 {
   if (selection_type_ != SelectionType::DISABLED) {
-    /* Selection always need a prepass. Except if it is in xray mode. */
-    return !state.xray_enabled;
+    /* Selection always need a prepass.
+     * Note that depth writing and depth test might be disable for certain selection mode. */
+    return true;
   }
 
   if (in_paint_mode) {
