@@ -81,7 +81,7 @@ class Origins {
     ps_.draw_procedural(GPU_PRIM_POINTS, 1, point_buf_.size());
   }
 
-  void draw(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_color_only(Framebuffer &framebuffer, Manager &manager, View &view)
   {
     if (!enabled_) {
       return;

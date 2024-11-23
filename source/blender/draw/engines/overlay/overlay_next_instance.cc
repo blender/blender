@@ -499,8 +499,9 @@ void Instance::draw_node(Manager &manager, View &view)
 {
   /* Don't clear background for the node editor. The node editor draws the background and we
    * need to mask out the image from the already drawn overlay color buffer. */
-  background.draw(resources.overlay_output_fb, manager, view);
+  background.draw_output(resources.overlay_output_fb, manager, view);
 }
+
 void Instance::draw_v2d(Manager &manager, View &view)
 {
   regular.mesh_uvs.draw_on_render(resources.render_fb, manager, view);
@@ -508,112 +509,130 @@ void Instance::draw_v2d(Manager &manager, View &view)
   GPU_framebuffer_bind(resources.overlay_output_fb);
   GPU_framebuffer_clear_color(resources.overlay_output_fb, float4(0.0));
 
-  background.draw(resources.overlay_output_fb, manager, view);
-  grid.draw(resources.overlay_output_fb, manager, view);
+  background.draw_output(resources.overlay_output_fb, manager, view);
+  grid.draw_color_only(resources.overlay_output_fb, manager, view);
   regular.mesh_uvs.draw(resources.overlay_output_fb, manager, view);
 }
 
 void Instance::draw_v3d(Manager &manager, View &view)
 {
-  regular.cameras.draw_scene_background_images(resources.render_fb, manager, view);
-  infront.cameras.draw_scene_background_images(resources.render_fb, manager, view);
-
-  regular.sculpts.draw_on_render(resources.render_fb, manager, view);
-  infront.sculpts.draw_on_render(resources.render_in_front_fb, manager, view);
-
-  GPU_framebuffer_bind(resources.overlay_line_fb);
   float4 clear_color(0.0f);
-  if (state.xray_enabled) {
-    /* Rendering to a new depth buffer that needs to be cleared. */
-    GPU_framebuffer_clear_color_depth(resources.overlay_line_fb, clear_color, 1.0f);
-  }
-  else {
-    GPU_framebuffer_clear_color(resources.overlay_line_fb, clear_color);
-  }
 
-  regular.empties.draw_images(resources.overlay_fb, manager, view);
-
-  regular.prepass.draw(resources.overlay_line_fb, manager, view);
-
-  if (state.xray_enabled || (state.v3d && state.v3d->shading.type > OB_SOLID)) {
-    /* If workbench is not enabled, the infront buffer might contain garbage. */
-    GPU_framebuffer_bind(resources.overlay_line_in_front_fb);
-    GPU_framebuffer_clear_depth(resources.overlay_line_in_front_fb, 1.0f);
-  }
-
-  infront.prepass.draw(resources.overlay_line_in_front_fb, manager, view);
-
-  outline.draw(resources, manager, view);
-
-  auto overlay_fb_draw = [&](OverlayLayer &layer, Framebuffer &framebuffer) {
+  auto draw = [&](OverlayLayer &layer, Framebuffer &framebuffer) {
     layer.facing.draw(framebuffer, manager, view);
     layer.fade.draw(framebuffer, manager, view);
     layer.mode_transfer.draw(framebuffer, manager, view);
     layer.edit_text.draw(framebuffer, manager, view);
     layer.paints.draw(framebuffer, manager, view);
-    layer.particles.draw_no_line(framebuffer, manager, view);
-  };
-
-  auto draw_layer = [&](OverlayLayer &layer, Framebuffer &framebuffer) {
-    layer.bounds.draw(framebuffer, manager, view);
-    layer.wireframe.draw(framebuffer, resources, manager, view);
-    layer.cameras.draw(framebuffer, manager, view);
-    layer.empties.draw(framebuffer, manager, view);
-    layer.axes.draw(framebuffer, manager, view);
-    layer.force_fields.draw(framebuffer, manager, view);
-    layer.lights.draw(framebuffer, manager, view);
-    layer.light_probes.draw(framebuffer, manager, view);
-    layer.speakers.draw(framebuffer, manager, view);
-    layer.lattices.draw(framebuffer, manager, view);
-    layer.metaballs.draw(framebuffer, manager, view);
-    layer.relations.draw(framebuffer, manager, view);
-    layer.fluids.draw(framebuffer, manager, view);
     layer.particles.draw(framebuffer, manager, view);
-    layer.attribute_viewer.draw(framebuffer, manager, view);
-    layer.armatures.draw(framebuffer, manager, view);
-    layer.sculpts.draw(framebuffer, manager, view);
-    layer.grease_pencil.draw(framebuffer, manager, view);
-    layer.meshes.draw(framebuffer, manager, view);
-    layer.curves.draw(framebuffer, manager, view);
   };
 
-  auto draw_layer_color_only = [&](OverlayLayer &layer, Framebuffer &framebuffer) {
+  auto draw_line = [&](OverlayLayer &layer, Framebuffer &framebuffer) {
+    layer.bounds.draw_line(framebuffer, manager, view);
+    layer.wireframe.draw_line(framebuffer, resources, manager, view);
+    layer.cameras.draw_line(framebuffer, manager, view);
+    layer.empties.draw_line(framebuffer, manager, view);
+    layer.axes.draw_line(framebuffer, manager, view);
+    layer.force_fields.draw_line(framebuffer, manager, view);
+    layer.lights.draw_line(framebuffer, manager, view);
+    layer.light_probes.draw_line(framebuffer, manager, view);
+    layer.speakers.draw_line(framebuffer, manager, view);
+    layer.lattices.draw_line(framebuffer, manager, view);
+    layer.metaballs.draw_line(framebuffer, manager, view);
+    layer.relations.draw_line(framebuffer, manager, view);
+    layer.fluids.draw_line(framebuffer, manager, view);
+    layer.particles.draw_line(framebuffer, manager, view);
+    layer.attribute_viewer.draw_line(framebuffer, manager, view);
+    layer.armatures.draw_line(framebuffer, manager, view);
+    layer.sculpts.draw_line(framebuffer, manager, view);
+    layer.grease_pencil.draw_line(framebuffer, manager, view);
+    layer.meshes.draw_line(framebuffer, manager, view);
+    layer.curves.draw_line(framebuffer, manager, view);
+  };
+
+  auto draw_color_only = [&](OverlayLayer &layer, Framebuffer &framebuffer) {
     layer.light_probes.draw_color_only(framebuffer, manager, view);
     layer.meshes.draw_color_only(framebuffer, manager, view);
     layer.curves.draw_color_only(framebuffer, manager, view);
     layer.grease_pencil.draw_color_only(framebuffer, manager, view);
   };
 
-  overlay_fb_draw(regular, resources.overlay_fb);
-  draw_layer(regular, resources.overlay_line_fb);
+  {
+    /* Render pass. Draws directly on render result (instead of overlay result). */
+    /* TODO(fclem): Split overlay and rename draw functions. */
+    regular.cameras.draw_scene_background_images(resources.render_fb, manager, view);
+    infront.cameras.draw_scene_background_images(resources.render_in_front_fb, manager, view);
 
-  overlay_fb_draw(infront, resources.overlay_in_front_fb);
-  draw_layer(infront, resources.overlay_line_in_front_fb);
+    regular.sculpts.draw_on_render(resources.render_fb, manager, view);
+    infront.sculpts.draw_on_render(resources.render_in_front_fb, manager, view);
+  }
+  {
+    /* Overlay Line prepass. */
+    GPU_framebuffer_bind(resources.overlay_line_fb);
+    if (state.xray_enabled) {
+      /* Rendering to a new depth buffer that needs to be cleared. */
+      GPU_framebuffer_clear_color_depth(resources.overlay_line_fb, clear_color, 1.0f);
+    }
+    else {
+      GPU_framebuffer_clear_color(resources.overlay_line_fb, clear_color);
+    }
 
-  motion_paths.draw_color_only(resources.overlay_color_only_fb, manager, view);
-  xray_fade.draw(resources.overlay_color_only_fb, manager, view);
+    /* TODO(fclem): Split overlay and rename draw functions. */
+    /* TODO(fclem): Draw on line framebuffer. */
+    regular.empties.draw_images(resources.overlay_fb, manager, view);
 
-  grid.draw(resources.overlay_color_only_fb, manager, view);
+    regular.prepass.draw_line(resources.overlay_line_fb, manager, view);
 
-  draw_layer_color_only(regular, resources.overlay_color_only_fb);
-  draw_layer_color_only(infront, resources.overlay_color_only_fb);
+    if (state.xray_enabled || (state.v3d && state.v3d->shading.type > OB_SOLID)) {
+      /* If workbench is not enabled, the infront buffer might contain garbage. */
+      GPU_framebuffer_bind(resources.overlay_line_in_front_fb);
+      GPU_framebuffer_clear_depth(resources.overlay_line_in_front_fb, 1.0f);
+    }
 
-  regular.empties.draw_in_front_images(resources.overlay_color_only_fb, manager, view);
-  infront.empties.draw_in_front_images(resources.overlay_color_only_fb, manager, view);
-  regular.cameras.draw_in_front(resources.overlay_color_only_fb, manager, view);
-  infront.cameras.draw_in_front(resources.overlay_color_only_fb, manager, view);
+    infront.prepass.draw_line(resources.overlay_line_in_front_fb, manager, view);
+  }
+  {
+    /* Line only pass. */
+    outline.draw_line_only(resources.overlay_line_only_fb, resources, manager, view);
+  }
+  {
+    /* Overlay (+Line) pass. */
+    draw(regular, resources.overlay_fb);
+    draw_line(regular, resources.overlay_line_fb);
 
-  origins.draw(resources.overlay_color_only_fb, manager, view);
+    draw(infront, resources.overlay_in_front_fb);
+    draw_line(infront, resources.overlay_line_in_front_fb);
+  }
+  {
+    /* Color only pass. */
+    motion_paths.draw_color_only(resources.overlay_color_only_fb, manager, view);
+    xray_fade.draw_color_only(resources.overlay_color_only_fb, manager, view);
+    grid.draw_color_only(resources.overlay_color_only_fb, manager, view);
 
-  GPU_framebuffer_bind(resources.overlay_output_fb);
-  GPU_framebuffer_clear_color(resources.overlay_output_fb, clear_color);
+    draw_color_only(regular, resources.overlay_color_only_fb);
+    draw_color_only(infront, resources.overlay_color_only_fb);
 
-  regular.cameras.draw_background_images(resources.overlay_output_fb, manager, view);
-  infront.cameras.draw_background_images(resources.overlay_output_fb, manager, view);
-  regular.empties.draw_background_images(resources.overlay_output_fb, manager, view);
+    /* TODO(fclem): Split overlay and rename draw functions. */
+    regular.empties.draw_in_front_images(resources.overlay_color_only_fb, manager, view);
+    infront.empties.draw_in_front_images(resources.overlay_color_only_fb, manager, view);
+    regular.cameras.draw_in_front(resources.overlay_color_only_fb, manager, view);
+    infront.cameras.draw_in_front(resources.overlay_color_only_fb, manager, view);
 
-  background.draw(resources.overlay_output_fb, manager, view);
-  anti_aliasing.draw(resources.overlay_output_fb, manager, view);
+    origins.draw_color_only(resources.overlay_color_only_fb, manager, view);
+  }
+  {
+    /* Output pass. */
+    GPU_framebuffer_bind(resources.overlay_output_fb);
+    GPU_framebuffer_clear_color(resources.overlay_output_fb, clear_color);
+
+    /* TODO(fclem): Split overlay and rename draw functions. */
+    regular.cameras.draw_background_images(resources.overlay_output_fb, manager, view);
+    infront.cameras.draw_background_images(resources.overlay_output_fb, manager, view);
+    regular.empties.draw_background_images(resources.overlay_output_fb, manager, view);
+
+    background.draw_output(resources.overlay_output_fb, manager, view);
+    anti_aliasing.draw_output(resources.overlay_output_fb, manager, view);
+  }
 }
 
 bool Instance::object_is_selected(const ObjectRef &ob_ref)

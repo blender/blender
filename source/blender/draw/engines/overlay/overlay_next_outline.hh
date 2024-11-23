@@ -112,7 +112,6 @@ class Outline {
     {
       auto &pass = outline_resolve_ps_;
       pass.init();
-      pass.framebuffer_set(&res.overlay_line_only_fb);
       pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_PREMUL);
       pass.shader_set(res.shaders.outline_detect.get());
       /* Don't occlude the outline if in xray mode as it causes too much flickering. */
@@ -204,7 +203,7 @@ class Outline {
     manager.generate_commands(outline_prepass_ps_, view);
   }
 
-  void draw(Resources &res, Manager &manager, View &view)
+  void draw_line_only(Framebuffer &framebuffer, Resources &res, Manager &manager, View &view)
   {
     if (!enabled_) {
       return;
@@ -222,6 +221,8 @@ class Outline {
                        GPU_ATTACHMENT_TEXTURE(object_id_tx_));
 
     manager.submit_only(outline_prepass_ps_, view);
+
+    GPU_framebuffer_bind(framebuffer);
     manager.submit(outline_resolve_ps_, view);
 
     tmp_depth_tx_.release();

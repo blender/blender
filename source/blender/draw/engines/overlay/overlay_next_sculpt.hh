@@ -217,7 +217,7 @@ class Sculpts {
     }
   }
 
-  void draw(GPUFrameBuffer *framebuffer, Manager &manager, View &view)
+  void draw_line(GPUFrameBuffer *framebuffer, Manager &manager, View &view)
   {
     if (!enabled_) {
       return;

@@ -198,7 +198,7 @@ class Bounds {
     call_buffers_.capsule_cap.end_sync(ps_, shapes.capsule_cap.get());
   }
 
-  void draw(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view)
   {
     GPU_framebuffer_bind(framebuffer);
     manager.submit(ps_, view);

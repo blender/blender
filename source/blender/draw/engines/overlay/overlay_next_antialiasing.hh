@@ -77,7 +77,7 @@ class AntiAliasing {
     }
   }
 
-  void draw(Framebuffer &framebuffer, Manager &manager, View & /*view*/)
+  void draw_output(Framebuffer &framebuffer, Manager &manager, View & /*view*/)
   {
     framebuffer_ref_ = framebuffer;
     manager.submit(anti_aliasing_ps_);

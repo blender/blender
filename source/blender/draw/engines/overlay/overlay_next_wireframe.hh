@@ -218,7 +218,7 @@ class Wireframe {
     manager.generate_commands(wireframe_ps_, view);
   }
 
-  void draw(Framebuffer &framebuffer, Resources &res, Manager &manager, View &view)
+  void draw_line(Framebuffer &framebuffer, Resources &res, Manager &manager, View &view)
   {
     if (!enabled_) {
       return;

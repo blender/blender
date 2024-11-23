@@ -87,7 +87,7 @@ class AttributeViewer {
     manager.generate_commands(ps_, view);
   }
 
-  void draw(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view)
   {
     if (!enabled_) {
       return;

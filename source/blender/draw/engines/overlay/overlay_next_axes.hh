@@ -69,7 +69,7 @@ class Axes {
     axes_buf.end_sync(ps_, shapes.arrows.get());
   }
 
-  void draw(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view)
   {
     if (!enabled_) {
       return;

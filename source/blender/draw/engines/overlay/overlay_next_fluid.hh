@@ -235,7 +235,7 @@ class Fluids {
     cube_buf_.end_sync(fluid_ps_, shapes.cube.get());
   }
 
-  void draw(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view)
   {
     GPU_framebuffer_bind(framebuffer);
     manager.submit(fluid_ps_, view);

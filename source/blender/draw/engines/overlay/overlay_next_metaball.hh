@@ -91,7 +91,7 @@ class Metaballs {
     circle_buf_.end_sync(ps_, shapes.metaball_wire_circle.get());
   }
 
-  void draw(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view)
   {
     GPU_framebuffer_bind(framebuffer);
     manager.submit(ps_, view);

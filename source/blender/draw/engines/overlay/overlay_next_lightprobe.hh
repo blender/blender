@@ -223,7 +223,7 @@ class LightProbes {
     manager.generate_commands(ps_dots_, view);
   }
 
-  void draw(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view)
   {
     if (!enabled_) {
       return;

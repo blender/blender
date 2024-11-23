@@ -89,7 +89,7 @@ class Background {
     bg_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
 
-  void draw(Framebuffer &framebuffer, Manager &manager, View & /*view*/)
+  void draw_output(Framebuffer &framebuffer, Manager &manager, View & /*view*/)
   {
     framebuffer_ref_ = framebuffer;
     manager.submit(bg_ps_);

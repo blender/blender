@@ -162,7 +162,7 @@ class ForceFields {
     call_buffers_.field_cone_limit_buf.end_sync(ps_, shapes.field_cone_limit.get());
   }
 
-  void draw(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view)
   {
     GPU_framebuffer_bind(framebuffer);
     manager.submit(ps_, view);
