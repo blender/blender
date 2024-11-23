@@ -350,8 +350,8 @@ void Instance::end_sync()
 
 void Instance::draw(Manager &manager)
 {
-  const DRWView *view_legacy = DRW_view_default_get();
-  View view("OverlayView", view_legacy);
+  /* TODO(fclem): Remove global access. */
+  view.sync(DRW_view_default_get());
 
   /* Pre-Draw: Run the compute steps of all passes up-front
    * to avoid constant GPU compute/raster context switching. */
