@@ -43,7 +43,7 @@ class Lights {
 
   void begin_sync(const State &state)
   {
-    enabled_ = state.is_space_v3d() && !(state.overlay.flag & V3D_OVERLAY_HIDE_OBJECT_XTRAS);
+    enabled_ = state.is_space_v3d() && state.show_extras();
     if (!enabled_) {
       return;
     }
@@ -94,7 +94,7 @@ class Lights {
     call_buffers_.ground_line_buf.append(float4(matrix.location()), select_id);
 
     const float4 light_color = {la.r, la.g, la.b, 1.0f};
-    const bool show_light_colors = state.overlay.flag & V3D_OVERLAY_SHOW_LIGHT_COLORS;
+    const bool show_light_colors = state.show_light_colors();
 
     /* Draw the outer ring of the light icon and the sun rays in `light_color`, if required. */
     call_buffers_.icon_outer_buf.append(data, select_id);

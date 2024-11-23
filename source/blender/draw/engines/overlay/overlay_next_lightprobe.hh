@@ -46,7 +46,7 @@ class LightProbes {
 
   void begin_sync(Resources &res, const State &state)
   {
-    enabled_ = state.is_space_v3d() && !(state.overlay.flag & V3D_OVERLAY_HIDE_OBJECT_XTRAS);
+    enabled_ = state.is_space_v3d() && state.show_extras();
     if (!enabled_) {
       return;
     }

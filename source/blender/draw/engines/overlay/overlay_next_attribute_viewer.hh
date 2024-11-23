@@ -34,8 +34,7 @@ class AttributeViewer {
   void begin_sync(Resources &res, const State &state)
   {
     ps_.init();
-    enabled_ = state.is_space_v3d() && !res.is_selection() &&
-               (state.overlay.flag & V3D_OVERLAY_VIEWER_ATTRIBUTE);
+    enabled_ = state.is_space_v3d() && !res.is_selection() && state.show_attribute_viewer();
     if (!enabled_) {
       return;
     };

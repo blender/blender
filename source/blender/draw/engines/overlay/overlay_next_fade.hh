@@ -33,8 +33,7 @@ class Fade {
 
   void begin_sync(Resources &res, const State &state)
   {
-    const bool do_edit_mesh_fade_geom = !state.xray_enabled &&
-                                        (state.overlay.flag & V3D_OVERLAY_FADE_INACTIVE);
+    const bool do_edit_mesh_fade_geom = !state.xray_enabled && state.show_fade_inactive();
     enabled_ = state.is_space_v3d() && (do_edit_mesh_fade_geom || state.do_pose_fade_geom) &&
                !res.is_selection();
 

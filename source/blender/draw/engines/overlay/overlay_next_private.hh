@@ -115,6 +115,63 @@ struct State {
   {
     return this->space_type == SPACE_NODE;
   }
+
+  bool show_extras() const
+  {
+    return (this->overlay.flag & V3D_OVERLAY_HIDE_OBJECT_XTRAS) == 0;
+  }
+  bool show_face_orientation() const
+  {
+    return (this->overlay.flag & V3D_OVERLAY_FACE_ORIENTATION);
+  }
+  bool show_bone_selection() const
+  {
+    return (this->overlay.flag & V3D_OVERLAY_BONE_SELECT);
+  }
+  bool show_wireframes() const
+  {
+    return (this->overlay.flag & V3D_OVERLAY_WIREFRAMES);
+  }
+  bool show_motion_paths() const
+  {
+    return (this->overlay.flag & V3D_OVERLAY_HIDE_MOTION_PATHS) == 0;
+  }
+  bool show_bones() const
+  {
+    return (this->overlay.flag & V3D_OVERLAY_HIDE_BONES) == 0;
+  }
+  bool show_object_origins() const
+  {
+    return (this->overlay.flag & V3D_OVERLAY_HIDE_OBJECT_ORIGINS) == 0;
+  }
+  bool show_fade_inactive() const
+  {
+    return (this->overlay.flag & V3D_OVERLAY_FADE_INACTIVE);
+  }
+  bool show_attribute_viewer() const
+  {
+    return (this->overlay.flag & V3D_OVERLAY_VIEWER_ATTRIBUTE);
+  }
+  bool show_attribute_viewer_text() const
+  {
+    return (this->overlay.flag & V3D_OVERLAY_VIEWER_ATTRIBUTE_TEXT);
+  }
+  bool show_sculpt_mask() const
+  {
+    return (this->overlay.flag & V3D_OVERLAY_SCULPT_SHOW_MASK);
+  }
+  bool show_sculpt_face_sets() const
+  {
+    return (this->overlay.flag & V3D_OVERLAY_SCULPT_SHOW_FACE_SETS);
+  }
+  bool show_sculpt_curves_cage() const
+  {
+    return (this->overlay.flag & V3D_OVERLAY_SCULPT_CURVES_CAGE);
+  }
+  bool show_light_colors() const
+  {
+    return (this->overlay.flag & V3D_OVERLAY_SHOW_LIGHT_COLORS);
+  }
 };
 
 static inline float4x4 winmat_polygon_offset(float4x4 winmat, float view_dist, float offset)

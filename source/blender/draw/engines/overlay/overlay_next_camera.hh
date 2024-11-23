@@ -94,7 +94,7 @@ class Cameras {
   void begin_sync(Resources &res, State &state, View &view)
   {
     enabled_ = state.is_space_v3d();
-    extras_enabled_ = enabled_ && !(state.overlay.flag & V3D_OVERLAY_HIDE_OBJECT_XTRAS);
+    extras_enabled_ = enabled_ && state.show_extras();
     motion_tracking_enabled_ = enabled_ && state.v3d->flag2 & V3D_SHOW_RECONSTRUCTION;
     images_enabled_ = enabled_ && !res.is_selection();
     enabled_ = extras_enabled_ || images_enabled_ || motion_tracking_enabled_;

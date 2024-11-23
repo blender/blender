@@ -42,12 +42,13 @@ class Sculpts {
 
   void begin_sync(Resources &res, const State &state)
   {
-    const int sculpt_overlay_flags = V3D_OVERLAY_SCULPT_SHOW_FACE_SETS |
-                                     V3D_OVERLAY_SCULPT_SHOW_MASK | V3D_OVERLAY_SCULPT_CURVES_CAGE;
+    show_curves_cage_ = state.show_sculpt_curves_cage();
+    show_face_set_ = state.show_sculpt_face_sets();
+    show_mask_ = state.show_sculpt_mask();
 
     enabled_ = state.is_space_v3d() && !state.xray_enabled && !res.is_selection() &&
                ELEM(state.object_mode, OB_MODE_SCULPT_CURVES, OB_MODE_SCULPT) &&
-               (state.overlay.flag & sculpt_overlay_flags);
+               (show_curves_cage_ || show_face_set_ || show_mask_);
 
     if (!enabled_) {
       /* Not used. But release the data. */
@@ -55,10 +56,6 @@ class Sculpts {
       sculpt_curve_cage_.init();
       return;
     }
-
-    show_curves_cage_ = state.overlay.flag & V3D_OVERLAY_SCULPT_CURVES_CAGE;
-    show_face_set_ = state.overlay.flag & V3D_OVERLAY_SCULPT_SHOW_FACE_SETS;
-    show_mask_ = state.overlay.flag & V3D_OVERLAY_SCULPT_SHOW_MASK;
 
     float curve_cage_opacity = show_curves_cage_ ? state.overlay.sculpt_curves_cage_opacity : 0.0f;
     float face_set_opacity = show_face_set_ ? state.overlay.sculpt_mode_face_sets_opacity : 0.0f;

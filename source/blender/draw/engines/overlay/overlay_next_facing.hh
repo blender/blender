@@ -28,8 +28,8 @@ class Facing {
 
   void begin_sync(Resources &res, const State &state)
   {
-    enabled_ = state.v3d && (state.overlay.flag & V3D_OVERLAY_FACE_ORIENTATION) &&
-               !state.xray_enabled && !res.is_selection();
+    enabled_ = state.v3d && state.show_face_orientation() && !state.xray_enabled &&
+               !res.is_selection();
     if (!enabled_) {
       /* Not used. But release the data. */
       ps_.init();

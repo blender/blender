@@ -76,7 +76,7 @@ void Instance::init()
       state.overlay.wireframe_opacity = state.v3d->overlay.wireframe_opacity;
     }
 
-    state.do_pose_xray = (state.overlay.flag & V3D_OVERLAY_BONE_SELECT);
+    state.do_pose_xray = state.show_bone_selection();
     state.do_pose_fade_geom = state.do_pose_xray && !(state.object_mode & OB_MODE_WEIGHT_PAINT) &&
                               ctx->object_pose != nullptr;
   }
