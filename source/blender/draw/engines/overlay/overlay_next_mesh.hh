@@ -80,7 +80,7 @@ class Meshes {
  public:
   void begin_sync(Resources &res, const State &state, const View &view)
   {
-    enabled_ = state.space_type == SPACE_VIEW3D;
+    enabled_ = state.is_space_v3d();
 
     if (!enabled_) {
       return;
@@ -515,7 +515,7 @@ class MeshUVs {
  public:
   void begin_sync(Resources &res, const State &state)
   {
-    enabled_ = state.space_type == SPACE_IMAGE;
+    enabled_ = state.is_space_image();
 
     if (!enabled_) {
       return;

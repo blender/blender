@@ -29,10 +29,10 @@ class Background {
       background_type = BG_SOLID;
       color_override[3] = 1.0f;
     }
-    else if (state.space_type == SPACE_IMAGE) {
+    else if (state.is_space_image()) {
       background_type = BG_SOLID_CHECKER;
     }
-    else if (state.space_type == SPACE_NODE) {
+    else if (state.is_space_node()) {
       background_type = BG_MASK;
       pass_state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_MUL;
     }

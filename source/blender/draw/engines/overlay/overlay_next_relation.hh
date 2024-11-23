@@ -37,7 +37,7 @@ class Relations {
 
   void begin_sync(Resources &res, const State &state)
   {
-    enabled_ = state.space_type == SPACE_VIEW3D;
+    enabled_ = state.is_space_v3d();
     enabled_ &= (state.v3d_flag & V3D_HIDE_HELPLINES) == 0;
     enabled_ &= res.selection_type == SelectionType::DISABLED;
 

@@ -100,6 +100,21 @@ struct State {
     }
     return view_dist;
   }
+
+  /** Convenience functions. */
+
+  bool is_space_v3d() const
+  {
+    return this->space_type == SPACE_VIEW3D;
+  }
+  bool is_space_image() const
+  {
+    return this->space_type == SPACE_IMAGE;
+  }
+  bool is_space_node() const
+  {
+    return this->space_type == SPACE_NODE;
+  }
 };
 
 static inline float4x4 winmat_polygon_offset(float4x4 winmat, float view_dist, float offset)

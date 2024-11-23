@@ -21,7 +21,7 @@ class Names {
  public:
   void begin_sync(Resources &res, const State &state)
   {
-    enabled_ = state.space_type == SPACE_VIEW3D && (res.selection_type == SelectionType::DISABLED);
+    enabled_ = state.is_space_v3d() && (res.selection_type == SelectionType::DISABLED);
     enabled_ &= state.show_text;
 
     if (!enabled_) {

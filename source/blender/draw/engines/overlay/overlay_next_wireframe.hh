@@ -40,8 +40,7 @@ class Wireframe {
  public:
   void begin_sync(Resources &res, const State &state)
   {
-    enabled_ = (state.space_type == SPACE_VIEW3D) &&
-               (state.is_wireframe_mode || !state.hide_overlays);
+    enabled_ = state.is_space_v3d() && (state.is_wireframe_mode || !state.hide_overlays);
     if (!enabled_) {
       return;
     }

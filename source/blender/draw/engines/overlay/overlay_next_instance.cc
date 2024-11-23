@@ -80,7 +80,7 @@ void Instance::init()
     state.do_pose_fade_geom = state.do_pose_xray && !(state.object_mode & OB_MODE_WEIGHT_PAINT) &&
                               ctx->object_pose != nullptr;
   }
-  else if (state.space_type == SPACE_IMAGE) {
+  else if (state.is_space_image()) {
     SpaceImage *space_image = (SpaceImage *)state.space_data;
 
     state.clear_in_front = false;
@@ -447,7 +447,7 @@ void Instance::draw(Manager &manager)
   resources.overlay_color_only_fb.ensure(GPU_ATTACHMENT_NONE,
                                          GPU_ATTACHMENT_TEXTURE(resources.overlay_tx));
   /* The v2d path writes to the overlay output directly, but it needs a depth attachment. */
-  resources.overlay_output_fb.ensure(state.space_type == SPACE_IMAGE ?
+  resources.overlay_output_fb.ensure(state.is_space_image() ?
                                          GPUAttachment GPU_ATTACHMENT_TEXTURE(resources.depth_tx) :
                                          GPUAttachment GPU_ATTACHMENT_NONE,
                                      GPU_ATTACHMENT_TEXTURE(resources.color_overlay_tx));

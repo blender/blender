@@ -31,7 +31,7 @@ class Axes {
 
   void begin_sync(Resources & /*res*/, const State &state)
   {
-    enabled_ = state.space_type == SPACE_VIEW3D;
+    enabled_ = state.is_space_v3d();
 
     ps_.init();
     axes_buf.clear();

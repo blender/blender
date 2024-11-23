@@ -31,8 +31,7 @@ class Speakers {
 
   void begin_sync(const State &state)
   {
-    enabled_ = state.space_type == SPACE_VIEW3D &&
-               !(state.overlay.flag & V3D_OVERLAY_HIDE_OBJECT_XTRAS);
+    enabled_ = state.is_space_v3d() && !(state.overlay.flag & V3D_OVERLAY_HIDE_OBJECT_XTRAS);
 
     if (!enabled_) {
       return;

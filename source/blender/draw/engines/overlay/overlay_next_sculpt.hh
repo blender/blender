@@ -45,7 +45,7 @@ class Sculpts {
     const int sculpt_overlay_flags = V3D_OVERLAY_SCULPT_SHOW_FACE_SETS |
                                      V3D_OVERLAY_SCULPT_SHOW_MASK | V3D_OVERLAY_SCULPT_CURVES_CAGE;
 
-    enabled_ = (state.space_type == SPACE_VIEW3D) && !state.xray_enabled &&
+    enabled_ = state.is_space_v3d() && !state.xray_enabled &&
                (selection_type_ == SelectionType::DISABLED) &&
                ELEM(state.object_mode, OB_MODE_SCULPT_CURVES, OB_MODE_SCULPT) &&
                (state.overlay.flag & sculpt_overlay_flags);

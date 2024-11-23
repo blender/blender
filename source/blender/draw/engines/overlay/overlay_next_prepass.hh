@@ -41,7 +41,7 @@ class Prepass {
   void begin_sync(Resources &res, const State &state)
   {
     use_selection_ = (selection_type_ != SelectionType::DISABLED);
-    enabled_ = (state.space_type == SPACE_VIEW3D);
+    enabled_ = state.is_space_v3d();
 
     if (!enabled_) {
       /* Not used. But release the data. */

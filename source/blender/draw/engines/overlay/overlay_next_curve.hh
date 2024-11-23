@@ -49,7 +49,7 @@ class Curves {
  public:
   void begin_sync(Resources &res, const State &state, const View &view)
   {
-    enabled_ = state.space_type == SPACE_VIEW3D;
+    enabled_ = state.is_space_v3d();
 
     if (!enabled_) {
       return;

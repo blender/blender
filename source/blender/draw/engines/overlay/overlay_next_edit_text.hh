@@ -34,7 +34,7 @@ class EditText {
 
   void begin_sync(const State &state)
   {
-    enabled_ = state.space_type == SPACE_VIEW3D;
+    enabled_ = state.is_space_v3d();
     text_selection_buf.clear();
     text_cursor_buf.clear();
     box_line_buf_.clear();

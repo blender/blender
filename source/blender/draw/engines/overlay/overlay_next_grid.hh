@@ -54,7 +54,7 @@ class Grid {
 
     grid_ps_.init();
     grid_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA);
-    if (state.space_type == SPACE_IMAGE) {
+    if (state.is_space_image()) {
       /* Add quad background. */
       auto &sub = grid_ps_.sub("grid_background");
       sub.shader_set(res.shaders.grid_background.get());
@@ -88,7 +88,7 @@ class Grid {
         sub.draw(shapes.grid.get());
       }
     }
-    if (state.space_type == SPACE_IMAGE) {
+    if (state.is_space_image()) {
       float4 theme_color;
       UI_GetThemeColorShade4fv(TH_BACK, 60, theme_color);
       srgb_to_linearrgb_v4(theme_color, theme_color);
@@ -126,7 +126,7 @@ class Grid {
     /* Default, nothing is drawn. */
     grid_flag_ = zneg_flag_ = zpos_flag_ = OVERLAY_GridBits(0);
 
-    return (state.space_type == SPACE_IMAGE) ? init_2d(state) : init_3d(state, view);
+    return (state.is_space_image()) ? init_2d(state) : init_3d(state, view);
   }
 
   void copy_steps_to_data(Span<float> grid_steps_x, Span<float> grid_steps_y)

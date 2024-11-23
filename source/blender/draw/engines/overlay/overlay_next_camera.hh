@@ -93,7 +93,7 @@ class Cameras {
 
   void begin_sync(Resources &res, State &state, View &view)
   {
-    enabled_ = state.space_type == SPACE_VIEW3D;
+    enabled_ = state.is_space_v3d();
     extras_enabled_ = enabled_ && !(state.overlay.flag & V3D_OVERLAY_HIDE_OBJECT_XTRAS);
     motion_tracking_enabled_ = enabled_ && state.v3d->flag2 & V3D_SHOW_RECONSTRUCTION;
     images_enabled_ = enabled_ && res.selection_type == SelectionType::DISABLED;
