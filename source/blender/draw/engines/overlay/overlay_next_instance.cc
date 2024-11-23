@@ -128,6 +128,7 @@ void Instance::begin_sync()
   auto begin_sync_layer = [&](OverlayLayer &layer) {
     layer.armatures.begin_sync(resources, state);
     layer.attribute_viewer.begin_sync(resources, state);
+    layer.attribute_texts.begin_sync(resources, state);
     layer.axes.begin_sync(resources, state);
     layer.bounds.begin_sync(resources, state);
     layer.cameras.begin_sync(resources, state, view);
@@ -289,6 +290,7 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
         break;
     }
     layer.attribute_viewer.object_sync(manager, ob_ref, resources, state);
+    layer.attribute_texts.object_sync(manager, ob_ref, resources, state);
     layer.bounds.object_sync(manager, ob_ref, resources, state);
     layer.facing.object_sync(manager, ob_ref, resources, state);
     layer.fade.object_sync(manager, ob_ref, resources, state);

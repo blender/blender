@@ -12,6 +12,7 @@
 
 #include "overlay_next_antialiasing.hh"
 #include "overlay_next_armature.hh"
+#include "overlay_next_attribute_text.hh"
 #include "overlay_next_attribute_viewer.hh"
 #include "overlay_next_axes.hh"
 #include "overlay_next_background.hh"
@@ -80,6 +81,7 @@ class Instance {
 
     Armatures armatures = {selection_type_, shapes};
     AttributeViewer attribute_viewer;
+    AttributeTexts attribute_texts;
     Axes axes = {selection_type_};
     Bounds bounds = {selection_type_};
     Cameras cameras = {selection_type_};
