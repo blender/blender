@@ -20,8 +20,6 @@ namespace blender::draw::overlay {
 
 class Prepass {
  private:
-  const SelectionType selection_type_;
-
   PassMain ps_ = {"prepass"};
   PassMain::Sub *mesh_ps_ = nullptr;
   PassMain::Sub *hair_ps_ = nullptr;
@@ -30,14 +28,11 @@ class Prepass {
   PassMain::Sub *grease_pencil_ps_ = nullptr;
 
   bool enabled_ = false;
-  bool use_selection_ = false;
   bool use_material_slot_selection_ = false;
 
   overlay::GreasePencil::ViewParameters grease_pencil_view;
 
  public:
-  Prepass(const SelectionType selection_type) : selection_type_(selection_type){};
-
   void begin_sync(Resources &res, const State &state)
   {
     enabled_ = state.is_space_v3d();

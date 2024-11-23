@@ -17,15 +17,11 @@ namespace blender::draw::overlay {
 class Facing {
 
  private:
-  const SelectionType selection_type_;
-
   PassMain ps_ = {"Facing"};
 
   bool enabled_ = false;
 
  public:
-  Facing(const SelectionType selection_type_) : selection_type_(selection_type_) {}
-
   void begin_sync(Resources &res, const State &state)
   {
     enabled_ = state.v3d && state.show_face_orientation() && !state.xray_enabled &&

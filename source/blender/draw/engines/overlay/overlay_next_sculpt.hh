@@ -23,8 +23,6 @@ namespace blender::draw::overlay {
 class Sculpts {
 
  private:
-  const SelectionType selection_type_;
-
   PassSimple sculpt_mask_ = {"SculptMaskAndFaceSet"};
   PassSimple::Sub *mesh_ps_ = nullptr;
   PassSimple::Sub *curves_ps_ = nullptr;
@@ -38,8 +36,6 @@ class Sculpts {
   bool enabled_ = false;
 
  public:
-  Sculpts(const SelectionType selection_type_) : selection_type_(selection_type_) {}
-
   void begin_sync(Resources &res, const State &state)
   {
     show_curves_cage_ = state.show_sculpt_curves_cage();

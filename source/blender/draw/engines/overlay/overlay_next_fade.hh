@@ -17,8 +17,6 @@
 namespace blender::draw::overlay {
 class Fade {
  private:
-  const SelectionType selection_type_;
-
   PassMain ps_ = {"FadeGeometry"};
 
   PassMain::Sub *mesh_fade_geometry_ps_;
@@ -29,8 +27,6 @@ class Fade {
   bool enabled_ = false;
 
  public:
-  Fade(const SelectionType selection_type_) : selection_type_(selection_type_) {}
-
   void begin_sync(Resources &res, const State &state)
   {
     const bool do_edit_mesh_fade_geom = !state.xray_enabled && state.show_fade_inactive();
