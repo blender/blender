@@ -172,28 +172,24 @@ void xform_skip_child_container_item_ensure_from_array(XFormObjectSkipChild_Cont
                                                        Object **objects,
                                                        uint objects_len)
 {
-  GSet *objects_in_transdata = BLI_gset_ptr_new_ex(__func__, objects_len);
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *ob = objects[ob_index];
-    BLI_gset_add(objects_in_transdata, ob);
-  }
+  Set<Object *> objects_in_transdata(Span(objects, objects_len));
   BKE_view_layer_synced_ensure(scene, view_layer);
   ListBase *object_bases = BKE_view_layer_object_bases_get(view_layer);
   LISTBASE_FOREACH (Base *, base, object_bases) {
     Object *ob = base->object;
     if (ob->parent != nullptr) {
-      if (!BLI_gset_haskey(objects_in_transdata, ob)) {
-        if (BLI_gset_haskey(objects_in_transdata, ob->parent)) {
+      if (!objects_in_transdata.contains(ob)) {
+        if (objects_in_transdata.contains(ob->parent)) {
           object_xform_skip_child_container_item_ensure(
               xcs, ob, nullptr, XFORM_OB_SKIP_CHILD_PARENT_IS_XFORM);
         }
       }
       else {
-        if (!BLI_gset_haskey(objects_in_transdata, ob->parent)) {
+        if (!objects_in_transdata.contains(ob->parent)) {
           Object *ob_parent_recurse = ob->parent;
           if (ob_parent_recurse != nullptr) {
             while (ob_parent_recurse != nullptr) {
-              if (BLI_gset_haskey(objects_in_transdata, ob_parent_recurse)) {
+              if (objects_in_transdata.contains(ob_parent_recurse)) {
                 break;
               }
               ob_parent_recurse = ob_parent_recurse->parent;
@@ -212,19 +208,18 @@ void xform_skip_child_container_item_ensure_from_array(XFormObjectSkipChild_Cont
   LISTBASE_FOREACH (Base *, base, object_bases) {
     Object *ob = base->object;
 
-    if (BLI_gset_haskey(objects_in_transdata, ob)) {
+    if (objects_in_transdata.contains(ob)) {
       /* pass. */
     }
     else if (ob->parent != nullptr) {
-      if (BLI_gset_haskey(objects_in_transdata, ob->parent)) {
-        if (!BLI_gset_haskey(objects_in_transdata, ob)) {
+      if (objects_in_transdata.contains(ob->parent)) {
+        if (!objects_in_transdata.contains(ob)) {
           object_xform_skip_child_container_item_ensure(
               xcs, ob, nullptr, XFORM_OB_SKIP_CHILD_PARENT_IS_XFORM);
         }
       }
     }
   }
-  BLI_gset_free(objects_in_transdata, nullptr);
 }
 
 void object_xform_skip_child_container_destroy(XFormObjectSkipChild_Container *xcs)
@@ -426,10 +421,10 @@ void data_xform_container_destroy(XFormObjectData_Container *xds)
  * Simple alternative to full transform logic.
  * \{ */
 
-static bool object_parent_in_set(GSet *objects_set, Object *ob)
+static bool object_parent_in_set(const Set<Object *> &objects_set, Object *ob)
 {
   for (Object *parent = ob->parent; parent; parent = parent->parent) {
-    if (BLI_gset_lookup(objects_set, parent)) {
+    if (objects_set.contains(parent)) {
       return true;
     }
   }
@@ -440,10 +435,7 @@ void object_xform_array_m4(Object **objects, uint objects_len, const float matri
 {
   /* Filter out objects that have parents in `objects_set`. */
   {
-    GSet *objects_set = BLI_gset_ptr_new_ex(__func__, objects_len);
-    for (uint i = 0; i < objects_len; i++) {
-      BLI_gset_add(objects_set, objects[i]);
-    }
+    Set<Object *> objects_set(Span(objects, objects_len));
     for (uint i = 0; i < objects_len;) {
       if (object_parent_in_set(objects_set, objects[i])) {
         objects[i] = objects[--objects_len];
@@ -452,7 +444,6 @@ void object_xform_array_m4(Object **objects, uint objects_len, const float matri
         i++;
       }
     }
-    BLI_gset_free(objects_set, nullptr);
   }
 
   /* Detect translation only matrix, prevent rotation/scale channels from being touched at all. */
