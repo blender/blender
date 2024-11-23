@@ -355,6 +355,16 @@ void Instance::draw(Manager &manager)
   /* TODO(fclem): Remove global access. */
   view.sync(DRW_view_default_get());
 
+  static gpu::DebugScope select_scope = {"Selection"};
+  static gpu::DebugScope draw_scope = {"Overlay"};
+
+  if (resources.is_selection()) {
+    select_scope.begin_capture();
+  }
+  else {
+    draw_scope.begin_capture();
+  }
+
   /* Pre-Draw: Run the compute steps of all passes up-front
    * to avoid constant GPU compute/raster context switching. */
   {
@@ -453,16 +463,6 @@ void Instance::draw(Manager &manager)
                                          GPUAttachment GPU_ATTACHMENT_TEXTURE(resources.depth_tx) :
                                          GPUAttachment GPU_ATTACHMENT_NONE,
                                      GPU_ATTACHMENT_TEXTURE(resources.color_overlay_tx));
-
-  static gpu::DebugScope select_scope = {"Selection"};
-  static gpu::DebugScope draw_scope = {"Overlay"};
-
-  if (resources.is_selection()) {
-    select_scope.begin_capture();
-  }
-  else {
-    draw_scope.begin_capture();
-  }
 
   /* TODO(fclem): Would be better to have a v2d overlay class instead of these conditions. */
   switch (state.space_type) {
