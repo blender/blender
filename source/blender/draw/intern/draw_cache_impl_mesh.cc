@@ -1337,6 +1337,8 @@ static void init_empty_dummy_batch(gpu::Batch &batch)
   GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
   blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(format);
   GPU_vertbuf_data_alloc(*vbo, 1);
+  /* Avoid the batch being rendered at all. */
+  GPU_vertbuf_data_len_set(*vbo, 0);
 
   GPU_batch_vertbuf_add(&batch, vbo, true);
 }
