@@ -4106,10 +4106,10 @@ static float area_split_factor(bContext *C, sAreaJoinData *jd, const wmEvent *ev
   }
   else {
     /* Slight snap to center when no modifiers are held. */
-    if (fac >= 0.4375f && fac < 0.5f) {
+    if (fac >= 0.48f && fac < 0.5f) {
       fac = 0.499999f;
     }
-    else if (fac >= 0.5f && fac < 0.5625f) {
+    else if (fac >= 0.5f && fac < 0.52f) {
       fac = 0.500001f;
     }
   }
