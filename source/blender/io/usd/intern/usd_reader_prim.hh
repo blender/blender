@@ -33,8 +33,6 @@ struct ImportSettings {
   /* From MeshSeqCacheModifierData.read_flag */
   int read_flag = 0;
 
-  bool validate_meshes = false;
-
   std::function<CacheFile *()> get_cache_file{};
 
   /* Map a USD material prim path to a Blender material name.
