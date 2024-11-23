@@ -455,7 +455,7 @@ void Instance::draw(Manager &manager)
   static gpu::DebugScope select_scope = {"Selection"};
   static gpu::DebugScope draw_scope = {"Overlay"};
 
-  if (resources.selection_type != SelectionType::DISABLED) {
+  if (resources.is_selection()) {
     select_scope.begin_capture();
   }
   else {
@@ -487,7 +487,7 @@ void Instance::draw(Manager &manager)
 
   resources.read_result();
 
-  if (resources.selection_type != SelectionType::DISABLED) {
+  if (resources.is_selection()) {
     select_scope.end_capture();
   }
   else {

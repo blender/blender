@@ -96,7 +96,7 @@ class Cameras {
     enabled_ = state.is_space_v3d();
     extras_enabled_ = enabled_ && !(state.overlay.flag & V3D_OVERLAY_HIDE_OBJECT_XTRAS);
     motion_tracking_enabled_ = enabled_ && state.v3d->flag2 & V3D_SHOW_RECONSTRUCTION;
-    images_enabled_ = enabled_ && res.selection_type == SelectionType::DISABLED;
+    images_enabled_ = enabled_ && !res.is_selection();
     enabled_ = extras_enabled_ || images_enabled_ || motion_tracking_enabled_;
 
     if (extras_enabled_ || motion_tracking_enabled_) {
@@ -284,7 +284,7 @@ class Cameras {
 
     const Camera *cam = static_cast<Camera *>(ob->data);
     const Object *camera_object = DEG_get_evaluated_object(state.depsgraph, v3d->camera);
-    const bool is_select = res.selection_type != SelectionType::DISABLED;
+    const bool is_select = res.is_selection();
     const bool is_active = (ob == camera_object);
     const bool is_camera_view = (is_active && (rv3d->persp == RV3D_CAMOB));
 
@@ -416,7 +416,7 @@ class Cameras {
 
     const float4 &color = res.object_wire_color(ob_ref, state);
 
-    const bool is_selection = res.selection_type != SelectionType::DISABLED;
+    const bool is_selection = res.is_selection();
     const bool is_solid_bundle = (v3d->bundle_drawtype == OB_EMPTY_SPHERE) &&
                                  ((v3d->shading.type != OB_SOLID) || !XRAY_FLAG_ENABLED(v3d));
 
@@ -781,7 +781,7 @@ class Cameras {
     const bool is_stereo3d_cameras = (v3d->stereo3d_flag & V3D_S3D_DISPCAMERAS) != 0;
     const bool is_stereo3d_plane = (v3d->stereo3d_flag & V3D_S3D_DISPPLANE) != 0;
     const bool is_stereo3d_volume = (v3d->stereo3d_flag & V3D_S3D_DISPVOLUME) != 0;
-    const bool is_selection = res.selection_type != SelectionType::DISABLED;
+    const bool is_selection = res.is_selection();
 
     if (!is_stereo3d_cameras) {
       /* Draw single camera. */

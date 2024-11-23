@@ -55,7 +55,7 @@ class AntiAliasing {
  public:
   void begin_sync(Resources &res)
   {
-    if (res.selection_type != SelectionType::DISABLED) {
+    if (res.is_selection()) {
       anti_aliasing_ps_.init();
       return;
     }

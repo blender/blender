@@ -33,7 +33,7 @@ class MotionPath {
   void begin_sync(Resources &res, const State &state)
   {
     enabled_ = state.v3d && !(state.overlay.flag & V3D_OVERLAY_HIDE_MOTION_PATHS) &&
-               (res.selection_type == SelectionType::DISABLED);
+               !res.is_selection();
     if (!enabled_) {
       /* Not used. But release the data. */
       motion_path_ps_.init();

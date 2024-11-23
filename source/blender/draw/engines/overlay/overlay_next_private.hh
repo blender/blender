@@ -542,6 +542,14 @@ struct Resources : public select::SelectMap {
       BKE_movieclip_free_gputexture(clip);
     }
   }
+
+  /** Convenience functions. */
+
+  /* Returns true if drawing for any selection mode. */
+  bool is_selection() const
+  {
+    return this->selection_type != SelectionType::DISABLED;
+  }
 };
 
 /**

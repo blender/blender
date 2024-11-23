@@ -40,7 +40,6 @@ class Prepass {
 
   void begin_sync(Resources &res, const State &state)
   {
-    use_selection_ = (selection_type_ != SelectionType::DISABLED);
     enabled_ = state.is_space_v3d();
 
     if (!enabled_) {
@@ -72,8 +71,8 @@ class Prepass {
     res.select_bind(ps_);
     {
       auto &sub = ps_.sub("Mesh");
-      sub.shader_set(use_selection_ ? res.shaders.depth_mesh_conservative.get() :
-                                      res.shaders.depth_mesh.get());
+      sub.shader_set(res.is_selection() ? res.shaders.depth_mesh_conservative.get() :
+                                          res.shaders.depth_mesh.get());
       sub.bind_ubo("globalsBlock", &res.globals_buf);
       mesh_ps_ = &sub;
     }
@@ -191,7 +190,7 @@ class Prepass {
         pass = mesh_ps_;
         break;
       case OB_VOLUME:
-        if (selection_type_ == SelectionType::DISABLED) {
+        if (!res.is_selection()) {
           /* Disable during display, only enable for selection. */
           /* TODO(fclem): Would be nice to have even when not selecting to occlude overlays. */
           return;
@@ -208,7 +207,7 @@ class Prepass {
         pass = curves_ps_;
         break;
       case OB_GREASE_PENCIL:
-        if (selection_type_ == SelectionType::DISABLED) {
+        if (!res.is_selection()) {
           /* Disable during display, only enable for selection.
            * The grease pencil engine already renders it properly. */
           return;
@@ -235,7 +234,7 @@ class Prepass {
                                  res.select_id(ob_ref, (material_id + 1) << 16) :
                                  res.select_id(ob_ref);
 
-      if (use_selection_ && (pass == mesh_ps_)) {
+      if (res.is_selection() && (pass == mesh_ps_)) {
         /* Conservative shader needs expanded draw-call. */
         pass->draw_expand(
             geom_list[material_id], GPU_PRIM_TRIS, 1, 1, res_handle, select_id.get());

@@ -36,7 +36,7 @@ class Fade {
     const bool do_edit_mesh_fade_geom = !state.xray_enabled &&
                                         (state.overlay.flag & V3D_OVERLAY_FADE_INACTIVE);
     enabled_ = state.is_space_v3d() && (do_edit_mesh_fade_geom || state.do_pose_fade_geom) &&
-               (selection_type_ == SelectionType::DISABLED);
+               !res.is_selection();
 
     if (!enabled_) {
       /* Not used. But release the data. */

@@ -28,7 +28,7 @@ class ModeTransfer {
  public:
   void begin_sync(Resources &res, const State &state)
   {
-    enabled_ = state.is_space_v3d() && (res.selection_type == SelectionType::DISABLED);
+    enabled_ = state.is_space_v3d() && !res.is_selection();
 
     if (!enabled_) {
       /* Not used. But release the data. */

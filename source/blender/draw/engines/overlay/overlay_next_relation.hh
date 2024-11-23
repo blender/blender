@@ -39,7 +39,7 @@ class Relations {
   {
     enabled_ = state.is_space_v3d();
     enabled_ &= (state.v3d_flag & V3D_HIDE_HELPLINES) == 0;
-    enabled_ &= res.selection_type == SelectionType::DISABLED;
+    enabled_ &= !res.is_selection();
 
     points_buf_.clear();
     relations_buf_.clear();
