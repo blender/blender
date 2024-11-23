@@ -16,7 +16,6 @@ struct BlendDataReader;
 struct Brush;
 struct CurveMapping;
 struct Depsgraph;
-struct GHash;
 struct ListBase;
 struct MDeformVert;
 struct Main;

@@ -13,7 +13,6 @@
 #include "ANIM_action.hh"
 #include "ANIM_action_legacy.hh"
 
-struct GSet;
 struct ListBase;
 struct Scene;
 struct Sequence;

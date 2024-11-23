@@ -32,7 +32,7 @@ bool BLI_session_uid_is_equal(const SessionUID *lhs, const SessionUID *rhs);
 
 uint64_t BLI_session_uid_hash_uint64(const SessionUID *uid);
 
-/* Utility functions to make it possible to create GHash/GSet with UID as a key. */
+/* Utility functions to make it possible to create set/map with UID as a key. */
 
 uint BLI_session_uid_ghash_hash(const void *uid_v);
 bool BLI_session_uid_ghash_compare(const void *lhs_v, const void *rhs_v);
