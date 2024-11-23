@@ -950,51 +950,91 @@ AssetMetaData *blo_bhead_id_asset_data_address(const FileData *fd, const BHead *
              nullptr;
 }
 
-static void decode_blender_header(FileData *fd)
+/** A header that has been parsed successfully. */
+struct BlenderHeader {
+  /** 4 or 8. */
+  int pointer_size;
+  /** L_ENDIAN or B_ENDIAN. */
+  int endian;
+  /** #BLENDER_FILE_VERSION. */
+  int file_version;
+};
+
+/** The file is detected to be a Blender file, but it could not be decoded successfully. */
+struct UnknownBlenderHeader {};
+
+/** The file is not a Blender file. */
+struct InvalidHeader {};
+
+using BlenderHeaderVariant = std::variant<InvalidHeader, UnknownBlenderHeader, BlenderHeader>;
+
+static BlenderHeaderVariant decode_blender_header(FileData *fd)
 {
-  char header[SIZEOFBLENDERHEADER], num[4];
-  int64_t readsize;
-
-  /* read in the header data */
-  readsize = fd->file->read(fd->file, header, sizeof(header));
-
-  if (readsize == sizeof(header) && STREQLEN(header, "BLENDER", 7) && ELEM(header[7], '_', '-') &&
-      ELEM(header[8], 'v', 'V') &&
-      (isdigit(header[9]) && isdigit(header[10]) && isdigit(header[11])))
-  {
-    fd->flags |= FD_FLAGS_FILE_OK;
-
-    /* what size are pointers in the file ? */
-    if (header[7] == '_') {
-      fd->flags |= FD_FLAGS_FILE_POINTSIZE_IS_4;
-      if (sizeof(void *) != 4) {
-        fd->flags |= FD_FLAGS_POINTSIZE_DIFFERS;
-      }
-    }
-    else {
-      if (sizeof(void *) != 8) {
-        fd->flags |= FD_FLAGS_POINTSIZE_DIFFERS;
-      }
-    }
-
-    /* is the file saved in a different endian
-     * than we need ?
-     */
-    if (((header[8] == 'v') ? L_ENDIAN : B_ENDIAN) != ENDIAN_ORDER) {
-      fd->flags |= FD_FLAGS_SWITCH_ENDIAN;
-    }
-
-    /* get the version number */
-    memcpy(num, header + 9, 3);
-    num[3] = 0;
-    fd->fileversion = atoi(num);
+  char header_bytes[SIZEOFBLENDERHEADER];
+  const int64_t readsize = fd->file->read(fd->file, header_bytes, sizeof(header_bytes));
+  if (readsize != sizeof(header_bytes)) {
+    return InvalidHeader{};
   }
-  else if (STREQLEN(header, "BLENDER", 7)) {
-    /* If the first 7 bytes are BLENDER, it is very likely that this is a newer version of the
-     * blendfile format. Unreadable currently, but avoid telling the user that this is not a blend
-     * file. */
+  if (!STREQLEN(header_bytes, "BLENDER", 7)) {
+    return InvalidHeader{};
+  }
+  /* If the first 7 bytes are BLENDER, it is very likely that this is a newer version of the
+   * blendfile format. If the rest of the decode fails, we can still report that this was a Blender
+   * file of a potentially future version. */
+
+  BlenderHeader header;
+  switch (header_bytes[7]) {
+    case '_':
+      header.pointer_size = 4;
+      break;
+    case '-':
+      header.pointer_size = 8;
+      break;
+    default:
+      return UnknownBlenderHeader{};
+  }
+  switch (header_bytes[8]) {
+    case 'v':
+      header.endian = L_ENDIAN;
+      break;
+    case 'V':
+      header.endian = B_ENDIAN;
+      break;
+    default:
+      return UnknownBlenderHeader{};
+  }
+  if (!isdigit(header_bytes[9]) || !isdigit(header_bytes[10]) || !isdigit(header_bytes[11])) {
+    return UnknownBlenderHeader{};
+  }
+  char version_str[4];
+  memcpy(version_str, header_bytes + 9, 3);
+  version_str[3] = '\0';
+  header.file_version = atoi(version_str);
+  return header;
+}
+
+static void read_blender_header(FileData *fd)
+{
+  const BlenderHeaderVariant header_variant = decode_blender_header(fd);
+  if (std::holds_alternative<InvalidHeader>(header_variant)) {
+    return;
+  }
+  if (std::holds_alternative<UnknownBlenderHeader>(header_variant)) {
     fd->flags |= FD_FLAGS_FILE_FUTURE;
+    return;
   }
+  const BlenderHeader &header = std::get<BlenderHeader>(header_variant);
+  fd->flags |= FD_FLAGS_FILE_OK;
+  if (header.pointer_size == 4) {
+    fd->flags |= FD_FLAGS_FILE_POINTSIZE_IS_4;
+  }
+  if (header.pointer_size != sizeof(void *)) {
+    fd->flags |= FD_FLAGS_POINTSIZE_DIFFERS;
+  }
+  if (header.endian != ENDIAN_ORDER) {
+    fd->flags |= FD_FLAGS_SWITCH_ENDIAN;
+  }
+  fd->fileversion = header.file_version;
 }
 
 /**
@@ -1171,7 +1211,7 @@ static bool is_minversion_older_than_blender(FileData *fd, ReportList *reports)
 
 static FileData *blo_decode_and_check(FileData *fd, ReportList *reports)
 {
-  decode_blender_header(fd);
+  read_blender_header(fd);
 
   if (fd->flags & FD_FLAGS_FILE_OK) {
     const char *error_message = nullptr;
@@ -1306,7 +1346,7 @@ static FileData *blo_filedata_from_file_minimal(const char *filepath)
   BlendFileReadReport read_report{};
   FileData *fd = blo_filedata_from_file_open(filepath, &read_report);
   if (fd != nullptr) {
-    decode_blender_header(fd);
+    read_blender_header(fd);
     if (fd->flags & FD_FLAGS_FILE_OK) {
       return fd;
     }
