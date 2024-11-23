@@ -76,8 +76,9 @@ class Instance {
 
   struct OverlayLayer {
     const SelectionType selection_type_;
+    ShapeCache &shapes;
 
-    Armatures armatures = {selection_type_};
+    Armatures armatures = {selection_type_, shapes};
     AttributeViewer attribute_viewer;
     Axes axes = {selection_type_};
     Bounds bounds = {selection_type_};
@@ -105,7 +106,7 @@ class Instance {
     Sculpts sculpts;
     Speakers speakers = {selection_type_};
     Wireframe wireframe;
-  } regular{selection_type_}, infront{selection_type_};
+  } regular{selection_type_, shapes}, infront{selection_type_, shapes};
 
   Grid grid;
 

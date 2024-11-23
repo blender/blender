@@ -127,9 +127,11 @@ class Armatures {
   BoneBuffers transparent_ = {selection_type_};
 
   bool enabled_ = false;
+  const ShapeCache &shapes_;
 
  public:
-  Armatures(const SelectionType selection_type) : selection_type_(selection_type){};
+  Armatures(const SelectionType selection_type, const ShapeCache &shapes)
+      : selection_type_(selection_type), shapes_(shapes){};
 
   void begin_sync(Resources &res, const State &state)
   {
@@ -506,7 +508,6 @@ class Armatures {
 
   DrawContext create_draw_context(const ObjectRef &ob_ref,
                                   Resources &res,
-                                  const ShapeCache &shapes,
                                   const State &state,
                                   eArmatureDrawMode draw_mode)
   {
@@ -516,7 +517,7 @@ class Armatures {
     ctx.ob = ob_ref.object;
     ctx.ob_ref = &ob_ref;
     ctx.res = &res;
-    ctx.shapes = &shapes;
+    ctx.shapes = &shapes_;
     ctx.draw_mode = draw_mode;
     ctx.drawtype = eArmature_Drawtype(arm->drawtype);
 
@@ -539,23 +540,23 @@ class Armatures {
     return ctx;
   }
 
-  void edit_object_sync(const ObjectRef &ob_ref,
-                        Resources &res,
-                        ShapeCache &shapes,
-                        const State &state)
+  void edit_object_sync(Manager & /*manager*/,
+                        const ObjectRef &ob_ref,
+                        const State &state,
+                        Resources &res)
   {
     if (!enabled_) {
       return;
     }
 
-    DrawContext ctx = create_draw_context(ob_ref, res, shapes, state, ARM_DRAW_MODE_EDIT);
+    DrawContext ctx = create_draw_context(ob_ref, res, state, ARM_DRAW_MODE_EDIT);
     draw_armature_edit(&ctx);
   }
 
-  void object_sync(const ObjectRef &ob_ref,
-                   Resources &res,
-                   const ShapeCache &shapes,
-                   const State &state)
+  void object_sync(Manager & /*manager*/,
+                   const ObjectRef &ob_ref,
+                   const State &state,
+                   Resources &res)
   {
     if (!enabled_ || ob_ref.object->dt == OB_BOUNDBOX) {
       return;
@@ -564,7 +565,7 @@ class Armatures {
     eArmatureDrawMode draw_mode = is_pose_mode(ob_ref.object, state) ? ARM_DRAW_MODE_POSE :
                                                                        ARM_DRAW_MODE_OBJECT;
 
-    DrawContext ctx = create_draw_context(ob_ref, res, shapes, state, draw_mode);
+    DrawContext ctx = create_draw_context(ob_ref, res, state, draw_mode);
     draw_armature_pose(&ctx);
   }
 

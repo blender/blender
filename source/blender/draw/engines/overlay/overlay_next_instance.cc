@@ -224,7 +224,7 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
         layer.mesh_uvs.edit_object_sync(manager, ob_ref, state);
         break;
       case OB_ARMATURE:
-        layer.armatures.edit_object_sync(ob_ref, resources, shapes, state);
+        layer.armatures.edit_object_sync(manager, ob_ref, state, resources);
         break;
       case OB_SURF:
       case OB_CURVES_LEGACY:
@@ -262,7 +262,7 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
         break;
       case OB_ARMATURE:
         if (!in_edit_mode) {
-          layer.armatures.object_sync(ob_ref, resources, shapes, state);
+          layer.armatures.object_sync(manager, ob_ref, state, resources);
         }
         break;
       case OB_LATTICE:
