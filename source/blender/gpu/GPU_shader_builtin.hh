@@ -58,6 +58,10 @@ enum eGPUBuiltinShader {
   GPU_SHADER_2D_WIDGET_BASE,
   GPU_SHADER_2D_WIDGET_BASE_INST,
   GPU_SHADER_2D_WIDGET_SHADOW,
+  /** Draw a node socket given it's bounding rectangle. All socket shapes are supported through
+   * a single shader. */
+  GPU_SHADER_2D_NODE_SOCKET,
+  GPU_SHADER_2D_NODE_SOCKET_INST,
   /** Draw a node link given an input quadratic Bezier curve. */
   GPU_SHADER_2D_NODELINK,
   GPU_SHADER_2D_NODELINK_INST,

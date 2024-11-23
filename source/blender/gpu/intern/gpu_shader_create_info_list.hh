@@ -14,6 +14,7 @@
 #include "gpu_shader_2D_image_overlays_stereo_merge_info.hh"
 #include "gpu_shader_2D_image_rect_color_info.hh"
 #include "gpu_shader_2D_image_shuffle_color_info.hh"
+#include "gpu_shader_2D_node_socket_info.hh"
 #include "gpu_shader_2D_nodelink_info.hh"
 #include "gpu_shader_2D_point_uniform_size_uniform_color_aa_info.hh"
 #include "gpu_shader_2D_point_uniform_size_uniform_color_outline_aa_info.hh"

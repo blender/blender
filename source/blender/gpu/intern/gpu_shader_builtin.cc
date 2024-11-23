@@ -81,6 +81,10 @@ static const char *builtin_shader_create_info_name(eGPUBuiltinShader shader)
       return "gpu_shader_2D_widget_base_inst";
     case GPU_SHADER_2D_WIDGET_SHADOW:
       return "gpu_shader_2D_widget_shadow";
+    case GPU_SHADER_2D_NODE_SOCKET:
+      return "gpu_shader_2D_node_socket";
+    case GPU_SHADER_2D_NODE_SOCKET_INST:
+      return "gpu_shader_2D_node_socket_inst";
     case GPU_SHADER_2D_NODELINK:
       return "gpu_shader_2D_nodelink";
     case GPU_SHADER_2D_NODELINK_INST:
