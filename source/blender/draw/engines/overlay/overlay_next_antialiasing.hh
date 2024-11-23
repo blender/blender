@@ -42,18 +42,18 @@
 
 #pragma once
 
-#include "overlay_next_private.hh"
+#include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {
 
-class AntiAliasing {
+class AntiAliasing : Overlay {
  private:
   PassSimple anti_aliasing_ps_ = {"AntiAliasing"};
 
   GPUFrameBuffer *framebuffer_ref_ = nullptr;
 
  public:
-  void begin_sync(Resources &res)
+  void begin_sync(Resources &res, const State & /*state*/) final
   {
     if (res.is_selection()) {
       anti_aliasing_ps_.init();
@@ -77,7 +77,7 @@ class AntiAliasing {
     }
   }
 
-  void draw_output(Framebuffer &framebuffer, Manager &manager, View & /*view*/)
+  void draw_output(Framebuffer &framebuffer, Manager &manager, View & /*view*/) final
   {
     framebuffer_ref_ = framebuffer;
     manager.submit(anti_aliasing_ps_);

@@ -8,14 +8,14 @@
 
 #pragma once
 
-#include "overlay_next_private.hh"
-#include "overlay_shader_shared.h"
-
 #include "ED_mball.hh"
+
+#include "overlay_next_base.hh"
+#include "overlay_shader_shared.h"
 
 namespace blender::draw::overlay {
 
-class Metaballs {
+class Metaballs : Overlay {
   using SphereOutlineInstanceBuf = ShapeInstanceBuf<BoneInstanceData>;
 
  private:
@@ -28,12 +28,15 @@ class Metaballs {
  public:
   Metaballs(const SelectionType selection_type) : selection_type_(selection_type){};
 
-  void begin_sync()
+  void begin_sync(Resources & /*res*/, const State & /*state*/) final
   {
     circle_buf_.clear();
   }
 
-  void edit_object_sync(const ObjectRef &ob_ref, Resources &res)
+  void edit_object_sync(Manager & /*manager*/,
+                        const ObjectRef &ob_ref,
+                        Resources &res,
+                        const State & /*state*/) final
   {
     const Object *ob = ob_ref.object;
     const MetaBall *mb = static_cast<MetaBall *>(ob->data);
@@ -62,7 +65,10 @@ class Metaballs {
     }
   }
 
-  void object_sync(const ObjectRef &ob_ref, Resources &res, const State &state)
+  void object_sync(Manager & /*manager*/,
+                   const ObjectRef &ob_ref,
+                   Resources &res,
+                   const State &state) final
   {
     const Object *ob = ob_ref.object;
     const MetaBall *mb = static_cast<MetaBall *>(ob->data);
@@ -77,7 +83,7 @@ class Metaballs {
     }
   }
 
-  void end_sync(Resources &res, ShapeCache &shapes, const State &state)
+  void end_sync(Resources &res, const ShapeCache &shapes, const State &state) final
   {
     ps_.init();
     ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL,
@@ -91,7 +97,7 @@ class Metaballs {
     circle_buf_.end_sync(ps_, shapes.metaball_wire_circle.get());
   }
 
-  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     GPU_framebuffer_bind(framebuffer);
     manager.submit(ps_, view);

@@ -9,20 +9,15 @@
 #pragma once
 
 #include "BKE_camera.h"
-
-#include "DEG_depsgraph_query.hh"
-
 #include "BKE_tracking.h"
-
 #include "BLI_math_rotation.h"
-
+#include "DEG_depsgraph_query.hh"
 #include "DNA_camera_types.h"
-
 #include "ED_view3d.hh"
 
 #include "draw_manager_text.hh"
+#include "overlay_next_base.hh"
 #include "overlay_next_empty.hh"
-#include "overlay_next_private.hh"
 
 namespace blender::draw::overlay {
 struct CameraInstanceData : public ExtraInstanceData {
@@ -51,7 +46,7 @@ struct CameraInstanceData : public ExtraInstanceData {
       : ExtraInstanceData(p_matrix, color, 1.0f){};
 };
 
-class Cameras {
+class Cameras : Overlay {
   using CameraInstanceBuf = ShapeInstanceBuf<ExtraInstanceData>;
 
  private:
@@ -83,7 +78,6 @@ class Cameras {
     Empties::CallBuffers empties{selection_type_};
   } call_buffers_;
 
-  bool enabled_ = false;
   bool images_enabled_ = false;
   bool extras_enabled_ = false;
   bool motion_tracking_enabled_ = false;

@@ -122,27 +122,27 @@ void Instance::begin_sync()
 
   background.begin_sync(resources, state);
   motion_paths.begin_sync(resources, state);
-  origins.begin_sync(state);
+  origins.begin_sync(resources, state);
   outline.begin_sync(resources, state);
 
   auto begin_sync_layer = [&](OverlayLayer &layer) {
     layer.armatures.begin_sync(resources, state);
     layer.attribute_viewer.begin_sync(resources, state);
     layer.axes.begin_sync(resources, state);
-    layer.bounds.begin_sync();
+    layer.bounds.begin_sync(resources, state);
     layer.cameras.begin_sync(resources, state, view);
     layer.curves.begin_sync(resources, state, view);
-    layer.edit_text.begin_sync(state);
+    layer.edit_text.begin_sync(resources, state);
     layer.empties.begin_sync(resources, state, view);
     layer.facing.begin_sync(resources, state);
     layer.fade.begin_sync(resources, state);
-    layer.force_fields.begin_sync();
+    layer.force_fields.begin_sync(resources, state);
     layer.fluids.begin_sync(resources, state);
     layer.grease_pencil.begin_sync(resources, state, view);
     layer.lattices.begin_sync(resources, state);
-    layer.lights.begin_sync(state);
+    layer.lights.begin_sync(resources, state);
     layer.light_probes.begin_sync(resources, state);
-    layer.metaballs.begin_sync();
+    layer.metaballs.begin_sync(resources, state);
     layer.meshes.begin_sync(resources, state, view);
     layer.mesh_uvs.begin_sync(resources, state);
     layer.mode_transfer.begin_sync(resources, state);
@@ -151,7 +151,7 @@ void Instance::begin_sync()
     layer.particles.begin_sync(resources, state);
     layer.prepass.begin_sync(resources, state);
     layer.relations.begin_sync(resources, state);
-    layer.speakers.begin_sync(state);
+    layer.speakers.begin_sync(resources, state);
     layer.sculpts.begin_sync(resources, state);
     layer.wireframe.begin_sync(resources, state);
   };
@@ -160,7 +160,7 @@ void Instance::begin_sync()
 
   grid.begin_sync(resources, shapes, state, view);
 
-  anti_aliasing.begin_sync(resources);
+  anti_aliasing.begin_sync(resources, state);
   xray_fade.begin_sync(resources, state);
 }
 
@@ -176,7 +176,7 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
 
   OverlayLayer &layer = object_is_in_front(ob_ref.object, state) ? infront : regular;
 
-  layer.mode_transfer.object_sync(manager, ob_ref, state);
+  layer.mode_transfer.object_sync(manager, ob_ref, resources, state);
 
   if (needs_prepass) {
     layer.prepass.object_sync(manager, ob_ref, resources, state);
@@ -190,12 +190,12 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
     switch (ob_ref.object->type) {
       case OB_MESH:
         /* TODO(fclem): Make it part of a #Meshes. */
-        layer.paints.object_sync(manager, ob_ref, state);
+        layer.paints.object_sync(manager, ob_ref, resources, state);
         /* For wireframes. */
-        layer.mesh_uvs.edit_object_sync(manager, ob_ref, state);
+        layer.mesh_uvs.edit_object_sync(manager, ob_ref, resources, state);
         break;
       case OB_GREASE_PENCIL:
-        layer.grease_pencil.paint_object_sync(manager, ob_ref, state, resources);
+        layer.grease_pencil.paint_object_sync(manager, ob_ref, resources, state);
         break;
       default:
         break;
@@ -206,10 +206,10 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
     switch (ob_ref.object->type) {
       case OB_MESH:
         /* TODO(fclem): Make it part of a #Meshes. */
-        layer.sculpts.object_sync(manager, ob_ref, state);
+        layer.sculpts.object_sync(manager, ob_ref, resources, state);
         break;
       case OB_GREASE_PENCIL:
-        layer.grease_pencil.sculpt_object_sync(manager, ob_ref, state, resources);
+        layer.grease_pencil.sculpt_object_sync(manager, ob_ref, resources, state);
         break;
       default:
         break;
@@ -219,37 +219,37 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
   if (in_edit_mode && !state.hide_overlays) {
     switch (ob_ref.object->type) {
       case OB_MESH:
-        layer.meshes.edit_object_sync(manager, ob_ref, state, resources);
+        layer.meshes.edit_object_sync(manager, ob_ref, resources, state);
         /* TODO(fclem): Find a better place / condition. */
-        layer.mesh_uvs.edit_object_sync(manager, ob_ref, state);
+        layer.mesh_uvs.edit_object_sync(manager, ob_ref, resources, state);
         break;
       case OB_ARMATURE:
-        layer.armatures.edit_object_sync(manager, ob_ref, state, resources);
+        layer.armatures.edit_object_sync(manager, ob_ref, resources, state);
         break;
       case OB_SURF:
       case OB_CURVES_LEGACY:
         layer.curves.edit_object_sync_legacy(manager, ob_ref, resources);
         break;
       case OB_CURVES:
-        layer.curves.edit_object_sync(manager, ob_ref, resources);
+        layer.curves.edit_object_sync(manager, ob_ref, resources, state);
         break;
       case OB_LATTICE:
-        layer.lattices.edit_object_sync(manager, ob_ref, resources);
+        layer.lattices.edit_object_sync(manager, ob_ref, resources, state);
         break;
       case OB_MBALL:
-        layer.metaballs.edit_object_sync(ob_ref, resources);
+        layer.metaballs.edit_object_sync(manager, ob_ref, resources, state);
         break;
       case OB_FONT:
-        layer.edit_text.edit_object_sync(ob_ref, resources);
+        layer.edit_text.edit_object_sync(manager, ob_ref, resources, state);
         break;
       case OB_GREASE_PENCIL:
-        layer.grease_pencil.edit_object_sync(manager, ob_ref, state, resources);
+        layer.grease_pencil.edit_object_sync(manager, ob_ref, resources, state);
         break;
     }
   }
 
   if (state.is_wireframe_mode || !state.hide_overlays) {
-    layer.wireframe.object_sync(manager, ob_ref, state, resources, in_edit_paint_mode);
+    layer.wireframe.object_sync(manager, ob_ref, resources, state, in_edit_paint_mode);
   }
 
   if (!state.hide_overlays) {
@@ -262,7 +262,7 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
         break;
       case OB_ARMATURE:
         if (!in_edit_mode) {
-          layer.armatures.object_sync(manager, ob_ref, state, resources);
+          layer.armatures.object_sync(manager, ob_ref, resources, state);
         }
         break;
       case OB_LATTICE:
@@ -271,46 +271,46 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
         }
         break;
       case OB_LAMP:
-        layer.lights.object_sync(ob_ref, resources, state);
+        layer.lights.object_sync(manager, ob_ref, resources, state);
         break;
       case OB_LIGHTPROBE:
-        layer.light_probes.object_sync(ob_ref, resources, state);
+        layer.light_probes.object_sync(manager, ob_ref, resources, state);
         break;
       case OB_MBALL:
         if (!in_edit_mode) {
-          layer.metaballs.object_sync(ob_ref, resources, state);
+          layer.metaballs.object_sync(manager, ob_ref, resources, state);
         }
         break;
       case OB_GREASE_PENCIL:
-        layer.grease_pencil.object_sync(ob_ref, resources, state);
+        layer.grease_pencil.object_sync(manager, ob_ref, resources, state);
         break;
       case OB_SPEAKER:
-        layer.speakers.object_sync(ob_ref, resources, state);
+        layer.speakers.object_sync(manager, ob_ref, resources, state);
         break;
     }
-    layer.attribute_viewer.object_sync(ob_ref, state, manager);
-    layer.bounds.object_sync(ob_ref, resources, state);
-    layer.facing.object_sync(manager, ob_ref, state);
-    layer.fade.object_sync(manager, ob_ref, state);
-    layer.force_fields.object_sync(ob_ref, resources, state);
+    layer.attribute_viewer.object_sync(manager, ob_ref, resources, state);
+    layer.bounds.object_sync(manager, ob_ref, resources, state);
+    layer.facing.object_sync(manager, ob_ref, resources, state);
+    layer.fade.object_sync(manager, ob_ref, resources, state);
+    layer.force_fields.object_sync(manager, ob_ref, resources, state);
     layer.fluids.object_sync(manager, ob_ref, resources, state);
     layer.particles.object_sync(manager, ob_ref, resources, state);
-    layer.relations.object_sync(ob_ref, resources, state);
-    layer.axes.object_sync(ob_ref, resources, state);
-    layer.names.object_sync(ob_ref, resources, state);
+    layer.relations.object_sync(manager, ob_ref, resources, state);
+    layer.axes.object_sync(manager, ob_ref, resources, state);
+    layer.names.object_sync(manager, ob_ref, resources, state);
 
-    motion_paths.object_sync(ob_ref, resources, state);
-    origins.object_sync(ob_ref, resources, state);
+    motion_paths.object_sync(manager, ob_ref, resources, state);
+    origins.object_sync(manager, ob_ref, resources, state);
 
     if (object_is_selected(ob_ref) && !in_edit_paint_mode) {
-      outline.object_sync(manager, ob_ref, state);
+      outline.object_sync(manager, ob_ref, resources, state);
     }
   }
 }
 
 void Instance::end_sync()
 {
-  origins.end_sync(resources, state);
+  origins.end_sync(resources, shapes, state);
   resources.end_sync();
 
   auto end_sync_layer = [&](OverlayLayer &layer) {
@@ -325,7 +325,7 @@ void Instance::end_sync()
     layer.light_probes.end_sync(resources, shapes, state);
     layer.mesh_uvs.end_sync(resources, shapes, state);
     layer.metaballs.end_sync(resources, shapes, state);
-    layer.relations.end_sync(resources, state);
+    layer.relations.end_sync(resources, shapes, state);
     layer.fluids.end_sync(resources, shapes, state);
     layer.speakers.end_sync(resources, shapes, state);
   };

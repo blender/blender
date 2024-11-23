@@ -10,7 +10,7 @@
 
 #include "ED_view3d.hh"
 
-#include "overlay_next_private.hh"
+#include "overlay_next_base.hh"
 #include "overlay_shader_shared.h"
 
 namespace blender::draw::overlay {
@@ -22,7 +22,7 @@ enum eArmatureDrawMode {
   ARM_DRAW_MODE_EDIT,
 };
 
-class Armatures {
+class Armatures : Overlay {
   using EmptyInstanceBuf = ShapeInstanceBuf<ExtraInstanceData>;
   using BoneInstanceBuf = ShapeInstanceBuf<BoneInstanceData>;
   using BoneEnvelopeBuf = ShapeInstanceBuf<BoneEnvelopeData>;
@@ -126,14 +126,13 @@ class Armatures {
   BoneBuffers opaque_ = {selection_type_};
   BoneBuffers transparent_ = {selection_type_};
 
-  bool enabled_ = false;
   const ShapeCache &shapes_;
 
  public:
   Armatures(const SelectionType selection_type, const ShapeCache &shapes)
       : selection_type_(selection_type), shapes_(shapes){};
 
-  void begin_sync(Resources &res, const State &state)
+  void begin_sync(Resources &res, const State &state) final
   {
     enabled_ = state.is_space_v3d() && state.show_bones();
 
@@ -542,8 +541,8 @@ class Armatures {
 
   void edit_object_sync(Manager & /*manager*/,
                         const ObjectRef &ob_ref,
-                        const State &state,
-                        Resources &res)
+                        Resources &res,
+                        const State &state) final
   {
     if (!enabled_) {
       return;
@@ -555,8 +554,8 @@ class Armatures {
 
   void object_sync(Manager & /*manager*/,
                    const ObjectRef &ob_ref,
-                   const State &state,
-                   Resources &res)
+                   Resources &res,
+                   const State &state) final
   {
     if (!enabled_ || ob_ref.object->dt == OB_BOUNDBOX) {
       return;
@@ -569,7 +568,7 @@ class Armatures {
     draw_armature_pose(&ctx);
   }
 
-  void end_sync(Resources & /*res*/, const ShapeCache &shapes, const State & /*state*/)
+  void end_sync(Resources & /*res*/, const ShapeCache &shapes, const State & /*state*/) final
   {
     if (!enabled_) {
       return;
@@ -621,7 +620,7 @@ class Armatures {
     end_sync(opaque_);
   }
 
-  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;

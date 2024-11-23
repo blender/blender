@@ -8,11 +8,11 @@
 
 #pragma once
 
-#include "overlay_next_private.hh"
+#include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {
 
-class Lights {
+class Lights : Overlay {
   using LightInstanceBuf = ShapeInstanceBuf<ExtraInstanceData>;
   using GroundLineInstanceBuf = ShapeInstanceBuf<float4>;
 
@@ -36,12 +36,10 @@ class Lights {
     LightInstanceBuf area_square_buf = {selection_type_, "area_square_buf"};
   } call_buffers_{selection_type_};
 
-  bool enabled_ = false;
-
  public:
   Lights(const SelectionType selection_type) : selection_type_(selection_type){};
 
-  void begin_sync(const State &state)
+  void begin_sync(Resources & /*res*/, const State &state) final
   {
     enabled_ = state.is_space_v3d() && state.show_extras();
     if (!enabled_) {
@@ -61,7 +59,10 @@ class Lights {
     call_buffers_.area_square_buf.clear();
   }
 
-  void object_sync(const ObjectRef &ob_ref, Resources &res, const State &state)
+  void object_sync(Manager & /*manager*/,
+                   const ObjectRef &ob_ref,
+                   Resources &res,
+                   const State &state) final
   {
     if (!enabled_) {
       return;
@@ -152,7 +153,7 @@ class Lights {
     }
   }
 
-  void end_sync(Resources &res, ShapeCache &shapes, const State &state)
+  void end_sync(Resources &res, const ShapeCache &shapes, const State &state) final
   {
     if (!enabled_) {
       return;
@@ -204,7 +205,7 @@ class Lights {
     }
   }
 
-  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;

@@ -14,18 +14,16 @@
 
 #pragma once
 
-#include "overlay_next_private.hh"
+#include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {
 
-class XrayFade {
+class XrayFade : Overlay {
  private:
   PassSimple xray_fade_ps_ = {"XrayFade"};
 
-  bool enabled_ = false;
-
  public:
-  void begin_sync(Resources &res, State &state)
+  void begin_sync(Resources &res, const State &state) final
   {
     enabled_ = state.xray_enabled && (state.xray_opacity > 0.0f) && !res.is_selection();
 
@@ -50,7 +48,7 @@ class XrayFade {
     }
   }
 
-  void draw_color_only(Framebuffer &framebuffer, Manager &manager, View & /*view*/)
+  void draw_color_only(Framebuffer &framebuffer, Manager &manager, View & /*view*/) final
   {
     if (!enabled_) {
       return;

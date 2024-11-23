@@ -10,11 +10,11 @@
 
 #include "DNA_lightprobe_types.h"
 
-#include "overlay_next_private.hh"
+#include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {
 
-class LightProbes {
+class LightProbes : Overlay {
   using LightProbeInstanceBuf = ShapeInstanceBuf<ExtraInstanceData>;
   using GroundLineInstanceBuf = ShapeInstanceBuf<float4>;
   using DotsInstanceBuf = ShapeInstanceBuf<float4x4>;
@@ -39,12 +39,10 @@ class LightProbes {
 
   } call_buffers_{selection_type_};
 
-  bool enabled_ = false;
-
  public:
   LightProbes(const SelectionType selection_type) : selection_type_(selection_type){};
 
-  void begin_sync(Resources &res, const State &state)
+  void begin_sync(Resources &res, const State &state) final
   {
     enabled_ = state.is_space_v3d() && state.show_extras();
     if (!enabled_) {
@@ -69,7 +67,10 @@ class LightProbes {
     res.select_bind(ps_dots_);
   }
 
-  void object_sync(const ObjectRef &ob_ref, Resources &res, const State &state)
+  void object_sync(Manager & /*manager*/,
+                   const ObjectRef &ob_ref,
+                   Resources &res,
+                   const State &state) final
   {
     if (!enabled_) {
       return;
@@ -181,7 +182,7 @@ class LightProbes {
     }
   }
 
-  void end_sync(Resources &res, ShapeCache &shapes, const State &state)
+  void end_sync(Resources &res, const ShapeCache &shapes, const State &state) final
   {
     if (!enabled_) {
       return;
@@ -214,7 +215,7 @@ class LightProbes {
     }
   }
 
-  void pre_draw(Manager &manager, View &view)
+  void pre_draw(Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;
@@ -223,7 +224,7 @@ class LightProbes {
     manager.generate_commands(ps_dots_, view);
   }
 
-  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;
@@ -233,7 +234,7 @@ class LightProbes {
     manager.submit(ps_, view);
   }
 
-  void draw_color_only(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_color_only(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;

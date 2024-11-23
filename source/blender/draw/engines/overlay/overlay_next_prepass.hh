@@ -11,14 +11,19 @@
 
 #pragma once
 
+#include "BKE_paint.hh"
+
+#include "DNA_particle_types.h"
+
 #include "draw_sculpt.hh"
 
+#include "overlay_next_base.hh"
 #include "overlay_next_grease_pencil.hh"
-#include "overlay_next_private.hh"
+#include "overlay_next_particle.hh"
 
 namespace blender::draw::overlay {
 
-class Prepass {
+class Prepass : Overlay {
  private:
   PassMain ps_ = {"prepass"};
   PassMain::Sub *mesh_ps_ = nullptr;
@@ -27,13 +32,12 @@ class Prepass {
   PassMain::Sub *point_cloud_ps_ = nullptr;
   PassMain::Sub *grease_pencil_ps_ = nullptr;
 
-  bool enabled_ = false;
   bool use_material_slot_selection_ = false;
 
   overlay::GreasePencil::ViewParameters grease_pencil_view;
 
  public:
-  void begin_sync(Resources &res, const State &state)
+  void begin_sync(Resources &res, const State &state) final
   {
     enabled_ = state.is_space_v3d();
 
@@ -116,8 +120,8 @@ class Prepass {
             /* Case where the render engine should have rendered it, but we need to draw it for
              * selection purpose. */
             if (handle.raw == 0u) {
-              handle = manager.resource_handle_for_psys(ob_ref,
-                                                        Particles::dupli_matrix_get(ob_ref));
+              handle = manager.resource_handle_for_psys(
+                  ob_ref, overlay::Particles::dupli_matrix_get(ob_ref));
             }
 
             select::ID select_id = use_material_slot_selection_ ?
@@ -146,7 +150,10 @@ class Prepass {
     }
   }
 
-  void object_sync(Manager &manager, const ObjectRef &ob_ref, Resources &res, const State &state)
+  void object_sync(Manager &manager,
+                   const ObjectRef &ob_ref,
+                   Resources &res,
+                   const State &state) final
   {
     if (!enabled_) {
       return;
@@ -240,7 +247,7 @@ class Prepass {
     }
   }
 
-  void pre_draw(Manager &manager, View &view)
+  void pre_draw(Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;
@@ -249,7 +256,7 @@ class Prepass {
     manager.generate_commands(ps_, view);
   }
 
-  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;

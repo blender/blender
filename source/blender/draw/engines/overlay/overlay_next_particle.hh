@@ -8,18 +8,17 @@
 
 #pragma once
 
+#include "BKE_pointcache.h"
+#include "DEG_depsgraph_query.hh"
 #include "DNA_collection_types.h"
 #include "DNA_particle_types.h"
-
-#include "BKE_pointcache.h"
-
 #include "ED_particle.hh"
 
-#include "overlay_next_private.hh"
+#include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {
 
-class Particles {
+class Particles : Overlay {
  private:
   PassMain particle_ps_ = {"particle_ps_"};
   PassMain::Sub *dot_ps_ = nullptr;
@@ -34,10 +33,8 @@ class Particles {
   bool show_point_inner_ = false;
   bool show_point_tip_ = false;
 
-  bool enabled_ = false;
-
  public:
-  void begin_sync(Resources &res, const State &state)
+  void begin_sync(Resources &res, const State &state) final
   {
     enabled_ = state.is_space_v3d();
 
@@ -136,7 +133,7 @@ class Particles {
   void edit_object_sync(Manager &manager,
                         const ObjectRef &ob_ref,
                         Resources & /*res*/,
-                        const State &state)
+                        const State &state) final
   {
     if (!enabled_) {
       return;
@@ -198,7 +195,10 @@ class Particles {
     }
   }
 
-  void object_sync(Manager &manager, const ObjectRef &ob_ref, Resources &res, const State &state)
+  void object_sync(Manager &manager,
+                   const ObjectRef &ob_ref,
+                   Resources &res,
+                   const State &state) final
   {
     if (!enabled_) {
       return;
@@ -280,7 +280,7 @@ class Particles {
     }
   }
 
-  void pre_draw(Manager &manager, View &view)
+  void pre_draw(Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;
@@ -289,7 +289,7 @@ class Particles {
     manager.generate_commands(particle_ps_, view);
   }
 
-  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;
@@ -299,7 +299,7 @@ class Particles {
     manager.submit_only(particle_ps_, view);
   }
 
-  void draw(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;

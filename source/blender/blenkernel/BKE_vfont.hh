@@ -11,6 +11,7 @@
 
 struct CharInfo;
 struct Curve;
+struct ListBase;
 struct Main;
 struct Object;
 struct VFont;

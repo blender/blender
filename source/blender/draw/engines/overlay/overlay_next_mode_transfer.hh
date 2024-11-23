@@ -8,11 +8,13 @@
 
 #pragma once
 
-#include "overlay_next_private.hh"
+#include "BKE_paint.hh"
+
+#include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {
 
-class ModeTransfer {
+class ModeTransfer : Overlay {
  private:
   PassSimple ps_ = {"ModeTransfer"};
 
@@ -20,13 +22,11 @@ class ModeTransfer {
 
   double current_time_ = 0.0;
 
-  bool enabled_ = false;
-
   /* True if any object used was synced using this overlay. */
   bool any_animated_ = false;
 
  public:
-  void begin_sync(Resources &res, const State &state)
+  void begin_sync(Resources &res, const State &state) final
   {
     enabled_ = state.is_space_v3d() && !res.is_selection();
 
@@ -50,7 +50,10 @@ class ModeTransfer {
     any_animated_ = false;
   }
 
-  void object_sync(Manager &manager, const ObjectRef &ob_ref, const State &state)
+  void object_sync(Manager &manager,
+                   const ObjectRef &ob_ref,
+                   Resources & /*res*/,
+                   const State &state) final
   {
     if (!enabled_) {
       return;
@@ -90,7 +93,7 @@ class ModeTransfer {
     any_animated_ = true;
   }
 
-  void draw(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;

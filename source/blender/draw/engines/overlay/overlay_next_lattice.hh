@@ -8,15 +8,15 @@
 
 #pragma once
 
+#include "ED_lattice.hh"
+
 #include "draw_cache_impl.hh"
 #include "draw_common_c.hh"
-#include "overlay_next_private.hh"
-
-#include "ED_lattice.hh"
+#include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {
 
-class Lattices {
+class Lattices : Overlay {
  private:
   PassMain ps_ = {"Lattice"};
 
@@ -24,10 +24,8 @@ class Lattices {
   PassMain::Sub *edit_lattice_wire_ps_;
   PassMain::Sub *edit_lattice_point_ps_;
 
-  bool enabled_ = false;
-
  public:
-  void begin_sync(Resources &res, const State &state)
+  void begin_sync(Resources &res, const State &state) final
   {
     enabled_ = state.is_space_v3d();
     enabled_ &= state.show_extras();
@@ -58,7 +56,10 @@ class Lattices {
     res.select_bind(ps_);
   }
 
-  void edit_object_sync(Manager &manager, const ObjectRef &ob_ref, Resources &res)
+  void edit_object_sync(Manager &manager,
+                        const ObjectRef &ob_ref,
+                        Resources &res,
+                        const State & /*state*/) final
   {
     if (!enabled_) {
       return;
@@ -75,7 +76,10 @@ class Lattices {
     }
   }
 
-  void object_sync(Manager &manager, const ObjectRef &ob_ref, Resources &res, const State &state)
+  void object_sync(Manager &manager,
+                   const ObjectRef &ob_ref,
+                   Resources &res,
+                   const State &state) final
   {
     if (!enabled_) {
       return;
@@ -94,7 +98,7 @@ class Lattices {
     }
   }
 
-  void pre_draw(Manager &manager, View &view)
+  void pre_draw(Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;
@@ -103,7 +107,7 @@ class Lattices {
     manager.generate_commands(ps_, view);
   }
 
-  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;

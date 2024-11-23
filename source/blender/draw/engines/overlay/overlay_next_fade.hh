@@ -12,10 +12,10 @@
 #include "BKE_paint.hh"
 
 #include "overlay_next_armature.hh"
-#include "overlay_next_private.hh"
+#include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {
-class Fade {
+class Fade : Overlay {
  private:
   PassMain ps_ = {"FadeGeometry"};
 
@@ -24,10 +24,8 @@ class Fade {
   PassMain::Sub *armature_fade_geometry_active_ps_;
   PassMain::Sub *armature_fade_geometry_other_ps_;
 
-  bool enabled_ = false;
-
  public:
-  void begin_sync(Resources &res, const State &state)
+  void begin_sync(Resources &res, const State &state) final
   {
     const bool do_edit_mesh_fade_geom = !state.xray_enabled && state.show_fade_inactive();
     enabled_ = state.is_space_v3d() && (do_edit_mesh_fade_geom || state.do_pose_fade_geom) &&
@@ -72,7 +70,10 @@ class Fade {
     }
   }
 
-  void object_sync(Manager &manager, const ObjectRef &ob_ref, const State &state)
+  void object_sync(Manager &manager,
+                   const ObjectRef &ob_ref,
+                   Resources & /*res*/,
+                   const State &state) final
   {
     if (!enabled_) {
       return;
@@ -118,7 +119,7 @@ class Fade {
     }
   }
 
-  void pre_draw(Manager &manager, View &view)
+  void pre_draw(Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;
@@ -127,7 +128,7 @@ class Fade {
     manager.generate_commands(ps_, view);
   }
 
-  void draw(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;

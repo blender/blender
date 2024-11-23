@@ -10,16 +10,13 @@
 
 #include "draw_manager_text.hh"
 
-#include "overlay_next_private.hh"
+#include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {
 
-class Names {
- private:
-  bool enabled_ = false;
-
+class Names : Overlay {
  public:
-  void begin_sync(Resources &res, const State &state)
+  void begin_sync(Resources &res, const State &state) final
   {
     enabled_ = state.is_space_v3d() && !res.is_selection();
     enabled_ &= state.show_text;
@@ -29,7 +26,10 @@ class Names {
     }
   }
 
-  void object_sync(const ObjectRef &ob_ref, Resources &res, const State &state)
+  void object_sync(Manager & /*manager*/,
+                   const ObjectRef &ob_ref,
+                   Resources &res,
+                   const State &state) final
   {
     if (!enabled_) {
       return;

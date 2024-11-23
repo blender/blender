@@ -19,11 +19,11 @@
 
 #include "draw_manager_text.hh"
 
-#include "overlay_next_private.hh"
+#include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {
 
-class GreasePencil {
+class GreasePencil : Overlay {
  private:
   PassSimple edit_grease_pencil_ps_ = {"GPencil Edit"};
   PassSimple::Sub *edit_points_ = nullptr;
@@ -42,9 +42,8 @@ class GreasePencil {
   View view_edit_cage = {"view_edit_cage"};
   float view_dist = 0.0f;
 
-  bool enabled_ = false;
-
  public:
+  /* TODO(fclem): Remove dependency on view. */
   void begin_sync(Resources &res, const State &state, const View &view)
   {
     enabled_ = state.is_space_v3d();
@@ -149,8 +148,8 @@ class GreasePencil {
 
   void edit_object_sync(Manager &manager,
                         const ObjectRef &ob_ref,
-                        const State &state,
-                        Resources &res)
+                        Resources &res,
+                        const State &state) final
   {
     if (!enabled_) {
       return;
@@ -181,23 +180,26 @@ class GreasePencil {
 
   void paint_object_sync(Manager &manager,
                          const ObjectRef &ob_ref,
-                         const State &state,
-                         Resources &res)
+                         Resources &res,
+                         const State &state)
   {
     /* Reuse same logic as edit mode. */
-    edit_object_sync(manager, ob_ref, state, res);
+    edit_object_sync(manager, ob_ref, res, state);
   }
 
   void sculpt_object_sync(Manager &manager,
                           const ObjectRef &ob_ref,
-                          const State &state,
-                          Resources &res)
+                          Resources &res,
+                          const State &state)
   {
     /* Reuse same logic as edit mode. */
-    edit_object_sync(manager, ob_ref, state, res);
+    edit_object_sync(manager, ob_ref, res, state);
   }
 
-  void object_sync(const ObjectRef &ob_ref, Resources & /*res*/, State &state)
+  void object_sync(Manager & /*manager*/,
+                   const ObjectRef &ob_ref,
+                   Resources & /*res*/,
+                   const State &state) final
   {
     if (!enabled_) {
       return;
@@ -221,7 +223,7 @@ class GreasePencil {
     }
   }
 
-  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;
@@ -231,7 +233,7 @@ class GreasePencil {
     manager.submit(grid_ps_, view);
   }
 
-  void draw_color_only(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_color_only(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;

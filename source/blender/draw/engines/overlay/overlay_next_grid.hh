@@ -19,11 +19,11 @@
 #include "GPU_texture.hh"
 
 #include "draw_shader_shared.hh"
-#include "overlay_next_private.hh"
+#include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {
 
-class Grid {
+class Grid : Overlay {
  private:
   UniformBuffer<OVERLAY_GridData> data_;
   StorageVectorBuffer<float4> tile_pos_buf_;
@@ -36,9 +36,8 @@ class Grid {
   OVERLAY_GridBits zneg_flag_ = OVERLAY_GridBits(0);
   OVERLAY_GridBits zpos_flag_ = OVERLAY_GridBits(0);
 
-  bool enabled_ = false;
-
  public:
+  /* TODO(fclem): Remove dependency on view. */
   void begin_sync(Resources &res, ShapeCache &shapes, const State &state, const View &view)
   {
     enabled_ = init(state, view);
@@ -109,7 +108,7 @@ class Grid {
     }
   }
 
-  void draw_color_only(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_color_only(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;

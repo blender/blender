@@ -15,11 +15,11 @@
 
 #include "draw_cache_impl.hh"
 
-#include "overlay_next_private.hh"
+#include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {
 
-class Paints {
+class Paints : Overlay {
 
  private:
   /* Draw selection state on top of the mesh to communicate which areas can be painted on. */
@@ -36,10 +36,8 @@ class Paints {
   bool show_wires_ = false;
   bool show_paint_mask_ = false;
 
-  bool enabled_ = false;
-
  public:
-  void begin_sync(Resources &res, const State &state)
+  void begin_sync(Resources &res, const State &state) final
   {
     enabled_ =
         state.is_space_v3d() && !res.is_selection() &&
@@ -139,7 +137,10 @@ class Paints {
     }
   }
 
-  void object_sync(Manager &manager, const ObjectRef &ob_ref, const State &state)
+  void object_sync(Manager &manager,
+                   const ObjectRef &ob_ref,
+                   Resources & /*res*/,
+                   const State &state) final
   {
     if (!enabled_) {
       return;
@@ -222,7 +223,7 @@ class Paints {
     }
   }
 
-  void draw(GPUFrameBuffer *framebuffer, Manager &manager, View &view)
+  void draw(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;

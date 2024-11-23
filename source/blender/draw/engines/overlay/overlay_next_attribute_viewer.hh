@@ -15,10 +15,10 @@
 #include "DNA_pointcloud_types.h"
 
 #include "draw_cache_impl.hh"
-#include "overlay_next_private.hh"
+#include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {
-class AttributeViewer {
+class AttributeViewer : Overlay {
  private:
   PassMain ps_ = {"attribute_viewer_ps_"};
 
@@ -28,10 +28,8 @@ class AttributeViewer {
   PassMain::Sub *curves_sub_ = nullptr;
   PassMain::Sub *instance_sub_ = nullptr;
 
-  bool enabled_ = false;
-
  public:
-  void begin_sync(Resources &res, const State &state)
+  void begin_sync(Resources &res, const State &state) final
   {
     ps_.init();
     enabled_ = state.is_space_v3d() && !res.is_selection() && state.show_attribute_viewer();
@@ -54,7 +52,10 @@ class AttributeViewer {
     instance_sub_ = create_sub("instance", res.shaders.uniform_color.get());
   }
 
-  void object_sync(const ObjectRef &ob_ref, const State &state, Manager &manager)
+  void object_sync(Manager &manager,
+                   const ObjectRef &ob_ref,
+                   Resources & /*res*/,
+                   const State &state) final
   {
     const DupliObject *dupli_object = DRW_object_get_dupli(ob_ref.object);
     const bool is_preview = dupli_object != nullptr &&
@@ -78,7 +79,7 @@ class AttributeViewer {
     populate_for_geometry(ob_ref, state, manager);
   }
 
-  void pre_draw(Manager &manager, View &view)
+  void pre_draw(Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;
@@ -87,7 +88,7 @@ class AttributeViewer {
     manager.generate_commands(ps_, view);
   }
 
-  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;

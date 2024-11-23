@@ -13,11 +13,11 @@
 
 #include "BKE_modifier.hh"
 
-#include "overlay_next_private.hh"
+#include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {
 
-class Fluids {
+class Fluids : Overlay {
  private:
   const SelectionType selection_type_;
 
@@ -36,7 +36,7 @@ class Fluids {
  public:
   Fluids(const SelectionType selection_type) : selection_type_(selection_type){};
 
-  void begin_sync(Resources &res, const State &state)
+  void begin_sync(Resources &res, const State &state) final
   {
     /* Against design. Should not sync depending on view. */
     float3 camera_direction = View("WorkaroundView", DRW_view_default_get()).viewinv().z_axis();
@@ -73,7 +73,10 @@ class Fluids {
     cube_buf_.clear();
   }
 
-  void object_sync(Manager &manager, const ObjectRef &ob_ref, Resources &res, const State &state)
+  void object_sync(Manager &manager,
+                   const ObjectRef &ob_ref,
+                   Resources &res,
+                   const State &state) final
   {
     Object *ob = ob_ref.object;
 
@@ -227,7 +230,7 @@ class Fluids {
     }
   }
 
-  void end_sync(Resources &res, ShapeCache &shapes, const State & /*state*/)
+  void end_sync(Resources &res, const ShapeCache &shapes, const State & /*state*/) final
   {
     fluid_ps_.shader_set(res.shaders.extra_shape.get());
     fluid_ps_.bind_ubo("globalsBlock", &res.globals_buf);
@@ -235,7 +238,7 @@ class Fluids {
     cube_buf_.end_sync(fluid_ps_, shapes.cube.get());
   }
 
-  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     GPU_framebuffer_bind(framebuffer);
     manager.submit(fluid_ps_, view);

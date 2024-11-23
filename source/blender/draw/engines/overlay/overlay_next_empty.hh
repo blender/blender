@@ -8,12 +8,12 @@
 
 #pragma once
 
+#include "overlay_next_base.hh"
 #include "overlay_next_image.hh"
-#include "overlay_next_private.hh"
 
 namespace blender::draw::overlay {
 
-class Empties {
+class Empties : Overlay {
   friend class Cameras;
   using EmptyInstanceBuf = ShapeInstanceBuf<ExtraInstanceData>;
 
@@ -46,13 +46,12 @@ class Empties {
     EmptyInstanceBuf image_buf = {selection_type_, "image_buf"};
   } call_buffers_;
 
-  bool enabled_ = false;
-
   float4x4 depth_bias_winmat_;
 
  public:
   Empties(const SelectionType selection_type) : call_buffers_{selection_type} {};
 
+  /* TODO(fclem): Remove dependency on view. */
   void begin_sync(Resources &res, const State &state, View &view)
   {
     enabled_ = state.is_space_v3d() && state.show_extras();
@@ -107,6 +106,7 @@ class Empties {
     call_buffers.image_buf.clear();
   }
 
+  /* TODO(fclem): Remove dependency on shapes. Pass it to the constructor. */
   void object_sync(const ObjectRef &ob_ref,
                    ShapeCache &shapes,
                    Manager &manager,
@@ -165,7 +165,7 @@ class Empties {
     }
   }
 
-  void end_sync(Resources &res, ShapeCache &shapes, const State &state)
+  void end_sync(Resources &res, const ShapeCache &shapes, const State &state) final
   {
     if (!enabled_) {
       return;
@@ -177,7 +177,7 @@ class Empties {
   }
 
   static void end_sync(Resources &res,
-                       ShapeCache &shapes,
+                       const ShapeCache &shapes,
                        const State &state,
                        PassSimple::Sub &ps,
                        CallBuffers &call_buffers)
@@ -197,7 +197,7 @@ class Empties {
     call_buffers.image_buf.end_sync(ps, shapes.quad_wire.get());
   }
 
-  void pre_draw(Manager &manager, View &view)
+  void pre_draw(Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;
@@ -209,7 +209,7 @@ class Empties {
     manager.generate_commands(images_front_ps_, view);
   }
 
-  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;

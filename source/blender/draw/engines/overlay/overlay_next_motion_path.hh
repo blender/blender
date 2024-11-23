@@ -15,11 +15,11 @@
 #include "draw_manager_text.hh"
 
 #include "overlay_next_armature.hh"
-#include "overlay_next_private.hh"
+#include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {
 
-class MotionPath {
+class MotionPath : Overlay {
 
  private:
   PassSimple motion_path_ps_ = {"motion_path_ps_"};
@@ -27,10 +27,8 @@ class MotionPath {
   PassSimple::Sub *line_ps_ = nullptr;
   PassSimple::Sub *vert_ps_ = nullptr;
 
-  bool enabled_ = false;
-
  public:
-  void begin_sync(Resources &res, const State &state)
+  void begin_sync(Resources &res, const State &state) final
   {
     enabled_ = state.v3d && state.show_motion_paths() && !res.is_selection();
     if (!enabled_) {
@@ -58,7 +56,10 @@ class MotionPath {
     }
   }
 
-  void object_sync(const ObjectRef &ob_ref, Resources & /*res*/, const State &state)
+  void object_sync(Manager & /*manager*/,
+                   const ObjectRef &ob_ref,
+                   Resources & /*res*/,
+                   const State &state) final
   {
     if (!enabled_) {
       return;
@@ -81,7 +82,7 @@ class MotionPath {
     }
   }
 
-  void draw_color_only(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_color_only(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;

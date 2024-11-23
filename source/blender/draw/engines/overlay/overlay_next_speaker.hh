@@ -8,13 +8,13 @@
 
 #pragma once
 
-#include "overlay_next_private.hh"
-
 #include "DNA_speaker_types.h"
+
+#include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {
 
-class Speakers {
+class Speakers : Overlay {
   using SpeakerInstanceBuf = ShapeInstanceBuf<ExtraInstanceData>;
 
  private:
@@ -24,12 +24,10 @@ class Speakers {
 
   SpeakerInstanceBuf speaker_buf_ = {selection_type_, "speaker_data_buf"};
 
-  bool enabled_ = false;
-
  public:
   Speakers(const SelectionType selection_type) : selection_type_(selection_type){};
 
-  void begin_sync(const State &state)
+  void begin_sync(Resources & /*res*/, const State &state) final
   {
     enabled_ = state.is_space_v3d() && state.show_extras();
 
@@ -40,7 +38,10 @@ class Speakers {
     speaker_buf_.clear();
   }
 
-  void object_sync(const ObjectRef &ob_ref, Resources &res, const State &state)
+  void object_sync(Manager & /*manager*/,
+                   const ObjectRef &ob_ref,
+                   Resources &res,
+                   const State &state) final
   {
     if (!enabled_) {
       return;
@@ -52,7 +53,7 @@ class Speakers {
     speaker_buf_.append({ob_ref.object->object_to_world(), color, 1.0f}, select_id);
   }
 
-  void end_sync(Resources &res, ShapeCache &shapes, const State &state)
+  void end_sync(Resources &res, const ShapeCache &shapes, const State &state) final
   {
     if (!enabled_) {
       return;
@@ -68,7 +69,7 @@ class Speakers {
     speaker_buf_.end_sync(ps_, shapes.speaker.get());
   }
 
-  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;

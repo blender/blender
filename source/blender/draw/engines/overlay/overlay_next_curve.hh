@@ -17,11 +17,11 @@
 
 #include "draw_cache_impl.hh"
 
-#include "overlay_next_private.hh"
+#include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {
 
-class Curves {
+class Curves : Overlay {
  private:
   PassSimple edit_curves_ps_ = {"Curve Edit"};
   PassSimple::Sub *edit_curves_points_ = nullptr;
@@ -44,9 +44,8 @@ class Curves {
   View view_edit_cage = {"view_edit_cage"};
   float view_dist = 0.0f;
 
-  bool enabled_ = false;
-
  public:
+  /* TODO(fclem): Remove dependency on view. */
   void begin_sync(Resources &res, const State &state, const View &view)
   {
     enabled_ = state.is_space_v3d();
@@ -174,7 +173,10 @@ class Curves {
     }
   }
 
-  void edit_object_sync(Manager &manager, const ObjectRef &ob_ref, Resources & /*res*/)
+  void edit_object_sync(Manager &manager,
+                        const ObjectRef &ob_ref,
+                        Resources & /*res*/,
+                        const State & /*state*/) final
   {
     if (!enabled_) {
       return;
@@ -234,7 +236,7 @@ class Curves {
     }
   }
 
-  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;
@@ -246,7 +248,7 @@ class Curves {
     manager.submit(edit_legacy_surface_handles_ps, view);
   }
 
-  void draw_color_only(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_color_only(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;

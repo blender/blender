@@ -8,22 +8,20 @@
 
 #pragma once
 
-#include "overlay_next_private.hh"
+#include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {
-class Origins {
+class Origins : Overlay {
  private:
   StorageVectorBuffer<VertexData> point_buf_;
   select::SelectBuf select_buf_;
 
   PassSimple ps_ = {"Origins"};
 
-  bool enabled_ = false;
-
  public:
   Origins(SelectionType selection_type) : select_buf_(selection_type) {}
 
-  void begin_sync(const State &state)
+  void begin_sync(Resources & /*res*/, const State &state) final
   {
     const bool is_paint_mode = (state.object_mode &
                                 (OB_MODE_ALL_PAINT | OB_MODE_ALL_PAINT_GPENCIL |
@@ -32,7 +30,10 @@ class Origins {
     point_buf_.clear();
   }
 
-  void object_sync(const ObjectRef &ob_ref, Resources &res, State &state)
+  void object_sync(Manager & /*manager*/,
+                   const ObjectRef &ob_ref,
+                   Resources &res,
+                   const State &state) final
   {
     if (!enabled_) {
       return;
@@ -66,7 +67,7 @@ class Origins {
     }
   }
 
-  void end_sync(Resources &res, const State &state)
+  void end_sync(Resources &res, const ShapeCache & /*shapes*/, const State &state) final
   {
     if (!enabled_) {
       return;
@@ -81,7 +82,7 @@ class Origins {
     ps_.draw_procedural(GPU_PRIM_POINTS, 1, point_buf_.size());
   }
 
-  void draw_color_only(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_color_only(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;

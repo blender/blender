@@ -15,10 +15,10 @@
 
 #include "DNA_rigidbody_types.h"
 
-#include "overlay_next_private.hh"
+#include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {
-class Bounds {
+class Bounds : Overlay {
   using BoundsInstanceBuf = ShapeInstanceBuf<ExtraInstanceData>;
 
  private:
@@ -38,7 +38,7 @@ class Bounds {
  public:
   Bounds(const SelectionType selection_type) : call_buffers_{selection_type} {}
 
-  void begin_sync()
+  void begin_sync(Resources & /*res*/, const State & /*state*/) final
   {
     call_buffers_.box.clear();
     call_buffers_.sphere.clear();
@@ -48,7 +48,10 @@ class Bounds {
     call_buffers_.capsule_cap.clear();
   }
 
-  void object_sync(const ObjectRef &ob_ref, Resources &res, const State &state)
+  void object_sync(Manager & /*manager*/,
+                   const ObjectRef &ob_ref,
+                   Resources &res,
+                   const State &state) final
   {
     const Object *ob = ob_ref.object;
     const bool from_dupli = is_from_dupli_or_set(ob);
@@ -181,7 +184,7 @@ class Bounds {
     }
   }
 
-  void end_sync(Resources &res, ShapeCache &shapes, const State &state)
+  void end_sync(Resources &res, const ShapeCache &shapes, const State &state) final
   {
     ps_.init();
     ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL,
@@ -198,7 +201,7 @@ class Bounds {
     call_buffers_.capsule_cap.end_sync(ps_, shapes.capsule_cap.get());
   }
 
-  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     GPU_framebuffer_bind(framebuffer);
     manager.submit(ps_, view);

@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "overlay_next_private.hh"
+#include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {
 
-class Axes {
+class Axes : Overlay {
   using EmptyInstanceBuf = ShapeInstanceBuf<ExtraInstanceData>;
 
  private:
@@ -24,12 +24,10 @@ class Axes {
 
   EmptyInstanceBuf axes_buf = {selection_type_, "object_axes"};
 
-  bool enabled_ = false;
-
  public:
   Axes(const SelectionType selection_type) : selection_type_{selection_type} {};
 
-  void begin_sync(Resources & /*res*/, const State &state)
+  void begin_sync(Resources & /*res*/, const State &state) final
   {
     enabled_ = state.is_space_v3d();
 
@@ -37,7 +35,10 @@ class Axes {
     axes_buf.clear();
   }
 
-  void object_sync(const ObjectRef &ob_ref, Resources &res, const State &state)
+  void object_sync(Manager & /*manager*/,
+                   const ObjectRef &ob_ref,
+                   Resources &res,
+                   const State &state) final
   {
     if (!enabled_) {
       return;
@@ -56,7 +57,7 @@ class Axes {
     axes_buf.append(data, res.select_id(ob_ref));
   }
 
-  void end_sync(Resources &res, ShapeCache &shapes, const State &state)
+  void end_sync(Resources &res, const ShapeCache &shapes, const State &state) final
   {
     if (!enabled_) {
       return;
@@ -69,7 +70,7 @@ class Axes {
     axes_buf.end_sync(ps_, shapes.arrows.get());
   }
 
-  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;
