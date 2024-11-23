@@ -28,7 +28,6 @@ class Lattices : Overlay {
   void begin_sync(Resources &res, const State &state) final
   {
     enabled_ = state.is_space_v3d();
-    enabled_ &= state.show_extras();
     if (!enabled_) {
       return;
     }
@@ -82,6 +81,10 @@ class Lattices : Overlay {
                    const State &state) final
   {
     if (!enabled_) {
+      return;
+    }
+
+    if (!state.show_extras() || (ob_ref.object->dt == OB_BOUNDBOX)) {
       return;
     }
 
