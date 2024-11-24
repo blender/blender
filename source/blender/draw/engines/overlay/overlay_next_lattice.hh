@@ -35,12 +35,8 @@ class Lattices : Overlay {
       return;
     }
 
-    const DRWState pass_state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
-                                DRW_STATE_DEPTH_LESS_EQUAL;
-
     auto create_sub_pass = [&](const char *name, GPUShader *shader, bool add_weight_tex) {
       PassMain::Sub &sub_pass = ps_.sub(name);
-      sub_pass.state_set(pass_state, state.clipping_plane_count);
       sub_pass.shader_set(shader);
       if (add_weight_tex) {
         sub_pass.bind_texture("weightTex", &res.weight_ramp_tx);
@@ -49,13 +45,15 @@ class Lattices : Overlay {
     };
 
     ps_.init();
+    ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL,
+                  state.clipping_plane_count);
     ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
+    res.select_bind(ps_);
     edit_lattice_wire_ps_ = create_sub_pass(
         "edit_lattice_wire", res.shaders.lattice_wire.get(), true);
     edit_lattice_point_ps_ = create_sub_pass(
         "edit_lattice_points", res.shaders.lattice_points.get(), false);
     lattice_ps_ = create_sub_pass("lattice", res.shaders.extra_wire_object.get(), false);
-    res.select_bind(ps_);
   }
 
   void edit_object_sync(Manager &manager,
