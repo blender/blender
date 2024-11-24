@@ -9,6 +9,7 @@
 #pragma once
 
 #include "BKE_movieclip.h"
+#include "BKE_object.hh"
 
 #include "BLI_function_ref.hh"
 
@@ -606,6 +607,65 @@ struct Resources : public select::SelectMap {
   bool is_selection() const
   {
     return this->selection_type != SelectionType::DISABLED;
+  }
+};
+
+/* List of flat objects drawcalls.
+ * In order to not loose selection display of flat objects view from the side,
+ * we store them in a list and add them to the pass just in time if their flat side is
+ * perpendicular to the view. */
+/* Reference to a flat object.
+ * Allow deferred rendering condition of flat object for special purpose. */
+struct FlatObjectRef {
+  gpu::Batch *geom;
+  ResourceHandle handle;
+  int flattened_axis_id;
+
+  /* Returns flat axis index if only one axis is flat. Returns -1 otherwise. */
+  static int flat_axis_index_get(const Object *ob)
+  {
+    BLI_assert(ELEM(ob->type,
+                    OB_MESH,
+                    OB_CURVES_LEGACY,
+                    OB_SURF,
+                    OB_FONT,
+                    OB_CURVES,
+                    OB_POINTCLOUD,
+                    OB_VOLUME));
+
+    float dim[3];
+    BKE_object_dimensions_get(ob, dim);
+    if (dim[0] == 0.0f) {
+      return 0;
+    }
+    if (dim[1] == 0.0f) {
+      return 1;
+    }
+    if (dim[2] == 0.0f) {
+      return 2;
+    }
+    return -1;
+  }
+
+  using Callback = std::function<void(gpu::Batch *geom, ResourceHandle handle)>;
+
+  /* Execute callback for every handles that is orthogonal to the view.
+   * Note: Only works in orthogonal view. */
+  void if_flat_axis_orthogonal_to_view(Manager &manager, const View &view, Callback callback) const
+  {
+    const float4x4 &object_to_world =
+        manager.matrix_buf.current().get_or_resize(handle.resource_index()).model;
+
+    float3 view_forward = view.forward();
+    float3 axis_not_flat_a = (flattened_axis_id == 0) ? object_to_world.y_axis() :
+                                                        object_to_world.x_axis();
+    float3 axis_not_flat_b = (flattened_axis_id == 1) ? object_to_world.z_axis() :
+                                                        object_to_world.y_axis();
+    float3 axis_flat = math::cross(axis_not_flat_a, axis_not_flat_b);
+
+    if (math::abs(math::dot(view_forward, axis_flat)) < 1e-3f) {
+      callback(geom, handle);
+    }
   }
 };
 

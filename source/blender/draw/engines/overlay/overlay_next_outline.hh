@@ -39,11 +39,18 @@ class Outline : Overlay {
 
   overlay::GreasePencil::ViewParameters grease_pencil_view;
 
+  Vector<FlatObjectRef> flat_objects_;
+
+  PassMain outline_prepass_flat_ps_ = {"PrepassFlat"};
+
  public:
   void begin_sync(Resources &res, const State &state) final
   {
     enabled_ = !res.is_selection();
     enabled_ &= state.v3d && (state.v3d_flag & V3D_SELECT_OUTLINE);
+
+    flat_objects_.clear();
+
     if (!enabled_) {
       return;
     }
@@ -155,25 +162,20 @@ class Outline : Overlay {
                                          manager.unique_handle(ob_ref));
         break;
       case OB_MESH:
-        if (!state.xray_enabled_and_not_wire) {
+        if (state.xray_enabled_and_not_wire) {
+          geom = DRW_cache_mesh_edge_detection_get(ob_ref.object, nullptr);
+          prepass_wire_ps_->draw_expand(geom, GPU_PRIM_LINES, 1, 1, manager.unique_handle(ob_ref));
+        }
+        else {
           geom = DRW_cache_mesh_surface_get(ob_ref.object);
           prepass_mesh_ps_->draw(geom, manager.unique_handle(ob_ref));
-        }
-        {
-          /* TODO(fclem): This is against design. We should not sync depending on view position.
-           * Eventually, add a bounding box display pass with some special culling phase. */
 
           /* Display flat object as a line when view is orthogonal to them.
            * This fixes only the biggest case which is a plane in ortho view. */
-          int flat_axis = 0;
-          bool is_flat_object_viewed_from_side = ((state.rv3d->persp == RV3D_ORTHO) &&
-                                                  DRW_object_is_flat(ob_ref.object, &flat_axis) &&
-                                                  DRW_object_axis_orthogonal_to_view(ob_ref.object,
-                                                                                     flat_axis));
-          if (state.xray_enabled_and_not_wire || is_flat_object_viewed_from_side) {
+          int flat_axis = FlatObjectRef::flat_axis_index_get(ob_ref.object);
+          if (flat_axis != -1) {
             geom = DRW_cache_mesh_edge_detection_get(ob_ref.object, nullptr);
-            prepass_wire_ps_->draw_expand(
-                geom, GPU_PRIM_LINES, 1, 1, manager.unique_handle(ob_ref));
+            flat_objects_.append({geom, manager.unique_handle(ob_ref), flat_axis});
           }
         }
         break;
@@ -194,13 +196,37 @@ class Outline : Overlay {
     }
   }
 
-  void pre_draw(Manager &manager, View &view) final
+  void pre_draw_ex(Manager &manager, View &view, Resources &res, const State &state)
   {
     if (!enabled_) {
       return;
     }
 
+    if (!view.is_persp()) {
+      const bool is_transform = (G.moving & G_TRANSFORM_OBJ) != 0;
+      /* Note: We need a dedicated pass since we have to populated it for each redraw. */
+      auto &pass = outline_prepass_flat_ps_;
+      pass.init();
+      pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
+      pass.framebuffer_set(&prepass_fb_);
+      pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL,
+                     state.clipping_plane_count);
+      pass.shader_set(res.shaders.outline_prepass_wire.get());
+      pass.push_constant("isTransform", is_transform);
+
+      for (FlatObjectRef flag_ob_ref : flat_objects_) {
+        flag_ob_ref.if_flat_axis_orthogonal_to_view(
+            manager, view, [&](gpu::Batch *geom, ResourceHandle handle) {
+              pass.draw_expand(geom, GPU_PRIM_LINES, 1, 1, handle);
+            });
+      }
+    }
+    else {
+      outline_prepass_flat_ps_.init();
+    }
+
     manager.generate_commands(outline_prepass_ps_, view);
+    manager.generate_commands(outline_prepass_flat_ps_, view);
   }
 
   /* TODO(fclem): Remove dependency on Resources. */
@@ -222,6 +248,7 @@ class Outline : Overlay {
                        GPU_ATTACHMENT_TEXTURE(object_id_tx_));
 
     manager.submit_only(outline_prepass_ps_, view);
+    manager.submit_only(outline_prepass_flat_ps_, view);
 
     GPU_framebuffer_bind(framebuffer);
     manager.submit(outline_resolve_ps_, view);
