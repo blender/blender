@@ -44,17 +44,16 @@ class MotionPath : Overlay {
     {
       PassSimple &pass = motion_path_ps_;
       pass.init();
+      pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       pass.state_set(DRW_STATE_WRITE_COLOR, state.clipping_plane_count);
       {
         PassSimple::Sub &sub = pass.sub("Lines");
         sub.shader_set(res.shaders.motion_path_line.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         line_ps_ = &sub;
       }
       {
         PassSimple::Sub &sub = pass.sub("Points");
         sub.shader_set(res.shaders.motion_path_vert.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         vert_ps_ = &sub;
       }
     }

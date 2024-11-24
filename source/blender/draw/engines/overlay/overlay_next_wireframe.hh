@@ -71,6 +71,7 @@ class Wireframe : Overlay {
     {
       auto &pass = wireframe_ps_;
       pass.init();
+      pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       pass.state_set(DRW_STATE_FIRST_VERTEX_CONVENTION | DRW_STATE_WRITE_COLOR |
                          DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL,
                      state.clipping_plane_count);
@@ -83,7 +84,6 @@ class Wireframe : Overlay {
               sub.specialize_constant(shader, "use_custom_depth_bias", do_smooth_lines);
             }
             sub.shader_set(shader);
-            sub.bind_ubo("globalsBlock", &res.globals_buf);
             sub.bind_texture("depthTex", depth_tex);
             sub.push_constant("wireOpacity", state.overlay.wireframe_opacity);
             sub.push_constant("isTransform", is_transform);

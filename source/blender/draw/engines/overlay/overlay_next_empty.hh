@@ -71,7 +71,7 @@ class Empties : Overlay {
       pass.state_set(draw_state, state.clipping_plane_count);
       pass.shader_set(res.shaders.image_plane_depth_bias.get());
       pass.push_constant("depth_bias_winmat", depth_bias_winmat_);
-      pass.bind_ubo("globalsBlock", &res.globals_buf);
+      pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       res.select_bind(pass);
     };
 
@@ -188,7 +188,7 @@ class Empties : Overlay {
     ps.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL,
                  state.clipping_plane_count);
     ps.shader_set(res.shaders.extra_shape.get());
-    ps.bind_ubo("globalsBlock", &res.globals_buf);
+    ps.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
 
     call_buffers.plain_axes_buf.end_sync(ps, shapes.plain_axes.get());
     call_buffers.single_arrow_buf.end_sync(ps, shapes.single_arrow.get());
@@ -367,7 +367,7 @@ class Empties : Overlay {
     else {
       sub.shader_set(res.shaders.image_plane.get());
     }
-    sub.bind_ubo("globalsBlock", &res.globals_buf);
+    sub.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
     return sub;
   };
 

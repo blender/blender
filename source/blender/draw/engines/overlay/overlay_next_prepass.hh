@@ -66,6 +66,7 @@ class Prepass : Overlay {
     DRWState backface_cull_state = use_cull ? DRW_STATE_CULL_BACK : DRWState(0);
 
     ps_.init();
+    ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
     ps_.state_set(DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | backface_cull_state,
                   state.clipping_plane_count);
     res.select_bind(ps_);
@@ -73,31 +74,26 @@ class Prepass : Overlay {
       auto &sub = ps_.sub("Mesh");
       sub.shader_set(res.is_selection() ? res.shaders.depth_mesh_conservative.get() :
                                           res.shaders.depth_mesh.get());
-      sub.bind_ubo("globalsBlock", &res.globals_buf);
       mesh_ps_ = &sub;
     }
     {
       auto &sub = ps_.sub("Hair");
       sub.shader_set(res.shaders.depth_mesh.get());
-      sub.bind_ubo("globalsBlock", &res.globals_buf);
       hair_ps_ = &sub;
     }
     {
       auto &sub = ps_.sub("Curves");
       sub.shader_set(res.shaders.depth_curves.get());
-      sub.bind_ubo("globalsBlock", &res.globals_buf);
       curves_ps_ = &sub;
     }
     {
       auto &sub = ps_.sub("PointCloud");
       sub.shader_set(res.shaders.depth_point_cloud.get());
-      sub.bind_ubo("globalsBlock", &res.globals_buf);
       point_cloud_ps_ = &sub;
     }
     {
       auto &sub = ps_.sub("GreasePencil");
       sub.shader_set(res.shaders.depth_grease_pencil.get());
-      sub.bind_ubo("globalsBlock", &res.globals_buf);
       grease_pencil_ps_ = &sub;
     }
   }

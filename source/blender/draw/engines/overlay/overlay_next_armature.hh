@@ -156,6 +156,7 @@ class Armatures : Overlay {
     GPUTexture **depth_tex = (state.xray_enabled) ? &res.depth_tx : &res.dummy_depth_tx;
 
     armature_ps_.init();
+    armature_ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
     res.select_bind(armature_ps_);
 
     /* Envelope distances and degrees of freedom need to be drawn first as they use additive
@@ -188,7 +189,6 @@ class Armatures : Overlay {
         sub.state_set(transparent_state, state.clipping_plane_count);
         sub.shader_set(res.shaders.armature_degrees_of_freedom.get());
         sub.push_constant("alpha", 1.0f);
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         opaque_.degrees_of_freedom_fill = &sub;
       }
       if (use_wire_alpha) {
@@ -196,7 +196,6 @@ class Armatures : Overlay {
         sub.state_set(transparent_state, state.clipping_plane_count);
         sub.shader_set(res.shaders.armature_degrees_of_freedom.get());
         sub.push_constant("alpha", wire_alpha);
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         transparent_.degrees_of_freedom_fill = &sub;
       }
       else {
@@ -245,7 +244,6 @@ class Armatures : Overlay {
         auto &sub = armature_ps_.sub("opaque.sphere_outline");
         sub.state_set(default_state, state.clipping_plane_count);
         sub.shader_set(res.shaders.armature_sphere_outline.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         sub.push_constant("alpha", 1.0f);
         opaque_.sphere_outline = &sub;
       }
@@ -253,7 +251,6 @@ class Armatures : Overlay {
         auto &sub = armature_ps_.sub("transparent.sphere_outline");
         sub.state_set(default_state | DRW_STATE_BLEND_ALPHA, state.clipping_plane_count);
         sub.shader_set(res.shaders.armature_sphere_outline.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         sub.push_constant("alpha", wire_alpha);
         transparent_.sphere_outline = &sub;
       }
@@ -265,7 +262,6 @@ class Armatures : Overlay {
         auto &sub = armature_ps_.sub("opaque.shape_outline");
         sub.state_set(default_state, state.clipping_plane_count);
         sub.shader_set(res.shaders.armature_shape_outline.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         sub.push_constant("alpha", 1.0f);
         opaque_.shape_outline = &sub;
       }
@@ -273,7 +269,6 @@ class Armatures : Overlay {
         auto &sub = armature_ps_.sub("transparent.shape_outline");
         sub.state_set(default_state | DRW_STATE_BLEND_ALPHA, state.clipping_plane_count);
         sub.shader_set(res.shaders.armature_shape_outline.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         sub.bind_texture("depthTex", depth_tex);
         sub.push_constant("alpha", wire_alpha * 0.6f);
         sub.push_constant("do_smooth_wire", do_smooth_wire);
@@ -287,7 +282,6 @@ class Armatures : Overlay {
         auto &sub = armature_ps_.sub("opaque.shape_wire");
         sub.state_set(default_state | DRW_STATE_BLEND_ALPHA, state.clipping_plane_count);
         sub.shader_set(res.shaders.armature_shape_wire.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         sub.push_constant("alpha", 1.0f);
         sub.push_constant("do_smooth_wire", do_smooth_wire);
         opaque_.shape_wire = &sub;
@@ -296,7 +290,6 @@ class Armatures : Overlay {
         auto &sub = armature_ps_.sub("transparent.shape_wire");
         sub.state_set(default_state | DRW_STATE_BLEND_ALPHA, state.clipping_plane_count);
         sub.shader_set(res.shaders.armature_shape_wire.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         sub.bind_texture("depthTex", depth_tex);
         sub.push_constant("alpha", wire_alpha * 0.6f);
         sub.push_constant("do_smooth_wire", do_smooth_wire);
@@ -312,14 +305,12 @@ class Armatures : Overlay {
         auto &sub = armature_ps_.sub("opaque.degrees_of_freedom_wire");
         sub.shader_set(res.shaders.armature_degrees_of_freedom.get());
         sub.push_constant("alpha", 1.0f);
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         opaque_.degrees_of_freedom_wire = &sub;
       }
       if (use_wire_alpha) {
         auto &sub = armature_ps_.sub("transparent.degrees_of_freedom_wire");
         sub.shader_set(res.shaders.armature_degrees_of_freedom.get());
         sub.push_constant("alpha", wire_alpha);
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         transparent_.degrees_of_freedom_wire = &sub;
       }
       else {
@@ -331,7 +322,6 @@ class Armatures : Overlay {
       {
         auto &sub = armature_ps_.sub("opaque.stick");
         sub.shader_set(res.shaders.armature_stick.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         sub.push_constant("alpha", 1.0f);
         opaque_.stick = &sub;
       }
@@ -339,7 +329,6 @@ class Armatures : Overlay {
         auto &sub = armature_ps_.sub("transparent.stick");
         sub.state_set(default_state | DRW_STATE_BLEND_ALPHA, state.clipping_plane_count);
         sub.shader_set(res.shaders.armature_stick.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         sub.push_constant("alpha", wire_alpha);
         transparent_.stick = &sub;
       }
@@ -371,7 +360,6 @@ class Armatures : Overlay {
         auto &sub = armature_ps_.sub("opaque.envelope_outline");
         sub.state_set(default_state | DRW_STATE_CULL_BACK, state.clipping_plane_count);
         sub.shader_set(res.shaders.armature_envelope_outline.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         sub.push_constant("alpha", 1.0f);
         opaque_.envelope_outline = &sub;
       }
@@ -381,7 +369,6 @@ class Armatures : Overlay {
                           (DRW_STATE_BLEND_ALPHA | DRW_STATE_CULL_BACK),
                       state.clipping_plane_count);
         sub.shader_set(res.shaders.armature_envelope_outline.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         sub.push_constant("alpha", wire_alpha);
         transparent_.envelope_outline = &sub;
       }
@@ -393,7 +380,6 @@ class Armatures : Overlay {
       {
         auto &sub = armature_ps_.sub("opaque.wire");
         sub.shader_set(res.shaders.armature_wire.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         sub.push_constant("alpha", 1.0f);
         opaque_.wire = &sub;
       }
@@ -401,7 +387,6 @@ class Armatures : Overlay {
         auto &sub = armature_ps_.sub("transparent.wire");
         sub.state_set(default_state | DRW_STATE_BLEND_ALPHA, state.clipping_plane_count);
         sub.shader_set(res.shaders.armature_wire.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         sub.push_constant("alpha", wire_alpha);
         transparent_.wire = &sub;
       }
@@ -413,7 +398,6 @@ class Armatures : Overlay {
     {
       auto &sub = armature_ps_.sub("opaque.arrow");
       sub.shader_set(res.shaders.extra_shape.get());
-      sub.bind_ubo("globalsBlock", &res.globals_buf);
       opaque_.arrows = &sub;
       transparent_.arrows = opaque_.arrows;
     }
@@ -421,7 +405,6 @@ class Armatures : Overlay {
     {
       auto &sub = armature_ps_.sub("opaque.relations");
       sub.shader_set(res.shaders.extra_wire.get());
-      sub.bind_ubo("globalsBlock", &res.globals_buf);
       opaque_.relations = &sub;
       transparent_.relations = opaque_.relations;
     }

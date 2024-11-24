@@ -61,13 +61,13 @@ class Paints : Overlay {
 
     {
       auto &pass = paint_region_ps_;
+      pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       {
         auto &sub = pass.sub("Face");
         sub.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
                           DRW_STATE_BLEND_ALPHA,
                       state.clipping_plane_count);
         sub.shader_set(res.shaders.paint_region_face.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         sub.push_constant("ucolor", float4(1.0, 1.0, 1.0, 0.2));
         paint_region_face_ps_ = &sub;
       }
@@ -77,7 +77,6 @@ class Paints : Overlay {
                           DRW_STATE_BLEND_ALPHA,
                       state.clipping_plane_count);
         sub.shader_set(res.shaders.paint_region_edge.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         paint_region_edge_ps_ = &sub;
       }
       {
@@ -85,7 +84,6 @@ class Paints : Overlay {
         sub.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL,
                       state.clipping_plane_count);
         sub.shader_set(res.shaders.paint_region_vert.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         paint_region_vert_ps_ = &sub;
       }
     }
@@ -107,7 +105,7 @@ class Paints : Overlay {
                      state.clipping_plane_count);
       pass.shader_set(shadeless ? res.shaders.paint_weight.get() :
                                   res.shaders.paint_weight_fake_shading.get());
-      pass.bind_ubo("globalsBlock", &res.globals_buf);
+      pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       pass.bind_texture("colorramp", &res.weight_ramp_tx);
       pass.push_constant("drawContours", draw_contours);
       pass.push_constant("opacity", state.overlay.weight_paint_mode_opacity);
@@ -131,7 +129,7 @@ class Paints : Overlay {
         pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND_ALPHA,
                        state.clipping_plane_count);
         pass.shader_set(res.shaders.paint_texture.get());
-        pass.bind_ubo("globalsBlock", &res.globals_buf);
+        pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
         pass.bind_texture("maskImage", mask_texture);
         pass.push_constant("maskPremult", mask_premult);
         pass.push_constant("maskInvertStencil", mask_inverted);

@@ -55,6 +55,7 @@ class Grid : Overlay {
     GPUTexture **depth_infront_tx = &res.depth_target_in_front_tx;
 
     grid_ps_.init();
+    grid_ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
     grid_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA);
     if (state.is_space_image()) {
       /* Add quad background. */
@@ -71,7 +72,6 @@ class Grid : Overlay {
       auto &sub = grid_ps_.sub("grid");
       sub.shader_set(res.shaders.grid.get());
       sub.bind_ubo("grid_buf", &data_);
-      sub.bind_ubo("globalsBlock", &res.globals_buf);
       sub.bind_texture("depth_tx", depth_tx, GPUSamplerState::default_sampler());
       sub.bind_texture("depth_infront_tx", depth_infront_tx, GPUSamplerState::default_sampler());
       if (zneg_flag_ & SHOW_AXIS_Z) {

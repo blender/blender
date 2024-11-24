@@ -50,7 +50,7 @@ class Facing : Overlay {
                       backface_cull_state,
                   state.clipping_plane_count);
     ps_.shader_set(res.shaders.facing.get());
-    ps_.bind_ubo("globalsBlock", &res.globals_buf);
+    ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
   }
 
   void object_sync(Manager &manager,

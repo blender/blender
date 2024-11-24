@@ -44,3 +44,6 @@
  * - The maximum resource index supported for shaders using multi-view (see DRW_VIEW_SHIFT).
  */
 #define DRW_VIEW_MAX 64
+
+/* TODO(fclem): Move to overlay. */
+#define OVERLAY_GLOBALS_SLOT 7

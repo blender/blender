@@ -60,6 +60,7 @@ class EditText : Overlay {
   void end_sync(Resources &res, const ShapeCache &shapes, const State &state) final
   {
     ps_.init();
+    ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
     res.select_bind(ps_);
     {
       DRWState default_state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA;
@@ -120,7 +121,6 @@ class EditText : Overlay {
                                DRW_STATE_DEPTH_LESS_EQUAL,
                            state.clipping_plane_count);
         sub_pass.shader_set(res.shaders.extra_wire.get());
-        sub_pass.bind_ubo("globalsBlock", &res.globals_buf);
         box_line_buf_.end_sync(sub_pass);
       }
     }

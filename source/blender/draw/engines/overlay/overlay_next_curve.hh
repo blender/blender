@@ -62,13 +62,13 @@ class Curves : Overlay {
     {
       auto &pass = edit_curves_ps_;
       pass.init();
+      pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       {
         auto &sub = pass.sub("Lines");
         sub.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND_ALPHA |
                           DRW_STATE_WRITE_DEPTH,
                       state.clipping_plane_count);
         sub.shader_set(res.shaders.curve_edit_line.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         sub.bind_texture("weightTex", &res.weight_ramp_tx);
         sub.push_constant("useWeight", false);
         sub.push_constant("useGreasePencil", false);
@@ -78,7 +78,6 @@ class Curves : Overlay {
         auto &sub = pass.sub("Handles");
         sub.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA, state.clipping_plane_count);
         sub.shader_set(res.shaders.curve_edit_handles.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         sub.push_constant("curveHandleDisplay", int(state.overlay.handle_display));
         edit_curves_handles_ = &sub;
       }
@@ -88,7 +87,6 @@ class Curves : Overlay {
                           DRW_STATE_WRITE_DEPTH,
                       state.clipping_plane_count);
         sub.shader_set(res.shaders.curve_edit_points.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         sub.bind_texture("weightTex", &res.weight_ramp_tx);
         sub.push_constant("useWeight", false);
         sub.push_constant("useGreasePencil", false);
@@ -110,7 +108,6 @@ class Curves : Overlay {
         sub.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WRITE_DEPTH,
                       state.clipping_plane_count);
         sub.shader_set(res.shaders.legacy_curve_edit_wires.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         sub.push_constant("normalSize", 0.0f);
         edit_legacy_curve_wires_ = &sub;
       }
@@ -119,7 +116,6 @@ class Curves : Overlay {
         sub.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WRITE_DEPTH,
                       state.clipping_plane_count);
         sub.shader_set(res.shaders.legacy_curve_edit_normals.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         sub.push_constant("normalSize", state.overlay.normals_length);
         sub.push_constant("use_hq_normals", use_hq_normals);
         edit_legacy_curve_normals_ = &sub;
@@ -131,7 +127,6 @@ class Curves : Overlay {
         auto &sub = pass.sub("Handles");
         sub.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA, state.clipping_plane_count);
         sub.shader_set(res.shaders.legacy_curve_edit_handles.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         sub.push_constant("showCurveHandles", state.overlay.handle_display != CURVE_HANDLE_NONE);
         sub.push_constant("curveHandleDisplay", int(state.overlay.handle_display));
         sub.push_constant("alpha", 1.0f);
@@ -142,7 +137,6 @@ class Curves : Overlay {
         auto &sub = pass.sub("Points");
         sub.state_set(DRW_STATE_WRITE_COLOR, state.clipping_plane_count);
         sub.shader_set(res.shaders.legacy_curve_edit_points.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         sub.push_constant("showCurveHandles", state.overlay.handle_display != CURVE_HANDLE_NONE);
         sub.push_constant("curveHandleDisplay", int(state.overlay.handle_display));
         sub.push_constant("useGreasePencil", false);
@@ -159,7 +153,6 @@ class Curves : Overlay {
         auto &sub = pass.sub(name);
         sub.state_set(drw_state, state.clipping_plane_count);
         sub.shader_set(res.shaders.legacy_curve_edit_handles.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         sub.push_constant("showCurveHandles", state.overlay.handle_display != CURVE_HANDLE_NONE);
         sub.push_constant("curveHandleDisplay", int(state.overlay.handle_display));
         sub.push_constant("alpha", alpha);

@@ -64,6 +64,7 @@ class Outline : Overlay {
     {
       auto &pass = outline_prepass_ps_;
       pass.init();
+      pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       pass.framebuffer_set(&prepass_fb_);
       pass.clear_color_depth_stencil(float4(0.0f), 1.0f, 0x0);
       pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL,
@@ -72,42 +73,36 @@ class Outline : Overlay {
         auto &sub = pass.sub("Curves");
         sub.shader_set(res.shaders.outline_prepass_curves.get());
         sub.push_constant("isTransform", is_transform);
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         prepass_curves_ps_ = &sub;
       }
       {
         auto &sub = pass.sub("PointCloud");
         sub.shader_set(res.shaders.outline_prepass_pointcloud.get());
         sub.push_constant("isTransform", is_transform);
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         prepass_pointcloud_ps_ = &sub;
       }
       {
         auto &sub = pass.sub("GreasePencil");
         sub.shader_set(res.shaders.outline_prepass_gpencil.get());
         sub.push_constant("isTransform", is_transform);
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         prepass_gpencil_ps_ = &sub;
       }
       {
         auto &sub = pass.sub("Mesh");
         sub.shader_set(res.shaders.outline_prepass_mesh.get());
         sub.push_constant("isTransform", is_transform);
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         prepass_mesh_ps_ = &sub;
       }
       {
         auto &sub = pass.sub("Volume");
         sub.shader_set(res.shaders.outline_prepass_mesh.get());
         sub.push_constant("isTransform", is_transform);
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         prepass_volume_ps_ = &sub;
       }
       {
         auto &sub = pass.sub("Wire");
         sub.shader_set(res.shaders.outline_prepass_wire.get());
         sub.push_constant("isTransform", is_transform);
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         prepass_wire_ps_ = &sub;
       }
     }
@@ -124,7 +119,7 @@ class Outline : Overlay {
       pass.bind_texture("outlineId", &object_id_tx_);
       pass.bind_texture("sceneDepth", &res.depth_tx);
       pass.bind_texture("outlineDepth", &tmp_depth_tx_);
-      pass.bind_ubo("globalsBlock", &res.globals_buf);
+      pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
     }
   }

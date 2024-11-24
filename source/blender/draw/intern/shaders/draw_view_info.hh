@@ -207,7 +207,7 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(draw_globals)
 TYPEDEF_SOURCE("draw_common_shader_shared.hh")
-UNIFORM_BUF_FREQ(7, GlobalsUboStorage, globalsBlock, PASS)
+UNIFORM_BUF_FREQ(OVERLAY_GLOBALS_SLOT, GlobalsUboStorage, globalsBlock, PASS)
 GPU_SHADER_CREATE_END()
 
 /** \} */

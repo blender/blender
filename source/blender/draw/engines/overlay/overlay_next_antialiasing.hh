@@ -68,7 +68,7 @@ class AntiAliasing : Overlay {
       pass.framebuffer_set(&framebuffer_ref_);
       pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_PREMUL);
       pass.shader_set(res.shaders.anti_aliasing.get());
-      pass.bind_ubo("globalsBlock", &res.globals_buf);
+      pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       pass.bind_texture("depthTex", &res.depth_tx);
       pass.bind_texture("colorTex", &res.overlay_tx);
       pass.bind_texture("lineTex", &res.line_tx);

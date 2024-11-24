@@ -94,7 +94,7 @@ class Metaballs : Overlay {
     /* NOTE: Use armature sphere outline shader to have perspective correct outline instead of
      * just a circle facing the camera. */
     ps_.shader_set(res.shaders.armature_sphere_outline.get());
-    ps_.bind_ubo("globalsBlock", &res.globals_buf);
+    ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
     res.select_bind(ps_);
 
     circle_buf_.end_sync(ps_, shapes.metaball_wire_circle.get());

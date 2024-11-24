@@ -42,7 +42,6 @@ class Lattices : Overlay {
       PassMain::Sub &sub_pass = ps_.sub(name);
       sub_pass.state_set(pass_state, state.clipping_plane_count);
       sub_pass.shader_set(shader);
-      sub_pass.bind_ubo("globalsBlock", &res.globals_buf);
       if (add_weight_tex) {
         sub_pass.bind_texture("weightTex", &res.weight_ramp_tx);
       }
@@ -50,6 +49,7 @@ class Lattices : Overlay {
     };
 
     ps_.init();
+    ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
     edit_lattice_wire_ps_ = create_sub_pass(
         "edit_lattice_wire", res.shaders.lattice_wire.get(), true);
     edit_lattice_point_ps_ = create_sub_pass(

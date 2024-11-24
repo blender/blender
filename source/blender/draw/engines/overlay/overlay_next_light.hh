@@ -162,6 +162,7 @@ class Lights : Overlay {
     const DRWState pass_state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
                                 DRW_STATE_DEPTH_LESS_EQUAL;
     ps_.init();
+    ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
     res.select_bind(ps_);
 
     {
@@ -170,7 +171,6 @@ class Lights : Overlay {
                              DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_FRONT,
                          state.clipping_plane_count);
       sub_pass.shader_set(res.shaders.light_spot_cone.get());
-      sub_pass.bind_ubo("globalsBlock", &res.globals_buf);
       call_buffers_.spot_cone_front_buf.end_sync(sub_pass, shapes.light_spot_volume.get());
     }
     {
@@ -179,14 +179,12 @@ class Lights : Overlay {
                              DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK,
                          state.clipping_plane_count);
       sub_pass.shader_set(res.shaders.light_spot_cone.get());
-      sub_pass.bind_ubo("globalsBlock", &res.globals_buf);
       call_buffers_.spot_cone_back_buf.end_sync(sub_pass, shapes.light_spot_volume.get());
     }
     {
       PassSimple::Sub &sub_pass = ps_.sub("light_shapes");
       sub_pass.state_set(pass_state, state.clipping_plane_count);
       sub_pass.shader_set(res.shaders.extra_shape.get());
-      sub_pass.bind_ubo("globalsBlock", &res.globals_buf);
       call_buffers_.icon_inner_buf.end_sync(sub_pass, shapes.light_icon_outer_lines.get());
       call_buffers_.icon_outer_buf.end_sync(sub_pass, shapes.light_icon_inner_lines.get());
       call_buffers_.icon_sun_rays_buf.end_sync(sub_pass, shapes.light_icon_sun_rays.get());
@@ -200,7 +198,6 @@ class Lights : Overlay {
       PassSimple::Sub &sub_pass = ps_.sub("ground_line");
       sub_pass.state_set(pass_state | DRW_STATE_BLEND_ALPHA, state.clipping_plane_count);
       sub_pass.shader_set(res.shaders.extra_ground_line.get());
-      sub_pass.bind_ubo("globalsBlock", &res.globals_buf);
       call_buffers_.ground_line_buf.end_sync(sub_pass, shapes.ground_line.get());
     }
   }

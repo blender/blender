@@ -182,6 +182,7 @@ class Relations : Overlay {
     }
 
     ps_.init();
+    ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
     res.select_bind(ps_);
     {
       PassSimple::Sub &sub_pass = ps_.sub("lines");
@@ -189,7 +190,6 @@ class Relations : Overlay {
                              DRW_STATE_DEPTH_LESS_EQUAL,
                          state.clipping_plane_count);
       sub_pass.shader_set(res.shaders.extra_wire.get());
-      sub_pass.bind_ubo("globalsBlock", &res.globals_buf);
       relations_buf_.end_sync(sub_pass);
     }
     {
@@ -198,7 +198,6 @@ class Relations : Overlay {
                              DRW_STATE_DEPTH_LESS_EQUAL,
                          state.clipping_plane_count);
       sub_pass.shader_set(res.shaders.extra_loose_points.get());
-      sub_pass.bind_ubo("globalsBlock", &res.globals_buf);
       points_buf_.end_sync(sub_pass);
     }
   }
