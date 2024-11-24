@@ -337,6 +337,7 @@ ARegion *BKE_area_region_copy(const SpaceType *st, const ARegion *region)
   ARegion *dst = static_cast<ARegion *>(MEM_dupallocN(region));
 
   dst->runtime = MEM_new<blender::bke::ARegionRuntime>(__func__);
+  dst->runtime->type = region->runtime->type;
 
   dst->prev = dst->next = nullptr;
   BLI_listbase_clear(&dst->panels_category_active);
