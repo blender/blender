@@ -1259,6 +1259,18 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
     version_legacy_actions_to_layered(bmain);
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 7)) {
+    constexpr char SCE_SNAP_TO_NODE_X = (1 << 0);
+    constexpr char SCE_SNAP_TO_NODE_Y = (1 << 1);
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->toolsettings->snap_node_mode & SCE_SNAP_TO_NODE_X ||
+          scene->toolsettings->snap_node_mode & SCE_SNAP_TO_NODE_Y)
+      {
+        scene->toolsettings->snap_node_mode = SCE_SNAP_TO_GRID;
+      }
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
@@ -3769,12 +3781,12 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       auto versioning_snap_to = [](short snap_to_old, int type) {
         eSnapMode snap_to_new = SCE_SNAP_TO_NONE;
         if (snap_to_old & (1 << 0)) {
-          snap_to_new |= type == IS_NODE ? SCE_SNAP_TO_NODE_X :
+          snap_to_new |= type == IS_NODE ? SCE_SNAP_TO_NONE :
                          type == IS_ANIM ? SCE_SNAP_TO_FRAME :
                                            SCE_SNAP_TO_VERTEX;
         }
         if (snap_to_old & (1 << 1)) {
-          snap_to_new |= type == IS_NODE ? SCE_SNAP_TO_NODE_Y :
+          snap_to_new |= type == IS_NODE ? SCE_SNAP_TO_NONE :
                          type == IS_ANIM ? SCE_SNAP_TO_SECOND :
                                            SCE_SNAP_TO_EDGE;
         }

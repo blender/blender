@@ -2548,30 +2548,3 @@ void node_draw_link_dragged(const bContext &C,
 }
 
 }  // namespace blender::ed::space_node
-
-void ED_node_draw_snap(View2D *v2d, const float cent[2], float size, NodeBorder border, uint pos)
-{
-  immBegin(GPU_PRIM_LINES, 4);
-
-  if (border & (NODE_LEFT | NODE_RIGHT)) {
-    immVertex2f(pos, cent[0], v2d->cur.ymin);
-    immVertex2f(pos, cent[0], v2d->cur.ymax);
-  }
-  else {
-    immVertex2f(pos, cent[0], cent[1] - size);
-    immVertex2f(pos, cent[0], cent[1] + size);
-  }
-
-  if (border & (NODE_TOP | NODE_BOTTOM)) {
-    immVertex2f(pos, v2d->cur.xmin, cent[1]);
-    immVertex2f(pos, v2d->cur.xmax, cent[1]);
-  }
-  else {
-    immVertex2f(pos, cent[0] - size, cent[1]);
-    immVertex2f(pos, cent[0] + size, cent[1]);
-  }
-
-  immEnd();
-}
-
-/** \} */
