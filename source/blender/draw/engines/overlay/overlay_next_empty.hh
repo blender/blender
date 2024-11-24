@@ -49,13 +49,13 @@ class Empties : Overlay {
     EmptyInstanceBuf image_buf = {selection_type_, "image_buf"};
   } call_buffers_;
 
+  State::ViewOffsetData offset_data_;
   float4x4 depth_bias_winmat_;
 
  public:
   Empties(const SelectionType selection_type) : call_buffers_{selection_type} {};
 
-  /* TODO(fclem): Remove dependency on view. */
-  void begin_sync(Resources &res, const State &state, View &view)
+  void begin_sync(Resources &res, const State &state) final
   {
     enabled_ = state.is_space_v3d() && state.show_extras();
 
@@ -63,14 +63,13 @@ class Empties : Overlay {
       return;
     }
 
-    depth_bias_winmat_ = winmat_polygon_offset(
-        view.winmat(), state.view_dist_get(view.winmat()), -1.0f);
+    offset_data_ = state.offset_data_get();
 
     auto init_pass = [&](PassMain &pass, DRWState draw_state) {
       pass.init();
       pass.state_set(draw_state, state.clipping_plane_count);
       pass.shader_set(res.shaders.image_plane_depth_bias.get());
-      pass.push_constant("depth_bias_winmat", depth_bias_winmat_);
+      pass.push_constant("depth_bias_winmat", &depth_bias_winmat_);
       pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       res.select_bind(pass);
     };
@@ -210,6 +209,9 @@ class Empties : Overlay {
     manager.generate_commands(images_ps_, view);
     manager.generate_commands(images_blend_ps_, view);
     manager.generate_commands(images_front_ps_, view);
+
+    float view_dist = State::view_dist_get(offset_data_, view.winmat());
+    depth_bias_winmat_ = winmat_polygon_offset(view.winmat(), view_dist, -1.0f);
   }
 
   void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final

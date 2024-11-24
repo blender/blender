@@ -43,12 +43,11 @@ class GreasePencil : Overlay {
 
   /* TODO(fclem): This is quite wasteful and expensive, prefer in shader Z modification like the
    * retopology offset. */
-  View view_edit_cage = {"view_edit_cage"};
-  float view_dist = 0.0f;
+  View view_edit_cage_ = {"view_edit_cage"};
+  State::ViewOffsetData offset_data_;
 
  public:
-  /* TODO(fclem): Remove dependency on view. */
-  void begin_sync(Resources &res, const State &state, const View &view)
+  void begin_sync(Resources &res, const State &state) final
   {
     enabled_ = state.is_space_v3d();
 
@@ -59,7 +58,7 @@ class GreasePencil : Overlay {
       return;
     }
 
-    view_dist = state.view_dist_get(view.winmat());
+    offset_data_ = state.offset_data_get();
 
     const View3D *v3d = state.v3d;
     const ToolSettings *ts = state.scene->toolsettings;
@@ -258,10 +257,11 @@ class GreasePencil : Overlay {
       return;
     }
 
-    view_edit_cage.sync(view.viewmat(), winmat_polygon_offset(view.winmat(), view_dist, 0.5f));
+    float view_dist = State::view_dist_get(offset_data_, view.winmat());
+    view_edit_cage_.sync(view.viewmat(), winmat_polygon_offset(view.winmat(), view_dist, 0.5f));
 
     GPU_framebuffer_bind(framebuffer);
-    manager.submit(edit_grease_pencil_ps_, view_edit_cage);
+    manager.submit(edit_grease_pencil_ps_, view_edit_cage_);
   }
 
   static void draw_grease_pencil(Resources &res,

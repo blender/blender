@@ -88,16 +88,21 @@ class Cameras : Overlay {
   bool extras_enabled_ = false;
   bool motion_tracking_enabled_ = false;
 
+  State::ViewOffsetData offset_data_;
+  float4x4 depth_bias_winmat_;
+
  public:
   Cameras(const SelectionType selection_type) : call_buffers_{selection_type} {};
 
-  void begin_sync(Resources &res, State &state, View &view)
+  void begin_sync(Resources &res, const State &state) final
   {
     enabled_ = state.is_space_v3d();
     extras_enabled_ = enabled_ && state.show_extras();
     motion_tracking_enabled_ = enabled_ && state.v3d->flag2 & V3D_SHOW_RECONSTRUCTION;
     images_enabled_ = enabled_ && !res.is_selection();
     enabled_ = extras_enabled_ || images_enabled_ || motion_tracking_enabled_;
+
+    offset_data_ = state.offset_data_get();
 
     if (extras_enabled_ || motion_tracking_enabled_) {
       call_buffers_.distances_buf.clear();
@@ -113,16 +118,13 @@ class Cameras : Overlay {
     }
 
     if (images_enabled_) {
-      float4x4 depth_bias_winmat = winmat_polygon_offset(
-          view.winmat(), state.view_dist_get(view.winmat()), -1.0f);
-
       /* Init image passes. */
       auto init_pass = [&](PassMain &pass, DRWState draw_state) {
         pass.init();
         pass.state_set(draw_state, state.clipping_plane_count);
         pass.shader_set(res.shaders.image_plane_depth_bias.get());
         pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
-        pass.push_constant("depth_bias_winmat", depth_bias_winmat);
+        pass.push_constant("depth_bias_winmat", &depth_bias_winmat_);
         res.select_bind(pass);
       };
 
@@ -209,7 +211,7 @@ class Cameras : Overlay {
     Empties::end_sync(res, shapes, state, sub_pass, call_buffers_.empties);
   }
 
-  void pre_draw(Manager &manager, View &view)
+  void pre_draw(Manager &manager, View &view) final
   {
     if (!images_enabled_) {
       return;
@@ -219,9 +221,12 @@ class Cameras : Overlay {
     manager.generate_commands(foreground_scene_ps_, view);
     manager.generate_commands(background_ps_, view);
     manager.generate_commands(foreground_ps_, view);
+
+    float view_dist = State::view_dist_get(offset_data_, view.winmat());
+    depth_bias_winmat_ = winmat_polygon_offset(view.winmat(), view_dist, -1.0f);
   }
 
-  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!extras_enabled_ && !motion_tracking_enabled_) {
       return;
