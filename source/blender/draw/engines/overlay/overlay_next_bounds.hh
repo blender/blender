@@ -18,6 +18,18 @@
 #include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {
+
+/**
+ * Draw object bounds and texture space.
+ *
+ * The object bound can be drawn because of:
+ * - display option (Object > Viewport Display > Bounds)
+ * - display as (Object > Viewport Display > Bounds)
+ * - rigid body (Physics > Rigid Body > Collision > Shape)
+ *
+ * Texture space can be modified by (Data > Texture Space)
+ * and displayed by (Object > Viewport Display > Texture Space)
+ */
 class Bounds : Overlay {
   using BoundsInstanceBuf = ShapeInstanceBuf<ExtraInstanceData>;
 

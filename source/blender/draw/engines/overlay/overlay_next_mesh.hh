@@ -34,6 +34,9 @@ constexpr int overlay_edit_text = V3D_OVERLAY_EDIT_EDGE_LEN | V3D_OVERLAY_EDIT_F
                                   V3D_OVERLAY_EDIT_FACE_ANG | V3D_OVERLAY_EDIT_EDGE_ANG |
                                   V3D_OVERLAY_EDIT_INDICES;
 
+/**
+ * Draw edit mesh overlays.
+ */
 class Meshes : Overlay {
  private:
   PassSimple edit_mesh_normals_ps_ = {"Normals"};
@@ -447,6 +450,9 @@ class Meshes : Overlay {
   }
 };
 
+/**
+ * Draw edit uv overlays.
+ */
 class MeshUVs : Overlay {
  private:
   PassSimple analysis_ps_ = {"Mesh Analysis"};

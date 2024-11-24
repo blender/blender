@@ -23,6 +23,10 @@
 
 namespace blender::draw::overlay {
 
+/**
+ * Draw grease pencil overlays.
+ * Also contains grease pencil helper functions for other overlays.
+ */
 class GreasePencil : Overlay {
  private:
   PassSimple edit_grease_pencil_ps_ = {"GPencil Edit"};

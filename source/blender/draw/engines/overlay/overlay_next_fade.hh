@@ -15,6 +15,11 @@
 #include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {
+
+/**
+ * Fades surfaces not currently in the active edit mode.
+ * Can be toggle in (Viewport Overlays > Geometry > Fade Inactive Geometry)
+ */
 class Fade : Overlay {
  private:
   PassMain ps_ = {"FadeGeometry"};

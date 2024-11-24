@@ -19,6 +19,10 @@
 
 namespace blender::draw::overlay {
 
+/**
+ * Display paint modes overlays.
+ * Covers weight paint, vertex paint and texture paint.
+ */
 class Paints : Overlay {
 
  private:

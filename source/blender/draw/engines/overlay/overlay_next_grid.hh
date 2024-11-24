@@ -23,6 +23,9 @@
 
 namespace blender::draw::overlay {
 
+/**
+ * Draw 2D or 3D grid as well at global X, Y and Z axes.
+ */
 class Grid : Overlay {
  private:
   UniformBuffer<OVERLAY_GridData> data_;

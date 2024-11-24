@@ -14,6 +14,10 @@
 
 namespace blender::draw::overlay {
 
+/**
+ * Make newly active mesh flash for a brief period of time.
+ * This can be triggered using the "Transfer Mode" operator when in any edit mode.
+ */
 class ModeTransfer : Overlay {
  private:
   PassSimple ps_ = {"ModeTransfer"};

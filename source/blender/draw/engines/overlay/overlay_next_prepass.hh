@@ -4,9 +4,6 @@
 
 /** \file
  * \ingroup overlay
- *
- * A depth pass that write surface depth when it is needed.
- * It is also used for selecting non overlay-only objects.
  */
 
 #pragma once
@@ -23,6 +20,10 @@
 
 namespace blender::draw::overlay {
 
+/**
+ * A depth pass that write surface depth when it is needed.
+ * It is also used for selecting non overlay-only objects.
+ */
 class Prepass : Overlay {
  private:
   PassMain ps_ = {"prepass"};

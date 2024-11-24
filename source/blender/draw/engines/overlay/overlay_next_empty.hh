@@ -13,6 +13,9 @@
 
 namespace blender::draw::overlay {
 
+/**
+ * Empty object type drawing, including image empties.
+ */
 class Empties : Overlay {
   friend class Cameras;
   using EmptyInstanceBuf = ShapeInstanceBuf<ExtraInstanceData>;

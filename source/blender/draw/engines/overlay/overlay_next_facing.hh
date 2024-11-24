@@ -14,6 +14,10 @@
 
 namespace blender::draw::overlay {
 
+/**
+ * Draw a specific color for front and back-faces on surfaces.
+ * Can be toggle in (Viewport Overlays > Geometry > Face Orientation)
+ */
 class Facing : Overlay {
 
  private:

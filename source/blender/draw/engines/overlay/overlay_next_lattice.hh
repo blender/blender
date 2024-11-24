@@ -16,6 +16,9 @@
 
 namespace blender::draw::overlay {
 
+/**
+ * Draw lattice objects in object and edit mode.
+ */
 class Lattices : Overlay {
  private:
   PassMain ps_ = {"Lattice"};

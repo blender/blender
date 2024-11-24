@@ -19,6 +19,10 @@
 
 namespace blender::draw::overlay {
 
+/**
+ * Display object and armature motion path.
+ * Motion paths can be found in (Object > Motion Paths) or (Data > Motion Paths) for armatures.
+ */
 class MotionPath : Overlay {
 
  private:

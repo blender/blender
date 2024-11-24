@@ -15,6 +15,10 @@
 
 namespace blender::draw::overlay {
 
+/**
+ * Text objects related overlays.
+ * Currently only display cursor and selection of text edit mode.
+ */
 class EditText : Overlay {
 
  private:

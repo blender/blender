@@ -22,6 +22,10 @@ enum eArmatureDrawMode {
   ARM_DRAW_MODE_EDIT,
 };
 
+/**
+ * Displays armature objects.
+ * This includes Object, Edit and Pose mode.
+ */
 class Armatures : Overlay {
   using EmptyInstanceBuf = ShapeInstanceBuf<ExtraInstanceData>;
   using BoneInstanceBuf = ShapeInstanceBuf<BoneInstanceData>;

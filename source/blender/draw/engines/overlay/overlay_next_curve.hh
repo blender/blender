@@ -21,6 +21,9 @@
 
 namespace blender::draw::overlay {
 
+/**
+ * Curve object display (including legacy curves) for both object and edit modes.
+ */
 class Curves : Overlay {
  private:
   PassSimple edit_curves_ps_ = {"Curve Edit"};

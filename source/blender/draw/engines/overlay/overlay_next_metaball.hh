@@ -15,6 +15,9 @@
 
 namespace blender::draw::overlay {
 
+/**
+ * Draw meta-balls radius overlays.
+ */
 class Metaballs : Overlay {
   using SphereOutlineInstanceBuf = ShapeInstanceBuf<BoneInstanceData>;
 

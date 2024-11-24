@@ -14,6 +14,10 @@
 
 namespace blender::draw::overlay {
 
+/**
+ * Displays extra object axes.
+ * It is toggled by Object Panel > Viewport Display > Axes.
+ */
 class Axes : Overlay {
   using EmptyInstanceBuf = ShapeInstanceBuf<ExtraInstanceData>;
 

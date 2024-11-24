@@ -4,12 +4,6 @@
 
 /** \file
  * \ingroup draw_engine
- *
- * Overlay X-ray Fade:
- *
- * Full-screen pass that dim overlays that are behind scene geometry.
- * This allows to have a nice transition between opaque (or 100% X-ray) and wire-frame only mode.
- * This is only available if X-ray mode is enabled or in wire-frame mode.
  */
 
 #pragma once
@@ -18,6 +12,11 @@
 
 namespace blender::draw::overlay {
 
+/**
+ * Fade overlays that are behind scene geometry.
+ * This allows to have a nice transition between opaque (or 100% X-ray) and wire-frame only mode.
+ * This is only available if X-ray mode is enabled or in wire-frame mode.
+ */
 class XrayFade : Overlay {
  private:
   PassSimple xray_fade_ps_ = {"XrayFade"};

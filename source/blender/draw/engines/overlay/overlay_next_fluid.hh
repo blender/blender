@@ -17,6 +17,9 @@
 
 namespace blender::draw::overlay {
 
+/**
+ * Draw fluid simulation overlays (water, smoke).
+ */
 class Fluids : Overlay {
  private:
   const SelectionType selection_type_;

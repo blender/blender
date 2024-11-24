@@ -19,6 +19,10 @@
 
 namespace blender::draw::overlay {
 
+/**
+ * Display object relations as dashed lines.
+ * Covers parenting relationships and constraints.
+ */
 class Relations : Overlay {
 
  private:

@@ -18,6 +18,10 @@
 
 namespace blender::draw::overlay {
 
+/**
+ * Draw force fields.
+ * Controlled by (Physics > Force Field)
+ */
 class ForceFields : Overlay {
   using ForceFieldsInstanceBuf = ShapeInstanceBuf<ExtraInstanceData>;
 

@@ -18,6 +18,11 @@
 #include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {
+
+/**
+ * Displays geometry node viewer output.
+ * Values are displayed as vertex or face colors on top of the active object.
+ */
 class AttributeViewer : Overlay {
  private:
   PassMain ps_ = {"attribute_viewer_ps_"};

@@ -15,6 +15,10 @@
 
 namespace blender::draw::overlay {
 
+/**
+ * Display selected object outline.
+ * The option can be found under (Viewport Overlays > Objects > Outline Selected).
+ */
 class Outline : Overlay {
  private:
   /* Simple render pass that renders an object ID pass. */

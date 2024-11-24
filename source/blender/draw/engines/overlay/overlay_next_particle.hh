@@ -18,6 +18,10 @@
 
 namespace blender::draw::overlay {
 
+/**
+ * Display particle system overlays.
+ * Covers particle edit and the legacy hair system.
+ */
 class Particles : Overlay {
  private:
   PassMain particle_ps_ = {"particle_ps_"};

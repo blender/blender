@@ -14,6 +14,9 @@
 
 namespace blender::draw::overlay {
 
+/**
+ * Display speaker objects.
+ */
 class Speakers : Overlay {
   using SpeakerInstanceBuf = ShapeInstanceBuf<ExtraInstanceData>;
 

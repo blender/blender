@@ -14,6 +14,9 @@
 
 namespace blender::draw::overlay {
 
+/**
+ * Draw light probe objects.
+ */
 class LightProbes : Overlay {
   using LightProbeInstanceBuf = ShapeInstanceBuf<ExtraInstanceData>;
   using GroundLineInstanceBuf = ShapeInstanceBuf<float4>;

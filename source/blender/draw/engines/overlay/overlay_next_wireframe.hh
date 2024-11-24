@@ -18,6 +18,15 @@
 
 namespace blender::draw::overlay {
 
+/**
+ * Draw wireframe of objects.
+ *
+ * The object wireframe can be drawn because of:
+ * - display option (Object > Viewport Display > Wireframe)
+ * - overlay option (Viewport Overlays > Geometry > Wireframe)
+ * - display as (Object > Viewport Display > Wire)
+ * - wireframe shading mode
+ */
 class Wireframe : Overlay {
  private:
   PassMain wireframe_ps_ = {"Wireframe"};

@@ -46,6 +46,12 @@ struct CameraInstanceData : public ExtraInstanceData {
       : ExtraInstanceData(p_matrix, color, 1.0f){};
 };
 
+/**
+ * Camera object display (including stereoscopy).
+ * Also camera reconstruction bundles.
+ * Also camera reference images (background).
+ */
+/* TODO(fclem): Split into multiple overlay classes. */
 class Cameras : Overlay {
   using CameraInstanceBuf = ShapeInstanceBuf<ExtraInstanceData>;
 

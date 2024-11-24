@@ -28,6 +28,10 @@
 
 namespace blender::draw::overlay {
 
+/**
+ * Displays geometry node viewer output.
+ * Values are displayed as text on top of the active object.
+ */
 class AttributeTexts : Overlay {
  public:
   void begin_sync(Resources &res, const State &state) final

@@ -14,6 +14,10 @@
 
 namespace blender::draw::overlay {
 
+/**
+ * Display object names next to their origin.
+ * The option can be found under (Object > Viewport Display > Show > Name).
+ */
 class Names : Overlay {
  public:
   void begin_sync(Resources &res, const State &state) final

@@ -24,6 +24,11 @@
 
 namespace blender::draw::overlay {
 
+/**
+ * Display sculpt modes overlays.
+ * Covers face sets and mask for meshes.
+ * Draw curve cages (curve guides) for curve sculpting.
+ */
 class Sculpts : Overlay {
 
  private:
