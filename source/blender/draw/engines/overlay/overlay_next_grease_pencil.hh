@@ -239,7 +239,6 @@ class GreasePencil : Overlay {
       const float4x4 &object_to_world =
           manager.matrix_buf.current().get_or_resize(plane.handle.resource_index()).model;
       plane.plane = GreasePencil::depth_plane_get(object_to_world, plane.bounds, view);
-      std::cout << "plane.plane " << plane.plane << std::endl;
     }
   }
 
