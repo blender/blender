@@ -647,7 +647,7 @@ struct FlatObjectRef {
     return -1;
   }
 
-  using Callback = std::function<void(gpu::Batch *geom, ResourceHandle handle)>;
+  using Callback = FunctionRef<void(gpu::Batch *geom, ResourceHandle handle)>;
 
   /* Execute callback for every handles that is orthogonal to the view.
    * Note: Only works in orthogonal view. */
