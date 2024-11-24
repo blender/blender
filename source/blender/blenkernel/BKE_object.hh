@@ -507,10 +507,9 @@ Mesh *BKE_object_get_evaluated_mesh_no_subsurf_unchecked(const Object *object);
 Mesh *BKE_object_get_evaluated_mesh_unchecked(const Object *object);
 /**
  * Get mesh which is not affected by modifiers:
- * - For original objects it will be same as `object->data`, and it is a mesh
- *   which is in the corresponding #Main.
- * - For copied-on-write objects it will give pointer to a copied-on-write
- *   mesh which corresponds to original object's mesh.
+ * - For original objects, return #Object::data: the mesh in the original #Main database.
+ * - For evaluated objects, return the evaluated mesh which corresponds to the original
+ *   mesh, if the original object was a mesh object (otherwise null).
  */
 const Mesh *BKE_object_get_pre_modified_mesh(const Object *object);
 /**
