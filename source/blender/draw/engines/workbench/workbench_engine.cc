@@ -28,63 +28,65 @@ namespace blender::workbench {
 using namespace draw;
 
 class Instance {
- public:
-  View view = {"DefaultView"};
+ private:
+  View view_ = {"DefaultView"};
 
-  SceneState scene_state;
+  SceneState scene_state_;
 
-  SceneResources resources;
+  SceneResources resources_;
 
-  OpaquePass opaque_ps;
-  TransparentPass transparent_ps;
-  TransparentDepthPass transparent_depth_ps;
+  OpaquePass opaque_ps_;
+  TransparentPass transparent_ps_;
+  TransparentDepthPass transparent_depth_ps_;
 
-  ShadowPass shadow_ps;
-  VolumePass volume_ps;
-  OutlinePass outline_ps;
-  DofPass dof_ps;
-  AntiAliasingPass anti_aliasing_ps;
+  ShadowPass shadow_ps_;
+  VolumePass volume_ps_;
+  OutlinePass outline_ps_;
+  DofPass dof_ps_;
+  AntiAliasingPass anti_aliasing_ps_;
 
   /* An array of nullptr GPUMaterial pointers so we can call DRW_cache_object_surface_material_get.
    * They never get actually used. */
-  Vector<GPUMaterial *> dummy_gpu_materials = {1, nullptr, {}};
+  Vector<GPUMaterial *> dummy_gpu_materials_ = {1, nullptr, {}};
+
+ public:
   GPUMaterial **get_dummy_gpu_materials(int material_count)
   {
-    if (material_count > dummy_gpu_materials.size()) {
-      dummy_gpu_materials.resize(material_count, nullptr);
+    if (material_count > dummy_gpu_materials_.size()) {
+      dummy_gpu_materials_.resize(material_count, nullptr);
     }
-    return dummy_gpu_materials.begin();
+    return dummy_gpu_materials_.begin();
   };
 
   void init(Object *camera_ob = nullptr)
   {
-    scene_state.init(camera_ob);
-    shadow_ps.init(scene_state, resources);
-    resources.init(scene_state);
+    scene_state_.init(camera_ob);
+    shadow_ps_.init(scene_state_, resources_);
+    resources_.init(scene_state_);
 
-    outline_ps.init(scene_state);
-    dof_ps.init(scene_state);
-    anti_aliasing_ps.init(scene_state);
+    outline_ps_.init(scene_state_);
+    dof_ps_.init(scene_state_);
+    anti_aliasing_ps_.init(scene_state_);
   }
 
   void begin_sync()
   {
-    resources.material_buf.clear_and_trim();
+    resources_.material_buf.clear_and_trim();
 
-    opaque_ps.sync(scene_state, resources);
-    transparent_ps.sync(scene_state, resources);
-    transparent_depth_ps.sync(scene_state, resources);
+    opaque_ps_.sync(scene_state_, resources_);
+    transparent_ps_.sync(scene_state_, resources_);
+    transparent_depth_ps_.sync(scene_state_, resources_);
 
-    shadow_ps.sync();
-    volume_ps.sync(resources);
-    outline_ps.sync(resources);
-    dof_ps.sync(resources);
-    anti_aliasing_ps.sync(scene_state, resources);
+    shadow_ps_.sync();
+    volume_ps_.sync(resources_);
+    outline_ps_.sync(resources_);
+    dof_ps_.sync(resources_);
+    anti_aliasing_ps_.sync(scene_state_, resources_);
   }
 
   void end_sync()
   {
-    resources.material_buf.push_update();
+    resources_.material_buf.push_update();
   }
 
   Material get_material(ObjectRef ob_ref, eV3DShadingColorType color_type, int slot = 0)
@@ -95,9 +97,9 @@ class Instance {
       case V3D_SHADING_RANDOM_COLOR:
         return Material(*ob_ref.object, true);
       case V3D_SHADING_SINGLE_COLOR:
-        return scene_state.material_override;
+        return scene_state_.material_override;
       case V3D_SHADING_VERTEX_COLOR:
-        return scene_state.material_attribute_color;
+        return scene_state_.material_attribute_color;
       case V3D_SHADING_TEXTURE_COLOR:
         ATTR_FALLTHROUGH;
       case V3D_SHADING_MATERIAL_COLOR:
@@ -112,7 +114,7 @@ class Instance {
 
   void object_sync(Manager &manager, ObjectRef &ob_ref)
   {
-    if (scene_state.render_finished) {
+    if (scene_state_.render_finished) {
       return;
     }
 
@@ -121,7 +123,7 @@ class Instance {
       return;
     }
 
-    const ObjectState object_state = ObjectState(scene_state, resources, ob);
+    const ObjectState object_state = ObjectState(scene_state_, resources_, ob);
 
     bool is_object_data_visible = (DRW_object_visibility_in_active_context(ob) &
                                    OB_VISIBLE_SELF) &&
@@ -129,10 +131,10 @@ class Instance {
 
     if (!(ob->base_flag & BASE_FROM_DUPLI)) {
       ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Fluid);
-      if (md && BKE_modifier_is_enabled(scene_state.scene, md, eModifierMode_Realtime)) {
+      if (md && BKE_modifier_is_enabled(scene_state_.scene, md, eModifierMode_Realtime)) {
         FluidModifierData *fmd = (FluidModifierData *)md;
         if (fmd->domain) {
-          volume_ps.object_sync_modifier(manager, resources, scene_state, ob_ref, md);
+          volume_ps_.object_sync_modifier(manager, resources_, scene_state_, ob_ref, md);
 
           if (fmd->domain->type == FLUID_DOMAIN_TYPE_GAS) {
             /* Do not draw solid in this case. */
@@ -151,27 +153,27 @@ class Instance {
         const float3 center = math::midpoint(bounds.min, bounds.max);
         const float3 half_extent = bounds.max - center;
         ResourceHandle handle = manager.resource_handle(ob_ref, nullptr, &center, &half_extent);
-        sculpt_sync(ob_ref, handle, object_state);
+        this->sculpt_sync(ob_ref, handle, object_state);
         emitter_handle = handle;
       }
       else if (ob->type == OB_MESH) {
         ResourceHandle handle = manager.resource_handle(ob_ref);
-        mesh_sync(ob_ref, handle, object_state);
+        this->mesh_sync(ob_ref, handle, object_state);
         emitter_handle = handle;
       }
       else if (ob->type == OB_POINTCLOUD) {
-        point_cloud_sync(manager, ob_ref, object_state);
+        this->point_cloud_sync(manager, ob_ref, object_state);
       }
       else if (ob->type == OB_CURVES) {
-        curves_sync(manager, ob_ref, object_state);
+        this->curves_sync(manager, ob_ref, object_state);
       }
       else if (ob->type == OB_VOLUME) {
-        if (scene_state.shading.type != OB_WIRE) {
-          volume_ps.object_sync_volume(manager,
-                                       resources,
-                                       scene_state,
-                                       ob_ref,
-                                       get_material(ob_ref, object_state.color_type).base_color);
+        if (scene_state_.shading.type != OB_WIRE) {
+          volume_ps_.object_sync_volume(manager,
+                                        resources_,
+                                        scene_state_,
+                                        ob_ref,
+                                        get_material(ob_ref, object_state.color_type).base_color);
         }
       }
     }
@@ -189,7 +191,7 @@ class Instance {
         const int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
 
         if (draw_as == PART_DRAW_PATH) {
-          hair_sync(manager, ob_ref, emitter_handle, object_state, psys, md);
+          this->hair_sync(manager, ob_ref, emitter_handle, object_state, psys, md);
         }
       }
     }
@@ -200,22 +202,22 @@ class Instance {
   {
     const bool in_front = (ob_ref.object->dtx & OB_DRAW_IN_FRONT) != 0;
 
-    if (scene_state.xray_mode || is_transparent) {
+    if (scene_state_.xray_mode || is_transparent) {
       if (in_front) {
-        draw_callback(transparent_ps.accumulation_in_front_ps_);
-        draw_callback(transparent_depth_ps.in_front_ps_);
+        draw_callback(transparent_ps_.accumulation_in_front_ps_);
+        draw_callback(transparent_depth_ps_.in_front_ps_);
       }
       else {
-        draw_callback(transparent_ps.accumulation_ps_);
-        draw_callback(transparent_depth_ps.main_ps_);
+        draw_callback(transparent_ps_.accumulation_ps_);
+        draw_callback(transparent_depth_ps_.main_ps_);
       }
     }
     else {
       if (in_front) {
-        draw_callback(opaque_ps.gbuffer_in_front_ps_);
+        draw_callback(opaque_ps_.gbuffer_in_front_ps_);
       }
       else {
-        draw_callback(opaque_ps.gbuffer_ps_);
+        draw_callback(opaque_ps_.gbuffer_ps_);
       }
     }
   }
@@ -227,14 +229,14 @@ class Instance {
                  const MaterialTexture *texture = nullptr,
                  bool show_missing_texture = false)
   {
-    resources.material_buf.append(material);
-    int material_index = resources.material_buf.size() - 1;
+    resources_.material_buf.append(material);
+    int material_index = resources_.material_buf.size() - 1;
 
     if (show_missing_texture && (!texture || !texture->gpu.texture)) {
-      texture = &resources.missing_texture;
+      texture = &resources_.missing_texture;
     }
 
-    draw_to_mesh_pass(ob_ref, material.is_transparent(), [&](MeshPass &mesh_pass) {
+    this->draw_to_mesh_pass(ob_ref, material.is_transparent(), [&](MeshPass &mesh_pass) {
       mesh_pass.get_subpass(eGeometryType::MESH, texture).draw(batch, handle, material_index);
     });
   }
@@ -252,7 +254,7 @@ class Instance {
       }
       else {
         batches = DRW_cache_object_surface_material_get(
-            ob_ref.object, get_dummy_gpu_materials(material_count), material_count);
+            ob_ref.object, this->get_dummy_gpu_materials(material_count), material_count);
       }
 
       if (batches) {
@@ -262,7 +264,7 @@ class Instance {
           }
 
           int material_slot = i;
-          Material mat = get_material(ob_ref, object_state.color_type, material_slot);
+          Material mat = this->get_material(ob_ref, object_state.color_type, material_slot);
           has_transparent_material = has_transparent_material || mat.is_transparent();
 
           MaterialTexture texture;
@@ -270,7 +272,8 @@ class Instance {
             texture = MaterialTexture(ob_ref.object, material_slot);
           }
 
-          draw_mesh(ob_ref, mat, batches[i], handle, &texture, object_state.show_missing_texture);
+          this->draw_mesh(
+              ob_ref, mat, batches[i], handle, &texture, object_state.show_missing_texture);
         }
       }
     }
@@ -292,15 +295,15 @@ class Instance {
       }
 
       if (batch) {
-        Material mat = get_material(ob_ref, object_state.color_type);
+        Material mat = this->get_material(ob_ref, object_state.color_type);
         has_transparent_material = has_transparent_material || mat.is_transparent();
 
-        draw_mesh(ob_ref, mat, batch, handle, &object_state.image_paint_override);
+        this->draw_mesh(ob_ref, mat, batch, handle, &object_state.image_paint_override);
       }
     }
 
     if (object_state.draw_shadow) {
-      shadow_ps.object_sync(scene_state, ob_ref, handle, has_transparent_material);
+      shadow_ps_.object_sync(scene_state_, ob_ref, handle, has_transparent_material);
     }
   }
 
@@ -316,7 +319,7 @@ class Instance {
 
     if (object_state.use_per_material_batches) {
       for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, features)) {
-        Material mat = get_material(ob_ref, object_state.color_type, batch.material_slot);
+        Material mat = this->get_material(ob_ref, object_state.color_type, batch.material_slot);
         if (SCULPT_DEBUG_DRAW) {
           mat.base_color = batch.debug_color();
         }
@@ -326,17 +329,18 @@ class Instance {
           texture = MaterialTexture(ob_ref.object, batch.material_slot);
         }
 
-        draw_mesh(ob_ref, mat, batch.batch, handle, &texture, object_state.show_missing_texture);
+        this->draw_mesh(
+            ob_ref, mat, batch.batch, handle, &texture, object_state.show_missing_texture);
       }
     }
     else {
-      Material mat = get_material(ob_ref, object_state.color_type);
+      Material mat = this->get_material(ob_ref, object_state.color_type);
       for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, features)) {
         if (SCULPT_DEBUG_DRAW) {
           mat.base_color = batch.debug_color();
         }
 
-        draw_mesh(ob_ref, mat, batch.batch, handle, &object_state.image_paint_override);
+        this->draw_mesh(ob_ref, mat, batch.batch, handle, &object_state.image_paint_override);
       }
     }
   }
@@ -345,11 +349,11 @@ class Instance {
   {
     ResourceHandle handle = manager.resource_handle(ob_ref);
 
-    Material mat = get_material(ob_ref, object_state.color_type);
-    resources.material_buf.append(mat);
-    int material_index = resources.material_buf.size() - 1;
+    Material mat = this->get_material(ob_ref, object_state.color_type);
+    resources_.material_buf.append(mat);
+    int material_index = resources_.material_buf.size() - 1;
 
-    draw_to_mesh_pass(ob_ref, mat.is_transparent(), [&](MeshPass &mesh_pass) {
+    this->draw_to_mesh_pass(ob_ref, mat.is_transparent(), [&](MeshPass &mesh_pass) {
       PassMain::Sub &pass =
           mesh_pass.get_subpass(eGeometryType::POINTCLOUD).sub("Point Cloud SubPass");
       gpu::Batch *batch = point_cloud_sub_pass_setup(pass, ob_ref.object);
@@ -367,19 +371,19 @@ class Instance {
     /* Skip frustum culling. */
     ResourceHandle handle = manager.resource_handle(ob_ref.object->object_to_world());
 
-    Material mat = get_material(ob_ref, object_state.color_type, psys->part->omat - 1);
+    Material mat = this->get_material(ob_ref, object_state.color_type, psys->part->omat - 1);
     MaterialTexture texture;
     if (object_state.color_type == V3D_SHADING_TEXTURE_COLOR) {
       texture = MaterialTexture(ob_ref.object, psys->part->omat - 1);
     }
-    resources.material_buf.append(mat);
-    int material_index = resources.material_buf.size() - 1;
+    resources_.material_buf.append(mat);
+    int material_index = resources_.material_buf.size() - 1;
 
-    draw_to_mesh_pass(ob_ref, mat.is_transparent(), [&](MeshPass &mesh_pass) {
+    this->draw_to_mesh_pass(ob_ref, mat.is_transparent(), [&](MeshPass &mesh_pass) {
       PassMain::Sub &pass =
           mesh_pass.get_subpass(eGeometryType::CURVES, &texture).sub("Hair SubPass");
       pass.push_constant("emitter_object_id", int(emitter_handle.raw));
-      gpu::Batch *batch = hair_sub_pass_setup(pass, scene_state.scene, ob_ref.object, psys, md);
+      gpu::Batch *batch = hair_sub_pass_setup(pass, scene_state_.scene, ob_ref.object, psys, md);
       pass.draw(batch, handle, material_index);
     });
   }
@@ -389,13 +393,13 @@ class Instance {
     /* Skip frustum culling. */
     ResourceHandle handle = manager.resource_handle(ob_ref.object->object_to_world());
 
-    Material mat = get_material(ob_ref, object_state.color_type);
-    resources.material_buf.append(mat);
-    int material_index = resources.material_buf.size() - 1;
+    Material mat = this->get_material(ob_ref, object_state.color_type);
+    resources_.material_buf.append(mat);
+    int material_index = resources_.material_buf.size() - 1;
 
-    draw_to_mesh_pass(ob_ref, mat.is_transparent(), [&](MeshPass &mesh_pass) {
+    this->draw_to_mesh_pass(ob_ref, mat.is_transparent(), [&](MeshPass &mesh_pass) {
       PassMain::Sub &pass = mesh_pass.get_subpass(eGeometryType::CURVES).sub("Curves SubPass");
-      gpu::Batch *batch = curves_sub_pass_setup(pass, scene_state.scene, ob_ref.object);
+      gpu::Batch *batch = curves_sub_pass_setup(pass, scene_state_.scene, ob_ref.object);
       pass.draw(batch, handle, material_index);
     });
   }
@@ -405,58 +409,58 @@ class Instance {
             GPUTexture *depth_in_front_tx,
             GPUTexture *color_tx)
   {
-    view.sync(DRW_view_default_get());
+    view_.sync(DRW_view_default_get());
 
-    int2 resolution = scene_state.resolution;
+    int2 resolution = scene_state_.resolution;
 
     /** Always setup in-front depth, since Overlays can be updated without causing a Workbench
      * re-sync (See #113580). */
-    bool needs_depth_in_front = !transparent_ps.accumulation_in_front_ps_.is_empty() ||
-                                (!opaque_ps.gbuffer_in_front_ps_.is_empty() &&
-                                 scene_state.sample == 0);
-    resources.depth_in_front_tx.wrap(needs_depth_in_front ? depth_in_front_tx : nullptr);
-    if (!needs_depth_in_front || opaque_ps.gbuffer_in_front_ps_.is_empty()) {
-      resources.clear_in_front_fb.ensure(GPU_ATTACHMENT_TEXTURE(depth_in_front_tx));
-      resources.clear_in_front_fb.bind();
-      GPU_framebuffer_clear_depth_stencil(resources.clear_in_front_fb, 1.0f, 0x00);
+    bool needs_depth_in_front = !transparent_ps_.accumulation_in_front_ps_.is_empty() ||
+                                (!opaque_ps_.gbuffer_in_front_ps_.is_empty() &&
+                                 scene_state_.sample == 0);
+    resources_.depth_in_front_tx.wrap(needs_depth_in_front ? depth_in_front_tx : nullptr);
+    if (!needs_depth_in_front || opaque_ps_.gbuffer_in_front_ps_.is_empty()) {
+      resources_.clear_in_front_fb.ensure(GPU_ATTACHMENT_TEXTURE(depth_in_front_tx));
+      resources_.clear_in_front_fb.bind();
+      GPU_framebuffer_clear_depth_stencil(resources_.clear_in_front_fb, 1.0f, 0x00);
     }
 
-    resources.depth_tx.wrap(depth_tx);
-    resources.color_tx.wrap(color_tx);
+    resources_.depth_tx.wrap(depth_tx);
+    resources_.color_tx.wrap(color_tx);
 
-    if (scene_state.render_finished) {
+    if (scene_state_.render_finished) {
       /* Just copy back the already rendered result */
-      anti_aliasing_ps.draw(manager, view, scene_state, resources, depth_in_front_tx);
+      anti_aliasing_ps_.draw(manager, view_, scene_state_, resources_, depth_in_front_tx);
       return;
     }
 
-    anti_aliasing_ps.setup_view(view, scene_state);
+    anti_aliasing_ps_.setup_view(view_, scene_state_);
 
     GPUAttachment id_attachment = GPU_ATTACHMENT_NONE;
-    if (scene_state.draw_object_id) {
-      resources.object_id_tx.acquire(
+    if (scene_state_.draw_object_id) {
+      resources_.object_id_tx.acquire(
           resolution, GPU_R16UI, GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT);
-      id_attachment = GPU_ATTACHMENT_TEXTURE(resources.object_id_tx);
+      id_attachment = GPU_ATTACHMENT_TEXTURE(resources_.object_id_tx);
     }
-    resources.clear_fb.ensure(GPU_ATTACHMENT_TEXTURE(resources.depth_tx),
-                              GPU_ATTACHMENT_TEXTURE(resources.color_tx),
-                              id_attachment);
-    resources.clear_fb.bind();
-    float4 clear_colors[2] = {scene_state.background_color, float4(0.0f)};
-    GPU_framebuffer_multi_clear(resources.clear_fb, reinterpret_cast<float(*)[4]>(clear_colors));
-    GPU_framebuffer_clear_depth_stencil(resources.clear_fb, 1.0f, 0x00);
+    resources_.clear_fb.ensure(GPU_ATTACHMENT_TEXTURE(resources_.depth_tx),
+                               GPU_ATTACHMENT_TEXTURE(resources_.color_tx),
+                               id_attachment);
+    resources_.clear_fb.bind();
+    float4 clear_colors[2] = {scene_state_.background_color, float4(0.0f)};
+    GPU_framebuffer_multi_clear(resources_.clear_fb, reinterpret_cast<float(*)[4]>(clear_colors));
+    GPU_framebuffer_clear_depth_stencil(resources_.clear_fb, 1.0f, 0x00);
 
-    opaque_ps.draw(
-        manager, view, resources, resolution, scene_state.draw_shadows ? &shadow_ps : nullptr);
-    transparent_ps.draw(manager, view, resources, resolution);
-    transparent_depth_ps.draw(manager, view, resources);
+    opaque_ps_.draw(
+        manager, view_, resources_, resolution, scene_state_.draw_shadows ? &shadow_ps_ : nullptr);
+    transparent_ps_.draw(manager, view_, resources_, resolution);
+    transparent_depth_ps_.draw(manager, view_, resources_);
 
-    volume_ps.draw(manager, view, resources);
-    outline_ps.draw(manager, resources);
-    dof_ps.draw(manager, view, resources, resolution);
-    anti_aliasing_ps.draw(manager, view, scene_state, resources, depth_in_front_tx);
+    volume_ps_.draw(manager, view_, resources_);
+    outline_ps_.draw(manager, resources_);
+    dof_ps_.draw(manager, view_, resources_, resolution);
+    anti_aliasing_ps_.draw(manager, view_, scene_state_, resources_, depth_in_front_tx);
 
-    resources.object_id_tx.release();
+    resources_.object_id_tx.release();
   }
 
   void draw_viewport(Manager &manager,
@@ -466,7 +470,7 @@ class Instance {
   {
     this->draw(manager, depth_tx, depth_in_front_tx, color_tx);
 
-    if (scene_state.sample + 1 < scene_state.samples_len) {
+    if (scene_state_.sample + 1 < scene_state_.samples_len) {
       DRW_viewport_request_redraw();
     }
   }
@@ -477,17 +481,17 @@ class Instance {
                          GPUTexture *color_tx,
                          RenderEngine *engine = nullptr)
   {
-    BLI_assert(scene_state.sample == 0);
-    for (auto i : IndexRange(scene_state.samples_len)) {
+    BLI_assert(scene_state_.sample == 0);
+    for (auto i : IndexRange(scene_state_.samples_len)) {
       if (engine && RE_engine_test_break(engine)) {
         break;
       }
       if (i != 0) {
-        scene_state.sample = i;
+        scene_state_.sample = i;
         /* Re-sync anything dependent on scene_state.sample. */
-        resources.init(scene_state);
-        dof_ps.init(scene_state);
-        anti_aliasing_ps.sync(scene_state, resources);
+        resources_.init(scene_state_);
+        dof_ps_.init(scene_state_);
+        anti_aliasing_ps_.sync(scene_state_, resources_);
       }
       this->draw(manager, depth_tx, depth_in_front_tx, color_tx);
       /* Perform render step between samples to allow
@@ -497,6 +501,11 @@ class Instance {
       }
       GPU_render_step();
     }
+  }
+
+  void reset_taa_sample()
+  {
+    scene_state_.reset_taa_next_sample = true;
   }
 };
 
@@ -579,7 +588,7 @@ static void workbench_view_update(void *vedata)
 {
   WORKBENCH_Data *ved = reinterpret_cast<WORKBENCH_Data *>(vedata);
   if (ved->instance) {
-    ved->instance->scene_state.reset_taa_next_sample = true;
+    ved->instance->reset_taa_sample();
   }
 }
 
