@@ -386,6 +386,8 @@ void Instance::draw(Manager &manager)
     pre_draw(regular);
     pre_draw(infront);
     outline.pre_draw_ex(manager, view, resources, state);
+
+    GreasePencil::compute_depth_planes(manager, view, resources, state);
   }
 
   resources.depth_tx.wrap(DRW_viewport_texture_list_get()->depth);

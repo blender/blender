@@ -409,6 +409,16 @@ class ShaderModule {
                               FunctionRef<void(gpu::shader::ShaderCreateInfo &info)> patch);
 };
 
+struct GreasePencilDepthPlane {
+  /* Plane data to reference as push constant.
+   * Will be computed just before drawing. */
+  float4 plane;
+  /* Center and size of the bounding box of the Grease Pencil object. */
+  Bounds<float3> bounds;
+  /* Gpencil object resource handle. */
+  ResourceHandle handle;
+};
+
 struct Resources : public select::SelectMap {
   ShaderModule &shaders;
 
@@ -450,6 +460,14 @@ struct Resources : public select::SelectMap {
   /* 1px texture containing only maximum depth. To be used for fulfilling bindings when depth
    * texture is not available or not needed. */
   Texture dummy_depth_tx = {"dummy_depth_tx"};
+
+  /* Global vector for all grease pencil depth planes.
+   * Managed by the grease pencil overlay module.
+   * This is to avoid passing the grease pencil overlay class to other overlay and
+   * keep draw_grease_pencil as a static function.
+   * Memory is reference, so we have to use a container with fixed memory. */
+  detail::SubPassVector<GreasePencilDepthPlane, 16> depth_planes;
+  int64_t depth_planes_count = 0;
 
   /** TODO(fclem): Copy of G_data.block that should become theme colors only and managed by the
    * engine. */

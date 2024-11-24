@@ -52,6 +52,9 @@ class GreasePencil : Overlay {
   {
     enabled_ = state.is_space_v3d();
 
+    res.depth_planes.clear();
+    res.depth_planes_count = 0;
+
     if (!enabled_) {
       return;
     }
@@ -226,6 +229,20 @@ class GreasePencil : Overlay {
     }
   }
 
+  static void compute_depth_planes(Manager &manager,
+                                   View &view,
+                                   Resources &res,
+                                   const State & /*state*/)
+  {
+    for (auto i : IndexRange(res.depth_planes_count)) {
+      GreasePencilDepthPlane &plane = res.depth_planes[i];
+      const float4x4 &object_to_world =
+          manager.matrix_buf.current().get_or_resize(plane.handle.resource_index()).model;
+      plane.plane = GreasePencil::depth_plane_get(object_to_world, plane.bounds, view);
+      std::cout << "plane.plane " << plane.plane << std::endl;
+    }
+  }
+
   void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
@@ -248,29 +265,8 @@ class GreasePencil : Overlay {
     manager.submit(edit_grease_pencil_ps_, view_edit_cage);
   }
 
-  struct ViewParameters {
-    bool is_perspective;
-    union {
-      /* Z axis if ortho or position if perspective. */
-      float3 z_axis;
-      float3 location;
-    };
-
-    ViewParameters() = default;
-
-    ViewParameters(bool is_perspective, const float4x4 &viewinv)
-    {
-      if (is_perspective) {
-        location = viewinv.location();
-      }
-      else {
-        z_axis = viewinv.z_axis();
-      }
-    }
-  };
-
-  static void draw_grease_pencil(PassMain::Sub &pass,
-                                 const ViewParameters &view,
+  static void draw_grease_pencil(Resources &res,
+                                 PassMain::Sub &pass,
                                  const Scene *scene,
                                  Object *ob,
                                  ResourceHandle res_handle,
@@ -280,15 +276,25 @@ class GreasePencil : Overlay {
     using namespace blender::ed::greasepencil;
     ::GreasePencil &grease_pencil = *static_cast<::GreasePencil *>(ob->data);
 
-    float4 plane = (grease_pencil.flag & GREASE_PENCIL_STROKE_ORDER_3D) ?
-                       float4(0.0f) :
-                       depth_plane_get(ob, view);
-    pass.push_constant("gpDepthPlane", plane);
+    const bool is_stroke_order_3d = (grease_pencil.flag & GREASE_PENCIL_STROKE_ORDER_3D) != 0;
+
+    if (is_stroke_order_3d) {
+      pass.push_constant("gpDepthPlane", float4(0.0f));
+    }
+    else {
+      int64_t index = res.depth_planes.append_and_get_index({});
+      res.depth_planes_count++;
+
+      GreasePencilDepthPlane &plane = res.depth_planes[index];
+      plane.bounds = BKE_object_boundbox_get(ob).value_or(blender::Bounds(float3(0)));
+      plane.handle = res_handle;
+
+      pass.push_constant("gpDepthPlane", &plane.plane);
+    }
 
     int t_offset = 0;
     const Vector<DrawingInfo> drawings = retrieve_visible_drawings(*scene, grease_pencil, true);
     for (const DrawingInfo info : drawings) {
-      const bool is_stroke_order_3d = (grease_pencil.flag & GREASE_PENCIL_STROKE_ORDER_3D) != 0;
 
       const float object_scale = mat4_to_scale(ob->object_to_world().ptr());
       const float thickness_scale = bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
@@ -359,7 +365,9 @@ class GreasePencil : Overlay {
 
  private:
   /* Returns the normal plane in NDC space. */
-  static float4 depth_plane_get(const Object *ob, const ViewParameters &view)
+  static float4 depth_plane_get(const float4x4 &object_to_world,
+                                const blender::Bounds<float3> &bounds,
+                                const View &view)
   {
     using namespace blender::math;
 
@@ -368,19 +376,17 @@ class GreasePencil : Overlay {
      * strokes not aligned with the object axes. Maybe we could try to
      * compute the minimum axis of all strokes. But this would be more
      * computationally heavy and should go into the GPData evaluation. */
-    const std::optional<blender::Bounds<float3>> bounds = BKE_object_boundbox_get(ob).value_or(
-        blender::Bounds(float3(0)));
-
-    float3 center = midpoint(bounds->min, bounds->max);
-    float3 size = (bounds->max - bounds->min) * 0.5f;
+    float3 center = bounds.center();
+    float3 size = bounds.size();
     /* Avoid division by 0.0 later. */
     size += 1e-8f;
+
     /* Convert Bbox unit space to object space. */
-    float4x4 bbox_to_object = from_loc_scale<float4x4>(center, size);
-    float4x4 bbox_to_world = ob->object_to_world() * bbox_to_object;
+    float4x4 bbox_to_object = from_loc_scale<float4x4>(center, size * 0.5f);
+    float4x4 bbox_to_world = object_to_world * bbox_to_object;
 
     float3 bbox_center = bbox_to_world.location();
-    float3 view_vector = (view.is_perspective) ? view.location - bbox_center : view.z_axis;
+    float3 view_vector = (view.is_persp()) ? (view.location() - bbox_center) : view.forward();
 
     float3x3 world_to_bbox = invert(float3x3(bbox_to_world));
 

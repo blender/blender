@@ -37,8 +37,6 @@ class Outline : Overlay {
 
   Framebuffer prepass_fb_ = {"outline.prepass_fb"};
 
-  overlay::GreasePencil::ViewParameters grease_pencil_view;
-
   Vector<FlatObjectRef> flat_objects_;
 
   PassMain outline_prepass_flat_ps_ = {"PrepassFlat"};
@@ -53,14 +51,6 @@ class Outline : Overlay {
 
     if (!enabled_) {
       return;
-    }
-
-    {
-      /* TODO(fclem): This is against design. We should not sync depending on view position.
-       * Eventually, we should do this in a compute shader prepass. */
-      float4x4 viewinv;
-      DRW_view_viewmat_get(nullptr, viewinv.ptr(), true);
-      grease_pencil_view = {DRW_view_is_persp_get(nullptr), viewinv};
     }
 
     const float outline_width = UI_GetThemeValuef(TH_OUTLINE_WIDTH);
@@ -133,7 +123,7 @@ class Outline : Overlay {
 
   void object_sync(Manager &manager,
                    const ObjectRef &ob_ref,
-                   Resources & /*res*/,
+                   Resources &res,
                    const State &state) final
   {
     if (!enabled_) {
@@ -155,8 +145,8 @@ class Outline : Overlay {
         prepass_curves_ps_->draw(geom, manager.unique_handle(ob_ref));
         break;
       case OB_GREASE_PENCIL:
-        GreasePencil::draw_grease_pencil(*prepass_gpencil_ps_,
-                                         grease_pencil_view,
+        GreasePencil::draw_grease_pencil(res,
+                                         *prepass_gpencil_ps_,
                                          state.scene,
                                          ob_ref.object,
                                          manager.unique_handle(ob_ref));

@@ -36,8 +36,6 @@ class Prepass : Overlay {
 
   bool use_material_slot_selection_ = false;
 
-  overlay::GreasePencil::ViewParameters grease_pencil_view;
-
  public:
   void begin_sync(Resources &res, const State &state) final
   {
@@ -50,14 +48,6 @@ class Prepass : Overlay {
       curves_ps_ = nullptr;
       point_cloud_ps_ = nullptr;
       return;
-    }
-
-    {
-      /* TODO(fclem): This is against design. We should not sync depending on view position.
-       * Eventually, we should do this in a compute shader prepass. */
-      float4x4 viewinv;
-      DRW_view_viewmat_get(nullptr, viewinv.ptr(), true);
-      grease_pencil_view = {DRW_view_is_persp_get(nullptr), viewinv};
     }
 
     use_material_slot_selection_ = state.is_material_select;
@@ -226,8 +216,8 @@ class Prepass : Overlay {
            * The grease pencil engine already renders it properly. */
           return;
         }
-        GreasePencil::draw_grease_pencil(*grease_pencil_ps_,
-                                         grease_pencil_view,
+        GreasePencil::draw_grease_pencil(res,
+                                         *grease_pencil_ps_,
                                          state.scene,
                                          ob_ref.object,
                                          manager.unique_handle(ob_ref),
