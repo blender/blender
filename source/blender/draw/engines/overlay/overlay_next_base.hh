@@ -52,8 +52,7 @@ struct Overlay {
    *
    * This method must be implemented.
    */
-  /* TODO(fclem): Make it pure virtual. */
-  virtual void begin_sync(Resources & /*res*/, const State & /*state*/){};
+  virtual void begin_sync(Resources & /*res*/, const State & /*state*/) = 0;
 
   /**
    * Fills passes or buffers for each object.

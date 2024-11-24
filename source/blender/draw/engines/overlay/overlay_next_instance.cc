@@ -159,7 +159,7 @@ void Instance::begin_sync()
   begin_sync_layer(regular);
   begin_sync_layer(infront);
 
-  grid.begin_sync(resources, shapes, state, view);
+  grid.begin_sync(resources, state);
 
   anti_aliasing.begin_sync(resources, state);
   xray_fade.begin_sync(resources, state);

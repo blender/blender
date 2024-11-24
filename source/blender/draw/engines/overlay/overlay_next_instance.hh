@@ -110,7 +110,7 @@ class Instance {
     Wireframe wireframe;
   } regular{selection_type_, shapes}, infront{selection_type_, shapes};
 
-  Grid grid;
+  Grid grid = {shapes};
 
   AntiAliasing anti_aliasing;
   XrayFade xray_fade;
