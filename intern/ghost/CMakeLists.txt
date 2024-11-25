@@ -185,12 +185,6 @@ elseif(APPLE AND NOT WITH_GHOST_X11)
     intern/GHOST_WindowViewCocoa.hh
   )
 
-  list(APPEND SRC
-    intern/GHOST_ContextCGL.mm
-
-    intern/GHOST_ContextCGL.hh
-  )
-
   if(WITH_INPUT_NDOF)
     list(APPEND SRC
       intern/GHOST_NDOFManagerCocoa.mm
@@ -527,6 +521,16 @@ if(UNIX AND NOT APPLE)
       intern/GHOST_ContextEGL.cc
 
       intern/GHOST_ContextEGL.hh
+    )
+  endif()
+endif()
+
+if(APPLE)
+  if(WITH_METAL_BACKEND)
+    list(APPEND SRC
+      intern/GHOST_ContextCGL.mm
+
+      intern/GHOST_ContextCGL.hh
     )
   endif()
 endif()
