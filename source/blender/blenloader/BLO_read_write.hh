@@ -37,6 +37,7 @@
 
 #include "BLI_function_ref.hh"
 #include "BLI_implicit_sharing.hh"
+#include "BLI_memory_utils.hh"
 
 namespace blender {
 class ImplicitSharingInfo;
@@ -167,12 +168,20 @@ void blo_write_id_struct(BlendWriter *writer, int struct_id, const void *id_addr
  * \note Once there is a better generic handling of embedded IDs,
  * this may go back to private code in `writefile.cc`.
  */
-struct BLO_Write_IDBuffer;
+struct BLO_Write_IDBuffer {
+ private:
+  static constexpr int static_size = 8192;
+  blender::DynamicStackBuffer<static_size> buffer_;
 
-BLO_Write_IDBuffer *BLO_write_allocate_id_buffer();
-void BLO_write_init_id_buffer_from_id(BLO_Write_IDBuffer *id_buffer, ID *id, const bool is_undo);
-ID *BLO_write_get_id_buffer_temp_id(BLO_Write_IDBuffer *id_buffer);
-void BLO_write_destroy_id_buffer(BLO_Write_IDBuffer **id_buffer);
+ public:
+  BLO_Write_IDBuffer(ID &id, bool is_undo);
+  BLO_Write_IDBuffer(ID &id, BlendWriter *writer);
+
+  ID *get()
+  {
+    return static_cast<ID *>(buffer_.buffer());
+  };
+};
 
 /**
  * Write raw data.
