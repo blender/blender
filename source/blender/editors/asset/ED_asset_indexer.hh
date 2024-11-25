@@ -33,6 +33,8 @@ namespace blender::ed::asset::index {
  */
 extern const FileIndexerType file_indexer_asset;
 
+extern const FileIndexerType file_indexer_asset_remote_index;
+
 const FileIndexerType *asset_indexer_from_library_ref(const AssetLibraryReference *library_ref);
 
 }  // namespace blender::ed::asset::index

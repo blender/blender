@@ -4054,13 +4054,18 @@ static void filelist_readjob_remote_asset_library_index_read(FileListReadJob *jo
   const bUserAssetLibrary *user_library = BKE_preferences_asset_library_find_index(
       &U, job_params->filelist->asset_library_ref->custom_library_index);
   BKE_preferences_remote_asset_library_dirpath_get(user_library, dirpath, sizeof(dirpath));
-  printf("%s\n", dirpath);
 
   FileIndexer indexer_runtime{};
   indexer_runtime.callbacks = filelist->indexer;
   if (indexer_runtime.callbacks->init_user_data) {
-    // indexer_runtime.user_data = indexer_runtime.callbacks->init_user_data(dir, sizeof(dir));
+    indexer_runtime.user_data = indexer_runtime.callbacks->init_user_data(dirpath,
+                                                                          sizeof(dirpath));
   }
+
+  FileIndexerEntries indexer_entries = {nullptr};
+  int indexer_entries_len = 0;
+  indexer_runtime.callbacks->read_index(
+      dirpath, &indexer_entries, &indexer_entries_len, indexer_runtime.user_data);
 
   /* Finalize and free indexer. */
   if (indexer_runtime.callbacks->filelist_finished) {
@@ -4090,6 +4095,7 @@ static void filelist_readjob_remote_asset_library(FileListReadJob *job_params,
   /* NOP if already read. */
   filelist_readjob_load_asset_library_data(job_params, do_update);
 
+  /* TODO if the library is fully downloaded. How to recognize that? */
   const bool full_library_downloaded = false;
   if (full_library_downloaded) {
     filelist_readjob_recursive_dir_add_items(true, job_params, stop, do_update, progress);

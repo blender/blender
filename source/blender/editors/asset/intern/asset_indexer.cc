@@ -213,18 +213,9 @@ static void init_value_from_file_indexer_entries(DictionaryValue &result,
   result.append(ATTRIBUTE_ENTRIES, entries);
 }
 
-static void init_indexer_entry_from_value(FileIndexerEntry &indexer_entry,
-                                          const DictionaryValue &entry)
+AssetMetaData *asset_metadata_from_dictionary(const DictionaryValue &entry)
 {
-  const StringRef idcode_name = *entry.lookup_str(ATTRIBUTE_ENTRIES_NAME);
-
-  indexer_entry.idcode = GS(idcode_name.data());
-
-  idcode_name.substr(2).copy(indexer_entry.datablock_info.name);
-
   AssetMetaData *asset_data = BKE_asset_metadata_create();
-  indexer_entry.datablock_info.asset_data = asset_data;
-  indexer_entry.datablock_info.free_asset_data = true;
 
   if (const std::optional<StringRef> value = entry.lookup_str(ATTRIBUTE_ENTRIES_DESCRIPTION)) {
     asset_data->description = BLI_strdupn(value->data(), value->size());
@@ -239,11 +230,17 @@ static void init_indexer_entry_from_value(FileIndexerEntry &indexer_entry,
     asset_data->license = BLI_strdupn(value->data(), value->size());
   }
 
-  const StringRefNull catalog_name = *entry.lookup_str(ATTRIBUTE_ENTRIES_CATALOG_NAME);
-  STRNCPY_UTF8(asset_data->catalog_simple_name, catalog_name.c_str());
+  if (const std::optional<StringRefNull> catalog_name = entry.lookup_str(
+          ATTRIBUTE_ENTRIES_CATALOG_NAME))
+  {
+    STRNCPY_UTF8(asset_data->catalog_simple_name, catalog_name->c_str());
+  }
 
-  const StringRefNull catalog_id = *entry.lookup_str(ATTRIBUTE_ENTRIES_CATALOG_ID);
-  asset_data->catalog_id = CatalogID(catalog_id);
+  if (const std::optional<StringRefNull> catalog_id = entry.lookup_str(
+          ATTRIBUTE_ENTRIES_CATALOG_ID))
+  {
+    asset_data->catalog_id = CatalogID(*catalog_id);
+  }
 
   if (const ArrayValue *array_value = entry.lookup_array(ATTRIBUTE_ENTRIES_TAGS)) {
     for (const std::shared_ptr<Value> &item : array_value->elements()) {
@@ -254,6 +251,21 @@ static void init_indexer_entry_from_value(FileIndexerEntry &indexer_entry,
   if (const std::shared_ptr<Value> *value = entry.lookup(ATTRIBUTE_ENTRIES_PROPERTIES)) {
     asset_data->properties = convert_from_serialize_value(*value->get());
   }
+
+  return asset_data;
+}
+
+static void init_indexer_entry_from_value(FileIndexerEntry &indexer_entry,
+                                          const DictionaryValue &entry)
+{
+  const StringRef idcode_name = *entry.lookup_str(ATTRIBUTE_ENTRIES_NAME);
+
+  indexer_entry.idcode = GS(idcode_name.data());
+
+  idcode_name.substr(2).copy(indexer_entry.datablock_info.name);
+
+  indexer_entry.datablock_info.asset_data = asset_metadata_from_dictionary(entry);
+  indexer_entry.datablock_info.free_asset_data = true;
 }
 
 static int init_indexer_entries_from_value(FileIndexerEntries &indexer_entries,
@@ -768,8 +780,7 @@ const FileIndexerType *asset_indexer_from_library_ref(const AssetLibraryReferenc
     const bUserAssetLibrary *library = BKE_preferences_asset_library_find_index(
         &U, library_ref->custom_library_index);
     if (library->flag & ASSET_LIBRARY_USE_REMOTE_URL) {
-      /* TODO remote asset library indexer */
-      return nullptr;
+      return &index::file_indexer_asset_remote_index;
     }
   }
 
