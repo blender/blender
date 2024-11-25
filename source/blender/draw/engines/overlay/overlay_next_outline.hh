@@ -217,7 +217,7 @@ class Outline : Overlay {
   }
 
   /* TODO(fclem): Remove dependency on Resources. */
-  void draw_line_only(Framebuffer &framebuffer, Resources &res, Manager &manager, View &view)
+  void draw_line_only_ex(Framebuffer &framebuffer, Resources &res, Manager &manager, View &view)
   {
     if (!enabled_) {
       return;

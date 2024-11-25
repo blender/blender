@@ -141,7 +141,7 @@ class Cameras : Overlay {
     }
   }
 
-  void object_sync(
+  void object_sync_ex(
       const ObjectRef &ob_ref, ShapeCache &shapes, Manager &manager, Resources &res, State &state)
   {
     if (!enabled_) {
@@ -157,7 +157,7 @@ class Cameras : Overlay {
     object_sync_images(ob_ref, select_id, shapes, manager, state, res);
   }
 
-  void end_sync(Resources &res, ShapeCache &shapes, const State &state)
+  void end_sync(Resources &res, const ShapeCache &shapes, const State &state) final
   {
     if (!extras_enabled_ && !motion_tracking_enabled_) {
       return;

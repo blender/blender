@@ -766,7 +766,7 @@ struct VertexPrimitiveBuf {
 
   void append(const float3 &position, const float4 &color)
   {
-    data_buf.append({float4(position), color});
+    data_buf.append({float4(position, 0.0f), color});
   }
 
   void end_sync(PassSimple::Sub &pass, GPUPrimType primitive)

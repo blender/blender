@@ -345,8 +345,8 @@ static void panel_draw(const bContext *C, Panel *panel)
   /* Only test for adaptive subdivision if built with cycles. */
   bool show_adaptive_options = false;
   bool ob_use_adaptive_subdivision = false;
-  PointerRNA cycles_ptr = {nullptr};
-  PointerRNA ob_cycles_ptr = {nullptr};
+  PointerRNA cycles_ptr = {};
+  PointerRNA ob_cycles_ptr = {};
 #ifdef WITH_CYCLES
   Scene *scene = CTX_data_scene(C);
   PointerRNA scene_ptr = RNA_id_pointer_create(&scene->id);

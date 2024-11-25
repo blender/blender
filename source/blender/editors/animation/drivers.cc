@@ -866,7 +866,7 @@ static const EnumPropertyItem *driver_mapping_type_itemf(bContext *C,
   const EnumPropertyItem *input = prop_driver_create_mapping_types;
   EnumPropertyItem *item = nullptr;
 
-  PointerRNA ptr = {nullptr};
+  PointerRNA ptr = {};
   PropertyRNA *prop = nullptr;
   int index;
 
@@ -903,7 +903,7 @@ static const EnumPropertyItem *driver_mapping_type_itemf(bContext *C,
 
 static bool add_driver_button_poll(bContext *C)
 {
-  PointerRNA ptr = {nullptr};
+  PointerRNA ptr = {};
   PropertyRNA *prop = nullptr;
   int index;
   bool driven, special;
@@ -928,7 +928,7 @@ static bool add_driver_button_poll(bContext *C)
  * (i.e. "manual/add later"). */
 static int add_driver_button_none(bContext *C, wmOperator *op, short mapping_type)
 {
-  PointerRNA ptr = {nullptr};
+  PointerRNA ptr = {};
   PropertyRNA *prop = nullptr;
   int index;
   int success = 0;
@@ -1024,7 +1024,7 @@ static void UNUSED_FUNCTION(ANIM_OT_driver_button_add_menu)(wmOperatorType *ot)
 
 static int add_driver_button_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
-  PointerRNA ptr = {nullptr};
+  PointerRNA ptr = {};
   PropertyRNA *prop = nullptr;
   int index;
 
@@ -1077,7 +1077,7 @@ void ANIM_OT_driver_button_add(wmOperatorType *ot)
 
 static int remove_driver_button_exec(bContext *C, wmOperator *op)
 {
-  PointerRNA ptr = {nullptr};
+  PointerRNA ptr = {};
   PropertyRNA *prop = nullptr;
   bool changed = false;
   int index;
@@ -1128,7 +1128,7 @@ void ANIM_OT_driver_button_remove(wmOperatorType *ot)
 
 static int edit_driver_button_exec(bContext *C, wmOperator *op)
 {
-  PointerRNA ptr = {nullptr};
+  PointerRNA ptr = {};
   PropertyRNA *prop = nullptr;
   int index;
 
@@ -1161,7 +1161,7 @@ void ANIM_OT_driver_button_edit(wmOperatorType *ot)
 
 static int copy_driver_button_exec(bContext *C, wmOperator *op)
 {
-  PointerRNA ptr = {nullptr};
+  PointerRNA ptr = {};
   PropertyRNA *prop = nullptr;
   bool changed = false;
   int index;
@@ -1200,7 +1200,7 @@ void ANIM_OT_copy_driver_button(wmOperatorType *ot)
 
 static int paste_driver_button_exec(bContext *C, wmOperator *op)
 {
-  PointerRNA ptr = {nullptr};
+  PointerRNA ptr = {};
   PropertyRNA *prop = nullptr;
   bool changed = false;
   int index;

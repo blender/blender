@@ -4310,6 +4310,26 @@ static bool override_library_is_valid(const ID &id,
   return true;
 }
 
+/** Check all override properties and rules to ensure they are valid. Remove invalid ones. */
+static void override_library_properties_validate(const ID &id,
+                                                 IDOverrideLibrary &liboverride,
+                                                 ReportList *reports)
+{
+  LISTBASE_FOREACH_MUTABLE (IDOverrideLibraryProperty *, op, &liboverride.properties) {
+    if (!op->rna_path) {
+      BKE_reportf(
+          reports,
+          RPT_ERROR,
+          "Data corruption: data-block `%s` has a Library Override property with no RNA path",
+          id.name);
+      /* Simpler to allocate a dummy string here, than fix all 'normal' clearing/deletion code that
+       * does expect a non-null RNA path. */
+      op->rna_path = BLI_strdup("");
+      lib_override_library_property_delete(&liboverride, op, true);
+    }
+  }
+}
+
 void BKE_lib_override_library_validate(Main *bmain, ID *id, ReportList *reports)
 {
   /* Do NOT use `ID_IS_OVERRIDE_LIBRARY` here, since this code also needs to fix broken cases (like
@@ -4339,6 +4359,8 @@ void BKE_lib_override_library_validate(Main *bmain, ID *id, ReportList *reports)
   if (!override_library_is_valid(*liboverride_id, *liboverride, reports)) {
     BKE_lib_override_library_make_local(nullptr, liboverride_id);
   }
+
+  override_library_properties_validate(*liboverride_id, *liboverride, reports);
 }
 
 void BKE_lib_override_library_main_validate(Main *bmain, ReportList *reports)

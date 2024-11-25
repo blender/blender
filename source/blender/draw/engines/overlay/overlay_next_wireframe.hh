@@ -107,11 +107,11 @@ class Wireframe : Overlay {
     }
   }
 
-  void object_sync(Manager &manager,
-                   const ObjectRef &ob_ref,
-                   Resources &res,
-                   const State &state,
-                   const bool in_edit_paint_mode)
+  void object_sync_ex(Manager &manager,
+                      const ObjectRef &ob_ref,
+                      Resources &res,
+                      const State &state,
+                      const bool in_edit_paint_mode)
   {
     if (!enabled_) {
       return;
@@ -227,7 +227,7 @@ class Wireframe : Overlay {
   }
 
   /* TODO(fclem): Remove dependency on Resources. */
-  void draw_line(Framebuffer &framebuffer, Resources &res, Manager &manager, View &view)
+  void draw_line_ex(Framebuffer &framebuffer, Resources &res, Manager &manager, View &view)
   {
     if (!enabled_) {
       return;

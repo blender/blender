@@ -7458,10 +7458,13 @@ static void uiTemplateRecentFiles_tooltip_func(bContext & /*C*/, uiTooltipData &
 {
   char *path = (char *)argN;
 
-  /* File path. */
-  char root[FILE_MAX];
-  BLI_path_split_dir_part(path, root, FILE_MAX);
-  UI_tooltip_text_field_add(tip, root, {}, UI_TIP_STYLE_HEADER, UI_TIP_LC_NORMAL);
+  /* File name and path. */
+  char dirname[FILE_MAX];
+  char filename[FILE_MAX];
+  BLI_path_split_dir_file(path, dirname, sizeof(dirname), filename, sizeof(filename));
+  UI_tooltip_text_field_add(tip, filename, {}, UI_TIP_STYLE_HEADER, UI_TIP_LC_NORMAL);
+  UI_tooltip_text_field_add(tip, dirname, {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_NORMAL);
+
   UI_tooltip_text_field_add(tip, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
 
   if (!BLI_exists(path)) {

@@ -109,11 +109,11 @@ class Empties : Overlay {
   }
 
   /* TODO(fclem): Remove dependency on shapes. Pass it to the constructor. */
-  void object_sync(const ObjectRef &ob_ref,
-                   ShapeCache &shapes,
-                   Manager &manager,
-                   Resources &res,
-                   const State &state)
+  void object_sync_ex(const ObjectRef &ob_ref,
+                      ShapeCache &shapes,
+                      Manager &manager,
+                      Resources &res,
+                      const State &state)
   {
     if (!enabled_) {
       return;

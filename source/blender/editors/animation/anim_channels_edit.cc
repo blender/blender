@@ -5558,7 +5558,7 @@ static rctf calculate_selection_fcurve_bounds(bAnimContext *ac,
 
 static int view_curve_in_graph_editor_exec(bContext *C, wmOperator *op)
 {
-  PointerRNA button_ptr = {nullptr};
+  PointerRNA button_ptr = {};
   PropertyRNA *button_prop = nullptr;
   uiBut *but;
   int index;

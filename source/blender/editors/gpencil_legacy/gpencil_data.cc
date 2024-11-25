@@ -82,7 +82,7 @@ static bool gpencil_data_add_poll(bContext *C)
 /* add new datablock - wrapper around API */
 static int gpencil_data_add_exec(bContext *C, wmOperator *op)
 {
-  PointerRNA gpd_owner = {nullptr};
+  PointerRNA gpd_owner = {};
   bGPdata **gpd_ptr = ED_annotation_data_get_pointers(C, &gpd_owner);
 
   if (gpd_ptr == nullptr) {
@@ -193,7 +193,7 @@ static int gpencil_layer_add_exec(bContext *C, wmOperator *op)
 {
   const bool is_annotation = STREQ(op->idname, "GPENCIL_OT_layer_annotation_add");
 
-  PointerRNA gpd_owner = {nullptr};
+  PointerRNA gpd_owner = {};
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   bGPdata *gpd = nullptr;

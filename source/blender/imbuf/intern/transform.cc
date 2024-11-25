@@ -148,15 +148,15 @@ static void sample_image(const ImBuf *source, float u, float v, T *r_sample)
   }
   else if constexpr (Filter == IMB_FILTER_BILINEAR && std::is_same_v<T, float>) {
     if constexpr (WrapUV) {
-      math::interpolate_bilinear_wrap_fl(source->float_buffer.data,
-                                         r_sample,
-                                         source->x,
-                                         source->y,
-                                         NumChannels,
-                                         u,
-                                         v,
-                                         true,
-                                         true);
+      math::interpolate_bilinear_wrapmode_fl(source->float_buffer.data,
+                                             r_sample,
+                                             source->x,
+                                             source->y,
+                                             NumChannels,
+                                             u,
+                                             v,
+                                             math::InterpWrapMode::Repeat,
+                                             math::InterpWrapMode::Repeat);
     }
     else {
       math::interpolate_bilinear_fl(
