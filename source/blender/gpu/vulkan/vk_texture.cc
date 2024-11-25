@@ -2,6 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+ /* ​​Changes from Qualcomm Innovation Center, Inc.are provided under the following license :
+    Copyright(c) 2024 Qualcomm Innovation Center, Inc.All rights reserved.
+    SPDX - License - Identifier : BSD - 3 - Clause - Clear
+ */
+
 /** \file
  * \ingroup gpu
  */
@@ -408,10 +413,7 @@ static VkImageUsageFlags to_vk_image_usage(const eGPUTextureUsage usage,
       }
       else {
         result |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-        const VKWorkarounds &workarounds = VKBackend::get().device.workarounds_get();
-        if (workarounds.dynamic_rendering) {
-          result |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
-        }
+        result |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
       }
     }
   }

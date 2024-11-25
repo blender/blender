@@ -2,6 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+ /* ​​Changes from Qualcomm Innovation Center, Inc.are provided under the following license :
+    Copyright(c) 2024 Qualcomm Innovation Center, Inc.All rights reserved.
+    SPDX - License - Identifier : BSD - 3 - Clause - Clear
+ */
+
 /** \file
  * \ingroup gpu
  */
@@ -24,6 +29,8 @@ static VKBindType to_bind_type(shader::ShaderCreateInfo::Resource::BindType bind
       return VKBindType::SAMPLER;
     case shader::ShaderCreateInfo::Resource::BindType::IMAGE:
       return VKBindType::IMAGE;
+    case shader::ShaderCreateInfo::Resource::BindType::INPUT_ATTACHMENT:
+      return VKBindType::INPUT_ATTACHMENT;
   }
   BLI_assert_unreachable();
   return VKBindType::UNIFORM_BUFFER;
@@ -61,11 +68,11 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
       case ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER:
         ssbo_len_++;
         break;
+      case ShaderCreateInfo::Resource::BindType::INPUT_ATTACHMENT:
+        break;
     }
   }
 
-  /* Sub-pass inputs are read as samplers.
-   * In future this can change depending on extensions that will be supported. */
   uniform_len_ += info.subpass_inputs_.size();
 
   /* Reserve 1 uniform buffer for push constants fallback. */
@@ -201,9 +208,9 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
   uint32_t descriptor_set_location = 0;
   for (const ShaderCreateInfo::SubpassIn &subpass_in : info.subpass_inputs_) {
     const ShaderInput *input = shader_input_get(
-        shader::ShaderCreateInfo::Resource::BindType::SAMPLER, subpass_in.index);
-    BLI_assert(STREQ(input_name_get(input), SUBPASS_FALLBACK_NAME));
+        shader::ShaderCreateInfo::Resource::BindType::INPUT_ATTACHMENT, subpass_in.index);
     BLI_assert(input);
+    BLI_assert(STREQ(input_name_get(input), SUBPASS_FALLBACK_NAME));
     descriptor_set_location_update(input,
                                    descriptor_set_location++,
                                    VKBindType::INPUT_ATTACHMENT,
@@ -323,13 +330,16 @@ void VKShaderInterface::descriptor_set_location_update(
       case shader::ShaderCreateInfo::Resource::BindType::SAMPLER:
         vk_access_flags |= VK_ACCESS_SHADER_READ_BIT;
         break;
+      case shader::ShaderCreateInfo::Resource::BindType::INPUT_ATTACHMENT:
+        vk_access_flags |= VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
+        break;
     };
   }
   else if (bind_type == VKBindType::UNIFORM_BUFFER) {
     vk_access_flags |= VK_ACCESS_UNIFORM_READ_BIT;
   }
   else if (bind_type == VKBindType::INPUT_ATTACHMENT) {
-    vk_access_flags |= VK_ACCESS_SHADER_READ_BIT;
+    vk_access_flags |= VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
   }
 
   VKResourceBinding &resource_binding = resource_bindings_[index];
@@ -391,6 +401,8 @@ const ShaderInput *VKShaderInterface::shader_input_get(
       return ssbo_get(binding);
     case shader::ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER:
       return ubo_get(binding);
+    case shader::ShaderCreateInfo::Resource::BindType::INPUT_ATTACHMENT:
+      return input_attachment_get(binding);
   }
   return nullptr;
 }
@@ -404,14 +416,22 @@ void VKShaderInterface::init_descriptor_set_layout_info(
   BLI_assert(descriptor_set_layout_info_.bindings.is_empty());
   const VKWorkarounds &workarounds = VKBackend::get().device.workarounds_get();
   descriptor_set_layout_info_.bindings.reserve(resources_len);
-  descriptor_set_layout_info_.vk_shader_stage_flags =
-      info.compute_source_.is_empty() && info.compute_source_generated.empty() ?
-          VK_SHADER_STAGE_ALL_GRAPHICS :
-          VK_SHADER_STAGE_COMPUTE_BIT;
-  descriptor_set_layout_info_.bindings.append_n_times(
-      workarounds.dynamic_rendering ? VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT :
-                                      VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-      info.subpass_inputs_.size());
+  if (!(info.compute_source_.is_empty() && info.compute_source_generated.empty()))
+  {
+    descriptor_set_layout_info_.vk_shader_stage_flags = VK_SHADER_STAGE_COMPUTE_BIT;
+  }
+  else if (!info.subpass_inputs_.is_empty())
+  {
+    descriptor_set_layout_info_.vk_shader_stage_flags = VK_SHADER_STAGE_FRAGMENT_BIT;
+  }
+  else
+  {
+    descriptor_set_layout_info_.vk_shader_stage_flags = VK_SHADER_STAGE_ALL_GRAPHICS;
+  }
+  for (int index : IndexRange(info.subpass_inputs_.size())) {
+    UNUSED_VARS(index);
+    descriptor_set_layout_info_.bindings.append(VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT);
+  }
   for (const shader::ShaderCreateInfo::Resource &res : all_resources) {
     descriptor_set_layout_info_.bindings.append(to_vk_descriptor_type(res));
   }

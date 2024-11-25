@@ -2,6 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+ /* ​​Changes from Qualcomm Innovation Center, Inc.are provided under the following license :
+    Copyright(c) 2024 Qualcomm Innovation Center, Inc.All rights reserved.
+    SPDX - License - Identifier : BSD - 3 - Clause - Clear
+ */
+
 /** \file
  * \ingroup gpu
  */
@@ -149,16 +154,14 @@ void VKDescriptorSetTracker::bind_input_attachment_resource(
     const VKResourceBinding &resource_binding,
     render_graph::VKResourceAccessInfo &access_info)
 {
-  const BindSpaceTextures::Elem &elem = state_manager.textures_.get(resource_binding.binding);
-  VKTexture *texture = static_cast<VKTexture *>(elem.resource);
-  BLI_assert(elem.resource_type == BindSpaceTextures::Type::Texture);
-
   if (!device.workarounds_get().dynamic_rendering) {
-    const VKSampler &sampler = device.samplers().get(elem.sampler);
-    bind_image(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-               sampler.vk_handle(),
+    VKTexture* texture = static_cast<VKTexture*>(state_manager.images_.get(resource_binding.binding));
+    BLI_assert(Texture);
+    // TODO: add workaround if local read not supported?
+    bind_image(VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
+               VK_NULL_HANDLE,
                texture->image_view_get(resource_binding.arrayed).vk_handle(),
-               VK_IMAGE_LAYOUT_GENERAL,
+               VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR,
                resource_binding.location);
     access_info.images.append({texture->vk_image_handle(),
                                resource_binding.access_mask,
@@ -167,6 +170,11 @@ void VKDescriptorSetTracker::bind_input_attachment_resource(
                                VK_REMAINING_ARRAY_LAYERS});
   }
   else {
+    const BindSpaceTextures::Elem& elem = state_manager.textures_.get(resource_binding.binding);
+    VKTexture* texture = static_cast<VKTexture*>(elem.resource);
+    BLI_assert(texture);
+    BLI_assert(elem.resource_type == BindSpaceTextures::Type::Texture);
+
     bind_image(VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
                VK_NULL_HANDLE,
                texture->image_view_get(resource_binding.arrayed).vk_handle(),

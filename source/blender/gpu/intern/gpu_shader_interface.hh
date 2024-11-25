@@ -11,6 +11,11 @@
  * A shader interface can be shared between two similar shaders.
  */
 
+ /* ​​Changes from Qualcomm Innovation Center, Inc.are provided under the following license :
+    Copyright(c) 2024 Qualcomm Innovation Center, Inc.All rights reserved.
+    SPDX - License - Identifier : BSD - 3 - Clause - Clear
+ */
+
 #pragma once
 
 #include <cstring> /* required for STREQ later on. */
@@ -109,6 +114,12 @@ class ShaderInterface {
   {
     return input_lookup(inputs_ + attr_len_ + ubo_len_, uniform_len_, binding);
   }
+
+  inline const ShaderInput* input_attachment_get(const int binding) const
+  {
+    return input_lookup(inputs_ + attr_len_ + ubo_len_, uniform_len_, binding);
+  }
+
 
   inline const ShaderInput *ssbo_get(const StringRefNull name) const
   {

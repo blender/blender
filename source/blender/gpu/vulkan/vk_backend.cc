@@ -2,6 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+ /* ​​Changes from Qualcomm Innovation Center, Inc.are provided under the following license :
+    Copyright(c) 2024 Qualcomm Innovation Center, Inc.All rights reserved.
+    SPDX - License - Identifier : BSD - 3 - Clause - Clear
+ */
+
 /** \file
  * \ingroup gpu
  */
@@ -50,6 +55,22 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   /* Check device features. */
   VkPhysicalDeviceFeatures2 features = {};
   features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+
+  VkPhysicalDeviceDynamicRenderingFeatures dynamic_rendering = {};
+  dynamic_rendering.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES;
+
+  VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT
+      dynamic_rendering_unused_attachments = {};
+  dynamic_rendering_unused_attachments.sType =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_FEATURES_EXT;
+
+  VkPhysicalDeviceDynamicRenderingLocalReadFeaturesKHR dynamic_rendering_local_read = {};
+  dynamic_rendering_local_read.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_LOCAL_READ_FEATURES_KHR;
+
+  features.pNext = &dynamic_rendering;
+  dynamic_rendering.pNext = &dynamic_rendering_unused_attachments;
+  dynamic_rendering_unused_attachments.pNext = &dynamic_rendering_local_read;
+
   vkGetPhysicalDeviceFeatures2(vk_physical_device, &features);
 
 #ifndef __APPLE__
@@ -80,6 +101,14 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   }
   if (features.features.fragmentStoresAndAtomics == VK_FALSE) {
     missing_capabilities.append("fragment stores and atomics");
+  }
+  // TODO: do we need to add fallback for local read not supported?
+  // for now, mark dynamic rendering as required....
+  if (dynamic_rendering.dynamicRendering == VK_FALSE) {
+    missing_capabilities.append("dynamic rendering");
+  }
+  if (dynamic_rendering_local_read.dynamicRenderingLocalRead == VK_FALSE) {
+    missing_capabilities.append("dynamic rendering local read");
   }
 
   /* Check device extensions. */
@@ -130,6 +159,9 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
       conformance_version < VK_MAKE_API_VERSION(1, 3, 2, 0))
   {
     missing_capabilities.append(KNOWN_CRASHING_DRIVER);
+  }
+  if (!extensions.contains(VK_KHR_DYNAMIC_RENDERING_LOCAL_READ_EXTENSION_NAME)) {
+    missing_capabilities.append(VK_KHR_DYNAMIC_RENDERING_LOCAL_READ_EXTENSION_NAME);
   }
 
   return missing_capabilities;
