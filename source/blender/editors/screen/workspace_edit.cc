@@ -257,7 +257,7 @@ bool ED_workspace_delete(WorkSpace *workspace, Main *bmain, bContext *C, wmWindo
     }
   }
 
-  /* Also delete managed sceens if they have no other users. */
+  /* Also delete managed screens if they have no other users. */
   LISTBASE_FOREACH (WorkSpaceLayout *, layout, &workspace->layouts) {
     BKE_id_free_us(bmain, layout->screen);
     layout->screen = nullptr;

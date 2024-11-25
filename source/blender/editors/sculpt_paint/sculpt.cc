@@ -5039,11 +5039,11 @@ void flush_update_step(bContext *C, UpdateType update_type)
 
   if (update_type == UpdateType::Position && !ss.shapekey_active) {
     if (pbvh.type() == bke::pbvh::Type::Mesh) {
-      /* Various operations inside sculpt mode can cause either the MeshRuntimeData or the entire
+      /* Various operations inside sculpt mode can cause either the #MeshRuntimeData or the entire
        * Mesh to be changed (e.g. Undoing the very first operation after opening a file, performing
        * remesh, etc).
        *
-       * This is an unideal fix for the core issue here, but to mitigate the drastic performance
+       * This isn't an ideal fix for the core issue here, but to mitigate the drastic performance
        * falloff, we refreeze the cache before we do any operation that would tag this runtime
        * cache as dirty.
        *

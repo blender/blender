@@ -85,7 +85,7 @@ set(SRC_GLSL_FRAG
 )
 
 set(SRC_GLSL_COMP
-  # TODO rename them properly to enable compilatio
+  # TODO rename them properly to enable compilation.
   # gpu_shader_index_2d_array_lines.glsl
   # gpu_shader_index_2d_array_points.glsl
   # gpu_shader_index_2d_array_tris.glsl

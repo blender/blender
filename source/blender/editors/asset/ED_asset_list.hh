@@ -54,7 +54,7 @@ void iterate(const AssetLibraryReference &library_reference,
              AssetListHandleIterFn fn,
              FunctionRef<bool(asset_system::AssetRepresentation &)> prefilter_fn = nullptr);
 /**
- * \note This override avoids the file caching system, so it's more performant and avoids pitfals
+ * \note This override avoids the file caching system, so it's more performant and avoids pitfalls
  * from the other override. Prefer this when access to #AssetRepresentation is enough, and no
  * #AssetHandle is needed.
  */

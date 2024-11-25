@@ -771,11 +771,11 @@ std::optional<Mesh *> mesh_triangulate(const Mesh &src_mesh,
   const IndexRange unselected_range(tris_range.one_after_last(), unselected.size());
 
   /* Create a mesh with no face corners.
-   *  - We haven't yet counted the number of corners from unselected faces. Creating the final face
-   *    offsets will give us that number anyway, so wait to create the edges.
-   *  - The number of edges is a guess that doesn't include deduplication of new edges with
-   *    existing edges. If those are found, the mesh will be resized later.
-   *  - Don't create attributes to facilite implicit sharing of the positions array. */
+   * - We haven't yet counted the number of corners from unselected faces. Creating the final face
+   *   offsets will give us that number anyway, so wait to create the edges.
+   * - The number of edges is a guess that doesn't include deduplication of new edges with
+   *   existing edges. If those are found, the mesh will be resized later.
+   * - Don't create attributes to facilitate implicit sharing of the positions array. */
   Mesh *mesh = bke::mesh_new_no_attributes(src_mesh.verts_num,
                                            src_edges.size() + tri_edges_range.size(),
                                            tris_range.size() + unselected.size(),
@@ -828,7 +828,7 @@ std::optional<Mesh *> mesh_triangulate(const Mesh &src_mesh,
 
   edges_with_duplicates.take_front(src_edges.size()).copy_from(src_edges);
 
-  /* Vertex attributes are totally unnaffected and can be shared with implicit sharing.
+  /* Vertex attributes are totally unaffected and can be shared with implicit sharing.
    * Use the #CustomData API for simpler support for vertex groups. */
   CustomData_merge(&src_mesh.vert_data, &mesh->vert_data, CD_MASK_MESH.vmask, mesh->verts_num);
 

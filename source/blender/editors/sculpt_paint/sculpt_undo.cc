@@ -1658,8 +1658,9 @@ static void save_active_attribute(Object &object, SculptAttrRef *attr)
 }
 
 /**
- * Does not save topology counts, as that data is unneded for full geometry pushes and
- * requires the PBVH to exist. */
+ * Does not save topology counts, as that data is unneeded for full geometry pushes and
+ * requires the PBVH to exist.
+ */
 static void save_common_data(Object &ob, SculptUndoStep *us)
 {
   us->data.object_name = ob.id.name;

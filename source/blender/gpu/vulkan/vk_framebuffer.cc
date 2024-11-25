@@ -225,7 +225,7 @@ void VKFrameBuffer::clear(const eGPUFrameBufferBits buffers,
       needed_mask |= GPU_WRITE_STENCIL;
     }
 
-    /* Clearing depth via vkCmdClearAttachments requires a render pass with write depth or stencil
+    /* Clearing depth via #vkCmdClearAttachments requires a render pass with write depth or stencil
      * enabled. When not enabled, clearing should be done via texture directly. */
     /* WORKAROUND: Clearing depth attachment when using dynamic rendering are not working on AMD
      * official drivers.
@@ -616,7 +616,7 @@ void VKFrameBuffer::rendering_ensure_render_pass(VKContext &context)
                                         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     uint32_t attachment_reference = color_attachment_index - GPU_FB_COLOR_ATTACHMENT0;
     /* Depth attachment should always be right after the last color attachment. If not shaders
-     * cannot be reused between framebuffers with and without depth/stencil attachment*/
+     * cannot be reused between frame-buffers with and without depth/stencil attachment. */
     depth_attachment_reference.attachment = attachment_reference + 1;
 
     VkAttachmentDescription vk_attachment_description = {};
@@ -713,7 +713,7 @@ void VKFrameBuffer::rendering_ensure_render_pass(VKContext &context)
     }
   }
 
-  /* Subpass description */
+  /* Sub-pass description. */
   VkSubpassDescription vk_subpass_description = {};
   vk_subpass_description.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
   vk_subpass_description.colorAttachmentCount = color_attachments.size();
@@ -725,7 +725,7 @@ void VKFrameBuffer::rendering_ensure_render_pass(VKContext &context)
   }
 
   VKDevice &device = VKBackend::get().device;
-  /* Renderpass create info */
+  /* Render-pass create info. */
   VkRenderPassCreateInfo vk_render_pass_create_info = {};
   vk_render_pass_create_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
   vk_render_pass_create_info.subpassCount = 1;
@@ -757,13 +757,14 @@ void VKFrameBuffer::rendering_ensure_render_pass(VKContext &context)
 
   context.render_graph.add_node(begin_rendering);
 
-  /* Load store operations are not supported inside a render pass. It requires duplicating render
-   * passes and framebuffers to support suspend/resume rendering. After suspension all the graphics
-   * pipelines needs to be created using the resume handles. Due to command reordering it is
-   * unclear when this switch needs to be made and would require to double the graphics pipelines.
+  /* Load store operations are not supported inside a render pass.
+   * It requires duplicating render passes and frame-buffers to support suspend/resume rendering.
+   * After suspension all the graphics pipelines needs to be created using the resume handles.
+   * Due to command reordering it is unclear when this switch needs to be made and would require
+   * to double the graphics pipelines.
    *
    * This all adds a lot of complexity just to support clearing ops on legacy platforms. An easier
-   * solution is to use vkCmdClearAttachments right after the begin rendering.
+   * solution is to use #vkCmdClearAttachments right after the begin rendering.
    */
   if (use_explicit_load_store_) {
     render_graph::VKClearAttachmentsNode::CreateInfo clear_attachments = {};

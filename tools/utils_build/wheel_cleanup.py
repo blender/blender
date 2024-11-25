@@ -26,8 +26,8 @@ from string import digits
 from typing import Generator
 
 
-# Regex matchers for libraries that might be seen in the libs folder, not directly referenced, but
-# yet are still required for the proper operation of the bpy module.
+# REGEX matching for libraries that might be seen in the libs folder, not directly referenced,
+# but yet are still required for the proper operation of the `bpy` module.
 KEEP_MATCHERS = (
     # libOpenImageDenoise.so loads core, device_cuda, etc libraries at runtime.
     re.compile("libOpenImageDenoise_.*"),
@@ -52,7 +52,7 @@ def get_direct_elf_dependencies(elf: Path) -> set[str]:
     """
     Get direct dependencies of the given library or executable in ELF format
 
-    Uses readelf command and parses its output.
+    Uses ``readelf`` command and parses its output.
     """
     output = subprocess.check_output(("readelf", "-d", elf))
     deps = set()
@@ -74,7 +74,7 @@ def name_strip_abi_suffix(name: str) -> str:
     """
     Strip any ABI suffix from the given file name
 
-    For example: libfoo.so.1.2-3 -> linfoo.so
+    For example: ``libfoo.so.1.2-3`` -> ``linfoo.so``.
     """
 
     while name[-1] in digits:

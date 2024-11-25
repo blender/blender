@@ -2829,7 +2829,7 @@ static size_t animdata_filter_ds_modifiers(bAnimContext *ac,
    *    use to walk through the dependencies of the modifiers
    *
    * Assumes that all other unspecified values (i.e. accumulation buffers)
-   * are zero'd out properly!
+   * are zeroed out properly!
    */
   afm.ac = ac;
   afm.ads = ac->ads; /* TODO: Remove this pointer from the struct and just use afm.ac->ads. */

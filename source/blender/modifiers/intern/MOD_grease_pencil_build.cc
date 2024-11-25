@@ -507,7 +507,7 @@ static float get_factor_from_draw_speed(const bke::CurvesGeometry &curves,
     accumulated_shift_delta_time += math::max(shifted_start_time - start_times[curve], 0.0f);
   }
 
-  /* Caclulates the maximum time of this frame, which is the time between the beginning of the
+  /* Calculates the maximum time of this frame, which is the time between the beginning of the
    * first stroke and the end of the last stroke. `start_times.last()` gives the starting time of
    * the last stroke related to frame beginning, and `delta_time.last()` gives how long that stroke
    * lasted.  */

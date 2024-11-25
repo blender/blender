@@ -35,7 +35,7 @@ vec2 rotate_45(vec2 co)
   return from_rotation(Angle(M_PI * 0.25)) * co;
 }
 
-/* Calculates an upper and lower limit for an antialiased cutoff of the squared distance. */
+/* Calculates an upper and lower limit for an anti-aliased cutoff of the squared distance. */
 vec2 calculate_thresholds(float threshold)
 {
   /* Use the absolute on one of the factors to preserve the sign. */

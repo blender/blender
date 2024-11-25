@@ -1690,7 +1690,7 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
 
   mbuflist = (do_cage) ? &cache.cage.buff : &cache.final.buff;
 
-  /* When the msh doesn't correspond to the object's original mesh (i.e. the mesh was replaced by
+  /* When the mesh doesn't correspond to the object's original mesh (i.e. the mesh was replaced by
    * another with the object info node during evaluation), don't extract edit mode data for it.
    * That data can be invalid because any original indices (#CD_ORIGINDEX) on the evaluated mesh
    * won't correspond to the correct mesh. */

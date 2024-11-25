@@ -1063,7 +1063,7 @@ Image *BKE_image_load_in_lib(Main *bmain,
   int file;
   char filepath_abs[FILE_MAX];
 
-  /* If no owner library is explicitely given, use the current library from the given Main. */
+  /* If no owner library is explicitly given, use the current library from the given #Main. */
   Library *owner_lib = owner_library.value_or(bmain->curlib);
 
   image_abs_path(bmain, owner_lib, filepath, filepath_abs);
@@ -1105,12 +1105,12 @@ Image *BKE_image_load_exists_in_lib(Main *bmain,
   Image *ima;
   char filepath_abs[FILE_MAX], filepath_test[FILE_MAX];
 
-  /* If not owner library is explicitely given, use the current library from the given Main. */
+  /* If not owner library is explicitly given, use the current library from the given Main. */
   Library *owner_lib = owner_library.value_or(bmain->curlib);
 
   image_abs_path(bmain, owner_lib, filepath, filepath_abs);
 
-  /* first search an identical filepath */
+  /* First search an identical filepath. */
   for (ima = static_cast<Image *>(bmain->images.first); ima;
        ima = static_cast<Image *>(ima->id.next))
   {

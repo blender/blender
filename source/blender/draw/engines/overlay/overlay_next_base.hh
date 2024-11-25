@@ -37,7 +37,7 @@ struct Overlay {
    * on a per object-data basis.
    *
    * IMPORTANT: Synchronization must be view agnostic. That is, not rely on view position,
-   * projection matrix or framebuffer size to do conditional pass creation. This is because, by
+   * projection matrix or frame-buffer size to do conditional pass creation. This is because, by
    * design, syncing can happen once and rendered multiple time (multi view rendering, stereo
    * rendering, orbiting view ...). Conditional pass creation, must be done in the drawing
    * callbacks, but they should remain the exception. Also there will be no access to object data
@@ -92,10 +92,10 @@ struct Overlay {
   virtual void pre_draw(Manager & /*manager*/, View & /*view*/){};
 
   /**
-   * Drawing can be split into multiple passes. Each callback draws onto a specific framebuffer.
+   * Drawing can be split into multiple passes. Each callback draws onto a specific frame-buffer.
    * The order between each draw function is guaranteed. But it is not guaranteed that no other
-   * overlay will render in between. The overlay can render to a temporary framebuffer before
-   * resolving to the given framebuffer.
+   * overlay will render in between. The overlay can render to a temporary frame-buffer before
+   * resolving to the given frame-buffer.
    */
 
   virtual void draw_on_render(GPUFrameBuffer * /*fb*/, Manager & /*manager*/, View & /*view*/){};

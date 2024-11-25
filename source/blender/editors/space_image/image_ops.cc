@@ -1595,7 +1595,7 @@ static int image_file_browse_exec(bContext *C, wmOperator *op)
   char filepath[FILE_MAX];
   RNA_string_get(op->ptr, "filepath", filepath);
   if (BLI_path_is_rel(filepath)) {
-    /* Relative path created by the filebrowser are always relative to the current blendfile, need
+    /* Relative path created by the file-browser are always relative to the current blendfile, need
      * to be made relative to the library blendfile path in case image is an editable linked data.
      */
     BLI_path_abs(filepath, BKE_main_blendfile_path(CTX_data_main(C)));

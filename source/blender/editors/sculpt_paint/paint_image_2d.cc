@@ -1156,7 +1156,7 @@ static void paint_2d_lift_smear(ImBuf *ibuf, ImBuf *ibufb, int *pos, short paint
 
 static ImBuf *paint_2d_lift_clone(ImBuf *ibuf, ImBuf *ibufb, const int *pos)
 {
-  /* NOTE: allocImbuf returns zero'd memory, so regions outside image will
+  /* NOTE: #allocImbuf returns zeroed memory, so regions outside image will
    * have zero alpha, and hence not be blended onto the image */
   int w = ibufb->x, h = ibufb->y, destx = 0, desty = 0, srcx = pos[0], srcy = pos[1];
   ImBuf *clonebuf = IMB_allocImBuf(w, h, ibufb->planes, ibufb->flags);

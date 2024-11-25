@@ -230,7 +230,7 @@ typedef struct Sequence {
   /* pointers for effects: */
   struct Sequence *seq1, *seq2;
 
-  /* This strange padding is needed due to how seqbasep deserialization is
+  /* This strange padding is needed due to how `seqbasep` de-serialization is
    * done right now in #scene_blend_read_data. */
   void *_pad7;
   int _pad8[2];

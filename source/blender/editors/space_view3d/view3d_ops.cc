@@ -73,9 +73,9 @@ static int view3d_copybuffer_exec(bContext *C, wmOperator *op)
   }
   CTX_DATA_END;
 
-  /* Explicitely adding an object to the copypaste buffer _may_ add others as dependencies (e.g. a
+  /* Explicitly adding an object to the copy/paste buffer _may_ add others as dependencies (e.g. a
    * parent object). So count to total amount of objects added, to get a matching number with the
-   * one reported by the 'paste' operation. */
+   * one reported by the "paste" operation. */
   const int num_copied = BLI_listbase_count(&copybuffer.bmain.objects);
 
   char filepath[FILE_MAX];

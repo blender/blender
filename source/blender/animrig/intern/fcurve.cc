@@ -153,7 +153,7 @@ int insert_bezt_fcurve(FCurve *fcu, const BezTriple *bezt, eInsertKeyFlags flag)
 
     /* Replace an existing keyframe? */
     if (replace) {
-      /* 'i' may in rare cases exceed arraylen. */
+      /* `i` may in rare cases exceed array bounds. */
       if ((i >= 0) && (i < fcu->totvert)) {
         if (flag & INSERTKEY_OVERWRITE_FULL) {
           fcu->bezt[i] = *bezt;
@@ -683,11 +683,11 @@ bool fcurve_frame_has_keyframe(const FCurve *fcu, const float frame)
     bool replace;
     const int i = BKE_fcurve_bezt_binarysearch_index(fcu->bezt, frame, fcu->totvert, &replace);
 
-    /* BKE_fcurve_bezt_binarysearch_index will set replace to be 0 or 1
+    /* #BKE_fcurve_bezt_binarysearch_index will set replace to be 0 or 1
      * - obviously, 1 represents a match
      */
     if (replace) {
-      /* 'i' may in rare cases exceed arraylen. */
+      /* `i` may in rare cases exceed array bounds. */
       if ((i >= 0) && (i < fcu->totvert)) {
         return true;
       }

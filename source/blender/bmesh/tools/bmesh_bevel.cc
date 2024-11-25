@@ -7554,10 +7554,10 @@ static float geometry_collide_offset(BevelParams *bp, EdgeHalf *eb)
   float sin2 = sinf(th2);
   float cos1 = cosf(th1);
   float cos2 = cosf(th2);
-  /*the side offsets, overlap at the two corners, to create two corner vectors.
-   *the intersection of these two corner vectors is the collapse point.
-   *The length of edge B divided by the projection of these vectors onto edge B
-   *is the number of 'offsets' that can be accomodated*/
+  /* The side offsets, overlap at the two corners, to create two corner vectors.
+   * The intersection of these two corner vectors is the collapse point.
+   * The length of edge B divided by the projection of these vectors onto edge B
+   * is the number of 'offsets' that can be accommodated. */
   float offsets_projected_on_B = (ka + cos1 * kb) / sin1 + (kc + cos2 * kb) / sin2;
   if (offsets_projected_on_B > BEVEL_EPSILON) {
     offsets_projected_on_B = bp->offset * (len_v3v3(vb->co, vc->co) / offsets_projected_on_B);

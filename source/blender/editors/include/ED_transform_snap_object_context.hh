@@ -59,7 +59,7 @@ struct SnapObjectParams {
   eSnapTargetOP snap_target_select;
   /** Geometry for snapping in edit mode. */
   eSnapEditType edit_mode_type;
-  /** Snap to or ignore the frontmost object. */
+  /** Snap to or ignore the front-most object. */
   eSnapOcclusionTest occlusion_test;
   /** Grid unit size. "0.0" is automatic. */
   float grid_size;

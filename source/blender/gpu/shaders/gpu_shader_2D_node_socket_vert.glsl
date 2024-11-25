@@ -18,7 +18,7 @@ VERTEX_SHADER_CREATE_INFO(gpu_shader_2D_node_socket_inst)
 
 void main()
 {
-  /* Scale the original rectangle to accomodate the diagonal of the diamond shape. */
+  /* Scale the original rectangle to accommodate the diagonal of the diamond shape. */
   vec2 originalRectSize = rect.yw - rect.xz;
   float offset = 0.125 * min(originalRectSize.x, originalRectSize.y) +
                  outlineOffset * outlineThickness;

@@ -47,7 +47,7 @@ static char *bmp_slots_as_args(const BMOSlotType slot_types[BMO_OP_MAX_SLOTS], c
   while (*slot_types[i].name) {
     quoted = false;
     set = false;
-    /* cut off '.out' by using a string size arg */
+    /* Cut off `.out` by using a string size argument. */
     const int name_len = is_out ? (strchr(slot_types[i].name, '.') - slot_types[i].name) :
                                   sizeof(slot_types[i].name);
     const char *value = "<Unknown>";

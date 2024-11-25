@@ -371,7 +371,7 @@ void invert_m4_m4_safe(float inverse[4][4], const float mat[4][4]);
 
 void invert_m3_m3_safe_ortho(float inverse[3][3], const float mat[3][3]);
 /**
- * A safe version of invert that uses valid axes, calculating the zero'd axis
+ * A safe version of invert that uses valid axes, calculating the zeroed axis
  * based on the non-zero ones.
  *
  * This works well for transformation matrices, when a single axis is zeroed.

@@ -956,7 +956,7 @@ TEST(vk_render_graph, begin_update_draw_update_draw_update_draw_end)
  * When drawing, copying and continue drawing to an attachment, the attachment layout should be
  * transitioned.
  *
- * This case happens when updating the swapchain image with the result of editors.
+ * This case happens when updating the swap-chain image with the result of editors.
  */
 TEST(vk_render_graph, begin_draw_copy_to_attachment_draw_end)
 {

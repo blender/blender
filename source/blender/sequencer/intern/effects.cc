@@ -1621,7 +1621,8 @@ static void glow_blur_bitmap(
 
   Array<float4> temp(width * height);
 
-  /* Initialize the gaussian filter. @TODO: use code from RE_filter_value */
+  /* Initialize the gaussian filter.
+   * TODO: use code from #RE_filter_value. */
   Array<float> filter(halfWidth * 2);
   const float k = -1.0f / (2.0f * float(M_PI) * blur * blur);
   float weight = 0;

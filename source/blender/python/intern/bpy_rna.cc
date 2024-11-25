@@ -6825,7 +6825,7 @@ PyTypeObject pyrna_struct_meta_idprop_Type = {
  * create property objects without initializing them, which avoids double-initialization from
  * functions like #pyrna_struct_CreatePyObject etc.
  *
- * \note: Subclassingfrom python isn't common since it's NOT related to registerable subclasses.
+ * \note: Subclassing from Python isn't common since it's NOT related to registerable sub-classes.
  * eg:
  *
  * \code{.unparsed}
@@ -6939,7 +6939,7 @@ static PyObject *pyrna_struct_new(PyTypeObject *type, PyObject *args, PyObject *
      * #pyrna_struct_init. */
   }
 
-  /* Only allocate the pyobject data, do not construct/initialize anything else. */
+  /* Only allocate the #PyObject data, do not construct/initialize anything else. */
   PyObject *self = type->tp_alloc(type, 0);
   BPy_StructRNA *self_struct = reinterpret_cast<BPy_StructRNA *>(self);
   if (self) {
@@ -7338,7 +7338,7 @@ static PyObject *pyrna_property_new(PyTypeObject *type, PyObject *args, PyObject
      * #pyrna_property_init. */
   }
 
-  /* Only allocate the pyobject data, do not construct/initialize anything else. */
+  /* Only allocate the #PyObject data, do not construct/initialize anything else. */
   PyObject *self = type->tp_alloc(type, 0);
   BPy_PropertyRNA *self_property = reinterpret_cast<BPy_PropertyRNA *>(self);
   if (self) {
@@ -7565,7 +7565,7 @@ static PyObject *pyrna_prop_collection_iter_new(PyTypeObject *type,
     return nullptr;
   }
 
-  /* Only allocate the pyobject data, do not construct/initialize anything else. */
+  /* Only allocate the #PyObject data, do not construct/initialize anything else. */
   PyObject *self = type->tp_alloc(type, 0);
   BPy_PropertyCollectionIterRNA *self_prop_iter =
       reinterpret_cast<BPy_PropertyCollectionIterRNA *>(self);
@@ -7795,7 +7795,7 @@ static PyObject *pyrna_function_new(PyTypeObject *type, PyObject *args, PyObject
     return nullptr;
   }
 
-  /* Only allocate the pyobject data, do not construct/initialize anything else. */
+  /* Only allocate the #PyObject data, do not construct/initialize anything else. */
   PyObject *self = type->tp_alloc(type, 0);
   BPy_FunctionRNA *self_function = reinterpret_cast<BPy_FunctionRNA *>(self);
   if (self_function) {
