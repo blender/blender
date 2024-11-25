@@ -554,6 +554,11 @@ static bool screen_area_join_ex(
     screen_area_close(C, screen, side1);
     screen_area_close(C, screen, side2);
   }
+  else {
+    /* Force full rebuild. #130732 */
+    ED_area_tag_redraw(side1);
+    ED_area_tag_redraw(side2);
+  }
 
   BKE_icon_changed(screen->id.icon_id);
   return true;
