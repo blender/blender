@@ -70,7 +70,6 @@ static void context_zero(MultiresReshapeContext *reshape_context)
 
 static void context_init_lookup(MultiresReshapeContext *reshape_context)
 {
-  const Mesh *base_mesh = reshape_context->base_mesh;
   const blender::OffsetIndices faces = reshape_context->base_faces;
 
   reshape_context->face_start_grid_index = static_cast<int *>(

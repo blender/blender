@@ -115,12 +115,6 @@ static int get_num_vertices(const OpenSubdiv_Converter *converter)
   return storage->num_manifold_vertices;
 }
 
-static int get_num_face_vertices(const OpenSubdiv_Converter *converter, int manifold_face_index)
-{
-  ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
-  return storage->faces[manifold_face_index].size();
-}
-
 static void get_face_vertices(const OpenSubdiv_Converter *converter,
                               int manifold_face_index,
                               int *manifold_face_vertices)
