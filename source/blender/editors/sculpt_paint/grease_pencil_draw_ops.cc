@@ -360,7 +360,8 @@ static int grease_pencil_sculpt_paint_invoke(bContext *C, wmOperator *op, const 
    * the previous key. */
   const bool use_duplicate_previous_key = true;
   for (bke::greasepencil::Layer *layer : grease_pencil.layers_for_write()) {
-    if (ed::greasepencil::ensure_active_keyframe(
+    if (layer->is_editable() &&
+        ed::greasepencil::ensure_active_keyframe(
             *scene, grease_pencil, *layer, use_duplicate_previous_key, inserted_keyframe))
     {
       inserted_keyframe = true;
