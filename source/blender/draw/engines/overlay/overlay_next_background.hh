@@ -14,7 +14,6 @@ namespace blender::draw::overlay {
 
 /**
  * Draw background color .
- * It is toggled by Object Panel > Viewport Display > Axes.
  */
 class Background : Overlay {
  private:

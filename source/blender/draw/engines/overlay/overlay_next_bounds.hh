@@ -23,8 +23,8 @@ namespace blender::draw::overlay {
  * Draw object bounds and texture space.
  *
  * The object bound can be drawn because of:
- * - display option (Object > Viewport Display > Bounds)
- * - display as (Object > Viewport Display > Bounds)
+ * - display bounds (Object > Viewport Display > Bounds)
+ * - display as (Object > Viewport Display > Display As > Bounds)
  * - rigid body (Physics > Rigid Body > Collision > Shape)
  *
  * Texture space can be modified by (Data > Texture Space)
