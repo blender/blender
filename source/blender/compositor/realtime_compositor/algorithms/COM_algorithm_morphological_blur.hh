@@ -30,11 +30,12 @@ enum class MorphologicalBlurOperation : uint8_t {
  * and blurred input depending on the chosen operation, see the MorphologicalBlurOperation enum for
  * more information. The output is written to the given output result, which will be allocated
  * internally and is thus expected not to be previously allocated. */
-void morphological_blur(Context &context,
-                        Result &input,
-                        Result &output,
-                        float2 radius,
-                        MorphologicalBlurOperation operation = MorphologicalBlurOperation::Erode,
-                        int filter_type = R_FILTER_GAUSS);
+void morphological_blur(
+    Context &context,
+    const Result &input,
+    Result &output,
+    const float2 &radius,
+    const MorphologicalBlurOperation operation = MorphologicalBlurOperation::Erode,
+    const int filter_type = R_FILTER_GAUSS);
 
 }  // namespace blender::realtime_compositor
