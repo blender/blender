@@ -1754,7 +1754,33 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 
   /* Save snapping settings. */
   if ((prop = RNA_struct_find_property(op->ptr, "snap"))) {
-    RNA_property_boolean_set(op->ptr, prop, (t->modifiers & MOD_SNAP) != 0);
+    bool is_snap_enabled = (t->modifiers & MOD_SNAP) != 0;
+
+    /* Update the snap toggle in `ToolSettings`. */
+    if (
+        /* Update only if snapping has changed during a modal operation. */
+        (t->flag & T_MODAL) &&
+        /* Skip updating if the snapping mode does not match the snap types. */
+        transformModeUseSnap(t) &&
+        /* Skip updating the snap toggle if it was not explicitly set by the user. */
+        !(t->modifiers & MOD_SNAP_FORCED) &&
+        /* Skip updating the snap toggle if snapping was enabled via operator properties. */
+        !RNA_property_is_set(op->ptr, prop))
+    {
+      /* Type is #eSnapFlag, but type must match various snap attributes in #ToolSettings. */
+      short *snap_flag_ptr;
+
+      wmMsgParams_RNA msg_key_params = {{nullptr}};
+      msg_key_params.ptr = RNA_pointer_create(&t->scene->id, &RNA_ToolSettings, ts);
+      if ((snap_flag_ptr = transform_snap_flag_from_spacetype_ptr(t, &msg_key_params.prop)) &&
+          (is_snap_enabled != bool(*snap_flag_ptr & SCE_SNAP)))
+      {
+        SET_FLAG_FROM_TEST(*snap_flag_ptr, is_snap_enabled, SCE_SNAP);
+        WM_msg_publish_rna_params(t->mbus, &msg_key_params);
+      }
+    }
+
+    RNA_property_boolean_set(op->ptr, prop, is_snap_enabled);
 
     if ((prop = RNA_struct_find_property(op->ptr, "snap_elements"))) {
       RNA_property_enum_set(op->ptr, prop, t->tsnap.mode);
@@ -1768,24 +1794,6 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
       RNA_boolean_set(op->ptr, "use_snap_nonedit", (target & SCE_SNAP_TARGET_NOT_NONEDITED) == 0);
       RNA_boolean_set(
           op->ptr, "use_snap_selectable", (target & SCE_SNAP_TARGET_ONLY_SELECTABLE) != 0);
-    }
-
-    /* Update `ToolSettings` for properties that change during modal. */
-    if (t->flag & T_MODAL) {
-      /* Do we check for parameter? */
-      if (transformModeUseSnap(t) && !(t->modifiers & MOD_SNAP_FORCED)) {
-        /* Type is #eSnapFlag, but type must match various snap attributes in #ToolSettings. */
-        short *snap_flag_ptr;
-
-        wmMsgParams_RNA msg_key_params = {{nullptr}};
-        msg_key_params.ptr = RNA_pointer_create(&t->scene->id, &RNA_ToolSettings, ts);
-        if ((snap_flag_ptr = transform_snap_flag_from_spacetype_ptr(t, &msg_key_params.prop)) &&
-            (bool(t->modifiers & MOD_SNAP) != bool(*snap_flag_ptr & SCE_SNAP)))
-        {
-          SET_FLAG_FROM_TEST(*snap_flag_ptr, t->modifiers & MOD_SNAP, SCE_SNAP);
-          WM_msg_publish_rna_params(t->mbus, &msg_key_params);
-        }
-      }
     }
   }
 
