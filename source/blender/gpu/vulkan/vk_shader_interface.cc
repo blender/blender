@@ -29,6 +29,8 @@ static VKBindType to_bind_type(shader::ShaderCreateInfo::Resource::BindType bind
       return VKBindType::SAMPLER;
     case shader::ShaderCreateInfo::Resource::BindType::IMAGE:
       return VKBindType::IMAGE;
+    case shader::ShaderCreateInfo::Resource::BindType::INPUT_ATTACHMENT:
+      return VKBindType::INPUT_ATTACHMENT;
   }
   BLI_assert_unreachable();
   return VKBindType::UNIFORM_BUFFER;
