@@ -67,17 +67,6 @@ class BokehBlurOperation : public NodeOperation {
 
   void execute() override
   {
-    /* Not yet supported on CPU. */
-    if (!context().use_gpu()) {
-      for (const bNodeSocket *output : this->node()->output_sockets()) {
-        Result &output_result = get_result(output->identifier);
-        if (output_result.should_compute()) {
-          output_result.allocate_invalid();
-        }
-      }
-      return;
-    }
-
     if (is_identity()) {
       get_input("Image").pass_through(get_result("Image"));
       return;
@@ -92,6 +81,16 @@ class BokehBlurOperation : public NodeOperation {
   }
 
   void execute_constant_size()
+  {
+    if (this->context().use_gpu()) {
+      this->execute_constant_size_gpu();
+    }
+    else {
+      this->execute_constant_size_cpu();
+    }
+  }
+
+  void execute_constant_size_gpu()
   {
     GPUShader *shader = context().get_shader("compositor_bokeh_blur");
     GPU_shader_bind(shader);
@@ -127,7 +126,92 @@ class BokehBlurOperation : public NodeOperation {
     input_mask.unbind_as_texture();
   }
 
+  void execute_constant_size_cpu()
+  {
+    const int radius = int(this->compute_blur_radius());
+    const bool extend_bounds = this->get_extend_bounds();
+
+    const Result &input = this->get_input("Image");
+    const Result &weights = this->get_input("Bokeh");
+    const Result &mask_image = this->get_input("Bounding box");
+
+    Domain domain = this->compute_domain();
+    if (extend_bounds) {
+      /* Add a radius amount of pixels in both sides of the image, hence the multiply by 2. */
+      domain.size += int2(int(this->compute_blur_radius()) * 2);
+    }
+
+    Result &output = this->get_result("Image");
+    output.allocate_texture(domain);
+
+    auto load_input = [&](const int2 texel) {
+      /* If bounds are extended, then we treat the input as padded by a radius amount of pixels.
+       * So we load the input with an offset by the radius amount and fallback to a transparent
+       * color if it is out of bounds. */
+      if (extend_bounds) {
+        return input.load_pixel_fallback(texel - radius, float4(0.0f));
+      }
+      return input.load_pixel_extended(texel);
+    };
+
+    /* Given the texel in the range [-radius, radius] in both axis, load the appropriate weight
+     * from the weights image, where the given texel (0, 0) corresponds the center of weights
+     * image. Note that we load the weights image inverted along both directions to maintain
+     * the shape of the weights if it was not symmetrical. To understand why inversion makes sense,
+     * consider a 1D weights image whose right half is all ones and whose left half is all zeros.
+     * Further, consider that we are blurring a single white pixel on a black background. When
+     * computing the value of a pixel that is to the right of the white pixel, the white pixel will
+     * be in the left region of the search window, and consequently, without inversion, a zero will
+     * be sampled from the left side of the weights image and result will be zero. However, what
+     * we expect is that pixels to the right of the white pixel will be white, that is, they should
+     * sample a weight of 1 from the right side of the weights image, hence the need for
+     * inversion. */
+    auto load_weight = [&](const int2 texel) {
+      /* Add the radius to transform the texel into the range [0, radius * 2], with an additional
+       * 0.5 to sample at the center of the pixels, then divide by the upper bound plus one to
+       * transform the texel into the normalized range [0, 1] needed to sample the weights sampler.
+       * Finally, invert the textures coordinates by subtracting from 1 to maintain the shape of
+       * the weights as mentioned in the function description. */
+      return weights.sample_bilinear_extended(
+          1.0f - ((float2(texel) + float2(radius + 0.5f)) / (radius * 2.0f + 1.0f)));
+    };
+
+    parallel_for(domain.size, [&](const int2 texel) {
+      /* The mask input is treated as a boolean. If it is zero, then no blurring happens for this
+       * pixel. Otherwise, the pixel is blurred normally and the mask value is irrelevant. */
+      float mask = mask_image.load_pixel_extended(texel).x;
+      if (mask == 0.0f) {
+        output.store_pixel(texel, input.load_pixel_extended(texel));
+        return;
+      }
+
+      /* Go over the window of the given radius and accumulate the colors multiplied by their
+       * respective weights as well as the weights themselves. */
+      float4 accumulated_color = float4(0.0f);
+      float4 accumulated_weight = float4(0.0f);
+      for (int y = -radius; y <= radius; y++) {
+        for (int x = -radius; x <= radius; x++) {
+          float4 weight = load_weight(int2(x, y));
+          accumulated_color += load_input(texel + int2(x, y)) * weight;
+          accumulated_weight += weight;
+        }
+      }
+
+      output.store_pixel(texel, math::safe_divide(accumulated_color, accumulated_weight));
+    });
+  }
+
   void execute_variable_size()
+  {
+    if (this->context().use_gpu()) {
+      this->execute_variable_size_gpu();
+    }
+    else {
+      this->execute_variable_size_cpu();
+    }
+  }
+
+  void execute_variable_size_gpu()
   {
     const int search_radius = compute_variable_size_search_radius();
 
@@ -162,6 +246,89 @@ class BokehBlurOperation : public NodeOperation {
     input_weights.unbind_as_texture();
     input_size.unbind_as_texture();
     input_mask.unbind_as_texture();
+  }
+
+  void execute_variable_size_cpu()
+  {
+    const float base_size = this->compute_blur_radius();
+    const int search_radius = this->compute_variable_size_search_radius();
+
+    const Result &input = get_input("Image");
+    const Result &weights = get_input("Bokeh");
+    const Result &size_image = get_input("Size");
+    const Result &mask_image = get_input("Bounding box");
+
+    const Domain domain = compute_domain();
+    Result &output = get_result("Image");
+    output.allocate_texture(domain);
+
+    /* Given the texel in the range [-radius, radius] in both axis, load the appropriate weight
+     * from the weights image, where the given texel (0, 0) corresponds the center of weights
+     * image. Note that we load the weights image inverted along both directions to maintain
+     * the shape of the weights if it was not symmetrical. To understand why inversion makes sense,
+     * consider a 1D weights image whose right half is all ones and whose left half is all zeros.
+     * Further, consider that we are blurring a single white pixel on a black background. When
+     * computing the value of a pixel that is to the right of the white pixel, the white pixel will
+     * be in the left region of the search window, and consequently, without inversion, a zero will
+     * be sampled from the left side of the weights image and result will be zero. However, what
+     * we expect is that pixels to the right of the white pixel will be white, that is, they should
+     * sample a weight of 1 from the right side of the weights image, hence the need for
+     * inversion. */
+    auto load_weight = [&](const int2 &texel, const float radius) {
+      /* The center zero texel is always assigned a unit weight regardless of the corresponding
+       * weight in the weights image. That's to guarantee that at last the center pixel will be
+       * accumulated even if the weights image is zero at its center. */
+      if (texel.x == 0 && texel.y == 0) {
+        return float4(1.0f);
+      }
+
+      /* Add the radius to transform the texel into the range [0, radius * 2], with an additional
+       * 0.5 to sample at the center of the pixels, then divide by the upper bound plus one to
+       * transform the texel into the normalized range [0, 1] needed to sample the weights sampler.
+       * Finally, invert the textures coordinates by subtracting from 1 to maintain the shape of
+       * the weights as mentioned in the function description. */
+      return weights.sample_bilinear_extended(
+          1.0f - ((float2(texel) + float2(radius + 0.5f)) / (radius * 2.0f + 1.0f)));
+    };
+
+    parallel_for(domain.size, [&](const int2 texel) {
+      /* The mask input is treated as a boolean. If it is zero, then no blurring happens for this
+       * pixel. Otherwise, the pixel is blurred normally and the mask value is irrelevant. */
+      float mask = mask_image.load_pixel(texel).x;
+      if (mask == 0.0f) {
+        output.store_pixel(texel, input.load_pixel(texel));
+        return;
+      }
+
+      float center_size = math::max(0.0f, size_image.load_pixel(texel).x * base_size);
+
+      /* Go over the window of the given search radius and accumulate the colors multiplied by
+       * their respective weights as well as the weights themselves, but only if both the size of
+       * the center pixel and the size of the candidate pixel are less than both the x and y
+       * distances of the candidate pixel. */
+      float4 accumulated_color = float4(0.0f);
+      float4 accumulated_weight = float4(0.0f);
+      for (int y = -search_radius; y <= search_radius; y++) {
+        for (int x = -search_radius; x <= search_radius; x++) {
+          float candidate_size = math::max(
+              0.0f, size_image.load_pixel(texel + int2(x, y)).x * base_size);
+
+          /* Skip accumulation if either the x or y distances of the candidate pixel are larger
+           * than either the center or candidate pixel size. Note that the max and min functions
+           * here denote "either" in the aforementioned description. */
+          float size = math::min(center_size, candidate_size);
+          if (math::max(math::abs(x), math::abs(y)) > size) {
+            continue;
+          }
+
+          float4 weight = load_weight(int2(x, y), size);
+          accumulated_color += input.load_pixel_extended(texel + int2(x, y)) * weight;
+          accumulated_weight += weight;
+        }
+      }
+
+      output.store_pixel(texel, math::safe_divide(accumulated_color, accumulated_weight));
+    });
   }
 
   int compute_variable_size_search_radius()
