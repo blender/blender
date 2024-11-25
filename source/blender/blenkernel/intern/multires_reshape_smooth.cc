@@ -917,15 +917,6 @@ static int get_num_vertices(const OpenSubdiv_Converter *converter)
   return reshape_smooth_context->geometry.num_vertices;
 }
 
-static int get_num_face_vertices(const OpenSubdiv_Converter *converter, int face_index)
-{
-  const MultiresReshapeSmoothContext *reshape_smooth_context =
-      static_cast<const MultiresReshapeSmoothContext *>(converter->user_data);
-  BLI_assert(face_index < reshape_smooth_context->geometry.num_faces);
-
-  return reshape_smooth_context->geometry.faces()[face_index].size();
-}
-
 static void get_face_vertices(const OpenSubdiv_Converter *converter,
                               int face_index,
                               int *face_vertices)
