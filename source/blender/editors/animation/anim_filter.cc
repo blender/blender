@@ -2214,9 +2214,9 @@ static size_t animdata_filter_grease_pencil_data(bAnimContext *ac,
   if (filter_mode & ANIMFILTER_ANIMDATA) {
     if (show_animdata) {
       items += animfilter_block_data(ac, anim_data, (ID *)grease_pencil, filter_mode);
+      ANIMCHANNEL_NEW_CHANNEL(
+          ac->bmain, grease_pencil, ANIMTYPE_GREASE_PENCIL_DATABLOCK, grease_pencil, nullptr);
     }
-    ANIMCHANNEL_NEW_CHANNEL(
-        ac->bmain, grease_pencil, ANIMTYPE_GREASE_PENCIL_DATABLOCK, grease_pencil, nullptr);
   }
   else {
     ListBase tmp_data = {nullptr, nullptr};
