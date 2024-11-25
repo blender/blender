@@ -8,9 +8,15 @@
 
 #pragma once
 
+#include "BLI_vector.hh"
+
 #include "ED_file_indexer.hh"
 
 struct AssetLibraryReference;
+
+namespace blender {
+class StringRefNull;
+}
 
 namespace blender::ed::asset::index {
 
@@ -33,8 +39,6 @@ namespace blender::ed::asset::index {
  */
 extern const FileIndexerType file_indexer_asset;
 
-extern const FileIndexerType file_indexer_asset_remote_index;
-
-const FileIndexerType *asset_indexer_from_library_ref(const AssetLibraryReference *library_ref);
+bool read_remote_index(StringRefNull root_dirpath, Vector<FileIndexerEntry> *r_entries);
 
 }  // namespace blender::ed::asset::index

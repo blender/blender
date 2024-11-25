@@ -12,6 +12,7 @@
 #include <optional>
 
 #include "ED_asset_indexer.hh"
+#include "asset_index.hh"
 
 #include "DNA_asset_types.h"
 #include "DNA_userdef_types.h"
@@ -769,22 +770,5 @@ constexpr FileIndexerType asset_indexer()
 }
 
 const FileIndexerType file_indexer_asset = asset_indexer();
-
-const FileIndexerType *asset_indexer_from_library_ref(const AssetLibraryReference *library_ref)
-{
-  if (USER_EXPERIMENTAL_TEST(&U, no_asset_indexing)) {
-    return nullptr;
-  }
-
-  if (library_ref->type == ASSET_LIBRARY_CUSTOM) {
-    const bUserAssetLibrary *library = BKE_preferences_asset_library_find_index(
-        &U, library_ref->custom_library_index);
-    if (library->flag & ASSET_LIBRARY_USE_REMOTE_URL) {
-      return &index::file_indexer_asset_remote_index;
-    }
-  }
-
-  return &index::file_indexer_asset;
-}
 
 }  // namespace blender::ed::asset::index

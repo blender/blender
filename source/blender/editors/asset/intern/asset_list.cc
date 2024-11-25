@@ -161,8 +161,8 @@ void AssetList::setup()
       "");
   filelist_set_no_preview_auto_cache(files);
 
-  const FileIndexerType *asset_indexer = index::asset_indexer_from_library_ref(&library_ref_);
-  filelist_setindexer(files, asset_indexer ? asset_indexer : &file_indexer_noop);
+  const bool use_asset_indexer = !USER_EXPERIMENTAL_TEST(&U, no_asset_indexing);
+  filelist_setindexer(files, use_asset_indexer ? &index::file_indexer_asset : &file_indexer_noop);
 
   char dirpath[FILE_MAX_LIBEXTRA] = "";
   if (!asset_lib_path.empty()) {

@@ -61,6 +61,7 @@
 #include "DNA_asset_types.h"
 #include "DNA_space_types.h"
 
+#include "ED_asset_indexer.hh"
 #include "ED_datafiles.h"
 #include "ED_fileselect.hh"
 
@@ -4055,25 +4056,13 @@ static void filelist_readjob_remote_asset_library_index_read(FileListReadJob *jo
       &U, job_params->filelist->asset_library_ref->custom_library_index);
   BKE_preferences_remote_asset_library_dirpath_get(user_library, dirpath, sizeof(dirpath));
 
-  FileIndexer indexer_runtime{};
-  indexer_runtime.callbacks = filelist->indexer;
-  if (indexer_runtime.callbacks->init_user_data) {
-    indexer_runtime.user_data = indexer_runtime.callbacks->init_user_data(dirpath,
-                                                                          sizeof(dirpath));
+  Vector<FileIndexerEntry> asset_entries;
+  if (!ed::asset::index::read_remote_index(dirpath, &asset_entries)) {
+    return;
   }
 
-  FileIndexerEntries indexer_entries = {nullptr};
-  int indexer_entries_len = 0;
-  indexer_runtime.callbacks->read_index(
-      dirpath, &indexer_entries, &indexer_entries_len, indexer_runtime.user_data);
-
-  /* Finalize and free indexer. */
-  if (indexer_runtime.callbacks->filelist_finished) {
-    indexer_runtime.callbacks->filelist_finished(indexer_runtime.user_data);
-  }
-  if (indexer_runtime.callbacks->free_user_data && indexer_runtime.user_data) {
-    indexer_runtime.callbacks->free_user_data(indexer_runtime.user_data);
-    indexer_runtime.user_data = nullptr;
+  for (FileIndexerEntry &entry : asset_entries) {
+    BLO_datablock_info_free(&entry.datablock_info);
   }
 }
 
