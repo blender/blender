@@ -55,6 +55,10 @@ void BLF_cache_flush_set_fn(void (*cache_flush_fn)());
 
 /**
  * Loads a font, or returns an already loaded font and increments its reference count.
+ *
+ * Note that while loading fonts is thread-safe, most of font usage via BLF
+ * state modification functions is not. If you need to use fonts from multiple threads,
+ * use unique font instances for threaded parts, see #BLF_load_unique.
  */
 int BLF_load(const char *filepath) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 int BLF_load_mem(const char *name, const unsigned char *mem, int mem_size) ATTR_WARN_UNUSED_RESULT
@@ -62,18 +66,39 @@ int BLF_load_mem(const char *name, const unsigned char *mem, int mem_size) ATTR_
 
 bool BLF_is_loaded(const char *filepath) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 bool BLF_is_loaded_mem(const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+bool BLF_is_loaded_id(int fontid) ATTR_WARN_UNUSED_RESULT;
 
+/**
+ * Loads a font into a new font object.
+ *
+ * Unlike #BLF_load, it does not look whether a font with the same
+ * path or name is already loaded. Primary use case is when using BLF
+ * functions from a non-main thread.
+ */
 int BLF_load_unique(const char *filepath) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 int BLF_load_mem_unique(const char *name, const unsigned char *mem, int mem_size)
     ATTR_NONNULL(1, 2);
 
+/**
+ * Decreases font reference count, if it reaches zero the font is unloaded.
+ */
 void BLF_unload(const char *filepath) ATTR_NONNULL(1);
 #if 0 /* Not needed at the moment. */
 void BLF_unload_mem(const char *name) ATTR_NONNULL(1);
 #endif
 
-void BLF_unload_id(int fontid);
+/**
+ * Decreases font reference count, if it reaches zero the font is unloaded.
+ * Returns true if font got unloaded.
+ */
+bool BLF_unload_id(int fontid);
+
 void BLF_unload_all();
+
+/**
+ * Increases font reference count.
+ */
+void BLF_addref_id(int fontid);
 
 char *BLF_display_name_from_file(const char *filepath) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 

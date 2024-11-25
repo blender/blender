@@ -73,8 +73,6 @@ char *blf_dir_metrics_search(const char *filepath);
 int blf_font_init();
 void blf_font_exit();
 
-bool blf_font_id_is_valid(int fontid);
-
 /**
  * Return glyph id from char-code.
  */
