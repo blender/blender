@@ -15,11 +15,15 @@
 #include "draw_manager_text.hh"
 
 #include "overlay_next_armature.hh"
-#include "overlay_next_private.hh"
+#include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {
 
-class MotionPath {
+/**
+ * Display object and armature motion path.
+ * Motion paths can be found in (Object > Motion Paths) or (Data > Motion Paths) for armatures.
+ */
+class MotionPath : Overlay {
 
  private:
   PassSimple motion_path_ps_ = {"motion_path_ps_"};
@@ -27,13 +31,10 @@ class MotionPath {
   PassSimple::Sub *line_ps_ = nullptr;
   PassSimple::Sub *vert_ps_ = nullptr;
 
-  bool enabled_ = false;
-
  public:
-  void begin_sync(Resources &res, const State &state)
+  void begin_sync(Resources &res, const State &state) final
   {
-    enabled_ = state.v3d && !(state.overlay.flag & V3D_OVERLAY_HIDE_MOTION_PATHS) &&
-               (res.selection_type == SelectionType::DISABLED);
+    enabled_ = state.v3d && state.show_motion_paths() && !res.is_selection();
     if (!enabled_) {
       /* Not used. But release the data. */
       motion_path_ps_.init();
@@ -43,23 +44,25 @@ class MotionPath {
     {
       PassSimple &pass = motion_path_ps_;
       pass.init();
+      pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       pass.state_set(DRW_STATE_WRITE_COLOR, state.clipping_plane_count);
       {
         PassSimple::Sub &sub = pass.sub("Lines");
         sub.shader_set(res.shaders.motion_path_line.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         line_ps_ = &sub;
       }
       {
         PassSimple::Sub &sub = pass.sub("Points");
         sub.shader_set(res.shaders.motion_path_vert.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         vert_ps_ = &sub;
       }
     }
   }
 
-  void object_sync(const ObjectRef &ob_ref, Resources & /*res*/, const State &state)
+  void object_sync(Manager & /*manager*/,
+                   const ObjectRef &ob_ref,
+                   Resources & /*res*/,
+                   const State &state) final
   {
     if (!enabled_) {
       return;
@@ -82,7 +85,7 @@ class MotionPath {
     }
   }
 
-  void draw_color_only(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_color_only(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;

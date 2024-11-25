@@ -342,7 +342,7 @@ void BKE_boundbox_minmax(const BoundBox *bb,
  * the evaluated geometry (not just #Object.data).
  */
 std::optional<blender::Bounds<blender::float3>> BKE_object_boundbox_get(const Object *ob);
-void BKE_object_dimensions_get(Object *ob, float r_vec[3]);
+void BKE_object_dimensions_get(const Object *ob, float r_vec[3]);
 
 /**
  * Retrieve the bounds of the evaluated object's geometry, stored on the original object as part of
@@ -353,7 +353,7 @@ void BKE_object_dimensions_get(Object *ob, float r_vec[3]);
 std::optional<blender::Bounds<blender::float3>> BKE_object_boundbox_eval_cached_get(
     const Object *ob);
 /** Similar to #BKE_object_boundbox_eval_cached_get but gives the size of the bounds instead. */
-void BKE_object_dimensions_eval_cached_get(Object *ob, float r_vec[3]);
+void BKE_object_dimensions_eval_cached_get(const Object *ob, float r_vec[3]);
 
 /**
  * The original scale and object matrix can be passed in so any difference
@@ -507,10 +507,9 @@ Mesh *BKE_object_get_evaluated_mesh_no_subsurf_unchecked(const Object *object);
 Mesh *BKE_object_get_evaluated_mesh_unchecked(const Object *object);
 /**
  * Get mesh which is not affected by modifiers:
- * - For original objects it will be same as `object->data`, and it is a mesh
- *   which is in the corresponding #Main.
- * - For copied-on-write objects it will give pointer to a copied-on-write
- *   mesh which corresponds to original object's mesh.
+ * - For original objects, return #Object::data: the mesh in the original #Main database.
+ * - For evaluated objects, return the evaluated mesh which corresponds to the original
+ *   mesh, if the original object was a mesh object (otherwise null).
  */
 const Mesh *BKE_object_get_pre_modified_mesh(const Object *object);
 /**

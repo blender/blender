@@ -32,7 +32,7 @@ void BLF_default_size(float size)
 
 void BLF_default_set(int fontid)
 {
-  if ((fontid == -1) || blf_font_id_is_valid(fontid)) {
+  if ((fontid == -1) || BLF_is_loaded_id(fontid)) {
     global_font_default = fontid;
   }
 }

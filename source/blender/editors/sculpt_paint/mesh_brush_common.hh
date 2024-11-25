@@ -424,10 +424,10 @@ OffsetIndices<int> create_node_vert_offsets_bmesh(const Span<bke::pbvh::BMeshNod
                                                   Array<int> &node_data);
 
 /**
- * Find vertices connected to the indexed vertices across faces.
+ * Find vertices connected to the indexed vertices across faces. Neighbors connected across hidden
+ * faces are skipped.
  *
- * Does not handle boundary vertices differently, so this method is generally inappropriate for
- * functions that are related to coordinates. See #calc_vert_neighbors_interior
+ * See #calc_vert_neighbors_interior for a version that does extra filtering for boundary vertices.
  *
  * \note A vector allocated per element is typically not a good strategy for performance because
  * of each vector's 24 byte overhead, non-contiguous memory, and the possibility of further heap
@@ -449,9 +449,10 @@ void calc_vert_neighbors(const SubdivCCG &subdiv_ccg,
 void calc_vert_neighbors(Set<BMVert *, 0> verts, MutableSpan<Vector<BMVert *>> result);
 
 /**
- * Find vertices connected to the indexed vertices across faces. For boundary vertices (stored in
- * the \a boundary_verts argument), only include other boundary vertices. Also skip connectivity
- * across hidden faces and skip neighbors of corner vertices.
+ * Find vertices connected to the indexed vertices across faces. Neighbors connected across hidden
+ * faces are skipped. For boundary vertices (stored in the \a boundary_verts argument), only
+ * include other boundary vertices. Corner vertices are skipped entirely and will not have neighbor
+ * information populated.
  *
  * \note See #calc_vert_neighbors for information on why we use a Vector per element.
  */

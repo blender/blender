@@ -107,7 +107,7 @@ void ui_but_anim_flag(uiBut *but, const AnimationEvalContext *anim_eval_context)
 
   /* This feature is not implemented at all for the NLA. However, if the NLA just consists of
    * stashed (i.e. deactivated) Actions, it doesn't do anything, and we can treat it as
-   * non-existant here. Note that this is mostly to play nice with stashed Actions, and doesn't
+   * non-existent here. Note that this is mostly to play nice with stashed Actions, and doesn't
    * fully look at all the track & strip flags. */
   if (adt) {
     LISTBASE_FOREACH (NlaTrack *, nla_track, &adt->nla_tracks) {

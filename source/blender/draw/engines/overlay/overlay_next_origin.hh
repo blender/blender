@@ -8,32 +8,37 @@
 
 #pragma once
 
-#include "overlay_next_private.hh"
+#include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {
-class Origins {
+
+/**
+ * Display object origins as dots.
+ * The option can be found under (Viewport Overlays > Objects > Origins).
+ */
+class Origins : Overlay {
  private:
   StorageVectorBuffer<VertexData> point_buf_;
   select::SelectBuf select_buf_;
 
   PassSimple ps_ = {"Origins"};
 
-  bool enabled_ = false;
-
  public:
   Origins(SelectionType selection_type) : select_buf_(selection_type) {}
 
-  void begin_sync(const State &state)
+  void begin_sync(Resources & /*res*/, const State &state) final
   {
     const bool is_paint_mode = (state.object_mode &
                                 (OB_MODE_ALL_PAINT | OB_MODE_ALL_PAINT_GPENCIL |
                                  OB_MODE_SCULPT_CURVES)) != 0;
-    enabled_ = state.space_type == SPACE_VIEW3D && !is_paint_mode &&
-               (state.overlay.flag & V3D_OVERLAY_HIDE_OBJECT_ORIGINS) == 0;
+    enabled_ = state.is_space_v3d() && !is_paint_mode && state.show_object_origins();
     point_buf_.clear();
   }
 
-  void object_sync(const ObjectRef &ob_ref, Resources &res, State &state)
+  void object_sync(Manager & /*manager*/,
+                   const ObjectRef &ob_ref,
+                   Resources &res,
+                   const State &state) final
   {
     if (!enabled_) {
       return;
@@ -67,7 +72,7 @@ class Origins {
     }
   }
 
-  void end_sync(Resources &res, const State &state)
+  void end_sync(Resources &res, const ShapeCache & /*shapes*/, const State &state) final
   {
     if (!enabled_) {
       return;
@@ -75,14 +80,14 @@ class Origins {
     ps_.init();
     ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA, state.clipping_plane_count);
     ps_.shader_set(res.shaders.extra_point.get());
-    ps_.bind_ubo("globalsBlock", &res.globals_buf);
+    ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
     select_buf_.select_bind(ps_);
     point_buf_.push_update();
     ps_.bind_ssbo("data_buf", &point_buf_);
     ps_.draw_procedural(GPU_PRIM_POINTS, 1, point_buf_.size());
   }
 
-  void draw(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_color_only(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;

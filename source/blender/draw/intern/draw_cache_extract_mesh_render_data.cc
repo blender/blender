@@ -544,8 +544,8 @@ std::unique_ptr<MeshRenderData> mesh_render_data_create(Object &object,
 
   mr->use_hide = use_hide;
 
-  if (is_editmode) {
-    const Mesh *editmesh_orig = BKE_object_get_pre_modified_mesh(&object);
+  const Mesh *editmesh_orig = BKE_object_get_pre_modified_mesh(&object);
+  if (is_editmode && editmesh_orig) {
     const Mesh *eval_cage = BKE_object_get_editmesh_eval_cage(&object);
 
     mr->bm = editmesh_orig->runtime->edit_mesh->bm;

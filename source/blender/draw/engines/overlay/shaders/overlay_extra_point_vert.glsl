@@ -26,7 +26,7 @@ void main()
   outlineColor = colorOutline;
 
 #ifdef SELECT_ENABLE
-  /* Selection framebuffer can be very small.
+  /* Selection frame-buffer can be very small.
    * Make sure to only rasterize one pixel to avoid making the selection radius very big. */
   gl_PointSize = 1.0;
 #endif

@@ -482,6 +482,8 @@ set(GLSL_SRC
   shaders/gpu_shader_2D_widget_base_frag.glsl
   shaders/gpu_shader_2D_widget_shadow_vert.glsl
   shaders/gpu_shader_2D_widget_shadow_frag.glsl
+  shaders/gpu_shader_2D_node_socket_frag.glsl
+  shaders/gpu_shader_2D_node_socket_vert.glsl
   shaders/gpu_shader_2D_nodelink_frag.glsl
   shaders/gpu_shader_2D_nodelink_vert.glsl
   shaders/gpu_shader_2D_line_dashed_frag.glsl

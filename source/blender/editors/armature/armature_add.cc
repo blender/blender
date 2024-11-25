@@ -16,7 +16,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_ghash.h"
+#include "BLI_map.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
@@ -318,15 +318,16 @@ static void pre_edit_bone_duplicate(ListBase *editbones)
  * Helper function for #pose_edit_bone_duplicate,
  * return the destination pchan from the original.
  */
-static bPoseChannel *pchan_duplicate_map(const bPose *pose,
-                                         GHash *name_map,
-                                         bPoseChannel *pchan_src)
+static bPoseChannel *pchan_duplicate_map(
+    const bPose *pose,
+    blender::Map<blender::StringRefNull, blender::StringRefNull> &name_map,
+    bPoseChannel *pchan_src)
 {
   bPoseChannel *pchan_dst = nullptr;
   const char *name_src = pchan_src->name;
-  const char *name_dst = static_cast<const char *>(BLI_ghash_lookup(name_map, name_src));
-  if (name_dst) {
-    pchan_dst = BKE_pose_channel_find_name(pose, name_dst);
+  const blender::StringRefNull name_dst = name_map.lookup_default(name_src, "");
+  if (!name_dst.is_empty()) {
+    pchan_dst = BKE_pose_channel_find_name(pose, name_dst.c_str());
   }
 
   if (pchan_dst == nullptr) {
@@ -345,7 +346,7 @@ static void pose_edit_bone_duplicate(ListBase *editbones, Object *ob)
   BKE_pose_channels_hash_free(ob->pose);
   BKE_pose_channels_hash_ensure(ob->pose);
 
-  GHash *name_map = BLI_ghash_str_new(__func__);
+  blender::Map<blender::StringRefNull, blender::StringRefNull> name_map;
 
   LISTBASE_FOREACH (EditBone *, ebone_src, editbones) {
     EditBone *ebone_dst = ebone_src->temp.ebone;
@@ -354,7 +355,7 @@ static void pose_edit_bone_duplicate(ListBase *editbones, Object *ob)
     }
 
     if (ebone_dst) {
-      BLI_ghash_insert(name_map, ebone_src->name, ebone_dst->name);
+      name_map.add_as(ebone_src->name, ebone_dst->name);
     }
   }
 
@@ -384,8 +385,6 @@ static void pose_edit_bone_duplicate(ListBase *editbones, Object *ob)
       pchan_dst->bbone_next = pchan_duplicate_map(ob->pose, name_map, pchan_src->bbone_next);
     }
   }
-
-  BLI_ghash_free(name_map, nullptr, nullptr);
 }
 
 static void update_duplicate_subtarget(EditBone *dup_bone,

@@ -9,22 +9,29 @@
 #pragma once
 
 #include "BKE_attribute.hh"
+#include "BKE_curves.hh"
 #include "BKE_mesh.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
 #include "BKE_subdiv_ccg.hh"
+#include "DEG_depsgraph_query.hh"
+
+#include "bmesh.hh"
 
 #include "draw_cache_impl.hh"
 
-#include "overlay_next_private.hh"
+#include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {
 
-class Sculpts {
+/**
+ * Display sculpt modes overlays.
+ * Covers face sets and mask for meshes.
+ * Draw curve cages (curve guides) for curve sculpting.
+ */
+class Sculpts : Overlay {
 
  private:
-  const SelectionType selection_type_;
-
   PassSimple sculpt_mask_ = {"SculptMaskAndFaceSet"};
   PassSimple::Sub *mesh_ps_ = nullptr;
   PassSimple::Sub *curves_ps_ = nullptr;
@@ -35,20 +42,16 @@ class Sculpts {
   bool show_face_set_ = false;
   bool show_mask_ = false;
 
-  bool enabled_ = false;
-
  public:
-  Sculpts(const SelectionType selection_type_) : selection_type_(selection_type_) {}
-
-  void begin_sync(Resources &res, const State &state)
+  void begin_sync(Resources &res, const State &state) final
   {
-    const int sculpt_overlay_flags = V3D_OVERLAY_SCULPT_SHOW_FACE_SETS |
-                                     V3D_OVERLAY_SCULPT_SHOW_MASK | V3D_OVERLAY_SCULPT_CURVES_CAGE;
+    show_curves_cage_ = state.show_sculpt_curves_cage();
+    show_face_set_ = state.show_sculpt_face_sets();
+    show_mask_ = state.show_sculpt_mask();
 
-    enabled_ = (state.space_type == SPACE_VIEW3D) && !state.xray_enabled &&
-               (selection_type_ == SelectionType::DISABLED) &&
+    enabled_ = state.is_space_v3d() && !state.xray_enabled && !res.is_selection() &&
                ELEM(state.object_mode, OB_MODE_SCULPT_CURVES, OB_MODE_SCULPT) &&
-               (state.overlay.flag & sculpt_overlay_flags);
+               (show_curves_cage_ || show_face_set_ || show_mask_);
 
     if (!enabled_) {
       /* Not used. But release the data. */
@@ -57,23 +60,19 @@ class Sculpts {
       return;
     }
 
-    show_curves_cage_ = state.overlay.flag & V3D_OVERLAY_SCULPT_CURVES_CAGE;
-    show_face_set_ = state.overlay.flag & V3D_OVERLAY_SCULPT_SHOW_FACE_SETS;
-    show_mask_ = state.overlay.flag & V3D_OVERLAY_SCULPT_SHOW_MASK;
-
     float curve_cage_opacity = show_curves_cage_ ? state.overlay.sculpt_curves_cage_opacity : 0.0f;
     float face_set_opacity = show_face_set_ ? state.overlay.sculpt_mode_face_sets_opacity : 0.0f;
     float mask_opacity = show_mask_ ? state.overlay.sculpt_mode_mask_opacity : 0.0f;
 
     {
       sculpt_mask_.init();
+      sculpt_mask_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       sculpt_mask_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL |
                                  DRW_STATE_BLEND_MUL,
                              state.clipping_plane_count);
       {
         auto &sub = sculpt_mask_.sub("Mesh");
         sub.shader_set(res.shaders.sculpt_mesh.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         sub.push_constant("maskOpacity", mask_opacity);
         sub.push_constant("faceSetsOpacity", face_set_opacity);
         mesh_ps_ = &sub;
@@ -81,7 +80,6 @@ class Sculpts {
       {
         auto &sub = sculpt_mask_.sub("Curves");
         sub.shader_set(res.shaders.sculpt_curves.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         sub.push_constant("selection_opacity", mask_opacity);
         curves_ps_ = &sub;
       }
@@ -92,12 +90,15 @@ class Sculpts {
       pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND_ALPHA,
                      state.clipping_plane_count);
       pass.shader_set(res.shaders.sculpt_curves_cage.get());
-      pass.bind_ubo("globalsBlock", &res.globals_buf);
+      pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       pass.push_constant("opacity", curve_cage_opacity);
     }
   }
 
-  void object_sync(Manager &manager, const ObjectRef &ob_ref, const State &state)
+  void object_sync(Manager &manager,
+                   const ObjectRef &ob_ref,
+                   Resources & /*res*/,
+                   const State &state) final
   {
     if (!enabled_) {
       return;
@@ -225,7 +226,7 @@ class Sculpts {
     }
   }
 
-  void draw(GPUFrameBuffer *framebuffer, Manager &manager, View &view)
+  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;
@@ -234,7 +235,7 @@ class Sculpts {
     manager.submit(sculpt_curve_cage_, view);
   }
 
-  void draw_on_render(GPUFrameBuffer *framebuffer, Manager &manager, View &view)
+  void draw_on_render(GPUFrameBuffer *framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;

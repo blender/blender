@@ -3602,12 +3602,12 @@ static float3 boundbox_to_dimensions(const Object *ob, const std::optional<Bound
   return scale * (bounds->max - bounds->min);
 }
 
-void BKE_object_dimensions_get(Object *ob, float r_vec[3])
+void BKE_object_dimensions_get(const Object *ob, float r_vec[3])
 {
   copy_v3_v3(r_vec, boundbox_to_dimensions(ob, BKE_object_boundbox_get(ob)));
 }
 
-void BKE_object_dimensions_eval_cached_get(Object *ob, float r_vec[3])
+void BKE_object_dimensions_eval_cached_get(const Object *ob, float r_vec[3])
 {
   copy_v3_v3(r_vec, boundbox_to_dimensions(ob, BKE_object_boundbox_eval_cached_get(ob)));
 }
@@ -4140,17 +4140,20 @@ Mesh *BKE_object_get_evaluated_mesh(const Object *object_eval)
 
 const Mesh *BKE_object_get_pre_modified_mesh(const Object *object)
 {
-  if (object->type == OB_MESH && object->runtime->data_orig != nullptr) {
+  BLI_assert(object->type == OB_MESH);
+  if (const ID *data_orig = object->runtime->data_orig) {
     BLI_assert(object->id.tag & ID_TAG_COPIED_ON_EVAL);
     BLI_assert(object->id.orig_id != nullptr);
-    BLI_assert(object->runtime->data_orig->orig_id == ((const Object *)object->id.orig_id)->data);
-    const Mesh *result = (const Mesh *)object->runtime->data_orig;
-    BLI_assert((result->id.tag & ID_TAG_COPIED_ON_EVAL) != 0);
-    BLI_assert((result->id.tag & ID_TAG_COPIED_ON_EVAL_FINAL_RESULT) == 0);
-    return result;
+    BLI_assert(data_orig->orig_id == ((const Object *)object->id.orig_id)->data);
+    BLI_assert((data_orig->tag & ID_TAG_COPIED_ON_EVAL) != 0);
+    BLI_assert((data_orig->tag & ID_TAG_COPIED_ON_EVAL_FINAL_RESULT) == 0);
+    if (GS(data_orig->name) != ID_ME) {
+      return nullptr;
+    }
+    return reinterpret_cast<const Mesh *>(data_orig);
   }
   BLI_assert((object->id.tag & ID_TAG_COPIED_ON_EVAL) == 0);
-  return (const Mesh *)object->data;
+  return static_cast<const Mesh *>(object->data);
 }
 
 Mesh *BKE_object_get_original_mesh(const Object *object)

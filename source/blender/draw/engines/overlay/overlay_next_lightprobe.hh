@@ -10,11 +10,14 @@
 
 #include "DNA_lightprobe_types.h"
 
-#include "overlay_next_private.hh"
+#include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {
 
-class LightProbes {
+/**
+ * Draw light probe objects.
+ */
+class LightProbes : Overlay {
   using LightProbeInstanceBuf = ShapeInstanceBuf<ExtraInstanceData>;
   using GroundLineInstanceBuf = ShapeInstanceBuf<float4>;
   using DotsInstanceBuf = ShapeInstanceBuf<float4x4>;
@@ -39,14 +42,12 @@ class LightProbes {
 
   } call_buffers_{selection_type_};
 
-  bool enabled_ = false;
-
  public:
   LightProbes(const SelectionType selection_type) : selection_type_(selection_type){};
 
-  void begin_sync(Resources &res, const State &state)
+  void begin_sync(Resources &res, const State &state) final
   {
-    enabled_ = state.space_type == SPACE_VIEW3D;
+    enabled_ = state.is_space_v3d() && state.show_extras();
     if (!enabled_) {
       return;
     }
@@ -63,13 +64,16 @@ class LightProbes {
     ps_dots_.init();
     ps_dots_.state_set(DRW_STATE_WRITE_COLOR, state.clipping_plane_count);
     ps_dots_.shader_set(res.shaders.extra_grid.get());
-    ps_dots_.bind_ubo("globalsBlock", &res.globals_buf);
+    ps_dots_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
     ps_dots_.bind_texture("depthBuffer", &res.depth_tx);
     ps_dots_.push_constant("isTransform", (G.moving & G_TRANSFORM_OBJ) != 0);
     res.select_bind(ps_dots_);
   }
 
-  void object_sync(const ObjectRef &ob_ref, Resources &res, const State &state)
+  void object_sync(Manager & /*manager*/,
+                   const ObjectRef &ob_ref,
+                   Resources &res,
+                   const State &state) final
   {
     if (!enabled_) {
       return;
@@ -80,8 +84,7 @@ class LightProbes {
     const bool show_clipping = (prb->flag & LIGHTPROBE_FLAG_SHOW_CLIP_DIST) != 0;
     const bool show_parallax = (prb->flag & LIGHTPROBE_FLAG_SHOW_PARALLAX) != 0;
     const bool show_influence = (prb->flag & LIGHTPROBE_FLAG_SHOW_INFLUENCE) != 0;
-    const bool is_select = selection_type_ == SelectionType::ENABLED;
-    const bool show_data = (ob_ref.object->base_flag & BASE_SELECTED) || is_select;
+    const bool show_data = (ob_ref.object->base_flag & BASE_SELECTED) || res.is_selection();
 
     const select::ID select_id = res.select_id(ob_ref);
     const float4 color = res.object_wire_color(ob_ref, state);
@@ -161,7 +164,7 @@ class LightProbes {
       case LIGHTPROBE_TYPE_PLANE:
         call_buffers_.probe_planar_buf.append(data, select_id);
 
-        if (is_select && (prb->flag & LIGHTPROBE_FLAG_SHOW_DATA)) {
+        if (res.is_selection() && (prb->flag & LIGHTPROBE_FLAG_SHOW_DATA)) {
           call_buffers_.quad_solid_buf.append(data, select_id);
         }
 
@@ -182,13 +185,14 @@ class LightProbes {
     }
   }
 
-  void end_sync(Resources &res, ShapeCache &shapes, const State &state)
+  void end_sync(Resources &res, const ShapeCache &shapes, const State &state) final
   {
     if (!enabled_) {
       return;
     }
 
     ps_.init();
+    ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
     res.select_bind(ps_);
 
     DRWState pass_state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
@@ -197,7 +201,6 @@ class LightProbes {
       PassSimple::Sub &sub_pass = ps_.sub("empties");
       sub_pass.state_set(pass_state, state.clipping_plane_count);
       sub_pass.shader_set(res.shaders.extra_shape.get());
-      sub_pass.bind_ubo("globalsBlock", &res.globals_buf);
       call_buffers_.probe_cube_buf.end_sync(sub_pass, shapes.lightprobe_cube.get());
       call_buffers_.probe_planar_buf.end_sync(sub_pass, shapes.lightprobe_planar.get());
       call_buffers_.probe_grid_buf.end_sync(sub_pass, shapes.lightprobe_grid.get());
@@ -210,12 +213,11 @@ class LightProbes {
       PassSimple::Sub &sub_pass = ps_.sub("ground_line");
       sub_pass.state_set(pass_state | DRW_STATE_BLEND_ALPHA, state.clipping_plane_count);
       sub_pass.shader_set(res.shaders.extra_ground_line.get());
-      sub_pass.bind_ubo("globalsBlock", &res.globals_buf);
       call_buffers_.ground_line_buf.end_sync(sub_pass, shapes.ground_line.get());
     }
   }
 
-  void pre_draw(Manager &manager, View &view)
+  void pre_draw(Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;
@@ -224,7 +226,7 @@ class LightProbes {
     manager.generate_commands(ps_dots_, view);
   }
 
-  void draw(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;
@@ -234,7 +236,7 @@ class LightProbes {
     manager.submit(ps_, view);
   }
 
-  void draw_color_only(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_color_only(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;

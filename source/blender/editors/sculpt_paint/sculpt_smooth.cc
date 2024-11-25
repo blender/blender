@@ -456,8 +456,7 @@ void calc_relaxed_translations_faces(const Span<float3> vert_positions,
   BLI_assert(verts.size() == translations.size());
 
   neighbors.resize(verts.size());
-  calc_vert_neighbors_interior(
-      faces, corner_verts, vert_to_face_map, boundary_verts, hide_poly, verts, neighbors);
+  calc_vert_neighbors(faces, corner_verts, vert_to_face_map, hide_poly, verts, neighbors);
 
   for (const int i : verts.index_range()) {
     if (factors[i] == 0.0f) {
@@ -530,7 +529,7 @@ void calc_relaxed_translations_grids(const SubdivCCG &subdiv_ccg,
   BLI_assert(grid_verts_num == factors.size());
 
   neighbors.resize(grid_verts_num);
-  calc_vert_neighbors_interior(faces, corner_verts, boundary_verts, subdiv_ccg, grids, neighbors);
+  calc_vert_neighbors(subdiv_ccg, grids, neighbors);
 
   for (const int i : grids.index_range()) {
     const IndexRange grid_range = bke::ccg::grid_range(key, grids[i]);
@@ -615,7 +614,7 @@ void calc_relaxed_translations_bmesh(const Set<BMVert *, 0> &verts,
   BLI_assert(verts.size() == translations.size());
 
   neighbors.resize(verts.size());
-  calc_vert_neighbors_interior(verts, neighbors);
+  calc_vert_neighbors(verts, neighbors);
 
   int i = 0;
   for (const BMVert *vert : verts) {

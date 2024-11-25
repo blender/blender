@@ -25,6 +25,7 @@ set(SRC_GLSL_VERT
   gpu_shader_2D_area_borders_vert.glsl
   gpu_shader_2D_image_rect_vert.glsl
   gpu_shader_2D_image_vert.glsl
+  gpu_shader_2D_node_socket_vert.glsl
   gpu_shader_2D_nodelink_vert.glsl
   gpu_shader_2D_point_uniform_size_aa_vert.glsl
   gpu_shader_2D_point_uniform_size_outline_aa_vert.glsl
@@ -53,6 +54,7 @@ set(SRC_GLSL_VERT
 set(SRC_GLSL_FRAG
   gpu_shader_2D_area_borders_frag.glsl
   gpu_shader_2D_line_dashed_frag.glsl
+  gpu_shader_2D_node_socket_frag.glsl
   gpu_shader_2D_nodelink_frag.glsl
   gpu_shader_2D_widget_base_frag.glsl
   gpu_shader_2D_widget_shadow_frag.glsl
@@ -83,7 +85,7 @@ set(SRC_GLSL_FRAG
 )
 
 set(SRC_GLSL_COMP
-  # TODO rename them properly to enable compilatio
+  # TODO rename them properly to enable compilation.
   # gpu_shader_index_2d_array_lines.glsl
   # gpu_shader_index_2d_array_points.glsl
   # gpu_shader_index_2d_array_tris.glsl

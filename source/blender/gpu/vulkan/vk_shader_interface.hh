@@ -23,8 +23,9 @@ namespace blender::gpu {
 /**
  * Bind types to bind resources to a shader.
  *
- * Keep in sync with gpu::shader::ShaderCreateInfo::Resource::BindType.
- * We add the term `INPUT_ATTACHMENT` as it is stored as a subpass input in the shader create info.
+ * Keep in sync with #gpu::shader::ShaderCreateInfo::Resource::BindType.
+ * We add the term `INPUT_ATTACHMENT` as it is stored as a sub-pass
+ * input in the shader create info.
  */
 /* TODO: Investigate if `TEXEL_BUFFER` can be added as well.*/
 enum VKBindType {

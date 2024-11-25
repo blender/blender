@@ -97,7 +97,7 @@ BMEditMesh *BKE_editmesh_copy(BMEditMesh *em);
 BMEditMesh *BKE_editmesh_from_object(Object *ob);
 
 /**
- * Return whether the evaluated mesh is a "descendent" of the original mesh: whether it is a
+ * Return whether the evaluated mesh is a "descendant" of the original mesh: whether it is a
  * version of the original mesh propagated during evaluation. This will be false if the mesh was
  * taken from from an different object during evaluation, with the object info node for example.
  */

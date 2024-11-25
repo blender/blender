@@ -550,7 +550,7 @@ void do_multiplane_scrape_brush(const Depsgraph &depsgraph,
     return;
   }
 
-  area_co = area_no_sp * ss.cache->scale * displace;
+  area_co += area_no_sp * ss.cache->scale * displace;
 
   /* Init brush local space matrix. */
   float4x4 mat = float4x4::identity();

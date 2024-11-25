@@ -434,7 +434,8 @@ struct ARegionRuntime {
    * The visible part of the region, use with region overlap not to draw
    * on top of the overlapping regions.
    *
-   * Lazy initialize, zero'd when unset, relative to #ARegion.winrct x/y min. */
+   * Lazy initialize, zeroed when unset, relative to #ARegion.winrct x/y min.
+   */
   rcti visible_rect = {};
 
   /* The offset needed to not overlap with window scroll-bars. Only used by HUD regions for now. */

@@ -11,12 +11,14 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <mutex>
 
 #include "BLI_vector.hh"
 #include "DNA_vec_types.h"
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.hh"
+#include "BLI_map.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
@@ -25,7 +27,6 @@
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_task.hh"
-#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_packedFile_types.h"
@@ -66,6 +67,110 @@
 using namespace blender;
 
 static SeqEffectHandle get_sequence_effect_impl(int seq_type);
+
+/* -------------------------------------------------------------------- */
+/* Sequencer font access.
+ *
+ * Text strips can access and use fonts from a background thread
+ * (when depsgraph evaluation copies the scene, or when prefetch renders
+ * frames with text strips in a background thread).
+ *
+ * To not interfere with what might be happening on the main thread, all
+ * fonts used by the sequencer are made unique via #BLF_load_unique
+ * #BLF_load_mem_unique, and there's a mutex to guard against
+ * sequencer itself possibly using the fonts from several threads.
+ */
+
+struct SeqFontMap {
+  /* File path -> font ID mapping for file-based fonts. */
+  Map<std::string, int> path_to_file_font_id;
+  /* Datablock name -> font ID mapping for memory (datablock) fonts. */
+  Map<std::string, int> name_to_mem_font_id;
+
+  /* Font access mutex. Recursive since it is locked from
+   * text strip rendering, which can call into loading from within. */
+  std::recursive_mutex mutex;
+};
+
+static SeqFontMap g_font_map;
+
+void SEQ_fontmap_clear()
+{
+  for (const auto &item : g_font_map.path_to_file_font_id.items()) {
+    BLF_unload_id(item.value);
+  }
+  g_font_map.path_to_file_font_id.clear_and_shrink();
+  for (const auto &item : g_font_map.name_to_mem_font_id.items()) {
+    BLF_unload_id(item.value);
+  }
+  g_font_map.name_to_mem_font_id.clear_and_shrink();
+}
+
+static int seq_load_font_file(const std::string &path)
+{
+  std::lock_guard lock(g_font_map.mutex);
+  int fontid = g_font_map.path_to_file_font_id.add_or_modify(
+      path,
+      [&](int *fontid) {
+        /* New path: load font. */
+        *fontid = BLF_load_unique(path.c_str());
+        return *fontid;
+      },
+      [&](int *fontid) {
+        /* Path already in cache: add reference to already loaded font,
+         * or load a new one in case that
+         * font id was unloaded behind our backs. */
+        if (*fontid >= 0) {
+          if (BLF_is_loaded_id(*fontid)) {
+            BLF_addref_id(*fontid);
+          }
+          else {
+            *fontid = BLF_load_unique(path.c_str());
+          }
+        }
+        return *fontid;
+      });
+  return fontid;
+}
+
+static int seq_load_font_mem(const std::string &name, const unsigned char *data, int data_size)
+{
+  std::lock_guard lock(g_font_map.mutex);
+  int fontid = g_font_map.name_to_mem_font_id.add_or_modify(
+      name,
+      [&](int *fontid) {
+        /* New name: load font. */
+        *fontid = BLF_load_mem_unique(name.c_str(), data, data_size);
+        return *fontid;
+      },
+      [&](int *fontid) {
+        /* Name already in cache: add reference to already loaded font,
+         * or (if we're on the main thread) load a new one in case that
+         * font id was unloaded behind our backs. */
+        if (*fontid >= 0) {
+          if (BLF_is_loaded_id(*fontid)) {
+            BLF_addref_id(*fontid);
+          }
+          else {
+            *fontid = BLF_load_mem_unique(name.c_str(), data, data_size);
+          }
+        }
+        return *fontid;
+      });
+  return fontid;
+}
+
+static void seq_unload_font(int fontid)
+{
+  std::lock_guard lock(g_font_map.mutex);
+  bool unloaded = BLF_unload_id(fontid);
+  /* If that was the last usage of the font and it got unloaded: remove
+   * it from our maps. */
+  if (unloaded) {
+    g_font_map.path_to_file_font_id.remove_if([&](auto item) { return item.value == fontid; });
+    g_font_map.name_to_mem_font_id.remove_if([&](auto item) { return item.value == fontid; });
+  }
+}
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Utilities
@@ -1621,7 +1726,8 @@ static void glow_blur_bitmap(
 
   Array<float4> temp(width * height);
 
-  /* Initialize the gaussian filter. @TODO: use code from RE_filter_value */
+  /* Initialize the gaussian filter.
+   * TODO: use code from #RE_filter_value. */
   Array<float> filter(halfWidth * 2);
   const float k = -1.0f / (2.0f * float(M_PI) * blur * blur);
   float weight = 0;
@@ -2554,9 +2660,10 @@ void SEQ_effect_text_font_unload(TextVars *data, const bool do_id_user)
     data->text_font = nullptr;
   }
 
-  /* Unload the BLF font. */
+  /* Unload the font. */
   if (data->text_blf_id >= 0) {
-    BLF_unload_id(data->text_blf_id);
+    seq_unload_font(data->text_blf_id);
+    data->text_blf_id = -1;
   }
 }
 
@@ -2582,25 +2689,14 @@ void SEQ_effect_text_font_load(TextVars *data, const bool do_id_user)
     char name[MAX_ID_FULL_NAME];
     BKE_id_full_name_get(name, &vfont->id, 0);
 
-    data->text_blf_id = BLF_load_mem(name, static_cast<const uchar *>(pf->data), pf->size);
+    data->text_blf_id = seq_load_font_mem(name, static_cast<const uchar *>(pf->data), pf->size);
   }
   else {
     char filepath[FILE_MAX];
     STRNCPY(filepath, vfont->filepath);
-    if (BLI_thread_is_main()) {
-      /* FIXME: This is a band-aid fix.
-       * A proper solution has to be worked on by the sequencer team.
-       *
-       * This code can be called from non-main thread, e.g. when copying sequences as part of
-       * depsgraph evaluated copy of the evaluated scene. Just skip font loading in that case, BLF
-       * code is not thread-safe, and if this happens from threaded context, it almost certainly
-       * means that a previous attempt to load the font already failed, e.g. because font file-path
-       * is invalid. Proposer fix would likely be to not attempt to reload a failed-to-load font
-       * every time. */
-      BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&vfont->id));
 
-      data->text_blf_id = BLF_load(filepath);
-    }
+    BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&vfont->id));
+    data->text_blf_id = seq_load_font_file(filepath);
   }
 }
 
@@ -3131,6 +3227,11 @@ static int text_effect_font_init(const SeqRenderData *context, const Sequence *s
   TextVars *data = static_cast<TextVars *>(seq->effectdata);
   int font = blf_mono_font_render;
 
+  /* In case font got unloaded behind our backs: mark it as needing a load. */
+  if (data->text_blf_id >= 0 && !BLF_is_loaded_id(data->text_blf_id)) {
+    data->text_blf_id = SEQ_FONT_NOT_LOADED;
+  }
+
   if (data->text_blf_id == SEQ_FONT_NOT_LOADED) {
     data->text_blf_id = -1;
 
@@ -3347,6 +3448,9 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
   ColorManagedDisplay *display = IMB_colormanagement_display_get_named(display_device);
   const int font_flags = ((data->flag & SEQ_TEXT_BOLD) ? BLF_BOLD : 0) |
                          ((data->flag & SEQ_TEXT_ITALIC) ? BLF_ITALIC : 0);
+
+  /* Guard against parallel accesses to the fonts map. */
+  std::lock_guard lock(g_font_map.mutex);
 
   const int font = text_effect_font_init(context, seq, font_flags);
 

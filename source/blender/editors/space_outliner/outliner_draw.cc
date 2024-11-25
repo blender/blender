@@ -433,7 +433,7 @@ static bool outliner_collection_is_isolated(Scene *scene,
                                             const LayerCollection *layer_collection_cmp,
                                             const Collection *collection_cmp,
                                             const bool value_cmp,
-                                            const PropertyRNA *layer_or_collection_prop,
+                                            PropertyRNA *layer_or_collection_prop,
                                             LayerCollection *layer_collection,
                                             Collection *collection)
 {
@@ -443,6 +443,12 @@ static bool outliner_collection_is_isolated(Scene *scene,
   Collection *collection_ensure = collection ? collection : layer_collection->collection;
   const Collection *collection_ensure_cmp = collection_cmp ? collection_cmp :
                                                              layer_collection_cmp->collection;
+
+  /* Exclude linked collections, otherwise toggling property won't reset the visibility for
+   * editable collections, see: #130579. */
+  if (layer_or_collection_prop && !RNA_property_editable(&ptr, layer_or_collection_prop)) {
+    return true;
+  }
 
   if (collection_ensure->flag & COLLECTION_IS_MASTER) {
   }
