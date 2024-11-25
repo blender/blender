@@ -296,6 +296,8 @@ static void modify_drawing(const ModifierData &md,
 {
   const auto &omd = reinterpret_cast<const GreasePencilOffsetModifierData &>(md);
 
+  modifier::greasepencil::ensure_no_bezier_curves(drawing);
+
   bke::CurvesGeometry &curves = drawing.strokes_for_write();
   IndexMaskMemory mask_memory;
   const IndexMask curves_mask = modifier::greasepencil::get_filtered_stroke_mask(
