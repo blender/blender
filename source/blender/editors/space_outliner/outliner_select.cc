@@ -1250,7 +1250,7 @@ static void outliner_sync_to_properties_editors(const bContext *C,
 
 static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreElem *tselem)
 {
-  PointerRNA ptr = {nullptr};
+  PointerRNA ptr = {};
   int context = 0;
 
   /* ID Types */

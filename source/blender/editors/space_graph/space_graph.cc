@@ -539,7 +539,7 @@ static void graph_region_message_subscribe(const wmRegionMessageSubscribeParams 
    * so just whitelist the entire structs for updates
    */
   {
-    wmMsgParams_RNA msg_key_params = {{nullptr}};
+    wmMsgParams_RNA msg_key_params = {{}};
     StructRNA *type_array[] = {
         &RNA_DopeSheet, /* dopesheet filters */
 

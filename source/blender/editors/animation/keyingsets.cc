@@ -267,7 +267,7 @@ void ANIM_OT_keying_set_path_remove(wmOperatorType *ot)
 static int add_keyingset_button_exec(bContext *C, wmOperator *op)
 {
   PropertyRNA *prop = nullptr;
-  PointerRNA ptr = {nullptr};
+  PointerRNA ptr = {};
   int index = 0, pflag = 0;
 
   if (!UI_context_active_but_prop_get(C, &ptr, &prop, &index)) {
@@ -360,7 +360,7 @@ void ANIM_OT_keyingset_button_add(wmOperatorType *ot)
 static int remove_keyingset_button_exec(bContext *C, wmOperator *op)
 {
   PropertyRNA *prop = nullptr;
-  PointerRNA ptr = {nullptr};
+  PointerRNA ptr = {};
   int index = 0;
 
   if (!UI_context_active_but_prop_get(C, &ptr, &prop, &index)) {

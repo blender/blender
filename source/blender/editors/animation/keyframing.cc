@@ -1038,7 +1038,7 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = scene->toolsettings;
-  PointerRNA ptr = {nullptr};
+  PointerRNA ptr = {};
   PropertyRNA *prop = nullptr;
   uiBut *but;
   const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
@@ -1193,7 +1193,7 @@ void ANIM_OT_keyframe_insert_button(wmOperatorType *ot)
 static int delete_key_button_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  PointerRNA ptr = {nullptr};
+  PointerRNA ptr = {};
   PropertyRNA *prop = nullptr;
   Main *bmain = CTX_data_main(C);
   const float cfra = BKE_scene_frame_get(scene);
@@ -1299,7 +1299,7 @@ void ANIM_OT_keyframe_delete_button(wmOperatorType *ot)
 
 static int clear_key_button_exec(bContext *C, wmOperator *op)
 {
-  PointerRNA ptr = {nullptr};
+  PointerRNA ptr = {};
   PropertyRNA *prop = nullptr;
   Main *bmain = CTX_data_main(C);
   bool changed = false;
