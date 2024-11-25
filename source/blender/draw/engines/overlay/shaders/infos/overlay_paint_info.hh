@@ -146,6 +146,7 @@ SAMPLER(0, FLOAT_1D, colorramp)
 PUSH_CONSTANT(FLOAT, opacity)     /* `1.0` by default. */
 PUSH_CONSTANT(BOOL, drawContours) /* `false` by default. */
 FRAGMENT_OUT(0, VEC4, fragColor)
+FRAGMENT_OUT(1, VEC4, lineOutput)
 VERTEX_SOURCE("overlay_paint_weight_vert.glsl")
 FRAGMENT_SOURCE("overlay_paint_weight_frag.glsl")
 ADDITIONAL_INFO(draw_modelmat)

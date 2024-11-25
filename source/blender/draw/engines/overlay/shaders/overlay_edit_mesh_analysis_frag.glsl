@@ -5,4 +5,5 @@
 void main()
 {
   fragColor = weightColor;
+  lineOutput = vec4(0.0);
 }
