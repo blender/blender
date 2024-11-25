@@ -250,16 +250,16 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
   }
 
   if (state.is_wireframe_mode || !state.hide_overlays) {
-    layer.wireframe.object_sync(manager, ob_ref, resources, state, in_edit_paint_mode);
+    layer.wireframe.object_sync_ex(manager, ob_ref, resources, state, in_edit_paint_mode);
   }
 
   if (!state.hide_overlays) {
     switch (ob_ref.object->type) {
       case OB_EMPTY:
-        layer.empties.object_sync(ob_ref, shapes, manager, resources, state);
+        layer.empties.object_sync_ex(ob_ref, shapes, manager, resources, state);
         break;
       case OB_CAMERA:
-        layer.cameras.object_sync(ob_ref, shapes, manager, resources, state);
+        layer.cameras.object_sync_ex(ob_ref, shapes, manager, resources, state);
         break;
       case OB_ARMATURE:
         if (!in_edit_mode) {
@@ -533,7 +533,7 @@ void Instance::draw_v3d(Manager &manager, View &view)
 
   auto draw_line = [&](OverlayLayer &layer, Framebuffer &framebuffer) {
     layer.bounds.draw_line(framebuffer, manager, view);
-    layer.wireframe.draw_line(framebuffer, resources, manager, view);
+    layer.wireframe.draw_line_ex(framebuffer, resources, manager, view);
     layer.cameras.draw_line(framebuffer, manager, view);
     layer.empties.draw_line(framebuffer, manager, view);
     layer.axes.draw_line(framebuffer, manager, view);
@@ -597,7 +597,7 @@ void Instance::draw_v3d(Manager &manager, View &view)
   }
   {
     /* Line only pass. */
-    outline.draw_line_only(resources.overlay_line_only_fb, resources, manager, view);
+    outline.draw_line_only_ex(resources.overlay_line_only_fb, resources, manager, view);
   }
   {
     /* Overlay (+Line) pass. */
