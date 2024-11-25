@@ -588,11 +588,12 @@ def fbx_data_light_elements(root, lamp, scene_data):
     light_key = scene_data.data_lights[lamp]
     do_light = True
     do_shadow = False
+    # NOTE: this was removed from lamps, always write black.
     shadow_color = Vector((0.0, 0.0, 0.0))
     if lamp.type not in {'HEMI'}:
         do_light = True
         do_shadow = lamp.use_shadow
-        shadow_color = lamp.shadow_color
+        # `shadow_color = lamp.shadow_color`: now removed.
 
     light = elem_data_single_int64(root, b"NodeAttribute", get_fbx_uuid_from_key(light_key))
     light.add_string(fbx_name_class(lamp.name.encode(), b"NodeAttribute"))
