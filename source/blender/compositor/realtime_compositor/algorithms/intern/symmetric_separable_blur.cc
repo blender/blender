@@ -102,7 +102,7 @@ static void blur_pass(const Result &input,
   });
 }
 
-static const char *get_blur_shader(ResultType type)
+static const char *get_blur_shader(const ResultType type)
 {
   switch (type) {
     case ResultType::Float:
@@ -125,11 +125,11 @@ static const char *get_blur_shader(ResultType type)
 }
 
 static Result horizontal_pass_gpu(Context &context,
-                                  Result &input,
-                                  float radius,
-                                  int filter_type,
-                                  bool extend_bounds,
-                                  bool gamma_correct)
+                                  const Result &input,
+                                  const float radius,
+                                  const int filter_type,
+                                  const bool extend_bounds,
+                                  const bool gamma_correct)
 {
   GPUShader *shader = context.get_shader(get_blur_shader(input.type()));
   GPU_shader_bind(shader);
@@ -174,11 +174,11 @@ static Result horizontal_pass_gpu(Context &context,
 }
 
 static Result horizontal_pass_cpu(Context &context,
-                                  Result &input,
-                                  float radius,
-                                  int filter_type,
-                                  bool extend_bounds,
-                                  bool gamma_correct)
+                                  const Result &input,
+                                  const float radius,
+                                  const int filter_type,
+                                  const bool extend_bounds,
+                                  const bool gamma_correct)
 {
   const Result &weights = context.cache_manager().symmetric_separable_blur_weights.get(
       context, filter_type, radius);
@@ -207,11 +207,11 @@ static Result horizontal_pass_cpu(Context &context,
 }
 
 static Result horizontal_pass(Context &context,
-                              Result &input,
-                              float radius,
-                              int filter_type,
-                              bool extend_bounds,
-                              bool gamma_correct)
+                              const Result &input,
+                              const float radius,
+                              const int filter_type,
+                              const bool extend_bounds,
+                              const bool gamma_correct)
 {
   if (context.use_gpu()) {
     return horizontal_pass_gpu(context, input, radius, filter_type, extend_bounds, gamma_correct);
@@ -220,13 +220,13 @@ static Result horizontal_pass(Context &context,
 }
 
 static void vertical_pass_gpu(Context &context,
-                              Result &original_input,
-                              Result &horizontal_pass_result,
+                              const Result &original_input,
+                              const Result &horizontal_pass_result,
                               Result &output,
-                              float2 radius,
-                              int filter_type,
-                              bool extend_bounds,
-                              bool gamma_correct)
+                              const float2 &radius,
+                              const int filter_type,
+                              const bool extend_bounds,
+                              const bool gamma_correct)
 {
   GPUShader *shader = context.get_shader(get_blur_shader(original_input.type()));
   GPU_shader_bind(shader);
@@ -261,13 +261,13 @@ static void vertical_pass_gpu(Context &context,
 }
 
 static void vertical_pass_cpu(Context &context,
-                              Result &original_input,
-                              Result &horizontal_pass_result,
+                              const Result &original_input,
+                              const Result &horizontal_pass_result,
                               Result &output,
-                              float2 radius,
-                              int filter_type,
-                              bool extend_bounds,
-                              bool gamma_correct)
+                              const float2 &radius,
+                              const int filter_type,
+                              const bool extend_bounds,
+                              const bool gamma_correct)
 {
   const Result &weights = context.cache_manager().symmetric_separable_blur_weights.get(
       context, filter_type, radius.y);
@@ -283,13 +283,13 @@ static void vertical_pass_cpu(Context &context,
 }
 
 static void vertical_pass(Context &context,
-                          Result &original_input,
-                          Result &horizontal_pass_result,
+                          const Result &original_input,
+                          const Result &horizontal_pass_result,
                           Result &output,
-                          float2 radius,
-                          int filter_type,
-                          bool extend_bounds,
-                          bool gamma_correct)
+                          const float2 &radius,
+                          const int filter_type,
+                          const bool extend_bounds,
+                          const bool gamma_correct)
 {
   if (context.use_gpu()) {
     vertical_pass_gpu(context,
@@ -314,12 +314,12 @@ static void vertical_pass(Context &context,
 }
 
 void symmetric_separable_blur(Context &context,
-                              Result &input,
+                              const Result &input,
                               Result &output,
-                              float2 radius,
-                              int filter_type,
-                              bool extend_bounds,
-                              bool gamma_correct)
+                              const float2 &radius,
+                              const int filter_type,
+                              const bool extend_bounds,
+                              const bool gamma_correct)
 {
   Result horizontal_pass_result = horizontal_pass(
       context, input, radius.x, filter_type, extend_bounds, gamma_correct);

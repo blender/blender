@@ -21,11 +21,11 @@ namespace blender::realtime_compositor {
  * gamma_correct is true, the input will be gamma corrected before blurring and then uncorrected
  * after blurring, using a gamma coefficient of 2. */
 void symmetric_separable_blur(Context &context,
-                              Result &input,
+                              const Result &input,
                               Result &output,
-                              float2 radius,
-                              int filter_type = R_FILTER_GAUSS,
-                              bool extend_bounds = false,
-                              bool gamma_correct = false);
+                              const float2 &radius,
+                              const int filter_type = R_FILTER_GAUSS,
+                              const bool extend_bounds = false,
+                              const bool gamma_correct = false);
 
 }  // namespace blender::realtime_compositor
