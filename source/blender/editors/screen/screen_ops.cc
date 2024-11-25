@@ -3844,6 +3844,10 @@ void static area_docking_apply(bContext *C, wmOperator *op)
     if (jd->factor <= 0.5f) {
       jd->sa2 = newa;
     }
+    else {
+      /* Force full rebuild. #130732 */
+      ED_area_tag_redraw(newa);
+    }
   }
 
   if (same_area) {
