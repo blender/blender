@@ -6,9 +6,19 @@
 
 #include <cstdint>  // for bool
 
+#include "BLI_offset_indices.hh"
+
 #include "opensubdiv_capi_type.hh"
 
 struct OpenSubdiv_Converter {
+  /**
+   * The face topology of the base mesh to be subdivided. See #Mesh::faces() documentation for the
+   * details.
+   *
+   * Other topology information is currently encoded with callbacks rather than arrays directly.
+   */
+  blender::OffsetIndices<int> faces;
+
   OpenSubdiv_SchemeType (*getSchemeType)(const OpenSubdiv_Converter *converter);
 
   OpenSubdiv_VtxBoundaryInterpolation (*getVtxBoundaryInterpolation)(
@@ -31,15 +41,12 @@ struct OpenSubdiv_Converter {
   // Global geometry counters.
 
   // Number of faces/edges/vertices in the base mesh.
-  int (*getNumFaces)(const OpenSubdiv_Converter *converter);
   int (*getNumEdges)(const OpenSubdiv_Converter *converter);
   int (*getNumVertices)(const OpenSubdiv_Converter *converter);
 
   //////////////////////////////////////////////////////////////////////////////
   // Face relationships.
 
-  // Number of vertices the face consists of.
-  int (*getNumFaceVertices)(const OpenSubdiv_Converter *converter, const int face_index);
   // Array of vertex indices the face consists of.
   void (*getFaceVertices)(const OpenSubdiv_Converter *converter,
                           const int face_index,

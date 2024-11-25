@@ -33,7 +33,7 @@ static bool isEqualGeometryCounters(const MeshTopology &mesh_topology,
   if (converter->getNumVertices(converter) != mesh_topology.getNumVertices()) {
     return false;
   }
-  if (converter->getNumFaces(converter) != mesh_topology.getNumFaces()) {
+  if (converter->faces.size() != mesh_topology.getNumFaces()) {
     return false;
   }
   if (getEffectiveNumEdges(converter) != mesh_topology.getNumEdges()) {
@@ -73,14 +73,14 @@ static bool isEqualGeometryEdge(const MeshTopology &mesh_topology,
 static bool isEqualGeometryFace(const MeshTopology &mesh_topology,
                                 const OpenSubdiv_Converter *converter)
 {
-  const int num_requested_faces = converter->getNumFaces(converter);
+  const int num_requested_faces = converter->faces.size();
   if (num_requested_faces != mesh_topology.getNumFaces()) {
     return false;
   }
 
   std::vector<int> vertices_of_face;
   for (int face_index = 0; face_index < num_requested_faces; ++face_index) {
-    int num_face_vertices = converter->getNumFaceVertices(converter, face_index);
+    int num_face_vertices = converter->faces[face_index].size();
     if (mesh_topology.getNumFaceVertices(face_index) != num_face_vertices) {
       return false;
     }

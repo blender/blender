@@ -19,6 +19,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenlib
   PRIVATE bf::intern::guardedalloc
 )
 

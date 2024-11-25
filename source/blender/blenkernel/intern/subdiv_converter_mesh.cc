@@ -103,12 +103,6 @@ static bool specifies_full_topology(const OpenSubdiv_Converter * /*converter*/)
   return false;
 }
 
-static int get_num_faces(const OpenSubdiv_Converter *converter)
-{
-  ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
-  return storage->mesh->faces_num;
-}
-
 static int get_num_edges(const OpenSubdiv_Converter *converter)
 {
   ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
@@ -275,11 +269,9 @@ static void init_functions(OpenSubdiv_Converter *converter)
   converter->getFVarLinearInterpolation = get_fvar_linear_interpolation;
   converter->specifiesFullTopology = specifies_full_topology;
 
-  converter->getNumFaces = get_num_faces;
   converter->getNumEdges = get_num_edges;
   converter->getNumVertices = get_num_vertices;
 
-  converter->getNumFaceVertices = get_num_face_vertices;
   converter->getFaceVertices = get_face_vertices;
   converter->getFaceEdges = nullptr;
 
@@ -400,6 +392,7 @@ void converter_init_for_mesh(OpenSubdiv_Converter *converter,
                              const Settings *settings,
                              const Mesh *mesh)
 {
+  converter->faces = mesh->faces();
   init_functions(converter);
   init_user_data(converter, settings, mesh);
 }

@@ -72,13 +72,12 @@ static void context_init_lookup(MultiresReshapeContext *reshape_context)
 {
   const Mesh *base_mesh = reshape_context->base_mesh;
   const blender::OffsetIndices faces = reshape_context->base_faces;
-  const int num_faces = base_mesh->faces_num;
 
   reshape_context->face_start_grid_index = static_cast<int *>(
-      MEM_malloc_arrayN(num_faces, sizeof(int), "face_start_grid_index"));
+      MEM_malloc_arrayN(faces.size(), sizeof(int), "face_start_grid_index"));
   int num_grids = 0;
   int num_ptex_faces = 0;
-  for (int face_index = 0; face_index < num_faces; ++face_index) {
+  for (const int face_index : faces.index_range()) {
     const int num_corners = faces[face_index].size();
     reshape_context->face_start_grid_index[face_index] = num_grids;
     num_grids += num_corners;
@@ -89,7 +88,8 @@ static void context_init_lookup(MultiresReshapeContext *reshape_context)
       MEM_malloc_arrayN(num_grids, sizeof(int), "grid_to_face_index"));
   reshape_context->ptex_start_grid_index = static_cast<int *>(
       MEM_malloc_arrayN(num_ptex_faces, sizeof(int), "ptex_start_grid_index"));
-  for (int face_index = 0, grid_index = 0, ptex_index = 0; face_index < num_faces; ++face_index) {
+  for (int face_index = 0, grid_index = 0, ptex_index = 0; face_index < faces.size(); ++face_index)
+  {
     const int num_corners = faces[face_index].size();
     const int num_face_ptex_faces = (num_corners == 4) ? 1 : num_corners;
     for (int i = 0; i < num_face_ptex_faces; ++i) {
