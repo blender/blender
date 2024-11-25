@@ -254,8 +254,8 @@ class Curves : Overlay {
     view_edit_cage.sync(view.viewmat(), winmat_polygon_offset(view.winmat(), view_dist, 0.5f));
 
     GPU_framebuffer_bind(framebuffer);
-    manager.submit(edit_curves_ps_, view_edit_cage);
     manager.submit(edit_legacy_curve_ps_, view);
+    manager.submit(edit_curves_ps_, view_edit_cage);
   }
 };
 
