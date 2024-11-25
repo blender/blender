@@ -315,6 +315,8 @@ static void modify_drawing(const ModifierData &md,
       BLI_assert_unreachable();
       break;
   }
+
+  drawing.tag_positions_changed();
 }
 
 static void modify_drawing_by_layer(const ModifierData &md,
