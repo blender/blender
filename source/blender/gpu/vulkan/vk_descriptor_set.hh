@@ -114,9 +114,6 @@ class VKDescriptorSetTracker {
   void bind_image_resource(const VKStateManager &state_manager,
                            const VKResourceBinding &resource_binding,
                            render_graph::VKResourceAccessInfo &access_info);
-  void bind_input_attachment_resource(const VKStateManager& state_manager,
-                                      const VKResourceBinding& resource_binding,
-                                      render_graph::VKResourceAccessInfo& access_info);
   void bind_texture_resource(const VKDevice &device,
                              const VKStateManager &state_manager,
                              const VKResourceBinding &resource_binding,
