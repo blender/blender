@@ -184,6 +184,14 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
   View2D *v2d = &region->v2d;
   short marker_flag = 0;
 
+  /* scrollers */
+  if (region->winy > HEADERY * UI_SCALE_FAC) {
+    region->v2d.scroll |= V2D_SCROLL_BOTTOM;
+  }
+  else {
+    region->v2d.scroll &= ~V2D_SCROLL_BOTTOM;
+  }
+
   ListBase anim_data = {nullptr, nullptr};
   const bool has_anim_context = ANIM_animdata_get_context(C, &ac);
   if (has_anim_context) {
@@ -273,9 +281,7 @@ static void action_main_region_draw_overlay(const bContext *C, ARegion *region)
   ED_time_scrub_draw_current_frame(region, scene, saction->flag & SACTION_DRAWTIME);
 
   /* scrollers */
-  if (region->winy > HEADERY * UI_SCALE_FAC) {
-    UI_view2d_scrollers_draw(v2d, nullptr);
-  }
+  UI_view2d_scrollers_draw(v2d, nullptr);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
