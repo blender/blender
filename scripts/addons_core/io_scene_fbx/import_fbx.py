@@ -2233,8 +2233,8 @@ def blen_read_light(fbx_tmpl, fbx_obj, settings):
     lamp.use_shadow = elem_props_get_bool(fbx_props, b'CastShadow', True)
     if hasattr(lamp, "cycles"):
         lamp.cycles.cast_shadow = lamp.use_shadow
-    # Keeping this for now, but this is not used nor exposed anymore afaik...
-    lamp.shadow_color = elem_props_get_color_rgb(fbx_props, b'ShadowColor', (0.0, 0.0, 0.0))
+    # Removed but could be restored if the value can be applied.
+    # `lamp.shadow_color = elem_props_get_color_rgb(fbx_props, b'ShadowColor', (0.0, 0.0, 0.0))`
 
     if settings.use_custom_props:
         blen_read_custom_properties(fbx_obj, lamp, settings)
