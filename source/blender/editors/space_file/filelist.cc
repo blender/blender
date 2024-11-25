@@ -4050,6 +4050,7 @@ static void filelist_readjob_remote_asset_library_index_read(FileListReadJob *jo
                                                              float *progress)
 {
   FileList *filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
+  ListBase entries = {nullptr};
 
   char dirpath[FILE_MAX];
   const bUserAssetLibrary *user_library = BKE_preferences_asset_library_find_index(
@@ -4059,6 +4060,25 @@ static void filelist_readjob_remote_asset_library_index_read(FileListReadJob *jo
   Vector<FileIndexerEntry> asset_entries;
   if (!ed::asset::index::read_remote_index(dirpath, &asset_entries)) {
     return;
+  }
+
+  for (FileIndexerEntry &entry : asset_entries) {
+    const char *group_name = BKE_idtype_idcode_to_name(entry.idcode);
+    filelist_readjob_list_lib_add_datablock(
+        job_params, &entries, &entry.datablock_info, true, entry.idcode, group_name);
+  }
+
+  int entries_num = 0;
+  LISTBASE_FOREACH (FileListInternEntry *, entry, &entries) {
+    entry->uid = filelist_uid_generate(filelist);
+    char dir[FILE_MAX_LIBEXTRA];
+    entry->name = fileentry_uiname(dirpath, entry, dir);
+    entry->free_name = true;
+    entries_num++;
+  }
+
+  if (filelist_readjob_append_entries(job_params, &entries, entries_num)) {
+    *do_update = true;
   }
 
   for (FileIndexerEntry &entry : asset_entries) {

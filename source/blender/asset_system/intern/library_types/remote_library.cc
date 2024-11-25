@@ -10,6 +10,10 @@
 
 namespace blender::asset_system {
 
-RemoteAssetLibrary::RemoteAssetLibrary() : AssetLibrary(ASSET_LIBRARY_CUSTOM) {}
+RemoteAssetLibrary::RemoteAssetLibrary() : AssetLibrary(ASSET_LIBRARY_CUSTOM)
+{
+  import_method_ = ASSET_IMPORT_APPEND_REUSE;
+  may_override_import_method_ = false;
+}
 
 }  // namespace blender::asset_system

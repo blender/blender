@@ -26,10 +26,12 @@ using namespace blender::io::serialize;
 static std::optional<FileIndexerEntry> indexer_entry_from_asset_dictionary(
     const DictionaryValue &dictionary, const char **r_failure_reason)
 {
-  FileIndexerEntry temp_entry;
+  BLI_STATIC_ASSERT(std::is_pod<FileIndexerEntry>::value,
+                    "expected C-style type for value initialization to 0");
+  FileIndexerEntry indexer_entry{};
 
   if (const std::optional<StringRef> name = dictionary.lookup_str("id")) {
-    name->copy(temp_entry.datablock_info.name);
+    name->copy(indexer_entry.datablock_info.name);
   }
   else {
     *r_failure_reason = "could not read asset name, 'id' field not set";
@@ -37,8 +39,8 @@ static std::optional<FileIndexerEntry> indexer_entry_from_asset_dictionary(
   }
 
   if (const std::optional<StringRefNull> idtype_name = dictionary.lookup_str("type")) {
-    temp_entry.idcode = BKE_idtype_idcode_from_name(idtype_name->c_str());
-    if (!BKE_idtype_idcode_is_valid(temp_entry.idcode)) {
+    indexer_entry.idcode = BKE_idtype_idcode_from_name(idtype_name->c_str());
+    if (!BKE_idtype_idcode_is_valid(indexer_entry.idcode)) {
       *r_failure_reason = "could not read asset type, 'type' field is not a valid type";
       return {};
     }
@@ -49,11 +51,11 @@ static std::optional<FileIndexerEntry> indexer_entry_from_asset_dictionary(
   }
 
   if (const DictionaryValue *metadata = dictionary.lookup_dict("metadata")) {
-    temp_entry.datablock_info.asset_data = asset_metadata_from_dictionary(*metadata);
-    temp_entry.datablock_info.free_asset_data = true;
+    indexer_entry.datablock_info.asset_data = asset_metadata_from_dictionary(*metadata);
+    indexer_entry.datablock_info.free_asset_data = true;
   }
 
-  return temp_entry;
+  return indexer_entry;
 }
 
 static Vector<FileIndexerEntry> indexer_entries_from_root(const DictionaryValue &value)
