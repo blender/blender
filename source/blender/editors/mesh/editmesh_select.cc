@@ -1683,7 +1683,7 @@ static int edbm_loop_multiselect_exec(bContext *C, wmOperator *op)
           changed |= walker_select(em, BMW_EDGELOOP_NONMANIFOLD, eed, true);
         }
         else {
-          walker_select(em, BMW_EDGELOOP, eed, true);
+          changed |= walker_select(em, BMW_EDGELOOP, eed, true);
         }
       }
       if (changed) {
