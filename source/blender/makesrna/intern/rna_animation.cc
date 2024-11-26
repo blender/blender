@@ -314,14 +314,16 @@ void rna_generic_action_slot_set(PointerRNA rna_slot_to_assign,
     case ActionSlotAssignmentResult::OK:
       break;
     case ActionSlotAssignmentResult::SlotNotFromAction:
-      BKE_reportf(
-          reports, RPT_ERROR, "This slot (%s) does not belong to the assigned Action", slot->name);
+      BKE_reportf(reports,
+                  RPT_ERROR,
+                  "This slot (%s) does not belong to the assigned Action",
+                  slot->identifier);
       break;
     case ActionSlotAssignmentResult::SlotNotSuitable:
       BKE_reportf(reports,
                   RPT_ERROR,
                   "This slot (%s) is not suitable for this data-block type (%c%c)",
-                  slot->name,
+                  slot->identifier,
                   animated_id.name[0],
                   animated_id.name[1]);
       break;

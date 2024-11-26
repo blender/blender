@@ -792,7 +792,7 @@ static int convert_action_exec(bContext *C, wmOperator * /*op*/)
 
   BLI_assert(layered_action->slots().size() == 1);
   animrig::Slot *slot = layered_action->slot(0);
-  layered_action->slot_name_set(*bmain, *slot, object->id.name);
+  layered_action->slot_identifier_set(*bmain, *slot, object->id.name);
 
   const animrig::ActionSlotAssignmentResult result = animrig::assign_action_slot(slot, object->id);
   BLI_assert(result == animrig::ActionSlotAssignmentResult::OK);
