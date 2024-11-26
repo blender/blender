@@ -2398,7 +2398,9 @@ static void node_draw_panels_background(const bNode &node)
   BLI_assert(is_node_panels_supported(node));
 
   float panel_color[4];
-  UI_GetThemeColorShade4fv(TH_NODE, -15, panel_color);
+  UI_GetThemeColor4fv(TH_PANEL_SUB_BACK, panel_color);
+  /* Increase contrast in nodes a bit. */
+  panel_color[3] *= 1.5f;
   const rctf &totr = node.runtime->totr;
 
   const nodes::PanelDeclaration *final_panel_decl = nullptr;
