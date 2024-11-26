@@ -372,18 +372,21 @@ blender::IndexRange GPU_batch_draw_expanded_parameter_get(const blender::gpu::Ba
 
 void GPU_batch_draw(Batch *batch)
 {
+  BLI_assert(batch != nullptr);
   GPU_shader_bind(batch->shader);
   GPU_batch_draw_advanced(batch, 0, 0, 0, 0);
 }
 
 void GPU_batch_draw_range(Batch *batch, int vertex_first, int vertex_count)
 {
+  BLI_assert(batch != nullptr);
   GPU_shader_bind(batch->shader);
   GPU_batch_draw_advanced(batch, vertex_first, vertex_count, 0, 0);
 }
 
 void GPU_batch_draw_instance_range(Batch *batch, int instance_first, int instance_count)
 {
+  BLI_assert(batch != nullptr);
   BLI_assert(batch->inst[0] == nullptr);
 
   GPU_shader_bind(batch->shader);
@@ -393,6 +396,7 @@ void GPU_batch_draw_instance_range(Batch *batch, int instance_first, int instanc
 void GPU_batch_draw_advanced(
     Batch *gpu_batch, int vertex_first, int vertex_count, int instance_first, int instance_count)
 {
+  BLI_assert(gpu_batch != nullptr);
   BLI_assert(Context::get()->shader != nullptr);
   Batch *batch = static_cast<Batch *>(gpu_batch);
 
@@ -422,6 +426,7 @@ void GPU_batch_draw_advanced(
 
 void GPU_batch_draw_indirect(Batch *gpu_batch, GPUStorageBuf *indirect_buf, intptr_t offset)
 {
+  BLI_assert(gpu_batch != nullptr);
   BLI_assert(Context::get()->shader != nullptr);
   BLI_assert(indirect_buf != nullptr);
   Batch *batch = static_cast<Batch *>(gpu_batch);
@@ -432,6 +437,7 @@ void GPU_batch_draw_indirect(Batch *gpu_batch, GPUStorageBuf *indirect_buf, intp
 void GPU_batch_multi_draw_indirect(
     Batch *gpu_batch, GPUStorageBuf *indirect_buf, int count, intptr_t offset, intptr_t stride)
 {
+  BLI_assert(gpu_batch != nullptr);
   BLI_assert(Context::get()->shader != nullptr);
   BLI_assert(indirect_buf != nullptr);
   Batch *batch = static_cast<Batch *>(gpu_batch);
