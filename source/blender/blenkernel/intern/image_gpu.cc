@@ -11,6 +11,7 @@
 #include "BLI_boxpack_2d.h"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
+#include "BLI_math_base.hh"
 #include "BLI_threads.h"
 #include "BLI_time.h"
 
@@ -693,7 +694,7 @@ static void gpu_texture_update_scaled(GPUTexture *tex,
                                            (void *)(ibuf->byte_buffer.data);
   eGPUDataFormat data_format = (ibuf->float_buffer.data) ? GPU_DATA_FLOAT : GPU_DATA_UBYTE;
 
-  GPU_texture_update_sub(tex, data_format, data, x, y, layer, w, h, 1);
+  GPU_texture_update_sub(tex, data_format, data, x, y, blender::math::max(layer, 0), w, h, 1);
 
   IMB_freeImBuf(ibuf);
 }
@@ -723,7 +724,7 @@ static void gpu_texture_update_unscaled(GPUTexture *tex,
    * subset of a possible larger buffer than what we are updating. */
   GPU_unpack_row_length_set(tex_stride);
 
-  GPU_texture_update_sub(tex, data_format, data, x, y, layer, w, h, 1);
+  GPU_texture_update_sub(tex, data_format, data, x, y, blender::math::max(layer, 0), w, h, 1);
   /* Restore default. */
   GPU_unpack_row_length_set(0);
 }
