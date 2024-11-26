@@ -342,11 +342,6 @@ typedef struct IDOverrideLibrary {
    */
   struct ID *hierarchy_root;
 
-  /* Read/write data. */
-  /* Temp ID storing extra override data (used for differential operations only currently).
-   * Always NULL outside of read/write context. */
-  struct ID *storage;
-
   IDOverrideLibraryRuntime *runtime;
 
   unsigned int flag;
