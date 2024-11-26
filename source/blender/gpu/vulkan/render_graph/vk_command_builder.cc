@@ -8,6 +8,7 @@
 
 #include "vk_command_builder.hh"
 #include "vk_render_graph.hh"
+#include "vk_to_string.hh"
 
 namespace blender::gpu::render_graph {
 
@@ -133,6 +134,9 @@ void VKCommandBuilder::build_node_group(VKRenderGraph &render_graph,
         VKRenderGraphNode &rendering_node = render_graph.nodes_[*r_rendering_scope];
         build_pipeline_barriers(
             render_graph, command_buffer, *r_rendering_scope, rendering_node.pipeline_stage_get());
+        if (state_.subresource_tracking_enabled()) {
+          layer_tracking_resume(command_buffer);
+        }
         rendering_node.begin_rendering.vk_rendering_info.flags = VK_RENDERING_RESUMING_BIT;
         rendering_node.build_commands(command_buffer, state_.active_pipelines);
         is_rendering = true;
@@ -150,7 +154,7 @@ void VKCommandBuilder::build_node_group(VKRenderGraph &render_graph,
     /* When layered image has different layouts we reset the layouts to
      * VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL. */
     if (node.type == VKNodeType::END_RENDERING && state_.subresource_tracking_enabled()) {
-      layer_tracking_end(command_buffer, false);
+      layer_tracking_end(command_buffer);
     }
   }
   if (is_rendering) {
@@ -163,7 +167,7 @@ void VKCommandBuilder::build_node_group(VKRenderGraph &render_graph,
       command_buffer.end_render_pass();
     }
     if (state_.subresource_tracking_enabled()) {
-      layer_tracking_end(command_buffer, true);
+      layer_tracking_suspend(command_buffer);
     }
   }
 }
@@ -609,36 +613,80 @@ void VKCommandBuilder::layer_tracking_update(VkImage vk_image,
                     layer_count);
 }
 
-void VKCommandBuilder::layer_tracking_end(VKCommandBufferInterface &command_buffer, bool suspend)
+void VKCommandBuilder::layer_tracking_end(VKCommandBufferInterface &command_buffer)
 {
-  if (!state_.layered_bindings.is_empty()) {
-    reset_barriers();
-    /* We should be able to do better. BOTTOM/TOP is really a worst case barrier. */
-    state_.src_stage_mask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
-    state_.dst_stage_mask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
-    for (const LayeredImageBinding &binding : state_.layered_bindings) {
-      add_image_barrier(
-          binding.vk_image,
-          VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT |
-              VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
-              VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT,
-          VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT |
-              VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
-              VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT,
-          binding.vk_image_layout,
-          VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-          VK_IMAGE_ASPECT_COLOR_BIT,
-          binding.layer,
-          binding.layer_count);
-    }
-    send_pipeline_barriers(command_buffer);
-  }
+  layer_tracking_suspend(command_buffer);
+  state_.layered_attachments.clear();
   state_.layered_bindings.clear();
-  if (!suspend) {
-    state_.layered_attachments.clear();
-  }
 }
 
+void VKCommandBuilder::layer_tracking_suspend(VKCommandBufferInterface &command_buffer)
+{
+  if (state_.layered_bindings.is_empty()) {
+    return;
+  }
+
+  reset_barriers();
+  /* We should be able to do better. BOTTOM/TOP is really a worst case barrier. */
+  state_.src_stage_mask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+  state_.dst_stage_mask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+  for (const LayeredImageBinding &binding : state_.layered_bindings) {
+    add_image_barrier(
+        binding.vk_image,
+        VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT |
+            VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+            VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT,
+        VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT |
+            VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+            VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT,
+        binding.vk_image_layout,
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        VK_IMAGE_ASPECT_COLOR_BIT,
+        binding.layer,
+        binding.layer_count);
+#if 0
+    std::cout << __func__ << ": transition layout image=" << binding.vk_image
+              << ", layer=" << binding.layer << ", count=" << binding.layer_count
+              << ", from_layout=" << to_string(binding.vk_image_layout)
+              << ", to_layout=" << to_string(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) << "\n";
+#endif
+  }
+  send_pipeline_barriers(command_buffer);
+}
+
+void VKCommandBuilder::layer_tracking_resume(VKCommandBufferInterface &command_buffer)
+{
+  if (state_.layered_bindings.is_empty()) {
+    return;
+  }
+
+  reset_barriers();
+  /* We should be able to do better. BOTTOM/TOP is really a worst case barrier. */
+  state_.src_stage_mask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+  state_.dst_stage_mask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+  for (const LayeredImageBinding &binding : state_.layered_bindings) {
+    add_image_barrier(
+        binding.vk_image,
+        VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT |
+            VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+            VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT,
+        VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT |
+            VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+            VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT,
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        binding.vk_image_layout,
+        VK_IMAGE_ASPECT_COLOR_BIT,
+        binding.layer,
+        binding.layer_count);
+#if 0
+    std::cout << __func__ << ": transition layout image=" << binding.vk_image
+              << ", layer=" << binding.layer << ", count=" << binding.layer_count
+              << ", from_layout=" << to_string(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+              << ", to_layout=" << to_string(binding.vk_image_layout) << "\n";
+#endif
+  }
+  send_pipeline_barriers(command_buffer);
+}
 /** \} */
 
 }  // namespace blender::gpu::render_graph
