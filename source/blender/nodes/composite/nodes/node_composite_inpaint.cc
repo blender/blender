@@ -6,6 +6,11 @@
  * \ingroup cmpnodes
  */
 
+#include "BLI_math_base.hh"
+#include "BLI_math_numbers.hh"
+#include "BLI_math_vector.hh"
+#include "BLI_math_vector_types.hh"
+
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
@@ -43,17 +48,6 @@ class InpaintOperation : public NodeOperation {
 
   void execute() override
   {
-    /* Not yet supported on CPU. */
-    if (!context().use_gpu()) {
-      for (const bNodeSocket *output : this->node()->output_sockets()) {
-        Result &output_result = get_result(output->identifier);
-        if (output_result.should_compute()) {
-          output_result.allocate_invalid();
-        }
-      }
-      return;
-    }
-
     Result &input = get_input("Image");
     Result &output = get_result("Image");
     if (input.is_single_value() || get_max_distance() == 0) {
@@ -77,12 +71,8 @@ class InpaintOperation : public NodeOperation {
     flooded_boundary.release();
 
     Result smoothed_region = context().create_result(ResultType::Color);
-    symmetric_separable_blur_variable_size(context(),
-                                           filled_region,
-                                           smoothed_region,
-                                           smoothing_radius,
-                                           R_FILTER_GAUSS,
-                                           get_max_distance());
+    symmetric_separable_blur_variable_size(
+        context(), filled_region, smoothing_radius, smoothed_region, get_max_distance());
     filled_region.release();
     smoothing_radius.release();
 
@@ -95,6 +85,15 @@ class InpaintOperation : public NodeOperation {
    * the jump flooding algorithm. The inpainting region is the region composed of pixels that are
    * not opaque. */
   Result compute_inpainting_boundary()
+  {
+    if (this->context().use_gpu()) {
+      return this->compute_inpainting_boundary_gpu();
+    }
+
+    return this->compute_inpainting_boundary_cpu();
+  }
+
+  Result compute_inpainting_boundary_gpu()
   {
     GPUShader *shader = context().get_shader("compositor_inpaint_compute_boundary",
                                              ResultPrecision::Half);
@@ -117,12 +116,73 @@ class InpaintOperation : public NodeOperation {
     return inpainting_boundary;
   }
 
+  Result compute_inpainting_boundary_cpu()
+  {
+    const Result &input = this->get_input("Image");
+
+    Result boundary = this->context().create_result(ResultType::Int2, ResultPrecision::Half);
+    const Domain domain = this->compute_domain();
+    boundary.allocate_texture(domain);
+
+    /* The in-paint operation uses a jump flood algorithm to flood the region to be in-painted with
+     * the pixels at its boundary. The algorithms expects an input image whose values are those
+     * returned by the initialize_jump_flooding_value function, given the texel location and a
+     * boolean specifying if the pixel is a boundary one.
+     *
+     * Technically, we needn't restrict the output to just the boundary pixels, since the algorithm
+     * can still operate if the interior of the region was also included. However, the algorithm
+     * operates more accurately when the number of pixels to be flooded is minimum. */
+    parallel_for(domain.size, [&](const int2 texel) {
+      /* Identify if any of the 8 neighbors around the center pixel are transparent. */
+      bool has_transparent_neighbors = false;
+      for (int j = -1; j <= 1; j++) {
+        for (int i = -1; i <= 1; i++) {
+          int2 offset = int2(i, j);
+
+          /* Exempt the center pixel. */
+          if (offset != int2(0)) {
+            if (input.load_pixel_extended(texel + offset).w < 1.0f) {
+              has_transparent_neighbors = true;
+              break;
+            }
+          }
+        }
+      }
+
+      /* The pixels at the boundary are those that are opaque and have transparent neighbors. */
+      bool is_opaque = input.load_pixel(texel).w == 1.0f;
+      bool is_boundary_pixel = is_opaque && has_transparent_neighbors;
+
+      /* Encode the boundary information in the format expected by the jump flooding algorithm. */
+      int2 jump_flooding_value = initialize_jump_flooding_value(texel, is_boundary_pixel);
+
+      boundary.store_pixel(texel, int4(jump_flooding_value, int2(0)));
+    });
+
+    return boundary;
+  }
+
   /* Fill the inpainting region based on the jump flooding table and write the distance to the
    * closest boundary pixel to an intermediate buffer. */
-  void fill_inpainting_region(Result &flooded_boundary,
+  void fill_inpainting_region(const Result &flooded_boundary,
                               Result &filled_region,
                               Result &distance_to_boundary,
                               Result &smoothing_radius)
+  {
+    if (this->context().use_gpu()) {
+      this->fill_inpainting_region_gpu(
+          flooded_boundary, filled_region, distance_to_boundary, smoothing_radius);
+    }
+    else {
+      this->fill_inpainting_region_cpu(
+          flooded_boundary, filled_region, distance_to_boundary, smoothing_radius);
+    }
+  }
+
+  void fill_inpainting_region_gpu(const Result &flooded_boundary,
+                                  Result &filled_region,
+                                  Result &distance_to_boundary,
+                                  Result &smoothing_radius)
   {
     GPUShader *shader = context().get_shader("compositor_inpaint_fill_region");
     GPU_shader_bind(shader);
@@ -154,9 +214,74 @@ class InpaintOperation : public NodeOperation {
     GPU_shader_unbind();
   }
 
+  void fill_inpainting_region_cpu(const Result &flooded_boundary,
+                                  Result &filled_region,
+                                  Result &distance_to_boundary_image,
+                                  Result &smoothing_radius_image)
+  {
+    const int max_distance = this->get_max_distance();
+
+    const Result &input = this->get_input("Image");
+
+    const Domain domain = this->compute_domain();
+    filled_region.allocate_texture(domain);
+    distance_to_boundary_image.allocate_texture(domain);
+    smoothing_radius_image.allocate_texture(domain);
+
+    /* Fill the inpainting region by sampling the color of the nearest boundary pixel.
+     * Additionally, compute some information about the inpainting region, like the distance to the
+     * boundary, as well as the blur radius to use to smooth out that region. */
+    parallel_for(domain.size, [&](const int2 texel) {
+      float4 color = input.load_pixel(texel);
+
+      /* An opaque pixel, not part of the inpainting region. */
+      if (color.w == 1.0f) {
+        filled_region.store_pixel(texel, color);
+        smoothing_radius_image.store_pixel(texel, float4(0.0f));
+        distance_to_boundary_image.store_pixel(texel, float4(0.0f));
+        return;
+      }
+
+      int2 closest_boundary_texel = flooded_boundary.load_integer_pixel(texel).xy();
+      float distance_to_boundary = math::distance(float2(texel), float2(closest_boundary_texel));
+      distance_to_boundary_image.store_pixel(texel, float4(distance_to_boundary));
+
+      /* We follow this shader by a blur shader that smooths out the inpainting region, where the
+       * blur radius is the radius of the circle that touches the boundary. We can imagine the blur
+       * window to be inscribed in that circle and thus the blur radius is the distance to the
+       * boundary divided by square root two. As a performance optimization, we limit the blurring
+       * to areas that will affect the inpainting region, that is, whose distance to boundary is
+       * less than double the inpainting distance. Additionally, we clamp to the distance to the
+       * inpainting distance since areas outside of the clamp range only indirectly affect the
+       * inpainting region due to blurring and thus needn't use higher blur radii. */
+      float blur_window_size = math::min(float(max_distance), distance_to_boundary) /
+                               math::numbers::sqrt2;
+      bool skip_smoothing = distance_to_boundary > (max_distance * 2.0f);
+      float smoothing_radius = skip_smoothing ? 0.0f : blur_window_size;
+      smoothing_radius_image.store_pixel(texel, float4(smoothing_radius));
+
+      /* Mix the boundary color with the original color using its alpha because semi-transparent
+       * areas are considered to be partially inpainted. */
+      float4 boundary_color = input.load_pixel(closest_boundary_texel);
+      filled_region.store_pixel(texel, math::interpolate(boundary_color, color, color.w));
+    });
+  }
+
   /* Compute the inpainting region by mixing the smoothed inpainted region with the original input
    * up to the inpainting distance. */
-  void compute_inpainting_region(Result &inpainted_region, Result &distance_to_boundary)
+  void compute_inpainting_region(const Result &inpainted_region,
+                                 const Result &distance_to_boundary)
+  {
+    if (this->context().use_gpu()) {
+      this->compute_inpainting_region_gpu(inpainted_region, distance_to_boundary);
+    }
+    else {
+      this->compute_inpainting_region_cpu(inpainted_region, distance_to_boundary);
+    }
+  }
+
+  void compute_inpainting_region_gpu(const Result &inpainted_region,
+                                     const Result &distance_to_boundary)
   {
     GPUShader *shader = context().get_shader("compositor_inpaint_compute_region");
     GPU_shader_bind(shader);
@@ -181,6 +306,43 @@ class InpaintOperation : public NodeOperation {
     distance_to_boundary.unbind_as_texture();
     output.unbind_as_image();
     GPU_shader_unbind();
+  }
+
+  void compute_inpainting_region_cpu(const Result &inpainted_region,
+                                     const Result &distance_to_boundary_image)
+  {
+    const int max_distance = this->get_max_distance();
+
+    const Result &input = this->get_input("Image");
+
+    const Domain domain = this->compute_domain();
+    Result &output = this->get_result("Image");
+    output.allocate_texture(domain);
+
+    parallel_for(domain.size, [&](const int2 texel) {
+      float4 color = input.load_pixel(texel);
+
+      /* An opaque pixel, not part of the inpainting region, write the original color. */
+      if (color.w == 1.0f) {
+        output.store_pixel(texel, color);
+        return;
+      }
+
+      float distance_to_boundary = distance_to_boundary_image.load_pixel(texel).x;
+
+      /* Further than the inpainting distance, not part of the inpainting region, write the
+       * original color. */
+      if (distance_to_boundary > max_distance) {
+        output.store_pixel(texel, color);
+        return;
+      }
+
+      /* Mix the inpainted color with the original color using its alpha because semi-transparent
+       * areas are considered to be partially inpainted. */
+      float4 inpainted_color = inpainted_region.load_pixel(texel);
+      output.store_pixel(
+          texel, float4(math::interpolate(inpainted_color.xyz(), color.xyz(), color.w), 1.0f));
+    });
   }
 
   int get_max_distance()
