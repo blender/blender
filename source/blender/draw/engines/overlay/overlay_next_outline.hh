@@ -186,8 +186,11 @@ class Outline : Overlay {
     }
   }
 
-  void pre_draw_ex(Manager &manager, View &view, Resources &res, const State &state)
+  /* Flat objects outline workaround need to generate passes for each redraw. */
+  void flat_objects_pass_sync(Manager &manager, View &view, Resources &res, const State &state)
   {
+    outline_prepass_flat_ps_.init();
+
     if (!enabled_) {
       return;
     }
@@ -196,7 +199,6 @@ class Outline : Overlay {
       const bool is_transform = (G.moving & G_TRANSFORM_OBJ) != 0;
       /* Note: We need a dedicated pass since we have to populated it for each redraw. */
       auto &pass = outline_prepass_flat_ps_;
-      pass.init();
       pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       pass.framebuffer_set(&prepass_fb_);
       pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL,
@@ -211,8 +213,12 @@ class Outline : Overlay {
             });
       }
     }
-    else {
-      outline_prepass_flat_ps_.init();
+  }
+
+  void pre_draw(Manager &manager, View &view) final
+  {
+    if (!enabled_) {
+      return;
     }
 
     manager.generate_commands(outline_prepass_ps_, view);

@@ -364,6 +364,9 @@ void Instance::draw(Manager &manager)
     draw_scope.begin_capture();
   }
 
+  outline.flat_objects_pass_sync(manager, view, resources, state);
+  GreasePencil::compute_depth_planes(manager, view, resources, state);
+
   /* Pre-Draw: Run the compute steps of all passes up-front
    * to avoid constant GPU compute/raster context switching. */
   {
@@ -384,9 +387,8 @@ void Instance::draw(Manager &manager)
 
     pre_draw(regular);
     pre_draw(infront);
-    outline.pre_draw_ex(manager, view, resources, state);
 
-    GreasePencil::compute_depth_planes(manager, view, resources, state);
+    outline.pre_draw(manager, view);
   }
 
   resources.acquire(this->state, *DRW_viewport_texture_list_get());
