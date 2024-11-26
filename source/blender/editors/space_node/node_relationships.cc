@@ -2559,19 +2559,6 @@ bNodeSocket *get_main_socket(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_
     }
   }
 
-  /* No visible sockets, unhide first of highest priority. */
-  for (int priority = maxpriority; priority >= 0; priority--) {
-    LISTBASE_FOREACH (bNodeSocket *, sock, sockets) {
-      if (sock->flag & SOCK_UNAVAIL) {
-        continue;
-      }
-      if (priority == get_main_socket_priority(sock)) {
-        sock->flag &= ~SOCK_HIDDEN;
-        return sock;
-      }
-    }
-  }
-
   return nullptr;
 }
 
