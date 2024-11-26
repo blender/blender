@@ -198,6 +198,9 @@ class Wireframe : Overlay {
       }
       case OB_VOLUME: {
         gpu::Batch *geom = DRW_cache_volume_face_wireframe_get(ob_ref.object);
+        if (geom == nullptr) {
+          break;
+        }
         if (static_cast<Volume *>(ob_ref.object->data)->display.wireframe_type ==
             VOLUME_WIREFRAME_POINTS)
         {
