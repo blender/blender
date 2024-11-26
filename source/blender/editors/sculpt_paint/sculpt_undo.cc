@@ -1716,6 +1716,35 @@ static void save_active_attribute(Object &object, SculptAttrRef *attr)
   attr->type = meta_data->data_type;
 }
 
+/**
+ * Does not save topology counts, as that data is unneded for full geometry pushes and
+ * requires the PBVH to exist. */
+static void save_common_data(Object &ob, SculptUndoStep *us)
+{
+  us->data.object_name = ob.id.name;
+
+  if (!us->active_color_start.was_set) {
+    save_active_attribute(ob, &us->active_color_start);
+  }
+
+  /* Set end attribute in case push_end is not called,
+   * so we don't end up with corrupted state.
+   */
+  if (!us->active_color_end.was_set) {
+    save_active_attribute(ob, &us->active_color_end);
+    us->active_color_end.was_set = false;
+  }
+
+  const SculptSession &ss = *ob.sculpt;
+
+  us->data.pivot_pos = ss.pivot_pos;
+  us->data.pivot_rot = ss.pivot_rot;
+
+  if (const KeyBlock *key = BKE_keyblock_from_object(&ob)) {
+    us->data.active_shape_key_name = key->name;
+  }
+}
+
 void push_begin_ex(const Scene & /*scene*/, Object &ob, const char *name)
 {
   UndoStack *ustack = ED_undo_stack_get();
@@ -1776,6 +1805,23 @@ void push_begin_ex(const Scene & /*scene*/, Object &ob, const char *name)
 void push_begin(const Scene &scene, Object &ob, const wmOperator *op)
 {
   push_begin_ex(scene, ob, op->type->name);
+}
+
+void push_enter_sculpt_mode(const Scene & /*scene*/, Object &ob, const wmOperator *op)
+{
+  UndoStack *ustack = ED_undo_stack_get();
+
+  /* If possible, we need to tag the object and its geometry data as 'changed in the future' in
+   * the previous undo step if it's a memfile one. */
+  ED_undosys_stack_memfile_id_changed_tag(ustack, &ob.id);
+  ED_undosys_stack_memfile_id_changed_tag(ustack, static_cast<ID *>(ob.data));
+
+  /* Special case, we never read from this. */
+  bContext *C = nullptr;
+
+  SculptUndoStep *us = reinterpret_cast<SculptUndoStep *>(
+      BKE_undosys_step_push_init_with_type(ustack, C, op->type->name, BKE_UNDOSYS_TYPE_SCULPT));
+  save_common_data(ob, us);
 }
 
 static size_t node_size_in_bytes(const Node &node)

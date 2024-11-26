@@ -569,7 +569,7 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
          * while it works it causes lag when undoing the first undo step, see #71564. */
         wmWindowManager *wm = CTX_wm_manager(C);
         if (wm->op_undo_depth <= 1) {
-          undo::push_begin(scene, ob, op);
+          undo::push_enter_sculpt_mode(scene, ob, op);
           undo::push_end(ob);
         }
       }
