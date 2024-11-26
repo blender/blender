@@ -37,6 +37,7 @@
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
 #include "BLI_math_vector.h"
+#include "BLI_multi_value_map.hh"
 #include "BLI_stack.h"
 #include "BLI_string_utils.hh"
 #include "BLI_task.h"
@@ -4049,6 +4050,8 @@ static void filelist_readjob_remote_asset_library_index_read(FileListReadJob *jo
                                                              bool *do_update,
                                                              float *progress)
 {
+  using namespace ed::asset;
+
   FileList *filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
   ListBase entries = {nullptr};
 
@@ -4057,15 +4060,20 @@ static void filelist_readjob_remote_asset_library_index_read(FileListReadJob *jo
       &U, job_params->filelist->asset_library_ref->custom_library_index);
   BKE_preferences_remote_asset_library_dirpath_get(user_library, dirpath, sizeof(dirpath));
 
-  Vector<FileIndexerEntry> asset_entries;
-  if (!ed::asset::index::read_remote_index(dirpath, &asset_entries)) {
+  Vector<index::RemoteIndexAssetEntry> asset_entries;
+  if (!index::read_remote_index(dirpath, &asset_entries)) {
     return;
   }
 
-  for (FileIndexerEntry &entry : asset_entries) {
+  /* Reconstruct file hierarchy, so we know which .blend files to expect where, and which assets
+   * they should contain. */
+  MultiValueMap<StringRef, const index::RemoteIndexAssetEntry *> assets_per_blend_path;
+
+  for (index::RemoteIndexAssetEntry &entry : asset_entries) {
     const char *group_name = BKE_idtype_idcode_to_name(entry.idcode);
     filelist_readjob_list_lib_add_datablock(
         job_params, &entries, &entry.datablock_info, true, entry.idcode, group_name);
+    assets_per_blend_path.add(entry.archive_url, &entry);
   }
 
   int entries_num = 0;
@@ -4081,9 +4089,13 @@ static void filelist_readjob_remote_asset_library_index_read(FileListReadJob *jo
     *do_update = true;
   }
 
-  for (FileIndexerEntry &entry : asset_entries) {
-    BLO_datablock_info_free(&entry.datablock_info);
+  for (const auto [blend_path, mapped_asset_entries] : assets_per_blend_path.items()) {
+    printf("%s\n", blend_path.data());
+    for (const index::RemoteIndexAssetEntry *entry : mapped_asset_entries) {
+      printf("  %s\n", entry->datablock_info.name);
+    }
   }
+  printf("--- DONE ---");
 }
 
 static void filelist_readjob_remote_asset_library(FileListReadJob *job_params,

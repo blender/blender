@@ -222,18 +222,18 @@ void BLO_read_do_version_after_setup(Main *new_bmain,
  * \{ */
 
 struct BLODataBlockInfo {
-  char name[64]; /* MAX_NAME */
-  AssetMetaData *asset_data;
+  char name[64] = ""; /* MAX_NAME */
+  AssetMetaData *asset_data = nullptr;
   /** Ownership over #asset_data above can be "stolen out" of this struct, for more permanent
    * storage. In that case, set this to false to avoid double freeing of the stolen data. */
-  bool free_asset_data;
+  bool free_asset_data = false;
   /**
    * Optimization: Tag data-blocks for which we know there is no preview.
    * Knowing this can be used to skip the (potentially expensive) preview loading process. If this
    * is set to true it means we looked for a preview and couldn't find one. False may mean that
    * either no preview was found, or that it wasn't looked for in the first place.
    */
-  bool no_preview_found;
+  bool no_preview_found = false;
 };
 
 /**
