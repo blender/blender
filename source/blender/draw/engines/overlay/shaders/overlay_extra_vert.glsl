@@ -47,10 +47,14 @@ void main()
 {
   select_id_set(in_select_buf[gl_InstanceID]);
 
+  /* Loading the matrix first before doing the manipulation fixes an issue
+   * with the Metal compiler on older Intel macs (see #130867). */
+  mat4x4 input_mat = inst_obmat;
+
   /* Extract data packed inside the unused mat4 members. */
-  vec4 inst_data = vec4(inst_obmat[0][3], inst_obmat[1][3], inst_obmat[2][3], inst_obmat[3][3]);
+  vec4 inst_data = vec4(input_mat[0][3], input_mat[1][3], input_mat[2][3], input_mat[3][3]);
   float inst_color_data = color.a;
-  mat4 obmat = inst_obmat;
+  mat4 obmat = input_mat;
   obmat[0][3] = obmat[1][3] = obmat[2][3] = 0.0;
   obmat[3][3] = 1.0;
 
