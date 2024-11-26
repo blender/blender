@@ -176,7 +176,9 @@ class Outline : Overlay {
         break;
       case OB_VOLUME:
         geom = DRW_cache_volume_selection_surface_get(ob_ref.object);
-        prepass_volume_ps_->draw(geom, manager.unique_handle(ob_ref));
+        if (geom) {
+          prepass_volume_ps_->draw(geom, manager.unique_handle(ob_ref));
+        }
         break;
       default:
         break;
