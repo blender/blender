@@ -389,81 +389,7 @@ void Instance::draw(Manager &manager)
     GreasePencil::compute_depth_planes(manager, view, resources, state);
   }
 
-  resources.depth_tx.wrap(DRW_viewport_texture_list_get()->depth);
-  resources.depth_in_front_tx.wrap(DRW_viewport_texture_list_get()->depth_in_front);
-  resources.color_overlay_tx.wrap(DRW_viewport_texture_list_get()->color_overlay);
-  resources.color_render_tx.wrap(DRW_viewport_texture_list_get()->color);
-
-  resources.render_fb = DRW_viewport_framebuffer_list_get()->default_fb;
-  resources.render_in_front_fb = DRW_viewport_framebuffer_list_get()->in_front_fb;
-
-  int2 render_size = int2(resources.depth_tx.size());
-
-  if (state.xray_enabled) {
-    /* For X-ray we render the scene to a separate depth buffer. */
-    resources.xray_depth_tx.acquire(render_size, GPU_DEPTH24_STENCIL8);
-    resources.depth_target_tx.wrap(resources.xray_depth_tx);
-    /* TODO(fclem): Remove mandatory allocation. */
-    resources.xray_depth_in_front_tx.acquire(render_size, GPU_DEPTH24_STENCIL8);
-    resources.depth_target_in_front_tx.wrap(resources.xray_depth_in_front_tx);
-  }
-  else {
-    /* TODO(fclem): Remove mandatory allocation. */
-    if (!resources.depth_in_front_tx.is_valid()) {
-      resources.depth_in_front_alloc_tx.acquire(render_size, GPU_DEPTH24_STENCIL8);
-      resources.depth_in_front_tx.wrap(resources.depth_in_front_alloc_tx);
-    }
-    resources.depth_target_tx.wrap(resources.depth_tx);
-    resources.depth_target_in_front_tx.wrap(resources.depth_in_front_tx);
-  }
-
-  /* TODO: Better semantics using a switch? */
-  if (!resources.color_overlay_tx.is_valid()) {
-    /* Likely to be the selection case. Allocate dummy texture and bind only depth buffer. */
-    resources.color_overlay_alloc_tx.acquire(int2(1, 1), GPU_SRGB8_A8);
-    resources.color_render_alloc_tx.acquire(int2(1, 1), GPU_SRGB8_A8);
-
-    resources.color_overlay_tx.wrap(resources.color_overlay_alloc_tx);
-    resources.color_render_tx.wrap(resources.color_render_alloc_tx);
-
-    resources.line_tx.acquire(int2(1, 1), GPU_RGBA8);
-    resources.overlay_tx.acquire(int2(1, 1), GPU_SRGB8_A8);
-
-    resources.overlay_fb.ensure(GPU_ATTACHMENT_TEXTURE(resources.depth_target_tx));
-    resources.overlay_line_fb.ensure(GPU_ATTACHMENT_TEXTURE(resources.depth_target_tx));
-    resources.overlay_in_front_fb.ensure(GPU_ATTACHMENT_TEXTURE(resources.depth_target_tx));
-    resources.overlay_line_in_front_fb.ensure(GPU_ATTACHMENT_TEXTURE(resources.depth_target_tx));
-  }
-  else {
-    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE |
-                             GPU_TEXTURE_USAGE_ATTACHMENT;
-    resources.line_tx.acquire(render_size, GPU_RGBA8, usage);
-    resources.overlay_tx.acquire(render_size, GPU_SRGB8_A8, usage);
-
-    resources.overlay_fb.ensure(GPU_ATTACHMENT_TEXTURE(resources.depth_target_tx),
-                                GPU_ATTACHMENT_TEXTURE(resources.overlay_tx));
-    resources.overlay_line_fb.ensure(GPU_ATTACHMENT_TEXTURE(resources.depth_target_tx),
-                                     GPU_ATTACHMENT_TEXTURE(resources.overlay_tx),
-                                     GPU_ATTACHMENT_TEXTURE(resources.line_tx));
-    resources.overlay_in_front_fb.ensure(
-        GPU_ATTACHMENT_TEXTURE(resources.depth_target_in_front_tx),
-        GPU_ATTACHMENT_TEXTURE(resources.overlay_tx));
-    resources.overlay_line_in_front_fb.ensure(
-        GPU_ATTACHMENT_TEXTURE(resources.depth_target_in_front_tx),
-        GPU_ATTACHMENT_TEXTURE(resources.overlay_tx),
-        GPU_ATTACHMENT_TEXTURE(resources.line_tx));
-  }
-
-  resources.overlay_line_only_fb.ensure(GPU_ATTACHMENT_NONE,
-                                        GPU_ATTACHMENT_TEXTURE(resources.overlay_tx),
-                                        GPU_ATTACHMENT_TEXTURE(resources.line_tx));
-  resources.overlay_color_only_fb.ensure(GPU_ATTACHMENT_NONE,
-                                         GPU_ATTACHMENT_TEXTURE(resources.overlay_tx));
-  /* The v2d path writes to the overlay output directly, but it needs a depth attachment. */
-  resources.overlay_output_fb.ensure(state.is_space_image() ?
-                                         GPUAttachment GPU_ATTACHMENT_TEXTURE(resources.depth_tx) :
-                                         GPUAttachment GPU_ATTACHMENT_NONE,
-                                     GPU_ATTACHMENT_TEXTURE(resources.color_overlay_tx));
+  resources.acquire(this->state, *DRW_viewport_texture_list_get());
 
   /* TODO(fclem): Would be better to have a v2d overlay class instead of these conditions. */
   switch (state.space_type) {
@@ -480,13 +406,7 @@ void Instance::draw(Manager &manager)
       BLI_assert_unreachable();
   }
 
-  resources.line_tx.release();
-  resources.overlay_tx.release();
-  resources.xray_depth_tx.release();
-  resources.xray_depth_in_front_tx.release();
-  resources.depth_in_front_alloc_tx.release();
-  resources.color_overlay_alloc_tx.release();
-  resources.color_render_alloc_tx.release();
+  resources.release();
 
   resources.read_result();
 
