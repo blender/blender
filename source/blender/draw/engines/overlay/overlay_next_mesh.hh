@@ -788,7 +788,7 @@ class MeshUVs : Overlay {
     }
   }
 
-  void end_sync(Resources &res, const ShapeCache &shapes, const State &state) final
+  void end_sync(Resources &res, const State &state) final
   {
     if (!enabled_) {
       return;
@@ -833,7 +833,7 @@ class MeshUVs : Overlay {
         const float3 tile_location(tile_x, tile_y, 0.0f);
         pass.push_constant("tile_pos", tile_location);
         pass.push_constant("ucolor", is_active ? selected_color : theme_color);
-        pass.draw(shapes.quad_wire.get());
+        pass.draw(res.shapes.quad_wire.get());
 
         /* Note: don't draw label twice for active tile. */
         if (show_tiled_image_label_ && !is_active) {
@@ -882,7 +882,7 @@ class MeshUVs : Overlay {
         pass.push_constant("ucolor", float4(1.0f, 1.0f, 1.0f, brush->clone.alpha));
         pass.push_constant("brush_offset", float2(brush->clone.offset));
         pass.push_constant("brush_scale", float2(stencil_texture.size().xy()) / size_image);
-        pass.draw(shapes.quad_solid.get());
+        pass.draw(res.shapes.quad_solid.get());
       }
     }
 
@@ -902,7 +902,7 @@ class MeshUVs : Overlay {
       pass.push_constant("opacity", opacity);
       pass.push_constant("brush_offset", float2(0.0f));
       pass.push_constant("brush_scale", float2(1.0f));
-      pass.draw(shapes.quad_solid.get());
+      pass.draw(res.shapes.quad_solid.get());
     }
   }
 

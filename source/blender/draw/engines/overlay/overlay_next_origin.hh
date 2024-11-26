@@ -72,7 +72,7 @@ class Origins : Overlay {
     }
   }
 
-  void end_sync(Resources &res, const ShapeCache & /*shapes*/, const State &state) final
+  void end_sync(Resources &res, const State &state) final
   {
     if (!enabled_) {
       return;

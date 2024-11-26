@@ -66,7 +66,8 @@ class Instance {
 
   /** Global types. */
   Resources resources = {selection_type_,
-                         overlay::ShaderModule::module_get(selection_type_, clipping_enabled_)};
+                         overlay::ShaderModule::module_get(selection_type_, clipping_enabled_),
+                         shapes};
   State state;
 
   /** Overlay types. */
@@ -77,9 +78,7 @@ class Instance {
 
   struct OverlayLayer {
     const SelectionType selection_type_;
-    ShapeCache &shapes;
-
-    Armatures armatures = {selection_type_, shapes};
+    Armatures armatures = {selection_type_};
     AttributeViewer attribute_viewer;
     AttributeTexts attribute_texts;
     Axes axes = {selection_type_};
@@ -108,9 +107,9 @@ class Instance {
     Sculpts sculpts;
     Speakers speakers = {selection_type_};
     Wireframe wireframe;
-  } regular{selection_type_, shapes}, infront{selection_type_, shapes};
+  } regular{selection_type_}, infront{selection_type_};
 
-  Grid grid = {shapes};
+  Grid grid;
 
   AntiAliasing anti_aliasing;
   XrayFade xray_fade;

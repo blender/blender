@@ -61,7 +61,7 @@ class Axes : Overlay {
     axes_buf.append(data, res.select_id(ob_ref));
   }
 
-  void end_sync(Resources &res, const ShapeCache &shapes, const State &state) final
+  void end_sync(Resources &res, const State &state) final
   {
     if (!enabled_) {
       return;
@@ -71,7 +71,7 @@ class Axes : Overlay {
     ps_.shader_set(res.shaders.extra_shape.get());
     ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
     res.select_bind(ps_);
-    axes_buf.end_sync(ps_, shapes.arrows.get());
+    axes_buf.end_sync(ps_, res.shapes.arrows.get());
   }
 
   void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final

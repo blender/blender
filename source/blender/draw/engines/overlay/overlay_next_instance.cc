@@ -255,10 +255,10 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
   if (!state.hide_overlays) {
     switch (ob_ref.object->type) {
       case OB_EMPTY:
-        layer.empties.object_sync_ex(ob_ref, shapes, manager, resources, state);
+        layer.empties.object_sync(manager, ob_ref, resources, state);
         break;
       case OB_CAMERA:
-        layer.cameras.object_sync_ex(ob_ref, shapes, manager, resources, state);
+        layer.cameras.object_sync(manager, ob_ref, resources, state);
         break;
       case OB_ARMATURE:
         if (!in_edit_mode) {
@@ -311,24 +311,24 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
 
 void Instance::end_sync()
 {
-  origins.end_sync(resources, shapes, state);
+  origins.end_sync(resources, state);
   resources.end_sync();
 
   auto end_sync_layer = [&](OverlayLayer &layer) {
-    layer.armatures.end_sync(resources, shapes, state);
-    layer.axes.end_sync(resources, shapes, state);
-    layer.bounds.end_sync(resources, shapes, state);
-    layer.cameras.end_sync(resources, shapes, state);
-    layer.edit_text.end_sync(resources, shapes, state);
-    layer.empties.end_sync(resources, shapes, state);
-    layer.force_fields.end_sync(resources, shapes, state);
-    layer.lights.end_sync(resources, shapes, state);
-    layer.light_probes.end_sync(resources, shapes, state);
-    layer.mesh_uvs.end_sync(resources, shapes, state);
-    layer.metaballs.end_sync(resources, shapes, state);
-    layer.relations.end_sync(resources, shapes, state);
-    layer.fluids.end_sync(resources, shapes, state);
-    layer.speakers.end_sync(resources, shapes, state);
+    layer.armatures.end_sync(resources, state);
+    layer.axes.end_sync(resources, state);
+    layer.bounds.end_sync(resources, state);
+    layer.cameras.end_sync(resources, state);
+    layer.edit_text.end_sync(resources, state);
+    layer.empties.end_sync(resources, state);
+    layer.force_fields.end_sync(resources, state);
+    layer.lights.end_sync(resources, state);
+    layer.light_probes.end_sync(resources, state);
+    layer.mesh_uvs.end_sync(resources, state);
+    layer.metaballs.end_sync(resources, state);
+    layer.relations.end_sync(resources, state);
+    layer.fluids.end_sync(resources, state);
+    layer.speakers.end_sync(resources, state);
   };
   end_sync_layer(regular);
   end_sync_layer(infront);

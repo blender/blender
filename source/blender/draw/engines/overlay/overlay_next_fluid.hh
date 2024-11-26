@@ -233,12 +233,12 @@ class Fluids : Overlay {
     }
   }
 
-  void end_sync(Resources &res, const ShapeCache &shapes, const State & /*state*/) final
+  void end_sync(Resources &res, const State & /*state*/) final
   {
     fluid_ps_.shader_set(res.shaders.extra_shape.get());
     fluid_ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
 
-    cube_buf_.end_sync(fluid_ps_, shapes.cube.get());
+    cube_buf_.end_sync(fluid_ps_, res.shapes.cube.get());
   }
 
   void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final

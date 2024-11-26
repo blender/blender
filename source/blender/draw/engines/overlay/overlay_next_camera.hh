@@ -141,8 +141,10 @@ class Cameras : Overlay {
     }
   }
 
-  void object_sync_ex(
-      const ObjectRef &ob_ref, ShapeCache &shapes, Manager &manager, Resources &res, State &state)
+  void object_sync(Manager &manager,
+                   const ObjectRef &ob_ref,
+                   Resources &res,
+                   const State &state) final
   {
     if (!enabled_) {
       return;
@@ -154,10 +156,10 @@ class Cameras : Overlay {
 
     object_sync_motion_paths(ob_ref, res, state);
 
-    object_sync_images(ob_ref, select_id, shapes, manager, state, res);
+    object_sync_images(ob_ref, select_id, manager, state, res);
   }
 
-  void end_sync(Resources &res, const ShapeCache &shapes, const State &state) final
+  void end_sync(Resources &res, const State &state) final
   {
     if (!extras_enabled_ && !motion_tracking_enabled_) {
       return;
@@ -173,7 +175,7 @@ class Cameras : Overlay {
                              DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK,
                          state.clipping_plane_count);
       sub_pass.shader_set(res.shaders.extra_shape.get());
-      call_buffers_.volume_buf.end_sync(sub_pass, shapes.camera_volume.get());
+      call_buffers_.volume_buf.end_sync(sub_pass, res.shapes.camera_volume.get());
     }
     {
       PassSimple::Sub &sub_pass = ps_.sub("volume_wire");
@@ -181,7 +183,7 @@ class Cameras : Overlay {
                              DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK,
                          state.clipping_plane_count);
       sub_pass.shader_set(res.shaders.extra_shape.get());
-      call_buffers_.volume_wire_buf.end_sync(sub_pass, shapes.camera_volume_wire.get());
+      call_buffers_.volume_wire_buf.end_sync(sub_pass, res.shapes.camera_volume_wire.get());
     }
 
     {
@@ -190,11 +192,11 @@ class Cameras : Overlay {
                              DRW_STATE_DEPTH_LESS_EQUAL,
                          state.clipping_plane_count);
       sub_pass.shader_set(res.shaders.extra_shape.get());
-      call_buffers_.distances_buf.end_sync(sub_pass, shapes.camera_distances.get());
-      call_buffers_.frame_buf.end_sync(sub_pass, shapes.camera_frame.get());
-      call_buffers_.tria_buf.end_sync(sub_pass, shapes.camera_tria.get());
-      call_buffers_.tria_wire_buf.end_sync(sub_pass, shapes.camera_tria_wire.get());
-      call_buffers_.sphere_solid_buf.end_sync(sub_pass, shapes.sphere_low_detail.get());
+      call_buffers_.distances_buf.end_sync(sub_pass, res.shapes.camera_distances.get());
+      call_buffers_.frame_buf.end_sync(sub_pass, res.shapes.camera_frame.get());
+      call_buffers_.tria_buf.end_sync(sub_pass, res.shapes.camera_tria.get());
+      call_buffers_.tria_wire_buf.end_sync(sub_pass, res.shapes.camera_tria_wire.get());
+      call_buffers_.sphere_solid_buf.end_sync(sub_pass, res.shapes.sphere_low_detail.get());
     }
 
     {
@@ -208,7 +210,7 @@ class Cameras : Overlay {
     }
 
     PassSimple::Sub &sub_pass = ps_.sub("empties");
-    Empties::end_sync(res, shapes, state, sub_pass, call_buffers_.empties);
+    Empties::end_sync(res, state, sub_pass, call_buffers_.empties);
   }
 
   void pre_draw(Manager &manager, View &view) final
@@ -549,7 +551,6 @@ class Cameras : Overlay {
 
   void object_sync_images(const ObjectRef &ob_ref,
                           select::ID select_id,
-                          ShapeCache &shapes,
                           Manager &manager,
                           const State &state,
                           Resources &res)
@@ -606,7 +607,7 @@ class Cameras : Overlay {
         pass.push_constant("depthSet", true);
         pass.push_constant("ucolor", color_premult_alpha);
         ResourceHandle res_handle = manager.resource_handle(mat);
-        pass.draw(shapes.quad_solid.get(), res_handle, select_id.get());
+        pass.draw(res.shapes.quad_solid.get(), res_handle, select_id.get());
       }
     }
   }

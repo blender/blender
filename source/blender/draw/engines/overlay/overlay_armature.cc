@@ -1094,25 +1094,25 @@ static void drw_shgroup_bone_custom_empty(const Armatures::DrawContext *ctx,
     gpu::Batch *geom = nullptr;
     switch (custom->empty_drawtype) {
       case OB_PLAINAXES:
-        geom = ctx->shapes->plain_axes.get();
+        geom = ctx->res->shapes.plain_axes.get();
         break;
       case OB_SINGLE_ARROW:
-        geom = ctx->shapes->single_arrow.get();
+        geom = ctx->res->shapes.single_arrow.get();
         break;
       case OB_CUBE:
-        geom = ctx->shapes->cube.get();
+        geom = ctx->res->shapes.cube.get();
         break;
       case OB_CIRCLE:
-        geom = ctx->shapes->circle.get();
+        geom = ctx->res->shapes.circle.get();
         break;
       case OB_EMPTY_SPHERE:
-        geom = ctx->shapes->empty_sphere.get();
+        geom = ctx->res->shapes.empty_sphere.get();
         break;
       case OB_EMPTY_CONE:
-        geom = ctx->shapes->empty_cone.get();
+        geom = ctx->res->shapes.empty_cone.get();
         break;
       case OB_ARROWS:
-        geom = ctx->shapes->arrows.get();
+        geom = ctx->res->shapes.arrows.get();
         break;
       case OB_EMPTY_IMAGE:
         /* Not supported. */

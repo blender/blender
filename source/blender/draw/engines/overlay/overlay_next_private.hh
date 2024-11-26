@@ -515,8 +515,12 @@ struct Resources : public select::SelectMap {
 
   Vector<MovieClip *> bg_movie_clips;
 
-  Resources(const SelectionType selection_type_, ShaderModule &shader_module)
-      : select::SelectMap(selection_type_), shaders(shader_module){};
+  const ShapeCache &shapes;
+
+  Resources(const SelectionType selection_type_,
+            ShaderModule &shader_module,
+            const ShapeCache &shapes_)
+      : select::SelectMap(selection_type_), shaders(shader_module), shapes(shapes_){};
 
   ~Resources()
   {
