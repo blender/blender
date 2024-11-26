@@ -137,9 +137,6 @@ class Outline : Overlay {
 
     gpu::Batch *geom;
     switch (ob_ref.object->type) {
-      case OB_GPENCIL_LEGACY:
-        /* TODO ? */
-        break;
       case OB_CURVES:
         geom = curves_sub_pass_setup(*prepass_curves_ps_, state.scene, ob_ref.object);
         prepass_curves_ps_->draw(geom, manager.unique_handle(ob_ref));
