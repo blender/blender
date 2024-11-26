@@ -17,9 +17,9 @@ FRAGMENT_SHADER_CREATE_INFO(gpu_shader_2D_node_socket_inst)
 #define SOCK_DISPLAY_SHAPE_DIAMOND_DOT 5
 
 /* Calculates a squared distance field of a square. */
-float square_sdf(vec2 absCo, float half_width_x, float half_width_y)
+float square_sdf(vec2 absCo, vec2 half_size)
 {
-  vec2 extruded_co = absCo - vec2(half_width_x, half_width_y);
+  vec2 extruded_co = absCo - half_size;
   vec2 clamped_extruded_co = vec2(max(0.0, extruded_co.x), max(0.0, extruded_co.y));
 
   float exterior_distance_squared = dot(clamped_extruded_co, clamped_extruded_co);
@@ -72,27 +72,23 @@ void main()
       break;
     }
     case SOCK_DISPLAY_SHAPE_SQUARE: {
-      float square_radius = square_radius - corner_rounding;
-      distance_squared = square_sdf(co, square_radius, square_radius);
+      distance_squared = square_sdf(co, vec2(square_radius - corner_rounding));
       alpha_threshold = corner_rounding;
       break;
     }
     case SOCK_DISPLAY_SHAPE_SQUARE_DOT: {
-      float square_radius = square_radius - corner_rounding;
-      distance_squared = square_sdf(co, square_radius, square_radius);
+      distance_squared = square_sdf(co, vec2(square_radius - corner_rounding));
       alpha_threshold = corner_rounding;
       dot_threshold = finalDotRadius;
       break;
     }
     case SOCK_DISPLAY_SHAPE_DIAMOND: {
-      float diamond_radius = diamond_radius - corner_rounding;
-      distance_squared = square_sdf(abs(rotate_45(co)), diamond_radius, diamond_radius);
+      distance_squared = square_sdf(abs(rotate_45(co)), vec2(diamond_radius - corner_rounding));
       alpha_threshold = corner_rounding;
       break;
     }
     case SOCK_DISPLAY_SHAPE_DIAMOND_DOT: {
-      float diamond_radius = diamond_radius - corner_rounding;
-      distance_squared = square_sdf(abs(rotate_45(co)), diamond_radius, diamond_radius);
+      distance_squared = square_sdf(abs(rotate_45(co)), vec2(diamond_radius - corner_rounding));
       alpha_threshold = corner_rounding;
       dot_threshold = finalDotRadius;
       break;
