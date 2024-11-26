@@ -64,6 +64,9 @@
 
 #include "bmesh.hh"
 
+/* Needed for determining tool material/vcolor pinning. */
+#include "grease_pencil_intern.hh"
+
 /* TODOs:
  *
  * Some of the cursor drawing code is doing non-draw stuff
@@ -1590,8 +1593,8 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext *pcontext)
           (brush->gpencil_brush_type == GPAINT_BRUSH_TYPE_DRAW))
       {
 
-        const bool use_vertex_color = (pcontext->scene->toolsettings->gp_paint->mode ==
-                                       GPPAINT_FLAG_USE_VERTEXCOLOR);
+        const bool use_vertex_color = ed::sculpt_paint::greasepencil::brush_using_vertex_color(
+            pcontext->scene->toolsettings->gp_paint, brush);
         const bool use_vertex_color_stroke = use_vertex_color &&
                                              ELEM(brush->gpencil_settings->vertex_mode,
                                                   GPPAINT_MODE_STROKE,
