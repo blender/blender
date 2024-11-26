@@ -1156,7 +1156,7 @@ class CYCLES_PT_context_material(CyclesButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        if context.active_object and context.active_object.type == 'GPENCIL':
+        if context.active_object and context.active_object.type == 'GREASEPENCIL':
             return False
         else:
             return (context.material or context.object) and CyclesButtonsPanel.poll(context)
