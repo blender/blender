@@ -1363,7 +1363,11 @@ class IMAGE_PT_tools_imagepaint_symmetry(BrushButtonsPanel, Panel):
         row.prop(ipaint, "tile_y", text="Y", toggle=True)
 
 
-class IMAGE_PT_uv_sculpt_curve(Panel, ImagePaintPanel):
+# Only a popover.
+class IMAGE_PT_uv_sculpt_curve(Panel):
+    bl_space_type = 'TOPBAR'  # dummy.
+    bl_region_type = 'HEADER'
+
     bl_context = ".uv_sculpt"  # Dot on purpose (access from top-bar).
     bl_label = "Falloff"
 
@@ -1375,7 +1379,11 @@ class IMAGE_PT_uv_sculpt_curve(Panel, ImagePaintPanel):
             layout.template_curve_mapping(props, "strength_curve")
 
 
-class IMAGE_PT_uv_sculpt_options(Panel, ImagePaintPanel):
+# Only a popover.
+class IMAGE_PT_uv_sculpt_options(Panel):
+    bl_space_type = 'TOPBAR'  # dummy.
+    bl_region_type = 'HEADER'
+
     bl_context = ".uv_sculpt"  # Dot on purpose (access from top-bar).
     bl_label = "Options"
 
