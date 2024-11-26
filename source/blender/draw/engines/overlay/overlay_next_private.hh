@@ -48,7 +48,6 @@ struct State {
   const SpaceLink *space_data;
   const ARegion *region;
   const RegionView3D *rv3d;
-  const Base *active_base;
   DRWTextStore *dt;
   View3DOverlay overlay;
   float pixelsize;
@@ -534,10 +533,9 @@ struct Resources : public select::SelectMap {
   {
     const bool is_edit = (state.object_mode & OB_MODE_EDIT) &&
                          (ob_ref.object->mode & OB_MODE_EDIT);
-    const bool active = (state.active_base != nullptr) &&
-                        ((ob_ref.dupli_parent != nullptr) ?
-                             (state.active_base->object == ob_ref.dupli_parent) :
-                             (state.active_base->object == ob_ref.object));
+    const bool active = ((ob_ref.dupli_parent != nullptr) ?
+                             (state.object_active == ob_ref.dupli_parent) :
+                             (state.object_active == ob_ref.object));
     const bool is_selected = ((ob_ref.object->base_flag & BASE_SELECTED) != 0);
 
     /* Object in edit mode. */

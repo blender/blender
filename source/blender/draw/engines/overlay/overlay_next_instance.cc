@@ -32,8 +32,7 @@ void Instance::init()
   state.v3d = ctx->v3d;
   state.region = ctx->region;
   state.rv3d = ctx->rv3d;
-  state.active_base = BKE_view_layer_active_base_get(ctx->view_layer);
-  state.object_active = ctx->obact;
+  state.object_active = BKE_view_layer_active_object_get(ctx->view_layer);
   state.object_mode = ctx->object_mode;
   state.cfra = DEG_get_ctime(state.depsgraph);
   state.is_viewport_image_render = DRW_state_is_viewport_image_render();
