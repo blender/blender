@@ -770,17 +770,18 @@ class TestPlatform(TestWithTempBlenderUser_MixIn, unittest.TestCase):
             "server-generate",
             "--repo-dir", TEMP_DIR_REMOTE,
         ))
-        self.assertEqual(stdout, (
-            '''WARN: archive found with duplicates for id my_platform_test: '''
-            '''3 duplicate(s) found, conflicting blender versions '''
-            '''my_platform_test-linux_x64_conflict_no_version.zip=[undefined] & '''
-            '''my_platform_test-linux_x64_no_conflict_old.zip=[2.3.0 -> 3.3.0], '''
-            '''my_platform_test-linux_x64_no_conflict_old.zip=[2.3.0 -> 3.3.0] & '''
-            '''my_platform_test-linux_x64_conflict.zip=[2.3.0 -> 4.5.0], '''
-            '''my_platform_test-linux_x64_conflict.zip=[2.3.0 -> 4.5.0] & '''
-            '''my_platform_test-linux_x64.zip=[4.3.0 -> 4.4.0]\n'''
-            '''found 7 packages.\n'''
-        ))
+
+        self.assertEqual(stdout, "".join([
+            '''WARN: archive found with duplicates for id my_platform_test: ''',
+            '''3 duplicate(s) found, conflicting blender versions ''',
+            '''my_platform_test-linux_x64_conflict_no_version.zip=[undefined] & ''',
+            '''my_platform_test-linux_x64_no_conflict_old.zip=[{:s} -> {:s}], '''.format(version_a, version_b),
+            '''my_platform_test-linux_x64_no_conflict_old.zip=[{:s} -> {:s}] & '''.format(version_a, version_b),
+            '''my_platform_test-linux_x64_conflict.zip=[{:s} -> {:s}], '''.format(version_a, version_e),
+            '''my_platform_test-linux_x64_conflict.zip=[{:s} -> {:s}] & '''.format(version_a, version_e),
+            '''my_platform_test-linux_x64.zip=[{:s} -> {:s}]\n'''.format(version_c_this, version_d),
+            '''found 7 packages.\n''',
+        ]))
 
 
 # While other tests use this command, focus on testing specific behaviors work as expected.
