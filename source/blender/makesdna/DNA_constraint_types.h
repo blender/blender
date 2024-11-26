@@ -336,7 +336,7 @@ typedef struct bActionConstraint {
   float eval_time; /* Only used when flag ACTCON_USE_EVAL_TIME is set. */
   struct bAction *act;
   int32_t action_slot_handle;
-  char action_slot_name[66]; /* MAX_ID_NAME */
+  char last_slot_identifier[66]; /* MAX_ID_NAME */
   char _pad1[2];
   /** MAX_ID_NAME-2. */
   char subtarget[64];
