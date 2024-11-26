@@ -390,9 +390,12 @@ VKThreadData &VKDevice::current_thread_data()
   return *thread_data;
 }
 
-VKDiscardPool &VKDevice::discard_pool_for_current_thread()
+VKDiscardPool &VKDevice::discard_pool_for_current_thread(bool thread_safe)
 {
-  std::scoped_lock mutex(resources.mutex);
+  std::unique_lock lock(resources.mutex, std::defer_lock);
+  if (!thread_safe) {
+    lock.lock();
+  }
   pthread_t current_thread_id = pthread_self();
   if (BLI_thread_is_main()) {
     for (VKThreadData *thread_data : thread_data_) {
@@ -506,6 +509,17 @@ void VKDevice::debug_print()
   os << "Orphaned data\n";
   debug_print(os, orphaned_data);
   os << "\n";
+}
+
+void VKDevice::free_command_pool_buffers(VkCommandPool vk_command_pool)
+{
+  std::scoped_lock mutex(resources.mutex);
+  for (VKThreadData *thread_data : thread_data_) {
+    for (VKResourcePool &resource_pool : thread_data->resource_pools) {
+      resource_pool.discard_pool.free_command_pool_buffers(vk_command_pool, *this);
+    }
+  }
+  orphaned_data.free_command_pool_buffers(vk_command_pool, *this);
 }
 
 /** \} */
