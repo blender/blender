@@ -81,6 +81,8 @@ typedef struct bToolRef {
   /**
    * Value depends on the 'space_type', object mode for 3D view, image editor has its own mode too.
    * RNA needs to handle using item function.
+   *
+   * See: #eSpaceImageMode for SPACE_IMAGE, #eContextObjectMode for SPACE_VIEW3D, etc
    */
   int mode;
 
