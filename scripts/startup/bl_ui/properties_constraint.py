@@ -1132,7 +1132,7 @@ class ConstraintButtonsSubPanel:
             col.context_pointer_set("animated_id", con.id_data)
             col.template_search(
                 con, "action_slot",
-                con, "action_slots",
+                con, "action_suitable_slots",
                 new="",  # No use in making a new slot here.
                 unlink="anim.slot_unassign_from_constraint",
                 text="Slot",

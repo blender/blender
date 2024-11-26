@@ -803,13 +803,13 @@ static void rna_ActionConstraint_action_slot_set(PointerRNA *ptr,
       value, *ptr->owner_id, acon->act, acon->action_slot_handle, acon->action_slot_name, reports);
 }
 
-static void rna_iterator_ActionConstraint_action_slots_begin(CollectionPropertyIterator *iter,
-                                                             PointerRNA *ptr)
+static void rna_iterator_ActionConstraint_action_suitable_slots_begin(
+    CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   bConstraint *con = (bConstraint *)ptr->data;
   bActionConstraint *acon = (bActionConstraint *)con->data;
 
-  rna_iterator_generic_action_slots_begin(iter, acon->act);
+  rna_iterator_generic_action_suitable_slots_begin(iter, acon->act);
 }
 
 static int rna_SplineIKConstraint_joint_bindings_get_length(const PointerRNA *ptr,
@@ -2014,10 +2014,10 @@ static void rna_def_constraint_action(BlenderRNA *brna)
    * and that's enough. */
   RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
 
-  prop = RNA_def_property(srna, "action_slots", PROP_COLLECTION, PROP_NONE);
+  prop = RNA_def_property(srna, "action_suitable_slots", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "ActionSlot");
   RNA_def_property_collection_funcs(prop,
-                                    "rna_iterator_ActionConstraint_action_slots_begin",
+                                    "rna_iterator_ActionConstraint_action_suitable_slots_begin",
                                     "rna_iterator_array_next",
                                     "rna_iterator_array_end",
                                     "rna_iterator_array_dereference_get",
