@@ -229,29 +229,31 @@ class Wireframe : Overlay {
     manager.generate_commands(wireframe_ps_, view);
   }
 
-  /* TODO(fclem): Remove dependency on Resources. */
-  void draw_line_ex(Framebuffer &framebuffer, Resources &res, Manager &manager, View &view)
+  void copy_depth(TextureRef &depth_tx)
+  {
+    if (!enabled_ || !do_depth_copy_workaround_) {
+      return;
+    }
+
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
+    int2 render_size = int2(depth_tx.size());
+    tmp_depth_tx_.acquire(render_size, GPU_DEPTH24_STENCIL8, usage);
+
+    /* WORKAROUND: Nasty framebuffer copy.
+     * We should find a way to have nice wireframe without this. */
+    GPU_texture_copy(tmp_depth_tx_, depth_tx);
+  }
+
+  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;
     }
 
-    if (do_depth_copy_workaround_) {
-      eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
-      int2 render_size = int2(res.depth_tx.size());
-      tmp_depth_tx_.acquire(render_size, GPU_DEPTH24_STENCIL8, usage);
-
-      /* WORKAROUND: Nasty framebuffer copy.
-       * We should find a way to have nice wireframe without this. */
-      GPU_texture_copy(tmp_depth_tx_, res.depth_tx);
-    }
-
     GPU_framebuffer_bind(framebuffer);
     manager.submit_only(wireframe_ps_, view);
 
-    if (do_depth_copy_workaround_) {
-      tmp_depth_tx_.release();
-    }
+    tmp_depth_tx_.release();
   }
 
  private:

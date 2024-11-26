@@ -454,7 +454,7 @@ void Instance::draw_v3d(Manager &manager, View &view)
 
   auto draw_line = [&](OverlayLayer &layer, Framebuffer &framebuffer) {
     layer.bounds.draw_line(framebuffer, manager, view);
-    layer.wireframe.draw_line_ex(framebuffer, resources, manager, view);
+    layer.wireframe.draw_line(framebuffer, manager, view);
     layer.cameras.draw_line(framebuffer, manager, view);
     layer.empties.draw_line(framebuffer, manager, view);
     layer.axes.draw_line(framebuffer, manager, view);
@@ -515,6 +515,12 @@ void Instance::draw_v3d(Manager &manager, View &view)
     }
 
     infront.prepass.draw_line(resources.overlay_line_in_front_fb, manager, view);
+  }
+  {
+    /* Copy depth at the end of the prepass to avoid splitting the main render pass. */
+    /* TODO(fclem): Better get rid of it. */
+    regular.wireframe.copy_depth(resources.depth_target_tx);
+    infront.wireframe.copy_depth(resources.depth_target_in_front_tx);
   }
   {
     /* Line only pass. */
