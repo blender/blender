@@ -5485,13 +5485,13 @@ static void ui_numedit_set_active(uiBut *but)
   if ((but->flag & UI_SELECT) == 0) {
     if ((but->drawflag & UI_BUT_HOVER_LEFT) || (but->drawflag & UI_BUT_HOVER_RIGHT)) {
       if (data->changed_cursor) {
-        WM_cursor_modal_restore(data->window);
+        WM_cursor_set(data->window, WM_CURSOR_DEFAULT);
         data->changed_cursor = false;
       }
     }
     else {
       if (data->changed_cursor == false) {
-        WM_cursor_modal_set(data->window, WM_CURSOR_X_MOVE);
+        WM_cursor_set(data->window, WM_CURSOR_X_MOVE);
         data->changed_cursor = true;
       }
     }
@@ -8922,7 +8922,7 @@ static void button_activate_exit(
 #endif
 
   if (data->changed_cursor) {
-    WM_cursor_modal_restore(data->window);
+    WM_cursor_set(data->window, WM_CURSOR_DEFAULT);
   }
 
   /* redraw and refresh (for popups) */
