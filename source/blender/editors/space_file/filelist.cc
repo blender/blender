@@ -4045,6 +4045,7 @@ static void filelist_readjob_asset_library(FileListReadJob *job_params,
   }
 }
 
+/* TODO handle \a stop and \a progress. */
 static void filelist_readjob_remote_asset_library_index_read(FileListReadJob *job_params,
                                                              bool *stop,
                                                              bool *do_update,
@@ -4060,6 +4061,11 @@ static void filelist_readjob_remote_asset_library_index_read(FileListReadJob *jo
       &U, job_params->filelist->asset_library_ref->custom_library_index);
   BKE_preferences_remote_asset_library_dirpath_get(user_library, dirpath, sizeof(dirpath));
 
+  BLI_path_normalize_dir(dirpath, sizeof(dirpath));
+  if (!BLI_is_dir(dirpath)) {
+    return;
+  }
+
   Vector<index::RemoteIndexAssetEntry> asset_entries;
   if (!index::read_remote_index(dirpath, &asset_entries)) {
     return;
@@ -4067,7 +4073,7 @@ static void filelist_readjob_remote_asset_library_index_read(FileListReadJob *jo
 
   /* Reconstruct file hierarchy, so we know which .blend files to expect where, and which assets
    * they should contain. */
-  MultiValueMap<StringRef, const index::RemoteIndexAssetEntry *> assets_per_blend_path;
+  MultiValueMap<StringRef, index::RemoteIndexAssetEntry *> assets_per_blend_path;
 
   for (index::RemoteIndexAssetEntry &entry : asset_entries) {
     const char *group_name = BKE_idtype_idcode_to_name(entry.idcode);
@@ -4089,13 +4095,40 @@ static void filelist_readjob_remote_asset_library_index_read(FileListReadJob *jo
     *do_update = true;
   }
 
-  for (const auto [blend_path, mapped_asset_entries] : assets_per_blend_path.items()) {
-    printf("%s\n", blend_path.data());
-    for (const index::RemoteIndexAssetEntry *entry : mapped_asset_entries) {
-      printf("  %s\n", entry->datablock_info.name);
+  /* Lastly, update local asset index from the current remote index. */
+
+  FileIndexer local_indexer_runtime{};
+  local_indexer_runtime.callbacks = &index::file_indexer_asset;
+  local_indexer_runtime.user_data = local_indexer_runtime.callbacks->init_user_data(
+      dirpath, sizeof(dirpath));
+
+  for (const auto [blend_path_rel, mapped_asset_entries] : assets_per_blend_path.items()) {
+    BLI_assert(dirpath[strlen(dirpath) - 1] == SEP);
+    const std::string blend_path_abs = dirpath + blend_path_rel;
+
+    /* Check if the local index file for this .blend needs updating. Function is called
+     * `read_index()` but by passing null for the entries to be returned, actual reading will be
+     * skipped. */
+    eFileIndexerResult indexer_result = local_indexer_runtime.callbacks->read_index(
+        blend_path_abs.c_str(), nullptr, nullptr, local_indexer_runtime.user_data);
+
+    if (indexer_result == FILE_INDEXER_NEEDS_UPDATE) {
+      /* Not so nice, but populate #FileIndexerEntries from the asset entries for the indexer
+       * to work with. */
+      FileIndexerEntries indexer_entries = {nullptr};
+      for (index::RemoteIndexAssetEntry *entry : mapped_asset_entries) {
+        ED_file_indexer_entries_extend_from_datablock_info(
+            &indexer_entries, &entry->datablock_info, entry->idcode);
+      }
+      local_indexer_runtime.callbacks->update_index(
+          blend_path_abs.c_str(), &indexer_entries, local_indexer_runtime.user_data);
+      ED_file_indexer_entries_clear(&indexer_entries);
     }
   }
-  printf("--- DONE ---");
+
+  local_indexer_runtime.callbacks->filelist_finished(local_indexer_runtime.user_data);
+  local_indexer_runtime.callbacks->free_user_data(local_indexer_runtime.user_data);
+  local_indexer_runtime.user_data = nullptr;
 }
 
 static void filelist_readjob_remote_asset_library(FileListReadJob *job_params,

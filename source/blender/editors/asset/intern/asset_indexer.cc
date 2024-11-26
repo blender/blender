@@ -713,9 +713,11 @@ static eFileIndexerResult read_index(const char *filename,
     return FILE_INDEXER_NEEDS_UPDATE;
   }
 
-  const int read_entries_len = contents->extract_into(*entries);
-  CLOG_INFO(&LOG, 1, "Read %d entries from asset index for [%s].", read_entries_len, filename);
-  *r_read_entries_len = read_entries_len;
+  if (entries) {
+    const int read_entries_len = contents->extract_into(*entries);
+    CLOG_INFO(&LOG, 1, "Read %d entries from asset index for [%s].", read_entries_len, filename);
+    *r_read_entries_len = read_entries_len;
+  }
 
   return FILE_INDEXER_ENTRIES_LOADED;
 }

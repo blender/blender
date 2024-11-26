@@ -104,6 +104,8 @@ struct FileIndexerType {
    * entries field, `r_read_entries_len` must be set to `0` and the function must return
    * `eFileIndexerResult::FILE_INDEXER_NEEDS_UPDATE`. In this case the blend file will read from
    * the blend file and the `update_index` function will be called.
+   *
+   * TODO update comment
    */
   FileIndexerReadIndexFunc read_index;
 
@@ -123,12 +125,21 @@ struct FileIndexerType {
 void ED_file_indexer_entries_clear(FileIndexerEntries *indexer_entries);
 
 /**
- * Adds all entries from the given `datablock_infos` to the `indexer_entries`.
- * The datablock_infos must only contain data for a single IDType. The specific IDType must be
- * passed in the `idcode` parameter.
+ * Adds an entry for \a datablock_info to \a indexer_entries.
  *
- * \note This can "steal" data contained in \a datablock_infos, to avoid expensive copies, which is
+ * \note This can "steal" data contained in \a datablock_info, to avoid expensive copies, which is
  *       supported by the #BLODataBlockInfo type.
+ */
+void ED_file_indexer_entries_extend_from_datablock_info(FileIndexerEntries *indexer_entries,
+                                                        BLODataBlockInfo *datablock_info,
+                                                        const int idcode);
+
+/**
+ * Version of #ED_file_indexer_entries_extend_from_datablock_info() for a linked list of
+ * #BLODataBlockInfo items, pay attention to its note.
+ *
+ * \a datablock_infos must only contain data for a single IDType. This specific IDType must be
+ * passed in the `idcode` parameter.
  */
 void ED_file_indexer_entries_extend_from_datablock_infos(
     FileIndexerEntries *indexer_entries,

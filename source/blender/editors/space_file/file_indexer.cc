@@ -54,6 +54,16 @@ static FileIndexerEntry *file_indexer_entry_create_from_datablock_info(
 
 }  // namespace blender::ed::file::indexer
 
+void ED_file_indexer_entries_extend_from_datablock_info(FileIndexerEntries *indexer_entries,
+                                                        BLODataBlockInfo *datablock_info,
+                                                        const int idcode)
+{
+  FileIndexerEntry *file_indexer_entry =
+      blender::ed::file::indexer::file_indexer_entry_create_from_datablock_info(datablock_info,
+                                                                                idcode);
+  BLI_linklist_prepend(&indexer_entries->entries, file_indexer_entry);
+}
+
 void ED_file_indexer_entries_extend_from_datablock_infos(
     FileIndexerEntries *indexer_entries,
     LinkNode * /*BLODataBlockInfo*/ datablock_infos,
@@ -61,10 +71,7 @@ void ED_file_indexer_entries_extend_from_datablock_infos(
 {
   for (LinkNode *ln = datablock_infos; ln; ln = ln->next) {
     BLODataBlockInfo *datablock_info = static_cast<BLODataBlockInfo *>(ln->link);
-    FileIndexerEntry *file_indexer_entry =
-        blender::ed::file::indexer::file_indexer_entry_create_from_datablock_info(datablock_info,
-                                                                                  idcode);
-    BLI_linklist_prepend(&indexer_entries->entries, file_indexer_entry);
+    ED_file_indexer_entries_extend_from_datablock_info(indexer_entries, datablock_info, idcode);
   }
 }
 
