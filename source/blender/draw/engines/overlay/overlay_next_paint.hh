@@ -15,11 +15,15 @@
 
 #include "draw_cache_impl.hh"
 
-#include "overlay_next_private.hh"
+#include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {
 
-class Paints {
+/**
+ * Display paint modes overlays.
+ * Covers weight paint, vertex paint and texture paint.
+ */
+class Paints : Overlay {
 
  private:
   /* Draw selection state on top of the mesh to communicate which areas can be painted on. */
@@ -36,13 +40,11 @@ class Paints {
   bool show_wires_ = false;
   bool show_paint_mask_ = false;
 
-  bool enabled_ = false;
-
  public:
-  void begin_sync(Resources &res, const State &state)
+  void begin_sync(Resources &res, const State &state) final
   {
     enabled_ =
-        (state.space_type == SPACE_VIEW3D) && (res.selection_type == SelectionType::DISABLED) &&
+        state.is_space_v3d() && !res.is_selection() &&
         ELEM(state.ctx_mode, CTX_MODE_PAINT_WEIGHT, CTX_MODE_PAINT_VERTEX, CTX_MODE_PAINT_TEXTURE);
 
     /* Init in any case to release the data. */
@@ -59,13 +61,13 @@ class Paints {
 
     {
       auto &pass = paint_region_ps_;
+      pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       {
         auto &sub = pass.sub("Face");
         sub.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
                           DRW_STATE_BLEND_ALPHA,
                       state.clipping_plane_count);
         sub.shader_set(res.shaders.paint_region_face.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         sub.push_constant("ucolor", float4(1.0, 1.0, 1.0, 0.2));
         paint_region_face_ps_ = &sub;
       }
@@ -75,7 +77,6 @@ class Paints {
                           DRW_STATE_BLEND_ALPHA,
                       state.clipping_plane_count);
         sub.shader_set(res.shaders.paint_region_edge.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         paint_region_edge_ps_ = &sub;
       }
       {
@@ -83,7 +84,6 @@ class Paints {
         sub.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL,
                       state.clipping_plane_count);
         sub.shader_set(res.shaders.paint_region_vert.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         paint_region_vert_ps_ = &sub;
       }
     }
@@ -105,7 +105,7 @@ class Paints {
                      state.clipping_plane_count);
       pass.shader_set(shadeless ? res.shaders.paint_weight.get() :
                                   res.shaders.paint_weight_fake_shading.get());
-      pass.bind_ubo("globalsBlock", &res.globals_buf);
+      pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       pass.bind_texture("colorramp", &res.weight_ramp_tx);
       pass.push_constant("drawContours", draw_contours);
       pass.push_constant("opacity", state.overlay.weight_paint_mode_opacity);
@@ -129,7 +129,7 @@ class Paints {
         pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND_ALPHA,
                        state.clipping_plane_count);
         pass.shader_set(res.shaders.paint_texture.get());
-        pass.bind_ubo("globalsBlock", &res.globals_buf);
+        pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
         pass.bind_texture("maskImage", mask_texture);
         pass.push_constant("maskPremult", mask_premult);
         pass.push_constant("maskInvertStencil", mask_inverted);
@@ -139,7 +139,10 @@ class Paints {
     }
   }
 
-  void object_sync(Manager &manager, const ObjectRef &ob_ref, const State &state)
+  void object_sync(Manager &manager,
+                   const ObjectRef &ob_ref,
+                   Resources & /*res*/,
+                   const State &state) final
   {
     if (!enabled_) {
       return;
@@ -222,7 +225,7 @@ class Paints {
     }
   }
 
-  void draw(GPUFrameBuffer *framebuffer, Manager &manager, View &view)
+  void draw(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;

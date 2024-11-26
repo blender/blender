@@ -373,7 +373,7 @@ static int nlatracks_pushdown_exec(bContext *C, wmOperator *op)
 
   /* get anim-channel to use (or more specifically, the animdata block behind it) */
   if (track_index == -1) {
-    PointerRNA adt_ptr = {nullptr};
+    PointerRNA adt_ptr = {};
 
     /* active animdata block */
     if (nla_panel_context(C, &adt_ptr, nullptr, nullptr) == 0 || (adt_ptr.data == nullptr)) {

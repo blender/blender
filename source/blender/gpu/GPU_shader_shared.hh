@@ -32,6 +32,21 @@ enum eGPUKeyframeShapes : uint32_t {
                                GPU_KEYFRAME_SHAPE_CLIPPED_HORIZONTAL),
 };
 
+#define MAX_SOCKET_PARAMETERS 4
+#define MAX_SOCKET_INSTANCE 32
+
+/* Node Socket shader parameters. Must match the shader layout of "gpu_shader_2D_node_socket". */
+struct NodeSocketShaderParameters {
+  float4 rect;
+  float4 color_inner;
+  float4 color_outline;
+  float outline_thickness;
+  float outline_offset;
+  float shape;
+  float aspect;
+};
+BLI_STATIC_ASSERT_ALIGN(NodeSocketShaderParameters, 16)
+
 struct NodeLinkData {
   float4 colors[3];
   /* bezierPts Is actually a float2, but due to std140 each element needs to be aligned to 16

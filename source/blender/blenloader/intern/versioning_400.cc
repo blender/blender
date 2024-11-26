@@ -131,7 +131,7 @@ static void convert_action_in_place(blender::animrig::Action &action)
 
   Slot &slot = action.slot_add();
   slot.idtype = idtype;
-  slot.name_ensure_prefix();
+  slot.identifier_ensure_prefix();
 
   Layer &layer = action.layer_add("Layer");
   blender::animrig::Strip &strip = layer.strip_add(action,
@@ -248,7 +248,7 @@ static void version_legacy_actions_to_layered(Main *bmain)
     if (user_infos.size() == 1) {
       /* Rename the slot after its single user. If there are multiple users, the name is unchanged
        * because there is no good way to determine a name. */
-      action.slot_name_set(*bmain, slot_to_assign, user_infos[0].id->name);
+      action.slot_identifier_set(*bmain, slot_to_assign, user_infos[0].id->name);
     }
     for (ActionUserInfo &action_user : user_infos) {
       const ActionSlotAssignmentResult result = generic_assign_action_slot(
@@ -270,7 +270,8 @@ static void version_legacy_actions_to_layered(Main *bmain)
            * preserve this unusual (but technically valid) state of affairs.
            */
           *action_user.slot_handle = slot_to_assign.handle;
-          BLI_strncpy_utf8(action_user.slot_name, slot_to_assign.name, Slot::name_length_max);
+          BLI_strncpy_utf8(
+              action_user.slot_name, slot_to_assign.identifier, Slot::identifier_length_max);
 
           printf(
               "Warning: legacy action \"%s\" is assigned to \"%s\", which does not match the "
@@ -279,9 +280,9 @@ static void version_legacy_actions_to_layered(Main *bmain)
               "this type mismatch. This likely indicates something odd about the blend file.\n",
               action.id.name + 2,
               action_user.id->name,
-              slot_to_assign.name_prefix_for_idtype().c_str(),
-              slot_to_assign.name_without_prefix().c_str(),
-              slot_to_assign.name_prefix_for_idtype().c_str(),
+              slot_to_assign.identifier_prefix_for_idtype().c_str(),
+              slot_to_assign.identifier_without_prefix().c_str(),
+              slot_to_assign.identifier_prefix_for_idtype().c_str(),
               action_user.id->name);
           break;
         case ActionSlotAssignmentResult::SlotNotFromAction:
@@ -1257,6 +1258,18 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 2)) {
     version_legacy_actions_to_layered(bmain);
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 7)) {
+    constexpr char SCE_SNAP_TO_NODE_X = (1 << 0);
+    constexpr char SCE_SNAP_TO_NODE_Y = (1 << 1);
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->toolsettings->snap_node_mode & SCE_SNAP_TO_NODE_X ||
+          scene->toolsettings->snap_node_mode & SCE_SNAP_TO_NODE_Y)
+      {
+        scene->toolsettings->snap_node_mode = SCE_SNAP_TO_GRID;
+      }
+    }
   }
 
   /**
@@ -2404,6 +2417,126 @@ static void version_principled_bsdf_coat(bNodeTree *ntree)
       ntree, SH_NODE_BSDF_PRINCIPLED, "Clearcoat Normal", "Coat Normal");
 }
 
+static void remove_triangulate_node_min_size_input(bNodeTree *tree)
+{
+  using namespace blender;
+  Set<bNode *> triangulate_nodes;
+  LISTBASE_FOREACH (bNode *, node, &tree->nodes) {
+    if (node->type == GEO_NODE_TRIANGULATE) {
+      triangulate_nodes.add(node);
+    }
+  }
+
+  Map<bNodeSocket *, bNodeLink *> input_links;
+  LISTBASE_FOREACH (bNodeLink *, link, &tree->links) {
+    if (triangulate_nodes.contains(link->tonode)) {
+      input_links.add_new(link->tosock, link);
+    }
+  }
+
+  for (bNode *triangulate : triangulate_nodes) {
+    bNodeSocket *selection = bke::node_find_socket(triangulate, SOCK_IN, "Selection");
+    bNodeSocket *min_verts = bke::node_find_socket(triangulate, SOCK_IN, "Minimum Vertices");
+    if (!min_verts) {
+      /* Make versioning idempotent. */
+      continue;
+    }
+    const int old_min_verts = static_cast<bNodeSocketValueInt *>(min_verts->default_value)->value;
+    if (!input_links.contains(min_verts) && old_min_verts <= 4) {
+      continue;
+    }
+    bNode &corners_of_face = version_node_add_empty(*tree, "GeometryNodeCornersOfFace");
+    version_node_add_socket_if_not_exist(
+        tree, &corners_of_face, SOCK_IN, SOCK_INT, PROP_NONE, "Face Index", "Face Index");
+    version_node_add_socket_if_not_exist(
+        tree, &corners_of_face, SOCK_IN, SOCK_FLOAT, PROP_NONE, "Weights", "Weights");
+    version_node_add_socket_if_not_exist(
+        tree, &corners_of_face, SOCK_IN, SOCK_INT, PROP_NONE, "Sort Index", "Sort Index");
+    version_node_add_socket_if_not_exist(
+        tree, &corners_of_face, SOCK_OUT, SOCK_INT, PROP_NONE, "Corner Index", "Corner Index");
+    version_node_add_socket_if_not_exist(
+        tree, &corners_of_face, SOCK_OUT, SOCK_INT, PROP_NONE, "Total", "Total");
+    corners_of_face.locx = triangulate->locx - 200;
+    corners_of_face.locy = triangulate->locy - 50;
+    corners_of_face.parent = triangulate->parent;
+    LISTBASE_FOREACH (bNodeSocket *, socket, &corners_of_face.inputs) {
+      socket->flag |= SOCK_HIDDEN;
+    }
+    LISTBASE_FOREACH (bNodeSocket *, socket, &corners_of_face.outputs) {
+      if (!STREQ(socket->identifier, "Total")) {
+        socket->flag |= SOCK_HIDDEN;
+      }
+    }
+
+    bNode &greater_or_equal = version_node_add_empty(*tree, "FunctionNodeCompare");
+    auto *compare_storage = MEM_cnew<NodeFunctionCompare>(__func__);
+    compare_storage->operation = NODE_COMPARE_GREATER_EQUAL;
+    compare_storage->data_type = SOCK_INT;
+    greater_or_equal.storage = compare_storage;
+    version_node_add_socket_if_not_exist(
+        tree, &greater_or_equal, SOCK_IN, SOCK_INT, PROP_NONE, "A_INT", "A");
+    version_node_add_socket_if_not_exist(
+        tree, &greater_or_equal, SOCK_IN, SOCK_INT, PROP_NONE, "B_INT", "B");
+    version_node_add_socket_if_not_exist(
+        tree, &greater_or_equal, SOCK_OUT, SOCK_BOOLEAN, PROP_NONE, "Result", "Result");
+    greater_or_equal.locx = triangulate->locx - 100;
+    greater_or_equal.locy = triangulate->locy - 50;
+    greater_or_equal.parent = triangulate->parent;
+    greater_or_equal.flag &= ~NODE_OPTIONS;
+    version_node_add_link(*tree,
+                          corners_of_face,
+                          *bke::node_find_socket(&corners_of_face, SOCK_OUT, "Total"),
+                          greater_or_equal,
+                          *bke::node_find_socket(&greater_or_equal, SOCK_IN, "A_INT"));
+    if (bNodeLink **min_verts_link = input_links.lookup_ptr(min_verts)) {
+      (*min_verts_link)->tonode = &greater_or_equal;
+      (*min_verts_link)->tosock = bke::node_find_socket(&greater_or_equal, SOCK_IN, "B_INT");
+    }
+    else {
+      bNodeSocket *new_min_verts = bke::node_find_socket(&greater_or_equal, SOCK_IN, "B_INT");
+      static_cast<bNodeSocketValueInt *>(new_min_verts->default_value)->value = old_min_verts;
+    }
+
+    if (bNodeLink **selection_link = input_links.lookup_ptr(selection)) {
+      bNode &boolean_and = version_node_add_empty(*tree, "FunctionNodeBooleanMath");
+      version_node_add_socket_if_not_exist(
+          tree, &boolean_and, SOCK_IN, SOCK_BOOLEAN, PROP_NONE, "Boolean", "Boolean");
+      version_node_add_socket_if_not_exist(
+          tree, &boolean_and, SOCK_IN, SOCK_BOOLEAN, PROP_NONE, "Boolean_001", "Boolean");
+      version_node_add_socket_if_not_exist(
+          tree, &boolean_and, SOCK_OUT, SOCK_BOOLEAN, PROP_NONE, "Boolean", "Boolean");
+      boolean_and.locx = triangulate->locx - 75;
+      boolean_and.locy = triangulate->locy - 50;
+      boolean_and.parent = triangulate->parent;
+      boolean_and.flag &= ~NODE_OPTIONS;
+      boolean_and.custom1 = NODE_BOOLEAN_MATH_AND;
+
+      (*selection_link)->tonode = &boolean_and;
+      (*selection_link)->tosock = bke::node_find_socket(&boolean_and, SOCK_IN, "Boolean");
+      version_node_add_link(*tree,
+                            greater_or_equal,
+                            *bke::node_find_socket(&greater_or_equal, SOCK_OUT, "Result"),
+                            boolean_and,
+                            *bke::node_find_socket(&boolean_and, SOCK_IN, "Boolean_001"));
+
+      version_node_add_link(*tree,
+                            boolean_and,
+                            *bke::node_find_socket(&boolean_and, SOCK_OUT, "Boolean"),
+                            *triangulate,
+                            *selection);
+    }
+    else {
+      version_node_add_link(*tree,
+                            greater_or_equal,
+                            *bke::node_find_socket(&greater_or_equal, SOCK_OUT, "Result"),
+                            *triangulate,
+                            *selection);
+    }
+
+    /* Make versioning idempotent. */
+    bke::node_remove_socket(tree, triangulate, min_verts);
+  }
+}
 /* Convert specular tint in Principled BSDF. */
 static void version_principled_bsdf_specular_tint(bNodeTree *ntree)
 {
@@ -3649,12 +3782,12 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       auto versioning_snap_to = [](short snap_to_old, int type) {
         eSnapMode snap_to_new = SCE_SNAP_TO_NONE;
         if (snap_to_old & (1 << 0)) {
-          snap_to_new |= type == IS_NODE ? SCE_SNAP_TO_NODE_X :
+          snap_to_new |= type == IS_NODE ? SCE_SNAP_TO_NONE :
                          type == IS_ANIM ? SCE_SNAP_TO_FRAME :
                                            SCE_SNAP_TO_VERTEX;
         }
         if (snap_to_old & (1 << 1)) {
-          snap_to_new |= type == IS_NODE ? SCE_SNAP_TO_NODE_Y :
+          snap_to_new |= type == IS_NODE ? SCE_SNAP_TO_NONE :
                          type == IS_ANIM ? SCE_SNAP_TO_SECOND :
                                            SCE_SNAP_TO_EDGE;
         }
@@ -5041,6 +5174,14 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 6)) {
     add_subsurf_node_limit_surface_option(*bmain);
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 8)) {
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        remove_triangulate_node_min_size_input(ntree);
+      }
+    }
   }
 
   /* Always run this versioning; meshes are written with the legacy format which always needs to

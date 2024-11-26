@@ -236,10 +236,11 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
     const eGPUTextureFormat texture_format = Result::gpu_texture_format(result_type, precision_);
     /* A height of 1 indicates a 1D texture according to the OCIO API. */
 #  if OCIO_VERSION_HEX >= 0x02030000
-    if (dimensions == OCIO::GpuShaderDesc::TEXTURE_1D) {
+    if (dimensions == OCIO::GpuShaderDesc::TEXTURE_1D)
 #  else
-    if (height == 1) {
+    if (height == 1)
 #  endif
+    {
       texture = GPU_texture_create_1d(
           texture_name, width, 1, texture_format, GPU_TEXTURE_USAGE_SHADER_READ, values);
       shader_create_info_.sampler(textures_.size() + 1, ImageType::FLOAT_1D, resource_name);

@@ -2387,7 +2387,7 @@ bool BKE_nla_tweakmode_enter(const OwnedAnimData owned_adt)
           animrig::ActionSlotAssignmentResult::OK)
       {
         printf("NLA tweak-mode enter - could not assign slot %s\n",
-               strip_slot ? strip_slot->name : "-unassigned-");
+               strip_slot ? strip_slot->identifier : "-unassigned-");
         /* There is one other reason this could fail: when already in NLA tweak mode. But since
          * we're here in the code, the ADT_NLA_EDIT_ON flag is not yet set, and thus that shouldn't
          * be the case.

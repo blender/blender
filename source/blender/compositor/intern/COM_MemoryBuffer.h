@@ -461,15 +461,18 @@ class MemoryBuffer {
 
     if (sampler == PixelSampler::Bilinear) {
       /* Sample using Extend or Repeat. */
-      math::interpolate_bilinear_wrap_fl(buffer_,
-                                         result,
-                                         w,
-                                         h,
-                                         num_channels_,
-                                         x,
-                                         y,
-                                         extend_x == MemoryBufferExtend::Repeat,
-                                         extend_y == MemoryBufferExtend::Repeat);
+      math::interpolate_bilinear_wrapmode_fl(
+          buffer_,
+          result,
+          w,
+          h,
+          num_channels_,
+          x,
+          y,
+          extend_x == MemoryBufferExtend::Repeat ? math::InterpWrapMode::Repeat :
+                                                   math::InterpWrapMode::Extend,
+          extend_y == MemoryBufferExtend::Repeat ? math::InterpWrapMode::Repeat :
+                                                   math::InterpWrapMode::Extend);
     }
     else { /* #PixelSampler::Bicubic */
       /* Sample using Extend (Repeat is not implemented by `interpolate_cubic_bspline`). */
@@ -504,15 +507,18 @@ class MemoryBuffer {
       memcpy(result, buffer_, sizeof(float) * num_channels_);
     }
     else {
-      math::interpolate_bilinear_wrap_fl(buffer_,
-                                         result,
-                                         get_width(),
-                                         get_height(),
-                                         num_channels_,
-                                         u,
-                                         v,
-                                         extend_x == MemoryBufferExtend::Repeat,
-                                         extend_y == MemoryBufferExtend::Repeat);
+      math::interpolate_bilinear_wrapmode_fl(
+          buffer_,
+          result,
+          get_width(),
+          get_height(),
+          num_channels_,
+          u,
+          v,
+          extend_x == MemoryBufferExtend::Repeat ? math::InterpWrapMode::Repeat :
+                                                   math::InterpWrapMode::Extend,
+          extend_y == MemoryBufferExtend::Repeat ? math::InterpWrapMode::Repeat :
+                                                   math::InterpWrapMode::Extend);
     }
   }
 

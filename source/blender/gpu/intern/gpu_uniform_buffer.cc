@@ -199,7 +199,7 @@ GPUUniformBuf *GPU_uniformbuf_create_ex(size_t size, const void *data, const cha
   }
   else if (G.debug & G_DEBUG_GPU) {
     /* Fill the buffer with poison values.
-     * (NaN for floats, -1 for ints and "max value" for uints). */
+     * (NaN for floats, -1 for `int` and "max value" for `uint`). */
     blender::Vector<uchar> uninitialized_data(size, 0xFF);
     ubo->update(uninitialized_data.data());
   }

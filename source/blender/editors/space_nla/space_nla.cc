@@ -510,7 +510,7 @@ static void nla_track_region_message_subscribe(const wmRegionMessageSubscribePar
    * so just whitelist the entire struct for updates
    */
   {
-    wmMsgParams_RNA msg_key_params = {{nullptr}};
+    wmMsgParams_RNA msg_key_params = {{}};
     StructRNA *type_array[] = {
         &RNA_DopeSheet,
     };

@@ -5244,7 +5244,7 @@ static int slot_channels_move_to_new_action_exec(bContext *C, wmOperator * /* op
   Main *bmain = CTX_data_main(C);
   if (slots.size() == 1) {
     char actname[MAX_ID_NAME - 2];
-    SNPRINTF(actname, DATA_("%sAction"), slots[0].first->name + 2);
+    SNPRINTF(actname, DATA_("%sAction"), slots[0].first->identifier + 2);
     target_action = &action_add(*bmain, actname);
   }
   else {
@@ -5311,7 +5311,7 @@ static int separate_slots_exec(bContext *C, wmOperator * /* op */)
   while (action->slot_array_num) {
     Slot *slot = action->slot(action->slot_array_num - 1);
     char actname[MAX_ID_NAME - 2];
-    SNPRINTF(actname, DATA_("%sAction"), slot->name + 2);
+    SNPRINTF(actname, DATA_("%sAction"), slot->identifier + 2);
     Action &target_action = action_add(*bmain, actname);
     Layer &layer = target_action.layer_add(std::nullopt);
     layer.strip_add(target_action, Strip::Type::Keyframe);
@@ -5558,7 +5558,7 @@ static rctf calculate_selection_fcurve_bounds(bAnimContext *ac,
 
 static int view_curve_in_graph_editor_exec(bContext *C, wmOperator *op)
 {
-  PointerRNA button_ptr = {nullptr};
+  PointerRNA button_ptr = {};
   PropertyRNA *button_prop = nullptr;
   uiBut *but;
   int index;

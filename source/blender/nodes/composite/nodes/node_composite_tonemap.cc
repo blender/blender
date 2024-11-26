@@ -282,7 +282,7 @@ class ToneMapOperation : public NodeOperation {
       float4 adaptation_level = math::interpolate(
           global_adaptation_level, local_adaptation_level, light_adaptation);
 
-      /* Equation (1) from Reinhard's 2005 paper, assuming Vmax is 1. */
+      /* Equation (1) from Reinhard's 2005 paper, assuming `Vmax` is 1. */
       float4 semi_saturation = math::pow(intensity * adaptation_level, contrast);
       float4 tone_mapped_color = input_color / (input_color + semi_saturation);
 

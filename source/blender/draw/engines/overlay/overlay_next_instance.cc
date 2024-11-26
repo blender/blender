@@ -36,6 +36,12 @@ void Instance::init()
   state.object_active = ctx->obact;
   state.object_mode = ctx->object_mode;
   state.cfra = DEG_get_ctime(state.depsgraph);
+  state.is_viewport_image_render = DRW_state_is_viewport_image_render();
+  state.is_image_render = DRW_state_is_image_render();
+  state.is_depth_only_drawing = DRW_state_is_depth();
+  state.is_material_select = DRW_state_is_material_select();
+  state.draw_background = DRW_state_draw_background();
+  state.show_text = DRW_state_show_text();
 
   /* Note there might be less than 6 planes, but we always compute the 6 of them for simplicity. */
   state.clipping_plane_count = clipping_enabled_ ? 6 : 0;
@@ -70,11 +76,11 @@ void Instance::init()
       state.overlay.wireframe_opacity = state.v3d->overlay.wireframe_opacity;
     }
 
-    state.do_pose_xray = (state.overlay.flag & V3D_OVERLAY_BONE_SELECT);
+    state.do_pose_xray = state.show_bone_selection();
     state.do_pose_fade_geom = state.do_pose_xray && !(state.object_mode & OB_MODE_WEIGHT_PAINT) &&
                               ctx->object_pose != nullptr;
   }
-  else if (state.space_type == SPACE_IMAGE) {
+  else if (state.is_space_image()) {
     SpaceImage *space_image = (SpaceImage *)state.space_data;
 
     state.clear_in_front = false;
@@ -116,28 +122,29 @@ void Instance::begin_sync()
 
   background.begin_sync(resources, state);
   motion_paths.begin_sync(resources, state);
-  origins.begin_sync(state);
+  origins.begin_sync(resources, state);
   outline.begin_sync(resources, state);
 
   auto begin_sync_layer = [&](OverlayLayer &layer) {
     layer.armatures.begin_sync(resources, state);
     layer.attribute_viewer.begin_sync(resources, state);
+    layer.attribute_texts.begin_sync(resources, state);
     layer.axes.begin_sync(resources, state);
-    layer.bounds.begin_sync();
-    layer.cameras.begin_sync(resources, state, view);
-    layer.curves.begin_sync(resources, state, view);
-    layer.edit_text.begin_sync(state);
-    layer.empties.begin_sync(resources, state, view);
+    layer.bounds.begin_sync(resources, state);
+    layer.cameras.begin_sync(resources, state);
+    layer.curves.begin_sync(resources, state);
+    layer.edit_text.begin_sync(resources, state);
+    layer.empties.begin_sync(resources, state);
     layer.facing.begin_sync(resources, state);
     layer.fade.begin_sync(resources, state);
-    layer.force_fields.begin_sync();
+    layer.force_fields.begin_sync(resources, state);
     layer.fluids.begin_sync(resources, state);
-    layer.grease_pencil.begin_sync(resources, state, view);
+    layer.grease_pencil.begin_sync(resources, state);
     layer.lattices.begin_sync(resources, state);
-    layer.lights.begin_sync(state);
+    layer.lights.begin_sync(resources, state);
     layer.light_probes.begin_sync(resources, state);
-    layer.metaballs.begin_sync();
-    layer.meshes.begin_sync(resources, state, view);
+    layer.metaballs.begin_sync(resources, state);
+    layer.meshes.begin_sync(resources, state);
     layer.mesh_uvs.begin_sync(resources, state);
     layer.mode_transfer.begin_sync(resources, state);
     layer.names.begin_sync(resources, state);
@@ -145,16 +152,16 @@ void Instance::begin_sync()
     layer.particles.begin_sync(resources, state);
     layer.prepass.begin_sync(resources, state);
     layer.relations.begin_sync(resources, state);
-    layer.speakers.begin_sync();
+    layer.speakers.begin_sync(resources, state);
     layer.sculpts.begin_sync(resources, state);
     layer.wireframe.begin_sync(resources, state);
   };
   begin_sync_layer(regular);
   begin_sync_layer(infront);
 
-  grid.begin_sync(resources, shapes, state, view);
+  grid.begin_sync(resources, state);
 
-  anti_aliasing.begin_sync(resources);
+  anti_aliasing.begin_sync(resources, state);
   xray_fade.begin_sync(resources, state);
 }
 
@@ -170,7 +177,7 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
 
   OverlayLayer &layer = object_is_in_front(ob_ref.object, state) ? infront : regular;
 
-  layer.mode_transfer.object_sync(manager, ob_ref, state);
+  layer.mode_transfer.object_sync(manager, ob_ref, resources, state);
 
   if (needs_prepass) {
     layer.prepass.object_sync(manager, ob_ref, resources, state);
@@ -184,12 +191,12 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
     switch (ob_ref.object->type) {
       case OB_MESH:
         /* TODO(fclem): Make it part of a #Meshes. */
-        layer.paints.object_sync(manager, ob_ref, state);
-        /* For wireframes. */
-        layer.mesh_uvs.edit_object_sync(manager, ob_ref, state);
+        layer.paints.object_sync(manager, ob_ref, resources, state);
+        /* For wire-frames. */
+        layer.mesh_uvs.edit_object_sync(manager, ob_ref, resources, state);
         break;
       case OB_GREASE_PENCIL:
-        layer.grease_pencil.paint_object_sync(manager, ob_ref, state, resources);
+        layer.grease_pencil.paint_object_sync(manager, ob_ref, resources, state);
         break;
       default:
         break;
@@ -200,10 +207,10 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
     switch (ob_ref.object->type) {
       case OB_MESH:
         /* TODO(fclem): Make it part of a #Meshes. */
-        layer.sculpts.object_sync(manager, ob_ref, state);
+        layer.sculpts.object_sync(manager, ob_ref, resources, state);
         break;
       case OB_GREASE_PENCIL:
-        layer.grease_pencil.sculpt_object_sync(manager, ob_ref, state, resources);
+        layer.grease_pencil.sculpt_object_sync(manager, ob_ref, resources, state);
         break;
       default:
         break;
@@ -213,50 +220,50 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
   if (in_edit_mode && !state.hide_overlays) {
     switch (ob_ref.object->type) {
       case OB_MESH:
-        layer.meshes.edit_object_sync(manager, ob_ref, state, resources);
+        layer.meshes.edit_object_sync(manager, ob_ref, resources, state);
         /* TODO(fclem): Find a better place / condition. */
-        layer.mesh_uvs.edit_object_sync(manager, ob_ref, state);
+        layer.mesh_uvs.edit_object_sync(manager, ob_ref, resources, state);
         break;
       case OB_ARMATURE:
-        layer.armatures.edit_object_sync(ob_ref, resources, shapes, state);
+        layer.armatures.edit_object_sync(manager, ob_ref, resources, state);
         break;
       case OB_SURF:
       case OB_CURVES_LEGACY:
         layer.curves.edit_object_sync_legacy(manager, ob_ref, resources);
         break;
       case OB_CURVES:
-        layer.curves.edit_object_sync(manager, ob_ref, resources);
+        layer.curves.edit_object_sync(manager, ob_ref, resources, state);
         break;
       case OB_LATTICE:
-        layer.lattices.edit_object_sync(manager, ob_ref, resources);
+        layer.lattices.edit_object_sync(manager, ob_ref, resources, state);
         break;
       case OB_MBALL:
-        layer.metaballs.edit_object_sync(ob_ref, resources);
+        layer.metaballs.edit_object_sync(manager, ob_ref, resources, state);
         break;
       case OB_FONT:
-        layer.edit_text.edit_object_sync(ob_ref, resources);
+        layer.edit_text.edit_object_sync(manager, ob_ref, resources, state);
         break;
       case OB_GREASE_PENCIL:
-        layer.grease_pencil.edit_object_sync(manager, ob_ref, state, resources);
+        layer.grease_pencil.edit_object_sync(manager, ob_ref, resources, state);
         break;
     }
   }
 
   if (state.is_wireframe_mode || !state.hide_overlays) {
-    layer.wireframe.object_sync(manager, ob_ref, state, resources, in_edit_paint_mode);
+    layer.wireframe.object_sync_ex(manager, ob_ref, resources, state, in_edit_paint_mode);
   }
 
   if (!state.hide_overlays) {
     switch (ob_ref.object->type) {
       case OB_EMPTY:
-        layer.empties.object_sync(ob_ref, shapes, manager, resources, state);
+        layer.empties.object_sync_ex(ob_ref, shapes, manager, resources, state);
         break;
       case OB_CAMERA:
-        layer.cameras.object_sync(ob_ref, shapes, manager, resources, state);
+        layer.cameras.object_sync_ex(ob_ref, shapes, manager, resources, state);
         break;
       case OB_ARMATURE:
         if (!in_edit_mode) {
-          layer.armatures.object_sync(ob_ref, resources, shapes, state);
+          layer.armatures.object_sync(manager, ob_ref, resources, state);
         }
         break;
       case OB_LATTICE:
@@ -265,46 +272,47 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
         }
         break;
       case OB_LAMP:
-        layer.lights.object_sync(ob_ref, resources, state);
+        layer.lights.object_sync(manager, ob_ref, resources, state);
         break;
       case OB_LIGHTPROBE:
-        layer.light_probes.object_sync(ob_ref, resources, state);
+        layer.light_probes.object_sync(manager, ob_ref, resources, state);
         break;
       case OB_MBALL:
         if (!in_edit_mode) {
-          layer.metaballs.object_sync(ob_ref, resources, state);
+          layer.metaballs.object_sync(manager, ob_ref, resources, state);
         }
         break;
       case OB_GREASE_PENCIL:
-        layer.grease_pencil.object_sync(ob_ref, resources, state);
+        layer.grease_pencil.object_sync(manager, ob_ref, resources, state);
         break;
       case OB_SPEAKER:
-        layer.speakers.object_sync(ob_ref, resources, state);
+        layer.speakers.object_sync(manager, ob_ref, resources, state);
         break;
     }
-    layer.attribute_viewer.object_sync(ob_ref, state, manager);
-    layer.bounds.object_sync(ob_ref, resources, state);
-    layer.facing.object_sync(manager, ob_ref, state);
-    layer.fade.object_sync(manager, ob_ref, state);
-    layer.force_fields.object_sync(ob_ref, resources, state);
+    layer.attribute_viewer.object_sync(manager, ob_ref, resources, state);
+    layer.attribute_texts.object_sync(manager, ob_ref, resources, state);
+    layer.bounds.object_sync(manager, ob_ref, resources, state);
+    layer.facing.object_sync(manager, ob_ref, resources, state);
+    layer.fade.object_sync(manager, ob_ref, resources, state);
+    layer.force_fields.object_sync(manager, ob_ref, resources, state);
     layer.fluids.object_sync(manager, ob_ref, resources, state);
     layer.particles.object_sync(manager, ob_ref, resources, state);
-    layer.relations.object_sync(ob_ref, resources, state);
-    layer.axes.object_sync(ob_ref, resources, state);
-    layer.names.object_sync(ob_ref, resources, state);
+    layer.relations.object_sync(manager, ob_ref, resources, state);
+    layer.axes.object_sync(manager, ob_ref, resources, state);
+    layer.names.object_sync(manager, ob_ref, resources, state);
 
-    motion_paths.object_sync(ob_ref, resources, state);
-    origins.object_sync(ob_ref, resources, state);
+    motion_paths.object_sync(manager, ob_ref, resources, state);
+    origins.object_sync(manager, ob_ref, resources, state);
 
     if (object_is_selected(ob_ref) && !in_edit_paint_mode) {
-      outline.object_sync(manager, ob_ref, state);
+      outline.object_sync(manager, ob_ref, resources, state);
     }
   }
 }
 
 void Instance::end_sync()
 {
-  origins.end_sync(resources, state);
+  origins.end_sync(resources, shapes, state);
   resources.end_sync();
 
   auto end_sync_layer = [&](OverlayLayer &layer) {
@@ -319,7 +327,7 @@ void Instance::end_sync()
     layer.light_probes.end_sync(resources, shapes, state);
     layer.mesh_uvs.end_sync(resources, shapes, state);
     layer.metaballs.end_sync(resources, shapes, state);
-    layer.relations.end_sync(resources, state);
+    layer.relations.end_sync(resources, shapes, state);
     layer.fluids.end_sync(resources, shapes, state);
     layer.speakers.end_sync(resources, shapes, state);
   };
@@ -344,8 +352,18 @@ void Instance::end_sync()
 
 void Instance::draw(Manager &manager)
 {
-  const DRWView *view_legacy = DRW_view_default_get();
-  View view("OverlayView", view_legacy);
+  /* TODO(fclem): Remove global access. */
+  view.sync(DRW_view_default_get());
+
+  static gpu::DebugScope select_scope = {"Selection"};
+  static gpu::DebugScope draw_scope = {"Overlay"};
+
+  if (resources.is_selection()) {
+    select_scope.begin_capture();
+  }
+  else {
+    draw_scope.begin_capture();
+  }
 
   /* Pre-Draw: Run the compute steps of all passes up-front
    * to avoid constant GPU compute/raster context switching. */
@@ -367,7 +385,9 @@ void Instance::draw(Manager &manager)
 
     pre_draw(regular);
     pre_draw(infront);
-    outline.pre_draw(manager, view);
+    outline.pre_draw_ex(manager, view, resources, state);
+
+    GreasePencil::compute_depth_planes(manager, view, resources, state);
   }
 
   resources.depth_tx.wrap(DRW_viewport_texture_list_get()->depth);
@@ -441,20 +461,10 @@ void Instance::draw(Manager &manager)
   resources.overlay_color_only_fb.ensure(GPU_ATTACHMENT_NONE,
                                          GPU_ATTACHMENT_TEXTURE(resources.overlay_tx));
   /* The v2d path writes to the overlay output directly, but it needs a depth attachment. */
-  resources.overlay_output_fb.ensure(state.space_type == SPACE_IMAGE ?
+  resources.overlay_output_fb.ensure(state.is_space_image() ?
                                          GPUAttachment GPU_ATTACHMENT_TEXTURE(resources.depth_tx) :
                                          GPUAttachment GPU_ATTACHMENT_NONE,
                                      GPU_ATTACHMENT_TEXTURE(resources.color_overlay_tx));
-
-  static gpu::DebugScope select_scope = {"Selection"};
-  static gpu::DebugScope draw_scope = {"Overlay"};
-
-  if (resources.selection_type != SelectionType::DISABLED) {
-    select_scope.begin_capture();
-  }
-  else {
-    draw_scope.begin_capture();
-  }
 
   /* TODO(fclem): Would be better to have a v2d overlay class instead of these conditions. */
   switch (state.space_type) {
@@ -481,7 +491,7 @@ void Instance::draw(Manager &manager)
 
   resources.read_result();
 
-  if (resources.selection_type != SelectionType::DISABLED) {
+  if (resources.is_selection()) {
     select_scope.end_capture();
   }
   else {
@@ -493,8 +503,9 @@ void Instance::draw_node(Manager &manager, View &view)
 {
   /* Don't clear background for the node editor. The node editor draws the background and we
    * need to mask out the image from the already drawn overlay color buffer. */
-  background.draw(resources.overlay_output_fb, manager, view);
+  background.draw_output(resources.overlay_output_fb, manager, view);
 }
+
 void Instance::draw_v2d(Manager &manager, View &view)
 {
   regular.mesh_uvs.draw_on_render(resources.render_fb, manager, view);
@@ -502,112 +513,130 @@ void Instance::draw_v2d(Manager &manager, View &view)
   GPU_framebuffer_bind(resources.overlay_output_fb);
   GPU_framebuffer_clear_color(resources.overlay_output_fb, float4(0.0));
 
-  background.draw(resources.overlay_output_fb, manager, view);
-  grid.draw(resources.overlay_output_fb, manager, view);
+  background.draw_output(resources.overlay_output_fb, manager, view);
+  grid.draw_color_only(resources.overlay_output_fb, manager, view);
   regular.mesh_uvs.draw(resources.overlay_output_fb, manager, view);
 }
 
 void Instance::draw_v3d(Manager &manager, View &view)
 {
-  regular.cameras.draw_scene_background_images(resources.render_fb, manager, view);
-  infront.cameras.draw_scene_background_images(resources.render_fb, manager, view);
-
-  regular.sculpts.draw_on_render(resources.render_fb, manager, view);
-  infront.sculpts.draw_on_render(resources.render_in_front_fb, manager, view);
-
-  GPU_framebuffer_bind(resources.overlay_line_fb);
   float4 clear_color(0.0f);
-  if (state.xray_enabled) {
-    /* Rendering to a new depth buffer that needs to be cleared. */
-    GPU_framebuffer_clear_color_depth(resources.overlay_line_fb, clear_color, 1.0f);
-  }
-  else {
-    GPU_framebuffer_clear_color(resources.overlay_line_fb, clear_color);
-  }
 
-  regular.empties.draw_images(resources.overlay_fb, manager, view);
-
-  regular.prepass.draw(resources.overlay_line_fb, manager, view);
-
-  if (state.xray_enabled || (state.v3d && state.v3d->shading.type > OB_SOLID)) {
-    /* If workbench is not enabled, the infront buffer might contain garbage. */
-    GPU_framebuffer_bind(resources.overlay_line_in_front_fb);
-    GPU_framebuffer_clear_depth(resources.overlay_line_in_front_fb, 1.0f);
-  }
-
-  infront.prepass.draw(resources.overlay_line_in_front_fb, manager, view);
-
-  outline.draw(resources, manager, view);
-
-  auto overlay_fb_draw = [&](OverlayLayer &layer, Framebuffer &framebuffer) {
+  auto draw = [&](OverlayLayer &layer, Framebuffer &framebuffer) {
     layer.facing.draw(framebuffer, manager, view);
     layer.fade.draw(framebuffer, manager, view);
     layer.mode_transfer.draw(framebuffer, manager, view);
     layer.edit_text.draw(framebuffer, manager, view);
     layer.paints.draw(framebuffer, manager, view);
-    layer.particles.draw_no_line(framebuffer, manager, view);
-  };
-
-  auto draw_layer = [&](OverlayLayer &layer, Framebuffer &framebuffer) {
-    layer.bounds.draw(framebuffer, manager, view);
-    layer.wireframe.draw(framebuffer, resources, manager, view);
-    layer.cameras.draw(framebuffer, manager, view);
-    layer.empties.draw(framebuffer, manager, view);
-    layer.axes.draw(framebuffer, manager, view);
-    layer.force_fields.draw(framebuffer, manager, view);
-    layer.lights.draw(framebuffer, manager, view);
-    layer.light_probes.draw(framebuffer, manager, view);
-    layer.speakers.draw(framebuffer, manager, view);
-    layer.lattices.draw(framebuffer, manager, view);
-    layer.metaballs.draw(framebuffer, manager, view);
-    layer.relations.draw(framebuffer, manager, view);
-    layer.fluids.draw(framebuffer, manager, view);
     layer.particles.draw(framebuffer, manager, view);
-    layer.attribute_viewer.draw(framebuffer, manager, view);
-    layer.armatures.draw(framebuffer, manager, view);
-    layer.sculpts.draw(framebuffer, manager, view);
-    layer.grease_pencil.draw(framebuffer, manager, view);
-    layer.meshes.draw(framebuffer, manager, view);
-    layer.curves.draw(framebuffer, manager, view);
   };
 
-  auto draw_layer_color_only = [&](OverlayLayer &layer, Framebuffer &framebuffer) {
+  auto draw_line = [&](OverlayLayer &layer, Framebuffer &framebuffer) {
+    layer.bounds.draw_line(framebuffer, manager, view);
+    layer.wireframe.draw_line_ex(framebuffer, resources, manager, view);
+    layer.cameras.draw_line(framebuffer, manager, view);
+    layer.empties.draw_line(framebuffer, manager, view);
+    layer.axes.draw_line(framebuffer, manager, view);
+    layer.force_fields.draw_line(framebuffer, manager, view);
+    layer.lights.draw_line(framebuffer, manager, view);
+    layer.light_probes.draw_line(framebuffer, manager, view);
+    layer.speakers.draw_line(framebuffer, manager, view);
+    layer.lattices.draw_line(framebuffer, manager, view);
+    layer.metaballs.draw_line(framebuffer, manager, view);
+    layer.relations.draw_line(framebuffer, manager, view);
+    layer.fluids.draw_line(framebuffer, manager, view);
+    layer.particles.draw_line(framebuffer, manager, view);
+    layer.attribute_viewer.draw_line(framebuffer, manager, view);
+    layer.armatures.draw_line(framebuffer, manager, view);
+    layer.sculpts.draw_line(framebuffer, manager, view);
+    layer.grease_pencil.draw_line(framebuffer, manager, view);
+    layer.meshes.draw_line(framebuffer, manager, view);
+    layer.curves.draw_line(framebuffer, manager, view);
+  };
+
+  auto draw_color_only = [&](OverlayLayer &layer, Framebuffer &framebuffer) {
     layer.light_probes.draw_color_only(framebuffer, manager, view);
     layer.meshes.draw_color_only(framebuffer, manager, view);
     layer.curves.draw_color_only(framebuffer, manager, view);
     layer.grease_pencil.draw_color_only(framebuffer, manager, view);
   };
 
-  overlay_fb_draw(regular, resources.overlay_fb);
-  draw_layer(regular, resources.overlay_line_fb);
+  {
+    /* Render pass. Draws directly on render result (instead of overlay result). */
+    /* TODO(fclem): Split overlay and rename draw functions. */
+    regular.cameras.draw_scene_background_images(resources.render_fb, manager, view);
+    infront.cameras.draw_scene_background_images(resources.render_in_front_fb, manager, view);
 
-  overlay_fb_draw(infront, resources.overlay_in_front_fb);
-  draw_layer(infront, resources.overlay_line_in_front_fb);
+    regular.sculpts.draw_on_render(resources.render_fb, manager, view);
+    infront.sculpts.draw_on_render(resources.render_in_front_fb, manager, view);
+  }
+  {
+    /* Overlay Line prepass. */
+    GPU_framebuffer_bind(resources.overlay_line_fb);
+    if (state.xray_enabled) {
+      /* Rendering to a new depth buffer that needs to be cleared. */
+      GPU_framebuffer_clear_color_depth(resources.overlay_line_fb, clear_color, 1.0f);
+    }
+    else {
+      GPU_framebuffer_clear_color(resources.overlay_line_fb, clear_color);
+    }
 
-  motion_paths.draw_color_only(resources.overlay_color_only_fb, manager, view);
-  xray_fade.draw(resources.overlay_color_only_fb, manager, view);
+    /* TODO(fclem): Split overlay and rename draw functions. */
+    /* TODO(fclem): Draw on line framebuffer. */
+    regular.empties.draw_images(resources.overlay_fb, manager, view);
 
-  grid.draw(resources.overlay_color_only_fb, manager, view);
+    regular.prepass.draw_line(resources.overlay_line_fb, manager, view);
 
-  draw_layer_color_only(regular, resources.overlay_color_only_fb);
-  draw_layer_color_only(infront, resources.overlay_color_only_fb);
+    if (state.xray_enabled || (state.v3d && state.v3d->shading.type > OB_SOLID)) {
+      /* If workbench is not enabled, the infront buffer might contain garbage. */
+      GPU_framebuffer_bind(resources.overlay_line_in_front_fb);
+      GPU_framebuffer_clear_depth(resources.overlay_line_in_front_fb, 1.0f);
+    }
 
-  regular.empties.draw_in_front_images(resources.overlay_color_only_fb, manager, view);
-  infront.empties.draw_in_front_images(resources.overlay_color_only_fb, manager, view);
-  regular.cameras.draw_in_front(resources.overlay_color_only_fb, manager, view);
-  infront.cameras.draw_in_front(resources.overlay_color_only_fb, manager, view);
+    infront.prepass.draw_line(resources.overlay_line_in_front_fb, manager, view);
+  }
+  {
+    /* Line only pass. */
+    outline.draw_line_only_ex(resources.overlay_line_only_fb, resources, manager, view);
+  }
+  {
+    /* Overlay (+Line) pass. */
+    draw(regular, resources.overlay_fb);
+    draw_line(regular, resources.overlay_line_fb);
 
-  origins.draw(resources.overlay_color_only_fb, manager, view);
+    draw(infront, resources.overlay_in_front_fb);
+    draw_line(infront, resources.overlay_line_in_front_fb);
+  }
+  {
+    /* Color only pass. */
+    motion_paths.draw_color_only(resources.overlay_color_only_fb, manager, view);
+    xray_fade.draw_color_only(resources.overlay_color_only_fb, manager, view);
+    grid.draw_color_only(resources.overlay_color_only_fb, manager, view);
 
-  GPU_framebuffer_bind(resources.overlay_output_fb);
-  GPU_framebuffer_clear_color(resources.overlay_output_fb, clear_color);
+    draw_color_only(regular, resources.overlay_color_only_fb);
+    draw_color_only(infront, resources.overlay_color_only_fb);
 
-  regular.cameras.draw_background_images(resources.overlay_output_fb, manager, view);
-  infront.cameras.draw_background_images(resources.overlay_output_fb, manager, view);
-  regular.empties.draw_background_images(resources.overlay_output_fb, manager, view);
+    /* TODO(fclem): Split overlay and rename draw functions. */
+    regular.empties.draw_in_front_images(resources.overlay_color_only_fb, manager, view);
+    infront.empties.draw_in_front_images(resources.overlay_color_only_fb, manager, view);
+    regular.cameras.draw_in_front(resources.overlay_color_only_fb, manager, view);
+    infront.cameras.draw_in_front(resources.overlay_color_only_fb, manager, view);
 
-  background.draw(resources.overlay_output_fb, manager, view);
-  anti_aliasing.draw(resources.overlay_output_fb, manager, view);
+    origins.draw_color_only(resources.overlay_color_only_fb, manager, view);
+  }
+  {
+    /* Output pass. */
+    GPU_framebuffer_bind(resources.overlay_output_fb);
+    GPU_framebuffer_clear_color(resources.overlay_output_fb, clear_color);
+
+    /* TODO(fclem): Split overlay and rename draw functions. */
+    regular.cameras.draw_background_images(resources.overlay_output_fb, manager, view);
+    infront.cameras.draw_background_images(resources.overlay_output_fb, manager, view);
+    regular.empties.draw_background_images(resources.overlay_output_fb, manager, view);
+
+    background.draw_output(resources.overlay_output_fb, manager, view);
+    anti_aliasing.draw_output(resources.overlay_output_fb, manager, view);
+  }
 }
 
 bool Instance::object_is_selected(const ObjectRef &ob_ref)

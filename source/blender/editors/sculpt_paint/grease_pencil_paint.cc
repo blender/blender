@@ -278,10 +278,7 @@ class PaintOperation : public GreasePencilStrokeOperation {
   void on_stroke_extended(const bContext &C, const InputSample &extension_sample) override;
   void on_stroke_done(const bContext &C) override;
 
-  PaintOperation(const bool temp_draw = false)
-  {
-    temp_draw_ = temp_draw;
-  }
+  PaintOperation(const bool temp_draw = false) : temp_draw_(temp_draw) {}
 };
 
 /**

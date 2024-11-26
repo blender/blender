@@ -56,6 +56,8 @@ void SEQ_set_scale_to_fit(const Sequence *seq,
  */
 void SEQ_ensure_unique_name(Sequence *seq, Scene *scene);
 
+void SEQ_fontmap_clear();
+
 namespace blender::seq {
 
 /**

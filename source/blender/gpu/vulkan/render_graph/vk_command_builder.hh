@@ -197,10 +197,27 @@ class VKCommandBuilder {
    * All modified layers (layer_tracking_update) will be changed back to the image layout of
    * the texture (most likely a `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL`).
    *
-   * When rendering is suspended, the suspend parameter should be 'true'. This keeps the array
-   * textures to be kept for when the rendering is resumed.
+   * Render suspension/resuming will not work after calling this method.
    */
-  void layer_tracking_end(VKCommandBufferInterface &command_buffer, bool suspend);
+  void layer_tracking_end(VKCommandBufferInterface &command_buffer);
+
+  /**
+   * Suspend layer tracking
+   *
+   * Temporarily suspend layer tracking. This transits all modified layers back to its original
+   * layout.
+   * NOTE: Only call this method when you the rendering will be resumed, otherwise use
+   * `layer_tracking_end`.
+   */
+  void layer_tracking_suspend(VKCommandBufferInterface &command_buffer);
+
+  /**
+   * Resume suspended layer tracking.
+   *
+   * Resume suspended layer tracking. This transits all registered layers back to its modified
+   * state.
+   */
+  void layer_tracking_resume(VKCommandBufferInterface &command_buffer);
 };
 
 }  // namespace blender::gpu::render_graph

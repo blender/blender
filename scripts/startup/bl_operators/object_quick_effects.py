@@ -312,8 +312,7 @@ class QuickExplode(ObjectModeOperator, Operator):
                 explode.particle_uv = uv.name
 
                 mat = object_ensure_material(obj, "Explode Fade")
-                mat.blend_method = 'BLEND'
-                mat.shadow_method = 'HASHED'
+                mat.surface_render_method = 'DITHERED'
                 if not mat.use_nodes:
                     mat.use_nodes = True
 

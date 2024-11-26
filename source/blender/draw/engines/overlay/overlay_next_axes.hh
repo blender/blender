@@ -10,11 +10,15 @@
 
 #pragma once
 
-#include "overlay_next_private.hh"
+#include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {
 
-class Axes {
+/**
+ * Displays extra object axes.
+ * It is toggled by Object Panel > Viewport Display > Axes.
+ */
+class Axes : Overlay {
   using EmptyInstanceBuf = ShapeInstanceBuf<ExtraInstanceData>;
 
  private:
@@ -24,20 +28,21 @@ class Axes {
 
   EmptyInstanceBuf axes_buf = {selection_type_, "object_axes"};
 
-  bool enabled_ = false;
-
  public:
   Axes(const SelectionType selection_type) : selection_type_{selection_type} {};
 
-  void begin_sync(Resources & /*res*/, const State &state)
+  void begin_sync(Resources & /*res*/, const State &state) final
   {
-    enabled_ = state.space_type == SPACE_VIEW3D;
+    enabled_ = state.is_space_v3d();
 
     ps_.init();
     axes_buf.clear();
   }
 
-  void object_sync(const ObjectRef &ob_ref, Resources &res, const State &state)
+  void object_sync(Manager & /*manager*/,
+                   const ObjectRef &ob_ref,
+                   Resources &res,
+                   const State &state) final
   {
     if (!enabled_) {
       return;
@@ -56,7 +61,7 @@ class Axes {
     axes_buf.append(data, res.select_id(ob_ref));
   }
 
-  void end_sync(Resources &res, ShapeCache &shapes, const State &state)
+  void end_sync(Resources &res, const ShapeCache &shapes, const State &state) final
   {
     if (!enabled_) {
       return;
@@ -64,12 +69,12 @@ class Axes {
     ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL,
                   state.clipping_plane_count);
     ps_.shader_set(res.shaders.extra_shape.get());
-    ps_.bind_ubo("globalsBlock", &res.globals_buf);
+    ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
     res.select_bind(ps_);
     axes_buf.end_sync(ps_, shapes.arrows.get());
   }
 
-  void draw(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;

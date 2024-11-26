@@ -73,7 +73,7 @@ struct StrokeElem {
   float location_world[3];
   float location_local[3];
 
-  /* surface normal, may be zero'd */
+  /* Surface normal, may be zeroed. */
   float normal_world[3];
   float normal_local[3];
 

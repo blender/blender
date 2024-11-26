@@ -1335,7 +1335,7 @@ static void graph_panel_drivers_popover(const bContext *C, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr = {nullptr};
+  PointerRNA ptr = {};
   PropertyRNA *prop = nullptr;
   int index = -1;
   uiBut *but = nullptr;

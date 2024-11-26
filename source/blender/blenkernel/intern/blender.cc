@@ -44,6 +44,8 @@
 
 #include "BLF_api.hh"
 
+#include "SEQ_utils.hh"
+
 Global G;
 UserDef U;
 
@@ -76,6 +78,7 @@ void BKE_blender_free()
   BKE_callback_global_finalize();
 
   IMB_moviecache_destruct();
+  SEQ_fontmap_clear();
 #ifdef WITH_FFMPEG
   BKE_ffmpeg_exit();
 #endif

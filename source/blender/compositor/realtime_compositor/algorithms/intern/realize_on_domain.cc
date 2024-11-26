@@ -104,7 +104,8 @@ static void realize_on_domain_gpu(Context &context,
 static void realize_on_domain_cpu(Result &input,
                                   Result &output,
                                   const Domain &domain,
-                                  const float3x3 &inverse_transformation)
+                                  const float3x3 &inverse_transformation,
+                                  const RealizationOptions &realization_options)
 {
   output.allocate_texture(domain);
 
@@ -122,8 +123,22 @@ static void realize_on_domain_cpu(Result &input,
     const int2 input_size = input.domain().size;
     float2 normalized_coordinates = coordinates / float2(input_size);
 
-    /* TODO: Support other interpolations and wrapping modes. */
-    output.store_pixel(texel, input.sample_nearest_zero(normalized_coordinates));
+    float4 sample;
+    switch (realization_options.interpolation) {
+      case Interpolation::Nearest:
+        sample = input.sample_nearest_wrap(
+            normalized_coordinates, realization_options.wrap_x, realization_options.wrap_y);
+        break;
+      case Interpolation::Bilinear:
+        sample = input.sample_bilinear_wrap(
+            normalized_coordinates, realization_options.wrap_x, realization_options.wrap_y);
+        break;
+      case Interpolation::Bicubic:
+        sample = input.sample_cubic_wrap(
+            normalized_coordinates, realization_options.wrap_x, realization_options.wrap_y);
+        break;
+    }
+    output.store_pixel(texel, sample);
   });
 }
 
@@ -165,7 +180,7 @@ void realize_on_domain(Context &context,
         context, input, output, domain, inverse_transformation, realization_options);
   }
   else {
-    realize_on_domain_cpu(input, output, domain, inverse_transformation);
+    realize_on_domain_cpu(input, output, domain, inverse_transformation, realization_options);
   }
 }
 

@@ -198,25 +198,69 @@ TEST(math_interp, BilinearFloatPartiallyOutsideImageWrap)
 {
   float4 res;
   float4 exp1 = {64.5f, 65.5f, 66.5f, 67.5f};
-  interpolate_bilinear_wrap_fl(
-      image_fl[0][0], res, image_width, image_height, 4, -0.5f, 2.0f, true, true);
+  interpolate_bilinear_wrapmode_fl(image_fl[0][0],
+                                   res,
+                                   image_width,
+                                   image_height,
+                                   4,
+                                   -0.5f,
+                                   2.0f,
+                                   InterpWrapMode::Repeat,
+                                   InterpWrapMode::Repeat);
   EXPECT_V4_NEAR(exp1, res, float_tolerance);
   res = interpolate_bilinear_wrap_fl(image_fl[0][0], image_width, image_height, -0.5f, 2.0f);
   EXPECT_V4_NEAR(exp1, res, float_tolerance);
 
   float4 exp2 = {217.92502f, 202.57501f, 190.22501f, 181.85f};
-  interpolate_bilinear_wrap_fl(
-      image_fl[0][0], res, image_width, image_height, 4, 1.25f, 2.9f, true, true);
+  interpolate_bilinear_wrapmode_fl(image_fl[0][0],
+                                   res,
+                                   image_width,
+                                   image_height,
+                                   4,
+                                   1.25f,
+                                   2.9f,
+                                   InterpWrapMode::Repeat,
+                                   InterpWrapMode::Repeat);
   EXPECT_V4_NEAR(exp2, res, float_tolerance);
   res = interpolate_bilinear_wrap_fl(image_fl[0][0], image_width, image_height, 1.25f, 2.9f);
   EXPECT_V4_NEAR(exp2, res, float_tolerance);
 
   float4 exp3 = {228.96f, 171.27998f, 114.32f, 63.84f};
-  interpolate_bilinear_wrap_fl(
-      image_fl[0][0], res, image_width, image_height, 4, 2.2f, -0.1f, true, true);
+  interpolate_bilinear_wrapmode_fl(image_fl[0][0],
+                                   res,
+                                   image_width,
+                                   image_height,
+                                   4,
+                                   2.2f,
+                                   -0.1f,
+                                   InterpWrapMode::Repeat,
+                                   InterpWrapMode::Repeat);
   EXPECT_V4_NEAR(exp3, res, float_tolerance);
   res = interpolate_bilinear_wrap_fl(image_fl[0][0], image_width, image_height, 2.2f, -0.1f);
   EXPECT_V4_NEAR(exp3, res, float_tolerance);
+
+  /* Wrap only V axis. */
+  float4 exp4 = {191.5f, 191.0f, 163.5f, 163.0f};
+  interpolate_bilinear_wrapmode_fl(image_fl[0][0],
+                                   res,
+                                   image_width,
+                                   image_height,
+                                   4,
+                                   -0.5f,
+                                   2.75f,
+                                   InterpWrapMode::Extend,
+                                   InterpWrapMode::Repeat);
+  EXPECT_V4_NEAR(exp4, res, float_tolerance);
+  interpolate_bilinear_wrapmode_fl(image_fl[0][0],
+                                   res,
+                                   image_width,
+                                   image_height,
+                                   4,
+                                   -0.5f,
+                                   5.75f,
+                                   InterpWrapMode::Extend,
+                                   InterpWrapMode::Repeat);
+  EXPECT_V4_NEAR(exp4, res, float_tolerance);
 }
 
 TEST(math_interp, BilinearCharFullyOutsideImage)
@@ -241,6 +285,31 @@ TEST(math_interp, BilinearCharFullyOutsideImage)
   res = interpolate_bilinear_border_byte(image_char[0][0], image_width, image_height, 0, 3.1f);
   EXPECT_EQ(exp, res);
   res = interpolate_bilinear_border_byte(image_char[0][0], image_width, image_height, 0, 500.0f);
+  EXPECT_EQ(exp, res);
+}
+
+TEST(math_interp, BilinearFloatFullyOutsideImage)
+{
+  float4 res;
+  float4 exp = {0, 0, 0, 0};
+  /* Out of range on U */
+  res = interpolate_bilinear_border_fl(image_fl[0][0], image_width, image_height, -1.5f, 0);
+  EXPECT_EQ(exp, res);
+  res = interpolate_bilinear_border_fl(image_fl[0][0], image_width, image_height, -1.1f, 0);
+  EXPECT_EQ(exp, res);
+  res = interpolate_bilinear_border_fl(image_fl[0][0], image_width, image_height, 3, 0);
+  EXPECT_EQ(exp, res);
+  res = interpolate_bilinear_border_fl(image_fl[0][0], image_width, image_height, 5, 0);
+  EXPECT_EQ(exp, res);
+
+  /* Out of range on V */
+  res = interpolate_bilinear_border_fl(image_fl[0][0], image_width, image_height, 0, -3.2f);
+  EXPECT_EQ(exp, res);
+  res = interpolate_bilinear_border_fl(image_fl[0][0], image_width, image_height, 0, -1.5f);
+  EXPECT_EQ(exp, res);
+  res = interpolate_bilinear_border_fl(image_fl[0][0], image_width, image_height, 0, 3.1f);
+  EXPECT_EQ(exp, res);
+  res = interpolate_bilinear_border_fl(image_fl[0][0], image_width, image_height, 0, 500.0f);
   EXPECT_EQ(exp, res);
 }
 
@@ -297,37 +366,69 @@ TEST(math_interp, CubicBSplineFloatPartiallyOutsideImage)
   float4 exp1 = {2.29861f, 3.92014f, 5.71528f, 8.430554f};
   res = interpolate_cubic_bspline_fl(image_fl[0][0], image_width, image_height, -0.5f, 2.0f);
   EXPECT_V4_NEAR(exp1, res, float_tolerance);
+  interpolate_cubic_bspline_wrapmode_fl(image_fl[0][0],
+                                        res,
+                                        image_width,
+                                        image_height,
+                                        4,
+                                        -0.5f,
+                                        2.0f,
+                                        InterpWrapMode::Extend,
+                                        InterpWrapMode::Extend);
+  EXPECT_V4_NEAR(exp1, res, float_tolerance);
+
   float4 exp2 = {85.41022f, 107.21497f, 135.13849f, 195.49146f};
   res = interpolate_cubic_bspline_fl(image_fl[0][0], image_width, image_height, 1.25f, 2.9f);
   EXPECT_V4_NEAR(exp2, res, float_tolerance);
+  interpolate_cubic_bspline_wrapmode_fl(image_fl[0][0],
+                                        res,
+                                        image_width,
+                                        image_height,
+                                        4,
+                                        1.25f,
+                                        2.9f,
+                                        InterpWrapMode::Extend,
+                                        InterpWrapMode::Extend);
+  EXPECT_V4_NEAR(exp2, res, float_tolerance);
+
   float4 exp3 = {224.73579f, 160.66783f, 104.63521f, 48.60260f};
   res = interpolate_cubic_bspline_fl(image_fl[0][0], image_width, image_height, 2.2f, -0.1f);
   EXPECT_V4_NEAR(exp3, res, float_tolerance);
-}
+  interpolate_cubic_bspline_wrapmode_fl(image_fl[0][0],
+                                        res,
+                                        image_width,
+                                        image_height,
+                                        4,
+                                        2.2f,
+                                        -0.1f,
+                                        InterpWrapMode::Extend,
+                                        InterpWrapMode::Extend);
+  EXPECT_V4_NEAR(exp3, res, float_tolerance);
 
-TEST(math_interp, CubicBSplineCharFullyOutsideImage)
-{
-  uchar4 res;
-  uchar4 exp = {0, 0, 0, 0};
-  /* Out of range on U */
-  res = interpolate_cubic_bspline_byte(image_char[0][0], image_width, image_height, -1.5f, 0);
-  EXPECT_EQ(exp, res);
-  res = interpolate_cubic_bspline_byte(image_char[0][0], image_width, image_height, -1.1f, 0);
-  EXPECT_EQ(exp, res);
-  res = interpolate_cubic_bspline_byte(image_char[0][0], image_width, image_height, 3, 0);
-  EXPECT_EQ(exp, res);
-  res = interpolate_cubic_bspline_byte(image_char[0][0], image_width, image_height, 5, 0);
-  EXPECT_EQ(exp, res);
+  /* Different wrap modes. */
+  float4 exp4 = {122.66441f, 89.68848f, 60.85706f, 32.02566f};
+  interpolate_cubic_bspline_wrapmode_fl(image_fl[0][0],
+                                        res,
+                                        image_width,
+                                        image_height,
+                                        4,
+                                        2.2f,
+                                        -0.1f,
+                                        InterpWrapMode::Border,
+                                        InterpWrapMode::Border);
+  EXPECT_V4_NEAR(exp4, res, float_tolerance);
 
-  /* Out of range on V */
-  res = interpolate_cubic_bspline_byte(image_char[0][0], image_width, image_height, 0, -3.2f);
-  EXPECT_EQ(exp, res);
-  res = interpolate_cubic_bspline_byte(image_char[0][0], image_width, image_height, 0, -1.5f);
-  EXPECT_EQ(exp, res);
-  res = interpolate_cubic_bspline_byte(image_char[0][0], image_width, image_height, 0, 3.1f);
-  EXPECT_EQ(exp, res);
-  res = interpolate_cubic_bspline_byte(image_char[0][0], image_width, image_height, 0, 500.0f);
-  EXPECT_EQ(exp, res);
+  float4 exp5 = {189.57422f, 157.32167f, 122.71796f, 95.81750f};
+  interpolate_cubic_bspline_wrapmode_fl(image_fl[0][0],
+                                        res,
+                                        image_width,
+                                        image_height,
+                                        4,
+                                        2.2f,
+                                        -0.1f,
+                                        InterpWrapMode::Repeat,
+                                        InterpWrapMode::Repeat);
+  EXPECT_V4_NEAR(exp5, res, float_tolerance);
 }
 
 TEST(math_interp, CubicMitchellCharExactSamples)

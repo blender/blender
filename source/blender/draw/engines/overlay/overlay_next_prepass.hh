@@ -4,44 +4,42 @@
 
 /** \file
  * \ingroup overlay
- *
- * A depth pass that write surface depth when it is needed.
- * It is also used for selecting non overlay-only objects.
  */
 
 #pragma once
 
+#include "BKE_paint.hh"
+
+#include "DNA_particle_types.h"
+
 #include "draw_sculpt.hh"
 
+#include "overlay_next_base.hh"
 #include "overlay_next_grease_pencil.hh"
-#include "overlay_next_private.hh"
+#include "overlay_next_particle.hh"
 
 namespace blender::draw::overlay {
 
-class Prepass {
+/**
+ * A depth pass that write surface depth when it is needed.
+ * It is also used for selecting non overlay-only objects.
+ */
+class Prepass : Overlay {
  private:
-  const SelectionType selection_type_;
-
   PassMain ps_ = {"prepass"};
   PassMain::Sub *mesh_ps_ = nullptr;
+  PassMain::Sub *mesh_flat_ps_ = nullptr;
   PassMain::Sub *hair_ps_ = nullptr;
   PassMain::Sub *curves_ps_ = nullptr;
   PassMain::Sub *point_cloud_ps_ = nullptr;
   PassMain::Sub *grease_pencil_ps_ = nullptr;
 
-  bool enabled_ = false;
-  bool use_selection_ = false;
   bool use_material_slot_selection_ = false;
 
-  overlay::GreasePencil::ViewParameters grease_pencil_view;
-
  public:
-  Prepass(const SelectionType selection_type) : selection_type_(selection_type){};
-
-  void begin_sync(Resources &res, const State &state)
+  void begin_sync(Resources &res, const State &state) final
   {
-    use_selection_ = (selection_type_ != SelectionType::DISABLED);
-    enabled_ = (state.space_type == SPACE_VIEW3D);
+    enabled_ = state.is_space_v3d();
 
     if (!enabled_) {
       /* Not used. But release the data. */
@@ -52,53 +50,46 @@ class Prepass {
       return;
     }
 
-    {
-      /* TODO(fclem): This is against design. We should not sync depending on view position.
-       * Eventually, we should do this in a compute shader prepass. */
-      float4x4 viewinv;
-      DRW_view_viewmat_get(nullptr, viewinv.ptr(), true);
-      grease_pencil_view = {DRW_view_is_persp_get(nullptr), viewinv};
-    }
-
-    use_material_slot_selection_ = DRW_state_is_material_select();
+    use_material_slot_selection_ = state.is_material_select;
 
     const View3DShading &shading = state.v3d->shading;
     bool use_cull = ((shading.type == OB_SOLID) && (shading.flag & V3D_SHADING_BACKFACE_CULLING));
     DRWState backface_cull_state = use_cull ? DRW_STATE_CULL_BACK : DRWState(0);
 
     ps_.init();
+    ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
     ps_.state_set(DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | backface_cull_state,
                   state.clipping_plane_count);
     res.select_bind(ps_);
     {
       auto &sub = ps_.sub("Mesh");
-      sub.shader_set(use_selection_ ? res.shaders.depth_mesh_conservative.get() :
-                                      res.shaders.depth_mesh.get());
-      sub.bind_ubo("globalsBlock", &res.globals_buf);
+      sub.shader_set(res.is_selection() ? res.shaders.depth_mesh_conservative.get() :
+                                          res.shaders.depth_mesh.get());
       mesh_ps_ = &sub;
+    }
+    {
+      auto &sub = ps_.sub("MeshFlat");
+      sub.shader_set(res.shaders.depth_mesh.get());
+      mesh_flat_ps_ = &sub;
     }
     {
       auto &sub = ps_.sub("Hair");
       sub.shader_set(res.shaders.depth_mesh.get());
-      sub.bind_ubo("globalsBlock", &res.globals_buf);
       hair_ps_ = &sub;
     }
     {
       auto &sub = ps_.sub("Curves");
       sub.shader_set(res.shaders.depth_curves.get());
-      sub.bind_ubo("globalsBlock", &res.globals_buf);
       curves_ps_ = &sub;
     }
     {
       auto &sub = ps_.sub("PointCloud");
       sub.shader_set(res.shaders.depth_point_cloud.get());
-      sub.bind_ubo("globalsBlock", &res.globals_buf);
       point_cloud_ps_ = &sub;
     }
     {
       auto &sub = ps_.sub("GreasePencil");
       sub.shader_set(res.shaders.depth_grease_pencil.get());
-      sub.bind_ubo("globalsBlock", &res.globals_buf);
       grease_pencil_ps_ = &sub;
     }
   }
@@ -122,8 +113,8 @@ class Prepass {
             /* Case where the render engine should have rendered it, but we need to draw it for
              * selection purpose. */
             if (handle.raw == 0u) {
-              handle = manager.resource_handle_for_psys(ob_ref,
-                                                        Particles::dupli_matrix_get(ob_ref));
+              handle = manager.resource_handle_for_psys(
+                  ob_ref, overlay::Particles::dupli_matrix_get(ob_ref));
             }
 
             select::ID select_id = use_material_slot_selection_ ?
@@ -152,7 +143,10 @@ class Prepass {
     }
   }
 
-  void object_sync(Manager &manager, const ObjectRef &ob_ref, Resources &res, const State &state)
+  void object_sync(Manager &manager,
+                   const ObjectRef &ob_ref,
+                   Resources &res,
+                   const State &state) final
   {
     if (!enabled_) {
       return;
@@ -161,7 +155,7 @@ class Prepass {
     particle_sync(manager, ob_ref, res, state);
 
     const bool use_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob_ref.object, state.rv3d) &&
-                                 !DRW_state_is_image_render();
+                                 !state.is_image_render;
 
     if (use_sculpt_pbvh) {
       sculpt_sync(manager, ob_ref, res);
@@ -187,11 +181,20 @@ class Prepass {
         }
         else {
           geom_single = DRW_cache_mesh_surface_get(ob_ref.object);
+
+          if (res.is_selection() && !use_material_slot_selection_ &&
+              FlatObjectRef::flat_axis_index_get(ob_ref.object) != -1)
+          {
+            /* Avoid losing flat objects when in ortho views (see #56549) */
+            mesh_flat_ps_->draw(DRW_cache_mesh_all_edges_get(ob_ref.object),
+                                manager.unique_handle(ob_ref),
+                                res.select_id(ob_ref).get());
+          }
         }
         pass = mesh_ps_;
         break;
       case OB_VOLUME:
-        if (selection_type_ == SelectionType::DISABLED) {
+        if (!res.is_selection()) {
           /* Disable during display, only enable for selection. */
           /* TODO(fclem): Would be nice to have even when not selecting to occlude overlays. */
           return;
@@ -208,13 +211,13 @@ class Prepass {
         pass = curves_ps_;
         break;
       case OB_GREASE_PENCIL:
-        if (selection_type_ == SelectionType::DISABLED) {
+        if (!res.is_selection()) {
           /* Disable during display, only enable for selection.
            * The grease pencil engine already renders it properly. */
           return;
         }
-        GreasePencil::draw_grease_pencil(*grease_pencil_ps_,
-                                         grease_pencil_view,
+        GreasePencil::draw_grease_pencil(res,
+                                         *grease_pencil_ps_,
                                          state.scene,
                                          ob_ref.object,
                                          manager.unique_handle(ob_ref),
@@ -235,7 +238,7 @@ class Prepass {
                                  res.select_id(ob_ref, (material_id + 1) << 16) :
                                  res.select_id(ob_ref);
 
-      if (use_selection_ && (pass == mesh_ps_)) {
+      if (res.is_selection() && (pass == mesh_ps_)) {
         /* Conservative shader needs expanded draw-call. */
         pass->draw_expand(
             geom_list[material_id], GPU_PRIM_TRIS, 1, 1, res_handle, select_id.get());
@@ -246,7 +249,7 @@ class Prepass {
     }
   }
 
-  void pre_draw(Manager &manager, View &view)
+  void pre_draw(Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;
@@ -255,7 +258,7 @@ class Prepass {
     manager.generate_commands(ps_, view);
   }
 
-  void draw(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;

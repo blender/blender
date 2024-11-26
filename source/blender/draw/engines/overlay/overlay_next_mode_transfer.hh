@@ -8,11 +8,17 @@
 
 #pragma once
 
-#include "overlay_next_private.hh"
+#include "BKE_paint.hh"
+
+#include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {
 
-class ModeTransfer {
+/**
+ * Make newly active mesh flash for a brief period of time.
+ * This can be triggered using the "Transfer Mode" operator when in any edit mode.
+ */
+class ModeTransfer : Overlay {
  private:
   PassSimple ps_ = {"ModeTransfer"};
 
@@ -20,15 +26,13 @@ class ModeTransfer {
 
   double current_time_ = 0.0;
 
-  bool enabled_ = false;
-
   /* True if any object used was synced using this overlay. */
   bool any_animated_ = false;
 
  public:
-  void begin_sync(Resources &res, const State &state)
+  void begin_sync(Resources &res, const State &state) final
   {
-    enabled_ = state.space_type == SPACE_VIEW3D && (res.selection_type == SelectionType::DISABLED);
+    enabled_ = state.is_space_v3d() && !res.is_selection();
 
     if (!enabled_) {
       /* Not used. But release the data. */
@@ -45,12 +49,15 @@ class ModeTransfer {
     ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WRITE_DEPTH,
                   state.clipping_plane_count);
     ps_.shader_set(res.shaders.uniform_color.get());
-    ps_.bind_ubo("globalsBlock", &res.globals_buf);
+    ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
 
     any_animated_ = false;
   }
 
-  void object_sync(Manager &manager, const ObjectRef &ob_ref, const State &state)
+  void object_sync(Manager &manager,
+                   const ObjectRef &ob_ref,
+                   Resources & /*res*/,
+                   const State &state) final
   {
     if (!enabled_) {
       return;
@@ -72,7 +79,7 @@ class ModeTransfer {
     ps_.push_constant("ucolor", float4(flash_color_.xyz() * alpha, alpha));
 
     const bool use_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob_ref.object, state.rv3d) &&
-                                 !DRW_state_is_image_render();
+                                 !state.is_image_render;
     if (use_sculpt_pbvh) {
       ResourceHandle handle = manager.resource_handle_for_sculpt(ob_ref);
 
@@ -90,7 +97,7 @@ class ModeTransfer {
     any_animated_ = true;
   }
 
-  void draw(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;

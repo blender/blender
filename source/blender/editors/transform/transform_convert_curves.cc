@@ -45,7 +45,7 @@ static void create_aligned_handles_masks(
   CurvesTransformData &transform_data = *static_cast<CurvesTransformData *>(custom_data.data);
 
   IndexMaskMemory memory;
-  /* When control point is selected both handles are treaded as selected and transformed together.
+  /* When control point is selected both handles are threaded as selected and transformed together.
    * So these will be excluded from alignment. */
   const IndexMask &selected_points = points_to_transform_per_attr[0];
   const IndexMask selected_left_handles = IndexMask::from_difference(

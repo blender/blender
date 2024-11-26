@@ -249,10 +249,11 @@ void MTLStorageBuf::unbind()
    * Otherwise, only perform a full unbind upon destruction
    * to ensure no lingering references. */
 #ifndef NDEBUG
-  if (true) {
+  if (true)
 #else
-  if (G.debug & G_DEBUG_GPU) {
+  if (G.debug & G_DEBUG_GPU)
 #endif
+  {
     if (bound_ctx_ != nullptr && bind_slot_ > -1) {
       MTLStorageBufferBinding &ctx_ssbo_bind_slot =
           bound_ctx_->pipeline_state.ssbo_bindings[bind_slot_];

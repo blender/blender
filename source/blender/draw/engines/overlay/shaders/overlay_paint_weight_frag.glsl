@@ -99,4 +99,5 @@ void main()
   }
 
   fragColor = vec4(color.rgb, opacity);
+  lineOutput = vec4(0.0);
 }

@@ -1831,13 +1831,22 @@ static int area_snap_calc_location(const bScreen *screen,
   // const int axis_max = axis_min + m_span;
 
   switch (snap_type) {
-    case SNAP_AREAGRID:
+    case SNAP_AREAGRID: {
       m_cursor_final = m_cursor;
       if (!ELEM(delta, bigger, -smaller)) {
         m_cursor_final -= (m_cursor % AREAGRID);
         CLAMP(m_cursor_final, origval - smaller, origval + bigger);
       }
-      break;
+
+      /* Slight snap to vertical minimum and maximum. */
+      const int snap_threshold = int(float(ED_area_headersize()) * 0.6f);
+      if (m_cursor_final < (m_min + snap_threshold)) {
+        m_cursor_final = m_min;
+      }
+      else if (m_cursor_final > (origval + bigger - snap_threshold)) {
+        m_cursor_final = origval + bigger;
+      }
+    } break;
 
     case SNAP_BIGGER_SMALLER_ONLY:
       m_cursor_final = (m_cursor >= bigger) ? bigger : smaller;
@@ -3107,39 +3116,46 @@ static bool screen_animation_region_supports_time_follow(eSpace_Type spacetype,
          (spacetype == SPACE_CLIP && regiontype == RGN_TYPE_PREVIEW);
 }
 
-static void areas_do_frame_follow(bContext *C, bool middle)
+void ED_areas_do_frame_follow(bContext *C, bool center_view)
 {
   bScreen *screen_ctx = CTX_wm_screen(C);
-  Scene *scene = CTX_data_scene(C);
+  if (!(screen_ctx->redraws_flag & TIME_FOLLOW)) {
+    return;
+  }
+
+  const int current_frame = CTX_data_scene(C)->r.cfra;
   wmWindowManager *wm = CTX_wm_manager(C);
   LISTBASE_FOREACH (wmWindow *, window, &wm->windows) {
     const bScreen *screen = WM_window_get_active_screen(window);
 
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-        /* do follow here if editor type supports it */
-        if ((screen_ctx->redraws_flag & TIME_FOLLOW) &&
-            screen_animation_region_supports_time_follow(eSpace_Type(area->spacetype),
-                                                         eRegion_Type(region->regiontype)))
+        /* Only frame/center the playhead here if editor type supports it */
+        if (!screen_animation_region_supports_time_follow(eSpace_Type(area->spacetype),
+                                                          eRegion_Type(region->regiontype)))
         {
-          float w = BLI_rctf_size_x(&region->v2d.cur);
+          continue;
+        }
 
-          if (middle) {
-            if ((scene->r.cfra < region->v2d.cur.xmin) || (scene->r.cfra > region->v2d.cur.xmax)) {
-              region->v2d.cur.xmax = scene->r.cfra + (w / 2);
-              region->v2d.cur.xmin = scene->r.cfra - (w / 2);
-            }
-          }
-          else {
-            if (scene->r.cfra < region->v2d.cur.xmin) {
-              region->v2d.cur.xmax = scene->r.cfra;
-              region->v2d.cur.xmin = region->v2d.cur.xmax - w;
-            }
-            else if (scene->r.cfra > region->v2d.cur.xmax) {
-              region->v2d.cur.xmin = scene->r.cfra;
-              region->v2d.cur.xmax = region->v2d.cur.xmin + w;
-            }
-          }
+        if ((current_frame >= region->v2d.cur.xmin) && (current_frame <= region->v2d.cur.xmax)) {
+          /* The playhead is already in view, do nothing. */
+          continue;
+        }
+
+        const float w = BLI_rctf_size_x(&region->v2d.cur);
+
+        if (center_view) {
+          region->v2d.cur.xmax = current_frame + (w / 2);
+          region->v2d.cur.xmin = current_frame - (w / 2);
+          continue;
+        }
+        if (current_frame < region->v2d.cur.xmin) {
+          region->v2d.cur.xmax = current_frame;
+          region->v2d.cur.xmin = region->v2d.cur.xmax - w;
+        }
+        else {
+          region->v2d.cur.xmin = current_frame;
+          region->v2d.cur.xmax = region->v2d.cur.xmin + w;
         }
       }
     }
@@ -3162,7 +3178,7 @@ static int frame_offset_exec(bContext *C, wmOperator *op)
   FRAMENUMBER_MIN_CLAMP(scene->r.cfra);
   scene->r.subframe = 0.0f;
 
-  areas_do_frame_follow(C, false);
+  ED_areas_do_frame_follow(C, false);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
 
@@ -3223,7 +3239,7 @@ static int frame_jump_exec(bContext *C, wmOperator *op)
       scene->r.cfra = PSFRA;
     }
 
-    areas_do_frame_follow(C, true);
+    ED_areas_do_frame_follow(C, true);
 
     DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
 
@@ -3347,7 +3363,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  areas_do_frame_follow(C, true);
+  ED_areas_do_frame_follow(C, true);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
 
@@ -3417,7 +3433,7 @@ static int marker_jump_exec(bContext *C, wmOperator *op)
 
   scene->r.cfra = closest;
 
-  areas_do_frame_follow(C, true);
+  ED_areas_do_frame_follow(C, true);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
 
@@ -3835,6 +3851,10 @@ void static area_docking_apply(bContext *C, wmOperator *op)
     if (jd->factor <= 0.5f) {
       jd->sa2 = newa;
     }
+    else {
+      /* Force full rebuild. #130732 */
+      ED_area_tag_redraw(newa);
+    }
   }
 
   if (same_area) {
@@ -4095,8 +4115,28 @@ static float area_split_factor(bContext *C, sAreaJoinData *jd, const wmEvent *ev
     /* Use nearest neighbor or fractional, whichever is closest. */
     fac = (fabs(near_fac - fac) < fabs(frac_fac - fac)) ? near_fac : frac_fac;
   }
+  else {
+    /* Slight snap to center when no modifiers are held. */
+    if (fac >= 0.48f && fac < 0.5f) {
+      fac = 0.499999f;
+    }
+    else if (fac >= 0.5f && fac < 0.52f) {
+      fac = 0.500001f;
+    }
+  }
 
-  return std::clamp(fac, 0.001f, 0.999f);
+  /* Don't allow a new area to be created that is very small. */
+  const float min_size = float(2.0f * ED_area_headersize());
+  const float min_fac = min_size / ((jd->split_dir == SCREEN_AXIS_V) ? float(jd->sa1->winx + 1) :
+                                                                       float(jd->sa1->winy + 1));
+  if (min_fac < 0.5f) {
+    return std::clamp(fac, min_fac, 1.0f - min_fac);
+  }
+  else {
+    return 0.5f;
+  }
+
+  return fac;
 }
 
 static void area_join_update_data(bContext *C, sAreaJoinData *jd, const wmEvent *event)
@@ -4137,8 +4177,8 @@ static void area_join_update_data(bContext *C, sAreaJoinData *jd, const wmEvent 
 
   if (jd->sa1 == area) {
     jd->sa2 = area;
-    if (!(abs(jd->start_x - event->xy[0]) > (10 * U.pixelsize) ||
-          abs(jd->start_y - event->xy[1]) > (10 * U.pixelsize)))
+    if (!(abs(jd->start_x - event->xy[0]) > (30 * U.pixelsize) ||
+          abs(jd->start_y - event->xy[1]) > (30 * U.pixelsize)))
     {
       /* We haven't moved enough to start a split. */
       jd->dir = SCREEN_DIR_NONE;

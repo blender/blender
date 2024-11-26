@@ -105,7 +105,7 @@ static std::unique_ptr<GreasePencilStrokeOperation> get_stroke_operation(bContex
       case GPAINT_BRUSH_TYPE_DRAW:
         return greasepencil::new_paint_operation();
       case GPAINT_BRUSH_TYPE_ERASE:
-        return greasepencil::new_erase_operation(false);
+        return greasepencil::new_erase_operation();
       case GPAINT_BRUSH_TYPE_FILL:
         /* Fill tool keymap uses the paint operator as alternative mode. */
         return greasepencil::new_paint_operation(true);
@@ -360,7 +360,8 @@ static int grease_pencil_sculpt_paint_invoke(bContext *C, wmOperator *op, const 
    * the previous key. */
   const bool use_duplicate_previous_key = true;
   for (bke::greasepencil::Layer *layer : grease_pencil.layers_for_write()) {
-    if (ed::greasepencil::ensure_active_keyframe(
+    if (layer->is_editable() &&
+        ed::greasepencil::ensure_active_keyframe(
             *scene, grease_pencil, *layer, use_duplicate_previous_key, inserted_keyframe))
     {
       inserted_keyframe = true;

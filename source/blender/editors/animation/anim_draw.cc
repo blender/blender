@@ -249,7 +249,7 @@ bool ANIM_nla_mapping_allowed(const bAnimListElem *ale)
       /* I (Sybren) don't _think_ masks can use the NLA. */
       return false;
     default:
-      /* NLA time remapping is the default behaviour, and only should be
+      /* NLA time remapping is the default behavior, and only should be
        * prohibited for the above types. */
       return true;
   }

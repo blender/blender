@@ -11,9 +11,9 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
-#include "BLI_ghash.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
+#include "BLI_set.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
@@ -1228,7 +1228,7 @@ static int join_tracks_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  GSet *point_tracks = BLI_gset_ptr_new(__func__);
+  blender::Set<MovieTrackingPlaneTrack *> point_tracks;
 
   LISTBASE_FOREACH_MUTABLE (MovieTrackingTrack *, track, &tracking_object->tracks) {
     if (TRACK_VIEW_SELECTED(sc, track) && track != active_track) {
@@ -1259,7 +1259,7 @@ static int join_tracks_exec(bContext *C, wmOperator *op)
         if (BKE_tracking_plane_track_has_point_track(plane_track, track)) {
           BKE_tracking_plane_track_replace_point_track(plane_track, track, active_track);
           if ((plane_track->flag & PLANE_TRACK_AUTOKEY) == 0) {
-            BLI_gset_insert(point_tracks, plane_track);
+            point_tracks.add(plane_track);
           }
         }
       }
@@ -1273,15 +1273,11 @@ static int join_tracks_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_MOVIECLIP | ND_DISPLAY, clip);
   }
 
-  GSetIterator gs_iter;
   int framenr = ED_space_clip_get_clip_frame_number(sc);
-  GSET_ITER (gs_iter, point_tracks) {
-    MovieTrackingPlaneTrack *plane_track = static_cast<MovieTrackingPlaneTrack *>(
-        BLI_gsetIterator_getKey(&gs_iter));
+  for (MovieTrackingPlaneTrack *plane_track : point_tracks) {
     BKE_tracking_track_plane_from_existing_motion(plane_track, framenr);
   }
 
-  BLI_gset_free(point_tracks, nullptr);
   DEG_id_tag_update(&clip->id, 0);
 
   WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);

@@ -54,7 +54,7 @@
 AnimData *ED_actedit_animdata_from_context(const bContext *C, ID **r_adt_id_owner)
 {
   { /* Support use from the layout.template_action() UI template. */
-    PointerRNA ptr = {nullptr};
+    PointerRNA ptr = {};
     PropertyRNA *prop = nullptr;
     UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
     /* template_action() sets a RNA_AnimData pointer, whereas other code may set
@@ -184,7 +184,7 @@ static void actedit_change_action(bContext *C, bAction *act)
 static bool action_new_poll(bContext *C)
 {
   { /* Support use from the layout.template_action() UI template. */
-    PointerRNA ptr = {nullptr};
+    PointerRNA ptr = {};
     PropertyRNA *prop = nullptr;
     UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
     if (prop) {

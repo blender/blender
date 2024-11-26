@@ -310,7 +310,7 @@ int main(int argc,
   _putenv_s("OMP_WAIT_POLICY", "PASSIVE");
 #  endif
   /* Ensure the OpenMP runtime is initialized as soon as possible to make sure duplicate
-   * libomp/libiomp5 runtime conflicts are detected as soon as a second runtime is initialized.
+   * `libomp/libiomp5` runtime conflicts are detected as soon as a second runtime is initialized.
    * Initialization must be done after setting any relevant environment variables, but before
    * installing signal handlers. */
   omp_get_max_threads();

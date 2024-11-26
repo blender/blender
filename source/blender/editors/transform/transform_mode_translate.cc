@@ -350,16 +350,7 @@ static void ApplySnapTranslation(TransInfo *t, float vec[3])
   float point[3];
   getSnapPoint(t, point);
 
-  if (t->spacetype == SPACE_NODE) {
-    char border = t->tsnap.snapNodeBorder;
-    if (border & (NODE_LEFT | NODE_RIGHT)) {
-      vec[0] = point[0] - t->tsnap.snap_source[0];
-    }
-    if (border & (NODE_BOTTOM | NODE_TOP)) {
-      vec[1] = point[1] - t->tsnap.snap_source[1];
-    }
-  }
-  else if (t->spacetype == SPACE_SEQ) {
+  if (t->spacetype == SPACE_SEQ) {
     if (t->region->regiontype == RGN_TYPE_PREVIEW) {
       transform_snap_sequencer_image_apply_translate(t, vec);
     }

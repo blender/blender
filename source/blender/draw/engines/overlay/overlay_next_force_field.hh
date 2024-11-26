@@ -14,11 +14,15 @@
 
 #include "DNA_object_force_types.h"
 
-#include "overlay_next_private.hh"
+#include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {
 
-class ForceFields {
+/**
+ * Draw force fields.
+ * Controlled by (Physics > Force Field)
+ */
+class ForceFields : Overlay {
   using ForceFieldsInstanceBuf = ShapeInstanceBuf<ExtraInstanceData>;
 
  private:
@@ -39,7 +43,7 @@ class ForceFields {
  public:
   ForceFields(const SelectionType selection_type) : call_buffers_{selection_type} {}
 
-  void begin_sync()
+  void begin_sync(Resources & /*res*/, const State & /*state*/) final
   {
     call_buffers_.field_force_buf.clear();
     call_buffers_.field_wind_buf.clear();
@@ -50,7 +54,10 @@ class ForceFields {
     call_buffers_.field_cone_limit_buf.clear();
   }
 
-  void object_sync(const ObjectRef &ob_ref, Resources &res, const State &state)
+  void object_sync(Manager & /*manager*/,
+                   const ObjectRef &ob_ref,
+                   Resources &res,
+                   const State &state) final
   {
     if (!ob_ref.object->pd || !ob_ref.object->pd->forcefield) {
       return;
@@ -144,14 +151,14 @@ class ForceFields {
     }
   }
 
-  void end_sync(Resources &res, ShapeCache &shapes, const State &state)
+  void end_sync(Resources &res, const ShapeCache &shapes, const State &state) final
   {
     ps_.init();
     res.select_bind(ps_);
     ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL,
                   state.clipping_plane_count);
     ps_.shader_set(res.shaders.extra_shape.get());
-    ps_.bind_ubo("globalsBlock", &res.globals_buf);
+    ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
 
     call_buffers_.field_force_buf.end_sync(ps_, shapes.field_force.get());
     call_buffers_.field_wind_buf.end_sync(ps_, shapes.field_wind.get());
@@ -162,7 +169,7 @@ class ForceFields {
     call_buffers_.field_cone_limit_buf.end_sync(ps_, shapes.field_cone_limit.get());
   }
 
-  void draw(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     GPU_framebuffer_bind(framebuffer);
     manager.submit(ps_, view);

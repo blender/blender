@@ -541,19 +541,17 @@ ShaderModule::ShaderModule(const SelectionType selection_type, const bool clippi
         info.additional_info("draw_view", "draw_modelmat_new", "draw_globals");
       });
 
-  lattice_points = selectable_shader(
-      "overlay_edit_lattice_point", [](gpu::shader::ShaderCreateInfo &info) {
-        info.additional_infos_.clear();
-        info.additional_info(
-            "draw_view", "draw_modelmat_new", "draw_resource_handle_new", "draw_globals");
-      });
+  lattice_points = shader("overlay_edit_lattice_point", [](gpu::shader::ShaderCreateInfo &info) {
+    info.additional_infos_.clear();
+    info.additional_info(
+        "draw_view", "draw_modelmat_new", "draw_resource_handle_new", "draw_globals");
+  });
 
-  lattice_wire = selectable_shader(
-      "overlay_edit_lattice_wire", [](gpu::shader::ShaderCreateInfo &info) {
-        info.additional_infos_.clear();
-        info.additional_info(
-            "draw_view", "draw_modelmat_new", "draw_resource_handle_new", "draw_globals");
-      });
+  lattice_wire = shader("overlay_edit_lattice_wire", [](gpu::shader::ShaderCreateInfo &info) {
+    info.additional_infos_.clear();
+    info.additional_info(
+        "draw_view", "draw_modelmat_new", "draw_resource_handle_new", "draw_globals");
+  });
 
   extra_grid = selectable_shader("overlay_extra_grid", [](gpu::shader::ShaderCreateInfo &info) {
     info.additional_infos_.clear();

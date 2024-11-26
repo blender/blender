@@ -837,7 +837,7 @@ PyObject *BPy_BMO_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *kw)
       }
 
 #if 1
-      /* temp code, strip off '.out' while we keep this convention */
+      /* Temporary code, strip off `.out` while we keep this convention. */
       {
         char slot_name_strip[MAX_SLOTNAME];
         const char *ch = strchr(slot->slot_name, '.'); /* can't fail! */

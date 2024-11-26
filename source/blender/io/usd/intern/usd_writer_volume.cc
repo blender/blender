@@ -144,7 +144,7 @@ std::optional<std::string> USDVolumeWriter::resolve_vdb_file(const Volume *volum
   const bool needs_vdb_save = volume->filepath[0] == '\0' || has_modifiers;
   if (needs_vdb_save) {
     /* Entering this section means that the Volume object contains OpenVDB data that is not
-     * obtained soley from external `.vdb` files but is generated or modified inside of Blender.
+     * obtained solely from external `.vdb` files but is generated or modified inside of Blender.
      * Write this data as a new `.vdb` files. */
 
     vdb_file_path = construct_vdb_file_path(volume);

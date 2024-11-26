@@ -15,6 +15,11 @@
  * Any filtering done on texel values just blends them without color space or
  * gamma conversions.
  *
+ * For sampling float images, there are "fully generic" functions that
+ * take arbitrary image channel counts, and arbitrary texture coordinate wrapping
+ * modes. However if you do not need full flexibility, use less generic functions,
+ * they will be faster (e.g. #interpolate_nearest_border_fl is faster than
+ * #interpolate_nearest_wrapmode_fl).
  */
 
 #include "BLI_math_base.h"
@@ -22,6 +27,22 @@
 #include "BLI_math_vector_types.hh"
 
 namespace blender::math {
+
+/**
+ * Texture coordinate wrapping mode.
+ */
+enum class InterpWrapMode {
+  /** Image edges are extended outside the image, i.e. sample coordinates are clamped to the edge.
+   */
+  Extend,
+  /** Image repeats, i.e. sample coordinates are wrapped around. */
+  Repeat,
+  /** Samples outside the image return transparent black. */
+  Border
+};
+
+/* -------------------------------------------------------------------- */
+/* Nearest (point) sampling. */
 
 /**
  * Nearest (point) sampling (with black border).
@@ -196,6 +217,19 @@ inline void interpolate_nearest_wrap_fl(
   return res;
 }
 
+void interpolate_nearest_wrapmode_fl(const float *buffer,
+                                     float *output,
+                                     int width,
+                                     int height,
+                                     int components,
+                                     float u,
+                                     float v,
+                                     InterpWrapMode wrap_u,
+                                     InterpWrapMode wrap_v);
+
+/* -------------------------------------------------------------------- */
+/* Bilinear sampling. */
+
 /**
  * Bilinear sampling (with black border).
  *
@@ -247,15 +281,18 @@ void interpolate_bilinear_fl(
 [[nodiscard]] float4 interpolate_bilinear_wrap_fl(
     const float *buffer, int width, int height, float u, float v);
 
-void interpolate_bilinear_wrap_fl(const float *buffer,
-                                  float *output,
-                                  int width,
-                                  int height,
-                                  int components,
-                                  float u,
-                                  float v,
-                                  bool wrap_x,
-                                  bool wrap_y);
+void interpolate_bilinear_wrapmode_fl(const float *buffer,
+                                      float *output,
+                                      int width,
+                                      int height,
+                                      int components,
+                                      float u,
+                                      float v,
+                                      InterpWrapMode wrap_u,
+                                      InterpWrapMode wrap_v);
+
+/* -------------------------------------------------------------------- */
+/* Cubic sampling. */
 
 /**
  * Cubic B-Spline sampling.
@@ -277,6 +314,16 @@ void interpolate_bilinear_wrap_fl(const float *buffer,
 
 void interpolate_cubic_bspline_fl(
     const float *buffer, float *output, int width, int height, int components, float u, float v);
+
+void interpolate_cubic_bspline_wrapmode_fl(const float *buffer,
+                                           float *output,
+                                           int width,
+                                           int height,
+                                           int components,
+                                           float u,
+                                           float v,
+                                           InterpWrapMode wrap_u,
+                                           InterpWrapMode wrap_v);
 
 /**
  * Cubic Mitchell sampling.
@@ -300,6 +347,9 @@ void interpolate_cubic_mitchell_fl(
     const float *buffer, float *output, int width, int height, int components, float u, float v);
 
 }  // namespace blender::math
+
+/* -------------------------------------------------------------------- */
+/* EWA sampling. */
 
 #define EWA_MAXIDX 255
 extern const float EWA_WTS[EWA_MAXIDX + 1];

@@ -8,12 +8,15 @@
 
 #pragma once
 
+#include "overlay_next_base.hh"
 #include "overlay_next_image.hh"
-#include "overlay_next_private.hh"
 
 namespace blender::draw::overlay {
 
-class Empties {
+/**
+ * Empty object type drawing, including image empties.
+ */
+class Empties : Overlay {
   friend class Cameras;
   using EmptyInstanceBuf = ShapeInstanceBuf<ExtraInstanceData>;
 
@@ -46,30 +49,28 @@ class Empties {
     EmptyInstanceBuf image_buf = {selection_type_, "image_buf"};
   } call_buffers_;
 
-  bool enabled_ = false;
-
+  State::ViewOffsetData offset_data_;
   float4x4 depth_bias_winmat_;
 
  public:
   Empties(const SelectionType selection_type) : call_buffers_{selection_type} {};
 
-  void begin_sync(Resources &res, const State &state, View &view)
+  void begin_sync(Resources &res, const State &state) final
   {
-    enabled_ = state.space_type == SPACE_VIEW3D;
+    enabled_ = state.is_space_v3d() && state.show_extras();
 
     if (!enabled_) {
       return;
     }
 
-    depth_bias_winmat_ = winmat_polygon_offset(
-        view.winmat(), state.view_dist_get(view.winmat()), -1.0f);
+    offset_data_ = state.offset_data_get();
 
     auto init_pass = [&](PassMain &pass, DRWState draw_state) {
       pass.init();
       pass.state_set(draw_state, state.clipping_plane_count);
       pass.shader_set(res.shaders.image_plane_depth_bias.get());
-      pass.push_constant("depth_bias_winmat", depth_bias_winmat_);
-      pass.bind_ubo("globalsBlock", &res.globals_buf);
+      pass.push_constant("depth_bias_winmat", &depth_bias_winmat_);
+      pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       res.select_bind(pass);
     };
 
@@ -107,11 +108,12 @@ class Empties {
     call_buffers.image_buf.clear();
   }
 
-  void object_sync(const ObjectRef &ob_ref,
-                   ShapeCache &shapes,
-                   Manager &manager,
-                   Resources &res,
-                   const State &state)
+  /* TODO(fclem): Remove dependency on shapes. Pass it to the constructor. */
+  void object_sync_ex(const ObjectRef &ob_ref,
+                      ShapeCache &shapes,
+                      Manager &manager,
+                      Resources &res,
+                      const State &state)
   {
     if (!enabled_) {
       return;
@@ -165,7 +167,7 @@ class Empties {
     }
   }
 
-  void end_sync(Resources &res, ShapeCache &shapes, const State &state)
+  void end_sync(Resources &res, const ShapeCache &shapes, const State &state) final
   {
     if (!enabled_) {
       return;
@@ -177,7 +179,7 @@ class Empties {
   }
 
   static void end_sync(Resources &res,
-                       ShapeCache &shapes,
+                       const ShapeCache &shapes,
                        const State &state,
                        PassSimple::Sub &ps,
                        CallBuffers &call_buffers)
@@ -185,7 +187,7 @@ class Empties {
     ps.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL,
                  state.clipping_plane_count);
     ps.shader_set(res.shaders.extra_shape.get());
-    ps.bind_ubo("globalsBlock", &res.globals_buf);
+    ps.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
 
     call_buffers.plain_axes_buf.end_sync(ps, shapes.plain_axes.get());
     call_buffers.single_arrow_buf.end_sync(ps, shapes.single_arrow.get());
@@ -197,7 +199,7 @@ class Empties {
     call_buffers.image_buf.end_sync(ps, shapes.quad_wire.get());
   }
 
-  void pre_draw(Manager &manager, View &view)
+  void pre_draw(Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;
@@ -207,9 +209,12 @@ class Empties {
     manager.generate_commands(images_ps_, view);
     manager.generate_commands(images_blend_ps_, view);
     manager.generate_commands(images_front_ps_, view);
+
+    float view_dist = State::view_dist_get(offset_data_, view.winmat());
+    depth_bias_winmat_ = winmat_polygon_offset(view.winmat(), view_dist, -1.0f);
   }
 
-  void draw(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;
@@ -310,8 +315,8 @@ class Empties {
     if (show_image && tex && ((ob->color[3] > 0.0f) || !use_alpha_blend)) {
       /* Use the actual depth if we are doing depth tests to determine the distance to the
        * object. */
-      char depth_mode = DRW_state_is_depth() ? char(OB_EMPTY_IMAGE_DEPTH_DEFAULT) :
-                                               ob->empty_image_depth;
+      char depth_mode = state.is_depth_only_drawing ? char(OB_EMPTY_IMAGE_DEPTH_DEFAULT) :
+                                                      ob->empty_image_depth;
       PassMain::Sub &pass = create_subpass(state, *ob, use_alpha_blend, mat, res);
       pass.bind_texture("imgTexture", tex);
       pass.push_constant("imgPremultiplied", use_alpha_premult);
@@ -334,8 +339,8 @@ class Empties {
     if (in_front) {
       return create_subpass(state, mat, res, images_front_ps_, true);
     }
-    const char depth_mode = DRW_state_is_depth() ? char(OB_EMPTY_IMAGE_DEPTH_DEFAULT) :
-                                                   ob.empty_image_depth;
+    const char depth_mode = state.is_depth_only_drawing ? char(OB_EMPTY_IMAGE_DEPTH_DEFAULT) :
+                                                          ob.empty_image_depth;
     switch (depth_mode) {
       case OB_EMPTY_IMAGE_DEPTH_BACK:
         return create_subpass(state, mat, res, images_back_ps_, false);
@@ -364,7 +369,7 @@ class Empties {
     else {
       sub.shader_set(res.shaders.image_plane.get());
     }
-    sub.bind_ubo("globalsBlock", &res.globals_buf);
+    sub.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
     return sub;
   };
 

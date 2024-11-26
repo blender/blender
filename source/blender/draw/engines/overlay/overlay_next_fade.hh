@@ -12,13 +12,16 @@
 #include "BKE_paint.hh"
 
 #include "overlay_next_armature.hh"
-#include "overlay_next_private.hh"
+#include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {
-class Fade {
- private:
-  const SelectionType selection_type_;
 
+/**
+ * Fades surfaces not currently in the active edit mode.
+ * Can be toggle in (Viewport Overlays > Geometry > Fade Inactive Geometry)
+ */
+class Fade : Overlay {
+ private:
   PassMain ps_ = {"FadeGeometry"};
 
   PassMain::Sub *mesh_fade_geometry_ps_;
@@ -26,18 +29,12 @@ class Fade {
   PassMain::Sub *armature_fade_geometry_active_ps_;
   PassMain::Sub *armature_fade_geometry_other_ps_;
 
-  bool enabled_ = false;
-
  public:
-  Fade(const SelectionType selection_type_) : selection_type_(selection_type_) {}
-
-  void begin_sync(Resources &res, const State &state)
+  void begin_sync(Resources &res, const State &state) final
   {
-    const bool do_edit_mesh_fade_geom = !state.xray_enabled &&
-                                        (state.overlay.flag & V3D_OVERLAY_FADE_INACTIVE);
-    enabled_ = state.space_type == SPACE_VIEW3D &&
-               (do_edit_mesh_fade_geom || state.do_pose_fade_geom) &&
-               (selection_type_ == SelectionType::DISABLED);
+    const bool do_edit_mesh_fade_geom = !state.xray_enabled && state.show_fade_inactive();
+    enabled_ = state.is_space_v3d() && (do_edit_mesh_fade_geom || state.do_pose_fade_geom) &&
+               !res.is_selection();
 
     if (!enabled_) {
       /* Not used. But release the data. */
@@ -78,7 +75,10 @@ class Fade {
     }
   }
 
-  void object_sync(Manager &manager, const ObjectRef &ob_ref, const State &state)
+  void object_sync(Manager &manager,
+                   const ObjectRef &ob_ref,
+                   Resources & /*res*/,
+                   const State &state) final
   {
     if (!enabled_) {
       return;
@@ -94,7 +94,7 @@ class Fade {
         [](Manager &manager, const ObjectRef &ob_ref, const State &state, PassMain::Sub &sub) {
           const bool use_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob_ref.object,
                                                                        state.rv3d) &&
-                                       !DRW_state_is_image_render();
+                                       !state.is_image_render;
 
           if (use_sculpt_pbvh) {
             ResourceHandle handle = manager.resource_handle_for_sculpt(ob_ref);
@@ -124,7 +124,7 @@ class Fade {
     }
   }
 
-  void pre_draw(Manager &manager, View &view)
+  void pre_draw(Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;
@@ -133,7 +133,7 @@ class Fade {
     manager.generate_commands(ps_, view);
   }
 
-  void draw(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;

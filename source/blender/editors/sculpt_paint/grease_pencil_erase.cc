@@ -36,15 +36,6 @@
 namespace blender::ed::sculpt_paint::greasepencil {
 
 class EraseOperation : public GreasePencilStrokeOperation {
-
- public:
-  EraseOperation(bool temp_use_eraser) : temp_eraser_(temp_use_eraser) {}
-  ~EraseOperation() override {}
-
-  void on_stroke_begin(const bContext &C, const InputSample &start_sample) override;
-  void on_stroke_extended(const bContext &C, const InputSample &extension_sample) override;
-  void on_stroke_done(const bContext &C) override;
-
   friend struct EraseOperationExecutor;
 
  private:
@@ -58,6 +49,14 @@ class EraseOperation : public GreasePencilStrokeOperation {
   bool active_layer_only_ = false;
 
   Set<GreasePencilDrawing *> affected_drawings_;
+
+ public:
+  EraseOperation(bool temp_use_eraser = false) : temp_eraser_(temp_use_eraser) {}
+  ~EraseOperation() override {}
+
+  void on_stroke_begin(const bContext &C, const InputSample &start_sample) override;
+  void on_stroke_extended(const bContext &C, const InputSample &extension_sample) override;
+  void on_stroke_done(const bContext &C) override;
 };
 
 struct SegmentCircleIntersection {

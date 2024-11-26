@@ -151,7 +151,7 @@ PointerRNA RNA_id_pointer_create(ID *id)
   StructRNA *type, *idtype = nullptr;
 
   if (id) {
-    PointerRNA tmp = {nullptr};
+    PointerRNA tmp = {};
     tmp.data = id;
     idtype = rna_ID_refine(&tmp);
 

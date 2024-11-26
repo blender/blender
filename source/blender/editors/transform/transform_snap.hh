@@ -22,13 +22,6 @@ bool peelObjectsTransform(TransInfo *t,
                           float r_no[3],
                           float *r_thickness);
 
-bool snapNodesTransform(TransInfo *t,
-                        const blender::float2 &mval,
-                        /* Return args. */
-                        float r_loc[2],
-                        float *r_dist_px,
-                        char *r_node_border);
-
 bool transformModeUseSnap(const TransInfo *t);
 
 void tranform_snap_target_median_calc(const TransInfo *t, float r_median[3]);

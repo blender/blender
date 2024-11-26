@@ -9,24 +9,27 @@
 #pragma once
 
 #include "BKE_constraint.h"
-
+#include "DEG_depsgraph_query.hh"
 #include "DNA_constraint_types.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_rigidbody_types.h"
 
-#include "overlay_next_private.hh"
+#include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {
 
-class Relations {
+/**
+ * Display object relations as dashed lines.
+ * Covers parenting relationships and constraints.
+ */
+class Relations : Overlay {
 
  private:
   PassSimple ps_ = {"Relations"};
 
   LinePrimitiveBuf relations_buf_;
   PointPrimitiveBuf points_buf_;
-
-  bool enabled_ = false;
 
  public:
   Relations(SelectionType selection_type)
@@ -35,17 +38,20 @@ class Relations {
   {
   }
 
-  void begin_sync(Resources &res, const State &state)
+  void begin_sync(Resources &res, const State &state) final
   {
-    enabled_ = state.space_type == SPACE_VIEW3D;
+    enabled_ = state.is_space_v3d();
     enabled_ &= (state.v3d_flag & V3D_HIDE_HELPLINES) == 0;
-    enabled_ &= res.selection_type == SelectionType::DISABLED;
+    enabled_ &= !res.is_selection();
 
     points_buf_.clear();
     relations_buf_.clear();
   }
 
-  void object_sync(const ObjectRef &ob_ref, Resources &res, const State &state)
+  void object_sync(Manager & /*manager*/,
+                   const ObjectRef &ob_ref,
+                   Resources &res,
+                   const State &state) final
   {
     if (!enabled_) {
       return;
@@ -169,13 +175,14 @@ class Relations {
     }
   }
 
-  void end_sync(Resources &res, const State &state)
+  void end_sync(Resources &res, const ShapeCache & /*shapes*/, const State &state) final
   {
     if (!enabled_) {
       return;
     }
 
     ps_.init();
+    ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
     res.select_bind(ps_);
     {
       PassSimple::Sub &sub_pass = ps_.sub("lines");
@@ -183,7 +190,6 @@ class Relations {
                              DRW_STATE_DEPTH_LESS_EQUAL,
                          state.clipping_plane_count);
       sub_pass.shader_set(res.shaders.extra_wire.get());
-      sub_pass.bind_ubo("globalsBlock", &res.globals_buf);
       relations_buf_.end_sync(sub_pass);
     }
     {
@@ -192,12 +198,11 @@ class Relations {
                              DRW_STATE_DEPTH_LESS_EQUAL,
                          state.clipping_plane_count);
       sub_pass.shader_set(res.shaders.extra_loose_points.get());
-      sub_pass.bind_ubo("globalsBlock", &res.globals_buf);
       points_buf_.end_sync(sub_pass);
     }
   }
 
-  void draw(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;

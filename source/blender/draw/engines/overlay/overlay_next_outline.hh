@@ -8,14 +8,18 @@
 
 #pragma once
 
+#include "overlay_next_base.hh"
 #include "overlay_next_grease_pencil.hh"
-#include "overlay_next_private.hh"
 
 #include "draw_common.hh"
 
 namespace blender::draw::overlay {
 
-class Outline {
+/**
+ * Display selected object outline.
+ * The option can be found under (Viewport Overlays > Objects > Outline Selected).
+ */
+class Outline : Overlay {
  private:
   /* Simple render pass that renders an object ID pass. */
   PassMain outline_prepass_ps_ = {"Prepass"};
@@ -33,25 +37,20 @@ class Outline {
 
   Framebuffer prepass_fb_ = {"outline.prepass_fb"};
 
-  bool enabled_ = false;
+  Vector<FlatObjectRef> flat_objects_;
 
-  overlay::GreasePencil::ViewParameters grease_pencil_view;
+  PassMain outline_prepass_flat_ps_ = {"PrepassFlat"};
 
  public:
-  void begin_sync(Resources &res, const State &state)
+  void begin_sync(Resources &res, const State &state) final
   {
-    enabled_ = (res.selection_type == SelectionType::DISABLED);
+    enabled_ = !res.is_selection();
     enabled_ &= state.v3d && (state.v3d_flag & V3D_SELECT_OUTLINE);
+
+    flat_objects_.clear();
+
     if (!enabled_) {
       return;
-    }
-
-    {
-      /* TODO(fclem): This is against design. We should not sync depending on view position.
-       * Eventually, we should do this in a compute shader prepass. */
-      float4x4 viewinv;
-      DRW_view_viewmat_get(nullptr, viewinv.ptr(), true);
-      grease_pencil_view = {DRW_view_is_persp_get(nullptr), viewinv};
     }
 
     const float outline_width = UI_GetThemeValuef(TH_OUTLINE_WIDTH);
@@ -62,6 +61,7 @@ class Outline {
     {
       auto &pass = outline_prepass_ps_;
       pass.init();
+      pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       pass.framebuffer_set(&prepass_fb_);
       pass.clear_color_depth_stencil(float4(0.0f), 1.0f, 0x0);
       pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL,
@@ -70,49 +70,42 @@ class Outline {
         auto &sub = pass.sub("Curves");
         sub.shader_set(res.shaders.outline_prepass_curves.get());
         sub.push_constant("isTransform", is_transform);
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         prepass_curves_ps_ = &sub;
       }
       {
         auto &sub = pass.sub("PointCloud");
         sub.shader_set(res.shaders.outline_prepass_pointcloud.get());
         sub.push_constant("isTransform", is_transform);
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         prepass_pointcloud_ps_ = &sub;
       }
       {
         auto &sub = pass.sub("GreasePencil");
         sub.shader_set(res.shaders.outline_prepass_gpencil.get());
         sub.push_constant("isTransform", is_transform);
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         prepass_gpencil_ps_ = &sub;
       }
       {
         auto &sub = pass.sub("Mesh");
         sub.shader_set(res.shaders.outline_prepass_mesh.get());
         sub.push_constant("isTransform", is_transform);
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         prepass_mesh_ps_ = &sub;
       }
       {
         auto &sub = pass.sub("Volume");
         sub.shader_set(res.shaders.outline_prepass_mesh.get());
         sub.push_constant("isTransform", is_transform);
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         prepass_volume_ps_ = &sub;
       }
       {
         auto &sub = pass.sub("Wire");
         sub.shader_set(res.shaders.outline_prepass_wire.get());
         sub.push_constant("isTransform", is_transform);
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         prepass_wire_ps_ = &sub;
       }
     }
     {
       auto &pass = outline_resolve_ps_;
       pass.init();
-      pass.framebuffer_set(&res.overlay_line_only_fb);
       pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_PREMUL);
       pass.shader_set(res.shaders.outline_detect.get());
       /* Don't occlude the outline if in xray mode as it causes too much flickering. */
@@ -123,12 +116,15 @@ class Outline {
       pass.bind_texture("outlineId", &object_id_tx_);
       pass.bind_texture("sceneDepth", &res.depth_tx);
       pass.bind_texture("outlineDepth", &tmp_depth_tx_);
-      pass.bind_ubo("globalsBlock", &res.globals_buf);
+      pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
     }
   }
 
-  void object_sync(Manager &manager, const ObjectRef &ob_ref, const State &state)
+  void object_sync(Manager &manager,
+                   const ObjectRef &ob_ref,
+                   Resources &res,
+                   const State &state) final
   {
     if (!enabled_) {
       return;
@@ -149,32 +145,24 @@ class Outline {
         prepass_curves_ps_->draw(geom, manager.unique_handle(ob_ref));
         break;
       case OB_GREASE_PENCIL:
-        GreasePencil::draw_grease_pencil(*prepass_gpencil_ps_,
-                                         grease_pencil_view,
-                                         state.scene,
-                                         ob_ref.object,
-                                         manager.unique_handle(ob_ref));
+        GreasePencil::draw_grease_pencil(
+            res, *prepass_gpencil_ps_, state.scene, ob_ref.object, manager.unique_handle(ob_ref));
         break;
       case OB_MESH:
-        if (!state.xray_enabled_and_not_wire) {
+        if (state.xray_enabled_and_not_wire) {
+          geom = DRW_cache_mesh_edge_detection_get(ob_ref.object, nullptr);
+          prepass_wire_ps_->draw_expand(geom, GPU_PRIM_LINES, 1, 1, manager.unique_handle(ob_ref));
+        }
+        else {
           geom = DRW_cache_mesh_surface_get(ob_ref.object);
           prepass_mesh_ps_->draw(geom, manager.unique_handle(ob_ref));
-        }
-        {
-          /* TODO(fclem): This is against design. We should not sync depending on view position.
-           * Eventually, add a bounding box display pass with some special culling phase. */
 
           /* Display flat object as a line when view is orthogonal to them.
            * This fixes only the biggest case which is a plane in ortho view. */
-          int flat_axis = 0;
-          bool is_flat_object_viewed_from_side = ((state.rv3d->persp == RV3D_ORTHO) &&
-                                                  DRW_object_is_flat(ob_ref.object, &flat_axis) &&
-                                                  DRW_object_axis_orthogonal_to_view(ob_ref.object,
-                                                                                     flat_axis));
-          if (state.xray_enabled_and_not_wire || is_flat_object_viewed_from_side) {
+          int flat_axis = FlatObjectRef::flat_axis_index_get(ob_ref.object);
+          if (flat_axis != -1) {
             geom = DRW_cache_mesh_edge_detection_get(ob_ref.object, nullptr);
-            prepass_wire_ps_->draw_expand(
-                geom, GPU_PRIM_LINES, 1, 1, manager.unique_handle(ob_ref));
+            flat_objects_.append({geom, manager.unique_handle(ob_ref), flat_axis});
           }
         }
         break;
@@ -195,16 +183,41 @@ class Outline {
     }
   }
 
-  void pre_draw(Manager &manager, View &view)
+  void pre_draw_ex(Manager &manager, View &view, Resources &res, const State &state)
   {
     if (!enabled_) {
       return;
     }
 
+    if (!view.is_persp()) {
+      const bool is_transform = (G.moving & G_TRANSFORM_OBJ) != 0;
+      /* Note: We need a dedicated pass since we have to populated it for each redraw. */
+      auto &pass = outline_prepass_flat_ps_;
+      pass.init();
+      pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
+      pass.framebuffer_set(&prepass_fb_);
+      pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL,
+                     state.clipping_plane_count);
+      pass.shader_set(res.shaders.outline_prepass_wire.get());
+      pass.push_constant("isTransform", is_transform);
+
+      for (FlatObjectRef flag_ob_ref : flat_objects_) {
+        flag_ob_ref.if_flat_axis_orthogonal_to_view(
+            manager, view, [&](gpu::Batch *geom, ResourceHandle handle) {
+              pass.draw_expand(geom, GPU_PRIM_LINES, 1, 1, handle);
+            });
+      }
+    }
+    else {
+      outline_prepass_flat_ps_.init();
+    }
+
     manager.generate_commands(outline_prepass_ps_, view);
+    manager.generate_commands(outline_prepass_flat_ps_, view);
   }
 
-  void draw(Resources &res, Manager &manager, View &view)
+  /* TODO(fclem): Remove dependency on Resources. */
+  void draw_line_only_ex(Framebuffer &framebuffer, Resources &res, Manager &manager, View &view)
   {
     if (!enabled_) {
       return;
@@ -222,6 +235,9 @@ class Outline {
                        GPU_ATTACHMENT_TEXTURE(object_id_tx_));
 
     manager.submit_only(outline_prepass_ps_, view);
+    manager.submit_only(outline_prepass_flat_ps_, view);
+
+    GPU_framebuffer_bind(framebuffer);
     manager.submit(outline_resolve_ps_, view);
 
     tmp_depth_tx_.release();

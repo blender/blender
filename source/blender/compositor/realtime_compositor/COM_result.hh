@@ -429,6 +429,10 @@ class Result {
   /* Identical to sample_nearest_extended but with bilinear interpolation. */
   float4 sample_bilinear_extended(const float2 &coordinates) const;
 
+  float4 sample_nearest_wrap(const float2 &coordinates, bool wrap_x, bool wrap_y) const;
+  float4 sample_bilinear_wrap(const float2 &coordinates, bool wrap_x, bool wrap_y) const;
+  float4 sample_cubic_wrap(const float2 &coordinates, bool wrap_x, bool wrap_y) const;
+
   /* Equivalent to the GLSL textureGrad() function with EWA filtering and extended boundary
    * condition. Note that extended boundaries only cover areas touched by the ellipses whose
    * center is inside the image, other areas will be zero. The coordinates are thus expected to
@@ -611,6 +615,82 @@ inline float4 Result::sample_nearest_zero(const float2 &coordinates) const
                                       this->channels_count(),
                                       texel_coordinates.x,
                                       texel_coordinates.y);
+  return pixel_value;
+}
+
+inline float4 Result::sample_nearest_wrap(const float2 &coordinates,
+                                          bool wrap_x,
+                                          bool wrap_y) const
+{
+  float4 pixel_value = float4(0.0f, 0.0f, 0.0f, 1.0f);
+  if (is_single_value_) {
+    this->copy_pixel(pixel_value, float_texture_);
+    return pixel_value;
+  }
+
+  const int2 size = domain_.size;
+  const float2 texel_coordinates = coordinates * float2(size);
+
+  math::interpolate_nearest_wrapmode_fl(
+      this->float_texture(),
+      pixel_value,
+      size.x,
+      size.y,
+      this->channels_count(),
+      texel_coordinates.x,
+      texel_coordinates.y,
+      wrap_x ? math::InterpWrapMode::Repeat : math::InterpWrapMode::Border,
+      wrap_y ? math::InterpWrapMode::Repeat : math::InterpWrapMode::Border);
+  return pixel_value;
+}
+
+inline float4 Result::sample_bilinear_wrap(const float2 &coordinates,
+                                           bool wrap_x,
+                                           bool wrap_y) const
+{
+  float4 pixel_value = float4(0.0f, 0.0f, 0.0f, 1.0f);
+  if (is_single_value_) {
+    this->copy_pixel(pixel_value, float_texture_);
+    return pixel_value;
+  }
+
+  const int2 size = domain_.size;
+  const float2 texel_coordinates = coordinates * float2(size) - 0.5f;
+
+  math::interpolate_bilinear_wrapmode_fl(
+      this->float_texture(),
+      pixel_value,
+      size.x,
+      size.y,
+      this->channels_count(),
+      texel_coordinates.x,
+      texel_coordinates.y,
+      wrap_x ? math::InterpWrapMode::Repeat : math::InterpWrapMode::Border,
+      wrap_y ? math::InterpWrapMode::Repeat : math::InterpWrapMode::Border);
+  return pixel_value;
+}
+
+inline float4 Result::sample_cubic_wrap(const float2 &coordinates, bool wrap_x, bool wrap_y) const
+{
+  float4 pixel_value = float4(0.0f, 0.0f, 0.0f, 1.0f);
+  if (is_single_value_) {
+    this->copy_pixel(pixel_value, float_texture_);
+    return pixel_value;
+  }
+
+  const int2 size = domain_.size;
+  const float2 texel_coordinates = coordinates * float2(size) - 0.5f;
+
+  math::interpolate_cubic_bspline_wrapmode_fl(
+      this->float_texture(),
+      pixel_value,
+      size.x,
+      size.y,
+      this->channels_count(),
+      texel_coordinates.x,
+      texel_coordinates.y,
+      wrap_x ? math::InterpWrapMode::Repeat : math::InterpWrapMode::Border,
+      wrap_y ? math::InterpWrapMode::Repeat : math::InterpWrapMode::Border);
   return pixel_value;
 }
 

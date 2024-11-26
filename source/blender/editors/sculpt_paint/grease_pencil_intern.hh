@@ -189,7 +189,7 @@ class GreasePencilStrokeOperationCommon : public GreasePencilStrokeOperation {
 /* Operations */
 
 std::unique_ptr<GreasePencilStrokeOperation> new_paint_operation(bool temp_draw = false);
-std::unique_ptr<GreasePencilStrokeOperation> new_erase_operation(bool temp_eraser);
+std::unique_ptr<GreasePencilStrokeOperation> new_erase_operation(bool temp_eraser = false);
 std::unique_ptr<GreasePencilStrokeOperation> new_tint_operation();
 std::unique_ptr<GreasePencilStrokeOperation> new_weight_paint_draw_operation(
     const BrushStrokeMode &brush_mode);

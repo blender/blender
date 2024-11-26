@@ -9,37 +9,15 @@
 #pragma once
 
 #include "BKE_camera.h"
-
-#include "DEG_depsgraph_query.hh"
-
 #include "BKE_tracking.h"
-
 #include "BLI_math_rotation.h"
-
+#include "DEG_depsgraph_query.hh"
 #include "DNA_camera_types.h"
-
 #include "ED_view3d.hh"
 
 #include "draw_manager_text.hh"
+#include "overlay_next_base.hh"
 #include "overlay_next_empty.hh"
-#include "overlay_next_private.hh"
-
-static float camera_offaxis_shiftx_get(const Scene *scene,
-                                       const Object *ob,
-                                       float corner_x,
-                                       bool right_eye)
-{
-  const Camera *cam = static_cast<const Camera *>(ob->data);
-  if (cam->stereo.convergence_mode == CAM_S3D_OFFAXIS) {
-    const char *viewnames[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
-    const float shiftx = BKE_camera_multiview_shift_x(&scene->r, ob, viewnames[right_eye]);
-    const float delta_shiftx = shiftx - cam->shiftx;
-    const float width = corner_x * 2.0f;
-    return delta_shiftx * width;
-  }
-
-  return 0.0;
-}
 
 namespace blender::draw::overlay {
 struct CameraInstanceData : public ExtraInstanceData {
@@ -68,7 +46,13 @@ struct CameraInstanceData : public ExtraInstanceData {
       : ExtraInstanceData(p_matrix, color, 1.0f){};
 };
 
-class Cameras {
+/**
+ * Camera object display (including stereoscopy).
+ * Also camera reconstruction bundles.
+ * Also camera reference images (background).
+ */
+/* TODO(fclem): Split into multiple overlay classes. */
+class Cameras : Overlay {
   using CameraInstanceBuf = ShapeInstanceBuf<ExtraInstanceData>;
 
  private:
@@ -100,8 +84,329 @@ class Cameras {
     Empties::CallBuffers empties{selection_type_};
   } call_buffers_;
 
-  void sync_view3d_reconstruction(const ObjectRef &ob_ref, Resources &res, const State &state)
+  bool images_enabled_ = false;
+  bool extras_enabled_ = false;
+  bool motion_tracking_enabled_ = false;
+
+  State::ViewOffsetData offset_data_;
+  float4x4 depth_bias_winmat_;
+
+ public:
+  Cameras(const SelectionType selection_type) : call_buffers_{selection_type} {};
+
+  void begin_sync(Resources &res, const State &state) final
   {
+    enabled_ = state.is_space_v3d();
+    extras_enabled_ = enabled_ && state.show_extras();
+    motion_tracking_enabled_ = enabled_ && state.v3d->flag2 & V3D_SHOW_RECONSTRUCTION;
+    images_enabled_ = enabled_ && !res.is_selection();
+    enabled_ = extras_enabled_ || images_enabled_ || motion_tracking_enabled_;
+
+    offset_data_ = state.offset_data_get();
+
+    if (extras_enabled_ || motion_tracking_enabled_) {
+      call_buffers_.distances_buf.clear();
+      call_buffers_.frame_buf.clear();
+      call_buffers_.tria_buf.clear();
+      call_buffers_.tria_wire_buf.clear();
+      call_buffers_.volume_buf.clear();
+      call_buffers_.volume_wire_buf.clear();
+      call_buffers_.sphere_solid_buf.clear();
+      call_buffers_.stereo_connect_lines.clear();
+      call_buffers_.tracking_path.clear();
+      Empties::begin_sync(call_buffers_.empties);
+    }
+
+    if (images_enabled_) {
+      /* Init image passes. */
+      auto init_pass = [&](PassMain &pass, DRWState draw_state) {
+        pass.init();
+        pass.state_set(draw_state, state.clipping_plane_count);
+        pass.shader_set(res.shaders.image_plane_depth_bias.get());
+        pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
+        pass.push_constant("depth_bias_winmat", &depth_bias_winmat_);
+        res.select_bind(pass);
+      };
+
+      DRWState draw_state;
+      draw_state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_PREMUL;
+      init_pass(background_ps_, draw_state);
+
+      draw_state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_UNDER_PREMUL;
+      init_pass(background_scene_ps_, draw_state);
+
+      draw_state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_PREMUL;
+      init_pass(foreground_ps_, draw_state);
+      init_pass(foreground_scene_ps_, draw_state);
+    }
+  }
+
+  void object_sync_ex(
+      const ObjectRef &ob_ref, ShapeCache &shapes, Manager &manager, Resources &res, State &state)
+  {
+    if (!enabled_) {
+      return;
+    }
+
+    const select::ID select_id = res.select_id(ob_ref);
+
+    object_sync_extras(ob_ref, select_id, state, res);
+
+    object_sync_motion_paths(ob_ref, res, state);
+
+    object_sync_images(ob_ref, select_id, shapes, manager, state, res);
+  }
+
+  void end_sync(Resources &res, const ShapeCache &shapes, const State &state) final
+  {
+    if (!extras_enabled_ && !motion_tracking_enabled_) {
+      return;
+    }
+
+    ps_.init();
+    ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
+    res.select_bind(ps_);
+
+    {
+      PassSimple::Sub &sub_pass = ps_.sub("volume");
+      sub_pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA |
+                             DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK,
+                         state.clipping_plane_count);
+      sub_pass.shader_set(res.shaders.extra_shape.get());
+      call_buffers_.volume_buf.end_sync(sub_pass, shapes.camera_volume.get());
+    }
+    {
+      PassSimple::Sub &sub_pass = ps_.sub("volume_wire");
+      sub_pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA |
+                             DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK,
+                         state.clipping_plane_count);
+      sub_pass.shader_set(res.shaders.extra_shape.get());
+      call_buffers_.volume_wire_buf.end_sync(sub_pass, shapes.camera_volume_wire.get());
+    }
+
+    {
+      PassSimple::Sub &sub_pass = ps_.sub("camera_shapes");
+      sub_pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
+                             DRW_STATE_DEPTH_LESS_EQUAL,
+                         state.clipping_plane_count);
+      sub_pass.shader_set(res.shaders.extra_shape.get());
+      call_buffers_.distances_buf.end_sync(sub_pass, shapes.camera_distances.get());
+      call_buffers_.frame_buf.end_sync(sub_pass, shapes.camera_frame.get());
+      call_buffers_.tria_buf.end_sync(sub_pass, shapes.camera_tria.get());
+      call_buffers_.tria_wire_buf.end_sync(sub_pass, shapes.camera_tria_wire.get());
+      call_buffers_.sphere_solid_buf.end_sync(sub_pass, shapes.sphere_low_detail.get());
+    }
+
+    {
+      PassSimple::Sub &sub_pass = ps_.sub("camera_extra_wire");
+      sub_pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
+                             DRW_STATE_DEPTH_LESS_EQUAL,
+                         state.clipping_plane_count);
+      sub_pass.shader_set(res.shaders.extra_wire.get());
+      call_buffers_.stereo_connect_lines.end_sync(sub_pass);
+      call_buffers_.tracking_path.end_sync(sub_pass);
+    }
+
+    PassSimple::Sub &sub_pass = ps_.sub("empties");
+    Empties::end_sync(res, shapes, state, sub_pass, call_buffers_.empties);
+  }
+
+  void pre_draw(Manager &manager, View &view) final
+  {
+    if (!images_enabled_) {
+      return;
+    }
+
+    manager.generate_commands(background_scene_ps_, view);
+    manager.generate_commands(foreground_scene_ps_, view);
+    manager.generate_commands(background_ps_, view);
+    manager.generate_commands(foreground_ps_, view);
+
+    float view_dist = State::view_dist_get(offset_data_, view.winmat());
+    depth_bias_winmat_ = winmat_polygon_offset(view.winmat(), view_dist, -1.0f);
+  }
+
+  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final
+  {
+    if (!extras_enabled_ && !motion_tracking_enabled_) {
+      return;
+    }
+
+    GPU_framebuffer_bind(framebuffer);
+    manager.submit(ps_, view);
+  }
+
+  void draw_scene_background_images(GPUFrameBuffer *framebuffer, Manager &manager, View &view)
+  {
+    if (!images_enabled_) {
+      return;
+    }
+
+    GPU_framebuffer_bind(framebuffer);
+    manager.submit_only(background_scene_ps_, view);
+    manager.submit_only(foreground_scene_ps_, view);
+  }
+
+  void draw_background_images(Framebuffer &framebuffer, Manager &manager, View &view)
+  {
+    if (!images_enabled_) {
+      return;
+    }
+
+    GPU_framebuffer_bind(framebuffer);
+    manager.submit_only(background_ps_, view);
+  }
+
+  void draw_in_front(Framebuffer &framebuffer, Manager &manager, View &view)
+  {
+    if (!images_enabled_) {
+      return;
+    }
+
+    GPU_framebuffer_bind(framebuffer);
+    manager.submit_only(foreground_ps_, view);
+  }
+
+ private:
+  void object_sync_extras(const ObjectRef &ob_ref,
+                          select::ID select_id,
+                          const State &state,
+                          Resources &res)
+  {
+    if (!extras_enabled_) {
+      return;
+    }
+
+    Object *ob = ob_ref.object;
+    CameraInstanceData data(ob->object_to_world(), res.object_wire_color(ob_ref, state));
+
+    const View3D *v3d = state.v3d;
+    const Scene *scene = state.scene;
+    const RegionView3D *rv3d = state.rv3d;
+
+    const Camera *cam = static_cast<Camera *>(ob->data);
+    const Object *camera_object = DEG_get_evaluated_object(state.depsgraph, v3d->camera);
+    const bool is_select = res.is_selection();
+    const bool is_active = (ob == camera_object);
+    const bool is_camera_view = (is_active && (rv3d->persp == RV3D_CAMOB));
+
+    const bool is_multiview = (scene->r.scemode & R_MULTIVIEW) != 0;
+    const bool is_stereo3d_view = (scene->r.views_format == SCE_VIEWS_FORMAT_STEREO_3D);
+    const bool is_stereo3d_display_extra = is_active && is_multiview && (!is_camera_view) &&
+                                           ((v3d->stereo3d_flag) != 0);
+    const bool is_selection_camera_stereo = is_select && is_camera_view && is_multiview &&
+                                            is_stereo3d_view;
+
+    float3 scale = math::to_scale(data.matrix);
+    /* BKE_camera_multiview_model_matrix already accounts for scale, don't do it here. */
+    if (is_selection_camera_stereo) {
+      scale = float3(1.0f);
+    }
+    else if (ELEM(0.0f, scale.x, scale.y, scale.z)) {
+      /* Avoid division by 0. */
+      return;
+    }
+
+    float4x3 vecs;
+    float2 aspect_ratio;
+    float2 shift;
+    float drawsize;
+    BKE_camera_view_frame_ex(scene,
+                             cam,
+                             cam->drawsize,
+                             is_camera_view,
+                             1.0f / scale,
+                             aspect_ratio,
+                             shift,
+                             &drawsize,
+                             vecs.ptr());
+
+    /* Apply scale to simplify the rest of the drawing. */
+    for (int i = 0; i < 4; i++) {
+      vecs[i] *= scale;
+      /* Project to z=-1 plane. Makes positioning / scaling easier. (see shader) */
+      mul_v2_fl(vecs[i], 1.0f / std::abs(vecs[i].z));
+    }
+
+    /* Frame coords */
+    const float2 center = (vecs[0].xy() + vecs[2].xy()) * 0.5f;
+    const float2 corner = vecs[0].xy() - center.xy();
+    data.corner_x = corner.x;
+    data.corner_y = corner.y;
+    data.center_x = center.x;
+    data.center_y = center.y;
+    data.depth = vecs[0].z;
+
+    if (is_camera_view) {
+      if (!state.is_image_render) {
+        /* Only draw the frame. */
+        if (is_multiview) {
+          float4x4 mat;
+          const bool is_right = v3d->multiview_eye == STEREO_RIGHT_ID;
+          const char *view_name = is_right ? STEREO_RIGHT_NAME : STEREO_LEFT_NAME;
+          BKE_camera_multiview_model_matrix(&scene->r, ob, view_name, mat.ptr());
+          data.center_x += camera_offaxis_shiftx_get(scene, ob, data.corner_x, is_right);
+          for (int i : IndexRange(4)) {
+            /* Partial copy to avoid overriding packed data. */
+            for (int j : IndexRange(3)) {
+              data.matrix[i][j] = mat[i][j];
+            }
+          }
+        }
+        data.depth *= -1.0f; /* Hides the back of the camera wires (see shader). */
+        call_buffers_.frame_buf.append(data, select_id);
+      }
+    }
+    else {
+      /* Stereo cameras, volumes, plane drawing. */
+      if (is_stereo3d_display_extra) {
+        sync_stereoscopy_extra(data, select_id, scene, v3d, res, ob);
+      }
+      else {
+        call_buffers_.frame_buf.append(data, select_id);
+      }
+    }
+
+    if (!is_camera_view) {
+      /* Triangle. */
+      float tria_size = 0.7f * drawsize / fabsf(data.depth);
+      float tria_margin = 0.1f * drawsize / fabsf(data.depth);
+      data.center_x = center.x;
+      data.center_y = center.y + data.corner_y + tria_margin + tria_size;
+      data.corner_x = data.corner_y = -tria_size;
+      (is_active ? call_buffers_.tria_buf : call_buffers_.tria_wire_buf).append(data, select_id);
+    }
+
+    if (cam->flag & CAM_SHOWLIMITS) {
+      /* Scale focus point. */
+      data.matrix.x_axis() *= cam->drawsize;
+      data.matrix.y_axis() *= cam->drawsize;
+
+      data.dist_color_id = (is_active) ? 3 : 2;
+      data.focus = -BKE_camera_object_dof_distance(ob);
+      data.clip_start = cam->clip_start;
+      data.clip_end = cam->clip_end;
+      call_buffers_.distances_buf.append(data, select_id);
+    }
+
+    if (cam->flag & CAM_SHOWMIST) {
+      World *world = scene->world;
+      if (world) {
+        data.dist_color_id = (is_active) ? 1 : 0;
+        data.focus = 1.0f; /* Disable */
+        data.mist_start = world->miststa;
+        data.mist_end = world->miststa + world->mistdist;
+        call_buffers_.distances_buf.append(data, select_id);
+      }
+    }
+  }
+
+  void object_sync_motion_paths(const ObjectRef &ob_ref, Resources &res, const State &state)
+  {
+    if (!motion_tracking_enabled_) {
+      return;
+    }
+
     Object *ob = ob_ref.object;
     const View3D *v3d = state.v3d;
     const Scene *scene = state.scene;
@@ -113,7 +418,7 @@ class Cameras {
 
     const float4 &color = res.object_wire_color(ob_ref, state);
 
-    const bool is_selection = res.selection_type != SelectionType::DISABLED;
+    const bool is_selection = res.is_selection();
     const bool is_solid_bundle = (v3d->bundle_drawtype == OB_EMPTY_SPHERE) &&
                                  ((v3d->shading.type != OB_SOLID) || !XRAY_FLAG_ENABLED(v3d));
 
@@ -242,455 +547,24 @@ class Cameras {
     }
   }
 
-  /**
-   * Draw the stereo 3d support elements (cameras, plane, volume).
-   * They are only visible when not looking through the camera:
-   */
-  static void sync_stereoscopy_extra(const CameraInstanceData &instdata,
-                                     const select::ID cam_select_id,
-                                     const Scene *scene,
-                                     const View3D *v3d,
-                                     Resources &res,
-                                     Object *ob,
-                                     CallBuffers &call_buffers)
-  {
-    CameraInstanceData stereodata = instdata;
-
-    const Camera *cam = static_cast<const Camera *>(ob->data);
-    const char *viewnames[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
-
-    const bool is_stereo3d_cameras = (v3d->stereo3d_flag & V3D_S3D_DISPCAMERAS) != 0;
-    const bool is_stereo3d_plane = (v3d->stereo3d_flag & V3D_S3D_DISPPLANE) != 0;
-    const bool is_stereo3d_volume = (v3d->stereo3d_flag & V3D_S3D_DISPVOLUME) != 0;
-    const bool is_selection = res.selection_type != SelectionType::DISABLED;
-
-    if (!is_stereo3d_cameras) {
-      /* Draw single camera. */
-      call_buffers.frame_buf.append(instdata, cam_select_id);
-    }
-
-    for (const int eye : IndexRange(2)) {
-      ob = BKE_camera_multiview_render(scene, ob, viewnames[eye]);
-      BKE_camera_multiview_model_matrix(&scene->r, ob, viewnames[eye], stereodata.matrix.ptr());
-
-      stereodata.corner_x = instdata.corner_x;
-      stereodata.corner_y = instdata.corner_y;
-      stereodata.center_x = instdata.center_x;
-      stereodata.center_y = instdata.center_y;
-      stereodata.depth = instdata.depth;
-
-      stereodata.center_x += camera_offaxis_shiftx_get(scene, ob, instdata.corner_x, eye);
-
-      if (is_stereo3d_cameras) {
-        call_buffers.frame_buf.append(stereodata, cam_select_id);
-
-        /* Connecting line between cameras. */
-        call_buffers.stereo_connect_lines.append(stereodata.matrix.location(),
-                                                 instdata.object_to_world_.location(),
-                                                 res.theme_settings.color_wire,
-                                                 cam_select_id);
-      }
-
-      if (is_stereo3d_volume && !is_selection) {
-        float r = (eye == 1) ? 2.0f : 1.0f;
-
-        stereodata.volume_start = -cam->clip_start;
-        stereodata.volume_end = -cam->clip_end;
-        /* Encode eye + intensity and alpha (see shader) */
-        stereodata.color_.x = r + 0.15f;
-        stereodata.color_.y = 1.0f;
-        call_buffers.volume_wire_buf.append(stereodata, cam_select_id);
-
-        if (v3d->stereo3d_volume_alpha > 0.0f) {
-          /* Encode eye + intensity and alpha (see shader) */
-          stereodata.color_.x = r + 0.999f;
-          stereodata.color_.y = v3d->stereo3d_volume_alpha;
-          call_buffers.volume_buf.append(stereodata, cam_select_id);
-        }
-        /* restore */
-        stereodata.color_.x = instdata.color_.x;
-        stereodata.color_.y = instdata.color_.y;
-        stereodata.color_.z = instdata.color_.z;
-      }
-    }
-
-    if (is_stereo3d_plane && !is_selection) {
-      if (cam->stereo.convergence_mode == CAM_S3D_TOE) {
-        /* There is no real convergence plane but we highlight the center
-         * point where the views are pointing at. */
-        // stereodata.matrix.x_axis() = float3(0.0f); /* We reconstruct from Z and Y */
-        // stereodata.matrix.y_axis() = float3(0.0f); /* Y doesn't change */
-        stereodata.matrix.z_axis() = float3(0.0f);
-        stereodata.matrix.location() = float3(0.0f);
-        for (int i : IndexRange(2)) {
-          float4x4 mat;
-          /* Need normalized version here. */
-          BKE_camera_multiview_model_matrix(&scene->r, ob, viewnames[i], mat.ptr());
-          stereodata.matrix.z_axis() += mat.z_axis();
-          stereodata.matrix.location() += mat.location() * 0.5f;
-        }
-        stereodata.matrix.z_axis() = math::normalize(stereodata.matrix.z_axis());
-        stereodata.matrix.x_axis() = math::cross(stereodata.matrix.y_axis(),
-                                                 stereodata.matrix.z_axis());
-      }
-      else if (cam->stereo.convergence_mode == CAM_S3D_PARALLEL) {
-        /* Show plane at the given distance between the views even if it makes no sense. */
-        stereodata.matrix.location() = float3(0.0f);
-        for (int i : IndexRange(2)) {
-          float4x4 mat;
-          BKE_camera_multiview_model_matrix_scaled(&scene->r, ob, viewnames[i], mat.ptr());
-          stereodata.matrix.location() += mat.location() * 0.5f;
-        }
-      }
-      else if (cam->stereo.convergence_mode == CAM_S3D_OFFAXIS) {
-        /* Nothing to do. Everything is already setup. */
-      }
-      stereodata.volume_start = -cam->stereo.convergence_distance;
-      stereodata.volume_end = -cam->stereo.convergence_distance;
-      /* Encode eye + intensity and alpha (see shader) */
-      stereodata.color_.x = 0.1f;
-      stereodata.color_.y = 1.0f;
-      call_buffers.volume_wire_buf.append(stereodata, cam_select_id);
-
-      if (v3d->stereo3d_convergence_alpha > 0.0f) {
-        /* Encode eye + intensity and alpha (see shader) */
-        stereodata.color_.x = 0.0f;
-        stereodata.color_.y = v3d->stereo3d_convergence_alpha;
-        call_buffers.volume_buf.append(stereodata, cam_select_id);
-      }
-    }
-  }
-
-  bool enabled_ = false;
-  bool images_enabled_ = false;
-
- public:
-  Cameras(const SelectionType selection_type) : call_buffers_{selection_type} {};
-
-  void begin_sync(Resources &res, State &state, View &view)
-  {
-    enabled_ = state.space_type == SPACE_VIEW3D;
-
-    if (!enabled_) {
-      return;
-    }
-
-    call_buffers_.distances_buf.clear();
-    call_buffers_.frame_buf.clear();
-    call_buffers_.tria_buf.clear();
-    call_buffers_.tria_wire_buf.clear();
-    call_buffers_.volume_buf.clear();
-    call_buffers_.volume_wire_buf.clear();
-    call_buffers_.sphere_solid_buf.clear();
-    call_buffers_.stereo_connect_lines.clear();
-    call_buffers_.tracking_path.clear();
-    Empties::begin_sync(call_buffers_.empties);
-
-    images_enabled_ = res.selection_type == SelectionType::DISABLED;
-
-    if (!images_enabled_) {
-      return;
-    }
-
-    float4x4 depth_bias_winmat = winmat_polygon_offset(
-        view.winmat(), state.view_dist_get(view.winmat()), -1.0f);
-
-    /* Init image passes. */
-    auto init_pass = [&](PassMain &pass, DRWState draw_state) {
-      pass.init();
-      pass.state_set(draw_state, state.clipping_plane_count);
-      pass.shader_set(res.shaders.image_plane_depth_bias.get());
-      pass.bind_ubo("globalsBlock", &res.globals_buf);
-      pass.push_constant("depth_bias_winmat", depth_bias_winmat);
-      res.select_bind(pass);
-    };
-
-    DRWState draw_state;
-    draw_state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_PREMUL;
-    init_pass(background_ps_, draw_state);
-
-    draw_state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_UNDER_PREMUL;
-    init_pass(background_scene_ps_, draw_state);
-
-    draw_state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_PREMUL;
-    init_pass(foreground_ps_, draw_state);
-    init_pass(foreground_scene_ps_, draw_state);
-  }
-
-  void object_sync(
-      const ObjectRef &ob_ref, ShapeCache &shapes, Manager &manager, Resources &res, State &state)
-  {
-    if (!enabled_) {
-      return;
-    }
-
-    Object *ob = ob_ref.object;
-    const select::ID select_id = res.select_id(ob_ref);
-    CameraInstanceData data(ob->object_to_world(), res.object_wire_color(ob_ref, state));
-
-    const View3D *v3d = state.v3d;
-    const Scene *scene = state.scene;
-    const RegionView3D *rv3d = state.rv3d;
-
-    const Camera *cam = static_cast<Camera *>(ob->data);
-    const Object *camera_object = DEG_get_evaluated_object(state.depsgraph, v3d->camera);
-    const bool is_select = res.selection_type != SelectionType::DISABLED;
-    const bool is_active = (ob == camera_object);
-    const bool is_camera_view = (is_active && (rv3d->persp == RV3D_CAMOB));
-
-    const bool is_multiview = (scene->r.scemode & R_MULTIVIEW) != 0;
-    const bool is_stereo3d_view = (scene->r.views_format == SCE_VIEWS_FORMAT_STEREO_3D);
-    const bool is_stereo3d_display_extra = is_active && is_multiview && (!is_camera_view) &&
-                                           ((v3d->stereo3d_flag) != 0);
-    const bool is_selection_camera_stereo = is_select && is_camera_view && is_multiview &&
-                                            is_stereo3d_view;
-
-    float3 scale = math::to_scale(data.matrix);
-    /* BKE_camera_multiview_model_matrix already accounts for scale, don't do it here. */
-    if (is_selection_camera_stereo) {
-      scale = float3(1.0f);
-    }
-    else if (ELEM(0.0f, scale.x, scale.y, scale.z)) {
-      /* Avoid division by 0. */
-      return;
-    }
-    float4x3 vecs;
-    float2 aspect_ratio;
-    float2 shift;
-    float drawsize;
-
-    BKE_camera_view_frame_ex(scene,
-                             cam,
-                             cam->drawsize,
-                             is_camera_view,
-                             1.0f / scale,
-                             aspect_ratio,
-                             shift,
-                             &drawsize,
-                             vecs.ptr());
-
-    /* Apply scale to simplify the rest of the drawing. */
-    for (int i = 0; i < 4; i++) {
-      vecs[i] *= scale;
-      /* Project to z=-1 plane. Makes positioning / scaling easier. (see shader) */
-      mul_v2_fl(vecs[i], 1.0f / std::abs(vecs[i].z));
-    }
-
-    /* Frame coords */
-    const float2 center = (vecs[0].xy() + vecs[2].xy()) * 0.5f;
-    const float2 corner = vecs[0].xy() - center.xy();
-    data.corner_x = corner.x;
-    data.corner_y = corner.y;
-    data.center_x = center.x;
-    data.center_y = center.y;
-    data.depth = vecs[0].z;
-
-    if (is_camera_view) {
-      /* TODO(Miguel Pozo) */
-      if (!DRW_state_is_image_render()) {
-        /* Only draw the frame. */
-        if (is_multiview) {
-          float4x4 mat;
-          const bool is_right = v3d->multiview_eye == STEREO_RIGHT_ID;
-          const char *view_name = is_right ? STEREO_RIGHT_NAME : STEREO_LEFT_NAME;
-          BKE_camera_multiview_model_matrix(&scene->r, ob, view_name, mat.ptr());
-          data.center_x += camera_offaxis_shiftx_get(scene, ob, data.corner_x, is_right);
-          for (int i : IndexRange(4)) {
-            /* Partial copy to avoid overriding packed data. */
-            for (int j : IndexRange(3)) {
-              data.matrix[i][j] = mat[i][j];
-            }
-          }
-        }
-        data.depth *= -1.0f; /* Hides the back of the camera wires (see shader). */
-        call_buffers_.frame_buf.append(data, select_id);
-      }
-    }
-    else {
-      /* Stereo cameras, volumes, plane drawing. */
-      if (is_stereo3d_display_extra) {
-        sync_stereoscopy_extra(data, select_id, scene, v3d, res, ob, call_buffers_);
-      }
-      else {
-        call_buffers_.frame_buf.append(data, select_id);
-      }
-    }
-
-    if (!is_camera_view) {
-      /* Triangle. */
-      float tria_size = 0.7f * drawsize / fabsf(data.depth);
-      float tria_margin = 0.1f * drawsize / fabsf(data.depth);
-      data.center_x = center.x;
-      data.center_y = center.y + data.corner_y + tria_margin + tria_size;
-      data.corner_x = data.corner_y = -tria_size;
-      (is_active ? call_buffers_.tria_buf : call_buffers_.tria_wire_buf).append(data, select_id);
-    }
-
-    if (cam->flag & CAM_SHOWLIMITS) {
-      /* Scale focus point. */
-      data.matrix.x_axis() *= cam->drawsize;
-      data.matrix.y_axis() *= cam->drawsize;
-
-      data.dist_color_id = (is_active) ? 3 : 2;
-      data.focus = -BKE_camera_object_dof_distance(ob);
-      data.clip_start = cam->clip_start;
-      data.clip_end = cam->clip_end;
-      call_buffers_.distances_buf.append(data, select_id);
-    }
-
-    if (cam->flag & CAM_SHOWMIST) {
-      World *world = scene->world;
-      if (world) {
-        data.dist_color_id = (is_active) ? 1 : 0;
-        data.focus = 1.0f; /* Disable */
-        data.mist_start = world->miststa;
-        data.mist_end = world->miststa + world->mistdist;
-        call_buffers_.distances_buf.append(data, select_id);
-      }
-    }
-
-    /* Motion Tracking. */
-    if ((v3d->flag2 & V3D_SHOW_RECONSTRUCTION) != 0) {
-      sync_view3d_reconstruction(ob_ref, res, state);
-    }
-
-    if (is_camera_view && (cam->flag & CAM_SHOW_BG_IMAGE) &&
-        !BLI_listbase_is_empty(&cam->bg_images))
-    {
-      sync_camera_images(
-          ob_ref, select_id, shapes, manager, state, res, call_buffers_.selection_type_);
-    }
-  }
-
-  void end_sync(Resources &res, ShapeCache &shapes, const State &state)
-  {
-    if (!enabled_) {
-      return;
-    }
-
-    ps_.init();
-    res.select_bind(ps_);
-
-    {
-      PassSimple::Sub &sub_pass = ps_.sub("volume");
-      sub_pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA |
-                             DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK,
-                         state.clipping_plane_count);
-      sub_pass.shader_set(res.shaders.extra_shape.get());
-      sub_pass.bind_ubo("globalsBlock", &res.globals_buf);
-      call_buffers_.volume_buf.end_sync(sub_pass, shapes.camera_volume.get());
-    }
-    {
-      PassSimple::Sub &sub_pass = ps_.sub("volume_wire");
-      sub_pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA |
-                             DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK,
-                         state.clipping_plane_count);
-      sub_pass.shader_set(res.shaders.extra_shape.get());
-      sub_pass.bind_ubo("globalsBlock", &res.globals_buf);
-      call_buffers_.volume_wire_buf.end_sync(sub_pass, shapes.camera_volume_wire.get());
-    }
-
-    {
-      PassSimple::Sub &sub_pass = ps_.sub("camera_shapes");
-      sub_pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
-                             DRW_STATE_DEPTH_LESS_EQUAL,
-                         state.clipping_plane_count);
-      sub_pass.shader_set(res.shaders.extra_shape.get());
-      sub_pass.bind_ubo("globalsBlock", &res.globals_buf);
-      call_buffers_.distances_buf.end_sync(sub_pass, shapes.camera_distances.get());
-      call_buffers_.frame_buf.end_sync(sub_pass, shapes.camera_frame.get());
-      call_buffers_.tria_buf.end_sync(sub_pass, shapes.camera_tria.get());
-      call_buffers_.tria_wire_buf.end_sync(sub_pass, shapes.camera_tria_wire.get());
-      call_buffers_.sphere_solid_buf.end_sync(sub_pass, shapes.sphere_low_detail.get());
-    }
-    {
-      PassSimple::Sub &sub_pass = ps_.sub("camera_extra_wire");
-      sub_pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
-                             DRW_STATE_DEPTH_LESS_EQUAL,
-                         state.clipping_plane_count);
-      sub_pass.shader_set(res.shaders.extra_wire.get());
-      sub_pass.bind_ubo("globalsBlock", &res.globals_buf);
-      call_buffers_.stereo_connect_lines.end_sync(sub_pass);
-      call_buffers_.tracking_path.end_sync(sub_pass);
-    }
-    {
-      PassSimple::Sub &sub_pass = ps_.sub("empties");
-      Empties::end_sync(res, shapes, state, sub_pass, call_buffers_.empties);
-    }
-  }
-
-  void pre_draw(Manager &manager, View &view)
-  {
-    if (!images_enabled_) {
-      return;
-    }
-
-    manager.generate_commands(background_scene_ps_, view);
-    manager.generate_commands(foreground_scene_ps_, view);
-    manager.generate_commands(background_ps_, view);
-    manager.generate_commands(foreground_ps_, view);
-  }
-
-  void draw(Framebuffer &framebuffer, Manager &manager, View &view)
-  {
-    if (!enabled_) {
-      return;
-    }
-
-    GPU_framebuffer_bind(framebuffer);
-    manager.submit(ps_, view);
-  }
-
-  void draw_scene_background_images(GPUFrameBuffer *framebuffer, Manager &manager, View &view)
-  {
-    if (!images_enabled_) {
-      return;
-    }
-
-    GPU_framebuffer_bind(framebuffer);
-    manager.submit_only(background_scene_ps_, view);
-    manager.submit_only(foreground_scene_ps_, view);
-  }
-
-  void draw_background_images(Framebuffer &framebuffer, Manager &manager, View &view)
-  {
-    if (!images_enabled_) {
-      return;
-    }
-
-    GPU_framebuffer_bind(framebuffer);
-    manager.submit_only(background_ps_, view);
-  }
-
-  void draw_in_front(Framebuffer &framebuffer, Manager &manager, View &view)
-  {
-    if (!images_enabled_) {
-      return;
-    }
-
-    GPU_framebuffer_bind(framebuffer);
-    manager.submit_only(foreground_ps_, view);
-  }
-
- private:
-  void sync_camera_images(const ObjectRef &ob_ref,
+  void object_sync_images(const ObjectRef &ob_ref,
                           select::ID select_id,
                           ShapeCache &shapes,
                           Manager &manager,
                           const State &state,
-                          Resources &res,
-                          const SelectionType selection_type)
+                          Resources &res)
   {
-    if (!images_enabled_) {
-      return;
-    }
-
     Object *ob = ob_ref.object;
-    const Camera *cam = static_cast<Camera *>(ob->data);
+    const Camera *cam = static_cast<Camera *>(ob_ref.object->data);
+    const Object *camera_object = DEG_get_evaluated_object(state.depsgraph, state.v3d->camera);
 
+    const bool is_active = ob_ref.object == camera_object;
+    const bool is_camera_view = (is_active && (state.rv3d->persp == RV3D_CAMOB));
+    const bool show_image = (cam->flag & CAM_SHOW_BG_IMAGE) &&
+                            !BLI_listbase_is_empty(&cam->bg_images);
     const bool show_frame = BKE_object_empty_image_frame_is_visible_in_view3d(ob, state.rv3d);
 
-    if (!show_frame || selection_type != SelectionType::DISABLED) {
+    if (!images_enabled_ || !is_camera_view || !show_image || !show_frame) {
       return;
     }
 
@@ -888,6 +762,141 @@ class Cameras {
 
     r_aspect = (width * aspect_x) / (height * aspect_y);
     return tex;
+  }
+
+  /**
+   * Draw the stereo 3d support elements (cameras, plane, volume).
+   * They are only visible when not looking through the camera:
+   */
+  void sync_stereoscopy_extra(const CameraInstanceData &instdata,
+                              const select::ID cam_select_id,
+                              const Scene *scene,
+                              const View3D *v3d,
+                              Resources &res,
+                              Object *ob)
+  {
+    CameraInstanceData stereodata = instdata;
+
+    const Camera *cam = static_cast<const Camera *>(ob->data);
+    const char *viewnames[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
+
+    const bool is_stereo3d_cameras = (v3d->stereo3d_flag & V3D_S3D_DISPCAMERAS) != 0;
+    const bool is_stereo3d_plane = (v3d->stereo3d_flag & V3D_S3D_DISPPLANE) != 0;
+    const bool is_stereo3d_volume = (v3d->stereo3d_flag & V3D_S3D_DISPVOLUME) != 0;
+    const bool is_selection = res.is_selection();
+
+    if (!is_stereo3d_cameras) {
+      /* Draw single camera. */
+      call_buffers_.frame_buf.append(instdata, cam_select_id);
+    }
+
+    for (const int eye : IndexRange(2)) {
+      ob = BKE_camera_multiview_render(scene, ob, viewnames[eye]);
+      BKE_camera_multiview_model_matrix(&scene->r, ob, viewnames[eye], stereodata.matrix.ptr());
+
+      stereodata.corner_x = instdata.corner_x;
+      stereodata.corner_y = instdata.corner_y;
+      stereodata.center_x = instdata.center_x;
+      stereodata.center_y = instdata.center_y;
+      stereodata.depth = instdata.depth;
+
+      stereodata.center_x += camera_offaxis_shiftx_get(scene, ob, instdata.corner_x, eye);
+
+      if (is_stereo3d_cameras) {
+        call_buffers_.frame_buf.append(stereodata, cam_select_id);
+
+        /* Connecting line between cameras. */
+        call_buffers_.stereo_connect_lines.append(stereodata.matrix.location(),
+                                                  instdata.object_to_world_.location(),
+                                                  res.theme_settings.color_wire,
+                                                  cam_select_id);
+      }
+
+      if (is_stereo3d_volume && !is_selection) {
+        float r = (eye == 1) ? 2.0f : 1.0f;
+
+        stereodata.volume_start = -cam->clip_start;
+        stereodata.volume_end = -cam->clip_end;
+        /* Encode eye + intensity and alpha (see shader) */
+        stereodata.color_.x = r + 0.15f;
+        stereodata.color_.y = 1.0f;
+        call_buffers_.volume_wire_buf.append(stereodata, cam_select_id);
+
+        if (v3d->stereo3d_volume_alpha > 0.0f) {
+          /* Encode eye + intensity and alpha (see shader) */
+          stereodata.color_.x = r + 0.999f;
+          stereodata.color_.y = v3d->stereo3d_volume_alpha;
+          call_buffers_.volume_buf.append(stereodata, cam_select_id);
+        }
+        /* restore */
+        stereodata.color_.x = instdata.color_.x;
+        stereodata.color_.y = instdata.color_.y;
+        stereodata.color_.z = instdata.color_.z;
+      }
+    }
+
+    if (is_stereo3d_plane && !is_selection) {
+      if (cam->stereo.convergence_mode == CAM_S3D_TOE) {
+        /* There is no real convergence plane but we highlight the center
+         * point where the views are pointing at. */
+        // stereodata.matrix.x_axis() = float3(0.0f); /* We reconstruct from Z and Y */
+        // stereodata.matrix.y_axis() = float3(0.0f); /* Y doesn't change */
+        stereodata.matrix.z_axis() = float3(0.0f);
+        stereodata.matrix.location() = float3(0.0f);
+        for (int i : IndexRange(2)) {
+          float4x4 mat;
+          /* Need normalized version here. */
+          BKE_camera_multiview_model_matrix(&scene->r, ob, viewnames[i], mat.ptr());
+          stereodata.matrix.z_axis() += mat.z_axis();
+          stereodata.matrix.location() += mat.location() * 0.5f;
+        }
+        stereodata.matrix.z_axis() = math::normalize(stereodata.matrix.z_axis());
+        stereodata.matrix.x_axis() = math::cross(stereodata.matrix.y_axis(),
+                                                 stereodata.matrix.z_axis());
+      }
+      else if (cam->stereo.convergence_mode == CAM_S3D_PARALLEL) {
+        /* Show plane at the given distance between the views even if it makes no sense. */
+        stereodata.matrix.location() = float3(0.0f);
+        for (int i : IndexRange(2)) {
+          float4x4 mat;
+          BKE_camera_multiview_model_matrix_scaled(&scene->r, ob, viewnames[i], mat.ptr());
+          stereodata.matrix.location() += mat.location() * 0.5f;
+        }
+      }
+      else if (cam->stereo.convergence_mode == CAM_S3D_OFFAXIS) {
+        /* Nothing to do. Everything is already setup. */
+      }
+      stereodata.volume_start = -cam->stereo.convergence_distance;
+      stereodata.volume_end = -cam->stereo.convergence_distance;
+      /* Encode eye + intensity and alpha (see shader) */
+      stereodata.color_.x = 0.1f;
+      stereodata.color_.y = 1.0f;
+      call_buffers_.volume_wire_buf.append(stereodata, cam_select_id);
+
+      if (v3d->stereo3d_convergence_alpha > 0.0f) {
+        /* Encode eye + intensity and alpha (see shader) */
+        stereodata.color_.x = 0.0f;
+        stereodata.color_.y = v3d->stereo3d_convergence_alpha;
+        call_buffers_.volume_buf.append(stereodata, cam_select_id);
+      }
+    }
+  }
+
+  static float camera_offaxis_shiftx_get(const Scene *scene,
+                                         const Object *ob,
+                                         float corner_x,
+                                         bool right_eye)
+  {
+    const Camera *cam = static_cast<const Camera *>(ob->data);
+    if (cam->stereo.convergence_mode == CAM_S3D_OFFAXIS) {
+      const char *viewnames[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
+      const float shiftx = BKE_camera_multiview_shift_x(&scene->r, ob, viewnames[right_eye]);
+      const float delta_shiftx = shiftx - cam->shiftx;
+      const float width = corner_x * 2.0f;
+      return delta_shiftx * width;
+    }
+
+    return 0.0;
   }
 };
 

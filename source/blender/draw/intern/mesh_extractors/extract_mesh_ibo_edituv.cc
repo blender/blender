@@ -286,7 +286,9 @@ static void extract_edituv_lines_subdiv_mesh(const MeshRenderData &mr,
   for (const int subdiv_quad : IndexRange(subdiv_cache.num_subdiv_quads)) {
     const int coarse_face = subdiv_loop_face_index[subdiv_quad * 4];
     if (const BMesh *bm = mr.bm) {
-      const BMFace &face_orig = *BM_face_at_index(const_cast<BMesh *>(bm), coarse_face);
+      const int orig_coarse_face = mr.orig_index_face ? mr.orig_index_face[coarse_face] :
+                                                        coarse_face;
+      const BMFace &face_orig = *BM_face_at_index(const_cast<BMesh *>(bm), orig_coarse_face);
       if (skip_bm_face(face_orig, sync_selection)) {
         continue;
       }

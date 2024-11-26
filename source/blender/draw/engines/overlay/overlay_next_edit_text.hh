@@ -11,11 +11,15 @@
 #include "BKE_vfont.hh"
 #include "BLI_math_matrix.hh"
 
-#include "overlay_next_private.hh"
+#include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {
 
-class EditText {
+/**
+ * Text objects related overlays.
+ * Currently only display cursor and selection of text edit mode.
+ */
+class EditText : Overlay {
 
  private:
   PassSimple ps_ = {"Selection&Cursor"};
@@ -27,20 +31,21 @@ class EditText {
   StorageVectorBuffer<ObjectMatrices> text_cursor_buf;
   LinePrimitiveBuf box_line_buf_;
 
-  bool enabled_ = false;
-
  public:
   EditText(SelectionType selection_type) : box_line_buf_(selection_type, "box_line_buf_") {}
 
-  void begin_sync(const State &state)
+  void begin_sync(Resources & /*res*/, const State &state) final
   {
-    enabled_ = state.space_type == SPACE_VIEW3D;
+    enabled_ = state.is_space_v3d();
     text_selection_buf.clear();
     text_cursor_buf.clear();
     box_line_buf_.clear();
   }
 
-  void edit_object_sync(const ObjectRef &ob_ref, const Resources &res)
+  void edit_object_sync(Manager & /*manager*/,
+                        const ObjectRef &ob_ref,
+                        Resources &res,
+                        const State & /*state*/) final
   {
     if (!enabled_) {
       return;
@@ -52,9 +57,10 @@ class EditText {
     add_boxes(res, cu, ob_ref.object->object_to_world());
   }
 
-  void end_sync(Resources &res, const ShapeCache &shapes, const State &state)
+  void end_sync(Resources &res, const ShapeCache &shapes, const State &state) final
   {
     ps_.init();
+    ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
     res.select_bind(ps_);
     {
       DRWState default_state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA;
@@ -115,13 +121,12 @@ class EditText {
                                DRW_STATE_DEPTH_LESS_EQUAL,
                            state.clipping_plane_count);
         sub_pass.shader_set(res.shaders.extra_wire.get());
-        sub_pass.bind_ubo("globalsBlock", &res.globals_buf);
         box_line_buf_.end_sync(sub_pass);
       }
     }
   }
 
-  void draw(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;

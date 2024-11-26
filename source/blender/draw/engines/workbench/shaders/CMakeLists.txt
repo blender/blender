@@ -97,6 +97,6 @@ if (WITH_GPU_SHADER_CPP_COMPILATION)
   compile_sources_as_cpp(workbench_cpp_shaders_frag "${SRC_GLSL_FRAG}" "GPU_FRAGMENT_SHADER")
   compile_sources_as_cpp(workbench_cpp_shaders_comp "${SRC_GLSL_COMP}" "GPU_COMPUTE_SHADER")
   # Only enable to make sure they compile on their own.
-  # Otherwise it creates a warning about pragma once.
+  # Otherwise it creates a warning about `pragma once`.
   # compile_sources_as_cpp(workbench_cpp_shaders_lib "${SRC_GLSL_LIB}" "GPU_LIBRARY_SHADER")
 endif()

@@ -8,18 +8,21 @@
 
 #pragma once
 
+#include "BKE_pointcache.h"
+#include "DEG_depsgraph_query.hh"
 #include "DNA_collection_types.h"
 #include "DNA_particle_types.h"
-
-#include "BKE_pointcache.h"
-
 #include "ED_particle.hh"
 
-#include "overlay_next_private.hh"
+#include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {
 
-class Particles {
+/**
+ * Display particle system overlays.
+ * Covers particle edit and the legacy hair system.
+ */
+class Particles : Overlay {
  private:
   PassMain particle_ps_ = {"particle_ps_"};
   PassMain::Sub *dot_ps_ = nullptr;
@@ -34,12 +37,10 @@ class Particles {
   bool show_point_inner_ = false;
   bool show_point_tip_ = false;
 
-  bool enabled_ = false;
-
  public:
-  void begin_sync(Resources &res, const State &state)
+  void begin_sync(Resources &res, const State &state) final
   {
-    enabled_ = state.space_type == SPACE_VIEW3D;
+    enabled_ = state.is_space_v3d();
 
     if (!enabled_) {
       return;
@@ -57,27 +58,25 @@ class Particles {
     {
       auto &pass = particle_ps_;
       pass.init();
+      pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL,
                      state.clipping_plane_count);
       res.select_bind(pass);
       {
         auto &sub = pass.sub("Dots");
         sub.shader_set(res.shaders.particle_dot.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         sub.bind_texture("weightTex", res.weight_ramp_tx);
         dot_ps_ = &sub;
       }
       {
         auto &sub = pass.sub("Shapes");
         sub.shader_set(res.shaders.particle_shape.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         sub.bind_texture("weightTex", res.weight_ramp_tx);
         shape_ps_ = &sub;
       }
       {
         auto &sub = pass.sub("Hair");
         sub.shader_set(res.shaders.particle_hair.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         sub.push_constant("colorType", state.v3d->shading.wire_color_type);
         sub.push_constant("isTransform", is_transform);
         hair_ps_ = &sub;
@@ -87,13 +86,13 @@ class Particles {
     {
       auto &pass = edit_particle_ps_;
       pass.init();
+      pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL,
                      state.clipping_plane_count);
       res.select_bind(pass);
       {
         auto &sub = pass.sub("Dots");
         sub.shader_set(res.shaders.particle_edit_vert.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         sub.bind_texture("weightTex", res.weight_ramp_tx);
         sub.push_constant("useWeight", show_weight_);
         sub.push_constant("useGreasePencil", false);
@@ -102,7 +101,6 @@ class Particles {
       {
         auto &sub = pass.sub("Edges");
         sub.shader_set(res.shaders.particle_edit_edge.get());
-        sub.bind_ubo("globalsBlock", &res.globals_buf);
         sub.bind_texture("weightTex", res.weight_ramp_tx);
         sub.push_constant("useWeight", false);
         sub.push_constant("useGreasePencil", false);
@@ -136,7 +134,7 @@ class Particles {
   void edit_object_sync(Manager &manager,
                         const ObjectRef &ob_ref,
                         Resources & /*res*/,
-                        const State &state)
+                        const State &state) final
   {
     if (!enabled_) {
       return;
@@ -198,7 +196,10 @@ class Particles {
     }
   }
 
-  void object_sync(Manager &manager, const ObjectRef &ob_ref, Resources &res, const State &state)
+  void object_sync(Manager &manager,
+                   const ObjectRef &ob_ref,
+                   Resources &res,
+                   const State &state) final
   {
     if (!enabled_) {
       return;
@@ -280,7 +281,7 @@ class Particles {
     }
   }
 
-  void pre_draw(Manager &manager, View &view)
+  void pre_draw(Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;
@@ -289,7 +290,7 @@ class Particles {
     manager.generate_commands(particle_ps_, view);
   }
 
-  void draw(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;
@@ -299,7 +300,7 @@ class Particles {
     manager.submit_only(particle_ps_, view);
   }
 
-  void draw_no_line(Framebuffer &framebuffer, Manager &manager, View &view)
+  void draw(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;

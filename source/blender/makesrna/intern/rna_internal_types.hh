@@ -261,9 +261,9 @@ struct RNAPropertyOverrideApplyContext {
   bool do_insert = false;
 
   /** Main RNA data and property pointers. */
-  PointerRNA ptr_dst = {0};
-  PointerRNA ptr_src = {0};
-  PointerRNA ptr_storage = {0};
+  PointerRNA ptr_dst = {};
+  PointerRNA ptr_src = {};
+  PointerRNA ptr_storage = {};
   PropertyRNA *prop_dst = nullptr;
   PropertyRNA *prop_src = nullptr;
   PropertyRNA *prop_storage = nullptr;
@@ -274,9 +274,9 @@ struct RNAPropertyOverrideApplyContext {
   int len_storage = 0;
 
   /** Items, for RNA collections. */
-  PointerRNA ptr_item_dst = {0};
-  PointerRNA ptr_item_src = {0};
-  PointerRNA ptr_item_storage = {0};
+  PointerRNA ptr_item_dst = {};
+  PointerRNA ptr_item_src = {};
+  PointerRNA ptr_item_storage = {};
 
   /** LibOverride data. */
   IDOverrideLibrary *liboverride = nullptr;

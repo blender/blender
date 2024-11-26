@@ -876,7 +876,11 @@ static void graph_region_draw(const bContext *C, ARegion *region)
   /* scrollers */
   if (region->winy > HEADERY * UI_SCALE_FAC) {
     const rcti scroller_mask = ED_time_scrub_clamp_scroller_mask(v2d->mask);
+    region->v2d.scroll |= V2D_SCROLL_BOTTOM;
     UI_view2d_scrollers_draw(v2d, &scroller_mask);
+  }
+  else {
+    region->v2d.scroll &= ~V2D_SCROLL_BOTTOM;
   }
 
   /* scale indicators */
@@ -928,7 +932,11 @@ static void dopesheet_region_draw(const bContext *C, ARegion *region)
 
   /* scrollers */
   if (region->winy > HEADERY * UI_SCALE_FAC) {
+    region->v2d.scroll |= V2D_SCROLL_BOTTOM;
     UI_view2d_scrollers_draw(v2d, nullptr);
+  }
+  else {
+    region->v2d.scroll &= ~V2D_SCROLL_BOTTOM;
   }
 }
 

@@ -1162,25 +1162,37 @@ typedef struct ActionLayer {
  */
 typedef struct ActionSlot {
   /**
-   * Typically the ID name this slot was created for, including the two
-   * letters indicating the ID type.
+   * The string identifier of this Slot within the Action.
+   *
+   * The first two characters are the two-letter code corresponding to `idtype`
+   * below (e.g. 'OB', 'ME', 'LA'), and the remaining characters store slot's
+   * display name. Since the combination of the `idtype` and display name are
+   * always unique within an action, this string identifier is as well.
+   *
+   * Typically this matches the ID name this slot was created for, including the
+   * two letters indicating the ID type.
    *
    * \see #AnimData::slot_name
    */
-  char name[66]; /* MAX_ID_NAME */
+  char identifier[66]; /* MAX_ID_NAME */
 
   /**
-   * Type of ID-blocks that this slot can be assigned to.
+   * Type of ID-block that this slot is intended for.
+   *
    * If 0, will be set to whatever ID is first assigned.
    */
   int16_t idtype;
 
   /**
-   * Identifier of this Slot within the Action.
+   * Numeric identifier of this Slot within the Action.
    *
    * This number allows reorganization of the #bAction::slot_array without
    * invalidating references. Also these remain valid when copy-on-evaluate
    * copies are made.
+   *
+   * Unlike `identifier` above, this cannot be set by the user and never changes
+   * after initial assignment, and thus serves as a "forever" identifier of the
+   * slot.
    *
    * Only valid within the Action that owns this Slot.
    *

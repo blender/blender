@@ -314,14 +314,16 @@ void rna_generic_action_slot_set(PointerRNA rna_slot_to_assign,
     case ActionSlotAssignmentResult::OK:
       break;
     case ActionSlotAssignmentResult::SlotNotFromAction:
-      BKE_reportf(
-          reports, RPT_ERROR, "This slot (%s) does not belong to the assigned Action", slot->name);
+      BKE_reportf(reports,
+                  RPT_ERROR,
+                  "This slot (%s) does not belong to the assigned Action",
+                  slot->identifier);
       break;
     case ActionSlotAssignmentResult::SlotNotSuitable:
       BKE_reportf(reports,
                   RPT_ERROR,
                   "This slot (%s) is not suitable for this data-block type (%c%c)",
-                  slot->name,
+                  slot->identifier,
                   animated_id.name[0],
                   animated_id.name[1]);
       break;
@@ -358,7 +360,7 @@ static void rna_AnimData_action_slot_update(Main *bmain, Scene *scene, PointerRN
  * to refer to this from any other file, though, which is why it's not declared in
  * rna_action_tools.hh.
  */
-bool rna_iterator_generic_action_slots_skip(CollectionPropertyIterator *iter, void *data)
+bool rna_iterator_generic_action_suitable_slots_skip(CollectionPropertyIterator *iter, void *data)
 {
   using animrig::Slot;
 
@@ -376,8 +378,8 @@ bool rna_iterator_generic_action_slots_skip(CollectionPropertyIterator *iter, vo
   return !slot.is_suitable_for(*animated_id);
 }
 
-void rna_iterator_generic_action_slots_begin(CollectionPropertyIterator *iter,
-                                             bAction *assigned_action)
+void rna_iterator_generic_action_suitable_slots_begin(CollectionPropertyIterator *iter,
+                                                      bAction *assigned_action)
 {
   if (!assigned_action) {
     /* No action means no slots. */
@@ -392,13 +394,13 @@ void rna_iterator_generic_action_slots_begin(CollectionPropertyIterator *iter,
                            sizeof(animrig::Slot *),
                            slots.size(),
                            0,
-                           rna_iterator_generic_action_slots_skip);
+                           rna_iterator_generic_action_suitable_slots_skip);
 }
 
-static void rna_iterator_animdata_action_slots_begin(CollectionPropertyIterator *iter,
-                                                     PointerRNA *ptr)
+static void rna_iterator_animdata_action_suitable_slots_begin(CollectionPropertyIterator *iter,
+                                                              PointerRNA *ptr)
 {
-  rna_iterator_generic_action_slots_begin(iter, rna_animdata(ptr).action);
+  rna_iterator_generic_action_suitable_slots_begin(iter, rna_animdata(ptr).action);
 }
 
 /* ****************************** */
@@ -1724,10 +1726,10 @@ static void rna_def_animdata(BlenderRNA *brna)
    * and that's enough. */
   RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
 
-  prop = RNA_def_property(srna, "action_slots", PROP_COLLECTION, PROP_NONE);
+  prop = RNA_def_property(srna, "action_suitable_slots", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "ActionSlot");
   RNA_def_property_collection_funcs(prop,
-                                    "rna_iterator_animdata_action_slots_begin",
+                                    "rna_iterator_animdata_action_suitable_slots_begin",
                                     "rna_iterator_array_next",
                                     "rna_iterator_array_end",
                                     "rna_iterator_array_dereference_get",

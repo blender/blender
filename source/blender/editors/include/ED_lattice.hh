@@ -8,6 +8,7 @@
 
 #pragma once
 
+struct bContext;
 struct KeyBlock;
 struct Lattice;
 struct Object;

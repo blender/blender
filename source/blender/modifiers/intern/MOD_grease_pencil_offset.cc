@@ -296,6 +296,8 @@ static void modify_drawing(const ModifierData &md,
 {
   const auto &omd = reinterpret_cast<const GreasePencilOffsetModifierData &>(md);
 
+  modifier::greasepencil::ensure_no_bezier_curves(drawing);
+
   bke::CurvesGeometry &curves = drawing.strokes_for_write();
   IndexMaskMemory mask_memory;
   const IndexMask curves_mask = modifier::greasepencil::get_filtered_stroke_mask(
@@ -315,6 +317,8 @@ static void modify_drawing(const ModifierData &md,
       BLI_assert_unreachable();
       break;
   }
+
+  drawing.tag_positions_changed();
 }
 
 static void modify_drawing_by_layer(const ModifierData &md,
