@@ -2133,7 +2133,7 @@ def platform_from_this_system() -> str:
     )
 
 
-def blender_platform_from_wheel_platform(wheel_platform: str) -> str:
+def blender_platforms_from_wheel_platform(wheel_platform: str) -> list[str]:
     """
     Convert a wheel to a Blender compatible platform: e.g.
     - ``linux_x86_64``              -> ``linux-x64``.
@@ -2142,13 +2142,14 @@ def blender_platform_from_wheel_platform(wheel_platform: str) -> str:
     - ``win_amd64``                 -> ``windows-x64``.
     - ``macosx_11_0_arm64``         -> ``macos-arm64``.
     - ``manylinux2014_x86_64``      -> ``linux-x64``.
+    - ``macosx_10_9_universal2``    -> ``macos-x64``, ``macos-arm64``.
     """
 
     i = wheel_platform.find("_")
     if i == -1:
         # WARNING: this should never or almost never happen.
         # Return the result as we don't have a better alternative.
-        return wheel_platform
+        return [wheel_platform]
 
     head = wheel_platform[:i]
     tail = wheel_platform[i + 1:]
@@ -2175,15 +2176,21 @@ def blender_platform_from_wheel_platform(wheel_platform: str) -> str:
         # (only `x86_64` at the moment).
         tail = tail.rpartition("_")[2]
 
-    return "{:s}-{:s}".format(head, tail)
+    if (head == "macos") and (tail == "universal2"):
+        tails = ["x64", "arm64"]
+    else:
+        tails = [tail]
+
+    return ["{:s}-{:s}".format(head, tail) for tail in tails]
 
 
 def blender_platform_compatible_with_wheel_platform(platform: str, wheel_platform: str) -> bool:
     assert platform
     if wheel_platform == "any":
         return True
-    platform_blender = blender_platform_from_wheel_platform(wheel_platform)
-    return platform == platform_blender
+    platforms_blender = blender_platforms_from_wheel_platform(wheel_platform)
+
+    return platform in platforms_blender
 
 
 def blender_platform_compatible_with_wheel_platform_from_filepath(platform: str, wheel_filepath: str) -> bool:
