@@ -298,10 +298,11 @@ static uiBlock *wm_block_splash_create(bContext *C, ARegion *region, void * /*ar
 /* Displays a warning if blender is being emulated via Rosetta (macOS) or XTA (Windows) */
 #if defined(__APPLE__) || defined(_M_X64)
 #  if defined(__APPLE__)
-  if (is_using_macos_rosetta() > 0) {
+  if (is_using_macos_rosetta() > 0)
 #  elif defined(_M_X64)
-  if (strncmp(BLI_getenv("PROCESSOR_IDENTIFIER"), "ARM", 3) == 0) {
+  if (strncmp(BLI_getenv("PROCESSOR_IDENTIFIER"), "ARM", 3) == 0)
 #  endif
+  {
     uiItemS_ex(layout, 2.0f, LayoutSeparatorType::Line);
 
     uiLayout *split = uiLayoutSplit(layout, 0.725, true);

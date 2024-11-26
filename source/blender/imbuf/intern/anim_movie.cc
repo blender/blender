@@ -705,10 +705,11 @@ static void ffmpeg_decode_store_frame_pts(ImBufAnim *anim)
   anim->cur_pts = av_get_pts_from_frame(anim->pFrame);
 
 #  ifdef FFMPEG_OLD_KEY_FRAME_QUERY_METHOD
-  if (anim->pFrame->key_frame) {
+  if (anim->pFrame->key_frame)
 #  else
-  if (anim->pFrame->flags & AV_FRAME_FLAG_KEY) {
+  if (anim->pFrame->flags & AV_FRAME_FLAG_KEY)
 #  endif
+  {
     anim->cur_key_frame_pts = anim->cur_pts;
   }
 

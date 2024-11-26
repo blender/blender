@@ -163,10 +163,11 @@ void MTLUniformBuf::unbind()
    * Otherwise, only perform a full unbind upon destruction
    * to ensure no lingering references. */
 #ifndef NDEBUG
-  if (true) {
+  if (true)
 #else
-  if (G.debug & G_DEBUG_GPU) {
+  if (G.debug & G_DEBUG_GPU)
 #endif
+  {
     if (bound_ctx_ != nullptr && bind_slot_ > -1) {
       MTLUniformBufferBinding &ctx_ubo_bind_slot =
           bound_ctx_->pipeline_state.ubo_bindings[bind_slot_];
