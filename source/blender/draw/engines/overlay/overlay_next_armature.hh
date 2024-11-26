@@ -624,7 +624,7 @@ class Armatures : Overlay {
 
   static bool is_pose_mode(const Object *armature_ob, const State &state)
   {
-    Object *active_ob = state.active_base->object;
+    Object *active_ob = state.object_active;
 
     /* Armature is in pose mode. */
     if (((armature_ob == active_ob) || (armature_ob->mode & OB_MODE_POSE)) &&

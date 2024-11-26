@@ -649,14 +649,13 @@ bool Instance::object_is_paint_mode(const Object *object)
   if (object->type == OB_GREASE_PENCIL && (state.object_mode & OB_MODE_ALL_PAINT_GPENCIL)) {
     return true;
   }
-  return state.active_base && (object == state.active_base->object) &&
-         (state.object_mode & OB_MODE_ALL_PAINT);
+  return (object == state.object_active) && (state.object_mode & OB_MODE_ALL_PAINT);
 }
 
 bool Instance::object_is_sculpt_mode(const ObjectRef &ob_ref)
 {
   if (state.object_mode == OB_MODE_SCULPT_CURVES) {
-    const Object *active_object = state.active_base->object;
+    const Object *active_object = state.object_active;
     const bool is_active_object = ob_ref.object == active_object;
 
     bool is_geonode_preview = ob_ref.dupli_object && ob_ref.dupli_object->preview_base_geometry;
@@ -665,7 +664,7 @@ bool Instance::object_is_sculpt_mode(const ObjectRef &ob_ref)
   }
 
   if (state.object_mode == OB_MODE_SCULPT) {
-    const Object *active_object = state.active_base->object;
+    const Object *active_object = state.object_active;
     const bool is_active_object = ob_ref.object == active_object;
     return is_active_object;
   }
@@ -681,7 +680,7 @@ bool Instance::object_is_particle_edit_mode(const ObjectRef &ob_ref)
 bool Instance::object_is_sculpt_mode(const Object *object)
 {
   if (object->sculpt && (object->sculpt->mode_type == OB_MODE_SCULPT)) {
-    return object == state.active_base->object;
+    return object == state.object_active;
   }
   return false;
 }

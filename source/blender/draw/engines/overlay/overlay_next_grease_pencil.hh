@@ -210,7 +210,7 @@ class GreasePencil : Overlay {
       return;
     }
 
-    if ((!state.active_base) || (ob_ref.object != state.active_base->object)) {
+    if (ob_ref.object != state.object_active) {
       /* Only display for the active object. */
       return;
     }
