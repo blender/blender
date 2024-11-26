@@ -97,5 +97,3 @@ clearly separates sections of the code which operate in different modes.
 
 This is mainly an issue with Edit-Mode since pose data can be manipulated without having to be in Pose-Mode,
 yet for operator access you may still need to enter Pose-Mode.
-
-

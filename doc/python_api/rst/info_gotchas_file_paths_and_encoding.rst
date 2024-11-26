@@ -73,4 +73,3 @@ to keep it short about encoding problems -- here are some suggestions:
    when reading some input it's less trouble to read it as binary data
    though you will still need to decide how to treat any strings you want to use with Blender,
    some importers do this.
-

@@ -109,4 +109,3 @@ the choice mostly depends on whether the target format supports n-gons or not.
   in fact this is the only place where their use is encouraged.
 - BMesh-Faces can work for exporting too but may not be necessary if polygons can be used
   since using BMesh gives some overhead because it's not the native storage format in Object-Mode.
-
