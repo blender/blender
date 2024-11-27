@@ -34,8 +34,8 @@ static Result horizontal_pass(Context &context, Result &input, int distance, int
   const MorphologicalDistanceFeatherWeights &weights =
       context.cache_manager().morphological_distance_feather_weights.get(
           context, falloff_type, math::abs(distance));
-  weights.bind_weights_as_texture(shader, "weights_tx");
-  weights.bind_distance_falloffs_as_texture(shader, "falloffs_tx");
+  weights.weights_result.bind_as_texture(shader, "weights_tx");
+  weights.falloffs_result.bind_as_texture(shader, "falloffs_tx");
 
   /* We allocate an output image of a transposed size, that is, with a height equivalent to the
    * width of the input and vice versa. This is done as a performance optimization. The shader
@@ -56,8 +56,8 @@ static Result horizontal_pass(Context &context, Result &input, int distance, int
 
   GPU_shader_unbind();
   input.unbind_as_texture();
-  weights.unbind_weights_as_texture();
-  weights.unbind_distance_falloffs_as_texture();
+  weights.weights_result.unbind_as_texture();
+  weights.falloffs_result.unbind_as_texture();
   output.unbind_as_image();
 
   return output;
@@ -78,8 +78,8 @@ static void vertical_pass(Context &context,
   const MorphologicalDistanceFeatherWeights &weights =
       context.cache_manager().morphological_distance_feather_weights.get(
           context, falloff_type, math::abs(distance));
-  weights.bind_weights_as_texture(shader, "weights_tx");
-  weights.bind_distance_falloffs_as_texture(shader, "falloffs_tx");
+  weights.weights_result.bind_as_texture(shader, "weights_tx");
+  weights.falloffs_result.bind_as_texture(shader, "falloffs_tx");
 
   const Domain domain = original_input.domain();
   output.allocate_texture(domain);
@@ -91,8 +91,8 @@ static void vertical_pass(Context &context,
 
   GPU_shader_unbind();
   horizontal_pass_result.unbind_as_texture();
-  weights.unbind_weights_as_texture();
-  weights.unbind_distance_falloffs_as_texture();
+  weights.weights_result.unbind_as_texture();
+  weights.falloffs_result.unbind_as_texture();
   output.unbind_as_image();
 }
 

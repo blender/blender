@@ -7,10 +7,8 @@
 #include <cstdint>
 #include <memory>
 
+#include "BLI_array.hh"
 #include "BLI_map.hh"
-
-#include "GPU_shader.hh"
-#include "GPU_texture.hh"
 
 #include "COM_cached_resource.hh"
 
@@ -44,25 +42,22 @@ bool operator==(const MorphologicalDistanceFeatherWeightsKey &a,
  * and the shader takes that into consideration. */
 class MorphologicalDistanceFeatherWeights : public CachedResource {
  private:
-  GPUTexture *weights_texture_ = nullptr;
-  GPUTexture *distance_falloffs_texture_ = nullptr;
+  Array<float> weights_;
+  Array<float> falloffs_;
+
+ public:
+  Result weights_result;
+  Result falloffs_result;
 
  public:
   MorphologicalDistanceFeatherWeights(Context &context, int type, int radius);
 
   ~MorphologicalDistanceFeatherWeights();
 
-  void compute_weights(Context &context, int radius);
+ private:
+  void compute_weights(int radius);
 
-  void compute_distance_falloffs(Context &context, int type, int radius);
-
-  void bind_weights_as_texture(GPUShader *shader, const char *texture_name) const;
-
-  void unbind_weights_as_texture() const;
-
-  void bind_distance_falloffs_as_texture(GPUShader *shader, const char *texture_name) const;
-
-  void unbind_distance_falloffs_as_texture() const;
+  void compute_distance_falloffs(int type, int radius);
 };
 
 /* ------------------------------------------------------------------------------------------------
