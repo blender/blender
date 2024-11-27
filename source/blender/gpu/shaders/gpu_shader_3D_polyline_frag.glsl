@@ -11,14 +11,13 @@ FRAGMENT_SHADER_CREATE_INFO(gpu_shader_3D_polyline_uniform_color)
 void main()
 {
 #ifdef CLIP
-  if (interp.clip < 0.0) {
+  if (clip < 0.0) {
     discard;
   }
 #endif
-  fragColor = interp.final_color;
+  fragColor = final_color;
   if (lineSmooth) {
-    fragColor.a *= clamp(
-        (lineWidth + SMOOTH_WIDTH) * 0.5 - abs(interp_noperspective.smoothline), 0.0, 1.0);
+    fragColor.a *= clamp((lineWidth + SMOOTH_WIDTH) * 0.5 - abs(smoothline), 0.0, 1.0);
   }
   fragColor = blender_srgb_to_framebuffer_space(fragColor);
 }

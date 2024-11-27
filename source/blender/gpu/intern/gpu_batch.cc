@@ -350,44 +350,83 @@ void GPU_batch_draw_parameter_get(Batch *gpu_batch,
   *r_instance_count = i_count;
 }
 
-blender::IndexRange GPU_batch_draw_expanded_parameter_get(const blender::gpu::Batch *batch,
-                                                          GPUPrimType expanded_prim_type,
+blender::IndexRange GPU_batch_draw_expanded_parameter_get(GPUPrimType input_prim_type,
+                                                          GPUPrimType output_prim_type,
                                                           int vertex_count,
-                                                          int vertex_first)
+                                                          int vertex_first,
+                                                          int output_primitive_cout)
 {
-  int vert_per_original_primitive = indices_per_primitive(batch->prim_type);
-  int vert_per_expanded_primitive = indices_per_primitive(expanded_prim_type);
-
-  BLI_assert_msg(vert_per_original_primitive != -1,
-                 "Primitive expansion only works for primitives with known amount of vertices");
+  int vert_per_original_primitive = indices_per_primitive(input_prim_type);
+  int vert_per_expanded_primitive = indices_per_primitive(output_prim_type);
 
   int prim_first = vertex_first / vert_per_original_primitive;
   int prim_len = vertex_count / vert_per_original_primitive;
 
-  int out_vertex_first = prim_first * vert_per_expanded_primitive;
-  int out_vertex_count = prim_len * vert_per_expanded_primitive;
+  BLI_assert_msg(vert_per_original_primitive != -1,
+                 "Primitive expansion only works for primitives with known amount of vertices");
+
+  /* WORKAROUND: Needed for polyline_draw_workaround. */
+  if (input_prim_type == GPU_PRIM_LINE_STRIP) {
+    prim_len = vertex_count - 1;
+  }
+
+  int out_vertex_first = prim_first * vert_per_expanded_primitive * output_primitive_cout;
+  int out_vertex_count = prim_len * vert_per_expanded_primitive * output_primitive_cout;
 
   return blender::IndexRange(out_vertex_first, out_vertex_count);
+}
+
+static void polyline_draw_workaround(
+    Batch *batch, int vertex_first, int vertex_count, int instance_first, int instance_count)
+{
+  /* Check compatible input primitive. */
+  BLI_assert(ELEM(batch->prim_type, GPU_PRIM_LINES, GPU_PRIM_LINE_STRIP, GPU_PRIM_LINE_LOOP));
+
+  GPU_batch_bind_as_resources(batch, batch->shader);
+  blender::IndexRange range = GPU_batch_draw_expanded_parameter_get(
+      batch->prim_type, GPU_PRIM_TRIS, vertex_count, vertex_first, 2);
+  Batch *tri_batch = Context::get()->polyline_batch_get();
+  GPU_batch_set_shader(tri_batch, batch->shader);
+
+  int vert_stride_count[3] = {(batch->prim_type == GPU_PRIM_LINES) ? 2 : 1, int(vertex_count), 0};
+  GPU_shader_uniform_3iv(batch->shader, "gpu_vert_stride_count_offset", vert_stride_count);
+  /* Assume GPU_FETCH_FLOAT for now. A bit cumbersome to assert for this or to find the correct
+   * attribute. */
+  GPU_shader_uniform_1b(batch->shader, "gpu_attr_0_fetch_int", false);
+
+  GPU_batch_draw_advanced(tri_batch, range.start(), range.size(), instance_first, instance_count);
 }
 
 void GPU_batch_draw(Batch *batch)
 {
   BLI_assert(batch != nullptr);
   GPU_shader_bind(batch->shader);
-  GPU_batch_draw_advanced(batch, 0, 0, 0, 0);
+  if (unwrap(batch->shader)->is_polyline) {
+    polyline_draw_workaround(batch, 0, batch->vertex_count_get(), 0, 0);
+  }
+  else {
+    GPU_batch_draw_advanced(batch, 0, 0, 0, 0);
+  }
 }
 
 void GPU_batch_draw_range(Batch *batch, int vertex_first, int vertex_count)
 {
   BLI_assert(batch != nullptr);
   GPU_shader_bind(batch->shader);
-  GPU_batch_draw_advanced(batch, vertex_first, vertex_count, 0, 0);
+  if (unwrap(batch->shader)->is_polyline) {
+    polyline_draw_workaround(batch, vertex_first, vertex_count, 0, 0);
+  }
+  else {
+    GPU_batch_draw_advanced(batch, vertex_first, vertex_count, 0, 0);
+  }
 }
 
 void GPU_batch_draw_instance_range(Batch *batch, int instance_first, int instance_count)
 {
   BLI_assert(batch != nullptr);
   BLI_assert(batch->inst[0] == nullptr);
+  /* Not polyline shaders support instancing. */
+  BLI_assert(unwrap(batch->shader)->is_polyline == false);
 
   GPU_shader_bind(batch->shader);
   GPU_batch_draw_advanced(batch, 0, 0, instance_first, instance_count);

@@ -11,6 +11,8 @@
 #include "GPU_capabilities.hh"
 #include "GPU_shader.hh"
 
+#include "gpu_shader_private.hh"
+
 /* Cache of built-in shaders (each is created on first use). */
 static GPUShader *builtin_shaders[GPU_SHADER_CFG_LEN][GPU_SHADER_BUILTIN_LEN] = {{nullptr}};
 
@@ -157,6 +159,8 @@ GPUShader *GPU_shader_get_builtin_shader_with_config(eGPUBuiltinShader shader,
          * Ideally this value should be set by the caller. */
         GPU_shader_bind(*sh_p);
         GPU_shader_uniform_1i(*sh_p, "lineSmooth", 1);
+        /* WORKAROUND: See is_polyline declaration. */
+        blender::gpu::unwrap(*sh_p)->is_polyline = true;
       }
     }
     else if (sh_cfg == GPU_SHADER_CFG_CLIPPED) {

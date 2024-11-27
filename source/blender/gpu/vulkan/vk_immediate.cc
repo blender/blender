@@ -75,19 +75,38 @@ void VKImmediate::end()
 
   VKContext &context = *VKContext::get();
   BLI_assert(context.shader == unwrap(shader));
-  render_graph::VKResourceAccessInfo &resource_access_info = context.reset_and_get_access_info();
-  vertex_attributes_.update_bindings(*this);
-  context.active_framebuffer_get()->rendering_ensure(context);
+  Shader &shader = *unwrap(this->shader);
+  if (shader.is_polyline) {
+    VKBuffer *buffer = active_buffers_.last().get();
+    VKStateManager &state_manager = context.state_manager_get();
+    state_manager.storage_buffer_bind(BindSpaceStorageBuffers::Type::Buffer,
+                                      buffer,
+                                      GPU_SSBO_POLYLINE_POS_BUF_SLOT,
+                                      buffer_offset_);
+    state_manager.storage_buffer_bind(BindSpaceStorageBuffers::Type::Buffer,
+                                      buffer,
+                                      GPU_SSBO_POLYLINE_COL_BUF_SLOT,
+                                      buffer_offset_);
+    /* Not used. Satisfy the binding. */
+    state_manager.storage_buffer_bind(
+        BindSpaceStorageBuffers::Type::Buffer, buffer, GPU_SSBO_INDEX_BUF_SLOT, buffer_offset_);
+    this->polyline_draw_workaround(0);
+  }
+  else {
+    render_graph::VKResourceAccessInfo &resource_access_info = context.reset_and_get_access_info();
+    vertex_attributes_.update_bindings(*this);
+    context.active_framebuffer_get()->rendering_ensure(context);
 
-  render_graph::VKDrawNode::CreateInfo draw(resource_access_info);
-  draw.node_data.vertex_count = vertex_idx;
-  draw.node_data.instance_count = 1;
-  draw.node_data.first_vertex = 0;
-  draw.node_data.first_instance = 0;
-  vertex_attributes_.bind(draw.node_data.vertex_buffers);
-  context.update_pipeline_data(prim_type, vertex_attributes_, draw.node_data.pipeline_data);
+    render_graph::VKDrawNode::CreateInfo draw(resource_access_info);
+    draw.node_data.vertex_count = vertex_idx;
+    draw.node_data.instance_count = 1;
+    draw.node_data.first_vertex = 0;
+    draw.node_data.first_instance = 0;
+    vertex_attributes_.bind(draw.node_data.vertex_buffers);
+    context.update_pipeline_data(prim_type, vertex_attributes_, draw.node_data.pipeline_data);
 
-  context.render_graph.add_node(draw);
+    context.render_graph.add_node(draw);
+  }
 
   buffer_offset_ += current_subbuffer_len_;
   current_subbuffer_len_ = 0;
@@ -133,7 +152,8 @@ VKBuffer &VKImmediate::ensure_space(size_t bytes_needed)
   VKBuffer &result = *active_buffers_.last();
   result.create(new_buffer_size(bytes_needed),
                 GPU_USAGE_DYNAMIC,
-                VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
+                VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
+                    VK_BUFFER_USAGE_TRANSFER_DST_BIT);
   debug::object_label(result.vk_handle(), "Immediate");
 
   return result;

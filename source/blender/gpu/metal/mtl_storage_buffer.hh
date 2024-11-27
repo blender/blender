@@ -18,11 +18,14 @@ namespace blender::gpu {
 class MTLUniformBuf;
 class MTLVertBuf;
 class MTLIndexBuf;
+class MTLCircularBuffer;
 
 /**
  * Implementation of Storage Buffers using Metal.
  */
 class MTLStorageBuf : public StorageBuf {
+  friend MTLCircularBuffer;
+
  private:
   /** Allocation Handle or indirect wrapped instance.
    * MTLStorageBuf can wrap a MTLVertBuf, MTLIndexBuf or MTLUniformBuf for binding as a writeable
@@ -67,6 +70,9 @@ class MTLStorageBuf : public StorageBuf {
   MTLStorageBuf(MTLVertBuf *vert_buf, size_t size);
   MTLStorageBuf(MTLIndexBuf *index_buf, size_t size);
   MTLStorageBuf(MTLTexture *texture, size_t size);
+
+  /* Only used internally to create a bindable buffer for #Immediate. */
+  MTLStorageBuf(size_t size);
 
   void update(const void *data) override;
   void bind(int slot) override;

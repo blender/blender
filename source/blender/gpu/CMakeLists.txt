@@ -504,9 +504,7 @@ set(GLSL_SRC
   shaders/gpu_shader_3D_flat_color_vert.glsl
   shaders/gpu_shader_3D_line_dashed_uniform_color_vert.glsl
   shaders/gpu_shader_3D_polyline_frag.glsl
-  shaders/gpu_shader_3D_polyline_geom.glsl
   shaders/gpu_shader_3D_polyline_vert.glsl
-  shaders/gpu_shader_3D_polyline_vert_no_geom.glsl
   shaders/gpu_shader_3D_smooth_color_vert.glsl
   shaders/gpu_shader_3D_smooth_color_frag.glsl
   shaders/gpu_shader_3D_clipped_uniform_color_vert.glsl

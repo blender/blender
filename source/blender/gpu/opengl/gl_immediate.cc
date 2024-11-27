@@ -69,6 +69,15 @@ uchar *GLImmediate::begin()
   /* Does the current buffer have enough room? */
   const size_t available_bytes = buffer_size() - buffer_offset();
 
+#ifndef NDEBUG
+  if (unwrap(this->shader)->is_polyline) {
+    /* Silence error. These are bound inside `immEnd()`. */
+    GLContext::get()->bound_ssbo_slots |= 1 << GPU_SSBO_POLYLINE_POS_BUF_SLOT;
+    GLContext::get()->bound_ssbo_slots |= 1 << GPU_SSBO_POLYLINE_COL_BUF_SLOT;
+    GLContext::get()->bound_ssbo_slots |= 1 << GPU_SSBO_INDEX_BUF_SLOT;
+  }
+#endif
+
   GL_CHECK_RESOURCES("Immediate");
 
   glBindBuffer(GL_ARRAY_BUFFER, vbo_id());
@@ -135,7 +144,26 @@ void GLImmediate::end()
   }
   glUnmapBuffer(GL_ARRAY_BUFFER);
 
-  if (vertex_len > 0) {
+  if (vertex_len == 0) {
+    /* Noop. Nothing to draw. */
+  }
+  else if (unwrap(this->shader)->is_polyline) {
+    GLintptr offset = buffer_offset();
+    GLenum target = GL_SHADER_STORAGE_BUFFER;
+    glBindBufferRange(target, GPU_SSBO_POLYLINE_POS_BUF_SLOT, vbo_id(), offset, buffer_bytes_used);
+    glBindBufferRange(target, GPU_SSBO_POLYLINE_COL_BUF_SLOT, vbo_id(), offset, buffer_bytes_used);
+    /* Not used. Satisfy the binding. */
+    glBindBufferRange(target, GPU_SSBO_INDEX_BUF_SLOT, vbo_id(), offset, buffer_bytes_used);
+
+    this->polyline_draw_workaround(0);
+
+#ifndef NDEBUG
+    GLContext::get()->bound_ssbo_slots &= ~(1 << GPU_SSBO_POLYLINE_POS_BUF_SLOT);
+    GLContext::get()->bound_ssbo_slots &= ~(1 << GPU_SSBO_POLYLINE_COL_BUF_SLOT);
+    GLContext::get()->bound_ssbo_slots &= ~(1 << GPU_SSBO_INDEX_BUF_SLOT);
+#endif
+  }
+  else {
     GLContext::get()->state_manager->apply_state();
 
     /* We convert the offset in vertex offset from the buffer's start.

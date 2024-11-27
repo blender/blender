@@ -56,6 +56,9 @@ class Immediate {
 
   virtual uchar *begin() = 0;
   virtual void end() = 0;
+
+  /* To be called after polyline SSBO binding. */
+  void polyline_draw_workaround(uint64_t offset);
 };
 
 }  // namespace blender::gpu

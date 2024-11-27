@@ -19,10 +19,11 @@ namespace blender::gpu {
 
 void VKDescriptorSetTracker::bind_buffer(VkDescriptorType vk_descriptor_type,
                                          VkBuffer vk_buffer,
+                                         VkDeviceSize buffer_offset,
                                          VkDeviceSize size_in_bytes,
                                          VKDescriptorSet::Location location)
 {
-  vk_descriptor_buffer_infos_.append({vk_buffer, 0, size_in_bytes});
+  vk_descriptor_buffer_infos_.append({vk_buffer, buffer_offset, size_in_bytes});
   vk_write_descriptor_sets_.append({VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                                     nullptr,
                                     vk_descriptor_set,
@@ -218,13 +219,22 @@ void VKDescriptorSetTracker::bind_storage_buffer_resource(
       vk_device_size = storage_buffer->size_in_bytes();
       break;
     }
+    case BindSpaceStorageBuffers::Type::Buffer: {
+      VKBuffer *buffer = static_cast<VKBuffer *>(elem.resource);
+      vk_buffer = buffer->vk_handle();
+      vk_device_size = buffer->size_in_bytes();
+      break;
+    }
     case BindSpaceStorageBuffers::Type::Unused: {
       BLI_assert_unreachable();
     }
   }
 
-  bind_buffer(
-      VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, vk_buffer, vk_device_size, resource_binding.location);
+  bind_buffer(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+              vk_buffer,
+              elem.offset,
+              vk_device_size - elem.offset,
+              resource_binding.location);
   access_info.buffers.append({vk_buffer, resource_binding.access_mask});
 }
 
@@ -237,6 +247,7 @@ void VKDescriptorSetTracker::bind_uniform_buffer_resource(
   uniform_buffer.ensure_updated();
   bind_buffer(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
               uniform_buffer.vk_handle(),
+              0,
               uniform_buffer.size_in_bytes(),
               resource_binding.location);
   access_info.buffers.append({uniform_buffer.vk_handle(), resource_binding.access_mask});
@@ -254,6 +265,7 @@ void VKDescriptorSetTracker::bind_push_constants(VKPushConstants &push_constants
   const VKUniformBuffer &uniform_buffer = *push_constants.uniform_buffer_get().get();
   bind_buffer(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
               uniform_buffer.vk_handle(),
+              0,
               uniform_buffer.size_in_bytes(),
               push_constants.layout_get().descriptor_set_location_get());
   access_info.buffers.append({uniform_buffer.vk_handle(), VK_ACCESS_UNIFORM_READ_BIT});

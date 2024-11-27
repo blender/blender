@@ -38,6 +38,9 @@
 
 /* Used for primitive expansion. */
 #define GPU_SSBO_INDEX_BUF_SLOT 7
+/* Used for polylines. */
+#define GPU_SSBO_POLYLINE_POS_BUF_SLOT 0
+#define GPU_SSBO_POLYLINE_COL_BUF_SLOT 1
 
 #if defined(GLSL_CPP_STUBS)
 #  define GPU_SHADER_NAMED_INTERFACE_INFO(_interface, _inst_name) \
