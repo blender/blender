@@ -75,12 +75,14 @@ class GreasePencil : Overlay {
         break;
       case OB_MODE_VERTEX_GREASE_PENCIL:
         /* Vertex paint mode. */
-        show_points_ = ED_grease_pencil_vertex_selection_domain_get(ts) == bke::AttrDomain::Point;
-        show_lines_ = show_lines;
+        show_points_ = ts->gpencil_selectmode_vertex &
+                       (GP_VERTEX_MASK_SELECTMODE_POINT | GP_VERTEX_MASK_SELECTMODE_SEGMENT);
+        show_lines_ = show_lines && ts->gpencil_selectmode_vertex;
         break;
       case OB_MODE_EDIT:
         /* Edit mode. */
-        show_points_ = ED_grease_pencil_edit_selection_domain_get(ts) == bke::AttrDomain::Point;
+        show_points_ = ELEM(
+            ts->gpencil_selectmode_edit, GP_SELECTMODE_POINT, GP_SELECTMODE_SEGMENT);
         show_lines_ = show_lines;
         break;
       case OB_MODE_WEIGHT_GREASE_PENCIL:
@@ -91,8 +93,9 @@ class GreasePencil : Overlay {
         break;
       case OB_MODE_SCULPT_GREASE_PENCIL:
         /* Sculpt mode. */
-        show_points_ = ED_grease_pencil_sculpt_selection_domain_get(ts) == bke::AttrDomain::Point;
-        show_lines_ = show_lines && (ts->gpencil_selectmode_sculpt != 0);
+        show_points_ = ts->gpencil_selectmode_sculpt &
+                       (GP_SCULPT_MASK_SELECTMODE_POINT | GP_SCULPT_MASK_SELECTMODE_SEGMENT);
+        show_lines_ = show_lines && ts->gpencil_selectmode_sculpt;
         break;
       default:
         /* Not a Grease Pencil mode. */
