@@ -628,11 +628,17 @@ int view3d_opengl_select_ex(const ViewContext *vc,
        * the number of items is nearly always 1, maybe 2..3 in rare cases. */
       LinkNode *ob_pose_list = nullptr;
       VirtualModifierData virtual_modifier_data;
-      const ModifierData *md = BKE_modifiers_get_virtual_modifierlist(obact,
-                                                                      &virtual_modifier_data);
+      ModifierData *md = BKE_modifiers_get_virtual_modifierlist(obact, &virtual_modifier_data);
       for (; md; md = md->next) {
         if (md->type == eModifierType_Armature) {
-          ArmatureModifierData *amd = (ArmatureModifierData *)md;
+          ArmatureModifierData *amd = reinterpret_cast<ArmatureModifierData *>(md);
+          if (amd->object && (amd->object->mode & OB_MODE_POSE)) {
+            BLI_linklist_prepend_alloca(&ob_pose_list, amd->object);
+          }
+        }
+        else if (md->type == eModifierType_GreasePencilArmature) {
+          GreasePencilArmatureModifierData *amd =
+              reinterpret_cast<GreasePencilArmatureModifierData *>(md);
           if (amd->object && (amd->object->mode & OB_MODE_POSE)) {
             BLI_linklist_prepend_alloca(&ob_pose_list, amd->object);
           }
