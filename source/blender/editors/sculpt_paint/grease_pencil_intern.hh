@@ -91,6 +91,9 @@ float brush_fill_influence(const Scene &scene,
                            const InputSample &sample,
                            float multi_frame_falloff);
 
+/* Based on pinning status, decide whether to use vertex color or material mode for brush. */
+bool brush_using_vertex_color(const GpPaint *gp_paint, const Brush *brush);
+
 /* True if influence of the brush should be inverted. */
 bool is_brush_inverted(const Brush &brush, BrushStrokeMode stroke_mode);
 
