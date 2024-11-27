@@ -838,6 +838,13 @@ def python_versions_from_wheel_python_tag(python_tag: str) -> set[tuple[int] | t
     return result
 
 
+def python_versions_from_wheel_abi_tag(abi_tag: str, *, stable_only: bool) -> set[tuple[int] | tuple[int, int]] | str:
+    from .cli.blender_ext import python_versions_from_wheel_abi_tag as fn
+    result = fn(abi_tag, stable_only=stable_only)
+    assert isinstance(result, (set, str))
+    return result
+
+
 def python_versions_from_wheels(wheel_files: Sequence[str]) -> set[tuple[int] | tuple[int, int]] | str:
     from .cli.blender_ext import python_versions_from_wheels as fn
     result = fn(wheel_files)
