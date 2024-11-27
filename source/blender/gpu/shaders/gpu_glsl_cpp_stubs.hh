@@ -56,36 +56,41 @@ template<typename T, int Sz> struct VecOp {
     return *reinterpret_cast<T *>(this);
   }
 
-  VecT operator+() RET;
-  VecT operator-() RET;
+#define STD_OP \
+  template<typename U = T, typename std::enable_if_t<!std::is_same_v<bool, U>> * = nullptr>
 
-  friend VecT operator+(VecT, VecT) RET;
-  friend VecT operator-(VecT, VecT) RET;
-  friend VecT operator/(VecT, VecT) RET;
-  friend VecT operator*(VecT, VecT) RET;
+  STD_OP VecT operator+() const RET;
+  STD_OP VecT operator-() const RET;
 
-  friend VecT operator+(VecT, T) RET;
-  friend VecT operator-(VecT, T) RET;
-  friend VecT operator/(VecT, T) RET;
-  friend VecT operator*(VecT, T) RET;
+  STD_OP friend VecT operator+(VecT, VecT) RET;
+  STD_OP friend VecT operator-(VecT, VecT) RET;
+  STD_OP friend VecT operator/(VecT, VecT) RET;
+  STD_OP friend VecT operator*(VecT, VecT) RET;
 
-  friend VecT operator+(T, VecT) RET;
-  friend VecT operator-(T, VecT) RET;
-  friend VecT operator/(T, VecT) RET;
-  friend VecT operator*(T, VecT) RET;
+  STD_OP friend VecT operator+(VecT, T) RET;
+  STD_OP friend VecT operator-(VecT, T) RET;
+  STD_OP friend VecT operator/(VecT, T) RET;
+  STD_OP friend VecT operator*(VecT, T) RET;
 
-  friend VecT operator+=(VecT, VecT) RET;
-  friend VecT operator-=(VecT, VecT) RET;
-  friend VecT operator/=(VecT, VecT) RET;
-  friend VecT operator*=(VecT, VecT) RET;
+  STD_OP friend VecT operator+(T, VecT) RET;
+  STD_OP friend VecT operator-(T, VecT) RET;
+  STD_OP friend VecT operator/(T, VecT) RET;
+  STD_OP friend VecT operator*(T, VecT) RET;
 
-  friend VecT operator+=(VecT, T) RET;
-  friend VecT operator-=(VecT, T) RET;
-  friend VecT operator/=(VecT, T) RET;
-  friend VecT operator*=(VecT, T) RET;
+  STD_OP friend VecT operator+=(VecT, VecT) RET;
+  STD_OP friend VecT operator-=(VecT, VecT) RET;
+  STD_OP friend VecT operator/=(VecT, VecT) RET;
+  STD_OP friend VecT operator*=(VecT, VecT) RET;
+
+  STD_OP friend VecT operator+=(VecT, T) RET;
+  STD_OP friend VecT operator-=(VecT, T) RET;
+  STD_OP friend VecT operator/=(VecT, T) RET;
+  STD_OP friend VecT operator*=(VecT, T) RET;
 
 #define INT_OP \
-  template<typename U = T, typename std::enable_if_t<std::is_integral_v<U>> * = nullptr>
+  template<typename U = T, \
+           typename std::enable_if_t<std::is_integral_v<U>> * = nullptr, \
+           typename std::enable_if_t<!std::is_same_v<bool, U>> * = nullptr>
 
   INT_OP friend VecT operator~(VecT) RET;
 
@@ -132,89 +137,106 @@ template<typename T, int Sz> struct VecOp {
 #undef INT_OP
 };
 
+template<typename T, int Sz> struct SwizzleBase : VecOp<T, Sz> {
+  using VecT = VecBase<T, Sz>;
+
+  constexpr VecT operator=(const VecT &) RET;
+  operator VecT() const RET;
+};
+
 template<typename T> struct VecSwizzle2 {
-  static VecBase<T, 2> &xx, &xy, &yx, &yy;
-  static VecBase<T, 3> &xxx, &xxy, &xyx, &xyy, &yxx, &yxy, &yyx, &yyy;
-  static VecBase<T, 4> &xxxx, &xxxy, &xxyx, &xxyy, &xyxx, &xyxy, &xyyx, &xyyy, &yxxx, &yxxy, &yxyx,
-      &yxyy, &yyxx, &yyxy, &yyyx, &yyyy;
+  constexpr VecSwizzle2() = default;
+  union {
+    SwizzleBase<T, 2> xx, xy, yx, yy;
+    SwizzleBase<T, 3> xxx, xxy, xyx, xyy, yxx, yxy, yyx, yyy;
+    SwizzleBase<T, 4> xxxx, xxxy, xxyx, xxyy, xyxx, xyxy, xyyx, xyyy, yxxx, yxxy, yxyx, yxyy, yyxx,
+        yyxy, yyyx, yyyy;
+  };
 };
 
 template<typename T> struct ColSwizzle2 {
-  static VecBase<T, 2> &rr, &rg, &gr, &gg;
-  static VecBase<T, 3> &rrr, &rrg, &rgr, &rgg, &grr, &grg, &ggr, &ggg;
-  static VecBase<T, 4> &rrrr, &rrrg, &rrgr, &rrgg, &rgrr, &rgrg, &rggr, &rggg, &grrr, &grrg, &grgr,
-      &grgg, &ggrr, &ggrg, &gggr, &gggg;
+  constexpr ColSwizzle2() = default;
+  union {
+    SwizzleBase<T, 2> rr, rg, gr, gg;
+    SwizzleBase<T, 3> rrr, rrg, rgr, rgg, grr, grg, ggr, ggg;
+    SwizzleBase<T, 4> rrrr, rrrg, rrgr, rrgg, rgrr, rgrg, rggr, rggg, grrr, grrg, grgr, grgg, ggrr,
+        ggrg, gggr, gggg;
+  };
 };
 
 template<typename T> struct VecSwizzle3 : VecSwizzle2<T> {
-  static VecBase<T, 2> &xz, &yz, &zx, &zy, &zz, &zw;
-  static VecBase<T, 3> &xxz, &xyz, &xzx, &xzy, &xzz, &yxz, &yyz, &yzx, &yzy, &yzz, &zxx, &zxy,
-      &zxz, &zyx, &zyy, &zyz, &zzx, &zzy, &zzz;
-  static VecBase<T, 4> &xxxz, &xxyz, &xxzx, &xxzy, &xxzz, &xyxz, &xyyz, &xyzx, &xyzy, &xyzz, &xzxx,
-      &xzxy, &xzxz, &xzyx, &xzyy, &xzyz, &xzzx, &xzzy, &xzzz, &yxxz, &yxyz, &yxzx, &yxzy, &yxzz,
-      &yyxz, &yyyz, &yyzx, &yyzy, &yyzz, &yzxx, &yzxy, &yzxz, &yzyx, &yzyy, &yzyz, &yzzx, &yzzy,
-      &yzzz, &zxxx, &zxxy, &zxxz, &zxyx, &zxyy, &zxyz, &zxzx, &zxzy, &zxzz, &zyxx, &zyxy, &zyxz,
-      &zyyx, &zyyy, &zyyz, &zyzx, &zyzy, &zyzz, &zzxx, &zzxy, &zzxz, &zzyx, &zzyy, &zzyz, &zzzx,
-      &zzzy, &zzzz;
+  constexpr VecSwizzle3() = default;
+  union {
+    SwizzleBase<T, 2> xz, yz, zx, zy, zz, zw;
+    SwizzleBase<T, 3> xxz, xyz, xzx, xzy, xzz, yxz, yyz, yzx, yzy, yzz, zxx, zxy, zxz, zyx, zyy,
+        zyz, zzx, zzy, zzz;
+    SwizzleBase<T, 4> xxxz, xxyz, xxzx, xxzy, xxzz, xyxz, xyyz, xyzx, xyzy, xyzz, xzxx, xzxy, xzxz,
+        xzyx, xzyy, xzyz, xzzx, xzzy, xzzz, yxxz, yxyz, yxzx, yxzy, yxzz, yyxz, yyyz, yyzx, yyzy,
+        yyzz, yzxx, yzxy, yzxz, yzyx, yzyy, yzyz, yzzx, yzzy, yzzz, zxxx, zxxy, zxxz, zxyx, zxyy,
+        zxyz, zxzx, zxzy, zxzz, zyxx, zyxy, zyxz, zyyx, zyyy, zyyz, zyzx, zyzy, zyzz, zzxx, zzxy,
+        zzxz, zzyx, zzyy, zzyz, zzzx, zzzy, zzzz;
+  };
 };
 
 template<typename T> struct ColSwizzle3 : ColSwizzle2<T> {
-  static VecBase<T, 2> &rb, &gb, &br, &bg, &bb, &bw;
-  static VecBase<T, 3> &rrb, &rgb, &rbr, &rbg, &rbb, &grb, &ggb, &gbr, &gbg, &gbb, &brr, &brg,
-      &brb, &bgr, &bgg, &bgb, &bbr, &bbg, &bbb;
-  static VecBase<T, 4> &rrrb, &rrgb, &rrbr, &rrbg, &rrbb, &rgrb, &rggb, &rgbr, &rgbg, &rgbb, &rbrr,
-      &rbrg, &rbrb, &rbgr, &rbgg, &rbgb, &rbbr, &rbbg, &rbbb, &grrb, &grgb, &grbr, &grbg, &grbb,
-      &ggrb, &gggb, &ggbr, &ggbg, &ggbb, &gbrr, &gbrg, &gbrb, &gbgr, &gbgg, &gbgb, &gbbr, &gbbg,
-      &gbbb, &brrr, &brrg, &brrb, &brgr, &brgg, &brgb, &brbr, &brbg, &brbb, &bgrr, &bgrg, &bgrb,
-      &bggr, &bggg, &bggb, &bgbr, &bgbg, &bgbb, &bbrr, &bbrg, &bbrb, &bbgr, &bbgg, &bbgb, &bbbr,
-      &bbbg, &bbbb;
+  constexpr ColSwizzle3() = default;
+  union {
+    SwizzleBase<T, 2> rb, gb, br, bg, bb, bw;
+    SwizzleBase<T, 3> rrb, rgb, rbr, rbg, rbb, grb, ggb, gbr, gbg, gbb, brr, brg, brb, bgr, bgg,
+        bgb, bbr, bbg, bbb;
+    SwizzleBase<T, 4> rrrb, rrgb, rrbr, rrbg, rrbb, rgrb, rggb, rgbr, rgbg, rgbb, rbrr, rbrg, rbrb,
+        rbgr, rbgg, rbgb, rbbr, rbbg, rbbb, grrb, grgb, grbr, grbg, grbb, ggrb, gggb, ggbr, ggbg,
+        ggbb, gbrr, gbrg, gbrb, gbgr, gbgg, gbgb, gbbr, gbbg, gbbb, brrr, brrg, brrb, brgr, brgg,
+        brgb, brbr, brbg, brbb, bgrr, bgrg, bgrb, bggr, bggg, bggb, bgbr, bgbg, bgbb, bbrr, bbrg,
+        bbrb, bbgr, bbgg, bbgb, bbbr, bbbg, bbbb;
+  };
 };
 
 template<typename T> struct VecSwizzle4 : VecSwizzle3<T> {
-  static VecBase<T, 2> &xw, &yw, &wx, &wy, &wz, &ww;
-  static VecBase<T, 3> &xxw, &xyw, &xzw, &xwx, &xwy, &xwz, &xww, &yxw, &yyw, &yzw, &ywx, &ywy,
-      &ywz, &yww, &zxw, &zyw, &zzw, &zwx, &zwy, &zwz, &zww, &wxx, &wxy, &wxz, &wxw, &wyx, &wyy,
-      &wyz, &wyw, &wzx, &wzy, &wzz, &wzw, &wwx, &wwy, &wwz, &www;
-  static VecBase<T, 4> &xxxw, &xxyw, &xxzw, &xxwx, &xxwy, &xxwz, &xxww, &xyxw, &xyyw, &xyzw, &xywx,
-      &xywy, &xywz, &xyww, &xzxw, &xzyw, &xzzw, &xzwx, &xzwy, &xzwz, &xzww, &xwxx, &xwxy, &xwxz,
-      &xwxw, &xwyx, &xwyy, &xwyz, &xwyw, &xwzx, &xwzy, &xwzz, &xwzw, &xwwx, &xwwy, &xwwz, &xwww,
-      &yxxw, &yxyw, &yxzw, &yxwx, &yxwy, &yxwz, &yxww, &yyxw, &yyyw, &yyzw, &yywx, &yywy, &yywz,
-      &yyww, &yzxw, &yzyw, &yzzw, &yzwx, &yzwy, &yzwz, &yzww, &ywxx, &ywxy, &ywxz, &ywxw, &ywyx,
-      &ywyy, &ywyz, &ywyw, &ywzx, &ywzy, &ywzz, &ywzw, &ywwx, &ywwy, &ywwz, &ywww, &zxxw, &zxyw,
-      &zxzw, &zxwx, &zxwy, &zxwz, &zxww, &zyxw, &zyyw, &zyzw, &zywx, &zywy, &zywz, &zyww, &zzxw,
-      &zzyw, &zzzw, &zzwx, &zzwy, &zzwz, &zzww, &zwxx, &zwxy, &zwxz, &zwxw, &zwyx, &zwyy, &zwyz,
-      &zwyw, &zwzx, &zwzy, &zwzz, &zwzw, &zwwx, &zwwy, &zwwz, &zwww, &wxxx, &wxxy, &wxxz, &wxxw,
-      &wxyx, &wxyy, &wxyz, &wxyw, &wxzx, &wxzy, &wxzz, &wxzw, &wxwx, &wxwy, &wxwz, &wxww, &wyxx,
-      &wyxy, &wyxz, &wyxw, &wyyx, &wyyy, &wyyz, &wyyw, &wyzx, &wyzy, &wyzz, &wyzw, &wywx, &wywy,
-      &wywz, &wyww, &wzxx, &wzxy, &wzxz, &wzxw, &wzyx, &wzyy, &wzyz, &wzyw, &wzzx, &wzzy, &wzzz,
-      &wzzw, &wzwx, &wzwy, &wzwz, &wzww, &wwxx, &wwxy, &wwxz, &wwxw, &wwyx, &wwyy, &wwyz, &wwyw,
-      &wwzx, &wwzy, &wwzz, &wwzw, &wwwx, &wwwy, &wwwz, &wwww;
+  union {
+    SwizzleBase<T, 2> xw, yw, wx, wy, wz, ww;
+    SwizzleBase<T, 3> xxw, xyw, xzw, xwx, xwy, xwz, xww, yxw, yyw, yzw, ywx, ywy, ywz, yww, zxw,
+        zyw, zzw, zwx, zwy, zwz, zww, wxx, wxy, wxz, wxw, wyx, wyy, wyz, wyw, wzx, wzy, wzz, wzw,
+        wwx, wwy, wwz, www;
+    SwizzleBase<T, 4> xxxw, xxyw, xxzw, xxwx, xxwy, xxwz, xxww, xyxw, xyyw, xyzw, xywx, xywy, xywz,
+        xyww, xzxw, xzyw, xzzw, xzwx, xzwy, xzwz, xzww, xwxx, xwxy, xwxz, xwxw, xwyx, xwyy, xwyz,
+        xwyw, xwzx, xwzy, xwzz, xwzw, xwwx, xwwy, xwwz, xwww, yxxw, yxyw, yxzw, yxwx, yxwy, yxwz,
+        yxww, yyxw, yyyw, yyzw, yywx, yywy, yywz, yyww, yzxw, yzyw, yzzw, yzwx, yzwy, yzwz, yzww,
+        ywxx, ywxy, ywxz, ywxw, ywyx, ywyy, ywyz, ywyw, ywzx, ywzy, ywzz, ywzw, ywwx, ywwy, ywwz,
+        ywww, zxxw, zxyw, zxzw, zxwx, zxwy, zxwz, zxww, zyxw, zyyw, zyzw, zywx, zywy, zywz, zyww,
+        zzxw, zzyw, zzzw, zzwx, zzwy, zzwz, zzww, zwxx, zwxy, zwxz, zwxw, zwyx, zwyy, zwyz, zwyw,
+        zwzx, zwzy, zwzz, zwzw, zwwx, zwwy, zwwz, zwww, wxxx, wxxy, wxxz, wxxw, wxyx, wxyy, wxyz,
+        wxyw, wxzx, wxzy, wxzz, wxzw, wxwx, wxwy, wxwz, wxww, wyxx, wyxy, wyxz, wyxw, wyyx, wyyy,
+        wyyz, wyyw, wyzx, wyzy, wyzz, wyzw, wywx, wywy, wywz, wyww, wzxx, wzxy, wzxz, wzxw, wzyx,
+        wzyy, wzyz, wzyw, wzzx, wzzy, wzzz, wzzw, wzwx, wzwy, wzwz, wzww, wwxx, wwxy, wwxz, wwxw,
+        wwyx, wwyy, wwyz, wwyw, wwzx, wwzy, wwzz, wwzw, wwwx, wwwy, wwwz, wwww;
+  };
 };
 
 template<typename T> struct ColSwizzle4 : ColSwizzle3<T> {
-  static VecBase<T, 2> &ra, &ga, &ar, &ag, &ab, &aa;
-  static VecBase<T, 3> &rra, &rga, &rba, &rar, &rag, &rab, &raa, &gra, &gga, &gba, &gar, &gag,
-      &gab, &gaa, &bra, &bga, &bba, &bar, &bag, &bab, &baa, &arr, &arg, &arb, &ara, &agr, &agg,
-      &agb, &aga, &abr, &abg, &abb, &aba, &aar, &aag, &aab, &aaa;
-  static VecBase<T, 4> &rrra, &rrga, &rrba, &rrar, &rrag, &rrab, &rraa, &rgra, &rgga, &rgba, &rgar,
-      &rgag, &rgab, &rgaa, &rbra, &rbga, &rbba, &rbar, &rbag, &rbab, &rbaa, &rarr, &rarg, &rarb,
-      &rara, &ragr, &ragg, &ragb, &raga, &rabr, &rabg, &rabb, &raba, &raar, &raag, &raab, &raaa,
-      &grra, &grga, &grba, &grar, &grag, &grab, &graa, &ggra, &ggga, &ggba, &ggar, &ggag, &ggab,
-      &ggaa, &gbra, &gbga, &gbba, &gbar, &gbag, &gbab, &gbaa, &garr, &garg, &garb, &gara, &gagr,
-      &gagg, &gagb, &gaga, &gabr, &gabg, &gabb, &gaba, &gaar, &gaag, &gaab, &gaaa, &brra, &brga,
-      &brba, &brar, &brag, &brab, &braa, &bgra, &bgga, &bgba, &bgar, &bgag, &bgab, &bgaa, &bbra,
-      &bbga, &bbba, &bbar, &bbag, &bbab, &bbaa, &barr, &barg, &barb, &bara, &bagr, &bagg, &bagb,
-      &baga, &babr, &babg, &babb, &baba, &baar, &baag, &baab, &baaa, &arrr, &arrg, &arrb, &arra,
-      &argr, &argg, &argb, &arga, &arbr, &arbg, &arbb, &arba, &arar, &arag, &arab, &araa, &agrr,
-      &agrg, &agrb, &agra, &aggr, &aggg, &aggb, &agga, &agbr, &agbg, &agbb, &agba, &agar, &agag,
-      &agab, &agaa, &abrr, &abrg, &abrb, &abra, &abgr, &abgg, &abgb, &abga, &abbr, &abbg, &abbb,
-      &abba, &abar, &abag, &abab, &abaa, &aarr, &aarg, &aarb, &aara, &aagr, &aagg, &aagb, &aaga,
-      &aabr, &aabg, &aabb, &aaba, &aaar, &aaag, &aaab, &aaaa;
+  union {
+    SwizzleBase<T, 2> ra, ga, ar, ag, ab, aa;
+    SwizzleBase<T, 3> rra, rga, rba, rar, rag, rab, raa, gra, gga, gba, gar, gag, gab, gaa, bra,
+        bga, bba, bar, bag, bab, baa, arr, arg, arb, ara, agr, agg, agb, aga, abr, abg, abb, aba,
+        aar, aag, aab, aaa;
+    SwizzleBase<T, 4> rrra, rrga, rrba, rrar, rrag, rrab, rraa, rgra, rgga, rgba, rgar, rgag, rgab,
+        rgaa, rbra, rbga, rbba, rbar, rbag, rbab, rbaa, rarr, rarg, rarb, rara, ragr, ragg, ragb,
+        raga, rabr, rabg, rabb, raba, raar, raag, raab, raaa, grra, grga, grba, grar, grag, grab,
+        graa, ggra, ggga, ggba, ggar, ggag, ggab, ggaa, gbra, gbga, gbba, gbar, gbag, gbab, gbaa,
+        garr, garg, garb, gara, gagr, gagg, gagb, gaga, gabr, gabg, gabb, gaba, gaar, gaag, gaab,
+        gaaa, brra, brga, brba, brar, brag, brab, braa, bgra, bgga, bgba, bgar, bgag, bgab, bgaa,
+        bbra, bbga, bbba, bbar, bbag, bbab, bbaa, barr, barg, barb, bara, bagr, bagg, bagb, baga,
+        babr, babg, babb, baba, baar, baag, baab, baaa, arrr, arrg, arrb, arra, argr, argg, argb,
+        arga, arbr, arbg, arbb, arba, arar, arag, arab, araa, agrr, agrg, agrb, agra, aggr, aggg,
+        aggb, agga, agbr, agbg, agbb, agba, agar, agag, agab, agaa, abrr, abrg, abrb, abra, abgr,
+        abgg, abgb, abga, abbr, abbg, abbb, abba, abar, abag, abab, abaa, aarr, aarg, aarb, aara,
+        aagr, aagg, aagb, aaga, aabr, aabg, aabb, aaba, aaar, aaag, aaab, aaaa;
+  };
 };
 
 template<typename T> struct VecBase<T, 1> {
   VecBase() = default;
-  template<typename U> explicit VecBase(VecBase<U, 1>) {}
+  template<typename U> explicit VecBase(VecOp<U, 1>) {}
   VecBase(T) {}
 
   operator T() RET;
@@ -225,21 +247,29 @@ template<typename T> struct VecBase<T, 2> : VecOp<T, 2>, VecSwizzle2<T>, ColSwiz
   T r, g;
 
   VecBase() = default;
-  template<typename U> explicit VecBase(VecBase<U, 2>) {}
+  template<typename U> explicit VecBase(VecOp<U, 2>) {}
   explicit VecBase(T) {}
   explicit VecBase(T, T) {}
 };
 
 template<typename T> struct VecBase<T, 3> : VecOp<T, 3>, VecSwizzle3<T>, ColSwizzle3<T> {
-  T x, y, z;
-  T r, g, b;
+  union {
+    T x, r;
+  };
+  union {
+    T y, g;
+  };
+  union {
+    T z, b;
+  };
 
   VecBase() = default;
-  template<typename U> explicit VecBase(VecBase<U, 3>) {}
+  template<typename U> explicit VecBase(VecOp<U, 3>) {}
   explicit VecBase(T) {}
-  explicit VecBase(T, T, T) {}
-  explicit VecBase(VecBase<T, 2>, T) {}
-  explicit VecBase(T, VecBase<T, 2>) {}
+  /* Implemented correctly for GCC to compile the constexpr gl_WorkGroupSize. */
+  constexpr explicit VecBase(T x_, T y_, T z_) : x(x_), y(y_), z(z_) {}
+  explicit VecBase(VecOp<T, 2>, T) {}
+  explicit VecBase(T, VecOp<T, 2>) {}
 };
 
 template<typename T> struct VecBase<T, 4> : VecOp<T, 4>, VecSwizzle4<T>, ColSwizzle4<T> {
@@ -247,51 +277,51 @@ template<typename T> struct VecBase<T, 4> : VecOp<T, 4>, VecSwizzle4<T>, ColSwiz
   T r, g, b, a;
 
   VecBase() = default;
-  template<typename U> explicit VecBase(VecBase<U, 4>) {}
+  template<typename U> explicit VecBase(VecOp<U, 4>) {}
   explicit VecBase(T) {}
   explicit VecBase(T, T, T, T) {}
-  explicit VecBase(VecBase<T, 2>, T, T) {}
-  explicit VecBase(T, VecBase<T, 2>, T) {}
-  explicit VecBase(T, T, VecBase<T, 2>) {}
-  explicit VecBase(VecBase<T, 2>, VecBase<T, 2>) {}
-  explicit VecBase(VecBase<T, 3>, T) {}
-  explicit VecBase(T, VecBase<T, 3>) {}
+  explicit VecBase(VecOp<T, 2>, T, T) {}
+  explicit VecBase(T, VecOp<T, 2>, T) {}
+  explicit VecBase(T, T, VecOp<T, 2>) {}
+  explicit VecBase(VecOp<T, 2>, VecOp<T, 2>) {}
+  explicit VecBase(VecOp<T, 3>, T) {}
+  explicit VecBase(T, VecOp<T, 3>) {}
 };
 
 /* Boolean vectors do not have operators and are not convertible from other types. */
 
-template<> struct VecBase<bool, 2> : VecSwizzle2<bool> {
+template<> struct VecBase<bool, 2> : VecOp<bool, 2>, VecSwizzle2<bool> {
   bool x, y;
 
   VecBase() = default;
   explicit VecBase(bool) {}
   explicit VecBase(bool, bool) {}
   /* Should be forbidden, but is used by SMAA. */
-  explicit VecBase(VecBase<double, 2>) {}
+  explicit VecBase(VecOp<double, 2>) {}
 };
 
-template<> struct VecBase<bool, 3> : VecSwizzle3<bool> {
+template<> struct VecBase<bool, 3> : VecOp<bool, 3>, VecSwizzle3<bool> {
   bool x, y, z;
 
   VecBase() = default;
   explicit VecBase(bool) {}
   explicit VecBase(bool, bool, bool) {}
-  explicit VecBase(VecBase<bool, 2>, bool) {}
-  explicit VecBase(bool, VecBase<bool, 2>) {}
+  explicit VecBase(VecOp<bool, 2>, bool) {}
+  explicit VecBase(bool, VecOp<bool, 2>) {}
 };
 
-template<> struct VecBase<bool, 4> : VecSwizzle4<bool> {
+template<> struct VecBase<bool, 4> : VecOp<bool, 4>, VecSwizzle4<bool> {
   bool x, y, z, w;
 
   VecBase() = default;
   explicit VecBase(bool) {}
   explicit VecBase(bool, bool, bool, bool) {}
-  explicit VecBase(VecBase<bool, 2>, bool, bool) {}
-  explicit VecBase(bool, VecBase<bool, 2>, bool) {}
-  explicit VecBase(bool, bool, VecBase<bool, 2>) {}
-  explicit VecBase(VecBase<bool, 2>, VecBase<bool, 2>) {}
-  explicit VecBase(VecBase<bool, 3>, bool) {}
-  explicit VecBase(bool, VecBase<bool, 3>) {}
+  explicit VecBase(VecOp<bool, 2>, bool, bool) {}
+  explicit VecBase(bool, VecOp<bool, 2>, bool) {}
+  explicit VecBase(bool, bool, VecOp<bool, 2>) {}
+  explicit VecBase(VecOp<bool, 2>, VecOp<bool, 2>) {}
+  explicit VecBase(VecOp<bool, 3>, bool) {}
+  explicit VecBase(bool, VecOp<bool, 3>) {}
 };
 
 using uint = unsigned int;
@@ -611,25 +641,25 @@ using uimage2DArray = ImageBase<uint, 2, true>;
 /** \name Builtin Functions
  * \{ */
 
-template<typename T, int D> VecBase<bool, D> greaterThan(VecBase<T, D>, VecBase<T, D>) RET;
-template<typename T, int D> VecBase<bool, D> lessThan(VecBase<T, D>, VecBase<T, D>) RET;
-template<typename T, int D> VecBase<bool, D> lessThanEqual(VecBase<T, D>, VecBase<T, D>) RET;
-template<typename T, int D> VecBase<bool, D> greaterThanEqual(VecBase<T, D>, VecBase<T, D>) RET;
-template<typename T, int D> VecBase<bool, D> equal(VecBase<T, D>, VecBase<T, D>) RET;
-template<typename T, int D> VecBase<bool, D> notEqual(VecBase<T, D>, VecBase<T, D>) RET;
+template<typename T, int D> VecBase<bool, D> greaterThan(VecOp<T, D>, VecOp<T, D>) RET;
+template<typename T, int D> VecBase<bool, D> lessThan(VecOp<T, D>, VecOp<T, D>) RET;
+template<typename T, int D> VecBase<bool, D> lessThanEqual(VecOp<T, D>, VecOp<T, D>) RET;
+template<typename T, int D> VecBase<bool, D> greaterThanEqual(VecOp<T, D>, VecOp<T, D>) RET;
+template<typename T, int D> VecBase<bool, D> equal(VecOp<T, D>, VecOp<T, D>) RET;
+template<typename T, int D> VecBase<bool, D> notEqual(VecOp<T, D>, VecOp<T, D>) RET;
 template<int D> bool any(VecBase<bool, D>) RET;
 template<int D> bool all(VecBase<bool, D>) RET;
 /* `not` is a C++ keyword that aliases the `!` operator. Simply overload it. */
 template<int D> VecBase<bool, D> operator!(VecBase<bool, D>) RET;
 
-template<int D> VecBase<int, D> bitCount(VecBase<int, D>) RET;
-template<int D> VecBase<int, D> bitCount(VecBase<uint, D>) RET;
-template<int D> VecBase<int, D> bitfieldExtract(VecBase<int, D>, int, int) RET;
-template<int D> VecBase<int, D> bitfieldExtract(VecBase<uint, D>, int, int) RET;
-template<int D> VecBase<int, D> bitfieldInsert(VecBase<int, D>, VecBase<int, D>, int, int) RET;
-template<int D> VecBase<int, D> bitfieldInsert(VecBase<uint, D>, VecBase<uint, D>, int, int) RET;
-template<int D> VecBase<int, D> bitfieldReverse(VecBase<int, D>) RET;
-template<int D> VecBase<int, D> bitfieldReverse(VecBase<uint, D>) RET;
+template<int D> VecBase<int, D> bitCount(VecOp<int, D>) RET;
+template<int D> VecBase<int, D> bitCount(VecOp<uint, D>) RET;
+template<int D> VecBase<int, D> bitfieldExtract(VecOp<int, D>, int, int) RET;
+template<int D> VecBase<int, D> bitfieldExtract(VecOp<uint, D>, int, int) RET;
+template<int D> VecBase<int, D> bitfieldInsert(VecOp<int, D>, VecOp<int, D>, int, int) RET;
+template<int D> VecBase<int, D> bitfieldInsert(VecOp<uint, D>, VecOp<uint, D>, int, int) RET;
+template<int D> VecBase<int, D> bitfieldReverse(VecOp<int, D>) RET;
+template<int D> VecBase<int, D> bitfieldReverse(VecOp<uint, D>) RET;
 int bitCount(int) RET;
 int bitCount(uint) RET;
 int bitfieldExtract(int) RET;
@@ -639,10 +669,12 @@ int bitfieldInsert(uint) RET;
 int bitfieldReverse(int) RET;
 int bitfieldReverse(uint) RET;
 
-template<int D> VecBase<int, D> findLSB(VecBase<int, D>) RET;
-template<int D> VecBase<int, D> findLSB(VecBase<uint, D>) RET;
-template<int D> VecBase<int, D> findMSB(VecBase<int, D>) RET;
-template<int D> VecBase<int, D> findMSB(VecBase<uint, D>) RET;
+template<int D> VecBase<int, D> findLSB(VecOp<int, D>) RET;
+template<int D> VecBase<int, D> findLSB(VecOp<uint, D>) RET;
+template<int D> VecBase<int, D> findMSB(VecOp<int, D>) RET;
+template<int D> VecBase<int, D> findMSB(VecOp<uint, D>) RET;
+int findLSB(int) RET;
+int findLSB(uint) RET;
 int findMSB(int) RET;
 int findMSB(uint) RET;
 
@@ -672,15 +704,15 @@ template<typename T> T isnan(T) RET;
 template<typename T> T log(T) RET;
 template<typename T> T log2(T) RET;
 double mod(double, double) RET;
-template<int D> VecBase<double, D> mod(VecBase<double, D>, double) RET;
-template<int D> VecBase<double, D> mod(VecBase<double, D>, VecBase<double, D>) RET;
+template<int D> VecBase<double, D> mod(VecOp<double, D>, double) RET;
+template<int D> VecBase<double, D> mod(VecOp<double, D>, VecOp<double, D>) RET;
 template<typename T> T modf(T, T);
 template<typename T, typename U> T pow(T, U) RET;
 template<typename T> T round(T) RET;
 template<typename T> T smoothstep(T, T, T) RET;
 template<typename T> T sqrt(T) RET;
-template<int D> VecBase<double, D> step(VecBase<double, D>, VecBase<double, D>) RET;
-template<int D> VecBase<double, D> step(double, VecBase<double, D>) RET;
+template<int D> VecBase<double, D> step(VecOp<double, D>, VecOp<double, D>) RET;
+template<int D> VecBase<double, D> step(double, VecOp<double, D>) RET;
 template<typename T> T trunc(T) RET;
 template<typename T, typename U> T ldexp(T, U) RET;
 double smoothstep(double, double, double) RET;
@@ -704,23 +736,22 @@ template<typename T> T radians(T) RET;
 
 /* Declared explicitly to avoid type errors. */
 double mix(double, double, double) RET;
-template<int D> VecBase<double, D> mix(VecBase<double, D>, VecBase<double, D>, double) RET;
-template<int D>
-VecBase<double, D> mix(VecBase<double, D>, VecBase<double, D>, VecBase<double, D>) RET;
-template<typename T, int D> VecBase<T, D> mix(VecBase<T, D>, VecBase<T, D>, VecBase<bool, D>) RET;
+template<int D> VecBase<double, D> mix(VecOp<double, D>, VecOp<double, D>, double) RET;
+template<int D> VecBase<double, D> mix(VecOp<double, D>, VecOp<double, D>, VecOp<double, D>) RET;
+template<typename T, int D> VecBase<T, D> mix(VecOp<T, D>, VecOp<T, D>, VecOp<bool, D>) RET;
 
 #define select(A, B, C) mix(A, B, C)
 
-VecBase<double, 3> cross(VecBase<double, 3>, VecBase<double, 3>) RET;
-template<int D> float dot(VecBase<double, D>, VecBase<double, D>) RET;
-template<int D> float distance(VecBase<double, D>, VecBase<double, D>) RET;
-template<int D> float length(VecBase<double, D>) RET;
-template<int D> VecBase<double, D> normalize(VecBase<double, D>) RET;
+VecBase<double, 3> cross(VecOp<double, 3>, VecOp<double, 3>) RET;
+template<int D> double dot(VecOp<double, D>, VecOp<double, D>) RET;
+template<int D> double distance(VecOp<double, D>, VecOp<double, D>) RET;
+template<int D> double length(VecOp<double, D>) RET;
+template<int D> VecBase<double, D> normalize(VecOp<double, D>) RET;
 
-template<int D> VecBase<int, D> floatBitsToInt(VecBase<double, D>) RET;
-template<int D> VecBase<uint, D> floatBitsToUint(VecBase<double, D>) RET;
-template<int D> VecBase<double, D> intBitsToFloat(VecBase<int, D>) RET;
-template<int D> VecBase<double, D> uintBitsToFloat(VecBase<uint, D>) RET;
+template<int D> VecBase<int, D> floatBitsToInt(VecOp<double, D>) RET;
+template<int D> VecBase<uint, D> floatBitsToUint(VecOp<double, D>) RET;
+template<int D> VecBase<double, D> intBitsToFloat(VecOp<int, D>) RET;
+template<int D> VecBase<double, D> uintBitsToFloat(VecOp<uint, D>) RET;
 int floatBitsToInt(double) RET;
 uint floatBitsToUint(double) RET;
 double intBitsToFloat(int) RET;
@@ -734,10 +765,9 @@ template<typename T> T fwidth(T) RET;
 }  // namespace gl_FragmentShader
 
 /* Geometric functions. */
-template<typename T, int D>
-VecBase<T, D> faceforward(VecBase<T, D>, VecBase<T, D>, VecBase<T, D>) RET;
-template<typename T, int D> VecBase<T, D> reflect(VecBase<T, D>, VecBase<T, D>) RET;
-template<typename T, int D> VecBase<T, D> refract(VecBase<T, D>, VecBase<T, D>, double) RET;
+template<typename T, int D> VecBase<T, D> faceforward(VecOp<T, D>, VecOp<T, D>, VecOp<T, D>) RET;
+template<typename T, int D> VecBase<T, D> reflect(VecOp<T, D>, VecOp<T, D>) RET;
+template<typename T, int D> VecBase<T, D> refract(VecOp<T, D>, VecOp<T, D>, double) RET;
 
 /* Atomic operations. */
 int atomicAdd(int &, int) RET;
