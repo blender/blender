@@ -6503,7 +6503,10 @@ static int ui_do_but_COLOR(bContext *C, uiBut *but, uiHandleButtonData *data, co
           if (paint != nullptr) {
             Brush *brush = BKE_paint_brush(paint);
 
-            if (brush->flag & BRUSH_USE_GRADIENT) {
+            if (brush == nullptr) {
+              /* Pass. */
+            }
+            else if (brush->flag & BRUSH_USE_GRADIENT) {
               float *target = &brush->gradient->data[brush->gradient->cur].r;
 
               if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA) {
