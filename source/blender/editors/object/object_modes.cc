@@ -130,11 +130,6 @@ bool mode_compat_test(const Object *ob, eObjectMode mode)
         return true;
       }
       break;
-    case OB_GPENCIL_LEGACY:
-      if (mode & (OB_MODE_EDIT_GPENCIL_LEGACY | OB_MODE_ALL_PAINT_GPENCIL)) {
-        return true;
-      }
-      break;
     case OB_CURVES:
       if (mode & (OB_MODE_EDIT | OB_MODE_SCULPT_CURVES)) {
         return true;
@@ -192,10 +187,6 @@ bool mode_set_ex(bContext *C, eObjectMode mode, bool use_undo, ReportList *repor
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   if (ob == nullptr) {
     return (mode == OB_MODE_OBJECT);
-  }
-
-  if ((ob->type == OB_GPENCIL_LEGACY) && (mode == OB_MODE_EDIT)) {
-    mode = OB_MODE_EDIT_GPENCIL_LEGACY;
   }
 
   if (ob->mode == mode) {

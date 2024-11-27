@@ -991,7 +991,6 @@ void DepsgraphNodeBuilder::build_object_data(Object *object)
     case OB_SURF:
     case OB_MBALL:
     case OB_LATTICE:
-    case OB_GPENCIL_LEGACY:
     case OB_CURVES:
     case OB_POINTCLOUD:
     case OB_VOLUME:

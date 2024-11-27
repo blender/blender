@@ -2452,8 +2452,6 @@ static BIFIconID tree_element_get_icon_from_id(const ID *id)
         else {
           return ICON_OUTLINER_OB_EMPTY;
         }
-      case OB_GPENCIL_LEGACY:
-        return ICON_OUTLINER_OB_GREASEPENCIL;
       case OB_GREASE_PENCIL:
         return ICON_OUTLINER_OB_GREASEPENCIL;
     }
@@ -2746,91 +2744,13 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         Object *ob = (Object *)tselem->id;
         data.drag_id = tselem->id;
 
-        if (ob->type != OB_GPENCIL_LEGACY) {
-          ModifierData *md = static_cast<ModifierData *>(BLI_findlink(&ob->modifiers, tselem->nr));
-          const ModifierTypeInfo *modifier_type = static_cast<const ModifierTypeInfo *>(
-              BKE_modifier_get_info((ModifierType)md->type));
-          if (modifier_type != nullptr) {
-            data.icon = modifier_type->icon;
-          }
-          else {
-            data.icon = ICON_DOT;
-          }
+        ModifierData *md = static_cast<ModifierData *>(BLI_findlink(&ob->modifiers, tselem->nr));
+        if (const ModifierTypeInfo *modifier_type = BKE_modifier_get_info(ModifierType(md->type)))
+        {
+          data.icon = modifier_type->icon;
         }
         else {
-          /* grease pencil modifiers */
-          GpencilModifierData *md = static_cast<GpencilModifierData *>(
-              BLI_findlink(&ob->greasepencil_modifiers, tselem->nr));
-          switch ((GpencilModifierType)md->type) {
-            case eGpencilModifierType_Noise:
-              data.icon = ICON_MOD_NOISE;
-              break;
-            case eGpencilModifierType_Subdiv:
-              data.icon = ICON_MOD_SUBSURF;
-              break;
-            case eGpencilModifierType_Thick:
-              data.icon = ICON_MOD_THICKNESS;
-              break;
-            case eGpencilModifierType_Tint:
-              data.icon = ICON_MOD_TINT;
-              break;
-            case eGpencilModifierType_Array:
-              data.icon = ICON_MOD_ARRAY;
-              break;
-            case eGpencilModifierType_Build:
-              data.icon = ICON_MOD_BUILD;
-              break;
-            case eGpencilModifierType_Opacity:
-              data.icon = ICON_MOD_MASK;
-              break;
-            case eGpencilModifierType_Color:
-              data.icon = ICON_MOD_HUE_SATURATION;
-              break;
-            case eGpencilModifierType_Lattice:
-              data.icon = ICON_MOD_LATTICE;
-              break;
-            case eGpencilModifierType_Mirror:
-              data.icon = ICON_MOD_MIRROR;
-              break;
-            case eGpencilModifierType_Simplify:
-              data.icon = ICON_MOD_SIMPLIFY;
-              break;
-            case eGpencilModifierType_Smooth:
-              data.icon = ICON_MOD_SMOOTH;
-              break;
-            case eGpencilModifierType_Hook:
-              data.icon = ICON_HOOK;
-              break;
-            case eGpencilModifierType_Offset:
-              data.icon = ICON_MOD_OFFSET;
-              break;
-            case eGpencilModifierType_Armature:
-              data.icon = ICON_MOD_ARMATURE;
-              break;
-            case eGpencilModifierType_Multiply:
-              data.icon = ICON_GP_MULTIFRAME_EDITING;
-              break;
-            case eGpencilModifierType_Time:
-              data.icon = ICON_MOD_TIME;
-              break;
-            case eGpencilModifierType_Texture:
-              data.icon = ICON_TEXTURE;
-              break;
-            case eGpencilModifierType_WeightProximity:
-              data.icon = ICON_MOD_VERTEX_WEIGHT;
-              break;
-            case eGpencilModifierType_WeightAngle:
-              data.icon = ICON_MOD_VERTEX_WEIGHT;
-              break;
-            case eGpencilModifierType_Shrinkwrap:
-              data.icon = ICON_MOD_SHRINKWRAP;
-              break;
-
-              /* Default */
-            default:
-              data.icon = ICON_DOT;
-              break;
-          }
+          data.icon = ICON_DOT;
         }
         break;
       }

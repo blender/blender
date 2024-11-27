@@ -1397,7 +1397,7 @@ static bool annotation_session_initdata(bContext *C, tGPsdata *p)
 
   /* get gp-data */
   gpd_ptr = ED_annotation_data_get_pointers(C, &p->ownerPtr);
-  if ((gpd_ptr == nullptr) || !ED_gpencil_data_owner_is_annotation(&p->ownerPtr)) {
+  if (gpd_ptr == nullptr) {
     p->status = GP_STATUS_ERROR;
     return false;
   }

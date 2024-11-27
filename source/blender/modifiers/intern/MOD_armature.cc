@@ -88,7 +88,7 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
     /* If not using envelopes,
      * create relations to individual bones for more rigging flexibility. */
     if ((amd->deformflag & ARM_DEF_ENVELOPE) == 0 && (amd->object->pose != nullptr) &&
-        ELEM(ctx->object->type, OB_MESH, OB_LATTICE, OB_GPENCIL_LEGACY))
+        ELEM(ctx->object->type, OB_MESH, OB_LATTICE))
     {
       /* If neither vertex groups nor envelopes are used, the modifier has no bone dependencies. */
       if ((amd->deformflag & ARM_DEF_VGROUP) != 0) {
