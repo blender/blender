@@ -426,7 +426,11 @@ static void update_duplicate_subtarget(EditBone *dup_bone,
        * so, update the constraint to point at the
        * duplicate of the old subtarget.
        */
-      oldtarget = get_named_editbone(&target_armature->bonebase, ct->subtarget);
+
+      /* TODO: support updating sub-targets for multi-object edit mode.
+       * This requires all objects bones to be duplicated before this runs. */
+      oldtarget = (ob == target_ob) ? get_named_editbone(target_armature->edbo, ct->subtarget) :
+                                      nullptr;
       if (oldtarget && oldtarget->temp.ebone) {
         newtarget = oldtarget->temp.ebone;
         STRNCPY(ct->subtarget, newtarget->name);
