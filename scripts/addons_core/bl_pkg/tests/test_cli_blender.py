@@ -218,7 +218,7 @@ def create_package(
         fh.write('''version = "1.0.0"\n''')
         fh.write('''tagline = "This is a tagline"\n''')
         fh.write('''blender_version_min = "{:s}"\n'''.format(blender_version_min or "0.0.0"))
-        if blender_version_min is not None:
+        if blender_version_max is not None:
             fh.write('''blender_version_max = "{:s}"\n'''.format(blender_version_max))
         fh.write('''\n''')
 
@@ -914,6 +914,97 @@ class TestPythonVersions(TestWithTempBlenderUser_MixIn, unittest.TestCase):
         self.assertEqual(returncode, 0)
         self.assertEqual(stderr, "")
         self.assertEqual(stdout, '''found 3 packages.\n''')
+
+    def test_server_generate_version_with_stable_abi(self) -> None:
+        # The different Python versions in the wheels cause the packages not to conflict.
+        repo_id = "test_repo_stable_abi_versions"
+        repo_name = "MyTestRepoVersionStableABI"
+
+        self.repo_add(repo_id=repo_id, repo_name=repo_name)
+
+        this_python_version_major, this_python_version_minor = sys.version_info[:2]
+        # TODO: this test doesn't make sense for the first Python major releases (4.0 for e.g.).
+        if this_python_version_minor == 0:
+            return
+
+        python_abi_current_stable = "abi{:d}".format(this_python_version_major)
+        python_abi_current = "cp{:d}{:d}".format(this_python_version_major, this_python_version_minor)
+        python_abi_outdated = "cp{:d}{:d}".format(this_python_version_major, this_python_version_minor - 1)
+
+        pkg_idnames = (
+            # Python incompatible because it's stable ABI implies gerater-or-equal-to.
+            ("my_test_pkg_a", "my_test_a", [
+                "example_A-1.2.3-{0:s}-{0:s}-any.whl".format(
+                    # Old ABI (making this extension incompatible).
+                    python_abi_outdated,
+                ),
+                "example_B-1.2.3-{0:s}-{0:s}-any.whl".format(python_abi_outdated),
+            ]),
+            # Python compatible.
+            ("my_test_pkg_b", "my_test_b", [
+                "example_A-1.2.3-{:s}-{:s}-any.whl".format(
+                    python_abi_outdated,
+                    # Stable ABI (making this extension compatible).
+                    python_abi_current_stable,
+                ),
+                "example_B-1.2.3-{0:s}-{0:s}-any.whl".format(python_abi_current),
+            ]),
+        )
+
+        # Create a package contents.
+        for pkg_idname, pkg_filename, wheel_filenames in pkg_idnames:
+            wheel_params = []
+            for wheel_filename in wheel_filenames:
+                module_name, module_version = wheel_filename.split("-", 2)[0:2]
+                wheel_params.append(
+                    WheelModuleParams(
+                        module_name=module_name,
+                        module_version=module_version,
+                        filename=wheel_filename,
+                    ),
+                )
+                del module_name, module_version
+
+            self.build_package(
+                pkg_idname=pkg_idname,
+                pkg_filename=pkg_filename,
+                blender_version_min="4.2.0",
+                wheel_params=wheel_params,
+            )
+
+        # Generate the repository.
+        returncode, stdout, stderr = run_blender_extensions((
+            "server-generate",
+            "--repo-dir", TEMP_DIR_REMOTE,
+        ))
+        self.assertEqual(returncode, 0)
+        self.assertEqual(stderr, "")
+        self.assertEqual(stdout, '''found 2 packages.\n''')
+
+        stdout = run_blender_extensions_no_errors((
+            "sync",
+        ))
+        self.assertEqual(
+            stdout.rstrip("\n").split("\n")[-1],
+            "STATUS Extensions list for \"{:s}\" updated".format(repo_name),
+        )
+
+        # This should be filtered out.
+        # NOTE: ideally an error would show an error that the extension is known but not compatible.
+        returncode, stdout, stderr = run_blender_extensions(("install", "my_test_pkg_a", "--enable"))
+
+        self.assertEqual(stdout.rstrip(), "")
+        self.assertEqual(returncode, 1)
+        self.assertEqual(
+            "Package \"my_test_pkg_a\" not found in remote repositories!",
+            stderr.rstrip(),
+        )
+
+        stdout = run_blender_extensions_no_errors(("install", "my_test_pkg_b", "--enable"))
+        self.assertEqual(
+            [line for line in stdout.split("\n") if line.startswith("STATUS ")][0],
+            "STATUS Installed \"my_test_pkg_b\""
+        )
 
 
 class TestModuleViolation(TestWithTempBlenderUser_MixIn, unittest.TestCase):

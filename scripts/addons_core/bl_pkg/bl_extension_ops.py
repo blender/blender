@@ -950,6 +950,7 @@ def _extensions_wheel_filter_for_this_system(wheels):
     import sys
     from .bl_extension_utils import (
         python_versions_from_wheel_python_tag,
+        python_versions_from_wheel_abi_tag,
     )
 
     python_version_current = sys.version_info[:2]
@@ -974,8 +975,8 @@ def _extensions_wheel_filter_for_this_system(wheels):
         if not (5 <= len(wheel_filename_split) <= 6):
             print("Error: wheel doesn't follow naming spec \"{:s}\"".format(wheel_filename))
             continue
-        # TODO: Match ABI tags.
-        python_tag, _abi_tag, platform_tag = wheel_filename_split[-3:]
+
+        python_tag, abi_tag, platform_tag = wheel_filename_split[-3:]
 
         # Perform Platform Checks.
         if platform_tag in {"any", platform_tag_current}:
@@ -1020,6 +1021,22 @@ def _extensions_wheel_filter_for_this_system(wheels):
                     if python_version_current == python_version:
                         python_version_is_compat = True
                         break
+
+                    # When there is a stable ABI: Allow an older Python wheel to be compatible
+                    # with a newer Python as long as the older wheel uses the stable ABI, see:
+                    # https://packaging.python.org/en/latest/specifications/platform-compatibility-tags/#abi-tag
+                    if isinstance(
+                            python_versions_stable_abi := python_versions_from_wheel_abi_tag(abi_tag, stable_only=True),
+                            str,
+                    ):
+                        print("Error: wheel \"{:s}\" unable to parse Python ABI version {:s}".format(
+                            wheel_filename, python_versions,
+                        ))
+                    elif (python_version_current[0],) in python_versions_stable_abi:
+                        if python_version_current >= python_version:
+                            python_version_is_compat = True
+                            break
+
             if not python_version_is_compat:
                 # Useful to know, can quiet print in the future.
                 print(
