@@ -199,7 +199,7 @@ class DilateErodeOperation : public NodeOperation {
     GPUShader *shader = context().get_shader("compositor_morphological_distance_threshold");
     GPU_shader_bind(shader);
 
-    GPU_shader_uniform_1f(shader, "inset", get_inset());
+    GPU_shader_uniform_1f(shader, "inset", math::max(this->get_inset(), 10e-6f));
     GPU_shader_uniform_1i(shader, "radius", get_morphological_distance_threshold_radius());
     GPU_shader_uniform_1i(shader, "distance", get_distance());
 
