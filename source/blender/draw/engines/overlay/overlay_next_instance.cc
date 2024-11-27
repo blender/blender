@@ -249,7 +249,8 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
   }
 
   if (state.is_wireframe_mode || !state.hide_overlays) {
-    layer.wireframe.object_sync_ex(manager, ob_ref, resources, state, in_edit_paint_mode);
+    layer.wireframe.object_sync_ex(
+        manager, ob_ref, resources, state, in_edit_paint_mode, in_edit_mode);
   }
 
   if (!state.hide_overlays) {

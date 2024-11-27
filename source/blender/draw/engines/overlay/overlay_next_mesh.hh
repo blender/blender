@@ -417,6 +417,7 @@ class Meshes : Overlay {
 
   static bool mesh_has_edit_cage(const Object *ob)
   {
+    BLI_assert(ob->type == OB_MESH);
     const Mesh &mesh = *static_cast<const Mesh *>(ob->data);
     if (mesh.runtime->edit_mesh != nullptr) {
       const Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(ob);
