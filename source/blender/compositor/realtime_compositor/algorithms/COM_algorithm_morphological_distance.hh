@@ -13,6 +13,9 @@ namespace blender::realtime_compositor {
  * element of radius equivalent to the absolute value of the given distance parameter. A positive
  * distance corresponds to dilate operator, while a negative distance corresponds to an erode
  * operator. */
-void morphological_distance(Context &context, Result &input, Result &output, int distance);
+void morphological_distance(Context &context,
+                            const Result &input,
+                            Result &output,
+                            const int distance);
 
 }  // namespace blender::realtime_compositor
