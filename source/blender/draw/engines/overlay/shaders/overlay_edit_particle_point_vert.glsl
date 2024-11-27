@@ -32,8 +32,9 @@ void main()
     finalColor = vec4(weight_to_rgb(selection), 1.0);
   }
   else {
-    vec4 use_color = useGreasePencil ? colorGpencilVertexSelect : colorVertexSelect;
-    finalColor = mix(colorWire, use_color, selection);
+    vec4 color_selected = useGreasePencil ? colorGpencilVertexSelect : colorVertexSelect;
+    vec4 color_not_selected = useGreasePencil ? colorGpencilVertex : colorVertex;
+    finalColor = mix(color_not_selected, color_selected, selection);
 
 #if 1 /* Should be checking CURVES_POINT */
     if (doStrokeEndpoints) {
