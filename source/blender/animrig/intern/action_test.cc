@@ -612,7 +612,7 @@ TEST_F(ActionLayersTest, find_suitable_slot)
    * assigned to this ID, the slot_handle should be ignored, and the slot identifier used for
    * matching. */
 
-  /* Create a slot with a handle that should be ignored.*/
+  /* Create a slot with a handle that should be ignored. */
   Slot &other_slot = action->slot_add();
   other_slot.handle = 47;
 

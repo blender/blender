@@ -576,7 +576,7 @@ struct EraseOperationExecutor {
 
       if (sample_index == nb_samples - 1) {
         /* If this is the last samples, we need to keep it at the same position (it corresponds
-         * to the brush overall radius). It is a cut if the opacity is under the threshold.*/
+         * to the brush overall radius). It is a cut if the opacity is under the threshold. */
         sample.hard_erase = (sample.opacity < opacity_threshold);
         continue;
       }

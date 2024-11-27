@@ -2123,7 +2123,7 @@ static void rna_def_action_layer(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, rna_enum_layer_mix_mode_items);
   RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN, "rna_Action_tag_animupdate");
 
-  /* Collection properties .*/
+  /* Collection properties. */
   prop = RNA_def_property(srna, "strips", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "ActionStrip");
   RNA_def_property_collection_funcs(prop,

@@ -653,7 +653,7 @@ static void determine_visible_panels_impl_recursive(const bNode &node,
                                                     MutableSpan<bool> r_result)
 {
   if (!potentially_visible_states[panel_decl.index]) {
-    /* This panel does not contain any visible sockets.*/
+    /* This panel does not contain any visible sockets. */
     return;
   }
   r_result[panel_decl.index] = true;
@@ -1058,7 +1058,7 @@ static void node_update_basis_from_declaration(
     socket->flag &= ~SOCK_PANEL_COLLAPSED;
   }
 
-  /* Gather flattened list of items in the node.*/
+  /* Gather flattened list of items in the node. */
   const Vector<FlatNodeItem> flat_items = make_flat_node_items(node);
   if (flat_items.is_empty()) {
     const float margin = get_margin_empty();
@@ -1068,7 +1068,7 @@ static void node_update_basis_from_declaration(
 
   for (const int item_i : flat_items.index_range()) {
     /* Apply margins. This should be the only place that applies margins between elements so that
-     * it is easy change later on.*/
+     * it is easy change later on. */
     if (item_i == 0) {
       const float margin = get_margin_from_top(flat_items);
       locy -= margin;

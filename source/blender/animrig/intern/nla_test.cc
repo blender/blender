@@ -155,7 +155,7 @@ TEST_F(NLASlottedActionTest, assign_slot_to_multiple_strips)
             ActionSlotAssignmentResult::OK);
   EXPECT_EQ(strip1->action_slot_handle, other_slot.handle);
 
-  /* Assign the Action + slot to the second strip.*/
+  /* Assign the Action + slot to the second strip. */
   EXPECT_TRUE(nla::assign_action(*strip2, *action, cube->id));
   EXPECT_EQ(nla::assign_action_slot(*strip2, &slot, cube->id), ActionSlotAssignmentResult::OK);
 

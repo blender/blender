@@ -590,7 +590,7 @@ void VKCommandBuilder::layer_tracking_update(VkImage vk_image,
                      "We don't support that one layer transitions multiple times during a "
                      "rendering scope.");
       /* Early exit as layer is in correct layout. This is a normal case as we expect multiple draw
-       * commands to take place during a rendering scope with the same layer access.*/
+       * commands to take place during a rendering scope with the same layer access. */
       return;
     }
   }

@@ -215,7 +215,7 @@ class MovieClipOperation : public NodeOperation {
   }
 
   /* Get a float image buffer contacting the movie content at the current frame. If the movie clip
-   * does not exist or is invalid, return nullptr.*/
+   * does not exist or is invalid, return nullptr. */
   ImBuf *get_movie_clip_buffer()
   {
     MovieClip *movie_clip = get_movie_clip();

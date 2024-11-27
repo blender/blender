@@ -120,7 +120,7 @@ void SubsurfaceModule::precompute_samples_location()
     data_.samples[i].y = sinf(theta) * r;
     data_.samples[i].z = 1.0f / burley_pdf(d, r);
   }
-  /* Avoid float imprecision.*/
+  /* Avoid float imprecision. */
   data_.min_radius = max_ff(data_.min_radius, 1e-4f);
 
   inst_.uniform_data.push_update();

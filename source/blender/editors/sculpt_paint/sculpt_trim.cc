@@ -201,7 +201,7 @@ static void get_origin_and_normal(gesture::GestureData &gesture_data,
   }
 }
 
-/* Calculates the depth of the drawn shape inside the scene.*/
+/* Calculates the depth of the drawn shape inside the scene. */
 static void calculate_depth(gesture::GestureData &gesture_data,
                             float &r_depth_front,
                             float &r_depth_back)

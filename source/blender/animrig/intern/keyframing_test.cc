@@ -1562,7 +1562,7 @@ TEST_F(KeyframingTest, insert_keyframes__legacy_action__quaternion_on_nla__only_
   /* Third time should succeed and key all elements, since we're inserting on a
    * frame where one of the elements already has a key.
    * NOTE: because of NLA time remapping, this 1.0 is the same as the 11.0 we
-   * used above when inserting directly into the fcurve.*/
+   * used above when inserting directly into the fcurve. */
   const CombinedKeyingResult result_3 = insert_keyframes(
       bmain,
       &object_with_nla_rna_pointer,

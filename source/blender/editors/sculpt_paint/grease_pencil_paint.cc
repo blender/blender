@@ -1440,7 +1440,7 @@ static void process_stroke_weights(const Scene &scene,
 
   const float4x4 matrix = postmat * math::invert(float4x4(channel->chan_mat)) * premat;
 
-  /* Update the position of the stroke to undo the movement caused by the modifier.*/
+  /* Update the position of the stroke to undo the movement caused by the modifier. */
   MutableSpan<float3> positions = curves.positions_for_write().slice(points);
   threading::parallel_for(positions.index_range(), 1024, [&](const IndexRange range) {
     for (float3 &position : positions.slice(range)) {

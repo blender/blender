@@ -2223,7 +2223,7 @@ void BKE_nla_action_pushdown(const OwnedAnimData owned_adt, const bool is_libove
     return;
   }
 
-  /* Add a new NLA strip to the track, which references the active action + slot.*/
+  /* Add a new NLA strip to the track, which references the active action + slot. */
   strip = BKE_nlastack_add_strip(owned_adt, is_liboverride);
   if (strip == nullptr) {
     return;

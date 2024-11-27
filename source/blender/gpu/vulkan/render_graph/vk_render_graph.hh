@@ -103,7 +103,7 @@ class VKRenderGraph : public NonCopyable {
     /** Current stack of debug group names. */
     Vector<DebugGroupNameID> group_stack;
     /** Has a node been added to the current stack? If not the group stack will be added to
-     * used_groups.*/
+     * used_groups. */
     bool group_used = false;
     /** All used debug groups. */
     Vector<Vector<DebugGroupNameID>> used_groups;

@@ -494,7 +494,7 @@ void VKDevice::debug_print()
   os << " VkDescriptorSetLayouts: " << descriptor_set_layouts_.size() << "\n";
   for (const VKThreadData *thread_data : thread_data_) {
     /* NOTE: Assumption that this is always called form the main thread. This could be solved by
-     * keeping track of the main thread inside the thread data.*/
+     * keeping track of the main thread inside the thread data. */
     const bool is_main = pthread_equal(thread_data->thread_id, pthread_self());
     os << "ThreadData" << (is_main ? " (main-thread)" : "") << ")\n";
     os << " Rendering_depth: " << thread_data->rendering_depth << "\n";

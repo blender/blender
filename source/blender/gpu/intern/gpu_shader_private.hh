@@ -184,7 +184,7 @@ class ShaderCompiler {
   virtual SpecializationBatchHandle precompile_specializations(
       Span<ShaderSpecialization> /*specializations*/)
   {
-    /* No-op.*/
+    /* No-op. */
     return 0;
   };
 

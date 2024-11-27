@@ -76,7 +76,7 @@ class VKBeginRenderingNode : public VKNodeInfo<VKNodeType::BEGIN_RENDERING,
     node.begin_rendering = create_info.node_data;
     /* NOTE: pointers in vk_rendering_info will be set to the correct location just before sending
      * to the command buffer. In the meantime these pointers are invalid.
-     * VKRenderingAttachmentInfo's should be used instead.*/
+     * VKRenderingAttachmentInfo's should be used instead. */
   }
 
   /**

@@ -173,12 +173,12 @@ struct GBuffer {
     GPU_framebuffer_bind_ex(
         gbuffer_fb,
         {
-            {GPU_LOADACTION_LOAD, GPU_STOREACTION_STORE},       /* Depth */
-            {GPU_LOADACTION_LOAD, GPU_STOREACTION_STORE},       /* Combined */
-            {GPU_LOADACTION_CLEAR, GPU_STOREACTION_STORE, {0}}, /* GBuf Header */
-            {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE},  /* GBuf Normal */
-            {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE},  /* GBuf Closure */
-            {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE},  /* GBuf Closure 2*/
+            {GPU_LOADACTION_LOAD, GPU_STOREACTION_STORE},       /* Depth. */
+            {GPU_LOADACTION_LOAD, GPU_STOREACTION_STORE},       /* Combined. */
+            {GPU_LOADACTION_CLEAR, GPU_STOREACTION_STORE, {0}}, /* GBuf Header. */
+            {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE},  /* GBuf Normal. */
+            {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE},  /* GBuf Closure. */
+            {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE},  /* GBuf Closure 2. */
         });
   }
 

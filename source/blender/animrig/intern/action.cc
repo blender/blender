@@ -2145,7 +2145,7 @@ bActionGroup &ChannelBag::channel_group_create(StringRefNull name)
    * Note that this only happens here (upon creation). The user can later rename
    * groups to have duplicate names. This is stupid, but it's how the legacy
    * system worked, and at the time of writing this code we're just trying to
-   * match that system's behavior, even when it's goofy.*/
+   * match that system's behavior, even when it's goofy. */
   std::string unique_name = BLI_uniquename_cb(
       [&](const StringRef name) {
         for (const bActionGroup *group : this->channel_groups()) {

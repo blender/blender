@@ -835,7 +835,7 @@ static float2 snap_diagonals_box(float2 p)
 static float2 snap_8_angles(float2 p)
 {
   using namespace math;
-  /* sin(pi/8) or sin of 22.5 degrees.*/
+  /* sin(pi/8) or sin of 22.5 degrees. */
   const float sin225 = 0.3826834323650897717284599840304f;
   return sign(p) * length(p) * normalize(sign(normalize(abs(p)) - sin225) + 1.0f);
 }
@@ -915,7 +915,7 @@ static void grease_pencil_primitive_grab_update(PrimitiveToolOperation &ptd, con
                               control_point_last :
                               control_point_first;
 
-  /* Get the location of the other control point.*/
+  /* Get the location of the other control point. */
   const float2 other_point_2d = primitive_local_to_screen(ptd,
                                                           ptd.temp_control_points[other_point]);
 

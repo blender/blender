@@ -76,7 +76,7 @@ static void evaluate_node_elem_upstream(const NodeInContext &ctx_node,
     /* Node does not support inverse evaluation. */
     return;
   }
-  /* Build temporary map to be used by node evaluation function.*/
+  /* Build temporary map to be used by node evaluation function. */
   Map<const bNodeSocket *, ElemVariant> elem_by_local_socket;
   for (const bNodeSocket *output_socket : node.output_sockets()) {
     if (const ElemVariant *elem = elem_by_socket.lookup_ptr({ctx_node.context, output_socket})) {

@@ -527,7 +527,7 @@ using PanelDeclarationPtr = std::unique_ptr<PanelDeclaration>;
 
 class NodeDeclaration {
  public:
-  /* Contains all items including recursive children.*/
+  /* Contains all items including recursive children. */
   Vector<ItemDeclarationPtr> all_items;
   /* Contains only the items in the root. */
   Vector<ItemDeclaration *> root_items;

@@ -1154,7 +1154,7 @@ Action &action_add(Main &bmain, StringRefNull name);
 enum class ActionSlotAssignmentResult : int8_t {
   OK = 0,
   SlotNotFromAction = 1, /* Slot does not belong to the assigned Action. */
-  SlotNotSuitable = 2,   /* Slot is not suitable for the given ID type.*/
+  SlotNotSuitable = 2,   /* Slot is not suitable for the given ID type. */
   MissingAction = 3,     /* No Action assigned yet, so cannot assign slot. */
 };
 
