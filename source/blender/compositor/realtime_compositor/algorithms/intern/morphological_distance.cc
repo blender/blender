@@ -26,10 +26,10 @@ static const char *get_shader_name(const int distance)
   return "compositor_morphological_distance_erode";
 }
 
-void morphological_distance_gpu(Context &context,
-                                const Result &input,
-                                Result &output,
-                                const int distance)
+static void morphological_distance_gpu(Context &context,
+                                       const Result &input,
+                                       Result &output,
+                                       const int distance)
 {
   GPUShader *shader = context.get_shader(get_shader_name(distance));
   GPU_shader_bind(shader);
@@ -49,7 +49,7 @@ void morphological_distance_gpu(Context &context,
   input.unbind_as_texture();
 }
 
-void morphological_distance_cpu(const Result &input, Result &output, const int distance)
+static void morphological_distance_cpu(const Result &input, Result &output, const int distance)
 {
   output.allocate_texture(input.domain());
 
