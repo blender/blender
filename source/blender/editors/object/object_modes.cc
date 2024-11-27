@@ -361,7 +361,13 @@ void posemode_set_for_weight_paint(bContext *C, Main *bmain, Object *ob, const b
   ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data);
   for (; md; md = md->next) {
     if (md->type == eModifierType_Armature) {
-      ArmatureModifierData *amd = (ArmatureModifierData *)md;
+      ArmatureModifierData *amd = reinterpret_cast<ArmatureModifierData *>(md);
+      Object *ob_arm = amd->object;
+      ed_object_posemode_set_for_weight_paint_ex(C, bmain, ob_arm, is_mode_set);
+    }
+    else if (md->type == eModifierType_GreasePencilArmature) {
+      GreasePencilArmatureModifierData *amd = reinterpret_cast<GreasePencilArmatureModifierData *>(
+          md);
       Object *ob_arm = amd->object;
       ed_object_posemode_set_for_weight_paint_ex(C, bmain, ob_arm, is_mode_set);
     }
