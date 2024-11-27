@@ -2209,11 +2209,9 @@ def python_versions_from_wheel_python_tag(python_tag: str) -> set[tuple[int] | t
     """
     Return Python versions from a wheels ``python_tag``.
     """
-    # Index backwards to skip the optional build tag.
     # The version may be:
     # `cp312` for CPython 3.12
     # `py2.py3` for both Python 2 & 3.
-    versions_string = python_tag.split(".")
 
     # Based on the documentation as of 2024 and wheels used by existing extensions,
     # these are the only valid prefix values.
@@ -2221,12 +2219,10 @@ def python_versions_from_wheel_python_tag(python_tag: str) -> set[tuple[int] | t
 
     versions: set[tuple[int] | tuple[int, int]] = set()
 
-    for version_string in versions_string:
-        m = RE_PYTHON_WHEEL_VERSION_TAG.match(version_string)
+    for tag in python_tag.split("."):
+        m = RE_PYTHON_WHEEL_VERSION_TAG.match(tag)
         if m is None:
-            return "wheel filename version could not be extracted from: \"{:s}\"".format(
-                version_string,
-            )
+            return "wheel filename version could not be extracted from: \"{:s}\"".format(tag)
 
         version_prefix = m.group(1).lower()
         version_number = m.group(2)
@@ -2252,6 +2248,25 @@ def python_versions_from_wheel_python_tag(python_tag: str) -> set[tuple[int] | t
     return versions
 
 
+def python_versions_from_wheel_abi_tag(
+        abi_tag: str,
+        *,
+        stable_only: bool,
+) -> set[tuple[int] | tuple[int, int]] | str:
+    versions: set[tuple[int] | tuple[int, int]] = set()
+
+    # Not yet needed, add as needed.
+    if stable_only:
+        for tag in abi_tag.split("."):
+            if tag.startswith("abi") and tag[3:].isdigit():
+                versions.add((int(tag[3:]),))
+    else:
+        # Not a problem to support this, currently it's not needed.
+        raise NotImplementedError
+
+    return versions
+
+
 def python_versions_from_wheel(wheel_filename: str) -> set[tuple[int] | tuple[int, int]] | str:
     """
     Extract a set of Python versions from a list of wheels or return an error string.
@@ -2262,7 +2277,25 @@ def python_versions_from_wheel(wheel_filename: str) -> set[tuple[int] | tuple[in
     if not (5 <= len(wheel_filename_split) <= 6):
         return "wheel filename must follow the spec \"{:s}\", found {!r}".format(WHEEL_FILENAME_SPEC, wheel_filename)
 
-    return python_versions_from_wheel_python_tag(wheel_filename_split[-3])
+    python_tag = wheel_filename_split[-3]
+    abi_tag = wheel_filename_split[-2]
+
+    # NOTE(@ideasman42): when the ABI is set, simply return the major version,
+    # This is needed because older version of CPython (3.6) for e.g. are compatible with newer versions of CPython,
+    # but returning the old version causes it not to register as being compatible.
+    # So return the ABI version to allow any version of CPython 3.x.
+    #
+    # There is a logical problem here: which is that a future wheel from CPython *should* be detected
+    # as incompatible but wont be. To properly support this, extensions repository data would need to store
+    # either store a separate ABI version or a `>=` version. In practice this isn't as bad as it sounds
+    # because those packages typically won't support old versions of Blender known to use older Python versions,
+    # although it will incorrectly exclude old versions of Blender which were built against newer versions of
+    # CPython than the version used by official builds.
+    python_versions_from_abi = python_versions_from_wheel_abi_tag(abi_tag, stable_only=True)
+    if python_versions_from_abi:
+        return python_versions_from_abi
+
+    return python_versions_from_wheel_python_tag(python_tag)
 
 
 def python_versions_from_wheels(wheel_files: Sequence[str]) -> set[tuple[int] | tuple[int, int]] | str:
