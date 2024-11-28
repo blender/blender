@@ -112,7 +112,7 @@ class WrapperRegistry {
                            const std::string &name,
                            Manta::PbArgs &args,
                            Manta::PbClass *parent);
-  void construct(const std::string &scriptname, const vector<string> &args);
+  void construct(bool python_lifecycle, const std::string &scriptname, const vector<string> &args);
   void cleanup();
   void renameObjects();
   void runPreInit(PyObject *name_space);
@@ -566,7 +566,9 @@ PyObject *WrapperRegistry::createPyObject(const string &classname,
 }
 
 // prepare typeinfo and register python module
-void WrapperRegistry::construct(const string &scriptname, const vector<string> &args)
+void WrapperRegistry::construct(const bool python_lifecycle,
+                                const string &scriptname,
+                                const vector<string> &args)
 {
   mScriptName = scriptname;
   this->args = args;
@@ -575,8 +577,15 @@ void WrapperRegistry::construct(const string &scriptname, const vector<string> &
   registerMeta();
   registerDummyTypes();
 
-  // work around for certain gcc versions, cast to char*
-  PyImport_AppendInittab((char *)gDefaultModuleName.c_str(), PyInit_manta_main);
+  // Don't extend the init-tab when Python is already initialized.
+  // Since Python 3.12 this isn't supported and will crash.
+  //
+  // When `python_lifecycle` is false (when manta-flow is embedded), it's the responsibility
+  // of the application embedding this code to include #PyInit_manta_main in the init-tab.
+  if (python_lifecycle) {
+    // work around for certain gcc versions, cast to char*
+    PyImport_AppendInittab((char *)gDefaultModuleName.c_str(), PyInit_manta_main);
+  }
 }
 
 inline PyObject *castPy(PyTypeObject *p)
@@ -711,7 +720,7 @@ void setup(const bool python_lifecycle,
            const std::vector<std::string> &args,
            PyObject *name_space)
 {
-  WrapperRegistry::instance().construct(filename, args);
+  WrapperRegistry::instance().construct(python_lifecycle, filename, args);
   if (python_lifecycle) {
     Py_Initialize();
   }
