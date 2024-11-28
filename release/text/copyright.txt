@@ -27,7 +27,7 @@
   license can be found in license/.
 
   The complete overview of copyright and licenses of third-party libraries used
-  by Blender can be found in THIRD-PARTY-LICENSES.txt.
+  by Blender can be found in license/license.md.
 
   Stichting Blender Foundation
   Amsterdam
