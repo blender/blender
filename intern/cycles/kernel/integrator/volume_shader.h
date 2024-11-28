@@ -185,15 +185,11 @@ ccl_device_inline ccl_private const ShaderVolumeClosure *volume_shader_phase_pic
 ccl_device_inline float _volume_shader_phase_eval_mis(ccl_private const ShaderData *sd,
                                                       ccl_private const ShaderVolumePhases *phases,
                                                       const float3 wo,
-                                                      int skip_phase,
                                                       ccl_private BsdfEval *result_eval,
                                                       float sum_pdf,
                                                       float sum_sample_weight)
 {
   for (int i = 0; i < phases->num_closure; i++) {
-    if (i == skip_phase)
-      continue;
-
     ccl_private const ShaderVolumeClosure *svc = &phases->closure[i];
     float phase_pdf = 0.0f;
     Spectrum eval = volume_phase_eval(sd, svc, wo, &phase_pdf);
@@ -236,7 +232,7 @@ ccl_device float volume_shader_phase_eval(KernelGlobals kg,
 {
   bsdf_eval_init(phase_eval, zero_spectrum());
 
-  float pdf = _volume_shader_phase_eval_mis(sd, phases, wo, -1, phase_eval, 0.0f, 0.0f);
+  float pdf = _volume_shader_phase_eval_mis(sd, phases, wo, phase_eval, 0.0f, 0.0f);
 
 #  if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4
   if (state->guiding.use_volume_guiding) {
