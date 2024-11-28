@@ -916,7 +916,10 @@ static void blf_font_boundbox_ex(FontBLF *font,
     const ft_pix pen_x_next = pen_x + g->advance_x;
 
     const ft_pix gbox_xmin = std::min(pen_x, pen_x + g->box_xmin);
-    const ft_pix gbox_xmax = std::max(pen_x_next, pen_x + g->box_xmax);
+    /* Monspaced characters should only use advance. #130385. */
+    const ft_pix gbox_xmax = (font->flags & BLF_MONOSPACED) ?
+                                 pen_x_next :
+                                 std::max(pen_x_next, pen_x + g->box_xmax);
     const ft_pix gbox_ymin = g->box_ymin + pen_y;
     const ft_pix gbox_ymax = g->box_ymax + pen_y;
 
