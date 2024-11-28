@@ -782,6 +782,17 @@ class GREASE_PENCIL_MT_draw_delete(Menu):
         ).type = 'ALL_FRAMES'
 
 
+class GREASE_PENCIL_MT_stroke_simplify(Menu):
+    bl_label = "Simplify Stroke"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("grease_pencil.stroke_simplify", text="Fixed").mode = 'FIXED'
+        layout.operator("grease_pencil.stroke_simplify", text="Adaptive").mode = 'ADAPTIVE'
+        layout.operator("grease_pencil.stroke_simplify", text="Sample").mode = 'SAMPLE'
+        layout.operator("grease_pencil.stroke_simplify", text="Merge").mode = 'MERGE'
+
+
 classes = (
     GPENCIL_UL_annotation_layer,
     GPENCIL_UL_layer,
@@ -794,6 +805,8 @@ classes = (
     GREASE_PENCIL_MT_snap_pie,
 
     GREASE_PENCIL_MT_draw_delete,
+
+    GREASE_PENCIL_MT_stroke_simplify,
 
     GreasePencilFlipTintColors,
 )
