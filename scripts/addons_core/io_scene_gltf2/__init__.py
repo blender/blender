@@ -5,7 +5,7 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (4, 4, 17),
+    "version": (4, 4, 19),
     'blender': (4, 3, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -1876,7 +1876,6 @@ class ImportGLTF2(Operator, ConvertGLTF2_Base, ImportHelper):
         layout.prop(self, 'guess_original_bind_pose')
         layout.prop(self, 'export_import_convert_lighting_mode')
         layout.prop(self, 'import_webp_texture')
-        layout.prop(self, 'import_scene_extras')
         import_bone_panel(layout, operator)
         import_ux_panel(layout, operator)
 
@@ -1980,6 +1979,7 @@ def import_ux_panel(layout, operator):
     header.label(text="Pipeline")
     if body:
         body.prop(operator, 'import_select_created_objects')
+        body.prop(operator, 'import_scene_extras')
 
 
 def import_panel_user_extension(context, layout):
