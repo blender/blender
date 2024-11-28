@@ -35,14 +35,19 @@ VertIn input_assembly(uint in_vertex_id)
   vert_in.final_color = vec4(0.0, 0.0, 0.0, 1.0);
   /* Need to support 1, 2, 3 and 4 dimensional input (sigh). */
   vert_in.final_color.x = color[gpu_attr_load_index(v_i, gpu_attr_1) + 0 + ofs];
-  if (gpu_attr_1_len >= 2) {
-    vert_in.final_color.y = color[gpu_attr_load_index(v_i, gpu_attr_1) + 1 + ofs];
+  if (gpu_attr_1_fetch_unorm8) {
+    vert_in.final_color = unpackUnorm4x8(floatBitsToUint(vert_in.final_color.x));
   }
-  if (gpu_attr_1_len >= 3) {
-    vert_in.final_color.z = color[gpu_attr_load_index(v_i, gpu_attr_1) + 2 + ofs];
-  }
-  if (gpu_attr_1_len >= 4) {
-    vert_in.final_color.w = color[gpu_attr_load_index(v_i, gpu_attr_1) + 3 + ofs];
+  else {
+    if (gpu_attr_1_len >= 2) {
+      vert_in.final_color.y = color[gpu_attr_load_index(v_i, gpu_attr_1) + 1 + ofs];
+    }
+    if (gpu_attr_1_len >= 3) {
+      vert_in.final_color.z = color[gpu_attr_load_index(v_i, gpu_attr_1) + 2 + ofs];
+    }
+    if (gpu_attr_1_len >= 4) {
+      vert_in.final_color.w = color[gpu_attr_load_index(v_i, gpu_attr_1) + 3 + ofs];
+    }
   }
 #endif
   return vert_in;

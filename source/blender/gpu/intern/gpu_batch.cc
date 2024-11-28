@@ -394,6 +394,19 @@ static void polyline_draw_workaround(
    * attribute. */
   GPU_shader_uniform_1b(batch->shader, "gpu_attr_0_fetch_int", false);
 
+  /* Allow byte color fetch. */
+  const GPUVertFormat *format = GPU_vertbuf_get_format(batch->verts[0]);
+  int id = GPU_vertformat_attr_id_get(format, "color");
+  if (id != -1) {
+    const GPUVertAttr &attr = format->attrs[id];
+    BLI_assert_msg(ELEM(attr.fetch_mode, GPU_FETCH_INT_TO_FLOAT_UNIT, GPU_FETCH_FLOAT),
+                   "color attribute for polylines can only use GPU_FETCH_INT_TO_FLOAT_UNIT or "
+                   "GPU_FETCH_FLOAT");
+    GPU_shader_uniform_1b(batch->shader,
+                          "gpu_attr_1_fetch_unorm8",
+                          (attr.fetch_mode == GPU_FETCH_INT_TO_FLOAT_UNIT));
+  }
+
   GPU_batch_draw_advanced(tri_batch, range.start(), range.size(), instance_first, instance_count);
 }
 
