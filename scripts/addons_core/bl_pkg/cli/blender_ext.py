@@ -4060,12 +4060,16 @@ class subcmd_client:
                     return False
 
             is_reinstall = False
-            if os.path.isdir(filepath_local_pkg):
+            # Even though this is expected to be a directory,
+            # check for any file since the existence of a file should not break installation.
+            # Besides users manually creating files, this could occur from broken symbolic-links
+            # or an incorrectly repaired corrupt file-system.
+            if os.path.exists(filepath_local_pkg):
                 if (error := rmtree_with_fallback_or_error_pseudo_atomic(
                         filepath_local_pkg,
                         temp_prefix_and_suffix=temp_prefix_and_suffix,
                 )) is not None:
-                    if os.path.isdir(filepath_local_pkg):
+                    if os.path.exists(filepath_local_pkg):
                         msglog.error("Failed to remove or relocate existing directory for \"{:s}\": {:s}".format(
                             manifest.id,
                             error,
@@ -4079,7 +4083,21 @@ class subcmd_client:
 
                 is_reinstall = True
 
-            os.rename(filepath_local_pkg_temp, filepath_local_pkg)
+            # While renaming should never fail, it's always possible file-system operations fail.
+            # Unlike other actions, failure here causes the extension to be uninstalled.
+            #
+            # There is little that can be done about this, being able to create a temporary
+            # directory and move it into the destination is required for installation.
+            # When that fails - the best that can be done is to communicate the failure, see: #130211.
+            try:
+                os.rename(filepath_local_pkg_temp, filepath_local_pkg)
+            except Exception as ex:
+                msglog.error("Failed to rename directory, causing unexpected removal \"{:s}\": {:s}".format(
+                    manifest.id,
+                    error,
+                ))
+                return False
+
             directories_to_clean.remove(filepath_local_pkg_temp)
 
         if is_reinstall:
