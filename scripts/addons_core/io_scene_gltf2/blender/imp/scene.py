@@ -54,8 +54,9 @@ class BlenderScene():
 
         if bpy.context.mode != 'OBJECT':
             bpy.ops.object.mode_set(mode='OBJECT')
-        BlenderScene.select_imported_objects(gltf)
-        BlenderScene.set_active_object(gltf)
+        if gltf.import_settings['import_select_created_objects']:
+            BlenderScene.select_imported_objects(gltf)
+            BlenderScene.set_active_object(gltf)
 
     @staticmethod
     def create_animations(gltf):

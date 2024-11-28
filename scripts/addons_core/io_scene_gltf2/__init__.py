@@ -5,7 +5,7 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (4, 4, 16),
+    "version": (4, 4, 17),
     'blender': (4, 3, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -1850,6 +1850,12 @@ class ImportGLTF2(Operator, ConvertGLTF2_Base, ImportHelper):
         default=False,
     )
 
+    import_select_created_objects: BoolProperty(
+        name='Select imported objects',
+        description='Select created objects at the end of the import',
+        default=True,
+    )
+
     import_scene_extras: BoolProperty(
         name='Import Scene Extras',
         description='Import scene extras as custom properties. '
@@ -1872,6 +1878,7 @@ class ImportGLTF2(Operator, ConvertGLTF2_Base, ImportHelper):
         layout.prop(self, 'import_webp_texture')
         layout.prop(self, 'import_scene_extras')
         import_bone_panel(layout, operator)
+        import_ux_panel(layout, operator)
 
         import_panel_user_extension(context, layout)
 
@@ -1967,6 +1974,12 @@ def import_bone_panel(layout, operator):
         if operator.bone_heuristic == 'BLENDER':
             body.prop(operator, 'disable_bone_shape')
             body.prop(operator, 'bone_shape_scale_factor')
+
+def import_ux_panel(layout, operator):
+    header, body = layout.panel("GLTF_import_ux", default_closed=False)
+    header.label(text="Pipeline")
+    if body:
+        body.prop(operator, 'import_select_created_objects')
 
 
 def import_panel_user_extension(context, layout):
