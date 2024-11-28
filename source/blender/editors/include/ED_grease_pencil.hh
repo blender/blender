@@ -171,6 +171,10 @@ class DrawingPlacement {
    */
   float3 project(float2 co) const;
   void project(Span<float2> src, MutableSpan<float3> dst) const;
+  /**
+   * Projects a screen space coordinate to the local drawing space including camera shift.
+   */
+  float3 project_with_shift(float2 co) const;
 
   /**
    * Projects a 3D position (in local space) to the drawing plane.
