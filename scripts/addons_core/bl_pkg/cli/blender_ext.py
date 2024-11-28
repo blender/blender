@@ -4094,7 +4094,7 @@ class subcmd_client:
             except Exception as ex:
                 msglog.error("Failed to rename directory, causing unexpected removal \"{:s}\": {:s}".format(
                     manifest.id,
-                    error,
+                    str(ex),
                 ))
                 return False
 
