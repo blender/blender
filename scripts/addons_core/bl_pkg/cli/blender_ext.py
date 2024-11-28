@@ -4065,8 +4065,17 @@ class subcmd_client:
                         filepath_local_pkg,
                         temp_prefix_and_suffix=temp_prefix_and_suffix,
                 )) is not None:
-                    msglog.error("Failed to remove existing directory for \"{:s}\": {:s}".format(manifest.id, error))
-                    return False
+                    if os.path.isdir(filepath_local_pkg):
+                        msglog.error("Failed to remove or relocate existing directory for \"{:s}\": {:s}".format(
+                            manifest.id,
+                            error,
+                        ))
+                        return False
+
+                    msglog.status("Relocated directory that could not be removed \"{:s}\": {:s}".format(
+                        manifest.id,
+                        error,
+                    ))
 
                 is_reinstall = True
 
