@@ -55,7 +55,7 @@ class VKImmediate : public Immediate {
   VKBufferWithOffset active_buffer() const;
   VkDeviceSize buffer_bytes_free();
 
-  VKBuffer &ensure_space(size_t bytes_needed);
+  VKBuffer &ensure_space(VkDeviceSize bytes_needed, VkDeviceSize offset_allignment);
 };
 
 }  // namespace blender::gpu
