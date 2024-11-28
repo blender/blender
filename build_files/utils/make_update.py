@@ -116,8 +116,6 @@ def get_effective_architecture(args: argparse.Namespace) -> str:
     if architecture == "aarch64":
         architecture = "arm64"
 
-    assert (architecture in {"x64", "arm64"})
-
     assert isinstance(architecture, str)
     return architecture
 
