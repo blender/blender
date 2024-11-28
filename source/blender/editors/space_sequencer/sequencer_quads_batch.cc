@@ -17,15 +17,9 @@
 
 struct ColorVertex {
   blender::float2 pos;
-  blender::ColorTheme4f color;
-
-  /* TODO(fclem): Temporary fix. Better convert the whole code to use float colors. */
-  ColorVertex(const blender::float2 &pos_, const uchar ucolor[4]) : pos(pos_)
-  {
-    rgba_uchar_to_float(color, ucolor);
-  }
+  blender::ColorTheme4b color;
 };
-static_assert(sizeof(ColorVertex) == 24);
+static_assert(sizeof(ColorVertex) == 12);
 
 static blender::gpu::IndexBuf *create_quads_index_buffer(int quads_count)
 {
@@ -49,7 +43,7 @@ SeqQuadsBatch::SeqQuadsBatch()
   GPUVertFormat format;
   GPU_vertformat_clear(&format);
   GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  GPU_vertformat_attr_add(&format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+  GPU_vertformat_attr_add(&format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
   vbo_quads = GPU_vertbuf_create_with_format_ex(format, GPU_USAGE_STREAM);
   GPU_vertbuf_data_alloc(*vbo_quads, MAX_QUADS * 4);
