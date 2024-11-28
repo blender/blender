@@ -379,6 +379,17 @@ user_dirs: tuple[str, ...] = (
 )
 
 
+# Recursively remove with a fallback, needed for tests that create read-only files.
+def _rmtree_with_chmod(dir_remove: str) -> None:
+    try:
+        shutil.rmtree(dir_remove)
+    except PermissionError:
+        if sys.platform != "win32":
+            for root, _dirs, _files in os.walk(dir_remove):
+                os.chmod(root, 0o777)
+        shutil.rmtree(dir_remove)
+
+
 class TestWithTempBlenderUser_MixIn(unittest.TestCase):
 
     @staticmethod
@@ -392,11 +403,11 @@ class TestWithTempBlenderUser_MixIn(unittest.TestCase):
     @staticmethod
     def _repo_dirs_destroy() -> None:
         for dirname in user_dirs:
-            shutil.rmtree(os.path.join(TEMP_DIR_BLENDER_USER, dirname))
+            _rmtree_with_chmod(os.path.join(TEMP_DIR_BLENDER_USER, dirname))
         if os.path.exists(TEMP_DIR_REMOTE):
-            shutil.rmtree(TEMP_DIR_REMOTE)
+            _rmtree_with_chmod(TEMP_DIR_REMOTE)
         if os.path.exists(TEMP_DIR_LOCAL):
-            shutil.rmtree(TEMP_DIR_LOCAL)
+            _rmtree_with_chmod(TEMP_DIR_LOCAL)
 
     def setUp(self) -> None:
         self._repo_dirs_create()
@@ -404,12 +415,12 @@ class TestWithTempBlenderUser_MixIn(unittest.TestCase):
     def tearDown(self) -> None:
         self._repo_dirs_destroy()
 
-    def repo_add(self, *, repo_id: str, repo_name: str) -> None:
+    def repo_add(self, *, repo_id: str, repo_name: str, use_remote: bool = True) -> None:
         stdout = run_blender_extensions_no_errors((
             "repo-add",
             "--name", repo_name,
             "--directory", TEMP_DIR_LOCAL,
-            "--url", TEMP_DIR_REMOTE_AS_URL,
+            *(("--url", TEMP_DIR_REMOTE_AS_URL) if use_remote else ()),
             # A bit odd, this argument avoids running so many commands to setup a test.
             "--clear-all",
             repo_id,
@@ -429,7 +440,7 @@ class TestWithTempBlenderUser_MixIn(unittest.TestCase):
             blender_version_max: str | None = None,
             python_script: str | None = None,
             file_contents: dict[str, bytes] | None = None,
-    ) -> None:
+    ) -> str:
         if pkg_filename is None:
             pkg_filename = pkg_idname
         pkg_output_filepath = os.path.join(TEMP_DIR_REMOTE, pkg_filename + PKG_EXT)
@@ -459,6 +470,7 @@ class TestWithTempBlenderUser_MixIn(unittest.TestCase):
                     "created: \"{:s}\", {:d}\n"
                 ).format(pkg_filename, PKG_EXT, pkg_output_filepath, os.path.getsize(pkg_output_filepath)),
             )
+        return pkg_output_filepath
 
 
 class TestSimple(TestWithTempBlenderUser_MixIn, unittest.TestCase):
@@ -636,6 +648,55 @@ class TestSimple(TestWithTempBlenderUser_MixIn, unittest.TestCase):
             print(TEMP_DIR_REMOTE)
             print(TEMP_DIR_BLENDER_USER)
             pause_until_keyboard_interrupt()
+
+    def test_install_files(self) -> None:
+
+        repo_id = "test_repo_module_name"
+        repo_name = "MyTestRepo"
+
+        self.repo_add(repo_id=repo_id, repo_name=repo_name, use_remote=False)
+
+        wheel_module_name = "my_custom_wheel"
+
+        # Create a package contents.
+        pkg_idname = "my_test_pkg"
+        pkg_filepath = self.build_package(
+            pkg_idname=pkg_idname,
+            wheel_params=(
+                WheelModuleParams(
+                    module_name=wheel_module_name,
+                    module_version="1.0.1",
+                ),
+            ),
+        )
+
+        stdout = run_blender_extensions_no_errors(("install-file", pkg_filepath, "--repo=" + repo_id))
+        self.assertEqual(
+            [line for line in stdout.split("\n") if line.startswith("STATUS ")],
+            ["STATUS Installed \"my_test_pkg\""],
+        )
+
+        stdout = run_blender_extensions_no_errors(("install-file", pkg_filepath, "--repo=" + repo_id))
+        self.assertEqual(
+            [line for line in stdout.split("\n") if line.startswith("STATUS ")],
+            ["STATUS Reinstalled \"my_test_pkg\""],
+        )
+
+        # Permissions are system specific, run this last.
+        if sys.platform != "win32":
+            pkg_dir_local = os.path.join(TEMP_DIR_LOCAL, pkg_idname)
+
+            contents_to_filesystem({"readonly_dir/readonly_file": b"\n"}, pkg_dir_local)
+            os.chmod(os.path.join(pkg_dir_local, "readonly_dir", "readonly_file"), 0o555)
+            os.chmod(os.path.join(pkg_dir_local, "readonly_dir"), 0o555)
+
+            stdout = run_blender_extensions_no_errors(("install-file", pkg_filepath, "--repo=" + repo_id))
+
+            status = [line for line in stdout.split("\n") if line.startswith("STATUS ")]
+
+            # Ignore the actual permission exception as this is system dependent.
+            self.assertRegex(status[0], "^STATUS Relocated directory that could not be removed \"my_test_pkg\": .*")
+            self.assertEqual(status[1], "STATUS Reinstalled \"my_test_pkg\"")
 
 
 class TestPlatform(TestWithTempBlenderUser_MixIn, unittest.TestCase):
