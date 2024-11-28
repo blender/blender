@@ -73,6 +73,11 @@ struct VKWorkarounds {
    * enabled.
    */
   bool dynamic_rendering_unused_attachments = false;
+
+  /**
+   * Is the workarounds for devices that don't support Logic Ops enabled.
+   */
+  bool logic_ops = false;
 };
 
 /**
