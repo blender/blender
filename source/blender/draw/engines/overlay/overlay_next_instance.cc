@@ -445,7 +445,8 @@ void Instance::draw_v3d(Manager &manager, View &view)
   float4 clear_color(0.0f);
 
   auto draw = [&](OverlayLayer &layer, Framebuffer &framebuffer) {
-    layer.facing.draw(framebuffer, manager, view);
+    /* TODO(fclem): Depth aware outlines (see #130751). */
+    // layer.facing.draw(framebuffer, manager, view);
     layer.fade.draw(framebuffer, manager, view);
     layer.mode_transfer.draw(framebuffer, manager, view);
     layer.edit_text.draw(framebuffer, manager, view);
@@ -524,6 +525,12 @@ void Instance::draw_v3d(Manager &manager, View &view)
     infront.wireframe.copy_depth(resources.depth_target_in_front_tx);
   }
   {
+    /* TODO(fclem): This is really bad for performance as the outline pass will then split the
+     * render pass and do a framebuffer switch. This also only fix the issue for non-infront
+     * objects.
+     * We need to figure a way to merge the outline with correct depth awareness (see #130751). */
+    regular.facing.draw(resources.overlay_fb, manager, view);
+
     /* Line only pass. */
     outline.draw_line_only_ex(resources.overlay_line_only_fb, resources, manager, view);
   }
@@ -531,6 +538,9 @@ void Instance::draw_v3d(Manager &manager, View &view)
     /* Overlay (+Line) pass. */
     draw(regular, resources.overlay_fb);
     draw_line(regular, resources.overlay_line_fb);
+
+    /* Here because of custom order of regular.facing. */
+    infront.facing.draw(resources.overlay_fb, manager, view);
 
     draw(infront, resources.overlay_in_front_fb);
     draw_line(infront, resources.overlay_line_in_front_fb);
