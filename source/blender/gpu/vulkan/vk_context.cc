@@ -140,6 +140,9 @@ void VKContext::flush() {}
 
 void VKContext::flush_render_graph()
 {
+  if (render_graph.is_empty()) {
+    return;
+  }
   if (has_active_framebuffer()) {
     VKFrameBuffer &framebuffer = *active_framebuffer_get();
     if (framebuffer.is_rendering()) {

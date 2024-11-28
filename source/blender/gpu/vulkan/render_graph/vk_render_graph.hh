@@ -267,6 +267,11 @@ class VKRenderGraph : public NonCopyable {
     return nodes_.size();
   }
 
+  bool is_empty()
+  {
+    return nodes_.is_empty();
+  }
+
   void debug_print(NodeHandle node_handle) const;
 
  private:

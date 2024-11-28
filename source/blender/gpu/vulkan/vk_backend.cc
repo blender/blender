@@ -511,13 +511,16 @@ void VKBackend::render_end()
   thread_data.rendering_depth -= 1;
   BLI_assert_msg(thread_data.rendering_depth >= 0, "Unbalanced `GPU_render_begin/end`");
   if (G.background) {
-    /* Garbage collection when performing background rendering. In this case the rendering is
-     * already 'thread-safe'. We move the resources to the device discard list and we destroy it
-     * the next frame. */
+    /* Garbage collection when performing background rendering. */
     if (thread_data.rendering_depth == 0) {
+      VKContext *context = VKContext::get();
+      if (context != nullptr) {
+        context->flush_render_graph();
+      }
+
+      thread_data.resource_pool_next();
       VKResourcePool &resource_pool = thread_data.resource_pool_get();
-      device.orphaned_data.destroy_discarded_resources(device);
-      device.orphaned_data.move_data(resource_pool.discard_pool);
+      resource_pool.discard_pool.destroy_discarded_resources(device);
       resource_pool.reset();
     }
   }
