@@ -16,10 +16,11 @@ from .anim_utils import link_samplers, add_slide_data
 
 def gather_scene_animations(export_settings):
 
-    # if there is no animation in file => no need to bake. Except if we are trying to bake GN instances
-    if len(bpy.data.actions) == 0 and export_settings['gltf_gn_mesh'] is False:
-        # TODO : get a better filter by checking we really have some GN instances...
-        return []
+    # Even if we don't have any animation,
+    # We are going to bake.
+    # Here are some cases where there are no action in bpy.data.actions, but we still have to bake:
+    # - GN instances, that can be animated
+    # - Everything that can be animated by drivers (animation pointer, but not only)
 
     total_channels = []
     animations = []
