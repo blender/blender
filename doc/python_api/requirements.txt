@@ -10,7 +10,7 @@ requests==2.32.3
 # Only needed to match the theme used for the official documentation.
 # Without this theme, the default theme will be used.
 furo==2024.8.6
-sphinx-basic-ng==1.0.0b2
+sphinx-basic-ng==1.0.0.beta2
 
 # Show a copy button (convenience only).
 sphinx-copybutton==0.5.2
