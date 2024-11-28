@@ -5,7 +5,7 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (4, 4, 14),
+    "version": (4, 4, 15),
     'blender': (4, 3, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -1850,6 +1850,13 @@ class ImportGLTF2(Operator, ConvertGLTF2_Base, ImportHelper):
         default=False,
     )
 
+    import_scene_extras: BoolProperty(
+        name='Import Scene Extras',
+        description='Import scene extras as custom properties. '
+                    'Existing custom properties will be overwritten',
+        default=True,
+    )
+
     def draw(self, context):
         operator = self
         layout = self.layout
@@ -1863,6 +1870,7 @@ class ImportGLTF2(Operator, ConvertGLTF2_Base, ImportHelper):
         layout.prop(self, 'guess_original_bind_pose')
         layout.prop(self, 'export_import_convert_lighting_mode')
         layout.prop(self, 'import_webp_texture')
+        layout.prop(self, 'import_scene_extras')
         import_bone_panel(layout, operator)
 
         import_panel_user_extension(context, layout)
