@@ -5296,7 +5296,7 @@ static void draw_disk_shaded(float start,
   GPUVertFormat *format = immVertexFormat();
   const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   if (shaded) {
-    col = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+    col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
     immBindBuiltinProgram(GPU_SHADER_3D_SMOOTH_COLOR);
   }
   else {
@@ -5316,7 +5316,9 @@ static void draw_disk_shaded(float start,
       uchar r_col[4];
       const float fac = (y1 + radius_ext) * radius_ext_scale;
       color_blend_v4_v4v4(r_col, col1, col2, fac);
-      immAttr4ubv(col, r_col);
+      float f_col[4];
+      rgba_uchar_to_float(f_col, r_col);
+      immAttr4fv(col, f_col);
     }
     immVertex2f(pos, c * radius_int, s * radius_int);
 
@@ -5324,7 +5326,9 @@ static void draw_disk_shaded(float start,
       uchar r_col[4];
       const float fac = (y2 + radius_ext) * radius_ext_scale;
       color_blend_v4_v4v4(r_col, col1, col2, fac);
-      immAttr4ubv(col, r_col);
+      float f_col[4];
+      rgba_uchar_to_float(f_col, r_col);
+      immAttr4fv(col, f_col);
     }
     immVertex2f(pos, c * radius_ext, s * radius_ext);
   }

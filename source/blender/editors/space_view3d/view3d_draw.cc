@@ -970,7 +970,7 @@ static void draw_view_axis(RegionView3D *rv3d, const rcti *rect)
   const float starty = rect->ymax - (k + UI_UNIT_Y);
 
   float axis_pos[3][2];
-  uchar axis_col[3][4];
+  float axis_col[3][4];
 
   int axis_order[3] = {0, 1, 2};
   axis_sort_v3(rv3d->viewinv[2], axis_order);
@@ -986,8 +986,8 @@ static void draw_view_axis(RegionView3D *rv3d, const rcti *rect)
     axis_pos[i][1] = starty + vec[1] * k;
 
     /* get color of each axis */
-    UI_GetThemeColorShade3ubv(TH_AXIS_X + i, bright, axis_col[i]); /* rgb */
-    axis_col[i][3] = 255 * hypotf(vec[0], vec[1]);                 /* alpha */
+    UI_GetThemeColorShade3fv(TH_AXIS_X + i, bright, axis_col[i]); /* rgb */
+    axis_col[i][3] = hypotf(vec[0], vec[1]);                      /* alpha */
   }
 
   /* draw axis lines */
@@ -997,7 +997,7 @@ static void draw_view_axis(RegionView3D *rv3d, const rcti *rect)
 
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+  uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 
   immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
   immBegin(GPU_PRIM_LINES, 6);
@@ -1005,9 +1005,9 @@ static void draw_view_axis(RegionView3D *rv3d, const rcti *rect)
   for (int axis_i = 0; axis_i < 3; axis_i++) {
     int i = axis_order[axis_i];
 
-    immAttr4ubv(col, axis_col[i]);
+    immAttr4fv(col, axis_col[i]);
     immVertex2f(pos, startx, starty);
-    immAttr4ubv(col, axis_col[i]);
+    immAttr4fv(col, axis_col[i]);
     immVertex2fv(pos, axis_pos[i]);
   }
 
@@ -1020,7 +1020,7 @@ static void draw_view_axis(RegionView3D *rv3d, const rcti *rect)
     int i = axis_order[axis_i];
 
     const char axis_text[2] = {char('x' + i), '\0'};
-    BLF_color4ubv(BLF_default(), axis_col[i]);
+    BLF_color4fv(BLF_default(), axis_col[i]);
     BLF_draw_default(axis_pos[i][0] + 2, axis_pos[i][1] + 2, 0.0f, axis_text, 1);
   }
 }
@@ -1032,7 +1032,7 @@ static void draw_rotation_guide(const RegionView3D *rv3d)
   float o[3];   /* center of rotation */
   float end[3]; /* endpoints for drawing */
 
-  uchar color[4] = {0, 108, 255, 255}; /* bright blue so it matches device LEDs */
+  float color[4] = {0.0f, 0.42f, 1.0f, 1.0f}; /* bright blue so it matches device LEDs */
 
   negate_v3_v3(o, rv3d->ofs);
 
@@ -1041,7 +1041,7 @@ static void draw_rotation_guide(const RegionView3D *rv3d)
 
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-  uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+  uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 
   immBindBuiltinProgram(GPU_SHADER_3D_SMOOTH_COLOR);
 
@@ -1053,7 +1053,7 @@ static void draw_rotation_guide(const RegionView3D *rv3d)
 
     immBegin(GPU_PRIM_LINE_STRIP, 3);
     color[3] = 0; /* more transparent toward the ends */
-    immAttr4ubv(col, color);
+    immAttr4fv(col, color);
     add_v3_v3v3(end, o, scaled_axis);
     immVertex3fv(pos, end);
 
@@ -1062,12 +1062,12 @@ static void draw_rotation_guide(const RegionView3D *rv3d)
     /* ^^ neat idea, but angle is frame-rate dependent, so it's usually close to 0.2 */
 #  endif
 
-    color[3] = 127; /* more opaque toward the center */
-    immAttr4ubv(col, color);
+    color[3] = 0.5f; /* more opaque toward the center */
+    immAttr4fv(col, color);
     immVertex3fv(pos, o);
 
     color[3] = 0;
-    immAttr4ubv(col, color);
+    immAttr4fv(col, color);
     sub_v3_v3v3(end, o, scaled_axis);
     immVertex3fv(pos, end);
     immEnd();
@@ -1091,8 +1091,8 @@ static void draw_rotation_guide(const RegionView3D *rv3d)
       }
 
       immBegin(GPU_PRIM_LINE_LOOP, ROT_AXIS_DETAIL);
-      color[3] = 63; /* somewhat faint */
-      immAttr4ubv(col, color);
+      color[3] = 0.25f; /* somewhat faint */
+      immAttr4fv(col, color);
       float angle = 0.0f;
       for (int i = 0; i < ROT_AXIS_DETAIL; i++, angle += step) {
         float p[3] = {s * cosf(angle), s * sinf(angle), 0.0f};
@@ -1109,10 +1109,10 @@ static void draw_rotation_guide(const RegionView3D *rv3d)
 #  undef ROT_AXIS_DETAIL
     }
 
-    color[3] = 255; /* solid dot */
+    color[3] = 1.0f; /* solid dot */
   }
   else {
-    color[3] = 127; /* see-through dot */
+    color[3] = 0.5f; /* see-through dot */
   }
 
   immUnbindProgram();
@@ -1122,7 +1122,7 @@ static void draw_rotation_guide(const RegionView3D *rv3d)
   immUniform1f("size", 7.0f);
   immUniform4fv("color", float4(color));
   immBegin(GPU_PRIM_POINTS, 1);
-  immAttr4ubv(col, color);
+  immAttr4fv(col, color);
   immVertex3fv(pos, o);
   immEnd();
   immUnbindProgram();
