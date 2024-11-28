@@ -445,8 +445,6 @@ class KeyingOperation : public NodeOperation {
     const bool apply_garbage_matte =
         this->node().input_by_identifier("Garbage Matte")->is_logically_linked();
 
-    Result &output_edges = this->get_result("Edges");
-    const bool compute_edges = output_edges.should_compute();
     const int edge_search_radius = node_storage(bnode()).edge_kernel_radius;
     const float edge_tolerance = node_storage(bnode()).edge_kernel_tolerance;
     const float black_level = node_storage(bnode()).clip_black;
@@ -458,6 +456,8 @@ class KeyingOperation : public NodeOperation {
     Result output_matte = context().create_result(ResultType::Float);
     output_matte.allocate_texture(input_matte.domain());
 
+    Result &output_edges = this->get_result("Edges");
+    const bool compute_edges = output_edges.should_compute();
     output_edges.allocate_texture(input_matte.domain());
 
     parallel_for(input_matte.domain().size, [&](const int2 texel) {
@@ -508,7 +508,9 @@ class KeyingOperation : public NodeOperation {
       }
 
       output_matte.store_pixel(texel, float4(tweaked_matte));
-      output_edges.store_pixel(texel, float4(is_edge ? 1.0f : 0.0f));
+      if (compute_edges) {
+        output_edges.store_pixel(texel, float4(is_edge ? 1.0f : 0.0f));
+      }
     });
 
     return output_matte;
