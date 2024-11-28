@@ -34,6 +34,9 @@ int GPU_max_shader_storage_buffer_bindings();
 int GPU_max_compute_shader_storage_blocks();
 int GPU_max_samplers();
 size_t GPU_max_storage_buffer_size();
+/* Used when binding subrange of SSBOs. In bytes.
+ * The start of the range must be aligned with this value. */
+size_t GPU_storage_buffer_alignment();
 
 int GPU_extensions_len();
 const char *GPU_extension_get(int i);

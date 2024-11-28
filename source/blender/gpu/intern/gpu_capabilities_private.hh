@@ -40,6 +40,7 @@ struct GPUCapabilities {
   int max_shader_storage_buffer_bindings = 0;
   int max_compute_shader_storage_blocks = 0;
   size_t max_storage_buffer_size = 0;
+  size_t storage_buffer_alignment = 256;
   int extensions_len = 0;
   const char *(*extension_get)(int);
 

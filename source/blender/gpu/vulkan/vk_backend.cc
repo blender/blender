@@ -573,6 +573,7 @@ void VKBackend::capabilities_init(VKDevice &device)
   GCaps.max_shader_storage_buffer_bindings = GCaps.max_compute_shader_storage_blocks = min_uu(
       limits.maxPerStageDescriptorStorageBuffers, INT_MAX);
   GCaps.max_storage_buffer_size = size_t(limits.maxStorageBufferRange);
+  GCaps.storage_buffer_alignment = limits.minStorageBufferOffsetAlignment;
 
   GCaps.max_parallel_compilations = BLI_system_thread_count();
   GCaps.mem_stats_support = true;

@@ -8,6 +8,8 @@
  * Mimics old style opengl immediate mode drawing.
  */
 
+#include "GPU_capabilities.hh"
+
 #include "gpu_context_private.hh"
 #include "gpu_shader_private.hh"
 #include "gpu_vertex_format_private.hh"
@@ -96,9 +98,14 @@ uchar *GLImmediate::begin()
     recreate_buffer = true;
   }
 
-  /* ensure vertex data is aligned */
-  /* Might waste a little space, but it's safe. */
-  const uint pre_padding = padding(buffer_offset(), vertex_format.stride);
+  uint vert_alignment = vertex_format.stride;
+  if (unwrap(this->shader)->is_polyline) {
+    /* Polyline needs to bind the buffer as SSBO.
+     * The start of the range needs to match the SSBO alignment requirements. */
+    vert_alignment = max_uu(vert_alignment, GPU_storage_buffer_alignment());
+  }
+  /* Ensure vertex data is aligned. Might waste a little space, but it's safe. */
+  const uint pre_padding = padding(buffer_offset(), vert_alignment);
 
   if (!recreate_buffer && ((bytes_needed + pre_padding) <= available_bytes)) {
     buffer_offset() += pre_padding;

@@ -8,11 +8,13 @@
  * Mimics old style OpenGL immediate mode drawing.
  */
 
-#include "vk_immediate.hh"
+#include "GPU_capabilities.hh"
+
 #include "vk_backend.hh"
 #include "vk_context.hh"
 #include "vk_data_conversion.hh"
 #include "vk_framebuffer.hh"
+#include "vk_immediate.hh"
 #include "vk_state_manager.hh"
 
 #include "CLG_log.h"
@@ -51,8 +53,7 @@ uchar *VKImmediate::begin()
   vertex_format_converter.init(&vertex_format, workarounds);
   const size_t bytes_needed = vertex_buffer_size(&vertex_format_converter.device_format_get(),
                                                  vertex_len);
-  VkDeviceSize offset_alignment =
-      device.physical_device_properties_get().limits.minStorageBufferOffsetAlignment;
+  size_t offset_alignment = GPU_storage_buffer_alignment();
   VKBuffer &buffer = ensure_space(bytes_needed, offset_alignment);
 
   /* Apply alignment when allocating new sub buffer, to reduce signed/unsigned data conversion
