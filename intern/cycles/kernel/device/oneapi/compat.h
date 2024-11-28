@@ -47,7 +47,6 @@
 #define ccl_device_noinline_cpu ccl_device
 #define ccl_device_inline_method ccl_device
 #define ccl_restrict __restrict__
-#define ccl_loop_no_unroll
 #define ccl_optional_struct_init
 #define ccl_private
 #define ccl_ray_data ccl_private

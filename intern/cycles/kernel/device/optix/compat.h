@@ -52,7 +52,6 @@ typedef unsigned long long uint64_t;
 #define ccl_ray_data ccl_private
 #define ccl_may_alias
 #define ccl_restrict __restrict__
-#define ccl_loop_no_unroll
 #define ccl_align(n) __align__(n)
 
 /* Zero initialize structs to help the compiler figure out scoping */
