@@ -71,6 +71,9 @@ void gpu_select_next_set_result(GPUSelectResult *hit_buf, uint hit_len)
     case eGPUSelectMode::GPU_SELECT_PICK_NEAREST:
       hit_results.copy_from(hits);
       break;
+    case eGPUSelectMode::GPU_SELECT_INVALID:
+      BLI_assert_unreachable();
+      break;
   }
 
   g_state.hits = hit_len;
