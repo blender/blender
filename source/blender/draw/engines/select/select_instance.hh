@@ -152,27 +152,6 @@ struct SelectMap {
       return;
     }
 
-    switch (gpu_select_next_get_mode()) {
-      case GPU_SELECT_ALL:
-        info_buf.mode = SelectType::SELECT_ALL;
-        disable_depth_test = true;
-        break;
-      /* Not sure if these 2 NEAREST are mapped to the right algorithm. */
-      case GPU_SELECT_NEAREST_FIRST_PASS:
-      case GPU_SELECT_NEAREST_SECOND_PASS:
-      case GPU_SELECT_PICK_ALL:
-        info_buf.mode = SelectType::SELECT_PICK_ALL;
-        info_buf.cursor = int2(gpu_select_next_get_pick_area_center());
-        disable_depth_test = true;
-        break;
-      case GPU_SELECT_PICK_NEAREST:
-        info_buf.mode = SelectType::SELECT_PICK_NEAREST;
-        info_buf.cursor = int2(gpu_select_next_get_pick_area_center());
-        disable_depth_test = true;
-        break;
-    }
-    info_buf.push_update();
-
     select_id_map.clear();
 #ifndef NDEBUG
     map_names.clear();
@@ -249,6 +228,39 @@ struct SelectMap {
     }
   }
 
+  void pre_draw()
+  {
+    if (selection_type == SelectionType::DISABLED) {
+      return;
+    }
+
+    /* Make it so that we capture unreachable*/
+    switch (gpu_select_next_get_mode()) {
+      case GPU_SELECT_INVALID:
+        BLI_assert_unreachable();
+        break;
+      case GPU_SELECT_ALL:
+        info_buf.mode = SelectType::SELECT_ALL;
+        info_buf.cursor = int2(0);
+        disable_depth_test = true;
+        break;
+      /* Not sure if these 2 NEAREST are mapped to the right algorithm. */
+      case GPU_SELECT_NEAREST_FIRST_PASS:
+      case GPU_SELECT_NEAREST_SECOND_PASS:
+      case GPU_SELECT_PICK_ALL:
+        info_buf.mode = SelectType::SELECT_PICK_ALL;
+        info_buf.cursor = int2(gpu_select_next_get_pick_area_center());
+        disable_depth_test = true;
+        break;
+      case GPU_SELECT_PICK_NEAREST:
+        info_buf.mode = SelectType::SELECT_PICK_NEAREST;
+        info_buf.cursor = int2(gpu_select_next_get_pick_area_center());
+        disable_depth_test = true;
+        break;
+    }
+    info_buf.push_update();
+  }
+
   void read_result()
   {
     if (selection_type == SelectionType::DISABLED) {
@@ -291,7 +303,7 @@ struct SelectMap {
     for (auto &hit : hit_results) {
       /* Print hit results right out of the GPU selection buffer.
        * If something is wrong at this stage, it indicates an error in the selection shaders. */
-      printf(" hit: %u: depth %u\n", hit_result.id, hit_result.depth);
+      printf(" hit: %u: depth %u\n", hit.id, hit.depth);
     }
 #endif
 

@@ -365,6 +365,8 @@ void Instance::draw(Manager &manager)
     draw_scope.begin_capture();
   }
 
+  resources.pre_draw();
+
   outline.flat_objects_pass_sync(manager, view, resources, state);
   GreasePencil::compute_depth_planes(manager, view, resources, state);
 

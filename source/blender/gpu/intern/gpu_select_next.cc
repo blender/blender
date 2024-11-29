@@ -16,13 +16,13 @@
 
 struct GPUSelectNextState {
   /** Result buffer set on initialization. */
-  GPUSelectBuffer *buffer;
+  GPUSelectBuffer *buffer = nullptr;
   /** Area of the viewport to render / select from. */
-  rcti rect;
+  rcti rect = {0, 0, 0, 0};
   /** Number of hits. Set to -1 if it overflows buffer_len. */
-  uint hits;
+  uint hits = -1;
   /** Mode of operation. */
-  eGPUSelectMode mode;
+  eGPUSelectMode mode = eGPUSelectMode::GPU_SELECT_INVALID;
 };
 
 static GPUSelectNextState g_state = {};
