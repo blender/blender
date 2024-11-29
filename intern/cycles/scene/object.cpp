@@ -227,6 +227,9 @@ void Object::tag_update(Scene *scene)
   if (geometry) {
     if (tfm_is_modified() || motion_is_modified()) {
       flag |= ObjectManager::TRANSFORM_MODIFIED;
+      if (geometry->has_volume) {
+        scene->volume_manager->tag_update(this, flag);
+      }
     }
 
     if (visibility_is_modified()) {
@@ -770,6 +773,10 @@ void ObjectManager::device_update(Device *device,
     dscene->object_motion.tag_realloc();
     dscene->object_flag.tag_realloc();
     dscene->object_volume_step.tag_realloc();
+
+    /* If objects are added to the scene or deleted, the object indices might change, so we need to
+     * update the root indices of the volume octrees. */
+    scene->volume_manager->tag_update_indices();
   }
 
   if (update_flags & HOLDOUT_MODIFIED) {
@@ -808,6 +815,16 @@ void ObjectManager::device_update(Device *device,
         dscene->object_motion.tag_modified();
         dscene->object_flag.tag_modified();
         dscene->object_volume_step.tag_modified();
+      }
+
+      /* Update world object index. */
+      if (!object->get_geometry()->is_light()) {
+        continue;
+      }
+
+      const Light *light = static_cast<const Light *>(object->get_geometry());
+      if (light->get_light_type() == LIGHT_BACKGROUND) {
+        dscene->data.background.object_index = object->index;
       }
     }
   }

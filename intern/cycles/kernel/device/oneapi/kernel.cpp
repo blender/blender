@@ -594,6 +594,11 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
                       oneapi_kernel_shader_eval_curve_shadow_transparency);
           break;
         }
+        case DEVICE_KERNEL_SHADER_EVAL_VOLUME_DENSITY: {
+          oneapi_call(
+              kg, cgh, global_size, local_size, args, oneapi_kernel_shader_eval_volume_density);
+          break;
+        }
         case DEVICE_KERNEL_PREFIX_SUM: {
           oneapi_call(kg, cgh, global_size, local_size, args, oneapi_kernel_prefix_sum);
           break;

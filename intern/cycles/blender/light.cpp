@@ -138,6 +138,8 @@ void BlenderSync::sync_background_light(BL::SpaceView3D &b_v3d)
       object->set_lightgroup(ustring(b_world ? b_world.lightgroup() : ""));
     }
 
+    object->set_asset_name(ustring(b_world.name()));
+
     /* Create geometry. */
     const GeometryKey geom_key{b_world.ptr.data, Geometry::LIGHT};
     Geometry *geom = geometry_map.find(geom_key);

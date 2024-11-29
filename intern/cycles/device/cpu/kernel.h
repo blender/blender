@@ -40,6 +40,7 @@ class CPUKernels {
   ShaderEvalFunction shader_eval_displace;
   ShaderEvalFunction shader_eval_background;
   ShaderEvalFunction shader_eval_curve_shadow_transparency;
+  ShaderEvalFunction shader_eval_volume_density;
 
   /* Adaptive stopping. */
 

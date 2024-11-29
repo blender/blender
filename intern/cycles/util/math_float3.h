@@ -10,6 +10,7 @@
 #include "util/types_float3.h"
 #include "util/types_float4.h"
 #include "util/types_int3.h"
+#include "util/types_uint3.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -212,6 +213,15 @@ ccl_device_inline bool operator==(const float3 a, const float3 b)
 #  endif
 }
 
+ccl_device_inline int3 operator==(const float3 a, const float b)
+{
+#  ifdef __KERNEL_SSE__
+  return int3(_mm_castps_si128(_mm_cmpeq_ps(a.m128, make_float3(b).m128)));
+#  else
+  return make_int3(a.x == b, a.y == b, a.z == b);
+#  endif
+}
+
 ccl_device_inline bool operator!=(const float3 a, const float3 b)
 {
   return !(a == b);
@@ -235,7 +245,21 @@ ccl_device_inline float dot(const float3 a, const float3 b)
 #  endif
 }
 
-#endif
+ccl_device_inline int3 operator>(const float3 a, const float3 b)
+{
+#  ifdef __KERNEL_SSE__
+  return int3(_mm_castps_si128(_mm_cmpgt_ps(a.m128, b.m128)));
+#  else
+  return make_int3(a.x > b.x, a.y > b.y, a.z > b.z);
+#  endif
+}
+
+ccl_device_inline int3 operator>(const float3 a, const float b)
+{
+  return a > make_float3(b);
+}
+
+#endif /* __KERNEL_METAL__ */
 
 ccl_device_inline float dot_xy(const float3 a, const float3 b)
 {
@@ -380,6 +404,17 @@ ccl_device_inline float3 sqrt(const float3 a)
 #  endif
 }
 
+ccl_device_inline float3 round(const float3 a)
+{
+#  if defined(__KERNEL_NEON__)
+  return float3(vrndnq_f32(a.m128));
+#  elif defined(__KERNEL_SSE__)
+  return float3(_mm_round_ps(a.m128, _MM_FROUND_NINT));
+#  else
+  return make_float3(roundf(a.x), roundf(a.y), roundf(a.z));
+#  endif
+}
+
 ccl_device_inline float3 floor(const float3 a)
 {
 #  ifdef __KERNEL_SSE__
@@ -399,6 +434,11 @@ ccl_device_inline float3 ceil(const float3 a)
 }
 
 ccl_device_inline float3 mix(const float3 a, const float3 b, const float t)
+{
+  return a + t * (b - a);
+}
+
+ccl_device_inline float3 mix(const float3 a, const float3 b, const float3 t)
 {
   return a + t * (b - a);
 }
@@ -436,11 +476,6 @@ ccl_device_inline float3 tan(const float3 v)
 ccl_device_inline float3 atan2(const float3 y, const float3 x)
 {
   return make_float3(atan2f(y.x, x.x), atan2f(y.y, x.y), atan2f(y.z, x.z));
-}
-
-ccl_device_inline float3 round(const float3 a)
-{
-  return make_float3(roundf(a.x), roundf(a.y), roundf(a.z));
 }
 
 ccl_device_inline float3 reflect(const float3 incident, const float3 unit_normal)
@@ -525,6 +560,11 @@ ccl_device_inline bool is_zero(const float3 a)
 #else
   return (a.x == 0.0f && a.y == 0.0f && a.z == 0.0f);
 #endif
+}
+
+ccl_device_inline bool any_zero(const float3 a)
+{
+  return (a.x == 0.0f || a.y == 0.0f || a.z == 0.0f);
 }
 
 ccl_device_inline float reduce_add(const float3 a)
@@ -764,6 +804,24 @@ ccl_device_inline void copy_v3_v3(ccl_private float *r, const float3 val)
   r[0] = val.x;
   r[1] = val.y;
   r[2] = val.z;
+}
+
+ccl_device_inline uint3 float3_as_uint3(const float3 f)
+{
+#ifdef __KERNEL_METAL__
+  return as_type<uint3>(f);
+#else
+  return make_uint3(__float_as_uint(f.x), __float_as_uint(f.y), __float_as_uint(f.z));
+#endif
+}
+
+ccl_device_inline float3 uint3_as_float3(const uint3 f)
+{
+#ifdef __KERNEL_METAL__
+  return as_type<float3>(f);
+#else
+  return make_float3(__uint_as_float(f.x), __uint_as_float(f.y), __uint_as_float(f.z));
+#endif
 }
 
 CCL_NAMESPACE_END

@@ -145,4 +145,10 @@ std::ostream &operator<<(std::ostream &os, const float3 &value)
   return os;
 }
 
+std::ostream &operator<<(std::ostream &os, const float4 &value)
+{
+  os << "(" << value.x << ", " << value.y << ", " << value.z << ", " << value.w << ")";
+  return os;
+}
+
 CCL_NAMESPACE_END

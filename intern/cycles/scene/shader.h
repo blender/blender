@@ -117,6 +117,7 @@ class Shader : public Node {
   bool has_surface_spatial_varying;
   bool has_volume_spatial_varying;
   bool has_volume_attribute_dependency;
+  bool has_light_path_node;
 
   float3 emission_estimate;
   EmissionSampling emission_sampling;

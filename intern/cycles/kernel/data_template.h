@@ -41,10 +41,10 @@ KERNEL_STRUCT_MEMBER(background, int, use_mis)
 KERNEL_STRUCT_MEMBER(background, int, lightgroup)
 /* Light Index. */
 KERNEL_STRUCT_MEMBER(background, int, light_index)
+/* Object Index. */
+KERNEL_STRUCT_MEMBER(background, int, object_index)
 /* Padding. */
 KERNEL_STRUCT_MEMBER(background, int, pad1)
-KERNEL_STRUCT_MEMBER(background, int, pad2)
-KERNEL_STRUCT_MEMBER(background, int, pad3)
 KERNEL_STRUCT_END(KernelBackground)
 
 /* BVH: own BVH2 if no native device acceleration struct used. */

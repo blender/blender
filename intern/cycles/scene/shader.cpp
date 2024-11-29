@@ -18,6 +18,7 @@
 #include "scene/shader_nodes.h"
 #include "scene/svm.h"
 #include "scene/tables.h"
+#include "scene/volume.h"
 
 #include "util/log.h"
 #include "util/murmurhash.h"
@@ -104,6 +105,7 @@ Shader::Shader() : Node(get_node_type())
   has_volume_attribute_dependency = false;
   has_volume_connected = false;
   prev_volume_step_rate = 0.0f;
+  has_light_path_node = false;
 
   emission_estimate = zero_float3();
   emission_sampling = EMISSION_SAMPLING_NONE;
@@ -397,6 +399,10 @@ void Shader::tag_update(Scene *scene)
     scene->object_manager->need_flags_update = true;
     prev_volume_step_rate = volume_step_rate;
   }
+
+  if (has_volume || prev_has_volume) {
+    scene->volume_manager->tag_update(this);
+  }
 }
 
 void Shader::tag_used(Scene *scene)
@@ -527,6 +533,15 @@ void ShaderManager::device_update_pre(Device * /*device*/,
       shader->has_volume_spatial_varying = false;
       shader->has_volume_attribute_dependency = false;
       shader->has_displacement = output->input("Displacement")->link != nullptr;
+
+      shader->has_light_path_node = false;
+      for (ShaderNode *node : shader->graph->nodes) {
+        if (node->special_type == SHADER_SPECIAL_TYPE_LIGHT_PATH) {
+          /* TODO: check if the light path node is linked to the volume output. */
+          shader->has_light_path_node = true;
+          break;
+        }
+      }
     }
 
     if (shader->reference_count()) {
@@ -631,6 +646,10 @@ void ShaderManager::device_update_common(Device * /*device*/,
     /* constant emission check */
     if (shader->emission_is_constant) {
       flag |= SD_HAS_CONSTANT_EMISSION;
+    }
+
+    if (shader->has_light_path_node) {
+      flag |= SD_HAS_LIGHT_PATH_NODE;
     }
 
     const uint32_t cryptomatte_id = util_murmur_hash3(

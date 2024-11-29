@@ -10,6 +10,7 @@ set(INC_SYS
 )
 
 set(SRC
+  octree.cpp
   bvh.cpp
   bvh2.cpp
   binning.cpp
@@ -36,6 +37,7 @@ if(WITH_CYCLES_DEVICE_METAL)
 endif()
 
 set(SRC_HEADERS
+  octree.h
   bvh.h
   bvh2.h
   binning.h
