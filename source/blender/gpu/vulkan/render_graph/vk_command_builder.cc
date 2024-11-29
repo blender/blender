@@ -224,8 +224,9 @@ void VKCommandBuilder::activate_debug_group(VKRenderGraph &render_graph,
     VkDebugUtilsLabelEXT debug_utils_label = {};
     debug_utils_label.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
     for (int index : IndexRange(state_.debug_level, num_begins)) {
-      std::string group_name = render_graph.debug_.group_names[to_group[index]];
-      debug_utils_label.pLabelName = group_name.c_str();
+      const VKRenderGraph::DebugGroup &debug_group = render_graph.debug_.groups[to_group[index]];
+      debug_utils_label.pLabelName = debug_group.name.c_str();
+      copy_v4_v4(debug_utils_label.color, debug_group.color);
       command_buffer.begin_debug_utils_label(&debug_utils_label);
     }
   }
