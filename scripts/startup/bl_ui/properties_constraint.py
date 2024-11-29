@@ -83,10 +83,13 @@ class ConstraintButtonsPanel:
             if con.target_space == 'CUSTOM' or con.owner_space == 'CUSTOM':
                 col = layout.column()
                 col.prop(con, "space_object")
-                if con.space_object and con.space_object.type == 'ARMATURE':
-                    col.prop_search(con, "space_subtarget", con.space_object.data, "bones", text="Bone")
-                elif con.space_object and con.space_object.type in {'MESH', 'LATTICE'}:
-                    col.prop_search(con, "space_subtarget", con.space_object, "vertex_groups", text="Vertex Group")
+                if space_object := con.space_object:
+                    match space_object.type:
+                        'ARMATURE':
+                            col.prop_search(con, "space_subtarget", con.space_object.data, "bones", text="Bone")
+                        'MESH', 'LATTICE':
+                            col.prop_search(con, "space_subtarget", con.space_object,
+                                            "vertex_groups", text="Vertex Group")
 
     @staticmethod
     def target_template(layout, con, subtargets=True):
@@ -659,6 +662,15 @@ class ConstraintButtonsPanel:
         if con.shrinkwrap_type == 'PROJECT':
             layout.prop(con, "project_axis", expand=True, text="Project Axis")
             layout.prop(con, "project_axis_space", text="Space")
+
+            if con.project_axis_space == 'CUSTOM':
+                col = layout.column()
+                col.prop(con, "space_object")
+                if con.space_object and con.space_object.type == 'ARMATURE':
+                    col.prop_search(con, "space_subtarget", con.space_object.data, "bones", text="Bone")
+                elif con.space_object and con.space_object.type in {'MESH', 'LATTICE'}:
+                    col.prop_search(con, "space_subtarget", con.space_object, "vertex_groups", text="Vertex Group")
+
             layout.prop(con, "project_limit", text="Distance")
             layout.prop(con, "use_project_opposite")
 
