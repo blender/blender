@@ -237,7 +237,7 @@ struct SelectMap {
       return;
     }
 
-    select_output_buf.resize(ceil_to_multiple_u(select_id_map.size(), 4));
+    select_output_buf.resize(max_uu(ceil_to_multiple_u(select_id_map.size(), 4), 4));
     select_output_buf.push_update();
     if (info_buf.mode == SelectType::SELECT_ALL) {
       /* This mode uses atomicOr and store result as a bitmap. Clear to 0 (no selection). */
