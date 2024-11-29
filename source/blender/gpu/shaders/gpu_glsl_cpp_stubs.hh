@@ -354,6 +354,29 @@ using int2 = VecBase<int, 2>;
 using int3 = VecBase<int, 3>;
 using int4 = VecBase<int, 4>;
 
+using uchar = unsigned int;
+using uchar2 = VecBase<uchar, 2>;
+using uchar3 = VecBase<uchar, 3>;
+using uchar4 = VecBase<uchar, 4>;
+
+using char2 = VecBase<char, 2>;
+using char3 = VecBase<char, 3>;
+using char4 = VecBase<char, 4>;
+
+using ushort = unsigned short;
+using ushort2 = VecBase<ushort, 2>;
+using ushort3 = VecBase<ushort, 3>;
+using ushort4 = VecBase<ushort, 4>;
+
+using short2 = VecBase<short, 2>;
+using short3 = VecBase<short, 3>;
+using short4 = VecBase<short, 4>;
+
+using half = double;
+using half2 = VecBase<half, 2>;
+using half3 = VecBase<half, 3>;
+using half4 = VecBase<half, 4>;
+
 using bool2 = VecBase<bool, 2>;
 using bool3 = VecBase<bool, 3>;
 using bool4 = VecBase<bool, 4>;
@@ -393,6 +416,19 @@ using BOOL = bool;
 using BVEC2 = bool2;
 using BVEC3 = bool3;
 using BVEC4 = bool4;
+
+using bool32_t = uint;
+
+/** Packed types are needed for MSL which have different alignment rules for float3. */
+using packed_float2 = float2;
+using packed_float3 = float3;
+using packed_float4 = float4;
+using packed_int2 = int2;
+using packed_int3 = int3;
+using packed_int4 = int4;
+using packed_uint2 = uint2;
+using packed_uint3 = uint3;
+using packed_uint4 = uint4;
 
 /** \} */
 
