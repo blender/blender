@@ -108,12 +108,10 @@ class Empties : Overlay {
     call_buffers.image_buf.clear();
   }
 
-  /* TODO(fclem): Remove dependency on shapes. Pass it to the constructor. */
-  void object_sync_ex(const ObjectRef &ob_ref,
-                      ShapeCache &shapes,
-                      Manager &manager,
-                      Resources &res,
-                      const State &state)
+  void object_sync(Manager &manager,
+                   const ObjectRef &ob_ref,
+                   Resources &res,
+                   const State &state) final
   {
     if (!enabled_) {
       return;
@@ -122,7 +120,7 @@ class Empties : Overlay {
     const float4 color = res.object_wire_color(ob_ref, state);
     const select::ID select_id = res.select_id(ob_ref);
     if (ob_ref.object->empty_drawtype == OB_EMPTY_IMAGE) {
-      image_sync(ob_ref, select_id, shapes, manager, res, state, call_buffers_.image_buf);
+      image_sync(ob_ref, select_id, manager, res, state, call_buffers_.image_buf);
       return;
     }
     object_sync(select_id,
@@ -167,7 +165,7 @@ class Empties : Overlay {
     }
   }
 
-  void end_sync(Resources &res, const ShapeCache &shapes, const State &state) final
+  void end_sync(Resources &res, const State &state) final
   {
     if (!enabled_) {
       return;
@@ -175,11 +173,10 @@ class Empties : Overlay {
 
     ps_.init();
     res.select_bind(ps_);
-    end_sync(res, shapes, state, ps_, call_buffers_);
+    end_sync(res, state, ps_, call_buffers_);
   }
 
   static void end_sync(Resources &res,
-                       const ShapeCache &shapes,
                        const State &state,
                        PassSimple::Sub &ps,
                        CallBuffers &call_buffers)
@@ -189,14 +186,14 @@ class Empties : Overlay {
     ps.shader_set(res.shaders.extra_shape.get());
     ps.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
 
-    call_buffers.plain_axes_buf.end_sync(ps, shapes.plain_axes.get());
-    call_buffers.single_arrow_buf.end_sync(ps, shapes.single_arrow.get());
-    call_buffers.cube_buf.end_sync(ps, shapes.cube.get());
-    call_buffers.circle_buf.end_sync(ps, shapes.circle.get());
-    call_buffers.sphere_buf.end_sync(ps, shapes.empty_sphere.get());
-    call_buffers.cone_buf.end_sync(ps, shapes.empty_cone.get());
-    call_buffers.arrows_buf.end_sync(ps, shapes.arrows.get());
-    call_buffers.image_buf.end_sync(ps, shapes.quad_wire.get());
+    call_buffers.plain_axes_buf.end_sync(ps, res.shapes.plain_axes.get());
+    call_buffers.single_arrow_buf.end_sync(ps, res.shapes.single_arrow.get());
+    call_buffers.cube_buf.end_sync(ps, res.shapes.cube.get());
+    call_buffers.circle_buf.end_sync(ps, res.shapes.circle.get());
+    call_buffers.sphere_buf.end_sync(ps, res.shapes.empty_sphere.get());
+    call_buffers.cone_buf.end_sync(ps, res.shapes.empty_cone.get());
+    call_buffers.arrows_buf.end_sync(ps, res.shapes.arrows.get());
+    call_buffers.image_buf.end_sync(ps, res.shapes.quad_wire.get());
   }
 
   void pre_draw(Manager &manager, View &view) final
@@ -260,7 +257,6 @@ class Empties : Overlay {
  private:
   void image_sync(const ObjectRef &ob_ref,
                   select::ID select_id,
-                  ShapeCache &shapes,
                   Manager &manager,
                   Resources &res,
                   const State &state,
@@ -325,7 +321,7 @@ class Empties : Overlay {
       pass.push_constant("depthSet", depth_mode != OB_EMPTY_IMAGE_DEPTH_DEFAULT);
       pass.push_constant("ucolor", float4(ob->color));
       ResourceHandle res_handle = manager.resource_handle(mat);
-      pass.draw(shapes.quad_solid.get(), res_handle, select_id.get());
+      pass.draw(res.shapes.quad_solid.get(), res_handle, select_id.get());
     }
   }
 

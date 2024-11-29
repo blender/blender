@@ -122,7 +122,7 @@ void GPENCIL_engine_init(void *ved)
     use_scene_world = V3D_USES_SCENE_WORLD(v3d);
 
     stl->pd->v3d_color_type = (v3d->shading.type == OB_SOLID) ? v3d->shading.color_type : -1;
-    /* Special case: If we're in Vertex Paint mode, enforce V3D_SHADING_VERTEX_COLOR setting.*/
+    /* Special case: If we're in Vertex Paint mode, enforce #V3D_SHADING_VERTEX_COLOR setting. */
     if (v3d->shading.type == OB_SOLID && ctx->obact &&
         (ctx->obact->mode & OB_MODE_VERTEX_GREASE_PENCIL) != 0)
     {
@@ -514,7 +514,7 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(GPENCIL_PrivateData 
       const IndexRange points = points_by_curve[stroke_i];
       /* The material index is allowed to be negative as it's stored as a generic attribute. We
        * clamp it here to avoid crashing in the rendering code. Any stroke with a material < 0 will
-       * use the first material in the first material slot.*/
+       * use the first material in the first material slot. */
       const int material_index = std::max(stroke_materials[stroke_i], 0);
       const MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, material_index + 1);
 
@@ -892,7 +892,7 @@ void GPENCIL_draw_scene(void *ved)
 
   /* Fade 3D objects. */
   if ((!pd->is_render) && (pd->fade_3d_object_opacity > -1.0f) && (pd->obact != nullptr) &&
-      ELEM(pd->obact->type, OB_GPENCIL_LEGACY, OB_GREASE_PENCIL))
+      ELEM(pd->obact->type, OB_GREASE_PENCIL))
   {
     float background_color[3];
     ED_view3d_background_color_get(pd->scene, pd->v3d, background_color);

@@ -1145,7 +1145,7 @@ static FileData *filedata_new(BlendFileReadReport *reports)
 {
   BLI_assert(reports != nullptr);
 
-  FileData *fd = static_cast<FileData *>(MEM_callocN(sizeof(FileData), "FileData"));
+  FileData *fd = MEM_new<FileData>(__func__);
 
   fd->memsdna = DNA_sdna_current_get();
 
@@ -1458,7 +1458,7 @@ void blo_filedata_free(FileData *fd)
   }
 #endif
 
-  MEM_freeN(fd);
+  MEM_delete(fd);
 }
 
 /** \} */

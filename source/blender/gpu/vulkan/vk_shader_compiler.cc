@@ -46,7 +46,7 @@ static std::optional<std::string> cache_dir_get()
   static std::optional<std::string> result;
   if (!result.has_value()) {
     static char tmp_dir_buffer[FILE_MAX];
-    /* Shader builder doesn't return the correct appdir*/
+    /* Shader builder doesn't return the correct appdir. */
     if (!BKE_appdir_folder_caches(tmp_dir_buffer, sizeof(tmp_dir_buffer))) {
       return std::nullopt;
     }
@@ -80,7 +80,7 @@ static bool read_spirv_from_disk(VKShaderModule &shader_module)
   BLI_file_touch(spirv_path.c_str());
   BLI_file_touch(sidecar_path.c_str());
 
-  /* Read sidecar*/
+  /* Read sidecar. */
   fstream sidecar_file(sidecar_path, std::ios::binary | std::ios::in | std::ios::ate);
   std::streamsize sidecar_size_on_disk = sidecar_file.tellg();
   SPIRVSidecar sidecar = {};
@@ -90,7 +90,7 @@ static bool read_spirv_from_disk(VKShaderModule &shader_module)
   sidecar_file.seekg(0, std::ios::beg);
   sidecar_file.read(reinterpret_cast<char *>(&sidecar), sizeof(sidecar));
 
-  /* Read spirv binary */
+  /* Read spirv binary. */
   fstream spirv_file(spirv_path, std::ios::binary | std::ios::in | std::ios::ate);
   std::streamsize size = spirv_file.tellg();
   if (size != sidecar.spirv_size) {

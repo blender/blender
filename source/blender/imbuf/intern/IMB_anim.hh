@@ -34,6 +34,7 @@ struct ImBufAnim {
   double frs_sec_base;
   double start_offset;
   int x, y;
+  int video_rotation;
 
   /* for number */
   char filepath[1024];

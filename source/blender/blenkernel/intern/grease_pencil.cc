@@ -3850,7 +3850,7 @@ static void update_active_node_from_node_to_remove(
     grease_pencil.set_active_node(reinterpret_cast<TreeNode *>(node.prev));
   }
   /* 2. If there is no node below, try setting the node above (within the same group) to be the
-   * active one.*/
+   * active one. */
   else if (node.next != nullptr) {
     grease_pencil.set_active_node(reinterpret_cast<TreeNode *>(node.next));
   }

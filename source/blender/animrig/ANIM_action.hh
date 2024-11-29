@@ -171,7 +171,7 @@ class Action : public ::bAction {
   void slot_identifier_define(Slot &slot, StringRefNull new_identifier);
 
   /**
-   * Update the `AnimData::action_slot_name` field of any ID that is animated by
+   * Update the `AnimData::last_slot_identifier` field of any ID that is animated by
    * this Slot.
    *
    * Should be called after `slot_identifier_define(slot)`. This is implemented as a separate
@@ -245,7 +245,7 @@ class Action : public ::bAction {
    * Action's slots with (in order):
    *
    * - `animated_id.adt->slot_handle`,
-   * - `animated_id.adt->slot_name`,
+   * - `animated_id.adt->last_slot_identifier`,
    * - `animated_id.name`.
    *
    * Note that this is different from #slot_for_id, which does not use the
@@ -626,8 +626,8 @@ class Slot : public ::ActionSlot {
   constexpr static int identifier_length_min = 3;
 
   constexpr static int identifier_length_max = MAX_ID_NAME;
-  static_assert(sizeof(AnimData::slot_name) == identifier_length_max);
-  static_assert(sizeof(NlaStrip::action_slot_name) == identifier_length_max);
+  static_assert(sizeof(AnimData::last_slot_identifier) == identifier_length_max);
+  static_assert(sizeof(NlaStrip::last_slot_identifier) == identifier_length_max);
 
   /**
    * Return the identifier prefix for the Slot's type.
@@ -1154,7 +1154,7 @@ Action &action_add(Main &bmain, StringRefNull name);
 enum class ActionSlotAssignmentResult : int8_t {
   OK = 0,
   SlotNotFromAction = 1, /* Slot does not belong to the assigned Action. */
-  SlotNotSuitable = 2,   /* Slot is not suitable for the given ID type.*/
+  SlotNotSuitable = 2,   /* Slot is not suitable for the given ID type. */
   MissingAction = 3,     /* No Action assigned yet, so cannot assign slot. */
 };
 

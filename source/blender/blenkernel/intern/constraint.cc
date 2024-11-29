@@ -6696,4 +6696,4 @@ void BKE_constraint_blend_read_data(BlendDataReader *reader, ID *id_owner, ListB
 static_assert(
     std::is_same_v<decltype(ActionSlot::handle), decltype(bActionConstraint::action_slot_handle)>);
 static_assert(std::is_same_v<decltype(ActionSlot::identifier),
-                             decltype(bActionConstraint::action_slot_name)>);
+                             decltype(bActionConstraint::last_slot_identifier)>);

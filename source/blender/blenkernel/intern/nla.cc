@@ -2223,7 +2223,7 @@ void BKE_nla_action_pushdown(const OwnedAnimData owned_adt, const bool is_libove
     return;
   }
 
-  /* Add a new NLA strip to the track, which references the active action + slot.*/
+  /* Add a new NLA strip to the track, which references the active action + slot. */
   strip = BKE_nlastack_add_strip(owned_adt, is_liboverride);
   if (strip == nullptr) {
     return;
@@ -2469,7 +2469,7 @@ static void nla_tweakmode_exit_nofollowptr(AnimData *adt)
 
   adt->tmpact = nullptr;
   adt->tmp_slot_handle = animrig::Slot::unassigned;
-  STRNCPY(adt->slot_name, adt->tmp_slot_name);
+  STRNCPY(adt->last_slot_identifier, adt->tmp_last_slot_identifier);
 
   adt->act_track = nullptr;
   adt->actstrip = nullptr;
@@ -2502,7 +2502,7 @@ void BKE_nla_tweakmode_exit(const OwnedAnimData owned_adt)
                                                             nullptr,
                                                             owned_adt.adt.action,
                                                             owned_adt.adt.slot_handle,
-                                                            owned_adt.adt.slot_name);
+                                                            owned_adt.adt.last_slot_identifier);
     BLI_assert_msg(unassign_ok,
                    "When exiting tweak mode, unassigning the tweaked Action should work");
     UNUSED_VARS_NDEBUG(unassign_ok);

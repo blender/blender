@@ -385,7 +385,7 @@ VolumeTreeAccessToken::~VolumeTreeAccessToken()
   token_.reset();
   if (grid) {
     /* Unload immediately when the value is not used anymore. However, the tree may still be cached
-     * at a deeper level and thus usually does not have to be loaded from disk again.*/
+     * at a deeper level and thus usually does not have to be loaded from disk again. */
     grid->unload_tree_if_possible();
   }
 }

@@ -419,7 +419,7 @@ static void test_eevee_lib()
   gpu_shader_lib_test("eevee_occupancy_test.glsl");
   gpu_shader_lib_test("eevee_horizon_scan_test.glsl");
 #ifndef __APPLE__ /* PSOs fail to compile on Mac. Try to port them to compute shader to see if it \
-                    fixes the issue.*/
+                   * fixes the issue. */
   gpu_shader_lib_test("eevee_gbuffer_normal_test.glsl", "eevee_shared");
   gpu_shader_lib_test("eevee_gbuffer_closure_test.glsl", "eevee_shared");
 #endif

@@ -293,21 +293,6 @@ EditBone *add_points_bone(Object *obedit, float head[3], float tail[3])
   return ebo;
 }
 
-static EditBone *get_named_editbone(ListBase *edbo, const char *name)
-{
-  if (!edbo || !name) {
-    return nullptr;
-  }
-
-  LISTBASE_FOREACH (EditBone *, eBone, edbo) {
-    if (STREQ(name, eBone->name)) {
-      return eBone;
-    }
-  }
-
-  return nullptr;
-}
-
 static void pre_edit_bone_duplicate(ListBase *editbones)
 {
   /* clear temp */
@@ -426,7 +411,12 @@ static void update_duplicate_subtarget(EditBone *dup_bone,
        * so, update the constraint to point at the
        * duplicate of the old subtarget.
        */
-      oldtarget = get_named_editbone(&target_armature->bonebase, ct->subtarget);
+
+      /* TODO: support updating sub-targets for multi-object edit mode.
+       * This requires all objects bones to be duplicated before this runs. */
+      oldtarget = (ob == target_ob) ?
+                      ED_armature_ebone_find_name(target_armature->edbo, ct->subtarget) :
+                      nullptr;
       if (oldtarget && oldtarget->temp.ebone) {
         newtarget = oldtarget->temp.ebone;
         STRNCPY(ct->subtarget, newtarget->name);

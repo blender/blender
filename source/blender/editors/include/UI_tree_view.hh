@@ -113,7 +113,8 @@ using TreeViewOrItem = TreeViewItemContainer;
 
 class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
   /* Shared pointer so the pointer can be kept persistent over redraws. The grip button gets a
-   * pointer to modify the value on resizing, and it uses it to identify the button over redraws.*/
+   * pointer to modify the value on resizing, and it uses it to identify the button over redraws.
+   */
   /* TODO support region zoom. */
   std::shared_ptr<int> custom_height_ = nullptr;
   std::shared_ptr<int> scroll_value_ = nullptr;

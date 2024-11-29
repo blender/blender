@@ -45,11 +45,7 @@ class Grid : Overlay {
   int zneg_flag_ = int(0);
   int zpos_flag_ = int(0);
 
-  const ShapeCache &shapes_;
-
  public:
-  Grid(const ShapeCache &shapes) : shapes_(shapes){};
-
   void begin_sync(Resources &res, const State &state) final
   {
     is_space_image_ = state.is_space_image();
@@ -75,7 +71,7 @@ class Grid : Overlay {
       sub.push_constant("ucolor", color_back);
       sub.push_constant("tile_scale", float3(data_.size));
       sub.bind_texture("depthBuffer", depth_tx);
-      sub.draw(shapes_.quad_solid.get());
+      sub.draw(res.shapes.quad_solid.get());
     }
     {
       auto &sub = grid_ps_.sub("grid");
@@ -86,17 +82,17 @@ class Grid : Overlay {
       if (zneg_flag_ & SHOW_AXIS_Z) {
         sub.push_constant("grid_flag", &zneg_flag_);
         sub.push_constant("plane_axes", &zplane_axes_);
-        sub.draw(shapes_.grid.get());
+        sub.draw(res.shapes.grid.get());
       }
       if (grid_flag_) {
         sub.push_constant("grid_flag", &grid_flag_);
         sub.push_constant("plane_axes", &grid_axes_);
-        sub.draw(shapes_.grid.get());
+        sub.draw(res.shapes.grid.get());
       }
       if (zpos_flag_ & SHOW_AXIS_Z) {
         sub.push_constant("grid_flag", &zpos_flag_);
         sub.push_constant("plane_axes", &zplane_axes_);
-        sub.draw(shapes_.grid.get());
+        sub.draw(res.shapes.grid.get());
       }
     }
     if (state.is_space_image()) {
@@ -116,7 +112,7 @@ class Grid : Overlay {
       }
       tile_pos_buf_.push_update();
       sub.bind_ssbo("tile_pos_buf", &tile_pos_buf_);
-      sub.draw(shapes_.quad_wire.get(), tile_pos_buf_.size());
+      sub.draw(res.shapes.quad_wire.get(), tile_pos_buf_.size());
     }
   }
 

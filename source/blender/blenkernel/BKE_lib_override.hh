@@ -543,30 +543,3 @@ bool BKE_lib_override_library_id_is_user_deletable(Main *bmain, ID *id);
  * Debugging helper to show content of given liboverride data.
  */
 void BKE_lib_override_debug_print(IDOverrideLibrary *liboverride, const char *intro_txt);
-
-/* Storage (.blend file writing) part. */
-
-/* For now, we just use a temp main list. */
-using OverrideLibraryStorage = Main;
-
-/**
- * Initialize an override storage.
- */
-OverrideLibraryStorage *BKE_lib_override_library_operations_store_init();
-/**
- * Generate suitable 'write' data (this only affects differential override operations).
- *
- * Note that \a local ID is no more modified by this call,
- * all extra data are stored in its temp \a storage_id copy.
- */
-ID *BKE_lib_override_library_operations_store_start(Main *bmain,
-                                                    OverrideLibraryStorage *liboverride_storage,
-                                                    ID *local);
-/**
- * Restore given ID modified by #BKE_lib_override_library_operations_store_start, to its
- * original state.
- */
-void BKE_lib_override_library_operations_store_end(OverrideLibraryStorage *liboverride_storage,
-                                                   ID *local);
-void BKE_lib_override_library_operations_store_finalize(
-    OverrideLibraryStorage *liboverride_storage);

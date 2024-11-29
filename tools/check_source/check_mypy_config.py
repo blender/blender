@@ -9,6 +9,8 @@ from typing import (
 
 # Notes:
 # - Most tests in `tests/python` use `bpy` enough that it's simpler to list the scripts that *are* type checked.
+# - References individual files which are also included in a directory are supported
+#   without checking those files twice. This is needed to allow those files to use their own settings.
 PATHS: tuple[tuple[str, tuple[Any, ...], dict[str, str]], ...] = (
     ("build_files/cmake/", (), {'MYPYPATH': "modules"}),
     ("build_files/utils/", (), {'MYPYPATH': "modules"}),
@@ -23,6 +25,7 @@ PATHS: tuple[tuple[str, tuple[Any, ...], dict[str, str]], ...] = (
     ("tools/check_blender_release/", (), {}),
     ("tools/check_docs/", (), {}),
     ("tools/check_source/", (), {'MYPYPATH': "modules"}),
+    ("tools/check_source/check_unused_defines.py", (), {'MYPYPATH': "../utils_maintenance/modules"}),
     ("tools/config/", (), {}),
     ("tools/triage/", (), {}),
     ("tools/utils/", (), {}),
@@ -56,7 +59,6 @@ PATHS_EXCLUDE = set(
         "tools/check_blender_release/scripts/requests_basic_access.py",
         "tools/check_blender_release/scripts/requests_import.py",
         "tools/check_source/check_descriptions.py",
-        "tools/check_source/check_unused_defines.py",
         "tools/utils/blend2json.py",
         "tools/utils/blender_keyconfig_export_permutations.py",
         "tools/utils/blender_merge_format_changes.py",

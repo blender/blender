@@ -155,7 +155,7 @@ void VKScheduler::move_transfer_and_dispatch_outside_rendering_scope(
       }
 
       /* Any read/write to buffer resources should be added to used_buffers in order to detect if
-       * it is safe to move a node before the rendering scope.*/
+       * it is safe to move a node before the rendering scope. */
       const VKRenderGraphNodeLinks &links = render_graph.links_[node_handle];
       for (const VKRenderGraphLink &input : links.inputs) {
         if (render_graph.resources_.resource_type_get(input.resource.handle) ==

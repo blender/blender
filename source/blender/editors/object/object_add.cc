@@ -2721,13 +2721,6 @@ static const EnumPropertyItem convert_target_items[] = {
 #else
      "Mesh from Curve, Surface, Metaball, or Text objects"},
 #endif
-#if 0
-    {OB_GPENCIL_LEGACY,
-     "GPENCIL",
-     ICON_OUTLINER_OB_GREASEPENCIL,
-     "Grease Pencil",
-     "Grease Pencil from Curve or Mesh objects"},
-#endif
 #ifdef WITH_POINT_CLOUD
     {OB_POINTCLOUD,
      "POINTCLOUD",
@@ -2966,10 +2959,6 @@ static int object_convert_exec(bContext *C, wmOperator *op)
          * would keep modifiers on all but the converted object #26003. */
         if (ob->type == OB_MESH) {
           BKE_object_free_modifiers(ob, 0); /* after derivedmesh calls! */
-        }
-        if (ob->type == OB_GPENCIL_LEGACY) {
-          BKE_object_free_modifiers(ob, 0); /* after derivedmesh calls! */
-          BKE_object_free_shaderfx(ob, 0);
         }
       }
     }
@@ -4255,14 +4244,7 @@ static bool object_join_poll(bContext *C)
     return false;
   }
 
-  if (ELEM(ob->type,
-           OB_MESH,
-           OB_CURVES_LEGACY,
-           OB_SURF,
-           OB_ARMATURE,
-           OB_GPENCIL_LEGACY,
-           OB_GREASE_PENCIL))
-  {
+  if (ELEM(ob->type, OB_MESH, OB_CURVES_LEGACY, OB_SURF, OB_ARMATURE, OB_GREASE_PENCIL)) {
     return true;
   }
   return false;

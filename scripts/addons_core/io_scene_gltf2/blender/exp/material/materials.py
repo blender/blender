@@ -183,7 +183,6 @@ def gather_material(blender_material, export_settings):
         export_settings['KHR_animation_pointer']['materials'][id(blender_material)] = {}
         export_settings['KHR_animation_pointer']['materials'][id(
             blender_material)]['paths'] = export_settings['current_paths'].copy()
-        export_settings['KHR_animation_pointer']['materials'][id(blender_material)]['glTF_material'] = material
 
     export_settings['current_paths'] = {}
 
@@ -518,7 +517,6 @@ def __export_unlit(blender_material, export_settings):
         export_settings['KHR_animation_pointer']['materials'][id(blender_material)] = {}
         export_settings['KHR_animation_pointer']['materials'][id(
             blender_material)]['paths'] = export_settings['current_paths'].copy()
-        export_settings['KHR_animation_pointer']['materials'][id(blender_material)]['glTF_material'] = material
 
     export_settings['current_paths'] = {}
 
@@ -579,6 +577,10 @@ def get_final_material(mesh, blender_material, attr_indices, base_material, uvma
     caching_indices = tuple(caching_indices)
 
     material = __get_final_material_with_indices(blender_material, base_material, caching_indices, export_settings)
+
+    # We need to set the material paths info with the real final material (material with all texCoord, etc.. set)
+    if id(blender_material) in export_settings['KHR_animation_pointer']['materials']:
+        export_settings['KHR_animation_pointer']['materials'][id(blender_material)]['glTF_material'] = material
 
     return material
 

@@ -58,7 +58,8 @@ void main()
 {
   /* Normal and Incident vector are in view-space. Lighting is evaluated in view-space. */
   vec2 uv_viewport = gl_FragCoord.xy * world_data.viewport_size_inv;
-  vec3 I = normalize(drw_point_screen_to_view(vec3(uv_viewport, 0.5)));
+  vec3 vP = drw_point_screen_to_view(vec3(uv_viewport, 0.5));
+  vec3 I = drw_view_incident_vector(vP);
   vec3 N = normalize(normal_interp);
 
   vec3 color = color_interp;

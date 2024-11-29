@@ -135,8 +135,8 @@ void cache_init(bContext *C,
                 float start_strength)
 {
   SculptSession &ss = *ob.sculpt;
-  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
 
   ss.filter_cache = MEM_new<filter::Cache>(__func__);
   ss.filter_cache->start_filter_strength = start_strength;

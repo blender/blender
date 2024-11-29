@@ -86,7 +86,7 @@ class Metaballs : Overlay {
     }
   }
 
-  void end_sync(Resources &res, const ShapeCache &shapes, const State &state) final
+  void end_sync(Resources &res, const State &state) final
   {
     ps_.init();
     ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL,
@@ -97,7 +97,7 @@ class Metaballs : Overlay {
     ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
     res.select_bind(ps_);
 
-    circle_buf_.end_sync(ps_, shapes.metaball_wire_circle.get());
+    circle_buf_.end_sync(ps_, res.shapes.metaball_wire_circle.get());
   }
 
   void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final

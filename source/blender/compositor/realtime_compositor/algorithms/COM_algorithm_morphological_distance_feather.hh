@@ -16,7 +16,10 @@ namespace blender::realtime_compositor {
  * the given distance parameter. A positive distance corresponds to a dilate operator, while a
  * negative distance corresponds to an erode operator. See the implementation and shader for more
  * information. */
-void morphological_distance_feather(
-    Context &context, Result &input, Result &output, int distance, int falloff_type = PROP_SMOOTH);
+void morphological_distance_feather(Context &context,
+                                    const Result &input,
+                                    Result &output,
+                                    const int distance,
+                                    const int falloff_type = PROP_SMOOTH);
 
 }  // namespace blender::realtime_compositor

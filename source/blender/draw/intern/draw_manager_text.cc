@@ -267,7 +267,13 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
    */
   const short txt_flag = DRW_TEXT_CACHE_GLOBALSPACE;
   const Mesh *mesh = BKE_object_get_editmesh_eval_cage(ob);
+  if (!mesh) {
+    return;
+  }
   const BMEditMesh *em = mesh->runtime->edit_mesh.get();
+  if (!BKE_editmesh_eval_orig_map_available(*mesh, BKE_object_get_pre_modified_mesh(ob))) {
+    return;
+  }
   char numstr[32];                      /* Stores the measurement display text here */
   const char *conv_float;               /* Use a float conversion matching the grid size */
   blender::uchar4 col = {0, 0, 0, 255}; /* color of the text to draw */

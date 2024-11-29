@@ -501,7 +501,7 @@ static void sequencer_main_clamp_view(const bContext *C, ARegion *region)
     /* Make sure that we can always scroll off at least by one channel. */
     bottom_channel_padding = 1.0f;
   }
-  /* Add the padding and make sure we have a margin of one channel in each direction.*/
+  /* Add the padding and make sure we have a margin of one channel in each direction. */
   strip_boundbox.ymax += 1.0f + pad_top * pixel_view_size_y;
   strip_boundbox.ymin -= bottom_channel_padding;
 

@@ -717,8 +717,7 @@ bool OptiXDevice::load_osl_kernels()
 
   struct OSLKernel {
     string ptx;
-    string init_entry;
-    string exec_entry;
+    string fused_entry;
   };
 
   /* This has to be in the same order as the ShaderType enum, so that the index calculation in
@@ -737,9 +736,8 @@ bool OptiXDevice::load_osl_kernels()
                                                      osl_globals.bump_state);
     for (const OSL::ShaderGroupRef &group : groups) {
       if (group) {
-        string osl_ptx, init_name, entry_name;
-        osl_globals.ss->getattribute(group.get(), "group_init_name", init_name);
-        osl_globals.ss->getattribute(group.get(), "group_entry_name", entry_name);
+        string osl_ptx, fused_name;
+        osl_globals.ss->getattribute(group.get(), "group_fused_name", fused_name);
         osl_globals.ss->getattribute(
             group.get(), "ptx_compiled_version", OSL::TypeDesc::PTR, &osl_ptx);
 
@@ -757,7 +755,7 @@ bool OptiXDevice::load_osl_kernels()
           return false;
         }
 
-        osl_kernels.push_back({std::move(osl_ptx), std::move(init_name), std::move(entry_name)});
+        osl_kernels.push_back({std::move(osl_ptx), std::move(fused_name)});
       }
       else {
         /* Add empty entry for non-existent shader groups, so that the index stays stable. */
@@ -795,7 +793,7 @@ bool OptiXDevice::load_osl_kernels()
   module_options.optLevel = OPTIX_COMPILE_OPTIMIZATION_LEVEL_3;
   module_options.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_NONE;
 
-  osl_groups.resize(osl_kernels.size() * 2 + 1);
+  osl_groups.resize(osl_kernels.size() + 1);
   osl_modules.resize(osl_kernels.size() + 1);
 
   { /* Load and compile PTX module with OSL services. */
@@ -900,21 +898,18 @@ bool OptiXDevice::load_osl_kernels()
 
     if (results[i] != OPTIX_SUCCESS) {
       set_error(string_printf("Failed to load OptiX OSL kernel for %s (%s)",
-                              osl_kernels[i].init_entry.c_str(),
+                              osl_kernels[i].fused_entry.c_str(),
                               optixGetErrorName(results[i])));
       return false;
     }
 
-    OptixProgramGroupDesc group_descs[2] = {};
-    group_descs[0].kind = OPTIX_PROGRAM_GROUP_KIND_CALLABLES;
-    group_descs[0].callables.entryFunctionNameDC = osl_kernels[i].init_entry.c_str();
-    group_descs[0].callables.moduleDC = osl_modules[i];
-    group_descs[1].kind = OPTIX_PROGRAM_GROUP_KIND_CALLABLES;
-    group_descs[1].callables.entryFunctionNameDC = osl_kernels[i].exec_entry.c_str();
-    group_descs[1].callables.moduleDC = osl_modules[i];
+    OptixProgramGroupDesc group_desc = {};
+    group_desc.kind = OPTIX_PROGRAM_GROUP_KIND_CALLABLES;
+    group_desc.callables.entryFunctionNameDC = osl_kernels[i].fused_entry.c_str();
+    group_desc.callables.moduleDC = osl_modules[i];
 
     optix_assert(optixProgramGroupCreate(
-        context, group_descs, 2, &group_options, nullptr, 0, &osl_groups[i * 2]));
+        context, &group_desc, 1, &group_options, nullptr, 0, &osl_groups[i]));
   }
 
   /* Update SBT with new entries. */

@@ -507,14 +507,20 @@ class VExportTree:
         else:
             return self.nodes[uuid].all_bones
 
-    def get_root_bones_uuid(self, uuid):  # For armature only
+    def get_root_bones_uuid(self, uuid, cache=True):  # For armature only
         if not hasattr(self.nodes[uuid], "root_bones_uuid"):
             if self.nodes[uuid].blender_type == VExportNode.ARMATURE:
                 all_armature_children = self.nodes[uuid].children
-                self.nodes[uuid].root_bones_uuid = [
+                root_bones_uuid = [
                     c for c in all_armature_children if self.nodes[c].blender_type == VExportNode.BONE]
-                # Not really needed to return, we are just baking it before export really starts
-                return self.nodes[uuid].root_bones_uuid
+                if self.export_settings['gltf_def_bones'] is True:
+                    root_bones_uuid = [
+                        c for c in root_bones_uuid if self.nodes[c].use_deform is True]
+                if cache:
+                    self.nodes[uuid].root_bones_uuid = root_bones_uuid
+                # in case of caching (first call), we return the value even if not needed
+                # (because we call the function only to cache the value)
+                return root_bones_uuid
             else:
                 self.nodes[uuid].root_bones_uuid = []
                 return []
@@ -910,7 +916,8 @@ class VExportTree:
         # If is impossible to remove it if armature has multiple root bones. (glTF validator error)
         # Currently, we manage it at export level, not at each armature level
         for arma_uuid in [n for n in self.nodes.keys() if self.nodes[n].blender_type == VExportNode.ARMATURE]:
-            if len(self.get_root_bones_uuid(arma_uuid)) > 1:
+            # Do not cache bones here, as we will filter them later, so the cache will be wrong
+            if len(self.get_root_bones_uuid(arma_uuid, cache=False)) > 1:
                 # We can't remove armature
                 self.export_settings['gltf_armature_object_remove'] = False
                 self.export_settings['log'].warning(

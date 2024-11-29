@@ -366,7 +366,7 @@ static void color_balance_byte(const float cb_tab[3][CB_TABLE_SIZE],
   const uchar *mask_ptr = mask_rect;
 
   if (mask_ptr != nullptr) {
-    /* Mask is used.*/
+    /* Mask is used. */
     while (ptr < ptr_end) {
       float pix[4];
       straight_uchar_to_premul_float(pix, ptr);

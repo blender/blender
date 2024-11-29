@@ -96,7 +96,7 @@ void rebuild_slot_user_cache(Main &bmain)
     FOREACH_MAIN_LISTBASE_ID_BEGIN (ids_of_idtype, id) {
       BLI_assert(id_can_have_animdata(id));
 
-      /* Process the ID itself.*/
+      /* Process the ID itself. */
       if (!visit_id(id)) {
         continue;
       }

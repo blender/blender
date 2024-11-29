@@ -211,7 +211,6 @@ ABCAbstractWriter *ABCHierarchyIterator::create_data_writer_for_object_type(
     case OB_LIGHTPROBE:
     case OB_LATTICE:
     case OB_ARMATURE:
-    case OB_GPENCIL_LEGACY:
       return nullptr;
     case OB_TYPE_MAX:
       BLI_assert_msg(0, "OB_TYPE_MAX should not be used");

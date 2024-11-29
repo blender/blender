@@ -5059,16 +5059,11 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
 
   PointerRNA rnaptr_src = RNA_id_pointer_create(local);
   PointerRNA rnaptr_dst = RNA_id_pointer_create(tmp_id);
-  PointerRNA rnaptr_storage_stack, *rnaptr_storage = nullptr;
-  if (local->override_library->storage) {
-    rnaptr_storage_stack = RNA_id_pointer_create(local->override_library->storage);
-    rnaptr_storage = &rnaptr_storage_stack;
-  }
 
   RNA_struct_override_apply(bmain,
                             &rnaptr_dst,
                             &rnaptr_src,
-                            rnaptr_storage,
+                            nullptr,
                             local->override_library,
                             RNA_OVERRIDE_APPLY_FLAG_NOP);
 
@@ -5117,14 +5112,6 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
    * vs. override-added NLA tracks/strips), they need to be checked _after_ all overrides have been
    * applied. */
   BKE_animdata_liboverride_post_process(local);
-
-  if (local->override_library->storage) {
-    /* We know this data-block is not used anywhere besides local->override->storage. */
-    /* XXX For until we get fully shadow copies, we still need to ensure storage releases
-     *     its usage of any ID pointers it may have. */
-    BKE_id_free_ex(bmain, local->override_library->storage, LIB_ID_FREE_NO_UI_USER, true);
-    local->override_library->storage = nullptr;
-  }
 
   local->tag |= ID_TAG_LIBOVERRIDE_REFOK;
 
@@ -5216,113 +5203,4 @@ void BKE_lib_override_debug_print(IDOverrideLibrary *liboverride, const char *in
       std::cout << "\n";
     }
   }
-}
-
-/**
- * Storage (how to store overriding data into `.blend` files).
- *
- * Basically:
- * 1) Only 'differential' overrides needs special handling here. All others (replacing values or
- *    inserting/removing items from a collection) can be handled with simply storing current
- *    content of local data-block.
- * 2) We store the differential value into a second 'ghost' data-block, which is an empty ID of
- *    same type as the local one, where we only define values that need differential data.
- *
- * This avoids us having to modify 'real' data-block at write time (and restoring it afterwards),
- * which is inefficient, and potentially dangerous (in case of concurrent access...), while not
- * using much extra memory in typical cases.  It also ensures stored data-block always contains
- * exact same data as "desired" ones (kind of "baked" data-blocks).
- */
-
-OverrideLibraryStorage *BKE_lib_override_library_operations_store_init()
-{
-  return BKE_main_new();
-}
-
-ID *BKE_lib_override_library_operations_store_start(Main *bmain,
-                                                    OverrideLibraryStorage *liboverride_storage,
-                                                    ID *local)
-{
-  if (ID_IS_OVERRIDE_LIBRARY_VIRTUAL(local)) {
-    /* This is actually one of these embedded IDs (root node trees, master collections or
-     * shape-keys) that cannot have their own override. Nothing to do here! */
-    return nullptr;
-  }
-
-  BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(local));
-  BLI_assert(liboverride_storage != nullptr);
-  UNUSED_VARS_NDEBUG(liboverride_storage);
-
-  /* Forcefully ensure we know about all needed override operations. */
-  BKE_lib_override_library_operations_create(bmain, local, nullptr);
-
-  ID *storage_id;
-#ifdef DEBUG_OVERRIDE_TIMEIT
-  TIMEIT_START_AVERAGED(BKE_lib_override_library_operations_store_start);
-#endif
-
-  /* This is fully disabled for now, as it generated very hard to solve issues with Collections and
-   * how they reference each-other in their parents/children relations.
-   * Core of the issue is creating and storing those copies in a separate Main, while collection
-   * copy code re-assign blindly parents/children, even if they do not belong to the same Main.
-   * One solution could be to implement special flag as discussed below, and prevent any
-   * other-ID-reference creation/update in that case (since no differential operation is expected
-   * to involve those anyway). */
-#if 0
-  /* XXX TODO: We may also want a specialized handling of things here too, to avoid copying heavy
-   * never-overridable data (like Mesh geometry etc.)? And also maybe avoid lib
-   * reference-counting completely (shallow copy). */
-  /* This would imply change in handling of user-count all over RNA
-   * (and possibly all over Blender code).
-   * Not impossible to do, but would rather see first is extra useless usual user handling is
-   * actually a (performances) issue here, before doing it. */
-  storage_id = BKE_id_copy(reinterpret_cast<Main *>(liboverride_storage), local);
-
-  if (storage_id != nullptr) {
-    PointerRNA rnaptr_reference = RNA_id_pointer_create(local->override_library->reference);
-   PointerRNA rnaptr_final = RNA_id_pointer_create(local);
-   PointerRNA rnaptr_storage = RNA_id_pointer_create(storage_id);
-
-    if (!RNA_struct_override_store(
-            bmain, &rnaptr_final, &rnaptr_reference, &rnaptr_storage, local->override_library))
-    {
-      BKE_id_free_ex(override_storage, storage_id, LIB_ID_FREE_NO_UI_USER, true);
-      storage_id = nullptr;
-    }
-  }
-#else
-  storage_id = nullptr;
-#endif
-
-  local->override_library->storage = storage_id;
-
-#ifdef DEBUG_OVERRIDE_TIMEIT
-  TIMEIT_END_AVERAGED(BKE_lib_override_library_operations_store_start);
-#endif
-  return storage_id;
-}
-
-void BKE_lib_override_library_operations_store_end(
-    OverrideLibraryStorage * /*liboverride_storage*/, ID *local)
-{
-  BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(local));
-
-  /* Nothing else to do here really, we need to keep all temp override storage data-blocks in
-   * memory until whole file is written anyway (otherwise we'd get mem pointers overlap). */
-  local->override_library->storage = nullptr;
-}
-
-void BKE_lib_override_library_operations_store_finalize(
-    OverrideLibraryStorage *liboverride_storage)
-{
-  /* We cannot just call BKE_main_free(override_storage), not until we have option to make
-   * 'ghost' copies of IDs without increasing user-count of used data-blocks. */
-  ID *id;
-
-  FOREACH_MAIN_ID_BEGIN (liboverride_storage, id) {
-    BKE_id_free_ex(liboverride_storage, id, LIB_ID_FREE_NO_UI_USER, true);
-  }
-  FOREACH_MAIN_ID_END;
-
-  BKE_main_free(liboverride_storage);
 }

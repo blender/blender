@@ -2981,9 +2981,7 @@ static void update_paint_modes_for_brush_assets(Main &bmain)
   /* Replace persistent tool references with the new single builtin brush tool. */
   LISTBASE_FOREACH (WorkSpace *, workspace, &bmain.workspaces) {
     LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
-      if (STREQ(tref->idname, "builtin_brush.Draw")) {
-        /* Explicitly check against the old brush name, as the old texture paint image mode brush
-         * tool has a non-paint related mode. */
+      if (tref->space_type == SPACE_IMAGE && tref->mode == SI_MODE_PAINT) {
         STRNCPY(tref->idname, "builtin.brush");
         continue;
       }
@@ -3618,7 +3616,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 22)) {
     /* Initialize root panel flags in files created before these flags were added. */
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-      ntree->tree_interface.root_panel.flag |= NODE_INTERFACE_PANEL_ALLOW_CHILD_PANELS;
+      ntree->tree_interface.root_panel.flag |= NODE_INTERFACE_PANEL_ALLOW_CHILD_PANELS_LEGACY;
     }
     FOREACH_NODETREE_END;
   }

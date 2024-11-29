@@ -64,6 +64,10 @@ class Shader {
     bool is_dirty;
   } constants;
 
+  /* WORKAROUND: True if this shader is a polyline shader and needs an appropriate setup to render.
+   * Eventually, in the future, we should modify the user code instead of relying on such hacks. */
+  bool is_polyline = false;
+
  protected:
   /** For debugging purpose. */
   char name[64];
@@ -184,7 +188,7 @@ class ShaderCompiler {
   virtual SpecializationBatchHandle precompile_specializations(
       Span<ShaderSpecialization> /*specializations*/)
   {
-    /* No-op.*/
+    /* No-op. */
     return 0;
   };
 

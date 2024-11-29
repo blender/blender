@@ -48,7 +48,7 @@ bool SEQ_disconnect(Sequence *seq)
       }
     }
   }
-  /* Now clear `connections` for `seq` itself.*/
+  /* Now clear `connections` for `seq` itself. */
   seq_connections_free(seq);
 
   return true;

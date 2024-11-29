@@ -498,6 +498,7 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
    * Can use argument buffers if a higher limit is required. */
   GCaps.max_shader_storage_buffer_bindings = 14;
   GCaps.max_storage_buffer_size = size_t(ctx->device.maxBufferLength);
+  GCaps.storage_buffer_alignment = 256; /* TODO(fclem): But also unused. */
 
   GCaps.max_work_group_count[0] = 65535;
   GCaps.max_work_group_count[1] = 65535;

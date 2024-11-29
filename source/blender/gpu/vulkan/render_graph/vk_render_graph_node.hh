@@ -86,7 +86,7 @@ struct VKRenderGraphNode {
   {
     BLI_assert(type == VKNodeType::UNUSED);
     /* Instance of NodeInfo is needed to call virtual methods. CPP doesn't support overloading of
-     * static methods.*/
+     * static methods. */
     NodeInfo node_info;
     type = NodeInfo::node_type;
     node_info.set_node_data(*this, create_info);
@@ -103,7 +103,7 @@ struct VKRenderGraphNode {
                    const typename NodeInfo::CreateInfo &create_info)
   {
     /* Instance of NodeInfo is needed to call virtual methods. CPP doesn't support overloading of
-     * static methods.*/
+     * static methods. */
     NodeInfo node_info;
     node_info.build_links(resources, node_links, create_info);
   }

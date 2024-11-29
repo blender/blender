@@ -196,7 +196,7 @@ class Bounds : Overlay {
     }
   }
 
-  void end_sync(Resources &res, const ShapeCache &shapes, const State &state) final
+  void end_sync(Resources &res, const State &state) final
   {
     ps_.init();
     ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL,
@@ -205,12 +205,12 @@ class Bounds : Overlay {
     ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
     res.select_bind(ps_);
 
-    call_buffers_.box.end_sync(ps_, shapes.cube.get());
-    call_buffers_.sphere.end_sync(ps_, shapes.empty_sphere.get());
-    call_buffers_.cylinder.end_sync(ps_, shapes.cylinder.get());
-    call_buffers_.cone.end_sync(ps_, shapes.empty_cone.get());
-    call_buffers_.capsule_body.end_sync(ps_, shapes.capsule_body.get());
-    call_buffers_.capsule_cap.end_sync(ps_, shapes.capsule_cap.get());
+    call_buffers_.box.end_sync(ps_, res.shapes.cube.get());
+    call_buffers_.sphere.end_sync(ps_, res.shapes.empty_sphere.get());
+    call_buffers_.cylinder.end_sync(ps_, res.shapes.cylinder.get());
+    call_buffers_.cone.end_sync(ps_, res.shapes.empty_cone.get());
+    call_buffers_.capsule_body.end_sync(ps_, res.shapes.capsule_body.get());
+    call_buffers_.capsule_cap.end_sync(ps_, res.shapes.capsule_cap.get());
   }
 
   void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final

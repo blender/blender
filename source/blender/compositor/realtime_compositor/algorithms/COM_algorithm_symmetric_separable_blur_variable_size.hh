@@ -24,10 +24,10 @@ namespace blender::realtime_compositor {
  * smooth radius field, the results can be visually pleasing, so this can be used a more performant
  * variable size blur if the quality is satisfactory. */
 void symmetric_separable_blur_variable_size(Context &context,
-                                            Result &input,
+                                            const Result &input,
+                                            const Result &radius,
                                             Result &output,
-                                            Result &radius,
-                                            int filter_type = R_FILTER_GAUSS,
-                                            int weights_resolution = 128);
+                                            const int weights_resolution = 128,
+                                            const int filter_type = R_FILTER_GAUSS);
 
 }  // namespace blender::realtime_compositor

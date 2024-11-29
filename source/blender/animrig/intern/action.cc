@@ -443,7 +443,7 @@ void Action::slot_identifier_propagate(Main &bmain, const Slot &slot)
       }
 
       /* Ensure the Slot identifier on the AnimData is correct. */
-      STRNCPY_UTF8(adt->slot_name, slot.identifier);
+      STRNCPY_UTF8(adt->last_slot_identifier, slot.identifier);
     }
     FOREACH_MAIN_LISTBASE_ID_END;
   }
@@ -574,8 +574,8 @@ Slot *Action::find_suitable_slot_for(const ID &animated_id)
   }
 
   /* Try the slot identifier from the AnimData, if it is set. */
-  if (adt && adt->slot_name[0]) {
-    Slot *slot = this->slot_find_by_identifier(adt->slot_name);
+  if (adt && adt->last_slot_identifier[0]) {
+    Slot *slot = this->slot_find_by_identifier(adt->last_slot_identifier);
     if (slot && slot->is_suitable_for(animated_id)) {
       return slot;
     }
@@ -1186,7 +1186,7 @@ bool assign_action(bAction *action, const OwnedAnimData owned_adt)
                                action,
                                owned_adt.adt.action,
                                owned_adt.adt.slot_handle,
-                               owned_adt.adt.slot_name);
+                               owned_adt.adt.last_slot_identifier);
 }
 
 bool assign_tmpaction(bAction *action, const OwnedAnimData owned_adt)
@@ -1195,7 +1195,7 @@ bool assign_tmpaction(bAction *action, const OwnedAnimData owned_adt)
                                action,
                                owned_adt.adt.tmpact,
                                owned_adt.adt.tmp_slot_handle,
-                               owned_adt.adt.tmp_slot_name);
+                               owned_adt.adt.tmp_last_slot_identifier);
 }
 
 bool unassign_action(ID &animated_id)
@@ -1226,8 +1226,8 @@ Slot *assign_action_ensure_slot_for_keying(Action &action, ID &animated_id)
     }
     else {
       /* Try the slot identifier from the AnimData, if it is set. */
-      if (adt && adt->slot_name[0]) {
-        slot = action.slot_find_by_identifier(adt->slot_name);
+      if (adt && adt->last_slot_identifier[0]) {
+        slot = action.slot_find_by_identifier(adt->last_slot_identifier);
       }
       else {
         /* Search for the ID name (which includes the ID type). */
@@ -1456,7 +1456,7 @@ ActionSlotAssignmentResult assign_action_slot(Slot *slot_to_assign, ID &animated
   }
 
   return generic_assign_action_slot(
-      slot_to_assign, animated_id, adt->action, adt->slot_handle, adt->slot_name);
+      slot_to_assign, animated_id, adt->action, adt->slot_handle, adt->last_slot_identifier);
 }
 
 ActionSlotAssignmentResult assign_action_and_slot(Action *action,
@@ -1480,7 +1480,7 @@ ActionSlotAssignmentResult assign_tmpaction_and_slot_handle(bAction *action,
                                            owned_adt.owner_id,
                                            owned_adt.adt.tmpact,
                                            owned_adt.adt.tmp_slot_handle,
-                                           owned_adt.adt.tmp_slot_name);
+                                           owned_adt.adt.tmp_last_slot_identifier);
 }
 
 Action *get_action(ID &animated_id)
@@ -2145,7 +2145,7 @@ bActionGroup &ChannelBag::channel_group_create(StringRefNull name)
    * Note that this only happens here (upon creation). The user can later rename
    * groups to have duplicate names. This is stupid, but it's how the legacy
    * system worked, and at the time of writing this code we're just trying to
-   * match that system's behavior, even when it's goofy.*/
+   * match that system's behavior, even when it's goofy. */
   std::string unique_name = BLI_uniquename_cb(
       [&](const StringRef name) {
         for (const bActionGroup *group : this->channel_groups()) {

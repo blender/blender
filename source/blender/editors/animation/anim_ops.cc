@@ -298,26 +298,6 @@ static bool need_extra_redraw_after_scrubbing_ends(bContext *C)
   if (scene->eevee.taa_samples != 1) {
     return true;
   }
-  wmWindowManager *wm = CTX_wm_manager(C);
-  Object *object = CTX_data_active_object(C);
-  if (object && object->type == OB_GPENCIL_LEGACY) {
-    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-      bScreen *screen = WM_window_get_active_screen(win);
-      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-        SpaceLink *sl = (SpaceLink *)area->spacedata.first;
-        if (sl->spacetype == SPACE_VIEW3D) {
-          View3D *v3d = (View3D *)sl;
-          if ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) {
-            if (v3d->gp_flag & V3D_GP_SHOW_ONION_SKIN) {
-              /* Grease pencil onion skin is not drawn during scrubbing. Redraw is necessary after
-               * scrubbing ends to show onion skin again. */
-              return true;
-            }
-          }
-        }
-      }
-    }
-  }
   return false;
 }
 

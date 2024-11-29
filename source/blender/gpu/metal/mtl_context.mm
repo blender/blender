@@ -246,14 +246,14 @@ MTLContext::MTLContext(void *ghost_window, void *ghost_context)
   MTLBackend::platform_init(this);
   MTLBackend::capabilities_init(this);
 
+  /* Ensure global memory manager is initialized. */
+  MTLContext::global_memory_manager_acquire_ref();
+  MTLContext::get_global_memory_manager()->init(this->device);
+
   /* Initialize Metal modules. */
   this->memory_manager.init();
   this->state_manager = new MTLStateManager(this);
   this->imm = new MTLImmediate(this);
-
-  /* Ensure global memory manager is initialized. */
-  MTLContext::global_memory_manager_acquire_ref();
-  MTLContext::get_global_memory_manager()->init(this->device);
 
   /* Initialize texture read/update structures. */
   this->get_texture_utils().init();

@@ -470,7 +470,10 @@ static proxy_output_ctx *alloc_proxy_output_ffmpeg(ImBufAnim *anim,
   }
 
   rv->of = avformat_alloc_context();
-  rv->of->oformat = av_guess_format("avi", nullptr, nullptr);
+  /* Note: we keep on using .avi extension for proxies,
+   * but actual container can not be AVI, since it does not support
+   * video rotation metadata. */
+  rv->of->oformat = av_guess_format("mp4", nullptr, nullptr);
 
   rv->of->url = av_strdup(filepath);
 
@@ -550,6 +553,8 @@ static proxy_output_ctx *alloc_proxy_output_ffmpeg(ImBufAnim *anim,
   rv->c->colorspace = codec_ctx->colorspace;
 
   avcodec_parameters_from_context(rv->st->codecpar, rv->c);
+
+  ffmpeg_copy_display_matrix(st, rv->st);
 
   int ret = avio_open(&rv->of->pb, filepath, AVIO_FLAG_WRITE);
 

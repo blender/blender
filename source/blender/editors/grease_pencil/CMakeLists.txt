@@ -15,6 +15,7 @@ set(INC
   ../../geometry
   ../sculpt_paint
   ../../modifiers/intern/lineart
+  ../../functions
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )

@@ -153,7 +153,7 @@ class Lights : Overlay {
     }
   }
 
-  void end_sync(Resources &res, const ShapeCache &shapes, const State &state) final
+  void end_sync(Resources &res, const State &state) final
   {
     if (!enabled_) {
       return;
@@ -171,7 +171,7 @@ class Lights : Overlay {
                              DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_FRONT,
                          state.clipping_plane_count);
       sub_pass.shader_set(res.shaders.light_spot_cone.get());
-      call_buffers_.spot_cone_front_buf.end_sync(sub_pass, shapes.light_spot_volume.get());
+      call_buffers_.spot_cone_front_buf.end_sync(sub_pass, res.shapes.light_spot_volume.get());
     }
     {
       PassSimple::Sub &sub_pass = ps_.sub("spot_cone_back");
@@ -179,26 +179,26 @@ class Lights : Overlay {
                              DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK,
                          state.clipping_plane_count);
       sub_pass.shader_set(res.shaders.light_spot_cone.get());
-      call_buffers_.spot_cone_back_buf.end_sync(sub_pass, shapes.light_spot_volume.get());
+      call_buffers_.spot_cone_back_buf.end_sync(sub_pass, res.shapes.light_spot_volume.get());
     }
     {
       PassSimple::Sub &sub_pass = ps_.sub("light_shapes");
       sub_pass.state_set(pass_state, state.clipping_plane_count);
       sub_pass.shader_set(res.shaders.extra_shape.get());
-      call_buffers_.icon_inner_buf.end_sync(sub_pass, shapes.light_icon_outer_lines.get());
-      call_buffers_.icon_outer_buf.end_sync(sub_pass, shapes.light_icon_inner_lines.get());
-      call_buffers_.icon_sun_rays_buf.end_sync(sub_pass, shapes.light_icon_sun_rays.get());
-      call_buffers_.point_buf.end_sync(sub_pass, shapes.light_point_lines.get());
-      call_buffers_.sun_buf.end_sync(sub_pass, shapes.light_sun_lines.get());
-      call_buffers_.spot_buf.end_sync(sub_pass, shapes.light_spot_lines.get());
-      call_buffers_.area_disk_buf.end_sync(sub_pass, shapes.light_area_disk_lines.get());
-      call_buffers_.area_square_buf.end_sync(sub_pass, shapes.light_area_square_lines.get());
+      call_buffers_.icon_inner_buf.end_sync(sub_pass, res.shapes.light_icon_outer_lines.get());
+      call_buffers_.icon_outer_buf.end_sync(sub_pass, res.shapes.light_icon_inner_lines.get());
+      call_buffers_.icon_sun_rays_buf.end_sync(sub_pass, res.shapes.light_icon_sun_rays.get());
+      call_buffers_.point_buf.end_sync(sub_pass, res.shapes.light_point_lines.get());
+      call_buffers_.sun_buf.end_sync(sub_pass, res.shapes.light_sun_lines.get());
+      call_buffers_.spot_buf.end_sync(sub_pass, res.shapes.light_spot_lines.get());
+      call_buffers_.area_disk_buf.end_sync(sub_pass, res.shapes.light_area_disk_lines.get());
+      call_buffers_.area_square_buf.end_sync(sub_pass, res.shapes.light_area_square_lines.get());
     }
     {
       PassSimple::Sub &sub_pass = ps_.sub("ground_line");
       sub_pass.state_set(pass_state | DRW_STATE_BLEND_ALPHA, state.clipping_plane_count);
       sub_pass.shader_set(res.shaders.extra_ground_line.get());
-      call_buffers_.ground_line_buf.end_sync(sub_pass, shapes.ground_line.get());
+      call_buffers_.ground_line_buf.end_sync(sub_pass, res.shapes.ground_line.get());
     }
   }
 

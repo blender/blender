@@ -93,8 +93,9 @@ void VKCommandBuilder::build_node_group(VKRenderGraph &render_graph,
   for (NodeHandle node_handle : node_group) {
     VKRenderGraphNode &node = render_graph.nodes_[node_handle];
 #if 0
-    std::cout << "node_group: " << node_group.first() << "-" << node_group.last()
-              << ", node_handle: " << node_handle << ", node_type: " << node.type << "\n";
+    std::cout << "node_group=" << node_group.first() << "-" << node_group.last()
+              << ", node_handle=" << node_handle << ", node_type=" << node.type
+              << ", debug_group=" << render_graph.full_debug_group(node_handle) << "\n";
 #endif
 #if 0
     render_graph.debug_print(node_handle);
@@ -142,13 +143,15 @@ void VKCommandBuilder::build_node_group(VKRenderGraph &render_graph,
         is_rendering = true;
       }
     }
-#if 0
-    std::cout << "node_group: " << node_group.first() << "-" << node_group.last()
-              << ", node_handle: " << node_handle << ", node_type: " << node.type << "\n";
-#endif
     if (G.debug & G_DEBUG_GPU) {
       activate_debug_group(render_graph, command_buffer, node_handle);
     }
+#if 0
+    std::cout << "node_group=" << node_group.first() << "-" << node_group.last()
+              << ", node_handle=" << node_handle << ", node_type=" << node.type
+              << ", debug group=" << render_graph.full_debug_group(node_handle) << "\n";
+
+#endif
     node.build_commands(command_buffer, state_.active_pipelines);
 
     /* When layered image has different layouts we reset the layouts to
@@ -221,8 +224,9 @@ void VKCommandBuilder::activate_debug_group(VKRenderGraph &render_graph,
     VkDebugUtilsLabelEXT debug_utils_label = {};
     debug_utils_label.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
     for (int index : IndexRange(state_.debug_level, num_begins)) {
-      std::string group_name = render_graph.debug_.group_names[to_group[index]];
-      debug_utils_label.pLabelName = group_name.c_str();
+      const VKRenderGraph::DebugGroup &debug_group = render_graph.debug_.groups[to_group[index]];
+      debug_utils_label.pLabelName = debug_group.name.c_str();
+      copy_v4_v4(debug_utils_label.color, debug_group.color);
       command_buffer.begin_debug_utils_label(&debug_utils_label);
     }
   }
@@ -590,7 +594,7 @@ void VKCommandBuilder::layer_tracking_update(VkImage vk_image,
                      "We don't support that one layer transitions multiple times during a "
                      "rendering scope.");
       /* Early exit as layer is in correct layout. This is a normal case as we expect multiple draw
-       * commands to take place during a rendering scope with the same layer access.*/
+       * commands to take place during a rendering scope with the same layer access. */
       return;
     }
   }

@@ -144,7 +144,7 @@ def get_channel_groups(obj_uuid: str, blender_action: bpy.types.Action, export_s
                 target_property = fcurve.data_path
             target_data = targets_extra.get(target, {})
             target_data['type'] = type_
-            target_data['bone'] = target.name
+            target_data['bone'] = target.name if type_ == "BONE" else None
             target_data['obj_uuid'] = obj_uuid
             target_properties = target_data.get('properties', {})
             channels = target_properties.get(target_property, [])

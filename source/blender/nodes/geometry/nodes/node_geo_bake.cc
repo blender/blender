@@ -750,7 +750,7 @@ void draw_bake_button_row(const BakeDrawContext &ctx, uiLayout *layout, const bo
         }
       }
       else {
-        /* If the data is not yet baked, still show the icon based on the derived bake target.*/
+        /* If the data is not yet baked, still show the icon based on the derived bake target. */
         const int icon = ctx.bake_target == NODES_MODIFIER_BAKE_TARGET_DISK ? ICON_UGLYPACKAGE :
                                                                               ICON_PACKAGE;
         PointerRNA ptr;

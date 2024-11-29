@@ -41,8 +41,7 @@
 static bool modifier_ui_poll(const bContext *C, PanelType * /*pt*/)
 {
   Object *ob = blender::ed::object::context_active_object(C);
-
-  return (ob != nullptr) && (ob->type != OB_GPENCIL_LEGACY);
+  return ob != nullptr;
 }
 
 /* -------------------------------------------------------------------- */

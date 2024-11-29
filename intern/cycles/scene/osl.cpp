@@ -303,6 +303,14 @@ void OSLShaderManager::shading_system_init()
       ss->attribute("searchpath:shader", shader_path);
       ss->attribute("greedyjit", 1);
 
+      const char *groupdata_alloc_str = getenv("CYCLES_OSL_GROUPDATA_ALLOC");
+      if (groupdata_alloc_str) {
+        ss->attribute("max_optix_groupdata_alloc", atoi(groupdata_alloc_str));
+      }
+      else {
+        ss->attribute("max_optix_groupdata_alloc", 2048);
+      }
+
       VLOG_INFO << "Using shader search path: " << shader_path;
 
       /* our own ray types */

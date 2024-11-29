@@ -312,7 +312,7 @@ struct PaintOperationExecutor {
     settings_ = brush_->gpencil_settings;
 
     use_settings_random_ = (settings_->flag & GP_BRUSH_GROUP_RANDOM) != 0;
-    use_vertex_color_ = (scene_->toolsettings->gp_paint->mode == GPPAINT_FLAG_USE_VERTEXCOLOR);
+    use_vertex_color_ = brush_using_vertex_color(scene_->toolsettings->gp_paint, brush_);
     if (use_vertex_color_) {
       ColorGeometry4f color_base;
       srgb_to_linearrgb_v3_v3(color_base, brush_->rgb);
@@ -1440,7 +1440,7 @@ static void process_stroke_weights(const Scene &scene,
 
   const float4x4 matrix = postmat * math::invert(float4x4(channel->chan_mat)) * premat;
 
-  /* Update the position of the stroke to undo the movement caused by the modifier.*/
+  /* Update the position of the stroke to undo the movement caused by the modifier. */
   MutableSpan<float3> positions = curves.positions_for_write().slice(points);
   threading::parallel_for(positions.index_range(), 1024, [&](const IndexRange range) {
     for (float3 &position : positions.slice(range)) {

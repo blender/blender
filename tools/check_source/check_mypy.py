@@ -68,6 +68,10 @@ def main() -> None:
     # Fixed location, so change the current working directory doesn't create cache everywhere.
     cache_dir = os.path.join(os.getcwd(), ".mypy_cache")
 
+    # Allow files which are listed explicitly to override files that are included as part of a directory.
+    # Needed when files need their own arguments and/or environment.
+    files_explicitly_listed: set[str] = {f for f, _extra_args, _extra_env in PATHS}
+
     if os.path.samefile(sys.argv[-1], __file__):
         paths = path_expand_with_args(PATHS, is_source)
     else:
@@ -78,6 +82,8 @@ def main() -> None:
 
     for f, extra_args, extra_env in paths:
         if f in PATHS_EXCLUDE:
+            continue
+        if f in files_explicitly_listed:
             continue
 
         if not extra_args:

@@ -115,20 +115,23 @@ class BindSpaceStorageBuffers {
     VertexBuffer,
     IndexBuffer,
     StorageBuffer,
+    Buffer,
   };
   struct Elem {
     Type resource_type;
     void *resource;
+    VkDeviceSize offset;
   };
   Vector<Elem> bound_resources;
 
-  void bind(Type resource_type, void *resource, int binding)
+  void bind(Type resource_type, void *resource, int binding, VkDeviceSize offset)
   {
     if (bound_resources.size() <= binding) {
       bound_resources.resize(binding + 1);
     }
     bound_resources[binding].resource_type = resource_type;
     bound_resources[binding].resource = resource;
+    bound_resources[binding].offset = offset;
   }
 
   const Elem &get(int binding) const
@@ -142,6 +145,7 @@ class BindSpaceStorageBuffers {
       if (bound_resources[index].resource == resource) {
         bound_resources[index].resource = nullptr;
         bound_resources[index].resource_type = Type::Unused;
+        bound_resources[index].offset = 0u;
       }
     }
   }
@@ -234,7 +238,14 @@ class VKStateManager : public StateManager {
 
   void storage_buffer_bind(BindSpaceStorageBuffers::Type resource_type,
                            void *resource,
-                           int binding);
+                           int binding)
+  {
+    storage_buffer_bind(resource_type, resource, binding, 0u);
+  }
+  void storage_buffer_bind(BindSpaceStorageBuffers::Type resource_type,
+                           void *resource,
+                           int binding,
+                           VkDeviceSize offset);
   void storage_buffer_unbind(void *resource);
   void storage_buffer_unbind_all();
 

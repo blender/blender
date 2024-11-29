@@ -316,46 +316,6 @@ void ED_armature_bone_rename(Main *bmain,
         }
       }
 
-      /* fix grease pencil modifiers and vertex groups */
-      if (ob->type == OB_GPENCIL_LEGACY) {
-
-        bGPdata *gpd = (bGPdata *)ob->data;
-        LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-          if ((gpl->parent != nullptr) && (gpl->parent->data == arm)) {
-            if (STREQ(gpl->parsubstr, oldname)) {
-              STRNCPY(gpl->parsubstr, newname);
-            }
-          }
-        }
-
-        LISTBASE_FOREACH (GpencilModifierData *, gp_md, &ob->greasepencil_modifiers) {
-          switch (gp_md->type) {
-            case eGpencilModifierType_Armature: {
-              ArmatureGpencilModifierData *mmd = (ArmatureGpencilModifierData *)gp_md;
-              if (mmd->object && mmd->object->data == arm) {
-                bDeformGroup *dg = BKE_object_defgroup_find_name(ob, oldname);
-                if (dg) {
-                  STRNCPY(dg->name, newname);
-                  DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_GEOMETRY);
-                }
-              }
-              break;
-            }
-            case eGpencilModifierType_Hook: {
-              HookGpencilModifierData *hgp_md = (HookGpencilModifierData *)gp_md;
-              if (hgp_md->object && (hgp_md->object->data == arm)) {
-                if (STREQ(hgp_md->subtarget, oldname)) {
-                  STRNCPY(hgp_md->subtarget, newname);
-                }
-              }
-              break;
-            }
-            default:
-              break;
-          }
-        }
-      }
-
       if (ob->type == OB_GREASE_PENCIL) {
         using namespace blender;
         GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);

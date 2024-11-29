@@ -130,11 +130,8 @@ class Armatures : Overlay {
   BoneBuffers opaque_ = {selection_type_};
   BoneBuffers transparent_ = {selection_type_};
 
-  const ShapeCache &shapes_;
-
  public:
-  Armatures(const SelectionType selection_type, const ShapeCache &shapes)
-      : selection_type_(selection_type), shapes_(shapes){};
+  Armatures(const SelectionType selection_type) : selection_type_(selection_type){};
 
   void begin_sync(Resources &res, const State &state) final
   {
@@ -447,7 +444,6 @@ class Armatures : Overlay {
 
     Armatures::BoneBuffers *bone_buf = nullptr;
     Resources *res = nullptr;
-    const ShapeCache *shapes = nullptr;
 
     /* TODO: Legacy structures to be removed after overlay next is shipped. */
     DRWCallBuffer *outline = nullptr;
@@ -503,7 +499,6 @@ class Armatures : Overlay {
     ctx.ob = ob_ref.object;
     ctx.ob_ref = &ob_ref;
     ctx.res = &res;
-    ctx.shapes = &shapes_;
     ctx.draw_mode = draw_mode;
     ctx.drawtype = eArmature_Drawtype(arm->drawtype);
 
@@ -555,38 +550,38 @@ class Armatures : Overlay {
     draw_armature_pose(&ctx);
   }
 
-  void end_sync(Resources & /*res*/, const ShapeCache &shapes, const State & /*state*/) final
+  void end_sync(Resources &res, const State & /*state*/) final
   {
     if (!enabled_) {
       return;
     }
 
     auto end_sync = [&](BoneBuffers &bb) {
-      bb.sphere_fill_buf.end_sync(*bb.sphere_fill, shapes.bone_sphere.get());
-      bb.sphere_outline_buf.end_sync(*bb.sphere_outline, shapes.bone_sphere_wire.get());
+      bb.sphere_fill_buf.end_sync(*bb.sphere_fill, res.shapes.bone_sphere.get());
+      bb.sphere_outline_buf.end_sync(*bb.sphere_outline, res.shapes.bone_sphere_wire.get());
 
-      bb.octahedral_fill_buf.end_sync(*bb.shape_fill, shapes.bone_octahedron.get());
+      bb.octahedral_fill_buf.end_sync(*bb.shape_fill, res.shapes.bone_octahedron.get());
       bb.octahedral_outline_buf.end_sync(
-          *bb.shape_outline, shapes.bone_octahedron_wire.get(), GPU_PRIM_LINES, 1);
+          *bb.shape_outline, res.shapes.bone_octahedron_wire.get(), GPU_PRIM_LINES, 1);
 
-      bb.bbones_fill_buf.end_sync(*bb.shape_fill, shapes.bone_box.get());
+      bb.bbones_fill_buf.end_sync(*bb.shape_fill, res.shapes.bone_box.get());
       bb.bbones_outline_buf.end_sync(
-          *bb.shape_outline, shapes.bone_box_wire.get(), GPU_PRIM_LINES, 1);
+          *bb.shape_outline, res.shapes.bone_box_wire.get(), GPU_PRIM_LINES, 1);
 
-      bb.envelope_fill_buf.end_sync(*bb.envelope_fill, shapes.bone_envelope.get());
-      bb.envelope_outline_buf.end_sync(*bb.envelope_outline, shapes.bone_envelope_wire.get());
-      bb.envelope_distance_buf.end_sync(*bb.envelope_distance, shapes.bone_envelope.get());
+      bb.envelope_fill_buf.end_sync(*bb.envelope_fill, res.shapes.bone_envelope.get());
+      bb.envelope_outline_buf.end_sync(*bb.envelope_outline, res.shapes.bone_envelope_wire.get());
+      bb.envelope_distance_buf.end_sync(*bb.envelope_distance, res.shapes.bone_envelope.get());
 
-      bb.stick_buf.end_sync(*bb.stick, shapes.bone_stick.get());
+      bb.stick_buf.end_sync(*bb.stick, res.shapes.bone_stick.get());
 
       bb.wire_buf.end_sync(*bb.wire);
 
-      bb.arrows_buf.end_sync(*bb.arrows, shapes.arrows.get());
+      bb.arrows_buf.end_sync(*bb.arrows, res.shapes.arrows.get());
 
       bb.degrees_of_freedom_fill_buf.end_sync(*bb.degrees_of_freedom_fill,
-                                              shapes.bone_degrees_of_freedom.get());
+                                              res.shapes.bone_degrees_of_freedom.get());
       bb.degrees_of_freedom_wire_buf.end_sync(*bb.degrees_of_freedom_wire,
-                                              shapes.bone_degrees_of_freedom_wire.get());
+                                              res.shapes.bone_degrees_of_freedom_wire.get());
 
       bb.relations_buf.end_sync(*bb.relations);
 
@@ -624,7 +619,7 @@ class Armatures : Overlay {
 
   static bool is_pose_mode(const Object *armature_ob, const State &state)
   {
-    Object *active_ob = state.active_base->object;
+    const Object *active_ob = state.object_active;
 
     /* Armature is in pose mode. */
     if (((armature_ob == active_ob) || (armature_ob->mode & OB_MODE_POSE)) &&
@@ -635,7 +630,7 @@ class Armatures : Overlay {
 
     /* Active object is in weight paint and the associated armature is in pose mode. */
     if ((active_ob != nullptr) && (state.object_mode & OB_MODE_ALL_WEIGHT_PAINT)) {
-      if (armature_ob == BKE_object_pose_armature_get(active_ob)) {
+      if (armature_ob == BKE_object_pose_armature_get(const_cast<Object *>(active_ob))) {
         return true;
       }
     }

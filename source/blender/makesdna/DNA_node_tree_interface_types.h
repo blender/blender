@@ -114,8 +114,8 @@ typedef struct bNodeTreeInterfaceSocket {
 typedef enum NodeTreeInterfacePanelFlag {
   /* Panel starts closed on new node instances. */
   NODE_INTERFACE_PANEL_DEFAULT_CLOSED = 1 << 0,
-  /* Allow child panels inside this panel. */
-  NODE_INTERFACE_PANEL_ALLOW_CHILD_PANELS = 1 << 1,
+  /* In the past, not all panels allowed child panels. Now all allow them. */
+  NODE_INTERFACE_PANEL_ALLOW_CHILD_PANELS_LEGACY = 1 << 1,
   /* Allow adding sockets after panels. */
   NODE_INTERFACE_PANEL_ALLOW_SOCKETS_AFTER_PANELS = 1 << 2,
 } NodeTreeInterfacePanelFlag;

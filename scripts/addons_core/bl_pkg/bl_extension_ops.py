@@ -945,11 +945,18 @@ def _extensions_wheel_filter_for_this_system(wheels):
     # it's highly doubtful users ever run into this but we could add extend this if it's really needed.
     # (e.g. `linux-i686` on 64 bit systems & `linux-armv7l`).
     import sysconfig
+
+    # When false, suppress printing for incompatible wheels.
+    # This generally isn't a problem as it's common for an extension to include wheels for multiple platforms.
+    # Printing is mainly useful when installation fails because none of the wheels are compatible.
+    debug = bpy.app.debug_python
+
     platform_tag_current = sysconfig.get_platform().replace("-", "_")
 
     import sys
     from .bl_extension_utils import (
         python_versions_from_wheel_python_tag,
+        python_versions_from_wheel_abi_tag,
     )
 
     python_version_current = sys.version_info[:2]
@@ -974,8 +981,8 @@ def _extensions_wheel_filter_for_this_system(wheels):
         if not (5 <= len(wheel_filename_split) <= 6):
             print("Error: wheel doesn't follow naming spec \"{:s}\"".format(wheel_filename))
             continue
-        # TODO: Match ABI tags.
-        python_tag, _abi_tag, platform_tag = wheel_filename_split[-3:]
+
+        python_tag, abi_tag, platform_tag = wheel_filename_split[-3:]
 
         # Perform Platform Checks.
         if platform_tag in {"any", platform_tag_current}:
@@ -998,12 +1005,12 @@ def _extensions_wheel_filter_for_this_system(wheels):
         ):
             pass
         else:
-            # Useful to know, can quiet print in the future.
-            print(
-                "Skipping wheel for other system",
-                "({:s} != {:s}):".format(platform_tag, platform_tag_current),
-                wheel_filename,
-            )
+            if debug:
+                print(
+                    "Skipping wheel for other system",
+                    "({:s} != {:s}):".format(platform_tag, platform_tag_current),
+                    wheel_filename,
+                )
             continue
 
         # Perform Python Version Checks.
@@ -1020,18 +1027,34 @@ def _extensions_wheel_filter_for_this_system(wheels):
                     if python_version_current == python_version:
                         python_version_is_compat = True
                         break
+
+                    # When there is a stable ABI: Allow an older Python wheel to be compatible
+                    # with a newer Python as long as the older wheel uses the stable ABI, see:
+                    # https://packaging.python.org/en/latest/specifications/platform-compatibility-tags/#abi-tag
+                    if isinstance(
+                            python_versions_stable_abi := python_versions_from_wheel_abi_tag(abi_tag, stable_only=True),
+                            str,
+                    ):
+                        print("Error: wheel \"{:s}\" unable to parse Python ABI version {:s}".format(
+                            wheel_filename, python_versions,
+                        ))
+                    elif (python_version_current[0],) in python_versions_stable_abi:
+                        if python_version_current >= python_version:
+                            python_version_is_compat = True
+                            break
+
             if not python_version_is_compat:
-                # Useful to know, can quiet print in the future.
-                print(
-                    "Skipping wheel for other Python version",
-                    "({:s}=>({:s}) not in {:d}.{:d}):".format(
-                        python_tag,
-                        ", ".join([".".join(str(i) for i in v) for v in python_versions]),
-                        python_version_current[0],
-                        python_version_current[1],
-                    ),
-                    wheel_filename,
-                )
+                if debug:
+                    print(
+                        "Skipping wheel for other Python version",
+                        "({:s}=>({:s}) not in {:d}.{:d}):".format(
+                            python_tag,
+                            ", ".join([".".join(str(i) for i in v) for v in python_versions]),
+                            python_version_current[0],
+                            python_version_current[1],
+                        ),
+                        wheel_filename,
+                    )
                 continue
 
         wheels_compatible.append(wheel)

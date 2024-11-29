@@ -7,6 +7,9 @@
  */
 
 #include "vk_render_graph.hh"
+#include "gpu_backend.hh"
+
+#include <sstream>
 
 namespace blender::gpu::render_graph {
 
@@ -102,9 +105,15 @@ void VKRenderGraph::wait_synchronization_event(VkFence vk_fence)
 /** \name Debug
  * \{ */
 
-void VKRenderGraph::debug_group_begin(const char *name)
+void VKRenderGraph::debug_group_begin(const char *name, const ColorTheme4f &color)
 {
-  DebugGroupNameID name_id = debug_.group_names.index_of_or_add(std::string(name));
+  ColorTheme4f useColor = color;
+  if ((color == blender::gpu::debug::GPU_DEBUG_GROUP_COLOR_DEFAULT) &&
+      (debug_.group_stack.size() > 0))
+  {
+    useColor = debug_.groups[debug_.group_stack.last()].color;
+  }
+  DebugGroupNameID name_id = debug_.groups.index_of_or_add({std::string(name), useColor});
   debug_.group_stack.append(name_id);
   debug_.group_used = false;
 }
@@ -135,6 +144,25 @@ void VKRenderGraph::debug_print(NodeHandle node_handle) const
     link.debug_print(os, resources_);
     os << "\n";
   }
+}
+
+std::string VKRenderGraph::full_debug_group(NodeHandle node_handle) const
+{
+  if ((G.debug & G_DEBUG_GPU) == 0) {
+    return std::string();
+  }
+
+  DebugGroupID debug_group = debug_.node_group_map[node_handle];
+  if (debug_group == -1) {
+    return std::string();
+  }
+
+  std::stringstream ss;
+  for (const VKRenderGraph::DebugGroupNameID &name_id : debug_.used_groups[debug_group]) {
+    ss << "/" << debug_.groups[name_id].name;
+  }
+
+  return ss.str();
 }
 
 /** \} */

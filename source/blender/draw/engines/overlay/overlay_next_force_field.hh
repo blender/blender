@@ -151,7 +151,7 @@ class ForceFields : Overlay {
     }
   }
 
-  void end_sync(Resources &res, const ShapeCache &shapes, const State &state) final
+  void end_sync(Resources &res, const State &state) final
   {
     ps_.init();
     res.select_bind(ps_);
@@ -160,13 +160,13 @@ class ForceFields : Overlay {
     ps_.shader_set(res.shaders.extra_shape.get());
     ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
 
-    call_buffers_.field_force_buf.end_sync(ps_, shapes.field_force.get());
-    call_buffers_.field_wind_buf.end_sync(ps_, shapes.field_wind.get());
-    call_buffers_.field_vortex_buf.end_sync(ps_, shapes.field_vortex.get());
-    call_buffers_.field_curve_buf.end_sync(ps_, shapes.field_curve.get());
-    call_buffers_.field_sphere_limit_buf.end_sync(ps_, shapes.field_sphere_limit.get());
-    call_buffers_.field_tube_limit_buf.end_sync(ps_, shapes.field_tube_limit.get());
-    call_buffers_.field_cone_limit_buf.end_sync(ps_, shapes.field_cone_limit.get());
+    call_buffers_.field_force_buf.end_sync(ps_, res.shapes.field_force.get());
+    call_buffers_.field_wind_buf.end_sync(ps_, res.shapes.field_wind.get());
+    call_buffers_.field_vortex_buf.end_sync(ps_, res.shapes.field_vortex.get());
+    call_buffers_.field_curve_buf.end_sync(ps_, res.shapes.field_curve.get());
+    call_buffers_.field_sphere_limit_buf.end_sync(ps_, res.shapes.field_sphere_limit.get());
+    call_buffers_.field_tube_limit_buf.end_sync(ps_, res.shapes.field_tube_limit.get());
+    call_buffers_.field_cone_limit_buf.end_sync(ps_, res.shapes.field_cone_limit.get());
   }
 
   void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final

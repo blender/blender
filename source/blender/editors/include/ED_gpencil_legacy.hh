@@ -81,11 +81,6 @@ struct tGPspoint {
 bGPdata **ED_gpencil_data_get_pointers(const bContext *C, PointerRNA *r_ptr);
 
 /**
- * Get the active Grease Pencil data-block
- */
-bGPdata *ED_gpencil_data_get_active(const bContext *C);
-
-/**
  * Context independent (i.e. each required part is passed in instead).
  *
  * Get pointer to active Grease Pencil data-block,
@@ -118,12 +113,6 @@ bGPdata **ED_annotation_data_get_pointers_direct(ID *screen_id,
  * Get the active Grease Pencil data-block, when context is not available.
  */
 bGPdata *ED_annotation_data_get_active_direct(ID *screen_id, ScrArea *area, Scene *scene);
-
-/**
- * Utility to check whether the r_ptr output of ED_gpencil_data_get_pointers()
- * is for annotation usage.
- */
-bool ED_gpencil_data_owner_is_annotation(PointerRNA *owner_ptr);
 
 /**
  * Check whether given stroke can be edited given the supplied context.

@@ -60,21 +60,29 @@ def gather_armature_sampled_channels(armature_uuid, blender_action_name,
             if channel is not None:
                 channels.append(channel)
 
+    bake_interpolation = get_gltf_interpolation("LINEAR")
     # Retrieve animation on armature object itself, if any
-    # If armature is baked (no animation of armature), need to use all channels
     if blender_action_name == armature_uuid or export_settings['gltf_animation_mode'] in ["SCENE", "NLA_TRACKS"]:
-        armature_channels = []
+        # If armature is baked (no animation of armature), need to use all channels
+        armature_channels = [
+            ["location", bake_interpolation],
+            ["rotation_quaternion", bake_interpolation],
+            ["scale", bake_interpolation]
+        ]
+        animated_channels = []
     else:
+        # The armature has some channel(s) animated, checking which one(s)
         armature_channels = __gather_armature_object_channel(
             armature_uuid, bpy.data.actions[blender_action_name], export_settings)
+        animated_channels = armature_channels
 
-    for p in ["location", "rotation_quaternion", "scale"]:
+    for (p, i) in armature_channels:
         armature_channel = gather_sampled_object_channel(
             armature_uuid,
             p,
             blender_action_name,
-            p in [a[0] for a in armature_channels],
-            [c[1] for c in armature_channels if c[0] == p][0] if p in [a[0] for a in armature_channels] else "LINEAR",
+            p in [a[0] for a in animated_channels],
+            [c[1] for c in animated_channels if c[0] == p][0] if p in [a[0] for a in animated_channels] else bake_interpolation,
             export_settings
         )
 

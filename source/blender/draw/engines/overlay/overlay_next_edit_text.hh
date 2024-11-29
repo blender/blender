@@ -57,7 +57,7 @@ class EditText : Overlay {
     add_boxes(res, cu, ob_ref.object->object_to_world());
   }
 
-  void end_sync(Resources &res, const ShapeCache &shapes, const State &state) final
+  void end_sync(Resources &res, const State &state) final
   {
     ps_.init();
     ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
@@ -78,7 +78,7 @@ class EditText : Overlay {
         auto &buf = text_selection_buf;
         buf.push_update();
         sub.bind_ssbo("matrix_buf", &buf);
-        sub.draw(shapes.quad_solid.get(), buf.size());
+        sub.draw(res.shapes.quad_solid.get(), buf.size());
       }
 
       /* Highlight text within selection boxes. */
@@ -95,7 +95,7 @@ class EditText : Overlay {
         auto &buf = text_selection_buf;
         buf.push_update();
         sub.bind_ssbo("matrix_buf", &buf);
-        sub.draw(shapes.quad_solid.get(), buf.size());
+        sub.draw(res.shapes.quad_solid.get(), buf.size());
       }
 
       /* Cursor (text caret). */
@@ -111,7 +111,7 @@ class EditText : Overlay {
         auto &buf = text_cursor_buf;
         buf.push_update();
         sub.bind_ssbo("matrix_buf", &buf);
-        sub.draw(shapes.quad_solid.get(), buf.size());
+        sub.draw(res.shapes.quad_solid.get(), buf.size());
       }
 
       /* Text boxes. */
