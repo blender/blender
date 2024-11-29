@@ -159,7 +159,7 @@ std::string VKRenderGraph::full_debug_group(NodeHandle node_handle) const
 
   std::stringstream ss;
   for (const VKRenderGraph::DebugGroupNameID &name_id : debug_.used_groups[debug_group]) {
-    ss << "/" << debug_.group_names[name_id];
+    ss << "/" << debug_.groups[name_id].name;
   }
 
   return ss.str();
