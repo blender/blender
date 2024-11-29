@@ -806,38 +806,43 @@ static void generate_strokes(ModifierData &md,
   /* Ensure we have a frame in the selected layer to put line art result in. */
   Layer &layer = node->as_layer();
 
-  Drawing &drawing = [&]() -> Drawing & {
-    if (Drawing *drawing = grease_pencil.get_editable_drawing_at(layer, current_frame)) {
-      return *drawing;
-    }
-    return *grease_pencil.insert_frame(layer, current_frame);
-  }();
-
   const float4x4 &mat = ctx.object->world_to_object();
 
-  MOD_lineart_gpencil_generate_v3(
-      lmd.cache,
-      mat,
-      ctx.depsgraph,
-      drawing,
-      lmd.source_type,
-      lmd.source_object,
-      lmd.source_collection,
-      lmd.level_start,
-      lmd.use_multiple_levels ? lmd.level_end : lmd.level_start,
-      lmd.target_material ? BKE_object_material_index_get(ctx.object, lmd.target_material) : 0,
-      lmd.edge_types,
-      lmd.mask_switches,
-      lmd.material_mask_bits,
-      lmd.intersection_mask,
-      float(lmd.thickness) / 1000.0f,
-      lmd.opacity,
-      lmd.shadow_selection,
-      lmd.silhouette_selection,
-      lmd.source_vertex_group,
-      lmd.vgname,
-      lmd.flags,
-      lmd.calculation_flags);
+  /* `drawing` can be nullptr if current frame is before any of the key frames, in which case no
+   * strokes are generated. We still allow cache operations to run at the end of this function
+   * because there might be other line art modifiers in the same stack. */
+  Drawing *drawing = [&]() -> Drawing * {
+    if (Drawing *drawing = grease_pencil.get_drawing_at(layer, current_frame)) {
+      return drawing;
+    }
+    return grease_pencil.insert_frame(layer, current_frame);
+  }();
+
+  if (drawing) {
+    MOD_lineart_gpencil_generate_v3(
+        lmd.cache,
+        mat,
+        ctx.depsgraph,
+        *drawing,
+        lmd.source_type,
+        lmd.source_object,
+        lmd.source_collection,
+        lmd.level_start,
+        lmd.use_multiple_levels ? lmd.level_end : lmd.level_start,
+        lmd.target_material ? BKE_object_material_index_get(ctx.object, lmd.target_material) : 0,
+        lmd.edge_types,
+        lmd.mask_switches,
+        lmd.material_mask_bits,
+        lmd.intersection_mask,
+        float(lmd.thickness) / 1000.0f,
+        lmd.opacity,
+        lmd.shadow_selection,
+        lmd.silhouette_selection,
+        lmd.source_vertex_group,
+        lmd.vgname,
+        lmd.flags,
+        lmd.calculation_flags);
+  }
 
   if ((!is_first_lineart) && (!use_cache)) {
     /* We only clear local cache, not global cache from the first line art modifier. */
