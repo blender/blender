@@ -15,7 +15,7 @@
 #include "image_engine.h"
 #include "image_private.hh"
 
-namespace blender::draw::image_engine {
+namespace blender::image_engine {
 
 struct IMAGE_Shaders {
   GPUShader *image_sh;
@@ -52,4 +52,4 @@ void IMAGE_shader_free()
   }
 }
 
-}  // namespace blender::draw::image_engine
+}  // namespace blender::image_engine

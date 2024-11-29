@@ -29,128 +29,44 @@
 
 #include "image_drawing_mode.hh"
 #include "image_engine.h"
+#include "image_instance.hh"
 #include "image_private.hh"
 #include "image_space_image.hh"
 #include "image_space_node.hh"
 
-namespace blender::draw::image_engine {
+namespace blender::image_engine {
 
-static std::unique_ptr<AbstractSpaceAccessor> space_accessor_from_context(
-    const DRWContextState *draw_ctx)
-{
-  const char space_type = draw_ctx->space_data->spacetype;
-  if (space_type == SPACE_IMAGE) {
-    return std::make_unique<SpaceImageAccessor>((SpaceImage *)draw_ctx->space_data);
-  }
-  if (space_type == SPACE_NODE) {
-    return std::make_unique<SpaceNodeAccessor>((SpaceNode *)draw_ctx->space_data);
-  }
-  BLI_assert_unreachable();
-  return nullptr;
-}
-
-template<
-    /** \brief Drawing mode to use.
-     *
-     * Useful during development to switch between drawing implementations.
-     */
-    typename DrawingMode = ScreenSpaceDrawingMode<OneTexture>>
-class ImageEngine {
- private:
-  const DRWContextState *draw_ctx;
-  IMAGE_Data *vedata;
-  std::unique_ptr<AbstractSpaceAccessor> space;
-  DrawingMode drawing_mode;
-
- public:
-  ImageEngine(const DRWContextState *draw_ctx, IMAGE_Data *vedata)
-      : draw_ctx(draw_ctx), vedata(vedata), space(space_accessor_from_context(draw_ctx))
-  {
-  }
-
-  virtual ~ImageEngine() = default;
-
-  void begin_sync()
-  {
-    IMAGE_InstanceData *instance_data = vedata->instance_data;
-    drawing_mode.begin_sync(vedata);
-
-    /* Setup full screen view matrix. */
-    const ARegion *region = draw_ctx->region;
-    float winmat[4][4], viewmat[4][4];
-    orthographic_m4(viewmat, 0.0, region->winx, 0.0, region->winy, 0.0, 1.0);
-    unit_m4(winmat);
-    instance_data->view = DRW_view_create(viewmat, winmat, nullptr, nullptr, nullptr);
-  }
-
-  void image_sync()
-  {
-    IMAGE_InstanceData *instance_data = vedata->instance_data;
-    Main *bmain = CTX_data_main(draw_ctx->evil_C);
-    instance_data->image = space->get_image(bmain);
-    if (instance_data->image == nullptr) {
-      /* Early exit, nothing to draw. */
-      return;
-    }
-    instance_data->flags.do_tile_drawing = instance_data->image->source != IMA_SRC_TILED &&
-                                           space->use_tile_drawing();
-    void *lock;
-    ImBuf *image_buffer = space->acquire_image_buffer(instance_data->image, &lock);
-
-    /* Setup the matrix to go from screen UV coordinates to UV texture space coordinates. */
-    float image_resolution[2] = {image_buffer ? image_buffer->x : 1024.0f,
-                                 image_buffer ? image_buffer->y : 1024.0f};
-    space->init_ss_to_texture_matrix(draw_ctx->region,
-                                     instance_data->image->runtime.backdrop_offset,
-                                     image_resolution,
-                                     instance_data->ss_to_texture);
-
-    const Scene *scene = DRW_context_state_get()->scene;
-    instance_data->sh_params.update(space.get(), scene, instance_data->image, image_buffer);
-    space->release_buffer(instance_data->image, image_buffer, lock);
-
-    ImageUser *iuser = space->get_image_user();
-    if (instance_data->image->rr != nullptr) {
-      BKE_image_multilayer_index(instance_data->image->rr, iuser);
-    }
-    else {
-      BKE_image_multiview_index(instance_data->image, iuser);
-    }
-    drawing_mode.image_sync(vedata, instance_data->image, iuser);
-  }
-
-  void draw_finish()
-  {
-    drawing_mode.draw_finish(vedata);
-
-    IMAGE_InstanceData *instance_data = vedata->instance_data;
-    instance_data->image = nullptr;
-  }
-
-  void draw_viewport()
-  {
-    drawing_mode.draw_viewport(vedata);
-  }
+struct IMAGE_Data {
+  void *engine_type;
+  DRWViewportEmptyList *fbl;
+  DRWViewportEmptyList *txl;
+  DRWViewportEmptyList *psl;
+  DRWViewportEmptyList *stl;
+  Instance *instance;
+  char info[GPU_INFO_SIZE];
 };
 
 /* -------------------------------------------------------------------- */
 /** \name Engine Callbacks
  * \{ */
 
-static void IMAGE_engine_init(void *ved)
+static void IMAGE_engine_init(void *vedata)
 {
-  IMAGE_Data *vedata = (IMAGE_Data *)ved;
-  if (vedata->instance_data == nullptr) {
-    vedata->instance_data = MEM_new<IMAGE_InstanceData>(__func__);
+  IMAGE_Data *ved = reinterpret_cast<IMAGE_Data *>(vedata);
+  if (ved->instance == nullptr) {
+    ved->instance = new image_engine::Instance();
   }
+
+  const DRWContextState *ctx_state = DRW_context_state_get();
+  Main *bmain = CTX_data_main(ctx_state->evil_C);
+  ved->instance->init(bmain, ctx_state->space_data, ctx_state->region);
 }
 
 static void IMAGE_cache_init(void *vedata)
 {
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  ImageEngine image_engine(draw_ctx, static_cast<IMAGE_Data *>(vedata));
-  image_engine.begin_sync();
-  image_engine.image_sync();
+  IMAGE_Data *ved = reinterpret_cast<IMAGE_Data *>(vedata);
+  ved->instance->begin_sync();
+  ved->instance->image_sync();
 }
 
 static void IMAGE_cache_populate(void * /*vedata*/, Object * /*ob*/)
@@ -160,10 +76,9 @@ static void IMAGE_cache_populate(void * /*vedata*/, Object * /*ob*/)
 
 static void IMAGE_draw_scene(void *vedata)
 {
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  ImageEngine image_engine(draw_ctx, static_cast<IMAGE_Data *>(vedata));
-  image_engine.draw_viewport();
-  image_engine.draw_finish();
+  IMAGE_Data *ved = reinterpret_cast<IMAGE_Data *>(vedata);
+  ved->instance->draw_viewport();
+  ved->instance->draw_finish();
 }
 
 static void IMAGE_engine_free()
@@ -171,21 +86,20 @@ static void IMAGE_engine_free()
   IMAGE_shader_free();
 }
 
-static void IMAGE_instance_free(void *_instance_data)
+static void IMAGE_instance_free(void *instance)
 {
-  IMAGE_InstanceData *instance_data = reinterpret_cast<IMAGE_InstanceData *>(_instance_data);
-  MEM_delete(instance_data);
+  delete reinterpret_cast<image_engine::Instance *>(instance);
 }
 
 /** \} */
 
 static const DrawEngineDataSize IMAGE_data_size = DRW_VIEWPORT_DATA_SIZE(IMAGE_Data);
 
-}  // namespace blender::draw::image_engine
+}  // namespace blender::image_engine
 
 extern "C" {
 
-using namespace blender::draw::image_engine;
+using namespace blender::image_engine;
 
 DrawEngineType draw_engine_image_type = {
     /*next*/ nullptr,

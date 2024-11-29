@@ -10,7 +10,7 @@
 
 #include "image_private.hh"
 
-namespace blender::draw::image_engine {
+namespace blender::image_engine {
 
 class SpaceNodeAccessor : public AbstractSpaceAccessor {
   SpaceNode *snode;
@@ -111,4 +111,4 @@ class SpaceNodeAccessor : public AbstractSpaceAccessor {
   }
 };
 
-}  // namespace blender::draw::image_engine
+}  // namespace blender::image_engine

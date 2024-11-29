@@ -20,16 +20,16 @@
 
 #include "DRW_render.hh"
 
-namespace blender::draw::image_engine {
+namespace blender::image_engine {
 
-struct IMAGE_InstanceData {
-  Image *image;
+struct State {
+  Image *image = nullptr;
   /** Usage data of the previous time, to identify changes that require a full update. */
   ImageUsage last_usage;
 
-  PartialImageUpdater partial_update;
+  PartialImageUpdater partial_update = {};
 
-  DRWView *view;
+  DRWView *view = nullptr;
   ShaderParameters sh_params;
   struct {
     /**
@@ -42,8 +42,8 @@ struct IMAGE_InstanceData {
   } flags;
 
   struct {
-    DRWPass *image_pass;
-    DRWPass *depth_pass;
+    DRWPass *image_pass = nullptr;
+    DRWPass *depth_pass = nullptr;
   } passes;
 
   /**
@@ -57,7 +57,7 @@ struct IMAGE_InstanceData {
   Vector<TextureInfo> texture_infos;
 
  public:
-  virtual ~IMAGE_InstanceData() = default;
+  virtual ~State() = default;
 
   void clear_need_full_update_flag()
   {
@@ -96,4 +96,4 @@ struct IMAGE_InstanceData {
   }
 };
 
-}  // namespace blender::draw::image_engine
+}  // namespace blender::image_engine

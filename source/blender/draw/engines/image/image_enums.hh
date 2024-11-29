@@ -10,7 +10,7 @@
 
 #include "BLI_utildefines.h"
 
-namespace blender::draw::image_engine {
+namespace blender::image_engine {
 
 /* Shader parameters. */
 enum class ImageDrawFlags {
@@ -22,4 +22,4 @@ enum class ImageDrawFlags {
 };
 ENUM_OPERATORS(ImageDrawFlags, ImageDrawFlags::Depth);
 
-}  // namespace blender::draw::image_engine
+}  // namespace blender::image_engine

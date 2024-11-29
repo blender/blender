@@ -106,6 +106,7 @@ set(SRC
   engines/basic/basic_shader.cc
   engines/compositor/compositor_engine.cc
   engines/image/image_engine.cc
+  engines/image/image_drawing_mode.cc
   engines/image/image_shader.cc
   engines/eevee_next/eevee_ambient_occlusion.cc
   engines/eevee_next/eevee_camera.cc
@@ -276,7 +277,7 @@ set(SRC
   engines/image/image_drawing_mode.hh
   engines/image/image_engine.h
   engines/image/image_enums.hh
-  engines/image/image_instance_data.hh
+  engines/image/image_state.hh
   engines/image/image_partial_updater.hh
   engines/image/image_private.hh
   engines/image/image_shader_params.hh

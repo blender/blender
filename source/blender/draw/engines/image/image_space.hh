@@ -8,7 +8,7 @@
 
 #pragma once
 
-namespace blender::draw::image_engine {
+namespace blender::image_engine {
 
 struct ShaderParameters;
 
@@ -75,4 +75,4 @@ class AbstractSpaceAccessor {
                                          float r_uv_to_texture[4][4]) const = 0;
 };
 
-}  // namespace blender::draw::image_engine
+}  // namespace blender::image_engine

@@ -8,7 +8,7 @@
 
 #pragma once
 
-namespace blender::draw::image_engine {
+namespace blender::image_engine {
 
 /**
  * ImageUsage contains data of the image and image user to identify changes that require a rebuild
@@ -51,4 +51,4 @@ struct ImageUsage {
   }
 };
 
-}  // namespace blender::draw::image_engine
+}  // namespace blender::image_engine
