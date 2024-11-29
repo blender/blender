@@ -646,7 +646,7 @@ def rmtree_with_fallback_or_error_pseudo_atomic(
         path_test = path_base
         test_count = 0
         # Unlikely this exists.
-        while os.path.exists(path_test):
+        while os.path.lexists(path_test):
             path_test = "{:s}{:d}".format(path_base, test_count)
             test_count += 1
             # Very unlikely, something is likely incorrect in the setup, avoid hanging.
@@ -4039,7 +4039,7 @@ class subcmd_client:
                 filepath_local_pkg_temp = filepath_local_pkg + "@"
 
                 # It's unlikely this exist, nevertheless if it does - it must be removed.
-                if os.path.exists(filepath_local_pkg_temp):
+                if os.path.lexists(filepath_local_pkg_temp):
                     if (error := rmtree_with_fallback_or_error(filepath_local_pkg_temp)) is not None:
                         msglog.error(
                             "Failed to remove temporary directory for \"{:s}\": {:s}".format(manifest.id, error),
@@ -4064,12 +4064,12 @@ class subcmd_client:
             # check for any file since the existence of a file should not break installation.
             # Besides users manually creating files, this could occur from broken symbolic-links
             # or an incorrectly repaired corrupt file-system.
-            if os.path.exists(filepath_local_pkg):
+            if os.path.lexists(filepath_local_pkg):
                 if (error := rmtree_with_fallback_or_error_pseudo_atomic(
                         filepath_local_pkg,
                         temp_prefix_and_suffix=temp_prefix_and_suffix,
                 )) is not None:
-                    if os.path.exists(filepath_local_pkg):
+                    if os.path.lexists(filepath_local_pkg):
                         msglog.error("Failed to remove or relocate existing directory for \"{:s}\": {:s}".format(
                             manifest.id,
                             error,
