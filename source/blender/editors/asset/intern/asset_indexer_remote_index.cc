@@ -55,20 +55,20 @@ static std::optional<RemoteIndexAssetEntry> indexer_entry_from_asset_dictionary(
   RemoteIndexAssetEntry indexer_entry{};
 
   /* 'id': name of the asset. Required string. */
-  if (const std::optional<StringRef> name = dictionary.lookup_str("id")) {
+  if (const std::optional<StringRef> name = dictionary.lookup_str("name")) {
     name->copy(indexer_entry.datablock_info.name);
   }
   else {
-    *r_failure_reason = "could not read asset name, 'id' field not set";
+    *r_failure_reason = "could not read asset name, 'name' field not set";
     return {};
   }
 
   /* 'type': data-block type, must match the #IDTypeInfo.name of the given type. required string.
    */
-  if (const std::optional<StringRefNull> idtype_name = dictionary.lookup_str("type")) {
+  if (const std::optional<StringRefNull> idtype_name = dictionary.lookup_str("id_type")) {
     indexer_entry.idcode = BKE_idtype_idcode_from_name(idtype_name->c_str());
     if (!BKE_idtype_idcode_is_valid(indexer_entry.idcode)) {
-      *r_failure_reason = "could not read asset type, 'type' field is not a valid type";
+      *r_failure_reason = "could not read asset type, 'id_type' field is not a valid type";
       return {};
     }
   }
@@ -87,7 +87,7 @@ static std::optional<RemoteIndexAssetEntry> indexer_entry_from_asset_dictionary(
   }
 
   /* 'thumbnail': optional string. */
-  indexer_entry.thumbnail_url = dictionary.lookup_str("thumbnail").value_or("");
+  indexer_entry.thumbnail_url = dictionary.lookup_str("thumbnail_url").value_or("");
 
   /* 'metadata': optional dictionary. If all the metadata fields are empty, this can be left out of
    * the index. Default metadata will then be allocated, with all fields empty/0. */
