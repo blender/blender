@@ -29,6 +29,7 @@
 
 #pragma once
 
+#include <cassert>
 #include <cstdio>
 #include <type_traits>
 
@@ -498,7 +499,8 @@ RESHAPE(float3x3, float3x4, m[0].xyz, m[1].xyz, m[2].xyz)
 /** \name Sampler Types
  * \{ */
 
-template<typename T, int Dimensions, bool Cube = false, bool Array = false> struct SamplerBase {
+template<typename T, int Dimensions, bool Cube = false, bool Array = false, bool Atomic = false>
+struct SamplerBase {
   static constexpr int coord_dim = Dimensions + int(Cube) + int(Array);
   static constexpr int deriv_dim = Dimensions + int(Cube);
   static constexpr int extent_dim = Dimensions + int(Array);
@@ -556,6 +558,16 @@ using usamplerCube = SamplerBase<uint, 2, true>;
 using samplerCubeArray = SamplerBase<double, 2, true, true>;
 using isamplerCubeArray = SamplerBase<int, 2, true, true>;
 using usamplerCubeArray = SamplerBase<uint, 2, true, true>;
+
+using usampler1DAtomic = SamplerBase<uint, 1, false, false, true>;
+using usampler2DAtomic = SamplerBase<uint, 2, false, false, true>;
+using usampler2DArrayAtomic = SamplerBase<uint, 2, false, true, true>;
+using usampler3DAtomic = SamplerBase<uint, 3, false, false, true>;
+
+using isampler1DAtomic = SamplerBase<int, 1, false, false, true>;
+using isampler2DAtomic = SamplerBase<int, 2, false, false, true>;
+using isampler2DArrayAtomic = SamplerBase<int, 2, false, true, true>;
+using isampler3DAtomic = SamplerBase<int, 3, false, false, true>;
 
 using depth2D = sampler2D;
 using depth2DArray = sampler2DArray;
