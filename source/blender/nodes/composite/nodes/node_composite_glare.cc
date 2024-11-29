@@ -1827,7 +1827,7 @@ class GlareOperation : public NodeOperation {
     }
     else {
       parallel_for(fog_glow_result.domain().size, [&](const int2 texel) {
-        fog_glow_result.store_pixel(highlights.load_pixel());
+        fog_glow_result.store_pixel(texel, highlights.load_pixel(texel));
       });
     }
 #endif
