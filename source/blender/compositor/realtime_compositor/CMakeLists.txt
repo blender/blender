@@ -6,6 +6,7 @@ set(INC
   .
   algorithms
   cached_resources
+  utilities
   ../../blenkernel
   ../../blentranslation
   ../../draw
@@ -138,6 +139,8 @@ set(SRC
   cached_resources/COM_symmetric_blur_weights.hh
   cached_resources/COM_symmetric_separable_blur_weights.hh
   cached_resources/COM_van_vliet_gaussian_coefficients.hh
+
+  utilities/COM_utilities_diagonals.hh
 )
 
 set(LIB
