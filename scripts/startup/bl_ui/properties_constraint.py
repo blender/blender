@@ -85,9 +85,9 @@ class ConstraintButtonsPanel:
                 col.prop(con, "space_object")
                 if space_object := con.space_object:
                     match space_object.type:
-                        'ARMATURE':
+                        case 'ARMATURE':
                             col.prop_search(con, "space_subtarget", con.space_object.data, "bones", text="Bone")
-                        'MESH', 'LATTICE':
+                        case 'MESH', 'LATTICE':
                             col.prop_search(con, "space_subtarget", con.space_object,
                                             "vertex_groups", text="Vertex Group")
 
