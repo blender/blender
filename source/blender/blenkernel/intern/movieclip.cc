@@ -55,6 +55,7 @@
 #include "BKE_node_tree_update.hh"
 #include "BKE_tracking.h"
 
+#include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 #include "IMB_moviecache.hh"
@@ -608,6 +609,9 @@ static ImBuf *movieclip_load_movie_file(MovieClip *clip,
     int fra = framenr - clip->start_frame + clip->frame_offset;
 
     ibuf = IMB_anim_absolute(clip->anim, fra, IMB_Timecode_Type(tc), IMB_Proxy_Size(proxy));
+    if (ibuf) {
+      colormanage_imbuf_make_linear(ibuf, clip->colorspace_settings.name);
+    }
   }
 
   return ibuf;
