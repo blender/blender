@@ -7,10 +7,12 @@
 #  include "gpu_glsl_cpp_stubs.hh"
 
 #  include "draw_shader_shared.hh"
+#  include "gpencil_shader_shared.h"
 
 #  include "draw_view_info.hh"
 
 #  define HAIR_SHADER
+#  define DRW_GPENCIL_INFO
 
 #  define OrcoTexCoFactors (drw_infos[resource_id].orco_mul_bias)
 #  define ObjectInfo (drw_infos[resource_id].infos)
