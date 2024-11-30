@@ -622,15 +622,15 @@ HierarchyContext AbstractHierarchyIterator::context_for_object_data(
 {
   HierarchyContext data_context = *object_context;
   data_context.is_object_data_context = true;
-
-  ExportGraph::key_type object_key = ObjectIdentifier::for_real_object(data_context.object);
-  auto iter = export_graph_.find(object_key);
-  data_context.is_parent = iter->second.size() > 0;
-
   data_context.higher_up_export_path = object_context->export_path;
   data_context.export_name = get_object_data_name(data_context.object);
   data_context.export_path = path_concatenate(data_context.higher_up_export_path,
                                               data_context.export_name);
+
+  ExportGraph::key_type object_key = ObjectIdentifier::for_hierarchy_context(&data_context);
+  ExportGraph::const_iterator iter = export_graph_.find(object_key);
+  data_context.is_parent = iter != export_graph_.end() ? (iter->second.size() > 0) : false;
+
   return data_context;
 }
 
