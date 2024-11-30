@@ -170,7 +170,7 @@ template<typename T, int Sz> struct SwizzleBase : VecOp<T, Sz> {
 
 #define SWIZZLE_RGB(T) \
   SWIZZLE_RG(T) \
-  SwizzleBase<T, 2> rb, gb, br, bg, bb, bw; \
+  SwizzleBase<T, 2> rb, gb, br, bg, bb; \
   SwizzleBase<T, 3> rrb, rgb, rbr, rbg, rbb, grb, ggb, gbr, gbg, gbb, brr, brg, brb, bgr, bgg, \
       bgb, bbr, bbg, bbb; \
   SwizzleBase<T, 4> rrrb, rrgb, rrbr, rrbg, rrbb, rgrb, rggb, rgbr, rgbg, rgbb, rbrr, rbrg, rbrb, \
@@ -200,7 +200,7 @@ template<typename T, int Sz> struct SwizzleBase : VecOp<T, Sz> {
 
 #define SWIZZLE_RGBA(T) \
   SWIZZLE_RGB(T) \
-  SwizzleBase<T, 2> ra, ga, ar, ag, ab, aa; \
+  SwizzleBase<T, 2> ra, ga, ba, ar, ag, ab, aa; \
   SwizzleBase<T, 3> rra, rga, rba, rar, rag, rab, raa, gra, gga, gba, gar, gag, gab, gaa, bra, \
       bga, bba, bar, bag, bab, baa, arr, arg, arb, ara, agr, agg, agb, aga, abr, abg, abb, aba, \
       aar, aag, aab, aaa; \
@@ -665,6 +665,7 @@ IMG_TEMPLATE uint imageAtomicMin(T &, IntCoord, uint) RET;
 IMG_TEMPLATE uint imageAtomicMax(T &, IntCoord, uint) RET;
 IMG_TEMPLATE uint imageAtomicAnd(T &, IntCoord, uint) RET;
 IMG_TEMPLATE uint imageAtomicXor(T &, IntCoord, uint) RET;
+IMG_TEMPLATE uint imageAtomicOr(T &, IntCoord, uint) RET;
 IMG_TEMPLATE uint imageAtomicExchange(T &, IntCoord, uint) RET;
 IMG_TEMPLATE uint imageAtomicCompSwap(T &, IntCoord, uint, uint) RET;
 /* Cannot write to a read only image. */
@@ -673,6 +674,7 @@ IMG_TEMPLATE uint imageAtomicMin(const T &, IntCoord, uint) = delete;
 IMG_TEMPLATE uint imageAtomicMax(const T &, IntCoord, uint) = delete;
 IMG_TEMPLATE uint imageAtomicAnd(const T &, IntCoord, uint) = delete;
 IMG_TEMPLATE uint imageAtomicXor(const T &, IntCoord, uint) = delete;
+IMG_TEMPLATE uint imageAtomicOr(const T &, IntCoord, uint) = delete;
 IMG_TEMPLATE uint imageAtomicExchange(const T &, IntCoord, uint) = delete;
 IMG_TEMPLATE uint imageAtomicCompSwap(const T &, IntCoord, uint, uint) = delete;
 
@@ -775,6 +777,7 @@ template<typename T, typename U> T pow(T, U) RET;
 template<typename T> T round(T) RET;
 template<typename T> T smoothstep(T, T, T) RET;
 template<typename T> T sqrt(T) RET;
+double step(double, double) RET;
 template<int D> VecBase<double, D> step(VecOp<double, D>, VecOp<double, D>) RET;
 template<int D> VecBase<double, D> step(double, VecOp<double, D>) RET;
 template<typename T> T trunc(T) RET;
