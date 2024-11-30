@@ -36,6 +36,8 @@
 #include "GPU_uniform_buffer.hh"
 
 #include "draw_manager.hh"
+#include "draw_view.hh"
+
 #include "gpencil_engine.h"
 
 #include "DEG_depsgraph_query.hh"
@@ -79,7 +81,7 @@ void GPENCIL_engine_init(void *ved)
   BLI_memblock_clear(vldata->gp_light_pool, gpencil_light_pool_free);
   BLI_memblock_clear(vldata->gp_material_pool, gpencil_material_pool_free);
   BLI_memblock_clear(vldata->gp_object_pool, nullptr);
-  BLI_memblock_clear(vldata->gp_layer_pool, nullptr);
+  vldata->gp_layer_pool->clear();
   vldata->gp_vfx_pool->clear();
   BLI_memblock_clear(vldata->gp_maskbit_pool, nullptr);
 
@@ -370,9 +372,11 @@ static bool use_layer_in_render(const GreasePencil &grease_pencil,
   return true;
 }
 
-static GPENCIL_tObject *grease_pencil_object_cache_populate(GPENCIL_PrivateData *pd,
-                                                            GPENCIL_TextureList *txl,
-                                                            Object *ob)
+static GPENCIL_tObject *grease_pencil_object_cache_populate(
+    GPENCIL_PrivateData *pd,
+    GPENCIL_TextureList *txl,
+    Object *ob,
+    blender::draw::ResourceHandle res_handle)
 {
   using namespace blender;
   using namespace blender::ed::greasepencil;
@@ -395,14 +399,14 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(GPENCIL_PrivateData 
   GPUTexture *tex_stroke = txl->dummy_texture;
 
   blender::gpu::Batch *iter_geom = nullptr;
-  DRWShadingGroup *grp;
+  PassSimple *last_pass = nullptr;
   int vfirst = 0;
   int vcount = 0;
 
-  const auto drawcall_flush = [&]() {
+  const auto drawcall_flush = [&](PassSimple &pass) {
 #if !DISABLE_BATCHING
     if (iter_geom != nullptr) {
-      DRW_shgroup_call_range(grp, ob, iter_geom, vfirst, vcount);
+      pass.draw(iter_geom, 1, vcount, vfirst, res_handle);
     }
 #endif
     iter_geom = nullptr;
@@ -411,15 +415,15 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(GPENCIL_PrivateData 
   };
 
   const auto drawcall_add =
-      [&](blender::gpu::Batch *draw_geom, const int v_first, const int v_count) {
+      [&](PassSimple &pass, blender::gpu::Batch *draw_geom, const int v_first, const int v_count) {
 #if DISABLE_BATCHING
-        DRW_shgroup_call_range(grp, ob, geom, v_first, v_count);
+        pass.draw(iter_geom, 1, vcount, vfirst, res_handle);
         return;
 #endif
         int last = vfirst + vcount;
         /* Interrupt draw-call grouping if the sequence is not consecutive. */
         if ((draw_geom != iter_geom) || (v_first - last > 0)) {
-          drawcall_flush();
+          drawcall_flush(pass);
         }
         iter_geom = draw_geom;
         if (vfirst == -1) {
@@ -474,10 +478,12 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(GPENCIL_PrivateData 
       continue;
     }
 
-    drawcall_flush();
-
     GPENCIL_tLayer *tgp_layer = grease_pencil_layer_cache_add(
         pd, ob, layer, info.onion_id, is_layer_used_as_mask, tgp_ob);
+    PassSimple &pass = *tgp_layer->geom_ps;
+    last_pass = &pass;
+
+    drawcall_flush(pass);
 
     const bool use_lights = pd->use_lighting &&
                             ((layer.base.flag & GP_LAYER_TREE_NODE_USE_LIGHTS) != 0) &&
@@ -489,15 +495,14 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(GPENCIL_PrivateData 
     GPUUniformBuf *ubo_mat;
     gpencil_material_resources_get(matpool, 0, nullptr, nullptr, &ubo_mat);
 
-    grp = tgp_layer->base_shgrp;
-    DRW_shgroup_uniform_block(grp, "gp_lights", lights_ubo);
-    DRW_shgroup_uniform_block(grp, "gp_materials", ubo_mat);
-    DRW_shgroup_uniform_texture(grp, "gpFillTexture", tex_fill);
-    DRW_shgroup_uniform_texture(grp, "gpStrokeTexture", tex_stroke);
-    DRW_shgroup_uniform_int_copy(grp, "gpMaterialOffset", mat_ofs);
+    pass.bind_ubo("gp_lights", lights_ubo);
+    pass.bind_ubo("gp_materials", ubo_mat);
+    pass.bind_texture("gpFillTexture", tex_fill);
+    pass.bind_texture("gpStrokeTexture", tex_stroke);
+    pass.push_constant("gpMaterialOffset", int(mat_ofs));
     /* Since we don't use the sbuffer in GPv3, this is always 0. */
-    DRW_shgroup_uniform_float_copy(grp, "gpStrokeIndexOffset", 0.0f);
-    DRW_shgroup_uniform_vec2_copy(grp, "viewportSize", DRW_viewport_size_get());
+    pass.push_constant("gpStrokeIndexOffset", 0.0f);
+    pass.push_constant("viewportSize", float2(DRW_viewport_size_get()));
 
     const VArray<int> stroke_materials = *attributes.lookup_or_default<int>(
         "material_index", bke::AttrDomain::Curve, 0);
@@ -545,39 +550,38 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(GPENCIL_PrivateData 
                                     (new_tex_stroke && (new_tex_stroke != tex_stroke));
 
       if (resource_changed) {
-        drawcall_flush();
+        drawcall_flush(pass);
 
-        grp = DRW_shgroup_create_sub(grp);
         if (new_ubo_mat != ubo_mat) {
-          DRW_shgroup_uniform_block(grp, "gp_materials", new_ubo_mat);
+          pass.bind_ubo("gp_materials", new_ubo_mat);
           ubo_mat = new_ubo_mat;
         }
         if (new_tex_fill) {
-          DRW_shgroup_uniform_texture(grp, "gpFillTexture", new_tex_fill);
+          pass.bind_texture("gpFillTexture", new_tex_fill);
           tex_fill = new_tex_fill;
         }
         if (new_tex_stroke) {
-          DRW_shgroup_uniform_texture(grp, "gpStrokeTexture", new_tex_stroke);
+          pass.bind_texture("gpStrokeTexture", new_tex_stroke);
           tex_stroke = new_tex_stroke;
         }
       }
 
       blender::gpu::Batch *geom = draw::DRW_cache_grease_pencil_get(pd->scene, ob);
       if (iter_geom != geom) {
-        drawcall_flush();
+        drawcall_flush(pass);
 
         blender::gpu::VertBuf *position_tx = draw::DRW_cache_grease_pencil_position_buffer_get(
             pd->scene, ob);
         blender::gpu::VertBuf *color_tx = draw::DRW_cache_grease_pencil_color_buffer_get(pd->scene,
                                                                                          ob);
-        DRW_shgroup_buffer_texture(grp, "gp_pos_tx", position_tx);
-        DRW_shgroup_buffer_texture(grp, "gp_col_tx", color_tx);
+        pass.bind_texture("gp_pos_tx", position_tx);
+        pass.bind_texture("gp_col_tx", color_tx);
       }
 
       if (show_fill) {
         const int v_first = t_offset * 3;
         const int v_count = num_triangles_per_stroke[pos] * 3;
-        drawcall_add(geom, v_first, v_count);
+        drawcall_add(pass, geom, v_first, v_count);
       }
 
       t_offset += num_triangles_per_stroke[pos];
@@ -585,14 +589,16 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(GPENCIL_PrivateData 
       if (show_stroke) {
         const int v_first = t_offset * 3;
         const int v_count = num_vertices_per_stroke[pos] * 2 * 3;
-        drawcall_add(geom, v_first, v_count);
+        drawcall_add(pass, geom, v_first, v_count);
       }
 
       t_offset += num_vertices_per_stroke[pos] * 2;
     });
   }
 
-  drawcall_flush();
+  if (last_pass) {
+    drawcall_flush(*last_pass);
+  }
 
   return tgp_ob;
 }
@@ -609,7 +615,11 @@ void GPENCIL_cache_populate(void *ved, Object *ob)
   }
 
   if (ob->data && (ob->type == OB_GREASE_PENCIL) && (ob->dt >= OB_SOLID)) {
-    GPENCIL_tObject *tgp_ob = grease_pencil_object_cache_populate(pd, txl, ob);
+    blender::draw::Manager *manager = DRW_manager_get();
+    blender::draw::ObjectRef ob_ref = DRW_object_ref_get(ob);
+    blender::draw::ResourceHandle res_handle = manager->unique_handle(ob_ref);
+
+    GPENCIL_tObject *tgp_ob = grease_pencil_object_cache_populate(pd, txl, ob, res_handle);
     gpencil_vfx_cache_populate(
         vedata,
         ob,
@@ -725,9 +735,12 @@ static void GPENCIL_draw_scene_depth_only(void *ved)
     GPU_framebuffer_bind(dfbl->depth_only_fb);
   }
 
+  blender::draw::Manager *manager = DRW_manager_get();
+  blender::draw::View view("GPDepthOnlyView", DRW_view_get_active());
+
   LISTBASE_FOREACH (GPENCIL_tObject *, ob, &pd->tobjects) {
     LISTBASE_FOREACH (GPENCIL_tLayer *, layer, &ob->layers) {
-      DRW_draw_pass(layer->geom_ps);
+      manager->submit(*layer->geom_ps, view);
     }
   }
 
@@ -735,11 +748,15 @@ static void GPENCIL_draw_scene_depth_only(void *ved)
     GPU_framebuffer_bind(dfbl->default_fb);
   }
 
-  pd->gp_object_pool = pd->gp_layer_pool = pd->gp_maskbit_pool = nullptr;
+  pd->gp_object_pool = pd->gp_maskbit_pool = nullptr;
   pd->gp_vfx_pool = nullptr;
+  pd->gp_layer_pool = nullptr;
 }
 
-static void gpencil_draw_mask(GPENCIL_Data *vedata, GPENCIL_tObject *ob, GPENCIL_tLayer *layer)
+static void gpencil_draw_mask(GPENCIL_Data *vedata,
+                              blender::draw::View &view,
+                              GPENCIL_tObject *ob,
+                              GPENCIL_tLayer *layer)
 {
   GPENCIL_Instance *inst = vedata->instance;
   blender::draw::Manager *manager = DRW_manager_get();
@@ -779,7 +796,7 @@ static void gpencil_draw_mask(GPENCIL_Data *vedata, GPENCIL_tObject *ob, GPENCIL
       continue;
     }
 
-    DRW_draw_pass(mask_layer->geom_ps);
+    manager->submit(*mask_layer->geom_ps, view);
   }
 
   if (!inverted) {
@@ -790,7 +807,9 @@ static void gpencil_draw_mask(GPENCIL_Data *vedata, GPENCIL_tObject *ob, GPENCIL
   DRW_stats_group_end();
 }
 
-static void GPENCIL_draw_object(GPENCIL_Data *vedata, GPENCIL_tObject *ob)
+static void GPENCIL_draw_object(GPENCIL_Data *vedata,
+                                blender::draw::View &view,
+                                GPENCIL_tObject *ob)
 {
   GPENCIL_Instance *inst = vedata->instance;
   blender::draw::Manager *manager = DRW_manager_get();
@@ -812,7 +831,7 @@ static void GPENCIL_draw_object(GPENCIL_Data *vedata, GPENCIL_tObject *ob)
 
   LISTBASE_FOREACH (GPENCIL_tLayer *, layer, &ob->layers) {
     if (layer->mask_bits) {
-      gpencil_draw_mask(vedata, ob, layer);
+      gpencil_draw_mask(vedata, view, ob, layer);
     }
 
     if (layer->blend_ps) {
@@ -823,11 +842,11 @@ static void GPENCIL_draw_object(GPENCIL_Data *vedata, GPENCIL_tObject *ob)
       GPU_framebuffer_bind(fb_object);
     }
 
-    DRW_draw_pass(layer->geom_ps);
+    manager->submit(*layer->geom_ps, view);
 
     if (layer->blend_ps) {
       GPU_framebuffer_bind(fb_object);
-      DRW_draw_pass(layer->blend_ps);
+      manager->submit(*layer->blend_ps);
     }
   }
 
@@ -841,7 +860,7 @@ static void GPENCIL_draw_object(GPENCIL_Data *vedata, GPENCIL_tObject *ob)
 
   if (pd->scene_fb) {
     GPU_framebuffer_bind(pd->scene_fb);
-    manager->submit(inst->merge_depth_ps);
+    manager->submit(inst->merge_depth_ps, view);
   }
 
   DRW_stats_group_end();
@@ -863,7 +882,7 @@ static void GPENCIL_fast_draw_start(GPENCIL_Data *vedata)
   }
 }
 
-static void GPENCIL_fast_draw_end(GPENCIL_Data *vedata)
+static void GPENCIL_fast_draw_end(GPENCIL_Data *vedata, blender::draw::View &view)
 {
   GPENCIL_PrivateData *pd = vedata->stl->pd;
   GPENCIL_FramebufferList *fbl = vedata->fbl;
@@ -878,7 +897,7 @@ static void GPENCIL_fast_draw_end(GPENCIL_Data *vedata)
   }
   /* Draw the sbuffer stroke(s). */
   LISTBASE_FOREACH (GPENCIL_tObject *, ob, &pd->sbuffer_tobjects) {
-    GPENCIL_draw_object(vedata, ob);
+    GPENCIL_draw_object(vedata, view, ob);
   }
 }
 
@@ -920,20 +939,24 @@ void GPENCIL_draw_scene(void *ved)
     GPU_framebuffer_multi_clear(fbl->gpencil_fb, clear_cols);
   }
 
+  blender::draw::View &view = vedata->instance->view;
+  view.sync(DRW_view_get_active());
+
   LISTBASE_FOREACH (GPENCIL_tObject *, ob, &pd->tobjects) {
-    GPENCIL_draw_object(vedata, ob);
+    GPENCIL_draw_object(vedata, view, ob);
   }
 
   if (pd->do_fast_drawing) {
-    GPENCIL_fast_draw_end(vedata);
+    GPENCIL_fast_draw_end(vedata, view);
   }
 
   if (pd->scene_fb) {
     GPENCIL_antialiasing_draw(vedata);
   }
 
-  pd->gp_object_pool = pd->gp_layer_pool = pd->gp_maskbit_pool = nullptr;
+  pd->gp_object_pool = pd->gp_maskbit_pool = nullptr;
   pd->gp_vfx_pool = nullptr;
+  pd->gp_layer_pool = nullptr;
 }
 
 static void GPENCIL_engine_free()

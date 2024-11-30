@@ -55,7 +55,10 @@ VERTEX_OUT(gpencil_geometry_noperspective_iface)
 VERTEX_SOURCE("gpencil_vert.glsl")
 FRAGMENT_SOURCE("gpencil_frag.glsl")
 DEPTH_WRITE(DepthWrite::ANY)
-ADDITIONAL_INFO(draw_gpencil)
+ADDITIONAL_INFO(draw_view)
+ADDITIONAL_INFO(draw_modelmat_new)
+ADDITIONAL_INFO(draw_resource_handle_new)
+ADDITIONAL_INFO(draw_gpencil_new)
 GPU_SHADER_CREATE_END()
 
 /** \} */

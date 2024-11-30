@@ -451,7 +451,7 @@ static void gpencil_view_layer_data_free(void *storage)
   BLI_memblock_destroy(vldata->gp_material_pool, gpencil_material_pool_free);
   BLI_memblock_destroy(vldata->gp_maskbit_pool, nullptr);
   BLI_memblock_destroy(vldata->gp_object_pool, nullptr);
-  BLI_memblock_destroy(vldata->gp_layer_pool, nullptr);
+  delete vldata->gp_layer_pool;
   delete vldata->gp_vfx_pool;
 }
 
@@ -471,7 +471,7 @@ GPENCIL_ViewLayerData *GPENCIL_view_layer_data_ensure()
     (*vldata)->gp_material_pool = BLI_memblock_create(sizeof(GPENCIL_MaterialPool));
     (*vldata)->gp_maskbit_pool = BLI_memblock_create(BLI_BITMAP_SIZE(GP_MAX_MASKBITS));
     (*vldata)->gp_object_pool = BLI_memblock_create(sizeof(GPENCIL_tObject));
-    (*vldata)->gp_layer_pool = BLI_memblock_create(sizeof(GPENCIL_tLayer));
+    (*vldata)->gp_layer_pool = new GPENCIL_tLayer_Pool();
     (*vldata)->gp_vfx_pool = new GPENCIL_tVfx_Pool();
   }
 
