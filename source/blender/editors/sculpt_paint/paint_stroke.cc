@@ -131,6 +131,11 @@ static void paint_draw_smooth_cursor(bContext *C, int x, int y, void *customdata
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
   PaintStroke *stroke = static_cast<PaintStroke *>(customdata);
+  const PaintMode mode = BKE_paintmode_get_active_from_context(C);
+
+  if ((mode == PaintMode::GPencil) && (paint->flags & PAINT_SHOW_BRUSH) == 0) {
+    return;
+  }
 
   if (stroke && brush) {
     GPU_line_smooth(true);
