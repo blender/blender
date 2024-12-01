@@ -2248,7 +2248,13 @@ static bool interace_panel_has_socket(const bNodeTreeInterfacePanel &interface_p
 {
   for (const bNodeTreeInterfaceItem *item : interface_panel.items()) {
     if (item->item_type == NODE_INTERFACE_SOCKET) {
-      return true;
+      const bNodeTreeInterfaceSocket &socket = *reinterpret_cast<const bNodeTreeInterfaceSocket *>(
+          item);
+      if ((socket.flag &
+           (NODE_INTERFACE_SOCKET_HIDE_IN_MODIFIER | NODE_INTERFACE_SOCKET_OUTPUT)) == 0)
+      {
+        return true;
+      }
     }
     if (item->item_type == NODE_INTERFACE_PANEL) {
       if (interace_panel_has_socket(*reinterpret_cast<const bNodeTreeInterfacePanel *>(item))) {
