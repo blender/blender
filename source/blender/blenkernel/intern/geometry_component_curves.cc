@@ -217,7 +217,7 @@ static Array<float3> curve_normal_point_domain(const CurvesGeometry &curves)
               curves::poly::calculate_normals_minimum(nurbs_tangents, cyclic, curve_normals);
               break;
             case NORMAL_MODE_FREE:
-              custom_normals.materialize(points, curve_normals);
+              custom_normals.materialize(points, results);
               break;
           }
           break;
