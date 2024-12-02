@@ -162,39 +162,11 @@ set(SRC
   engines/select/select_draw_utils.cc
   engines/select/select_engine.cc
   engines/select/select_instance.cc
-  engines/overlay/overlay_antialiasing.cc
   engines/overlay/overlay_armature.cc
-  engines/overlay/overlay_background.cc
-  engines/overlay/overlay_edit_curve.cc
-  engines/overlay/overlay_edit_curves.cc
-  engines/overlay/overlay_edit_mesh.cc
-  engines/overlay/overlay_edit_text.cc
-  engines/overlay/overlay_edit_uv.cc
-  engines/overlay/overlay_engine.cc
-  engines/overlay/overlay_extra.cc
-  engines/overlay/overlay_facing.cc
-  engines/overlay/overlay_fade.cc
-  engines/overlay/overlay_grease_pencil.cc
-  engines/overlay/overlay_grid.cc
-  engines/overlay/overlay_image.cc
-  engines/overlay/overlay_lattice.cc
-  engines/overlay/overlay_metaball.cc
-  engines/overlay/overlay_mode_transfer.cc
-  engines/overlay/overlay_motion_path.cc
   engines/overlay/overlay_next_engine.cc
   engines/overlay/overlay_next_instance.cc
   engines/overlay/overlay_next_shader.cc
   engines/overlay/overlay_next_shape.cc
-  engines/overlay/overlay_outline.cc
-  engines/overlay/overlay_paint.cc
-  engines/overlay/overlay_particle.cc
-  engines/overlay/overlay_sculpt.cc
-  engines/overlay/overlay_sculpt_curves.cc
-  engines/overlay/overlay_shader.cc
-  engines/overlay/overlay_viewer_attribute.cc
-  engines/overlay/overlay_viewer_text.cc
-  engines/overlay/overlay_volume.cc
-  engines/overlay/overlay_wireframe.cc
 
   DRW_engine.hh
   DRW_pbvh.hh
