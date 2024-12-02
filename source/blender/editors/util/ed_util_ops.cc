@@ -189,7 +189,7 @@ static void ED_OT_lib_id_generate_preview(wmOperatorType *ot)
 
 static bool lib_id_generate_preview_from_object_poll(bContext *C)
 {
-  if (!lib_id_generate_preview_poll(C)) {
+  if (!lib_id_preview_editing_poll(C)) {
     return false;
   }
   if (CTX_data_active_object(C) == nullptr) {
