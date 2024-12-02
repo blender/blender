@@ -1357,24 +1357,6 @@ void blo_do_versions_userdef(UserDef *userdef)
     userdef->sequencer_editor_flag |= USER_SEQ_ED_CONNECT_STRIPS_BY_DEFAULT;
   }
 
-  if (!USER_VERSION_ATLEAST(403, 33)) {
-
-    LISTBASE_FOREACH (wmKeyMap *, keymap, &userdef->user_keymaps) {
-      if (STREQ("Sculpt", keymap->idname)) {
-        keymap_update_mesh_sculpt_brushes(keymap);
-      }
-      else if (STREQ("Vertex Paint", keymap->idname)) {
-        keymap_update_mesh_vertex_paint_brushes(keymap);
-      }
-      else if (STREQ("Weight Paint", keymap->idname)) {
-        keymap_update_mesh_weight_paint_brushes(keymap);
-      }
-      else if (STREQ("Image Paint", keymap->idname)) {
-        keymap_update_mesh_texture_paint_brushes(keymap);
-      }
-    }
-  }
-
   if (!USER_VERSION_ATLEAST(404, 3)) {
     userdef->uiflag &= ~USER_FILTER_BRUSHES_BY_TOOL;
 
@@ -1391,6 +1373,23 @@ void blo_do_versions_userdef(UserDef *userdef)
         userdef, "VIEW3D_AST_brush_gpencil_sculpt", "Brushes/Grease Pencil Sculpt/Transform");
     BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(
         userdef, "VIEW3D_AST_brush_gpencil_sculpt", "Brushes/Grease Pencil Sculpt/Utilities");
+  }
+
+  if (!USER_VERSION_ATLEAST(404, 9)) {
+    LISTBASE_FOREACH (wmKeyMap *, keymap, &userdef->user_keymaps) {
+      if (STREQ("Sculpt", keymap->idname)) {
+        keymap_update_mesh_sculpt_brushes(keymap);
+      }
+      else if (STREQ("Vertex Paint", keymap->idname)) {
+        keymap_update_mesh_vertex_paint_brushes(keymap);
+      }
+      else if (STREQ("Weight Paint", keymap->idname)) {
+        keymap_update_mesh_weight_paint_brushes(keymap);
+      }
+      else if (STREQ("Image Paint", keymap->idname)) {
+        keymap_update_mesh_texture_paint_brushes(keymap);
+      }
+    }
   }
 
   /**
